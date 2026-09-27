@@ -25,12 +25,12 @@ structure ProposalViewTransport (p : Params) {n : Nat}
     goldfishScore reader.blocks (voterView p reader s) (voterSupportView p reader s) C =
       goldfishScore source.blocks (proposerView source s) (proposerSupportView source s) C
 
-/-- Honest proposal adoption from an ordinary source walk that starts at
-genesis. This walk remains available when release removes a constraint.
-The target root is checked after release, and the view-transport premises
-are separate from the source walk and the delivered proposal path. -/
-theorem forkChoice_adopts_of_proposal_transport (p : Params) {n : Nat}
+/-- Proposal adoption also permits extra ineligible paths in the target
+tree. Only eligible candidates must reflect to the source or be the fresh
+proposal. The target anchor can be any prefix of the ordinary parent. -/
+theorem ghost_adopts_of_eligible_proposal_transport (p : Params) {n : Nat}
     (source reader : State n) (s : Slot) (B parent : Block)
+    (tree : List Block) (anchor : Block) (htree : tree ⊆ reader.blocks)
     (hsourceRoot : RootInjectiveBelow source.blocks)
     (hreaderRoot : RootInjectiveBelow reader.blocks)
     (hsourceClosed : StoredPrefixClosed source)
@@ -38,37 +38,43 @@ theorem forkChoice_adopts_of_proposal_transport (p : Params) {n : Nat}
       (goldfishScore source.blocks (proposerView source s) (proposerSupportView source s))
       (goldfishEligible source.blocks (proposerView source s) (proposerSupportView source s) s)
         = parent)
-    (hanchor : Block.Preceq (liveRoot reader) parent)
+    (hanchor : Block.Preceq anchor parent)
     (hparent : B.parent? = some parent) (hslot : B.slot = s)
-    (hpath : ∀ C, C ≠ .genesis → Block.Preceq C B → C ∈ voterTree p reader s)
-    (hviews : ProposalViewTransport p source reader s B) :
-    Block.Preceq B (forkChoice reader (voterTree p reader s)
-      (voterView p reader s) (voterSupportView p reader s) s) := by
+    (hpath : ∀ C, C ≠ .genesis → Block.Preceq C B → C ∈ tree)
+    (hreflect : ∀ C ∈ tree, goldfishEligible reader.blocks (voterView p reader s)
+      (voterSupportView p reader s) s C = true → C = B ∨ C ∈ source.blocks)
+    (hcount : voterCount (voterView p reader s) = voterCount (proposerView source s))
+    (hscore : ∀ C ∈ source.blocks, C ∈ tree →
+      goldfishScore reader.blocks (voterView p reader s) (voterSupportView p reader s) C =
+        goldfishScore source.blocks (proposerView source s) (proposerSupportView source s) C) :
+    Block.Preceq B (ghost anchor tree
+      (goldfishScore reader.blocks (voterView p reader s) (voterSupportView p reader s))
+      (goldfishEligible reader.blocks (voterView p reader s) (voterSupportView p reader s) s)) := by
   let srcScore := goldfishScore source.blocks (proposerView source s) (proposerSupportView source s)
   let dstScore := goldfishScore reader.blocks (voterView p reader s) (voterSupportView p reader s)
   let srcEligible := goldfishEligible source.blocks (proposerView source s)
     (proposerSupportView source s) s
   let dstEligible := goldfishEligible reader.blocks (voterView p reader s)
     (voterSupportView p reader s) s
-  have hroot : RootInjectiveBelow (voterTree p reader s) := by
+  have hroot : RootInjectiveBelow tree := by
     intro A C hA hC he
     obtain ⟨D, hd, hAD⟩ := hA
     obtain ⟨F, hf, hCF⟩ := hC
-    exact hreaderRoot A C ⟨D, (List.mem_filter.mp hd).1, hAD⟩
-      ⟨F, (List.mem_filter.mp hf).1, hCF⟩ he
-  have helig : ∀ C ∈ source.blocks, C ∈ voterTree p reader s →
+    exact hreaderRoot A C ⟨D, htree hd, hAD⟩
+      ⟨F, htree hf, hCF⟩ he
+  have helig : ∀ C ∈ source.blocks, C ∈ tree →
       dstEligible C = srcEligible C := by
     intro C hc ht
     dsimp [dstEligible, srcEligible, goldfishEligible]
-    rw [hviews.count, hviews.score C hc ht]
+    rw [hcount, hscore C hc ht]
   have hBne : B ≠ .genesis := by intro he; simp [he, Block.parent?] at hparent
   have hB := hpath B hBne (block_preceq_self B)
-  apply ghost_adopts_fresh_child source.blocks (voterTree p reader s) srcScore dstScore
-    srcEligible dstEligible .genesis (liveRoot reader) parent B hsourceRoot hroot hsource
+  apply ghost_adopts_fresh_child source.blocks tree srcScore dstScore
+    srcEligible dstEligible .genesis anchor parent B hsourceRoot hroot hsource
     ⟨genesis_prefix _, hanchor⟩ hparent hpath hB
   · simp [dstEligible, goldfishEligible, hslot]
   · intro D hd hp he
-    rcases hviews.tree D hd with heq | hsourceD
+    rcases hreflect D hd he with heq | hsourceD
     · exact heq
     · have hstop := ghost_result_no_eligible_child source.blocks srcScore srcEligible .genesis
         hsourceRoot hsourceClosed D hsourceD (by rwa [hsource])
@@ -87,12 +93,36 @@ theorem forkChoice_adopts_of_proposal_transport (p : Params) {n : Nat}
     have ht := hpath C hn (prefix_trans C parent B hCP hPB)
     exact ⟨ht, (helig C hc.1 ht).trans hc.2.2⟩
   · intro X D _ _ hne hd hp he
-    rcases hviews.tree D hd with hDB | hD
+    rcases hreflect D hd he with hDB | hD
     · subst D
       have hXP : X = parent := Option.some.inj (hp.symm.trans hparent)
       exact (hne hXP).elim
     · exact ⟨hD, (helig D hD hd).symm.trans he⟩
-  · exact hviews.score
+  · exact hscore
+
+/-- Honest proposal adoption from an ordinary source walk that starts at
+genesis. This walk remains available when release removes a constraint.
+The target root is checked after release, and the view-transport premises
+are separate from the source walk and the delivered proposal path. -/
+theorem forkChoice_adopts_of_proposal_transport (p : Params) {n : Nat}
+    (source reader : State n) (s : Slot) (B parent : Block)
+    (hsourceRoot : RootInjectiveBelow source.blocks)
+    (hreaderRoot : RootInjectiveBelow reader.blocks)
+    (hsourceClosed : StoredPrefixClosed source)
+    (hsource : ghost .genesis source.blocks
+      (goldfishScore source.blocks (proposerView source s) (proposerSupportView source s))
+      (goldfishEligible source.blocks (proposerView source s) (proposerSupportView source s) s)
+        = parent)
+    (hanchor : Block.Preceq (liveRoot reader) parent)
+    (hparent : B.parent? = some parent) (hslot : B.slot = s)
+    (hpath : ∀ C, C ≠ .genesis → Block.Preceq C B → C ∈ voterTree p reader s)
+    (hviews : ProposalViewTransport p source reader s B) :
+    Block.Preceq B (forkChoice reader (voterTree p reader s)
+      (voterView p reader s) (voterSupportView p reader s) s) :=
+  ghost_adopts_of_eligible_proposal_transport p source reader s B parent
+    (voterTree p reader s) (liveRoot reader) (fun _ h => (List.mem_filter.mp h).1)
+    hsourceRoot hreaderRoot hsourceClosed hsource hanchor hparent hslot hpath
+    (fun C hc _ => hviews.tree C hc) hviews.count hviews.score
 
 /-- A stored proposal and reachable prefix closure supply the complete
 path used by local proposal adoption. No separate path premise remains. -/

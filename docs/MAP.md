@@ -131,9 +131,9 @@ SA-PC views, proves raw genuine compatibility at one label, and transfers
 genuine prefixes to the actual next HEAD with explicit root premises.
 Above-f support permits any selected PC; lower support uses selected-PC
 compatibility. `TransferRegimes` derives relay premises from the fixed
-synchronous and healthy-prefix conditions. Honest proposal choices,
-pending outage transfer, and the complete
-bundle proofs are pending. The clean root proofs are described below.
+synchronous and healthy-prefix conditions. Honest proposal choices and clean inclusion are proved in round 18.
+Pending outage transfer and the complete bundle proofs remain open.
+The clean root proofs are described below.
 `Statements/CleanInvariant` now defines `cleanRunPath` from actual run
 sources and `JointCleanInvariant` without a path argument. The old
 conditional predicate is named `CleanPathFacts`. `RunCleanPath` and
@@ -149,15 +149,16 @@ label-induction input. `CleanService` proves honest N/PC prefix witnesses
 and exact raw proposal service from common exact HEADs. The clean safety
 and 6Δ reductions consume the corrected invariant. The round-15 modules
 below prove uncapped event preservation, safety, and monotonicity.
-Common proposal choices and inclusion remain pending.
+Round 18 completes common proposal choices and clean inclusion.
 
 `Tests/CleanInvariantCounterexample` retains the complete capped Sleepy
 run that refutes the round-9 arbitrary path-extension obligation. It also
 checks that the new path excludes the losing sibling and contains the
 actual next timely save. `Pending/RejectedCleanInduction` holds the old
 statement, and `Pending/CleanInductionCounterexample` refutes it.
-`Pending/CleanInduction` now contains only the exact proposal-choice
-obligation. The event and PC-transfer obligations are discharged.
+`Pending/CleanInduction` retains the historical exact proposal-choice
+obligation and its round-18 proof. The event and PC-transfer obligations
+are also discharged.
 No pending module is imported by a default target. See the status document.
 
 ## Common model and contract
@@ -179,7 +180,8 @@ invariant to earlier prefixes. `RunCleanGates` proves source comparison,
 ordered history, and the full capped early/gate step. `RunCleanCapped`
 proves the capped run invariant and derives safety and monotonicity of
 both base outputs under that cap. The round-15 induction removes the
-cap for safety and monotonicity. Common proposal choices remain pending; see `SAPC-STATUS.md`.
+cap for safety and monotonicity. Round 18 completes common proposal
+choices; see `SAPC-STATUS.md`.
 
 `Disabled` proves the full SA clock projection after disablement and
 retains the joint invariant at the mode-changing receipt. `RunCleanHeads`
@@ -195,8 +197,8 @@ continuation before an active input and selected-PC coverage of the pending raw 
 `RunClean` combines these steps into `clean_run_invariant` and
 `clean_safety_from_engine`. Both base outputs have cross-reader safety
 and local monotonicity under plain Sleepy, with no added fault cap.
-Common exact proposal choices, inclusion, both P1 claims, strong claims,
-recovery, and both complete bundle inhabitants remain pending.
+Both P1 claims, strong claims, recovery, and both complete bundle
+inhabitants remain pending. Round 18 completes proposal choices and inclusion.
 
 Round 16 adds `ProposalOrigins`, `ProposalCounts`, `ProposalMerge`,
 `ProposalTransport`, and `ProposalFloors`. These prove common proposal
@@ -216,8 +218,21 @@ anchors are common. The shared SA receipt and GHOST proofs place finite
 roots and active PC targets on the ordinary proposer walk and prove
 that the honest proposal has that parent in either mode. A disabled
 HEAD chooses the exact proposal, including when its proposer was active.
-Active-tree eligible-path reflection and final walk transport remain
-open; the full common-HEAD and inclusion claims are still pending.
+Round 18 completes active-tree eligible-path reflection and walk transport.
+
+Round 18 adds `ProposalEligibility`, `Clean`, and `GateAdmission` and
+extends `ProposalHeads`. The shared SA receipt interface gives a strict
+non-equivocating majority in the proposer view. Common scores reflect
+eligible old paths; authentication identifies the fresh proposal. The
+shared adoption theorem now accepts extra ineligible paths, with its
+original API retained. Exact active and disabled HEAD choices then give
+both base inclusion claims under Sleepy and the StableSleepy and Fast
+fields in `6Δ`, without a cap. The former pending proposal obligation has
+a proof. Local gate lemmas establish first-prefix lease acquisition when
+the raw descendant is PC-vetoed and preservation of an already protected
+record prefix. Both run-level P1 claims still need the healthy-prefix and
+pending-boundary proofs. Strong claims, recovery, and bundle assembly
+also remain pending.
 
 ```text
 ┌────────────────────────────┬────────────────────────────────────────────┬───────────────────────────────┐

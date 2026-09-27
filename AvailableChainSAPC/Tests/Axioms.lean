@@ -1,7 +1,8 @@
 module
 public import AvailableChainSAPC.Proofs.RunClean
 public import AvailableChainSAPC.Proofs.ProposalFloors
-public import AvailableChainSAPC.Proofs.ProposalHeads
+public import AvailableChainSAPC.Proofs.Clean
+public import AvailableChainSAPC.Proofs.GateAdmission
 public import AvailableChainSAPC.Tests.CleanInvariantCounterexample
 public import AvailableChainSAPC.Proofs.Archive
 public import AvailableChainSAPC.Proofs.Authentication
@@ -753,3 +754,20 @@ public import AvailableChainSAPC.Proofs.RunCleanCapped
 #print axioms AvailableChain.SAPC.clean_proposal_PC_at_ordinary_walk
 #print axioms AvailableChain.SAPC.clean_proposal_parent_ordinary
 #print axioms AvailableChain.SAPC.clean_disabled_honest_proposal_head
+
+-- Round 18: exact active HEADs, 6Δ inclusion, and prefix lease admission.
+#print axioms AvailableChain.GridCO.ghost_adopts_of_eligible_proposal_transport
+#print axioms AvailableChain.GridCO.forkChoice_adopts_of_proposal_transport
+#print axioms AvailableChain.SAPC.transfer_detected_minority
+#print axioms AvailableChain.SAPC.clean_proposal_detected_minority
+#print axioms AvailableChain.SAPC.stored_honest_proposal_slot_unique
+#print axioms AvailableChain.SAPC.clean_honest_proposal_eligible_reflects
+#print axioms AvailableChain.SAPC.clean_active_honest_proposal_head
+#print axioms AvailableChain.SAPC.clean_honest_proposal_head
+#print axioms AvailableChain.SAPC.clean_proposal_choices_from_engine
+#print axioms AvailableChain.SAPC.included_from_engine
+#print axioms AvailableChain.SAPC.stable_included_from_engine
+#print axioms AvailableChain.SAPC.fast_included_from_engine
+#print axioms AvailableChain.SAPC.gateWithPC_writes_admitted_prefix
+#print axioms AvailableChain.SAPC.gateWithPC_arms_vetoed_prefix
+#print axioms AvailableChain.SAPC.gateWithPC_preserves_protected_prefix
