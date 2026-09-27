@@ -1,4 +1,5 @@
 module
+public import AvailableChainSAPC.Tests.CleanInvariantCounterexample
 public import AvailableChainSAPC.Proofs.Archive
 public import AvailableChainSAPC.Proofs.Authentication
 public import AvailableChainSAPC.Proofs.Basic
@@ -41,9 +42,20 @@ public import AvailableChainSAPC.Proofs.RecentArchive
 public import AvailableChainSAPC.Proofs.TimelyTransfer
 public import AvailableChainSAPC.Proofs.MergedReceipts
 public import AvailableChainSAPC.Proofs.QuorumGenuine
+public import AvailableChainSAPC.Proofs.EarlyReceipts
+public import AvailableChainSAPC.Proofs.GenuineTransfer
+public import AvailableChainSAPC.Proofs.TransferRegimes
+public import AvailableChainSAPC.Proofs.CleanTicks
+public import AvailableChainSAPC.Proofs.CleanInclusion
 public import AvailableChainSAPC.Tests.Smoke
 
 /- Audit every new public theorem. Only the standard kernel axioms are permitted. -/
+public import AvailableChainSAPC.Proofs.RunCleanPath
+public import AvailableChainSAPC.Proofs.RunCleanTicks
+public import AvailableChainSAPC.Proofs.GenuineHistory
+public import AvailableChainSAPC.Proofs.Preservation
+public import AvailableChainSAPC.Proofs.CleanService
+
 #print axioms AvailableChain.SAPC.collectPCs_field
 #print axioms AvailableChain.SAPC.collectPCs_base
 #print axioms AvailableChain.SAPC.collectPCs_archive
@@ -486,3 +498,116 @@ public import AvailableChainSAPC.Tests.Smoke
 #print axioms AvailableChain.SAPC.scoreSeat_of_exact_or_equivocation
 #print axioms AvailableChain.SAPC.active_quorum_walk_covers
 #print axioms AvailableChain.SAPC.active_voter_quorum_covers
+
+-- Round 8: genuine-support transfer and fixed-regime relay bridges.
+#print axioms AvailableChain.SAPC.process_base_stamp_origin
+#print axioms AvailableChain.SAPC.base_stamp_rows_stored
+#print axioms AvailableChain.SAPC.base_early_stamps_at_input
+#print axioms AvailableChain.SAPC.base_early_receipts_at_input
+#print axioms AvailableChain.SAPC.early_head_at_early
+#print axioms AvailableChain.SAPC.early_head_at_freeze
+#print axioms AvailableChain.SAPC.cleanSupport_not_equivocating
+#print axioms AvailableChain.SAPC.cleanSupport_voter_unique
+#print axioms AvailableChain.SAPC.cleanSupport_in_voterSupport
+#print axioms AvailableChain.SAPC.genuine_transfer_receipts
+#print axioms AvailableChain.SAPC.early_path_in_voterTree
+#print axioms AvailableChain.SAPC.genuine_path_in_voterTree
+#print axioms AvailableChain.SAPC.genuine_ordinary_head_covers
+#print axioms AvailableChain.SAPC.choice_covers_of_genuine_transfer
+#print axioms AvailableChain.SAPC.genuine_compatiblePC_head_covers
+#print axioms AvailableChain.SAPC.genuine_highSupport_head_covers
+#print axioms AvailableChain.SAPC.sameLabel_from_engine
+#print axioms AvailableChain.SAPC.synchronous_transfer_relays
+#print axioms AvailableChain.SAPC.healthy_transfer_relays
+#print axioms AvailableChain.SAPC.synchronous_sameLabel
+#print axioms AvailableChain.SAPC.synchronous_genuine_compatiblePC_head_covers
+#print axioms AvailableChain.SAPC.synchronous_genuine_highSupport_head_covers
+#print axioms AvailableChain.SAPC.healthy_sameLabel
+#print axioms AvailableChain.SAPC.healthy_genuine_compatiblePC_head_covers
+#print axioms AvailableChain.SAPC.healthy_genuine_highSupport_head_covers
+
+-- Round 9: joint invariant, event steps, and conditional claim reductions.
+#print axioms AvailableChain.SAPC.cleanPathFacts_initial
+#print axioms AvailableChain.SAPC.CleanStateOnPath.liveRoot
+#print axioms AvailableChain.SAPC.record_step_of_joint
+#print axioms AvailableChain.SAPC.record_prefix_of_joint
+#print axioms AvailableChain.SAPC.clean_safety_of_joint
+#print axioms AvailableChain.SAPC.savedTimely_first_save
+#print axioms AvailableChain.SAPC.emitted_ack_first_save
+#print axioms AvailableChain.SAPC.validPC_prior_timely
+#print axioms AvailableChain.SAPC.process_obligations
+#print axioms AvailableChain.SAPC.cleanPathFacts_delivery
+#print axioms AvailableChain.SAPC.sleepy_quorum_above_faults
+#print axioms AvailableChain.SAPC.cleanPathFacts_delivery_of_sleepy
+#print axioms AvailableChain.SAPC.clock_at_gate
+#print axioms AvailableChain.SAPC.clockPreGate_pcData
+#print axioms AvailableChain.SAPC.gate_includes_of_joint
+#print axioms AvailableChain.SAPC.clean_inclusion_of_joint_and_service
+#print axioms AvailableChain.SAPC.CleanPath.advance
+#print axioms AvailableChain.SAPC.gateWithPC_records
+#print axioms AvailableChain.SAPC.gateWithPC_clean
+#print axioms AvailableChain.SAPC.gate_clean
+#print axioms AvailableChain.SAPC.gateWithPC_eq_sa_of_path
+#print axioms AvailableChain.SAPC.gate_clean_includes
+#print axioms AvailableChain.SAPC.initial_clean
+#print axioms AvailableChain.SAPC.process_clean
+#print axioms AvailableChain.SAPC.expire_clean
+#print axioms AvailableChain.SAPC.release_clean
+#print axioms AvailableChain.SAPC.freeze_clean
+#print axioms AvailableChain.SAPC.clock_eq_gate_prestate
+#print axioms AvailableChain.SAPC.clockPreGate_base
+#print axioms AvailableChain.SAPC.clockPreGate_clean
+#print axioms AvailableChain.SAPC.clock_clean
+#print axioms AvailableChain.SAPC.process_stable
+#print axioms AvailableChain.SAPC.clock_timely_of_no_early
+#print axioms AvailableChain.SAPC.clock_eq_preGate_of_no_gate
+#print axioms AvailableChain.SAPC.cleanPathFacts_tick_between_duties
+#print axioms AvailableChain.SAPC.cleanPathFacts_freeze
+#print axioms AvailableChain.SAPC.cleanPathFacts_proposal_tick_capped
+#print axioms AvailableChain.SAPC.Tests.CleanInvariantCounterexample.next_save
+#print axioms AvailableChain.SAPC.Tests.CleanInvariantCounterexample.execution
+#print axioms AvailableChain.SAPC.Tests.CleanInvariantCounterexample.sleepy
+#print axioms AvailableChain.SAPC.Tests.CleanInvariantCounterexample.cap
+#print axioms AvailableChain.SAPC.Tests.CleanInvariantCounterexample.before_cutoff
+#print axioms AvailableChain.SAPC.Tests.CleanInvariantCounterexample.no_extension
+
+-- Round 11: run sources, shared induction, batch preservation, and service.
+#print axioms AvailableChain.SAPC.CleanRunSource.mono
+#print axioms AvailableChain.SAPC.cleanRunPath_mono
+#print axioms AvailableChain.SAPC.cleanRunPath_closed
+#print axioms AvailableChain.SAPC.cleanRunPath_zero
+#print axioms AvailableChain.SAPC.cleanRunPath_le_of_facts
+#print axioms AvailableChain.SAPC.cleanRunPath_eq_of_no_source_tick
+#print axioms AvailableChain.SAPC.OrderedGenuine.step_of_no_gate
+#print axioms AvailableChain.SAPC.jointClean_initial
+#print axioms AvailableChain.SAPC.jointClean_delivery_of_sleepy
+#print axioms AvailableChain.SAPC.clean_safety_of_run_invariant
+#print axioms AvailableChain.SAPC.cleanRunPath_eq_between_duties
+#print axioms AvailableChain.SAPC.jointClean_tick_between_duties
+#print axioms AvailableChain.SAPC.jointClean_freeze
+#print axioms AvailableChain.SAPC.jointClean_proposal_tick_capped
+#print axioms AvailableChain.SAPC.gateWithPC_source_closed
+#print axioms AvailableChain.SAPC.clock_target_genuine_origin
+#print axioms AvailableChain.SAPC.run_target_genuine_origin
+#print axioms AvailableChain.SAPC.state_on_cleanRunPath
+#print axioms AvailableChain.SAPC.finite_target_on_cleanRunPath
+#print axioms AvailableChain.SAPC.nextHead_target_genuine_origin
+#print axioms AvailableChain.SAPC.nextHead_root_compatible_of_history
+#print axioms AvailableChain.SAPC.clean_genuine_history_of_steps
+#print axioms AvailableChain.SAPC.base_honest_early_clean
+#print axioms AvailableChain.SAPC.base_late_count_le_awake_add_faulty
+#print axioms AvailableChain.SAPC.synchronous_head_in_earlyVotes
+#print axioms AvailableChain.SAPC.preserve_from_heads
+#print axioms AvailableChain.SAPC.sleepy_preserve_from_heads
+#print axioms AvailableChain.SAPC.clean_genuine_history_of_pc
+#print axioms AvailableChain.SAPC.timely_prefix_of_head_coverage
+#print axioms AvailableChain.SAPC.pc_prefix_of_head_coverage
+#print axioms AvailableChain.SAPC.raw_result_eq_of_exact_heads
+#print axioms AvailableChain.SAPC.clean_inclusion_of_run_invariant_and_heads
+#print axioms AvailableChain.GridCO.genuine_history_induction
+#print axioms AvailableChain.GridCO.clean_genuine_history
+#print axioms AvailableChain.SAPC.duty_phase_ne
+#print axioms AvailableChain.SAPC.Tests.CleanInvariantCounterexample.canonical_before
+#print axioms
+  AvailableChain.SAPC.Tests.CleanInvariantCounterexample.canonical_excludes_losing_branch
+#print axioms AvailableChain.SAPC.Tests.CleanInvariantCounterexample.canonical_next_contains_winner

@@ -1,6 +1,7 @@
 module
 public import AvailableChainGridCO.Proofs.MergedViews
 public import AvailableChainGridCO.Proofs.Preservation
+public import AvailableChainGridCO.Proofs.HistoryInduction
 
 @[expose] public section
 
@@ -151,58 +152,31 @@ theorem clean_genuine_history {V : Type} [DecidableEq V] [Fintype V]
       confirmation p (gateInput p rho r source) r = some B →
       ∀ reader ∈ rho.honest,
         Block.Preceq B (nextHead p (nextHeadState p rho r reader) r)) := by
-  induction r with
-  | zero =>
-      refine ⟨by intro s hs; exact (Nat.not_lt_zero s hs).elim, ?_⟩
-      intro source hs B hc
-      apply transfer_from_engine p E rho hΔ 0 (hclean 0 (le_refl _))
-        source hs B B hc (block_preceq_self B)
-      intro reader hr K hK
-      obtain ⟨⟨target, g, d⟩, hm, _⟩ := List.mem_filterMap.mp hK
-      obtain ⟨s, _, hs, _⟩ := nextHeadState_target_genuine_origin p E rho
-        (hclean 0 (le_refl _)).1.toScheduleWellFormed 0 reader target g d hm
-      exact (Nat.not_lt_zero s hs).elim
-  | succ r ih =>
-      have hprev : CleanThroughLabel p E rho r := fun s hs => hclean s (hs.trans (Nat.le_succ r))
-      obtain ⟨hhist, htransfer⟩ := ih hprev
-      have hsync := hclean (r + 1) (le_refl _)
-      have hstep : ∀ source ∈ rho.honest, ∀ B,
-          confirmation p (gateInput p rho r source) r = some B →
-          ∀ reader ∈ rho.honest, ∃ C,
-            confirmation p (gateInput p rho (r + 1) reader) (r + 1) = some C ∧
-              Block.Preceq B C := by
-        intro source hs B hc reader hr
-        obtain ⟨C, hC, hBC, _⟩ := preserve_from_engine p E rho hΔ r hsync
-          hsync.2.1 B (htransfer source hs B hc) reader hr
-        exact ⟨C, hC, hBC⟩
-      have hnext : ∀ s, s < r + 1 → ∀ source ∈ rho.honest, ∀ B,
-          confirmation p (gateInput p rho s source) s = some B →
-          ∀ reader ∈ rho.honest, ∃ C,
-            confirmation p (gateInput p rho (r + 1) reader) (r + 1) = some C ∧
-              Block.Preceq B C := by
-        intro s hs source hsource B hc reader hr
-        rcases Nat.eq_or_lt_of_le (Nat.le_of_lt_succ hs) with he | hlt
-        · subst s; exact hstep source hsource B hc reader hr
-        · obtain ⟨D, hD, hBD⟩ := hhist s hlt source hsource B hc reader hr
-          obtain ⟨C, hC, hDC⟩ := hstep reader hr D hD reader hr
-          exact ⟨C, hC, prefix_trans B D C hBD hDC⟩
-      refine ⟨hnext, ?_⟩
-      intro source hs B hc
-      apply transfer_from_engine p E rho hΔ (r + 1) hsync
-        source hs B B hc (block_preceq_self B)
-      intro reader hr K hK
-      obtain ⟨⟨target, g, d⟩, hm, ht⟩ := List.mem_filterMap.mp hK
-      dsimp only at ht
-      split at ht
-      · have he : target = K := Option.some.inj ht
-        subst target
-        obtain ⟨s, D, hsr, hD, hKD⟩ := nextHeadState_target_genuine_origin p E rho
-          hsync.1.toScheduleWellFormed (r + 1) reader K g d hm
-        obtain ⟨C, hC, hDC⟩ := hnext s hsr reader hr D hD source hs
-        have he : C = B := Option.some.inj (hC.symm.trans hc)
-        subst C
-        exact Bool.or_eq_true_iff.mpr (Or.inl (prefix_trans K D B hKD hDC))
-      · simp at ht
+  apply genuine_history_induction (fun v => v ∈ rho.honest)
+    (fun s v => confirmation p (gateInput p rho s v) s)
+    (fun s v => nextHead p (nextHeadState p rho s v) s) r
+  · intro s hs continuation source hsource B hc reader hreader
+    have hsync := hclean (s + 1) (Nat.succ_le_of_lt hs)
+    obtain ⟨C, hC, hBC, _⟩ := preserve_from_engine p E rho hΔ s hsync
+      hsync.2.1 B (continuation source hsource B hc) reader hreader
+    exact ⟨C, hC, hBC⟩
+  · intro s hs history source hsource B hc
+    have hsync := hclean s hs
+    apply transfer_from_engine p E rho hΔ s hsync
+      source hsource B B hc (block_preceq_self B)
+    intro reader hreader K hK
+    obtain ⟨⟨target, g, d⟩, hm, ht⟩ := List.mem_filterMap.mp hK
+    dsimp only at ht
+    split at ht
+    · have he : target = K := Option.some.inj ht
+      subst target
+      obtain ⟨a, D, has, hD, hKD⟩ := nextHeadState_target_genuine_origin p E rho
+        hsync.1.toScheduleWellFormed s reader K g d hm
+      obtain ⟨C, hC, hDC⟩ := history a has reader hreader D hD source hsource
+      have he : C = B := Option.some.inj (hC.symm.trans hc)
+      subst C
+      exact Bool.or_eq_true_iff.mpr (Or.inl (prefix_trans K D B hKD hDC))
+    · simp at ht
 
 /-- Strictly later clean genuine results extend every earlier one. -/
 theorem clean_genuine_prefix {V : Type} [DecidableEq V] [Fintype V]

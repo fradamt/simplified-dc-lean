@@ -125,9 +125,40 @@ active next-HEAD coverage with compatible finite roots, and common
 disablement after a compatible-root departure. `MergedReceipts` proves
 reverse relay of the complete merged raw view. `QuorumGenuine` proves
 same-label timely-N/genuine compatibility without a fault cap.
-Derivation of finite-root compatibility and honest proposal choices,
-forward genuine-support transfer, common proposal-view counts, and the
-complete bundle proofs are pending.
+`EarlyReceipts` proves strict-cutoff presence from base stamps.
+`GenuineTransfer` constructs the shared SA transfer interface for actual
+SA-PC views, proves raw genuine compatibility at one label, and transfers
+genuine prefixes to the actual next HEAD with explicit root premises.
+Above-f support permits any selected PC; lower support uses selected-PC
+compatibility. `TransferRegimes` derives relay premises from the fixed
+synchronous and healthy-prefix conditions. Derivation of finite-root and
+selected-PC compatibility, honest proposal choices, common proposal-view
+counts, pending outage transfer, and the complete bundle proofs are pending.
+`Statements/CleanInvariant` now defines `cleanRunPath` from actual run
+sources and `JointCleanInvariant` without a path argument. The old
+conditional predicate is named `CleanPathFacts`. `RunCleanPath` and
+`RunCleanTicks` prove the new initial, delivery, freeze, between-duty,
+and capped proposal steps. `GenuineHistory` proves unconditional record,
+saved-result, and finite-row source membership, plus finite-root
+compatibility from ordered genuine history. Shared `HistoryInduction`
+contains the extracted label induction used by both SA and SA-PC.
+`Preservation` derives actual raw batch preservation from Sleepy and
+honest HEAD coverage, reusing SA's confirmation theorem. Its
+`clean_genuine_history_of_pc` leaves only active-PC compatibility as a
+label-induction input. `CleanService` proves honest N/PC prefix witnesses
+and exact raw proposal service from common exact HEADs. The clean safety
+and 6Δ reductions consume the corrected invariant. Active-PC compatibility,
+common proposal choices, and the remaining event steps are still pending.
+No complete clean contract claim is asserted.
+
+`Tests/CleanInvariantCounterexample` retains the complete capped Sleepy
+run that refutes the round-9 arbitrary path-extension obligation. It also
+checks that the new path excludes the losing sibling and contains the
+actual next timely save. `Pending/RejectedCleanInduction` holds the old
+statement, and `Pending/CleanInductionCounterexample` refutes it.
+`Pending/CleanInduction` contains only the current run-determined event,
+active-PC transfer, and exact proposal-choice obligations. None of these
+pending modules is imported by a default target. See the status document.
 
 ## Common model and contract
 

@@ -39,8 +39,20 @@ public import AvailableChainSAPC.Proofs.RecentArchive
 public import AvailableChainSAPC.Proofs.TimelyTransfer
 public import AvailableChainSAPC.Proofs.MergedReceipts
 public import AvailableChainSAPC.Proofs.QuorumGenuine
+public import AvailableChainSAPC.Proofs.EarlyReceipts
+public import AvailableChainSAPC.Proofs.GenuineTransfer
+public import AvailableChainSAPC.Proofs.TransferRegimes
+public import AvailableChainSAPC.Proofs.CleanTicks
+public import AvailableChainSAPC.Proofs.CleanInclusion
 public import AvailableChainSAPC.Tests.Smoke
+public import AvailableChainSAPC.Tests.CleanInvariantCounterexample
 public import AvailableChainSAPC.Tests.Axioms
+
+public import AvailableChainSAPC.Proofs.RunCleanPath
+public import AvailableChainSAPC.Proofs.RunCleanTicks
+public import AvailableChainSAPC.Proofs.GenuineHistory
+public import AvailableChainSAPC.Proofs.Preservation
+public import AvailableChainSAPC.Proofs.CleanService
 
 @[expose] public section
 end
