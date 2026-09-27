@@ -1,5 +1,7 @@
 module
 public import AvailableChainSAPC.Proofs.RunClean
+public import AvailableChainSAPC.Proofs.ProposalFloors
+public import AvailableChainSAPC.Proofs.ProposalHeads
 public import AvailableChainSAPC.Tests.CleanInvariantCounterexample
 public import AvailableChainSAPC.Proofs.Archive
 public import AvailableChainSAPC.Proofs.Authentication
@@ -705,3 +707,49 @@ public import AvailableChainSAPC.Proofs.RunCleanCapped
 #print axioms AvailableChain.SAPC.jointClean_event
 #print axioms AvailableChain.SAPC.clean_run_invariant
 #print axioms AvailableChain.SAPC.clean_safety_from_engine
+
+-- Round 16: common proposal counts, path transport, and active F4 floors.
+#print axioms AvailableChain.GridCO.ghost_prefix_of_score_transport
+#print axioms AvailableChain.SAPC.seats_eq_of_mem_or_equivocates
+#print axioms AvailableChain.SAPC.equivocates_eq_of_mem_or_equivocates
+#print axioms AvailableChain.SAPC.voterCount_eq_of_mem_or_equivocates
+#print axioms AvailableChain.SAPC.goldfishScore_eq_of_mem_or_equivocates
+#print axioms AvailableChain.SAPC.process_base_proposal_origin
+#print axioms AvailableChain.SAPC.base_proposal_origin_before
+#print axioms AvailableChain.SAPC.honest_proposal_payload_unique
+#print axioms AvailableChain.SAPC.stored_honest_base_proposal_unique
+#print axioms AvailableChain.SAPC.headState_honest_base_proposal_unique
+#print axioms AvailableChain.SAPC.frozen_raw_at_proposer
+#print axioms AvailableChain.SAPC.frozen_blocks_at_proposer
+#print axioms AvailableChain.SAPC.frozen_support_at_proposer
+#print axioms AvailableChain.SAPC.honest_proposal_raw_back
+#print axioms AvailableChain.SAPC.honest_proposal_support_back
+#print axioms AvailableChain.SAPC.honest_proposal_counts
+#print axioms AvailableChain.SAPC.proposalState_paths
+#print axioms AvailableChain.SAPC.honest_proposal_parent_stored
+#print axioms AvailableChain.SAPC.honest_proposal_tree_reflects
+#print axioms AvailableChain.SAPC.proposalViewTransport_from_engine
+#print axioms AvailableChain.SAPC.honest_proposal_active_score_path
+#print axioms AvailableChain.SAPC.honest_proposal_floor_eq
+
+-- Round 17: PC selection, finite roots, and disabled proposal choices.
+#print axioms AvailableChain.SAPC.process_proposal_origin
+#print axioms AvailableChain.SAPC.headState_honest_proposal_unique
+#print axioms AvailableChain.SAPC.strict_pc_relay
+#print axioms AvailableChain.SAPC.headState_frozenPC_origin
+#print axioms AvailableChain.SAPC.frozenPC_rank_at_proposer
+#print axioms AvailableChain.SAPC.selectedPC_of_unique_carried
+#print axioms AvailableChain.SAPC.honest_proposal_PC_at_head
+#print axioms AvailableChain.SAPC.honest_proposal_selectedPC
+#print axioms AvailableChain.SAPC.honest_proposal_selectedPC_rank
+#print axioms AvailableChain.SAPC.honest_proposal_active_source
+#print axioms AvailableChain.SAPC.clean_honest_proposal_selectedPC_target
+#print axioms AvailableChain.SAPC.clean_honest_proposal_anchor_eq
+#print axioms AvailableChain.SAPC.honest_proposal_transfer_receipts
+#print axioms AvailableChain.SAPC.genuine_prefix_at_ordinary_proposal
+#print axioms AvailableChain.SAPC.proposalState_target_genuine_origin
+#print axioms AvailableChain.SAPC.clean_history_at_ordinary_proposal
+#print axioms AvailableChain.SAPC.clean_roots_at_ordinary_proposal
+#print axioms AvailableChain.SAPC.clean_proposal_PC_at_ordinary_walk
+#print axioms AvailableChain.SAPC.clean_proposal_parent_ordinary
+#print axioms AvailableChain.SAPC.clean_disabled_honest_proposal_head

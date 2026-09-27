@@ -62,6 +62,8 @@ public import AvailableChainSAPC.Proofs.RunCleanCapped
 public import AvailableChainSAPC.Proofs.Disabled
 public import AvailableChainSAPC.Proofs.RunCleanUncapped
 public import AvailableChainSAPC.Proofs.RunClean
+public import AvailableChainSAPC.Proofs.ProposalFloors
+public import AvailableChainSAPC.Proofs.ProposalHeads
 
 @[expose] public section
 end

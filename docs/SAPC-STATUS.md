@@ -1,6 +1,6 @@
 # SA-PC status
 
-_2026-09-28. Round 15. Base contract frozen at Draft 4.3._
+_2026-09-28. Round 17. Base contract frozen at Draft 4.3._
 
 The additive companion statements and executable SA-PC model are in place.
 `Proofs/RunClean.lean` now proves `clean_run_invariant` from plain Sleepy
@@ -15,7 +15,14 @@ batch-preservation, and genuine-transfer proofs from the current state.
 It does not reset the state or assume that every live lease is below S.
 
 Common exact honest proposal HEAD choices and `6Δ` inclusion remain
-pending. Both P1 claims, strong claims, recovery, and both bundle
+pending. Round 17 proves frozen/carried PC selection, common active PC
+targets and anchors, and finite roots below the ordinary proposer walk.
+It proves that a clean honest proposal has the ordinary parent in either
+mode. A disabled HEAD chooses that exact proposal, including when the
+proposer was active. Active HEADs still need eligible-path reflection
+for the enlarged active tree and final walk transport. All these clean
+results retain the full `a<h` scope, without a fault cap.
+Both P1 claims, strong claims, recovery, and both bundle
 inhabitants also remain pending. Neither `sapcContract_from_engine` nor
 `sapcStrong_from_engine` exists yet. No contract definition, executable
 rule, or invariant field changed in this round.
@@ -845,20 +852,108 @@ shared SA theorem `ProposalViewTransport.of_sets` requires raw-set
 identity; the SA-PC two-target cache does not supply that identity.
 No new checked counterexample or contract issue was found.
 
+## Round 16: common proposal counts and active F4 floors
+
+No contract definition, executable rule, or invariant field changes.
+This round continues step 3. It does not claim exact proposal HEADs or
+unconditional inclusion.
+
+- `ProposalOrigins` proves that every stored base proposal has an
+  original direct receipt. Proposer authentication fixes the complete
+  payload, including the ack-bearing raw signatures, declared support,
+  and carried PC. Every current-slot base envelope from an honest
+  proposer has that proposal's exact projected metadata.
+- `ProposalCounts` proves participant, equivocation, and score equality
+  when a raw key can be replaced by two-target evidence at the same
+  seat. Score equality needs matching declared support only at
+  non-equivocating seats. It does not require equal raw key sets.
+- `ProposalMerge` connects these facts to actual engine inputs. Frozen
+  raw signatures and their admitted paths relay before proposal time.
+  A frozen support key is either in the proposer's declared support or
+  belongs to a seat that the proposer knows to equivocate. The carried
+  part comes from the unique authenticated proposal. Together with the
+  existing forward inclusion proofs, `honest_proposal_counts` gives
+  common participant counts, equivocation tests, and scores on every
+  block. It works in either mode, with no fault cap or clean invariant.
+- `ProposalTransport` proves that the ordinary merged tree contains
+  only source blocks and the fresh proposal. It constructs the existing
+  `GridCO.ProposalViewTransport` interface for SA-PC. It also proves
+  `honest_proposal_active_score_path`: any active HEAD score above f
+  has a declared non-equivocating source witness, so the proposer already
+  knows its path. That witness need not be honest above the cap.
+- Shared `WalkTransport.ghost_prefix_of_score_transport` transports a
+  high-score path when extra target-tree candidates score below it. It
+  reuses the existing GHOST step and path proofs, including root ties.
+  `ProposalFloors.honest_proposal_floor_eq` uses this lemma in both
+  directions. The honest proposer and an active HEAD have the same F4
+  floor for any selected PC, including in above-cap executions.
+
+The run theorems use the existing synchrony and accepted-object relay
+premises, with GST at or before the preceding freeze and a horizon
+through the proposal's HEAD. Clean regimes supply these bounds. The
+floor theorem also uses the unchanged root-injectivity premise.
+Common floors do not identify frozen/carried PCs with a later live PC,
+and do not place the finite root on the proposal-parent path.
+
+## Round 17: PC selection and finite-root placement
+
+No contract definition, executable rule, or invariant field changes.
+This round continues step 3 and adds 20 public theorems.
+
+- `ProposalCertificates` tracks original stored proposal envelopes.
+  Authentication fixes the carried PC as well as both signature views.
+  A frozen PC comes from the exact preceding freeze input; accepted
+  relay and archive completeness bound its rank by the proposer's live
+  PC. The carried PC is valid before HEAD. The selection fold compares
+  only these two options and retains the frozen encoding at equal rank.
+  The selected rank equals the source rank, including empty options,
+  without a cap or clean-path premise.
+- `ProposalAuthority` proves that an active HEAD has an active proposer
+  source: any prior cap proof relays before the HEAD deadline. Under
+  plain Sleepy, the two actual PC authorities belong to the proved clean
+  source path. Equal rank therefore gives equal targets even above the
+  cap. Together with the common F4 floor, this gives equal preliminary
+  anchors. It does not assert equal certificate encodings or equal final
+  mandatory roots.
+- `ProposerTransfer` constructs the shared SA `TransferReceipts` for the
+  actual proposer state. Genuine supporters reflect from the merged
+  HEAD view; reverse receipts exclude their equivocation alternative.
+  The existing SA support-count and GHOST theorem then puts each raw
+  genuine prefix on the ordinary proposer walk.
+- `ProposalRoots` proves the proposal-state source-label bound and uses
+  the proved clean history to put the source root and every post-release
+  reader root below the ordinary proposer result. An active proposer's
+  PC has already transferred to the preceding honest HEADs, so its
+  target is on that walk too. Shared GHOST reanchoring proves
+  `clean_proposal_parent_ordinary` in both modes. All lease arguments
+  use raw gate sources, with no assertion that every live lease is below S.
+- `ProposalHeads` proves `clean_disabled_honest_proposal_head`. The
+  actual target equals the honest proposal; this includes a still-active
+  proposer and a disabled reader. It reuses the shared SA proposal
+  adoption theorem and the existing slot bound.
+
+The root and ordinary-parent statements require the preceding raw gate
+within the horizon. The pending proposal-choice statement already has
+the stronger horizon through the proposal's own gate. No regime field
+is added. No new checked counterexample or contract issue was found.
+
 ## Exact remaining work
 
 Resume at common proposal choices in work-order step 3. The uncapped
 chronological induction, safety, and monotonicity are complete.
 
 1. Prove common exact honest proposal HEAD choices and `6Δ` inclusion.
-   Complete cross-reader proposal-merge comparison for participants,
-   equivocators, and declared support. Actual proposal acceptance,
-   paths, envelope retention, proposer raw/support inclusion, reverse
-   merged-view relay, and genuine-support transfer are proved. The
-   two-target cache can omit a carried raw key; archive relay does not
-   give raw-set equality. Conditional raw proposal service and both
-   inclusion reductions are proved. Use `clean_run_invariant` for finite
-   roots and PC authority; prove the remaining view transport and choices.
+   Proposal counts, equivocation, declared-support scores, the ordinary
+   shared walk interface, and active F4 floor equality are now proved.
+   PC targets and preliminary anchors are now common at active HEADs;
+   finite roots are below the ordinary parent. The honest proposer uses
+   that parent in either mode. Exact disabled choices, including the
+   active-proposer/disabled-reader case, are proved. Finish active HEADs:
+   show that extra paths in `activeVoterTree` cannot introduce a competing
+   eligible child, then transport the ordinary walk from the mandatory
+   root to the fresh proposal. Common anchors alone do not prove this.
+   The two-target cache still does not give raw-set equality. Conditional
+   raw proposal service and both inclusion reductions are proved.
    Active F4 supporters need not all be honest above the cap. The capped
    PC service theorem also needs exact preparations and covering next
    HEAD choices. `Pending/CleanInduction` now retains only the proposal
@@ -885,7 +980,7 @@ chronological induction, safety, and monotonicity are complete.
 5. Assemble `sapcContract_from_engine`, SA-PC `fastP1_from_engine`, and
    `sapcStrong_from_engine`; audit their axioms.
 
-No contract issue has been established through round 15. No requested
+No contract issue has been established through round 16. No requested
 contract claim has a checked counterexample. The round-9 universal
 free-path event obligation has the checked counterexample above. Do not
 weaken a premise or conclusion to close a gap. No incomplete Lean
@@ -1058,3 +1153,52 @@ sandboxed build could not start Lean; it was stopped, and validation
 used the installed throttle with lock access. No throttle setting was
 changed. All session validation logs were inside the repository and
 were removed after the final check.
+
+## Round 16 validation
+
+All five new proposal proof modules and the shared GHOST transport lemma
+pass targeted checks with `--wfail`. The default audit has 636 entries,
+including all 22 new public theorems. All dependencies are limited to
+`propext`, `Classical.choice`, and `Quot.sound`; six existing entries use
+no axioms. The separate pending proposal statement and historical
+counterexample also pass (993 jobs). No pending module is imported by
+a default target.
+
+The full `lake build --wfail` passes all 3,486 jobs with no warnings.
+It retains `gridContract_from_engine`, `saContract_from_engine`, SA
+`fastP1_from_engine`, and the existing smoke and counterexample checks.
+`git diff --check` passes. No new contract issue or checked counterexample
+was found. The exact remaining work is listed above.
+
+No `sorry`, `admit`, project axiom, or `native_decide` was introduced.
+No contract definition, protocol rule, or invariant field changed.
+No Git commit or `lake update` was made. `state.md` and `log.md` were
+not changed. The initial sandboxed build could not start Lean through
+the installed throttle; its processes were stopped after CPU/time
+inspection. Validation then used the same throttle with lock access.
+No throttle setting changed. All session scratch logs were inside the
+repository and were removed after validation.
+
+## Round 17 validation
+
+All five new proof modules pass targeted `lake build --wfail` checks.
+The default audit has 655 `#print axioms` entries, including all 20 new
+public theorems. Each new theorem depends only on `propext`,
+`Classical.choice`, and `Quot.sound`. The separate pending proposal
+statement and historical refutation also pass (1,034 jobs with the audit).
+No pending module is imported by a default target.
+
+The full `lake build --wfail` passes all 3,491 jobs with no warnings.
+It retains `gridContract_from_engine`, `saContract_from_engine`, SA
+`fastP1_from_engine`, and the existing smoke and counterexample checks.
+`git diff --check` passes. No new contract issue or checked counterexample
+was found. Active exact HEAD choices and the later claims remain pending
+as listed above.
+
+No `sorry`, `admit`, project axiom, or `native_decide` was introduced.
+No contract definition, protocol rule, or invariant field changed.
+No Git commit or `lake update` was made. `state.md` and `log.md` were
+not changed. Validation used the installed Lean throttle with lock
+access. Lean process checks included elapsed time and CPU use; no
+throttle setting changed. The two session build logs were kept inside
+the repository and removed after validation.

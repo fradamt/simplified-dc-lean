@@ -329,6 +329,57 @@ theorem ghost_transport_covers (sourceTree targetTree : List Block)
   intro D hd hp he
   exact hscore D (hreflect X D hAX hXH hne hd hp he).1 hd
 
+/-- A high-score prefix transfers even if the target tree has extra
+eligible blocks. Each extra block must score below the path. SA-PC uses
+this form for F4, where private paths can score only through equivocators. -/
+theorem ghost_prefix_of_score_transport (sourceTree targetTree : List Block)
+    (sourceScore targetScore : Block → Nat) (sourceEligible targetEligible : Block → Bool)
+    (threshold : Nat) (B : Block)
+    (hsourceRoot : RootInjectiveBelow sourceTree)
+    (htargetRoot : RootInjectiveBelow targetTree)
+    (hsource : Block.Preceq B (ghost .genesis sourceTree sourceScore sourceEligible))
+    (hpath : ∀ C, C ≠ .genesis → Block.Preceq C B → C ∈ targetTree)
+    (hhigh : ∀ C, C ≠ .genesis → Block.Preceq C B → threshold < sourceScore C)
+    (hscore : ∀ C, targetScore C = sourceScore C)
+    (helig : ∀ C, targetEligible C = sourceEligible C)
+    (hreflect : ∀ C ∈ targetTree, C ≠ .genesis →
+      threshold < targetScore C → C ∈ sourceTree) :
+    Block.Preceq B (ghost .genesis targetTree targetScore targetEligible) := by
+  apply ghost_covers_of_steps targetTree targetScore targetEligible .genesis B htargetRoot
+    (genesis_prefix B) hpath
+  intro X _ hXB hne
+  let H := ghost .genesis sourceTree sourceScore sourceEligible
+  have hXH : Block.Preceq X H := prefix_trans _ _ _ hXB hsource
+  have hneH : X ≠ H := by
+    intro he
+    have hBX : Block.Preceq B X := he ▸ hsource
+    exact hne (prefix_eq_of_depth X B hXB (prefix_depth B X hBX))
+  obtain ⟨C, hs, hCH⟩ := ghost_step_towards_result sourceTree sourceScore sourceEligible
+    .genesis H X hsourceRoot rfl (genesis_prefix X) hXH hneH
+  have hc := ghostStep_child sourceTree sourceScore sourceEligible X C hs
+  have hn : C ≠ .genesis := by intro he; simp [he, Block.parent?] at hc
+  have hCB : Block.Preceq C B := by
+    rcases Bool.or_eq_true_iff.mp (ancestors_compatible C B H hCH hsource) with h | h
+    · exact h
+    · have hXd : X.depth < B.depth := by
+        have hd := prefix_depth X B hXB
+        have hnot : ¬ B.depth ≤ X.depth := fun h => hne (prefix_eq_of_depth X B hXB h)
+        omega
+      have hCd := child_depth X C hc.2.1
+      have he := prefix_eq_of_depth B C h (by omega)
+      exact he ▸ block_preceq_self C
+  refine ⟨C, ?_, hCB⟩
+  apply ghostStep_of_best targetTree targetScore targetEligible X C htargetRoot
+    (hpath C hn hCB) hc.2.1 ((helig C).trans hc.2.2)
+  intro D hd hp he
+  by_cases hD : threshold < targetScore D
+  · rw [hscore D, hscore C]
+    exact ghostStep_best sourceTree sourceScore sourceEligible X C hs D
+      (hreflect D hd (by intro eq; simp [eq, Block.parent?] at hp) hD)
+      hp ((helig D).symm.trans he)
+  · have hC : threshold < targetScore C := (hscore C).symm ▸ hhigh C hn hCB
+    exact ⟨by omega, by omega⟩
+
 /-- A fresh child is adopted after a transported proposal walk. At the
 parent, it is the only eligible child. At earlier ancestors, old choices
 must persist and every new eligible candidate must reflect to the source.

@@ -132,7 +132,7 @@ genuine prefixes to the actual next HEAD with explicit root premises.
 Above-f support permits any selected PC; lower support uses selected-PC
 compatibility. `TransferRegimes` derives relay premises from the fixed
 synchronous and healthy-prefix conditions. Honest proposal choices,
-common proposal-view counts, pending outage transfer, and the complete
+pending outage transfer, and the complete
 bundle proofs are pending. The clean root proofs are described below.
 `Statements/CleanInvariant` now defines `cleanRunPath` from actual run
 sources and `JointCleanInvariant` without a path argument. The old
@@ -197,6 +197,27 @@ continuation before an active input and selected-PC coverage of the pending raw 
 and local monotonicity under plain Sleepy, with no added fault cap.
 Common exact proposal choices, inclusion, both P1 claims, strong claims,
 recovery, and both complete bundle inhabitants remain pending.
+
+Round 16 adds `ProposalOrigins`, `ProposalCounts`, `ProposalMerge`,
+`ProposalTransport`, and `ProposalFloors`. These prove common proposal
+participant counts, equivocation tests, declared-support scores, and
+active F4 floors without a cap. The ordinary view transport reuses
+`GridCO.ProposalViewTransport`. The shared GHOST transport proof now
+also permits extra candidates whose scores are below the protected
+path. Exact HEAD choices still need PC selection and finite-root
+placement; common floors alone do not prove inclusion.
+
+Round 17 adds `ProposalCertificates`, `ProposalAuthority`,
+`ProposerTransfer`, `ProposalRoots`, and `ProposalHeads`. Frozen evidence
+reaches the proposer, the carried live PC is valid at HEAD, and exact
+selection retains the frozen encoding at equal rank. The selected rank
+is common without a cap. Under plain Sleepy, active targets and F4
+anchors are common. The shared SA receipt and GHOST proofs place finite
+roots and active PC targets on the ordinary proposer walk and prove
+that the honest proposal has that parent in either mode. A disabled
+HEAD chooses the exact proposal, including when its proposer was active.
+Active-tree eligible-path reflection and final walk transport remain
+open; the full common-HEAD and inclusion claims are still pending.
 
 ```text
 ┌────────────────────────────┬────────────────────────────────────────────┬───────────────────────────────┐
