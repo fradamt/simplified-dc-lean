@@ -21,7 +21,7 @@ def ReceiptStamped {n : Nat} (st : State n) : Prop :=
 def receiptData {n : Nat} (st : State n) :=
   (st.blocks, st.blockStamp, st.votes, st.voteStamp)
 
-private theorem stamped_of_data_eq {n : Nat} {a b : State n}
+theorem stamped_of_data_eq {n : Nat} {a b : State n}
     (heq : receiptData a = receiptData b) (hb : ReceiptStamped b) : ReceiptStamped a := by
   have ⟨h1, h2, h3, h4⟩ : a.blocks = b.blocks ∧ a.blockStamp = b.blockStamp ∧
       a.votes = b.votes ∧ a.voteStamp = b.voteStamp := by simpa [receiptData] using heq
@@ -62,10 +62,10 @@ theorem clock_receiptData (p : Params) {n : Nat} (st : State n) (t : Time) :
   · rw [gate_receiptData, clockPreGate_receiptData]
   · exact clockPreGate_receiptData p st t
 
-private theorem initial_stamped (n : Nat) : ReceiptStamped (initial n) := by
+theorem initial_stamped (n : Nat) : ReceiptStamped (initial n) := by
   simp [ReceiptStamped, initial]
 
-private theorem admitVote_stamped (p : Params) {n : Nat} (st : State n) (o : Wire n)
+theorem admitVote_stamped (p : Params) {n : Nat} (st : State n) (o : Wire n)
     (h : ReceiptStamped st) : ReceiptStamped (admitVote p st o) := by
   unfold admitVote
   split
@@ -87,24 +87,28 @@ private theorem fold_admitVote_stamped (p : Params) {n : Nat}
   | nil => exact h
   | cons x xs ih => exact ih _ (admitVote_stamped p st (fromHead x) h)
 
+theorem admitProposal_stamped (p : Params) {n : Nat} (st : State n) (o : Wire n)
+    (b : Block) (raw : List (HeadWire n)) (h : ReceiptStamped st) :
+    ReceiptStamped (admitProposal p st o b raw) := by
+  unfold admitProposal
+  dsimp only
+  split_ifs
+  · exact h
+  · apply fold_admitVote_stamped
+    refine ⟨?_, h.2⟩
+    intro b hb
+    simp only [List.mem_append, List.mem_singleton] at hb
+    rcases hb with hb | rfl
+    · obtain ⟨t, ht⟩ := h.1 b hb
+      exact ⟨t, List.mem_append_left _ ht⟩
+    · exact ⟨st.now, by simp⟩
+
 private theorem process_stamped (p : Params) {n : Nat} (st : State n) (o : Wire n)
     (h : ReceiptStamped st) : ReceiptStamped (process p st o) := by
   unfold process
   split
   · exact admitVote_stamped p st o h
-  · unfold admitProposal
-    dsimp only
-    split <;> split
-    all_goals first
-      | exact h
-      | apply fold_admitVote_stamped
-        refine ⟨?_, h.2⟩
-        intro b hb
-        simp only [List.mem_append, List.mem_singleton] at hb
-        rcases hb with hb | rfl
-        · obtain ⟨t, ht⟩ := h.1 b hb
-          exact ⟨t, List.mem_append_left _ ht⟩
-        · exact ⟨st.now, by simp⟩
+  · exact admitProposal_stamped p st o _ _ h
   · exact h
 
 private theorem fold_stamped {V : Type} [DecidableEq V] (p : Params)

@@ -102,7 +102,32 @@ cover constants, nesting, local SA projections, signature provenance,
 cap-test soundness and permanence, raw lease sources, and derivation of
 the cap from Recovery. Timed receipt bounds, admitted path closure, exact
 timely-save and freeze origins, save retention, and honest ack/preparation
-sources are now proved. The complete SA-PC bundle inhabitants are pending.
+sources are proved. `BaseArchive` connects cached keys to original signatures;
+`TimelyDelivery` and `AckDelivery` connect delivered quorums to saves and
+PC completion. `Assembly` proves archive-scan completeness. `CertificateRelay`
+proves PC and cap-proof relay at the contract deadlines. `ActiveCounts`
+bounds detected equivocators in base-cache and merged HEAD views without
+an actual fault cap. `BaseViews` and `DeclaredSupport` prove archive sources,
+label preservation, and support subsets for frozen and carried views.
+`FrozenViews` connects ordinary saved views to their exact clock sources.
+`Floor` proves the active declared-path witness and local F4 transfer;
+`EffectiveScores` proves active q-score dominance over conflicting branches.
+`Proposals` and `ProposalDelivery` prove actual emission, acceptance, and
+path delivery before HEAD. `HeadTargets` and `HeadEmission` prove admitted
+targets, slot bounds, complete honest HEAD emission, and target-path relay.
+`ProposalViews` reuses the SA merge proofs to include the proposer's raw
+and declared support keys in each HEAD view. `CertificateService` proves
+PC completion before the 6Δ gate from exact preparations and extending
+next HEAD choices under full participation at those duties and the cap.
+`RecentArchive` supplies the base-key-or-equivocation alternative for
+recent archived signatures. `TimelyTransfer` proves q-score transfer,
+active next-HEAD coverage with compatible finite roots, and common
+disablement after a compatible-root departure. `MergedReceipts` proves
+reverse relay of the complete merged raw view. `QuorumGenuine` proves
+same-label timely-N/genuine compatibility without a fault cap.
+Derivation of finite-root compatibility and honest proposal choices,
+forward genuine-support transfer, common proposal-view counts, and the
+complete bundle proofs are pending.
 
 ## Common model and contract
 

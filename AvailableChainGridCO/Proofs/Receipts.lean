@@ -28,13 +28,13 @@ theorem ReceiptPrefix.trans {n : Nat} {a b c : State n}
   ⟨hab.blocks.trans hbc.blocks, hab.blockStamp.trans hbc.blockStamp,
     hab.votes.trans hbc.votes, hab.voteStamp.trans hbc.voteStamp⟩
 
-private theorem receiptPrefix_of_data_eq {n : Nat} {a b : State n}
+theorem receiptPrefix_of_data_eq {n : Nat} {a b : State n}
     (he : receiptData b = receiptData a) : ReceiptPrefix a b := by
   have ⟨h1, h2, h3, h4⟩ : b.blocks = a.blocks ∧ b.blockStamp = a.blockStamp ∧
       b.votes = a.votes ∧ b.voteStamp = a.voteStamp := by simpa [receiptData] using he
   constructor <;> simp_all
 
-private theorem admitVote_receiptPrefix (p : Params) {n : Nat} (st : State n) (o : Wire n) :
+theorem admitVote_receiptPrefix (p : Params) {n : Nat} (st : State n) (o : Wire n) :
     ReceiptPrefix st (admitVote p st o) := by
   unfold admitVote
   split
@@ -51,18 +51,21 @@ private theorem fold_admitVote_receiptPrefix (p : Params) {n : Nat}
   | nil => exact .refl _
   | cons row raw ih => exact (admitVote_receiptPrefix p st (fromHead row)).trans (ih _)
 
+theorem admitProposal_receiptPrefix (p : Params) {n : Nat} (st : State n) (o : Wire n)
+    (b : Block) (raw : List (HeadWire n)) : ReceiptPrefix st (admitProposal p st o b raw) := by
+  unfold admitProposal
+  dsimp only
+  split_ifs
+  · exact .refl _
+  · refine ReceiptPrefix.trans ?_ (fold_admitVote_receiptPrefix p _ _)
+    constructor <;> simp
+
 theorem process_receiptPrefix (p : Params) {n : Nat} (st : State n) (o : Wire n) :
     ReceiptPrefix st (process p st o) := by
   unfold process
   split
   · exact admitVote_receiptPrefix p st o
-  · unfold admitProposal
-    dsimp only
-    split <;> split
-    all_goals first
-      | exact .refl _
-      | refine ReceiptPrefix.trans ?_ (fold_admitVote_receiptPrefix p _ _)
-        constructor <;> simp
+  · exact admitProposal_receiptPrefix p st o _ _
   · exact .refl _
 
 /-- Every event retains receipt lists in their original order. -/
@@ -128,7 +131,7 @@ def StampsBounded {n : Nat} (st : State n) : Prop :=
   (∀ row ∈ st.blockStamp, row.2 ≤ st.now) ∧
   (∀ row ∈ st.voteStamp, row.2 ≤ st.now)
 
-private theorem admitVote_stampsBounded (p : Params) {n : Nat} (st : State n) (o : Wire n)
+theorem admitVote_stampsBounded (p : Params) {n : Nat} (st : State n) (o : Wire n)
     (h : StampsBounded st) : StampsBounded (admitVote p st o) := by
   unfold admitVote
   split
@@ -150,23 +153,27 @@ private theorem fold_admitVote_stampsBounded (p : Params) {n : Nat}
   | nil => exact h
   | cons row raw ih => exact ih _ (admitVote_stampsBounded p st (fromHead row) h)
 
+theorem admitProposal_stampsBounded (p : Params) {n : Nat} (st : State n) (o : Wire n)
+    (b : Block) (raw : List (HeadWire n)) (h : StampsBounded st) :
+    StampsBounded (admitProposal p st o b raw) := by
+  unfold admitProposal
+  dsimp only
+  split_ifs
+  · exact h
+  · apply fold_admitVote_stampsBounded
+    refine ⟨?_, h.2⟩
+    intro row hr
+    rcases List.mem_append.mp hr with hr | hr
+    · exact h.1 row hr
+    · simp only [List.mem_singleton] at hr
+      simp [hr]
+
 private theorem process_stampsBounded (p : Params) {n : Nat} (st : State n) (o : Wire n)
     (h : StampsBounded st) : StampsBounded (process p st o) := by
   unfold process
   split
   · exact admitVote_stampsBounded p st o h
-  · unfold admitProposal
-    dsimp only
-    split <;> split
-    all_goals first
-      | exact h
-      | apply fold_admitVote_stampsBounded
-        refine ⟨?_, h.2⟩
-        intro row hr
-        rcases List.mem_append.mp hr with hr | hr
-        · exact h.1 row hr
-        · simp only [List.mem_singleton] at hr
-          simp [hr]
+  · exact admitProposal_stampsBounded p st o _ _ h
   · exact h
 
 /-- Receipt stamps remain bounded at every reachable event prefix. -/

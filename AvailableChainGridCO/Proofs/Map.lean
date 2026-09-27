@@ -1563,7 +1563,7 @@ private theorem deeper_depth (best b : Block) :
     have hle : b.depth ≤ best.depth := Nat.le_of_not_gt hnot
     exact ⟨le_refl _, hle⟩
 
-private theorem fold_deeper_depth (xs : List Block) (start : Block) :
+theorem fold_deeper_depth (xs : List Block) (start : Block) :
     start.depth ≤ (xs.foldl deeper start).depth ∧
     ∀ b ∈ xs, b.depth ≤ (xs.foldl deeper start).depth := by
   induction xs generalizing start with
@@ -1579,7 +1579,7 @@ private theorem fold_deeper_depth (xs : List Block) (start : Block) :
           exact le_trans hstep.2 htail.1
         · exact htail.2 b hmem
 
-private theorem fold_deeper_origin (xs : List Block) (start : Block) :
+theorem fold_deeper_origin (xs : List Block) (start : Block) :
     xs.foldl deeper start = start ∨
       xs.foldl deeper start ∈ xs := by
   induction xs generalizing start with
@@ -1631,7 +1631,7 @@ private theorem preceq_eq_of_depth_ge (B C : Block)
         simp [Block.depth] at hdepth
         omega
 
-private theorem preceq_of_compatible_depth_le (B C : Block)
+theorem preceq_of_compatible_depth_le (B C : Block)
     (hcompatible : Block.compatible B C = true)
     (hdepth : B.depth ≤ C.depth) : Block.preceq B C = true := by
   rcases Bool.or_eq_true_iff.mp hcompatible with hBC | hCB

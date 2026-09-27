@@ -6,6 +6,18 @@ namespace AvailableChain.SAPC
 
 open AvailableChain.Generic
 
+theorem pathKnown_eq_of_blocks_eq {n : Nat} (a b : State n)
+    (h : a.base.blocks = b.base.blocks) (target : Block) :
+    pathKnown a target = pathKnown b target := by
+  induction target with
+  | genesis => simp only [pathKnown, GridCO.blockKnown, h]
+  | node parent s root ih => simp only [pathKnown, GridCO.blockKnown, h, ih]
+
+theorem pcValid_eq_of_data (p : Params) {n : Nat} (a b : State n)
+    (hb : a.base.blocks = b.base.blocks) (hh : a.receivedHeads = b.receivedHeads) (c : PC n) :
+    pcValid p a c = pcValid p b c := by
+  simp only [pcValid, pcPaths, pathKnown_eq_of_blocks_eq a b hb, hh]
+
 theorem pathKnown_mono {n : Nat} (before after : State n)
     (hsub : before.base.blocks ⊆ after.base.blocks) (b : Block)
     (h : pathKnown before b = true) : pathKnown after b = true := by

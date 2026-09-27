@@ -12,7 +12,7 @@ variable [LeasePolicy]
 
 open AvailableChain.Generic AvailableChain.Statements.Generic
 
-private theorem admitVote_mem_origin (p : Params) {n : Nat} (st : State n)
+theorem admitVote_mem_origin (p : Params) {n : Nat} (st : State n)
     (parent o : Wire n) (ho : o ∈ (admitVote p st parent).votes) :
     o ∈ st.votes ∨ o = parent := by
   unfold admitVote at ho
@@ -223,7 +223,7 @@ theorem stored_honest_seat_awake {V : Type} [DecidableEq V]
   have htime := (emitted_head_action p E rho j _ t o r target hem hl ht).1
   exact Finset.mem_filter.mpr ⟨hh, htime ▸ hawake⟩
 
-private theorem head_wire_shape {n : Nat} (o : Wire n) (r : Slot) (i : Fin n)
+theorem head_wire_shape {n : Nat} (o : Wire n) (r : Slot) (i : Fin n)
     (hl : headLabel? o = some r) (hi : headSeat? o = some i) :
     ∃ B, o = ⟨.seat r i, .head B⟩ := by
   rcases o with ⟨auth, payload⟩
@@ -354,6 +354,22 @@ theorem stored_honest_heads_equal_at_event {V : Type} [DecidableEq V]
   have hBC : B = C := by simpa using (ha.symm.trans ha')
   rw [hBC]
 
+/-- A seat with at most one distinct object cannot trigger equivocation. -/
+theorem equivocates_false_of_unique {n : Nat} (xs : List (Wire n)) (i : Fin n)
+    (h : ∀ a ∈ seatVotes xs i, ∀ b ∈ seatVotes xs i, a = b) :
+    equivocates xs i = false := by
+  have hcard : (seatVotes xs i).toFinset.card ≤ 1 := by
+    apply Finset.card_le_one.mpr
+    intro a ha b hb
+    exact h a (List.mem_toFinset.mp ha) b (List.mem_toFinset.mp hb)
+  have heq : (seatVotes xs i).eraseDups.toFinset = (seatVotes xs i).toFinset := by
+    ext o; simp
+  have hlen : (seatVotes xs i).eraseDups.length ≤ 1 := by
+    rw [← List.toFinset_card_of_nodup (eraseDups_nodup _), heq]
+    exact hcard
+  change decide (2 ≤ (seatVotes xs i).eraseDups.length) = false
+  exact decide_eq_false (by omega)
+
 /-- An honest seat never hits the two-copy rejection condition in any
 reachable event-prefix store. This uses authentication, not synchrony. -/
 theorem honest_not_equivocating_at_event {V : Type} [DecidableEq V]
@@ -361,24 +377,15 @@ theorem honest_not_equivocating_at_event {V : Type} [DecidableEq V]
     (hx : ExecutionValid (gridCO p) E rho) (index : Nat) (reader : V)
     (r : Slot) (i : Fin p.n) (hh : rho.seatOf r i ∈ rho.honest) :
     equivocates (votesAt (Run.stateBefore (gridCO p) rho index reader) r) i = false := by
-  let st := Run.stateBefore (gridCO p) rho index reader
-  let xs := seatVotes (votesAt st r) i
-  have hcard : xs.toFinset.card ≤ 1 := by
-    apply Finset.card_le_one.mpr
-    intro a ha b hb
-    obtain ⟨ha, hai⟩ := List.mem_filter.mp (List.mem_toFinset.mp ha)
-    obtain ⟨hb, hbi⟩ := List.mem_filter.mp (List.mem_toFinset.mp hb)
-    obtain ⟨ha, hal⟩ := List.mem_filter.mp ha
-    obtain ⟨hb, hbl⟩ := List.mem_filter.mp hb
-    exact stored_honest_heads_equal_at_event p E rho hx index reader a b r i ha hb
-      (by simpa using hal) (by simpa using hbl)
-      (by simpa using hai) (by simpa using hbi) hh
-  have heq : xs.eraseDups.toFinset = xs.toFinset := by ext o; simp
-  have hlen : xs.eraseDups.length ≤ 1 := by
-    rw [← List.toFinset_card_of_nodup (eraseDups_nodup xs), heq]
-    exact hcard
-  change decide (2 ≤ xs.eraseDups.length) = false
-  exact decide_eq_false (by omega)
+  apply equivocates_false_of_unique
+  intro a ha b hb
+  obtain ⟨ha, hai⟩ := List.mem_filter.mp ha
+  obtain ⟨hb, hbi⟩ := List.mem_filter.mp hb
+  obtain ⟨ha, hal⟩ := List.mem_filter.mp ha
+  obtain ⟨hb, hbl⟩ := List.mem_filter.mp hb
+  exact stored_honest_heads_equal_at_event p E rho hx index reader a b r i ha hb
+    (by simpa using hal) (by simpa using hbl)
+    (by simpa using hai) (by simpa using hbi) hh
 
 end AvailableChain.GridCO
 end
