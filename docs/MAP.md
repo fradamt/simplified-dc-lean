@@ -131,9 +131,9 @@ SA-PC views, proves raw genuine compatibility at one label, and transfers
 genuine prefixes to the actual next HEAD with explicit root premises.
 Above-f support permits any selected PC; lower support uses selected-PC
 compatibility. `TransferRegimes` derives relay premises from the fixed
-synchronous and healthy-prefix conditions. Derivation of finite-root and
-selected-PC compatibility, honest proposal choices, common proposal-view
-counts, pending outage transfer, and the complete bundle proofs are pending.
+synchronous and healthy-prefix conditions. Honest proposal choices,
+common proposal-view counts, pending outage transfer, and the complete
+bundle proofs are pending. The clean root proofs are described below.
 `Statements/CleanInvariant` now defines `cleanRunPath` from actual run
 sources and `JointCleanInvariant` without a path argument. The old
 conditional predicate is named `CleanPathFacts`. `RunCleanPath` and
@@ -147,8 +147,8 @@ honest HEAD coverage, reusing SA's confirmation theorem. Its
 `clean_genuine_history_of_pc` leaves only active-PC compatibility as a
 label-induction input. `CleanService` proves honest N/PC prefix witnesses
 and exact raw proposal service from common exact HEADs. The clean safety
-and 6Δ reductions consume the corrected invariant. Active-PC compatibility,
-common proposal choices, and the remaining event steps are still pending.
+and 6Δ reductions consume the corrected invariant. Uncapped PC compatibility,
+common proposal choices, and uncapped event preservation are still pending.
 No complete clean contract claim is asserted.
 
 `Tests/CleanInvariantCounterexample` retains the complete capped Sleepy
@@ -166,6 +166,20 @@ Draft 4.2 defines `BlockInRun` and `RootInjective` in
 `AvailableChainStatements/Generic/Conditions.lean`. Sleepy, Outage, and
 Recovery require this root premise; StableSleepy and Fast inherit it.
 All witness runs satisfy it.
+
+`CleanPCPath` proves capped PC membership in the canonical source path
+and the strict selected-PC label bound. `RunCleanHeads` proves capped
+HEAD/release preservation, including the final incomplete HEAD.
+`RunCleanTransfer` derives timely continuation and a selected-PC prefix
+of the pending genuine result without a following-gate horizon premise.
+`MergedReceipts.local_back_receipts` and the factored genuine transfer
+proof supply the local reverse receipt condition.
+`RunCleanFacts` reconstructs source facts and restricts the capped
+invariant to earlier prefixes. `RunCleanGates` proves source comparison,
+ordered history, and the full capped early/gate step. `RunCleanCapped`
+proves the capped run invariant and derives safety and monotonicity of
+both base outputs under that cap. The uncapped base claims and common
+proposal choices remain pending; see `SAPC-STATUS.md`.
 
 ```text
 ┌────────────────────────────┬────────────────────────────────────────────┬───────────────────────────────┐

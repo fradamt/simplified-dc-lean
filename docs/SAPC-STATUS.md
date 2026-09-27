@@ -1,6 +1,6 @@
 # SA-PC status
 
-_2026-09-27. Round 11. Base contract frozen at Draft 4.3._
+_2026-09-27. Round 13. Base contract frozen at Draft 4.3._
 
 The additive companion statements and executable SA-PC model are in place.
 The library proves receipt, authentication, certificate, rank, timed-save,
@@ -22,11 +22,18 @@ historical test. The test also proves that the new path excludes the
 losing sibling and includes the actual next timely save.
 
 The shared SA/Grid CO label induction is extracted and reused by both
-instances. SA-PC now proves actual raw-batch preservation under Sleepy,
-finite-root compatibility from ordered genuine history, and exact raw
-proposal service from exact honest HEADs. Active-PC compatibility and
-common honest proposal choices remain open. Safety, monotonicity, and
-6Δ inclusion are still conditional; the requested bundles remain pending.
+instances. Round 13 proves `clean_run_invariant_capped` from Sleepy and
+`a≤f`, for every event prefix. It includes early/gate source comparison,
+ordered genuine history, and the final incomplete HEAD. Local reverse
+receipts remove the following-gate horizon premise. The helper
+`clean_safety_capped_from_engine` proves safety and monotonicity of both
+base outputs under this cap, with no assumed invariant.
+
+This does not discharge a base contract field: those fields must hold
+for all `a<h`. First-use disablement, uncapped and mixed-mode preservation,
+and common exact honest proposal choices remain open. The `6Δ` inclusion
+reductions still need those choices, even under the cap. Neither requested
+bundle is proved. No contract or executable rule changed in this round.
 
 ## Sources and scope
 
@@ -660,6 +667,106 @@ membership alone does not prove comparability, PC first-use authority,
 or exact proposal choices. No unconditional clean contract field is
 claimed from the conditional reductions.
 
+## Round 12: capped PC sources and HEAD transfer
+
+No contract, protocol rule, or invariant field changes.
+
+- `CleanPCPath` proves that every valid PC at an event input has its
+  target on `cleanRunPath` under the cap and execution validity. This
+  includes live PCs, frozen PCs selected by a HEAD, and carried PCs.
+  It needs neither Sleepy nor an assumed clean invariant. The source is
+  the earlier honest timely save supplied by an original ack.
+- Under the cap, the canonical path has exactly two source kinds: raw
+  honest gate results and honest timely saves, with ancestry closure.
+  Gate, HEAD, and proposal PC authority adds no extra branch. A capped
+  HEAD/release tick therefore leaves this source set unchanged.
+- A selected PC at HEAD `r+1` has target label strictly below `r`.
+  This uses `q>a` and the strict input cutoff, so it also holds without
+  the cap under plain Sleepy. A current-label PC cannot control that HEAD.
+- `RunCleanHeads` derives the finite-root premise from actual rows on
+  the input path. Timely-N transfer to the next HEAD now uses the joint
+  invariant and the cap, with no extra finite-root assumption. This
+  theorem permits a final HEAD with no later gate in the run.
+- `CleanTicks` factors its existing proof into a clock step with no
+  early save or gate. `RunCleanHeads` uses this step to prove the full
+  capped HEAD/release event preservation when the following gate is
+  within the horizon. It derives genuine continuation by the existing
+  SA batch-preservation and genuine-transfer proofs. The old freeze,
+  between-duty, and proposal proofs keep their statements.
+- `RunCleanTransfer` derives continued coverage of a timely save through
+  earlier HEADs from one current invariant. Its first step uses quorum
+  transfer; subsequent steps reuse SA preservation and genuine transfer.
+  Finite and PC roots come from the current path's earlier state fields.
+  No new timely-continuation field is assumed.
+- `selectedPC_prefix_pending_genuine` proves more than compatibility:
+  under the cap and the joint invariant at HEAD `r+1`, the selected PC
+  target is a prefix of every honest pending raw result at label `r`.
+  Its proof uses the strict PC label bound and timely continuation.
+  It does not assume that the pending gate is already a path source.
+  The gate deadline must be within the horizon.
+- `clean_genuine_history_capped_of_head_invariants` supplies this PC
+  input to the existing shared SA/Grid CO induction. It still requires
+  the chronological invariants at the relevant HEAD inputs. This is an
+  explicit proof dependency, not an unconditional clean-history theorem.
+
+The remaining chronological step must add the new timely save and the
+preceding raw gate result at the same early/gate tick. It must prove
+comparability of these sources, continuation of the new raw result at
+the already executed next HEAD, and ordered history. The current
+source-membership results alone do not prove any of those three facts.
+
+The full capped HEAD step still has a horizon boundary: its backward
+relay uses `gateTime s ≤ horizon` for HEAD `s+1`. A last incomplete
+label needs a proof from the available honest batch, or another proved
+argument that does not extend the run. No run extension is assumed.
+The separate timely-N transfer theorem does not have this restriction.
+
+Above the cap, a stored timely target need not enter the canonical path.
+First-use disablement and the mixed-mode steps remain pending. No cap
+has been added to a base contract claim. Common proposal choices and
+all unconditional clean-field conclusions remain pending. No new checked
+counterexample or contract issue was found in this round.
+
+## Round 13: complete capped chronological induction
+
+No contract, protocol rule, or invariant field changes.
+
+- `MergedReceipts` defines the exact reverse receipt condition
+  `BackReceipts`. `local_back_receipts` proves it from the reader's own
+  archive and the two-copy cache alternative. It includes carried raw
+  keys. It needs no future gate tick, relay deadline, or run extension.
+- `GenuineTransfer` factors five existing proofs through that receipt
+  condition. Their old relay-based theorem statements remain available.
+  `synchronous_local_genuine_head_covers` uses the same proof for the
+  reader's own pending raw result. Its only relay deadline is the freeze.
+  It needs no cap, but retains finite-root and selected-PC compatibility.
+- `RunCleanHeads` now proves capped HEAD/release preservation with no
+  following-gate horizon premise. `RunCleanTransfer` removes that premise
+  from timely continuation and selected-PC/pending-result comparison.
+- `RunCleanFacts` proves source accessibility from actual capped raw
+  gates and timely saves. It reconstructs all receipt and source fields
+  from a comparable source path and genuine continuation. It then proves
+  `JointCleanInvariant.restrict_capped`: an earlier prefix has its own
+  canonical path and full invariant. It does not reuse the later path.
+- `RunCleanGates` uses those earlier HEAD invariants in the shared
+  genuine-history induction. It compares raw/raw, timely/timely, and
+  raw/timely sources. Equal-label timely saves use quorum uniqueness;
+  equal-label raw/timely pairs use preparation relay. Other label pairs
+  use actual HEAD continuation. This proves the whole capped early/gate
+  step, including the new save, preceding raw gate result, ordered
+  history, and continuation through the HEAD already executed.
+- `RunCleanCapped` proves every capped event step and then
+  `clean_run_invariant_capped` by event induction. The derived
+  `clean_safety_capped_from_engine` proves cross-reader safety and local
+  monotonicity of both base outputs from Sleepy and the cap alone.
+  It has no assumed invariant, path order, or HEAD-coverage premise.
+
+The cap in this helper is explicit. It is not added to any base contract
+claim. This closes the capped chronological branch; it does not prove
+uncapped clean safety or common proposal choices. No new counterexample
+or contract issue was found. Strong claims, both P1 fields, recovery,
+and both requested bundle inhabitants remain pending.
+
 ## Exact remaining work
 
 Resume at work-order step 3 after the receipt/projection bridges below.
@@ -688,23 +795,29 @@ Steps 3–6 are pending; the statements above are not bundle proofs.
    common disablement before the gate. Same-label N/genuine and
    genuine/genuine compatibility are now proved. Genuine HEAD transfer
    works with compatible finite and selected-PC roots, or with a
-   compatible finite root and source support above f. Derive these
-   root premises jointly. Cross-label compatibility and mixed-mode clean
-   induction remain pending, as do the SA run/suffix interfaces. Do not
+   compatible finite root and source support above f. The capped joint
+   induction now supplies these root premises and cross-label order.
+   Derive them without the cap and through mixed-mode steps. The SA
+   run/suffix interfaces remain pending. Do not
    call every F4 supporter honest outside the cap. Retain the joint
    invariant at each mode change; disablement does not create a new genesis.
 3. Complete the new run-determined clean induction. The round-10
    free-path defect is removed and retained as a regression. Actual
    batch preservation and finite-root compatibility from genuine
-   history are now proved. Establish active selected-PC compatibility
-   with the pending genuine result, using timely transfer and first-use
-   disablement. Prove comparability of the canonical sources and the
-   remaining early/gate and HEAD/release event steps, including mixed
-   modes and the final incomplete label. Complete uncapped proposal
+   history are now proved. Capped selected-PC compatibility with the
+   pending genuine result is proved from the input invariant, through
+   timely continuation. The entire capped event induction is now proved,
+   including early/gate preservation and the final incomplete HEAD.
+   Complete first-use disablement above the cap and mixed-mode event
+   steps. For an authoritative uncapped PC, prove that its timely source
+   transferred, or that a departing HEAD made disablement common before
+   the first possible gate effect. Retain the genuine-history and lease
+   source facts through this mode change. Complete uncapped proposal
    authority and common exact honest proposal HEAD choices. Exact raw
-   service from those choices is now proved. Then apply the safety,
-   monotonicity, and 6Δ inclusion reductions. Only constants and nesting
-   are currently unconditional base fields.
+   service from those choices is proved. Then apply the uncapped safety,
+   monotonicity, and 6Δ inclusion reductions. The capped safety helper
+   does not fill those base fields. Only constants and nesting are
+   currently unconditional base fields.
    Prove general and fast P1, including the pending healthy HEAD and the
    first prefix lease when the raw descendant is PC-vetoed. Reuse SA
    source, transfer, and lease-map proofs after proving these interfaces.
@@ -724,7 +837,7 @@ Steps 3–6 are pending; the statements above are not bundle proofs.
 6. Assemble `sapcContract_from_engine`, SA-PC `fastP1_from_engine`, and
    `sapcStrong_from_engine`; audit their axioms.
 
-No contract issue has been established through round 11. No requested
+No contract issue has been established through round 13. No requested
 contract claim has a checked counterexample. The round-9 universal
 event-preservation obligation has the checked counterexample above. Do not weaken a premise or conclusion to
 close a gap. No incomplete Lean declaration is left in a default module;
@@ -801,3 +914,48 @@ No Git commit or `lake update` was made. `state.md` and `log.md` were
 not changed. Validation used the installed Lean throttle; CPU and
 elapsed-time checks were made. Session build logs were kept inside the
 repository and removed after validation.
+
+## Round 12 validation
+
+The three new proof modules and the shared clock-step refactor pass
+`lake build --wfail`. The separate pending statement and historical
+refutation modules also pass. The default audit has 554 entries,
+including all 19 new public theorems. Their dependencies are limited to
+`propext`, `Classical.choice`, and `Quot.sound`.
+
+The final full `lake build --wfail` passes all 3,471 jobs with no
+warnings. The default targets retain `gridContract_from_engine`,
+`saContract_from_engine`, and SA `fastP1_from_engine`. The existing smoke
+checks and canonical-path counterexample checks pass. `git diff --check`
+passes.
+
+No `sorry`, `admit`, project axiom, or `native_decide` was introduced.
+No contract definition, protocol rule, or invariant field was changed.
+No Git commit or `lake update` was made. `state.md` and `log.md` were
+not changed. Lean process checks used elapsed time and CPU use; the
+installed throttle was retained. Session validation logs were kept
+inside the repository and removed after validation.
+
+## Round 13 validation
+
+Targeted `lake build --wfail` checks pass for the receipt refactor,
+HEAD and timely transfer changes, and all three new proof modules.
+The separate pending statements and historical refutation also pass
+(993 jobs). No pending module is imported by a default target.
+
+The final full `lake build --wfail` passes all 3,474 jobs with no
+warnings. Default targets retain `gridContract_from_engine`,
+`saContract_from_engine`, SA `fastP1_from_engine`, smoke checks, and
+canonical-path counterexample checks. The default audit has 573 entries,
+including all 19 new public theorems and the strengthened existing
+HEAD/transfer theorems. Their dependencies are limited to `propext`,
+`Classical.choice`, and `Quot.sound`. `git diff --check` passes.
+
+No `sorry`, `admit`, project axiom, or `native_decide` was introduced.
+No contract, protocol rule, or invariant field changed. No Git commit
+or `lake update` was made. `state.md` and `log.md` were not changed.
+Lean process checks used elapsed time and CPU use. The first sandboxed
+build could not acquire the installed throttle lock; it was stopped and
+validation used the same throttle with lock access. No throttle setting
+was changed. All session scratch logs were inside the repository and
+were removed after validation.

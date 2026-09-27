@@ -24,22 +24,29 @@ theorem clock_eq_preGate_of_no_gate (p : Params) {n : Nat} (st : State n) (t : T
     exact (hn _ (by simpa using (Bool.and_eq_true_iff.mp ht).2)).elim
   · rfl
 
-/-- The complete joint invariant is preserved at a tick with no early,
-HEAD, or gate duty. At a proposal time, active authority must also be
-on the path. This covers PC freezes, expiry, and sleeping nodes. Proposal
-emission changes no state; exact-HEAD service is a separate obligation. -/
-theorem cleanPathFacts_tick_between_duties {V : Type} [DecidableEq V] [Fintype V]
+/-- Reuse the receipt and finite-row steps for any clock with no early
+save or gate. At a HEAD, only authority and genuine continuation remain. -/
+theorem cleanPathFacts_tick_of_no_early_no_gate {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (sapc p))
     (hx : ExecutionValid (sapc p) E rho)
     (index : Nat) (reader : V) (t : Time)
     (he : rho.events[index]? = some (.tick reader t))
-    (hne : ∀ r, t ≠ earlyTime p r) (hnh : ∀ r, t ≠ voteTime p r)
-    (hng : ∀ r, t ≠ gateTime p r)
+    (hne : ∀ r, t ≠ earlyTime p r) (hng : ∀ r, t ≠ gateTime p r)
     {path : Block → Prop} (h : CleanPathFacts p E rho index path)
     (hproposal : ∀ r c, t = proposalTime p r → reader ∈ rho.honest →
       capBroken p (clock p (Run.stateBefore (sapc p) rho index reader) t) = false →
       (clock p (Run.stateBefore (sapc p) rho index reader) t).bestPC = some c →
-      path c.target) :
+      path c.target)
+    (hhead : ∀ r c, t = voteTime p r → reader ∈ rho.honest →
+      capBroken p (clock p (Run.stateBefore (sapc p) rho index reader) t) = false →
+      selectedPC p (clock p (Run.stateBefore (sapc p) rho index reader) t) r = some c →
+      path c.target)
+    (htransfer : ∀ j, j < index → ∀ v ∈ rho.honest, ∀ r b,
+      rho.events[j]? = some (.tick v (gateTime p r)) →
+      SA.confirmation p (Run.stateBefore (sapc p) rho j v).base r = some b →
+      ∀ s, r < s → t = voteTime p s → reader ∈ rho.honest →
+        Block.Preceq b (headTarget p
+          (clock p (Run.stateBefore (sapc p) rho index reader) t) s)) :
     CleanPathFacts p E rho (index + 1) path := by
   have oldTick (j : Nat) (v : V) (time : Time) (hj : j < index + 1)
       (ht : rho.events[j]? = some (.tick v time)) (hn : t ≠ time) : j < index := by
@@ -95,8 +102,16 @@ theorem cleanPathFacts_tick_between_duties {V : Type} [DecidableEq V] [Fintype V
   · intro j hj v hv r b ht hb
     exact h.genuine j (oldTick j v _ hj ht (hng r)) v hv r b ht hb
   · intro j hj v hv r b ht hb k hk w hw s hrs hhead
-    exact h.transferred j (oldTick j v _ hj ht (hng r)) v hv r b ht hb
-      k (oldTick k w _ hk hhead (hnh s)) w hw s hrs hhead
+    have hj' := oldTick j v _ hj ht (hng r)
+    by_cases hk' : k < index
+    · exact h.transferred j hj' v hv r b ht hb k hk' w hw s hrs hhead
+    · have hki : k = index := by omega
+      subst k
+      have eq := Option.some.inj (he.symm.trans hhead)
+      have hw' : reader = w := congrArg Event.node eq
+      have ht' : t = voteTime p s := congrArg Event.time eq
+      subst w
+      exact ht' ▸ htransfer j hj' v hv r b ht hb s hrs ht' hw
   · intro i hi v hv c hc
     rcases Nat.eq_or_lt_of_le hi with rfl | hlt
     · rw [pcValid_eq_of_data p _ _ (data v).1 (data v).2.1] at hc
@@ -117,7 +132,15 @@ theorem cleanPathFacts_tick_between_duties {V : Type} [DecidableEq V] [Fintype V
   · intro i hi v hv r c ht hm hc
     exact h.gateAuthorities i (oldTick i v _ hi ht (hng r)) v hv r c ht hm hc
   · intro i hi v hv r c ht hm hc
-    exact h.headAuthorities i (oldTick i v _ hi ht (hnh r)) v hv r c ht hm hc
+    by_cases hi' : i < index
+    · exact h.headAuthorities i hi' v hv r c ht hm hc
+    · have hei : i = index := by omega
+      subst i
+      have eq := Option.some.inj (he.symm.trans ht)
+      have hv' : reader = v := congrArg Event.node eq
+      have ht' : t = voteTime p r := congrArg Event.time eq
+      subst v
+      exact hhead r c ht' hv (ht'.symm ▸ hm) (ht'.symm ▸ hc)
   · intro i hi v hv r c ht hm hc
     by_cases hi' : i < index
     · exact h.proposalAuthorities i hi' v hv r c ht hm hc
@@ -128,6 +151,25 @@ theorem cleanPathFacts_tick_between_duties {V : Type} [DecidableEq V] [Fintype V
       have het : t = proposalTime p r := congrArg Event.time hevent
       subst v
       exact hproposal r c het hv (het.symm ▸ hm) (het.symm ▸ hc)
+
+/-- Between duties, the HEAD inputs of the shared clock step are empty. -/
+theorem cleanPathFacts_tick_between_duties {V : Type} [DecidableEq V] [Fintype V]
+    (p : Params) (E : Env V) (rho : Run V (sapc p))
+    (hx : ExecutionValid (sapc p) E rho)
+    (index : Nat) (reader : V) (t : Time)
+    (he : rho.events[index]? = some (.tick reader t))
+    (hne : ∀ r, t ≠ earlyTime p r) (hnh : ∀ r, t ≠ voteTime p r)
+    (hng : ∀ r, t ≠ gateTime p r)
+    {path : Block → Prop} (h : CleanPathFacts p E rho index path)
+    (hproposal : ∀ r c, t = proposalTime p r → reader ∈ rho.honest →
+      capBroken p (clock p (Run.stateBefore (sapc p) rho index reader) t) = false →
+      (clock p (Run.stateBefore (sapc p) rho index reader) t).bestPC = some c →
+      path c.target) : CleanPathFacts p E rho (index + 1) path := by
+  apply cleanPathFacts_tick_of_no_early_no_gate p E rho hx index reader t he hne hng h hproposal
+  · intro r c ht
+    exact (hnh r ht).elim
+  · intro j hj v hv r b ht hb s hrs hs
+    exact (hnh s hs).elim
 
 theorem duty_phase_ne (p : Params) (r s a b : Nat)
     (ha : a < 4) (hb : b < 4) (hne : a ≠ b) :
@@ -140,6 +182,16 @@ theorem duty_phase_ne (p : Params) (r s a b : Nat)
     mul_right_cancel₀ (ne_of_gt p.deltaPos) hm
   have hnat : 4 * r + a = 4 * s + b := by exact_mod_cast hc
   omega
+
+theorem voteTime_ne_gateTime (p : Params) (r s : Slot) :
+    voteTime p r ≠ gateTime p s := by
+  intro he
+  apply voteTime_ne_earlyTime p r (s + 1)
+  change 4 * p.Δ * (r : Time) + p.Δ =
+    4 * p.Δ * ((s + 1 : Nat) : Time) + 2 * p.Δ
+  change 4 * p.Δ * (r : Time) + p.Δ = 4 * p.Δ * (s : Time) + 6 * p.Δ at he
+  push_cast
+  linarith
 
 theorem cleanPathFacts_freeze {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (sapc p))

@@ -2,7 +2,7 @@ module
 public import AvailableChainSAPC.Proofs.CleanService
 
 /-!
-Remaining proof obligations for round 11. No default target imports this
+Remaining proof obligations after round 13. No default target imports this
 module. These definitions are not assumptions added to any contract.
 The rejected free-path statement is kept in `RejectedCleanInduction`.
 
@@ -10,6 +10,11 @@ The rejected free-path statement is kept in `RejectedCleanInduction`.
 its continuation use actual run events. The shared SA induction proves
 ordered genuine history once the active-PC transfer condition below is
 supplied. Batch preservation and finite-root compatibility are proved.
+Round 13 proves the complete capped event induction, including early/gate
+source comparison, ordered history, and the final incomplete HEAD. Local
+reverse receipts remove the following-gate horizon premise. The uncapped
+steps below still require first-use disablement and mixed-mode transfer.
+Common exact proposal choices remain open in both fault scopes.
 -/
 
 @[expose] public section

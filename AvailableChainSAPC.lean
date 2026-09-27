@@ -53,6 +53,12 @@ public import AvailableChainSAPC.Proofs.RunCleanTicks
 public import AvailableChainSAPC.Proofs.GenuineHistory
 public import AvailableChainSAPC.Proofs.Preservation
 public import AvailableChainSAPC.Proofs.CleanService
+public import AvailableChainSAPC.Proofs.CleanPCPath
+public import AvailableChainSAPC.Proofs.RunCleanHeads
+public import AvailableChainSAPC.Proofs.RunCleanTransfer
+public import AvailableChainSAPC.Proofs.RunCleanFacts
+public import AvailableChainSAPC.Proofs.RunCleanGates
+public import AvailableChainSAPC.Proofs.RunCleanCapped
 
 @[expose] public section
 end

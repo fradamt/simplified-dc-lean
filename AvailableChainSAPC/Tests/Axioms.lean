@@ -55,6 +55,12 @@ public import AvailableChainSAPC.Proofs.RunCleanTicks
 public import AvailableChainSAPC.Proofs.GenuineHistory
 public import AvailableChainSAPC.Proofs.Preservation
 public import AvailableChainSAPC.Proofs.CleanService
+public import AvailableChainSAPC.Proofs.CleanPCPath
+public import AvailableChainSAPC.Proofs.RunCleanHeads
+public import AvailableChainSAPC.Proofs.RunCleanTransfer
+public import AvailableChainSAPC.Proofs.RunCleanFacts
+public import AvailableChainSAPC.Proofs.RunCleanGates
+public import AvailableChainSAPC.Proofs.RunCleanCapped
 
 #print axioms AvailableChain.SAPC.collectPCs_field
 #print axioms AvailableChain.SAPC.collectPCs_base
@@ -611,3 +617,45 @@ public import AvailableChainSAPC.Proofs.CleanService
 #print axioms
   AvailableChain.SAPC.Tests.CleanInvariantCounterexample.canonical_excludes_losing_branch
 #print axioms AvailableChain.SAPC.Tests.CleanInvariantCounterexample.canonical_next_contains_winner
+
+-- Round 12: capped PC sources and chronological HEAD transfer.
+#print axioms AvailableChain.SAPC.capped_quorum_above_faults
+#print axioms AvailableChain.SAPC.validPC_on_cleanRunPath
+#print axioms AvailableChain.SAPC.installedPC_on_cleanRunPath
+#print axioms AvailableChain.SAPC.selectedPC_on_cleanRunPath
+#print axioms AvailableChain.SAPC.selectedPC_compatible_cleanRunPath
+#print axioms AvailableChain.SAPC.selectedPC_slot_lt_at_nextHead
+#print axioms AvailableChain.SAPC.cleanRunPath_capped_sources
+#print axioms AvailableChain.SAPC.cleanRunPath_eq_at_head_capped
+#print axioms AvailableChain.SAPC.headRoot_on_cleanRunPath
+#print axioms AvailableChain.SAPC.timely_nextHead_of_run_invariant
+#print axioms AvailableChain.SAPC.genuine_head_continuation_of_run_invariant
+#print axioms AvailableChain.SAPC.jointClean_head_tick_capped
+#print axioms AvailableChain.SAPC.head_input_prefix_le
+#print axioms AvailableChain.SAPC.head_roots_on_run_path
+#print axioms AvailableChain.SAPC.timely_continues_of_run_invariant
+#print axioms AvailableChain.SAPC.selectedPC_prefix_pending_genuine
+#print axioms AvailableChain.SAPC.clean_genuine_history_capped_of_head_invariants
+#print axioms AvailableChain.SAPC.cleanPathFacts_tick_of_no_early_no_gate
+#print axioms AvailableChain.SAPC.voteTime_ne_gateTime
+
+-- Round 13: local transfer and complete capped run induction.
+#print axioms AvailableChain.SAPC.cleanRunPath_accessible_capped
+#print axioms AvailableChain.SAPC.cleanPathFacts_capped_of_chain_and_transfer
+#print axioms AvailableChain.SAPC.JointCleanInvariant.restrict_capped
+#print axioms AvailableChain.SAPC.clean_history_before_early_capped
+#print axioms AvailableChain.SAPC.timely_heads_before_early_capped
+#print axioms AvailableChain.SAPC.genuine_heads_before_early_capped
+#print axioms AvailableChain.SAPC.cleanRunPath_chain_at_early_capped
+#print axioms AvailableChain.SAPC.jointClean_early_tick_capped
+#print axioms AvailableChain.SAPC.jointClean_gate_tick_capped
+#print axioms AvailableChain.SAPC.jointClean_event_capped
+#print axioms AvailableChain.SAPC.clean_run_invariant_capped
+#print axioms AvailableChain.SAPC.clean_safety_capped_from_engine
+#print axioms AvailableChain.SAPC.local_back_receipts
+#print axioms AvailableChain.SAPC.synchronous_local_genuine_head_covers
+#print axioms AvailableChain.SAPC.cleanSupport_voter_unique_of_back_receipts
+#print axioms AvailableChain.SAPC.cleanSupport_in_voterSupport_of_back_receipts
+#print axioms AvailableChain.SAPC.genuine_transfer_receipts_of_back_receipts
+#print axioms AvailableChain.SAPC.genuine_ordinary_head_covers_of_back_receipts
+#print axioms AvailableChain.SAPC.genuine_compatiblePC_head_covers_of_back_receipts

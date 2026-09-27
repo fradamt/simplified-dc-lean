@@ -106,6 +106,21 @@ theorem cleanSupport_not_equivocating (p : Params) {n : Nat} (st : GridCO.State 
 
 /-- Reverse relay excludes all conflicting copies of a genuine
 supporter from the full merged HEAD view. -/
+theorem cleanSupport_voter_unique_of_back_receipts {V : Type} [DecidableEq V] (p : Params)
+    (rho : Run V (sapc p))
+    (r : Slot) (v w : V)
+    (hrelay : BackReceipts p rho r v w)
+    (o : GridCO.Wire p.n) (i : Fin p.n) (hi : GridCO.headSeat? o = some i)
+    (ho : o ∈ GridCO.cleanSupport p.engine
+      (Run.stateBeforeTime (sapc p) rho (gateTime p r) v).base r) :
+    ∀ key ∈ GridCO.voterView p.engine (headState p rho (r + 1) w).base (r + 1),
+      GridCO.headSeat? key = some i → key = o := by
+  intro key hm hseat
+  rcases hrelay key i hseat hm with hk | he
+  · exact (GridCO.cleanSupport_eq_of_late_same_seat p.engine _ r i o key ho hk hi hseat).symm
+  · rw [cleanSupport_not_equivocating p _ r o i hi ho] at he
+    contradiction
+
 theorem cleanSupport_voter_unique {V : Type} [DecidableEq V] (p : Params)
     (E : Env V) (rho : Run V (sapc p)) (hs : ScheduleWellFormed E rho)
     (r : Slot) (v w : V) (hv : v ∈ rho.honest) (hw : w ∈ rho.honest)
@@ -114,21 +129,18 @@ theorem cleanSupport_voter_unique {V : Type} [DecidableEq V] (p : Params)
     (ho : o ∈ GridCO.cleanSupport p.engine
       (Run.stateBeforeTime (sapc p) rho (gateTime p r) v).base r) :
     ∀ key ∈ GridCO.voterView p.engine (headState p rho (r + 1) w).base (r + 1),
-      GridCO.headSeat? key = some i → key = o := by
-  intro key hm hseat
-  rcases voter_raw_at_gate p E rho hs r v w hv hw hrelay key i hseat hm with hk | he
-  · exact (GridCO.cleanSupport_eq_of_late_same_seat p.engine _ r i o key ho hk hi hseat).symm
-  · rw [cleanSupport_not_equivocating p _ r o i hi ho] at he
-    contradiction
+      GridCO.headSeat? key = some i → key = o :=
+  cleanSupport_voter_unique_of_back_receipts p rho r v w
+    (voter_raw_at_gate p E rho hs r v w hv hw hrelay) o i hi ho
 
 /-- Every genuine supporter occurs in the actual next support view.
 The cache's equivocation alternative is excluded by reverse relay. -/
-theorem cleanSupport_in_voterSupport {V : Type} [DecidableEq V] (p : Params)
+theorem cleanSupport_in_voterSupport_of_back_receipts {V : Type} [DecidableEq V] (p : Params)
     (E : Env V) (rho : Run V (sapc p)) (hs : ScheduleWellFormed E rho)
     (hΔ : E.Δ = p.Δ) (r : Slot) (v w : V) (hv : v ∈ rho.honest) (hw : w ∈ rho.honest)
     (hh : freezeTime p r ≤ rho.horizon)
     (hforward : RelayBy p rho (earlyTime p r) (freezeTime p r))
-    (hback : RelayBy p rho (voteTime p (r + 1)) (gateTime p r))
+    (hback : BackReceipts p rho r v w)
     (o : GridCO.Wire p.n)
     (ho : o ∈ GridCO.cleanSupport p.engine
       (Run.stateBeforeTime (sapc p) rho (gateTime p r) v).base r) :
@@ -161,7 +173,8 @@ theorem cleanSupport_in_voterSupport {V : Type} [DecidableEq V] (p : Params)
         intro a ha b hb
         obtain ⟨ha, hai⟩ := List.mem_filter.mp ha
         obtain ⟨hb, hbi⟩ := List.mem_filter.mp hb
-        have hu := cleanSupport_voter_unique p E rho hs r v w hv hw hback _ i rfl ho
+        have hu := cleanSupport_voter_unique_of_back_receipts p rho r v w
+          hback _ i rfl ho
         exact (hu a ha (by simpa using hai)).trans (hu b hb (by simpa using hbi)).symm
       have he' := GridCO.equivocates_mono _ _ i hraw he
       rw [hn] at he'
@@ -175,8 +188,47 @@ theorem cleanSupport_in_voterSupport {V : Type} [DecidableEq V] (p : Params)
     push_cast
     linarith [p.deltaPos]
 
+theorem cleanSupport_in_voterSupport {V : Type} [DecidableEq V] (p : Params)
+    (E : Env V) (rho : Run V (sapc p)) (hs : ScheduleWellFormed E rho)
+    (hΔ : E.Δ = p.Δ) (r : Slot) (v w : V) (hv : v ∈ rho.honest) (hw : w ∈ rho.honest)
+    (hh : freezeTime p r ≤ rho.horizon)
+    (hforward : RelayBy p rho (earlyTime p r) (freezeTime p r))
+    (hback : RelayBy p rho (voteTime p (r + 1)) (gateTime p r))
+    (o : GridCO.Wire p.n)
+    (ho : o ∈ GridCO.cleanSupport p.engine
+      (Run.stateBeforeTime (sapc p) rho (gateTime p r) v).base r) :
+    o ∈ GridCO.voterSupportView p.engine (headState p rho (r + 1) w).base (r + 1) ∧
+      ∃ target, GridCO.headTarget? o = some target ∧
+        target ∈ (headState p rho (r + 1) w).base.blocks :=
+  cleanSupport_in_voterSupport_of_back_receipts p E rho hs hΔ r v w hv hw hh hforward
+    (voter_raw_at_gate p E rho hs r v w hv hw hback) o ho
+
 /-- The SA support-transfer interface holds for actual SA-PC gate and
 HEAD states, in either mode and without an actual fault cap. -/
+theorem genuine_transfer_receipts_of_back_receipts {V : Type} [DecidableEq V] (p : Params)
+    (E : Env V) (rho : Run V (sapc p)) (hx : ExecutionValid (sapc p) E rho)
+    (hΔ : E.Δ = p.Δ) (r : Slot) (v w : V) (hv : v ∈ rho.honest) (hw : w ∈ rho.honest)
+    (hh : freezeTime p r ≤ rho.horizon)
+    (hforward : RelayBy p rho (earlyTime p r) (freezeTime p r))
+    (hback : BackReceipts p rho r v w) (b : Block) :
+    GridCO.TransferReceipts p.engine
+      (Run.stateBeforeTime (sapc p) rho (gateTime p r) v).base r
+      (headState p rho (r + 1) w).base.blocks
+      (GridCO.voterView p.engine (headState p rho (r + 1) w).base (r + 1))
+      (GridCO.voterSupportView p.engine (headState p rho (r + 1) w).base (r + 1)) b := by
+  refine ⟨fun o ho _ => cleanSupport_in_voterSupport_of_back_receipts p E rho
+      hx.toScheduleWellFormed hΔ
+      r v w hv hw hh hforward hback o ho,
+    fun o ho i hi => hback o i hi ho, ?_⟩
+  apply voterSupport_subset_raw
+  · have h := frozenViewsStored_at_fold p
+      ((rho.events.filter (fun e => decide (e.time < voteTime p (r + 1)))) ++
+        [.tick w (voteTime p (r + 1))]) w
+    simpa only [List.foldl_append, List.foldl_cons, List.foldl_nil,
+      World.step, Function.update_self] using h
+  · simpa only [headState, DeclaredSupport, clock_base_proposals] using
+      declaredSupport_beforeTime p E rho hx (voteTime p (r + 1)) w
+
 theorem genuine_transfer_receipts {V : Type} [DecidableEq V] (p : Params)
     (E : Env V) (rho : Run V (sapc p)) (hx : ExecutionValid (sapc p) E rho)
     (hΔ : E.Δ = p.Δ) (r : Slot) (v w : V) (hv : v ∈ rho.honest) (hw : w ∈ rho.honest)
@@ -187,19 +239,9 @@ theorem genuine_transfer_receipts {V : Type} [DecidableEq V] (p : Params)
       (Run.stateBeforeTime (sapc p) rho (gateTime p r) v).base r
       (headState p rho (r + 1) w).base.blocks
       (GridCO.voterView p.engine (headState p rho (r + 1) w).base (r + 1))
-      (GridCO.voterSupportView p.engine (headState p rho (r + 1) w).base (r + 1)) b := by
-  refine ⟨fun o ho _ => cleanSupport_in_voterSupport p E rho hx.toScheduleWellFormed hΔ
-      r v w hv hw hh hforward hback o ho,
-    fun o ho i hi => voter_raw_at_gate p E rho hx.toScheduleWellFormed r v w hv hw hback
-      o i hi ho, ?_⟩
-  apply voterSupport_subset_raw
-  · have h := frozenViewsStored_at_fold p
-      ((rho.events.filter (fun e => decide (e.time < voteTime p (r + 1)))) ++
-        [.tick w (voteTime p (r + 1))]) w
-    simpa only [List.foldl_append, List.foldl_cons, List.foldl_nil,
-      World.step, Function.update_self] using h
-  · simpa only [headState, DeclaredSupport, clock_base_proposals] using
-      declaredSupport_beforeTime p E rho hx (voteTime p (r + 1)) w
+      (GridCO.voterSupportView p.engine (headState p rho (r + 1) w).base (r + 1)) b :=
+  genuine_transfer_receipts_of_back_receipts p E rho hx hΔ r v w hv hw hh hforward
+    (voter_raw_at_gate p E rho hx.toScheduleWellFormed r v w hv hw hback) b
 
 /-- The ordinary frozen domain contains every non-genesis ancestor of
 an early resolved target, including at sleeping readers. -/
@@ -255,6 +297,25 @@ theorem genuine_path_in_voterTree {V : Type} [DecidableEq V] (p : Params)
 
 /-- The shared SA walk theorem transfers any genuine prefix from a
 compatible finite root. PCs have not yet been applied in this result. -/
+theorem genuine_ordinary_head_covers_of_back_receipts {V : Type} [DecidableEq V] (p : Params)
+    (E : Env V) (rho : Run V (sapc p)) (hx : ExecutionValid (sapc p) E rho)
+    (hΔ : E.Δ = p.Δ) (r : Slot) (v w : V) (hv : v ∈ rho.honest) (hw : w ∈ rho.honest)
+    (hh : freezeTime p r ≤ rho.horizon)
+    (hforward : RelayBy p rho (earlyTime p r) (freezeTime p r))
+    (hback : BackReceipts p rho r v w) (b c : Block)
+    (hc : SA.confirmation p (Run.stateBeforeTime (sapc p) rho (gateTime p r) v).base r = some c)
+    (hp : Block.Preceq b c)
+    (hr : Block.Compatible (GridCO.liveRoot (headState p rho (r + 1) w).base) b) :
+    Block.Preceq b (GridCO.forkChoice (headState p rho (r + 1) w).base
+      (GridCO.voterTree p.engine (headState p rho (r + 1) w).base (r + 1))
+      (GridCO.voterView p.engine (headState p rho (r + 1) w).base (r + 1))
+      (GridCO.voterSupportView p.engine (headState p rho (r + 1) w).base (r + 1)) (r + 1)) := by
+  exact @GridCO.forkChoice_covers_of_transfer GridCO.slowLeasePolicy p.n p.engine _ _ r
+    (r + 1) _ _ _ b c hc hp
+    (genuine_transfer_receipts_of_back_receipts p E rho hx hΔ r v w hv hw hh hforward hback b) hr
+    (fun a hn ha => genuine_path_in_voterTree p E rho hx.toScheduleWellFormed hΔ
+      r v w hv hw hh hforward a c hc (GridCO.prefix_trans a b c ha hp) hn)
+
 theorem genuine_ordinary_head_covers {V : Type} [DecidableEq V] (p : Params)
     (E : Env V) (rho : Run V (sapc p)) (hx : ExecutionValid (sapc p) E rho)
     (hΔ : E.Δ = p.Δ) (r : Slot) (v w : V) (hv : v ∈ rho.honest) (hw : w ∈ rho.honest)
@@ -267,12 +328,9 @@ theorem genuine_ordinary_head_covers {V : Type} [DecidableEq V] (p : Params)
     Block.Preceq b (GridCO.forkChoice (headState p rho (r + 1) w).base
       (GridCO.voterTree p.engine (headState p rho (r + 1) w).base (r + 1))
       (GridCO.voterView p.engine (headState p rho (r + 1) w).base (r + 1))
-      (GridCO.voterSupportView p.engine (headState p rho (r + 1) w).base (r + 1)) (r + 1)) := by
-  exact @GridCO.forkChoice_covers_of_transfer GridCO.slowLeasePolicy p.n p.engine _ _ r
-    (r + 1) _ _ _ b c hc hp
-    (genuine_transfer_receipts p E rho hx hΔ r v w hv hw hh hforward hback b) hr
-    (fun a hn ha => genuine_path_in_voterTree p E rho hx.toScheduleWellFormed hΔ
-      r v w hv hw hh hforward a c hc (GridCO.prefix_trans a b c ha hp) hn)
+      (GridCO.voterSupportView p.engine (headState p rho (r + 1) w).base (r + 1)) (r + 1)) :=
+  genuine_ordinary_head_covers_of_back_receipts p E rho hx hΔ r v w hv hw hh hforward
+    (voter_raw_at_gate p E rho hx.toScheduleWellFormed r v w hv hw hback) b c hc hp hr
 
 /-- With compatible finite and selected-PC roots, the shared genuine
 majority controls both choices. This statement does not require an F4
@@ -332,6 +390,38 @@ theorem choice_covers_of_genuine_transfer (p : Params) {n : Nat}
 
 /-- Low genuine support also transfers to the actual HEAD when the
 joint invariant supplies compatibility of the selected PC and finite root. -/
+theorem genuine_compatiblePC_head_covers_of_back_receipts {V : Type} [DecidableEq V] (p : Params)
+    (E : Env V) (rho : Run V (sapc p)) (hx : ExecutionValid (sapc p) E rho)
+    (hΔ : E.Δ = p.Δ) (r : Slot) (v w : V) (hv : v ∈ rho.honest) (hw : w ∈ rho.honest)
+    (hh : freezeTime p r ≤ rho.horizon)
+    (hforward : RelayBy p rho (earlyTime p r) (freezeTime p r))
+    (hback : BackReceipts p rho r v w) (b c : Block)
+    (hc : SA.confirmation p (Run.stateBeforeTime (sapc p) rho (gateTime p r) v).base r = some c)
+    (hp : Block.Preceq b c)
+    (hr : Block.Compatible (GridCO.liveRoot (headState p rho (r + 1) w).base) b)
+    (hcert : ∀ pc, selectedPC p (headState p rho (r + 1) w) (r + 1) = some pc →
+      Block.Compatible pc.target b) :
+    Block.Preceq b (headData p rho (r + 1) w).target := by
+  cases ha : capBroken p (headState p rho (r + 1) w) with
+  | true =>
+      simpa only [headData, headTarget, Nat.add_eq_zero_iff, Nat.one_ne_zero,
+        and_false, decide_false, Bool.false_eq_true, ↓reduceIte, ha, choice] using
+        genuine_ordinary_head_covers_of_back_receipts p E rho hx hΔ r v w hv hw
+          hh hforward hback b c hc hp hr
+  | false =>
+      have h := choice_covers_of_genuine_transfer p
+        (Run.stateBeforeTime (sapc p) rho (gateTime p r) v).base
+        (headState p rho (r + 1) w) r (r + 1)
+        (activeVoterTree p (headState p rho (r + 1) w) (r + 1)
+          (selectedPC p (headState p rho (r + 1) w) (r + 1))) _ _ b c
+        (selectedPC p (headState p rho (r + 1) w) (r + 1)) hc hp
+        (genuine_transfer_receipts_of_back_receipts p E rho hx hΔ r v w hv hw hh hforward hback b)
+        (fun a hn hab => activeVoterTree_contains_plain p _ _ _
+          (genuine_path_in_voterTree p E rho hx.toScheduleWellFormed hΔ r v w hv hw hh
+            hforward a c hc (GridCO.prefix_trans a b c hab hp) hn)) hr hcert
+      simpa only [headData, headTarget, Nat.add_eq_zero_iff, Nat.one_ne_zero,
+        and_false, decide_false, Bool.false_eq_true, ↓reduceIte, ha] using h
+
 theorem genuine_compatiblePC_head_covers {V : Type} [DecidableEq V] (p : Params)
     (E : Env V) (rho : Run V (sapc p)) (hx : ExecutionValid (sapc p) E rho)
     (hΔ : E.Δ = p.Δ) (r : Slot) (v w : V) (hv : v ∈ rho.honest) (hw : w ∈ rho.honest)
@@ -343,25 +433,9 @@ theorem genuine_compatiblePC_head_covers {V : Type} [DecidableEq V] (p : Params)
     (hr : Block.Compatible (GridCO.liveRoot (headState p rho (r + 1) w).base) b)
     (hcert : ∀ pc, selectedPC p (headState p rho (r + 1) w) (r + 1) = some pc →
       Block.Compatible pc.target b) :
-    Block.Preceq b (headData p rho (r + 1) w).target := by
-  cases ha : capBroken p (headState p rho (r + 1) w) with
-  | true =>
-      simpa only [headData, headTarget, Nat.add_eq_zero_iff, Nat.one_ne_zero,
-        and_false, decide_false, Bool.false_eq_true, ↓reduceIte, ha, choice] using
-        genuine_ordinary_head_covers p E rho hx hΔ r v w hv hw hh hforward hback b c hc hp hr
-  | false =>
-      have h := choice_covers_of_genuine_transfer p
-        (Run.stateBeforeTime (sapc p) rho (gateTime p r) v).base
-        (headState p rho (r + 1) w) r (r + 1)
-        (activeVoterTree p (headState p rho (r + 1) w) (r + 1)
-          (selectedPC p (headState p rho (r + 1) w) (r + 1))) _ _ b c
-        (selectedPC p (headState p rho (r + 1) w) (r + 1)) hc hp
-        (genuine_transfer_receipts p E rho hx hΔ r v w hv hw hh hforward hback b)
-        (fun a hn hab => activeVoterTree_contains_plain p _ _ _
-          (genuine_path_in_voterTree p E rho hx.toScheduleWellFormed hΔ r v w hv hw hh
-            hforward a c hc (GridCO.prefix_trans a b c hab hp) hn)) hr hcert
-      simpa only [headData, headTarget, Nat.add_eq_zero_iff, Nat.one_ne_zero,
-        and_false, decide_false, Bool.false_eq_true, ↓reduceIte, ha] using h
+    Block.Preceq b (headData p rho (r + 1) w).target :=
+  genuine_compatiblePC_head_covers_of_back_receipts p E rho hx hΔ r v w hv hw hh hforward
+    (voter_raw_at_gate p E rho hx.toScheduleWellFormed r v w hv hw hback) b c hc hp hr hcert
 
 /-- Genuine support above f drives F4 through its prefix for any
 selected PC. In disabled mode the same result follows from plain SA.
