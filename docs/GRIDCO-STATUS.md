@@ -1,0 +1,77 @@
+# Grid CO status
+
+_2026-09-27. Contract Draft 4.2. All contract claims are proved._
+
+`AvailableChain.GridCO.gridContract_from_engine` in
+[`Proofs/Contract.lean`](../AvailableChainGridCO/Proofs/Contract.lean) proves
+`GridContract p G E`. It constructs the common `AvailableChain` bundle
+from engine proofs and the contract regimes. No claim remains open.
+
+The bundle proves safety of both outputs, monotonicity under Sleepy,
+nesting, all three honest-proposal inclusion claims, outage persistence,
+and recovery. Both interface outputs read the stable record. Recovery
+proves safety and inclusion from `GST + ρ`; its proof also establishes
+monotonicity after record repair.
+
+## Constants and premises
+
+Let `L = (4m−1)Δ` and `K = |grid|`.
+
+- `θ = θ_R`, `θrec = 1/2`, `recoveryFull = false`.
+- `D_c = D_s = D_f = 6Δ`.
+- Arming lag `A = 4Δ`; outage budget `Π = min(η,L)`.
+- Proposer gap `G`; recovery bound `ρ = K(L+Δ) + G + 10Δ`.
+
+The theorem requires `0 < G` and `E.Δ = p.Δ`. `Params` contains the
+parameter conditions: `Δ > 0`, `m ≥ 2`, `η ≥ 0`, a finite grid of levels
+in `[1,n]` containing 1, `1/2 ≤ θ_R ≤ 3/4`, and `gridMatchesTheta`.
+The last condition requires the rounded level to exceed the faulty count
+when the declared participation threshold holds.
+
+Each claim uses its regime from the fixed contract:
+
+- Sleepy starts at `GST = t₀ = 0`, with awake honest count above faulty
+  count, synchrony, and accepted-object relay. StableSleepy adds the
+  η-sleepy condition; Fast adds full honest participation and faults below
+  one quarter.
+- Outage requires healthy delivery, accepted relay, and both count
+  conditions from genesis to `b₀`, plus the arming lag, budget, and horizon
+  bounds. Delivery during `[b₀,b₁)` is unrestricted.
+- Recovery permits an arbitrary prefix. After GST it requires synchrony,
+  accepted relay, awake honest count above faulty count, honest awake
+  opening proposers every `G`, and a horizon through `GST + ρ`.
+
+All regimes require valid execution and `RootInjective` on genesis and
+ancestors of blocks named by delivered or emitted proposal payloads.
+The internal label, receipt, support, and repair invariants are proved
+from these premises. They are not additional contract assumptions.
+
+## Resolved issues
+
+- **Draft 4.1: healthy outage prefix.** Participation conditions now start
+  at genesis. This excludes the old pending-gate run whose honest readers
+  slept before the protected read.
+- **Resolved in Draft 4.2: block-root uniqueness.** The shared
+  `RootInjective` premise excludes the old run with distinct blocks that
+  had equal roots.
+- **Broadcast hook.** A carried HEAD counts as handled only if its
+  containing block enters the store. Rejected envelopes cannot satisfy
+  broadcast through handlers that did not run.
+- **Proposal repair.** Pre-proposal constrained accessibility alone was
+  insufficient: release could remove its anchor. Clean history and the
+  recovery source invariant now establish the ordinary proposal parent,
+  roots after release, and gate permission. The refuted F5 field and the
+  `GoldfishFacts` hypothesis structure have been removed.
+
+The regime witnesses, sanity and accumulation witnesses, and Grid CO and
+L* smoke tests remain in the default build. The old proof-interface
+counterexamples and conditional constructors have been removed.
+
+## Validation
+
+`lake build --wfail` passes all 3,394 jobs with no warnings, including
+the new SA instance. Shared engine proofs now support either lease policy;
+Grid CO keeps its original admission rule and constants. All six Grid CO
+Boolean smoke checks and both L* checks pass. `#print axioms` for
+`gridContract_from_engine`, the only public theorem in `Proofs/Contract.lean`,
+reports only `propext`, `Classical.choice`, and `Quot.sound`.

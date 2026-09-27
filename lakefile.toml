@@ -1,0 +1,47 @@
+name = "available-chain"
+version = "0.1.0"
+keywords = ["lean", "consensus", "model"]
+defaultTargets = [
+  "AvailableChainModel",
+  "AvailableChainStatements",
+  "AvailableChainLStar",
+  "AvailableChainGridCO",
+  "AvailableChainSA",
+  "AvailableChainWitnesses",
+]
+
+[leanOptions]
+pp.unicode.fun = true
+relaxedAutoImplicit = false
+weak.linter.mathlibStandardSet = true
+weak.linter.flexible = false
+maxSynthPendingDepth = 3
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "v4.30.0-rc2"
+
+# Generic execution engine and objects. No protocol.
+[[lean_lib]]
+name = "AvailableChainModel"
+
+# The contract: interface, conditions, regimes, constants, properties, claims.
+[[lean_lib]]
+name = "AvailableChainStatements"
+
+# Instance: Goldfish with L* locks (model, statements, proofs).
+[[lean_lib]]
+name = "AvailableChainLStar"
+
+# Grid counted-obligations instance of the common contract.
+[[lean_lib]]
+name = "AvailableChainGridCO"
+
+# Non-vacuity: sanity instance, regime witnesses, accumulation run.
+[[lean_lib]]
+name = "AvailableChainWitnesses"
+
+# Slow arming with one release level.
+[[lean_lib]]
+name = "AvailableChainSA"
