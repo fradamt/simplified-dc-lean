@@ -1,4 +1,5 @@
 module
+public import AvailableChainSAPC.Proofs.RunClean
 public import AvailableChainSAPC.Tests.CleanInvariantCounterexample
 public import AvailableChainSAPC.Proofs.Archive
 public import AvailableChainSAPC.Proofs.Authentication
@@ -659,3 +660,48 @@ public import AvailableChainSAPC.Proofs.RunCleanCapped
 #print axioms AvailableChain.SAPC.genuine_transfer_receipts_of_back_receipts
 #print axioms AvailableChain.SAPC.genuine_ordinary_head_covers_of_back_receipts
 #print axioms AvailableChain.SAPC.genuine_compatiblePC_head_covers_of_back_receipts
+
+-- Round 14: uncapped mode changes, roots, and first-use transfer.
+#print axioms AvailableChain.SAPC.genuine_activePC_head_covers_of_back_receipts
+#print axioms AvailableChain.SAPC.synchronous_local_genuine_activePC_head_covers
+#print axioms AvailableChain.SAPC.genuine_head_continuation_of_active_authority
+#print axioms AvailableChain.SAPC.cleanRunPath_eq_at_head_of_authority
+#print axioms AvailableChain.SAPC.jointClean_head_tick_of_authority
+#print axioms AvailableChain.SAPC.jointClean_head_tick_disabled
+#print axioms AvailableChain.SAPC.cleanRunPath_accessible
+#print axioms AvailableChain.SAPC.cleanPathFacts_of_chain_and_transfer
+#print axioms AvailableChain.SAPC.JointCleanInvariant.restrict
+#print axioms AvailableChain.SAPC.capBroken_before_mono
+#print axioms AvailableChain.SAPC.clockPreGate_archive
+#print axioms AvailableChain.SAPC.clock_base_of_capBroken
+#print axioms AvailableChain.SAPC.clock_base_after_capBroken
+#print axioms AvailableChain.SAPC.jointClean_mode_change
+#print axioms AvailableChain.SAPC.jointClean_tick_between_duties_disabled
+#print axioms AvailableChain.SAPC.nextHead_root_prefix_timely_of_run_invariant
+#print axioms AvailableChain.SAPC.timely_nextHead_active_of_run_invariant
+#print axioms AvailableChain.SAPC.timely_departure_disables_of_run_invariant
+#print axioms AvailableChain.SAPC.timely_next_heads_of_active_input
+#print axioms AvailableChain.SAPC.installedPC_slot_le_at_gate
+#print axioms AvailableChain.SAPC.gatePC_next_heads_of_run_invariant
+
+-- Round 15: complete uncapped clean induction, safety, and monotonicity.
+#print axioms AvailableChain.SAPC.genuine_head_continuation_of_compatible_authority
+#print axioms AvailableChain.SAPC.timely_continues_before_active_input
+#print axioms AvailableChain.SAPC.selectedPC_prefix_pending_genuine_of_active
+#print axioms AvailableChain.SAPC.clean_genuine_history_of_head_invariants
+#print axioms AvailableChain.SAPC.clean_history_before_tick
+#print axioms AvailableChain.SAPC.clean_history_before_early
+#print axioms AvailableChain.SAPC.validPC_gate_le_tick
+#print axioms AvailableChain.SAPC.timely_continues_on_run_path
+#print axioms AvailableChain.SAPC.cleanRunSource_raw_or_transferred_timely
+#print axioms AvailableChain.SAPC.genuine_heads_before_early
+#print axioms AvailableChain.SAPC.genuine_compatible_run_path_before_early
+#print axioms AvailableChain.SAPC.cleanRunPath_chain_at_early_disabled
+#print axioms AvailableChain.SAPC.jointClean_early_tick_of_chain
+#print axioms AvailableChain.SAPC.jointClean_early_tick_disabled
+#print axioms AvailableChain.SAPC.cleanRunPath_chain_at_active_tick
+#print axioms AvailableChain.SAPC.jointClean_head_tick_of_chain
+#print axioms AvailableChain.SAPC.jointClean_between_tick_of_chain
+#print axioms AvailableChain.SAPC.jointClean_event
+#print axioms AvailableChain.SAPC.clean_run_invariant
+#print axioms AvailableChain.SAPC.clean_safety_from_engine

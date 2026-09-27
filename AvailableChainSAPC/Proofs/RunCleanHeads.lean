@@ -47,16 +47,18 @@ theorem timely_nextHead_of_run_invariant {V : Type} [DecidableEq V] [Fintype V]
     (savedTimely_candidate_at_early p E rho hs.execution.toScheduleWellFormed (j + 1) v r b saved)
     ha (h.facts.chain.comparable _ _ root hb)
 
-/-- An earlier genuine result continues at every capped HEAD, including
-the final incomplete label. Local raw transfer and both root premises
-come from the actual run and the input invariant. -/
-theorem genuine_head_continuation_of_run_invariant {V : Type} [DecidableEq V] [Fintype V]
+/-- Earlier genuine results continue through active or disabled HEADs.
+Only active PC authority needs a path premise. Finite roots come from
+the retained invariant, including at the first disabled duty. -/
+theorem genuine_head_continuation_of_compatible_authority {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
     (t₀ : Time) (hs : SleepyRegime (sapc p) E (sapcInterface p).toInterface rho t₀)
-    (cap : FaultBound (sapc p) (pcFaultCap p) rho)
     (i : Nat) (reader : V) (hr : reader ∈ rho.honest) (s : Slot)
     (he : rho.events[i]? = some (.tick reader (voteTime p (s + 1))))
     (h : JointCleanInvariant p E rho i)
+    (authority : capBroken p (headState p rho (s + 1) reader) = false →
+      ∀ cert, selectedPC p (headState p rho (s + 1) reader) (s + 1) = some cert →
+        ∀ b, cleanRunPath p rho i b → Block.Compatible cert.target b)
     (j : Nat) (hj : j < i) (v : V) (hv : v ∈ rho.honest) (r : Slot) (b : Block)
     (ht : rho.events[j]? = some (.tick v (gateTime p r)))
     (raw : SA.confirmation p (Run.stateBefore (sapc p) rho j v).base r = some b) :
@@ -114,13 +116,172 @@ theorem genuine_head_continuation_of_run_invariant {V : Type} [DecidableEq V] [F
       4 * p.Δ * ((s + 1 : Nat) : Time) + p.Δ
     push_cast
     linarith [p.deltaPos]
-  apply synchronous_local_genuine_head_covers p E rho hs.execution hΔ hs.acceptedRelay
+  apply synchronous_local_genuine_activePC_head_covers p E rho hs.execution hΔ hs.acceptedRelay
     s hsync hf reader hr b c hc hbc (h.facts.chain.comparable _ _ root hb)
-  intro cert selected
-  apply selectedPC_compatible_cleanRunPath p E rho hs.execution cap
-    i reader (voteTime p (s + 1)) (s + 1) cert h.facts.chain b hb
+  intro active cert selected
+  exact authority active cert selected b hb
+
+/-- Earlier genuine results continue through active or disabled HEADs.
+Only active PC authority needs a path premise. Finite roots come from
+the retained invariant, including at the first disabled duty. -/
+theorem genuine_head_continuation_of_active_authority {V : Type} [DecidableEq V] [Fintype V]
+    (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
+    (t₀ : Time) (hs : SleepyRegime (sapc p) E (sapcInterface p).toInterface rho t₀)
+    (i : Nat) (reader : V) (hr : reader ∈ rho.honest) (s : Slot)
+    (he : rho.events[i]? = some (.tick reader (voteTime p (s + 1))))
+    (h : JointCleanInvariant p E rho i)
+    (authority : capBroken p (headState p rho (s + 1) reader) = false →
+      ∀ cert, selectedPC p (headState p rho (s + 1) reader) (s + 1) = some cert →
+        cleanRunPath p rho i cert.target)
+    (j : Nat) (hj : j < i) (v : V) (hv : v ∈ rho.honest) (r : Slot) (b : Block)
+    (ht : rho.events[j]? = some (.tick v (gateTime p r)))
+    (raw : SA.confirmation p (Run.stateBefore (sapc p) rho j v).base r = some b) :
+    Block.Preceq b (headData p rho (s + 1) reader).target := by
+  apply genuine_head_continuation_of_compatible_authority p E rho hΔ t₀ hs
+    i reader hr s he h ?_ j hj v hv r b ht raw
+  intro active cert selected b hb
+  exact h.facts.chain.comparable _ _ (authority active cert selected) hb
+
+/-- An earlier genuine result continues at every capped HEAD, including
+the final incomplete label. Local raw transfer and both root premises
+come from the actual run and the input invariant. -/
+theorem genuine_head_continuation_of_run_invariant {V : Type} [DecidableEq V] [Fintype V]
+    (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
+    (t₀ : Time) (hs : SleepyRegime (sapc p) E (sapcInterface p).toInterface rho t₀)
+    (cap : FaultBound (sapc p) (pcFaultCap p) rho)
+    (i : Nat) (reader : V) (hr : reader ∈ rho.honest) (s : Slot)
+    (he : rho.events[i]? = some (.tick reader (voteTime p (s + 1))))
+    (h : JointCleanInvariant p E rho i)
+    (j : Nat) (hj : j < i) (v : V) (hv : v ∈ rho.honest) (r : Slot) (b : Block)
+    (ht : rho.events[j]? = some (.tick v (gateTime p r)))
+    (raw : SA.confirmation p (Run.stateBefore (sapc p) rho j v).base r = some b) :
+    Block.Preceq b (headData p rho (s + 1) reader).target := by
+  apply genuine_head_continuation_of_active_authority p E rho hΔ t₀ hs i reader hr s he h
+    ?_ j hj v hv r b ht raw
+  intro _ cert selected
+  apply selectedPC_on_cleanRunPath p E rho hs.execution cap
+    i reader (voteTime p (s + 1)) (s + 1) cert
   rw [stateBefore_tick_eq_stateBeforeTime hs.execution.toScheduleWellFormed he]
   exact selected
+
+/-- A HEAD adds no source when every active selection is already on the
+input path. Disabled selection adds no source, even if an old PC conflicts. -/
+theorem cleanRunPath_eq_at_head_of_authority {V : Type} [DecidableEq V] [Fintype V]
+    (p : Params) (rho : Run V (sapc p)) (i : Nat) (reader : V) (r : Slot)
+    (he : rho.events[i]? = some (.tick reader (voteTime p r)))
+    (authority : reader ∈ rho.honest →
+      capBroken p (clock p (Run.stateBefore (sapc p) rho i reader) (voteTime p r)) = false →
+      ∀ c, selectedPC p (clock p (Run.stateBefore (sapc p) rho i reader)
+        (voteTime p r)) r = some c → cleanRunPath p rho i c.target) :
+    cleanRunPath p rho (i + 1) = cleanRunPath p rho i := by
+  have old (j : Nat) (hj : j < i + 1) (v : V) (t : Time)
+      (ht : rho.events[j]? = some (.tick v t)) (hn : voteTime p r ≠ t) : j < i := by
+    have hne : j ≠ i := by
+      rintro rfl
+      exact hn (congrArg Event.time (Option.some.inj (he.symm.trans ht)))
+    omega
+  have noProposal (s : Slot) : voteTime p r ≠ proposalTime p s := by
+    simpa only [Nat.cast_zero, zero_mul, add_zero, Nat.cast_one, one_mul] using
+      duty_phase_ne p r s 1 0 (by decide) (by decide) (by decide)
+  have source (b : Block) (hb : CleanRunSource p rho (i + 1) b) : cleanRunPath p rho i b := by
+    have lift (h : CleanRunSource p rho i b) : cleanRunPath p rho i b :=
+      Or.inr ⟨b, h, GridCO.block_preceq_self b⟩
+    cases hb with
+    | genuine j hj v hv s b ht hb =>
+      exact lift (.genuine j (old j hj v _ ht (voteTime_ne_gateTime p r s)) v hv s b ht hb)
+    | timely s b cap src =>
+      obtain ⟨v, hv, j, hj, ht, hb⟩ := src
+      exact lift (.timely s b cap
+        ⟨v, hv, j, old j hj v _ ht (voteTime_ne_earlyTime p r s), ht, hb⟩)
+    | gate j hj v hv s c ht ha hc =>
+      exact lift (.gate j (old j hj v _ ht (voteTime_ne_gateTime p r s)) v hv s c ht ha hc)
+    | proposal j hj v hv s c ht ha hc =>
+      exact lift (.proposal j (old j hj v _ ht (noProposal s)) v hv s c ht ha hc)
+    | head j hj v hv s c ht ha hc =>
+      by_cases hji : j < i
+      · exact lift (.head j hji v hv s c ht ha hc)
+      · have hji : j = i := by omega
+        subst j
+        have eq := Option.some.inj (he.symm.trans ht)
+        have hv' : reader = v := congrArg Event.node eq
+        have ht' : voteTime p r = voteTime p s := congrArg Event.time eq
+        have hrs : r = s := by
+          have hcast : (r : Time) = s := by
+            change 4 * p.Δ * (r : Time) + p.Δ = 4 * p.Δ * (s : Time) + p.Δ at ht'
+            nlinarith [p.deltaPos]
+          exact_mod_cast hcast
+        subst v
+        subst s
+        exact authority hv ha c hc
+  funext b
+  apply propext
+  constructor
+  · rintro (hg | ⟨c, hc, hp⟩)
+    · exact Or.inl hg
+    · exact cleanRunPath_closed p rho i b c hp (source c hc)
+  · exact cleanRunPath_mono p rho (Nat.le_succ i)
+
+/-- The HEAD/release step works in either mode with active authority on
+the input path. All historical facts are retained across the step. -/
+theorem jointClean_head_tick_of_authority {V : Type} [DecidableEq V] [Fintype V]
+    (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
+    (t₀ : Time) (hs : SleepyRegime (sapc p) E (sapcInterface p).toInterface rho t₀)
+    (i : Nat) (reader : V) (r : Slot)
+    (he : rho.events[i]? = some (.tick reader (voteTime p r)))
+    (h : JointCleanInvariant p E rho i)
+    (authority : reader ∈ rho.honest →
+      capBroken p (clock p (Run.stateBefore (sapc p) rho i reader) (voteTime p r)) = false →
+      ∀ c, selectedPC p (clock p (Run.stateBefore (sapc p) rho i reader)
+        (voteTime p r)) r = some c → cleanRunPath p rho i c.target) :
+    JointCleanInvariant p E rho (i + 1) := by
+  have label (s : Slot) (ht : voteTime p r = voteTime p s) : s = r := by
+    have hcast : (s : Time) = r := by
+      change 4 * p.Δ * (r : Time) + p.Δ = 4 * p.Δ * (s : Time) + p.Δ at ht
+      nlinarith [p.deltaPos]
+    exact_mod_cast hcast
+  constructor
+  · rw [cleanRunPath_eq_at_head_of_authority p rho i reader r he authority]
+    apply cleanPathFacts_tick_of_no_early_no_gate p E rho hs.execution i reader _ he
+      (voteTime_ne_earlyTime p r) (voteTime_ne_gateTime p r) h.facts
+    · intro s c ht
+      have hn := duty_phase_ne p r s 1 0 (by decide) (by decide) (by decide)
+      exact (hn (by simpa only [Nat.cast_zero, zero_mul, add_zero, Nat.cast_one, one_mul]
+        using ht)).elim
+    · intro s c ht hr ha hc
+      have eq := label s ht
+      subst s
+      exact authority hr ha c hc
+    · intro j hj v hv s b ht raw current hsl htime hr
+      have eq := label current htime
+      subst current
+      cases r with
+      | zero => exact (Nat.not_lt_zero s hsl).elim
+      | succ r =>
+        have cover := genuine_head_continuation_of_active_authority p E rho hΔ t₀ hs
+          i reader hr r he h (by
+            rw [stateBefore_tick_eq_stateBeforeTime hs.execution.toScheduleWellFormed he]
+              at authority
+            exact authority hr) j hj v hv s b ht raw
+        rw [stateBefore_tick_eq_stateBeforeTime hs.execution.toScheduleWellFormed he]
+        exact cover
+  · apply h.ordered.step_of_no_gate
+    intro v s ht
+    exact voteTime_ne_gateTime p r s (congrArg Event.time (Option.some.inj (he.symm.trans ht)))
+
+/-- At a disabled HEAD, the uncapped step uses SA with the current
+invariant. No PC compatibility, fault cap, or future gate is needed. -/
+theorem jointClean_head_tick_disabled {V : Type} [DecidableEq V] [Fintype V]
+    (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
+    (t₀ : Time) (hs : SleepyRegime (sapc p) E (sapcInterface p).toInterface rho t₀)
+    (i : Nat) (reader : V) (r : Slot)
+    (he : rho.events[i]? = some (.tick reader (voteTime p r)))
+    (h : JointCleanInvariant p E rho i)
+    (disabled : capBroken p (Run.stateBefore (sapc p) rho i reader) = true) :
+    JointCleanInvariant p E rho (i + 1) := by
+  apply jointClean_head_tick_of_authority p E rho hΔ t₀ hs i reader r he h
+  intro _ active
+  rw [capBroken_clock, disabled] at active
+  cases active
 
 /-- The complete capped HEAD/release step, including the final HEAD
 when its following gate is outside the run. -/
@@ -132,32 +293,9 @@ theorem jointClean_head_tick_capped {V : Type} [DecidableEq V] [Fintype V]
     (he : rho.events[i]? = some (.tick reader (voteTime p r)))
     (h : JointCleanInvariant p E rho i) :
     JointCleanInvariant p E rho (i + 1) := by
-  constructor
-  · rw [cleanRunPath_eq_at_head_capped p E rho hs.execution cap i reader r he]
-    apply cleanPathFacts_tick_of_no_early_no_gate p E rho hs.execution i reader _ he
-      (voteTime_ne_earlyTime p r) (voteTime_ne_gateTime p r) h.facts
-    · intro s c _ _ _ hc
-      rw [clock_bestPC] at hc
-      exact installedPC_on_cleanRunPath p E rho hs.execution cap i reader c hc
-    · intro s c _ _ _ hc
-      exact selectedPC_on_cleanRunPath p E rho hs.execution cap i reader _ s c hc
-    · intro j hj v hv s b ht raw label hsl htime hr
-      have hlabel : label = r := by
-        have heq : (label : Time) = r := by
-          change 4 * p.Δ * (r : Time) + p.Δ = 4 * p.Δ * (label : Time) + p.Δ at htime
-          nlinarith [p.deltaPos]
-        exact_mod_cast heq
-      subst label
-      cases r with
-      | zero => exact (Nat.not_lt_zero s hsl).elim
-      | succ r =>
-        have cover := genuine_head_continuation_of_run_invariant p E rho hΔ t₀ hs cap
-          i reader hr r he h j hj v hv s b ht raw
-        rw [stateBefore_tick_eq_stateBeforeTime hs.execution.toScheduleWellFormed he]
-        exact cover
-  · apply h.ordered.step_of_no_gate
-    intro v s ht
-    exact voteTime_ne_gateTime p r s (congrArg Event.time (Option.some.inj (he.symm.trans ht)))
+  apply jointClean_head_tick_of_authority p E rho hΔ t₀ hs i reader r he h
+  intro _ _ c hc
+  exact selectedPC_on_cleanRunPath p E rho hs.execution cap i reader _ r c hc
 
 end AvailableChain.SAPC
 end

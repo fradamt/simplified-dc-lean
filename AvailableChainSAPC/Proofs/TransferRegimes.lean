@@ -90,6 +90,31 @@ theorem synchronous_genuine_compatiblePC_head_covers {V : Type} [DecidableEq V] 
 /-- A reader's own raw result transfers with only the forward deadline
 inside the run. The raw result is evaluated on the actual strict input;
 no future gate tick or run extension is assumed. -/
+theorem synchronous_local_genuine_activePC_head_covers {V : Type} [DecidableEq V] (p : Params)
+    (E : Env V) (rho : Run V (sapc p)) (hx : ExecutionValid (sapc p) E rho)
+    (hΔ : E.Δ = p.Δ) (hrelay : AcceptedObjectRelay (sapc p) E rho) (r : Slot)
+    (hsync : E.t_GST ≤ earlyTime p r) (hh : freezeTime p r ≤ rho.horizon)
+    (reader : V) (hr : reader ∈ rho.honest) (b c : Block)
+    (hc : SA.confirmation p
+      (Run.stateBeforeTime (sapc p) rho (gateTime p r) reader).base r = some c)
+    (hp : Block.Preceq b c)
+    (hroot : Block.Compatible (GridCO.liveRoot (headState p rho (r + 1) reader).base) b)
+    (hcert : capBroken p (headState p rho (r + 1) reader) = false →
+      ∀ pc, selectedPC p (headState p rho (r + 1) reader) (r + 1) = some pc →
+      Block.Compatible pc.target b) :
+    Block.Preceq b (headData p rho (r + 1) reader).target := by
+  have he : max (earlyTime p r) E.t_GST + E.Δ = freezeTime p r := by
+    rw [max_eq_left hsync, hΔ]
+    change 4 * p.Δ * (r : Time) + 2 * p.Δ + p.Δ =
+      4 * p.Δ * (r : Time) + 3 * p.Δ
+    ring
+  exact genuine_activePC_head_covers_of_back_receipts p E rho hx hΔ r reader reader
+    hr hr hh (he ▸ synchronous_relayBy p E rho _ hrelay (he.symm ▸ hh))
+    (local_back_receipts p E rho hx.toScheduleWellFormed r reader) b c hc hp hroot hcert
+
+/-- A reader's own raw result transfers with only the forward deadline
+inside the run. The raw result is evaluated on the actual strict input;
+no future gate tick or run extension is assumed. -/
 theorem synchronous_local_genuine_head_covers {V : Type} [DecidableEq V] (p : Params)
     (E : Env V) (rho : Run V (sapc p)) (hx : ExecutionValid (sapc p) E rho)
     (hΔ : E.Δ = p.Δ) (hrelay : AcceptedObjectRelay (sapc p) E rho) (r : Slot)
@@ -101,15 +126,9 @@ theorem synchronous_local_genuine_head_covers {V : Type} [DecidableEq V] (p : Pa
     (hroot : Block.Compatible (GridCO.liveRoot (headState p rho (r + 1) reader).base) b)
     (hcert : ∀ pc, selectedPC p (headState p rho (r + 1) reader) (r + 1) = some pc →
       Block.Compatible pc.target b) :
-    Block.Preceq b (headData p rho (r + 1) reader).target := by
-  have he : max (earlyTime p r) E.t_GST + E.Δ = freezeTime p r := by
-    rw [max_eq_left hsync, hΔ]
-    change 4 * p.Δ * (r : Time) + 2 * p.Δ + p.Δ =
-      4 * p.Δ * (r : Time) + 3 * p.Δ
-    ring
-  exact genuine_compatiblePC_head_covers_of_back_receipts p E rho hx hΔ r reader reader
-    hr hr hh (he ▸ synchronous_relayBy p E rho _ hrelay (he.symm ▸ hh))
-    (local_back_receipts p E rho hx.toScheduleWellFormed r reader) b c hc hp hroot hcert
+    Block.Preceq b (headData p rho (r + 1) reader).target :=
+  synchronous_local_genuine_activePC_head_covers p E rho hx hΔ hrelay r hsync hh reader hr
+    b c hc hp hroot (fun _ => hcert)
 
 theorem synchronous_genuine_highSupport_head_covers {V : Type} [DecidableEq V] (p : Params)
     (E : Env V) (rho : Run V (sapc p)) (hx : ExecutionValid (sapc p) E rho)

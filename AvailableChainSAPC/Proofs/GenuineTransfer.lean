@@ -388,9 +388,9 @@ theorem choice_covers_of_genuine_transfer (p : Params) {n : Nat}
     unfold mandatoryRoot
     split <;> assumption
 
-/-- Low genuine support also transfers to the actual HEAD when the
-joint invariant supplies compatibility of the selected PC and finite root. -/
-theorem genuine_compatiblePC_head_covers_of_back_receipts {V : Type} [DecidableEq V] (p : Params)
+/-- PC compatibility is needed only in active mode. Disabled transfer
+uses the shared SA proof on the retained base state. -/
+theorem genuine_activePC_head_covers_of_back_receipts {V : Type} [DecidableEq V] (p : Params)
     (E : Env V) (rho : Run V (sapc p)) (hx : ExecutionValid (sapc p) E rho)
     (hΔ : E.Δ = p.Δ) (r : Slot) (v w : V) (hv : v ∈ rho.honest) (hw : w ∈ rho.honest)
     (hh : freezeTime p r ≤ rho.horizon)
@@ -399,7 +399,8 @@ theorem genuine_compatiblePC_head_covers_of_back_receipts {V : Type} [DecidableE
     (hc : SA.confirmation p (Run.stateBeforeTime (sapc p) rho (gateTime p r) v).base r = some c)
     (hp : Block.Preceq b c)
     (hr : Block.Compatible (GridCO.liveRoot (headState p rho (r + 1) w).base) b)
-    (hcert : ∀ pc, selectedPC p (headState p rho (r + 1) w) (r + 1) = some pc →
+    (hcert : capBroken p (headState p rho (r + 1) w) = false →
+      ∀ pc, selectedPC p (headState p rho (r + 1) w) (r + 1) = some pc →
       Block.Compatible pc.target b) :
     Block.Preceq b (headData p rho (r + 1) w).target := by
   cases ha : capBroken p (headState p rho (r + 1) w) with
@@ -418,9 +419,26 @@ theorem genuine_compatiblePC_head_covers_of_back_receipts {V : Type} [DecidableE
         (genuine_transfer_receipts_of_back_receipts p E rho hx hΔ r v w hv hw hh hforward hback b)
         (fun a hn hab => activeVoterTree_contains_plain p _ _ _
           (genuine_path_in_voterTree p E rho hx.toScheduleWellFormed hΔ r v w hv hw hh
-            hforward a c hc (GridCO.prefix_trans a b c hab hp) hn)) hr hcert
+            hforward a c hc (GridCO.prefix_trans a b c hab hp) hn)) hr (hcert ha)
       simpa only [headData, headTarget, Nat.add_eq_zero_iff, Nat.one_ne_zero,
         and_false, decide_false, Bool.false_eq_true, ↓reduceIte, ha] using h
+
+/-- Low genuine support also transfers to the actual HEAD when the
+joint invariant supplies compatibility of the selected PC and finite root. -/
+theorem genuine_compatiblePC_head_covers_of_back_receipts {V : Type} [DecidableEq V] (p : Params)
+    (E : Env V) (rho : Run V (sapc p)) (hx : ExecutionValid (sapc p) E rho)
+    (hΔ : E.Δ = p.Δ) (r : Slot) (v w : V) (hv : v ∈ rho.honest) (hw : w ∈ rho.honest)
+    (hh : freezeTime p r ≤ rho.horizon)
+    (hforward : RelayBy p rho (earlyTime p r) (freezeTime p r))
+    (hback : BackReceipts p rho r v w) (b c : Block)
+    (hc : SA.confirmation p (Run.stateBeforeTime (sapc p) rho (gateTime p r) v).base r = some c)
+    (hp : Block.Preceq b c)
+    (hr : Block.Compatible (GridCO.liveRoot (headState p rho (r + 1) w).base) b)
+    (hcert : ∀ pc, selectedPC p (headState p rho (r + 1) w) (r + 1) = some pc →
+      Block.Compatible pc.target b) :
+    Block.Preceq b (headData p rho (r + 1) w).target :=
+  genuine_activePC_head_covers_of_back_receipts p E rho hx hΔ r v w hv hw hh hforward
+    hback b c hc hp hr (fun _ => hcert)
 
 theorem genuine_compatiblePC_head_covers {V : Type} [DecidableEq V] (p : Params)
     (E : Env V) (rho : Run V (sapc p)) (hx : ExecutionValid (sapc p) E rho)

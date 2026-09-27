@@ -147,18 +147,18 @@ honest HEAD coverage, reusing SA's confirmation theorem. Its
 `clean_genuine_history_of_pc` leaves only active-PC compatibility as a
 label-induction input. `CleanService` proves honest N/PC prefix witnesses
 and exact raw proposal service from common exact HEADs. The clean safety
-and 6Δ reductions consume the corrected invariant. Uncapped PC compatibility,
-common proposal choices, and uncapped event preservation are still pending.
-No complete clean contract claim is asserted.
+and 6Δ reductions consume the corrected invariant. The round-15 modules
+below prove uncapped event preservation, safety, and monotonicity.
+Common proposal choices and inclusion remain pending.
 
 `Tests/CleanInvariantCounterexample` retains the complete capped Sleepy
 run that refutes the round-9 arbitrary path-extension obligation. It also
 checks that the new path excludes the losing sibling and contains the
 actual next timely save. `Pending/RejectedCleanInduction` holds the old
 statement, and `Pending/CleanInductionCounterexample` refutes it.
-`Pending/CleanInduction` contains only the current run-determined event,
-active-PC transfer, and exact proposal-choice obligations. None of these
-pending modules is imported by a default target. See the status document.
+`Pending/CleanInduction` now contains only the exact proposal-choice
+obligation. The event and PC-transfer obligations are discharged.
+No pending module is imported by a default target. See the status document.
 
 ## Common model and contract
 
@@ -178,8 +178,25 @@ proof supply the local reverse receipt condition.
 invariant to earlier prefixes. `RunCleanGates` proves source comparison,
 ordered history, and the full capped early/gate step. `RunCleanCapped`
 proves the capped run invariant and derives safety and monotonicity of
-both base outputs under that cap. The uncapped base claims and common
-proposal choices remain pending; see `SAPC-STATUS.md`.
+both base outputs under that cap. The round-15 induction removes the
+cap for safety and monotonicity. Common proposal choices remain pending; see `SAPC-STATUS.md`.
+
+`Disabled` proves the full SA clock projection after disablement and
+retains the joint invariant at the mode-changing receipt. `RunCleanHeads`
+proves the uncapped disabled HEAD step. `RunCleanFacts` now reconstructs
+and restricts source facts without the cap, using `q>a`. `RunCleanUncapped`
+derives finite roots below timely saves from actual lease sources, proves
+common disablement after departure, and proves first transfer for an
+active gate PC. `RunCleanActiveTransfer` proves uncapped timely
+continuation before an active input and selected-PC coverage of the pending raw result.
+`RunCleanAuthority` retains continuation after disablement.
+`RunCleanDisabledGates` proves the full disabled early/gate step;
+`RunCleanActivePath` compares new and old sources at active ticks.
+`RunClean` combines these steps into `clean_run_invariant` and
+`clean_safety_from_engine`. Both base outputs have cross-reader safety
+and local monotonicity under plain Sleepy, with no added fault cap.
+Common exact proposal choices, inclusion, both P1 claims, strong claims,
+recovery, and both complete bundle inhabitants remain pending.
 
 ```text
 ┌────────────────────────────┬────────────────────────────────────────────┬───────────────────────────────┐

@@ -59,6 +59,9 @@ public import AvailableChainSAPC.Proofs.RunCleanTransfer
 public import AvailableChainSAPC.Proofs.RunCleanFacts
 public import AvailableChainSAPC.Proofs.RunCleanGates
 public import AvailableChainSAPC.Proofs.RunCleanCapped
+public import AvailableChainSAPC.Proofs.Disabled
+public import AvailableChainSAPC.Proofs.RunCleanUncapped
+public import AvailableChainSAPC.Proofs.RunClean
 
 @[expose] public section
 end
