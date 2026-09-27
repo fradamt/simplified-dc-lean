@@ -26,19 +26,14 @@ theorem saConstants_valid (p : Params) (G : Time) (hG : 0 < G) :
   have hd := p.deltaPos
   refine ⟨by norm_num [saConstants], by norm_num [saConstants],
     by norm_num [saConstants], by norm_num [saConstants], p.etaNonneg,
-    ?_, ?_, ?_, ?_, ?_, hG⟩
+    ?_, ?_, ?_, ?_, ?_, ?_, ?_, hG⟩
   · dsimp [saConstants]; exact ⟨by linarith, by linarith, by linarith⟩
   · dsimp [saConstants]; exact mul_nonneg (by linarith) (le_of_lt hd)
+  · dsimp [saConstants]; linarith
+  · dsimp [saConstants]; nlinarith
   · exact le_min p.etaNonneg hL
   · exact min_le_left _ _
   · dsimp [saConstants]; linarith
-
-theorem saFastConstants_valid (p : Params) (G : Time) (hG : 0 < G) :
-    (saFastConstants p G).Valid := by
-  have ha : 0 ≤ (saFastConstants p G).armingLag := by
-    change 0 ≤ 4 * p.Δ
-    linarith [p.deltaPos]
-  exact { saConstants_valid p G hG with armingLag_nonneg := ha }
 
 theorem outputOrder {V : Type} [DecidableEq V] (p : Params)
     (rho : Run V (sa p)) : OutputOrder (sa p) (saInterface p) rho := by
@@ -47,9 +42,9 @@ theorem outputOrder {V : Type} [DecidableEq V] (p : Params)
   exact GridCO.block_preceq_self _
 
 theorem fastLag_le_slowLag (p : Params) (G : Time) :
-    (saFastConstants p G).armingLag ≤ (saConstants p G).armingLag := by
+    (saConstants p G).fastArmingLag ≤ (saConstants p G).armingLag := by
   have hk : (2 : Time) ≤ p.k := by exact_mod_cast p.kLarge
-  dsimp [saFastConstants, saConstants]
+  dsimp [saConstants]
   nlinarith [p.deltaPos]
 
 /-- A conflicting row older than the full slow window expires before

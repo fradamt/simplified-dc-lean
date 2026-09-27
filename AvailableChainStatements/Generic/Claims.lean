@@ -39,6 +39,8 @@ structure AvailableChain
     IncludedFrom P E I rho I.stable t₀ C.D_f
   stableResilient : ∀ rho T b₀ b₁, OutageRegime P E I C rho T b₀ b₁ →
     PersistsThrough P rho I.stable T b₀ b₁
+  stableResilientFast : ∀ rho T b₀ b₁, FastOutageRegime P E I C rho T b₀ b₁ →
+    PersistsThrough P rho I.stable T b₀ b₁
   recovered : ∀ rho, RecoveryRegime P E I C rho →
     RecoveredAt P E I C rho (E.t_GST + C.recoveryBound)
 

@@ -1,5 +1,6 @@
 module
 public import AvailableChainGridCO.Proofs.Handling
+public import AvailableChainGridCO.Proofs.EngineClock
 
 @[expose] public section
 
@@ -45,128 +46,48 @@ theorem EarlyDelivery.of_outage {V : Type} [DecidableEq V] [Fintype V]
   ⟨h.execution, he.trans (h.interval.2.2.1.trans h.interval.2.2.2),
     Or.inr ⟨b₀, he, h.healthy, h.acceptedRelay⟩⟩
 
-private theorem key_time_le {V O : Type} (e f : Event V O)
-    (h : e.key ≤ f.key) : e.time ≤ f.time := by
-  rcases Prod.Lex.toLex_le_toLex.mp h with h | ⟨h, _⟩
-  · exact le_of_lt h
-  · exact le_of_eq h
+/-- The ordinary engine supplies the common local clock laws. -/
+def engineClock (p : Params) : AvailableChain.Engine.ClockLaws (gridCO p) where
+  now := State.now
+  init := rfl
+  clock := clock_now p
+  process := process_now p
 
-/-- A stored clock value is zero or comes from an earlier local tick. -/
 theorem stateBefore_now_source {V : Type} [DecidableEq V] (p : Params)
     (rho : Run V (gridCO p)) (i : Nat) (v : V) :
     (Run.stateBefore (gridCO p) rho i v).now = 0 ∨
       ∃ j < i, rho.events[j]? =
-        some (.tick v (Run.stateBefore (gridCO p) rho i v).now) := by
-  induction i with
-  | zero => exact Or.inl rfl
-  | succ i ih =>
-      cases hi : rho.events[i]? with
-      | none =>
-          have he : Run.stateBefore (gridCO p) rho (i + 1) =
-              Run.stateBefore (gridCO p) rho i := by
-            simp [Run.stateBefore, List.take_add_one, hi]
-          rw [he]
-          exact ih.imp_right (fun ⟨j, hj, he⟩ => ⟨j, by omega, he⟩)
-      | some e =>
-          rw [stateBefore_succ_event hi]
-          cases e with
-          | tick u t =>
-              by_cases hv : v = u
-              · subst u
-                simp only [World.step, Function.update_self]
-                right
-                exact ⟨i, by omega, by simpa [gridCO, clock_now] using hi⟩
-              · simp only [World.step, Function.update_of_ne hv]
-                exact ih.imp_right (fun ⟨j, hj, he⟩ => ⟨j, by omega, he⟩)
-          | deliver u o t =>
-              by_cases hv : v = u
-              · subst u
-                simp only [World.step, Function.update_self]
-                simp only [gridCO, process_now]
-                exact ih.imp_right (fun ⟨j, hj, he⟩ => ⟨j, by omega, he⟩)
-              · simp only [World.step, Function.update_of_ne hv]
-                exact ih.imp_right (fun ⟨j, hj, he⟩ => ⟨j, by omega, he⟩)
+        some (.tick v (Run.stateBefore (gridCO p) rho i v).now) :=
+  AvailableChain.Engine.stateBefore_now_source (engineClock p) rho i v
 
-/-- No reader's clock can exceed the next event time. -/
 theorem stateBefore_now_le_event {V : Type} [DecidableEq V] (p : Params)
     (E : Env V) (rho : Run V (gridCO p)) (hs : ScheduleWellFormed E rho)
     {i : Nat} {e : Event V (gridCO p).Object}
     (hi : rho.events[i]? = some e) (v : V) :
-    (Run.stateBefore (gridCO p) rho i v).now ≤ e.time := by
-  rcases stateBefore_now_source p rho i v with hz | ⟨j, hj, ht⟩
-  · rw [hz]
-    exact (hs.in_horizon e (List.mem_of_getElem? hi)).1
-  · obtain ⟨hil, hie⟩ := List.getElem?_eq_some_iff.mp hi
-    obtain ⟨hjl, hje⟩ := List.getElem?_eq_some_iff.mp ht
-    have hk := (List.pairwise_iff_getElem.mp hs.sorted) j i hjl hil hj
-    rw [hje, hie] at hk
-    exact key_time_le _ _ hk
+    (Run.stateBefore (gridCO p) rho i v).now ≤ e.time :=
+  AvailableChain.Engine.stateBefore_now_le_event (engineClock p) E rho hs hi v
 
-/-- Local clock values increase along a valid event list. -/
 theorem stateBefore_now_mono {V : Type} [DecidableEq V] (p : Params)
     (E : Env V) (rho : Run V (gridCO p)) (hs : ScheduleWellFormed E rho)
     {i j : Nat} (hij : i ≤ j) (v : V) :
     (Run.stateBefore (gridCO p) rho i v).now ≤
-      (Run.stateBefore (gridCO p) rho j v).now := by
-  induction j with
-  | zero => simp [Nat.le_zero.mp hij]
-  | succ j ih =>
-      rcases Nat.eq_or_lt_of_le hij with he | hlt
-      · subst i; exact le_refl _
-      · apply le_trans (ih (by omega))
-        cases hj : rho.events[j]? with
-        | none => simp [Run.stateBefore, List.take_add_one, hj]
-        | some e =>
-            rw [stateBefore_succ_event hj]
-            cases e with
-            | tick u t =>
-                by_cases hv : v = u
-                · subst u
-                  simpa [World.step, gridCO, clock_now] using
-                    stateBefore_now_le_event p E rho hs hj v
-                · simp [World.step, hv]
-            | deliver u o t =>
-                by_cases hv : v = u
-                · subst u; simp [World.step, gridCO, process_now]
-                · simp [World.step, hv]
+      (Run.stateBefore (gridCO p) rho j v).now :=
+  AvailableChain.Engine.stateBefore_now_mono (engineClock p) E rho hs hij v
 
-/-- A local tick at or before a delivery precedes that delivery in the list.
-This includes equal times, because ticks have the earlier event phase. -/
 theorem tick_index_lt_delivery {V : Type} (p : Params)
     (E : Env V) (rho : Run V (gridCO p)) (hs : ScheduleWellFormed E rho)
     {i j : Nat} {v w : V} {o : Wire p.n} {a t : Time}
     (hi : rho.events[i]? = some (.tick v a))
-    (hj : rho.events[j]? = some (.deliver w o t)) (hat : a ≤ t) : i < j := by
-  obtain ⟨hil, hie⟩ := List.getElem?_eq_some_iff.mp hi
-  obtain ⟨hjl, hje⟩ := List.getElem?_eq_some_iff.mp hj
-  by_contra hn
-  rcases Nat.lt_or_ge j i with hji | hij
-  · have hk := (List.pairwise_iff_getElem.mp hs.sorted) j i hjl hil hji
-    rw [hje, hie] at hk
-    have hbad : t < a := by
-      simpa [Event.key, Event.time, Event.phase, Prod.Lex.toLex_le_toLex] using hk
-    exact (not_lt.mpr hat) hbad
-  · have he : i = j := by omega
-    subst j
-    simp [hi] at hj
+    (hj : rho.events[j]? = some (.deliver w o t)) (hat : a ≤ t) : i < j :=
+  AvailableChain.Engine.tick_index_lt_delivery E rho hs hi hj hat
 
-/-- A delivery after a required local public tick has a clock at least
-that tick time, including for a sleeping reader. -/
 theorem delivery_now_ge_public {V : Type} [DecidableEq V] (p : Params)
     (E : Env V) (rho : Run V (gridCO p)) (hs : ScheduleWellFormed E rho)
     {i : Nat} {v : V} {o : Wire p.n} {a t : Time}
     (hi : rho.events[i]? = some (.deliver v o t))
     (ha : PublicTime E a) (ha0 : 0 ≤ a) (hat : a ≤ t) :
-    a ≤ (Run.stateBefore (gridCO p) rho i v).now := by
-  have hm := List.mem_of_getElem? hi
-  have hv := hs.honest_only _ hm
-  have ht := (hs.in_horizon _ hm).2
-  obtain ⟨j, hj⟩ := List.mem_iff_getElem?.mp
-    (hs.tick_total v hv a ha ha0 (hat.trans ht))
-  have hji := tick_index_lt_delivery p E rho hs hj hi hat
-  have hb := stateBefore_now_mono p E rho hs (Nat.succ_le_of_lt hji) v
-  rw [stateBefore_succ_event hj] at hb
-  simpa [World.step, gridCO, clock_now] using hb
+    a ≤ (Run.stateBefore (gridCO p) rho i v).now :=
+  AvailableChain.Engine.delivery_now_ge_public (engineClock p) E rho hs hi ha ha0 hat
 
 /-- Between the HEAD and its early cutoff, the receiver's clock names
 exactly the HEAD label. -/

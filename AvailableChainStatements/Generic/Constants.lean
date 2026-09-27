@@ -18,6 +18,8 @@ structure Constants where
   D_f : Time
   /-- A, the lag before an outage can start. -/
   armingLag : Time
+  /-- Arming lag with at least half of the seats honestly awake. -/
+  fastArmingLag : Time
   /-- Π, the maximum outage duration. -/
   budget : Time
   /-- ρ, the recovery bound after GST. -/
@@ -41,6 +43,8 @@ structure Constants.Valid (C : Constants) : Prop where
   eta_nonneg : 0 ≤ C.η
   delays_nonneg : 0 ≤ C.D_c ∧ 0 ≤ C.D_s ∧ 0 ≤ C.D_f
   armingLag_nonneg : 0 ≤ C.armingLag
+  fastArmingLag_nonneg : 0 ≤ C.fastArmingLag
+  fastArmingLag_le : C.fastArmingLag ≤ C.armingLag
   budget_nonneg : 0 ≤ C.budget
   budget_le_eta : C.budget ≤ C.η
   recoveryBound_nonneg : 0 ≤ C.recoveryBound

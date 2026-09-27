@@ -22,7 +22,7 @@ theorem lifetime_nonneg (p : Params) : 0 ≤ lifetime p := by
 
 theorem gridConstants_valid (p : Params) (G : Time) (hG : 0 < G) :
     (gridConstants p G).Valid := by
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
   · exact p.thetaLower
   · exact p.thetaUpper
   · norm_num [gridConstants]
@@ -33,6 +33,8 @@ theorem gridConstants_valid (p : Params) (G : Time) (hG : 0 < G) :
     exact ⟨h, h, h⟩
   · dsimp [gridConstants]
     exact mul_nonneg (by norm_num) (le_of_lt p.deltaPos)
+  · dsimp [gridConstants]; linarith [p.deltaPos]
+  · exact le_refl _
   · dsimp [gridConstants]
     exact le_min p.etaNonneg (lifetime_nonneg p)
   · dsimp [gridConstants]

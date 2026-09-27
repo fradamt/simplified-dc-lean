@@ -35,6 +35,7 @@ def gridConstants (p : Params) (G : Time) : Constants where
   D_s := 6 * p.Δ
   D_f := 6 * p.Δ
   armingLag := 4 * p.Δ
+  fastArmingLag := 4 * p.Δ
   budget := min p.η (lifetime p)
   recoveryBound := (p.grid.card : Time) * (lifetime p + p.Δ) + G + 10 * p.Δ
   proposerGap := G
@@ -43,7 +44,7 @@ end Shared
 
 open AvailableChain.Generic AvailableChain.Statements.Generic
 
-/-- The Draft 4.2 contract statement for this instance. -/
+/-- The Draft 4.3 contract statement for this instance. -/
 def GridContract {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (G : Time) (E : Env V) : Prop :=
   E.Δ = p.Δ ∧

@@ -5,7 +5,7 @@ Statement names are in `AvailableChain.Statements.Generic`; model names are
 in `AvailableChain` or `AvailableChain.Generic`. Sources are relative to
 `../decoupled-consensus/verified-consensus`.
 
-## Grid CO: complete Draft 4.2 contract
+## Grid CO: complete Draft 4.3 contract
 
 `AvailableChain.GridCO.gridContract_from_engine` in
 `AvailableChainGridCO/Proofs/Contract.lean` proves `GridContract p G E`
@@ -63,9 +63,8 @@ The main proof paths below use files in `AvailableChainGridCO/Proofs/`.
 ## SA: slow arming with one release level
 
 `AvailableChain.SA.saContract_from_engine` in
-`AvailableChainSA/Proofs/Contract.lean` proves the full Draft 4.2 bundle.
-`fastP1_from_engine` in `Proofs/FastOutage.lean` proves the extra fast
-outage claim. See [SA status](SA-STATUS.md) for the rules, constants,
+`AvailableChainSA/Proofs/Contract.lean` proves the full Draft 4.3 bundle.
+`fastP1_from_engine` in `Proofs/FastOutage.lean` proves the fast outage field of that bundle. See [SA status](SA-STATUS.md) for the rules, constants,
 proof path, and validation.
 
 The instance has three layers:
@@ -73,7 +72,7 @@ The instance has three layers:
 - `Model/Protocol.lean`: SA parameters and the shared engine with the
   slow-arming lease policy. Raw empty and vetoed gate results are saved.
 - `Statements/Contract.lean`: `saInterface`, `saConstants`,
-  `saFastConstants`, `SAContract`, `HighParticipationBefore`, and `FastP1`.
+  `SAContract`, and the proof helper `HighParticipationBefore`.
 - `Proofs/`: clean claims, both outage bounds, source support, recovery,
   and the complete bundle. `Tests/Smoke.lean` checks the lease rules;
   `Tests/Axioms.lean` audits the new public theorems.
@@ -86,6 +85,25 @@ handles the pending outage HEAD without assuming a covering lease.
 source support and common contract assembly. The grid instance retains
 its original admission rule and `gridContract_from_engine` theorem.
 
+## SA-PC: persistent TA certificates (in progress)
+
+`AvailableChainSAPC` adds the executable SA-PC model and the additive
+strong companion in `AvailableChainStatements/Strong/`. The base contract is frozen at Draft 4.3. See [SA-PC status](SAPC-STATUS.md)
+for proved facts, exact gaps, and validation.
+
+`State.base` reuses the Grid CO/SA engine. Complete signed HEADs and PC
+metadata stay in the SA-PC archive and proposal store. Active choices add
+F4 and mandatory finite roots. The gate gives each prefix its own PC
+guard, with the lease loop outside the stable-record PC veto.
+
+`Statements/Contract.lean` declares the base bundle, including fast P1,
+and the strong companion with the requested constants. Current proofs
+cover constants, nesting, local SA projections, signature provenance,
+cap-test soundness and permanence, raw lease sources, and derivation of
+the cap from Recovery. Timed receipt bounds, admitted path closure, exact
+timely-save and freeze origins, save retention, and honest ack/preparation
+sources are now proved. The complete SA-PC bundle inhabitants are pending.
+
 ## Common model and contract
 
 Draft 4.2 defines `BlockInRun` and `RootInjective` in
@@ -94,36 +112,37 @@ Recovery require this root premise; StableSleepy and Fast inherit it.
 All witness runs satisfy it.
 
 ```text
-┌──────────────────────────────┬──────────────────────────────────────────┬──────────────────────────────┐
-│ Contract item                │ Lean name                                │ File                         │
-├──────────────────────────────┼──────────────────────────────────────────┼──────────────────────────────┤
-│ §2 time, environment         │ Time; Generic.Env                        │ M/Objects/Time; M/Generic/Env│
-│ §2 protocol, wire objects    │ Generic.ProtocolSpec n; Signed; Auth;    │ M/Generic/Run;               │
-│                              │ ProtocolSpec.Object                      │ M/Objects/Seats              │
-│ §2 run and assignments       │ Generic.Run (seatOf, proposerOf);        │ M/Generic/Run                │
-│                              │ Run.holder                               │                              │
-│ §2 step, emission, sleep     │ World.step; Run.emittedAt; Run.emits     │ M/Generic/Run                │
-│ §2 signatures                │ UnforgeableSignatures                    │ S/Generic/Conditions         │
-│ §2 delivery                  │ PartialSynchrony; HealthyPrefixDelivery; │ S/Generic/Conditions         │
-│                              │ accepted-object relay                    │                              │
-│ §2a K1, K6 seats per label   │ Auth.seat; Run.seatOf : Label → Fin n ≃ V│ M/Objects/Seats; M/.../Run   │
-│ §2a K2 no identity           │ ProtocolSpec n has no V                  │ M/Generic/Run                │
-│ §2a K3 emission-neutral      │ World.step (tick = clock only)           │ M/Generic/Run                │
-│ §2a K4 unit seats            │ Env has no weights; counts in conditions │ M/Generic/Env                │
-│ §2a K5 act once              │ duties_spec; duties_nodup; emittedAt     │ M/Generic/Run                │
-│ §3 interface                 │ Interface; Output; readAt                │ S/Generic/Interface          │
-│ §4 participation, faults     │ awakeAt; awakeInClosed; faulty;          │ S/Generic/Conditions         │
-│                              │ AwakeMajority; EtaSleepy;                │                              │
-│                              │ FullParticipation; BelowQuarter          │                              │
-│ §4 proposer recurrence       │ HonestProposerRecurrence                 │ S/Generic/Conditions         │
-│ §4 regimes                   │ SleepyRegime; StableSleepyRegime;        │ S/Generic/Regimes            │
-│                              │ FastRegime; OutageRegime; RecoveryRegime │                              │
-│ §5 properties                │ SafeFrom; MonotoneFrom; OutputOrder;     │ S/Generic/Properties         │
-│                              │ HonestProposalAt; HonestAwakeProposer;   │                              │
-│                              │ IncludedFrom; PersistsThrough            │                              │
-│ §5 claims                    │ AvailableChain; RecoveredAt              │ S/Generic/Claims             │
-│ §6 constants                 │ Constants; Constants.Valid               │ S/Generic/Constants          │
-└──────────────────────────────┴──────────────────────────────────────────┴──────────────────────────────┘
+┌────────────────────────────┬────────────────────────────────────────────┬───────────────────────────────┐
+│ Contract item              │ Lean name                                  │ File                          │
+├────────────────────────────┼────────────────────────────────────────────┼───────────────────────────────┤
+│ §2 time, environment       │ Time; Generic.Env                          │ M/Objects/Time; M/Generic/Env │
+│ §2 protocol, wire objects  │ Generic.ProtocolSpec n; Signed; Auth;      │ M/Generic/Run;                │
+│                            │ ProtocolSpec.Object                        │ M/Objects/Seats               │
+│ §2 run and assignments     │ Generic.Run (seatOf, proposerOf);          │ M/Generic/Run                 │
+│                            │ Run.holder                                 │                               │
+│ §2 step, emission, sleep   │ World.step; Run.emittedAt; Run.emits       │ M/Generic/Run                 │
+│ §2 signatures              │ UnforgeableSignatures                      │ S/Generic/Conditions          │
+│ §2 delivery                │ PartialSynchrony; HealthyPrefixDelivery;   │ S/Generic/Conditions          │
+│                            │ accepted-object relay                      │                               │
+│ §2a K1, K6 seats per label │ Auth.seat; Run.seatOf : Label → Fin n ≃ V  │ M/Objects/Seats; M/.../Run    │
+│ §2a K2 no identity         │ ProtocolSpec n has no V                    │ M/Generic/Run                 │
+│ §2a K3 emission-neutral    │ World.step (tick = clock only)             │ M/Generic/Run                 │
+│ §2a K4 unit seats          │ Env has no weights; counts in conditions   │ M/Generic/Env                 │
+│ §2a K5 act once            │ duties_spec; duties_nodup; emittedAt       │ M/Generic/Run                 │
+│ §3 interface               │ Interface; Output; readAt                  │ S/Generic/Interface           │
+│ §4 participation, faults   │ awakeAt; awakeInClosed; faulty;            │ S/Generic/Conditions          │
+│                            │ AwakeMajority; EtaSleepy;                  │                               │
+│                            │ FullParticipation; BelowQuarter            │                               │
+│ §4 proposer recurrence     │ HonestProposerRecurrence                   │ S/Generic/Conditions          │
+│ §4 regimes                 │ SleepyRegime; StableSleepyRegime;          │ S/Generic/Regimes             │
+│                            │ FastRegime; OutageRegime; FastOutageRegime │                               │
+│                            │ RecoveryRegime                             │                               │
+│ §5 properties              │ SafeFrom; MonotoneFrom; OutputOrder;       │ S/Generic/Properties          │
+│                            │ HonestProposalAt; HonestAwakeProposer;     │                               │
+│                            │ IncludedFrom; PersistsThrough              │                               │
+│ §5 claims                  │ AvailableChain; RecoveredAt                │ S/Generic/Claims              │
+│ §6 constants               │ Constants; Constants.Valid                 │ S/Generic/Constants           │
+└────────────────────────────┴────────────────────────────────────────────┴───────────────────────────────┘
 ```
 
 ```text
@@ -154,7 +173,10 @@ All witness runs satisfy it.
 
 `OutageRegime` uses `HealthyPrefixDelivery` only before `b₀`; it imposes no
 delivery bound in `[b₀,b₁)`. Its two count premises apply from time zero,
-including times before the protected read T.
+including times before the protected read T. Draft 4.3 adds
+`FastOutageRegime` and `stableResilientFast`, with the same persistence
+conclusion and the fast arming lag. The witness also proves that fast
+arming need not satisfy the general lag test.
 
 ## L* instance (definitions and statement; no claim proofs)
 
@@ -190,6 +212,8 @@ including times before the protected read T.
 
 The executable model is in `AvailableChainLStar/Model/Protocol.lean`; the
 contract statement is in `AvailableChainLStar/Statements/Contract.lean`.
+`Proofs/FastOutage.lean` derives fast P1 from a general P1 proof; the
+general proof remains pending.
 The `#eval` check is in `AvailableChainLStar/Tests/Smoke.lean`.
 
 ## Witnesses (§2a K8, §7)
@@ -198,17 +222,17 @@ The `#eval` check is in `AvailableChainLStar/Tests/Smoke.lean`.
 change the model or statement libraries.
 
 ```text
-┌─────────────────────┬────────────────────────────────────────────────────┬──────────────────────────────┐
-│ Witness             │ Proved facts                                       │ File                         │
-├─────────────────────┼────────────────────────────────────────────────────┼──────────────────────────────┤
-│ alwaysGenesis       │ Safety, monotonicity, and nesting for every run;   │ Witnesses/Sanity.lean        │
-│                     │ a valid Sleepy run refutes inclusion for every D   │                              │
-│ pooledLMD           │ Valid synchronous 2-honest/1-fault per label;      │ Witnesses/Accumulation.lean  │
-│                     │ spent B votes, late X votes, and a Y read reorg    │                              │
-│ Regime premises     │ Sleepy, StableSleepy (θ = 3/4), Fast, Outage,      │ Witnesses/Regimes.lean       │
-│                     │ Recovery; one fault and distinct honest views;     │                              │
-│                     │ one sleeping honest node where permitted           │                              │
-└─────────────────────┴────────────────────────────────────────────────────┴──────────────────────────────┘
+┌─────────────────┬───────────────────────────────────────────────────┬─────────────────────────────┐
+│ Witness         │ Proved facts                                      │ File                        │
+├─────────────────┼───────────────────────────────────────────────────┼─────────────────────────────┤
+│ alwaysGenesis   │ Safety, monotonicity, and nesting for every run;  │ Witnesses/Sanity.lean       │
+│                 │ a valid Sleepy run refutes inclusion for every D  │                             │
+│ pooledLMD       │ Valid synchronous 2-honest/1-fault per label;     │ Witnesses/Accumulation.lean │
+│                 │ spent B votes, late X votes, and a Y read reorg   │                             │
+│ Regime premises │ Sleepy, StableSleepy (θ = 3/4), Fast, both Outage │ Witnesses/Regimes.lean      │
+│                 │ regimes, Recovery; one fault and distinct views   │                             │
+│                 │ one sleeping honest node where permitted          │                             │
+└─────────────────┴───────────────────────────────────────────────────┴─────────────────────────────┘
 ```
 
 The regime run relays an accepted object at time zero to all honest readers.
@@ -243,4 +267,3 @@ contains Y at time 3 and does not contain Y at time 4.
 
 Fast has full honest participation from time zero. Recovery has an honest
 sleeper before GST at time 1.
-

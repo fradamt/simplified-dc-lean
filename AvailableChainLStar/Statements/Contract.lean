@@ -27,13 +27,14 @@ def lstarConstants (p : Params) (G : Time) : Constants where
   D_s := 6 * p.Δ
   D_f := 6 * p.Δ
   armingLag := 4 * p.Δ
+  fastArmingLag := 4 * p.Δ
   budget := min p.η (p.L - 4 * p.Δ)
   recoveryBound := p.L + G + 11 * p.Δ
   proposerGap := G
 
 theorem lstarConstants_valid (p : Params) (G : Time) (hG : 0 < G) :
     (lstarConstants p G).Valid := by
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
   · norm_num [lstarConstants]
   · norm_num [lstarConstants]
   · norm_num [lstarConstants]
@@ -44,6 +45,8 @@ theorem lstarConstants_valid (p : Params) (G : Time) (hG : 0 < G) :
     exact ⟨h, h, h⟩
   · dsimp [lstarConstants]
     linarith [p.deltaPos]
+  · dsimp [lstarConstants]; linarith [p.deltaPos]
+  · exact le_refl _
   · dsimp [lstarConstants]
     exact le_min p.etaNonneg (by linarith [p.lockLong])
   · dsimp [lstarConstants]

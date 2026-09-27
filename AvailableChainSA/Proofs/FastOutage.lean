@@ -26,7 +26,7 @@ theorem awake_add_faults_le_seats {V : Type} [DecidableEq V] [Fintype V]
 Recovery bounds are irrelevant to this conversion. -/
 theorem fast_outage_engine {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (sa p)) (G T b₀ b₁ : Time)
-    (ho : OutageRegime (sa p) E (saInterface p) (saFastConstants p G) rho T b₀ b₁) :
+    (ho : FastOutageRegime (sa p) E (saInterface p) (saConstants p G) rho T b₀ b₁) :
     OutageRegime (sa p) E (GridCO.gridInterface p.engine)
       (GridCO.gridConstants p.engine G) rho T b₀ b₁ := by
   exact ⟨ho.execution, ho.rootInjective, ho.healthy, ho.acceptedRelay, ho.interval,
@@ -85,11 +85,15 @@ theorem pending_fast_protection {V : Type} [DecidableEq V] [Fintype V]
     (GridCO.pending_gate_guard p.engine E rho hΔ r hclean hd hm reader hr C hc)
   exact ⟨hstrong, ⟨_, le_refl _, hrow⟩, hrecord⟩
 
-/-- Extra fast P1 theorem. The outage starts after 4Δ and high honest
+/-- The fast P1 field of Draft 4.3. The outage starts after 4Δ and high honest
 participation is required throughout the healthy prefix from genesis. -/
 theorem fastP1_from_engine {V : Type} [DecidableEq V] [Fintype V]
-    (p : Params) (E : Env V) (G : Time) (hΔ : E.Δ = p.Δ) : FastP1 p E G := by
-  intro rho T b₀ b₁ ho hhigh
+    (p : Params) (E : Env V) (G : Time) (hΔ : E.Δ = p.Δ) :
+    ∀ (rho : Run V (sa p)) T b₀ b₁,
+      FastOutageRegime (sa p) E (saInterface p) (saConstants p G) rho T b₀ b₁ →
+      PersistsThrough (sa p) rho (saInterface p).stable T b₀ b₁ := by
+  intro rho T b₀ b₁ ho
+  have hhigh : HighParticipationBefore p E rho b₀ := ho.highParticipation
   have hengine := fast_outage_engine p E rho G T b₀ b₁ ho
   apply GridCO.resilient_of_covering_protection p.engine E rho hΔ G T b₀ b₁ hengine
     (fun _ _ _ => releaseThreshold p)

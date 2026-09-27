@@ -100,7 +100,7 @@ theorem stateBefore_receiptPrefix {V : Type} [DecidableEq V] (p : Params)
                 · simpa [World.step, hv] using ReceiptPrefix.refl
                     (Run.stateBefore (gridCO p) rho j v)
 
-private theorem stamp_eq_of_prefix {α : Type} [BEq α] [LawfulBEq α]
+theorem stamp_eq_of_prefix {α : Type} [BEq α] [LawfulBEq α]
     (xs ys : List (α × Time)) (x : α) (a b : Time)
     (hp : xs <+: ys) (hm : ∃ t, (x, t) ∈ xs) :
     ((ys.find? (fun row => row.1 == x)).map Prod.snd).getD b =

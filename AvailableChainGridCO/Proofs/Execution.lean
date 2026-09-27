@@ -3,12 +3,9 @@ public import AvailableChainGridCO.Proofs.History
 
 @[expose] public section
 
-namespace AvailableChain.GridCO
+namespace AvailableChain.Engine
 
--- Keep one shared proof interface for both lease policies.
-set_option linter.unusedSectionVars false
-
-variable [LeasePolicy]
+-- These schedule proofs depend only on the fixed engine.
 
 open AvailableChain.Generic AvailableChain.Statements.Generic
 
@@ -29,13 +26,13 @@ private theorem filter_eq_takeWhile {α : Type} {R : α → α → Prop} {p : α
         exact List.filter_eq_nil_iff.mpr (fun b hb hpb => hp (hdc a b (ha b hb) hpb))
 
 section Schedule
-variable {V : Type} [DecidableEq V] {p : Params} {E : Env V}
-  {rho : Run V (gridCO p)}
+variable {V : Type} [DecidableEq V] {seats : Nat} {P : ProtocolSpec seats} {E : Env V}
+  {rho : Run V P}
 
-theorem stateBefore_succ_event {i : Nat} {e : Event V (gridCO p).Object}
+theorem stateBefore_succ_event {i : Nat} {e : Event V P.Object}
     (hi : rho.events[i]? = some e) :
-    Run.stateBefore (gridCO p) rho (i + 1) =
-      World.step (Run.stateBefore (gridCO p) rho i) e := by
+    Run.stateBefore P rho (i + 1) =
+      World.step (Run.stateBefore P rho i) e := by
   unfold Run.stateBefore
   rw [List.take_add_one, List.foldl_append, hi]
   rfl
@@ -43,7 +40,7 @@ theorem stateBefore_succ_event {i : Nat} {e : Event V (gridCO p).Object}
 omit [DecidableEq V] in
 /-- Strict event-time order implies strict index order in a valid schedule. -/
 theorem eventIndex_lt_of_time_lt (hs : ScheduleWellFormed E rho)
-    {i j : Nat} {e f : Event V (gridCO p).Object}
+    {i j : Nat} {e f : Event V P.Object}
     (hi : rho.events[i]? = some e) (hj : rho.events[j]? = some f)
     (ht : e.time < f.time) : i < j := by
   obtain ⟨hil, hie⟩ := List.getElem?_eq_some_iff.mp hi
@@ -64,7 +61,7 @@ theorem eventIndex_lt_of_time_lt (hs : ScheduleWellFormed E rho)
     simp [he] at ht
 
 omit [DecidableEq V] in
-private theorem time_le_of_key_le (e f : Event V (gridCO p).Object)
+private theorem time_le_of_key_le (e f : Event V P.Object)
     (h : e.key ≤ f.key) : e.time ≤ f.time := by
   rcases Prod.Lex.toLex_le_toLex.mp h with h | ⟨h, _⟩
   · exact le_of_lt h
@@ -72,7 +69,7 @@ private theorem time_le_of_key_le (e f : Event V (gridCO p).Object)
 
 omit [DecidableEq V] in
 private theorem filter_eq_take (hs : ScheduleWellFormed E rho)
-    (q : Event V (gridCO p).Object → Bool)
+    (q : Event V P.Object → Bool)
     (hdc : ∀ e f, e.key ≤ f.key → q f = true → q e = true) :
     rho.events.filter q = rho.events.take (rho.events.filter q).length := by
   apply List.prefix_iff_eq_take.mp
@@ -81,9 +78,9 @@ private theorem filter_eq_take (hs : ScheduleWellFormed E rho)
 
 omit [DecidableEq V] in
 private theorem filter_false_of_index_ge (hs : ScheduleWellFormed E rho)
-    (q : Event V (gridCO p).Object → Bool)
+    (q : Event V P.Object → Bool)
     (hdc : ∀ e f, e.key ≤ f.key → q f = true → q e = true)
-    {j : Nat} {e : Event V (gridCO p).Object}
+    {j : Nat} {e : Event V P.Object}
     (hj : (rho.events.filter q).length ≤ j) (hget : rho.events[j]? = some e) :
     q e = false := by
   set n := (rho.events.filter q).length
@@ -108,14 +105,14 @@ private theorem filter_false_of_index_ge (hs : ScheduleWellFormed E rho)
 
 omit [DecidableEq V] in
 private theorem downward_lt (t : Time) :
-    ∀ e f : Event V (gridCO p).Object, e.key ≤ f.key →
+    ∀ e f : Event V P.Object, e.key ≤ f.key →
       decide (f.time < t) = true → decide (e.time < t) = true := by
   intro e f hk hf
   exact decide_eq_true (lt_of_le_of_lt (time_le_of_key_le e f hk) (of_decide_eq_true hf))
 
 /-- The public read is the event-prefix state after all events at its time. -/
 theorem readAt_eq_stateBefore (hs : ScheduleWellFormed E rho) (t : Time) :
-    Run.readAt (gridCO p) rho t = Run.stateBefore (gridCO p) rho
+    Run.readAt P rho t = Run.stateBefore P rho
       (rho.events.filter (fun e => decide (e.time ≤ t))).length := by
   unfold Run.readAt Run.stateBefore
   exact congrArg (fun events => events.foldl World.step World.init)
@@ -125,10 +122,10 @@ theorem readAt_eq_stateBefore (hs : ScheduleWellFormed E rho) (t : Time) :
 
 omit [DecidableEq V] in
 theorem index_lt_read_length_iff (hs : ScheduleWellFormed E rho)
-    (t : Time) {i : Nat} {e : Event V (gridCO p).Object}
+    (t : Time) {i : Nat} {e : Event V P.Object}
     (hi : rho.events[i]? = some e) :
     i < (rho.events.filter (fun f => decide (f.time ≤ t))).length ↔ e.time ≤ t := by
-  let q := fun f : Event V (gridCO p).Object => decide (f.time ≤ t)
+  let q := fun f : Event V P.Object => decide (f.time ≤ t)
   have hdown : ∀ a b, a.key ≤ b.key → q b = true → q a = true := by
     intro a b hk hb
     exact decide_eq_true (le_trans (time_le_of_key_le _ _ hk) (of_decide_eq_true hb))
@@ -155,7 +152,7 @@ theorem read_length_mono (a b : Time) (hab : a ≤ b) :
 /-- Other nodes' events do not change a reader's state. -/
 theorem stateBefore_eq_of_other_nodes (v : V) {m : Nat} (n : Nat) (hm : m ≤ n)
     (h : ∀ j e, m ≤ j → j < n → rho.events[j]? = some e → e.node ≠ v) :
-    Run.stateBefore (gridCO p) rho n v = Run.stateBefore (gridCO p) rho m v := by
+    Run.stateBefore P rho n v = Run.stateBefore P rho m v := by
   induction n with
   | zero => rw [Nat.le_zero.mp hm]
   | succ n ih =>
@@ -176,8 +173,8 @@ theorem stateBefore_eq_of_other_nodes (v : V) {m : Nat} (n : Nat) (hm : m ≤ n)
 steps before it belong to other nodes. -/
 theorem stateBefore_tick_eq_stateBeforeTime (hs : ScheduleWellFormed E rho)
     {i : Nat} {v : V} {t : Time} (hi : rho.events[i]? = some (.tick v t)) :
-    Run.stateBefore (gridCO p) rho i v = Run.stateBeforeTime (gridCO p) rho t v := by
-  let q := fun e : Event V (gridCO p).Object => decide (e.time < t)
+    Run.stateBefore P rho i v = Run.stateBeforeTime P rho t v := by
+  let q := fun e : Event V P.Object => decide (e.time < t)
   have hf := filter_eq_take hs q (downward_lt t)
   have hni : (rho.events.filter q).length ≤ i := by
     by_contra hc
@@ -196,7 +193,7 @@ theorem stateBefore_tick_eq_stateBeforeTime (hs : ScheduleWellFormed E rho)
     simpa [q] using this
   obtain ⟨hjl, hje⟩ := List.getElem?_eq_some_iff.mp hget
   obtain ⟨hil, hie⟩ := List.getElem?_eq_some_iff.mp hi
-  have hk : e.key ≤ (Event.tick v t : Event V (gridCO p).Object).key := by
+  have hk : e.key ≤ (Event.tick v t : Event V P.Object).key := by
     simpa [hje, hie] using (List.pairwise_iff_getElem.mp hs.sorted) j i hjl hil hji
   have ht : e.time = t := le_antisymm (time_le_of_key_le _ _ hk) hl
   have he : e = .tick v t := by
@@ -208,6 +205,61 @@ theorem stateBefore_tick_eq_stateBeforeTime (hs : ScheduleWellFormed E rho)
         simp [Event.key, Event.time, Event.phase, Prod.Lex.toLex_le_toLex] at hk
   have : j = i := (List.Nodup.getElem_inj_iff hs.nodup).mp (by rw [hje, hie, he])
   omega
+
+end Schedule
+end AvailableChain.Engine
+
+namespace AvailableChain.GridCO
+
+set_option linter.unusedSectionVars false
+variable [LeasePolicy]
+open AvailableChain.Generic AvailableChain.Statements.Generic AvailableChain.Engine
+
+section Schedule
+variable {V : Type} [DecidableEq V] {p : Params} {E : Env V}
+  {rho : Run V (gridCO p)}
+
+-- Retain the established Grid CO and SA proof interface.
+theorem stateBefore_succ_event {i : Nat} {e : Event V (gridCO p).Object}
+    (hi : rho.events[i]? = some e) :
+    Run.stateBefore (gridCO p) rho (i + 1) =
+      World.step (Run.stateBefore (gridCO p) rho i) e :=
+  Engine.stateBefore_succ_event hi
+
+omit [DecidableEq V] in
+theorem eventIndex_lt_of_time_lt (hs : ScheduleWellFormed E rho)
+    {i j : Nat} {e f : Event V (gridCO p).Object}
+    (hi : rho.events[i]? = some e) (hj : rho.events[j]? = some f)
+    (ht : e.time < f.time) : i < j :=
+  Engine.eventIndex_lt_of_time_lt hs hi hj ht
+
+theorem readAt_eq_stateBefore (hs : ScheduleWellFormed E rho) (t : Time) :
+    Run.readAt (gridCO p) rho t = Run.stateBefore (gridCO p) rho
+      (rho.events.filter (fun e => decide (e.time ≤ t))).length :=
+  Engine.readAt_eq_stateBefore hs t
+
+omit [DecidableEq V] in
+theorem index_lt_read_length_iff (hs : ScheduleWellFormed E rho)
+    (t : Time) {i : Nat} {e : Event V (gridCO p).Object}
+    (hi : rho.events[i]? = some e) :
+    i < (rho.events.filter (fun f => decide (f.time ≤ t))).length ↔ e.time ≤ t :=
+  Engine.index_lt_read_length_iff hs t hi
+
+omit [DecidableEq V] in
+theorem read_length_mono (a b : Time) (hab : a ≤ b) :
+    (rho.events.filter (fun e => decide (e.time ≤ a))).length ≤
+      (rho.events.filter (fun e => decide (e.time ≤ b))).length :=
+  Engine.read_length_mono a b hab
+
+theorem stateBefore_eq_of_other_nodes (v : V) {m : Nat} (n : Nat) (hm : m ≤ n)
+    (h : ∀ j e, m ≤ j → j < n → rho.events[j]? = some e → e.node ≠ v) :
+    Run.stateBefore (gridCO p) rho n v = Run.stateBefore (gridCO p) rho m v :=
+  Engine.stateBefore_eq_of_other_nodes v n hm h
+
+theorem stateBefore_tick_eq_stateBeforeTime (hs : ScheduleWellFormed E rho)
+    {i : Nat} {v : V} {t : Time} (hi : rho.events[i]? = some (.tick v t)) :
+    Run.stateBefore (gridCO p) rho i v = Run.stateBeforeTime (gridCO p) rho t v :=
+  Engine.stateBefore_tick_eq_stateBeforeTime hs hi
 
 /-- The public-time record equals its value just after the unique local
 clock tick; equal-time deliveries leave that record unchanged. -/

@@ -56,6 +56,17 @@ structure OutageRegime
   sleepyBefore : ∀ t, 0 ≤ t → t < b₀ → AwakeMajority E rho t
   etaSleepyBefore : ∀ t, 0 ≤ t → t < b₀ → EtaSleepy E C rho t
 
+/-- The fast lag replaces the general lag. The high count holds on the
+whole healthy prefix, including times before the protected read. -/
+structure FastOutageRegime
+    (P : AvailableChain.Generic.ProtocolSpec n)
+    (E : AvailableChain.Generic.Env V) (I : Interface P) (C : Constants)
+    (rho : AvailableChain.Generic.Run V P)
+    (T b₀ b₁ : Time) : Prop
+    extends OutageRegime P E I { C with armingLag := C.fastArmingLag } rho T b₀ b₁ where
+  highParticipation : ∀ t, 0 ≤ t → t < b₀ →
+    (n + 1) / 2 ≤ (awakeAt E rho.honest t).card
+
 /-- Delivery is arbitrary before GST. After GST, current participation
 exceeds θrec and honest opening proposers recur. -/
 structure RecoveryRegime

@@ -77,7 +77,7 @@ theorem admitVote_head_mem_or_equivocates (p : Params) {n : Nat} (st : State n)
     · simp [admitVote, hm]
     · simp [admitVote, not_lt.mpr hlo, not_lt.mpr hhi, hm, he]
 
-private theorem fold_heads_mem_or_equivocates (p : Params) {n : Nat}
+theorem fold_heads_mem_or_equivocates (p : Params) {n : Nat}
     (raw : List (HeadWire n)) (st : State n) (r : Slot) (i : Fin n) (B : Block)
     (hlo : (st.now / (4 * p.Δ)).toNat - 1 ≤ r)
     (hhi : r ≤ (st.now / (4 * p.Δ)).toNat)

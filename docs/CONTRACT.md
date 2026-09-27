@@ -1,6 +1,6 @@
 # available-chain — contract draft
 
-_Draft 4.2 (2026-09-27), committee model C*. Purpose: a small Lean repo
+_Draft 4.3 (2026-09-27), committee model C*. Purpose: a small Lean repo
 whose engine and claims are fixed, so that any suitable protocol can be an instance if it proves the
 claims. Source of the engine: verified-consensus
 `DecoupledConsensusModel/Generic` (Env, ProtocolSpec, Run) and
@@ -35,6 +35,11 @@ claims. Source of the engine: verified-consensus
 │ Recovery              │ An instance sets θrec and recoveryFull.         │
 └────────────────────────┴─────────────────────────────────────────────────┘
 ```
+
+Tradeoffs go into constants, not claims. Every design must be able to
+meet every claim trivially with some constant. An instance can set its
+fast arming lag equal to its general arming lag and use general P1 for
+fast P1. A smaller fast lag expresses a stronger guarantee.
 
 ## 2. Engine (fixed)
 
@@ -137,44 +142,48 @@ times before the protected read `T`. The healthy prefix starts at genesis.
   instance parameter. The contract requires Π ≤ η.
 
 ```text
-┌──────────────┬───────────────────────────────────────────────────────────┐
-│ Regime       │ Premise                                                   │
-├──────────────┼───────────────────────────────────────────────────────────┤
-│ Sleepy       │ GST = t₀ = 0, synchrony and accepted-object relay;        │
-│              │ at every t, w(H_t) > w(A)                                 │
-│ StableSleepy │ Sleepy, and the η-sleepy condition with threshold θ       │
-│ (θ, η)       │ (for the stable claims)                                   │
-│ Fast         │ Sleepy with full honest participation and w(A) < W/4      │
-│              │ (honest > 3/4). Decided by the user.                      │
-│ Outage       │ StableSleepy(θ, η) counts before b₀; healthy delivery    │
-│              │ and accepted relay before b₀; arbitrary delivery in       │
-│              │ [b₀, b₁)                                                  │
-│ Recovery     │ arbitrary before GST; after GST, θrec·(h_t+a)<h_t;       │
-│              │ full participation if recoveryFull; honest awake         │
-│              │ opening proposer every G                                  │
-└──────────────┴───────────────────────────────────────────────────────────┘
+┌──────────────┬───────────────────────────────────────────────────────┐
+│ Regime       │ Premise                                               │
+├──────────────┼───────────────────────────────────────────────────────┤
+│ Sleepy       │ GST = t₀ = 0, synchrony and accepted-object relay;    │
+│              │ at every t, w(H_t) > w(A)                             │
+│ StableSleepy │ Sleepy, and the η-sleepy condition with threshold θ   │
+│ (θ, η)       │ (for the stable claims)                               │
+│ Fast         │ Sleepy with full honest participation and w(A) < W/4  │
+│              │ (honest > 3/4). Decided by the user.                  │
+│ Outage       │ StableSleepy(θ, η) counts before b₀; healthy delivery │
+│              │ and accepted relay before b₀; arbitrary delivery in   │
+│              │ [b₀, b₁)                                              │
+│ FastOutage   │ Outage with the fast lag instead of the general lag;  │
+│              │ at least ⌈n/2⌉ honest awake at every 0 ≤ t < b₀       │
+│ Recovery     │ arbitrary before GST; after GST, θrec·(h_t+a)<h_t;    │
+│              │ full participation if recoveryFull; honest awake      │
+│              │ opening proposer every G                              │
+└──────────────┴───────────────────────────────────────────────────────┘
 ```
 
 ## 5. Claims (the bundle every instance proves)
 
 ```text
-┌────────────────────┬──────────┬──────────────────────────────────────────┐
-│ Claim              │ Regime   │ Conclusion                               │
-├────────────────────┼──────────┼──────────────────────────────────────────┤
-│ confirmedSafe      │ Sleepy   │ honest confirmed reads are compatible    │
-│ stableSafe         │ Sleepy*  │ honest stable reads are compatible       │
-│ monotone           │ Sleepy   │ no honest read of either output retreats │
-│ nested             │ always   │ stable ⪯ confirmed at every honest read  │
-│ confirmedIncluded  │ Sleepy   │ an honest proposer awake at slot s       │
-│                    │          │ proposes, and its block is in every      │
-│                    │          │ honest confirmed read by                 │
-│                    │          │ proposalTime s + D_c                     │
-│ stableIncluded     │ StableS. │ same for stable, by + D_s                │
-│ stableIncludedFast │ Fast     │ same, by + D_f (target: small)           │
-│ stableResilient    │ Outage   │ a stable read at T persists through      │
-│                    │          │ [b₀, b₁) if b₀ ≥ T + A and b₁ − b₀ ≤ Π  │
-│ recovered          │ Recovery │ the Sleepy claims hold from GST + ρ      │
-└────────────────────┴──────────┴──────────────────────────────────────────┘
+┌─────────────────────┬──────────┬──────────────────────────────────────────┐
+│ Claim               │ Regime   │ Conclusion                               │
+├─────────────────────┼──────────┼──────────────────────────────────────────┤
+│ confirmedSafe       │ Sleepy   │ honest confirmed reads are compatible    │
+│ stableSafe          │ Sleepy*  │ honest stable reads are compatible       │
+│ monotone            │ Sleepy   │ no honest read of either output retreats │
+│ nested              │ always   │ stable ⪯ confirmed at every honest read  │
+│ confirmedIncluded   │ Sleepy   │ an honest proposer awake at slot s       │
+│                     │          │ proposes, and its block is in every      │
+│                     │          │ honest confirmed read by                 │
+│                     │          │ proposalTime s + D_c                     │
+│ stableIncluded      │ StableS. │ same for stable, by + D_s                │
+│ stableIncludedFast  │ Fast     │ same, by + D_f (target: small)           │
+│ stableResilient     │ Outage   │ a stable read at T persists through      │
+│                     │          │ [b₀, b₁) if b₀ ≥ T + A and b₁ − b₀ ≤ Π   │
+│ stableResilientFast │ FastOut. │ the same persistence with fast lag A_f   │
+│                     │          │ and the full-prefix high count premise   │
+│ recovered           │ Recovery │ the Sleepy claims hold from GST + ρ      │
+└─────────────────────┴──────────┴──────────────────────────────────────────┘
 ```
 
 `Sleepy*` means the plain Sleepy regime for safety. The stable inclusion
@@ -190,8 +199,8 @@ two safety claims.
 
 ## 6. Constants (the instance's output)
 
-θ and θrec in [1/2, 3/4], recoveryFull, η, D_c, D_s, D_f, arming lag A,
-budget Π ≤ η, recovery bound ρ, and
+θ and θrec in [1/2, 3/4], recoveryFull, η, D_c, D_s, D_f, arming lags
+A and A_f with 0 ≤ A_f ≤ A, budget Π ≤ η, recovery bound ρ, and
 the Recovery premise parameter G (gap between honest awake opening
 proposers; ρ may depend on G). All in units of Δ and regime parameters; none may depend on the run.
 Protocols are compared by these constants.
@@ -247,3 +256,50 @@ blocks, and all their ancestors. This is the scope needed by the reference
 `NamedRootCollisionFree` and `RootInjectiveBelow` proofs. The round-14
 root-collision run does not meet this premise. See `GRIDCO-STATUS.md`,
 “Resolved in Draft 4.2”. No claim or constant changed.
+
+## Draft 4.3 change
+
+Fast P1 is now the `stableResilientFast` field of `AvailableChain`.
+`Constants.fastArmingLag` satisfies `0 ≤ fastArmingLag ≤ armingLag`.
+`FastOutageRegime` extends `OutageRegime` with a constants copy that
+sets only `armingLag := fastArmingLag`, and adds
+`∀ t, 0 ≤ t → t < b₀ → (n+1)/2 ≤ (awakeAt E rho.honest t).card`.
+Integer division gives `⌈n/2⌉`. All other outage premises and the
+persistence conclusion are retained. The general lag is not an extra test.
+
+SA and SA-PC set the fast lag to `4Δ`. Grid CO and L* set it equal to
+their general lag. Grid CO derives the new field from general P1; L*
+has the same conditional derivation, with its claim proofs still pending.
+SA uses `fastP1_from_engine` in its complete bundle. SA-PC keeps the
+proof pending with its other unfinished claims. The separate SA and
+SA-PC extra-claim statements are removed.
+
+This is the one-time authorized scope extension. The base contract is
+now frozen at Draft 4.3. The strong companion below is additive.
+
+## Strong companion (additive)
+
+The optional companion in `AvailableChainStatements/Strong/` adds a
+`StrongInterface` with a `strong : State → Block` output and
+`StrongConstants` with a fault cap and inclusion delay. It changes no
+existing definition, regime, constant, or field of `AvailableChain`.
+There is no unconditional order between `strong` and the base outputs.
+
+`StrongClaims` requires safety (agreement and monotonicity) under Sleepy
+and the cap; inclusion under Sleepy, full honest participation, and the
+cap; persistence after sound arming; and safety and inclusion after
+Recovery, with the cap explicit. SA-PC sets the cap to `⌊(n−1)/3⌋` and
+the strong inclusion delay to `6Δ`.
+
+`StrongArmedRegime` requires execution validity, root injectivity,
+healthy delivery and accepted-object relay from genesis before `b₀`,
+`h_t > a` at every `0 ≤ t < b₀`, the cap, and `T + Δ ≤ b₀`.
+It has no certificate-possession premise, η-sleepy premise, outage
+budget, or delivery or participation premise after `b₀`. The instance
+must prove sound arming from these fields. Persistence covers all
+times from `b₀` through the run horizon, with no bound on that horizon.
+
+The base bundle retains its original fault scopes. In particular,
+SA-PC's base clean and outage claims have no added cap. Its unchanged
+Recovery regime, with `θrec = 2/3` and `recoveryFull = true`, implies
+the cap; the instance must prove that implication.

@@ -86,6 +86,7 @@ def constants : Constants where
   D_s := 0
   D_f := 0
   armingLag := 1
+  fastArmingLag := 0
   budget := 1
   recoveryBound := 0
   proposerGap := 1
@@ -353,6 +354,25 @@ theorem outage : OutageRegime viewProtocol sleepyEnv interface constants
     · simp [sleepyEnv] at hd
   · intro t h0 h1; exact sleepyMajority t
   · intro t h0 h1; exact etaSleepy t
+
+/-- Fast arming permits a later protected read in the same healthy run.
+The run includes both a fault and an honest sleeper. -/
+theorem fastOutage : FastOutageRegime viewProtocol sleepyEnv interface constants
+    witnessRun 1 1 2 := by
+  refine { toOutageRegime := { outage with
+    interval := by decide
+    armed := by decide }, highParticipation := ?_ }
+  intro t _ _
+  change 3 ≤ (awakeAt sleepyEnv witnessRun.honest t).card
+  norm_num [awakeAt, sleepyEnv, witnessRun]
+  decide
+
+/-- The fast regime does not retain the general lag test. -/
+theorem fastOutage_not_general :
+    ¬ OutageRegime viewProtocol sleepyEnv interface constants witnessRun 1 1 2 := by
+  intro ho
+  have := ho.armed
+  norm_num [constants] at this
 
 theorem recovery : RecoveryRegime viewProtocol fullEnv interface constants witnessRun := by
   refine { rootInjective := rootInjective _

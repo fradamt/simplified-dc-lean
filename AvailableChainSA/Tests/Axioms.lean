@@ -6,7 +6,6 @@ public import AvailableChainGridCO.Proofs.Contract
 #print axioms AvailableChain.SA.releaseThreshold_bounds
 #print axioms AvailableChain.SA.faults_lt_releaseThreshold
 #print axioms AvailableChain.SA.saConstants_valid
-#print axioms AvailableChain.SA.saFastConstants_valid
 #print axioms AvailableChain.SA.outputOrder
 #print axioms AvailableChain.SA.fastLag_le_slowLag
 #print axioms AvailableChain.SA.slow_window_expiry

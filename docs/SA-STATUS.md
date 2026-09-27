@@ -1,6 +1,6 @@
 # SA status
 
-_2026-09-27. Contract Draft 4.2. All contract claims are proved._
+_2026-09-27. Contract Draft 4.3. All contract claims are proved._
 
 `AvailableChain.SA.saContract_from_engine` in
 [`Proofs/Contract.lean`](../AvailableChainSA/Proofs/Contract.lean) proves
@@ -8,9 +8,9 @@ _2026-09-27. Contract Draft 4.2. All contract claims are proved._
 
 `AvailableChain.SA.fastP1_from_engine` in
 [`Proofs/FastOutage.lean`](../AvailableChainSA/Proofs/FastOutage.lean)
-proves the extra fast outage claim. Its constants record changes only
-`armingLag` to `4Δ`. It requires `h_t ≥ τ` at every `0 ≤ t < b₀`,
-with all other Outage premises retained. It does not retain the slow lag.
+proves the main bundle field `stableResilientFast`. The fast lag is `4Δ`.
+It requires `h_t ≥ τ` at every `0 ≤ t < b₀`, with all other Outage
+premises retained. It does not retain the slow lag.
 
 ## Constants and premises
 
@@ -23,9 +23,9 @@ The bundle requires `G > 0` and `E.Δ = p.Δ`.
 - `L = (4k−1)Δ`, `A_slow = 4(k−1)Δ`, `A_fast = 4Δ`.
 - `Π = min(η,L)` and `ρ = 2L + G + 8Δ`.
 
-Every run premise comes from Draft 4.2, including `RootInjective`.
+Every run premise comes from Draft 4.3, including `RootInjective`.
 There is no added support, view, lease, or repair assumption.
-The contract files are unchanged.
+Draft 4.3 adds the fast arming constant and fast P1 field.
 
 ## Rules and shared engine
 
@@ -87,7 +87,7 @@ row-source and contract theorems remain available.
 ## Contract issues
 
 None. No missing premise or checked counterexample was found for the
-requested claims. The extra fast theorem uses the full-prefix honest
+requested claims. The fast P1 field uses the full-prefix honest
 count premise. General P1 handles a lease that is first written after
 outage onset; it does not assume that the lease already exists at onset.
 
@@ -99,9 +99,9 @@ lease, fast admission at equality, slow admission, empty and missing
 labels, vetoed result retention, ancestor-only renewal, release at
 equality, and expiry with retained record and history.
 
-`lake build --wfail` passes all 3,394 jobs with no warnings. This includes
+`lake build --wfail` passes all 3,430 jobs with no warnings. This includes
 `gridContract_from_engine`, the existing witnesses and smoke tests, the
-new SA library, and the 69-theorem audit in `Tests/Axioms.lean`.
+new SA library, and the 68-theorem audit in `Tests/Axioms.lean`.
 Every audited theorem uses at most `propext`, `Classical.choice`, and
 `Quot.sound`. The audit includes both complete bundles and fast P1.
 

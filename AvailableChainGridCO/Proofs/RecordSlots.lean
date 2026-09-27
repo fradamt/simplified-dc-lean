@@ -178,7 +178,7 @@ private theorem fold_votes_blocks (p : Params) {n : Nat} (xs : List (HeadWire n)
   | nil => rfl
   | cons o xs ih => rw [List.foldl_cons, ih, admitVote_blocks_eq]
 
-private theorem admitProposal_blocks_ordered (p : Params) {n : Nat} (st : State n)
+theorem admitProposal_blocks_ordered (p : Params) {n : Nat} (st : State n)
     (o : Wire n) (target : Block) (raw : List (HeadWire n))
     (h : ∀ b ∈ st.blocks, SlotOrdered b) :
     ∀ b ∈ (admitProposal p st o target raw).blocks, SlotOrdered b := by
