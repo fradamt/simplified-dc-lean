@@ -88,6 +88,8 @@ The user approved this plan on 2026-09-28 ("Go"). Before execution, three indepe
 - Axioms. From Task 0 on, `lake env lean --run scripts/CheckFrameworkAxioms.lean` exits 0 at every CHECKPOINT: every constant of `AvailableChainFramework` and `AvailableChainRegistry` uses only `propext`, `Classical.choice`, `Quot.sound` (async M3). Task 10 also greps `sorry|admit|native_decide` and `^axiom` in both libraries and the scripts.
 - Lock diff per task (async M2). Each CHECKPOINT of Tasks 1–5 saves `CatalogLock --check` output against the Task 0 lock in the task report; the Task 6 change log is the last of these.
 - `docs/REGISTRY.md` is regenerated and committed at every CHECKPOINT where its content changes.
+- Lock diff hygiene (Task 0 review). `git diff docs/catalog.lock` at a CHECKPOINT has no `-` line unless the task's change log (Task 0 or Task 6) lists it: a deleted lock line turns a `CHANGED` into an `ADDED` (exit 0), and only the diff shows it.
+- Scratch tests of the lock never define a second claim with an existing id (for example `eq_def := safeConfirmed`); the id-uniqueness check rejects it. Use a claim with its own id (Task 0 test (e2)).
 - Late triggers. Every catalog claim whose trigger is not `True` has a lemma `<claim>_trigger_late` that shows the trigger time is at least `H` (the `ClaimSpec` shape cannot force it).
 
 ## Review Focus
