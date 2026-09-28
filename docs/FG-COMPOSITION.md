@@ -62,7 +62,9 @@ line numbers. `r144o` is the Opus variant of r144. `r151` is `fj-theorem-h.md`.
 2026-09-28). `r158` is `alfs-redteam.md`, the independent red-team of
 ALFS (registered and archived 2026-09-28). `r159` is `alfs-fixes.md`, the
 ALFS fixes and vote-merge proof check (the spec cites it as FIX;
-registered and archived 2026-09-28). `r152` is `fj-first-finality.md`, `r153` is `fj-reach.md`, and `r153a` is
+registered and archived 2026-09-28). `r160` is `receipt-relay.md`, the
+receipt-relay audit (the spec cites it as RR; registered and archived
+2026-09-28). `r152` is `fj-first-finality.md`, `r153` is `fj-reach.md`, and `r153a` is
 the Opus adjudication of r153, `fj-reach-adjudicate.md` (verdict VALID WITH
 CORRECTIONS; registered 2026-09-28). `r153b` is a later version of the same
 file, with §§A–C; §C.4 retracts the NJ claim of r153a. Line numbers cited
@@ -101,6 +103,7 @@ file unchanged at that commit); Git keeps the registered version.
 │ h12   │ fj-h12.md                 │ 26c13e92b8bfe62422e00af91f8878f1 │ 2b0b7efdc66d67d7f9b857db99b9bbd7 │
 │ r158  │ alfs-redteam.md           │ f1ddd1a8863ac8f5443146bb901608a8 │ 32cb939fe2a0263de6cce5549f409c06 │
 │ r159  │ alfs-fixes.md             │ 4587052c1c11165ed24e9c7c7bf2213c │ ece57be408547e639e7641023521a0fd │
+│ r160  │ receipt-relay.md          │ a64d25b1623e57d68c30dbb77739e983 │ aca7fdde9f169c04c1471be9828a06dc │
 └───────┴───────────────────────────┴──────────────────────────────────┴──────────────────────────────────┘
 ```
 
@@ -117,9 +120,15 @@ line means the protocol of that spec. `alfs2` is the ALFS spec after r159
 relay, the bounds 996Δ and 1041Δ, no NJ appendix), registered
 2026-09-28 from its archive copy; a pin to it names the file
 `fgsa-protocol-c7c41a43.tex`. "Under ALFS (spec c7c41a43)" means that
-protocol. Re-pin rule (2026-09-28): the live entries that pin ALFS text
-(`fj.frame.v2`, `ap.headReachesLo.v3`) pin `alfs2`. Historical entries
-(`ap.headReachesLo.v2`) keep their `alfs` pins. Pins to `spec` stay.
+protocol. `alfs3` is the ALFS spec after r160 (DC's receipt premise in
+place of accepted-object relay; §5 row 29 class (b); the OPEN item "SA
+Lean under the receipt premise"), registered 2026-09-28 from its archive
+copy; a pin to it names the file `fgsa-protocol-1c6952b6.tex`. "Under
+ALFS (spec 1c6952b6)" means that protocol. Re-pin rule (2026-09-28): the
+live entries that pin ALFS text (`fj.frame.v2`, `ap.headReachesLo.v4`)
+pin the newest registered ALFS spec, now `alfs3`. Historical entries keep
+their pins: `ap.headReachesLo.v2` (`alfs`) and `ap.headReachesLo.v3`
+(`alfs2`). Pins to `spec` stay.
 
 Note (2026-09-28): `spec/fgsa-protocol.tex` is not tracked in Git. It
 changed after registration (sha256 then
@@ -140,6 +149,7 @@ not re-pinned now. A citation of the form "spec/fgsa-protocol.tex, lines
 │ spec  │ spec/archive/fgsa-protocol-ae4497ab.tex                          │ ae4497abc7c5b3a6f73697f341bf730a │ 63c7d34bd2f7546154bd022bc95af223 │
 │ alfs  │ spec/archive/fgsa-protocol-183f2c40.tex                          │ 183f2c409f03542dbdf3f94619240774 │ 37710b74720d09b32a42d3bdb3f04afb │
 │ alfs2 │ spec/archive/fgsa-protocol-c7c41a43.tex                          │ c7c41a43727d380b74ae835032edbc97 │ 75ac98b8faa18affd5670165f841e5ca │
+│ alfs3 │ spec/archive/fgsa-protocol-1c6952b6.tex                          │ 1c6952b6e6ef92bf9111121f0fb28367 │ 1af6ce936b6db3c33d056b9dda35ffcd │
 │ dc    │ dc/consensus.tex                                                 │ dc471b47a46896fe0a3df300c188fef1 │ 512f475615ce0fc0df18dbea6d2e5517 │
 │ vcE   │ vc/DecoupledConsensusProofs/Protocol/ValidatorClient/Engine.lean │ 92fb0e64c1288afea98b53212cb3ad5c │ 843c9c720187367eea578d17a9d53454 │
 │ vcF   │ vc/DecoupledConsensusProofs/Protocol/ChainState/                 │ aa0ed92740eb1ec8ee69e90fd2ae75f0 │ 3179a27c05accf5f631e7a254589b94c │
@@ -424,6 +434,12 @@ sha256 `4d643d7a6285705ef8bcef6b408b46a45d64641f0d92828b3539f8f938074318`.
 > every S at a_r=d_s. This timing correction applies to “stays canonical”
 > throughout this report.
 
+Note (2026-09-28, r160): the ALFS spec 1c6952b6 (`alfs3`) replaces
+accepted-object relay by DC's receipt premise (spec lines 165–183). r160
+§7 (lines 648–762) audits the ALFS uses (r158, r159, ldp, H12, FF); it
+does not re-audit the R1-form proofs of this premise set. Exact vote-set
+transport FAILS under the receipt premise (r160 N1, lines 428–477).
+
 **`env.r151`** — r151 §1, lines 41–98. File `fj-theorem-h.md`, sha256
 `16b69dba55d889b9ae20dd55b228cfd83ad22037d796c6219cdb65831718bba3`.
 It restates the FJ frame of `fj.frame.v1` and the premises of `env.r150`.
@@ -489,6 +505,12 @@ It restates the FJ frame of `fj.frame.v1` and the premises of `env.r150`.
 > δ_H=2L+G−2Δ=ρ−10Δ.
 > ```
 
+Note (2026-09-28, r160): the ALFS spec 1c6952b6 (`alfs3`) replaces
+accepted-object relay by DC's receipt premise (spec lines 165–183). r160
+§7 (lines 648–762) audits the ALFS uses (r158, r159, ldp, H12, FF); it
+does not re-audit the R1-form proofs of this premise set. Exact vote-set
+transport FAILS under the receipt premise (r160 N1, lines 428–477).
+
 ### 0.3 Glossary: F-numbers (added 2026-09-28)
 
 Two sources use the labels F1, F2, … for different facts.
@@ -536,8 +558,8 @@ plan (AP-side, composite, or not scheduled). Status abbreviations
 the uniform clause is REFUTED; "impl. PRV" = the
 implication is PROVED. The entry has the full dated status line. The
 index shows the status under the old spec (R1 views); status lines marked
-"under ALFS (spec 183f2c40)" or "(spec c7c41a43)" are in the entries
-only.
+"under ALFS (spec 183f2c40)", "(spec c7c41a43)" or "(spec 1c6952b6)" are
+in the entries only.
 
 ```text
 ┌───────────────────────┬──────┬─────────────────────┬───┬───────────┐
@@ -575,7 +597,8 @@ only.
 │ ap.fastSupport.v1     │ both │ PROVED (RULE, τ>a)  │ 2 │ —         │
 │ ap.headReachesLo.v1   │ fj   │ PROVED (FG-SA)      │ 2 │ —         │
 │ ap.headReachesLo.v2   │ fj   │ SUPERSEDED (PROVED) │ 2 │ —         │
-│ ap.headReachesLo.v3   │ fj   │ PROVED (ALFS, paper)│ 2 │ —         │
+│ ap.headReachesLo.v3   │ fj   │ SUPERSEDED (PROVED) │ 2 │ —         │
+│ ap.headReachesLo.v4   │ fj   │ PROVED (ALFS, paper)│ 2 │ —         │
 │ fg.provenance.v1      │ both │ SUPERSEDED (PROVED) │ 3 │ —         │
 │ fg.provenance.v2      │ both │ PROVED              │ 3 │ DC-fj     │
 │ fg.causalCap.v1       │ both │ SUPERSEDED (PROVED) │ 3 │ —         │
@@ -2149,6 +2172,11 @@ in §4. Every status below is for the FG-SA client (§0).
 - Status: 2026-09-28 — SUPERSEDED by `ap.headReachesLo.v3` (the r158
   form, spec c7c41a43). Clauses 1–3 are unchanged in v3; clause 4 is
   replaced by v3 clauses 4–6. This entry keeps its spec 183f2c40 pins.
+- Status: 2026-09-28 (r160) — under the receipt premise: ldp L5 HOLDS
+  with the exact HEAD from r160 §4.3; its justification "same votes"
+  (pinned ldp line 329) is to be read as equal scores (r160 row "LDP
+  L5", lines 697–698). ldp C5 HOLDS only as the corrected bounded-event
+  and P1 claim (r160 lines 707–708).
 - Note (2026-09-28, r158 M1): M1 agrees with the note on the requested
   form above. A nonempty frozen domain does not force the HEAD into it.
 
@@ -2435,8 +2463,319 @@ in §4. Every status below is for the FG-SA client (§0).
 - Status: 2026-09-28 — PROVED (paper; SA under ALFS, spec c7c41a43;
   r158 §4, r159 §1). It is not a mixed FG-SA Lean theorem (r158 line 905;
   r159 lines 211–213).
+- Status: 2026-09-28 (r160) — SUPERSEDED by `ap.headReachesLo.v4` (the
+  receipt premise, spec 1c6952b6). Under the receipt premise the
+  conclusions of clauses 1–6 HOLD (r160 §7, lines 663–674 and 697–708).
+  Two steps of this entry NEED-CHANGE: the hypothesis "accepted-object
+  relay" (spec 1c6952b6 uses DC's receipt premise) and the proof step
+  "M-A gives exact votes" (pinned r159 row L5; r160 row "alfs-fixes §1
+  M-A", lines 658–659). Exact vote-set equality is REFUTED (r160 N1,
+  lines 428–477); the scores are equal (r160 §4.3). This entry keeps its
+  spec c7c41a43 pins.
 - Note: `ap.headReachesLo.v1` is the view form and is not superseded.
   `ap.headReachesLo.v2` is SUPERSEDED by this entry.
+
+### `ap.headReachesLo.v4` — the AP head under ALFS, receipt premise (witness W, settled proposal)
+
+- Variant `fj` (its premise is the ALFS frame `fj.frame.v2`, spec
+  1c6952b6). Sources: r158 M1, lines 79–95; §3.1, lines 242–293; §4,
+  lines 429–537; table lines 629–630 and 643–645; lines 649–655 (file
+  `alfs-redteam.md`, archived as `tsc/archive/alfs-redteam-f1ddd1a8.md`,
+  sha256 `f1ddd1a8863ac8f5443146bb901608a832cb939fe2a0263de6cce5549f409c06`);
+  r159 §1, lines 39–65 (M-B, M-C) (file `alfs-fixes.md`, archived as
+  `tsc/archive/alfs-fixes-4587052c.md`, sha256
+  `4587052c1c11165ed24e9c7c7bf2213cece57be408547e639e7641023521a0fd`);
+  r160 §3.1–§3.3, lines 172–265; §4.3, lines 383–409; N1, lines 428–477;
+  §7, lines 648–762 (file `receipt-relay.md`, archived as
+  `tsc/archive/receipt-relay-a64d25b1.md`, sha256
+  `a64d25b1623e57d68c30dbb77739e983aca7fdde9f169c04c1471be9828a06dc`);
+  the ALFS spec `alfs3` (`spec/archive/fgsa-protocol-1c6952b6.tex`,
+  sha256 `1c6952b6e6ef92bf9111121f0fb283671af6ce936b6db3c33d056b9dda35ffcd`):
+  the Relay paragraph, lines 165–183; `ghost` and `goldfish_eligible`
+  994–1016; `live_root` 1030–1042; `get_head_in_tree` 1044–1051; the HEAD
+  vote merge of `goldfish_vote` 1224–1238; the vote-merge prose 562–572;
+  §5 row 29, lines 1621–1625; the δ_t scope 1363–1368.
+- Lean plan: — (an AP service fact; the SA instance is later work).
+- Hypotheses: `fj.frame.v2`; `fj.frameFeasible.v1` part (4) on the frozen
+  voter tree (ancestor-closed); the admitted-proposal HEAD vote merge
+  (spec lines 1229–1230 and 562–569); DC's receipt premise (spec lines
+  165–183; §5 row 29, lines 1621–1625: the raw tree has no receiver
+  exclusion), with the transport that r160 §3 derives from the handlers
+  (exact block paths, §3.3; in-window vote-or-equivocation, §3.2; exact
+  timely honest rows, §3.4); for clauses 4–6, the Recovery premises with
+  `R ≥ 3` and `δ_t = 2R` (spec lines 1363–1368).
+- Service statement (registry, 2026-09-28). For a HEAD duty, let V be its
+  frozen voter tree, (Z, lo) the store controls (`fj.frame.v2`), D_V the
+  filtered domain of V, D the filtered domain of the full store, and
+  A = `live_root` (the deepest live lease in the full filtered tree,
+  else Z).
+  1. (v3 clause 1) If A ∈ D_V, or A has an eligible child in D_V, the AP
+     head is in D_V and has state height ≥ lo.
+  2. (v3 clause 2) Otherwise the AP head is A. This can occur with
+     D_V ≠ ∅ (r158 §3.1, lines 280–293).
+  3. (v3 clause 3) If A = Z and D_V ≠ ∅, then Z ∈ D_V.
+  4. (full-store witness W) Fix a settled phase: H, the active top-J
+     restriction and lo are fixed; lower F moves are allowed. At a
+     synchronous label r whose duties are in this phase, every honest
+     HEAD K is in D, and some full-store block W has `K ⪯ W` and
+     `ht(W) ≥ lo`. Every honest reader has W and its path in its raw tree
+     before `v_r+Δ = e_r < z_r` (r160 §3.3), and FG-admits them by
+     finalized crossing in the fixed phase (r160 §7, row "redteam §4 W").
+     K need not be in D_V and need not have height lo.
+  5. (settled proposal) Let b be the first proposal label strictly after
+     phase settlement, and `ℓ = b+2k−1`. At an honest proposal P strictly
+     after `t_ℓ`, while the phase persists, every honest HEAD is P (W and
+     the common pivot). At each honest reader, the participating seats,
+     the equivocating seats, the scores and the eligibility of the
+     freeze-plus-P merge equal those of P's vote set; the two vote sets
+     can differ in votes of equivocating seats (r160 §4.3).
+  6. (event cost) At a fixed frontier the phases are gap, uncontested
+     top J and contested top J. Each effective event costs one
+     settlement θ = 4Δ, and the two-lease repair of clause 5 starts after
+     it. No count per fallback slot is used, and no no-reorg claim is made
+     for a damaged event slot.
+- Change against v3: the relay hypothesis is DC's receipt premise, not
+  accepted-object relay (a weaker hypothesis, so a new id by §0). v3's
+  proof step "M-A gives exact votes" (r159 M-A) is replaced by the equal
+  counts and scores of r160 §4.3. Exact vote-set equality at an honest
+  proposal is REFUTED under the receipt premise (r160 N1). The
+  conclusions of clauses 1–6 are those of v3.
+- SA discharge (registry, 2026-09-28).
+  1. Clauses 1–3: as in v3, with the 1c6952b6 lines (`ghost` returns its
+     anchor at lines 999–1001; eligibility uses `band_floor`, line 1012;
+     the start at `live_root`, lines 1044–1051).
+  2. Clause 4: r158 §4, W (lines 434–449); r160 §7 row "redteam §4 W"
+     (HOLDS: raw witness and path transport, then FG crossing and
+     fixed-phase admission); source scores by r159 M-B, which HOLDS
+     under the receipt premise (r160 §4.2 and §7).
+  3. Clause 5: r158 lines 477–509 (two-lease repair, common pivot, exact
+     service); r160 §7 rows "redteam §4 two-lease repair" (HOLDS) and
+     "redteam §4 exact service" (NEEDS-CHANGE: use equal counts and
+     scores, not equal signatures; exact P and ρ stay), with r160 §4.3.
+  4. Clause 6: r158 lines 532–537, 643–645 and 649–655; r160 §7 rows
+     "redteam §4 event settlement" and "LDP C5" (HOLDS).
+  The start at `live_root` and the in-band choice by score stay AP data.
+- Statement (pinned):
+
+> _alfs-redteam.md, lines 434–449:_
+>
+> **W: full-store witness transfer.** Fix a settled phase: H, the active
+> top-J restriction, and lo are fixed. Lower F moves are allowed. Consider
+> a synchronous label r whose relevant duties are inside this phase.
+>
+> At an honest HEAD read, the full filtered domain is nonempty. A height-H
+> carrier extends every lower accepted F by DC finalized crossing. In
+> the uncontested top-J case it also extends J. The full-tree anchor
+> belongs to this full domain. Every subsequent walked child belongs to
+> the frozen domain, which is a subset of the full domain at that read.
+> Consequently the resulting HEAD K belongs to the **full** domain.
+> It need not belong to the frozen domain and need not have height lo.
+>
+> There is therefore a full-store block W with `K⪯W` and `ht(W)≥lo`.
+> The honest reader held W no later than v_r. Accepted-object relay puts
+> W and its path at all honest readers before `v_r+Δ=e_r<z_r`.
+> If a raw source body B has this honest HEAD as a supporter, `B⪯K⪯W`.
+
+> _alfs-redteam.md, lines 477–509:_
+>
+> **Two-lease repair and the common pivot.** Let b be the first proposal
+> label strictly after phase settlement and let `ℓ=b+2k−1`. A lease
+> whose last write label is at most `b+k−2` expires by
+> `E_old=d_(b+k−2)+L=t_ℓ+Δ`. Every later origin is a synchronous fast
+> source or has a wholly synchronous slow window. Choose an honest
+> proposal strictly after t_ℓ, within G. The slot grid puts it at least
+> 4Δ after t_ℓ, so all remaining live leases have the phase support
+> just proved.
+>
+> The preceding honest batch covers all of those leases. At each branch
+> before such a target the score toward it is at least h and a competing
+> score is at most a, including equivocation scores. The ordinary full
+> proposal walk reaches every such target. Its actual lease anchor is
+> on that same path. Every same-slot HEAD anchor is also on it: there
+> is no intervening gate, and release/expiry can only remove leases.
+> This is the common pivot that DC gets from SG.
+>
+> **Exact service.** The honest proposer has every block accepted at a
+> reader before the freeze, by strict relay. Its current proposal adds
+> only its own ancestor path to that HEAD. A competing old viable child
+> and its witness in the HEAD view were therefore available to the
+> proposer. The original declared support subset gives the same scores
+> on the comparison. The common pivot gives the same starting suffix.
+> The full proposal walk cannot stop below lo, since it starts inside
+> its own nonempty domain. Its parent A supplies a band witness on the
+> current proposal's path. Thus the selected path persists in the HEAD
+> view, and no new competing child can defeat it. Every honest HEAD is
+> exactly P.
+>
+> At q_s the h≥τ votes for P release any conflict from the pending gate.
+> At d_s, `2h>n` gives raw result P, the guard passes, and P has a fresh
+> fast write. This proves the phase repair within `ρ=2L+G+8Δ` and
+> service at every later honest proposal while the phase persists.
+
+> _alfs-redteam.md, lines 532–537:_
+>
+> **Events and the bound.** At a fixed frontier the phase order remains
+> gap, uncontested top J, contested top J. Same-height justification
+> uniqueness prevents a new top J at that height. A contest remains
+> known. Each effective event is common after strict relay and a freeze;
+> θ=4Δ suffices. Start the two-lease repair after that settlement. Do not
+> infer phase support across an interrupting event.
+
+> _receipt-relay.md, lines 385–409:_
+>
+> Let P be the unique authenticated honest proposal of slot s, admitted
+> at the reader. Write `(A,S)` for its raw and original declared-support
+> sets. Write `(A',S')` for the reader's freeze-plus-P merge.
+>
+> P supplies `A⊆A'` and `S⊆S'`, as *carried metadata*, even when local
+> vote handlers refuse a copy. Each extra frozen raw vote reaches the
+> proposer before `t_s=z_(s−1)+Δ`, or that proposer has two distinct
+> votes of its seat. If the vote is extra, the latter case holds.
+> For an extra frozen support vote, relay its resolved head block too:
+> if the proposer kept that vote, it was resolved there and would be
+> in S. Otherwise its seat already equivocates in A.
+>
+> Thus every extra raw or support vote belongs to an equivocator in A.
+> The participating seats and equivocating seats in A and A' are equal.
+> For a nonequivocating seat the support choice is unchanged; for an
+> equivocator its score is already one on every branch. Scores and
+> eligibility on the compared candidates are equal. Block transport
+> and the existing domain/anchor comparison then give exact HEAD P.
+>
+> **Replace “equal vote sets” with this statement.** N1 refutes exact
+> membership and raw/support set equality. At an honest slot the raw-
+> proposal and admitted-proposal merges themselves still agree when P
+> is admitted: P is the only authenticated current-slot proposal.
+> What fails is the additional assertion that the merged set equals
+> the proposer's set. The desired HEAD service remains exact.
+
+> _receipt-relay.md, lines 663–664, 667–670, 673–674, 697–698 and 707–708:_
+>
+> ```text
+> │ redteam §4 W                 │ HOLDS        │ Raw witness/path transport, then FG        │
+> │                              │              │ crossing and fixed-phase admission.        │
+> │ redteam §4 two-lease repair  │ HOLDS        │ Lease classification and h versus a        │
+> │                              │              │ counts unchanged.                          │
+> │ redteam §4 exact service     │ NEEDS-CHANGE │ Use equal counts/scores, not equal         │
+> │                              │              │ signatures. Exact P and ρ stay.            │
+> │ redteam §4 event settlement  │ HOLDS        │ Relay admitted certificate carriers;       │
+> │ and stopped-phase budgets    │              │ saturation of row pools is irrelevant.     │
+> │ LDP L5                       │ HOLDS        │ Exact HEAD after repair via §4.3; update   │
+> │                              │              │ the “same votes” justification.            │
+> │ LDP C5 / §9.4                │ HOLDS        │ Corrected bounded event/P1 claim only.     │
+> │                              │              │ Old outside-anchor claim stays refuted.    │
+> ```
+
+> _fgsa-protocol-1c6952b6.tex, lines 165–183:_
+>
+> ```latex
+> \paragraph{Relay.}  The run premise is the receipt premise of~\cite{DC}.
+> An honest node forwards every block that it accepts and every vote and
+> row that it accepts, also when it accepts the object from a block
+> (\cite{DC}, lines 203 and 530).  When an honest node accepts an object
+> at time~$t$, every honest node that does not hold it calls the handler
+> of that object before $\max\{t,t_{\rm GST}\}+\Delta$, with its
+> dependencies present.  This is DC's \textsf{PartialSynchrony.relay}
+> (\textsf{handlesAt}).  The handler can refuse the object; for example,
+> the vote pool refuses a third distinct vote of one seat.  The premise
+> does not require acceptance.  One difference from~\cite{DC} is in the
+> receiver exclusion: DC's receiver can skip a block that conflicts
+> with~$F$; the raw SA tree of this document has no such exclusion,
+> because the SA base processes every branch~(b).  The proofs derive the
+> transport that they need from the handlers~\cite[\S3]{RR}: exact
+> transport of block paths, in-window transport of a vote or of the
+> equivocation of its seat, and exact transport of timely honest rows.
+> At an honest proposal the reader's merge can differ from the proposer's
+> vote set only in the votes of equivocating seats; the scores are
+> equal~\cite[\S4.3]{RR}, as in DC's \textsf{ScorePreservingViewExtension}.
+> ```
+
+> _fgsa-protocol-1c6952b6.tex, lines 994–1016:_
+>
+> ```latex
+> \Function{ghost}{$\mathit{anchor},\mathit{tree},
+>   \mathit{score},\mathit{eligible}$}
+>   \Comment{\DC{7}, unchanged}
+>   \State $H\gets\mathit{anchor}$
+>   \Loop
+>     \State $\mathit{children}\gets\{B:B\text{ is a child of }H\text{ in }
+>       \mathit{tree},\ \mathit{eligible}(B)\}$
+>     \If{$\mathit{children}=\emptyset$} \State \Return $H$ \EndIf
+>     \State $H\gets\arg\max_{B\in\mathit{children}}\mathit{score}(B)$,
+>       ties by root order
+>   \EndLoop
+> \EndFunction
+> \vspace{1pt}
+> \Function{goldfish\_eligible}{$\Sigma,\mathit{votes},
+>   \mathit{support\_votes},s,B$}
+>   \Comment{\DC{7}, redefined (a): band floor}
+>   \State $\mathit{voters\_count}\gets
+>     |\{i:\mathit{votes}\text{ holds a vote by seat }i\}|$
+>   \State \Return $\Sigma.\sigma[B.\parent].h<\Call{band\_floor}{\Sigma}$
+>     or $2\,\Call{goldfish\_score}{\mathit{votes},
+>       \mathit{support\_votes},s,B}>\mathit{voters\_count}$
+>     or $B.\slot=\Sigma.s$
+> \EndFunction
+> ```
+
+> _fgsa-protocol-1c6952b6.tex, lines 1030–1042:_
+>
+> ```latex
+> \Function{live\_root}{$\Sigma$}
+>   \Comment{\DC{7} \fname{get\_sg\_root}, redefined (b); \SAS{} \fname{live\_root}}
+>   \State $\mathit{tree}\gets\Call{get\_filtered\_block\_tree}{\Sigma}$
+>   \Comment{the full filtered tree, not a view}
+>   \State $\mathit{targets}\gets\{B\in\mathit{tree}:\Sigma.\lease[B]\neq\bot\}$
+>   \Comment{they lie on one chain}
+>   \If{$\mathit{targets}=\emptyset$}
+>     \State \Return $\Call{get\_fg\_root}{\Sigma}$
+>     \Comment{no live lease in the tree}
+>   \EndIf
+>   \State \Return the deepest $B\in\mathit{targets}$
+>   \Comment{the deepest live lease in place of grade~1}
+> \EndFunction
+> ```
+
+> _fgsa-protocol-1c6952b6.tex, lines 1044–1051:_
+>
+> ```latex
+> \Function{get\_head\_in\_tree}{$\Sigma,\mathit{tree},
+>   \mathit{votes},\mathit{support\_votes},k$}
+>   \Comment{\DC{7}, adapted (b): live root}
+>   \State $A\gets\Call{live\_root}{\Sigma}$
+>   \Comment{in place of \fname{get\_sg\_root}}
+>   \State \Return $\Call{goldfish\_fork\_choice}{\Sigma,A,
+>     \mathit{tree},\mathit{votes},\mathit{support\_votes},k}$
+> \EndFunction
+> ```
+
+> _fgsa-protocol-1c6952b6.tex, lines 1224–1238:_
+>
+> ```latex
+>     \State $\mathit{votes}\gets\{\mathit{vote}\in\Sigma.\gfPool[s-1]:
+>       \Sigma.\timestamp(\mathit{vote})<t_{s-1}+3\Delta\}$
+>     \Comment{received before the freeze}
+>     \State $\mathit{support\_votes}\gets\{\mathit{vote}\in\mathit{votes}:
+>       \Sigma.\resolutionTime(\mathit{vote})<t_{s-1}+3\Delta\}$
+>     \ForAll{$B\in\Sigma.\TF$ with $B.\slot=s$}
+>       \Comment{admitted proposals, as in \DC{7}}
+>       \State $\mathit{votes}\gets\mathit{votes}\cup
+>         \{\mathit{vote}\in B.\votesf:\mathit{vote}.\slot=s-1\}$
+>       \State $\mathit{support\_votes}\gets\mathit{support\_votes}\cup
+>         \{(i,s-1,H')\in B.\supportf:H'\in\Sigma.\T,\ H'.\slot\leq s-1\}$
+>     \EndFor
+>     \State $\mathit{tree}\gets\Call{voter\_filtered\_block\_tree}{\Sigma,s}$
+>     \State $H\gets\Call{get\_head\_in\_tree}{\Sigma,\mathit{tree},
+>       \mathit{votes},\mathit{support\_votes},s-1}$
+> ```
+
+- Status: 2026-09-28 — PROVED (paper; SA under ALFS, spec 1c6952b6;
+  r158 §4, r159 M-B and M-C, r160 §§3–4 and §7). It is not a Lean
+  theorem: the SA Lean theorems assume the stronger AcceptedObjectRelay
+  (spec OPEN item, lines 1697–1701; r160 §9).
+- Note: `ap.headReachesLo.v1` is the view form and is not superseded.
+  `ap.headReachesLo.v2` and `ap.headReachesLo.v3` are SUPERSEDED; v4 is
+  the current form.
 
 ## 3. `SimplexFG.nj` lemmas (`Kit.FG`)
 
@@ -3297,15 +3636,19 @@ M0. r151 calls this cap μ and calls M0 simply M.
 ### `fj.frame.v2` — FJ frame from the live store caches (ALFS)
 
 - Variant `fj`. Source: the ALFS spec (DC form), file
-  `spec/archive/fgsa-protocol-c7c41a43.tex` (key `alfs2`), sha256
-  `c7c41a43727d380b74ae835032edbc9775ac98b8faa18affd5670165f841e5ca`:
-  `fg_contest` lines 919–925, `band_floor` 927–935, `viable_tree_from`
-  937–943, `viable_tree` (acceptance) 945–951, `get_fg_root` 953–960,
-  `get_filtered_block_tree_from` and `get_filtered_block_tree` 962–974,
-  `live_root` 1023–1035, `get_head_in_tree` 1037–1044,
+  `spec/archive/fgsa-protocol-1c6952b6.tex` (key `alfs3`), sha256
+  `1c6952b6e6ef92bf9111121f0fb283671af6ce936b6db3c33d056b9dda35ffcd`:
+  `fg_contest` lines 926–932, `band_floor` 934–942, `viable_tree_from`
+  944–950, `viable_tree` (acceptance) 952–958, `get_fg_root` 960–967,
+  `get_filtered_block_tree_from` and `get_filtered_block_tree` 969–981,
+  `live_root` 1030–1042, `get_head_in_tree` 1044–1051,
   `voter_processed_block_tree` and `voter_filtered_block_tree`
-  1153–1168, the HEAD duty call 1229–1231, and the cache update
-  `update_finality` 818–831. Re-pinned 2026-09-28 from
+  1160–1175, the HEAD duty call 1236–1238, and the cache update
+  `update_finality` 825–838. Re-pinned 2026-09-28 from
+  `spec/archive/fgsa-protocol-c7c41a43.tex` (key `alfs2`; the same
+  functions at lines 919–925, 927–935, 937–943, 945–951, 953–960,
+  962–974, 1023–1035, 1037–1044, 1153–1168, 1229–1231 and 818–831), and
+  before that from
   `spec/archive/fgsa-protocol-183f2c40.tex` (key `alfs`; the same
   functions at lines 910–916, 918–926, 928–934, 936–942, 944–951,
   953–965, 1014–1026, 1028–1035, 1144–1159, 1220–1222 and 809–822). Proof file:
@@ -3315,7 +3658,7 @@ M0. r151 calls this cap μ and calls M0 simply M.
   `storeControls_eq_fjControls` (under `StoreInv` and `ViewRootInj`);
   `fjFrame = filteredFrom (fjControls V) V` is the special case.
 - Hypotheses: `ViewRootInj` (§0.4), for the lex order of `update_finality`
-  (lines 821–824).
+  (lines 828–831).
 - Summary (registry): controls from the live store caches (F, J, h_j,
   hmax; the contest from the full T_F, never a view); the domain filter
   applied to any block set; the HEAD walks the frozen voter tree from
@@ -3323,7 +3666,7 @@ M0. r151 calls this cap μ and calls M0 simply M.
   FG root), which may lie outside the walked tree.
 - Statement (pinned):
 
-> _fgsa-protocol-c7c41a43.tex, lines 919–925:_
+> _fgsa-protocol-1c6952b6.tex, lines 926–932:_
 >
 > ```latex
 > \Function{fg\_contest}{$\Sigma$}
@@ -3335,7 +3678,7 @@ M0. r151 calls this cap μ and calls M0 simply M.
 > \EndFunction
 > ```
 
-> _fgsa-protocol-c7c41a43.tex, lines 927–935:_
+> _fgsa-protocol-1c6952b6.tex, lines 934–942:_
 >
 > ```latex
 > \Function{band\_floor}{$\Sigma$}
@@ -3349,7 +3692,7 @@ M0. r151 calls this cap μ and calls M0 simply M.
 > \EndFunction
 > ```
 
-> _fgsa-protocol-c7c41a43.tex, lines 937–943:_
+> _fgsa-protocol-1c6952b6.tex, lines 944–950:_
 >
 > ```latex
 > \Function{viable\_tree\_from}{$\Sigma,\mathit{blocks}$}
@@ -3361,7 +3704,7 @@ M0. r151 calls this cap μ and calls M0 simply M.
 > \EndFunction
 > ```
 
-> _fgsa-protocol-c7c41a43.tex, lines 945–951:_
+> _fgsa-protocol-1c6952b6.tex, lines 952–958:_
 >
 > ```latex
 > \Function{viable\_tree}{$\Sigma$}
@@ -3373,7 +3716,7 @@ M0. r151 calls this cap μ and calls M0 simply M.
 > \EndFunction
 > ```
 
-> _fgsa-protocol-c7c41a43.tex, lines 953–960:_
+> _fgsa-protocol-1c6952b6.tex, lines 960–967:_
 >
 > ```latex
 > \Function{get\_fg\_root}{$\Sigma$}
@@ -3386,7 +3729,7 @@ M0. r151 calls this cap μ and calls M0 simply M.
 > \EndFunction
 > ```
 
-> _fgsa-protocol-c7c41a43.tex, lines 962–974:_
+> _fgsa-protocol-1c6952b6.tex, lines 969–981:_
 >
 > ```latex
 > \Function{get\_filtered\_block\_tree\_from}{$\Sigma,\mathit{blocks}$}
@@ -3404,7 +3747,7 @@ M0. r151 calls this cap μ and calls M0 simply M.
 > \EndFunction
 > ```
 
-> _fgsa-protocol-c7c41a43.tex, lines 1023–1035:_
+> _fgsa-protocol-1c6952b6.tex, lines 1030–1042:_
 >
 > ```latex
 > \Function{live\_root}{$\Sigma$}
@@ -3422,7 +3765,7 @@ M0. r151 calls this cap μ and calls M0 simply M.
 > \EndFunction
 > ```
 
-> _fgsa-protocol-c7c41a43.tex, lines 1037–1044:_
+> _fgsa-protocol-1c6952b6.tex, lines 1044–1051:_
 >
 > ```latex
 > \Function{get\_head\_in\_tree}{$\Sigma,\mathit{tree},
@@ -3435,7 +3778,7 @@ M0. r151 calls this cap μ and calls M0 simply M.
 > \EndFunction
 > ```
 
-> _fgsa-protocol-c7c41a43.tex, lines 1153–1168:_
+> _fgsa-protocol-1c6952b6.tex, lines 1160–1175:_
 >
 > ```latex
 > \Function{voter\_processed\_block\_tree}{$\Sigma,s$}
@@ -3456,7 +3799,7 @@ M0. r151 calls this cap μ and calls M0 simply M.
 > \EndFunction
 > ```
 
-> _fgsa-protocol-c7c41a43.tex, lines 1229–1231:_
+> _fgsa-protocol-1c6952b6.tex, lines 1236–1238:_
 >
 > ```latex
 >     \State $\mathit{tree}\gets\Call{voter\_filtered\_block\_tree}{\Sigma,s}$
@@ -3464,7 +3807,7 @@ M0. r151 calls this cap μ and calls M0 simply M.
 >       \mathit{votes},\mathit{support\_votes},s-1}$
 > ```
 
-> _fgsa-protocol-c7c41a43.tex, lines 818–831:_
+> _fgsa-protocol-1c6952b6.tex, lines 825–838:_
 >
 > ```latex
 > \Function{update\_finality}{$\Sigma,\sigma$}
@@ -3501,10 +3844,16 @@ M0. r151 calls this cap μ and calls M0 simply M.
   and the prose next to it (lines 555–565); the other function-text
   change is a comment of `advance_height` (r159 lines 223–226). The vote
   merge is AP data, not a frame function, so no `fj.frame.v3` is needed.
+- Status: 2026-09-28 (r160) — def; re-pinned in place to spec 1c6952b6
+  (`alfs3`). The text of all 11 pinned blocks is unchanged; only the line
+  numbers moved (+7). The r160 spec change is in the Relay paragraph, the
+  Clean and Recovery premises, §5 row 29, the OPEN list and the
+  bibliography; no frame function changed. `fj.frame.v2` has no relay
+  hypothesis.
 - Note: `fj.frame.v1` is the view form and is not superseded. Its
   controls equal this entry's store controls on the full store under
   `StoreInv`. The acceptance tree `viable_tree` keeps DC's band `hmax−1`
-  also in a contest (lines 949–950). The spec has no F basis and no J carrier
+  also in a contest (lines 956–957). The spec has no F basis and no J carrier
   (compare `fg.frame.v2`, `fg.frameCompat.v1`).
 
 ### `fj.frameFeasible.v1` — the FJ domain reaches lo and is not empty
@@ -3789,6 +4138,9 @@ M0. r151 calls this cap μ and calls M0 simply M.
 - Note (2026-09-28): under ALFS (spec c7c41a43): `ap.headReachesLo.v3`
   (supersedes v2), with θ = 4Δ per effective event in place of the
   charged fallback slots.
+- Note (2026-09-28): under ALFS (spec 1c6952b6): `ap.headReachesLo.v4`
+  (supersedes v3; DC's receipt premise in place of accepted-object
+  relay).
 - Note (2026-09-28): Lean: hFJ′ (F ⪯ J′) is a hypothesis now (partial
   coverage). A later helper lemma derives it in pure form from
   `fg.finalLock.v1` and the F carrier in the view; it will be pinned to
@@ -4022,6 +4374,10 @@ M0. r151 calls this cap μ and calls M0 simply M.
 - Status: 2026-09-28 (r159) — under ALFS (spec c7c41a43): P1 and L8
   hold with the admitted merge (r159 M-C, lines 56–65; table lines 74
   and 88); the spec cites r158 §5 and r159 §1 (spec lines 1432–1440).
+- Status: 2026-09-28 (r160) — under ALFS (spec 1c6952b6, receipt premise):
+  HOLDS. Clean origin and P1 hold (r160 lines 675–676 and 703). The
+  clean proposal comparison NEEDS-CHANGE: replace exact vote sets by
+  r160 §4.3; clean safety and 6Δ inclusion still HOLD (lines 677–678).
 
 ### `fg.base.fj.v1` — FJ reset and base handoff witness
 
@@ -4043,6 +4399,9 @@ M0. r151 calls this cap μ and calls M0 simply M.
 - Note (2026-09-28): under ALFS (spec c7c41a43): `ap.headReachesLo.v3`
   (supersedes v2), with θ = 4Δ per effective event in place of the
   charged fallback slots.
+- Note (2026-09-28): under ALFS (spec 1c6952b6): `ap.headReachesLo.v4`
+  (supersedes v3; DC's receipt premise in place of accepted-object
+  relay).
 - Returned witness (audit W09): the caps M ≤ M0 and the cut `u0`
   (`env.r148`); an honest row at height ≥ M0+1 > M by `B_R`; its fresh
   source, permanent by `fj.canonical.v1` from its transfer HEAD; the repair
@@ -4165,6 +4524,10 @@ M0. r151 calls this cap μ and calls M0 simply M.
   finality before `GST+B′+gP+9Δ` = 1041Δ as its claim (spec lines
   1460–1462). The δ_t scope is `δ_t = 2R`, `R ≥ 3` (lines 1356–1361);
   `δ_t < 2R` and `R = 2` stay OPEN.
+- Status: 2026-09-28 (r160) — under ALFS (spec 1c6952b6, receipt premise):
+  HOLDS. FF1–FF7 and the total 1041Δ keep their constants (r160 lines
+  726–737). The FF §1 delivery premise NEEDS-CHANGE: use the receipt
+  premise and the exact honest-row corollary (r160 §3.1, §3.4; line 725).
 
 **FJ composite entries (`Kit.Compose`, from r151).** r151 renames the
 caps. Its μ is the old-source cap that r148 and r144o call M. Its M is
@@ -4309,6 +4672,9 @@ r151 names; `μ ≤ M`.
 - Note (2026-09-28): under ALFS (spec c7c41a43): `ap.headReachesLo.v3`
   (supersedes v2), with θ = 4Δ per effective event in place of the
   charged fallback slots.
+- Note (2026-09-28): under ALFS (spec 1c6952b6): `ap.headReachesLo.v4`
+  (supersedes v3; DC's receipt premise in place of accepted-object
+  relay).
 - Statement (pinned):
 
 > _fj-theorem-h.md, lines 328–332:_
@@ -4370,6 +4736,9 @@ r151 names; `μ ≤ M`.
 - Note (2026-09-28): under ALFS (spec c7c41a43): `ap.headReachesLo.v3`
   (supersedes v2), with θ = 4Δ per effective event in place of the
   charged fallback slots.
+- Note (2026-09-28): under ALFS (spec 1c6952b6): `ap.headReachesLo.v4`
+  (supersedes v3; DC's receipt premise in place of accepted-object
+  relay).
 - Statement (pinned):
 
 > _fj-theorem-h.md, lines 357–364:_
@@ -4418,6 +4787,9 @@ r151 names; `μ ≤ M`.
   private stock or on lower F advances (lines 553–558).
 - Status: 2026-09-28 (r159) — under ALFS (spec c7c41a43): C3 holds with
   the admitted merge; λ = ρ+2σ is unchanged (r159 table lines 92–93).
+- Status: 2026-09-28 (r160) — under ALFS (spec 1c6952b6, receipt premise):
+  HOLDS. C3 holds with r160 §4.3 and honest row inclusion (r160
+  line 705).
 - Note: the missing premise is the same common supported band prefix as
   `ap.reach.v1` (r151 lines 408–412).
 
@@ -4483,6 +4855,9 @@ r151 names; `μ ≤ M`.
 - Note (2026-09-28): under ALFS (spec c7c41a43): `ap.headReachesLo.v3`
   (supersedes v2), with θ = 4Δ per effective event in place of the
   charged fallback slots.
+- Note (2026-09-28): under ALFS (spec 1c6952b6): `ap.headReachesLo.v4`
+  (supersedes v3; DC's receipt premise in place of accepted-object
+  relay).
 - Clauses: (local) `t_h ≤ q_(s*)+2L+G−Δ` (§7.3), with no arrival input.
   (global) `t_h < GST+B_proved` (§8), uniform choice
   `B_FJ,H = B_R+δ_H`.
@@ -4559,6 +4934,15 @@ r151 names; `μ ≤ M`.
   states `B′ = B−2L+6Δ` = 996Δ as its healing claim (spec lines 1448–1451;
   local healing, lines 1452–1456). The δ_t scope is `δ_t = 2R`, `R ≥ 3`
   (lines 1356–1361).
+- Status: 2026-09-28 (r160) — under ALFS (spec 1c6952b6, receipt premise):
+  HOLDS. The uniform bounds 1004Δ and 996Δ and local healing by
+  `q_(s*)+G+5Δ` keep their constants (r160 §7: "redteam §6 Theorem H",
+  "redteam §7 U, U′, H′", "H12 H′, Corollary F, bounds", lines 685–688
+  and 723–724). Proof steps that NEED-CHANGE, with the same conclusion:
+  r158 §4 exact service and r156 §5.1 service (equal scores, not equal
+  vote sets, r160 §4.3; lines 669–670 and 679) and H12 FT (its literal
+  "each vote is in x's late pool" FAILS by N1; r160 §4.2 proves its
+  conclusions; lines 717–718).
 
 ### `fj.healedUnif.v1` — uniform bound under effective N1
 
@@ -4598,6 +4982,8 @@ r151 names; `μ ≤ M`.
   1004Δ and 996Δ (`fj.healed.v1`) are smaller.
 - Status: 2026-09-28 (r159) — under ALFS (spec c7c41a43): C3 and C4
   hold with the admitted merge (r159 table lines 92–94).
+- Status: 2026-09-28 (r160) — under ALFS (spec 1c6952b6, receipt premise):
+  HOLDS. C3 and C4 keep their constants (r160 lines 705–706).
 
 ### `fj.healedAtQ.v1` — full healing already at `q_(s*)`
 
@@ -4631,6 +5017,10 @@ r151 names; `μ ≤ M`.
   spec cites the r158 check (spec lines 1457–1459). The corollary
   (healing at `q_(s*)+5Δ` when `2τ−2 ≤ n−a`) holds with the admitted
   merge (r159 lines 128–129).
+- Status: 2026-09-28 (r160) — under ALFS (spec 1c6952b6, receipt premise):
+  REFUTED, unchanged: a relay edit does not change a prior refutation
+  (r160 lines 650–653). The corollary at `q_(s*)+5Δ` HOLDS (r160
+  lines 723–724).
 
 ## 5. Composite entries (`Kit.Compose`, `SimplexFG.nj`)
 
@@ -4732,6 +5122,11 @@ the run parts of the f1 splits (§8).
 > relevant evidence in every view.
 
 - Status: 2026-09-28 — PROVED (FG-SA; bp §4.2 item 1; r149 §3, M4).
+- Status: 2026-09-28 (r160) — the pinned text uses accepted-object relay.
+  r160 does not audit this R1-view source (bp §4.2, r149). Its ALFS
+  counterparts HOLD under DC's receipt premise: event settlement relays
+  admitted certificate carriers and needs no acceptance of ancient
+  standalone rows (r160 lines 673–674 and 699–700; §7, lines 741–747).
 - Note: this is the run part of the SUPERSEDED `fg.oneBullet.v1` and
   `fj.twoChanges.v1`. It is a statement about delivery and R1 views, not
   about FG rules. For an object held only before GST, the return-relay
@@ -5765,3 +6160,28 @@ SUPERSEDED entry is the conjunction of its successors.
   pointer have a v3 pointer. Dated r159 lines: `fj.healed.v1`,
   `fj.healedUnif.v1`, `fj.rise.movingF.v1`, `fj.healedAtQ.v1`,
   `fj.firstFinality.v1` and `fj.armedSafe.v1`.
+- r160 and the receipt premise (2026-09-28; user decision: DC's receipt
+  premise in place of accepted-object relay): `r160` (`receipt-relay.md`,
+  archived as `tsc/archive/receipt-relay-a64d25b1.md`) and the spec
+  1c6952b6 (key `alfs3`, `spec/archive/fgsa-protocol-1c6952b6.tex`) are
+  registered. Spec changes against c7c41a43: the Relay paragraph (DC's
+  receipt premise; a handler can refuse, for example a third distinct
+  vote of one seat); the Clean and Recovery premises name the receipt
+  premise; §5 row 29 (receipt premise; the raw tree has no receiver
+  exclusion; class (b)); a new OPEN item "SA Lean under the receipt
+  premise"; the bibitem RR. No frame function and no HEAD merge code
+  changed. `fj.frame.v2` is re-pinned in place (11 blocks, text
+  unchanged, +7 lines). New id `ap.headReachesLo.v4` (fj; PROVED, paper,
+  SA under ALFS 1c6952b6; Lean plan —): the conclusions of v3 under DC's
+  receipt premise, with equal counts and scores (r160 §4.3) in place of
+  exact vote sets. §0 decides the new id: the relay hypothesis changed,
+  and the change is not rule (a) or (b); v3's clause 4 text also names
+  accepted-object relay. `ap.headReachesLo.v3` is SUPERSEDED and keeps
+  its c7c41a43 pins. The five entries with the v3 pointer have a v4
+  pointer. Dated r160 lines (HOLDS / NEEDS-CHANGE per r160 §7):
+  `ap.headReachesLo.v2`, `ap.headReachesLo.v3`, `fj.healed.v1`,
+  `fj.healedUnif.v1`, `fj.rise.movingF.v1`, `fj.healedAtQ.v1`,
+  `fj.firstFinality.v1`, `fj.armedSafe.v1` and `comp.settle.v1`; notes
+  on `env.r148` and `env.r151`. NJ-only entries and premise sets
+  (`env.bp`, `env.r147`, `env.r149`, `env.r150`, `ap.armedSafe.v1`,
+  `comp.clean.v1`) get no r160 line: NJ is frozen.
