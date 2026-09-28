@@ -314,18 +314,24 @@ example : leaseOf (gateStep pT stW 2) b1 = some 21 ∧
 /-- G5 coverage: expiry (spec 713, 736–742). After the gate, both leases have the
 deadline 21. At t = 20 no step runs (f_4 = 19, e_4 = 18, q_3 = 17, d_3 = 18),
 and both leases stay; at t = 21 they expire (a lease expires at the first tick
-at or after its deadline). No tick at 20 or 21 is a gate, so fastWrite stays. -/
+at or after its deadline). No tick at 20 or 21 is a gate, so fastWrite stays.
+At t = 21 = q_4 the release step of label 4 also runs; it has no effect (the
+leases have already expired, and there are no label-4 votes). -/
 example : (clock pT (gateStep pT stS 2) 20).base.obligations.length = 2 ∧
     (clock pT (gateStep pT stS 2) 21).base.obligations = [] ∧
     (clock pT (gateStep pT stS 2) 21).fastWrite = (gateStep pT stS 2).fastWrite := by decide
 /-- G5 coverage: release at q_2 = 13 (spec 714–716, 744–752). The two label-2 votes for
 b2 resolve before 13 and conflict with `b1'`, so 2 ≥ τ seats release the lease on
-`b1'`; the lease on b1 is compatible with b2 and stays. -/
+`b1'`; the lease on b1 is compatible with b2 and stays. A hand-set, NOT
+reachable fixture: the lease names `b1'`, which is not in the store (release
+counts do not read the target's membership). -/
 def stQ : State pT.n :=
   { stS with base := { stS.base with now := 12, obligations := [(b1', 2, 100), (b1, 2, 100)] } }
 example : (clock pT stQ 13).base.obligations = [(b1, 2, 100)] := by decide
 /-- G5 coverage: the model-only freeze and early caches (DQ8) run at f_2 = 11
-and e_2 = 10 for label 2. -/
+and e_2 = 10 for label 2. These ticks set the time of `stS` back from 14 to 11
+and 10 (a pure test of the step, not a run). At t = 10 = d_1 the clock also runs
+the gate of label 1 (no label-1 votes: an empty result). -/
 example : ((clock pT stS 11).base.frozen.map Prod.fst) = [2] ∧
     ((clock pT stS 10).base.early.map Prod.fst) = [2] := by decide
 
@@ -439,6 +445,17 @@ vote `(σ[B2].h, σ[B2].T_h.root) = (3, …)`. -/
 example : (attest pT stC1 Record.initial 0).1.finality_pair = none ∧
     (attest pT stC1 Record.initial 0).1.height_pair =
       .vote 3 (derive pT.E pT.cfg B2).T_h.root false := by decide
+
+/-- G5: the evaluate-once guard skips the lease and S writes (spec 756). After a
+successful gate of label 2 on `stS` (leases on b1, b2; S = b2), clear the leases
+and S by hand. A second gate of label 2 is skipped, so no lease comes back and S
+stays genesis (F = genesis). Without the guard, `SA.gate` would write the leases
+again and set S = b2. -/
+def g' : State pT.n :=
+  let g := gateStep pT stS 2
+  { g with base := { g.base with obligations := [], stableRecord := .genesis } }
+example : (gateStep pT g' 2).base.obligations = [] ∧
+    (gateStep pT g' 2).base.stableRecord = .genesis := by decide
 
 end AvailableChain.FGSA.Tests
 end

@@ -1392,8 +1392,28 @@ def clock (p : Params) (st : State p.n) (t : Time) : State p.n :=
 ```
 
 - [x] **Step 3: Run it; it passes.** As in Task 3, Step 3.
-- [ ] **Step 4: Review gate G5 and CHECKPOINT.** Commit `FGSA model: clock and composite gate`.
+- [x] **Step 4: Review gate G5 and CHECKPOINT.** Commit `FGSA model: clock and composite gate`.
   Execution notes (2026-09-29): `Model/Clock.lean` is the code above; the early-step line is wrapped for the 100-column linter (no other change). The four gate tests are in `Tests/Smoke.lean` with the fixtures `stS` (B1, B2 at now 8; two label-2 votes for B2 at now 9; now 14), `stV` (also B1' at now 8; hand-set lease on b1'), `stN` (hand-set lease `(b1, 2, 100)`) and `stW` (one vote; hand-set label-1 result b2), and the helpers `atTime` and `hv2`. Each docstring gives the hand computation (L = 7, τ = 2, d_2 = 14). Every value agreed with the build: successful gate → result b2, `fastWrite[2] = [b1, b2]`, leases with deadline 21, S = b2; vetoed gate → result b2 saved, `fastWrite[2] = ∅`, only the hand-set lease, S = F = genesis; renewal → deadline 100 kept, b1 in `fastWrite[2]`; slow-only → lease on b1 with deadline 21, `fastWrite[2] = ∅`. In the vetoed test F is genesis, so `S := F` has no visible effect there; the empty gate `stG` tests `S := F` with F = B1. Extra G5 coverage: expiry at the deadline (t = 20 keeps, t = 21 removes; no gate at those ticks), release at q_2 = 13 (the conflicting lease goes, the compatible one stays), and the freeze and early cache steps at 11 and 10. All tests use `decide`; none needed `#eval`.
+
+**G5 dispositions** (review of `9929ac3` and `f1bb8a4`: PASS WITH FIXES; 0 blocking, 0 major, 4 minor). No model rule differs from the spec; the G2 script fixes are verified. G5 is closed.
+
+```text
+┌─────┬──────────────────────────────────────────────────────────────────────────┐
+│ G5  │ Disposition                                                              │
+├─────┼──────────────────────────────────────────────────────────────────────────┤
+│ 1   │ New test `g'`: after a successful gate of label 2, leases and S are      │
+│     │ cleared by hand; a second gate of label 2 writes neither (it fails       │
+│     │ without the evaluate-once guard). The empty-gate test cannot show this.  │
+│ 2   │ `stQ` docstring: hand-set, not reachable (its lease names `b1'`, which   │
+│     │ is not in the store).                                                    │
+│ 3   │ Freeze/early test docstring: the ticks set `stS` back from 14 to 11 and  │
+│     │ 10, and at t = 10 = d_1 the clock also runs the gate of label 1.         │
+│ 4   │ Expiry test docstring: at t = 21 = q_4 the release step also runs, with  │
+│     │ no effect.                                                               │
+│ R1  │ Risk R1 extended: plain `decide` can fail on a TRUE statement (max       │
+│     │ recursion); use `decide +kernel` there.                                  │
+└─────┴──────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
@@ -2356,7 +2376,10 @@ A reviewer blocks the CHECKPOINT on: a model rule that differs from the spec wit
 │ ID  │ Risk                                 │ Mitigation                           │
 ├─────┼──────────────────────────────────────┼──────────────────────────────────────┤
 │ R1  │ decide is slow on composite states   │ Bool-valued tests; decide +kernel;   │
-│     │ (Finset, derive, GridCO lists)       │ smaller fixtures; report fallbacks   │
+│     │ (Finset, derive, GridCO lists); it   │ smaller fixtures; report fallbacks.  │
+│     │ can fail on a TRUE statement (max    │ Use decide +kernel where plain       │
+│     │ recursion depth: seen on stV and     │ decide fails (a robustness risk,     │
+│     │ stP, G5)                             │ not a soundness risk)                │
 │ R2  │ A GridCO lemma is lease-dependent    │ apply it with @… GridCO.slowLease-   │
 │     │ (the DEFAULT instance silently gives │ Policy (Global Constraints); if it   │
 │     │ the GRID gate) or is private         │ is private, prove a local form       │
