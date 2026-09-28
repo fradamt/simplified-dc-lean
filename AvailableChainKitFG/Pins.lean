@@ -26,8 +26,9 @@ discharge it. A row that a definition covers (with at most an unfolding lemma)
 is `leanHyp … "definition only"`. A clause can also cite a `[helper]` theorem
 that is one branch, a special case or a partial form of the clause
 (`on_block_of_refused`, `crossing_other_entry`, `Fmove_below`,
-`twoChanges_nested`); its docstring says which. Every other cited name has a
-`[pin <id>]` docstring. A name can be cited under an id other than the id of its
+`twoChanges_nested`); its docstring says which. Every other cited theorem has a
+`[pin <id>]` docstring; a definition cited in `defPins` can be `[helper]`
+(`derive`, `createRow`). A name can be cited under an id other than the id of its
 tag: the tag names its main id, and a row of another id can use it (for example
 `mem_filteredFrom`, tagged `fj.frame.v3`, in `fj.frame.v1`).
 
@@ -194,7 +195,9 @@ def pins : List Pin := [
       .leanHyp [``crossing_other_entry]
         "PARTIAL: a W with h(W) > j and J ⋠ W has, on its chain, a crossing of j \
         that names X ≠ J with a matching quorum; RootInjectiveOn B W and h_j ≠ 0; \
-        that the crossing block is in the view (ancestor closure) is not stated"⟩,
+        that the crossing block is in the view (ancestor closure) is not stated; \
+        J is `(derive B).J` of a carrier B, not the frame's J (the link to the \
+        frame's (j, J) is `lexMax` under ViewRootInj)"⟩,
     ⟨"the converse (a conflicting crossing of j in the view gives a witness) \
       (r148 267–268)",
       .paper "r148 lines 267–268; no Lean"⟩,

@@ -9,8 +9,10 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 step() { echo "== $1"; }
 step "lake build --wfail AvailableChainSimplexFG AvailableChainKitFG"
-lake build --wfail AvailableChainSimplexFG AvailableChainKitFG >/dev/null 2>&1 ||
-  { rc=$?; echo "BUILD FAILED"; exit $rc; }
+log=$(mktemp)
+trap 'rm -f "$log"' EXIT
+lake build --wfail AvailableChainSimplexFG AvailableChainKitFG >"$log" 2>&1 ||
+  { rc=$?; echo "BUILD FAILED"; tail -30 "$log"; exit $rc; }
 step "root imports"
 missing=$(comm -23 \
   <(ls AvailableChainKitFG/*.lean AvailableChainSimplexFG/*.lean |
