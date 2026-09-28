@@ -61,10 +61,8 @@ theorem readAt_eq_stateBeforeTime {V : Type} [DecidableEq V] (rho : Run V counte
 /-- In the canonical run with one node and horizon 2, the strong read of
 `badStrong` at node 0 is `chain 1` at time 0 and genesis at time 1, so it does
 not only extend. -/
-theorem refutedBadStrong : RefutationFamily testStrongSafe badStrong := by
-  refine ⟨fun k _ h => ?_⟩
-  have hs := h ⟨Fin (Nat.succ 0), inferInstance, inferInstance⟩
-    ⟨counterEnv 0, canonical 0 2⟩ rfl (0 : Time) (canonical_sleepy 0 2)
+theorem badStrong_not_safe : ¬ SafeFrom badStrong.P (canonical 0 2) badStrong.strong 0 := by
+  intro hs
   have hm := hs.monotone 0 (Finset.mem_univ _) 0 1 le_rfl (by decide) (by decide)
   have h0 : Run.readAt counter (canonical 0 2) 0 0 = (1 : Nat) := by
     rw [readAt_eq_stateBeforeTime]
@@ -76,6 +74,34 @@ theorem refutedBadStrong : RefutationFamily testStrongSafe badStrong := by
     (badStrong.strong (Run.readAt counter (canonical 0 2) 1 0)) at hm
   rw [h0, h1] at hm
   exact absurd hm (by decide)
+
+/-- The test claim refutes `badStrong`, with the run of `badStrong_not_safe`. -/
+theorem refutedBadStrong : RefutationFamily testStrongSafe badStrong :=
+  ⟨fun _ _ h => badStrong_not_safe (h ⟨Fin (Nat.succ 0), inferInstance, inferInstance⟩
+    ⟨counterEnv 0, canonical 0 2⟩ rfl (0 : Time) (canonical_sleepy 0 2))⟩
+
+/-- The canonical runs have no faulty validator. -/
+theorem canonical_faultBound (k H f : Nat) : FaultBound counter f (canonical k H) := by
+  simp [FaultBound, faulty, canonical]
+
+/-- Task 8: the catalog claim `strongSafe` refutes `badStrong` at every fault
+cap, with the run of `refutedBadStrong`. -/
+theorem refutedBadStrongSafe : RefutationFamily strongSafe badStrong :=
+  ⟨fun f _ h => badStrong_not_safe (h ⟨Fin (Nat.succ 0), inferInstance, inferInstance⟩
+    ⟨counterEnv 0, canonical 0 2⟩ rfl (0 : Time)
+    ⟨canonical_sleepy 0 2, canonical_faultBound 0 2 f⟩)⟩
+
+/-- `strongSafe` can hold (Task 4 review, F1): Counter with its stable output
+as the strong output, at fault cap 0. The proof is that of `certSafeStable`;
+it does not read the fault bound. -/
+def certStrongSafeCounter : Cert strongSafe counterStrong where
+  const := (0 : Nat)
+  valid := trivial
+  inhabited := fun H =>
+    ⟨⟨Fin (Nat.succ 0), inferInstance, inferInstance⟩, ⟨counterEnv 0, canonical 0 H.toNat⟩,
+      (0 : Time), rfl, Int.self_le_toNat H,
+      ⟨canonical_sleepy 0 H.toNat, canonical_faultBound 0 H.toNat 0⟩, trivial⟩
+  proof := fun W x hx t₀ hr => certSafeStable.proof W x hx t₀ hr.1
 
 end AvailableChain.Registry.Tests
 
