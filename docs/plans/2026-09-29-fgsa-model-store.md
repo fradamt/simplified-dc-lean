@@ -2176,7 +2176,7 @@ theorem actView_admitBlock_movedF (p : Params) (st : State p.n) (h : CStoreInv p
 
 **Blueprint:** `bp.store.v1` (K4 core) and `bp.frame.v1` (bp00 §3.1; bp01 §4); `bp.reconcile.v1` (K1). Q3 is answered: the FG part IS a `SimplexFG.Store` value, so the K4 core is "the FG part changes only by `on_block`, and `StoreInv` holds". The metadata part of K4 is Task 12.
 
-- [ ] **Step 1: Add the statements** to `Statements/Store.lean`:
+- [x] **Step 1: Add the statements** to `Statements/Store.lean`:
 
 ```lean
 /-- [bp bp.store.v1; K4 core] Every reachable state satisfies the composite invariant. -/
@@ -2187,7 +2187,7 @@ def FMonotone (p : Params) : Prop :=
     (∀ t, (clock p st t).fg.F = st.fg.F)
 ```
 
-- [ ] **Step 2: Write the lemma statements** in `Proofs/StoreInv.lean`:
+- [x] **Step 2: Write the lemma statements** in `Proofs/StoreInv.lean`:
 
 ```lean
 theorem cstoreInv_init (p : Params) : CStoreInv p (initial p.n)
@@ -2255,7 +2255,7 @@ theorem leaseOf_eq_deadlineOf (p : Params) (st : State p.n) (h : CStoreInv p st)
     leaseOf st b = GridCO.deadlineOf st.base b (SA.releaseThreshold p.toParams)
 ```
 
-- [ ] **Step 3: Prove them.**
+- [x] **Step 3: Prove them.**
   - `cstoreInv_init`: `KitFG.storeInv_init`; the base list is `[genesis]`; `SACompat`, `FastOrigin`, `fastDom`, `genuineKeys` and `leaseKeys` hold on empty lists; `S = genesis`.
   - `cstoreInv_process`, head vote and row: no invariant field changes (Task 7). Refused block: the state is the same. Accepted block: `fg`: `KitFG.storeInv_on_block` with `ViewRootInj (insert B TF)` from `viewRootInj_of_rootInj` (root freshness from `blockAccepted`; parent closure from `P ∈ TF`); `rootInj`: the new root is fresh; `baseTree`: `base_admitProposal_accepts`, `update_finality_TF`, `eraseFG_fgBlock`; `SACompat`: if F is unchanged, leases, results and fastWrite are unchanged (`base_admitProposal_accepts`); if F moved, `reconcile_saCompat`; `FastOrigin`: if F is unchanged, unchanged; if F moved, `reconcile_fastOrigin` with `F₀ := eraseFG st.fg.F` and `on_block_F_mono` + `eraseFG_preceq`; `fastDom`, `genuineKeys`, `leaseKeys`: reconcile keeps the label and target lists (`reconcile_*`), and the base admission does not write them; `reconcile_frame` keeps the other fields; `Smem`: S is unchanged or `eraseFG F` with `F ∈ TF` (`StoreInv.Fmem`). The row fold keeps every field.
   - `cstoreInv_clock`: `fg` and the base list do not change. `SACompat` after the gate: a new lease target `B` satisfies `B ⪯ C` with `C = confirmation (actView st) s` (`gate_target_origin`), and `C` is genesis or active (`confirmation_mem`), so `block_compatible_of_preceq_compatible` applies; the saved result is `C`; the fastWrite set is a filter of the active list; release and expiry only delete rows (`release_subset`). `FastOrigin`: `fastOrigin_gateStep` (`gateStep_fresh` and `fastSet_prefix`: the members are prefixes of the saved `C`; the other labels keep their bodies because `fastDom` says their labels were saved before). `fastDom`: the new label is fresh (`hnew`) and is saved by the same step. `genuineKeys`: `recordGenuine` appends only an unsaved label. `leaseKeys`: `writeObligation` removes the old row of the same target and level, then appends one; under `slowLeasePolicy` the only level is `releaseThreshold` (G3 minor 3: this one constant level of `writeObligation` is the source of `leaseKeys`). `leaseOf_eq_deadlineOf`: both reads are `find?` on `obligations`; by `leaseKeys` every row has the level `releaseThreshold`, so the two predicates select the same first row. `Smem`: `advance S C` is `S` or `C`, and `C` is stored; `normalizeS` writes `eraseFG F`.
@@ -2265,6 +2265,7 @@ theorem leaseOf_eq_deadlineOf (p : Params) (st : State p.n) (h : CStoreInv p st)
   - `admitBlock_reconcile_harmless`: `admitBlock_accepted_eq`; `reconcile_harmless_origin` on `st1` with `F₀ := eraseFG st.fg.F`, `hO` from `h.fastOrigin` (it reads only `fastWrite` and `genuine`, which `st1` shares with `st`), and `hF` from `on_block_F_mono`.
   - `fgBlockOf_spec`: as `parentFG_spec`. `deepest_spec`: the order (depth, root value) is total on `X` and antisymmetric because `rootInj` makes roots distinct in `X`; so the maximum is unique and `KitFG.pickPair_eq_of_unique` applies. `fgHead_stored`: `GridCO.ghost` returns its anchor or a member of its tree (`ghostWalk_mem`); the tree `erasedList st (fullTree p st)` is a sublist of `base.blocks`; the anchor `liveRoot` is `eraseFG Z` (Z is F or J, both in TF: `StoreInv.Fmem`, `StoreInv.pair`) or a lease target in the tree. `rootInjectiveBelow_base`: `baseTree`, `KitFG.ancestor_closed_of_parent_closed`, `rootInj` and `preceq_of_eraseFG_preceq`.
 - [ ] **Step 4: Review gate G11 and CHECKPOINT.** Commit `FGSA store: composite invariant (K4 core), F monotone, K1`.
+  Execution notes (2026-09-29): the checkpoint is the commit that adds this note; G11 is pending. The two statements and the 18 lemma statements above are in `Statements/Store.lean` and `Proofs/StoreInv.lean` with the same text (some lines are wrapped for the 100-column linter). No statement needs a new premise. `saCompat_gateStep` (named in Produces, not in the code block) is `SACompat (gateStep p st s)` under `CStoreInv p st`. Proof structure: `cstoreInv_of_sublist` (the invariant reads only `fg`, the block list, the leases, the saved results, S and `fastWrite`; the leases may shrink) covers votes, rows, refused blocks and the pre-gate tick (`clockPre_obligations_sublist`); `cstoreInv_accepted_pre` gives the fields of the pre-reconcile state of an accepted block, and `cstoreInv_admitBlock` splits on a moved F (reconcile facts of Task 9); `cstoreInv_gateFresh` proves the fresh gate before `S := F`, and `cstoreInv_normalizeS` the last step. `leaseKeys` after a gate uses GridCO's `gate_eq_writeKeys` with the new helpers `writeObligation_keys`, `writeKeys_keys`, `saGateWriteKeys_level` and `saGate_cases` (`admissionLevels` under `slowLeasePolicy` gives only `releaseThreshold`). Other extra helpers: `J_mem` and `Z_mem` (the FG root is stored; from `lexMax_spec`/`lexMax_of_none` and `derive_anchors_preceq`), `savedGenuine_congr`, `fastOrigin_congr`, `ne_of_saved`, `notMem_keys_of_unsaved`, `compat_of_confirmation`, `foldl_select_mem` (for `liveRoot`), `find?_congr_mem`. GridCO lemmas used, all with `@… GridCO.slowLeasePolicy`: `gate_target_origin`, `confirmation_mem`, `gate_eq_writeKeys`; `ghostWalk_mem` and `RootInjectiveBelow` have no lease argument. `rootInjectiveBelow_base` needs only `baseTree`, closure (`eraseFG_ancestor_mem`) and `rootInj`, not `preceq_of_eraseFG_preceq`. Validation: `lake build --wfail AvailableChainFGSA` and `bash scripts/check-fgsa.sh` pass (708 constants, 370 theorems; standard axioms only).
 
 ---
 
