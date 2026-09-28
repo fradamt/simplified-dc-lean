@@ -586,23 +586,32 @@ registry id, or the AP fact that carries the clause).
 ┌─────────────────────────────┬──────────────────────────────────────────────┬─────────────────────┐
 │ Script                      │ Check                                        │ Exit codes          │
 ├─────────────────────────────┼──────────────────────────────────────────────┼─────────────────────┤
-│ scripts/check-fg-syntax.sh  │ no native_decide token outside comments in   │ 0 clean; 1 found;   │
-│                             │ the two FG libraries                         │ 2 no files          │
+│ scripts/check-fg.sh         │ builds the two libraries once (--wfail),     │ 0 all pass; else    │
+│                             │ then runs the root-import check and the four │ the failed step's   │
+│                             │ checks below; stops at the first failure     │ code                │
+│ scripts/check-fg-syntax.sh  │ no native evaluation outside comments in the │ 0 clean; 1 found; 2 │
+│                             │ two FG libraries: native_decide, +native,    │ missing directory,  │
+│                             │ native := true, ofReduceBool, ofReduceNat    │ root file or files  │
 │ scripts/CheckFGAxioms.lean  │ every constant of the two libraries uses     │ 0 clean; 1 bad      │
-│                             │ only propext, Classical.choice, Quot.sound;  │ axiom; 2 nothing    │
-│                             │ --expect N … checks that the names exist     │ found, usage error  │
-│                             │                                              │ or missing name     │
+│                             │ only propext, Classical.choice, Quot.sound   │ axiom; 2 nothing    │
+│                             │ (this rejects sorryAx and the _native axiom  │ found, usage error  │
+│                             │ of native_decide); --expect N … checks that  │ or missing name     │
+│                             │ the names exist; reads built data            │                     │
 │ scripts/FGPinIds.lean       │ prints the manifest of the elaborated pin    │ 0 clean; 2 a pinned │
 │                             │ table; --check-names checks that each pinned │ name is not an FG   │
-│                             │ Lean name is an FG constant                  │ constant            │
-│ scripts/check-fg-pins.sh    │ runs FGPinIds.lean; strict manifest grammar  │ 0 clean; 1 registry │
-│                             │ and trailers; each source resolves to its    │ mismatch; 2 bad or  │
-│                             │ registered version with the pinned hash and  │ missing manifest    │
-│                             │ matches its §0.1 row; each id has an entry   │                     │
-│                             │ and one Index row; no active id SUPERSEDED   │                     │
-│                             │ no pin id is also a notFormalized id         │                     │
+│                             │ Lean name is an FG constant; reads built     │ constant            │
+│                             │ data                                         │                     │
+│ scripts/check-fg-pins.sh    │ builds the two libraries, runs               │ 0 clean; 1 registry │
+│                             │ FGPinIds.lean; strict manifest grammar and   │ mismatch; 2 build   │
+│                             │ trailers; no pin id is also a notFormalized  │ failed, bad or      │
+│                             │ id; each source resolves to its registered   │ missing manifest    │
+│                             │ version with the pinned hash and matches its │                     │
+│                             │ §0.1 row; each id has an entry and one Index │                     │
+│                             │ row; no active id SUPERSEDED                 │                     │
 └─────────────────────────────┴──────────────────────────────────────────────┴─────────────────────┘
 ```
 
-Run the scripts after `lake build AvailableChainKitFG`, with
-`lake env lean --run scripts/<file>.lean` or `bash scripts/<file>.sh`.
+Run `bash scripts/check-fg.sh` for all checks. The Lean scripts read the built
+`.olean` files, which Lean does not compare with the sources: run them alone
+only after `lake build AvailableChainSimplexFG AvailableChainKitFG`, with
+`lake env lean --run scripts/<file>.lean`.

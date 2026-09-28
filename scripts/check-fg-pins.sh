@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
 # Checks the ELABORATED pin table of AvailableChainKitFG/Pins.lean against
-# docs/FG-COMPOSITION.md. It runs scripts/FGPinIds.lean in this run and reads
-# only its output; the manifest is never stored (threat model: Task 14 Step 2).
+# docs/FG-COMPOSITION.md. It builds the two FG libraries (the emitter reads
+# the built .olean files, which Lean does not compare with the sources), runs
+# scripts/FGPinIds.lean in this run and reads only its output. Threat model:
+# the check guards against emitter and parser bugs, stale registry data, stale
+# builds and superseded ids, not against a hand-edited manifest; so the
+# manifest is never stored.
 # 0) The emitter exits 0. Every record matches the strict grammar
 #      src <key> <root> <path> <sha256> | <kind> <id>
 #    (kind pin, ap, external or notFormalized). The last five lines are the
@@ -19,6 +23,7 @@
 #    external ids the status there does not start with SUPERSEDED.
 #    notFormalized ids are exempt from the status test (some are
 #    historical, some are AP or comp ids that the module does not formalize).
+# A failed build prints BUILD FAILED and exits 2.
 # FGPINIDS=<file> runs another emitter script (the negative tests only).
 set -euo pipefail
 export LC_ALL=C
@@ -45,6 +50,8 @@ resolve() {  # root path pinned-hash -> sha256 of the registered version
     *) return 1 ;;
   esac
 }
+lake build AvailableChainSimplexFG AvailableChainKitFG >/dev/null 2>&1 ||
+  { echo "BUILD FAILED"; exit 2; }
 [ -s "$REG" ] || { echo "MISSING OR EMPTY: $REG"; exit 2; }
 tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
 lake env lean --run "$EMIT" > "$tmp/out" || { echo "EMITTER FAILED (exit $?)"; exit 2; }

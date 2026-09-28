@@ -3,10 +3,12 @@ import Lean
 open Lean AvailableChain.KitFG  -- the namespace of Pins.lean
 
 /-! Prints the manifest of `Pins.lean` from the elaborated values (`manifest`),
-or with `--check-names` checks the pinned names (`checkNames`). Run after
-`lake build AvailableChainKitFG`:
-`lake env lean --run scripts/FGPinIds.lean [--check-names]`.
-`scripts/check-fg-pins.sh` runs it without an argument. -/
+or with `--check-names` checks the pinned names (`checkNames`). It reads BUILT
+data: `lean --run` imports the `.olean` files and does not compare them with the
+sources. Run it after `lake build AvailableChainSimplexFG AvailableChainKitFG`:
+`lake env lean --run scripts/FGPinIds.lean [--check-names]`, or use
+`bash scripts/check-fg.sh`, which builds and then runs every FG check.
+`scripts/check-fg-pins.sh` builds, then runs it without an argument. -/
 
 /-- Every pinned name is a constant of a module of `AvailableChainSimplexFG` or
 `AvailableChainKitFG`, so `CheckFGAxioms.lean` checks its axioms (Astra T02).

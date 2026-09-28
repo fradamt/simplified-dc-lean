@@ -5,8 +5,15 @@ open Lean
 
 /-! FG axiom check. Every compiled constant of the modules of
 `AvailableChainSimplexFG` and `AvailableChainKitFG` may depend only on
-`propext`, `Classical.choice` and `Quot.sound`. This rejects `sorryAx`,
-`Lean.ofReduceBool` (from `native_decide`) and project axioms.
+`propext`, `Classical.choice` and `Quot.sound`. This rejects `sorryAx`, the
+auxiliary `_native` axiom of `native_decide` or `decide +native` (for example
+`t._native.native_decide.ax_1_1` on v4.30.0-rc2; older toolchains:
+`Lean.ofReduceBool`) and project axioms.
+
+It checks BUILT data: `lean --run` imports the `.olean` files and does not
+compare them with the sources. Run `lake build AvailableChainSimplexFG
+AvailableChainKitFG` first, or use `bash scripts/check-fg.sh`, which builds and
+then runs every FG check.
 
 Run: `lake env lean --run scripts/CheckFGAxioms.lean [--expect N …]`.
 With `--expect`, each named constant must be a checked constant (a short
