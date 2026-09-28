@@ -33,8 +33,8 @@ for both libraries.
 │                        │ 1.                                              │
 │ catalog.lock           │ lake env lean --run scripts/CatalogLock.lean    │
 │                        │ --check: exit 0.                                │
-│ REGISTRY.md            │ regenerated; unchanged (10 certs, 1 refutation- │
-│                        │ family, over Sanity and Counter).               │
+│ REGISTRY.md            │ regenerated; unchanged (7 certs: 3 Sanity + 4   │
+│                        │ Counter; 1 refutation-family; 8 rows total).    │
 └────────────────────────┴─────────────────────────────────────────────────┘
 ```
 
@@ -82,8 +82,9 @@ TYPES (`Cert c I`, `Refutation c I`, `RefutationFamily c I`), not by
 reading `@[cert]`/`@[refutes]` attributes (deviation (a)). `Cert.weaken`
 builds a new `Cert` value at a weaker constant from an old one's
 `proof` field, through `ClaimSpec.transport`, with no re-proof. The
-registry lists ten certificates and one refutation-family over Sanity
-and Counter; `Candidate`/`ProfileCert` values are not rows, because
+registry lists seven certificates (3 Sanity, 4 Counter) and one
+refutation-family over Sanity and Counter, 8 rows total;
+`Candidate`/`ProfileCert` values are not rows, because
 their type is a `Pi`-type over `c ∈ p.claims`, not `Cert c I` itself
 (Open items, §6).
 
@@ -227,6 +228,9 @@ scripts, tactics, or witness terms only.
 │           │ (the old-label clause of excludes does not check processed │
 │           │ first). Must the two stay disjoint under the Phase 1       │
 │           │ excludes change?                                           │
+│ GridCO    │ Grid CO model facts (gate_votes, clock_votes,              │
+│           │ engineClockx) are public in the Registry namespace. Move   │
+│           │ them with the Phase 1 excludes change.                     │
 │ Engine    │ stateBefore_stable (GridCOHooks.lean) and the run/step     │
 │           │ lemmas in Registry.Counter (Counter.lean, CounterRun.lean) │
 │           │ are engine-generic, for any ProtocolSpec, but live in L4.  │
