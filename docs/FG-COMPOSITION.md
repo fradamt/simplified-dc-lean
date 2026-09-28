@@ -567,7 +567,8 @@ ids of the f1 splits (2026-09-28) are listed in §8.
 2026-09-28, §8). The module is DC-fj: DC's FG without SG and grades, with
 the FJ root rule in place of NJ (FRAMEWORK-DESIGN.md §7.1). `DC-fj` = planned
 in the DC-fj module (plan `docs/plans/2026-09-28-fg-module.md`);
-`DC-fj (ii)` = part (ii) only;
+`DC-fj (ii)` = part (ii) only; `DC-fj (item 4 partial)` = the
+arithmetic of item 4 only (`comp.cut.v1`);
 `none (nj)` = nj research entry, not planned for Lean now; `none` = not
 needed by the DC-fj module; `—` = not an entry of the current FG-module
 plan (AP-side, composite, or not scheduled). Status abbreviations
@@ -579,98 +580,98 @@ index shows the status under the old spec (R1 views); status lines marked
 "(spec bd942ca0)" are in the entries only.
 
 ```text
-┌───────────────────────┬──────┬─────────────────────┬───┬───────────┐
-│ Id                    │ Var  │ Status 2026-09-28   │ § │ Lean plan │
-├───────────────────────┼──────┼─────────────────────┼───┼───────────┤
-│ fg.frame.v1           │ nj   │ SUPERSEDED (def)    │ 1 │ none (nj) │
-│ fg.frame.v2           │ nj   │ def                 │ 1 │ none (nj) │
-│ fg.frameCompat.v1     │ both │ PROVED              │ 1 │ DC-fj (ii)│
-│ fg.Ret.v1             │ nj   │ def                 │ 1 │ none (nj) │
-│ fg.N1.v1              │ nj   │ def                 │ 1 │ none (nj) │
-│ fg.N1eff.v1           │ nj   │ def                 │ 1 │ none (nj) │
-│ fg.N2.v1              │ nj   │ def                 │ 1 │ none (nj) │
-│ fg.N2.v2              │ nj   │ def                 │ 1 │ none (nj) │
-│ fg.HNI.v1             │ nj   │ def                 │ 1 │ none (nj) │
-│ ap.S.v1               │ nj   │ PROVED (FG-SA)      │ 2 │ —         │
-│ ap.S.v2               │ nj   │ PROVED (FG-SA)      │ 2 │ —         │
-│ ap.Sslow.v1           │ nj   │ PROVED (FG-SA)      │ 2 │ —         │
-│ ap.repair.fixedF.v1   │ nj   │ PROVED (FG-SA)      │ 2 │ —         │
-│ ap.repair.movingF.v1  │ nj   │ OPEN                │ 2 │ —         │
-│ ap.L.fixedF.v1        │ nj   │ WITHDRAWN (PROVED)  │ 2 │ —         │
-│ ap.L.movingF.v1       │ nj   │ WITHDRAWN (OPEN)    │ 2 │ —         │
-│ ap.reach.v1           │ nj   │ OPEN                │ 2 │ —         │
-│ ap.source.v1          │ nj   │ PROVED (FG-SA)      │ 2 │ —         │
-│ ap.X.v1               │ nj   │ REFUTED; WITHDRAWN  │ 2 │ —         │
-│ ap.Xplus.v1           │ nj   │ PROVED (FG-SA)      │ 2 │ —         │
-│ ap.rowService.v1      │ both │ RULE                │ 2 │ —         │
-│ ap.carrierKeep.v1     │ nj   │ WITHDRAWN (PROVED)  │ 2 │ —         │
-│ ap.carrierKeep.v2     │ nj   │ PROVED (FG-SA)      │ 2 │ —         │
-│ ap.honestSourced.v1   │ both │ WITHDRAWN (PROVED)  │ 2 │ —         │
-│ ap.honestSourced.v2   │ both │ PROVED (FG-SA)      │ 2 │ —         │
-│ ap.armedSafe.v1       │ nj   │ PROVED (FG-SA)      │ 2 │ —         │
-│ ap.outputRecovered.v1 │ nj   │ WITHDRAWN (PROVED)  │ 2 │ —         │
-│ ap.finalityHead.v1    │ nj   │ WITHDRAWN (SKETCH)  │ 2 │ —         │
-│ ap.finalityHead.v2    │ nj   │ SKETCH              │ 2 │ —         │
-│ ap.fastSupport.v1     │ both │ PROVED (RULE, τ>a)  │ 2 │ —         │
-│ ap.headReachesLo.v1   │ fj   │ PROVED (FG-SA)      │ 2 │ —         │
-│ ap.headReachesLo.v2   │ fj   │ SUPERSEDED (PROVED) │ 2 │ —         │
-│ ap.headReachesLo.v3   │ fj   │ SUPERSEDED (PROVED) │ 2 │ —         │
-│ ap.headReachesLo.v4   │ fj   │ SUPERSEDED (PROVED) │ 2 │ —         │
-│ ap.headReachesLo.v5   │ fj   │ PROVED (ALFS, paper)│ 2 │ —         │
-│ fg.provenance.v1      │ both │ SUPERSEDED (PROVED) │ 3 │ —         │
-│ fg.provenance.v2      │ both │ PROVED              │ 3 │ DC-fj     │
-│ fg.causalCap.v1       │ both │ SUPERSEDED (PROVED) │ 3 │ —         │
-│ fg.causalCap.core.v1  │ both │ PROVED; LEAN (DC)   │ 3 │ DC-fj     │
-│ fg.uniqueJust.v1      │ both │ LEAN (DC, Lemma U)  │ 3 │ DC-fj     │
-│ fg.finalLock.v1       │ both │ LEAN (DC)           │ 3 │ DC-fj     │
-│ fg.trunk.v1           │ nj   │ PROVED (a≤f)        │ 3 │ none (nj) │
-│ fg.oneBullet.v1       │ nj   │ SUPERSEDED (PROVED) │ 3 │ none (nj) │
-│ fg.oneBullet.core.v1  │ nj   │ PROVED (a≤f)        │ 3 │ none (nj) │
-│ fg.H19.v1             │ nj   │ PROVED              │ 3 │ none (nj) │
-│ fg.HNIb.v1            │ nj   │ PROVED              │ 3 │ none (nj) │
-│ fg.base.finalized.v1  │ nj   │ PROVED              │ 3 │ none (nj) │
-│ fg.base.nj.v1         │ nj   │ PROVED (FG-SA)      │ 3 │ none (nj) │
-│ fg.baseSel.nj.v1      │ nj   │ PROVED (FG-SA)      │ 3 │ none (nj) │
-│ fg.accountable.v1     │ both │ PROVED; LEAN (DC)   │ 3 │ DC-fj     │
-│ fj.frame.v1           │ fj   │ def                 │ 4 │ DC-fj     │
-│ fj.frame.v2           │ fj   │ SUPERSEDED (def)    │ 4 │ DC-fj     │
-│ fj.frame.v3           │ fj   │ def (spec bd942ca0) │ 4 │ DC-fj     │
-│ fj.frameFeasible.v1   │ fj   │ PROVED              │ 4 │ DC-fj     │
-│ fj.crossingNoFinal.v1 │ fj   │ PROVED              │ 4 │ DC-fj     │
-│ fj.descent.v1         │ fj   │ PROVED              │ 4 │ —         │
-│ fj.canonical.v1       │ fj   │ PROVED              │ 4 │ —         │
-│ fj.inBandLock.v1      │ fj   │ PROVED              │ 4 │ DC-fj     │
-│ fj.twoChanges.v1      │ fj   │ SUPERSEDED (PROVED) │ 4 │ —         │
-│ fj.twoChanges.core.v1 │ fj   │ PROVED (a≤f)        │ 4 │ DC-fj     │
-│ fj.armedSafe.v1       │ fj   │ PROVED              │ 4 │ —         │
-│ fg.base.fj.v1         │ fj   │ REFUTED (uniform)   │ 4 │ —         │
-│ fj.firstFinality.v1   │ fj   │ local PROVED; unif. │ 4 │ —         │
-│ fj.reset.v1           │ fj   │ PROVED              │ 4 │ —         │
-│ fj.theoremN.v1        │ fj   │ PROVED              │ 4 │ —         │
-│ fj.rise.fixedF.v1     │ fj   │ PROVED              │ 4 │ —         │
-│ fj.rise.movingF.v1    │ fj   │ REFUTED (impl. PRV) │ 4 │ —         │
-│ fj.Xplus.v1           │ fj   │ PROVED              │ 4 │ —         │
-│ fj.healed.v1          │ fj   │ local PROVED; unif. │ 4 │ —         │
-│ fj.healedUnif.v1      │ fj   │ REFUTED (impl. PRV) │ 4 │ —         │
-│ fj.healedAtQ.v1       │ fj   │ REFUTED (h12, r158) │ 4 │ —         │
-│ comp.provenance.v1    │ both │ PROVED (FG-SA)      │ 5 │ —         │
-│ comp.settle.v1        │ both │ PROVED (FG-SA)      │ 5 │ —         │
-│ comp.cut.v1           │ both │ PROVED              │ 5 │ —         │
-│ comp.rise.fixedF.v1   │ nj   │ PROVED (FG-SA)      │ 5 │ —         │
-│ comp.rise.movingF.v1  │ nj   │ OPEN                │ 5 │ —         │
-│ comp.theoremN.v1      │ nj   │ PROVED (FG-SA)      │ 5 │ —         │
-│ comp.fgHealed.v1      │ nj   │ PROVED (FG-SA)      │ 5 │ —         │
-│ comp.healed.v1        │ nj   │ PROVED (FG-SA)      │ 5 │ —         │
-│ comp.healedLit.v1     │ nj   │ PROVED (FG-SA)      │ 5 │ —         │
-│ comp.arrivalNJ.v1     │ nj   │ PROVED (FG-SA)      │ 5 │ —         │
-│ comp.handoffBase.v1   │ nj   │ PROVED (FG-SA)      │ 5 │ —         │
-│ comp.healedUnif.v1    │ nj   │ OPEN (impl. PROVED) │ 5 │ —         │
-│ comp.healedAtQ.v1     │ nj   │ OPEN                │ 5 │ —         │
-│ comp.finality.v1      │ nj   │ SKETCH              │ 5 │ —         │
-│ comp.clean.v1         │ nj   │ PROVED (FG-SA)      │ 5 │ —         │
-│ comp.outputNesting.v1 │ both │ PROVED              │ 5 │ —         │
-│ comp.leaseVsFinal.v1  │ fj   │ REFUTED (r161 N1)   │ 5 │ —         │
-└───────────────────────┴──────┴─────────────────────┴───┴───────────┘
+┌───────────────────────┬──────┬─────────────────────┬───┬────────────────────────┐
+│ Id                    │ Var  │ Status 2026-09-28   │ § │ Lean plan              │
+├───────────────────────┼──────┼─────────────────────┼───┼────────────────────────┤
+│ fg.frame.v1           │ nj   │ SUPERSEDED (def)    │ 1 │ none (nj)              │
+│ fg.frame.v2           │ nj   │ def                 │ 1 │ none (nj)              │
+│ fg.frameCompat.v1     │ both │ PROVED              │ 1 │ DC-fj (ii)             │
+│ fg.Ret.v1             │ nj   │ def                 │ 1 │ none (nj)              │
+│ fg.N1.v1              │ nj   │ def                 │ 1 │ none (nj)              │
+│ fg.N1eff.v1           │ nj   │ def                 │ 1 │ none (nj)              │
+│ fg.N2.v1              │ nj   │ def                 │ 1 │ none (nj)              │
+│ fg.N2.v2              │ nj   │ def                 │ 1 │ none (nj)              │
+│ fg.HNI.v1             │ nj   │ def                 │ 1 │ none (nj)              │
+│ ap.S.v1               │ nj   │ PROVED (FG-SA)      │ 2 │ —                      │
+│ ap.S.v2               │ nj   │ PROVED (FG-SA)      │ 2 │ —                      │
+│ ap.Sslow.v1           │ nj   │ PROVED (FG-SA)      │ 2 │ —                      │
+│ ap.repair.fixedF.v1   │ nj   │ PROVED (FG-SA)      │ 2 │ —                      │
+│ ap.repair.movingF.v1  │ nj   │ OPEN                │ 2 │ —                      │
+│ ap.L.fixedF.v1        │ nj   │ WITHDRAWN (PROVED)  │ 2 │ —                      │
+│ ap.L.movingF.v1       │ nj   │ WITHDRAWN (OPEN)    │ 2 │ —                      │
+│ ap.reach.v1           │ nj   │ OPEN                │ 2 │ —                      │
+│ ap.source.v1          │ nj   │ PROVED (FG-SA)      │ 2 │ —                      │
+│ ap.X.v1               │ nj   │ REFUTED; WITHDRAWN  │ 2 │ —                      │
+│ ap.Xplus.v1           │ nj   │ PROVED (FG-SA)      │ 2 │ —                      │
+│ ap.rowService.v1      │ both │ RULE                │ 2 │ —                      │
+│ ap.carrierKeep.v1     │ nj   │ WITHDRAWN (PROVED)  │ 2 │ —                      │
+│ ap.carrierKeep.v2     │ nj   │ PROVED (FG-SA)      │ 2 │ —                      │
+│ ap.honestSourced.v1   │ both │ WITHDRAWN (PROVED)  │ 2 │ —                      │
+│ ap.honestSourced.v2   │ both │ PROVED (FG-SA)      │ 2 │ —                      │
+│ ap.armedSafe.v1       │ nj   │ PROVED (FG-SA)      │ 2 │ —                      │
+│ ap.outputRecovered.v1 │ nj   │ WITHDRAWN (PROVED)  │ 2 │ —                      │
+│ ap.finalityHead.v1    │ nj   │ WITHDRAWN (SKETCH)  │ 2 │ —                      │
+│ ap.finalityHead.v2    │ nj   │ SKETCH              │ 2 │ —                      │
+│ ap.fastSupport.v1     │ both │ PROVED (RULE, τ>a)  │ 2 │ —                      │
+│ ap.headReachesLo.v1   │ fj   │ PROVED (FG-SA)      │ 2 │ —                      │
+│ ap.headReachesLo.v2   │ fj   │ SUPERSEDED (PROVED) │ 2 │ —                      │
+│ ap.headReachesLo.v3   │ fj   │ SUPERSEDED (PROVED) │ 2 │ —                      │
+│ ap.headReachesLo.v4   │ fj   │ SUPERSEDED (PROVED) │ 2 │ —                      │
+│ ap.headReachesLo.v5   │ fj   │ PROVED (ALFS, paper)│ 2 │ —                      │
+│ fg.provenance.v1      │ both │ SUPERSEDED (PROVED) │ 3 │ —                      │
+│ fg.provenance.v2      │ both │ PROVED              │ 3 │ DC-fj                  │
+│ fg.causalCap.v1       │ both │ SUPERSEDED (PROVED) │ 3 │ —                      │
+│ fg.causalCap.core.v1  │ both │ PROVED; LEAN (DC)   │ 3 │ DC-fj                  │
+│ fg.uniqueJust.v1      │ both │ LEAN (DC, Lemma U)  │ 3 │ DC-fj                  │
+│ fg.finalLock.v1       │ both │ LEAN (DC)           │ 3 │ DC-fj                  │
+│ fg.trunk.v1           │ nj   │ PROVED (a≤f)        │ 3 │ none (nj)              │
+│ fg.oneBullet.v1       │ nj   │ SUPERSEDED (PROVED) │ 3 │ none (nj)              │
+│ fg.oneBullet.core.v1  │ nj   │ PROVED (a≤f)        │ 3 │ none (nj)              │
+│ fg.H19.v1             │ nj   │ PROVED              │ 3 │ none (nj)              │
+│ fg.HNIb.v1            │ nj   │ PROVED              │ 3 │ none (nj)              │
+│ fg.base.finalized.v1  │ nj   │ PROVED              │ 3 │ none (nj)              │
+│ fg.base.nj.v1         │ nj   │ PROVED (FG-SA)      │ 3 │ none (nj)              │
+│ fg.baseSel.nj.v1      │ nj   │ PROVED (FG-SA)      │ 3 │ none (nj)              │
+│ fg.accountable.v1     │ both │ PROVED; LEAN (DC)   │ 3 │ DC-fj                  │
+│ fj.frame.v1           │ fj   │ def                 │ 4 │ DC-fj                  │
+│ fj.frame.v2           │ fj   │ SUPERSEDED (def)    │ 4 │ DC-fj                  │
+│ fj.frame.v3           │ fj   │ def (spec bd942ca0) │ 4 │ DC-fj                  │
+│ fj.frameFeasible.v1   │ fj   │ PROVED              │ 4 │ DC-fj                  │
+│ fj.crossingNoFinal.v1 │ fj   │ PROVED              │ 4 │ DC-fj                  │
+│ fj.descent.v1         │ fj   │ PROVED              │ 4 │ —                      │
+│ fj.canonical.v1       │ fj   │ PROVED              │ 4 │ —                      │
+│ fj.inBandLock.v1      │ fj   │ PROVED              │ 4 │ DC-fj                  │
+│ fj.twoChanges.v1      │ fj   │ SUPERSEDED (PROVED) │ 4 │ —                      │
+│ fj.twoChanges.core.v1 │ fj   │ PROVED (a≤f)        │ 4 │ DC-fj                  │
+│ fj.armedSafe.v1       │ fj   │ PROVED              │ 4 │ —                      │
+│ fg.base.fj.v1         │ fj   │ REFUTED (uniform)   │ 4 │ —                      │
+│ fj.firstFinality.v1   │ fj   │ local PROVED; unif. │ 4 │ —                      │
+│ fj.reset.v1           │ fj   │ PROVED              │ 4 │ —                      │
+│ fj.theoremN.v1        │ fj   │ PROVED              │ 4 │ —                      │
+│ fj.rise.fixedF.v1     │ fj   │ PROVED              │ 4 │ —                      │
+│ fj.rise.movingF.v1    │ fj   │ REFUTED (impl. PRV) │ 4 │ —                      │
+│ fj.Xplus.v1           │ fj   │ PROVED              │ 4 │ —                      │
+│ fj.healed.v1          │ fj   │ local PROVED; unif. │ 4 │ —                      │
+│ fj.healedUnif.v1      │ fj   │ REFUTED (impl. PRV) │ 4 │ —                      │
+│ fj.healedAtQ.v1       │ fj   │ REFUTED (h12, r158) │ 4 │ —                      │
+│ comp.provenance.v1    │ both │ PROVED (FG-SA)      │ 5 │ —                      │
+│ comp.settle.v1        │ both │ PROVED (FG-SA)      │ 5 │ —                      │
+│ comp.cut.v1           │ both │ PROVED              │ 5 │ DC-fj (item 4 partial) │
+│ comp.rise.fixedF.v1   │ nj   │ PROVED (FG-SA)      │ 5 │ —                      │
+│ comp.rise.movingF.v1  │ nj   │ OPEN                │ 5 │ —                      │
+│ comp.theoremN.v1      │ nj   │ PROVED (FG-SA)      │ 5 │ —                      │
+│ comp.fgHealed.v1      │ nj   │ PROVED (FG-SA)      │ 5 │ —                      │
+│ comp.healed.v1        │ nj   │ PROVED (FG-SA)      │ 5 │ —                      │
+│ comp.healedLit.v1     │ nj   │ PROVED (FG-SA)      │ 5 │ —                      │
+│ comp.arrivalNJ.v1     │ nj   │ PROVED (FG-SA)      │ 5 │ —                      │
+│ comp.handoffBase.v1   │ nj   │ PROVED (FG-SA)      │ 5 │ —                      │
+│ comp.healedUnif.v1    │ nj   │ OPEN (impl. PROVED) │ 5 │ —                      │
+│ comp.healedAtQ.v1     │ nj   │ OPEN                │ 5 │ —                      │
+│ comp.finality.v1      │ nj   │ SKETCH              │ 5 │ —                      │
+│ comp.clean.v1         │ nj   │ PROVED (FG-SA)      │ 5 │ —                      │
+│ comp.outputNesting.v1 │ both │ PROVED              │ 5 │ —                      │
+│ comp.leaseVsFinal.v1  │ fj   │ REFUTED (r161 N1)   │ 5 │ —                      │
+└───────────────────────┴──────┴─────────────────────┴───┴────────────────────────┘
 ```
 
 ## 1. Definitions (`SimplexFG.nj` frame)
@@ -4601,10 +4602,18 @@ M0. r151 calls this cap μ and calls M0 simply M.
 - Variant `fj`. Source r148 §2, lines 223–230 (the "finalized-crossing
   law" is line 226). File `fj-redteam.md`, sha256
   `934fe2927f047a11e37dbe52aba9d754d5c461927f24b91902077f17459d47d2`.
-- Lean plan: DC-fj module (user 2026-09-28). Lean names in the plan
-  (`docs/plans/2026-09-28-fg-module.md`, commit `befb5d5`):
-  `fjFrame_D_reachesLo` = part (1), `fjFrame_D_nonempty` = part (2),
-  `fjFrame_Z_mem_D` = part (3), `fjFrame_viable_child` = part (4).
+- Lean plan: DC-fj module (user 2026-09-28). Lean names on
+  `lean/available-chain` main `64651ad`
+  (`AvailableChainKitFG/Correspondence.lean`, verified in the source):
+  `filteredFrom_reachesLo` = part (1) (lines 531–540), `fjFrame_D_nonempty` = part (2) (line 602),
+  `fjFrame_Z_mem_D` = part (3) (line 629), `filteredFrom_viable_child` =
+  part (4) (lines 556–577). The Lean forms of parts (1) and (4) are
+  generalizations of the registry forms: they hold for any controls and
+  any block set (part (4): any ancestor-closed block set). The registry
+  form is the special case `fjFrame = filteredFrom (fjControls V) V`.
+  The plan names `fjFrame_D_reachesLo` and `fjFrame_viable_child` (plan
+  commit `befb5d5`) are not Lean declarations
+  (`AvailableChainKitFG/Pins.lean`, lines 189–190).
 - Kind: FG frame lemma (audit W02: an `ap.*` id does not carry a pure
   frame lemma). It is the frame side of the feasibility of
   `ap.headReachesLo.v1`.
@@ -5916,6 +5925,8 @@ the run parts of the f1 splits (§8).
   sha256 `1eaf728ffc4d56cc54fbccf581a8dffe457da02b96bd59cedb012bbf5ee1e03a`);
   bp §1.2, lines 138–140 (file `fgsa-healing-blueprint.md`, sha256
   `4d643d7a6285705ef8bcef6b408b46a45d64641f0d92828b3539f8f938074318`).
+- Lean plan: DC-fj module, item 4 partial (FG module, 2026-09-28; see the
+  dated line below).
 - Hypotheses: `fg.causalCap.core.v1`; the action schedule
   `a_r = T_r+6Δ`, `T_r = rP`; for clause 4, `comp.settle.v1`.
 - Statement (registry):
@@ -5969,6 +5980,18 @@ the run parts of the f1 splits (§8).
 > Let M be the honest archival frontier at u_0. As in DC,
 
 - Status: 2026-09-28 — PROVED (r144 claims N1 and N2; r147 §6; bp §1.2).
+- Status: 2026-09-28 (FG module, `lean/available-chain` main `64651ad`) —
+  LEAN for the arithmetic of item 4 only; the entry stays PROVED (paper).
+  `causalCap_notRoot` (`AvailableChainKitFG/CausalCap.lean`, lines 53–64,
+  verified in the source) proves: if every honest row on the chain of B
+  whose height pair is a vote has height at most M (`hrows`), and the faulty weight
+  is below q, then `h_j + 1 ≠ H` for every `H ≥ M+2`. Not in Lean: that M
+  is the frontier at `u_0` and that an old-only justification satisfies
+  `hrows` (run facts), and the link "active root ⇔ `H = h_j+1`"
+  (`Controls.rootIsJ`). Items 1–3 are run facts or external (the carrier
+  bound of item 3 is `fg.causalCap.core.v1` (b), `causalCap`); item 4's
+  view maximum is `comp.settle.v1`. `AvailableChainKitFG/Pins.lean`,
+  lines 283–300, pins this entry with these clause kinds.
 - Note: this is the run part of the SUPERSEDED `fg.causalCap.v1`. The FJ
   entries call this M "M0" (r148) or "M" (r151). The old-source cap of
   `env.r148` (μ in `fj.reset.v1`) is at most this M.
@@ -6824,7 +6847,9 @@ SUPERSEDED entry is the conjunction of its successors.
   `ap.headReachesLo.v1` to their hypotheses (§0 rule (b)); `fj.Xplus.v1`
   has a note that its callers discharge x2 with it.
 - New id `fj.frameFeasible.v1` (variant fj; PROVED; Lean plan DC-fj:
-  `fjFrame_D_reachesLo`, `fjFrame_D_nonempty`). It is the FG frame side
+  `fjFrame_D_reachesLo`, `fjFrame_D_nonempty`; Lean since `64651ad`:
+  `filteredFrom_reachesLo`, a generalization, for part (1)). It is the FG
+  frame side
   of the feasibility of `ap.headReachesLo.v1`: D reaches lo when D ≠ ∅,
   and D ≠ ∅ when the view holds the F carrier and the pure finality lock
   holds. It is an `fj.*` entry, not `ap.*` (audit W02).
@@ -6905,7 +6930,9 @@ SUPERSEDED entry is the conjunction of its successors.
   now requires `m ≥ 2`, and part (ii) has the hypothesis "a carrier of F′
   in the view", which excludes the gap phase. `fj.frameFeasible.v1`: new
   parts (3) Z ∈ D and (4) a viable child below lo (Lean
-  `fjFrame_Z_mem_D`, `fjFrame_viable_child`). `fj.inBandLock.v1`: a note
+  `fjFrame_Z_mem_D`, `fjFrame_viable_child`; Lean since `64651ad`:
+  `fjFrame_Z_mem_D` and `filteredFrom_viable_child`, a generalization).
+  `fj.inBandLock.v1`: a note
   on the Lean lemma `finalityPair_carrier_above`. `fg.frameCompat.v1`:
   Lean covers step 1 and part (ii); part (i) and step 4 stay paper.
 - ALFS registration (2026-09-28): the ALFS spec
@@ -7061,3 +7088,14 @@ SUPERSEDED entry is the conjunction of its successors.
   `Classical.choice` and `Quot.sound`. Team-lead will close the spec's
   OPEN item together with the r164 red-team fixes in one spec change;
   the re-pin waits for that change.
+- FG module pins (2026-09-28; requested by ethereum-f1;
+  `lean/available-chain` main `64651ad`, Tasks 1–14, full build passes;
+  `AvailableChainKitFG/Pins.lean` covers 13 ids). `comp.cut.v1`: Lean plan
+  "DC-fj (item 4 partial)" and a dated line: `causalCap_notRoot` proves
+  the arithmetic of item 4 only; the other clauses are run facts or
+  external. The index Lean-plan column is wider to hold that cell.
+  `fj.frameFeasible.v1`: the Lean names of parts (1) and (4) are
+  `filteredFrom_reachesLo` and `filteredFrom_viable_child`,
+  generalizations of the registry forms (any controls, any block set);
+  the two earlier §8 lines that give the plan names have a pointer.
+  Both names and `causalCap_notRoot` were checked in the Lean source.
