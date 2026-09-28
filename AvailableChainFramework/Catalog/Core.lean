@@ -1,0 +1,98 @@
+module
+public import AvailableChainFramework.Profile
+public import AvailableChainStatements.Generic.Regimes
+
+@[expose] public section
+
+namespace AvailableChain.Framework.Catalog
+
+open AvailableChain AvailableChain.Generic AvailableChain.Statements.Generic
+
+/-- The Sleepy regime of an instance. -/
+def sleepy (I : Instance) (W : Validators) (E : Env W.V) (rho : Run W.V I.P)
+    (t₀ : Time) : Prop :=
+  SleepyRegime I.P E I.iface rho t₀
+
+/-- Safety of one output in the Sleepy regime. No constant. -/
+def safeOf (id : Lean.Name) (g : (I : Instance) → Output I.P) : ClaimSpec where
+  id := id
+  Const := Unit
+  valid := fun _ => True
+  le := fun _ _ => true
+  le_refl := fun _ => rfl
+  le_trans := fun _ _ _ _ _ => rfl
+  Point := Time
+  regime := fun I _ W E rho t₀ => sleepy I W E rho t₀
+  conclusion := fun I _ _ _ rho t₀ => SafeFrom I.P rho (g I) t₀
+  trigger := fun _ _ _ _ _ _ => True
+  transport := by
+    intro I k k' _ _ _ h
+    cases k; cases k'; exact h
+  refutable := .run
+
+def safeConfirmed : ClaimSpec :=
+  safeOf `core.safe.confirmed.v1 (fun I => I.iface.confirmed)
+
+def safeStable : ClaimSpec :=
+  safeOf `core.safe.stable.v1 (fun I => I.iface.stable)
+
+/-- `stable ⪯ confirmed` at every honest node and time, in every run. -/
+def prefixOrder : ClaimSpec where
+  id := `core.prefix.stableConfirmed.v1
+  Const := Unit
+  valid := fun _ => True
+  le := fun _ _ => true
+  le_refl := fun _ => rfl
+  le_trans := fun _ _ _ _ _ => rfl
+  Point := Unit
+  regime := fun _ _ _ _ _ _ => True
+  conclusion := fun I _ _ _ rho _ => OutputOrder I.P I.iface rho
+  trigger := fun _ _ _ _ _ _ => True
+  transport := by
+    intro I k k' _ _ _ h
+    cases k; cases k'; exact h
+  refutable := .run
+
+/-- Exact-time inclusion of honest proposals in `confirmed`, Sleepy regime.
+`D` is fixed: `le` is equality (design §4). -/
+def includedConfirmed : ClaimSpec where
+  id := `core.included.confirmed.v1
+  Const := Time
+  valid := fun D => 0 ≤ D
+  le := fun a b => decide (a = b)
+  le_refl := fun _ => decide_eq_true rfl
+  le_trans := by
+    intro a b c hab hbc
+    have h1 := of_decide_eq_true hab
+    have h2 := of_decide_eq_true hbc
+    exact decide_eq_true (h1.trans h2)
+  Point := Time
+  regime := fun I _ W E rho t₀ => sleepy I W E rho t₀
+  conclusion := fun I D _ E rho t₀ =>
+    IncludedFrom I.P E I.iface rho I.iface.confirmed t₀ D
+  trigger := fun I D _ E rho t₀ =>
+    ∃ s : Slot, t₀ < I.P.proposalTime s ∧ HonestAwakeProposer E rho s ∧
+      I.P.proposalTime s + D ≤ rho.horizon
+  transport := by
+    intro I k k' _ _ hle h
+    have : k = k' := of_decide_eq_true hle
+    subst this; exact h
+  refutable := .family
+
+/-- The core floor (design §4): every candidate certifies all four. -/
+def core : Profile where
+  id := `core.v1
+  claims := [safeConfirmed, safeStable, prefixOrder, includedConfirmed]
+
+/-- A candidate protocol passes the core floor. `Type 1`, matching
+`ProfileCert` (controller ruling 2026-09-28: plan defect). -/
+def Candidate (I : Instance) : Type 1 := ProfileCert core I
+
+/-- A refutation family of a core claim rejects the instance. -/
+theorem not_candidate_of_family {I : Instance} {c : ClaimSpec}
+    (hc : c ∈ core.claims) (r : RefutationFamily c I) : Candidate I → False :=
+  fun h => (h c hc).not_refuted r
+
+end AvailableChain.Framework.Catalog
+
+end
