@@ -270,15 +270,9 @@ theorem sleepy : SleepyRegime viewProtocol sleepyEnv interface witnessRun 0 := b
   refine { rootInjective := rootInjective _
            execution := execution sleepyEnv (by decide)
            partialSynchrony := synchrony sleepyEnv (by decide) (by decide)
-           acceptedRelay := ?_
            gst_zero := by decide
            start_zero := rfl
            participation := ?_ }
-  · intro v hv i o t ha w hw hp hd
-    rcases accepted_case i v o t ha with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
-    · obtain ⟨j, hj⟩ := early_accepts w hw
-      exact ⟨0, by decide, by decide, j, hj⟩
-    · simp [witnessRun, sleepyEnv] at hd
   intro t h0 h2
   exact sleepyMajority t
 
@@ -305,17 +299,11 @@ theorem fast : FastRegime viewProtocol fastEnv interface witnessRun 0 := by
   refine { rootInjective := rootInjective _
            execution := execution fastEnv (by decide)
            partialSynchrony := synchrony fastEnv (by decide) (by decide)
-           acceptedRelay := ?_
            gst_zero := by decide
            start_zero := rfl
            participation := ?_
            fullParticipation := ?_
            belowQuarter := belowQuarter }
-  · intro v hv i o t ha w hw hp hd
-    rcases accepted_case i v o t ha with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
-    · obtain ⟨j, hj⟩ := early_accepts w hw
-      exact ⟨0, by decide, by decide, j, hj⟩
-    · simp [witnessRun, fastEnv] at hd
   · intro t h0 h2
     unfold AwakeMajority
     simp [faulty, awakeAt, fastEnv, witnessRun]
@@ -341,17 +329,11 @@ theorem outage : OutageRegime viewProtocol sleepyEnv interface constants
   refine { rootInjective := rootInjective _
            execution := execution sleepyEnv (by decide)
            healthy := healthyPrefix
-           acceptedRelay := ?_
            interval := by decide
            armed := by decide
            withinBudget := by decide
            sleepyBefore := ?_
            etaSleepyBefore := ?_ }
-  · intro v hv i o t ha w hw hp hd
-    rcases accepted_case i v o t ha with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
-    · obtain ⟨j, hj⟩ := early_accepts w hw
-      exact ⟨0, by decide, by decide, j, hj⟩
-    · simp [sleepyEnv] at hd
   · intro t h0 h1; exact sleepyMajority t
   · intro t h0 h1; exact etaSleepy t
 
@@ -378,16 +360,10 @@ theorem recovery : RecoveryRegime viewProtocol fullEnv interface constants witne
   refine { rootInjective := rootInjective _
            execution := execution fullEnv (by decide)
            partialSynchrony := synchrony fullEnv (by decide) (by decide)
-           acceptedRelay := ?_
            participation := ?_
            full := ?_
            recurrence := ?_
            horizon := by decide }
-  · intro v hv i o t ha w hw hp hd
-    rcases accepted_case i v o t ha with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
-    · obtain ⟨j, hj⟩ := early_accepts w hw
-      exact ⟨0, by decide, by decide, j, hj⟩
-    · simp [witnessRun, fullEnv] at hd
   · intro t h0 h2
     have ht : t ≠ 0 := by
       change (1 : Int) ≤ t at h0

@@ -186,8 +186,105 @@ theorem genesis_stored_at_time {V : Type} [DecidableEq V] (p : Params)
     simp [Run.stateBefore, World.init, gridCO, initial]
   exact ⟨hp.blocks.subset hm, (hp.stampBlock (run_receiptStamped p rho 0 reader) _ hm)⟩
 
+/-- A dependency-ready proposal call stores its block once its slot is public. -/
+theorem handled_proposal_stored {V : Type} [DecidableEq V]
+    (p : Params) (E : Env V) (rho : Run V (gridCO p))
+    (hx : ExecutionValid (gridCO p) E rho) (hΔ : E.Δ = p.Δ)
+    (j : Nat) (v : V) (o : Wire p.n) (B : Block)
+    (raw support : List (HeadWire p.n)) (t : Time)
+    (hp : o.payload = .proposal B raw support)
+    (hh : Run.handlesAt (gridCO p) rho j v o t)
+    (hlo : proposalTime p B.slot ≤ t) :
+    B ∈ (Run.stateBefore (gridCO p) rho (j + 1) v).blocks := by
+  obtain ⟨parent, hj, hh⟩ := hh
+  have he := handles_proposal_direct p _ parent o B raw support hp hh
+  subst parent
+  have hw := hx.wire j v o t hj
+  have hd := hx.deps j v o t hj
+  have hf := hx.fresh j v o t hj
+  have ha : o.auth = .proposer B.slot := by
+    cases ha : o.auth <;> simp only [gridCO, wellFormed, ha, hp] at hw
+    all_goals first
+      | contradiction
+      | simp only [Bool.and_eq_true, beq_iff_eq] at hw
+        rw [hw.1.1.1.1]
+  have hw' := hw
+  simp only [gridCO, wellFormed, ha, hp, Bool.and_eq_true, beq_iff_eq,
+    decide_eq_true_eq] at hw'
+  have hparent : B.parent.slot < B.slot := hw'.1.1.2
+  have hpub : PublicTime E (proposalTime p B.slot) := by
+    refine ⟨4 * B.slot, ?_⟩
+    simp only [proposalTime, hΔ, Nat.cast_mul, Nat.cast_ofNat]
+    ring
+  have hz : 0 ≤ proposalTime p B.slot := by
+    unfold proposalTime
+    exact mul_nonneg (by linarith [p.deltaPos]) (Int.natCast_nonneg _)
+  have hnow := delivery_now_ge_public p E rho hx.toScheduleWellFormed hj hpub hz hlo
+  have hslot : B.slot ≤ ((Run.stateBefore (gridCO p) rho j v).now / (4 * p.Δ)).toNat := by
+    have hdiv : (B.slot : Int) ≤ (Run.stateBefore (gridCO p) rho j v).now / (4 * p.Δ) := by
+      apply (Int.le_ediv_iff_mul_le (by linarith [p.deltaPos])).mpr
+      simpa [proposalTime, mul_comm] using hnow
+    exact (Int.le_toNat (by omega)).mpr hdiv
+  have hdep : B.parent ∈ (Run.stateBefore (gridCO p) rho j v).blocks := by
+    simpa [gridCO, depsPresent, hp, blockKnown] using hd
+  have hnew : B ∉ (Run.stateBefore (gridCO p) rho j v).blocks := by
+    simpa [gridCO, processed, hp, blockKnown] using hf
+  rw [stateBefore_succ_event hj]
+  simp only [World.step, Function.update_self]
+  change B ∈ (process p _ o).blocks
+  simp only [process, ha, hp, admitProposal, not_lt.mpr hslot, decide_false,
+    blockKnown, hdep, decide_true, Bool.not_true, hnew, hparent, beq_self_eq_true,
+    Bool.or_self, Bool.false_eq_true, ↓reduceIte]
+  rw [fold_votes_blocks]
+  simp
+
+/-- Source acceptance and the public schedule exclude a future block at
+any later checked handler call. There is no lower block admission window. -/
+theorem accepted_proposal_handled_stored {V : Type} [DecidableEq V]
+    (p : Params) (E : Env V) (rho : Run V (gridCO p))
+    (hx : ExecutionValid (gridCO p) E rho) (hΔ : E.Δ = p.Δ)
+    (i j : Nat) (source reader : V) (o : Wire p.n) (B : Block)
+    (raw support : List (HeadWire p.n)) (t t' : Time)
+    (hp : o.payload = .proposal B raw support)
+    (ha : Run.acceptsAt (gridCO p) rho i source o t)
+    (hh : Run.handlesAt (gridCO p) rho j reader o t') (htt : t ≤ t') :
+    B ∈ (Run.stateBefore (gridCO p) rho (j + 1) reader).blocks := by
+  obtain ⟨parent, hi, hhandle⟩ := ha.1
+  have he := handles_proposal_direct p _ parent o B raw support hp hhandle
+  subst parent
+  have hn : B ∉ (Run.stateBefore (gridCO p) rho i source).blocks := by
+    simpa [gridCO, processed, hp, blockKnown] using ha.2.1
+  have hm : B ∈ (process p (Run.stateBefore (gridCO p) rho i source) o).blocks := by
+    have h := ha.2.2
+    rw [stateBefore_succ_event hi] at h
+    simpa [World.step, gridCO, processed, hp, blockKnown] using h
+  have hslot := process_new_block_slot p _ o B hn hm
+  have hw := hx.wire i source o t hi
+  have hpos : 0 < B.slot := by
+    cases h_auth : o.auth <;> simp only [gridCO, wellFormed, h_auth, hp] at hw
+    all_goals first
+      | contradiction
+      | simp only [Bool.and_eq_true, beq_iff_eq, decide_eq_true_eq] at hw
+        have he : _ = B.slot := hw.1.1.1.1
+        have hlt := hw.1.1.2
+        rw [he] at hlt
+        exact Nat.zero_lt_of_lt hlt
+  have hdiv : (B.slot : Int) ≤ (Run.stateBefore (gridCO p) rho i source).now / (4 * p.Δ) := by
+    have hn : 0 ≤ (Run.stateBefore (gridCO p) rho i source).now / (4 * p.Δ) := by
+      by_contra hneg
+      have hz := Int.toNat_eq_zero.mpr (le_of_lt (lt_of_not_ge hneg))
+      have hzero : B.slot ≤ 0 := hslot.trans_eq hz
+      exact (Nat.not_lt_of_ge hzero) hpos
+    exact (Int.le_toNat hn).mp hslot
+  have htime := (Int.le_ediv_iff_mul_le (by linarith [p.deltaPos])).mp hdiv
+  have hnow := stateBefore_now_le_event p E rho hx.toScheduleWellFormed hi source
+  apply handled_proposal_stored p E rho hx hΔ j reader o B raw support t' hp hh
+  dsimp [proposalTime]
+  change (Run.stateBefore (gridCO p) rho i source).now ≤ t at hnow
+  nlinarith
+
 /-- Any path block stored before the HEAD time relays before the early
-cutoff of a synchronous label. Both delivery regimes use accepted relay. -/
+cutoff of a synchronous label. Both delivery regimes use receipt relay. -/
 theorem synchronous_block_path_at_gate {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
     (r : Slot) (hsync : EarlyDelivery p E rho r)
@@ -224,23 +321,25 @@ theorem synchronous_block_path_at_gate {V : Type} [DecidableEq V]
     rw [hΔ]
     dsimp [voteTime, earlyTime] at ht ⊢
     linarith
-  have hrelay : ∃ j t', Run.acceptsAt (gridCO p) rho j reader o t' ∧ t' < earlyTime p r := by
-    rcases hsync.delivery with ⟨hgst, _, relay⟩ | ⟨cut, hcut, _, relay⟩
+  have hrelay : ∃ j t', Run.handlesAt (gridCO p) rho j reader o t' ∧ t ≤ t' ∧
+      t' < earlyTime p r := by
+    rcases hsync.delivery with ⟨hgst, relay⟩ | ⟨cut, hcut, relay⟩
     · have hd : max t E.t_GST + E.Δ ≤ earlyTime p r := by
         rw [← max_add_add_right]
         refine max_le hdeadline ?_
         rw [hΔ]
         dsimp [earlyTime]
         linarith [p.deltaPos]
-      obtain ⟨t', _, ht', j, hj⟩ := relay source hs index o t ha reader hr hmissing
-        (hd.trans hsync.horizon)
-      exact ⟨j, t', hj, ht'.trans_le hd⟩
-    · obtain ⟨t', _, ht', j, hj⟩ := relay source hs index o t ha reader hr hmissing
-        (hdeadline.trans hcut)
-      exact ⟨j, t', hj, ht'.trans_le hdeadline⟩
-  obtain ⟨j, t', ⟨⟨parent, hj, _⟩, _, hstored⟩, ht'⟩ := hrelay
-  have hm : B ∈ (Run.stateBefore (gridCO p) rho (j + 1) reader).blocks := by
-    simpa [gridCO, processed, hp, blockKnown] using hstored
+      obtain ⟨t', htt, ht', j, hj⟩ := relay.relay source hs index o t ha reader hr hmissing
+        (hd.trans hsync.horizon) rfl
+      exact ⟨j, t', hj, htt, ht'.trans_le hd⟩
+    · obtain ⟨t', htt, ht', j, hj⟩ := relay.relay source hs index o t ha reader hr hmissing
+        (hdeadline.trans hcut) rfl
+      exact ⟨j, t', hj, htt, ht'.trans_le hdeadline⟩
+  obtain ⟨j, t', hh, htt, ht'⟩ := hrelay
+  have hm := accepted_proposal_handled_stored p E rho hsync.execution hΔ
+    index j source reader o B raw support t t' hp ha hh htt
+  obtain ⟨parent, hj, _⟩ := hh
   exact stored_block_stamp_before_cut p E rho hsched hj hm ht' hearly
 
 /-- Early HEAD receipt and early target-path relay together give a resolved

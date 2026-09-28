@@ -1,6 +1,7 @@
 module
 public import AvailableChainSAPC.Proofs.Assembly
 public import AvailableChainSAPC.Proofs.Paths
+public import AvailableChainSAPC.Proofs.ReceiptRelay
 
 @[expose] public section
 namespace AvailableChain.SAPC

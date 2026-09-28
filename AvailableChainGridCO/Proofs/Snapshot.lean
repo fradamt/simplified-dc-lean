@@ -22,16 +22,76 @@ private theorem early_nonneg (p : Params) (r : Slot) : 0 ≤ earlyTime p r := by
   dsimp [earlyTime, proposalTime]
   nlinarith [p.deltaPos, Int.natCast_nonneg r]
 
-/-- An early HEAD is present before release with a stamp before the
+/-- Every HEAD in a release snapshot reaches every honest late pool.
+The relay deadline is the same label's gate, including the strict endpoint. -/
+theorem synchronous_release_vote_late {V : Type} [DecidableEq V] [Fintype V]
+    (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
+    (r : Slot) (hsync : SynchronousLabel p E rho r)
+    (source reader : V) (hs : source ∈ rho.honest) (hr : reader ∈ rho.honest)
+    (o : Wire p.n) (ho : o ∈ votesAt (releaseInput p rho r source) r) :
+    ∀ i, headSeat? o = some i →
+      o ∈ lateVotes p (gateInput p rho r reader) r ∨
+      equivocates (lateVotes p (gateInput p rho r reader) r) i = true := by
+  have hsched := hsync.1.toScheduleWellFormed
+  obtain ⟨hm, hl⟩ := List.mem_filter.mp ho
+  have hhead : ∃ B, o.payload = .head B := by
+    cases ho : o.payload <;> simp_all [headLabel?]
+  obtain ⟨B, hb⟩ := hhead
+  change o ∈ (Run.stateBeforeTime (gridCO p) rho (releaseTime p r) source).votes at hm
+  rw [time_input_eq_event_prefix p E rho hsched] at hm
+  obtain ⟨index, hindex, t, ha, _⟩ := stored_head_stamp_source p rho _ source o _
+    (stampVote_mem_of_stored _ (run_receiptStamped p rho _ source) o hm)
+  obtain ⟨parent, hi, _⟩ := ha.1
+  have ht : t < releaseTime p r := Int.le_sub_one_iff.mp
+    ((index_lt_read_length_iff hsched (releaseTime p r - 1) hi).mp hindex)
+  exact synchronous_accepted_head_before p E rho hΔ r hsync source reader hs hr
+    index o B t (gateTime p r) (gateTime p r) hb (by simpa using hl) ha
+    (by rw [hΔ]; dsimp [releaseTime, gateTime] at *; linarith)
+    (by rw [hΔ]; dsimp [gateTime]; linarith [p.deltaPos]) (le_refl _) (le_refl _)
+
+/-- A genuine surviving seat cannot equivocate in another reader's
+release snapshot: relay would expose both copies before the source gate. -/
+theorem synchronous_survivor_not_equivocating {V : Type} [DecidableEq V] [Fintype V]
+    (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
+    (r : Slot) (hsync : SynchronousLabel p E rho r)
+    (source reader : V) (hs : source ∈ rho.honest) (hr : reader ∈ rho.honest)
+    (o : Wire p.n) (i : Fin p.n) (ho : o ∈ cleanSupport p (gateInput p rho r source) r)
+    (hi : headSeat? o = some i) :
+    equivocates (votesAt (releaseInput p rho r reader) r) i = false := by
+  let xs := seatVotes (votesAt (releaseInput p rho r reader) r) i
+  have hsingle : ∀ q ∈ xs, q = o := by
+    intro q hq
+    obtain ⟨hq, hseat⟩ := List.mem_filter.mp hq
+    have hlate := synchronous_release_vote_late p E rho hΔ r hsync
+      reader source hr hs q hq i (by simpa using hseat)
+    have hlate := hlate.resolve_right (by
+      rw [cleanSupport_not_equivocating p _ r o i hi ho]
+      decide)
+    exact (cleanSupport_eq_of_late_same_seat p _ r i o q ho hlate hi
+      (by simpa using hseat)).symm
+  have hcard : xs.toFinset.card ≤ 1 := by
+    apply Finset.card_le_one.mpr
+    intro a ha b hb
+    exact (hsingle a (List.mem_toFinset.mp ha)).trans
+      (hsingle b (List.mem_toFinset.mp hb)).symm
+  have hlen : xs.eraseDups.length ≤ 1 := by
+    have heq : xs.eraseDups.toFinset = xs.toFinset := by ext q; simp
+    rw [← List.toFinset_card_of_nodup (eraseDups_nodup xs), heq]
+    exact hcard
+  change decide (2 ≤ xs.eraseDups.length) = false
+  exact decide_eq_false (by omega)
+
+/-- A surviving early HEAD is present before release with a stamp before the
 ordinary freeze. This includes faulty support and sleeping readers. -/
 theorem synchronous_early_head_at_release {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
     (r : Slot) (hsync : SynchronousLabel p E rho r)
     (source reader : V) (hs : source ∈ rho.honest) (hr : reader ∈ rho.honest)
-    (o : Wire p.n) (ho : o ∈ earlyVotes p (gateInput p rho r source) r) :
+    (o : Wire p.n) (ho : o ∈ cleanSupport p (gateInput p rho r source) r) :
     o ∈ votesAt (releaseInput p rho r reader) r ∧
       stampVote (releaseInput p rho r reader) o < freezeTime p r := by
-  obtain ⟨hraw, hres⟩ := List.mem_filter.mp ho
+  have hearly := (List.mem_filter.mp ho).1
+  obtain ⟨hraw, hres⟩ := List.mem_filter.mp hearly
   obtain ⟨hm, hl⟩ := List.mem_filter.mp hraw
   have hhead : ∃ B, o.payload = .head B := by
     cases ho : o.payload <;> simp_all [headLabel?]
@@ -45,13 +105,24 @@ theorem synchronous_early_head_at_release {V : Type} [DecidableEq V] [Fintype V]
   obtain ⟨index, _, t, ha, ht⟩ := stored_head_accepted_before p E rho
     hsync.1.toScheduleWellFormed _ source o (earlyTime p r)
       (early_public p E hΔ r) (early_nonneg p r) hm ht
-  obtain ⟨hm, hstamp⟩ := synchronous_accepted_head_before p E rho r hsync source reader hs hr
-    index o B t (freezeTime p r) (releaseTime p r) hb ha
+  have hsettle := synchronous_accepted_head_before p E rho hΔ r hsync source reader hs hr
+    index o B t (freezeTime p r) (releaseTime p r) hb (by simpa using hl) ha
     (by rw [hΔ]; dsimp [earlyTime, freezeTime] at *; linarith)
     (by rw [hΔ]; dsimp [freezeTime]; linarith [p.deltaPos])
     (by dsimp [freezeTime, gateTime]; linarith [p.deltaPos])
     (by dsimp [freezeTime, releaseTime]; linarith [p.deltaPos])
-  exact ⟨List.mem_filter.mpr ⟨hm, hl⟩, hstamp⟩
+  obtain ⟨i, hi⟩ : ∃ i, headSeat? o = some i := by
+    cases o with
+    | mk auth payload => cases auth <;> cases payload <;> simp_all [headLabel?, headSeat?]
+  have hne := synchronous_survivor_not_equivocating p E rho hΔ r hsync
+    source reader hs hr o i ho hi
+  have hm := (hsettle i hi).resolve_right (fun he => by
+    have he' := equivocates_mono _ (votesAt (releaseInput p rho r reader) r) i
+      (fun q hq => (List.mem_filter.mp hq).1) he
+    rw [hne] at he'
+    contradiction)
+  obtain ⟨hm, hstamp⟩ := List.mem_filter.mp hm
+  exact ⟨hm, of_decide_eq_true hstamp⟩
 
 /-- The target of an early resolved HEAD is stored before release with
 an early block stamp. Its accepted proposal relays independently of the HEAD. -/
@@ -81,8 +152,8 @@ theorem synchronous_early_target_at_release {V : Type} [DecidableEq V] [Fintype 
   rw [time_input_eq_event_prefix p E rho hsched] at hm ht
   obtain ⟨index, _, t, obj, raw, support, hp, ha, ht⟩ := stored_block_accepted_before p E rho
     hsched _ source B (earlyTime p r) hn (early_public p E hΔ r) (early_nonneg p r) hm ht
-  obtain ⟨j, e, hj, he, hstored⟩ := synchronous_accepted_object_before p E rho r hsync
-    source reader hs hr index obj t (freezeTime p r) ha
+  obtain ⟨j, e, hj, he, hstored⟩ := synchronous_accepted_block_before p E rho hΔ r hsync
+    source reader hs hr index obj t (freezeTime p r) hp ha
     (by rw [hΔ]; dsimp [earlyTime, freezeTime] at *; linarith)
     (by rw [hΔ]; dsimp [freezeTime]; linarith [p.deltaPos])
     (by dsimp [freezeTime, gateTime]; linarith [p.deltaPos])
@@ -90,83 +161,30 @@ theorem synchronous_early_target_at_release {V : Type} [DecidableEq V] [Fintype 
     (by simpa [processed, hp, blockKnown] using hstored) he
     (by dsimp [freezeTime, releaseTime]; linarith [p.deltaPos])
 
-/-- Every early resolved HEAD remains resolved at each reader's release
+/-- Every surviving early HEAD remains resolved at each reader's release
 snapshot. Both the HEAD and its target path have arrived before the freeze. -/
 theorem synchronous_early_resolved_at_release {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
     (r : Slot) (hsync : SynchronousLabel p E rho r)
     (source reader : V) (hs : source ∈ rho.honest) (hr : reader ∈ rho.honest)
-    (o : Wire p.n) (ho : o ∈ earlyVotes p (gateInput p rho r source) r) :
+    (o : Wire p.n) (ho : o ∈ cleanSupport p (gateInput p rho r source) r) :
     o ∈ votesAt (releaseInput p rho r reader) r ∧
       resolvedBefore (releaseInput p rho r reader) o (releaseTime p r) = true := by
   obtain ⟨hm, ht⟩ := synchronous_early_head_at_release p E rho hΔ r hsync
     source reader hs hr o ho
   refine ⟨hm, ?_⟩
-  have hres := (List.mem_filter.mp ho).2
+  have hearly := (List.mem_filter.mp ho).1
+  have hres := (List.mem_filter.mp hearly).2
   cases hb : headTarget? o with
   | none => simp [resolvedBefore, hb] at hres
   | some B =>
       obtain ⟨hblock, hstamp⟩ := synchronous_early_target_at_release p E rho hΔ r hsync
-        source reader hs hr o B hb ho
+        source reader hs hr o B hb hearly
       have hcut : freezeTime p r ≤ releaseTime p r := by
         dsimp [freezeTime, releaseTime]; linarith [p.deltaPos]
       simp only [resolvedBefore, hb, Bool.and_eq_true, decide_eq_true_eq] at hres ⊢
       exact ⟨⟨⟨by simpa [blockKnown] using hblock, hres.1.1.2⟩,
         ht.trans_le hcut⟩, hstamp.trans_le hcut⟩
-
-/-- Every HEAD in a release snapshot reaches every honest late pool.
-The relay deadline is the same label's gate, including the strict endpoint. -/
-theorem synchronous_release_vote_late {V : Type} [DecidableEq V] [Fintype V]
-    (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
-    (r : Slot) (hsync : SynchronousLabel p E rho r)
-    (source reader : V) (hs : source ∈ rho.honest) (hr : reader ∈ rho.honest)
-    (o : Wire p.n) (ho : o ∈ votesAt (releaseInput p rho r source) r) :
-    o ∈ lateVotes p (gateInput p rho r reader) r := by
-  have hsched := hsync.1.toScheduleWellFormed
-  obtain ⟨hm, hl⟩ := List.mem_filter.mp ho
-  have hhead : ∃ B, o.payload = .head B := by
-    cases ho : o.payload <;> simp_all [headLabel?]
-  obtain ⟨B, hb⟩ := hhead
-  change o ∈ (Run.stateBeforeTime (gridCO p) rho (releaseTime p r) source).votes at hm
-  rw [time_input_eq_event_prefix p E rho hsched] at hm
-  obtain ⟨index, hindex, t, ha, _⟩ := stored_head_stamp_source p rho _ source o _
-    (stampVote_mem_of_stored _ (run_receiptStamped p rho _ source) o hm)
-  obtain ⟨parent, hi, _⟩ := ha.1
-  have ht : t < releaseTime p r := Int.le_sub_one_iff.mp
-    ((index_lt_read_length_iff hsched (releaseTime p r - 1) hi).mp hindex)
-  obtain ⟨hm, hstamp⟩ := synchronous_accepted_head_before p E rho r hsync source reader hs hr
-    index o B t (gateTime p r) (gateTime p r) hb ha
-    (by rw [hΔ]; dsimp [releaseTime, gateTime] at *; linarith)
-    (by rw [hΔ]; dsimp [gateTime]; linarith [p.deltaPos]) (le_refl _) (le_refl _)
-  exact List.mem_filter.mpr ⟨List.mem_filter.mpr ⟨hm, hl⟩, decide_eq_true hstamp⟩
-
-/-- A genuine surviving seat cannot equivocate in another reader's
-release snapshot: relay would expose both copies before the source gate. -/
-theorem synchronous_survivor_not_equivocating {V : Type} [DecidableEq V] [Fintype V]
-    (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
-    (r : Slot) (hsync : SynchronousLabel p E rho r)
-    (source reader : V) (hs : source ∈ rho.honest) (hr : reader ∈ rho.honest)
-    (o : Wire p.n) (i : Fin p.n) (ho : o ∈ cleanSupport p (gateInput p rho r source) r)
-    (hi : headSeat? o = some i) :
-    equivocates (votesAt (releaseInput p rho r reader) r) i = false := by
-  let xs := seatVotes (votesAt (releaseInput p rho r reader) r) i
-  have hsingle : ∀ q ∈ xs, q = o := by
-    intro q hq
-    obtain ⟨hq, hseat⟩ := List.mem_filter.mp hq
-    have hlate := synchronous_release_vote_late p E rho hΔ r hsync reader source hr hs q hq
-    exact (cleanSupport_eq_of_late_same_seat p _ r i o q ho hlate hi
-      (by simpa using hseat)).symm
-  have hcard : xs.toFinset.card ≤ 1 := by
-    apply Finset.card_le_one.mpr
-    intro a ha b hb
-    exact (hsingle a (List.mem_toFinset.mp ha)).trans
-      (hsingle b (List.mem_toFinset.mp hb)).symm
-  have hlen : xs.eraseDups.length ≤ 1 := by
-    have heq : xs.eraseDups.toFinset = xs.toFinset := by ext q; simp
-    rw [← List.toFinset_card_of_nodup (eraseDups_nodup xs), heq]
-    exact hcard
-  change decide (2 ≤ xs.eraseDups.length) = false
-  exact decide_eq_false (by omega)
 
 /-- The engine supplies the resolved paths and reverse equivocation relay
 for every genuine prefix support set. -/
@@ -179,7 +197,7 @@ theorem snapshotSeatAlignment_from_engine {V : Type} [DecidableEq V] [Fintype V]
   · intro i hi
     obtain ⟨o, ho, hseat, target, ht, hp⟩ := prefixSupportSeats_witness p _ r B i hi
     obtain ⟨hm, hresolved⟩ := synchronous_early_resolved_at_release p E rho hΔ r hsync
-      source reader hs hr o (List.mem_filter.mp ho).1
+      source reader hs hr o ho
     refine ⟨o, hm, hresolved, hseat, ?_⟩
     have hc := conflict_mono_descendant B target K hp hconflict
     have hc' : Block.compatible target K = false := by
@@ -189,7 +207,7 @@ theorem snapshotSeatAlignment_from_engine {V : Type} [DecidableEq V] [Fintype V]
     obtain ⟨o, ho, hseat, _⟩ := prefixSupportSeats_witness p _ r B i hi
     exact synchronous_survivor_not_equivocating p E rho hΔ r hsync source reader hs hr o i ho hseat
 
-/-- The snapshot bound follows from accepted-object relay in either label
+/-- The snapshot bound follows from receipt relay in either label
 regime. The conclusion counts actual resolved, non-equivocating seats. -/
 theorem snapshot_from_engine {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ) :

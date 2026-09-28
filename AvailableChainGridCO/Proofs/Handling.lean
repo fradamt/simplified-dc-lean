@@ -41,6 +41,37 @@ private theorem votesAt_subset {n : Nat} (a b : State n) (r : Slot)
   obtain ⟨hm, hl⟩ := List.mem_filter.mp ho
   exact List.mem_filter.mpr ⟨hsub hm, hl⟩
 
+/-- A non-equivocating seat has one base key in a raw view. -/
+theorem non_equivocating_unique {n : Nat} (raw : List (Wire n)) (i : Fin n)
+    (h : equivocates raw i = false) (a b : Wire n)
+    (ha : a ∈ seatVotes raw i) (hb : b ∈ seatVotes raw i) : a = b := by
+  have hlen : (seatVotes raw i).eraseDups.length ≤ 1 := by
+    have := of_decide_eq_false h
+    omega
+  have heq : (seatVotes raw i).eraseDups.toFinset =
+      (seatVotes raw i).toFinset := by ext o; simp
+  have hcard : (seatVotes raw i).toFinset.card ≤ 1 := by
+    rw [← heq, List.toFinset_card_of_nodup (eraseDups_nodup _)]
+    exact hlen
+  exact Finset.card_le_one.mp hcard a (List.mem_toFinset.mpr ha) b (List.mem_toFinset.mpr hb)
+
+/-- Relay alternatives preserve two-copy evidence across readers. -/
+theorem equivocates_of_mem_or_equivocates {n : Nat} (xs ys : List (Wire n)) (i : Fin n)
+    (hback : ∀ o ∈ xs, headSeat? o = some i → o ∈ ys ∨ equivocates ys i = true)
+    (he : equivocates xs i = true) : equivocates ys i = true := by
+  by_contra hn
+  have hfalse := Bool.eq_false_iff.mpr hn
+  have hx : equivocates xs i = false := by
+    apply equivocates_false_of_unique
+    intro a ha b hb
+    obtain ⟨ham, hai⟩ := List.mem_filter.mp ha
+    obtain ⟨hbm, hbi⟩ := List.mem_filter.mp hb
+    exact non_equivocating_unique ys i hfalse a b
+      (List.mem_filter.mpr ⟨(hback a ham (by simpa using hai)).resolve_right hn, hai⟩)
+      (List.mem_filter.mpr ⟨(hback b hbm (by simpa using hbi)).resolve_right hn, hbi⟩)
+  rw [hx] at he
+  contradiction
+
 /-- HEAD admission never removes a stored copy. -/
 theorem admitVote_votes_subset (p : Params) {n : Nat} (st : State n) (o : Wire n) :
     st.votes ⊆ (admitVote p st o).votes := by
@@ -163,6 +194,73 @@ theorem handled_honest_head_stored {V : Type} [DecidableEq V]
   have he := honest_not_equivocating_at_event p E rho hx (index + 1) reader r i hh
   rw [hpost] at he ⊢
   exact handled_head_mem_of_not_equivocating p _ parent r i B hlo hhi hhandle he
+
+/-- A new vote cannot have a future label. -/
+theorem admitVote_new_head_label (p : Params) {n : Nat} (st : State n)
+    (parent o : Wire n) (r : Slot) (hl : headLabel? o = some r)
+    (hm : o ∈ (admitVote p st parent).votes) :
+    o ∈ st.votes ∨ r ≤ (st.now / (4 * p.Δ)).toNat := by
+  unfold admitVote at hm
+  split at hm
+  · rename_i label seat target ha hp
+    dsimp only at hm
+    split at hm
+    · exact Or.inl hm
+    · rename_i hg
+      rcases List.mem_append.mp hm with hm | hm
+      · exact Or.inl hm
+      · have he : o = parent := List.mem_singleton.mp hm
+        subst o
+        have hr : label = r := by simpa [headLabel?, ha, hp] using hl
+        subst label
+        right
+        simp only [Bool.or_eq_true, decide_eq_true_eq, not_or] at hg
+        exact le_of_not_gt hg.1.1.2
+  · exact Or.inl hm
+
+theorem fold_new_head_label (p : Params) {n : Nat} (st : State n)
+    (raw : List (HeadWire n)) (o : Wire n) (r : Slot)
+    (hl : headLabel? o = some r)
+    (hm : o ∈ (raw.foldl (fun acc row => admitVote p acc (fromHead row)) st).votes) :
+    o ∈ st.votes ∨ r ≤ (st.now / (4 * p.Δ)).toNat := by
+  induction raw generalizing st with
+  | nil => exact Or.inl hm
+  | cons row raw ih =>
+    rcases ih _ hm with hm | hle
+    · exact admitVote_new_head_label p st _ o r hl hm
+    · exact Or.inr (by simpa [admitVote_now] using hle)
+
+theorem process_new_head_label (p : Params) {n : Nat} (st : State n)
+    (parent o : Wire n) (r : Slot) (hl : headLabel? o = some r)
+    (hm : o ∈ (process p st parent).votes) :
+    o ∈ st.votes ∨ r ≤ (st.now / (4 * p.Δ)).toNat := by
+  unfold process at hm
+  split at hm
+  · exact admitVote_new_head_label p st parent o r hl hm
+  · unfold admitProposal at hm
+    dsimp only at hm
+    split at hm <;> split at hm
+    all_goals first
+      | exact Or.inl hm
+      | have h := fold_new_head_label p _ _ o r hl hm
+        exact h
+  · exact Or.inl hm
+
+/-- Proposal envelopes cannot be carried by another message's HEAD list. -/
+theorem handles_proposal_direct (p : Params) {n : Nat} (st : State n)
+    (outer o : Wire n) (B : Block) (raw support : List (HeadWire n))
+    (hp : o.payload = .proposal B raw support) (hh : handles p st outer o) : outer = o := by
+  rcases hh with he | hh
+  · exact he
+  · cases ho : outer.payload with
+    | head target => simp [ho] at hh
+    | proposal target rows resolved =>
+        simp only [ho] at hh
+        obtain ⟨wire, _, he⟩ := List.mem_map.mp hh.2.2
+        have hpay := congrArg Signed.payload he
+        simp only [fromHead] at hpay
+        rw [hp] at hpay
+        contradiction
 
 end AvailableChain.GridCO
 end

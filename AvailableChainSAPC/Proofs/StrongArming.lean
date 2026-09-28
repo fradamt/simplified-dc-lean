@@ -20,7 +20,7 @@ theorem strongArmed_sleepy_prefix {V : Type} [DecidableEq V] [Fintype V]
       have : (1 : Time) ≤ E.Δ := Int.add_one_le_iff.mpr E.Δ_pos
       linarith)
     (by linarith) (by have := h.interval.2.2; linarith)
-    h.rootInjective h.healthy h.acceptedRelay h.sleepyBefore
+    h.rootInjective h.healthy h.sleepyBefore
 
 /-- Transport the existing clean invariant to every input before the
 outage. In particular its finite entries still have actual raw sources. -/

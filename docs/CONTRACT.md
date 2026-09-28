@@ -60,10 +60,12 @@ fast P1. A smaller fast lag expresses a stronger guarantee.
   clock.
 - **Signatures:** an object held by an honest seat or proposer was emitted
   by it. Faulty seats and proposers sign anything at any time.
-- **Delivery:** arbitrary before GST; after GST every honest emission
-  reaches every honest node in less than Δ. Accepted objects also reach
-  acceptance at every honest reader within Δ when the deadline is in the
-  run. A healthy outage prefix has the same acceptance guarantee before b₀.
+- **Delivery:** arbitrary before GST; after GST every honest emission and
+  required relay causes an actual checked, dependency-ready handler call
+  in less than Δ, subject to the
+  receiver exclusion test. Relay starts from honest acceptance; it does
+  not require receiver acceptance. A healthy prefix has the same receipt
+  guarantee before b₀. Strict deadlines and horizon conditions are retained.
 
 ## 2a. Committee model C* (rules)
 
@@ -145,14 +147,14 @@ times before the protected read `T`. The healthy prefix starts at genesis.
 ┌──────────────┬───────────────────────────────────────────────────────┐
 │ Regime       │ Premise                                               │
 ├──────────────┼───────────────────────────────────────────────────────┤
-│ Sleepy       │ GST = t₀ = 0, synchrony and accepted-object relay;    │
+│ Sleepy       │ GST = t₀ = 0, synchrony with receipt relay;           │
 │              │ at every t, w(H_t) > w(A)                             │
 │ StableSleepy │ Sleepy, and the η-sleepy condition with threshold θ   │
 │ (θ, η)       │ (for the stable claims)                               │
 │ Fast         │ Sleepy with full honest participation and w(A) < W/4  │
 │              │ (honest > 3/4). Decided by the user.                  │
 │ Outage       │ StableSleepy(θ, η) counts before b₀; healthy delivery │
-│              │ and accepted relay before b₀; arbitrary delivery in   │
+│              │ and receipt relay before b₀; arbitrary delivery in    │
 │              │ [b₀, b₁)                                              │
 │ FastOutage   │ Outage with the fast lag instead of the general lag;  │
 │              │ at least ⌈n/2⌉ honest awake at every 0 ≤ t < b₀       │
@@ -277,6 +279,31 @@ SA-PC extra-claim statements are removed.
 This is the one-time authorized scope extension. The base contract is
 now frozen at Draft 4.3. The strong companion below is additive.
 
+## Relay premise — 2026-09-28
+
+The user authorized this change to Draft 4.3. `SleepyRegime`,
+`OutageRegime`, `RecoveryRegime`, and `StrongArmedRegime` no longer have
+an `acceptedRelay` field. Their derived regimes inherit this change.
+`PartialSynchrony.relay` and `HealthyPrefixDelivery.relay` conclude
+`handlesAt`: an actual handler call within the original strict Δ bound.
+`DeliveryWellFormed.deps` still requires dependencies at the call.
+Readiness, horizon, participation, root, and timing premises are unchanged.
+All public contract conclusions and constants are unchanged.
+
+The shared Grid CO/SA proofs derive exact block-path transport and
+in-window vote membership or stamped equivocation evidence. Honest HEADs
+and surviving supporters retain exact transport. Proposal agreement uses
+equal participating seats, equivocating seats, scores, and eligibility;
+it does not require equal raw or support vote sets. SA-PC derives exact
+complete-object relay from its archive handlers. This derived theorem is
+not a network premise. Its `acceptedRelay` methods are proof adapters.
+
+This note supersedes the earlier Draft 4 decision to require universal
+acceptance. The negative examples N1–N4 in the r160 receipt-relay plan
+still rule out unrestricted base-vote acceptance, expired-vote transport,
+and packet receipt without dependency-ready handling. No handler, delay,
+or FG module changes are part of this refactor.
+
 ## Strong companion (additive)
 
 The optional companion in `AvailableChainStatements/Strong/` adds a
@@ -292,7 +319,7 @@ Recovery, with the cap explicit. SA-PC sets the cap to `⌊(n−1)/3⌋` and
 the strong inclusion delay to `6Δ`.
 
 `StrongArmedRegime` requires execution validity, root injectivity,
-healthy delivery and accepted-object relay from genesis before `b₀`,
+healthy delivery with receipt relay from genesis before `b₀`,
 `h_t > a` at every `0 ≤ t < b₀`, the cap, and `T + Δ ≤ b₀`.
 It has no certificate-possession premise, η-sleepy premise, outage
 budget, or delivery or participation premise after `b₀`. The instance

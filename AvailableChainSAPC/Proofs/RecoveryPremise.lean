@@ -38,7 +38,7 @@ theorem recovery_to_quorum {V : Type} [DecidableEq V] [Fintype V]
     (h : RecoveryRegime (sapc p) E (sapcInterface p).toInterface (sapcConstants p G) rho) :
     QuorumRecoveryRegime p G E rho := by
   have cap := recovery_faultBound p G E rho hG h
-  refine ⟨h.execution, h.rootInjective, h.partialSynchrony, h.acceptedRelay,
+  refine ⟨h.execution, h.rootInjective, h.partialSynchrony,
     cap, ?_, h.recurrence, h.horizon⟩
   intro t lo hi
   have awake : awakeAt E rho.honest t = rho.honest := by

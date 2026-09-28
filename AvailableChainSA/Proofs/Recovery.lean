@@ -27,7 +27,7 @@ theorem synchronousLabel_of_recovery {V : Type} [DecidableEq V] [Fintype V]
     have hq : ((faulty rho).card : ℚ) < ((awakeAt E rho.honest (voteTime p r)).card : ℚ) := by
       linarith
     exact_mod_cast hq
-  exact ⟨hrec.execution, hmaj, hh, Or.inl ⟨hstart, hrec.partialSynchrony, hrec.acceptedRelay⟩⟩
+  exact ⟨hrec.execution, hmaj, hh, Or.inl ⟨hstart, hrec.partialSynchrony⟩⟩
 
 /-- SA recovers within 2L+G+8Δ with θrec = 1/2 and without full
 participation. The source invariant survives release of its own lease. -/

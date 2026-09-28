@@ -1028,3 +1028,7 @@ public import AvailableChainSAPC.Proofs.RunCleanCapped
 #print axioms AvailableChain.SAPC.recovery_fast_source_supported_quorum
 #print axioms AvailableChain.SAPC.recovery_slow_source_supported_quorum
 #print axioms AvailableChain.SAPC.recovery_sources_after_two_leases_quorum
+
+#print axioms AvailableChain.SAPC.receipt_acceptedRelay
+#print axioms AvailableChain.SAPC.receipt_healthyAcceptedRelay
+#print axioms AvailableChain.SAPC.accepted_receipt_accepts_before

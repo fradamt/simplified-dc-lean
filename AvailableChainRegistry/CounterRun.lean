@@ -513,7 +513,6 @@ theorem canonical_sleepy (k H : Nat) :
   refine { execution := canonical_execution k H
            rootInjective := counter_rootInjective _ _
            partialSynchrony := canonical_synchrony k H
-           acceptedRelay := canonical_relay k H
            gst_zero := rfl
            start_zero := rfl
            participation := ?_ }

@@ -13,7 +13,6 @@ structure QuorumRecoveryRegime {V : Type} [DecidableEq V] [Fintype V]
   execution : ExecutionValid (sapc p) E rho
   rootInjective : RootInjective E (sapcInterface p).toInterface rho
   partialSynchrony : PartialSynchrony (sapc p) E rho
-  acceptedRelay : AcceptedObjectRelay (sapc p) E rho
   faultBound : FaultBound (sapc p) (pcFaultCap p) rho
   quorumParticipation : ∀ t, E.t_GST ≤ t → t ≤ rho.horizon →
     pcQuorum p ≤ (awakeAt E rho.honest t).card

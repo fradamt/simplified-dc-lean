@@ -137,11 +137,12 @@ end Schedule
 /-- In the Sleepy regime with `Δ = 1`, the proposal of an honest awake
 proposer at `s` is in every honest `confirmed` read at `s + 1`. The proposer
 proposes its height plus one. Every honest node has that height before the
-proposal arrives, by accepted-object relay, so it accepts the proposal. -/
+proposal arrives, by checked receipt relay, so it accepts the proposal. -/
 theorem counter_included (W : Validators) (E : Env W.V) (hΔ : E.Δ = 1)
     (rho : Run W.V counter) (t₀ : Time)
     (hs : SleepyRegime counter E counterIface rho t₀) :
     IncludedFrom counter E counterIface rho counterIface.confirmed t₀ 1 := by
+  classical
   intro s _ hprop hsh
   obtain ⟨hph, hpa⟩ := hprop
   have hsched := hs.execution.toScheduleWellFormed
@@ -190,17 +191,31 @@ theorem counter_included (W : Validators) (E : Env W.V) (hΔ : E.Δ = 1)
         have hdl' : max t'' E.t_GST + E.Δ = t'' + 1 := by
           rw [hs.gst_zero, hΔ, max_eq_left ht''0]
         obtain ⟨t₃, _, h32, j', hacc'⟩ :=
-          hs.acceptedRelay _ hph i' o₁ t'' hacc w hw (by simpa using hproc)
-            (by rw [hdl']; linarith)
+          hs.partialSynchrony.relay _ hph i' o₁ t'' hacc w hw (by simpa using hproc)
+            (by rw [hdl']; linarith) rfl
         rw [hdl'] at h32
-        obtain ⟨⟨o₂, hj', ho₂⟩, _, hflip⟩ := hacc'
+        obtain ⟨o₂, hj', ho₂⟩ := hacc'
         have ho₂' : o₂ = o₁ := ho₂
         subst ho₂'
         have hj'j : j' < j :=
           index_lt_of_time_lt hsched hj' hj
             (show t₃ < t' by have := Int.add_one_le_iff.mpr ht''s; linarith)
-        have h1 := of_decide_eq_true hflip
-        rw [hpay] at h1
+        have hd : a ≤ height (Run.stateBefore counter rho j') w + 1 := by
+          have hdep := hs.execution.deps j' w o₂ t₃ hj'
+          simp only [counter, decide_eq_true_eq] at hdep
+          rw [hpay] at hdep
+          exact hdep
+        have h1 : a ≤ height (Run.stateBefore counter rho (j' + 1)) w := by
+          have hval : height (Run.stateBefore counter rho (j' + 1)) w =
+              counter.process (height (Run.stateBefore counter rho j') w) o₂ := by
+            unfold height
+            rw [stateBefore_succ hj', step_deliver_self]
+          by_cases he : o₂.payload = height (Run.stateBefore counter rho j') w + 1
+          · rw [hval, process_of_eq he]
+            exact hd
+          · rw [hval, process_of_ne he]
+            rw [hpay] at he
+            exact Nat.lt_succ_iff.mp (lt_of_le_of_ne hd he)
         exact le_trans h1 (stateBefore_mono rho hj'j w)
   -- The delivery at `j` moves `w` to at least `a + 1`.
   have hafter : a + 1 ≤ height (Run.stateBefore counter rho (j + 1)) w := by

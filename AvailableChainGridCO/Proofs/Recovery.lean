@@ -44,7 +44,7 @@ theorem recovery_proposal_after_sources [LeasePolicy]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
     (hexec : ExecutionValid (gridCO p) E rho)
     (hroot : RootInjective E (gridInterface p) rho)
-    (hrelay : AcceptedObjectRelay (gridCO p) E rho)
+    (hrelay : PartialSynchrony (gridCO p) E rho)
     (boundary : Slot) (hpos : 0 < boundary) (hstart : E.t_GST ≤ proposalTime p boundary)
     (hseq : ∀ t, boundary ≤ t → gateTime p t ≤ rho.horizon → SynchronousLabel p E rho t)
     (hsources : AdmittedSourcesSupported p rho boundary)
@@ -89,7 +89,7 @@ theorem recovery_proposal_after_stages {V : Type} [DecidableEq V] [Fintype V]
       (∀ reader ∈ rho.honest, confirmation p (gateInput p rho s reader) s = some B) := by
   apply recovery_proposal_after_sources p E rho hΔ
     hrec.execution hrec.rootInjective
-    hrec.acceptedRelay boundary hpos hstart _
+    hrec.partialSynchrony boundary hpos hstart _
     (admittedSources_of_gridSources p rho boundary hsources) s hafter hawake hh
   intro t hbt hhor
   exact synchronousLabel_of_recovery G hrec t
@@ -123,7 +123,7 @@ theorem recovered_of_source_boundary [LeasePolicy]
   have hh : gateTime p s ≤ rho.horizon := hrepairTime.trans hrec.horizon
   obtain ⟨B, _, hrepair, hconf⟩ := recovery_proposal_after_sources p E rho hΔ
     hrec.execution hrec.rootInjective
-    hrec.acceptedRelay boundary hpos hUstart hseq hsources s hslo hawake hh
+    hrec.partialSynchrony boundary hpos hUstart hseq hsources s hslo hawake hh
   have hfs : boundary ≤ s := (proposalTime_le_iff p boundary s).mp hslo.le
   have hsafe := safe_from_repaired_gate p E rho hΔ hrec.execution boundary hpos hseq hrows
     s hfs B hrepair hconf
@@ -141,7 +141,7 @@ theorem recovered_of_source_boundary [LeasePolicy]
     have hafter : U < proposalTime p slot := by linarith [p.deltaPos]
     obtain ⟨D, hD, hrecords, _⟩ := recovery_proposal_after_sources p E rho hΔ
       hrec.execution hrec.rootInjective
-      hrec.acceptedRelay boundary hpos hUstart hseq hsources slot hafter hawake hhor
+      hrec.partialSynchrony boundary hpos hUstart hseq hsources slot hafter hawake hhor
     refine ⟨D, hD, ?_⟩
     intro reader hr
     change Block.Preceq D (stable (Run.readAt (gridCO p) rho (gateTime p slot) reader))

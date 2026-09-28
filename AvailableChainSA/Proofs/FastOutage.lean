@@ -29,7 +29,7 @@ theorem fast_outage_engine {V : Type} [DecidableEq V] [Fintype V]
     (ho : FastOutageRegime (sa p) E (saInterface p) (saConstants p G) rho T b₀ b₁) :
     OutageRegime (sa p) E (GridCO.gridInterface p.engine)
       (GridCO.gridConstants p.engine G) rho T b₀ b₁ := by
-  exact ⟨ho.execution, ho.rootInjective, ho.healthy, ho.acceptedRelay, ho.interval,
+  exact ⟨ho.execution, ho.rootInjective, ho.healthy, ho.interval,
     ho.armed, ho.withinBudget, ho.sleepyBefore, ho.etaSleepyBefore⟩
 
 /-- A complete high-participation batch admits τ at the pending gate.

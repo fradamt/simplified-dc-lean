@@ -303,13 +303,14 @@ theorem synchronous_voter_raw_late {V : Type} [DecidableEq V] [Fintype V]
     (ho : o ∈ voterView p (nextHeadState p rho r reader) (r + 1)) :
     o ∈ lateVotes p (gateInput p rho r source) r ∨
       equivocates (lateVotes p (gateInput p rho r source) r) i = true := by
-  have hsub : votesAt (releaseInput p rho r reader) r ⊆
-      lateVotes p (gateInput p rho r source) r := by
-    intro q hq
-    exact synchronous_release_vote_late p E rho hΔ r hsync reader source hr hs q hq
+  have hback : ∀ q ∈ votesAt (releaseInput p rho r reader) r, headSeat? q = some i →
+      q ∈ lateVotes p (gateInput p rho r source) r ∨
+      equivocates (lateVotes p (gateInput p rho r source) r) i = true := by
+    intro q hq hqi
+    exact synchronous_release_vote_late p E rho hΔ r hsync reader source hr hs q hq i hqi
   rcases nextHeadState_raw_receipt p E rho hΔ r hsync reader hr o i hi ho with hm | he
-  · exact Or.inl (hsub hm)
-  · exact Or.inr (equivocates_mono _ _ i hsub he)
+  · exact hback o hm hi
+  · exact Or.inr (equivocates_of_mem_or_equivocates _ _ i hback he)
 
 /-- The engine supplies every receipt condition for genuine-prefix
 transfer. There is no equal-view, uncapped-handler, or honest-seat premise. -/
@@ -323,11 +324,11 @@ theorem transferReceipts_from_engine {V : Type} [DecidableEq V] [Fintype V]
   refine ⟨?_, ?_, nextHeadState_support_subset_raw p E rho hΔ r hsync reader hr⟩
   · intro o ho _
     exact synchronous_early_head_in_voterSupport p E rho hΔ r hsync
-      source reader hs hr o (List.mem_filter.mp ho).1
+      source reader hs hr o ho
   · intro o ho i hi
     exact synchronous_voter_raw_late p E rho hΔ r hsync source reader hs hr o i hi ho
 
-/-- Transfer follows from the engine, saved views, accepted relay,
+/-- Transfer follows from the engine, saved views, receipt relay,
 compatible live targets, and the ordinary strict-majority walk. -/
 theorem transfer_from_engine {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ) :

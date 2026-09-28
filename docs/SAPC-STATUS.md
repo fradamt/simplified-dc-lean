@@ -1,5 +1,23 @@
 # SA-PC status
 
+## Receipt relay — 2026-09-28
+
+The contract now uses DC receipt relay. The previous accepted-object
+regime fields are removed. The earlier round notes below describe the
+old premise. See the dated relay note in `CONTRACT.md`.
+
+`Proofs/ReceiptRelay.lean` derives `AcceptedObjectRelay` and its healthy
+prefix form from execution validity and receipt delivery. It covers
+complete HEADs, proposals, and PC envelopes, including duplicate carried
+HEAD calls. Existing archive consumers use these derived facts. The
+quorum recovery regime also drops its accepted-relay field.
+
+Validation: `lake build` passes all 3,558 default jobs with no errors or
+warnings. The public bundle, fast P1, and new receipt/score bridge
+`#print axioms` checks use only `propext`, `Classical.choice`, and
+`Quot.sound`. No `sorry`, `admit`, or new axiom was added. All requested
+conclusions are proved under receipt relay. No task remains open.
+
 _2026-09-28. Round 22. Base contract frozen at Draft 4.3. All requested claims are proved._
 
 `AvailableChain.SAPC.sapcContract_from_engine` in

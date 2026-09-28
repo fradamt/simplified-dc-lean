@@ -20,10 +20,8 @@ structure EarlyDelivery {V : Type} [DecidableEq V]
   execution : ExecutionValid (gridCO p) E rho
   horizon : earlyTime p r ≤ rho.horizon
   delivery :
-    (E.t_GST ≤ proposalTime p r ∧ PartialSynchrony (gridCO p) E rho ∧
-      AcceptedObjectRelay (gridCO p) E rho) ∨
-    ∃ cut, earlyTime p r ≤ cut ∧ HealthyPrefixDelivery (gridCO p) E rho cut ∧
-      HealthyAcceptedObjectRelay (gridCO p) E rho cut
+    (E.t_GST ≤ proposalTime p r ∧ PartialSynchrony (gridCO p) E rho) ∨
+    ∃ cut, earlyTime p r ≤ cut ∧ HealthyPrefixDelivery (gridCO p) E rho cut
 
 /-- A complete synchronous label supplies its early delivery window. -/
 theorem EarlyDelivery.of_synchronous {V : Type} [DecidableEq V] [Fintype V]
@@ -32,9 +30,9 @@ theorem EarlyDelivery.of_synchronous {V : Type} [DecidableEq V] [Fintype V]
   have he : earlyTime p r ≤ gateTime p r := by
     dsimp [earlyTime, gateTime]; linarith [p.deltaPos]
   refine ⟨h.1, he.trans h.2.2.1, ?_⟩
-  rcases h.2.2.2 with hp | ⟨cut, hc, hd, hr⟩
+  rcases h.2.2.2 with hp | ⟨cut, hc, hd⟩
   · exact Or.inl hp
-  · exact Or.inr ⟨cut, he.trans hc, hd, hr⟩
+  · exact Or.inr ⟨cut, he.trans hc, hd⟩
 
 /-- The outage contract supplies early delivery for a pending healthy
 batch even when its gate is after the healthy cutoff. -/
@@ -44,7 +42,7 @@ theorem EarlyDelivery.of_outage {V : Type} [DecidableEq V] [Fintype V]
     (h : OutageRegime (gridCO p) E (gridInterface p) (gridConstants p G) rho T b₀ b₁)
     (r : Slot) (he : earlyTime p r ≤ b₀) : EarlyDelivery p E rho r :=
   ⟨h.execution, he.trans (h.interval.2.2.1.trans h.interval.2.2.2),
-    Or.inr ⟨b₀, he, h.healthy, h.acceptedRelay⟩⟩
+    Or.inr ⟨b₀, he, h.healthy⟩⟩
 
 /-- The ordinary engine supplies the common local clock laws. -/
 def engineClock (p : Params) : AvailableChain.Engine.ClockLaws (gridCO p) where
@@ -148,7 +146,7 @@ theorem synchronous_head_handled_early {V : Type} [DecidableEq V]
   have hdeadline : voteTime p r + E.Δ = earlyTime p r := by
     simp only [voteTime, earlyTime, hΔ]
     ring
-  rcases hsync.delivery with ⟨hgst, hnet, _⟩ | ⟨cut, hcut, hnet, _⟩
+  rcases hsync.delivery with ⟨hgst, hnet⟩ | ⟨cut, hcut, hnet⟩
   · have hg : E.t_GST ≤ voteTime p r := by
       dsimp [voteTime]
       linarith [p.deltaPos]
