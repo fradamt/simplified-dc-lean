@@ -12,4 +12,6 @@ Scanned libraries: `AvailableChainRegistry`.
 │ AvailableChain.Registry.Sanity.certSafeConfirmed │ cert │ AvailableChain.Framework.Catalog.safeConfirmed │ AvailableChain.Registry.Sanity.sanity │ LEAN │
 │ AvailableChain.Registry.Sanity.certSafeStable │ cert │ AvailableChain.Framework.Catalog.safeStable │ AvailableChain.Registry.Sanity.sanity │ LEAN │
 │ AvailableChain.Registry.Sanity.refutedIncluded │ refutation-family │ AvailableChain.Framework.Catalog.includedConfirmed │ AvailableChain.Registry.Sanity.sanity │ LEAN │
+│ AvailableChain.Registry.Tests.certSafeStableStrong │ cert │ AvailableChain.Framework.ClaimSpec.pull NON-CATALOG │ AvailableChain.Registry.Tests.counterStrong │ LEAN │
+│ AvailableChain.Registry.Tests.refutedBadStrong │ refutation-family │ AvailableChain.Registry.Tests.testStrongSafe NON-CATALOG │ AvailableChain.Registry.Tests.badStrong │ LEAN │
 ```

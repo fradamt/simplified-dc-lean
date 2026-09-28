@@ -4,6 +4,8 @@ public import AvailableChainFramework.Hooks
 public import AvailableChainFramework.Instance
 public import AvailableChainFramework.Claim
 public import AvailableChainFramework.Cert
+public import AvailableChainFramework.DomainMap
+public import AvailableChainFramework.Facets.Strong
 public import AvailableChainFramework.Profile
 public import AvailableChainFramework.Pareto
 public import AvailableChainFramework.Catalog.Core
