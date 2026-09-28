@@ -494,6 +494,7 @@ plan (AP-side, composite, or not scheduled).
 │ ap.finalityHead.v1    │ nj   │ WITHDRAWN (SKETCH)  │ 2 │ —         │
 │ ap.finalityHead.v2    │ nj   │ SKETCH              │ 2 │ —         │
 │ ap.fastSupport.v1     │ both │ PROVED (RULE, τ>a)  │ 2 │ —         │
+│ ap.headReachesLo.v1   │ fj   │ PROVED (FG-SA)      │ 2 │ —         │
 │ fg.provenance.v1      │ both │ SUPERSEDED (PROVED) │ 3 │ —         │
 │ fg.provenance.v2      │ both │ PROVED              │ 3 │ DC-fj     │
 │ fg.causalCap.v1       │ both │ SUPERSEDED (PROVED) │ 3 │ —         │
@@ -1654,6 +1655,176 @@ in §4. Every status below is for the FG-SA client (§0).
   the first disjunct of `admissionLevels` (acG line 459). A Lean statement
   of this entry must name that disjunct, not the slow one.
 
+### `ap.headReachesLo.v1` — the AP head is in D at height at least lo
+
+- Variant `fj` (its premise is the FJ frame `fj.frame.v1`). Sources: r148
+  §2, lines 188–192 and 223–230, and §7 F10, line 590 (file
+  `fj-redteam.md`, sha256
+  `934fe2927f047a11e37dbe52aba9d754d5c461927f24b91902077f17459d47d2`); spec
+  section "Duties and handlers", lines 518–526 (eligibility) and 528–535
+  (walks), and the walk code, lines 902–924 and 938–955 (file
+  `spec/fgsa-protocol.tex`, sha256
+  `ae4497abc7c5b3a6f73697f341bf730a63c7d34bd2f7546154bd022bc95af223`).
+- Lean plan: — (an AP service fact; the SA instance is later work).
+- Hypotheses: `fj.frame.v1`; R1 duty views; `fg.finalLock.v1` and `a≤f`
+  (so that Z ∈ D, r148 lines 223–228; clean and P1 runs with `a<h` use
+  the source argument of r148 §5 instead).
+- Service statement: for each duty view V and its FJ frame (Z, lo, D)
+  (`fj.frame.v1`), the AP head read from V is in D and has state height
+  ≥ lo. This holds in every phase (gap, uncontested and contested).
+- Kind (user design correction 2026-09-28, relayed by ethereum-f1): the
+  FG module exports only the frame Z, lo, D and viability. Eligibility,
+  the majority test, the current-slot rule, the GHOST score and the walk
+  are AP fork-choice machinery. This entry is the AP obligation that
+  connects them to the frame.
+- Statement (pinned):
+
+> _fj-redteam.md, lines 188–192:_
+>
+> Full proposal and finality-head reads use OTHER_VIEW. HEADs use
+> HEAD_VIEW. A lease outside D stays in the raw guard and release test.
+> The code must change both viability and below-band eligibility in a
+> contest. Changing only one does not supply the proof that the walk
+> reaches H.
+
+> _fj-redteam.md, lines 223–230:_
+>
+> Under a≤f, this distinction does not create an empty choice domain.
+> Every frontier block has height above the height of accepted F: a
+> finalization at y has a justification carrier at height at least y+1.
+> The finalized-crossing law puts every such frontier block above F.
+> In the J case, the carrier witnesses J's viability. In the contested
+> case, a frontier witness makes F viable at lo=H. Below lo every viable
+> node has a viable child, so the walk reaches lo. Clean and P1 runs with
+> a<h use the source argument in §5 instead of this BFT crossing law.
+
+> _fj-redteam.md, line 590 (excerpt; the first sentence):_
+>
+> In a contest, an actual head reaches H.
+
+> _fgsa-protocol.tex, lines 518–526:_
+>
+> ```latex
+> The domain $\Dom$ is the set of blocks $B\in V$ with $F\preceq B$,
+> $Z\preceq B$, and a $W\in V$ with $B\preceq W$ and $\sigma[W].h\geq\lo$.
+> A child of a block with state height below~$\lo$ is eligible without a
+> majority.  Thus in a contest the band is $\{H\}$ for both viability and
+> eligibility.  The code must change both: a contest that changes only
+> one of them can stall the FG for ever~\FJ{7} (N12).  The contest test is
+> a sufficient local certificate that $J$ cannot finalize; its negation
+> does not show that $J$ can finalize~\FJ{3}.  Do not replace it by a
+> test for a visible timeout~\FJ{3} (F4).
+> ```
+
+> _fgsa-protocol.tex, lines 528–535:_
+>
+> ```latex
+> \paragraph{Walks.}  Every walk runs inside the domain of its own view.
+> The walk starts at the \emph{live root}: the deepest live lease target
+> in~$\Dom$, or $Z$ when there is none~\ADJ{2}.  A lease outside~$\Dom$
+> has no choice authority at this duty, but it stays in the gate guard
+> and in the release test.  A lease on an ancestor of~$Z$ is already
+> satisfied.  There is no unfiltered fallback.  The walk uses the SA
+> score (raw equivocators plus clean declared supporters above the block)
+> and the eligibility of~\DC{5} with~$\lo$ in place of $\Sigma.\hmax-1$.
+> ```
+
+> _fgsa-protocol.tex, lines 902–924:_
+>
+> ```latex
+> \Function{ghost}{$\mathit{anchor},\mathit{tree},
+>   \mathit{score},\mathit{eligible}$}
+>   \Comment{\DC{7}, unchanged}
+>   \State $H\gets\mathit{anchor}$
+>   \Loop
+>     \State $\mathit{children}\gets\{B:B\text{ is a child of }H\text{ in }
+>       \mathit{tree},\ \mathit{eligible}(B)\}$
+>     \If{$\mathit{children}=\emptyset$} \State \Return $H$ \EndIf
+>     \State $H\gets\arg\max_{B\in\mathit{children}}\mathit{score}(B)$,
+>       ties by root order
+>   \EndLoop
+> \EndFunction
+> \vspace{1pt}
+> \Function{goldfish\_eligible}{$\Sigma,\lo,\mathit{votes},
+>   \mathit{support\_votes},s,B$}
+>   \Comment{\DC{7}, adapted: frame band floor}
+>   \State $\mathit{voters\_count}\gets
+>     |\{i:\mathit{votes}\text{ holds a vote by seat }i\}|$
+>   \State \Return $\Sigma.\sigma[B.\parent].h<\lo$
+>     or $2\,\Call{goldfish\_score}{\mathit{votes},
+>       \mathit{support\_votes},s,B}>\mathit{voters\_count}$
+>     or $B.\slot=\Sigma.s$
+> \EndFunction
+> ```
+
+> _fgsa-protocol.tex, lines 938–955:_
+>
+> ```latex
+> \Function{live\_root}{$\Sigma,Z,\Dom$}
+>   \Comment{\SAS, redefined by \ADJ{2}: in the domain}
+>   \State $\mathit{targets}\gets\{B\in\Dom:\Sigma.\lease[B]\neq\bot\}$
+>   \Comment{they lie on one chain}
+>   \If{$\mathit{targets}=\emptyset$} \State \Return $Z$ \EndIf
+>   \State \Return the deepest $B\in\mathit{targets}$
+> \EndFunction
+> \vspace{1pt}
+> \Function{get\_head\_in\_tree}{$\Sigma,V,
+>   \mathit{votes},\mathit{support\_votes},k$}
+>   \Comment{\DC{7}, redefined by \ADJ{2} and \FJ{2}}
+>   \State $(Z,\lo,\Dom)\gets\Call{fg\_frame}{\Sigma,V}$
+>   \Comment{R1: the frame of this view}
+>   \State $A\gets\Call{live\_root}{\Sigma,Z,\Dom}$
+>   \Comment{root priority; lease start}
+>   \State \Return $\Call{goldfish\_fork\_choice}{\Sigma,A,\Dom,\lo,
+>     \mathit{votes},\mathit{support\_votes},k}$
+> \EndFunction
+> ```
+
+- SA discharge (registry, 2026-09-28). The SA walk is
+  `get_head_in_tree` (spec lines 946–955).
+  1. Start in D. The walk starts at the live root A: the deepest live
+     lease target in D, else Z (spec lines 529–530, 938–944). If A is a
+     lease target, A ∈ D by definition. If A = Z, then Z ∈ D: in the J
+     case the J carrier (height H ≥ lo) witnesses J; in the F cases a
+     frontier block at height H > h(F) extends F by `fg.finalLock.v1`
+     and witnesses F at lo ≤ H (r148 lines 223–228).
+  2. Stay in D. `ghost` moves only to children in its tree argument, and
+     the tree is D (spec lines 907–908, 953).
+  3. No stop below lo. Let X ∈ D with `σ[X].h < lo`. X has a witness
+     W ∈ V with `X ⪯ W` and `σ[W].h ≥ lo`, so X ≠ W. Let Y be the child of
+     X on the path to W. Then `F ⪯ X ⪯ Y`, `Z ⪯ X ⪯ Y` and `Y ⪯ W`, and V is
+     ancestor-closed, so Y ∈ D. The parent X of Y has state height below
+     lo, so Y is eligible without a majority (spec line 920). Thus X has an
+     eligible child, and `ghost` does not return X.
+  4. Stop. The tree is finite and each step goes to a child, so `ghost`
+     returns a block. By steps 2 and 3 it is in D with state height ≥ lo.
+  This uses the eligibility threshold lo in both viability and
+  eligibility, in every phase. The start at the live root and the in-band
+  choice by score stay AP data; this entry says nothing about which block
+  at or above lo the walk returns.
+- Status: 2026-09-28 — PROVED (FG-SA; paper, r148 lines 223–230 and 590;
+  SA discharge above).
+- Note: the weaker form "the AP does not block leaving H−1" is NOT enough.
+  An AP that lets the head leave H−1 but keeps it at H−1 for another
+  reason gives the N12 stall. r148 F11 tests the old band `{H−1,H}` in
+  viability and eligibility with the FJ root test: the frontier stays at
+  3 for ever, while FJ with `lo = H` reaches height 4:
+
+> _fj-redteam.md, lines 599–601:_
+>
+> F11 — REFUTED. Here is N12 with exact receipts, starting from genesis.
+> The tested variant has FJ's frontier root test, but always uses the
+> old band {H−1,H}, in both viability and eligibility.
+
+> _fj-redteam.md, lines 728–733:_
+>
+> Within rules with root F in a contest and one uniform witness
+> threshold lo, lo=H is the least threshold that excludes every
+> unsupported H−1 branch. H−1 fails by this execution; lo>H has no
+> witness at all. A different branch-dependent filter could work, but
+> it needs its own proof. This does not prove that every possible
+> alternative band design fails.
+
 ## 3. `SimplexFG.nj` lemmas (`Kit.FG`)
 
 ### `fg.provenance.v1` — row, entry and finality provenance
@@ -2419,6 +2590,9 @@ M0. r151 calls this cap μ and calls M0 simply M.
   origin: r144o §5.3, lines 565–583 (file `fgsa-no-nj-opus.md`, sha256
   `7df2a540134deddede78ea711754bb322911fced62271868f8b5034164db9f4e`).
 - Lean plan: DC-fj module (user 2026-09-28).
+- Lean coverage (DC-fj module): frame only (F, H, j, J, Z, lo, D,
+  contest, viability). `fgsa_head`, eligibility and the walk are AP data;
+  see `ap.headReachesLo.v1` (user design correction 2026-09-28).
 - Statement (pinned):
 
 > _fj-redteam.md, lines 148–185:_
@@ -2697,6 +2871,9 @@ M0. r151 calls this cap μ and calls M0 simply M.
 - Note (2026-09-28; §0 rule (b)): "finalized crossing" in the pinned text
   is `fg.finalLock.v1`, and "same-height justification uniqueness" is
   `fg.uniqueJust.v1`.
+- Note (2026-09-28; §0 rule (b)): the step "In a contest, an actual head
+  reaches H" is `ap.headReachesLo.v1` (AP data after the user design
+  correction of 2026-09-28). Hypotheses add `ap.headReachesLo.v1`.
 - Note: the old-band variant (FJ root test, band `{H−1,H}`) stalls (r148
   F11, REFUTED by the exact N12 execution, lines 599–711).
 
@@ -2879,6 +3056,11 @@ M0. r151 calls this cap μ and calls M0 simply M.
 - Note (2026-09-28; §0 rule (a)): `fj.twoChanges.v1` was replaced by
   `fj.twoChanges.core.v1` and `comp.settle.v1`. The cut `u0` and M0 of the
   witness are `comp.cut.v1`.
+- Note (2026-09-28; §0 rule (b)): the contested-band producer of r148
+  §9 (lines 820–828: "the proposer parent has height at least lo") uses
+  the head in band. That step is `ap.headReachesLo.v1` (AP data after the
+  user design correction of 2026-09-28). Hypotheses add
+  `ap.headReachesLo.v1`.
 - Returned witness (audit W09): the caps M ≤ M0 and the cut `u0`
   (`env.r148`); an honest row at height ≥ M0+1 > M by `B_R`; its fresh
   source, permanent by `fj.canonical.v1` from its transfer HEAD; the repair
@@ -3097,6 +3279,12 @@ r151 names; `μ ≤ M`.
   reset row). It is a comp-level rise, not an AP service fact.
 - Note (2026-09-28; §0 rule (a)): `fj.twoChanges.v1` was replaced by
   `fj.twoChanges.core.v1` and `comp.settle.v1`.
+- Note (2026-09-28; §0 rule (b)): the FJ port in the hypotheses (r151
+  lines 342–348: "Below lo, a supporter's actual path supplies
+  viability. At or above lo, the extra eligibility clause is off") uses
+  the head in band. That step is `ap.headReachesLo.v1` (AP data after the
+  user design correction of 2026-09-28). Hypotheses add
+  `ap.headReachesLo.v1`.
 - Statement (pinned):
 
 > _fj-theorem-h.md, lines 328–332:_
@@ -3146,6 +3334,9 @@ r151 names; `μ ≤ M`.
   `comp.settle.v1` (θ = 4Δ).
 - Note (2026-09-28; §0 rule (a)): `fj.twoChanges.v1` was replaced by
   `fj.twoChanges.core.v1` and `comp.settle.v1`.
+- Note (2026-09-28; §0 rule (b)): effective (L) for the FJ frame uses the
+  same producer as `fj.rise.fixedF.v1`, so it uses `ap.headReachesLo.v1`.
+  Hypotheses add `ap.headReachesLo.v1`.
 - Statement (pinned):
 
 > _fj-theorem-h.md, lines 357–364:_
@@ -3218,6 +3409,9 @@ r151 names; `μ ≤ M`.
 - Use rule (audit W03): a composite must prove x0–x3 at each call. The
   form `ht(T) ≥ max H_d−1` of `ap.Xplus.v1` alone does not suffice in a
   contest (r151 lines 487–489).
+- Note (2026-09-28): this entry takes x2 as a premise, so it does not use
+  `ap.headReachesLo.v1`. A caller discharges `ht(A) ≥ lo_d` of x2 with
+  `ap.headReachesLo.v1` (see `fj.healed.v1`).
 
 ### `fj.healed.v1` — Theorem H for FJ and the proved bound
 
@@ -3232,6 +3426,9 @@ r151 names; `μ ≤ M`.
   `ℓ = b+2k−1`, r151 proves x0 and x1 (§6.3, lines 493–508) and x2 and
   x3 with `ht(T) = max(M+1, m_u−1) ≥ lo_d` (§6.4, lines 512–547),
   including views that disagree on the contest bit.
+- Note (2026-09-28; §0 rule (b)): the x2 part `ht(A) ≥ lo_d` of the
+  (X+) discharge is `ap.headReachesLo.v1` for the ordinary proposal walk
+  A. Hypotheses add `ap.headReachesLo.v1`.
 - Clauses: (local) `t_h ≤ q_(s*)+2L+G−Δ` (§7.3), with no arrival input.
   (global) `t_h < GST+B_proved` (§8), uniform choice
   `B_FJ,H = B_R+δ_H`.
@@ -4157,3 +4354,15 @@ SUPERSEDED entry is the conjunction of its successors.
 - Open item (2026-09-28): `ap.S.v2`, `ap.Sslow.v1` and `comp.theoremN.v1`
   use `fg.N2.v2` (NJ frame). An fj Kept/N2 form with lo is a new fj entry,
   needed for Kit.Compose. OPEN.
+- New id `ap.headReachesLo.v1` (variant fj; PROVED (FG-SA); Lean plan
+  —). User design correction 2026-09-28, relayed by ethereum-f1:
+  eligibility, the majority test, the current-slot rule, the GHOST score
+  and the walk are AP fork-choice machinery; the FG module exports only
+  the frame Z, lo, D and viability. The entry states that the AP head of
+  each duty view is in D at state height ≥ lo, in every phase, with a
+  registry SA discharge. The weaker form "the AP does not block leaving
+  H−1" is not enough (N12, r148 F11). `fj.frame.v1` has a "Lean coverage"
+  line (frame only). `fj.inBandLock.v1`, `fg.base.fj.v1`,
+  `fj.rise.fixedF.v1`, `fj.rise.movingF.v1` and `fj.healed.v1` add
+  `ap.headReachesLo.v1` to their hypotheses (§0 rule (b)); `fj.Xplus.v1`
+  has a note that its callers discharge x2 with it.
