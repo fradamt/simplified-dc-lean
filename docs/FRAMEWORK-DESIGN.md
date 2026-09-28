@@ -521,6 +521,16 @@ obligations are proved).
 
 Phases 0–2 land before the FG-SA Lean instance starts.
 
+**Lock change log.**
+- 2026-09-28, approved by the user. The receipt-relay merge (`1a3f73a`, r162)
+  removed the `acceptedRelay` field from `SleepyRegime`. The regimes now use
+  DC's receipt premise. Eight L3 lock lines changed: `sleepy`, `safeOf`,
+  `safeStable`, `safeConfirmed`, `includedConfirmed`, `core`, `Candidate` and
+  `not_candidate_of_family`. The premise is weaker, and no conclusion
+  changed. All certificates still hold (`docs/REGISTRY.md`: 8 rows, all
+  LEAN). The lock was rewritten in place, with no new ids. This entry
+  records the change.
+
 ## 9. Changes to standing rules (approved by the user 2026-09-28)
 
 - `AGENTS.md`: "Keep [the engine] close to that source" becomes "Engine
