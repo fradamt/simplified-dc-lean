@@ -2,8 +2,9 @@
 
 _Written for the Phase 1–2 plan. Scope: `AvailableChainFramework` and
 `AvailableChainRegistry` (`docs/FRAMEWORK-DESIGN.md` v7, §8, row P = 0).
-Task references (Task 1–9) point to the per-task implementer reports in
-the session scratchpad._
+Task references (Task 1–9) point to the per-task `git log` commits
+(`Framework: …`) that built this scope; the plan is
+`docs/plans/2026-09-28-framework-phase0.md`._
 
 ## 1. Purpose
 
@@ -24,8 +25,8 @@ for both libraries.
 ├────────────────────────┼─────────────────────────────────────────────────┤
 │ Full build             │ lake build --wfail: 3555 jobs, green (no new    │
 │                        │ failures).                                      │
-│ No sorry/admit/decide  │ grep clean; the only matches are the            │
-│                        │ identifiers admitVote and admitProposal.        │
+│ No sorry/admit/        │ grep clean; the only matches are the            │
+│ native_decide          │ identifiers admitVote and admitProposal.        │
 │ Sanity                 │ Candidate sanity to False: the core floor       │
 │                        │ refutes it (includedConfirmed has no valid D).  │
 │ Counter                │ candidate : Candidate counterInst: the core     │
@@ -47,10 +48,11 @@ Phase 0, passes the core floor, including exact-time inclusion at
 
 ## 3. What each interface showed
 
-**Validators bundling.** The design (§3) bundles a run's validator type
-with its `DecidableEq` and `Fintype` instances into one structure,
-`Validators`. A claim's `regime` and `conclusion` fields quantify over
-`W : Validators`, not over a bare type with separate instance
+**Validators bundling.** Phase 0 bundles a run's validator type with its
+`DecidableEq` and `Fintype` instances into one structure, `Validators`.
+This is a Phase 0 implementation choice: design §3's `Instance` sketch
+does not mention it. A claim's `regime` and `conclusion` fields quantify
+over `W : Validators`, not over a bare type with separate instance
 arguments. Every certificate (Sanity, Counter, the Pareto test) builds
 one `Validators` value (for example `⟨Fin 1, inferInstance,
 inferInstance⟩`) and both fields consume it as a single argument. Phase
@@ -59,21 +61,28 @@ need to carry a value across a "widen the electorate" transport; that
 case is untested.
 
 **Point.** `Point` holds a claim's own run parameters, apart from its
-constant. `safeOf`-built claims (`safeConfirmed`, `safeStable`) use
-`Time` as `Point`, for one read time. `prefixOrder` uses `Unit`, for no
-free parameter. `includedConfirmed` also uses `Time`, but for a
-proposal slot, not a read time. The three claims share one `ClaimSpec`
-shape with no change to `Claim.lean`, which is the point of the field:
-`Point` lets a claim's own witness shape vary without a change to the
-catalog's record type.
+constant. `safeOf`-built claims (`safeConfirmed`, `safeStable`) and
+`includedConfirmed` all use `Time` as `Point`, for the Sleepy regime's
+start time `t₀` (`Catalog/Core.lean:25,70`), not a read time or a
+proposal slot. `prefixOrder` uses `Unit`, for no free parameter. The
+three claims share one `ClaimSpec` shape with no change to
+`Claim.lean`, which is the point of the field: `Point` lets a claim's
+own witness shape vary without a change to the catalog's record type.
 
 **Type-class facets.** Deviation (d) drops `ClaimSpec.needs` as a
 field. Task 6 adds a facet, `HasStrong`, as a plain Lean type class
-over `Instance` (`class HasStrong (I : Instance) where strong : …`),
-and a claim, `safeStrong`, that quantifies `[HasStrong I]`. This
-compiled with no change to `Instance`, `ClaimSpec`, or any existing
-declaration: a new facet is an addition, as the design predicts. It
-also showed the shape's limit — see the Facet row of §6, Open items.
+over `Instance` (`class HasStrong (I : Instance) where strong : …`).
+It compiled with no change to `Instance`, `ClaimSpec`, or any existing
+declaration: a new facet is an addition, as the design predicts.
+
+`safeStrong` is a `Prop`, not a `ClaimSpec`; the test shows only that a
+facet class compiles, not that the catalog can state a claim that needs
+one. `ClaimSpec` cannot yet state a claim that needs a facet
+(strong-1): `regime`, `conclusion`, and `trigger` take only `I :
+Instance`, and `Const` and `Point` do not depend on `I`. A type-class
+facet also lets two instances attach to one `I`, which breaks "bound
+once" (§3). Fix planned: Phase 1 carrier generalization. See also the
+Facet row of §6, Open items, for the shape's vacuity issue.
 
 **Cert as data.** `Cert c I` is a structure, not a bare proof term: it
 carries `const`, `valid`, `inhabited`, and `proof` as fields.
@@ -153,14 +162,29 @@ CO move to Phase 1, with the `excludes` change in `gridCO` itself
 │     │                        │ and Catalog.Candidate widen from Type to     │
 │     │                        │ Type 1. A plan defect forced by ClaimSpec's  │
 │     │                        │ shape, not a proof gap.                      │
+│ g   │ Constants: not         │ Shared constants (ProtocolParams, extensible │
+│     │ delivered              │ constant records, §§3, 8 row 0) are not      │
+│     │                        │ delivered; `Profile` has no shared constants.│
+│     │                        │ Needed by ac-4.3 (`Constants`) and strong-1  │
+│     │                        │ (`Constants × StrongConstants`). Phase 1 gate│
+│     │                        │ task.                                        │
+│ h   │ HooksSound: no         │ `HooksSound` lacks the E4 `depsPresent`      │
+│     │ depsPresent            │ monotonicity field. Phase 1 gate task, added │
+│     │                        │ together with the other lock-breaking        │
+│     │                        │ changes.                                     │
+│ i   │ HooksSound: run-level  │ `HooksSound` states stability along well-    │
+│     │                        │ formed runs, not per step as E4 does. Reason:│
+│     │                        │ see its docstring.                           │
 └─────┴────────────────────────┴──────────────────────────────────────────────┘
 ```
 
 Deviations (a)–(d) were accepted with the plan, before implementation
-(`global-constraints.md`, "Deviations from the spec"). Deviations (e)
-and (f) surfaced during implementation and review (Task 6, Task 1–3)
-and are recorded here for the first time; both are recorded in
-`docs/FRAMEWORK-DESIGN.md` §8.
+(`docs/plans/2026-09-28-framework-phase0.md`, "Deviations from the
+spec"). Deviations (e) and (f) surfaced during implementation and
+review (Task 6, Task 1–3) and are recorded here for the first time.
+Deviations (g)–(i) surfaced during the final whole-branch review and
+are recorded here for the first time. Deviations (e)–(i) are recorded
+in `docs/FRAMEWORK-DESIGN.md` §8.
 
 ### 5.2 Proof-level deviations (no statement changed)
 
@@ -271,6 +295,36 @@ scripts, tactics, or witness terms only.
 │ E5/E6     │ toyV2.clock is a no-op, so Isolated's clock_base law is    │
 │           │ never exercised by toyV2 (the plan-mandated toy). A future │
 │           │ toy, or Phase 2's real engine v2, should exercise it.      │
+│ Core      │ A protocol that reads no input can still pass the core     │
+│           │ floor. Honest `propose` has no input, so honest proposals  │
+│           │ are predictable; e.g. a Sanity-shaped engine with `excludes│
+│           │ := true` certifies all four core claims at D = 0 (reasoned,│
+│           │ not compiled, I1). Fix: engine v2 gives the proposer a run-│
+│           │ chosen input (Phase 2); the explorer (Phase 3) stays off   │
+│           │ until closed.                                              │
+│ Claim     │ `Claim.inhabited` (`Claim.lean:58-60`) accepts one early   │
+│           │ trigger for all H (`CounterIncluded.lean:228` uses slot 1  │
+│           │ for all H, I2). Fix: require the trigger at a time ≥ H.    │
+│           │ Changes the L3 lock and two certificates.                  │
+│ Phase 1   │ Gating task (one lock regeneration, before any new catalog │
+│           │ entry): carrier generalization for facets and engine (I3,  │
+│           │ I5 — claim types are engine-v1 specific: `Instance.P :     │
+│           │ ProtocolSpec I.n`, `Run W.V I.P`); shared constants (g);   │
+│           │ late trigger (I2); depsPresent (h). Sketch for ac-4.3:     │
+│           │ `Profile` gains `Shared : Type` and `share : ∀ c ∈ claims, │
+│           │ Shared → c.Const`; `ProfileCert p I := Σ C : p.Shared, ∀ c │
+│           │ h, {x : Cert c I // x.const = p.share c h C}`.             │
+│ Lock      │ Hardening: I8, the lock compares by name (exit 1 on a      │
+│           │ changed or removed line, exit 0 with a notice on additions │
+│           │ only; test by adding a Catalog claim); a `--check` mode for│
+│           │ REGISTRY.md (minor h); deferred M5–M8.                     │
+│ Kit       │ Structure: split L5 Kit and the L0 sketch into their own   │
+│           │ library (minor f). `Kit.Engine` takes the                  │
+│           │ `AvailableChain.Engine` lemmas from                        │
+│           │ `AvailableChainGridCO/Proofs/{Execution,EngineClock}.lean` │
+│           │ and the stranded L4 lemmas. Dedupe `block_preceq_trans`    │
+│           │ (`Kit/Core.lean:13` and `GridCO/Proofs/Map.lean:25`) (minor│
+│           │ g).                                                        │
 └───────────┴────────────────────────────────────────────────────────────┘
 ```
 

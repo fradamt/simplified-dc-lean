@@ -501,6 +501,10 @@ obligations are proved).
 │   │ extension theorem         │ 1); the theorem from genesis only, the  │
 │   │                           │ Counter canonical run; ProfileCert and  │
 │   │                           │ Candidate in Type 1                     │
+│   │                           │ not delivered: (g) shared constants     │
+│   │                           │ (Profile has no ProtocolParams); (h)    │
+│   │                           │ HooksSound has no depsPresent; (i)      │
+│   │                           │ HooksSound is run-level, not per-step   │
 │ 1 │ Full catalog on v1        │ ac-4.3 and strong-1 proposition         │
 │   │                           │ equivalences; eligibility per migrated  │
 │   │                           │ instance; MATRIX.md; build --wfail      │
@@ -572,3 +576,13 @@ Validity of execution data; data availability or possession; conformance
 of a deployed client (implementation refinement). These need their own
 entries or a separate refinement project. `noFutureRead` is an
 extra-tier entry.
+
+**Known gaps after Phase 0**
+
+- I1: a protocol that reads no input can still pass the core floor (honest
+  `propose` has no input, so proposals are predictable). Fix: engine v2
+  gives the proposer a run-chosen input (Phase 2).
+
+- I2: `Claim.inhabited` accepts one early trigger for all H
+  (`CounterIncluded.lean:228` always uses slot 1). Fix: require the
+  trigger at a time ≥ H; changes the L3 lock and two certificates.
