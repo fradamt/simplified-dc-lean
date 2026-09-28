@@ -441,10 +441,12 @@ view of the frame; the AP may pick among them with its `AnchorChoice`. The
 FG module exports the frame only (Z, lo, D, viability). Head selection
 (the walk, its score, and eligibility tests such as a majority or the
 current slot) is AP data (user decision 2026-09-28). The FG constrains it
-through one generic AP obligation (`ap.walkBelowLo`): the head is in D,
-and in a contest the AP's own filters do not block extending a block whose
-parent is below lo. SA's "eligible without a majority below lo" is SA's
-discharge of that obligation.
+through one generic AP obligation (`ap.headReachesLo.v1`, both
+phases): for each duty view, the AP head read from it is in D and has
+state height ≥ lo. A weaker "the head may leave H−1" form is not enough:
+a tie rule or a filter can still stall (N12). SA discharges it with its
+walk (start at the live root; below lo a child is eligible without a
+majority; every viable node below lo has a viable child in D).
 
 **7.3 AP template and policy type (LM; audit V10).**
 - `Policy`: the type of honest FG signing rules. A policy reads the FG
