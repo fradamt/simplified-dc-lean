@@ -59,8 +59,8 @@ theorem stored_block_before_ready_proposal {V : Type} [DecidableEq V]
   exact (stored_block_stamp_before_cut p E rho hsched hj
     (by simpa [processed, hp, blockKnown] using hk) he (le_refl _)).1
 
-/-- A frozen raw HEAD reaches the proposer exactly. Accepted-object relay
-supplies the copy; no assumption about its seat's honesty is used. -/
+/-- A frozen raw HEAD reaches the proposer or exposes its seat as an
+equivocator. No honesty premise is imposed on that seat. -/
 theorem stored_head_before_ready_proposal {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hsched : ScheduleWellFormed E rho)
     (hΔ : E.Δ = p.Δ) (r : Slot) (hready : ProposalRelayReady p E rho (r + 1))
@@ -133,7 +133,7 @@ theorem frozen_blocks_at_proposer {V : Type} [DecidableEq V]
         simp only [hΔ, freezeTime, proposalTime, Nat.cast_add, Nat.cast_one]
         ring) B hm
 
-/-- Every previous-label frozen raw HEAD is in the proposer pool. -/
+/-- Every frozen raw HEAD is in the proposer pool or its seat equivocates. -/
 theorem frozen_raw_at_proposer {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hsched : ScheduleWellFormed E rho)
     (hΔ : E.Δ = p.Δ) (r : Slot) (hready : ProposalRelayReady p E rho (r + 1))

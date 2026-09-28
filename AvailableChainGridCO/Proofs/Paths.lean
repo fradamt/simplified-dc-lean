@@ -284,7 +284,7 @@ theorem accepted_proposal_handled_stored {V : Type} [DecidableEq V]
   nlinarith
 
 /-- Any path block stored before the HEAD time relays before the early
-cutoff of a synchronous label. Both delivery regimes use accepted relay. -/
+cutoff of a synchronous label. Both delivery regimes use receipt relay. -/
 theorem synchronous_block_path_at_gate {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
     (r : Slot) (hsync : EarlyDelivery p E rho r)

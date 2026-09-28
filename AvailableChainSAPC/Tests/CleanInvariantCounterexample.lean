@@ -247,7 +247,6 @@ theorem sleepy : SleepyRegime (sapc p) env (sapcInterface p).toInterface run 0 :
   refine { rootInjective := roots
            execution := execution
            partialSynchrony := synchrony
-           acceptedRelay := relay
            gst_zero := rfl
            start_zero := rfl
            participation := ?_ }

@@ -81,7 +81,7 @@ theorem synchronous_survivor_not_equivocating {V : Type} [DecidableEq V] [Fintyp
   change decide (2 ≤ xs.eraseDups.length) = false
   exact decide_eq_false (by omega)
 
-/-- An early HEAD is present before release with a stamp before the
+/-- A surviving early HEAD is present before release with a stamp before the
 ordinary freeze. This includes faulty support and sleeping readers. -/
 theorem synchronous_early_head_at_release {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -161,7 +161,7 @@ theorem synchronous_early_target_at_release {V : Type} [DecidableEq V] [Fintype 
     (by simpa [processed, hp, blockKnown] using hstored) he
     (by dsimp [freezeTime, releaseTime]; linarith [p.deltaPos])
 
-/-- Every early resolved HEAD remains resolved at each reader's release
+/-- Every surviving early HEAD remains resolved at each reader's release
 snapshot. Both the HEAD and its target path have arrived before the freeze. -/
 theorem synchronous_early_resolved_at_release {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -207,7 +207,7 @@ theorem snapshotSeatAlignment_from_engine {V : Type} [DecidableEq V] [Fintype V]
     obtain ⟨o, ho, hseat, _⟩ := prefixSupportSeats_witness p _ r B i hi
     exact synchronous_survivor_not_equivocating p E rho hΔ r hsync source reader hs hr o i ho hseat
 
-/-- The snapshot bound follows from accepted-object relay in either label
+/-- The snapshot bound follows from receipt relay in either label
 regime. The conclusion counts actual resolved, non-equivocating seats. -/
 theorem snapshot_from_engine {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ) :

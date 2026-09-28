@@ -119,14 +119,14 @@ theorem healthy_run_invariant {V : Type} [DecidableEq V] [Fintype V]
     (roots : RootInjective E (sapcInterface p).toInterface rho)
     (cut : Time) (positive : 0 < cut) (hh : cut ≤ rho.horizon)
     (healthy : HealthyPrefixDelivery (sapc p) E rho cut)
-    (relay : HealthyAcceptedObjectRelay (sapc p) E rho cut)
+    (_relay : HealthyAcceptedObjectRelay (sapc p) E rho cut)
     (majority : ∀ t, 0 ≤ t → t < cut → AwakeMajority E rho t)
     (noProposal : ∀ s, proposalTime p s ≠ cut)
     (index : Nat)
     (bound : index ≤ (rho.events.filter (fun e => decide (e.time ≤ cut))).length) :
     JointCleanInvariant p E rho index := by
   have sleepy := healthyPrefix_sleepy hx (sapcInterface p).toInterface cut positive hh
-    roots healthy relay majority (no_proposal_boundary_block p (prefixEnv E cut) rho cut noProposal)
+    roots healthy majority (no_proposal_boundary_block p (prefixEnv E cut) rho cut noProposal)
   have invariant := clean_run_invariant p (prefixEnv E cut) (runPrefix rho cut) hΔ 0 sleepy
     index (by rw [runPrefix_events hx.toScheduleWellFormed]; exact bound)
   exact jointClean_of_runPrefix p E (prefixEnv E cut) rho hx
@@ -151,7 +151,7 @@ theorem healthy_sleepy_through_early {V : Type} [DecidableEq V] [Fintype V]
     (hx : ExecutionValid (sapc p) E rho)
     (roots : RootInjective E (sapcInterface p).toInterface rho)
     (cut : Time) (healthy : HealthyPrefixDelivery (sapc p) E rho cut)
-    (relay : HealthyAcceptedObjectRelay (sapc p) E rho cut)
+    (_relay : HealthyAcceptedObjectRelay (sapc p) E rho cut)
     (majority : ∀ t, 0 ≤ t → t < cut → AwakeMajority E rho t)
     (r : Slot) (hearly : earlyTime p r ≤ cut) (hh : earlyTime p r ≤ rho.horizon)
     : SleepyRegime (sapc p) (prefixEnv E (earlyTime p r))
@@ -165,11 +165,8 @@ theorem healthy_sleepy_through_early {V : Type} [DecidableEq V] [Fintype V]
       exact healthy.broadcast v hv o t he w hw (deadline.trans hearly)
     · intro v hv i o t ha w hw fresh deadline
       exact healthy.relay v hv i o t ha w hw fresh (deadline.trans hearly)
-  have acc : HealthyAcceptedObjectRelay (sapc p) E rho (earlyTime p r) := by
-    intro v hv i o t ha w hw fresh deadline
-    exact relay v hv i o t ha w hw fresh (deadline.trans hearly)
   exact healthyPrefix_sleepy hx (sapcInterface p).toInterface (earlyTime p r)
-    positive hh roots net acc (fun t ht hlt => majority t ht (hlt.trans_le hearly))
+    positive hh roots net (fun t ht hlt => majority t ht (hlt.trans_le hearly))
     (no_proposal_boundary_block p (prefixEnv E (earlyTime p r)) rho (earlyTime p r)
       (earlyTime_ne_proposalTime p r))
 

@@ -328,7 +328,7 @@ theorem transferReceipts_from_engine {V : Type} [DecidableEq V] [Fintype V]
   · intro o ho i hi
     exact synchronous_voter_raw_late p E rho hΔ r hsync source reader hs hr o i hi ho
 
-/-- Transfer follows from the engine, saved views, accepted relay,
+/-- Transfer follows from the engine, saved views, receipt relay,
 compatible live targets, and the ordinary strict-majority walk. -/
 theorem transfer_from_engine {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ) :

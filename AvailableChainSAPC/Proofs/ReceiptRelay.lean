@@ -1,6 +1,7 @@
 module
 public import AvailableChainSAPC.Proofs.ProposalDelivery
 public import AvailableChainSAPC.Proofs.CertificateValidity
+public import AvailableChainSAPC.Statements.QuorumRecovery
 
 @[expose] public section
 namespace AvailableChain.SAPC
@@ -274,5 +275,39 @@ theorem receipt_healthyAcceptedRelay {V : Type} [DecidableEq V]
   obtain ⟨t', htt, htD, j, hh⟩ := hnet.relay source hs i o t ha reader hr hm deadline rfl
   exact accepted_receipt_accepts_before p E rho hx i j source reader o t t' _ ha hm hh htt htD
 
+theorem QuorumRecoveryRegime.acceptedRelay {V : Type} [DecidableEq V] [Fintype V]
+    {p : Params} {G : Time} {E : Env V} {rho : Run V (sapc p)}
+    (h : QuorumRecoveryRegime p G E rho) : AcceptedObjectRelay (sapc p) E rho :=
+  receipt_acceptedRelay p E rho h.execution h.partialSynchrony
+
 end AvailableChain.SAPC
+
+namespace AvailableChain.Statements.Generic
+open AvailableChain.Generic AvailableChain.SAPC
+
+/-- SA-PC derives its exact archive relay; it is not a regime field. -/
+theorem SleepyRegime.acceptedRelay {V : Type} [DecidableEq V] [Fintype V]
+    {p : Params} {E : Env V} {I : Interface (sapc p)} {rho : Run V (sapc p)} {t : Time}
+    (h : SleepyRegime (sapc p) E I rho t) : AcceptedObjectRelay (sapc p) E rho :=
+  receipt_acceptedRelay p E rho h.execution h.partialSynchrony
+
+theorem RecoveryRegime.acceptedRelay {V : Type} [DecidableEq V] [Fintype V]
+    {p : Params} {E : Env V} {I : Interface (sapc p)} {C : Constants}
+    {rho : Run V (sapc p)} (h : RecoveryRegime (sapc p) E I C rho) :
+    AcceptedObjectRelay (sapc p) E rho :=
+  receipt_acceptedRelay p E rho h.execution h.partialSynchrony
+
+theorem OutageRegime.acceptedRelay {V : Type} [DecidableEq V] [Fintype V]
+    {p : Params} {E : Env V} {I : Interface (sapc p)} {C : Constants}
+    {rho : Run V (sapc p)} {T b₀ b₁ : Time} (h : OutageRegime (sapc p) E I C rho T b₀ b₁) :
+    HealthyAcceptedObjectRelay (sapc p) E rho b₀ :=
+  receipt_healthyAcceptedRelay p E rho h.execution b₀ h.healthy
+
+theorem StrongArmedRegime.acceptedRelay {V : Type} [DecidableEq V] [Fintype V]
+    {p : Params} {E : Env V} {I : StrongInterface (sapc p)} {f : Nat}
+    {rho : Run V (sapc p)} {T b₀ : Time} (h : StrongArmedRegime (sapc p) E I f rho T b₀) :
+    HealthyAcceptedObjectRelay (sapc p) E rho b₀ :=
+  receipt_healthyAcceptedRelay p E rho h.execution b₀ h.healthy
+
+end AvailableChain.Statements.Generic
 end

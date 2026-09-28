@@ -84,8 +84,8 @@ theorem synchronous_accepted_head_before {V : Type} [DecidableEq V] [Fintype V]
   exact synchronous_receipt_before p E rho r hsync source reader hs hr index _ t cut
     ha hm hd hg hc
 
-/-- Every early resolved HEAD at one honest reader is in every other
-reader's late pool for the same synchronous label. Faulty seats are included. -/
+/-- Every early HEAD settles in each honest late pool as that vote or
+equivocation evidence for its seat. -/
 theorem synchronous_early_vote_late {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
     (r : Slot) (hsync : SynchronousLabel p E rho r)
@@ -212,7 +212,7 @@ theorem synchronous_support_disjoint {V : Type} [DecidableEq V] [Fintype V]
   rw [hc] at hcompat
   contradiction
 
-/-- The engine and accepted relay establish cross-view seat alignment. -/
+/-- The engine and receipt relay establish cross-view seat alignment. -/
 theorem sameLabelSeatAlignment_from_engine {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
     (r : Slot) (hsync : SynchronousLabel p E rho r) : SameLabelSeatAlignment p rho r := by

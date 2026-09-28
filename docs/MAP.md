@@ -1,5 +1,18 @@
 # Contract to Lean map
 
+## Receipt relay update (2026-09-28)
+
+The dated relay note in `CONTRACT.md` supersedes references below to
+accepted-object regime fields. The public regimes now require receipt
+relay. The shared `GridCO/Proofs/ReceiptRelay` and `Paths` modules derive
+vote settlement and block storage. `ScoreExtension` supplies the common
+seat, score, and eligibility algebra; `ProposalTransport` constructs it
+from actual runs. Exact proposal vote-set helpers are replaced.
+`SAPC/Proofs/ReceiptRelay` derives exact complete-object relay and provides
+specialized regime methods for its archive consumers. No model rule or
+public contract conclusion changes.
+
+
 `M` means `AvailableChainModel`; `S` means `AvailableChainStatements`.
 Statement names are in `AvailableChain.Statements.Generic`; model names are
 in `AvailableChain` or `AvailableChain.Generic`. Sources are relative to

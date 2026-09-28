@@ -263,13 +263,9 @@ theorem exampleSleepy (D : Time) : SleepyRegime (alwaysGenesis 1) exampleEnv
   refine { rootInjective := exampleRootInjective D
            execution := exampleExecution D
            partialSynchrony := exampleSynchrony D
-           acceptedRelay := ?_
            gst_zero := by decide
            start_zero := rfl
            participation := ?_ }
-  · intro v hv i o t ha w hw hp hd
-    rcases ha.1 with ⟨o', hi, _⟩
-    exact (no_delivery D i v o' t hi).elim
   intro t h0 h1
   simp [AwakeMajority, faulty, awakeAt, exampleRun, exampleEnv]
 

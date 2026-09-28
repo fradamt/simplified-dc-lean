@@ -1,5 +1,24 @@
 # SA status
 
+## Receipt relay — 2026-09-28
+
+The contract now uses DC receipt relay. The previous accepted-object
+regime fields are removed. The earlier round notes below describe the
+old premise. See the dated relay note in `CONTRACT.md`.
+
+The shared `ReceiptRelay` proof gives strict stamps for in-window
+membership or equivocation. `Paths` proves causal checked block receipt.
+`CrossView`, `Snapshot`, `TransferViews`, and `MergedViews` use the reverse
+alternative to transfer surviving supporters exactly. `ScoreExtension`
+and `ProposalTransport` preserve counts and scores while permitting
+unequal vote sets. SA keeps the same adapter, constants, and conclusions.
+
+Validation: `lake build` passes all 3,558 default jobs with no errors or
+warnings. The public bundle, fast P1, and new receipt/score bridge
+`#print axioms` checks use only `propext`, `Classical.choice`, and
+`Quot.sound`. No `sorry`, `admit`, or new axiom was added. All requested
+conclusions are proved under receipt relay. No task remains open.
+
 _2026-09-27. Contract Draft 4.3. All contract claims are proved._
 
 `AvailableChain.SA.saContract_from_engine` in

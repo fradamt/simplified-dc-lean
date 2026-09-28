@@ -96,7 +96,7 @@ theorem honest_proposal_contains_source_root {V : Type} [DecidableEq V]
   rw [hb]
   exact ⟨rfl, forkChoice_extends_liveRoot _ _ _ _ _⟩
 
-/-- A receipt before the previous freeze reaches acceptance before the
+/-- A receipt before the previous freeze causes a handler call before the
 proposal when its relay interval is available. This applies to both HEADs
 and their separately admitted block paths. -/
 theorem handled_before_proposal_of_ready {V : Type} [DecidableEq V]

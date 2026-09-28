@@ -141,7 +141,7 @@ def ProposalRelayReady {V : Type} [DecidableEq V]
     ∃ cut, proposalTime p s ≤ cut ∧ HealthyPrefixDelivery (gridCO p) E rho cut
 
 /-- A complete label is synchronous either in the suffix after GST or in
-a declared healthy prefix. Accepted-object relay is explicit in both cases.
+a declared healthy prefix. Receipt relay is explicit in both cases.
 The awake majority is the source's honest batch premise. The gate must
 lie within the run horizon; a future label has no delivery guarantee. -/
 def SynchronousLabel {V : Type} [DecidableEq V] [Fintype V]

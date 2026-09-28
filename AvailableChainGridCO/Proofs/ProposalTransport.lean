@@ -41,9 +41,8 @@ private theorem proposal_horizon {V : Type} [DecidableEq V] [Fintype V]
   dsimp [gateTime] at hh
   linarith [p.deltaPos]
 
-/-- The merged raw view equals the actual honest proposer view as a set.
-The frozen subset relays before proposal time; the one authenticated
-proposal carries the full source view. This includes faulty HEADs. -/
+/-- The merged raw view contains the proposer view. Each extra copy belongs
+to a seat that already equivocates at the proposer. -/
 theorem honest_proposal_raw_extension {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
     (r : Slot) (hsync : SynchronousLabel p E rho (r + 1))
@@ -78,9 +77,8 @@ theorem honest_proposal_raw_extension {V : Type} [DecidableEq V] [Fintype V]
       rw [nextHeadState_honest_proposal_unique p E rho hsync.1 r B hB reader wire hwire] at hraw
       exact Or.inl (mem_of_head_roundtrip _ o hraw)
 
-/-- The merged resolved view also equals the proposer support set.
-The proof relays the target paths separately and retains the declared
-support metadata; raw receipt alone is not used as resolution. -/
+/-- The merged support view extends the proposer support view. Extra support
+belongs to seats which already equivocate; target paths relay separately. -/
 theorem honest_proposal_support_extension {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
     (r : Slot) (hsync : SynchronousLabel p E rho (r + 1))

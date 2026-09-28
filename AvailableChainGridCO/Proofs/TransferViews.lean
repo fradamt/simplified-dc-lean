@@ -23,7 +23,7 @@ private theorem early_nonneg (p : Params) (r : Slot) : 0 ≤ earlyTime p r := by
   dsimp [earlyTime, proposalTime]
   nlinarith [p.deltaPos, Int.natCast_nonneg r]
 
-/-- An early HEAD is present before the ordinary freeze with a stamp before the
+/-- A surviving early HEAD is present before the ordinary freeze with a stamp before the
 ordinary freeze. This includes faulty support and sleeping readers. -/
 theorem synchronous_early_head_at_freeze {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -132,7 +132,7 @@ theorem freezeInput_receiptPrefix_nextHead {V : Type} [DecidableEq V]
     simpa [receiptData, nextHeadState] using hd
   constructor <;> simp_all [releaseInput]
 
-/-- Forward relay places every early resolved HEAD in the actual next
+/-- Forward relay places every surviving early HEAD in the actual next
 ordinary support view, even if a proposal omits it from declared support. -/
 theorem synchronous_early_head_in_voterSupport {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)

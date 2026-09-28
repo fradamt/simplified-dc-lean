@@ -24,7 +24,6 @@ structure StrongArmedRegime
   execution : ExecutionValid P E rho
   rootInjective : RootInjective E I.toInterface rho
   healthy : HealthyPrefixDelivery P E rho b₀
-  acceptedRelay : HealthyAcceptedObjectRelay P E rho b₀
   faultBound : FaultBound P f rho
   interval : 0 ≤ T ∧ T ≤ b₀ ∧ b₀ ≤ rho.horizon
   armed : T + E.Δ ≤ b₀

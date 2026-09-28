@@ -14,7 +14,7 @@ theorem outage_engine {V : Type} [DecidableEq V] [Fintype V]
     (ho : OutageRegime (sa p) E (saInterface p) (saConstants p G) rho T b₀ b₁) :
     OutageRegime (sa p) E (GridCO.gridInterface p.engine)
       (GridCO.gridConstants p.engine G) rho T b₀ b₁ := by
-  refine ⟨ho.execution, ho.rootInjective, ho.healthy, ho.acceptedRelay, ho.interval,
+  refine ⟨ho.execution, ho.rootInjective, ho.healthy, ho.interval,
     ?_, ho.withinBudget, ho.sleepyBefore, ho.etaSleepyBefore⟩
   have hlag := fastLag_le_slowLag p G
   change 4 * p.Δ ≤ (saConstants p G).armingLag at hlag

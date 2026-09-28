@@ -63,9 +63,8 @@ theorem early_support_at_proposal {V : Type} [DecidableEq V] [Fintype V]
       exact ⟨List.mem_filter.mpr ⟨hvote', by simp [ht, blockKnown, hblock', hres.1.1.2]⟩,
         target, rfl, hblock'⟩
 
-/-- Every proposer raw HEAD is in the preceding confirmer's late pool.
-The proposer read precedes release, so the existing reverse relay theorem
-applies directly, without a carried-copy alternative. -/
+/-- Every proposer raw HEAD settles in the preceding confirmer's late pool
+as exact membership or equivocation evidence. -/
 theorem proposal_raw_in_previous_late {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
     (r : Slot) (hsync : SynchronousLabel p E rho r)

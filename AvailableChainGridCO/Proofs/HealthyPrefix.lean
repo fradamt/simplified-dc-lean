@@ -137,7 +137,6 @@ theorem healthyPrefix_sleepy [Fintype V] (hx : ExecutionValid P E rho)
     (I : Interface P) (cut : Time) (positive : 0 < cut) (hh : cut ≤ rho.horizon)
     (roots : RootInjective E I rho)
     (healthy : HealthyPrefixDelivery P E rho cut)
-    (relay : HealthyAcceptedObjectRelay P E rho cut)
     (majority : ∀ t, 0 ≤ t → t < cut → AwakeMajority E rho t)
     (boundary : ∀ v o, Run.emits P (prefixEnv E cut) rho v o cut →
       I.block o.payload = none) :
@@ -145,7 +144,7 @@ theorem healthyPrefix_sleepy [Fintype V] (hx : ExecutionValid P E rho)
   refine ⟨runPrefix_execution (prefixEnv_execution hx cut) cut positive.le hh,
     healthyPrefix_rootInjective hx.toScheduleWellFormed I cut roots boundary,
     healthyPrefix_partialSynchrony hx cut healthy,
-    healthyPrefix_acceptedRelay hx cut relay, rfl, rfl, ?_⟩
+    rfl, rfl, ?_⟩
   intro t ht bound
   change t ≤ cut at bound
   by_cases eq : t = cut

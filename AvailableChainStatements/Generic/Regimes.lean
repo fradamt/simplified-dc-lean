@@ -18,7 +18,6 @@ structure SleepyRegime
   execution : ExecutionValid P E rho
   rootInjective : RootInjective E I rho
   partialSynchrony : PartialSynchrony P E rho
-  acceptedRelay : AcceptedObjectRelay P E rho
   gst_zero : E.t_GST = 0
   start_zero : t₀ = 0
   participation : ∀ t, t₀ ≤ t → t ≤ rho.horizon → AwakeMajority E rho t
@@ -49,7 +48,6 @@ structure OutageRegime
   execution : ExecutionValid P E rho
   rootInjective : RootInjective E I rho
   healthy : HealthyPrefixDelivery P E rho b₀
-  acceptedRelay : HealthyAcceptedObjectRelay P E rho b₀
   interval : 0 ≤ T ∧ T ≤ b₀ ∧ b₀ ≤ b₁ ∧ b₁ ≤ rho.horizon
   armed : T + C.armingLag ≤ b₀
   withinBudget : b₁ - b₀ ≤ C.budget
@@ -76,7 +74,6 @@ structure RecoveryRegime
   execution : ExecutionValid P E rho
   rootInjective : RootInjective E I rho
   partialSynchrony : PartialSynchrony P E rho
-  acceptedRelay : AcceptedObjectRelay P E rho
   participation : ∀ t, E.t_GST ≤ t → t ≤ rho.horizon →
     C.θrec * ((awakeAt E rho.honest t).card + (faulty rho).card : ℚ) <
       ((awakeAt E rho.honest t).card : ℚ)

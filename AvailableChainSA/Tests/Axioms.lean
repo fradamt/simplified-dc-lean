@@ -71,3 +71,12 @@ public import AvailableChainGridCO.Proofs.Contract
 #print axioms AvailableChain.GridCO.local_transferReceipts
 #print axioms AvailableChain.GridCO.local_transfer_from_engine
 #print axioms AvailableChain.GridCO.gridContract_from_engine
+
+#print axioms AvailableChain.GridCO.handled_head_stamped_or_equivocates
+#print axioms AvailableChain.GridCO.accepted_head_receipt_before
+#print axioms AvailableChain.GridCO.accepted_proposal_handled_stored
+#print axioms AvailableChain.GridCO.honest_proposal_score_extension
+#print axioms AvailableChain.GridCO.ScorePreservingViewExtension.seats_eq
+#print axioms AvailableChain.GridCO.ScorePreservingViewExtension.equivocates_eq
+#print axioms AvailableChain.GridCO.ScorePreservingViewExtension.score_eq
+#print axioms AvailableChain.GridCO.ScorePreservingViewExtension.eligible_eq
