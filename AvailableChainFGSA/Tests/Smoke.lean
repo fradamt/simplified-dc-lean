@@ -457,5 +457,156 @@ def g' : State pT.n :=
 example : (gateStep pT g' 2).base.obligations = [] ∧
     (gateStep pT g' 2).base.stableRecord = .genesis := by decide
 
+/-! G6 fold (MAJOR 1 = Astra N1): tests that pin the HEAD view `voterBlocks`
+and the merges in `headVote` (spec 598–606, 616–646, 1219–1233, 1276–1302). -/
+
+/-- (Opus i) [the late block b2 is outside the slot-3 view] `B1` at now 8
+(stamp 8), two equivocating label-2 seats at now 9, `B2` at now 12 (stamp
+12 ≥ z_2 = 11), HEAD at v_3 = 13. The view is {genesis, B1}; the controls are
+J = B1, h_j = 2, H = 3, no contest, so Z = B1, lo = 2; the filtered view tree is
+{B1}, and the head is b1. With the full filtered tree, the two equivocating
+seats make b2 eligible (2 < 2·2), and the head would be b2. -/
+def eqv (i : Fin 4) (b : Block) : Wire 4 := ⟨.seat (.head 2) i, .head b⟩
+def stE : State pT.n :=
+  atTime (process pT (atTime ([eqv 0 .genesis, eqv 0 b1, eqv 1 .genesis, eqv 1 b1].foldl
+    (process pT) (atTime (process pT (atTime {} 8) (wProp B1 0)) 9)) 12) (wProp B2 1)) 13
+example : headVote pT stE 3 = b1 := by decide
+
+/-- (Opus ii) [the merges reach the walk] In `stS` at v_3 = 13, the two label-2
+votes for b2 (stamps 9 < 11) resolve before 11; b2 is eligible (2 < 2·2) and is
+the head. With empty merges the head would be b1. -/
+example : headVote pT (atTime stS 13) 3 = eraseFG B2 := by decide
+
+/-- (Proposal arm of `voterBlocks`, spec 1224–1226) `stE` plus a slot-3 child
+`x3` of B2 admitted at now 12. B2 (stamp 12 ≥ 11) is now in the view as an
+ancestor of the slot-3 proposal. The view tree is {B1, B2, x3} (no contest,
+Z = B1, lo = 2); the equivocating seats make b2 and x3 eligible, and the head is
+x3. Without the proposal arm the view is {genesis, B1} and the head is b1. -/
+def x3 : Block := .node (eraseFG B2) 3 ⟨96⟩
+def stE3 : State pT.n :=
+  atTime (process pT (atTime stE 12) ⟨.proposer 3, .proposal x3 [] [] []⟩) 13
+example : B2 ∉ voterBlocks pT stE 3 ∧ B2 ∈ voterBlocks pT stE3 3 ∧
+    headVote pT stE3 3 = x3 := by decide
+
+/-- (Astra N1) [restricted witnesses and full-store controls together] The
+contest blocks of the FG module: `B1a` (= B1), `childA` (justifies B1a at
+height 2), `B1b`, `X` (child of B1a, no rows, height 2) at now 12 (stamps
+12 < z_3 = 15), and `Y` (child of B1b, height 3, does not extend J = B1a) at now
+16 (outside the slot-4 view). HEAD at v_4 = 17. By hand: the live controls read
+the full Σ.T, so `Y` makes the store contested: Z = F = genesis, lo = H = 3.
+The view tree (witnesses in the view only) is {genesis, B1a, childA}; the walk
+from genesis takes b1a and then childA (band: heights 1, 2 < 3); the head is
+childA. With controls from the view (no `Y`: Z = J = B1a, lo = 2) the tree also
+has `X`, which wins the tie by root (100 > 11): head X. With witnesses from the
+full store, `Y` makes `B1b` viable, `B1b` wins the tie at genesis (root 2 > 1),
+and the head is Y. -/
+def stK : State pT.n :=
+  atTime (process pT
+    (atTime ([wProp B1a 0, wProp childA 1, wProp B1b 0, wProp X 1].foldl (process pT)
+      (atTime {} 12)) 16) (wProp Y 1)) 17
+example : (controls pT stK).contest = true ∧ (controls pT stK).Z = .genesis ∧
+    (controls pT stK).lo = 3 ∧ Y ∈ stK.fg.TF ∧ Y ∉ voterBlocks pT stK 4 ∧
+    headVote pT stK 4 = eraseFG childA := by decide
+
+/-! G6 fold (Astra N2): the carried support arm and the two row arms. In this
+and the next G6 sections, a test uses `decide +kernel` where plain `decide`
+reaches the elaborator's recursion limit (plan Global Constraints, R1). -/
+
+/-- (Carried support, spec 1286–1293) As `stX`, but the slot-3 proposal `xB`
+also declares `vX` as support. By hand: after F moves to B1, `xB` and `b1'` are
+outside `act(Σ)` but `b1'` is in Σ.T. The frozen arm is empty (the pool stamp of
+`vX` is 12 ≥ z_2 = 11). The carried arm keeps `vX`: label 2 = s − 1, head `b1'`
+in Σ.T, slot 2 ≤ 2. Without the carried arm the support is empty. -/
+def stXs : State pT.n :=
+  [wProp B1 0, wProp B2 1, wProp B3 1].foldl (process pT)
+    (process pT (atTime ([wProp B1' 0].foldl (process pT) (atTime {} 8)) 12)
+      ⟨.proposer 3, .proposal xB [vX] [vX] []⟩)
+example : stXs.fg.F = B1 ∧ xB ∉ (actView stXs).blocks ∧ b1' ∉ (actView stXs).blocks ∧
+    b1' ∈ stXs.base.blocks ∧ headSupport pT stXs 3 = [baseVote vX] := by decide
+
+/-- (Block rows, spec 544–556) `stA` plus the pool rows `q 1`, `q 2` (identity 3,
+round 1). The slot-3 block `yB` on b2 carries `q 1`; the slot-3 block `zB` on b1
+(off the chain of b2) carries `q 3` (the pool refuses it: two rows already) and
+the round-0 row `r0z` of identity 3 (the pool admits it). -/
+def r0z : RowWire 4 := rw 0 3 (rowT 3)
+def zB : Block := .node b1 3 ⟨94⟩
+def stB : State pT.n :=
+  [⟨.proposer 3, .proposal yB [] [] [q 1]⟩, ⟨.proposer 3, .proposal zB [] [] [q 3, r0z]⟩].foldl
+    (process pT) ([q 1, q 2].foldl (admitRow pT) stA)
+example : yB ∈ stB.base.blocks ∧ zB ∈ stB.base.blocks ∧ q 3 ∉ stB.rowPool ∧
+    r0z ∈ stB.rowPool := by decide +kernel
+/-- (Block-row inclusion) At now 12 (round 1, I = {0, 1}), H = yB. By hand: the
+rows of B1, B2 and `q 1` are on the chain of yB and drop. The pool arm gives the
+rows of B3, `q 2`, `r0z`. The block arm adds `q 3` from `zB`: identity 3 has one
+row (`q 2`) of round 1 left, so `q 3` fits. Without the block arm, `q 3` is
+missing. -/
+example : proposalRows pT stB yB = rowsOf 1 B3 ++ [q 2, r0z, q 3] := by decide +kernel
+/-- (An off-chain stored row outside the window) At now 16 (round 2, I = {1, 2}).
+By hand: the pool arm drops `r0z` (round 0). `zB` is of slot 3 (round 1 ∈ I), so
+the block arm reads it, but it keeps only its rows of a round in I: `q 3`, not
+`r0z`. Without the pool window or the row filter of the block arm, `r0z` is
+included. -/
+example : proposalRows pT (atTime stB 16) yB = rowsOf 1 B3 ++ [q 2, q 3] := by decide +kernel
+
+/-! G6 fold (Astra N3, Opus O-m1): no fallback in `C_fg`; `deepest`; the FJ
+filter of `live_root`; a live root outside the HEAD view. -/
+
+/-- (No fallback, spec 666–677, 1327–1335) A hand-set, NOT reachable fixture:
+`stR2` (B1' in Σ.T, F = B1) at a_1 = 14 with an older nonempty set
+`fastWrite[0] = [b1]`, `fastWrite[2] = [b1']`, and live leases on b1, b1' and b2
+(b2 is in no fast set: a slow-only lease). By hand: rR = 2, and `b1'` is the only
+member of `fastWrite[2]`, but `B1'` conflicts with F, so it is outside the full
+filtered tree: C_fg = none. A fallback to the older set gives B1; a fallback to
+any live lease gives B2; a read of Σ.T without the filter gives B1'. -/
+def stF3 : State pT.n :=
+  { stR2 with
+      fastWrite := [(0, [b1]), (2, [b1'])]
+      base := { stR2.base with
+        now := 14, obligations := [(b1, 2, 100), (b1', 2, 100), (eraseFG B2, 2, 100)] } }
+example : B1' ∈ stF3.fg.TF ∧ (fgInputs pT stF3).1 = none := by decide
+/-- (Two fast targets) `fastWrite[2] = [b1, b2]`, both with a live lease. By hand:
+C_fg = B2 (depth 2 > 1). The first member of the set is b1. -/
+def stF4 : State pT.n := { stF3 with fastWrite := [(2, [b1, eraseFG B2])] }
+example : (fgInputs pT stF4).1 = some B2 := by decide
+/-- (FJ filter of `live_root`, spec 648–655) In `stR2`, a live lease on `b1'`:
+`B1'` is in Σ.T but not in the full filtered tree, so the live root is Z = b1.
+Over Σ.T, `b1'` would win (depth 1 = 1, root 3 > 1). -/
+example : liveRoot pT { stR2 with base := { stR2.base with obligations := [(b1', 2, 100)] } } =
+    b1 := by decide
+/-- (A live root outside the HEAD view, spec 1086–1107) `stE` plus a live lease
+on b2. By hand: B2 is in the full filtered tree, so the live root is b2 (deeper
+than Z = b1); B2 is not in the slot-3 view (stamp 12 ≥ 11). The walk starts at
+b2, which has no child in the view tree: the head is b2. A live root from the
+view gives b1. -/
+def stEL : State pT.n :=
+  { stE with base := { stE.base with obligations := [(eraseFG B2, 2, 100)] } }
+example : liveRoot pT stEL = eraseFG B2 ∧ B2 ∉ voterBlocks pT stEL 3 ∧
+    headVote pT stEL 3 = eraseFG B2 := by decide
+
+/-! G6 fold (Astra N5, Opus O-m2): the head fields and the returned record. -/
+
+/-- (Head fields, spec 1312, 1318–1326) In `stK` at slot 4 the finality head is
+`Y` (full filtered tree: contest, Z = genesis, lo = 3; `B1b` wins the tie at
+genesis by root, and `Y` is its only child). σ[Y] has h_j = 1, J = genesis,
+h_F = 0; the live cache has J = B1a, h_j = 2. The head fields are σ[Y]'s. From
+the cache they would be (2, B1a.root, 1). -/
+example : fgHead pT stK = eraseFG Y ∧ stK.fg.J = B1a ∧ stK.fg.h_j = 2 ∧
+    (fgInputs pT stK).2 = ⟨1, genesisRoot, 0⟩ := by decide +kernel
+/-- (A finality pair with no source, spec 1334–1345, 1379–1387) In `stK` no fast
+set exists, so C_fg = none and the height pair is empty. h_F = 0 < h_j = 1 and
+the record is initial, so the finality pair `(1, genesis)` is emitted, and the
+record locks height 1 on genesis; no target is written. -/
+example : (fgInputs pT stK).1 = none ∧
+    (attest pT stK Record.initial 0).1 = ⟨.empty, some ⟨1, genesisRoot⟩⟩ ∧
+    (attest pT stK Record.initial 0).2.lock 1 = some genesisRoot ∧
+    (attest pT stK Record.initial 0).2.target 1 = none := by decide +kernel
+/-- (The returned record, spec 1391–1399) In `stC1` the height pair is the target
+vote at height 3 and there is no finality pair: the record gets `target[3]`, no
+timeout at 3, and no lock at 2. -/
+example : (attest pT stC1 Record.initial 0).2.target 3 =
+      some (derive pT.E pT.cfg B2).T_h.root ∧
+    (attest pT stC1 Record.initial 0).2.timeout 3 = false ∧
+    (attest pT stC1 Record.initial 0).2.lock 2 = none := by decide +kernel
+
 end AvailableChain.FGSA.Tests
 end

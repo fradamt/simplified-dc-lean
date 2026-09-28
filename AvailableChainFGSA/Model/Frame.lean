@@ -13,7 +13,8 @@ def controls (p : Params) (st : State p.n) : Controls (Fin p.n) := storeControls
 /-- [spec 1033–1037] `get_filtered_block_tree(Σ)`. -/
 def fullTree (p : Params) (st : State p.n) : Finset (FGBlock (Fin p.n)) :=
   storeFrame p.E p.cfg st.fg st.fg.TF
-/-- [helper] The erasure of an FG block set, in the order of the base list. -/
+/-- [spec 1025–1037; model representation of a block set as the erased base list]
+The erasure of an FG block set, in the order of the base list. -/
 def erasedList {n : Nat} (st : State n) (X : Finset (FGBlock (Fin n))) : List Block :=
   st.base.blocks.filter (fun b => decide (∃ B ∈ X, eraseFG B = b))
 
@@ -45,8 +46,8 @@ def headInTree (p : Params) (st : State p.n) (tree : List Block)
 def getHead (p : Params) (st : State p.n) (raw support : List (GridCO.Wire p.n)) : Block :=
   headInTree p st (erasedList st (fullTree p st)) raw support
 
-/-- [helper] The admitted slot-`s` proposals, with their vote lists. These stay
-readable when the block leaves `act(Σ)` (spec 190–193). -/
+/-- [spec 190–193, 1288–1293; helper] The admitted slot-`s` proposals, with their
+vote lists. These stay readable when the block leaves `act(Σ)` (spec 190–193). -/
 def proposalsAt {n : Nat} (st : State n) (s : Slot) :
     List (List (HeadWire n) × List (HeadWire n)) :=
   st.proposals.filterMap (fun o => match o.decode with
@@ -64,27 +65,30 @@ def voterBlocks (p : Params) (st : State p.n) (s : Slot) : Finset (FGBlock (Fin 
 received before `z_{s−1}`, and the slot-`(s−1)` votes of every admitted slot-`s`
 proposal. -/
 def headVotes (p : Params) (st : State p.n) (s : Slot) : List (GridCO.Wire p.n) :=
-  let frozen := (GridCO.votesAt st.base (s - 1)).filter (fun o =>
+  let frozenArm := (GridCO.votesAt st.base (s - 1)).filter (fun o =>
     decide (GridCO.stampVote st.base o < SA.freezeTime p.toParams (s - 1)))
   let carried := ((proposalsAt st s).flatMap (fun row => row.1.map baseVote)).filter
     (fun o => GridCO.headLabel? o == some (s - 1))
-  (frozen ++ carried).eraseDups
+  (frozenArm ++ carried).eraseDups
 
 /-- [spec 423–430, 1286–1293] The HEAD support merge: pool votes resolved
 before `z_{s−1}` against the CURRENT `act(Σ)`; the declared support of every
 admitted slot-`s` proposal whose head is in Σ.T with a valid slot. -/
 def headSupport (p : Params) (st : State p.n) (s : Slot) : List (GridCO.Wire p.n) :=
-  let frozen := (GridCO.votesAt st.base (s - 1)).filter (fun o =>
+  let frozenArm := (GridCO.votesAt st.base (s - 1)).filter (fun o =>
     GridCO.resolvedBefore (actView st) o (SA.freezeTime p.toParams (s - 1)))
   let carried := ((proposalsAt st s).flatMap (fun row => row.2.map baseVote)).filter (fun o =>
     GridCO.headLabel? o == some (s - 1) &&
       match GridCO.headTarget? o with
       | some h => GridCO.blockKnown st.base h && decide (h.slot ≤ s - 1)
       | none => false)
-  (frozen ++ carried).eraseDups
+  (frozenArm ++ carried).eraseDups
 
 /-- [spec 1276–1302] `goldfish_vote` at `v_s`: genesis at slot 0; else the head
-of the filtered voter view (live controls, M9) from the live root. -/
+of the filtered voter view (live controls, M9) from the live root. Condition
+(G6 O-m3): the spec sets `s ← Σ.s` (spec 1278), and `eligible` reads `Σ.s`, so
+this agrees with the spec only when `s = st.slot p`; the caller (T7) must
+guarantee it. -/
 def headVote (p : Params) (st : State p.n) (s : Slot) : Block :=
   if s = 0 then .genesis else
     headInTree p st (erasedList st (storeFrame p.E p.cfg st.fg (voterBlocks p st s)))
@@ -101,12 +105,14 @@ def proposerSupport {n : Nat} (st : State n) (s : Slot) : List (GridCO.Wire n) :
     | some h => GridCO.blockKnown (actView st) h && decide (h.slot ≤ s - 1)
     | none => false)
 
-/-- [helper] The signed rows of the stored blocks on the chain of `H`. -/
+/-- [spec 552–553, 1264–1265; helper] The signed rows of the stored blocks on the chain
+of `H`. -/
 def chainWireRows {n : Nat} (st : State n) (H : Block) : List (RowWire n) :=
   (st.proposals.filterMap (fun o => match o.decode with
     | some (.block _ b _ _ rows) => if Block.preceq b H then some rows else none
     | _ => none)).flatten
-/-- [helper] The rows with a round in `I` of the stored blocks of a slot in a round of `I`. -/
+/-- [spec 550–551, 1261–1263; helper] The rows with a round in `I` of the stored blocks
+of a slot in a round of `I`. -/
 def blockWireRows (p : Params) (st : State p.n) (I : Nat → Bool) : List (RowWire p.n) :=
   (st.proposals.filterMap (fun o => match o.decode with
     | some (.block _ b _ _ rows) =>
@@ -117,7 +123,8 @@ def blockWireRows (p : Params) (st : State p.n) (I : Nat → Bool) : List (RowWi
 /-- [spec 544–556, 1255–1274] `proposal_attestations(Σ, H)`: pool rows and
 stored-block rows of the window `I = [max 0 (r − w_F), r]`, without rows on the
 chain of `H`; per identity and round, every pool row, then distinct block rows
-until there are two. -/
+until there are two. Rows are grouped by their decoded `(round, identity)`, as in
+`admitRow` (G6 O-m6). -/
 def proposalRows (p : Params) (st : State p.n) (H : Block) : List (RowWire p.n) :=
   let r := p.round (st.slot p)
   let inI : Nat → Bool := fun r' => decide (r ≤ r' + p.wF) && decide (r' ≤ r)
@@ -125,11 +132,15 @@ def proposalRows (p : Params) (st : State p.n) (H : Block) : List (RowWire p.n) 
   let A := st.rowPool.filter (fun a => (a.round?.map inI).getD false && !decide (a ∈ onChain))
   let A' := (blockWireRows p st inI).filter (fun a => !decide (a ∈ onChain) && !decide (a ∈ A))
   A'.foldl (fun acc a =>
-    if decide (a ∈ acc) || 2 ≤ (acc.filter (fun x => x.auth == a.auth)).length then acc
+    let key := fun (x : RowWire p.n) => x.decode?.map (fun y => (y.1, y.2.1))
+    if decide (a ∈ acc) || 2 ≤ (acc.filter (fun x => key x == key a)).length then acc
     else acc ++ [a]) A
 
 /-- [spec 1236–1253; DQ10] `propose_block` at `t_s`, `s > 0`. The root formula
-is GridCO's; it is not a content code and it can collide (DQ10). -/
+is GridCO's; it is not a content code and it can collide (DQ10). Condition
+(G6 O-m3): the spec sets `s ← Σ.s` (spec 1238), and `eligible` and
+`proposalRows` read `Σ.s`, so this agrees with the spec only when
+`s = st.slot p`; the caller (T7) must guarantee it. -/
 def propose (p : Params) (st : State p.n) (s : Slot) : Option (Msg p.n) :=
   if s = 0 then none else
     let raw := proposerVotes st s
@@ -148,7 +159,7 @@ def fgHead (p : Params) (st : State p.n) : Block :=
     | none => false)
   getHead p st raw sup
 
-/-- [helper] The stored FG block of an erased block (exact under CStoreInv:
+/-- [spec 1324–1326; helper] The stored FG block of an erased block (exact under CStoreInv:
 Task 11, `fgBlockOf_spec`). -/
 def fgBlockOf {n : Nat} (st : State n) (b : Block) : Option (FGBlock (Fin n)) :=
   pickPair st.fg.TF (fun B => decide (eraseFG B = b))

@@ -583,7 +583,8 @@ def actionTime (p : Params) (r : Nat) : Time := SA.gateTime p.toParams (r * p.R)
 def slotOf (p : Params) (t : Time) : Slot := (t / (4 * p.Δ)).toNat
 end Params
 
-/-- [comp §4.2] Duty labels: the HEAD of slot `s` and the FG action of round `r`. -/
+/-- [spec 197–220; comp §4.2; model representation of the duty labels] Duty labels: the HEAD of
+slot `s` and the FG action of round `r`. -/
 inductive Label where
   | head (s : Slot)
   | fg (r : Nat)
@@ -621,7 +622,8 @@ abbrev RowWire (n : Nat) := Signed Label n RowBody
 
 namespace HeadWire
 variable {n : Nat}
-/-- [J1] The one auth decoder of a carried vote: label `s`, seat `i`, head. -/
+/-- [spec 225–228, 510–511; J1] The one auth decoder of a carried vote: label `s`,
+seat `i`, head. -/
 def decode? (o : HeadWire n) : Option (Slot × Fin n × Block) :=
   match o.auth with
   | .seat (.head s) i => some (s, i, o.payload)
@@ -630,7 +632,7 @@ end HeadWire
 
 namespace RowWire
 variable {n : Nat}
-/-- [J1; M4] The one auth decoder of a row: the round `r` (the label), the
+/-- [spec 230–237, 512–513; J1; M4] The one auth decoder of a row: the round `r` (the label), the
 identity `i` (the seat index) and the body. -/
 def decode? (a : RowWire n) : Option (Nat × Fin n × RowBody) :=
   match a.auth with
@@ -656,14 +658,15 @@ inductive Msg (n : Nat) where
 
 abbrev Wire (n : Nat) := Signed Label n (Msg n)
 
-/-- [J1] A decoded wire. -/
+/-- [spec 505–518, 804–857; J1; model representation of a decoded input] A decoded
+wire. -/
 inductive Input (n : Nat) where
   | vote (s : Slot) (i : Fin n) (target : Block)
   | row (r : Nat) (i : Fin n) (body : RowBody)
   | block (s : Slot) (b : Block) (raw support : List (HeadWire n)) (rows : List (RowWire n))
   deriving DecidableEq, Repr
 
-/-- [J1] The one auth decoder of a wire. Every handler and the input check read
+/-- [spec 505–518; J1] The one auth decoder of a wire. Every handler and the input check read
 a wire only through `Wire.decode`, `HeadWire.decode?` and `RowWire.decode?`. On
 engine v2, a decode adapter to `Wire p.n` keeps the internal API; T7 sets the
 scope of a native re-typing (Q1 boundary). -/
@@ -674,32 +677,35 @@ def Wire.decode {n : Nat} (o : Wire n) : Option (Input n) :=
   | .proposer s, .proposal b raw sup rows => some (.block s b raw sup rows)
   | _, _ => none
 
-/-- [helper] The block of a proposal wire. -/
+/-- [spec 248–255; helper] The block of a proposal wire. -/
 def Wire.block? {n : Nat} (o : Wire n) : Option Block :=
   match o.decode with
   | some (.block _ b _ _ _) => some b
   | _ => none
 
-/-- [bp bp.carrier.v1] The geometric erasure of an FG block (bp01 §2.1 `eraseFG`). -/
+/-- [spec 248–263, 381–403; bp bp.carrier.v1] The geometric erasure of an FG block
+(bp01 §2.1 `eraseFG`). -/
 def eraseFG {V : Type} : FGBlock V → Block
   | .genesis => .genesis
   | .node p s r _ => .node (eraseFG p) s r
 
-/-- [helper] The base form of a carried vote: a HEAD seat of slot `s` becomes a
+/-- [spec 225–228; model representation of a carried vote in the SA base] The base
+form of a carried vote: a HEAD seat of slot `s` becomes a
 seat of base label `s`; any other auth becomes `.none`. -/
 def baseHead {n : Nat} (o : HeadWire n) : GridCO.HeadWire n :=
   match o.decode? with
   | some (s, i, b) => ⟨.seat s i, b⟩
   | none => ⟨.none, o.payload⟩
 def baseVote {n : Nat} (o : HeadWire n) : GridCO.Wire n := GridCO.fromHead (baseHead o)
-/-- [helper] A base vote as a composite carried vote (for the proposer's lists).
+/-- [spec 1240–1249; helper] A base vote as a composite carried vote (for the proposer's lists).
 It reads the GridCO accessors; it matches no auth. -/
 def liftHead? {n : Nat} (o : GridCO.Wire n) : Option (HeadWire n) := do
   let s ← GridCO.headLabel? o
   let i ← GridCO.headSeat? o
   let b ← GridCO.headTarget? o
   pure ⟨.seat (.head s) i, b⟩
-/-- [helper] The base proposal of a decoded composite proposal (as SA-PC `baseProposal`). -/
+/-- [spec 248–255, 820–823; model representation of a proposal in the SA base] The
+base proposal of a decoded composite proposal (as SA-PC `baseProposal`). -/
 def baseProposal {n : Nat} (s : Slot) (b : Block) (raw support : List (HeadWire n)) :
     GridCO.Wire n :=
   ⟨.proposer s, .proposal b (raw.map baseHead) (support.map baseHead)⟩
@@ -1029,7 +1035,7 @@ its block list filtered to `act(Σ)`. Every other field is the stored one. -/
 def actView (st : State n) : GridCO.State n :=
   { st.base with blocks := st.base.blocks.filter (activeCompatible st) }
 
-/-- [M2] Run a GridCO step on the active view, then keep the cumulative block
+/-- [spec 363–366; M2] Run a GridCO step on the active view, then keep the cumulative block
 list. Used only with steps that do not change `blocks` (Task 7 proves it). -/
 def onView (f : GridCO.State n → GridCO.State n) (st : State n) : State n :=
   { st with base := { f (actView st) with blocks := st.base.blocks } }
@@ -1208,8 +1214,8 @@ returns `none` on two candidates; Task 10 shows there is at most one. -/
 def parentFG {n : Nat} (st : State n) (b : Block) : Option (FGBlock (Fin n)) :=
   pickPair st.fg.TF (fun P => decide (eraseFG P = b.parent))
 
-/-- [M3] The FG block of an admitted proposal: the stored parent, the slot and
-root of the wire block, and its rows. -/
+/-- [spec 818–819, 902–912; M3] The FG block of an admitted proposal: the stored
+parent, the slot and root of the wire block, and its rows. -/
 def fgBlock {n : Nat} (P : FGBlock (Fin n)) (b : Block) (rows : List (RowWire n)) :
     FGBlock (Fin n) :=
   .node P b.slot b.root (rows.filterMap RowWire.toRow?)
@@ -1465,7 +1471,8 @@ def controls (p : Params) (st : State p.n) : Controls (Fin p.n) := storeControls
 /-- [spec 1033–1037] `get_filtered_block_tree(Σ)`. -/
 def fullTree (p : Params) (st : State p.n) : Finset (FGBlock (Fin p.n)) :=
   storeFrame p.E p.cfg st.fg st.fg.TF
-/-- [helper] The erasure of an FG block set, in the order of the base list. -/
+/-- [spec 1025–1037; model representation of a block set as the erased base list]
+The erasure of an FG block set, in the order of the base list. -/
 def erasedList {n : Nat} (st : State n) (X : Finset (FGBlock (Fin n))) : List Block :=
   st.base.blocks.filter (fun b => decide (∃ B ∈ X, eraseFG B = b))
 
@@ -1497,8 +1504,8 @@ def headInTree (p : Params) (st : State p.n) (tree : List Block)
 def getHead (p : Params) (st : State p.n) (raw support : List (GridCO.Wire p.n)) : Block :=
   headInTree p st (erasedList st (fullTree p st)) raw support
 
-/-- [helper] The admitted slot-`s` proposals, with their vote lists. These stay
-readable when the block leaves `act(Σ)` (spec 190–193). -/
+/-- [spec 190–193, 1288–1293; helper] The admitted slot-`s` proposals, with their
+vote lists. These stay readable when the block leaves `act(Σ)` (spec 190–193). -/
 def proposalsAt {n : Nat} (st : State n) (s : Slot) :
     List (List (HeadWire n) × List (HeadWire n)) :=
   st.proposals.filterMap (fun o => match o.decode with
@@ -1516,27 +1523,30 @@ def voterBlocks (p : Params) (st : State p.n) (s : Slot) : Finset (FGBlock (Fin 
 received before `z_{s−1}`, and the slot-`(s−1)` votes of every admitted slot-`s`
 proposal. -/
 def headVotes (p : Params) (st : State p.n) (s : Slot) : List (GridCO.Wire p.n) :=
-  let frozen := (GridCO.votesAt st.base (s - 1)).filter (fun o =>
+  let frozenArm := (GridCO.votesAt st.base (s - 1)).filter (fun o =>
     decide (GridCO.stampVote st.base o < SA.freezeTime p.toParams (s - 1)))
   let carried := ((proposalsAt st s).flatMap (fun row => row.1.map baseVote)).filter
     (fun o => GridCO.headLabel? o == some (s - 1))
-  (frozen ++ carried).eraseDups
+  (frozenArm ++ carried).eraseDups
 
 /-- [spec 423–430, 1286–1293] The HEAD support merge: pool votes resolved
 before `z_{s−1}` against the CURRENT `act(Σ)`; the declared support of every
 admitted slot-`s` proposal whose head is in Σ.T with a valid slot. -/
 def headSupport (p : Params) (st : State p.n) (s : Slot) : List (GridCO.Wire p.n) :=
-  let frozen := (GridCO.votesAt st.base (s - 1)).filter (fun o =>
+  let frozenArm := (GridCO.votesAt st.base (s - 1)).filter (fun o =>
     GridCO.resolvedBefore (actView st) o (SA.freezeTime p.toParams (s - 1)))
   let carried := ((proposalsAt st s).flatMap (fun row => row.2.map baseVote)).filter (fun o =>
     GridCO.headLabel? o == some (s - 1) &&
       match GridCO.headTarget? o with
       | some h => GridCO.blockKnown st.base h && decide (h.slot ≤ s - 1)
       | none => false)
-  (frozen ++ carried).eraseDups
+  (frozenArm ++ carried).eraseDups
 
 /-- [spec 1276–1302] `goldfish_vote` at `v_s`: genesis at slot 0; else the head
-of the filtered voter view (live controls, M9) from the live root. -/
+of the filtered voter view (live controls, M9) from the live root. Condition
+(G6 O-m3): the spec sets `s ← Σ.s` (spec 1278), and `eligible` reads `Σ.s`, so
+this agrees with the spec only when `s = st.slot p`; the caller (T7) must
+guarantee it. -/
 def headVote (p : Params) (st : State p.n) (s : Slot) : Block :=
   if s = 0 then .genesis else
     headInTree p st (erasedList st (storeFrame p.E p.cfg st.fg (voterBlocks p st s)))
@@ -1553,12 +1563,14 @@ def proposerSupport {n : Nat} (st : State n) (s : Slot) : List (GridCO.Wire n) :
     | some h => GridCO.blockKnown (actView st) h && decide (h.slot ≤ s - 1)
     | none => false)
 
-/-- [helper] The signed rows of the stored blocks on the chain of `H`. -/
+/-- [spec 552–553, 1264–1265; helper] The signed rows of the stored blocks on the chain
+of `H`. -/
 def chainWireRows {n : Nat} (st : State n) (H : Block) : List (RowWire n) :=
   (st.proposals.filterMap (fun o => match o.decode with
     | some (.block _ b _ _ rows) => if Block.preceq b H then some rows else none
     | _ => none)).flatten
-/-- [helper] The rows with a round in `I` of the stored blocks of a slot in a round of `I`. -/
+/-- [spec 550–551, 1261–1263; helper] The rows with a round in `I` of the stored blocks
+of a slot in a round of `I`. -/
 def blockWireRows (p : Params) (st : State p.n) (I : Nat → Bool) : List (RowWire p.n) :=
   (st.proposals.filterMap (fun o => match o.decode with
     | some (.block _ b _ _ rows) =>
@@ -1569,7 +1581,8 @@ def blockWireRows (p : Params) (st : State p.n) (I : Nat → Bool) : List (RowWi
 /-- [spec 544–556, 1255–1274] `proposal_attestations(Σ, H)`: pool rows and
 stored-block rows of the window `I = [max 0 (r − w_F), r]`, without rows on the
 chain of `H`; per identity and round, every pool row, then distinct block rows
-until there are two. -/
+until there are two. Rows are grouped by their decoded `(round, identity)`, as in
+`admitRow` (G6 O-m6). -/
 def proposalRows (p : Params) (st : State p.n) (H : Block) : List (RowWire p.n) :=
   let r := p.round (st.slot p)
   let inI : Nat → Bool := fun r' => decide (r ≤ r' + p.wF) && decide (r' ≤ r)
@@ -1577,11 +1590,15 @@ def proposalRows (p : Params) (st : State p.n) (H : Block) : List (RowWire p.n) 
   let A := st.rowPool.filter (fun a => (a.round?.map inI).getD false && !decide (a ∈ onChain))
   let A' := (blockWireRows p st inI).filter (fun a => !decide (a ∈ onChain) && !decide (a ∈ A))
   A'.foldl (fun acc a =>
-    if decide (a ∈ acc) || 2 ≤ (acc.filter (fun x => x.auth == a.auth)).length then acc
+    let key := fun (x : RowWire p.n) => x.decode?.map (fun y => (y.1, y.2.1))
+    if decide (a ∈ acc) || 2 ≤ (acc.filter (fun x => key x == key a)).length then acc
     else acc ++ [a]) A
 
 /-- [spec 1236–1253; DQ10] `propose_block` at `t_s`, `s > 0`. The root formula
-is GridCO's; it is not a content code and it can collide (DQ10). -/
+is GridCO's; it is not a content code and it can collide (DQ10). Condition
+(G6 O-m3): the spec sets `s ← Σ.s` (spec 1238), and `eligible` and
+`proposalRows` read `Σ.s`, so this agrees with the spec only when
+`s = st.slot p`; the caller (T7) must guarantee it. -/
 def propose (p : Params) (st : State p.n) (s : Slot) : Option (Msg p.n) :=
   if s = 0 then none else
     let raw := proposerVotes st s
@@ -1600,7 +1617,7 @@ def fgHead (p : Params) (st : State p.n) : Block :=
     | none => false)
   getHead p st raw sup
 
-/-- [helper] The stored FG block of an erased block (exact under CStoreInv:
+/-- [spec 1324–1326; helper] The stored FG block of an erased block (exact under CStoreInv:
 Task 11, `fgBlockOf_spec`). -/
 def fgBlockOf {n : Nat} (st : State n) (b : Block) : Option (FGBlock (Fin n)) :=
   pickPair st.fg.TF (fun B => decide (eraseFG B = b))
@@ -1644,8 +1661,58 @@ def attest (p : Params) (st : State p.n) (Λ : Record) (i : Fin p.n) : RowBody �
   The old findings (a) and (b) of revision 1 are now proof obligations of Task 11 (`deepest_spec`, `fgBlockOf_spec`, `fgHead_stored`). The smoke tests compare the row-body projection of `attest`, not a `Record` (a record holds functions).
 - [x] **Step 3: Run it; it passes.** As in Task 3, Step 3.
   Execution notes (2026-09-29): `Model/Frame.lean` is the code above; four signature or body lines are wrapped for the 100-column linter (no other change). The `stC1` fixture and the expired-lease test are re-laid out (the same structure-instance layout problem as `stR1`; same values). Every planned value agreed with the build. Extra tests (a)–(c) are in `Tests/Smoke.lean` with the hand computation in each docstring: (a) `stH0`/`stH`: a label-2 vote for `b1'` (stamp 9 < z_2 = 11) is in both HEAD merges while F = genesis; after F moves to B1 it stays in `headVotes` and leaves `headSupport`; (b) `stX`: the slot-3 proposal `xB` on `b1'` leaves `act(Σ)`, and its carried vote (pool stamp 12 ≥ 11, so not in the frozen arm) stays in `headVotes` through the proposal arm; (c) `stP`: for H = b2 the rows of B1, B2 (on the chain) drop, the pool rows of B3 and `q 1`, `q 2` stay in pool order, and the block row `q 3` drops (identity 3 already has two pool rows). Fallback (R1): test (c) uses `decide +kernel`; plain `decide` and the `Bool` form reach the elaborator's recursion limit on the state `stP` (even for `yB ∈ stP.base.blocks`); `#eval` gave `true` for the three conjuncts (not committed). Extra G6 coverage: `liveRoot` (a live lease on b2; an expired lease; a lease outside the full filtered tree), `propose` at t_4 = 16 (block `node b2 4 ⟨24⟩`, rows of B3), `fgHead`/`fgInputs` at `stA` (b3; the head fields of B3), and `attest` with the source B2 (no finality pair; height pair `.vote 3 σ[B2].T_h.root false`). No duty reads `frozen`, `early`, `releaseSnapshots`, `goldfishRecord` or `base.proposals`, and none calls GridCO `act` or the voter views (grep).
-- [ ] **Step 4: Astra model check (review gate G6).** Before any STORE proof task (Tasks 7–12; Task 2 does not depend on the model), start a Codex astra job: compare `Model/*.lean` line by line with the spec lines in each docstring and with the tree-read inventory; check that no duty or output reads a model-only cache (Global Constraints); check M11 (no free `n` next to `p`) and J1 (no auth match outside the decoders); check (G3 minor 4) that no composite duty reuses GridCO `act`, `voterView`, `voterSupportView` or `voterTree` (`GridCO/Model/Protocol.lean:250–273`): they read `frozen`, whose saved resolved pools and frozen domain `reconcile` does not clear, so after an F advance they would bypass the read-time resolution test (spec 426–427: "a saved resolved flag cannot bypass this test"). Output `docs/audit/fgsa-model-check-report.md` (blocking, major, minor; verdict). Fix every blocking and major finding in the model and in this plan, with new or changed smoke tests. Re-run the build.
-- [ ] **Step 5: CHECKPOINT.** Commit `FGSA model: frame reads and duties`.
+- [x] **Step 4: Astra model check (review gate G6).** Before any STORE proof task (Tasks 7–12; Task 2 does not depend on the model), start a Codex astra job: compare `Model/*.lean` line by line with the spec lines in each docstring and with the tree-read inventory; check that no duty or output reads a model-only cache (Global Constraints); check M11 (no free `n` next to `p`) and J1 (no auth match outside the decoders); check (G3 minor 4) that no composite duty reuses GridCO `act`, `voterView`, `voterSupportView` or `voterTree` (`GridCO/Model/Protocol.lean:250–273`): they read `frozen`, whose saved resolved pools and frozen domain `reconcile` does not clear, so after an F advance they would bypass the read-time resolution test (spec 429–430: "a saved resolved flag cannot bypass this test"). Output `docs/audit/fgsa-model-check-report.md` (blocking, major, minor; verdict). Fix every blocking and major finding in the model and in this plan, with new or changed smoke tests. Re-run the build.
+- [x] **Step 5: CHECKPOINT.** Commit `FGSA model: frame reads and duties`.
+  Execution notes (2026-09-29): the checkpoint is `d5171fc`. G6 ran two reviews of it: the Astra model check r195 (`docs/audit/fgsa-model-check-report.md`: PASS WITH FIXES; 0 blocking, 0 major, 5 minor) and an Opus review (`docs/audit/fgsa-task6-opus-review.md`: PASS WITH FIXES; 0 blocking, 1 major, 6 minor). The G6 fold is one commit. It adds 15 tests in `Tests/Smoke.lean`, each with a hand computation in its docstring. For each new test, a scratch file (not committed) defines the plausible wrong rule and proves with `decide` or `decide +kernel` that the wrong rule gives a different value; `#eval` printed the wrong values. Six new tests use `decide +kernel` (R1). The model rule changes only in `proposalRows` (item 9). The plan's code blocks for `Objects.lean` and `Store.lean` keep older docstrings in a few places; the Lean files are authoritative for docstrings and anchors.
+
+**G6 dispositions** (Astra N1–N5, Opus MAJOR 1 and MINOR 1–6; lead items 1–9). No model rule differs from the spec. G6 is closed when the lead accepts this fold.
+
+```text
+┌──────┬─────────────────┬───────────────────────────────────────────────────────────────┐
+│ Item │ Findings        │ Disposition (negative control: wrong rule → wrong value)      │
+├──────┼─────────────────┼───────────────────────────────────────────────────────────────┤
+│ 1    │ Opus MAJOR 1;   │ Four HEAD tests. `stE`: a late B2 outside the slot-3 view,    │
+│      │ Astra N1        │ head b1 (full filtered tree → b2). `atTime stS 13`: the       │
+│      │                 │ merges make b2 the head (empty merges → b1). `stE3`: B2 enters│
+│      │                 │ the view as an ancestor of the slot-3 proposal x3, head x3 (no│
+│      │                 │ proposal arm → b1). `stK`: `Y` outside the view makes the     │
+│      │                 │ live store contested (Z = genesis, lo = 3), head childA       │
+│      │                 │ (controls from the view → X; full tree → Y).                  │
+│ 2    │ Astra N2        │ `stXs`: nonempty carried support; the proposal `xB` and the   │
+│      │                 │ head `b1'` are outside act(Σ) but in Σ.T (no carried arm →    │
+│      │                 │ []). `stB`: the pool refuses `q 3`; the on-chain `q 1` leaves │
+│      │                 │ its group, so the block arm includes `q 3` (block arm [] →    │
+│      │                 │ `q 3` missing). At now 16 the off-chain round-0 row `r0z` of  │
+│      │                 │ the stored block `zB` is outside the window (no pool window,  │
+│      │                 │ or no row filter in the block arm → `r0z` included).          │
+│ 3    │ Astra N3;       │ `stF3` (hand-set): older set fastWrite[0] = [b1], a slow-only │
+│      │ Opus MINOR 1    │ lease on b2, fastWrite[2] = [b1'] with B1' in Σ.T but outside │
+│      │                 │ the full filtered tree: C_fg = none (older set → B1; any live │
+│      │                 │ lease → B2; Σ.T without the filter → B1'). `stF4`: two fast   │
+│      │                 │ targets, C_fg = B2 (first member → B1). `liveRoot` on `stR2`  │
+│      │                 │ with a lease on the stored `b1'`: b1 (Σ.T → b1'). `stEL`: the │
+│      │                 │ live root b2 is outside the slot-3 view; the walk starts      │
+│      │                 │ there: head b2 (live root from the view → b1).                │
+│ 4    │ Astra N5;       │ `stK`: the finality head is Y; σ[Y] = (1, genesis, 0) differs │
+│      │ Opus MINOR 2    │ from the live cache (J = B1a, h_j = 2) (cache fields →        │
+│      │                 │ (2, B1a, 1)). No source, but the finality pair (1, genesis)   │
+│      │                 │ and lock[1] (no pair without a source → none). The record of  │
+│      │                 │ `attest` on `stC1` (target[3], no timeout, no lock) and on    │
+│      │                 │ `stK` (lock[1]) (unchanged record → none).                    │
+│ 5    │ Astra N4        │ Spec anchors on the helpers (`[spec …; helper]` or `[spec …;  │
+│      │                 │ model representation …]`) in Objects, Store, Handlers and     │
+│      │                 │ Frame. Step 4 quotation anchor corrected to spec 429–430.     │
+│ 6    │ Opus MINOR 3    │ `headVote`, `propose` docstrings: they agree with the spec    │
+│      │                 │ only when `s = st.slot p`. Added to the T7 inputs (Task 13,   │
+│      │                 │ Step 5; Open questions) and to Known limits.                  │
+│ 7    │ Opus MINOR 4    │ Known limits: `goldfishScore` needs support ⊆ raw (DQ14).     │
+│ 8    │ Opus MINOR 5    │ Local `frozen` renamed `frozenArm` in `headVotes`,            │
+│      │                 │ `headSupport`.                                                │
+│ 9    │ Opus MINOR 6    │ Choice: group by decode. `proposalRows` counts rows per       │
+│      │                 │ decoded `(round, identity)`, the key of `admitRow`. All       │
+│      │                 │ earlier tests keep their values.                              │
+└──────┴─────────────────┴───────────────────────────────────────────────────────────────┘
+```
 
 ---
 
@@ -2325,7 +2392,7 @@ theorem rootInjectiveOn_across (p : Params) (st st' : State p.n)
   - every difference found against the spec, the blueprint and comp §4, and every smoke-test value that differed from the hand computation;
   - the answers used for DQ1–DQ14 and each audit finding that is still open;
   - the validation commands and their results (build, check script, axiom scan);
-  - the inputs for composition task T7: the Q1 boundary table (with the v1 object dependency, J1), `blockExcluded_stable`, `wellFormed` and `blockAccepted_of_wellFormed`, "processed by root" (DQ9), `attest`, the content premise (DQ3) and the DQ10 root limit, the Λ placement (DQ4), and the one-tick-per-time premise that `clock_eq_saClock_gate` needs (DQ5);
+  - the inputs for composition task T7: the duty-slot condition `s = st.slot p` of `headVote` and `propose` (G6 O-m3); the Q1 boundary table (with the v1 object dependency, J1), `blockExcluded_stable`, `wellFormed` and `blockAccepted_of_wellFormed`, "processed by root" (DQ9), `attest`, the content premise (DQ3) and the DQ10 root limit, the Λ placement (DQ4), and the one-tick-per-time premise that `clock_eq_saClock_gate` needs (DQ5);
   - the inputs for composition task T1 (registry): `comp.outputNesting.v2`, `bp.store.v1`, `bp.reconcile.v1`, `bp.carrier.v1`, `bp.activeView.v1` with the Lean names.
 - [ ] **Step 6: Review gate G13 (final) and CHECKPOINT.** Commit `FGSA store: axiom audit, full build, map`.
 
@@ -2370,6 +2437,11 @@ A reviewer blocks the CHECKPOINT on: a model rule that differs from the spec wit
 - The lease parts of `bp.leaseOrigins.v1` (a successful gate origin of each live target, one-chain live targets, ancestor deadlines). They are local facts (a `Reachable` induction suffices, as for `FastOrigin`), but no task of T3–T6 needs them; composition T10/T12 states them.
 - A change of the honest root formula (DQ10 alternative); it is a cross-library user decision.
 - The leak ledger. The model is ready for it as a derived function (Global Constraints).
+
+## Known limits
+
+- (G6 O-m4) `GridCO.goldfishScore` counts a supporter only if its seat is in the raw list (`seats n raw`); the spec score (spec 1039–1048) counts every clean seat of the support list. The two agree when support ⊆ raw. This holds by construction for the frozen arm, the proposer and the FG action. For the carried arm it needs `B.support ⊆ B.votes`, which `wellFormed` checks but `process` does not run (DQ14). So the HEAD score equals the spec score only when T7 binds the input check. Inherited from GridCO; no model change.
+- (G6 O-m3) `headVote` and `propose` take the slot `s` but read `Σ.s` through `eligible` and `proposalRows`; they agree with the spec only when `s = st.slot p` (a T7 caller obligation).
 
 ## Risks
 
@@ -2419,7 +2491,7 @@ A reviewer blocks the CHECKPOINT on: a model rule that differs from the spec wit
 - Q1 (engine) and Q5 (deliverable) stay open. This plan has no binding to them; its objects are v1-typed (J1).
 - DQ1–DQ14 above, each with a recommended answer. The plan follows the recommendations. The second G0 audit (r188) accepted them. The user can still change them.
 - User decision (DQ10, DQ3): keep the arithmetic honest root and the content premise (this plan), or move to content-coded roots with an admission check across GridCO/SA/FG-SA (comp D4 as written).
-- For composition T7: the one-tick-per-public-time premise (DQ5, `clock_eq_saClock_gate`), the content premise `ContentRootInjective` (DQ3), checked inputs at every handler call (DQ14), and "processed by root" (DQ9).
+- For composition T7: the duty-slot condition `s = st.slot p` for `headVote` and `propose` (G6 O-m3); the one-tick-per-public-time premise (DQ5, `clock_eq_saClock_gate`), the content premise `ContentRootInjective` (DQ3), checked inputs at every handler call (DQ14), and "processed by root" (DQ9).
 
 ## Disposition of audit findings
 

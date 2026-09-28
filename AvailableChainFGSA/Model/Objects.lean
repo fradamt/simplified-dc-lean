@@ -32,7 +32,8 @@ def actionTime (p : Params) (r : Nat) : Time := SA.gateTime p.toParams (r * p.R)
 def slotOf (p : Params) (t : Time) : Slot := (t / (4 * p.Δ)).toNat
 end Params
 
-/-- [comp §4.2] Duty labels: the HEAD of slot `s` and the FG action of round `r`. -/
+/-- [spec 197–220; comp §4.2; model representation of the duty labels] Duty labels: the HEAD of
+slot `s` and the FG action of round `r`. -/
 inductive Label where
   | head (s : Slot)
   | fg (r : Nat)
@@ -52,7 +53,8 @@ structure RowBody where
   finality_pair : Option FinalityPair
   deriving DecidableEq, Repr
 
-/-- [helper] The body of an FG row: the row without its signer. -/
+/-- [spec 230–237; model representation of a row without its signer] The body of an FG
+row: the row without its signer. -/
 def RowBody.ofRow {V : Type} (a : Row V) : RowBody := ⟨a.height_pair, a.finality_pair⟩
 
 /-- [spec 230–237, 505–518; M12] The one row-body check, for a row alone and
@@ -71,7 +73,8 @@ abbrev RowWire (n : Nat) := Signed Label n RowBody
 
 namespace HeadWire
 variable {n : Nat}
-/-- [J1] The one auth decoder of a carried vote: label `s`, seat `i`, head. -/
+/-- [spec 225–228, 510–511; J1] The one auth decoder of a carried vote: label `s`,
+seat `i`, head. -/
 def decode? (o : HeadWire n) : Option (Slot × Fin n × Block) :=
   match o.auth with
   | .seat (.head s) i => some (s, i, o.payload)
@@ -80,7 +83,7 @@ end HeadWire
 
 namespace RowWire
 variable {n : Nat}
-/-- [J1; M4] The one auth decoder of a row: the round `r` (the label), the
+/-- [spec 230–237, 512–513; J1; M4] The one auth decoder of a row: the round `r` (the label), the
 identity `i` (the seat index) and the body. -/
 def decode? (a : RowWire n) : Option (Nat × Fin n × RowBody) :=
   match a.auth with
@@ -108,14 +111,15 @@ inductive Msg (n : Nat) where
 /-- [spec 225–263; comp §4.2] A wire object: an auth and a payload. -/
 abbrev Wire (n : Nat) := Signed Label n (Msg n)
 
-/-- [J1] A decoded wire. -/
+/-- [spec 505–518, 804–857; J1; model representation of a decoded input] A decoded
+wire. -/
 inductive Input (n : Nat) where
   | vote (s : Slot) (i : Fin n) (target : Block)
   | row (r : Nat) (i : Fin n) (body : RowBody)
   | block (s : Slot) (b : Block) (raw support : List (HeadWire n)) (rows : List (RowWire n))
   deriving DecidableEq, Repr
 
-/-- [J1] The one auth decoder of a wire. Every handler and the input check read
+/-- [spec 505–518; J1] The one auth decoder of a wire. Every handler and the input check read
 a wire only through `Wire.decode`, `HeadWire.decode?` and `RowWire.decode?`. On
 engine v2, a decode adapter to `Wire p.n` keeps the internal API; T7 sets the
 scope of a native re-typing (Q1 boundary). -/
@@ -126,33 +130,37 @@ def Wire.decode {n : Nat} (o : Wire n) : Option (Input n) :=
   | .proposer s, .proposal b raw sup rows => some (.block s b raw sup rows)
   | _, _ => none
 
-/-- [helper] The block of a proposal wire. -/
+/-- [spec 248–255; helper] The block of a proposal wire. -/
 def Wire.block? {n : Nat} (o : Wire n) : Option Block :=
   match o.decode with
   | some (.block _ b _ _ _) => some b
   | _ => none
 
-/-- [bp bp.carrier.v1] The geometric erasure of an FG block (bp01 §2.1 `eraseFG`). -/
+/-- [spec 248–263, 381–403; bp bp.carrier.v1] The geometric erasure of an FG block
+(bp01 §2.1 `eraseFG`). -/
 def eraseFG {V : Type} : FGBlock V → Block
   | .genesis => .genesis
   | .node p s r _ => .node (eraseFG p) s r
 
-/-- [helper] The base form of a carried vote: a HEAD seat of slot `s` becomes a
+/-- [spec 225–228; model representation of a carried vote in the SA base] The base
+form of a carried vote: a HEAD seat of slot `s` becomes a
 seat of base label `s`; any other auth becomes `.none`. -/
 def baseHead {n : Nat} (o : HeadWire n) : GridCO.HeadWire n :=
   match o.decode? with
   | some (s, i, b) => ⟨.seat s i, b⟩
   | none => ⟨.none, o.payload⟩
-/-- [helper] The base form of a carried vote as a GridCO vote wire. -/
+/-- [spec 225–228, 821–823; model representation of a carried vote as an SA pool
+vote] The base form of a carried vote as a GridCO vote wire. -/
 def baseVote {n : Nat} (o : HeadWire n) : GridCO.Wire n := GridCO.fromHead (baseHead o)
-/-- [helper] A base vote as a composite carried vote (for the proposer's lists).
+/-- [spec 1240–1249; helper] A base vote as a composite carried vote (for the proposer's lists).
 It reads the GridCO accessors; it matches no auth. -/
 def liftHead? {n : Nat} (o : GridCO.Wire n) : Option (HeadWire n) := do
   let s ← GridCO.headLabel? o
   let i ← GridCO.headSeat? o
   let b ← GridCO.headTarget? o
   pure ⟨.seat (.head s) i, b⟩
-/-- [helper] The base proposal of a decoded composite proposal (as SA-PC `baseProposal`). -/
+/-- [spec 248–255, 820–823; model representation of a proposal in the SA base] The
+base proposal of a decoded composite proposal (as SA-PC `baseProposal`). -/
 def baseProposal {n : Nat} (s : Slot) (b : Block) (raw support : List (HeadWire n)) :
     GridCO.Wire n :=
   ⟨.proposer s, .proposal b (raw.map baseHead) (support.map baseHead)⟩

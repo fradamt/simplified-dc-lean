@@ -28,8 +28,8 @@ returns `none` on two candidates; Task 10 shows there is at most one. -/
 def parentFG {n : Nat} (st : State n) (b : Block) : Option (FGBlock (Fin n)) :=
   pickPair st.fg.TF (fun P => decide (eraseFG P = b.parent))
 
-/-- [M3] The FG block of an admitted proposal: the stored parent, the slot and
-root of the wire block, and its rows. -/
+/-- [spec 818–819, 902–912; M3] The FG block of an admitted proposal: the stored
+parent, the slot and root of the wire block, and its rows. -/
 def fgBlock {n : Nat} (P : FGBlock (Fin n)) (b : Block) (rows : List (RowWire n)) :
     FGBlock (Fin n) :=
   .node P b.slot b.root (rows.filterMap RowWire.toRow?)

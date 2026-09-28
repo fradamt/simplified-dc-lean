@@ -48,7 +48,7 @@ its block list filtered to `act(Σ)`. Every other field is the stored one. -/
 def actView (st : State n) : GridCO.State n :=
   { st.base with blocks := st.base.blocks.filter (activeCompatible st) }
 
-/-- [M2] Run a GridCO step on the active view, then keep the cumulative block
+/-- [spec 363–366; M2] Run a GridCO step on the active view, then keep the cumulative block
 list. Used only with steps that do not change `blocks` (Task 7 proves it). -/
 def onView (f : GridCO.State n → GridCO.State n) (st : State n) : State n :=
   { st with base := { f (actView st) with blocks := st.base.blocks } }
