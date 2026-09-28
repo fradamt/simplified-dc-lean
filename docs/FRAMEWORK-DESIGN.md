@@ -411,8 +411,8 @@ framework must support.
 **7.1 Decisions (user).** The FG is our Simplex FG, ONE fixed module:
 `SimplexFG.fj` (user decision 2026-09-28: "just fj for now"). NJ is not
 formalized now; if the research needs it later, it is a new versioned
-module (an addition). Whether DC itself is ported, and with which rule,
-is a later decision. `SimplexFG.fj` uses the FJ root rule (a frontier test; root F and band
+module (an addition). DC can be an fj protocol: the module is DC's FG
+(without SG and grades) with the FJ root rule in place of NJ ("DC-fj"). `SimplexFG.fj` uses the FJ root rule (a frontier test; root F and band
 {H} in a contest). FJ changes the frame rule, so it has its own frame
 and noninterference interface, not a base-selection plug-in (audit W06). The FJ interface is r148 F9 (the
 sources of honest rows at heights ≥ M+1 stay canonical), with the
