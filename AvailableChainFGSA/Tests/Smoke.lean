@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSA.Model.Handlers
+public import AvailableChainFGSA.Model.Clock
 
 @[expose] public section
 
@@ -240,6 +241,93 @@ example : baseVote v2 ∈ (process pT stA wY).base.votes ∧ baseVote v2 ∉ stA
 rows of `B1'`), but the FG block `B1` keeps them (spec 540–541). The pool holds
 the three round-0 rows of `B1'` and the six round-1 rows of `B2`, `B3`. -/
 example : B1 ∈ stR2.fg.TF ∧ B1.rows.length = 3 ∧ stR2.rowPool.length = 9 := by decide
+
+/-! Task 5: clock and composite gate. -/
+
+/-- An empty gate at d_2 = 14 (no votes): the result is saved as empty, the fast
+set of label 2 is created empty, and S := F runs after the gate (spec 756–781). -/
+def stG : State pT.n :=
+  { stA with base := { stA.base with now := 14, stableRecord := .genesis } }
+example : GridCO.savedGenuine (gateStep pT stG 2).base 2 = some none ∧
+    fastWriteAt (gateStep pT stG 2) 2 = some [] ∧
+    (gateStep pT stG 2).base.stableRecord = b1 := by decide
+/-- Evaluate once: a second gate of label 2 writes nothing new (spec 756). -/
+example : (gateStep pT (gateStep pT stG 2) 2).fastWrite = (gateStep pT stG 2).fastWrite := by decide
+/-- The clock at 14 runs the gate of slot 2 and keeps the FG part (spec 718–720). -/
+example : fastWriteAt (clock pT stA 14) 2 = some [] ∧ (clock pT stA 14).fg.F = stA.fg.F := by decide
+
+/-- [helper] A state at a new time (no clock step runs). -/
+def atTime (st : State pT.n) (t : Time) : State pT.n :=
+  { st with base := { st.base with now := t } }
+/-- A label-2 HEAD vote of seat `i` for `B2`. -/
+def hv2 (i : Fin 4) : Wire 4 := ⟨.seat (.head 2) i, .head (eraseFG B2)⟩
+/-- `B1`, `B2` admitted at now = 8 (stamps 8 < e_2 = 10); F stays genesis
+(`B2` justifies `B1`; nothing finalizes it). -/
+def stS0 : State pT.n := [wProp B1 0, wProp B2 1].foldl (process pT) (atTime {} 8)
+/-- Two label-2 votes for `B2` at now = 9 (stamps 9 < e_2), then now = 14 = d_2. -/
+def stS : State pT.n := atTime ([hv2 0, hv2 1].foldl (process pT) (atTime stS0 9)) 14
+
+/-- Successful fast gate (spec 756–777, 457–461). By hand: both votes resolve
+before e_2 = 10 and are late participants (stamps < d_2 = 14), so the scores are
+b1: 2, b2: 2, and 2·2 > 2; the GHOST walk from genesis gives b2. The admission
+level is τ = ⌈4/2⌉ = 2 ≤ p(2, B) = 2 for b1 and b2. The deadline is
+d_2 + L = 14 + (4k − 1)Δ = 14 + 7 = 21. No lease exists, so there is no veto;
+S := advance(genesis, b2) = b2. -/
+example : GridCO.savedGenuine (gateStep pT stS 2).base 2 = some (some (eraseFG B2)) ∧
+    fastWriteAt (gateStep pT stS 2) 2 = some [b1, eraseFG B2] ∧
+    leaseOf (gateStep pT stS 2) b1 = some 21 ∧
+    leaseOf (gateStep pT stS 2) (eraseFG B2) = some 21 ∧
+    (gateStep pT stS 2).base.stableRecord = eraseFG B2 := by decide
+
+/-- `B1'` is admitted too at now = 8, and a lease on `b1'` is set by hand. -/
+def stV : State pT.n :=
+  let st := atTime ([hv2 0, hv2 1].foldl (process pT)
+    (atTime ([wProp B1 0, wProp B2 1, wProp B1' 0].foldl (process pT) (atTime {} 8)) 9)) 14
+  { st with base := { st.base with obligations := [(b1', 2, 100)] } }
+/-- Vetoed gate (spec 766–770). By hand: `b1'` has no support, so the result is
+still b2 and it is saved; the live lease on `b1'` conflicts with b2, so the gate
+writes no lease and `fastWrite[2] = ∅`. F is genesis, so `S := F` leaves S
+(genesis) unchanged. -/
+example : stV.fg.F = .genesis ∧
+    GridCO.savedGenuine (gateStep pT stV 2).base 2 = some (some (eraseFG B2)) ∧
+    fastWriteAt (gateStep pT stV 2) 2 = some [] ∧
+    (gateStep pT stV 2).base.obligations = [(b1', 2, 100)] ∧
+    (gateStep pT stV 2).base.stableRecord = .genesis := by decide
+
+/-- Fast renewal with an unchanged deadline (spec 457–461). By hand: the gate
+renews b1 with `max(100, 21) = 100`, and b1 still enters `fastWrite[2]`. -/
+def stN : State pT.n := { stS with base := { stS.base with obligations := [(b1, 2, 100)] } }
+example : leaseOf (gateStep pT stN 2) b1 = some 100 ∧
+    fastWriteAt (gateStep pT stN 2) 2 = some [b1, eraseFG B2] := by decide
+
+/-- Slow-only renewal (spec 457–461; SA slow arming). One label-2 vote (seat 0)
+and a saved label-1 result b2. By hand: score 1 and one late voter give
+2·1 > 1, so the result is b2; `p(2, b1) = 1 < τ = 2`, but `slowEligible` holds
+(k = 2 ≤ 3; the label-1 result covers b1 and b2). So b1 gets a lease with
+deadline 21, and `fastWrite[2] = ∅`. -/
+def stW : State pT.n :=
+  let st := atTime ([hv2 0].foldl (process pT) (atTime stS0 9)) 14
+  { st with base := { st.base with genuine := [(1, some (eraseFG B2))] } }
+example : leaseOf (gateStep pT stW 2) b1 = some 21 ∧
+    fastWriteAt (gateStep pT stW 2) 2 = some [] := by decide
+
+/-- G5 coverage: expiry (spec 713–716). After the gate, both leases have the
+deadline 21. At t = 20 no step runs (f_4 = 19, e_4 = 18, q_3 = 17, d_3 = 18),
+and both leases stay; at t = 21 they expire (a lease expires at the first tick
+at or after its deadline). No tick at 20 or 21 is a gate, so fastWrite stays. -/
+example : (clock pT (gateStep pT stS 2) 20).base.obligations.length = 2 ∧
+    (clock pT (gateStep pT stS 2) 21).base.obligations = [] ∧
+    (clock pT (gateStep pT stS 2) 21).fastWrite = (gateStep pT stS 2).fastWrite := by decide
+/-- G5 coverage: release at q_2 = 13 (spec 731–752). The two label-2 votes for
+b2 resolve before 13 and conflict with `b1'`, so 2 ≥ τ seats release the lease on
+`b1'`; the lease on b1 is compatible with b2 and stays. -/
+def stQ : State pT.n :=
+  { stS with base := { stS.base with now := 12, obligations := [(b1', 2, 100), (b1, 2, 100)] } }
+example : (clock pT stQ 13).base.obligations = [(b1, 2, 100)] := by decide
+/-- G5 coverage: the model-only freeze and early caches (DQ8) run at f_2 = 11
+and e_2 = 10 for label 2. -/
+example : ((clock pT stS 11).base.frozen.map Prod.fst) = [2] ∧
+    ((clock pT stS 10).base.early.map Prod.fst) = [2] := by decide
 
 end AvailableChain.FGSA.Tests
 end

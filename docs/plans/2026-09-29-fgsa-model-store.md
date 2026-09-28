@@ -1295,7 +1295,7 @@ def wellFormed (p : Params) (o : Wire p.n) : Bool :=
 - Consumes: Task 3; the fixture `stA` of Task 4 (audit N5: this is a real dependency); `SA.{confirmation, gate, release, prefixSupport, releaseThreshold, freezeTime, earlyTime, releaseTime, gateTime}`, `GridCO.{expire, freeze, earlyVotes, savedGenuine}`.
 - Produces: `fastSet`, `gateStep`, `clockPre`, `clock`.
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
 
 ```lean
 /-- An empty gate at d_2 = 14 (no votes): the result is saved as empty, the fast
@@ -1317,7 +1317,7 @@ example : fastWriteAt (clock pT stA 14) 2 = some [] ∧ (clock pT stA 14).fg.F =
   - **Fast renewal, deadline unchanged.** `stS` with a hand-set lease `(b1, 2, 100)`. Expected: after the gate `leaseOf … b1 = some 100` (the max keeps 100), and `b1 ∈ fastWriteAt … 2` (a renewal counts also when the deadline does not change; spec 457–461).
   - **Slow-only renewal.** `stS` with ONE label-2 vote for `eraseFG B2` (seat 0) and a hand-set saved result `genuine := [(1, some (eraseFG B2))]`. The confirmation is `eraseFG B2` (score 1, one late voter); `prefixSupport` of `b1` is 1 < τ = 2, but `slowEligible` holds (k = 2, the label-1 result covers `b1`). Expected: a lease on `b1` with deadline 21, and `fastWriteAt … 2 = some []`.
   If `decide` is too slow for a test, keep it as a `#eval` and say so in the report.
-- [ ] **Step 2: Write `Model/Clock.lean`.** Imports: `AvailableChainFGSA.Model.Store`.
+- [x] **Step 2: Write `Model/Clock.lean`.** Imports: `AvailableChainFGSA.Model.Store`.
 
 ```lean
 /-- [spec 761–775, 457–461] The fast-write set of gate `s`, computed on the
@@ -1353,7 +1353,8 @@ def clockPre (p : Params) (st : State p.n) (t : Time) : State p.n :=
     onView (fun v => GridCO.freeze q.engine v fSlot) st else st
   let eSlot := ((t - 2 * p.Δ) / (4 * p.Δ)).toNat
   let st := if 0 ≤ t - 2 * p.Δ && t == SA.earlyTime q eSlot then
-    onView (fun v => { v with early := v.early ++ [(eSlot, GridCO.earlyVotes q.engine v eSlot)] }) st
+    onView (fun v =>
+      { v with early := v.early ++ [(eSlot, GridCO.earlyVotes q.engine v eSlot)] }) st
     else st
   let qSlot := ((t - 5 * p.Δ) / (4 * p.Δ)).toNat
   if 0 ≤ t - 5 * p.Δ && t == SA.releaseTime q qSlot then
@@ -1367,8 +1368,9 @@ def clock (p : Params) (st : State p.n) (t : Time) : State p.n :=
   if 0 ≤ t - 6 * p.Δ && t == SA.gateTime p.toParams dSlot then gateStep p st dSlot else st
 ```
 
-- [ ] **Step 3: Run it; it passes.** As in Task 3, Step 3.
+- [x] **Step 3: Run it; it passes.** As in Task 3, Step 3.
 - [ ] **Step 4: Review gate G5 and CHECKPOINT.** Commit `FGSA model: clock and composite gate`.
+  Execution notes (2026-09-29): `Model/Clock.lean` is the code above; the early-step line is wrapped for the 100-column linter (no other change). The four gate tests are in `Tests/Smoke.lean` with the fixtures `stS` (B1, B2 at now 8; two label-2 votes for B2 at now 9; now 14), `stV` (also B1' at now 8; hand-set lease on b1'), `stN` (hand-set lease `(b1, 2, 100)`) and `stW` (one vote; hand-set label-1 result b2), and the helpers `atTime` and `hv2`. Each docstring gives the hand computation (L = 7, τ = 2, d_2 = 14). Every value agreed with the build: successful gate → result b2, `fastWrite[2] = [b1, b2]`, leases with deadline 21, S = b2; vetoed gate → result b2 saved, `fastWrite[2] = ∅`, only the hand-set lease, S = F = genesis; renewal → deadline 100 kept, b1 in `fastWrite[2]`; slow-only → lease on b1 with deadline 21, `fastWrite[2] = ∅`. In the vetoed test F is genesis, so `S := F` has no visible effect there; the empty gate `stG` tests `S := F` with F = B1. Extra G5 coverage: expiry at the deadline (t = 20 keeps, t = 21 removes; no gate at those ticks), release at q_2 = 13 (the conflicting lease goes, the compatible one stays), and the freeze and early cache steps at 11 and 10. All tests use `decide`; none needed `#eval`.
 
 ---
 
