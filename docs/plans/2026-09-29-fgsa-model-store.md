@@ -720,12 +720,13 @@ lake build --wfail AvailableChainFGSA
 echo "== root imports"
 missing=$(comm -23 \
   <(find AvailableChainFGSA -name '*.lean' | sed 's/\.lean$//; s|/|.|g' | sort) \
-  <(grep -o 'import [A-Za-z.]*' AvailableChainFGSA.lean | sed 's/import //' | sort))
+  <( (grep -hoE '^[[:space:]]*(public )?(meta )?import (all )?[A-Za-z0-9_.]+' AvailableChainFGSA.lean || true) | awk '{print $NF}' | sort))
 [ -z "$missing" ] || { echo "NOT IMPORTED BY THE ROOT: $missing"; exit 2; }
 echo "== native evaluation"
 # Remove comments with a small tokenizer that knows strings, character
-# literals and nested block comments. A "--" in a string does not start a
-# comment, and a "/-" in a line comment does not open a block comment.
+# literals, raw strings (r"...", r#"..."#) and nested block comments. A "--"
+# in a string does not start a comment, and a "/-" in a line comment does not
+# open a block comment.
 strip_comments='
   local $/; my $s = <STDIN>; my $o = ""; my $d = 0;
   while ((pos($s) // 0) < length $s) {
@@ -737,6 +738,7 @@ strip_comments='
     }
     elsif ($s =~ /\G--[^\n]*/gc)                         { }
     elsif ($s =~ /\G\/-/gc)                              { $d = 1 }
+    elsif ($s =~ /\Gr(#*)".*?"\1/gcs)                    { $o .= "\"\"" }
     elsif ($s =~ /\G"(?:\\.|[^"\\])*"/gcs)               { $o .= "\"\"" }
     elsif ($s =~ /\G([\w\p{N}.!?][\w\p{N}.!?\x27]*)/gc)  { $o .= $1 }
     elsif ($s =~ /\G\x27(?:\\.|[^\\\x27])\x27/gc)        { $o .= "c" }
@@ -758,7 +760,7 @@ if grep -rnE '^[[:space:]]*(public )?(meta )?import (all )?(AvailableChainFramew
 fi
 echo "== import closure"
 seen=" "
-todo=$(grep -rhoE '^[[:space:]]*(public )?(meta )?import (all )?[A-Za-z0-9_.]+' AvailableChainFGSA AvailableChainFGSA.lean | awk '{print $NF}' | sort -u)
+todo=$( (grep -rhoE '^[[:space:]]*(public )?(meta )?import (all )?[A-Za-z0-9_.]+' AvailableChainFGSA AvailableChainFGSA.lean || true) | awk '{print $NF}' | sort -u)
 while [ -n "$todo" ]; do
   next=""
   for m in $todo; do
@@ -766,7 +768,7 @@ while [ -n "$todo" ]; do
     seen="$seen$m "
     f="${m//.//}.lean"
     if [ -f "$f" ]; then
-      next="$next $(grep -hoE '^[[:space:]]*(public )?(meta )?import (all )?[A-Za-z0-9_.]+' "$f" | awk '{print $NF}')"
+      next="$next $( (grep -hoE '^[[:space:]]*(public )?(meta )?import (all )?[A-Za-z0-9_.]+' "$f" || true) | awk '{print $NF}')"
     fi
   done
   todo=$next
@@ -786,7 +788,7 @@ echo "all FGSA checks pass"
 ```
 
   The closure walk reads only source files of this worktree (Mathlib has no source here, so it stops there). `AvailableChainStatements` in the closure is allowed (Global Constraints, Imports).
-  Negative tests (once each, then remove them): (1) add `example : 1 = 1 := by native_decide` to `Tests/Smoke.lean`; the script must exit 1; a comment `-- native_decide` must not make it fail. (2) Add `public import AvailableChainSAPC.Model.Objects` to `Tests/Smoke.lean`; the direct-import check must exit 1. G1 additions: (3) `public meta import AvailableChainSAPC.Model.Objects` and (4) `import all AvailableChainSAPC.Model.Objects`: the direct-import check must exit 1. (5) A line comment that contains `/-`, then a `native_decide` (under `set_option linter.style.nativeDecide false in`, so that the build passes), then a later docstring: the native scan must exit 1. (6) `example : "--".length = 2 := by native_decide` (same `set_option`): the native scan must exit 1. (7) Only comments (line, nested block, docstring with `"--"`) that name `native_decide`: exit 0.
+  Negative tests (once each, then remove them): (1) add `example : 1 = 1 := by native_decide` to `Tests/Smoke.lean`; the script must exit 1; a comment `-- native_decide` must not make it fail. (2) Add `public import AvailableChainSAPC.Model.Objects` to `Tests/Smoke.lean`; the direct-import check must exit 1. G1 additions: (3) `public meta import AvailableChainSAPC.Model.Objects` and (4) `import all AvailableChainSAPC.Model.Objects`: the direct-import check must exit 1. (5) A line comment that contains `/-`, then a `native_decide` (under `set_option linter.style.nativeDecide false in`, so that the build passes), then a later docstring: the native scan must exit 1. (6) `example : "--".length = 2 := by native_decide` (same `set_option`): the native scan must exit 1. (7) Only comments (line, nested block, docstring with `"--"`) that name `native_decide`: exit 0. G2 additions: (8) `example : r"\".length = 1 := by native_decide` (same `set_option`), with a later string literal: the native scan must exit 1; (9) a module of the library with no import line: exit 0; (10) a root line `import all AvailableChainFGSA.Proofs.Carrier`: exit 0.
 - [x] **Step 5: Run it; it passes.** `lake build --wfail AvailableChainFGSA.Tests.Smoke`, then `bash scripts/check-fgsa.sh`. Expected: PASS, exit 0.
 - [x] **Step 6: Review gate G1 and CHECKPOINT.** Commit `FGSA model: library skeleton and objects`.
 
@@ -911,6 +913,26 @@ theorem erase_rootInjective {T : Finset (FGBlock V)} (hinj : ViewRootInj T) :
   Keep the parser: ONE `--expect` followed by all names (`expected := args.drop 1`); keep the exit codes (0 clean; 1 a bad axiom; 2 nothing found, a usage error, or an expected name missing), the transitive whitelist and the build-before-scan rule.
 - [x] **Step 5: Run it; it passes.** `bash scripts/check-fgsa.sh`. Expected: exit 0; the axiom step prints `checked <c> constants, <t> theorems`. Then the two `--expect` tests: `lake env lean --run scripts/CheckFGSAAxioms.lean --expect eraseFG_preceq viewRootInj_of_rootInj` exits 0; `lake env lean --run scripts/CheckFGSAAxioms.lean --expect eraseFG_preceq noSuchName` prints `NOT CHECKED: noSuchName` and exits 2.
 - [x] **Step 6: Review gate G2 and CHECKPOINT.** Commit `FGSA model: block ancestry and local carrier bridge (K5, local)`.
+
+**G2 dispositions** (review of `fec67b1` and the G1 fixes `850bade`: PASS; 0 blocking, 0 major, 3 minor). G2 is closed. The reviewer found all 21 statements identical to the plan and confirmed that the axiom check flags `sorry`, a project axiom and `native_decide` in a declaration (exit 1).
+
+```text
+┌─────┬──────────────────────────────────────────────────────────────────────────┐
+│ G2  │ Disposition                                                              │
+├─────┼──────────────────────────────────────────────────────────────────────────┤
+│ 1   │ Closure walk: a module with no import line made `grep` exit 1 inside     │
+│     │ `$(...)`, and the script stopped with no message (fails closed). Now     │
+│     │ `(grep … || true) | awk`, in both places. Test (9): old exit 1, new 0.   │
+│ 2   │ Tokenizer: `r"…"` was read as a string with escapes, so `r"\"` hid a     │
+│     │ later `native_decide` (fails open). A raw-string rule `r#*"…"#*` now     │
+│     │ runs before the string rule. Test (8): old exit 0, new exit 1. The old   │
+│     │ axiom step did not catch it either: the test is an `example`, which      │
+│     │ leaves no constant to scan, so the native scan is the only guard for     │
+│     │ examples.                                                                │
+│ 3   │ Root-import check: `import all X` gave "all" (fails closed). It now uses │
+│     │ the closure regex and the last field. Test (10): old exit 2, new 0.      │
+└─────┴──────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 

@@ -10,12 +10,13 @@ lake build --wfail AvailableChainFGSA
 echo "== root imports"
 missing=$(comm -23 \
   <(find AvailableChainFGSA -name '*.lean' | sed 's/\.lean$//; s|/|.|g' | sort) \
-  <(grep -o 'import [A-Za-z.]*' AvailableChainFGSA.lean | sed 's/import //' | sort))
+  <( (grep -hoE '^[[:space:]]*(public )?(meta )?import (all )?[A-Za-z0-9_.]+' AvailableChainFGSA.lean || true) | awk '{print $NF}' | sort))
 [ -z "$missing" ] || { echo "NOT IMPORTED BY THE ROOT: $missing"; exit 2; }
 echo "== native evaluation"
 # Remove comments with a small tokenizer that knows strings, character
-# literals and nested block comments. A "--" in a string does not start a
-# comment, and a "/-" in a line comment does not open a block comment.
+# literals, raw strings (r"...", r#"..."#) and nested block comments. A "--"
+# in a string does not start a comment, and a "/-" in a line comment does not
+# open a block comment.
 strip_comments='
   local $/; my $s = <STDIN>; my $o = ""; my $d = 0;
   while ((pos($s) // 0) < length $s) {
@@ -27,6 +28,7 @@ strip_comments='
     }
     elsif ($s =~ /\G--[^\n]*/gc)                         { }
     elsif ($s =~ /\G\/-/gc)                              { $d = 1 }
+    elsif ($s =~ /\Gr(#*)".*?"\1/gcs)                    { $o .= "\"\"" }
     elsif ($s =~ /\G"(?:\\.|[^"\\])*"/gcs)               { $o .= "\"\"" }
     elsif ($s =~ /\G([\w\p{N}.!?][\w\p{N}.!?\x27]*)/gc)  { $o .= $1 }
     elsif ($s =~ /\G\x27(?:\\.|[^\\\x27])\x27/gc)        { $o .= "c" }
@@ -48,7 +50,7 @@ if grep -rnE '^[[:space:]]*(public )?(meta )?import (all )?(AvailableChainFramew
 fi
 echo "== import closure"
 seen=" "
-todo=$(grep -rhoE '^[[:space:]]*(public )?(meta )?import (all )?[A-Za-z0-9_.]+' AvailableChainFGSA AvailableChainFGSA.lean | awk '{print $NF}' | sort -u)
+todo=$( (grep -rhoE '^[[:space:]]*(public )?(meta )?import (all )?[A-Za-z0-9_.]+' AvailableChainFGSA AvailableChainFGSA.lean || true) | awk '{print $NF}' | sort -u)
 while [ -n "$todo" ]; do
   next=""
   for m in $todo; do
@@ -56,7 +58,7 @@ while [ -n "$todo" ]; do
     seen="$seen$m "
     f="${m//.//}.lean"
     if [ -f "$f" ]; then
-      next="$next $(grep -hoE '^[[:space:]]*(public )?(meta )?import (all )?[A-Za-z0-9_.]+' "$f" | awk '{print $NF}')"
+      next="$next $( (grep -hoE '^[[:space:]]*(public )?(meta )?import (all )?[A-Za-z0-9_.]+' "$f" || true) | awk '{print $NF}')"
     fi
   done
   todo=$next
