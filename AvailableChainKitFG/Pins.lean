@@ -22,8 +22,10 @@ BY CLAUSE (Astra G08); there is no `full` tag for an id. A clause is covered by
 Lean names (with their extra hypotheses), or it names the paper step, the
 registry id or the AP fact that carries it. A clause that the Lean statements
 only ASSUME is `byHyp`: it names the hypothesis and the lemmas that can
-discharge it. A clause can also cite a `[helper]` theorem (a special case or a
-partial form); its docstring says which.
+discharge it. A clause can also cite a `[helper]` theorem that is one branch, a
+special case or a partial form of the clause (`on_block_of_refused`,
+`on_block_of_accepted`, `Fmove_below`, `twoChanges_nested`); its docstring says
+which. Every other cited theorem has a `[pin <id>]` docstring.
 
 `scripts/FGPinIds.lean` prints `manifest` of the elaborated values, and
 `scripts/check-fg-pins.sh` checks it against the registry (Task 14, Step 2).
@@ -218,7 +220,12 @@ def pins : List Pin := [
     ⟨"conflicting finalizations give 2q−n E1/E2 identities, without NJ",
       .leanHyp [``accountable] "RootInjectiveOn"⟩,
     ⟨"under a≤f conflicting finalizations are impossible", .paper "2q−n > a"⟩,
-    ⟨"local F never retreats", .lean [``update_finality_F_mono]⟩,
+    ⟨"local F never retreats",
+      .leanHyp [``update_finality_F_mono, ``on_block_of_refused, ``on_block_of_accepted]
+        "update_finality_F_mono states the update_finality step; the on_block step is \
+        not stated as one lemma: it composes the refused branch (on_block_of_refused, \
+        the store does not change) and the accepted branch (on_block_of_accepted, \
+        update_finality on the store with B inserted, whose F is the old F)"⟩,
     ⟨"finalized ⪯ available at every read", .external "comp.outputNesting.v1" ""⟩ ] },
   { id := "fg.uniqueJust.v1", sources := [bp, vcE], clauses := [
     ⟨"Lemma U: two target quorums for different entries give 2q−W E2 weight",
@@ -256,7 +263,8 @@ def pins : List Pin := [
     ⟨"(3) a finality row names the head's justified pair; a finality QC names a \
       justified entry",
       .leanHyp [``provenance_finalityRow, ``provenance_finalityQC]
-        "head fields = HeadFields.ofBlock (caller obligation); emission hypothesis hemit"⟩,
+        "head fields = HeadFields.ofBlock (caller obligation); QC form: faulty \
+        weight < q (hcap; the entry's q_F > a) and the emission hypothesis hemit"⟩,
     ⟨"'earlier' target QC (emission order)", .external "comp.provenance.v1" ""⟩,
     ⟨"a successful fresh fast source with τ > a supporters (r148 401–402)",
       .ap "ap.fastSupport.v1" ""⟩ ] },
@@ -375,8 +383,9 @@ def pins : List Pin := [
       .byHyp [``Fmove_atTop]
         "hext: every view block above m−1 extends F′ (at the frontier, the same as \
         ¬E_C(m, F′)); crossingNoFinal is not used"
-        "finalLock (fg.finalLock.v1) with the carrier (StoreInv.Fcar), or \
-        crossingNoFinal_QC (fj.crossingNoFinal.v1)"⟩,
+        "finalLock (fg.finalLock.v1) under a ≤ f (this removes the slashable \
+        branch), with the carrier (StoreInv.Fcar); or crossingNoFinal_QC \
+        (fj.crossingNoFinal.v1)"⟩,
     ⟨"item 3 (iii): a finalization at m ends the no-rise interval",
       .lean [``Fmove_atFrontier]⟩,
     ⟨"when the bits become true at every duty", .external "comp.settle.v1" ""⟩ ] } ]
@@ -430,7 +439,8 @@ def notFormalized : List (String × String) := [
 values (Astra P01, Q01–Q03, T01), one record per line: `src <key> <root> <path>
 <sha256>` for each source of the pins and `defPins`, `pin <id>`, `ap <id>` and
 `external <id>` for each active reference (without repeats), and
-`notFormalized <id>` for each historical entry. Five trailer lines follow, one
+`notFormalized <id>` for each id that this module does not formalize (historical
+ids, and AP or comp ids that it does not formalize). Five trailer lines follow, one
 per kind in this order: `END <kind> <n> <keys>`, where `<keys>` are the record
 keys of that kind (the second field), sorted by `String` order, which is byte
 order on these ASCII tokens. The trailer binds the record set, not only the
@@ -475,6 +485,7 @@ example := @AvailableChain.SimplexFG.activeView
 example := @activeView_subset
 example := @AvailableChain.SimplexFG.on_block
 example := @on_block_of_refused
+example := @on_block_of_accepted
 example := @AvailableChain.SimplexFG.storeControls
 example := @AvailableChain.SimplexFG.Controls.rootIsJ
 example := @AvailableChain.SimplexFG.Controls.Z

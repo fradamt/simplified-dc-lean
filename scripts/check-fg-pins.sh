@@ -6,8 +6,9 @@
 #      src <key> <root> <path> <sha256> | <kind> <id>
 #    (kind pin, ap, external or notFormalized). The last five lines are the
 #    trailers "END <kind> <n> <sorted keys>" for src, pin, ap, external,
-#    notFormalized, in this order. No (kind, key) pair repeats, and for each
-#    kind the sorted record keys are the trailer's keys. Else exit 2.
+#    notFormalized, in this order. No (kind, key) pair repeats, for each
+#    kind the sorted record keys are the trailer's keys, and no id is both a
+#    pin and a notFormalized id. Else exit 2.
 # 1) each src resolves to its REGISTERED version (tsc/: the archive copy by
 #    hash; spec: the archived file; vc and dc: the registered Git commit), and
 #    that version has the pinned hash;
@@ -16,7 +17,8 @@
 # 3) each id is, literally, the id of an entry heading;
 # 4) each id has exactly one row in the "## Index" table, and for pin, ap and
 #    external ids the status there does not start with SUPERSEDED.
-#    notFormalized ids are historical and are exempt from the status test.
+#    notFormalized ids are exempt from the status test (some are
+#    historical, some are AP or comp ids that the module does not formalize).
 # FGPINIDS=<file> runs another emitter script (the negative tests only).
 set -euo pipefail
 export LC_ALL=C
@@ -68,6 +70,10 @@ for kind in src pin ap external notFormalized; do
     cut -d' ' -f2 | sort; } | tr '\n' ' ' | sed 's/ $//')
   [ "$want" = "$have" ] || { echo "TRAILER MISMATCH: $kind"; exit 2; }
 done
+both=$(comm -12 <(awk '$1 == "pin" { print $2 }' "$tmp/body" | sort) \
+  <(awk '$1 == "notFormalized" { print $2 }' "$tmp/body" | sort))
+[ -z "$both" ] ||
+  { echo "PIN AND NOT FORMALIZED: $(printf '%s\n' "$both" | head -1)"; exit 2; }
 nsrc=$(grep -c '^src ' "$tmp/body" || true)
 npin=$(grep -c '^pin ' "$tmp/body" || true)
 [ "$nsrc" -gt 0 ] && [ "$npin" -gt 0 ] || { echo "EMPTY TABLE: $nsrc sources, $npin pins"; exit 2; }
@@ -102,6 +108,6 @@ while read -r tag id; do
   case $st in SUPERSEDED*) echo "SUPERSEDED: $tag $id ($st)"; status=1 ;; esac
 done < "$tmp/ids"
 nref=$(grep -Ec '^(ap|external) ' "$tmp/ids" || true)
-nhist=$(grep -c '^notFormalized ' "$tmp/ids" || true)
-echo "checked $nsrc sources, $npin pin ids, $nref active references and $nhist historical ids"
+nnf=$(grep -c '^notFormalized ' "$tmp/ids" || true)
+echo "checked $nsrc sources, $npin pin ids, $nref active references and $nnf not-formalized ids"
 exit $status

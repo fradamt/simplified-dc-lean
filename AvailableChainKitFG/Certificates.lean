@@ -983,8 +983,8 @@ theorem J_is_entry (E : Electorate V) (cfg : FGConfig) (D : FGBlock V) :
       · rw [h1, hT]
         exact entry_idem E cfg p
 
-/-- [helper] The entry of a justified pair at a nonzero height h has state
-height h (registry `fg.frameCompat.v1`, proof step 1; port: DC NamedEntryHeight). -/
+/-- [pin fg.frameCompat.v1] (step 1) The entry of a justified pair at a nonzero
+height h has state height h (port: DC NamedEntryHeight). -/
 theorem entry_height (E : Electorate V) (cfg : FGConfig) (D : FGBlock V)
     (hnz : (derive E cfg D).h_j ≠ 0) :
     (derive E cfg (derive E cfg D).J).h = (derive E cfg D).h_j := by
@@ -1001,8 +1001,8 @@ theorem entry_height (E : Electorate V) (cfg : FGConfig) (D : FGBlock V)
       · rw [h1, h2, hT, hh]
         exact entry_same_height E cfg p
 
-/-- [helper] A non-genesis entry is the first block of its height on its chain:
-every strict ancestor has a smaller state height. -/
+/-- [pin fg.frameCompat.v1] (step 1) A non-genesis entry is the first block of its
+height on its chain: every strict ancestor has a smaller state height. -/
 theorem entry_first (E : Electorate V) (cfg : FGConfig) (D A : FGBlock V)
     (hT : (derive E cfg D).T_h ≠ .genesis)
     (hA : FGBlock.Preceq A (derive E cfg D).T_h) (hne : A ≠ (derive E cfg D).T_h) :

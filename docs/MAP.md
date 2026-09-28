@@ -600,6 +600,7 @@ registry id, or the AP fact that carries the clause).
 │                             │ registered version with the pinned hash and  │ missing manifest    │
 │                             │ matches its §0.1 row; each id has an entry   │                     │
 │                             │ and one Index row; no active id SUPERSEDED   │                     │
+│                             │ no pin id is also a notFormalized id         │                     │
 └─────────────────────────────┴──────────────────────────────────────────────┴─────────────────────┘
 ```
 

@@ -576,9 +576,9 @@ theorem filteredFrom_viable_child (c : Controls V) (blocks : Finset (FGBlock V))
   exact ⟨C, (mem_filteredFrom E cfg c blocks C).2
     ⟨hclosed W hW C hCW, preceq_trans hF hBC, preceq_trans hZ hBC, W, hW, hCW, hlo⟩, hCp⟩
 
-/-- [helper] (was `fBasis_lexMax`) If the block set holds a block whose J
-extends F, the selected pair extends F and is at least that block's pair: the
-`(0, genesis)` fallback is not used. -/
+/-- [pin fg.frameCompat.v1] (part (ii); was `fBasis_lexMax`) If the block set
+holds a block whose J extends F, the selected pair extends F and is at least
+that block's pair: the `(0, genesis)` fallback is not used. -/
 theorem lexMax_of_candidate (F : FGBlock V) (Vw : View V) (hinj : ViewRootInj Vw)
     (K : FGBlock V) (hK : K ∈ Vw) (hFK : FGBlock.Preceq F (derive E cfg K).J) :
     FGBlock.Preceq F (fjControls E cfg F Vw).J ∧
