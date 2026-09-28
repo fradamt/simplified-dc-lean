@@ -22,7 +22,13 @@ consistent with FRAMEWORK-DESIGN.md §7._
   unproved entries); SKETCH (a proof with an identified missing step); OPEN
   (no proof and no refutation); REFUTED (a counterexample); RULE (true by
   the honest code, not a theorem); def (a definition); WITHDRAWN (no
-  composite may cite the entry).
+  composite may cite the entry); SUPERSEDED (the entry stays as a pointer;
+  its pinned text does not change; a composite cites the named successor
+  ids, whose conjunction states the same fact).
+- Two edits of a hypotheses list keep the id, with a dated note: (a) the
+  replacement of a SUPERSEDED id by its successor ids; (b) a new reference
+  by id to a fact that the pinned text already uses (for example "F4" or
+  "finalized crossing"). Any other change of hypotheses gets a new id.
 - "FG-SA" in a status means a proof for the FG-SA client, that is, the
   Simplex policy with honest non-equivocating signers. As a certificate
   FAMILY over every policy σ, an AP-side entry still needs a proof that uses
@@ -55,7 +61,30 @@ line numbers. `r144o` is the Opus variant of r144. `r151` is `fj-theorem-h.md`.
 │ r150  │ fgsa-theorem-h.md         │ 8211361a618814fa4d5f4b1a3c593943 │ 380c9ccb99235e8b9c413d633876adc3 │
 │ r151  │ fj-theorem-h.md           │ 16b69dba55d889b9ae20dd55b228cfd8 │ 3ad22037d796c6219cdb65831718bba3 │
 │ bp    │ fgsa-healing-blueprint.md │ 4d643d7a6285705ef8bcef6b408b46a4 │ 5d64641f0d92828b3539f8f938074318 │
+│ sa    │ slow-arming.md            │ c1d1a4e343c6910a1072cc7e6e8816b6 │ ab6ac94b4940f204573f3a39c500db0b │
 └───────┴───────────────────────────┴──────────────────────────────────┴──────────────────────────────────┘
+```
+
+Sources outside `tsc/` (registered 2026-09-28). `spec/` =
+`research/async-resilient-committees/tip-stability/spec/`. `dc/` =
+`research/healing/rewrite/`. `vc/` =
+`lean/decoupled-consensus/verified-consensus/` at commit `b97b902`. `ac/` =
+`lean/available-chain/` at commit `ae2a9d3` (the SA Lean model; the file is
+unchanged since `588d666`).
+
+```text
+┌───────┬──────────────────────────────────────────────────────────────────┬──────────────────────────────────┬──────────────────────────────────┐
+│ Key   │ File                                                             │ SHA-256, first half              │ SHA-256, second half             │
+├───────┼──────────────────────────────────────────────────────────────────┼──────────────────────────────────┼──────────────────────────────────┤
+│ spec  │ spec/fgsa-protocol.tex                                           │ ae4497abc7c5b3a6f73697f341bf730a │ 63c7d34bd2f7546154bd022bc95af223 │
+│ dc    │ dc/consensus.tex                                                 │ dc471b47a46896fe0a3df300c188fef1 │ 512f475615ce0fc0df18dbea6d2e5517 │
+│ vcE   │ vc/DecoupledConsensusProofs/Protocol/ValidatorClient/Engine.lean │ 92fb0e64c1288afea98b53212cb3ad5c │ 843c9c720187367eea578d17a9d53454 │
+│ vcF   │ vc/DecoupledConsensusProofs/Protocol/ChainState/                 │ aa0ed92740eb1ec8ee69e90fd2ae75f0 │ 3179a27c05accf5f631e7a254589b94c │
+│       │   FinalityComparison.lean                                        │                                  │                                  │
+│ vcW   │ vc/DecoupledConsensusProofs/Protocol/ValidatorClient/            │ f0d45fa7fd93a0a1c9f4dfccaf6c3f7c │ 63c43245c5deee7182a25f3963c22b5d │
+│       │   WeakHeightBounds.lean                                          │                                  │                                  │
+│ acG   │ ac/AvailableChainGridCO/Model/Protocol.lean                      │ 2cb079fd72fb7cb6901d8a8cfd59c650 │ ad6561377b226b3240b68c852b59755c │
+└───────┴──────────────────────────────────────────────────────────────────┴──────────────────────────────────┴──────────────────────────────────┘
 ```
 
 ### 0.2 Pinned premise sets
@@ -397,15 +426,39 @@ It restates the FJ frame of `fj.frame.v1` and the premises of `env.r150`.
 > δ_H=2L+G−2Δ=ρ−10Δ.
 > ```
 
+### 0.3 Glossary: F-numbers (added 2026-09-28)
+
+Two sources use the labels F1, F2, … for different facts.
+
+- The blueprint F-table (bp §3, lines 290–311) numbers DC and SA facts:
+  F1 honest row in each QC, F2 causal cap, F3 one justified entry per
+  height, F4 finality lock, F5–F10 further DC facts.
+- r148 (`fj-redteam.md`) numbers its own claims: F2 = a conflicting
+  crossing of j proves that J cannot finalize (PROVED, lines 234–258);
+  F3 = the converse, "retain J iff J can still finalize", is REFUTED (lines
+  290–309); F4 = "no timeout at H−1" as a proxy for "J can finalize" is
+  REFUTED and unsafe for liveness (lines 311–338); F6–F18 are its later
+  claims.
+
+In a pinned quote, an F-number belongs to the file of that quote. Every
+"F3" or "F4" in the entries of v2 means the blueprint fact: F3 is
+`fg.uniqueJust.v1` and F4 is `fg.finalLock.v1`. The r148 phrase
+"finalized-crossing law" (line 226) and "finalized crossing" are also
+`fg.finalLock.v1`. The FJ entry titles in §4 (F7, F9, F10, F12, F14, F17)
+use the r148 numbers. r148 F2 is `fj.crossingNoFinal.v1`.
+
 ## Index
 
-`§` is the section of this file. New ids in v2 are listed in §7.
+`§` is the section of this file. New ids in v2 are listed in §7; the
+ids of the f1 splits (2026-09-28) are listed in §8.
 
 ```text
 ┌───────────────────────┬──────┬─────────────────────┬───┐
 │ Id                    │ Var  │ Status 2026-09-28   │ § │
 ├───────────────────────┼──────┼─────────────────────┼───┤
-│ fg.frame.v1           │ nj   │ def                 │ 1 │
+│ fg.frame.v1           │ nj   │ SUPERSEDED (def)    │ 1 │
+│ fg.frame.v2           │ nj   │ def                 │ 1 │
+│ fg.frameCompat.v1     │ both │ PROVED              │ 1 │
 │ fg.Ret.v1             │ nj   │ def                 │ 1 │
 │ fg.N1.v1              │ nj   │ def                 │ 1 │
 │ fg.N1eff.v1           │ nj   │ def                 │ 1 │
@@ -432,10 +485,16 @@ It restates the FJ frame of `fj.frame.v1` and the premises of `env.r150`.
 │ ap.outputRecovered.v1 │ nj   │ WITHDRAWN (PROVED)  │ 2 │
 │ ap.finalityHead.v1    │ nj   │ WITHDRAWN (SKETCH)  │ 2 │
 │ ap.finalityHead.v2    │ nj   │ SKETCH              │ 2 │
-│ fg.provenance.v1      │ both │ PROVED              │ 3 │
-│ fg.causalCap.v1       │ both │ PROVED              │ 3 │
+│ ap.fastSupport.v1     │ both │ PROVED (RULE, τ>a)  │ 2 │
+│ fg.provenance.v1      │ both │ SUPERSEDED (PROVED) │ 3 │
+│ fg.provenance.v2      │ both │ PROVED              │ 3 │
+│ fg.causalCap.v1       │ both │ SUPERSEDED (PROVED) │ 3 │
+│ fg.causalCap.core.v1  │ both │ PROVED; LEAN (DC)   │ 3 │
+│ fg.uniqueJust.v1      │ both │ LEAN (DC, Lemma U)  │ 3 │
+│ fg.finalLock.v1       │ both │ LEAN (DC)           │ 3 │
 │ fg.trunk.v1           │ nj   │ PROVED (a≤f)        │ 3 │
-│ fg.oneBullet.v1       │ nj   │ PROVED (a≤f)        │ 3 │
+│ fg.oneBullet.v1       │ nj   │ SUPERSEDED (PROVED) │ 3 │
+│ fg.oneBullet.core.v1  │ nj   │ PROVED (a≤f)        │ 3 │
 │ fg.H19.v1             │ nj   │ PROVED              │ 3 │
 │ fg.HNIb.v1            │ nj   │ PROVED              │ 3 │
 │ fg.base.finalized.v1  │ nj   │ PROVED              │ 3 │
@@ -443,10 +502,12 @@ It restates the FJ frame of `fj.frame.v1` and the premises of `env.r150`.
 │ fg.baseSel.nj.v1      │ nj   │ PROVED (FG-SA)      │ 3 │
 │ fg.accountable.v1     │ both │ PROVED; LEAN (DC)   │ 3 │
 │ fj.frame.v1           │ fj   │ def                 │ 4 │
+│ fj.crossingNoFinal.v1 │ fj   │ PROVED              │ 4 │
 │ fj.descent.v1         │ fj   │ PROVED              │ 4 │
 │ fj.canonical.v1       │ fj   │ PROVED              │ 4 │
 │ fj.inBandLock.v1      │ fj   │ PROVED              │ 4 │
-│ fj.twoChanges.v1      │ fj   │ PROVED              │ 4 │
+│ fj.twoChanges.v1      │ fj   │ SUPERSEDED (PROVED) │ 4 │
+│ fj.twoChanges.core.v1 │ fj   │ PROVED (a≤f)        │ 4 │
 │ fj.armedSafe.v1       │ fj   │ PROVED              │ 4 │
 │ fg.base.fj.v1         │ fj   │ PROVED              │ 4 │
 │ fj.firstFinality.v1   │ fj   │ SKETCH              │ 4 │
@@ -458,6 +519,9 @@ It restates the FJ frame of `fj.frame.v1` and the premises of `env.r150`.
 │ fj.healed.v1          │ fj   │ PROVED              │ 4 │
 │ fj.healedUnif.v1      │ fj   │ OPEN (impl. PROVED) │ 4 │
 │ fj.healedAtQ.v1       │ fj   │ OPEN                │ 4 │
+│ comp.provenance.v1    │ both │ PROVED (FG-SA)      │ 5 │
+│ comp.settle.v1        │ both │ PROVED (FG-SA)      │ 5 │
+│ comp.cut.v1           │ both │ PROVED              │ 5 │
 │ comp.rise.fixedF.v1   │ nj   │ PROVED (FG-SA)      │ 5 │
 │ comp.rise.movingF.v1  │ nj   │ OPEN                │ 5 │
 │ comp.theoremN.v1      │ nj   │ PROVED (FG-SA)      │ 5 │
@@ -505,6 +569,172 @@ These definitions use the NJ frame. FJ has its own frame (`fj.frame.v1`,
 - Status: 2026-09-28 — def. This is the frame of FRAMEWORK-DESIGN.md §7.2.
   bp §1.3 (lines 153–161) has the same frame; there the F test follows from
   the Z test.
+- Status: 2026-09-28 — SUPERSEDED by `fg.frame.v2`. The J line of v1 says
+  "compatible with F_d"; DC and the spec select with `F_d ⪯ J`.
+  `fg.frameCompat.v1` proves that the two rules select the same pair at
+  every honest duty view. Thus every entry that uses this frame keeps its
+  meaning.
+
+### `fg.frame.v2` — duty frame (J selected with `F_d ⪯ J_d`)
+
+- Variant `nj`. Source spec, section "Duties and handlers", `fg_frame`,
+  lines 854–859, and appendix "NJ variant", lines 1408–1417 (the frame
+  without a contest). The store rule `update_finality` has the same J
+  guard: spec lines 731–752 and DC `update_finality`, dc lines 937–948.
+  Files `spec/fgsa-protocol.tex` (sha256
+  `ae4497abc7c5b3a6f73697f341bf730a63c7d34bd2f7546154bd022bc95af223`) and
+  `dc/consensus.tex` (sha256
+  `dc471b47a46896fe0a3df300c188fef1512f475615ce0fc0df18dbea6d2e5517`).
+- Frame (registry form; it is `fg.frame.v1` with the J line changed):
+
+```text
+F_d = current accepted F, with its retained acceptance basis;
+H_d = max({1} ∪ {h(W) : W∈V_d});
+(j_d,J_d) = the lex-greatest (h_j, J.root) justified pair in V_d
+            with F_d ⪯ J_d;
+Z_d = J_d if H_d=j_d+1, else F_d;
+
+D_d = {B∈V_d : F_d⪯B, Z_d⪯B,
+                  ∃W∈V_d, B⪯W and h(W)≥H_d−1}.
+
+Ret_d(B) := B⪯Z_d
+            or (Z_d⪯B and B∈D_d).
+```
+
+- Statement (pinned):
+
+> _fgsa-protocol.tex, lines 854–859:_
+>
+> ```latex
+>   \State $F\gets\Sigma.F$
+>   \Comment{the current accepted $F$}
+>   \State $H\gets\max(\{1\}\cup\{\Sigma.\sigma[W].h:W\in V\})$
+>   \Comment{this view's own maximum}
+>   \State $(j,J)\gets$ the lex-greatest $(\Sigma.\sigma[W].h_j,
+>     \Sigma.\sigma[W].J.\rootf)$ over $W\in V$ with $F\preceq\Sigma.\sigma[W].J$
+> ```
+
+> _fgsa-protocol.tex, lines 1408–1417:_
+>
+> ```latex
+> \item \fname{fg\_frame} has no contest:
+>   \[
+>    (Z,\lo)\gets
+>    \begin{cases}
+>     (J,H-1), & H=j+1,\\
+>     (F,H-1), & \text{otherwise}.
+>    \end{cases}
+>   \]
+>   This is the frame \textsf{FRAME} of~\ADJ{2}: the root rule of~\DC{5}
+>   and the band $\{H-1,H\}$, computed from the duty's own view.
+> ```
+
+> _fgsa-protocol.tex, lines 731–752:_
+>
+> ```latex
+> \Function{update\_finality}{$\Sigma,B$}
+>   \Comment{\DC{7}, extended by \ADJ{2}: F basis}
+>   \State $\sigma\gets\Sigma.\sigma[B]$
+>   \State $\Sigma.\hmax\gets\max(\Sigma.\hmax,\sigma.h)$
+>   \Comment{archival; no duty frame reads it}
+>   \If{$\Sigma.F\preceq\sigma.J$ \textbf{and}
+>       $(\sigma.h_j,\sigma.J.\rootf)>(\Sigma.h_j,\Sigma.J.\rootf)$}
+>     \State $(\Sigma.J,\Sigma.h_j)\gets(\sigma.J,\sigma.h_j)$;
+>       $\Sigma.\jCarrier\gets B$
+>     \Comment{lex order}
+>   \EndIf
+>   \If{$\Sigma.F\prec\sigma.F$ \textbf{and} $\sigma.F\preceq\Sigma.J$
+>       \textbf{and} $\sigma.F\in\Call{viable\_tree}{\Sigma}$}
+>     \State $\Sigma.F\gets\sigma.F$
+>     \Comment{does not change $S$ or leases}
+>     \State $W\gets$ the $W\in\Sigma.\TF$ with $\sigma.F\preceq W$ of
+>       greatest $\Sigma.\sigma[W].h$
+>     \Comment{ties by root}
+>     \State $\Sigma.\fBasis\gets\{B,\Sigma.\jCarrier,W\}$
+>     \Comment{carrier, J carrier, witness}
+>   \EndIf
+> \EndFunction
+> ```
+
+> _consensus.tex, lines 937–948:_
+>
+> ```latex
+> \Function{update\_finality}{$\Sigma,\sigma$}
+>   \State $\Sigma.\hmax\gets\max(\Sigma.\hmax,\sigma.h)$
+>   \If{$\Sigma.F\preceq\sigma.J$ \textbf{and}
+>       $(\sigma.h_j,\sigma.J.\rootf)>(\Sigma.h_j,\Sigma.J.\rootf)$}
+>     \Comment{lex order}
+>     \State $(\Sigma.J,\Sigma.h_j)\gets(\sigma.J,\sigma.h_j)$
+>   \EndIf
+>   \If{$\Sigma.F\prec\sigma.F$ \textbf{and} $\sigma.F\preceq\Sigma.J$
+>       \textbf{and} $\sigma.F\in\Call{viable\_tree}{\Sigma}$}
+>     \State $\Sigma.F\gets\sigma.F$
+>   \EndIf
+> \EndFunction
+> ```
+
+- Status: 2026-09-28 — def. It replaces `fg.frame.v1`; `fg.frameCompat.v1`
+  proves that both select the same pair. The pinned `fg_frame` lines also
+  compute the FJ frame; the NJ variant (lines 1408–1417) removes only the
+  contest.
+- Note: spec line 357 says "compatible", but the code of lines 736–737 and
+  858–859 tests `F ⪯ J`:
+
+> _fgsa-protocol.tex, lines 356–357:_
+>
+> ```latex
+> $(\Sigma.F,\Sigma.J,\Sigma.h_j)$ are the accepted finalization and the
+> lex-greatest justification compatible with it, as in~\DC{5}.
+> ```
+
+### `fg.frameCompat.v1` — "compatible with F" and "`F ⪯ J`" select the same pair
+
+- Variant `both`. Source: registry, 2026-09-28. No source file states this
+  lemma; the argument is below. Rule sources: dc lines 747–748, 762–767,
+  820, 824 and 838 (checkpoint heights); spec lines 361–365 and 494 (F
+  basis in every duty view); spec lines 736–750 (J guard and F basis).
+  Hashes as in `fg.frame.v2`.
+- Hypotheses: R1 duty views (`env.r150` item 4; spec lines 483–495); the
+  F-basis rule of spec lines 742–750; the DC chain state (bp F5: one
+  height per block; the entry `T_h` is the block that entered h). It does
+  not use `a≤f`.
+- Statement (registry): let d be an honest duty with view V_d and current
+  accepted F = F_d. Let P1 be the greatest `(h_j, J.root)` justified pair
+  in V_d whose J is compatible with F (the `fg.frame.v1` rule). Let P2 be
+  the lex-greatest such pair with `F ⪯ J` (the `fg.frame.v2` rule). Then
+  P1 = P2. The same holds for the FJ frame: the wording "compatible with
+  F" of `env.r151` (r151 line 44) and the `F ⪯ σ[W].J` test of
+  `fj.frame.v1` select the same pair.
+- Proof (registry, 2026-09-28).
+  1. Checkpoint heights. A justified pair is `(h, T_h)` of a chain state
+     (dc line 824). `T_h` is the block that brought its chain into height
+     h (dc lines 747–748, 838), so `σ[T_h].h = h`. A finalized pair is a
+     former justified pair (dc line 820). The only exception is the
+     initial pair `(0, genesis)`, with `σ[genesis].h = 1` (dc lines
+     762–767). Thus each pair `(h,C)` has `h ≤ σ[C].h`, with equality when
+     C ≠ genesis. Heights do not decrease along a chain, and a non-genesis
+     entry T is the first block of its height on its chain. So every
+     strict ancestor of T has state height at most `σ[T].h − 1`.
+  2. Part (i): if `h_J ≥ h_F`, then "J is compatible with F" ⇔ `F ⪯ J`.
+     The direction ⇐ is immediate. For ⇒, suppose `J ≺ F` strictly. Then
+     F ≠ genesis, so `h_F = σ[F].h`, and step 1 gives
+     `h_J ≤ σ[J].h ≤ h_F − 1`. This contradicts `h_J ≥ h_F`.
+  3. Part (ii): V_d holds a pair with `F ⪯ J` and `h_J ≥ h_F`. If F is
+     genesis, every pair has `F ⪯ J` and `h_J ≥ 0 = h_F`. Otherwise
+     `update_finality` accepted F only with `σ.F ⪯ Σ.J` (spec line 742).
+     The F basis saved the J carrier W0, with `σ[W0].J = Σ.J` (spec lines
+     736–739, 749). R1 puts the F basis in every duty view (spec lines
+     363–365; HEAD view item 5, line 494; a full view holds every admitted
+     block). If `Σ.J = F` as blocks, then `h_J = h_F` (step 1, F ≠
+     genesis). If `F ≺ Σ.J`, then `h_J = σ[Σ.J].h ≥ σ[F].h = h_F`.
+  4. Each candidate of P2 is a candidate of P1, so P2 ≤ P1. Step 3 gives
+     `h(P2) ≥ h_F`, so `h(P1) ≥ h_F`. Step 2 gives `F ⪯ J` for P1, so P1
+     is a candidate of P2 and P1 ≤ P2. Thus P1 = P2. ∎
+- Status: 2026-09-28 — PROVED (registry argument; no Lean certificate).
+- Note: part (ii) needs the F basis in the view. A view without it can
+  select a different pair; R1 excludes such a view at an honest duty. The
+  argument reads "greatest" in `fg.frame.v1` as the lex order
+  `(h_j, J.root)` of DC §5.
 
 ### `fg.Ret.v1` — keep predicate
 
@@ -1198,6 +1428,8 @@ in §4. Every status below is for the FG-SA client (§0).
 - Kind: AP service fact (audit W02). v1 also pinned the height-pair fields
   and the equality of entries on a plateau; those are Simplex client and
   transition facts (`fg.provenance.v1`, bp §7.5).
+- Note (2026-09-28): `fg.provenance.v1` is SUPERSEDED. The client and
+  entry facts are `fg.provenance.v2` and `comp.provenance.v1`.
 
 ### `ap.armedSafe.v1` — clean safety and P1 with the FG
 
@@ -1304,6 +1536,95 @@ in §4. Every status below is for the FG-SA client (§0).
   ("Its finality records are absent or aligned") is a Simplex client
   fact and is an obligation of `comp.finality.v1`.
 
+### `ap.fastSupport.v1` — a fast write has an honest supporter
+
+- Variant `both` (no frame premise). Sources: r143 §3.1, lines 208–218
+  (file `fgsa-fast.md`, sha256
+  `8907540c5c71fe06703bc8d2ec2d30bc6cbc752a5f7577219a69196e2fd8ef37`); the
+  SA rule, sa lines 83–91, 157–161 and 219 (file `slow-arming.md`, sha256
+  `c1d1a4e343c6910a1072cc7e6e8816b6ab6ac94b4940f204573f3a39c500db0b`); the
+  SA Lean model, acG lines 381–383, 431–435 and 456–461 (file
+  `AvailableChainGridCO/Model/Protocol.lean`, sha256
+  `2cb079fd72fb7cb6901d8a8cfd59c650ad6561377b226b3240b68c852b59755c`); bp
+  F-table row B3, line 314.
+- Hypotheses: the static faulty set has size a with `h > a` and
+  `h + a ≤ n` (so `a < τ`; under `a≤f` also `τ > a`); authentic HEADs.
+- Service statement: let B ∈ `FastWrite_i[s]` at an honest reader i. Then
+  B has at least τ distinct supporting seats at label s that survive the
+  late equivocation test at i. Since `τ > a`, at least one of them is
+  honest, and its label-s HEAD extends B.
+- Statement (pinned):
+
+> _fgsa-fast.md, lines 208–218:_
+>
+> Keep an immutable gate result and a local set `FastWrite_i[s]` at each
+> completed gate. A block is in this set exactly when all of the following
+> held at d_s:
+>
+> ```text
+> B ≠ genesis;
+> C_i[s] exists and B⪯C_i[s];
+> 2*p_i(s,B) > |D_i[s]| and p_i(s,B) ≥ τ;
+> the whole-result SA lease guard passed;
+> the gate executed its lease write or renewal for B by the fast test.
+> ```
+
+> _slow-arming.md, lines 83–91:_
+>
+> Keep saved early support, the late participant pool, equivocation
+> removal, full proposal-view merge, declared support subsets, block-slot
+> guards, and old-block eligibility. For a raw genuine result `C_i[r]`
+> and its non-genesis prefix B, write `p_i(r,B)` for B's surviving early
+> support. It is an integer count from label r alone. In particular,
+>
+> ```text
+> 2 p_i(r,B) > |D_i[r]|.
+> ```
+
+> _slow-arming.md, lines 157–161:_
+>
+> There is a useful absolute bound, but it comes from the regime:
+>
+> ```text
+> h>a and h+a≤n  ⇒  a≤floor((n−1)/2)<τ=ceil(n/2).
+> ```
+
+> _slow-arming.md, line 219:_
+>
+> ```text
+> fast_i(r,B) ⇔ B ⪯ C_i[r] and p_i(r,B)≥τ.
+> ```
+
+> _AvailableChainGridCO/Model/Protocol.lean, lines 381–383, 431–435 and
+> 456–461:_
+>
+> ```lean
+> def cleanSupport (p : Params) {n : Nat} (st : State n) (r : Slot) : List (Wire n) :=
+>   (earlyVotes p st r).filter (fun o =>
+>     !(lateVotes p st r).any (fun u => sameSeat u o && u != o))
+> def prefixSupport (p : Params) {n : Nat} (st : State n) (r : Slot) (b : Block) : Nat :=
+>   goldfishScore st.blocks (cleanSupport p st r) (cleanSupport p st r) b
+>
+> /-- The single SA release threshold is the ceiling of half the seats. -/
+> def releaseThreshold (p : Params) : Nat := (p.n + 1) / 2
+> def admissionLevels [LeasePolicy] (p : Params) {n : Nat} (st : State n)
+>     (r : Slot) (b : Block) : List Nat :=
+>   if LeasePolicy.slowArming then
+>     if releaseThreshold p ≤ prefixSupport p st r b || slowEligible p st r b then
+>       [releaseThreshold p] else []
+>   else
+> ```
+
+- Status: 2026-09-28 — PROVED. The support count is RULE (the fast
+  admission test); the honest supporter follows from `τ > a`. bp B3 states
+  the same fact.
+- Kind: AP service fact (audit W02): source safety. It is the SA half of
+  the v1 provenance sentence "Each such C has an honest supporter since
+  `τ>a`" (`fg.provenance.v1`).
+- Note: the Lean model has no separate `FastWrite` record. The fast test is
+  the first disjunct of `admissionLevels` (acG line 459). A Lean statement
+  of this entry must name that disjunct, not the slow one.
+
 ## 3. `SimplexFG.nj` lemmas (`Kit.FG`)
 
 ### `fg.provenance.v1` — row, entry and finality provenance
@@ -1322,6 +1643,73 @@ in §4. Every status below is for the FG-SA client (§0).
 > entry and thus has this earlier target origin.
 
 - Status: 2026-09-28 — PROVED.
+- Status: 2026-09-28 — SUPERSEDED (audit W02 split, agreed with
+  ethereum-f1). The statement mixes a pure FG fact, an SA fact and the
+  Simplex source rule. Successors: `fg.provenance.v2` (pure FG),
+  `ap.fastSupport.v1` (SA: a fast write has an honest supporter) and
+  `comp.provenance.v1` (the source C is the signer's `C_fg`). Their
+  conjunction is this statement.
+
+### `fg.provenance.v2` — honest row, entry and finality provenance (pure FG)
+
+- Variant `both`. Sources: r146 §3.1, lines 244–247 (file
+  `fgsa-adjudicate.md`, sha256
+  `0fe1717f6abbf0d708cada05a8a4d3e3431a530d3d5c3a65e86bf755f5642017`); r143
+  §3.3, lines 275–283 (file `fgsa-fast.md`, sha256
+  `8907540c5c71fe06703bc8d2ec2d30bc6cbc752a5f7577219a69196e2fd8ef37`); bp
+  F-table row F1, lines 294–295 (file `fgsa-healing-blueprint.md`, sha256
+  `4d643d7a6285705ef8bcef6b408b46a45d64641f0d92828b3539f8f938074318`). FJ:
+  r148 §5 F7, lines 400–403 (file `fj-redteam.md`, sha256
+  `934fe2927f047a11e37dbe52aba9d754d5c461927f24b91902077f17459d47d2`).
+- Hypotheses: `q_F > a` (from `a≤f`); honest identities do not
+  equivocate; the DC height-pair and finality-pair rules of r143 §3.3.
+- Statement (registry): (1) every target, progress or finality QC has an
+  honest row, since `q_F > a`. (2) An honest height row names the entry
+  `T = σ[C].T_h` of the signer's source C, so `T ⪯ C`. (3) A finality row
+  names the justified pair `(h_j, J)` of the signer's head state; hence a
+  finality QC names an already justified entry, with an earlier target
+  QC. The statement does not say how C is chosen or supported.
+- Statement (pinned):
+
+> _fgsa-adjudicate.md, lines 244–247 (excerpt; the first, second and
+> fourth sentences; line breaks reflowed):_
+>
+> Every progress or target QC contains an honest height row since `q_F>a`.
+> Its entry T is a prefix of its successful fast source C. Finality names
+> an already justified entry and thus has this earlier target origin.
+
+> _fgsa-fast.md, lines 275–283:_
+>
+> ```text
+> finality_pair(Λ,hj,J,hF):
+>     if hj>hF and Λ.target[hj]∈{none,J}
+>        and not Λ.timeout[hj] and Λ.lock[hj]∈{none,J}:
+>         return (hj,J)
+>     return empty
+>
+> height_pair(Λ,C_fg,fp):
+>     if C_fg absent: return empty
+>     (h,T,nj) := (σ[C_fg].h, σ[C_fg].T_h, σ[C_fg].nj)
+> ```
+
+> _fgsa-healing-blueprint.md, lines 294–295:_
+>
+> ```text
+> │ F1  │ Each target, progress, or finality QC   │ q_F>a                               │
+> │     │ has an honest row.                      │                                     │
+> ```
+
+> _fj-redteam.md, lines 400–403:_
+>
+> Every target or progress QC contains an honest row because q>a. Each
+> honest height row has a successful fresh fast source, with τ>a surviving
+> supporters. Its named entry is an ancestor of that source. Finality has
+> an earlier justified target origin.
+
+- Status: 2026-09-28 — PROVED.
+- Note: the word "successful fast" in the r146 excerpt and the second
+  sentence of the r148 lines are not part of this entry. They are
+  `ap.fastSupport.v1` and `comp.provenance.v1`.
 
 ### `fg.causalCap.v1` — causal cap at the cut
 
@@ -1377,6 +1765,169 @@ in §4. Every status below is for the FG-SA client (§0).
 - Status: 2026-09-28 — PROVED (r147 §6; r144 claims N1 and N2).
 - Note: r144 claim N3 ("thus all later justifications are permanent") is
   REFUTED. The cap does not bound carriers that use new honest rows.
+- Status: 2026-09-28 — SUPERSEDED (split agreed with ethereum-f1).
+  Successors: `fg.causalCap.core.v1` (the cap for any bound M) and
+  `comp.cut.v1` (the DC cut r_G, `u_0 = a_(r_G+2)` and M at `u_0`, with
+  the duty-view clause, which also uses `comp.settle.v1`).
+
+### `fg.causalCap.core.v1` — causal cap for a bound M
+
+- Variant `both`. Sources: r147 §6, lines 642–651 (file
+  `fgsa-conditional.md`, sha256
+  `940e481501f8c52f57bd7110faa442b54ce4aa3bb512769a07c9b769037ea0f5`); bp
+  F-table row F2, lines 296–297 (file `fgsa-healing-blueprint.md`, sha256
+  `4d643d7a6285705ef8bcef6b408b46a45d64641f0d92828b3539f8f938074318`); DC
+  Lean, vcW lines 42–48 (file
+  `DecoupledConsensusProofs/Protocol/ValidatorClient/WeakHeightBounds.lean`,
+  sha256 `f0d45fa7fd93a0a1c9f4dfccaf6c3f7c63c43245c5deee7182a25f3963c22b5d`).
+- Hypotheses: `fg.provenance.v2` (each crossing and each target QC has an
+  honest row); the honest DC client (a row names its source's own height).
+- Statement (registry): (a) an honest row of height h, emitted by v at
+  time t, has `h ≤` the archival maximum of v's store before t. (b) Let M
+  be a height. A carrier whose honest rows all have height at most M has
+  height at most M+1 and justified height at most M: a crossing of M+1
+  and a target QC at M+1 each need an honest row at M+1. Faulty rows can
+  be new; they cannot cross a height alone. The cap does not bound a
+  carrier that uses a new honest row above M.
+- Statement (pinned):
+
+> _fgsa-conditional.md, lines 642–651:_
+>
+> **The causal cap used by the other job.** At an actual event-prefix cut
+> with honest archival frontier M, each previously emitted honest height
+> row has height at most M [DC6]. A crossing uses q_F distinct matching
+> identities and hence an honest row. A carrier made only from pre-cut
+> rows therefore has height at most M+1 and justified height at most M
+> [DC7]. This includes later assembly from old signatures. The cap does
+> not bound carriers that use new honest rows. It affects an R1 HEAD
+> only when its own view contains the required height witness. These
+> facts are consistent with N2's explicit first-q_s boundary; they do
+> not replace its proof at NJ+1.
+
+> _fgsa-healing-blueprint.md, lines 296–297:_
+>
+> ```text
+> │ F2  │ Causal cap: an honest row at height h   │ WeakHeightBounds.lean:42            │
+> │     │ has h ≤ the signer's archival maximum.  │ honestEmittedHeight_le_localHMax... │
+> ```
+
+> _WeakHeightBounds.lean, lines 42–48:_
+>
+> ```lean
+> theorem honestEmittedHeight_le_localHMaxBeforeTime
+>     (S : Setup V) {rho : Run V} (adm : AdmissibleCore S rho)
+>     {v : V} {a : NamedAttestation V}
+>     {t : Time} {h : Height}
+>     (hemit : rho.emits S v (Object.attest a) t)
+>     (hh : a.height_pair.erase.height? = some h) :
+>     h ≤ (rho.storeBeforeTime S v t).h_max := by
+> ```
+
+- Status: 2026-09-28 — PROVED. Part (a) is LEAN for DC
+  (`honestEmittedHeight_le_localHMaxBeforeTime`); there is no FG-SA Lean
+  instance. Part (b) is the paper step of r147 §6 and r144 §2.2.
+- Note: the pinned r147 text states the cap at a cut. This entry states
+  it for any M; `comp.cut.v1` sets M to the DC cut maximum.
+
+### `fg.uniqueJust.v1` — one justified entry per height (blueprint F3)
+
+- Variant `both` (FJ keeps the certificate syntax and E1/E2, r148 F8).
+  Sources: bp F-table row F3, line 298 (file `fgsa-healing-blueprint.md`,
+  sha256 `4d643d7a6285705ef8bcef6b408b46a45d64641f0d92828b3539f8f938074318`);
+  DC Lean L7 (Lemma U), vcE lines 229–249 (file
+  `DecoupledConsensusProofs/Protocol/ValidatorClient/Engine.lean`, sha256
+  `92fb0e64c1288afea98b53212cb3ad5c843c9c720187367eea578d17a9d53454`).
+- Hypotheses: `a≤f`, so `2q_F−n > a`; honest identities follow E2 (at most
+  one target per height).
+- Statement (registry): at each height h, at most one entry is justified
+  in the whole run (on any chain, in any store).
+- Statement (pinned):
+
+> _fgsa-healing-blueprint.md, line 298:_
+>
+> ```text
+> │ F3  │ One justified entry per height (L7).    │ ValidatorClient/Engine.lean, a≤f    │
+> ```
+
+> _Engine.lean, lines 229–249:_
+>
+> ```lean
+> /-- **Lemma U** (rev. 3 §1.3; PROTOCOL.md#the-complete-protocol): two target quorums at one
+> height for **different** roots expose `2q − W` of E2 weight, at that height,
+> against those two roots.
+>
+> Hence *"absent `2q − W` of E2-slashable weight, at most one target is justified
+> at any height, on any chain, anywhere in the run"* — and hence the lex tiebreak
+> on `(h_j, J.root)` never arbitrates between two real certificates
+> (`Finality.lean:52–70`, rev. 3 §1.3): the root component separates only events
+> at the same height, and by this lemma two real justifications never share one.
+>
+> Nothing about chains, stores or reachability enters. The quorums are abstract
+> sets with per-member witnesses drawn one from each attestation pool, which is the
+> same evidence discipline `SlashableBetween` uses — the pool a witness comes
+> from is named, never existentially closed. -/
+> theorem justification_unique_per_height (E : Env V)
+>     {A₁ A₂ : Finset (CombinedAttestation V)} {Q₁ Q₂ : Finset V} {h : Height}
+>     {T₁ T₂ : BlockId}
+>     (hQ₁ : E.electorate.IsQuorum Q₁) (hQ₂ : E.electorate.IsQuorum Q₂)
+>     (hw₁ : ∀ i ∈ Q₁, ∃ a ∈ A₁, a.val_index = i ∧ a.height_pair = .target h T₁)
+>     (hw₂ : ∀ i ∈ Q₂, ∃ b ∈ A₂, b.val_index = i ∧ b.height_pair = .target h T₂) :
+>     HasE2WeightAt E h T₁ T₂ A₁ A₂ := by
+> ```
+
+- Status: 2026-09-28 — LEAN (DC). The Lean theorem is the certificate
+  form: two target quorums for different entries at one height give
+  `2q−W` of E2 weight. The step to "at most one entry" uses
+  `2q_F−n > a` and honest E2 compliance; it is one line of paper proof. The
+  companion `justification_unique_per_height_slashable` is at vcE line
+  261. There is no FG-SA Lean instance.
+
+### `fg.finalLock.v1` — finality lock (blueprint F4)
+
+- Variant `both`. Sources: bp F-table row F4, lines 299–300 (file
+  `fgsa-healing-blueprint.md`, sha256
+  `4d643d7a6285705ef8bcef6b408b46a45d64641f0d92828b3539f8f938074318`); DC
+  Lean L8, vcF lines 50–56 (file
+  `DecoupledConsensusProofs/Protocol/ChainState/FinalityComparison.lean`,
+  sha256 `aa0ed92740eb1ec8ee69e90fd2ae75f03179a27c05accf5f631e7a254589b94c`).
+  r148 calls the same fact the "finalized-crossing law" (line 226; file
+  `fj-redteam.md`, sha256
+  `934fe2927f047a11e37dbe52aba9d754d5c461927f24b91902077f17459d47d2`).
+- Hypotheses: the run satisfies the DC slashable bound (`a≤f`); roots are
+  collision-free; the honest DC client (E1).
+- Statement (registry): if D is a block of the run with finalized
+  checkpoint `F(D)` at height `h_F(D)`, then every block C of the run with
+  `h(C) > h_F(D)` extends `F(D)`.
+- Statement (pinned):
+
+> _fgsa-healing-blueprint.md, lines 299–300:_
+>
+> ```text
+> │ F4  │ Finality lock: every block of height    │ FinalityComparison.lean:50          │
+> │     │ > h_F(D) extends F(D) (L8).             │ finalized_preceq_of_height_lt       │
+> ```
+
+> _FinalityComparison.lean, lines 50–56:_
+>
+> ```lean
+> theorem finalized_preceq_of_height_lt
+>     (S : Setup V) (rho : NamedRun V) (C D : NamedBlock V)
+>     (hsb : Internal.NamedOutageEntry.SlashableBound S rho)
+>     (hroot : NamedRootCollisionFree S rho)
+>     (hC : NamedRun.blockInRun S rho C) (hD : NamedRun.blockInRun S rho D)
+>     (hlt : (derive_named S.E S.cfg D).h_F < (derive_named S.E S.cfg C).h) :
+>     Block.Preceq (derive_named S.E S.cfg D).F C.erase := by
+> ```
+
+> _fj-redteam.md, lines 224–226:_
+>
+> Every frontier block has height above the height of accepted F: a
+> finalization at y has a justification carrier at height at least y+1.
+> The finalized-crossing law puts every such frontier block above F.
+
+- Status: 2026-09-28 — LEAN (DC). There is no FG-SA Lean instance. bp
+  §7.9, lines 831–843 (pinned in `fg.base.finalized.v1`), explains why
+  the proof also covers crossings signed before the finality pairs.
 
 ### `fg.trunk.v1` — F advance below the band
 
@@ -1384,6 +1935,9 @@ in §4. Every status below is for the FG-SA client (§0).
   `fgsa-healing-blueprint.md`, sha256
   `4d643d7a6285705ef8bcef6b408b46a45d64641f0d92828b3539f8f938074318`. r149
   §4.1, lines 324–334, proves it again.
+- Hypotheses (named 2026-09-28; §0 rule (b)): `fg.finalLock.v1` (the "F4"
+  of item 1); B2 of bp §3 (live leases at one reader form a chain);
+  `a≤f`.
 - Statement (pinned):
 
 > _fgsa-healing-blueprint.md, lines 352–375:_
@@ -1458,6 +2012,60 @@ in §4. Every status below is for the FG-SA client (§0).
 - Notes: [async] r147 §6 counts control EVENTS (`m−1−f0+ε_J`, F advances
   included); bp counts EFFECTIVE filter values after the trunk lemma. θ is
   4Δ in bp and 3Δ in r147. [async] r149 §3 (lines 305–315) fixes θ = 4Δ.
+- Status: 2026-09-28 — SUPERSEDED (split agreed with ethereum-f1). Item 1
+  (settling) and the step "By item 1" of item 3 are run facts:
+  `comp.settle.v1`. Items 2–4 without that step are the pure core:
+  `fg.oneBullet.core.v1`. Their conjunction is this statement.
+
+### `fg.oneBullet.core.v1` — effective filter at a fixed frontier (pure core)
+
+- Variant `nj`. Source bp §4.2, items 2–4 and the count, lines 391–409
+  (H3). File `fgsa-healing-blueprint.md`, sha256
+  `4d643d7a6285705ef8bcef6b408b46a45d64641f0d92828b3539f8f938074318`.
+- Hypotheses: `fg.frame.v2` (with `fg.frameCompat.v1`); `fg.uniqueJust.v1`
+  (F3); `fg.finalLock.v1` (F4); `fg.trunk.v1` (F advances in F-mode do not
+  act); `h_j < h` on every chain (DC transition, bp F5).
+- Statement (registry): fix a frontier m. Let J_(m−1) be the justified
+  entry at m−1, if one exists (unique by `fg.uniqueJust.v1`). For an
+  honest duty d with `H_d = m`, let `E_J(d)` mean "V_d holds a carrier of
+  J_(m−1)". Then:
+  1. `Ẑ_d = J_(m−1)` if `E_J(d)`, and `Ẑ_d = ◇` otherwise. So
+     `Φ_d ∈ {(m,◇), (m,J_(m−1))}`.
+  2. If `E_J(d)` is false at every such duty before a time t1 and true at
+     every such duty from a time t2 ≥ t1, then `Φ_d = (m,◇)` before t1 and
+     `Φ_d = (m,J_(m−1))` from t2. Lower J values, F advances in F-mode, a
+     finalization of J_(m−1) in J-mode and new blocks do not change Φ_d.
+  Thus the effective filter changes at most once per frontier: one event
+  (the arrival of J_(m−1)), with the interval `[t1,t2)` as its settling
+  interval. The core does not say when t1 and t2 occur.
+- Statement (pinned):
+
+> _fgsa-healing-blueprint.md, lines 391–409:_
+>
+> 2. **Modes.** At `H_d = m`, J-mode means `j_d = m−1`. A justified entry at
+>    m−1 is unique (F3). F_d has height ≤ m−1, and an F at m−1 equals
+>    J_(m−1). An F at a lower height precedes J_(m−1) by F4. Thus J-mode at
+>    d means `Ẑ_d = J_(m−1)`, for one fixed block. No justification above
+>    m−1 exists at frontier m, because `h_j < h` on every chain.
+> 3. **One change.** Let t_J be the first time at which an honest store
+>    holds a carrier of J_(m−1), or ∞. Views are subsets of stores, so every
+>    duty before t_J is in F-mode. By item 1, every duty at a time ≥
+>    `max(t_m, t_J)+θ` is in J-mode, since stores only grow. Hence Φ_d
+>    takes at most two values at frontier m, first (m,◇) and then
+>    (m,J_(m−1)).
+> 4. **No other change.** Lower J values do not act: `H_d = m ≠ j+1` for
+>    `j ≤ m−2`. F advances in F-mode do not act (§4.1). A finalization of
+>    J_(m−1) in J-mode leaves Ẑ_d unchanged. New blocks only add witnesses.
+>
+> Count: at a fixed frontier there is **at most one effective filter change**
+> (the arrival of J_(m−1)). The adversary needs a higher frontier for a new
+> change. This agrees with the one-exclusion count of
+> [fgsa-fast §9.1](fgsa-fast.md) and [fgsa-fast-opus §6.5](fgsa-fast-opus.md).
+
+- Status: 2026-09-28 — PROVED (a≤f; bp H3 without its item 1).
+- Composition: with `comp.settle.v1`, take `t1 = t_J` (views are subsets
+  of stores) and `t2 = max(t_m, t_J)+θ`, and restrict to duties in
+  `[t_m+θ, t_up)`, where `H_d = m`. This gives the full bp §4.2 count.
 
 ### `fg.H19.v1` — HNI-a
 
@@ -1511,7 +2119,8 @@ in §4. Every status below is for the FG-SA client (§0).
   `fgsa-healing-blueprint.md`, sha256
   `4d643d7a6285705ef8bcef6b408b46a45d64641f0d92828b3539f8f938074318`.
 - Hypotheses: the finalized arm of `fg.baseSel.nj.v1` (x = hF0 and the
-  actual checkpoint F*); `a≤f`.
+  actual checkpoint F*); `a≤f`; `fg.uniqueJust.v1` (F3) and
+  `fg.finalLock.v1` (F4), named 2026-09-28 (§0 rule (b)).
 - Statement (pinned):
 
 > _fgsa-healing-blueprint.md, lines 831–843:_
@@ -1539,7 +2148,8 @@ in §4. Every status below is for the FG-SA client (§0).
 - Variant `nj`. Source bp §7.9, lines 844–847 (H21). File
   `fgsa-healing-blueprint.md`, sha256
   `4d643d7a6285705ef8bcef6b408b46a45d64641f0d92828b3539f8f938074318`.
-- Hypotheses: the NJ arm of `fg.baseSel.nj.v1`; `ap.S.v2`; `ap.Sslow.v1`.
+- Hypotheses: the NJ arm of `fg.baseSel.nj.v1`; `ap.S.v2`; `ap.Sslow.v1`;
+  `fg.finalLock.v1` (F4, for (h2)), named 2026-09-28 (§0 rule (b)).
 - Statement (pinned):
 
 > _fgsa-healing-blueprint.md, lines 844–847:_
@@ -1567,7 +2177,10 @@ in §4. Every status below is for the FG-SA client (§0).
   §4, lines 406–415 (file `fgsa-adjudicate.md`, sha256
   `0fe1717f6abbf0d708cada05a8a4d3e3431a530d3d5c3a65e86bf755f5642017`).
 - Hypotheses: `env.bp` (or `env.r150`); the honest frontier reaches H+3 (the
-  deadline is in `comp.healedLit.v1` or `comp.arrivalNJ.v1`).
+  deadline is in `comp.healedLit.v1` or `comp.arrivalNJ.v1`); for the
+  finalized arm `fg.uniqueJust.v1` (F3) and `fg.finalLock.v1` (F4, also
+  "DC's finalized-crossing law" in the r146 quote); `comp.cut.v1` and
+  `fg.causalCap.core.v1` (F2, item 4). Named 2026-09-28 (§0 rule (b)).
 - Returned witness (audit W09; FRAMEWORK-DESIGN.md §7.4). The base does not
   return HNI.
   1. Cut: `u_0 = a_(r_G+2)`, its inclusive event prefix, and M = the honest
@@ -1578,7 +2191,8 @@ in §4. Every status below is for the FG-SA client (§0).
   3. Arm witness. NJ arm: the prefix NJ record facts F6 and F7 (nj = true at
      H before `first`; no honest lock, target record or target row at H in
      that prefix). Finalized arm: the actual finalized checkpoint F* at x in
-     an honest store, with F3 and F4.
+     an honest store, with F3 (`fg.uniqueJust.v1`) and F4
+     (`fg.finalLock.v1`).
   4. First row above x: r* = the least round of an honest row at height x+1,
      `s* = r*R`, its fresh fast source body C* and its entry T*.
      `r* > r_G+2`, `t_(s*) ≥ GST+2P`, s* and every later label are
@@ -1735,10 +2349,15 @@ still protects the source:
 > frontier block that does not extend it.
 
 Thus `fg.HNI.v1`, `fg.H19.v1`, `fg.HNIb.v1`, `fg.trunk.v1`,
-`fg.oneBullet.v1`, `fg.base.finalized.v1`, `fg.base.nj.v1` and
-`fg.baseSel.nj.v1` do not apply to FJ. The FJ noninterference interface is
-`fj.descent.v1`, `fj.canonical.v1` (F9), `fj.inBandLock.v1` (F10) and
-`fj.twoChanges.v1` (F12); its reset witness is `fj.reset.v1`. The FJ cap M
+`fg.oneBullet.v1` (now `fg.oneBullet.core.v1`), `fg.base.finalized.v1`,
+`fg.base.nj.v1` and `fg.baseSel.nj.v1` do not apply to FJ. The FJ
+noninterference interface is `fj.descent.v1`, `fj.canonical.v1` (F9),
+`fj.inBandLock.v1` (F10) and `fj.twoChanges.v1` (F12; now
+`fj.twoChanges.core.v1` with `comp.settle.v1`); its reset witness is
+`fj.reset.v1`. The `both` entries `fg.provenance.v2`,
+`fg.causalCap.core.v1`, `fg.uniqueJust.v1`, `fg.finalLock.v1`,
+`fg.frameCompat.v1`, `comp.provenance.v1`, `comp.settle.v1` and
+`comp.cut.v1` apply to FJ. The FJ cap M
 is the cap on old honest rows (`env.r148`); it is at most DC's archival
 M0. r151 calls this cap μ and calls M0 simply M.
 
@@ -1803,6 +2422,70 @@ M0. r151 calls this cap μ and calls M0 simply M.
 > reaches H.
 
 - Status: 2026-09-28 — def (r148 claim F1, exact FJ delta, PROVED).
+- Note (2026-09-28): the contest test is the local witness of r148 lines
+  260–270: an admitted W in the view with `h(W) = j+1` and `J ⋠ W`. By
+  ancestor closure this is a conflicting crossing of j in the view, so
+  `fj.crossingNoFinal.v1` shows that J cannot finalize. The converse is
+  false (r148 F3, REFUTED): J can be unable to finalize without a contest.
+  `fg.frameCompat.v1` shows that the `F ⪯ σ[W].J` test selects the same
+  pair as "compatible with F" (`env.r151`, line 44).
+
+> _fj-redteam.md, lines 260–270:_
+>
+> The exact local geometric witness used by FJ at H=j+1 is:
+>
+> ```text
+> exists admitted W in this duty view:
+>     h(W)=j+1 and not J⪯W.
+> ```
+>
+> Ancestor closure makes this equivalent to a conflicting crossing of j
+> materialized in this view. All frontier blocks extending J is exactly
+> the absence of this geometric witness. It is not exactly the absence
+> of every possible proof that J cannot finalize.
+
+### `fj.crossingNoFinal.v1` — r148 F2: a conflicting crossing of j proves that J cannot finalize
+
+- Variant `fj`. Source r148 §3 F2, lines 234–258. File `fj-redteam.md`,
+  sha256 `934fe2927f047a11e37dbe52aba9d754d5c461927f24b91902077f17459d47d2`.
+- Hypotheses: `a≤f`, so `2q−n > a`; honest identities follow E1 and E2;
+  the uniform timeout maturity of the DC transition.
+- Statement (pinned):
+
+> _fj-redteam.md, lines 234–258:_
+>
+> F2 — PROVED. Suppose J is justified at j and a valid block W has
+> h(W)>j with J not a prefix of W. On W's path, take the first crossing
+> of j. It consumes q progress identities naming an entry T≠J at j.
+> A target QC for T would conflict with J's target QC. Their intersection
+> has at least 2q−n>a identities, so an honest identity would violate E2.
+> Thus this crossing cannot be an all-target crossing. It needs the
+> timeout branch, at the uniform maturity slot.
+>
+> More precisely, intersect J's target QC with the progress QC for T.
+> At least one honest member of the intersection has already targeted J.
+> Its row for T cannot be a target; it is a timeout. “Through timeouts”
+> therefore means a mixed or all-timeout progress QC with at least one
+> honest timeout. It does not mean that every progress row is a timeout.
+>
+> Now suppose a finality QC for J exists, before or after that crossing.
+> Intersect it with the progress QC for T. Again an honest member must
+> occur. If its progress row is a target for T, E1 forbids its finality
+> pair for J. If it is a timeout, E1 also forbids that pair, regardless
+> of the entry named by the timeout. This argument is independent of the
+> order of emission. Therefore J has not finalized and cannot finalize
+> in any continuation that retains the fault bound and honest client.
+>
+> This is the argument in [finalized_preceq_of_height_lt][crossing],
+> with its direction reversed. It applies to a privately finalized J,
+> and to a crossing held only by the adversary.
+
+- Status: 2026-09-28 — PROVED (r148 F2).
+- Note: this is the contrapositive form of `fg.finalLock.v1` for one
+  justified J: a block above j that does not extend J excludes a
+  finalization of J. It is registered for `fj` because FJ uses it in the
+  contested phase (`fj.twoChanges.core.v1`); the argument uses only the DC
+  certificate rules, so it also holds for `nj`.
 
 ### `fj.descent.v1` — descent lemma under FJ
 
@@ -1958,6 +2641,9 @@ M0. r151 calls this cap μ and calls M0 simply M.
 > are handled by the producer in §9. F10 alone is not a liveness theorem.
 
 - Status: 2026-09-28 — PROVED (r148 F10; r144o N15).
+- Note (2026-09-28; §0 rule (b)): "finalized crossing" in the pinned text
+  is `fg.finalLock.v1`, and "same-height justification uniqueness" is
+  `fg.uniqueJust.v1`.
 - Note: the old-band variant (FJ root test, band `{H−1,H}`) stalls (r148
   F11, REFUTED by the exact N12 execution, lines 599–711).
 
@@ -2011,6 +2697,80 @@ M0. r151 calls this cap μ and calls M0 simply M.
 > │ At most two changes of successive R1 duty frames          │ REFUTED │
 > ```
 
+- Status: 2026-09-28 — SUPERSEDED (split agreed with ethereum-f1). The
+  settling sentences (lines 763–764 "After one P margin, a maximizing
+  witness is in every duty view" and lines 775–777) are run facts:
+  `comp.settle.v1`. The phase count is the pure core:
+  `fj.twoChanges.core.v1`. Their conjunction is this statement.
+
+### `fj.twoChanges.core.v1` — FJ phases at a fixed frontier (pure core)
+
+- Variant `fj`. Source r148 §8 F12, lines 764–773 and 778–789. File
+  `fj-redteam.md`, sha256
+  `934fe2927f047a11e37dbe52aba9d754d5c461927f24b91902077f17459d47d2`.
+- Hypotheses: `fj.frame.v1`; `fg.uniqueJust.v1` (at most one justified
+  entry at m−1); `fg.finalLock.v1`; `fj.crossingNoFinal.v1` (the "F2" of
+  line 783, r148 numbering).
+- Statement (registry): fix a frontier m in a no-rise interval. Let
+  J_(m−1) be the justified entry at m−1, if one exists. For an honest duty
+  d with `H_d = m`, let `E_J(d)` mean "V_d holds a carrier of J_(m−1)",
+  and `E_C(d)` mean "V_d holds a block of height m that does not extend
+  J_(m−1)". Then:
+  1. The effective FJ frame `(H_d, lo_d, Ẑ_d)` is a function of the phase
+     of d: gap (not `E_J(d)`): `(m, m−1, ◇)`; uncontested (`E_J(d)` and not
+     `E_C(d)`): `(m, m−1, J_(m−1))`; contested (`E_J(d)` and `E_C(d)`):
+     `(m, m, ◇)`.
+  2. Each evidence bit is false at every duty before the first time an
+     honest store holds that evidence (views are subsets of stores). If
+     each bit, once true at every duty from some time, stays true, then
+     the phases occur in the order gap → uncontested → contested, or gap
+     → contested. So there are at most two effective changes per frontier,
+     one for each evidence event.
+  3. Finalizations add no change: below m−1 they are below every band
+     witness; at m−1 it is the same J_(m−1), impossible in the contested
+     phase (`fj.crossingNoFinal.v1`) and enforced by the root in the
+     uncontested phase; at m it needs a carrier above m, which ends the
+     no-rise interval.
+  The core does not say when the bits become true at every duty.
+- Statement (pinned):
+
+> _fj-redteam.md, lines 764–773 (excerpt; from "Under a≤f"):_
+>
+> Under a≤f there is at most one justified entry at m−1. There are at
+> most these phases:
+>
+> ```text
+> gap: no top J
+>     -> uncontested top J
+>     -> contested top J
+>
+> or gap -> contested top J.
+> ```
+
+> _fj-redteam.md, lines 778–789:_
+>
+> Repeated copies do not start a new phase. Later frontier blocks only
+> add witnesses once the phase is settled.
+>
+> A finalization below m−1 is below every band witness and cannot cause
+> an independent exclusion. A finalization at m−1 is the same unique
+> top J. It is impossible in the contested phase by F2; in the
+> uncontested phase the root already enforces it. A finalization at m
+> requires a carrier above m, which ends the no-rise interval.
+>
+> Hence k_eff≤2, with at most three complete attempts. This count is
+> independent of SA's slow-window parameter k. It is not a strictly
+> increasing potential on each full/HEAD call.
+
+- Status: 2026-09-28 — PROVED (a≤f; r148 F12 without its settling
+  sentences; r144o N16).
+- Note: the count is for settled phases, not for raw successive R1 duty
+  frames (r148 F13, REFUTED; r151 line 24). Between an evidence event and
+  its settling, duties can disagree on the phase.
+- Composition: with `comp.settle.v1`, each evidence bit is true at every
+  duty from (first store time)+θ, or +P in r148's margin. This gives the
+  full r148 F12 count.
+
 ### `fj.armedSafe.v1` — F7: clean safety and P1 under FJ
 
 - Variant `fj`. Source r148 §5 F7, lines 398–413 and 431–443. File
@@ -2061,7 +2821,10 @@ M0. r151 calls this cap μ and calls M0 simply M.
   File `fj-redteam.md`, sha256
   `934fe2927f047a11e37dbe52aba9d754d5c461927f24b91902077f17459d47d2`.
 - Hypotheses: `env.r148`; `fj.canonical.v1`; `fj.inBandLock.v1`;
-  `fj.twoChanges.v1`.
+  `fj.twoChanges.core.v1`; `comp.settle.v1`.
+- Note (2026-09-28; §0 rule (a)): `fj.twoChanges.v1` was replaced by
+  `fj.twoChanges.core.v1` and `comp.settle.v1`. The cut `u0` and M0 of the
+  witness are `comp.cut.v1`.
 - Returned witness (audit W09): the caps M ≤ M0 and the cut `u0`
   (`env.r148`); an honest row at height ≥ M0+1 > M by `B_R`; its fresh
   source, permanent by `fj.canonical.v1` from its transfer HEAD; the repair
@@ -2157,7 +2920,11 @@ r151 names; `μ ≤ M`.
 
 - Variant `fj`. Source r151 §2, lines 106–143. File `fj-theorem-h.md`, sha256
   `16b69dba55d889b9ae20dd55b228cfd83ad22037d796c6219cdb65831718bba3`.
-- Hypotheses: `env.r151`; `fj.frame.v1`; `fg.causalCap.v1`.
+- Hypotheses: `env.r151`; `fj.frame.v1`; `fg.causalCap.core.v1`;
+  `comp.cut.v1`; `fg.finalLock.v1`.
+- Note (2026-09-28; §0 rules (a) and (b)): `fg.causalCap.v1` was replaced
+  by `fg.causalCap.core.v1` and `comp.cut.v1`. `fg.finalLock.v1` is the
+  "finalized crossing" of the pinned text.
 - Returned witness (audit W09): the cut `u_0`, its maximum M and the
   old-source cap μ ≤ M; r* = the least round with an honest row at
   height M+1, `b = s* = r*R`, and its fresh fast source C* with
@@ -2218,7 +2985,10 @@ r151 names; `μ ≤ M`.
   `16b69dba55d889b9ae20dd55b228cfd83ad22037d796c6219cdb65831718bba3`.
 - Hypotheses: `env.r151`; `fj.reset.v1`; `fj.canonical.v1` (r151 §3.1
   re-proves F9 with the source boundary explicit and the cap μ);
-  `ap.S.v2`; `ap.Sslow.v1`; `fg.provenance.v1`. No service entry is used.
+  `ap.S.v2`; `ap.Sslow.v1`; `fg.provenance.v2`; `ap.fastSupport.v1`;
+  `comp.provenance.v1`. No service entry is used.
+- Note (2026-09-28; §0 rule (a)): `fg.provenance.v1` was replaced by
+  `fg.provenance.v2`, `ap.fastSupport.v1` and `comp.provenance.v1`.
 - Protected set: 𝒫 = all fast bodies at labels ≥ b and all slow bodies
   whose window lies in `[b,∞)` (blueprint §7.1), as for
   `comp.fgHealed.v1`.
@@ -2268,9 +3038,11 @@ r151 names; `μ ≤ M`.
   `16b69dba55d889b9ae20dd55b228cfd83ad22037d796c6219cdb65831718bba3`.
 - Hypotheses (audit W02): the FJ port of `comp.rise.fixedF.v1`, with lo
   fixed and the contested threshold m (r151 §5.2, lines 342–355);
-  `fj.twoChanges.v1`; `fj.inBandLock.v1`; the settling constant θ = 4Δ;
-  `fj.reset.v1` (a crossing to M+2 needs the reset row). It is a
-  comp-level rise, not an AP service fact.
+  `fj.twoChanges.core.v1`; `fj.inBandLock.v1`; `comp.settle.v1` (the
+  settling constant θ = 4Δ); `fj.reset.v1` (a crossing to M+2 needs the
+  reset row). It is a comp-level rise, not an AP service fact.
+- Note (2026-09-28; §0 rule (a)): `fj.twoChanges.v1` was replaced by
+  `fj.twoChanges.core.v1` and `comp.settle.v1`.
 - Statement (pinned):
 
 > _fj-theorem-h.md, lines 328–332:_
@@ -2316,7 +3088,10 @@ r151 names; `μ ≤ M`.
   `fj-theorem-h.md`, sha256
   `16b69dba55d889b9ae20dd55b228cfd83ad22037d796c6219cdb65831718bba3`.
 - Hypotheses: effective (L) for the FJ frame, with effective N1 fixing
-  `(H,lo,Zhat)` (r151 lines 329–331); `fj.twoChanges.v1`; θ = 4Δ.
+  `(H,lo,Zhat)` (r151 lines 329–331); `fj.twoChanges.core.v1`;
+  `comp.settle.v1` (θ = 4Δ).
+- Note (2026-09-28; §0 rule (a)): `fj.twoChanges.v1` was replaced by
+  `fj.twoChanges.core.v1` and `comp.settle.v1`.
 - Statement (pinned):
 
 > _fj-theorem-h.md, lines 357–364:_
@@ -2489,6 +3264,172 @@ r151 names; `μ ≤ M`.
 
 ## 5. Composite entries (`Kit.Compose`, `SimplexFG.nj`)
 
+The first three entries (added 2026-09-28) are variant `both`. They are
+the run parts of the f1 splits (§8).
+
+### `comp.provenance.v1` — each honest-containing QC has an honest-supported source
+
+- Variant `both`. Sources: r146 §3.1, lines 244–247 (file
+  `fgsa-adjudicate.md`, sha256
+  `0fe1717f6abbf0d708cada05a8a4d3e3431a530d3d5c3a65e86bf755f5642017`); r148
+  §5 F7, lines 400–403 (file `fj-redteam.md`, sha256
+  `934fe2927f047a11e37dbe52aba9d754d5c461927f24b91902077f17459d47d2`). Rule
+  source: r143 §3.1, lines 226–237 (pinned in `ap.honestSourced.v2`).
+- Hypotheses: `fg.provenance.v2`; `ap.honestSourced.v2` (the Simplex
+  source rule: the row source is the signer's `C_fg`, a member of
+  `FastWrite_i[s]`); `ap.fastSupport.v1`.
+- Statement (registry): every target, progress or finality QC contains an
+  honest row (`fg.provenance.v2`; for a finality QC, through its earlier
+  justified target). The source C of an honest height row is the signer's
+  `C_fg`, so C is a successful fast write at the signer, and C has an
+  honest supporter (`ap.fastSupport.v1`). The row's entry T satisfies
+  `T ⪯ C`. Thus every QC with an honest row has an honest-supported
+  source.
+- Statement (pinned):
+
+> _fgsa-adjudicate.md, lines 244–247:_
+>
+> Every progress or target QC contains an honest height row since `q_F>a`.
+> Its entry T is a prefix of its successful fast source C. Each such C
+> has an honest supporter since `τ>a`. Finality names an already justified
+> entry and thus has this earlier target origin.
+
+> _fj-redteam.md, lines 400–403:_
+>
+> Every target or progress QC contains an honest row because q>a. Each
+> honest height row has a successful fresh fast source, with τ>a surviving
+> supporters. Its named entry is an ancestor of that source. Finality has
+> an earlier justified target origin.
+
+- Status: 2026-09-28 — PROVED (FG-SA; r146 §3.1; r148 F7).
+- Note: this is the Simplex-policy part of the SUPERSEDED
+  `fg.provenance.v1`. It holds for the Simplex source rule only, not for
+  every policy σ (§0).
+
+### `comp.settle.v1` — relay and freeze settle store objects into duty views
+
+- Variant `both`. Sources: bp §4.2 item 1, lines 385–390 (file
+  `fgsa-healing-blueprint.md`, sha256
+  `4d643d7a6285705ef8bcef6b408b46a45d64641f0d92828b3539f8f938074318`); r149
+  §3, lines 305–315 (file `fgsa-conditional-close.md`, sha256
+  `1ea1ccc5c944335b7e7793afe2c6675a056762e35eeaeee13ec1f6066460a902`); r148
+  §8 F12, lines 763–764 and 776–777 (file `fj-redteam.md`, sha256
+  `934fe2927f047a11e37dbe52aba9d754d5c461927f24b91902077f17459d47d2`).
+- Hypotheses: `env.r149` (strict Δ delivery and accepted-object return
+  relay after GST); R1 duty views (the HEAD at `v_s` freezes at
+  `z_(s−1) = t_s − Δ = v_s − 2Δ`); the object is held by an honest store at
+  a time `w ≥ GST`.
+- Statement (registry): let an honest store hold an object at `w ≥ GST`.
+  The object is in every honest full view from `w+Δ` and in every honest
+  HEAD view at a HEAD time `≥ w+θ`, θ = 4Δ. Views are subsets of stores,
+  and stores only grow. Consequences: (1) if the honest frontier first
+  equals m at t_m and rises at t_up, then `H_d = m` at every honest duty in
+  `[t_m+θ, t_up)`; (2) an evidence object first held by an honest store at
+  t_e is in no duty view before t_e and in every duty view from
+  `max(t_e, GST)+θ`. r148 uses the larger margin P ≥ θ.
+- Statement (pinned):
+
+> _fgsa-healing-blueprint.md, lines 385–390:_
+>
+> 1. **Settling.** Every object that an honest store holds at t is in every
+>    honest full view from t+Δ, and in every honest HEAD view at a time
+>    ≥ t+θ. Proof: relay gives receipt by t+Δ at every honest reader. A HEAD
+>    at `v_s ≥ t+4Δ` has freeze `t_s−Δ ≥ t+2Δ`. Since views are subsets of
+>    stores, `H_d ≤ m` while the frontier is m. Thus `H_d = m` at every
+>    honest duty in `[t_m+θ, ·)` until the frontier rises.
+
+> _fgsa-conditional-close.md, lines 305–315:_
+>
+> Suppose a controlling object is accepted by an honest reader at time w.
+> Strict relay delivers it to every honest full view before `w+Δ`. A HEAD
+> at time v freezes at `v−2Δ`. If `v ≥ w+4Δ`, that freeze is at least
+> `w+2Δ`, after delivery. Its frozen view contains the complete object.
+> The retained F basis supplies the required accepted-control evidence.
+>
+> This proves settling at every duty after `w+4Δ`. Under the strict cutoff
+> convention, `3Δ` also suffices: a freeze at `w+Δ` is after all strict
+> receipts. This file uses only **4Δ** in bounds. It avoids a change of
+> constant when a statement is read with a non-strict delivery endpoint.
+> It is a sufficient constant, not a lower bound.
+
+> _fj-redteam.md, lines 763–764 (excerpt; line breaks reflowed):_
+>
+> After one P margin, a maximizing witness is in every duty view.
+
+> _fj-redteam.md, lines 776–777 (excerpt; line breaks reflowed):_
+>
+> Within P of each event, accepted-object relay and a later freeze put the
+> relevant evidence in every view.
+
+- Status: 2026-09-28 — PROVED (FG-SA; bp §4.2 item 1; r149 §3, M4).
+- Note: this is the run part of the SUPERSEDED `fg.oneBullet.v1` and
+  `fj.twoChanges.v1`. It is a statement about delivery and R1 views, not
+  about FG rules. For an object held only before GST, the return-relay
+  premise gives the same bound from GST.
+
+### `comp.cut.v1` — the DC cut `u_0` and its maximum M
+
+- Variant `both`. Sources: r144 §2.2, lines 168–193 (file `fgsa-no-nj.md`,
+  sha256 `1eaf728ffc4d56cc54fbccf581a8dffe457da02b96bd59cedb012bbf5ee1e03a`);
+  bp §1.2, lines 138–140 (file `fgsa-healing-blueprint.md`, sha256
+  `4d643d7a6285705ef8bcef6b408b46a45d64641f0d92828b3539f8f938074318`).
+- Hypotheses: `fg.causalCap.core.v1`; the action schedule
+  `a_r = T_r+6Δ`, `T_r = rP`; for clause 4, `comp.settle.v1`.
+- Statement (registry):
+  1. Definition: r_G = the first action round with `a_(r_G) ≥ GST`;
+     `u_0 = a_(r_G+2)`, with its inclusive event prefix; M = the honest
+     archival frontier at `u_0`.
+  2. `GST+2P ≤ u_0 < GST+3P`.
+  3. Every honest height row emitted in the prefix has height at most M.
+     A carrier whose honest rows all come from the prefix has height at
+     most M+1 and justified height at most M (`fg.causalCap.core.v1` with
+     this M).
+  4. At a duty with `H_V ≥ M+2`, an old-only justification has
+     `j ≤ M < H_V−1`, so it is not the active root. H_V is the duty view's
+     own maximum: an archival rise acts only after it reaches the view
+     (`comp.settle.v1`).
+- Statement (pinned):
+
+> _fgsa-no-nj.md, lines 168–193:_
+>
+> Use exactly the requested cut:
+>
+> ```text
+> r_G = first action round at or after GST;
+> u0  = a_(r_G+2), inclusive event prefix;
+> M   = honest archival frontier at u0.
+> ```
+>
+> Every honest height row in that prefix has height at most M, because its
+> source was already in its signer's store. Every crossing has an honest
+> row, since `q_F>a`. Hence a carrier whose height evidence uses only such
+> old honest rows has height at most M+1, and its justified height is at
+> most M. Faulty rows can be new; without a new honest row they cannot
+> cross the next height. This includes a newly constructed carrier with
+> old target rows. See [fg-frame-recovery §§2.3–2.4](fg-frame-recovery.md)
+> and [WeakHeightBounds][height-bound].
+>
+> At a duty with `H_V≥M+2`, an old-only justification satisfies
+>
+> ```text
+> j_old≤M < H_V−1,
+> ```
+>
+> so it cannot be the active root. This is a duty-view statement. An
+> archival rise must first reach the frozen HEAD view. Allow the R1 relay
+> and freeze margin; do not substitute an unseen archival maximum.
+
+> _fgsa-healing-blueprint.md, lines 138–140:_
+>
+> Let r_G be the first action round with `a_(r_G) ≥ GST`. The DC cut is the
+> inclusive event prefix at `u_0 = a_(r_G+2)`. Then `GST+2P ≤ u_0 < GST+3P`.
+> Let M be the honest archival frontier at u_0. As in DC,
+
+- Status: 2026-09-28 — PROVED (r144 claims N1 and N2; r147 §6; bp §1.2).
+- Note: this is the run part of the SUPERSEDED `fg.causalCap.v1`. The FJ
+  entries call this M "M0" (r148) or "M" (r151). The old-source cap of
+  `env.r148` (μ in `fj.reset.v1`) is at most this M.
+
 ### `comp.rise.fixedF.v1` — height rise under literal N1
 
 - Variant `nj`. Source r147 §5, lines 409–429 (statement); proof lines
@@ -2497,10 +3438,12 @@ r151 names; `μ ≤ M`.
 - Hypotheses (audit W02): the AP service facts `ap.repair.fixedF.v1`,
   `ap.source.v1`, `ap.rowService.v1` and `ap.carrierKeep.v2`, specialized
   to the Simplex policy; the Simplex client and transition: the lock
-  cases (r147 lines 451–483), `fg.provenance.v1`, row folding at the exact
-  entry, maturity and consumption (r147 lines 485–507); `env.r147`
-  (premises 4 and 5); `fg.N1.v1` with F and Z fixed on
-  `[u,min(t_up,u+B_static))`; `u ≥ GST`.
+  cases (r147 lines 451–483), `fg.provenance.v2`, `ap.fastSupport.v1`,
+  `comp.provenance.v1`, row folding at the exact entry, maturity and
+  consumption (r147 lines 485–507); `env.r147` (premises 4 and 5);
+  `fg.N1.v1` with F and Z fixed on `[u,min(t_up,u+B_static))`; `u ≥ GST`.
+- Note (2026-09-28; §0 rule (a)): `fg.provenance.v1` was replaced by
+  `fg.provenance.v2`, `ap.fastSupport.v1` and `comp.provenance.v1`.
 - Statement (pinned):
 
 > _fgsa-conditional.md, lines 409–429:_
@@ -2569,8 +3512,13 @@ r151 names; `μ ≤ M`.
   §2, lines 131–133 (file `fgsa-theorem-h.md`, sha256
   `8211361a618814fa4d5f4b1a3c593943380c9ccb99235e8b9c413d633876adc3`).
 - Hypotheses: `env.r150`; `fg.baseSel.nj.v1`; `ap.S.v2`; `ap.Sslow.v1`;
-  `fg.base.finalized.v1` (finalized arm); `fg.provenance.v1`;
-  `fg.causalCap.v1`. No service entry is used (r150 lines 135–136).
+  `fg.base.finalized.v1` (finalized arm); `fg.provenance.v2`;
+  `ap.fastSupport.v1`; `comp.provenance.v1`; `fg.causalCap.core.v1`;
+  `comp.cut.v1`. No service entry is used (r150 lines 135–136).
+- Note (2026-09-28; §0 rule (a)): `fg.provenance.v1` was replaced by
+  `fg.provenance.v2`, `ap.fastSupport.v1` and `comp.provenance.v1`;
+  `fg.causalCap.v1` was replaced by `fg.causalCap.core.v1` and
+  `comp.cut.v1`.
 - Statement (pinned):
 
 > _fgsa-healing-blueprint.md, lines 520–522:_
@@ -2659,9 +3607,11 @@ r151 names; `μ ≤ M`.
 - Hypotheses: `env.r150`; `fg.baseSel.nj.v1`; `comp.theoremN.v1`;
   `comp.fgHealed.v1`; `ap.S.v2`; `ap.Sslow.v1`; `ap.Xplus.v1`; for the
   global clause also the literal-N1 arrival count (`comp.rise.fixedF.v1`,
-  `fg.oneBullet.v1`, the r147 §6 counts; r150 §6.1, bp §9.4) and
-  `comp.arrivalNJ.v1`. It does not use `ap.X.v1`, `ap.repair.movingF.v1`
-  or `comp.rise.movingF.v1`.
+  `fg.oneBullet.core.v1`, `comp.settle.v1`, the r147 §6 counts; r150 §6.1,
+  bp §9.4) and `comp.arrivalNJ.v1`. It does not use `ap.X.v1`,
+  `ap.repair.movingF.v1` or `comp.rise.movingF.v1`.
+- Note (2026-09-28; §0 rule (a)): `fg.oneBullet.v1` was replaced by
+  `fg.oneBullet.core.v1` and `comp.settle.v1`.
 - Clauses: (local) Theorem H, r150 §4.5, lines 374–392: the run is healed
   from `t_h ≤ q_(s*)+2L+G−Δ`; it needs none of the arrival inputs.
   (global) r150 §6.4, lines 546–569: `t_h < GST+B_proved`. The global
@@ -2744,9 +3694,11 @@ r151 names; `μ ≤ M`.
   `8211361a618814fa4d5f4b1a3c593943380c9ccb99235e8b9c413d633876adc3`); bp
   §9.4, lines 1028–1047 (file `fgsa-healing-blueprint.md`, sha256
   `4d643d7a6285705ef8bcef6b408b46a45d64641f0d92828b3539f8f938074318`).
-- Hypotheses: `comp.rise.fixedF.v1`; `fg.oneBullet.v1`; the r147 §6
-  counts; the local Theorem H clause of `comp.healed.v1` (r150 §4.5).
-  N = D+K+5, W = λ+4Δ, λ = ρ+2σ.
+- Hypotheses: `comp.rise.fixedF.v1`; `fg.oneBullet.core.v1`;
+  `comp.settle.v1`; the r147 §6 counts; the local Theorem H clause of
+  `comp.healed.v1` (r150 §4.5). N = D+K+5, W = λ+4Δ, λ = ρ+2σ.
+- Note (2026-09-28; §0 rule (a)): `fg.oneBullet.v1` was replaced by
+  `fg.oneBullet.core.v1` and `comp.settle.v1`.
 - Statement (pinned):
 
 > _fgsa-theorem-h.md, lines 464–481:_
@@ -2876,9 +3828,11 @@ r151 names; `μ ≤ M`.
   §9.1, lines 958–967 (file `fgsa-healing-blueprint.md`, sha256
   `4d643d7a6285705ef8bcef6b408b46a45d64641f0d92828b3539f8f938074318`).
 - Hypotheses: `comp.rise.movingF.v1` (effective (L), OPEN),
-  `fg.oneBullet.v1` and `fg.trunk.v1` (bp Theorem HP and Theorem A, PROVED
-  from (L)); the local Theorem H clause of `comp.healed.v1` (r150 §4.5). N =
-  D+K+5, θ = 4Δ.
+  `fg.oneBullet.core.v1`, `comp.settle.v1` and `fg.trunk.v1` (bp Theorem
+  HP and Theorem A, PROVED from (L)); the local Theorem H clause of
+  `comp.healed.v1` (r150 §4.5). N = D+K+5, θ = 4Δ.
+- Note (2026-09-28; §0 rule (a)): `fg.oneBullet.v1` was replaced by
+  `fg.oneBullet.core.v1` and `comp.settle.v1`.
 - Statement (pinned):
 
 > _fgsa-theorem-h.md, lines 516–526:_
@@ -3080,3 +4034,54 @@ provenance of one row of a new quorum.
 - Status changes from v1: `comp.theoremN.v1`, `comp.fgHealed.v1` and
   `fg.base.nj.v1` go from PROVED* to PROVED, because r149 proves (S) and
   (S_slow) and r150 §2 states Theorem N as PROVED.
+
+## 8. Changes after v2: f1 registry splits (2026-09-28)
+
+Agreed with the framework session ethereum-f1. The splits separate pure
+FG facts (`fg.*`, `fj.*`) from run facts (`comp.*`) and SA facts (`ap.*`),
+as audit W02 requires. No status of an existing claim changes: each
+SUPERSEDED entry is the conjunction of its successors.
+
+- §0: new status SUPERSEDED; two hypotheses-list edits keep an id (rules
+  (a) and (b)). §0.1 registers `slow-arming.md` and the sources outside
+  `tsc/`. §0.3 is a glossary of the two F-number systems (r148 and the
+  blueprint F-table).
+- `fg.frame.v1` → SUPERSEDED by `fg.frame.v2` (J selected with
+  `F_d ⪯ J_d`, as in DC and spec `update_finality` and spec `fg_frame`).
+  New lemma `fg.frameCompat.v1` (registry argument): the two rules select
+  the same pair at every honest duty view, without `a≤f`. Spec line 357
+  says "compatible"; its code tests `F ⪯ J`.
+- `fg.provenance.v1` → SUPERSEDED by `fg.provenance.v2` (pure FG),
+  `ap.fastSupport.v1` (a fast write has ≥ τ surviving supporters, so an
+  honest one) and `comp.provenance.v1` (the source is the signer's
+  `C_fg`).
+- `fg.causalCap.v1` → SUPERSEDED by `fg.causalCap.core.v1` (the cap for
+  any M; row bound LEAN in DC `WeakHeightBounds.lean:42`) and `comp.cut.v1`
+  (r_G, `u_0 = a_(r_G+2)`, M at `u_0`).
+- `fg.oneBullet.v1` → SUPERSEDED by `fg.oneBullet.core.v1` (items 2–4 of
+  bp §4.2) and `comp.settle.v1` (item 1, settling within θ = 4Δ).
+- `fj.twoChanges.v1` → SUPERSEDED by `fj.twoChanges.core.v1` (the phase
+  count) and `comp.settle.v1` (settling within θ, or P in r148).
+- New ids for the blueprint facts: `fg.uniqueJust.v1` (F3; DC Lemma U,
+  `Engine.lean:243` `justification_unique_per_height`) and
+  `fg.finalLock.v1` (F4; `FinalityComparison.lean:50`
+  `finalized_preceq_of_height_lt`; r148's "finalized-crossing law", line
+  226). Both are LEAN for DC only.
+- New id `fj.crossingNoFinal.v1` (r148 F2, PROVED, lines 234–258).
+  `fj.frame.v1` has a note: its contest test is the local witness of r148
+  lines 260–270.
+- Hypotheses lists that cited a SUPERSEDED id now cite its successors:
+  `comp.rise.fixedF.v1`, `comp.theoremN.v1`, `comp.healed.v1`,
+  `comp.healedLit.v1`, `comp.healedUnif.v1`, `fg.base.fj.v1`,
+  `fj.reset.v1`, `fj.theoremN.v1`, `fj.rise.fixedF.v1`,
+  `fj.rise.movingF.v1`. Lists that used F3 or F4 by number now name
+  `fg.uniqueJust.v1` or `fg.finalLock.v1`: `fg.trunk.v1`,
+  `fg.base.finalized.v1`, `fg.base.nj.v1`, `fg.baseSel.nj.v1`,
+  `fj.inBandLock.v1` (note), `fj.reset.v1`.
+- New ids: `fg.frame.v2`, `fg.frameCompat.v1`, `ap.fastSupport.v1`,
+  `fg.provenance.v2`, `fg.causalCap.core.v1`, `fg.uniqueJust.v1`,
+  `fg.finalLock.v1`, `fg.oneBullet.core.v1`, `fj.crossingNoFinal.v1`,
+  `fj.twoChanges.core.v1`, `comp.provenance.v1`, `comp.settle.v1`,
+  `comp.cut.v1`.
+- SUPERSEDED: `fg.frame.v1`, `fg.provenance.v1`, `fg.causalCap.v1`,
+  `fg.oneBullet.v1`, `fj.twoChanges.v1`.
