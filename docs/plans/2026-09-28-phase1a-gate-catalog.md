@@ -147,6 +147,7 @@ This task changes only the two scripts and the lock FORMAT. No Lean declaration 
 
 ```lean
 module
+public import Mathlib.Data.Fintype.Defs
 public import AvailableChainModel.Objects.Time
 
 @[expose] public section
@@ -251,9 +252,9 @@ def inhabited (c : ClaimSpec K) (I : K.Inst) (k : c.Const) : Prop :=
 end ClaimSpec
 ```
 
-- [ ] **Step 4: Generalize `Cert.lean` and `Pareto.lean`.** Add `variable {K : Carrier}` and write `(c : ClaimSpec K) (I : K.Inst)` in `Cert`, `Refutation`, `RefutationFamily`, `Cert.weaken`, `Cert.not_refuted`, `Refutation.family_of`, and `c : ClaimSpec K` in every Pareto declaration. No other change. In `Profile.lean`, write `claims : List (ClaimSpec Carrier.v1)` and `ProfileCert (p : Profile) (I : Instance)`; Task 2 replaces the file.
+- [ ] **Step 4: Generalize `Cert.lean` and `Pareto.lean`.** Add `variable {K : Carrier}` and write `(c : ClaimSpec K) (I : K.Inst)` in `Cert`, `Refutation`, `RefutationFamily`, `Cert.weaken`, `Cert.not_refuted`, `Refutation.family_of`, and `c : ClaimSpec K` in every Pareto declaration. No other change. In `Profile.lean`, add `public import AvailableChainFramework.Instance` (Claim no longer imports it), and write `claims : List (ClaimSpec Carrier.v1)` and `ProfileCert (p : Profile) (I : Instance)`; Task 2 replaces the file.
 
-- [ ] **Step 5: Rewrite `Catalog/Core.lean` over `Carrier.v1`.** Every claim is `ClaimSpec Carrier.v1`. `sleepy` keeps its signature. In each claim, `regime := fun I _ W x t₀ => sleepy I W x.E x.rho t₀`, and `conclusion` reads `x.E`, `x.rho`. Safety and prefix triggers are `fun _ _ _ _ _ _ => True` (the regime's `H ≤ horizon` carries the time). The inclusion trigger:
+- [ ] **Step 5: Rewrite `Catalog/Core.lean` over `Carrier.v1`.** Every claim is `ClaimSpec Carrier.v1`. `sleepy` keeps its signature. In `safeOf` and `includedConfirmed`, `regime := fun I _ W x t₀ => sleepy I W x.E x.rho t₀`, and `conclusion` reads `x.E`, `x.rho`. `prefixOrder` stays UNCONDITIONAL (Astra A01): `Point := Unit`, `regime := fun _ _ _ _ _ => True`, `conclusion := fun I _ _ x _ => OutputOrder I.P I.iface x.rho`; only its context arguments change (the bundle's `nested` field covers every run). Safety and prefix triggers are `fun _ _ _ _ _ _ => True` (the regime's `H ≤ horizon` carries the time). The inclusion trigger:
 
 ```lean
   trigger := fun I D _ x t₀ H =>
@@ -280,7 +281,7 @@ Proof guide: `obtain ⟨W, x, t₀, _, _, _, s, _, hH, hp, _⟩ := h H; exact �
 - [ ] **Step 6: Update the registry instances.** `Sanity.sanity` and `Counter.counterInst` add `Δ_pos := by norm_num` (or `zero_lt_one`). Every certificate's `inhabited` proof changes to the new shape `∃ W x p, admissible ∧ H ≤ horizon ∧ regime ∧ trigger … H`, with `x := ⟨E, rho⟩`. Every `proof` field takes `W x hΔ p hreg` and uses `x.E`, `x.rho`.
   - `Counter.certIncluded`: the trigger slot must be at least `H`. Use the canonical run `canonical 0 N` with `N := (max H 2).toNat + 1` and the slot `s := N - 1`; then `H ≤ s`, `0 < s`, and `s + 1 ≤ N`. Replace `horizon_ge` by a lemma that gives these three facts. `Time` rule of the Global Constraints applies.
   - `Sanity.refutedIncluded` and `Sanity.not_candidate`: only the context shape changes.
-  - `Tests/Pareto.lean`: `armedToy : ClaimSpec Carrier.v1`, with `trigger := fun _ _ _ _ _ _ => True` (one more argument).
+  - `Tests/Pareto.lean`: `armedToy : ClaimSpec Carrier.v1`, with `regime` and `conclusion` of 5 binders (`fun _ _ _ _ _ => True`), `trigger` of 6 (`fun _ _ _ _ _ _ => True`), and the `transport` intro `intro _ _ _ _ _ _ _ W x hΔ p _`.
   - `Tests/NewFacet.lean`: remove `HasStrong` and `safeStrong`; keep a module docstring "Replaced by the strong carrier test (Task 4)." and an empty section, so the root import stays valid.
 
 - [ ] **Step 7: Update `scripts/Registry.lean`.** `Cert`, `Refutation` and `RefutationFamily` now have the arguments `K c I`. Read the claim from `args[1]!` and the instance from `args[2]!`. Everything else stays.
@@ -358,7 +359,7 @@ theorem not_candidate_of_family {I : Instance} {e : Profile.Entry Carrier.v1 Tim
 
 Proof guide: `intro pc; exact (pc.certs e he).1.not_refuted r`.
 
-- [ ] **Step 3: Rebuild the registry users.** `Counter.candidate : Candidate counterInst` is a `ProfileCert` with `shared := 1`, `valid := zero_le_one`, and `certs`. The membership `he : e ∈ core.entries` is a `Prop` and cannot be eliminated into data, so use the Phase 0 pattern (PHASE0-REPORT §5.2, Task 9): `classical`, then `if h1 : e = ⟨safeConfirmed, fun _ => ()⟩ then (by subst h1; exact ⟨certSafeConfirmed, rfl⟩) else if …`, and in the last branch derive `e = ⟨includedConfirmed, fun D => D⟩` from `he` and the three negations. `candidate` stays `noncomputable`. `Sanity.not_candidate` uses the entry `⟨includedConfirmed, fun D => D⟩` and `by simp [core]`.
+- [ ] **Step 3: Rebuild the registry users.** `Counter.candidate : Candidate counterInst` is a `ProfileCert` with `shared := (1 : Time)` (a bare `1` needs `OfNat core.Shared`, which fails), `valid := zero_le_one`, and `certs`. The membership `he : e ∈ core.entries` is a `Prop` and cannot be eliminated into data, so use the Phase 0 pattern (PHASE0-REPORT §5.2, Task 9): `classical`, then `if h1 : e = ⟨safeConfirmed, fun _ => ()⟩ then (by subst h1; exact ⟨certSafeConfirmed, rfl⟩) else if …`, and in the last branch derive `e = ⟨includedConfirmed, fun D => D⟩` from `he` and the three negations. `simp [core]` and `tauto` do not work on this membership (the element type `Profile.Entry … core.Shared` does not unfold at reducible transparency): first `change e ∈ ([_, _, _, _] : List (Profile.Entry Carrier.v1 Time)) at he`, then `simp only [List.mem_cons, List.not_mem_nil, or_false] at he`; or use `List.mem_cons.1` in term mode (tested in `/private/tmp/p1a-scratch/Core.lean`, `testCandidate`). `candidate` stays `noncomputable`. `Sanity.not_candidate` proves the membership of `⟨includedConfirmed, fun D => D⟩` the same way.
 
 - [ ] **Step 4: Add a Review Focus 3 test** in `CounterIncluded.lean`:
 
@@ -509,9 +510,9 @@ def CarrierMap.strongV1 : CarrierMap Carrier.strong Carrier.v1 where
 - Consumes: Tasks 1–3.
 - Produces: `Gaps.NoInput.clockChain : ProtocolSpec 1`, `clockInst : Instance`, `clockCandidate : Candidate clockInst`.
 
-This task compiles the gap of design §12 (I1). It does not fix it. Plan 2 fixes it (engine v2 gives the proposer a run-chosen input), and then this candidate must fail to elaborate; plan 2 keeps this file as its regression test.
+This task compiles the gap of design §12 (I1). It does not fix it. Plan 2 fixes it with a run-chosen proposer input AND a floor claim that binds the proposal to that input; a run input alone is not enough, because a protocol can ignore it (Astra A05). Plan 2's regression test is a refutation of this protocol (lifted to v2) against that claim. This v1 certificate stays valid as a record of the gap.
 
-- [ ] **Step 1: Write the protocol.** It reads no delivered object. Its state is the time of its last tick. Its outputs are the chain of all slots up to that time. Its proposal for slot `s` is the block of slot `s`, which every node can compute.
+- [ ] **Step 1: Write the protocol.** It reads no delivered object. Its state is the largest tick time so far (`max`), so the Counter sublist argument (`readAt_mono`) gives monotone reads in every run (opus P1a-16). Its outputs are the chain of all slots up to that time. Its proposal for slot `s` is the block of slot `s`, which every node can compute.
 
 ```lean
 /-- The block of slot `k` on the clock chain. -/
@@ -526,7 +527,7 @@ def clockChain : ProtocolSpec 1 where
   Label := Empty
   Payload := Nat
   init := 0
-  clock := fun _ t => t
+  clock := fun st t => max st t
   actTime := fun ℓ => ℓ.elim
   duties := fun _ => []
   duties_spec := fun ℓ _ => ℓ.elim
@@ -558,7 +559,7 @@ Proof guide for `slotsAt_spec` and `slotsAt_nodup`: copy Counter's proofs (`Coun
 - [ ] **Step 2: Hooks and instance.** `clockHooks : HooksSound clockChain` (every field is immediate: `process` is the identity, `excludes` is always true, `processed` is always false, `depsPresent` is always true). `clockInst` with `n := 1`, `Δ := 1`, `Δ_pos := zero_lt_one`.
 
 - [ ] **Step 3: The four certificates and the candidate.** At `D = 0`.
-  - Safety of both outputs: in a run, the state of a node after its events up to `t` is the time of its last tick at or before `t` (or `0`). Every read is `clockBlock m` for some `m`; `clockBlock a ⪯ clockBlock b` when `a ≤ b`, so reads agree; the last-tick time is monotone in `t`.
+  - Safety of both outputs: in a run, the state of a node after its events up to `t` is the largest of `0` and its tick times at or before `t`. Every read is `clockBlock m` for some `m`; `clockBlock a ⪯ clockBlock b` when `a ≤ b`, so reads agree; the state is monotone along any sublist of events (as Counter's `readAt_mono`), so reads only extend.
   - Prefix: the two outputs are equal.
   - Inclusion at `D = 0`: for a slot `s` with `0 < s`, an honest awake proposer ticks at `s` (`tick_total`; `s` is public with `Δ = 1`), emits `⟨.proposer s, s⟩`, and `block s = clockBlock s`. Every honest node ticks at `s`, so its read at `s` is `clockBlock s`.
   - Inhabitation: a one-validator run with a tick at every integer time `0 … N` and no delivery, as `AvailableChainWitnesses/Sanity.lean` (`exampleRun`, `exampleExecution`, `exampleSynchrony`, `exampleRootInjective`, `exampleSleepy`). `PartialSynchrony` holds because `excludes` is always true and nothing is accepted. `RootInjective`: the roots of `clockBlock k` are `⟨k⟩`. For the late inclusion trigger, take the slot `max H 1` (as a natural number) and a horizon of at least that slot.
@@ -685,7 +686,8 @@ Claims (ids, constants, validity, order, point, regime, conclusion, trigger). `C
 │ std.persist.       │ 0 ≤ lag, 0 ≤ budget, budget  │ OutageRegime with C(η, θ, lag as   │
 │ outage.v1          │ ≤ η; le: η ≤ η', θ ≤ θ',     │ armingLag, budget);                │
 │                    │ lag ≤ lag', budget' ≤ budget │ PersistsThrough … stable T b₀ b₁;  │
-│                    │                              │ trigger: H ≤ T ∧ some honest read  │
+│                    │                              │ trigger: H ≤ T ∧ b₀ < b₁ ∧ some    │
+│                    │                              │ honest read                        │
 │                    │                              │ of stable at T is not genesis      │
 │ persistOutageFast  │ OutageConst (lag is A_f);    │ as persistOutage, with             │
 │ std.persist.       │ the same valid and le        │ FastOutageRegime and C(η, θ, lag   │
@@ -700,13 +702,17 @@ Claims (ids, constants, validity, order, point, regime, conclusion, trigger). `C
 └────────────────────┴──────────────────────────────┴────────────────────────────────────┘
 ```
 
-Write each claim as a `def … : ClaimSpec Carrier.v1 where` with all fields, as `includedConfirmed` in `Core.lean`. The `le` field is `decide (…)` of the conjunction in the table. The `le_trans` proof: `of_decide_eq_true` on both, then `decide_eq_true` of the combined facts (`le_trans`, `Eq.trans`, and for `full`: `fun h => hbc (hab h)` on `Bool` implications written as `(k.full = true → k'.full = true)`). `refutable := .family` for the three inclusion-carrying claims (`includedStable`, `includedStableFast`, `recovered`) and `.run` for the two persistence claims.
+Write each claim as a `def … : ClaimSpec Carrier.v1 where` with all fields, as `includedConfirmed` in `Core.lean`. The `le` field is `decide (…)` of the conjunction in the table. The `le_trans` proof: `of_decide_eq_true` on both, then `decide_eq_true` of the combined facts (`le_trans`, `Eq.trans`, and for `full`: `fun h => hbc (hab h)` on `Bool` implications written as `(k.full = true → k'.full = true)`). `refutable := .family` for the three inclusion-carrying claims (`includedStable`, `includedStableFast`, `recovered`) and `.run` for the two persistence claims. The `le_trans` proofs and the `transport` proofs are named theorems (`<claim>_le_trans`, `<claim>_transport`) that the definition refers to (Global Constraints, lock stability).
+
+The persistence triggers need `b₀ < b₁` (Review Focus 6; opus P1a-02). At `budget = 0` the regime forces `b₁ = b₀`, the window `[b₀, b₀)` is empty, and `holds` is true for every instance; without `b₀ < b₁` in the trigger, a healthy run would inhabit that vacuous claim. `valid` keeps `0 ≤ budget` (the bundle allows it, so `ac43_iff` stays true); only inhabitation changes.
 
 `recovered`'s `RecoveredAt` reads `C.D_c` and `C.D_s` only, so write its conclusion with `{ zeroConstants with D_c := k.D_c, D_s := k.D_s }`, and its regime with `{ zeroConstants with θrec := k.θrec, recoveryFull := k.full, proposerGap := k.G, recoveryBound := k.ρ }`.
 
 - [ ] **Step 3: Prove the `transport` fields and the Mono lemmas.** For each claim: from `holds` at `k` and a run in the regime at `k'`, show that the run is in the regime at `k` (Mono lemmas: `etaSleepy_mono`; `T + lag ≤ b₀` from `T + lag' ≤ b₀` and `lag ≤ lag'`; `b₁ − b₀ ≤ budget` from `≤ budget'` and `budget' ≤ budget`; `recurrence_mono`; `θrec` as `etaSleepy_mono`; `full`: the premise `k.full = true → …` follows from `k'.full = true → …`; `GST + ρ ≤ horizon` from `GST + ρ' ≤ horizon`), then map the conclusion (equal delays; `RecoveredAt` at `GST + ρ` gives it at `GST + ρ'` by `safeFrom_mono` and `includedFrom_mono`). The `θ` lower bound `0 ≤ θ` comes from `valid k`.
 
-- [ ] **Step 4: Tests.** In `Standard.lean`, `example`s that the `le` of each claim has the design's direction, for example `example : persistOutage.le ⟨0, 1/2, 1, 5⟩ ⟨0, 1/2, 2, 4⟩ = true := by decide` (lag ↑ and budget ↓ are weaker) and its reverse is `false`. If `decide` does not reduce on `ℚ`, use `by simp [persistOutage]; norm_num`.
+- [ ] **Step 4: Tests.** In `Standard.lean`, `example`s that the `le` of each claim has the design's direction, for example `example : persistOutage.le ⟨0, 1/2, 1, 5⟩ ⟨0, 1/2, 2, 4⟩ = true := by simp [persistOutage]` (lag ↑ and budget ↓ are weaker) and its reverse is `false`. `decide` does not reduce on `ℚ` (tested); use `simp [<claim>]`, with `norm_num` if needed.
+  - `<claim>_trigger_late` for `includedStable`, `includedStableFast`, `persistOutage`, `persistOutageFast` and `recovered` (Global Constraints, late triggers).
+  - Review Focus 6: `theorem persistOutage_no_witness_at_zero_budget (I : Instance) (k : OutageConst) (hk : k.budget = 0) : ¬ persistOutage.inhabited I k` (the regime gives `b₁ − b₀ ≤ 0`, the trigger gives `b₀ < b₁`).
 
 - [ ] **Step 5: CHECKPOINT.** Build green. `CatalogLock --check` exits 0 with `ADDED` lines only. Run `--write` to record the additions. Registry unchanged. Commit `Framework: standard tier claims`, with `docs/catalog.lock`.
 
@@ -714,7 +720,7 @@ Write each claim as a `def … : ClaimSpec Carrier.v1 where` with all fields, as
 
 **Files:**
 - Create: `AvailableChainFramework/Catalog/Strong.lean`
-- Modify: `AvailableChainFramework.lean`
+- Modify: `AvailableChainFramework.lean`, `AvailableChainRegistry/Tests/NewFacet.lean` (Step 3)
 
 **Interfaces:**
 - Consumes: Tasks 4, 7.
@@ -752,6 +758,8 @@ These restate the fields of `StrongClaims` (`Strong/Claims.lean`). The fault cap
 │                         │                             │ GST + ρ                        │
 └─────────────────────────┴─────────────────────────────┴────────────────────────────────┘
 ```
+
+`strongRecoveredSafe` and `strongRecoveredIncluded` have `refutable := .run`, not `.family` (opus P1a-08): with `valid := True`, a constant with `θrec ≥ 1` is valid and makes the Recovery regime empty, so `holds` is vacuous there and no refutation family can exist; say this in their docstrings. The other strong claims: `strongSafe`, `strongPersist` `.run`; `strongIncluded` `.family`. Each claim with a trigger other than `True` gets `<claim>_trigger_late`, and its `le_trans` and `transport` proofs are named theorems. `strongPersist`'s window `[b₀, horizon]` is nonempty by `b₀ ≤ horizon` in the regime, so it needs no extra trigger condition.
 
 `StrongClaims` has no `C.Valid` field (only `SC.Valid`), so the recovery constants of the strong claims have NO validity condition (`valid := True`, and `0 ≤ D` for the inclusion claim). Otherwise `strong1_iff` (Task 9) fails for a `C` that is not valid. The `transport` proofs do not need a sign of `θrec`: only the factor changes, and the card term is `≥ 0`. Record this in the file docstring.
 
@@ -794,7 +802,7 @@ theorem ac43_valid_cross (C : Constants) (h : ac43.valid C) :
     C.fastArmingLag ≤ C.armingLag := h.fastArmingLag_le
 ```
 
-Proof guides: `ac43_iff` `→`: `C.Valid` needs one environment: use `Validators` `Fin 1` and the environment `⟨I.Δ, I.Δ_pos, 0, le_rfl, fun _ _ => true⟩` (this is why `Δ_pos` exists; Review Focus 5); each entry's `valid` follows from `C.Valid`; each `holds` is the bundle field, with the regimes equal by `Iff.rfl` (a regime reads only the fields that the claim's `C(k)` sets; if `Iff.rfl` fails, unfold the regime structure and use `⟨fun h => { h with }, fun h => { h with }⟩`). The bundle's `monotone` field comes from `SafeFrom.monotone` of the two safety claims. `←`: build `AvailableChain` field by field from the entries. Membership in the literal entry list: `by simp [ac43]`. `strong1_iff`: the same, with `SC.Valid` from the profile's `valid`.
+Proof guides: `ac43_iff` `→`: `C.Valid` needs one environment: use `Validators` `Fin 1` and the environment `⟨I.Δ, I.Δ_pos, 0, le_rfl, fun _ _ => true⟩` (this is why `Δ_pos` exists; Review Focus 5); each entry's `valid` follows from `C.Valid`; each `holds` is the bundle field. The regimes are NOT equal by `Iff.rfl`: a regime structure keeps its whole `Constants` argument, which is not defeq to `{ zeroConstants with … }` (tested by both audits). Write one adapter lemma per regime, `⟨fun h => { h with }, fun h => { h with }⟩`, in `Catalog/Mono.lean` (tested for StableSleepy, Outage, Recovery and RecoveredAt); `FastOutageRegime` also rebuilds its parent: `{ toOutageRegime := { h.toOutageRegime with }, highParticipation := h.highParticipation }` in both directions. `EtaSleepy` (a `def`) agrees by `Iff.rfl`. The bundle's `monotone` field comes from `SafeFrom.monotone` of the two safety claims. `←`: build `AvailableChain` field by field from the entries. Membership in the literal entry list: as in Task 2 Step 3 (`change … at he` to the literal list type, then `simp only [List.mem_cons, …]`), not `simp [ac43]`. `strong1_iff`: the same, with `SC.Valid` from the profile's `valid`.
 
 - [ ] **Step 3: CHECKPOINT.** Build green. Lock `--check` exits 0 with `ADDED` only; `--write`. Commit `Framework: profiles ac-4.3 and strong-1 with equivalences`.
 
