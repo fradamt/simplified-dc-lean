@@ -434,6 +434,8 @@ theorem createRow_eq (E : Electorate V) (cfg : FGConfig) (Λ : Record) (i : V)
           (clientRow Λ i (src.map fun C => ((derive E cfg C).h, (derive E cfg C).T_h.root)) hd)) :=
   rfl
 
+-- port: DC/DecoupledConsensusProofs/Protocol/ValidatorClient/FinalityPairCore.lean:231-274
+-- (lockCompatible_create_attestation)
 /-- [helper] `createRow` keeps the invariant (port: DC
 `lockCompatible_create_attestation`, FinalityPairCore.lean:231). -/
 theorem recordInv_createRow (E : Electorate V) (cfg : FGConfig) {Λ : Record} (hΛ : RecordInv Λ)

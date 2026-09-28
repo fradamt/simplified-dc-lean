@@ -219,6 +219,14 @@ example : finality_pair (Record.initial.with_target 1 ⟨7⟩) clientHdB1 = none
 /-- Rejection (Astra G01): a lock for another root blocks the pair. -/
 example : finality_pair (Record.initial.with_lock 1 ⟨7⟩) clientHdB1 = none := by decide
 
+/-- The guards still admit the pair: a recorded target equal to `J` does not
+block it. -/
+example : finality_pair (Record.initial.with_target 1 genesisRoot) clientHdB1 =
+    some ⟨1, genesisRoot⟩ := by decide
+/-- The guards still admit the pair: a lock on `J` does not block it. -/
+example : finality_pair (Record.initial.with_lock 1 genesisRoot) clientHdB1 =
+    some ⟨1, genesisRoot⟩ := by decide
+
 /-- The same-row lock (Astra H05): the row's own finality pair locks height 1
 on genesis, so a source entry `⟨7⟩` at height 1 gives the empty pair. -/
 example : height_pair Record.initial (some (1, ⟨7⟩)) (some ⟨1, genesisRoot⟩) = .empty := by
@@ -233,6 +241,14 @@ height pair. -/
 example :
     (createRow E4 cfg1 Record.initial 0 (some B1) ⟨2, ⟨5⟩, 0⟩).1 =
       ⟨0, .empty, some ⟨2, ⟨5⟩⟩⟩ := by decide
+
+/-- A lock kept across calls: the first row locks height 2 on `⟨5⟩`; with the
+returned record, the source `B1` (height 2, entry root `⟨1⟩`) gives the empty
+pair through the stored lock. -/
+example :
+    (createRow E4 cfg1 Record.initial 0 none ⟨2, ⟨5⟩, 0⟩).1.finality_pair = some ⟨2, ⟨5⟩⟩ ∧
+      (createRow E4 cfg1 (createRow E4 cfg1 Record.initial 0 none ⟨2, ⟨5⟩, 0⟩).2 0
+        (some B1) clientHdNone).1 = ⟨0, .empty, none⟩ := by decide
 
 end AvailableChain.SimplexFG
 end
