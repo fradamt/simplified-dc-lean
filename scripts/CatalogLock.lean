@@ -14,14 +14,23 @@ reaches (the closure), not on the traversal order or on the other roots. Thus
 a new declaration does not change the line of an old declaration that does
 not reach it.
 
+The lock is a tripwire, not a commitment. `Expr` hashes have 32 bits per node
+and ignore binder names, binder info and metadata, so two different
+declarations can have one hash. A kernel check, not the lock, makes a proof
+valid.
+
 A declaration is locked if its module is locked and Lean did not generate it,
-or if its type is a claim, a profile, a profile entry or a claim domain and
-its module is in `AvailableChainFramework`. "Generated" comes from
+or if its type (after `whnfR`, so that an `abbrev` alias counts) is a claim, a
+profile, a profile entry or a claim domain and its module is in
+`AvailableChainFramework`. "Generated" comes from
 environment metadata, never from a name suffix. A generated declaration has no
 line, but its hash enters every closure that reaches it.
 
 Separately from the hash, the script checks the axioms of every locked
 declaration, proofs included, and that no two claims have the same `id`.
+A pulled claim (`ClaimSpec.pull …`) keeps the id of its base claim and is
+exempt. Thus two pulls of one base claim along one map are not found by this
+check (by design).
 
 Run: `lake env lean --run scripts/CatalogLock.lean
   (--check | --write [--allow-changes]) [--lock <path>]`.
@@ -34,7 +43,8 @@ not locked now, `CHANGED <name> <old> -> <new>` for a different hash, and
 Exit codes: 0 same, or additions only; 1 a `REMOVED` or `CHANGED` name (and
 `--write` without `--allow-changes` wrote nothing); 2 a usage error, a
 malformed lock line, a missing declaration in a closure, a bad axiom, two
-claims with one id, or no declaration ranges. -/
+claims with one id, a claim id that cannot be read, or no declaration
+ranges. -/
 
 /-- The library that the lock scans. -/
 def frameworkLibrary : Name := `AvailableChainFramework
@@ -73,11 +83,13 @@ def moduleOf? (env : Environment) (n : Name) : Option Name :=
 def lockedModule (m : Name) : Bool :=
   lockedModules.contains m || lockedModulePrefixes.any (·.isPrefixOf m)
 
+/-- The head constant of the type of `ci`, after `whnfR`. -/
+def typeHead? (ci : ConstantInfo) : MetaM (Option Name) :=
+  return (← Meta.whnfR ci.type).getAppFn.constName?
+
 /-- The type of `ci` is `C …` for a `C` in `claimTypes`. -/
-def claimLike (ci : ConstantInfo) : Bool :=
-  match ci.type.getAppFn.constName? with
-  | some h => claimTypes.contains h
-  | none => false
+def claimLike (ci : ConstantInfo) : MetaM Bool :=
+  return (← typeHead? ci).any claimTypes.contains
 
 /-- Lean generated `n`: an internal name, an auxiliary recursor, a
 `noConfusion`, a matcher, a recursor, an equation lemma, or no declaration
@@ -91,14 +103,20 @@ def generated (n : Name) : CoreM Bool := do
   if (← Meta.isEqnThm? n).isSome then return true
   return (← findDeclarationRangesCore? n).isNone
 
-def locked (n : Name) (ci : ConstantInfo) : CoreM Bool := do
+def locked (n : Name) (ci : ConstantInfo) : MetaM Bool := do
   let some m := moduleOf? (← getEnv) n | return false
   unless frameworkLibrary.isPrefixOf m do return false
-  if claimLike ci then return true
+  if ← claimLike ci then return true
   return lockedModule m && !(← generated n)
 
+/-- A tag for each kind of constant, so that (for example) a definition and an
+opaque with the same type and value have different hashes. -/
+def kindTag : ConstantInfo → UInt64
+  | .axiomInfo _ => 1 | .defnInfo _ => 2 | .thmInfo _ => 3 | .opaqueInfo _ => 4
+  | .quotInfo _ => 5 | .inductInfo _ => 6 | .ctorInfo _ => 7 | .recInfo _ => 8
+
 def ownHash (ci : ConstantInfo) : UInt64 :=
-  let base := mixHash (hash ci.name) (hash ci.type)
+  let base := mixHash (mixHash (kindTag ci) (hash ci.name)) (hash ci.type)
   match ci with
   | .defnInfo d => mixHash base (hash d.value)
   | .opaqueInfo d => mixHash base (hash d.value)
@@ -106,12 +124,11 @@ def ownHash (ci : ConstantInfo) : UInt64 :=
   | _ => base  -- theorems: the statement only; a new proof keeps the hash
 
 /-- The declarations that `ci` uses. A theorem uses only the constants of its
-statement, so that a new proof keeps the hash. An inductive also uses its
-constructors, so that a changed field type reaches its closure. -/
+statement, so that a new proof keeps the hash. For an inductive,
+`getUsedConstantsAsSet` also gives its constructors. -/
 def deps (ci : ConstantInfo) : Array Name :=
   match ci with
   | .thmInfo _ => ci.type.getUsedConstants
-  | .inductInfo d => ci.getUsedConstantsAsSet.toArray ++ d.ctors.toArray
   | _ => ci.getUsedConstantsAsSet.toArray
 
 /-- The cached own hash and dependencies of a declaration. -/
@@ -172,7 +189,7 @@ def claimId? (n : Name) (ci : ConstantInfo) : MetaM (Option Name) := do
   let r ← instantiateMVars (← Meta.reduce e)
   match nameOfExpr? r with
   | some id => return some id
-  | none => throwError "cannot read the id of the claim {n}: {r}"
+  | none => throwError "the id does not reduce to a literal name: {r}"
 
 /-- The locked names (sorted), and the problems that force exit 2. -/
 def scan : MetaM (Array Name × Array String) := do
@@ -191,14 +208,19 @@ def scan : MetaM (Array Name × Array String) := do
     unless bad.isEmpty do
       problems := problems.push s!"BAD AXIOMS {n}: {bad.toList}"
     let some ci := env.find? n | continue
-    if ci.type.getAppFn.constName? == some claimSpecName then
-      match ← claimId? n ci with
-      | some id =>
+    if (← typeHead? ci) == some claimSpecName then
+      -- An error here (for example an id that does not reduce) is a problem
+      -- with exit 2, not an uncaught exception with exit 1.
+      let r : Except String (Option Name) ← try Except.ok <$> claimId? n ci
+        catch e => pure (Except.error s!"UNREADABLE ID {n}: {← e.toMessageData.toString}")
+      match r with
+      | .error msg => problems := problems.push msg
+      | .ok (some id) =>
           if let some other := ids[id]? then
             problems := problems.push s!"DUPLICATE ID {id}: {other} and {n}"
           else
             ids := ids.insert id n
-      | none => pure ()
+      | .ok none => pure ()
   return (names, problems)
 
 /-- The lines `(name, hash)` of a lock file. Blank lines are ignored. -/

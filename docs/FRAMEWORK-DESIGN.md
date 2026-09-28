@@ -533,8 +533,9 @@ Phases 0–2 land before the FG-SA Lean instance starts.
 - 2026-09-28, format change (plan 1a Task 0): order-independent hashes,
   generated names by metadata, claims always locked, a separate axiom
   check. No declaration changed; every line hash changes because the hash
-  function changed; lines of generated names are gone. An inductive's
-  closure now also has its constructors. The old lock is git blob
+  function changed; lines of generated names are gone. The own hash of a
+  declaration includes a tag for its kind (definition, opaque, theorem,
+  axiom, inductive, constructor, recursor, quotient). The old lock is git blob
   `0cd36b38defadd055c6ecde9422eb9e3ad78d734` (188 lines); the new lock has
   87 lines, all with a new hash. Removed generated names (101): for
   `Cert`, `ClaimSpec`, `HooksSound`, `Instance`, `Outcome`, `Profile`,
