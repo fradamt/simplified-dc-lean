@@ -437,7 +437,14 @@ live control caches; R1 reads the duty view. Two correspondence theorems
 (versioned, in `Kit.FG`) relate the frame to the R1 variant of DC's
 viable tree and to its filtered tree, separately (the root covers the
 prefix up to Z_d). `anchors` (the entries at H_d − 1 in D_d) are a derived
-view of the frame; the AP may pick among them with its `AnchorChoice`.
+view of the frame; the AP may pick among them with its `AnchorChoice`. The
+FG module exports the frame only (Z, lo, D, viability). Head selection
+(the walk, its score, and eligibility tests such as a majority or the
+current slot) is AP data (user decision 2026-09-28). The FG constrains it
+through one generic AP obligation (`ap.walkBelowLo`): the head is in D,
+and in a contest the AP's own filters do not block extending a block whose
+parent is below lo. SA's "eligible without a majority below lo" is SA's
+discharge of that obligation.
 
 **7.3 AP template and policy type (LM; audit V10).**
 - `Policy`: the type of honest FG signing rules. A policy reads the FG
