@@ -530,6 +530,20 @@ Phases 0–2 land before the FG-SA Lean instance starts.
   changed. All certificates still hold (`docs/REGISTRY.md`: 8 rows, all
   LEAN). The lock was rewritten in place, with no new ids. This entry
   records the change.
+- 2026-09-28, format change (plan 1a Task 0): order-independent hashes,
+  generated names by metadata, claims always locked, a separate axiom
+  check. No declaration changed; every line hash changes because the hash
+  function changed; lines of generated names are gone. An inductive's
+  closure now also has its constructors. The old lock is git blob
+  `0cd36b38defadd055c6ecde9422eb9e3ad78d734` (188 lines); the new lock has
+  87 lines, all with a new hash. Removed generated names (101): for
+  `Cert`, `ClaimSpec`, `HooksSound`, `Instance`, `Outcome`, `Profile`,
+  `Refutation`, `RefutationFamily`, `RefutationKind` and `Validators`, the
+  `rec`, `recOn`, `casesOn`, `ctorIdx`, `noConfusion`, `noConfusionType`,
+  `mk.inj`, `mk.injEq`, `mk.noConfusion`, `mk.sizeOf_spec`, `ctorElim`,
+  `ctorElimType`, `ofNat`, `ofNat_ctorIdx`, `toCtorIdx`, `<ctor>.elim` and
+  `<ctor>.sizeOf_spec` that Lean made for each, and
+  `ClaimSpec.stronger.eq_1`.
 
 ## 9. Changes to standing rules (approved by the user 2026-09-28)
 
