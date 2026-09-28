@@ -9,4 +9,6 @@ public import AvailableChainFGSA.Proofs.Carrier
 public import AvailableChainFGSA.Statements.Invariants
 public import AvailableChainFGSA.Proofs.Fields
 public import AvailableChainFGSA.Proofs.ActView
+public import AvailableChainFGSA.Statements.Store
+public import AvailableChainFGSA.Proofs.Nesting
 public import AvailableChainFGSA.Tests.Smoke

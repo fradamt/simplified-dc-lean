@@ -1908,7 +1908,7 @@ theorem clock_eq_saClock_gate (p : Params) (st : State p.n) (t : Time) (s : Slot
 
 **Blueprint:** `comp.outputNesting.v1` and `comp.outputNesting.v2` (bp00 §3.1; bp01 §7; DQ7). The proof needs NO other invariant: the gate and every F advance end with `normalizeS`, and every other step writes neither F nor S. The run lift is T7.
 
-- [ ] **Step 1: Write the statement** in `Statements/Store.lean` (imports `AvailableChainFGSA.Statements.Invariants`):
+- [x] **Step 1: Write the statement** in `Statements/Store.lean` (imports `AvailableChainFGSA.Statements.Invariants`):
 
 ```lean
 /-- [bp comp.outputNesting.v2; K2] At every reachable state, `F ⪯ S`, and both
@@ -1918,7 +1918,7 @@ def OutputNestingStored (p : Params) : Prop :=
   ∀ st, Reachable p st → NestOK st ∧ confirmed st = st.base.stableRecord ∧ stable st = confirmed st
 ```
 
-- [ ] **Step 2: Write the lemma statements** in `Proofs/Nesting.lean`:
+- [x] **Step 2: Write the lemma statements** in `Proofs/Nesting.lean`:
 
 ```lean
 /-- [bp comp.outputNesting.v1] The accessor form: `F ⪯ (if F ⪯ S then S else F)`. -/
@@ -1934,8 +1934,9 @@ theorem clock_nest (p : Params) (st : State p.n) (t : Time) (h : NestOK st) :
 theorem outputNesting_stored (p : Params) : OutputNestingStored p
 ```
 
-- [ ] **Step 3: Prove them.** `process_nest`: a head vote or a row changes neither `fg` nor `stableRecord` (Task 7); a refused block changes nothing; an accepted block: `admitProposal` keeps `stableRecord` (`GridCO.process_stable`-style lemma, with `@… GridCO.slowLeasePolicy` if it is lease-dependent), then either F is unchanged (keep `h`) or `reconcile_nest`; the row fold keeps both. `clock_nest`: expiry, freeze, early and release keep `stableRecord` and `fg`; the gate ends with `normalizeS`. `outputNesting_stored`: induction on `Reachable`; `initial` has `F = S = genesis`.
+- [x] **Step 3: Prove them.** `process_nest`: a head vote or a row changes neither `fg` nor `stableRecord` (Task 7); a refused block changes nothing; an accepted block: `admitProposal` keeps `stableRecord` (`GridCO.process_stable`-style lemma, with `@… GridCO.slowLeasePolicy` if it is lease-dependent), then either F is unchanged (keep `h`) or `reconcile_nest`; the row fold keeps both. `clock_nest`: expiry, freeze, early and release keep `stableRecord` and `fg`; the gate ends with `normalizeS`. `outputNesting_stored`: induction on `Reachable`; `initial` has `F = S = genesis`.
 - [ ] **Step 4: Review gate G8 and CHECKPOINT.** Commit `FGSA store: output nesting (K2)`.
+  Execution notes (2026-09-29): the checkpoint is the commit that adds this note; G8 is pending. `Statements/Store.lean` and the seven statements in `Proofs/Nesting.lean` are the code above verbatim. `OutputNestingStored` holds with NO other invariant, as planned. Extra helpers: `admitRow_nest` and `foldl_admitRow_nest` (the row fold), `admitProposal_stable` (the SA block admission and its carried votes keep S; the GridCO proof of `process_stable` uses the private `fold_stable`, so this file proves the fold locally; `admitVote_stable` is applied with `@… GridCO.slowLeasePolicy`, N3), and `clockPre_stable` (the pre-gate tick keeps S). Validation: `lake build --wfail AvailableChainFGSA` and `bash scripts/check-fgsa.sh` pass (557 constants, 234 theorems; standard axioms only).
 
 ---
 
