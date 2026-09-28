@@ -25,6 +25,10 @@ consistent with FRAMEWORK-DESIGN.md §7._
   composite may cite the entry); SUPERSEDED (the entry stays as a pointer;
   its pinned text does not change; a composite cites the named successor
   ids, whose conjunction states the same fact).
+- Lean coverage kind (rule added 2026-09-28): BY HYPOTHESIS = a Lean
+  theorem proves the clause with a named premise that the Lean module does
+  not discharge; the entry names the discharging ids. It is a coverage
+  note, not a status value.
 - Two edits of a hypotheses list keep the id, with a dated note: (a) the
   replacement of a SUPERSEDED id by its successor ids; (b) a new reference
   by id to a fact that the pinned text already uses (for example "F4" or
@@ -5028,6 +5032,13 @@ M0. r151 calls this cap μ and calls M0 simply M.
 
 - Status: 2026-09-28 — PROVED (a≤f; r148 F12 without its settling
   sentences; r144o N16).
+- Status: 2026-09-28 (FG module, `lean/available-chain` main `64651ad`) —
+  Lean coverage of item 3 (ii) is BY HYPOTHESIS: `Fmove_atTop`
+  (`AvailableChainKitFG/TwoChanges.lean:653`) takes `hext`, the pure form
+  of `fg.finalLock.v1`, as a premise. The premise is discharged by
+  `fg.finalLock.v1` at `a ≤ f` with `StoreInv.Fcar`, or by
+  `fj.crossingNoFinal.v1` (`crossingNoFinal_QC`). The paper status stays
+  PROVED.
 - Formal reading (2026-09-28) of "finalizations add no change" (item 3)
   for an F move F → F′ at one fixed view V at frontier m ≥ 2 (at m = 1 no
   change can act):
@@ -7099,3 +7110,6 @@ SUPERSEDED entry is the conjunction of its successors.
   generalizations of the registry forms (any controls, any block set);
   the two earlier §8 lines that give the plan names have a pointer.
   Both names and `causalCap_notRoot` were checked in the Lean source.
+- Lean coverage kind BY HYPOTHESIS (2026-09-28; requested by ethereum-f1,
+  approved by team-lead): a §0 rule defines it, and `fj.twoChanges.core.v1`
+  has a dated line for item 3 (ii) (`Fmove_atTop` with the premise `hext`).
