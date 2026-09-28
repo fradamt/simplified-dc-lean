@@ -53,7 +53,10 @@ consistent with FRAMEWORK-DESIGN.md §7._
 line numbers. `r144o` is the Opus variant of r144. `r151` is `fj-theorem-h.md`.
 `r152` is `fj-first-finality.md`, `r153` is `fj-reach.md`, and `r153a` is
 the Opus adjudication of r153, `fj-reach-adjudicate.md` (verdict VALID WITH
-CORRECTIONS; registered 2026-09-28).
+CORRECTIONS; registered 2026-09-28). `r153b` is a later version of the same
+file, with §§A–C; §C.4 retracts the NJ claim of r153a. Line numbers cited
+as r153a refer to the r153a version (sha256 `c85c0dcc…`), which is not
+archived; the live file is r153b.
 
 ```text
 ┌───────┬───────────────────────────┬──────────────────────────────────┬──────────────────────────────────┐
@@ -73,6 +76,7 @@ CORRECTIONS; registered 2026-09-28).
 │ r152  │ fj-first-finality.md      │ d659d585ccb1a4f47ee90c6de68515cb │ fd9685f47a2764fc8ff153a0c60edb8e │
 │ r153  │ fj-reach.md               │ 13843848471ae2955351c08a64cdc27a │ 0a9f34ad8d5f1b7af5f4f427de70a7b1 │
 │ r153a │ fj-reach-adjudicate.md    │ c85c0dcc5c325ac0ca5ed5cc9ae5e85d │ 20d3c3aa686d6146f31adacd0d773749 │
+│ r153b │ fj-reach-adjudicate.md    │ 12afc81c0e98a53366f13e2109839741 │ 84d5c1675226ec79e99ae85e83b4a47f │
 └───────┴───────────────────────────┴──────────────────────────────────┴──────────────────────────────────┘
 ```
 
@@ -484,8 +488,7 @@ in the DC-fj module (plan `docs/plans/2026-09-28-fg-module.md`);
 needed by the DC-fj module; `—` = not an entry of the current FG-module
 plan (AP-side, composite, or not scheduled). Status abbreviations
 (2026-09-28, r153): "local PROVED; unif." = the local clause is PROVED and
-the uniform clause is REFUTED; "local PROVED; glob." = the local clause is
-PROVED and the global clause is OPEN (at risk); "impl. PRV" = the
+the uniform clause is REFUTED; "impl. PRV" = the
 implication is PROVED. The entry has the full dated status line.
 
 ```text
@@ -561,14 +564,14 @@ implication is PROVED. The entry has the full dated status line.
 │ comp.settle.v1        │ both │ PROVED (FG-SA)      │ 5 │ —         │
 │ comp.cut.v1           │ both │ PROVED              │ 5 │ —         │
 │ comp.rise.fixedF.v1   │ nj   │ PROVED (FG-SA)      │ 5 │ —         │
-│ comp.rise.movingF.v1  │ nj   │ OPEN (at risk)      │ 5 │ —         │
+│ comp.rise.movingF.v1  │ nj   │ OPEN                │ 5 │ —         │
 │ comp.theoremN.v1      │ nj   │ PROVED (FG-SA)      │ 5 │ —         │
 │ comp.fgHealed.v1      │ nj   │ PROVED (FG-SA)      │ 5 │ —         │
-│ comp.healed.v1        │ nj   │ local PROVED; glob. │ 5 │ —         │
+│ comp.healed.v1        │ nj   │ PROVED (FG-SA)      │ 5 │ —         │
 │ comp.healedLit.v1     │ nj   │ PROVED (FG-SA)      │ 5 │ —         │
-│ comp.arrivalNJ.v1     │ nj   │ OPEN (at risk)      │ 5 │ —         │
-│ comp.handoffBase.v1   │ nj   │ OPEN (at risk)      │ 5 │ —         │
-│ comp.healedUnif.v1    │ nj   │ OPEN (at risk)      │ 5 │ —         │
+│ comp.arrivalNJ.v1     │ nj   │ PROVED (FG-SA)      │ 5 │ —         │
+│ comp.handoffBase.v1   │ nj   │ PROVED (FG-SA)      │ 5 │ —         │
+│ comp.healedUnif.v1    │ nj   │ OPEN (impl. PROVED) │ 5 │ —         │
 │ comp.healedAtQ.v1     │ nj   │ OPEN                │ 5 │ —         │
 │ comp.finality.v1      │ nj   │ SKETCH              │ 5 │ —         │
 │ comp.clean.v1         │ nj   │ PROVED (FG-SA)      │ 5 │ —         │
@@ -3906,6 +3909,11 @@ the run parts of the f1 splits (§8).
   line 25). The proposed M1 argument is SKETCH (r149 line 33).
 - Status: 2026-09-28 (r153a) — OPEN, at risk (r153a lines 44 and
   499–505). The FJ form is REFUTED (`fj.rise.movingF.v1`).
+- Status: 2026-09-28 (r153b) — the at-risk mark is withdrawn: r153b §C
+  refutes the NJ transfer (C5) by an integer check on r153's numbers
+  (r153b lines 45–46, 53–55, 900–963; the NJ consequence is lines
+  956–961). The entry returns to its status before dd2f5e7: OPEN. The FJ form stays REFUTED
+  (`fj.rise.movingF.v1`).
 - Notes: this is the statement of the withdrawn `ap.L.movingF.v1`,
   refiled in `Kit.Compose`. The only missing input is
   `ap.repair.movingF.v1` (r149 lines 443–450); `ap.reach.v1` suffices for
@@ -4095,6 +4103,11 @@ the run parts of the f1 splits (§8).
   `B_NJ,H` arm (5816Δ), which uses `comp.arrivalNJ.v1` (r153a lines 495
   and 499–505). The `B_lit` arm is `comp.healedLit.v1`; r153a does not
   re-adjudicate the NJ literal bound.
+- Status: 2026-09-28 (r153b) — the at-risk mark is withdrawn: r153b §C
+  refutes the NJ transfer (C5) by an integer check on r153's numbers
+  (r153b lines 45–46, 53–55, 900–963; the NJ consequence is lines
+  956–961). The entry returns to its status before dd2f5e7 for the global clause: PROVED (FG-SA). The local clause is
+  unchanged (PROVED).
 - Bounds: local `t_h ≤ q_(s*)+2L+G−Δ`. Global
   `GST + min{B_lit, B_NJ + 2L+G−2Δ}`. Example
   (`Δ=1, R=3, k=2, G=8, g=3, D=2, K=5`): `B_NJ,H = 5816Δ`; `B_lit = 7472Δ`
@@ -4209,11 +4222,16 @@ the run parts of the f1 splits (§8).
 
 - Status: 2026-09-28 — PROVED (FG-SA; r146 claim 3b). Example: 5796Δ. r150
   §6.2 (lines 497–501) uses it as the arrival bound of `a_(r*)`.
-- Status: 2026-09-28 (r153a) — OPEN, at risk (r153a lines 44, 262–268 and 499–505: fgsa-adjudicate §5.1 uses "A
-  finalization below m−1 lies below every band witness"; the same false
-  step is at fgsa-adjudicate lines 322–325 and fgsa-fast line 704). Do not cite `B_NJ`
-  or r150's uniform numbers until this is checked. FV (§8) applies to
-  the NJ variant without change.
+- Status: 2026-09-28 (r153a) — OPEN, at risk (r153a lines 44, 262–268
+  and 499–505: fgsa-adjudicate §5.1 uses "A finalization below m−1 lies
+  below every band witness"; the same false step is at fgsa-adjudicate
+  lines 322–325 and fgsa-fast line 704). Do not cite `B_NJ` or r150's
+  uniform numbers until this is checked. FV (§8) applies to the NJ
+  variant without change.
+- Status: 2026-09-28 (r153b) — the at-risk mark is withdrawn: r153b §C
+  refutes the NJ transfer (C5) by an integer check on r153's numbers
+  (r153b lines 45–46, 53–55, 900–963; the NJ consequence is lines
+  956–961). The entry returns to its status before dd2f5e7: PROVED (FG-SA).
 
 ### `comp.handoffBase.v1` — supplied base handoff `B_base`
 
@@ -4239,6 +4257,10 @@ the run parts of the f1 splits (§8).
   §6.2).
 - Status: 2026-09-28 (r153a) — OPEN, at risk: `B_base = B_NJ+P+ρ` uses
   `comp.arrivalNJ.v1` (r153a lines 495 and 499–505).
+- Status: 2026-09-28 (r153b) — the at-risk mark is withdrawn: r153b §C
+  refutes the NJ transfer (C5) by an integer check on r153's numbers
+  (r153b lines 45–46, 53–55, 900–963; the NJ consequence is lines
+  956–961). The entry returns to its status before dd2f5e7: PROVED (FG-SA).
 
 ### `comp.healedUnif.v1` — uniform bound under effective N1
 
@@ -4288,6 +4310,11 @@ the run parts of the f1 splits (§8).
   `λ = ρ+2σ`: 5000Δ, conditional (r150 lines 528–537).
 - Status: 2026-09-28 (r153a) — OPEN, at risk: the NJ variant can have
   the r153 obstruction (r153a lines 44 and 499–505).
+- Status: 2026-09-28 (r153b) — the at-risk mark is withdrawn: r153b §C
+  refutes the NJ transfer (C5) by an integer check on r153's numbers
+  (r153b lines 45–46, 53–55, 900–963; the NJ consequence is lines
+  956–961). The entry returns to its status before dd2f5e7: OPEN as a bound from the execution premises alone; the implication
+  PROVED.
 
 ### `comp.healedAtQ.v1` — full healing already at `q_(s*)` (H12)
 
@@ -4378,6 +4405,11 @@ the run parts of the f1 splits (§8).
 - Status: 2026-09-28 (r153a) — SKETCH, and its arithmetic `B_first`
   uses `B_base` and `B_NJ` (`comp.handoffBase.v1`, `comp.arrivalNJ.v1`),
   which are OPEN, at risk.
+- Status: 2026-09-28 (r153b) — the at-risk mark is withdrawn: r153b §C
+  refutes the NJ transfer (C5) by an integer check on r153's numbers
+  (r153b lines 45–46, 53–55, 900–963; the NJ consequence is lines
+  956–961). The entry returns to its status before dd2f5e7: SKETCH. The note on the at-risk
+  bounds `B_base` and `B_NJ` is withdrawn.
 
 ### `comp.clean.v1` — AP claims carry over in clean and Outage regimes
 
@@ -4654,3 +4686,22 @@ SUPERSEDED entry is the conjunction of its successors.
   available at every read, by the accessor. `fg.accountable.v1` has a
   note: output nesting is `comp.outputNesting.v1`; "local F never
   retreats" stays in `fg.accountable.v1` (Lean `update_finality_F_mono`).
+- Retraction (2026-09-28, r153b): r153b §C.4 refutes the NJ transfer C5
+  by an integer check on r153's numbers, and withdraws r153a's NJ claim.
+  The at-risk marks of dd2f5e7 on `comp.arrivalNJ.v1`,
+  `comp.handoffBase.v1`, `comp.healedUnif.v1`, `comp.rise.movingF.v1`,
+  the global clause of `comp.healed.v1` and the note on
+  `comp.finality.v1` are withdrawn by new dated lines; each entry returns
+  to its status before dd2f5e7. The FJ REFUTED lines of dd2f5e7 stay.
+- DC comparison (r153b §C, lines 797–1000): DC blocks r153 through the
+  `reflect` field of `NamedProposalPivotSuffixTransfer` (DC Lean
+  `DecoupledConsensusInternal/Definitions/NamedProposalPivot.lean:78`, vc
+  commit `b97b902`, sha256
+  `c40efd31a51227609e800466e00206c6b728662002342de7220d10f9e8029c84`):
+  every eligible candidate child in the voter's frozen tree is also a
+  candidate at the proposer. In FG-SA, r153 needs FJ's contest band
+  (lo = H) together with the late F-basis arm (r153b lines 47, 956–957).
+  FV restores `reflect` (r153b lines 987–993). The uniform FJ bound also
+  needs the common-anchor link 1d (every HEAD's live-root lease lies on the
+  proposer's path to its parent), which is SKETCH (r153b lines 750–751,
+  767–788 and 995–1000).
