@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSA.Model.Objects
+public import AvailableChainFGSA.Model.Store
 
 @[expose] public section
 
@@ -76,6 +76,57 @@ slot and seat; an FG seat becomes `.none`. -/
 example : baseProposal 2 (eraseFG B1) [hv, hf] [hv] =
     ⟨.proposer 2, .proposal (eraseFG B1) [⟨.seat 3 1, eraseFG B1⟩, ⟨.none, eraseFG B1⟩]
       [⟨.seat 3 1, eraseFG B1⟩]⟩ := by decide
+
+/-! Task 3: store, active view, reconcile, outputs. -/
+
+def b1 : Block := eraseFG B1
+def b1' : Block := eraseFG B1'
+/-- F = B1 (the FG store of the FG module's G02 test), with a lease, a saved
+result and a fast write on the conflicting `b1'`, and S = b1'. -/
+def stR0 : State 4 :=
+  { fg := stF, base := { GridCO.initial 4 with
+      blocks := [.genesis, b1, eraseFG B2, eraseFG B3, b1'],
+      genuine := [(1, some b1'), (2, some .genesis)],
+      obligations := [(b1', 2, 100)], stableRecord := b1' },
+    fastWrite := [(1, [b1'])] }
+
+/-- Reconcile deletes the lease, empties the conflicting result but keeps its
+label, keeps the compatible result, filters fastWrite, and sets S := F (spec 874–894). -/
+example : (reconcile stR0).base.obligations = [] ∧
+    (reconcile stR0).base.genuine = [(1, none), (2, some .genesis)] ∧
+    (reconcile stR0).fastWrite = [(1, [])] ∧
+    (reconcile stR0).base.stableRecord = b1 ∧
+    (reconcile stR0).base.blocks = stR0.base.blocks := by decide
+/-- act(Σ) keeps the cumulative list but drops `b1'` (spec 360–361). -/
+example : b1' ∈ stR0.base.blocks ∧ b1' ∉ (actView stR0).blocks ∧
+    b1 ∈ (actView stR0).blocks := by decide
+/-- A compatible S ahead of F stays (spec 565). -/
+example : (normalizeS
+      { stR0 with base := { stR0.base with stableRecord := eraseFG B3 } }).base.stableRecord =
+    eraseFG B3 := by decide
+example : blockExcluded stR0 b1' = true ∧ blockExcluded stR0 .genesis = false := by decide
+
+/-- G3 coverage: the initial store (spec 486–503) and the outputs (spec 558–561). -/
+example : (initial 4).fg = Store.init ∧ (initial 4).base.stableRecord = .genesis ∧
+    (initial 4).fastWrite = [] ∧ (initial 4).rowPool = [] := by decide
+example : finalized stR0 = B1 ∧ confirmed stR0 = b1' ∧ stable stR0 = b1' := by decide
+/-- G3 coverage: the lease and fastWrite reads (spec 293–298). -/
+example : leaseOf stR0 b1' = some 100 ∧ leaseOf stR0 b1 = none ∧
+    fastWriteAt stR0 1 = some [b1'] ∧ fastWriteAt stR0 2 = none := by decide
+/-- G3 coverage: reconcile keeps a compatible lease, also on F and below F, and
+writes no FG, proposal, row-pool or G field (spec 474–484). -/
+example : (reconcile { stR0 with base := { stR0.base with
+      obligations := [(b1', 2, 100), (.genesis, 2, 50), (b1, 2, 60)] } }).base.obligations =
+    [(.genesis, 2, 50), (b1, 2, 60)] := by decide
+example : (reconcile stR0).fg = stR0.fg ∧ (reconcile stR0).proposals = stR0.proposals ∧
+    (reconcile stR0).rowPool = stR0.rowPool ∧
+    (reconcile stR0).base.goldfishRecord = stR0.base.goldfishRecord := by decide
+/-- G3 coverage: `onView` runs the step on `act(Σ)` (its last active block is
+`B3`, not `b1'`) and then restores the cumulative list (M2). -/
+example : (onView (fun v => { v with goldfishRecord := v.blocks.getLastD .genesis })
+      stR0).base.goldfishRecord = eraseFG B3 ∧
+    (onView (fun v => { v with goldfishRecord := v.blocks.getLastD .genesis })
+      stR0).base.blocks = stR0.base.blocks := by decide
 
 end AvailableChain.FGSA.Tests
 end

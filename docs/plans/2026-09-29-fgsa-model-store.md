@@ -504,7 +504,7 @@ Sizes are Lean lines, with tests. Total: about 4.3–5.6k lines (model 1.2–1.4
 - Consumes: `SA.Params`, `SA.gateTime`, `SA.voteTime`, `GridCO.HeadWire`, `GridCO.Wire`, `GridCO.fromHead`, `GridCO.{headLabel?, headSeat?, headTarget?}`, `SimplexFG.{NamedHeightPair, FinalityPair, Row, FGBlock, Electorate, FGConfig}`, `AvailableChain.{Block, Signed, Auth}`.
 - Produces: `Params` (with `E`, `cfg`, `round`, `actionTime`, `slotOf`), `Label` (with `actTime`), `RowBody` (with `ofRow`, `valid`), `HeadWire` (with `decode?`), `RowWire` (with `decode?`, `round?`, `toRow?`, `valid`), `Msg`, `Wire`, `Input`, `Wire.decode`, `Wire.block?`, `eraseFG`, `baseHead`, `baseVote`, `liftHead?`, `baseProposal`.
 
-- [ ] **Step 1: Add the library.** Append to `lakefile.toml`:
+- [x] **Step 1: Add the library.** Append to `lakefile.toml`:
 
 ```toml
 # FG-SA composite model (LM), store statements and store proofs
@@ -513,7 +513,7 @@ Sizes are Lean lines, with tests. Total: about 4.3–5.6k lines (model 1.2–1.4
 name = "AvailableChainFGSA"
 ```
 
-- [ ] **Step 2: Write the failing tests.** Create `AvailableChainFGSA.lean` with `public import AvailableChainFGSA.Model.Objects` and `public import AvailableChainFGSA.Tests.Smoke`. Create `AvailableChainFGSA/Tests/Smoke.lean` (imports `AvailableChainFGSA.Model.Objects`; namespace `AvailableChain.FGSA.Tests`; `open AvailableChain.SimplexFG`) with the fixture and the object tests:
+- [x] **Step 2: Write the failing tests.** Create `AvailableChainFGSA.lean` with `public import AvailableChainFGSA.Model.Objects` and `public import AvailableChainFGSA.Tests.Smoke`. Create `AvailableChainFGSA/Tests/Smoke.lean` (imports `AvailableChainFGSA.Model.Objects`; namespace `AvailableChain.FGSA.Tests`; `open AvailableChain.SimplexFG`) with the fixture and the object tests:
 
 ```lean
 /-- The test parameters: Δ = 1, n = 4, k = 2, R = 2, w_F = 1, δ_t = 1.
@@ -555,7 +555,7 @@ example : Wire.decode (n := 4) ⟨.seat (.fg 1) 2, .row (RowBody.ofRow (rowT 2))
 
 Run: `lake build AvailableChainFGSA.Tests.Smoke`. Expected: FAIL (unknown identifiers).
 
-- [ ] **Step 3: Write `Model/Objects.lean`.** Imports: `AvailableChainSA.Model.Protocol`, `AvailableChainSimplexFG.Store`, `AvailableChainSimplexFG.Client`. Namespace `AvailableChain.FGSA`; `open AvailableChain.Generic AvailableChain.SimplexFG`.
+- [x] **Step 3: Write `Model/Objects.lean`.** Imports: `AvailableChainSA.Model.Protocol`, `AvailableChainSimplexFG.Store`, `AvailableChainSimplexFG.Client`. Namespace `AvailableChain.FGSA`; `open AvailableChain.Generic AvailableChain.SimplexFG`.
 
 ```lean
 /-- [spec 265–335] FG-SA parameters: the SA parameters (`Δ`, `n`, `k`, `η`), the
@@ -705,7 +705,7 @@ def baseProposal {n : Nat} (s : Slot) (b : Block) (raw support : List (HeadWire 
 
   If `structure Params extends SA.Params` does not give `p.Δ`, `p.n` and `p.toParams`, report it and use an explicit field `sa : SA.Params` with the same names in the rest of the plan. (Opus compiled the `extends` form: it works.)
 
-- [ ] **Step 4: Write `scripts/check-fgsa.sh`.**
+- [x] **Step 4: Write `scripts/check-fgsa.sh`.**
 
 ```bash
 #!/usr/bin/env bash
@@ -787,7 +787,7 @@ echo "all FGSA checks pass"
 
   The closure walk reads only source files of this worktree (Mathlib has no source here, so it stops there). `AvailableChainStatements` in the closure is allowed (Global Constraints, Imports).
   Negative tests (once each, then remove them): (1) add `example : 1 = 1 := by native_decide` to `Tests/Smoke.lean`; the script must exit 1; a comment `-- native_decide` must not make it fail. (2) Add `public import AvailableChainSAPC.Model.Objects` to `Tests/Smoke.lean`; the direct-import check must exit 1. G1 additions: (3) `public meta import AvailableChainSAPC.Model.Objects` and (4) `import all AvailableChainSAPC.Model.Objects`: the direct-import check must exit 1. (5) A line comment that contains `/-`, then a `native_decide` (under `set_option linter.style.nativeDecide false in`, so that the build passes), then a later docstring: the native scan must exit 1. (6) `example : "--".length = 2 := by native_decide` (same `set_option`): the native scan must exit 1. (7) Only comments (line, nested block, docstring with `"--"`) that name `native_decide`: exit 0.
-- [ ] **Step 5: Run it; it passes.** `lake build --wfail AvailableChainFGSA.Tests.Smoke`, then `bash scripts/check-fgsa.sh`. Expected: PASS, exit 0.
+- [x] **Step 5: Run it; it passes.** `lake build --wfail AvailableChainFGSA.Tests.Smoke`, then `bash scripts/check-fgsa.sh`. Expected: PASS, exit 0.
 - [x] **Step 6: Review gate G1 and CHECKPOINT.** Commit `FGSA model: library skeleton and objects`.
 
 **G1 dispositions** (review of `0fbf787`: PASS WITH FIXES; 0 blocking, 1 major, 6 minor). All are applied in the commit `FGSA model: G1 fixes (import regexes, comment scan, tests, docs)`.
@@ -835,7 +835,7 @@ echo "all FGSA checks pass"
 
 **Blueprint:** `bp.carrier.v1` (bp00 §3.1; bp01 §2.2 steps 1–6), LOCAL part only. With DQ1 there is one erasure. Step 3 of bp01 ("full-content root injectivity gives X = Y") becomes the root injectivity of ONE view (`ViewRootInj`), which Task 11 gets by construction (DQ2). This task does not complete K5: the two-store form needs the content premise and is Task 12 (audit M2). The report says "K5 local".
 
-- [ ] **Step 1: Write the Block ancestry statements** in `Proofs/BlockAncestry.lean` (imports `AvailableChainModel.Objects.Blocks`, `Mathlib.Tactic`). The GridCO copies of these lemmas are `private` (`GridCO/Proofs/Map.lean:25`, `Goldfish.lean:81`); do not import them.
+- [x] **Step 1: Write the Block ancestry statements** in `Proofs/BlockAncestry.lean` (imports `AvailableChainModel.Objects.Blocks`, `Mathlib.Tactic`). The GridCO copies of these lemmas are `private` (`GridCO/Proofs/Map.lean:25`, `Goldfish.lean:81`); do not import them.
 
 ```lean
 theorem block_preceq_refl (B : Block) : Block.Preceq B B
@@ -860,7 +860,7 @@ theorem block_compatible_of_preceq_compatible {A C F : Block} (hAC : Block.Prece
 ```
 
   (The last one: if `C ⪯ F` then `A ⪯ F`; if `F ⪯ C` then `A` and `F` are ancestors of `C`.)
-- [ ] **Step 2: Write the carrier statements** in `Proofs/Carrier.lean` (imports `AvailableChainFGSA.Model.Objects`, `AvailableChainFGSA.Proofs.BlockAncestry`, `AvailableChainKitFG.Correspondence`). `variable {V : Type} [DecidableEq V]`.
+- [x] **Step 2: Write the carrier statements** in `Proofs/Carrier.lean` (imports `AvailableChainFGSA.Model.Objects`, `AvailableChainFGSA.Proofs.BlockAncestry`, `AvailableChainKitFG.Correspondence`). `variable {V : Type} [DecidableEq V]`.
 
 ```lean
 /-- [bp bp.carrier.v1; K5 local] (step 1) -/
@@ -902,15 +902,15 @@ theorem erase_rootInjective {T : Finset (FGBlock V)} (hinj : ViewRootInj T) :
 ```
 
   Run: `lake build AvailableChainFGSA.Proofs.Carrier`. Expected: builds with `sorry` warnings only.
-- [ ] **Step 3: Prove them.** Step-1 lemmas: `cases B <;> rfl`. `eraseFG_preceq`: induction on `B`, as DC `NamedWire.erase_preceq` (DC `DecoupledConsensusProofs/Execution/Wire.lean`). `eraseFG_injOn`: `eraseFG_root` gives equal roots; `hinj` gives `A = B`. `preceq_of_eraseFG_preceq`: induction on `B`; in the node case either `eraseFG A = eraseFG B` (then `eraseFG_injOn`) or `Block.Preceq (eraseFG A) (eraseFG B.parent)` (then the induction hypothesis with the ancestor witness of `B.parent`). `viewRootInj_of_rootInj`: `KitFG.ancestor_closed_of_parent_closed` puts every ancestor of a member in `T`.
-- [ ] **Step 4: Write `scripts/CheckFGSAAxioms.lean`.** Copy `scripts/CheckFGAxioms.lean`. Change exactly these parts (audit M6):
+- [x] **Step 3: Prove them.** Step-1 lemmas: `cases B <;> rfl`. `eraseFG_preceq`: induction on `B`, as DC `NamedWire.erase_preceq` (DC `DecoupledConsensusProofs/Execution/Wire.lean`). `eraseFG_injOn`: `eraseFG_root` gives equal roots; `hinj` gives `A = B`. `preceq_of_eraseFG_preceq`: induction on `B`; in the node case either `eraseFG A = eraseFG B` (then `eraseFG_injOn`) or `Block.Preceq (eraseFG A) (eraseFG B.parent)` (then the induction hypothesis with the ancestor witness of `B.parent`). `viewRootInj_of_rootInj`: `KitFG.ancestor_closed_of_parent_closed` puts every ancestor of a member in `T`.
+- [x] **Step 4: Write `scripts/CheckFGSAAxioms.lean`.** Copy `scripts/CheckFGAxioms.lean`. Change exactly these parts (audit M6):
   - the two top imports `import AvailableChainSimplexFG` and `import AvailableChainKitFG` become `import AvailableChainFGSA`;
   - the `importModules` array `#[{ module := `AvailableChainSimplexFG }, { module := `AvailableChainKitFG }]` becomes `#[{ module := `AvailableChainFGSA }]` (if only the top import changes, the scanner still loads the old libraries);
   - `inFG` becomes `inFGSA`, with the one prefix test `` (`AvailableChainFGSA).isPrefixOf m ``;
   - the docstring, the usage string and the `fileName` (`"CheckFGSAAxioms"`).
   Keep the parser: ONE `--expect` followed by all names (`expected := args.drop 1`); keep the exit codes (0 clean; 1 a bad axiom; 2 nothing found, a usage error, or an expected name missing), the transitive whitelist and the build-before-scan rule.
-- [ ] **Step 5: Run it; it passes.** `bash scripts/check-fgsa.sh`. Expected: exit 0; the axiom step prints `checked <c> constants, <t> theorems`. Then the two `--expect` tests: `lake env lean --run scripts/CheckFGSAAxioms.lean --expect eraseFG_preceq viewRootInj_of_rootInj` exits 0; `lake env lean --run scripts/CheckFGSAAxioms.lean --expect eraseFG_preceq noSuchName` prints `NOT CHECKED: noSuchName` and exits 2.
-- [ ] **Step 6: Review gate G2 and CHECKPOINT.** Commit `FGSA model: block ancestry and local carrier bridge (K5, local)`.
+- [x] **Step 5: Run it; it passes.** `bash scripts/check-fgsa.sh`. Expected: exit 0; the axiom step prints `checked <c> constants, <t> theorems`. Then the two `--expect` tests: `lake env lean --run scripts/CheckFGSAAxioms.lean --expect eraseFG_preceq viewRootInj_of_rootInj` exits 0; `lake env lean --run scripts/CheckFGSAAxioms.lean --expect eraseFG_preceq noSuchName` prints `NOT CHECKED: noSuchName` and exits 2.
+- [x] **Step 6: Review gate G2 and CHECKPOINT.** Commit `FGSA model: block ancestry and local carrier bridge (K5, local)`.
 
 ---
 
@@ -924,7 +924,7 @@ theorem erase_rootInjective {T : Finset (FGBlock V)} (hinj : ViewRootInj T) :
 - Consumes: Task 1.
 - Produces: `State`, `initial`, `State.slot`, `finalized`, `stable`, `confirmed`, `activeCompatible`, `actView`, `onView`, `normalizeS`, `reconcile`, `leaseOf`, `fastWriteAt`, `blockExcluded`.
 
-- [ ] **Step 1: Write the failing tests** (append to `Tests/Smoke.lean`). The state `stR0` is set by hand, as `AvailableChainSA/Tests/Smoke.lean` does. It is not a reachable state.
+- [x] **Step 1: Write the failing tests** (append to `Tests/Smoke.lean`). The state `stR0` is set by hand, as `AvailableChainSA/Tests/Smoke.lean` does. It is not a reachable state.
 
 ```lean
 def b1 : Block := eraseFG B1
@@ -949,13 +949,14 @@ example : (reconcile stR0).base.obligations = [] ∧
 example : b1' ∈ stR0.base.blocks ∧ b1' ∉ (actView stR0).blocks ∧
     b1 ∈ (actView stR0).blocks := by decide
 /-- A compatible S ahead of F stays (spec 565). -/
-example : (normalizeS { stR0 with base := { stR0.base with stableRecord := eraseFG B3 } }).base.stableRecord
-    = eraseFG B3 := by decide
+example : (normalizeS
+      { stR0 with base := { stR0.base with stableRecord := eraseFG B3 } }).base.stableRecord =
+    eraseFG B3 := by decide
 example : blockExcluded stR0 b1' = true ∧ blockExcluded stR0 .genesis = false := by decide
 ```
 
   Run: `lake build AvailableChainFGSA.Tests.Smoke`. Expected: FAIL.
-- [ ] **Step 2: Write `Model/Store.lean`.** Imports: `AvailableChainFGSA.Model.Objects`.
+- [x] **Step 2: Write `Model/Store.lean`.** Imports: `AvailableChainFGSA.Model.Objects`.
 
 ```lean
 /-- [spec 339–353, 486–503; M1] The composite node store. `base` holds the SA
@@ -1035,8 +1036,9 @@ that conflicts with F. A stored finalized ancestor is not excluded. -/
 def blockExcluded (st : State n) (b : Block) : Bool := !activeCompatible st b
 ```
 
-- [ ] **Step 3: Run it; it passes.** `lake build --wfail AvailableChainFGSA.Tests.Smoke`. If a test value differs from the expected value, compute it by hand from the spec. A real difference is a finding: report it and do not change the expectation to match the code.
+- [x] **Step 3: Run it; it passes.** `lake build --wfail AvailableChainFGSA.Tests.Smoke`. If a test value differs from the expected value, compute it by hand from the spec. A real difference is a finding: report it and do not change the expectation to match the code.
 - [ ] **Step 4: Review gate G3 and CHECKPOINT.** Commit `FGSA model: store, active view, reconcile`.
+  Execution notes (2026-09-29): every planned test value agreed with the hand computation. Changes from the text above: (1) one test line is wrapped for the 100-column linter; (2) docstrings with spec lines on `initial`, `confirmed` and `stable`; (3) extra tests, added after the G1 finding on coverage: `initial`, the outputs, `leaseOf`, `fastWriteAt`, a compatible lease on F and below F that reconcile keeps, the fields that reconcile does not write (`fg`, `proposals`, `rowPool`, `goldfishRecord`), and `onView` (the step reads `act(Σ)`; the cumulative list comes back).
 
 ---
 
