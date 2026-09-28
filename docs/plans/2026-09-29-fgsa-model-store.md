@@ -1052,7 +1052,7 @@ def blockExcluded (st : State n) (b : Block) : Bool := !activeCompatible st b
 - Consumes: Task 3; `GridCO.admitVote`, `GridCO.admitProposal`, `SimplexFG.on_block`, `SimplexFG.pickPair`.
 - Produces: `admitHead`, `admitRow`, `parentFG`, `fgBlock`, `blockAccepted`, `admitBlock`, `process`, `wellFormed`.
 
-- [ ] **Step 1: Write the failing tests.** The proposal wires carry the rows of the FG test blocks. Row rounds: `B1` (slot 1) has round-0 rows; `B2`, `B3` (slots 2, 3) have round-1 rows (`pT.round 2 = pT.round 3 = 1`).
+- [x] **Step 1: Write the failing tests.** The proposal wires carry the rows of the FG test blocks. Row rounds: `B1` (slot 1) has round-0 rows; `B2`, `B3` (slots 2, 3) have round-1 rows (`pT.round 2 = pT.round 3 = 1`).
 
 ```lean
 def rowsOf (r : Nat) (B : FGBlock (Fin 4)) : List (RowWire 4) :=
@@ -1111,9 +1111,10 @@ F = genesis; then `B1`, `B2`, `B3` move F to `B1`, and reconcile runs inside the
 handler. -/
 def stR1 : State pT.n :=
   let st := process pT st0 (wProp B1' 0)
-  { st with base := { st.base with genuine := [(1, some b1')],
-      obligations := [(b1', 2, 100)], stableRecord := b1' },
-    fastWrite := [(1, [b1'])] }
+  { st with
+      base := { st.base with
+        genuine := [(1, some b1')], obligations := [(b1', 2, 100)], stableRecord := b1' }
+      fastWrite := [(1, [b1'])] }
 def stR2 : State pT.n := [wProp B1 0, wProp B2 1, wProp B3 1].foldl (process pT) stR1
 example : stR2.fg.F = B1 ∧ stR2.base.obligations = [] ∧
     GridCO.savedGenuine stR2.base 1 = some none ∧ stR2.fastWrite = [(1, [])] ∧
@@ -1131,7 +1132,7 @@ example : (admitRow pT st0 ⟨.seat (.fg 2) 0, ⟨.empty, none⟩⟩).rowPool = 
 ```
 
   Before the build, check by hand that `⟨99⟩`, `⟨98⟩`, `⟨97⟩` and `⟨77⟩` are not roots of `B1`, `B2`, `B3`, `B1'` and that `rF` is not in `stA.rowPool`; change the numbers if they are. Run the build. Expected: FAIL.
-- [ ] **Step 2: Write `Model/Handlers.lean`.** Imports: `AvailableChainFGSA.Model.Store`.
+- [x] **Step 2: Write `Model/Handlers.lean`.** Imports: `AvailableChainFGSA.Model.Store`.
 
 ```lean
 /-- [spec 831–842] `on_goldfish_vote`: SA's vote pool, unchanged. -/
@@ -1228,8 +1229,9 @@ def wellFormed (p : Params) (o : Wire p.n) : Bool :=
   | none => false
 ```
 
-- [ ] **Step 3: Run it; it passes.** As in Task 3, Step 3.
+- [x] **Step 3: Run it; it passes.** As in Task 3, Step 3.
 - [ ] **Step 4: Review gate G4 and CHECKPOINT.** Commit `FGSA model: handlers`.
+  Execution notes (2026-09-29): `Model/Handlers.lean` is the code above verbatim. The four fixture roots are free (the FG test roots are 0, 1, 3, 5, 6), and `rF` (identity 3) is not in `stA.rowPool`. Every planned test value agreed with the build. Changes from the text above: (1) the `stR1` fixture had a structure-instance layout that Lean does not parse (a continuation line to the left of the first field); the fields are now on new lines, with the same values; (2) extra tests: a missing parent, a future slot, a wrong proposer slot, a vote outside the window, a wire that does not decode, an accepted block that passes its carried vote to the pool and stores its wire, and a carried row that the pool refuses but the FG block keeps (spec 540–541).
 
 ---
 

@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSA.Model.Store
+public import AvailableChainFGSA.Model.Handlers
 
 @[expose] public section
 
@@ -127,6 +127,111 @@ example : (onView (fun v => { v with goldfishRecord := v.blocks.getLastD .genesi
       stR0).base.goldfishRecord = eraseFG B3 ∧
     (onView (fun v => { v with goldfishRecord := v.blocks.getLastD .genesis })
       stR0).base.blocks = stR0.base.blocks := by decide
+
+/-! Task 4: handlers. -/
+
+def rowsOf (r : Nat) (B : FGBlock (Fin 4)) : List (RowWire 4) :=
+  B.rows.map (fun a => ⟨.seat (.fg r) a.signer, RowBody.ofRow a⟩)
+def wProp (B : FGBlock (Fin 4)) (r : Nat) (raw : List (HeadWire 4) := []) : Wire 4 :=
+  ⟨.proposer B.slot, .proposal (eraseFG B) raw [] (rowsOf r B)⟩
+/-- Now = 12: slot 3, round 1. -/
+def st0 : State pT.n := { base := { GridCO.initial 4 with now := 12 } }
+def stA : State pT.n := [wProp B1 0, wProp B2 1, wProp B3 1].foldl (process pT) st0
+
+/-- The FG part is the FG module's store after the same blocks (K4). -/
+example : stA.fg.TF = stF.TF ∧ stA.fg.F = B1 ∧ stA.fg.J = stF.J ∧
+    stA.fg.h_j = stF.h_j ∧ stA.fg.h_max = stF.h_max := by decide
+/-- The base holds the erased tree (spec 355–358). -/
+example : stA.base.blocks = [.genesis, b1, eraseFG B2, eraseFG B3] := by decide
+/-- F moved to B1: S := F (spec 890–892). -/
+example : stA.base.stableRecord = b1 := by decide
+
+/-- Review Focus 2 (audit N1). A label-2 vote and a fresh round-1 row: separate
+calls admit both at stA (slot 3, round 1). -/
+def v2 : HeadWire 4 := ⟨.seat (.head 2) 0, eraseFG B2⟩
+def rF : RowWire 4 := ⟨.seat (.fg 1) 3, ⟨.vote 1 ⟨77⟩ true, none⟩⟩
+example : (process pT stA ⟨v2.auth, .head v2.payload⟩).base.votes ≠ stA.base.votes ∧
+    (admitRow pT stA rF).rowPool = stA.rowPool ++ [rF] := by decide
+/-- A checked slot-3 block on genesis conflicts with F = B1. It carries `v2` and
+`rF`. Refusal of `F ⋠ B` before unpacking (spec 808, 535–536): no block, no
+stamp, no carried vote, no row, no FG change, no stored wire. -/
+def wX : Wire 4 := ⟨.proposer 3, .proposal (.node .genesis 3 ⟨99⟩) [v2] [] [rF]⟩
+example : wellFormed pT wX = true := by decide
+example : (process pT stA wX).base.blocks = stA.base.blocks ∧
+    (process pT stA wX).base.votes = stA.base.votes ∧
+    (process pT stA wX).base.blockStamp = stA.base.blockStamp ∧
+    (process pT stA wX).rowPool = stA.rowPool ∧
+    (process pT stA wX).fg.TF = stA.fg.TF ∧
+    (process pT stA wX).proposals = stA.proposals := by decide
+/-- A duplicate block changes nothing (spec 806–807). -/
+example : (process pT stA (wProp B2 1)).base.blocks = stA.base.blocks ∧
+    (process pT stA (wProp B2 1)).proposals = stA.proposals ∧
+    (process pT stA (wProp B2 1)).rowPool = stA.rowPool := by decide
+/-- A row from the block's future (spec 815–817): a slot-1 block (round 0) with a
+round-1 row fails the input check and is refused by the handler. -/
+def wFut : Wire 4 := ⟨.proposer 1, .proposal (.node .genesis 1 ⟨98⟩) [] [] [rw 1 2 (rowT 2)]⟩
+example : wellFormed pT wFut = false ∧ (process pT st0 wFut).fg.TF = st0.fg.TF := by decide
+/-- Review Focus 9 (M12): the same height-0 row fails alone and in a block; the
+height-1 row passes in both forms. -/
+def r0 : RowWire 4 := ⟨.seat (.fg 1) 2, ⟨.vote 0 genesisRoot false, none⟩⟩
+def r1 : RowWire 4 := ⟨.seat (.fg 1) 2, ⟨.vote 1 genesisRoot false, none⟩⟩
+example : wellFormed pT ⟨r0.auth, .row r0.payload⟩ = false ∧
+    wellFormed pT ⟨.proposer 3, .proposal (.node .genesis 3 ⟨97⟩) [] [] [r0]⟩ = false ∧
+    wellFormed pT ⟨r1.auth, .row r1.payload⟩ = true ∧
+    wellFormed pT ⟨.proposer 3, .proposal (.node .genesis 3 ⟨97⟩) [] [] [r1]⟩ = true := by decide
+
+/-- A handler-integration fixture (NOT a reachable state: the lease, the saved
+result and the fast write on `b1'` are set by hand). `B1'` enters while
+F = genesis; then `B1`, `B2`, `B3` move F to `B1`, and reconcile runs inside the
+handler. -/
+def stR1 : State pT.n :=
+  let st := process pT st0 (wProp B1' 0)
+  { st with
+      base := { st.base with
+        genuine := [(1, some b1')], obligations := [(b1', 2, 100)], stableRecord := b1' }
+      fastWrite := [(1, [b1'])] }
+def stR2 : State pT.n := [wProp B1 0, wProp B2 1, wProp B3 1].foldl (process pT) stR1
+example : stR2.fg.F = B1 ∧ stR2.base.obligations = [] ∧
+    GridCO.savedGenuine stR2.base 1 = some none ∧ stR2.fastWrite = [(1, [])] ∧
+    stR2.base.stableRecord = b1 ∧ b1' ∈ stR2.base.blocks ∧
+    b1' ∉ (actView stR2).blocks := by decide
+
+/-- DQ2: a new block whose root is already stored is refused. -/
+example : (process pT stA ⟨.proposer 3, .proposal (.node b1 3 B2.root) [] [] []⟩).fg.TF
+    = stA.fg.TF := by decide
+/-- The row pool admits at most two distinct rows per identity and round
+(spec 433–439, 852–855), and only rows in the window (spec 848–851). -/
+def rA (h : Nat) : RowWire 4 := ⟨.seat (.fg 1) 0, ⟨.vote h genesisRoot false, none⟩⟩
+example : ([rA 1, rA 2, rA 3].foldl (admitRow pT) st0).rowPool = [rA 1, rA 2] := by decide
+example : (admitRow pT st0 ⟨.seat (.fg 2) 0, ⟨.empty, none⟩⟩).rowPool = [] := by decide
+
+/-- G4 coverage: temporary refusals (spec 806–807). A block whose parent is not
+stored, and a block from a future slot (`4 > Σ.s = 3`), change nothing. -/
+example : (process pT st0 (wProp B2 1)).fg.TF = st0.fg.TF ∧
+    (process pT st0 (wProp B2 1)).base.blocks = st0.base.blocks ∧
+    (process pT stA ⟨.proposer 4, .proposal (.node b1 4 ⟨96⟩) [] [] []⟩).fg.TF = stA.fg.TF := by
+  decide
+/-- G4 coverage: the slot-3 block signed by the slot-2 proposer key fails the
+input check and the handler refuses it (spec 511–512, 810–812). -/
+example : wellFormed pT ⟨.proposer 2, .proposal (.node b1 3 ⟨95⟩) [] [] []⟩ = false ∧
+    (process pT stA ⟨.proposer 2, .proposal (.node b1 3 ⟨95⟩) [] [] []⟩).fg.TF = stA.fg.TF := by
+  decide
+/-- G4 coverage: a slot-1 vote at slot 3 is outside the vote window (spec 834–835);
+a wire that does not decode changes nothing and fails the input check. -/
+example : (process pT stA ⟨.seat (.head 1) 0, .head b1⟩).base.votes = stA.base.votes ∧
+    (process pT stA ⟨.proposer 3, .head b1⟩).base.votes = stA.base.votes ∧
+    (process pT stA ⟨.proposer 3, .head b1⟩).fg.TF = stA.fg.TF ∧
+    wellFormed pT ⟨.proposer 3, .head b1⟩ = false := by decide
+/-- G4 coverage: an accepted slot-3 block on `B2` passes its carried vote `v2`
+to the vote pool (spec 820–821) and stores its wire. -/
+def wY : Wire 4 := ⟨.proposer 3, .proposal (.node (eraseFG B2) 3 ⟨96⟩) [v2] [] []⟩
+example : baseVote v2 ∈ (process pT stA wY).base.votes ∧ baseVote v2 ∉ stA.base.votes ∧
+    (process pT stA wY).proposals = stA.proposals ++ [wY] ∧
+    Block.node (eraseFG B2) 3 ⟨96⟩ ∈ (process pT stA wY).base.blocks := by decide
+/-- G4 coverage: the pool refuses the rows of `B1` in `stR2` (they duplicate the
+rows of `B1'`), but the FG block `B1` keeps them (spec 540–541). The pool holds
+the three round-0 rows of `B1'` and the six round-1 rows of `B2`, `B3`. -/
+example : B1 ∈ stR2.fg.TF ∧ B1.rows.length = 3 ∧ stR2.rowPool.length = 9 := by decide
 
 end AvailableChain.FGSA.Tests
 end
