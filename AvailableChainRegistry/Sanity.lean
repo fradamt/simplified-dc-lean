@@ -16,6 +16,16 @@ theorem hooks : HooksSound (alwaysGenesis 1) := by
   · intro V _ _ E rho _ v o i j _ h; exact h
   · intro st o o' h; exact Or.inl h
 
+/-- The Sanity protocol as an instance. -/
+def sanity : Instance where
+  n := 1
+  P := alwaysGenesis 1
+  Δ := 1
+  iface := interface 1
+  hooks := hooks
+
+example : sanity.Δ = exampleEnv.Δ := rfl
+
 end AvailableChain.Registry.Sanity
 
 end
