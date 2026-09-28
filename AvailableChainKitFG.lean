@@ -8,6 +8,7 @@ public import AvailableChainKitFG.Provenance
 public import AvailableChainKitFG.CausalCap
 public import AvailableChainKitFG.CrossingNoFinal
 public import AvailableChainKitFG.InBandLock
+public import AvailableChainKitFG.TwoChanges
 
 @[expose] public section
 end
