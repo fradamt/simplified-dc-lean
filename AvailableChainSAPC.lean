@@ -65,6 +65,9 @@ public import AvailableChainSAPC.Proofs.RunClean
 public import AvailableChainSAPC.Proofs.ProposalFloors
 public import AvailableChainSAPC.Proofs.Clean
 public import AvailableChainSAPC.Proofs.GateAdmission
+public import AvailableChainSAPC.Proofs.PendingProtection
+
+public import AvailableChainSAPC.Proofs.StrongClean
 
 @[expose] public section
 end

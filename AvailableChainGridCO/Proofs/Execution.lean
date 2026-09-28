@@ -68,7 +68,7 @@ private theorem time_le_of_key_le (e f : Event V P.Object)
   · exact le_of_eq h
 
 omit [DecidableEq V] in
-private theorem filter_eq_take (hs : ScheduleWellFormed E rho)
+theorem filter_eq_take (hs : ScheduleWellFormed E rho)
     (q : Event V P.Object → Bool)
     (hdc : ∀ e f, e.key ≤ f.key → q f = true → q e = true) :
     rho.events.filter q = rho.events.take (rho.events.filter q).length := by

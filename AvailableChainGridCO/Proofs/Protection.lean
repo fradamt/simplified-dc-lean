@@ -1,5 +1,6 @@
 module
 public import AvailableChainGridCO.Proofs.Votes
+public import AvailableChainGridCO.Proofs.ProtectionInduction
 
 @[expose] public section
 
@@ -64,7 +65,7 @@ theorem write_protectsUntil {n : Nat} (st : State n) (B C : Block) (g k : Nat)
     simpa only [Bool.not_eq_true', Bool.and_eq_false_iff, beq_eq_false_iff_ne,
       Prod.mk.injEq, not_and_or] using hk
 
-private theorem fold_write_protectsUntil {n : Nat} {α : Type} (xs : List α)
+theorem fold_write_protectsUntil {n : Nat} {α : Type} (xs : List α)
     (f : State n → α → State n) (st : State n) (B : Block) (g : Nat) (d : Time)
     (hstep : ∀ acc x, UniqueObligationKeys acc → ProtectsUntil acc B g d →
       UniqueObligationKeys (f acc x) ∧ ProtectsUntil (f acc x) B g d)
@@ -286,63 +287,29 @@ theorem protection_from_armed_index
     ∀ v ∈ rho.honest,
       ProtectsUntil (Run.stateBefore (gridCO p) rho finish v) B (g v) d ∧
       Block.Preceq B (stable (Run.stateBefore (gridCO p) rho finish v)) := by
-  have hall : ∀ n, start ≤ n → n ≤ finish → ∀ v ∈ rho.honest,
-      ProtectsUntil (Run.stateBefore (gridCO p) rho n v) B (g v) d ∧
-      Block.Preceq B (stable (Run.stateBefore (gridCO p) rho n v)) := by
-    intro n
-    induction n using Nat.strong_induction_on with
-    | h n ih =>
-        intro hn hnf v hv
-        by_cases he : n = start
-        · subst n; exact hbase v hv
-        · obtain ⟨i, rfl⟩ := Nat.exists_eq_succ_of_ne_zero (by omega : n ≠ 0)
-          have hsi : start ≤ i := by omega
-          have hprev := ih i (by omega) hsi (by omega)
-          cases hi : rho.events[i]? with
-          | none =>
-              have heq : Run.stateBefore (gridCO p) rho (i + 1) =
-                  Run.stateBefore (gridCO p) rho i := by
-                unfold Run.stateBefore
-                rw [List.take_add_one, List.foldl_append, hi]
-                rfl
-              rw [heq]; exact hprev v hv
-          | some e =>
-              have htd := hdeadline i e hsi (by omega) hi
-              rw [stateBefore_succ_event hi]
-              cases e with
-              | deliver u o t =>
-                  by_cases hsame : v = u
-                  · subst v
-                    simpa [World.step, gridCO, stable, process_stable] using
-                      And.intro (process_protectsUntil p _ o B (g u) d (hprev u hv).1)
-                        (hprev u hv).2
-                  · simpa [World.step, hsame] using hprev v hv
-              | tick u t =>
-                  by_cases hsame : v = u
-                  · subst v
-                    simp only [World.step, Function.update_self]
-                    change ProtectsUntil (clock p (Run.stateBefore (gridCO p) rho i u) t)
-                        B (g u) d ∧
-                      Block.Preceq B (stable (clock p (Run.stateBefore (gridCO p) rho i u) t))
-                    apply clock_preserves_protection p _ t B (g u) d
-                      (run_receiptStamped p rho i u) (run_unique_keys p rho i u)
-                      (hprev u hv).1 (hprev u hv).2 htd
-                    intro r hr
-                    rw [stateBefore_tick_eq_stateBeforeTime hexec.toScheduleWellFormed hi]
-                    apply lt_of_le_of_lt (releaseCount_le_faults_of_emissions p E rho
-                      hexec.toUnforgeableSignatures t u r B ?_) (hstrong u hv)
-                    intro voter hhonest o t' ht' hem hlabel target htarget
-                    obtain ⟨j, hj, hmem⟩ := hem
-                    have hji := eventIndex_lt_of_time_lt hexec.toScheduleWellFormed hj hi ht'
-                    by_cases hjstart : j < start
-                    · exact hseed r voter hhonest o t' (hbefore j voter t' hjstart hj)
-                        (hr ▸ hafter i u t hsi hi) ⟨j, hj, hmem⟩ hlabel target htarget
-                    · have hpast := ih (j + 1) (by omega) (by omega) (by omega) voter hhonest
-                      exact emitted_head_compatible_of_protection p E rho hexec.toScheduleWellFormed
-                        j voter t' hj B (g voter) d hpast.1 (lt_trans ht' htd)
-                        o r target hmem hlabel htarget
-                  · simpa [World.step, hsame] using hprev v hv
-  exact hall finish hfinish (le_refl _)
+  apply AvailableChain.Engine.state_interval_induction (gridCO p) rho
+    (fun v st => ProtectsUntil st B (g v) d ∧ Block.Preceq B (stable st))
+    start finish hfinish hbase
+  · intro v hv st o hp
+    exact ⟨process_protectsUntil p st o B (g v) d hp.1,
+      by simpa only [gridCO, stable, process_stable] using hp.2⟩
+  · intro i u t hsi hif hi hu hp hpast
+    have htd := hdeadline i _ hsi hif hi
+    apply clock_preserves_protection p _ t B (g u) d
+      (run_receiptStamped p rho i u) (run_unique_keys p rho i u) hp.1 hp.2 htd
+    intro r hr
+    rw [stateBefore_tick_eq_stateBeforeTime hexec.toScheduleWellFormed hi]
+    apply lt_of_le_of_lt (releaseCount_le_faults_of_emissions p E rho
+      hexec.toUnforgeableSignatures t u r B ?_) (hstrong u hu)
+    intro voter hhonest o t' ht' hem hlabel target htarget
+    obtain ⟨j, hj, hmem⟩ := hem
+    have hji := eventIndex_lt_of_time_lt hexec.toScheduleWellFormed hj hi ht'
+    by_cases hjstart : j < start
+    · exact hseed r voter hhonest o t' (hbefore j voter t' hjstart hj)
+        (hr ▸ hafter i u t hsi hi) ⟨j, hj, hmem⟩ hlabel target htarget
+    · exact emitted_head_compatible_of_protection p E rho hexec.toScheduleWellFormed
+        j voter t' hj B (g voter) d (hpast j (by omega) hji voter hhonest).1
+        (lt_trans ht' htd) o r target hmem hlabel htarget
 
 /-- Strong rows protect every later public read until their deadlines,
 provided the batch in flight at arming is compatible. The selected level

@@ -1,6 +1,6 @@
 # SA-PC status
 
-_2026-09-28. Round 18. Base contract frozen at Draft 4.3._
+_2026-09-28. Round 20. Base contract frozen at Draft 4.3._
 
 The additive companion statements and executable SA-PC model are in place.
 `Proofs/RunClean.lean` now proves `clean_run_invariant` from plain Sleepy
@@ -19,13 +19,20 @@ fields are now proved. `Proofs/Clean.lean` proves `6Δ` inclusion for both
 outputs under plain Sleepy, then derives StableSleepy and Fast inclusion.
 The proof includes active, disabled, and mixed modes without a fault cap.
 
-Both P1 claims, strong claims, recovery, and both bundle inhabitants
+Both P1 claims are now proved from their exact Draft 4.3 regimes.
+`Proofs/Outage.lean` proves `stable_resilient_from_engine` and
+`fastP1_from_engine`, without a fault cap. The proof derives the healthy
+prefix, pending finite guard, live/frozen/carried PC comparisons, record
+coverage, admission, and lease retention. Both SA lags and the budget are
+unchanged.
+
+`Proofs/StrongClean.lean` proves `strong_safe_from_engine` (agreement and
+monotonicity) and `strong_included_from_engine` (full-participation `6Δ`
+inclusion), with the explicit cap. Sound strong arming, persistence with
+no budget, late-reveal protection, recovery, and both bundle inhabitants
 remain pending. Neither `sapcContract_from_engine` nor
-`sapcStrong_from_engine` exists yet. Round 18 starts the local P1 gate
-proof: an admitted compatible prefix gets its first lease even when the
-raw descendant is PC-vetoed. The healthy-prefix and pending-boundary
-premises for that gate are not yet proved from Outage.
-No contract definition, executable rule, or invariant field changed.
+`sapcStrong_from_engine` exists yet. No contract definition, executable
+rule, or invariant field changed.
 
 ## Sources and scope
 
@@ -982,39 +989,135 @@ No new contract issue or checked counterexample was found. In particular,
 no proof assumes that every live lease is below S, that raw key sets are
 equal, or that an above-cap declared witness must be honest.
 
+## Round 19: pending-gate protection and local transfer
+
+No contract definition, executable rule, or clean-invariant field changes.
+This round adds 43 SA-PC theorems, two generic engine theorems, and public
+access to two existing shared map lemmas. Both contract P1 claims remain
+pending. The new `pending_prefix_protection` is a proved internal interface;
+it is not a replacement contract claim or an added regime premise.
+
+- `LeaseProtection` proves unique keys, comparable finite targets, lease
+  retention through either PC guard, and clock preservation below the
+  release threshold. These facts hold during arbitrary delivery and mode
+  changes. Comparable targets follow from actual raw sources and the
+  whole-tip finite guard. No proof relates every live target to S.
+- Shared `ProtectionInduction` extracts the event-interval induction from
+  SA/Grid CO's protection proof and the public-read field bridge from
+  `Coverage`. The original shared theorem names and types are retained as
+  wrappers. SA-PC and SA now use the same first-loss induction. The two
+  existing map-fold lemmas are public so the PC loop uses their proofs.
+- `OutageProtection` proves that protected honest HEADs respect the finite
+  root in both modes. Original archived signatures give a release-count
+  bound of at most the static fault count. `protection_from_armed_read`
+  retains the row and record prefix until its deadline, with no synchrony,
+  participation, or cap premise inside the interval. It includes the
+  in-flight HEAD seed and transfer of that seed across a later renewal.
+- `GateRead` derives the deadline bound from actual execution. It proves
+  first-prefix acquisition at the public gate read, through equal-time
+  receipts, even if the PC vetoes the raw descendant. It requires the
+  prefix's own PC guard and the whole-tip finite guard. It does not require
+  an earlier lease. The old record prefix is an explicit local premise.
+- `Preservation` extracts the existing early-receipt and honest-batch
+  arguments without changing the synchronous wrappers. `HealthyBatch`
+  applies them when only the early cutoff is before the outage. It proves
+  a covering pending raw result, its honest support lower bound, and fast
+  admission from the high honest count. Later gate delivery is unrestricted.
+- `SlowHistory` uses the common clock-source and append-prefix proofs to
+  identify and retain every exact raw save, including empty and vetoed
+  results. Completed local covering results satisfy the actual slow test.
+  The public clock rule includes sleeping readers; missing labels cannot
+  be replaced by other results.
+- `GenuineTransfer` extracts frozen-receipt and path interfaces from the
+  existing cross-reader transfer proof. Its old theorem types remain.
+  `LocalTransfer` supplies those interfaces from one reader's history,
+  without forward or reverse network relay. The shared SA transfer object
+  and walk prove pending HEAD coverage in both modes, given compatible
+  finite and selected active-PC roots. No prior covering lease is assumed.
+- `PendingProtection.pending_prefix_protection` combines the healthy batch,
+  actual prefix admission, local transfer, and first-loss induction. It
+  derives `a < τ` from the awake honest majority, without a cap. Its result
+  retains the prefix at every read from the pending gate up to its deadline.
+  Fast and slow admission have separate proved suppliers. The interface
+  still requires healthy-prefix HEAD coverage, the old record prefix,
+  the pending finite guard, and active PC compatibility at gate and HEAD.
+
+No new checked counterexample or contract issue was found. These proofs
+close the finite-lease and local-transfer parts of P1. They do not establish
+the healthy-prefix induction or the pending PC-authority comparison.
+
+## Round 20: both P1 claims and strong clean claims
+
+- Shared `RunPrefix` restricts the event list and horizon while retaining
+  indices, states, emissions, handling, acceptance, and authentication.
+  `HealthyPrefix` derives Sleepy for a closed finite prefix in a proof
+  environment with GST zero and all nodes awake at the final instant.
+  State transitions are unchanged. Added boundary emissions have no
+  delivery deadline in the prefix. A proved no-proposal boundary condition
+  preserves the original root scope. No participation condition at the
+  outage boundary is added to the original run.
+- `HealthyRun` transports the existing uncapped chronological induction
+  back to the original run. It reconstructs authentication in the original
+  environment and proves the invariant through an early cutoff, including
+  all receipts and the preceding gate at that exact time. This reuses the
+  existing capped, above-cap, disabled, and mixed-mode proofs.
+- `HealthyHistory` proves continuation of raw sources, pending raw coverage,
+  the whole-tip finite guard, and next-HEAD finite-root compatibility.
+  Every lease is traced to its actual raw source. No lease-below-S claim
+  is used.
+- `PendingAuthority` proves that an old timely target continues through
+  the healthy batch whenever PC control is active at a later input. It
+  reuses the proof that a failed transfer causes common disablement.
+  Same-label PCs use honest exact preparations. Honest ack times exclude
+  later PCs at the pending gate and bound frozen/carried HEAD selection.
+  The resulting prefix guards cover late disclosure and mixed modes
+  without a fault cap. They do not promise that a PC accepts the raw tip.
+- `RecordHistory` and `HealthyCoverage` derive exact stable-record sources,
+  covering HEADs, raw service, and public record coverage. The shared
+  record interval proof in `History` now accepts any engine field; the
+  original SA/Grid CO wrapper retains its name and type.
+- `Outage` closes general and fast P1 with the exact regimes. The last
+  completed gate makes the protected prefix common. Records stay fixed
+  until the pending gate. The full raw window or the high honest count
+  supplies admission there. The proved finite/PC guards and pending HEAD
+  seed supply lease retention through the required budget. No interface
+  premise is added to either regime.
+- `StrongClean` proves PC target order from preparation-label order under
+  capped Sleepy. Canonical source comparability gives strong agreement;
+  target order and retained certificate rank give strong monotonicity.
+  Exact honest proposal HEADs and their continuation supply the existing
+  PC service theorem. At the `6Δ` gate, the selected PC has the proposal's
+  exact label and target: its rank cannot be lower, and a later label
+  would need an honest ack beyond the gate. Strong monotonicity covers
+  equal-time receipts. These are the actual companion clean fields.
+
 ## Exact remaining work
 
-Resume with general and fast P1. The uncapped chronological induction,
-safety, monotonicity, exact proposal HEADs, and clean and fast `6Δ`
-inclusion are complete.
+General and fast P1, all base clean claims, and capped strong safety and
+full-participation `6Δ` inclusion are complete.
 
-1. Prove general and fast P1, including the pending healthy HEAD and the
-   first prefix lease when the raw descendant is PC-vetoed. Reuse SA
-   source, transfer, and lease-map proofs after proving the SA-PC
-   interfaces. Extend the clean first-use and mode-change arguments to
-   the healthy outage prefix and its pending boundary. Plain Sleepy
-   safety does not supply an outage-boundary theorem. The local prefix
-   acquisition and protected-record gate lemmas are now proved in
-   `GateAdmission`. Derive their finite guard, prefix-PC compatibility,
-   admission, and deadline bound at the actual pending gate; retain the
-   lease through later clocks using the SA release-count and map proofs.
-2. Prove sound strong arming and the boundary HEAD with an older freeze;
-   exclude the first departure without a duration budget. Prove full
-   clean PC inclusion, strong safety, and late-reveal protection. Base
-   safety alone proves none of these strong fields.
-3. Use the proved genuine F4 transfer after showing finite-root
-   compatibility: release opposing leases for fast sources, and exclude
+1. Prove sound strong arming from `StrongArmedRegime`, including finite
+   source compatibility and the boundary HEAD whose freeze precedes
+   common PC receipt. The existing `installedPC_healthy_relay` proves
+   common evidence and rank; it does not prove target-prefix preservation
+   or the boundary HEAD. Exclude the first departure with no duration
+   budget. Cover conflicting floors, later certificates, all finite lease
+   writes, and old certificates first revealed after arming. The capped
+   Sleepy safety and inclusion proofs do not establish these outage facts.
+2. Prove Recovery within `2L+G+8Δ`. First establish finite-root compatibility
+   for genuine F4 transfer: release opposing fast-source leases; exclude
    recent conflicting writes and expire older ones for full slow windows.
    Derive above-f genuine support from the full honest batch. Prove
-   permanent accessible support, expiry of all unsupported sources, and
-   fresh-PC record repair within `2L+G+8Δ`. Reuse SA's source-support
-   recovery interface. Its `SynchronousLabel` has a proposal-time boundary;
-   do not substitute the paper's first synchronous HEAD without a proof.
-   Deriving the cap is not a recovery proof.
-4. Assemble `sapcContract_from_engine`, SA-PC `fastP1_from_engine`, and
-   `sapcStrong_from_engine`; audit their axioms.
+   permanent accessible support, expiry of unsupported sources, and fresh
+   PC record repair. Reuse SA's source-support interface. Its
+   `SynchronousLabel` has a proposal-time boundary; do not substitute the
+   paper's first synchronous HEAD without proof. Deriving the cap alone
+   does not prove Recovery. Prove both recovered strong fields as well.
+3. Assemble `sapcContract_from_engine` and `sapcStrong_from_engine` and
+   audit their axioms. SA-PC `fastP1_from_engine` is complete and no
+   longer a bundle-assembly gap.
 
-No contract issue has been established through round 18. No requested
+No contract issue has been established through round 20. No requested
 contract claim has a checked counterexample. The round-9 universal
 free-path event obligation has the checked counterexample above. Do not
 weaken a premise or conclusion to close a gap. No incomplete Lean
@@ -1262,3 +1365,58 @@ could not start Lean through the installed throttle. Its elapsed time
 and CPU use were checked, and it was stopped. Validation then used the
 same throttle with lock access. No throttle setting changed. All session
 logs were inside the repository and were removed after validation.
+
+## Round 19 validation
+
+Targeted `lake build --wfail` checks pass for all seven new SA-PC
+modules, the generic induction and read bridge, and the batch and
+transfer refactors. The final full `lake build --wfail` passes all
+3,502 jobs with no warnings. The default targets retain
+`gridContract_from_engine`, `saContract_from_engine`, SA
+`fastP1_from_engine`, and all existing smoke and counterexample checks.
+
+The default SA-PC audit has 721 `#print axioms` entries. The 50 added
+entries cover all 43 new SA-PC theorems, two generic engine theorems,
+two newly public shared fold lemmas, and three refactored shared wrappers.
+The full build prints 792 audit results across the libraries. All use at
+most `propext`, `Classical.choice`, and `Quot.sound`; both shared fold
+lemmas use no axioms. No default target imports a pending module.
+
+`git diff --check` passes. No `sorry`, `admit`, project axiom, or
+`native_decide` was introduced. No contract definition, executable rule,
+or clean-invariant field changed. No Git commit or `lake update` was
+made. `state.md` and `log.md` are unchanged. Validation used the installed
+Lean throttle with lock access; process checks included elapsed time and
+CPU use. No throttle setting changed. All session logs and the refactor
+script were inside the repository and were removed after validation.
+
+
+## Round 20 validation
+
+All nine new modules pass targeted checks with `--wfail`. The shared
+`History` field refactor and the exported schedule filter lemma also
+pass. The final full `lake build --wfail` passes all 3,511 jobs with no
+warnings. Default targets retain `gridContract_from_engine`,
+`saContract_from_engine`, SA `fastP1_from_engine`, and all existing smoke
+and counterexample checks. They now also build SA-PC's two P1 theorems
+and both capped strong clean theorems.
+
+The SA-PC audit has 777 `#print axioms` entries. The 56 new entries cover
+all 52 theorems in the nine new modules, the three new shared public
+helpers, and the retained shared interval wrapper. The full build prints
+848 audit results. Every dependency is one of `propext`,
+`Classical.choice`, and `Quot.sound`, or the theorem uses no axioms.
+No default module imports `Pending/`.
+
+`git diff --check` passes. No `sorry`, `admit`, project axiom, or
+`native_decide` was introduced. No contract definition, executable rule,
+or clean-invariant field changed. No new checked counterexample or
+contract issue was found. Strong arming and persistence, Recovery, and
+the two bundle inhabitants remain pending as listed above.
+
+No Git commit or `lake update` was made. `state.md` and `log.md` were
+not changed. Validation used the installed Lean throttle with lock
+access. Process checks included elapsed time and CPU use; the initial
+sandbox denied `ps`, so the checks used approved access. No throttle
+setting changed. All seven session logs were inside the repository and
+were removed after validation. No session scratch file remains.

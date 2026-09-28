@@ -1696,7 +1696,7 @@ theorem write_unique_keys {n : Nat} (st : State n) (b : Block)
     · subst y
       rfl
 
-private theorem foldl_unique_keys {n : Nat} {α : Type}
+theorem foldl_unique_keys {n : Nat} {α : Type}
     (f : State n → α → State n) (xs : List α) (st : State n)
     (hstep : ∀ acc x, UniqueObligationKeys acc →
       UniqueObligationKeys (f acc x))

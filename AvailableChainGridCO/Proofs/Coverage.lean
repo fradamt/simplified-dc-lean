@@ -41,53 +41,8 @@ theorem read_field_eq_clock {α : Type} {V : Type} [DecidableEq V]
     (E : Env V) (rho : Run V (gridCO p)) (hs : ScheduleWellFormed E rho)
     (reader : V) (t : Time) (htick : Event.tick reader t ∈ rho.events) :
     f (Run.readAt (gridCO p) rho t reader) =
-      f (clock p (Run.stateBeforeTime (gridCO p) rho t reader) t) := by
-  obtain ⟨i, hi⟩ := List.mem_iff_getElem?.mp htick
-  let k := (rho.events.filter (fun e => decide (e.time ≤ t))).length
-  have hik : i < k := (index_lt_read_length_iff hs t hi).mpr (le_refl _)
-  have hstep : Run.stateBefore (gridCO p) rho (i + 1) reader =
-      clock p (Run.stateBeforeTime (gridCO p) rho t reader) t := by
-    rw [stateBefore_succ_event hi]
-    simp only [World.step, Function.update_self]
-    exact congrArg (fun st => clock p st t) (stateBefore_tick_eq_stateBeforeTime hs hi)
-  have hstay : ∀ j, i + 1 ≤ j → j ≤ k →
-      f (Run.stateBefore (gridCO p) rho j reader) =
-        f (Run.stateBefore (gridCO p) rho (i + 1) reader) := by
-    intro j
-    induction j with
-    | zero => intro hj; exact (Nat.not_succ_le_zero i hj).elim
-    | succ j ih =>
-        intro hj hjk
-        rcases eq_or_lt_of_le hj with he | hlt
-        · rw [he]
-        · rw [← ih (by omega) (by omega)]
-          cases he : rho.events[j]? with
-          | none => simp [Run.stateBefore, List.take_add_one, he]
-          | some e =>
-              rw [stateBefore_succ_event he]
-              cases e with
-              | deliver v o t' =>
-                  by_cases hv : reader = v
-                  · subst v; simpa [World.step] using hf _ o
-                  · simp [World.step, hv]
-              | tick v t' =>
-                  have hv : reader ≠ v := by
-                    intro heq
-                    subst v
-                    have hu : t' ≤ t := (index_lt_read_length_iff hs t he).mp (by omega)
-                    have ht : t' = t := by
-                      apply le_antisymm hu
-                      by_contra hn
-                      have hji := eventIndex_lt_of_time_lt hs he hi (lt_of_not_ge hn)
-                      omega
-                    obtain ⟨hjl, hje⟩ := List.getElem?_eq_some_iff.mp he
-                    obtain ⟨hil, hie⟩ := List.getElem?_eq_some_iff.mp hi
-                    have hij : j = i := (List.Nodup.getElem_inj_iff hs.nodup).mp
-                      (by rw [hje, hie, ht])
-                    omega
-                  simp [World.step, hv]
-  rw [readAt_eq_stateBefore hs t]
-  exact (hstay k (by omega) (le_refl _)).trans (congrArg f hstep)
+      f (clock p (Run.stateBeforeTime (gridCO p) rho t reader) t) :=
+  Engine.read_field_eq_clock (gridCO p) f hf E rho hs reader t htick
 
 /-- Equal-time deliveries preserve the lease map after the public tick. -/
 theorem read_obligations_eq_clock {V : Type} [DecidableEq V]

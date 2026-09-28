@@ -234,6 +234,35 @@ record prefix. Both run-level P1 claims still need the healthy-prefix and
 pending-boundary proofs. Strong claims, recovery, and bundle assembly
 also remain pending.
 
+Round 19 adds `LeaseProtection`, `OutageProtection`, `GateRead`,
+`HealthyBatch`, `SlowHistory`, `LocalTransfer`, and `PendingProtection`.
+The shared `ProtectionInduction` supplies the same event induction and
+public-read bridge for SA and SA-PC. Actual prefix leases persist until
+their deadlines under arbitrary delivery and mode changes. Healthy early
+batches give pending raw results and fast admission; immutable raw windows
+give slow admission. Local pending HEAD transfer needs no relay or prior
+lease. `pending_prefix_protection` combines these facts but still requires
+healthy-prefix record and PC-authority premises. Neither contract P1 claim
+is proved yet; strong claims, recovery, and the bundle inhabitants remain
+pending. No contract or executable rule changed.
+
+Round 20 completes both P1 claims in `Proofs/Outage.lean`:
+`stable_resilient_from_engine` and SA-PC `fastP1_from_engine`. The shared
+`RunPrefix` and `HealthyPrefix` proofs let `HealthyRun` reuse the uncapped
+clean induction through a healthy cutoff equal to a gate. `HealthyHistory`
+and `PendingAuthority` derive the pending finite and PC guards from actual
+sources, with no cap. `RecordHistory` and `HealthyCoverage` connect stable
+reads to healthy HEADs and records. The shared `History` field proof keeps
+the original SA/Grid CO API. Slow-window and fast-count admission then
+close the pending protection interface and both exact contract claims.
+
+`StrongClean` proves `strong_safe_from_engine` and
+`strong_included_from_engine` under the explicit cap. The proof orders PC
+targets by preparation label and supplies exact `6Δ` PC service. Sound
+arming, persistence with no budget, late-reveal protection, Recovery, and
+the two bundle inhabitants remain pending. No contract or executable rule
+changed. Earlier round summaries above describe their historical status.
+
 ```text
 ┌────────────────────────────┬────────────────────────────────────────────┬───────────────────────────────┐
 │ Contract item              │ Lean name                                  │ File                          │

@@ -135,11 +135,17 @@ theorem cleanSupport_voter_unique {V : Type} [DecidableEq V] (p : Params)
 
 /-- Every genuine supporter occurs in the actual next support view.
 The cache's equivocation alternative is excluded by reverse relay. -/
-theorem cleanSupport_in_voterSupport_of_back_receipts {V : Type} [DecidableEq V] (p : Params)
+theorem cleanSupport_in_voterSupport_of_frozen_receipts {V : Type} [DecidableEq V] (p : Params)
     (E : Env V) (rho : Run V (sapc p)) (hs : ScheduleWellFormed E rho)
-    (hΔ : E.Δ = p.Δ) (r : Slot) (v w : V) (hv : v ∈ rho.honest) (hw : w ∈ rho.honest)
+    (hΔ : E.Δ = p.Δ) (r : Slot) (v w : V) (hw : w ∈ rho.honest)
     (hh : freezeTime p r ≤ rho.horizon)
-    (hforward : RelayBy p rho (earlyTime p r) (freezeTime p r))
+    (forward : ∀ i b,
+      (⟨.seat r i, .head b⟩ : GridCO.Wire p.n) ∈ GridCO.earlyVotes p.engine
+        (Run.stateBeforeTime (sapc p) rho (gateTime p r) v).base r →
+      let st := (Run.stateBeforeTime (sapc p) rho (freezeTime p r) w).base
+      b ∈ st.blocks ∧
+        ((⟨.seat r i, .head b⟩ : GridCO.Wire p.n) ∈ (GridCO.freezeView p.engine st r).2.1 ∨
+          GridCO.equivocates (GridCO.freezeView p.engine st r).1 i = true))
     (hback : BackReceipts p rho r v w)
     (o : GridCO.Wire p.n)
     (ho : o ∈ GridCO.cleanSupport p.engine
@@ -154,7 +160,7 @@ theorem cleanSupport_in_voterSupport_of_back_receipts {V : Type} [DecidableEq V]
     rcases o with ⟨auth, payload⟩
     cases auth <;> cases payload <;> simp_all [GridCO.headLabel?]
   obtain ⟨i, b, rfl⟩ := hshape
-  obtain ⟨hb, hrec⟩ := early_head_at_freeze p E rho hs hΔ r v w hv hw hforward i b hearly
+  obtain ⟨hb, hrec⟩ := forward i b hearly
   have hf := headState_base_frozenAt p E rho hs hΔ r w hw hh
   have hraw : (GridCO.freezeView p.engine
       (Run.stateBeforeTime (sapc p) rho (freezeTime p r) w).base r).1 ⊆
@@ -188,6 +194,23 @@ theorem cleanSupport_in_voterSupport_of_back_receipts {V : Type} [DecidableEq V]
     push_cast
     linarith [p.deltaPos]
 
+/-- Every genuine supporter occurs in the actual next support view.
+The cache's equivocation alternative is excluded by reverse relay. -/
+theorem cleanSupport_in_voterSupport_of_back_receipts {V : Type} [DecidableEq V] (p : Params)
+    (E : Env V) (rho : Run V (sapc p)) (hs : ScheduleWellFormed E rho)
+    (hΔ : E.Δ = p.Δ) (r : Slot) (v w : V) (hv : v ∈ rho.honest) (hw : w ∈ rho.honest)
+    (hh : freezeTime p r ≤ rho.horizon)
+    (hforward : RelayBy p rho (earlyTime p r) (freezeTime p r))
+    (hback : BackReceipts p rho r v w)
+    (o : GridCO.Wire p.n)
+    (ho : o ∈ GridCO.cleanSupport p.engine
+      (Run.stateBeforeTime (sapc p) rho (gateTime p r) v).base r) :
+    o ∈ GridCO.voterSupportView p.engine (headState p rho (r + 1) w).base (r + 1) ∧
+      ∃ target, GridCO.headTarget? o = some target ∧
+        target ∈ (headState p rho (r + 1) w).base.blocks :=
+  cleanSupport_in_voterSupport_of_frozen_receipts p E rho hs hΔ r v w hw hh
+    (early_head_at_freeze p E rho hs hΔ r v w hv hw hforward) hback o ho
+
 theorem cleanSupport_in_voterSupport {V : Type} [DecidableEq V] (p : Params)
     (E : Env V) (rho : Run V (sapc p)) (hs : ScheduleWellFormed E rho)
     (hΔ : E.Δ = p.Δ) (r : Slot) (v w : V) (hv : v ∈ rho.honest) (hw : w ∈ rho.honest)
@@ -203,6 +226,32 @@ theorem cleanSupport_in_voterSupport {V : Type} [DecidableEq V] (p : Params)
   cleanSupport_in_voterSupport_of_back_receipts p E rho hs hΔ r v w hv hw hh hforward
     (voter_raw_at_gate p E rho hs r v w hv hw hback) o ho
 
+/-- The common SA transfer object needs support reflection and reverse
+receipts. These inputs can come from relay or from one reader's history. -/
+theorem genuine_transfer_receipts_of_support {V : Type} [DecidableEq V] (p : Params)
+    (E : Env V) (rho : Run V (sapc p)) (hx : ExecutionValid (sapc p) E rho)
+    (r : Slot) (v w : V) (b : Block)
+    (forward : ∀ o, o ∈ GridCO.cleanSupport p.engine
+      (Run.stateBeforeTime (sapc p) rho (gateTime p r) v).base r →
+      o ∈ GridCO.voterSupportView p.engine (headState p rho (r + 1) w).base (r + 1) ∧
+        ∃ target, GridCO.headTarget? o = some target ∧
+          target ∈ (headState p rho (r + 1) w).base.blocks)
+    (back : BackReceipts p rho r v w) :
+    GridCO.TransferReceipts p.engine
+      (Run.stateBeforeTime (sapc p) rho (gateTime p r) v).base r
+      (headState p rho (r + 1) w).base.blocks
+      (GridCO.voterView p.engine (headState p rho (r + 1) w).base (r + 1))
+      (GridCO.voterSupportView p.engine (headState p rho (r + 1) w).base (r + 1)) b := by
+  refine ⟨fun o ho _ => forward o ho, fun o ho i hi => back o i hi ho, ?_⟩
+  apply voterSupport_subset_raw
+  · have h := frozenViewsStored_at_fold p
+      ((rho.events.filter (fun e => decide (e.time < voteTime p (r + 1)))) ++
+        [.tick w (voteTime p (r + 1))]) w
+    simpa only [List.foldl_append, List.foldl_cons, List.foldl_nil,
+      World.step, Function.update_self] using h
+  · simpa only [headState, DeclaredSupport, clock_base_proposals] using
+      declaredSupport_beforeTime p E rho hx (voteTime p (r + 1)) w
+
 /-- The SA support-transfer interface holds for actual SA-PC gate and
 HEAD states, in either mode and without an actual fault cap. -/
 theorem genuine_transfer_receipts_of_back_receipts {V : Type} [DecidableEq V] (p : Params)
@@ -215,19 +264,10 @@ theorem genuine_transfer_receipts_of_back_receipts {V : Type} [DecidableEq V] (p
       (Run.stateBeforeTime (sapc p) rho (gateTime p r) v).base r
       (headState p rho (r + 1) w).base.blocks
       (GridCO.voterView p.engine (headState p rho (r + 1) w).base (r + 1))
-      (GridCO.voterSupportView p.engine (headState p rho (r + 1) w).base (r + 1)) b := by
-  refine ⟨fun o ho _ => cleanSupport_in_voterSupport_of_back_receipts p E rho
-      hx.toScheduleWellFormed hΔ
-      r v w hv hw hh hforward hback o ho,
-    fun o ho i hi => hback o i hi ho, ?_⟩
-  apply voterSupport_subset_raw
-  · have h := frozenViewsStored_at_fold p
-      ((rho.events.filter (fun e => decide (e.time < voteTime p (r + 1)))) ++
-        [.tick w (voteTime p (r + 1))]) w
-    simpa only [List.foldl_append, List.foldl_cons, List.foldl_nil,
-      World.step, Function.update_self] using h
-  · simpa only [headState, DeclaredSupport, clock_base_proposals] using
-      declaredSupport_beforeTime p E rho hx (voteTime p (r + 1)) w
+      (GridCO.voterSupportView p.engine (headState p rho (r + 1) w).base (r + 1)) b :=
+  genuine_transfer_receipts_of_support p E rho hx r v w b
+    (cleanSupport_in_voterSupport_of_back_receipts p E rho hx.toScheduleWellFormed hΔ
+      r v w hv hw hh hforward hback) hback
 
 theorem genuine_transfer_receipts {V : Type} [DecidableEq V] (p : Params)
     (E : Env V) (rho : Run V (sapc p)) (hx : ExecutionValid (sapc p) E rho)
@@ -242,6 +282,29 @@ theorem genuine_transfer_receipts {V : Type} [DecidableEq V] (p : Params)
       (GridCO.voterSupportView p.engine (headState p rho (r + 1) w).base (r + 1)) b :=
   genuine_transfer_receipts_of_back_receipts p E rho hx hΔ r v w hv hw hh hforward
     (voter_raw_at_gate p E rho hx.toScheduleWellFormed r v w hv hw hback) b
+
+/-- A target stored at the freeze supplies its non-genesis ancestor path
+in the ordinary next-duty domain. No network premise is required. -/
+theorem path_in_voterTree_of_frozen_target {V : Type} [DecidableEq V] (p : Params)
+    (E : Env V) (rho : Run V (sapc p)) (hs : ScheduleWellFormed E rho)
+    (hΔ : E.Δ = p.Δ) (r : Slot) (w : V) (hw : w ∈ rho.honest)
+    (hh : freezeTime p r ≤ rho.horizon) (target b : Block)
+    (htarget : target ∈ (Run.stateBeforeTime (sapc p) rho (freezeTime p r) w).base.blocks)
+    (hn : b ≠ .genesis) (hp : Block.Preceq b target) :
+    b ∈ GridCO.voterTree p.engine (headState p rho (r + 1) w).base (r + 1) := by
+  have hb := (paths_at_fold p _ w).1 target htarget b hn hp
+  apply List.mem_filter.mpr
+  refine ⟨?_, ?_⟩
+  · simp only [headState, clock_blocks]
+    apply (time_input_base_receiptPrefix p E rho hs _ _ ?_ w).blocks.subset hb
+    change 4 * p.Δ * (r : Time) + 3 * p.Δ ≤ 4 * p.Δ * ((r + 1 : Nat) : Time) + p.Δ
+    push_cast
+    linarith [p.deltaPos]
+  · apply Bool.or_eq_true_iff.mpr
+    left
+    simp only [Nat.add_sub_cancel, headState_base_frozenAt p E rho hs hΔ r w hw hh]
+    rw [(base_freezeView_at_input p E rho hs r w).2]
+    exact decide_eq_true hb
 
 /-- The ordinary frozen domain contains every non-genesis ancestor of
 an early resolved target, including at sleeping readers. -/
@@ -260,19 +323,7 @@ theorem early_path_in_voterTree {V : Type} [DecidableEq V] (p : Params)
     linarith [p.deltaPos]
   have htarget := strict_block_relay p E rho hs _ _ hef hrelay v w hv hw target
     (early_head_at_early p E rho hs hΔ r v o target ht ho).2
-  have hb := (paths_at_fold p _ w).1 target htarget b hn hp
-  apply List.mem_filter.mpr
-  refine ⟨?_, ?_⟩
-  · simp only [headState, clock_blocks]
-    apply (time_input_base_receiptPrefix p E rho hs _ _ ?_ w).blocks.subset hb
-    change 4 * p.Δ * (r : Time) + 3 * p.Δ ≤ 4 * p.Δ * ((r + 1 : Nat) : Time) + p.Δ
-    push_cast
-    linarith [p.deltaPos]
-  · apply Bool.or_eq_true_iff.mpr
-    left
-    simp only [Nat.add_sub_cancel, headState_base_frozenAt p E rho hs hΔ r w hw hh]
-    rw [(base_freezeView_at_input p E rho hs r w).2]
-    exact decide_eq_true hb
+  exact path_in_voterTree_of_frozen_target p E rho hs hΔ r w hw hh target b htarget hn hp
 
 /-- A genuine result has positive surviving support. One such receipt
 supplies its whole next-duty path through the ordinary frozen domain. -/

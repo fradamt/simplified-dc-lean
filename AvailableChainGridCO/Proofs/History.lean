@@ -149,25 +149,52 @@ private theorem filter_split_time {V O : Type} (xs : List (Event V O))
         · simp only [hb, lt_of_not_ge ha, and_self, ↓reduceIte, ih']
         · simp only [hb, and_false, ↓reduceIte, ih']
 
+/-- A field is constant across events whose clocks and receipts preserve it.
+The engine proof is shared by SA and SA-PC. -/
+theorem fold_field_unchanged {V : Type} [DecidableEq V] {n : Nat}
+    {P : ProtocolSpec n} {α : Type} (field : P.State → α)
+    (hprocess : ∀ st o, field (P.process st o) = field st)
+    (xs : List (Event V P.Object))
+    (hclock : ∀ e ∈ xs, ∀ st, field (P.clock st e.time) = field st)
+    (w : World V P) (v : V) : field ((xs.foldl World.step w) v) = field (w v) := by
+  induction xs generalizing w with
+  | nil => rfl
+  | cons e xs ih =>
+      rw [List.foldl_cons, ih (by intro e he; exact hclock e (by simp [he]))]
+      cases e with
+      | tick u t =>
+          by_cases h : v = u
+          · subst v; simpa [World.step] using hclock (.tick u t) (by simp) (w u)
+          · simp [World.step, h]
+      | deliver u o t =>
+          by_cases h : v = u
+          · subst v; simpa [World.step] using hprocess (w u) o
+          · simp [World.step, h]
+
 private theorem fold_record_unchanged {V : Type} [DecidableEq V]
     (p : Params) (xs : List (Event V (gridCO p).Object))
     (hgate : ∀ e ∈ xs, ∀ r, e.time ≠ gateTime p r)
     (w : World V (gridCO p)) (v : V) :
-    ((xs.foldl World.step w) v).stableRecord = (w v).stableRecord := by
-  induction xs generalizing w with
-  | nil => rfl
-  | cons e xs ih =>
-      rw [List.foldl_cons, ih (by intro e he; exact hgate e (by simp [he]))]
-      cases e with
-      | tick u t =>
-          by_cases h : v = u
-          · subst v; simpa [World.step] using clock_stable_of_no_gate p (w u) t
-              (hgate (.tick u t) (by simp))
-          · simp [World.step, h]
-      | deliver u o t =>
-          by_cases h : v = u
-          · subst v; simpa [World.step] using process_stable p (w u) o
-          · simp [World.step, h]
+    ((xs.foldl World.step w) v).stableRecord = (w v).stableRecord :=
+  fold_field_unchanged State.stableRecord (process_stable p) xs
+    (fun e he st => clock_stable_of_no_gate p st e.time (hgate e he)) w v
+
+/-- A field is constant between reads if each clock in the interval and
+all receipts preserve it. Only the fixed engine order is used. -/
+theorem read_field_eq_of_no_clock_change {V : Type} [DecidableEq V] {n : Nat}
+    {P : ProtocolSpec n} {α : Type} (field : P.State → α)
+    (hprocess : ∀ st o, field (P.process st o) = field st)
+    (E : Env V) (rho : Run V P) (hs : ScheduleWellFormed E rho)
+    (a b : Time) (hab : a ≤ b)
+    (hclock : ∀ t, a < t → t ≤ b → ∀ st, field (P.clock st t) = field st) (v : V) :
+    field (Run.readAt P rho b v) = field (Run.readAt P rho a v) := by
+  have htime := hs.sorted.imp (fun h => time_le_of_key_le _ _ h)
+  unfold Run.readAt
+  rw [filter_split_time rho.events htime a b hab, List.foldl_append]
+  apply fold_field_unchanged field hprocess
+  intro e he st
+  have he' := of_decide_eq_true (List.mem_filter.mp he).2
+  exact hclock e.time he'.1 he'.2 st
 
 /-- Reads are constant on any interval without a gate. Delivery, release,
 expiry, and sleep do not change this fact. -/
@@ -177,13 +204,9 @@ theorem read_stable_eq_of_no_gate {V : Type} [DecidableEq V]
     (hgate : ∀ r, ¬ (a < gateTime p r ∧ gateTime p r ≤ b)) (v : V) :
     stable (Run.readAt (gridCO p) rho b v) =
       stable (Run.readAt (gridCO p) rho a v) := by
-  have htime := hs.sorted.imp (fun h => time_le_of_key_le _ _ h)
-  unfold Run.readAt stable
-  rw [filter_split_time rho.events htime a b hab, List.foldl_append]
-  apply fold_record_unchanged
-  intro e he r h
-  have he' := of_decide_eq_true (List.mem_filter.mp he).2
-  exact hgate r (by simpa [h] using he')
+  apply read_field_eq_of_no_clock_change State.stableRecord (process_stable p) E rho hs a b hab
+  intro t hlo hhi st
+  exact clock_stable_of_no_gate p st t (fun r eq => hgate r (eq ▸ ⟨hlo, hhi⟩))
 
 /-- Before the first gate, every exposed record is genesis. -/
 theorem read_stable_before_first_gate {V : Type} [DecidableEq V]
