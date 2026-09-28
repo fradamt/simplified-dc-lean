@@ -488,6 +488,15 @@ In a pinned quote, an F-number belongs to the file of that quote. Every
 `fg.finalLock.v1`. The FJ entry titles in §4 (F7, F9, F10, F12, F14, F17)
 use the r148 numbers. r148 F2 is `fj.crossingNoFinal.v1`.
 
+### 0.4 Named idealizations (added 2026-09-28)
+
+- `ViewRootInj`: distinct blocks of a view have distinct roots. This is
+  the collision-free root idealization, as in `fg.finalLock.v1`
+  (`NamedRootCollisionFree`). The lex order `(h_j, J.root)` and every tie
+  by root need it: DC's selector `pickUnique?` returns none on a tie of
+  distinct blocks (Astra plan audit G03,
+  `docs/audit/fg-plan-audit-report.md` lines 71–72).
+
 ## Index
 
 `§` is the section of this file. New ids in v2 are listed in §7; the
@@ -764,6 +773,10 @@ Ret_d(B) := B⪯Z_d
   F-basis rule of spec lines 742–750; the DC chain state (bp F5: one
   height per block; the entry `T_h` is the block that entered h). It does
   not use `a≤f`.
+- Hypothesis added 2026-09-28 (§0 rule (b): the rule uses the lex order
+  `(h_j, J.root)` and ties by root): `ViewRootInj` (§0.4).
+- Lean coverage (2026-09-28): Lean covers step 1 and part (ii)
+  (`fBasis_lexMax`); part (i) and step 4 stay paper.
 - Statement (registry): let d be an honest duty with view V_d and current
   accepted F = F_d. Let P1 be the greatest `(h_j, J.root)` justified pair
   in V_d whose J is compatible with F (the `fg.frame.v1` rule). Let P2 be
@@ -2644,6 +2657,8 @@ M0. r151 calls this cap μ and calls M0 simply M.
   origin: r144o §5.3, lines 565–583 (file `fgsa-no-nj-opus.md`, sha256
   `7df2a540134deddede78ea711754bb322911fced62271868f8b5034164db9f4e`).
 - Lean plan: DC-fj module (user 2026-09-28).
+- Hypotheses (named 2026-09-28; §0 rule (b): the pinned text uses the
+  lex order `(h_j, J.root)` and ties by root): `ViewRootInj` (§0.4).
 - Lean coverage (DC-fj module): frame only (F, H, j, J, Z, lo, D,
   contest, viability). `fgsa_head`, eligibility and the walk are AP data;
   see `ap.headReachesLo.v1` (user design correction 2026-09-28).
@@ -2730,7 +2745,8 @@ M0. r151 calls this cap μ and calls M0 simply M.
   `934fe2927f047a11e37dbe52aba9d754d5c461927f24b91902077f17459d47d2`.
 - Lean plan: DC-fj module (user 2026-09-28). Lean names in the plan
   (`docs/plans/2026-09-28-fg-module.md`, commit `befb5d5`):
-  `fjFrame_D_reachesLo` = part (1), `fjFrame_D_nonempty` = part (2).
+  `fjFrame_D_reachesLo` = part (1), `fjFrame_D_nonempty` = part (2),
+  `fjFrame_Z_mem_D` = part (3), `fjFrame_viable_child` = part (4).
 - Kind: FG frame lemma (audit W02: an `ap.*` id does not carry a pure
   frame lemma). It is the frame side of the feasibility of
   `ap.headReachesLo.v1`.
@@ -2738,7 +2754,10 @@ M0. r151 calls this cap μ and calls M0 simply M.
   K whose chain finalizes F (the accepting carrier of the F basis), with
   `h(K) > h_F` (DC `ChainOrder.finalized_below_height`, `Chain.lean:442`),
   and (b) every W ∈ V with `h(W) > h_F` extends F (the pure form of
-  `fg.finalLock.v1`, without slashable weight).
+  `fg.finalLock.v1`, without slashable weight); for part (2) in the
+  uncontested phase and for part (3), `ViewRootInj` (§0.4), named 2026-09-28 (§0
+  rule (b): the selected pair is the lex-max by root); V is
+  ancestor-closed and not empty.
 - Statement (registry, 2026-09-28): let (F, H, j, J, Z, lo, D) be the FJ
   frame of a view V.
   1. Pure: if D ≠ ∅, then some W ∈ D has state height ≥ lo. Proof: take
@@ -2749,6 +2768,16 @@ M0. r151 calls this cap μ and calls M0 simply M.
      (b), and it is its own witness, so W ∈ D. Uncontested phase (Z = J,
      lo = H−1): every frontier block W extends J, and `F ⪯ J` by the
      selection rule, so W ∈ D.
+  3. Under (a) and (b), Z ∈ D (added 2026-09-28). Uncontested phase:
+     Z = J, `F ⪯ J`, and a frontier block W extends J with
+     `h(W) = H ≥ lo`, so J has a witness. Gap or contested phase: Z = F,
+     and a frontier block W extends F by (a) and (b), with `h(W) = H ≥ lo`.
+     This is the Z-instance of part (2).
+  4. Pure: below lo every viable block of D has a child in D toward its
+     witness (added 2026-09-28). Let X ∈ D with `h(X) < lo` and witness W,
+     `X ⪯ W`, `h(W) ≥ lo`. Then X ≠ W. The child Y of X on the path to W is
+     in V (ancestor closure), and `F ⪯ Y`, `Z ⪯ Y`, `Y ⪯ W`, so Y ∈ D.
+     Pinned line 229: "Below lo every viable node has a viable child".
 - Statement (pinned):
 
 > _fj-redteam.md, lines 223–230:_
@@ -2944,6 +2973,8 @@ M0. r151 calls this cap μ and calls M0 simply M.
 - Variant `fj`. Source r148 §7 F10, lines 577–597. File `fj-redteam.md`,
   sha256 `934fe2927f047a11e37dbe52aba9d754d5c461927f24b91902077f17459d47d2`.
 - Lean plan: DC-fj module (user 2026-09-28).
+- Hypotheses (named 2026-09-28; §0 rule (b): the pinned text uses the
+  lex order `(h_j, J.root)` and ties by root): `ViewRootInj` (§0.4).
 - Statement (pinned):
 
 > _fj-redteam.md, lines 577–597:_
@@ -2981,6 +3012,12 @@ M0. r151 calls this cap μ and calls M0 simply M.
   coverage). A later helper lemma derives it in pure form from
   `fg.finalLock.v1` and the F carrier in the view; it will be pinned to
   this entry.
+- Note (2026-09-28): the clause "A lock at H would require an already
+  known carrier at H+1" will be the Lean lemma
+  `finalityPair_carrier_above`: the emitted finality pair is the head
+  state's `(h_j, J)`, and `justified_below_height` gives
+  `h(head) ≥ h_j+1`. Only the retention of that carrier in the full store
+  is a run fact.
 - Note: the old-band variant (FJ root test, band `{H−1,H}`) stalls (r148
   F11, REFUTED by the exact N12 execution, lines 599–711).
 
@@ -3048,7 +3085,8 @@ M0. r151 calls this cap μ and calls M0 simply M.
 - Lean plan: DC-fj module (user 2026-09-28).
 - Hypotheses: `fj.frame.v1`; `fg.uniqueJust.v1` (at most one justified
   entry at m−1); `fg.finalLock.v1`; `fj.crossingNoFinal.v1` (the "F2" of
-  line 783, r148 numbering).
+  line 783, r148 numbering); `ViewRootInj` (§0.4), named 2026-09-28 (§0 rule (b):
+  "the same unique top J" compares entries by root).
 - Statement (registry): fix a frontier m in a no-rise interval. Let
   J_(m−1) be the justified entry at m−1, if one exists. For an honest duty
   d with `H_d = m`, let `E_J(d)` mean "V_d holds a carrier of J_(m−1)",
@@ -3103,7 +3141,8 @@ M0. r151 calls this cap μ and calls M0 simply M.
 - Status: 2026-09-28 — PROVED (a≤f; r148 F12 without its settling
   sentences; r144o N16).
 - Formal reading (2026-09-28) of "finalizations add no change" (item 3)
-  for an F move F → F′ at one fixed view V at frontier m:
+  for an F move F → F′ at one fixed view V at frontier m ≥ 2 (at m = 1 no
+  change can act):
   (i) if `h(F′) < m−1` and every W ∈ V with `h(W) > h(F′)` extends F′
   (`fg.finalLock.v1`, pure form), then the phase, lo, and Z up to
   F → F′ are unchanged; (j, J) is unchanged if j = m−1 (in the gap phase
@@ -3113,13 +3152,17 @@ M0. r151 calls this cap μ and calls M0 simply M.
   ancestor of F′: its witness W has `h(W) ≥ lo ≥ m−1 > h(F′)`, so
   `F′ ⪯ W`, and B ⪯ W makes B and F′ comparable. This is "a common prefix
   below every band witness"; it is NOT "D unchanged".
-  (ii) If `h(F′) = m−1`, then F′ is the unique top J (`fg.uniqueJust.v1`).
-  The contested phase is impossible (`fj.crossingNoFinal.v1`). In the
-  uncontested phase Z = J = F′, so D is unchanged. Reading (ii) does not
-  cover the gap phase at a fixed view that does not hold the J carrier of
-  F′: there a witness at height exactly m−1 that does not extend F′ can
-  leave D, because `fg.finalLock.v1` needs `h(W) > h(F′)` (G02, line 69).
-  The F basis puts that carrier in later views, which is a view change.
+  (ii) If `h(F′) = m−1` and ∃ K ∈ V with `σ[K].F = F′` (a carrier of F′
+  in the view), then F′ is the unique top J (`fg.uniqueJust.v1`), and the
+  phase is not gap: K's chain has `h_F = m−1 ≤ h_j < h(K) ≤ m`, so K
+  carries the justified entry at m−1, which is F′. The contested phase is
+  impossible (`fj.crossingNoFinal.v1`). In the uncontested phase
+  Z = J = F′, so D is unchanged. Without the carrier hypothesis, (ii)
+  does not cover the gap phase: a witness at height exactly m−1 that does
+  not extend F′ can leave D, because `fg.finalLock.v1` needs
+  `h(W) > h(F′)` (G02, line 69). The F basis puts the carrier in later
+  views, which is a view change. (Revision 2026-09-28: `m ≥ 2` and the
+  carrier hypothesis of (ii) added.)
   Source: the Astra plan audit, G02, which refuted "D unchanged" with a
   4-validator example (file
   `lean/available-chain/docs/audit/fg-plan-audit-report.md`, lines 60–69,
@@ -4724,3 +4767,14 @@ SUPERSEDED entry is the conjunction of its successors.
   copied to `tsc/archive/<name>-<hash8>.md` (hashes verified), except
   r153a (`c85c0dcc`), which the adjudicator overwrote. `dc/consensus.tex`
   is kept by Git (commit `9f5ed71`).
+- Plan questions from ethereum-f1 (2026-09-28): §0.4 defines
+  `ViewRootInj` (collision-free roots in a view; G03). It is added by
+  §0 rule (b) to `fj.frame.v1`, `fj.frameFeasible.v1` (part (2)
+  uncontested and part (3)), `fg.frameCompat.v1`, `fj.inBandLock.v1` and
+  `fj.twoChanges.core.v1`. `fj.twoChanges.core.v1`: the formal reading
+  now requires `m ≥ 2`, and part (ii) has the hypothesis "a carrier of F′
+  in the view", which excludes the gap phase. `fj.frameFeasible.v1`: new
+  parts (3) Z ∈ D and (4) a viable child below lo (Lean
+  `fjFrame_Z_mem_D`, `fjFrame_viable_child`). `fj.inBandLock.v1`: a note
+  on the Lean lemma `finalityPair_carrier_above`. `fg.frameCompat.v1`:
+  Lean covers step 1 and part (ii); part (i) and step 4 stay paper.
