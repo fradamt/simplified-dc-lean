@@ -29,6 +29,11 @@ consistent with FRAMEWORK-DESIGN.md §7._
   replacement of a SUPERSEDED id by its successor ids; (b) a new reference
   by id to a fact that the pinned text already uses (for example "F4" or
   "finalized crossing"). Any other change of hypotheses gets a new id.
+- Pins to spec text resolve against `spec/archive/` by hash (rule added
+  2026-09-28): a pin to `spec/<name>.tex` with sha256 h refers to
+  `spec/archive/<name>-<first 8 hex digits of h>.tex`, whose sha256 is h.
+  The spec owner archives each registered spec version there before an
+  edit. The live `spec/` file can differ.
 - "FG-SA" in a status means a proof for the FG-SA client, that is, the
   Simplex policy with honest non-equivocating signers. As a certificate
   FAMILY over every policy σ, an AP-side entry still needs a proof that uses
@@ -79,18 +84,22 @@ Sources outside `tsc/` (registered 2026-09-28). `spec/` =
 unchanged since `588d666`).
 
 Note (2026-09-28): `spec/fgsa-protocol.tex` is not tracked in Git. It
-changed after registration (sha256 now
-`bc093836f57fd6decbf5d743afa0c4b14061d3e589e1cef83d58708ae35fec10`). Every
-spec line number in this registry refers to the registered version
-(`ae4497ab…`). A check on 2026-09-28 found each pinned spec block, with
-unchanged text, 5 lines lower in the new version (for example
-`fg_frame` lines 854–859 are now 859–864).
+changed after registration (sha256 then
+`bc093836f57fd6decbf5d743afa0c4b14061d3e589e1cef83d58708ae35fec10`: `R ≥ 2`
+as a parameter, a latency sentence and the δ_t range, which moved later
+lines by +5). Every spec pin and spec line number in this registry refers
+to the registered version `ae4497ab…`, archived as
+`spec/archive/fgsa-protocol-ae4497ab.tex` (sha256
+`ae4497abc7c5b3a6f73697f341bf730a63c7d34bd2f7546154bd022bc95af223`,
+verified 2026-09-28). The spec will change again (FV, r154); the pins are
+not re-pinned now. A citation of the form "spec/fgsa-protocol.tex, lines
+…" in an entry means the archived file.
 
 ```text
 ┌───────┬──────────────────────────────────────────────────────────────────┬──────────────────────────────────┬──────────────────────────────────┐
 │ Key   │ File                                                             │ SHA-256, first half              │ SHA-256, second half             │
 ├───────┼──────────────────────────────────────────────────────────────────┼──────────────────────────────────┼──────────────────────────────────┤
-│ spec  │ spec/fgsa-protocol.tex                                           │ ae4497abc7c5b3a6f73697f341bf730a │ 63c7d34bd2f7546154bd022bc95af223 │
+│ spec  │ spec/archive/fgsa-protocol-ae4497ab.tex                          │ ae4497abc7c5b3a6f73697f341bf730a │ 63c7d34bd2f7546154bd022bc95af223 │
 │ dc    │ dc/consensus.tex                                                 │ dc471b47a46896fe0a3df300c188fef1 │ 512f475615ce0fc0df18dbea6d2e5517 │
 │ vcE   │ vc/DecoupledConsensusProofs/Protocol/ValidatorClient/Engine.lean │ 92fb0e64c1288afea98b53212cb3ad5c │ 843c9c720187367eea578d17a9d53454 │
 │ vcF   │ vc/DecoupledConsensusProofs/Protocol/ChainState/                 │ aa0ed92740eb1ec8ee69e90fd2ae75f0 │ 3179a27c05accf5f631e7a254589b94c │
@@ -4540,3 +4549,7 @@ SUPERSEDED entry is the conjunction of its successors.
   FV changes `fg.frameCompat.v1` part (ii), `fj.frameFeasible.v1`
   hypothesis (a) and the F-basis hypotheses of `fg.frame.v2`; these
   entries need new ids if FV is adopted.
+- §0 rule: pins to spec text resolve against `spec/archive/` by hash.
+  §0.1 points the `ae4497ab` spec pins to
+  `spec/archive/fgsa-protocol-ae4497ab.tex` (reconstructed by the spec
+  owner; hash verified). No spec text was re-pinned.
