@@ -572,6 +572,7 @@ implication is PROVED. The entry has the full dated status line.
 │ comp.healedAtQ.v1     │ nj   │ OPEN                │ 5 │ —         │
 │ comp.finality.v1      │ nj   │ SKETCH              │ 5 │ —         │
 │ comp.clean.v1         │ nj   │ PROVED (FG-SA)      │ 5 │ —         │
+│ comp.outputNesting.v1 │ both │ PROVED              │ 5 │ —         │
 └───────────────────────┴──────┴─────────────────────┴───┴───────────┘
 ```
 
@@ -2581,6 +2582,9 @@ in §4. Every status below is for the FG-SA client (§0).
 
 - Status: 2026-09-28 — PROVED (r143 C7, C8; r148 F8). LEAN for DC only (the
   DC accountable-finality theorem); there is no FG-SA Lean instance.
+- Note (2026-09-28): the output-nesting clause is `comp.outputNesting.v1`;
+  the "local F never retreats" clause stays here (Lean
+  `update_finality_F_mono`).
 
 ## 4. `SimplexFG.fj` — FJ root rule, own frame and interface (audit W06)
 
@@ -3081,6 +3085,28 @@ M0. r151 calls this cap μ and calls M0 simply M.
 
 - Status: 2026-09-28 — PROVED (a≤f; r148 F12 without its settling
   sentences; r144o N16).
+- Formal reading (2026-09-28) of "finalizations add no change" (item 3)
+  for an F move F → F′ at one fixed view V at frontier m:
+  (i) if `h(F′) < m−1` and every W ∈ V with `h(W) > h(F′)` extends F′
+  (`fg.finalLock.v1`, pure form), then the phase, (j, J) and lo are
+  unchanged, and `D_new = {B ∈ D_old : F′ ⪯ B}`. Every removed block is an
+  ancestor of F′: its witness W has `h(W) ≥ lo ≥ m−1 > h(F′)`, so
+  `F′ ⪯ W`, and B ⪯ W makes B and F′ comparable. This is "a common prefix
+  below every band witness"; it is NOT "D unchanged".
+  (ii) If `h(F′) = m−1`, then F′ is the unique top J (`fg.uniqueJust.v1`).
+  The contested phase is impossible (`fj.crossingNoFinal.v1`). In the
+  uncontested phase Z = J = F′, so D is unchanged. Reading (ii) does not
+  cover the gap phase at a fixed view that does not hold the J carrier of
+  F′: there a witness at height exactly m−1 that does not extend F′ can
+  leave D, because `fg.finalLock.v1` needs `h(W) > h(F′)` (G02, line 69).
+  The F basis puts that carrier in later views, which is a view change.
+  Source: the Astra plan audit, G02, which refuted "D unchanged" with a
+  4-validator example (file
+  `lean/available-chain/docs/audit/fg-plan-audit-report.md`, lines 60–69,
+  commit `ea8ca7e`, sha256
+  `c57a50e7e863139073c7d27b9688903550f21f3ba8fde0b0e3c006771ed11813`).
+  r153 breaks this count only through view changes (a lower F advance adds
+  an F-basis witness to later views), not at a fixed view.
 - Note: the count is for settled phases, not for raw successive R1 duty
   frames (r148 F13, REFUTED; r151 line 24). Between an evidence event and
   its settling, duties can disagree on the phase.
@@ -4372,6 +4398,70 @@ the run parts of the f1 splits (§8).
 - Note: it has the same source as `ap.armedSafe.v1`. `ap.armedSafe.v1` is
   the AP-side statement; this entry is its composite form.
 
+### `comp.outputNesting.v1` — finalized ⪯ available at every read
+
+- Variant `both`. Sources: r143 §6, lines 483–485 (file `fgsa-fast.md`,
+  sha256 `8907540c5c71fe06703bc8d2ec2d30bc6cbc752a5f7577219a69196e2fd8ef37`);
+  r148 §5 F8, lines 460–462 (file `fj-redteam.md`, sha256
+  `934fe2927f047a11e37dbe52aba9d754d5c461927f24b91902077f17459d47d2`); spec
+  "Outputs", lines 444–456, and `get_confirmed`, lines 660–667 (file
+  `spec/archive/fgsa-protocol-ae4497ab.tex`, sha256
+  `ae4497abc7c5b3a6f73697f341bf730a63c7d34bd2f7546154bd022bc95af223`).
+- Lean plan: — (an AP accessor by construction).
+- Hypotheses: none. No fault bound and no synchrony premise.
+- Statement (registry): at every read, `finalized ⪯ available`, where
+  `available = S if F ⪯ S, else F`. This holds by the two cases of the
+  accessor. It does not give `F ⪯ S` in a damaged local state.
+- Statement (pinned):
+
+> _fgsa-fast.md, lines 483–485:_
+>
+> The live finality update advances F only to a proper descendant; local F
+> never retreats. The accessor in §4 gives `finalized⪯available` at every
+> read. These results do not depend on the missing base-history proof.
+
+> _fj-redteam.md, lines 460–462:_
+>
+> Pointwise finalized ⪯ available follows directly from the two accessor
+> cases, even outside the fault bound. It does not imply F⪯S in every
+> damaged local state.
+
+> _fgsa-protocol.tex, lines 444–456:_
+>
+> ```latex
+> \paragraph{Outputs.}  FG-SA exposes two tips~\FAST{4}.  The finalized
+> tip is $\Call{get\_finalized}{\Sigma}=\Sigma.F$.  The available tip is
+> \[
+>  \Call{get\_confirmed}{\Sigma}=
+>  \begin{cases}
+>   \Sigma.\latestConfirmed, & \Sigma.F\preceq\Sigma.\latestConfirmed,\\
+>   \Sigma.F, & \text{otherwise}.
+>  \end{cases}
+> \]
+> $\Call{get\_stable}{\Sigma}$ is equal to $\Call{get\_confirmed}{\Sigma}$.
+> The two tips nest at every node and every time by these two cases alone,
+> $\Sigma.F\preceq\Call{get\_confirmed}{\Sigma}$, with no fault bound and
+> no synchrony premise.  This does not give $\Sigma.F\preceq S$ in a
+> ```
+
+> _fgsa-protocol.tex, lines 660–667:_
+>
+> ```latex
+> \Function{get\_confirmed}{$\Sigma$}
+>   \Comment{\DC{7}, redefined by \FAST{4}; user-facing}
+>   \If{$\Sigma.F\preceq\Sigma.\latestConfirmed$}
+>     \State \Return $\Sigma.\latestConfirmed$
+>     \Comment{available $=S$ when $F\preceq S$}
+>   \EndIf
+>   \State \Return $\Sigma.F$
+> \EndFunction
+> ```
+
+- Status: 2026-09-28 — PROVED (by construction of the accessor; r143 C8;
+  r148 F8).
+- Note: this is the output-nesting clause of `fg.accountable.v1`, filed
+  as a composite because the accessor reads S, an AP record.
+
 ## 6. Invariants used by the composition (V03)
 
 Three separate invariants, each over execution prefixes:
@@ -4553,3 +4643,11 @@ SUPERSEDED entry is the conjunction of its successors.
   §0.1 points the `ae4497ab` spec pins to
   `spec/archive/fgsa-protocol-ae4497ab.tex` (reconstructed by the spec
   owner; hash verified). No spec text was re-pinned.
+- `fj.twoChanges.core.v1`: a dated "Formal reading" note for an F move at
+  a fixed view: below m−1, D loses only ancestors of F′ (not "D
+  unchanged"; Astra plan audit G02); at m−1, F′ is the unique top J and D
+  is unchanged. r153 breaks the count only through view changes.
+- New id `comp.outputNesting.v1` (both; PROVED; Lean plan —): finalized ⪯
+  available at every read, by the accessor. `fg.accountable.v1` has a
+  note: output nesting is `comp.outputNesting.v1`; "local F never
+  retreats" stays in `fg.accountable.v1` (Lean `update_finality_F_mono`).
