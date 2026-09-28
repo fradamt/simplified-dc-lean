@@ -2,6 +2,9 @@
 
 ```text
 │ Declaration │ Kind │ Claim │ Instance │ Status │
+│ AvailableChain.Registry.Counter.certPrefix │ cert │ AvailableChain.Framework.Catalog.prefixOrder │ AvailableChain.Registry.Counter.counterInst │ LEAN │
+│ AvailableChain.Registry.Counter.certSafeConfirmed │ cert │ AvailableChain.Framework.Catalog.safeConfirmed │ AvailableChain.Registry.Counter.counterInst │ LEAN │
+│ AvailableChain.Registry.Counter.certSafeStable │ cert │ AvailableChain.Framework.Catalog.safeStable │ AvailableChain.Registry.Counter.counterInst │ LEAN │
 │ AvailableChain.Registry.Sanity.certPrefix │ cert │ AvailableChain.Framework.Catalog.prefixOrder │ AvailableChain.Registry.Sanity.sanity │ LEAN │
 │ AvailableChain.Registry.Sanity.certSafeConfirmed │ cert │ AvailableChain.Framework.Catalog.safeConfirmed │ AvailableChain.Registry.Sanity.sanity │ LEAN │
 │ AvailableChain.Registry.Sanity.certSafeStable │ cert │ AvailableChain.Framework.Catalog.safeStable │ AvailableChain.Registry.Sanity.sanity │ LEAN │
