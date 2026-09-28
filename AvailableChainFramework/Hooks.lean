@@ -41,6 +41,11 @@ structure HooksSound (P : ProtocolSpec n) : Prop where
     (rho : Run V P), ScheduleWellFormed E rho → ∀ v o i j, i ≤ j →
       P.processed (Run.stateBefore P rho i v) o = true →
       P.processed (Run.stateBefore P rho j v) o = true
+  /-- `depsPresent` is monotone along a run (design E4). -/
+  deps_stable : ∀ {V : Type} [DecidableEq V] [Fintype V] (E : Env V)
+    (rho : Run V P), ScheduleWellFormed E rho → ∀ v o i j, i ≤ j →
+      P.depsPresent (Run.stateBefore P rho i v) o = true →
+      P.depsPresent (Run.stateBefore P rho j v) o = true
   /-- A handled object is the delivered object or one that it carries. -/
   handles_carries : ∀ st o o', P.handles st o o' → o = o' ∨ P.carries o o'
 

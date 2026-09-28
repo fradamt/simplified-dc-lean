@@ -310,6 +310,25 @@ theorem gridCOx_hooks (p : Params) : HooksSound (gridCOx p) where
             simp only [processed, blockKnown, decide_eq_true_eq] at hq ⊢
             exact process_blocks_subset p st o' hq)
       rho hij v h
+  deps_stable := by
+    intro V _ _ E rho _ v o i j hij h
+    exact stateBefore_stable (P := gridCOx p) (fun st => depsPresent st o = true)
+      (fun st t hq => by
+        change depsPresent (clock p st t) o = true
+        obtain ⟨auth, payload⟩ := o
+        cases payload with
+        | head x => rfl
+        | proposal b raw support =>
+            simpa [depsPresent, blockKnown, clock_blocks] using hq)
+      (fun st o' hq => by
+        change depsPresent (process p st o') o = true
+        obtain ⟨auth, payload⟩ := o
+        cases payload with
+        | head x => rfl
+        | proposal b raw support =>
+            simp only [depsPresent, blockKnown, decide_eq_true_eq] at hq ⊢
+            exact process_blocks_subset p st o' hq)
+      rho hij v h
   handles_carries := by
     intro st o o' h
     change handles p st o o' at h

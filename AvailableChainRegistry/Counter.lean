@@ -136,10 +136,13 @@ theorem stateBefore_mono (rho : Run V counter) {i j : Nat} (hij : i ≤ j) (v : 
 end Mono
 
 theorem counter_hooks : HooksSound counter := by
-  refine ⟨fun _ _ h => by simp [counter] at h, ?_, ?_, fun _ _ _ h => Or.inl h⟩
+  refine ⟨fun _ _ h => by simp [counter] at h, ?_, ?_, ?_, fun _ _ _ h => Or.inl h⟩
   · intro V _ _ E rho _ v o i j _ h; simp [counter] at h
   · intro V _ _ E rho _ v o i j hij h
     exact decide_eq_true (Nat.le_trans (of_decide_eq_true h) (stateBefore_mono rho hij v))
+  · intro V _ _ E rho _ v o i j hij h
+    exact decide_eq_true
+      (Nat.le_trans (of_decide_eq_true h) (Nat.add_le_add_right (stateBefore_mono rho hij v) 1))
 
 def counterInst : Instance where
   n := 1
