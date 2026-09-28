@@ -1,4 +1,6 @@
 module
+public import AvailableChainSAPC.Proofs.StrongPersistence
+public import AvailableChainSAPC.Proofs.RecoveryTransfer
 public import AvailableChainSAPC.Proofs.StrongClean
 public import AvailableChainSAPC.Proofs.RunClean
 public import AvailableChainSAPC.Proofs.ProposalFloors
@@ -883,3 +885,37 @@ public import AvailableChainSAPC.Proofs.RunCleanCapped
 #print axioms AvailableChain.GridCO.fold_field_unchanged
 #print axioms AvailableChain.GridCO.read_field_eq_of_no_clock_change
 #print axioms AvailableChain.GridCO.read_stable_eq_of_no_gate
+
+-- Round 21: sound arming, unbounded persistence, and Recovery F4 transfer.
+#print axioms AvailableChain.Engine.healthyInterior_sleepy
+#print axioms AvailableChain.SAPC.strongArmed_sleepy_prefix
+#print axioms AvailableChain.SAPC.strongArmed_invariant
+#print axioms AvailableChain.SAPC.strongArmed_pc_prefix
+#print axioms AvailableChain.SAPC.strongArmed_common_pc
+#print axioms AvailableChain.SAPC.strongArmed_finite_compatible
+#print axioms AvailableChain.SAPC.strongArmed_common_strong
+#print axioms AvailableChain.SAPC.strongArmed_healthy_heads
+#print axioms AvailableChain.SAPC.strongArmed_pending_head
+#print axioms AvailableChain.SAPC.strongArmed_head_of_healthy_freeze
+#print axioms AvailableChain.SAPC.compatible_with_prefix
+#print axioms AvailableChain.SAPC.gateWithPC_finite_compatible
+#print axioms AvailableChain.SAPC.clock_finite_compatible
+#print axioms AvailableChain.SAPC.choice_covers_of_pc
+#print axioms AvailableChain.SAPC.conflicting_score_le_faults
+#print axioms AvailableChain.SAPC.floor_compatible_of_heads
+#print axioms AvailableChain.SAPC.frozenPCAt_after_freeze
+#print axioms AvailableChain.SAPC.clock_frozenPCAt_retained
+#print axioms AvailableChain.SAPC.selectedPC_rank
+#print axioms AvailableChain.SAPC.strongArmed_rank_beforeTime
+#print axioms AvailableChain.SAPC.strongArmed_selected_rank
+#print axioms AvailableChain.SAPC.validPC_slot_lt_before_head
+#print axioms AvailableChain.SAPC.strongArmed_pc_prefix_of_earlier_heads
+#print axioms AvailableChain.SAPC.strongArmed_live_pc_of_earlier_heads
+#print axioms AvailableChain.SAPC.strongArmed_finite_of_earlier_heads
+#print axioms AvailableChain.SAPC.head_covers_of_pc_and_previous
+#print axioms AvailableChain.SAPC.strongArmed_no_head_departure
+#print axioms AvailableChain.SAPC.strongArmed_late_pc_prefix
+#print axioms AvailableChain.SAPC.strong_resilient_from_engine
+#print axioms AvailableChain.SAPC.full_batch_late_count
+#print axioms AvailableChain.SAPC.recovery_genuine_support_above_floor
+#print axioms AvailableChain.SAPC.recovery_genuine_head_covers

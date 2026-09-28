@@ -1,6 +1,6 @@
 # SA-PC status
 
-_2026-09-28. Round 20. Base contract frozen at Draft 4.3._
+_2026-09-28. Round 21. Base contract frozen at Draft 4.3._
 
 The additive companion statements and executable SA-PC model are in place.
 `Proofs/RunClean.lean` now proves `clean_run_invariant` from plain Sleepy
@@ -28,11 +28,18 @@ unchanged.
 
 `Proofs/StrongClean.lean` proves `strong_safe_from_engine` (agreement and
 monotonicity) and `strong_included_from_engine` (full-participation `6Δ`
-inclusion), with the explicit cap. Sound strong arming, persistence with
-no budget, late-reveal protection, recovery, and both bundle inhabitants
-remain pending. Neither `sapcContract_from_engine` nor
-`sapcStrong_from_engine` exists yet. No contract definition, executable
-rule, or invariant field changed.
+inclusion), with the explicit cap. `Proofs/StrongPersistence.lean` now
+proves `strong_resilient_from_engine` from the exact `StrongArmedRegime`,
+with no duration budget. It also proves that a PC first disclosed after
+arming cannot introduce a conflicting target at the same or a higher
+rank. Common installation, finite-source compatibility, and the boundary
+HEAD are derived from the companion premises.
+
+Recovery and both bundle inhabitants remain pending. The Recovery
+regime now supplies genuine support above `f` and transfer for arbitrary
+selected PCs when the remaining finite root is compatible.
+Neither `sapcContract_from_engine` nor `sapcStrong_from_engine` exists
+yet. No contract definition, executable rule, or invariant field changed.
 
 ## Sources and scope
 
@@ -1091,33 +1098,84 @@ the healthy-prefix induction or the pending PC-authority comparison.
   would need an honest ack beyond the gate. Strong monotonicity covers
   equal-time receipts. These are the actual companion clean fields.
 
+## Round 21: sound strong arming and unbounded persistence
+
+The exact companion field is now proved:
+`strong_resilient_from_engine` in `Proofs/StrongPersistence.lean` gives
+`PersistsFrom` for every run with `StrongArmedRegime`. It has no extra
+certificate, finite-root, participation, delivery, or duration premise.
+
+- Shared `HealthyInterior` makes any closed prefix strictly before the
+  healthy boundary a Sleepy run. It changes only GST in the proof
+  environment and retains the original awake schedule. Thus the cutoff
+  can contain proposals without adding blocks to the root scope. The
+  existing helper for a boundary with no proposal duty is unchanged.
+- `StrongArming` reuses the clean induction and PC target order through
+  the strict input at `b₀`. Healthy accepted relay gives each honest
+  reader a PC that extends the protected target. Every finite entry is
+  compatible with that target by its raw source, without a lease-below-S
+  premise or a completed slow window.
+- `StrongBoundary` transfers the protected PC's timely source through
+  the last healthy HEAD batch. Local SA genuine transfer then covers the
+  pending HEAD, including an older frozen PC and a carried PC first
+  revealed after the healthy cutoff. No outage delivery is used. The
+  honest ack time places the protected preparation before that batch.
+- `StrongSteps` proves that the prefix lease loop cannot write a
+  conflicting entry when the live PC contains the protected target.
+  This includes writes made while the whole raw tip is PC-vetoed.
+  Release and expiry only remove entries. The F4 score proof counts
+  every conflicting score seat as faulty, including the equivocator
+  contribution. Under the cap, a conflicting floor cannot pass F4.
+- `StrongSelection` proves exact freeze retention, including `none`,
+  and rank retention across arbitrary frozen/carried selection. Common
+  receipt supplies the rank floor for later freezes without further
+  delivery. A late live PC is not substituted for the frozen PC.
+- `StrongHistory` uses earlier honest preparation HEADs to exclude
+  higher conflicting PCs at the current input. Equal labels use quorum
+  uniqueness. An event induction then retains finite compatibility
+  from arming through the current HEAD, with no deadline budget.
+- `StrongPersistence` closes the induction on HEAD labels. A HEAD uses
+  the healthy batch if needed, or an extending frozen/carried PC with a
+  compatible floor and finite root. There is no first departure for any
+  run horizon. `strongArmed_late_pc_prefix` uses authenticated historical
+  preparations to cover all later valid PCs of at least the armed rank,
+  including old evidence first assembled or disclosed during the outage.
+  Stored rank retention and target containment give the exact public
+  strong persistence claim.
+- `RecoveryTransfer` starts the next work item. Full participation puts
+  every honest seat in the actual late denominator. The raw majority
+  test and the derived cap then give support above `f` for every genuine
+  prefix. `recovery_genuine_head_covers` reuses the existing F4 transfer
+  for any selected PC. Its finite-root compatibility premise is still
+  explicit. Its synchronous HEAD boundary does not replace SA's
+  proposal-time `SynchronousLabel` boundary.
+
+All new Lean declarations have complete proofs. No unfinished declaration
+or new assumption was added to a default target. The shared engine and
+both contracts are unchanged.
+
 ## Exact remaining work
 
-General and fast P1, all base clean claims, and capped strong safety and
-full-participation `6Δ` inclusion are complete.
+All base claims except Recovery are complete. Strong safety,
+full-participation `6Δ` inclusion, sound arming, unbounded persistence,
+and armed late-reveal protection are complete under the cap.
 
-1. Prove sound strong arming from `StrongArmedRegime`, including finite
-   source compatibility and the boundary HEAD whose freeze precedes
-   common PC receipt. The existing `installedPC_healthy_relay` proves
-   common evidence and rank; it does not prove target-prefix preservation
-   or the boundary HEAD. Exclude the first departure with no duration
-   budget. Cover conflicting floors, later certificates, all finite lease
-   writes, and old certificates first revealed after arming. The capped
-   Sleepy safety and inclusion proofs do not establish these outage facts.
-2. Prove Recovery within `2L+G+8Δ`. First establish finite-root compatibility
-   for genuine F4 transfer: release opposing fast-source leases; exclude
-   recent conflicting writes and expire older ones for full slow windows.
-   Derive above-f genuine support from the full honest batch. Prove
-   permanent accessible support, expiry of unsupported sources, and fresh
-   PC record repair. Reuse SA's source-support interface. Its
-   `SynchronousLabel` has a proposal-time boundary; do not substitute the
-   paper's first synchronous HEAD without proof. Deriving the cap alone
-   does not prove Recovery. Prove both recovered strong fields as well.
-3. Assemble `sapcContract_from_engine` and `sapcStrong_from_engine` and
-   audit their axioms. SA-PC `fastP1_from_engine` is complete and no
-   longer a bundle-assembly gap.
+1. Prove Recovery within `2L+G+8Δ`. The actual Recovery regime now gives
+   above-f genuine support and PC-independent F4 transfer, conditional
+   on the remaining finite root. Next prove fast-source release of all
+   opposing threshold-τ entries. Then exclude recent conflicting writes
+   and expire older entries for full synchronous slow windows. Track
+   exact admission sources and deadlines, including writes under a
+   vetoed raw tip. Derive permanent accessible support, the common
+   expiry of unsupported sources, and fresh PC record repair. Reuse SA's
+   source-support interface. Its `SynchronousLabel` has a proposal-time
+   boundary; do not replace it with the first synchronous HEAD without
+   proof. Prove both recovered strong fields. The strong arming theorem
+   requires healthy genesis and does not itself apply after arbitrary GST.
+2. Assemble `sapcContract_from_engine` and `sapcStrong_from_engine` and
+   audit their axioms. SA-PC `fastP1_from_engine` is already complete.
 
-No contract issue has been established through round 20. No requested
+No contract issue has been established through round 21. No requested
 contract claim has a checked counterexample. The round-9 universal
 free-path event obligation has the checked counterexample above. Do not
 weaken a premise or conclusion to close a gap. No incomplete Lean
@@ -1420,3 +1478,31 @@ access. Process checks included elapsed time and CPU use; the initial
 sandbox denied `ps`, so the checks used approved access. No throttle
 setting changed. All seven session logs were inside the repository and
 were removed after validation. No session scratch file remains.
+
+## Round 21 validation
+
+All eight new modules pass targeted `lake build --wfail` checks. The
+final full `lake build --wfail` passes all 3,519 jobs with no warnings.
+Default targets retain `gridContract_from_engine`, `saContract_from_engine`,
+SA and SA-PC `fastP1_from_engine`, and the existing smoke and
+counterexample checks. They now also build the exact SA-PC
+`strong_resilient_from_engine` and armed late-PC prefix theorem.
+
+The SA-PC audit has 809 `#print axioms` entries. All 32 new public
+theorems are included. The full build prints 880 audit results. Each
+dependency is `propext`, `Classical.choice`, or `Quot.sound`, or the
+theorem uses no axioms. No default module imports `Pending/`.
+
+`git diff --check` passes. No `sorry`, `admit`, project axiom, or
+`native_decide` was introduced. No contract definition, executable rule,
+or existing invariant field changed. No new checked counterexample or
+contract issue was found. Recovery and both bundle inhabitants remain
+pending as listed above.
+
+No Git commit or `lake update` was made. `state.md` and `log.md` were
+not changed. The initial sandboxed build could not start Lean through
+the installed throttle. Process checks included elapsed time and CPU
+use; that build was stopped, and validation used approved lock access.
+No throttle setting changed. All nine session logs were inside the
+repository and were removed after validation. No session scratch file
+remains.

@@ -68,6 +68,8 @@ public import AvailableChainSAPC.Proofs.GateAdmission
 public import AvailableChainSAPC.Proofs.PendingProtection
 
 public import AvailableChainSAPC.Proofs.StrongClean
+public import AvailableChainSAPC.Proofs.StrongPersistence
+public import AvailableChainSAPC.Proofs.RecoveryTransfer
 
 @[expose] public section
 end
