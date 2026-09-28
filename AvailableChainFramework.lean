@@ -10,6 +10,8 @@ public import AvailableChainFramework.Profile
 public import AvailableChainFramework.Pareto
 public import AvailableChainFramework.Catalog.Core
 public import AvailableChainFramework.Catalog.Meaning
+public import AvailableChainFramework.Catalog.Mono
+public import AvailableChainFramework.Catalog.Standard
 public import AvailableChainFramework.Kit.Core
 public import AvailableChainFramework.Engine.V2Sketch
 
