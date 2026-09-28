@@ -31,6 +31,7 @@ theorem viewRootInj_mono {Vw Vw' : View V} (hinj : ViewRootInj Vw') (h : Vw ⊆ 
     ViewRootInj Vw := fun X Y ⟨W, hW, hXW⟩ ⟨W', hW', hYW'⟩ hr =>
   hinj X Y ⟨W, h hW, hXW⟩ ⟨W', h hW', hYW'⟩ hr
 
+-- port: DC/DecoupledConsensusProofs/Protocol/ForkChoice/Goldfish/Walk.lean:53-64
 omit [Fintype V] in
 /-- [helper] `pickPair` returns the unique member that satisfies the test. -/
 theorem pickPair_eq_of_unique {α : Type} [DecidableEq α] (T : Finset α) (p : α → Bool)
@@ -42,6 +43,7 @@ theorem pickPair_eq_of_unique {α : Type} [DecidableEq α] (T : Finset α) (p : 
   have hch := Finset.choose_spec (fun x => p x = true) T hex
   exact congrArg some (hu _ hch.1 hch.2)
 
+-- port: DC/DecoupledConsensusProofs/Protocol/ForkChoice/Goldfish/Walk.lean:66-75
 omit [Fintype V] in
 /-- [helper] `pickPair` returns `none` on an empty set. -/
 theorem pickPair_empty {α : Type} [DecidableEq α] (p : α → Bool) :

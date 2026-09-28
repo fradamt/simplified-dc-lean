@@ -187,9 +187,12 @@ example : stF.TF = {.genesis, B1, B2, B3} ∧ stF.F = B1 ∧ stF.J = B1 ∧ stF.
     stF.h_max = 4 := by
   decide
 
-/-- Refusal of `F ⋠ B` (alfs4 line 796): `B1 ⋠ B1'`, so the store does not
-change, and `B1'` is not stored. -/
-example : on_block E4 cfg1 stF B1' = stF ∧ B1' ∉ (on_block E4 cfg1 stF B1').TF := by
+/-- Refusal of `F ⋠ B` (alfs4 line 796): `B1'` is new, its parent is in the tree,
+and its slot is greater than its parent's slot, but `B1 ⋠ B1'`. Only the F test
+refuses it: the store does not change, and `B1'` is not stored. -/
+example : B1' ∉ stF.TF ∧ B1'.parent ∈ stF.TF ∧ ¬ FGBlock.Preceq stF.F B1' ∧
+    B1'.parent.slot < B1'.slot ∧
+    on_block E4 cfg1 stF B1' = stF ∧ B1' ∉ (on_block E4 cfg1 stF B1').TF := by
   decide
 
 /-- Refusal of a block that is already in the tree (alfs4 line 794). -/
