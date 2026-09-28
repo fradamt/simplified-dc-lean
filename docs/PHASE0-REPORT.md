@@ -237,6 +237,10 @@ scripts, tactics, or witness terms only.
 
 ## 6. Open items for the Phase 1–2 plan
 
+Status after plan 1a (2026-09-28): a row that plan 1a closes or changes
+ends with a note "Plan 1a: …". The rows for plan 1b stay open. The last
+row (I9) is new.
+
 ```text
 ┌───────────┬────────────────────────────────────────────────────────────┐
 │ Area      │ Open item                                                  │
@@ -248,24 +252,39 @@ scripts, tactics, or witness terms only.
 │           │ claim that tells 'does not have the facet' apart from      │
 │           │ 'holds trivially'. Facet-needing claims do not enter the   │
 │           │ catalog in Phase 0 (Task 6 ruling I2).                     │
+│           │ Plan 1a: CLOSED. Task 4 (`99ffe0e`): a facet is a          │
+│           │ structure that extends Instance, with its own claim domain │
+│           │ (Facets/Strong.lean). An Instance without the facet has no │
+│           │ such claim, and Tests/NewFacet refutes a test claim on the │
+│           │ strong output for badStrong.                               │
 │ GridCO    │ processed and excludes can both hold for the same object   │
 │           │ (the old-label clause of excludes does not check processed │
 │           │ first). Must the two stay disjoint under the Phase 1       │
 │           │ excludes change?                                           │
+│           │ Plan 1a: open (plan 1b, with the Grid CO excludes change). │
 │ GridCO    │ Grid CO model facts (gate_votes, clock_votes,              │
 │           │ engineClockx) are public in the Registry namespace. Move   │
 │           │ them with the Phase 1 excludes change.                     │
+│           │ Plan 1a: open (plan 1b).                                   │
 │ Engine    │ stateBefore_stable (GridCOHooks.lean) and the run/step     │
 │           │ lemmas in Registry.Counter (Counter.lean, CounterRun.lean) │
 │           │ are engine-generic, for any ProtocolSpec, but live in L4.  │
 │           │ Move them into Kit.Engine in Phase 1.                      │
+│           │ Plan 1a: open (plan 1b).                                   │
 │ Registry  │ Candidate and ProfileCert values (sanity's refutation      │
 │           │ path, counterInst's candidate) are not rows of             │
 │           │ REGISTRY.md: their type is a Pi-type over c ∈ p.claims,    │
 │           │ not Cert c I itself. Add a row kind for them.              │
+│           │ Plan 1a: CLOSED. Task 6 (`2f7a53c`, `0b8ea16`): the row    │
+│           │ kind profile-cert for ProfileCert p I and Candidate I; the │
+│           │ claim column shows the profile id.                         │
 │ Registry  │ scripts/Registry.lean does not check axioms (a paper claim │
 │           │ vs. a LEAN-checked one). Task 6 M4: add an axiom check,    │
 │           │ matching AvailableChainSAPC/Tests/Axioms.lean's pattern.   │
+│           │ Closed before plan 1a (`87e95f8`, I7): the status LEAN or  │
+│           │ UNSOUND. Plan 1a Task 0 adds                               │
+│           │ scripts/CheckFrameworkAxioms.lean for every constant of    │
+│           │ both libraries.                                            │
 │ Registry  │ The include-only module-prefix filter                      │
 │           │ (AvailableChainRegistry) drops a future instance library   │
 │           │ silently if it is not under that prefix (Task 6 M1).       │
@@ -273,6 +292,9 @@ scripts, tactics, or witness terms only.
 │           │ bundles, and private certs (Task 6 M2). The Claim column   │
 │           │ shows a claim's def head, not a stable claim id (Task 6    │
 │           │ M3).                                                       │
+│           │ Plan 1a: M1 CLOSED. Task 0 (`426009e`): instanceLibraries  │
+│           │ lists the scanned libraries, and the file header names     │
+│           │ them. M2 and M3 stay open.                                 │
 │ Lock      │ Generated names (eq_N, mk.inj, sizeOf_spec) appear as      │
 │           │ locked lines. A toolchain change, or a new declaration     │
 │           │ that triggers more equation lemmas under a locked prefix,  │
@@ -282,6 +304,12 @@ scripts, tactics, or witness terms only.
 │           │ future per-declaration cert hashes (M7); Expr.hash ignores │
 │           │ binder info, and --check needs a build first, to read      │
 │           │ oleans (M8).                                               │
+│           │ Plan 1a: M5, M6 CLOSED. Task 0 (`426009e`, `6b7155a`):     │
+│           │ environment metadata, not a name suffix, identifies a      │
+│           │ generated name, and a generated name has no line; a bad    │
+│           │ axiom or a missing declaration exits 2. M7 is also closed: │
+│           │ each line hashes its full closure, with no memo. M8 stays  │
+│           │ open.                                                      │
 │ Sanity    │ Time is abbrev Time := Int in                              │
 │           │ AvailableChainModel/Objects/Time.lean, not '@[reducible,   │
 │           │ expose] def' as an earlier report said (Task 4 report      │
@@ -295,6 +323,7 @@ scripts, tactics, or witness terms only.
 │ E5/E6     │ toyV2.clock is a no-op, so Isolated's clock_base law is    │
 │           │ never exercised by toyV2 (the plan-mandated toy). A future │
 │           │ toy, or Phase 2's real engine v2, should exercise it.      │
+│           │ Plan 1a: open (plan 1b).                                   │
 │ Core      │ A protocol that reads no input can still pass the core     │
 │           │ floor. Honest `propose` has no input, so honest proposals  │
 │           │ are predictable; e.g. a Sanity-shaped engine with `excludes│
@@ -302,10 +331,17 @@ scripts, tactics, or witness terms only.
 │           │ not compiled, I1). Fix: engine v2 gives the proposer a run-│
 │           │ chosen input (Phase 2); the explorer (Phase 3) stays off   │
 │           │ until closed.                                              │
+│           │ Plan 1a: COMPILED, still OPEN. Task 5 (`3c76e2b`):         │
+│           │ Gaps/NoInput.lean; clockCandidate passes the core floor at │
+│           │ D = 0; its rows have the status KNOWN-GAP. Plan 2 fixes    │
+│           │ it.                                                        │
 │ Claim     │ `Claim.inhabited` (`Claim.lean:58-60`) accepts one early   │
 │           │ trigger for all H (`CounterIncluded.lean:228` uses slot 1  │
 │           │ for all H, I2). Fix: require the trigger at a time ≥ H.    │
 │           │ Changes the L3 lock and two certificates.                  │
+│           │ Plan 1a: CLOSED. Task 1 (`0e6898e`): the trigger at a time │
+│           │ ≥ H; includedConfirmed_trigger_late; the Counter           │
+│           │ certificate certIncluded uses a slot at a time ≥ H.        │
 │ Phase 1   │ Gating task (one lock regeneration, before any new catalog │
 │           │ entry): carrier generalization for facets and engine (I3,  │
 │           │ I5 — claim types are engine-v1 specific: `Instance.P :     │
@@ -314,16 +350,40 @@ scripts, tactics, or witness terms only.
 │           │ `Profile` gains `Shared : Type` and `share : ∀ c ∈ claims, │
 │           │ Shared → c.Const`; `ProfileCert p I := Σ C : p.Shared, ∀ c │
 │           │ h, {x : Cert c I // x.const = p.share c h C}`.             │
+│           │ Plan 1a: DONE. Claim domains (Tasks 1, 4), shared          │
+│           │ constants (Task 2), late trigger (Task 1), deps_stable     │
+│           │ (Task 3), one lock regeneration (Task 6, `2f7a53c`).       │
 │ Lock      │ Hardening: I8, the lock compares by name (exit 1 on a      │
 │           │ changed or removed line, exit 0 with a notice on additions │
 │           │ only; test by adding a Catalog claim); a `--check` mode for│
 │           │ REGISTRY.md; deferred M5–M8.                               │
+│           │ Plan 1a: I8 CLOSED (Task 0; tested by three scratch runs   │
+│           │ in Task 6). Registry --check CLOSED (Task 0). M5, M6, M7:  │
+│           │ see the Lock row above. M8 stays open.                     │
 │ Kit       │ Structure: split L5 Kit and the L0 sketch into their own   │
 │           │ library. `Kit.Engine` takes the                            │
 │           │ `AvailableChain.Engine` lemmas from                        │
 │           │ `AvailableChainGridCO/Proofs/{Execution,EngineClock}.lean` │
 │           │ and the stranded L4 lemmas. Dedupe `block_preceq_trans`    │
 │           │ (`Kit/Core.lean:13` and `GridCO/Proofs/Map.lean:25`).      │
+│           │ Plan 1a: open (plan 1b).                                   │
+│ Roots     │ I9 (reasoned; a `decide` check in the async session's      │
+│           │ scratch): every regime has the premise `RootInjective`     │
+│           │ (`Generic/Conditions.lean:28`), but the honest root        │
+│           │ formula `s * (parent.root + 1)` (Grid CO                   │
+│           │ `Model/Protocol.lean:291`; SA, SA-PC `Choice.lean:87` and  │
+│           │ L* `Protocol.lean:258` reuse this form) collides on forks: │
+│           │ slot 4 on genesis and slot 2 on the slot-1 block both get  │
+│           │ root 4; and a faulty slot-7 block with root 7 gives its    │
+│           │ honest slot-8 child root 64, the root of the honest slot-4 │
+│           │ block on the chain 1, 4, 15, 64. So an adversary can leave │
+│           │ every regime, and the certificates give no guarantee       │
+│           │ against a forged collision. The theorems stay sound. Fix   │
+│           │ (a design decision for the user, with a proper audit; it   │
+│           │ changes the protocol libraries): content-coded roots       │
+│           │ checked at admission (FG-SA plan D4), so that              │
+│           │ `RootInjective` follows from admission. Not in plans 1a,   │
+│           │ 1b or 2 until decided.                                     │
 └───────────┴────────────────────────────────────────────────────────────┘
 ```
 

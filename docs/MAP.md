@@ -454,105 +454,233 @@ sleeper before GST at time 1.
 no protocol. It is a type-scanning catalog and certificate framework over
 the contract (`AvailableChainStatements`). Its namespace is
 `AvailableChain.Framework`. See [FRAMEWORK-DESIGN.md](FRAMEWORK-DESIGN.md)
-§8 for the Phase 0 row and the accepted deviations. File paths below are
-relative to `AvailableChainFramework/`.
+§8 for the Phase 0 row, the accepted deviations and the lock change log.
+Plan 1a (`docs/plans/2026-09-28-phase1a-gate-catalog.md`) added claim
+domains, facets, shared profile constants, late triggers, the standard and
+strong tiers, and the profiles `ac-4.3` and `strong-1`. The tables below
+show the state after plan 1a. File paths below are relative to
+`AvailableChainFramework/`.
 
 ```text
-┌─────────────────┬───────────────────────────────────────────┬───────────────────────┐
-│ Module          │ Contents                                  │ File                  │
-├─────────────────┼───────────────────────────────────────────┼───────────────────────┤
-│ Hooks           │ Outcome (E4 classification); classify;    │ Hooks.lean            │
-│                 │ HooksSound (4 fields: excludes_inert,     │                       │
-│                 │ excludes_stable, processed_stable,        │                       │
-│                 │ handles_carries)                          │                       │
-│ Instance        │ Validators (bundled V, DecidableEq,       │ Instance.lean         │
-│                 │ Fintype); Instance (n, P, Δ, iface,       │                       │
-│                 │ hooks)                                    │                       │
-│ Claim           │ RefutationKind; ClaimSpec (Const, le,     │ Claim.lean            │
-│                 │ Point, regime, conclusion, trigger,       │                       │
-│                 │ transport, refutable); holds; inhabited   │                       │
-│ Cert            │ Cert; Refutation; RefutationFamily;       │ Cert.lean             │
-│                 │ Cert.weaken; Cert.not_refuted;            │                       │
-│                 │ Refutation.family_of                      │                       │
-│ Profile         │ Profile (a named claim list); ProfileCert │ Profile.lean          │
-│                 │ (Type 1)                                  │                       │
-│ Pareto          │ stronger; pareto; pareto_sub;             │ Pareto.lean           │
-│                 │ pareto_covers (every constant is covered  │                       │
-│                 │ by a Pareto constant)                     │                       │
-│ Catalog/Core    │ sleepy; safeConfirmed; safeStable;        │ Catalog/Core.lean     │
-│                 │ prefixOrder; includedConfirmed; core (the │                       │
-│                 │ floor profile); Candidate (Type 1);       │                       │
-│                 │ not_candidate_of_family                   │                       │
-│ Kit/Core        │ includedPersist_of_safe (persistent       │ Kit/Core.lean         │
-│                 │ inclusion from safety and exact-time      │                       │
-│                 │ inclusion; a derived lemma, not a claim)  │                       │
-│ Engine/V2Sketch │ SpecV2; Isolated (E5); Restorable (E6);   │ Engine/V2Sketch.lean  │
-│                 │ tickV2; restartV2; toyV2 (a two-field toy │                       │
-│                 │ spec)                                     │                       │
-└─────────────────┴───────────────────────────────────────────┴───────────────────────┘
+┌──────────────────┬─────────────────────────────────────────────┬───────────────────────┐
+│ Module           │ Contents                                    │ File                  │
+├──────────────────┼─────────────────────────────────────────────┼───────────────────────┤
+│ ClaimDomain      │ Validators (bundled V, DecidableEq,         │ ClaimDomain.lean      │
+│                  │ Fintype); ClaimDomain (id, Inst, Ctx,       │                       │
+│                  │ admissible, horizon): the instances that a  │                       │
+│                  │ claim speaks about and their run contexts   │                       │
+│ Hooks            │ Outcome (E4 classification); classify;      │ Hooks.lean            │
+│                  │ HooksSound (5 fields: excludes_inert,       │                       │
+│                  │ excludes_stable, processed_stable,          │                       │
+│                  │ deps_stable, handles_carries)               │                       │
+│ Instance         │ Instance (n, P, Δ, Δ_pos, iface, hooks);    │ Instance.lean         │
+│                  │ V1Ctx (an environment and a v1 run);        │                       │
+│                  │ ClaimDomain.v1                              │                       │
+│ Claim            │ RefutationKind; ClaimSpec K (id, Const,     │ Claim.lean            │
+│                  │ valid, le, le_refl, le_trans, Point,        │                       │
+│                  │ regime, conclusion, trigger with a time H,  │                       │
+│                  │ transport, refutable); holds; inhabited     │                       │
+│                  │ (the trigger at a time of at least H)       │                       │
+│ Cert             │ Cert; Refutation; RefutationFamily;         │ Cert.lean             │
+│                  │ Cert.weaken; Cert.not_refuted;              │                       │
+│                  │ Refutation.family_of (all over a claim      │                       │
+│                  │ domain K)                                   │                       │
+│ DomainMap        │ DomainMap K' K (an instance map and an      │ DomainMap.lean        │
+│                  │ equivalence of contexts); ClaimSpec.pull;   │                       │
+│                  │ holds_pull; inhabited_pull; Cert.pull;      │                       │
+│                  │ ClaimDomain.ofV1; DomainMap.ofV1            │                       │
+│ Facets/Strong    │ StrongInstance (extends Instance with the   │ Facets/Strong.lean    │
+│                  │ strong output); StrongInstance.sface;       │                       │
+│                  │ ClaimDomain.strong; DomainMap.strongV1      │                       │
+│ Profile          │ Profile.Entry (a claim and the projection   │ Profile.lean          │
+│                  │ of the shared constant); Profile K (id,     │                       │
+│                  │ Shared, valid, entries); ProfileCert (one   │                       │
+│                  │ shared constant, one certificate per entry  │                       │
+│                  │ at its projection; Type 1);                 │                       │
+│                  │ Profile.holdsAt; ProfileCert.holdsAt        │                       │
+│ Pareto           │ stronger; pareto; pareto_sub; pareto_covers │ Pareto.lean           │
+│                  │ (every constant is covered by a Pareto      │                       │
+│                  │ constant)                                   │                       │
+│ Catalog/Core     │ sleepy; safeOf; safeConfirmed; safeStable;  │ Catalog/Core.lean     │
+│                  │ prefixOrder; includedConfirmed;             │                       │
+│                  │ includedConfirmed_trigger_late; core (the   │                       │
+│                  │ floor profile; Shared := Time, the D of     │                       │
+│                  │ includedConfirmed); Candidate (Type 1);     │                       │
+│                  │ not_candidate_of_family                     │                       │
+│ Catalog/Meaning  │ meaning pins: <claim>_holds_iff and         │ Catalog/Meaning.lean  │
+│                  │ <claim>_inhabited_iff for the four core     │                       │
+│                  │ claims, in the Phase 0 form with L1         │                       │
+│                  │ predicates only                             │                       │
+│ Catalog/Mono     │ zeroConstants; the monotonicity lemmas that │ Catalog/Mono.lean     │
+│                  │ the transport proofs use: etaSleepy_mono,   │                       │
+│                  │ recurrence_mono, safeFrom_mono,             │                       │
+│                  │ includedFrom_mono, and <regime>_mono for    │                       │
+│                  │ StableSleepy, Outage, FastOutage, Recovery  │                       │
+│                  │ and recoveredAt                             │                       │
+│ Catalog/Standard │ the standard tier over ClaimDomain.v1:      │ Catalog/Standard.lean │
+│                  │ EtaConst; OutageConst; RecoveryConst;       │                       │
+│                  │ includedStable; includedStableFast;         │                       │
+│                  │ persistOutage; persistOutageFast;           │                       │
+│                  │ recovered; persistTrigger; for each claim   │                       │
+│                  │ <claim>_le_trans, <claim>_transport and     │                       │
+│                  │ <claim>_trigger_late;                       │                       │
+│                  │ <claim>_no_witness_at_zero_budget for the   │                       │
+│                  │ two persistence claims                      │                       │
+│ Catalog/Strong   │ the strong tier over ClaimDomain.strong:    │ Catalog/Strong.lean   │
+│                  │ StrongIncConst; StrongRecConst;             │                       │
+│                  │ StrongRecIncConst; strongSafe;              │                       │
+│                  │ strongIncluded; strongPersist;              │                       │
+│                  │ strongRecoveredSafe;                        │                       │
+│                  │ strongRecoveredIncluded;                    │                       │
+│                  │ strongIncludedTrigger; for each claim       │                       │
+│                  │ <claim>_le_trans and <claim>_transport;     │                       │
+│                  │ <claim>_trigger_late for each claim with a  │                       │
+│                  │ trigger other than True                     │                       │
+│ Catalog/Profiles │ the five regime adapters                    │ Catalog/Profiles.lean │
+│                  │ (stableSleepyRegime_iff, outageRegime_iff,  │                       │
+│                  │ fastOutageRegime_iff, recoveryRegime_iff,   │                       │
+│                  │ recoveredAt_iff); ac43 (ac-4.3:             │                       │
+│                  │ Shared := Constants, nine claims); ac43_iff │                       │
+│                  │ (↔ AvailableChain); ac43_valid_cross;       │                       │
+│                  │ strong1 (strong-1:                          │                       │
+│                  │ Shared := Constants × StrongConstants, five │                       │
+│                  │ claims); strong1_iff (↔ StrongClaims)       │                       │
+│ Kit/Core         │ includedPersist_of_safe (persistent         │ Kit/Core.lean         │
+│                  │ inclusion from safety and exact-time        │                       │
+│                  │ inclusion; a derived lemma, not a claim)    │                       │
+│ Engine/V2Sketch  │ SpecV2; Isolated (E5); Restorable (E6);     │ Engine/V2Sketch.lean  │
+│                  │ tickV2; restartV2; toyV2 (a two-field toy   │                       │
+│                  │ spec)                                       │                       │
+└──────────────────┴─────────────────────────────────────────────┴───────────────────────┘
 ```
+
+A claim domain (`ClaimDomain`) names the type of the instances that a
+claim speaks about and the type of their run contexts. `ClaimSpec K`,
+`Cert`, `Refutation` and `Profile K` are generic over the claim domain
+`K`. The v1 claim domain `ClaimDomain.v1` has `Instance` and `V1Ctx`. A
+facet is a structure that extends `Instance`, with its own claim domain
+and a `DomainMap` to v1 (`Facets/Strong.lean`). A base claim and its
+certificates pull back along the map (`ClaimSpec.pull`, `Cert.pull`).
+
+The five regime adapters of the profiles are in `Catalog/Profiles.lean`,
+not in `Catalog/Mono.lean`. `Catalog/Mono.lean` has only the monotonicity
+lemmas that the `transport` proofs use.
 
 `AvailableChainRegistry` is a Lake library and a default target. It holds
-protocol instances over the framework, their certificates and
-refutations, and compile-only tests. Its namespace is
-`AvailableChain.Registry`. File paths below are relative to
-`AvailableChainRegistry/`.
+protocol instances over the framework, their certificates and refutations,
+and compile-only tests. Its namespace is `AvailableChain.Registry`. File
+paths below are relative to `AvailableChainRegistry/`.
 
 ```text
-┌─────────────────┬───────────────────────────────────────────┬───────────────────────┐
-│ Module          │ Contents                                  │ File                  │
-├─────────────────┼───────────────────────────────────────────┼───────────────────────┤
-│ Sanity          │ sanity (the Sanity instance);             │ Sanity.lean           │
-│                 │ certSafeConfirmed; certSafeStable;        │                       │
-│                 │ certPrefix; refutedIncluded               │                       │
-│                 │ (RefutationFamily); not_candidate         │                       │
-│ Tests/Pareto    │ armedToy (a two-constant test claim: an   │ Tests/Pareto.lean     │
-│                 │ arming lag and a budget); the Pareto      │                       │
-│                 │ direction example                         │                       │
-│ Tests/NewFacet  │ HasStrong (a new facet, compile-only);    │ Tests/NewFacet.lean   │
-│                 │ safeStrong                                │                       │
-│ GridCOHooks     │ gridExcludes (E4 exclude); gridCOx;       │ GridCOHooks.lean      │
-│                 │ gridCOx_hooks (HooksSound); clock_votes   │                       │
-│                 │ (Task 7 Step 1 finding: no clock          │                       │
-│                 │ evaluation removes votes); gate_votes;    │                       │
-│                 │ inWindow_not_excluded                     │                       │
-│ Counter         │ counter (a toy height protocol);          │ Counter.lean          │
-│                 │ counterIface; counter_hooks; counterInst  │                       │
-│ CounterRun      │ canonical (the synchronous run from       │ CounterRun.lean       │
-│                 │ genesis); canonical_execution;            │                       │
-│                 │ canonical_synchrony; canonical_relay;     │                       │
-│                 │ canonical_sleepy; certSafeConfirmed;      │                       │
-│                 │ certSafeStable; certPrefix                │                       │
-│ CounterIncluded │ counter_included (exact-time inclusion at │ CounterIncluded.lean  │
-│                 │ D = 1); certIncluded; candidate (Counter  │                       │
-│                 │ passes the core floor)                    │                       │
-└─────────────────┴───────────────────────────────────────────┴───────────────────────┘
+┌──────────────────┬─────────────────────────────────────────────┬───────────────────────┐
+│ Module           │ Contents                                    │ File                  │
+├──────────────────┼─────────────────────────────────────────────┼───────────────────────┤
+│ Sanity           │ sanity (the Sanity instance); hooks;        │ Sanity.lean           │
+│                  │ certSafeConfirmed; certSafeStable;          │                       │
+│                  │ certPrefix; refutedIncluded                 │                       │
+│                  │ (RefutationFamily); not_candidate           │                       │
+│ Tests/Pareto     │ armedToy (a two-constant test claim: an     │ Tests/Pareto.lean     │
+│                  │ arming lag and a budget); the Pareto        │                       │
+│                  │ direction example                           │                       │
+│ Tests/NewFacet   │ counterStrong (Counter with its stable      │ Tests/NewFacet.lean   │
+│                  │ output as the strong output);               │                       │
+│                  │ certSafeStableStrong (a pulled base         │                       │
+│                  │ certificate); testStrongSafe (a test claim  │                       │
+│                  │ with its own id); badStrong;                │                       │
+│                  │ refutedBadStrong; refutedBadStrongSafe;     │                       │
+│                  │ certStrongSafeCounter (a strong-tier        │                       │
+│                  │ certificate)                                │                       │
+│ GridCOHooks      │ gridExcludes (E4 exclude); gridCOx;         │ GridCOHooks.lean      │
+│                  │ gridCOx_hooks (HooksSound); clock_votes     │                       │
+│                  │ (Task 7 Step 1 finding: no clock evaluation │                       │
+│                  │ removes votes); gate_votes;                 │                       │
+│                  │ inWindow_not_excluded                       │                       │
+│ Counter          │ counter (a toy height protocol);            │ Counter.lean          │
+│                  │ counterIface; counter_hooks; counterInst    │                       │
+│ CounterRun       │ canonical (the synchronous run from         │ CounterRun.lean       │
+│                  │ genesis); canonical_execution;              │                       │
+│                  │ canonical_synchrony; canonical_relay;       │                       │
+│                  │ canonical_sleepy; certSafeConfirmed;        │                       │
+│                  │ certSafeStable; certPrefix                  │                       │
+│ CounterIncluded  │ counter_included (exact-time inclusion at   │ CounterIncluded.lean  │
+│                  │ D = 1); certIncluded (a proposal slot at a  │                       │
+│                  │ time of at least H); candidate (Counter     │                       │
+│                  │ passes the core floor at D = 1)             │                       │
+│ Gaps/NoInput     │ KNOWN GAP I1: clockChain (reads no input);  │ Gaps/NoInput.lean     │
+│                  │ clockInst; certSafeConfirmed;               │                       │
+│                  │ certSafeStable; certPrefix; certIncluded;   │                       │
+│                  │ clockCandidate (passes the core floor at    │                       │
+│                  │ D = 0)                                      │                       │
+└──────────────────┴─────────────────────────────────────────────┴───────────────────────┘
 ```
 
-`scripts/Registry.lean` scans `AvailableChainRegistry` for constants whose
-type is `Cert c I`, `Refutation c I`, or `RefutationFamily c I`, and
-writes one row per constant to `docs/REGISTRY.md`. A type behind leading
-binders (`∀ …, Cert c I`) is CONDITIONAL and is still written as a row,
-with status `CONDITIONAL (not a certificate)`: it is a row of the table,
-not a certificate. Every other row's status is `LEAN` only if
-`Lean.collectAxioms` finds no axiom outside `propext`, `Classical.choice`,
-`Quot.sound`; any other axiom (including `sorryAx`) gives status
-`UNSOUND(<axiom names>)`. A row's claim column keeps the claim's name and
-appends `NON-CATALOG` if the `ClaimSpec` is not declared in a module under
-`AvailableChainFramework.Catalog`. Run: `lake env lean --run
-scripts/Registry.lean`. `docs/REGISTRY.md` is generated; do not edit it by
-hand.
+```text
+┌────────────────────────────────────┬──────────────────────────────────────────┬─────────────────────┐
+│ Script                             │ Check                                    │ Exit codes          │
+├────────────────────────────────────┼──────────────────────────────────────────┼─────────────────────┤
+│ scripts/CatalogLock.lean --check   │ compares the locked declarations with    │ 0 same, or ADDED    │
+│ [--lock <path>]                    │ the lock by name; prints REMOVED,        │ lines only; 1 a     │
+│                                    │ CHANGED and ADDED lines; also checks the │ REMOVED or CHANGED  │
+│                                    │ axioms of each locked declaration and    │ line; 2 a usage     │
+│                                    │ that no two claims have one id           │ error, a bad lock   │
+│                                    │                                          │ line, a missing     │
+│                                    │                                          │ declaration, a bad  │
+│                                    │                                          │ axiom or two claims │
+│                                    │                                          │ with one id         │
+│ scripts/CatalogLock.lean --write   │ writes the lock; refuses a REMOVED or    │ 0 written; 1        │
+│ [--allow-changes] [--lock <path>]  │ CHANGED line unless --allow-changes is   │ refused, nothing    │
+│                                    │ given                                    │ written; 2 as for   │
+│                                    │                                          │ --check             │
+│ scripts/Registry.lean [--check]    │ writes docs/REGISTRY.md; with --check,   │ 0 written, or the   │
+│                                    │ compares the generated text with the     │ same; 1 different;  │
+│                                    │ file and writes nothing                  │ 2 a usage error or  │
+│                                    │                                          │ an unreadable file  │
+│ scripts/CheckFrameworkAxioms.lean  │ every constant of                        │ 0 clean; 1 a bad    │
+│                                    │ AvailableChainFramework and              │ axiom; 2 nothing    │
+│                                    │ AvailableChainRegistry uses only         │ found or a usage    │
+│                                    │ propext, Classical.choice, Quot.sound    │ error               │
+│                                    │ (this rejects sorryAx and the axioms of  │                     │
+│                                    │ native_decide); reads built data         │                     │
+└────────────────────────────────────┴──────────────────────────────────────────┴─────────────────────┘
+```
 
-`scripts/CatalogLock.lean` locks every declaration of
-`AvailableChainFramework.Hooks`, `.Instance`, `.Claim`, `.Cert`,
-`.Profile`, and `.Pareto`, and every declaration under `.Catalog`, to a
-hash of its statement (and, for a definition, its value). A theorem
-hashes its statement only, so a new proof of the same statement keeps the
-hash (design deviation (e), `FRAMEWORK-DESIGN.md` §8). `Kit` is not
-locked. Run `lake env lean --run scripts/CatalogLock.lean --write` to
-write `docs/catalog.lock`, or `--check` to compare against it: exit `0`
-means the file is the same, `1` means it differs, `2` means a usage error
-or a missing declaration.
+`scripts/Registry.lean` scans the libraries in `instanceLibraries` (now
+only `AvailableChainRegistry`) for constants whose type is `Cert c I`,
+`Refutation c I`, `RefutationFamily c I`, `ProfileCert p I` or `Candidate
+I`, and writes one row per constant to `docs/REGISTRY.md`. The file header
+names the scanned libraries. A `ProfileCert` or `Candidate` row has the
+kind `profile-cert`, and its claim column shows the profile `id` (for
+example `core.v1`). A certificate of a pulled claim shows the base claim
+with `(pulled)`. A type behind leading binders (`∀ …, Cert c I`) is
+CONDITIONAL and is still written as a row, with status `CONDITIONAL (not a
+certificate)`: it is a row of the table, not a certificate. Every other
+row's status is `LEAN` only if `Lean.collectAxioms` finds no axiom outside
+`propext`, `Classical.choice`, `Quot.sound`; any other axiom (including
+`sorryAx`) gives status `UNSOUND(<axiom names>)`. A row of a module under
+`AvailableChainRegistry.Gaps` has status `KNOWN-GAP` in place of `LEAN`
+(plan 1a Task 0, `gapsPrefix`). A row's claim column keeps the claim's
+name and appends `NON-CATALOG` if the `ClaimSpec` is not declared in a
+module under `AvailableChainFramework.Catalog`. `docs/REGISTRY.md` is
+generated; do not edit it by hand.
+
+`scripts/CatalogLock.lean` locks every declaration that Lean did not
+generate in the modules `Hooks`, `Instance`, `Claim`, `Cert`, `Profile`,
+`Pareto`, `ClaimDomain` and `DomainMap` of `AvailableChainFramework`, and
+in every module under `.Catalog` and `.Facets`. It also locks every
+declaration of the library whose type is a `ClaimSpec`, a `Profile`, a
+`Profile.Entry` or a `ClaimDomain`. The hash of a line is a hash of the
+set of declarations that the locked declaration reaches (its closure), in
+a fixed order. Thus a new declaration does not change the line of an old
+declaration that does not reach it. A theorem hashes its statement only,
+so a new proof of the same statement keeps the hash (design deviation (e),
+`FRAMEWORK-DESIGN.md` §8). For this reason, each new claim puts its
+`transport` and `le_trans` proofs in named theorems. `Kit` is not locked.
+The default lock file is `docs/catalog.lock`. Run `--check` after a build,
+because the script reads the built `.olean` files.
+
+`scripts/CheckFrameworkAxioms.lean` also reads built data. Run all three
+scripts with `lake env lean --run scripts/<file>.lean` after `lake build
+AvailableChainFramework AvailableChainRegistry`.
 
 ## Simplex FG module (DC-fj)
 

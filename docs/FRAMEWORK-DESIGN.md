@@ -267,6 +267,21 @@ output names. Phase 0 selects an extensible representation for
 (typed maps or separate facet records), because adding a field to a
 frozen Lean structure changes its declaration.
 
+**As implemented in plan 1a (2026-09-28).** This note does not change
+the text above. `ClaimDomain` (`ClaimDomain.lean`) is in place of
+`needs` and `FacetBundle`. A claim domain gives the type of the
+instances that a claim speaks about and the type of their run contexts.
+The v1 claim domain `ClaimDomain.v1` has `Instance` and `V1Ctx` (an
+environment and a v1 run). A facet is a structure that extends
+`Instance` (for example `StrongInstance` in `Facets/Strong.lean`), with
+its own claim domain and a `DomainMap` to `ClaimDomain.v1`. A base claim
+and its certificates pull back along the map (`ClaimSpec.pull`,
+`Cert.pull`). `Instance` is closed: its fields are `n`, `P`, `Δ`,
+`Δ_pos`, `iface` and `hooks`. It has no field for deliverability or
+record isolation; eligibility is a separate predicate `Eligible I` (plan
+1b). The field `Δ_pos : 0 < Δ` is new: without it, no environment has
+the instance's Δ, and every claim holds vacuously.
+
 ## 4. Claim catalog (L3)
 
 ```lean
@@ -341,6 +356,26 @@ one", optional extras) applies only above the core. The explorer and
 the Pareto comparison consider only instances that pass the floor.
 Unsafe or not-live protocols are out of scope.
 
+**As implemented in plan 1a (2026-09-28).** This note does not change
+the text above. `ClaimSpec K` is generic over a claim domain `K` and has
+no `needs` field. `holds` and `inhabited` are definitions over the
+fields `regime`, `conclusion` and `trigger`. The trigger takes a time
+`H`, and `inhabited` needs the trigger at a time of at least `H` (the
+late trigger; I2 in §12). The type does not force this, so each claim
+with a trigger other than `True` proves `<claim>_trigger_late`. A
+profile has a type of shared constants `Profile.Shared`, and each entry
+projects the shared constant to the constant of its claim
+(`Profile.Entry.share`). `Profile.valid` holds the conditions between
+the constants of different claims. `ac-4.3` (`ac43` in
+`Catalog/Profiles.lean`) has `Shared := Constants` and nine claims;
+`ac43_iff` is its proposition equivalence with `AvailableChain`.
+`strong-1` (`strong1`) has `Shared := Constants × StrongConstants` and
+five claims over the strong claim domain; `strong1_iff` is its
+equivalence with `StrongClaims`. The standard tier is in
+`Catalog/Standard.lean`, the strong claims are in `Catalog/Strong.lean`,
+and the core floor is `core` in `Catalog/Core.lean` (`Shared := Time`,
+the D of confirmed inclusion).
+
 ## 5. Certificates, refutations, registry (L4, L6)
 
 ```lean
@@ -387,6 +422,17 @@ unavailable). Per L0 and LM version, a frozen content hash. The
 toolchain and Lake manifest are pinned. Each certificate records its
 instance, constants and dependency hashes. The freeze is syntactic; it
 does not replace kernel checking.
+
+**As implemented in plan 1a (2026-09-28).** This note does not change
+the text above. `Cert c I`, `Refutation c I` and `RefutationFamily c I`
+take `c : ClaimSpec K` and `I : K.Inst`. `inhabited` needs the trigger
+at a time of at least `H` (the late trigger). `ProfileCert p I` has one
+shared constant, a proof of `p.valid` for it, and one certificate per
+entry at the projection of that constant. The registry is a type scan
+(deviation (a)), with the row kind `profile-cert` and the status
+`KNOWN-GAP` for the modules under `AvailableChainRegistry.Gaps`. The
+lock hashes the closure of each declaration in a fixed order and
+compares by name; see the lock change log in §8.
 
 ## 6. Kits and explorer (L5, L6)
 
@@ -518,6 +564,9 @@ obligations are proved).
 │   │ Kit.Compose; FG-SA        │ reached                                 │
 └───┴───────────────────────────┴─────────────────────────────────────────┘
 ```
+
+**Row 0 deviations after plan 1a (2026-09-28).** (d) superseded by claim
+domains (plan 1a); (g), (h) delivered (plan 1a); (i) kept.
 
 Phases 0–2 land before the FG-SA Lean instance starts.
 
@@ -697,13 +746,40 @@ of a deployed client (implementation refinement). These need their own
 entries or a separate refinement project. `noFutureRead` is an
 extra-tier entry.
 
-**Known gaps after Phase 0**
+**Known gaps after Phase 0 (status after plan 1a)**
 
-- I1 (reasoned, not compiled): a protocol that reads no input can still
-  pass the core floor (honest
+- I1 (reasoned in Phase 0; compiled in plan 1a; open): a protocol that
+  reads no input can still pass the core floor (honest
   `propose` has no input, so proposals are predictable). Fix: engine v2
   gives the proposer a run-chosen input (Phase 2).
 
-- I2: `Claim.inhabited` accepts one early trigger for all H
+  Status (plan 1a, 2026-09-28): compiled in
+  `AvailableChainRegistry/Gaps/NoInput.lean` (Task 5, `3c76e2b`).
+  `clockChain` reads no input, and `clockCandidate` shows that it passes
+  the core floor at `D = 0`. Its registry rows have the status `KNOWN-GAP`
+  (Task 0, `gapsPrefix`). The gap stays open until plan 2.
+
+- I2 (closed in plan 1a): `Claim.inhabited` accepts one early trigger for all H
   (`CounterIncluded.lean:228` always uses slot 1). Fix: require the
   trigger at a time ≥ H; changes the L3 lock and two certificates.
+
+  Status (plan 1a, 2026-09-28): closed by Task 1 (`0e6898e`).
+  `ClaimSpec.trigger` takes a time `H`, `inhabited` needs the trigger at a
+  time of at least `H`, and each catalog claim with a trigger other than
+  `True` proves `<claim>_trigger_late`. The Counter certificate
+  `certIncluded` uses a proposal slot at a time of at least `H`.
+
+- I9 (reasoned; a `decide` check in the async session's scratch): every
+  regime has the premise `RootInjective` (`Generic/Conditions.lean:28`),
+  but the honest root formula `s * (parent.root + 1)` (Grid CO
+  `Model/Protocol.lean:291`; SA, SA-PC `Choice.lean:87` and L*
+  `Protocol.lean:258` reuse this form) collides on forks: slot 4 on
+  genesis and slot 2 on the slot-1 block both get root 4; and a faulty
+  slot-7 block with root 7 gives its honest slot-8 child root 64, the
+  root of the honest slot-4 block on the chain 1, 4, 15, 64. So an
+  adversary can leave every regime, and the certificates give no
+  guarantee against a forged collision. The theorems stay sound. Fix (a
+  design decision for the user, with a proper audit; it changes the
+  protocol libraries): content-coded roots checked at admission (FG-SA
+  plan D4), so that `RootInjective` follows from admission. Not in plans
+  1a, 1b or 2 until decided.
