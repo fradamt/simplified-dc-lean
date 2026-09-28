@@ -591,11 +591,14 @@ Phases 0–2 land before the FG-SA Lean instance starts.
     `ProfileCert.{certs, holdsAt, mk, shared, valid}`;
     `StrongInstance` and `StrongInstance.{mk, sface, strong, toInstance}`;
     `V1Ctx` and `V1Ctx.{E, mk, rho}`.
-  - Changed L3 claims, old and new type (old: `426009e`):
+  - Changed L3 declarations, old and new type (old: `426009e`):
     - `safeConfirmed`, old: `ClaimSpec`, with `regime` and `conclusion`
       over `E : Env W.V` and `rho : Run W.V I.P`.
       New: `ClaimSpec ClaimDomain.v1`, over `x : V1Ctx I W` (`x.E`,
       `x.rho`); `trigger` also takes the time `H`.
+    - `safeOf`, old: `safeOf (id : Lean.Name) (g : (I : Instance) → Output
+      I.P) : ClaimSpec`.
+      New: the same arguments, returns `ClaimSpec ClaimDomain.v1`.
     - `safeStable`, old: `ClaimSpec` (as `safeConfirmed`).
       New: `ClaimSpec ClaimDomain.v1` (as `safeConfirmed`).
     - `prefixOrder`, old: `ClaimSpec`, `regime` and `trigger` are `True`.
@@ -614,6 +617,10 @@ Phases 0–2 land before the FG-SA Lean instance starts.
       New: `Candidate (I : Instance) : Type 1 := ProfileCert core I`, with
       `ProfileCert` a structure: one `shared` constant, `valid`, and a
       certificate per entry at `e.share shared`.
+    - `not_candidate_of_family`, old: takes `c ∈ core.claims` and
+      `RefutationFamily c I`, gives `Candidate I → False`.
+      New: takes `e ∈ core.entries` and `RefutationFamily e.spec I`, gives
+      `Candidate I → False`.
   - No certificate conclusion changed. The `id`, `holds` and `conclusion`
     of each core claim are the Phase 0 ones (`Catalog/Meaning.lean` pins
     `holds` and `inhabited`). The Counter certificates `certSafeConfirmed`,

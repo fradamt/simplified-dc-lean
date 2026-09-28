@@ -4,11 +4,12 @@ import Lean.Meta.Basic
 open Lean
 
 /-! Type-scanning registry. Every constant in `AvailableChainRegistry` whose
-type is `Cert c I`, `Refutation c I` or `RefutationFamily c I` is a row of
-`docs/REGISTRY.md` (with the claim domain `K` of `c : ClaimSpec K` as the first,
-implicit argument). A type `∀ …, Cert c I` is CONDITIONAL and is not a
-certificate; it is still written as a row, with status `CONDITIONAL (not a
-certificate)`.
+type head is in `kinds` is a row of `docs/REGISTRY.md`: `Cert c I`,
+`Refutation c I`, `RefutationFamily c I` (with the claim domain `K` of
+`c : ClaimSpec K` as the first, implicit argument), `ProfileCert p I` (with
+`K` of `p : Profile K` first) and `Candidate I`. A type `∀ …, Cert c I` is
+CONDITIONAL and is not a certificate; it is still written as a row, with
+status `CONDITIONAL (not a certificate)`.
 
 A row's status is `LEAN` only if every axiom the declaration transitively
 depends on (`Lean.collectAxioms`) is one of `propext`, `Classical.choice`,
@@ -88,13 +89,19 @@ def claimOf (env : Environment) (n : Name) (shown : Name := n) : String :=
       else s ++ " NON-CATALOG"
   | none => s ++ " NON-CATALOG"
 
-/-- The claim column of a claim expression `c`. For `@ClaimSpec.pull K' K m c'`,
-the base claim `c'` (the last argument) with the suffix `(pulled)`. -/
-def claimColumn (env : Environment) (c : Expr) : String :=
+/-- The base claim of `c` below all `ClaimSpec.pull` layers, and whether `c`
+has one. In `@ClaimSpec.pull K K' m c'`, the base claim `c'` is the last
+argument. -/
+partial def pullBase (c : Expr) : Expr × Bool :=
   if c.isAppOfArity ``AvailableChain.Framework.ClaimSpec.pull 4 then
-    ((c.getAppArgs.back!.getAppFn.constName?.map (claimOf env)).getD "?") ++ " (pulled)"
-  else
-    (c.getAppFn.constName?.map (claimOf env)).getD "?"
+    ((pullBase c.getAppArgs.back!).1, true)
+  else (c, false)
+
+/-- The claim column of a claim expression `c`. For a pulled claim, the
+innermost base claim with the suffix `(pulled)`. -/
+def claimColumn (env : Environment) (c : Expr) : String :=
+  let (b, pulled) := pullBase c
+  (b.getAppFn.constName?.map (claimOf env)).getD "?" ++ (if pulled then " (pulled)" else "")
 
 /-- The name that a closed `Name` expression in normal form denotes. -/
 partial def nameOfExpr? (e : Expr) : Option Name :=
@@ -109,10 +116,13 @@ over the claim domain `K`, by reduction of `Profile.id p`. If the reduction does
 give a name, the name of the constant `p`. `NON-CATALOG` as for a claim. -/
 def profileColumn (env : Environment) (K p : Expr) : IO String := do
   let e := mkApp2 (mkConst ``AvailableChain.Framework.Profile.id) K p
-  let r ← Core.CoreM.toIO' (Meta.MetaM.run' (Meta.reduce e))
-    { fileName := "Registry", fileMap := .ofString "" } { env := env }
   let some n := p.getAppFn.constName? | return "?"
-  return claimOf env n ((nameOfExpr? r).getD n)
+  let pid ← try
+      let r ← Core.CoreM.toIO' (Meta.MetaM.run' (Meta.reduce e))
+        { fileName := "Registry", fileMap := .ofString "" } { env := env }
+      pure (nameOfExpr? r)
+    catch _ => pure none
+  return claimOf env n (pid.getD n)
 
 /-- The text of `docs/REGISTRY.md`. -/
 def registryText : IO String := do
@@ -134,7 +144,10 @@ def registryText : IO String := do
               -- `K p I`: the claim domain, the profile, the instance.
               pure (← profileColumn env args[0]! args[1]!, args[2]!)
           | some ``AvailableChain.Framework.Catalog.Candidate =>
-              -- `I`: `Candidate I` is `ProfileCert core I` over `v1`.
+              -- `I`: `Candidate I` is `ProfileCert core I` over `v1`. The two
+              -- constants are hard-coded here. A change to `Candidate` or `core`
+              -- changes their lines in `docs/catalog.lock`, so `CatalogLock
+              -- --check` fails until this path is checked again.
               pure (← profileColumn env (mkConst ``AvailableChain.Framework.ClaimDomain.v1)
                   (mkConst ``AvailableChain.Framework.Catalog.core), args[0]!)
           | _ =>
