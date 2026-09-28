@@ -1407,7 +1407,7 @@ def clock (p : Params) (st : State p.n) (t : Time) : State p.n :=
 - Consumes: Tasks 4–5; `SimplexFG.{storeControls, storeFrame, Controls.Z, Controls.lo, hOf, HeadFields, createRow, Record}`, `GridCO.{ghost, goldfishScore, voterCount, votesAt, stampBlock, stampVote, resolvedBefore, headTarget?, headLabel?, blockKnown}`.
 - Produces: `controls`, `fullTree`, `erasedList`, `liveRoot`, `eligible`, `headInTree`, `proposalsAt`, `voterBlocks`, `headVotes`, `headSupport`, `headVote`, `getHead`, `proposerVotes`, `proposerSupport`, `chainWireRows`, `blockWireRows`, `proposalRows`, `propose`, `fgHead`, `fgBlockOf`, `deepest`, `fgSource`, `fgInputs`, `attest`.
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
 
 ```lean
 /-- The FG action of round 1 at a_1 = 14, after the empty gate of slot 2:
@@ -1419,12 +1419,14 @@ example : fastWriteAt stC0 2 = some [] ∧ (fgInputs pT stC0).1 = none ∧
 /-- With a live fast write on B2 (set by hand), C_fg = B2 (the deepest member
 of fastWrite[2] in the full filtered tree with a lease after a_1). -/
 def stC1 : State pT.n :=
-  { stC0 with fastWrite := [(2, [eraseFG B2])],
-    base := { stC0.base with obligations := [(eraseFG B2, 2, 21)] } }
+  { stC0 with
+      fastWrite := [(2, [eraseFG B2])]
+      base := { stC0.base with obligations := [(eraseFG B2, 2, 21)] } }
 example : (fgInputs pT stC1).1 = some B2 := by decide
 /-- An expired lease does not count (spec 1329: `lease[B] > Σ.t`). -/
-example : (fgInputs pT { stC1 with base := { stC1.base with obligations := [(eraseFG B2, 2, 14)] } }).1
-    = none := by decide
+example : (fgInputs pT
+      { stC1 with base := { stC1.base with obligations := [(eraseFG B2, 2, 14)] } }).1 =
+    none := by decide
 /-- Band eligibility (spec 1068): at v_4 = 17 with no votes, the HEAD walks from
 Z = F = B1 (no lease). B2 is eligible because σ[B1].h = 2 < lo = 3; B3 is not
 (σ[B2].h = 3, no majority, not current). -/
@@ -1435,7 +1437,7 @@ example : deepest ({.node .genesis 1 ⟨5⟩ [], .node .genesis 2 ⟨9⟩ []} : 
 ```
 
   Also add (compute the expected values by hand before the build): (a) a HEAD whose frozen support names a head that left `act(Σ)` after the freeze: the vote is in `headVotes` but not in `headSupport` (Review Focus 7); (b) a slot-`s` proposal that carries slot-`(s−1)` votes and then leaves `act(Σ)` because F moves to a conflicting block: its carried votes stay in `headVotes p st s` (spec 190–193; audit N1: the frozen-support test alone does not test this); (c) `proposalRows` drops a pool row that is already on the chain of the parent, and keeps at most two rows per identity and round with the pool rows first (spec 1255–1274).
-- [ ] **Step 2: Write `Model/Frame.lean`.** Imports: `AvailableChainFGSA.Model.Handlers`, `AvailableChainFGSA.Model.Clock`.
+- [x] **Step 2: Write `Model/Frame.lean`.** Imports: `AvailableChainFGSA.Model.Handlers`, `AvailableChainFGSA.Model.Clock`.
 
 ```lean
 /-- [spec 616–633] The live frame: the FG module's store controls. -/
@@ -1459,7 +1461,8 @@ def liveRoot (p : Params) (st : State p.n) : Block :=
 
 /-- [spec 1063–1072] `goldfish_eligible` with the band floor: the parent's state
 height is below `lo`, or a strict majority, or the store's current slot. -/
-def eligible (p : Params) (st : State p.n) (raw support : List (GridCO.Wire p.n)) (b : Block) : Bool :=
+def eligible (p : Params) (st : State p.n) (raw support : List (GridCO.Wire p.n)) (b : Block) :
+    Bool :=
   decide (∃ P ∈ st.fg.TF, eraseFG P = b.parent ∧ hOf p.E p.cfg P < (controls p st).lo) ||
     decide (GridCO.voterCount raw < 2 * GridCO.goldfishScore st.base.blocks raw support b) ||
     b.slot == st.slot p
@@ -1476,7 +1479,8 @@ def getHead (p : Params) (st : State p.n) (raw support : List (GridCO.Wire p.n))
 
 /-- [helper] The admitted slot-`s` proposals, with their vote lists. These stay
 readable when the block leaves `act(Σ)` (spec 190–193). -/
-def proposalsAt {n : Nat} (st : State n) (s : Slot) : List (List (HeadWire n) × List (HeadWire n)) :=
+def proposalsAt {n : Nat} (st : State n) (s : Slot) :
+    List (List (HeadWire n) × List (HeadWire n)) :=
   st.proposals.filterMap (fun o => match o.decode with
     | some (.block _ b raw sup _) => if b.slot = s then some (raw, sup) else none
     | _ => none)
@@ -1520,7 +1524,8 @@ def headVote (p : Params) (st : State p.n) (s : Slot) : Block :=
 
 /-- [spec 1240–1243] The proposer's votes: every slot-`(s−1)` pool vote; the
 support: those that resolve now (active head, valid slot). -/
-def proposerVotes {n : Nat} (st : State n) (s : Slot) : List (GridCO.Wire n) := GridCO.votesAt st.base (s - 1)
+def proposerVotes {n : Nat} (st : State n) (s : Slot) : List (GridCO.Wire n) :=
+  GridCO.votesAt st.base (s - 1)
 def proposerSupport {n : Nat} (st : State n) (s : Slot) : List (GridCO.Wire n) :=
   (proposerVotes st s).filter (fun o => match GridCO.headTarget? o with
     | some h => GridCO.blockKnown (actView st) h && decide (h.slot ≤ s - 1)
@@ -1535,7 +1540,8 @@ def chainWireRows {n : Nat} (st : State n) (H : Block) : List (RowWire n) :=
 def blockWireRows (p : Params) (st : State p.n) (I : Nat → Bool) : List (RowWire p.n) :=
   (st.proposals.filterMap (fun o => match o.decode with
     | some (.block _ b _ _ rows) =>
-        if I (p.round b.slot) then some (rows.filter (fun a => (a.round?.map I).getD false)) else none
+        if I (p.round b.slot) then some (rows.filter (fun a => (a.round?.map I).getD false))
+        else none
     | _ => none)).flatten
 
 /-- [spec 544–556, 1255–1274] `proposal_attestations(Σ, H)`: pool rows and
@@ -1614,7 +1620,8 @@ def attest (p : Params) (st : State p.n) (Λ : Record) (i : Fin p.n) : RowBody �
 ```
 
   The old findings (a) and (b) of revision 1 are now proof obligations of Task 11 (`deepest_spec`, `fgBlockOf_spec`, `fgHead_stored`). The smoke tests compare the row-body projection of `attest`, not a `Record` (a record holds functions).
-- [ ] **Step 3: Run it; it passes.** As in Task 3, Step 3.
+- [x] **Step 3: Run it; it passes.** As in Task 3, Step 3.
+  Execution notes (2026-09-29): `Model/Frame.lean` is the code above; four signature or body lines are wrapped for the 100-column linter (no other change). The `stC1` fixture and the expired-lease test are re-laid out (the same structure-instance layout problem as `stR1`; same values). Every planned value agreed with the build. Extra tests (a)–(c) are in `Tests/Smoke.lean` with the hand computation in each docstring: (a) `stH0`/`stH`: a label-2 vote for `b1'` (stamp 9 < z_2 = 11) is in both HEAD merges while F = genesis; after F moves to B1 it stays in `headVotes` and leaves `headSupport`; (b) `stX`: the slot-3 proposal `xB` on `b1'` leaves `act(Σ)`, and its carried vote (pool stamp 12 ≥ 11, so not in the frozen arm) stays in `headVotes` through the proposal arm; (c) `stP`: for H = b2 the rows of B1, B2 (on the chain) drop, the pool rows of B3 and `q 1`, `q 2` stay in pool order, and the block row `q 3` drops (identity 3 already has two pool rows). Fallback (R1): test (c) uses `decide +kernel`; plain `decide` and the `Bool` form reach the elaborator's recursion limit on the state `stP` (even for `yB ∈ stP.base.blocks`); `#eval` gave `true` for the three conjuncts (not committed). Extra G6 coverage: `liveRoot` (a live lease on b2; an expired lease; a lease outside the full filtered tree), `propose` at t_4 = 16 (block `node b2 4 ⟨24⟩`, rows of B3), `fgHead`/`fgInputs` at `stA` (b3; the head fields of B3), and `attest` with the source B2 (no finality pair; height pair `.vote 3 σ[B2].T_h.root false`). No duty reads `frozen`, `early`, `releaseSnapshots`, `goldfishRecord` or `base.proposals`, and none calls GridCO `act` or the voter views (grep).
 - [ ] **Step 4: Astra model check (review gate G6).** Before any STORE proof task (Tasks 7–12; Task 2 does not depend on the model), start a Codex astra job: compare `Model/*.lean` line by line with the spec lines in each docstring and with the tree-read inventory; check that no duty or output reads a model-only cache (Global Constraints); check M11 (no free `n` next to `p`) and J1 (no auth match outside the decoders); check (G3 minor 4) that no composite duty reuses GridCO `act`, `voterView`, `voterSupportView` or `voterTree` (`GridCO/Model/Protocol.lean:250–273`): they read `frozen`, whose saved resolved pools and frozen domain `reconcile` does not clear, so after an F advance they would bypass the read-time resolution test (spec 426–427: "a saved resolved flag cannot bypass this test"). Output `docs/audit/fgsa-model-check-report.md` (blocking, major, minor; verdict). Fix every blocking and major finding in the model and in this plan, with new or changed smoke tests. Re-run the build.
 - [ ] **Step 5: CHECKPOINT.** Commit `FGSA model: frame reads and duties`.
 

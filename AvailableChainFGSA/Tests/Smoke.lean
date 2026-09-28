@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSA.Model.Handlers
-public import AvailableChainFGSA.Model.Clock
+public import AvailableChainFGSA.Model.Frame
 
 @[expose] public section
 
@@ -340,6 +340,105 @@ is admitted. -/
 example : (process pT st0 ⟨.seat (.head 4) 0, .head b1⟩).base.votes = st0.base.votes ∧
     (process pT st0 ⟨.seat (.head 3) 0, .head b1⟩).base.votes = [⟨.seat 3 0, .head b1⟩] := by
   decide
+
+/-! Task 6: frame reads and duties. -/
+
+/-- The FG action of round 1 at a_1 = 14, after the empty gate of slot 2:
+fastWrite[2] is empty, so C_fg is none and the height pair is empty; there is
+no fallback to S, the root, a slow lease or an older set (spec 669–677). -/
+def stC0 : State pT.n := clock pT stA 14
+example : fastWriteAt stC0 2 = some [] ∧ (fgInputs pT stC0).1 = none ∧
+    (attest pT stC0 Record.initial 0).1.height_pair = .empty := by decide
+/-- With a live fast write on B2 (set by hand), C_fg = B2 (the deepest member
+of fastWrite[2] in the full filtered tree with a lease after a_1). -/
+def stC1 : State pT.n :=
+  { stC0 with
+      fastWrite := [(2, [eraseFG B2])]
+      base := { stC0.base with obligations := [(eraseFG B2, 2, 21)] } }
+example : (fgInputs pT stC1).1 = some B2 := by decide
+/-- An expired lease does not count (spec 1329: `lease[B] > Σ.t`). -/
+example : (fgInputs pT
+      { stC1 with base := { stC1.base with obligations := [(eraseFG B2, 2, 14)] } }).1 =
+    none := by decide
+/-- Band eligibility (spec 1068): at v_4 = 17 with no votes, the HEAD walks from
+Z = F = B1 (no lease). B2 is eligible because σ[B1].h = 2 < lo = 3; B3 is not
+(σ[B2].h = 3, no majority, not current). -/
+example : headVote pT { stA with base := { stA.base with now := 17 } } 4 = eraseFG B2 := by decide
+/-- DQ13: `deepest` breaks a depth tie by the greater root (spec 260–262). -/
+example : deepest ({.node .genesis 1 ⟨5⟩ [], .node .genesis 2 ⟨9⟩ []} : Finset (FGBlock (Fin 4)))
+    = some (.node .genesis 2 ⟨9⟩ []) := by decide
+
+/-- (a) Review Focus 7 (spec 423–430): resolution at read time. `B1'` enters at
+now = 8, and a label-2 vote of seat 0 for `b1'` at now = 9 (before
+z_2 = f_2 = 11). While F = genesis, the HEAD of slot 3 has the vote in both
+merges. After `B1`, `B2`, `B3` at now = 12 move F to `B1`, `b1'` leaves `act(Σ)`:
+the vote stays in the raw merge (stamp 9 < 11), but the frozen support tests the
+CURRENT `act(Σ)` and drops it; no slot-3 proposal declares support. -/
+def vH : GridCO.Wire 4 := ⟨.seat 2 0, .head b1'⟩
+def stH0 : State pT.n :=
+  atTime (process pT (atTime ([wProp B1' 0].foldl (process pT) (atTime {} 8)) 9)
+    ⟨.seat (.head 2) 0, .head b1'⟩) 12
+def stH : State pT.n := [wProp B1 0, wProp B2 1, wProp B3 1].foldl (process pT) stH0
+example : vH ∈ headVotes pT stH0 3 ∧ vH ∈ headSupport pT stH0 3 ∧
+    stH.fg.F = B1 ∧ vH ∈ headVotes pT stH 3 ∧ headSupport pT stH 3 = [] := by decide
+
+/-- (b) spec 190–193 (audit N1): a slot-3 proposal `X` on `b1'` carries a label-2
+vote of seat 1 for `b1'`. `X` is admitted at now = 12 while F = genesis (its vote
+enters the pool with stamp 12 ≥ z_2 = 11, so the frozen arm does not hold it).
+Then `B1`, `B2`, `B3` move F to `B1`: `X` leaves `act(Σ)`, but its carried vote
+stays in the raw merge of the slot-3 HEAD through the proposal arm. -/
+def vX : HeadWire 4 := ⟨.seat (.head 2) 1, b1'⟩
+def xB : Block := .node b1' 3 ⟨96⟩
+def stX : State pT.n :=
+  [wProp B1 0, wProp B2 1, wProp B3 1].foldl (process pT)
+    (process pT (atTime ([wProp B1' 0].foldl (process pT) (atTime {} 8)) 12)
+      ⟨.proposer 3, .proposal xB [vX] [] []⟩)
+example : stX.fg.F = B1 ∧ xB ∈ stX.base.blocks ∧ xB ∉ (actView stX).blocks ∧
+    baseVote vX ∈ headVotes pT stX 3 := by decide
+
+/-- (c) spec 544–556, 1255–1274: `proposal_attestations` for H = b2 at slot 3
+(round 1, w_F = 1, I = {0, 1}). The pool holds the rows of B1, B2, B3 and two
+round-1 rows `q 1`, `q 2` of identity 3. A new slot-3 block `Y` on b2 carries a
+third identity-3 row `q 3`; the pool refuses it (two rows already). By hand: the
+rows of B1 and B2 are on the chain of b2 and are dropped; the pool rows B3, `q 1`,
+`q 2` stay in pool order; the block row `q 3` is dropped because identity 3
+already has two pool rows in round 1. -/
+def q (h : Nat) : RowWire 4 := ⟨.seat (.fg 1) 3, ⟨.vote h genesisRoot false, none⟩⟩
+def yB : Block := .node (eraseFG B2) 3 ⟨95⟩
+def stP : State pT.n :=
+  process pT ([q 1, q 2].foldl (admitRow pT) stA) ⟨.proposer 3, .proposal yB [] [] [q 3]⟩
+/-- Fallback (plan Global Constraints, R1): plain `decide` and the `Bool` form
+both reach the elaborator's recursion limit on `stP`; the kernel check works. -/
+example : yB ∈ stP.base.blocks ∧ q 3 ∉ stP.rowPool ∧
+    proposalRows pT stP (eraseFG B2) = rowsOf 1 B3 ++ [q 1, q 2] := by decide +kernel
+
+/-- G6 coverage: `live_root` (spec 648–655, 1086–1098). In `stA` (Z = F = B1,
+now 12) a live lease on b2 makes b2 the live root (deeper than b1); an expired
+lease (deadline 12) and a lease on a block outside the full filtered tree
+(`b1'`) do not count, so the live root is Z = b1. -/
+example : liveRoot pT { stA with base := { stA.base with obligations := [(eraseFG B2, 2, 100)] } } =
+      eraseFG B2 ∧
+    liveRoot pT { stA with base := { stA.base with obligations := [(eraseFG B2, 2, 12)] } } = b1 ∧
+    liveRoot pT { stA with base := { stA.base with obligations := [(b1', 2, 100)] } } = b1 := by
+  decide
+/-- G6 coverage: `propose_block` at t_4 = 16 (spec 1236–1253). No slot-3 votes.
+The head walk from Z = b1 takes b2 (band: σ[B1].h = 2 < lo = 3) and stops (b3:
+σ[B2].h = 3, no majority, slot 3 ≠ Σ.s = 4). The root is 4 · (5 + 1) = 24. The
+rows (I = {1, 2}): the rows of B1 (round 0) and B2 (on the chain of b2) drop;
+the pool rows of B3 stay; the block rows add nothing new. -/
+example : propose pT (atTime stA 16) 4 =
+    some (.proposal (.node (eraseFG B2) 4 ⟨24⟩) [] [] (rowsOf 1 B3)) := by decide
+/-- G6 coverage: the finality head (spec 1318–1323) at `stA` (slot 3): the walk
+reaches b3 (current slot), and the head fields are those of `B3`. -/
+example : fgHead pT stA = eraseFG B3 ∧
+    (fgInputs pT stA).2 = HeadFields.ofBlock pT.E pT.cfg B3 := by decide
+/-- G6 coverage: `attest` with a source (spec 1304–1313, 1379–1387). In `stC1`
+the source is B2 and the finality head is b3. σ[B3] has h_j = h_F = 2, so there
+is no finality pair; with the initial record the height pair is the target
+vote `(σ[B2].h, σ[B2].T_h.root) = (3, …)`. -/
+example : (attest pT stC1 Record.initial 0).1.finality_pair = none ∧
+    (attest pT stC1 Record.initial 0).1.height_pair =
+      .vote 3 (derive pT.E pT.cfg B2).T_h.root false := by decide
 
 end AvailableChain.FGSA.Tests
 end
