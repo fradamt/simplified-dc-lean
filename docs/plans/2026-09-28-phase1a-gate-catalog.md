@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make the framework able to carry the full v1 catalog, and fill it. First, one lock-breaking gate: claims over a carrier (facets and engines), late triggers (I2), shared profile constants (g), `depsPresent` in the hooks (h), and a compiled witness of the no-input gap (I1). Then the standard and strong catalog tiers, the profiles `ac-4.3` and `strong-1`, and their proposition equivalences with today's bundles.
+**Goal:** Make the framework able to carry the full v1 catalog, and fill it. First, one lock-breaking gate: claims over a claim domain (facets and engines), late triggers (I2), shared profile constants (g), `depsPresent` in the hooks (h), and a compiled witness of the no-input gap (I1). Then the standard and strong catalog tiers, the profiles `ac-4.3` and `strong-1`, and their proposition equivalences with today's bundles.
 
-**Architecture:** All changes are in `AvailableChainFramework` (L1–L3) and `AvailableChainRegistry` (L4), plus `scripts/CatalogLock.lean` and `scripts/Registry.lean`. A `Carrier` names the kind of instance that a claim speaks about and the type of its run contexts. `ClaimSpec K`, `Cert`, `Refutation` and `Profile K` become generic over the carrier. The v1 carrier is today's `Instance` with an environment and a v1 run. A facet (for example the strong output) is a structure that extends `Instance`, with its own carrier and a carrier map to v1, so base claims and certificates pull back to it. No protocol library (`AvailableChainGridCO`, `…SA`, `…SAPC`, `…LStar`, `…Witnesses`) changes in this plan.
+**Architecture:** All changes are in `AvailableChainFramework` (L1–L3) and `AvailableChainRegistry` (L4), plus `scripts/CatalogLock.lean` and `scripts/Registry.lean`. A `ClaimDomain` names the kind of instance that a claim speaks about and the type of its run contexts. `ClaimSpec K`, `Cert`, `Refutation` and `Profile K` become generic over the claim domain. The v1 claim domain is today's `Instance` with an environment and a v1 run. A facet (for example the strong output) is a structure that extends `Instance`, with its own claim domain and a claim domain map to v1, so base claims and certificates pull back to it. No protocol library (`AvailableChainGridCO`, `…SA`, `…SAPC`, `…LStar`, `…Witnesses`) changes in this plan.
 
 **Tech Stack:** Lean 4 v4.30.0-rc2 and Mathlib v4.30.0-rc2, Lake, the module system (`module`, `public import`, `@[expose] public section`).
 
@@ -18,12 +18,12 @@ Design §8 has Phase 1 (full catalog on v1, eligibility per migrated instance, `
 ┌──────┬───────────────────────────────────┬────────────────────────────────────────┐
 │ Plan │ Scope                             │ Needs from earlier plans               │
 ├──────┼───────────────────────────────────┼────────────────────────────────────────┤
-│ 1a   │ THIS PLAN. Gate (carrier, I2, g,  │ Phase 0 (done)                         │
+│ 1a   │ THIS PLAN. Gate (claim domain, I2, g,  │ Phase 0 (done)                         │
 │      │ h, I1 witness, lock and registry  │                                        │
 │      │ hardening); standard and strong   │                                        │
 │      │ tiers; ac-4.3 and strong-1 with   │                                        │
 │      │ their equivalences                │                                        │
-│ 1b   │ Instance migration: E4 excludes   │ 1a: Carrier.v1, ClaimSpec K, Profile K,│
+│ 1b   │ Instance migration: E4 excludes   │ 1a: ClaimDomain.v1, ClaimSpec K, Profile K,│
 │      │ for Grid CO, SA, SA-PC (and the   │ HooksSound with deps_stable, ac-4.3,   │
 │      │ SA-PC receipt_acceptedRelay       │ strong-1, the equivalence theorems     │
 │      │ re-check, which relies on         │                                        │
@@ -40,9 +40,9 @@ Design §8 has Phase 1 (full catalog on v1, eligibility per migrated instance, `
 │      │ structure indexed by the instance │                                        │
 │      │ (NOT an Instance field); search   │                                        │
 │      │ admission = Candidate × Eligible  │                                        │
-│ 2    │ Engine v2 (E1–E6), the lift       │ 1a: carrier (a v2 carrier is a new     │
-│      │ simulation (a ONE-WAY carrier     │ Carrier value); 1b: Kit.Engine,        │
-│      │ relation, not a CarrierMap), a    │ Eligible                               │
+│ 2    │ Engine v2 (E1–E6), the lift       │ 1a: claim domain (a v2 claim domain is a new     │
+│      │ simulation (a ONE-WAY claim domain     │ ClaimDomain value); 1b: Kit.Engine,        │
+│      │ relation, not a DomainMap), a    │ Eligible                               │
 │      │ toy Linked, self-visible, restart │                                        │
 │      │ protocol; the I1 fix: a run-      │                                        │
 │      │ chosen proposer input AND a floor │                                        │
@@ -59,13 +59,15 @@ The FG module is not connected to the search in any of the three plans (user dir
 The user approved this plan on 2026-09-28 ("Go"). Before execution, three independent reviews ran (Astra: `docs/audit/phase1a-plan-audit-report.md`, REVISE 0/5/3; opus: `docs/audit/phase1a-plan-opus-review.md`, ADOPT WITH FIXES 0/2/14; async session: `docs/audit/phase1a-plan-async-review.md`). This version applies their findings; the section "Audit disposition" at the end lists each one.
 
 
-- **Carriers replace type-class facets.** Phase 0 deviation (d) made a facet a type class over `Instance`. A claim `∀ I [HasStrong I], …` is vacuous for an instance without the class, and two class instances can attach to one `I` (PHASE0-REPORT §6, Facet row). In this plan a facet is a structure that extends `Instance` (`StrongInstance`), so the facet value is a field and is bound once. A claim that needs the facet is a `ClaimSpec Carrier.strong`: only a `StrongInstance` can hold a certificate of it. A new facet is an addition: a new structure, its carrier and a `CarrierMap` to v1. Existing claims and certificates pull back through the map (G2). Deviation (d) is superseded.
-- **The same carrier generalizes the engine (I5).** A claim quantifies over `K.Ctx I W` (for v1: an environment and a v1 run). Engine v2 (plan 2) adds a new carrier value. It does not change `ClaimSpec`. A `CarrierMap` (an equivalence of contexts) is for facets only; the v1 → v2 lift is a simulation and needs a one-way relation with its own transport lemmas (plan 2).
-- **`Instance` is frozen after the gate.** A new `Instance` field changes the hash of `Instance` and of almost every locked declaration, so it is NOT an addition (design §3: "adding a field to a frozen Lean structure changes its declaration"). Later per-instance data enters as a separate structure indexed by the instance, in its own module: eligibility as `Eligible (I : Instance) : Prop` (plan 1b: `Deliverable`, `RelayFeasible`, `EmitWellFormed`, `HandlerCoverage`, `WindowMargin`, isolation), facet data as a structure that extends `Instance` with its carrier. This departs from the §3 sketch, where `deliv` and `iso` are `Instance` fields; it is the representation that §3 leaves open ("Phase 0 selects an extensible representation").
+- **Claim domains replace type-class facets** (the Phase 0 report calls this the "carrier generalization"; the Lean name is `ClaimDomain`, because the FG module already uses "carrier" for a row carrier, async m4). Phase 0 deviation (d) made a facet a type class over `Instance`. A claim `∀ I [HasStrong I], …` is vacuous for an instance without the class, and two class instances can attach to one `I` (PHASE0-REPORT §6, Facet row). In this plan a facet is a structure that extends `Instance` (`StrongInstance`), so the facet value is a field and is bound once. A claim that needs the facet is a `ClaimSpec ClaimDomain.strong`: only a `StrongInstance` can hold a certificate of it. A new facet is an addition: a new structure, its claim domain and a `DomainMap` to v1. Existing claims and certificates pull back through the map (G2). Deviation (d) is superseded.
+- **The same claim domain generalizes the engine (I5).** A claim quantifies over `K.Ctx I W` (for v1: an environment and a v1 run). Engine v2 (plan 2) adds a new claim domain value. It does not change `ClaimSpec`. A `DomainMap` (an equivalence of contexts) is for facets only; the v1 → v2 lift is a simulation and needs a one-way relation with its own transport lemmas (plan 2).
+- **`Instance` is frozen after the gate.** A new `Instance` field changes the hash of `Instance` and of almost every locked declaration, so it is NOT an addition (design §3: "adding a field to a frozen Lean structure changes its declaration"). Later per-instance data enters as a separate structure indexed by the instance, in its own module: eligibility as `Eligible (I : Instance) : Prop` (plan 1b: `Deliverable`, `RelayFeasible`, `EmitWellFormed`, `HandlerCoverage`, `WindowMargin`, isolation), facet data as a structure that extends `Instance` with its claim domain. This departs from the §3 sketch, where `deliv` and `iso` are `Instance` fields; it is the representation that §3 leaves open ("Phase 0 selects an extensible representation").
 - **`ProtocolParams` stays inside the protocol.** A protocol value is built from its parameters (`sapc p`), so `Instance` gets no `pparams` field. A later explicit parameter interface is a separate indexed structure, as above. Profile constants (`Shared`) are the shared constants of design §3–§4 (deviation (g)).
 - **`Instance` gets `Δ_pos : 0 < Δ`.** Without it an instance with `Δ ≤ 0` has no admissible context, and every `holds` is vacuous. `Cert.inhabited` already rejects such an instance, but the equivalence theorems (Task 9) need the field.
 - **Two lock writes, one break.** Task 0 hardens the lock script BEFORE the gate and rewrites the lock in the new format with no declaration changed (a format change: order-independent hashes, generated names by metadata). Tasks 1–5 then break the lock on purpose, and Task 6 writes it once more: that diff shows only the gate's changes. Both writes get a dated entry in the design's §8 lock change log. Approval of this plan is the user's approval of both, as for the receipt-relay lock rewrite (`0dd5993`).
 - **The I1 gap becomes a compiled witness, not a fix.** Task 5 proves that a protocol that reads no input (`clockChain`) is a `Candidate`. The fix is plan 2's: a run-chosen proposer input is NOT enough (a protocol can ignore it, Astra A05); plan 2 needs a floor claim that binds the proposal to that input, and its regression test is a REFUTATION of `clockChain` (lifted) against that claim, not an elaboration failure. The v1 witness stays as a record. It lives in `AvailableChainRegistry/Gaps/`, and the registry marks its rows `KNOWN-GAP`, not `LEAN`.
+- **The id rule for pulled and restated claims** (async M6). `ClaimSpec.pull` keeps the claim's id, and it exists only along a `DomainMap`: an equivalence of contexts that keeps admissibility (↔) and the horizon. A claim over another domain, or over a domain with a stronger `admissible` (for example a v1 domain with a `LinkedFG` run premise), is a NEW claim with a new id and a relation lemma to the old one. The optional pointwise `transport` (pull along any admissibility-keeping function) is NOT taken: it departs from the approved design text (§4, `transport` over all runs), and the id rule covers the FG-SA needs (async recommendation).
+- **KNOWN-GAP consumer contract** (async M1). Registry rows with the status `KNOWN-GAP` are records, not results: `MATRIX.md` (plan 1b), Pareto sets and the explorer ignore them. After plan 2, a v1 `Candidate` is not the floor; `core.v2` (new id, new floor profile with an input-inclusion claim) is.
 - **HooksSound stays run-level** (deviation (i)); `deps_stable` has the same shape as `processed_stable`.
 
 ## Global Constraints
@@ -83,6 +85,9 @@ The user approved this plan on 2026-09-28 ("Go"). Before execution, three indepe
 - Each task ends at a CHECKPOINT: the build is green; the registry script runs; the lock check has the result that this section states; the task is committed.
 - Prose in comments and docs: ASD-STE100 Simplified Technical English. Tables: Unicode box drawing in fenced `text` blocks.
 - Claim ids are immutable. A changed statement of an existing claim keeps its id only in this gate (the Task 6 regeneration is the one approved break); after Task 6 a changed statement is a new id.
+- Axioms. From Task 0 on, `lake env lean --run scripts/CheckFrameworkAxioms.lean` exits 0 at every CHECKPOINT: every constant of `AvailableChainFramework` and `AvailableChainRegistry` uses only `propext`, `Classical.choice`, `Quot.sound` (async M3). Task 10 also greps `sorry|admit|native_decide` and `^axiom` in both libraries and the scripts.
+- Lock diff per task (async M2). Each CHECKPOINT of Tasks 1–5 saves `CatalogLock --check` output against the Task 0 lock in the task report; the Task 6 change log is the last of these.
+- `docs/REGISTRY.md` is regenerated and committed at every CHECKPOINT where its content changes.
 - Late triggers. Every catalog claim whose trigger is not `True` has a lemma `<claim>_trigger_late` that shows the trigger time is at least `H` (the `ClaimSpec` shape cannot force it).
 
 ## Review Focus
@@ -115,8 +120,8 @@ This task changes only the two scripts and the lock FORMAT. No Lean declaration 
   This depends only on the reachable set, not on the order or on other roots. To keep the run time low, cache `ownHash` per name (not the closure hash).
 - [ ] **Step 2: Generated names by metadata, and claims always locked** (Astra A03; opus P1a-12; M6).
   - A constant is "generated" if the environment says so, not by its name: `isAuxRecursor env n`, `isNoConfusion env n`, `n.isInternal`, a `Lean.Meta.Match` matcher (`Match.isMatcherCore env n`), a declaration with no declaration range (`findDeclarationRanges?` returns `none`, run in `CoreM`), or an equation lemma that `Lean.Meta.isEqnThm?`/`getEqnsFor?` reports. A generated constant gets no lock line, but its `ownHash` still enters every closure that reaches it.
-  - A constant whose type is `ClaimSpec …`, `Profile …`, `Profile.Entry …` or `Carrier` is ALWAYS locked, whatever its name.
-  - Locked modules: add `AvailableChainFramework.Carrier`, `AvailableChainFramework.CarrierMap` and the prefix `AvailableChainFramework.Facets` (L2) to the list now; the modules do not exist yet, and the list tolerates that.
+  - A constant whose type is `ClaimSpec …`, `Profile …`, `Profile.Entry …` or `ClaimDomain` is ALWAYS locked, whatever its name.
+  - Locked modules: add `AvailableChainFramework.ClaimDomain`, `AvailableChainFramework.DomainMap` and the prefix `AvailableChainFramework.Facets` (L2) to the list now; the modules do not exist yet, and the list tolerates that.
 - [ ] **Step 3: A separate axiom check** (Astra A04; M5). The hash stays proof-independent. Separately, for every locked name, run `Lean.collectAxioms` (proof-aware) and fail with exit 2 on any axiom outside `propext`, `Classical.choice`, `Quot.sound`. A missing constant in a closure still exits 2.
 - [ ] **Step 4: Compare by name** (I8). Add `--lock <path>` (default `docs/catalog.lock`). `--check` reads the old lines into a map. For each old name: missing now → `REMOVED <name>`; a different hash → `CHANGED <name>`. For each new name → `ADDED <name>`. Exit 1 on any `REMOVED` or `CHANGED`; else exit 0 with the `ADDED` lines as a notice. A malformed line → exit 2.
 - [ ] **Step 5: Tests (Review Focus 4 and 7)**, in scratch files under the session scratchpad, not in the repository:
@@ -128,22 +133,28 @@ This task changes only the two scripts and the lock FORMAT. No Lean declaration 
 - [ ] **Step 6: Registry hardening** (PHASE0-REPORT §6, Registry rows; Astra A08; opus P1a-15).
   - `instanceLibraries : List Name := [`AvailableChainRegistry]` drives BOTH the `importModules` list and the module-prefix filter. The script prints the list in the REGISTRY.md header.
   - `--check`: compute the text and compare with `docs/REGISTRY.md`; exit 1 if different, 0 if the same. Without an argument, write the file (as now).
-- [ ] **Step 7: Rewrite the lock and log it.** Run `--write`. Add a dated entry to `docs/FRAMEWORK-DESIGN.md` §8 "Lock change log": "Format change (plan 1a Task 0): order-independent hashes, generated names by metadata, claims always locked, a separate axiom check. No declaration changed; every line hash changes because the hash function changed; lines of generated names are gone." List the removed generated names in one line.
-- [ ] **Step 8: CHECKPOINT.** `lake build --wfail AvailableChainFramework AvailableChainRegistry` is green (no Lean change). `CatalogLock --check` exits 0. `Registry.lean` writes the same 8 rows; `Registry --check` exits 0. Commit `Framework: lock and registry hardening (format only)`.
+- [ ] **Step 6b: Additions from the async review** (M3, m7, m9, m11).
+  - `scripts/CheckFrameworkAxioms.lean` (modelled on `scripts/CheckFGAxioms.lean`): every non-internal constant of the modules under `AvailableChainFramework` and `AvailableChainRegistry` has only `propext`, `Classical.choice`, `Quot.sound` as axioms (`collectAxioms`); else exit 1; print `checked N constants`.
+  - Catalog id uniqueness: two different locked Lean names whose type is `ClaimSpec …` with the same `id` → exit 2 (a pulled claim keeps its base id and is exempt).
+  - `--write` refuses (exit 1, prints the names) when the diff has a `CHANGED` or `REMOVED` name, unless `--allow-changes` is given; additions alone write normally. Test: change one definition body in a scratch copy; its line is `CHANGED`, and its generated `eq_def` has no line.
+  - Registry `KNOWN-GAP`: a row from a module under `AvailableChainRegistry.Gaps` gets `KNOWN-GAP` only if its axiom check gives `LEAN`; `UNSOUND` and `CONDITIONAL` stay.
+  - Locked modules and always-locked types use the names `ClaimDomain`, `DomainMap` (async m4).
+- [ ] **Step 7: Rewrite the lock and log it.** Run `--write --allow-changes`. Record the git blob id of the old lock (`git rev-parse HEAD:docs/catalog.lock`) in the change log. Add a dated entry to `docs/FRAMEWORK-DESIGN.md` §8 "Lock change log": "Format change (plan 1a Task 0): order-independent hashes, generated names by metadata, claims always locked, a separate axiom check. No declaration changed; every line hash changes because the hash function changed; lines of generated names are gone." List the removed generated names in one line.
+- [ ] **Step 8: CHECKPOINT.** `lake build --wfail AvailableChainFramework AvailableChainRegistry` is green (no Lean change). `CatalogLock --check` exits 0. `CheckFrameworkAxioms` exits 0. `Registry.lean` writes the same 8 rows; `Registry --check` exits 0. Commit `Framework: lock and registry hardening (format only)`.
 
-### Task 1: Carriers and carrier-generic claims with late triggers
+### Task 1: Claim domains and domain-generic claims with late triggers
 
 **Files:**
-- Create: `AvailableChainFramework/Carrier.lean`
-- Modify: `AvailableChainFramework/Instance.lean`, `AvailableChainFramework/Claim.lean`, `AvailableChainFramework/Cert.lean`, `AvailableChainFramework/Pareto.lean`, `AvailableChainFramework/Profile.lean` (only the `ClaimSpec` → `ClaimSpec Carrier.v1` change; Task 2 rewrites it), `AvailableChainFramework/Catalog/Core.lean`, `AvailableChainFramework.lean`
+- Create: `AvailableChainFramework/ClaimDomain.lean`
+- Modify: `AvailableChainFramework/Instance.lean`, `AvailableChainFramework/Claim.lean`, `AvailableChainFramework/Cert.lean`, `AvailableChainFramework/Pareto.lean`, `AvailableChainFramework/Profile.lean` (only the `ClaimSpec` → `ClaimSpec ClaimDomain.v1` change; Task 2 rewrites it), `AvailableChainFramework/Catalog/Core.lean`, `AvailableChainFramework.lean`
 - Modify: `AvailableChainRegistry/Sanity.lean`, `AvailableChainRegistry/Counter.lean`, `AvailableChainRegistry/CounterRun.lean`, `AvailableChainRegistry/CounterIncluded.lean`, `AvailableChainRegistry/Tests/Pareto.lean`, `AvailableChainRegistry/Tests/NewFacet.lean` (delete its content except a module docstring that points to Task 4; Task 4 replaces it)
 - Modify: `scripts/Registry.lean` (the `Cert K c I` arity)
 
 **Interfaces:**
 - Consumes: Phase 0 framework.
-- Produces: `Validators`, `Carrier` (`Inst`, `Ctx`, `admissible`, `horizon`), `V1Ctx`, `Carrier.v1`, `Instance.Δ_pos`, `ClaimSpec K` with `trigger … (H : Time)`, `ClaimSpec.holds`, `ClaimSpec.inhabited`, `Cert c I`, `Refutation c I`, `RefutationFamily c I` for `c : ClaimSpec K`, `I : K.Inst`.
+- Produces: `Validators`, `ClaimDomain` (`Inst`, `Ctx`, `admissible`, `horizon`), `V1Ctx`, `ClaimDomain.v1`, `Instance.Δ_pos`, `ClaimSpec K` with `trigger … (H : Time)`, `ClaimSpec.holds`, `ClaimSpec.inhabited`, `Cert c I`, `Refutation c I`, `RefutationFamily c I` for `c : ClaimSpec K`, `I : K.Inst`.
 
-- [ ] **Step 1: Write `Carrier.lean`.** Move `Validators` here from `Instance.lean` (same text).
+- [ ] **Step 1: Write `ClaimDomain.lean`.** Move `Validators` here from `Instance.lean` (same text).
 
 ```lean
 module
@@ -164,9 +175,11 @@ attribute [instance] Validators.dec Validators.fin
 
 /-- What a claim speaks about (design §3; carrier generalization, PHASE0-REPORT
 §6 I3 and I5): a type of instances and, for each instance and validator type,
-a type of run contexts. The v1 carrier has an environment and a v1 run. A
-facet or a new engine is a new carrier value, not a change to `ClaimSpec`. -/
-structure Carrier where
+a type of run contexts. The v1 claim domain has an environment and a v1 run. A
+facet or a new engine is a new claim domain value, not a change to `ClaimSpec`. -/
+structure ClaimDomain where
+  /-- A stable name (async m6), for example `v1`, `strong`. -/
+  id : Lean.Name
   Inst : Type 1
   Ctx : Inst → Validators → Type
   /-- The contexts that a certificate covers (v1: the environment has the
@@ -180,7 +193,7 @@ end AvailableChain.Framework
 end
 ```
 
-- [ ] **Step 2: Rewrite `Instance.lean`.** Import `Carrier` and `Hooks`. Keep the `Instance` fields and add `Δ_pos`. Add the v1 context and carrier. `Carrier.v1` is `@[reducible]`, so that `x.E` and `x.rho` elaborate on `x : Carrier.v1.Ctx I W`.
+- [ ] **Step 2: Rewrite `Instance.lean`.** Import `ClaimDomain` and `Hooks`. Keep the `Instance` fields and add `Δ_pos`. Add the v1 context and claim domain. `ClaimDomain.v1` is `@[reducible]`, so that `x.E` and `x.rho` elaborate on `x : ClaimDomain.v1.Ctx I W`.
 
 ```lean
 structure Instance where
@@ -197,20 +210,21 @@ structure V1Ctx (I : Instance) (W : Validators) where
   E : Env W.V
   rho : Run W.V I.P
 
-/-- The v1 carrier: today's instances with an environment and a v1 run. -/
-@[reducible] def Carrier.v1 : Carrier where
+/-- The v1 claim domain: today's instances with an environment and a v1 run. -/
+@[reducible] def ClaimDomain.v1 : ClaimDomain where
+  id := `v1
   Inst := Instance
   Ctx := V1Ctx
   admissible := fun I _ x => x.E.Δ = I.Δ
   horizon := fun _ _ x => x.rho.horizon
 ```
 
-- [ ] **Step 3: Rewrite `Claim.lean` over a carrier.** Import `Carrier` only. The structure keeps its fields; `regime`, `conclusion` and `trigger` take `(I : K.Inst)` and `(x : K.Ctx I W)`. `trigger` gets a last argument `H : Time`.
+- [ ] **Step 3: Rewrite `Claim.lean` over a claim domain.** Import `ClaimDomain` only. The structure keeps its fields; `regime`, `conclusion` and `trigger` take `(I : K.Inst)` and `(x : K.Ctx I W)`. `trigger` gets a last argument `H : Time`.
 
 ```lean
-variable {K : Carrier}
+variable {K : ClaimDomain}
 
-structure ClaimSpec (K : Carrier) where
+structure ClaimSpec (K : ClaimDomain) where
   id : Lean.Name
   Const : Type
   valid : Const → Prop
@@ -252,9 +266,9 @@ def inhabited (c : ClaimSpec K) (I : K.Inst) (k : c.Const) : Prop :=
 end ClaimSpec
 ```
 
-- [ ] **Step 4: Generalize `Cert.lean` and `Pareto.lean`.** Add `variable {K : Carrier}` and write `(c : ClaimSpec K) (I : K.Inst)` in `Cert`, `Refutation`, `RefutationFamily`, `Cert.weaken`, `Cert.not_refuted`, `Refutation.family_of`, and `c : ClaimSpec K` in every Pareto declaration. No other change. In `Profile.lean`, add `public import AvailableChainFramework.Instance` (Claim no longer imports it), and write `claims : List (ClaimSpec Carrier.v1)` and `ProfileCert (p : Profile) (I : Instance)`; Task 2 replaces the file.
+- [ ] **Step 4: Generalize `Cert.lean` and `Pareto.lean`.** Add `variable {K : ClaimDomain}` and write `(c : ClaimSpec K) (I : K.Inst)` in `Cert`, `Refutation`, `RefutationFamily`, `Cert.weaken`, `Cert.not_refuted`, `Refutation.family_of`, and `c : ClaimSpec K` in every Pareto declaration. No other change. In `Profile.lean`, add `public import AvailableChainFramework.Instance` (Claim no longer imports it), and write `claims : List (ClaimSpec ClaimDomain.v1)` and `ProfileCert (p : Profile) (I : Instance)`; Task 2 replaces the file.
 
-- [ ] **Step 5: Rewrite `Catalog/Core.lean` over `Carrier.v1`.** Every claim is `ClaimSpec Carrier.v1`. `sleepy` keeps its signature. In `safeOf` and `includedConfirmed`, `regime := fun I _ W x t₀ => sleepy I W x.E x.rho t₀`, and `conclusion` reads `x.E`, `x.rho`. `prefixOrder` stays UNCONDITIONAL (Astra A01): `Point := Unit`, `regime := fun _ _ _ _ _ => True`, `conclusion := fun I _ _ x _ => OutputOrder I.P I.iface x.rho`; only its context arguments change (the bundle's `nested` field covers every run). Safety and prefix triggers are `fun _ _ _ _ _ _ => True` (the regime's `H ≤ horizon` carries the time). The inclusion trigger:
+- [ ] **Step 5: Rewrite `Catalog/Core.lean` over `ClaimDomain.v1`.** Every claim is `ClaimSpec ClaimDomain.v1`. `sleepy` keeps its signature. In `safeOf` and `includedConfirmed`, `regime := fun I _ W x t₀ => sleepy I W x.E x.rho t₀`, and `conclusion` reads `x.E`, `x.rho`. `prefixOrder` stays UNCONDITIONAL (Astra A01): `Point := Unit`, `regime := fun _ _ _ _ _ => True`, `conclusion := fun I _ _ x _ => OutputOrder I.P I.iface x.rho`; only its context arguments change (the bundle's `nested` field covers every run). Safety and prefix triggers are `fun _ _ _ _ _ _ => True` (the regime's `H ≤ horizon` carries the time). The inclusion trigger:
 
 ```lean
   trigger := fun I D _ x t₀ H =>
@@ -269,7 +283,7 @@ Add this lemma after `includedConfirmed`:
 its proposal at a time of at least `H`. -/
 theorem includedConfirmed_trigger_late {I : Instance} {D : Time} {H : Time}
     (h : includedConfirmed.inhabited I D) :
-    ∃ (W : Validators) (x : Carrier.v1.Ctx I W) (s : Slot),
+    ∃ (W : Validators) (x : ClaimDomain.v1.Ctx I W) (s : Slot),
       H ≤ I.P.proposalTime s ∧ HonestAwakeProposer x.E x.rho s := by
   sorry
 ```
@@ -281,12 +295,26 @@ Proof guide: `obtain ⟨W, x, t₀, _, _, _, s, _, hH, hp, _⟩ := h H; exact �
 - [ ] **Step 6: Update the registry instances.** `Sanity.sanity` and `Counter.counterInst` add `Δ_pos := by norm_num` (or `zero_lt_one`). Every certificate's `inhabited` proof changes to the new shape `∃ W x p, admissible ∧ H ≤ horizon ∧ regime ∧ trigger … H`, with `x := ⟨E, rho⟩`. Every `proof` field takes `W x hΔ p hreg` and uses `x.E`, `x.rho`.
   - `Counter.certIncluded`: the trigger slot must be at least `H`. Use the canonical run `canonical 0 N` with `N := (max H 2).toNat + 1` and the slot `s := N - 1`; then `H ≤ s`, `0 < s`, and `s + 1 ≤ N`. Replace `horizon_ge` by a lemma that gives these three facts. `Time` rule of the Global Constraints applies.
   - `Sanity.refutedIncluded` and `Sanity.not_candidate`: only the context shape changes.
-  - `Tests/Pareto.lean`: `armedToy : ClaimSpec Carrier.v1`, with `regime` and `conclusion` of 5 binders (`fun _ _ _ _ _ => True`), `trigger` of 6 (`fun _ _ _ _ _ _ => True`), and the `transport` intro `intro _ _ _ _ _ _ _ W x hΔ p _`.
-  - `Tests/NewFacet.lean`: remove `HasStrong` and `safeStrong`; keep a module docstring "Replaced by the strong carrier test (Task 4)." and an empty section, so the root import stays valid.
+  - `Tests/Pareto.lean`: `armedToy : ClaimSpec ClaimDomain.v1`, with `regime` and `conclusion` of 5 binders (`fun _ _ _ _ _ => True`), `trigger` of 6 (`fun _ _ _ _ _ _ => True`), and the `transport` intro `intro _ _ _ _ _ _ _ W x hΔ p _`.
+  - `Tests/NewFacet.lean`: remove `HasStrong` and `safeStrong`; keep a module docstring "Replaced by the strong claim domain test (Task 4)." and an empty section, so the root import stays valid.
+
+- [ ] **Step 6b: Meaning pins** (async M2). Create `AvailableChainFramework/Catalog/Meaning.lean` (L3, locked). For each of the four existing claims, two theorems that state `holds` and `inhabited` in the Phase 0 form, with L1 predicates only. Example:
+
+```lean
+theorem includedConfirmed_holds_iff (I : Instance) (D : Time) :
+    includedConfirmed.holds I D ↔
+      ∀ (W : Validators) (E : Env W.V), E.Δ = I.Δ → ∀ (rho : Run W.V I.P) (t₀ : Time),
+        SleepyRegime I.P E I.iface rho t₀ →
+          IncludedFrom I.P E I.iface rho I.iface.confirmed t₀ D :=
+  ⟨fun h W E hE rho t₀ hr => h W ⟨E, rho⟩ hE t₀ hr,
+   fun h W x hx t₀ hr => h W x.E hx x.rho t₀ hr⟩
+```
+
+  The `inhabited` pins state the Phase 0 form plus the late-trigger condition; the only intended difference from Phase 0 (`Claim.lean:52-60` at `505b14a`) is `H ≤ proposalTime s` in `includedConfirmed`. A reviewer compares each pin with the Phase 0 definitions. Add the module to the library root.
 
 - [ ] **Step 7: Update `scripts/Registry.lean`.** `Cert`, `Refutation` and `RefutationFamily` now have the arguments `K c I`. Read the claim from `args[1]!` and the instance from `args[2]!`. Everything else stays.
 
-- [ ] **Step 8: CHECKPOINT.** `lake build --wfail AvailableChainFramework AvailableChainRegistry` is green. `lake env lean --run scripts/Registry.lean` regenerates `docs/REGISTRY.md` with the same 8 rows, all `LEAN`. `scripts/CatalogLock.lean --check` exits 1 (expected; Task 6 regenerates). Commit with `Framework: carriers, carrier-generic claims, late triggers`, staging the files above and `docs/REGISTRY.md`.
+- [ ] **Step 8: CHECKPOINT.** `lake build --wfail AvailableChainFramework AvailableChainRegistry` is green. `lake env lean --run scripts/Registry.lean` regenerates `docs/REGISTRY.md` with the same 8 rows, all `LEAN`. `scripts/CatalogLock.lean --check` exits 1 (expected; Task 6 regenerates). `CheckFrameworkAxioms` exits 0. Save the lock diff against the Task 0 lock in the report. Commit with `Framework: claim domains, domain-generic claims, late triggers`, staging the files above, `Catalog/Meaning.lean` and `docs/REGISTRY.md`.
 
 ### Task 2: Profiles with shared constants
 
@@ -294,24 +322,24 @@ Proof guide: `obtain ⟨W, x, t₀, _, _, _, s, _, hH, hp, _⟩ := h H; exact �
 - Modify: `AvailableChainFramework/Profile.lean`, `AvailableChainFramework/Catalog/Core.lean`, `AvailableChainRegistry/CounterIncluded.lean`, `AvailableChainRegistry/Sanity.lean`
 
 **Interfaces:**
-- Consumes: Task 1 (`ClaimSpec K`, `Cert`, `Carrier.v1`).
-- Produces: `Profile.Entry K S`, `Profile K` (`id`, `Shared`, `valid`, `entries`), `ProfileCert p I` (a structure: `shared`, `valid`, `certs`), `Profile.holdsAt`, `ProfileCert.holdsAt`, `Catalog.core : Profile Carrier.v1`, `Catalog.Candidate`, `Catalog.not_candidate_of_family`.
+- Consumes: Task 1 (`ClaimSpec K`, `Cert`, `ClaimDomain.v1`).
+- Produces: `Profile.Entry K S`, `Profile K` (`id`, `Shared`, `valid`, `entries`), `ProfileCert p I` (a structure: `shared`, `valid`, `certs`), `Profile.holdsAt`, `ProfileCert.holdsAt`, `Catalog.core : Profile ClaimDomain.v1`, `Catalog.Candidate`, `Catalog.not_candidate_of_family`.
 
 - [ ] **Step 1: Rewrite `Profile.lean`.**
 
 ```lean
-variable {K : Carrier}
+variable {K : ClaimDomain}
 
 /-- One claim of a profile, with the projection of the shared constants to the
 claim's own constant (design §4, profiles; PHASE0-REPORT §5.1 (g)). -/
-structure Profile.Entry (K : Carrier) (S : Type) where
+structure Profile.Entry (K : ClaimDomain) (S : Type) where
   spec : ClaimSpec K
   share : S → spec.Const
 
 /-- A named set of catalog claims with shared constants. `valid` holds the
 conditions that relate constants of different claims (for `ac-4.3`, all of
 `Constants.Valid`). -/
-structure Profile (K : Carrier) where
+structure Profile (K : ClaimDomain) where
   id : Lean.Name
   Shared : Type
   valid : Shared → Prop
@@ -340,7 +368,7 @@ Proof guide: `refine ⟨pc.valid, fun e he => ?_⟩`; take `⟨x, hx⟩ := pc.ce
 ```lean
 /-- The core floor (design §4): every candidate certifies all four claims.
 The shared constant is the inclusion delay `D`. -/
-def core : Profile Carrier.v1 where
+def core : Profile ClaimDomain.v1 where
   id := `core.v1
   Shared := Time
   valid := fun D => 0 ≤ D
@@ -352,21 +380,21 @@ def core : Profile Carrier.v1 where
 def Candidate (I : Instance) : Type 1 := ProfileCert core I
 
 /-- A refutation family of a core claim rejects the instance. -/
-theorem not_candidate_of_family {I : Instance} {e : Profile.Entry Carrier.v1 Time}
+theorem not_candidate_of_family {I : Instance} {e : Profile.Entry ClaimDomain.v1 Time}
     (he : e ∈ core.entries) (r : RefutationFamily e.spec I) : Candidate I → False := by
   sorry
 ```
 
 Proof guide: `intro pc; exact (pc.certs e he).1.not_refuted r`.
 
-- [ ] **Step 3: Rebuild the registry users.** `Counter.candidate : Candidate counterInst` is a `ProfileCert` with `shared := (1 : Time)` (a bare `1` needs `OfNat core.Shared`, which fails), `valid := zero_le_one`, and `certs`. The membership `he : e ∈ core.entries` is a `Prop` and cannot be eliminated into data, so use the Phase 0 pattern (PHASE0-REPORT §5.2, Task 9): `classical`, then `if h1 : e = ⟨safeConfirmed, fun _ => ()⟩ then (by subst h1; exact ⟨certSafeConfirmed, rfl⟩) else if …`, and in the last branch derive `e = ⟨includedConfirmed, fun D => D⟩` from `he` and the three negations. `simp [core]` and `tauto` do not work on this membership (the element type `Profile.Entry … core.Shared` does not unfold at reducible transparency): first `change e ∈ ([_, _, _, _] : List (Profile.Entry Carrier.v1 Time)) at he`, then `simp only [List.mem_cons, List.not_mem_nil, or_false] at he`; or use `List.mem_cons.1` in term mode (tested in `/private/tmp/p1a-scratch/Core.lean`, `testCandidate`). `candidate` stays `noncomputable`. `Sanity.not_candidate` proves the membership of `⟨includedConfirmed, fun D => D⟩` the same way.
+- [ ] **Step 3: Rebuild the registry users.** `Counter.candidate : Candidate counterInst` is a `ProfileCert` with `shared := (1 : Time)` (a bare `1` needs `OfNat core.Shared`, which fails), `valid := zero_le_one`, and `certs`. The membership `he : e ∈ core.entries` is a `Prop` and cannot be eliminated into data, so use the Phase 0 pattern (PHASE0-REPORT §5.2, Task 9): `classical`, then `if h1 : e = ⟨safeConfirmed, fun _ => ()⟩ then (by subst h1; exact ⟨certSafeConfirmed, rfl⟩) else if …`, and in the last branch derive `e = ⟨includedConfirmed, fun D => D⟩` from `he` and the three negations. `simp [core]` and `tauto` do not work on this membership (the element type `Profile.Entry … core.Shared` does not unfold at reducible transparency): first `change e ∈ ([_, _, _, _] : List (Profile.Entry ClaimDomain.v1 Time)) at he`, then `simp only [List.mem_cons, List.not_mem_nil, or_false] at he`; or use `List.mem_cons.1` in term mode (tested in `/private/tmp/p1a-scratch/Core.lean`, `testCandidate`). `candidate` stays `noncomputable`. `Sanity.not_candidate` proves the membership of `⟨includedConfirmed, fun D => D⟩` the same way.
 
 - [ ] **Step 4: Add a Review Focus 3 test** in `CounterIncluded.lean`:
 
 ```lean
 /-- Review Focus 3: every certificate of Counter's candidate is at the
 projection of the one shared delay. -/
-example (e : Profile.Entry Carrier.v1 Time) (he : e ∈ core.entries) :
+example (e : Profile.Entry ClaimDomain.v1 Time) (he : e ∈ core.entries) :
     (candidate.certs e he).1.const = e.share candidate.shared :=
   (candidate.certs e he).2
 ```
@@ -399,25 +427,25 @@ example (e : Profile.Entry Carrier.v1 Time) (he : e ∈ core.entries) :
 
 - [ ] **Step 3: CHECKPOINT.** Build green; registry unchanged. Lock `--check` exits 1 (expected). Commit `Framework: depsPresent in HooksSound`.
 
-### Task 4: Facets as carriers (the strong output)
+### Task 4: Facets as claim domains (the strong output)
 
 **Files:**
-- Create: `AvailableChainFramework/Facets/Strong.lean`, `AvailableChainFramework/CarrierMap.lean`
+- Create: `AvailableChainFramework/Facets/Strong.lean`, `AvailableChainFramework/DomainMap.lean`
 - Modify: `AvailableChainFramework.lean`, `AvailableChainRegistry/Tests/NewFacet.lean`
 
 **Interfaces:**
 - Consumes: Tasks 1–2.
-- Produces: `CarrierMap K' K` (`inst`, `ctx`, `admissible`, `horizon`), `ClaimSpec.pull`, `ClaimSpec.holds_pull`, `ClaimSpec.inhabited_pull`, `Cert.pull`, `StrongInstance` (extends `Instance` with `strong`), `StrongInstance.sface`, `Carrier.strong`, `CarrierMap.strongV1 : CarrierMap Carrier.strong Carrier.v1`.
+- Produces: `DomainMap K' K` (`inst`, `ctx`, `admissible`, `horizon`), `ClaimSpec.pull`, `ClaimSpec.holds_pull`, `ClaimSpec.inhabited_pull`, `Cert.pull`, `StrongInstance` (extends `Instance` with `strong`), `StrongInstance.sface`, `ClaimDomain.strong`, `DomainMap.strongV1 : DomainMap ClaimDomain.strong ClaimDomain.v1`.
 
-- [ ] **Step 1: Write `CarrierMap.lean`.** A map from carrier `K'` to carrier `K` sends each `K'` instance to a `K` instance and identifies their contexts. Base claims then pull back.
+- [ ] **Step 1: Write `DomainMap.lean`.** A map from claim domain `K'` to claim domain `K` sends each `K'` instance to a `K` instance and identifies their contexts. Base claims then pull back.
 
 ```lean
-variable {K K' : Carrier}
+variable {K K' : ClaimDomain}
 
-/-- A carrier map from `K'` to `K` (a facet carrier to its base, design G2):
+/-- A claim domain map from `K'` to `K` (a facet claim domain to its base, design G2):
 an instance map and an equivalence of contexts that keeps admissibility and
 the horizon. -/
-structure CarrierMap (K' K : Carrier) where
+structure DomainMap (K' K : ClaimDomain) where
   inst : K'.Inst → K.Inst
   ctx : ∀ I W, K'.Ctx I W ≃ K.Ctx (inst I) W
   admissible : ∀ I W x, K'.admissible I W x ↔ K.admissible (inst I) W (ctx I W x)
@@ -427,7 +455,7 @@ namespace ClaimSpec
 
 /-- The claim `c` over `K`, read on `K'` through `m`. Same id, constants and
 points. -/
-def pull (m : CarrierMap K' K) (c : ClaimSpec K) : ClaimSpec K' where
+def pull (m : DomainMap K' K) (c : ClaimSpec K) : ClaimSpec K' where
   id := c.id
   Const := c.Const
   valid := c.valid
@@ -441,18 +469,18 @@ def pull (m : CarrierMap K' K) (c : ClaimSpec K) : ClaimSpec K' where
   transport := by sorry
   refutable := c.refutable
 
-theorem holds_pull (m : CarrierMap K' K) (c : ClaimSpec K) (I : K'.Inst) (k : c.Const) :
+theorem holds_pull (m : DomainMap K' K) (c : ClaimSpec K) (I : K'.Inst) (k : c.Const) :
     (c.pull m).holds I k ↔ c.holds (m.inst I) k := by
   sorry
 
-theorem inhabited_pull (m : CarrierMap K' K) (c : ClaimSpec K) (I : K'.Inst) (k : c.Const) :
+theorem inhabited_pull (m : DomainMap K' K) (c : ClaimSpec K) (I : K'.Inst) (k : c.Const) :
     (c.pull m).inhabited I k ↔ c.inhabited (m.inst I) k := by
   sorry
 
 end ClaimSpec
 
 /-- A certificate of the base instance is a certificate of the pulled claim. -/
-def Cert.pull (m : CarrierMap K' K) {c : ClaimSpec K} {I : K'.Inst}
+def Cert.pull (m : DomainMap K' K) {c : ClaimSpec K} {I : K'.Inst}
     (x : Cert c (m.inst I)) : Cert (c.pull m) I where
   const := x.const
   valid := x.valid
@@ -461,6 +489,29 @@ def Cert.pull (m : CarrierMap K' K) {c : ClaimSpec K} {I : K'.Inst}
 ```
 
 Proof guides: `transport` — from the `k` form on `K'`, get the `k` form on `K` by `(m.ctx I W).symm` (use `Equiv.apply_symm_apply` and `m.admissible`), apply `c.transport`, and come back with `m.ctx I W x`. `holds_pull` — both directions through the equivalence, as for `transport`. `inhabited_pull` — `→`: map the witness context with `m.ctx`, use `m.admissible` and `m.horizon`; `←`: map back with `(m.ctx I W).symm` and rewrite with `Equiv.apply_symm_apply`.
+
+- [ ] **Step 1b: One builder for facet domains over v1** (async m5), in `DomainMap.lean`:
+
+```lean
+/-- The domain of a facet structure `J` over v1 instances: contexts, admissibility
+and horizon are those of the base instance, so they cannot drift. -/
+@[reducible] def ClaimDomain.ofV1 (id : Lean.Name) (J : Type 1) (base : J → Instance) :
+    ClaimDomain where
+  id := id
+  Inst := J
+  Ctx := fun I W => V1Ctx (base I) W
+  admissible := fun I _ x => x.E.Δ = (base I).Δ
+  horizon := fun _ _ x => x.rho.horizon
+
+def DomainMap.ofV1 (id : Lean.Name) (J : Type 1) (base : J → Instance) :
+    DomainMap (ClaimDomain.ofV1 id J base) ClaimDomain.v1 where
+  inst := base
+  ctx := fun _ _ => Equiv.refl _
+  admissible := fun _ _ _ => Iff.rfl
+  horizon := fun _ _ _ => rfl
+```
+
+  A map between two facet domains whose base instances are only propositionally equal needs a cast (`▸` fails; async scratch `Builder.lean`); say so in the docstring.
 
 - [ ] **Step 2: Write `Facets/Strong.lean`.**
 
@@ -474,31 +525,25 @@ structure StrongInstance extends Instance where
 def StrongInstance.sface (I : StrongInstance) : StrongInterface I.P :=
   { I.iface with strong := I.strong }
 
-/-- The carrier of strong instances. Its contexts are the v1 contexts of the
+/-- The claim domain of strong instances. Its contexts are the v1 contexts of the
 base instance. -/
-@[reducible] def Carrier.strong : Carrier where
-  Inst := StrongInstance
-  Ctx := fun I W => V1Ctx I.toInstance W
-  admissible := fun I _ x => x.E.Δ = I.Δ
-  horizon := fun _ _ x => x.rho.horizon
+@[reducible] def ClaimDomain.strong : ClaimDomain :=
+  ClaimDomain.ofV1 `strong StrongInstance StrongInstance.toInstance
 
 /-- Base claims pull back to strong instances. -/
-def CarrierMap.strongV1 : CarrierMap Carrier.strong Carrier.v1 where
-  inst := StrongInstance.toInstance
-  ctx := fun _ _ => Equiv.refl _
-  admissible := fun _ _ _ => Iff.rfl
-  horizon := fun _ _ _ => rfl
+def DomainMap.strongV1 : DomainMap ClaimDomain.strong ClaimDomain.v1 :=
+  DomainMap.ofV1 `strong StrongInstance StrongInstance.toInstance
 ```
 
 - [ ] **Step 3: Replace `Tests/NewFacet.lean`** with a test of Review Focus 2 and of the pull. Use Counter.
   - `counterStrong : StrongInstance := { counterInst with strong := counterIface.stable }`.
-  - `certSafeStableStrong : Cert (safeStable.pull CarrierMap.strongV1) counterStrong := Cert.pull _ certSafeStable`.
-  - A test claim `testStrongSafe : ClaimSpec Carrier.strong` (id `test.strongSafe.v1`, `Const := Unit`, `Point := Time`, regime `sleepy I.toInstance W x.E x.rho t₀`, conclusion `SafeFrom I.P x.rho I.strong t₀`, trigger `True`).
+  - `certSafeStableStrong : Cert (safeStable.pull DomainMap.strongV1) counterStrong := Cert.pull _ certSafeStable`.
+  - A test claim `testStrongSafe : ClaimSpec ClaimDomain.strong` (id `test.strongSafe.v1`, `Const := Unit`, `Point := Time`, regime `sleepy I.toInstance W x.E x.rho t₀`, conclusion `SafeFrom I.P x.rho I.strong t₀`, trigger `True`).
   - `badStrong : StrongInstance := { counterInst with strong := fun st => if st = 1 then Counter.chain 1 else .genesis }`.
   - `refutedBadStrong : RefutationFamily testStrongSafe badStrong`. Proof guide: take the canonical run `canonical 0 2` with `counterEnv 0` and `canonical_sleepy`; at the node `0` the state after time 0 is 1 and after time 1 is 2 (`stateBeforeTime_eq`, `readAt` of the canonical run; Counter delivers the proposal `t + 1` at time `t`), so the strong read is `chain 1` at `t = 0` and `genesis` at `t = 1`; `MonotoneFrom` fails because `chain 1 ⋠ genesis`.
-  - A docstring: "Only a `StrongInstance` can hold a certificate of a `ClaimSpec Carrier.strong`. An `Instance` without the strong output has no such claim: the vacuity of `∀ I [HasStrong I], …` (PHASE0-REPORT §6) cannot occur."
+  - A docstring: "Only a `StrongInstance` can hold a certificate of a `ClaimSpec ClaimDomain.strong`. An `Instance` without the strong output has no such claim: the vacuity of `∀ I [HasStrong I], …` (PHASE0-REPORT §6) cannot occur."
 
-- [ ] **Step 4: CHECKPOINT.** Build green. The registry gets one new `refutation-family` row (`refutedBadStrong`, claim `NON-CATALOG`) and one `cert` row (`certSafeStableStrong`), both `LEAN`. Lock `--check` exits 1 (expected). Commit `Framework: facets as carriers`.
+- [ ] **Step 4: CHECKPOINT.** Build green. The registry gets one new `refutation-family` row (`refutedBadStrong`, claim `NON-CATALOG`) and one `cert` row (`certSafeStableStrong`), both `LEAN`. Lock `--check` exits 1 (expected). Commit `Framework: facets as claim domains`.
 
 ### Task 5: The I1 witness (a no-input protocol passes the floor)
 
@@ -565,7 +610,7 @@ Proof guide for `slotsAt_spec` and `slotsAt_nodup`: copy Counter's proofs (`Coun
   - Inhabitation: a one-validator run with a tick at every integer time `0 … N` and no delivery, as `AvailableChainWitnesses/Sanity.lean` (`exampleRun`, `exampleExecution`, `exampleSynchrony`, `exampleRootInjective`, `exampleSleepy`). `PartialSynchrony` holds because `excludes` is always true and nothing is accepted. `RootInjective`: the roots of `clockBlock k` are `⟨k⟩`. For the late inclusion trigger, take the slot `max H 1` (as a natural number) and a horizon of at least that slot.
   - `clockCandidate : Candidate clockInst` with `shared := 0`.
 
-- [ ] **Step 4: Docstring.** The module docstring states: "KNOWN GAP I1 (design §12). This protocol reads no input and still passes the core floor. The floor is too weak until engine v2 gives the proposer a run-chosen input (plan 2). The explorer stays off until then. The registry marks these rows `KNOWN-GAP` (Task 6)."
+- [ ] **Step 4: Docstring.** The module docstring also states that the gap does not depend on `excludes := true`: with `excludes := false` the same protocol still passes (its witness run then needs delivery events for broadcast), so plan 2 cannot close I1 by an exclusion rule (async M1). It states: "KNOWN GAP I1 (design §12). This protocol reads no input and still passes the core floor. The floor is too weak until engine v2 gives the proposer a run-chosen input (plan 2). The explorer stays off until then. The registry marks these rows `KNOWN-GAP` (Task 6)."
 
 - [ ] **Step 5: CHECKPOINT.** Build green. The registry now lists `clockChain`'s four certificates as `LEAN` (Task 6 relabels them). Lock `--check` exits 1 (expected). Commit `Framework: compiled witness of gap I1`.
 
@@ -581,8 +626,7 @@ Proof guide for `slotsAt_spec` and `slotsAt_nodup`: copy Counter's proofs (`Coun
 - [ ] **Step 1: Registry row kinds** (PHASE0-REPORT §6, Registry rows).
   - Row kinds: add `(``AvailableChain.Framework.ProfileCert, "profile-cert")` (args `K p I`; the claim column shows the profile name) and `(``AvailableChain.Framework.Catalog.Candidate, "profile-cert")` (args `I`; the claim column shows `core.v1`). `Candidate I` is a `def`, so its type head is `Candidate`, not `ProfileCert`.
   - Pulled claims: a certificate of `ClaimSpec.pull m c` has the head `ClaimSpec.pull` with FOUR arguments (`@ClaimSpec.pull K' K m c`); print the pulled claim `c` (the LAST argument) in the claim column, with the suffix `(pulled)`.
-  - Status: a row from a module under `AvailableChainRegistry.Gaps` gets `KNOWN-GAP` only if its axiom check gives `LEAN`; an `UNSOUND` row stays `UNSOUND`, and a `CONDITIONAL` row stays `CONDITIONAL`.
-- [ ] **Step 2: Regenerate the lock and write the change log.** First run `--check` against the Task 0 lock and save its output: the `CHANGED`, `REMOVED` and `ADDED` names are exactly the gate's changes (Task 0 removed the format noise). Then run `--write`. Add a dated entry to `docs/FRAMEWORK-DESIGN.md` §8 "Lock change log": the gate of plan 1a, approved with the plan; the saved `CHANGED`/`REMOVED`/`ADDED` lists; for each changed L3 claim (`safeConfirmed`, `safeStable`, `prefixOrder`, `includedConfirmed`, `core`, `Candidate`), its old and new type in one line each; no certificate conclusion changed; the registry rows after regeneration. Then run `--check`: exit 0.
+- [ ] **Step 2: Regenerate the lock and write the change log.** First run `--check` against the Task 0 lock and save its output: the `CHANGED`, `REMOVED` and `ADDED` names are exactly the gate's changes (Task 0 removed the format noise). Then run `--write --allow-changes`. Add a dated entry to `docs/FRAMEWORK-DESIGN.md` §8 "Lock change log": the gate of plan 1a, approved with the plan; the saved `CHANGED`/`REMOVED`/`ADDED` lists; for each changed L3 claim (`safeConfirmed`, `safeStable`, `prefixOrder`, `includedConfirmed`, `core`, `Candidate`), its old and new type in one line each; no certificate conclusion changed; the registry rows after regeneration. Then run `--check`: exit 0.
 - [ ] **Step 3: CHECKPOINT.** Build green. `CatalogLock --check` exits 0. `Registry.lean` writes the table with 2 `profile-cert` rows (Counter `candidate`, and `clockCandidate` with `KNOWN-GAP`) and the pulled Counter certificate with its base claim; `Registry --check` exits 0 after the write. Commit `Framework: registry row kinds; gate lock regeneration`.
 
 ### Task 7: Standard tier claims
@@ -593,7 +637,7 @@ Proof guide for `slotsAt_spec` and `slotsAt_nodup`: copy Counter's proofs (`Coun
 
 **Interfaces:**
 - Consumes: Tasks 1, 6.
-- Produces: `Catalog.zeroConstants`, the constant records `EtaConst`, `OutageConst`, `RecoveryConst`, and the claims `includedStable`, `includedStableFast`, `persistOutage`, `persistOutageFast`, `recovered` (all `ClaimSpec Carrier.v1`); the Mono lemmas.
+- Produces: `Catalog.zeroConstants`, the constant records `EtaConst`, `OutageConst`, `RecoveryConst`, and the claims `includedStable`, `includedStableFast`, `persistOutage`, `persistOutageFast`, `recovered` (all `ClaimSpec ClaimDomain.v1`); the Mono lemmas.
 
 The claims restate the fields of `AvailableChain` (`Generic/Claims.lean`) one by one. Each claim's constant is exactly the constants that its regime and conclusion read. The per-parameter directions are those of design §4: the claim is weaker when θ ↑, θrec ↑, η ↑, A ↑, A_f ↑, ρ ↑, recoveryFull false → true, G ↓, Π ↓. Exact-time inclusion delays are fixed (`le` is equality).
 
@@ -702,7 +746,7 @@ Claims (ids, constants, validity, order, point, regime, conclusion, trigger). `C
 └────────────────────┴──────────────────────────────┴────────────────────────────────────┘
 ```
 
-Write each claim as a `def … : ClaimSpec Carrier.v1 where` with all fields, as `includedConfirmed` in `Core.lean`. The `le` field is `decide (…)` of the conjunction in the table. The `le_trans` proof: `of_decide_eq_true` on both, then `decide_eq_true` of the combined facts (`le_trans`, `Eq.trans`, and for `full`: `fun h => hbc (hab h)` on `Bool` implications written as `(k.full = true → k'.full = true)`). `refutable := .family` for the three inclusion-carrying claims (`includedStable`, `includedStableFast`, `recovered`) and `.run` for the two persistence claims. The `le_trans` proofs and the `transport` proofs are named theorems (`<claim>_le_trans`, `<claim>_transport`) that the definition refers to (Global Constraints, lock stability).
+Write each claim as a `def … : ClaimSpec ClaimDomain.v1 where` with all fields, as `includedConfirmed` in `Core.lean`. The `le` field is `decide (…)` of the conjunction in the table. The `le_trans` proof: `of_decide_eq_true` on both, then `decide_eq_true` of the combined facts (`le_trans`, `Eq.trans`, and for `full`: `fun h => hbc (hab h)` on `Bool` implications written as `(k.full = true → k'.full = true)`). `refutable := .family` for the three inclusion-carrying claims (`includedStable`, `includedStableFast`, `recovered`) and `.run` for the two persistence claims. The `le_trans` proofs and the `transport` proofs are named theorems (`<claim>_le_trans`, `<claim>_transport`) that the definition refers to (Global Constraints, lock stability).
 
 The persistence triggers need `b₀ < b₁` (Review Focus 6; opus P1a-02). At `budget = 0` the regime forces `b₁ = b₀`, the window `[b₀, b₀)` is empty, and `holds` is true for every instance; without `b₀ < b₁` in the trigger, a healthy run would inhabit that vacuous claim. `valid` keeps `0 ≤ budget` (the bundle allows it, so `ac43_iff` stays true); only inhabitation changes.
 
@@ -724,7 +768,7 @@ The persistence triggers need `b₀ < b₁` (Review Focus 6; opus P1a-02). At `b
 
 **Interfaces:**
 - Consumes: Tasks 4, 7.
-- Produces: `StrongIncConst`, `StrongRecConst`, `StrongRecIncConst`, and `strongSafe`, `strongIncluded`, `strongPersist`, `strongRecoveredSafe`, `strongRecoveredIncluded` (all `ClaimSpec Carrier.strong`).
+- Produces: `StrongIncConst`, `StrongRecConst`, `StrongRecIncConst`, and `strongSafe`, `strongIncluded`, `strongPersist`, `strongRecoveredSafe`, `strongRecoveredIncluded` (all `ClaimSpec ClaimDomain.strong`).
 
 These restate the fields of `StrongClaims` (`Strong/Claims.lean`). The fault cap is weaker when it goes down (`faultCap ↓`, design §4). The regimes read `I.sface` and `I.toInstance`.
 
@@ -777,7 +821,7 @@ These restate the fields of `StrongClaims` (`Strong/Claims.lean`). The fault cap
 
 **Interfaces:**
 - Consumes: Tasks 2, 7, 8.
-- Produces: `ac43 : Profile Carrier.v1` (`Shared := Constants`, `valid := Constants.Valid`), `strong1 : Profile Carrier.strong` (`Shared := Constants × StrongConstants`, `valid := fun C => C.2.Valid`), `ac43_iff`, `strong1_iff`, `ac43_valid_cross`.
+- Produces: `ac43 : Profile ClaimDomain.v1` (`Shared := Constants`, `valid := Constants.Valid`), `strong1 : Profile ClaimDomain.strong` (`Shared := Constants × StrongConstants`, `valid := fun C => C.2.Valid`), `ac43_iff`, `strong1_iff`, `ac43_valid_cross`.
 
 - [ ] **Step 1: The profiles.** `ac43.entries`: `safeConfirmed ↦ ()`, `safeStable ↦ ()`, `prefixOrder ↦ ()`, `includedConfirmed ↦ C.D_c`, `includedStable ↦ ⟨C.η, C.θ, C.D_s⟩`, `includedStableFast ↦ C.D_f`, `persistOutage ↦ ⟨C.η, C.θ, C.armingLag, C.budget⟩`, `persistOutageFast ↦ ⟨C.η, C.θ, C.fastArmingLag, C.budget⟩`, `recovered ↦ ⟨C.θrec, C.recoveryFull, C.proposerGap, C.recoveryBound, C.D_c, C.D_s⟩`. `strong1.entries`: the five strong claims with the projections of `(C, SC)` (`SC.faultCap`, `SC.strongDelay`, and the recovery fields of `C`).
 
@@ -811,7 +855,52 @@ Proof guides: `ac43_iff` `→`: `C.Valid` needs one environment: use `Validators
 **Files:**
 - Modify: `docs/MAP.md`, `docs/FRAMEWORK-DESIGN.md` (§8 row 0 note on (d), (g), (h); §12 I2 closed, I1 compiled), `docs/PHASE0-REPORT.md` (§6: a status column or a closing note per row that this plan closes)
 
-- [ ] **Step 1: MAP.md.** Add rows for `Carrier.lean`, `CarrierMap.lean`, `Facets/Strong.lean`, `Catalog/{Mono,Standard,Strong,Profiles}.lean`, `Registry/Gaps/NoInput.lean`, and the new script modes (`CatalogLock --check` by name and `--lock`, `Registry --check`).
-- [ ] **Step 2: Design and report notes.** In FRAMEWORK-DESIGN §8, below the table, add: "(d) superseded by carriers (plan 1a); (g), (h) delivered (plan 1a); (i) kept." In §12: I2 is closed (late triggers, Task 1); I1 is compiled (`Gaps/NoInput.lean`) and stays open until plan 2. In PHASE0-REPORT §6, mark the rows that this plan closes: Facet, Registry (row kind, `--check`, library list), Lock (I8, M5, M6), Core I1 (compiled, open), Claim I2 (closed), Phase 1 gate (done). Leave the rows for plan 1b open (GridCO excludes, model facts, Engine lemmas, Kit structure, E5/E6).
-- [ ] **Step 3: Full build at handoff.** `pgrep -fl lean`; then `lake build --wfail` (every default target). `lake env lean --run scripts/CatalogLock.lean --check` exits 0. `lake env lean --run scripts/Registry.lean --check` exits 0. `grep -rn 'sorry' AvailableChainFramework AvailableChainRegistry scripts` finds no tactic use.
+- [ ] **Step 1: MAP.md.** Add rows for `ClaimDomain.lean`, `DomainMap.lean`, `Facets/Strong.lean`, `Catalog/{Mono,Standard,Strong,Profiles}.lean`, `Registry/Gaps/NoInput.lean`, and the new script modes (`CatalogLock --check` by name and `--lock`, `Registry --check`).
+- [ ] **Step 2: Design and report notes.** In FRAMEWORK-DESIGN §8, below the table, add: "(d) superseded by claim domains (plan 1a); (g), (h) delivered (plan 1a); (i) kept." In §12: I2 is closed (late triggers, Task 1); I1 is compiled (`Gaps/NoInput.lean`) and stays open until plan 2. In PHASE0-REPORT §6, mark the rows that this plan closes: Facet, Registry (row kind, `--check`, library list), Lock (I8, M5, M6), Core I1 (compiled, open), Claim I2 (closed), Phase 1 gate (done). Leave the rows for plan 1b open (GridCO excludes, model facts, Engine lemmas, Kit structure, E5/E6).
+- [ ] **Step 2b: "As implemented" notes** (async m12). Under design §3, §4 and §5, add dated notes "As implemented in plan 1a (2026-09-28)": `ClaimDomain` in place of `needs`/`FacetBundle`; facet structures; `Instance` closed, eligibility as `Eligible I` (plan 1b); `Δ_pos`; the late trigger; `Profile.Shared`. These are notes; the approved text does not change.
+- [ ] **Step 3: Full build at handoff.** `pgrep -fl lean`; then `lake build --wfail` (every default target). `lake env lean --run scripts/CatalogLock.lean --check` exits 0. `lake env lean --run scripts/Registry.lean --check` exits 0. `lake env lean --run scripts/CheckFrameworkAxioms.lean` exits 0. `grep -rnE 'sorry|admit|native_decide|^axiom' AvailableChainFramework AvailableChainRegistry scripts/CatalogLock.lean scripts/Registry.lean scripts/CheckFrameworkAxioms.lean` finds no tactic use and no axiom (identifiers such as `admitVote` are expected).
 - [ ] **Step 4: CHECKPOINT.** Commit `Framework: plan 1a documents`. Write the plan report (controller): tasks, commits, rulings, checks, and the inputs for plan 1b.
+
+## Audit disposition
+
+```text
+┌──────────────────────────┬──────────────────────────────────────────────────────┐
+│ Finding                  │ Disposition                                          │
+├──────────────────────────┼──────────────────────────────────────────────────────┤
+│ Astra A01 (prefix)       │ Task 1 Step 5: prefixOrder stays unconditional       │
+│ Astra A02 (hash order)   │ Task 0 Step 1, test (d)                              │
+│ Astra A03, opus 12,      │ Task 0 Step 2: generated by metadata; claims always  │
+│ async m11 (skip list)    │ locked                                               │
+│ Astra A04, async M3      │ Task 0 Steps 3, 6b; CheckFrameworkAxioms everywhere  │
+│ Astra A05, async M1      │ Rulings (I1, KNOWN-GAP contract); Task 5 intro and   │
+│                          │ docstring; scope table row 2                         │
+│ Astra A06, opus 04,      │ Task 1 Steps 1, 4 (imports)                          │
+│ async m1                 │                                                      │
+│ Astra A07, opus 01,      │ Rulings: Instance closed; Eligible I (plan 1b)       │
+│ async M4                 │                                                      │
+│ Astra A08, opus 15,      │ Task 0 Step 6; Task 6 Step 1 (last argument)         │
+│ async m8                 │                                                      │
+│ opus 02, async M5        │ Task 7 triggers b₀ < b₁; Review Focus 6              │
+│ opus 03, async m3        │ Task 9 adapters                                      │
+│ opus 05, async m2        │ Task 2 Step 3; Task 5 typed numerals                 │
+│ opus 06                  │ Task 1 Step 6 binders                                │
+│ opus 07                  │ Task 7 Step 4 (simp)                                 │
+│ opus 08                  │ Task 8: refutable .run for strong recovered claims   │
+│ opus 09                  │ Global Constraints: <claim>_trigger_late             │
+│ opus 10, async M6        │ Rulings: DomainMap for facets only; id rule; plan 2  │
+│                          │ one-way lift; optional pointwise transport declined  │
+│ opus 11 (generic Σ facet │ DECLINED for now: one structure per facet is enough  │
+│ domain)                  │ for strong and FG; ClaimDomain.ofV1 removes the      │
+│                          │ repetition (async m5)                                │
+│ opus 13, async M2        │ Task 0 before the gate; per-task lock diff; meaning  │
+│                          │ pins (Task 1 Step 6b); old lock blob id              │
+│ opus 14, async m10       │ Global Constraints: named transport theorems         │
+│ opus 16                  │ Task 5: clock := max                                 │
+│ async m4, m6             │ Rename to ClaimDomain/DomainMap; `id` field          │
+│ async m5                 │ Task 4 Step 1b: ClaimDomain.ofV1                     │
+│ async m7                 │ KNOWN-GAP in Task 0; REGISTRY.md committed when it   │
+│                          │ changes                                              │
+│ async m9                 │ Task 0 Step 6b: id uniqueness                        │
+│ async m12                │ Task 10 Step 2b                                      │
+└──────────────────────────┴──────────────────────────────────────────────────────┘
+```
