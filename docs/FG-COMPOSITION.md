@@ -2809,6 +2809,24 @@ in §4. Every status below is for the FG-SA client (§0).
   the raw-tree transport of W (r161 row W: admission by crossing first)
   and transport and reflection on the retained suffix only (rows L1,
   L3, C1). This entry keeps its spec 1c6952b6 pins.
+- Status: 2026-09-28 (r162) — the reason in the status line above, "the
+  SA Lean theorems assume the stronger AcceptedObjectRelay", no longer
+  holds. The plain SA Lean base is on the receipt premise (merge
+  `1a3f73a` in `lean/available-chain`, branch `receipt-relay`: `059669d`,
+  `5d03d92`, `eec0f94`): the regimes (`Generic/Regimes.lean`,
+  `Strong/Regimes.lean`) have no accepted-relay field; the public
+  theorems `gridContract_from_engine`, `saContract_from_engine`,
+  `fastP1_from_engine`, `sapcContract_from_engine` and
+  `sapcStrong_from_engine` keep their statements and use only the
+  standard axioms (`#print axioms`, team-lead); SA-PC derives acceptance
+  from receipt (`AvailableChainSAPC/Proofs/ReceiptRelay.lean`,
+  `receipt_acceptedRelay`). The full build of main at `1a3f73a` passes
+  (3,558 jobs; team-lead, 2026-09-28). `CatalogLock --check` fails at
+  `1a3f73a`: eight Catalog L3 hashes changed (`Catalog.sleepy` and its
+  dependents), because `SleepyRegime` lost its accepted-relay field; the
+  lock is not rewritten yet (user decision pending). The status of this
+  entry does
+  not change (SUPERSEDED; paper): there is no FG-SA Lean instance.
 - Note: `ap.headReachesLo.v1` is the view form and is not superseded.
   `ap.headReachesLo.v2` and `ap.headReachesLo.v3` are SUPERSEDED; v4 is
   the current form.
@@ -3190,6 +3208,11 @@ in §4. Every status below is for the FG-SA client (§0).
   r158 §4, r160 §§3–4, r161 §§3 and 6). It is not a Lean theorem: there
   is no checked mixed FG-SA Lean instance (spec OPEN items, lines
   1845–1858).
+- Status: 2026-09-28 (r162) — paper, unchanged: there is no FG-SA Lean
+  instance. The plain SA Lean base now uses DC's receipt premise (merge
+  `1a3f73a`; see `ap.headReachesLo.v4`). Plain SA has no F, so its
+  receipt premise has no receiver exclusion; the receiver exclusion of
+  this entry's premise is an FG-SA part.
 - Note: `ap.headReachesLo.v1` is the view form and is not superseded.
   `ap.headReachesLo.v2`, `v3` and `v4` are SUPERSEDED; v5 is the current
   form.
@@ -7014,3 +7037,21 @@ SUPERSEDED entry is the conjunction of its successors.
   and `comp.outputNesting.v1` (`F ⪯ S` for every a by the output rule).
   Rule (a) notes on the entries that cite `fj.frame.v2`: `fj.frame.v1`,
   `fg.frameCompat.v1`, `fj.frameFeasible.v1`, `ap.headReachesLo.v1`.
+- SA Lean on the receipt premise (2026-09-28, r162): merge `1a3f73a` in
+  `lean/available-chain` (branch `receipt-relay`: `059669d`, `5d03d92`,
+  `eec0f94`). The regimes have no accepted-relay field; the five public
+  contract theorems keep their statements and standard axioms; SA-PC
+  derives acceptance from receipt (`receipt_acceptedRelay`). The full
+  build of main at `1a3f73a` passes (3,558 jobs; team-lead, 2026-09-28).
+  `CatalogLock --check` fails at `1a3f73a`: eight Catalog L3 hashes
+  changed (`Catalog.sleepy` and its dependents), because `SleepyRegime`
+  lost its accepted-relay field; the lock is not rewritten yet (user
+  decision pending).
+  Registry effect: the only status line whose reason was "SA Lean
+  assumes AcceptedObjectRelay" is in `ap.headReachesLo.v4`; it gets a
+  dated r162 line, and its status does not change. `ap.headReachesLo.v5`
+  gets a dated line; it stays paper (no FG-SA Lean instance). No entry
+  becomes LEAN: no registered entry is a plain SA Lean theorem. The SA
+  model file `acG` is unchanged at `1a3f73a` (sha256 `2cb079fd…`, as
+  registered). The spec bd942ca0 still lists "SA Lean under the receipt
+  premise" as OPEN (lines 1852–1858); the spec is not re-pinned.
