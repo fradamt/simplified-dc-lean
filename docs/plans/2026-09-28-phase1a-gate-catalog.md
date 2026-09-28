@@ -35,26 +35,37 @@ Design §8 has Phase 1 (full catalog on v1, eligibility per migrated instance, `
 │      │ every valid prefix; inhabitation; │                                        │
 │      │ Instance values and certificates  │                                        │
 │      │ for Grid CO, SA, SA-PC, L*;       │                                        │
-│      │ MATRIX.md; the Kit library split  │                                        │
+│      │ MATRIX.md; the Kit library split; │                                        │
+│      │ eligibility as `Eligible I`, a    │                                        │
+│      │ structure indexed by the instance │                                        │
+│      │ (NOT an Instance field); search   │                                        │
+│      │ admission = Candidate × Eligible  │                                        │
 │ 2    │ Engine v2 (E1–E6), the lift       │ 1a: carrier (a v2 carrier is a new     │
-│      │ simulation, a toy Linked, self-   │ Carrier value); 1b: Kit.Engine         │
-│      │ visible, restart protocol; the I1 │                                        │
-│      │ fix (a run-chosen proposer input) │                                        │
-│      │ with this plan's I1 witness as    │                                        │
-│      │ its regression test               │                                        │
+│      │ simulation (a ONE-WAY carrier     │ Carrier value); 1b: Kit.Engine,        │
+│      │ relation, not a CarrierMap), a    │ Eligible                               │
+│      │ toy Linked, self-visible, restart │                                        │
+│      │ protocol; the I1 fix: a run-      │                                        │
+│      │ chosen proposer input AND a floor │                                        │
+│      │ claim that binds the proposal to  │                                        │
+│      │ that input, with a refutation of  │                                        │
+│      │ this plan's clockChain against it │                                        │
 └──────┴───────────────────────────────────┴────────────────────────────────────────┘
 ```
 
 The FG module is not connected to the search in any of the three plans (user direction 2026-09-28: fix the floor first).
 
-## Rulings in this plan (for the user's review)
+## Rulings in this plan
+
+The user approved this plan on 2026-09-28 ("Go"). Before execution, three independent reviews ran (Astra: `docs/audit/phase1a-plan-audit-report.md`, REVISE 0/5/3; opus: `docs/audit/phase1a-plan-opus-review.md`, ADOPT WITH FIXES 0/2/14; async session: `docs/audit/phase1a-plan-async-review.md`). This version applies their findings; the section "Audit disposition" at the end lists each one.
+
 
 - **Carriers replace type-class facets.** Phase 0 deviation (d) made a facet a type class over `Instance`. A claim `∀ I [HasStrong I], …` is vacuous for an instance without the class, and two class instances can attach to one `I` (PHASE0-REPORT §6, Facet row). In this plan a facet is a structure that extends `Instance` (`StrongInstance`), so the facet value is a field and is bound once. A claim that needs the facet is a `ClaimSpec Carrier.strong`: only a `StrongInstance` can hold a certificate of it. A new facet is an addition: a new structure, its carrier and a `CarrierMap` to v1. Existing claims and certificates pull back through the map (G2). Deviation (d) is superseded.
-- **The same carrier generalizes the engine (I5).** A claim quantifies over `K.Ctx I W` (for v1: an environment and a v1 run). Engine v2 (plan 2) adds a new carrier value. It does not change `ClaimSpec`.
-- **`ProtocolParams` stays inside the protocol.** A protocol value is built from its parameters (`sapc p`), so `Instance` gets no `pparams` field. Profile constants (`Shared`) are the shared constants of design §3–§4 (deviation (g)). If wrong: a later field, which is an addition.
+- **The same carrier generalizes the engine (I5).** A claim quantifies over `K.Ctx I W` (for v1: an environment and a v1 run). Engine v2 (plan 2) adds a new carrier value. It does not change `ClaimSpec`. A `CarrierMap` (an equivalence of contexts) is for facets only; the v1 → v2 lift is a simulation and needs a one-way relation with its own transport lemmas (plan 2).
+- **`Instance` is frozen after the gate.** A new `Instance` field changes the hash of `Instance` and of almost every locked declaration, so it is NOT an addition (design §3: "adding a field to a frozen Lean structure changes its declaration"). Later per-instance data enters as a separate structure indexed by the instance, in its own module: eligibility as `Eligible (I : Instance) : Prop` (plan 1b: `Deliverable`, `RelayFeasible`, `EmitWellFormed`, `HandlerCoverage`, `WindowMargin`, isolation), facet data as a structure that extends `Instance` with its carrier. This departs from the §3 sketch, where `deliv` and `iso` are `Instance` fields; it is the representation that §3 leaves open ("Phase 0 selects an extensible representation").
+- **`ProtocolParams` stays inside the protocol.** A protocol value is built from its parameters (`sapc p`), so `Instance` gets no `pparams` field. A later explicit parameter interface is a separate indexed structure, as above. Profile constants (`Shared`) are the shared constants of design §3–§4 (deviation (g)).
 - **`Instance` gets `Δ_pos : 0 < Δ`.** Without it an instance with `Δ ≤ 0` has no admissible context, and every `holds` is vacuous. `Cert.inhabited` already rejects such an instance, but the equivalence theorems (Task 9) need the field.
-- **One lock regeneration.** Tasks 1–4 break `docs/catalog.lock` on purpose. Task 6 hardens the lock script and writes the new lock ONCE, with a dated entry in the design's §8 lock change log. Approval of this plan is the user's approval of that regeneration, as for the receipt-relay lock rewrite (`0dd5993`).
-- **The I1 gap becomes a compiled witness, not a fix.** Task 5 proves that a protocol that reads no input (`clockChain`) is a `Candidate`. The fix needs engine v2 (plan 2). The witness lives in `AvailableChainRegistry/Gaps/`, and the registry marks its rows `KNOWN-GAP`, not `LEAN`.
+- **Two lock writes, one break.** Task 0 hardens the lock script BEFORE the gate and rewrites the lock in the new format with no declaration changed (a format change: order-independent hashes, generated names by metadata). Tasks 1–5 then break the lock on purpose, and Task 6 writes it once more: that diff shows only the gate's changes. Both writes get a dated entry in the design's §8 lock change log. Approval of this plan is the user's approval of both, as for the receipt-relay lock rewrite (`0dd5993`).
+- **The I1 gap becomes a compiled witness, not a fix.** Task 5 proves that a protocol that reads no input (`clockChain`) is a `Candidate`. The fix is plan 2's: a run-chosen proposer input is NOT enough (a protocol can ignore it, Astra A05); plan 2 needs a floor claim that binds the proposal to that input, and its regression test is a REFUTATION of `clockChain` (lifted) against that claim, not an elaboration failure. The v1 witness stays as a record. It lives in `AvailableChainRegistry/Gaps/`, and the registry marks its rows `KNOWN-GAP`, not `LEAN`.
 - **HooksSound stays run-level** (deviation (i)); `deps_stable` has the same shape as `processed_stable`.
 
 ## Global Constraints
@@ -65,12 +76,14 @@ The FG module is not connected to the search in any of the three plans (user dir
 - Do not change `AvailableChainModel`, `AvailableChainStatements`, `AvailableChainGridCO`, `AvailableChainSA`, `AvailableChainSAPC`, `AvailableChainLStar` or `AvailableChainWitnesses`. `AvailableChainRegistry/GridCOHooks.lean` is in the registry and changes in Task 3.
 - Layer rule (design §1): `AvailableChainFramework` modules other than `Kit/` import nothing from `AvailableChainRegistry` or `Kit/`. Catalog helper lemmas that a `transport` proof needs go in `AvailableChainFramework/Catalog/Mono.lean` (L3), not in `Kit/`.
 - Builds. During the work: `lake build --wfail AvailableChainFramework AvailableChainRegistry`. At the end (Task 10): the full `lake build --wfail`. The Mac `lean` has 3 machine-wide slots: run `pgrep -fl lean` before a build and wait if 3 compiles run. Scripts run with `lake env lean --run <file>`, never through a `lean_exe`.
-- Lock and registry during the gate. `lake env lean --run scripts/CatalogLock.lean --check` exits 1 from Task 1 until Task 6. This is expected. From Task 6 on, it must exit 0 at every CHECKPOINT (the hardened script exits 0 on additions only). `lake env lean --run scripts/Registry.lean` must run at every CHECKPOINT from Task 1 on (Task 1 updates it for the new `Cert` arity).
+- Lock and registry during the gate. `lake env lean --run scripts/CatalogLock.lean --check` exits 0 after Task 0, exits 1 from Task 1 until Task 6 (expected), and exits 0 at every CHECKPOINT from Task 6 on (the hardened script exits 0 on additions only; run `--write` after the check to record them). `lake env lean --run scripts/Registry.lean` must run at every CHECKPOINT (Task 1 updates it for the new `Cert` arity).
+- Lock stability of claims. The lock hashes a definition's body, so a `transport` proof written inline in a `ClaimSpec` definition is part of that claim's hash. Every new claim (Tasks 7, 8) puts its `transport` proof in a named theorem (`<claim>_transport`) and its `le_trans` proof in a named theorem (`<claim>_le_trans`), and the definition refers to them: a theorem enters the closure by its statement only (deviation (e)).
 - `Time` is `abbrev Time := Int` in another module. `omega` does not unfold it in this toolchain: use `linarith`, `Int` order lemmas, or an explicit `(x : Int)` cast (PHASE0-REPORT §5.2, Tasks 4 and 9).
 - Root imports. A task that creates a `.lean` file adds `public import <module>` for it to its library root (`AvailableChainFramework.lean` or `AvailableChainRegistry.lean`) in the same commit.
 - Each task ends at a CHECKPOINT: the build is green; the registry script runs; the lock check has the result that this section states; the task is committed.
 - Prose in comments and docs: ASD-STE100 Simplified Technical English. Tables: Unicode box drawing in fenced `text` blocks.
-- Claim ids are immutable. A changed statement of an existing claim keeps its id only in this gate (the lock regeneration is the one approved break); after Task 6 a changed statement is a new id.
+- Claim ids are immutable. A changed statement of an existing claim keeps its id only in this gate (the Task 6 regeneration is the one approved break); after Task 6 a changed statement is a new id.
+- Late triggers. Every catalog claim whose trigger is not `True` has a lemma `<claim>_trigger_late` that shows the trigger time is at least `H` (the `ClaimSpec` shape cannot force it).
 
 ## Review Focus
 
@@ -79,8 +92,44 @@ The FG module is not connected to the search in any of the three plans (user dir
 3. **Profile certificates at different constants.** A profile certificate must use one shared constant for all its claims, and cross-claim conditions (`fastArmingLag ≤ armingLag`) must be checked once. Test: Task 2 (`certs` carry `x.const = e.share shared`), Task 9 (`ac43_valid_cross`).
 4. **The lock hides a changed claim.** A changed or removed lock line must fail; an added claim must pass with a notice. Test: Task 6, three scratch runs of the hardened `--check`.
 5. **An instance with no admissible context.** With `Δ ≤ 0` there is no environment, so every `holds` is vacuous. Test: Task 1 adds `Δ_pos`; Task 9's equivalence theorems use it.
+6. **An empty outage window.** At `budget = 0` (valid) the Outage regime forces `b₁ = b₀`, so `PersistsThrough` is vacuous for every instance; a trigger without `b₀ < b₁` would let a vacuous certificate pass inhabitation. Test: Task 7, the persistence triggers require `b₀ < b₁`, and `persistOutage_no_witness_at_zero_budget` shows that no inhabitation witness exists at `budget = 0`.
+7. **A lock that moves when a declaration is added.** The Phase 0 lock memoizes partial hashes inside dependency cycles, so adding one unrelated declaration changed 104 of 121 hashes (Astra A02). Test: Task 0, a scratch environment with one added declaration leaves every old hash unchanged.
 
 ---
+
+### Task 0: Lock and registry hardening (before the gate)
+
+**Files:**
+- Modify: `scripts/CatalogLock.lean`, `scripts/Registry.lean`, `docs/catalog.lock`, `docs/REGISTRY.md`, `docs/FRAMEWORK-DESIGN.md` (§8 lock change log only)
+
+**Interfaces:**
+- Consumes: Phase 0 framework (no declaration changes in this task).
+- Produces: `CatalogLock --check` by name with stable hashes, `--lock <path>`; `Registry --check`; `instanceLibraries` that drive the imports.
+
+This task changes only the two scripts and the lock FORMAT. No Lean declaration changes. Doing it first makes the Task 6 lock diff show only the gate (opus P1a-13).
+
+- [ ] **Step 1: Order-independent hashes** (Astra A02; PHASE0-REPORT M7). The Phase 0 `closureHash` memoizes partial hashes inside dependency cycles, so the hash of a root depends on the traversal order and on which other roots exist. Replace it:
+  - `ownHash ci` stays (a theorem: its statement only; a definition: type and body; an inductive: its constructors).
+  - `closure n` = the set of all constants reachable from `n` by `deps` (a DFS with a visited set, no memo of hashes).
+  - `lockHash n` = the fold of `mixHash` over the `ownHash` of the names of `closure n ∪ {n}`, in `Name.lt` order.
+  This depends only on the reachable set, not on the order or on other roots. To keep the run time low, cache `ownHash` per name (not the closure hash).
+- [ ] **Step 2: Generated names by metadata, and claims always locked** (Astra A03; opus P1a-12; M6).
+  - A constant is "generated" if the environment says so, not by its name: `isAuxRecursor env n`, `isNoConfusion env n`, `n.isInternal`, a `Lean.Meta.Match` matcher (`Match.isMatcherCore env n`), a declaration with no declaration range (`findDeclarationRanges?` returns `none`, run in `CoreM`), or an equation lemma that `Lean.Meta.isEqnThm?`/`getEqnsFor?` reports. A generated constant gets no lock line, but its `ownHash` still enters every closure that reaches it.
+  - A constant whose type is `ClaimSpec …`, `Profile …`, `Profile.Entry …` or `Carrier` is ALWAYS locked, whatever its name.
+  - Locked modules: add `AvailableChainFramework.Carrier`, `AvailableChainFramework.CarrierMap` and the prefix `AvailableChainFramework.Facets` (L2) to the list now; the modules do not exist yet, and the list tolerates that.
+- [ ] **Step 3: A separate axiom check** (Astra A04; M5). The hash stays proof-independent. Separately, for every locked name, run `Lean.collectAxioms` (proof-aware) and fail with exit 2 on any axiom outside `propext`, `Classical.choice`, `Quot.sound`. A missing constant in a closure still exits 2.
+- [ ] **Step 4: Compare by name** (I8). Add `--lock <path>` (default `docs/catalog.lock`). `--check` reads the old lines into a map. For each old name: missing now → `REMOVED <name>`; a different hash → `CHANGED <name>`. For each new name → `ADDED <name>`. Exit 1 on any `REMOVED` or `CHANGED`; else exit 0 with the `ADDED` lines as a notice. A malformed line → exit 2.
+- [ ] **Step 5: Tests (Review Focus 4 and 7)**, in scratch files under the session scratchpad, not in the repository:
+  - (a) a lock copy with one hash changed → exit 1, `CHANGED`; (b) one line deleted → exit 0, `ADDED`; (c) one extra line with a name that does not exist → exit 1, `REMOVED`.
+  - (d) Addition stability: a scratch module that imports `AvailableChainFramework` and adds one unrelated locked declaration (for example `def AvailableChain.Framework.AuditAddition : Bool := Nat.testBit 1 0` in a module under a locked prefix, or run the script's functions on that environment): every old hash is unchanged, and the only difference is `ADDED AuditAddition`.
+  - (e) A hand-written `def AvailableChain.Framework.Catalog.eq_def : ClaimSpec := safeConfirmed` gets a lock line.
+  - (f) `axiom auditBadAx : False; theorem auditBadTheorem : False := auditBadAx; def auditBadDefinition : True := False.elim auditBadTheorem` in a locked scratch module → exit 2.
+  Record every output in the task report.
+- [ ] **Step 6: Registry hardening** (PHASE0-REPORT §6, Registry rows; Astra A08; opus P1a-15).
+  - `instanceLibraries : List Name := [`AvailableChainRegistry]` drives BOTH the `importModules` list and the module-prefix filter. The script prints the list in the REGISTRY.md header.
+  - `--check`: compute the text and compare with `docs/REGISTRY.md`; exit 1 if different, 0 if the same. Without an argument, write the file (as now).
+- [ ] **Step 7: Rewrite the lock and log it.** Run `--write`. Add a dated entry to `docs/FRAMEWORK-DESIGN.md` §8 "Lock change log": "Format change (plan 1a Task 0): order-independent hashes, generated names by metadata, claims always locked, a separate axiom check. No declaration changed; every line hash changes because the hash function changed; lines of generated names are gone." List the removed generated names in one line.
+- [ ] **Step 8: CHECKPOINT.** `lake build --wfail AvailableChainFramework AvailableChainRegistry` is green (no Lean change). `CatalogLock --check` exits 0. `Registry.lean` writes the same 8 rows; `Registry --check` exits 0. Commit `Framework: lock and registry hardening (format only)`.
 
 ### Task 1: Carriers and carrier-generic claims with late triggers
 
@@ -519,28 +568,21 @@ Proof guide for `slotsAt_spec` and `slotsAt_nodup`: copy Counter's proofs (`Coun
 
 - [ ] **Step 5: CHECKPOINT.** Build green. The registry now lists `clockChain`'s four certificates as `LEAN` (Task 6 relabels them). Lock `--check` exits 1 (expected). Commit `Framework: compiled witness of gap I1`.
 
-### Task 6: Lock and registry hardening, and the one lock regeneration
+### Task 6: Registry row kinds and the gate lock regeneration
 
 **Files:**
-- Modify: `scripts/CatalogLock.lean`, `scripts/Registry.lean`, `docs/catalog.lock`, `docs/REGISTRY.md`, `docs/FRAMEWORK-DESIGN.md` (§8 lock change log only)
+- Modify: `scripts/Registry.lean`, `docs/catalog.lock`, `docs/REGISTRY.md`, `docs/FRAMEWORK-DESIGN.md` (§8 lock change log only)
 
 **Interfaces:**
-- Consumes: Tasks 1–5.
-- Produces: `CatalogLock --check` by name; `Registry --check`; registry row kinds `profile-cert` and the `KNOWN-GAP` status.
+- Consumes: Tasks 0–5.
+- Produces: registry row kinds `profile-cert` and the `KNOWN-GAP` status; the post-gate lock.
 
-- [ ] **Step 1: Harden `CatalogLock.lean`** (PHASE0-REPORT §6, Lock rows: I8, M5, M6).
-  - Lock modules: add `AvailableChainFramework.Carrier`, `AvailableChainFramework.CarrierMap` and the prefix `AvailableChainFramework.Facets` (L2) to the locked set.
-  - Generated names: skip a constant whose last name component is `eq_<n>`, `eq_def`, `eq_unfold`, `sizeOf_spec`, `inj`, `injEq`, `mk.inj` or `mk.injEq`, and a constant that `isAuxRecursor` or `isNoConfusion` reports (M6). Its hash still enters the closure of the constants that use it.
-  - Missing body: `closureHash` already fails on a missing constant. It must also fail (exit 2) on an `axiomInfo` in the closure that is not `propext`, `Classical.choice` or `Quot.sound` (M5).
-  - `--check` compares BY NAME: read the old lines into a map. For each old name: missing now → print `REMOVED <name>`; a different hash → print `CHANGED <name>`. For each new name not in the old file → print `ADDED <name>`. Exit 1 if any `REMOVED` or `CHANGED`; else exit 0 (print the `ADDED` lines as a notice). A malformed lock line → exit 2.
-- [ ] **Step 2: Test the hardened check (Review Focus 4)** on scratch copies, not on `docs/catalog.lock`: let the script take an optional `--lock <path>` argument (default `docs/catalog.lock`). Use three copies: (a) one hash changed → exit 1, `CHANGED <name>`; (b) one line deleted → exit 0, `ADDED <name>` (the environment has a name that the lock does not: this is the "new claim" case); (c) one extra line whose name does not exist → exit 1, `REMOVED <name>`. Record the three outputs in the task report.
-- [ ] **Step 3: Harden `Registry.lean`** (PHASE0-REPORT §6, Registry rows).
-  - Row kinds: add `(``AvailableChain.Framework.ProfileCert, "profile-cert")` (args `K p I`; the claim column shows the profile name) and `(``AvailableChain.Framework.Catalog.Candidate, "profile-cert")` (args `I`; the claim column shows `core.v1`). `Candidate I` is a `def`, so its type head is `Candidate`, not `ProfileCert`. A certificate of a pulled claim (`ClaimSpec.pull m c`) shows the head `ClaimSpec.pull` with `NON-CATALOG`; print the pulled claim `c` in the claim column instead (read `args[1]!.getAppArgs`), with the suffix `(pulled)`.
-  - Status: a row from a module under `AvailableChainRegistry.Gaps` gets the status `KNOWN-GAP` (after the axiom check; an `UNSOUND` row stays `UNSOUND`).
-  - Libraries: the scan covers every module whose name starts with one of `instanceLibraries : List Name := [`AvailableChainRegistry]`. A later instance library is one list entry (M1). The script prints the list in the REGISTRY.md header.
-  - `--check`: compute the text and compare with `docs/REGISTRY.md`; exit 1 if different, 0 if the same. Without an argument, write the file (as now).
-- [ ] **Step 4: Regenerate the lock and write the change log.** Run `--write`. Add a dated entry to `docs/FRAMEWORK-DESIGN.md` §8 "Lock change log": the gate of plan 1a (`docs/plans/2026-09-28-phase1a-gate-catalog.md`), approved with the plan; the changed L1–L3 declarations (list the `CHANGED` and `REMOVED` names of a `--check` run against the old lock before `--write`); the new ones (`ADDED`); no certificate conclusion changed; the registry rows after regeneration. Then run `--check`: exit 0.
-- [ ] **Step 5: CHECKPOINT.** Build green. `CatalogLock --check` exits 0. `Registry.lean` writes the table with 2 `profile-cert` rows (Counter `candidate`, `clockCandidate` with `KNOWN-GAP`), and `Registry --check` exits 0 after it. Commit `Framework: lock and registry hardening; gate lock regeneration`.
+- [ ] **Step 1: Registry row kinds** (PHASE0-REPORT §6, Registry rows).
+  - Row kinds: add `(``AvailableChain.Framework.ProfileCert, "profile-cert")` (args `K p I`; the claim column shows the profile name) and `(``AvailableChain.Framework.Catalog.Candidate, "profile-cert")` (args `I`; the claim column shows `core.v1`). `Candidate I` is a `def`, so its type head is `Candidate`, not `ProfileCert`.
+  - Pulled claims: a certificate of `ClaimSpec.pull m c` has the head `ClaimSpec.pull` with FOUR arguments (`@ClaimSpec.pull K' K m c`); print the pulled claim `c` (the LAST argument) in the claim column, with the suffix `(pulled)`.
+  - Status: a row from a module under `AvailableChainRegistry.Gaps` gets `KNOWN-GAP` only if its axiom check gives `LEAN`; an `UNSOUND` row stays `UNSOUND`, and a `CONDITIONAL` row stays `CONDITIONAL`.
+- [ ] **Step 2: Regenerate the lock and write the change log.** First run `--check` against the Task 0 lock and save its output: the `CHANGED`, `REMOVED` and `ADDED` names are exactly the gate's changes (Task 0 removed the format noise). Then run `--write`. Add a dated entry to `docs/FRAMEWORK-DESIGN.md` §8 "Lock change log": the gate of plan 1a, approved with the plan; the saved `CHANGED`/`REMOVED`/`ADDED` lists; for each changed L3 claim (`safeConfirmed`, `safeStable`, `prefixOrder`, `includedConfirmed`, `core`, `Candidate`), its old and new type in one line each; no certificate conclusion changed; the registry rows after regeneration. Then run `--check`: exit 0.
+- [ ] **Step 3: CHECKPOINT.** Build green. `CatalogLock --check` exits 0. `Registry.lean` writes the table with 2 `profile-cert` rows (Counter `candidate`, and `clockCandidate` with `KNOWN-GAP`) and the pulled Counter certificate with its base claim; `Registry --check` exits 0 after the write. Commit `Framework: registry row kinds; gate lock regeneration`.
 
 ### Task 7: Standard tier claims
 
