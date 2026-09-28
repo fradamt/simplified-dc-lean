@@ -323,7 +323,7 @@ row (I9) is new.
 │ E5/E6     │ toyV2.clock is a no-op, so Isolated's clock_base law is    │
 │           │ never exercised by toyV2 (the plan-mandated toy). A future │
 │           │ toy, or Phase 2's real engine v2, should exercise it.      │
-│           │ Plan 1a: open (plan 1b).                                   │
+│           │ Plan 1a: open (plan 2).                                    │
 │ Core      │ A protocol that reads no input can still pass the core     │
 │           │ floor. Honest `propose` has no input, so honest proposals  │
 │           │ are predictable; e.g. a Sanity-shaped engine with `excludes│
@@ -334,7 +334,10 @@ row (I9) is new.
 │           │ Plan 1a: COMPILED, still OPEN. Task 5 (`3c76e2b`):         │
 │           │ Gaps/NoInput.lean; clockCandidate passes the core floor at │
 │           │ D = 0; its rows have the status KNOWN-GAP. Plan 2 fixes    │
-│           │ it.                                                        │
+│           │ it. A run input alone is not enough (Astra A05). Plan 2    │
+│           │ also needs a floor claim that binds the proposal to the    │
+│           │ input, and a refutation of clockChain as its regression    │
+│           │ test.                                                      │
 │ Claim     │ `Claim.inhabited` (`Claim.lean:58-60`) accepts one early   │
 │           │ trigger for all H (`CounterIncluded.lean:228` uses slot 1  │
 │           │ for all H, I2). Fix: require the trigger at a time ≥ H.    │

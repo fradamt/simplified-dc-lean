@@ -426,7 +426,9 @@ does not replace kernel checking.
 **As implemented in plan 1a (2026-09-28).** This note does not change
 the text above. `Cert c I`, `Refutation c I` and `RefutationFamily c I`
 take `c : ClaimSpec K` and `I : K.Inst`. `inhabited` needs the trigger
-at a time of at least `H` (the late trigger). `ProfileCert p I` has one
+at a time of at least `H` (the late trigger). The Outage persistence
+triggers also need `b₀ < b₁`, so that the window is not empty (Review
+Focus 6). `ProfileCert p I` has one
 shared constant, a proof of `p.valid` for it, and one certificate per
 entry at the projection of that constant. The registry is a type scan
 (deviation (a)), with the row kind `profile-cert` and the status
@@ -593,7 +595,8 @@ Phases 0–2 land before the FG-SA Lean instance starts.
   `mk.inj`, `mk.injEq`, `mk.noConfusion`, `mk.sizeOf_spec`, `ctorElim`,
   `ctorElimType`, `ofNat`, `ofNat_ctorIdx`, `toCtorIdx`, `<ctor>.elim` and
   `<ctor>.sizeOf_spec` that Lean made for each, and
-  `ClaimSpec.stronger.eq_1`.
+  `ClaimSpec.stronger.eq_1`. Two writes (426009e, blob 464f709; 6b7155a,
+  blob 2e79312, which added the kind tag).
 - 2026-09-29, the gate of plan 1a (Tasks 1–5), approved by the user with the
   plan on 2026-09-28. This is the one approved break of the gate. The old
   lock is git blob `2e7931279eae4bb2763e45571bf4f019278d59d0` (87 lines, the
@@ -757,7 +760,10 @@ extra-tier entry.
   `AvailableChainRegistry/Gaps/NoInput.lean` (Task 5, `3c76e2b`).
   `clockChain` reads no input, and `clockCandidate` shows that it passes
   the core floor at `D = 0`. Its registry rows have the status `KNOWN-GAP`
-  (Task 0, `gapsPrefix`). The gap stays open until plan 2.
+  (Task 0, `gapsPrefix`). The gap stays open until plan 2. A run input
+  alone is not enough (Astra A05). Plan 2 also needs a floor claim that
+  binds the proposal to the input, and a refutation of `clockChain` as its
+  regression test.
 
 - I2 (closed in plan 1a): `Claim.inhabited` accepts one early trigger for all H
   (`CounterIncluded.lean:228` always uses slot 1). Fix: require the

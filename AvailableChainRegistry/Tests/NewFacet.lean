@@ -42,7 +42,7 @@ def testStrongSafe : ClaimSpec ClaimDomain.strong where
   transport := by
     intro I k k' _ _ _ h
     cases k; cases k'; exact h
-  refutable := .family
+  refutable := .run
 
 /-- Counter with a bad strong output: `chain 1` at height 1, genesis at every
 other height. The output goes back to genesis after height 1. -/

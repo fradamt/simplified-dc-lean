@@ -21,14 +21,14 @@ valid.
 
 A declaration is locked if its module is locked and Lean did not generate it,
 or if its type (after `whnfR`, so that an `abbrev` alias counts) is a claim, a
-profile, a profile entry or a claim domain and its module is in
+profile, a profile entry, a claim domain or a domain map and its module is in
 `AvailableChainFramework`. "Generated" comes from
 environment metadata, never from a name suffix. A generated declaration has no
 line, but its hash enters every closure that reaches it.
 
 Separately from the hash, the script checks the axioms of every locked
-declaration, proofs included, and that no two claims have the same `id`.
-A pulled claim (`ClaimSpec.pull …`) keeps the id of its base claim and is
+declaration, proofs included, that no two claims have the same `id`, and that
+no two profiles have the same `id`. A pulled claim (`ClaimSpec.pull …`) keeps the id of its base claim and is
 exempt. Thus two pulls of one base claim along one map are not found by this
 check (by design).
 
@@ -43,8 +43,8 @@ not locked now, `CHANGED <name> <old> -> <new>` for a different hash, and
 Exit codes: 0 same, or additions only; 1 a `REMOVED` or `CHANGED` name (and
 `--write` without `--allow-changes` wrote nothing); 2 a usage error, a
 malformed lock line, a missing declaration in a closure, a bad axiom, two
-claims with one id, a claim id that cannot be read, or no declaration
-ranges. -/
+claims with one id, two profiles with one id, a claim or profile id that
+cannot be read, or no declaration ranges. -/
 
 /-- The library that the lock scans. -/
 def frameworkLibrary : Name := `AvailableChainFramework
@@ -66,10 +66,13 @@ def lockedModulePrefixes : List Name :=
 locked. Names that do not exist yet are ignored. -/
 def claimTypes : List Name :=
   [`AvailableChain.Framework.ClaimSpec, `AvailableChain.Framework.Profile,
-   `AvailableChain.Framework.Profile.Entry, `AvailableChain.Framework.ClaimDomain]
+   `AvailableChain.Framework.Profile.Entry, `AvailableChain.Framework.ClaimDomain,
+   `AvailableChain.Framework.DomainMap]
 
 def claimSpecName : Name := `AvailableChain.Framework.ClaimSpec
 def claimIdName : Name := `AvailableChain.Framework.ClaimSpec.id
+def profileName : Name := `AvailableChain.Framework.Profile
+def profileIdName : Name := `AvailableChain.Framework.Profile.id
 /-- A pulled claim keeps the id of its base claim. -/
 def pullName : Name := `AvailableChain.Framework.ClaimSpec.pull
 
@@ -181,15 +184,19 @@ partial def nameOfExpr? (e : Expr) : Option Name :=
   | some ``Name.num, #[p, .lit (.natVal k)] => (nameOfExpr? p).map (·.num k)
   | _, _ => none
 
+/-- The value of the `id` projection `idProj` at `n`, as a literal name. -/
+def readId (idProj n : Name) (ci : ConstantInfo) : MetaM Name := do
+  let e ← Meta.mkAppM idProj #[mkConst n (ci.levelParams.map mkLevelParam)]
+  let r ← instantiateMVars (← Meta.reduce e)
+  match nameOfExpr? r with
+  | some id => return id
+  | none => throwError "the id does not reduce to a literal name: {r}"
+
 /-- The `id` of a claim `n`, or `none` for a pulled claim. -/
 def claimId? (n : Name) (ci : ConstantInfo) : MetaM (Option Name) := do
   if let some v := ci.value? then
     if v.getAppFn.constName? == some pullName then return none
-  let e ← Meta.mkAppM claimIdName #[mkConst n (ci.levelParams.map mkLevelParam)]
-  let r ← instantiateMVars (← Meta.reduce e)
-  match nameOfExpr? r with
-  | some id => return some id
-  | none => throwError "the id does not reduce to a literal name: {r}"
+  return some (← readId claimIdName n ci)
 
 /-- The locked names (sorted), and the problems that force exit 2. -/
 def scan : MetaM (Array Name × Array String) := do
@@ -202,6 +209,7 @@ def scan : MetaM (Array Name × Array String) := do
   let names := found.qsort Name.lt
   let mut problems := #[]
   let mut ids : Std.HashMap Name Name := {}
+  let mut profileIds : Std.HashMap Name Name := {}
   for n in names do
     let axs ← collectAxioms n
     let bad := (axs.filter (!allowedAxioms.contains ·)).qsort Name.lt
@@ -221,6 +229,16 @@ def scan : MetaM (Array Name × Array String) := do
           else
             ids := ids.insert id n
       | .ok none => pure ()
+    if (← typeHead? ci) == some profileName then
+      let r : Except String Name ← try Except.ok <$> readId profileIdName n ci
+        catch e => pure (Except.error s!"UNREADABLE PROFILE ID {n}: {← e.toMessageData.toString}")
+      match r with
+      | .error msg => problems := problems.push msg
+      | .ok id =>
+          if let some other := profileIds[id]? then
+            problems := problems.push s!"DUPLICATE PROFILE ID {id}: {other} and {n}"
+          else
+            profileIds := profileIds.insert id n
   return (names, problems)
 
 /-- The lines `(name, hash)` of a lock file. Blank lines are ignored. -/

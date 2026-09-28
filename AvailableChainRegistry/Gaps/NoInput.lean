@@ -6,8 +6,11 @@ public import Mathlib.Tactic
 
 /-! KNOWN GAP I1 (design §12). This protocol reads no input and still passes
 the core floor. The floor is too weak until engine v2 gives the proposer a
-run-chosen input (plan 2). The explorer stays off until then. The registry
-marks these rows `KNOWN-GAP` (Task 6).
+run-chosen input (plan 2). A run input alone is not enough (Astra A05). Plan 2
+also needs a floor claim that binds the proposal to the input, and a
+refutation of `clockChain` as its regression test (see below). The explorer
+stays off until then. The registry marks these rows `KNOWN-GAP` (Task 0,
+`gapsPrefix`).
 
 `clockChain` reads no delivered object. Its state is the largest tick time so
 far. Its two outputs are the chain of all slots up to that time, and its
@@ -16,8 +19,9 @@ Every node ticks at every public time, so every honest read at `s` holds the
 block of slot `s`: inclusion holds at `D = 0`.
 
 The gap does not depend on `excludes := true`. With `excludes := false` the
-same protocol still passes (its witness run then needs delivery events for
-broadcast), so plan 2 cannot close I1 by an exclusion rule.
+same protocol still passes (reasoned, not compiled; plan 1b compiles it
+against Candidate × Eligible). Its witness run then needs delivery events for
+broadcast. Thus plan 2 cannot close I1 by an exclusion rule.
 
 This module does not fix the gap. Plan 2 fixes it with a run-chosen proposer
 input AND a floor claim that binds the proposal to that input. A run input

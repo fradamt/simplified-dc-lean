@@ -5,11 +5,15 @@ public import AvailableChainFramework.ClaimDomain
 
 namespace AvailableChain.Framework
 
-/-- How a claim can be refuted. -/
+/-- How a claim can be refuted. The tag of a claim is the minimal refutation
+form that the claim admits. `.run` means that one finite run for one constant
+refutes the claim. `.family` means that a refutation must cover every valid
+constant (for example, an inclusion claim with a delay). A claim with `.run`
+can also have a `RefutationFamily`, which is stronger evidence. -/
 inductive RefutationKind where
-  /-- One finite run for one constant. -/
+  /-- One finite run for one constant refutes the claim. -/
   | run
-  /-- A parameterized family: no valid constant works. -/
+  /-- A refutation must cover every valid constant. -/
   | family
   /-- The claim has no refutation form. -/
   | none

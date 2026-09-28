@@ -9,10 +9,10 @@ namespace AvailableChain.Framework
 
 open AvailableChain.Generic AvailableChain.Statements.Generic
 
-/-- A protocol instance (design §3): the protocol, its protocol parameters,
-and its facets, bound once. Claim constants are not here; they belong to
-certificates. The v1 `Interface` is the one field facet. Another facet is a
-structure that extends `Instance`, with its own claim domain. -/
+/-- A protocol instance (design §3): the protocol, bound once. Claim constants
+are not here; they belong to certificates. The v1 `Interface` is the one field
+facet. Another facet is a structure that extends `Instance`, with its own claim
+domain. -/
 structure Instance where
   n : Nat
   P : ProtocolSpec n
