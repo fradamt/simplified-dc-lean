@@ -60,7 +60,9 @@ line numbers. `r144o` is the Opus variant of r144. `r151` is `fj-theorem-h.md`.
 `ldp` is `fgsa-live-dc-port.md` (ALFS proofs), `r157` is
 `fgsa-live-views.md`, and `h12` is `fj-h12.md` (all registered and archived
 2026-09-28). `r158` is `alfs-redteam.md`, the independent red-team of
-ALFS (registered and archived 2026-09-28). `r152` is `fj-first-finality.md`, `r153` is `fj-reach.md`, and `r153a` is
+ALFS (registered and archived 2026-09-28). `r159` is `alfs-fixes.md`, the
+ALFS fixes and vote-merge proof check (the spec cites it as FIX;
+registered and archived 2026-09-28). `r152` is `fj-first-finality.md`, `r153` is `fj-reach.md`, and `r153a` is
 the Opus adjudication of r153, `fj-reach-adjudicate.md` (verdict VALID WITH
 CORRECTIONS; registered 2026-09-28). `r153b` is a later version of the same
 file, with §§A–C; §C.4 retracts the NJ claim of r153a. Line numbers cited
@@ -98,6 +100,7 @@ file unchanged at that commit); Git keeps the registered version.
 │ r157  │ fgsa-live-views.md        │ 5070acb6d1697fade725cb4fdb07850c │ aa91ee552b330e3bf9bbd8ace2a0d8df │
 │ h12   │ fj-h12.md                 │ 26c13e92b8bfe62422e00af91f8878f1 │ 2b0b7efdc66d67d7f9b857db99b9bbd7 │
 │ r158  │ alfs-redteam.md           │ f1ddd1a8863ac8f5443146bb901608a8 │ 32cb939fe2a0263de6cce5549f409c06 │
+│ r159  │ alfs-fixes.md             │ 4587052c1c11165ed24e9c7c7bf2213c │ ece57be408547e639e7641023521a0fd │
 └───────┴───────────────────────────┴──────────────────────────────────┴──────────────────────────────────┘
 ```
 
@@ -109,7 +112,14 @@ Sources outside `tsc/` (registered 2026-09-28). `spec/` =
 unchanged since `588d666`). `alfs` is the ALFS spec (the DC-form rewrite),
 registered 2026-09-28 from its archive copy; a pin to it names the file
 `fgsa-protocol-183f2c40.tex`. "Under ALFS (spec 183f2c40)" in a status
-line means the protocol of that spec.
+line means the protocol of that spec. `alfs2` is the ALFS spec after r159
+(the admitted-proposal HEAD vote merge, the δ_t scope, §5 row 29 on
+relay, the bounds 996Δ and 1041Δ, no NJ appendix), registered
+2026-09-28 from its archive copy; a pin to it names the file
+`fgsa-protocol-c7c41a43.tex`. "Under ALFS (spec c7c41a43)" means that
+protocol. Re-pin rule (2026-09-28): the live entries that pin ALFS text
+(`fj.frame.v2`, `ap.headReachesLo.v3`) pin `alfs2`. Historical entries
+(`ap.headReachesLo.v2`) keep their `alfs` pins. Pins to `spec` stay.
 
 Note (2026-09-28): `spec/fgsa-protocol.tex` is not tracked in Git. It
 changed after registration (sha256 then
@@ -129,6 +139,7 @@ not re-pinned now. A citation of the form "spec/fgsa-protocol.tex, lines
 ├───────┼──────────────────────────────────────────────────────────────────┼──────────────────────────────────┼──────────────────────────────────┤
 │ spec  │ spec/archive/fgsa-protocol-ae4497ab.tex                          │ ae4497abc7c5b3a6f73697f341bf730a │ 63c7d34bd2f7546154bd022bc95af223 │
 │ alfs  │ spec/archive/fgsa-protocol-183f2c40.tex                          │ 183f2c409f03542dbdf3f94619240774 │ 37710b74720d09b32a42d3bdb3f04afb │
+│ alfs2 │ spec/archive/fgsa-protocol-c7c41a43.tex                          │ c7c41a43727d380b74ae835032edbc97 │ 75ac98b8faa18affd5670165f841e5ca │
 │ dc    │ dc/consensus.tex                                                 │ dc471b47a46896fe0a3df300c188fef1 │ 512f475615ce0fc0df18dbea6d2e5517 │
 │ vcE   │ vc/DecoupledConsensusProofs/Protocol/ValidatorClient/Engine.lean │ 92fb0e64c1288afea98b53212cb3ad5c │ 843c9c720187367eea578d17a9d53454 │
 │ vcF   │ vc/DecoupledConsensusProofs/Protocol/ChainState/                 │ aa0ed92740eb1ec8ee69e90fd2ae75f0 │ 3179a27c05accf5f631e7a254589b94c │
@@ -525,7 +536,8 @@ plan (AP-side, composite, or not scheduled). Status abbreviations
 the uniform clause is REFUTED; "impl. PRV" = the
 implication is PROVED. The entry has the full dated status line. The
 index shows the status under the old spec (R1 views); status lines marked
-"under ALFS (spec 183f2c40)" are in the entries only.
+"under ALFS (spec 183f2c40)" or "(spec c7c41a43)" are in the entries
+only.
 
 ```text
 ┌───────────────────────┬──────┬─────────────────────┬───┬───────────┐
@@ -562,7 +574,8 @@ index shows the status under the old spec (R1 views); status lines marked
 │ ap.finalityHead.v2    │ nj   │ SKETCH              │ 2 │ —         │
 │ ap.fastSupport.v1     │ both │ PROVED (RULE, τ>a)  │ 2 │ —         │
 │ ap.headReachesLo.v1   │ fj   │ PROVED (FG-SA)      │ 2 │ —         │
-│ ap.headReachesLo.v2   │ fj   │ PROVED (ALFS, paper)│ 2 │ —         │
+│ ap.headReachesLo.v2   │ fj   │ SUPERSEDED (PROVED) │ 2 │ —         │
+│ ap.headReachesLo.v3   │ fj   │ PROVED (ALFS, paper)│ 2 │ —         │
 │ fg.provenance.v1      │ both │ SUPERSEDED (PROVED) │ 3 │ —         │
 │ fg.provenance.v2      │ both │ PROVED              │ 3 │ DC-fj     │
 │ fg.causalCap.v1       │ both │ SUPERSEDED (PROVED) │ 3 │ —         │
@@ -2133,6 +2146,9 @@ in §4. Every status below is for the FG-SA client (§0).
   fallback slot, and makes no no-reorg claim for a damaged event slot
   (lines 643–645 and 649–655). Thus the slot count of clause 4 (2 per
   frontier, 4 before the reset) is not a premise of the r158 bounds.
+- Status: 2026-09-28 — SUPERSEDED by `ap.headReachesLo.v3` (the r158
+  form, spec c7c41a43). Clauses 1–3 are unchanged in v3; clause 4 is
+  replaced by v3 clauses 4–6. This entry keeps its spec 183f2c40 pins.
 - Note (2026-09-28, r158 M1): M1 agrees with the note on the requested
   form above. A nonempty frozen domain does not force the HEAD into it.
 
@@ -2158,6 +2174,269 @@ in §4. Every status below is for the FG-SA client (§0).
 > It need not belong to the frozen domain and need not have height lo.
 
 - Note: `ap.headReachesLo.v1` is the view form and is not superseded.
+
+### `ap.headReachesLo.v3` — the AP head under ALFS, r158 form (witness W, settled proposal)
+
+- Variant `fj` (its premise is the ALFS frame `fj.frame.v2`, spec
+  c7c41a43). Sources: r158 M1, lines 79–95; §3.1, lines 242–293; §4,
+  lines 429–537; table lines 629–630 and 643–645; lines 649–655 (file
+  `alfs-redteam.md`, archived as `tsc/archive/alfs-redteam-f1ddd1a8.md`,
+  sha256 `f1ddd1a8863ac8f5443146bb901608a832cb939fe2a0263de6cce5549f409c06`);
+  r159 §1, lines 23–65 and 70–98 (file `alfs-fixes.md`, archived as
+  `tsc/archive/alfs-fixes-4587052c.md`, sha256
+  `4587052c1c11165ed24e9c7c7bf2213cece57be408547e639e7641023521a0fd`);
+  the ALFS spec `alfs2` (`spec/archive/fgsa-protocol-c7c41a43.tex`,
+  sha256 `c7c41a43727d380b74ae835032edbc9775ac98b8faa18affd5670165f841e5ca`):
+  `ghost` and `goldfish_eligible` lines 987–1009, `live_root` 1023–1035,
+  `get_head_in_tree` 1037–1044, the HEAD vote merge of `goldfish_vote`
+  1217–1231, the vote-merge prose 555–565, §5 row 29 (relay) 1614–1618,
+  and the δ_t scope 1356–1361.
+- Lean plan: — (an AP service fact; the SA instance is later work).
+- Hypotheses: `fj.frame.v2`; `fj.frameFeasible.v1` part (4) on the frozen
+  voter tree (ancestor-closed); the admitted-proposal HEAD vote merge
+  (spec lines 1222–1223 and 555–562), with r159 §1 as its proof check
+  (M-A exact transport, M-B source transfer, M-C outage retention; the
+  table for P1, L1–L8 and C1–C5, lines 70–98); accepted-object relay as
+  an SA run premise (spec §5 row 29, lines 1614–1618, and lines 174–176;
+  r158 L1); for clauses 4–6, the Recovery premises with `R ≥ 3` and
+  `δ_t = 2R` (spec lines 1356–1361).
+- Service statement (registry, 2026-09-28). For a HEAD duty, let V be its
+  frozen voter tree, (Z, lo) the store controls (`fj.frame.v2`), D_V the
+  filtered domain of V, D the filtered domain of the full store, and
+  A = `live_root` (the deepest live lease in the full filtered tree,
+  else Z).
+  1. (v2 clause 1) If A ∈ D_V, or A has an eligible child in D_V, the AP
+     head is in D_V and has state height ≥ lo.
+  2. (v2 clause 2) Otherwise the AP head is A. This can occur with
+     D_V ≠ ∅: r158 §3.1 is an exact ALFS read with D_V ≠ ∅, head
+     A = X ∉ D_V and `ht(X) = 2 < lo = 3` (r158 lines 280–293).
+  3. (v2 clause 3) If A = Z and D_V ≠ ∅, then Z ∈ D_V.
+  4. (full-store witness W) Fix a settled phase: H, the active top-J
+     restriction and lo are fixed; lower F moves are allowed. At a
+     synchronous label r whose duties are in this phase, every honest
+     HEAD K is in D, and some full-store block W has `K ⪯ W` and
+     `ht(W) ≥ lo`. Accepted-object relay puts W and its path at all
+     honest readers before `v_r+Δ = e_r < z_r`. K need not be in D_V and
+     need not have height lo.
+  5. (settled proposal) Let b be the first proposal label strictly after
+     phase settlement, and `ℓ = b+2k−1`. At an honest proposal P strictly
+     after `t_ℓ`, while the phase persists, every honest HEAD is P (W and
+     the common pivot).
+  6. (event cost) At a fixed frontier the phases are gap, uncontested
+     top J and contested top J. Each effective event costs one
+     settlement θ = 4Δ, and the two-lease repair of clause 5 starts after
+     it. No count per fallback slot is used, and no no-reorg claim is made
+     for a damaged event slot.
+- Change against v2: clauses 4–6 replace v2 clause 4 (a fallback needs
+  D_V = ∅ and a contest event; at most 2 slots per frontier, 4 before
+  the reset, none after). The step "fallback only when the frozen domain
+  is empty" of ldp C5 is REFUTED as a general rule (r158 lines 84–86 and
+  643–645). The v2 note on the requested form stays true: "D_V ≠ ∅ ⇒
+  head in D_V" is false in general (clause 2).
+- SA discharge (registry, 2026-09-28).
+  1. Clauses 1–3: as in v2, with the c7c41a43 lines (`ghost` returns its
+     anchor at lines 992–994; eligibility uses `band_floor`, line 1005;
+     the start at `live_root`, lines 1037–1044).
+  2. Clause 4: r158 §4, W (lines 434–449). With the admitted merge, r159
+     M-B gives the source scores (lines 39–54; table rows L4 and C2).
+  3. Clause 5: r158 lines 477–509 (two-lease repair, common pivot, exact
+     service). r159 M-A gives the exact votes with the admitted merge
+     (lines 28–37; table row L5).
+  4. Clause 6: r158 lines 532–537, 643–645 and 649–655; r159 table row
+     C5 (lines 95–97).
+  The start at `live_root` and the in-band choice by score stay AP data.
+- Statement (pinned):
+
+> _alfs-redteam.md, lines 434–449:_
+>
+> **W: full-store witness transfer.** Fix a settled phase: H, the active
+> top-J restriction, and lo are fixed. Lower F moves are allowed. Consider
+> a synchronous label r whose relevant duties are inside this phase.
+>
+> At an honest HEAD read, the full filtered domain is nonempty. A height-H
+> carrier extends every lower accepted F by DC finalized crossing. In
+> the uncontested top-J case it also extends J. The full-tree anchor
+> belongs to this full domain. Every subsequent walked child belongs to
+> the frozen domain, which is a subset of the full domain at that read.
+> Consequently the resulting HEAD K belongs to the **full** domain.
+> It need not belong to the frozen domain and need not have height lo.
+>
+> There is therefore a full-store block W with `K⪯W` and `ht(W)≥lo`.
+> The honest reader held W no later than v_r. Accepted-object relay puts
+> W and its path at all honest readers before `v_r+Δ=e_r<z_r`.
+> If a raw source body B has this honest HEAD as a supporter, `B⪯K⪯W`.
+
+> _alfs-redteam.md, lines 477–509:_
+>
+> **Two-lease repair and the common pivot.** Let b be the first proposal
+> label strictly after phase settlement and let `ℓ=b+2k−1`. A lease
+> whose last write label is at most `b+k−2` expires by
+> `E_old=d_(b+k−2)+L=t_ℓ+Δ`. Every later origin is a synchronous fast
+> source or has a wholly synchronous slow window. Choose an honest
+> proposal strictly after t_ℓ, within G. The slot grid puts it at least
+> 4Δ after t_ℓ, so all remaining live leases have the phase support
+> just proved.
+>
+> The preceding honest batch covers all of those leases. At each branch
+> before such a target the score toward it is at least h and a competing
+> score is at most a, including equivocation scores. The ordinary full
+> proposal walk reaches every such target. Its actual lease anchor is
+> on that same path. Every same-slot HEAD anchor is also on it: there
+> is no intervening gate, and release/expiry can only remove leases.
+> This is the common pivot that DC gets from SG.
+>
+> **Exact service.** The honest proposer has every block accepted at a
+> reader before the freeze, by strict relay. Its current proposal adds
+> only its own ancestor path to that HEAD. A competing old viable child
+> and its witness in the HEAD view were therefore available to the
+> proposer. The original declared support subset gives the same scores
+> on the comparison. The common pivot gives the same starting suffix.
+> The full proposal walk cannot stop below lo, since it starts inside
+> its own nonempty domain. Its parent A supplies a band witness on the
+> current proposal's path. Thus the selected path persists in the HEAD
+> view, and no new competing child can defeat it. Every honest HEAD is
+> exactly P.
+>
+> At q_s the h≥τ votes for P release any conflict from the pending gate.
+> At d_s, `2h>n` gives raw result P, the guard passes, and P has a fresh
+> fast write. This proves the phase repair within `ρ=2L+G+8Δ` and
+> service at every later honest proposal while the phase persists.
+
+> _alfs-redteam.md, lines 532–537:_
+>
+> **Events and the bound.** At a fixed frontier the phase order remains
+> gap, uncontested top J, contested top J. Same-height justification
+> uniqueness prevents a new top J at that height. A contest remains
+> known. Each effective event is common after strict relay and a freeze;
+> θ=4Δ suffices. Start the two-lease repair after that settlement. Do not
+> infer phase support across an interrupting event.
+
+> _alfs-redteam.md, lines 280–293:_
+>
+> `H=4,j=2,F=g,Z_fg=g,lo=3`. At V:
+>
+> ```text
+> full filtered tree contains X, witnessed by Y or Q;
+> frozen processed view contains g,A,E,B,X,C,P;
+> frozen filtered tree is {g,A,E,C,P};
+> live full-tree anchor is X;
+> X has no child in the frozen filtered tree;
+> HEAD = X, although that tree is nonempty and ht(X)=2<lo=3.
+> ```
+>
+> This directly refutes the unrestricted fallback/nonemptiness sentence.
+> It does **not** refute the settled-phase result proved in §4 or a recovery
+> bound: this read is in the outage, and its frame has just risen.
+
+> _alfs-fixes.md, lines 28–37:_
+>
+> **M-A: exact transport at an honest proposal.** In each clean, settled
+> phase, or healed comparison, the proof puts the honest proposal P on
+> the retained path. Thus P passes FG admission at the reader. A lower
+> F move cannot exclude it: the proposal parent is in band, and finalized
+> crossing puts it above F. P is the only authentic proposal for that
+> slot. Each frozen vote at the reader reaches the proposer before its
+> read. P carries the complete proposer vote set and its original support
+> subset. The two merges therefore agree at this comparison. This is the
+> DC vote transport used for exact service. It does not assume that all
+> faulty proposals are admitted.
+
+> _alfs-fixes.md, lines 80–83 and 95–97:_
+>
+> ```text
+> │ L4     │ Holds  │ W relays a full-store witness; M-B gives phase support. Do not     │
+> │        │        │ infer ht(HEAD)≥lo from a nonempty frozen domain.                   │
+> │ L5     │ Holds  │ W and L4 give the common pivot; M-A gives exact votes. Candidate   │
+> │        │        │ reflection and path persistence are unchanged.                     │
+> │ C5     │ Holds  │ Bounded event cost and P1 retention only. Returning an outside     │
+> │        │        │ anchor does not imply an empty domain. A damaged event slot can    │
+> │        │        │ reorganize S; r158 §§3.1,6 correct the text.                       │
+> ```
+
+> _fgsa-protocol-c7c41a43.tex, lines 987–1009:_
+>
+> ```latex
+> \Function{ghost}{$\mathit{anchor},\mathit{tree},
+>   \mathit{score},\mathit{eligible}$}
+>   \Comment{\DC{7}, unchanged}
+>   \State $H\gets\mathit{anchor}$
+>   \Loop
+>     \State $\mathit{children}\gets\{B:B\text{ is a child of }H\text{ in }
+>       \mathit{tree},\ \mathit{eligible}(B)\}$
+>     \If{$\mathit{children}=\emptyset$} \State \Return $H$ \EndIf
+>     \State $H\gets\arg\max_{B\in\mathit{children}}\mathit{score}(B)$,
+>       ties by root order
+>   \EndLoop
+> \EndFunction
+> \vspace{1pt}
+> \Function{goldfish\_eligible}{$\Sigma,\mathit{votes},
+>   \mathit{support\_votes},s,B$}
+>   \Comment{\DC{7}, redefined (a): band floor}
+>   \State $\mathit{voters\_count}\gets
+>     |\{i:\mathit{votes}\text{ holds a vote by seat }i\}|$
+>   \State \Return $\Sigma.\sigma[B.\parent].h<\Call{band\_floor}{\Sigma}$
+>     or $2\,\Call{goldfish\_score}{\mathit{votes},
+>       \mathit{support\_votes},s,B}>\mathit{voters\_count}$
+>     or $B.\slot=\Sigma.s$
+> \EndFunction
+> ```
+
+> _fgsa-protocol-c7c41a43.tex, lines 1023–1035:_
+>
+> ```latex
+> \Function{live\_root}{$\Sigma$}
+>   \Comment{\DC{7} \fname{get\_sg\_root}, redefined (b); \SAS{} \fname{live\_root}}
+>   \State $\mathit{tree}\gets\Call{get\_filtered\_block\_tree}{\Sigma}$
+>   \Comment{the full filtered tree, not a view}
+>   \State $\mathit{targets}\gets\{B\in\mathit{tree}:\Sigma.\lease[B]\neq\bot\}$
+>   \Comment{they lie on one chain}
+>   \If{$\mathit{targets}=\emptyset$}
+>     \State \Return $\Call{get\_fg\_root}{\Sigma}$
+>     \Comment{no live lease in the tree}
+>   \EndIf
+>   \State \Return the deepest $B\in\mathit{targets}$
+>   \Comment{the deepest live lease in place of grade~1}
+> \EndFunction
+> ```
+
+> _fgsa-protocol-c7c41a43.tex, lines 1037–1044:_
+>
+> ```latex
+> \Function{get\_head\_in\_tree}{$\Sigma,\mathit{tree},
+>   \mathit{votes},\mathit{support\_votes},k$}
+>   \Comment{\DC{7}, adapted (b): live root}
+>   \State $A\gets\Call{live\_root}{\Sigma}$
+>   \Comment{in place of \fname{get\_sg\_root}}
+>   \State \Return $\Call{goldfish\_fork\_choice}{\Sigma,A,
+>     \mathit{tree},\mathit{votes},\mathit{support\_votes},k}$
+> \EndFunction
+> ```
+
+> _fgsa-protocol-c7c41a43.tex, lines 1217–1231:_
+>
+> ```latex
+>     \State $\mathit{votes}\gets\{\mathit{vote}\in\Sigma.\gfPool[s-1]:
+>       \Sigma.\timestamp(\mathit{vote})<t_{s-1}+3\Delta\}$
+>     \Comment{received before the freeze}
+>     \State $\mathit{support\_votes}\gets\{\mathit{vote}\in\mathit{votes}:
+>       \Sigma.\resolutionTime(\mathit{vote})<t_{s-1}+3\Delta\}$
+>     \ForAll{$B\in\Sigma.\TF$ with $B.\slot=s$}
+>       \Comment{admitted proposals, as in \DC{7}}
+>       \State $\mathit{votes}\gets\mathit{votes}\cup
+>         \{\mathit{vote}\in B.\votesf:\mathit{vote}.\slot=s-1\}$
+>       \State $\mathit{support\_votes}\gets\mathit{support\_votes}\cup
+>         \{(i,s-1,H')\in B.\supportf:H'\in\Sigma.\T,\ H'.\slot\leq s-1\}$
+>     \EndFor
+>     \State $\mathit{tree}\gets\Call{voter\_filtered\_block\_tree}{\Sigma,s}$
+>     \State $H\gets\Call{get\_head\_in\_tree}{\Sigma,\mathit{tree},
+>       \mathit{votes},\mathit{support\_votes},s-1}$
+> ```
+
+- Status: 2026-09-28 — PROVED (paper; SA under ALFS, spec c7c41a43;
+  r158 §4, r159 §1). It is not a mixed FG-SA Lean theorem (r158 line 905;
+  r159 lines 211–213).
+- Note: `ap.headReachesLo.v1` is the view form and is not superseded.
+  `ap.headReachesLo.v2` is SUPERSEDED by this entry.
 
 ## 3. `SimplexFG.nj` lemmas (`Kit.FG`)
 
@@ -3018,21 +3297,25 @@ M0. r151 calls this cap μ and calls M0 simply M.
 ### `fj.frame.v2` — FJ frame from the live store caches (ALFS)
 
 - Variant `fj`. Source: the ALFS spec (DC form), file
-  `spec/archive/fgsa-protocol-183f2c40.tex`, sha256
-  `183f2c409f03542dbdf3f9461924077437710b74720d09b32a42d3bdb3f04afb`: `fg_contest` lines 910–916, `band_floor` 918–926,
-  `viable_tree_from` 928–934, `viable_tree` (acceptance) 936–942,
-  `get_fg_root` 944–951, `get_filtered_block_tree_from` and
-  `get_filtered_block_tree` 953–965, `live_root` 1014–1026,
-  `get_head_in_tree` 1028–1035, `voter_processed_block_tree` and
-  `voter_filtered_block_tree` 1144–1159, the HEAD duty call 1220–1222, and
-  the cache update `update_finality` 809–822. Proof file:
+  `spec/archive/fgsa-protocol-c7c41a43.tex` (key `alfs2`), sha256
+  `c7c41a43727d380b74ae835032edbc9775ac98b8faa18affd5670165f841e5ca`:
+  `fg_contest` lines 919–925, `band_floor` 927–935, `viable_tree_from`
+  937–943, `viable_tree` (acceptance) 945–951, `get_fg_root` 953–960,
+  `get_filtered_block_tree_from` and `get_filtered_block_tree` 962–974,
+  `live_root` 1023–1035, `get_head_in_tree` 1037–1044,
+  `voter_processed_block_tree` and `voter_filtered_block_tree`
+  1153–1168, the HEAD duty call 1229–1231, and the cache update
+  `update_finality` 818–831. Re-pinned 2026-09-28 from
+  `spec/archive/fgsa-protocol-183f2c40.tex` (key `alfs`; the same
+  functions at lines 910–916, 918–926, 928–934, 936–942, 944–951,
+  953–965, 1014–1026, 1028–1035, 1144–1159, 1220–1222 and 809–822). Proof file:
   `tsc/fgsa-live-dc-port.md` (key ldp; ALFS is its §1).
 - Lean plan: DC-fj module (user 2026-09-28). Lean names (f1's plan):
   `storeControls`, `fjControls`, `filteredFrom`,
   `storeControls_eq_fjControls` (under `StoreInv` and `ViewRootInj`);
   `fjFrame = filteredFrom (fjControls V) V` is the special case.
 - Hypotheses: `ViewRootInj` (§0.4), for the lex order of `update_finality`
-  (lines 812–815).
+  (lines 821–824).
 - Summary (registry): controls from the live store caches (F, J, h_j,
   hmax; the contest from the full T_F, never a view); the domain filter
   applied to any block set; the HEAD walks the frozen voter tree from
@@ -3040,7 +3323,7 @@ M0. r151 calls this cap μ and calls M0 simply M.
   FG root), which may lie outside the walked tree.
 - Statement (pinned):
 
-> _fgsa-protocol-183f2c40.tex, lines 910–916:_
+> _fgsa-protocol-c7c41a43.tex, lines 919–925:_
 >
 > ```latex
 > \Function{fg\_contest}{$\Sigma$}
@@ -3052,7 +3335,7 @@ M0. r151 calls this cap μ and calls M0 simply M.
 > \EndFunction
 > ```
 
-> _fgsa-protocol-183f2c40.tex, lines 918–926:_
+> _fgsa-protocol-c7c41a43.tex, lines 927–935:_
 >
 > ```latex
 > \Function{band\_floor}{$\Sigma$}
@@ -3066,7 +3349,7 @@ M0. r151 calls this cap μ and calls M0 simply M.
 > \EndFunction
 > ```
 
-> _fgsa-protocol-183f2c40.tex, lines 928–934:_
+> _fgsa-protocol-c7c41a43.tex, lines 937–943:_
 >
 > ```latex
 > \Function{viable\_tree\_from}{$\Sigma,\mathit{blocks}$}
@@ -3078,7 +3361,7 @@ M0. r151 calls this cap μ and calls M0 simply M.
 > \EndFunction
 > ```
 
-> _fgsa-protocol-183f2c40.tex, lines 936–942:_
+> _fgsa-protocol-c7c41a43.tex, lines 945–951:_
 >
 > ```latex
 > \Function{viable\_tree}{$\Sigma$}
@@ -3090,7 +3373,7 @@ M0. r151 calls this cap μ and calls M0 simply M.
 > \EndFunction
 > ```
 
-> _fgsa-protocol-183f2c40.tex, lines 944–951:_
+> _fgsa-protocol-c7c41a43.tex, lines 953–960:_
 >
 > ```latex
 > \Function{get\_fg\_root}{$\Sigma$}
@@ -3103,7 +3386,7 @@ M0. r151 calls this cap μ and calls M0 simply M.
 > \EndFunction
 > ```
 
-> _fgsa-protocol-183f2c40.tex, lines 953–965:_
+> _fgsa-protocol-c7c41a43.tex, lines 962–974:_
 >
 > ```latex
 > \Function{get\_filtered\_block\_tree\_from}{$\Sigma,\mathit{blocks}$}
@@ -3121,7 +3404,7 @@ M0. r151 calls this cap μ and calls M0 simply M.
 > \EndFunction
 > ```
 
-> _fgsa-protocol-183f2c40.tex, lines 1014–1026:_
+> _fgsa-protocol-c7c41a43.tex, lines 1023–1035:_
 >
 > ```latex
 > \Function{live\_root}{$\Sigma$}
@@ -3139,7 +3422,7 @@ M0. r151 calls this cap μ and calls M0 simply M.
 > \EndFunction
 > ```
 
-> _fgsa-protocol-183f2c40.tex, lines 1028–1035:_
+> _fgsa-protocol-c7c41a43.tex, lines 1037–1044:_
 >
 > ```latex
 > \Function{get\_head\_in\_tree}{$\Sigma,\mathit{tree},
@@ -3152,7 +3435,7 @@ M0. r151 calls this cap μ and calls M0 simply M.
 > \EndFunction
 > ```
 
-> _fgsa-protocol-183f2c40.tex, lines 1144–1159:_
+> _fgsa-protocol-c7c41a43.tex, lines 1153–1168:_
 >
 > ```latex
 > \Function{voter\_processed\_block\_tree}{$\Sigma,s$}
@@ -3173,7 +3456,7 @@ M0. r151 calls this cap μ and calls M0 simply M.
 > \EndFunction
 > ```
 
-> _fgsa-protocol-183f2c40.tex, lines 1220–1222:_
+> _fgsa-protocol-c7c41a43.tex, lines 1229–1231:_
 >
 > ```latex
 >     \State $\mathit{tree}\gets\Call{voter\_filtered\_block\_tree}{\Sigma,s}$
@@ -3181,7 +3464,7 @@ M0. r151 calls this cap μ and calls M0 simply M.
 >       \mathit{votes},\mathit{support\_votes},s-1}$
 > ```
 
-> _fgsa-protocol-183f2c40.tex, lines 809–822:_
+> _fgsa-protocol-c7c41a43.tex, lines 818–831:_
 >
 > ```latex
 > \Function{update\_finality}{$\Sigma,\sigma$}
@@ -3211,10 +3494,17 @@ M0. r151 calls this cap μ and calls M0 simply M.
   L1–L3 (lines 55–124) are not in these functions: M1 concerns the HEAD
   anchor (`ap.headReachesLo.v2`), M2 the raw-proposal vote merge in
   `goldfish_vote` (lines 186–187).
+- Status: 2026-09-28 (r159) — def; re-pinned in place to spec c7c41a43
+  (`alfs2`). The text of all 11 pinned blocks is unchanged; only the line
+  numbers moved (+9). r159 changes only the HEAD vote merge (the
+  current-slot proposal scan of `goldfish_vote`, spec lines 1222–1223)
+  and the prose next to it (lines 555–565); the other function-text
+  change is a comment of `advance_height` (r159 lines 223–226). The vote
+  merge is AP data, not a frame function, so no `fj.frame.v3` is needed.
 - Note: `fj.frame.v1` is the view form and is not superseded. Its
   controls equal this entry's store controls on the full store under
   `StoreInv`. The acceptance tree `viable_tree` keeps DC's band `hmax−1`
-  also in a contest (lines 940–941). The spec has no F basis and no J carrier
+  also in a contest (lines 949–950). The spec has no F basis and no J carrier
   (compare `fg.frame.v2`, `fg.frameCompat.v1`).
 
 ### `fj.frameFeasible.v1` — the FJ domain reaches lo and is not empty
@@ -3496,6 +3786,9 @@ M0. r151 calls this cap μ and calls M0 simply M.
   correction of 2026-09-28). Hypotheses add `ap.headReachesLo.v1`.
 - Note (2026-09-28): under ALFS: `ap.headReachesLo.v2`, with the charged
   fallback slots.
+- Note (2026-09-28): under ALFS (spec c7c41a43): `ap.headReachesLo.v3`
+  (supersedes v2), with θ = 4Δ per effective event in place of the
+  charged fallback slots.
 - Note (2026-09-28): Lean: hFJ′ (F ⪯ J′) is a hypothesis now (partial
   coverage). A later helper lemma derives it in pure form from
   `fg.finalLock.v1` and the F carrier in the view; it will be pinned to
@@ -3726,6 +4019,9 @@ M0. r151 calls this cap μ and calls M0 simply M.
   `a≤f` (line 595). r158 §3.1 replays the r157 outage under ALFS: the two
   honest groups keep B to the outage end (lines 295–301). P1 under a
   view-domain anchor stays REFUTED (a different rule; table line 888).
+- Status: 2026-09-28 (r159) — under ALFS (spec c7c41a43): P1 and L8
+  hold with the admitted merge (r159 M-C, lines 56–65; table lines 74
+  and 88); the spec cites r158 §5 and r159 §1 (spec lines 1432–1440).
 
 ### `fg.base.fj.v1` — FJ reset and base handoff witness
 
@@ -3744,6 +4040,9 @@ M0. r151 calls this cap μ and calls M0 simply M.
   `ap.headReachesLo.v1`.
 - Note (2026-09-28): under ALFS: `ap.headReachesLo.v2`, with the charged
   fallback slots.
+- Note (2026-09-28): under ALFS (spec c7c41a43): `ap.headReachesLo.v3`
+  (supersedes v2), with θ = 4Δ per effective event in place of the
+  charged fallback slots.
 - Returned witness (audit W09): the caps M ≤ M0 and the cut `u0`
   (`env.r148`); an honest row at height ≥ M0+1 > M by `B_R`; its fresh
   source, permanent by `fj.canonical.v1` from its transfer HEAD; the repair
@@ -3861,6 +4160,11 @@ M0. r151 calls this cap μ and calls M0 simply M.
   r158 checks the slice `R≥3, δ_t=2R` (lines 112–116); `R=2` and other
   δ_t are OPEN (line 900). The weak recurrence does not replace the three
   openings (line 747).
+- Status: 2026-09-28 (r159) — under ALFS (spec c7c41a43): FF1–FF7 hold
+  with the admitted merge (r159 lines 133–152), and the spec states first
+  finality before `GST+B′+gP+9Δ` = 1041Δ as its claim (spec lines
+  1460–1462). The δ_t scope is `δ_t = 2R`, `R ≥ 3` (lines 1356–1361);
+  `δ_t < 2R` and `R = 2` stay OPEN.
 
 **FJ composite entries (`Kit.Compose`, from r151).** r151 renames the
 caps. Its μ is the old-source cap that r148 and r144o call M. Its M is
@@ -4002,6 +4306,9 @@ r151 names; `μ ≤ M`.
   `ap.headReachesLo.v1`.
 - Note (2026-09-28): under ALFS: `ap.headReachesLo.v2`, with the charged
   fallback slots.
+- Note (2026-09-28): under ALFS (spec c7c41a43): `ap.headReachesLo.v3`
+  (supersedes v2), with θ = 4Δ per effective event in place of the
+  charged fallback slots.
 - Statement (pinned):
 
 > _fj-theorem-h.md, lines 328–332:_
@@ -4060,6 +4367,9 @@ r151 names; `μ ≤ M`.
   Hypotheses add `ap.headReachesLo.v1`.
 - Note (2026-09-28): under ALFS: `ap.headReachesLo.v2`, with the charged
   fallback slots.
+- Note (2026-09-28): under ALFS (spec c7c41a43): `ap.headReachesLo.v3`
+  (supersedes v2), with θ = 4Δ per effective event in place of the
+  charged fallback slots.
 - Statement (pinned):
 
 > _fj-theorem-h.md, lines 357–364:_
@@ -4106,6 +4416,8 @@ r151 names; `μ ≤ M`.
   effective (L) (C3) is PROVED after the witness repair W (r158 table
   line 641; §4, lines 429–558). The count does not depend on M, on old
   private stock or on lower F advances (lines 553–558).
+- Status: 2026-09-28 (r159) — under ALFS (spec c7c41a43): C3 holds with
+  the admitted merge; λ = ρ+2σ is unchanged (r159 table lines 92–93).
 - Note: the missing premise is the same common supported band prefix as
   `ap.reach.v1` (r151 lines 408–412).
 
@@ -4168,6 +4480,9 @@ r151 names; `μ ≤ M`.
   A. Hypotheses add `ap.headReachesLo.v1`.
 - Note (2026-09-28): under ALFS: `ap.headReachesLo.v2`, with the charged
   fallback slots.
+- Note (2026-09-28): under ALFS (spec c7c41a43): `ap.headReachesLo.v3`
+  (supersedes v2), with θ = 4Δ per effective event in place of the
+  charged fallback slots.
 - Clauses: (local) `t_h ≤ q_(s*)+2L+G−Δ` (§7.3), with no arrival input.
   (global) `t_h < GST+B_proved` (§8), uniform choice
   `B_FJ,H = B_R+δ_H`.
@@ -4239,6 +4554,11 @@ r151 names; `μ ≤ M`.
   replaces "its transfer to ALFS is not yet checked" in the ldp line.
   OPEN: `R=2` or other δ_t (line 900), a bound that pays ρ once (line
   904), a checked mixed ALFS Lean theorem (line 905).
+- Status: 2026-09-28 (r159) — under ALFS (spec c7c41a43, admitted vote
+  merge): the healing steps hold (r159 §1, lines 105–131), and the spec
+  states `B′ = B−2L+6Δ` = 996Δ as its healing claim (spec lines 1448–1451;
+  local healing, lines 1452–1456). The δ_t scope is `δ_t = 2R`, `R ≥ 3`
+  (lines 1356–1361).
 
 ### `fj.healedUnif.v1` — uniform bound under effective N1
 
@@ -4276,6 +4596,8 @@ r151 names; `μ ≤ M`.
   C3 (effective (L), `λ = ρ+2σ`) is PROVED after the witness repair W, and
   C4 (1292Δ) is PROVED (r158 table lines 641–642; §4, lines 429–558).
   1004Δ and 996Δ (`fj.healed.v1`) are smaller.
+- Status: 2026-09-28 (r159) — under ALFS (spec c7c41a43): C3 and C4
+  hold with the admitted merge (r159 table lines 92–94).
 
 ### `fj.healedAtQ.v1` — full healing already at `q_(s*)`
 
@@ -4305,6 +4627,10 @@ r151 names; `μ ≤ M`.
   `2τ−2 ≤ n−a`, full healing starts at `d_(s*+1) = q_(s*)+5Δ` (lines
   797–798). r158 does not establish tightness for k=2 (lines 426–427) or
   an optimal bound for small L (line 800).
+- Status: 2026-09-28 (r159) — under ALFS (spec c7c41a43): REFUTED; the
+  spec cites the r158 check (spec lines 1457–1459). The corollary
+  (healing at `q_(s*)+5Δ` when `2τ−2 ≤ n−a`) holds with the admitted
+  merge (r159 lines 128–129).
 
 ## 5. Composite entries (`Kit.Compose`, `SimplexFG.nj`)
 
@@ -5419,3 +5745,23 @@ SUPERSEDED entry is the conjunction of its successors.
   `comp.healedUnif.v1`, `comp.finality.v1`) and the NJ-appendix sentence
   of `ap.armedSafe.v1` were removed on the same day, before any use.
   Commit `ce0eca3` keeps them.
+- r159 and the spec re-pin (2026-09-28): `r159` (`alfs-fixes.md`,
+  archived as `tsc/archive/alfs-fixes-4587052c.md`) and the spec
+  c7c41a43 (key `alfs2`, `spec/archive/fgsa-protocol-c7c41a43.tex`) are
+  registered. Spec changes against 183f2c40: the HEAD vote merge reads
+  admitted proposals, as in DC §7 (r158 M2; r159 §1 checks every proof
+  step); the δ_t scope (the recovery, healing and first-finality bounds
+  hold at `δ_t = 2R`, `R ≥ 3`; FG safety holds for every `δ_t ≥ 0`; `R = 2`
+  has only the healthy pipeline); §5 row 29 (accepted-object relay is an
+  SA run premise; r158 L1); the bounds 996Δ and 1041Δ are spec claims
+  (`B′ = B−2L+6Δ`); the NJ appendix is removed; the marks for unchecked
+  imports are removed, because r158 checked the imports. `fj.frame.v2` is
+  re-pinned in place (11 blocks, text unchanged, +9 lines); no v3 is
+  needed. New id `ap.headReachesLo.v3` (fj; PROVED, paper, SA under ALFS
+  c7c41a43; Lean plan —): v2 clauses 1–3, plus the full-store witness W,
+  the settled-proposal conclusion (every honest HEAD is P, through W and
+  the common pivot) and θ = 4Δ per effective event. `ap.headReachesLo.v2`
+  is SUPERSEDED and keeps its 183f2c40 pins. The five entries with the v2
+  pointer have a v3 pointer. Dated r159 lines: `fj.healed.v1`,
+  `fj.healedUnif.v1`, `fj.rise.movingF.v1`, `fj.healedAtQ.v1`,
+  `fj.firstFinality.v1` and `fj.armedSafe.v1`.
