@@ -9,12 +9,23 @@ declaration, sorted by name.
 Run: `lake env lean --run scripts/CatalogLock.lean --write | --check`.
 Exit codes: 0 same, 1 different, 2 usage or a missing declaration. -/
 
-/-- Declarations under these prefixes are locked (L1–L3 and the LM/L0
-definitions that they use are reached through the closure). -/
-def roots : List Name :=
-  [`AvailableChain.Framework.Catalog, `AvailableChain.Framework.ClaimSpec,
-   `AvailableChain.Framework.Cert, `AvailableChain.Framework.Instance,
-   `AvailableChain.Framework.HooksSound]
+/-- Every declaration of these modules is locked (L1–L3). The LM/L0
+definitions that they use are reached through the closure. `Kit` (L5) is
+not locked. -/
+def lockedModules : List Name :=
+  [`AvailableChainFramework.Hooks, `AvailableChainFramework.Instance,
+   `AvailableChainFramework.Claim, `AvailableChainFramework.Cert,
+   `AvailableChainFramework.Profile, `AvailableChainFramework.Pareto]
+
+/-- Every declaration of the modules under this prefix is locked (L3). -/
+def lockedModulePrefix : Name := `AvailableChainFramework.Catalog
+
+def locked (env : Environment) (n : Name) : Bool :=
+  match env.getModuleIdxFor? n with
+  | some idx =>
+      let m := env.header.moduleNames[idx.toNat]!
+      lockedModules.contains m || lockedModulePrefix.isPrefixOf m
+  | none => false
 
 def ownHash (ci : ConstantInfo) : UInt64 :=
   let base := mixHash (hash ci.name) (hash ci.type)
@@ -53,7 +64,7 @@ def main (args : List String) : IO UInt32 := do
   initSearchPath (← findSysroot)
   let env ← importModules #[{ module := `AvailableChainFramework }] {}
   let names := (env.constants.toList.map (·.1)).filter (fun n =>
-    !n.isInternal && roots.any (fun r => r.isPrefixOf n))
+    !n.isInternal && locked env n)
   let names := names.toArray.qsort Name.lt
   let mut memo : Std.HashMap Name UInt64 := {}
   let mut lines : Array String := #[]
