@@ -4154,3 +4154,6 @@ SUPERSEDED entry is the conjunction of its successors.
   `fg.base.finalized.v1`, `fg.base.nj.v1`, `fg.baseSel.nj.v1`. They stay
   as research entries. `fg.frameCompat.v1` is not needed by the DC-fj
   module. `fg.frame.v2` points to its fj counterpart `fj.frame.v1`.
+- Open item (2026-09-28): `ap.S.v2`, `ap.Sslow.v1` and `comp.theoremN.v1`
+  use `fg.N2.v2` (NJ frame). An fj Kept/N2 form with lo is a new fj entry,
+  needed for Kit.Compose. OPEN.
