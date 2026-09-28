@@ -137,8 +137,8 @@ late: old accepted objects can arrive only after the proposer has acted.
 The healthy-prefix alternative uses the contract's existing relay field. -/
 def ProposalRelayReady {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (s : Slot) : Prop :=
-  (E.t_GST + E.Δ ≤ proposalTime p s ∧ AcceptedObjectRelay (gridCO p) E rho) ∨
-    ∃ cut, proposalTime p s ≤ cut ∧ HealthyAcceptedObjectRelay (gridCO p) E rho cut
+  (E.t_GST + E.Δ ≤ proposalTime p s ∧ PartialSynchrony (gridCO p) E rho) ∨
+    ∃ cut, proposalTime p s ≤ cut ∧ HealthyPrefixDelivery (gridCO p) E rho cut
 
 /-- A complete label is synchronous either in the suffix after GST or in
 a declared healthy prefix. Accepted-object relay is explicit in both cases.
@@ -150,11 +150,9 @@ def SynchronousLabel {V : Type} [DecidableEq V] [Fintype V]
   AwakeMajority E rho (voteTime p r) ∧
   gateTime p r ≤ rho.horizon ∧
   ((E.t_GST ≤ proposalTime p r ∧
-      PartialSynchrony (gridCO p) E rho ∧
-      AcceptedObjectRelay (gridCO p) E rho) ∨
+      PartialSynchrony (gridCO p) E rho) ∨
     ∃ cut, gateTime p r ≤ cut ∧
-      HealthyPrefixDelivery (gridCO p) E rho cut ∧
-      HealthyAcceptedObjectRelay (gridCO p) E rho cut)
+      HealthyPrefixDelivery (gridCO p) E rho cut)
 
 /-- Every label from genesis through `r` has its complete synchronous
 premises. Coverage of an old stable read needs this clean prefix. -/

@@ -321,23 +321,25 @@ theorem synchronous_block_path_at_gate {V : Type} [DecidableEq V]
     rw [hΔ]
     dsimp [voteTime, earlyTime] at ht ⊢
     linarith
-  have hrelay : ∃ j t', Run.acceptsAt (gridCO p) rho j reader o t' ∧ t' < earlyTime p r := by
-    rcases hsync.delivery with ⟨hgst, _, relay⟩ | ⟨cut, hcut, _, relay⟩
+  have hrelay : ∃ j t', Run.handlesAt (gridCO p) rho j reader o t' ∧ t ≤ t' ∧
+      t' < earlyTime p r := by
+    rcases hsync.delivery with ⟨hgst, relay⟩ | ⟨cut, hcut, relay⟩
     · have hd : max t E.t_GST + E.Δ ≤ earlyTime p r := by
         rw [← max_add_add_right]
         refine max_le hdeadline ?_
         rw [hΔ]
         dsimp [earlyTime]
         linarith [p.deltaPos]
-      obtain ⟨t', _, ht', j, hj⟩ := relay source hs index o t ha reader hr hmissing
-        (hd.trans hsync.horizon)
-      exact ⟨j, t', hj, ht'.trans_le hd⟩
-    · obtain ⟨t', _, ht', j, hj⟩ := relay source hs index o t ha reader hr hmissing
-        (hdeadline.trans hcut)
-      exact ⟨j, t', hj, ht'.trans_le hdeadline⟩
-  obtain ⟨j, t', ⟨⟨parent, hj, _⟩, _, hstored⟩, ht'⟩ := hrelay
-  have hm : B ∈ (Run.stateBefore (gridCO p) rho (j + 1) reader).blocks := by
-    simpa [gridCO, processed, hp, blockKnown] using hstored
+      obtain ⟨t', htt, ht', j, hj⟩ := relay.relay source hs index o t ha reader hr hmissing
+        (hd.trans hsync.horizon) rfl
+      exact ⟨j, t', hj, htt, ht'.trans_le hd⟩
+    · obtain ⟨t', htt, ht', j, hj⟩ := relay.relay source hs index o t ha reader hr hmissing
+        (hdeadline.trans hcut) rfl
+      exact ⟨j, t', hj, htt, ht'.trans_le hdeadline⟩
+  obtain ⟨j, t', hh, htt, ht'⟩ := hrelay
+  have hm := accepted_proposal_handled_stored p E rho hsync.execution hΔ
+    index j source reader o B raw support t t' hp ha hh htt
+  obtain ⟨parent, hj, _⟩ := hh
   exact stored_block_stamp_before_cut p E rho hsched hj hm ht' hearly
 
 /-- Early HEAD receipt and early target-path relay together give a resolved

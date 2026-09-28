@@ -29,12 +29,13 @@ theorem synchronous_early_head_at_freeze {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
     (r : Slot) (hsync : SynchronousLabel p E rho r)
     (source reader : V) (hs : source ∈ rho.honest) (hr : reader ∈ rho.honest)
-    (o : Wire p.n) (ho : o ∈ earlyVotes p (gateInput p rho r source) r) :
+    (o : Wire p.n) (ho : o ∈ cleanSupport p (gateInput p rho r source) r) :
     o ∈ votesAt (Run.stateBeforeTime (gridCO p) rho
       (freezeTime p r) reader) r ∧
       stampVote (Run.stateBeforeTime (gridCO p) rho
         (freezeTime p r) reader) o < freezeTime p r := by
-  obtain ⟨hraw, hres⟩ := List.mem_filter.mp ho
+  have hearly := (List.mem_filter.mp ho).1
+  obtain ⟨hraw, hres⟩ := List.mem_filter.mp hearly
   obtain ⟨hm, hl⟩ := List.mem_filter.mp hraw
   have hhead : ∃ B, o.payload = .head B := by
     cases ho : o.payload <;> simp_all [headLabel?]
@@ -48,13 +49,33 @@ theorem synchronous_early_head_at_freeze {V : Type} [DecidableEq V] [Fintype V]
   obtain ⟨index, _, t, ha, ht⟩ := stored_head_accepted_before p E rho
     hsync.1.toScheduleWellFormed _ source o (earlyTime p r)
       (early_public p E hΔ r) (early_nonneg p r) hm ht
-  obtain ⟨hm, hstamp⟩ := synchronous_accepted_head_before p E rho r hsync source reader hs hr
-    index o B t (freezeTime p r) (freezeTime p r) hb ha
+  have hsettle := synchronous_accepted_head_before p E rho hΔ r hsync source reader hs hr
+    index o B t (freezeTime p r) (freezeTime p r) hb (by simpa using hl) ha
     (by rw [hΔ]; dsimp [earlyTime, freezeTime] at *; linarith)
     (by rw [hΔ]; dsimp [freezeTime]; linarith [p.deltaPos])
     (by dsimp [freezeTime, gateTime]; linarith [p.deltaPos])
     (by dsimp [freezeTime, releaseTime]; linarith [p.deltaPos])
-  exact ⟨List.mem_filter.mpr ⟨hm, hl⟩, hstamp⟩
+  obtain ⟨i, hi⟩ : ∃ i, headSeat? o = some i := by
+    cases o with
+    | mk auth payload => cases auth <;> cases payload <;> simp_all [headLabel?, headSeat?]
+  have hne := synchronous_survivor_not_equivocating p E rho hΔ r hsync
+    source reader hs hr o i ho hi
+  have hsub : stampedVotes (Run.stateBeforeTime (gridCO p) rho (freezeTime p r) reader)
+      r (freezeTime p r) ⊆ votesAt (releaseInput p rho r reader) r := by
+    intro q hq
+    obtain ⟨hq, _⟩ := List.mem_filter.mp hq
+    obtain ⟨hm, hl⟩ := List.mem_filter.mp hq
+    apply List.mem_filter.mpr
+    refine ⟨?_, hl⟩
+    exact (time_input_receiptPrefix p E rho hsync.1.toScheduleWellFormed
+      (freezeTime p r) (releaseTime p r)
+      (by dsimp [freezeTime, releaseTime]; linarith [p.deltaPos]) reader).votes.subset hm
+  have hm := (hsettle i hi).resolve_right (fun he => by
+    have he' := equivocates_mono _ _ i hsub he
+    rw [hne] at he'
+    contradiction)
+  obtain ⟨hm, hstamp⟩ := List.mem_filter.mp hm
+  exact ⟨hm, of_decide_eq_true hstamp⟩
 
 /-- The target of an early resolved HEAD is stored before the ordinary freeze with
 an early block stamp. Its accepted proposal relays independently of the HEAD. -/
@@ -85,8 +106,8 @@ theorem synchronous_early_target_at_freeze {V : Type} [DecidableEq V] [Fintype V
   rw [time_input_eq_event_prefix p E rho hsched] at hm ht
   obtain ⟨index, _, t, obj, raw, support, hp, ha, ht⟩ := stored_block_accepted_before p E rho
     hsched _ source B (earlyTime p r) hn (early_public p E hΔ r) (early_nonneg p r) hm ht
-  obtain ⟨j, e, hj, he, hstored⟩ := synchronous_accepted_object_before p E rho r hsync
-    source reader hs hr index obj t (freezeTime p r) ha
+  obtain ⟨j, e, hj, he, hstored⟩ := synchronous_accepted_block_before p E rho hΔ r hsync
+    source reader hs hr index obj t (freezeTime p r) hp ha
     (by rw [hΔ]; dsimp [earlyTime, freezeTime] at *; linarith)
     (by rw [hΔ]; dsimp [freezeTime]; linarith [p.deltaPos])
     (by dsimp [freezeTime, gateTime]; linarith [p.deltaPos])
@@ -117,16 +138,17 @@ theorem synchronous_early_head_in_voterSupport {V : Type} [DecidableEq V] [Finty
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
     (r : Slot) (hsync : SynchronousLabel p E rho r)
     (source reader : V) (hs : source ∈ rho.honest) (hr : reader ∈ rho.honest)
-    (o : Wire p.n) (ho : o ∈ earlyVotes p (gateInput p rho r source) r) :
+    (o : Wire p.n) (ho : o ∈ cleanSupport p (gateInput p rho r source) r) :
     o ∈ voterSupportView p (nextHeadState p rho r reader) (r + 1) ∧
       ∃ B, headTarget? o = some B ∧ B ∈ (nextHeadState p rho r reader).blocks := by
   obtain ⟨hm, ht⟩ := synchronous_early_head_at_freeze p E rho hΔ r hsync source reader hs hr o ho
-  have hres := (List.mem_filter.mp ho).2
+  have hearly := (List.mem_filter.mp ho).1
+  have hres := (List.mem_filter.mp hearly).2
   cases hb : headTarget? o with
   | none => simp [resolvedBefore, hb] at hres
   | some B =>
       obtain ⟨hB, hstamp⟩ := synchronous_early_target_at_freeze p E rho hΔ r hsync
-        source reader hs hr o B hb ho
+        source reader hs hr o B hb hearly
       have hresolved : resolvedBefore
           (Run.stateBeforeTime (gridCO p) rho (freezeTime p r) reader)
           o (freezeTime p r) = true := by

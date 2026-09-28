@@ -41,6 +41,37 @@ private theorem votesAt_subset {n : Nat} (a b : State n) (r : Slot)
   obtain ⟨hm, hl⟩ := List.mem_filter.mp ho
   exact List.mem_filter.mpr ⟨hsub hm, hl⟩
 
+/-- A non-equivocating seat has one base key in a raw view. -/
+theorem non_equivocating_unique {n : Nat} (raw : List (Wire n)) (i : Fin n)
+    (h : equivocates raw i = false) (a b : Wire n)
+    (ha : a ∈ seatVotes raw i) (hb : b ∈ seatVotes raw i) : a = b := by
+  have hlen : (seatVotes raw i).eraseDups.length ≤ 1 := by
+    have := of_decide_eq_false h
+    omega
+  have heq : (seatVotes raw i).eraseDups.toFinset =
+      (seatVotes raw i).toFinset := by ext o; simp
+  have hcard : (seatVotes raw i).toFinset.card ≤ 1 := by
+    rw [← heq, List.toFinset_card_of_nodup (eraseDups_nodup _)]
+    exact hlen
+  exact Finset.card_le_one.mp hcard a (List.mem_toFinset.mpr ha) b (List.mem_toFinset.mpr hb)
+
+/-- Relay alternatives preserve two-copy evidence across readers. -/
+theorem equivocates_of_mem_or_equivocates {n : Nat} (xs ys : List (Wire n)) (i : Fin n)
+    (hback : ∀ o ∈ xs, headSeat? o = some i → o ∈ ys ∨ equivocates ys i = true)
+    (he : equivocates xs i = true) : equivocates ys i = true := by
+  by_contra hn
+  have hfalse := Bool.eq_false_iff.mpr hn
+  have hx : equivocates xs i = false := by
+    apply equivocates_false_of_unique
+    intro a ha b hb
+    obtain ⟨ham, hai⟩ := List.mem_filter.mp ha
+    obtain ⟨hbm, hbi⟩ := List.mem_filter.mp hb
+    exact non_equivocating_unique ys i hfalse a b
+      (List.mem_filter.mpr ⟨(hback a ham (by simpa using hai)).resolve_right hn, hai⟩)
+      (List.mem_filter.mpr ⟨(hback b hbm (by simpa using hbi)).resolve_right hn, hbi⟩)
+  rw [hx] at he
+  contradiction
+
 /-- HEAD admission never removes a stored copy. -/
 theorem admitVote_votes_subset (p : Params) {n : Nat} (st : State n) (o : Wire n) :
     st.votes ⊆ (admitVote p st o).votes := by

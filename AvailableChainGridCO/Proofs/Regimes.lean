@@ -76,7 +76,7 @@ theorem synchronousLabel_of_sleepy (t₀ : Time)
   · rw [h.start_zero]
     dsimp [voteTime]
     linarith [p.deltaPos]
-  · exact ⟨by rw [h.gst_zero]; exact hproposal, h.partialSynchrony, h.acceptedRelay⟩
+  · exact ⟨by rw [h.gst_zero]; exact hproposal, h.partialSynchrony⟩
 
 /-- The healthy prefix covers every label through the outage boundary,
 including labels whose HEAD precedes the protected read. -/
@@ -94,7 +94,7 @@ theorem synchronousLabel_of_outage (G T b₀ b₁ : Time)
       (le_of_lt p.deltaPos)) (Int.natCast_nonneg _)) (le_of_lt p.deltaPos)
   exact ⟨h.execution, h.sleepyBefore _ hstart hvote,
     le_trans hgate (le_trans h.interval.2.2.1 h.interval.2.2.2),
-    Or.inr ⟨b₀, hgate, h.healthy, h.acceptedRelay⟩⟩
+    Or.inr ⟨b₀, hgate, h.healthy⟩⟩
 
 theorem roundedLevel_gt_faults_of_outage (G T b₀ b₁ t : Time)
     (h : OutageRegime (gridCO p) E (gridInterface p) (gridConstants p G)
@@ -122,7 +122,7 @@ theorem synchronousLabel_of_recovery (G : Time)
   have hvend : voteTime p r ≤ rho.horizon := by
     dsimp [voteTime, gateTime] at *; linarith [p.deltaPos]
   exact ⟨h.execution, awakeMajority_of_recovery G _ h hvstart hvend, hend,
-    Or.inl ⟨hstart, h.partialSynchrony, h.acceptedRelay⟩⟩
+    Or.inl ⟨hstart, h.partialSynchrony⟩⟩
 
 /-- Sleepy supplies all complete labels from genesis. -/
 theorem cleanThroughLabel_of_sleepy (t₀ : Time)
@@ -144,7 +144,7 @@ theorem cleanThroughLabel_of_outage (G T b₀ b₁ : Time)
 theorem proposalRelayReady_of_sleepy (hΔ : E.Δ = p.Δ) (t₀ : Time)
     (h : SleepyRegime (gridCO p) E (gridInterface p) rho t₀)
     (s : Slot) (hs : 0 < s) : ProposalRelayReady p E rho s := by
-  refine Or.inl ⟨?_, h.acceptedRelay⟩
+  refine Or.inl ⟨?_, h.partialSynchrony⟩
   rw [h.gst_zero, hΔ, zero_add]
   have hs' : (1 : Int) ≤ s := by exact_mod_cast hs
   dsimp [proposalTime]
@@ -154,7 +154,7 @@ theorem proposalRelayReady_of_sleepy (hΔ : E.Δ = p.Δ) (t₀ : Time)
 theorem proposalRelayReady_of_recovery (G : Time)
     (h : RecoveryRegime (gridCO p) E (gridInterface p) (gridConstants p G) rho)
     (s : Slot) (hs : E.t_GST + E.Δ ≤ proposalTime p s) : ProposalRelayReady p E rho s :=
-  Or.inl ⟨hs, h.acceptedRelay⟩
+  Or.inl ⟨hs, h.partialSynchrony⟩
 
 end AvailableChain.GridCO
 end

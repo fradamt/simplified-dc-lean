@@ -99,7 +99,7 @@ theorem honest_proposal_contains_source_root {V : Type} [DecidableEq V]
 /-- A receipt before the previous freeze reaches acceptance before the
 proposal when its relay interval is available. This applies to both HEADs
 and their separately admitted block paths. -/
-theorem accepted_before_proposal_of_ready {V : Type} [DecidableEq V]
+theorem handled_before_proposal_of_ready {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (s : Slot)
     (hready : ProposalRelayReady p E rho s)
     (hh : proposalTime p s ≤ rho.horizon)
@@ -108,16 +108,16 @@ theorem accepted_before_proposal_of_ready {V : Type} [DecidableEq V]
     (ha : Run.acceptsAt (gridCO p) rho i source o t)
     (hm : processed (Run.stateBefore (gridCO p) rho (i + 1) reader) o = false)
     (hdeadline : t + E.Δ ≤ proposalTime p s) :
-    ∃ j t', Run.acceptsAt (gridCO p) rho j reader o t' ∧
+    ∃ j t', Run.handlesAt (gridCO p) rho j reader o t' ∧
       t ≤ t' ∧ t' < proposalTime p s := by
   rcases hready with ⟨hstart, hrelay⟩ | ⟨cut, hcut, hrelay⟩
   · have hd : max t E.t_GST + E.Δ ≤ proposalTime p s := by
       rw [← max_add_add_right]
       exact max_le hdeadline hstart
-    obtain ⟨t', ht, hd', j, hj⟩ := hrelay source hs i o t ha reader hr hm (hd.trans hh)
+    obtain ⟨t', ht, hd', j, hj⟩ := hrelay.relay source hs i o t ha reader hr hm (hd.trans hh) rfl
     exact ⟨j, t', hj, ht, hd'.trans_le hd⟩
-  · obtain ⟨t', ht, hd, j, hj⟩ := hrelay source hs i o t ha reader hr hm
-      (hdeadline.trans hcut)
+  · obtain ⟨t', ht, hd, j, hj⟩ := hrelay.relay source hs i o t ha reader hr hm
+      (hdeadline.trans hcut) rfl
     exact ⟨j, t', hj, ht, hd.trans_le hdeadline⟩
 
 private theorem head_conversion {n : Nat} (o : Wire n) (r : Slot)

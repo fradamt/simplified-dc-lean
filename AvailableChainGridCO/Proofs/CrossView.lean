@@ -13,13 +13,35 @@ variable [LeasePolicy]
 
 open AvailableChain.Generic AvailableChain.Statements.Generic
 
-/-- An accepted object reaches every honest reader before its relay cutoff,
-or is already stored there after the source event. -/
-theorem synchronous_accepted_object_before {V : Type} [DecidableEq V] [Fintype V]
+/-- A synchronous label supplies actual calls before the requested cutoff. -/
+theorem synchronous_receipt_before {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (r : Slot)
     (hsync : SynchronousLabel p E rho r)
     (source reader : V) (hs : source ∈ rho.honest) (hr : reader ∈ rho.honest)
     (index : Nat) (o : Wire p.n) (t cut : Time)
+    (ha : Run.acceptsAt (gridCO p) rho index source o t)
+    (hm : processed (Run.stateBefore (gridCO p) rho (index + 1) reader) o = false)
+    (hd : t + E.Δ ≤ cut) (hg : proposalTime p r + E.Δ ≤ cut)
+    (hc : cut ≤ gateTime p r) :
+    ∃ t', t ≤ t' ∧ t' < cut ∧ ∃ j, Run.handlesAt (gridCO p) rho j reader o t' := by
+  rcases hsync.2.2.2 with ⟨hgst, relay⟩ | ⟨endTime, hend, relay⟩
+  · have hbound : max t E.t_GST + E.Δ ≤ cut := by
+      rw [← max_add_add_right]
+      exact max_le hd (by linarith)
+    obtain ⟨t', htt, ht', j, hj⟩ := relay.relay source hs index o t ha reader hr hm
+      (hbound.trans (hc.trans hsync.2.2.1)) rfl
+    exact ⟨t', htt, ht'.trans_le hbound, j, hj⟩
+  · obtain ⟨t', htt, ht', j, hj⟩ := relay.relay source hs index o t ha reader hr hm
+      (hd.trans (hc.trans hend)) rfl
+    exact ⟨t', htt, ht'.trans_le hd, j, hj⟩
+
+/-- Exact block transport follows from the checked causal handler bridge. -/
+theorem synchronous_accepted_block_before {V : Type} [DecidableEq V] [Fintype V]
+    (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ) (r : Slot)
+    (hsync : SynchronousLabel p E rho r)
+    (source reader : V) (hs : source ∈ rho.honest) (hr : reader ∈ rho.honest)
+    (index : Nat) (o : Wire p.n) (t cut : Time)
+    {B : Block} {raw support : List (HeadWire p.n)} (hp : o.payload = .proposal B raw support)
     (ha : Run.acceptsAt (gridCO p) rho index source o t)
     (hd : t + E.Δ ≤ cut) (hg : proposalTime p r + E.Δ ≤ cut)
     (hc : cut ≤ gateTime p r) :
@@ -27,39 +49,40 @@ theorem synchronous_accepted_object_before {V : Type} [DecidableEq V] [Fintype V
       processed (Run.stateBefore (gridCO p) rho (j + 1) reader) o = true := by
   have ht : t < cut := by linarith [E.Δ_pos]
   obtain ⟨parent, hi, _⟩ := ha.1
-  by_cases hknown : processed (Run.stateBefore (gridCO p) rho (index + 1) reader) o = true
-  · exact ⟨index, .deliver source parent t, hi, ht, hknown⟩
-  have hmissing : processed (Run.stateBefore (gridCO p) rho (index + 1) reader) o = false :=
-    Bool.eq_false_iff.mpr hknown
-  have hrelay : ∃ j t', Run.acceptsAt (gridCO p) rho j reader o t' ∧ t' < cut := by
-    rcases hsync.2.2.2 with ⟨hgst, _, relay⟩ | ⟨endTime, hend, _, relay⟩
-    · have hbound : max t E.t_GST + E.Δ ≤ cut := by
-        rw [← max_add_add_right]
-        exact max_le hd (by linarith)
-      obtain ⟨t', _, ht', j, hj⟩ := relay source hs index o t ha reader hr hmissing
-        (hbound.trans (hc.trans hsync.2.2.1))
-      exact ⟨j, t', hj, ht'.trans_le hbound⟩
-    · obtain ⟨t', _, ht', j, hj⟩ := relay source hs index o t ha reader hr hmissing
-        (hd.trans (hc.trans hend))
-      exact ⟨j, t', hj, ht'.trans_le hd⟩
-  obtain ⟨j, t', ⟨⟨parent', hj, _⟩, _, hstored⟩, ht'⟩ := hrelay
-  exact ⟨j, .deliver reader parent' t', hj, ht', hstored⟩
+  by_cases hk : processed (Run.stateBefore (gridCO p) rho (index + 1) reader) o = true
+  · exact ⟨index, .deliver source parent t, hi, ht, hk⟩
+  obtain ⟨t', htt, ht', j, hh⟩ := synchronous_receipt_before p E rho r hsync
+    source reader hs hr index o t cut ha (Bool.eq_false_iff.mpr hk) hd hg hc
+  have hm := accepted_proposal_handled_stored p E rho hsync.1 hΔ index j source reader
+    o B raw support t t' hp ha hh htt
+  obtain ⟨parent', hj, _⟩ := hh
+  exact ⟨j, .deliver reader parent' t', hj, ht', by simpa [processed, hp, blockKnown] using hm⟩
 
-/-- Accepted HEAD relay also gives the receiver's strict first stamp. -/
+/-- HEAD relay gives membership or equivocation within the admission window. -/
 theorem synchronous_accepted_head_before {V : Type} [DecidableEq V] [Fintype V]
-    (p : Params) (E : Env V) (rho : Run V (gridCO p)) (r : Slot)
+    (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ) (r : Slot)
     (hsync : SynchronousLabel p E rho r)
     (source reader : V) (hs : source ∈ rho.honest) (hr : reader ∈ rho.honest)
     (index : Nat) (o : Wire p.n) (B : Block) (t cut read : Time)
-    (hb : o.payload = .head B) (ha : Run.acceptsAt (gridCO p) rho index source o t)
+    (hb : o.payload = .head B) (hl : headLabel? o = some r)
+    (ha : Run.acceptsAt (gridCO p) rho index source o t)
     (hd : t + E.Δ ≤ cut) (hg : proposalTime p r + E.Δ ≤ cut)
     (hc : cut ≤ gateTime p r) (hread : cut ≤ read) :
-    o ∈ (Run.stateBeforeTime (gridCO p) rho read reader).votes ∧
-      stampVote (Run.stateBeforeTime (gridCO p) rho read reader) o < cut := by
-  obtain ⟨j, e, hj, ht, hm⟩ := synchronous_accepted_object_before p E rho r hsync
-    source reader hs hr index o t cut ha hd hg hc
-  exact stored_vote_stamp_before_cut p E rho hsync.1.toScheduleWellFormed hj
-    (by simpa [processed, hb] using hm) ht hread
+    ∀ i, headSeat? o = some i →
+      o ∈ stampedVotes (Run.stateBeforeTime (gridCO p) rho read reader) r cut ∨
+      equivocates (stampedVotes
+        (Run.stateBeforeTime (gridCO p) rho read reader) r cut) i = true := by
+  intro i hi
+  have he : o = ⟨.seat r i, .head B⟩ := by
+    cases o with
+    | mk auth payload => cases auth <;> cases payload <;> simp_all [headLabel?, headSeat?]
+  subst o
+  apply accepted_head_receipt_before p E rho hsync.1.toScheduleWellFormed hΔ
+    index source reader r i B t cut read ha (by linarith [E.Δ_pos]) hread
+    (hc.trans (by dsimp [gateTime, proposalTime]; nlinarith [p.deltaPos]))
+  intro hm
+  exact synchronous_receipt_before p E rho r hsync source reader hs hr index _ t cut
+    ha hm hd hg hc
 
 /-- Every early resolved HEAD at one honest reader is in every other
 reader's late pool for the same synchronous label. Faulty seats are included. -/
@@ -68,7 +91,9 @@ theorem synchronous_early_vote_late {V : Type} [DecidableEq V] [Fintype V]
     (r : Slot) (hsync : SynchronousLabel p E rho r)
     (source reader : V) (hs : source ∈ rho.honest) (hr : reader ∈ rho.honest)
     (o : Wire p.n) (ho : o ∈ earlyVotes p (gateInput p rho r source) r) :
-    o ∈ lateVotes p (gateInput p rho r reader) r := by
+    ∀ i, headSeat? o = some i →
+      o ∈ lateVotes p (gateInput p rho r reader) r ∨
+      equivocates (lateVotes p (gateInput p rho r reader) r) i = true := by
   obtain ⟨hraw, hres⟩ := List.mem_filter.mp ho
   obtain ⟨hm, hl⟩ := List.mem_filter.mp hraw
   have hhead : ∃ B, o.payload = .head B := by
@@ -93,11 +118,19 @@ theorem synchronous_early_vote_late {V : Type} [DecidableEq V] [Fintype V]
     dsimp [freezeTime, gateTime]; linarith [p.deltaPos]
   have hg : proposalTime p r + E.Δ ≤ freezeTime p r := by
     rw [hΔ]; dsimp [freezeTime]; linarith [p.deltaPos]
-  obtain ⟨hm, hstamp⟩ := synchronous_accepted_head_before p E rho r hsync source reader hs hr
-    index o B t (freezeTime p r) (gateTime p r) hb ha
+  have hsettle := synchronous_accepted_head_before p E rho hΔ r hsync source reader hs hr
+    index o B t (freezeTime p r) (gateTime p r) hb (by simpa using hl) ha
     (by rw [hΔ]; dsimp [earlyTime, freezeTime] at *; linarith) hg hc hc
-  exact List.mem_filter.mpr ⟨List.mem_filter.mpr ⟨hm, hl⟩,
-    decide_eq_true (hstamp.trans_le hc)⟩
+  intro i hi
+  have hsub : stampedVotes (gateInput p rho r reader) r (freezeTime p r) ⊆
+      lateVotes p (gateInput p rho r reader) r := by
+    intro q hq
+    obtain ⟨hm, ht⟩ := List.mem_filter.mp hq
+    exact List.mem_filter.mpr ⟨hm, by simpa using (of_decide_eq_true ht).trans_le hc⟩
+  rcases hsettle i hi with hm | he
+  · exact Or.inl (hsub hm)
+  · exact Or.inr (equivocates_mono _ _ i hsub he)
+
 
 /-- A surviving early HEAD excludes any different late HEAD from its seat. -/
 theorem cleanSupport_eq_of_late_same_seat (p : Params) {n : Nat} (st : State n)
@@ -119,6 +152,18 @@ theorem cleanSupport_eq_of_late_same_seat (p : Params) {n : Nat} (st : State n)
     List.any_eq_true.mpr ⟨b, hb, by simp [hsame, Ne.symm hne]⟩
   simp [hany] at hclean
 
+/-- Surviving support excludes equivocation in its own late pool. -/
+theorem cleanSupport_not_equivocating (p : Params) {n : Nat} (st : State n)
+    (r : Slot) (o : Wire n) (i : Fin n) (hi : headSeat? o = some i)
+    (ho : o ∈ cleanSupport p st r) : equivocates (lateVotes p st r) i = false := by
+  apply equivocates_false_of_unique
+  intro a ha b hb
+  obtain ⟨ha, hai⟩ := List.mem_filter.mp ha
+  obtain ⟨hb, hbi⟩ := List.mem_filter.mp hb
+  exact (cleanSupport_eq_of_late_same_seat p st r i o a ho ha hi
+    (by simpa using hai)).symm.trans
+    (cleanSupport_eq_of_late_same_seat p st r i o b ho hb hi (by simpa using hbi))
+
 /-- Genuine prefix support seats appear in every honest late pool. -/
 theorem synchronous_support_subset_late {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -128,9 +173,16 @@ theorem synchronous_support_subset_late {V : Type} [DecidableEq V] [Fintype V]
       lateSeats p (gateInput p rho r reader) r := by
   intro i hi
   obtain ⟨o, ho, hseat, _⟩ := prefixSupportSeats_witness p _ r B i hi
-  exact List.mem_toFinset.mpr (List.mem_dedup.mpr (List.mem_filterMap.mpr
-    ⟨o, synchronous_early_vote_late p E rho hΔ r hsync source reader hs hr o
-      (List.mem_filter.mp ho).1, hseat⟩))
+  rcases synchronous_early_vote_late p E rho hΔ r hsync source reader hs hr o
+      (List.mem_filter.mp ho).1 i hseat with hm | he
+  · exact List.mem_toFinset.mpr (List.mem_dedup.mpr (List.mem_filterMap.mpr ⟨o, hm, hseat⟩))
+  · have hp : 0 < (seatVotes (lateVotes p (gateInput p rho r reader) r) i).eraseDups.length := by
+      have := of_decide_eq_true he
+      omega
+    obtain ⟨q, hq⟩ := List.length_pos_iff_exists_mem.mp hp
+    obtain ⟨hm, hi⟩ := List.mem_filter.mp (List.mem_eraseDups.mp hq)
+    exact List.mem_toFinset.mpr (List.mem_dedup.mpr
+      (List.mem_filterMap.mpr ⟨q, hm, by simpa using hi⟩))
 
 /-- Conflicting genuine prefixes at different readers have disjoint
 surviving support sets. Relay makes a shared conflicting seat fail the
@@ -147,7 +199,10 @@ theorem synchronous_support_disjoint {V : Type} [DecidableEq V] [Fintype V]
   obtain ⟨o, ho, hseat, target, ht, hp⟩ := prefixSupportSeats_witness p _ r B i hi
   obtain ⟨q, hq, hseat', target', ht', hp'⟩ := prefixSupportSeats_witness p _ r C i hj
   have hlate := synchronous_early_vote_late p E rho hΔ r hsync reader source hr hs q
-    (List.mem_filter.mp hq).1
+    (List.mem_filter.mp hq).1 i hseat'
+  have hlate := hlate.resolve_right (by
+    rw [cleanSupport_not_equivocating p _ r o i hseat ho]
+    decide)
   have he := cleanSupport_eq_of_late_same_seat p _ r i o q ho hlate hseat hseat'
   subst q
   have he' := Option.some.inj (ht.symm.trans ht')

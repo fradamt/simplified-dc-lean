@@ -150,7 +150,7 @@ theorem synchronous_proposal_delivered {V : Type} [DecidableEq V]
     dsimp [voteTime, earlyTime]; linarith [p.deltaPos]
   have hh : ∃ t, proposalTime p s ≤ t ∧ t < voteTime p s ∧
       ∃ index, Run.handlesAt (gridCO p) rho index reader o t := by
-    rcases hsync.delivery with ⟨hgst, hnet, _⟩ | ⟨cut, hcut, hnet, _⟩
+    rcases hsync.delivery with ⟨hgst, hnet⟩ | ⟨cut, hcut, hnet⟩
     · have hmax : max (proposalTime p s) E.t_GST = proposalTime p s := max_eq_left hgst
       obtain ⟨t, ht, hd, index, hh⟩ := hnet.broadcast source hs o _ hem reader hr
         (by rw [hmax, hdeadline]; exact hv.trans hsync.horizon) rfl

@@ -24,20 +24,6 @@ theorem goldfishScore_eq_card {n : Nat} (tree : List Block)
     (List.Nodup.filter _ (List.nodup_dedup _))).symm
 
 
-/-- A non-equivocating seat has one base key in a raw view. -/
-theorem non_equivocating_unique {n : Nat} (raw : List (Wire n)) (i : Fin n)
-    (h : equivocates raw i = false) (a b : Wire n)
-    (ha : a ∈ seatVotes raw i) (hb : b ∈ seatVotes raw i) : a = b := by
-  have hlen : (seatVotes raw i).eraseDups.length ≤ 1 := by
-    have := of_decide_eq_false h
-    omega
-  have heq : (seatVotes raw i).eraseDups.toFinset =
-      (seatVotes raw i).toFinset := by ext o; simp
-  have hcard : (seatVotes raw i).toFinset.card ≤ 1 := by
-    rw [← heq, List.toFinset_card_of_nodup (eraseDups_nodup _)]
-    exact hlen
-  exact Finset.card_le_one.mp hcard a (List.mem_toFinset.mpr ha) b (List.mem_toFinset.mpr hb)
-
 /-- Relay can replace a raw key by two-target evidence for its seat.
 Such replacement preserves the participant set. -/
 theorem seats_eq_of_mem_or_equivocates {n : Nat} (xs ys : List (Wire n))

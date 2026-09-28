@@ -31,11 +31,12 @@ theorem early_support_at_proposal {V : Type} [DecidableEq V] [Fintype V]
     (r : Slot) (hsync : SynchronousLabel p E rho r)
     (source : V) (hs : source ∈ rho.honest)
     (hprop : rho.proposerOf (r + 1) ∈ rho.honest) (o : Wire p.n)
-    (ho : o ∈ earlyVotes p (gateInput p rho r source) r) :
+    (ho : o ∈ cleanSupport p (gateInput p rho r source) r) :
     o ∈ proposerSupportView (proposalState p rho (r + 1)) (r + 1) ∧
       ∃ target, headTarget? o = some target ∧ target ∈ (proposalState p rho (r + 1)).blocks := by
-  have hraw := (List.mem_filter.mp ho).1
-  have hres := (List.mem_filter.mp ho).2
+  have hearly := (List.mem_filter.mp ho).1
+  have hraw := (List.mem_filter.mp hearly).1
+  have hres := (List.mem_filter.mp hearly).2
   have hl : headLabel? o = some r := by simpa using (List.mem_filter.mp hraw).2
   cases ht : headTarget? o with
   | none => simp [resolvedBefore, ht] at hres
@@ -43,7 +44,7 @@ theorem early_support_at_proposal {V : Type} [DecidableEq V] [Fintype V]
       have hvote := (synchronous_early_head_at_freeze p E rho hΔ r hsync source
         (rho.proposerOf (r + 1)) hs hprop o ho).1
       have hblock := (synchronous_early_target_at_freeze p E rho hΔ r hsync source
-        (rho.proposerOf (r + 1)) hs hprop o target ht ho).1
+        (rho.proposerOf (r + 1)) hs hprop o target ht hearly).1
       have hpre := time_input_receiptPrefix p E rho hsync.1.toScheduleWellFormed
         (freezeTime p r) (proposalTime p (r + 1)) (freeze_to_proposal p r)
         (rho.proposerOf (r + 1))
@@ -71,7 +72,9 @@ theorem proposal_raw_in_previous_late {V : Type} [DecidableEq V] [Fintype V]
     (source : V) (hs : source ∈ rho.honest)
     (hprop : rho.proposerOf (r + 1) ∈ rho.honest) (o : Wire p.n)
     (ho : o ∈ proposerView (proposalState p rho (r + 1)) (r + 1)) :
-    o ∈ lateVotes p (gateInput p rho r source) r := by
+    ∀ i, headSeat? o = some i →
+      o ∈ lateVotes p (gateInput p rho r source) r ∨
+      equivocates (lateVotes p (gateInput p rho r source) r) i = true := by
   apply synchronous_release_vote_late p E rho hΔ r hsync
     (rho.proposerOf (r + 1)) source hprop hs o
   obtain ⟨hm, hl⟩ := List.mem_filter.mp ho
@@ -96,9 +99,9 @@ theorem proposalTransferReceipts_from_engine {V : Type} [DecidableEq V] [Fintype
       (proposerSupportView (proposalState p rho (r + 1)) (r + 1)) B := by
   refine ⟨?_, ?_, ?_⟩
   · intro o ho _
-    exact early_support_at_proposal p E rho hΔ r hsync source hs hprop o (List.mem_filter.mp ho).1
-  · intro o ho _ _
-    exact Or.inl (proposal_raw_in_previous_late p E rho hΔ r hsync source hs hprop o ho)
+    exact early_support_at_proposal p E rho hΔ r hsync source hs hprop o ho
+  · intro o ho i hi
+    exact proposal_raw_in_previous_late p E rho hΔ r hsync source hs hprop o ho i hi
   · intro o ho; exact (List.mem_filter.mp ho).1
 
 /-- Every genuine prefix of a synchronous label is on the next ordinary
@@ -121,7 +124,7 @@ theorem genuine_prefix_at_ordinary_proposal {V : Type} [DecidableEq V] [Fintype 
   obtain ⟨i, hi⟩ := Finset.card_pos.mp hpos
   obtain ⟨o, ho, _, target, ht, hBT⟩ := prefixSupportSeats_witness p _ r B i hi
   obtain ⟨_, target', ht', hstored⟩ := early_support_at_proposal p E rho hΔ r hsync source hs hprop
-    o (List.mem_filter.mp ho).1
+    o ho
   have he : target' = target := Option.some.inj (ht'.symm.trans ht)
   subst target'
   have hclosed : StoredPrefixClosed st := clock_stored_prefix_closed p _ _
