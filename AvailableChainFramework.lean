@@ -7,6 +7,7 @@ public import AvailableChainFramework.Profile
 public import AvailableChainFramework.Pareto
 public import AvailableChainFramework.Catalog.Core
 public import AvailableChainFramework.Kit.Core
+public import AvailableChainFramework.Engine.V2Sketch
 
 @[expose] public section
 end
