@@ -60,6 +60,7 @@ task's scope to modify, so a Kit-local `depth` measure is added here, used
 only inside this file to prove `preceq_antisymm`.) -/
 
 omit [DecidableEq V] [Fintype V] in
+-- port: DC/DecoupledConsensusModel/Objects/Blocks.lean:229-232 (depth)
 /-- [helper] A structural depth measure, needed only to prove
 `preceq_antisymm`: the number of parent edges from genesis. -/
 private def depth : FGBlock V → Nat
@@ -94,6 +95,7 @@ theorem preceq_trans {A B C : FGBlock V} (h₁ : FGBlock.Preceq A B)
         simp only [FGBlock.preceq, hAp, Bool.or_true]
 
 omit [Fintype V] in
+-- port: DC/DecoupledConsensusProofs/Objects/Ancestry.lean:64-76 (preceq_depth_le)
 private theorem preceq_depth_le {B C : FGBlock V} (h : FGBlock.Preceq B C) :
     depth B ≤ depth C := by
   induction C with
@@ -111,6 +113,7 @@ private theorem preceq_depth_le {B C : FGBlock V} (h : FGBlock.Preceq B C) :
         omega
 
 omit [Fintype V] in
+-- port: DC/DecoupledConsensusProofs/Objects/Ancestry.lean:80-90 (preceq_eq_of_depth_le)
 private theorem preceq_eq_of_depth_le {B C : FGBlock V} (h : FGBlock.Preceq B C)
     (hd : depth C ≤ depth B) : B = C := by
   induction C with
