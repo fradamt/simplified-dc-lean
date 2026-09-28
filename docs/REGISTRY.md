@@ -2,6 +2,7 @@
 
 ```text
 │ Declaration │ Kind │ Claim │ Instance │ Status │
+│ AvailableChain.Registry.Counter.certIncluded │ cert │ AvailableChain.Framework.Catalog.includedConfirmed │ AvailableChain.Registry.Counter.counterInst │ LEAN │
 │ AvailableChain.Registry.Counter.certPrefix │ cert │ AvailableChain.Framework.Catalog.prefixOrder │ AvailableChain.Registry.Counter.counterInst │ LEAN │
 │ AvailableChain.Registry.Counter.certSafeConfirmed │ cert │ AvailableChain.Framework.Catalog.safeConfirmed │ AvailableChain.Registry.Counter.counterInst │ LEAN │
 │ AvailableChain.Registry.Counter.certSafeStable │ cert │ AvailableChain.Framework.Catalog.safeStable │ AvailableChain.Registry.Counter.counterInst │ LEAN │
