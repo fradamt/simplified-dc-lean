@@ -4,6 +4,7 @@ public import AvailableChainFramework.Instance
 public import AvailableChainFramework.Claim
 public import AvailableChainFramework.Cert
 public import AvailableChainFramework.Profile
+public import AvailableChainFramework.Pareto
 public import AvailableChainFramework.Catalog.Core
 public import AvailableChainFramework.Kit.Core
 
