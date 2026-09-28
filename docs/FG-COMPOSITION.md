@@ -25,10 +25,12 @@ consistent with FRAMEWORK-DESIGN.md §7._
   composite may cite the entry); SUPERSEDED (the entry stays as a pointer;
   its pinned text does not change; a composite cites the named successor
   ids, whose conjunction states the same fact).
-- Lean coverage kind (rule added 2026-09-28): BY HYPOTHESIS = a Lean
-  theorem proves the clause with a named premise that the Lean module does
-  not discharge; the entry names the discharging ids. It is a coverage
-  note, not a status value.
+- Lean coverage kind (rule added 2026-09-28; text corrected the same
+  day): BY HYPOTHESIS = the Lean theorem assumes, as a named premise, a
+  statement equivalent to the clause (or to the clause's key step); the
+  entry names the discharging ids. It differs from PARTIAL, where Lean
+  derives the clause from extra premises. It is a coverage note, not a
+  status value.
 - Two edits of a hypotheses list keep the id, with a dated note: (a) the
   replacement of a SUPERSEDED id by its successor ids; (b) a new reference
   by id to a fact that the pinned text already uses (for example "F4" or
@@ -5039,6 +5041,15 @@ M0. r151 calls this cap μ and calls M0 simply M.
   `fg.finalLock.v1` at `a ≤ f` with `StoreInv.Fcar`, or by
   `fj.crossingNoFinal.v1` (`crossingNoFinal_QC`). The paper status stays
   PROVED.
+- Note (2026-09-28): scope of the line above, under the corrected §0
+  definition. `AvailableChainKitFG/Pins.lean` gives item 3 (ii) two rows.
+  (1) "F move at m−1 keeps the uncontested phase, Z = F′, lo = m−1 and
+  D" (line 376) is PARTIAL: `Fmove_atTop` derives it from extra premises
+  (`m ≥ 2`, a carrier K of F′ with `h_F(K) = m−1`, `huniq`, `hext`,
+  `ViewRootInj`). (2) "at m−1 the contested phase is impossible" (line
+  381) is BY HYPOTHESIS: at frontier m, `hext` (every view block above
+  m−1 extends F′) is equivalent to ¬E_C(m, F′), so this step is assumed,
+  not derived. The BY HYPOTHESIS kind applies to row (2) only.
 - Formal reading (2026-09-28) of "finalizations add no change" (item 3)
   for an F move F → F′ at one fixed view V at frontier m ≥ 2 (at m = 1 no
   change can act):
@@ -7113,3 +7124,8 @@ SUPERSEDED entry is the conjunction of its successors.
 - Lean coverage kind BY HYPOTHESIS (2026-09-28; requested by ethereum-f1,
   approved by team-lead): a §0 rule defines it, and `fj.twoChanges.core.v1`
   has a dated line for item 3 (ii) (`Fmove_atTop` with the premise `hext`).
+- BY HYPOTHESIS wording corrected (2026-09-28; ethereum-f1, team-lead):
+  the §0 rule now requires that the named premise be equivalent to the
+  clause or its key step, and separates the kind from PARTIAL. A note on
+  `fj.twoChanges.core.v1` limits the kind to the row "at m−1 the contested
+  phase is impossible"; the F-move row is PARTIAL.
