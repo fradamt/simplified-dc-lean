@@ -11,8 +11,10 @@ open Lean
 Run: `lake env lean --run scripts/CheckFGAxioms.lean [--expect N …]`.
 With `--expect`, each named constant must be a checked constant (a short
 name matches a qualified one by suffix).
-Exit codes: 0 clean; 1 a bad axiom; 2 nothing found or an expected name
-missing. -/
+Exit codes: 0 clean; 1 a bad axiom; 2 nothing found, a usage error (an
+unknown argument, or `--expect` without a name), or an expected name missing.
+Each missing expected name forces exit 2, also after a bad axiom or after
+other expected names that are present. -/
 
 def allowed : List Name := [``propext, ``Classical.choice, ``Quot.sound]
 
@@ -31,6 +33,11 @@ def axiomsOf (env : Environment) (n : Name) : IO (Array Name) :=
     { fileName := "CheckFGAxioms", fileMap := .ofString "" } { env := env }
 
 def main (args : List String) : IO UInt32 := do
+  -- Reject an unknown argument: a typo must not skip the `--expect` test.
+  unless args.isEmpty || (args.head? == some "--expect" && args.length ≥ 2) do
+    IO.eprintln "USAGE: lake env lean --run scripts/CheckFGAxioms.lean [--expect N …]"
+    return 2
+  let expected := args.drop 1
   initSearchPath (← findSysroot)
   let env ← importModules
     #[{ module := `AvailableChainSimplexFG }, { module := `AvailableChainKitFG }] {}
@@ -39,17 +46,21 @@ def main (args : List String) : IO UInt32 := do
     IO.eprintln "NO CONSTANTS FOUND"
     return 2
   let thms := cs.filterMap fun (n, ci) => if ci matches .thmInfo _ then some n else none
-  let mut status : UInt32 := 0
+  let mut badAxioms := false
   for (n, _) in cs do
     let axs ← axiomsOf env n
     let bad := axs.filter (fun a => !allowed.contains a)
     unless bad.isEmpty do
       IO.println s!"BAD AXIOMS {n}: {bad}"
-      status := 1
-  if let "--expect" :: names := args then
-    for s in names do
-      unless cs.any (fun (n, _) => s.toName.isSuffixOf n) do
-        IO.println s!"NOT CHECKED: {s}"
-        status := 2
+      badAxioms := true
+  -- Count the missing names; no later name can clear an earlier miss.
+  let mut missing := 0
+  for s in expected do
+    unless cs.any (fun (n, _) => s.toName.isSuffixOf n) do
+      IO.println s!"NOT CHECKED: {s}"
+      missing := missing + 1
   IO.println s!"checked {cs.length} constants, {thms.length} theorems"
-  return status
+  if missing > 0 then
+    IO.println s!"{missing} expected names not checked"
+    return 2
+  return if badAxioms then 1 else 0

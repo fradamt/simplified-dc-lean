@@ -204,9 +204,9 @@ theorem uniqueJust_chains (E : Electorate V) (cfg : FGConfig) (B₁ B₂ : FGBlo
 
 -- port: DC/DecoupledConsensusProofs/Protocol/ChainState/FinalityComparison.lean:50-85
 -- (finalized_preceq_of_height_lt)
-/-- [helper] The E1 form of `finalLock`: the finality quorum of `B` and the
-crossing quorum of `W` at `h_F(B)` meet in `2q − W` weight of E1 pairs, with
-the finality row from `B`'s chain first. -/
+/-- [helper] The E1 form of `finalLock`: `W` extends `F(B)`, or the finality
+quorum of `B` and the crossing quorum of `W` at `h_F(B)` meet in `2q − W` weight
+of E1 pairs, with the finality row from `B`'s chain first. -/
 theorem finalLock_e1 (E : Electorate V) (cfg : FGConfig) (B W : FGBlock V)
     (hroot : RootInjectiveOn B W)
     (hh : (derive E cfg B).h_F < (derive E cfg W).h) :

@@ -6,9 +6,10 @@ public import AvailableChainSimplexFG.Objects
 namespace AvailableChain.SimplexFG
 
 -- port: DC/DecoupledConsensusModel/Protocol/ChainState.lean:204–234
-/-- The fixed FG-SA parameter: the timeout delay `δ_t` in slots. `δ_t = 0` is
-allowed; no statement in this module may depend on `δ_t > 0`. There is no `K`
-and no `D`: both belong to the `nj` latch, which this module does not have. -/
+/-- The fixed FG-SA parameter: the timeout delay `δ_t` in slots. The module
+permits `δ_t = 0`; no statement of this module can depend on `δ_t > 0`. The
+module has no `K` and no `D`: they belong to the `nj` latch, which this module
+does not have. -/
 structure FGConfig where
   timeoutDelay : Nat
   deriving DecidableEq, Repr
@@ -19,7 +20,8 @@ this module is FG-only. -/
 structure ChainState (V : Type) where
   /-- The latest block. -/
   L : FGBlock V
-  /-- `s = L.slot`. Held as a field because the fold writes it before `L`. -/
+  /-- `s = L.slot`. The state keeps it as a field because the fold writes it
+  before `L`. -/
   s : Slot
   /-- The current height. -/
   h : Height
@@ -115,17 +117,17 @@ def finalityReady (E : Electorate V) (σ : ChainState V) : Bool :=
   decide (σ.h_F < σ.h_j) && σ.finalityQuorum E
 
 -- port: DC/DecoupledConsensusModel/Protocol/ChainState.lean:467–474
-/-- The progress guard: an exact target quorum is consumed immediately. A
-progress quorum that can contain timeout rows is consumed only at or after
-`T_h.slot + δ_t`. -/
+/-- The progress guard: the transition consumes an exact target quorum
+immediately. It consumes a progress quorum that can contain timeout rows only
+at or after slot `T_h.slot + δ_t`. -/
 def progReady (E : Electorate V) (cfg : FGConfig) (σ : ChainState V) : Bool :=
   σ.targetQuorum E ||
     (decide (σ.T_h.slot + cfg.timeoutDelay ≤ σ.s) && σ.progQuorum E)
 
 -- port: DC/DecoupledConsensusModel/Protocol/ChainState.lean:476–496
 /-- Enter the next height: carry `L` into `T_h`, clear target and progress.
-No `nj` write: this module has no `nj` field. `σ.finalize` is deliberately
-not cleared here; only the justification branch clears it. -/
+There is no `nj` write: this module has no `nj` field. This function does not
+clear `σ.finalize`; only the justification branch clears it. -/
 def advance_height (σ : ChainState V) : ChainState V :=
   { σ with
     h := σ.h + 1
@@ -137,8 +139,9 @@ def advance_height (σ : ChainState V) : ChainState V :=
 /-- Three branches in the document's order. The finality branch falls
 through: it mutates `(F, h_F)` and the two height branches then read the
 mutated state. The justification branch has priority over progress; its
-guard is `targetQuorum` alone, since this module has no `nj`. The
-justification write `(J, h_j) ← (T_h, h)` uses the height being left. -/
+guard is `targetQuorum` alone, because this module has no `nj`. The
+justification write `(J, h_j) ← (T_h, h)` uses the height that the chain
+leaves. -/
 def process_height_events (E : Electorate V) (cfg : FGConfig) (σ : ChainState V) :
     ChainState V :=
   let afterFinality :=
@@ -162,7 +165,8 @@ def transition (E : Electorate V) (cfg : FGConfig) (σ : ChainState V)
     { rows.foldl process_row { σ with s := geometry.slot } with L := geometry }
 
 -- port: DC/DecoupledConsensusModel/Protocol/ChainState.lean:601–604
-/-- The chain state at `B`, folding every ancestor's rows in order. -/
+/-- The chain state at `B`: `derive` folds the rows of every ancestor in
+order. -/
 def derive (E : Electorate V) (cfg : FGConfig) : FGBlock V → ChainState V
   | .genesis => .initial
   | B@(.node p _ _ rs) => transition E cfg (derive E cfg p) B rs

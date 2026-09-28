@@ -173,39 +173,39 @@ section AfterFin
 variable (E : Electorate V) (σ : ChainState V)
 
 -- port: DC/DecoupledConsensusProofs/Protocol/ChainState/Chain.lean:232-233
-/-- [helper] -/
+/-- [helper] The finality branch keeps the height `h`. -/
 theorem afterFin_h : (afterFin E σ).h = σ.h := by unfold afterFin; split_ifs <;> rfl
 -- port: DC/DecoupledConsensusProofs/Protocol/ChainState/Chain.lean:236-237
-/-- [helper] -/
+/-- [helper] The finality branch keeps the entry `T_h`. -/
 theorem afterFin_T_h : (afterFin E σ).T_h = σ.T_h := by unfold afterFin; split_ifs <;> rfl
 -- port: DC/DecoupledConsensusProofs/Protocol/ChainState/Chain.lean:240-241
-/-- [helper] -/
+/-- [helper] The finality branch keeps the latest block `L`. -/
 theorem afterFin_L : (afterFin E σ).L = σ.L := by unfold afterFin; split_ifs <;> rfl
 -- port: DC/DecoupledConsensusProofs/Protocol/ChainState/Chain.lean:244-245
-/-- [helper] -/
+/-- [helper] The finality branch keeps the justified block `J`. -/
 theorem afterFin_J : (afterFin E σ).J = σ.J := by unfold afterFin; split_ifs <;> rfl
 -- port: DC/DecoupledConsensusProofs/Protocol/ChainState/Chain.lean:249-250
-/-- [helper] -/
+/-- [helper] The finality branch keeps the justified height `h_j`. -/
 theorem afterFin_h_j : (afterFin E σ).h_j = σ.h_j := by unfold afterFin; split_ifs <;> rfl
 -- port: DC/DecoupledConsensusProofs/Protocol/ChainState/Chain.lean:254-256
-/-- [helper] -/
+/-- [helper] The finality branch keeps the target-participation set. -/
 theorem afterFin_target_participation :
     (afterFin E σ).target_participation = σ.target_participation := by
   unfold afterFin; split_ifs <;> rfl
 -- port: DC/DecoupledConsensusProofs/Protocol/ChainState/Chain.lean:259-260
-/-- [helper] -/
+/-- [helper] The finality branch keeps the progress set. -/
 theorem afterFin_progress : (afterFin E σ).progress = σ.progress := by
   unfold afterFin; split_ifs <;> rfl
 -- port: DC/DecoupledConsensusProofs/Protocol/ChainState/Chain.lean:263-264
-/-- [helper] -/
+/-- [helper] The finality branch keeps the finality set. -/
 theorem afterFin_finalize : (afterFin E σ).finalize = σ.finalize := by
   unfold afterFin; split_ifs <;> rfl
 -- port: DC/DecoupledConsensusProofs/Protocol/ChainState/Chain.lean:298-300
-/-- [helper] -/
+/-- [helper] The finality branch sets `F := J` under `finalityReady`; else `F` stays. -/
 theorem afterFin_F : (afterFin E σ).F = if finalityReady E σ then σ.J else σ.F := by
   unfold afterFin; split_ifs <;> rfl
 -- port: DC/DecoupledConsensusProofs/Protocol/ChainState/Chain.lean:303-305
-/-- [helper] -/
+/-- [helper] The finality branch sets `h_F := h_j` under `finalityReady`; else `h_F` stays. -/
 theorem afterFin_h_F : (afterFin E σ).h_F = if finalityReady E σ then σ.h_j else σ.h_F := by
   unfold afterFin; split_ifs <;> rfl
 
@@ -273,6 +273,7 @@ theorem quorum_of_progReady (E : Electorate V) (cfg : FGConfig) {σ : ChainState
   exact h
 
 -- port: DC/DecoupledConsensusProofs/Protocol/ChainState/FinalityCertificates.lean:181-199
+-- (certificate_step, without its quorum half; finality_certificate has that half)
 /-- [helper] The finalization pair is kept, or the finality branch copies the
 justification pair under `finalityReady`. -/
 theorem finality_pair_cases (E : Electorate V) (cfg : FGConfig) (σ : ChainState V) :

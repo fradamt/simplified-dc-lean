@@ -124,10 +124,11 @@ example : (fjFrame E4 cfg1 .genesis {.genesis}).H = 1 ∧
 example : (fjFrame E4 cfg1 .genesis {.genesis, B1}).contest = false ∧
     (fjFrame E4 cfg1 .genesis {.genesis, B1}).lo = 1 := by decide
 
-/-- The block set and the controls are separate inputs. -/
-example : (fjFrame E4 cfg1 .genesis {.genesis, B1}).D =
-    filteredFrom E4 cfg1 (fjControls E4 cfg1 .genesis {.genesis, B1}) {.genesis, B1} := by
-  decide
+/-- After B1 the root is `J = genesis`, and both blocks have a witness of height
+≥ `lo = 1` (B1 itself, at height 2), so D holds both blocks. -/
+example : (fjFrame E4 cfg1 .genesis {.genesis, B1}).J = .genesis ∧
+    (fjFrame E4 cfg1 .genesis {.genesis, B1}).Z = .genesis ∧
+    (fjFrame E4 cfg1 .genesis {.genesis, B1}).D = {.genesis, B1} := by decide
 /-- Genesis is its own witness under the controls of `{genesis, B1}`
 (`h(genesis) = 1 ≥ lo = 1`), even over the smaller block set `{genesis}`. -/
 example : filteredFrom E4 cfg1 (fjControls E4 cfg1 .genesis {.genesis, B1})
