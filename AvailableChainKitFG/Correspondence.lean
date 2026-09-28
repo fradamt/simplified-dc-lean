@@ -146,6 +146,16 @@ theorem lexKey_fallback_le (p : Height × FGBlock V) :
   rw [h0]
   exact bot_le
 
+omit [DecidableEq V] [Fintype V] in
+/-- [helper] A lex key that is at most another has a height that is at most the
+other height. -/
+theorem fst_le_of_lexKey_le {p q : Height × FGBlock V} (h : lexKey p ≤ lexKey q) :
+    p.1 ≤ q.1 := by
+  unfold lexKey at h
+  rcases Prod.Lex.toLex_le_toLex.1 h with h | ⟨h, -⟩
+  · exact le_of_lt h
+  · exact le_of_eq h
+
 /-- [helper] Inserting a block B: the pair of B enters exactly when its J extends
 F and its key is greater (the J step of `update_finality`). -/
 theorem lexMax_insert (F : FGBlock V) (Vw : View V) (B : FGBlock V)
@@ -228,6 +238,13 @@ theorem lexMax_mono (F : FGBlock V) {Vw Vw' : View V} (h : Vw ⊆ Vw')
   · push Not at hne
     rw [lexMax_of_none E cfg F Vw hne]
     exact lexKey_fallback_le _
+
+/-! ## The state height -/
+
+/-- [helper] The two forms of the state height in the pinned statements:
+`hOf E cfg W` (the frame files) and `(derive E cfg W).h` (the certificate
+files). Use it to compose lemmas across the two forms. -/
+@[simp] theorem hOf_eq (W : FGBlock V) : hOf E cfg W = (derive E cfg W).h := rfl
 
 /-! ## `update_finality` -/
 
@@ -426,6 +443,18 @@ theorem on_block_of_accepted (st : Store V) (B : FGBlock V)
     on_block E cfg st B = update_finality E cfg { st with TF := insert B st.TF } B := by
   unfold on_block
   rw [if_neg hc]
+
+/-- [pin fg.accountable.v1] (local F never retreats, on_block step) `on_block`
+moves F only to a descendant: a refused block changes nothing, and an accepted
+block runs `update_finality` on the store with B inserted, whose F is the old F. -/
+theorem on_block_F_mono (st : Store V) (B : FGBlock V) :
+    FGBlock.Preceq st.F (on_block E cfg st B).F := by
+  by_cases hc : B ∈ st.TF ∨ B.parent ∉ st.TF ∨ FGBlock.preceq st.F B = false ∨
+      B.slot ≤ B.parent.slot
+  · rw [on_block_of_refused E cfg st B hc]
+    exact preceq_refl _
+  · rw [on_block_of_accepted E cfg st B hc]
+    exact update_finality_F_mono E cfg { st with TF := insert B st.TF } B
 
 /-- [pin fj.frame.v3] (update_finality and on_block, with `ViewRootInj`)
 `on_block` keeps the invariant. A refused block changes nothing. Roots must be

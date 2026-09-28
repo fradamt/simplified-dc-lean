@@ -5,7 +5,7 @@ public import AvailableChainSimplexFG.Frame
 
 namespace AvailableChain.SimplexFG
 
-/-- The FG part of a node store (DC-fj). `TF` is the ONE admitted,
+/-- [pin fj.frame.v3] The FG part of a node store (DC-fj). `TF` is the ONE admitted,
 parent-closed tree (the spec's `Σ.T`, Trees paragraph, alfs4 lines 352–371;
 initialization 474–482; DC `consensus.tex` 1720–1739). The spec admits a block
 B only if `F ⪯ B` at that time (line 354); this history is NOT formalized (no
@@ -25,16 +25,18 @@ structure Store (V : Type) where
 variable {V : Type} [DecidableEq V] [Fintype V] (E : Electorate V) (cfg : FGConfig)
 
 omit [DecidableEq V] [Fintype V] in
+/-- [pin fj.frame.v3] The initial store (alfs4 lines 474–482): the genesis tree,
+`F = J = genesis`, `h_j = 0`, `h_max = 1`. -/
 def Store.init : Store V := ⟨{.genesis}, .genesis, .genesis, 0, 1⟩
 
-/-- DC's acceptance viability on the admitted tree (`viable_tree(Σ)`,
+/-- [pin fj.frame.v3] DC's acceptance viability on the admitted tree (`viable_tree(Σ)`,
 "acceptance only", alfs4 lines 996–1002): the band start is `h_max − 1`, also in
 a contest. -/
 def acceptViable (st : Store V) : Finset (FGBlock V) :=
   st.TF.filter (fun B => FGBlock.preceq st.F B &&
     decide (∃ W ∈ st.TF, FGBlock.Preceq B W ∧ st.h_max - 1 ≤ hOf E cfg W))
 
-/-- `update_finality`, DC form (alfs4 lines 847–860: no F basis, no J
+/-- [pin fj.frame.v3] `update_finality`, DC form (alfs4 lines 847–860: no F basis, no J
 carrier). The spec takes `σ = Σ.σ[B]`; here `σ = derive B`. After an F advance
 the spec calls `reconcile_with_finality` (lines 862–882), which writes only SA
 fields (leases, fastWrite, saved results, S); it is not in this module. -/
@@ -47,7 +49,7 @@ def update_finality (st : Store V) (B : FGBlock V) : Store V :=
       decide (σ.F ∈ acceptViable E cfg st)
     then { st with F := σ.F } else st
 
-/-- `on_block`, FG part (alfs4 lines 792–817; DC `consensus.tex` 1720–1739).
+/-- [pin fj.frame.v3] `on_block`, FG part (alfs4 lines 792–817; DC `consensus.tex` 1720–1739).
 In the spec's order, it refuses a block that is already in the tree or whose
 parent is not in the tree (lines 794–795), a block with `F ⋠ B` (line 796), and
 a block whose slot is not greater than its parent's slot (line 798: the spec
@@ -60,7 +62,7 @@ FG admission input contract (the caller passes only blocks that satisfy it;
 `on_block` does not test it): (1) the future-slot bound `B.slot ≤ Σ.s` (line
 794; the node's slot is not in `Store`); (2) the slot-`B.slot` proposer
 signature (lines 798–799); (3) the row-round check (lines 802–805; DC §7, "no
-row from the block's future"; `Row` has no round field, Task 1). Each item can
+row from the block's future"; `Row` has no round field). Each item can
 refuse a block that this function accepts. No lemma of this plan uses them: the
 lemmas quantify over all `StoreInv` stores and all blocks, so they stay sound
 for the stores of the spec. The vote and row pools are the AP's. -/
@@ -76,14 +78,14 @@ def storeControls (st : Store V) : Controls V :=
   ⟨st.F, st.h_max, st.h_j, st.J, decide (st.h_max = st.h_j + 1) &&
     decide (∃ W ∈ st.TF, hOf E cfg W = st.h_max ∧ ¬ FGBlock.Preceq st.J W)⟩
 
-/-- The ALFS filtered tree of a block set: `get_filtered_block_tree_from(Σ, blocks)`
-(alfs4 lines 1013–1020); with `blocks = TF`, `get_filtered_block_tree(Σ)` (lines
-1021–1025). -/
+/-- [pin fj.frame.v3] The ALFS filtered tree of a block set:
+`get_filtered_block_tree_from(Σ, blocks)` (alfs4 lines 1013–1020); with
+`blocks = TF`, `get_filtered_block_tree(Σ)` (lines 1021–1025). -/
 def storeFrame (st : Store V) (blocks : Finset (FGBlock V)) : Finset (FGBlock V) :=
   filteredFrom E cfg (storeControls E cfg st) blocks
 
 omit [Fintype V] in
-/-- The active view `act(Σ) = {B ∈ Σ.T : B ⪯ Σ.F or Σ.F ⪯ B}` (alfs4 line 358;
+/-- [pin fj.frame.v3] The active view `act(Σ) = {B ∈ Σ.T : B ⪯ Σ.F or Σ.F ⪯ B}` (alfs4 line 358;
 r161 §2). AP interface only: only the SA base reads it. It is a view, not a
 deletion: `TF` keeps every block. No FG definition or lemma reads it. -/
 def activeView (st : Store V) : Finset (FGBlock V) :=
@@ -109,8 +111,8 @@ example : (storeControls E4 cfg1 stStale).lo = 0 ∧
 
 /-! ### Review Focus 5 and ALFS: a contested store (reachable)
 
-`stC` is reached by `on_block` from `Store.init` with the blocks of the Task 6
-contest test (Frame.lean): `B1a`, `childA`, `B1b`, `Y`, `X`. No block carries a
+`stC` is reached by `on_block` from `Store.init` with the blocks of the
+contest test of Frame.lean (Review Focus 1): `B1a`, `childA`, `B1b`, `Y`, `X`. No block carries a
 finality pair, so `F = genesis`. The pair is `(2, B1a)` (from `childA`), and `Y`
 (height 3) does not extend `B1a`: the store is contested, `lo = H = 3`. -/
 
@@ -154,7 +156,7 @@ example : storeFrame E4 cfg1 stC {.genesis, B1a, B1b, X} = ∅ := by
 
 /-! ### Review Focus 7: refusal (alfs4 lines 794–798) and the active view
 
-`B1`, `B2`, `B3` are Astra's G02 chain (Task 13 reuses them). `B2` (slot 2)
+`B1`, `B2`, `B3` are Astra's G02 chain (TwoChanges.lean reuses them). `B2` (slot 2)
 carries three targets for `(2, B1)`: state height 3, pair `(2, B1)`. `B3`
 (slot 3) carries three timeouts for `(3, B2)`, each with the finality pair
 `(2, B1)`: state height 4, and it finalizes `B1`. `B1'` (slot 2, parent

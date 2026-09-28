@@ -41,14 +41,15 @@ def e2Fields (left right : Row V) : Bool :=
   | _, _ => false
 
 -- port: DC/DecoupledConsensusModel/Protocol/ChainState.lean:96-97 (e1Slashable)
-/-- **E1**: one finality pair is `(h, T)` with `T ≠ ⊥`, and one height pair
-is `(h, T')` with `T' ≠ T`, including `T' = ⊥`. -/
+/-- [helper] **E1** (alfs4 lines 239–240): one finality pair is `(h, T)`, and
+one height pair at `h` is a timeout or a target vote `(h, T', false)` with
+`T' ≠ T`. The empty pair `(⊥, ⊥, ⊥)` is not E1. -/
 def e1Slashable (left right : Row V) : Bool :=
   sameSigner left right && e1Fields left right
 
 -- port: DC/DecoupledConsensusModel/Protocol/ChainState.lean:103-104 (e2Slashable)
-/-- **E2**: two height pairs are `(h, T)` and `(h, T')` with `T, T' ≠ ⊥` and
-`T ≠ T'`. -/
+/-- [helper] **E2** (alfs4 lines 241–242): two target votes are `(h, T, false)`
+and `(h, T', false)` with `T ≠ T'`. A timeout or the empty pair is not E2. -/
 def e2Slashable (left right : Row V) : Bool :=
   sameSigner left right && e2Fields left right
 
@@ -107,7 +108,8 @@ def HasE2WeightAt (E : Electorate V) (h : Height) (T₁ T₂ : BlockId)
     ∀ i ∈ S, E2EvidenceAtHeight h T₁ T₂ A₁ A₂ i
 
 /-- At least `2q − W` weight has E1 evidence between two evidence sets: like
-`HasSlashableWeightBetween`, but with E1 only (Task 11, Astra H03). -/
+`HasSlashableWeightBetween`, but with E1 only (the conclusion form of
+`fj.crossingNoFinal.v1` clause 1; Astra H03). -/
 def HasE1WeightBetween (E : Electorate V) (A₁ A₂ : Finset (Row V)) : Prop :=
   ∃ S : Finset V, HasIntersectionWeight E S ∧
     ∀ i ∈ S, ∃ a ∈ A₁, ∃ b ∈ A₂, a.signer = i ∧ b.signer = i ∧ e1Slashable a b = true

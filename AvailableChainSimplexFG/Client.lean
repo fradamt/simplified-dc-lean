@@ -138,7 +138,7 @@ def record_row {V : Type} (Λ : Record) (a : Row V) : Record :=
 variable {V : Type} [DecidableEq V] [Fintype V]
 
 -- port: DC/DecoupledConsensusModel/Protocol/ValidatorClient.lean:253-260
-/-- `create_attestation` (spec lines 1379–1387): the finality pair, then the
+/-- [helper] `create_attestation` (alfs4 lines 1379–1387): the finality pair, then the
 height pair, then the record, then release. Two inputs are AP data
 (`get_fg_vote`, lines 1303–1326): the selected `source` block `C` (or none),
 whose state `σ = derive E cfg C` gives the height fields `(σ.h, σ.T_h.root)`;

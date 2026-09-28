@@ -1,7 +1,6 @@
 module
 public import AvailableChainSimplexFG
 public import AvailableChainKitFG.Correspondence
-public import AvailableChainKitFG.InBandLock
 
 @[expose] public section
 
@@ -11,11 +10,12 @@ open AvailableChain.SimplexFG
 
 /-! # `fj.twoChanges.core.v1`: FJ phases at a fixed frontier (pure core)
 
-r148 F12 (`fj-redteam.md`, lines 764–773 and 778–789), with the registry's
+r148 (`fj-redteam.md`, lines 764–773 and 778–789), with the registry's
 formal reading of item 3 (Astra G02). The count is for SETTLED phases: the
 theorem is stated over the two evidence bits `E_J` and `E_C` of a view, with
 the hypothesis that each bit persists once true. Successive duty views need not
-be nested (r148 F13 is REFUTED).
+be nested: the count for raw successive duty frames is REFUTED (r148 lines
+737–760).
 
 Frame forms (ALFS):
 - `phaseOf`, `EJ`, `EC`, `nFrame`, `effFrame_of_bits`, `twoChanges`,
@@ -45,8 +45,8 @@ theorem Phase.rank_injective : Function.Injective Phase.rank := by
 theorem Phase.rank_le_two (p : Phase) : p.rank ≤ 2 := by
   cases p <;> decide
 
-/-- The normalized (effective) frame of r148 F12: H, lo and the root Ẑ, with
-Ẑ = ◇ (`none`) in the F-root phases. -/
+/-- [helper] The normalized (effective) frame of `fj.twoChanges.core.v1` item 1:
+H, lo and the root Ẑ, with Ẑ = ◇ (`none`) in the F-root phases. -/
 structure NFrame (V : Type) where
   H : Height
   lo : Height

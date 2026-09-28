@@ -22,16 +22,20 @@ BY CLAUSE (Astra G08); there is no `full` tag for an id. A clause is covered by
 Lean names (with their extra hypotheses), or it names the paper step, the
 registry id or the AP fact that carries it. A clause that the Lean statements
 only ASSUME is `byHyp`: it names the hypothesis and the lemmas that can
-discharge it. A clause can also cite a `[helper]` theorem that is one branch, a
-special case or a partial form of the clause (`on_block_of_refused`,
-`on_block_of_accepted`, `Fmove_below`, `twoChanges_nested`); its docstring says
-which. Every other cited theorem has a `[pin <id>]` docstring.
+discharge it. A row that a definition covers (with at most an unfolding lemma)
+is `leanHyp … "definition only"`. A clause can also cite a `[helper]` theorem
+that is one branch, a special case or a partial form of the clause
+(`on_block_of_refused`, `crossing_other_entry`, `Fmove_below`,
+`twoChanges_nested`); its docstring says which. Every other cited name has a
+`[pin <id>]` docstring. A name can be cited under an id other than the id of its
+tag: the tag names its main id, and a row of another id can use it (for example
+`mem_filteredFrom`, tagged `fj.frame.v3`, in `fj.frame.v1`).
 
 `scripts/FGPinIds.lean` prints `manifest` of the elaborated values, and
-`scripts/check-fg-pins.sh` checks it against the registry (Task 14, Step 2).
-`scripts/FGPinIds.lean --check-names` checks that every Lean name of this table
-is a constant of the two FG libraries, so `scripts/CheckFGAxioms.lean` checks its
-axioms (Step 3). -/
+`scripts/check-fg-pins.sh` checks it against the registry. `scripts/FGPinIds.lean
+--check-names` checks that every Lean name of this table is a constant of the
+two FG libraries, so that `scripts/CheckFGAxioms.lean` checks its axioms.
+`scripts/check-fg.sh` builds the two libraries and runs every check. -/
 
 /-- A registered source: its §0.1 key in FG-COMPOSITION.md, its directory
 root, its path under that root, and its full SHA-256. -/
@@ -44,8 +48,10 @@ structure Src where
 
 /-- How one clause of a registry entry is covered. -/
 inductive Cov where
-  | lean (names : List Lean.Name)                   -- proved, no extra hypothesis
-  | leanHyp (names : List Lean.Name) (hyps : String) -- proved, with these hypotheses
+  | lean (names : List Lean.Name)                   -- a theorem proves it; no extra
+                                                    -- hypothesis
+  | leanHyp (names : List Lean.Name) (hyps : String) -- proved with these hypotheses, or
+                                                    -- "definition only"
   | byHyp (names : List Lean.Name) (hyp : String) (discharge : String)
     -- NOT proved: the Lean statements `names` assume the clause as the hypothesis
     -- `hyp`; `discharge` names the lemmas or ids that can prove it
@@ -148,7 +154,8 @@ def pins : List Pin := [
         "StoreInv (ViewRootInj is used only by storeInv_on_block)"⟩,
     ⟨"viable_tree_from and get_filtered_block_tree_from on any block set \
       (alfs4 988–994, 1013–1020)",
-      .lean [``filteredFrom, ``mem_filteredFrom]⟩,
+      .leanHyp [``filteredFrom, ``mem_filteredFrom]
+        "definition only (mem_filteredFrom unfolds filteredFrom)"⟩,
     ⟨"get_filtered_block_tree: the filter of Σ.T (alfs4 1021–1025)",
       .leanHyp [``storeFrame, ``storeFrame_full] "StoreInv"⟩,
     ⟨"viable_tree: acceptance only, band hmax−1 also in a contest (alfs4 996–1002)",
@@ -173,21 +180,37 @@ def pins : List Pin := [
   { id := "fj.frame.v1", sources := [r148, spec], clauses := [
     ⟨"FJ_FRAME: H, (j, J), contest, the Z/lo table, viable, D (r148 148–169)",
       .leanHyp [``fjControls, ``fjFrame, ``fjFrame_lo, ``fjFrame_D]
-        "F is a parameter (the caller's F, not 'current accepted F'); the \
-        definitions assume nothing, but lexMax is the lex-greatest pair only \
+        "definition only; F is a parameter (the caller's F, not 'current accepted \
+        F'); the definitions assume nothing, but lexMax is the lex-greatest pair only \
         under ViewRootInj (§0.4): on a root collision at the greatest key the \
         selector falls back to (0, genesis)"⟩,
-    ⟨"get_fg_root and get_filtered_block_tree_from (r148 171–175)", .lean [``fjFrame]⟩,
-    ⟨"the contest witness (r148 260–270)", .lean [``fjFrame]⟩,
+    ⟨"get_fg_root and get_filtered_block_tree_from (r148 171–175)",
+      .leanHyp [``fjFrame] "definition only"⟩,
+    ⟨"the contest witness at H = j+1: some W of the view with h(W) = j+1 and J ⋠ W \
+      (r148 260–265)",
+      .leanHyp [``fjControls, ``fjFrame] "definition only (the contest bit)"⟩,
+    ⟨"ancestor closure makes the witness a conflicting crossing of j in the view \
+      (r148 267–268), direction witness ⇒ crossing",
+      .leanHyp [``crossing_other_entry]
+        "PARTIAL: a W with h(W) > j and J ⋠ W has, on its chain, a crossing of j \
+        that names X ≠ J with a matching quorum; RootInjectiveOn B W and h_j ≠ 0; \
+        that the crossing block is in the view (ancestor closure) is not stated"⟩,
+    ⟨"the converse (a conflicting crossing of j in the view gives a witness) \
+      (r148 267–268)",
+      .paper "r148 lines 267–268; no Lean"⟩,
+    ⟨"all frontier blocks extend J exactly when there is no witness (r148 268–269)",
+      .leanHyp [``fjControls] "definition only (the contest bit)"⟩,
     ⟨"fgsa_head: lease anchor, score, eligibility, GHOST (r148 177–185)",
       .ap "ap.headReachesLo.v1" ""⟩,
     ⟨"change viability in a contest (r148 188–192)",
-      .lean [``fjFrame_lo, ``mem_filteredFrom]⟩,
+      .leanHyp [``fjFrame_lo, ``mem_filteredFrom]
+        "definition only (fjFrame_lo is rfl; mem_filteredFrom unfolds filteredFrom)"⟩,
     ⟨"change below-band eligibility in a contest (r148 188–192)",
       .ap "ap.headReachesLo.v1" ""⟩ ] },
   -- ALFS note (registry 4bc6690): frozen-tree forms of (2) and (3) are ldp L5/L6.
-  -- The registry names fjFrame_D_reachesLo and fjFrame_viable_child (plan befb5d5);
-  -- the Lean names are filteredFrom_reachesLo and filteredFrom_viable_child.
+  -- The registry (548914c) uses the Lean names filteredFrom_reachesLo and
+  -- filteredFrom_viable_child; the plan names at befb5d5 were fjFrame_D_reachesLo
+  -- and fjFrame_viable_child.
   { id := "fj.frameFeasible.v1", sources := [r148], clauses := [
     ⟨"(1) a nonempty D reaches lo", .lean [``filteredFrom_reachesLo]⟩,
     ⟨"(2) D is not empty under (a) and (b)",
@@ -220,12 +243,7 @@ def pins : List Pin := [
     ⟨"conflicting finalizations give 2q−n E1/E2 identities, without NJ",
       .leanHyp [``accountable] "RootInjectiveOn"⟩,
     ⟨"under a≤f conflicting finalizations are impossible", .paper "2q−n > a"⟩,
-    ⟨"local F never retreats",
-      .leanHyp [``update_finality_F_mono, ``on_block_of_refused, ``on_block_of_accepted]
-        "update_finality_F_mono states the update_finality step; the on_block step is \
-        not stated as one lemma: it composes the refused branch (on_block_of_refused, \
-        the store does not change) and the accepted branch (on_block_of_accepted, \
-        update_finality on the store with B inserted, whose F is the old F)"⟩,
+    ⟨"local F never retreats", .lean [``update_finality_F_mono, ``on_block_F_mono]⟩,
     ⟨"finalized ⪯ available at every read", .external "comp.outputNesting.v1" ""⟩ ] },
   { id := "fg.uniqueJust.v1", sources := [bp, vcE], clauses := [
     ⟨"Lemma U: two target quorums for different entries give 2q−W E2 weight",
@@ -280,7 +298,7 @@ def pins : List Pin := [
         "honest = signer ∉ faulty, with faulty weight < q; hrows (honest rows ≤ M) \
         replaces 'pre-cut'; hrows bounds the .vote height pairs only (an .empty pair \
         cannot cross); h_j ≤ M comes from h_j < h ≤ M+1"⟩ ] },
-  -- causalCap_notRoot is item 4 of this entry, not of fg.causalCap.core.v1 (Task 10).
+  -- causalCap_notRoot is item 4 of this entry, not a clause of fg.causalCap.core.v1.
   { id := "comp.cut.v1", sources := [r144, bp], clauses := [
     ⟨"item 1: r_G, u_0 = a_(r_G+2) and M = the honest archival frontier at u_0",
       .runFact "the cut is a run object; no Lean"⟩,
@@ -345,7 +363,7 @@ def pins : List Pin := [
     ⟨"that carrier is retained in the full store", .runFact "comp layer; no registry id"⟩,
     ⟨"locks at H−1 do not block rows at H; old different targets cause timeouts, which \
       still contribute progress",
-      .paper "r148 F10, third paragraph; no Lean"⟩ ] },
+      .paper "r148 lines 590–593; no Lean"⟩ ] },
   -- hFJ (E_J → F ⪯ Jm) is an extra hypothesis of effFrame_of_bits, twoChanges,
   -- twoChanges_count and twoChanges_nested. Paper derivation: fg.finalLock.v1 if
   -- h(F) < m−1; fg.uniqueJust.v1 if h(F) = m−1; StoreInv.Fcar and Fmove_atFrontier
@@ -465,7 +483,7 @@ def manifest (ps : List Pin) (ds : List DefPin) (nf : List (String × String)) :
       (rs.map (·.1)).mergeSort (fun a b => decide (a ≤ b)))
 
 /-- Every Lean name of the table (the pins, `defPins` and `helpers`), without
-duplicates, for the name check of Step 3. -/
+duplicates, for `scripts/FGPinIds.lean --check-names`. -/
 def pinNames (ps : List Pin) (ds : List DefPin) (hs : List Lean.Name) : List Lean.Name :=
   (ps.flatMap fun p => p.clauses.flatMap fun c =>
     match c.cov with
@@ -485,7 +503,8 @@ example := @AvailableChain.SimplexFG.activeView
 example := @activeView_subset
 example := @AvailableChain.SimplexFG.on_block
 example := @on_block_of_refused
-example := @on_block_of_accepted
+example := @on_block_F_mono
+example := @crossing_other_entry
 example := @AvailableChain.SimplexFG.storeControls
 example := @AvailableChain.SimplexFG.Controls.rootIsJ
 example := @AvailableChain.SimplexFG.Controls.Z

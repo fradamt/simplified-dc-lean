@@ -25,25 +25,6 @@ theorem RootInjectiveOn.symm {B₁ B₂ : FGBlock V} (h : RootInjectiveOn B₁ B
     RootInjectiveOn B₂ B₁ :=
   fun X Y hX hY hr => h X Y hX.symm hY.symm hr
 
--- port: DC/DecoupledConsensusProofs/Protocol/ChainState/Chain.lean:56-63 (preceq_genesis)
-/-- [helper] Genesis precedes every block. -/
-theorem genesis_preceq (B : FGBlock V) : FGBlock.Preceq .genesis B := by
-  induction B with
-  | genesis => exact preceq_refl _
-  | node p s r rs ih => exact preceq_node_of_preceq s r rs ih
-
--- port: DC/DecoupledConsensusProofs/Protocol/ChainState/FinalityComparison.lean:15-29
--- (own_row_erase_mem, on_chain_erase_mem)
-/-- [helper] A row carried by a block of the chain is in the chain's rows. -/
-theorem mem_chainRows_of_carrier {carrier B : FGBlock V} {a : Row V}
-    (hc : FGBlock.Preceq carrier B) (ha : a ∈ carrier.rows) : a ∈ chainRows B := by
-  refine chainRows_mono hc ?_
-  cases carrier with
-  | genesis => simp [FGBlock.rows] at ha
-  | node p s r rs =>
-      simp only [chainRows, Finset.mem_union, List.mem_toFinset]
-      exact Or.inl ha
-
 -- port: DC/DecoupledConsensusProofs/Protocol/ChainState/FinalityComparison.lean:31-48
 -- (matching_finality_e1)
 /-- [helper] A finality row for `(h, T)` and a row of the same signer that

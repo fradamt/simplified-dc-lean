@@ -155,6 +155,18 @@ theorem foldRows_fields (σ : ChainState V) (B : FGBlock V) (rows : List (Row V)
   obtain ⟨-, h2, h3, h4, h5, h6, h7⟩ := foldl_process_row_fields rows { σ with s := B.slot }
   exact ⟨rfl, h2, h3, h4, h5, h6, h7⟩
 
+/-- [helper] `process_row` keeps `s`, so the row fold keeps it. -/
+theorem foldl_process_row_s (rows : List (Row V)) (σ : ChainState V) :
+    (rows.foldl process_row σ).s = σ.s := by
+  induction rows generalizing σ with
+  | nil => rfl
+  | cons a rows ih => exact (ih _).trans (process_row_fields σ a).2.1
+
+/-- [helper] The row fold of `transition` sets `s` to the block's slot. -/
+theorem foldRows_s (σ : ChainState V) (B : FGBlock V) (rows : List (Row V)) :
+    (foldRows σ B rows).s = B.slot :=
+  foldl_process_row_s rows { σ with s := B.slot }
+
 end RowFold
 
 /-! ## `process_height_events`, split at its finality branch
@@ -208,6 +220,8 @@ theorem afterFin_F : (afterFin E σ).F = if finalityReady E σ then σ.J else σ
 /-- [helper] The finality branch sets `h_F := h_j` under `finalityReady`; else `h_F` stays. -/
 theorem afterFin_h_F : (afterFin E σ).h_F = if finalityReady E σ then σ.h_j else σ.h_F := by
   unfold afterFin; split_ifs <;> rfl
+/-- [helper] The finality branch keeps the slot `s`. -/
+theorem afterFin_s : (afterFin E σ).s = σ.s := by unfold afterFin; split_ifs <;> rfl
 
 end AfterFin
 
@@ -983,8 +997,10 @@ theorem J_is_entry (E : Electorate V) (cfg : FGConfig) (D : FGBlock V) :
       · rw [h1, hT]
         exact entry_idem E cfg p
 
+-- port: DC/DecoupledConsensusProofs/Protocol/ChainState/EntryHeight.lean:93-107
+-- (NamedEntryHeight.entry_ancestor_same_height, read at the justified entry)
 /-- [pin fg.frameCompat.v1] (step 1) The entry of a justified pair at a nonzero
-height h has state height h (port: DC NamedEntryHeight). -/
+height h has state height h. -/
 theorem entry_height (E : Electorate V) (cfg : FGConfig) (D : FGBlock V)
     (hnz : (derive E cfg D).h_j ≠ 0) :
     (derive E cfg (derive E cfg D).J).h = (derive E cfg D).h_j := by
@@ -1015,7 +1031,7 @@ theorem entry_first (E : Electorate V) (cfg : FGConfig) (D A : FGBlock V)
       exact lt_of_le_of_lt (h_mono E cfg (preceq_parent_of_preceq_node hA hne)) hlt
 
 /-- [helper] A block C at state height m that extends an entry J justified at m
-has entry J (Task 12). -/
+has entry J (used by `inBandLock`). -/
 theorem entry_eq_of_preceq (E : Electorate V) (cfg : FGConfig) (K C : FGBlock V)
     (hnz : (derive E cfg K).h_j ≠ 0)
     (hC : (derive E cfg C).h = (derive E cfg K).h_j)

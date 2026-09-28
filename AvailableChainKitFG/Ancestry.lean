@@ -54,10 +54,9 @@ theorem honest_in_intersection (E : Electorate V) (faulty : Finset V) {Q Q' : Fi
 
 /-! ## Ancestry
 (port: DC/DecoupledConsensusProofs/Objects/Ancestry.lean; the DC `Block` type
-carries `depth` as a def in its own objects file. Task 1's
-`AvailableChainSimplexFG/Objects.lean` has no such helper and is out of this
-task's scope to modify, so a Kit-local `depth` measure is added here, used
-only inside this file to prove `preceq_antisymm`.) -/
+carries `depth` as a def in its own objects file.
+`AvailableChainSimplexFG/Objects.lean` has no such helper, so this file has a
+local `depth` measure, used only to prove `preceq_antisymm`.) -/
 
 omit [DecidableEq V] [Fintype V] in
 -- port: DC/DecoupledConsensusModel/Objects/Blocks.lean:229-232 (depth)
@@ -143,6 +142,16 @@ omit [Fintype V] in
 /-- [helper] `A ⪯ genesis ↔ A = genesis`. -/
 theorem preceq_genesis {A : FGBlock V} : FGBlock.Preceq A .genesis ↔ A = .genesis := by
   simp only [FGBlock.Preceq, FGBlock.preceq, decide_eq_true_eq]
+
+omit [Fintype V] in
+-- port: DC/DecoupledConsensusProofs/Protocol/ChainState/Chain.lean:56-63 (preceq_genesis)
+/-- [helper] Genesis precedes every block. -/
+theorem genesis_preceq (B : FGBlock V) : FGBlock.Preceq .genesis B := by
+  induction B with
+  | genesis => exact preceq_refl _
+  | node p s r rs ih =>
+      simp only [FGBlock.Preceq, FGBlock.preceq, Bool.or_eq_true, decide_eq_true_eq] at ih ⊢
+      exact Or.inr ih
 
 omit [Fintype V] in
 -- port: DC/DecoupledConsensusModel/Objects/Blocks.lean (`compatible`'s `||`)
@@ -234,6 +243,19 @@ theorem chainRows_mono {A B : FGBlock V} (h : FGBlock.Preceq A B) :
         change chainRows p ⊆ chainRows (FGBlock.node p s r rs)
         simp only [chainRows]
         exact Finset.subset_union_right
+
+omit [Fintype V] in
+-- port: DC/DecoupledConsensusProofs/Protocol/ChainState/FinalityComparison.lean:15-29
+-- (own_row_erase_mem, on_chain_erase_mem)
+/-- [helper] A row carried by a block of the chain is in the chain's rows. -/
+theorem mem_chainRows_of_carrier {carrier B : FGBlock V} {a : Row V}
+    (hc : FGBlock.Preceq carrier B) (ha : a ∈ carrier.rows) : a ∈ chainRows B := by
+  refine chainRows_mono hc ?_
+  cases carrier with
+  | genesis => simp [FGBlock.rows] at ha
+  | node p s r rs =>
+      simp only [chainRows, Finset.mem_union, List.mem_toFinset]
+      exact Or.inl ha
 
 end AvailableChain.KitFG
 end

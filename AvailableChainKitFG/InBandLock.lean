@@ -11,7 +11,7 @@ open AvailableChain.SimplexFG
 
 /-! # `fj.inBandLock.v1`: no lock stall for an in-band source
 
-r148 F10 (`fj-redteam.md`, lines 577–597). The contradiction does not use the
+r148 (`fj-redteam.md`, lines 577–597). The contradiction does not use the
 record Λ. It uses only a carrier K in the full view with `h_j(K) = m` and
 `J.root = J'`. Both lock sources (a lock `Λ.lock[m] = J'` and a same-action
 finality pair) give such a carrier. Thus the statement is positive: C's entry
@@ -24,16 +24,6 @@ hypothesis. The step "in a contest, an actual head reaches H" is AP data
 (`ap.headReachesLo.v5` under ALFS) and is not in this file. -/
 
 variable {V : Type} [DecidableEq V] [Fintype V]
-
-omit [DecidableEq V] [Fintype V] in
-/-- [helper] A lex key that is at most another has a height that is at most the
-other height. -/
-theorem fst_le_of_lexKey_le {p q : Height × FGBlock V} (h : lexKey p ≤ lexKey q) :
-    p.1 ≤ q.1 := by
-  unfold lexKey at h
-  rcases Prod.Lex.toLex_le_toLex.1 h with h | ⟨h, -⟩
-  · exact le_of_lt h
-  · exact le_of_eq h
 
 /-- [pin fj.inBandLock.v1] For an in-band selected source C of height m, any
 carrier in the full view of a justified entry J' at m (with F ⪯ J') forces C's

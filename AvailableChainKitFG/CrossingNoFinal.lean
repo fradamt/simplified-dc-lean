@@ -10,7 +10,7 @@ open AvailableChain.SimplexFG
 
 /-! # `fj.crossingNoFinal.v1`: a conflicting crossing of j proves that J cannot finalize
 
-r148 F2 (`fj-redteam.md`, lines 234–258). Let J be justified at j, and let W
+r148 (`fj-redteam.md`, lines 234–258). Let J be justified at j, and let W
 of height above j not extend J. The first crossing of j on W's chain has a
 progress quorum for an entry `X ≠ J`. (1) A finality QC for J meets it in
 E1 weight. (2) An honest member of J's target QC and of the crossing QC has a
@@ -121,25 +121,6 @@ theorem crossingNeedsTimeout (E : Electorate V) (cfg : FGConfig) (faulty : Finse
             simp [e2Slashable, sameSigner, e2Fields, hap, hbp, hai, hbi, Ne.symm hne]
           change slashable a b = true
           simp only [slashable, h2, Bool.or_true]
-
-omit [Fintype V] in
-/-- [helper] `process_row` keeps `s`, so the row fold keeps it. -/
-theorem foldl_process_row_s (rows : List (Row V)) (σ : ChainState V) :
-    (rows.foldl process_row σ).s = σ.s := by
-  induction rows generalizing σ with
-  | nil => rfl
-  | cons a rows ih => exact (ih _).trans (process_row_fields σ a).2.1
-
-omit [Fintype V] in
-/-- [helper] The row fold of `transition` sets `s` to the block's slot. -/
-theorem foldRows_s (σ : ChainState V) (B : FGBlock V) (rows : List (Row V)) :
-    (foldRows σ B rows).s = B.slot :=
-  foldl_process_row_s rows { σ with s := B.slot }
-
-omit [DecidableEq V] in
-/-- [helper] The finality branch of `process_height_events` keeps `s`. -/
-theorem afterFin_s (E : Electorate V) (σ : ChainState V) : (afterFin E σ).s = σ.s := by
-  unfold afterFin; split_ifs <;> rfl
 
 /-- [pin fj.crossingNoFinal.v1] (clause 3) A block that raises its parent's
 height does so with a target quorum for the parent's entry, or at a slot at

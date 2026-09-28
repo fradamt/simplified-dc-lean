@@ -40,9 +40,14 @@ structure Controls (V : Type) where
   contest : Bool
 
 namespace Controls
-/-- The uncontested phase: the root is J. -/
+/-- [pin fj.frame.v3] The uncontested phase: the root is J (the root test of
+`get_fg_root`, alfs4 lines 1004–1011). -/
 def rootIsJ (c : Controls V) : Bool := decide (c.H = c.j + 1) && !c.contest
+/-- [pin fj.frame.v3] The FG root: J in the uncontested phase, else F
+(`get_fg_root`, alfs4 lines 1004–1011). -/
 def Z (c : Controls V) : FGBlock V := if c.rootIsJ then c.J else c.F
+/-- [pin fj.frame.v3] The band floor: H in a contest, else H − 1 (`band_floor`,
+alfs4 lines 978–986). -/
 def lo (c : Controls V) : Height := if c.contest then c.H else c.H - 1
 end Controls
 

@@ -165,8 +165,8 @@ def transition (E : Electorate V) (cfg : FGConfig) (σ : ChainState V)
     { rows.foldl process_row { σ with s := geometry.slot } with L := geometry }
 
 -- port: DC/DecoupledConsensusModel/Protocol/ChainState.lean:601–604
-/-- The chain state at `B`: `derive` folds the rows of every ancestor in
-order. -/
+/-- [helper] The chain state at `B`: `derive` folds the rows of every ancestor
+in order (alfs4 Fig. `alg:chain-full`, lines 890–954). -/
 def derive (E : Electorate V) (cfg : FGConfig) : FGBlock V → ChainState V
   | .genesis => .initial
   | B@(.node p _ _ rs) => transition E cfg (derive E cfg p) B rs
