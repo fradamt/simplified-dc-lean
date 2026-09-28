@@ -120,10 +120,10 @@ def pins : List Pin := [
         "parent closure is StoreInv.closed (storeInv_init, storeInv_on_block; \
         ViewRootInj on the new Σ.T when B is accepted); cumulativity needs no \
         hypothesis"⟩,
-    ⟨"Trees: act(Σ) is a view that only the SA base reads (alfs4 356–362)",
-      .leanHyp [``activeView, ``activeView_subset]
-        "no hypothesis: act(Σ) = activeView ⊆ Σ.T; 'only the SA base reads it' is \
-        AP data (no FG definition or lemma reads activeView)"⟩,
+    ⟨"Trees: act(Σ) is a view of Σ.T (alfs4 356–359)",
+      .lean [``activeView, ``activeView_subset]⟩,
+    ⟨"Trees: only the SA base reads act(Σ) (alfs4 360–362)",
+      .apData "no FG definition or lemma reads activeView"⟩,
     ⟨"Trees: a block of Σ.T outside the active view above Σ.h_F needs a slashable \
       conflict (alfs4 365–367)",
       .external "fg.finalLock.v1" ""⟩,
