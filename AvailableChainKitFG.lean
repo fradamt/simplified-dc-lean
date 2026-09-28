@@ -7,6 +7,7 @@ public import AvailableChainKitFG.Correspondence
 public import AvailableChainKitFG.Provenance
 public import AvailableChainKitFG.CausalCap
 public import AvailableChainKitFG.CrossingNoFinal
+public import AvailableChainKitFG.InBandLock
 
 @[expose] public section
 end
