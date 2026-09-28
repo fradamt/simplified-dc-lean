@@ -52,6 +52,7 @@ structure RowBody where
   finality_pair : Option FinalityPair
   deriving DecidableEq, Repr
 
+/-- [helper] The body of an FG row: the row without its signer. -/
 def RowBody.ofRow {V : Type} (a : Row V) : RowBody := ⟨a.height_pair, a.finality_pair⟩
 
 /-- [spec 230–237, 505–518; M12] The one row-body check, for a row alone and
@@ -85,9 +86,10 @@ def decode? (a : RowWire n) : Option (Nat × Fin n × RowBody) :=
   match a.auth with
   | .seat (.fg r) i => some (r, i, a.payload)
   | _ => none
-/-- The round of a row. -/
+/-- [spec 230–231; J1] The round of a row: the label of its fg signature. -/
 def round? (a : RowWire n) : Option Nat := a.decode?.map (·.1)
-/-- The FG row: the signer is the seat index of the fg-label signature. -/
+/-- [spec 230–237; M4] The FG row: the signer is the seat index of the fg-label
+signature. The round is not a field of the FG row. -/
 def toRow? (a : RowWire n) : Option (Row (Fin n)) :=
   a.decode?.map (fun x => ⟨x.2.1, x.2.2.height_pair, x.2.2.finality_pair⟩)
 /-- [spec 505–518; M12] The row input check: an FG signature and a valid body. -/
@@ -103,6 +105,7 @@ inductive Msg (n : Nat) where
   | row (body : RowBody)
   deriving DecidableEq, Repr
 
+/-- [spec 225–263; comp §4.2] A wire object: an auth and a payload. -/
 abbrev Wire (n : Nat) := Signed Label n (Msg n)
 
 /-- [J1] A decoded wire. -/
@@ -140,6 +143,7 @@ def baseHead {n : Nat} (o : HeadWire n) : GridCO.HeadWire n :=
   match o.decode? with
   | some (s, i, b) => ⟨.seat s i, b⟩
   | none => ⟨.none, o.payload⟩
+/-- [helper] The base form of a carried vote as a GridCO vote wire. -/
 def baseVote {n : Nat} (o : HeadWire n) : GridCO.Wire n := GridCO.fromHead (baseHead o)
 /-- [helper] A base vote as a composite carried vote (for the proposer's lists).
 It reads the GridCO accessors; it matches no auth. -/

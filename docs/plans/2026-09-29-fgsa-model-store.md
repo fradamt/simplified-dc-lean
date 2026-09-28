@@ -42,7 +42,7 @@ The composite state keeps the SA base as a `GridCO.State n` value (field `base`)
 ```
 
 Notes:
-1. The spec sha256 is `2e88481117ba3e663c559f95218ce545aba5639f201063c1942dc5599adb9787`. Its archive copy is identical. In this plan, "spec N" is a line number of that file. A revision is in draft (`R/spec/drafts/fgsa-protocol-next.tex`, identical to the frozen file on 2026-09-28). It changes the recovery premises and adds a leak section. It does not change the store or the state machine. If a new frozen version appears before execution, diff it against `2e884811`. Report each changed line in a rule that this plan models. Do not resolve a difference yourself.
+1. The spec sha256 is `2e88481117ba3e663c559f95218ce545aba5639f201063c1942dc5599adb9787`. Its archive copy is identical. In this plan, "spec N" is a line number of that file. A revision is in draft (`R/spec/drafts/fgsa-protocol-next.tex`, identical to the frozen file on 2026-09-28). It changes the recovery premises and adds a leak section. It does not change the store or the state machine. Update (G1, 2026-09-29): the draft now differs from the frozen file (draft sha256 `b62364ae…` on 2026-09-29). Inside the modeled lines (spec 160–1414) the diff changes only the R ≥ 3 remark (spec 210–214; `R ≥ 2` stays the parameter bound) and the symbol rows and derived recovery constants of the parameter section (spec 310–332). The protocol section (spec 337–1417) has no change. The frozen file `2e884811` is unchanged, so this has no effect on the model. The model follows `2e884811` until the coordinator gives a new frozen hash. If a new frozen version appears before execution, diff it against `2e884811`. Report each changed line in a rule that this plan models. Do not resolve a difference yourself.
 2. The FG module pins `alfs4` (`bd942ca0`). The diff from `bd942ca0` to `2e884811` has 56 lines. It changes no FG chain transition, client, finality-acceptance or FJ-frame rule, so the old `KitFG/Pins.lean:99–100` spec pin stays usable for that unchanged FG code (with this note as the version bridge; it is not the authority for the composite rules). It changes three things that this plan models: (a) no rule deletes a block of `Σ.T` (spec 372–377; the FG module and this plan keep the cumulative tree); (b) the signatures of an admitted proposal count in the HEAD merge through the proposal, also when the proposal leaves the active view (spec 190–193); (c) the carried-support arm of the HEAD merge tests `H' ∈ Σ.T`, not `act(Σ)` (spec 423–429).
 3. The composition plan cites `bd942ca0` line numbers. This plan cites `2e884811` line numbers.
 4. bp00 full sha256: `03afa5ae814606ac7c75525766f8b17926616a8e858b26deef1a59152fb64ad5`. Revision 1 of this plan pinned `6057f9b5`; that version is archived as `R/blueprint/archive/00-outline-6057f9b5.md`. The diff (checked 2026-09-28) changes only §2.5 (later-stage constants, lines 326–386), §3.4 (stage-2b healing statements) and the §3.5 negatives text. §2.1–2.4, §3.1 and §3.2 are unchanged. Every id that this plan pins exists in the current file: `bp.carrier.v1` (line 410), `bp.store.v1` (433), `bp.activeView.v1` (446), `bp.leaseOrigins.v1` (455), `bp.reconcile.v1` (465), `comp.outputNesting.v1` (475), `comp.outputNesting.v2` (480), `bp.frame.v1` (487), `bp.sourceDiscipline.v1` (530), `bp.receiptCoverage.v1` (541). bp00 §2.4 (tree reads) is at lines 188–214; §3.1 is at lines 408–555. bp01 is not changed.
@@ -486,7 +486,7 @@ Sizes are Lean lines, with tests. Total: about 4.3–5.6k lines (model 1.2–1.4
 **Files:** none in Lean. The audit reports are in `docs/audit/`: `fgsa-model-store-plan-audit-report.md` (Astra r185) and `fgsa-model-store-plan-opus-review.md` (Opus). The second audit (Astra r188) wrote `docs/audit/fgsa-model-store-plan-reaudit-report.md`.
 
 - [x] **Step 1: Check the base.** Done for revision 2 on 2026-09-28: branch `fgsa-composition`; spec `2e884811…`; comp `228dbe98…`; bp01 `989289cc…`; bp00 re-pinned to `03afa5ae…` (Sources, note 4; since revision 2.1, the hash of the archive copy `R/blueprint/archive/00-outline-03afa5ae.md`). At execution, repeat: `git status` is clean; `git log -1` contains the revision-2 commit; the four hashes agree. If not, stop and report.
-- [x] **Step 2: Check the FG module state.** Done (both audits): `Store` has one tree `TF`; `storeInv_init`, `on_block_of_refused`, `on_block_of_accepted`, `on_block_F_mono`, `storeInv_on_block`, `storeControls_eq_fjControls`, `update_finality_TF`, `update_finality_h_max`, `update_finality_pair`, `pickPair_eq_of_unique`, `ancestor_closed_of_parent_closed` exist (`KitFG/Correspondence.lean`); `pickPair` is at `SimplexFG/Frame.lean:79`. Repeat the grep at execution: `grep -n 'theorem storeInv_on_block\|theorem storeControls_eq_fjControls\|theorem on_block_F_mono\|def pickPair\|theorem pickPair_eq_of_unique\|theorem ancestor_closed_of_parent_closed' AvailableChainKitFG/Correspondence.lean AvailableChainSimplexFG/Frame.lean`.
+- [x] **Step 2: Check the FG module state.** Done (both audits): `Store` has one tree `TF`; `storeInv_init`, `on_block_of_refused`, `on_block_of_accepted`, `on_block_F_mono`, `storeInv_on_block`, `storeControls_eq_fjControls`, `update_finality_TF`, `update_finality_h_max`, `update_finality_pair`, `pickPair_eq_of_unique`, `ancestor_closed_of_parent_closed` exist (`KitFG/Correspondence.lean`); `pickPair` is at `SimplexFG/Frame.lean:81`. Repeat the grep at execution: `grep -n 'theorem storeInv_on_block\|theorem storeControls_eq_fjControls\|theorem on_block_F_mono\|def pickPair\|theorem pickPair_eq_of_unique\|theorem ancestor_closed_of_parent_closed' AvailableChainKitFG/Correspondence.lean AvailableChainSimplexFG/Frame.lean`.
 - [x] **Step 3: First plan audits.** Done: Astra r185 and Opus, both REVISE.
 - [x] **Step 4: Apply the audits.** Done: this revision; see "Disposition of audit findings". Commit `FGSA plan: revision 2 after the Astra and Opus audits`.
 - [x] **Step 5: Second audit of the changed sections (gate G0).** Start a Codex job with the astra model (memory: "use astra freely when beneficial"; see the `codex-teammate` skill), or an independent reviewer agent. The job reads this plan, both reports, the disposition table and the Lean sources that the changed sections name. It checks that each finding is closed as the table says, and that the changes add no new error (types: M11; the decoders; `FastOrigin`; `MetaInv`; `ContentAgree`; the J3 statements; the axiom command). Output: a report with a verdict. G0 closes on ADOPT or ADOPT WITH FIXES, with each blocking and major fix applied. Record the result under "Review status".
@@ -547,7 +547,7 @@ pair pass; a row with a HEAD signature fails. -/
 example : (RowBody.mk (.vote 0 genesisRoot false) none).valid = false ∧
     (RowBody.mk (.vote 1 genesisRoot false) none).valid = true ∧
     (RowBody.mk .empty none).valid = true ∧
-    (⟨.seat (.head 0) 2, RowBody.mk .empty none⟩ : RowWire 4).valid = false := by decide
+    RowWire.valid (n := 4) ⟨.seat (.head 0) 2, RowBody.mk .empty none⟩ = false := by decide
 example : Wire.decode (n := 4) ⟨.seat (.fg 1) 2, .row (RowBody.ofRow (rowT 2))⟩ =
     some (.row 1 2 (RowBody.ofRow (rowT 2))) ∧
     Wire.decode (n := 4) ⟨.seat (.head 1) 2, .row (RowBody.ofRow (rowT 2))⟩ = none := by decide
@@ -723,22 +723,42 @@ missing=$(comm -23 \
   <(grep -o 'import [A-Za-z.]*' AvailableChainFGSA.lean | sed 's/import //' | sort))
 [ -z "$missing" ] || { echo "NOT IMPORTED BY THE ROOT: $missing"; exit 2; }
 echo "== native evaluation"
+# Remove comments with a small tokenizer that knows strings, character
+# literals and nested block comments. A "--" in a string does not start a
+# comment, and a "/-" in a line comment does not open a block comment.
+strip_comments='
+  local $/; my $s = <STDIN>; my $o = ""; my $d = 0;
+  while ((pos($s) // 0) < length $s) {
+    if ($d > 0) {
+      if    ($s =~ /\G\/-/gc)   { $d++ }
+      elsif ($s =~ /\G-\//gc)   { $d--; $o .= " " }
+      elsif ($s =~ /\G(\n)/gc)  { $o .= $1 }
+      else                      { $s =~ /\G./gcs }
+    }
+    elsif ($s =~ /\G--[^\n]*/gc)                         { }
+    elsif ($s =~ /\G\/-/gc)                              { $d = 1 }
+    elsif ($s =~ /\G"(?:\\.|[^"\\])*"/gcs)               { $o .= "\"\"" }
+    elsif ($s =~ /\G([\w\p{N}.!?][\w\p{N}.!?\x27]*)/gc)  { $o .= $1 }
+    elsif ($s =~ /\G\x27(?:\\.|[^\\\x27])\x27/gc)        { $o .= "c" }
+    else                                                 { $s =~ /\G(.)/gcs; $o .= $1 }
+  }
+  print $o;'
 status=0
 for f in $(find AvailableChainFGSA -name '*.lean') AvailableChainFGSA.lean; do
-  if perl -0777 -pe 's{/-.*?-/}{}gs; s{--[^\n]*}{}g' "$f" |
+  if perl -CSD -e "$strip_comments" < "$f" |
       grep -nE '(^|[^A-Za-z0-9_.])native_decide([^A-Za-z0-9_]|$)|\+native|native := true|ofReduceBool|ofReduceNat' >/dev/null; then
     echo "native evaluation in $f"; status=1
   fi
 done
 [ $status -eq 0 ] || exit 1
 echo "== direct imports"
-if grep -rnE '^(public )?import (AvailableChainFramework|AvailableChainRegistry|AvailableChainStatements|AvailableChainWitnesses|AvailableChainSAPC)' \
+if grep -rnE '^[[:space:]]*(public )?(meta )?import (all )?(AvailableChainFramework|AvailableChainRegistry|AvailableChainStatements|AvailableChainWitnesses|AvailableChainSAPC)' \
     AvailableChainFGSA AvailableChainFGSA.lean; then
   echo "FORBIDDEN DIRECT IMPORT"; exit 1
 fi
 echo "== import closure"
 seen=" "
-todo=$(grep -rhoE '^(public )?import [A-Za-z0-9_.]+' AvailableChainFGSA AvailableChainFGSA.lean | awk '{print $NF}' | sort -u)
+todo=$(grep -rhoE '^[[:space:]]*(public )?(meta )?import (all )?[A-Za-z0-9_.]+' AvailableChainFGSA AvailableChainFGSA.lean | awk '{print $NF}' | sort -u)
 while [ -n "$todo" ]; do
   next=""
   for m in $todo; do
@@ -746,7 +766,7 @@ while [ -n "$todo" ]; do
     seen="$seen$m "
     f="${m//.//}.lean"
     if [ -f "$f" ]; then
-      next="$next $(grep -hoE '^(public )?import [A-Za-z0-9_.]+' "$f" | awk '{print $NF}')"
+      next="$next $(grep -hoE '^[[:space:]]*(public )?(meta )?import (all )?[A-Za-z0-9_.]+' "$f" | awk '{print $NF}')"
     fi
   done
   todo=$next
@@ -766,9 +786,40 @@ echo "all FGSA checks pass"
 ```
 
   The closure walk reads only source files of this worktree (Mathlib has no source here, so it stops there). `AvailableChainStatements` in the closure is allowed (Global Constraints, Imports).
-  Negative tests (once each, then remove them): (1) add `example : 1 = 1 := by native_decide` to `Tests/Smoke.lean`; the script must exit 1; a comment `-- native_decide` must not make it fail. (2) Add `public import AvailableChainSAPC.Model.Objects` to `Tests/Smoke.lean`; the direct-import check must exit 1.
+  Negative tests (once each, then remove them): (1) add `example : 1 = 1 := by native_decide` to `Tests/Smoke.lean`; the script must exit 1; a comment `-- native_decide` must not make it fail. (2) Add `public import AvailableChainSAPC.Model.Objects` to `Tests/Smoke.lean`; the direct-import check must exit 1. G1 additions: (3) `public meta import AvailableChainSAPC.Model.Objects` and (4) `import all AvailableChainSAPC.Model.Objects`: the direct-import check must exit 1. (5) A line comment that contains `/-`, then a `native_decide` (under `set_option linter.style.nativeDecide false in`, so that the build passes), then a later docstring: the native scan must exit 1. (6) `example : "--".length = 2 := by native_decide` (same `set_option`): the native scan must exit 1. (7) Only comments (line, nested block, docstring with `"--"`) that name `native_decide`: exit 0.
 - [ ] **Step 5: Run it; it passes.** `lake build --wfail AvailableChainFGSA.Tests.Smoke`, then `bash scripts/check-fgsa.sh`. Expected: PASS, exit 0.
-- [ ] **Step 6: Review gate G1 and CHECKPOINT.** Commit `FGSA model: library skeleton and objects`.
+- [x] **Step 6: Review gate G1 and CHECKPOINT.** Commit `FGSA model: library skeleton and objects`.
+
+**G1 dispositions** (review of `0fbf787`: PASS WITH FIXES; 0 blocking, 1 major, 6 minor). All are applied in the commit `FGSA model: G1 fixes (import regexes, comment scan, tests, docs)`.
+
+```text
+┌───────┬──────────┬─────────────────────────────────────────────────────────────┐
+│ G1    │ Severity │ Disposition                                                 │
+├───────┼──────────┼─────────────────────────────────────────────────────────────┤
+│ 1     │ MAJOR    │ The three import regexes of check-fgsa.sh missed `public    │
+│       │          │ meta import` and `import all`. Now `^[[:space:]]*(public )? │
+│       │          │ (meta )?import (all )?`, last field. Negative tests (3),    │
+│       │          │ (4) added; the old script passed both, the new one exits 1. │
+│ 2     │ MINOR    │ The native scan now strips comments with a tokenizer that   │
+│       │          │ knows strings, character literals and nested block          │
+│       │          │ comments. Negative tests (5), (6) added; the old script     │
+│       │          │ passed both, the new one exits 1; (7) exits 0.              │
+│ 3     │ MINOR    │ Smoke tests added: an FG row at height 1 passes and at      │
+│       │          │ height 0 fails; HeadWire.decode?; Wire.decode of a vote and │
+│       │          │ a proposal and three wrong auth/payload pairs; Wire.block?; │
+│       │          │ the liftHead?/baseVote round trip; baseProposal.            │
+│ 4     │ MINOR    │ Docstrings with spec lines or [helper] on RowBody.ofRow,    │
+│       │          │ Wire, baseVote, RowWire.round?, RowWire.toRow?.             │
+│ 5     │ MINOR    │ Accepted: the Objects imports stay as the plan prescribes   │
+│       │          │ (harmless).                                                 │
+│ 6     │ MINOR    │ Sources note 1 updated (draft diff, no model effect);       │
+│       │          │ pickPair location corrected to Frame.lean:81.               │
+│ (T1)  │ —        │ The plan test `(⟨…⟩ : RowWire 4).valid` does not elaborate  │
+│       │          │ (the ascribed anonymous constructor has type `Signed …`);   │
+│       │          │ the test uses `RowWire.valid (n := 4) ⟨…⟩`. Plan text       │
+│       │          │ updated.                                                    │
+└───────┴──────────┴─────────────────────────────────────────────────────────────┘
+```
 
 ---
 

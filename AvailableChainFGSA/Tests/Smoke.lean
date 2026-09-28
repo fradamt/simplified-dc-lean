@@ -43,5 +43,39 @@ example : Wire.decode (n := 4) ⟨.seat (.fg 1) 2, .row (RowBody.ofRow (rowT 2))
     some (.row 1 2 (RowBody.ofRow (rowT 2))) ∧
     Wire.decode (n := 4) ⟨.seat (.head 1) 2, .row (RowBody.ofRow (rowT 2))⟩ = none := by decide
 
+/-- G1: the positive row checks. An FG row at height 1 passes; an FG row at
+height 0 fails. -/
+example : (rw 0 2 (rowT 2)).valid = true ∧
+    RowWire.valid (n := 4) ⟨.seat (.fg 0) 2, RowBody.mk (.vote 0 genesisRoot false) none⟩ =
+      false := by decide
+
+/-- A carried HEAD vote of slot 3 by seat 1 for `B1`, and an FG signature on a
+HEAD payload. -/
+def hv : HeadWire 4 := ⟨.seat (.head 3) 1, eraseFG B1⟩
+def hf : HeadWire 4 := ⟨.seat (.fg 3) 1, eraseFG B1⟩
+
+/-- G1: the decoders of a vote and a proposal; a wrong auth gives `none`. -/
+example : hv.decode? = some (3, 1, eraseFG B1) ∧ hf.decode? = none := by decide
+example : Wire.decode (n := 4) ⟨.seat (.head 3) 1, .head (eraseFG B1)⟩ =
+      some (.vote 3 1 (eraseFG B1)) ∧
+    Wire.decode (n := 4) ⟨.proposer 2, .proposal (eraseFG B1) [hv] [hv] [rw 0 2 (rowT 2)]⟩ =
+      some (.block 2 (eraseFG B1) [hv] [hv] [rw 0 2 (rowT 2)]) ∧
+    Wire.decode (n := 4) ⟨.proposer 2, .head (eraseFG B1)⟩ = none ∧
+    Wire.decode (n := 4) ⟨.seat (.head 2) 1, .proposal (eraseFG B1) [] [] []⟩ = none ∧
+    Wire.decode (n := 4) ⟨.seat (.fg 1) 2, .head (eraseFG B1)⟩ = none := by decide
+/-- G1: `Wire.block?` gives the block of a proposal and `none` for a vote. -/
+example : Wire.block? (n := 4) ⟨.proposer 2, .proposal (eraseFG B1) [] [] []⟩ =
+      some (eraseFG B1) ∧
+    Wire.block? (n := 4) ⟨.seat (.head 3) 1, .head (eraseFG B1)⟩ = none := by decide
+/-- G1: `liftHead?` inverts `baseVote` on a HEAD vote; it gives `none` for a
+base proposal. -/
+example : liftHead? (baseVote hv) = some hv ∧
+    liftHead? (n := 4) ⟨.proposer 2, .proposal (eraseFG B1) [] []⟩ = none := by decide
+/-- G1: `baseProposal` maps each carried vote by `baseHead`: a HEAD seat keeps its
+slot and seat; an FG seat becomes `.none`. -/
+example : baseProposal 2 (eraseFG B1) [hv, hf] [hv] =
+    ⟨.proposer 2, .proposal (eraseFG B1) [⟨.seat 3 1, eraseFG B1⟩, ⟨.none, eraseFG B1⟩]
+      [⟨.seat 3 1, eraseFG B1⟩]⟩ := by decide
+
 end AvailableChain.FGSA.Tests
 end
