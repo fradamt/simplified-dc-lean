@@ -1,6 +1,6 @@
 # FG-SA Model and Store Facts (Composition T3–T6) Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task by task. Steps use checkbox (`- [ ]`) syntax for tracking. Do not start Task 1 before gate G0 is closed (Task 0, Step 5: a second audit of the sections that revision 2 changed).
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task by task. Steps use checkbox (`- [ ]`) syntax for tracking. Gate G0 is closed (Task 0, Step 5: the re-audit r188 of revision 2 gave PASS WITH MINORS; revision 2.1 applies its minors N1–N6). Task 1 can start.
 
 **Goal:** Build the composite FG-SA node model as pure Lean definitions, and prove its store facts. The model is the plain SA base (GridCO/SA state functions) plus the DC-fj FG store of the FG module, with the filtered base (`act(Σ)`), `reconcile_with_finality`, the `F ⋠ B` refusal, the cumulative tree `Σ.T`, `fastWrite` and the FG source `C_fg`. The proofs are: the local carrier bridge K5 and its cross-node form under a NAMED content premise (DQ3); the store facts K1–K4, with K1 in the blueprint form (no fastWrite premise) and K4 with its metadata part; the six items of `bp.activeView.v1`; the SA bridge for the tick AND for a block delivery; acceptance sufficiency for K8; and the store form of output nesting (`comp.outputNesting.v2`, K2). This plan covers tasks T3, T4, T5 and T6 of the composition plan. It has no run layer and no engine binding. Its objects are engine-v1 typed (J1; see "Q1 boundary").
 
@@ -27,7 +27,8 @@ The composite state keeps the SA base as a `GridCO.State n` value (field `base`)
 │ spec       │ R/spec/fgsa-protocol.tex (AUTHORITY, frozen) │ sha256 2e884811…dc5599adb9787│
 │            │ = R/spec/archive/fgsa-protocol-2e884811.tex  │ (see note 1)                 │
 │ comp       │ R/codex/lean-composition-plan.md             │ sha256 228dbe98…             │
-│ bp00       │ R/blueprint/00-outline.md                    │ sha256 03afa5ae… (note 4)    │
+│ bp00       │ R/blueprint/archive/00-outline-03afa5ae.md   │ sha256 03afa5ae… (note 4)    │
+│            │ (fixed stage-1 source)                       │                              │
 │ bp01       │ R/blueprint/01-foundations.md                │ sha256 989289cc…             │
 │ FG plan    │ AC/docs/plans/2026-09-28-fg-module.md        │ branch base d415a7c          │
 │ SA, GridCO │ AC/AvailableChainSA, AC/AvailableChainGridCO │ branch base d415a7c          │
@@ -35,6 +36,8 @@ The composite state keeps the SA base as a `GridCO.State n` value (field `base`)
 │            │ AC/AvailableChainKitFG                       │                              │
 │ audits     │ AC/docs/audit/fgsa-model-store-plan-audit-   │ Astra r185, REVISE;          │
 │            │ report.md; …-plan-opus-review.md             │ Opus, REVISE (both on 7af69aa│
+│            │ …-plan-reaudit-report.md                     │ r188, PASS WITH MINORS (on   │
+│            │                                              │ 5801ce6)                     │
 └────────────┴──────────────────────────────────────────────┴──────────────────────────────┘
 ```
 
@@ -43,6 +46,7 @@ Notes:
 2. The FG module pins `alfs4` (`bd942ca0`). The diff from `bd942ca0` to `2e884811` has 56 lines. It changes no FG chain transition, client, finality-acceptance or FJ-frame rule, so the old `KitFG/Pins.lean:99–100` spec pin stays usable for that unchanged FG code (with this note as the version bridge; it is not the authority for the composite rules). It changes three things that this plan models: (a) no rule deletes a block of `Σ.T` (spec 372–377; the FG module and this plan keep the cumulative tree); (b) the signatures of an admitted proposal count in the HEAD merge through the proposal, also when the proposal leaves the active view (spec 190–193); (c) the carried-support arm of the HEAD merge tests `H' ∈ Σ.T`, not `act(Σ)` (spec 423–429).
 3. The composition plan cites `bd942ca0` line numbers. This plan cites `2e884811` line numbers.
 4. bp00 full sha256: `03afa5ae814606ac7c75525766f8b17926616a8e858b26deef1a59152fb64ad5`. Revision 1 of this plan pinned `6057f9b5`; that version is archived as `R/blueprint/archive/00-outline-6057f9b5.md`. The diff (checked 2026-09-28) changes only §2.5 (later-stage constants, lines 326–386), §3.4 (stage-2b healing statements) and the §3.5 negatives text. §2.1–2.4, §3.1 and §3.2 are unchanged. Every id that this plan pins exists in the current file: `bp.carrier.v1` (line 410), `bp.store.v1` (433), `bp.activeView.v1` (446), `bp.leaseOrigins.v1` (455), `bp.reconcile.v1` (465), `comp.outputNesting.v1` (475), `comp.outputNesting.v2` (480), `bp.frame.v1` (487), `bp.sourceDiscipline.v1` (530), `bp.receiptCoverage.v1` (541). bp00 §2.4 (tree reads) is at lines 188–214; §3.1 is at lines 408–555. bp01 is not changed.
+   Revision 2.1 (re-audit r188, N1): the fixed stage-1 source is the verified archive copy `R/blueprint/archive/00-outline-03afa5ae.md` (sha256 `03afa5ae…`, as above). All bp00 line numbers in this plan refer to that file. After revision 2, the current `R/blueprint/00-outline.md` changed to sha256 `5a89d1687ba093643cabe7e7d69e232ef7f234f1809511269a2b5e4f6925fb91`. Its diff from `03afa5ae` changes later recovery bounds and first-finality results. It does not change the stage-1 statements that this plan uses (r188). Task 0 checks the hash of the archive copy, not of the current file.
 
 Spec lines that this plan models:
 
@@ -108,8 +112,10 @@ User decisions that this plan uses:
 │    │                                        │ BUT the objects are v1-typed       │
 │    │                                        │ (Auth, Signed; J1). On v2, T7 adds │
 │    │                                        │ a decode adapter v2 object → Wire  │
-│    │                                        │ p.n, or re-types Objects and its   │
-│    │                                        │ decoders. See "Q1 boundary".       │
+│    │                                        │ p.n (keeps the internal API), or   │
+│    │                                        │ re-types the objects natively (T7  │
+│    │                                        │ sets its scope; r188 N5). See "Q1  │
+│    │                                        │ boundary".                         │
 │ Q2 │ Clean first                            │ No effect on T3–T6. K1 and the SA  │
 │    │                                        │ compatibility invariant feed (b1). │
 │ Q3 │ ANSWERED: FG module re-pinned on the   │ K4 core is short: the FG part IS a │
@@ -136,12 +142,16 @@ These items depend on the engine version. This plan does not define them, except
 │ .proposer s and a global n; Signed   │ auth: HeadWire.decode?, RowWire.decode?,│
 │ (FRAMEWORK E1 on v2: Auth = seat ℓ   │ Wire.decode (Task 1). Handlers, checks, │
 │ (i : Fin (seats ℓ)) | none; no       │ round?, toRow?, baseHead read wires only│
-│ global n; proposal = one-seat label) │ through them. v1: no change in T7. v2:  │
-│                                      │ a decode adapter v2 object → Wire p.n,  │
-│                                      │ or a re-typing of Objects + decoders;   │
-│                                      │ Store, Statements and Proofs stay. The  │
-│                                      │ SA base (GridCO.State) has v1 wires     │
-│                                      │ too: that part is inherited.            │
+│ global n; proposal = one-seat label) │ through them. v1: no change in T7. v2   │
+│                                      │ (r188 N5): a decode adapter v2 object → │
+│                                      │ Wire p.n keeps the internal API: Store, │
+│                                      │ Statements and Proofs stay. A native    │
+│                                      │ re-typing is NOT limited to Objects and │
+│                                      │ its decoders: handlers build .seat s i  │
+│                                      │ and .proposer s wires, proposalRows     │
+│                                      │ compares .auth values, and the SA base  │
+│                                      │ (GridCO.State) stores v1 wires. T7 sets │
+│                                      │ the scope of a native re-typing.        │
 │ ProtocolSpec fgsa, duties, act       │ pure duty functions headVote, propose,  │
 │                                      │ attest (Task 6)                         │
 │ where Λ lives; when Λ is recorded    │ attest takes Λ and returns (row, Λ′);   │
@@ -168,6 +178,12 @@ REVISION 2, 2026-09-28. Revision 1 (`7af69aa`) had two independent audits:
 - Opus, `docs/audit/fgsa-model-store-plan-opus-review.md`: REVISE (B1 confirmed with the compiler; J1–J3; agrees with M1–M6 with two refinements, M3 as a local invariant and M5 as the direct-import rule; minors m1–m8).
 
 This revision applies every blocking, major and minor finding, or records a reasoned rejection. The table "Disposition of audit findings" at the end maps each finding to its change. Both verdicts were REVISE, so G0 needs a second audit of the changed sections (Task 0, Step 5) before Task 1.
+
+REVISION 2.1, 2026-09-29. The second audit of revision 2 (`5801ce6`):
+
+- Astra r188, `docs/audit/fgsa-model-store-plan-reaudit-report.md`: PASS WITH MINORS (0 blocking, 0 major; minors N1–N6). All earlier blocking and major findings are closed. The report maps to G0's older term ADOPT WITH FIXES. This closes G0.
+
+Revision 2.1 applies N1–N6 (record and interface corrections; no design change). The table "Disposition of the re-audit findings" at the end maps each one to its change.
 
 Compiler checks of this revision (scratch file `/private/tmp/fgsa-rev2/Check.lean`, outside the repository, `lake env lean` from the worktree root; a negative control confirmed that the file elaborates):
 
@@ -211,7 +227,7 @@ The Opus scratch files (`/private/tmp/fgsa-rev/`) already showed the `LeasePolic
   `comm -23 <(find AvailableChainFGSA -name '*.lean' | sed 's/\.lean$//; s|/|.|g' | sort) <(grep -o 'import [A-Za-z.]*' AvailableChainFGSA.lean | sed 's/import //' | sort)`
 - Builds. The Mac `lean` has 3 machine-wide slots (`LEAN_SLOTS=3`). Before each build run `pgrep -fl lean`; if 3 compiles run, wait (use `ps -o etime,%cpu -p <pids>` to tell a slow build from a blocked one). During a step, build one module: `lake build --wfail AvailableChainFGSA.Model.Store` (module targets build only that module and its imports). At each CHECKPOINT: `bash scripts/check-fgsa.sh`, which builds the library once; do not run a second identical `lake build` before it. At Task 13 only: the full project target `lake build --wfail`. Do not add a `lean_exe` target. Run scripts with `lake env lean --run <file>.lean`.
 - Faithfulness. The spec is the authority. Each model definition has a docstring that names its spec lines, for example ``[spec 804–829]``. A proof docstring names its blueprint id and K id, for example ``[bp bp.reconcile.v1; K3]``, or ``[helper]``. Do not change a statement to make a proof pass. A difference from the spec, the blueprint or the composition plan is a finding: report it in the task report and do not resolve it.
-- `LeasePolicy` instances (Opus §1, compiled). `SA.gate` and `SA.clock` are `@GridCO.gate GridCO.slowLeasePolicy …` and `@GridCO.clock GridCO.slowLeasePolicy …`. The DEFAULT instance is `gridLeasePolicy` (`GridCO/Model/Protocol.lean:17`). So `GridCO.gate_blocks p.engine v r` elaborates silently for the GRID gate and does not match `SA.gate`. Every GridCO lemma that is stated under `variable [LeasePolicy]` (all of `Map`, `History`, `Basic`, `RecordSlots`, `GenuineHistory`, `Roots`) and that is used for the SA base must be applied as `@GridCO.<lemma> GridCO.slowLeasePolicy p.toParams.engine …`. A reviewer rejects a proof that uses a lease-dependent GridCO lemma without the explicit instance.
+- `LeasePolicy` instances (Opus §1, compiled). `SA.gate` and `SA.clock` are `@GridCO.gate GridCO.slowLeasePolicy …` and `@GridCO.clock GridCO.slowLeasePolicy …`. The DEFAULT instance is `gridLeasePolicy` (`GridCO/Model/Protocol.lean:17`). So `GridCO.gate_blocks p.engine v r` elaborates silently for the GRID gate and does not match `SA.gate`. Rule (r188 N3): inspect the actual declaration (`#check @GridCO.<lemma>`). If it has a `[LeasePolicy]` argument and it is used for the SA base, apply it as `@GridCO.<lemma> GridCO.slowLeasePolicy p.toParams.engine …`. The surrounding `variable [LeasePolicy]` of a file does not decide this: Lean omits an unused section variable from a declaration. For example, `GridCO.admitVote_blocks` (`Proofs/Map.lean:443–447`) and `GridCO.confirmation_mem` (`Proofs/RecordSlots.lean:150–161`) have no policy argument; there, `GridCO.slowLeasePolicy` as the first explicit argument would stand where a `GridCO.Params` value is required. `gate_blocks` and `gate_target_origin` have a policy argument. A reviewer rejects a proof that uses a lease-dependent GridCO lemma without the explicit instance.
 - Leak-ledger readiness. A later revision adds a leak ledger as a DERIVED function of the chain (`R/codex/round-leak.md`: "All snapshots and charges are derived from the chain"; the ledger "does not change weights"). So: the model stores no derived value that the spec does not store, except the declared model-only caches below; `σ[B]` stays `SimplexFG.derive E cfg B` (never a cached field); each FG block keeps its full ordered row list; the stored proposals keep the full signed rows with their rounds; the electorate stays a parameter. Then `leakLedger : FGBlock (Fin n) → …` can be added in a new file without a change to `State` or to a handler.
 - Model-only caches (Opus m6; DQ8). The SA base has five fields that the spec store does not have: `frozen`, `early`, `releaseSnapshots` (the spec derives the frozen and early pools at read time, spec 463–471, and its `on_tick` has no freeze or early step, spec 709–730), `goldfishRecord` (G; the spec has no G) and `base.proposals` (the GridCO copy of the admitted wires; the composite reads `st.proposals`). They stay because the exact SA bridge (Task 7) needs the SA step shape. No FG-SA duty, output or statement reads them. A reviewer checks this in Task 6 (G6) and Task 13.
 - Q1/Q5 independence. No file of this plan mentions `ProtocolSpec`, `Run`, `World`, `Env`, `Interface`, `Claims`, `pendingRow` or an engine field. `grep -rnE 'ProtocolSpec|Generic\.Run|World|pendingRow' AvailableChainFGSA` must print nothing at each CHECKPOINT. The v1 object types are the one declared engine dependency (J1).
@@ -302,7 +318,7 @@ These decisions refine comp §4. Each one names what it changes in comp §4, if 
 
 ## Open design questions
 
-Each question has a recommended answer. The plan follows the recommendation. Both audits agree with DQ1–DQ12 under the conditions given here. The second G0 audit and the user can change an answer before Task 1.
+Each question has a recommended answer. The plan follows the recommendation. Both audits agree with DQ1–DQ12 under the conditions given here. The second G0 audit (r188) accepted DQ1–DQ14 with the corrections N1–N6. The user can still change an answer.
 
 - **DQ1. Block wire form.** (a) Flat: the wire carries the erased `Block b` and its own rows; the FG block is built from the stored parent (M3; comp §4.2). (b) Recursive: a new inductive `FullBlock n` with full rows at every ancestor, and two projections `fg` and `erase` (bp01 §2.1). **Recommendation: (a).** The HEAD walk and the proposer work on erased blocks (`GridCO.ghost`), so the proposer's parent is an erased block in both forms, and (b) needs a lookup anyway. (a) keeps one erasure (`eraseFG`), and the local K5 is about `eraseFG` only. The rows of stored blocks stay available with their rounds in `st.proposals`. The blueprint's `eraseFG (fg B) = erase B` becomes `eraseFG (fgBlock P b rows) = b` (Task 10, `eraseFG_fgBlock`). Condition (audits): `eraseFG_fgBlock` is necessary but it does not give a common meaning of a parent across nodes. That needs the content premise of DQ3 and the cross-store reconstruction of Task 12. The flat wire carries the full erased parent chain, which is more than the spec's root reference; the two agree under `RootInjective`, because `BlockInRun` holds all ancestors.
 - **DQ2. Duplicate test.** (a) By root: refuse if some `Y ∈ Σ.T` has `Y.root = b.root` (M5). (b) By erased block: refuse if `b` is in the base list, and carry `ViewRootInj Σ.T` as a hypothesis of every store lemma. **Recommendation: (a).** Under the spec's root idealization (spec 167, 521) the two tests agree. (a) makes `Σ.T` root-injective by construction, so `KitFG.storeInv_on_block` gets its `ViewRootInj` premise from the invariant, and no store fact needs a collision hypothesis. With (b), a same-root, different-parent block breaks root injectivity of `TF`, and `lexMax`, `pickPair` and `storeInv_on_block` become conditional in every store lemma. The price of (a): a faulty block with a reused root is refused even if its content is new. That is outside the spec's model. At run level, `RootInjective` (on erased blocks; genesis and the ancestors of every processed or emitted payload) makes the extra refusal never fire for ANY processed block, honest or faulty (Opus m4); every AC regime (`SleepyRegime`, `OutageRegime`, `RecoveryRegime`, `AvailableChainStatements/Generic/Regimes.lean:19,49,75`) contains that premise. Task 10 proves the local form `rootTest_iff_blockTest`, and Task 11 proves that the base list satisfies GridCO's `RootInjectiveBelow`. Local freshness does NOT give cross-node content equality: two nodes can admit the same erased block with different rows (audit M2). That is DQ3, not DQ2.
@@ -323,9 +339,9 @@ Each question has a recommended answer. The plan follows the recommendation. Bot
   - Consequence: `RootInjective` and `ContentRootInjective` (DQ3) can fail on a run because of honest proposals, and a faulty proposer can make them fail on purpose. Every theorem with that premise is vacuous on such a run. On a single honest chain the roots strictly increase (`s·(r+1) > r` for `s ≥ 1`), so an honest-only collision needs a fork. Do not claim fresh honest roots.
   - Existing Lean theorems: this limit is INHERITED, not new. `GridCO.propose` (`Protocol.lean:292`), SA (`SA.propose` is `GridCO.propose`), SA-PC (`AvailableChainSAPC/Model/Choice.lean:87`) and L* (`AvailableChainLStar/Model/Protocol.lean:258`) use the same formula, and their run theorems take `RootInjective` (a field of every regime in `AvailableChainStatements/Generic/Regimes.lean:19,49,75` and `Strong/Regimes.lean:25`; an explicit hypothesis in GridCO `CleanInclusion`, `Recovery`, `RecoveryRepair`, `ProposalHeads`, `HealthyPrefix`, `HealthyInterior`, and SA-PC `HealthyCoverage`, `Paths`). Those theorems stay sound. Their coverage excludes every run with such a collision, including the two runs above.
   - Alternative (a user decision, not done here): an honest root that is an injective code of the full content, with the check of DQ3(a) at admission. Then root injectivity of accepted blocks is a theorem, not a premise. It changes `GridCO.propose` too if the SA base must agree, so it is a cross-library change outside this plan.
-- **DQ11. Pin tags.** The blueprint ids (`bp.*`, `comp.outputNesting.v2`) are not yet in `docs/FG-COMPOSITION.md` (composition task T1). **Recommendation:** use docstring tags ``[bp <id>; K<k>]`` and ``[spec <lines>]`` now. Build a pin table and a checker in composition task T15, after T1, from the corrected sources (bp00 `03afa5ae`).
+- **DQ11. Pin tags.** The blueprint ids (`bp.*`, `comp.outputNesting.v2`) are not yet in `docs/FG-COMPOSITION.md` (composition task T1). **Recommendation:** use docstring tags ``[bp <id>; K<k>]`` and ``[spec <lines>]`` now. Build a pin table and a checker in composition task T15, after T1, from the corrected sources (bp00 archive copy `03afa5ae`).
 - **DQ12. A carried row with a wrong signature form.** **Recommendation:** `blockAccepted` refuses a block that carries a row that does not decode as a row (`RowWire.decode? = none`). Then `fgBlock` never drops a row (Task 10, `toRow_forall₂`). Also (audit M1): a carried row BODY passes the same check as a row alone (`RowWire.valid`, M12), in `wellFormed`.
-- **DQ13. `deepest` tie rule** (audit N2; Opus m8). **Recommendation:** implement the spec rule (spec 260–262: the largest depth; ties: the greater root wins), as `liveRoot` does. `deepest X` is `pickPair` of the member that is maximal in the order (depth of the erasure, root value). It is `none` only if two members of `X` have the same depth and root; Task 11 proves that this does not occur for `X ⊆ Σ.T` (`deepest_spec`). Task 11 also proves `fgBlockOf_spec` and `fgHead_stored`, so the fallback head fields of `fgInputs` are unreachable. The alternative, "each fastWrite set is a chain", is a true store fact (its members are prefixes of one result, and reconcile only filters), but it is not needed with the tie rule.
+- **DQ13. `deepest` tie rule** (audit N2; Opus m8). **Recommendation:** implement the spec rule (spec 260–262: the largest depth; ties: the greater root wins), as `liveRoot` does. `deepest X` is `pickPair` of the member that is maximal in the order (depth of the erasure, root value). `deepest ∅ = none`. For a nonempty `X`, it is `none` only if two distinct maximal candidates have the same depth and root; a tie between members that are not maximal does not cause `none` (r188 N6). Task 11 proves that `none` does not occur for a nonempty `X ⊆ Σ.T` (`deepest_spec`). Task 11 also proves `fgBlockOf_spec` and `fgHead_stored`, so the fallback head fields of `fgInputs` are unreachable. The alternative, "each fastWrite set is a chain", is a true store fact (its members are prefixes of one result, and reconcile only filters), but it is not needed with the tie rule.
 - **DQ14. Input check and handlers** (audit M1; Opus m3). **Recommendation:** keep `process` separate from `wellFormed`, as in the spec (spec 505–518: the ingress check drops an object before any handler). So `Reachable` covers unchecked inputs; it is an over-approximation, and every store fact holds on it. T7 must show that each actual handler call has a checked input (`DeliveryWellFormed` on v1). `blockAccepted` keeps every acceptance test in the spec's place (spec 530–536, 806–817), also the parent-slot, proposer and row-round tests. Because the flat wire carries `b.parent.slot` and the row rounds, `wellFormed` ALSO has these three tests (Opus m3). The duplication is harmless, and it gives `blockAccepted_of_wellFormed` (DQ9). Opus m3 asked to MOVE the tests out of `blockAccepted`; this plan copies them instead, because a move would make the store invariants depend on `wellFormed` over the unchecked `Reachable` closure.
 
 ## Tree-read inventory (Review Focus 1)
@@ -467,13 +483,14 @@ Sizes are Lean lines, with tests. Total: about 4.3–5.6k lines (model 1.2–1.4
 
 ### Task 0: Preconditions and the plan audits (G0)
 
-**Files:** none in Lean. The audit reports are in `docs/audit/`: `fgsa-model-store-plan-audit-report.md` (Astra r185) and `fgsa-model-store-plan-opus-review.md` (Opus). The second audit writes `docs/audit/fgsa-model-store-plan-audit-2.md`.
+**Files:** none in Lean. The audit reports are in `docs/audit/`: `fgsa-model-store-plan-audit-report.md` (Astra r185) and `fgsa-model-store-plan-opus-review.md` (Opus). The second audit (Astra r188) wrote `docs/audit/fgsa-model-store-plan-reaudit-report.md`.
 
-- [x] **Step 1: Check the base.** Done for revision 2 on 2026-09-28: branch `fgsa-composition`; spec `2e884811…`; comp `228dbe98…`; bp01 `989289cc…`; bp00 re-pinned to `03afa5ae…` (Sources, note 4). At execution, repeat: `git status` is clean; `git log -1` contains the revision-2 commit; the four hashes agree. If not, stop and report.
+- [x] **Step 1: Check the base.** Done for revision 2 on 2026-09-28: branch `fgsa-composition`; spec `2e884811…`; comp `228dbe98…`; bp01 `989289cc…`; bp00 re-pinned to `03afa5ae…` (Sources, note 4; since revision 2.1, the hash of the archive copy `R/blueprint/archive/00-outline-03afa5ae.md`). At execution, repeat: `git status` is clean; `git log -1` contains the revision-2 commit; the four hashes agree. If not, stop and report.
 - [x] **Step 2: Check the FG module state.** Done (both audits): `Store` has one tree `TF`; `storeInv_init`, `on_block_of_refused`, `on_block_of_accepted`, `on_block_F_mono`, `storeInv_on_block`, `storeControls_eq_fjControls`, `update_finality_TF`, `update_finality_h_max`, `update_finality_pair`, `pickPair_eq_of_unique`, `ancestor_closed_of_parent_closed` exist (`KitFG/Correspondence.lean`); `pickPair` is at `SimplexFG/Frame.lean:79`. Repeat the grep at execution: `grep -n 'theorem storeInv_on_block\|theorem storeControls_eq_fjControls\|theorem on_block_F_mono\|def pickPair\|theorem pickPair_eq_of_unique\|theorem ancestor_closed_of_parent_closed' AvailableChainKitFG/Correspondence.lean AvailableChainSimplexFG/Frame.lean`.
 - [x] **Step 3: First plan audits.** Done: Astra r185 and Opus, both REVISE.
 - [x] **Step 4: Apply the audits.** Done: this revision; see "Disposition of audit findings". Commit `FGSA plan: revision 2 after the Astra and Opus audits`.
-- [ ] **Step 5: Second audit of the changed sections (gate G0).** Start a Codex job with the astra model (memory: "use astra freely when beneficial"; see the `codex-teammate` skill), or an independent reviewer agent. The job reads this plan, both reports, the disposition table and the Lean sources that the changed sections name. It checks that each finding is closed as the table says, and that the changes add no new error (types: M11; the decoders; `FastOrigin`; `MetaInv`; `ContentAgree`; the J3 statements; the axiom command). Output: `docs/audit/fgsa-model-store-plan-audit-2.md` with a verdict. G0 closes on ADOPT or ADOPT WITH FIXES, with each blocking and major fix applied. Record the result under "Review status".
+- [x] **Step 5: Second audit of the changed sections (gate G0).** Start a Codex job with the astra model (memory: "use astra freely when beneficial"; see the `codex-teammate` skill), or an independent reviewer agent. The job reads this plan, both reports, the disposition table and the Lean sources that the changed sections name. It checks that each finding is closed as the table says, and that the changes add no new error (types: M11; the decoders; `FastOrigin`; `MetaInv`; `ContentAgree`; the J3 statements; the axiom command). Output: a report with a verdict. G0 closes on ADOPT or ADOPT WITH FIXES, with each blocking and major fix applied. Record the result under "Review status".
+  DONE, 2026-09-29: Astra r188, `docs/audit/fgsa-model-store-plan-reaudit-report.md` (the output path of that job), verdict PASS WITH MINORS: 0 blocking, 0 major, minors N1–N6. PASS WITH MINORS maps to ADOPT WITH FIXES. Revision 2.1 applies N1–N6. **G0 is closed.** The three audit reports: `docs/audit/fgsa-model-store-plan-audit-report.md` (Astra r185), `docs/audit/fgsa-model-store-plan-opus-review.md` (Opus), `docs/audit/fgsa-model-store-plan-reaudit-report.md` (Astra r188).
 
 ---
 
@@ -646,7 +663,8 @@ inductive Input (n : Nat) where
 
 /-- [J1] The one auth decoder of a wire. Every handler and the input check read
 a wire only through `Wire.decode`, `HeadWire.decode?` and `RowWire.decode?`. On
-engine v2, T7 changes only the object types and these decoders (Q1 boundary). -/
+engine v2, a decode adapter to `Wire p.n` keeps the internal API; T7 sets the
+scope of a native re-typing (Q1 boundary). -/
 def Wire.decode {n : Nat} (o : Wire n) : Option (Input n) :=
   match o.auth, o.payload with
   | .seat (.head s) i, .head b => some (.vote s i b)
@@ -822,7 +840,8 @@ set satisfies `ViewRootInj`. -/
 theorem viewRootInj_of_rootInj {T : Finset (FGBlock V)} (hcl : ∀ B ∈ T, B.parent ∈ T)
     (hinj : ∀ X ∈ T, ∀ Y ∈ T, X.root = Y.root → X = Y) : ViewRootInj T
 /-- [bp bp.carrier.v1; K5 local] (step 6, two chains of ONE view) The
-`KitFG.accountable` premise. Two chains at two nodes need Task 12. -/
+`KitFG.accountable` premise. Two chains at two nodes: Task 12,
+`rootInjectiveOn_across`. -/
 theorem rootInjectiveOn_of_viewRootInj {T : Finset (FGBlock V)} (hinj : ViewRootInj T)
     {B₁ B₂ : FGBlock V} (h₁ : B₁ ∈ T) (h₂ : B₂ ∈ T) : KitFG.RootInjectiveOn B₁ B₂
 /-- [bp bp.carrier.v1; K5 local] The erased blocks of a root-injective view have
@@ -1200,7 +1219,7 @@ example : fastWriteAt (clock pT stA 14) 2 = some [] ∧ (clock pT stA 14).fg.F =
 active view before the gate: empty if the result is empty or vetoed; else the
 non-genesis active prefixes of the result that pass the fast test `p(s,B) ≥ τ`.
 A renewal counts also when the deadline does not change. -/
-def fastSet {n : Nat} (p : Params) (v : GridCO.State n) (s : Slot) : List Block :=
+def fastSet (p : Params) (v : GridCO.State p.n) (s : Slot) : List Block :=
   match SA.confirmation p.toParams v s with
   | none => []
   | some h =>
@@ -1428,8 +1447,10 @@ Task 11, `fgBlockOf_spec`). -/
 def fgBlockOf {n : Nat} (st : State n) (b : Block) : Option (FGBlock (Fin n)) :=
   pickPair st.fg.TF (fun B => decide (eraseFG B = b))
 /-- [spec 260–262, 1327–1335; DQ13] The deepest member (depth of the erasure);
-ties: the greater root. `none` only if two members share depth and root, which
-does not occur in Σ.T (Task 11, `deepest_spec`). -/
+ties: the greater root. `deepest ∅ = none`. For a nonempty set, `none` only if
+two distinct maximal candidates share both depth and root; a tie between
+members that are not maximal does not cause `none`. For a nonempty subset of
+Σ.T, the result is `some` (Task 11, `deepest_spec`). -/
 def deepest {n : Nat} (X : Finset (FGBlock (Fin n))) : Option (FGBlock (Fin n)) :=
   pickPair X (fun B => decide (∀ C ∈ X, (eraseFG C).depth < (eraseFG B).depth ∨
     ((eraseFG C).depth = (eraseFG B).depth ∧ C.root.value ≤ B.root.value)))
@@ -1560,7 +1581,7 @@ theorem gateStep_fresh (p : Params) (st : State p.n) (s : Slot)
 theorem gateStep_saved (p : Params) (st : State p.n) (s : Slot)
     (hs : (GridCO.savedGenuine st.base s).isSome) : gateStep p st s = normalizeS st
 /-- [helper] Every member of `fastSet` is a non-genesis prefix of the confirmation. -/
-theorem fastSet_prefix {n : Nat} (p : Params) (v : GridCO.State n) (s : Slot) {B : Block}
+theorem fastSet_prefix (p : Params) (v : GridCO.State p.n) (s : Slot) {B : Block}
     (hB : B ∈ fastSet p v s) :
     ∃ h, SA.confirmation p.toParams v s = some h ∧ Block.Preceq B h ∧ B ∈ v.blocks
 ```
@@ -2015,7 +2036,7 @@ theorem rootInjectiveBelow_base (p : Params) (st : State p.n) (h : CStoreInv p s
 
 **Interfaces:**
 - Consumes: Tasks 10–11.
-- Produces: `MetaInv`, `ContentAgree`, `MetadataInvariant` (Statements); `process_cumulative`, `clock_cumulative`, `metaInv_init`, `metaInv_process`, `metaInv_clock`, `metadataInvariant`, `stored_wire_of_block`, `fg_eq_of_eraseFG_eq_across`, `preceq_iff_across`, `compatible_iff_across`.
+- Produces: `MetaInv`, `ContentAgree`, `MetadataInvariant` (Statements); `process_cumulative`, `clock_cumulative`, `metaInv_init`, `metaInv_process`, `metaInv_clock`, `metadataInvariant`, `stored_wire_of_block`, `fg_eq_of_eraseFG_eq_across`, `preceq_iff_across`, `compatible_iff_across`, `rootInjectiveOn_across` (r188 N4).
 
 **Blueprint:** `bp.store.v1` ("old states/stamps are unchanged"), `bp.frame.v1` ("the cumulative metadata reads in §2.4 remain"), `bp.carrier.v1` (premise "Base full-content root injectivity"). Audit M4 (metadata) and M2 (cross-node content). Run-level receipt times, causal signatures and emission origins stay in T7.
 
@@ -2112,9 +2133,15 @@ theorem compatible_iff_across (p : Params) (st st' : State p.n)
     (h : CStoreInv p st) (h' : CStoreInv p st') (m : MetaInv p st) (m' : MetaInv p st')
     (hc : ContentAgree st st') {X Y : FGBlock (Fin p.n)} (hX : X ∈ st.fg.TF) (hY : Y ∈ st'.fg.TF) :
     FGBlock.compatible X Y = Block.compatible (eraseFG X) (eraseFG Y)
+/-- [bp bp.carrier.v1; K5 cross-node; r188 N4] The `KitFG.accountable` premise
+for two chains at two stores (bp01 §2.2 step 6). -/
+theorem rootInjectiveOn_across (p : Params) (st st' : State p.n)
+    (h : CStoreInv p st) (h' : CStoreInv p st') (m : MetaInv p st) (m' : MetaInv p st')
+    (hc : ContentAgree st st') {B₁ B₂ : FGBlock (Fin p.n)} (h₁ : B₁ ∈ st.fg.TF)
+    (h₂ : B₂ ∈ st'.fg.TF) : KitFG.RootInjectiveOn B₁ B₂
 ```
 
-- [ ] **Step 2: Prove them.** `process_cumulative`: the three step kinds (Task 7 field lemmas, `admitBlock_accepted_eq`, `reconcile_frame`); `insert` for Σ.T. `metaInv_process`: an accepted block adds one wire and one FG block (`admitBlock_accepted_eq`, `fg_on_block_accepts`), with rows `filterMap toRow?` (`fgBlock_rows`) that all decode (`blockAccepted`); `treeWire` uniqueness from `blocksNodup` and `rootInj` (a second wire for the same erased block would need a second acceptance, which the fresh-root test refuses); `stampKeys` from `base_admitProposal_accepts`; the pool fields from `admitRow_eq` and the `admitRow` guard. `fg_eq_of_eraseFG_eq_across`: induction on `X` (strong induction on the depth). Genesis: `eraseFG_eq_genesis`. Node: the parents have equal erasures (`eraseFG_parent`), are stored (`StoreInv.closed`), so they are equal by induction; `stored_wire_of_block` at both stores and `hc` (equal roots by `eraseFG_root`) give equal payloads, so equal row lists, so `X.rows = Y.rows`; slot and root come from the erasure. `preceq_iff_across`: forward by `eraseFG_preceq`; backward: the ancestor `Y'` of `Y` at the depth of `X` has `eraseFG Y' = eraseFG X` and is stored at `st'` (closure), so `Y' = X`.
+- [ ] **Step 2: Prove them.** `process_cumulative`: the three step kinds (Task 7 field lemmas, `admitBlock_accepted_eq`, `reconcile_frame`); `insert` for Σ.T. `metaInv_process`: an accepted block adds one wire and one FG block (`admitBlock_accepted_eq`, `fg_on_block_accepts`), with rows `filterMap toRow?` (`fgBlock_rows`) that all decode (`blockAccepted`); `treeWire` uniqueness from `blocksNodup` and `rootInj` (a second wire for the same erased block would need a second acceptance, which the fresh-root test refuses); `stampKeys` from `base_admitProposal_accepts`; the pool fields from `admitRow_eq` and the `admitRow` guard. `fg_eq_of_eraseFG_eq_across`: induction on `X` (strong induction on the depth). Genesis: `eraseFG_eq_genesis`. Node: the parents have equal erasures (`eraseFG_parent`), are stored (`StoreInv.closed`), so they are equal by induction; `stored_wire_of_block` at both stores and `hc` (equal roots by `eraseFG_root`) give equal payloads, so equal row lists, so `X.rows = Y.rows`; slot and root come from the erasure. `preceq_iff_across`: forward by `eraseFG_preceq`; backward: the ancestor `Y'` of `Y` at the depth of `X` has `eraseFG Y' = eraseFG X` and is stored at `st'` (closure), so `Y' = X`. `rootInjectiveOn_across`: ancestor closure puts each compared ancestor in the store of its tip. Two ancestors in one store: local root injectivity (`viewRootInj_TF`). Ancestors in different stores: genesis by local injectivity; otherwise their stored wires (`stored_wire_of_block`) and equal roots give equal payloads (`hc`), then `fg_eq_of_eraseFG_eq_across`. No stronger content premise is needed.
 - [ ] **Step 3: Review gate G12 and CHECKPOINT.** Commit `FGSA store: metadata invariant and cross-node carrier`.
 
 ---
@@ -2127,11 +2154,11 @@ theorem compatible_iff_across (p : Params) (st st' : State p.n)
 
 - [ ] **Step 1: `Tests/Axioms.lean`.** One `#print axioms` line for each public theorem of Tasks 2 and 7–12 (as `AvailableChainSA/Tests/Axioms.lean`). Each must print only `propext`, `Classical.choice`, `Quot.sound`, or no axiom.
 - [ ] **Step 2: Axiom scan.** ONE `--expect` flag, then all names (audit M6; the parser sets `expected := args.drop 1`):
-  `lake env lean --run scripts/CheckFGSAAxioms.lean --expect outputNesting_stored storeInvariant fMonotone metadataInvariant reconcile_harmless_origin admitBlock_reconcile_harmless reconcile_frame viewRootInj_of_rootInj preceq_of_eraseFG_preceq fg_eq_of_eraseFG_eq_across clock_eq_saClock_gate actView_admitBlock_sameF admitBlock_sufficient actView_releaseCount_zero`. Expected: exit 0.
+  `lake env lean --run scripts/CheckFGSAAxioms.lean --expect outputNesting_stored storeInvariant fMonotone metadataInvariant reconcile_harmless_origin admitBlock_reconcile_harmless reconcile_frame viewRootInj_of_rootInj preceq_of_eraseFG_preceq fg_eq_of_eraseFG_eq_across rootInjectiveOn_across clock_eq_saClock_gate actView_admitBlock_sameF admitBlock_sufficient actView_releaseCount_zero`. Expected: exit 0.
 - [ ] **Step 3: Full build.** Add `"AvailableChainFGSA"` to `defaultTargets`. Run `pgrep -fl lean`; wait for a free slot. Run `lake build --wfail` (the full project target). Expected: PASS for every library. Then `bash scripts/check-fgsa.sh`. Expected: exit 0.
 - [ ] **Step 4: Map.** Add a section "FG-SA composite model (store)" at the end of `docs/MAP.md`: one row per file, with its role and the K ids. Plan 1a also edits `docs/MAP.md`; add only the new section, so that a merge has no overlap.
 - [ ] **Step 5: Report to the coordinator** (no `log.md` or `state.md` in this worktree unless the coordinator asks). The report has:
-  - a table that separates completed local facts from the remaining run lifts: K id / blueprint id → Lean names → extra hypotheses. At least: K1 → `reconcile_harmless_origin`, `admitBlock_reconcile_harmless` (no fastWrite premise; `reconcile_harmless` is a helper); K2 → `outputNesting_stored` (run lift: T7); K3 → `reconcile_frame`, `storeControls_reconcile`; K4 → `storeInvariant` (core), `metadataInvariant` (metadata); K5 → local: `viewRootInj_TF`, `compatible_iff_eraseFG`; cross-node: `fg_eq_of_eraseFG_eq_across`, `preceq_iff_across` with the premise `ContentAgree` (DQ3(b), reverses comp D4; run form `ContentRootInjective` in T7); K8 input → `admitBlock_sufficient`; activeView → the six items; SA bridges → `clock_eq_saClock_*` (`hnew`), `actView_admitBlock_*`;
+  - a table that separates completed local facts from the remaining run lifts: K id / blueprint id → Lean names → extra hypotheses. At least: K1 → `reconcile_harmless_origin`, `admitBlock_reconcile_harmless` (no fastWrite premise; `reconcile_harmless` is a helper); K2 → `outputNesting_stored` (run lift: T7); K3 → `reconcile_frame`, `storeControls_reconcile`; K4 → `storeInvariant` (core), `metadataInvariant` (metadata); K5 → local: `viewRootInj_TF`, `compatible_iff_eraseFG`; cross-node: `fg_eq_of_eraseFG_eq_across`, `preceq_iff_across`, `compatible_iff_across`, `rootInjectiveOn_across` (the two-chain `KitFG.accountable` premise) with the premise `ContentAgree` (DQ3(b), reverses comp D4; run form `ContentRootInjective` in T7); K8 input → `admitBlock_sufficient`; activeView → the six items; SA bridges → `clock_eq_saClock_*` (`hnew`), `actView_admitBlock_*`;
   - every difference found against the spec, the blueprint and comp §4, and every smoke-test value that differed from the hand computation;
   - the answers used for DQ1–DQ14 and each audit finding that is still open;
   - the validation commands and their results (build, check script, axiom scan);
@@ -2146,10 +2173,10 @@ theorem compatible_iff_across (p : Params) (st st' : State p.n)
 │ Gate    │ When                │ Who and what                                        │
 ├─────────┼─────────────────────┼─────────────────────────────────────────────────────┤
 │ G0      │ before Task 1       │ Two plan audits (Astra r185, Opus): both REVISE;    │
-│         │                     │ applied in revision 2. G0 closes after a second     │
-│         │                     │ audit of the changed sections (Task 0, Step 5) with │
-│         │                     │ ADOPT or ADOPT WITH FIXES and every blocking and    │
-│         │                     │ major fix applied. Reports in docs/audit/.          │
+│         │                     │ applied in revision 2. Second audit (Astra r188):   │
+│         │                     │ PASS WITH MINORS (= ADOPT WITH FIXES), no blocking  │
+│         │                     │ or major finding; N1–N6 applied in revision 2.1.    │
+│         │                     │ CLOSED. Reports in docs/audit/.                     │
 │ G1–G5   │ end of Tasks 1–5    │ independent review (a fresh reviewer agent that did │
 │         │                     │ not write the code): each definition against its    │
 │         │                     │ spec lines; each test value by hand; the Global     │
@@ -2208,8 +2235,13 @@ A reviewer blocks the CHECKPOINT on: a model rule that differs from the spec wit
 │ R9  │ Root premises are vacuous on runs    │ declared (DQ10); inherited from      │
 │     │ with arithmetic-root collisions      │ GridCO/SA; alternative is a user     │
 │     │                                      │ decision                             │
-│ R10 │ Engine v2 needs a re-typing of the   │ all auth matching in the decoders    │
-│     │ object layer                         │ (J1); Store/Statements/Proofs stay   │
+│ R10 │ Engine v2 needs a re-typing of the   │ all auth reads in the decoders (J1); │
+│     │ object layer                         │ a v2 decode adapter keeps Store,     │
+│     │                                      │ Statements and Proofs; a native      │
+│     │                                      │ re-typing also touches the wire      │
+│     │                                      │ constructors of the handlers, the    │
+│     │                                      │ .auth test of proposalRows and the   │
+│     │                                      │ v1 SA base (r188 N5; scope in T7)    │
 │ R11 │ The cross-node proof needs a MetaInv │ state the extra field in the task    │
 │     │ field that this plan does not list   │ report; do not weaken ContentAgree's │
 │     │                                      │ conclusion                           │
@@ -2219,7 +2251,7 @@ A reviewer blocks the CHECKPOINT on: a model rule that differs from the spec wit
 ## Open questions (summary)
 
 - Q1 (engine) and Q5 (deliverable) stay open. This plan has no binding to them; its objects are v1-typed (J1).
-- DQ1–DQ14 above, each with a recommended answer. The plan follows the recommendations. The second G0 audit and the user can change them before Task 1.
+- DQ1–DQ14 above, each with a recommended answer. The plan follows the recommendations. The second G0 audit (r188) accepted them. The user can still change them.
 - User decision (DQ10, DQ3): keep the arithmetic honest root and the content premise (this plan), or move to content-coded roots with an admission check across GridCO/SA/FG-SA (comp D4 as written).
 - For composition T7: the one-tick-per-public-time premise (DQ5, `clock_eq_saClock_gate`), the content premise `ContentRootInjective` (DQ3), checked inputs at every handler call (DQ14), and "processed by root" (DQ9).
 
@@ -2349,3 +2381,33 @@ A = Astra r185 (`docs/audit/fgsa-model-store-plan-audit-report.md`). O = Opus (`
 ```
 
 Rejected or partly applied: Astra M5's first route (prove the GridCO lemmas locally) is rejected in favor of the Opus direct-import rule, which both reports accept as sound; the transitive dependency is disclosed and checked. Opus m3 is applied partly (copy, not move), for the reason in the table and in DQ14.
+
+## Disposition of the re-audit findings
+
+R = Astra r188 (`docs/audit/fgsa-model-store-plan-reaudit-report.md`), on revision 2 (`5801ce6`). Verdict PASS WITH MINORS; all six minors are applied in revision 2.1.
+
+```text
+┌──────────┬──────────────────────────────────────────┬──────────────────────────────┐
+│ Finding  │ Change                                   │ Section                      │
+├──────────┼──────────────────────────────────────────┼──────────────────────────────┤
+│ R N1     │ bp00 source is the verified archive copy │ Sources (table, note 4);     │
+│          │ 00-outline-03afa5ae.md; the drift of the │ Task 0 Steps 1 and 5; Review │
+│          │ current file (5a89d168) recorded; report │ status; Review gates (G0);   │
+│          │ path fixed; PASS WITH MINORS mapped to   │ DQ11                         │
+│          │ ADOPT WITH FIXES; G0 closed              │                              │
+│ R N2     │ fastSet and fastSet_prefix take          │ Task 5 fastSet; Task 7       │
+│          │ GridCO.State p.n (M11 holds with no      │ fastSet_prefix               │
+│          │ exception)                               │                              │
+│ R N3     │ Lease rule by the actual declaration,    │ Global Constraints           │
+│          │ not by the section variable; examples of │ (LeasePolicy instances)      │
+│          │ both kinds                               │                              │
+│ R N4     │ rootInjectiveOn_across added (statement, │ Task 2 docstring; Task 12;   │
+│          │ proof route); in the K5 handoff table    │ Task 13 Steps 2 and 5        │
+│          │ and the axiom scan                       │                              │
+│ R N5     │ v2: only the adapter route keeps the     │ Scope (Q1); Q1 boundary;     │
+│          │ internal API; native re-typing scope is  │ Task 1 Wire.decode doc; R10  │
+│          │ a T7 decision                            │                              │
+│ R N6     │ deepest: the empty set and the tie of    │ DQ13; Task 6 deepest doc     │
+│          │ maximal candidates documented            │                              │
+└──────────┴──────────────────────────────────────────┴──────────────────────────────┘
+```
