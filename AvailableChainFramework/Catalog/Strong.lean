@@ -238,9 +238,11 @@ theorem strongRecoveredSafe_transport (I : StrongInstance) (k k' : StrongRecCons
 `f` faulty validators).
 
 The tag is `.run`, not `.family`. `valid` is `True`, so a constant with
-`θrec ≥ 1` is valid. At such a constant the Recovery regime is empty (the
-awake count cannot exceed `θrec` times itself plus the faulty count), so
-`holds` is vacuous there, and no refutation family can exist. -/
+`θrec ≥ 1` and `ρ ≥ 0` is valid, and its Recovery regime is empty: the regime
+has `GST + ρ ≤ horizon`, so it reads the participation bound at `GST`, and the
+awake count cannot exceed `θrec` times itself plus the faulty count. Thus
+`holds` is vacuous there, and no refutation family can exist. (With `ρ < 0`,
+a run with `GST + ρ ≤ horizon < GST` can be in the regime.) -/
 def strongRecoveredSafe : ClaimSpec ClaimDomain.strong where
   id := `extra.strong.recoveredSafe.v1
   Const := StrongRecConst
@@ -293,8 +295,8 @@ theorem strongRecoveredIncluded_transport (I : StrongInstance) (k k' : StrongRec
 `D` (Recovery regime, at most `f` faulty validators).
 
 The tag is `.run`, not `.family`, as for `strongRecoveredSafe`: `valid` has
-no bound on `θrec`, so a constant with `θrec ≥ 1` is valid, its Recovery
-regime is empty, and `holds` is vacuous there. -/
+no bound on `θrec` or `ρ`, so a constant with `θrec ≥ 1` and `ρ ≥ 0` is
+valid, and its Recovery regime is empty. Thus `holds` is vacuous there. -/
 def strongRecoveredIncluded : ClaimSpec ClaimDomain.strong where
   id := `extra.strong.recoveredIncluded.v1
   Const := StrongRecIncConst
@@ -339,6 +341,8 @@ example : strongIncluded.le ⟨2, 2⟩ ⟨3, 2⟩ = false := by
   simp [strongIncluded, StrongIncConst.le]
 example : strongIncluded.le ⟨2, 2⟩ ⟨2, 3⟩ = false := by
   simp [strongIncluded, StrongIncConst.le]
+example : strongIncluded.le ⟨2, 3⟩ ⟨2, 2⟩ = false := by
+  simp [strongIncluded, StrongIncConst.le]
 
 -- f ↓, θrec ↑, full false → true, G ↓, ρ ↑ are weaker.
 example : strongRecoveredSafe.le ⟨3, 1/2, false, 4, 1⟩ ⟨2, 3/4, true, 2, 5⟩ = true := by
@@ -375,6 +379,9 @@ example : strongRecoveredIncluded.le ⟨⟨2, 1/2, false, 4, 5⟩, 2⟩
   simp [strongRecoveredIncluded, StrongRecIncConst.le]
 example : strongRecoveredIncluded.le ⟨⟨2, 1/2, false, 4, 1⟩, 2⟩
     ⟨⟨2, 1/2, false, 4, 1⟩, 3⟩ = false := by
+  simp [strongRecoveredIncluded, StrongRecIncConst.le]
+example : strongRecoveredIncluded.le ⟨⟨2, 1/2, false, 4, 1⟩, 3⟩
+    ⟨⟨2, 1/2, false, 4, 1⟩, 2⟩ = false := by
   simp [strongRecoveredIncluded, StrongRecIncConst.le]
 
 end AvailableChain.Framework.Catalog
