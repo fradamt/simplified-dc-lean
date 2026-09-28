@@ -408,13 +408,13 @@ id; a proof-status change is a separate, dated status line. The entries
 enter the catalog as versioned ids. This section fixes only the shapes that the
 framework must support.
 
-**7.1 Decisions (user).** The FG is our Simplex FG, as a small family of
-VERSIONED MODULE VARIANTS, each fixed: `SimplexFG.nj` (DC's NJ rule) and
-`SimplexFG.fj` (the PRIMARY variant: the user adopted FJ for FG-SA on
-2026-09-28, with NJ as the alternative; the FJ root rule: a frontier test, root F and
-band {H} in a contest). FJ changes the frame rule, so it is a module
-variant with its own frame and noninterference interface, not a
-base-selection plug-in (audit W06). The FJ interface is r148 F9 (the
+**7.1 Decisions (user).** The FG is our Simplex FG, ONE fixed module:
+`SimplexFG.fj` (user decision 2026-09-28: "just fj for now"). NJ is not
+formalized now; if the research needs it later, it is a new versioned
+module (an addition). Whether DC itself is ported, and with which rule,
+is a later decision. `SimplexFG.fj` uses the FJ root rule (a frontier test; root F and band
+{H} in a contest). FJ changes the frame rule, so it has its own frame
+and noninterference interface, not a base-selection plug-in (audit W06). The FJ interface is r148 F9 (the
 sources of honest rows at heights ≥ M+1 stay canonical), with the
 descent/reset lemma, F10 and F12; it is not HNI. APs vary. FG heights never skip. Every
 height pair (target or timeout) needs the AP's source; with none, the
