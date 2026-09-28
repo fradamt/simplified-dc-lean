@@ -11,6 +11,8 @@ defaultTargets = [
   "AvailableChainWitnesses",
   "AvailableChainFramework",
   "AvailableChainRegistry",
+  "AvailableChainSimplexFG",
+  "AvailableChainKitFG",
 ]
 
 [leanOptions]

@@ -553,3 +553,55 @@ locked. Run `lake env lean --run scripts/CatalogLock.lean --write` to
 write `docs/catalog.lock`, or `--check` to compare against it: exit `0`
 means the file is the same, `1` means it differs, `2` means a usage error
 or a missing declaration.
+
+## Simplex FG module (DC-fj)
+
+The FG module `SimplexFG.fj` is DC's FG without SG and grades, with the FJ
+root rule in place of NJ. Its plan is `docs/plans/2026-09-28-fg-module.md`;
+its registry is `docs/FG-COMPOSITION.md`. Both libraries are default
+targets. The module does not import the framework, the engine, or an AP.
+`AvailableChainKitFG/Pins.lean` records the coverage of each registry id
+clause by clause (Lean names and extra hypotheses, or the paper step, the
+registry id, or the AP fact that carries the clause).
+
+```text
+┌─────────────────────────┬──────────────────────────────────────────┬─────────────────────────────┐
+│ Library                 │ Contents                                 │ Namespace                   │
+├─────────────────────────┼──────────────────────────────────────────┼─────────────────────────────┤
+│ AvailableChainSimplexFG │ LM, definitions and decide examples      │ AvailableChain.SimplexFG    │
+│                         │ only: rows and blocks, the chain state   │                             │
+│                         │ with no NJ height, E1/E2 evidence, the   │                             │
+│                         │ FG client, the DC-fj store (one          │                             │
+│                         │ cumulative admitted tree, on_block,      │                             │
+│                         │ update_finality, activeView), the FJ     │                             │
+│                         │ controls, filteredFrom, fjFrame          │                             │
+│ AvailableChainKitFG     │ L5, proofs: DC certificate ports, the    │ AvailableChain.KitFG        │
+│                         │ pinned FG lemmas (fg.* and fj.* ids),    │                             │
+│                         │ the store invariant and store controls,  │                             │
+│                         │ and the pin table (Pins.lean)            │                             │
+└─────────────────────────┴──────────────────────────────────────────┴─────────────────────────────┘
+```
+
+```text
+┌─────────────────────────────┬──────────────────────────────────────────────┬─────────────────────┐
+│ Script                      │ Check                                        │ Exit codes          │
+├─────────────────────────────┼──────────────────────────────────────────────┼─────────────────────┤
+│ scripts/check-fg-syntax.sh  │ no native_decide token outside comments in   │ 0 clean; 1 found;   │
+│                             │ the two FG libraries                         │ 2 no files          │
+│ scripts/CheckFGAxioms.lean  │ every constant of the two libraries uses     │ 0 clean; 1 bad      │
+│                             │ only propext, Classical.choice, Quot.sound;  │ axiom; 2 nothing    │
+│                             │ --expect N … checks that the names exist     │ found, usage error  │
+│                             │                                              │ or missing name     │
+│ scripts/FGPinIds.lean       │ prints the manifest of the elaborated pin    │ 0 clean; 2 a pinned │
+│                             │ table; --check-names checks that each pinned │ name is not an FG   │
+│                             │ Lean name is an FG constant                  │ constant            │
+│ scripts/check-fg-pins.sh    │ runs FGPinIds.lean; strict manifest grammar  │ 0 clean; 1 registry │
+│                             │ and trailers; each source resolves to its    │ mismatch; 2 bad or  │
+│                             │ registered version with the pinned hash and  │ missing manifest    │
+│                             │ matches its §0.1 row; each id has an entry   │                     │
+│                             │ and one Index row; no active id SUPERSEDED   │                     │
+└─────────────────────────────┴──────────────────────────────────────────────┴─────────────────────┘
+```
+
+Run the scripts after `lake build AvailableChainKitFG`, with
+`lake env lean --run scripts/<file>.lean` or `bash scripts/<file>.sh`.
