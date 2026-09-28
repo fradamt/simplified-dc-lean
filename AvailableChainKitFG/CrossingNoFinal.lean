@@ -14,9 +14,13 @@ r148 F2 (`fj-redteam.md`, lines 234–258). Let J be justified at j, and let W
 of height above j not extend J. The first crossing of j on W's chain has a
 progress quorum for an entry `X ≠ J`. (1) A finality QC for J meets it in
 E1 weight. (2) An honest member of J's target QC and of the crossing QC has a
-timeout row for X. (3) The timeout branch is at the uniform maturity slot.
-(4) "J cannot finalize in a continuation that keeps the fault bound" is a
-paper step from (1): the E1 weight is `≥ 2q − W > a`. -/
+timeout row for X. (3) `crossing_maturity` proves the general disjunction: a
+block that raises its parent's height has a target quorum for the parent's
+entry, or its slot is mature. The composition at the crossing block of j on W
+(clause 2 excludes the target quorum, so the crossing is at the uniform
+maturity slot) is a paper step. (4) "J cannot finalize in a continuation that
+keeps the fault bound" is a paper step from (1): the E1 weight is
+`≥ 2q − W > a`. -/
 
 variable {V : Type} [DecidableEq V] [Fintype V]
 
@@ -139,7 +143,7 @@ theorem afterFin_s (E : Electorate V) (σ : ChainState V) : (afterFin E σ).s = 
 
 /-- [pin fj.crossingNoFinal.v1] (clause 3) A block that raises its parent's
 height does so with a target quorum for the parent's entry, or at a slot at
-least the entry's slot plus δ_t (spec `process_height_events`, lines 921–942). -/
+least the entry's slot plus δ_t (spec `process_height_events`, lines 921–943). -/
 theorem crossing_maturity (E : Electorate V) (cfg : FGConfig) (p : FGBlock V) (s : Slot)
     (r : BlockId) (rs : List (Row V))
     (hup : (derive E cfg p).h < (derive E cfg (.node p s r rs)).h) :

@@ -50,8 +50,9 @@ theorem causalCap (E : Electorate V) (cfg : FGConfig) (faulty : Finset V)
   unfold Height at *
   omega
 
-/-- [pin fg.causalCap.core.v1] At a frontier `H ≥ M+2`, such a justification is
-not the active root (`H ≠ h_j + 1`). -/
+/-- [pin comp.cut.v1] (item 4, partial: the arithmetic j ≤ M < H−1 under hrows)
+At a frontier `H ≥ M+2`, such a justification is not the active root
+(`H ≠ h_j + 1`). -/
 theorem causalCap_notRoot (E : Electorate V) (cfg : FGConfig) (faulty : Finset V)
     (hcap : E.weightOf faulty < E.q) (M : Height) (B : FGBlock V)
     (hrows : ∀ a ∈ chainRows B, a.signer ∉ faulty →
