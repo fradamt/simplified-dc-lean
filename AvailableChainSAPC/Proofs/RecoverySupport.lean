@@ -32,6 +32,18 @@ theorem liveRoot_compatible_of_rows {n : Nat} (st : GridCO.State n) (B : Block)
 
 /-- Recovery's threshold implies the ordinary honest majority at each
 synchronous HEAD. No clean-prefix premise is introduced. -/
+theorem recovery_awake_majority_quorum {V : Type} [DecidableEq V] [Fintype V]
+    (p : Params) (E : Env V) (rho : Run V (sapc p)) (G : Time)
+    (h : QuorumRecoveryRegime p G E rho)
+    (t : Time) (sync : E.t_GST ≤ t) (horizon : t ≤ rho.horizon) : AwakeMajority E rho t := by
+  have count := h.participation t sync horizon
+  change (2 / 3 : ℚ) * ((awakeAt E rho.honest t).card + (faulty rho).card) <
+    ((awakeAt E rho.honest t).card : ℚ) at count
+  have nonneg : (0 : ℚ) ≤ (faulty rho).card := Nat.cast_nonneg _
+  have bound : ((faulty rho).card : ℚ) < (awakeAt E rho.honest t).card := by linarith
+  exact_mod_cast bound
+
+/-- The original Draft 4.3 interface is retained. -/
 theorem recovery_awake_majority {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (sapc p)) (G : Time)
     (h : RecoveryRegime (sapc p) E (sapcInterface p).toInterface (sapcConstants p G) rho)
@@ -45,10 +57,10 @@ theorem recovery_awake_majority {V : Type} [DecidableEq V] [Fintype V]
 
 /-- F4 removes PC compatibility from the shared source-support induction.
 Lease deletion cannot remove the support already carried by honest HEADs. -/
-theorem recovery_permanent_support {V : Type} [DecidableEq V] [Fintype V]
+theorem recovery_permanent_support_quorum {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
     (G : Time) (hG : 0 < G)
-    (h : RecoveryRegime (sapc p) E (sapcInterface p).toInterface (sapcConstants p G) rho)
+    (h : QuorumRecoveryRegime p G E rho)
     (r : Slot) (sync : E.t_GST ≤ voteTime p r) (horizon : gateTime p r ≤ rho.horizon)
     (source : V) (hs : source ∈ rho.honest) (B C : Block)
     (raw : SA.confirmation p
@@ -76,7 +88,7 @@ theorem recovery_permanent_support {V : Type} [DecidableEq V] [Fintype V]
       (belowD : Block.Preceq B D) (compatible : RecoveryRowsCompatible p rho s B) :
       RecoveryHeadCovers p rho s B := by
     intro v hv
-    exact recovery_genuine_head_covers p E rho hΔ G hG h s (syncLater s le) hh
+    exact recovery_genuine_head_covers_quorum p E rho hΔ G hG h s (syncLater s le) hh
       source v hs hv B D rawD belowD (liveRoot_compatible_of_rows _ B (compatible v hv))
   apply GridCO.source_support_induction (fun v => v ∈ rho.honest)
     (fun s v => SA.confirmation p (Run.stateBeforeTime (sapc p) rho (gateTime p s) v).base s)
@@ -98,16 +110,34 @@ theorem recovery_permanent_support {V : Type} [DecidableEq V] [Fintype V]
     have syncNext := syncLater (t + 1) (le.trans (Nat.le_succ t))
     exact preserve_from_heads p E rho h.execution hΔ h.partialSynchrony h.acceptedRelay
       (t + 1) syncNext ((earlyGate _).trans hh)
-      (recovery_awake_majority p E rho G h _ syncNext
+      (recovery_awake_majority_quorum p E rho G h _ syncNext
         ((earlyAfter _).trans ((earlyGate _).trans hh))) B heads v hv
   · exact transfer
 
-/-- A synchronous fast source has permanent support. Its own lease is
-not an induction premise, and the raw tip need not enter S. -/
-theorem recovery_fast_source_supported {V : Type} [DecidableEq V] [Fintype V]
+/-- The original Draft 4.3 interface is retained. -/
+theorem recovery_permanent_support {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
     (G : Time) (hG : 0 < G)
     (h : RecoveryRegime (sapc p) E (sapcInterface p).toInterface (sapcConstants p G) rho)
+    (r : Slot) (sync : E.t_GST ≤ voteTime p r) (horizon : gateTime p r ≤ rho.horizon)
+    (source : V) (hs : source ∈ rho.honest) (B C : Block)
+    (raw : SA.confirmation p
+      (Run.stateBeforeTime (sapc p) rho (gateTime p r) source).base r = some C)
+    (below : Block.Preceq B C) (rows : RecoveryRowsCompatible p rho r B) :
+    ∀ t, r ≤ t → gateTime p t ≤ rho.horizon →
+      RecoveryRowsCompatible p rho t B ∧ RecoveryHeadCovers p rho t B ∧
+      (r < t → ∀ v ∈ rho.honest, ∃ D,
+        SA.confirmation p (Run.stateBeforeTime (sapc p) rho (gateTime p t) v).base t = some D ∧
+          Block.Preceq B D) :=
+  recovery_permanent_support_quorum p E rho hΔ G hG (recovery_to_quorum p G E rho hG h) r sync
+    horizon source hs B C raw below rows
+
+/-- A synchronous fast source has permanent support. Its own lease is
+not an induction premise, and the raw tip need not enter S. -/
+theorem recovery_fast_source_supported_quorum {V : Type} [DecidableEq V] [Fintype V]
+    (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
+    (G : Time) (hG : 0 < G)
+    (h : QuorumRecoveryRegime p G E rho)
     (r : Slot) (sync : E.t_GST ≤ voteTime p r) (horizon : gateTime p r ≤ rho.horizon)
     (source : V) (hs : source ∈ rho.honest) (B C : Block)
     (raw : SA.confirmation p
@@ -125,16 +155,32 @@ theorem recovery_fast_source_supported {V : Type} [DecidableEq V] [Fintype V]
     exact fast_source_rows_compatible p E rho h.execution hΔ h.acceptedRelay r early horizon
       source v hs hv B fast K g d row
   intro t le hh
-  have supported := recovery_permanent_support p E rho hΔ G hG h r sync horizon
+  have supported := recovery_permanent_support_quorum p E rho hΔ G hG h r sync horizon
     source hs B C raw below rows t le hh
   exact ⟨supported.1, supported.2.1⟩
 
-/-- A slow source with a fully synchronous window has the same permanent
-support as a fast source. Only the source exclusion argument differs. -/
-theorem recovery_slow_source_supported {V : Type} [DecidableEq V] [Fintype V]
+/-- The original Draft 4.3 interface is retained. -/
+theorem recovery_fast_source_supported {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
     (G : Time) (hG : 0 < G)
     (h : RecoveryRegime (sapc p) E (sapcInterface p).toInterface (sapcConstants p G) rho)
+    (r : Slot) (sync : E.t_GST ≤ voteTime p r) (horizon : gateTime p r ≤ rho.horizon)
+    (source : V) (hs : source ∈ rho.honest) (B C : Block)
+    (raw : SA.confirmation p
+      (Run.stateBeforeTime (sapc p) rho (gateTime p r) source).base r = some C)
+    (below : Block.Preceq B C) (fast : SA.releaseThreshold p ≤ GridCO.prefixSupport p.engine
+      (Run.stateBeforeTime (sapc p) rho (gateTime p r) source).base r B) :
+    ∀ t, r ≤ t → gateTime p t ≤ rho.horizon →
+      RecoveryRowsCompatible p rho t B ∧ RecoveryHeadCovers p rho t B :=
+  recovery_fast_source_supported_quorum p E rho hΔ G hG (recovery_to_quorum p G E rho hG h) r sync
+    horizon source hs B C raw below fast
+
+/-- A slow source with a fully synchronous window has the same permanent
+support as a fast source. Only the source exclusion argument differs. -/
+theorem recovery_slow_source_supported_quorum {V : Type} [DecidableEq V] [Fintype V]
+    (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
+    (G : Time) (hG : 0 < G)
+    (h : QuorumRecoveryRegime p G E rho)
     (r : Slot) (sync : E.t_GST ≤ voteTime p r) (horizon : gateTime p r ≤ rho.horizon)
     (source : V) (hs : source ∈ rho.honest) (B C : Block)
     (raw : SA.confirmation p
@@ -149,9 +195,26 @@ theorem recovery_slow_source_supported {V : Type} [DecidableEq V] [Fintype V]
     exact slow_window_rows_compatible p E rho h.execution hΔ h.acceptedRelay r source hs B
       slow window horizon v hv K g d row
   intro t le hh
-  have supported := recovery_permanent_support p E rho hΔ G hG h r sync horizon
+  have supported := recovery_permanent_support_quorum p E rho hΔ G hG h r sync horizon
     source hs B C raw below rows t le hh
   exact ⟨supported.1, supported.2.1⟩
+
+/-- The original Draft 4.3 interface is retained. -/
+theorem recovery_slow_source_supported {V : Type} [DecidableEq V] [Fintype V]
+    (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
+    (G : Time) (hG : 0 < G)
+    (h : RecoveryRegime (sapc p) E (sapcInterface p).toInterface (sapcConstants p G) rho)
+    (r : Slot) (sync : E.t_GST ≤ voteTime p r) (horizon : gateTime p r ≤ rho.horizon)
+    (source : V) (hs : source ∈ rho.honest) (B C : Block)
+    (raw : SA.confirmation p
+      (Run.stateBeforeTime (sapc p) rho (gateTime p r) source).base r = some C)
+    (below : Block.Preceq B C) (slow : SA.slowEligible p
+      (Run.stateBeforeTime (sapc p) rho (gateTime p r) source).base r B = true)
+    (window : ∀ s, s < r → r + 1 ≤ s + p.k → E.t_GST ≤ earlyTime p s) :
+    ∀ t, r ≤ t → gateTime p t ≤ rho.horizon →
+      RecoveryRowsCompatible p rho t B ∧ RecoveryHeadCovers p rho t B :=
+  recovery_slow_source_supported_quorum p E rho hΔ G hG (recovery_to_quorum p G E rho hG h) r sync
+    horizon source hs B C raw below slow window
 
 /-- SA's admitted-source interface on the actual SA-PC run. -/
 def RecoverySourcesSupported {V : Type} [DecidableEq V] (p : Params)
@@ -166,10 +229,10 @@ def RecoverySourcesSupported {V : Type} [DecidableEq V] (p : Params)
 
 /-- All sources that can outlive SA's two-lease boundary have permanent
 support. The timing lemma and admission split are reused from SA. -/
-theorem recovery_sources_after_two_leases {V : Type} [DecidableEq V] [Fintype V]
+theorem recovery_sources_after_two_leases_quorum {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
     (G : Time) (hG : 0 < G)
-    (h : RecoveryRegime (sapc p) E (sapcInterface p).toInterface (sapcConstants p G) rho)
+    (h : QuorumRecoveryRegime p G E rho)
     (b : Slot) (sync : E.t_GST ≤ voteTime p b) :
     RecoverySourcesSupported p rho (SA.recoveryBoundary p b) := by
   intro s hh source hs B C g deadline raw below admission
@@ -181,15 +244,25 @@ theorem recovery_sources_after_two_leases {V : Type} [DecidableEq V] [Fintype V]
     change 4 * p.Δ * (b : Time) + p.Δ ≤ 4 * p.Δ * (t : Time) + p.Δ
     nlinarith [p.deltaPos]
   rcases (SA.admissionLevels_iff p _ s B g).mp admission |>.2 with fast | slow
-  · exact recovery_fast_source_supported p E rho hΔ G hG h s (syncLater s start) hh
+  · exact recovery_fast_source_supported_quorum p E rho hΔ G hG h s (syncLater s start) hh
       source hs B C raw below fast
-  · apply recovery_slow_source_supported p E rho hΔ G hG h s (syncLater s start) hh
+  · apply recovery_slow_source_supported_quorum p E rho hΔ G hG h s (syncLater s start) hh
       source hs B C raw below slow
     intro t before inWindow
     have lo : b ≤ t := by simp only [Slot] at *; omega
     apply (syncLater t lo).trans
     change 4 * p.Δ * (t : Time) + p.Δ ≤ 4 * p.Δ * (t : Time) + 2 * p.Δ
     linarith [p.deltaPos]
+
+/-- The original Draft 4.3 interface is retained. -/
+theorem recovery_sources_after_two_leases {V : Type} [DecidableEq V] [Fintype V]
+    (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
+    (G : Time) (hG : 0 < G)
+    (h : RecoveryRegime (sapc p) E (sapcInterface p).toInterface (sapcConstants p G) rho)
+    (b : Slot) (sync : E.t_GST ≤ voteTime p b) :
+    RecoverySourcesSupported p rho (SA.recoveryBoundary p b) :=
+  recovery_sources_after_two_leases_quorum p E rho hΔ G hG (recovery_to_quorum p G E rho hG h) b
+    sync
 
 end AvailableChain.SAPC
 end

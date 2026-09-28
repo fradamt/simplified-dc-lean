@@ -49,6 +49,37 @@ theorem capped_honest_proposal_selectedPC_target {V : Type} [DecidableEq V] [Fin
 
 /-- Common floors and equal-rank PC uniqueness give a common recovery
 anchor. The anchor can be outside the ordinary genesis walk. -/
+theorem recovery_proposal_anchor_eq_quorum {V : Type} [DecidableEq V] [Fintype V]
+    (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
+    (G : Time) (_hG : 0 < G)
+    (h : QuorumRecoveryRegime p G E rho)
+    (r : Slot) (sync : E.t_GST ≤ freezeTime p r) (horizon : voteTime p (r + 1) ≤ rho.horizon)
+    (P : Block) (proposal : HonestProposalAt E (sapcInterface p).toInterface rho (r + 1) P)
+    (v : V) (hv : v ∈ rho.honest) :
+    let source := proposalState p rho (r + 1)
+    let target := headState p rho (r + 1) v
+    let cert := selectedPC p target (r + 1)
+    preliminaryAnchor (floor p source source.base.blocks (GridCO.proposerView source.base (r + 1))
+        (GridCO.proposerSupportView source.base (r + 1)) (r + 1)) source.bestPC =
+      preliminaryAnchor (floor p target (activeVoterTree p target (r + 1) cert)
+        (GridCO.voterView p.engine target.base (r + 1))
+        (GridCO.voterSupportView p.engine target.base (r + 1)) (r + 1)) cert := by
+  dsimp only
+  have cap := h.faultBound
+  have active : capBroken p (headState p rho (r + 1) v) = false := by
+    rw [headState, capBroken_clock]
+    exact capBroken_false_beforeTime p E rho h.execution cap v _
+  rw [honest_proposal_floor_eq p E rho h.execution hΔ h.rootInjective h.partialSynchrony
+    h.acceptedRelay r sync horizon P proposal v hv active
+    (selectedPC p (headState p rho (r + 1) v) (r + 1))]
+  have targets := capped_honest_proposal_selectedPC_target p E rho h.execution hΔ cap
+    h.partialSynchrony h.acceptedRelay r sync horizon P proposal v hv
+  cases source : (proposalState p rho (r + 1)).bestPC <;>
+    cases selected : selectedPC p (headState p rho (r + 1) v) (r + 1) <;>
+    simp only [source, selected, Option.map_some, Option.map_none, Option.some.injEq] at targets
+  all_goals first | contradiction | rfl | simp only [preliminaryAnchor, targets]
+
+/-- The original Draft 4.3 interface is retained. -/
 theorem recovery_proposal_anchor_eq {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
     (G : Time) (hG : 0 < G)
@@ -63,24 +94,34 @@ theorem recovery_proposal_anchor_eq {V : Type} [DecidableEq V] [Fintype V]
         (GridCO.proposerSupportView source.base (r + 1)) (r + 1)) source.bestPC =
       preliminaryAnchor (floor p target (activeVoterTree p target (r + 1) cert)
         (GridCO.voterView p.engine target.base (r + 1))
-        (GridCO.voterSupportView p.engine target.base (r + 1)) (r + 1)) cert := by
-  dsimp only
-  have cap := recovery_faultBound p G E rho hG h
-  have active : capBroken p (headState p rho (r + 1) v) = false := by
-    rw [headState, capBroken_clock]
-    exact capBroken_false_beforeTime p E rho h.execution cap v _
-  rw [honest_proposal_floor_eq p E rho h.execution hΔ h.rootInjective h.partialSynchrony
-    h.acceptedRelay r sync horizon P proposal v hv active
-    (selectedPC p (headState p rho (r + 1) v) (r + 1))]
-  have targets := capped_honest_proposal_selectedPC_target p E rho h.execution hΔ cap
-    h.partialSynchrony h.acceptedRelay r sync horizon P proposal v hv
-  cases source : (proposalState p rho (r + 1)).bestPC <;>
-    cases selected : selectedPC p (headState p rho (r + 1) v) (r + 1) <;>
-    simp only [source, selected, Option.map_some, Option.map_none, Option.some.injEq] at targets
-  all_goals first | contradiction | rfl | simp only [preliminaryAnchor, targets]
+        (GridCO.voterSupportView p.engine target.base (r + 1)) (r + 1)) cert :=
+  recovery_proposal_anchor_eq_quorum p E rho hΔ G hG (recovery_to_quorum p G E rho hG h) r sync
+    horizon P proposal v hv
 
 /-- A full synchronous batch bounds detected equivocation in the proposal
 view. This permits reuse of the clean eligible-path reflection theorem. -/
+theorem recovery_proposal_detected_minority_quorum {V : Type} [DecidableEq V] [Fintype V]
+    (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ) (G : Time)
+    (h : QuorumRecoveryRegime p G E rho)
+    (r : Slot) (sync : E.t_GST ≤ voteTime p r) (horizon : voteTime p (r + 1) ≤ rho.horizon)
+    (P : Block) (proposal : HonestProposalAt E (sapcInterface p).toInterface rho (r + 1) P) :
+    let raw := GridCO.proposerView (proposalState p rho (r + 1)).base (r + 1)
+    2 * (detectedSeats raw).card < GridCO.voterCount raw := by
+  have early : voteTime p r ≤ earlyTime p r ∧ earlyTime p r ≤ voteTime p (r + 1) := by
+    change 4 * p.Δ * (r : Time) + p.Δ ≤ 4 * p.Δ * (r : Time) + 2 * p.Δ ∧
+      4 * p.Δ * (r : Time) + 2 * p.Δ ≤ 4 * p.Δ * ((r + 1 : Nat) : Time) + p.Δ
+    push_cast
+    constructor <;> linarith [p.deltaPos]
+  obtain ⟨C, raw, _⟩ := preserve_from_heads p E rho h.execution hΔ h.partialSynchrony
+    h.acceptedRelay r sync (early.2.trans horizon)
+    (recovery_awake_majority_quorum p E rho G h _ sync (early.1.trans (early.2.trans horizon)))
+    .genesis (fun _ _ => GridCO.genesis_prefix _) _ proposal.1
+  exact transfer_detected_minority p _ r _ _ _ C
+    (honest_proposal_transfer_receipts p E rho h.execution hΔ h.partialSynchrony
+      h.acceptedRelay r (sync.trans early.1) horizon P proposal _ proposal.1 C)
+    (@GridCO.confirmation_majority GridCO.slowLeasePolicy p.engine p.n _ r C raw)
+
+/-- The original Draft 4.3 interface is retained. -/
 theorem recovery_proposal_detected_minority {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ) (G : Time)
     (h : RecoveryRegime (sapc p) E (sapcInterface p).toInterface (sapcConstants p G) rho)
@@ -119,10 +160,10 @@ theorem floor_below_preliminaryAnchor {n : Nat} (F : Block) (cert : Option (PC n
 
 /-- After unsupported sources expire, each honest HEAD names the exact
 fresh honest proposal. The common anchor can come from an old PC. -/
-theorem recovery_honest_proposal_head {V : Type} [DecidableEq V] [Fintype V]
+theorem recovery_honest_proposal_head_quorum {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
     (G : Time) (hG : 0 < G)
-    (h : RecoveryRegime (sapc p) E (sapcInterface p).toInterface (sapcConstants p G) rho)
+    (h : QuorumRecoveryRegime p G E rho)
     (boundary : Slot) (sources : RecoverySourcesSupported p rho boundary)
     (r : Slot) (start : voteTime p boundary ≤ proposalTime p (r + 1))
     (syncVote : E.t_GST ≤ voteTime p r) (hh : gateTime p r ≤ rho.horizon)
@@ -136,7 +177,7 @@ theorem recovery_honest_proposal_head {V : Type} [DecidableEq V] [Fintype V]
   let F := floor p source source.base.blocks (GridCO.proposerView source.base (r + 1))
     (GridCO.proposerSupportView source.base (r + 1)) (r + 1)
   let A := preliminaryAnchor F source.bestPC
-  have cap := recovery_faultBound p G E rho hG h
+  have cap := h.faultBound
   have active : capBroken p target = false := by
     dsimp only [target]
     rw [headState, capBroken_clock]
@@ -157,7 +198,7 @@ theorem recovery_honest_proposal_head {V : Type} [DecidableEq V] [Fintype V]
     apply syncVote.trans
     change 4 * p.Δ * (r : Time) + p.Δ ≤ 4 * p.Δ * ((r + 1 : Nat) : Time)
     push_cast; linarith [p.deltaPos]
-  have roots := recovery_roots_below_proposal_floor p E rho hΔ G hG h boundary sources
+  have roots := recovery_roots_below_proposal_floor_quorum p E rho hΔ G hG h boundary sources
     r start syncVote hh b hb
   have sourceRootBelow : Block.Preceq (GridCO.liveRoot source.base) A :=
     GridCO.prefix_trans _ F A roots.1 (floor_below_preliminaryAnchor F source.bestPC)
@@ -166,7 +207,7 @@ theorem recovery_honest_proposal_head {V : Type} [DecidableEq V] [Fintype V]
   have anchorEq : A = preliminaryAnchor
       (floor p target tree (GridCO.voterView p.engine target.base (r + 1))
         (GridCO.voterSupportView p.engine target.base (r + 1)) (r + 1)) cert :=
-    recovery_proposal_anchor_eq p E rho hΔ G hG h r sync headBound b hb reader hr
+    recovery_proposal_anchor_eq_quorum p E rho hΔ G hG h r sync headBound b hb reader hr
   have parent : GridCO.ghost A source.base.blocks
       (GridCO.goldfishScore source.base.blocks (GridCO.proposerView source.base (r + 1))
         (GridCO.proposerSupportView source.base (r + 1)))
@@ -226,7 +267,7 @@ theorem recovery_honest_proposal_head {V : Type} [DecidableEq V] [Fintype V]
           (r + 1) b hb syncP headBound reader hr) rfl hslot targetClosed stored hn hp))
     (fun c hc he => honest_proposal_eligible_reflects_of_minority p E rho hΔ h.execution
       h.partialSynchrony h.acceptedRelay r headBound sync
-      (recovery_proposal_detected_minority p E rho hΔ G h r syncVote headBound b hb) b hb
+      (recovery_proposal_detected_minority_quorum p E rho hΔ G h r syncVote headBound b hb) b hb
       reader hr c (activeVoterTree_subset p target (r + 1) cert hc) he)
     counts.1.symm (fun c _ _ => (counts.2.2 c).symm)
   have cover : Block.Preceq b (headData p rho (r + 1) reader).target := by
@@ -240,6 +281,20 @@ theorem recovery_honest_proposal_head {V : Type} [DecidableEq V] [Fintype V]
   exact (GridCO.prefix_eq_of_slot_ge _ _ ordered cover (by
     rw [hslot]
     exact headData_target_slot p E rho h.execution.toScheduleWellFormed (r + 1) reader)).symm
+
+/-- The original Draft 4.3 interface is retained. -/
+theorem recovery_honest_proposal_head {V : Type} [DecidableEq V] [Fintype V]
+    (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
+    (G : Time) (hG : 0 < G)
+    (h : RecoveryRegime (sapc p) E (sapcInterface p).toInterface (sapcConstants p G) rho)
+    (boundary : Slot) (sources : RecoverySourcesSupported p rho boundary)
+    (r : Slot) (start : voteTime p boundary ≤ proposalTime p (r + 1))
+    (syncVote : E.t_GST ≤ voteTime p r) (hh : gateTime p r ≤ rho.horizon)
+    (b : Block) (hb : HonestProposalAt E (sapcInterface p).toInterface rho (r + 1) b)
+    (reader : V) (hr : reader ∈ rho.honest) :
+    (headData p rho (r + 1) reader).target = b :=
+  recovery_honest_proposal_head_quorum p E rho hΔ G hG (recovery_to_quorum p G E rho hG h) boundary
+    sources r start syncVote hh b hb reader hr
 
 end AvailableChain.SAPC
 end

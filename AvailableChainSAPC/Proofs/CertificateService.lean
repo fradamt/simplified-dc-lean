@@ -31,6 +31,27 @@ theorem honestSeats_quorum {V : Type} [DecidableEq V] [Fintype V] (p : Params)
     omega
   simpa [honestSeats] using (capped_counts p _ _ hcap htotal).2.2.1
 
+/-- Awake seats at this duty; preparation and ack duties use separate sets. -/
+def awakeSeats {V : Type} [DecidableEq V] (p : Params) (E : Env V)
+    (rho : Run V (sapc p)) (r : Slot) : Finset (Fin p.n) :=
+  (awakeAt E rho.honest (voteTime p r)).map (rho.seatOf r).symm.toEmbedding
+
+theorem mem_awakeSeats {V : Type} [DecidableEq V] (p : Params) (E : Env V)
+    (rho : Run V (sapc p)) (r : Slot) (i : Fin p.n) :
+    i ∈ awakeSeats p E rho r ↔
+      rho.seatOf r i ∈ rho.honest ∧ E.awake (rho.seatOf r i) (voteTime p r) = true := by
+  simp [awakeSeats, awakeAt]
+
+/-- Full turnout supplies the awake count used by the new service theorem. -/
+theorem full_awake_quorum {V : Type} [DecidableEq V] [Fintype V] (p : Params)
+    (E : Env V) (rho : Run V (sapc p)) (cap : FaultBound (sapc p) (pcFaultCap p) rho)
+    (r : Slot) (full : ∀ v ∈ rho.honest, E.awake v (voteTime p r) = true) :
+    pcQuorum p ≤ (awakeAt E rho.honest (voteTime p r)).card := by
+  have eq : awakeAt E rho.honest (voteTime p r) = rho.honest :=
+    Finset.filter_eq_self.mpr full
+  rw [eq]
+  simpa [honestSeats] using honestSeats_quorum p rho cap r
+
 theorem savedTimely_after_tick {V : Type} [DecidableEq V] (p : Params) (E : Env V)
     (rho : Run V (sapc p)) (hs : ScheduleWellFormed E rho) (index : Nat) (v : V)
     (r : Slot) (b : Block) (t cut : Time)
@@ -42,17 +63,17 @@ theorem savedTimely_after_tick {V : Type} [DecidableEq V] (p : Params) (E : Env 
   exact Nat.succ_le_of_lt ((index_lt_read_length_iff hs (cut - 1) hi).mpr
     (Int.le_sub_one_iff.mpr ht))
 
-/-- Full capped participation supplies the exact seat quorum and actual
+/-- An awake quorum under the cap supplies the seat count and actual
 handler calls. Only the fork-choice equality remains as a proof input;
 the proposal path and early clock tick follow from the engine. -/
-theorem full_preparations_saved {V : Type} [DecidableEq V] [Fintype V]
+theorem quorum_preparations_saved {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (sapc p))
     (hx : ExecutionValid (sapc p) E rho) (hΔ : E.Δ = p.Δ)
     (hcap : FaultBound (sapc p) (pcFaultCap p) rho)
     (hnet : PartialSynchrony (sapc p) E rho) (s : Slot) (b : Block)
     (hb : HonestProposalAt E (sapcInterface p).toInterface rho s b)
     (hsync : E.t_GST ≤ proposalTime p s) (hh : earlyTime p s ≤ rho.horizon)
-    (hawake : ∀ v ∈ rho.honest, E.awake v (voteTime p s) = true)
+    (hawake : pcQuorum p ≤ (awakeAt E rho.honest (voteTime p s)).card)
     (hchoice : ∀ v ∈ rho.honest, (headData p rho s v).target = b)
     (reader : V) (hr : reader ∈ rho.honest) (cut : Time) (hcut : earlyTime p s < cut) :
     savedTimely (Run.stateBeforeTime (sapc p) rho cut reader) s = some (some b) := by
@@ -76,16 +97,31 @@ theorem full_preparations_saved {V : Type} [DecidableEq V] [Fintype V]
   obtain ⟨hpos, hne, hslot⟩ := honest_proposal_slot p E rho hx.toScheduleWellFormed s b hb
   refine timely_saved_of_synchronous_preparations p E rho hx hcap hnet hΔ
     index reader hr s b hi hpos hne hslot (hsync.trans hpe) hh ?_
-    (honestSeats p rho s) (honestSeats_quorum p rho hcap s) ?_
+    (awakeSeats p E rho s) (by simpa [awakeSeats] using hawake) ?_
   · obtain ⟨_, _, hem⟩ := honest_proposal_views p E rho hx.toScheduleWellFormed s b hb
     obtain ⟨j, t, _, ht, ha⟩ := synchronous_proposal_accepted p E rho hx hΔ hnet s hsync
       (hve.trans hh) (rho.proposerOf s) reader hb.1 hr b _ _ _ hem
     exact ⟨j, _, _, _, _, t, rfl, ha, ht.trans_le hve⟩
   · intro i hi
-    have honest := (mem_honestSeats p rho s i).mp hi
+    obtain ⟨honest, awake⟩ := (mem_awakeSeats p E rho s i).mp hi
     exact ⟨honest, headData p rho s (rho.seatOf s i), hchoice _ honest,
-      honest_head_emitted p E rho hx.toScheduleWellFormed hΔ s i honest (hawake _ honest)
+      honest_head_emitted p E rho hx.toScheduleWellFormed hΔ s i honest awake
         (hve.trans hh)⟩
+
+/-- The full-participation interface follows from awake quorum service. -/
+theorem full_preparations_saved {V : Type} [DecidableEq V] [Fintype V]
+    (p : Params) (E : Env V) (rho : Run V (sapc p))
+    (hx : ExecutionValid (sapc p) E rho) (hΔ : E.Δ = p.Δ)
+    (hcap : FaultBound (sapc p) (pcFaultCap p) rho)
+    (hnet : PartialSynchrony (sapc p) E rho) (s : Slot) (b : Block)
+    (hb : HonestProposalAt E (sapcInterface p).toInterface rho s b)
+    (hsync : E.t_GST ≤ proposalTime p s) (hh : earlyTime p s ≤ rho.horizon)
+    (hawake : ∀ v ∈ rho.honest, E.awake v (voteTime p s) = true)
+    (hchoice : ∀ v ∈ rho.honest, (headData p rho s v).target = b)
+    (reader : V) (hr : reader ∈ rho.honest) (cut : Time) (hcut : earlyTime p s < cut) :
+    savedTimely (Run.stateBeforeTime (sapc p) rho cut reader) s = some (some b) :=
+  quorum_preparations_saved p E rho hx hΔ hcap hnet s b hb hsync hh (full_awake_quorum p E rho hcap
+    s hawake) hchoice reader hr cut hcut
 
 /-- A completed save supplies the ack exactly when the actual next HEAD
 extends it. The next duty clock does not replace the saved value. -/
@@ -104,7 +140,7 @@ theorem headData_ack_of_saved {V : Type} [DecidableEq V] (p : Params)
 the 6Δ gate. Seat quorums, signatures, saves, paths, and deadlines all
 follow from the engine and fixed delivery premises. Choice transfer and
 compatibility of a higher stored PC remain separate obligations. -/
-theorem full_preparation_ack_service {V : Type} [DecidableEq V] [Fintype V]
+theorem quorum_preparation_ack_service {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (sapc p))
     (hx : ExecutionValid (sapc p) E rho) (hΔ : E.Δ = p.Δ)
     (hcap : FaultBound (sapc p) (pcFaultCap p) rho)
@@ -112,8 +148,8 @@ theorem full_preparation_ack_service {V : Type} [DecidableEq V] [Fintype V]
     (hrelay : AcceptedObjectRelay (sapc p) E rho) (s : Slot) (b : Block)
     (hb : HonestProposalAt E (sapcInterface p).toInterface rho s b)
     (hsync : E.t_GST ≤ proposalTime p s) (hh : gateTime p s ≤ rho.horizon)
-    (hprepAwake : ∀ v ∈ rho.honest, E.awake v (voteTime p s) = true)
-    (hackAwake : ∀ v ∈ rho.honest, E.awake v (voteTime p (s + 1)) = true)
+    (hprepAwake : pcQuorum p ≤ (awakeAt E rho.honest (voteTime p s)).card)
+    (hackAwake : pcQuorum p ≤ (awakeAt E rho.honest (voteTime p (s + 1))).card)
     (hprep : ∀ v ∈ rho.honest, (headData p rho s v).target = b)
     (hack : ∀ v ∈ rho.honest, Block.Preceq b (headData p rho (s + 1) v).target)
     (reader : V) (hr : reader ∈ rho.honest) :
@@ -139,7 +175,7 @@ theorem full_preparation_ack_service {V : Type} [DecidableEq V] [Fintype V]
   obtain ⟨hpos, hne, hslot⟩ := honest_proposal_slot p E rho hx.toScheduleWellFormed s b hb
   refine synchronous_ack_quorum_complete p E rho hx.toScheduleWellFormed hΔ hnet
     reader hr s b hpos hne hslot hackSync hh ?_
-    (honestSeats p rho (s + 1)) (honestSeats_quorum p rho hcap (s + 1)) ?_
+    (awakeSeats p E rho (s + 1)) (by simpa [awakeSeats] using hackAwake) ?_
   · obtain ⟨_, _, hem⟩ := honest_proposal_views p E rho hx.toScheduleWellFormed s b hb
     obtain ⟨j, t, _, ht, ha⟩ := synchronous_proposal_accepted p E rho hx hΔ hnet s hsync
       (htimes.2.1.trans hearly) (rho.proposerOf s) reader hb.1 hr b _ _ _ hem
@@ -147,17 +183,39 @@ theorem full_preparation_ack_service {V : Type} [DecidableEq V] [Fintype V]
       rfl t _ ha (ht.trans_le (htimes.2.1.trans
         ((le_of_lt htimes.2.2.1).trans htimes.2.2.2)))
   · intro i hi
-    have honest := (mem_honestSeats p rho (s + 1) i).mp hi
-    have hsave := full_preparations_saved p E rho hx hΔ hcap hnet s b hb hsync hearly
+    obtain ⟨honest, awake⟩ := (mem_awakeSeats p E rho (s + 1) i).mp hi
+    have hsave := quorum_preparations_saved p E rho hx hΔ hcap hnet s b hb hsync hearly
       hprepAwake hprep _ honest _ htimes.2.2.1
     refine ⟨honest, headData p rho (s + 1) (rho.seatOf (s + 1) i),
       headData_ack_of_saved p rho s b _ hsave (hack _ honest), hack _ honest,
       headData_target_slot p E rho hx.toScheduleWellFormed (s + 1) _,
       honest_head_emitted p E rho hx.toScheduleWellFormed hΔ (s + 1) i honest
-        (hackAwake _ honest) (htimes.2.2.2.trans hh), ?_⟩
+        awake (htimes.2.2.2.trans hh), ?_⟩
     rw [← ack_early_eq_gate]
     exact headData_target_at_early p E rho hx.toScheduleWellFormed hΔ hrelay (s + 1)
       hackSync (by rwa [ack_early_eq_gate]) _ reader honest hr
+
+/-- The full-participation interface follows from awake quorum service. -/
+theorem full_preparation_ack_service {V : Type} [DecidableEq V] [Fintype V]
+    (p : Params) (E : Env V) (rho : Run V (sapc p))
+    (hx : ExecutionValid (sapc p) E rho) (hΔ : E.Δ = p.Δ)
+    (hcap : FaultBound (sapc p) (pcFaultCap p) rho)
+    (hnet : PartialSynchrony (sapc p) E rho)
+    (hrelay : AcceptedObjectRelay (sapc p) E rho) (s : Slot) (b : Block)
+    (hb : HonestProposalAt E (sapcInterface p).toInterface rho s b)
+    (hsync : E.t_GST ≤ proposalTime p s) (hh : gateTime p s ≤ rho.horizon)
+    (hprepAwake : ∀ v ∈ rho.honest, E.awake v (voteTime p s) = true)
+    (hackAwake : ∀ v ∈ rho.honest, E.awake v (voteTime p (s + 1)) = true)
+    (hprep : ∀ v ∈ rho.honest, (headData p rho s v).target = b)
+    (hack : ∀ v ∈ rho.honest, Block.Preceq b (headData p rho (s + 1) v).target)
+    (reader : V) (hr : reader ∈ rho.honest) :
+    (∃ c, c.slot = s ∧ c.target = b ∧
+      pcValid p (Run.stateBeforeTime (sapc p) rho (gateTime p s) reader) c = true) ∧
+      ∃ d, (Run.stateBeforeTime (sapc p) rho (gateTime p s) reader).bestPC = some d ∧
+        s ≤ d.slot :=
+  quorum_preparation_ack_service p E rho hx hΔ hcap hnet hrelay s b hb hsync hh (full_awake_quorum
+    p E rho hcap s hprepAwake) (full_awake_quorum p E rho hcap (s + 1) hackAwake) hprep hack reader
+    hr
 
 end AvailableChain.SAPC
 end

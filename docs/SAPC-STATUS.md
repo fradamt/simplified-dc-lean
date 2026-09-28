@@ -36,6 +36,65 @@ No base or companion contract definition, executable rule, or existing
 invariant field changed. The shared engine remains unchanged. Shared
 proof helpers retain the Grid CO and SA theorem interfaces.
 
+## Quorum participation (r95 rank 1)
+
+_2026-09-28. Additional SA-PC theorems; Draft 4.3 stays frozen._
+
+[`Statements/QuorumRecovery.lean`](../AvailableChainSAPC/Statements/QuorumRecovery.lean)
+adds `QuorumRecoveryRegime p G E rho`. It requires `a ≤ f` and
+`q ≤ (awakeAt E rho.honest t).card` for `GST ≤ t ≤ rho.horizon`.
+Execution validity, root injectivity, synchrony, accepted relay, proposer
+recurrence, and the recovery horizon keep their original meaning.
+The awake set may change at each duty. The relative two-thirds condition
+follows from these count premises; it is not an extra assumption.
+
+The proof uses `awake_batch_late_count` and
+`quorum_support_above_floor`: `|D| ≥ h_t ≥ q > 2f`, so a raw strict
+majority has support above `f`. The `_quorum` recovery lemmas then carry
+this fact through finite-source support, the two-lease boundary, proposal
+choice, gate repair, and the ordered recovered history.
+
+The added public results are:
+
+- `sapc_recovered_quorum_from_engine` in
+  [`RecoverySafety.lean`](../AvailableChainSAPC/Proofs/RecoverySafety.lean):
+  the same `RecoveredAt` conclusion at `GST + 2L + G + 8Δ`.
+- `sapc_strongRecovered_quorum_from_engine` in
+  [`RecoveryStrong.lean`](../AvailableChainSAPC/Proofs/RecoveryStrong.lean):
+  recovered strong agreement, monotonicity, and `6Δ` inclusion.
+- `strong_included_quorum_from_engine` in
+  [`StrongClean.lean`](../AvailableChainSAPC/Proofs/StrongClean.lean):
+  clean `6Δ` strong inclusion under Sleepy, the cap, and an awake quorum.
+- `quorum_preparation_ack_service` in
+  [`CertificateService.lean`](../AvailableChainSAPC/Proofs/CertificateService.lean):
+  per-proposal PC service with an awake quorum at each of the two duties.
+  The two seat sets are independent. All honest readers save the timely
+  preparation evidence, including readers that are asleep.
+
+`recovery_to_quorum` derives the new regime from the original full
+regime. The original public recovery and clean inclusion theorems use
+the new results. All existing theorem signatures are retained. The
+executable rule, contract definitions, constants, and engine are unchanged.
+The source argument is `sapc-improve.md` §§3 and 7.1 and
+`sapc-base-recovery.md` §9 in the research `tip-stability/codex` directory.
+
+Validation: targeted checks pass with `--wfail`, and the full
+`lake build --wfail` passes all 3,535 jobs without warnings. The 41 new
+public theorems all have `#print axioms` checks in the default audit
+(912 SA-PC entries). They use only `propext`, `Classical.choice`, and
+`Quot.sound`. `git diff --check` passes. No `sorry`, `admit`, project
+axiom, or default import of `Pending/` was added.
+
+Pending: none for r95 rank 1. This result retains the fault cap and the
+absolute quorum premise. Recovery below that count and protocol changes
+from other paper ranks are outside this task.
+
+No Git commit or `lake update` was made. `state.md` and `log.md` were not
+changed. Validation used the installed throttle; the first blocked build
+was stopped after an elapsed-time and CPU check, then retried with lock
+access. No throttle setting changed. All session scratch files were kept
+inside this repository and removed after validation.
+
 ## Sources and scope
 
 The source directory is

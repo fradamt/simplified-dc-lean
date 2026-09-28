@@ -30,10 +30,10 @@ theorem installedPC_retained_at_gate {V : Type} [DecidableEq V] [Fintype V]
 
 /-- Each honest opening after the supported boundary repairs both public
 outputs and strong by 6Δ. The raw result is the same fresh block. -/
-theorem recovery_proposal_after_sources {V : Type} [DecidableEq V] [Fintype V]
+theorem recovery_proposal_after_sources_quorum {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
     (G : Time) (hG : 0 < G)
-    (h : RecoveryRegime (sapc p) E (sapcInterface p).toInterface (sapcConstants p G) rho)
+    (h : QuorumRecoveryRegime p G E rho)
     (boundary : Slot) (positive : 0 < boundary) (sync : E.t_GST ≤ proposalTime p boundary)
     (sources : RecoverySourcesSupported p rho boundary)
     (s : Slot) (start : proposalTime p boundary < proposalTime p s)
@@ -65,7 +65,7 @@ theorem recovery_proposal_after_sources {V : Type} [DecidableEq V] [Fintype V]
     have cast : (boundary : Time) ≤ r := by exact_mod_cast before
     change 4 * p.Δ * (boundary : Time) + p.Δ ≤ 4 * p.Δ * ((r + 1 : Nat) : Time)
     push_cast; nlinarith [p.deltaPos]
-  have service := recovery_proposal_service p E rho hΔ G hG h boundary sources r startVote
+  have service := recovery_proposal_service_quorum p E rho hΔ G hG h boundary sources r startVote
     syncVote horizon B proposal
   refine ⟨B, proposal, ?_, fun v hv => (service v hv).1⟩
   intro v hv
@@ -80,19 +80,36 @@ theorem recovery_proposal_after_sources {V : Type} [DecidableEq V] [Fintype V]
     apply startVote.trans
     change 4 * p.Δ * ((r + 1 : Nat) : Time) ≤ 4 * p.Δ * ((r + 1 : Nat) : Time) + 6 * p.Δ
     linarith [p.deltaPos]
-  refine ⟨recovery_gate_repairs_record p E rho hΔ G h boundary sources (r + 1) pos startGate
+  refine ⟨recovery_gate_repairs_record_quorum p E rho hΔ G h boundary sources (r + 1) pos startGate
     syncNext horizon v hv B slotB raw c selected target, ?_⟩
   have retained := installedPC_retained_at_gate p E rho h.execution
-    (capped_quorum_above_faults p rho (recovery_faultBound p G E rho hG h))
+    (capped_quorum_above_faults p rho (h.faultBound))
     (r + 1) v c selected slot
   simpa only [strong, retained, Option.map_some, Option.getD_some] using target
 
-/-- The requested recovery deadline includes a real fresh common repair
-of S and strong, supplied by the unchanged opening recurrence. -/
-theorem recovery_common_repair {V : Type} [DecidableEq V] [Fintype V]
+/-- The original Draft 4.3 interface is retained. -/
+theorem recovery_proposal_after_sources {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
     (G : Time) (hG : 0 < G)
-    (h : RecoveryRegime (sapc p) E (sapcInterface p).toInterface (sapcConstants p G) rho) :
+    (h : RecoveryRegime (sapc p) E (sapcInterface p).toInterface (sapcConstants p G) rho)
+    (boundary : Slot) (positive : 0 < boundary) (sync : E.t_GST ≤ proposalTime p boundary)
+    (sources : RecoverySourcesSupported p rho boundary)
+    (s : Slot) (start : proposalTime p boundary < proposalTime p s)
+    (proposer : HonestAwakeProposer E rho s) (horizon : gateTime p s ≤ rho.horizon) :
+    ∃ B, HonestProposalAt E (sapcInterface p).toInterface rho s B ∧
+      (∀ v ∈ rho.honest, stable (Run.readAt (sapc p) rho (gateTime p s) v) = B ∧
+        strong (Run.readAt (sapc p) rho (gateTime p s) v) = B) ∧
+      ∀ v ∈ rho.honest,
+        SA.confirmation p (Run.stateBeforeTime (sapc p) rho (gateTime p s) v).base s = some B :=
+  recovery_proposal_after_sources_quorum p E rho hΔ G hG (recovery_to_quorum p G E rho hG h)
+    boundary positive sync sources s start proposer horizon
+
+/-- The requested recovery deadline includes a real fresh common repair
+of S and strong, supplied by the unchanged opening recurrence. -/
+theorem recovery_common_repair_quorum {V : Type} [DecidableEq V] [Fintype V]
+    (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
+    (G : Time) (hG : 0 < G)
+    (h : QuorumRecoveryRegime p G E rho) :
     ∃ boundary s B, 0 < boundary ∧ E.t_GST < proposalTime p boundary ∧
       RecoverySourcesSupported p rho boundary ∧ boundary < s ∧
       gateTime p s ≤ E.t_GST + (sapcConstants p G).recoveryBound ∧
@@ -101,7 +118,7 @@ theorem recovery_common_repair {V : Type} [DecidableEq V] [Fintype V]
         strong (Run.readAt (sapc p) rho (gateTime p s) v) = B) ∧
       ∀ v ∈ rho.honest,
         SA.confirmation p (Run.stateBeforeTime (sapc p) rho (gateTime p s) v).base s = some B := by
-  obtain ⟨boundary, pos, sync, sources, bound⟩ := recovery_source_boundary p E rho hΔ G hG h
+  obtain ⟨boundary, pos, sync, sources, bound⟩ := recovery_source_boundary_quorum p E rho hΔ G hG h
   have window : proposalTime p boundary + (sapcConstants p G).proposerGap ≤ rho.horizon := by
     have horizon := h.horizon
     change E.t_GST + (sapcConstants p G).recoveryBound ≤ rho.horizon at horizon
@@ -113,7 +130,7 @@ theorem recovery_common_repair {V : Type} [DecidableEq V] [Fintype V]
   have repairTime : gateTime p s ≤ E.t_GST + (sapcConstants p G).recoveryBound := by
     change proposalTime p s + 6 * p.Δ ≤ _
     linarith
-  obtain ⟨B, proposal, records, raw⟩ := recovery_proposal_after_sources p E rho hΔ G hG h
+  obtain ⟨B, proposal, records, raw⟩ := recovery_proposal_after_sources_quorum p E rho hΔ G hG h
     boundary pos sync.le sources s lo awake (repairTime.trans h.horizon)
   have later : boundary < s := by
     by_contra hn
@@ -121,19 +138,34 @@ theorem recovery_common_repair {V : Type} [DecidableEq V] [Fintype V]
       (Nat.le_of_not_gt hn))) lo
   exact ⟨boundary, s, B, pos, sync, sources, later, repairTime, proposal, records, raw⟩
 
-/-- Both base inclusion fields and the strong recovered inclusion field
-hold after the declared deadline. Safety of arbitrary later reads is separate. -/
-theorem recovery_included_from_engine {V : Type} [DecidableEq V] [Fintype V]
+/-- The original Draft 4.3 interface is retained. -/
+theorem recovery_common_repair {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
     (G : Time) (hG : 0 < G)
     (h : RecoveryRegime (sapc p) E (sapcInterface p).toInterface (sapcConstants p G) rho) :
+    ∃ boundary s B, 0 < boundary ∧ E.t_GST < proposalTime p boundary ∧
+      RecoverySourcesSupported p rho boundary ∧ boundary < s ∧
+      gateTime p s ≤ E.t_GST + (sapcConstants p G).recoveryBound ∧
+      HonestProposalAt E (sapcInterface p).toInterface rho s B ∧
+      (∀ v ∈ rho.honest, stable (Run.readAt (sapc p) rho (gateTime p s) v) = B ∧
+        strong (Run.readAt (sapc p) rho (gateTime p s) v) = B) ∧
+      ∀ v ∈ rho.honest,
+        SA.confirmation p (Run.stateBeforeTime (sapc p) rho (gateTime p s) v).base s = some B :=
+  recovery_common_repair_quorum p E rho hΔ G hG (recovery_to_quorum p G E rho hG h)
+
+/-- Both base inclusion fields and the strong recovered inclusion field
+hold after the declared deadline. Safety of arbitrary later reads is separate. -/
+theorem recovery_included_from_engine_quorum {V : Type} [DecidableEq V] [Fintype V]
+    (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
+    (G : Time) (hG : 0 < G)
+    (h : QuorumRecoveryRegime p G E rho) :
     IncludedFrom (sapc p) E (sapcInterface p).toInterface rho (sapcInterface p).stable
         (E.t_GST + (sapcConstants p G).recoveryBound) (sapcConstants p G).D_s ∧
       IncludedFrom (sapc p) E (sapcInterface p).toInterface rho (sapcInterface p).confirmed
         (E.t_GST + (sapcConstants p G).recoveryBound) (sapcConstants p G).D_c ∧
       IncludedFrom (sapc p) E (sapcInterface p).toInterface rho (sapcInterface p).strong
         (E.t_GST + (sapcConstants p G).recoveryBound) (sapcStrongConstants p).strongDelay := by
-  obtain ⟨boundary, pos, sync, sources, bound⟩ := recovery_source_boundary p E rho hΔ G hG h
+  obtain ⟨boundary, pos, sync, sources, bound⟩ := recovery_source_boundary_quorum p E rho hΔ G hG h
   have service (s : Slot)
       (after : E.t_GST + (sapcConstants p G).recoveryBound < proposalTime p s)
       (awake : HonestAwakeProposer E rho s) (horizon : gateTime p s ≤ rho.horizon) :
@@ -142,7 +174,7 @@ theorem recovery_included_from_engine {V : Type} [DecidableEq V] [Fintype V]
           strong (Run.readAt (sapc p) rho (gateTime p s) v) = B) := by
     have start : proposalTime p boundary < proposalTime p s := by
       linarith [p.deltaPos]
-    obtain ⟨B, proposal, records, _⟩ := recovery_proposal_after_sources p E rho hΔ G hG h
+    obtain ⟨B, proposal, records, _⟩ := recovery_proposal_after_sources_quorum p E rho hΔ G hG h
       boundary pos sync.le sources s start awake horizon
     exact ⟨B, proposal, records⟩
   have base : IncludedFrom (sapc p) E (sapcInterface p).toInterface rho (sapcInterface p).stable
@@ -162,6 +194,19 @@ theorem recovery_included_from_engine {V : Type} [DecidableEq V] [Fintype V]
   change Block.Preceq B (strong (Run.readAt (sapc p) rho (gateTime p s) v))
   rw [(records v hv).2]
   exact GridCO.block_preceq_self _
+
+/-- The original Draft 4.3 interface is retained. -/
+theorem recovery_included_from_engine {V : Type} [DecidableEq V] [Fintype V]
+    (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
+    (G : Time) (hG : 0 < G)
+    (h : RecoveryRegime (sapc p) E (sapcInterface p).toInterface (sapcConstants p G) rho) :
+    IncludedFrom (sapc p) E (sapcInterface p).toInterface rho (sapcInterface p).stable
+        (E.t_GST + (sapcConstants p G).recoveryBound) (sapcConstants p G).D_s ∧
+      IncludedFrom (sapc p) E (sapcInterface p).toInterface rho (sapcInterface p).confirmed
+        (E.t_GST + (sapcConstants p G).recoveryBound) (sapcConstants p G).D_c ∧
+      IncludedFrom (sapc p) E (sapcInterface p).toInterface rho (sapcInterface p).strong
+        (E.t_GST + (sapcConstants p G).recoveryBound) (sapcStrongConstants p).strongDelay :=
+  recovery_included_from_engine_quorum p E rho hΔ G hG (recovery_to_quorum p G E rho hG h)
 
 end AvailableChain.SAPC
 end

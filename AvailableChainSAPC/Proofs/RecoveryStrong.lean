@@ -8,17 +8,17 @@ open AvailableChain.Generic AvailableChain.Statements.Generic AvailableChain.Eng
 
 /-- Supported leases put every finite root below a synchronous timely N.
 Thus N transfers even at the last HEAD, without a following-gate horizon. -/
-theorem recovery_timely_head_covers {V : Type} [DecidableEq V] [Fintype V]
+theorem recovery_timely_head_covers_quorum {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
-    (G : Time) (hG : 0 < G)
-    (h : RecoveryRegime (sapc p) E (sapcInterface p).toInterface (sapcConstants p G) rho)
+    (G : Time) (_hG : 0 < G)
+    (h : QuorumRecoveryRegime p G E rho)
     (boundary : Slot) (sources : RecoverySourcesSupported p rho boundary)
     (r : Slot) (start : boundary ≤ r) (sync : E.t_GST ≤ earlyTime p r)
     (horizon : voteTime p (r + 1) ≤ rho.horizon)
     (i : Nat) (v : V) (hv : v ∈ rho.honest) (B : Block)
     (saved : savedTimely (Run.stateBefore (sapc p) rho i v) r = some (some B)) :
     RecoveryHeadCovers p rho r B := by
-  have cap := recovery_faultBound p G E rho hG h
+  have cap := h.faultBound
   intro w hw
   have root : Block.Preceq (GridCO.liveRoot (headState p rho (r + 1) w).base) B := by
     apply GridCO.liveRoot_below_of_rows
@@ -34,13 +34,27 @@ theorem recovery_timely_head_covers {V : Type} [DecidableEq V] [Fintype V]
     v w hv hw horizon B (savedTimely_candidate_at_early p E rho h.execution.toScheduleWellFormed
       i v r B saved) active (Bool.or_eq_true_iff.mpr (Or.inl root))
 
-/-- Timely preparation targets after the source boundary continue through
-all later complete HEADs. The first transfer uses q support; later transfers
-reuse the proved recovery raw-history induction. -/
-theorem recovery_timely_later_heads {V : Type} [DecidableEq V] [Fintype V]
+/-- The original Draft 4.3 interface is retained. -/
+theorem recovery_timely_head_covers {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
     (G : Time) (hG : 0 < G)
     (h : RecoveryRegime (sapc p) E (sapcInterface p).toInterface (sapcConstants p G) rho)
+    (boundary : Slot) (sources : RecoverySourcesSupported p rho boundary)
+    (r : Slot) (start : boundary ≤ r) (sync : E.t_GST ≤ earlyTime p r)
+    (horizon : voteTime p (r + 1) ≤ rho.horizon)
+    (i : Nat) (v : V) (hv : v ∈ rho.honest) (B : Block)
+    (saved : savedTimely (Run.stateBefore (sapc p) rho i v) r = some (some B)) :
+    RecoveryHeadCovers p rho r B :=
+  recovery_timely_head_covers_quorum p E rho hΔ G hG (recovery_to_quorum p G E rho hG h) boundary
+    sources r start sync horizon i v hv B saved
+
+/-- Timely preparation targets after the source boundary continue through
+all later complete HEADs. The first transfer uses q support; later transfers
+reuse the proved recovery raw-history induction. -/
+theorem recovery_timely_later_heads_quorum {V : Type} [DecidableEq V] [Fintype V]
+    (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
+    (G : Time) (hG : 0 < G)
+    (h : QuorumRecoveryRegime p G E rho)
     (boundary : Slot) (sources : RecoverySourcesSupported p rho boundary)
     (r s : Slot) (start : boundary ≤ r) (sync : E.t_GST ≤ voteTime p r) (before : r < s)
     (horizon : voteTime p (s + 1) ≤ rho.horizon)
@@ -55,7 +69,7 @@ theorem recovery_timely_later_heads {V : Type} [DecidableEq V] [Fintype V]
     have cast : (a : Time) ≤ b := by exact_mod_cast le
     change 4 * p.Δ * (a : Time) + p.Δ ≤ 4 * p.Δ * (b : Time) + p.Δ
     nlinarith [p.deltaPos]
-  have first := recovery_timely_head_covers p E rho hΔ G hG h boundary sources r start early
+  have first := recovery_timely_head_covers_quorum p E rho hΔ G hG h boundary sources r start early
     ((timeMono (r + 1) (s + 1) (Nat.add_le_add_right before.le 1)).trans horizon) i v hv B saved
   by_cases eq : s = r + 1
   · subst s; exact first
@@ -79,27 +93,42 @@ theorem recovery_timely_later_heads {V : Type} [DecidableEq V] [Fintype V]
     constructor <;> linarith [p.deltaPos]
   obtain ⟨C, raw, below⟩ := preserve_from_heads p E rho h.execution hΔ h.partialSynchrony
     h.acceptedRelay (r + 1) syncNext (times.2.trans firstGate)
-    (recovery_awake_majority p E rho G h _ syncNext (times.1.trans (times.2.trans firstGate)))
+    (recovery_awake_majority_quorum p E rho G h _ syncNext (times.1.trans (times.2.trans
+      firstGate)))
     B first v hv
-  have support := (recovery_boundary_genuine_supported p E rho hΔ G hG h boundary sources
+  have support := (recovery_boundary_genuine_supported_quorum p E rho hΔ G hG h boundary sources
     (r + 1) (start.trans (Nat.le_succ r)) syncNext firstGate v hv B C raw below
     (s - 1) (Nat.le_sub_one_of_lt later) bound).2.1
   have eq : s - 1 + 1 = s := Nat.sub_add_cancel (Nat.zero_le r |>.trans_lt before)
   simpa only [RecoveryHeadCovers, eq] using support
 
-/-- Later PC targets extend earlier post-boundary PC targets, including
-certificates first assembled from old evidence at a later read. -/
-theorem recovery_pc_target_prefix {V : Type} [DecidableEq V] [Fintype V]
+/-- The original Draft 4.3 interface is retained. -/
+theorem recovery_timely_later_heads {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
     (G : Time) (hG : 0 < G)
     (h : RecoveryRegime (sapc p) E (sapcInterface p).toInterface (sapcConstants p G) rho)
+    (boundary : Slot) (sources : RecoverySourcesSupported p rho boundary)
+    (r s : Slot) (start : boundary ≤ r) (sync : E.t_GST ≤ voteTime p r) (before : r < s)
+    (horizon : voteTime p (s + 1) ≤ rho.horizon)
+    (i : Nat) (v : V) (hv : v ∈ rho.honest) (B : Block)
+    (saved : savedTimely (Run.stateBefore (sapc p) rho i v) r = some (some B)) :
+    ∀ w ∈ rho.honest, Block.Preceq B (headData p rho s w).target :=
+  recovery_timely_later_heads_quorum p E rho hΔ G hG (recovery_to_quorum p G E rho hG h) boundary
+    sources r s start sync before horizon i v hv B saved
+
+/-- Later PC targets extend earlier post-boundary PC targets, including
+certificates first assembled from old evidence at a later read. -/
+theorem recovery_pc_target_prefix_quorum {V : Type} [DecidableEq V] [Fintype V]
+    (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
+    (G : Time) (hG : 0 < G)
+    (h : QuorumRecoveryRegime p G E rho)
     (boundary : Slot) (sources : RecoverySourcesSupported p rho boundary)
     (sync : E.t_GST ≤ proposalTime p boundary)
     (t t' : Time) (horizon : t' ≤ rho.horizon) (u v : V) (c d : PC p.n)
     (left : (Run.readAt (sapc p) rho t u).bestPC = some c)
     (right : (Run.readAt (sapc p) rho t' v).bestPC = some d)
     (start : boundary ≤ c.slot) (slots : c.slot < d.slot) : Block.Preceq c.target d.target := by
-  have cap := recovery_faultBound p G E rho hG h
+  have cap := h.faultBound
   have ha := capped_quorum_above_faults p rho cap
   have ack := installedPC_time_le_read p E rho h.execution.toUnforgeableSignatures ha v t' d right
   have validC := installedPC_valid_at_read p rho u t c left
@@ -113,20 +142,34 @@ theorem recovery_pc_target_prefix {V : Type} [DecidableEq V] [Fintype V]
     change 4 * p.Δ * (boundary : Time) ≤ 4 * p.Δ * (c.slot : Time) + p.Δ
     change 4 * p.Δ * (boundary : Time) ≤ 4 * p.Δ * (c.slot : Time) at time
     linarith [p.deltaPos]
-  exact recovery_timely_later_heads p E rho hΔ G hG h boundary sources c.slot d.slot
+  exact recovery_timely_later_heads_quorum p E rho hΔ G hG h boundary sources c.slot d.slot
     start syncVote slots (ack.trans horizon) (i + 1) w hw c.target saved
+
+/-- The original Draft 4.3 interface is retained. -/
+theorem recovery_pc_target_prefix {V : Type} [DecidableEq V] [Fintype V]
+    (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
+    (G : Time) (hG : 0 < G)
+    (h : RecoveryRegime (sapc p) E (sapcInterface p).toInterface (sapcConstants p G) rho)
+    (boundary : Slot) (sources : RecoverySourcesSupported p rho boundary)
+    (sync : E.t_GST ≤ proposalTime p boundary)
+    (t t' : Time) (horizon : t' ≤ rho.horizon) (u v : V) (c d : PC p.n)
+    (left : (Run.readAt (sapc p) rho t u).bestPC = some c)
+    (right : (Run.readAt (sapc p) rho t' v).bestPC = some d)
+    (start : boundary ≤ c.slot) (slots : c.slot < d.slot) : Block.Preceq c.target d.target :=
+  recovery_pc_target_prefix_quorum p E rho hΔ G hG (recovery_to_quorum p G E rho hG h) boundary
+    sources sync t t' horizon u v c d left right start slots
 
 /-- The common fresh repair supplies a permanent rank lower bound.
 Target order then gives agreement and monotonicity for all recovered reads. -/
-theorem strong_recovered_safe_from_engine {V : Type} [DecidableEq V] [Fintype V]
+theorem strong_recovered_safe_from_engine_quorum {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
     (G : Time) (hG : 0 < G)
-    (h : RecoveryRegime (sapc p) E (sapcInterface p).toInterface (sapcConstants p G) rho) :
+    (h : QuorumRecoveryRegime p G E rho) :
     SafeFrom (sapc p) rho (sapcInterface p).strong
       (E.t_GST + (sapcConstants p G).recoveryBound) := by
   obtain ⟨boundary, repair, B, pos, sync, sources, later, deadline, proposal, records, _⟩ :=
-    recovery_common_repair p E rho hΔ G hG h
-  have cap := recovery_faultBound p G E rho hG h
+    recovery_common_repair_quorum p E rho hΔ G hG h
+  have cap := h.faultBound
   have slotB := (honest_proposal_slot p E rho h.execution.toScheduleWellFormed
     repair B proposal).2.2
   have nonzero : B ≠ .genesis := by
@@ -166,7 +209,7 @@ theorem strong_recovered_safe_from_engine {V : Type} [DecidableEq V] [Fintype V]
       (strong (Run.readAt (sapc p) rho t' v))
     simp only [strong, selectedC, selectedD, Option.map_some, Option.getD_some]
     rcases lt_trichotomy c.slot d.slot with lt | eq | lt
-    · exact Bool.or_eq_true_iff.mpr (Or.inl (recovery_pc_target_prefix p E rho hΔ G hG h
+    · exact Bool.or_eq_true_iff.mpr (Or.inl (recovery_pc_target_prefix_quorum p E rho hΔ G hG h
         boundary sources sync.le t t' hi' u v c d selectedC selectedD startC lt))
     · have targets := pc_same_slot_unique p E rho h.execution.toScheduleWellFormed cap _ _
         (archive_authenticated_at_read p E rho h.execution.toUnforgeableSignatures t u)
@@ -175,7 +218,7 @@ theorem strong_recovered_safe_from_engine {V : Type} [DecidableEq V] [Fintype V]
         (installedPC_valid_at_read p rho v t' d selectedD) eq
       rw [targets]
       exact Bool.or_eq_true_iff.mpr (Or.inl (GridCO.block_preceq_self _))
-    · exact Bool.or_eq_true_iff.mpr (Or.inr (recovery_pc_target_prefix p E rho hΔ G hG h
+    · exact Bool.or_eq_true_iff.mpr (Or.inr (recovery_pc_target_prefix_quorum p E rho hΔ G hG h
         boundary sources sync.le t' t hi v u d c selectedD selectedC startD lt))
   · intro v hv t t' lo le hi
     obtain ⟨c, selected, start⟩ := installed v hv t lo
@@ -186,18 +229,46 @@ theorem strong_recovered_safe_from_engine {V : Type} [DecidableEq V] [Fintype V]
     simp only [strong, selected, next, Option.map_some, Option.getD_some]
     rcases rank with rfl | lt
     · exact GridCO.block_preceq_self _
-    · exact recovery_pc_target_prefix p E rho hΔ G hG h boundary sources sync.le t t' hi
+    · exact recovery_pc_target_prefix_quorum p E rho hΔ G hG h boundary sources sync.le t t' hi
         v v c d selected next start lt
 
-/-- The companion's exact recovered inclusion field. Recovery already
-derives its cap from the unchanged base constants. -/
+/-- The original Draft 4.3 interface is retained. -/
+theorem strong_recovered_safe_from_engine {V : Type} [DecidableEq V] [Fintype V]
+    (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
+    (G : Time) (hG : 0 < G)
+    (h : RecoveryRegime (sapc p) E (sapcInterface p).toInterface (sapcConstants p G) rho) :
+    SafeFrom (sapc p) rho (sapcInterface p).strong
+      (E.t_GST + (sapcConstants p G).recoveryBound) :=
+  strong_recovered_safe_from_engine_quorum p E rho hΔ G hG (recovery_to_quorum p G E rho hG h)
+
+/-- The companion's recovered inclusion conclusion under the quorum regime. -/
+theorem strong_recovered_included_from_engine_quorum {V : Type} [DecidableEq V] [Fintype V]
+    (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
+    (G : Time) (hG : 0 < G)
+    (h : QuorumRecoveryRegime p G E rho) :
+    IncludedFrom (sapc p) E (sapcInterface p).toInterface rho (sapcInterface p).strong
+      (E.t_GST + (sapcConstants p G).recoveryBound) (sapcStrongConstants p).strongDelay :=
+  (recovery_included_from_engine_quorum p E rho hΔ G hG h).2.2
+
+/-- The original Draft 4.3 interface is retained. -/
 theorem strong_recovered_included_from_engine {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
     (G : Time) (hG : 0 < G)
     (h : RecoveryRegime (sapc p) E (sapcInterface p).toInterface (sapcConstants p G) rho) :
     IncludedFrom (sapc p) E (sapcInterface p).toInterface rho (sapcInterface p).strong
       (E.t_GST + (sapcConstants p G).recoveryBound) (sapcStrongConstants p).strongDelay :=
-  (recovery_included_from_engine p E rho hΔ G hG h).2.2
+  strong_recovered_included_from_engine_quorum p E rho hΔ G hG (recovery_to_quorum p G E rho hG h)
+
+/-- Quorum participation gives recovered strong safety and 6Δ inclusion. -/
+theorem sapc_strongRecovered_quorum_from_engine {V : Type} [DecidableEq V] [Fintype V]
+    (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
+    (G : Time) (hG : 0 < G) (h : QuorumRecoveryRegime p G E rho) :
+    SafeFrom (sapc p) rho (sapcInterface p).strong
+      (E.t_GST + (sapcConstants p G).recoveryBound) ∧
+    IncludedFrom (sapc p) E (sapcInterface p).toInterface rho (sapcInterface p).strong
+      (E.t_GST + (sapcConstants p G).recoveryBound) (6 * p.Δ) :=
+  ⟨strong_recovered_safe_from_engine_quorum p E rho hΔ G hG h,
+    strong_recovered_included_from_engine_quorum p E rho hΔ G hG h⟩
 
 end AvailableChain.SAPC
 end

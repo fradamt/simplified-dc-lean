@@ -71,5 +71,19 @@ theorem recovery_support_above_floor (p : Params) (a h support denominator : Nat
   have := (capped_counts p a h hcap hfull).2.2.2
   omega
 
+/-- An awake quorum is strictly larger than twice the fixed fault cap. -/
+theorem quorum_above_twice_cap (p : Params) : 2 * pcFaultCap p < pcQuorum p := by
+  dsimp [pcFaultCap, pcQuorum]
+  have := p.nPos
+  omega
+
+/-- The raw majority gives an F4 floor from an awake quorum. Supporting
+seats need not all be honest. -/
+theorem quorum_support_above_floor (p : Params) (h support denominator : Nat)
+    (hq : pcQuorum p ≤ h) (hdenom : h ≤ denominator)
+    (hgenuine : denominator < 2 * support) : pcFaultCap p < support := by
+  have := quorum_above_twice_cap p
+  omega
+
 end AvailableChain.SAPC
 end

@@ -1,6 +1,7 @@
 module
 public import AvailableChainSAPC.Model.Protocol
 public import AvailableChainSAPC.Statements.Contract
+public import AvailableChainSAPC.Statements.QuorumRecovery
 public import AvailableChainSAPC.Proofs.Cap
 public import AvailableChainSAPC.Proofs.GateSources
 public import AvailableChainSAPC.Proofs.RecoveryPremise

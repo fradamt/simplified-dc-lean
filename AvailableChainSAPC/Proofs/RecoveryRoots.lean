@@ -63,10 +63,10 @@ theorem recovery_clock_row_support {V : Type} [DecidableEq V] (p : Params)
 
 /-- A genuine prefix with support above f is below the honest proposer's
 F4 floor. This is independent of the proposer PC, including a conflicting PC. -/
-theorem recovery_genuine_below_proposal_floor {V : Type} [DecidableEq V] [Fintype V]
+theorem recovery_genuine_below_proposal_floor_quorum {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
     (G : Time) (hG : 0 < G)
-    (h : RecoveryRegime (sapc p) E (sapcInterface p).toInterface (sapcConstants p G) rho)
+    (h : QuorumRecoveryRegime p G E rho)
     (r : Slot) (sync : E.t_GST ≤ voteTime p r) (horizon : gateTime p r ≤ rho.horizon)
     (P : Block) (proposal : HonestProposalAt E (sapcInterface p).toInterface rho (r + 1) P)
     (v : V) (hv : v ∈ rho.honest) (B C : Block)
@@ -88,7 +88,7 @@ theorem recovery_genuine_below_proposal_floor {V : Type} [DecidableEq V] [Fintyp
     push_cast; linarith [p.deltaPos]
   have receipts := honest_proposal_transfer_receipts p E rho h.execution hΔ h.partialSynchrony
     h.acceptedRelay r (sync.trans early.1) headBound P proposal v hv B
-  have high := recovery_genuine_support_above_floor p E rho hΔ G hG h r sync
+  have high := recovery_genuine_support_above_floor_quorum p E rho hΔ G hG h r sync
     (early.2.trans horizon) v hv B C raw below
   have score : pcFaultCap p < GridCO.goldfishScore (proposalState p rho (r + 1)).base.blocks
       (GridCO.proposerView (proposalState p rho (r + 1)).base (r + 1))
@@ -112,12 +112,28 @@ theorem recovery_genuine_below_proposal_floor {V : Type} [DecidableEq V] [Fintyp
     exact (proposalState_paths p rho (r + 1)).1 target known B genesis belowTarget
   exact floor_covers p _ _ _ _ (r + 1) B stored genesis walk score
 
-/-- The proposer and all HEAD readers have finite roots below the same
-proposal floor after the source boundary. No lease-to-S invariant is used. -/
-theorem recovery_roots_below_proposal_floor {V : Type} [DecidableEq V] [Fintype V]
+/-- The original Draft 4.3 interface is retained. -/
+theorem recovery_genuine_below_proposal_floor {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
     (G : Time) (hG : 0 < G)
     (h : RecoveryRegime (sapc p) E (sapcInterface p).toInterface (sapcConstants p G) rho)
+    (r : Slot) (sync : E.t_GST ≤ voteTime p r) (horizon : gateTime p r ≤ rho.horizon)
+    (P : Block) (proposal : HonestProposalAt E (sapcInterface p).toInterface rho (r + 1) P)
+    (v : V) (hv : v ∈ rho.honest) (B C : Block)
+    (raw : SA.confirmation p (Run.stateBeforeTime (sapc p) rho (gateTime p r) v).base r = some C)
+    (below : Block.Preceq B C) :
+    let st := proposalState p rho (r + 1)
+    Block.Preceq B (floor p st st.base.blocks (GridCO.proposerView st.base (r + 1))
+      (GridCO.proposerSupportView st.base (r + 1)) (r + 1)) :=
+  recovery_genuine_below_proposal_floor_quorum p E rho hΔ G hG (recovery_to_quorum p G E rho hG h)
+    r sync horizon P proposal v hv B C raw below
+
+/-- The proposer and all HEAD readers have finite roots below the same
+proposal floor after the source boundary. No lease-to-S invariant is used. -/
+theorem recovery_roots_below_proposal_floor_quorum {V : Type} [DecidableEq V] [Fintype V]
+    (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
+    (G : Time) (hG : 0 < G)
+    (h : QuorumRecoveryRegime p G E rho)
     (boundary : Slot) (sources : RecoverySourcesSupported p rho boundary)
     (r : Slot) (start : voteTime p boundary ≤ proposalTime p (r + 1))
     (sync : E.t_GST ≤ voteTime p r) (horizon : gateTime p r ≤ rho.horizon)
@@ -153,9 +169,9 @@ theorem recovery_roots_below_proposal_floor {V : Type} [DecidableEq V] [Fintype 
       constructor <;> linarith [p.deltaPos]
     obtain ⟨C, raw, below⟩ := preserve_from_heads p E rho h.execution hΔ h.partialSynchrony
       h.acceptedRelay r sync (early.2.trans horizon)
-      (recovery_awake_majority p E rho G h _ sync (early.1.trans (early.2.trans horizon)))
+      (recovery_awake_majority_quorum p E rho G h _ sync (early.1.trans (early.2.trans horizon)))
       B cover v hv
-    exact recovery_genuine_below_proposal_floor p E rho hΔ G hG h r sync horizon
+    exact recovery_genuine_below_proposal_floor_quorum p E rho hΔ G hG h r sync horizon
       P proposal v hv B C raw below
   have proposalBefore : proposalTime p (r + 1) < gateTime p r := by
     change 4 * p.Δ * ((r + 1 : Nat) : Time) < 4 * p.Δ * (r : Time) + 6 * p.Δ
@@ -169,6 +185,23 @@ theorem recovery_roots_below_proposal_floor {V : Type} [DecidableEq V] [Fintype 
   exact ⟨root _ start proposalBefore (proposalTime_ne_gateTime p (r + 1)) _ proposal.1,
     fun v hv => root _ (start.trans proposalHead) headBefore
       (voteTime_ne_gateTime p (r + 1)) v hv⟩
+
+/-- The original Draft 4.3 interface is retained. -/
+theorem recovery_roots_below_proposal_floor {V : Type} [DecidableEq V] [Fintype V]
+    (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
+    (G : Time) (hG : 0 < G)
+    (h : RecoveryRegime (sapc p) E (sapcInterface p).toInterface (sapcConstants p G) rho)
+    (boundary : Slot) (sources : RecoverySourcesSupported p rho boundary)
+    (r : Slot) (start : voteTime p boundary ≤ proposalTime p (r + 1))
+    (sync : E.t_GST ≤ voteTime p r) (horizon : gateTime p r ≤ rho.horizon)
+    (P : Block) (proposal : HonestProposalAt E (sapcInterface p).toInterface rho (r + 1) P) :
+    let st := proposalState p rho (r + 1)
+    let F := floor p st st.base.blocks (GridCO.proposerView st.base (r + 1))
+      (GridCO.proposerSupportView st.base (r + 1)) (r + 1)
+    Block.Preceq (GridCO.liveRoot st.base) F ∧
+      ∀ v ∈ rho.honest, Block.Preceq (GridCO.liveRoot (headState p rho (r + 1) v).base) F :=
+  recovery_roots_below_proposal_floor_quorum p E rho hΔ G hG (recovery_to_quorum p G E rho hG h)
+    boundary sources r start sync horizon P proposal
 
 end AvailableChain.SAPC
 end

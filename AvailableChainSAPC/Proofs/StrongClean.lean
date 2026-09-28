@@ -80,14 +80,15 @@ theorem strong_safe_from_engine {V : Type} [DecidableEq V] [Fintype V]
           (installedPC_valid_before p rho v _ c selected)
           (installedPC_valid_before p rho v _ d next) slots
 
-/-- Full capped participation supplies a PC for the common honest
+/-- Awake quorum participation under the cap supplies a PC for the common honest
 proposal before its 6Δ gate. The selected PC has that exact label and
 target; the honest ack deadline excludes a later label. -/
-theorem strong_included_from_engine {V : Type} [DecidableEq V] [Fintype V]
+theorem strong_included_quorum_from_engine {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
     (t₀ : Time) (hs : SleepyRegime (sapc p) E (sapcInterface p).toInterface rho t₀)
     (cap : FaultBound (sapc p) (pcFaultCap p) rho)
-    (full : FullParticipation E rho t₀) :
+    (quorum : ∀ t, t₀ ≤ t → t ≤ rho.horizon →
+      pcQuorum p ≤ (awakeAt E rho.honest t).card) :
     IncludedFrom (sapc p) E (sapcInterface p).toInterface rho (sapcInterface p).strong
       t₀ (6 * p.Δ) := by
   intro s start proposer horizon
@@ -130,10 +131,10 @@ theorem strong_included_from_engine {V : Type} [DecidableEq V] [Fintype V]
     rw [hs.start_zero] at start
     exact start.le
   intro v hv
-  obtain ⟨⟨c, cs, cb, valid⟩, d, selected, rank⟩ := full_preparation_ack_service p E rho
+  obtain ⟨⟨c, cs, cb, valid⟩, d, selected, rank⟩ := quorum_preparation_ack_service p E rho
     hs.execution hΔ cap hs.partialSynchrony hs.acceptedRelay s B proposal sync horizon
-    (fun w hw => full w hw _ times.1 times.2.2.1)
-    (fun w hw => full w hw _ times.2.1 times.2.2.2) choices ack v hv
+    (quorum _ times.1 times.2.2.1)
+    (quorum _ times.2.1 times.2.2.2) choices ack v hv
   have bound := installedPC_slot_le_at_gate p E rho hs.execution
     (capped_quorum_above_faults p rho cap) v s d selected
   have ds : d.slot = s := Nat.le_antisymm bound rank
@@ -159,6 +160,23 @@ theorem strong_included_from_engine {V : Type} [DecidableEq V] [Fintype V]
     (strong (Run.readAt (sapc p) rho (gateTime p s) v)) at monotone
   rw [value] at monotone
   exact monotone
+
+/-- The original full-participation inclusion claim follows directly. -/
+theorem strong_included_from_engine {V : Type} [DecidableEq V] [Fintype V]
+    (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
+    (t₀ : Time) (hs : SleepyRegime (sapc p) E (sapcInterface p).toInterface rho t₀)
+    (cap : FaultBound (sapc p) (pcFaultCap p) rho)
+    (full : FullParticipation E rho t₀) :
+    IncludedFrom (sapc p) E (sapcInterface p).toInterface rho (sapcInterface p).strong
+      t₀ (6 * p.Δ) := by
+  apply strong_included_quorum_from_engine p E rho hΔ t₀ hs cap
+  intro t lo hi
+  have awake : awakeAt E rho.honest t = rho.honest := by
+    apply Finset.filter_eq_self.mpr
+    intro v hv
+    exact full v hv t lo hi
+  rw [awake]
+  simpa [honestSeats] using honestSeats_quorum p rho cap 0
 
 end AvailableChain.SAPC
 end

@@ -49,10 +49,10 @@ theorem recovery_record_step {V : Type} [DecidableEq V] (p : Params)
 
 /-- SA's repaired-record induction applies to SA-PC's retained or raw
 record steps. Ordered raw history supplies safety at all later reads. -/
-theorem recovery_safe_from_repaired_gate {V : Type} [DecidableEq V] [Fintype V]
+theorem recovery_safe_from_repaired_gate_quorum {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
     (G : Time) (hG : 0 < G)
-    (h : RecoveryRegime (sapc p) E (sapcInterface p).toInterface (sapcConstants p G) rho)
+    (h : QuorumRecoveryRegime p G E rho)
     (boundary : Slot) (sync : E.t_GST ≤ proposalTime p boundary)
     (sources : RecoverySourcesSupported p rho boundary)
     (repair : Slot) (start : boundary ≤ repair) (B : Block)
@@ -89,7 +89,7 @@ theorem recovery_safe_from_repaired_gate {V : Type} [DecidableEq V] [Fintype V]
   have ordered (r s : Slot) (lo : repair ≤ r) (lt : r < s) (bound : valid s)
       (v w : V) (hv : v ∈ rho.honest) (hw : w ∈ rho.honest) (C D : Block)
       (rawC : result r v = some C) (rawD : result s w = some D) : Block.Preceq C D :=
-    recovery_genuine_prefix p E rho hΔ G hG h boundary sources r s (start.trans lo) lt
+    recovery_genuine_prefix_quorum p E rho hΔ G hG h boundary sources r s (start.trans lo) lt
       (syncVote r (start.trans lo)) bound v w hv hw C D rawC rawD
   have monotone (r s : Slot) (lo : repair ≤ r) (le : r ≤ s) (bound : valid s)
       (v : V) (hv : v ∈ rho.honest) : Block.Preceq (record r v) (record s v) :=
@@ -146,17 +146,34 @@ theorem recovery_safe_from_repaired_gate {V : Type} [DecidableEq V] [Fintype V]
       exact (not_lt.mpr (time.trans (lowerR.trans le))) upperS
     exact monotone r s startR slots (lowerS.trans bound) v hv
 
-/-- Complete Draft 4.3 Recovery, with full participation, the derived cap,
-and the requested 2L+G+8Δ bound. -/
-theorem recovered_from_engine {V : Type} [DecidableEq V] [Fintype V]
+/-- The original Draft 4.3 interface is retained. -/
+theorem recovery_safe_from_repaired_gate {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
     (G : Time) (hG : 0 < G)
-    (h : RecoveryRegime (sapc p) E (sapcInterface p).toInterface (sapcConstants p G) rho) :
+    (h : RecoveryRegime (sapc p) E (sapcInterface p).toInterface (sapcConstants p G) rho)
+    (boundary : Slot) (sync : E.t_GST ≤ proposalTime p boundary)
+    (sources : RecoverySourcesSupported p rho boundary)
+    (repair : Slot) (start : boundary ≤ repair) (B : Block)
+    (records : ∀ v ∈ rho.honest,
+      stable (Run.readAt (sapc p) rho (gateTime p repair) v) = B)
+    (raw : ∀ v ∈ rho.honest,
+      SA.confirmation p
+        (Run.stateBeforeTime (sapc p) rho (gateTime p repair) v).base repair = some B) :
+    SafeFrom (sapc p) rho (sapcInterface p).stable (gateTime p repair) :=
+  recovery_safe_from_repaired_gate_quorum p E rho hΔ G hG (recovery_to_quorum p G E rho hG h)
+    boundary sync sources repair start B records raw
+
+/-- The Draft 4.3 recovery conclusion under awake quorum participation,
+with the same 2L+G+8Δ bound. -/
+theorem sapc_recovered_quorum_from_engine {V : Type} [DecidableEq V] [Fintype V]
+    (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
+    (G : Time) (hG : 0 < G)
+    (h : QuorumRecoveryRegime p G E rho) :
     RecoveredAt (sapc p) E (sapcInterface p).toInterface (sapcConstants p G) rho
       (E.t_GST + (sapcConstants p G).recoveryBound) := by
   obtain ⟨boundary, repair, B, _, sync, sources, later, deadline, _, records, raw⟩ :=
-    recovery_common_repair p E rho hΔ G hG h
-  have safe := recovery_safe_from_repaired_gate p E rho hΔ G hG h boundary sync.le sources
+    recovery_common_repair_quorum p E rho hΔ G hG h
+  have safe := recovery_safe_from_repaired_gate_quorum p E rho hΔ G hG h boundary sync.le sources
     repair later.le B (fun v hv => (records v hv).1) raw
   have safeFrom : SafeFrom (sapc p) rho (sapcInterface p).stable
       (E.t_GST + (sapcConstants p G).recoveryBound) := by
@@ -165,8 +182,17 @@ theorem recovered_from_engine {V : Type} [DecidableEq V] [Fintype V]
       exact safe.agree u hu v hv t t' (deadline.trans lo) hi (deadline.trans lo') hi'
     · intro v hv t t' lo le hi
       exact safe.monotone v hv t t' (deadline.trans lo) le hi
-  have included := recovery_included_from_engine p E rho hΔ G hG h
+  have included := recovery_included_from_engine_quorum p E rho hΔ G hG h
   exact ⟨safeFrom, safeFrom, included.2.1, included.1⟩
+
+/-- The original Draft 4.3 interface is retained. -/
+theorem recovered_from_engine {V : Type} [DecidableEq V] [Fintype V]
+    (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
+    (G : Time) (hG : 0 < G)
+    (h : RecoveryRegime (sapc p) E (sapcInterface p).toInterface (sapcConstants p G) rho) :
+    RecoveredAt (sapc p) E (sapcInterface p).toInterface (sapcConstants p G) rho
+      (E.t_GST + (sapcConstants p G).recoveryBound) :=
+  sapc_recovered_quorum_from_engine p E rho hΔ G hG (recovery_to_quorum p G E rho hG h)
 
 end AvailableChain.SAPC
 end
