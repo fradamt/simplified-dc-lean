@@ -329,5 +329,17 @@ and e_2 = 10 for label 2. -/
 example : ((clock pT stS 11).base.frozen.map Prod.fst) = [2] ∧
     ((clock pT stS 10).base.early.map Prod.fst) = [2] := by decide
 
+/-- G4: the lower bound of the row window (spec 848–851). At now = 16 the slot
+is 4 and the round is 2; with w_F = 1 the window is [1, 2]. A round-0 row is
+refused; a round-1 row (the bound) is admitted. -/
+example : (admitRow pT (atTime {} 16) ⟨.seat (.fg 0) 0, ⟨.empty, none⟩⟩).rowPool = [] ∧
+    (admitRow pT (atTime {} 16) ⟨.seat (.fg 1) 0, ⟨.empty, none⟩⟩).rowPool =
+      [⟨.seat (.fg 1) 0, ⟨.empty, none⟩⟩] := by decide
+/-- G4: a vote of a label above Σ.s = 3 is refused (spec 834–835); a label-3 vote
+is admitted. -/
+example : (process pT st0 ⟨.seat (.head 4) 0, .head b1⟩).base.votes = st0.base.votes ∧
+    (process pT st0 ⟨.seat (.head 3) 0, .head b1⟩).base.votes = [⟨.seat 3 0, .head b1⟩] := by
+  decide
+
 end AvailableChain.FGSA.Tests
 end

@@ -53,7 +53,10 @@ def blockAccepted (p : Params) (st : State p.n) (s : Slot) (b : Block)
 acceptance: the SA block admission and the carried votes (SA code on the
 cumulative base, with the erased block); the FG admission (`on_block` of the FG
 module: insert, then `update_finality`); the proposal wire is stored; if F
-moved, `reconcile`; then the carried rows pass `admitRow`. -/
+moved, `reconcile`; then the carried rows pass `admitRow`. The FG acceptance
+decides; if the base admission then refused the block, the state would diverge
+(a block in Σ.T but not in the base list); `base_admitProposal_accepts`
+(Task 10) excludes this under the store invariant. -/
 def admitBlock (p : Params) (st : State p.n) (s : Slot) (b : Block)
     (raw support : List (HeadWire p.n)) (rows : List (RowWire p.n)) : State p.n :=
   match parentFG st b with

@@ -24,8 +24,10 @@ The composite state keeps the SA base as a `GridCO.State n` value (field `base`)
 ┌────────────┬──────────────────────────────────────────────┬──────────────────────────────┐
 │ Key        │ File                                         │ Version                      │
 ├────────────┼──────────────────────────────────────────────┼──────────────────────────────┤
-│ spec       │ R/spec/fgsa-protocol.tex (AUTHORITY, frozen) │ sha256 2e884811…dc5599adb9787│
-│            │ = R/spec/archive/fgsa-protocol-2e884811.tex  │ (see note 1)                 │
+│ spec       │ R/spec/archive/fgsa-protocol-2e884811.tex    │ sha256 2e884811…dc5599adb9787│
+│            │ (AUTHORITY for rules and line anchors); the  │ (see note 1); adopted file   │
+│            │ adopted R/spec/fgsa-protocol.tex has the     │ sha256 dbcb7f05…             │
+│            │ same frozen rules                            │                              │
 │ comp       │ R/codex/lean-composition-plan.md             │ sha256 228dbe98…             │
 │ bp00       │ R/blueprint/archive/00-outline-03afa5ae.md   │ sha256 03afa5ae… (note 4)    │
 │            │ (fixed stage-1 source)                       │                              │
@@ -42,7 +44,7 @@ The composite state keeps the SA base as a `GridCO.State n` value (field `base`)
 ```
 
 Notes:
-1. The spec sha256 is `2e88481117ba3e663c559f95218ce545aba5639f201063c1942dc5599adb9787`. Its archive copy is identical. In this plan, "spec N" is a line number of that file. A revision is in draft (`R/spec/drafts/fgsa-protocol-next.tex`, identical to the frozen file on 2026-09-28). It changes the recovery premises and adds a leak section. It does not change the store or the state machine. Update (G1, 2026-09-29): the draft now differs from the frozen file (draft sha256 `b62364ae…` on 2026-09-29). Inside the modeled lines (spec 160–1414) the diff changes only the R ≥ 3 remark (spec 210–214; `R ≥ 2` stays the parameter bound) and the symbol rows and derived recovery constants of the parameter section (spec 310–332). The protocol section (spec 337–1417) has no change. The frozen file `2e884811` is unchanged, so this has no effect on the model. The model follows `2e884811` until the coordinator gives a new frozen hash. If a new frozen version appears before execution, diff it against `2e884811`. Report each changed line in a rule that this plan models. Do not resolve a difference yourself.
+1. The spec sha256 is `2e88481117ba3e663c559f95218ce545aba5639f201063c1942dc5599adb9787`. Update (G4, 2026-09-29): the spec revision is adopted, and `R/spec/fgsa-protocol.tex` is now sha256 `dbcb7f05106cff51070fc767de45e3fedf45d0c74c8b5aeeca794a6110978864`. Its Complete-protocol section (2e884811 lines 337–1417), its preamble (macros) and its Relay paragraph are byte-identical to `2e884811`; the new file adds a Leak-identification section after the protocol section, and in the model section changes only the R ≥ 3 remark (2e884811 lines 210–214) and the parameter and derived-constant lines (310–332). So the model does not change. Line numbers shift (the protocol section starts at line 442 instead of 337). Rule: `2e884811` stays the line-anchor authority. Every "spec N" in this plan and every `[spec N]` docstring tag is a line of the archive file `R/spec/archive/fgsa-protocol-2e884811.tex`. Do not renumber the docstrings. Its archive copy is identical. In this plan, "spec N" is a line number of that file. A revision is in draft (`R/spec/drafts/fgsa-protocol-next.tex`, identical to the frozen file on 2026-09-28). It changes the recovery premises and adds a leak section. It does not change the store or the state machine. Update (G1, 2026-09-29): the draft now differs from the frozen file (draft sha256 `b62364ae…` on 2026-09-29). Inside the modeled lines (spec 160–1414) the diff changes only the R ≥ 3 remark (spec 210–214; `R ≥ 2` stays the parameter bound) and the symbol rows and derived recovery constants of the parameter section (spec 310–332). The protocol section (spec 337–1417) has no change. The frozen file `2e884811` is unchanged, so this has no effect on the model. The model follows `2e884811` until the coordinator gives a new frozen hash. If a new frozen version appears before execution, diff it against `2e884811`. Report each changed line in a rule that this plan models. Do not resolve a difference yourself.
 2. The FG module pins `alfs4` (`bd942ca0`). The diff from `bd942ca0` to `2e884811` has 56 lines. It changes no FG chain transition, client, finality-acceptance or FJ-frame rule, so the old `KitFG/Pins.lean:99–100` spec pin stays usable for that unchanged FG code (with this note as the version bridge; it is not the authority for the composite rules). It changes three things that this plan models: (a) no rule deletes a block of `Σ.T` (spec 372–377; the FG module and this plan keep the cumulative tree); (b) the signatures of an admitted proposal count in the HEAD merge through the proposal, also when the proposal leaves the active view (spec 190–193); (c) the carried-support arm of the HEAD merge tests `H' ∈ Σ.T`, not `act(Σ)` (spec 423–429).
 3. The composition plan cites `bd942ca0` line numbers. This plan cites `2e884811` line numbers.
 4. bp00 full sha256: `03afa5ae814606ac7c75525766f8b17926616a8e858b26deef1a59152fb64ad5`. Revision 1 of this plan pinned `6057f9b5`; that version is archived as `R/blueprint/archive/00-outline-6057f9b5.md`. The diff (checked 2026-09-28) changes only §2.5 (later-stage constants, lines 326–386), §3.4 (stage-2b healing statements) and the §3.5 negatives text. §2.1–2.4, §3.1 and §3.2 are unchanged. Every id that this plan pins exists in the current file: `bp.carrier.v1` (line 410), `bp.store.v1` (433), `bp.activeView.v1` (446), `bp.leaseOrigins.v1` (455), `bp.reconcile.v1` (465), `comp.outputNesting.v1` (475), `comp.outputNesting.v2` (480), `bp.frame.v1` (487), `bp.sourceDiscipline.v1` (530), `bp.receiptCoverage.v1` (541). bp00 §2.4 (tree reads) is at lines 188–214; §3.1 is at lines 408–555. bp01 is not changed.
@@ -485,7 +487,7 @@ Sizes are Lean lines, with tests. Total: about 4.3–5.6k lines (model 1.2–1.4
 
 **Files:** none in Lean. The audit reports are in `docs/audit/`: `fgsa-model-store-plan-audit-report.md` (Astra r185) and `fgsa-model-store-plan-opus-review.md` (Opus). The second audit (Astra r188) wrote `docs/audit/fgsa-model-store-plan-reaudit-report.md`.
 
-- [x] **Step 1: Check the base.** Done for revision 2 on 2026-09-28: branch `fgsa-composition`; spec `2e884811…`; comp `228dbe98…`; bp01 `989289cc…`; bp00 re-pinned to `03afa5ae…` (Sources, note 4; since revision 2.1, the hash of the archive copy `R/blueprint/archive/00-outline-03afa5ae.md`). At execution, repeat: `git status` is clean; `git log -1` contains the revision-2 commit; the four hashes agree. If not, stop and report.
+- [x] **Step 1: Check the base.** Done for revision 2 on 2026-09-28: branch `fgsa-composition`; spec `2e884811…` (since G4: the hash of the archive copy `R/spec/archive/fgsa-protocol-2e884811.tex`, the line-anchor authority; the adopted `R/spec/fgsa-protocol.tex` is `dbcb7f05…` and has the same frozen rules, Sources note 1); comp `228dbe98…`; bp01 `989289cc…`; bp00 re-pinned to `03afa5ae…` (Sources, note 4; since revision 2.1, the hash of the archive copy `R/blueprint/archive/00-outline-03afa5ae.md`). At execution, repeat: `git status` is clean; `git log -1` contains the revision-2 commit; the four hashes agree. If not, stop and report.
 - [x] **Step 2: Check the FG module state.** Done (both audits): `Store` has one tree `TF`; `storeInv_init`, `on_block_of_refused`, `on_block_of_accepted`, `on_block_F_mono`, `storeInv_on_block`, `storeControls_eq_fjControls`, `update_finality_TF`, `update_finality_h_max`, `update_finality_pair`, `pickPair_eq_of_unique`, `ancestor_closed_of_parent_closed` exist (`KitFG/Correspondence.lean`); `pickPair` is at `SimplexFG/Frame.lean:81`. Repeat the grep at execution: `grep -n 'theorem storeInv_on_block\|theorem storeControls_eq_fjControls\|theorem on_block_F_mono\|def pickPair\|theorem pickPair_eq_of_unique\|theorem ancestor_closed_of_parent_closed' AvailableChainKitFG/Correspondence.lean AvailableChainSimplexFG/Frame.lean`.
 - [x] **Step 3: First plan audits.** Done: Astra r185 and Opus, both REVISE.
 - [x] **Step 4: Apply the audits.** Done: this revision; see "Disposition of audit findings". Commit `FGSA plan: revision 2 after the Astra and Opus audits`.
@@ -1231,7 +1233,10 @@ def blockAccepted (p : Params) (st : State p.n) (s : Slot) (b : Block)
 acceptance: the SA block admission and the carried votes (SA code on the
 cumulative base, with the erased block); the FG admission (`on_block` of the FG
 module: insert, then `update_finality`); the proposal wire is stored; if F
-moved, `reconcile`; then the carried rows pass `admitRow`. -/
+moved, `reconcile`; then the carried rows pass `admitRow`. The FG acceptance
+decides; if the base admission then refused the block, the state would diverge
+(a block in Σ.T but not in the base list); `base_admitProposal_accepts`
+(Task 10) excludes this under the store invariant. -/
 def admitBlock (p : Params) (st : State p.n) (s : Slot) (b : Block)
     (raw support : List (HeadWire p.n)) (rows : List (RowWire p.n)) : State p.n :=
   match parentFG st b with
@@ -1280,8 +1285,26 @@ def wellFormed (p : Params) (o : Wire p.n) : Bool :=
 ```
 
 - [x] **Step 3: Run it; it passes.** As in Task 3, Step 3.
-- [ ] **Step 4: Review gate G4 and CHECKPOINT.** Commit `FGSA model: handlers`.
+- [x] **Step 4: Review gate G4 and CHECKPOINT.** Commit `FGSA model: handlers`.
   Execution notes (2026-09-29): `Model/Handlers.lean` is the code above verbatim. The four fixture roots are free (the FG test roots are 0, 1, 3, 5, 6), and `rF` (identity 3) is not in `stA.rowPool`. Every planned test value agreed with the build. Changes from the text above: (1) the `stR1` fixture had a structure-instance layout that Lean does not parse (a continuation line to the left of the first field); the fields are now on new lines, with the same values; (2) extra tests: a missing parent, a future slot, a wrong proposer slot, a vote outside the window, a wire that does not decode, an accepted block that passes its carried vote to the pool and stores its wire, and a carried row that the pool refuses but the FG block keeps (spec 540–541).
+
+**G4 dispositions** (review of `6a7abab`: PASS; 0 blocking, 0 major, 3 minor). G4 is closed. The reviewer's mutation tests confirm that each acceptance condition is tested.
+
+```text
+┌─────┬──────────────────────────────────────────────────────────────────────────┐
+│ G4  │ Disposition                                                              │
+├─────┼──────────────────────────────────────────────────────────────────────────┤
+│ 1   │ Task 10 `fg_on_block_accepts` has no `Inv0` hypothesis: `on_block`       │
+│     │ accepts whenever `blockAccepted` passes (the four FG refusals fail by    │
+│     │ `parentFG`, `fgBlock_notMem`, the F ⪯ B test and the slot test). Only    │
+│     │ the base side needs the invariant.                                       │
+│ 2   │ Smoke tests: the lower bound of the row window (now 16, round 2, w_F =   │
+│     │ 1: round 0 refused, round 1 admitted) and a vote above Σ.s (label 4 at   │
+│     │ slot 3 refused; label 3 admitted).                                       │
+│ 3   │ `admitBlock` docstring: a base refusal after an FG acceptance would give │
+│     │ a divergent state; `base_admitProposal_accepts` (Task 10) excludes it.   │
+└─────┴──────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
@@ -1960,7 +1983,7 @@ theorem rootTest_iff_blockTest (p : Params) (st : State p.n) (h : Inv0 p st) (b 
     (hinj : ∀ c ∈ st.base.blocks, c.root = b.root → c = b) :
     (∃ Y ∈ st.fg.TF, Y.root = b.root) ↔ b ∈ st.base.blocks
 /-- [bp bp.frame.v1] The FG module accepts every block that the composite accepts. -/
-theorem fg_on_block_accepts (p : Params) (st : State p.n) (h : Inv0 p st) (s : Slot)
+theorem fg_on_block_accepts (p : Params) (st : State p.n) (s : Slot)
     (b : Block) (P : FGBlock (Fin p.n)) (rows : List (RowWire p.n))
     (hP : parentFG st b = some P) (hacc : blockAccepted p st s b P rows = true) :
     on_block p.E p.cfg st.fg (fgBlock P b rows) =
