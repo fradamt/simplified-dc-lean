@@ -412,7 +412,14 @@ framework must support.
 `SimplexFG.fj` (user decision 2026-09-28: "just fj for now"). NJ is not
 formalized now; if the research needs it later, it is a new versioned
 module (an addition). DC can be an fj protocol: the module is DC's FG
-(without SG and grades) with the FJ root rule in place of NJ ("DC-fj"). `SimplexFG.fj` uses the FJ root rule (a frontier test; root F and band
+(without SG and grades) with the FJ root rule in place of NJ ("DC-fj"). The module is FG-ONLY: the AP
+(for example SA) enters through the framework interface. FJ is proved
+only with the SA base (FG-SA); FJ together with DC's SG (graded fork
+choice, safe votes) is NOT checked and needs its own check before any
+claim about "DC with SG, fj". Only DC's static FG ports with the fj rule
+(client, transition with nj = false, accountable safety, provenance,
+causal cap, F2, F10, F12). DC's Lean recovery chain is NJ-only and does
+not port; FJ recovery (r148, r151) has no Lean counterpart yet. `SimplexFG.fj` uses the FJ root rule (a frontier test; root F and band
 {H} in a contest). FJ changes the frame rule, so it has its own frame
 and noninterference interface, not a base-selection plug-in (audit W06). The FJ interface is r148 F9 (the
 sources of honest rows at heights ≥ M+1 stay canonical), with the
