@@ -46,6 +46,9 @@ consistent with FRAMEWORK-DESIGN.md §7._
 `tsc/` = `research/async-resilient-committees/tip-stability/codex/`. [async]
 `r146` = `fgsa-adj` of v1. Section numbers and line ranges replace the v1
 line numbers. `r144o` is the Opus variant of r144. `r151` is `fj-theorem-h.md`.
+`r152` is `fj-first-finality.md`, `r153` is `fj-reach.md`, and `r153a` is
+the Opus adjudication of r153, `fj-reach-adjudicate.md` (verdict VALID WITH
+CORRECTIONS; registered 2026-09-28).
 
 ```text
 ┌───────┬───────────────────────────┬──────────────────────────────────┬──────────────────────────────────┐
@@ -62,6 +65,9 @@ line numbers. `r144o` is the Opus variant of r144. `r151` is `fj-theorem-h.md`.
 │ r151  │ fj-theorem-h.md           │ 16b69dba55d889b9ae20dd55b228cfd8 │ 3ad22037d796c6219cdb65831718bba3 │
 │ bp    │ fgsa-healing-blueprint.md │ 4d643d7a6285705ef8bcef6b408b46a4 │ 5d64641f0d92828b3539f8f938074318 │
 │ sa    │ slow-arming.md            │ c1d1a4e343c6910a1072cc7e6e8816b6 │ ab6ac94b4940f204573f3a39c500db0b │
+│ r152  │ fj-first-finality.md      │ d659d585ccb1a4f47ee90c6de68515cb │ fd9685f47a2764fc8ff153a0c60edb8e │
+│ r153  │ fj-reach.md               │ 13843848471ae2955351c08a64cdc27a │ 0a9f34ad8d5f1b7af5f4f427de70a7b1 │
+│ r153a │ fj-reach-adjudicate.md    │ c85c0dcc5c325ac0ca5ed5cc9ae5e85d │ 20d3c3aa686d6146f31adacd0d773749 │
 └───────┴───────────────────────────┴──────────────────────────────────┴──────────────────────────────────┘
 ```
 
@@ -71,6 +77,14 @@ Sources outside `tsc/` (registered 2026-09-28). `spec/` =
 `lean/decoupled-consensus/verified-consensus/` at commit `b97b902`. `ac/` =
 `lean/available-chain/` at commit `ae2a9d3` (the SA Lean model; the file is
 unchanged since `588d666`).
+
+Note (2026-09-28): `spec/fgsa-protocol.tex` is not tracked in Git. It
+changed after registration (sha256 now
+`bc093836f57fd6decbf5d743afa0c4b14061d3e589e1cef83d58708ae35fec10`). Every
+spec line number in this registry refers to the registered version
+(`ae4497ab…`). A check on 2026-09-28 found each pinned spec block, with
+unchanged text, 5 lines lower in the new version (for example
+`fg_frame` lines 854–859 are now 859–864).
 
 ```text
 ┌───────┬──────────────────────────────────────────────────────────────────┬──────────────────────────────────┬──────────────────────────────────┐
@@ -459,7 +473,11 @@ in the DC-fj module (plan `docs/plans/2026-09-28-fg-module.md`);
 `DC-fj (ii)` = part (ii) only;
 `none (nj)` = nj research entry, not planned for Lean now; `none` = not
 needed by the DC-fj module; `—` = not an entry of the current FG-module
-plan (AP-side, composite, or not scheduled).
+plan (AP-side, composite, or not scheduled). Status abbreviations
+(2026-09-28, r153): "local PROVED; unif." = the local clause is PROVED and
+the uniform clause is REFUTED; "local PROVED; glob." = the local clause is
+PROVED and the global clause is OPEN (at risk); "impl. PRV" = the
+implication is PROVED. The entry has the full dated status line.
 
 ```text
 ┌───────────────────────┬──────┬─────────────────────┬───┬───────────┐
@@ -520,28 +538,28 @@ plan (AP-side, composite, or not scheduled).
 │ fj.twoChanges.v1      │ fj   │ SUPERSEDED (PROVED) │ 4 │ —         │
 │ fj.twoChanges.core.v1 │ fj   │ PROVED (a≤f)        │ 4 │ DC-fj     │
 │ fj.armedSafe.v1       │ fj   │ PROVED              │ 4 │ —         │
-│ fg.base.fj.v1         │ fj   │ PROVED              │ 4 │ —         │
-│ fj.firstFinality.v1   │ fj   │ SKETCH              │ 4 │ —         │
+│ fg.base.fj.v1         │ fj   │ REFUTED (uniform)   │ 4 │ —         │
+│ fj.firstFinality.v1   │ fj   │ local PROVED; unif. │ 4 │ —         │
 │ fj.reset.v1           │ fj   │ PROVED              │ 4 │ —         │
 │ fj.theoremN.v1        │ fj   │ PROVED              │ 4 │ —         │
 │ fj.rise.fixedF.v1     │ fj   │ PROVED              │ 4 │ —         │
-│ fj.rise.movingF.v1    │ fj   │ OPEN (impl. PROVED) │ 4 │ —         │
+│ fj.rise.movingF.v1    │ fj   │ REFUTED (impl. PRV) │ 4 │ —         │
 │ fj.Xplus.v1           │ fj   │ PROVED              │ 4 │ —         │
-│ fj.healed.v1          │ fj   │ PROVED              │ 4 │ —         │
-│ fj.healedUnif.v1      │ fj   │ OPEN (impl. PROVED) │ 4 │ —         │
+│ fj.healed.v1          │ fj   │ local PROVED; unif. │ 4 │ —         │
+│ fj.healedUnif.v1      │ fj   │ REFUTED (impl. PRV) │ 4 │ —         │
 │ fj.healedAtQ.v1       │ fj   │ OPEN                │ 4 │ —         │
 │ comp.provenance.v1    │ both │ PROVED (FG-SA)      │ 5 │ —         │
 │ comp.settle.v1        │ both │ PROVED (FG-SA)      │ 5 │ —         │
 │ comp.cut.v1           │ both │ PROVED              │ 5 │ —         │
 │ comp.rise.fixedF.v1   │ nj   │ PROVED (FG-SA)      │ 5 │ —         │
-│ comp.rise.movingF.v1  │ nj   │ OPEN                │ 5 │ —         │
+│ comp.rise.movingF.v1  │ nj   │ OPEN (at risk)      │ 5 │ —         │
 │ comp.theoremN.v1      │ nj   │ PROVED (FG-SA)      │ 5 │ —         │
 │ comp.fgHealed.v1      │ nj   │ PROVED (FG-SA)      │ 5 │ —         │
-│ comp.healed.v1        │ nj   │ PROVED (FG-SA)      │ 5 │ —         │
+│ comp.healed.v1        │ nj   │ local PROVED; glob. │ 5 │ —         │
 │ comp.healedLit.v1     │ nj   │ PROVED (FG-SA)      │ 5 │ —         │
-│ comp.arrivalNJ.v1     │ nj   │ PROVED (FG-SA)      │ 5 │ —         │
-│ comp.handoffBase.v1   │ nj   │ PROVED (FG-SA)      │ 5 │ —         │
-│ comp.healedUnif.v1    │ nj   │ OPEN (impl. PROVED) │ 5 │ —         │
+│ comp.arrivalNJ.v1     │ nj   │ OPEN (at risk)      │ 5 │ —         │
+│ comp.handoffBase.v1   │ nj   │ OPEN (at risk)      │ 5 │ —         │
+│ comp.healedUnif.v1    │ nj   │ OPEN (at risk)      │ 5 │ —         │
 │ comp.healedAtQ.v1     │ nj   │ OPEN                │ 5 │ —         │
 │ comp.finality.v1      │ nj   │ SKETCH              │ 5 │ —         │
 │ comp.clean.v1         │ nj   │ PROVED (FG-SA)      │ 5 │ —         │
@@ -3182,6 +3200,16 @@ M0. r151 calls this cap μ and calls M0 simply M.
 - Status: 2026-09-28 — PROVED (r148 F14, paper bounds at the level of the
   adjudicated r143 producer). Example (`R=3, k=2, G=8Δ, g=3`):
   `B_R = 1476Δ`, `B_base = 1518Δ` (r148 §11, lines 988–989).
+- Status: 2026-09-28 (r153) — the uniform (M-independent) bounds `B_R`
+  and `B_base` of this entry are REFUTED under the current rules. r153 (`fj-reach.md`, lines 6–18 and 24–28)
+  gives a legal execution with no height rise for any fixed λ; r153a (`fj-reach-adjudicate.md`,
+  lines 6–11 and 31–33) confirms it. The broken steps are r148 F12, lines
+  781–782, and F14, lines 824–832: a lower F advance adds a view-dependent
+  viability witness to HEAD views through the F basis (spec lines 742–749
+  and 494; r153a lines 13–19 and 243–269). The reset witness
+  (`fj.reset.v1`) and the local results from an actual reset stay PROVED
+  (r153a lines 34 and 281–286). The valid arrival bound is M-dependent
+  (`fj.rise.fixedF.v1`).
 - Note: r144o N17 (lines 645–677) marks the same bounds SKETCH, because the
   contested-band producer port was missing. r148 §9 supplies that port. This
   entry does not discharge HNI (§4 introduction).
@@ -3205,6 +3233,14 @@ M0. r151 calls this cap μ and calls M0 simply M.
 
 - Status: 2026-09-28 — SKETCH (r148 F17; three timed steps are missing,
   lines 947–966).
+- Status: 2026-09-28 (r152, r153) — r152 (`fj-first-finality.md`,
+  lines 20–26) proves FF1–FF7 on paper, from the healed state at t_h
+  (r153a lines 37 and 464–466). The r152 uniform total 1541Δ is REFUTED:
+  it uses `B_R` (r153a lines 38 and 466–469). The r148 expression
+  `B_first = B_base+(g+2)P+9Δ` pinned here is REFUTED as a uniform bound
+  for the same reason. The M-dependent form `B_lit+gP+9Δ` is PROVED
+  relative to r147 (r153a line 470). Under the fix candidate FV (§8) the
+  1541Δ form is SKETCH (r153a line 471).
 
 **FJ composite entries (`Kit.Compose`, from r151).** r151 renames the
 caps. Its μ is the old-source cap that r148 and r144o call M. Its M is
@@ -3382,6 +3418,10 @@ r151 names; `μ ≤ M`.
 - Status: 2026-09-28 — PROVED (r151 claim table line 25). Example
   (`Δ=1, R=3, k=2, G=8, g=3`, `M=1, f_0=0`):
   `B_lit = A_lit + δ_H = 1498Δ` (r151 line 720).
+- Status: 2026-09-28 (r153) — PROVED, unchanged, relative to r147's
+  literal (L) (r153a lines 35 and 317–329: literal N1 fixes F, so the F
+  basis is fixed; r153 line 31). It is the valid arrival bound under the
+  current rules. r153a did not re-audit r147.
 
 ### `fj.rise.movingF.v1` — effective-N1 split and arrival
 
@@ -3428,6 +3468,11 @@ r151 names; `μ ≤ M`.
 - Status: 2026-09-28 — OPEN as a result from the execution premises
   alone (r151 claim table line 27). The split and arrival implication
   from effective (L) is PROVED (r151 claim table line 26).
+- Status: 2026-09-28 (r153) — effective (L) for the FJ frame is REFUTED
+  under the current rules: r153 (`fj-reach.md`, lines 6–18 and 24–28); r153a (`fj-reach-adjudicate.md`, lines 6–11 and 30: no finite
+  M-independent healing or arrival bound). The split and the implication
+  from effective (L) stay PROVED; their premise fails. Under FV (§8) a
+  restored uniform bound is SKETCH (r153a line 43).
 - Note: the missing premise is the same common supported band prefix as
   `ap.reach.v1` (r151 lines 408–412).
 
@@ -3532,6 +3577,14 @@ r151 names; `μ ≤ M`.
 - Status: 2026-09-28 — PROVED (r151 claim table lines 29–32). Example
   (`Δ=1, R=3, k=2, G=8, g=3`): `B_FJ,H = 1496Δ`, 22Δ below r148's
   `B_base = 1518Δ` (r151 lines 705–716).
+- Status: 2026-09-28 (r153) — split. (local) `t_h ≤ q_(s*)+2L+G−Δ`
+  after an actual reset stays PROVED (r151 §7.3; r153a lines 34 and
+  281–286). (global) The `B_R` arm of `B_proved` and the uniform choice
+  `B_FJ,H = 1496Δ` are REFUTED under the current rules (r153 lines 24–28;
+  r153a lines 31–33). `B_proved` is a minimum that contains the refuted
+  arm, so the global clause as stated is REFUTED. The literal-N1,
+  M-dependent bound `B_lit = 3P+[6+M−f_0](λ+4Δ)+2L+G−2Δ` is PROVED
+  relative to r147 (r153a lines 317–329): `t_h < GST+B_lit`.
 
 ### `fj.healedUnif.v1` — uniform bound under effective N1
 
@@ -3554,6 +3607,11 @@ r151 names; `μ ≤ M`.
 - Status: 2026-09-28 — OPEN as a bound from the execution premises
   alone; the implication is PROVED (r151 claim table lines 26–27).
   Example with `λ = ρ+2σ`: 1292Δ, conditional (r151 line 708).
+- Status: 2026-09-28 (r153) — the uniform bound is REFUTED under the
+  current rules (r153a line 30: no finite M-independent healing or
+  arrival bound, PROVED; r153 line 27). The implication stays PROVED; its
+  premise, effective (L), fails (`fj.rise.movingF.v1`). Under FV (§8) the
+  restored uniform bound is SKETCH (r153a line 43).
 
 ### `fj.healedAtQ.v1` — full healing already at `q_(s*)`
 
@@ -3808,6 +3866,8 @@ the run parts of the f1 splits (§8).
 
 - Status: 2026-09-28 — OPEN (r149 claim table line 32; r150 claim table
   line 25). The proposed M1 argument is SKETCH (r149 line 33).
+- Status: 2026-09-28 (r153a) — OPEN, at risk (r153a lines 44 and
+  499–505). The FJ form is REFUTED (`fj.rise.movingF.v1`).
 - Notes: this is the statement of the withdrawn `ap.L.movingF.v1`,
   refiled in `Kit.Compose`. The only missing input is
   `ap.repair.movingF.v1` (r149 lines 443–450); `ap.reach.v1` suffices for
@@ -3992,6 +4052,11 @@ the run parts of the f1 splits (§8).
 > ```
 
 - Status: 2026-09-28 — PROVED (FG-SA; r150 claim table lines 21–23).
+- Status: 2026-09-28 (r153a) — (local) PROVED, unchanged (r150 §4.5).
+  (global) OPEN, at risk: `B_proved` is a minimum that contains the
+  `B_NJ,H` arm (5816Δ), which uses `comp.arrivalNJ.v1` (r153a lines 495
+  and 499–505). The `B_lit` arm is `comp.healedLit.v1`; r153a does not
+  re-adjudicate the NJ literal bound.
 - Bounds: local `t_h ≤ q_(s*)+2L+G−Δ`. Global
   `GST + min{B_lit, B_NJ + 2L+G−2Δ}`. Example
   (`Δ=1, R=3, k=2, G=8, g=3, D=2, K=5`): `B_NJ,H = 5816Δ`; `B_lit = 7472Δ`
@@ -4106,6 +4171,11 @@ the run parts of the f1 splits (§8).
 
 - Status: 2026-09-28 — PROVED (FG-SA; r146 claim 3b). Example: 5796Δ. r150
   §6.2 (lines 497–501) uses it as the arrival bound of `a_(r*)`.
+- Status: 2026-09-28 (r153a) — OPEN, at risk (r153a lines 44, 262–268 and 499–505: fgsa-adjudicate §5.1 uses "A
+  finalization below m−1 lies below every band witness"; the same false
+  step is at fgsa-adjudicate lines 322–325 and fgsa-fast line 704). Do not cite `B_NJ`
+  or r150's uniform numbers until this is checked. FV (§8) applies to
+  the NJ variant without change.
 
 ### `comp.handoffBase.v1` — supplied base handoff `B_base`
 
@@ -4129,6 +4199,8 @@ the run parts of the f1 splits (§8).
 - Status: 2026-09-28 — PROVED (FG-SA; r146 claim 3e). Example: 5838Δ.
   `comp.healed.v1` gives the smaller `B_NJ,H = B_base − P − 10Δ` (r150
   §6.2).
+- Status: 2026-09-28 (r153a) — OPEN, at risk: `B_base = B_NJ+P+ρ` uses
+  `comp.arrivalNJ.v1` (r153a lines 495 and 499–505).
 
 ### `comp.healedUnif.v1` — uniform bound under effective N1
 
@@ -4176,6 +4248,8 @@ the run parts of the f1 splits (§8).
   (r150 claim table line 29; r149 claim table line 37). The implication from
   `comp.rise.movingF.v1` is PROVED (r150 claim table line 28). Example with
   `λ = ρ+2σ`: 5000Δ, conditional (r150 lines 528–537).
+- Status: 2026-09-28 (r153a) — OPEN, at risk: the NJ variant can have
+  the r153 obstruction (r153a lines 44 and 499–505).
 
 ### `comp.healedAtQ.v1` — full healing already at `q_(s*)` (H12)
 
@@ -4263,6 +4337,9 @@ the run parts of the f1 splits (§8).
   permission (a Simplex client fact), a usable non-NJ height, and the timed
   target, justification and finality carriers under
   StrongMultiProposerRecurrence.
+- Status: 2026-09-28 (r153a) — SKETCH, and its arithmetic `B_first`
+  uses `B_base` and `B_NJ` (`comp.handoffBase.v1`, `comp.arrivalNJ.v1`),
+  which are OPEN, at risk.
 
 ### `comp.clean.v1` — AP claims carry over in clean and Outage regimes
 
@@ -4437,3 +4514,29 @@ SUPERSEDED entry is the conjunction of its successors.
 - `fj.inBandLock.v1`: a dated note on Lean coverage. The hypothesis hFJ′
   (F ⪯ J′) stays a hypothesis for now (partial coverage); a later helper
   lemma will derive it from `fg.finalLock.v1` and the F carrier.
+- Status updates from r153 and its adjudication r153a (2026-09-28). Under
+  the current rules there is no uniform (M-independent) healing or
+  reset-arrival bound (r153a line 30). New dated status lines:
+  `fg.base.fj.v1` (`B_R`, `B_base` uniform: REFUTED); `fj.healed.v1`
+  (local PROVED; global `B_proved` and 1496Δ REFUTED; `B_lit` PROVED
+  relative to r147); `fj.healedUnif.v1` and `fj.rise.movingF.v1`
+  (REFUTED; implications PROVED); `fj.rise.fixedF.v1` (PROVED, unchanged);
+  `fj.firstFinality.v1` (r152 FF1–FF7 PROVED; 1541Δ REFUTED;
+  `B_lit+gP+9Δ` PROVED relative to r147); NJ: `comp.arrivalNJ.v1`,
+  `comp.handoffBase.v1`, `comp.healedUnif.v1`, `comp.rise.movingF.v1`
+  (OPEN, at risk), `comp.healed.v1` (local PROVED; global OPEN, at risk),
+  `comp.finality.v1` (SKETCH; its arithmetic uses the at-risk bounds).
+  No entry pins spec rows for `B_R` or `B_base`; r153a lines 483–496 list
+  the spec rows that need changes. The broken steps are r148 F12 lines
+  781–782 and F14 lines 824–832 (a lower F advance adds a view-dependent
+  viability witness to HEAD views through the F basis), and in NJ
+  fgsa-adjudicate lines 322–325 and fgsa-fast line 704.
+- Fix candidate FV (r153a §5.1, lines 333–348; not adopted): the frame's
+  F comes from the view, `F_V` = the greatest `σ[W].F` over W ∈ V with
+  `σ[W].F ⪯ Σ.F`; delete the F-basis arm of the HEAD view and the field
+  `f_basis` (spec lines 746–749). FV closes r153 (PROVED) and keeps FG
+  safety, P1, F9, F10 and Theorem N (PROVED; r153a lines 41–42). The
+  restored uniform bound is SKETCH (r153a line 43). Pending r156. Note:
+  FV changes `fg.frameCompat.v1` part (ii), `fj.frameFeasible.v1`
+  hypothesis (a) and the F-basis hypotheses of `fg.frame.v2`; these
+  entries need new ids if FV is adopted.
