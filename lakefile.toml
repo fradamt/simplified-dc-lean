@@ -60,3 +60,11 @@ name = "AvailableChainFramework"
 # Instances with certificates and refutations over the framework (L4), and tests.
 [[lean_lib]]
 name = "AvailableChainRegistry"
+
+# Simplex FG module SimplexFG.fj (LM): DC's FG without SG, FJ root rule. Definitions only.
+[[lean_lib]]
+name = "AvailableChainSimplexFG"
+
+# Kit.FG (L5): proofs over SimplexFG.fj.
+[[lean_lib]]
+name = "AvailableChainKitFG"
