@@ -9,6 +9,7 @@ public import AvailableChainKitFG.CausalCap
 public import AvailableChainKitFG.CrossingNoFinal
 public import AvailableChainKitFG.InBandLock
 public import AvailableChainKitFG.TwoChanges
+public import AvailableChainKitFG.Pins
 
 @[expose] public section
 end
