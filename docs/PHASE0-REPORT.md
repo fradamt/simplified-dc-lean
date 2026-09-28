@@ -317,14 +317,13 @@ scripts, tactics, or witness terms only.
 │ Lock      │ Hardening: I8, the lock compares by name (exit 1 on a      │
 │           │ changed or removed line, exit 0 with a notice on additions │
 │           │ only; test by adding a Catalog claim); a `--check` mode for│
-│           │ REGISTRY.md (minor h); deferred M5–M8.                     │
+│           │ REGISTRY.md; deferred M5–M8.                               │
 │ Kit       │ Structure: split L5 Kit and the L0 sketch into their own   │
-│           │ library (minor f). `Kit.Engine` takes the                  │
+│           │ library. `Kit.Engine` takes the                            │
 │           │ `AvailableChain.Engine` lemmas from                        │
 │           │ `AvailableChainGridCO/Proofs/{Execution,EngineClock}.lean` │
 │           │ and the stranded L4 lemmas. Dedupe `block_preceq_trans`    │
-│           │ (`Kit/Core.lean:13` and `GridCO/Proofs/Map.lean:25`) (minor│
-│           │ g).                                                        │
+│           │ (`Kit/Core.lean:13` and `GridCO/Proofs/Map.lean:25`).      │
 └───────────┴────────────────────────────────────────────────────────────┘
 ```
 

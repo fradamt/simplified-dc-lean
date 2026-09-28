@@ -505,6 +505,7 @@ obligations are proved).
 │   │                           │ (Profile has no ProtocolParams); (h)    │
 │   │                           │ HooksSound has no depsPresent; (i)      │
 │   │                           │ HooksSound is run-level, not per-step   │
+│   │                           │ (letters as in PHASE0-REPORT.md §5.1)   │
 │ 1 │ Full catalog on v1        │ ac-4.3 and strong-1 proposition         │
 │   │                           │ equivalences; eligibility per migrated  │
 │   │                           │ instance; MATRIX.md; build --wfail      │
@@ -579,7 +580,8 @@ extra-tier entry.
 
 **Known gaps after Phase 0**
 
-- I1: a protocol that reads no input can still pass the core floor (honest
+- I1 (reasoned, not compiled): a protocol that reads no input can still
+  pass the core floor (honest
   `propose` has no input, so proposals are predictable). Fix: engine v2
   gives the proposer a run-chosen input (Phase 2).
 
