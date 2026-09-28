@@ -9,6 +9,8 @@ defaultTargets = [
   "AvailableChainSA",
   "AvailableChainSAPC",
   "AvailableChainWitnesses",
+  "AvailableChainFramework",
+  "AvailableChainRegistry",
 ]
 
 [leanOptions]
@@ -50,3 +52,11 @@ name = "AvailableChainSA"
 # Slow arming with persistent TA certificates.
 [[lean_lib]]
 name = "AvailableChainSAPC"
+
+# Framework prototype (Phase 0): hooks, instances, claim catalog, certificates.
+[[lean_lib]]
+name = "AvailableChainFramework"
+
+# Instances with certificates and refutations over the framework (L4), and tests.
+[[lean_lib]]
+name = "AvailableChainRegistry"
