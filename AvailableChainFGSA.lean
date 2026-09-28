@@ -6,4 +6,7 @@ public import AvailableChainFGSA.Model.Handlers
 public import AvailableChainFGSA.Model.Frame
 public import AvailableChainFGSA.Proofs.BlockAncestry
 public import AvailableChainFGSA.Proofs.Carrier
+public import AvailableChainFGSA.Statements.Invariants
+public import AvailableChainFGSA.Proofs.Fields
+public import AvailableChainFGSA.Proofs.ActView
 public import AvailableChainFGSA.Tests.Smoke
