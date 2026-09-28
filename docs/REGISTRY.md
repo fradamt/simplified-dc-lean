@@ -4,6 +4,7 @@ Scanned libraries: `AvailableChainRegistry`.
 
 ```text
 │ Declaration │ Kind │ Claim │ Instance │ Status │
+│ AvailableChain.Registry.Counter.candidate │ profile-cert │ core.v1 │ AvailableChain.Registry.Counter.counterInst │ LEAN │
 │ AvailableChain.Registry.Counter.certIncluded │ cert │ AvailableChain.Framework.Catalog.includedConfirmed │ AvailableChain.Registry.Counter.counterInst │ LEAN │
 │ AvailableChain.Registry.Counter.certPrefix │ cert │ AvailableChain.Framework.Catalog.prefixOrder │ AvailableChain.Registry.Counter.counterInst │ LEAN │
 │ AvailableChain.Registry.Counter.certSafeConfirmed │ cert │ AvailableChain.Framework.Catalog.safeConfirmed │ AvailableChain.Registry.Counter.counterInst │ LEAN │
@@ -12,10 +13,11 @@ Scanned libraries: `AvailableChainRegistry`.
 │ AvailableChain.Registry.Gaps.NoInput.certPrefix │ cert │ AvailableChain.Framework.Catalog.prefixOrder │ AvailableChain.Registry.Gaps.NoInput.clockInst │ KNOWN-GAP │
 │ AvailableChain.Registry.Gaps.NoInput.certSafeConfirmed │ cert │ AvailableChain.Framework.Catalog.safeConfirmed │ AvailableChain.Registry.Gaps.NoInput.clockInst │ KNOWN-GAP │
 │ AvailableChain.Registry.Gaps.NoInput.certSafeStable │ cert │ AvailableChain.Framework.Catalog.safeStable │ AvailableChain.Registry.Gaps.NoInput.clockInst │ KNOWN-GAP │
+│ AvailableChain.Registry.Gaps.NoInput.clockCandidate │ profile-cert │ core.v1 │ AvailableChain.Registry.Gaps.NoInput.clockInst │ KNOWN-GAP │
 │ AvailableChain.Registry.Sanity.certPrefix │ cert │ AvailableChain.Framework.Catalog.prefixOrder │ AvailableChain.Registry.Sanity.sanity │ LEAN │
 │ AvailableChain.Registry.Sanity.certSafeConfirmed │ cert │ AvailableChain.Framework.Catalog.safeConfirmed │ AvailableChain.Registry.Sanity.sanity │ LEAN │
 │ AvailableChain.Registry.Sanity.certSafeStable │ cert │ AvailableChain.Framework.Catalog.safeStable │ AvailableChain.Registry.Sanity.sanity │ LEAN │
 │ AvailableChain.Registry.Sanity.refutedIncluded │ refutation-family │ AvailableChain.Framework.Catalog.includedConfirmed │ AvailableChain.Registry.Sanity.sanity │ LEAN │
-│ AvailableChain.Registry.Tests.certSafeStableStrong │ cert │ AvailableChain.Framework.ClaimSpec.pull NON-CATALOG │ AvailableChain.Registry.Tests.counterStrong │ LEAN │
+│ AvailableChain.Registry.Tests.certSafeStableStrong │ cert │ AvailableChain.Framework.Catalog.safeStable (pulled) │ AvailableChain.Registry.Tests.counterStrong │ LEAN │
 │ AvailableChain.Registry.Tests.refutedBadStrong │ refutation-family │ AvailableChain.Registry.Tests.testStrongSafe NON-CATALOG │ AvailableChain.Registry.Tests.badStrong │ LEAN │
 ```

@@ -1,5 +1,6 @@
 import AvailableChainRegistry
 import Lean.Util.CollectAxioms
+import Lean.Meta.Basic
 open Lean
 
 /-! Type-scanning registry. Every constant in `AvailableChainRegistry` whose
@@ -16,6 +17,11 @@ depends on (`Lean.collectAxioms`) is one of `propext`, `Classical.choice`,
 a certificate. A row's claim column keeps the claim's name and appends
 `NON-CATALOG` if the `ClaimSpec` it certifies is not declared in a module
 under `AvailableChainFramework.Catalog`.
+
+A certificate of a pulled claim `ClaimSpec.pull m c` shows the base claim
+`c` with the suffix `(pulled)`. A row of kind `profile-cert` (a `ProfileCert p
+I`, or a `Candidate I`, which is `ProfileCert core I`) shows the profile `id`
+in the claim column, for example `core.v1`.
 
 The libraries in `instanceLibraries` are imported, and only their modules
 give rows. A row of a module under `AvailableChainRegistry.Gaps` has status
@@ -44,7 +50,11 @@ partial def headOf (e : Expr) (binders : Bool := false) : Option Name × Bool :=
 def kinds : List (Name × String) :=
   [(``AvailableChain.Framework.Cert, "cert"),
    (``AvailableChain.Framework.Refutation, "refutation"),
-   (``AvailableChain.Framework.RefutationFamily, "refutation-family")]
+   (``AvailableChain.Framework.RefutationFamily, "refutation-family"),
+   -- Arguments `K p I`.
+   (``AvailableChain.Framework.ProfileCert, "profile-cert"),
+   -- Argument `I`. `Candidate I` is a `def`, so its type head is `Candidate`.
+   (``AvailableChain.Framework.Catalog.Candidate, "profile-cert")]
 
 /-- Axioms allowed in a sound LEAN row. -/
 def allowedAxioms : List Name :=
@@ -68,15 +78,41 @@ def statusOf (env : Environment) (n : Name) : IO String := do
 /-- Every catalog claim lives in a module under this prefix. -/
 def catalogPrefix : Name := `AvailableChainFramework.Catalog
 
-/-- `n`'s claim column: its name, with `NON-CATALOG` appended if `n` is not
-declared in a module under `catalogPrefix`. -/
-def claimOf (env : Environment) (n : Name) : String :=
-  let s := toString n
+/-- `n`'s claim column: its name (or `shown`), with `NON-CATALOG` appended if
+`n` is not declared in a module under `catalogPrefix`. -/
+def claimOf (env : Environment) (n : Name) (shown : Name := n) : String :=
+  let s := toString shown
   match env.getModuleIdxFor? n with
   | some idx =>
       if catalogPrefix.isPrefixOf env.header.moduleNames[idx.toNat]! then s
       else s ++ " NON-CATALOG"
   | none => s ++ " NON-CATALOG"
+
+/-- The claim column of a claim expression `c`. For `@ClaimSpec.pull K' K m c'`,
+the base claim `c'` (the last argument) with the suffix `(pulled)`. -/
+def claimColumn (env : Environment) (c : Expr) : String :=
+  if c.isAppOfArity ``AvailableChain.Framework.ClaimSpec.pull 4 then
+    ((c.getAppArgs.back!.getAppFn.constName?.map (claimOf env)).getD "?") ++ " (pulled)"
+  else
+    (c.getAppFn.constName?.map (claimOf env)).getD "?"
+
+/-- The name that a closed `Name` expression in normal form denotes. -/
+partial def nameOfExpr? (e : Expr) : Option Name :=
+  if e.isConstOf ``Name.anonymous then some .anonymous
+  else match e.getAppFn.constName?, e.getAppArgs with
+    | some ``Name.str, #[p, .lit (.strVal s)] => (nameOfExpr? p).map (·.str s)
+    | some ``Name.num, #[p, .lit (.natVal k)] => (nameOfExpr? p).map (·.num k)
+    | _, _ => none
+
+/-- The claim column of a profile certificate: the `id` of the profile `p`
+over the claim domain `K`, by reduction of `Profile.id p`. If the reduction does not
+give a name, the name of the constant `p`. `NON-CATALOG` as for a claim. -/
+def profileColumn (env : Environment) (K p : Expr) : IO String := do
+  let e := mkApp2 (mkConst ``AvailableChain.Framework.Profile.id) K p
+  let r ← Core.CoreM.toIO' (Meta.MetaM.run' (Meta.reduce e))
+    { fileName := "Registry", fileMap := .ofString "" } { env := env }
+  let some n := p.getAppFn.constName? | return "?"
+  return claimOf env n ((nameOfExpr? r).getD n)
 
 /-- The text of `docs/REGISTRY.md`. -/
 def registryText : IO String := do
@@ -91,10 +127,20 @@ def registryText : IO String := do
     let (h, conditional) := headOf ci.type
     match h.bind (fun h => kinds.lookup h) with
     | some kind =>
-        -- The arguments are `K c I`: the claim domain, the claim, the instance.
         let args := ci.type.getForallBody.getAppArgs
-        let claim := (args[1]!.getAppFn.constName?.map (claimOf env)).getD "?"
-        let inst := (args[2]!.getAppFn.constName?.map toString).getD "?"
+        -- The claim (or profile) column and the instance argument.
+        let (claim, i) ← match h with
+          | some ``AvailableChain.Framework.ProfileCert =>
+              -- `K p I`: the claim domain, the profile, the instance.
+              pure (← profileColumn env args[0]! args[1]!, args[2]!)
+          | some ``AvailableChain.Framework.Catalog.Candidate =>
+              -- `I`: `Candidate I` is `ProfileCert core I` over `v1`.
+              pure (← profileColumn env (mkConst ``AvailableChain.Framework.ClaimDomain.v1)
+                  (mkConst ``AvailableChain.Framework.Catalog.core), args[0]!)
+          | _ =>
+              -- `K c I`: the claim domain, the claim, the instance.
+              pure (claimColumn env args[1]!, args[2]!)
+        let inst := (i.getAppFn.constName?.map toString).getD "?"
         let status ← if conditional then pure "CONDITIONAL (not a certificate)" else statusOf env n
         let status := if status == "LEAN" && gapsPrefix.isPrefixOf m then "KNOWN-GAP" else status
         rows := rows.push s!"│ {n} │ {kind} │ {claim} │ {inst} │ {status} │"

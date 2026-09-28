@@ -545,6 +545,93 @@ Phases 0–2 land before the FG-SA Lean instance starts.
   `ctorElimType`, `ofNat`, `ofNat_ctorIdx`, `toCtorIdx`, `<ctor>.elim` and
   `<ctor>.sizeOf_spec` that Lean made for each, and
   `ClaimSpec.stronger.eq_1`.
+- 2026-09-29, the gate of plan 1a (Tasks 1–5), approved by the user with the
+  plan on 2026-09-28. This is the one approved break of the gate. The old
+  lock is git blob `2e7931279eae4bb2763e45571bf4f019278d59d0` (87 lines, the
+  Task 0 lock); the new lock has 141 lines. `CatalogLock --check` against
+  the old lock gave 66 `CHANGED`, 1 `REMOVED` and 55 `ADDED` names, listed
+  below. All names are under `AvailableChain.Framework`; `Catalog.` is
+  `AvailableChain.Framework.Catalog.`. A declaration with the same source
+  can change its hash through a dependency (for example `sleepy` through
+  `Instance`).
+  - `CHANGED` (66):
+    `Catalog.{Candidate, core, includedConfirmed, not_candidate_of_family,
+    prefixOrder, safeConfirmed, safeOf, safeStable, sleepy}`;
+    `Cert` and `Cert.{const, inhabited, mk, not_refuted, proof, valid,
+    weaken}`;
+    `ClaimSpec` and `ClaimSpec.{Const, Point, conclusion, holds, id,
+    inhabited, le, le_refl, le_trans, mk, pareto, pareto_covers, pareto_sub,
+    refutable, regime, stronger, stronger_count_lt, stronger_irrefl,
+    stronger_trans, transport, trigger, valid}`;
+    `HooksSound` and `HooksSound.{excludes_inert, excludes_stable,
+    handles_carries, mk, processed_stable}`;
+    `Instance` and `Instance.{P, hooks, iface, mk, n, Δ}`;
+    `Profile` and `Profile.{id, mk}`;
+    `ProfileCert`;
+    `Refutation` and `Refutation.{const, family_of, mk, proof, valid}`;
+    `RefutationFamily` and `RefutationFamily.{mk, proof}`.
+  - `REMOVED` (1): `Profile.claims`. Task 2 replaced the claim list with
+    `Profile.entries` (claims with the projection of the shared constants).
+  - `ADDED` (55):
+    `Catalog.{includedConfirmed_holds_iff, includedConfirmed_inhabited_iff,
+    includedConfirmed_trigger_late, prefixOrder_holds_iff,
+    prefixOrder_inhabited_iff, safeConfirmed_holds_iff,
+    safeConfirmed_inhabited_iff, safeStable_holds_iff,
+    safeStable_inhabited_iff}`;
+    `Cert.pull`;
+    `ClaimDomain` and `ClaimDomain.{Ctx, Inst, admissible, horizon, id, mk,
+    ofV1, strong, v1}`;
+    `ClaimSpec.{holds_pull, inhabited_pull, pull}`;
+    `DomainMap` and `DomainMap.{admissible, ctx, horizon, inst, mk, ofV1,
+    strongV1}`;
+    `HooksSound.deps_stable`;
+    `Instance.Δ_pos`;
+    `Profile.{Entry, Entry.mk, Entry.share, Entry.spec, Shared, entries,
+    holdsAt, valid}`;
+    `ProfileCert.{certs, holdsAt, mk, shared, valid}`;
+    `StrongInstance` and `StrongInstance.{mk, sface, strong, toInstance}`;
+    `V1Ctx` and `V1Ctx.{E, mk, rho}`.
+  - Changed L3 claims, old and new type (old: `426009e`):
+    - `safeConfirmed`, old: `ClaimSpec`, with `regime` and `conclusion`
+      over `E : Env W.V` and `rho : Run W.V I.P`.
+      New: `ClaimSpec ClaimDomain.v1`, over `x : V1Ctx I W` (`x.E`,
+      `x.rho`); `trigger` also takes the time `H`.
+    - `safeStable`, old: `ClaimSpec` (as `safeConfirmed`).
+      New: `ClaimSpec ClaimDomain.v1` (as `safeConfirmed`).
+    - `prefixOrder`, old: `ClaimSpec`, `regime` and `trigger` are `True`.
+      New: `ClaimSpec ClaimDomain.v1`, `regime` and `trigger` are `True`.
+    - `includedConfirmed`, old: `ClaimSpec`, trigger `∃ s, t₀ <
+      proposalTime s ∧ HonestAwakeProposer E rho s ∧ proposalTime s + D ≤
+      rho.horizon`.
+      New: `ClaimSpec ClaimDomain.v1`, trigger with `H ≤ proposalTime s`
+      added (I2; `includedConfirmed_trigger_late`).
+    - `core`, old: `Profile`, `claims := [safeConfirmed, safeStable,
+      prefixOrder, includedConfirmed]`.
+      New: `Profile ClaimDomain.v1`, `Shared := Time`, `valid D := 0 ≤ D`,
+      the same four claims as `entries`; `includedConfirmed` gets `D`.
+    - `Candidate`, old: `Candidate (I : Instance) : Type 1 := ProfileCert
+      core I`, with `ProfileCert p I := ∀ c ∈ p.claims, Cert c I`.
+      New: `Candidate (I : Instance) : Type 1 := ProfileCert core I`, with
+      `ProfileCert` a structure: one `shared` constant, `valid`, and a
+      certificate per entry at `e.share shared`.
+  - No certificate conclusion changed. The `id`, `holds` and `conclusion`
+    of each core claim are the Phase 0 ones (`Catalog/Meaning.lean` pins
+    `holds` and `inhabited`). The Counter certificates `certSafeConfirmed`,
+    `certSafeStable`, `certPrefix` and `certIncluded`, and the Sanity rows,
+    certify the same claim ids as at `426009e`. The registry has no Grid CO
+    certificate (`GridCOHooks` gives a `HooksSound` value only). What
+    changed is on the premise side: `includedConfirmed` inhabitation needs a
+    proposal at a time of at least `H` (the Counter certificate was rebuilt),
+    `Instance` needs `Δ_pos`, and `HooksSound` needs `deps_stable`.
+  - Registry after the regeneration (`docs/REGISTRY.md`, 16 rows): Counter
+    4 `cert` rows and `candidate` (`profile-cert`, `core.v1`), all `LEAN`;
+    `Gaps.NoInput` 4 `cert` rows and `clockCandidate` (`profile-cert`,
+    `core.v1`), all `KNOWN-GAP`; Sanity 3 `cert` rows and 1
+    `refutation-family` row, all `LEAN`; `Tests.certSafeStableStrong`
+    (`safeStable (pulled)`) and `Tests.refutedBadStrong` (`testStrongSafe
+    NON-CATALOG`), both `LEAN`. New row kind `profile-cert` (for
+    `ProfileCert K p I` and `Candidate I`; the claim column shows the
+    profile `id`). A pulled claim shows its base claim and `(pulled)`.
 
 ## 9. Changes to standing rules (approved by the user 2026-09-28)
 
