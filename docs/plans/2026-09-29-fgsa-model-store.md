@@ -1710,7 +1710,13 @@ def attest (p : Params) (st : State p.n) (Λ : Record) (i : Fin p.n) : RowBody �
 │      │                 │ `headSupport`.                                                │
 │ 9    │ Opus MINOR 6    │ Choice: group by decode. `proposalRows` counts rows per       │
 │      │                 │ decoded `(round, identity)`, the key of `admitRow`. All       │
-│      │                 │ earlier tests keep their values.                              │
+│      │                 │ earlier tests keep their values. Edge (lead, G6 check): a     │
+│      │                 │ row that does not decode has the key `none`, so all such rows │
+│      │                 │ would share one group. Under MetaInv (Task 12) no candidate   │
+│      │                 │ is such a row: `wireTree` (every row of a stored wire         │
+│      │                 │ decodes) and `poolDecodes`. So the grouping equals that of    │
+│      │                 │ `admitRow` on                                                 │
+│      │                 │ every MetaInv store; no model change and no filter.           │
 └──────┴─────────────────┴───────────────────────────────────────────────────────────────┘
 ```
 
@@ -2280,7 +2286,9 @@ in Σ.T, with the SAME ordered rows (`filterMap toRow?`), and whose rows all
 decode. `treeWire`: every non-genesis block of Σ.T has exactly one stored wire.
 `stampKeys`: the block stamps are keyed by the base list, once each.
 `pool*`: the row pool holds decoded rows, no duplicate, at most two per
-identity and round (used by `proposalRows`). -/
+identity and round (used by `proposalRows`). `wireTree` and `poolDecodes` also
+make every `proposalRows` candidate decode, so its grouping key is never `none`
+(G6 item 9). -/
 structure MetaInv (p : Params) (st : State p.n) : Prop where
   wireTree : ∀ o ∈ st.proposals, ∃ s b raw sup rows,
     o = ⟨.proposer s, .proposal b raw sup rows⟩ ∧ (∀ a ∈ rows, (RowWire.decode? a).isSome) ∧
