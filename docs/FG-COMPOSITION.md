@@ -7055,3 +7055,9 @@ SUPERSEDED entry is the conjunction of its successors.
   model file `acG` is unchanged at `1a3f73a` (sha256 `2cb079fd…`, as
   registered). The spec bd942ca0 still lists "SA Lean under the receipt
   premise" as OPEN (lines 1852–1858); the spec is not re-pinned.
+  Build detail (team-lead, 2026-09-28): `lake build` on main at `1a3f73a`
+  completed with 3,558 jobs, 0 errors, 0 warnings and 0 `sorry`; `#print
+  axioms` for the five public theorems gives only `propext`,
+  `Classical.choice` and `Quot.sound`. Team-lead will close the spec's
+  OPEN item together with the r164 red-team fixes in one spec change;
+  the re-pin waits for that change.
