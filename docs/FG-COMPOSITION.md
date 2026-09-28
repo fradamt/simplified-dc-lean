@@ -560,6 +560,7 @@ index shows the status under the old spec (R1 views); status lines marked
 │ ap.finalityHead.v2    │ nj   │ SKETCH              │ 2 │ —         │
 │ ap.fastSupport.v1     │ both │ PROVED (RULE, τ>a)  │ 2 │ —         │
 │ ap.headReachesLo.v1   │ fj   │ PROVED (FG-SA)      │ 2 │ —         │
+│ ap.headReachesLo.v2   │ fj   │ PROVED (ALFS, paper)│ 2 │ —         │
 │ fg.provenance.v1      │ both │ SUPERSEDED (PROVED) │ 3 │ —         │
 │ fg.provenance.v2      │ both │ PROVED              │ 3 │ DC-fj     │
 │ fg.causalCap.v1       │ both │ SUPERSEDED (PROVED) │ 3 │ —         │
@@ -1895,6 +1896,8 @@ in §4. Every status below is for the FG-SA client (§0).
   domain is empty (a late contest), the HEAD returns its anchor (ldp L6,
   lines 354–356; O3, lines 544–546). This entry is not re-proved for
   ALFS.
+- Note (2026-09-28): the ALFS form is `ap.headReachesLo.v2`. This entry
+  stays as the view form; it is not superseded.
 - Note: the weaker form "the AP does not block leaving H−1" is NOT enough.
   An AP that lets the head leave H−1 but keeps it at H−1 for another
   reason gives the N12 stall. r148 F11 tests the old band `{H−1,H}` in
@@ -1915,6 +1918,201 @@ in §4. Every status below is for the FG-SA client (§0).
 > witness at all. A different branch-dependent filter could work, but
 > it needs its own proof. This does not prove that every possible
 > alternative band design fails.
+
+### `ap.headReachesLo.v2` — the AP head under ALFS (frozen tree, live anchor)
+
+- Variant `fj` (its premise is the ALFS frame `fj.frame.v2`). Sources:
+  ldp §4.5–§4.6 (L5, L6), lines 316–360, and §9.4 (C5), lines 695–706 and
+  737–747 (file `fgsa-live-dc-port.md`, archived as
+  `tsc/archive/fgsa-live-dc-port-81677672.md`, sha256
+  `816776723e439f24612c409f2007c2a236bb3fa2dbde605c68516333ee4c7b38`); the
+  ALFS spec `ghost` and `goldfish_eligible`, lines 978–1000, `live_root`,
+  lines 1014–1026, and `get_head_in_tree`, lines 1028–1035 (file
+  `spec/archive/fgsa-protocol-183f2c40.tex`, sha256
+  `183f2c409f03542dbdf3f9461924077437710b74720d09b32a42d3bdb3f04afb`).
+- Lean plan: — (an AP service fact; the SA instance is later work).
+- Hypotheses: `fj.frame.v2`; `fj.frameFeasible.v1` part (4) on the frozen
+  voter tree (ancestor-closed); for clause 4, the ALFS recovery premises
+  of ldp §2 and the premises of L5 (an honest proposal after GST and
+  after the two-lease boundary of a phase).
+- Service statement (registry, 2026-09-28). For a HEAD duty, let V be its
+  frozen voter tree, (Z, lo) the store controls (`fj.frame.v2`), D_V the
+  filtered domain of V, and A = `live_root` (the deepest live lease in the
+  full filtered tree, else Z).
+  1. If A ∈ D_V, or A has an eligible child in D_V, the AP head is in D_V
+     and has state height ≥ lo.
+  2. Otherwise the AP head is A (the anchor fallback). A can lie outside
+     the walked tree (DC's rule, ldp lines 594–597).
+  3. If A = Z and D_V ≠ ∅, then Z ∈ D_V, so clause 1 applies.
+  4. After the two-lease boundary, with the HEAD's live frame equal to the
+     proposer's, a fallback needs D_V = ∅, and an empty D_V needs a
+     contest event in `(t_s−Δ, v_s)`: at most 2 such slots per frontier,
+     at most 4 before the reset, and none after it (C5, ldp lines
+     697–706). Before the boundary, a fallback is part of the initial
+     repair ρ (ldp lines 737–738). The FJ producer charges these slots.
+- Note on the requested form (2026-09-28): the form "if D_V ≠ ∅, the head
+  is in D_V" holds under clause 4's premises, not in general. `ghost`
+  returns its anchor when the anchor has no eligible child in the walked
+  tree (spec lines 983–985). A live lease A outside D_V, with D_V ≠ ∅, can
+  therefore be the head before the boundary.
+- SA discharge (registry, 2026-09-28), as in `ap.headReachesLo.v1`, with
+  the start at `live_root` and DC's rule that the walk may start outside
+  the walked tree (spec lines 1028–1035).
+  1. Clause 1. If A ∈ D_V, the v1 steps 2–4 apply with tree D_V: the walk
+     stays in D_V, and below lo every block of D_V has an eligible child
+     in D_V (`fj.frameFeasible.v1` part (4); the frozen voter tree is
+     ancestor-closed; eligibility uses `band_floor`, spec line 996). If
+     A ∉ D_V and A has an eligible child Y ∈ D_V, the walk moves into D_V
+     at its first step, and the same steps apply from there.
+  2. Clause 2. `ghost` returns its anchor when the anchor has no eligible
+     child in the tree (spec lines 983–985).
+  3. Clause 3. Let B ∈ D_V with witness W ∈ V, `h(W) ≥ lo`. Then
+     `Z ⪯ B ⪯ W`, Z ∈ V by ancestor closure, `F ⪯ Z`, and W witnesses Z,
+     so Z ∈ D_V.
+  4. Clause 4 is ldp C5 (lines 697–706), with L5 step 3 (a nonempty
+     domain when the frames are equal) and L6 (the three event cases).
+  The start at `live_root` and the in-band choice by score stay AP data.
+- Statement (pinned):
+
+> _fgsa-live-dc-port.md, lines 316–360:_
+>
+> ### 4.5 L5 — HEAD agreement after repair (PROVED)
+>
+> Premises: honest proposal P at `t_s` after GST and after the two-lease
+> boundary of a phase, and no event in `(t_s−Δ,v_s)`.
+>
+> 1. **Nonempty domain.** The frontier H exceeds `ht(F)` (a finalization at
+>    y has a carrier at y+1). Every height-H block extends F (crossing), and
+>    extends J in an uncontested top frame. So the proposer's full domain
+>    is nonempty. A viable block below lo has a viable child, which is
+>    eligible, so the proposer's walk stops at A with `ht(A)≥lo`.
+> 2. **Same frame.** No event in the window, and L3 for F.
+> 3. **Candidates.** By L1 each child candidate at x is a proposer candidate
+>    or lies on `anc(P)`. A competitor off P's path has its witness in the
+>    proposer's store. Scores and eligibility are equal (same votes, same
+>    lo). The path to A is viable at x through A itself, which is in `anc(P)`.
+> 4. **Walk.** From x's anchor (⪯A, L4), each step picks the proposer's
+>    choice: a subset of candidates that contains the maximum keeps it. At
+>    A the proposer found no eligible old child, so x finds none. P is the
+>    one valid current-slot child. P has no stored child. **HEAD = P.**
+>
+> This is SA's `honest_proposal_heads_of_ordinary_parent` with the FG frame
+> added. DC's analog is `fixedHeightJustificationRoot_namedOpeningVoteStoresExtend`,
+> whose SG-root premise `get_sg_root ⪯ A` becomes L4. Then r156 §5.1 gives:
+> release of conflicts at `q_s`, raw result exactly P with support at least
+> h at `d_s`, fast write, guard passes.
+>
+> ### 4.6 L6 — frame ahead of view (PROVED)
+>
+> When an event reaches x after `z_(s−1)` and before `v_s`, x's caches have
+> it and x's block view does not. Three cases:
+>
+> - **Frontier rise to H without contest.** `lo=H−1`. The new carrier X
+>   crossed `H−1` with a quorum that has an honest row for the entry E at
+>   `H−1`. That row's source contained E and was held before its action,
+>   hence before `z_(s−1)` (r156 §1.2 timing). E is in the view. So every
+>   block that X witnesses keeps a view witness (E). No loss.
+> - **Top J.** Root J; J has honest target rows, so J is in the view, and
+>   `ht(J)=H−1=lo`. The domain is J's subtree. No empty domain.
+> - **Contest, or a rise into a contest.** `lo=H`. The view can lack every
+>   height-H block. Then the view domain is empty and the HEAD returns the
+>   anchor. DC does the same: an empty filtered view returns the SG root.
+>
+> In each case the slot is the one charged by L2. The anchor case cannot
+> break L8: in a P1 run the anchor is a live lease that extends the armed
+> block B (§4.8).
+
+> _fgsa-live-dc-port.md, lines 695–706:_
+>
+> ### 9.4 The root (anchor) fallback on the SA side (C5, PROVED)
+>
+> **When it occurs.** A HEAD falls back to its anchor X (the FG root if no
+> live lease is in the full domain) only when its frozen domain is empty.
+> If the HEAD's live frame equals the proposer's, P's path carries A with
+> `ht(A)≥lo`, so the domain is not empty (L5 step 3). F moves never empty it
+> (C1). A top J is in the view at height lo, and in a band rise the crossed
+> entry E is in the view (L6). So a fallback needs an event in `(t_s−Δ,v_s)`
+> that puts the node in a contest frame (first contest witness, or a rise
+> into a contest). By L2 this is at most two slots per frontier, and before
+> the reset only frontiers M and M+1 count: at most four slots in all.
+> After the reset no contest exists above M+1, so no fallback occurs.
+
+> _fgsa-live-dc-port.md, lines 737–747:_
+>
+> Before the boundary X need not precede A; then its effect is part of the
+> initial repair ρ, which the bound already pays.
+>
+> **FJ does not make it a lever.** The contest root F and the band `lo=H`
+> produce an empty frozen domain only while the height-H blocks are newer
+> than the freeze. A known contest stays on at fixed (H, J); old height-H
+> blocks are in every later frozen view; new old-stock W blocks at H do
+> not change the frame and cannot empty a domain that already holds
+> height-H blocks. So the adversary gets one fallback slot per contest
+> event and per rise, not one per slot. DC has the same one-slot effect
+> with its SG root; FJ adds at most the contest event per frontier.
+
+> _fgsa-protocol-183f2c40.tex, lines 978–1000:_
+>
+> ```latex
+> \Function{ghost}{$\mathit{anchor},\mathit{tree},
+>   \mathit{score},\mathit{eligible}$}
+>   \Comment{\DC{7}, unchanged}
+>   \State $H\gets\mathit{anchor}$
+>   \Loop
+>     \State $\mathit{children}\gets\{B:B\text{ is a child of }H\text{ in }
+>       \mathit{tree},\ \mathit{eligible}(B)\}$
+>     \If{$\mathit{children}=\emptyset$} \State \Return $H$ \EndIf
+>     \State $H\gets\arg\max_{B\in\mathit{children}}\mathit{score}(B)$,
+>       ties by root order
+>   \EndLoop
+> \EndFunction
+> \vspace{1pt}
+> \Function{goldfish\_eligible}{$\Sigma,\mathit{votes},
+>   \mathit{support\_votes},s,B$}
+>   \Comment{\DC{7}, redefined (a): band floor}
+>   \State $\mathit{voters\_count}\gets
+>     |\{i:\mathit{votes}\text{ holds a vote by seat }i\}|$
+>   \State \Return $\Sigma.\sigma[B.\parent].h<\Call{band\_floor}{\Sigma}$
+>     or $2\,\Call{goldfish\_score}{\mathit{votes},
+>       \mathit{support\_votes},s,B}>\mathit{voters\_count}$
+>     or $B.\slot=\Sigma.s$
+> \EndFunction
+> ```
+
+> _fgsa-protocol-183f2c40.tex, lines 1014–1026:_
+>
+> ```latex
+> \Function{live\_root}{$\Sigma$}
+>   \Comment{\DC{7} \fname{get\_sg\_root}, redefined (b); \SAS{} \fname{live\_root}}
+>   \State $\mathit{tree}\gets\Call{get\_filtered\_block\_tree}{\Sigma}$
+>   \Comment{the full filtered tree, not a view}
+>   \State $\mathit{targets}\gets\{B\in\mathit{tree}:\Sigma.\lease[B]\neq\bot\}$
+>   \Comment{they lie on one chain}
+>   \If{$\mathit{targets}=\emptyset$}
+>     \State \Return $\Call{get\_fg\_root}{\Sigma}$
+>     \Comment{no live lease in the tree}
+>   \EndIf
+>   \State \Return the deepest $B\in\mathit{targets}$
+>   \Comment{the deepest live lease in place of grade~1}
+> \EndFunction
+> ```
+
+> _fgsa-protocol-183f2c40.tex, lines 1028–1035:_
+>
+> ```latex
+> \Function{get\_head\_in\_tree}{$\Sigma,\mathit{tree},
+>   \mathit{votes},\mathit{support\_votes},k$}
+>   \Comment{\DC{7}, adapted (b): live root}
+>   \State $A\gets\Call{live\_root}{\Sigma}$
+>   \Comment{in place of \fname{get\_sg\_root}}
+>   \State \Return $\Call{goldfish\_fork\_choice}{\Sigma,A,
+>     \mathit{tree},\mathit{votes},\mathit{support\_votes},k}$
+> \EndFunction
+> ```
+
+- Status: 2026-09-28 — PROVED (paper; SA under ALFS; ldp L5, L6, C5 and
+  the registry discharge above). ldp imports r156 §§4–7 (ldp lines 68–71).
+- Note: `ap.headReachesLo.v1` is the view form and is not superseded.
 
 ## 3. `SimplexFG.nj` lemmas (`Kit.FG`)
 
@@ -3237,6 +3435,8 @@ M0. r151 calls this cap μ and calls M0 simply M.
 - Note (2026-09-28; §0 rule (b)): the step "In a contest, an actual head
   reaches H" is `ap.headReachesLo.v1` (AP data after the user design
   correction of 2026-09-28). Hypotheses add `ap.headReachesLo.v1`.
+- Note (2026-09-28): under ALFS: `ap.headReachesLo.v2`, with the charged
+  fallback slots.
 - Note (2026-09-28): Lean: hFJ′ (F ⪯ J′) is a hypothesis now (partial
   coverage). A later helper lemma derives it in pure form from
   `fg.finalLock.v1` and the F carrier in the view; it will be pinned to
@@ -3474,6 +3674,8 @@ M0. r151 calls this cap μ and calls M0 simply M.
   the head in band. That step is `ap.headReachesLo.v1` (AP data after the
   user design correction of 2026-09-28). Hypotheses add
   `ap.headReachesLo.v1`.
+- Note (2026-09-28): under ALFS: `ap.headReachesLo.v2`, with the charged
+  fallback slots.
 - Returned witness (audit W09): the caps M ≤ M0 and the cut `u0`
   (`env.r148`); an honest row at height ≥ M0+1 > M by `B_R`; its fresh
   source, permanent by `fj.canonical.v1` from its transfer HEAD; the repair
@@ -3720,6 +3922,8 @@ r151 names; `μ ≤ M`.
   the head in band. That step is `ap.headReachesLo.v1` (AP data after the
   user design correction of 2026-09-28). Hypotheses add
   `ap.headReachesLo.v1`.
+- Note (2026-09-28): under ALFS: `ap.headReachesLo.v2`, with the charged
+  fallback slots.
 - Statement (pinned):
 
 > _fj-theorem-h.md, lines 328–332:_
@@ -3776,6 +3980,8 @@ r151 names; `μ ≤ M`.
 - Note (2026-09-28; §0 rule (b)): effective (L) for the FJ frame uses the
   same producer as `fj.rise.fixedF.v1`, so it uses `ap.headReachesLo.v1`.
   Hypotheses add `ap.headReachesLo.v1`.
+- Note (2026-09-28): under ALFS: `ap.headReachesLo.v2`, with the charged
+  fallback slots.
 - Statement (pinned):
 
 > _fj-theorem-h.md, lines 357–364:_
@@ -3878,6 +4084,8 @@ r151 names; `μ ≤ M`.
 - Note (2026-09-28; §0 rule (b)): the x2 part `ht(A) ≥ lo_d` of the
   (X+) discharge is `ap.headReachesLo.v1` for the ordinary proposal walk
   A. Hypotheses add `ap.headReachesLo.v1`.
+- Note (2026-09-28): under ALFS: `ap.headReachesLo.v2`, with the charged
+  fallback slots.
 - Clauses: (local) `t_h ≤ q_(s*)+2L+G−Δ` (§7.3), with no arrival input.
   (global) `t_h < GST+B_proved` (§8), uniform choice
   `B_FJ,H = B_R+δ_H`.
@@ -5062,3 +5270,15 @@ SUPERSEDED entry is the conjunction of its successors.
   `fj.healedAtQ.v1`: REFUTED with R1 views (h12); not checked under ALFS.
   The imported r156 §§4–7, r151 N/H and r152 FF1–FF7 are not
   independently checked. The refutations under the old spec stay.
+- New id `ap.headReachesLo.v2` (fj; PROVED, paper, SA under ALFS; Lean
+  plan —): the AP head under ALFS. The head is in D_V at height ≥ lo when
+  the anchor `live_root` is in D_V or has an eligible child there;
+  otherwise the head is the anchor. After the two-lease boundary a
+  fallback needs an empty D_V and a contest event in `(t_s−Δ, v_s)`: at
+  most 2 slots per frontier, 4 before the reset, none after (ldp C5). The
+  unconditional form "D_V ≠ ∅ ⇒ head in D_V" is not registered: before
+  the boundary a live lease outside D_V can be the head. v1 stays (view
+  form) with a pointer. `fj.inBandLock.v1`, `fg.base.fj.v1`,
+  `fj.rise.fixedF.v1`, `fj.rise.movingF.v1` and `fj.healed.v1` have a
+  dated note: under ALFS, `ap.headReachesLo.v2` with the charged fallback
+  slots.
