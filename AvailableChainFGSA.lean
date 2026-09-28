@@ -11,4 +11,5 @@ public import AvailableChainFGSA.Proofs.Fields
 public import AvailableChainFGSA.Proofs.ActView
 public import AvailableChainFGSA.Statements.Store
 public import AvailableChainFGSA.Proofs.Nesting
+public import AvailableChainFGSA.Proofs.Reconcile
 public import AvailableChainFGSA.Tests.Smoke

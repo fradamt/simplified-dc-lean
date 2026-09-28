@@ -1952,7 +1952,7 @@ theorem outputNesting_stored (p : Params) : OutputNestingStored p
 
 **Blueprint:** `bp.reconcile.v1` (bp00 §3.1; bp01 §6.2–6.3). Write `Fb st := eraseFG st.fg.F`. Correction of revision 1 (Opus M3): the fastWrite premise of K1 does NOT need write origins over a run. It is the local invariant `FastOrigin` (Task 7), which this task preserves over reconcile and Task 11 preserves over every step.
 
-- [ ] **Step 1: Write the statements.**
+- [x] **Step 1: Write the statements.**
 
 ```lean
 /-- [bp bp.reconcile.v1] (§6.2, exact effects) -/
@@ -2024,8 +2024,9 @@ theorem reconcile_harmless_origin (st : State n) (F₀ : Block) (hO : FastOrigin
     Block.Preceq st.base.stableRecord (reconcile st).base.stableRecord
 ```
 
-- [ ] **Step 2: Prove them.** Exact effects: unfold `reconcile`, `normalizeS`; `split`. `reconcile_idem`: the filters are idempotent (`List.filter_filter`, `Option.filter` twice), and `normalizeS` of a nested state is the identity. `reconcile_harmless`: `List.filter_eq_self`, `List.map` with `Option.filter_eq_self`; for S, if `F ⋠ S` then compatibility gives `S ⪯ F`. `reconcile_fastOrigin`: `reconcile_fastWrite`, `reconcile_savedGenuine`; case "B ⪯ C, C kept": unchanged; case "B ⪯ C, C emptied": `block_preceq_total_of_common` is not needed: `F ⪯ B` would give `F ⪯ C`, a contradiction, so the kept `B ∥ F` gives `B ⪯ F`; case "B ⪯ F₀": `block_preceq_trans` with `hF`. `reconcile_harmless_origin`: build `SACompat st` from `hL`, `hG` and `hO` (a member below a body `C` with `C ∥ F` is compatible with F by `block_compatible_of_preceq_compatible`; a member below `F₀ ⪯ F` is below F), then apply `reconcile_harmless`. `savedGenuine … = some (some C)` gives `(r, some C) ∈ genuine` (`List.find?` membership).
+- [x] **Step 2: Prove them.** Exact effects: unfold `reconcile`, `normalizeS`; `split`. `reconcile_idem`: the filters are idempotent (`List.filter_filter`, `Option.filter` twice), and `normalizeS` of a nested state is the identity. `reconcile_harmless`: `List.filter_eq_self`, `List.map` with `Option.filter_eq_self`; for S, if `F ⋠ S` then compatibility gives `S ⪯ F`. `reconcile_fastOrigin`: `reconcile_fastWrite`, `reconcile_savedGenuine`; case "B ⪯ C, C kept": unchanged; case "B ⪯ C, C emptied": `block_preceq_total_of_common` is not needed: `F ⪯ B` would give `F ⪯ C`, a contradiction, so the kept `B ∥ F` gives `B ⪯ F`; case "B ⪯ F₀": `block_preceq_trans` with `hF`. `reconcile_harmless_origin`: build `SACompat st` from `hL`, `hG` and `hO` (a member below a body `C` with `C ∥ F` is compatible with F by `block_compatible_of_preceq_compatible`; a member below `F₀ ⪯ F` is below F), then apply `reconcile_harmless`. `savedGenuine … = some (some C)` gives `(r, some C) ∈ genuine` (`List.find?` membership).
 - [ ] **Step 3: Review gate G9 and CHECKPOINT.** Commit `FGSA store: reconcile facts (K3, K1)`.
+  Execution notes (2026-09-29): the checkpoint is the commit that adds this note; G9 is pending. `Proofs/Reconcile.lean` has the twelve statements above with the same text (five statement lines are wrapped for the 100-column linter). No statement needs a new premise. `reconcile_harmless_origin` has NO fastWrite premise, as planned: it builds the fastWrite part of `SACompat` from `hO`, `hG` and `hF`. Extra helpers: `reconcile_eq` (the exact effect as one record update; every exact-effect lemma and `reconcile_idem` rewrite with it), `preceq_normal` (`F ⪯ (if F ⪯ S then S else F)` in `Bool` form), `stable_preceq_normal` (S precedes the new S when S and F are compatible), and `mem_genuine_of_saved` (a saved nonempty result is a row of `genuine`). Validation: `lake build --wfail AvailableChainFGSA` and `bash scripts/check-fgsa.sh` pass (577 constants, 252 theorems; standard axioms only).
 
 ---
 
