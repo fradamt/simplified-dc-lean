@@ -1,10 +1,20 @@
 import AvailableChainRegistry
+import Lean.Util.CollectAxioms
 open Lean
 
 /-! Type-scanning registry. Every constant in `AvailableChainRegistry` whose
 type is `Cert c I`, `Refutation c I` or `RefutationFamily c I` is a row of
 `docs/REGISTRY.md`. A type `∀ …, Cert c I` is CONDITIONAL and is not a
-certificate.
+certificate; it is still written as a row, with status `CONDITIONAL (not a
+certificate)`.
+
+A row's status is `LEAN` only if every axiom the declaration transitively
+depends on (`Lean.collectAxioms`) is one of `propext`, `Classical.choice`,
+`Quot.sound`. Any other axiom (including `sorryAx`) gives status
+`UNSOUND(<axiom names>)`; a CONDITIONAL row is not checked, since it is not
+a certificate. A row's claim column keeps the claim's name and appends
+`NON-CATALOG` if the `ClaimSpec` it certifies is not declared in a module
+under `AvailableChainFramework.Catalog`.
 
 Run: `lake env lean --run scripts/Registry.lean` -/
 
@@ -19,6 +29,38 @@ def kinds : List (Name × String) :=
    (``AvailableChain.Framework.Refutation, "refutation"),
    (``AvailableChain.Framework.RefutationFamily, "refutation-family")]
 
+/-- Axioms allowed in a sound LEAN row. -/
+def allowedAxioms : List Name :=
+  [``propext, ``Classical.choice, ``Quot.sound]
+
+/-- The axioms `n` transitively depends on. -/
+def axiomsOf (env : Environment) (n : Name) : IO (Array Name) :=
+  Core.CoreM.toIO' (collectAxioms n) { fileName := "Registry", fileMap := .ofString "" }
+    { env := env }
+
+/-- `n`'s status column: `LEAN`, or `UNSOUND(ax1, ax2, …)` if it depends on
+an axiom outside `allowedAxioms`. -/
+def statusOf (env : Environment) (n : Name) : IO String := do
+  let axs ← axiomsOf env n
+  let bad := (axs.filter (fun a => !allowedAxioms.contains a)).qsort Name.lt
+  if bad.isEmpty then
+    return "LEAN"
+  else
+    return s!"UNSOUND({String.intercalate ", " (bad.toList.map toString)})"
+
+/-- Every catalog claim lives in a module under this prefix. -/
+def catalogPrefix : Name := `AvailableChainFramework.Catalog
+
+/-- `n`'s claim column: its name, with `NON-CATALOG` appended if `n` is not
+declared in a module under `catalogPrefix`. -/
+def claimOf (env : Environment) (n : Name) : String :=
+  let s := toString n
+  match env.getModuleIdxFor? n with
+  | some idx =>
+      if catalogPrefix.isPrefixOf env.header.moduleNames[idx.toNat]! then s
+      else s ++ " NON-CATALOG"
+  | none => s ++ " NON-CATALOG"
+
 def main : IO Unit := do
   initSearchPath (← findSysroot)
   let env ← importModules #[{ module := `AvailableChainRegistry }] {}
@@ -32,9 +74,9 @@ def main : IO Unit := do
     match h.bind (fun h => kinds.lookup h) with
     | some kind =>
         let args := ci.type.getForallBody.getAppArgs
-        let claim := (args[0]!.getAppFn.constName?.map toString).getD "?"
+        let claim := (args[0]!.getAppFn.constName?.map (claimOf env)).getD "?"
         let inst := (args[1]!.getAppFn.constName?.map toString).getD "?"
-        let status := if conditional then "CONDITIONAL (not a certificate)" else "LEAN"
+        let status ← if conditional then pure "CONDITIONAL (not a certificate)" else statusOf env n
         rows := rows.push s!"│ {n} │ {kind} │ {claim} │ {inst} │ {status} │"
     | none => pure ()
   let sorted := rows.qsort (· < ·)

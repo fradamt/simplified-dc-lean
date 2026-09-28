@@ -519,9 +519,16 @@ refutations, and compile-only tests. Its namespace is
 `scripts/Registry.lean` scans `AvailableChainRegistry` for constants whose
 type is `Cert c I`, `Refutation c I`, or `RefutationFamily c I`, and
 writes one row per constant to `docs/REGISTRY.md`. A type behind leading
-binders (`∀ …, Cert c I`) is CONDITIONAL and is not a row. Run:
-`lake env lean --run scripts/Registry.lean`. `docs/REGISTRY.md` is
-generated; do not edit it by hand.
+binders (`∀ …, Cert c I`) is CONDITIONAL and is still written as a row,
+with status `CONDITIONAL (not a certificate)`: it is a row of the table,
+not a certificate. Every other row's status is `LEAN` only if
+`Lean.collectAxioms` finds no axiom outside `propext`, `Classical.choice`,
+`Quot.sound`; any other axiom (including `sorryAx`) gives status
+`UNSOUND(<axiom names>)`. A row's claim column keeps the claim's name and
+appends `NON-CATALOG` if the `ClaimSpec` is not declared in a module under
+`AvailableChainFramework.Catalog`. Run: `lake env lean --run
+scripts/Registry.lean`. `docs/REGISTRY.md` is generated; do not edit it by
+hand.
 
 `scripts/CatalogLock.lean` locks every declaration of
 `AvailableChainFramework.Hooks`, `.Instance`, `.Claim`, `.Cert`,
