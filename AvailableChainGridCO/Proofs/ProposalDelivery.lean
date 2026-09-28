@@ -72,22 +72,6 @@ theorem stateBefore_proposals_subset {V : Type} [DecidableEq V] (p : Params)
                     (Run.stateBefore (gridCO p) rho j reader) o
                 · simp [World.step, hv]
 
-/-- Proposal envelopes cannot be carried by another message's HEAD list. -/
-theorem handles_proposal_direct (p : Params) {n : Nat} (st : State n)
-    (outer o : Wire n) (B : Block) (raw support : List (HeadWire n))
-    (hp : o.payload = .proposal B raw support) (hh : handles p st outer o) : outer = o := by
-  rcases hh with he | hh
-  · exact he
-  · cases ho : outer.payload with
-    | head target => simp [ho] at hh
-    | proposal target rows resolved =>
-        simp only [ho] at hh
-        obtain ⟨wire, _, he⟩ := List.mem_map.mp hh.2.2
-        have hpay := congrArg Signed.payload he
-        simp only [fromHead] at hpay
-        rw [hp] at hpay
-        contradiction
-
 /-- Between proposal and HEAD, the receiver's clock names the proposal's
 slot. The required public tick also runs at a sleeping reader. -/
 theorem proposal_delivery_current_label {V : Type} [DecidableEq V]

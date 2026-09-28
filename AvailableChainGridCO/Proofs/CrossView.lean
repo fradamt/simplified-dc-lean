@@ -1,5 +1,5 @@
 module
-public import AvailableChainGridCO.Proofs.ReceiptOrigins
+public import AvailableChainGridCO.Proofs.ReceiptRelay
 public import AvailableChainGridCO.Proofs.Support
 
 @[expose] public section
@@ -12,27 +12,6 @@ set_option linter.unusedSectionVars false
 variable [LeasePolicy]
 
 open AvailableChain.Generic AvailableChain.Statements.Generic
-
-/-- A HEAD stored after any event before a cutoff retains an early stamp.
-The event can belong to a different reader. -/
-theorem stored_vote_stamp_before_cut {V : Type} [DecidableEq V] (p : Params)
-    (E : Env V) (rho : Run V (gridCO p)) (hs : ScheduleWellFormed E rho)
-    {index : Nat} {e : Event V (gridCO p).Object} {reader : V} {o : Wire p.n}
-    {early cut : Time} (hi : rho.events[index]? = some e)
-    (hm : o ∈ (Run.stateBefore (gridCO p) rho (index + 1) reader).votes)
-    (ht : e.time < early) (hcut : early ≤ cut) :
-    o ∈ (Run.stateBeforeTime (gridCO p) rho cut reader).votes ∧
-      stampVote (Run.stateBeforeTime (gridCO p) rho cut reader) o < early := by
-  have hp : ReceiptPrefix (Run.stateBefore (gridCO p) rho (index + 1) reader)
-      (Run.stateBeforeTime (gridCO p) rho cut reader) := by
-    rw [time_input_eq_event_prefix p E rho hs]
-    apply stateBefore_receiptPrefix
-    exact Nat.succ_le_of_lt ((index_lt_read_length_iff hs (cut - 1) hi).mpr
-      (Int.le_sub_one_iff.mpr (ht.trans_le hcut)))
-  refine ⟨hp.votes.subset hm, ?_⟩
-  rw [hp.stampVote (run_receiptStamped p rho (index + 1) reader) o hm]
-  exact ((run_stampsBounded p E rho hs (index + 1) reader).stampVote_le o).trans_lt
-    ((stateAfter_now_le_event p E rho hs hi reader).trans_lt ht)
 
 /-- An accepted object reaches every honest reader before its relay cutoff,
 or is already stored there after the source event. -/

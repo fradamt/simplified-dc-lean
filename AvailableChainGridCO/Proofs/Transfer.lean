@@ -1,5 +1,5 @@
 module
-public import AvailableChainGridCO.Proofs.Support
+public import AvailableChainGridCO.Proofs.ScoreExtension
 public import AvailableChainGridCO.Proofs.Release
 
 @[expose] public section
@@ -12,24 +12,6 @@ set_option linter.unusedSectionVars false
 variable [LeasePolicy]
 
 open AvailableChain.Generic AvailableChain.Statements.Generic
-
-/-- Seats counted by the ordinary walk, including equivocators. -/
-def scoreSeats {n : Nat} (tree : List Block) (raw support : List (Wire n))
-    (B : Block) : Finset (Fin n) :=
-  (seats n raw).toFinset.filter (fun i =>
-    equivocates raw i || (seatVotes support i).any (fun o =>
-      match headTarget? o with
-      | some target => target ∈ tree && target.slot ≤ (headLabel? o).getD 0 &&
-          Block.preceq B target
-      | none => false))
-
-theorem goldfishScore_eq_card {n : Nat} (tree : List Block)
-    (raw support : List (Wire n)) (B : Block) :
-    goldfishScore tree raw support B = (scoreSeats tree raw support B).card := by
-  unfold goldfishScore scoreSeats
-  rw [← List.toFinset_filter]
-  exact (List.toFinset_card_of_nodup
-    (List.Nodup.filter _ (List.nodup_dedup _))).symm
 
 /-- Receipt conditions for one source result and one next ordinary view.
 The source's clean supporters occur in the resolved view. A raw vote

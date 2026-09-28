@@ -164,5 +164,72 @@ theorem handled_honest_head_stored {V : Type} [DecidableEq V]
   rw [hpost] at he ⊢
   exact handled_head_mem_of_not_equivocating p _ parent r i B hlo hhi hhandle he
 
+/-- A new vote cannot have a future label. -/
+theorem admitVote_new_head_label (p : Params) {n : Nat} (st : State n)
+    (parent o : Wire n) (r : Slot) (hl : headLabel? o = some r)
+    (hm : o ∈ (admitVote p st parent).votes) :
+    o ∈ st.votes ∨ r ≤ (st.now / (4 * p.Δ)).toNat := by
+  unfold admitVote at hm
+  split at hm
+  · rename_i label seat target ha hp
+    dsimp only at hm
+    split at hm
+    · exact Or.inl hm
+    · rename_i hg
+      rcases List.mem_append.mp hm with hm | hm
+      · exact Or.inl hm
+      · have he : o = parent := List.mem_singleton.mp hm
+        subst o
+        have hr : label = r := by simpa [headLabel?, ha, hp] using hl
+        subst label
+        right
+        simp only [Bool.or_eq_true, decide_eq_true_eq, not_or] at hg
+        exact le_of_not_gt hg.1.1.2
+  · exact Or.inl hm
+
+theorem fold_new_head_label (p : Params) {n : Nat} (st : State n)
+    (raw : List (HeadWire n)) (o : Wire n) (r : Slot)
+    (hl : headLabel? o = some r)
+    (hm : o ∈ (raw.foldl (fun acc row => admitVote p acc (fromHead row)) st).votes) :
+    o ∈ st.votes ∨ r ≤ (st.now / (4 * p.Δ)).toNat := by
+  induction raw generalizing st with
+  | nil => exact Or.inl hm
+  | cons row raw ih =>
+    rcases ih _ hm with hm | hle
+    · exact admitVote_new_head_label p st _ o r hl hm
+    · exact Or.inr (by simpa [admitVote_now] using hle)
+
+theorem process_new_head_label (p : Params) {n : Nat} (st : State n)
+    (parent o : Wire n) (r : Slot) (hl : headLabel? o = some r)
+    (hm : o ∈ (process p st parent).votes) :
+    o ∈ st.votes ∨ r ≤ (st.now / (4 * p.Δ)).toNat := by
+  unfold process at hm
+  split at hm
+  · exact admitVote_new_head_label p st parent o r hl hm
+  · unfold admitProposal at hm
+    dsimp only at hm
+    split at hm <;> split at hm
+    all_goals first
+      | exact Or.inl hm
+      | have h := fold_new_head_label p _ _ o r hl hm
+        exact h
+  · exact Or.inl hm
+
+/-- Proposal envelopes cannot be carried by another message's HEAD list. -/
+theorem handles_proposal_direct (p : Params) {n : Nat} (st : State n)
+    (outer o : Wire n) (B : Block) (raw support : List (HeadWire n))
+    (hp : o.payload = .proposal B raw support) (hh : handles p st outer o) : outer = o := by
+  rcases hh with he | hh
+  · exact he
+  · cases ho : outer.payload with
+    | head target => simp [ho] at hh
+    | proposal target rows resolved =>
+        simp only [ho] at hh
+        obtain ⟨wire, _, he⟩ := List.mem_map.mp hh.2.2
+        have hpay := congrArg Signed.payload he
+        simp only [fromHead] at hpay
+        rw [hp] at hpay
+        contradiction
+
 end AvailableChain.GridCO
 end
