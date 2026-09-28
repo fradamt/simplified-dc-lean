@@ -447,8 +447,8 @@ theorem filteredFrom_move (c : Controls V) (F' : FGBlock V) (blocks : Finset (FG
 
 /-- [pin fj.twoChanges.core.v1] (item 3 (i); filteredFrom, ANY block set; ldp
 §9.3 C1) Under fixed controls in which only F moves to F′ ⪰ F: the filtered
-tree is cut at F′. If F′ is below the band in the F-root phases, or the root J
-extends F′, and every block of the set above h(F′) extends F′ (pure
+tree is cut at F′. If F′ is below the band in the F-root phases, and, in the J-root
+phase, the root J extends F′, and every block of the set above h(F′) extends F′ (pure
 fg.finalLock.v1), then every removed block is an ancestor of F′; in the J-root
 phase nothing is removed. -/
 theorem Fmove_filtered (c : Controls V) (F' : FGBlock V) (blocks : Finset (FGBlock V))
@@ -509,8 +509,9 @@ from the set under F and under F′) An F move F → F′ below m−1 at one
 view, when every view block above h(F′) extends F′ (fg.finalLock.v1, pure
 form): the phase and lo do not change; Z changes only from F to F′; (j, J) does
 not change if j = m−1; and D is cut at F′: every removed block is an ancestor
-of F′. Here h(F′) is the state height of F′, which is its checkpoint height by
-`entry_height`. -/
+of F′. Here h(F′) is the state height of F′. It is the checkpoint height of F′ by
+`entry_height` only when some block K has `σ[K].J = F′` with `h_j(K) ≠ 0`; the
+statement does not assume such a carrier. -/
 theorem Fmove_below (hinj : ViewRootInj Vw) (hfront : frontier E cfg Vw = m)
     (hFF' : FGBlock.Preceq F F') (hlow : hOf E cfg F' < m - 1)
     (hext : ∀ W ∈ Vw, hOf E cfg F' < hOf E cfg W → FGBlock.Preceq F' W) :
@@ -750,6 +751,44 @@ example : FGBlock.genesis ∈ (fjFrame E4 cfg1 .genesis {.genesis, B1, B2, B3}).
     FGBlock.genesis ∉ (fjFrame E4 cfg1 B1 {.genesis, B1, B2, B3}).D ∧
     (fjFrame E4 cfg1 .genesis {.genesis, B1, B2, B3}).D = {.genesis, B1, B2, B3} ∧
     (fjFrame E4 cfg1 B1 {.genesis, B1, B2, B3}).D = {B1, B2, B3} := by
+  decide
+
+/-! ### `Fmove_atTop`: the hypotheses are satisfiable
+
+`K3` is a child of `B2` (slot 3) with three rows that carry only the finality
+pair `(2, B1)`. It finalizes `B1` at height 2 and stays at state height 3. In
+the view `{genesis, B1, B2, K3}` (`m = 3`), the move F = genesis → F′ = B1 is
+case (ii) of item 3. `ViewRootInj` is not decidable here; the roots of the view
+and its ancestors (`genesisRoot`, `⟨1⟩`, `⟨5⟩`, `⟨7⟩`) are distinct. -/
+
+/-- [helper] A row with no height pair and the finality pair `(2, B1)`. -/
+def rowK3 (i : Fin 4) : Row (Fin 4) := ⟨i, .empty, some ⟨2, B1.root⟩⟩
+
+def K3 : FGBlock (Fin 4) := .node B2 3 ⟨7⟩ [rowK3 0, rowK3 1, rowK3 2]
+
+/-- The decidable hypotheses of `Fmove_atTop` hold with `K = K3`, `F = genesis`,
+`F′ = B1`, `m = 3`. -/
+example : frontier E4 cfg1 {.genesis, B1, B2, K3} = 3 ∧
+    FGBlock.Preceq (FGBlock.genesis : FGBlock (Fin 4)) B1 ∧
+    hOf E4 cfg1 K3 = 3 ∧ (derive E4 cfg1 K3).F = B1 ∧ (derive E4 cfg1 K3).h_F = 2 ∧
+    (∀ K₁ ∈ ({.genesis, B1, B2, K3} : View (Fin 4)),
+      ∀ K₂ ∈ ({.genesis, B1, B2, K3} : View (Fin 4)),
+        (derive E4 cfg1 K₁).h_j = 2 → (derive E4 cfg1 K₂).h_j = 2 →
+          (derive E4 cfg1 K₁).J = (derive E4 cfg1 K₂).J) ∧
+    (∀ W ∈ ({.genesis, B1, B2, K3} : View (Fin 4)), 2 < hOf E4 cfg1 W →
+      FGBlock.Preceq B1 W) := by
+  decide
+
+/-- The conclusions of `Fmove_atTop`: both phases are uncontested, Z = B1,
+lo = 2, and D does not change. -/
+example : phaseOf E4 cfg1 .genesis {.genesis, B1, B2, K3} = .uncontested ∧
+    phaseOf E4 cfg1 B1 {.genesis, B1, B2, K3} = .uncontested ∧
+    (fjFrame E4 cfg1 .genesis {.genesis, B1, B2, K3}).Z = B1 ∧
+    (fjFrame E4 cfg1 B1 {.genesis, B1, B2, K3}).Z = B1 ∧
+    (fjFrame E4 cfg1 .genesis {.genesis, B1, B2, K3}).lo = 2 ∧
+    (fjFrame E4 cfg1 B1 {.genesis, B1, B2, K3}).lo = 2 ∧
+    (fjFrame E4 cfg1 B1 {.genesis, B1, B2, K3}).D =
+      (fjFrame E4 cfg1 .genesis {.genesis, B1, B2, K3}).D := by
   decide
 
 end AvailableChain.KitFG
