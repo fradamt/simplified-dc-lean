@@ -59,7 +59,8 @@ consistent with FRAMEWORK-DESIGN.md §7._
 line numbers. `r144o` is the Opus variant of r144. `r151` is `fj-theorem-h.md`.
 `ldp` is `fgsa-live-dc-port.md` (ALFS proofs), `r157` is
 `fgsa-live-views.md`, and `h12` is `fj-h12.md` (all registered and archived
-2026-09-28). `r152` is `fj-first-finality.md`, `r153` is `fj-reach.md`, and `r153a` is
+2026-09-28). `r158` is `alfs-redteam.md`, the independent red-team of
+ALFS (registered and archived 2026-09-28). `r152` is `fj-first-finality.md`, `r153` is `fj-reach.md`, and `r153a` is
 the Opus adjudication of r153, `fj-reach-adjudicate.md` (verdict VALID WITH
 CORRECTIONS; registered 2026-09-28). `r153b` is a later version of the same
 file, with §§A–C; §C.4 retracts the NJ claim of r153a. Line numbers cited
@@ -96,6 +97,7 @@ file unchanged at that commit); Git keeps the registered version.
 │ ldp   │ fgsa-live-dc-port.md      │ 816776723e439f24612c409f2007c2a2 │ 36bb3fa2dbde605c68516333ee4c7b38 │
 │ r157  │ fgsa-live-views.md        │ 5070acb6d1697fade725cb4fdb07850c │ aa91ee552b330e3bf9bbd8ace2a0d8df │
 │ h12   │ fj-h12.md                 │ 26c13e92b8bfe62422e00af91f8878f1 │ 2b0b7efdc66d67d7f9b857db99b9bbd7 │
+│ r158  │ alfs-redteam.md           │ f1ddd1a8863ac8f5443146bb901608a8 │ 32cb939fe2a0263de6cce5549f409c06 │
 └───────┴───────────────────────────┴──────────────────────────────────┴──────────────────────────────────┘
 ```
 
@@ -577,7 +579,7 @@ index shows the status under the old spec (R1 views); status lines marked
 │ fg.baseSel.nj.v1      │ nj   │ PROVED (FG-SA)      │ 3 │ none (nj) │
 │ fg.accountable.v1     │ both │ PROVED; LEAN (DC)   │ 3 │ DC-fj     │
 │ fj.frame.v1           │ fj   │ def                 │ 4 │ DC-fj     │
-│ fj.frame.v2           │ fj   │ def (spec; red-team)│ 4 │ DC-fj     │
+│ fj.frame.v2           │ fj   │ def (r158: no issue)│ 4 │ DC-fj     │
 │ fj.frameFeasible.v1   │ fj   │ PROVED              │ 4 │ DC-fj     │
 │ fj.crossingNoFinal.v1 │ fj   │ PROVED              │ 4 │ DC-fj     │
 │ fj.descent.v1         │ fj   │ PROVED              │ 4 │ —         │
@@ -595,7 +597,7 @@ index shows the status under the old spec (R1 views); status lines marked
 │ fj.Xplus.v1           │ fj   │ PROVED              │ 4 │ —         │
 │ fj.healed.v1          │ fj   │ local PROVED; unif. │ 4 │ —         │
 │ fj.healedUnif.v1      │ fj   │ REFUTED (impl. PRV) │ 4 │ —         │
-│ fj.healedAtQ.v1       │ fj   │ OPEN                │ 4 │ —         │
+│ fj.healedAtQ.v1       │ fj   │ REFUTED (h12, r158) │ 4 │ —         │
 │ comp.provenance.v1    │ both │ PROVED (FG-SA)      │ 5 │ —         │
 │ comp.settle.v1        │ both │ PROVED (FG-SA)      │ 5 │ —         │
 │ comp.cut.v1           │ both │ PROVED              │ 5 │ —         │
@@ -1575,6 +1577,11 @@ in §4. Every status below is for the FG-SA client (§0).
 - Status: 2026-09-28 (ldp) — under ALFS (spec 183f2c40) (the FJ form): base P1 and the
   clean claims for all `a<h` are PROVED (paper) (ldp L8, lines 378–394;
   §10.3, lines 849–857). See `fj.armedSafe.v1`.
+- Status: 2026-09-28 (r158) — under ALFS (the FJ form), independently
+  checked by r158: as in `fj.armedSafe.v1` (r158 §5, lines 560–613; table
+  lines 885–887). Under the NJ appendix of ALFS (spec 183f2c40, Appendix A,
+  line 1682; the DC form): clean safety, 6Δ inclusion and P1 are PROVED
+  (paper) (r158 §8, lines 804–811; table line 901).
 
 ### `ap.outputRecovered.v1` — ordinary outputs recover after the reset
 
@@ -2112,6 +2119,46 @@ in §4. Every status below is for the FG-SA client (§0).
 
 - Status: 2026-09-28 — PROVED (paper; SA under ALFS; ldp L5, L6, C5 and
   the registry discharge above). ldp imports r156 §§4–7 (ldp lines 68–71).
+- Status: 2026-09-28 (r158) — checked by r158 (M1, lines 79–95; §3.1,
+  lines 242–301; §4, lines 429–515). Clauses 1–3: consistent with M1.
+  r158 §3.1 is an exact read of clause 2 with D_V ≠ ∅: the anchor X is
+  outside D_V, `ht(X)=2 < lo=3`, and HEAD = X (lines 280–289). That read
+  is in the outage, just after a frame rise (lines 291–293). Clause 4:
+  the ldp sentence that a HEAD falls back "only when its frozen domain is
+  empty" (ldp lines 697–698) is REFUTED as a general rule (r158 lines
+  84–86 and 643–645). The conclusion of clause 4 at an honest proposal
+  after phase settlement and the two-lease repair stays PROVED, by a
+  different step: the full-store witness W and the common pivot give
+  HEAD = P at every honest HEAD (r158 lines 434–457 and 477–504). This
+  step does not use `ht(HEAD) ≥ lo` of ldp L4/C2 (r158 lines 629–630).
+  r158 charges each effective event with θ = 4Δ (lines 532–537), not each
+  fallback slot, and makes no no-reorg claim for a damaged event slot
+  (lines 643–645 and 649–655). Thus the slot count of clause 4 (2 per
+  frontier, 4 before the reset) is not a premise of the r158 bounds.
+- Note (2026-09-28, r158 M1): M1 agrees with the note on the requested
+  form above. A nonempty frozen domain does not force the HEAD into it.
+
+> _alfs-redteam.md, lines 79–86:_
+>
+> **M1.** LDP L4/C2 and the imported r156 §5.1 use the statement that an
+> honest supporting HEAD has height at least the band floor. For ALFS, the
+> start is selected in the full tree. It need not be in the frozen filtered
+> tree. The argument “a viable block below the band has an eligible child”
+> cannot be applied to that start in the frozen tree. LDP §9.4 also says
+> that returning this start requires an empty frozen domain. That statement
+> is false as a general rule fact: §3.1 gives an exact ALFS read with a
+> nonempty domain and a start outside it.
+
+> _alfs-redteam.md, lines 438–444:_
+>
+> At an honest HEAD read, the full filtered domain is nonempty. A height-H
+> carrier extends every lower accepted F by DC finalized crossing. In
+> the uncontested top-J case it also extends J. The full-tree anchor
+> belongs to this full domain. Every subsequent walked child belongs to
+> the frozen domain, which is a subset of the full domain at that read.
+> Consequently the resulting HEAD K belongs to the **full** domain.
+> It need not belong to the frozen domain and need not have height lo.
+
 - Note: `ap.headReachesLo.v1` is the view form and is not superseded.
 
 ## 3. `SimplexFG.nj` lemmas (`Kit.FG`)
@@ -2837,6 +2884,10 @@ in §4. Every status below is for the FG-SA client (§0).
 
 - Status: 2026-09-28 — PROVED (r143 C7, C8; r148 F8). LEAN for DC only (the
   DC accountable-finality theorem); there is no FG-SA Lean instance.
+- Status: 2026-09-28 (r158) — under ALFS: FG accountable safety, and
+  safety at `a≤f`, are PROVED (the DC certificate result; FJ, SA source
+  selection and timeout maturity do not change the certificate
+  implications; r158 table line 889 and lines 909–915).
 - Note (2026-09-28): the output-nesting clause is `comp.outputNesting.v1`;
   the "local F never retreats" clause stays here (Lean
   `update_finality_F_mono`).
@@ -3152,6 +3203,16 @@ M0. r151 calls this cap μ and calls M0 simply M.
 > ```
 
 - Status: 2026-09-28 — def (spec text; red-team pending).
+- Status: 2026-09-28 (r158) — def; r158 found no issue in the frame
+  functions. The r158 function audit against DC §7 (r158 §2, lines
+  126–203; table lines 138–194) finds `update_finality`, `advance_height`,
+  `fg_contest`, `band_floor`, `viable_tree_from`, `viable_tree`,
+  `get_fg_root` and `get_filtered_block_tree(_from)` equal to DC or to DC
+  with the declared FJ and SA replacements, and "No further unlisted
+  executable FG rule was found" (line 203). The r158 findings M1–M3 and
+  L1–L3 (lines 55–124) are not in these functions: M1 concerns the HEAD
+  anchor (`ap.headReachesLo.v2`), M2 the raw-proposal vote merge in
+  `goldfish_vote` (lines 186–187).
 - Note: `fj.frame.v1` is the view form and is not superseded. Its
   controls equal this entry's store controls on the full store under
   `StoreInv`. The acceptance tree `viable_tree` keeps DC's band `hmax−1`
@@ -3658,6 +3719,15 @@ M0. r151 calls this cap μ and calls M0 simply M.
   outage execution (r157 lines 5–10, §3) is REFUTED as an attack on ALFS:
   r157 takes the lease start from the HEAD tree's domain, ALFS from the
   full live domain (ldp lines 749–758).
+- Status: 2026-09-28 (r158) — under ALFS (spec 183f2c40), independently
+  checked by r158: clean chain safety, monotone S, 6Δ inclusion, fast P1
+  with lag 4Δ and slow P1 with lag `L−3Δ`, for all `a<h`, are PROVED
+  (paper) (r158 §5, lines 560–613; table lines 885–887). r158 replaces
+  the count `h>2a` of ldp §10 by a count that needs only `a<h` (L2, lines
+  72–73 and 562–572). The proof uses no FG safety theorem that needs
+  `a≤f` (line 595). r158 §3.1 replays the r157 outage under ALFS: the two
+  honest groups keep B to the outage end (lines 295–301). P1 under a
+  view-domain anchor stays REFUTED (a different rule; table line 888).
 
 ### `fg.base.fj.v1` — FJ reset and base handoff witness
 
@@ -3783,6 +3853,16 @@ M0. r151 calls this cap μ and calls M0 simply M.
   `GST+B+gP+9Δ` = 1049Δ is PROVED (paper) (ldp lines 44 and 515; r152
   FF5, with `δ_t ≥ 2R−1`). It imports r156 §§4–7, r151 Theorems N/H and r152 FF1–FF7 as paper
   results, not independently checked (ldp lines 68–71 and 527–531). The REFUTED lines for the old spec stay.
+- Status: 2026-09-28 (r158) — under ALFS (spec 183f2c40), independently
+  checked by r158: r152 FF1–FF7 are PROVED after healing, with `δ_t=2R`
+  and strong recurrence (r158 §6, lines 715–751; table line 895). First
+  finality before `GST+1049Δ` is PROVED (paper) (Theorem H plus FF5;
+  table line 896). With the H12 transfer, first finality before
+  `GST+B′+gP+9Δ` = `GST+1041Δ` is PROVED (paper) (lines 788–794; table
+  line 899). This replaces "not independently checked" in the ldp line.
+  r158 checks the slice `R≥3, δ_t=2R` (lines 112–116); `R=2` and other
+  δ_t are OPEN (line 900). The weak recurrence does not replace the three
+  openings (line 747).
 
 **FJ composite entries (`Kit.Compose`, from r151).** r151 renames the
 caps. Its μ is the old-source cap that r148 and r144o call M. Its M is
@@ -4024,6 +4104,10 @@ r151 names; `μ ≤ M`.
   661–675), so the arrival implication applies. It imports r156 §§4–7, r151 Theorems N/H and r152 FF1–FF7 as paper
   results, not independently checked (ldp lines 68–71 and 527–531). The REFUTED lines
   for the old spec stay.
+- Status: 2026-09-28 (r158) — under ALFS, independently checked by r158:
+  effective (L) (C3) is PROVED after the witness repair W (r158 table
+  line 641; §4, lines 429–558). The count does not depend on M, on old
+  private stock or on lower F advances (lines 553–558).
 - Note: the missing premise is the same common supported band prefix as
   `ap.reach.v1` (r151 lines 408–412).
 
@@ -4145,6 +4229,18 @@ r151 names; `μ ≤ M`.
   Local full healing by `q_(s*)+G+5Δ` (Theorem H′, h12 lines 18–28 and
   39–41) is PROVED with R1 views; its transfer to ALFS is not yet
   checked. The REFUTED lines for the old spec stay.
+- Status: 2026-09-28 (r158) — under ALFS (spec 183f2c40), independently
+  checked by r158 (`alfs-redteam.md`): the uniform FJ healing bound
+  `GST+1004Δ` (reference parameters, `R≥3, δ_t=2R`) is PROVED (paper),
+  after the r158 repair of the ldp witness step (the full-store witness W;
+  r158 §4, lines 429–558; budgets lines 541–551; table line 893). With the
+  H12 transfer (Lemma U and Theorem H′; r158 §7, lines 753–800): healing
+  from `d_u ≤ q_(s*)+G+5Δ`, and the uniform bound `B′ = B−2L+6Δ` = 996Δ,
+  is PROVED (paper) (lines 788–793; table lines 897 and 899). Local r151 N
+  and H under ALFS: PROVED (§6, lines 667–703; table line 894). This
+  replaces "its transfer to ALFS is not yet checked" in the ldp line.
+  OPEN: `R=2` or other δ_t (line 900), a bound that pays ρ once (line
+  904), a checked mixed ALFS Lean theorem (line 905).
 
 ### `fj.healedUnif.v1` — uniform bound under effective N1
 
@@ -4178,6 +4274,10 @@ r151 names; `μ ≤ M`.
   (paper) (C4, ldp lines 58 and 677–693); 1004Δ (`fj.healed.v1`) is the
   smaller bound. It imports r156 §§4–7, r151 Theorems N/H and r152 FF1–FF7 as paper
   results, not independently checked (ldp lines 68–71 and 527–531). The REFUTED lines for the old spec stay.
+- Status: 2026-09-28 (r158) — under ALFS, independently checked by r158:
+  C3 (effective (L), `λ = ρ+2σ`) is PROVED after the witness repair W, and
+  C4 (1292Δ) is PROVED (r158 table lines 641–642; §4, lines 429–558).
+  1004Δ and 996Δ (`fj.healed.v1`) are smaller.
 
 ### `fj.healedAtQ.v1` — full healing already at `q_(s*)`
 
@@ -4199,6 +4299,14 @@ r151 names; `μ ≤ M`.
   an exact reachable execution with `n=7, a=2, k=13, G=8Δ` has an honest S
   reorganization at `q_(s*)+G+5Δ` (h12 lines 6–10, 43–45). Not checked
   under ALFS.
+- Status: 2026-09-28 (r158) — under ALFS (spec 183f2c40), independently
+  checked by r158: REFUTED. The h12 §6 execution survives the view change:
+  an honest S changes from C14 to the conflicting P18 at
+  `1248 = q_(s*)+G+5Δ` (r158 §3.4, lines 404–427; table line 898). Local
+  full healing by `q_(s*)+G+5Δ` transfers to ALFS (lines 788–791). If
+  `2τ−2 ≤ n−a`, full healing starts at `d_(s*+1) = q_(s*)+5Δ` (lines
+  797–798). r158 does not establish tightness for k=2 (lines 426–427) or
+  an optimal bound for small L (line 800).
 
 ## 5. Composite entries (`Kit.Compose`, `SimplexFG.nj`)
 
@@ -4443,6 +4551,12 @@ the run parts of the f1 splits (§8).
   (r153b lines 45–46, 53–55, 900–963; the NJ consequence is lines
   956–961). The entry returns to its status before dd2f5e7: OPEN. The FJ form stays REFUTED
   (`fj.rise.movingF.v1`).
+- Status: 2026-09-28 (r158) — under the NJ appendix of ALFS (the DC
+  form): settled-phase production is PROVED (paper). r158 §4 applies with
+  `lo = H−1`, with at most two phases per frontier (gap, top J) (r158
+  lines 813–818). r158 does not state this as effective (L) with a
+  constant λ; the uniform composition stays SKETCH (lines 829–834). The
+  status under the old spec (OPEN) does not change.
 - Notes: this is the statement of the withdrawn `ap.L.movingF.v1`,
   refiled in `Kit.Compose`. The only missing input is
   `ap.repair.movingF.v1` (r149 lines 443–450); `ap.reach.v1` suffices for
@@ -4495,6 +4609,11 @@ the run parts of the f1 splits (§8).
 
 - Status: 2026-09-28 — PROVED (FG-SA; r150 claim table line 20). bp has
   PROVED* from (S) and (S_slow) (H7); r149 proves both.
+- Status: 2026-09-28 (r158) — under the NJ appendix of ALFS (the DC
+  form): local Theorem N at the specified NJ/finalized reset (the two
+  reset outcomes of r150) is PROVED (paper) (r158 §8, lines 820–827; table
+  line 902). High source bodies give the frozen witnesses in place of the
+  R1 maximizing carrier (lines 824–826).
 
 ### `comp.fgHealed.v1` — FG-healed from `q_(s*)`
 
@@ -4637,6 +4756,13 @@ the run parts of the f1 splits (§8).
   (r153b lines 45–46, 53–55, 900–963; the NJ consequence is lines
   956–961). The entry returns to its status before dd2f5e7 for the global clause: PROVED (FG-SA). The local clause is
   unchanged (PROVED).
+- Status: 2026-09-28 (r158) — under the NJ appendix of ALFS (the DC
+  form): (local) healing by `q_(s*)+2L+G−Δ` from the specified
+  NJ/finalized reset is PROVED (paper) (r158 §8, lines 820–827; table
+  line 902). (global) SKETCH: the uniform NJ composition needs the DC
+  height-selection consumer with the SA production and source callbacks
+  (lines 829–834; table line 903). r158 does not revive the 5816Δ claim
+  by citation (lines 837–838).
 - Bounds: local `t_h ≤ q_(s*)+2L+G−Δ`. Global
   `GST + min{B_lit, B_NJ + 2L+G−2Δ}`. Example
   (`Δ=1, R=3, k=2, G=8, g=3, D=2, K=5`): `B_NJ,H = 5816Δ`; `B_lit = 7472Δ`
@@ -4761,6 +4887,11 @@ the run parts of the f1 splits (§8).
   refutes the NJ transfer (C5) by an integer check on r153's numbers
   (r153b lines 45–46, 53–55, 900–963; the NJ consequence is lines
   956–961). The entry returns to its status before dd2f5e7: PROVED (FG-SA).
+- Status: 2026-09-28 (r158) — under the NJ appendix of ALFS (the DC
+  form): SKETCH. Settled-phase production is PROVED (r158 lines 813–818),
+  but the arrival (the DC height-selection consumer and its deadline) is
+  a named proof obligation (lines 829–834; table line 903). The 5796Δ
+  example is not an ALFS result.
 
 ### `comp.handoffBase.v1` — supplied base handoff `B_base`
 
@@ -4790,6 +4921,9 @@ the run parts of the f1 splits (§8).
   refutes the NJ transfer (C5) by an integer check on r153's numbers
   (r153b lines 45–46, 53–55, 900–963; the NJ consequence is lines
   956–961). The entry returns to its status before dd2f5e7: PROVED (FG-SA).
+- Status: 2026-09-28 (r158) — under the NJ appendix of ALFS (the DC
+  form): SKETCH. `B_base = B_NJ+P+ρ` uses the arrival of
+  `comp.arrivalNJ.v1`, which is SKETCH under ALFS (r158 lines 829–838).
 
 ### `comp.healedUnif.v1` — uniform bound under effective N1
 
@@ -4844,6 +4978,11 @@ the run parts of the f1 splits (§8).
   (r153b lines 45–46, 53–55, 900–963; the NJ consequence is lines
   956–961). The entry returns to its status before dd2f5e7: OPEN as a bound from the execution premises alone; the implication
   PROVED.
+- Status: 2026-09-28 (r158) — under the NJ appendix of ALFS (the DC
+  form): SKETCH. If the unchanged DC consumer is supplied, `N=D+K+5` and
+  the composition `3P+2N(λ+4Δ)+δ_H` = 5000Δ at the reference parameters
+  (r158 lines 834–836); r158 does not promote this conditional number to
+  a proved NJ bound (lines 837–838; table line 903).
 
 ### `comp.healedAtQ.v1` — full healing already at `q_(s*)` (H12)
 
@@ -4939,6 +5078,9 @@ the run parts of the f1 splits (§8).
   (r153b lines 45–46, 53–55, 900–963; the NJ consequence is lines
   956–961). The entry returns to its status before dd2f5e7: SKETCH. The note on the at-risk
   bounds `B_base` and `B_NJ` is withdrawn.
+- Status: 2026-09-28 (r158) — under the NJ appendix of ALFS (the DC
+  form): uniform NJ first finality is SKETCH (r158 §8, lines 829–838;
+  table line 903).
 
 ### `comp.clean.v1` — AP claims carry over in clean and Outage regimes
 
@@ -4959,6 +5101,11 @@ the run parts of the f1 splits (§8).
 > different executable `Run`.
 
 - Status: 2026-09-28 — PROVED (FG-SA; r146 1a–1c).
+- Status: 2026-09-28 (r158) — under the NJ appendix of ALFS (spec
+  183f2c40, Appendix A; the DC form): clean safety, 6Δ inclusion and P1
+  are PROVED (paper) (r158 §8, lines 804–811; table line 901). The proof
+  is the r158 §5 argument with the live lease as the P1 anchor; it needs
+  no R1 frame and no F basis (lines 809–811).
 - Note: it has the same source as `ap.armedSafe.v1`. `ap.armedSafe.v1` is
   the AP-side statement; this entry is its composite form.
 
@@ -5023,6 +5170,8 @@ the run parts of the f1 splits (§8).
 
 - Status: 2026-09-28 — PROVED (by construction of the accessor; r143 C8;
   r148 F8).
+- Status: 2026-09-28 (r158) — under ALFS: `F ⪯` available by the accessor
+  is PROVED (direct two-case rule; r158 table line 891).
 - Note: this is the output-nesting clause of `fg.accountable.v1`, filed
   as a composite because the accessor reads S, an AP record.
 
@@ -5282,3 +5431,30 @@ SUPERSEDED entry is the conjunction of its successors.
   `fj.rise.fixedF.v1`, `fj.rise.movingF.v1` and `fj.healed.v1` have a
   dated note: under ALFS, `ap.headReachesLo.v2` with the charged fallback
   slots.
+- r158 results (2026-09-28): `r158` (`alfs-redteam.md`, archived as
+  `tsc/archive/alfs-redteam-f1ddd1a8.md`) is registered. It has no
+  critical or high finding (lines 55–77). `fj.frame.v2`: def; r158 found
+  no issue in the frame functions (index: "def (r158: no issue)").
+  Dated lines "under ALFS, independently checked by r158":
+  `fj.healed.v1` (1004Δ PROVED after the witness repair W; 996Δ with the
+  H12 transfer), `fj.healedUnif.v1` and `fj.rise.movingF.v1` (C3, C4),
+  `fj.healedAtQ.v1` (REFUTED at `q_(s*)`; local `q_(s*)+G+5Δ` transfers;
+  index: "REFUTED (h12, r158)", the index now also shows the h12
+  refutation with R1 views), `fj.firstFinality.v1` (1049Δ; 1041Δ with
+  H12), `fj.armedSafe.v1` and `ap.armedSafe.v1` (clean claims and P1 for
+  all `a<h`), `fg.accountable.v1` (safety at `a≤f`) and
+  `comp.outputNesting.v1`. NJ appendix of ALFS (the DC form):
+  `comp.clean.v1` and `ap.armedSafe.v1` (clean, 6Δ, P1 PROVED),
+  `comp.rise.movingF.v1` (settled-phase production PROVED),
+  `comp.theoremN.v1` and the local clause of `comp.healed.v1` (PROVED),
+  and the global clause of `comp.healed.v1`, `comp.arrivalNJ.v1`,
+  `comp.handoffBase.v1`, `comp.healedUnif.v1`, `comp.finality.v1`
+  (SKETCH). `ap.headReachesLo.v2`: M1 is consistent with clauses 1–3 and
+  with the note on the requested form; the ldp C5 sentence "fallback only
+  when the frozen domain is empty" is REFUTED as a general rule; the
+  conclusion of clause 4 at a settled honest proposal is PROVED by W and
+  the common pivot (r158 §4). The r158 findings M2 (the raw-proposal vote
+  merge changes scores; the spec §5 class NOTE is wrong), M3 (`δ_t ≥ 0` is
+  outside the DC port) and L1 (accepted-object relay is not in the §5
+  ledger) are about the spec ledger. They change no registry entry. The
+  spec is not re-pinned.
