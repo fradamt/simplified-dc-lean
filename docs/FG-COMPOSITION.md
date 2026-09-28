@@ -57,7 +57,9 @@ consistent with FRAMEWORK-DESIGN.md §7._
 `tsc/` = `research/async-resilient-committees/tip-stability/codex/`. [async]
 `r146` = `fgsa-adj` of v1. Section numbers and line ranges replace the v1
 line numbers. `r144o` is the Opus variant of r144. `r151` is `fj-theorem-h.md`.
-`r152` is `fj-first-finality.md`, `r153` is `fj-reach.md`, and `r153a` is
+`ldp` is `fgsa-live-dc-port.md` (ALFS proofs), `r157` is
+`fgsa-live-views.md`, and `h12` is `fj-h12.md` (all registered and archived
+2026-09-28). `r152` is `fj-first-finality.md`, `r153` is `fj-reach.md`, and `r153a` is
 the Opus adjudication of r153, `fj-reach-adjudicate.md` (verdict VALID WITH
 CORRECTIONS; registered 2026-09-28). `r153b` is a later version of the same
 file, with §§A–C; §C.4 retracts the NJ claim of r153a. Line numbers cited
@@ -91,6 +93,9 @@ file unchanged at that commit); Git keeps the registered version.
 │ r153  │ fj-reach.md               │ 13843848471ae2955351c08a64cdc27a │ 0a9f34ad8d5f1b7af5f4f427de70a7b1 │
 │ r153a │ fj-reach-adjudicate.md    │ c85c0dcc5c325ac0ca5ed5cc9ae5e85d │ 20d3c3aa686d6146f31adacd0d773749 │
 │ r153b │ fj-reach-adjudicate.md    │ 12afc81c0e98a53366f13e2109839741 │ 84d5c1675226ec79e99ae85e83b4a47f │
+│ ldp   │ fgsa-live-dc-port.md      │ 816776723e439f24612c409f2007c2a2 │ 36bb3fa2dbde605c68516333ee4c7b38 │
+│ r157  │ fgsa-live-views.md        │ 5070acb6d1697fade725cb4fdb07850c │ aa91ee552b330e3bf9bbd8ace2a0d8df │
+│ h12   │ fj-h12.md                 │ 26c13e92b8bfe62422e00af91f8878f1 │ 2b0b7efdc66d67d7f9b857db99b9bbd7 │
 └───────┴───────────────────────────┴──────────────────────────────────┴──────────────────────────────────┘
 ```
 
@@ -99,7 +104,10 @@ Sources outside `tsc/` (registered 2026-09-28). `spec/` =
 `research/healing/rewrite/`. `vc/` =
 `lean/decoupled-consensus/verified-consensus/` at commit `b97b902`. `ac/` =
 `lean/available-chain/` at commit `ae2a9d3` (the SA Lean model; the file is
-unchanged since `588d666`).
+unchanged since `588d666`). `alfs` is the ALFS spec (the DC-form rewrite),
+registered 2026-09-28 from its archive copy; a pin to it names the file
+`fgsa-protocol-183f2c40.tex`. "Under ALFS (spec 183f2c40)" in a status
+line means the protocol of that spec.
 
 Note (2026-09-28): `spec/fgsa-protocol.tex` is not tracked in Git. It
 changed after registration (sha256 then
@@ -118,6 +126,7 @@ not re-pinned now. A citation of the form "spec/fgsa-protocol.tex, lines
 │ Key   │ File                                                             │ SHA-256, first half              │ SHA-256, second half             │
 ├───────┼──────────────────────────────────────────────────────────────────┼──────────────────────────────────┼──────────────────────────────────┤
 │ spec  │ spec/archive/fgsa-protocol-ae4497ab.tex                          │ ae4497abc7c5b3a6f73697f341bf730a │ 63c7d34bd2f7546154bd022bc95af223 │
+│ alfs  │ spec/archive/fgsa-protocol-183f2c40.tex                          │ 183f2c409f03542dbdf3f94619240774 │ 37710b74720d09b32a42d3bdb3f04afb │
 │ dc    │ dc/consensus.tex                                                 │ dc471b47a46896fe0a3df300c188fef1 │ 512f475615ce0fc0df18dbea6d2e5517 │
 │ vcE   │ vc/DecoupledConsensusProofs/Protocol/ValidatorClient/Engine.lean │ 92fb0e64c1288afea98b53212cb3ad5c │ 843c9c720187367eea578d17a9d53454 │
 │ vcF   │ vc/DecoupledConsensusProofs/Protocol/ChainState/                 │ aa0ed92740eb1ec8ee69e90fd2ae75f0 │ 3179a27c05accf5f631e7a254589b94c │
@@ -512,7 +521,9 @@ needed by the DC-fj module; `—` = not an entry of the current FG-module
 plan (AP-side, composite, or not scheduled). Status abbreviations
 (2026-09-28, r153): "local PROVED; unif." = the local clause is PROVED and
 the uniform clause is REFUTED; "impl. PRV" = the
-implication is PROVED. The entry has the full dated status line.
+implication is PROVED. The entry has the full dated status line. The
+index shows the status under the old spec (R1 views); status lines marked
+"under ALFS (spec 183f2c40)" are in the entries only.
 
 ```text
 ┌───────────────────────┬──────┬─────────────────────┬───┬───────────┐
@@ -565,6 +576,7 @@ implication is PROVED. The entry has the full dated status line.
 │ fg.baseSel.nj.v1      │ nj   │ PROVED (FG-SA)      │ 3 │ none (nj) │
 │ fg.accountable.v1     │ both │ PROVED; LEAN (DC)   │ 3 │ DC-fj     │
 │ fj.frame.v1           │ fj   │ def                 │ 4 │ DC-fj     │
+│ fj.frame.v2           │ fj   │ def (spec; red-team)│ 4 │ DC-fj     │
 │ fj.frameFeasible.v1   │ fj   │ PROVED              │ 4 │ DC-fj     │
 │ fj.crossingNoFinal.v1 │ fj   │ PROVED              │ 4 │ DC-fj     │
 │ fj.descent.v1         │ fj   │ PROVED              │ 4 │ —         │
@@ -777,6 +789,11 @@ Ret_d(B) := B⪯Z_d
   `(h_j, J.root)` and ties by root): `ViewRootInj` (§0.4).
 - Lean coverage (2026-09-28): Lean covers step 1 and part (ii)
   (`fBasis_lexMax`); part (i) and step 4 stay paper.
+- Note (2026-09-28, ALFS): part (ii) is now proved without the F basis
+  (Lean `storeControls_eq_fjControls` and `lexMax_of_candidate`). The ALFS
+  spec deletes the F basis and the J carrier (`fj.frame.v2`). The premise
+  `StoreInv.Fcar` (the block that finalized F is in Σ.T_F) replaces
+  them.
 - Statement (registry): let d be an honest duty with view V_d and current
   accepted F = F_d. Let P1 be the greatest `(h_j, J.root)` justified pair
   in V_d whose J is compatible with F (the `fg.frame.v1` rule). Let P2 be
@@ -1554,6 +1571,9 @@ in §4. Every status below is for the FG-SA client (§0).
 > Both P1 claims follow with `Π=min(η,L)` and the original lags.
 
 - Status: 2026-09-28 — PROVED (FG-SA; r146 1a–1c).
+- Status: 2026-09-28 (ldp) — under ALFS (spec 183f2c40) (the FJ form): base P1 and the
+  clean claims for all `a<h` are PROVED (paper) (ldp L8, lines 378–394;
+  §10.3, lines 849–857). See `fj.armedSafe.v1`.
 
 ### `ap.outputRecovered.v1` — ordinary outputs recover after the reset
 
@@ -1868,6 +1888,13 @@ in §4. Every status below is for the FG-SA client (§0).
 - Note (2026-09-28): the frame side of its feasibility is
   `fj.frameFeasible.v1` (D ≠ ∅ and D reaches lo). Step 1 of the SA
   discharge uses its part (2).
+- Note (2026-09-28, ALFS): the service statement and its SA discharge are
+  for the view form `fj.frame.v1`. Under ALFS (`fj.frame.v2`) the walk
+  starts at `live_root`, taken in the full filtered tree, and walks the
+  frozen voter tree; the start can lie outside that tree. When the frozen
+  domain is empty (a late contest), the HEAD returns its anchor (ldp L6,
+  lines 354–356; O3, lines 544–546). This entry is not re-proved for
+  ALFS.
 - Note: the weaker form "the AP does not block leaving H−1" is NOT enough.
   An AP that lets the head leave H−1 but keeps it at H−1 for another
   reason gives the N12 stall. r148 F11 tests the old band `{H−1,H}` in
@@ -2662,6 +2689,9 @@ M0. r151 calls this cap μ and calls M0 simply M.
 - Lean coverage (DC-fj module): frame only (F, H, j, J, Z, lo, D,
   contest, viability). `fgsa_head`, eligibility and the walk are AP data;
   see `ap.headReachesLo.v1` (user design correction 2026-09-28).
+- Note (2026-09-28): this is the view form, and it is not superseded. The
+  protocol's HEAD uses `fj.frame.v2` (ALFS). v1's controls equal v2's
+  store controls on the full store under `StoreInv`.
 - Statement (pinned):
 
 > _fj-redteam.md, lines 148–185:_
@@ -2738,6 +2768,198 @@ M0. r151 calls this cap μ and calls M0 simply M.
 > the absence of this geometric witness. It is not exactly the absence
 > of every possible proof that J cannot finalize.
 
+### `fj.frame.v2` — FJ frame from the live store caches (ALFS)
+
+- Variant `fj`. Source: the ALFS spec (DC form), file
+  `spec/archive/fgsa-protocol-183f2c40.tex`, sha256
+  `183f2c409f03542dbdf3f9461924077437710b74720d09b32a42d3bdb3f04afb`: `fg_contest` lines 910–916, `band_floor` 918–926,
+  `viable_tree_from` 928–934, `viable_tree` (acceptance) 936–942,
+  `get_fg_root` 944–951, `get_filtered_block_tree_from` and
+  `get_filtered_block_tree` 953–965, `live_root` 1014–1026,
+  `get_head_in_tree` 1028–1035, `voter_processed_block_tree` and
+  `voter_filtered_block_tree` 1144–1159, the HEAD duty call 1220–1222, and
+  the cache update `update_finality` 809–822. Proof file:
+  `tsc/fgsa-live-dc-port.md` (key ldp; ALFS is its §1).
+- Lean plan: DC-fj module (user 2026-09-28). Lean names (f1's plan):
+  `storeControls`, `fjControls`, `filteredFrom`,
+  `storeControls_eq_fjControls` (under `StoreInv` and `ViewRootInj`);
+  `fjFrame = filteredFrom (fjControls V) V` is the special case.
+- Hypotheses: `ViewRootInj` (§0.4), for the lex order of `update_finality`
+  (lines 812–815).
+- Summary (registry): controls from the live store caches (F, J, h_j,
+  hmax; the contest from the full T_F, never a view); the domain filter
+  applied to any block set; the HEAD walks the frozen voter tree from
+  `live_root` (the deepest live lease in the full filtered tree, else the
+  FG root), which may lie outside the walked tree.
+- Statement (pinned):
+
+> _fgsa-protocol-183f2c40.tex, lines 910–916:_
+>
+> ```latex
+> \Function{fg\_contest}{$\Sigma$}
+>   \Comment{new (a): \FJ{2}, on the live caches (\LDP{1})}
+>   \State \Return $\Sigma.\hmax=\Sigma.h_j+1$ \textbf{and} some
+>     $W\in\Sigma.\TF$ has $\Sigma.\sigma[W].h=\Sigma.\hmax$ and
+>     $\Sigma.J\not\preceq W$
+>   \Comment{full store, never a view}
+> \EndFunction
+> ```
+
+> _fgsa-protocol-183f2c40.tex, lines 918–926:_
+>
+> ```latex
+> \Function{band\_floor}{$\Sigma$}
+>   \Comment{new (a): \FJ{2}}
+>   \If{$\Call{fg\_contest}{\Sigma}$}
+>     \State \Return $\Sigma.\hmax$
+>     \Comment{band $\{H\}$}
+>   \EndIf
+>   \State \Return $\Sigma.\hmax-1$
+>   \Comment{\cite{DC}: band $\{H-1,H\}$}
+> \EndFunction
+> ```
+
+> _fgsa-protocol-183f2c40.tex, lines 928–934:_
+>
+> ```latex
+> \Function{viable\_tree\_from}{$\Sigma,\mathit{blocks}$}
+>   \Comment{\DC{7}, redefined (a): band floor; choice only}
+>   \State $\lo\gets\Call{band\_floor}{\Sigma}$
+>   \State \Return $\{B\in\mathit{blocks}:\Sigma.F\preceq B,\
+>     \exists B'\in\mathit{blocks},\ B\preceq B',\
+>     \Sigma.\sigma[B'].h\geq\lo\}$
+> \EndFunction
+> ```
+
+> _fgsa-protocol-183f2c40.tex, lines 936–942:_
+>
+> ```latex
+> \Function{viable\_tree}{$\Sigma$}
+>   \Comment{\DC{7}, adapted: admitted tree; acceptance only}
+>   \State \Return $\{B\in\Sigma.\TF:\Sigma.F\preceq B,\
+>     \exists B'\in\Sigma.\TF,\ B\preceq B',\
+>     \Sigma.\sigma[B'].h\geq\Sigma.\hmax-1\}$
+>   \Comment{\cite{DC}'s band, also in a contest (\FJ{2})}
+> \EndFunction
+> ```
+
+> _fgsa-protocol-183f2c40.tex, lines 944–951:_
+>
+> ```latex
+> \Function{get\_fg\_root}{$\Sigma$}
+>   \Comment{\DC{7}, redefined (a) by \FJ{2}}
+>   \If{$\Sigma.\hmax=\Sigma.h_j+1$ \textbf{and not} $\Call{fg\_contest}{\Sigma}$}
+>     \State \Return $\Sigma.J$
+>   \EndIf
+>   \State \Return $\Sigma.F$
+>   \Comment{a contest roots at $F$}
+> \EndFunction
+> ```
+
+> _fgsa-protocol-183f2c40.tex, lines 953–965:_
+>
+> ```latex
+> \Function{get\_filtered\_block\_tree\_from}{$\Sigma,\mathit{blocks}$}
+>   \Comment{\DC{7}, unchanged}
+>   \State $\mathit{root}\gets\Call{get\_fg\_root}{\Sigma}$
+>   \State \Return
+>     $\{B\in\Call{viable\_tree\_from}{\Sigma,\mathit{blocks}}:
+>       \mathit{root}\preceq B\}$
+> \EndFunction
+> \vspace{1pt}
+> \Function{get\_filtered\_block\_tree}{$\Sigma$}
+>   \Comment{\DC{7}, adapted: admitted tree}
+>   \State \Return
+>     $\Call{get\_filtered\_block\_tree\_from}{\Sigma,\Sigma.\TF}$
+> \EndFunction
+> ```
+
+> _fgsa-protocol-183f2c40.tex, lines 1014–1026:_
+>
+> ```latex
+> \Function{live\_root}{$\Sigma$}
+>   \Comment{\DC{7} \fname{get\_sg\_root}, redefined (b); \SAS{} \fname{live\_root}}
+>   \State $\mathit{tree}\gets\Call{get\_filtered\_block\_tree}{\Sigma}$
+>   \Comment{the full filtered tree, not a view}
+>   \State $\mathit{targets}\gets\{B\in\mathit{tree}:\Sigma.\lease[B]\neq\bot\}$
+>   \Comment{they lie on one chain}
+>   \If{$\mathit{targets}=\emptyset$}
+>     \State \Return $\Call{get\_fg\_root}{\Sigma}$
+>     \Comment{no live lease in the tree}
+>   \EndIf
+>   \State \Return the deepest $B\in\mathit{targets}$
+>   \Comment{the deepest live lease in place of grade~1}
+> \EndFunction
+> ```
+
+> _fgsa-protocol-183f2c40.tex, lines 1028–1035:_
+>
+> ```latex
+> \Function{get\_head\_in\_tree}{$\Sigma,\mathit{tree},
+>   \mathit{votes},\mathit{support\_votes},k$}
+>   \Comment{\DC{7}, adapted (b): live root}
+>   \State $A\gets\Call{live\_root}{\Sigma}$
+>   \Comment{in place of \fname{get\_sg\_root}}
+>   \State \Return $\Call{goldfish\_fork\_choice}{\Sigma,A,
+>     \mathit{tree},\mathit{votes},\mathit{support\_votes},k}$
+> \EndFunction
+> ```
+
+> _fgsa-protocol-183f2c40.tex, lines 1144–1159:_
+>
+> ```latex
+> \Function{voter\_processed\_block\_tree}{$\Sigma,s$}
+>   \Comment{\DC{7}, adapted: admitted tree}
+>   \State $\mathit{freeze}\gets t_{s-1}+3\Delta$
+>   \State $\mathit{proposals}\gets\{P\in\Sigma.\TF:P.\slot=s\}$
+>   \State \Return $\{B\in\Sigma.\TF:
+>     \Sigma.\timestamp(B)<\mathit{freeze}\ \textbf{or}\
+>     \exists P\in\mathit{proposals},\ B\preceq P\}$
+> \EndFunction
+> \vspace{1pt}
+> \Function{voter\_filtered\_block\_tree}{$\Sigma,s$}
+>   \Comment{\DC{7}, unchanged}
+>   \State $\mathit{blocks}\gets
+>     \Call{voter\_processed\_block\_tree}{\Sigma,s}$
+>   \State \Return
+>     $\Call{get\_filtered\_block\_tree\_from}{\Sigma,\mathit{blocks}}$
+> \EndFunction
+> ```
+
+> _fgsa-protocol-183f2c40.tex, lines 1220–1222:_
+>
+> ```latex
+>     \State $\mathit{tree}\gets\Call{voter\_filtered\_block\_tree}{\Sigma,s}$
+>     \State $H\gets\Call{get\_head\_in\_tree}{\Sigma,\mathit{tree},
+>       \mathit{votes},\mathit{support\_votes},s-1}$
+> ```
+
+> _fgsa-protocol-183f2c40.tex, lines 809–822:_
+>
+> ```latex
+> \Function{update\_finality}{$\Sigma,\sigma$}
+>   \Comment{\DC{7}, adapted (b): no grades to cut back}
+>   \State $\Sigma.\hmax\gets\max(\Sigma.\hmax,\sigma.h)$
+>   \If{$\Sigma.F\preceq\sigma.J$ \textbf{and}
+>       $(\sigma.h_j,\sigma.J.\rootf)>(\Sigma.h_j,\Sigma.J.\rootf)$}
+>     \Comment{lex order}
+>     \State $(\Sigma.J,\Sigma.h_j)\gets(\sigma.J,\sigma.h_j)$
+>   \EndIf
+>   \If{$\Sigma.F\prec\sigma.F$ \textbf{and} $\sigma.F\preceq\Sigma.J$
+>       \textbf{and} $\sigma.F\in\Call{viable\_tree}{\Sigma}$}
+>     \State $\Sigma.F\gets\sigma.F$
+>     \Comment{does not change $S$ or leases}
+>   \EndIf
+> \EndFunction
+> ```
+
+- Status: 2026-09-28 — def (spec text; red-team pending).
+- Note: `fj.frame.v1` is the view form and is not superseded. Its
+  controls equal this entry's store controls on the full store under
+  `StoreInv`. The acceptance tree `viable_tree` keeps DC's band `hmax−1`
+  also in a contest (lines 940–941). The spec has no F basis and no J carrier
+  (compare `fg.frame.v2`, `fg.frameCompat.v1`).
+
 ### `fj.frameFeasible.v1` — the FJ domain reaches lo and is not empty
 
 - Variant `fj`. Source r148 §2, lines 223–230 (the "finalized-crossing
@@ -2778,6 +3000,13 @@ M0. r151 calls this cap μ and calls M0 simply M.
      `X ⪯ W`, `h(W) ≥ lo`. Then X ≠ W. The child Y of X on the path to W is
      in V (ancestor closure), and `F ⪯ Y`, `Z ⪯ Y`, `Y ⪯ W`, so Y ∈ D.
      Pinned line 229: "Below lo every viable node has a viable child".
+- Note (2026-09-28, ALFS): parts (1) and (4) hold for any block set;
+  part (4) needs an ancestor-closed set, and the frozen voter tree
+  (`voter_processed_block_tree`, `fj.frame.v2`) is ancestor-closed. Parts
+  (2) and (3) are stated on `fjFrame` and Σ.T_F. Their frozen-tree forms
+  are ALFS L5 and L6 (ldp lines 316–360), which are comp/AP facts: in L6
+  a contest can leave the frozen domain empty, and then the HEAD returns
+  its anchor.
 - Statement (pinned):
 
 > _fj-redteam.md, lines 223–230:_
@@ -3170,6 +3399,9 @@ M0. r151 calls this cap μ and calls M0 simply M.
   `c57a50e7e863139073c7d27b9688903550f21f3ba8fde0b0e3c006771ed11813`).
   r153 breaks this count only through view changes (a lower F advance adds
   an F-basis witness to later views), not at a fixed view.
+- Note (2026-09-28, ALFS): case (i) is `Fmove_filtered` for any block set
+  (ldp §9.3 (1), lines 630–659, claim C1); `Fmove_below` and
+  `Fmove_atTop` are its `fjFrame` special cases.
 - Note: the count is for settled phases, not for raw successive R1 duty
   frames (r148 F13, REFUTED; r151 line 24). Between an evidence event and
   its settling, duties can disagree on the phase.
@@ -3220,6 +3452,12 @@ M0. r151 calls this cap μ and calls M0 simply M.
 > ```
 
 - Status: 2026-09-28 — PROVED (r148 F7; r144o N13).
+- Status: 2026-09-28 (ldp) — under ALFS (spec 183f2c40): clean safety, 6Δ service and
+  fast and slow P1 for all `a<h` are PROVED (paper) with the original
+  constants (L8, ldp lines 41 and 378–394; §10.3, lines 849–857). The r157
+  outage execution (r157 lines 5–10, §3) is REFUTED as an attack on ALFS:
+  r157 takes the lease start from the HEAD tree's domain, ALFS from the
+  full live domain (ldp lines 749–758).
 
 ### `fg.base.fj.v1` — FJ reset and base handoff witness
 
@@ -3339,6 +3577,10 @@ M0. r151 calls this cap μ and calls M0 simply M.
   for the same reason. The M-dependent form `B_lit+gP+9Δ` is PROVED
   relative to r147 (r153a line 470). Under the fix candidate FV (§8) the
   1541Δ form is SKETCH (r153a line 471).
+- Status: 2026-09-28 (ldp) — under ALFS (spec 183f2c40): first finality before
+  `GST+B+gP+9Δ` = 1049Δ is PROVED (paper) (ldp lines 44 and 515; r152
+  FF5, with `δ_t ≥ 2R−1`). It imports r156 §§4–7, r151 Theorems N/H and r152 FF1–FF7 as paper
+  results, not independently checked (ldp lines 68–71 and 527–531). The REFUTED lines for the old spec stay.
 
 **FJ composite entries (`Kit.Compose`, from r151).** r151 renames the
 caps. Its μ is the old-source cap that r148 and r144o call M. Its M is
@@ -3571,6 +3813,11 @@ r151 names; `μ ≤ M`.
   M-independent healing or arrival bound). The split and the implication
   from effective (L) stay PROVED; their premise fails. Under FV (§8) a
   restored uniform bound is SKETCH (r153a line 43).
+- Status: 2026-09-28 (ldp) — under ALFS (spec 183f2c40): effective (L) with
+  `λ = ρ+2σ` is PROVED (paper) in the DC form (C3, ldp lines 57 and
+  661–675), so the arrival implication applies. It imports r156 §§4–7, r151 Theorems N/H and r152 FF1–FF7 as paper
+  results, not independently checked (ldp lines 68–71 and 527–531). The REFUTED lines
+  for the old spec stay.
 - Note: the missing premise is the same common supported band prefix as
   `ap.reach.v1` (r151 lines 408–412).
 
@@ -3683,6 +3930,13 @@ r151 names; `μ ≤ M`.
   arm, so the global clause as stated is REFUTED. The literal-N1,
   M-dependent bound `B_lit = 3P+[6+M−f_0](λ+4Δ)+2L+G−2Δ` is PROVED
   relative to r147 (r153a lines 317–329): `t_h < GST+B_lit`.
+- Status: 2026-09-28 (ldp, h12) — under ALFS (spec 183f2c40): the uniform FJ healing
+  bound `B = 6ρ+[9+13g+7τ_t]P+60Δ+δ_H` = 1004Δ (reference parameters) is
+  PROVED (paper) (ldp lines 8–11, 43 and 506–516). It imports r156 §§4–7, r151 Theorems N/H and r152 FF1–FF7 as paper
+  results, not independently checked (ldp lines 68–71 and 527–531).
+  Local full healing by `q_(s*)+G+5Δ` (Theorem H′, h12 lines 18–28 and
+  39–41) is PROVED with R1 views; its transfer to ALFS is not yet
+  checked. The REFUTED lines for the old spec stay.
 
 ### `fj.healedUnif.v1` — uniform bound under effective N1
 
@@ -3710,6 +3964,12 @@ r151 names; `μ ≤ M`.
   arrival bound, PROVED; r153 line 27). The implication stays PROVED; its
   premise, effective (L), fails (`fj.rise.movingF.v1`). Under FV (§8) the
   restored uniform bound is SKETCH (r153a line 43).
+- Status: 2026-09-28 (ldp) — under ALFS (spec 183f2c40): effective (L) with
+  `λ = ρ+2σ` in the DC form is PROVED (paper) (C3, ldp lines 57 and
+  661–675), and the uniform bound `3P+6(λ+4Δ)+δ_H` = 1292Δ is PROVED
+  (paper) (C4, ldp lines 58 and 677–693); 1004Δ (`fj.healed.v1`) is the
+  smaller bound. It imports r156 §§4–7, r151 Theorems N/H and r152 FF1–FF7 as paper
+  results, not independently checked (ldp lines 68–71 and 527–531). The REFUTED lines for the old spec stay.
 
 ### `fj.healedAtQ.v1` — full healing already at `q_(s*)`
 
@@ -3727,6 +3987,10 @@ r151 names; `μ ≤ M`.
 > Immediate full healing at q_b is not established by this argument.
 
 - Status: 2026-09-28 — OPEN (r151 claim table line 33).
+- Status: 2026-09-28 (h12) — REFUTED with R1 views (the old spec):
+  an exact reachable execution with `n=7, a=2, k=13, G=8Δ` has an honest S
+  reorganization at `q_(s*)+G+5Δ` (h12 lines 6–10, 43–45). Not checked
+  under ALFS.
 
 ## 5. Composite entries (`Kit.Compose`, `SimplexFG.nj`)
 
@@ -4778,3 +5042,23 @@ SUPERSEDED entry is the conjunction of its successors.
   `fjFrame_Z_mem_D`, `fjFrame_viable_child`). `fj.inBandLock.v1`: a note
   on the Lean lemma `finalityPair_carrier_above`. `fg.frameCompat.v1`:
   Lean covers step 1 and part (ii); part (i) and step 4 stay paper.
+- ALFS registration (2026-09-28): the ALFS spec
+  `spec/archive/fgsa-protocol-183f2c40.tex` (key `alfs`), `ldp`
+  (`fgsa-live-dc-port.md`), `r157` (`fgsa-live-views.md`) and `h12`
+  (`fj-h12.md`) are registered; the three codex files are archived by
+  hash. New id `fj.frame.v2` (fj; def, spec text, red-team pending; Lean
+  plan DC-fj): controls from the live store caches, the domain filter on
+  any block set, and the HEAD walk of the frozen voter tree from
+  `live_root`. `fj.frame.v1` stays (the view form). Notes on
+  `fg.frameCompat.v1` (part (ii) without the F basis; `StoreInv.Fcar`),
+  `fj.frameFeasible.v1` (parts (1), (4) for any block set; (2), (3) in
+  frozen form are ALFS L5/L6), `fj.twoChanges.core.v1` (`Fmove_filtered`,
+  C1) and `ap.headReachesLo.v1` (not re-proved for ALFS). Dated status
+  lines "under ALFS": `fj.healed.v1` (1004Δ PROVED, paper; local
+  `q_(s*)+G+5Δ` with R1 views, transfer unchecked), `fj.healedUnif.v1`
+  and `fj.rise.movingF.v1` (effective (L) PROVED, paper; 1292Δ),
+  `fj.firstFinality.v1` (1049Δ PROVED, paper), `fj.armedSafe.v1` and
+  `ap.armedSafe.v1` (P1 and clean claims for all a<h PROVED, paper).
+  `fj.healedAtQ.v1`: REFUTED with R1 views (h12); not checked under ALFS.
+  The imported r156 §§4–7, r151 N/H and r152 FF1–FF7 are not
+  independently checked. The refutations under the old spec stay.
