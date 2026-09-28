@@ -1546,6 +1546,8 @@ def headVote (p : Params) (st : State p.n) (s : Slot) : Block :=
 support: those that resolve now (active head, valid slot). -/
 def proposerVotes {n : Nat} (st : State n) (s : Slot) : List (GridCO.Wire n) :=
   GridCO.votesAt st.base (s - 1)
+/-- [spec 1240–1243] The proposer's support: the pool votes that resolve now
+(head in `act(Σ)`, valid slot). -/
 def proposerSupport {n : Nat} (st : State n) (s : Slot) : List (GridCO.Wire n) :=
   (proposerVotes st s).filter (fun o => match GridCO.headTarget? o with
     | some h => GridCO.blockKnown (actView st) h && decide (h.slot ≤ s - 1)
