@@ -456,6 +456,7 @@ ids of the f1 splits (2026-09-28) are listed in §8.
 2026-09-28, §8). The module is DC-fj: DC's FG without SG and grades, with
 the FJ root rule in place of NJ (FRAMEWORK-DESIGN.md §7.1). `DC-fj` = planned
 in the DC-fj module (plan `docs/plans/2026-09-28-fg-module.md`);
+`DC-fj (ii)` = part (ii) only;
 `none (nj)` = nj research entry, not planned for Lean now; `none` = not
 needed by the DC-fj module; `—` = not an entry of the current FG-module
 plan (AP-side, composite, or not scheduled).
@@ -466,7 +467,7 @@ plan (AP-side, composite, or not scheduled).
 ├───────────────────────┼──────┼─────────────────────┼───┼───────────┤
 │ fg.frame.v1           │ nj   │ SUPERSEDED (def)    │ 1 │ none (nj) │
 │ fg.frame.v2           │ nj   │ def                 │ 1 │ none (nj) │
-│ fg.frameCompat.v1     │ both │ PROVED              │ 1 │ none      │
+│ fg.frameCompat.v1     │ both │ PROVED              │ 1 │ DC-fj (ii)│
 │ fg.Ret.v1             │ nj   │ def                 │ 1 │ none (nj) │
 │ fg.N1.v1              │ nj   │ def                 │ 1 │ none (nj) │
 │ fg.N1eff.v1           │ nj   │ def                 │ 1 │ none (nj) │
@@ -511,6 +512,7 @@ plan (AP-side, composite, or not scheduled).
 │ fg.baseSel.nj.v1      │ nj   │ PROVED (FG-SA)      │ 3 │ none (nj) │
 │ fg.accountable.v1     │ both │ PROVED; LEAN (DC)   │ 3 │ DC-fj     │
 │ fj.frame.v1           │ fj   │ def                 │ 4 │ DC-fj     │
+│ fj.frameFeasible.v1   │ fj   │ PROVED              │ 4 │ DC-fj     │
 │ fj.crossingNoFinal.v1 │ fj   │ PROVED              │ 4 │ DC-fj     │
 │ fj.descent.v1         │ fj   │ PROVED              │ 4 │ —         │
 │ fj.canonical.v1       │ fj   │ PROVED              │ 4 │ —         │
@@ -710,8 +712,9 @@ Ret_d(B) := B⪯Z_d
   820, 824 and 838 (checkpoint heights); spec lines 361–365 and 494 (F
   basis in every duty view); spec lines 736–750 (J guard and F basis).
   Hashes as in `fg.frame.v2`.
-- Lean plan: none (user 2026-09-28). The DC-fj module states the frame
-  with `F ⪯ J` (`fj.frame.v1`), so it does not need this lemma.
+- Lean plan: DC-fj module, partial: (ii) only, F ⪯ J form (Lean
+  `fBasis_lexMax`, plan `befb5d5`). Changed 2026-09-28; the earlier line
+  was "none".
 - Hypotheses: R1 duty views (`env.r150` item 4; spec lines 483–495); the
   F-basis rule of spec lines 742–750; the DC chain state (bp F5: one
   height per block; the entry `T_h` is the block that entered h). It does
@@ -1804,6 +1807,9 @@ in §4. Every status below is for the FG-SA client (§0).
   at or above lo the walk returns.
 - Status: 2026-09-28 — PROVED (FG-SA; paper, r148 lines 223–230 and 590;
   SA discharge above).
+- Note (2026-09-28): the frame side of its feasibility is
+  `fj.frameFeasible.v1` (D ≠ ∅ and D reaches lo). Step 1 of the SA
+  discharge uses its part (2).
 - Note: the weaker form "the AP does not block leaving H−1" is NOT enough.
   An AP that lets the head leave H−1 but keeps it at H−1 for another
   reason gives the N12 stall. r148 F11 tests the old band `{H−1,H}` in
@@ -2669,6 +2675,55 @@ M0. r151 calls this cap μ and calls M0 simply M.
 > the absence of this geometric witness. It is not exactly the absence
 > of every possible proof that J cannot finalize.
 
+### `fj.frameFeasible.v1` — the FJ domain reaches lo and is not empty
+
+- Variant `fj`. Source r148 §2, lines 223–230 (the "finalized-crossing
+  law" is line 226). File `fj-redteam.md`, sha256
+  `934fe2927f047a11e37dbe52aba9d754d5c461927f24b91902077f17459d47d2`.
+- Lean plan: DC-fj module (user 2026-09-28). Lean names in the plan
+  (`docs/plans/2026-09-28-fg-module.md`, commit `befb5d5`):
+  `fjFrame_D_reachesLo` = part (1), `fjFrame_D_nonempty` = part (2).
+- Kind: FG frame lemma (audit W02: an `ap.*` id does not carry a pure
+  frame lemma). It is the frame side of the feasibility of
+  `ap.headReachesLo.v1`.
+- Hypotheses: `fj.frame.v1`; for part (2) also (a) the view holds a block
+  K whose chain finalizes F (the accepting carrier of the F basis), with
+  `h(K) > h_F` (DC `ChainOrder.finalized_below_height`, `Chain.lean:442`),
+  and (b) every W ∈ V with `h(W) > h_F` extends F (the pure form of
+  `fg.finalLock.v1`, without slashable weight).
+- Statement (registry, 2026-09-28): let (F, H, j, J, Z, lo, D) be the FJ
+  frame of a view V.
+  1. Pure: if D ≠ ∅, then some W ∈ D has state height ≥ lo. Proof: take
+     B ∈ D and its witness W ∈ V, with `B ⪯ W` and `h(W) ≥ lo`. Then
+     `F ⪯ B ⪯ W` and `Z ⪯ B ⪯ W`, and W is its own witness, so W ∈ D.
+  2. Under (a) and (b), D ≠ ∅. By (a), `H ≥ h(K) > h_F`. Gap or contested
+     phase (Z = F, lo ≤ H): a frontier block W with `h(W) = H` extends F by
+     (b), and it is its own witness, so W ∈ D. Uncontested phase (Z = J,
+     lo = H−1): every frontier block W extends J, and `F ⪯ J` by the
+     selection rule, so W ∈ D.
+- Statement (pinned):
+
+> _fj-redteam.md, lines 223–230:_
+>
+> Under a≤f, this distinction does not create an empty choice domain.
+> Every frontier block has height above the height of accepted F: a
+> finalization at y has a justification carrier at height at least y+1.
+> The finalized-crossing law puts every such frontier block above F.
+> In the J case, the carrier witnesses J's viability. In the contested
+> case, a frontier witness makes F viable at lo=H. Below lo every viable
+> node has a viable child, so the walk reaches lo. Clean and P1 runs with
+> a<h use the source argument in §5 instead of this BFT crossing law.
+
+- Status: 2026-09-28 — PROVED (r148 lines 223–228; registry argument).
+- Note: the last two sentences of the pinned lines (the walk below lo)
+  are AP data: `ap.headReachesLo.v1`. Hypothesis (b) holds in a run under
+  `a≤f` by `fg.finalLock.v1`. Clean and P1 runs with `a<h` need another
+  argument (r148 §5).
+- DC Lean source of hypothesis (a): file
+  `DecoupledConsensusProofs/Protocol/ChainState/Chain.lean`, line 442,
+  at vc commit `b97b902`, sha256
+  `a4dc5f00c8741615c229b636742aa14de43f4ef51b0aa81aa75f747102a5a25d`.
+
 ### `fj.crossingNoFinal.v1` — r148 F2: a conflicting crossing of j proves that J cannot finalize
 
 - Variant `fj`. Source r148 §3 F2, lines 234–258. File `fj-redteam.md`,
@@ -2874,6 +2929,10 @@ M0. r151 calls this cap μ and calls M0 simply M.
 - Note (2026-09-28; §0 rule (b)): the step "In a contest, an actual head
   reaches H" is `ap.headReachesLo.v1` (AP data after the user design
   correction of 2026-09-28). Hypotheses add `ap.headReachesLo.v1`.
+- Note (2026-09-28): Lean: hFJ′ (F ⪯ J′) is a hypothesis now (partial
+  coverage). A later helper lemma derives it in pure form from
+  `fg.finalLock.v1` and the F carrier in the view; it will be pinned to
+  this entry.
 - Note: the old-band variant (FJ root test, band `{H−1,H}`) stalls (r148
   F11, REFUTED by the exact N12 execution, lines 599–711).
 
@@ -4366,3 +4425,15 @@ SUPERSEDED entry is the conjunction of its successors.
   `fj.rise.fixedF.v1`, `fj.rise.movingF.v1` and `fj.healed.v1` add
   `ap.headReachesLo.v1` to their hypotheses (§0 rule (b)); `fj.Xplus.v1`
   has a note that its callers discharge x2 with it.
+- New id `fj.frameFeasible.v1` (variant fj; PROVED; Lean plan DC-fj:
+  `fjFrame_D_reachesLo`, `fjFrame_D_nonempty`). It is the FG frame side
+  of the feasibility of `ap.headReachesLo.v1`: D reaches lo when D ≠ ∅,
+  and D ≠ ∅ when the view holds the F carrier and the pure finality lock
+  holds. It is an `fj.*` entry, not `ap.*` (audit W02).
+  `ap.headReachesLo.v1` has a pointer to it.
+- `fg.frameCompat.v1`: Lean plan changed from "none" to "DC-fj module,
+  partial: (ii) only, F ⪯ J form" (Lean `fBasis_lexMax`, plan `befb5d5`).
+  The index column shows `DC-fj (ii)`.
+- `fj.inBandLock.v1`: a dated note on Lean coverage. The hypothesis hFJ′
+  (F ⪯ J′) stays a hypothesis for now (partial coverage); a later helper
+  lemma will derive it from `fg.finalLock.v1` and the F carrier.
