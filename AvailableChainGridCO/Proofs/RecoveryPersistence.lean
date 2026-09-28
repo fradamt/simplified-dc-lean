@@ -142,6 +142,59 @@ def ReleasedRowsCompatible {V : Type} [DecidableEq V] (p : Params)
   ∀ reader ∈ rho.honest, ∀ K g d,
     (K, g, d) ∈ (nextHeadState p rho r reader).obligations → Block.Compatible K B
 
+/-- Source-support induction shared by SA and SA-PC. The callbacks concern
+actual results, rows, and HEADs. They do not assume a clean initial state. -/
+theorem source_support_induction {V : Type} (honest : V → Prop)
+    (result : Slot → V → Option Block) (next : Slot → V → Block)
+    (rows : Slot → V → List (Block × Nat × Time)) (valid : Slot → Prop)
+    (down : ∀ s t, s ≤ t → valid t → valid s)
+    (r : Slot) (source : V) (hs : honest source) (B C : Block)
+    (below : Block.Preceq B C)
+    (initialRows : ∀ v, honest v → ∀ K g d, (K, g, d) ∈ rows r v → Block.Compatible K B)
+    (initialHeads : ∀ v, honest v → Block.Preceq B (next r v))
+    (origin : ∀ t, r < t → valid t → ∀ v, honest v → ∀ K g d,
+      (K, g, d) ∈ rows t v → (K, g, d) ∈ rows r v ∨ ∃ s D,
+        r ≤ s ∧ s < t ∧ result s v = some D ∧ Block.Preceq K D)
+    (same : ∀ v, honest v → ∀ D, result r v = some D → Block.Compatible D C)
+    (preserve : ∀ t, r ≤ t → valid (t + 1) →
+      (∀ v, honest v → Block.Preceq B (next t v)) →
+      ∀ v, honest v → ∃ D, result (t + 1) v = some D ∧ Block.Preceq B D)
+    (transfer : ∀ t, r ≤ t → valid t → ∀ D, result t source = some D → Block.Preceq B D →
+      (∀ v, honest v → ∀ K g d, (K, g, d) ∈ rows t v → Block.Compatible K B) →
+      ∀ v, honest v → Block.Preceq B (next t v)) :
+    ∀ t, r ≤ t → valid t →
+      (∀ v, honest v → ∀ K g d, (K, g, d) ∈ rows t v → Block.Compatible K B) ∧
+      (∀ v, honest v → Block.Preceq B (next t v)) ∧
+      (r < t → ∀ v, honest v → ∃ D, result t v = some D ∧ Block.Preceq B D) := by
+  intro t
+  induction t using Nat.strong_induction_on with
+  | h t ih =>
+    intro start horizon
+    by_cases eq : t = r
+    · subst t
+      exact ⟨initialRows, initialHeads, by
+        intro impossible; exact (Nat.lt_irrefl _ impossible).elim⟩
+    have lt : r < t := by simp only [Slot] at *; omega
+    obtain ⟨u, rfl⟩ := Nat.exists_eq_succ_of_ne_zero (Nat.ne_zero_of_lt lt : t ≠ 0)
+    have previous := ih u (Nat.lt_succ_self u) (by simp only [Slot] at *; omega)
+      (down u (u + 1) (Nat.le_succ u) horizon)
+    have results := preserve u (by simp only [Slot] at *; omega) horizon previous.2.1
+    have compatible : ∀ v, honest v → ∀ K g d,
+        (K, g, d) ∈ rows (u + 1) v → Block.Compatible K B := by
+      intro v hv K g d member
+      rcases origin (u + 1) lt horizon v hv K g d member with old | ⟨s, D, lo, hi, hD, hKD⟩
+      · exact initialRows v hv K g d old
+      · by_cases eq : s = r
+        · subst s
+          exact compatible_prefixes K D B C hKD below (same v hv D hD)
+        · have past := ih s hi lo (down s (u + 1) hi.le horizon)
+          obtain ⟨D', hD', hBD⟩ := past.2.2 (by simp only [Slot] at *; omega) v hv
+          have eq : D' = D := Option.some.inj (hD'.symm.trans hD)
+          subst D'
+          exact ancestors_compatible K B D hKD hBD
+    obtain ⟨D, hD, hBD⟩ := results source hs
+    exact ⟨compatible, transfer (u + 1) start horizon D hD hBD compatible, fun _ => results⟩
+
 /-- Once a genuine prefix transfers with compatible rows, it stays
 covered by every later complete synchronous HEAD. Same-label safety
 controls the initial pending gate. Later gates use the honest batch.
@@ -157,53 +210,31 @@ theorem permanent_support_of_release {V : Type} [DecidableEq V] [Fintype V]
       ReleasedRowsCompatible p rho t B ∧ HeadCovers p rho t B ∧
       (r < t → ∀ reader ∈ rho.honest, ∃ D,
         confirmation p (gateInput p rho t reader) t = some D ∧ Block.Preceq B D) := by
-  intro t
-  induction t using Nat.strong_induction_on with
-  | h t ih =>
-      intro hrt hhor
-      by_cases he : t = r
-      · subst t
-        exact ⟨hrows, hheads, by intro h; exact (Nat.lt_irrefl r h).elim⟩
-      have hlt : r < t := lt_of_le_of_ne hrt (Ne.symm he)
-      obtain ⟨u, rfl⟩ := Nat.exists_eq_succ_of_ne_zero (Nat.ne_zero_of_lt hlt : t ≠ 0)
-      have hprev := ih u (Nat.lt_succ_self u) (Nat.le_of_lt_succ hlt)
-        (((gateTime_le_iff p u (u + 1)).mpr (Nat.le_succ u)).trans hhor)
-      have hnow := hseq (u + 1) hrt hhor
-      have hresults : ∀ reader ∈ rho.honest, ∃ D,
-          confirmation p (gateInput p rho (u + 1) reader) (u + 1) = some D ∧
-          Block.Preceq B D := by
-        intro reader hr
-        obtain ⟨D, hD, hBD, _⟩ := preserve_from_engine p E rho hΔ u
-          hnow hnow.2.1 B hprev.2.1 reader hr
-        exact ⟨D, hD, hBD⟩
-      have hnewrows : ReleasedRowsCompatible p rho (u + 1) B := by
-        intro reader hr K g d hm
-        rcases nextHeadState_row_origin_since p E rho hΔ r (u + 1) hlt hsync
-            reader hr K g d hm with hold | ⟨s, D, hrs, hst, hD, hKD⟩
-        · exact hrows reader hr K g d hold
-        · by_cases heq : s = r
-          · subst s
-            exact compatible_prefixes K D B C hKD hp
-              (sameLabel_from_engine p E rho hΔ r hsync reader hr source hs
-                D C hD hc)
-          · have hpast := ih s hst hrs
-              (((gateTime_le_iff p s (u + 1)).mpr (Nat.le_of_lt hst)).trans hhor)
-            obtain ⟨D', hD', hBD⟩ := hpast.2.2 (lt_of_le_of_ne hrs (Ne.symm heq)) reader hr
-            have heq : D' = D := Option.some.inj (hD'.symm.trans hD)
-            subst D'
-            exact ancestors_compatible K B D hKD hBD
-      refine ⟨hnewrows, ?_, fun _ => hresults⟩
-      obtain ⟨D, hD, hBD⟩ := hresults source hs
-      apply transfer_from_engine p E rho hΔ (u + 1) hnow
-        source hs B D hD hBD
-      intro reader hr K hK
-      obtain ⟨⟨target, g, d⟩, hm, heq⟩ := List.mem_filterMap.mp hK
-      dsimp only at heq
-      split at heq
-      · have heq' : target = K := Option.some.inj heq
-        subst target
-        exact hnewrows reader hr K g d hm
-      · contradiction
+  apply source_support_induction (fun v => v ∈ rho.honest)
+    (fun t v => confirmation p (gateInput p rho t v) t)
+    (fun t v => nextHead p (nextHeadState p rho t v) t)
+    (fun t v => (nextHeadState p rho t v).obligations)
+    (fun t => gateTime p t ≤ rho.horizon)
+    (fun s t le hh => ((gateTime_le_iff p s t).mpr le).trans hh)
+    r source hs B C hp hrows hheads
+  · intro t hrt _ v hv K g d hm
+    exact nextHeadState_row_origin_since p E rho hΔ r t hrt hsync v hv K g d hm
+  · intro v hv D hD
+    exact sameLabel_from_engine p E rho hΔ r hsync v hv source hs D C hD hc
+  · intro t hrt hh heads v hv
+    have sync := hseq (t + 1) (hrt.trans (Nat.le_succ t)) hh
+    obtain ⟨D, hD, hBD, _⟩ := preserve_from_engine p E rho hΔ t sync sync.2.1 B heads v hv
+    exact ⟨D, hD, hBD⟩
+  · intro t hrt hh D hD hBD compatible
+    apply transfer_from_engine p E rho hΔ t (hseq t hrt hh) source hs B D hD hBD
+    intro v hv K member
+    obtain ⟨⟨target, g, d⟩, row, eq⟩ := List.mem_filterMap.mp member
+    dsimp only at eq
+    split at eq
+    · have eq' : target = K := Option.some.inj eq
+      subst target
+      exact compatible v hv K g d row
+    · contradiction
 
 end AvailableChain.GridCO
 end

@@ -1,5 +1,6 @@
 module
 public import AvailableChainGridCO.Proofs.RecoveryRepair
+public import AvailableChainGridCO.Proofs.RepairedHistory
 
 @[expose] public section
 
@@ -48,24 +49,19 @@ theorem gate_record_origin_after_repair {V : Type} [DecidableEq V] (p : Params)
     (reader : V) (hr : reader ∈ rho.honest) :
     ∃ s, repair ≤ s ∧ s ≤ t ∧ confirmation p (gateInput p rho s reader) s =
       some (stable (Run.readAt (gridCO p) rho (gateTime p t) reader)) := by
-  induction t with
-  | zero =>
-      have he : repair = 0 := Nat.le_zero.mp hrt
-      subst repair
-      exact ⟨0, le_refl _, le_refl _, by rw [hrepair reader hr]; exact hconf reader hr⟩
-  | succ t ih =>
-      rcases Nat.eq_or_lt_of_le hrt with he | hlt
-      · subst repair
-        exact ⟨t + 1, le_refl _, le_refl _, by rw [hrepair reader hr]; exact hconf reader hr⟩
-      · rcases read_gate_record_cases p E rho hs hΔ (t + 1) hh reader hr with ho | hc
-        · have he : stable (Run.readAt (gridCO p) rho (gateTime p (t + 1)) reader) =
-              stable (Run.readAt (gridCO p) rho (gateTime p t) reader) := by
-            rw [ho, gate_input_record p E rho hs]; simp
-          rw [he]
-          obtain ⟨s, hrs, hst, hsource⟩ := ih (Nat.le_of_lt_succ hlt)
-            (((gateTime_le_iff p t (t + 1)).mpr (Nat.le_succ t)).trans hh)
-          exact ⟨s, hrs, hst.trans (Nat.le_succ t), hsource⟩
-        · exact ⟨t + 1, hrt, le_refl _, hc⟩
+  apply repaired_record_source
+    (fun s => confirmation p (gateInput p rho s reader) s)
+    (fun s => stable (Run.readAt (gridCO p) rho (gateTime p s) reader))
+    (fun s => gateTime p s ≤ rho.horizon)
+    (fun s t le hh => ((gateTime_le_iff p s t).mpr le).trans hh) repair
+    (by dsimp only; rw [hrepair reader hr]; exact hconf reader hr) _ t hrt hh
+  intro s after bound
+  rcases read_gate_record_cases p E rho hs hΔ s bound reader hr with old | raw
+  · left
+    dsimp only
+    rw [old, gate_input_record p E rho hs]
+    simp only [show s ≠ 0 from Nat.ne_zero_of_lt after, ↓reduceIte]
+  · exact Or.inr raw
 
 /-- Repaired gate records are monotone throughout the supported suffix. -/
 theorem repaired_gate_record_prefix {V : Type} [DecidableEq V] [Fintype V]
@@ -81,21 +77,23 @@ theorem repaired_gate_record_prefix {V : Type} [DecidableEq V] [Fintype V]
     (reader : V) (hr : reader ∈ rho.honest) :
     Block.Preceq (stable (Run.readAt (gridCO p) rho (gateTime p r) reader))
       (stable (Run.readAt (gridCO p) rho (gateTime p t) reader)) := by
-  induction t with
-  | zero => have he := Nat.le_zero.mp hrt; subst r; exact block_preceq_self _
-  | succ t ih =>
-      rcases Nat.eq_or_lt_of_le hrt with he | hlt
-      · subst r; exact block_preceq_self _
-      · rcases read_gate_record_cases p E rho hexec.toScheduleWellFormed hΔ (t + 1) hh reader hr
-          with ho | hc
-        · rw [ho, gate_input_record p E rho hexec.toScheduleWellFormed]
-          simpa using ih (Nat.le_of_lt_succ hlt)
-            (((gateTime_le_iff p t (t + 1)).mpr (Nat.le_succ t)).trans hh)
-        · obtain ⟨s, hrs, hsr, hsource⟩ := gate_record_origin_after_repair p E rho hΔ
-            hexec.toScheduleWellFormed repair B hrepair hconf r hrr
-            (((gateTime_le_iff p r (t + 1)).mpr hrt).trans hh) reader hr
-          exact stage_genuine_prefix p E rho hΔ boundary hpos hseq hrows s (t + 1)
-            (hbr.trans hrs) (hsr.trans_lt hlt) hh reader reader hr hr _ _ hsource hc
+  apply repaired_record_prefix
+    (fun s => confirmation p (gateInput p rho s reader) s)
+    (fun s => stable (Run.readAt (gridCO p) rho (gateTime p s) reader))
+    (fun s => gateTime p s ≤ rho.horizon)
+    (fun s t le hh => ((gateTime_le_iff p s t).mpr le).trans hh) repair
+    (by dsimp only; rw [hrepair reader hr]; exact hconf reader hr) _ _ r t hrr hrt hh
+  · intro s after bound
+    rcases read_gate_record_cases p E rho hexec.toScheduleWellFormed hΔ s bound reader hr
+      with old | raw
+    · left
+      dsimp only
+      rw [old, gate_input_record p E rho hexec.toScheduleWellFormed]
+      simp only [show s ≠ 0 from Nat.ne_zero_of_lt after, ↓reduceIte]
+    · exact Or.inr raw
+  · intro a b lo lt bound C D rawC rawD
+    exact stage_genuine_prefix p E rho hΔ boundary hpos hseq hrows a b (hbr.trans lo)
+      lt bound reader reader hr hr C D rawC rawD
 
 /-- Any two repaired gate records are compatible, including retained
 records at the final incomplete label of a finite run. -/

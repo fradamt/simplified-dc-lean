@@ -106,10 +106,15 @@ theorem stored_honest_proposal_slot_unique {V : Type} [DecidableEq V]
 /-- Every eligible block at the HEAD is either the fresh proposal or
 already in the proposer's tree. Extra admitted paths cannot compete.
 The old-block case uses a declared witness above detected equivocation. -/
-theorem clean_honest_proposal_eligible_reflects {V : Type} [DecidableEq V] [Fintype V]
+theorem honest_proposal_eligible_reflects_of_minority {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
-    (t₀ : Time) (hs : SleepyRegime (sapc p) E (sapcInterface p).toInterface rho t₀)
+    (hx : ExecutionValid (sapc p) E rho)
+    (net : PartialSynchrony (sapc p) E rho) (relay : AcceptedObjectRelay (sapc p) E rho)
     (r : Slot) (hh : voteTime p (r + 1) ≤ rho.horizon)
+    (sync : E.t_GST ≤ freezeTime p r)
+    (minority : 2 * (detectedSeats (GridCO.proposerView
+      (proposalState p rho (r + 1)).base (r + 1))).card <
+        GridCO.voterCount (GridCO.proposerView (proposalState p rho (r + 1)).base (r + 1)))
     (b : Block) (hb : HonestProposalAt E (sapcInterface p).toInterface rho (r + 1) b)
     (reader : V) (hr : reader ∈ rho.honest) (c : Block)
     (hc : c ∈ (headState p rho (r + 1) reader).base.blocks)
@@ -122,16 +127,11 @@ theorem clean_honest_proposal_eligible_reflects {V : Type} [DecidableEq V] [Fint
   · left
     simp only [beq_iff_eq] at fresh
     simp only [headState, clock_blocks] at hc
-    rw [time_input_eq_event_prefix p E rho hs.execution.toScheduleWellFormed] at hc
-    exact stored_honest_proposal_slot_unique p E rho hs.execution (r + 1) b hb _ reader c hc fresh
+    rw [time_input_eq_event_prefix p E rho hx.toScheduleWellFormed] at hc
+    exact stored_honest_proposal_slot_unique p E rho hx (r + 1) b hb _ reader c hc fresh
   · right
-    have sync : E.t_GST ≤ freezeTime p r := by
-      rw [hs.gst_zero]
-      change 0 ≤ 4 * p.Δ * (r : Time) + 3 * p.Δ
-      nlinarith [p.deltaPos, Int.natCast_nonneg r]
-    have counts := honest_proposal_counts p E rho hs.execution hΔ hs.partialSynchrony
-      hs.acceptedRelay r sync hh b hb reader hr
-    have minority := clean_proposal_detected_minority p E rho hΔ t₀ hs r hh b hb
+    have counts := honest_proposal_counts p E rho hx hΔ net
+      relay r sync hh b hb reader hr
     have majority := of_decide_eq_true majority
     rw [← counts.1, ← counts.2.2 c] at majority
     have high : (detectedSeats (GridCO.proposerView
@@ -145,6 +145,27 @@ theorem clean_honest_proposal_eligible_reflects {V : Type} [DecidableEq V] [Fint
     by_cases hg : c = .genesis
     · simpa only [hg] using (proposalState_paths p rho (r + 1)).2
     · exact (proposalState_paths p rho (r + 1)).1 target stored c hg hprefix
+
+/-- Clean Sleepy supplies the minority premise for the shared reflection proof. -/
+theorem clean_honest_proposal_eligible_reflects {V : Type} [DecidableEq V] [Fintype V]
+    (p : Params) (E : Env V) (rho : Run V (sapc p)) (hΔ : E.Δ = p.Δ)
+    (t₀ : Time) (hs : SleepyRegime (sapc p) E (sapcInterface p).toInterface rho t₀)
+    (r : Slot) (hh : voteTime p (r + 1) ≤ rho.horizon)
+    (b : Block) (hb : HonestProposalAt E (sapcInterface p).toInterface rho (r + 1) b)
+    (reader : V) (hr : reader ∈ rho.honest) (c : Block)
+    (hc : c ∈ (headState p rho (r + 1) reader).base.blocks)
+    (eligible : GridCO.goldfishEligible (headState p rho (r + 1) reader).base.blocks
+      (GridCO.voterView p.engine (headState p rho (r + 1) reader).base (r + 1))
+      (GridCO.voterSupportView p.engine (headState p rho (r + 1) reader).base (r + 1))
+      (r + 1) c = true) :
+    c = b ∨ c ∈ (proposalState p rho (r + 1)).base.blocks := by
+  have sync : E.t_GST ≤ freezeTime p r := by
+    rw [hs.gst_zero]
+    change 0 ≤ 4 * p.Δ * (r : Time) + 3 * p.Δ
+    nlinarith [p.deltaPos, Int.natCast_nonneg r]
+  exact honest_proposal_eligible_reflects_of_minority p E rho hΔ hs.execution
+    hs.partialSynchrony hs.acceptedRelay r hh sync
+    (clean_proposal_detected_minority p E rho hΔ t₀ hs r hh b hb) b hb reader hr c hc eligible
 
 end AvailableChain.SAPC
 end

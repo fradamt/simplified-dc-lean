@@ -85,11 +85,26 @@ handles the pending outage HEAD without assuming a covering lease.
 source support and common contract assembly. The grid instance retains
 its original admission rule and `gridContract_from_engine` theorem.
 
-## SA-PC: persistent TA certificates (in progress)
+## SA-PC: persistent TA certificates
 
-`AvailableChainSAPC` adds the executable SA-PC model and the additive
-strong companion in `AvailableChainStatements/Strong/`. The base contract is frozen at Draft 4.3. See [SA-PC status](SAPC-STATUS.md)
-for proved facts, exact gaps, and validation.
+`AvailableChain.SAPC.sapcContract_from_engine` in
+`AvailableChainSAPC/Proofs/Contract.lean` proves the full Draft 4.3 bundle,
+including SA-PC `fastP1_from_engine`. `sapcStrong_from_engine` in
+`Proofs/StrongContract.lean` proves the additive strong companion.
+Both require `G > 0` and `E.Δ = p.Δ`. No requested claim remains pending.
+The base contract is unchanged. See [SA-PC status](SAPC-STATUS.md).
+
+Recovery uses exact lease sources, SA's shared source-support induction,
+and F4 transfer. `RecoveryBoundary` proves the two-lease support boundary;
+`RecoveryRoots` and `RecoveryProposal` prove common exact proposal HEADs;
+`RecoveryService`, `RecoveryGate`, and `RecoveryRepair` prove a common PC
+and record repair within `2L+G+8Δ`. `RecoverySafety` proves the base safe
+suffix. `RecoveryStrong` proves recovered strong safety and inclusion,
+including late certificate reveals. The requested recovery cap follows
+from the unchanged full-participation Recovery regime with `θrec = 2/3`.
+
+The following implementation notes record the earlier proof rounds.
+Their pending-work statements are historical; round 22 closes those gaps.
 
 `State.base` reuses the Grid CO/SA engine. Complete signed HEADs and PC
 metadata stay in the SA-PC archive and proposal store. Active choices add

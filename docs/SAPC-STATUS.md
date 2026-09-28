@@ -1,45 +1,40 @@
 # SA-PC status
 
-_2026-09-28. Round 21. Base contract frozen at Draft 4.3._
+_2026-09-28. Round 22. Base contract frozen at Draft 4.3. All requested claims are proved._
 
-The additive companion statements and executable SA-PC model are in place.
-`Proofs/RunClean.lean` now proves `clean_run_invariant` from plain Sleepy
-for every event prefix. `clean_safety_from_engine` proves cross-reader
-safety and local monotonicity of both base outputs for all `a<h`, with
-no fault-cap premise. Constants and nesting are also proved.
+`AvailableChain.SAPC.sapcContract_from_engine` in
+[`Proofs/Contract.lean`](../AvailableChainSAPC/Proofs/Contract.lean) proves
+`SAPCContract p G E`. It includes every base claim and both P1 fields.
+`AvailableChain.SAPC.sapcStrong_from_engine` in
+[`Proofs/StrongContract.lean`](../AvailableChainSAPC/Proofs/StrongContract.lean)
+proves the full additive strong companion. Both require `G > 0` and
+`E.Δ = p.Δ`. No requested proof remains pending.
 
-The proof covers active authority, mixed HEADs, the mode-changing
-receipt, and all disabled duties. It retains raw history, finite lease
-sources, and old PC authority. It reuses the SA/Grid CO history,
-batch-preservation, and genuine-transfer proofs from the current state.
-It does not reset the state or assume that every live lease is below S.
+The base clean and outage claims retain their original fault scopes for
+all `a < h`. Recovery uses the unchanged regime with `θrec = 2/3` and
+`recoveryFull = true`; this derives `a ≤ f`. Recovery and both recovered
+strong fields hold by `2L + G + 8Δ`. All other constants remain those of SA.
+The existing SA-PC `fastP1_from_engine` supplies the bundle's fast P1 field.
 
-Common exact honest proposal HEAD choices and all three base inclusion
-fields are now proved. `Proofs/Clean.lean` proves `6Δ` inclusion for both
-outputs under plain Sleepy, then derives StableSleepy and Fast inclusion.
-The proof includes active, disabled, and mixed modes without a fault cap.
+The recovery proof tracks each finite lease to its actual raw gate,
+admission test, and exact deadline, including writes under a vetoed S tip.
+It does not assume that every live lease is below S. Fast sources clear
+conflicting threshold-τ rows. Fully synchronous slow windows exclude
+recent conflicting writes and expire older rows at equality. The shared
+SA source induction then gives permanent honest HEAD support.
 
-Both P1 claims are now proved from their exact Draft 4.3 regimes.
-`Proofs/Outage.lean` proves `stable_resilient_from_engine` and
-`fastP1_from_engine`, without a fault cap. The proof derives the healthy
-prefix, pending finite guard, live/frozen/carried PC comparisons, record
-coverage, admission, and lease retention. Both SA lags and the budget are
-unchanged.
+After the common expiry bound, finite roots lie below the common F4
+floor. A shared adoption theorem with an arbitrary source anchor handles
+an old PC outside the ordinary genesis walk. Fresh honest proposals get
+exact HEADs, extending acks, and a common PC before the same 6Δ gate.
+That gate repairs both public outputs and strong. Ordered raw history
+proves base safety after repair. Timely-N transfer and authenticated
+preparation witnesses order later PC targets, including late reveals.
+Rank retention proves recovered strong monotonicity.
 
-`Proofs/StrongClean.lean` proves `strong_safe_from_engine` (agreement and
-monotonicity) and `strong_included_from_engine` (full-participation `6Δ`
-inclusion), with the explicit cap. `Proofs/StrongPersistence.lean` now
-proves `strong_resilient_from_engine` from the exact `StrongArmedRegime`,
-with no duration budget. It also proves that a PC first disclosed after
-arming cannot introduce a conflicting target at the same or a higher
-rank. Common installation, finite-source compatibility, and the boundary
-HEAD are derived from the companion premises.
-
-Recovery and both bundle inhabitants remain pending. The Recovery
-regime now supplies genuine support above `f` and transfer for arbitrary
-selected PCs when the remaining finite root is compatible.
-Neither `sapcContract_from_engine` nor `sapcStrong_from_engine` exists
-yet. No contract definition, executable rule, or invariant field changed.
+No base or companion contract definition, executable rule, or existing
+invariant field changed. The shared engine remains unchanged. Shared
+proof helpers retain the Grid CO and SA theorem interfaces.
 
 ## Sources and scope
 
@@ -1156,31 +1151,15 @@ both contracts are unchanged.
 
 ## Exact remaining work
 
-All base claims except Recovery are complete. Strong safety,
-full-participation `6Δ` inclusion, sound arming, unbounded persistence,
-and armed late-reveal protection are complete under the cap.
+None for the requested base bundle, fast P1, or additive strong bundle.
+Both public inhabitants exist and are included in the default axiom audit.
+The files in `Pending/` retain historical obligations and counterexamples;
+none is a current missing claim or a default import.
 
-1. Prove Recovery within `2L+G+8Δ`. The actual Recovery regime now gives
-   above-f genuine support and PC-independent F4 transfer, conditional
-   on the remaining finite root. Next prove fast-source release of all
-   opposing threshold-τ entries. Then exclude recent conflicting writes
-   and expire older entries for full synchronous slow windows. Track
-   exact admission sources and deadlines, including writes under a
-   vetoed raw tip. Derive permanent accessible support, the common
-   expiry of unsupported sources, and fresh PC record repair. Reuse SA's
-   source-support interface. Its `SynchronousLabel` has a proposal-time
-   boundary; do not replace it with the first synchronous HEAD without
-   proof. Prove both recovered strong fields. The strong arming theorem
-   requires healthy genesis and does not itself apply after arbitrary GST.
-2. Assemble `sapcContract_from_engine` and `sapcStrong_from_engine` and
-   audit their axioms. SA-PC `fastP1_from_engine` is already complete.
-
-No contract issue has been established through round 21. No requested
-contract claim has a checked counterexample. The round-9 universal
-free-path event obligation has the checked counterexample above. Do not
-weaken a premise or conclusion to close a gap. No incomplete Lean
-declaration is left in a default module; there are no placeholder proofs
-or pending imports.
+No contract issue or counterexample to a requested claim was found.
+The checked round-9 counterexample concerns the rejected auxiliary
+free-path obligation, not a contract claim. No premise or conclusion was
+weakened to complete recovery.
 
 ## Validation through round 9
 
@@ -1506,3 +1485,59 @@ use; that build was stopped, and validation used approved lock access.
 No throttle setting changed. All nine session logs were inside the
 repository and were removed after validation. No session scratch file
 remains.
+
+## Round 22: complete recovery and both bundles
+
+- `RecoveryRows` and `RecoveryRelease` connect exact lease sources to the
+  actual release snapshots. The shared SA counting theorem handles
+  faulty supporters and reverse relay of equivocation evidence.
+- `RecoverySupport` reuses the extracted SA source-support induction.
+  `RecoveryBoundary` proves the common two-lease boundary, supported rows,
+  ordered raw results, and the exact remaining repair interval. It uses
+  SA's proposal-time start; it does not substitute a HEAD boundary into
+  `SynchronousLabel`.
+- `RecoveryRoots` places live finite roots below the proposal floor.
+  `RecoveryProposal` proves common selected-PC targets, common anchors,
+  eligible-path reflection, and exact honest proposal HEADs. The shared
+  rooted adoption theorem retains its original genesis-walk interface.
+- `RecoveryService` proves full preparation and ack service and the
+  exact current-label PC before the 6Δ gate. `RecoveryGate` proves both
+  gate guards and fresh record replacement. `RecoveryRepair` proves a
+  common repair within `2L+G+8Δ` and all three recovered inclusion fields.
+- `RecoverySafety` uses the shared repaired-record induction to prove
+  base safety for all reads after repair and the complete `RecoveredAt`.
+  `RecoveryStrong` proves timely-N continuation at the final HEAD, PC
+  target order from historical honest preparations, recovered strong
+  safety, and the exact recovered strong inclusion field.
+- `Contract` and `StrongContract` assemble `sapcContract_from_engine` and
+  `sapcStrong_from_engine`. The former includes the existing SA-PC
+  `fastP1_from_engine` with its exact Draft 4.3 regime.
+
+All declarations have complete proofs. Default modules import no pending
+file. No new run premise, project axiom, or placeholder proof was added.
+
+## Round 22 validation
+
+All new and changed proof modules pass targeted checks with `--wfail`.
+The final full `lake build --wfail` passes all 3,534 jobs with no warnings.
+Default targets build `gridContract_from_engine`, `saContract_from_engine`,
+SA and SA-PC `fastP1_from_engine`, `sapcContract_from_engine`, and
+`sapcStrong_from_engine`, plus the existing smoke and counterexample tests.
+
+The SA-PC audit has 872 `#print axioms` entries. The 63 added entries cover
+all new public theorems and the changed shared interfaces not already in
+the audit. The full build reports 943 audit results across the libraries.
+All dependencies are limited to `propext`, `Classical.choice`, and
+`Quot.sound`; nine entries use no axioms. Both completed SA-PC bundles
+and fast P1 use only those three standard axioms.
+
+`git diff --check` passes. No `sorry`, `admit`, project axiom, or
+`native_decide` was introduced. No default target imports `Pending/`.
+There is no remaining requested proof or checked contract issue.
+
+No Git commit or `lake update` was made. `state.md` and `log.md` were
+not changed. The first sandboxed build could not acquire the installed
+Lean throttle lock. It was stopped after process inspection; subsequent
+builds used approved lock access. CPU and elapsed-time checks were made.
+No throttle setting changed. All session scratch files were inside the
+repository and were removed after validation.

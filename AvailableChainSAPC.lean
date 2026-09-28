@@ -70,6 +70,8 @@ public import AvailableChainSAPC.Proofs.PendingProtection
 public import AvailableChainSAPC.Proofs.StrongClean
 public import AvailableChainSAPC.Proofs.StrongPersistence
 public import AvailableChainSAPC.Proofs.RecoveryTransfer
+public import AvailableChainSAPC.Proofs.Contract
+public import AvailableChainSAPC.Proofs.StrongContract
 
 @[expose] public section
 end
