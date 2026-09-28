@@ -452,89 +452,97 @@ use the r148 numbers. r148 F2 is `fj.crossingNoFinal.v1`.
 `§` is the section of this file. New ids in v2 are listed in §7; the
 ids of the f1 splits (2026-09-28) are listed in §8.
 
+"Lean plan" is the scope of the Lean FG module (user decision
+2026-09-28, §8). The module is DC-fj: DC's FG without SG and grades, with
+the FJ root rule in place of NJ (FRAMEWORK-DESIGN.md §7.1). `DC-fj` = planned
+in the DC-fj module (plan `docs/plans/2026-09-28-fg-module.md`);
+`none (nj)` = nj research entry, not planned for Lean now; `none` = not
+needed by the DC-fj module; `—` = not an entry of the current FG-module
+plan (AP-side, composite, or not scheduled).
+
 ```text
-┌───────────────────────┬──────┬─────────────────────┬───┐
-│ Id                    │ Var  │ Status 2026-09-28   │ § │
-├───────────────────────┼──────┼─────────────────────┼───┤
-│ fg.frame.v1           │ nj   │ SUPERSEDED (def)    │ 1 │
-│ fg.frame.v2           │ nj   │ def                 │ 1 │
-│ fg.frameCompat.v1     │ both │ PROVED              │ 1 │
-│ fg.Ret.v1             │ nj   │ def                 │ 1 │
-│ fg.N1.v1              │ nj   │ def                 │ 1 │
-│ fg.N1eff.v1           │ nj   │ def                 │ 1 │
-│ fg.N2.v1              │ nj   │ def                 │ 1 │
-│ fg.N2.v2              │ nj   │ def                 │ 1 │
-│ fg.HNI.v1             │ nj   │ def                 │ 1 │
-│ ap.S.v1               │ nj   │ PROVED (FG-SA)      │ 2 │
-│ ap.S.v2               │ nj   │ PROVED (FG-SA)      │ 2 │
-│ ap.Sslow.v1           │ nj   │ PROVED (FG-SA)      │ 2 │
-│ ap.repair.fixedF.v1   │ nj   │ PROVED (FG-SA)      │ 2 │
-│ ap.repair.movingF.v1  │ nj   │ OPEN                │ 2 │
-│ ap.L.fixedF.v1        │ nj   │ WITHDRAWN (PROVED)  │ 2 │
-│ ap.L.movingF.v1       │ nj   │ WITHDRAWN (OPEN)    │ 2 │
-│ ap.reach.v1           │ nj   │ OPEN                │ 2 │
-│ ap.source.v1          │ nj   │ PROVED (FG-SA)      │ 2 │
-│ ap.X.v1               │ nj   │ REFUTED; WITHDRAWN  │ 2 │
-│ ap.Xplus.v1           │ nj   │ PROVED (FG-SA)      │ 2 │
-│ ap.rowService.v1      │ both │ RULE                │ 2 │
-│ ap.carrierKeep.v1     │ nj   │ WITHDRAWN (PROVED)  │ 2 │
-│ ap.carrierKeep.v2     │ nj   │ PROVED (FG-SA)      │ 2 │
-│ ap.honestSourced.v1   │ both │ WITHDRAWN (PROVED)  │ 2 │
-│ ap.honestSourced.v2   │ both │ PROVED (FG-SA)      │ 2 │
-│ ap.armedSafe.v1       │ nj   │ PROVED (FG-SA)      │ 2 │
-│ ap.outputRecovered.v1 │ nj   │ WITHDRAWN (PROVED)  │ 2 │
-│ ap.finalityHead.v1    │ nj   │ WITHDRAWN (SKETCH)  │ 2 │
-│ ap.finalityHead.v2    │ nj   │ SKETCH              │ 2 │
-│ ap.fastSupport.v1     │ both │ PROVED (RULE, τ>a)  │ 2 │
-│ fg.provenance.v1      │ both │ SUPERSEDED (PROVED) │ 3 │
-│ fg.provenance.v2      │ both │ PROVED              │ 3 │
-│ fg.causalCap.v1       │ both │ SUPERSEDED (PROVED) │ 3 │
-│ fg.causalCap.core.v1  │ both │ PROVED; LEAN (DC)   │ 3 │
-│ fg.uniqueJust.v1      │ both │ LEAN (DC, Lemma U)  │ 3 │
-│ fg.finalLock.v1       │ both │ LEAN (DC)           │ 3 │
-│ fg.trunk.v1           │ nj   │ PROVED (a≤f)        │ 3 │
-│ fg.oneBullet.v1       │ nj   │ SUPERSEDED (PROVED) │ 3 │
-│ fg.oneBullet.core.v1  │ nj   │ PROVED (a≤f)        │ 3 │
-│ fg.H19.v1             │ nj   │ PROVED              │ 3 │
-│ fg.HNIb.v1            │ nj   │ PROVED              │ 3 │
-│ fg.base.finalized.v1  │ nj   │ PROVED              │ 3 │
-│ fg.base.nj.v1         │ nj   │ PROVED (FG-SA)      │ 3 │
-│ fg.baseSel.nj.v1      │ nj   │ PROVED (FG-SA)      │ 3 │
-│ fg.accountable.v1     │ both │ PROVED; LEAN (DC)   │ 3 │
-│ fj.frame.v1           │ fj   │ def                 │ 4 │
-│ fj.crossingNoFinal.v1 │ fj   │ PROVED              │ 4 │
-│ fj.descent.v1         │ fj   │ PROVED              │ 4 │
-│ fj.canonical.v1       │ fj   │ PROVED              │ 4 │
-│ fj.inBandLock.v1      │ fj   │ PROVED              │ 4 │
-│ fj.twoChanges.v1      │ fj   │ SUPERSEDED (PROVED) │ 4 │
-│ fj.twoChanges.core.v1 │ fj   │ PROVED (a≤f)        │ 4 │
-│ fj.armedSafe.v1       │ fj   │ PROVED              │ 4 │
-│ fg.base.fj.v1         │ fj   │ PROVED              │ 4 │
-│ fj.firstFinality.v1   │ fj   │ SKETCH              │ 4 │
-│ fj.reset.v1           │ fj   │ PROVED              │ 4 │
-│ fj.theoremN.v1        │ fj   │ PROVED              │ 4 │
-│ fj.rise.fixedF.v1     │ fj   │ PROVED              │ 4 │
-│ fj.rise.movingF.v1    │ fj   │ OPEN (impl. PROVED) │ 4 │
-│ fj.Xplus.v1           │ fj   │ PROVED              │ 4 │
-│ fj.healed.v1          │ fj   │ PROVED              │ 4 │
-│ fj.healedUnif.v1      │ fj   │ OPEN (impl. PROVED) │ 4 │
-│ fj.healedAtQ.v1       │ fj   │ OPEN                │ 4 │
-│ comp.provenance.v1    │ both │ PROVED (FG-SA)      │ 5 │
-│ comp.settle.v1        │ both │ PROVED (FG-SA)      │ 5 │
-│ comp.cut.v1           │ both │ PROVED              │ 5 │
-│ comp.rise.fixedF.v1   │ nj   │ PROVED (FG-SA)      │ 5 │
-│ comp.rise.movingF.v1  │ nj   │ OPEN                │ 5 │
-│ comp.theoremN.v1      │ nj   │ PROVED (FG-SA)      │ 5 │
-│ comp.fgHealed.v1      │ nj   │ PROVED (FG-SA)      │ 5 │
-│ comp.healed.v1        │ nj   │ PROVED (FG-SA)      │ 5 │
-│ comp.healedLit.v1     │ nj   │ PROVED (FG-SA)      │ 5 │
-│ comp.arrivalNJ.v1     │ nj   │ PROVED (FG-SA)      │ 5 │
-│ comp.handoffBase.v1   │ nj   │ PROVED (FG-SA)      │ 5 │
-│ comp.healedUnif.v1    │ nj   │ OPEN (impl. PROVED) │ 5 │
-│ comp.healedAtQ.v1     │ nj   │ OPEN                │ 5 │
-│ comp.finality.v1      │ nj   │ SKETCH              │ 5 │
-│ comp.clean.v1         │ nj   │ PROVED (FG-SA)      │ 5 │
-└───────────────────────┴──────┴─────────────────────┴───┘
+┌───────────────────────┬──────┬─────────────────────┬───┬───────────┐
+│ Id                    │ Var  │ Status 2026-09-28   │ § │ Lean plan │
+├───────────────────────┼──────┼─────────────────────┼───┼───────────┤
+│ fg.frame.v1           │ nj   │ SUPERSEDED (def)    │ 1 │ none (nj) │
+│ fg.frame.v2           │ nj   │ def                 │ 1 │ none (nj) │
+│ fg.frameCompat.v1     │ both │ PROVED              │ 1 │ none      │
+│ fg.Ret.v1             │ nj   │ def                 │ 1 │ none (nj) │
+│ fg.N1.v1              │ nj   │ def                 │ 1 │ none (nj) │
+│ fg.N1eff.v1           │ nj   │ def                 │ 1 │ none (nj) │
+│ fg.N2.v1              │ nj   │ def                 │ 1 │ none (nj) │
+│ fg.N2.v2              │ nj   │ def                 │ 1 │ none (nj) │
+│ fg.HNI.v1             │ nj   │ def                 │ 1 │ none (nj) │
+│ ap.S.v1               │ nj   │ PROVED (FG-SA)      │ 2 │ —         │
+│ ap.S.v2               │ nj   │ PROVED (FG-SA)      │ 2 │ —         │
+│ ap.Sslow.v1           │ nj   │ PROVED (FG-SA)      │ 2 │ —         │
+│ ap.repair.fixedF.v1   │ nj   │ PROVED (FG-SA)      │ 2 │ —         │
+│ ap.repair.movingF.v1  │ nj   │ OPEN                │ 2 │ —         │
+│ ap.L.fixedF.v1        │ nj   │ WITHDRAWN (PROVED)  │ 2 │ —         │
+│ ap.L.movingF.v1       │ nj   │ WITHDRAWN (OPEN)    │ 2 │ —         │
+│ ap.reach.v1           │ nj   │ OPEN                │ 2 │ —         │
+│ ap.source.v1          │ nj   │ PROVED (FG-SA)      │ 2 │ —         │
+│ ap.X.v1               │ nj   │ REFUTED; WITHDRAWN  │ 2 │ —         │
+│ ap.Xplus.v1           │ nj   │ PROVED (FG-SA)      │ 2 │ —         │
+│ ap.rowService.v1      │ both │ RULE                │ 2 │ —         │
+│ ap.carrierKeep.v1     │ nj   │ WITHDRAWN (PROVED)  │ 2 │ —         │
+│ ap.carrierKeep.v2     │ nj   │ PROVED (FG-SA)      │ 2 │ —         │
+│ ap.honestSourced.v1   │ both │ WITHDRAWN (PROVED)  │ 2 │ —         │
+│ ap.honestSourced.v2   │ both │ PROVED (FG-SA)      │ 2 │ —         │
+│ ap.armedSafe.v1       │ nj   │ PROVED (FG-SA)      │ 2 │ —         │
+│ ap.outputRecovered.v1 │ nj   │ WITHDRAWN (PROVED)  │ 2 │ —         │
+│ ap.finalityHead.v1    │ nj   │ WITHDRAWN (SKETCH)  │ 2 │ —         │
+│ ap.finalityHead.v2    │ nj   │ SKETCH              │ 2 │ —         │
+│ ap.fastSupport.v1     │ both │ PROVED (RULE, τ>a)  │ 2 │ —         │
+│ fg.provenance.v1      │ both │ SUPERSEDED (PROVED) │ 3 │ —         │
+│ fg.provenance.v2      │ both │ PROVED              │ 3 │ DC-fj     │
+│ fg.causalCap.v1       │ both │ SUPERSEDED (PROVED) │ 3 │ —         │
+│ fg.causalCap.core.v1  │ both │ PROVED; LEAN (DC)   │ 3 │ DC-fj     │
+│ fg.uniqueJust.v1      │ both │ LEAN (DC, Lemma U)  │ 3 │ DC-fj     │
+│ fg.finalLock.v1       │ both │ LEAN (DC)           │ 3 │ DC-fj     │
+│ fg.trunk.v1           │ nj   │ PROVED (a≤f)        │ 3 │ none (nj) │
+│ fg.oneBullet.v1       │ nj   │ SUPERSEDED (PROVED) │ 3 │ none (nj) │
+│ fg.oneBullet.core.v1  │ nj   │ PROVED (a≤f)        │ 3 │ none (nj) │
+│ fg.H19.v1             │ nj   │ PROVED              │ 3 │ none (nj) │
+│ fg.HNIb.v1            │ nj   │ PROVED              │ 3 │ none (nj) │
+│ fg.base.finalized.v1  │ nj   │ PROVED              │ 3 │ none (nj) │
+│ fg.base.nj.v1         │ nj   │ PROVED (FG-SA)      │ 3 │ none (nj) │
+│ fg.baseSel.nj.v1      │ nj   │ PROVED (FG-SA)      │ 3 │ none (nj) │
+│ fg.accountable.v1     │ both │ PROVED; LEAN (DC)   │ 3 │ DC-fj     │
+│ fj.frame.v1           │ fj   │ def                 │ 4 │ DC-fj     │
+│ fj.crossingNoFinal.v1 │ fj   │ PROVED              │ 4 │ DC-fj     │
+│ fj.descent.v1         │ fj   │ PROVED              │ 4 │ —         │
+│ fj.canonical.v1       │ fj   │ PROVED              │ 4 │ —         │
+│ fj.inBandLock.v1      │ fj   │ PROVED              │ 4 │ DC-fj     │
+│ fj.twoChanges.v1      │ fj   │ SUPERSEDED (PROVED) │ 4 │ —         │
+│ fj.twoChanges.core.v1 │ fj   │ PROVED (a≤f)        │ 4 │ DC-fj     │
+│ fj.armedSafe.v1       │ fj   │ PROVED              │ 4 │ —         │
+│ fg.base.fj.v1         │ fj   │ PROVED              │ 4 │ —         │
+│ fj.firstFinality.v1   │ fj   │ SKETCH              │ 4 │ —         │
+│ fj.reset.v1           │ fj   │ PROVED              │ 4 │ —         │
+│ fj.theoremN.v1        │ fj   │ PROVED              │ 4 │ —         │
+│ fj.rise.fixedF.v1     │ fj   │ PROVED              │ 4 │ —         │
+│ fj.rise.movingF.v1    │ fj   │ OPEN (impl. PROVED) │ 4 │ —         │
+│ fj.Xplus.v1           │ fj   │ PROVED              │ 4 │ —         │
+│ fj.healed.v1          │ fj   │ PROVED              │ 4 │ —         │
+│ fj.healedUnif.v1      │ fj   │ OPEN (impl. PROVED) │ 4 │ —         │
+│ fj.healedAtQ.v1       │ fj   │ OPEN                │ 4 │ —         │
+│ comp.provenance.v1    │ both │ PROVED (FG-SA)      │ 5 │ —         │
+│ comp.settle.v1        │ both │ PROVED (FG-SA)      │ 5 │ —         │
+│ comp.cut.v1           │ both │ PROVED              │ 5 │ —         │
+│ comp.rise.fixedF.v1   │ nj   │ PROVED (FG-SA)      │ 5 │ —         │
+│ comp.rise.movingF.v1  │ nj   │ OPEN                │ 5 │ —         │
+│ comp.theoremN.v1      │ nj   │ PROVED (FG-SA)      │ 5 │ —         │
+│ comp.fgHealed.v1      │ nj   │ PROVED (FG-SA)      │ 5 │ —         │
+│ comp.healed.v1        │ nj   │ PROVED (FG-SA)      │ 5 │ —         │
+│ comp.healedLit.v1     │ nj   │ PROVED (FG-SA)      │ 5 │ —         │
+│ comp.arrivalNJ.v1     │ nj   │ PROVED (FG-SA)      │ 5 │ —         │
+│ comp.handoffBase.v1   │ nj   │ PROVED (FG-SA)      │ 5 │ —         │
+│ comp.healedUnif.v1    │ nj   │ OPEN (impl. PROVED) │ 5 │ —         │
+│ comp.healedAtQ.v1     │ nj   │ OPEN                │ 5 │ —         │
+│ comp.finality.v1      │ nj   │ SKETCH              │ 5 │ —         │
+│ comp.clean.v1         │ nj   │ PROVED (FG-SA)      │ 5 │ —         │
+└───────────────────────┴──────┴─────────────────────┴───┴───────────┘
 ```
 
 ## 1. Definitions (`SimplexFG.nj` frame)
@@ -546,6 +554,8 @@ These definitions use the NJ frame. FJ has its own frame (`fj.frame.v1`,
 
 - Variant `nj`. Source r147 §2, lines 105–119. File `fgsa-conditional.md`,
   sha256 `940e481501f8c52f57bd7110faa442b54ce4aa3bb512769a07c9b769037ea0f5`.
+- Lean plan: none (nj research entry; user 2026-09-28). Not planned
+  for Lean now; the entry stays as a research entry.
 - Statement (pinned):
 
 > _fgsa-conditional.md, lines 105–119:_
@@ -585,6 +595,8 @@ These definitions use the NJ frame. FJ has its own frame (`fj.frame.v1`,
   `ae4497abc7c5b3a6f73697f341bf730a63c7d34bd2f7546154bd022bc95af223`) and
   `dc/consensus.tex` (sha256
   `dc471b47a46896fe0a3df300c188fef1512f475615ce0fc0df18dbea6d2e5517`).
+- Lean plan: none (nj research entry; user 2026-09-28). Not planned
+  for Lean now; the entry stays as a research entry.
 - Frame (registry form; it is `fg.frame.v1` with the J line changed):
 
 ```text
@@ -674,7 +686,10 @@ Ret_d(B) := B⪯Z_d
 > ```
 
 - Status: 2026-09-28 — def. It replaces `fg.frame.v1`; `fg.frameCompat.v1`
-  proves that both select the same pair. The pinned `fg_frame` lines also
+  proves that both select the same pair.
+- Note: the fj counterpart is `fj.frame.v1`. It already selects J with
+  `F ⪯ σ[W].J` (r148 `FJ_FRAME`, lines 151–152). `fg.frameCompat.v1`
+  applies to both frames. The pinned `fg_frame` lines also
   compute the FJ frame; the NJ variant (lines 1408–1417) removes only the
   contest.
 - Note: spec line 357 says "compatible", but the code of lines 736–737 and
@@ -694,6 +709,8 @@ Ret_d(B) := B⪯Z_d
   820, 824 and 838 (checkpoint heights); spec lines 361–365 and 494 (F
   basis in every duty view); spec lines 736–750 (J guard and F basis).
   Hashes as in `fg.frame.v2`.
+- Lean plan: none (user 2026-09-28). The DC-fj module states the frame
+  with `F ⪯ J` (`fj.frame.v1`), so it does not need this lemma.
 - Hypotheses: R1 duty views (`env.r150` item 4; spec lines 483–495); the
   F-basis rule of spec lines 742–750; the DC chain state (bp F5: one
   height per block; the entry `T_h` is the block that entered h). It does
@@ -740,6 +757,8 @@ Ret_d(B) := B⪯Z_d
 
 - Variant `nj`. Source r147 §2, lines 117–125. File `fgsa-conditional.md`,
   sha256 `940e481501f8c52f57bd7110faa442b54ce4aa3bb512769a07c9b769037ea0f5`.
+- Lean plan: none (nj research entry; user 2026-09-28). Not planned
+  for Lean now; the entry stays as a research entry.
 - Statement (pinned; lines 117–118 are inside the frame block above):
 
 > _fgsa-conditional.md, lines 117–118:_
@@ -767,6 +786,8 @@ Ret_d(B) := B⪯Z_d
 
 - Variant `nj`. Source r147 §2, lines 127–138. File `fgsa-conditional.md`,
   sha256 `940e481501f8c52f57bd7110faa442b54ce4aa3bb512769a07c9b769037ea0f5`.
+- Lean plan: none (nj research entry; user 2026-09-28). Not planned
+  for Lean now; the entry stays as a research entry.
 - Statement (pinned):
 
 > _fgsa-conditional.md, lines 127–138:_
@@ -792,6 +813,8 @@ Ret_d(B) := B⪯Z_d
   `fgsa-healing-blueprint.md`, sha256
   `4d643d7a6285705ef8bcef6b408b46a45d64641f0d92828b3539f8f938074318`. The
   same condition is r149 §1, lines 94–97 (in `env.r149`).
+- Lean plan: none (nj research entry; user 2026-09-28). Not planned
+  for Lean now; the entry stays as a research entry.
 - Statement (pinned):
 
 > _fgsa-healing-blueprint.md, lines 169–172:_
@@ -820,6 +843,8 @@ Ret_d(B) := B⪯Z_d
 
 - Variant `nj`. Source r147 §2, lines 140–158. File `fgsa-conditional.md`,
   sha256 `940e481501f8c52f57bd7110faa442b54ce4aa3bb512769a07c9b769037ea0f5`.
+- Lean plan: none (nj research entry; user 2026-09-28). Not planned
+  for Lean now; the entry stays as a research entry.
 - Statement (pinned):
 
 > _fgsa-conditional.md, lines 140–158:_
@@ -853,6 +878,8 @@ Ret_d(B) := B⪯Z_d
   `1ea1ccc5c944335b7e7793afe2c6675a056762e35eeaeee13ec1f6066460a902`) and
   `fgsa-healing-blueprint.md` (sha256
   `4d643d7a6285705ef8bcef6b408b46a45d64641f0d92828b3539f8f938074318`).
+- Lean plan: none (nj research entry; user 2026-09-28). Not planned
+  for Lean now; the entry stays as a research entry.
 - Statement (pinned):
 
 > _fgsa-conditional-close.md, lines 90–92:_
@@ -878,6 +905,8 @@ Ret_d(B) := B⪯Z_d
 - Variant `nj`. Source bp §7.9, lines 790–801. File
   `fgsa-healing-blueprint.md`, sha256
   `4d643d7a6285705ef8bcef6b408b46a45d64641f0d92828b3539f8f938074318`.
+- Lean plan: none (nj research entry; user 2026-09-28). Not planned
+  for Lean now; the entry stays as a research entry.
 - Statement (pinned):
 
 > _fgsa-healing-blueprint.md, lines 790–801:_
@@ -1661,6 +1690,7 @@ in §4. Every status below is for the FG-SA client (§0).
   `4d643d7a6285705ef8bcef6b408b46a45d64641f0d92828b3539f8f938074318`). FJ:
   r148 §5 F7, lines 400–403 (file `fj-redteam.md`, sha256
   `934fe2927f047a11e37dbe52aba9d754d5c461927f24b91902077f17459d47d2`).
+- Lean plan: DC-fj module (user 2026-09-28).
 - Hypotheses: `q_F > a` (from `a≤f`); honest identities do not
   equivocate; the DC height-pair and finality-pair rules of r143 §3.3.
 - Statement (registry): (1) every target, progress or finality QC has an
@@ -1780,6 +1810,7 @@ in §4. Every status below is for the FG-SA client (§0).
   Lean, vcW lines 42–48 (file
   `DecoupledConsensusProofs/Protocol/ValidatorClient/WeakHeightBounds.lean`,
   sha256 `f0d45fa7fd93a0a1c9f4dfccaf6c3f7c63c43245c5deee7182a25f3963c22b5d`).
+- Lean plan: DC-fj module (user 2026-09-28).
 - Hypotheses: `fg.provenance.v2` (each crossing and each target QC has an
   honest row); the honest DC client (a row names its source's own height).
 - Statement (registry): (a) an honest row of height h, emitted by v at
@@ -1837,6 +1868,7 @@ in §4. Every status below is for the FG-SA client (§0).
   DC Lean L7 (Lemma U), vcE lines 229–249 (file
   `DecoupledConsensusProofs/Protocol/ValidatorClient/Engine.lean`, sha256
   `92fb0e64c1288afea98b53212cb3ad5c843c9c720187367eea578d17a9d53454`).
+- Lean plan: DC-fj module (user 2026-09-28).
 - Hypotheses: `a≤f`, so `2q_F−n > a`; honest identities follow E2 (at most
   one target per height).
 - Statement (registry): at each height h, at most one entry is justified
@@ -1893,6 +1925,7 @@ in §4. Every status below is for the FG-SA client (§0).
   r148 calls the same fact the "finalized-crossing law" (line 226; file
   `fj-redteam.md`, sha256
   `934fe2927f047a11e37dbe52aba9d754d5c461927f24b91902077f17459d47d2`).
+- Lean plan: DC-fj module (user 2026-09-28).
 - Hypotheses: the run satisfies the DC slashable bound (`a≤f`); roots are
   collision-free; the honest DC client (E1).
 - Statement (registry): if D is a block of the run with finalized
@@ -1935,6 +1968,8 @@ in §4. Every status below is for the FG-SA client (§0).
   `fgsa-healing-blueprint.md`, sha256
   `4d643d7a6285705ef8bcef6b408b46a45d64641f0d92828b3539f8f938074318`. r149
   §4.1, lines 324–334, proves it again.
+- Lean plan: none (nj research entry; user 2026-09-28). Not planned
+  for Lean now; the entry stays as a research entry.
 - Hypotheses (named 2026-09-28; §0 rule (b)): `fg.finalLock.v1` (the "F4"
   of item 1); B2 of bp §3 (live leases at one reader form a chain);
   `a≤f`.
@@ -1976,6 +2011,8 @@ in §4. Every status below is for the FG-SA client (§0).
 - Variant `nj`. Source bp §4.2, lines 383–409 (H3). File
   `fgsa-healing-blueprint.md`, sha256
   `4d643d7a6285705ef8bcef6b408b46a45d64641f0d92828b3539f8f938074318`.
+- Lean plan: none (nj research entry; user 2026-09-28). Not planned
+  for Lean now; the entry stays as a research entry.
 - Statement (pinned):
 
 > _fgsa-healing-blueprint.md, lines 383–409:_
@@ -2022,6 +2059,8 @@ in §4. Every status below is for the FG-SA client (§0).
 - Variant `nj`. Source bp §4.2, items 2–4 and the count, lines 391–409
   (H3). File `fgsa-healing-blueprint.md`, sha256
   `4d643d7a6285705ef8bcef6b408b46a45d64641f0d92828b3539f8f938074318`.
+- Lean plan: none (nj research entry; user 2026-09-28). Not planned
+  for Lean now; the entry stays as a research entry.
 - Hypotheses: `fg.frame.v2` (with `fg.frameCompat.v1`); `fg.uniqueJust.v1`
   (F3); `fg.finalLock.v1` (F4); `fg.trunk.v1` (F advances in F-mode do not
   act); `h_j < h` on every chain (DC transition, bp F5).
@@ -2072,6 +2111,8 @@ in §4. Every status below is for the FG-SA client (§0).
 - Variant `nj`. Source bp §7.9, lines 803–809 (H19). File
   `fgsa-healing-blueprint.md`, sha256
   `4d643d7a6285705ef8bcef6b408b46a45d64641f0d92828b3539f8f938074318`.
+- Lean plan: none (nj research entry; user 2026-09-28). Not planned
+  for Lean now; the entry stays as a research entry.
 - Hypotheses: `fg.HNI.v1` for m.
 - Statement (pinned):
 
@@ -2092,6 +2133,8 @@ in §4. Every status below is for the FG-SA client (§0).
 - Variant `nj`. Source bp §7.9, lines 815–827. File
   `fgsa-healing-blueprint.md`, sha256
   `4d643d7a6285705ef8bcef6b408b46a45d64641f0d92828b3539f8f938074318`.
+- Lean plan: none (nj research entry; user 2026-09-28). Not planned
+  for Lean now; the entry stays as a research entry.
 - Hypotheses: `fg.HNI.v1` for m.
 - Statement (pinned):
 
@@ -2118,6 +2161,8 @@ in §4. Every status below is for the FG-SA client (§0).
 - Variant `nj`. Source bp §7.9, lines 831–843 (H20). File
   `fgsa-healing-blueprint.md`, sha256
   `4d643d7a6285705ef8bcef6b408b46a45d64641f0d92828b3539f8f938074318`.
+- Lean plan: none (nj research entry; user 2026-09-28). Not planned
+  for Lean now; the entry stays as a research entry.
 - Hypotheses: the finalized arm of `fg.baseSel.nj.v1` (x = hF0 and the
   actual checkpoint F*); `a≤f`; `fg.uniqueJust.v1` (F3) and
   `fg.finalLock.v1` (F4), named 2026-09-28 (§0 rule (b)).
@@ -2148,6 +2193,8 @@ in §4. Every status below is for the FG-SA client (§0).
 - Variant `nj`. Source bp §7.9, lines 844–847 (H21). File
   `fgsa-healing-blueprint.md`, sha256
   `4d643d7a6285705ef8bcef6b408b46a45d64641f0d92828b3539f8f938074318`.
+- Lean plan: none (nj research entry; user 2026-09-28). Not planned
+  for Lean now; the entry stays as a research entry.
 - Hypotheses: the NJ arm of `fg.baseSel.nj.v1`; `ap.S.v2`; `ap.Sslow.v1`;
   `fg.finalLock.v1` (F4, for (h2)), named 2026-09-28 (§0 rule (b)).
 - Statement (pinned):
@@ -2176,6 +2223,8 @@ in §4. Every status below is for the FG-SA client (§0).
   `8211361a618814fa4d5f4b1a3c593943380c9ccb99235e8b9c413d633876adc3`); r146
   §4, lines 406–415 (file `fgsa-adjudicate.md`, sha256
   `0fe1717f6abbf0d708cada05a8a4d3e3431a530d3d5c3a65e86bf755f5642017`).
+- Lean plan: none (nj research entry; user 2026-09-28). Not planned
+  for Lean now; the entry stays as a research entry.
 - Hypotheses: `env.bp` (or `env.r150`); the honest frontier reaches H+3 (the
   deadline is in `comp.healedLit.v1` or `comp.arrivalNJ.v1`); for the
   finalized arm `fg.uniqueJust.v1` (F3) and `fg.finalLock.v1` (F4, also
@@ -2294,6 +2343,7 @@ in §4. Every status below is for the FG-SA client (§0).
   for `nj`; r148 §5 F8, lines 452–462 (file `fj-redteam.md`, sha256
   `934fe2927f047a11e37dbe52aba9d754d5c461927f24b91902077f17459d47d2`) for
   `fj`.
+- Lean plan: DC-fj module (user 2026-09-28).
 - Statement (pinned):
 
 > _fgsa-fast.md, lines 474–485:_
@@ -2368,6 +2418,7 @@ M0. r151 calls this cap μ and calls M0 simply M.
   `934fe2927f047a11e37dbe52aba9d754d5c461927f24b91902077f17459d47d2`. Rule
   origin: r144o §5.3, lines 565–583 (file `fgsa-no-nj-opus.md`, sha256
   `7df2a540134deddede78ea711754bb322911fced62271868f8b5034164db9f4e`).
+- Lean plan: DC-fj module (user 2026-09-28).
 - Statement (pinned):
 
 > _fj-redteam.md, lines 148–185:_
@@ -2448,6 +2499,7 @@ M0. r151 calls this cap μ and calls M0 simply M.
 
 - Variant `fj`. Source r148 §3 F2, lines 234–258. File `fj-redteam.md`,
   sha256 `934fe2927f047a11e37dbe52aba9d754d5c461927f24b91902077f17459d47d2`.
+- Lean plan: DC-fj module (user 2026-09-28).
 - Hypotheses: `a≤f`, so `2q−n > a`; honest identities follow E1 and E2;
   the uniform timeout maturity of the DC transition.
 - Statement (pinned):
@@ -2614,6 +2666,7 @@ M0. r151 calls this cap μ and calls M0 simply M.
 
 - Variant `fj`. Source r148 §7 F10, lines 577–597. File `fj-redteam.md`,
   sha256 `934fe2927f047a11e37dbe52aba9d754d5c461927f24b91902077f17459d47d2`.
+- Lean plan: DC-fj module (user 2026-09-28).
 - Statement (pinned):
 
 > _fj-redteam.md, lines 577–597:_
@@ -2708,6 +2761,7 @@ M0. r151 calls this cap μ and calls M0 simply M.
 - Variant `fj`. Source r148 §8 F12, lines 764–773 and 778–789. File
   `fj-redteam.md`, sha256
   `934fe2927f047a11e37dbe52aba9d754d5c461927f24b91902077f17459d47d2`.
+- Lean plan: DC-fj module (user 2026-09-28).
 - Hypotheses: `fj.frame.v1`; `fg.uniqueJust.v1` (at most one justified
   entry at m−1); `fg.finalLock.v1`; `fj.crossingNoFinal.v1` (the "F2" of
   line 783, r148 numbering).
@@ -4085,3 +4139,18 @@ SUPERSEDED entry is the conjunction of its successors.
   `comp.cut.v1`.
 - SUPERSEDED: `fg.frame.v1`, `fg.provenance.v1`, `fg.causalCap.v1`,
   `fg.oneBullet.v1`, `fj.twoChanges.v1`.
+- Lean scope (user decision 2026-09-28, relayed by ethereum-f1): the Lean
+  FG module is DC-fj (DC's FG without SG and grades, with the FJ root rule
+  in place of NJ; FRAMEWORK-DESIGN.md §7.1). NJ is not formalized now. The
+  index has a new column "Lean plan". Each entry of the DC-fj plan has the
+  line "Lean plan: DC-fj module": `fj.frame.v1`, `fg.accountable.v1`,
+  `fj.inBandLock.v1`, `fg.uniqueJust.v1`, `fg.finalLock.v1`,
+  `fg.provenance.v2`, `fg.causalCap.core.v1`, `fj.crossingNoFinal.v1`,
+  `fj.twoChanges.core.v1`. The nj-only entries have the line "Lean plan:
+  none (nj research entry)" and are not planned for Lean now: `fg.frame.v1`,
+  `fg.frame.v2`, `fg.Ret.v1`, `fg.N1.v1`, `fg.N1eff.v1`, `fg.N2.v1`,
+  `fg.N2.v2`, `fg.HNI.v1`, `fg.trunk.v1`, `fg.oneBullet.v1`,
+  `fg.oneBullet.core.v1`, `fg.H19.v1`, `fg.HNIb.v1`,
+  `fg.base.finalized.v1`, `fg.base.nj.v1`, `fg.baseSel.nj.v1`. They stay
+  as research entries. `fg.frameCompat.v1` is not needed by the DC-fj
+  module. `fg.frame.v2` points to its fj counterpart `fj.frame.v1`.
