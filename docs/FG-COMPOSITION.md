@@ -3088,8 +3088,11 @@ M0. r151 calls this cap μ and calls M0 simply M.
 - Formal reading (2026-09-28) of "finalizations add no change" (item 3)
   for an F move F → F′ at one fixed view V at frontier m:
   (i) if `h(F′) < m−1` and every W ∈ V with `h(W) > h(F′)` extends F′
-  (`fg.finalLock.v1`, pure form), then the phase, (j, J) and lo are
-  unchanged, and `D_new = {B ∈ D_old : F′ ⪯ B}`. Every removed block is an
+  (`fg.finalLock.v1`, pure form), then the phase, lo, and Z up to
+  F → F′ are unchanged; (j, J) is unchanged if j = m−1 (in the gap phase
+  the lex-max pair below m−1 may change, which does not act); and
+  `D_new = {B ∈ D_old : F′ ⪯ B}`. (Correction 2026-09-28: the first text
+  said "(j, J) unchanged" without the condition j = m−1.) Every removed block is an
   ancestor of F′: its witness W has `h(W) ≥ lo ≥ m−1 > h(F′)`, so
   `F′ ⪯ W`, and B ⪯ W makes B and F′ comparable. This is "a common prefix
   below every band witness"; it is NOT "D unchanged".
