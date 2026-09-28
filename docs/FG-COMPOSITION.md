@@ -4558,6 +4558,18 @@ M0. r151 calls this cap μ and calls M0 simply M.
 
 - Status: 2026-09-28 — def (spec text). r161 §6.3 (lines 587–613) finds
   that the frame and cache items (L2, L6) HOLD with the filtered base.
+- Note (2026-09-28): the reading of r161 §2 is DC's. r161 §2 says
+  "Remove conflicting stored branches on an F advance. Physical deletion
+  can be deferred, but no base query may read those branches" (r161
+  lines 133–135). The spec (the authority) keeps Σ.T cumulative, as DC
+  does (DC never deletes an admitted block; hmax only grows), and the
+  active view act(Σ) is the removal for the SA base; a node can delete
+  blocks outside the active view, and with `a ≤ f` this changes no output
+  (pinned Trees paragraph, spec lines 352–371). Source of the decision:
+  `research/async-resilient-committees/tip-stability/log.md`, lines 934
+  and 936–937 (team-lead, 2026-09-28; an append-only log, not archived).
+  The spec intermediate a3e12c57 (r163), which deleted blocks from Σ.T,
+  is not this reading.
 - Note: `fj.frame.v1` is the view form and is not superseded.
   `fj.frame.v2` is SUPERSEDED by this entry.
 
