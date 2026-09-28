@@ -152,6 +152,19 @@ version a3e12c57 (r163's edit, which deleted blocks from Σ.T; sha256
 archived as `spec/archive/fgsa-protocol-a3e12c57.tex` as history only.
 No entry pins it.
 
+FG-SA sources (registered 2026-09-29). `fgsa1` is the FG-SA spec (plain SA
+available chain + DC finality gadget, FJ root rule only), registered from
+its archive copy; a pin to it names the file `fgsa-protocol-2e884811.tex`.
+The FG-SA Lean model (branch `fgsa-composition`) anchors its docstring
+spec lines to this file. `fgsa2` is the adopted FG-SA spec (weak healing
+and finality premises, H2′, the section "Leak identification"), registered
+from its archive copy; a pin to it names the file
+`fgsa-protocol-dbcb7f05.tex`. Its protocol section, preamble and Relay
+paragraph are byte-identical to `fgsa1`; the change record is
+`spec/archive/CHANGES-2e884811-to-dbcb7f05.md`. New recovery and leak ids
+pin `fgsa2`. The live FG entries keep their pins (`alfs4`, `spec`); no
+entry is re-pinned.
+
 Note (2026-09-28): `spec/fgsa-protocol.tex` is not tracked in Git. It
 changed after registration (sha256 then
 `bc093836f57fd6decbf5d743afa0c4b14061d3e589e1cef83d58708ae35fec10`: `R ≥ 2`
@@ -173,6 +186,8 @@ not re-pinned now. A citation of the form "spec/fgsa-protocol.tex, lines
 │ alfs2 │ spec/archive/fgsa-protocol-c7c41a43.tex                          │ c7c41a43727d380b74ae835032edbc97 │ 75ac98b8faa18affd5670165f841e5ca │
 │ alfs3 │ spec/archive/fgsa-protocol-1c6952b6.tex                          │ 1c6952b6e6ef92bf9111121f0fb28367 │ 1af6ce936b6db3c33d056b9dda35ffcd │
 │ alfs4 │ spec/archive/fgsa-protocol-bd942ca0.tex                          │ bd942ca0bce0b4251b969a503a8c8175 │ db87494ab93bf028e3a2303b7683dda7 │
+│ fgsa1 │ spec/archive/fgsa-protocol-2e884811.tex                          │ 2e88481117ba3e663c559f95218ce545 │ aba5639f201063c1942dc5599adb9787 │
+│ fgsa2 │ spec/archive/fgsa-protocol-dbcb7f05.tex                          │ dbcb7f05106cff51070fc767de45e3fe │ df45d0c74c8b5aeeca794a6110978864 │
 │ dc    │ dc/consensus.tex                                                 │ dc471b47a46896fe0a3df300c188fef1 │ 512f475615ce0fc0df18dbea6d2e5517 │
 │ vcE   │ vc/DecoupledConsensusProofs/Protocol/ValidatorClient/Engine.lean │ 92fb0e64c1288afea98b53212cb3ad5c │ 843c9c720187367eea578d17a9d53454 │
 │ vcF   │ vc/DecoupledConsensusProofs/Protocol/ChainState/                 │ aa0ed92740eb1ec8ee69e90fd2ae75f0 │ 3179a27c05accf5f631e7a254589b94c │
