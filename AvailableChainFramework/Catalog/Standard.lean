@@ -381,6 +381,42 @@ example : recovered.le ⟨1/2, false, 2, 1, 2, 3⟩ ⟨1/2, false, 4, 1, 2, 3⟩
 example : recovered.le ⟨1/2, false, 4, 1, 2, 3⟩ ⟨1/2, false, 4, 1, 2, 4⟩ = false := by
   simp [recovered, RecoveryConst.le]
 
+/-! ### Tests: each ordered field alone (review R1)
+
+Each example reverses one field and keeps the other fields equal. A missing
+conjunct in `le` makes one of them fail. -/
+
+example : includedStable.le ⟨1, 1/2, 3⟩ ⟨0, 1/2, 3⟩ = false := by
+  simp [includedStable, EtaConst.le]
+example : includedStable.le ⟨0, 3/4, 3⟩ ⟨0, 1/2, 3⟩ = false := by
+  simp [includedStable, EtaConst.le]; norm_num
+example : includedStable.le ⟨0, 1/2, 4⟩ ⟨0, 1/2, 3⟩ = false := by
+  simp [includedStable, EtaConst.le]
+
+example : persistOutage.le ⟨1, 1/2, 1, 5⟩ ⟨0, 1/2, 1, 5⟩ = false := by
+  simp [persistOutage, OutageConst.le]
+example : persistOutage.le ⟨0, 3/4, 1, 5⟩ ⟨0, 1/2, 1, 5⟩ = false := by
+  simp [persistOutage, OutageConst.le]; norm_num
+example : persistOutage.le ⟨0, 1/2, 2, 5⟩ ⟨0, 1/2, 1, 5⟩ = false := by
+  simp [persistOutage, OutageConst.le]
+example : persistOutage.le ⟨0, 1/2, 1, 4⟩ ⟨0, 1/2, 1, 5⟩ = false := by
+  simp [persistOutage, OutageConst.le]
+
+example : recovered.le ⟨3/4, false, 4, 1, 2, 3⟩ ⟨1/2, false, 4, 1, 2, 3⟩ = false := by
+  simp [recovered, RecoveryConst.le]; norm_num
+example : recovered.le ⟨1/2, false, 4, 5, 2, 3⟩ ⟨1/2, false, 4, 1, 2, 3⟩ = false := by
+  simp [recovered, RecoveryConst.le]
+example : recovered.le ⟨1/2, false, 2, 1, 2, 3⟩ ⟨1/2, false, 4, 1, 2, 3⟩ = false := by
+  simp [recovered, RecoveryConst.le]
+example : recovered.le ⟨1/2, true, 4, 1, 2, 3⟩ ⟨1/2, false, 4, 1, 2, 3⟩ = false := by
+  simp [recovered, RecoveryConst.le]
+example : recovered.le ⟨1/2, false, 4, 1, 2, 3⟩ ⟨1/2, false, 4, 1, 5, 3⟩ = false := by
+  simp [recovered, RecoveryConst.le]
+example : recovered.le ⟨1/2, false, 4, 1, 5, 3⟩ ⟨1/2, false, 4, 1, 2, 3⟩ = false := by
+  simp [recovered, RecoveryConst.le]
+example : recovered.le ⟨1/2, false, 4, 1, 2, 4⟩ ⟨1/2, false, 4, 1, 2, 3⟩ = false := by
+  simp [recovered, RecoveryConst.le]
+
 end AvailableChain.Framework.Catalog
 
 end
