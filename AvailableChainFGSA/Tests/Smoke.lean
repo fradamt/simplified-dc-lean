@@ -284,7 +284,7 @@ def stV : State pT.n :=
   let st := atTime ([hv2 0, hv2 1].foldl (process pT)
     (atTime ([wProp B1 0, wProp B2 1, wProp B1' 0].foldl (process pT) (atTime {} 8)) 9)) 14
   { st with base := { st.base with obligations := [(b1', 2, 100)] } }
-/-- Vetoed gate (spec 766–770). By hand: `b1'` has no support, so the result is
+/-- Vetoed gate (spec 759–762). By hand: `b1'` has no support, so the result is
 still b2 and it is saved; the live lease on `b1'` conflicts with b2, so the gate
 writes no lease and `fastWrite[2] = ∅`. F is genesis, so `S := F` leaves S
 (genesis) unchanged. -/
@@ -311,14 +311,14 @@ def stW : State pT.n :=
 example : leaseOf (gateStep pT stW 2) b1 = some 21 ∧
     fastWriteAt (gateStep pT stW 2) 2 = some [] := by decide
 
-/-- G5 coverage: expiry (spec 713–716). After the gate, both leases have the
+/-- G5 coverage: expiry (spec 713, 736–742). After the gate, both leases have the
 deadline 21. At t = 20 no step runs (f_4 = 19, e_4 = 18, q_3 = 17, d_3 = 18),
 and both leases stay; at t = 21 they expire (a lease expires at the first tick
 at or after its deadline). No tick at 20 or 21 is a gate, so fastWrite stays. -/
 example : (clock pT (gateStep pT stS 2) 20).base.obligations.length = 2 ∧
     (clock pT (gateStep pT stS 2) 21).base.obligations = [] ∧
     (clock pT (gateStep pT stS 2) 21).fastWrite = (gateStep pT stS 2).fastWrite := by decide
-/-- G5 coverage: release at q_2 = 13 (spec 731–752). The two label-2 votes for
+/-- G5 coverage: release at q_2 = 13 (spec 714–716, 744–752). The two label-2 votes for
 b2 resolve before 13 and conflict with `b1'`, so 2 ≥ τ seats release the lease on
 `b1'`; the lease on b1 is compatible with b2 and stays. -/
 def stQ : State pT.n :=
