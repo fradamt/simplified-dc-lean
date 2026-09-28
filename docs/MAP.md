@@ -434,3 +434,102 @@ contains Y at time 3 and does not contain Y at time 4.
 
 Fast has full honest participation from time zero. Recovery has an honest
 sleeper before GST at time 1.
+
+## Framework prototype (Phase 0)
+
+`AvailableChainFramework` is a Lake library and a default target. It has
+no protocol. It is a type-scanning catalog and certificate framework over
+the contract (`AvailableChainStatements`). Its namespace is
+`AvailableChain.Framework`. See [FRAMEWORK-DESIGN.md](FRAMEWORK-DESIGN.md)
+§8 for the Phase 0 row and the accepted deviations. File paths below are
+relative to `AvailableChainFramework/`.
+
+```text
+┌─────────────────┬───────────────────────────────────────────┬───────────────────────┐
+│ Module          │ Contents                                  │ File                  │
+├─────────────────┼───────────────────────────────────────────┼───────────────────────┤
+│ Hooks           │ Outcome (E4 classification); classify;    │ Hooks.lean            │
+│                 │ HooksSound (4 fields: excludes_inert,     │                       │
+│                 │ excludes_stable, processed_stable,        │                       │
+│                 │ handles_carries)                          │                       │
+│ Instance        │ Validators (bundled V, DecidableEq,       │ Instance.lean         │
+│                 │ Fintype); Instance (n, P, Δ, iface,       │                       │
+│                 │ hooks)                                    │                       │
+│ Claim           │ RefutationKind; ClaimSpec (Const, le,     │ Claim.lean            │
+│                 │ Point, regime, conclusion, trigger,       │                       │
+│                 │ transport, refutable); holds; inhabited   │                       │
+│ Cert            │ Cert; Refutation; RefutationFamily;       │ Cert.lean             │
+│                 │ Cert.weaken; Cert.not_refuted;            │                       │
+│                 │ Refutation.family_of                      │                       │
+│ Profile         │ Profile (a named claim list); ProfileCert │ Profile.lean          │
+│                 │ (Type 1)                                  │                       │
+│ Pareto          │ stronger; pareto; pareto_sub;             │ Pareto.lean           │
+│                 │ pareto_covers (every constant is covered  │                       │
+│                 │ by a Pareto constant)                     │                       │
+│ Catalog/Core    │ sleepy; safeConfirmed; safeStable;        │ Catalog/Core.lean     │
+│                 │ prefixOrder; includedConfirmed; core (the │                       │
+│                 │ floor profile); Candidate (Type 1);       │                       │
+│                 │ not_candidate_of_family                   │                       │
+│ Kit/Core        │ includedPersist_of_safe (persistent       │ Kit/Core.lean         │
+│                 │ inclusion from safety and exact-time      │                       │
+│                 │ inclusion; a derived lemma, not a claim)  │                       │
+│ Engine/V2Sketch │ SpecV2; Isolated (E5); Restorable (E6);   │ Engine/V2Sketch.lean  │
+│                 │ tickV2; restartV2; toyV2 (a two-field toy │                       │
+│                 │ spec)                                     │                       │
+└─────────────────┴───────────────────────────────────────────┴───────────────────────┘
+```
+
+`AvailableChainRegistry` is a Lake library and a default target. It holds
+protocol instances over the framework, their certificates and
+refutations, and compile-only tests. Its namespace is
+`AvailableChain.Registry`. File paths below are relative to
+`AvailableChainRegistry/`.
+
+```text
+┌─────────────────┬───────────────────────────────────────────┬───────────────────────┐
+│ Module          │ Contents                                  │ File                  │
+├─────────────────┼───────────────────────────────────────────┼───────────────────────┤
+│ Sanity          │ sanity (the Sanity instance);             │ Sanity.lean           │
+│                 │ certSafeConfirmed; certSafeStable;        │                       │
+│                 │ certPrefix; refutedIncluded               │                       │
+│                 │ (RefutationFamily); not_candidate         │                       │
+│ Tests/Pareto    │ armedToy (a two-constant test claim: an   │ Tests/Pareto.lean     │
+│                 │ arming lag and a budget); the Pareto      │                       │
+│                 │ direction example                         │                       │
+│ Tests/NewFacet  │ HasStrong (a new facet, compile-only);    │ Tests/NewFacet.lean   │
+│                 │ safeStrong                                │                       │
+│ GridCOHooks     │ gridExcludes (E4 exclude); gridCOx;       │ GridCOHooks.lean      │
+│                 │ gridCOx_hooks (HooksSound); clock_votes   │                       │
+│                 │ (Task 7 Step 1 finding: no clock          │                       │
+│                 │ evaluation removes votes); gate_votes;    │                       │
+│                 │ inWindow_not_excluded                     │                       │
+│ Counter         │ counter (a toy height protocol);          │ Counter.lean          │
+│                 │ counterIface; counter_hooks; counterInst  │                       │
+│ CounterRun      │ canonical (the synchronous run from       │ CounterRun.lean       │
+│                 │ genesis); canonical_execution;            │                       │
+│                 │ canonical_synchrony; canonical_relay;     │                       │
+│                 │ canonical_sleepy; certSafeConfirmed;      │                       │
+│                 │ certSafeStable; certPrefix                │                       │
+│ CounterIncluded │ counter_included (exact-time inclusion at │ CounterIncluded.lean  │
+│                 │ D = 1); certIncluded; candidate (Counter  │                       │
+│                 │ passes the core floor)                    │                       │
+└─────────────────┴───────────────────────────────────────────┴───────────────────────┘
+```
+
+`scripts/Registry.lean` scans `AvailableChainRegistry` for constants whose
+type is `Cert c I`, `Refutation c I`, or `RefutationFamily c I`, and
+writes one row per constant to `docs/REGISTRY.md`. A type behind leading
+binders (`∀ …, Cert c I`) is CONDITIONAL and is not a row. Run:
+`lake env lean --run scripts/Registry.lean`. `docs/REGISTRY.md` is
+generated; do not edit it by hand.
+
+`scripts/CatalogLock.lean` locks every declaration of
+`AvailableChainFramework.Hooks`, `.Instance`, `.Claim`, `.Cert`,
+`.Profile`, and `.Pareto`, and every declaration under `.Catalog`, to a
+hash of its statement (and, for a definition, its value). A theorem
+hashes its statement only, so a new proof of the same statement keeps the
+hash (design deviation (e), `FRAMEWORK-DESIGN.md` §8). `Kit` is not
+locked. Run `lake env lean --run scripts/CatalogLock.lean --write` to
+write `docs/catalog.lock`, or `--check` to compare against it: exit `0`
+means the file is the same, `1` means it differs, `2` means a usage error
+or a missing declaration.

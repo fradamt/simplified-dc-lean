@@ -490,12 +490,17 @@ obligations are proved).
 │ P │ Work                      │ Acceptance                              │
 ├───┼───────────────────────────┼─────────────────────────────────────────┤
 │ 0 │ Compiled prototype on v1: │ Instance, ClaimSpec with transport and  │
-│   │ interfaces, extensible    │ trigger, Cert, profiles, checked        │
-│   │ facet/constant records,   │ attributes, a Pareto comparison,        │
-│   │ two claims, Sanity, a toy │ catalog.lock; Safe and included         │
-│   │ E4 classification, a toy  │ certified or refuted for Sanity; E4 and │
-│   │ E5/E6 step, the           │ Deliverable checked for Grid CO; the    │
-│   │ run-extension theorem     │ run-extension theorem for a toy spec    │
+│   │ interfaces, extensible    │ trigger, Cert, profiles, a type-        │
+│   │ facet and constant        │ scanning registry, not attributes; a    │
+│   │ records, facets as type   │ Pareto comparison; catalog.lock over    │
+│   │ classes, core claims,     │ statements only, not proofs; Safe and   │
+│   │ Sanity and Counter        │ included certified for Counter and      │
+│   │ instances, a toy E4       │ refuted for Sanity; E4 checked for a    │
+│   │ classification, a toy     │ Grid CO variant (Deliverable,           │
+│   │ E5/E6 step, the run-      │ RelayFeasible, WindowMargin to Phase    │
+│   │ extension theorem         │ 1); the theorem from genesis only, the  │
+│   │                           │ Counter canonical run; ProfileCert and  │
+│   │                           │ Candidate in Type 1                     │
 │ 1 │ Full catalog on v1        │ ac-4.3 and strong-1 proposition         │
 │   │                           │ equivalences; eligibility per migrated  │
 │   │                           │ instance; MATRIX.md; build --wfail      │

@@ -1,0 +1,283 @@
+# Phase 0 report — protocol framework prototype
+
+_Written for the Phase 1–2 plan. Scope: `AvailableChainFramework` and
+`AvailableChainRegistry` (`docs/FRAMEWORK-DESIGN.md` v7, §8, row P = 0).
+Task references (Task 1–9) point to the per-task implementer reports in
+the session scratchpad._
+
+## 1. Purpose
+
+Phase 0 built a compiled prototype of the protocol framework design
+(`docs/FRAMEWORK-DESIGN.md` §§1–7) on the v1 engine, to test the design's
+interfaces with the Lean compiler before Phase 1 commits to the full v1
+catalog. It added two Lake libraries: `AvailableChainFramework` (the
+catalog and certificate framework, L1–L3 and a kit) and
+`AvailableChainRegistry` (protocol instances with certificates and
+refutations over the framework, L4). `docs/MAP.md` has the module map
+for both libraries.
+
+## 2. Headline results
+
+```text
+┌────────────────────────┬─────────────────────────────────────────────────┐
+│ Result                 │ Detail                                          │
+├────────────────────────┼─────────────────────────────────────────────────┤
+│ Full build             │ lake build --wfail: 3555 jobs, green (no new    │
+│                        │ failures).                                      │
+│ No sorry/admit/decide  │ grep clean; the only matches are the            │
+│                        │ identifiers admitVote and admitProposal.        │
+│ Sanity                 │ Candidate sanity to False: the core floor       │
+│                        │ refutes it (includedConfirmed has no valid D).  │
+│ Counter                │ candidate : Candidate counterInst: the core     │
+│                        │ floor holds, including includedConfirmed at D = │
+│                        │ 1.                                              │
+│ catalog.lock           │ lake env lean --run scripts/CatalogLock.lean    │
+│                        │ --check: exit 0.                                │
+│ REGISTRY.md            │ regenerated; unchanged (10 certs, 1 refutation- │
+│                        │ family, over Sanity and Counter).               │
+└────────────────────────┴─────────────────────────────────────────────────┘
+```
+
+Sanity fails the core floor exactly as the design predicts: it always
+returns genesis and permanently excludes every object, so
+`includedConfirmed` has no valid delay `D` (`Sanity.refutedIncluded`,
+a `RefutationFamily`). Counter, a new toy height protocol built for
+Phase 0, passes the core floor, including exact-time inclusion at
+`D = 1` (`Counter.candidate : Candidate counterInst`).
+
+## 3. What each interface showed
+
+**Validators bundling.** The design (§3) bundles a run's validator type
+with its `DecidableEq` and `Fintype` instances into one structure,
+`Validators`. A claim's `regime` and `conclusion` fields quantify over
+`W : Validators`, not over a bare type with separate instance
+arguments. Every certificate (Sanity, Counter, the Pareto test) builds
+one `Validators` value (for example `⟨Fin 1, inferInstance,
+inferInstance⟩`) and both fields consume it as a single argument. Phase
+0 used only one validator type per instance, so the bundling did not
+need to carry a value across a "widen the electorate" transport; that
+case is untested.
+
+**Point.** `Point` holds a claim's own run parameters, apart from its
+constant. `safeOf`-built claims (`safeConfirmed`, `safeStable`) use
+`Time` as `Point`, for one read time. `prefixOrder` uses `Unit`, for no
+free parameter. `includedConfirmed` also uses `Time`, but for a
+proposal slot, not a read time. The three claims share one `ClaimSpec`
+shape with no change to `Claim.lean`, which is the point of the field:
+`Point` lets a claim's own witness shape vary without a change to the
+catalog's record type.
+
+**Type-class facets.** Deviation (d) drops `ClaimSpec.needs` as a
+field. Task 6 adds a facet, `HasStrong`, as a plain Lean type class
+over `Instance` (`class HasStrong (I : Instance) where strong : …`),
+and a claim, `safeStrong`, that quantifies `[HasStrong I]`. This
+compiled with no change to `Instance`, `ClaimSpec`, or any existing
+declaration: a new facet is an addition, as the design predicts. It
+also showed the shape's limit — see the Facet row of §6, Open items.
+
+**Cert as data.** `Cert c I` is a structure, not a bare proof term: it
+carries `const`, `valid`, `inhabited`, and `proof` as fields.
+`scripts/Registry.lean` finds every certificate by scanning constant
+TYPES (`Cert c I`, `Refutation c I`, `RefutationFamily c I`), not by
+reading `@[cert]`/`@[refutes]` attributes (deviation (a)). `Cert.weaken`
+builds a new `Cert` value at a weaker constant from an old one's
+`proof` field, through `ClaimSpec.transport`, with no re-proof. The
+registry lists ten certificates and one refutation-family over Sanity
+and Counter; `Candidate`/`ProfileCert` values are not rows, because
+their type is a `Pi`-type over `c ∈ p.claims`, not `Cert c I` itself
+(Open items, §6).
+
+**Type 1.** `ClaimSpec` has two `Type`-valued fields, `Const` and
+`Point`. A structure with a `Type`-valued field is itself one universe
+higher than an ordinary data structure, so `ClaimSpec : Type 1`.
+`ProfileCert` and `Catalog.Candidate` quantify over a `List ClaimSpec`,
+so both widen from the plan's `Type` to `Type 1` (deviation (f)). This
+is a plan defect only: the universe is forced by `ClaimSpec`'s shape,
+not by a proof gap, and no other declaration changed to accommodate
+it.
+
+## 4. The Grid CO Step 1 finding
+
+Task 7 tested the design's E4 (permanent exclude) classification
+against a Grid CO variant, `gridCOx`, whose only change from `gridCO`
+is its `excludes` function. Step 1 asked whether the
+equivocation-exclusion disjunct could be dropped from `excludes`: kept
+only if some clock evaluation removes a vote, dropped otherwise. The
+proof (`clock_votes`, `AvailableChainRegistry/GridCOHooks.lean`)
+established that no clock evaluation — `expire`, `freeze`, the early
+save, `release`, or `gate` — writes `st.votes`. Only `admitVote`
+(called from `process`, never from `clock`) appends to it. Every clock
+step reads or replays existing votes; none removes one.
+
+The finding keeps the equivocation-exclusion disjunct in
+`gridExcludes`: an already-equivocating seat stays excluded until the
+epoch ends, because nothing in `clock` would ever revoke that
+exclusion. `Deliverable`, `RelayFeasible`, and `WindowMargin` for Grid
+CO move to Phase 1, with the `excludes` change in `gridCO` itself
+(deviation (b)).
+
+## 5. Deviations from the plan
+
+### 5.1 Design deviations (accepted by the user, 2026-09-28)
+
+```text
+┌─────┬────────────────────────┬──────────────────────────────────────────────┐
+│ #   │ Deviation              │ Reason                                       │
+├─────┼────────────────────────┼──────────────────────────────────────────────┤
+│ a   │ Registry: type scan    │ A type-scanning script replaces checked      │
+│     │                        │ attributes (@[cert], @[refutes]). A constant │
+│     │                        │ is a certificate or a refutation by its type │
+│     │                        │ (Cert c I, Refutation c I, RefutationFamily  │
+│     │                        │ c I); no metaprogramming in module files.    │
+│ b   │ Grid CO: E4 only       │ HooksSound is checked for a Grid CO variant  │
+│     │                        │ (gridCOx) with the new excludes.             │
+│     │                        │ Deliverable, RelayFeasible, and WindowMargin │
+│     │                        │ move to Phase 1, with the excludes change in │
+│     │                        │ gridCO itself.                               │
+│ c   │ Run ext.: genesis      │ The run-extension theorem is proved from     │
+│     │                        │ genesis (the Counter canonical run, every    │
+│     │                        │ horizon, Sleepy from 0). The general form,   │
+│     │                        │ from every valid prefix, is Kit.Engine in    │
+│     │                        │ Phase 1.                                     │
+│ d   │ Facets: type class     │ ClaimSpec.needs is not a field. A facet is a │
+│     │                        │ type class over Instance (Tests/NewFacet).   │
+│     │                        │ The v1 Interface is the one field facet      │
+│     │                        │ every Phase 0 instance carries.              │
+│ e   │ Lock: statement only   │ A locked theorem hashes its statement (type) │
+│     │                        │ only, not its proof (value), so a new proof  │
+│     │                        │ of the same statement keeps the hash. Fixes  │
+│     │                        │ a draft defect found in Task 6 review.       │
+│ f   │ Candidate: Type 1      │ ClaimSpec has Type-valued fields (Const,     │
+│     │                        │ Point), so ClaimSpec : Type 1. ProfileCert   │
+│     │                        │ and Catalog.Candidate widen from Type to     │
+│     │                        │ Type 1. A plan defect forced by ClaimSpec's  │
+│     │                        │ shape, not a proof gap.                      │
+└─────┴────────────────────────┴──────────────────────────────────────────────┘
+```
+
+Deviations (a)–(d) were accepted with the plan, before implementation
+(`global-constraints.md`, "Deviations from the spec"). Deviations (e)
+and (f) surfaced during implementation and review (Task 6, Task 1–3)
+and are recorded here for the first time; both are recorded in
+`docs/FRAMEWORK-DESIGN.md` §8.
+
+### 5.2 Proof-level deviations (no statement changed)
+
+Every statement (`def`, `structure`, `theorem` type) in the framework
+and registry matches its brief exactly. The changes below are to proof
+scripts, tactics, or witness terms only.
+
+```text
+┌────────┬────────────────────────────────────────────────────────────────┐
+│ Task   │ Deviation (proof only; no statement changed)                   │
+├────────┼────────────────────────────────────────────────────────────────┤
+│ 4      │ The Time abbreviation does not unfold for omega across modules │
+│        │ in this toolchain. horizon_ge is proved with order lemmas and  │
+│        │ linarith instead. A bare numeral 0 does not resolve OfNat      │
+│        │ includedConfirmed.Point 0 by instance search; the call uses an │
+│        │ explicit (0 : Time).                                           │
+│ 5      │ pareto_covers's sorry is replaced by a strong-induction proof. │
+│        │ Three new public helper lemmas are needed (stronger_irrefl,    │
+│        │ stronger_trans, stronger_count_lt) and stay public, because    │
+│        │ pareto_covers needs them (Task 5 controller ruling).           │
+│ 6      │ The registry scan is filtered to the AvailableChainRegistry    │
+│        │ module prefix; without it, framework declarations whose type   │
+│        │ ends in Cert/RefutationFamily (for example Cert.mk,            │
+│        │ Cert.weaken) appear as false CONDITIONAL rows. Lock coverage   │
+│        │ moved from name-prefix roots to by-module selection, fixing    │
+│        │ review finding I1 (Refutation, RefutationFamily,               │
+│        │ RefutationKind, Profile, ProfileCert, Validators, Outcome, and │
+│        │ classify were missing). An unreadable or missing lock file on  │
+│        │ --check exits 2, not 1.                                        │
+│ 7      │ gridExcludes_inert and gridCOx_hooks are proved in full (see   │
+│        │ the Grid CO Step 1 finding). linter.unusedSectionVars is       │
+│        │ disabled file-wide, matching the existing Grid CO idiom for    │
+│        │ the [LeasePolicy] section variable.                            │
+│ 8      │ toyV2's process_base witness uses Nat.max, not max: instance   │
+│        │ search for Max toyV2.Base runs before the toyV2.Base           │
+│        │ projection unfolds to Nat, and fails. output_tick uses the     │
+│        │ brief's named fallback helper, foldl_recordOwn_base, because   │
+│        │ the direct rewrite-then-induction proof leaves an unmatched    │
+│        │ wrapper term.                                                  │
+│ 9      │ counter.slotsAt_spec reuses alwaysGenesis.slotsAt_spec's proof │
+│        │ (the same Time/omega quirk as Task 4). counter_safe uses a     │
+│        │ sublist argument through readAt_mono, not stateBefore_mono     │
+│        │ directly, because counter_safe quantifies over every run and   │
+│        │ Run.readAt is a filter of events, not a prefix. candidate is   │
+│        │ noncomputable: hc : c ∈ core.claims is an Or, which cannot     │
+│        │ eliminate into Type, so it selects the certificate by a        │
+│        │ classical case split on c = …; no new axiom.                   │
+└────────┴────────────────────────────────────────────────────────────────┘
+```
+
+## 6. Open items for the Phase 1–2 plan
+
+```text
+┌───────────┬────────────────────────────────────────────────────────────┐
+│ Area      │ Open item                                                  │
+├───────────┼────────────────────────────────────────────────────────────┤
+│ Facet     │ A naive claim of the form ∀ (I : Instance) [HasStrong I],  │
+│           │ … is vacuous for an instance without HasStrong I: there is │
+│           │ no instance to supply, so the universal statement holds    │
+│           │ trivially. Phase 1 needs an encoding for a facet-needing   │
+│           │ claim that tells 'does not have the facet' apart from      │
+│           │ 'holds trivially'. Facet-needing claims do not enter the   │
+│           │ catalog in Phase 0 (Task 6 ruling I2).                     │
+│ GridCO    │ processed and excludes can both hold for the same object   │
+│           │ (the old-label clause of excludes does not check processed │
+│           │ first). Must the two stay disjoint under the Phase 1       │
+│           │ excludes change?                                           │
+│ Engine    │ stateBefore_stable (GridCOHooks.lean) and the run/step     │
+│           │ lemmas in Registry.Counter (Counter.lean, CounterRun.lean) │
+│           │ are engine-generic, for any ProtocolSpec, but live in L4.  │
+│           │ Move them into Kit.Engine in Phase 1.                      │
+│ Registry  │ Candidate and ProfileCert values (sanity's refutation      │
+│           │ path, counterInst's candidate) are not rows of             │
+│           │ REGISTRY.md: their type is a Pi-type over c ∈ p.claims,    │
+│           │ not Cert c I itself. Add a row kind for them.              │
+│ Registry  │ scripts/Registry.lean does not check axioms (a paper claim │
+│           │ vs. a LEAN-checked one). Task 6 M4: add an axiom check,    │
+│           │ matching AvailableChainSAPC/Tests/Axioms.lean's pattern.   │
+│ Registry  │ The include-only module-prefix filter                      │
+│           │ (AvailableChainRegistry) drops a future instance library   │
+│           │ silently if it is not under that prefix (Task 6 M1).       │
+│           │ Syntactic certificate detection also misses aliases,       │
+│           │ bundles, and private certs (Task 6 M2). The Claim column   │
+│           │ shows a claim's def head, not a stable claim id (Task 6    │
+│           │ M3).                                                       │
+│ Lock      │ Generated names (eq_N, mk.inj, sizeOf_spec) appear as      │
+│           │ locked lines. A toolchain change, or a new declaration     │
+│           │ that triggers more equation lemmas under a locked prefix,  │
+│           │ can break --check with no statement change (Task 6 M6).    │
+│           │ The lock does not fail on an axiomInfo or a missing body   │
+│           │ (M5); a per-line hash inside a cycle is incomplete for     │
+│           │ future per-declaration cert hashes (M7); Expr.hash ignores │
+│           │ binder info, and --check needs a build first, to read      │
+│           │ oleans (M8).                                               │
+│ Sanity    │ Time is abbrev Time := Int in                              │
+│           │ AvailableChainModel/Objects/Time.lean, not '@[reducible,   │
+│           │ expose] def' as an earlier report said (Task 4 report      │
+│           │ nit).                                                      │
+│ Style     │ stronger_count_lt's docstring and stronger_trans's proof   │
+│           │ (Pareto.lean) are dense for ASD-STE100 (Task 5). Two in-   │
+│           │ file deviation comments in Engine/V2Sketch.lean are dense  │
+│           │ for ASD-STE100 (Task 8). emittedAt_eq (CounterRun.lean)    │
+│           │ ends its proof with simp, then rfl; simp alone may be      │
+│           │ fragile to a future definitional change (Task 9).          │
+│ E5/E6     │ toyV2.clock is a no-op, so Isolated's clock_base law is    │
+│           │ never exercised by toyV2 (the plan-mandated toy). A future │
+│           │ toy, or Phase 2's real engine v2, should exercise it.      │
+└───────────┴────────────────────────────────────────────────────────────┘
+```
+
+## 7. Checks run for this report
+
+- `lake build --wfail` (all default targets): `Build completed
+  successfully (3555 jobs)`.
+- `grep -rn 'sorry\|admit\|native_decide' AvailableChainFramework
+  AvailableChainRegistry scripts`: every match is the identifier
+  `admitVote` or `admitProposal` (Grid CO's vote-admission functions);
+  no tactic use.
+- `lake env lean --run scripts/CatalogLock.lean --check`: exit `0`.
+- `lake env lean --run scripts/Registry.lean`: `docs/REGISTRY.md`
+  regenerated, unchanged from the version Task 9 left.
