@@ -89,19 +89,23 @@ theorem includedConfirmed_trigger_late {I : Instance} {D : Time} {H : Time}
   obtain ⟨W, x, t₀, _, _, _, s, _, hH, hp, _⟩ := h H
   exact ⟨W, x, s, hH, hp⟩
 
-/-- The core floor (design §4): every candidate certifies all four. -/
-def core : Profile where
+/-- The core floor (design §4): every candidate certifies all four claims.
+The shared constant is the inclusion delay `D`. -/
+def core : Profile ClaimDomain.v1 where
   id := `core.v1
-  claims := [safeConfirmed, safeStable, prefixOrder, includedConfirmed]
+  Shared := Time
+  valid := fun D => 0 ≤ D
+  entries :=
+    [⟨safeConfirmed, fun _ => ()⟩, ⟨safeStable, fun _ => ()⟩,
+     ⟨prefixOrder, fun _ => ()⟩, ⟨includedConfirmed, fun D => D⟩]
 
-/-- A candidate protocol passes the core floor. `Type 1`, matching
-`ProfileCert` (controller ruling 2026-09-28: plan defect). -/
+/-- A candidate protocol passes the core floor. -/
 def Candidate (I : Instance) : Type 1 := ProfileCert core I
 
 /-- A refutation family of a core claim rejects the instance. -/
-theorem not_candidate_of_family {I : Instance} {c : ClaimSpec ClaimDomain.v1}
-    (hc : c ∈ core.claims) (r : RefutationFamily c I) : Candidate I → False :=
-  fun h => (h c hc).not_refuted r
+theorem not_candidate_of_family {I : Instance} {e : Profile.Entry ClaimDomain.v1 Time}
+    (he : e ∈ core.entries) (r : RefutationFamily e.spec I) : Candidate I → False := by
+  intro pc; exact (pc.certs e he).1.not_refuted r
 
 end AvailableChain.Framework.Catalog
 

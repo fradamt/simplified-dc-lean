@@ -7,7 +7,8 @@ public import AvailableChainFramework.Catalog.Core
 the Phase 0 form, with L1 predicates only. A change to a claim that changes
 its meaning breaks a pin. The one intended difference from Phase 0
 (`Claim.lean` at `505b14a`) is the late trigger of `includedConfirmed`:
-`H ≤ proposalTime s`. A trigger `True` is not written. -/
+`H ≤ proposalTime s`. A `True` trigger or regime is left out; the reverse
+direction supplies `trivial`, so a change to it breaks the pin. -/
 
 namespace AvailableChain.Framework.Catalog
 

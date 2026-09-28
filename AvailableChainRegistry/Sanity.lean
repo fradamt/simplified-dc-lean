@@ -85,8 +85,11 @@ theorem refutedIncluded : RefutationFamily includedConfirmed sanity := by
     (h ⟨Fin 1, inferInstance, inferInstance⟩ ⟨exampleEnv, exampleRun D⟩ rfl (0 : Time)
       (exampleSleepy D))
 
-theorem not_candidate : Candidate sanity → False :=
-  not_candidate_of_family (by simp [core]) refutedIncluded
+theorem not_candidate : Candidate sanity → False := by
+  have he : (⟨includedConfirmed, fun D => D⟩ : Profile.Entry ClaimDomain.v1 Time) ∈
+      core.entries := by
+    exact .tail _ (.tail _ (.tail _ (.head _)))
+  exact not_candidate_of_family he refutedIncluded
 
 end AvailableChain.Registry.Sanity
 

@@ -257,19 +257,33 @@ def certIncluded : Cert includedConfirmed counterInst where
     intro W x hΔ t₀ hs
     exact counter_included W x.E hΔ x.rho t₀ hs
 
-/-- Counter passes the core floor: it is the first candidate. -/
-noncomputable def candidate : Candidate counterInst := by
-  classical
-  intro c hc
-  exact if h1 : c = safeConfirmed then (by rw [h1]; exact certSafeConfirmed)
-    else if h2 : c = safeStable then (by rw [h2]; exact certSafeStable)
-    else if h3 : c = prefixOrder then (by rw [h3]; exact certPrefix)
-    else (by
-      have h4 : c = includedConfirmed := by
-        simp only [core, List.mem_cons, List.not_mem_nil, or_false] at hc
-        tauto
-      rw [h4]
-      exact certIncluded)
+/-- Counter passes the core floor at the shared delay `D = 1`: it is the
+first candidate. -/
+noncomputable def candidate : Candidate counterInst where
+  shared := (1 : Time)
+  valid := zero_le_one
+  certs := by
+    classical
+    intro e he
+    exact if h1 : e = ⟨safeConfirmed, fun _ => ()⟩ then
+        (by subst h1; exact ⟨certSafeConfirmed, rfl⟩)
+      else if h2 : e = ⟨safeStable, fun _ => ()⟩ then
+        (by subst h2; exact ⟨certSafeStable, rfl⟩)
+      else if h3 : e = ⟨prefixOrder, fun _ => ()⟩ then
+        (by subst h3; exact ⟨certPrefix, rfl⟩)
+      else (by
+        have h4 : e = ⟨includedConfirmed, fun D => D⟩ := by
+          rcases List.mem_cons.1 he with h | he; · exact absurd h h1
+          rcases List.mem_cons.1 he with h | he; · exact absurd h h2
+          rcases List.mem_cons.1 he with h | he; · exact absurd h h3
+          exact List.mem_singleton.1 he
+        subst h4; exact ⟨certIncluded, rfl⟩)
+
+/-- Review Focus 3: every certificate of Counter's candidate is at the
+projection of the one shared delay. -/
+example (e : Profile.Entry ClaimDomain.v1 Time) (he : e ∈ core.entries) :
+    (candidate.certs e he).1.const = e.share candidate.shared :=
+  (candidate.certs e he).2
 
 end AvailableChain.Registry.Counter
 

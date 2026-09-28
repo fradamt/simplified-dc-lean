@@ -34,7 +34,9 @@ structure ClaimSpec (K : ClaimDomain) where
   conclusion : (I : K.Inst) → Const → (W : Validators) → K.Ctx I W → Point → Prop
   /-- `trigger I k W x p H`: the event that makes the claim non-vacuous occurs
   in the run at a time at least `H`, with its deadline inside the run
-  (design §5; PHASE0-REPORT §6, I2). -/
+  (design §5; PHASE0-REPORT §6, I2). The type does not force this. A claim
+  with a trigger other than `True` proves `<claim>_trigger_late`. For a `True`
+  trigger, the horizon bound in `inhabited` carries the time. -/
   trigger : (I : K.Inst) → Const → (W : Validators) → K.Ctx I W → Point → Time → Prop
   /-- A weaker constant keeps the claim. A proof, not metadata. -/
   transport : ∀ (I : K.Inst) (k k' : Const), valid k → valid k' → le k k' = true →
