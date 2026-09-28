@@ -34,6 +34,12 @@ consistent with FRAMEWORK-DESIGN.md §7._
   `spec/archive/<name>-<first 8 hex digits of h>.tex`, whose sha256 is h.
   The spec owner archives each registered spec version there before an
   edit. The live `spec/` file can differ.
+- Research sources are archived by hash (rule added 2026-09-28): at
+  registration, the registry owner copies each pinned research source
+  that is not in Git to `<dir>/archive/<name>-<first 8 hex digits of
+  sha256>.<ext>` (for `tsc/`: `tsc/archive/`) and checks its hash. Pins
+  resolve against the archive copy with the registered hash, not against
+  the live file. A source in Git is recorded with its commit instead.
 - "FG-SA" in a status means a proof for the FG-SA client, that is, the
   Simplex policy with honest non-equivocating signers. As a certificate
   FAMILY over every policy σ, an AP-side entry still needs a proof that uses
@@ -57,6 +63,14 @@ CORRECTIONS; registered 2026-09-28). `r153b` is a later version of the same
 file, with §§A–C; §C.4 retracts the NJ claim of r153a. Line numbers cited
 as r153a refer to the r153a version (sha256 `c85c0dcc…`), which is not
 archived; the live file is r153b.
+
+Archive (2026-09-28): every `tsc/` file in the table above is copied to
+`tsc/archive/<name>-<hash8>.md`, with its hash verified (for example
+`tsc/archive/fj-redteam-934fe292.md`). r153a cannot be archived: the
+adjudicator edited the file in place, and the `c85c0dcc` version is lost.
+r153b is archived as `tsc/archive/fj-reach-adjudicate-12afc81c.md`.
+`dc/consensus.tex` is in the research Git repository (commit `9f5ed71`,
+file unchanged at that commit); Git keeps the registered version.
 
 ```text
 ┌───────┬───────────────────────────┬──────────────────────────────────┬──────────────────────────────────┐
@@ -4705,3 +4719,8 @@ SUPERSEDED entry is the conjunction of its successors.
   needs the common-anchor link 1d (every HEAD's live-root lease lies on the
   proposer's path to its parent), which is SKETCH (r153b lines 750–751,
   767–788 and 995–1000).
+- §0 rule: research sources are archived by hash at registration, and
+  pins resolve against the archive. All registered `tsc/` sources are
+  copied to `tsc/archive/<name>-<hash8>.md` (hashes verified), except
+  r153a (`c85c0dcc`), which the adjudicator overwrote. `dc/consensus.tex`
+  is kept by Git (commit `9f5ed71`).
