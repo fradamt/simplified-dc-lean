@@ -64,5 +64,11 @@ structure CStoreInv (p : Params) (st : State p.n) : Prop where
   leaseKeys : (st.base.obligations.map Prod.fst).Nodup ∧
     ∀ row ∈ st.base.obligations, row.2.1 = SA.releaseThreshold p.toParams
 
+/-- [helper] The first three fields of `CStoreInv`: the FG invariant, root
+injectivity of Σ.T, and the base list as Σ.T erased (Task 10). -/
+def Inv0 (p : Params) (st : State p.n) : Prop :=
+  KitFG.StoreInv p.E p.cfg st.fg ∧ (∀ X ∈ st.fg.TF, ∀ Y ∈ st.fg.TF, X.root = Y.root → X = Y) ∧
+    (∀ b, b ∈ st.base.blocks ↔ ∃ B ∈ st.fg.TF, eraseFG B = b)
+
 end AvailableChain.FGSA
 end
