@@ -229,7 +229,7 @@ The Opus scratch files (`/private/tmp/fgsa-rev/`) already showed the `LeasePolic
 - Faithfulness. The spec is the authority. Each model definition has a docstring that names its spec lines, for example ``[spec 804–829]``. A proof docstring names its blueprint id and K id, for example ``[bp bp.reconcile.v1; K3]``, or ``[helper]``. Do not change a statement to make a proof pass. A difference from the spec, the blueprint or the composition plan is a finding: report it in the task report and do not resolve it.
 - `LeasePolicy` instances (Opus §1, compiled). `SA.gate` and `SA.clock` are `@GridCO.gate GridCO.slowLeasePolicy …` and `@GridCO.clock GridCO.slowLeasePolicy …`. The DEFAULT instance is `gridLeasePolicy` (`GridCO/Model/Protocol.lean:17`). So `GridCO.gate_blocks p.engine v r` elaborates silently for the GRID gate and does not match `SA.gate`. Rule (r188 N3): inspect the actual declaration (`#check @GridCO.<lemma>`). If it has a `[LeasePolicy]` argument and it is used for the SA base, apply it as `@GridCO.<lemma> GridCO.slowLeasePolicy p.toParams.engine …`. The surrounding `variable [LeasePolicy]` of a file does not decide this: Lean omits an unused section variable from a declaration. For example, `GridCO.admitVote_blocks` (`Proofs/Map.lean:443–447`) and `GridCO.confirmation_mem` (`Proofs/RecordSlots.lean:150–161`) have no policy argument; there, `GridCO.slowLeasePolicy` as the first explicit argument would stand where a `GridCO.Params` value is required. `gate_blocks` and `gate_target_origin` have a policy argument. A reviewer rejects a proof that uses a lease-dependent GridCO lemma without the explicit instance.
 - Leak-ledger readiness. A later revision adds a leak ledger as a DERIVED function of the chain (`R/codex/round-leak.md`: "All snapshots and charges are derived from the chain"; the ledger "does not change weights"). So: the model stores no derived value that the spec does not store, except the declared model-only caches below; `σ[B]` stays `SimplexFG.derive E cfg B` (never a cached field); each FG block keeps its full ordered row list; the stored proposals keep the full signed rows with their rounds; the electorate stays a parameter. Then `leakLedger : FGBlock (Fin n) → …` can be added in a new file without a change to `State` or to a handler.
-- Model-only caches (Opus m6; DQ8). The SA base has five fields that the spec store does not have: `frozen`, `early`, `releaseSnapshots` (the spec derives the frozen and early pools at read time, spec 463–471, and its `on_tick` has no freeze or early step, spec 709–730), `goldfishRecord` (G; the spec has no G) and `base.proposals` (the GridCO copy of the admitted wires; the composite reads `st.proposals`). They stay because the exact SA bridge (Task 7) needs the SA step shape. No FG-SA duty, output or statement reads them. A reviewer checks this in Task 6 (G6) and Task 13.
+- Model-only caches (Opus m6; DQ8). The SA base has five fields that the spec store does not have: `frozen`, `early`, `releaseSnapshots` (the spec derives the frozen and early pools at read time, spec 463–471, and its `on_tick` has no freeze or early step, spec 709–730), `goldfishRecord` (G; the spec has no G) and `base.proposals` (the GridCO copy of the admitted wires; the composite reads `st.proposals`). They stay because the exact SA bridge (Task 7) needs the SA step shape. No FG-SA duty, output or statement reads them. A reviewer checks this in Task 6 (G6) and Task 13. In particular (G3 minor 4), `frozen` holds saved resolved pools and a frozen block domain, and `reconcile` does not clear them. GridCO `act`, `voterView`, `voterSupportView` and `voterTree` read `frozen`, so no composite duty may reuse them.
 - Q1/Q5 independence. No file of this plan mentions `ProtocolSpec`, `Run`, `World`, `Env`, `Interface`, `Claims`, `pendingRow` or an engine field. `grep -rnE 'ProtocolSpec|Generic\.Run|World|pendingRow' AvailableChainFGSA` must print nothing at each CHECKPOINT. The v1 object types are the one declared engine dependency (J1).
 - Each task ends at a CHECKPOINT:
   - `bash scripts/check-fgsa.sh` exits 0 (from Task 1; it builds the library; from Task 2 it also runs the axiom check);
@@ -930,7 +930,11 @@ theorem erase_rootInjective {T : Finset (FGBlock V)} (hinj : ViewRootInj T) :
 def b1 : Block := eraseFG B1
 def b1' : Block := eraseFG B1'
 /-- F = B1 (the FG store of the FG module's G02 test), with a lease, a saved
-result and a fast write on the conflicting `b1'`, and S = b1'. -/
+result and a fast write on the conflicting `b1'`, and S = b1'. A hand-set,
+NOT reachable fixture: `b1'` is in `base.blocks` but `B1'` is not in `fg.TF`,
+so the correspondence "base list = Σ.T erased" (CStoreInv `baseTree`) does not
+hold. Use it only for the Task 3 read and reconcile tests, never with an
+invariant. -/
 def stR0 : State 4 :=
   { fg := stF, base := { GridCO.initial 4 with
       blocks := [.genesis, b1, eraseFG B2, eraseFG B3, b1'],
@@ -953,6 +957,10 @@ example : (normalizeS
       { stR0 with base := { stR0.base with stableRecord := eraseFG B3 } }).base.stableRecord =
     eraseFG B3 := by decide
 example : blockExcluded stR0 b1' = true ∧ blockExcluded stR0 .genesis = false := by decide
+/-- G3: `Σ.s = ⌊t / 4Δ⌋` (spec 711); with Δ = 1, times 0, 13 and 16 give slots 0, 3, 4. -/
+example : State.slot pT (initial 4) = 0 ∧
+    State.slot pT { base := { GridCO.initial 4 with now := 13 } } = 3 ∧
+    State.slot pT { base := { GridCO.initial 4 with now := 16 } } = 4 := by decide
 ```
 
   Run: `lake build AvailableChainFGSA.Tests.Smoke`. Expected: FAIL.
@@ -1037,8 +1045,28 @@ def blockExcluded (st : State n) (b : Block) : Bool := !activeCompatible st b
 ```
 
 - [x] **Step 3: Run it; it passes.** `lake build --wfail AvailableChainFGSA.Tests.Smoke`. If a test value differs from the expected value, compute it by hand from the spec. A real difference is a finding: report it and do not change the expectation to match the code.
-- [ ] **Step 4: Review gate G3 and CHECKPOINT.** Commit `FGSA model: store, active view, reconcile`.
+- [x] **Step 4: Review gate G3 and CHECKPOINT.** Commit `FGSA model: store, active view, reconcile`.
   Execution notes (2026-09-29): every planned test value agreed with the hand computation. Changes from the text above: (1) one test line is wrapped for the 100-column linter; (2) docstrings with spec lines on `initial`, `confirmed` and `stable`; (3) extra tests, added after the G1 finding on coverage: `initial`, the outputs, `leaseOf`, `fastWriteAt`, a compatible lease on F and below F that reconcile keeps, the fields that reconcile does not write (`fg`, `proposals`, `rowPool`, `goldfishRecord`), and `onView` (the step reads `act(Σ)`; the cumulative list comes back).
+
+**G3 dispositions** (review of `68ece14`: PASS; 0 blocking, 0 major, 4 minor). G3 is closed. The reviewer confirmed that `reconcile` deletes every obligation row of a conflicting target, as the spec requires (`Σ.lease[B]` has no level; the SA readers `liveRoot`, the gate veto and `expire` ignore the level).
+
+```text
+┌─────┬──────────────────────────────────────────────────────────────────────────┐
+│ G3  │ Disposition                                                              │
+├─────┼──────────────────────────────────────────────────────────────────────────┤
+│ 1   │ The `stR0` docstring says it breaks "base list = Σ.T erased" (b1' is in  │
+│     │ base.blocks, B1' is not in fg.TF). No later task reuses stR0, so B1' is  │
+│     │ not added to fg.TF.                                                      │
+│ 2   │ A decide test of `State.slot` (times 0, 13, 16 give slots 0, 3, 4).      │
+│ 3   │ Task 11: `leaseKeys` comes from the one constant level of                │
+│     │ `writeObligation` under `slowLeasePolicy`; new result                    │
+│     │ `leaseOf_eq_deadlineOf` (Task 11, Produces and Step 2).                  │
+│ 4   │ G6 check list (Task 6, Step 4; Global Constraints, model-only caches):   │
+│     │ `frozen` keeps saved resolved pools and a frozen domain that reconcile   │
+│     │ does not clear; no composite duty may reuse GridCO `act` or the voter    │
+│     │ views after an F advance.                                                │
+└─────┴──────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
@@ -1540,7 +1568,7 @@ def attest (p : Params) (st : State p.n) (Λ : Record) (i : Fin p.n) : RowBody �
 
   The old findings (a) and (b) of revision 1 are now proof obligations of Task 11 (`deepest_spec`, `fgBlockOf_spec`, `fgHead_stored`). The smoke tests compare the row-body projection of `attest`, not a `Record` (a record holds functions).
 - [ ] **Step 3: Run it; it passes.** As in Task 3, Step 3.
-- [ ] **Step 4: Astra model check (review gate G6).** Before any STORE proof task (Tasks 7–12; Task 2 does not depend on the model), start a Codex astra job: compare `Model/*.lean` line by line with the spec lines in each docstring and with the tree-read inventory; check that no duty or output reads a model-only cache (Global Constraints); check M11 (no free `n` next to `p`) and J1 (no auth match outside the decoders). Output `docs/audit/fgsa-model-check-report.md` (blocking, major, minor; verdict). Fix every blocking and major finding in the model and in this plan, with new or changed smoke tests. Re-run the build.
+- [ ] **Step 4: Astra model check (review gate G6).** Before any STORE proof task (Tasks 7–12; Task 2 does not depend on the model), start a Codex astra job: compare `Model/*.lean` line by line with the spec lines in each docstring and with the tree-read inventory; check that no duty or output reads a model-only cache (Global Constraints); check M11 (no free `n` next to `p`) and J1 (no auth match outside the decoders); check (G3 minor 4) that no composite duty reuses GridCO `act`, `voterView`, `voterSupportView` or `voterTree` (`GridCO/Model/Protocol.lean:250–273`): they read `frozen`, whose saved resolved pools and frozen domain `reconcile` does not clear, so after an F advance they would bypass the read-time resolution test (spec 426–427: "a saved resolved flag cannot bypass this test"). Output `docs/audit/fgsa-model-check-report.md` (blocking, major, minor; verdict). Fix every blocking and major finding in the model and in this plan, with new or changed smoke tests. Re-run the build.
 - [ ] **Step 5: CHECKPOINT.** Commit `FGSA model: frame reads and duties`.
 
 ---
@@ -1991,7 +2019,7 @@ theorem actView_admitBlock_movedF (p : Params) (st : State p.n) (h : CStoreInv p
 
 **Interfaces:**
 - Consumes: Tasks 8–10; `KitFG.{storeInv_init, storeInv_on_block, on_block_F_mono, update_finality_h_max, update_finality_pair, storeControls_eq_fjControls}`; `GridCO.confirmation_mem`, `GridCO.gate_target_origin` (`GenuineHistory.lean:32`), `GridCO.ghostWalk_mem` (`RecordSlots.lean:131`), `GridCO.RootInjectiveBelow` (`Roots.lean:17`), all with `@… GridCO.slowLeasePolicy` where they are lease-dependent.
-- Produces: `StoreInvariant`, `FMonotone` (Statements); `cstoreInv_init`, `cstoreInv_process`, `cstoreInv_clock`, `storeInvariant`, `viewRootInj_TF`, `storeControls_eq`, `fg_step_cases`, `process_F_mono`, `clock_F_eq`, `fMonotone`, `process_hmax_mono`, `process_pair_mono`, `saCompat_gateStep`, `fastOrigin_gateStep`, `actView_eq_image`, `admitBlock_reconcile_harmless` (K1 at a block step), `fgBlockOf_spec`, `deepest_spec`, `fgHead_stored`, `rootInjectiveBelow_base`.
+- Produces: `StoreInvariant`, `FMonotone` (Statements); `cstoreInv_init`, `cstoreInv_process`, `cstoreInv_clock`, `storeInvariant`, `viewRootInj_TF`, `storeControls_eq`, `fg_step_cases`, `process_F_mono`, `clock_F_eq`, `fMonotone`, `process_hmax_mono`, `process_pair_mono`, `saCompat_gateStep`, `fastOrigin_gateStep`, `actView_eq_image`, `admitBlock_reconcile_harmless` (K1 at a block step), `fgBlockOf_spec`, `deepest_spec`, `fgHead_stored`, `rootInjectiveBelow_base`, `leaseOf_eq_deadlineOf` (G3 minor 3).
 
 **Blueprint:** `bp.store.v1` (K4 core) and `bp.frame.v1` (bp00 §3.1; bp01 §4); `bp.reconcile.v1` (K1). Q3 is answered: the FG part IS a `SimplexFG.Store` value, so the K4 core is "the FG part changes only by `on_block`, and `StoreInv` holds". The metadata part of K4 is Task 12.
 
@@ -2068,12 +2096,16 @@ theorem fgHead_stored (p : Params) (st : State p.n) (h : CStoreInv p st) :
 /-- [DQ2; Opus m4] The base list satisfies GridCO's local root premise. -/
 theorem rootInjectiveBelow_base (p : Params) (st : State p.n) (h : CStoreInv p st) :
     GridCO.RootInjectiveBelow st.base.blocks
+/-- [helper; G3 minor 3] The composite lease read is SA's lease read at its one
+level. -/
+theorem leaseOf_eq_deadlineOf (p : Params) (st : State p.n) (h : CStoreInv p st) (b : Block) :
+    leaseOf st b = GridCO.deadlineOf st.base b (SA.releaseThreshold p.toParams)
 ```
 
 - [ ] **Step 3: Prove them.**
   - `cstoreInv_init`: `KitFG.storeInv_init`; the base list is `[genesis]`; `SACompat`, `FastOrigin`, `fastDom`, `genuineKeys` and `leaseKeys` hold on empty lists; `S = genesis`.
   - `cstoreInv_process`, head vote and row: no invariant field changes (Task 7). Refused block: the state is the same. Accepted block: `fg`: `KitFG.storeInv_on_block` with `ViewRootInj (insert B TF)` from `viewRootInj_of_rootInj` (root freshness from `blockAccepted`; parent closure from `P ∈ TF`); `rootInj`: the new root is fresh; `baseTree`: `base_admitProposal_accepts`, `update_finality_TF`, `eraseFG_fgBlock`; `SACompat`: if F is unchanged, leases, results and fastWrite are unchanged (`base_admitProposal_accepts`); if F moved, `reconcile_saCompat`; `FastOrigin`: if F is unchanged, unchanged; if F moved, `reconcile_fastOrigin` with `F₀ := eraseFG st.fg.F` and `on_block_F_mono` + `eraseFG_preceq`; `fastDom`, `genuineKeys`, `leaseKeys`: reconcile keeps the label and target lists (`reconcile_*`), and the base admission does not write them; `reconcile_frame` keeps the other fields; `Smem`: S is unchanged or `eraseFG F` with `F ∈ TF` (`StoreInv.Fmem`). The row fold keeps every field.
-  - `cstoreInv_clock`: `fg` and the base list do not change. `SACompat` after the gate: a new lease target `B` satisfies `B ⪯ C` with `C = confirmation (actView st) s` (`gate_target_origin`), and `C` is genesis or active (`confirmation_mem`), so `block_compatible_of_preceq_compatible` applies; the saved result is `C`; the fastWrite set is a filter of the active list; release and expiry only delete rows (`release_subset`). `FastOrigin`: `fastOrigin_gateStep` (`gateStep_fresh` and `fastSet_prefix`: the members are prefixes of the saved `C`; the other labels keep their bodies because `fastDom` says their labels were saved before). `fastDom`: the new label is fresh (`hnew`) and is saved by the same step. `genuineKeys`: `recordGenuine` appends only an unsaved label. `leaseKeys`: `writeObligation` removes the old row of the same target and level, then appends one; under `slowLeasePolicy` the only level is `releaseThreshold`. `Smem`: `advance S C` is `S` or `C`, and `C` is stored; `normalizeS` writes `eraseFG F`.
+  - `cstoreInv_clock`: `fg` and the base list do not change. `SACompat` after the gate: a new lease target `B` satisfies `B ⪯ C` with `C = confirmation (actView st) s` (`gate_target_origin`), and `C` is genesis or active (`confirmation_mem`), so `block_compatible_of_preceq_compatible` applies; the saved result is `C`; the fastWrite set is a filter of the active list; release and expiry only delete rows (`release_subset`). `FastOrigin`: `fastOrigin_gateStep` (`gateStep_fresh` and `fastSet_prefix`: the members are prefixes of the saved `C`; the other labels keep their bodies because `fastDom` says their labels were saved before). `fastDom`: the new label is fresh (`hnew`) and is saved by the same step. `genuineKeys`: `recordGenuine` appends only an unsaved label. `leaseKeys`: `writeObligation` removes the old row of the same target and level, then appends one; under `slowLeasePolicy` the only level is `releaseThreshold` (G3 minor 3: this one constant level of `writeObligation` is the source of `leaseKeys`). `leaseOf_eq_deadlineOf`: both reads are `find?` on `obligations`; by `leaseKeys` every row has the level `releaseThreshold`, so the two predicates select the same first row. `Smem`: `advance S C` is `S` or `C`, and `C` is stored; `normalizeS` writes `eraseFG F`.
   - `fg_step_cases`, `fMonotone`: `KitFG.on_block_F_mono`, `reconcile_frame`, `clock_fg`.
   - `process_hmax_mono`, `process_pair_mono`: `update_finality_h_max`, `update_finality_pair` with `on_block_of_refused`/`on_block_of_accepted`; these give equations; use order lemmas for the monotonicity.
   - `actView_eq_image`: `baseTree` and `compatible_iff_eraseFG` with `viewRootInj_TF`.

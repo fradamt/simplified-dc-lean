@@ -82,7 +82,11 @@ example : baseProposal 2 (eraseFG B1) [hv, hf] [hv] =
 def b1 : Block := eraseFG B1
 def b1' : Block := eraseFG B1'
 /-- F = B1 (the FG store of the FG module's G02 test), with a lease, a saved
-result and a fast write on the conflicting `b1'`, and S = b1'. -/
+result and a fast write on the conflicting `b1'`, and S = b1'. A hand-set,
+NOT reachable fixture: `b1'` is in `base.blocks` but `B1'` is not in `fg.TF`,
+so the correspondence "base list = Σ.T erased" (CStoreInv `baseTree`) does not
+hold. Use it only for the Task 3 read and reconcile tests, never with an
+invariant. -/
 def stR0 : State 4 :=
   { fg := stF, base := { GridCO.initial 4 with
       blocks := [.genesis, b1, eraseFG B2, eraseFG B3, b1'],
@@ -105,6 +109,10 @@ example : (normalizeS
       { stR0 with base := { stR0.base with stableRecord := eraseFG B3 } }).base.stableRecord =
     eraseFG B3 := by decide
 example : blockExcluded stR0 b1' = true ∧ blockExcluded stR0 .genesis = false := by decide
+/-- G3: `Σ.s = ⌊t / 4Δ⌋` (spec 711); with Δ = 1, times 0, 13 and 16 give slots 0, 3, 4. -/
+example : State.slot pT (initial 4) = 0 ∧
+    State.slot pT { base := { GridCO.initial 4 with now := 13 } } = 3 ∧
+    State.slot pT { base := { GridCO.initial 4 with now := 16 } } = 4 := by decide
 
 /-- G3 coverage: the initial store (spec 486–503) and the outputs (spec 558–561). -/
 example : (initial 4).fg = Store.init ∧ (initial 4).base.stableRecord = .genesis ∧
