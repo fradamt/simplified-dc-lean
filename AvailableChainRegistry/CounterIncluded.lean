@@ -231,28 +231,31 @@ theorem counter_included (W : Validators) (E : Env W.V) (hΔ : E.Δ = 1)
   have hread := stateBefore_le_readAt hsched hj (show t' ≤ (s : Time) + 1 by linarith) w
   exact chain_preceq (le_trans hafter hread)
 
-/-- A horizon of `max H 2` covers `H` and the trigger at slot 1. -/
-private theorem horizon_ge (H : Time) : H ≤ ((max H 2).toNat : Time) ∧
-    (2 : Time) ≤ ((max H 2).toNat : Time) :=
-  ⟨le_trans (le_max_left _ _) (Int.self_le_toNat _),
-    le_trans (le_max_right _ _) (Int.self_le_toNat _)⟩
+/-- The trigger slot `s = (max H 2).toNat` is at least `H` and positive, and
+its deadline `s + 1` is the horizon `N = s + 1` of the run (I2: the trigger
+is late, not at slot 1). -/
+private theorem slot_late (H : Time) :
+    H ≤ ((max H 2).toNat : Time) ∧ (0 : Time) < ((max H 2).toNat : Time) ∧
+      ((max H 2).toNat : Time) + 1 ≤ (((max H 2).toNat + 1 : Nat) : Time) := by
+  refine ⟨le_trans (le_max_left _ _) (Int.self_le_toNat _), ?_, by push_cast; exact le_rfl⟩
+  exact lt_of_lt_of_le (by norm_num) (le_trans (le_max_right _ _) (Int.self_le_toNat _))
 
 def certIncluded : Cert includedConfirmed counterInst where
   const := (1 : Time)
   valid := zero_le_one
   inhabited := by
     intro H
-    refine ⟨⟨Fin (Nat.succ 0), inferInstance, inferInstance⟩, counterEnv 0,
-      canonical 0 (max H 2).toNat, (0 : Time), rfl, (horizon_ge H).1,
-      canonical_sleepy 0 (max H 2).toNat, 1, ?_, ⟨Finset.mem_univ _, rfl⟩, ?_⟩
-    · change (0 : Time) < ((1 : Nat) : Time)
-      exact Int.natCast_pos.mpr Nat.one_pos
-    · change ((1 : Nat) : Time) + 1 ≤ ((max H 2).toNat : Time)
-      calc ((1 : Nat) : Time) + 1 = 2 := by norm_num
-        _ ≤ _ := (horizon_ge H).2
+    obtain ⟨hH, hpos, hdl⟩ := slot_late H
+    refine ⟨⟨Fin (Nat.succ 0), inferInstance, inferInstance⟩,
+      ⟨counterEnv 0, canonical 0 ((max H 2).toNat + 1)⟩, (0 : Time), rfl, ?_,
+      canonical_sleepy 0 ((max H 2).toNat + 1), (max H 2).toNat, hpos, hH,
+      ⟨Finset.mem_univ _, rfl⟩, hdl⟩
+    change H ≤ (((max H 2).toNat + 1 : Nat) : Time)
+    push_cast
+    linarith
   proof := by
-    intro W E hΔ rho t₀ hs
-    exact counter_included W E hΔ rho t₀ hs
+    intro W x hΔ t₀ hs
+    exact counter_included W x.E hΔ x.rho t₀ hs
 
 /-- Counter passes the core floor: it is the first candidate. -/
 noncomputable def candidate : Candidate counterInst := by

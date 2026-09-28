@@ -1,4 +1,5 @@
 module
+public import AvailableChainFramework.ClaimDomain
 public import AvailableChainFramework.Hooks
 public import AvailableChainFramework.Instance
 public import AvailableChainFramework.Claim
@@ -6,6 +7,7 @@ public import AvailableChainFramework.Cert
 public import AvailableChainFramework.Profile
 public import AvailableChainFramework.Pareto
 public import AvailableChainFramework.Catalog.Core
+public import AvailableChainFramework.Catalog.Meaning
 public import AvailableChainFramework.Kit.Core
 public import AvailableChainFramework.Engine.V2Sketch
 

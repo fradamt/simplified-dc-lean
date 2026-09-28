@@ -559,10 +559,10 @@ def certSafeConfirmed : Cert safeConfirmed counterInst where
   inhabited := by
     intro H
     obtain ⟨W, E, rho, t₀, hΔ, hH, hs⟩ := sleepyInhabited H
-    exact ⟨W, E, rho, t₀, hΔ, hH, hs, trivial⟩
+    exact ⟨W, ⟨E, rho⟩, t₀, hΔ, hH, hs, trivial⟩
   proof := by
-    intro W E _ rho t₀ _
-    exact counter_safe W rho t₀
+    intro W x _ t₀ _
+    exact counter_safe W x.rho t₀
 
 def certSafeStable : Cert safeStable counterInst where
   const := ()
@@ -570,20 +570,20 @@ def certSafeStable : Cert safeStable counterInst where
   inhabited := by
     intro H
     obtain ⟨W, E, rho, t₀, hΔ, hH, hs⟩ := sleepyInhabited H
-    exact ⟨W, E, rho, t₀, hΔ, hH, hs, trivial⟩
+    exact ⟨W, ⟨E, rho⟩, t₀, hΔ, hH, hs, trivial⟩
   proof := by
-    intro W E _ rho t₀ _
-    exact counter_safe W rho t₀
+    intro W x _ t₀ _
+    exact counter_safe W x.rho t₀
 
 def certPrefix : Cert prefixOrder counterInst where
   const := ()
   valid := trivial
   inhabited := by
     intro H
-    exact ⟨⟨Fin (Nat.succ 0), inferInstance, inferInstance⟩, counterEnv 0,
-      canonical 0 H.toNat, (), rfl, Int.self_le_toNat H, trivial, trivial⟩
+    exact ⟨⟨Fin (Nat.succ 0), inferInstance, inferInstance⟩,
+      ⟨counterEnv 0, canonical 0 H.toNat⟩, (), rfl, Int.self_le_toNat H, trivial, trivial⟩
   proof := by
-    intro W E _ rho _ _
+    intro W x _ _ _
     exact ⟨fun v _ t => preceq_refl _⟩
 
 end AvailableChain.Registry.Counter

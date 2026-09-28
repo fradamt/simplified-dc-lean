@@ -3,19 +3,8 @@ public import AvailableChainFramework
 
 @[expose] public section
 
-namespace AvailableChain.Registry.Tests
-
-open AvailableChain AvailableChain.Generic AvailableChain.Framework
-
-/-- A new facet: a third output. Adding it changes no existing declaration. -/
-class HasStrong (I : Instance) where
-  strong : I.P.State → Block
-
-def safeStrong (I : Instance) [HasStrong I] : Prop :=
-  ∀ (W : Validators) (E : Env W.V) (rho : Run W.V I.P) (t₀ : Time),
-    Catalog.sleepy I W E rho t₀ →
-    AvailableChain.Statements.Generic.SafeFrom I.P rho (HasStrong.strong (I := I)) t₀
-
-end AvailableChain.Registry.Tests
+/-! Replaced by the strong claim domain test (Task 4). The Phase 0 type-class
+facet `HasStrong` is removed: a claim over it holds vacuously for an instance
+without the class (PHASE0-REPORT §6, Facet row). -/
 
 end

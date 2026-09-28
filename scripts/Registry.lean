@@ -4,7 +4,8 @@ open Lean
 
 /-! Type-scanning registry. Every constant in `AvailableChainRegistry` whose
 type is `Cert c I`, `Refutation c I` or `RefutationFamily c I` is a row of
-`docs/REGISTRY.md`. A type `∀ …, Cert c I` is CONDITIONAL and is not a
+`docs/REGISTRY.md` (with the claim domain `K` of `c : ClaimSpec K` as the first,
+implicit argument). A type `∀ …, Cert c I` is CONDITIONAL and is not a
 certificate; it is still written as a row, with status `CONDITIONAL (not a
 certificate)`.
 
@@ -90,9 +91,10 @@ def registryText : IO String := do
     let (h, conditional) := headOf ci.type
     match h.bind (fun h => kinds.lookup h) with
     | some kind =>
+        -- The arguments are `K c I`: the claim domain, the claim, the instance.
         let args := ci.type.getForallBody.getAppArgs
-        let claim := (args[0]!.getAppFn.constName?.map (claimOf env)).getD "?"
-        let inst := (args[1]!.getAppFn.constName?.map toString).getD "?"
+        let claim := (args[1]!.getAppFn.constName?.map (claimOf env)).getD "?"
+        let inst := (args[2]!.getAppFn.constName?.map toString).getD "?"
         let status ← if conditional then pure "CONDITIONAL (not a certificate)" else statusOf env n
         let status := if status == "LEAN" && gapsPrefix.isPrefixOf m then "KNOWN-GAP" else status
         rows := rows.push s!"│ {n} │ {kind} │ {claim} │ {inst} │ {status} │"

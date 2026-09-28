@@ -21,6 +21,7 @@ def sanity : Instance where
   n := 1
   P := alwaysGenesis 1
   Δ := 1
+  Δ_pos := by decide
   iface := interface 1
   hooks := hooks
 
@@ -51,10 +52,10 @@ def certSafeConfirmed : Cert safeConfirmed sanity where
   inhabited := by
     intro H
     obtain ⟨W, E, rho, t₀, hΔ, hH, hs⟩ := sleepyInhabited H
-    exact ⟨W, E, rho, t₀, hΔ, hH, hs, trivial⟩
+    exact ⟨W, ⟨E, rho⟩, t₀, hΔ, hH, hs, trivial⟩
   proof := by
-    intro W E _ rho t₀ _
-    exact safe 1 W.V rho t₀
+    intro W x _ t₀ _
+    exact safe 1 W.V x.rho t₀
 
 def certSafeStable : Cert safeStable sanity where
   const := ()
@@ -62,26 +63,26 @@ def certSafeStable : Cert safeStable sanity where
   inhabited := by
     intro H
     obtain ⟨W, E, rho, t₀, hΔ, hH, hs⟩ := sleepyInhabited H
-    exact ⟨W, E, rho, t₀, hΔ, hH, hs, trivial⟩
+    exact ⟨W, ⟨E, rho⟩, t₀, hΔ, hH, hs, trivial⟩
   proof := by
-    intro W E _ rho t₀ _
-    exact safe 1 W.V rho t₀
+    intro W x _ t₀ _
+    exact safe 1 W.V x.rho t₀
 
 def certPrefix : Cert prefixOrder sanity where
   const := ()
   valid := trivial
   inhabited := by
     intro H
-    exact ⟨⟨Fin 1, inferInstance, inferInstance⟩, exampleEnv, exampleRun (max H 0),
+    exact ⟨⟨Fin 1, inferInstance, inferInstance⟩, ⟨exampleEnv, exampleRun (max H 0)⟩,
       (), rfl, horizon_ge H, trivial, trivial⟩
   proof := by
-    intro W E _ rho _ _
-    exact nested 1 W.V rho
+    intro W x _ _ _
+    exact nested 1 W.V x.rho
 
 theorem refutedIncluded : RefutationFamily includedConfirmed sanity := by
   refine ⟨fun D _ h => ?_⟩
   exact confirmedIncluded_fails D
-    (h ⟨Fin 1, inferInstance, inferInstance⟩ exampleEnv rfl (exampleRun D) (0 : Time)
+    (h ⟨Fin 1, inferInstance, inferInstance⟩ ⟨exampleEnv, exampleRun D⟩ rfl (0 : Time)
       (exampleSleepy D))
 
 theorem not_candidate : Candidate sanity → False :=

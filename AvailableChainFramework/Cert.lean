@@ -5,25 +5,27 @@ public import AvailableChainFramework.Claim
 
 namespace AvailableChain.Framework
 
+variable {K : ClaimDomain}
+
 /-- A certificate: one instance satisfies one claim at one constant, and the
 claim's trigger occurs in its regime. -/
-structure Cert (c : ClaimSpec) (I : Instance) where
+structure Cert (c : ClaimSpec K) (I : K.Inst) where
   const : c.Const
   valid : c.valid const
   inhabited : c.inhabited I const
   proof : c.holds I const
 
 /-- A refutation at one constant. -/
-structure Refutation (c : ClaimSpec) (I : Instance) where
+structure Refutation (c : ClaimSpec K) (I : K.Inst) where
   const : c.Const
   valid : c.valid const
   proof : ¬ c.holds I const
 
 /-- No valid constant works. -/
-structure RefutationFamily (c : ClaimSpec) (I : Instance) : Prop where
+structure RefutationFamily (c : ClaimSpec K) (I : K.Inst) : Prop where
   proof : ∀ k, c.valid k → ¬ c.holds I k
 
-variable {c : ClaimSpec} {I : Instance}
+variable {c : ClaimSpec K} {I : K.Inst}
 
 /-- Move a certificate to a weaker constant. Inhabitation does not transport,
 so the caller supplies it. -/

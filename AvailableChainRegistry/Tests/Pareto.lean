@@ -9,7 +9,7 @@ open AvailableChain AvailableChain.Framework
 
 /-- A toy two-constant claim: an arming lag (smaller is stronger) and a
 budget (larger is stronger), with no regime. -/
-def armedToy : ClaimSpec where
+def armedToy : ClaimSpec ClaimDomain.v1 where
   id := `test.armedToy.v1
   Const := Time × Time
   valid := fun _ => True
@@ -21,10 +21,10 @@ def armedToy : ClaimSpec where
     have h2 := of_decide_eq_true hbc
     exact decide_eq_true ⟨h1.1.trans h2.1, h2.2.trans h1.2⟩
   Point := Unit
-  regime := fun _ _ _ _ _ _ => True
-  conclusion := fun _ _ _ _ _ _ => True
+  regime := fun _ _ _ _ _ => True
+  conclusion := fun _ _ _ _ _ => True
   trigger := fun _ _ _ _ _ _ => True
-  transport := by intro _ _ _ _ _ _ _ W E hΔ rho x _; trivial
+  transport := by intro _ _ _ _ _ _ _ W x hΔ p _; trivial
   refutable := .none
 
 /-- `armedToy.Const` does not unfold during instance search. -/

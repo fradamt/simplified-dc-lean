@@ -145,6 +145,7 @@ def counterInst : Instance where
   n := 1
   P := counter
   Δ := 1
+  Δ_pos := by decide
   iface := counterIface
   hooks := counter_hooks
 
