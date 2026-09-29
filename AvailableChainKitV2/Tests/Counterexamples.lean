@@ -5,7 +5,11 @@ public import AvailableChainKitV2.EngineClock
 
 /-! Counterexample checks for the Kit v2 premises (plan 2a, Task 4 Step 4;
 Review Focus 6). Each check shows that a premise of plan 2a D9 or Astra A03
-is necessary: without it, the conclusion of the lemma fails on a run.
+is necessary: without it, the conclusion of the lemma fails on a run. The
+checks are named theorems (`check_a_recordOwn_needed`,
+`check_b_restore_now_needed`, `check_c_restartFree_needed`,
+`check_d_unit_restore`, `check_d_unit_invariant`), so the axiom check covers
+them.
 
 (a) `stateBefore_stable` needs its `recordOwn` premise (Astra A03).
 (b) `stateBefore_now_le_event` and `stateBefore_now_mono` need
@@ -16,7 +20,7 @@ is necessary: without it, the conclusion of the lemma fails on a run.
 (d) With `restore := fun _ => init` (for example `Durable := Unit`),
 `hrestore`, `hrestore_now` and `hrestore_field` hold (FG-SA T7). -/
 
-namespace AvailableChain.V2.Engine.Counterexamples
+namespace AvailableChain.V2.Engine.Tests
 
 open AvailableChain AvailableChain.V2 AvailableChain.V2.Engine
 
@@ -66,11 +70,11 @@ def rhoFlag : Run Unit specFlag where
   seatOf := fun _ _ => ()
   input := fun _ _ => ()
 
--- `clock` and `process` keep the flag, the interval `[0, 1)` has no restart,
--- and the flag holds before the tick, but not after it: the tick signs a
--- self-visible object, and `recordOwn` clears the flag. So the `recordOwn`
--- premise of `stateBefore_stable` fails, and it is necessary.
-example :
+/-- `clock` and `process` keep the flag, the interval `[0, 1)` has no restart,
+and the flag holds before the tick, but not after it: the tick signs a
+self-visible object, and `recordOwn` clears the flag. So the `recordOwn`
+premise of `stateBefore_stable` fails, and it is necessary. -/
+theorem check_a_recordOwn_needed :
     (∀ st t, st = true → specFlag.clock st t = true) ∧
       (∀ st o, st = true → specFlag.process st o = true) ∧
       ¬ (∀ st o, st = true → specFlag.recordOwn st o = true) ∧
@@ -155,13 +159,13 @@ theorem rhoClock100_wf : ScheduleWellFormed (env2 _) rhoClock100 where
     intro v _ t ht h0 h2
     rcases publicTime_env2 ht h0 h2 with rfl | rfl <;> simp [rhoClock100]
 
--- `hrestore_now` fails for this `restore`, and the conclusion of
--- `stateBefore_now_le_event` fails on a well-formed run: before the tick at
--- index 2 (time 2), the clock is 100. The conclusion of
--- `stateBefore_now_mono` fails on the restart-free interval `[2, 3)`: the
--- clock goes from 100 to 2. So `restartFree` does not replace
--- `hrestore_now`.
-example :
+/-- `hrestore_now` fails for this `restore`, and the conclusion of
+`stateBefore_now_le_event` fails on a well-formed run: before the tick at
+index 2 (time 2), the clock is 100. The conclusion of
+`stateBefore_now_mono` fails on the restart-free interval `[2, 3)`: the
+clock goes from 100 to 2. So `restartFree` does not replace
+`hrestore_now`. -/
+theorem check_b_restore_now_needed :
     ¬ (∀ d, clock100.now (specClock100.restore d) ≤ 0) ∧
       ScheduleWellFormed (env2 _) rhoClock100 ∧
       rhoClock100.events[2]? = some (.tick () 2) ∧
@@ -237,12 +241,12 @@ theorem rhoReset_wf : ScheduleWellFormed (env2 _) rhoReset where
     intro v _ t ht h0 h2
     rcases publicTime_env2 ht h0 h2 with rfl | rfl <;> simp [rhoReset]
 
--- With `Q st := st.2 = true`: `hrestore_now`, `hclock`, `hprocess` and
--- `hrecord` hold, and the run is well-formed. `Q` holds before index 2 and
--- fails before index 3, after the restart in `[2, 3)`. So
--- `stateBefore_stable_clock` needs `restartFree`; its restore form needs
--- `hrestore`, which fails here.
-example :
+/-- With `Q st := st.2 = true`: `hrestore_now`, `hclock`, `hprocess` and
+`hrecord` hold, and the run is well-formed. `Q` holds before index 2 and
+fails before index 3, after the restart in `[2, 3)`. So
+`stateBefore_stable_clock` needs `restartFree`; its restore form needs
+`hrestore`, which fails here. -/
+theorem check_c_restartFree_needed :
     (∀ d, clockReset.now (specReset.restore d) ≤ 0) ∧
       (∀ st t, clockReset.now st ≤ t → st.2 = true → (specReset.clock st t).2 = true) ∧
       (∀ st o, st.2 = true → (specReset.process st o).2 = true) ∧
@@ -258,10 +262,10 @@ example :
 
 /-! ### (d) `restore := fun _ => init` discharges the restore premises -/
 
--- For FG-SA T7 (`Durable := Unit`, `restore := fun _ => init`): `hrestore`
--- holds for every `Q` with `Q init`, `hrestore_now` holds by
--- `ClockLaws.init`, and `hrestore_field` holds when `field init = []`.
-example {In : Type} (P : ProtocolSpec In) (C : ClockLaws P)
+/-- For FG-SA T7 (`Durable := Unit`, `restore := fun _ => init`): `hrestore`
+holds for every `Q` with `Q init`, `hrestore_now` holds by
+`ClockLaws.init`, and `hrestore_field` holds when `field init = []`. -/
+theorem check_d_unit_restore {In : Type} (P : ProtocolSpec In) (C : ClockLaws P)
     (hR : ∀ d, P.restore d = P.init) (Q : P.State → Prop) (hQ : Q P.init)
     {α : Type} (field : P.State → List α) (hfield : field P.init = []) :
     (∀ st, Q st → Q (P.restore (P.durable st))) ∧
@@ -270,16 +274,17 @@ example {In : Type} (P : ProtocolSpec In) (C : ClockLaws P)
   ⟨fun _ _ => by rw [hR]; exact hQ, fun d => by rw [hR, C.init],
     fun _ _ h => by rw [hR, hfield] at h; exact absurd h List.not_mem_nil⟩
 
--- The same with the concrete spec `specReset` (`Durable := Unit`,
--- `restore := fun _ => init`): `stateBefore_invariant` applies to
--- `Q st := 0 ≤ st.1` on every run with a well-formed schedule, restarts
--- included.
-example (rho : Run Unit specReset) (hs : ScheduleWellFormed (env2 _) rho) (i : Nat) :
+/-- The same with the concrete spec `specReset` (`Durable := Unit`,
+`restore := fun _ => init`): `stateBefore_invariant` applies to
+`Q st := 0 ≤ st.1` on every run with a well-formed schedule, restarts
+included. -/
+theorem check_d_unit_invariant (rho : Run Unit specReset)
+    (hs : ScheduleWellFormed (env2 _) rho) (i : Nat) :
     0 ≤ (Run.stateBefore (env2 _) rho i ()).1 :=
   stateBefore_invariant clockReset (fun _ => le_rfl) (env2 _) rho hs (fun st => 0 ≤ st.1)
     le_rfl (fun _ _ h hst => le_trans hst h) (fun _ _ h => h) (fun _ _ h => h)
     (fun _ _ => le_rfl) i ()
 
-end AvailableChain.V2.Engine.Counterexamples
+end AvailableChain.V2.Engine.Tests
 
 end

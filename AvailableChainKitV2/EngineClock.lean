@@ -20,7 +20,7 @@ the premises of plan 2a D9 and Astra A03:
 
 With `restore := fun _ => init` (for example `Durable := Unit`), `hrestore`
 holds for every `Q` with `Q init`, and `hrestore_now` holds by
-`ClockLaws.init` (`AvailableChainKitV2/Counterexamples.lean`). -/
+`ClockLaws.init` (`AvailableChainKitV2/Tests/Counterexamples.lean`). -/
 
 namespace AvailableChain.V2.Engine
 
@@ -407,7 +407,8 @@ theorem stateBefore_field_prefix {α : Type} (field : P.State → List α)
     (fun k t hik hkj h => absurd h (hrf k t hik hkj))
 
 /-- The restore form of `stateBefore_field_prefix`: `restore` keeps the
-prefix, and the interval may contain restarts. -/
+prefix, and the interval may contain restarts. For `restore := fun _ =>
+init`, use the `restartFree` form. -/
 theorem stateBefore_field_prefix_restore {α : Type} (field : P.State → List α)
     (hclock : ∀ st t, field st <+: field (P.clock st t))
     (hprocess : ∀ st o, field st <+: field (P.process st o))

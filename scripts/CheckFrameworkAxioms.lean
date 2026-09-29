@@ -9,8 +9,8 @@ open Lean
 /-! Framework axiom check. It imports the library roots
 `AvailableChainFramework`, `AvailableChainRegistry`, `AvailableChainKit`,
 `AvailableChainEngineV2` and `AvailableChainKitV2`, and every module under
-`AvailableChainEngineV2/Tests/` (found at run time; the root does not import
-them). Every non-internal constant of an imported module of these five
+`AvailableChainEngineV2/Tests/` and `AvailableChainKitV2/Tests/` (found at run
+time; the roots do not import them). Every non-internal constant of an imported module of these five
 libraries may depend only on `propext`, `Classical.choice` and `Quot.sound`
 (`collectAxioms`, proofs included). Modules of these libraries that no root
 and no test module imports are not checked; `example`s are not constants and
@@ -40,15 +40,20 @@ def inLibraries (env : Environment) (n : Name) : Bool :=
       libraries.any (·.isPrefixOf m)
   | none => false
 
-/-- The directory of the engine v2 test modules, relative to the repository root. -/
-def engineTestsDir : System.FilePath := "AvailableChainEngineV2" / "Tests"
+/-- The directories of the engine v2 and Kit v2 test modules, relative to the
+repository root. -/
+def testsDirs : List System.FilePath :=
+  ["AvailableChainEngineV2" / "Tests", "AvailableChainKitV2" / "Tests"]
 
-/-- Every module under `engineTestsDir`: `AvailableChainEngineV2/Tests/A/B.lean`
+/-- Every module under the `testsDirs`: `AvailableChainEngineV2/Tests/A/B.lean`
 gives `AvailableChainEngineV2.Tests.A.B`. -/
-def engineTestModules : IO (Array Name) := do
-  let files ← engineTestsDir.walkDir
-  return (files.filter (·.extension == some "lean")).map fun f =>
-    (f.withExtension "").components.foldl Name.str .anonymous
+def testModules : IO (Array Name) := do
+  let mut mods := #[]
+  for dir in testsDirs do
+    let files ← dir.walkDir
+    mods := mods ++ (files.filter (·.extension == some "lean")).map fun f =>
+      (f.withExtension "").components.foldl Name.str .anonymous
+  return mods
 
 /-- The axioms `n` transitively depends on. -/
 def axiomsOf (env : Environment) (n : Name) : IO (Array Name) :=
@@ -59,10 +64,11 @@ def main (args : List String) : IO UInt32 := do
   unless args.isEmpty do
     IO.eprintln "USAGE: lake env lean --run scripts/CheckFrameworkAxioms.lean"
     return 2
-  unless ← engineTestsDir.isDir do
-    IO.eprintln s!"NO DIRECTORY {engineTestsDir}: run from the repository root"
-    return 2
-  let tests ← engineTestModules
+  for dir in testsDirs do
+    unless ← dir.isDir do
+      IO.eprintln s!"NO DIRECTORY {dir}: run from the repository root"
+      return 2
+  let tests ← testModules
   initSearchPath (← findSysroot)
   let modules := libraries.toArray ++ tests
   let env ← importModules (modules.map ({ module := · })) {}

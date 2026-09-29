@@ -80,9 +80,11 @@ name = "AvailableChainEngineV2"
 globs = ["AvailableChainEngineV2.*"]
 
 # Kit v2 (L5): engine lemmas over engine v2. Imports the v2 engine and narrow
-# model modules only.
+# model modules only. One glob, `.*`: the root and every module, `Tests/`
+# included (the root does not import the tests).
 [[lean_lib]]
 name = "AvailableChainKitV2"
+globs = ["AvailableChainKitV2.*"]
 
 # Simplex FG module SimplexFG.fj (LM): DC's FG without SG, FJ root rule. Definitions only.
 [[lean_lib]]
