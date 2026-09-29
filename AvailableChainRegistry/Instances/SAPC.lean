@@ -32,9 +32,10 @@ theorem sapc_holds_ac43 (p : Params) :
     ac43.holdsAt (sapcInst p).toInstance (sapcConstants p 1) :=
   sapc_holds_ac43_of_pos p 1 one_pos
 
-/-- `(sapcInst p).sface` is `sapcInterface p` by structure eta. -/
+/-- The strong row for every `0 < G`. -/
 theorem sapc_holds_strong1_of_pos (p : Params) (G : Time) (hG : 0 < G) :
     strong1.holdsAt (sapcInst p) (sapcConstants p G, sapcStrongConstants p) :=
+  -- `(sapcInst p).sface` is `sapcInterface p` by structure eta.
   (strong1_iff _ _ _).1 fun _ E hΔ => (sapcStrong_from_engine p E G hG hΔ).2
 
 /-- The strong row at the proposer gap `G = 1`. -/
