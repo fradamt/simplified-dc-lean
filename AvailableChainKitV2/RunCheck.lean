@@ -8,7 +8,7 @@ over the event indices, so `decide +kernel` evaluates it on a concrete run;
 the `_spec` lemmas turn a passed check into the `Prop` fact at every event.
 `allTicks` and `allDeliveries` check every tick event and every delivery
 event; `emittedBy` finds a tick of a node at a time at most `t` that releases
-an object. The engine-v2 toy (`AvailableChainEngineV2/Tests/Toy.lean`) uses
+an object. The engine-v2 toy (`AvailableChainKitV2/Tests/Toy.lean`) uses
 them for `ExecutionValid`, `SelfDelivery` and the delivery conditions. -/
 
 namespace AvailableChain.V2.Engine
