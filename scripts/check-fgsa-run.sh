@@ -29,7 +29,8 @@ AX_OPTS=(--expect Run.fgsa Run.fgsaFamilies Run.fgsaIso Run.toWireEquiv Run.duti
   Run.epoch_of_restartFree Run.excludes_stable_epoch Run.excludesFixed_stable_epoch
   Run.restore_st Run.restore_rec Run.clock_rec Run.process_rec Run.recordOwn_st
   Run.process_base_now Run.clock_vn Run.process_votes_subset Run.excludesS_process
-  Run.rowCount Run.rowExcl Run.rowExcl_iff Run.Epoch.weaken)
+  Run.rowCount Run.rowExcl Run.rowExcl_iff Run.Epoch.weaken Run.decode_eq_vote
+  Run.decode_eq_block Run.rowWire_decode)
 
 # Remove comments (the tokenizer of scripts/check-fgsa.sh): strings, character
 # literals, raw strings (r"...", r#"..."#) and nested block comments. A "--"
