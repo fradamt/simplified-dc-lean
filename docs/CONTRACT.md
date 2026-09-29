@@ -325,8 +325,7 @@ unknown parent root is a temporary missing dependency. No `excludes` and
 no `wellFormed` changed. Payloads still carry resolved blocks, so the
 `Interface` did not change.
 
-This is a lock break. [[CONTROLLER: number of changed lock lines after
-the Task 11 rewrite]] lines of `docs/catalog.lock` changed, because
+This is a lock break. 91 lines of `docs/catalog.lock` changed, because
 their closure reaches `Block`. No locked declaration changed its source
 text or its type.
 

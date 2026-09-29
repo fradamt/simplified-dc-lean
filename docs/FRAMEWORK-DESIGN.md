@@ -924,6 +924,28 @@ when these land (after I9 and 2a).
   `AvailableChain.Framework.Catalog.core_holdsAt_of_ac43`, written with
   `--write` and no `--allow-changes`. No line changed, and no line was
   removed.
+- 2026-09-29, I9 Task 11 (derived roots, §12; user decisions
+  2026-09-29): 91 `CHANGED` lines, 0 `ADDED`, 0 `REMOVED`, written with
+  `--write --allow-changes` on the tree with main merged in (`f756404`).
+  The old lock is git blob `6a4d14869c409efa92f1c27cf3ce7a7d2bebc773`
+  (250 lines); the new lock has 250 lines. Reason: the closure of each
+  line reaches `Block`. `Block.node` has no root field now, and
+  `Block.root` is derived from the content. No file of
+  `AvailableChainFramework/` changed (`git diff main`), so no locked
+  declaration changed its source text or its type. The changed or new
+  definitions that the 91 closures reach are only these: the
+  constructor `Block.node` and the declarations that Lean generated for
+  `Block` (`rec`, `casesOn`, `below`, `brecOn.go`, the matchers of
+  `preceq` and `slot`, and `DecidableEq`); `Block.root` and
+  `Block.root._f`; `nodeRoot`; and the codec `epair`, `lpair`, `bitLen`,
+  `bitLenDouble` and `bitLenSearch`. The closures also reach
+  `BlockId.value` and the core `ShiftRight` instances, which did not
+  change. The names are the 91 rows of `docs/plans/i9-lock-expected.tsv`
+  (set equality with the `--check` output): 69 `Catalog.` names, and
+  `Instance` and `Instance.{P, hooks, iface, mk, n, Δ, Δ_pos}`;
+  `StrongInstance` and `StrongInstance.{mk, sface, strong, toInstance}`;
+  `V1Ctx` and `V1Ctx.{E, mk, rho}`; `ClaimDomain.{ofV1, strong, v1}`;
+  `DomainMap.{ofV1, strongV1}`.
 
 ## 9. Changes to standing rules (approved by the user 2026-09-28)
 

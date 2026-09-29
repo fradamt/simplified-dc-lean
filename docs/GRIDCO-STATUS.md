@@ -96,7 +96,8 @@ counterexamples and conditional constructors have been removed.
   (`admitProposal_missingParent`). One statement changed:
   `honest_proposal_views` now states `B = .node parent s 0`. `excludes`
   did not change. SA gets the same changes. Validation after I9:
-  [[CONTROLLER: full-build job count after Task 11]].
+  `lake build --wfail` passes all 3,629 jobs with no warnings
+  (2026-09-29, I9 Task 11).
 
 ## Validation
 
