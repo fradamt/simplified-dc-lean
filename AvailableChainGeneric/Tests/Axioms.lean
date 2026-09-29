@@ -1,8 +1,221 @@
 module
 public import AvailableChainGeneric.Statements.Pure.Quorum
+public import AvailableChainGeneric.Statements.Pure.FirstBad
+public import AvailableChainGeneric.Statements.Pure.Schedule
+public import AvailableChainGeneric.Statements.Pure.Walk
+public import AvailableChainGeneric.Statements.Pure.Props
+public import AvailableChainGeneric.Statements.V2.Reads
+public import AvailableChainGeneric.Statements.V2.Counts
+public import AvailableChainGeneric.Statements.V2.Obs
+public import AvailableChainGeneric.Statements.V2.Interface
+public import AvailableChainGeneric.Statements.V2.Receipt
+public import AvailableChainGeneric.Statements.V2.Regimes
+public import AvailableChainGeneric.Statements.AC.Reads
+public import AvailableChainGeneric.Proofs.Pure.FirstBad
+public import AvailableChainGeneric.Proofs.Pure.Schedule
+public import AvailableChainGeneric.Proofs.Pure.BlockOrder
+public import AvailableChainGeneric.Proofs.V2.Fields
+public import AvailableChainGeneric.Proofs.V2.Induction
+public import AvailableChainGeneric.Proofs.V2.Receipt
+public import AvailableChainGeneric.Proofs.V2.Regimes
+public import AvailableChainGeneric.Proofs.AC.Output
 
 /-! Kernel dependency audit of the Generic library: one line for each public
-theorem. The integrator adds the lines of each wave (step-2 item I24). -/
+theorem, in facade order. The library globs build this test module. -/
 
 -- Statements/Pure/Quorum.lean
 #print axioms AvailableChain.Gen.Pure.qF_def
+
+-- Statements/Pure/FirstBad.lean
+#print axioms AvailableChain.Gen.Pure.FirstFailure_def
+#print axioms AvailableChain.Gen.Pure.RetroAt_def
+
+-- Statements/Pure/Schedule.lean
+#print axioms AvailableChain.Gen.Pure.PatAt_def
+#print axioms AvailableChain.Gen.Pure.InWindow_def
+#print axioms AvailableChain.Gen.Pure.slotLen_def
+#print axioms AvailableChain.Gen.Pure.Pattern.lastRound_def
+#print axioms AvailableChain.Gen.Pure.Pattern.lastSlot_def
+#print axioms AvailableChain.Gen.Pure.Pattern.tailEnd_def
+#print axioms AvailableChain.Gen.Pure.windowEnd_def
+#print axioms AvailableChain.Gen.Pure.windowEndAt_def
+#print axioms AvailableChain.Gen.Pure.RecPat_def
+#print axioms AvailableChain.Gen.Pure.RecPatAt_def
+#print axioms AvailableChain.Gen.Pure.Qualified_def
+#print axioms AvailableChain.Gen.Pure.Strong_def
+#print axioms AvailableChain.Gen.Pure.FGood_def
+#print axioms AvailableChain.Gen.Pure.FGood4_def
+#print axioms AvailableChain.Gen.Pure.Skip_def
+#print axioms AvailableChain.Gen.Pure.FinForm.pat_def
+#print axioms AvailableChain.Gen.Pure.FinForm.lo_def
+#print axioms AvailableChain.Gen.Pure.FinForm.len_def
+#print axioms AvailableChain.Gen.Pure.FinForm.holds_def
+#print axioms AvailableChain.Gen.Pure.RecS_def
+#print axioms AvailableChain.Gen.Pure.RecF_def
+#print axioms AvailableChain.Gen.Pure.RecF4_def
+#print axioms AvailableChain.Gen.Pure.RecSkip_def
+#print axioms AvailableChain.Gen.Pure.StrongRecW_def
+#print axioms AvailableChain.Gen.Pure.Lit_def
+#print axioms AvailableChain.Gen.Pure.RecC_def
+#print axioms AvailableChain.Gen.Pure.windowEndA_def
+#print axioms AvailableChain.Gen.Pure.windowEndAtA_def
+#print axioms AvailableChain.Gen.Pure.QualSearch_def
+#print axioms AvailableChain.Gen.Pure.lastSlotIdx_def
+#print axioms AvailableChain.Gen.Pure.Pattern.Compat_def
+
+-- Statements/Pure/Walk.lean
+#print axioms AvailableChain.Gen.Pure.DominatedSuffix_def
+#print axioms AvailableChain.Gen.Pure.NoEligibleChild_def
+#print axioms AvailableChain.Gen.Pure.AnchorClosed_def
+#print axioms AvailableChain.Gen.Pure.DescendantDepthBound_def
+#print axioms AvailableChain.Gen.Pure.SuffixPersists_def
+#print axioms AvailableChain.Gen.Pure.SuffixReflects_def
+#print axioms AvailableChain.Gen.Pure.SuffixScoresAgree_def
+
+-- Statements/Pure/Props.lean
+#print axioms AvailableChain.Gen.Pure.CompatOn_def
+#print axioms AvailableChain.Gen.Pure.CompatAt_def
+#print axioms AvailableChain.Gen.Pure.MonoOn_def
+#print axioms AvailableChain.Gen.Pure.BelowOn_def
+#print axioms AvailableChain.Gen.Pure.ServedOn_def
+
+-- Statements/V2/Reads.lean
+#print axioms AvailableChain.V2.Run.idxBefore_def
+#print axioms AvailableChain.V2.Run.nthIdx?_def
+#print axioms AvailableChain.Gen.V2.pubFloor_def
+#print axioms AvailableChain.Gen.V2.HonestSlot_def
+#print axioms AvailableChain.Gen.V2.HoldsBefore_def
+#print axioms AvailableChain.Gen.V2.Pending_def
+
+-- Statements/V2/Counts.lean
+#print axioms AvailableChain.Gen.V2.faulty_def
+#print axioms AvailableChain.Gen.V2.awakeHonest_def
+
+-- Statements/V2/Obs.lean
+
+-- Statements/V2/Interface.lean
+
+-- Statements/V2/Receipt.lean
+#print axioms AvailableChain.Gen.V2.Trigger_def
+
+-- Statements/V2/Regimes.lean
+#print axioms AvailableChain.Gen.V2.LabelSync_def
+#print axioms AvailableChain.Gen.V2.SeedAt_def
+
+-- Statements/AC/Reads.lean
+#print axioms AvailableChain.Gen.AC.Lease.target_def
+#print axioms AvailableChain.Gen.AC.Lease.level_def
+#print axioms AvailableChain.Gen.AC.Lease.deadline_def
+#print axioms AvailableChain.Gen.AC.LeaseBelowOutput_def
+#print axioms AvailableChain.Gen.AC.normalizeOutput_def
+#print axioms AvailableChain.Gen.AC.ACReads.saved_def
+#print axioms AvailableChain.Gen.AC.ACReads.gateView_def
+#print axioms AvailableChain.Gen.AC.ACReads.gateLevels_def
+#print axioms AvailableChain.Gen.AC.ACReads.gatePrefixes_def
+#print axioms AvailableChain.Gen.AC.ACReads.gateLeases_def
+#print axioms AvailableChain.Gen.AC.ACReads.gateFast_def
+#print axioms AvailableChain.Gen.AC.GateWrite_def
+#print axioms AvailableChain.Gen.AC.Reconcile_def
+#print axioms AvailableChain.Gen.AC.GateWriteSpec_def
+
+-- Proofs/Pure/FirstBad.lean
+#print axioms AvailableChain.Gen.Pure.AGRule.holds
+#print axioms AvailableChain.Gen.Pure.firstFailure_holds
+#print axioms AvailableChain.Gen.Pure.WindowRule.holds
+
+-- Proofs/Pure/Schedule.lean
+#print axioms AvailableChain.Gen.Pure.RecPat.recPat_mono
+#print axioms AvailableChain.Gen.Pure.lr_recS
+#print axioms AvailableChain.Gen.Pure.ls_recS
+#print axioms AvailableChain.Gen.Pure.lr_recF
+#print axioms AvailableChain.Gen.Pure.ls_recF
+#print axioms AvailableChain.Gen.Pure.lr_recF4
+#print axioms AvailableChain.Gen.Pure.ls_recF4
+#print axioms AvailableChain.Gen.Pure.lr_recSkip
+#print axioms AvailableChain.Gen.Pure.ls_recSkip
+#print axioms AvailableChain.Gen.Pure.lr_strong
+#print axioms AvailableChain.Gen.Pure.ls_strong
+#print axioms AvailableChain.Gen.Pure.wE_recS
+#print axioms AvailableChain.Gen.Pure.wE_recF
+#print axioms AvailableChain.Gen.Pure.wE_recF4
+#print axioms AvailableChain.Gen.Pure.wE_recSkip
+#print axioms AvailableChain.Gen.Pure.wE_strongW
+#print axioms AvailableChain.Gen.Pure.wE_lit
+#print axioms AvailableChain.Gen.Pure.wEAt_recC
+#print axioms AvailableChain.Gen.Pure.wEAtA_value
+#print axioms AvailableChain.Gen.Pure.sanity_recSkip
+#print axioms AvailableChain.Gen.Pure.patAt_recS
+#print axioms AvailableChain.Gen.Pure.patAt_recF
+#print axioms AvailableChain.Gen.Pure.patAt_recF4
+#print axioms AvailableChain.Gen.Pure.patAt_recSkip
+#print axioms AvailableChain.Gen.Pure.patAt_strong
+#print axioms AvailableChain.Gen.Pure.strong_two
+#print axioms AvailableChain.Gen.Pure.holds_iff_recS
+#print axioms AvailableChain.Gen.Pure.holds_iff_recF
+#print axioms AvailableChain.Gen.Pure.holds_iff_recF4
+#print axioms AvailableChain.Gen.Pure.holds_iff_recSkip
+#print axioms AvailableChain.Gen.Pure.holds_iff_strongW
+#print axioms AvailableChain.Gen.Pure.holds_iff_lit
+#print axioms AvailableChain.Gen.Pure.holds_iff_recC
+#print axioms AvailableChain.Gen.Pure.holds_iff_fgood
+#print axioms AvailableChain.Gen.Pure.holds_iff_fgood4
+#print axioms AvailableChain.Gen.Pure.inWindow_one
+#print axioms AvailableChain.Gen.Pure.recS_min
+#print axioms AvailableChain.Gen.Pure.recF_min
+#print axioms AvailableChain.Gen.Pure.recF4_min
+#print axioms AvailableChain.Gen.Pure.recSkip_min
+#print axioms AvailableChain.Gen.Pure.strongPair_iff
+#print axioms AvailableChain.Gen.Pure.lit_min
+#print axioms AvailableChain.Gen.Pure.recC_min
+#print axioms AvailableChain.Gen.Pure.QualSearch_iff_recPat
+#print axioms AvailableChain.Gen.Pure.QualSearch.of_recS
+#print axioms AvailableChain.Gen.Pure.QualSearch.of_lit
+#print axioms AvailableChain.Gen.Pure.QualSearch.of_recC
+#print axioms AvailableChain.Gen.Pure.idx_lex
+#print axioms AvailableChain.Gen.Pure.slotReading
+#print axioms AvailableChain.Gen.Pure.compat_finForm
+#print axioms AvailableChain.Gen.Pure.slot_le_last
+#print axioms AvailableChain.Gen.Pure.event_le_windowEnd
+#print axioms AvailableChain.Gen.Pure.event_le_windowEndAt
+#print axioms AvailableChain.Gen.Pure.FinForm.len_pos
+#print axioms AvailableChain.Gen.Pure.strong_all
+
+-- Proofs/Pure/BlockOrder.lean
+#print axioms AvailableChain.Gen.Pure.block_preceq_refl
+#print axioms AvailableChain.Gen.Pure.block_preceq_trans
+#print axioms AvailableChain.Gen.Pure.block_preceq_antisymm
+#print axioms AvailableChain.Gen.Pure.block_genesis_preceq
+#print axioms AvailableChain.Gen.Pure.block_preceq_total_of_common
+#print axioms AvailableChain.Gen.Pure.block_compatible_comm
+#print axioms AvailableChain.Gen.Pure.block_compatible_of_common
+#print axioms AvailableChain.Gen.Pure.block_incompatible_of_preceq
+#print axioms AvailableChain.Gen.Pure.block_compatible_of_preceq_compatible
+#print axioms AvailableChain.Gen.Pure.prefix_depth
+#print axioms AvailableChain.Gen.Pure.prefix_eq_of_depth
+#print axioms AvailableChain.Gen.Pure.path_child
+#print axioms AvailableChain.Gen.Pure.pathNodes_spec
+
+-- Proofs/V2/Fields.lean
+#print axioms AvailableChain.Gen.V2.ownRecord_fold_restart
+
+-- Proofs/V2/Induction.lean
+#print axioms AvailableChain.Gen.V2.invariant_triple
+#print axioms AvailableChain.Gen.V2.invariant_clock_free
+#print axioms AvailableChain.Gen.V2.interval_induction_all
+#print axioms AvailableChain.Gen.V2.write_once_along_run
+#print axioms AvailableChain.Gen.V2.kept_from_seed
+
+-- Proofs/V2/Receipt.lean
+#print axioms AvailableChain.Gen.V2.deliveryWithin_of_partialSynchrony
+#print axioms AvailableChain.Gen.V2.deliveryWithin_of_healthyPrefix
+
+-- Proofs/V2/Regimes.lean
+#print axioms AvailableChain.Gen.V2.LabelSync.dl_vt_le
+#print axioms AvailableChain.Gen.V2.LabelSync.relayBy
+#print axioms AvailableChain.Gen.V2.LabelSync.of_cleanCut
+#print axioms AvailableChain.Gen.V2.LabelSync.of_recovery
+#print axioms AvailableChain.Gen.V2.LabelFacts.of_cleanCut
+#print axioms AvailableChain.Gen.V2.LabelFacts.of_recovery
+
+-- Proofs/AC/Output.lean
+#print axioms AvailableChain.Gen.AC.output_step_of_restartFree
