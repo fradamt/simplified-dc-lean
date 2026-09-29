@@ -18,6 +18,7 @@ defaultTargets = [
   "AvailableChainKitFG",
   "AvailableChainFGSA",
   "AvailableChainGeneric",
+  "AvailableChainFGSARun",
 ]
 
 [leanOptions]
@@ -107,3 +108,10 @@ name = "AvailableChainFGSA"
 [[lean_lib]]
 name = "AvailableChainGeneric"
 globs = ["AvailableChainGeneric.*"]
+
+# FG-SA run layer on engine v2: protocol, label families, isolation, and
+# the run lift of the store facts (docs/plans/2026-09-29-fgsa-composition-t7-t1.md,
+# T7). Checked by scripts/check-fgsa-run.sh. The store library above keeps its
+# own boundary and its own check.
+[[lean_lib]]
+name = "AvailableChainFGSARun"

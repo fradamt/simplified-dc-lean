@@ -1,0 +1,484 @@
+#!/usr/bin/env bash
+# FGSA run-library checks (plan docs/plans/2026-09-29-fgsa-composition-t7-t1.md
+# §3.1, T7.1), adapted from scripts/check-fgsa.sh: build (--wfail), root
+# imports, native evaluation outside comments, the direct-import allowlist with
+# its layer rules, the v1/v2 name-clash rule (no plain `open AvailableChain.V2`),
+# the axiom check (with build coverage, the compiled allowlist, the
+# import-closure check and the used-constant check), the lease-instance check,
+# and the negative controls of these checks.
+# The store check forbids the run and interface names (its Q1/Q5 boundary);
+# this library is the run layer, so it has no such grep. It keeps the G13
+# fixes of the store check: import headers are parsed after comment removal,
+# the parser fails closed, the axiom script checks the allowlist again on the
+# compiled import data, and source files come from `find -L` with
+# `-iname '*.lean'` (symbolic links followed, extension in any case).
+# Run: bash scripts/check-fgsa-run.sh. Exit 0 when every check passes.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+for f in scripts/CheckFGSARunAxioms.lean scripts/CheckFGSARunLease.lean \
+    scripts/fgsa-controls/AdvG.lean scripts/fgsa-controls/AdvLib.lean; do
+  [ -f "$f" ] || { echo "MISSING CHECK SCRIPT: $f"; exit 2; }
+done
+# Options of the compiled checks. T7.1: the library has no declaration yet, so
+# both accept an empty constant set; T7.2 replaces this with an `--expect` list
+# for the axiom script and no option for the lease script.
+AX_OPTS=(--allow-empty)
+LEASE_OPTS=(--allow-empty)
+
+# Remove comments (the tokenizer of scripts/check-fgsa.sh): strings, character
+# literals, raw strings (r"...", r#"..."#) and nested block comments. A "--"
+# in a string does not start a comment, and a "/-" in a line comment does not
+# open a block comment.
+strip_comments='
+  local $/; my $s = <STDIN>; my $o = ""; my $d = 0;
+  while ((pos($s) // 0) < length $s) {
+    if ($d > 0) {
+      if    ($s =~ /\G\/-/gc)   { $d++ }
+      elsif ($s =~ /\G-\//gc)   { $d--; $o .= " " }
+      elsif ($s =~ /\G(\n)/gc)  { $o .= $1 }
+      else                      { $s =~ /\G./gcs }
+    }
+    elsif ($s =~ /\G--[^\n]*/gc)                         { }
+    elsif ($s =~ /\G\/-/gc)                              { $d = 1 }
+    elsif ($s =~ /\Gr(#*)".*?"\1/gcs)                    { $o .= "\"\"" }
+    elsif ($s =~ /\G"(?:\\.|[^"\\])*"/gcs)               { $o .= "\"\"" }
+    elsif ($s =~ /\G([\w\p{N}.!?][\w\p{N}.!?\x27]*)/gc)  { $o .= $1 }
+    elsif ($s =~ /\G\x27(?:\\.|[^\\\x27])\x27/gc)        { $o .= "c" }
+    else                                                 { $s =~ /\G(.)/gcs; $o .= $1 }
+  }
+  print $o;'
+# The modules of the import header of a file, one per line, after comment
+# removal: [module] then [public] [meta] import [all] <Name>, any whitespace.
+# Fail closed: if the rest of the file still has the token `import` or
+# `prelude`, it prints the line `!UNPARSED`.
+header_imports='
+  local $/; my $s = <STDIN>;
+  $s =~ s/^\s+//; $s =~ s/^module\s+//;
+  while ($s =~ s/^(?:public\s+)?(?:meta\s+)?import\s+(?:all\s+)?([A-Za-z_][A-Za-z0-9_.]*)\s*//) {
+    print "$1\n";
+  }
+  print "!UNPARSED\n" if $s =~ /(?<![\w.\x27!?])(?:import|prelude)(?![\w\x27!?])/;'
+imports_of() { perl -CSD -e "$strip_comments" < "$1" | perl -CSD -e "$header_imports"; }
+# The library source files under base directory $1, relative to it.
+source_files() { (cd "$1" && find -L AvailableChainFGSARun -iname '*.lean' | sort); }
+
+# Root imports under base directory $1: every source file is a root import.
+check_root_imports() {
+  local base=$1 missing
+  missing=$(comm -23 \
+    <(source_files "$base" | sed -E 's/\.[lL][eE][aA][nN]$//; s|/|.|g' | sort) \
+    <(imports_of "$base/AvailableChainFGSARun.lean" | sort))
+  [ -z "$missing" ] || { echo "NOT IMPORTED BY THE ROOT: $missing"; return 1; }
+  if imports_of "$base/AvailableChainFGSARun.lean" | grep -qx '!UNPARSED'; then
+    echo "UNPARSED IMPORT HEADER: AvailableChainFGSARun.lean"; return 1
+  fi
+}
+
+# The direct-import allowlist (plan §3.1, "Imports, with layers") under base
+# directory $1. Internal imports follow the layers: Model/ imports Model/;
+# Statements/ imports Model/ and Statements/; Proofs/ imports Model/,
+# Statements/ and Proofs/; Tests/ and the root import any library module. The
+# root imports only library modules. External, all layers:
+# AvailableChainEngineV2.*, AvailableChainFGSA.Model.*,
+# AvailableChainFGSA.Statements.*, AvailableChainModel.Objects.{Identifiers,
+# Time, Blocks, Codec}, AvailableChainModel.Generic.Env, AvailableChainSimplexFG.*,
+# AvailableChainGridCO.Model.Protocol, AvailableChainSA.Model.Protocol,
+# Mathlib.*. Proofs/ and Tests/ also: AvailableChainKitV2.*,
+# AvailableChainFGSA.Proofs.*, AvailableChainKitFG.*. Tests/ also:
+# AvailableChainFGSA.Tests.Support. Everything else is refused, in particular
+# the v1 engine (AvailableChainModel.Generic.Run), AvailableChainStatements.*,
+# AvailableChainKit.*, AvailableChainGridCO.Proofs.*, AvailableChainFramework.*,
+# AvailableChainRegistry.*, AvailableChainSAPC.*, AvailableChainLStar.*.
+check_direct_imports() {
+  local base=$1 bad=0 f rel layer m
+  for f in $(source_files "$base") AvailableChainFGSARun.lean; do
+    rel=${f#AvailableChainFGSARun/}
+    if [ "$f" = AvailableChainFGSARun.lean ]; then layer=root; else layer=${rel%%/*}; fi
+    for m in $(imports_of "$base/$f"); do
+      if [ "$m" = '!UNPARSED' ]; then echo "UNPARSED IMPORT HEADER: $f"; bad=1; continue; fi
+      case "$layer:$m" in
+        root:AvailableChainFGSARun.*|Tests:AvailableChainFGSARun.*) continue ;;
+        Model:AvailableChainFGSARun.Model.*) continue ;;
+        Statements:AvailableChainFGSARun.Model.*|Statements:AvailableChainFGSARun.Statements.*) continue ;;
+        Proofs:AvailableChainFGSARun.Model.*|Proofs:AvailableChainFGSARun.Statements.*) continue ;;
+        Proofs:AvailableChainFGSARun.Proofs.*) continue ;;
+        root:*) ;;
+        Model:*|Statements:*|Proofs:*|Tests:*)
+          case "$m" in
+            AvailableChainFGSARun.*) ;;
+            AvailableChainEngineV2.*|AvailableChainFGSA.Model.*|AvailableChainFGSA.Statements.*) continue ;;
+            AvailableChainModel.Objects.Identifiers|AvailableChainModel.Objects.Time) continue ;;
+            AvailableChainModel.Objects.Blocks|AvailableChainModel.Objects.Codec) continue ;;
+            AvailableChainModel.Generic.Env|AvailableChainSimplexFG.*|Mathlib.*) continue ;;
+            AvailableChainGridCO.Model.Protocol|AvailableChainSA.Model.Protocol) continue ;;
+            AvailableChainKitV2.*|AvailableChainFGSA.Proofs.*|AvailableChainKitFG.*)
+              { [ "$layer" = Proofs ] || [ "$layer" = Tests ]; } && continue ;;
+            AvailableChainFGSA.Tests.Support) [ "$layer" = Tests ] && continue ;;
+          esac ;;
+      esac
+      echo "IMPORT NOT ALLOWED: $f imports $m"; bad=1
+    done
+  done
+  return $bad
+}
+
+# The v1/v2 name clash (plan §3.1, TR9): v1 `Auth` and `Signed` (namespace
+# `AvailableChain`) and v2 `Auth` and `Signed` (namespace `AvailableChain.V2`)
+# clash. On comment-free text, an `open` or `export` of a namespace whose last
+# component is `V2` (`AvailableChain.V2`, or `V2` inside `AvailableChain`) must
+# be selective, `open AvailableChain.V2 (…)`, with one namespace, and the list
+# names neither `Auth` nor `Signed`. A plain, `hiding` or `renaming` form is
+# refused. A `namespace` with a component `V2` is refused (it opens
+# `AvailableChain.V2`). An `open` command runs to the next line that starts in
+# column 0; an `open` with no namespace on that text is refused (fail closed).
+v2_open='
+  local $/; my $s = <STDIN>;
+  my %kw = map { $_ => 1 } qw(theorem lemma def abbrev structure inductive class
+    instance namespace section end variable open export example noncomputable
+    private protected public attribute set_option universe mutual axiom opaque
+    macro syntax notation elab local where);
+  my $comps = sub { my $n = shift; $n =~ s/[«»]//g; split /\./, $n };
+  while ($s =~ /(?<![\w.\x27!?])(open|export|namespace)(?![\w.\x27!?])/g) {
+    my ($cmd, $pos) = ($1, pos($s));
+    my ($txt) = substr($s, $pos) =~ /\A(.*?)(?=\n\S|\z)/s;
+    if ($cmd eq "namespace") {
+      my ($n) = $txt =~ /\A\s*(\S+)/;
+      print "V2 NAMESPACE: namespace $n\n" if defined $n && grep { $_ eq "V2" } $comps->($n);
+      next;
+    }
+    my @toks = $txt =~ /(\([^)]*\)|[^\s()]+)/g;
+    my (@names, $sel, $mode);
+    for my $t (@toks) {
+      if ($t =~ /^\(/) { $sel = $t; last }
+      if ($t eq "hiding" || $t eq "renaming") { $mode = $t; last }
+      last if $t eq "in" || $kw{$t};
+      next if $t eq "scoped";
+      push @names, $t;
+    }
+    if (!@names) { print "UNPARSED OPEN: $cmd$txt\n"; next }
+    for my $n (@names) {
+      my @c = $comps->($n);
+      next unless $c[-1] eq "V2";
+      if (defined $sel && @names == 1 && !defined $mode) {
+        print "V2 OPEN LISTS $1: $cmd $n $sel\n"
+          if $sel =~ /(?<![\w.\x27!?])(Auth|Signed)(?![\w.\x27!?])/;
+      } else {
+        print "PLAIN V2 OPEN: $cmd @names" . (defined $mode ? " $mode" : "") . "\n";
+      }
+    }
+  }'
+check_v2_open() {
+  local base=$1 bad=0 f out
+  for f in $(source_files "$base") AvailableChainFGSARun.lean; do
+    out=$(perl -CSD -e "$strip_comments" < "$base/$f" | perl -CSD -e "$v2_open")
+    if [ -n "$out" ]; then printf '%s\n' "$out"; echo "V2 NAME CLASH in $f"; bad=1; fi
+  done
+  return $bad
+}
+
+echo "== lake build --wfail AvailableChainFGSARun"
+lake build --wfail AvailableChainFGSARun
+echo "== root imports"
+check_root_imports . || exit 2
+echo "== native evaluation"
+status=0
+for f in $(source_files .) AvailableChainFGSARun.lean; do
+  if perl -CSD -e "$strip_comments" < "$f" |
+      grep -nE '(^|[^A-Za-z0-9_.])native_decide([^A-Za-z0-9_]|$)|\+native|native := true|ofReduceBool|ofReduceNat' >/dev/null; then
+    echo "native evaluation in $f"; status=1
+  fi
+done
+[ $status -eq 0 ] || exit 1
+echo "== direct imports"
+check_direct_imports . || exit 1
+echo "== v1/v2 name clash (open AvailableChain.V2)"
+check_v2_open . || exit 1
+echo "== axioms, build coverage, import closure, used constants"
+lake env lean --run scripts/CheckFGSARunAxioms.lean "${AX_OPTS[@]}"
+echo "== lease instances"
+lake env lean --run scripts/CheckFGSARunLease.lean ${LEASE_OPTS[@]+"${LEASE_OPTS[@]}"}
+
+echo "== negative controls"
+neg=$(mktemp -d "$PWD/.lake/fgsa-run-neg.XXXXXX")
+trap 'rm -rf "$neg"' EXIT
+# expect_fail NAME CODE OUT PATTERN...: the check failed with CODE and printed
+# every PATTERN (fixed strings).
+expect_fail() {
+  local name=$1 code=$2 out=$3 p; shift 3
+  if [ "$code" -eq 0 ]; then echo "$out"; echo "NEGATIVE CONTROL NOT DETECTED: $name"; exit 1; fi
+  for p in "$@"; do
+    if ! printf '%s\n' "$out" | grep -qF -- "$p"; then
+      echo "$out"; echo "NEGATIVE CONTROL $name: missing \"$p\""; exit 1
+    fi
+  done
+  echo "rejected, as expected: $name"
+}
+# A scratch copy of the source tree for the text controls.
+mk_tree() {
+  rm -rf "$neg/tree"; mkdir -p "$neg/tree"
+  cp -R AvailableChainFGSARun AvailableChainFGSARun.lean "$neg/tree/"
+  mkdir -p "$neg/tree/AvailableChainFGSARun/"{Model,Statements,Proofs,Tests}
+}
+run() { set +e; out=$("$@" 2>&1); code=$?; set -e; }
+# lean_c OUT SRC: compile SRC to the .olean OUT, with $neg on the search path.
+lean_c() { lake env bash -c 'LEAN_PATH="$0:$LEAN_PATH" lean -o "$1" "$2"' "$neg" "$1" "$2"; }
+
+mk_tree
+printf 'module\npublic import AvailableChainLStar.Model.Protocol\n' > "$neg/tree/AvailableChainFGSARun/Model/NegA.lean"
+echo 'public import AvailableChainFGSARun.Model.NegA' >> "$neg/tree/AvailableChainFGSARun.lean"
+run check_direct_imports "$neg/tree"
+expect_fail "unlisted library" $code "$out" \
+  "IMPORT NOT ALLOWED: AvailableChainFGSARun/Model/NegA.lean imports AvailableChainLStar.Model.Protocol"
+
+mk_tree
+printf 'module\npublic import AvailableChainKitV2.ClockLaws\npublic import AvailableChainFGSA.Proofs.StoreInv\n' \
+  > "$neg/tree/AvailableChainFGSARun/Model/NegB.lean"
+printf 'module\npublic import AvailableChainFGSARun.Proofs.X\npublic import AvailableChainKitFG.Correspondence\n' \
+  > "$neg/tree/AvailableChainFGSARun/Statements/NegB.lean"
+printf 'module\npublic import AvailableChainFGSA.Tests.Support\n' > "$neg/tree/AvailableChainFGSARun/Proofs/NegB.lean"
+printf 'module\npublic import AvailableChainFGSA.Tests.Smoke\n' > "$neg/tree/AvailableChainFGSARun/Tests/NegB.lean"
+run check_direct_imports "$neg/tree"
+expect_fail "wrong-layer import" $code "$out" \
+  "IMPORT NOT ALLOWED: AvailableChainFGSARun/Model/NegB.lean imports AvailableChainKitV2.ClockLaws" \
+  "IMPORT NOT ALLOWED: AvailableChainFGSARun/Model/NegB.lean imports AvailableChainFGSA.Proofs.StoreInv" \
+  "IMPORT NOT ALLOWED: AvailableChainFGSARun/Statements/NegB.lean imports AvailableChainFGSARun.Proofs.X" \
+  "IMPORT NOT ALLOWED: AvailableChainFGSARun/Statements/NegB.lean imports AvailableChainKitFG.Correspondence" \
+  "IMPORT NOT ALLOWED: AvailableChainFGSARun/Proofs/NegB.lean imports AvailableChainFGSA.Tests.Support" \
+  "IMPORT NOT ALLOWED: AvailableChainFGSARun/Tests/NegB.lean imports AvailableChainFGSA.Tests.Smoke"
+
+mk_tree
+printf 'module\npublic import /- dependency -/ AvailableChainFramework.Profile\npublic\n  import\n  AvailableChainSAPC.Model.Choice\n' \
+  > "$neg/tree/AvailableChainFGSARun/Proofs/NegC.lean"
+run check_direct_imports "$neg/tree"
+expect_fail "import after a comment and a line break" $code "$out" \
+  "imports AvailableChainFramework.Profile" "imports AvailableChainSAPC.Model.Choice"
+
+# New (plan §3.1): the v1 engine, the v1 Kit, the v1 statements and a Grid CO
+# proof module are refused in every layer, Proofs/ and Tests/ included.
+mk_tree
+printf 'module\npublic import AvailableChainGridCO.Proofs.Basic\npublic import AvailableChainKit.Engine.Execution\n' \
+  > "$neg/tree/AvailableChainFGSARun/Proofs/NegD.lean"
+printf 'module\npublic import AvailableChainModel.Generic.Run\npublic import AvailableChainStatements.Generic.Claims\npublic import AvailableChainGridCO.Proofs.Hooks\n' \
+  > "$neg/tree/AvailableChainFGSARun/Tests/NegD.lean"
+run check_direct_imports "$neg/tree"
+expect_fail "v1 engine, v1 Kit, v1 statements and Grid CO proof imports" $code "$out" \
+  "IMPORT NOT ALLOWED: AvailableChainFGSARun/Proofs/NegD.lean imports AvailableChainGridCO.Proofs.Basic" \
+  "IMPORT NOT ALLOWED: AvailableChainFGSARun/Proofs/NegD.lean imports AvailableChainKit.Engine.Execution" \
+  "IMPORT NOT ALLOWED: AvailableChainFGSARun/Tests/NegD.lean imports AvailableChainModel.Generic.Run" \
+  "IMPORT NOT ALLOWED: AvailableChainFGSARun/Tests/NegD.lean imports AvailableChainStatements.Generic.Claims" \
+  "IMPORT NOT ALLOWED: AvailableChainFGSARun/Tests/NegD.lean imports AvailableChainGridCO.Proofs.Hooks"
+
+mk_tree
+printf 'module\n@[expose] public section\ntheorem negOrphan : False := sorry\nend\n' \
+  > "$neg/tree/AvailableChainFGSARun/Tests/NegOrphan.lean"
+printf 'module\n@[expose] public section\ntheorem negOrphanC : False := sorry\nend\n' \
+  > "$neg/tree/AvailableChainFGSARun/Tests/NegOrphanC.LEAN"
+echo '/- public import AvailableChainFGSARun.Tests.NegOrphan -/' >> "$neg/tree/AvailableChainFGSARun.lean"
+run check_root_imports "$neg/tree"
+expect_fail "orphan modules behind a commented import and with a .LEAN name (root check)" \
+  $code "$out" "NOT IMPORTED BY THE ROOT: AvailableChainFGSARun.Tests.NegOrphan" \
+  "AvailableChainFGSARun.Tests.NegOrphanC"
+
+# The compiled checks: the orphan files (with a sorry) against the build, and
+# forbidden libraries in the import closure (L* is new in this list).
+cat > "$neg/RunClosureNeg.lean" <<'LEAN'
+import AvailableChainSAPC.Model.Choice
+import AvailableChainLStar.Model.Protocol
+LEAN
+lean_c "$neg/RunClosureNeg.olean" "$neg/RunClosureNeg.lean"
+run lake env bash -c 'LEAN_PATH="$0:$LEAN_PATH" lean --run scripts/CheckFGSARunAxioms.lean --root RunClosureNeg --files "$0/tree/AvailableChainFGSARun" "${@}"' "$neg" "${AX_OPTS[@]}"
+expect_fail "orphan modules and forbidden closure (axiom script)" $code "$out" \
+  "NOT IN THE BUILD: AvailableChainFGSARun.Tests.NegOrphan " \
+  "NOT IN THE BUILD: AvailableChainFGSARun.Tests.NegOrphanC " \
+  "FORBIDDEN LIBRARY IN THE IMPORT CLOSURE: AvailableChainSAPC" \
+  "FORBIDDEN LIBRARY IN THE IMPORT CLOSURE: AvailableChainLStar"
+
+# Header forms and file names that an earlier parser missed (G13 fold MINOR-2;
+# the auditor's files in scripts/fgsa-controls/): a module name with «», a
+# `prelude` line, a .LEAN file, and a linked directory. Each imports L*, which
+# the allowlist forbids. A Grid CO proof module in Proofs/ (new) goes with
+# them. First the text check, then the compiled check (the modules compiled as
+# library modules, over a copy of the library build).
+mk_tree
+cp scripts/fgsa-controls/AdvG.lean scripts/fgsa-controls/AdvP.lean \
+  scripts/fgsa-controls/AdvCase.LEAN "$neg/tree/AvailableChainFGSARun/Model/"
+mkdir -p "$neg/sub" && cp scripts/fgsa-controls/Sub/X.lean "$neg/sub/"
+ln -s "$neg/sub" "$neg/tree/AvailableChainFGSARun/Model/Sub"
+printf 'module\npublic import AvailableChainGridCO.Proofs.Basic\n' > "$neg/tree/AvailableChainFGSARun/Proofs/NegGrid.lean"
+printf 'public import AvailableChainFGSARun.Model.%s\n' AdvG AdvP AdvCase Sub.X \
+  >> "$neg/tree/AvailableChainFGSARun.lean"
+echo 'public import AvailableChainFGSARun.Proofs.NegGrid' >> "$neg/tree/AvailableChainFGSARun.lean"
+run check_direct_imports "$neg/tree"
+expect_fail "header forms and file names (text allowlist)" $code "$out" \
+  "UNPARSED IMPORT HEADER: AvailableChainFGSARun/Model/AdvG.lean" \
+  "UNPARSED IMPORT HEADER: AvailableChainFGSARun/Model/AdvP.lean" \
+  "IMPORT NOT ALLOWED: AvailableChainFGSARun/Model/AdvCase.LEAN imports AvailableChainLStar.Model.Protocol" \
+  "IMPORT NOT ALLOWED: AvailableChainFGSARun/Model/Sub/X.lean imports AvailableChainLStar.Model.Protocol" \
+  "IMPORT NOT ALLOWED: AvailableChainFGSARun/Proofs/NegGrid.lean imports AvailableChainGridCO.Proofs.Basic"
+mkdir -p "$neg/c"
+cp -R .lake/build/lib/lean/AvailableChainFGSARun .lake/build/lib/lean/AvailableChainFGSARun.* "$neg/c/"
+mkdir -p "$neg/c/AvailableChainFGSARun/Model/Sub" "$neg/c/AvailableChainFGSARun/Proofs"
+for m in Model/AdvG:Model/AdvG.lean Model/AdvP:Model/AdvP.lean Model/AdvCase:Model/AdvCase.LEAN \
+    Model/Sub/X:Model/Sub/X.lean Proofs/NegGrid:Proofs/NegGrid.lean; do
+  lake env lean -o "$neg/c/AvailableChainFGSARun/${m%%:*}.olean" "$neg/tree/AvailableChainFGSARun/${m#*:}"
+done
+run lake env bash -c 'LEAN_PATH="$0/c:$LEAN_PATH" lean --run scripts/CheckFGSARunAxioms.lean --root AvailableChainFGSARun.Model.AdvG --root AvailableChainFGSARun.Model.AdvP --root AvailableChainFGSARun.Model.AdvCase --root AvailableChainFGSARun.Model.Sub.X --root AvailableChainFGSARun.Proofs.NegGrid --files "$0/tree/AvailableChainFGSARun" "${@}"' "$neg" "${AX_OPTS[@]}"
+expect_fail "header forms and file names (compiled allowlist)" $code "$out" \
+  "COMPILED IMPORT NOT ALLOWED: AvailableChainFGSARun.Model.AdvG imports AvailableChainLStar.Model.Protocol" \
+  "COMPILED IMPORT NOT ALLOWED: AvailableChainFGSARun.Model.AdvP imports AvailableChainLStar.Model.Protocol" \
+  "COMPILED IMPORT NOT ALLOWED: AvailableChainFGSARun.Model.AdvCase imports AvailableChainLStar.Model.Protocol" \
+  "COMPILED IMPORT NOT ALLOWED: AvailableChainFGSARun.Model.Sub.X imports AvailableChainLStar.Model.Protocol" \
+  "COMPILED IMPORT NOT ALLOWED: AvailableChainFGSARun.Proofs.NegGrid imports AvailableChainGridCO.Proofs.Basic"
+
+# New (plan §3.1, TR9): the v1/v2 name clash. A plain `open AvailableChain.V2`,
+# `open V2` inside `AvailableChain` with `hiding`, a selective list with `Auth`
+# or `Signed`, the namespace on a second line, an `export`, and a `namespace`
+# with a component `V2`; in a .LEAN file and in a linked directory too. A
+# selective list without `Auth` and `Signed` passes.
+mk_tree
+printf 'module\nnamespace AvailableChain.FGSA.Run\nopen AvailableChain.V2\nend AvailableChain.FGSA.Run\n' \
+  > "$neg/tree/AvailableChainFGSARun/Model/NegOpenA.lean"
+printf 'module\nnamespace AvailableChain\nopen V2 hiding Auth Signed\nopen AvailableChain.V2 (Run Signed)\nexport AvailableChain.V2 (Auth)\nend AvailableChain\n' \
+  > "$neg/tree/AvailableChainFGSARun/Statements/NegOpenB.lean"
+printf 'module\nopen AvailableChain.Generic\n  AvailableChain.V2\nopen AvailableChain.V2 (Run tick) in\ndef ok : Nat := 0\nnamespace AvailableChain.V2.Extra\nend AvailableChain.V2.Extra\n' \
+  > "$neg/tree/AvailableChainFGSARun/Proofs/NegOpenC.LEAN"
+mkdir -p "$neg/osub"
+printf 'module\nopen «AvailableChain».«V2»\n' > "$neg/osub/Y.lean"
+ln -s "$neg/osub" "$neg/tree/AvailableChainFGSARun/Tests/OSub"
+printf 'module\nopen AvailableChain.V2 (Run tick)\nopen AvailableChain.V2.Engine\n' \
+  > "$neg/tree/AvailableChainFGSARun/Tests/PosOpen.lean"
+run check_v2_open "$neg/tree"
+expect_fail "v1/v2 name clash (open, export, namespace)" $code "$out" \
+  "PLAIN V2 OPEN: open AvailableChain.V2" "V2 NAME CLASH in AvailableChainFGSARun/Model/NegOpenA.lean" \
+  "PLAIN V2 OPEN: open V2 hiding" "V2 OPEN LISTS Signed: open AvailableChain.V2 (Run Signed)" \
+  "V2 OPEN LISTS Auth: export AvailableChain.V2 (Auth)" "V2 NAME CLASH in AvailableChainFGSARun/Statements/NegOpenB.lean" \
+  "PLAIN V2 OPEN: open AvailableChain.Generic AvailableChain.V2" \
+  "V2 NAMESPACE: namespace AvailableChain.V2.Extra" \
+  "V2 NAME CLASH in AvailableChainFGSARun/Proofs/NegOpenC.LEAN" \
+  "V2 NAME CLASH in AvailableChainFGSARun/Tests/OSub/Y.lean"
+if printf '%s\n' "$out" | grep -qF 'PosOpen.lean'; then
+  echo "$out"; echo "NEGATIVE CONTROL v1/v2 name clash: a selective open was refused"; exit 1
+fi
+
+# New (plan §3.1): the used-constant check. A module with allowed imports only
+# (the store proofs reach the v1 Kit, the v1 statements, the v1 engine and the
+# Grid CO proofs) that uses a v1 Kit constant, a v1 statements constant, a v1
+# engine constant, and a Grid CO proof predicate in a statement (the T7.W
+# wrapper rule).
+mk_tree
+cat > "$neg/tree/AvailableChainFGSARun/Proofs/NegUse.lean" <<'LEAN'
+module
+public import AvailableChainFGSA.Proofs.StoreInv
+@[expose] public section
+namespace AvailableChain.FGSA.Run
+def negKitClock {n : Nat} (P : AvailableChain.Generic.ProtocolSpec n) : Type :=
+  AvailableChain.Engine.ClockLaws P
+def negStatements : Type := AvailableChain.Statements.Generic.Constants
+theorem negGridProof (t : List Block) (_h : GridCO.RootInjectiveBelow t) : True := trivial
+end AvailableChain.FGSA.Run
+end
+LEAN
+echo 'public import AvailableChainFGSARun.Proofs.NegUse' >> "$neg/tree/AvailableChainFGSARun.lean"
+rm -rf "$neg/c" && mkdir -p "$neg/c/AvailableChainFGSARun/Proofs"
+cp -R .lake/build/lib/lean/AvailableChainFGSARun .lake/build/lib/lean/AvailableChainFGSARun.* "$neg/c/"
+lake env lean -o "$neg/c/AvailableChainFGSARun/Proofs/NegUse.olean" "$neg/tree/AvailableChainFGSARun/Proofs/NegUse.lean"
+run lake env bash -c 'LEAN_PATH="$0/c:$LEAN_PATH" lean --run scripts/CheckFGSARunAxioms.lean --root AvailableChainFGSARun.Proofs.NegUse --files "$0/tree/AvailableChainFGSARun" "${@}"' "$neg" "${AX_OPTS[@]}"
+expect_fail "used constants of the v1 Kit, v1 statements, v1 engine and Grid CO proofs" $code "$out" \
+  "FORBIDDEN CONSTANT: AvailableChain.FGSA.Run.negKitClock uses AvailableChain.Engine.ClockLaws (AvailableChainKit.Engine.EngineClock)" \
+  "FORBIDDEN CONSTANT: AvailableChain.FGSA.Run.negKitClock uses AvailableChain.Generic.ProtocolSpec (AvailableChainModel.Generic.Run)" \
+  "FORBIDDEN CONSTANT: AvailableChain.FGSA.Run.negStatements uses AvailableChain.Statements.Generic.Constants (AvailableChainStatements.Generic.Constants)" \
+  "FORBIDDEN CONSTANT: AvailableChain.FGSA.Run.negGridProof uses AvailableChain.GridCO.RootInjectiveBelow (AvailableChainGridCO.Proofs.Roots)"
+
+# Lease controls (the controls of scripts/check-fgsa.sh, over the run library):
+# a direct default-instance call; the anchored gate and tick at the grid
+# policy; an alias wrapper with its own policy parameter in another namespace;
+# a generic wrapper whose policy binder has an alias type; an imported wrapper
+# that fixes the default instance inside.
+cat > "$neg/FGSALeaseNeg.lean" <<'LEAN'
+import AvailableChainFGSARun
+import AvailableChainFGSA
+namespace AvailableChain.FGSA
+/-- A GridCO gate at the default instance `gridLeasePolicy`. -/
+def leaseNegControl (p : GridCO.Params) (st : GridCO.State 1) (r : Nat) : GridCO.State 1 :=
+  GridCO.gate p st r
+/-- The anchored GridCO gate at `gridLeasePolicy`. -/
+def leaseNegGateFrom (p : GridCO.Params) (a : Block) (st : GridCO.State 1) (r : Nat) :
+    GridCO.State 1 :=
+  @GridCO.gateFrom GridCO.gridLeasePolicy p 1 a st r
+/-- The anchored GridCO tick at `gridLeasePolicy`. -/
+def leaseNegClockFrom (p : GridCO.Params) (a : Block) (st : GridCO.State 1) (t : Int) :
+    GridCO.State 1 :=
+  @GridCO.clockFrom GridCO.gridLeasePolicy p 1 a st t
+end AvailableChain.FGSA
+namespace AvailableChain.LeaseAuditAlias
+def gate (_policy : GridCO.LeasePolicy) (p : GridCO.Params)
+    (st : GridCO.State 1) (r : Nat) : GridCO.State 1 :=
+  @GridCO.gate GridCO.gridLeasePolicy p 1 st r
+end AvailableChain.LeaseAuditAlias
+namespace AvailableChain.FGSA
+def badGate (p : GridCO.Params) (st : GridCO.State 1) (r : Nat) : GridCO.State 1 :=
+  AvailableChain.LeaseAuditAlias.gate GridCO.slowLeasePolicy p st r
+end AvailableChain.FGSA
+namespace AvailableChain.GridCO
+abbrev PolicyAlias : Type := LeasePolicy
+def sneakyGate [PolicyAlias] (p : Params) (st : State 1) (r : Nat) : State 1 :=
+  @gate gridLeasePolicy p 1 st r
+end AvailableChain.GridCO
+namespace AvailableChain.FGSA
+def badGate2 (p : GridCO.Params) (st : GridCO.State 1) (r : Nat) : GridCO.State 1 :=
+  @GridCO.sneakyGate GridCO.slowLeasePolicy p st r
+end AvailableChain.FGSA
+LEAN
+cat > "$neg/FGSALeaseLib.lean" <<'LEAN'
+import AvailableChainFGSARun
+import AvailableChainFGSA
+namespace AvailableChain.GridCO
+/-- An imported wrapper with no policy parameter that fixes the default. -/
+def fixedGate (p : Params) (st : State 1) (r : Nat) : State 1 :=
+  @gate gridLeasePolicy p 1 st r
+end AvailableChain.GridCO
+namespace LeaseMk
+/-- Outside `AvailableChain`: a new policy value built with the constructor. -/
+def mkGate (p : AvailableChain.GridCO.Params) (st : AvailableChain.GridCO.State 1) (r : Nat) :
+    AvailableChain.GridCO.State 1 :=
+  @AvailableChain.GridCO.gate ⟨false⟩ p 1 st r
+end LeaseMk
+LEAN
+cat > "$neg/FGSALeaseUse.lean" <<'LEAN'
+import FGSALeaseLib
+namespace AvailableChain.FGSA
+def badGate3 (p : GridCO.Params) (st : GridCO.State 1) (r : Nat) : GridCO.State 1 :=
+  GridCO.fixedGate p st r
+def badGate4 (p : GridCO.Params) (st : GridCO.State 1) (r : Nat) : GridCO.State 1 :=
+  LeaseMk.mkGate p st r
+end AvailableChain.FGSA
+LEAN
+for m in FGSALeaseNeg FGSALeaseLib FGSALeaseUse; do
+  lean_c "$neg/$m.olean" "$neg/$m.lean"
+done
+run lake env bash -c 'LEAN_PATH="$0:$LEAN_PATH" lean --run scripts/CheckFGSARunLease.lean "${@}" FGSALeaseNeg FGSALeaseUse' "$neg" ${LEASE_OPTS[@]+"${LEASE_OPTS[@]}"}
+expect_fail "lease controls" $code "$out" \
+  "leaseNegControl: AvailableChain.GridCO.gate at AvailableChain.GridCO.gridLeasePolicy" \
+  "leaseNegGateFrom: AvailableChain.GridCO.gateFrom at AvailableChain.GridCO.gridLeasePolicy" \
+  "leaseNegClockFrom: AvailableChain.GridCO.clockFrom at AvailableChain.GridCO.gridLeasePolicy" \
+  "AvailableChain.LeaseAuditAlias.gate: has a policy parameter" \
+  "AvailableChain.GridCO.sneakyGate: has a policy parameter" \
+  "AvailableChain.GridCO.fixedGate: AvailableChain.GridCO.gate at AvailableChain.GridCO.gridLeasePolicy" \
+  "LeaseMk.mkGate: mentions AvailableChain.GridCO.LeasePolicy.mk (reach)"
+
+# Imported definitions (G13 fold MINOR-1; the auditor's AdvLib/AdvUse in
+# scripts/fgsa-controls/): a let-bound and a beta-bound default policy, a
+# private wrapper, an irreducible alias of the policy type, and a wrapper
+# outside the namespace AvailableChain (the reachability backstop).
+cp scripts/fgsa-controls/AdvLib.lean scripts/fgsa-controls/AdvUse.lean "$neg/"
+for m in AdvLib AdvUse; do
+  lean_c "$neg/$m.olean" "$neg/$m.lean"
+done
+run lake env bash -c 'LEAN_PATH="$0:$LEAN_PATH" lean --run scripts/CheckFGSARunLease.lean "${@}" AdvUse' "$neg" ${LEASE_OPTS[@]+"${LEASE_OPTS[@]}"}
+expect_fail "lease controls in imported definitions" $code "$out" \
+  "AvailableChain.GridCO.fixedLet: AvailableChain.GridCO.gate at #0" \
+  "AvailableChain.GridCO.fixedBeta: AvailableChain.GridCO.gate at #0" \
+  "AdvLib.0.AvailableChain.GridCO.fixedPriv: AvailableChain.GridCO.gate at AvailableChain.GridCO.gridLeasePolicy" \
+  "AvailableChain.FGSA.useIrr: AvailableChain.GridCO.genI at cast" \
+  "Evil.fixedGate: mentions AvailableChain.GridCO.gridLeasePolicy (reach)"
+echo "all FGSA run checks pass"
