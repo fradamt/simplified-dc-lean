@@ -17,6 +17,7 @@ defaultTargets = [
   "AvailableChainSimplexFG",
   "AvailableChainKitFG",
   "AvailableChainFGSA",
+  "AvailableChainGeneric",
 ]
 
 [leanOptions]
@@ -99,3 +100,10 @@ name = "AvailableChainKitFG"
 # (docs/plans/2026-09-29-fgsa-model-store.md). No engine binding.
 [[lean_lib]]
 name = "AvailableChainFGSA"
+
+# Generic layer (GLY A): Pure, V2 and AC statements and proofs, shared by SA and
+# FG-SA. One glob, `.*`: the root and every module, `Tests/` included (the root
+# does not import the tests).
+[[lean_lib]]
+name = "AvailableChainGeneric"
+globs = ["AvailableChainGeneric.*"]
