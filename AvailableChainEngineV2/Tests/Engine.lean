@@ -9,7 +9,9 @@ public import AvailableChainEngineV2.Engine.Run
 the own record. (b) A restart and then a tick at the same time: the emission
 comes from the state before the tick event, after the restart (Review Focus
 1). (c) The input is a type parameter, and a protocol can ignore it (Review
-Focus 5). An asleep node releases and records nothing (Review Focus 2). -/
+Focus 5); the field list of `ProtocolSpec` is pinned. An asleep node releases
+and records nothing (Review Focus 2). A tick reads the input of its node and
+the post-clock state, in label order and then seat order. -/
 
 namespace AvailableChain.V2.Tests
 
@@ -100,6 +102,61 @@ example : Run.emitsAt (envAsleep _) rhoA 2 = [] := rfl
 example : Run.stateBefore (envAsleep _) rhoA 3 0 = 0 := rfl
 example : Run.emittedAt (envAsleep _) rhoA 0 1 = [] := rfl
 
+/-! ### Tick semantics: input, post-clock state, seat order, label order -/
+
+/-- The duties of `specM`: labels `true` and `false` at time 3, in this order. -/
+def dutiesM (t : Time) : List Bool := if t = 3 then [true, false] else []
+
+/-- Label `true` has two seats, label `false` one; both are due at time 3. The
+clock adds the time, and `act` adds the input to the state. -/
+abbrev specM : ProtocolSpec Int where
+  State := Int
+  Label := Bool
+  seats := fun b => if b then 2 else 1
+  Payload := Int
+  Durable := Unit
+  init := 0
+  clock := fun s t => s + t
+  actTime := fun _ => 3
+  duties := dutiesM
+  duties_spec := by
+    intro ℓ t
+    by_cases h : t = 3
+    · cases ℓ <;> simp [dutiesM, h]
+    · simp [dutiesM, h, eq_comm]
+  duties_nodup := by
+    intro t
+    unfold dutiesM
+    split_ifs <;> simp
+  act := fun s _ x => some (s + x)
+  gossip := fun _ _ => []
+  process := fun s _ => s
+  selfVisible := fun _ => false
+  recordOwn := fun s _ => s
+  durable := fun _ => ()
+  restore := fun _ => 0
+  wellFormed := fun _ => true
+  depsPresent := fun _ _ => true
+  processed := fun _ _ => false
+  excludes := fun _ _ => false
+  handles := fun _ o o' => o = o'
+  carries := fun _ _ => False
+
+/-- Validator 1 holds every seat and ticks at time 3; its input is `100 * v + t`. -/
+def rhoM : Run (Fin 2) specM where
+  honest := ∅
+  horizon := 3
+  events := [.tick 1 3]
+  seatOf := fun _ _ => 1
+  input := fun v t => 100 * (v : Int) + t
+
+-- Every payload is 106 = (0 + 3) + 103: the post-clock state (not 0) plus the
+-- input of validator 1 at time 3 (not 3, validator 0's input). Label `true`
+-- comes first (the order of `duties 3`), and its seats come in seat order.
+example : Run.emitsAt (envAwake _) rhoM 0 =
+    [⟨.seat true ⟨0, by decide⟩, 106⟩, ⟨.seat true ⟨1, by decide⟩, 106⟩,
+      ⟨.seat false ⟨0, by decide⟩, 106⟩] := rfl
+
 /-! ### (b) Restart, then a tick at the same time (Review Focus 1) -/
 
 /-- The duties of `specB`: its one label at time 5. -/
@@ -189,6 +246,15 @@ example : Run.emittedAt (envAwake _) (rhoC fun _ _ => 3) () 5 =
 /-- error: Unknown constant `AvailableChain.V2.ProtocolSpec.input` -/
 #guard_msgs in
 #check @ProtocolSpec.input
+
+-- The field list of `ProtocolSpec`, pinned (plan 2a, Task 1 Interfaces).
+run_cmd do
+  let fs := Lean.getStructureFields (← Lean.getEnv) ``ProtocolSpec
+  unless fs.toList == [`State, `Label, `seats, `Payload, `Durable, `init, `clock, `actTime,
+      `duties, `duties_spec, `duties_nodup, `act, `gossip, `process, `selfVisible, `recordOwn,
+      `durable, `restore, `wellFormed, `depsPresent, `processed, `excludes, `handles,
+      `carries] do
+    throwError "unexpected ProtocolSpec fields: {fs}"
 
 end AvailableChain.V2.Tests
 
