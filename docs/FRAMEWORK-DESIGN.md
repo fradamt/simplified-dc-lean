@@ -1029,8 +1029,9 @@ extra-tier entry.
     parent (`admitProposal_missingParent`; SA-PC also
     `proposalEnters_missingParent` and `process_pc_missingPaths`). No
     `wellFormed`, handler or `excludes` got a root check (§2 E4 note).
-    FG-SA: [[CONTROLLER: FG-SA lookup and no-op lemma names after
-    Task 9]].
+    FG-SA proves the lookup form `parentFG_isSome_iff_root` and the
+    no-op fact `admitBlock_missingParent`
+    (`AvailableChainFGSA/Proofs/Admission.lean`).
   - Resolved-block model. A payload carries the resolved block, and the
     carried parent root is `b.parent.root`. The lookup lemmas show that
     the store check is equivalent to a lookup by root. They do not give a
@@ -1048,8 +1049,16 @@ extra-tier entry.
   - FG-SA. The base body packs the application value and the ordered
     signed rows. `rowsOk` checks this packing in `wellFormed` and in
     `blockAccepted`; it is a content check, not a root check. With it,
-    `ContentAgree` becomes a theorem. [[CONTROLLER: confirm after
-    Task 9]]
+    `ContentAgree` becomes a theorem. Task 9 did this. `packBody`
+    packs `packInner app rows` and the decoded rows into `encFGBody`.
+    `fgBlock` builds the FG body from `packInner`, not from `b.root`.
+    `eraseFG` maps an FG block back with `encFGBody`.
+    `MetaInv.wireTree` carries `rowsOk` for every stored wire.
+    `contentAgree` needs only `MetaInv` at the two stores, and
+    `contentAgree_reachable` gives `ContentAgree` for any two reachable
+    stores (`Proofs/CrossNode.lean`). `rootInj_all` fills
+    `CStoreInv.rootInj`. The cross-node theorems keep their
+    `ContentAgree` premise, which is now redundant.
   - Open: relay feasibility (plan 1c). A missing dependency is a handler
     fact, not a run fact. `PartialSynchrony` and `HealthyPrefixDelivery`
     have relay obligations with no dependency guard
