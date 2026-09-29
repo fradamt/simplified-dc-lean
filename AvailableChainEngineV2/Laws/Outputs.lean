@@ -5,8 +5,9 @@ public import AvailableChainEngineV2.Conditions.Interface
 @[expose] public section
 
 /-! Output isolation (design §2 E5; plan 2a, Task 5). The law shape is the
-`output_base` field and `output_tick` of `Sketch.lean`, for the two outputs of
-an `Interface`. `Isolation` alone does not make the outputs isolated; an
+`output_base` field and `output_tick` of the pre-2a prototype `Sketch.lean`
+(deleted at the 2a gate; see git history), for the two outputs of an
+`Interface`. `Isolation` alone does not make the outputs isolated; an
 instance must also give an `OutputsFactor` value. -/
 
 namespace AvailableChain.V2
@@ -41,7 +42,8 @@ theorem stable_recordOwn (h : OutputsFactor I iso) (st : P.State) (o : P.Object)
   rw [h.stable_base, h.stable_base, iso.recordOwn_base]
 
 /-- After a tick, `confirmed` is that of the post-clock state: the own record
-does not change it (`Sketch.lean`, `output_tick`). -/
+does not change it (the pre-2a prototype `Sketch.lean` (deleted at the 2a
+gate; see git history), `output_tick`). -/
 theorem confirmed_tick {V : Type} [DecidableEq V] (h : OutputsFactor I iso)
     (E : Generic.Env V) (rho : Run V P) (st : P.State) (v : V) (t : Time) :
     I.confirmed (tick E rho st v t).1 = I.confirmed (P.clock st t) := by

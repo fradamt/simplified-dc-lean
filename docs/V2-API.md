@@ -25,8 +25,11 @@ constructor, and a 2a definition never gains a parameter. Later stages (2b,
   the closure (for example `AvailableChainModel.Objects.Time`) also changes
   the anchor line.
 - **Kit v2 entries are frozen by rule, not locked.** The Kit is L5, and the
-  Framework does not import it. No tool finds a change to a Kit entry; a
-  review must find it.
+  Framework does not import it, so the lock does not see it. Each Kit line
+  carries a hash of the declaration (the `ownHash` of the lock: kind, name
+  and type; for a definition also the value; for a theorem not the proof),
+  and `V2Manifest --check` fails when it differs. A new proof keeps the
+  hash.
 
 ## Scope
 
@@ -42,9 +45,8 @@ equation lemmas, `injEq`, `sizeOf_spec` and private declarations.
 - Not in scope: `AvailableChainEngineV2.Tests.*` and
   `AvailableChainKitV2.Tests.*` (tests, the counterexamples of namespace
   `AvailableChain.V2.Engine.Counterexamples`, and the toy run); the library
-  roots (imports only); `AvailableChainEngineV2.Sketch` (namespace
-  `AvailableChain.Framework.V2Sketch`, the pre-2a prototype that plan 2a
-  keeps; it is not the v2 API).
+  roots (imports only).
+- `AvailableChainEngineV2.Sketch` was deleted at the gate; it is not API.
 - Rulings: the Task 5 helpers (`propSeat`, `eq_propSeat`,
   `holder_propLabel`, `Output`, the `OutputsFactor` lemmas) are listed
   and frozen; `Interface.propLabel_injective` is a frozen field; the run
@@ -63,10 +65,16 @@ equation lemmas, `injEq`, `sizeOf_spec` and private declarations.
 - `lake env lean --run scripts/V2Manifest.lean --check` exits 1 if the anchor
   is missing, if an entry does not exist or is not in the module of its
   heading, if an engine entry is not in the closure of the anchor, if a public
-  declaration of a scope module is not listed, or if a scope module has no
-  heading.
+  declaration of a scope module is not listed, if a scope module has no
+  heading, or if a Kit hash is missing or differs.
+- `V2Manifest --check` enforces completeness, so 2b adds a manifest line
+  for each new public declaration in a 2a scope module.
+- The dependency rules of `V2Manifest` (`generated`, `deps`, the closure
+  traversal and `ownHash`) are copies of `scripts/CatalogLock.lean`, so a
+  change to one needs the same change in the other.
 
-Each block line is `<kind> <name>`. The kinds are `structure`,
+Each engine block line is `<kind> <name>`; each Kit block line is
+`<kind> <name> <hash>`. The kinds are `structure`,
 `inductive`, `ctor`, `def` (fields that are data included) and
 `theorem` (fields that are proofs included).
 
@@ -386,85 +394,85 @@ theorem AvailableChain.V2.ExecutionValid.snoc_selfDelivery
 ### `AvailableChainKitV2.ClockLaws`
 
 ```text
-structure AvailableChain.V2.Engine.ClockLaws
-ctor AvailableChain.V2.Engine.ClockLaws.mk
-def AvailableChain.V2.Engine.ClockLaws.now
-theorem AvailableChain.V2.Engine.ClockLaws.init
-theorem AvailableChain.V2.Engine.ClockLaws.clock
-theorem AvailableChain.V2.Engine.ClockLaws.process
-theorem AvailableChain.V2.Engine.ClockLaws.recordOwn_now
-theorem AvailableChain.V2.Engine.ClockLaws.now_foldl_recordOwn
-theorem AvailableChain.V2.Engine.ClockLaws.now_tick
+structure AvailableChain.V2.Engine.ClockLaws fc09d26a5ca2efe9
+ctor AvailableChain.V2.Engine.ClockLaws.mk 963725a997cfe456
+def AvailableChain.V2.Engine.ClockLaws.now 0818dc2b5c0580bd
+theorem AvailableChain.V2.Engine.ClockLaws.init b0046531e2108564
+theorem AvailableChain.V2.Engine.ClockLaws.clock 9a51e21d6a8d6f93
+theorem AvailableChain.V2.Engine.ClockLaws.process 320b22468d71b171
+theorem AvailableChain.V2.Engine.ClockLaws.recordOwn_now 5b819202d45632ac
+theorem AvailableChain.V2.Engine.ClockLaws.now_foldl_recordOwn 6acde894ad2bf95f
+theorem AvailableChain.V2.Engine.ClockLaws.now_tick 3d879039e512cff7
 ```
 
 ### `AvailableChainKitV2.Emission`
 
 ```text
-theorem AvailableChain.V2.Engine.mem_tick_seat_iff
-theorem AvailableChain.V2.Engine.ownSeats_bijSeat
-theorem AvailableChain.V2.Engine.emits_bijSeat
-theorem AvailableChain.V2.Engine.linked_index_stable
-def AvailableChain.V2.Engine.ownReleasedAt
-def AvailableChain.V2.Engine.ownReleased
-theorem AvailableChain.V2.Engine.ownReleased_self
-theorem AvailableChain.V2.Engine.ownReleased_succ
-theorem AvailableChain.V2.Engine.ownRecord_fold_interval
-theorem AvailableChain.V2.Engine.ownRecord_fold
+theorem AvailableChain.V2.Engine.mem_tick_seat_iff 006aec3a630ae0fe
+theorem AvailableChain.V2.Engine.ownSeats_bijSeat 07980b4bc97477b3
+theorem AvailableChain.V2.Engine.emits_bijSeat 5f46f73d6dc88b27
+theorem AvailableChain.V2.Engine.linked_index_stable 1298159da25de1fa
+def AvailableChain.V2.Engine.ownReleasedAt f567774a83d69639
+def AvailableChain.V2.Engine.ownReleased fbf086a200f7c9a6
+theorem AvailableChain.V2.Engine.ownReleased_self bed19c2ef7c9a38b
+theorem AvailableChain.V2.Engine.ownReleased_succ 72ae69e106cb83f1
+theorem AvailableChain.V2.Engine.ownRecord_fold_interval 887dfb90b0824007
+theorem AvailableChain.V2.Engine.ownRecord_fold 55eba987f28e77e4
 ```
 
 ### `AvailableChainKitV2.EngineClock`
 
 ```text
-theorem AvailableChain.V2.Engine.stateBefore_now_source
-theorem AvailableChain.V2.Engine.stateBefore_now_source_noRestart
-theorem AvailableChain.V2.Engine.stateBefore_now_le_event
-theorem AvailableChain.V2.Engine.stateBefore_now_le_event_noRestart
-theorem AvailableChain.V2.Engine.stateBefore_now_mono
-theorem AvailableChain.V2.Engine.stateBefore_now_mono_noRestart
-theorem AvailableChain.V2.Engine.delivery_now_ge_public
-theorem AvailableChain.V2.Engine.stateBefore_invariant
-theorem AvailableChain.V2.Engine.stateBefore_invariant_noRestart
-theorem AvailableChain.V2.Engine.stateBefore_stable_clock
-theorem AvailableChain.V2.Engine.stateBefore_stable_clock_restore
-theorem AvailableChain.V2.Engine.stateBefore_stable_clock_noRestart
-theorem AvailableChain.V2.Engine.clock_field_origin
-theorem AvailableChain.V2.Engine.clock_field_origin_noRestart
-theorem AvailableChain.V2.Engine.stateBefore_field_prefix
-theorem AvailableChain.V2.Engine.stateBefore_field_prefix_restore
+theorem AvailableChain.V2.Engine.stateBefore_now_source 0efc0ea1c2300360
+theorem AvailableChain.V2.Engine.stateBefore_now_source_noRestart 141908242eda9f99
+theorem AvailableChain.V2.Engine.stateBefore_now_le_event 6adf4d6553f1e6a3
+theorem AvailableChain.V2.Engine.stateBefore_now_le_event_noRestart 16532f03bd7e0ca5
+theorem AvailableChain.V2.Engine.stateBefore_now_mono 1801977662beaa25
+theorem AvailableChain.V2.Engine.stateBefore_now_mono_noRestart 2b5a4bde9b4baec9
+theorem AvailableChain.V2.Engine.delivery_now_ge_public 4fedd51eea932bf7
+theorem AvailableChain.V2.Engine.stateBefore_invariant bea6770976ae27c8
+theorem AvailableChain.V2.Engine.stateBefore_invariant_noRestart bbf0729e3d31dd75
+theorem AvailableChain.V2.Engine.stateBefore_stable_clock a9525d23838821ff
+theorem AvailableChain.V2.Engine.stateBefore_stable_clock_restore 73a3baac5721d3e9
+theorem AvailableChain.V2.Engine.stateBefore_stable_clock_noRestart c20b884227330b75
+theorem AvailableChain.V2.Engine.clock_field_origin 387a6c5219e03df3
+theorem AvailableChain.V2.Engine.clock_field_origin_noRestart 0a4f3eda6462ef6e
+theorem AvailableChain.V2.Engine.stateBefore_field_prefix f0c086e1226e1e20
+theorem AvailableChain.V2.Engine.stateBefore_field_prefix_restore fdc79d68eb032d68
 ```
 
 ### `AvailableChainKitV2.Execution`
 
 ```text
-theorem AvailableChain.V2.Engine.eventIndex_lt_of_time_lt
-theorem AvailableChain.V2.Engine.time_le_of_key_le
-theorem AvailableChain.V2.Engine.filter_eq_take
-theorem AvailableChain.V2.Engine.filter_false_of_index_ge
-theorem AvailableChain.V2.Engine.index_lt_read_length_iff
-theorem AvailableChain.V2.Engine.read_length_mono
-theorem AvailableChain.V2.Engine.tick_index_lt_delivery
-theorem AvailableChain.V2.Engine.readAt_eq_stateBefore
-theorem AvailableChain.V2.Engine.stateBefore_other_node
-theorem AvailableChain.V2.Engine.stateBefore_tick_eq_stateBeforeTime
+theorem AvailableChain.V2.Engine.eventIndex_lt_of_time_lt 24dab09d913d76da
+theorem AvailableChain.V2.Engine.time_le_of_key_le bc105a2b434680eb
+theorem AvailableChain.V2.Engine.filter_eq_take 07377680d141acb8
+theorem AvailableChain.V2.Engine.filter_false_of_index_ge ca61f198f3f28406
+theorem AvailableChain.V2.Engine.index_lt_read_length_iff 02d23c58451a66d5
+theorem AvailableChain.V2.Engine.read_length_mono d4ecff500f4ddd08
+theorem AvailableChain.V2.Engine.tick_index_lt_delivery 171dbff20346ebf5
+theorem AvailableChain.V2.Engine.readAt_eq_stateBefore 120aaf0cfe991c8b
+theorem AvailableChain.V2.Engine.stateBefore_other_node 23c1699911a45ffe
+theorem AvailableChain.V2.Engine.stateBefore_tick_eq_stateBeforeTime 4b5048229edc779f
 ```
 
 ### `AvailableChainKitV2.RunCheck`
 
 ```text
-def AvailableChain.V2.Engine.allTicks
-def AvailableChain.V2.Engine.allDeliveries
-theorem AvailableChain.V2.Engine.allTicks_spec
-theorem AvailableChain.V2.Engine.allDeliveries_spec
-def AvailableChain.V2.Engine.emittedBy
-theorem AvailableChain.V2.Engine.emittedBy_spec
+def AvailableChain.V2.Engine.allTicks 07a159715486acf9
+def AvailableChain.V2.Engine.allDeliveries 080a6e0b526fce14
+theorem AvailableChain.V2.Engine.allTicks_spec 8cb7a8d9cdf51028
+theorem AvailableChain.V2.Engine.allDeliveries_spec 2d069feb359f4870
+def AvailableChain.V2.Engine.emittedBy c5d965d958512fa4
+theorem AvailableChain.V2.Engine.emittedBy_spec b58d339ed13a4e60
 ```
 
 ### `AvailableChainKitV2.Stable`
 
 ```text
-theorem AvailableChain.V2.Engine.foldl_recordOwn_preserve
-theorem AvailableChain.V2.Engine.tick_preserve
-theorem AvailableChain.V2.Engine.recordOwn_preserve_of_base
-theorem AvailableChain.V2.Engine.stateBefore_step_induction
-theorem AvailableChain.V2.Engine.stateBefore_stable
+theorem AvailableChain.V2.Engine.foldl_recordOwn_preserve f3dcff3c1396abea
+theorem AvailableChain.V2.Engine.tick_preserve 8eae668bb4316e44
+theorem AvailableChain.V2.Engine.recordOwn_preserve_of_base 76c0b752b309cc6f
+theorem AvailableChain.V2.Engine.stateBefore_step_induction 4ea8ccb55351ee08
+theorem AvailableChain.V2.Engine.stateBefore_stable 9bca2267a8fc5385
 ```

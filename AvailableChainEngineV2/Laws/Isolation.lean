@@ -5,7 +5,8 @@ public import AvailableChainEngineV2.Conditions.Committees
 @[expose] public section
 
 /-! Isolation laws (design §2 E5; plan 2a, Task 3). The law shapes are those of
-`Isolated` and `foldl_recordOwn_base` in `Sketch.lean`, on the v2 spec. -/
+`Isolated` and `foldl_recordOwn_base` in the pre-2a prototype `Sketch.lean`
+(deleted at the 2a gate; see git history), on the v2 spec. -/
 
 namespace AvailableChain.V2
 
@@ -92,8 +93,8 @@ namespace Isolation
 
 variable {F : LabelFamilies P}
 
-/-- The own record does not move the base (`Sketch.lean`,
-`foldl_recordOwn_base`). -/
+/-- The own record does not move the base (the pre-2a prototype `Sketch.lean`
+(deleted at the 2a gate; see git history), `foldl_recordOwn_base`). -/
 theorem foldl_recordOwn_base (iso : Isolation P F) :
     ∀ (l : List P.Object) (s : P.State), iso.base (l.foldl P.recordOwn s) = iso.base s := by
   intro l
