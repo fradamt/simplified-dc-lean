@@ -1,6 +1,7 @@
 module
 public import AvailableChainGeneric.Statements.V2.Regimes
 public import AvailableChainGeneric.Proofs.V2.Receipt
+public import AvailableChainKitV2.Stable
 
 public section
 
@@ -68,5 +69,15 @@ theorem LabelFacts.of_recovery (E : Generic.Env V) (rho : Run V P) (vt dt : Time
     (hG : E.t_GST ≤ vt) (hvd : vt + E.Δ ≤ dt) (hh : dt ≤ rho.horizon) (hB : Batch h m) :
     LabelFacts E rho vt dt h m :=
   ⟨LabelSync.of_recovery E rho vt dt hPS hG hvd hh, hB⟩
+
+/-- GLY:860-863 (F-16); D09 row. -/
+theorem kept_from_seed (E : Generic.Env V) (rho : Run V P) {start : Nat}
+    {Q : V → P.State → Prop} (hseed : SeedAt (E := E) rho start Q)
+    (hstep : ∀ v ∈ rho.honest, ∀ k e, start ≤ k → rho.events[k]? = some e → e.node = v →
+      Q v (Run.stateBefore E rho k v) → Q v (World.step E rho (Run.stateBefore E rho k) e v)) :
+    ∀ v ∈ rho.honest, ∀ j, start ≤ j → Q v (Run.stateBefore E rho j v) := by
+  intro v hv j hj
+  exact stateBefore_step_induction E rho (Q v) hj v
+    (fun k e hk _ he hnode hQ => hstep v hv k e hk he hnode hQ) (hseed.holds v hv)
 
 end AvailableChain.Gen.V2
