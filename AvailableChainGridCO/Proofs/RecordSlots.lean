@@ -147,18 +147,23 @@ theorem ghostWalk_mem (tree : List Block) (score : Block → Nat)
             exact (ghostStep_child tree score eligible anchor child hs).1
           · exact Or.inr hm
 
-theorem confirmation_mem (p : Params) {n : Nat} (st : State n) (r : Slot)
-    (B : Block) (hc : confirmation p st r = some B) : B = .genesis ∨ B ∈ st.blocks := by
-  unfold confirmation at hc
+theorem confirmationFrom_mem (p : Params) {n : Nat} (a : Block) (st : State n)
+    (r : Slot) (B : Block) (hc : confirmationFrom p a st r = some B) :
+    B = a ∨ B ∈ st.blocks := by
+  unfold confirmationFrom at hc
   dsimp only at hc
   split at hc
   · have he := Option.some.inj hc
     rw [← he]
-    rcases ghostWalk_mem st.blocks.eraseDups _ _ st.blocks.eraseDups.length .genesis
+    rcases ghostWalk_mem st.blocks.eraseDups _ _ st.blocks.eraseDups.length a
       with hg | hm
     · exact Or.inl hg
     · exact Or.inr (List.mem_eraseDups.mp hm)
   · contradiction
+
+theorem confirmation_mem (p : Params) {n : Nat} (st : State n) (r : Slot)
+    (B : Block) (hc : confirmation p st r = some B) : B = .genesis ∨ B ∈ st.blocks :=
+  confirmationFrom_mem p .genesis st r B hc
 
 /-- Stored paths and the stable record have strictly increasing slots. -/
 def RecordSlotOrdered {n : Nat} (st : State n) : Prop :=

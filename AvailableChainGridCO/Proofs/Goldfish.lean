@@ -127,6 +127,17 @@ theorem ghost_extends (anchor : Block) (tree : List Block)
     Block.preceq anchor (ghost anchor tree score eligible) = true := by
   exact ghostWalk_extends tree.eraseDups score eligible tree.eraseDups.length anchor
 
+/-- An anchored genuine result extends its walk anchor. -/
+theorem confirmationFrom_extends (p : Params) {n : Nat} (a : Block) (st : State n)
+    (r : Slot) (B : Block) (hc : confirmationFrom p a st r = some B) :
+    Block.Preceq a B := by
+  unfold confirmationFrom at hc
+  dsimp only at hc
+  split at hc
+  · cases hc
+    exact ghost_extends a _ _ _
+  · contradiction
+
 theorem forkChoice_extends_liveRoot {n : Nat} (st : State n)
     (tree : List Block) (raw support : List (Wire n)) (current : Slot) :
     Block.preceq (liveRoot st) (forkChoice st tree raw support current) = true := by
