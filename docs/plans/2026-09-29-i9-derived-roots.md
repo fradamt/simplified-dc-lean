@@ -109,7 +109,7 @@
 └──────────────────────────────────────┴────────────────────────────────────────────┘
 ```
 
-A statement change outside (a), (b) and this table stops the task: report it to the controller. The constructor terms inside `GridCO.honest_proposal_exists` and `SAPC.honest_proposal_exists` are proof terms, not statement text.
+*Added 2026-09-29 (controller ruling on Astra's pre-final audit I9-A01):* the deletion of private helper theorems that served only a removed root-field or root-formula proof is allowed, when the public statement they served is kept or is in this table. The deleted helpers are `delivered_blocks`, `emitted_blocks`, `named_block` and `roots` (`SAPC/Tests/CleanInvariantCounterexample.lean`) and `emitted_proposed` (`Witnesses/Sanity.lean`); `docs/I9-REPORT.md` lists them. A statement change outside (a), (b) and this table stops the task: report it to the controller. The constructor terms inside `GridCO.honest_proposal_exists` and `SAPC.honest_proposal_exists` are proof terms, not statement text.
 
 ## Review Focus
 
