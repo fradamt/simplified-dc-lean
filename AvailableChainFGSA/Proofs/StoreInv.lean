@@ -162,14 +162,15 @@ theorem cstoreInv_accepted_pre (p : Params) (st : State p.n) (h : CStoreInv p st
   have hTF : st1.fg.TF = insert (fgBlock P b rows) st.fg.TF := by
     change (on_block p.E p.cfg st.fg (fgBlock P b rows)).TF = _
     rw [fg_on_block_accepts p st s b P rows hP hacc, KitFG.update_finality_TF]
+  have hok := blockAccepted_rowsOk hacc
   have hri : ∀ X ∈ insert (fgBlock P b rows) st.fg.TF, ∀ Y ∈ insert (fgBlock P b rows) st.fg.TF,
       X.root = Y.root → X = Y := by
     intro X hX Y hY hr
     rw [Finset.mem_insert] at hX hY
     rcases hX with rfl | hX <;> rcases hY with rfl | hY
     · rfl
-    · exact absurd ⟨Y, hY, by rw [← hr, fgBlock_root]⟩ hfr
-    · exact absurd ⟨X, hX, by rw [hr, fgBlock_root]⟩ hfr
+    · exact absurd ⟨Y, hY, by rw [← hr, fgBlock_root P b rows hg hPe hok]⟩ hfr
+    · exact absurd ⟨X, hX, by rw [hr, fgBlock_root P b rows hg hPe hok]⟩ hfr
     · exact h.rootInj X hX Y hY hr
   have hcl : ∀ B ∈ insert (fgBlock P b rows) st.fg.TF,
       B.parent ∈ insert (fgBlock P b rows) st.fg.TF := by
@@ -189,11 +190,11 @@ theorem cstoreInv_accepted_pre (p : Params) (st : State p.n) (h : CStoreInv p st
     constructor
     · rintro (⟨B, hB, rfl⟩ | rfl)
       · exact ⟨B, Finset.mem_insert_of_mem hB, rfl⟩
-      · exact ⟨_, Finset.mem_insert_self _ _, eraseFG_fgBlock hg hPe rows⟩
+      · exact ⟨_, Finset.mem_insert_self _ _, eraseFG_fgBlock hg hPe rows hok⟩
     · rintro ⟨B, hB, rfl⟩
       rw [Finset.mem_insert] at hB
       rcases hB with rfl | hB
-      · exact Or.inr (eraseFG_fgBlock hg hPe rows)
+      · exact Or.inr (eraseFG_fgBlock hg hPe rows hok)
       · exact Or.inl ⟨B, hB, rfl⟩
   · intro c hc
     change c ∈ (GridCO.admitProposal p.toParams.engine st.base (baseProposal s b raw support) b

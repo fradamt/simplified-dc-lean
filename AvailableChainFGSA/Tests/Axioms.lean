@@ -38,6 +38,17 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 #print axioms AvailableChain.FGSA.viewRootInj_of_rootInj
 #print axioms AvailableChain.FGSA.rootInjectiveOn_of_viewRootInj
 #print axioms AvailableChain.FGSA.erase_rootInjective
+#print axioms AvailableChain.FGSA.eraseFG_injective
+#print axioms AvailableChain.FGSA.encLabel_inj
+#print axioms AvailableChain.FGSA.encAuth_inj
+#print axioms AvailableChain.FGSA.encRowBody_inj
+#print axioms AvailableChain.FGSA.encRowWire_inj
+#print axioms AvailableChain.FGSA.appOf_packBody
+#print axioms AvailableChain.FGSA.packInner_inj
+#print axioms AvailableChain.FGSA.packBody_inj
+#print axioms AvailableChain.FGSA.rowsOk_iff
+#print axioms AvailableChain.FGSA.rowsOk_node_packBody
+#print axioms AvailableChain.FGSA.rows_eq_of_rowsOk
 
 -- Proofs/Fields.lean
 #print axioms AvailableChain.FGSA.admitHead_fg
@@ -135,6 +146,8 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 #print axioms AvailableChain.FGSA.CStoreInv.toInv0
 #print axioms AvailableChain.FGSA.pickPair_some_spec
 #print axioms AvailableChain.FGSA.parentFG_spec
+#print axioms AvailableChain.FGSA.parentFG_isSome_iff_root
+#print axioms AvailableChain.FGSA.admitBlock_missingParent
 #print axioms AvailableChain.FGSA.eraseFG_fgBlock
 #print axioms AvailableChain.FGSA.fgBlock_parent
 #print axioms AvailableChain.FGSA.fgBlock_slot
@@ -145,6 +158,7 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 #print axioms AvailableChain.FGSA.blockAccepted_of_wellFormed
 #print axioms AvailableChain.FGSA.rootTest_iff_blockTest
 #print axioms AvailableChain.FGSA.blockAccepted_facts
+#print axioms AvailableChain.FGSA.blockAccepted_rowsOk
 #print axioms AvailableChain.FGSA.accepted_base_facts
 #print axioms AvailableChain.FGSA.fg_on_block_accepts
 #print axioms AvailableChain.FGSA.admitVote_withBlocks
@@ -233,6 +247,8 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 -- Proofs/CrossNode.lean
 #print axioms AvailableChain.FGSA.contentAgree_symm
 #print axioms AvailableChain.FGSA.contentAgree_self
+#print axioms AvailableChain.FGSA.contentAgree
+#print axioms AvailableChain.FGSA.contentAgree_reachable
 #print axioms AvailableChain.FGSA.eraseFG_ancestor_preceq
 #print axioms AvailableChain.FGSA.fg_eq_of_eraseFG_eq_across
 #print axioms AvailableChain.FGSA.fg_eq_of_root_eq_across

@@ -319,7 +319,7 @@ theorem metaInv_foldl_admitRow (p : Params) (rows : List (RowWire p.n)) (X : Sta
 theorem wire_block_mem (p : Params) (st : State p.n) (h : CStoreInv p st) (m : MetaInv p st)
     {o : Wire p.n} (ho : o ∈ st.proposals) {c : Block} (hc : Wire.block? o = some c) :
     c ∈ st.base.blocks := by
-  obtain ⟨s, b, raw, sup, rows, rfl, -, B, hB, hBe, -⟩ := m.wireTree o ho
+  obtain ⟨s, b, raw, sup, rows, rfl, -, -, B, hB, hBe, -⟩ := m.wireTree o ho
   rw [block?_proposal, Option.some.injEq] at hc
   subst hc
   exact (h.baseTree _).2 ⟨B, hB, hBe⟩
@@ -330,7 +330,7 @@ theorem accepted_rows_decode {p : Params} {st : State p.n} {s : Slot} {b : Block
     (hacc : blockAccepted p st s b P rows = true) : ∀ a ∈ rows, (RowWire.decode? a).isSome := by
   simp only [blockAccepted, Bool.and_eq_true, List.all_eq_true] at hacc
   intro a ha
-  have := hacc.2 a ha
+  have := hacc.1.2 a ha
   cases hd : a.decode? with
   | none => rw [hd] at this; exact absurd this (by simp)
   | some x => rfl
@@ -346,23 +346,24 @@ theorem metaInv_accepted (p : Params) (st : State p.n) (h : CStoreInv p st) (m :
     (hX4 : X.base.blockStamp = st.base.blockStamp ++ [(b, st.base.now)])
     (hX6 : X.rowPool = st.rowPool)
     (hg : b ≠ .genesis) (hPe : eraseFG P = b.parent) (hb : b ∉ st.base.blocks)
-    (hdec : ∀ a ∈ rows, (RowWire.decode? a).isSome) : MetaInv p X := by
+    (hdec : ∀ a ∈ rows, (RowWire.decode? a).isSome) (hrows : rowsOk b rows = true) :
+    MetaInv p X := by
   have hwb : ∀ {o : Wire p.n}, o ∈ st.proposals → ∀ {c : Block}, Wire.block? o = some c →
       c ∈ st.base.blocks := fun ho _ hc => wire_block_mem p st h m ho hc
   refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
   · intro o ho
     rw [hX1, List.mem_append, List.mem_singleton] at ho
     rcases ho with ho | rfl
-    · obtain ⟨s', b', raw', sup', rows', ho', hd', B, hB, hBe, hBr⟩ := m.wireTree o ho
-      exact ⟨s', b', raw', sup', rows', ho', hd', B, by rw [hX2]; exact Finset.mem_insert_of_mem hB,
-        hBe, hBr⟩
-    · exact ⟨s, b, raw, support, rows, rfl, hdec, fgBlock P b rows,
-        by rw [hX2]; exact Finset.mem_insert_self _ _, eraseFG_fgBlock hg hPe rows, rfl⟩
+    · obtain ⟨s', b', raw', sup', rows', ho', hk', hd', B, hB, hBe, hBr⟩ := m.wireTree o ho
+      exact ⟨s', b', raw', sup', rows', ho', hk', hd', B,
+        by rw [hX2]; exact Finset.mem_insert_of_mem hB, hBe, hBr⟩
+    · exact ⟨s, b, raw, support, rows, rfl, hrows, hdec, fgBlock P b rows,
+        by rw [hX2]; exact Finset.mem_insert_self _ _, eraseFG_fgBlock hg hPe rows hrows, rfl⟩
   · intro B hB hBg
     rw [hX2, Finset.mem_insert] at hB
     rw [hX1]
     rcases hB with rfl | hB
-    · rw [eraseFG_fgBlock hg hPe rows]
+    · rw [eraseFG_fgBlock hg hPe rows hrows]
       refine ⟨⟨.proposer s, .proposal b raw support rows⟩,
         ⟨List.mem_append_right _ (List.mem_singleton_self _), rfl⟩, ?_⟩
       rintro o ⟨ho, hob⟩
@@ -440,7 +441,7 @@ theorem metaInv_process (p : Params) (st : State p.n) (h : CStoreInv p st) (m : 
             simp only [hacc, if_true]
             exact metaInv_foldl_admitRow p rows _
               (metaInv_accepted p st h m s b raw support P rows _ k1 k2 k3 k4 k6 hg hPe hb
-                (accepted_rows_decode hacc))
+                (accepted_rows_decode hacc) (blockAccepted_rowsOk hacc))
   · exact m
 
 theorem metaInv_clock (p : Params) (st : State p.n) (m : MetaInv p st) (t : Time) :
@@ -471,7 +472,7 @@ theorem stored_wire_of_block (p : Params) (st : State p.n) (h : CStoreInv p st)
     ∃ s raw sup rows, ⟨.proposer s, .proposal (eraseFG B) raw sup rows⟩ ∈ st.proposals ∧
       B.rows = rows.filterMap RowWire.toRow? := by
   obtain ⟨o, ⟨ho, hob⟩, -⟩ := m.treeWire B hB hg
-  obtain ⟨s, b, raw, sup, rows, rfl, -, B', hB', hBe, hBr⟩ := m.wireTree o ho
+  obtain ⟨s, b, raw, sup, rows, rfl, -, -, B', hB', hBe, hBr⟩ := m.wireTree o ho
   rw [block?_proposal, Option.some.injEq] at hob
   subst hob
   have hBB : B' = B := h.rootInj B' hB' B hB (by rw [← eraseFG_root B', ← eraseFG_root B, hBe])

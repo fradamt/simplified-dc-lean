@@ -8,7 +8,10 @@ namespace AvailableChain.FGSA
 open AvailableChain.Generic AvailableChain.SimplexFG
 
 /-! The cross-node carrier (K5 cross-node; `bp.carrier.v1`, audit M2). Two stores
-that satisfy `ContentAgree` read their stored FG blocks the same way. -/
+that satisfy `ContentAgree` read their stored FG blocks the same way. With
+derived roots and the content check, `ContentAgree` holds for any two stores
+with the metadata invariant (`contentAgree`); the cross-node theorems keep the
+premise in their statements. -/
 
 /-- [helper] `ContentAgree` is symmetric. -/
 theorem contentAgree_symm {n : Nat} {st st' : State n} (hc : ContentAgree st st') :
@@ -22,8 +25,8 @@ follows from the local invariants, with no run premise. -/
 theorem contentAgree_self (p : Params) (st : State p.n) (h : CStoreInv p st)
     (m : MetaInv p st) : ContentAgree st st := by
   intro s b raw sup rows ho s' b' raw' sup' rows' ho' hr
-  obtain ⟨_, _, _, _, _, he, -, B, hB, hBe, -⟩ := m.wireTree _ ho
-  obtain ⟨_, _, _, _, _, he', -, B', hB', hBe', -⟩ := m.wireTree _ ho'
+  obtain ⟨_, _, _, _, _, he, -, -, B, hB, hBe, -⟩ := m.wireTree _ ho
+  obtain ⟨_, _, _, _, _, he', -, -, B', hB', hBe', -⟩ := m.wireTree _ ho'
   simp only [Signed.mk.injEq, Msg.proposal.injEq] at he he'
   obtain ⟨-, rfl, -, -, rfl⟩ := he
   obtain ⟨-, rfl, -, -, rfl⟩ := he'
@@ -38,6 +41,29 @@ theorem contentAgree_self (p : Params) (st : State p.n) (h : CStoreInv p st)
     (hu _ ⟨ho', by rw [block?_proposal, hBe']⟩).symm
   simp only [Signed.mk.injEq, Msg.proposal.injEq] at e
   exact ⟨e.2.1, e.2.2.2.2⟩
+
+/-- [bp bp.carrier.v1; K5 cross-node; D9] `ContentAgree` is a theorem: two stores
+with the metadata invariant agree on the content of their stored proposals.
+Equal roots give equal blocks (`Block.root_injective`), hence equal bodies;
+both bodies pack their signed rows (`MetaInv.wireTree`, `rowsOk`), and the
+packing is injective, so the ordered signed rows are equal, rounds included.
+The carried votes and the support lists stay outside the conclusion. -/
+theorem contentAgree (p : Params) {st st' : State p.n} (m : MetaInv p st) (m' : MetaInv p st') :
+    ContentAgree st st' := by
+  intro s b raw sup rows ho s' b' raw' sup' rows' ho' hr
+  obtain rfl : b = b' := Block.root_injective hr
+  obtain ⟨_, _, _, _, _, he, hk, -⟩ := m.wireTree _ ho
+  obtain ⟨_, _, _, _, _, he', hk', -⟩ := m'.wireTree _ ho'
+  simp only [Signed.mk.injEq, Msg.proposal.injEq] at he he'
+  obtain ⟨-, rfl, -, -, rfl⟩ := he
+  obtain ⟨-, rfl, -, -, rfl⟩ := he'
+  exact ⟨rfl, rows_eq_of_rowsOk hk hk'⟩
+
+/-- [bp bp.carrier.v1; K5 cross-node] Any two reachable stores satisfy
+`ContentAgree`; no run premise. -/
+theorem contentAgree_reachable (p : Params) {st st' : State p.n} (hst : Reachable p st)
+    (hst' : Reachable p st') : ContentAgree st st' :=
+  contentAgree p (metadataInvariant p st hst) (metadataInvariant p st' hst')
 
 /-- [helper] The erased ancestor of a stored FG block has a stored FG ancestor,
 with the same erasure. -/
@@ -70,7 +96,8 @@ theorem fg_eq_of_eraseFG_eq_across (p : Params) (st st' : State p.n)
       | node P' s' r' rows' =>
           have he' := he
           simp only [eraseFG, Block.node.injEq] at he'
-          obtain ⟨hP, rfl, rfl⟩ := he'
+          obtain ⟨hP, rfl, hx⟩ := he'
+          obtain ⟨rfl, -⟩ := encFGBody_inj hx
           have hPP : P = P' := ih (h.fg.closed _ hX) (h'.fg.closed _ hY) hP
           subst hPP
           obtain ⟨sx, raw, sup, rw, ho, hXr⟩ :=

@@ -137,10 +137,61 @@ def Wire.block? {n : Nat} (o : Wire n) : Option Block :=
   | _ => none
 
 /-- [spec 248–263, 381–403; bp bp.carrier.v1] The geometric erasure of an FG block
-(bp01 §2.1 `eraseFG`). -/
-def eraseFG {V : Type} : FGBlock V → Block
+(bp01 §2.1 `eraseFG`). The base body is the FG body code `encFGBody x rs`, so
+the erasure keeps the root (`eraseFG_root`): both roots read the same content
+with the same outer code. -/
+def eraseFG {V : Type} [RowCodec V] : FGBlock V → Block
   | .genesis => .genesis
-  | .node p s r _ => .node (eraseFG p) s r
+  | .node p s x rs => .node (eraseFG p) s (encFGBody x rs)
+
+/-! ### Signed content in the base body (D9)
+
+A proposal carries a base block and its signed rows. The base body packs an
+application value and the ORDERED signed rows, with their rounds, so the rows
+are part of the block identity. The FG view of the block reads the same
+content: its body is the inner packed value and its rows are the decoded rows.
+Every code is built from `epair` and `encList` (`Objects/Codec.lean`); a sum
+is a pair of a constructor tag and its fields. -/
+
+/-- The label code: tag `0` for a HEAD label, tag `1` for an FG label. -/
+def encLabel : Label → Nat
+  | .head s => epair 0 s
+  | .fg r => epair 1 r
+
+/-- The auth code: tag `0` for a seat (label and index), tag `1` for a
+proposer (slot), tag `2` for no auth. -/
+def encAuth {n : Nat} : Auth Label n → Nat
+  | .seat ℓ i => epair 0 (epair (encLabel ℓ) i.val)
+  | .proposer s => epair 1 s
+  | .none => epair 2 0
+
+/-- The row-body code: the height pair and the optional finality pair. -/
+def encRowBody (a : RowBody) : Nat :=
+  epair (encHeightPair a.height_pair) (encOption encFinalityPair a.finality_pair)
+
+/-- The signed-row code: the complete auth (label, round and seat) and the
+body. -/
+def encRowWire {n : Nat} (a : RowWire n) : Nat := epair (encAuth a.auth) (encRowBody a.payload)
+
+/-- The inner packed value: the application value and the ordered signed rows. -/
+def packInner {n : Nat} (app : Nat) (rw : List (RowWire n)) : Nat :=
+  epair app (encList encRowWire rw)
+
+/-- The packed base body: the FG body code of the inner packed value and the
+decoded rows. -/
+def packBody {n : Nat} (app : Nat) (rw : List (RowWire n)) : Nat :=
+  encFGBody (packInner app rw) (rw.filterMap RowWire.toRow?)
+
+/-- The application value of a packed body (`appOf_packBody`). On a body that
+is not packed the value has no meaning; `rowsOk` checks the full packing. -/
+def appOf (x : Nat) : Nat := efst (efst (esnd x))
+
+/-- [D9] The content check of a proposal: the base body is the packing of its
+own application value with the carried signed rows. It is a full
+reconstruction check of the body, not a root check. `wellFormed` and
+`blockAccepted` use this same function. -/
+def rowsOk {n : Nat} (b : Block) (rw : List (RowWire n)) : Bool :=
+  b.body == packBody (appOf b.body) rw
 
 /-- [spec 225–228; model representation of a carried vote in the SA base] The base
 form of a carried vote: a HEAD seat of slot `s` becomes a
