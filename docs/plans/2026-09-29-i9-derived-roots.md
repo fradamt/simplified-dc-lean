@@ -1,4 +1,4 @@
-# I9: derived block roots (store-only) — Implementation Plan (r3)
+# I9: derived block roots (store-only) — Implementation Plan (r4)
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -90,6 +90,15 @@
 │ (FGSA/Proofs/Admission.lean:49)      │                                            │
 │ FGSA.fgBlock_root (:64)              │ adds `b ≠ .genesis`, `eraseFG P = b.parent`│
 │                                      │ and `rowsOk b rows = true`                 │
+│ FGSA.metaInv_accepted                │ adds `(hrows : rowsOk b rows = true)`;     │
+│ (FGSA/Proofs/Metadata.lean:340)      │ `metaInv_process` passes it from `hacc`    │
+│ FGSA `MetaInv.wireTree` (Statements/ │ strengthened with the stored content       │
+│ Invariants.lean)                     │ equality (`rowsOk`), Task 9 Step 3         │
+│ FGSA `not_contentAgree` and the      │ replaced by the positive tests of Task 9   │
+│ negative cross-store example         │ Step 5 (collision tests, r203 §8)          │
+│ (Tests/RootCollision.lean)           │                                            │
+│ SimplexFG collision-driven frame     │ replaced by the distinct-roots proof of    │
+│ fallback (Frame.lean:176–200)        │ Task 7 Step 3                              │
 │ FGSA.fgBlock_notMem (:70)            │ adds the same three premises, so that the  │
 │                                      │ freshness premise names the FG root        │
 │ Generic FG theorems that use `derive`│ gain `[RowCodec V]` only (class (b)):      │
@@ -127,11 +136,11 @@ The change of `Block`'s third constructor argument (from `root : BlockId` to `bo
 - Produces: `bitLen : Nat → Nat`, `tz : Nat → Nat` (trailing zeros), `lpair`, `epair : Nat → Nat → Nat`, `efst`, `esnd`, `efst_epair`, `esnd_epair`, `epair_inj`, `bitLen_epair_le`; `encList`, `encOption`, `encBool` with injectivity lemmas.
 
 - [ ] **Step 1: Definitions.** In arithmetic form (Astra A01):
-  - `bitLen` by a log-step search (DC-simplify M1): an exponential search on `n >>> 2^j`, then a binary search on `>>>`, with a structural fuel of 64 (enough for `n < 2^(2^64)`). Prove `bitLen n = if n = 0 then 0 else Nat.log2 n + 1` for `n` below the fuel bound, or prove only the two facts the laws need: `n < 2 ^ bitLen n` and `n ≠ 0 → 2 ^ (bitLen n - 1) ≤ n`. Do not use `Nat.log2` in the evaluated path: its kernel unfolding is quadratic in the bit length (DC measured about 50 s at 10^5 bits, and no result in 10 min for a 175,564-bit depth-4 FG-SA comparison; the log-step form took under 1 s).
+  - `bitLen` (DC-simplify M1; Astra R01): TOTAL and globally correct, with log-step evaluation. Phase 1 doubles `w` (1, 2, 4, …) until `n >>> w = 0`; phase 2 is a binary search for the exact bit length inside `[w/2, w]` with `>>>`. Both phases are structural recursion on an input-dependent fuel (for example `n + 1`), which the kernel unfolds only as far as the search goes; no fixed fuel constant. Prove the fuel sufficient (the search ends before the fuel runs out) and prove, for EVERY `n`: `bitLen 0 = 0`, `n < 2 ^ bitLen n`, and `n ≠ 0 → 2 ^ (bitLen n - 1) ≤ n` (equivalently `bitLen n = if n = 0 then 0 else Nat.log2 n + 1`). No branch returns a truncated length: a truncated length makes `epair` collide (`epair 1 (2^(M−1)) = epair 0 (2^M + 2^(M−1))` if both give length `M`). Do not use `Nat.log2` in the evaluated path: its kernel unfolding is quadratic in the bit length (DC measured about 50 s at 10^5 bits, and no result in 10 min for a 175,564-bit depth-4 FG-SA comparison; a log-step form took under 1 s).
   - `lpair a b := 2 ^ bitLen b * (2 * (a * 2 ^ bitLen b + b) + 1) - 1`. The factor in parentheses is odd, so `tz (lpair a b + 1) = bitLen b`.
   - `epair a b := lpair (a * 2 ^ bitLen b + b) (bitLen b)`. The delimiter codes the length of `b`, not `b`.
-  - `tz` by a `Nat.rec` on a fuel argument with `%` and `/` steps, in the style of `Nat.log2` (Finding 2). The decoders `efst`, `esnd` use `tz`, `/`, `%` and `2 ^ ·` only.
-- [ ] **Step 2: Laws.** `efst (epair a b) = a`, `esnd (epair a b) = b`, hence `epair_inj`. `bitLen (epair a b) ≤ bitLen a + bitLen b + 2 * bitLen (bitLen b) + 1`. Prove through the factorisation `lpair a b + 1 = 2^k * odd`, not through bitwise reasoning. `encList enc xs` (right fold of `epair` with a length or a terminator, so that order and duplicates stay) with `encList_inj` for an injective `enc`; `encOption`, `encBool` likewise.
+  - `tz` by structural recursion on the fuel `m + 1` for input `m`, with `%` and `/` steps (Finding 2); prove it exact for every nonzero `m`: `m = 2 ^ tz m * r` with `r` odd. A fixed fuel is not enough: the outer delimiter can have more than 64 trailing zeros (Astra R01). The decoders `efst`, `esnd` use `tz`, `/`, `%` and `2 ^ ·` only.
+- [ ] **Step 2: Laws.** All laws hold for every input, with no range premise: `efst (epair a b) = a`, `esnd (epair a b) = b`, hence `epair_inj`. `bitLen (epair a b) ≤ bitLen a + bitLen b + 2 * bitLen (bitLen b) + 1`. Prove through the factorisation `lpair a b + 1 = 2^k * odd`, not through bitwise reasoning. `encList enc xs` (right fold of `epair` with a length or a terminator, so that order and duplicates stay) with `encList_inj` for an injective `enc`; `encOption`, `encBool` likewise.
 - [ ] **Step 3: Size and kernel spike** (A01, F4). In the scratch directory, build with `epair`:
   - the generic G02 FG chain (three blocks with the rows of `SimplexFG/Store.lean:163–212`, rows naming earlier roots, body 0), with r203's row encoders (§3);
   - the FG-SA signed-row packing of that chain (`packBody` of Task 9, with the `RowWire` rounds of `FGSA/Tests/Smoke.lean`'s `stA`).
@@ -272,13 +281,13 @@ The change of `Block`'s third constructor argument (from `root : BlockId` to `bo
 **Files:** `docs/catalog.lock`, `docs/FRAMEWORK-DESIGN.md` (§8 lock log), `docs/I9-REPORT.md` (new).
 
 - [ ] **Step 1:** `pgrep -fl lean`; `lake build --wfail` (every default target; the full-target rule applies again); `CheckFrameworkAxioms`; `check-fg.sh`; `check-fgsa.sh`; `Registry --check`; the self-test compare; the grep `sorry|admit|native_decide|^axiom` over every changed Lean file (outside `scripts/registry-selftest/`); every library root file imports its modules (import coverage).
-- [ ] **Step 2: Lock** (A08). If main has changed `docs/catalog.lock` or `AvailableChainFramework/**` since the branch point, first merge main into the branch and rebuild with `--wfail`; run the lock step on the merged tree (DC m6). Then `CatalogLock --check > claude-files/i9/lock-final.out`. The checker must exit normally before its output is read. Stop, and do not write, unless all of these hold:
+- [ ] **Step 2: Lock** (A08). If main has moved since the branch point, first merge main into the branch and rebuild with `--wfail`; run the lock step on that merged tree (DC m6). Imported Model or Statements changes can change lock hashes too, so the trigger is any move of main, not only `docs/catalog.lock` or `AvailableChainFramework/**` (Astra R03). Then `CatalogLock --check > claude-files/i9/lock-final.out`. Before the rewrite, the documented result is exit code 1 with CHANGED lines; any other failure (a crash, an elaboration error, a missing module) stops the task. After the rewrite, `--check` must exit 0 with no differences. Stop, and do not write, unless all of these hold:
   - the CHANGED names are exactly the 91 names of `docs/plans/i9-lock-expected.tsv`;
   - no locked name is REMOVED or ADDED;
   - `git diff main -- AvailableChainFramework/` shows no source change, or only binder repairs in `Catalog/Mono.lean` that keep every declaration's type;
   - the changed definitions in the closures (`Block`, `nodeRoot`, `Block.root`, the codec) are the only new or changed definitions that the CHANGED lines reach; list them.
   Then `--write --allow-changes`, and `--check` prints nothing. Add a design §8 lock-log entry with the count, the reason (closure through `Block`) and the names.
-- [ ] **Step 3: Merge.** Merge `i9-derived-roots` into main with `--ff-only` if main has not moved, else a `--no-ff` merge after a trial `git merge-tree` and a full `--wfail` build of the merged tree. Tell DC-simplify before the merge (FG-SA T7 and the FG-COMPOSITION entries depend on it). Remove the worktree after the merge.
+- [ ] **Step 3: Merge.** Merge `i9-derived-roots` into main with `--ff-only` if main has not moved since Step 2, else merge main into the branch again and repeat Steps 1–2 on the exact merged tree (build, lock `--check`, closure review) before the `--ff-only` merge (Astra R03). Tell DC-simplify before the merge (FG-SA T7 and the FG-COMPOSITION entries depend on it). Remove the worktree after the merge.
 - [ ] **Step 4:** The controller writes `docs/I9-REPORT.md`: tasks and commits, checks, the lock break with its names, every statement change (old and new text), every fixture whose intent changed, and decisions taken without the user.
 
 ## Risks
@@ -359,3 +368,5 @@ r1 (24ecaaa) had two reviews: Astra `docs/audit/i9-plan-audit-report.md` (REVISE
 ```
 
 DC-simplify's combined verdict on r2 (Opus review `docs/audit/i9-plan-claude-review.md` with fgsa-impl): ADOPT WITH FIXES, 0 blocking, 1 major, 6 minor. r3 applies all of them: M1 (log-step `bitLen`; B4 and store-level spike; time and RSS in the stop rule; Task 0 Step 1, Step 3), m1 (`AvailableChainKit/Roots.lean` imports `Generic.Conditions`), m2 (`#eval` before "does not finish"), m3 (`decide +kernel` switches listed per task), m4 (L* obligation in Task 10), m5 (D9 is a decision without the user; I9-REPORT lists it), m6 (merge main before the lock step). Gate: one Astra pass on r3 with no blocking and no major finding.
+
+Astra re-check of r3 (`docs/audit/i9-plan-recheck-report.md`): REVISE, 1 blocking, 1 major, 1 minor; A02, A04–A07, A09, A10 RESOLVED; the 91-name set confirmed against the compiled tree. r4 applies: R01 (total, globally correct log-step `bitLen` with input-dependent fuel and a sufficiency proof; `tz` with fuel `m + 1`; all codec laws unrestricted), R02 (`metaInv_accepted` premise, `MetaInv.wireTree`, and the collision-test replacements in the exception table), R03 (lock and closure checks on the exact merged tree; exit-code rule). Gate: an Astra pass on r4 with no blocking and no major finding.
