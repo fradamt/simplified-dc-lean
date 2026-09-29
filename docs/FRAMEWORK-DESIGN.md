@@ -1145,6 +1145,59 @@ when these land (after I9 and 2a).
   engine entries of `docs/V2-API.md`, so a change to one of them gives a
   `CHANGED` line. `64a48cd` deleted the Sketch and changed docstrings only;
   the anchor line did not change.
+- 2026-09-29, the port to Lean v4.34.1 and mathlib d13f23b7 (branch
+  `port-v434`). Re-baseline approved by the user, 2026-09-29 (relayed by
+  DC-simplify); the axiom-set change below accepted by DC-simplify,
+  2026-09-29. Written with `--write --allow-changes`: 193 `CHANGED` lines
+  of 251, 0 `ADDED`, 0 `REMOVED`. The old lock is git blob
+  `1626dc7494e8190bcb8e69c5c8369fe6e0902af7` (251 lines, `a6733c2`).
+  Evidence files are in `docs/lock-log/v4.34.1/`:
+  - The port commit changes no file of `AvailableChainFramework/`. The
+    local-closure lock (`CatalogLock --local`: the closure stops at
+    non-project constants, which are hashed by name) is the same on both
+    toolchains: `local-lock-rc2.lock` and `local-lock-v4.34.1.lock`, 0 of
+    251 lines differ.
+  - `lock-diff-causes.txt`: each of the 193 lines with its old and new hash
+    and its cause. A line changed if and only if its closure reaches one
+    of 21 core or Mathlib constants whose own hash changed (193 of 193
+    lines explained; no unchanged line reaches one). The 21: `Finset`,
+    `Finset.mk`, `Finset.val`, `Finset.instSetLike` and its `_proof_1`
+    (Finset is now `SetLike`); `Fintype`, `Fintype.mk`, `Fintype.elems`,
+    `Fintype.card`; `Bool.and`, `Bool.or`, `Bool.not`, and the removed
+    `Bool.and.match_1` and `cond.match_1`; `Rat.instDecidableLe`;
+    `Nat.instDecidableCoprime` and its two removed proofs;
+    `List.get!Internal._f`; `setOf` (removed) and `Set.ofPred` (new). No
+    project constant is a cause.
+  - `docs/V2-API.md`: 5 of 280 hashes re-written, all derived instances:
+    `instDecidableEqAuth`, `instReprAuth`, `instDecidableEqSigned`,
+    `instReprSigned`, `instDecidableEqEvent` (`manifest-diff.txt`). Cause:
+    Lean v4.34.1 gives derived instances the new reducibility status
+    `instanceReducible` (rc2: `implicitReducible`), and `V2Manifest` hashes
+    the status (tag 4 → 5). With the old tag, the listing is byte-identical
+    to rc2. The tag stays distinct, so that the change is visible.
+  - Axiom sets: 21 of 1182 `#print axioms` lines change from `[propext,
+    Quot.sound]` to `[propext, Classical.choice, Quot.sound]`
+    (`print-axioms-rc2.txt`, `print-axioms-v4.34.1.txt`,
+    `print-axioms-diff.txt`). The theorems: `Engine.{eventIndex_lt_of_time_lt,
+    prefixEnv_execution, prefixEnv_schedule, state_interval_induction,
+    tick_index_lt_delivery}`; `FGSA.{accepted_rows_decode,
+    blockAccepted_facts, blockAccepted_of_wellFormed, blockAccepted_rowsOk,
+    compatible_iff_eraseFG, eraseFG_ancestor_mem, eraseFG_ancestor_preceq,
+    eraseFG_injOn, fgBlock_notMem, metaInv_init, parentFG_spec,
+    pickPair_some_spec, preceq_of_eraseFG_preceq,
+    rootInjectiveOn_of_viewRootInj, viewRootInj_of_rootInj}`;
+    `SAPC.emitted_seat_unique` (prefix `AvailableChain.`). Each gains
+    `Classical.choice` through Mathlib `Finset.instSetLike`, directly or
+    through `ScheduleWellFormed.mk` and `FGSA.blockAccepted`, whose types
+    use Finset membership (`axioms-choice-trace.txt`). No port edit adds
+    choice. The allowed set {propext, Classical.choice, Quot.sound} is
+    unchanged, and every axiom script passes.
+  - Statement census (`scripts/StmtCensus.lean`, rc2 against v4.34.1): no
+    edited declaration changed its type or value. 36 names differ for
+    Mathlib and core reasons only: 27 where Finset `⊆` now elaborates as
+    `≤`, 4 `Finset.partialOrder` → `Finset.instPartialOrder`, 1 test value
+    (`Monoid.toPow` → `Monoid.toNPow`), and 4 removed core aliases
+    `toCtorIdx`.
 
 ## 9. Changes to standing rules (approved by the user 2026-09-28)
 

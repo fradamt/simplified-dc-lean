@@ -161,17 +161,17 @@ Each block line is `<kind> <name> <hash>`. The kinds are `structure`,
 inductive AvailableChain.V2.Auth 6a648fefaf07db83
 ctor AvailableChain.V2.Auth.seat e620f6585053119f
 ctor AvailableChain.V2.Auth.none 26cd8de5c3579df9
-def AvailableChain.V2.instDecidableEqAuth 9485793c09c144ca
+def AvailableChain.V2.instDecidableEqAuth cb6e363e7b392734
 def AvailableChain.V2.instDecidableEqAuth.decEq a0344c6e54f9fd4b
-def AvailableChain.V2.instReprAuth c0ad29792b8edc84
+def AvailableChain.V2.instReprAuth bb347e931a7e66ba
 def AvailableChain.V2.instReprAuth.repr 31fba12b7e0d0ddb
 structure AvailableChain.V2.Signed 83f9b62e6e5cf26f
 ctor AvailableChain.V2.Signed.mk a3fe01e1c5d714b9
 def AvailableChain.V2.Signed.auth 599d3904350e41ee
 def AvailableChain.V2.Signed.payload e170cdc9151753df
-def AvailableChain.V2.instDecidableEqSigned b90103bb597280b7
+def AvailableChain.V2.instDecidableEqSigned 8c6004fed206f7d9
 def AvailableChain.V2.instDecidableEqSigned.decEq e5ef0f38b5da0b07
-def AvailableChain.V2.instReprSigned 3d1dafe855d0b2dd
+def AvailableChain.V2.instReprSigned fd8687e973ad88a3
 def AvailableChain.V2.instReprSigned.repr ffab279525ec2b5c
 ```
 
@@ -182,7 +182,7 @@ inductive AvailableChain.V2.Event 17fc49f3e3d44f34
 ctor AvailableChain.V2.Event.restart 92474f35a882e910
 ctor AvailableChain.V2.Event.tick ee6bed1e67349f17
 ctor AvailableChain.V2.Event.deliver 0d3fe5a920053bc5
-def AvailableChain.V2.instDecidableEqEvent 456f2c423f3bf306
+def AvailableChain.V2.instDecidableEqEvent 0785c5691b6deb98
 def AvailableChain.V2.instDecidableEqEvent.decEq a437f8c390ea8f2f
 def AvailableChain.V2.Event.time f3599702b42d1edc
 def AvailableChain.V2.Event.node 0c62d0f728af2931
