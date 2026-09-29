@@ -10,7 +10,6 @@ public import AvailableChainFGSA.Proofs.StoreInv
 public import AvailableChainFGSA.Proofs.Metadata
 public import AvailableChainFGSA.Proofs.CrossNode
 public import AvailableChainFGSA.Proofs.Head
-public import AvailableChainFGSA.Proofs.ChainOrder
 
 /-! Kernel dependency audit (Task 13 Step 1): one line for each public theorem of
 Tasks 2 and 7–12. Each prints only `propext`, `Classical.choice`, `Quot.sound`, or
@@ -273,16 +272,16 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 #print axioms AvailableChain.FGSA.preceq_fgHead_of_preceq_F
 #print axioms AvailableChain.FGSA.preceq_headVote_of_preceq_F
 
--- Proofs/ChainOrder.lean (T7.W extra item)
-#print axioms AvailableChain.FGSA.insertIf_comm
-#print axioms AvailableChain.FGSA.insertIf_idem
-#print axioms AvailableChain.FGSA.process_row_eq
-#print axioms AvailableChain.FGSA.process_row_comm
-#print axioms AvailableChain.FGSA.process_row_idem
-#print axioms AvailableChain.FGSA.foldl_process_row_push
-#print axioms AvailableChain.FGSA.foldl_process_row_absorb
-#print axioms AvailableChain.FGSA.foldl_process_row_dedup
-#print axioms AvailableChain.FGSA.foldl_process_row_perm
-#print axioms AvailableChain.FGSA.transition_perm
-#print axioms AvailableChain.FGSA.transition_eq_of_mem_iff
-#print axioms AvailableChain.FGSA.transition_eq_of_toFinset
+-- AvailableChainKitFG/Certificates.lean (ChainStateFoldOrder; I14)
+#print axioms AvailableChain.KitFG.insertIf_comm
+#print axioms AvailableChain.KitFG.insertIf_idem
+#print axioms AvailableChain.KitFG.process_row_eq
+#print axioms AvailableChain.KitFG.process_row_comm
+#print axioms AvailableChain.KitFG.process_row_idem
+#print axioms AvailableChain.KitFG.foldl_process_row_push
+#print axioms AvailableChain.KitFG.foldl_process_row_absorb
+#print axioms AvailableChain.KitFG.foldl_process_row_dedup
+#print axioms AvailableChain.KitFG.foldl_process_row_perm
+#print axioms AvailableChain.KitFG.transition_perm
+#print axioms AvailableChain.KitFG.transition_eq_of_mem_iff
+#print axioms AvailableChain.KitFG.transition_eq_of_toFinset

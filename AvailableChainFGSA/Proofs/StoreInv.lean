@@ -751,6 +751,26 @@ theorem foldl_select_mem {α : Type} (f : α → α → Bool) (l : List α) (ini
         · exact Or.inl he
         · exact Or.inr (List.mem_cons_of_mem _ hm)
 
+/-- [spec 648–655; T7.W] The live root is stored: it is the erasure of Z or a
+lease target in the full filtered tree. `fgHead_stored` and the walk wrappers
+use this proof. -/
+theorem liveRoot_stored (p : Params) (st : State p.n) (h : CStoreInv p st) :
+    liveRoot p st ∈ st.base.blocks := by
+  unfold liveRoot
+  dsimp only
+  rcases foldl_select_mem (fun (best b : Block) => best.depth < b.depth ||
+      (best.depth == b.depth && best.root < b.root)) _ _ with he | hm
+  · rw [he]
+    exact (h.baseTree _).2 ⟨_, Z_mem p st h, rfl⟩
+  · obtain ⟨row, -, hrow⟩ := List.mem_filterMap.1 hm
+    split at hrow
+    · next hc =>
+      simp only [Bool.and_eq_true, decide_eq_true_eq] at hc
+      obtain ⟨B, hB, hBe⟩ := hc.2
+      rw [← Option.some.inj hrow, ← hBe]
+      exact (h.baseTree _).2 ⟨B, (Finset.filter_subset _ _) hB, rfl⟩
+    · exact absurd hrow (by simp)
+
 /-- [DQ13; audit N2] The finality head is stored; so the fallback head fields
 of `fgInputs` are unreachable. -/
 theorem fgHead_stored (p : Params) (st : State p.n) (h : CStoreInv p st) :
@@ -759,20 +779,7 @@ theorem fgHead_stored (p : Params) (st : State p.n) (h : CStoreInv p st) :
   dsimp only
   rcases @GridCO.ghostWalk_mem GridCO.slowLeasePolicy _ _ _ _ (liveRoot p st) with he | hm
   · rw [he]
-    unfold liveRoot
-    dsimp only
-    rcases foldl_select_mem (fun (best b : Block) => best.depth < b.depth ||
-        (best.depth == b.depth && best.root < b.root)) _ _ with he' | hm'
-    · rw [he']
-      exact (h.baseTree _).2 ⟨_, Z_mem p st h, rfl⟩
-    · obtain ⟨row, -, hrow⟩ := List.mem_filterMap.1 hm'
-      split at hrow
-      · next hc =>
-        simp only [Bool.and_eq_true, decide_eq_true_eq] at hc
-        obtain ⟨B, hB, hBe⟩ := hc.2
-        rw [← Option.some.inj hrow, ← hBe]
-        exact (h.baseTree _).2 ⟨B, (Finset.filter_subset _ _) hB, rfl⟩
-      · exact absurd hrow (by simp)
+    exact liveRoot_stored p st h
   · have hm2 := List.mem_eraseDups.1 hm
     exact (List.mem_filter.1 hm2).1
 

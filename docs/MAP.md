@@ -1165,7 +1165,7 @@ rows under `scripts/` are paths from the repository root.
 │                                │ contentAgree (MetaInv at both stores),         │                    │
 │                                │ contentAgree_reachable (I9)                    │                    │
 │ Proofs/Head.lean               │ T7.W walk wrappers (Grid CO walk lemmas at     │ T7.W (W1), (W2)    │
-│                                │ slowLeasePolicy): (W1) liveRoot_stored,        │                    │
+│                                │ slowLeasePolicy): (W1)                         │                    │
 │                                │ headInTree_stored, getHead_stored,             │                    │
 │                                │ headVote_stored; (W2)                          │                    │
 │                                │ liveRoot_preceq_headInTree, F_preceq_liveRoot, │                    │
@@ -1174,11 +1174,6 @@ rows under `scripts/` are paths from the repository root.
 │                                │ preceq_fgHead_of_preceq_F,                     │                    │
 │                                │ preceq_headVote_of_preceq_F (s > 0 only);      │                    │
 │                                │ headVote_zero (slot 0 gives genesis)           │                    │
-│ Proofs/ChainOrder.lean         │ the chain-state row fold is order-free:        │ T7.W (extra item)  │
-│                                │ process_row_eq (three conditional inserts),    │                    │
-│                                │ process_row_comm, process_row_idem;            │                    │
-│                                │ transition_perm, transition_eq_of_mem_iff,     │                    │
-│                                │ transition_eq_of_toFinset                      │                    │
 │ Tests/Support.lean             │ admitWith, process_eq_admitWith: proved        │                    │
 │                                │ rewrite of a delivery for kernel checks        │                    │
 │ Tests/Smoke.lean               │ decide examples of the model                   │                    │
@@ -1221,6 +1216,12 @@ built `.olean` files: run them alone only after `lake build AvailableChainFGSA`.
 
 E-11 `StoreBundle` has cstore, meta, nest and lease fields. Its reachability
 proof is deferred to step 3; `LeaseBelowOutputStore` states the live lease bound.
+
+The T7.W row-fold declarations are now in `AvailableChainKitFG/Certificates.lean`
+(namespace `AvailableChain.KitFG`, I14): `process_row_eq`, `process_row_comm`,
+`process_row_idem`, `transition_perm`, `transition_eq_of_mem_iff`, and
+`transition_eq_of_toFinset`. The shared `AvailableChain.FGSA.liveRoot_stored`
+proof is in `AvailableChainFGSA/Proofs/StoreInv.lean`.
 
 ## FG-SA run library (T7.2)
 

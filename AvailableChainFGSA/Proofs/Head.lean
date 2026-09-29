@@ -19,27 +19,6 @@ theorem erasedList_subset {n : Nat} (st : State n) (X : Finset (FGBlock (Fin n))
     erasedList st X ⊆ st.base.blocks :=
   fun _ hb => (List.mem_filter.1 hb).1
 
-/-- [spec 648–655; T7.W] The live root is stored: it is the erasure of Z or a
-lease target in the full filtered tree. This proof duplicates the live-root
-branch of `fgHead_stored` (`Proofs/StoreInv.lean:756`); that proof does not
-change. -/
-theorem liveRoot_stored (p : Params) (st : State p.n) (h : CStoreInv p st) :
-    liveRoot p st ∈ st.base.blocks := by
-  unfold liveRoot
-  dsimp only
-  rcases foldl_select_mem (fun (best b : Block) => best.depth < b.depth ||
-      (best.depth == b.depth && best.root < b.root)) _ _ with he | hm
-  · rw [he]
-    exact (h.baseTree _).2 ⟨_, Z_mem p st h, rfl⟩
-  · obtain ⟨row, -, hrow⟩ := List.mem_filterMap.1 hm
-    split at hrow
-    · next hc =>
-      simp only [Bool.and_eq_true, decide_eq_true_eq] at hc
-      obtain ⟨B, hB, hBe⟩ := hc.2
-      rw [← Option.some.inj hrow, ← hBe]
-      exact (h.baseTree _).2 ⟨B, (Finset.filter_subset _ _) hB, rfl⟩
-    · exact absurd hrow (by simp)
-
 /-- [spec 1074–1107; T7.W (W1)] The walk result is stored when its tree is in
 the base list, for every score and eligibility (the vote lists `raw` and
 `support`). -/
@@ -63,7 +42,7 @@ theorem getHead_stored (p : Params) (st : State p.n) (h : CStoreInv p st)
 /-- [spec 1276–1302; T7.W; G-walk MINOR-1] The HEAD vote at slot 0 is genesis
 (for the slot-0 branch of T7.12). -/
 theorem headVote_zero (p : Params) (st : State p.n) : headVote p st 0 = .genesis := by
-  simp [headVote]
+  rfl
 
 /-- [spec 1276–1302; T7.W (W1)] The HEAD vote is stored, at every slot. -/
 theorem headVote_stored (p : Params) (st : State p.n) (h : CStoreInv p st) (s : Slot) :
