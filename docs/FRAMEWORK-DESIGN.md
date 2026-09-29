@@ -321,12 +321,15 @@ the text above.
 **E6. Restart.** `Event.restart v t`; order at one time: restart, ticks,
 deliveries. Step: `st ↦ restore (durable st)`. For an FG composite,
 `durable` = Λ + F + the F basis; h_max and J are derived again from
-received chain states. *Note 2026-09-29 (user decision, via DC-simplify):*
-an FG composite keeps at least Λ durable (Λ is the slashing-protection
-database, which survives restarts); F and its basis are an optional extension
-that no FG-SA claim uses, and F is derived again from received chains. FG-SA
-uses `Durable := Λ`, `restore d := {st := init, rec := d}`. Restarts are a
-later model extension. Each restart starts a new EPOCH of the node. Receipt facts (`processed`,
+received chain states. *Note 2026-09-29 (user decisions, via DC-simplify; the second
+corrects the first):* an FG composite keeps Λ and F durable. Λ is the
+slashing-protection database, which survives restarts. F is kept with the
+stored carrier chain that makes F derivable (`Fcar` in
+`KitFG/Correspondence.lean`: the FG blocks from genesis to the carrier K,
+whose chain state finalizes F); "the F basis" above means that chain, not
+the old `Σ.f_basis`, which the adopted spec removed. FG-SA's `restore`
+rebuilds the store from that chain with Λ; h_max and J are derived again.
+Restarts are a later model extension. Each restart starts a new EPOCH of the node. Receipt facts (`processed`,
 `depsPresent`) reset with the epoch (audit W04): a block outside the
 durable part is lost, and it can be delivered again (the freshness check
 allows it). Delivery obligations toward a restarted node cover objects
