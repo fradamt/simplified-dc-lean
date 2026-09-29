@@ -135,9 +135,9 @@ How the pieces meet:
   (durable). Label families: HEAD labels AP and fresh (`CStar`); FG labels
   `Linked`; proposal labels AP and `SingleSeat`, one label per slot
   (`Interface.propLabel_injective`).
-- Walks: `ghost` takes an anchor. Planned after the I9 merge:
-  `confirmationFrom a` and `gateFrom a` in the base, with the genesis forms
-  as the old names; SA uses genesis, FG-SA uses Σ.F.
+- Walks: `ghost` takes an anchor. The base has `confirmationFrom a`,
+  `gateFrom a` and `clockFrom a` (713f56f); the old names are the genesis
+  forms. SA uses genesis; FG-SA uses Σ.F (spec sync, 1944bb8).
 
 Engine v2 decisions (design §2), one line each:
 - E1 duties and keys: `Auth = seat ℓ i | none`; a proposal duty is a
@@ -166,8 +166,12 @@ Engine v2 decisions (design §2), one line each:
   the protocol libraries). A change needs an expected-name list,
   `--write --allow-changes`, a clean `--check`, and a lock-log entry in
   design §8. Companions and optional claims only add lines.
-- V2 freeze: after the 2a gate, every declaration in `docs/V2-API.md` is
-  frozen; later stages only ADD declarations.
+- V2 freeze (2a gate, 1aa6885): every declaration in `docs/V2-API.md` is
+  frozen, with a per-entry hash; `scripts/V2Manifest.lean --check` checks
+  it. Engine entries are also locked through anchor defs in
+  `AvailableChainFramework.V2`. Never edit `anchor`; add a new anchor def.
+  New declarations go after the existing ones or in a new module; the
+  manifest module blocks are append-only.
 - T7 import guard: the FG-SA run library imports no v1 Kit, v1
   Statements, v1 engine or `GridCO.Proofs.*` directly, and a used-constant
   check backs the rule (the import closure cannot be v1-free). FG-SA
@@ -189,15 +193,15 @@ Engine v2 decisions (design §2), one line each:
 ┌────┬──────────────────────────────────────┬──────────────────────────┐
 │ M  │ Content                              │ Status 2026-09-29        │
 ├────┼──────────────────────────────────────┼──────────────────────────┤
-│ 1  │ I9 derived roots + engine v2 core    │ executing: I9 Task 9;    │
-│    │ (2a)                                 │ 2a Tasks 0–5 done        │
-│ 1+ │ Post-I9: walk anchor                 │ agreed; after the I9     │
-│    │ (`confirmationFrom`/`gateFrom`);     │ merge                    │
-│    │ FG-SA spec sync (walk from F, Pins)  │                          │
-│ 2  │ T7/T1: FG-SA run instance on v2,     │ plan r10 adopted; starts │
-│    │ FGSAClaims, registry map             │ after M1                 │
-│ 3  │ 1c for FG-SA: run construction and   │ to plan (before 2b/2c)   │
-│    │ inhabitation for every horizon       │                          │
+│ 1  │ I9 derived roots + engine v2 core    │ done: I9 3403e58; 2a     │
+│    │ (2a)                                 │ 1aa6885                  │
+│ 1+ │ Post-I9: walk anchor                 │ anchor 713f56f and spec  │
+│    │ (`confirmationFrom`/`gateFrom`);     │ sync 1944bb8 done; Pins  │
+│    │ FG-SA spec sync (walk from F, Pins)  │ re-pin next (fgsa-lean)  │
+│ 2  │ T7/T1: FG-SA run instance on v2,     │ plan r11 adopted; T7.0   │
+│    │ FGSAClaims, registry map             │ base ready (1aa6885)     │
+│ 3  │ 1c for FG-SA: run construction and   │ to plan; order (before   │
+│    │ inhabitation for every horizon       │ 2b/2c) waits for user    │
 │ 4  │ F0 statement layer → F1 foundations  │ scoped; F0–F2 draft      │
 │    │ → safety lane (Clean, P1/inclusion)  │ running                  │
 │    │ ∥ liveness lane (finality kernel,    │                          │
@@ -249,6 +253,7 @@ Engine v2 decisions (design §2), one line each:
   (FG composition), `docs/MAP.md` (contract to Lean), `docs/audit/`.
 - Plans (`docs/plans/`): framework-phase0, phase1a-gate-catalog,
   phase1b-instances, fg-module, fgsa-model-store (all closed);
-  i9-derived-roots (merged 3403e58); phase2a-engine-v2-core (executing);
+  i9-derived-roots (merged 3403e58); phase2a-engine-v2-core (merged
+  1aa6885; `docs/PHASE2A-REPORT.md`);
   fgsa-composition-t7-t1 (r11 adopted, 2ec3003; in
   `~/worktrees/available-chain-fgsa-plan`).
