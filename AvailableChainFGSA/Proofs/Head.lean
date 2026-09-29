@@ -1,8 +1,7 @@
 module
 public import AvailableChainFGSA.Proofs.StoreInv
-public import AvailableChainGridCO.Proofs.Goldfish
 
-@[expose] public section
+public section
 
 namespace AvailableChain.FGSA
 
@@ -133,7 +132,7 @@ theorem preceq_headVote_of_preceq_F (p : Params) (st : State p.n) (h : CStoreInv
     {B : Block} (hB : Block.Preceq B (eraseFG st.fg.F)) {s : Slot} (hs : 0 < s) :
     Block.Preceq B (headVote p st s) := by
   unfold headVote
-  rw [if_neg (Nat.pos_iff_ne_zero.1 hs)]
+  rw [ite_eq_right (Nat.pos_iff_ne_zero.1 hs)]
   exact block_preceq_trans hB (F_preceq_headInTree p st h _ _ _)
 
 end AvailableChain.FGSA

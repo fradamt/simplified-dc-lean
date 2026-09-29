@@ -2,7 +2,7 @@ module
 public import AvailableChainSimplexFG.ChainState
 public import Mathlib.Data.List.Dedup
 
-@[expose] public section
+public section
 
 namespace AvailableChain.FGSA
 
