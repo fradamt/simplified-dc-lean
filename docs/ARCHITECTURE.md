@@ -119,9 +119,11 @@ Engine v2 decisions (design §2), one line each:
   frozen; later stages only ADD declarations.
 - T7 import guard: the FG-SA run library imports no v1 Kit, v1
   Statements, v1 engine or `GridCO.Proofs.*` directly, and a used-constant
-  check backs the rule (the import closure cannot be v1-free). After the
-  I9 merge the pure walk lemmas move to `GridCO/Walk/` with only model
-  imports; `RecoverySuffix` lemmas get FG-SA wrappers.
+  check backs the rule (the import closure cannot be v1-free). FG-SA
+  reaches Grid CO walk and score lemmas through wrappers in
+  `AvailableChainFGSA.Proofs.*` (option b2; `fgHead_stored` is the
+  precedent). Wrapper statements use only model-level constants. The move
+  of the pure lemmas to `GridCO/Walk/` (about 70 declarations) is deferred.
 - DC Lean is a reference, not a dependency (toolchain v4.34 vs v4.30,
   `using!`, R ≥ 3).
 - Process: a plan per phase with an audit; a task review for each task and
@@ -138,9 +140,9 @@ Engine v2 decisions (design §2), one line each:
 ├────┼──────────────────────────────────────┼──────────────────────────┤
 │ 1  │ I9 derived roots + engine v2 core    │ executing: I9 Task 9;    │
 │    │ (2a)                                 │ 2a Tasks 0–5 done        │
-│ 1+ │ Post-I9: walk-lemma move and walk    │ agreed; after the I9     │
-│    │ anchor; FG-SA spec sync (walk from   │ merge                    │
-│    │ F, Pins)                             │                          │
+│ 1+ │ Post-I9: walk anchor                 │ agreed; after the I9     │
+│    │ (`confirmationFrom`/`gateFrom`);     │ merge                    │
+│    │ FG-SA spec sync (walk from F, Pins)  │                          │
 │ 2  │ T7/T1: FG-SA run instance on v2,     │ plan r10 adopted; starts │
 │    │ FGSAClaims, registry map             │ after M1                 │
 │ 3  │ 1c for FG-SA: run construction and   │ to plan (before 2b/2c)   │
