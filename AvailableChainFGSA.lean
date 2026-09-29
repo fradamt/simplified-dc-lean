@@ -14,4 +14,6 @@ public import AvailableChainFGSA.Proofs.Nesting
 public import AvailableChainFGSA.Proofs.Reconcile
 public import AvailableChainFGSA.Proofs.Admission
 public import AvailableChainFGSA.Proofs.StoreInv
+public import AvailableChainFGSA.Proofs.Metadata
+public import AvailableChainFGSA.Proofs.CrossNode
 public import AvailableChainFGSA.Tests.Smoke

@@ -20,5 +20,8 @@ def FMonotone (p : Params) : Prop :=
   ∀ st : State p.n, (∀ o, FGBlock.Preceq st.fg.F (process p st o).fg.F) ∧
     (∀ t, (clock p st t).fg.F = st.fg.F)
 
+/-- [bp bp.store.v1; K4 metadata] -/
+def MetadataInvariant (p : Params) : Prop := ∀ st, Reachable p st → MetaInv p st
+
 end AvailableChain.FGSA
 end

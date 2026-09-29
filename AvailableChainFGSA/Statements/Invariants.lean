@@ -70,5 +70,38 @@ def Inv0 (p : Params) (st : State p.n) : Prop :=
   KitFG.StoreInv p.E p.cfg st.fg ∧ (∀ X ∈ st.fg.TF, ∀ Y ∈ st.fg.TF, X.root = Y.root → X = Y) ∧
     (∀ b, b ∈ st.base.blocks ↔ ∃ B ∈ st.fg.TF, eraseFG B = b)
 
+/-- [bp bp.store.v1, bp.frame.v1; K4 metadata; audit M4] The local metadata
+invariant. `wireTree`: every stored wire is a decoded proposal whose FG block is
+in Σ.T, with the SAME ordered rows (`filterMap toRow?`), and whose rows all
+decode. `treeWire`: every non-genesis block of Σ.T has exactly one stored wire.
+`stampKeys`: the block stamps are keyed by the base list, once each.
+`pool*`: the row pool holds decoded rows, no duplicate, at most two per
+identity and round (used by `proposalRows`). `wireTree` and `poolDecodes` also
+make every `proposalRows` candidate decode, so its grouping key is never `none`
+(G6 item 9). -/
+structure MetaInv (p : Params) (st : State p.n) : Prop where
+  wireTree : ∀ o ∈ st.proposals, ∃ s b raw sup rows,
+    o = ⟨.proposer s, .proposal b raw sup rows⟩ ∧ (∀ a ∈ rows, (RowWire.decode? a).isSome) ∧
+    ∃ B ∈ st.fg.TF, eraseFG B = b ∧ B.rows = rows.filterMap RowWire.toRow?
+  treeWire : ∀ B ∈ st.fg.TF, B ≠ .genesis →
+    ∃! o, o ∈ st.proposals ∧ Wire.block? o = some (eraseFG B)
+  proposalsNodup : st.proposals.Nodup
+  stampKeys : st.base.blockStamp.map Prod.fst = st.base.blocks
+  blocksNodup : st.base.blocks.Nodup
+  poolDecodes : ∀ a ∈ st.rowPool, (RowWire.decode? a).isSome
+  poolNodup : st.rowPool.Nodup
+  poolCap : ∀ r i, (st.rowPool.filter (fun a =>
+    a.decode?.map (fun x => (x.1, x.2.1)) == some (r, i))).length ≤ 2
+
+/-- [bp bp.carrier.v1; K5 cross-node; DQ3(b), which REVERSES comp D4; audit M2]
+The content premise on two stores: stored proposal wires whose blocks have equal
+roots have equal payloads (erased block with its parent chain, ordered signed
+votes, support subset, ordered signed rows with their rounds). T7 derives it for
+every pair of honest stores of a run from the run premise
+`ContentRootInjective`. -/
+def ContentAgree {n : Nat} (st st' : State n) : Prop :=
+  ∀ o ∈ st.proposals, ∀ o' ∈ st'.proposals, ∀ b b',
+    Wire.block? o = some b → Wire.block? o' = some b' → b.root = b'.root → o.payload = o'.payload
+
 end AvailableChain.FGSA
 end
