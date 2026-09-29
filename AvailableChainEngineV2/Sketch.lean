@@ -92,7 +92,7 @@ def toyV2 : SpecV2 where
   durable := fun st => st
   restore := fun d => (d.1, 0)
   dbase := fun d => d.1
-  output := fun st => (List.range st.1).foldl (fun b k => .node b k ⟨k + 1⟩) .genesis
+  output := fun st => (List.range st.1).foldl (fun b k => .node b k k) .genesis
 
 theorem toyV2_isolated : Isolated toyV2 :=
   ⟨⟨fun b _ => b, fun _ _ => rfl⟩,
@@ -101,7 +101,7 @@ theorem toyV2_isolated : Isolated toyV2 :=
     -- `Max toyV2.Base` before the projection unfolds to `Nat`, and that
     -- search fails. `Nat.max` is the plain function, so no instance search.
     ⟨fun (b : Nat) (o : Nat × Bool) => Nat.max b o.1, fun _ _ => rfl⟩,
-    fun _ _ => rfl, ⟨fun b => (List.range b).foldl (fun c k => .node c k ⟨k + 1⟩) .genesis,
+    fun _ _ => rfl, ⟨fun b => (List.range b).foldl (fun c k => .node c k k) .genesis,
       fun _ => rfl⟩⟩
 
 theorem toyV2_restorable : Restorable toyV2 :=

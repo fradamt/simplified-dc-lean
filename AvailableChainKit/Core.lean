@@ -17,10 +17,10 @@ theorem block_preceq_trans (A B C : Block) :
   | genesis =>
       have hB : B = .genesis := by simpa [Block.Preceq, Block.preceq] using hBC
       subst hB; exact hAB
-  | node p s r ih =>
+  | node p s x ih =>
       unfold Block.Preceq Block.preceq at hBC
       rcases Bool.or_eq_true_iff.mp hBC with h | h
-      · have : B = .node p s r := of_decide_eq_true h
+      · have : B = .node p s x := of_decide_eq_true h
         subst this; exact hAB
       · have := ih h
         unfold Block.Preceq Block.preceq
