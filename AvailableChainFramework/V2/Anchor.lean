@@ -8,16 +8,19 @@ namespace AvailableChain.Framework.V2
 /-! The engine v2 anchor (plan 2a, Task 7; design §1, D6). The lock
 (`scripts/CatalogLock.lean`) locks every declaration under the module prefix
 `AvailableChainFramework.V2`. The value of `anchor` references every engine
-declaration of `docs/V2-API.md`, so its closure contains each one and its lock
-line changes when one of them changes (the freeze rule, DC N6). A `let` chain,
-not a tuple: a tuple can fail across universes.
+declaration of `docs/V2-API.md` at the 2a gate, so its closure contains each
+one and its lock line changes when one of them changes (the freeze rule, DC
+N6). A `let` chain, not a tuple: a tuple can fail across universes.
 
-`scripts/V2Manifest.lean --anchor` generates the body; `--check` checks that
-every engine entry of the manifest is in the closure of `anchor`. The Kit v2
-entries of the manifest are frozen by rule only: the Framework does not import
-`AvailableChainKitV2` (L5). -/
+Never edit `anchor`: a later stage adds a new anchor def in a new module
+under `AvailableChainFramework/V2/`, so that the lock change is ADDED only.
+`scripts/V2Manifest.lean --anchor` prints the body of that def (the engine
+entries that no anchor covers yet); `--check` checks that every engine entry
+of the manifest is in the closure of some anchor def. The Framework does not
+import `AvailableChainKitV2` (L5): the lock does not see the Kit v2 entries;
+their manifest hashes do. -/
 
-/-- References every engine declaration of `docs/V2-API.md`. -/
+/-- References every engine declaration of `docs/V2-API.md` at the 2a gate. -/
 def anchor : Unit :=
   -- AvailableChainEngineV2.Engine.Objects
   let _ := @AvailableChain.V2.Auth

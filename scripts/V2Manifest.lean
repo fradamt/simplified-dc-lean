@@ -19,7 +19,8 @@ The entry hash (`entryHex`, 16 hex digits) mixes:
   that is generated or private and in a v2 module (`AvailableChainEngineV2`,
   `AvailableChainKitV2`) or in the module of the entry: its matchers,
   equation lemmas, `_proof_` constants and private helpers;
-- the binder names and binder infos of the entry's type (`binderHash`);
+- the binder names (without macro scopes) and binder infos of the entry's
+  type (`binderHash`);
 - the reducibility status of the entry and whether it is an instance.
 `ownHash` is the `ownHash` of `scripts/CatalogLock.lean` (kind, name, type;
 for a definition also the value; for an inductive also the constructor
@@ -137,12 +138,16 @@ def binderInfoTag : BinderInfo → UInt64
   | .default => 0 | .implicit => 1 | .strictImplicit => 2 | .instImplicit => 3
 
 /-- The binder names and binder infos of `e`, in tree order (`Expr` hashes
-ignore them). -/
+ignore them). A hygienic name counts without its macro scopes: the scopes
+depend on earlier declarations of the module with the same written name,
+and a hygienic name cannot be a named argument. -/
 partial def binderHash : Expr → UInt64
   | .forallE n t b bi | .lam n t b bi =>
-      mixHash (mixHash (hash n) (binderInfoTag bi)) (mixHash (binderHash t) (binderHash b))
+      mixHash (mixHash (hash n.eraseMacroScopes) (binderInfoTag bi))
+        (mixHash (binderHash t) (binderHash b))
   | .letE n t v b _ =>
-      mixHash (hash n) (mixHash (binderHash t) (mixHash (binderHash v) (binderHash b)))
+      mixHash (hash n.eraseMacroScopes)
+        (mixHash (binderHash t) (mixHash (binderHash v) (binderHash b)))
   | .app f a => mixHash (binderHash f) (binderHash a)
   | .mdata _ e | .proj _ _ e => binderHash e
   | _ => 11
