@@ -101,6 +101,7 @@ theorem prefixSupport_ge_early_honest_batch
       ∃ target, headTarget? o = some target ∧ Block.Preceq B target) :
     (awakeAt E rho.honest (voteTime p r)).card ≤
       prefixSupport p (Run.stateBeforeTime (gridCO p) rho cut reader) r B := by
+  set_option backward.isDefEq.respectTransparency false in
   rw [prefixSupport_eq_card]
   apply Finset.card_le_card_of_injOn (rho.seatOf r).symm
   · intro u hu

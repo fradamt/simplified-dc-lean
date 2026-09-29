@@ -13,6 +13,7 @@ theorem frozenPCAt_after_freeze {V : Type} [DecidableEq V] (p : Params)
     (cut : Time) (before : freezeTime p r < cut) (horizon : freezeTime p r ≤ rho.horizon) :
     frozenPCAt (Run.stateBeforeTime (sapc p) rho cut v) r =
       (Run.stateBeforeTime (sapc p) rho (freezeTime p r) v).bestPC := by
+  set_option backward.isDefEq.respectTransparency false in
   have pub : PublicTime E (freezeTime p r) := by
     refine ⟨4 * r + 3, ?_⟩
     change 4 * p.Δ * (r : Time) + 3 * p.Δ = _
@@ -71,7 +72,7 @@ theorem clock_frozenPCAt_retained (p : Params) {n : Nat} (st : State n)
   | some row =>
     rcases clock_frozenPC_cases p st t with unchanged | ⟨_, added⟩
     · simpa only [unchanged] using frozen
-    · simpa only [added, List.find?_append, found, Option.or_some] using frozen
+    · simpa only [added, List.find?_append, found, Option.or_some] using! frozen
 
 /-- Carried selection retains at least the frozen rank, for arbitrary
 proposal authors and arrival order. Equal ranks retain the old encoding. -/
@@ -134,7 +135,7 @@ theorem strongArmed_selected_rank {V : Type} [DecidableEq V] [Fintype V]
     _ before (before.le.trans horizon)).trans live
   have headFrozen := clock_frozenPCAt_retained p _ (voteTime p (r + 1)) r d frozen
   obtain ⟨e, choice, next⟩ := selectedPC_rank p (headState p rho (r + 1) v) (r + 1) d
-    (by simpa only [Nat.add_sub_cancel] using headFrozen)
+    (by simpa only [Nat.add_sub_cancel] using! headFrozen)
   refine ⟨e, choice, rank.trans ?_⟩
   rcases next with rfl | next
   · exact le_refl _

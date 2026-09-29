@@ -18,7 +18,7 @@ theorem CleanPath.advance {path : Block → Prop} (h : CleanPath path)
   · exact ⟨ha, GridCO.block_preceq_self a, by assumption⟩
   · rename_i hn
     have hab : Block.Preceq a b := by
-      simpa [Block.Compatible, Block.compatible, hn] using hc
+      simpa [Block.Compatible, Block.compatible, hn] using! hc
     exact ⟨hb, hab, GridCO.block_preceq_self b⟩
 
 /-- Both records are retained or advanced by the raw result. The PC

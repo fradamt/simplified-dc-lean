@@ -259,7 +259,7 @@ theorem process_height_events_F (E : Electorate V) (cfg : FGConfig) (σ : ChainS
 theorem isQuorum_of_finalityReady (E : Electorate V) {σ : ChainState V}
     (h : finalityReady E σ = true) : E.IsQuorum σ.finalize := by
   simp only [finalityReady, Bool.and_eq_true, ChainState.finalityQuorum,
-    ChainState.Q_finality, decide_eq_true_eq] at h
+    decide_eq_true_eq] at h
   exact h.2
 
 -- port: DC/DecoupledConsensusProofs/Protocol/ChainState/Chain.lean:317-320
@@ -273,7 +273,7 @@ theorem lt_of_finalityReady (E : Electorate V) {σ : ChainState V}
 /-- [helper] The justification guard carries a target quorum. -/
 theorem isQuorum_of_targetQuorum (E : Electorate V) {σ : ChainState V}
     (h : σ.targetQuorum E = true) : E.IsQuorum σ.target_participation := by
-  simp only [ChainState.targetQuorum, ChainState.Q_target, decide_eq_true_eq] at h
+  simp only [ChainState.targetQuorum, decide_eq_true_eq] at h
   exact h
 
 -- port: DC/DecoupledConsensusProofs/Protocol/ChainState/Chain.lean:331-339
@@ -283,7 +283,7 @@ theorem quorum_of_progReady (E : Electorate V) (cfg : FGConfig) {σ : ChainState
     E.IsQuorum σ.target_participation ∨
       (σ.T_h.slot + cfg.timeoutDelay ≤ σ.s ∧ E.IsQuorum σ.progress) := by
   simp only [progReady, Bool.or_eq_true, Bool.and_eq_true, ChainState.targetQuorum,
-    ChainState.progQuorum, ChainState.Q_target, ChainState.Q_prog, decide_eq_true_eq] at h
+    ChainState.progQuorum, decide_eq_true_eq] at h
   exact h
 
 -- port: DC/DecoupledConsensusProofs/Protocol/ChainState/FinalityCertificates.lean:181-199
@@ -298,9 +298,9 @@ theorem finality_pair_cases (E : Electorate V) (cfg : FGConfig) (σ : ChainState
   obtain ⟨hF, hhF⟩ := process_height_events_F E cfg σ
   rw [hF, hhF, afterFin_F, afterFin_h_F]
   by_cases hf : finalityReady E σ = true
-  · rw [if_pos hf, if_pos hf]
+  · rw [ite_eq_left hf, ite_eq_left hf]
     exact Or.inr ⟨rfl, rfl, hf⟩
-  · rw [if_neg hf, if_neg hf]
+  · rw [ite_eq_right hf, ite_eq_right hf]
     exact Or.inl ⟨rfl, rfl⟩
 
 -- port: DC/DecoupledConsensusProofs/Protocol/ChainState/JustificationCertificates.lean:183-195
@@ -497,7 +497,7 @@ theorem witnesses_process {pool : Row V → Prop} {σ : ChainState V} {a : Row V
     · have hm : a.height_pair.matchesEntry σ.h σ.T_h.root = true := by
         rw [ht]
         simp [NamedHeightPair.matchesEntry]
-      rw [if_pos hm]
+      rw [ite_eq_left hm]
       rcases Finset.mem_insert.mp hi with rfl | hi
       · exact Finset.mem_insert_self _ _
       · exact Finset.mem_insert_of_mem (h.target_sub hi)

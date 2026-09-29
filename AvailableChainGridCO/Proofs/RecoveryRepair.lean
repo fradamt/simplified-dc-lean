@@ -63,10 +63,11 @@ theorem stage_clock_row_support {V : Type} [DecidableEq V] (p : Params)
     (hm : (B, g, d) ∈
       (clock p (Run.stateBeforeTime (gridCO p) rho cut reader) cut).obligations) :
     ∃ s, gateTime p s ≤ cut ∧ ∀ t, s ≤ t → gateTime p t ≤ rho.horizon → HeadCovers p rho t B := by
+  set_option backward.isDefEq.respectTransparency false in
   have hmap := run_time_map_reachable p E rho hs cut reader
   have hclock := clock_map_reachable p _ cut hmap
     (le_of_lt (time_input_now_lt p E rho hs cut hz reader))
-  have hd : cut < d := by simpa [LiveRows, clock_now] using hclock.liveRows (B, g, d) hm
+  have hd : cut < d := by simpa [LiveRows, clock_now] using! hclock.liveRows (B, g, d) hm
   obtain ⟨s, C, ht, hc, hp, hadmit, hdeadline⟩ :=
     clock_input_row_admitted_origin p E rho hs cut reader B g d hm
   refine ⟨s, ht, ?_⟩

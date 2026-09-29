@@ -93,7 +93,6 @@ theorem synchronous_early_target_at_freeze {V : Type} [DecidableEq V] [Fintype V
   · subst B
     obtain ⟨hm, ht⟩ := genesis_stored_at_time p E rho hsched (freezeTime p r) reader
     refine ⟨hm, ?_⟩
-    change stampBlock (Run.stateBeforeTime (gridCO p) rho (freezeTime p r) reader) _ < _
     rw [ht]
     dsimp [freezeTime, proposalTime]
     nlinarith [p.deltaPos, Int.natCast_nonneg r]

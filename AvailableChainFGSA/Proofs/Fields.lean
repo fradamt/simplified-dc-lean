@@ -66,7 +66,7 @@ theorem admitBlock_refused (p : Params) (st : State p.n) (s : Slot) (b : Block)
   rcases h with h | ⟨P, hP, ha⟩
   · rw [h]
   · rw [hP]
-    simp only [ha, Bool.false_eq_true, if_false]
+    simp only [ha, Bool.false_eq_true, ite_false]
 
 /-! ### `onView`, `normalizeS`, `reconcile` -/
 
@@ -220,7 +220,7 @@ theorem gateStep_fresh (p : Params) (st : State p.n) (s : Slot)
       (SA.confirmationFrom p.toParams (eraseFG st.fg.F) (actView st) s) hv r
     unfold gateStep
     rw [normalizeS_fields]
-    simp only [hnew, Option.isSome_none, Bool.false_eq_true, if_false]
+    simp only [hnew, Option.isSome_none, Bool.false_eq_true, ite_false]
     unfold onView
     simp only [GridCO.savedGenuine] at this ⊢
     rw [hg]
@@ -234,7 +234,7 @@ theorem gateStep_fresh (p : Params) (st : State p.n) (s : Slot)
 theorem gateStep_saved (p : Params) (st : State p.n) (s : Slot)
     (hs : (GridCO.savedGenuine st.base s).isSome) : gateStep p st s = normalizeS st := by
   unfold gateStep
-  simp only [hs, if_true]
+  simp only [hs, ite_true]
 
 /-- [helper] Every member of `fastSet` at anchor `a` is a non-genesis prefix of
 the confirmation with the walk from `a`. -/

@@ -94,7 +94,7 @@ theorem reconcile_idem (st : State n) : reconcile (reconcile st) = reconcile st 
   rw [reconcile_eq (reconcile st)]
   rw [reconcile_eq st]
   simp only [activeCompatible, List.filter_filter, Bool.and_self, List.map_map,
-    Function.comp_def, Option.filter_filter, preceq_normal, if_true]
+    Function.comp_def, Option.filter_filter, preceq_normal, ite_true]
   rfl
 
 /-- [bp bp.reconcile.v1] After reconcile every SA target is compatible with F. -/
@@ -156,7 +156,7 @@ theorem reconcile_harmless (st : State n) (hC : SACompat st)
     | none => rfl
     | some C =>
         simp only [id, Option.filter_some]
-        rw [if_pos (show activeCompatible st C = true from hC.2.1 r C hrc)]
+        rw [ite_eq_left (show activeCompatible st C = true from hC.2.1 r C hrc)]
   have hW : st.fastWrite.map (fun row => (row.1, row.2.filter (activeCompatible st))) =
       st.fastWrite := by
     conv => rhs; rw [← List.map_id st.fastWrite]
@@ -184,7 +184,7 @@ theorem reconcile_fastOrigin (st : State n) (F₀ : Block) (hO : FastOrigin F₀
     · refine Or.inl ⟨C, ?_, hBC⟩
       rw [reconcile_savedGenuine, hC]
       simp only [Option.map_some, Option.filter_some]
-      rw [if_pos (show activeCompatible st C = true from hCF)]
+      rw [ite_eq_left (show activeCompatible st C = true from hCF)]
     · refine Or.inr ?_
       unfold Block.Compatible Block.compatible at hBF
       simp only [Bool.or_eq_true] at hBF

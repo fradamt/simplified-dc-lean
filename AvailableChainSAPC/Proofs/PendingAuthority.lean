@@ -166,6 +166,7 @@ theorem healthy_pending_head_pc_compatible
     (active : capBroken p (headState p rho (r + 1) v) = false)
     (c : PC p.n) (selected : selectedPC p (headState p rho (r + 1) v) (r + 1) = some c) :
     Block.Compatible c.target B := by
+  set_option backward.isDefEq.respectTransparency false in
   have earlyLt : earlyTime p r < voteTime p (r + 1) := by
     change 4 * p.Δ * (r : Time) + 2 * p.Δ < 4 * p.Δ * ((r + 1 : Nat) : Time) + p.Δ
     push_cast

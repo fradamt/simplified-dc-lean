@@ -139,6 +139,7 @@ theorem read_gate_covers_result {V : Type} [DecidableEq V]
     (hg : (gateInput p rho r reader).obligations.any
       (fun (target, _, _) => !Block.compatible target C) = false) :
     Block.Preceq C (stable (Run.readAt (gridCO p) rho (gateTime p r) reader)) := by
+  set_option backward.isDefEq.respectTransparency false in
   have hpub : PublicTime E (gateTime p r) := by
     refine ⟨4 * r + 6, ?_⟩
     simp only [gateTime, proposalTime, hΔ, Nat.cast_add, Nat.cast_mul, Nat.cast_ofNat]
@@ -168,6 +169,7 @@ theorem read_gate_writes_admitted_prefix {V : Type} [DecidableEq V]
     Block.Preceq B (stable (Run.readAt (gridCO p) rho (gateTime p r) reader)) ∧
       (B, g, gateTime p r + lifetime p) ∈
         (Run.readAt (gridCO p) rho (gateTime p r) reader).obligations := by
+  set_option backward.isDefEq.respectTransparency false in
   have hpub : PublicTime E (gateTime p r) := by
     refine ⟨4 * r + 6, ?_⟩
     simp only [gateTime, proposalTime, hΔ, Nat.cast_add, Nat.cast_mul, Nat.cast_ofNat]

@@ -32,9 +32,9 @@ instance : DecidableEq armedToy.Const := inferInstanceAs (DecidableEq (Time × T
 
 -- (4,10) beats (5,10) and (4,8); (6,20) is incomparable with (4,10).
 example : armedToy.pareto [(5, 10), (4, 10), (6, 20), (4, 8)] = [(4, 10), (6, 20)] := by
-  decide
+  rfl
 -- The direction matters: a weaker constant never removes a stronger one.
-example : armedToy.pareto [(4, 10), (5, 9)] = [(4, 10)] := by decide
+example : armedToy.pareto [(4, 10), (5, 9)] = [(4, 10)] := by rfl
 
 end AvailableChain.Registry.Tests
 

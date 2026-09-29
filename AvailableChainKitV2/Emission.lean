@@ -28,7 +28,7 @@ theorem mem_tick_seat_iff (E : Generic.Env V) (rho : Run V P) (st : P.State) (v 
         P.act (P.clock st t) ℓ (rho.input v t) = some p := by
   simp only [tick]
   by_cases hw : E.awake v t = true
-  · simp only [hw, if_true, List.mem_append, List.mem_flatMap, List.mem_filterMap,
+  · simp only [hw, ite_true, List.mem_append, List.mem_flatMap, List.mem_filterMap,
       Option.map_eq_some_iff, List.mem_map, true_and]
     constructor
     · rintro (⟨ℓ', hℓ', i', hi', p', hp', heq⟩ | ⟨p', -, heq⟩)
@@ -50,7 +50,7 @@ theorem ownSeats_bijSeat (rho : Run V P) {ℓ : P.Label} (e : Fin (P.seats ℓ) 
     (he : ∀ i, rho.seatOf ℓ i = e i) (v : V) : rho.ownSeats ℓ v = [e.symm v] := by
   have hp : (fun i => decide (rho.seatOf ℓ i = v)) = (fun i => decide (i = e.symm v)) := by
     funext i
-    simp only [he, e.apply_eq_iff_eq_symm_apply]
+    simp only [he, ← e.eq_symm_apply]
   rw [Run.ownSeats, hp, List.filter_eq,
     List.count_eq_one_of_mem (List.nodup_finRange _) (List.mem_finRange _)]
   rfl
@@ -65,7 +65,7 @@ theorem emits_bijSeat (E : Generic.Env V) (rho : Run V P) {ℓ : P.Label}
     (⟨.seat ℓ i, p⟩ : P.Object) ∈ (tick E rho st v t).2 ↔
       i = e.symm v ∧ E.awake v t = true ∧ P.actTime ℓ = t ∧
         P.act (P.clock st t) ℓ (rho.input v t) = some p := by
-  rw [mem_tick_seat_iff, he, e.apply_eq_iff_eq_symm_apply]
+  rw [mem_tick_seat_iff, he, ← e.eq_symm_apply]
   tauto
 
 omit [DecidableEq V] in
@@ -147,7 +147,7 @@ theorem ownRecord_fold_interval {β : Type} (proj : P.State → β) (g : β → 
             | tick u t =>
                 simp only [Event.node] at hv; subst u
                 have hemit := (Run.step_tick_eq E rho he).2
-                simp only [ownReleasedAt, he, Option.map_some, Event.node, if_true, hemit,
+                simp only [ownReleasedAt, he, Option.map_some, Event.node, ite_true, hemit,
                   World.step, Function.update_self, tick_decomp]
                 rw [proj_foldl_recordOwn proj g hrecord, hclock]
             | deliver u o t =>

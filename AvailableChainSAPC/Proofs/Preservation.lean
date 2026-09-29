@@ -44,6 +44,7 @@ theorem base_late_count_le_awake_add_faulty {V : Type} [DecidableEq V] [Fintype 
     GridCO.voterCount (GridCO.lateVotes p.engine
       (Run.stateBeforeTime (sapc p) rho cut v).base r) ≤
       (awakeAt E rho.honest (voteTime p r)).card + (faulty rho).card := by
+  set_option backward.isDefEq.respectTransparency false in
   rw [← GridCO.lateSeats_card]
   apply le_trans (b := (awakeAt E rho.honest (voteTime p r) ∪ faulty rho).card)
   · apply Finset.card_le_card_of_injOn (rho.seatOf r)
@@ -80,6 +81,7 @@ theorem head_in_earlyVotes_of_delivery {V : Type} [DecidableEq V]
         (fromHead ⟨.seat r ((rho.seatOf r).symm u), headData p rho r u⟩) t) :
     (⟨.seat r ((rho.seatOf r).symm u), .head (headData p rho r u).target⟩ : GridCO.Wire p.n) ∈
       GridCO.earlyVotes p.engine (Run.stateBeforeTime (sapc p) rho (gateTime p r) v).base r := by
+  set_option backward.isDefEq.respectTransparency false in
   have hve : voteTime p r ≤ earlyTime p r := by
     change 4 * p.Δ * (r : Time) + p.Δ ≤ 4 * p.Δ * (r : Time) + 2 * p.Δ
     linarith [p.deltaPos]
@@ -106,7 +108,7 @@ theorem head_in_earlyVotes_of_delivery {V : Type} [DecidableEq V]
   apply List.mem_filter.mpr
   refine ⟨List.mem_filter.mpr ⟨key, by simp [GridCO.headLabel?]⟩, ?_⟩
   simpa only [GridCO.resolvedBefore, GridCO.headTarget?, GridCO.headLabel?,
-    Option.getD_some, GridCO.blockKnown, Bool.and_eq_true, decide_eq_true_eq] using
+    Option.getD_some, GridCO.blockKnown, Bool.and_eq_true, decide_eq_true_eq] using!
     And.intro (And.intro (And.intro (receipts.blocks.subset target)
       (headData_target_slot p E rho hx.toScheduleWellFormed r u)) stamp) blockstamp
 
@@ -165,7 +167,7 @@ theorem prefixSupport_ge_honest_batch {V : Type} [DecidableEq V]
     simp only [GridCO.resolvedBefore, GridCO.headTarget?, GridCO.headLabel?,
       Option.getD_some, Bool.and_eq_true, decide_eq_true_eq, GridCO.blockKnown] at resolved
     simpa only [GridCO.headTarget?, GridCO.headLabel?, Option.getD_some, Bool.and_eq_true,
-      decide_eq_true_eq] using And.intro (And.intro resolved.1.1.1 resolved.1.1.2)
+      decide_eq_true_eq] using! And.intro (And.intro resolved.1.1.1 resolved.1.1.2)
         (cover u honest)
   · intro u _ w _ he; exact (rho.seatOf r).symm.injective he
 

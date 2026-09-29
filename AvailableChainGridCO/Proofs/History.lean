@@ -164,7 +164,7 @@ theorem fold_field_unchanged {V : Type} [DecidableEq V] {n : Nat}
       cases e with
       | tick u t =>
           by_cases h : v = u
-          · subst v; simpa [World.step] using hclock (.tick u t) (by simp) (w u)
+          · subst v; simpa [World.step] using! hclock (.tick u t) (by simp) (w u)
           · simp [World.step, h]
       | deliver u o t =>
           by_cases h : v = u

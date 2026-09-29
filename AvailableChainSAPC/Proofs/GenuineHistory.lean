@@ -66,6 +66,7 @@ theorem run_target_genuine_origin {V : Type} [DecidableEq V] (p : Params)
       rho.events[j]? = some (.tick reader (gateTime p r)) ∧
       SA.confirmation p (Run.stateBefore (sapc p) rho j reader).base r = some c ∧
       Block.Preceq b c := by
+  set_option backward.isDefEq.respectTransparency false in
   induction index with
   | zero => simp [Run.stateBefore, World.init, sapc, initial, GridCO.initial] at hm
   | succ index ih =>
@@ -91,7 +92,7 @@ theorem run_target_genuine_origin {V : Type} [DecidableEq V] (p : Params)
         have hold : (b, g, d) ∈ (Run.stateBefore (sapc p) rho index reader).base.obligations := by
           by_cases hv : reader = v
           · subst v
-            simpa only [World.step, sapc, Function.update_self, process_obligations] using hm
+            simpa only [World.step, sapc, Function.update_self, process_obligations] using! hm
           · simpa only [World.step, Function.update_of_ne hv] using hm
         obtain ⟨j, hj, rest⟩ := ih hold
         exact ⟨j, by omega, rest⟩
@@ -104,6 +105,7 @@ theorem state_on_cleanRunPath {V : Type} [DecidableEq V] [Fintype V]
     (hr : reader ∈ rho.honest) :
     CleanStateOnPath (cleanRunPath p rho index)
       (Run.stateBefore (sapc p) rho index reader).base := by
+  set_option backward.isDefEq.respectTransparency false in
   induction index with
   | zero =>
     exact ⟨Or.inl rfl, Or.inl rfl, by simp [Run.stateBefore, World.init, sapc, initial,
@@ -278,7 +280,7 @@ theorem clean_genuine_history_of_steps {V : Type} [DecidableEq V] [Fintype V]
       change 4 * p.Δ * (s : Time) + 3 * p.Δ ≤ 4 * p.Δ * (s : Time) + 6 * p.Δ
       linarith [p.deltaPos]
     simpa only [headData, headTarget, Nat.add_eq_zero_iff, Nat.one_ne_zero,
-      and_false, decide_false, Bool.false_eq_true, ↓reduceIte, mode, choice] using
+      and_false, decide_false, Bool.false_eq_true, ↓reduceIte, mode, choice] using!
       genuine_ordinary_head_covers p E rho hs.execution hΔ s source reader hsource hr
         hfreeze forward backward b b hb (GridCO.block_preceq_self b) root
 

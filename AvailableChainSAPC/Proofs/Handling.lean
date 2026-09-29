@@ -84,7 +84,7 @@ theorem receiveHeads_base_mem_or_equivocates (p : Params) {n : Nat} (st : State 
   have h := GridCO.fold_heads_mem_or_equivocates p.engine (xs.map baseHead) st.base r i
     data.target hlo hhi (List.mem_map.mpr ⟨baseHead ⟨.seat r i, data⟩,
       List.mem_map.mpr ⟨⟨.seat r i, data⟩, hm, rfl⟩, rfl⟩)
-  simpa only [receiveHeads_base, List.foldl_map, baseWire] using h
+  simpa only [receiveHeads_base, List.foldl_map, baseWire] using! h
 
 /-- Actual direct, proposal-carried, and envelope-carried calls retain
 all non-future complete signatures in the archive. -/

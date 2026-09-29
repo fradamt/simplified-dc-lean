@@ -93,7 +93,7 @@ theorem stateBefore_now_mono {V : Type} [DecidableEq V]
             | tick u t =>
                 by_cases hv : v = u
                 · subst u
-                  simpa [World.step, C.clock] using
+                  simpa [World.step, C.clock] using!
                     stateBefore_now_le_event C E rho hs hj v
                 · simp [World.step, hv]
             | deliver u o t =>

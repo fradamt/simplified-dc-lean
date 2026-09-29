@@ -79,6 +79,7 @@ theorem record_step_of_joint {V : Type} [DecidableEq V] [Fintype V]
     (hi : i < last) (v : V) (hv : v ∈ rho.honest) :
     Block.Preceq (stable (Run.stateBefore (sapc p) rho i v))
       (stable (Run.stateBefore (sapc p) rho (i + 1) v)) := by
+  set_option backward.isDefEq.respectTransparency false in
   cases he : rho.events[i]? with
   | none =>
     simp only [Run.stateBefore, List.take_add_one, he, Option.toList_none, List.append_nil]

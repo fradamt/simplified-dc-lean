@@ -12,7 +12,7 @@ theorem firstPerSeat_subset {n : Nat} (xs : List (HeadWire n)) : firstPerSeat xs
   | append_singleton xs x ih =>
       simp only [firstPerSeat, List.foldl_append, List.foldl_cons, List.foldl_nil]
       split
-      · exact ih.trans (List.subset_append_left _ _)
+      · exact List.Subset.trans ih (List.subset_append_left _ _)
       · intro o ho
         rcases List.mem_append.mp ho with hm | hm
         · exact List.mem_append_left _ (ih hm)
@@ -114,7 +114,7 @@ theorem assemblePC_complete (p : Params) {n : Nat} (st : State n) (s : Slot) (b 
       List.all_eq_true.mpr (fun o ho => by simpa using (hmem o ho).1)⟩
   refine ⟨c, ?_, rfl, rfl, hc⟩
   change (if pcValid p st c then some c else none) = some c
-  rw [if_pos hc]
+  rw [ite_eq_left hc]
 
 /-- Any valid local certificate suffices for deterministic assembly,
 even if the stored encoding uses a different subset or order. -/

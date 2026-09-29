@@ -80,7 +80,7 @@ private theorem schedule : ScheduleWellFormed env run := by
   · intro v t ht
     have hn := (show ∀ e ∈ run.events, 0 ≤ e.time ∧ e.time ≤ 6 from by decide)
       _ ht
-    exact ⟨t.toNat, by simpa only [env, mul_one] using (Int.toNat_of_nonneg hn.1).symm⟩
+    exact ⟨t.toNat, by simpa only [env, mul_one] using! (Int.toNat_of_nonneg hn.1).symm⟩
   · intro v hv t _ ht hb
     change t ≤ 6 at hb
     have hc : ∀ v ∈ run.honest, ∀ k : Fin 7,
@@ -115,7 +115,7 @@ private def plain (o : Wire 4) : Bool :=
   | _ => false
 
 private theorem deliveries_plain : ∀ e ∈ run.events, ∀ o ∈ e.object?.toList,
-    plain o = true := by decide
+    plain o = true := by set_option backward.isDefEq.respectTransparency false in decide
 
 private theorem plain_handles {st : State 4} {o child : Wire 4}
     (hp : plain o = true) (hh : handles p st o child) : o = child := by
@@ -280,6 +280,7 @@ private theorem head_pc_absent : ∀ i : Fin 42,
 
 /-- The round-9 invariant permits the stored branch that loses the HEAD choice. -/
 theorem before_cutoff : CleanPathFacts p env run 42 rejectedPath := by
+  set_option backward.isDefEq.respectTransparency false in
   refine ⟨rejectedPath_clean, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
   · intro i hi v _
     have hs := prefix_states ⟨i, by omega⟩ v
@@ -339,6 +340,7 @@ theorem no_extension : ¬ ∃ nextPath, (∀ b, rejectedPath b → nextPath b) �
 At this prefix there is no genuine gate, successful timely save, or PC
 use. This checks the cause of the round-10 failure against the new definition. -/
 theorem canonical_before : cleanRunPath p run 42 = (fun b => b = .genesis) := by
+  set_option backward.isDefEq.respectTransparency false in
   have noSource (b : Block) (hb : CleanRunSource p run 42 b) : False := by
     cases hb with
     | genuine j hj v hv r b ht hc => exact no_gate_before j hj v r ht

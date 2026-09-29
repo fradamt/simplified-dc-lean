@@ -61,6 +61,7 @@ theorem run_genuine_origin {V : Type} [DecidableEq V] (p : Params)
     (hm : (r, C) ∈ (Run.stateBefore (sapc p) rho index v).base.genuine) :
     ∃ j < index, rho.events[j]? = some (.tick v (gateTime p r)) ∧
       C = SA.confirmation p (Run.stateBeforeTime (sapc p) rho (gateTime p r) v).base r := by
+  set_option backward.isDefEq.respectTransparency false in
   obtain ⟨j, hj, t, tick, time, raw⟩ := clock_field_origin (P := sapc p)
     (fun st => st.base.genuine) rfl (process_genuine p)
     (fun st t row => t = gateTime p row.1 ∧
@@ -101,6 +102,7 @@ theorem time_input_savedGenuine {V : Type} [DecidableEq V] (p : Params)
     (hlt : gateTime p r < cut) (hh : gateTime p r ≤ rho.horizon) :
     GridCO.savedGenuine (Run.stateBeforeTime (sapc p) rho cut v).base r =
       some (SA.confirmation p (Run.stateBeforeTime (sapc p) rho (gateTime p r) v).base r) := by
+  set_option backward.isDefEq.respectTransparency false in
   cases saved : GridCO.savedGenuine (Run.stateBeforeTime (sapc p) rho cut v).base r with
   | some C => exact congrArg some (time_input_savedGenuine_origin p E rho hs cut v r C saved).2
   | none =>

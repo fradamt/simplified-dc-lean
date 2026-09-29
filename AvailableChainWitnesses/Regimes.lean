@@ -142,6 +142,7 @@ private theorem accepted_case (i : Nat) (v : Fin 6) (o : Wire) (t : Time)
 
 theorem execution (E : Env (Fin 6)) (hΔ : E.Δ = 1) :
     ExecutionValid viewProtocol E witnessRun := by
+  set_option backward.isDefEq.respectTransparency false in
   refine { horizon_nonneg := by decide
            sorted := by decide
            nodup := by simp [witnessRun]

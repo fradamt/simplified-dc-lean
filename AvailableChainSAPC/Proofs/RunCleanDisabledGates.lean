@@ -138,6 +138,7 @@ theorem cleanRunPath_chain_at_early_disabled
     (h : JointCleanInvariant p E rho i)
     (disabled : capBroken p (Run.stateBefore (sapc p) rho i reader) = true) :
     CleanPath (cleanRunPath p rho (i + 1)) := by
+  set_option backward.isDefEq.respectTransparency false in
   have nocap : ¬ FaultBound (sapc p) (pcFaultCap p) rho := by
     intro cap
     have active := capBroken_false_before p E rho hs.execution cap reader i

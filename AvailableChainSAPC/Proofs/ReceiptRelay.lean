@@ -123,6 +123,7 @@ theorem accepted_handled_processed {V : Type} [DecidableEq V]
     (o : Wire p.n) (t t' : Time) (ha : Run.acceptsAt (sapc p) rho i source o t)
     (hh : Run.handlesAt (sapc p) rho j reader o t') (htt : t ≤ t') :
     processed p (Run.stateBefore (sapc p) rho (j + 1) reader) o = true := by
+  set_option backward.isDefEq.respectTransparency false in
   obtain ⟨a, hi, hacall⟩ := ha.1
   obtain ⟨b, hj, hbcall⟩ := hh
   have hclock := causal_delivery_clock p E rho hx.toScheduleWellFormed hi hj htt
@@ -143,7 +144,7 @@ theorem accepted_handled_processed {V : Type} [DecidableEq V]
   | head data =>
     have hn : (⟨o.auth, data⟩ : HeadWire p.n) ∉
         (Run.stateBefore (sapc p) rho i source).receivedHeads := by
-      simpa [sapc, processed, hp] using hbefore
+      simpa [sapc, processed, hp] using! hbefore
     have hm : (⟨o.auth, data⟩ : HeadWire p.n) ∈
         (process p (Run.stateBefore (sapc p) rho i source) a).receivedHeads := by
       simpa [processed, hp] using hafter
@@ -151,7 +152,7 @@ theorem accepted_handled_processed {V : Type} [DecidableEq V]
     change o.auth = .seat r k at hk
     have he : o = fromHead ⟨.seat r k, data⟩ := by cases o; simp_all [fromHead]
     rw [he] at hbcall ⊢
-    simpa [processed, fromHead] using handled_head_archived p _ b r k data
+    simpa [processed, fromHead] using! handled_head_archived p _ b r k data
       (hslot.trans hcurrent') hbcall
   | proposal target raw support c =>
     have he := handles_nonhead_direct p _ b o (by intro h; simp [hp]) hbcall
@@ -159,7 +160,7 @@ theorem accepted_handled_processed {V : Type} [DecidableEq V]
     have he := handles_nonhead_direct p _ a o (by intro h; simp [hp]) hacall
     subst a
     have hn : target ∉ (Run.stateBefore (sapc p) rho i source).base.blocks := by
-      simpa [sapc, processed, hp, GridCO.blockKnown] using hbefore
+      simpa [sapc, processed, hp, GridCO.blockKnown] using! hbefore
     have hm : target ∈ (process p (Run.stateBefore (sapc p) rho i source) o).base.blocks := by
       simpa [processed, hp, GridCO.blockKnown] using hafter
     have hslot := (process_proposal_slot p _ o target raw support c hp hn hm).trans hcurrent'
@@ -193,7 +194,7 @@ theorem accepted_handled_processed {V : Type} [DecidableEq V]
       cases hauth : o.auth <;> simp_all [sapc, wellFormed]
     have hready : pcEnvelopeReady p (Run.stateBefore (sapc p) rho i source) cert = true := by
       by_contra hn
-      simp only [process, h_auth, hp, if_neg hn] at hafter
+      simp only [process, h_auth, hp, ite_eq_right hn] at hafter
       exact Bool.noConfusion (hbefore.symm.trans hafter)
     have hage := (Bool.and_eq_true_iff.mp hready).2
     have hready' : pcEnvelopeReady p (Run.stateBefore (sapc p) rho j reader) cert = true := by

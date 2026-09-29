@@ -114,7 +114,7 @@ private theorem fold_votes_subset (p : Params) {n : Nat} (raw : List (HeadWire n
       (raw.foldl (fun acc row => admitVote p acc (fromHead row)) st).votes := by
   induction raw generalizing st with
   | nil => exact List.Subset.refl _
-  | cons row raw ih => exact (admitVote_votes_subset p st (fromHead row)).trans (ih _)
+  | cons row raw ih => exact List.Subset.trans (admitVote_votes_subset p st (fromHead row)) (ih _)
 
 /-- A handler call never removes a stored HEAD. -/
 theorem process_votes_subset (p : Params) {n : Nat} (st : State n) (o : Wire n) :
@@ -236,13 +236,14 @@ theorem excludes_clock (p : Params) {n : Nat} (st : State n) (o : Wire n) (t : T
 
 theorem excludes_inert (p : Params) :
     ∀ st o, (gridCO p).excludes st o = true → (gridCO p).process st o = st := by
+  set_option backward.isDefEq.respectTransparency false in
   intro st o h
   rw [gridCO_excludes] at h
   obtain ⟨r, i, x, rfl⟩ := excludes_head p st o h
   obtain ⟨_, hc⟩ := (excludes_head_iff p st r i x).mp h
   change process p st ⟨.seat r i, .head x⟩ = st
   simp only [process, admitVote]
-  rw [if_pos]
+  rw [ite_eq_left]
   rcases hc with hc | hc
   · simp only [Bool.or_eq_true, decide_eq_true_eq]
     exact Or.inl (Or.inl (Or.inl (Nat.lt_sub_of_add_lt hc)))
@@ -269,6 +270,7 @@ theorem processed_stable (p : Params) :
       (rho : Run V (gridCO p)), ScheduleWellFormed E rho → ∀ v o i j, i ≤ j →
         (gridCO p).processed (Run.stateBefore (gridCO p) rho i v) o = true →
         (gridCO p).processed (Run.stateBefore (gridCO p) rho j v) o = true := by
+  set_option backward.isDefEq.respectTransparency false in
   intro V _ _ E rho _ v o i j hij h
   exact stateBefore_stable (P := gridCO p) (fun st => processed st o = true)
     (fun st t hq => by
@@ -276,9 +278,9 @@ theorem processed_stable (p : Params) :
       obtain ⟨auth, payload⟩ := o
       cases payload with
       | head x =>
-          simpa [processed, clock_votes] using hq
+          simpa [processed, clock_votes] using! hq
       | proposal b raw support =>
-          simpa [processed, blockKnown, clock_blocks] using hq)
+          simpa [processed, blockKnown, clock_blocks] using! hq)
     (fun st o' hq => by
       change processed (process p st o') o = true
       obtain ⟨auth, payload⟩ := o
@@ -297,6 +299,7 @@ theorem deps_stable (p : Params) :
       (rho : Run V (gridCO p)), ScheduleWellFormed E rho → ∀ v o i j, i ≤ j →
         (gridCO p).depsPresent (Run.stateBefore (gridCO p) rho i v) o = true →
         (gridCO p).depsPresent (Run.stateBefore (gridCO p) rho j v) o = true := by
+  set_option backward.isDefEq.respectTransparency false in
   intro V _ _ E rho _ v o i j hij h
   exact stateBefore_stable (P := gridCO p) (fun st => depsPresent st o = true)
     (fun st t hq => by
@@ -305,7 +308,7 @@ theorem deps_stable (p : Params) :
       cases payload with
       | head x => rfl
       | proposal b raw support =>
-          simpa [depsPresent, blockKnown, clock_blocks] using hq)
+          simpa [depsPresent, blockKnown, clock_blocks] using! hq)
     (fun st o' hq => by
       change depsPresent (process p st o') o = true
       obtain ⟨auth, payload⟩ := o

@@ -33,7 +33,7 @@ def counter : ProtocolSpec 1 where
     intro s t
     change (s ∈ if 0 ≤ t then [t.toNat] else []) ↔ (s : Int) = t
     by_cases h : 0 ≤ t
-    · simp only [if_pos h, List.mem_singleton]
+    · simp only [ite_eq_left h, List.mem_singleton]
       have hc : (t.toNat : Int) = t := Int.toNat_of_nonneg h
       constructor
       · intro he
@@ -41,7 +41,7 @@ def counter : ProtocolSpec 1 where
         exact hc
       · intro he
         exact_mod_cast (hc.trans he.symm).symm
-    · simp only [if_neg h, List.not_mem_nil, false_iff]
+    · simp only [ite_eq_right h, List.not_mem_nil, false_iff]
       intro he
       exact h (he ▸ Int.natCast_nonneg s)
   slotsAt_nodup := by intro t; split_ifs <;> simp
@@ -110,8 +110,11 @@ theorem step_le {w w' : World V counter} (h : ∀ u, height w u ≤ height w' u)
     by_cases hu : u = v
     · subst hu
       have hu := h u
-      simp only [World.step, Function.update_self, counter]
-      split_ifs <;> omega
+      simp only [World.step, Function.update_self]
+      have key : ∀ a b p : ℕ, a ≤ b →
+          (if p = a + 1 then a + 1 else a) ≤ (if p = b + 1 then b + 1 else b) := by
+        intro a b p hab; split_ifs <;> omega
+      exact key _ _ _ hu
     · simp only [World.step, Function.update_of_ne hu]
       exact h u
 
@@ -139,10 +142,12 @@ theorem counter_hooks : HooksSound counter := by
   refine ⟨fun _ _ h => by simp [counter] at h, ?_, ?_, ?_, fun _ _ _ h => Or.inl h⟩
   · intro V _ _ E rho _ v o i j _ h; simp [counter] at h
   · intro V _ _ E rho _ v o i j hij h
-    exact decide_eq_true (Nat.le_trans (of_decide_eq_true h) (stateBefore_mono rho hij v))
+    exact decide_eq_true (inst := Nat.decLe _ _)
+      (Nat.le_trans (of_decide_eq_true (inst := Nat.decLe _ _) h) (stateBefore_mono rho hij v))
   · intro V _ _ E rho _ v o i j hij h
-    exact decide_eq_true
-      (Nat.le_trans (of_decide_eq_true h) (Nat.add_le_add_right (stateBefore_mono rho hij v) 1))
+    exact decide_eq_true (inst := Nat.decLe _ _)
+      (Nat.le_trans (of_decide_eq_true (inst := Nat.decLe _ _) h)
+        (Nat.add_le_add_right (stateBefore_mono rho hij v) 1))
 
 def counterInst : Instance where
   n := 1

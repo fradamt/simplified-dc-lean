@@ -79,7 +79,7 @@ theorem jointClean_freeze {V : Type} [DecidableEq V] [Fintype V]
     (h : JointCleanInvariant p E rho i) : JointCleanInvariant p E rho (i + 1) := by
   refine jointClean_tick_between_duties p E rho hx i reader _ he ?_ ?_ ?_ h ?_
   · intro s; exact duty_phase_ne p r s 3 2 (by decide) (by decide) (by decide)
-  · intro s; simpa only [Nat.cast_one, one_mul] using
+  · intro s; simpa only [Nat.cast_one, one_mul] using!
       duty_phase_ne p r s 3 1 (by decide) (by decide) (by decide)
   · intro s heq
     apply duty_phase_ne p r (s + 1) 3 2 (by decide) (by decide) (by decide)
@@ -89,7 +89,7 @@ theorem jointClean_freeze {V : Type} [DecidableEq V] [Fintype V]
   · intro s c ht _ _ _
     apply False.elim
     apply duty_phase_ne p r s 3 0 (by decide) (by decide) (by decide)
-    simpa only [Nat.cast_zero, zero_mul, add_zero] using ht
+    simpa only [Nat.cast_zero, zero_mul, add_zero] using! ht
 
 /-- Under the cap, the installed PC's prior honest save is already a
 canonical source. Proposal authority therefore adds no new path branch. -/
@@ -99,10 +99,11 @@ theorem jointClean_proposal_tick_capped {V : Type} [DecidableEq V] [Fintype V]
     (i : Nat) (reader : V) (r : Slot)
     (he : rho.events[i]? = some (.tick reader (proposalTime p r)))
     (h : JointCleanInvariant p E rho i) : JointCleanInvariant p E rho (i + 1) := by
+  set_option backward.isDefEq.respectTransparency false in
   refine jointClean_tick_between_duties p E rho hx i reader _ he ?_ ?_ ?_ h ?_
-  · intro s; simpa only [Nat.cast_zero, zero_mul, add_zero] using
+  · intro s; simpa only [Nat.cast_zero, zero_mul, add_zero] using!
       duty_phase_ne p r s 0 2 (by decide) (by decide) (by decide)
-  · intro s; simpa only [Nat.cast_zero, zero_mul, add_zero, Nat.cast_one, one_mul] using
+  · intro s; simpa only [Nat.cast_zero, zero_mul, add_zero, Nat.cast_one, one_mul] using!
       duty_phase_ne p r s 0 1 (by decide) (by decide) (by decide)
   · intro s heq
     apply duty_phase_ne p r (s + 1) 0 2 (by decide) (by decide) (by decide)

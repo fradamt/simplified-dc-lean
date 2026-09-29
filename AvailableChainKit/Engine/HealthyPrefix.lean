@@ -19,7 +19,7 @@ variable {E : Env V} {rho : Run V P}
 theorem prefixEnv_emittedAt (cut : Time) (i : Nat) (v : V) (t : Time)
     (ht : t ≠ cut) :
     Run.emittedAt P (prefixEnv E cut) rho i v t = Run.emittedAt P E rho i v t := by
-  simp only [Run.emittedAt, prefixEnv, if_neg ht]
+  simp only [Run.emittedAt, prefixEnv, ite_eq_right ht]
 
 theorem prefixEnv_emits_mono (cut : Time) (v : V) (o : P.Object) (t : Time)
     (h : Run.emits P E rho v o t) : Run.emits P (prefixEnv E cut) rho v o t := by
@@ -29,7 +29,7 @@ theorem prefixEnv_emits_mono (cut : Time) (v : V) (o : P.Object) (t : Time)
   · have awake : E.awake v t = true := by
       by_contra hn
       simp [Run.emittedAt, hn] at hm
-    simpa only [Run.emittedAt, prefixEnv, if_pos ht, ↓reduceIte, awake] using hm
+    simpa only [Run.emittedAt, prefixEnv, ite_eq_left ht, ↓reduceIte, awake] using hm
   · rwa [prefixEnv_emittedAt cut i v t ht]
 
 theorem prefixEnv_emits_iff (cut : Time) (v : V) (o : P.Object) (t : Time)
@@ -154,7 +154,7 @@ theorem healthyPrefix_sleepy [Fintype V] (hx : ExecutionValid P E rho)
     have count := lt_of_lt_of_le hzero (Finset.card_le_card sub)
     simpa [AwakeMajority, awakeAt, prefixEnv, runPrefix, faulty] using count
   · have before := lt_of_le_of_ne bound eq
-    simpa only [AwakeMajority, awakeAt, prefixEnv, runPrefix, if_neg eq, faulty]
+    simpa only [AwakeMajority, awakeAt, prefixEnv, runPrefix, ite_eq_right eq, faulty]
       using majority t ht before
 
 end AvailableChain.Engine

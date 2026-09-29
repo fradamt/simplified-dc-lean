@@ -104,7 +104,6 @@ theorem receiveHead_valid (p : Params) {n : Nat} (st : State n) (o : HeadWire n)
   rw [receiveHead_bestPC] at hc
   apply pcValid_mono p st _ ?_ (receiveHead_archive_mono p st o) c (h c hc)
   rw [receiveHead_blocks]
-  exact List.Subset.refl _
 
 theorem receiveHeads_valid (p : Params) {n : Nat} (st : State n)
     (xs : List (HeadWire n)) (h : StoredPCValid p st) :
@@ -121,7 +120,7 @@ theorem pcEnvelopeReady_valid (p : Params) {n : Nat} (st : State n) (c : PC n)
   simp only [pcEnvelopeReady, Bool.and_eq_true, decide_eq_true_eq] at h
   simp only [pcValid, Bool.and_eq_true, List.all_eq_true, decide_eq_true_eq]
   refine ⟨⟨h.1.1, pcPaths_mono st _ ?_ c h.1.2⟩, ?_⟩
-  · rw [receiveHeads_blocks]; exact List.Subset.refl _
+  · rw [receiveHeads_blocks]
   · intro o ho
     exact receiveHeads_mem p st c.witnesses o ho (c.slot + 1)
       (pcWellFormed_witness p c h.1.1 o ho).1 h.2
@@ -160,8 +159,8 @@ theorem clock_valid (p : Params) {n : Nat} (st : State n) (t : Time)
   intro c hc
   rw [clock_bestPC] at hc
   apply pcValid_mono p st _ ?_ ?_ c (h c hc)
-  · rw [clock_blocks]; exact List.Subset.refl _
-  · rw [clock_archive]; exact List.Subset.refl _
+  · rw [clock_blocks]
+  · rw [clock_archive]
 
 theorem installedPC_valid_at_fold {V : Type} [DecidableEq V] (p : Params)
     (events : List (Event V (sapc p).Object)) (v : V) :

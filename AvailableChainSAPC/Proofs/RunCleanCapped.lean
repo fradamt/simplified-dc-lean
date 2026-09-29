@@ -13,6 +13,7 @@ theorem jointClean_event_capped {V : Type} [DecidableEq V] [Fintype V]
     (cap : FaultBound (sapc p) (pcFaultCap p) rho)
     (i : Nat) (e : Event V (sapc p).Object) (he : rho.events[i]? = some e)
     (h : JointCleanInvariant p E rho i) : JointCleanInvariant p E rho (i + 1) := by
+  set_option backward.isDefEq.respectTransparency false in
   classical
   cases e with
   | deliver v obj t => exact jointClean_delivery_of_sleepy p E rho t₀ hs i v obj t he h

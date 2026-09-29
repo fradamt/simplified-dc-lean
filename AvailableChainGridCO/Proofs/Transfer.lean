@@ -78,7 +78,7 @@ theorem TransferReceipts.supporters_subset {p : Params} {n : Nat} {source : Stat
   apply Or.inr
   apply List.any_eq_true.mpr
   exact ⟨o, List.mem_filter.mpr ⟨hm, by simp [hseat]⟩,
-    by simpa [ht, htree, hres.1.1.2] using hp⟩
+    by simpa [ht, htree, hres.1.1.2] using! hp⟩
 
 /-- A source supporter cannot score on a conflicting branch, including
 through another proposal's declared support subset. -/

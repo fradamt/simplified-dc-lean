@@ -240,7 +240,6 @@ theorem chainRows_mono {A B : FGBlock V} (h : FGBlock.Preceq A B) :
       · subst h
         exact Finset.Subset.refl _
       · refine (ih h).trans ?_
-        change chainRows p ⊆ chainRows (FGBlock.node p s r rs)
         simp only [chainRows]
         exact Finset.subset_union_right
 

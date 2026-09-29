@@ -130,8 +130,9 @@ theorem headData_ack_of_saved {V : Type} [DecidableEq V] (p : Params)
     (hsave : savedTimely (Run.stateBeforeTime (sapc p) rho (voteTime p (s + 1)) v) s =
       some (some b)) (hext : Block.Preceq b (headData p rho (s + 1) v).target) :
     (headData p rho (s + 1) v).ack = some (s, b) := by
+  set_option backward.isDefEq.respectTransparency false in
   have hs : savedTimely (headState p rho (s + 1) v) s = some (some b) := by
-    simpa only [headState, savedTimely, clock_timely_at_vote] using hsave
+    simpa only [headState, savedTimely, clock_timely_at_vote] using! hsave
   change ackFor (headState p rho (s + 1) v) (s + 1)
     (headData p rho (s + 1) v).target = _
   simp [ackFor, hs, show Block.preceq b (headData p rho (s + 1) v).target = true from hext]

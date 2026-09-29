@@ -153,6 +153,7 @@ theorem cleanSupport_in_voterSupport_of_frozen_receipts {V : Type} [DecidableEq 
     o ∈ GridCO.voterSupportView p.engine (headState p rho (r + 1) w).base (r + 1) ∧
       ∃ target, GridCO.headTarget? o = some target ∧
         target ∈ (headState p rho (r + 1) w).base.blocks := by
+  set_option backward.isDefEq.respectTransparency false in
   have hearly := (List.mem_filter.mp ho).1
   have hl : GridCO.headLabel? o = some r := by
     simpa using (List.mem_filter.mp (List.mem_filter.mp hearly).1).2
@@ -242,14 +243,15 @@ theorem genuine_transfer_receipts_of_support {V : Type} [DecidableEq V] (p : Par
       (headState p rho (r + 1) w).base.blocks
       (GridCO.voterView p.engine (headState p rho (r + 1) w).base (r + 1))
       (GridCO.voterSupportView p.engine (headState p rho (r + 1) w).base (r + 1)) b := by
+  set_option backward.isDefEq.respectTransparency false in
   refine ⟨fun o ho _ => forward o ho, fun o ho i hi => back o i hi ho, ?_⟩
   apply voterSupport_subset_raw
   · have h := frozenViewsStored_at_fold p
       ((rho.events.filter (fun e => decide (e.time < voteTime p (r + 1)))) ++
         [.tick w (voteTime p (r + 1))]) w
     simpa only [List.foldl_append, List.foldl_cons, List.foldl_nil,
-      World.step, Function.update_self] using h
-  · simpa only [headState, DeclaredSupport, clock_base_proposals] using
+      World.step, Function.update_self] using! h
+  · simpa only [headState, DeclaredSupport, clock_base_proposals] using!
       declaredSupport_beforeTime p E rho hx (voteTime p (r + 1)) w
 
 /-- The SA support-transfer interface holds for actual SA-PC gate and
@@ -292,6 +294,7 @@ theorem path_in_voterTree_of_frozen_target {V : Type} [DecidableEq V] (p : Param
     (htarget : target ∈ (Run.stateBeforeTime (sapc p) rho (freezeTime p r) w).base.blocks)
     (hn : b ≠ .genesis) (hp : Block.Preceq b target) :
     b ∈ GridCO.voterTree p.engine (headState p rho (r + 1) w).base (r + 1) := by
+  set_option backward.isDefEq.respectTransparency false in
   have hb := (paths_at_fold p _ w).1 target htarget b hn hp
   apply List.mem_filter.mpr
   refine ⟨?_, ?_⟩
@@ -457,7 +460,7 @@ theorem genuine_activePC_head_covers_of_back_receipts {V : Type} [DecidableEq V]
   cases ha : capBroken p (headState p rho (r + 1) w) with
   | true =>
       simpa only [headData, headTarget, Nat.add_eq_zero_iff, Nat.one_ne_zero,
-        and_false, decide_false, Bool.false_eq_true, ↓reduceIte, ha, choice] using
+        and_false, decide_false, Bool.false_eq_true, ↓reduceIte, ha, choice] using!
         genuine_ordinary_head_covers_of_back_receipts p E rho hx hΔ r v w hv hw
           hh hforward hback b c hc hp hr
   | false =>
@@ -472,7 +475,7 @@ theorem genuine_activePC_head_covers_of_back_receipts {V : Type} [DecidableEq V]
           (genuine_path_in_voterTree p E rho hx.toScheduleWellFormed hΔ r v w hv hw hh
             hforward a c hc (GridCO.prefix_trans a b c hab hp) hn)) hr (hcert ha)
       simpa only [headData, headTarget, Nat.add_eq_zero_iff, Nat.one_ne_zero,
-        and_false, decide_false, Bool.false_eq_true, ↓reduceIte, ha] using h
+        and_false, decide_false, Bool.false_eq_true, ↓reduceIte, ha] using! h
 
 /-- Low genuine support also transfers to the actual HEAD when the
 joint invariant supplies compatibility of the selected PC and finite root. -/
@@ -524,7 +527,7 @@ theorem genuine_highSupport_head_covers {V : Type} [DecidableEq V] (p : Params)
   cases ha : capBroken p (headState p rho (r + 1) w) with
   | true =>
       simpa only [headData, headTarget, Nat.add_eq_zero_iff, Nat.one_ne_zero,
-        and_false, decide_false, Bool.false_eq_true, ↓reduceIte, ha, choice] using
+        and_false, decide_false, Bool.false_eq_true, ↓reduceIte, ha, choice] using!
         genuine_ordinary_head_covers p E rho hx hΔ r v w hv hw hh hforward hback b c hc hp hr
   | false =>
       by_cases hg : b = .genesis
@@ -554,7 +557,7 @@ theorem genuine_highSupport_head_covers {V : Type} [DecidableEq V] (p : Params)
         (activeVoterTree_subset p st _ cert (hpath b hg (GridCO.block_preceq_self b))) hg
         hwalk hscore hr
       simpa only [headData, headTarget, Nat.add_eq_zero_iff, Nat.one_ne_zero,
-        and_false, decide_false, Bool.false_eq_true, ↓reduceIte, ha] using hchoice
+        and_false, decide_false, Bool.false_eq_true, ↓reduceIte, ha] using! hchoice
 
 /-- Raw genuine results at one healthy label are compatible, before
 either gate guard and in any mix of active and disabled readers. -/

@@ -55,6 +55,7 @@ theorem stateBefore_base_receiptPrefix {V : Type} [DecidableEq V] (p : Params)
 theorem base_stampsBounded_before {V : Type} [DecidableEq V] (p : Params)
     (E : Env V) (rho : Run V (sapc p)) (hs : ScheduleWellFormed E rho) (i : Nat) (v : V) :
     GridCO.StampsBounded (Run.stateBefore (sapc p) rho i v).base := by
+  set_option backward.isDefEq.respectTransparency false in
   apply stateBefore_invariant (engineClock p) E rho hs (fun st => GridCO.StampsBounded st.base)
   · simp [sapc, initial, GridCO.initial, GridCO.StampsBounded]
   · intro st t ht h
@@ -95,7 +96,7 @@ theorem stored_base_head_stamp_before_cut {V : Type} [DecidableEq V] (p : Params
   have hb := (base_stampsBounded_before p E rho hs (i + 1) reader).stampVote_le o
   have hn : (Run.stateBefore (sapc p) rho (i + 1) reader).base.now ≤ t := by
     rw [stateBefore_succ_event hi]
-    simpa [World.step, sapc, process_now] using stateBefore_now_le_event p E rho hs hi reader
+    simpa [World.step, sapc, process_now] using! stateBefore_now_le_event p E rho hs hi reader
   exact (hb.trans hn).trans_lt ht
 
 /-- Complete admitted paths inherit a bound on all base stamps. -/
@@ -148,7 +149,7 @@ theorem stored_path_before_cut {V : Type} [DecidableEq V] (p : Params)
     _ b (stored_pathKnown_at_fold p _ v b hm)
   have hn : (Run.stateBefore (sapc p) rho (i + 1) v).base.now ≤ t := by
     rw [stateBefore_succ_event hi]
-    simpa [World.step, sapc, process_now] using stateBefore_now_le_event p E rho hs hi v
+    simpa [World.step, sapc, process_now] using! stateBefore_now_le_event p E rho hs hi v
   exact hn.trans_lt ht
 
 theorem accepted_path_before_cut {V : Type} [DecidableEq V] (p : Params)

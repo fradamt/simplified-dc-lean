@@ -33,6 +33,7 @@ theorem sapc_excludes (p : Params) (st : State p.n) (o : Wire p.n) :
 
 theorem excludes_inert (p : Params) :
     ∀ st o, (sapc p).excludes st o = true → (sapc p).process st o = st := by
+  set_option backward.isDefEq.respectTransparency false in
   intro st o h
   simp [sapc_excludes] at h
 
@@ -43,6 +44,7 @@ theorem excludes_stable (p : Params) :
       (rho : Run V (sapc p)), ScheduleWellFormed E rho → ∀ v o i j, i ≤ j →
         (sapc p).excludes (Run.stateBefore (sapc p) rho i v) o = true →
         (sapc p).excludes (Run.stateBefore (sapc p) rho j v) o = true := by
+  set_option backward.isDefEq.respectTransparency false in
   intro V _ _ E rho _ v o i j _ h
   simp [sapc_excludes] at h
 

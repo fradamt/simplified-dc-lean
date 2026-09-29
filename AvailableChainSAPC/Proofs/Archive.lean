@@ -63,7 +63,7 @@ private theorem fold_receive_mono (p : Params) {n : Nat} (xs : List (HeadWire n)
     (st : State n) : st.receivedHeads ⊆ (xs.foldl (receiveHead p) st).receivedHeads := by
   induction xs generalizing st with
   | nil => exact List.Subset.refl _
-  | cons x xs ih => exact (receiveHead_archive_mono p st x).trans (ih _)
+  | cons x xs ih => exact List.Subset.trans (receiveHead_archive_mono p st x) (ih _)
 
 theorem receiveHeads_archive_origin (p : Params) {n : Nat} (xs : List (HeadWire n))
     (st : State n) (h : HeadWire n)

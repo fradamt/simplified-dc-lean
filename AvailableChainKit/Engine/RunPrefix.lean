@@ -86,11 +86,11 @@ theorem runPrefix_emits_iff (hs : ScheduleWellFormed E rho) (cut : Time)
     obtain ⟨orig, time⟩ := (runPrefix_event_iff hs cut i _).mp he
     have states := (runPrefix_event_states hs cut he).1
     refine ⟨⟨i, orig, ?_⟩, time⟩
-    simpa only [Run.emittedAt, states] using hm
+    simpa only [Run.emittedAt, states] using! hm
   · rintro ⟨⟨i, orig, hm⟩, time⟩
     have he := (runPrefix_event_iff hs cut i _).mpr ⟨orig, time⟩
     refine ⟨i, he, ?_⟩
-    simpa only [Run.emittedAt, (runPrefix_event_states hs cut he).1] using hm
+    simpa only [Run.emittedAt, (runPrefix_event_states hs cut he).1] using! hm
 
 omit [DecidableEq V] in
 theorem runPrefix_processes_iff (hs : ScheduleWellFormed E rho) (cut : Time)

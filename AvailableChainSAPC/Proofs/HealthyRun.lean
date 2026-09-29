@@ -13,6 +13,7 @@ theorem no_proposal_boundary_block {V : Type} [DecidableEq V]
     (noProposal : ∀ s, proposalTime p s ≠ cut)
     (v : V) (o : Wire p.n) (emit : Run.emits (sapc p) E rho v o cut) :
     (sapcInterface p).block o.payload = none := by
+  set_option backward.isDefEq.respectTransparency false in
   obtain ⟨i, _, hm⟩ := emit
   have slots : (sapc p).slotsAt cut = [] := by
     apply List.eq_nil_iff_forall_not_mem.mpr

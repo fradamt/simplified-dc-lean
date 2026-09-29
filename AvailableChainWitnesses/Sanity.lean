@@ -25,7 +25,7 @@ def alwaysGenesis (n : Nat) : ProtocolSpec n where
     change (() ∈ if t = 0 then [()] else []) ↔ (0 : Int) = t
     by_cases h : t = 0
     · simp [h]
-    · simp only [if_neg h, List.not_mem_nil, false_iff]
+    · simp only [ite_eq_right h, List.not_mem_nil, false_iff]
       exact fun he => h he.symm
   duties_nodup := by intro t; split_ifs <;> simp
   act := fun _ _ => none
@@ -35,7 +35,7 @@ def alwaysGenesis (n : Nat) : ProtocolSpec n where
     intro s t
     change (s ∈ if 0 ≤ t then [t.toNat] else []) ↔ (s : Int) = t
     by_cases h : 0 ≤ t
-    · simp only [if_pos h, List.mem_singleton]
+    · simp only [ite_eq_left h, List.mem_singleton]
       constructor
       · intro he
         have hc : (t.toNat : Int) = t := Int.toNat_of_nonneg h
@@ -44,7 +44,7 @@ def alwaysGenesis (n : Nat) : ProtocolSpec n where
       · intro he
         have hc : (t.toNat : Int) = t := Int.toNat_of_nonneg h
         exact_mod_cast (hc.trans he.symm).symm
-    · simp only [if_neg h, List.not_mem_nil, false_iff]
+    · simp only [ite_eq_right h, List.not_mem_nil, false_iff]
       intro he
       have hn : (0 : Int) ≤ s := Int.natCast_nonneg s
       exact h (he ▸ hn)
@@ -244,7 +244,7 @@ theorem confirmedIncluded_fails (D : Time) :
     change ({ auth := Auth.proposer 1, payload := p } : (alwaysGenesis 1).Object) ∈
       [({ auth := Auth.proposer 1, payload := proposed 1 } : (alwaysGenesis 1).Object)] at hobj
     have heq : p = proposed 1 := congrArg Signed.payload (List.mem_singleton.mp hobj)
-    exact hp.symm.trans heq
+    exact (Option.some.inj hp).symm.trans heq
   have hg := hin 0 (by simp [exampleRun])
   rw [hpB] at hg
   exact (by decide : ¬ Block.Preceq (proposed 1) .genesis) hg

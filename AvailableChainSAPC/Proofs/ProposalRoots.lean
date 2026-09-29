@@ -38,7 +38,7 @@ theorem proposalState_target_genuine_origin {V : Type} [DecidableEq V]
       ((index_lt_read_length_iff hs (proposalTime p (r + 1) - 1) tick).mp hj)
     rw [stateBefore_tick_eq_stateBeforeTime hs tick] at hc
     exact ⟨s, c, older s time.le, hc, hp⟩
-  · exact ⟨s, c, older s ht.ge, by simpa only [ht] using hc, hp⟩
+  · exact ⟨s, c, older s ht.ge, by simpa only [ht] using! hc, hp⟩
 
 /-- The proved run invariant supplies raw history at the next label.
 The ordinary proposal transfer then covers every older genuine result. -/
@@ -107,16 +107,17 @@ theorem clean_proposal_PC_at_ordinary_walk {V : Type} [DecidableEq V] [Fintype V
     (cert : PC p.n) (selected : (proposalState p rho (r + 1)).bestPC = some cert) :
     Block.Preceq cert.target
       (GridCO.ordinaryProposalHead (proposalState p rho (r + 1)).base (r + 1)) := by
+  set_option backward.isDefEq.respectTransparency false in
   obtain ⟨_, _, i, tick, _⟩ := honest_proposal_views p E rho hs.execution.toScheduleWellFormed
     (r + 1) b hb
   have h := clean_run_invariant p E rho hΔ t₀ hs i
     (List.getElem?_eq_some_iff.mp tick).1.le
   have pc : (Run.stateBefore (sapc p) rho i (rho.proposerOf (r + 1))).bestPC = some cert := by
     rw [stateBefore_tick_eq_stateBeforeTime hs.execution.toScheduleWellFormed tick]
-    simpa only [proposalState, clock_bestPC] using selected
+    simpa only [proposalState, clock_bestPC] using! selected
   have mode : capBroken p (Run.stateBefore (sapc p) rho i (rho.proposerOf (r + 1))) = false := by
     rw [stateBefore_tick_eq_stateBeforeTime hs.execution.toScheduleWellFormed tick]
-    simpa only [proposalState, capBroken_clock] using active
+    simpa only [proposalState, capBroken_clock] using! active
   have valid := installedPC_valid_before p rho _ i cert pc
   have source := (h.facts.certificates i (le_refl _) _ hb.1 cert valid).1
   have gate := validPC_gate_le_tick p E rho hΔ hs.execution
@@ -158,6 +159,7 @@ theorem clean_proposal_parent_ordinary {V : Type} [DecidableEq V] [Fintype V]
     (r : Slot) (hh : gateTime p r ≤ rho.horizon)
     (b : Block) (hb : HonestProposalAt E (sapcInterface p).toInterface rho (r + 1) b) :
     b.parent = GridCO.ordinaryProposalHead (proposalState p rho (r + 1)).base (r + 1) := by
+  set_option backward.isDefEq.respectTransparency false in
   let st := proposalState p rho (r + 1)
   let raw := GridCO.proposerView st.base (r + 1)
   let support := GridCO.proposerSupportView st.base (r + 1)
@@ -174,7 +176,7 @@ theorem clean_proposal_parent_ordinary {V : Type} [DecidableEq V] [Fintype V]
       exact (proposalState_paths p rho (r + 1)).2
     · exact List.mem_eraseDups.mp mem
   have rootInjective : GridCO.RootInjectiveBelow st.base.blocks := by
-    simpa only [st, proposalState, clock_blocks] using
+    simpa only [st, proposalState, clock_blocks] using!
       time_input_rootInjectiveBelow p E rho hs.execution.toScheduleWellFormed hs.rootInjective
         (proposalTime p (r + 1)) (rho.proposerOf (r + 1))
   have reanchor (root : Block) (hp : Block.Preceq root ordinary) :

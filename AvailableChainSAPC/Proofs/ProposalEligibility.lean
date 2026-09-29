@@ -123,6 +123,7 @@ theorem honest_proposal_eligible_reflects_of_minority {V : Type} [DecidableEq V]
       (GridCO.voterSupportView p.engine (headState p rho (r + 1) reader).base (r + 1))
       (r + 1) c = true) :
     c = b ∨ c ∈ (proposalState p rho (r + 1)).base.blocks := by
+  set_option backward.isDefEq.respectTransparency false in
   rcases Bool.or_eq_true_iff.mp eligible with fresh | majority
   · left
     simp only [beq_iff_eq] at fresh

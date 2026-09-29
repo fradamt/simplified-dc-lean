@@ -12,6 +12,7 @@ theorem cleanRunPath_accessible {V : Type} [DecidableEq V] [Fintype V]
     (hb : cleanRunPath p rho index b) : b = .genesis ∨
       ∃ v ∈ rho.honest, ∃ i, i ≤ index ∧
         pathKnown (Run.stateBefore (sapc p) rho i v) b = true := by
+  set_option backward.isDefEq.respectTransparency false in
   by_cases hg : b = .genesis
   · exact Or.inl hg
   right

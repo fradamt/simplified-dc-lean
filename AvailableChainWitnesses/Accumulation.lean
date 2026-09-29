@@ -153,6 +153,7 @@ private theorem delivery_cases {v : Fin 3} {o : pooledLMD.Object} {t : Time}
     (∃ ℓ : Fin 4, (o = honestVote ℓ 0 ∨ o = honestVote ℓ 1) ∧
       t = labelTime ℓ) ∨
     (∃ ℓ : Fin 4, ℓ.val < 3 ∧ o = faultyVote ℓ ∧ t = 4) := by
+  set_option backward.isDefEq.respectTransparency false in
   rcases h with ⟨i, hi⟩
   have hm := event_mem i _ hi
   simp [attackRun] at hm
@@ -210,15 +211,11 @@ private theorem emitsHonest (ℓ : Fin 4) (v : Fin 3)
     all_goals simp [attackRun]
 
 theorem attackExecution : ExecutionValid pooledLMD env attackRun := by
+  set_option backward.isDefEq.respectTransparency false in
   refine { horizon_nonneg := by decide
            sorted := by decide
            nodup := by
              simp [attackRun, honestVote, faultyVote]
-             repeat' constructor
-             all_goals
-               intro he
-               have ha := congrArg Signed.auth he
-               cases ha
            in_horizon := ?_
            honest_only := ?_
            tick_public := ?_

@@ -40,7 +40,7 @@ theorem slowEligible_input_covers {V : Type} [DecidableEq V]
     cases result with
     | none => simp [hc] at hp
     | some C =>
-      refine ⟨C, ?_, by simpa [hc] using hp⟩
+      refine ⟨C, ?_, by simpa [hc] using! hp⟩
       exact (GridCO.savedGenuine_input_origin p.engine E rho hs _ reader s (some C) hc).2.symm
 
 /-- Complete earlier local results fill the executable slow test. Empty

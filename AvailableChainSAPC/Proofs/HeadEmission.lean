@@ -23,13 +23,14 @@ theorem headData_target_stored {V : Type} [DecidableEq V] (p : Params)
     (rho : Run V (sapc p)) (r : Slot) (v : V) :
     (headData p rho r v).target ∈
       (Run.stateBeforeTime (sapc p) rho (voteTime p r) v).base.blocks := by
+  set_option backward.isDefEq.respectTransparency false in
   have h := headTarget_mem_at_fold p
     ((rho.events.filter (fun e => decide (e.time < voteTime p r))) ++ [.tick v (voteTime p r)])
     v r
   simp only [List.foldl_append, List.foldl_cons, List.foldl_nil,
     World.step, Function.update_self] at h
   change headTarget p (headState p rho r v) r ∈ (headState p rho r v).base.blocks at h
-  simpa only [headData, headState, clock_blocks] using h
+  simpa only [headData, headState, clock_blocks] using! h
 
 theorem headData_target_slot {V : Type} [DecidableEq V] (p : Params)
     (E : Env V) (rho : Run V (sapc p)) (hs : ScheduleWellFormed E rho)
@@ -46,6 +47,7 @@ theorem honest_head_emitted {V : Type} [DecidableEq V] (p : Params)
     (horizon : voteTime p r ≤ rho.horizon) :
     Run.emits (sapc p) E rho (rho.seatOf r i)
       (fromHead ⟨.seat r i, headData p rho r (rho.seatOf r i)⟩) (voteTime p r) := by
+  set_option backward.isDefEq.respectTransparency false in
   have hpub : PublicTime E (voteTime p r) := by
     refine ⟨4 * r + 1, ?_⟩
     change 4 * p.Δ * (r : Time) + p.Δ = (4 * r + 1 : Nat) * E.Δ

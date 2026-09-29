@@ -16,6 +16,7 @@ theorem headState_base_frozenAt {V : Type} [DecidableEq V] (p : Params)
     GridCO.frozenAt (headState p rho (r + 1) v).base r =
       some (GridCO.freezeView p.engine
         (Run.stateBeforeTime (sapc p) rho (freezeTime p r) v).base r) := by
+  set_option backward.isDefEq.respectTransparency false in
   have ht : freezeTime p r < voteTime p (r + 1) := by
     change 4 * p.Δ * (r : Time) + 3 * p.Δ < 4 * p.Δ * ((r + 1 : Nat) : Time) + p.Δ
     push_cast
@@ -76,6 +77,7 @@ theorem timely_quorum_score_at_head {V : Type} [DecidableEq V] (p : Params)
     pcQuorum p ≤ GridCO.goldfishScore (headState p rho (r + 1) w).base.blocks
       (GridCO.voterView p.engine (headState p rho (r + 1) w).base (r + 1))
       (GridCO.voterSupportView p.engine (headState p rho (r + 1) w).base (r + 1)) b := by
+  set_option backward.isDefEq.respectTransparency false in
   let src := Run.stateBeforeTime (sapc p) rho (earlyTime p r) v
   let frozen := Run.stateBeforeTime (sapc p) rho (freezeTime p r) w
   have hparts := hc
@@ -200,6 +202,7 @@ theorem timely_active_head_covers {V : Type} [DecidableEq V] (p : Params)
     (ha : capBroken p (headState p rho (r + 1) w) = false)
     (hroot : Block.Compatible (GridCO.liveRoot (headState p rho (r + 1) w).base) b) :
     Block.Preceq b (headData p rho (r + 1) w).target := by
+  set_option backward.isDefEq.respectTransparency false in
   have hpub : PublicTime E (voteTime p (r + 1)) := by
     refine ⟨4 * (r + 1) + 1, ?_⟩
     change 4 * p.Δ * ((r + 1 : Nat) : Time) + p.Δ = _
@@ -223,7 +226,7 @@ theorem timely_active_head_covers {V : Type} [DecidableEq V] (p : Params)
     (selectedPC p (headState p rho (r + 1) w) (r + 1)) b
     (he.symm ▸ ha) (he.symm ▸ hscore) (he.symm ▸ hroot)
   simpa only [he, headData, headTarget, Nat.add_eq_zero_iff, Nat.one_ne_zero,
-    and_false, decide_false, Bool.false_eq_true, ↓reduceIte, ha] using h
+    and_false, decide_false, Bool.false_eq_true, ↓reduceIte, ha] using! h
 
 theorem savedTimely_active_head_covers {V : Type} [DecidableEq V] (p : Params)
     (E : Env V) (rho : Run V (sapc p)) (hx : ExecutionValid (sapc p) E rho)
@@ -253,6 +256,7 @@ theorem timely_departure_disables_by_gate {V : Type} [DecidableEq V] (p : Params
     (hroot : Block.Compatible (GridCO.liveRoot (headState p rho (r + 1) reader).base) b)
     (hleave : ¬ Block.Preceq b (headData p rho (r + 1) reader).target) :
     capBroken p (Run.stateBeforeTime (sapc p) rho (gateTime p r) other) = true := by
+  set_option backward.isDefEq.respectTransparency false in
   have hbroken : capBroken p (headState p rho (r + 1) reader) = true := by
     cases ha : capBroken p (headState p rho (r + 1) reader) with
     | false => exact (hleave (timely_active_head_covers p E rho hx hΔ r source reader

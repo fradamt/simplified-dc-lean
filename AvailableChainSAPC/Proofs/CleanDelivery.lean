@@ -14,6 +14,7 @@ theorem savedTimely_first_save {V : Type} [DecidableEq V]
     (hn : savedTimely (Run.stateBefore (sapc p) rho index v) r = some (some b)) :
     ∃ j < index, rho.events[j]? = some (.tick v (earlyTime p r)) ∧
       savedTimely (Run.stateBefore (sapc p) rho (j + 1) v) r = some (some b) := by
+  set_option backward.isDefEq.respectTransparency false in
   obtain ⟨row, hf, hb⟩ := Option.map_eq_some_iff.mp hn
   have hr : row.1 = r := by simpa using List.find?_some hf
   have hrow : row = (r, some b) := Prod.ext hr hb
@@ -24,7 +25,7 @@ theorem savedTimely_first_save {V : Type} [DecidableEq V]
   have hnone := savedTimely_none_before_early p E rho hs j v r ht
   have hsaved := saveTimely_result p
     (timelyInput p (Run.stateBefore (sapc p) rho j v) (earlyTime p r)) r
-    (by simpa only [savedTimely, timelyInput_timely] using hnone)
+    (by simpa only [savedTimely, timelyInput_timely] using! hnone)
   rw [stateBefore_succ_event ht]
   simp only [World.step, sapc, Function.update_self, savedTimely, clock_timely_at_early]
   exact hsaved.trans (congrArg some hfind.symm)
@@ -38,6 +39,7 @@ theorem emitted_ack_first_save {V : Type} [DecidableEq V]
     (hack : data.ack = some (s, b)) :
     ∃ j, rho.events[j]? = some (.tick v (earlyTime p s)) ∧
       savedTimely (Run.stateBefore (sapc p) rho (j + 1) v) s = some (some b) := by
+  set_option backward.isDefEq.respectTransparency false in
   obtain ⟨index, _, he⟩ := hem
   have hact := (emittedAt_seat_action (sapc p) E rho index v (voteTime p r)
     r seat (.head data) he).2

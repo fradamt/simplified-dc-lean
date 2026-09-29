@@ -16,6 +16,7 @@ theorem clean_disabled_honest_proposal_head {V : Type} [DecidableEq V] [Fintype 
     (reader : V) (hr : reader ∈ rho.honest)
     (disabled : capBroken p (headState p rho (r + 1) reader) = true) :
     (headData p rho (r + 1) reader).target = b := by
+  set_option backward.isDefEq.respectTransparency false in
   have headBound : voteTime p (r + 1) ≤ rho.horizon := by
     apply le_trans _ hh
     change 4 * p.Δ * ((r + 1 : Nat) : Time) + p.Δ ≤
@@ -36,10 +37,10 @@ theorem clean_disabled_honest_proposal_head {V : Type} [DecidableEq V] [Fintype 
   have hslot := (honest_proposal_slot p E rho hs.execution.toScheduleWellFormed
     (r + 1) b hb).2.2
   have sourceRoot : GridCO.RootInjectiveBelow (proposalState p rho (r + 1)).base.blocks := by
-    simpa only [proposalState, clock_blocks] using time_input_rootInjectiveBelow p E rho
+    simpa only [proposalState, clock_blocks] using! time_input_rootInjectiveBelow p E rho
       hs.execution.toScheduleWellFormed hs.rootInjective (proposalTime p (r + 1)) _
   have targetRoot : GridCO.RootInjectiveBelow (headState p rho (r + 1) reader).base.blocks := by
-    simpa only [headState, clock_blocks] using time_input_rootInjectiveBelow p E rho
+    simpa only [headState, clock_blocks] using! time_input_rootInjectiveBelow p E rho
       hs.execution.toScheduleWellFormed hs.rootInjective (voteTime p (r + 1)) reader
   have stored : b ∈ (headState p rho (r + 1) reader).base.blocks := by
     have path := honest_proposal_path_before_head p E rho hs.execution hΔ hs.partialSynchrony
@@ -50,7 +51,7 @@ theorem clean_disabled_honest_proposal_head {V : Type} [DecidableEq V] [Fintype 
     | node parent slot root =>
       exact of_decide_eq_true (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp path).1).1
   have targetClosed : GridCO.StoredPrefixClosed (headState p rho (r + 1) reader).base := by
-    simpa only [headState, GridCO.StoredPrefixClosed, clock_blocks] using
+    simpa only [headState, GridCO.StoredPrefixClosed, clock_blocks] using!
       (paths_at_fold p
         (rho.events.filter (fun e => decide (e.time < voteTime p (r + 1)))) reader).1
   have parentEq : b.parent? = some b.parent := by
@@ -67,7 +68,7 @@ theorem clean_disabled_honest_proposal_head {V : Type} [DecidableEq V] [Fintype 
       hs.acceptedRelay r sync headBound b hb reader hr)
   have cover : Block.Preceq b (headData p rho (r + 1) reader).target := by
     simpa only [headData, headTarget, Nat.add_eq_zero_iff, Nat.one_ne_zero, and_false,
-      decide_false, Bool.false_eq_true, ↓reduceIte, disabled, choice] using covers
+      decide_false, Bool.false_eq_true, ↓reduceIte, disabled, choice] using! covers
   have ordered := (paths_at_fold p
     (rho.events.filter (fun e => decide (e.time < voteTime p (r + 1)))) reader).2.2
       _ (headData_target_stored p rho (r + 1) reader)
@@ -86,6 +87,7 @@ theorem clean_active_honest_proposal_head {V : Type} [DecidableEq V] [Fintype V]
     (reader : V) (hr : reader ∈ rho.honest)
     (active : capBroken p (headState p rho (r + 1) reader) = false) :
     (headData p rho (r + 1) reader).target = b := by
+  set_option backward.isDefEq.respectTransparency false in
   let source := proposalState p rho (r + 1)
   let target := headState p rho (r + 1) reader
   let cert := selectedPC p target (r + 1)
@@ -137,10 +139,10 @@ theorem clean_active_honest_proposal_head {V : Type} [DecidableEq V] [Fintype V]
   have hslot := (honest_proposal_slot p E rho hs.execution.toScheduleWellFormed
     (r + 1) b hb).2.2
   have sourceRoot : GridCO.RootInjectiveBelow source.base.blocks := by
-    simpa only [source, proposalState, clock_blocks] using time_input_rootInjectiveBelow p E rho
+    simpa only [source, proposalState, clock_blocks] using! time_input_rootInjectiveBelow p E rho
       hs.execution.toScheduleWellFormed hs.rootInjective (proposalTime p (r + 1)) _
   have targetRoot : GridCO.RootInjectiveBelow target.base.blocks := by
-    simpa only [target, headState, clock_blocks] using time_input_rootInjectiveBelow p E rho
+    simpa only [target, headState, clock_blocks] using! time_input_rootInjectiveBelow p E rho
       hs.execution.toScheduleWellFormed hs.rootInjective (voteTime p (r + 1)) reader
   have stored : b ∈ target.base.blocks := by
     have path := honest_proposal_path_before_head p E rho hs.execution hΔ hs.partialSynchrony
@@ -151,7 +153,7 @@ theorem clean_active_honest_proposal_head {V : Type} [DecidableEq V] [Fintype V]
     | node parent slot root =>
       exact of_decide_eq_true (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp path).1).1
   have targetClosed : GridCO.StoredPrefixClosed target.base := by
-    simpa only [target, headState, GridCO.StoredPrefixClosed, clock_blocks] using
+    simpa only [target, headState, GridCO.StoredPrefixClosed, clock_blocks] using!
       (paths_at_fold p
         (rho.events.filter (fun e => decide (e.time < voteTime p (r + 1)))) reader).1
   have parentEq : b.parent? = some b.parent := by
@@ -174,7 +176,7 @@ theorem clean_active_honest_proposal_head {V : Type} [DecidableEq V] [Fintype V]
     counts.1.symm (fun c _ _ => (counts.2.2 c).symm)
   have cover : Block.Preceq b (headData p rho (r + 1) reader).target := by
     simpa only [headData, headTarget, Nat.add_eq_zero_iff, Nat.one_ne_zero, and_false,
-      decide_false, Bool.false_eq_true, ↓reduceIte, active, choice] using covers
+      decide_false, Bool.false_eq_true, ↓reduceIte, active, choice] using! covers
   have ordered := (paths_at_fold p
     (rho.events.filter (fun e => decide (e.time < voteTime p (r + 1)))) reader).2.2
       _ (headData_target_stored p rho (r + 1) reader)

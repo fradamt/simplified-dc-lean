@@ -89,7 +89,7 @@ theorem stored_block_accepted {V : Type} [DecidableEq V] (p : Params)
                     (clock_receiptData p (Run.stateBefore (gridCO p) rho index reader) t)
                   have hm' : B ∈
                       (clock p (Run.stateBefore (gridCO p) rho index reader) t).blocks := by
-                    simpa only [World.step, Function.update_self] using hm
+                    simpa only [World.step, Function.update_self] using! hm
                   simp only [receiptData] at he
                   rw [he] at hm'
                   exact (hold hm').elim
@@ -99,7 +99,7 @@ theorem stored_block_accepted {V : Type} [DecidableEq V] (p : Params)
                 · subst v
                   have hnew : B ∈
                       (process p (Run.stateBefore (gridCO p) rho index reader) o).blocks := by
-                    simpa [World.step] using hm
+                    simpa [World.step] using! hm
                   obtain ⟨raw, support, hp⟩ := process_new_block p _ o B hold hnew
                   refine ⟨index, by omega, t, o, raw, support, hi, hp, ?_⟩
                   refine ⟨⟨o, hi, Or.inl rfl⟩, ?_, ?_⟩
@@ -140,16 +140,17 @@ theorem stateAfter_now_le_event {V : Type} [DecidableEq V] (p : Params)
     {i : Nat} {e : Event V (gridCO p).Object}
     (hi : rho.events[i]? = some e) (reader : V) :
     (Run.stateBefore (gridCO p) rho (i + 1) reader).now ≤ e.time := by
+  set_option backward.isDefEq.respectTransparency false in
   have h := stateBefore_now_le_event p E rho hs hi reader
   rw [stateBefore_succ_event hi]
   cases e with
   | tick v t =>
       by_cases hv : reader = v
       · subst v; simp [World.step, gridCO, clock_now, Event.time]
-      · simpa [World.step, hv] using h
+      · simpa [World.step, hv] using! h
   | deliver v o t =>
       by_cases hv : reader = v
-      · subst v; simpa [World.step, gridCO, process_now] using h
+      · subst v; simpa [World.step, gridCO, process_now] using! h
       · simpa [World.step, hv] using h
 
 /-- A block already stored after an event before the cutoff retains an

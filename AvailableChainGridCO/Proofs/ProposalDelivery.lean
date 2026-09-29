@@ -35,7 +35,7 @@ theorem process_proposals_subset (p : Params) {n : Nat} (st : State n) (o : Wire
     st.proposals ⊆ (process p st o).proposals := by
   unfold process
   split
-  · rw [vote_proposals]; exact List.Subset.refl _
+  · rw [vote_proposals]
   · unfold admitProposal
     dsimp only
     split <;> split
@@ -55,7 +55,7 @@ theorem stateBefore_proposals_subset {V : Type} [DecidableEq V] (p : Params)
   | succ j ih =>
       rcases Nat.eq_or_lt_of_le hij with he | hlt
       · subst i; exact List.Subset.refl _
-      · apply (ih (by omega)).trans
+      · apply List.Subset.trans (ih (by omega))
         cases hj : rho.events[j]? with
         | none => simp [Run.stateBefore, List.take_add_one, hj]
         | some e =>
@@ -68,7 +68,7 @@ theorem stateBefore_proposals_subset {V : Type} [DecidableEq V] (p : Params)
             | deliver v o t =>
                 by_cases hv : reader = v
                 · subst v
-                  simpa [World.step] using process_proposals_subset p
+                  simpa [World.step] using! process_proposals_subset p
                     (Run.stateBefore (gridCO p) rho j reader) o
                 · simp [World.step, hv]
 
@@ -265,6 +265,7 @@ theorem nextHeadState_honest_proposal_unique {V : Type} [DecidableEq V]
     o = ⟨.proposer (r + 1), .proposal B
       ((proposerView (proposalState p rho (r + 1)) (r + 1)).filterMap toHead?)
       ((proposerSupportView (proposalState p rho (r + 1)) (r + 1)).filterMap toHead?)⟩ := by
+  set_option backward.isDefEq.respectTransparency false in
   unfold proposalsAt nextHeadState releaseInput at ho
   rw [clock_proposals, time_input_eq_event_prefix p E rho hx.toScheduleWellFormed] at ho
   exact stored_honest_proposal_unique p E rho hx (r + 1) B hB _ reader o ho

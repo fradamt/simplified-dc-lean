@@ -106,7 +106,7 @@ theorem local_genuine_activePC_head_covers {V : Type} [DecidableEq V] (p : Param
     have covers := @GridCO.forkChoice_covers_of_transfer GridCO.slowLeasePolicy p.n
       p.engine _ _ r (r + 1) _ _ _ B C raw below receipts root path
     simpa only [headData, headTarget, Nat.add_eq_zero_iff, Nat.one_ne_zero,
-      and_false, decide_false, Bool.false_eq_true, ↓reduceIte, active, choice] using covers
+      and_false, decide_false, Bool.false_eq_true, ↓reduceIte, active, choice] using! covers
   | false =>
     have covers := choice_covers_of_genuine_transfer p
       (Run.stateBeforeTime (sapc p) rho (gateTime p r) v).base
@@ -116,7 +116,7 @@ theorem local_genuine_activePC_head_covers {V : Type} [DecidableEq V] (p : Param
       (selectedPC p (headState p rho (r + 1) v) (r + 1)) raw below receipts
       (fun a hn ha => activeVoterTree_contains_plain p _ _ _ (path a hn ha)) root (cert active)
     simpa only [headData, headTarget, Nat.add_eq_zero_iff, Nat.one_ne_zero,
-      and_false, decide_false, Bool.false_eq_true, ↓reduceIte, active] using covers
+      and_false, decide_false, Bool.false_eq_true, ↓reduceIte, active] using! covers
 
 end AvailableChain.SAPC
 end

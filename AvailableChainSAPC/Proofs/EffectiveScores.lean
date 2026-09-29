@@ -22,7 +22,7 @@ theorem scoreSeat_of_exact_or_equivocation {n : Nat} (tree : List Block)
       right
       apply List.any_eq_true.mpr
       refine ⟨⟨.seat r i, .head b⟩, List.mem_filter.mpr ⟨hsp, by simp [GridCO.headSeat?]⟩, ?_⟩
-      simpa [GridCO.headTarget?, GridCO.headLabel?, hb, hslot] using
+      simpa [GridCO.headTarget?, GridCO.headLabel?, hb, hslot] using!
         GridCO.block_preceq_self b
   · have he' := he
     constructor

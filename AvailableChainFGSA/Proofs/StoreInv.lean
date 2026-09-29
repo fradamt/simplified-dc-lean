@@ -379,7 +379,7 @@ theorem saGate_cases (p : SA.Params) {n : Nat} (a : Block) (v : GridCO.State n) 
               genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy n v s (some C) } := by
             simp only [SA.gateFrom, GridCO.gateFrom]
             rw [show GridCO.confirmationFrom p.engine a v s = some C from hc]
-            simp only [hg, if_true]
+            simp only [hg, ite_true]
           rw [he]
           exact ⟨hN, hL, Or.inl rfl⟩
       | false =>
@@ -476,12 +476,12 @@ theorem cstoreInv_gateFresh (p : Params) (st : State p.n) (h : CStoreInv p st) (
     rw [List.mem_append, List.mem_singleton] at hrow
     rcases hrow with hrow | rfl
     · have hne : row.1 ≠ s := ne_of_saved (h.fastDom.2 row.1 (List.mem_map_of_mem hrow)) hnew
-      rw [hsv, if_neg hne]
+      rw [hsv, ite_eq_right hne]
       exact h.fastOrigin row hrow B hB
     · obtain ⟨C, hc, hBC, -, -⟩ := fastSet_prefix p (eraseFG st.fg.F) (actView st) s hB
       left
       refine ⟨C, ?_, hBC⟩
-      rw [hsv, if_pos rfl, hc]
+      rw [hsv, ite_eq_left rfl, hc]
   · change ((st.fastWrite ++
         [(s, fastSet p (eraseFG st.fg.F) (actView st) s)]).map Prod.fst).Nodup ∧
       ∀ r ∈ (st.fastWrite ++ [(s, fastSet p (eraseFG st.fg.F) (actView st) s)]).map Prod.fst,
@@ -496,10 +496,10 @@ theorem cstoreInv_gateFresh (p : Params) (st : State p.n) (h : CStoreInv p st) (
       rw [hsv]
       rw [List.mem_append] at hr
       rcases hr with hr | hr
-      · rw [if_neg (ne_of_saved (h.fastDom.2 r hr) hnew)]
+      · rw [ite_eq_right (ne_of_saved (h.fastDom.2 r hr) hnew)]
         exact h.fastDom.2 r hr
       · simp only [List.map_cons, List.map_nil, List.mem_singleton] at hr
-        rw [if_pos hr]
+        rw [ite_eq_left hr]
         rfl
   · change ((SA.gateFrom p.toParams (eraseFG st.fg.F) (actView st) s).genuine.map Prod.fst).Nodup
     rw [hgen, List.map_append, List.nodup_append]
@@ -519,7 +519,7 @@ theorem cstoreInv_gateStep (p : Params) (st : State p.n) (h : CStoreInv p st) (s
   · have hnew : GridCO.savedGenuine st.base s = none := by simpa using hs
     unfold gateStep
     dsimp only
-    rw [if_neg hs]
+    rw [ite_eq_right hs]
     exact cstoreInv_normalizeS p _ (cstoreInv_gateFresh p st h s hnew)
 
 /-- [bp bp.activeView.v1] The gate keeps every SA target compatible with F. -/
@@ -668,9 +668,9 @@ theorem admitBlock_reconcile_harmless (p : Params) (st : State p.n) (h : CStoreI
   rw [heq] at hL hG hS ⊢
   dsimp only at hL hG hS hob hgen hstab hmono ⊢
   by_cases hc : (on_block p.E p.cfg st.fg (fgBlock P b rows)).F = st.fg.F
-  · rw [if_pos hc]
+  · rw [ite_eq_left hc]
     exact ⟨hob, hgen, rfl, by rw [hstab]; exact block_preceq_refl _⟩
-  · rw [if_neg hc] at hL hG hS ⊢
+  · rw [ite_eq_right hc] at hL hG hS ⊢
     rw [reconcile_fg] at hL hG hS
     obtain ⟨he, hpre⟩ := reconcile_harmless_origin
       { st with

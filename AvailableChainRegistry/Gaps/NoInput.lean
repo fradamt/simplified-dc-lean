@@ -59,7 +59,7 @@ def clockChain : ProtocolSpec 1 where
     intro s t
     change (s ∈ if 0 ≤ t then [t.toNat] else []) ↔ (s : Int) = t
     by_cases h : 0 ≤ t
-    · simp only [if_pos h, List.mem_singleton]
+    · simp only [ite_eq_left h, List.mem_singleton]
       have hc : (t.toNat : Int) = t := Int.toNat_of_nonneg h
       constructor
       · intro he
@@ -67,7 +67,7 @@ def clockChain : ProtocolSpec 1 where
         exact hc
       · intro he
         exact_mod_cast (hc.trans he.symm).symm
-    · simp only [if_neg h, List.not_mem_nil, false_iff]
+    · simp only [ite_eq_right h, List.not_mem_nil, false_iff]
       intro he
       exact h (he ▸ Int.natCast_nonneg s)
   slotsAt_nodup := by intro t; split_ifs <;> simp

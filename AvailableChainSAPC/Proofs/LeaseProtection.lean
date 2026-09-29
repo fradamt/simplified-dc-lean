@@ -76,7 +76,7 @@ theorem gateWithPC_comparable_targets (p : Params) {n : Nat} (st : GridCO.State 
       obtain ⟨X, g, d, present, absent⟩ := new
       rw [gateWithPC_finite_veto p st r cert C raw veto] at present
       exact absent present
-    simpa using List.any_eq_false.mp guard (K, k, e) row
+    simpa using! List.any_eq_false.mp guard (K, k, e) row
   by_cases oldA : (A, g, d) ∈ st.obligations
   · by_cases oldB : (B, level, expiry) ∈ st.obligations
     · exact h A g d oldA B level expiry oldB

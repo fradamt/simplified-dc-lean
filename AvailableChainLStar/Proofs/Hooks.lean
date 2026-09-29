@@ -153,7 +153,7 @@ private theorem fold_votes_subset (p : Params) {n : Nat} (raw : List (HeadWire n
       (raw.foldl (fun acc row => admitVote p acc (fromHead row)) st).votes := by
   induction raw generalizing st with
   | nil => exact List.Subset.refl _
-  | cons row raw ih => exact (admitVote_votes_subset p st (fromHead row)).trans (ih _)
+  | cons row raw ih => exact List.Subset.trans (admitVote_votes_subset p st (fromHead row)) (ih _)
 
 private theorem fold_blocks (p : Params) {n : Nat} (raw : List (HeadWire n)) (st : State n) :
     (raw.foldl (fun acc row => admitVote p acc (fromHead row)) st).blocks = st.blocks := by
@@ -277,7 +277,7 @@ private theorem admitVote_keeps_excludes (p : Params) {n : Nat} (st : State n)
     (o o' : Wire n) (h : excludes st o = true) :
     excludes (admitVote p st o') o = true := by
   refine excludes_mono st _ o (admitVote_votes_subset p st o')
-    (by rw [admitVote_blocks]; exact List.Subset.refl _) ?_ h
+    (by rw [admitVote_blocks]) ?_ h
   rcases excludes_cases st o h with
     ⟨r, i, x, rfl, hm, he⟩ | ⟨s, b, raw, support, rfl, hm, _⟩
   · simp only [processed, decide_eq_false_iff_not]
@@ -343,16 +343,16 @@ theorem excludes_clock (p : Params) {n : Nat} (st : State n) (o : Wire n) (t : T
 /-- An excluded object does not change the state. -/
 theorem excludes_inert (p : Params) {n : Nat} :
     ∀ st o, (lstar p n).excludes st o = true → (lstar p n).process st o = st := by
-  intro st o h
-  rw [lstar_excludes] at h
+  intro (st : State n) (o : Wire n) h
+  change excludes st o = true at h
   change process p st o = st
   rcases excludes_cases st o h with
     ⟨r, i, x, rfl, _, he⟩ | ⟨s, b, raw, support, rfl, _, hb⟩
   · simp only [process, admitVote]
-    rw [if_pos]
+    rw [ite_eq_left]
     simp [he]
   · simp only [process, admitProposal]
-    rw [if_pos]
+    rw [ite_eq_left]
     simp [hb]
 
 set_option linter.unusedFintypeInType false in

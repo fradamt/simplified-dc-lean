@@ -601,7 +601,7 @@ theorem admitProposal_stored_prefix_closed (p : Params) {n : Nat}
               cases b with
               | genesis => exact False.elim (hB (by simpa [Block.preceq] using hBK))
               | node parent slot root =>
-                  simpa [Block.preceq, Bool.or_eq_true] using hBK
+                  simpa [Block.preceq, Bool.or_eq_true] using! hBK
             rcases hcase with heq | hparent
             · exact List.mem_append.mpr (Or.inr (by simp [heq]))
             · have hparentKnown : b.parent ∈ st.blocks := by
@@ -725,7 +725,7 @@ theorem gate_deadlines_at_most (p : Params) {n : Nat}
     (hbound : DeadlinesAtMost st (gateTime p r + lifetime p)) :
     DeadlinesAtMost (gate p st r) (gateTime p r + lifetime p) := by
   cases hc : confirmation p st r with
-  | none => simpa [gate, hc] using hbound
+  | none => simpa [gate, hc] using! hbound
   | some C =>
       cases hguard : st.obligations.any (fun (target, _, _) =>
           !Block.compatible target C) with
@@ -741,7 +741,7 @@ theorem gate_deadlines_aligned (p : Params) {n : Nat}
     (haligned : DeadlinesAligned p st) :
     DeadlinesAligned p (gate p st r) := by
   cases hc : confirmation p st r with
-  | none => simpa [gate, hc] using haligned
+  | none => simpa [gate, hc] using! haligned
   | some C =>
       cases hguard : st.obligations.any (fun (target, _, _) =>
           !Block.compatible target C) with
@@ -760,7 +760,7 @@ theorem gate_live_rows (p : Params) {n : Nat}
     (hlive : LiveRows st) :
     LiveRows (gate p st r) := by
   cases hc : confirmation p st r with
-  | none => simpa [gate, hc] using hlive
+  | none => simpa [gate, hc] using! hlive
   | some C =>
       cases hguard : st.obligations.any (fun (target, _, _) =>
           !Block.compatible target C) with
@@ -802,7 +802,7 @@ theorem gate_prefix_deadline_order (p : Params) {n : Nat}
     (hbound : DeadlinesAtMost st (gateTime p r + lifetime p)) :
     PrefixDeadlineOrder (gate p st r) := by
   cases hc : confirmation p st r with
-  | none => simpa [gate, hc] using hprefix
+  | none => simpa [gate, hc] using! hprefix
   | some C =>
       cases hguard : st.obligations.any (fun (target, _, _) =>
           !Block.compatible target C) with
@@ -878,7 +878,7 @@ theorem gate_comparable_targets (p : Params) {n : Nat}
     (hbound : DeadlinesAtMost st (gateTime p r + lifetime p)) :
     ComparableTargets (gate p st r) := by
   cases hc : confirmation p st r with
-  | none => simpa [gate, hc] using hold
+  | none => simpa [gate, hc] using! hold
   | some C =>
       cases hguard : st.obligations.any (fun (target, _, _) =>
           !Block.compatible target C) with
@@ -1275,7 +1275,7 @@ theorem clockPreGate_live_rows (p : Params) {n : Nat}
   change LiveRows s3
   have h0 : LiveRows s0 := by
     intro row hrow
-    simpa [s0] using (List.mem_filter.mp hrow).2
+    simpa [s0] using! (List.mem_filter.mp hrow).2
   have h1 : LiveRows s1 := by
     dsimp [s1]
     split
@@ -1435,23 +1435,23 @@ private theorem world_step_map_reachable
       by_cases h : v = u
       · subst v
         have ht := le_trans (hinv u).1 hbound
-        simpa [World.step] using
+        simpa [World.step] using!
           (show (clock p (w u) t).now ≤ t ∧
             MapReachable p (clock p (w u) t) from
-            ⟨by simp [clock_now], clock_map_reachable p (w u) t (hinv u).2 ht⟩)
-      · simpa [World.step, h] using
+            ⟨(clock_now p (w u) t).le, clock_map_reachable p (w u) t (hinv u).2 ht⟩)
+      · simpa [World.step, h] using!
           (show (w v).now ≤ t ∧ MapReachable p (w v) from
             ⟨le_trans (hinv v).1 hbound, (hinv v).2⟩)
   | deliver u o t =>
       intro v
       by_cases h : v = u
       · subst v
-        simpa [World.step] using
+        simpa [World.step] using!
           (show (process p (w u) o).now ≤ t ∧
             MapReachable p (process p (w u) o) from
-            ⟨by rw [process_now]; exact le_trans (hinv u).1 hbound,
+            ⟨(process_now p (w u) o).le.trans ((hinv u).1.trans hbound),
               process_map_reachable p (w u) o (hinv u).2⟩)
-      · simpa [World.step, h] using
+      · simpa [World.step, h] using!
           (show (w v).now ≤ t ∧ MapReachable p (w v) from
             ⟨le_trans (hinv v).1 hbound, (hinv v).2⟩)
 
@@ -1523,13 +1523,13 @@ private theorem world_step_stored_prefix_closed
       intro v
       by_cases h : v = u
       · subst v
-        simpa [World.step] using clock_stored_prefix_closed p (w u) t (hclosed u)
+        simpa [World.step] using! clock_stored_prefix_closed p (w u) t (hclosed u)
       · simpa [World.step, h] using hclosed v
   | deliver u o t =>
       intro v
       by_cases h : v = u
       · subst v
-        simpa [World.step] using process_stored_prefix_closed p (w u) o (hclosed u)
+        simpa [World.step] using! process_stored_prefix_closed p (w u) o (hclosed u)
       · simpa [World.step, h] using hclosed v
 
 private theorem fold_world_stored_prefix_closed
@@ -1730,7 +1730,7 @@ theorem gate_unique_keys (p : Params) {n : Nat} (st : State n)
     (r : Slot) (hunique : UniqueObligationKeys st) :
     UniqueObligationKeys (gate p st r) := by
   cases hc : confirmation p st r with
-  | none => simpa [gate, hc] using hunique
+  | none => simpa [gate, hc] using! hunique
   | some B =>
       by_cases hv : st.obligations.any (fun (target, _, _) =>
           !Block.compatible target B) = true

@@ -142,6 +142,7 @@ theorem recovery_gate_repairs_record_quorum {V : Type} [DecidableEq V] [Fintype 
     (raw : SA.confirmation p (Run.stateBeforeTime (sapc p) rho (gateTime p s) v).base s = some B)
     (c : PC p.n) (selected : (Run.stateBeforeTime (sapc p) rho (gateTime p s) v).bestPC = some c)
     (target : c.target = B) : stable (Run.readAt (sapc p) rho (gateTime p s) v) = B := by
+  set_option backward.isDefEq.respectTransparency false in
   let st := Run.stateBeforeTime (sapc p) rho (gateTime p s) v
   let pre := clockPreGate p st (gateTime p s)
   have pub : PublicTime E (gateTime p s) := by
@@ -189,6 +190,7 @@ theorem recovery_gate_repairs_record {V : Type} [DecidableEq V] [Fintype V]
     (raw : SA.confirmation p (Run.stateBeforeTime (sapc p) rho (gateTime p s) v).base s = some B)
     (c : PC p.n) (selected : (Run.stateBeforeTime (sapc p) rho (gateTime p s) v).bestPC = some c)
     (target : c.target = B) : stable (Run.readAt (sapc p) rho (gateTime p s) v) = B := by
+  set_option backward.isDefEq.respectTransparency false in
   let st := Run.stateBeforeTime (sapc p) rho (gateTime p s) v
   let pre := clockPreGate p st (gateTime p s)
   have pub : PublicTime E (gateTime p s) := by

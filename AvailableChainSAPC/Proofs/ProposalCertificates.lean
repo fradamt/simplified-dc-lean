@@ -29,6 +29,7 @@ private theorem fold_proposal_origin {V : Type} [DecidableEq V] (p : Params)
     (events : List (Event V (sapc p).Object)) (w : World V (sapc p))
     (v : V) (o : Wire p.n) (hm : o ∈ ((events.foldl World.step w) v).proposals) :
     o ∈ (w v).proposals ∨ ∃ t, .deliver v o t ∈ events := by
+  set_option backward.isDefEq.respectTransparency false in
   induction events generalizing w with
   | nil => exact Or.inl hm
   | cons e events ih =>
@@ -61,6 +62,7 @@ theorem headState_honest_proposal_unique {V : Type} [DecidableEq V]
     (hm : o ∈ (headState p rho s reader).proposals)
     (hp : o.payload = .proposal target raw support c) (ht : target.slot = s) :
     target = b ∧ c = (proposalState p rho s).bestPC := by
+  set_option backward.isDefEq.respectTransparency false in
   simp only [headState, clock_proposals] at hm
   rcases fold_proposal_origin p _ World.init reader o hm with old | ⟨t, he⟩
   · simp [World.init, sapc, initial] at old
@@ -136,6 +138,7 @@ theorem frozenPC_rank_at_proposer {V : Type} [DecidableEq V] (p : Params)
     (hp : rho.proposerOf (r + 1) ∈ rho.honest) (c : PC p.n)
     (hc : frozenPCAt (headState p rho (r + 1) reader) r = some c) :
     ∃ d, (proposalState p rho (r + 1)).bestPC = some d ∧ c.slot ≤ d.slot := by
+  set_option backward.isDefEq.respectTransparency false in
   have frozen := headState_frozenPC_origin p E rho hs r reader c hc
   have valid := installedPC_valid_beforeTime p rho reader (freezeTime p r) c frozen
   have ht : freezeTime p r ≤ proposalTime p (r + 1) := by
@@ -143,7 +146,7 @@ theorem frozenPC_rank_at_proposer {V : Type} [DecidableEq V] (p : Params)
     push_cast
     linarith [p.deltaPos]
   have relayed := strict_pc_relay p E rho hs _ _ ht hrelay reader _ hr hp c valid
-  simpa only [proposalState, clock_bestPC] using
+  simpa only [proposalState, clock_bestPC] using!
     PCComplete_at_fold p _ (rho.proposerOf (r + 1)) c relayed
 
 private theorem preferPC_idempotent {n : Nat} (old : Option (PC n)) (c : PC n) :
@@ -246,11 +249,12 @@ theorem honest_proposal_PC_at_head {V : Type} [DecidableEq V]
     (hp : rho.proposerOf s ∈ rho.honest) (reader : V) (hr : reader ∈ rho.honest)
     (c : PC p.n) (hc : (proposalState p rho s).bestPC = some c) :
     pcValid p (headState p rho s reader) c = true := by
+  set_option backward.isDefEq.respectTransparency false in
   have he : max (proposalTime p s) E.t_GST + E.Δ = voteTime p s := by
     rw [max_eq_left hsync, hΔ]
     rfl
   have valid := installedPC_valid_beforeTime p rho _ _ c
-    (by simpa only [proposalState, clock_bestPC] using hc)
+    (by simpa only [proposalState, clock_bestPC] using! hc)
   have relay := strict_pc_relay p E rho hs (proposalTime p s) (voteTime p s)
     (by change 4 * p.Δ * (s : Time) ≤ 4 * p.Δ * (s : Time) + p.Δ
         linarith [p.deltaPos])

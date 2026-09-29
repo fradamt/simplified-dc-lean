@@ -28,9 +28,9 @@ theorem clock_stable_cases (p : Params) {n : Nat} (st : State n) (t : Time)
       have raw' := (@GridCO.confirmation_eq_of_receiptData GridCO.slowLeasePolicy p.engine n
         _ st.base (GridCO.clockPreGate_receiptData p.engine st.base t) stamped _).symm.trans raw
       by_cases keep : Block.preceq b (clockPreGate p st t).base.stableRecord = true
-      · rw [GridCO.advance, if_pos keep] at eq
+      · rw [GridCO.advance, ite_eq_left keep] at eq
         exact Or.inl (eq.trans preStable)
-      · rw [GridCO.advance, if_neg keep] at eq
+      · rw [GridCO.advance, ite_eq_right keep] at eq
         exact Or.inr ⟨_, time, raw'.trans (congrArg some eq.symm)⟩
   · exact Or.inl preStable
 
@@ -47,6 +47,7 @@ theorem run_stable_origin {V : Type} [DecidableEq V] (p : Params)
       rho.events[j]? = some (.tick v (gateTime p r)) ∧
       SA.confirmation p (Run.stateBefore (sapc p) rho j v).base r =
         some (stable (Run.stateBefore (sapc p) rho index v)) := by
+  set_option backward.isDefEq.respectTransparency false in
   induction index with
   | zero => exact Or.inl rfl
   | succ i ih =>
@@ -77,11 +78,11 @@ theorem run_stable_origin {V : Type} [DecidableEq V] (p : Params)
               (base_receiptStamped_at_fold p _ v) with same | ⟨r, time, raw⟩
           · apply old
             rw [stateBefore_succ_event he]
-            simpa only [World.step, Function.update_self] using same
+            simpa only [World.step, Function.update_self] using! same
           · right
             refine ⟨i, Nat.lt_succ_self i, r, time ▸ he, ?_⟩
             rw [stateBefore_succ_event he]
-            simpa only [World.step, Function.update_self] using raw
+            simpa only [World.step, Function.update_self] using! raw
         · apply old
           simp only [stateBefore_succ_event he, World.step, Function.update_of_ne eq]
 

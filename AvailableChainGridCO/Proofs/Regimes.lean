@@ -19,7 +19,7 @@ omit [DecidableEq V] [Fintype V] in
 /-- The hidden seat assignment fixes the size of the validator universe. -/
 theorem awake_card_le_seats (t : Time) :
     (awakeAt E rho.honest t).card ≤ p.n := by
-  letI : Fintype V := Fintype.ofEquiv (Fin p.n) (rho.seatOf (0 : Slot))
+  let : Fintype V := Fintype.ofEquiv (Fin p.n) (rho.seatOf (0 : Slot))
   have hcard : Fintype.card V = p.n := by
     simpa using (Fintype.card_congr (rho.seatOf (0 : Slot))).symm
   exact (Finset.card_le_univ _).trans_eq hcard

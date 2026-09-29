@@ -57,6 +57,7 @@ theorem stateBefore_frozenPC_prefix {V : Type} [DecidableEq V] (p : Params)
     (rho : Run V (sapc p)) {i j : Nat} (hij : i ≤ j) (v : V) :
     (Run.stateBefore (sapc p) rho i v).frozenPC <+:
       (Run.stateBefore (sapc p) rho j v).frozenPC := by
+  set_option backward.isDefEq.respectTransparency false in
   apply stateBefore_field_prefix (P := sapc p) State.frozenPC ?_ ?_ rho hij v
   · intro st t
     rcases clock_frozenPC_cases p st t with he | ⟨r, he⟩

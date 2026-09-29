@@ -78,7 +78,6 @@ theorem clock_recentArchive (p : Params) {n : Nat} (st : State n) (t : Time)
   apply recentArchive_mono p st _ (clock_archive p st t)
   · rw [show (clock p st t).base.votes = st.base.votes from
       congrArg (fun d => d.2.2.1) (clock_receiptData p st t)]
-    exact List.Subset.refl _
   · rwa [clock_now]
   · exact h
 

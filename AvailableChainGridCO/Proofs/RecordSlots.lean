@@ -256,11 +256,11 @@ private theorem fold_recordSlotOrdered {V : Type} [DecidableEq V] (p : Params)
       cases e with
       | tick u t =>
           by_cases hv : v = u
-          · subst v; simpa [World.step] using clock_recordSlotOrdered p (w u) t (h u)
+          · subst v; simpa [World.step] using! clock_recordSlotOrdered p (w u) t (h u)
           · simpa [World.step, hv] using h v
       | deliver u o t =>
           by_cases hv : v = u
-          · subst v; simpa [World.step] using process_recordSlotOrdered p (w u) o (h u)
+          · subst v; simpa [World.step] using! process_recordSlotOrdered p (w u) o (h u)
           · simpa [World.step, hv] using h v
 
 theorem run_time_recordSlotOrdered {V : Type} [DecidableEq V] (p : Params)
@@ -293,6 +293,7 @@ private theorem fold_record_slot_le {V : Type} [DecidableEq V] (p : Params)
     (ht : ∀ e ∈ events, e.time ≤ gateTime p r) :
     ∀ v, RecordSlotOrdered ((events.foldl World.step w) v) ∧
       ((events.foldl World.step w) v).stableRecord.slot ≤ r := by
+  set_option backward.isDefEq.respectTransparency false in
   induction events generalizing w with
   | nil => exact h
   | cons e events ih =>
@@ -302,7 +303,7 @@ private theorem fold_record_slot_le {V : Type} [DecidableEq V] (p : Params)
         | tick u t =>
             by_cases hv : v = u
             · subst v
-              simpa [World.step] using
+              simpa [World.step] using!
                 And.intro (clock_recordSlotOrdered p (w u) t (h u).1)
                   (clock_record_slot_le p (w u) r t (h u).1 (h u).2
                     (ht (.tick u t) (by simp)))
@@ -330,7 +331,7 @@ theorem read_stable_slot_le {V : Type} [DecidableEq V] (p : Params)
 theorem gate_input_slot_lt {V : Type} [DecidableEq V] (p : Params)
     (E : Env V) (rho : Run V (gridCO p)) (hs : ScheduleWellFormed E rho)
     (r : Slot) (hr : 0 < r) (v : V) : (stable (gateInput p rho r v)).slot < r := by
-  rw [gate_input_record p E rho hs, if_neg (Nat.ne_of_gt hr)]
+  rw [gate_input_record p E rho hs, ite_eq_right (Nat.ne_of_gt hr)]
   exact lt_of_le_of_lt (read_stable_slot_le p rho (r - 1) _ (le_refl _) v)
     (Nat.sub_lt hr (by decide))
 
@@ -356,6 +357,7 @@ theorem read_gate_repairs_fresh_slot {V : Type} [DecidableEq V]
     (hg : (gateInput p rho r v).obligations.any
       (fun (target, _, _) => !Block.compatible target B) = false) :
     stable (Run.readAt (gridCO p) rho (gateTime p r) v) = B := by
+  set_option backward.isDefEq.respectTransparency false in
   have hpub : PublicTime E (gateTime p r) := by
     refine ⟨4 * r + 6, ?_⟩
     simp only [gateTime, proposalTime, hΔ, Nat.cast_add, Nat.cast_mul, Nat.cast_ofNat]

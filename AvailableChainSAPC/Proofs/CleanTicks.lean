@@ -201,7 +201,7 @@ theorem cleanPathFacts_freeze {V : Type} [DecidableEq V] [Fintype V]
     CleanPathFacts p E rho (index + 1) path := by
   refine cleanPathFacts_tick_between_duties p E rho hx index reader _ he ?_ ?_ ?_ h ?_
   · intro s; exact duty_phase_ne p r s 3 2 (by decide) (by decide) (by decide)
-  · intro s; simpa only [Nat.cast_one, one_mul] using
+  · intro s; simpa only [Nat.cast_one, one_mul] using!
       duty_phase_ne p r s 3 1 (by decide) (by decide) (by decide)
   · intro s heq
     apply duty_phase_ne p r (s + 1) 3 2 (by decide) (by decide) (by decide)
@@ -211,7 +211,7 @@ theorem cleanPathFacts_freeze {V : Type} [DecidableEq V] [Fintype V]
   · intro s c ht _ _ _
     apply False.elim
     apply duty_phase_ne p r s 3 0 (by decide) (by decide) (by decide)
-    simpa only [Nat.cast_zero, zero_mul, add_zero] using ht
+    simpa only [Nat.cast_zero, zero_mul, add_zero] using! ht
 
 /-- A proposal tick preserves the joint state invariant. The emitted
 proposal's later common HEAD is deliberately not asserted here. -/
@@ -222,10 +222,11 @@ theorem cleanPathFacts_proposal_tick_capped {V : Type} [DecidableEq V] [Fintype 
     (he : rho.events[index]? = some (.tick reader (proposalTime p r)))
     {path : Block → Prop} (h : CleanPathFacts p E rho index path) :
     CleanPathFacts p E rho (index + 1) path := by
+  set_option backward.isDefEq.respectTransparency false in
   refine cleanPathFacts_tick_between_duties p E rho hx index reader _ he ?_ ?_ ?_ h ?_
-  · intro s; simpa only [Nat.cast_zero, zero_mul, add_zero] using
+  · intro s; simpa only [Nat.cast_zero, zero_mul, add_zero] using!
       duty_phase_ne p r s 0 2 (by decide) (by decide) (by decide)
-  · intro s; simpa only [Nat.cast_zero, zero_mul, add_zero, Nat.cast_one, one_mul] using
+  · intro s; simpa only [Nat.cast_zero, zero_mul, add_zero, Nat.cast_one, one_mul] using!
       duty_phase_ne p r s 0 1 (by decide) (by decide) (by decide)
   · intro s heq
     apply duty_phase_ne p r (s + 1) 0 2 (by decide) (by decide) (by decide)

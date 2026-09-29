@@ -29,7 +29,7 @@ theorem gateWithPC_writes_admitted_prefix (p : Params) {n : Nat} (st : GridCO.St
       _ B g _ bound
     apply List.mem_flatMap.mpr
     refine ⟨B, List.mem_filter.mpr ⟨stored, ?_⟩, List.mem_map.mpr ⟨g, admitted, rfl⟩⟩
-    simpa only [bne_iff_ne, Bool.and_eq_true] using And.intro nonzero below
+    simpa only [bne_iff_ne, Bool.and_eq_true] using! And.intro nonzero below
   | some cert =>
     let base := { st with
       goldfishRecord := GridCO.advance st.goldfishRecord C
@@ -49,7 +49,7 @@ theorem gateWithPC_writes_admitted_prefix (p : Params) {n : Nat} (st : GridCO.St
     apply GridCO.writeKeys_mem_of_key base _ B g _ bound
     apply List.mem_flatMap.mpr
     refine ⟨B, List.mem_filter.mpr ⟨stored, ?_⟩, List.mem_map.mpr ⟨g, admitted, rfl⟩⟩
-    simpa only [bne_iff_ne, Bool.and_eq_true] using And.intro (And.intro nonzero below) compatible
+    simpa only [bne_iff_ne, Bool.and_eq_true] using! And.intro (And.intro nonzero below) compatible
 
 /-- A vetoed descendant can create the first lease for its protection
 prefix. S remains fixed. No earlier lease for B is required. -/

@@ -124,11 +124,11 @@ private theorem fold_stamped {V : Type} [DecidableEq V] (p : Params)
       | tick u t =>
           by_cases hv : v = u
           · subst v
-            simpa [World.step] using stamped_of_data_eq (clock_receiptData p (w u) t) (h u)
+            simpa [World.step] using! stamped_of_data_eq (clock_receiptData p (w u) t) (h u)
           · simpa [World.step, hv] using h v
       | deliver u o t =>
           by_cases hv : v = u
-          · subst v; simpa [World.step] using process_stamped p (w u) o (h u)
+          · subst v; simpa [World.step] using! process_stamped p (w u) o (h u)
           · simpa [World.step, hv] using h v
 
 /-- Stored votes and blocks have stamps at every time-filtered run state. -/
@@ -264,7 +264,7 @@ theorem gate_input_record {V : Type} [DecidableEq V]
   · subst r
     simp only [↓reduceIte]
     exact read_stable_before_first_gate p rho (gateTime p 0 - 1) (sub_lt_self _ (by norm_num)) v
-  · rw [if_neg hz]
+  · rw [ite_eq_right hz]
     apply read_stable_eq_latest_gate p E rho hs (r - 1) (gateTime p r - 1)
     · have hslot : ((r - 1 : Nat) : Time) = r - 1 := by
         rw [Nat.cast_sub (Nat.one_le_iff_ne_zero.mpr hz), Nat.cast_one]
@@ -285,6 +285,7 @@ theorem read_gate_record_cases {V : Type} [DecidableEq V]
         stable (gateInput p rho r v) ∨
       confirmation p (gateInput p rho r v) r =
         some (stable (Run.readAt (gridCO p) rho (gateTime p r) v)) := by
+  set_option backward.isDefEq.respectTransparency false in
   have hpub : PublicTime E (gateTime p r) := by
     refine ⟨4 * r + 6, ?_⟩
     simp only [gateTime, proposalTime, hΔ, Nat.cast_add, Nat.cast_mul, Nat.cast_ofNat]

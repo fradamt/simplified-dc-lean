@@ -18,6 +18,7 @@ theorem recovery_timely_head_covers_quorum {V : Type} [DecidableEq V] [Fintype V
     (i : Nat) (v : V) (hv : v ∈ rho.honest) (B : Block)
     (saved : savedTimely (Run.stateBefore (sapc p) rho i v) r = some (some B)) :
     RecoveryHeadCovers p rho r B := by
+  set_option backward.isDefEq.respectTransparency false in
   have cap := h.faultBound
   intro w hw
   have root : Block.Preceq (GridCO.liveRoot (headState p rho (r + 1) w).base) B := by

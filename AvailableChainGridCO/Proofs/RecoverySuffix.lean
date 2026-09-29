@@ -34,7 +34,7 @@ theorem stage_genuine_prefix {V : Type} [DecidableEq V] [Fintype V]
   have hsync := hseq s (hbr.trans hrs.le) hh
   obtain ⟨C', hC', hp, _⟩ := hpres hsync hsync.2.1 B hhead reader hr
   have heq : C' = C := Option.some.inj (hC'.symm.trans hC)
-  simpa only [heq] using hp
+  simpa only [heq] using! hp
 
 /-- Once a gate repairs a record to a genuine result, all later records
 have a genuine source at or after that repair. Old pre-recovery records
@@ -54,11 +54,10 @@ theorem gate_record_origin_after_repair {V : Type} [DecidableEq V] (p : Params)
     (fun s => stable (Run.readAt (gridCO p) rho (gateTime p s) reader))
     (fun s => gateTime p s ≤ rho.horizon)
     (fun s t le hh => ((gateTime_le_iff p s t).mpr le).trans hh) repair
-    (by dsimp only; rw [hrepair reader hr]; exact hconf reader hr) _ t hrt hh
+    (by rw [hrepair reader hr]; exact hconf reader hr) _ t hrt hh
   intro s after bound
   rcases read_gate_record_cases p E rho hs hΔ s bound reader hr with old | raw
   · left
-    dsimp only
     rw [old, gate_input_record p E rho hs]
     simp only [show s ≠ 0 from Nat.ne_zero_of_lt after, ↓reduceIte]
   · exact Or.inr raw
@@ -82,12 +81,11 @@ theorem repaired_gate_record_prefix {V : Type} [DecidableEq V] [Fintype V]
     (fun s => stable (Run.readAt (gridCO p) rho (gateTime p s) reader))
     (fun s => gateTime p s ≤ rho.horizon)
     (fun s t le hh => ((gateTime_le_iff p s t).mpr le).trans hh) repair
-    (by dsimp only; rw [hrepair reader hr]; exact hconf reader hr) _ _ r t hrr hrt hh
+    (by rw [hrepair reader hr]; exact hconf reader hr) _ _ r t hrr hrt hh
   · intro s after bound
     rcases read_gate_record_cases p E rho hexec.toScheduleWellFormed hΔ s bound reader hr
       with old | raw
     · left
-      dsimp only
       rw [old, gate_input_record p E rho hexec.toScheduleWellFormed]
       simp only [show s ≠ 0 from Nat.ne_zero_of_lt after, ↓reduceIte]
     · exact Or.inr raw

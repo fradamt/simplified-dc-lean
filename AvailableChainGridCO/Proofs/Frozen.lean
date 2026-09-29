@@ -106,6 +106,7 @@ theorem stored_freeze_origin {V : Type} [DecidableEq V] (p : Params)
     ∃ j < index,
       rho.events[j]? = some (.tick reader (freezeTime p r)) ∧
       view = freezeView p (Run.stateBefore (gridCO p) rho j reader) r := by
+  set_option backward.isDefEq.respectTransparency false in
   induction index with
   | zero => simp [Run.stateBefore, World.init, gridCO, initial] at hm
   | succ index ih =>
@@ -141,7 +142,7 @@ theorem stored_freeze_origin {V : Type} [DecidableEq V] (p : Params)
           | deliver v o t =>
               have hold : (r, view) ∈ (Run.stateBefore (gridCO p) rho index reader).frozen := by
                 by_cases hv : reader = v
-                · subst v; simpa [World.step, gridCO, process_frozen] using hm
+                · subst v; simpa [World.step, gridCO, process_frozen] using! hm
                 · simpa [World.step, hv] using hm
               obtain ⟨j, hj, hrest⟩ := ih hold
               exact ⟨j, by omega, hrest⟩
@@ -151,6 +152,7 @@ theorem stateBefore_frozen_prefix {V : Type} [DecidableEq V] (p : Params)
     (rho : Run V (gridCO p)) {i j : Nat} (hij : i ≤ j) (reader : V) :
     (Run.stateBefore (gridCO p) rho i reader).frozen <+:
       (Run.stateBefore (gridCO p) rho j reader).frozen := by
+  set_option backward.isDefEq.respectTransparency false in
   induction j with
   | zero => rw [Nat.le_zero.mp hij]
   | succ j ih =>
@@ -284,7 +286,7 @@ theorem clock_frozenAt_of_some (p : Params) {n : Nat} (st : State n)
   · rw [List.find?_append]
     cases hf : st.frozen.find? (fun row => row.1 == r) with
     | none => simp only [hf, Option.map_none, reduceCtorEq] at hv
-    | some row => simpa only [hf, Option.or_some] using hv
+    | some row => simpa only [hf, Option.or_some] using! hv
   · exact hv
 
 /-- The next ordinary HEAD uses the exact previous-label freeze. -/

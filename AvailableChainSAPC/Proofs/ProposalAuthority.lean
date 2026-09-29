@@ -17,6 +17,7 @@ theorem honest_proposal_active_source {V : Type} [DecidableEq V]
     (hp : rho.proposerOf s ∈ rho.honest) (reader : V) (hr : reader ∈ rho.honest)
     (active : capBroken p (headState p rho s reader) = false) :
     capBroken p (proposalState p rho s) = false := by
+  set_option backward.isDefEq.respectTransparency false in
   simp only [headState, capBroken_clock] at active
   simp only [proposalState, capBroken_clock]
   cases mode : capBroken p (Run.stateBeforeTime (sapc p) rho

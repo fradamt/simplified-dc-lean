@@ -59,6 +59,7 @@ theorem process_stampsBounded (p : Params) {n : Nat} (st : State n) (o : Wire n)
 theorem headStampsBounded_before {V : Type} [DecidableEq V] (p : Params)
     (E : Env V) (rho : Run V (sapc p)) (hs : ScheduleWellFormed E rho) (i : Nat) (v : V) :
     HeadStampsBounded (Run.stateBefore (sapc p) rho i v) := by
+  set_option backward.isDefEq.respectTransparency false in
   apply stateBefore_invariant (engineClock p) E rho hs HeadStampsBounded
   · simp [sapc, initial, HeadStampsBounded]
   · intro st t ht h
@@ -93,7 +94,7 @@ theorem stored_head_stamp_before_cut {V : Type} [DecidableEq V] (p : Params)
   have hb := (headStampsBounded_before p E rho hs (i + 1) reader).stampHead_le o
   have hn : (Run.stateBefore (sapc p) rho (i + 1) reader).base.now ≤ t := by
     rw [stateBefore_succ_event hi]
-    simpa [World.step, sapc, process_now] using stateBefore_now_le_event p E rho hs hi reader
+    simpa [World.step, sapc, process_now] using! stateBefore_now_le_event p E rho hs hi reader
   exact (hb.trans hn).trans_lt ht
 
 /-- The early handler bridge includes the raw receipt stamp. The path

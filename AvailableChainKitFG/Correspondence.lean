@@ -46,7 +46,7 @@ theorem pickPair_eq_of_unique {α : Type} [DecidableEq α] (T : Finset α) (p : 
     pickPair T p = some a := by
   have hex : ∃! x, x ∈ T ∧ p x = true := ⟨a, ⟨ha, hpa⟩, fun b hb => hu b hb.1 hb.2⟩
   unfold pickPair
-  rw [dif_pos hex]
+  rw [dite_eq_left hex]
   have hch := Finset.choose_spec (fun x => p x = true) T hex
   exact congrArg some (hu _ hch.1 hch.2)
 
@@ -56,7 +56,7 @@ omit [Fintype V] in
 theorem pickPair_empty {α : Type} [DecidableEq α] (p : α → Bool) :
     pickPair (∅ : Finset α) p = none := by
   unfold pickPair
-  rw [dif_neg]
+  rw [dite_eq_right]
   rintro ⟨x, ⟨hx, -⟩, -⟩
   exact Finset.notMem_empty x hx
 
@@ -284,12 +284,12 @@ theorem update_finality_pair (st : Store V) (B : FGBlock V) :
   · have hb : (FGBlock.preceq st.F (derive E cfg B).J && decide (lexKey (st.h_j, st.J) <
         lexKey ((derive E cfg B).h_j, (derive E cfg B).J))) = true := by
       simpa [FGBlock.Preceq] using hc
-    rw [if_pos hc, if_pos hb]
+    rw [ite_eq_left hc, ite_eq_left hb]
     split_ifs <;> rfl
   · have hb : ¬ (FGBlock.preceq st.F (derive E cfg B).J && decide (lexKey (st.h_j, st.J) <
         lexKey ((derive E cfg B).h_j, (derive E cfg B).J))) = true := by
       simpa [FGBlock.Preceq] using hc
-    rw [if_neg hc, if_neg hb]
+    rw [ite_eq_right hc, ite_eq_right hb]
     split_ifs <;> rfl
 
 /-- [helper] The F step of `update_finality` (alfs4 lines 855–858): F does not
@@ -440,7 +440,7 @@ theorem on_block_of_refused (st : Store V) (B : FGBlock V)
       B.slot ≤ B.parent.slot) :
     on_block E cfg st B = st := by
   unfold on_block
-  rw [if_pos hc]
+  rw [ite_eq_left hc]
 
 /-- [helper] The accepted branch of `on_block` (alfs4 lines 806–812): B enters
 the tree, then `update_finality` runs. -/
@@ -449,7 +449,7 @@ theorem on_block_of_accepted (st : Store V) (B : FGBlock V)
       B.slot ≤ B.parent.slot)) :
     on_block E cfg st B = update_finality E cfg { st with TF := insert B st.TF } B := by
   unfold on_block
-  rw [if_neg hc]
+  rw [ite_eq_right hc]
 
 /-- [pin fg.accountable.v1] (local F never retreats, on_block step) `on_block`
 moves F only to a descendant: a refused block changes nothing, and an accepted
@@ -532,8 +532,8 @@ above Z and F that have a witness in the set at height ≥ lo. -/
 theorem mem_filteredFrom (c : Controls V) (blocks : Finset (FGBlock V)) (B : FGBlock V) :
     B ∈ filteredFrom E cfg c blocks ↔ B ∈ blocks ∧ FGBlock.Preceq c.F B ∧
       FGBlock.Preceq c.Z B ∧ ∃ W ∈ blocks, FGBlock.Preceq B W ∧ c.lo ≤ hOf E cfg W := by
-  simp only [filteredFrom, Finset.mem_filter, Bool.and_eq_true, decide_eq_true_eq,
-    FGBlock.Preceq, and_assoc]
+  simp only [filteredFrom, Finset.mem_filter, Bool.and_eq_true, decide_eq_true_eq]
+  simp only [FGBlock.Preceq, and_assoc]
 
 omit [DecidableEq V] [Fintype V] [RowCodec V] in
 /-- [helper] The band floor is at most the frontier. -/
@@ -757,8 +757,8 @@ theorem frameViable_eq_accept_cut (st : Store V) (h : StoreInv E cfg st)
     rfl
   ext B
   rw [storeFrame, mem_filteredFrom, hZJ, hlo]
-  simp only [acceptViable, Finset.mem_filter, Bool.and_eq_true, decide_eq_true_eq,
-    FGBlock.Preceq]
+  simp only [acceptViable, Finset.mem_filter, Bool.and_eq_true, decide_eq_true_eq]
+  simp only [FGBlock.Preceq]
   constructor
   · rintro ⟨hBT, hF, hJ, hw⟩
     exact ⟨⟨hBT, hF, hw⟩, hJ⟩

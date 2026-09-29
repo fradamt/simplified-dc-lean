@@ -39,7 +39,7 @@ theorem headState_voterView_label {V : Type} [DecidableEq V] (p : Params)
   have h := frozenViewsStored_at_fold p
     ((rho.events.filter (fun e => decide (e.time < voteTime p s))) ++ [.tick v (voteTime p s)]) v
   simpa only [List.foldl_append, List.foldl_cons, List.foldl_nil,
-    World.step, Function.update_self] using h
+    World.step, Function.update_self] using! h
 
 /-- No receipt in a strict gate input is excluded from its late pool. -/
 theorem base_lateVotes_at_input {V : Type} [DecidableEq V] (p : Params)
@@ -67,6 +67,7 @@ theorem voter_raw_at_gate {V : Type} [DecidableEq V] (p : Params)
         (Run.stateBeforeTime (sapc p) rho (gateTime p r) source).base r ∨
       GridCO.equivocates (GridCO.lateVotes p.engine
         (Run.stateBeforeTime (sapc p) rho (gateTime p r) source).base r) i = true := by
+  set_option backward.isDefEq.respectTransparency false in
   have hl : GridCO.headLabel? o = some r := by
     simpa using headState_voterView_label p rho (r + 1) reader o ho
   obtain ⟨target, rfl⟩ := GridCO.head_wire_shape o r i hl hi
@@ -103,6 +104,7 @@ supplies the reverse comparison even if the run stops before the gate. -/
 theorem local_back_receipts {V : Type} [DecidableEq V] (p : Params)
     (E : Env V) (rho : Run V (sapc p)) (hs : ScheduleWellFormed E rho)
     (r : Slot) (reader : V) : BackReceipts p rho r reader reader := by
+  set_option backward.isDefEq.respectTransparency false in
   intro o i hi ho
   have hl : GridCO.headLabel? o = some r := by
     simpa using headState_voterView_label p rho (r + 1) reader o ho

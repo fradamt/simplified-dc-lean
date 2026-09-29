@@ -209,7 +209,6 @@ theorem honest_proposal_parent_stored {V : Type} [DecidableEq V]
     B.parent ∈ (proposalState p rho s).blocks := by
   have ht : TargetsStored (proposalState p rho s) := by
     apply clock_targetsStored
-    change TargetsStored (Run.stateBeforeTime (gridCO p) rho (proposalTime p s) (rho.proposerOf s))
     rw [time_input_eq_event_prefix p E rho hs]
     exact run_targetsStored p rho _ _
   have hg : Block.genesis ∈ (proposalState p rho s).blocks := by

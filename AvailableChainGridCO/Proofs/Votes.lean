@@ -61,6 +61,7 @@ private theorem fold_vote_origin {V : Type} [DecidableEq V] (p : Params)
     (v : V) (o : Wire p.n) (ho : o ∈ ((events.foldl World.step w) v).votes) :
     o ∈ (w v).votes ∨ ∃ parent t, Event.deliver v parent t ∈ events ∧
       (parent = o ∨ carries parent o) := by
+  set_option backward.isDefEq.respectTransparency false in
   induction events generalizing w with
   | nil => exact Or.inl ho
   | cons e events ih =>
@@ -78,7 +79,7 @@ private theorem fold_vote_origin {V : Type} [DecidableEq V] (p : Params)
             by_cases hv : v = u
             · subst v
               have hmem : o ∈ (process p (w u) parent).votes := by
-                simpa [World.step] using hfirst
+                simpa [World.step] using! hfirst
               rcases process_vote_origin p (w u) parent o hmem with hold | hc
               · exact Or.inl hold
               · exact Or.inr ⟨parent, t, by simp, hc⟩
@@ -176,6 +177,7 @@ theorem releaseCount_le_faults_of_emissions
       ∀ target, headTarget? o = some target → Block.Compatible target B) :
     releaseCount p (Run.stateBeforeTime (gridCO p) rho cut reader) r B ≤
       (faulty rho).card := by
+  set_option backward.isDefEq.respectTransparency false in
   rw [releaseCount_eq_card]
   apply Finset.card_le_card_of_injOn (rho.seatOf r)
   · intro i hi
@@ -211,6 +213,7 @@ theorem stored_honest_seat_awake {V : Type} [DecidableEq V]
     (hl : headLabel? o = some r) (hi : headSeat? o = some i)
     (hh : rho.seatOf r i ∈ rho.honest) :
     rho.seatOf r i ∈ awakeAt E rho.honest (voteTime p r) := by
+  set_option backward.isDefEq.respectTransparency false in
   obtain ⟨t, _, j, hj, hem⟩ := stored_honest_vote_emitted p E rho hsig cut reader
     (rho.seatOf r i) o ho hh (holder_eq_of_head p rho o r i hl hi)
   have hawake : E.awake (rho.seatOf r i) t = true := by
@@ -290,6 +293,7 @@ theorem late_voterCount_le_awake_add_faulty
     (cut : Time) (reader : V) (r : Slot) :
     voterCount (lateVotes p (Run.stateBeforeTime (gridCO p) rho cut reader) r) ≤
       (awakeAt E rho.honest (voteTime p r)).card + (faulty rho).card := by
+  set_option backward.isDefEq.respectTransparency false in
   rw [← lateSeats_card]
   apply le_trans (b := (awakeAt E rho.honest (voteTime p r) ∪ faulty rho).card)
   · apply Finset.card_le_card_of_injOn (rho.seatOf r)

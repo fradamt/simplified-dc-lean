@@ -38,6 +38,7 @@ theorem run_row_admitted_source {V : Type} [DecidableEq V] (p : Params)
       Block.Preceq B C ∧ g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.engine p.n
         (Run.stateBeforeTime (sapc p) rho (gateTime p r) v).base r B ∧
       d = gateTime p r + lifetime p := by
+  set_option backward.isDefEq.respectTransparency false in
   obtain ⟨j, hj, t, tick, r, C, time, raw, below, admitted, deadline⟩ :=
     clock_field_origin (P := sapc p) (fun st => st.base.obligations) rfl (process_obligations p)
       (fun st t row => ∃ r C, t = gateTime p r ∧
@@ -79,6 +80,7 @@ theorem head_row_survives_release {V : Type} [DecidableEq V] (p : Params)
     (B, g, d) ∈ (Run.stateBeforeTime (sapc p) rho (voteTime p (r + 1)) v).base.obligations ∧
       voteTime p (r + 1) < d ∧ GridCO.releaseCount p.engine
         (Run.stateBeforeTime (sapc p) rho (voteTime p (r + 1)) v).base r B < g := by
+  set_option backward.isDefEq.respectTransparency false in
   rw [headState, clock_eq_preGate_of_no_gate p _ _ (voteTime_ne_gateTime p (r + 1)),
     clockPreGate_base] at row
   have time : voteTime p (r + 1) = GridCO.releaseTime p.engine r := by
@@ -123,7 +125,7 @@ theorem slowEligible_input_covers {V : Type} [DecidableEq V] (p : Params)
     | none => simp [saved] at cover
     | some C =>
       exact ⟨C, (time_input_savedGenuine_origin p E rho hs _ v s _ saved).2.symm,
-        by simpa [saved] using cover⟩
+        by simpa [saved] using! cover⟩
 
 /-- Recent conflicting sources are excluded by same-label safety. Older
 sources expire by equality at the final HEAD of a slow window. -/
@@ -175,6 +177,7 @@ theorem head_row_source_since {V : Type} [DecidableEq V] (p : Params)
       ∃ s C, r ≤ s ∧ s < t ∧
         SA.confirmation p (Run.stateBeforeTime (sapc p) rho (gateTime p s) v).base s = some C ∧
         Block.Preceq B C := by
+  set_option backward.isDefEq.respectTransparency false in
   have publicTime : PublicTime E (voteTime p (r + 1)) := by
     refine ⟨4 * (r + 1) + 1, ?_⟩
     change 4 * p.Δ * ((r + 1 : Nat) : Time) + p.Δ = _

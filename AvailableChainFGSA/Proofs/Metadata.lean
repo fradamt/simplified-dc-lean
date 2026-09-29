@@ -65,7 +65,7 @@ theorem saGate_stamps (p : SA.Params) {n : Nat} (a : Block) (v : GridCO.State n)
       | true =>
           simp only [SA.gateFrom, GridCO.gateFrom]
           rw [show GridCO.confirmationFrom p.engine a v s = some C from hc]
-          simp only [hg, if_true]
+          simp only [hg, ite_true]
           exact ⟨trivial, trivial⟩
       | false =>
           have he := @GridCO.gateFrom_eq_writeKeys GridCO.slowLeasePolicy p.engine n a v s C hc hg
@@ -147,9 +147,9 @@ theorem accepted_st2 (p : Params) (st : State p.n) (h : CStoreInv p st) (s : Slo
     rw [fg_on_block_accepts p st s b P rows hP hacc, KitFG.update_finality_TF]
   dsimp only
   by_cases hc : (on_block p.E p.cfg st.fg (fgBlock P b rows)).F = st.fg.F
-  · rw [if_pos hc]
+  · rw [ite_eq_left hc]
     exact ⟨rfl, hTF, hbl, hbs, hvs, rfl⟩
-  · rw [if_neg hc]
+  · rw [ite_eq_right hc]
     obtain ⟨h1, h2, h3, h4, h5, -, h7, -⟩ := reconcile_frame
       { st with
         base := GridCO.admitProposal p.toParams.engine st.base (baseProposal s b raw support) b
@@ -227,9 +227,9 @@ theorem process_cumulative (p : Params) (st : State p.n) (o : Wire p.n) :
             have hsub := KitFG.on_block_TF_subset p.E p.cfg st.fg (fgBlock P b rows)
             dsimp only at hpre ⊢
             by_cases hc : (on_block p.E p.cfg st.fg (fgBlock P b rows)).F = st.fg.F
-            · rw [if_pos hc] at hpre ⊢
+            · rw [ite_eq_left hc] at hpre ⊢
               exact ⟨hsub, b1, b2, b3, List.prefix_append _ _, hpre⟩
-            · rw [if_neg hc] at hpre ⊢
+            · rw [ite_eq_right hc] at hpre ⊢
               obtain ⟨h1, h2, h3, h4, h5, -, h7, -⟩ := reconcile_frame
                 { st with
                   base := GridCO.admitProposal p.toParams.engine st.base
@@ -302,7 +302,7 @@ theorem metaInv_admitRow (p : Params) (st : State p.n) (m : MetaInv p st) (a : R
               (fun c : RowWire p.n => c.decode?.map (fun x => (x.1, x.2.1)) == some (r', i')) [a] =
               [] := by
             simp only [List.filter_cons, List.filter_nil, hkey]
-            rw [if_neg]
+            rw [ite_eq_right]
             simp only [beq_iff_eq, Option.some.injEq]
             exact fun h' => he h'.symm
           rw [h0, List.append_nil]
@@ -439,7 +439,7 @@ theorem metaInv_process (p : Params) (st : State p.n) (h : CStoreInv p st) (m : 
             obtain ⟨k1, k2, k3, k4, -, k6⟩ := key
             unfold admitBlock
             rw [hP]
-            simp only [hacc, if_true]
+            simp only [hacc, ite_true]
             exact metaInv_foldl_admitRow p rows _
               (metaInv_accepted p st h m s b raw support P rows _ k1 k2 k3 k4 k6 hg hPe hb
                 (accepted_rows_decode hacc) (blockAccepted_rowsOk hacc))

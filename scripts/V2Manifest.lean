@@ -154,6 +154,7 @@ partial def binderHash : Expr → UInt64
 
 def reducibilityTag : ReducibilityStatus → UInt64
   | .reducible => 1 | .semireducible => 2 | .irreducible => 3 | .implicitReducible => 4
+  | .instanceReducible => 5
 
 def hex (u : UInt64) : String :=
   let s := String.ofList (Nat.toDigits 16 u.toNat)

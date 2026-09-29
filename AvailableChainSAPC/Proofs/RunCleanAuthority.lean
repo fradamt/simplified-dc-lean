@@ -49,6 +49,7 @@ theorem timely_continues_on_run_path
     (s : Slot) (hrs : r < s) (htime : voteTime p s < e.time)
     (reader : V) (hr : reader ∈ rho.honest) :
     Block.Preceq b (headData p rho s reader).target := by
+  set_option backward.isDefEq.respectTransparency false in
   have horizon := (hs.execution.in_horizon _ (List.mem_of_getElem? he)).2
   have heads (s : Slot) (hsr : r + 1 ≤ s) : voteTime p s < e.time →
       ∀ reader ∈ rho.honest, Block.Preceq b (headData p rho s reader).target := by
@@ -123,6 +124,7 @@ theorem cleanRunSource_raw_or_transferred_timely
       SA.confirmation p (Run.stateBefore (sapc p) rho j v).base r = some b) ∨
     (∃ r, HonestTimelySource p rho i r b ∧
       ∀ v ∈ rho.honest, Block.Preceq b (headData p rho (r + 1) v).target) := by
+  set_option backward.isDefEq.respectTransparency false in
   have ha := sleepy_quorum_above_faults p E rho t₀ hs
   have pc (j : Nat) (hj : j < i) (v : V) (hv : v ∈ rho.honest) (t : Time)
       (tick : rho.events[j]? = some (.tick v t)) (cert : PC p.n)

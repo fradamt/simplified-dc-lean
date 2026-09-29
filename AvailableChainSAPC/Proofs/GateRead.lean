@@ -38,12 +38,13 @@ theorem run_deadlines_bounded {V : Type} [DecidableEq V]
     (i : Nat) (v : V) :
     GridCO.DeadlinesAtMost (Run.stateBefore (sapc p) rho i v).base
       ((Run.stateBefore (sapc p) rho i v).base.now + lifetime p) := by
+  set_option backward.isDefEq.respectTransparency false in
   apply stateBefore_invariant (engineClock p) E rho hs
     (fun st => GridCO.DeadlinesAtMost st.base (st.base.now + lifetime p))
   · simp [GridCO.DeadlinesAtMost, sapc, initial, GridCO.initial]
   · exact clock_deadlines_bounded p
   · intro st o h
-    simpa only [sapc, GridCO.DeadlinesAtMost, process_obligations, process_now] using h
+    simpa only [sapc, GridCO.DeadlinesAtMost, process_obligations, process_now] using! h
 
 /-- A raw result above B either advances S above B or retains its old
 prefix. This includes a PC veto of the raw descendant. -/
@@ -80,6 +81,7 @@ theorem read_gate_arms_prefix {V : Type} [DecidableEq V]
     (B, g, gateTime p r + lifetime p) ∈
         (Run.readAt (sapc p) rho (gateTime p r) v).base.obligations ∧
       Block.Preceq B (stable (Run.readAt (sapc p) rho (gateTime p r) v)) := by
+  set_option backward.isDefEq.respectTransparency false in
   let st := Run.stateBeforeTime (sapc p) rho (gateTime p r) v
   let pre := clockPreGate p st (gateTime p r)
   have publicTime : PublicTime E (gateTime p r) := by
@@ -104,7 +106,7 @@ theorem read_gate_arms_prefix {V : Type} [DecidableEq V]
     intro row member
     exact List.any_eq_false.mp finite row
       (GridCO.clockPreGate_obligations_subset p.engine st.base _ row
-        (by simpa only [pre, clockPreGate_base] using member))
+        (by simpa only [pre, clockPreGate_base] using! member))
   have storedPre : B ∈ pre.base.blocks := by
     have blocks : pre.base.blocks = st.base.blocks := by
       change (clockPreGate p st (gateTime p r)).base.blocks = st.base.blocks
@@ -115,7 +117,7 @@ theorem read_gate_arms_prefix {V : Type} [DecidableEq V]
       pre.base r B := by
     simpa only [pre, clockPreGate_base,
       @GridCO.admissionLevels_preGate GridCO.slowLeasePolicy p.engine p.n st.base
-        (gateTime p r) stamped r B] using admitted
+        (gateTime p r) stamped r B] using! admitted
   have cert : (if capBroken p pre then none else pre.bestPC) =
       (if capBroken p st then none else st.bestPC) := by
     rw [(clockPreGate_pcData p st (gateTime p r)).1,
@@ -126,12 +128,12 @@ theorem read_gate_arms_prefix {V : Type} [DecidableEq V]
     have time := stateBefore_now_le_event p E rho hs hi v
     rw [stateBefore_tick_eq_stateBeforeTime hs hi] at input time
     have hd := input a k d (GridCO.clockPreGate_obligations_subset p.engine st.base _ _
-      (by simpa only [pre, clockPreGate_base] using row))
+      (by simpa only [pre, clockPreGate_base] using! row))
     change _ ≤ gateTime p r at time
     change d ≤ gateTime p r + lifetime p
     linarith
   have oldPre : Block.Preceq B pre.base.stableRecord := by
-    simpa only [pre, clockPreGate_base, GridCO.clockPreGate_stable] using old
+    simpa only [pre, clockPreGate_base, GridCO.clockPreGate_stable] using! old
   constructor
   · rw [read_obligations_eq_clock p E rho hs v _ tick, clock_at_gate]
     exact gateWithPC_writes_admitted_prefix p pre.base r _ B C g rawPre finitePre

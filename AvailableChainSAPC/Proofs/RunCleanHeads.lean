@@ -14,6 +14,7 @@ theorem headRoot_on_cleanRunPath {V : Type} [DecidableEq V] [Fintype V]
     (h : JointCleanInvariant p E rho i) :
     cleanRunPath p rho i (GridCO.liveRoot
       (clock p (Run.stateBefore (sapc p) rho i reader) (voteTime p r)).base) := by
+  set_option backward.isDefEq.respectTransparency false in
   apply CleanStateOnPath.liveRoot h.facts.chain
   rw [clock_eq_preGate_of_no_gate p _ _ (voteTime_ne_gateTime p r)]
   exact (clockPreGate_clean p _ _ (h.facts.states i (le_refl _) reader hr)).1
@@ -30,6 +31,7 @@ theorem timely_nextHead_of_run_invariant {V : Type} [DecidableEq V] [Fintype V]
     (h : JointCleanInvariant p E rho i) (b : Block)
     (source : HonestTimelySource p rho i r b) :
     Block.Preceq b (headData p rho (r + 1) reader).target := by
+  set_option backward.isDefEq.respectTransparency false in
   have hb : cleanRunPath p rho i b :=
     Or.inr ⟨b, .timely r b cap source, GridCO.block_preceq_self b⟩
   obtain ⟨v, hv, j, _, _, saved⟩ := source
@@ -181,7 +183,7 @@ theorem cleanRunPath_eq_at_head_of_authority {V : Type} [DecidableEq V] [Fintype
       exact hn (congrArg Event.time (Option.some.inj (he.symm.trans ht)))
     omega
   have noProposal (s : Slot) : voteTime p r ≠ proposalTime p s := by
-    simpa only [Nat.cast_zero, zero_mul, add_zero, Nat.cast_one, one_mul] using
+    simpa only [Nat.cast_zero, zero_mul, add_zero, Nat.cast_one, one_mul] using!
       duty_phase_ne p r s 1 0 (by decide) (by decide) (by decide)
   have source (b : Block) (hb : CleanRunSource p rho (i + 1) b) : cleanRunPath p rho i b := by
     have lift (h : CleanRunSource p rho i b) : cleanRunPath p rho i b :=
@@ -246,7 +248,7 @@ theorem jointClean_head_tick_of_authority {V : Type} [DecidableEq V] [Fintype V]
     · intro s c ht
       have hn := duty_phase_ne p r s 1 0 (by decide) (by decide) (by decide)
       exact (hn (by simpa only [Nat.cast_zero, zero_mul, add_zero, Nat.cast_one, one_mul]
-        using ht)).elim
+        using! ht)).elim
     · intro s c ht hr ha hc
       have eq := label s ht
       subst s
@@ -278,6 +280,7 @@ theorem jointClean_head_tick_disabled {V : Type} [DecidableEq V] [Fintype V]
     (h : JointCleanInvariant p E rho i)
     (disabled : capBroken p (Run.stateBefore (sapc p) rho i reader) = true) :
     JointCleanInvariant p E rho (i + 1) := by
+  set_option backward.isDefEq.respectTransparency false in
   apply jointClean_head_tick_of_authority p E rho hΔ t₀ hs i reader r he h
   intro _ active
   rw [capBroken_clock, disabled] at active

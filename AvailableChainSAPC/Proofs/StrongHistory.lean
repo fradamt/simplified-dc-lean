@@ -83,6 +83,7 @@ theorem strongArmed_finite_of_earlier_heads {V : Type} [DecidableEq V] [Fintype 
     (after : b₀ ≤ voteTime p r) (v : V) (hv : v ∈ rho.honest) :
     ∀ b g d, (b, g, d) ∈ (headState p rho r v).base.obligations →
       Block.Compatible b c.target := by
+  set_option backward.isDefEq.respectTransparency false in
   have hs := h.execution.toScheduleWellFormed
   let start := (rho.events.filter (fun e => decide (e.time ≤ b₀ - 1))).length
   let finish := (rho.events.filter (fun e => decide (e.time ≤ voteTime p r - 1))).length
@@ -97,7 +98,7 @@ theorem strongArmed_finite_of_earlier_heads {V : Type} [DecidableEq V] [Fintype 
     · intro w hw
       simpa only [time_input_eq_event_prefix p E rho hs] using base w hw
     · intro w hw st o old
-      simpa only [sapc, process_obligations] using old
+      simpa only [sapc, process_obligations] using! old
     · intro i w t lo hi tick hw old _
       have before : t < voteTime p r := Int.le_sub_one_iff.mp
         ((index_lt_read_length_iff hs (voteTime p r - 1) tick).mp hi)

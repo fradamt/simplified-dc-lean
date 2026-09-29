@@ -64,6 +64,7 @@ theorem honest_proposal_floor_eq {V : Type} [DecidableEq V]
       floor p target (activeVoterTree p target (r + 1) cert)
         (GridCO.voterView p.engine target.base (r + 1))
         (GridCO.voterSupportView p.engine target.base (r + 1)) (r + 1) := by
+  set_option backward.isDefEq.respectTransparency false in
   let source := proposalState p rho (r + 1)
   let target := headState p rho (r + 1) reader
   let tree := activeVoterTree p target (r + 1) cert
@@ -75,11 +76,11 @@ theorem honest_proposal_floor_eq {V : Type} [DecidableEq V]
   let c := floor p target tree dstRaw dstSupport (r + 1)
   have counts := honest_proposal_counts p E rho hx hΔ hnet hrelay r hsync hh b hb reader hr
   have sourceRoot : GridCO.RootInjectiveBelow source.base.blocks := by
-    simpa only [source, proposalState, clock_blocks] using
+    simpa only [source, proposalState, clock_blocks] using!
       time_input_rootInjectiveBelow p E rho hx.toScheduleWellFormed hroot
         (proposalTime p (r + 1)) (rho.proposerOf (r + 1))
   have targetRoot : GridCO.RootInjectiveBelow target.base.blocks := by
-    simpa only [target, headState, clock_blocks] using
+    simpa only [target, headState, clock_blocks] using!
       time_input_rootInjectiveBelow p E rho hx.toScheduleWellFormed hroot
         (voteTime p (r + 1)) reader
   have treeRoot : GridCO.RootInjectiveBelow tree := by

@@ -27,7 +27,7 @@ theorem clock_base_of_capBroken (p : Params) {n : Nat} (st : State n) (t : Time)
     (disabled : capBroken p st = true) :
     (clock p st t).base = SA.clock p st.base t := by
   have hd : capBroken p (clockPreGate p st t) = true := by
-    simpa only [capBroken, archiveEquivocators, clockPreGate_archive] using disabled
+    simpa only [capBroken, archiveEquivocators, clockPreGate_archive] using! disabled
   rw [clock_eq_gate_prestate, SA.clock,
     @GridCO.clock_eq_gate_prestate GridCO.slowLeasePolicy]
   dsimp only
@@ -76,6 +76,7 @@ theorem jointClean_tick_between_duties_disabled {V : Type} [DecidableEq V] [Fint
     (hng : ∀ r, t ≠ gateTime p r) (h : JointCleanInvariant p E rho i)
     (disabled : capBroken p (Run.stateBefore (sapc p) rho i reader) = true) :
     JointCleanInvariant p E rho (i + 1) := by
+  set_option backward.isDefEq.respectTransparency false in
   apply jointClean_tick_between_duties p E rho hx i reader t he hne hnh hng h
   intro _ _ _ _ active
   rw [capBroken_clock, disabled] at active

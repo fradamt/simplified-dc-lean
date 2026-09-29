@@ -21,6 +21,7 @@ theorem run_row_origin_since {V : Type} [DecidableEq V] (p : Params)
       ∃ j, start ≤ j ∧ j < finish ∧ ∃ s C,
         rho.events[j]? = some (.tick reader (gateTime p s)) ∧
         confirmation p (gateInput p rho s reader) s = some C ∧ Block.Preceq B C := by
+  set_option backward.isDefEq.respectTransparency false in
   induction finish with
   | zero => simpa only [Nat.le_zero.mp hle] using Or.inl hm
   | succ finish ih =>
@@ -45,7 +46,7 @@ theorem run_row_origin_since {V : Type} [DecidableEq V] (p : Params)
               · subst v
                 have hrow : (B, g, d) ∈
                     (clock p (Run.stateBefore (gridCO p) rho finish reader) t).obligations := by
-                  simpa [World.step] using hm
+                  simpa [World.step] using! hm
                 rcases clock_row_admitted_origin p _ t (run_receiptStamped p rho finish reader)
                     B g d hrow with hold | ⟨s, C, ht, hc, hp, _⟩
                 · exact old hold
@@ -56,7 +57,7 @@ theorem run_row_origin_since {V : Type} [DecidableEq V] (p : Params)
           | deliver v o t =>
               apply old
               by_cases hv : reader = v
-              · subst v; simpa [World.step, gridCO, process_obligations] using hm
+              · subst v; simpa [World.step, gridCO, process_obligations] using! hm
               · simpa [World.step, hv] using hm
 
 /-- A later HEAD row was already present after the initial release or

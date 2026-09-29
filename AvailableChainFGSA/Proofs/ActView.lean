@@ -158,6 +158,7 @@ theorem actView_onView (f : GridCO.State n → GridCO.State n)
 theorem actView_admitHead (p : Params) (st : State p.n) (s : Slot) (i : Fin p.n) (b : Block) :
     actView (admitHead p st s i b) =
       GridCO.admitVote p.toParams.engine (actView st) ⟨.seat s i, .head b⟩ := by
+  set_option backward.isDefEq.respectTransparency false in
   simp only [actView, admitHead, GridCO.admitVote]
   split_ifs with h1 h2 h2
   · rfl
@@ -188,7 +189,7 @@ theorem clockPre_eq (p : Params) (st : State p.n) (t : Time) :
     t == SA.earlyTime p.toParams ((t - 2 * p.Δ) / (4 * p.Δ)).toNat) = true <;>
   by_cases h3 : (0 ≤ t - 5 * p.Δ &&
     t == SA.releaseTime p.toParams ((t - 5 * p.Δ) / (4 * p.Δ)).toNat) = true <;>
-  simp only [h1, h2, h3, if_true, if_false, Bool.false_eq_true] <;> rfl
+  simp only [h1, h2, h3, ite_true, ite_false, Bool.false_eq_true] <;> rfl
 
 
 /-- [M2; helper] Two `onView` steps are one, when the first keeps `blocks`. -/
@@ -209,7 +210,8 @@ theorem clock_eq_saClock_offGate (p : Params) (st : State p.n) (t : Time)
       t == SA.gateTime p.toParams ((t - 6 * p.Δ) / (4 * p.Δ)).toNat) = true) := by
     simpa using hg
   unfold clock
-  rw [if_neg hc, clockPre_eq, show SA.clock p.toParams (actView st) t = _ from if_neg hc]
+  rw [ite_eq_right hc, clockPre_eq,
+    show SA.clock p.toParams (actView st) t = _ from ite_eq_right hc]
   rfl
 
 /-- [comp D3; M7, DQ5; Opus m1; spec 4e85ff34: 885–913, 1280–1297] At a gate
@@ -237,13 +239,13 @@ theorem clock_eq_saClockFrom_gate (p : Params) (st : State p.n) (t : Time) (s : 
     rw [clockPre_genuine]
     exact hnew
   unfold clock
-  rw [if_pos hc, ← hs]
+  rw [ite_eq_left hc, ← hs]
   unfold gateStep
   dsimp only
-  rw [if_neg (by simp [hn]), clockPre_fastWrite, clockPre_fg]
+  rw [ite_eq_right (by simp [hn]), clockPre_fastWrite, clockPre_fg]
   rw [clockPre_eq, onView_onView _ _ (fun v => by dsimp only; split <;> split <;> split <;> rfl)]
   subst hs
-  rw [show SA.clockFrom p.toParams (eraseFG st.fg.F) (actView st) t = _ from if_pos hc]
+  rw [show SA.clockFrom p.toParams (eraseFG st.fg.F) (actView st) t = _ from ite_eq_left hc]
   rfl
 
 /-- [comp D3; M7, DQ5; G7 m3] `clock_eq_saClockFrom_gate` with only the gate time

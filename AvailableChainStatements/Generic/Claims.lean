@@ -19,6 +19,7 @@ structure RecoveredAt (P : AvailableChain.Generic.ProtocolSpec n)
   confirmedIncluded : IncludedFrom P E I rho I.confirmed t₀ C.D_c
   stableIncluded : IncludedFrom P E I rho I.stable t₀ C.D_s
 
+set_option linter.dupNamespace false in
 /-- The fixed available-chain contract for a protocol instance. -/
 structure AvailableChain
     (P : AvailableChain.Generic.ProtocolSpec n)

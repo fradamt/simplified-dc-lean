@@ -119,10 +119,10 @@ theorem gap_of_ne (F : FGBlock V) (Vw : View V)
     unfold Controls.rootIsJ
     rw [decide_eq_false hne, Bool.false_and]
   refine ⟨hc, hr, ?_, ?_⟩
-  · rw [phaseOf_eq, if_neg hne]
-  · rw [nFrame_eq, hr, if_neg Bool.false_ne_true]
+  · rw [phaseOf_eq, ite_eq_right hne]
+  · rw [nFrame_eq, hr, ite_eq_right Bool.false_ne_true]
     unfold Controls.lo
-    rw [hc, if_neg Bool.false_ne_true]
+    rw [hc, ite_eq_right Bool.false_ne_true]
 
 /-- [helper] At `H = j + 1`, the contest bit is the contest test alone. -/
 theorem top_contest (F : FGBlock V) (Vw : View V)
@@ -145,10 +145,10 @@ theorem top_uncontested (F : FGBlock V) (Vw : View V)
     rw [decide_eq_true htop, hc]
     rfl
   refine ⟨?_, hr, ?_⟩
-  · rw [phaseOf_eq, if_pos htop, hc, if_neg Bool.false_ne_true]
-  · rw [nFrame_eq, hr, if_pos rfl]
+  · rw [phaseOf_eq, ite_eq_left htop, hc, ite_eq_right Bool.false_ne_true]
+  · rw [nFrame_eq, hr, ite_eq_left rfl]
     unfold Controls.lo
-    rw [hc, if_neg Bool.false_ne_true]
+    rw [hc, ite_eq_right Bool.false_ne_true]
 
 /-- [helper] At `H = j + 1` with a contest: the contested phase, root F, `lo = H`. -/
 theorem top_contested (F : FGBlock V) (Vw : View V)
@@ -161,10 +161,10 @@ theorem top_contested (F : FGBlock V) (Vw : View V)
     rw [decide_eq_true htop, hc]
     rfl
   refine ⟨?_, hr, ?_⟩
-  · rw [phaseOf_eq, if_pos htop, hc, if_pos rfl]
-  · rw [nFrame_eq, hr, if_neg Bool.false_ne_true]
+  · rw [phaseOf_eq, ite_eq_left htop, hc, ite_eq_left rfl]
+  · rw [nFrame_eq, hr, ite_eq_right Bool.false_ne_true]
     unfold Controls.lo
-    rw [hc, if_pos rfl]
+    rw [hc, ite_eq_left rfl]
 
 /-- [helper] The root is J exactly in the uncontested phase. -/
 theorem rootIsJ_iff (F : FGBlock V) (Vw : View V) :
@@ -467,7 +467,7 @@ theorem Fmove_filtered (c : Controls V) (F' : FGBlock V) (blocks : Finset (FGBlo
   have hZJ : c.rootIsJ = true → c.Z = c.J := by
     intro hr
     unfold Controls.Z
-    rw [if_pos hr]
+    rw [ite_eq_left hr]
   refine ⟨heq, ?_, ?_⟩
   · intro B hB hB'
     rw [heq, Finset.mem_filter] at hB'
@@ -605,7 +605,7 @@ theorem Fmove_below (hinj : ViewRootInj Vw) (hfront : frontier E cfg Vw = m)
     rw [hrj]
     cases hr : (fjControls E cfg F Vw).rootIsJ
     · rfl
-    · rw [if_pos rfl, if_pos rfl]
+    · rw [ite_eq_left rfl, ite_eq_left rfl]
       exact (hJ hr).1
   have hFm := Fmove_filtered E cfg (fjControls E cfg F Vw) F' Vw hFF'
     (fun _ => by
@@ -620,9 +620,9 @@ theorem Fmove_below (hinj : ViewRootInj Vw) (hfront : frontier E cfg Vw = m)
   · intro hu
     have hr := (rootIsJ_iff E cfg F Vw).2 hu
     change (fjControls E cfg F' Vw).Z = (fjControls E cfg F Vw).Z
-    rw [hZ', hr, if_pos rfl]
+    rw [hZ', hr, ite_eq_left rfl]
     unfold Controls.Z
-    rw [hr, if_pos rfl]
+    rw [hr, ite_eq_left rfl]
   · intro hu
     have hr : (fjControls E cfg F Vw).rootIsJ = false := by
       cases h : (fjControls E cfg F Vw).rootIsJ
@@ -631,10 +631,10 @@ theorem Fmove_below (hinj : ViewRootInj Vw) (hfront : frontier E cfg Vw = m)
     constructor
     · change (fjControls E cfg F Vw).Z = F
       unfold Controls.Z
-      rw [hr, if_neg Bool.false_ne_true]
+      rw [hr, ite_eq_right Bool.false_ne_true]
       rfl
     · change (fjControls E cfg F' Vw).Z = F'
-      rw [hZ', hr, if_neg Bool.false_ne_true]
+      rw [hZ', hr, ite_eq_right Bool.false_ne_true]
   · intro htop
     obtain ⟨-, hadv⟩ := hiff htop
     change (lexMax E cfg F' Vw).1 = (lexMax E cfg F Vw).1 ∧
@@ -697,9 +697,9 @@ theorem Fmove_atTop (hm : 2 ≤ m) (hinj : ViewRootInj Vw) (hfront : frontier E 
     obtain ⟨hp, hr, -⟩ := top_uncontested E cfg G Vw htopG hc
     refine ⟨hp, ?_, ?_⟩
     · unfold Controls.Z
-      rw [hr, if_pos rfl, hJ]
+      rw [hr, ite_eq_left rfl, hJ]
     · unfold Controls.lo
-      rw [hc, if_neg Bool.false_ne_true, hHG]
+      rw [hc, ite_eq_right Bool.false_ne_true, hHG]
   obtain ⟨hp, hZ, hlo⟩ := hctl F hFF'
   obtain ⟨hp', hZ', hlo'⟩ := hctl F' (preceq_refl F')
   refine ⟨hp, hp', hZ, hZ', hlo, hlo', ?_⟩

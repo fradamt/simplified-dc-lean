@@ -145,6 +145,7 @@ theorem time_of_mem_blocks {k t : Nat} {e : Event (Fin k.succ) counter.Object}
 theorem foldl_eventsAt (k m : Nat) :
     (eventsAt k m).foldl World.step (fun _ => m) =
       (fun _ => m + 1 : World (Fin k.succ) counter) := by
+  set_option backward.isDefEq.respectTransparency false in
   funext u
   rw [eventsAt, List.foldl_append, foldl_ticks]
   obtain ⟨pre, post, hsplit⟩ := List.append_of_mem (List.mem_finRange u)
@@ -236,6 +237,7 @@ theorem tick_index {k H i : Nat} {v : Fin k.succ} {t : Time}
     (hi : (canonical k H).events[i]? = some (.tick v t)) :
     ∃ m : Nat, m ≤ H ∧ t = m ∧
       Run.stateBefore counter (canonical k H) i = (fun _ => m : World (Fin k.succ) counter) := by
+  set_option backward.isDefEq.respectTransparency false in
   obtain ⟨m, p, hmH, hp, hst⟩ := stateBefore_index hi
   have ht : t = m := time_of_mem_eventsAt (List.mem_of_getElem? hp)
   refine ⟨m, hmH, ht, ?_⟩
@@ -253,6 +255,7 @@ theorem deliver_index {k H i : Nat} {v : Fin k.succ} {o : counter.Object} {t : T
     ∃ m : Nat, m ≤ H ∧ t = m ∧ o = obj m ∧
       Run.stateBefore counter (canonical k H) i v = m ∧
       Run.stateBefore counter (canonical k H) (i + 1) v = m + 1 := by
+  set_option backward.isDefEq.respectTransparency false in
   obtain ⟨m, p, hmH, hp, hst⟩ := stateBefore_index hi
   have hem := List.mem_of_getElem? hp
   rcases mem_eventsAt.mp hem with ⟨u, hu⟩ | ⟨u, hu⟩

@@ -57,7 +57,7 @@ theorem head_covers_of_pc_and_previous {V : Type} [DecidableEq V] [Fintype V]
     (activeVoterTree p (headState p rho (r + 1) v) (r + 1) (some c)) r (r + 1) _ _
     subset archived labels B heads
   simpa only [headData, headTarget, Nat.add_eq_zero_iff, Nat.one_ne_zero, and_false,
-    decide_false, Bool.false_eq_true, ↓reduceIte, active, selected] using
+    decide_false, Bool.false_eq_true, ↓reduceIte, active, selected] using!
     choice_covers_of_pc p (headState p rho (r + 1) v) _ _ _ (r + 1) c B active
       belowPC floorComp root
 
@@ -72,6 +72,7 @@ theorem strongArmed_no_head_departure {V : Type} [DecidableEq V] [Fintype V]
     (r : Slot) (later : c.slot < r) (horizon : voteTime p r ≤ rho.horizon)
     (v : V) (hv : v ∈ rho.honest) :
     Block.Preceq c.target (headData p rho r v).target := by
+  set_option backward.isDefEq.respectTransparency false in
   induction r using Nat.strong_induction_on generalizing v with
   | h r ih =>
     by_cases healthy : earlyTime p r ≤ b₀

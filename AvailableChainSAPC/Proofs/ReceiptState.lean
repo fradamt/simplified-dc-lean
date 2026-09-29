@@ -117,7 +117,7 @@ theorem receiveHeads_archive_mono (p : Params) {n : Nat} (st : State n)
     st.receivedHeads ⊆ (xs.foldl (receiveHead p) st).receivedHeads := by
   induction xs generalizing st with
   | nil => exact List.Subset.refl _
-  | cons x xs ih => exact (receiveHead_archive_mono p st x).trans (ih _)
+  | cons x xs ih => exact List.Subset.trans (receiveHead_archive_mono p st x) (ih _)
 
 theorem receiveHeads_mem (p : Params) {n : Nat} (st : State n)
     (xs : List (HeadWire n)) (o : HeadWire n) (ho : o ∈ xs)
@@ -165,6 +165,7 @@ theorem fold_invariant {V : Type} [DecidableEq V] (p : Params)
     (hprocess : ∀ st o, Q st → Q (process p st o))
     (events : List (Event V (sapc p).Object)) (v : V) :
     Q ((events.foldl World.step World.init) v) := by
+  set_option backward.isDefEq.respectTransparency false in
   have hfold (events : List (Event V (sapc p).Object)) (w : World V (sapc p))
       (hw : ∀ u, Q (w u)) : ∀ u, Q ((events.foldl World.step w) u) := by
     induction events generalizing w with

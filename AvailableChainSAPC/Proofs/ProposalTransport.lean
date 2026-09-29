@@ -10,9 +10,10 @@ theorem proposalState_paths {V : Type} [DecidableEq V] (p : Params)
     (rho : Run V (sapc p)) (s : Slot) :
     GridCO.StoredPrefixClosed (proposalState p rho s).base ∧
       Block.genesis ∈ (proposalState p rho s).base.blocks := by
+  set_option backward.isDefEq.respectTransparency false in
   have h := paths_at_fold p (rho.events.filter (fun e => decide (e.time < proposalTime p s)))
     (rho.proposerOf s)
-  simpa only [proposalState, GridCO.StoredPrefixClosed, clock_blocks] using And.intro h.1 h.2.1
+  simpa only [proposalState, GridCO.StoredPrefixClosed, clock_blocks] using! And.intro h.1 h.2.1
 
 /-- The proposal parent is stored in both active and disabled mode. -/
 theorem honest_proposal_parent_stored {V : Type} [DecidableEq V]

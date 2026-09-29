@@ -45,6 +45,7 @@ theorem stateBefore_proposals_prefix {V : Type} [DecidableEq V] (p : Params)
         (Run.stateBefore (sapc p) rho j v).proposals ∧
       (Run.stateBefore (sapc p) rho i v).base.proposals <+:
         (Run.stateBefore (sapc p) rho j v).base.proposals := by
+  set_option backward.isDefEq.respectTransparency false in
   constructor
   · exact stateBefore_field_prefix (P := sapc p) State.proposals
       (fun st t => by rw [show (sapc p).clock = clock p from rfl, clock_proposals])
@@ -70,6 +71,7 @@ theorem honest_proposal_stored_at_head {V : Type} [DecidableEq V]
     let o : Wire p.n := ⟨.proposer s, .proposal b raw support source.bestPC⟩
     o ∈ (headState p rho s reader).proposals ∧
       baseProposal o b raw support ∈ (headState p rho s reader).base.proposals := by
+  set_option backward.isDefEq.respectTransparency false in
   dsimp only
   obtain ⟨_, _, hem⟩ := honest_proposal_views p E rho hx.toScheduleWellFormed s b hb
   obtain ⟨index, t, hlo, hhi, ha⟩ := synchronous_proposal_accepted p E rho hx hΔ hnet
@@ -88,11 +90,12 @@ theorem honest_proposal_stored_at_head {V : Type} [DecidableEq V]
 
 theorem proposalState_baseArchived {V : Type} [DecidableEq V] (p : Params)
     (rho : Run V (sapc p)) (s : Slot) : BaseArchived (proposalState p rho s) := by
+  set_option backward.isDefEq.respectTransparency false in
   have h := baseArchived_at_fold p
     ((rho.events.filter (fun e => decide (e.time < proposalTime p s))) ++
       [.tick (rho.proposerOf s) (proposalTime p s)]) (rho.proposerOf s)
   simpa only [List.foldl_append, List.foldl_cons, List.foldl_nil,
-    World.step, Function.update_self] using h
+    World.step, Function.update_self] using! h
 
 /-- The original-signature transport has exactly the ordinary projected
 payload shape, so the existing SA proposal-merge proofs apply. -/
@@ -133,6 +136,7 @@ theorem proposal_blocks_at_head {V : Type} [DecidableEq V]
     (hprop : rho.proposerOf s ∈ rho.honest) (reader : V) (hr : reader ∈ rho.honest)
     (b : Block) (hb : b ∈ (proposalState p rho s).base.blocks) :
     b ∈ (headState p rho s reader).base.blocks := by
+  set_option backward.isDefEq.respectTransparency false in
   have he : max (proposalTime p s) E.t_GST + E.Δ = voteTime p s := by
     rw [max_eq_left hsync, hΔ]
     rfl

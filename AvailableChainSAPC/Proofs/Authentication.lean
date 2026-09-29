@@ -52,7 +52,7 @@ theorem emitted_seat_unique {V : Type} [DecidableEq V] {n : Nat}
   obtain ⟨htb, hactb⟩ := emittedAt_seat_action P E rho k v tb r i b hkb
   subst ta; subst tb
   have hjlen := (List.getElem?_eq_some_iff.mp hj).1
-  have hjk : j = k := (List.getElem?_inj hjlen hs.nodup).mp (hj.trans hk.symm)
+  have hjk : j = k := (List.Nodup.getElem?_inj hjlen hs.nodup).mp (hj.trans hk.symm)
   subst k
   exact Option.some.inj (hacta.symm.trans hactb)
 
@@ -70,14 +70,15 @@ private theorem fold_archive_origin {V : Type} [DecidableEq V] (p : Params)
         | tick u t =>
             by_cases hv : v = u
             · subst v
-              exact Or.inl (by simpa [World.step, sapc,
-                clock_archive] using hfirst)
+              simp only [World.step, Function.update_self] at hfirst
+              exact Or.inl ((clock_archive p (w u) t) ▸ hfirst)
             · exact Or.inl (by simpa [World.step, hv] using hfirst)
         | deliver u parent t =>
             by_cases hv : v = u
             · subst v
               have hm : h ∈ (process p (w u) parent).receivedHeads := by
-                simpa [World.step, sapc] using hfirst
+                simp only [World.step, Function.update_self] at hfirst
+                simpa [sapc] using hfirst
               rcases process_archive_origin p (w u) parent h hm with hold | hc
               · exact Or.inl hold
               · exact Or.inr ⟨parent, t, by simp, hc⟩

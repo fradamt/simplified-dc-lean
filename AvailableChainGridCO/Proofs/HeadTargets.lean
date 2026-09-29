@@ -23,7 +23,7 @@ private theorem write_targetsStored {n : Nat} (st : State n) (B : Block)
   rcases List.mem_append.mp hr with hold | hnew
   · exact h row (List.mem_filter.mp hold).1
   · have he := List.mem_singleton.mp hnew
-    simpa [he] using hb
+    simpa [he] using! hb
 
 private theorem writeKeys_targetsStored {n : Nat} (st : State n)
     (keys : List (Block × Nat)) (deadline : Time)
@@ -40,10 +40,10 @@ private theorem writeKeys_targetsStored {n : Nat} (st : State n)
 private theorem gate_targetsStored (p : Params) {n : Nat} (st : State n)
     (r : Slot) (h : TargetsStored st) : TargetsStored (gate p st r) := by
   cases hc : confirmation p st r with
-  | none => simpa [gate, hc] using h
+  | none => simpa [gate, hc] using! h
   | some B =>
       by_cases hg : st.obligations.any (fun (target, _, _) => !Block.compatible target B) = true
-      · simpa [gate, hc, hg] using h
+      · simpa [gate, hc, hg] using! h
       · have hg' := Bool.eq_false_iff.mpr hg
         rw [gate_eq_writeKeys p st r B hc hg']
         refine writeKeys_targetsStored _ _ _ ?_ ?_
@@ -73,6 +73,7 @@ theorem clock_targetsStored (p : Params) {n : Nat} (st : State n)
 theorem run_targetsStored {V : Type} [DecidableEq V] (p : Params)
     (rho : Run V (gridCO p)) (i : Nat) (reader : V) :
     TargetsStored (Run.stateBefore (gridCO p) rho i reader) := by
+  set_option backward.isDefEq.respectTransparency false in
   induction i with
   | zero => simp [Run.stateBefore, World.init, gridCO, initial, TargetsStored]
   | succ i ih =>
@@ -84,7 +85,7 @@ theorem run_targetsStored {V : Type} [DecidableEq V] (p : Params)
           | tick v t =>
               by_cases hv : reader = v
               · subst v
-                simpa [World.step] using clock_targetsStored p _ t ih
+                simpa [World.step] using! clock_targetsStored p _ t ih
               · simpa [World.step, hv] using ih
           | deliver v o t =>
               by_cases hv : reader = v
@@ -92,7 +93,7 @@ theorem run_targetsStored {V : Type} [DecidableEq V] (p : Params)
                 simp only [World.step, Function.update_self]
                 intro row hr
                 have hold : row ∈ (Run.stateBefore (gridCO p) rho i reader).obligations := by
-                  simpa only [gridCO, process_obligations] using hr
+                  simpa only [gridCO, process_obligations] using! hr
                 exact (process_receiptPrefix p _ o).blocks.subset (ih row hold)
               · simpa [World.step, hv] using ih
 

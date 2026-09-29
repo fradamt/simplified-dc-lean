@@ -28,6 +28,7 @@ theorem recovery_preGate_row_support {V : Type} [DecidableEq V] (p : Params)
       (clockPreGate p (Run.stateBeforeTime (sapc p) rho cut v) cut).base.obligations) :
     ∃ s, gateTime p s < cut ∧
       ∀ t, s ≤ t → gateTime p t ≤ rho.horizon → RecoveryHeadCovers p rho t B := by
+  set_option backward.isDefEq.respectTransparency false in
   rw [clockPreGate_base] at row
   have live := GridCO.clockPreGate_live_rows p.engine
     (Run.stateBeforeTime (sapc p) rho cut v).base cut (B, g, d) row
@@ -58,6 +59,7 @@ theorem recovery_clock_row_support {V : Type} [DecidableEq V] (p : Params)
       (clock p (Run.stateBeforeTime (sapc p) rho cut v) cut).base.obligations) :
     ∃ s, gateTime p s < cut ∧
       ∀ t, s ≤ t → gateTime p t ≤ rho.horizon → RecoveryHeadCovers p rho t B := by
+  set_option backward.isDefEq.respectTransparency false in
   rw [clock_eq_preGate_of_no_gate p _ _ noGate] at row
   exact recovery_preGate_row_support p E rho hx boundary sources cut start v hv B g d row
 

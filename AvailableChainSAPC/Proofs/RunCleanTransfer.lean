@@ -34,6 +34,7 @@ theorem head_roots_on_run_path {V : Type} [DecidableEq V] [Fintype V]
     cleanRunPath p rho i (GridCO.liveRoot (headState p rho s reader).base) ∧
       ∀ c, selectedPC p (headState p rho s reader) s = some c →
         cleanRunPath p rho i c.target := by
+  set_option backward.isDefEq.respectTransparency false in
   let k := (rho.events.filter (fun e => decide (e.time ≤ voteTime p s - 1))).length
   have hk : k ≤ i := head_input_prefix_le p E rho hx.toScheduleWellFormed i v r s he hle
   have input : Run.stateBeforeTime (sapc p) rho (voteTime p s) reader =
@@ -61,6 +62,7 @@ theorem timely_continues_of_run_invariant {V : Type} [DecidableEq V] [Fintype V]
     (r : Slot) (b : Block) (source : HonestTimelySource p rho i r b) :
     ∀ s, r < s → s ≤ last → ∀ reader ∈ rho.honest,
       Block.Preceq b (headData p rho s reader).target := by
+  set_option backward.isDefEq.respectTransparency false in
   have hb : cleanRunPath p rho i b :=
     Or.inr ⟨b, .timely r b cap source, GridCO.block_preceq_self b⟩
   obtain ⟨origin, ho, j, _, _, saved⟩ := source
@@ -128,6 +130,7 @@ theorem selectedPC_prefix_pending_genuine {V : Type} [DecidableEq V] [Fintype V]
       (Run.stateBeforeTime (sapc p) rho (gateTime p r) source).base r = some b)
     (c : PC p.n) (selected : selectedPC p (headState p rho (r + 1) reader) (r + 1) = some c) :
     Block.Preceq c.target b := by
+  set_option backward.isDefEq.respectTransparency false in
   have ha := capped_quorum_above_faults p rho cap
   have hslot := selectedPC_slot_lt_at_nextHead p E rho hs.execution ha reader r c selected
   have selected' : selectedPC p

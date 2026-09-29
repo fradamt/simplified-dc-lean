@@ -273,7 +273,7 @@ theorem admitProposal_of_accept (q : GridCO.Params) {n : Nat} (v : GridCO.State 
           blockStamp := v.blockStamp ++ [(b, v.now)]
           proposals := v.proposals ++ [⟨.proposer s, w⟩] } := by
   unfold GridCO.admitProposal
-  rw [if_neg]
+  rw [ite_eq_right]
   simp only [gt_iff_lt, GridCO.blockKnown, hpar, hb, hps, hs, beq_self_eq_true,
     Bool.or_eq_true, decide_eq_true_eq, not_or, not_lt, Bool.not_eq_true',
     decide_eq_false_iff_not, not_true_eq_false, not_false_eq_true, Bool.not_true,
@@ -343,7 +343,7 @@ theorem admitBlock_accepted_eq (p : Params) (st : State p.n) (s : Slot)
   intro st1 st2
   unfold admitBlock
   rw [hP]
-  simp only [hacc, if_true]
+  simp only [hacc, ite_true]
   exact foldl_admitRow_eq p rows st2
 
 /-- [helper] An accepted block extends F: `F ⪯ P` for its stored parent, so the
@@ -425,7 +425,7 @@ theorem actView_admitBlock_sameF (p : Params) (st : State p.n) (h : CStoreInv p 
   obtain ⟨-, -, hFb⟩ := accepted_F_facts p st h0 hP hacc
   unfold admitBlock at hF ⊢
   rw [hP] at hF ⊢
-  simp only [hacc, if_true] at hF ⊢
+  simp only [hacc, ite_true] at hF ⊢
   rw [(foldl_admitRow_view p rows _).1]
   rw [(foldl_admitRow_view p rows _).2] at hF
   split
@@ -446,9 +446,9 @@ theorem actView_admitBlock_sameF (p : Params) (st : State p.n) (h : CStoreInv p 
       unfold activeCompatible
       rw [block_compatible_comm]
       exact block_compatible_of_preceq hFb
-    simp only [List.filter_cons, List.filter_nil, hbok, if_true]
+    simp only [List.filter_cons, List.filter_nil, hbok, ite_true]
   · next hc =>
-    rw [if_neg hc, reconcile_fg] at hF
+    rw [ite_eq_right hc, reconcile_fg] at hF
     exact absurd hF hc
 
 /-- [comp D3; Opus J3] When F moves to `F'`, the view is the SA admission on the
@@ -474,12 +474,12 @@ theorem actView_admitBlock_movedF (p : Params) (st : State p.n) (h : CStoreInv p
   dsimp only
   unfold admitBlock at hF ⊢
   rw [hP] at hF ⊢
-  simp only [hacc, if_true] at hF ⊢
+  simp only [hacc, ite_true] at hF ⊢
   rw [(foldl_admitRow_view p rows _).1, (foldl_admitRow_view p rows _).2]
   rw [(foldl_admitRow_view p rows _).2] at hF
   split
   · next hc =>
-    rw [if_pos hc] at hF
+    rw [ite_eq_left hc] at hF
     exact absurd hc hF
   · next hc =>
     have hmono : FGBlock.Preceq st.fg.F (on_block p.E p.cfg st.fg (fgBlock P b rows)).F :=

@@ -112,7 +112,7 @@ theorem genuine_prefix_at_ordinary_proposal {V : Type} [DecidableEq V]
     (fun d hn hd => (proposalState_paths p rho (r + 1)).1 target stored d hn
       (GridCO.prefix_trans d a target hd hat))
   simpa only [GridCO.forkChoice, GridCO.liveRoot, GridCO.liveTargets, List.filterMap_nil,
-    List.foldl_nil] using cover
+    List.foldl_nil] using! cover
 
 end AvailableChain.SAPC
 end

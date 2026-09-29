@@ -23,6 +23,7 @@ theorem next_head_emitted {V : Type} [DecidableEq V] (p : Params)
     Run.emits (gridCO p) E rho reader
       ⟨.seat (r + 1) ((rho.seatOf (r + 1)).symm reader),
         .head (nextHead p (nextHeadState p rho r reader) r)⟩ (voteTime p (r + 1)) := by
+  set_option backward.isDefEq.respectTransparency false in
   have hpub : PublicTime E (voteTime p (r + 1)) := by
     refine ⟨4 * (r + 1) + 1, ?_⟩
     simp only [voteTime, proposalTime, hΔ, Nat.cast_add, Nat.cast_mul,

@@ -75,7 +75,7 @@ theorem choice_covers_of_pc (p : Params) {n : Nat} (st : State n)
       · exact (no (GridCO.prefix_trans _ B _ below anchor)).elim
       · exact above
   exact GridCO.prefix_trans _ _ _ root (by
-    simpa only [choice, active, Bool.false_eq_true, ↓reduceIte] using
+    simpa only [choice, active, Bool.false_eq_true, ↓reduceIte] using!
       GridCO.ghost_extends (mandatoryRoot (GridCO.liveRoot st.base)
         (preliminaryAnchor (floor p st tree raw support r) (some c))) tree
         (GridCO.goldfishScore st.base.blocks raw support)

@@ -33,6 +33,7 @@ theorem gate_includes_of_joint {V : Type} [DecidableEq V] [Fintype V]
     (htick : rho.events[index]? = some (.tick v (gateTime p r)))
     (hraw : SA.confirmation p (Run.stateBefore (sapc p) rho index v).base r = some b) :
     Block.Preceq b (stable (Run.stateBefore (sapc p) rho (index + 1) v)) := by
+  set_option backward.isDefEq.respectTransparency false in
   let st := Run.stateBefore (sapc p) rho index v
   have hs := h.states index hi.le v hv
   have hp := clockPreGate_clean p st (gateTime p r) hs
@@ -49,7 +50,7 @@ theorem gate_includes_of_joint {V : Type} [DecidableEq V] [Fintype V]
       rw [(clockPreGate_pcData p st (gateTime p r)).2] at hm
       exact h.gateAuthorities index hi v hv r c htick hm hc)
   rw [stateBefore_succ_event htick]
-  simpa only [World.step, sapc, Function.update_self, clock_at_gate] using hgate
+  simpa only [World.step, sapc, Function.update_self, clock_at_gate] using! hgate
 
 /-- This reduction isolates the missing honest-proposal service proof.
 Its service premise concerns raw gate results, before either guard.

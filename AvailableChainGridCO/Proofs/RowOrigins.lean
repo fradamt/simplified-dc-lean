@@ -109,6 +109,7 @@ theorem run_row_genuine_admitted_origin {V : Type} [DecidableEq V] (p : Params)
       confirmation p (gateInput p rho r reader) r = some C ∧ Block.Preceq B C ∧
       g ∈ admissionLevels p (gateInput p rho r reader) r B ∧
       d = gateTime p r + lifetime p := by
+  set_option backward.isDefEq.respectTransparency false in
   induction index with
   | zero => simp [Run.stateBefore, World.init, gridCO, initial] at hm
   | succ index ih =>
@@ -124,7 +125,7 @@ theorem run_row_genuine_admitted_origin {V : Type} [DecidableEq V] (p : Params)
               · subst v
                 have hrow : (B, g, d) ∈
                     (clock p (Run.stateBefore (gridCO p) rho index reader) t).obligations := by
-                  simpa [World.step] using hm
+                  simpa [World.step] using! hm
                 rcases clock_row_admitted_origin p _ t (run_receiptStamped p rho index reader)
                     B g d hrow with hold | ⟨r, C, ht, hc, hp, hadmit, hd⟩
                 · obtain ⟨j, hj, rest⟩ := ih hold
@@ -138,7 +139,7 @@ theorem run_row_genuine_admitted_origin {V : Type} [DecidableEq V] (p : Params)
               have hold : (B, g, d) ∈
                   (Run.stateBefore (gridCO p) rho index reader).obligations := by
                 by_cases hv : reader = v
-                · subst v; simpa [World.step, gridCO, process_obligations] using hm
+                · subst v; simpa [World.step, gridCO, process_obligations] using! hm
                 · simpa [World.step, hv] using hm
               obtain ⟨j, hj, rest⟩ := ih hold
               exact ⟨j, by omega, rest⟩

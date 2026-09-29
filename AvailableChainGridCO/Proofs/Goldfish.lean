@@ -114,7 +114,7 @@ theorem ghostWalk_extends (tree : List Block) (score : Block → Nat)
   | zero => exact block_preceq_self anchor
   | succ fuel ih =>
       cases hstep : ghostStep tree score eligible anchor with
-      | none => simpa [ghostWalk, hstep] using block_preceq_self anchor
+      | none => simpa [ghostWalk, hstep] using! block_preceq_self anchor
       | some child =>
           have hchild := ghostStep_child tree score eligible anchor child hstep
           have hpre := preceq_parent anchor child hchild.2.1

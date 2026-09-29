@@ -25,11 +25,11 @@ def dutiesS (t : Time) : List Slot := if 0 ≤ t then [t.toNat] else []
 theorem dutiesS_spec (s : Slot) (t : Time) : s ∈ dutiesS t ↔ (s : Time) = t := by
   unfold dutiesS
   by_cases h : 0 ≤ t
-  · simp only [h, if_true, List.mem_singleton]
+  · simp only [h, ite_true, List.mem_singleton]
     constructor
     · rintro rfl; exact Int.toNat_of_nonneg h
     · rintro rfl; exact (Int.toNat_natCast s).symm
-  · simp only [h, if_false, List.not_mem_nil, false_iff]
+  · simp only [h, ite_false, List.not_mem_nil, false_iff]
     rintro rfl; exact h (Int.natCast_nonneg s)
 
 theorem dutiesS_nodup (t : Time) : (dutiesS t).Nodup := by

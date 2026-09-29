@@ -87,8 +87,11 @@ theorem accept_source (rho : Run V counter) (p : V) :
         o.payload = height (Run.stateBefore counter rho i) p ∧
         height (Run.stateBefore counter rho i') p < height (Run.stateBefore counter rho i) p ∧
         height (Run.stateBefore counter rho i) p ≤ height (Run.stateBefore counter rho (i' + 1)) p
-  | 0, h => by simp [Run.stateBefore, World.init, height, counter] at h
+  | 0, h => by
+    set_option backward.isDefEq.respectTransparency false in
+    simp [Run.stateBefore, World.init, height, counter] at h
   | i + 1, h => by
+    set_option backward.isDefEq.respectTransparency false in
     have hsame : height (Run.stateBefore counter rho (i + 1)) p =
         height (Run.stateBefore counter rho i) p →
         ∃ i' < i + 1, ∃ o t, rho.events[i']? = some (.deliver p o t) ∧
@@ -142,6 +145,7 @@ theorem counter_included (W : Validators) (E : Env W.V) (hΔ : E.Δ = 1)
     (rho : Run W.V counter) (t₀ : Time)
     (hs : SleepyRegime counter E counterIface rho t₀) :
     IncludedFrom counter E counterIface rho counterIface.confirmed t₀ 1 := by
+  set_option backward.isDefEq.respectTransparency false in
   classical
   intro s _ hprop hsh
   obtain ⟨hph, hpa⟩ := hprop
@@ -160,7 +164,6 @@ theorem counter_included (W : Validators) (E : Env W.V) (hΔ : E.Δ = 1)
     change E.awake (rho.proposerOf s) (s : Time) = true at hpa
     rw [ho, ha]
     simp [Run.emittedAt, hpa, counter, height]
-    exact List.mem_append_left _ (List.mem_append_right _ (List.mem_singleton_self _))
   refine ⟨chain (a + 1), ⟨hph, a + 1, rfl, ho ▸ hemit⟩, ?_⟩
   intro w hw
   have hdl : max (s : Time) E.t_GST + E.Δ = (s : Time) + 1 := by

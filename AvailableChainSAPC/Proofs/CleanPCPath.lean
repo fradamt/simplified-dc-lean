@@ -49,6 +49,7 @@ theorem selectedPC_on_cleanRunPath {V : Type} [DecidableEq V] [Fintype V]
     (i : Nat) (reader : V) (t : Time) (r : Slot) (c : PC p.n)
     (hc : selectedPC p (clock p (Run.stateBefore (sapc p) rho i reader) t) r = some c) :
     cleanRunPath p rho i c.target := by
+  set_option backward.isDefEq.respectTransparency false in
   have valid := certificates_valid_at_fold p (rho.events.take i) reader
   have hc' := selectedPC_valid p _ (clock_frozenPC_valid p _ t valid.2 valid.1) r c hc
   rw [pcValid_eq_of_data p _ _ (clock_blocks p _ t) (clock_archive p _ t)] at hc'
@@ -76,6 +77,7 @@ theorem selectedPC_slot_lt_at_nextHead {V : Type} [DecidableEq V] [Fintype V]
     (reader : V) (r : Slot) (c : PC p.n)
     (hc : selectedPC p (headState p rho (r + 1) reader) (r + 1) = some c) :
     c.slot < r := by
+  set_option backward.isDefEq.respectTransparency false in
   have valid := certificates_valid_at_fold p
     (rho.events.filter (fun e => decide (e.time < voteTime p (r + 1)))) reader
   have hc' := selectedPC_valid p _
@@ -108,6 +110,7 @@ theorem cleanRunPath_capped_sources {V : Type} [DecidableEq V] [Fintype V]
         SA.confirmation p (Run.stateBefore (sapc p) rho j v).base r = some c ∧
         Block.Preceq b c) ∨
       (∃ r c, HonestTimelySource p rho i r c ∧ Block.Preceq b c) := by
+  set_option backward.isDefEq.respectTransparency false in
   have pcsource (j : Nat) (hj : j < i) (v : V) (c : PC p.n)
       (hc : pcValid p (Run.stateBefore (sapc p) rho j v) c = true)
       (hb : Block.Preceq b c.target) :

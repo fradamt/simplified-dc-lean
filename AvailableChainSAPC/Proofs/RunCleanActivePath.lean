@@ -18,6 +18,7 @@ theorem cleanRunPath_chain_at_active_tick
     (h : JointCleanInvariant p E rho i)
     (active : capBroken p (Run.stateBefore (sapc p) rho i reader) = false) :
     CleanPath (cleanRunPath p rho (i + 1)) := by
+  set_option backward.isDefEq.respectTransparency false in
   have honest := hs.execution.honest_only _ (List.mem_of_getElem? he)
   change reader ∈ rho.honest at honest
   have ha := sleepy_quorum_above_faults p E rho t₀ hs

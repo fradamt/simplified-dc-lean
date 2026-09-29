@@ -63,6 +63,7 @@ theorem stateBefore_base_frozen_prefix {V : Type} [DecidableEq V] (p : Params)
     (rho : Run V (sapc p)) {i j : Nat} (hij : i ≤ j) (v : V) :
     (Run.stateBefore (sapc p) rho i v).base.frozen <+:
       (Run.stateBefore (sapc p) rho j v).base.frozen := by
+  set_option backward.isDefEq.respectTransparency false in
   apply stateBefore_field_prefix (P := sapc p) (fun st => st.base.frozen) ?_ ?_ rho hij v
   · intro st t
     change st.base.frozen <+: (clock p st t).base.frozen
@@ -80,6 +81,7 @@ theorem base_frozenAt_after_freeze {V : Type} [DecidableEq V] (p : Params)
     GridCO.frozenAt (Run.stateBeforeTime (sapc p) rho cut v).base r =
       some (GridCO.freezeView p.engine
         (Run.stateBeforeTime (sapc p) rho (freezeTime p r) v).base r) := by
+  set_option backward.isDefEq.respectTransparency false in
   have hpub : PublicTime E (freezeTime p r) := by
     refine ⟨4 * r + 3, ?_⟩
     change 4 * p.Δ * (r : Time) + 3 * p.Δ = _

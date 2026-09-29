@@ -55,7 +55,7 @@ theorem inBandLock (E : Electorate V) (cfg : FGConfig) (F : FGBlock V) (Vw : Vie
   have hnc : c.contest = false := by
     cases hcb : c.contest
     · rfl
-    · have hloH : c.lo = c.H := by simp only [Controls.lo, hcb, if_true]
+    · have hloH : c.lo = c.H := by simp only [Controls.lo, hcb, ite_true]
       simp only [Height] at *
       omega
   -- Step 3: the selected pair is at least K's pair, so `j = m` and `J = J(K)`.
@@ -84,7 +84,7 @@ theorem inBandLock (E : Electorate V) (cfg : FGConfig) (F : FGBlock V) (Vw : Vie
     simp only [Height] at *
     omega
   have hZ : c.Z = (derive E cfg K).J := by
-    simp only [Controls.Z, hr, if_true, hJK]
+    simp only [Controls.Z, hr, ite_true, hJK]
   -- Step 4: C extends J and has height m, so C's entry at m is J.
   rw [hZ] at hsrc
   have hnz : (derive E cfg K).h_j ≠ 0 := by

@@ -97,7 +97,7 @@ theorem toyDuties_spec (ℓ : ToyLabel) (t : Time) : ℓ ∈ toyDuties t ↔ toy
         · simp at h
     · rintro rfl
       refine List.mem_append_right _ ?_
-      rw [if_pos (Int.natCast_nonneg s), Int.toNat_natCast]
+      rw [ite_eq_left (Int.natCast_nonneg s), Int.toNat_natCast]
       exact List.mem_singleton_self _
 
 theorem toyDuties_nodup (t : Time) : (toyDuties t).Nodup := by
@@ -424,7 +424,7 @@ theorem pre_valid : ExecutionValid toyEnv pre := by
       fun _ _ => Finset.mem_univ _, ?_, ?_⟩
     · intro v t h
       have h0 := ((by decide +kernel : ∀ e ∈ pre.events, e.time = 0) _ h)
-      exact ⟨0, by change t = ((0 : Nat) : Time) * 1; simpa using h0⟩
+      exact ⟨0, by change t = ((0 : Nat) : Time) * 1; simpa using! h0⟩
     · intro v _ t _ h0 h1
       change t ≤ 0 at h1
       have ht : t = 0 := le_antisymm h1 h0

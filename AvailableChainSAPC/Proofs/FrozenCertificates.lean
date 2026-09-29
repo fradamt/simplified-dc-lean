@@ -65,8 +65,8 @@ theorem clock_frozenPC_valid (p : Params) {n : Nat} (st : State n) (t : Time)
       · have hrow := List.mem_singleton.mp hnew
         exact hlive c (congrArg Prod.snd hrow).symm
   apply pcValid_mono p st _ ?_ ?_ c hvalid
-  · rw [clock_blocks]; exact List.Subset.refl _
-  · rw [clock_archive]; exact List.Subset.refl _
+  · rw [clock_blocks]
+  · rw [clock_archive]
 
 /-- Both stored PC sources are valid at every engine fold. -/
 theorem certificates_valid_at_fold {V : Type} [DecidableEq V] (p : Params)

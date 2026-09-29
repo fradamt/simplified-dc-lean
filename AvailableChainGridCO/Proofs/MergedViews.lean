@@ -116,7 +116,7 @@ theorem stored_proposal_admission {V : Type} [DecidableEq V] (p : Params)
               by_cases hv : reader = v
               · subst v
                 have hm : o ∈ (process p (Run.stateBefore (gridCO p) rho index reader)
-                    parent).proposals := by simpa [World.step] using ho
+                    parent).proposals := by simpa [World.step] using! ho
                 rcases process_proposal_origin p _ parent o hm with hold | ⟨he, hrest⟩
                 · obtain ⟨j, hj, hrest⟩ := ih hold
                   exact ⟨j, by omega, hrest⟩
@@ -256,7 +256,7 @@ theorem nextHeadState_carried_raw_receipt {V : Type} [DecidableEq V]
     rw [time_input_eq_event_prefix p E rho hx.toScheduleWellFormed]
     apply hprefix.votes.subset
     rw [stateBefore_succ_event he]
-    simpa [World.step] using hq
+    simpa [World.step] using! hq
   rcases hrec with hm | heq
   · exact Or.inl (hsub (List.mem_filter.mpr ⟨hm, by simp [headLabel?]⟩))
   · exact Or.inr (equivocates_mono _ _ i hsub heq)

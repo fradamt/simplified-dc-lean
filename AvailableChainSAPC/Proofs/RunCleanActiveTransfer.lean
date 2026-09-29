@@ -22,6 +22,7 @@ theorem timely_continues_before_active_input
     (hgate : gateTime p r ≤ e.time) (hrs : r < s) (htime : voteTime p s < e.time)
     (reader : V) (hr : reader ∈ rho.honest) :
     Block.Preceq b (headData p rho s reader).target := by
+  set_option backward.isDefEq.respectTransparency false in
   have ha := sleepy_quorum_above_faults p E rho t₀ hs
   have horizon := (hs.execution.in_horizon _ (List.mem_of_getElem? he)).2
   have sync (a : Slot) : E.t_GST ≤ earlyTime p a := by
@@ -202,6 +203,7 @@ theorem selectedPC_prefix_pending_genuine_of_active
     (c : PC p.n)
     (selected : selectedPC p (headState p rho (r + 1) reader) (r + 1) = some c) :
     Block.Preceq c.target b := by
+  set_option backward.isDefEq.respectTransparency false in
   have ha := sleepy_quorum_above_faults p E rho t₀ hs
   have slot := selectedPC_slot_lt_at_nextHead p E rho hs.execution ha reader r c selected
   have selected' := selected

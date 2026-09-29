@@ -82,6 +82,7 @@ theorem run_genuine_origin {V : Type} [DecidableEq V] (p : Params)
     (hm : (r, C) ∈ (Run.stateBefore (gridCO p) rho index reader).genuine) :
     ∃ j < index, rho.events[j]? = some (.tick reader (gateTime p r)) ∧
       C = confirmation p (gateInput p rho r reader) r := by
+  set_option backward.isDefEq.respectTransparency false in
   induction index with
   | zero => simp [Run.stateBefore, World.init, gridCO, initial] at hm
   | succ index ih =>
@@ -97,7 +98,7 @@ theorem run_genuine_origin {V : Type} [DecidableEq V] (p : Params)
         · subst v
           have hm' : (r, C) ∈
               (clock p (Run.stateBefore (gridCO p) rho index reader) t).genuine := by
-            simpa [World.step] using hm
+            simpa [World.step] using! hm
           rcases clock_genuine_origin p _ t (run_receiptStamped p rho index reader) r C hm'
             with hold | ⟨ht, hc⟩
           · obtain ⟨j, hj, rest⟩ := ih hold
@@ -110,7 +111,7 @@ theorem run_genuine_origin {V : Type} [DecidableEq V] (p : Params)
       | deliver v o t =>
         have hold : (r, C) ∈ (Run.stateBefore (gridCO p) rho index reader).genuine := by
           by_cases hv : reader = v
-          · subst v; simpa [World.step, gridCO, process_genuine] using hm
+          · subst v; simpa [World.step, gridCO, process_genuine] using! hm
           · simpa [World.step, hv] using hm
         obtain ⟨j, hj, rest⟩ := ih hold
         exact ⟨j, by omega, rest⟩
@@ -152,12 +153,13 @@ theorem clock_genuine_subset (p : Params) {n : Nat} (st : State n) (t : Time) :
   split
   · rw [gate_genuine]
     simpa only [clockPreGate_genuine] using recordGenuine_subset (clockPreGate p st t) _ _
-  · rw [clockPreGate_genuine]; exact List.Subset.refl _
+  · rw [clockPreGate_genuine]
 
 theorem run_genuine_mono {V : Type} [DecidableEq V] (p : Params)
     (rho : Run V (gridCO p)) (start finish : Nat) (hle : start ≤ finish) (reader : V) :
     (Run.stateBefore (gridCO p) rho start reader).genuine ⊆
       (Run.stateBefore (gridCO p) rho finish reader).genuine := by
+  set_option backward.isDefEq.respectTransparency false in
   induction finish with
   | zero =>
     simpa only [Nat.le_zero.mp hle] using
@@ -173,7 +175,7 @@ theorem run_genuine_mono {V : Type} [DecidableEq V] (p : Params)
       cases e with
       | tick v t =>
         by_cases hv : reader = v
-        · subst v; simpa [World.step] using clock_genuine_subset p _ t
+        · subst v; simpa [World.step] using! clock_genuine_subset p _ t
         · simp [World.step, hv]
       | deliver v o t =>
         by_cases hv : reader = v
@@ -189,6 +191,7 @@ theorem time_input_genuine_mem {V : Type} [DecidableEq V] (p : Params)
     (r : Slot) (hlt : gateTime p r < cut) (hh : gateTime p r ≤ rho.horizon) :
     (r, confirmation p (gateInput p rho r reader) r) ∈
       (Run.stateBeforeTime (gridCO p) rho cut reader).genuine := by
+  set_option backward.isDefEq.respectTransparency false in
   have hpub : PublicTime E (gateTime p r) := by
     refine ⟨4 * r + 6, ?_⟩
     simp only [gateTime, proposalTime, hΔ, Nat.cast_add, Nat.cast_mul, Nat.cast_ofNat]

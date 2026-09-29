@@ -28,6 +28,7 @@ theorem emitted_head_compatible_of_protection {V : Type} [DecidableEq V]
     (ht : t < d) (r : Slot) (seat : Fin p.n) (data : HeadData)
     (emitted : fromHead ⟨.seat r seat, data⟩ ∈ Run.emittedAt (sapc p) E rho i v t) :
     Block.Compatible data.target B := by
+  set_option backward.isDefEq.respectTransparency false in
   have act := (emittedAt_seat_action (sapc p) E rho i v t r seat (.head data) emitted).2
   have target : headTarget p (clock p (Run.stateBefore (sapc p) rho i v) t) r = data.target := by
     exact congrArg HeadData.target (Msg.head.inj (Option.some.inj act))
@@ -125,12 +126,13 @@ theorem protection_from_armed_index {V : Type} [DecidableEq V] [Fintype V]
     ∀ v ∈ rho.honest,
       GridCO.ProtectsUntil (Run.stateBefore (sapc p) rho finish v).base B (g v) d ∧
       Block.Preceq B (Run.stateBefore (sapc p) rho finish v).base.stableRecord := by
+  set_option backward.isDefEq.respectTransparency false in
   apply state_interval_induction (sapc p) rho
     (fun v st => GridCO.ProtectsUntil st.base B (g v) d ∧
       Block.Preceq B st.base.stableRecord) start finish hfinish base
   · intro v hv st o hp
     constructor
-    · simpa only [sapc, GridCO.ProtectsUntil, process_obligations] using hp.1
+    · simpa only [sapc, GridCO.ProtectsUntil, process_obligations] using! hp.1
     · change Block.Preceq B (stable (process p st o))
       rw [process_stable]
       exact hp.2

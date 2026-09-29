@@ -46,11 +46,11 @@ theorem stateBefore_archive_mono {V : Type} [DecidableEq V] (p : Params)
     (Run.stateBefore (sapc p) rho i v).receivedHeads ⊆
       (Run.stateBefore (sapc p) rho j v).receivedHeads := by
   induction j with
-  | zero => rw [Nat.le_zero.mp hij]; exact List.Subset.refl _
+  | zero => rw [Nat.le_zero.mp hij]
   | succ j ih =>
       rcases Nat.eq_or_lt_of_le hij with rfl | hlt
       · exact List.Subset.refl _
-      · apply (ih (by omega)).trans
+      · apply List.Subset.trans (ih (by omega))
         cases hj : rho.events[j]? with
         | none => simp [Run.stateBefore, List.take_add_one, hj]
         | some e =>

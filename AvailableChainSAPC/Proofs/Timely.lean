@@ -108,6 +108,7 @@ theorem stateBefore_timely_prefix {V : Type} [DecidableEq V] (p : Params)
     (rho : Run V (sapc p)) {i j : Nat} (hij : i ≤ j) (v : V) :
     (Run.stateBefore (sapc p) rho i v).timely <+:
       (Run.stateBefore (sapc p) rho j v).timely := by
+  set_option backward.isDefEq.respectTransparency false in
   exact stateBefore_field_prefix (P := sapc p) State.timely (clock_timely_prefix p)
     (fun st o => by rw [show (sapc p).process = process p from rfl, process_timely])
     rho hij v
@@ -171,6 +172,7 @@ theorem savedTimely_honest_preparation {V : Type} [DecidableEq V] [Fintype V]
     ∃ i data, rho.seatOf r i ∈ rho.honest ∧ data.target = b ∧
       Run.emits (sapc p) E rho (rho.seatOf r i)
         (fromHead ⟨.seat r i, data⟩) (voteTime p r) := by
+  set_option backward.isDefEq.respectTransparency false in
   obtain ⟨j, _, _, hc⟩ := savedTimely_origin_before p rho index v r b h
   obtain ⟨i, data, honest, hm, ht⟩ := timelyCandidate_honest_witness p rho _ r b hc ha
   rw [timelyInput_archive] at hm
@@ -185,11 +187,12 @@ theorem savedTimely_unique {V : Type} [DecidableEq V] [Fintype V]
     (i j : Nat) (u v : V) (r : Slot) (a b : Block)
     (ha : savedTimely (Run.stateBefore (sapc p) rho i u) r = some (some a))
     (hb : savedTimely (Run.stateBefore (sapc p) rho j v) r = some (some b)) : a = b := by
+  set_option backward.isDefEq.respectTransparency false in
   obtain ⟨ia, _, _, hca⟩ := savedTimely_origin_before p rho i u r a ha
   obtain ⟨ib, _, _, hcb⟩ := savedTimely_origin_before p rho j v r b hb
   apply timelyCandidate_unique p E rho hx.toScheduleWellFormed hcap _ _ ?_ ?_ r a b hca hcb
   all_goals
-    simpa only [ArchiveAuthenticated, timelyInput_archive] using
+    simpa only [ArchiveAuthenticated, timelyInput_archive] using!
       (archive_authenticated_before p E rho hx.toUnforgeableSignatures _ _)
 
 /-- Before the scheduled early tick, no save for its label exists.
@@ -208,7 +211,7 @@ theorem savedTimely_none_before_early {V : Type} [DecidableEq V] (p : Params)
         (List.mem_of_find?_eq_some hf)
       rw [hr] at htick
       have hlen := (List.getElem?_eq_some_iff.mp hi).1
-      have heq : index = j := (List.getElem?_inj hlen hs.nodup).mp (hi.trans htick.symm)
+      have heq : index = j := (List.Nodup.getElem?_inj hlen hs.nodup).mp (hi.trans htick.symm)
       exact (Nat.ne_of_lt hj heq.symm).elim
 
 theorem saveTimely_result (p : Params) {n : Nat} (st : State n) (r : Slot)
@@ -262,15 +265,16 @@ theorem timely_saved_at_early {V : Type} [DecidableEq V] [Fintype V]
     (hc : timelyCandidate p
       (timelyInput p (Run.stateBefore (sapc p) rho index v) (earlyTime p r)) r b = true) :
     savedTimely (Run.stateBefore (sapc p) rho (index + 1) v) r = some (some b) := by
+  set_option backward.isDefEq.respectTransparency false in
   rw [stateBefore_succ_event hi]
   simp only [World.step, Function.update_self, sapc, savedTimely, clock_timely_at_early]
   refine saveTimely_of_unique_candidate p _ r b ?_ hc ?_
-  · simpa only [savedTimely, timelyInput_timely] using
+  · simpa only [savedTimely, timelyInput_timely] using!
       savedTimely_none_before_early p E rho hx.toScheduleWellFormed index v r hi
   · intro c hcc
     have hauth : ArchiveAuthenticated p E rho
         (timelyInput p (Run.stateBefore (sapc p) rho index v) (earlyTime p r)) := by
-      simpa only [ArchiveAuthenticated, timelyInput_archive] using
+      simpa only [ArchiveAuthenticated, timelyInput_archive] using!
         archive_authenticated_before p E rho hx.toUnforgeableSignatures index v
     exact timelyCandidate_unique p E rho hx.toScheduleWellFormed hcap _ _
       hauth hauth r c b hcc hc
@@ -327,6 +331,7 @@ theorem emitted_ack_origin {V : Type} [DecidableEq V] (p : Params)
         rho.events[k]? = some (.tick v (voteTime p r)) ∧
         timelyCandidate p
           (timelyInput p (Run.stateBefore (sapc p) rho j v) (earlyTime p s)) s b = true := by
+  set_option backward.isDefEq.respectTransparency false in
   obtain ⟨index, htick, he⟩ := hem
   have hact := (emittedAt_seat_action (sapc p) E rho index v (voteTime p r)
     r i (.head data) he).2
@@ -351,6 +356,7 @@ theorem pc_honest_preparation {V : Type} [DecidableEq V] [Fintype V]
     ∃ i data, rho.seatOf c.slot i ∈ rho.honest ∧ data.target = c.target ∧
       Run.emits (sapc p) E rho (rho.seatOf c.slot i)
         (fromHead ⟨.seat c.slot i, data⟩) (voteTime p c.slot) := by
+  set_option backward.isDefEq.respectTransparency false in
   obtain ⟨ackSeat, ack, honest, hm, hack, _⟩ := pc_honest_witness p rho st c hc ha
   have hem := harchive (c.slot + 1) ackSeat ack hm honest
   obtain ⟨_, _, j, _, _, _, _, hn⟩ := emitted_ack_origin p E rho

@@ -72,7 +72,7 @@ theorem frozen_raw_at_proposer {V : Type} [DecidableEq V]
   change (clock p (Run.stateBeforeTime (sapc p) rho (proposalTime p (r + 1))
     (rho.proposerOf (r + 1))) (proposalTime p (r + 1))).base.votes = _ at hvotes
   simpa only [proposalState, GridCO.proposerView, Nat.add_sub_cancel, GridCO.votesAt,
-    hvotes, baseWire, baseHead, GridCO.fromHead, ht] using h
+    hvotes, baseWire, baseHead, GridCO.fromHead, ht] using! h
 
 theorem frozen_blocks_at_proposer {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (sapc p)) (hs : ScheduleWellFormed E rho)
@@ -81,6 +81,7 @@ theorem frozen_blocks_at_proposer {V : Type} [DecidableEq V]
     (hprop : rho.proposerOf (r + 1) ∈ rho.honest) (b : Block)
     (hb : b ∈ (Run.stateBeforeTime (sapc p) rho (freezeTime p r) source).base.blocks) :
     b ∈ (proposalState p rho (r + 1)).base.blocks := by
+  set_option backward.isDefEq.respectTransparency false in
   simp only [proposalState, clock_blocks]
   exact strict_block_relay p E rho hs _ _ (freeze_lt_proposal p r).le
     hrelay source (rho.proposerOf (r + 1)) hsource hprop b hb

@@ -103,7 +103,7 @@ theorem read_stable_eq_clock (hs : ScheduleWellFormed E rho)
               cases e with
               | deliver u o t' =>
                   by_cases hv : v = u
-                  · subst v; simpa [World.step] using process_stable p _ o
+                  · subst v; simpa [World.step] using! process_stable p _ o
                   · simp [World.step, hv]
               | tick u t' =>
                   have hne : u ≠ v := by

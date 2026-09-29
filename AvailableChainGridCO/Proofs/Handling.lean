@@ -104,7 +104,7 @@ private theorem fold_votes_subset (p : Params) {n : Nat} (raw : List (HeadWire n
       (raw.foldl (fun acc row => admitVote p acc (fromHead row)) st).votes := by
   induction raw generalizing st with
   | nil => exact List.Subset.refl _
-  | cons row raw ih => exact (admitVote_votes_subset p st (fromHead row)).trans (ih _)
+  | cons row raw ih => exact List.Subset.trans (admitVote_votes_subset p st (fromHead row)) (ih _)
 
 /-- In the admission window, a HEAD call leaves either that exact HEAD
 or evidence from two distinct copies of its seat. A call need not accept

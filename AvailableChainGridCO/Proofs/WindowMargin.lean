@@ -64,6 +64,7 @@ theorem head_not_excluded_before {V : Type} [DecidableEq V] (p : Params) (E : En
     (heq : equivocates (votesAt (Run.stateBeforeTime (gridCO p) rho u w) r) i = false) :
     (gridCO p).excludes (Run.stateBeforeTime (gridCO p) rho u w) ⟨.seat r i, .head x⟩ =
       false := by
+  set_option backward.isDefEq.respectTransparency false in
   have hl := time_read_label_le p E rho hs w u r hu
   rw [gridCO_excludes]
   simp [excludes, heq, Nat.not_lt.mpr hl]
@@ -89,6 +90,7 @@ theorem proposal_not_excluded {V : Type} [DecidableEq V] (p : Params)
     (rho : Run V (gridCO p)) (w : V) (o : Wire p.n) (B : Block)
     (raw support : List (HeadWire p.n)) (hp : o.payload = .proposal B raw support) :
     ∀ u, (gridCO p).excludes (Run.stateBeforeTime (gridCO p) rho u w) o = false := by
+  set_option backward.isDefEq.respectTransparency false in
   intro u
   obtain ⟨auth, payload⟩ := o
   subst hp

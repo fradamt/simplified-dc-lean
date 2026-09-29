@@ -91,14 +91,14 @@ theorem stateBefore_receiptPrefix {V : Type} [DecidableEq V] (p : Params)
             | tick u t =>
                 by_cases hv : v = u
                 · subst u
-                  simpa [World.step] using
+                  simpa [World.step] using!
                     receiptPrefix_of_data_eq (clock_receiptData p _ t)
                 · simpa [World.step, hv] using ReceiptPrefix.refl
                     (Run.stateBefore (gridCO p) rho j v)
             | deliver u o t =>
                 by_cases hv : v = u
                 · subst u
-                  simpa [World.step] using process_receiptPrefix p
+                  simpa [World.step] using! process_receiptPrefix p
                     (Run.stateBefore (gridCO p) rho j v) o
                 · simpa [World.step, hv] using ReceiptPrefix.refl
                     (Run.stateBefore (gridCO p) rho j v)
@@ -180,6 +180,7 @@ private theorem process_stampsBounded (p : Params) {n : Nat} (st : State n) (o :
 theorem run_stampsBounded {V : Type} [DecidableEq V] (p : Params) (E : Env V)
     (rho : Run V (gridCO p)) (hs : ScheduleWellFormed E rho) (i : Nat) (v : V) :
     StampsBounded (Run.stateBefore (gridCO p) rho i v) := by
+  set_option backward.isDefEq.respectTransparency false in
   induction i with
   | zero => simp [Run.stateBefore, World.init, gridCO, initial, StampsBounded]
   | succ i ih =>
@@ -207,7 +208,7 @@ theorem run_stampsBounded {V : Type} [DecidableEq V] (p : Params) (E : Env V)
           | deliver u o t =>
               by_cases hv : v = u
               · subst u
-                simpa [World.step] using process_stampsBounded p _ o ih
+                simpa [World.step] using! process_stampsBounded p _ o ih
               · simpa [World.step, hv] using ih
 
 private theorem find_stamp_le {α : Type} [BEq α] (xs : List (α × Time)) (x : α)
@@ -260,7 +261,7 @@ theorem stored_head_stamp_before_cut {V : Type} [DecidableEq V] (p : Params)
   have hb := (run_stampsBounded p E rho hs (i + 1) reader).stampVote_le o
   have hn : (Run.stateBefore (gridCO p) rho (i + 1) reader).now ≤ t := by
     rw [stateBefore_succ_event hi]
-    simpa [World.step, gridCO, process_now] using stateBefore_now_le_event p E rho hs hi reader
+    simpa [World.step, gridCO, process_now] using! stateBefore_now_le_event p E rho hs hi reader
   exact (hb.trans hn).trans_lt ht
 
 /-- The complete honest HEAD batch has early vote stamps at the gate.

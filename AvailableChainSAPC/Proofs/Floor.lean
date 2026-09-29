@@ -123,7 +123,7 @@ theorem activeVoterTree_support_path (p : Params) {n : Nat} (st : State n)
       match GridCO.headTarget? o with
       | some h => Block.preceq b h
       | none => false) = true :=
-    List.any_eq_true.mpr ⟨o, ho, by simpa only [ht] using hb⟩
+    List.any_eq_true.mpr ⟨o, ho, by simpa only [ht] using! hb⟩
   exact Bool.or_eq_true_iff.mpr (Or.inl (Bool.or_eq_true_iff.mpr
     (Or.inl (Bool.or_eq_true_iff.mpr (Or.inr ha)))))
 
@@ -162,7 +162,7 @@ theorem choice_covers_of_floor (p : Params) {n : Nat} (st : State n) (tree : Lis
       · exact (hn (GridCO.prefix_trans _ _ _ hp hanchor)).elim
       · exact hp
   exact GridCO.prefix_trans _ _ _ hroot (by
-    simpa only [choice, ha, Bool.false_eq_true, ↓reduceIte] using
+    simpa only [choice, ha, Bool.false_eq_true, ↓reduceIte] using!
       GridCO.ghost_extends
         (mandatoryRoot (GridCO.liveRoot st.base)
           (preliminaryAnchor (floor p st tree raw support r) c)) tree

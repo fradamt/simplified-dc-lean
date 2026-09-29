@@ -102,7 +102,7 @@ private theorem bitLenDouble_spec (fuel n w : Nat) (hw : 1 ≤ w)
     (bitLenDouble fuel n w) / 2 < Nat.size n ∧
       Nat.size n ≤ bitLenDouble fuel n w := by
   induction fuel generalizing w with
-  | zero => exact ⟨hlo, by simpa using hfuel⟩
+  | zero => exact ⟨hlo, by simpa using! hfuel⟩
   | succ fuel ih =>
     simp only [bitLenDouble]
     split
@@ -187,7 +187,7 @@ private theorem tzAux_two_pow_mul (r : Nat) (hr : r % 2 = 1) :
       rw [Nat.pow_succ, Nat.mul_right_comm, Nat.mul_div_cancel _ (by decide)]
     have hmod : 2 ^ (k + 1) * r % 2 = 0 := by
       rw [Nat.pow_succ, Nat.mul_right_comm, Nat.mul_mod_left]
-    simp only [tzAux, hne, hmod, hdiv, if_false, if_true]
+    simp only [tzAux, hne, hmod, hdiv, ite_false, ite_true]
     rw [ih fuel (by omega)]
 
 /-- `tz` finds the exact power of two in `2 ^ k * r` for an odd `r`. -/

@@ -144,7 +144,7 @@ theorem run_vote_stamps_stored {V : Type} [DecidableEq V] (p : Params)
               · simpa [World.step, hv] using ih
           | deliver v o t =>
               by_cases hv : reader = v
-              · subst v; simpa [World.step] using process_stamps_stored p _ o ih
+              · subst v; simpa [World.step] using! process_stamps_stored p _ o ih
               · simpa [World.step, hv] using ih
 
 /-- A receipt stamp identifies an earlier acceptance and its exact local
@@ -186,7 +186,7 @@ theorem stored_head_stamp_source {V : Type} [DecidableEq V] (p : Params)
               · subst v
                 have hm' : (o, stamp) ∈
                     (process p (Run.stateBefore (gridCO p) rho index reader) parent).voteStamp := by
-                  simpa [World.step] using hm
+                  simpa [World.step] using! hm
                 rcases process_vote_stamp_origin p _ parent o stamp hm' with
                   hold | ⟨ht, hn, hh, B, hb⟩
                 · obtain ⟨j, hj, rest⟩ := ih hold
@@ -313,7 +313,7 @@ theorem stored_block_stamp_source {V : Type} [DecidableEq V] (p : Params)
               · subst v
                 have hm' : (B, stamp) ∈
                     (process p (Run.stateBefore (gridCO p) rho index reader) o).blockStamp := by
-                  simpa [World.step] using hm
+                  simpa [World.step] using! hm
                 rcases process_block_stamp_origin p _ o B stamp hm' with
                   hold | ⟨ht, habsent, hstored, raw, support, hb⟩
                 · obtain ⟨j, hj, rest⟩ := ih hold

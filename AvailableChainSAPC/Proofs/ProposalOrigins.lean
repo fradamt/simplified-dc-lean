@@ -98,6 +98,7 @@ theorem stored_honest_base_proposal_unique {V : Type} [DecidableEq V]
     key = ⟨.proposer s, .proposal b
       ((GridCO.proposerView (proposalState p rho s).base s).filterMap GridCO.toHead?)
       ((GridCO.proposerSupportView (proposalState p rho s).base s).filterMap GridCO.toHead?)⟩ := by
+  set_option backward.isDefEq.respectTransparency false in
   obtain ⟨hm, hs⟩ := List.mem_filter.mp hm
   obtain ⟨j, _, t, o, target, raw, support, c, he, hp, hk⟩ :=
     base_proposal_origin_before p rho index reader key hm
@@ -124,7 +125,6 @@ theorem stored_honest_base_proposal_unique {V : Type} [DecidableEq V]
     originalHeads_base_heads _ (proposalState_baseArchived p rho s)
       (GridCO.proposerSupportView (proposalState p rho s).base s)
       (fun _ h => (List.mem_filter.mp (List.mem_filter.mp h).1).1)]
-  rfl
 
 theorem headState_honest_base_proposal_unique {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (sapc p))
@@ -135,6 +135,7 @@ theorem headState_honest_base_proposal_unique {V : Type} [DecidableEq V]
     key = ⟨.proposer s, .proposal b
       ((GridCO.proposerView (proposalState p rho s).base s).filterMap GridCO.toHead?)
       ((GridCO.proposerSupportView (proposalState p rho s).base s).filterMap GridCO.toHead?)⟩ := by
+  set_option backward.isDefEq.respectTransparency false in
   unfold GridCO.proposalsAt headState at hm
   rw [clock_base_proposals, time_input_eq_event_prefix p E rho hx.toScheduleWellFormed] at hm
   exact stored_honest_base_proposal_unique p E rho hx s b hb _ reader key hm

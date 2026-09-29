@@ -38,7 +38,7 @@ private theorem stored_mono {n : Nat} (a b : GridCO.State n)
     (h : FrozenViewsStored a) : FrozenViewsStored b := by
   intro r raw support tree hm
   obtain ⟨hr, hs, hl⟩ := h r raw support tree (hf ▸ hm)
-  exact ⟨hr.trans hv, hs, hl⟩
+  exact ⟨List.Subset.trans hr hv, hs, hl⟩
 
 theorem gateWithPC_frozen (p : Params) {n : Nat} (st : GridCO.State n)
     (r : Slot) (c : Option (PC n)) : (gateWithPC p st r c).frozen = st.frozen := by
@@ -88,7 +88,6 @@ theorem clock_frozenViewsStored (p : Params) {n : Nat} (st : State n) (t : Time)
         (gateWithPC_receiptData p st.base r (if capBroken p st then none else st.bestPC))
       change (gateWithPC p st.base r _).votes = st.base.votes at hv
       rw [hv]
-      exact List.Subset.refl _
     · exact h
   unfold clock
   dsimp only
@@ -228,7 +227,7 @@ theorem process_proposalViewsArchived (p : Params) {n : Nat} (st : State n) (o :
   have hcollect (st : State n) (h : ProposalViewsArchived st) :
       ProposalViewsArchived (collectPCs p st) :=
     proposalViews_mono st _ (congrArg GridCO.State.proposals (collectPCs_base p st))
-      (by rw [collectPCs_archive]; exact List.Subset.refl _) h
+      (by rw [collectPCs_archive]) h
   have hfold (st : State n) (xs : List (HeadWire n)) (h : ProposalViewsArchived st) :
       ProposalViewsArchived (xs.foldl (receiveHead p) st) :=
     proposalViews_mono st _ (receiveHeads_base_proposals p st xs)
@@ -269,7 +268,7 @@ theorem proposalViewsArchived_at_fold {V : Type} [DecidableEq V] (p : Params)
   · simp [ProposalViewsArchived, initial, GridCO.initial]
   · intro st t h
     exact proposalViews_mono st _ (clock_base_proposals p st t)
-      (by rw [clock_archive]; exact List.Subset.refl _) h
+      (by rw [clock_archive]) h
   · exact process_proposalViewsArchived p
 
 theorem baseWire_label {n : Nat} (o : HeadWire n) :

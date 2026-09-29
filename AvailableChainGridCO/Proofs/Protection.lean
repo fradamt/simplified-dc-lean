@@ -115,6 +115,7 @@ private theorem fold_unique_keys {V : Type} [DecidableEq V] (p : Params)
     (events : List (Event V (gridCO p).Object)) (w : World V (gridCO p))
     (h : ∀ v, UniqueObligationKeys (w v)) :
     ∀ v, UniqueObligationKeys ((events.foldl World.step w) v) := by
+  set_option backward.isDefEq.respectTransparency false in
   induction events generalizing w with
   | nil => exact h
   | cons e events ih =>
@@ -123,7 +124,7 @@ private theorem fold_unique_keys {V : Type} [DecidableEq V] (p : Params)
       cases e with
       | tick u t =>
           by_cases hv : v = u
-          · subst v; simpa [World.step] using clock_unique_keys p (w u) t (h u)
+          · subst v; simpa [World.step] using! clock_unique_keys p (w u) t (h u)
           · simpa [World.step, hv] using h v
       | deliver u o t =>
           by_cases hv : v = u
@@ -161,7 +162,7 @@ theorem gate_preserves_protected_prefix (p : Params) {n : Nat} (st : State n)
     Block.Preceq B (stable (gate p st r)) := by
   obtain ⟨deadline, _, hrow⟩ := hp
   cases hc : confirmation p st r with
-  | none => simpa only [gate, hc] using hold
+  | none => simpa only [gate, hc] using! hold
   | some C =>
       by_cases hcomp : Block.compatible B C = true
       · cases hg : st.obligations.any (fun (target, _, _) => !Block.compatible target C) with
@@ -235,6 +236,7 @@ theorem emitted_head_compatible_of_protection
     (hem : o ∈ Run.emittedAt (gridCO p) E rho i v t)
     (hr : headLabel? o = some r) (hb : headTarget? o = some target) :
     Block.Compatible target B := by
+  set_option backward.isDefEq.respectTransparency false in
   have ha := (emitted_head_action p E rho i v t o r target hem hr hb).2
   by_cases hz : r = 0
   · subst r
@@ -287,12 +289,13 @@ theorem protection_from_armed_index
     ∀ v ∈ rho.honest,
       ProtectsUntil (Run.stateBefore (gridCO p) rho finish v) B (g v) d ∧
       Block.Preceq B (stable (Run.stateBefore (gridCO p) rho finish v)) := by
+  set_option backward.isDefEq.respectTransparency false in
   apply AvailableChain.Engine.state_interval_induction (gridCO p) rho
     (fun v st => ProtectsUntil st B (g v) d ∧ Block.Preceq B (stable st))
     start finish hfinish hbase
   · intro v hv st o hp
     exact ⟨process_protectsUntil p st o B (g v) d hp.1,
-      by simpa only [gridCO, stable, process_stable] using hp.2⟩
+      by simpa only [gridCO, stable, process_stable] using! hp.2⟩
   · intro i u t hsi hif hi hu hp hpast
     have htd := hdeadline i _ hsi hif hi
     apply clock_preserves_protection p _ t B (g u) d
