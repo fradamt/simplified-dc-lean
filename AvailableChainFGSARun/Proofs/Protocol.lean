@@ -2,7 +2,7 @@ module
 public import AvailableChainFGSA.Proofs.Carrier
 public import AvailableChainFGSARun.Model.Families
 
-@[expose] public section
+public section
 
 /-! Basic facts of the FG-SA protocol on engine v2 (plan
 `docs/plans/2026-09-29-fgsa-composition-t7-t1.md` r11, T7.2): the restore, clock,

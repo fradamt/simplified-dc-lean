@@ -148,3 +148,5 @@ AvailableChainSAPC.Tests.CleanInvariantCounterexample AvailableChain.SAPC.Tests.
 AvailableChainWitnesses.Accumulation AvailableChain.Witnesses.Accumulation.attackExecution legacy: v4.34.1 port (isDefEq transparency change; reason per use not recorded)
 AvailableChainWitnesses.Accumulation AvailableChain.Witnesses.Accumulation.delivery_cases legacy: v4.34.1 port (isDefEq transparency change; reason per use not recorded)
 AvailableChainWitnesses.Regimes AvailableChain.Witnesses.Regimes.execution legacy: v4.34.1 port (isDefEq transparency change; reason per use not recorded)
+AvailableChainFGSARun.Proofs.Excludes AvailableChain.FGSA.Run.admitRow_of_rowExcl v4.34.1: rw [ite_eq_left] finds no pattern in the unfolded admitRow without it
+AvailableChainFGSARun.Proofs.Excludes AvailableChain.FGSA.Run.epoch_of_restartFree v4.34.1: rw [tick_st] finds no pattern after Function.update_self without it

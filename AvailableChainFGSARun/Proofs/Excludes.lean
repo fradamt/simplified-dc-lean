@@ -6,7 +6,7 @@ public import AvailableChainFGSARun.Statements.Excludes
 public import AvailableChainFGSARun.Proofs.Protocol
 public import AvailableChainEngineV2.Conditions.Schedule
 
-@[expose] public section
+public section
 
 /-! `excludes_inert` for FG-SA on engine v2 (plan
 `docs/plans/2026-09-29-fgsa-composition-t7-t1.md` r11, T7.2; lead input,
@@ -255,6 +255,7 @@ theorem row_wire_roundtrip {o : Obj p} {r : Nat} {i : Fin p.n} {body : RowBody}
 theorem admitRow_of_rowExcl (st : State p.n) {r : Nat} {i : Fin p.n} {body : RowBody}
     (h : rowExcl p st ⟨.seat (.fg r) i, body⟩ r i = true) :
     admitRow p st ⟨.seat (.fg r) i, body⟩ = st := by
+  -- v4.34.1: without it `rw [ite_eq_left]` finds no pattern in the unfolded `admitRow`.
   set_option backward.isDefEq.respectTransparency false in
   unfold rowExcl at h
   unfold admitRow
@@ -705,6 +706,7 @@ theorem epoch_of_restartFree (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) (v 
     (hmono : mono = true → ∀ k t, i ≤ k → k < j → rho.events[k]? = some (.tick v t) →
       (V2.Run.stateBefore E rho k v).st.base.now ≤ t) :
     Epoch p mono (V2.Run.stateBefore E rho i v).st (V2.Run.stateBefore E rho j v).st := by
+  -- v4.34.1: without it `rw [tick_st]` finds no pattern after `Function.update_self`.
   set_option backward.isDefEq.respectTransparency false in
   induction j, hij using Nat.le_induction with
   | base => exact Relation.ReflTransGen.refl
