@@ -71,9 +71,16 @@ def encRow {V : Type} [RowCodec V] (r : Row V) : Nat :=
   epair (RowCodec.encodeSigner r.signer)
     (epair (encHeightPair r.height_pair) (encOption encFinalityPair r.finality_pair))
 
-/-- The body code of an FG node: the body `x` and the ordered row list. -/
+/-- The domain tag of an FG body code (`encFGBody`). -/
+def fgBodyTag : Nat := 1
+
+/-- The body code of an FG node: the domain tag `fgBodyTag`, the body `x` and
+the ordered row list. The tag reserves typed domains for base application
+bodies: a later plan can give another domain a different tag, and the codes of
+two domains do not collide. The code is not `0` (the honest base body), because
+the first component of the pair is not `0`. -/
 def encFGBody {V : Type} [RowCodec V] (x : Nat) (rows : List (Row V)) : Nat :=
-  epair x (encList encRow rows)
+  epair fgBodyTag (epair x (encList encRow rows))
 
 theorem encHeightPair_inj : Function.Injective encHeightPair := by
   intro a b hab
@@ -107,6 +114,7 @@ theorem encRow_inj {V : Type} [RowCodec V] : Function.Injective (encRow (V := V)
 /-- The body code is injective in the pair: the body and the ordered rows. -/
 theorem encFGBody_inj {V : Type} [RowCodec V] {x y : Nat} {rs ts : List (Row V)}
     (h : encFGBody x rs = encFGBody y ts) : x = y ∧ rs = ts := by
+  obtain ⟨-, h⟩ := epair_inj h
   obtain ⟨hx, hr⟩ := epair_inj h
   exact ⟨hx, encList_inj encRow_inj hr⟩
 
@@ -205,6 +213,9 @@ end Electorate
 example : (FGBlock.genesis : FGBlock (Fin 1)).preceq .genesis = true := by decide
 example : (NamedHeightPair.vote 2 ⟨5⟩ true).matchesEntry 2 ⟨5⟩ = true := by decide
 example : (⟨fun _ => 1, fun _ => Nat.one_pos⟩ : Electorate (Fin 4)).q = 3 := by decide
+
+/-- An FG body code is never the honest base body `0`. -/
+example : encFGBody (V := Fin 1) 0 [] ≠ 0 := by decide
 
 /-- The body code separates rows that differ only in the signer, the timeout
 bit or the finality pair, and row lists that differ only in order or in a
