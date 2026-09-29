@@ -680,10 +680,14 @@ paths below are relative to `AvailableChainRegistry/`.
 │ [--allow-changes] [--lock <path>]  │ CHANGED line unless --allow-changes is   │ refused, nothing    │
 │                                    │ given                                    │ written; 2 as for   │
 │                                    │                                          │ --check             │
-│ scripts/Registry.lean [--check]    │ writes docs/REGISTRY.md; with --check,   │ 0 written, or the   │
-│                                    │ compares the generated text with the     │ same; 1 different;  │
-│                                    │ file and writes nothing                  │ 2 a usage error or  │
-│                                    │                                          │ an unreadable file  │
+│ scripts/Registry.lean [--check |   │ writes docs/REGISTRY.md and              │ 0 written, or the   │
+│ --selftest <file> [<module>]]      │ docs/MATRIX.md; with --check, compares   │ same; 1 different;  │
+│                                    │ both texts with the files, names each    │ 2 a usage error, an │
+│                                    │ file that differs and writes nothing;    │ unreadable file, a  │
+│                                    │ with --selftest, prints the rows of one  │ bad family witness, │
+│                                    │ Lean file (not a scanned library)        │ or a self-test file │
+│                                    │                                          │ that does not       │
+│                                    │                                          │ elaborate           │
 │ scripts/CheckFrameworkAxioms.lean  │ every constant of                        │ 0 clean; 1 a bad    │
 │                                    │ AvailableChainFramework,                 │ axiom; 2 nothing    │
 │                                    │ AvailableChainRegistry,                  │ found or a usage    │
@@ -697,22 +701,36 @@ paths below are relative to `AvailableChainRegistry/`.
 
 `scripts/Registry.lean` scans the libraries in `instanceLibraries` (now
 only `AvailableChainRegistry`) for constants whose type is `Cert c I`,
-`Refutation c I`, `RefutationFamily c I`, `ProfileCert p I` or `Candidate
-I`, and writes one row per constant to `docs/REGISTRY.md`. The file header
+`Refutation c I`, `RefutationFamily c I`, `ProfileCert p I`, `Candidate
+I` or `Profile.holdsAt p I C`, and writes one row per constant to
+`docs/REGISTRY.md`. The file header
 names the scanned libraries. A `ProfileCert` or `Candidate` row has the
 kind `profile-cert`, and its claim column shows the profile `id` (for
 example `core.v1`). A certificate of a pulled claim shows the base claim
 with `(pulled)`. A type behind leading binders (`∀ …, Cert c I`) is
 CONDITIONAL and is still written as a row, with status `CONDITIONAL (not a
-certificate)`: it is a row of the table, not a certificate. Every other
+certificate)`: it is a row of the table, not a certificate. A row of kind
+`profile-holds` (a `holdsAt` theorem) proves the claim propositions at one
+constant, without inhabitation; it can be vacuous, and it is not a
+certificate. Such a row is a FAMILY, with the status suffix ` (family)`, only
+if its binder telescope has exactly one binder and that binder's type (after
+`whnfR`) is in `familyBinders` (`GridCO.Params`, `SA.Params`); the script
+checks that each type's witness exists, has that type and uses only the
+allowed axioms. Every other
 row's status is `LEAN` only if `Lean.collectAxioms` finds no axiom outside
 `propext`, `Classical.choice`, `Quot.sound`; any other axiom (including
 `sorryAx`) gives status `UNSOUND(<axiom names>)`. A row of a module under
 `AvailableChainRegistry.Gaps` has status `KNOWN-GAP` in place of `LEAN`
 (plan 1a Task 0, `gapsPrefix`). A row's claim column keeps the claim's
 name and appends `NON-CATALOG` if the `ClaimSpec` is not declared in a
-module under `AvailableChainFramework.Catalog`. `docs/REGISTRY.md` is
-generated; do not edit it by hand.
+module under `AvailableChainFramework.Catalog`. The instance column looks
+through a structure projection to an instance type, so
+`(sapcInst p).toInstance` shows `sapcInst`. The same run writes
+`docs/MATRIX.md`: one line per instance constant, one column per catalog
+claim and per catalog profile; its header gives the meaning of each cell
+(`holds*` for a family row; `gap` and `cond` are records, not results).
+`docs/REGISTRY.md` and `docs/MATRIX.md` are generated; do not edit them by
+hand.
 
 `scripts/CatalogLock.lean` locks every declaration that Lean did not
 generate in the modules `Hooks`, `Instance`, `Claim`, `Cert`, `Profile`,

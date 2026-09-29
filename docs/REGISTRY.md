@@ -14,6 +14,20 @@ Scanned libraries: `AvailableChainRegistry`.
 │ AvailableChain.Registry.Gaps.NoInput.certSafeConfirmed │ cert │ AvailableChain.Framework.Catalog.safeConfirmed │ AvailableChain.Registry.Gaps.NoInput.clockInst │ KNOWN-GAP │
 │ AvailableChain.Registry.Gaps.NoInput.certSafeStable │ cert │ AvailableChain.Framework.Catalog.safeStable │ AvailableChain.Registry.Gaps.NoInput.clockInst │ KNOWN-GAP │
 │ AvailableChain.Registry.Gaps.NoInput.clockCandidate │ profile-cert │ core.v1 │ AvailableChain.Registry.Gaps.NoInput.clockInst │ KNOWN-GAP │
+│ AvailableChain.Registry.GridCO.grid_holds │ profile-holds │ ac-4.3 │ AvailableChain.Registry.GridCO.gridInst │ LEAN (family) │
+│ AvailableChain.Registry.GridCO.grid_holds_core │ profile-holds │ core.v1 │ AvailableChain.Registry.GridCO.gridInst │ LEAN (family) │
+│ AvailableChain.Registry.GridCO.grid_holds_core_of_pos │ profile-holds │ core.v1 │ AvailableChain.Registry.GridCO.gridInst │ CONDITIONAL (not a certificate) │
+│ AvailableChain.Registry.GridCO.grid_holds_of_pos │ profile-holds │ ac-4.3 │ AvailableChain.Registry.GridCO.gridInst │ CONDITIONAL (not a certificate) │
+│ AvailableChain.Registry.SA.sa_holds │ profile-holds │ ac-4.3 │ AvailableChain.Registry.SA.saInst │ LEAN (family) │
+│ AvailableChain.Registry.SA.sa_holds_core │ profile-holds │ core.v1 │ AvailableChain.Registry.SA.saInst │ LEAN (family) │
+│ AvailableChain.Registry.SA.sa_holds_core_of_pos │ profile-holds │ core.v1 │ AvailableChain.Registry.SA.saInst │ CONDITIONAL (not a certificate) │
+│ AvailableChain.Registry.SA.sa_holds_of_pos │ profile-holds │ ac-4.3 │ AvailableChain.Registry.SA.saInst │ CONDITIONAL (not a certificate) │
+│ AvailableChain.Registry.SAPC.sapc_holds_ac43 │ profile-holds │ ac-4.3 │ AvailableChain.Registry.SAPC.sapcInst │ LEAN (family) │
+│ AvailableChain.Registry.SAPC.sapc_holds_ac43_of_pos │ profile-holds │ ac-4.3 │ AvailableChain.Registry.SAPC.sapcInst │ CONDITIONAL (not a certificate) │
+│ AvailableChain.Registry.SAPC.sapc_holds_core │ profile-holds │ core.v1 │ AvailableChain.Registry.SAPC.sapcInst │ LEAN (family) │
+│ AvailableChain.Registry.SAPC.sapc_holds_core_of_pos │ profile-holds │ core.v1 │ AvailableChain.Registry.SAPC.sapcInst │ CONDITIONAL (not a certificate) │
+│ AvailableChain.Registry.SAPC.sapc_holds_strong1 │ profile-holds │ strong-1 │ AvailableChain.Registry.SAPC.sapcInst │ LEAN (family) │
+│ AvailableChain.Registry.SAPC.sapc_holds_strong1_of_pos │ profile-holds │ strong-1 │ AvailableChain.Registry.SAPC.sapcInst │ CONDITIONAL (not a certificate) │
 │ AvailableChain.Registry.Sanity.certPrefix │ cert │ AvailableChain.Framework.Catalog.prefixOrder │ AvailableChain.Registry.Sanity.sanity │ LEAN │
 │ AvailableChain.Registry.Sanity.certSafeConfirmed │ cert │ AvailableChain.Framework.Catalog.safeConfirmed │ AvailableChain.Registry.Sanity.sanity │ LEAN │
 │ AvailableChain.Registry.Sanity.certSafeStable │ cert │ AvailableChain.Framework.Catalog.safeStable │ AvailableChain.Registry.Sanity.sanity │ LEAN │
