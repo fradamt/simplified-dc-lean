@@ -679,6 +679,15 @@ a tie rule or a filter can still stall (N12). SA discharges it with its
 walk (start at the live root; below lo a child is eligible without a
 majority; every viable node below lo has a viable child in D).
 
+*Note 2026-09-29 (STALE, marked for correction; DC-simplify, modular-spec
+study `research/async-resilient-committees/tip-stability/codex/scratch/
+modular-spec-study.md` item 9):* the obligation above ("the AP head read
+from each duty view is in D with height ≥ lo") is false for the current
+FG-SA design, because 21 H.3 permits an outside-anchor return. The duty
+view frame is also older than the spec frame, which reads live caches and
+"never reads a view" (spec 749–752). The section stays as history until the
+FG interface is restated with the F0 channel files (ARCHITECTURE.md §2).
+
 **7.3 AP template and policy type (LM; audit V10).**
 - `Policy`: the type of honest FG signing rules. A policy reads the FG
   sub-state, the record, and the AP facets through `base`; it emits
@@ -923,6 +932,12 @@ when these land (after I9 and 2a).
 
 - User decisions (2026-09-28): core §0–§6 APPROVED; §9 rule changes
   APPROVED; core tier = floor of safety + confirmed inclusion (§4).
+- Stale FG pins (2026-09-29, modular-spec study item 9; fix in the FG-SA
+  spec-sync task after the I9 merge, because I9 changes `Pins.lean`):
+  `fj.descent.v1` and `fj.twoChanges.core.v1` use duty-view frames (restate
+  over the node store T; `fj.descent` also lacks case (2), the contested
+  floor); `ap.headReachesLo.v5` keeps R ≥ 3 and θ = 4Δ, while 21 H.8 proves
+  3Δ at R ≥ 2; §7.2's generic AP obligation is false (note there).
 - FG research (tracked in FG-COMPOSITION.md): r149 (strengthened (S),
   (S_slow), (L), (X)); r148 (FJ root rule); "ρ once globally"; full
   healing at q_s*; the timed finality obligations.
