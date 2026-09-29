@@ -76,8 +76,9 @@ changes, and tell the other sessions._
   H2′, the HEAD clause of H2.A, H3/H4, the composition services
   T-START/T-SMONO/T-EXACT/T-VOTE/T-WALK, T-ROWS with matching-state bit
   persistence, and FG/substrate facts; Q0 (in QF2/QF4) also uses H5/H6.
-  Healing supplies one common witness tuple (r_G, u₀, M, μ, r*, s*, C*)
-  through H.22; H-time supplies the GST bound.
+  Healing supplies one common witness tuple (r_G, u₀, M, r*, s*, C*)
+  through H.22, and μ = μ(run, GST) as a function of the run, not a
+  witness field; H-time supplies the GST bound.
 - Lean consequence: v2 `Isolation` cannot express the channels
   (`fgsaIso` puts the whole FG store in base), so F0 adds channel files
   in the FG-SA claims library (`Channels`, `ChannelProps`, `Compose`).
