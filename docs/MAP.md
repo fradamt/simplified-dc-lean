@@ -621,12 +621,14 @@ only after `lake build AvailableChainSimplexFG AvailableChainKitFG`, with
 The library `AvailableChainFGSA` (namespace `AvailableChain.FGSA`) is the
 composite FG-SA store: the SA base (`GridCO.State` under `slowLeasePolicy`),
 the FG store of `SimplexFG`, the stored proposal wires, the row pool and the
-fast writes. Its plan is `docs/plans/2026-09-29-fgsa-model-store.md`; the gate
-reports are `docs/audit/fgsa-task*-opus-review.md` and
-`docs/audit/fgsa-model-check-report.md`. It is a default target. It does not
+fast writes. Its plan is `docs/plans/2026-09-29-fgsa-model-store.md`; its
+report is `docs/FGSA-STORE-REPORT.md`; the gate reports are
+`docs/audit/fgsa-task*-opus-review.md`, `docs/audit/fgsa-model-check-report.md`
+and `docs/audit/fgsa-final-audit-*.md`. It is a default target. It does not
 import the framework, the registry, SA-PC or the witnesses, and it names no
 engine (`bash scripts/check-fgsa.sh` checks this). The results are local store
-facts; the run lifts are composition task T7. The first row and the rows under
+facts; the cross-node results hold only for store pairs under `ContentAgree`;
+the run lifts are composition task T7. The first row and the rows under
 `scripts/` are paths from the repository root.
 
 ```text
@@ -647,8 +649,9 @@ facts; the run lifts are composition task T7. The first row and the rows under
 │                                │ support, getHead, proposalRows, propose,       │                    │
 │                                │ fgHead, fgSource, fgInputs, attest             │                    │
 │ Statements/Invariants.lean     │ Reachable, NestOK, SACompat, FastOrigin,       │ K4, K5 premise     │
-│                                │ CStoreInv, Inv0, MetaInv, ContentAgree (run    │                    │
-│                                │ premise, DQ3(b))                               │                    │
+│                                │ CStoreInv, Inv0, MetaInv, ContentAgree (the    │                    │
+│                                │ store-pair content premise, DQ3(b); its run    │                    │
+│                                │ form ContentRootInjective is T7)               │                    │
 │ Statements/Store.lean          │ OutputNestingStored, StoreInvariant,           │ K2, K4             │
 │                                │ FMonotone, MetadataInvariant                   │                    │
 │ Proofs/BlockAncestry.lean      │ public Block ancestry lemmas                   │                    │
@@ -672,17 +675,29 @@ facts; the run lifts are composition task T7. The first row and the rows under
 │                                │ clock_cumulative, stored_wire_of_block         │                    │
 │ Proofs/CrossNode.lean          │ fg_eq_of_eraseFG_eq_across, preceq_iff_across, │ K5 cross-node      │
 │                                │ compatible_iff_across, rootInjectiveOn_across  │                    │
-│                                │ under ContentAgree; contentAgree_self          │                    │
+│                                │ under CStoreInv, MetaInv and ContentAgree;     │                    │
+│                                │ contentAgree_self (CStoreInv, MetaInv)         │                    │
 │ Tests/Smoke.lean               │ decide examples of the model                   │                    │
+│ Tests/RootCollision.lean       │ DQ10/I9 limit: two honest blocks with root 4;  │                    │
+│                                │ ContentAgree fails, and the DQ2 root test      │                    │
+│                                │ refuses an honest block                        │                    │
 │ Tests/Axioms.lean              │ #print axioms of every public theorem of Tasks │                    │
 │                                │ 2 and 7–12                                     │                    │
-│ scripts/check-fgsa.sh          │ build (--wfail), root imports, native scan,    │                    │
-│                                │ import rules, Q1/Q5 grep, axiom check, lease-  │                    │
-│                                │ instance check with a negative control         │                    │
-│ scripts/CheckFGSAAxioms.lean   │ axioms of every compiled FGSA constant;        │                    │
-│                                │ --expect N …                                   │                    │
-│ scripts/CheckFGSALease.lean    │ every GridCO [LeasePolicy] argument in FGSA is │                    │
-│                                │ slowLeasePolicy                                │                    │
+│ scripts/check-fgsa.sh          │ build (--wfail); root imports and the direct-  │                    │
+│                                │ import allowlist with directory rules, on      │                    │
+│                                │ parsed headers; native scan; Q1/Q5 grep; the   │                    │
+│                                │ two Lean checks (both required); negative      │                    │
+│                                │ controls for each import, closure, coverage    │                    │
+│                                │ and lease rule                                 │                    │
+│ scripts/CheckFGSAAxioms.lean   │ axioms of every compiled FGSA constant; every  │                    │
+│                                │ source file is in the build; no Framework,     │                    │
+│                                │ Registry, SAPC or Witnesses module in the      │                    │
+│                                │ import closure; --expect N …                   │                    │
+│ scripts/CheckFGSALease.lean    │ no FGSA declaration is policy-generic; every   │                    │
+│                                │ GridCO [LeasePolicy] argument in FGSA and in   │                    │
+│                                │ the reached AvailableChain.* definitions is    │                    │
+│                                │ slowLeasePolicy (or, in a generic imported     │                    │
+│                                │ definition, its own parameter)                 │                    │
 └────────────────────────────────┴────────────────────────────────────────────────┴────────────────────┘
 ```
 

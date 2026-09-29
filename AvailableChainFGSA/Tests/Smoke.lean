@@ -608,5 +608,26 @@ example : (attest pT stC1 Record.initial 0).2.target 3 =
     (attest pT stC1 Record.initial 0).2.timeout 3 = false ∧
     (attest pT stC1 Record.initial 0).2.lock 2 = none := by decide +kernel
 
+/-! G13 (Astra N3; r195 N3): an ACTIVE stored target that only the FJ filter
+excludes. The tests above use `B1'`, which conflicts with F, so the active
+filter and the full FJ filter both reject it. -/
+
+/-- `stK` (F = genesis, so every stored block is active; contested store:
+Z = genesis, lo = 3) with a live lease on `X` (deadline 100 > now 17) and
+`fastWrite[4] = [eraseFG X]` (now 17: slot 4, round 2, rR = 4). `X` (height 2, no
+descendant) is not in the full filtered tree. Hand-set, not reachable. -/
+def stL : State pT.n :=
+  { stK with
+      fastWrite := [(4, [eraseFG X])]
+      base := { stK.base with obligations := [(eraseFG X, 2, 100)] } }
+/-- By hand: `X` is in Σ.T and in `act(Σ)`, but not in the full filtered tree. -/
+example : X ∈ stL.fg.TF ∧ eraseFG X ∈ (actView stL).blocks ∧ X ∉ fullTree pT stL := by
+  decide +kernel
+/-- (spec 648–655, 1327–1335) By hand: no live target is in the full filtered
+tree, so the live root is Z = genesis, and C_fg = none. With the active tree in
+place of the full filtered tree, the live root is `eraseFG X` and C_fg = X (a scratch
+check of that wrong rule gives these values). -/
+example : liveRoot pT stL = .genesis ∧ (fgInputs pT stL).1 = none := by decide +kernel
+
 end AvailableChain.FGSA.Tests
 end

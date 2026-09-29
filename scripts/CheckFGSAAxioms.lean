@@ -13,15 +13,45 @@ It checks BUILT data: `lean --run` imports the `.olean` files and does not
 compare them with the sources. Run `lake build AvailableChainFGSA` first, or
 use `bash scripts/check-fgsa.sh`, which builds and then runs every FGSA check.
 
-Run: `lake env lean --run scripts/CheckFGSAAxioms.lean [--expect N …]`.
-With `--expect`, each named constant must be a checked constant (a short
-name matches a qualified one by suffix).
-Exit codes: 0 clean; 1 a bad axiom; 2 nothing found, a usage error (an
-unknown argument, or `--expect` without a name), or an expected name missing.
-Each missing expected name forces exit 2, also after a bad axiom or after
-other expected names that are present. -/
+It also checks two import facts on the COMPILED import graph (G13 Astra M2,
+Opus m1):
+- build coverage: every `.lean` file under the source directory (default
+  `AvailableChainFGSA`) is a module of the import closure, so a file that the
+  root does not import (for example behind a commented-out import) cannot
+  escape the build and this axiom check;
+- closure: no module of `AvailableChainFramework`, `AvailableChainRegistry`,
+  `AvailableChainSAPC` or `AvailableChainWitnesses` is in the import closure.
+  `AvailableChainStatements` is allowed there (the declared transitive
+  dependency through `AvailableChainGridCO.Proofs.Basic`).
+
+Run: `lake env lean --run scripts/CheckFGSAAxioms.lean [--root M …] [--files D]
+[--expect N …]`, with the options in this order. `--root M` imports one more
+root module (negative controls); `--files D` sets the source directory (its
+last component must be `AvailableChainFGSA`). With `--expect`, each named
+constant must be a checked constant (a short name matches a qualified one by
+suffix).
+Exit codes: 0 clean; 1 a bad axiom, a source file outside the build, or a
+forbidden library in the closure; 2 nothing found, a usage error (an unknown
+argument, or `--expect` without a name), or an expected name missing. Each
+missing expected name forces exit 2, also after a bad axiom or after other
+expected names that are present. -/
 
 def allowed : List Name := [``propext, ``Classical.choice, ``Quot.sound]
+
+def forbiddenRoots : List Name :=
+  [`AvailableChainFramework, `AvailableChainRegistry, `AvailableChainSAPC,
+    `AvailableChainWitnesses]
+
+/-- The module names of the `.lean` files under `dir`, whose last component is
+`AvailableChainFGSA`. -/
+def sourceModules (dir : System.FilePath) : IO (Array Name) := do
+  let files ← dir.walkDir
+  let mut out := #[]
+  for f in files do
+    if f.extension == some "lean" then
+      let parts := (f.withExtension "").components.drop dir.components.length
+      out := out.push (parts.foldl (fun n s => Name.str n s) `AvailableChainFGSA)
+  return out
 
 def inFGSA (env : Environment) (n : Name) : Bool :=
   match env.getModuleIdxFor? n with
@@ -38,14 +68,37 @@ def axiomsOf (env : Environment) (n : Name) : IO (Array Name) :=
     { fileName := "CheckFGSAAxioms", fileMap := .ofString "" } { env := env }
 
 def main (args : List String) : IO UInt32 := do
+  let usage := "USAGE: lake env lean --run scripts/CheckFGSAAxioms.lean \
+    [--root M …] [--files D] [--expect N …]"
+  let mut rest := args
+  let mut extra : Array Name := #[]
+  let mut dir : System.FilePath := "AvailableChainFGSA"
+  while rest.head? == some "--root" do
+    match rest with
+    | _ :: m :: r => extra := extra.push m.toName; rest := r
+    | _ => IO.eprintln usage; return 2
+  if rest.head? == some "--files" then
+    match rest with
+    | _ :: d :: r => dir := d; rest := r
+    | _ => IO.eprintln usage; return 2
   -- Reject an unknown argument: a typo must not skip the `--expect` test.
-  unless args.isEmpty || (args.head? == some "--expect" && args.length ≥ 2) do
-    IO.eprintln "USAGE: lake env lean --run scripts/CheckFGSAAxioms.lean [--expect N …]"
+  unless rest.isEmpty || (rest.head? == some "--expect" && rest.length ≥ 2) do
+    IO.eprintln usage
     return 2
-  let expected := args.drop 1
+  let expected := rest.drop 1
   initSearchPath (← findSysroot)
   let env ← importModules
-    #[{ module := `AvailableChainFGSA }] {}
+    ((#[`AvailableChainFGSA] ++ extra).map ({ module := · })) {}
+  let mods := env.header.moduleNames
+  let mut badImports := false
+  for m in ← sourceModules dir do
+    unless mods.contains m do
+      IO.println s!"NOT IN THE BUILD: {m} (the root does not import it)"
+      badImports := true
+  for m in mods do
+    if forbiddenRoots.any (·.isPrefixOf m) then
+      IO.println s!"FORBIDDEN LIBRARY IN THE IMPORT CLOSURE: {m}"
+      badImports := true
   let cs := env.constants.toList.filter (fun (n, _) => inFGSA env n)
   if cs.isEmpty then
     IO.eprintln "NO CONSTANTS FOUND"
@@ -64,8 +117,9 @@ def main (args : List String) : IO UInt32 := do
     unless cs.any (fun (n, _) => s.toName.isSuffixOf n) do
       IO.println s!"NOT CHECKED: {s}"
       missing := missing + 1
-  IO.println s!"checked {cs.length} constants, {thms.length} theorems"
+  IO.println s!"checked {cs.length} constants, {thms.length} theorems, {mods.size} modules \
+    in the import closure"
   if missing > 0 then
     IO.println s!"{missing} expected names not checked"
     return 2
-  return if badAxioms then 1 else 0
+  return if badAxioms || badImports then 1 else 0
