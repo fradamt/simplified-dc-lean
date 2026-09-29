@@ -410,6 +410,15 @@ its owner is inspected.
   …), which have no policy, are no longer inspected; the backstop still
   reaches them.
 
+A0 build checks (`scripts/check-build.sh`): the proof modules use `public
+section` (check (b)); the two `respectTransparency` uses have a reason comment
+and an allow entry (check (h)); F-13 is baselined for the four per-protocol
+names (check (i)); the library has `globs = ["AvailableChainFGSARun.*"]` and
+its root imports no Tests module (check (e), B7). `check-fgsa-run.sh` checks
+the Tests modules as extra roots, and its root check refuses a root import of
+a Tests module. The T7 allow lists accept `AvailableChainGridCO.Model.Walk`
+(E-3).
+
 Port to v4.34.1: `processedS_ofRow` and `handlesS_ofRow_iff` now also show
 `Classical.choice`. It enters through `Finset.instSetLike` (the proposal
 clause of `processedS`, `∃ Y ∈ st.fg.TF`, and `parentFG` →

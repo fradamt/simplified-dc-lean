@@ -115,6 +115,7 @@ globs = ["AvailableChainGeneric.*"]
 # own boundary and its own check.
 [[lean_lib]]
 name = "AvailableChainFGSARun"
+globs = ["AvailableChainFGSARun.*"]
 
 # Support code of the check scripts (scripts/check-fgsa.sh,
 # scripts/check-fgsa-run.sh): the owner map of generated constants. Imports only

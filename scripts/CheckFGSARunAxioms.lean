@@ -82,6 +82,7 @@ def externalOK (m : Name) : Bool :=
     [`AvailableChainModel.Objects.Identifiers, `AvailableChainModel.Objects.Time,
       `AvailableChainModel.Objects.Blocks, `AvailableChainModel.Objects.Codec,
       `AvailableChainModel.Generic.Env, `AvailableChainGridCO.Model.Protocol,
+      `AvailableChainGridCO.Model.Walk,
       `AvailableChainSA.Model.Protocol].contains m ||
     under `AvailableChainSimplexFG m || under `Mathlib m
 

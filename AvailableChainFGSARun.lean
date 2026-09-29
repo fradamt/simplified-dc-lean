@@ -4,5 +4,3 @@ public import AvailableChainFGSARun.Model.Families
 public import AvailableChainFGSARun.Statements.Excludes
 public import AvailableChainFGSARun.Proofs.Protocol
 public import AvailableChainFGSARun.Proofs.Excludes
-public import AvailableChainFGSARun.Tests.Protocol
-public import AvailableChainFGSARun.Tests.Axioms

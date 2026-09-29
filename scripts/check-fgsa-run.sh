@@ -70,13 +70,23 @@ imports_of() { perl -CSD -e "$strip_comments" < "$1" | perl -CSD -e "$header_imp
 # The library source files under base directory $1, relative to it.
 source_files() { (cd "$1" && find -L AvailableChainFGSARun -iname '*.lean' | sort); }
 
-# Root imports under base directory $1: every source file is a root import.
+# The Tests/ modules under base directory $1 (the library glob builds them;
+# the root does not import them, BUILD B7-TESTS).
+test_modules() {
+  source_files "$1" | grep -i '^AvailableChainFGSARun/Tests/' |
+    sed -E 's/\.[lL][eE][aA][nN]$//; s|/|.|g' || true
+}
+# Root imports under base directory $1: every source file outside Tests/ is a
+# root import, and the root imports no Tests/ module.
 check_root_imports() {
-  local base=$1 missing
+  local base=$1 missing tests
   missing=$(comm -23 \
-    <(source_files "$base" | sed -E 's/\.[lL][eE][aA][nN]$//; s|/|.|g' | sort) \
+    <(source_files "$base" | grep -iv '^AvailableChainFGSARun/Tests/' |
+        sed -E 's/\.[lL][eE][aA][nN]$//; s|/|.|g' | sort) \
     <(imports_of "$base/AvailableChainFGSARun.lean" | sort))
   [ -z "$missing" ] || { echo "NOT IMPORTED BY THE ROOT: $missing"; return 1; }
+  tests=$(imports_of "$base/AvailableChainFGSARun.lean" | grep '^AvailableChainFGSARun\.Tests\.' || true)
+  [ -z "$tests" ] || { echo "ROOT IMPORTS A TEST MODULE: $tests"; return 1; }
   if imports_of "$base/AvailableChainFGSARun.lean" | grep -qx '!UNPARSED'; then
     echo "UNPARSED IMPORT HEADER: AvailableChainFGSARun.lean"; return 1
   fi
@@ -90,7 +100,7 @@ check_root_imports() {
 # AvailableChainEngineV2.*, AvailableChainFGSA.Model.*,
 # AvailableChainFGSA.Statements.*, AvailableChainModel.Objects.{Identifiers,
 # Time, Blocks, Codec}, AvailableChainModel.Generic.Env, AvailableChainSimplexFG.*,
-# AvailableChainGridCO.Model.Protocol, AvailableChainSA.Model.Protocol,
+# AvailableChainGridCO.Model.{Protocol, Walk}, AvailableChainSA.Model.Protocol,
 # Mathlib.*. Proofs/ and Tests/ also: AvailableChainKitV2.*,
 # AvailableChainFGSA.Proofs.*, AvailableChainKitFG.*. Tests/ also:
 # AvailableChainFGSA.Tests.Support. Everything else is refused, in particular
@@ -118,7 +128,8 @@ check_direct_imports() {
             AvailableChainModel.Objects.Identifiers|AvailableChainModel.Objects.Time) continue ;;
             AvailableChainModel.Objects.Blocks|AvailableChainModel.Objects.Codec) continue ;;
             AvailableChainModel.Generic.Env|AvailableChainSimplexFG.*|Mathlib.*) continue ;;
-            AvailableChainGridCO.Model.Protocol|AvailableChainSA.Model.Protocol) continue ;;
+            AvailableChainGridCO.Model.Protocol|AvailableChainGridCO.Model.Walk) continue ;;
+            AvailableChainSA.Model.Protocol) continue ;;
             AvailableChainKitV2.*|AvailableChainFGSA.Proofs.*|AvailableChainKitFG.*)
               { [ "$layer" = Proofs ] || [ "$layer" = Tests ]; } && continue ;;
             AvailableChainFGSA.Tests.Support) [ "$layer" = Tests ] && continue ;;
@@ -206,9 +217,13 @@ check_direct_imports . || exit 1
 echo "== v1/v2 name clash (open AvailableChain.V2)"
 check_v2_open . || exit 1
 echo "== axioms, build coverage, import closure, used constants"
-lake env lean --run scripts/CheckFGSARunAxioms.lean "${AX_OPTS[@]}"
+# The Tests/ modules are not in the root closure: check them as extra roots.
+TEST_MODS=($(test_modules .))
+TEST_ROOTS=()
+for m in "${TEST_MODS[@]}"; do TEST_ROOTS+=(--root "$m"); done
+lake env lean --run scripts/CheckFGSARunAxioms.lean "${TEST_ROOTS[@]}" "${AX_OPTS[@]}"
 echo "== lease instances"
-lake env lean --run scripts/CheckFGSARunLease.lean
+lake env lean --run scripts/CheckFGSARunLease.lean "${TEST_MODS[@]}"
 
 echo "== negative controls"
 neg=$(mktemp -d "$PWD/.lake/fgsa-run-neg.XXXXXX")
@@ -282,14 +297,24 @@ expect_fail "v1 engine, v1 Kit, v1 statements and Grid CO proof imports" $code "
 
 mk_tree
 printf 'module\n@[expose] public section\ntheorem negOrphan : False := sorry\nend\n' \
-  > "$neg/tree/AvailableChainFGSARun/Tests/NegOrphan.lean"
+  > "$neg/tree/AvailableChainFGSARun/Proofs/NegOrphan.lean"
 printf 'module\n@[expose] public section\ntheorem negOrphanC : False := sorry\nend\n' \
-  > "$neg/tree/AvailableChainFGSARun/Tests/NegOrphanC.LEAN"
-echo '/- public import AvailableChainFGSARun.Tests.NegOrphan -/' >> "$neg/tree/AvailableChainFGSARun.lean"
+  > "$neg/tree/AvailableChainFGSARun/Proofs/NegOrphanC.LEAN"
+echo '/- public import AvailableChainFGSARun.Proofs.NegOrphan -/' >> "$neg/tree/AvailableChainFGSARun.lean"
+echo 'public import AvailableChainFGSARun.Tests.Protocol' >> "$neg/tree/AvailableChainFGSARun.lean"
 run check_root_imports "$neg/tree"
 expect_fail "orphan modules behind a commented import and with a .LEAN name (root check)" \
-  $code "$out" "NOT IMPORTED BY THE ROOT: AvailableChainFGSARun.Tests.NegOrphan" \
-  "AvailableChainFGSARun.Tests.NegOrphanC"
+  $code "$out" "NOT IMPORTED BY THE ROOT: AvailableChainFGSARun.Proofs.NegOrphan" \
+  "AvailableChainFGSARun.Proofs.NegOrphanC"
+# The same tree with the orphans removed: the root import of a Tests module.
+rm "$neg/tree/AvailableChainFGSARun/Proofs/NegOrphan.lean" "$neg/tree/AvailableChainFGSARun/Proofs/NegOrphanC.LEAN"
+run check_root_imports "$neg/tree"
+expect_fail "a root import of a Tests module (root check, B7-TESTS)" \
+  $code "$out" "ROOT IMPORTS A TEST MODULE: AvailableChainFGSARun.Tests.Protocol"
+printf 'module\n@[expose] public section\ntheorem negOrphan : False := sorry\nend\n' \
+  > "$neg/tree/AvailableChainFGSARun/Proofs/NegOrphan.lean"
+printf 'module\n@[expose] public section\ntheorem negOrphanC : False := sorry\nend\n' \
+  > "$neg/tree/AvailableChainFGSARun/Proofs/NegOrphanC.LEAN"
 
 # The compiled checks: the orphan files (with a sorry) against the build, and
 # forbidden libraries in the import closure (L* is new in this list).
@@ -300,8 +325,8 @@ LEAN
 lean_c "$neg/RunClosureNeg.olean" "$neg/RunClosureNeg.lean"
 run lake env bash -c 'LEAN_PATH="$0:$LEAN_PATH" lean --run scripts/CheckFGSARunAxioms.lean --root RunClosureNeg --files "$0/tree/AvailableChainFGSARun" "${@}"' "$neg" "${AX_OPTS[@]}"
 expect_fail "orphan modules and forbidden closure (axiom script)" $code "$out" \
-  "NOT IN THE BUILD: AvailableChainFGSARun.Tests.NegOrphan " \
-  "NOT IN THE BUILD: AvailableChainFGSARun.Tests.NegOrphanC " \
+  "NOT IN THE BUILD: AvailableChainFGSARun.Proofs.NegOrphan " \
+  "NOT IN THE BUILD: AvailableChainFGSARun.Proofs.NegOrphanC " \
   "FORBIDDEN LIBRARY IN THE IMPORT CLOSURE: AvailableChainSAPC" \
   "FORBIDDEN LIBRARY IN THE IMPORT CLOSURE: AvailableChainLStar"
 
