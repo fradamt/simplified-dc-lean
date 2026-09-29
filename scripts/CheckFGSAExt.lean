@@ -18,7 +18,8 @@ axioms are only the three standard ones.
 
 It checks BUILT data. Run `lake build AvailableChainFGSA` first, or use
 `bash scripts/check-fgsa.sh`.
-Run: `lake env lean --run scripts/CheckFGSAExt.lean <records file>`.
+Run: `lake env lean --run scripts/CheckFGSAExt.lean [--root M] <records file>`.
+`--root M` imports one more module (negative controls only).
 Exit codes: 0 clean; 1 a name fails a check; 2 a usage error, a malformed
 record or trailer, or a library that this environment does not check. -/
 
@@ -32,7 +33,11 @@ def axiomsOf (env : Environment) (n : Name) : IO (Array Name) :=
     { fileName := "CheckFGSAExt", fileMap := .ofString "" } { env := env }
 
 def main (args : List String) : IO UInt32 := do
-  let [file] := args | IO.eprintln "USAGE: lake env lean --run scripts/CheckFGSAExt.lean <file>"; return 2
+  let usage := "USAGE: lake env lean --run scripts/CheckFGSAExt.lean [--root M] <file>"
+  let (extra, file) ← match args with
+    | ["--root", m, f] => pure (#[m.toName], f)
+    | [f] => pure (#[], f)
+    | _ => do IO.eprintln usage; return 2
   let ls := (← IO.FS.lines file).toList.filter (· != "")
   let some last := ls.getLast? | IO.println "NO END TRAILER"; return 2
   let recs := ls.dropLast
@@ -47,7 +52,7 @@ def main (args : List String) : IO UInt32 := do
       names := names.push n.toName
     | _ => IO.println s!"MALFORMED EXT RECORD: {r}"; return 2
   initSearchPath (← findSysroot)
-  let env ← importModules #[{ module := `AvailableChainFGSA }] {}
+  let env ← importModules ((#[`AvailableChainFGSA] ++ extra).map ({ module := · })) {}
   let mut bad := false
   for n in names do
     unless env.contains n do

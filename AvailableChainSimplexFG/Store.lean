@@ -5,7 +5,7 @@ public import AvailableChainSimplexFG.Frame
 
 namespace AvailableChain.SimplexFG
 
-/-- [pin fj.frame.v3] The FG part of a node store (DC-fj). `TF` is the ONE admitted,
+/-- [pin fj.frame.v4] The FG part of a node store (DC-fj). `TF` is the ONE admitted,
 parent-closed tree (the spec's `Σ.T`, Trees paragraph, alfs4 lines 352–371;
 initialization 474–482; DC `consensus.tex` 1720–1739). The spec admits a block
 B only if `F ⪯ B` at that time (line 354); this history is NOT formalized (no
@@ -26,18 +26,18 @@ variable {V : Type} [DecidableEq V] [Fintype V] [RowCodec V] (E : Electorate V)
   (cfg : FGConfig)
 
 omit [DecidableEq V] [Fintype V] [RowCodec V] in
-/-- [pin fj.frame.v3] The initial store (alfs4 lines 474–482): the genesis tree,
+/-- [pin fj.frame.v4] The initial store (alfs4 lines 474–482): the genesis tree,
 `F = J = genesis`, `h_j = 0`, `h_max = 1`. -/
 def Store.init : Store V := ⟨{.genesis}, .genesis, .genesis, 0, 1⟩
 
-/-- [pin fj.frame.v3] DC's acceptance viability on the admitted tree (`viable_tree(Σ)`,
+/-- [pin fj.frame.v4] DC's acceptance viability on the admitted tree (`viable_tree(Σ)`,
 "acceptance only", alfs4 lines 996–1002): the band start is `h_max − 1`, also in
 a contest. -/
 def acceptViable (st : Store V) : Finset (FGBlock V) :=
   st.TF.filter (fun B => FGBlock.preceq st.F B &&
     decide (∃ W ∈ st.TF, FGBlock.Preceq B W ∧ st.h_max - 1 ≤ hOf E cfg W))
 
-/-- [pin fj.frame.v3] `update_finality`, DC form (alfs4 lines 847–860: no F basis, no J
+/-- [pin fj.frame.v4] `update_finality`, DC form (alfs4 lines 847–860: no F basis, no J
 carrier). The spec takes `σ = Σ.σ[B]`; here `σ = derive B`. After an F advance
 the spec calls `reconcile_with_finality` (lines 862–882), which writes only SA
 fields (leases, fastWrite, saved results, S); it is not in this module. -/
@@ -50,7 +50,7 @@ def update_finality (st : Store V) (B : FGBlock V) : Store V :=
       decide (σ.F ∈ acceptViable E cfg st)
     then { st with F := σ.F } else st
 
-/-- [pin fj.frame.v3] `on_block`, FG part (alfs4 lines 792–817; DC `consensus.tex` 1720–1739).
+/-- [pin fj.frame.v4] `on_block`, FG part (alfs4 lines 792–817; DC `consensus.tex` 1720–1739).
 In the spec's order, it refuses a block that is already in the tree or whose
 parent is not in the tree (lines 794–795), a block with `F ⋠ B` (line 796), and
 a block whose slot is not greater than its parent's slot (line 798: the spec
@@ -72,21 +72,21 @@ def on_block (st : Store V) (B : FGBlock V) : Store V :=
       B.slot ≤ B.parent.slot then st
   else update_finality E cfg { st with TF := insert B st.TF } B
 
-/-- [pin fj.frame.v3] The frame controls of ALFS: DC's live caches, with the
+/-- [pin fj.frame.v4] The frame controls of ALFS: DC's live caches, with the
 contest over the full admitted tree (`fg_contest`, `band_floor`, `get_fg_root`,
 alfs4 lines 970–986, 1004–1011). -/
 def storeControls (st : Store V) : Controls V :=
   ⟨st.F, st.h_max, st.h_j, st.J, decide (st.h_max = st.h_j + 1) &&
     decide (∃ W ∈ st.TF, hOf E cfg W = st.h_max ∧ ¬ FGBlock.Preceq st.J W)⟩
 
-/-- [pin fj.frame.v3] The ALFS filtered tree of a block set:
+/-- [pin fj.frame.v4] The ALFS filtered tree of a block set:
 `get_filtered_block_tree_from(Σ, blocks)` (alfs4 lines 1013–1020); with
 `blocks = TF`, `get_filtered_block_tree(Σ)` (lines 1021–1025). -/
 def storeFrame (st : Store V) (blocks : Finset (FGBlock V)) : Finset (FGBlock V) :=
   filteredFrom E cfg (storeControls E cfg st) blocks
 
 omit [Fintype V] [RowCodec V] in
-/-- [pin fj.frame.v3] The active view `act(Σ) = {B ∈ Σ.T : B ⪯ Σ.F or Σ.F ⪯ B}` (alfs4 line 358;
+/-- [pin fj.frame.v4] The active view `act(Σ) = {B ∈ Σ.T : B ⪯ Σ.F or Σ.F ⪯ B}` (alfs4 line 358;
 r161 §2). AP interface only: only the SA base reads it. It is a view, not a
 deletion: `TF` keeps every block. No FG definition or lemma reads it. -/
 def activeView (st : Store V) : Finset (FGBlock V) :=

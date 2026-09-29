@@ -255,7 +255,7 @@ files). Use it to compose lemmas across the two forms. -/
 
 /-! ## `update_finality` -/
 
-/-- [pin fj.frame.v3] (Trees: cumulative) `update_finality` writes only the live caches;
+/-- [pin fj.frame.v4] (Trees: cumulative) `update_finality` writes only the live caches;
 it does not change the tree (alfs4 lines 847–860). -/
 theorem update_finality_TF (st : Store V) (B : FGBlock V) :
     (update_finality E cfg st B).TF = st.TF := by
@@ -340,7 +340,7 @@ theorem ancestor_closed_of_parent_closed (T : Finset (FGBlock V))
       · exact hB
       · exact ih (hcl _ hB) hAp
 
-/-- [pin fj.frame.v3] (Trees: parent-closed; initialization, alfs4 lines 474–482)
+/-- [pin fj.frame.v4] (Trees: parent-closed; initialization, alfs4 lines 474–482)
 The initial store, the genesis tree, satisfies the invariant. -/
 theorem storeInv_init : StoreInv E cfg (Store.init (V := V)) := by
   have hinj : ViewRootInj ({.genesis} : View V) := by
@@ -463,7 +463,7 @@ theorem on_block_F_mono (st : Store V) (B : FGBlock V) :
   · rw [on_block_of_accepted E cfg st B hc]
     exact update_finality_F_mono E cfg { st with TF := insert B st.TF } B
 
-/-- [pin fj.frame.v3] (update_finality and on_block, with `ViewRootInj`)
+/-- [pin fj.frame.v4] (update_finality and on_block, with `ViewRootInj`)
 `on_block` keeps the invariant. A refused block changes nothing. Roots must be
 collision-free on the new tree only when B is accepted (`F ⪯ B`). -/
 theorem storeInv_on_block (st : Store V) (B : FGBlock V) (h : StoreInv E cfg st)
@@ -478,7 +478,7 @@ theorem storeInv_on_block (st : Store V) (B : FGBlock V) (h : StoreInv E cfg st)
     obtain ⟨-, hpar, hFB, -⟩ := hc
     exact storeInv_accept E cfg st B h hpar (hinj hFB)
 
-/-- [pin fj.frame.v3] (Trees: cumulative; alfs4 lines 352–356) `on_block` never removes a
+/-- [pin fj.frame.v4] (Trees: cumulative; alfs4 lines 352–356) `on_block` never removes a
 block from the tree. -/
 theorem on_block_TF_subset (st : Store V) (B : FGBlock V) :
     st.TF ⊆ (on_block E cfg st B).TF := by
@@ -489,7 +489,7 @@ theorem on_block_TF_subset (st : Store V) (B : FGBlock V) :
     exact Finset.subset_insert B st.TF
 
 omit [Fintype V] [RowCodec V] in
-/-- [pin fj.frame.v3] (Trees: act(Σ) is a view; AP interface) The active view is a
+/-- [pin fj.frame.v4] (Trees: act(Σ) is a view; AP interface) The active view is a
 subset of the tree. -/
 theorem activeView_subset (st : Store V) : activeView st ⊆ st.TF := by
   exact Finset.filter_subset _ _
@@ -510,7 +510,7 @@ theorem fjFrame_D (F : FGBlock V) (Vw : View V) :
     (fjFrame E cfg F Vw).D = filteredFrom E cfg (fjControls E cfg F Vw) Vw := by
   rfl
 
-/-- [pin fj.frame.v3] CENTRAL: the ALFS
+/-- [pin fj.frame.v4] CENTRAL: the ALFS
 controls (DC's live caches, contest over TF) are the FJ_FRAME controls of the
 full admitted tree. -/
 theorem storeControls_eq_fjControls (st : Store V) (h : StoreInv E cfg st) :
@@ -519,14 +519,14 @@ theorem storeControls_eq_fjControls (st : Store V) (h : StoreInv E cfg st) :
   dsimp only
   rw [← h.hmax, ← h.pair]
 
-/-- [pin fj.frame.v3] (get_filtered_block_tree) On the full tree, the ALFS
+/-- [pin fj.frame.v4] (get_filtered_block_tree) On the full tree, the ALFS
 filtered tree is the `fjFrame` domain. -/
 theorem storeFrame_full (st : Store V) (h : StoreInv E cfg st) :
     storeFrame E cfg st st.TF = (fjFrame E cfg st.F st.TF).D := by
   unfold storeFrame
   rw [storeControls_eq_fjControls E cfg st h, fjFrame_D]
 
-/-- [pin fj.frame.v3] (viability; any controls,
+/-- [pin fj.frame.v4] (viability; any controls,
 any block set) The filtered tree holds exactly the blocks of the set at or
 above Z and F that have a witness in the set at height ≥ lo. -/
 theorem mem_filteredFrom (c : Controls V) (blocks : Finset (FGBlock V)) (B : FGBlock V) :
@@ -698,7 +698,7 @@ theorem storeFrame_feasible (st : Store V) (h : StoreInv E cfg st) (hinj : ViewR
 
 -- The pinned statement keeps `h`; this proof does not need it.
 set_option linter.unusedVariables false in
-/-- [pin fj.frame.v3] (viable_tree; store form, full tree) The ALFS filtered
+/-- [pin fj.frame.v4] (viable_tree; store form, full tree) The ALFS filtered
 tree is inside DC's acceptance viability. -/
 theorem frameViable_subset_accept (st : Store V) (h : StoreInv E cfg st) :
     storeFrame E cfg st st.TF ⊆ acceptViable E cfg st := by

@@ -30,7 +30,7 @@ that is one branch, a special case or a partial form of the clause
 `[pin <id>]` docstring; a definition cited in `defPins` can be `[helper]`
 (`derive`, `createRow`). A name can be cited under an id other than the id of its
 tag: the tag names its main id, and a row of another id can use it (for example
-`mem_filteredFrom`, tagged `fj.frame.v3`, in `fj.frame.v1`).
+`mem_filteredFrom`, tagged `fj.frame.v4`, in `fj.frame.v1`).
 
 `scripts/FGPinIds.lean` prints `manifest` of the elaborated values, and
 `scripts/check-fg-pins.sh` checks it against the registry. `scripts/FGPinIds.lean
@@ -44,6 +44,13 @@ library). `scripts/FGPinIds.lean` rejects a `lib` that is not on its allowlist,
 and `scripts/check-fgsa.sh` checks those names in the environment of `lib`. The
 pin gate for a pin with `leanIn` evidence is `scripts/check-fg.sh` plus
 `scripts/check-fgsa.sh`.
+
+A registry id in the free text of a clause (its label or a string field) is a
+dependency of the pin: the manifest records it (`mention`), and the pin check
+applies the status rule to it as to an `.ap` or `.external` id. A citation that
+is only history goes inside a `(history: …)` marker, which the scan skips. This
+file does not import a library above the FG libraries; `scripts/CheckFGAxioms.lean`
+checks the import closure of the two FG roots.
 
 Root injectivity. The root of an FG block is a function of its content
 (`FGBlock.root_injective`), so the binders `ViewRootInj` and `RootInjectiveOn`
@@ -327,8 +334,8 @@ def pins : List Pin := [
     ⟨"(1) a nonempty D reaches lo", .lean [``filteredFrom_reachesLo]⟩,
     ⟨"(2) D is not empty under (a) and (b)",
       .leanHyp [``fjFrame_D_nonempty, ``storeFrame_feasible]
-        "fjFrame: (a) K ∈ V finalizes F, (b) pure fg.finalLock.v1 (current reading: the \
-        carrier clause of fg.finalLock.v2, Lean finalLock; registry §9), ViewRootInj \
+        "fjFrame: (a) K ∈ V finalizes F, (b) the carrier clause of fg.finalLock.v2, Lean \
+        finalLock, pure form (history: fg.finalLock.v1, registry §9), ViewRootInj \
         (viewRootInj_all); \
         stronger form: the proof of fjFrame_D_nonempty does not use ViewRootInj or \
         σ[K].F = F (binders kept); store form: StoreInv gives (a) on Σ.T, (b) and \
@@ -345,8 +352,8 @@ def pins : List Pin := [
         plan's reading, not a registry discharge)"⟩,
     ⟨"the walk below lo (last two pinned sentences), view form: the head read from a \
       duty view is in D with state height ≥ lo, under the v1 premises (fj.frame.v1, \
-      R1 duty views, fg.finalLock.v1 and a ≤ f; fg.finalLock.v1 reads as the carrier \
-      clause of fg.finalLock.v2, registry §9); no unfiltered fallback",
+      R1 duty views, the carrier clause of fg.finalLock.v2 (history: fg.finalLock.v1, \
+      registry §9) and a ≤ f); no unfiltered fallback",
       .ap "ap.headReachesLo.v1" ""⟩,
     ⟨"the walk below lo (last two pinned sentences), FG-SA form (fgsa3 1226–1247): the \
       HEAD is in D_V with state height ≥ lo if its anchor A = live_root is in D_V or \
@@ -481,12 +488,12 @@ def pins : List Pin := [
         "carrier hcar; F ⪯ J' (hFJ', partial coverage per the registry note); huniq \
         (uniqueness at h(C): paper fg.uniqueJust.v1, uniqueJust_chains gives it for \
         two chains); ViewRootInj (§0.4; viewRootInj_all)"⟩,
-    ⟨"derivation of F ⪯ J' from the finality lock (fg.finalLock.v1 in the pinned text; \
-      current reading: fg.finalLock.v2, registry §9)", .open_ "later helper pinned here"⟩,
+    ⟨"derivation of F ⪯ J' from the finality lock, fg.finalLock.v2 (history: \
+      fg.finalLock.v1 in the pinned text, registry §9)", .open_ "later helper pinned here"⟩,
     ⟨"view form: in a contest the AP head read from a duty view is in D with state \
       height ≥ lo = H, under the v1 premises (fj.frame.v1, R1 duty views, \
-      fg.finalLock.v1 and a ≤ f; fg.finalLock.v1 reads as the carrier clause of \
-      fg.finalLock.v2, registry §9); no unfiltered fallback",
+      the carrier clause of fg.finalLock.v2 (history: fg.finalLock.v1, registry §9) \
+      and a ≤ f); no unfiltered fallback",
       .ap "ap.headReachesLo.v1" "view form"⟩,
     ⟨"FG-SA form (fgsa3 1226–1247, 1361–1376): in a contest the frozen HEAD reaches H \
       if its anchor A = live_root is in D_V (the filtered domain of the frozen voter \
@@ -601,14 +608,66 @@ def notFormalized : List (String × String) := [
   ("comp.outputNesting.v1", "AP accessor fact; the finalized ⪯ available clause") ]
 
 /-- Pins kept only as history: their registry status is WITHDRAWN or
-SUPERSEDED (`scripts/check-fg-pins.sh` step 5 checks it). No current pin cites
-them by a structured id (`.ap`, `.external`); a current citation in free text or
-in a registry entry reads as the successor (registry §9, "Current reading of
-withdrawn ids"). The pin check exempts them and their references from the
-status test, and each one must be on the allowlist of that script, with a
-reason and a date. -/
+SUPERSEDED (`scripts/check-fg-pins.sh` step 5 checks it). No current pin names
+them: not by `.ap` or `.external`, and not in its free text outside a
+`(history: …)` marker (the `mention` records; step 4 checks both). The pin check
+exempts them and their references from the status test, and each one must be
+on the allowlist of that script, with a reason and a date. -/
 def historicalPins : List String :=
   ["fj.frame.v3", "fg.finalLock.v1", "fj.twoChanges.core.v1"]
+
+/-- The free text of a clause: its label and every string field of its coverage. -/
+def Clause.texts (c : Clause) : List String :=
+  c.label :: match c.cov with
+    | .lean _ | .leanIn _ _ => []
+    | .leanHyp _ h => [h]
+    | .byHyp _ h d => [h, d]
+    | .paper t | .apData t | .runFact t | .open_ t => [t]
+    | .external _ n | .ap _ n => [n]
+
+/-- The text without its history markers `(history: …)`, each to its matching
+parenthesis, or `none` if a marker is not closed. -/
+def dropHistory (s : String) : Option String :=
+  let rec go : List Char → Nat → List Char → Option (List Char)
+    | [], d, acc => if d == 0 then some acc.reverse else none
+    | c :: cs, 0, acc =>
+      if (c :: cs).take 9 == "(history:".toList then go cs 1 acc else go cs 0 (c :: acc)
+    | c :: cs, d + 1, acc =>
+      if c == '(' then go cs (d + 2) acc
+      else if c == ')' then go cs d acc
+      else go cs (d + 1) acc
+  (go s.toList 0 []).map String.ofList
+
+/-- `cs` has the registry's id grammar `[a-z][A-Za-z0-9.]*\.v[0-9]+`. -/
+def isRegistryId (cs : List Char) : Bool :=
+  let r := cs.reverse
+  let ds := r.takeWhile Char.isDigit
+  match cs, r.drop ds.length with
+  | c :: _, 'v' :: '.' :: _ =>
+    c.isLower && cs.all (fun c => c.isAlphanum || c == '.') && !ds.isEmpty
+  | _, _ => false
+
+/-- The maximal runs of `[A-Za-z0-9._]` in a text, trailing dots removed. -/
+def words (cs : List Char) : List (List Char) :=
+  let isW (c : Char) : Bool := c.isAlphanum || c == '.' || c == '_'
+  let fin (cur : List Char) : List (List Char) :=
+    match cur.dropWhile (· == '.') with
+    | [] => []
+    | w => [w.reverse]
+  let rec go : List Char → List Char → List (List Char)
+    | [], cur => fin cur
+    | c :: cs, cur => if isW c then go cs (c :: cur) else fin cur ++ go cs []
+  go cs []
+
+/-- The registry ids that the free text of a pin names outside history markers
+(`words` with the id grammar). An unclosed marker gives the id `!UNCLOSED`,
+which the manifest grammar rejects. -/
+def mentions (p : Pin) : List String :=
+  (p.clauses.flatMap (·.texts)).flatMap (fun t =>
+    match dropHistory t with
+    | none => ["!UNCLOSED"]
+    | some u => ((words u.toList).filter isRegistryId).map String.ofList)
+  |>.eraseDups
 
 /-- The manifest that `scripts/check-fg-pins.sh` checks, from the elaborated
 values (Astra P01, Q01–Q03, T01), one record per line: `src <key> <root> <path>
@@ -616,12 +675,14 @@ values (Astra P01, Q01–Q03, T01), one record per line: `src <key> <root> <path
 `external <id>` for each active reference (without repeats), and
 `notFormalized <id>` for each id that this module does not formalize (historical
 ids, and AP or comp ids that it does not formalize), `dep <pin> <id>` for each
-`.ap` or `.external` id of a pin (without repeats in one pin), and `hist <pin>`
-for each entry of `hist` (repeats kept, so that the check sees them). Seven
-trailer lines follow, one per kind in this order: `END <kind> <n> <keys>`, where
-`<keys>` are the record keys of that kind (the second field; for `dep`,
-`<pin>/<id>`), sorted by `String` order, which is byte order on these ASCII
-tokens. The trailer binds the record set, not only the counts. -/
+`.ap` or `.external` id of a pin (without repeats in one pin), `hist <pin>`
+for each entry of `hist` (repeats kept, so that the check sees them), and
+`mention <pin> <id>` for each registry id in the free text of a pin outside
+`(history: …)` markers (`mentions`). Eight trailer lines follow, one per kind in
+this order: `END <kind> <n> <keys>`, where `<keys>` are the record keys of that
+kind (the second field; for `dep` and `mention`, `<pin>/<id>`), sorted by
+`String` order, which is byte order on these ASCII tokens. The trailer binds
+the record set, not only the counts. -/
 def manifest (ps : List Pin) (ds : List DefPin) (nf : List (String × String))
     (hist : List String) : List String :=
   let srcs := (ps.flatMap (·.sources) ++ ds.map (·.src)).eraseDups
@@ -639,7 +700,8 @@ def manifest (ps : List Pin) (ds : List DefPin) (nf : List (String × String))
      ("external", (refs false).map fun i => (i, i)),
      ("notFormalized", nf.map fun (i, _) => (i, i)),
      ("dep", deps.map fun (p, i) => (s!"{p}/{i}", s!"{p} {i}")),
-     ("hist", hist.map fun i => (i, i))]
+     ("hist", hist.map fun i => (i, i)),
+     ("mention", ps.flatMap fun p => (mentions p).map fun i => (s!"{p.id}/{i}", s!"{p.id} {i}"))]
   recs.flatMap (fun (t, rs) => rs.map fun (_, r) => s!"{t} {r}") ++
   recs.map fun (t, rs) =>
     " ".intercalate (["END", t, toString rs.length] ++

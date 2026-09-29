@@ -910,20 +910,26 @@ registry id, or the AP fact that carries the clause).
 ┌─────────────────────────────┬──────────────────────────────────────────────┬─────────────────────┐
 │ Script                      │ Check                                        │ Exit codes          │
 ├─────────────────────────────┼──────────────────────────────────────────────┼─────────────────────┤
-│ scripts/check-fg.sh         │ builds the two libraries once (--wfail),     │ 0 all pass; else    │
-│                             │ then runs the root-import check, the four    │ the failed step's   │
-│                             │ checks below and five negative controls of   │ code (1 for a       │
-│                             │ check-fg-pins.sh (temporary emitter,         │ control that is not │
-│                             │ registry and allowlist copies); stops at the │ detected)           │
-│                             │ first failure                                │                     │
+│ scripts/check-fg.sh         │ unsets the test-only overrides; builds the   │ 0 all pass; else    │
+│                             │ two libraries once (--wfail), then runs the  │ the failed step's   │
+│                             │ root-import check and the four checks below, │ code (1 for a       │
+│                             │ then the negative controls of check-fg-      │ control that is not │
+│                             │ pins.sh (steps 0, 4 and 5; temporary         │ detected)           │
+│                             │ emitter, registry and allowlist copies, and  │                     │
+│                             │ the real registry) and of the FG import-     │                     │
+│                             │ closure check; stops at the first failure    │                     │
 │ scripts/check-fg-syntax.sh  │ no native evaluation outside comments in the │ 0 clean; 1 found; 2 │
 │                             │ two FG libraries: native_decide, +native,    │ missing directory,  │
 │                             │ native := true, ofReduceBool, ofReduceNat    │ root file or files  │
 │ scripts/CheckFGAxioms.lean  │ every constant of the two libraries uses     │ 0 clean; 1 bad      │
-│                             │ only propext, Classical.choice, Quot.sound   │ axiom; 2 nothing    │
-│                             │ (this rejects sorryAx and the _native axiom  │ found, usage error  │
-│                             │ of native_decide); --expect N … checks that  │ or missing name     │
-│                             │ the names exist; reads built data            │                     │
+│                             │ only propext, Classical.choice, Quot.sound   │ axiom or forbidden  │
+│                             │ (this rejects sorryAx and the _native axiom  │ library in the      │
+│                             │ of native_decide); the root of every module  │ closure; 2 nothing  │
+│                             │ in the import closure of the two FG roots is │ found, usage error  │
+│                             │ on a literal list (no AvailableChainFGSA, no │ or missing name     │
+│                             │ library above the FG libraries); --root M    │                     │
+│                             │ (controls); --expect N … checks that the     │                     │
+│                             │ names exist; reads built data                │                     │
 │ scripts/FGPinIds.lean       │ prints the manifest of the elaborated pin    │ 0 clean; 2 a pinned │
 │                             │ table; --check-names checks that each pinned │ name is not an FG   │
 │                             │ Lean name is an FG constant; --ext prints    │ constant, or a      │
@@ -931,19 +937,21 @@ registry id, or the AP fact that carries the clause).
 │                             │ leanIn library that is not on its allowlist; │ not on the          │
 │                             │ reads built data                             │ allowlist           │
 │ scripts/check-fg-pins.sh    │ builds the two libraries, runs               │ 0 clean; 1 registry │
-│                             │ FGPinIds.lean; strict manifest grammar and   │ mismatch; 2 build   │
-│                             │ trailers; no pin id is also a notFormalized  │ failed, bad or      │
-│                             │ id; each source resolves to its registered   │ missing manifest    │
-│                             │ version with the pinned hash and matches its │                     │
-│                             │ §0.1 row; each id has an entry and one Index │                     │
-│                             │ row; no id that a current pin names (its own │                     │
-│                             │ id or a dep: an .ap or .external id) is      │                     │
-│                             │ SUPERSEDED or WITHDRAWN; the hist pins are   │                     │
-│                             │ exactly the script's dated allowlist, each   │                     │
-│                             │ WITHDRAWN or SUPERSEDED; prints the number   │                     │
-│                             │ of leanIn names. The full pin gate is        │                     │
-│                             │ check-fg.sh PLUS check-fgsa.sh (the leanIn   │                     │
-│                             │ names)                                       │                     │
+│                             │ FGPinIds.lean; strict manifest grammar and   │ or allowlist        │
+│                             │ trailers (src, pin, ap, external,            │ mismatch; 2 build   │
+│                             │ notFormalized, dep, hist, mention); each     │ failed, bad or      │
+│                             │ source resolves to its registered version    │ missing manifest,   │
+│                             │ with the pinned hash and matches its §0.1    │ emitter failure,    │
+│                             │ row; each id has an entry and one Index row; │ malformed or        │
+│                             │ no id that a current pin names (its own id,  │ duplicate allowlist │
+│                             │ a dep: .ap or .external, or a registry id in │ entry               │
+│                             │ its free text outside a (history: …) marker) │                     │
+│                             │ has WITHDRAWN or SUPERSEDED as a token in    │                     │
+│                             │ its status; the hist pins are exactly the    │                     │
+│                             │ script's dated allowlist, each WITHDRAWN or  │                     │
+│                             │ SUPERSEDED; prints the number of leanIn      │                     │
+│                             │ names. The full pin gate is check-fg.sh PLUS │                     │
+│                             │ check-fgsa.sh (the leanIn names)             │                     │
 └─────────────────────────────┴──────────────────────────────────────────────┴─────────────────────┘
 ```
 
@@ -1050,8 +1058,11 @@ rows under `scripts/` are paths from the repository root.
 │                                │ of FGPinIds.lean --ext) exists, is declared in │                    │
 │                                │ an AvailableChainFGSA module and uses only the │                    │
 │                                │ three standard axioms (the checks of a .lean   │                    │
-│                                │ name); the pin gate for a pin with leanIn      │                    │
-│                                │ evidence is check-fg.sh plus check-fgsa.sh     │                    │
+│                                │ name); check-fgsa.sh also requires at least    │                    │
+│                                │ one record when Pins.lean has a leanIn clause; │                    │
+│                                │ --root M (controls); the pin gate for a pin    │                    │
+│                                │ with leanIn evidence is check-fg.sh plus       │                    │
+│                                │ check-fgsa.sh                                  │                    │
 └────────────────────────────────┴────────────────────────────────────────────────┴────────────────────┘
 ```
 

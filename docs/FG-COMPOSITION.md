@@ -5328,6 +5328,11 @@ M0. r151 calls this cap μ and calls M0 simply M.
   use. The citations above are history. A current use of this entry
   reads them as §9, "Current reading of withdrawn ids".
 
+- Note (2026-09-29; Lean pin): the pin `fj.frameFeasible.v1` of
+  `AvailableChainKitFG/Pins.lean` cites `ap.headReachesLo.v6` (the FG-SA
+  form: frame `fj.frame.v4`, spec `fgsa3`) for its frozen-tree clauses, with
+  `fgsa3` line numbers. The ALFS notes above are history.
+
 
 ### `fj.crossingNoFinal.v1` — r148 F2: a conflicting crossing of j proves that J cannot finalize
 
@@ -5637,6 +5642,11 @@ M0. r151 calls this cap μ and calls M0 simply M.
 - Note (2026-09-29; current use): `fg.finalLock.v1`, `ap.headReachesLo.v5` are WITHDRAWN for current
   use. The citations above are history. A current use of this entry
   reads them as §9, "Current reading of withdrawn ids".
+
+- Note (2026-09-29; Lean pin): the pin `fj.inBandLock.v1` of
+  `AvailableChainKitFG/Pins.lean` cites `ap.headReachesLo.v6` (the FG-SA
+  form: frame `fj.frame.v4`, spec `fgsa3`) for its frozen-tree clauses, with
+  `fgsa3` line numbers. The ALFS notes above are history.
 
 
 ### `fj.twoChanges.v1` — F12: at most two effective changes per frontier
@@ -8018,8 +8028,15 @@ list" (an append-only scratch report, not archived).
   - `fj.descent.v1`: `fj.descent.v2`. `fj.frame.v3`: `fj.frame.v4` (see
     the notes at the frame citations).
   A use that needs more than the successor states needs its own proof.
-  The pin check sees only structured ids (`.ap`, `.external`); ids in
-  free text are covered by these pointers, not by the check.
+  In `AvailableChainKitFG/Pins.lean` the pin check also scans the free
+  text of each current pin (the `mention` records): a registry id there
+  gets the status test, and a citation that is only history goes inside a
+  `(history: …)` marker. The registry text is not checked by a script;
+  the pointers above cover it.
+- Lean tags (2026-09-29): the 21 FG constants tagged `[pin fj.frame.v3]`
+  are now tagged `[pin fj.frame.v4]`, the current pin that cites them.
+  Their alfs4 line references name the text that they follow; that text
+  is byte-identical in `fgsa3`, except the Trees paragraph.
 - μ (r213; blueprint 21 H.11 and both HEALING_INPUT copies): μ is
   μ(run,GST), a function of the run and GST. It is not a field of an
   existential witness; all uses have the same value. The interface text

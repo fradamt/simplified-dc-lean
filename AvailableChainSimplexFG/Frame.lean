@@ -41,13 +41,13 @@ structure Controls (V : Type) where
   contest : Bool
 
 namespace Controls
-/-- [pin fj.frame.v3] The uncontested phase: the root is J (the root test of
+/-- [pin fj.frame.v4] The uncontested phase: the root is J (the root test of
 `get_fg_root`, alfs4 lines 1004–1011). -/
 def rootIsJ (c : Controls V) : Bool := decide (c.H = c.j + 1) && !c.contest
-/-- [pin fj.frame.v3] The FG root: J in the uncontested phase, else F
+/-- [pin fj.frame.v4] The FG root: J in the uncontested phase, else F
 (`get_fg_root`, alfs4 lines 1004–1011). -/
 def Z (c : Controls V) : FGBlock V := if c.rootIsJ then c.J else c.F
-/-- [pin fj.frame.v3] The band floor: H in a contest, else H − 1 (`band_floor`,
+/-- [pin fj.frame.v4] The band floor: H in a contest, else H − 1 (`band_floor`,
 alfs4 lines 978–986). -/
 def lo (c : Controls V) : Height := if c.contest then c.H else c.H - 1
 end Controls
@@ -110,7 +110,7 @@ def fjControls (F : FGBlock V) (Vw : View V) : Controls V :=
   ⟨F, H, p.1, p.2, decide (H = p.1 + 1) &&
     decide (∃ W ∈ Vw, hOf E cfg W = H ∧ ¬ FGBlock.Preceq p.2 W)⟩
 
-/-- [pin fj.frame.v3] The filtered tree of any block set under given controls
+/-- [pin fj.frame.v4] The filtered tree of any block set under given controls
 (`get_filtered_block_tree_from(Σ, blocks)` with `viable_tree_from`, alfs4 lines
 988–994, 1013–1020). -/
 def filteredFrom (c : Controls V) (blocks : Finset (FGBlock V)) : Finset (FGBlock V) :=

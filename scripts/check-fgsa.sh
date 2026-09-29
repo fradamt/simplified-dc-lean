@@ -141,16 +141,26 @@ lake env lean --run scripts/CheckFGSALease.lean
 # the three standard axioms) in this environment; see scripts/CheckFGSAExt.lean.
 # FGPinIds.lean rejects a library that is not on its allowlist. The pin gate for
 # a pin with `leanIn` evidence is check-fg.sh plus this script.
+# A lower bound on the records: when the comment-free source of Pins.lean has a
+# `.leanIn "…"` clause, the emitter must print at least one ext record.
 echo "== ext names of the FG pin table"
-lake build --wfail AvailableChainSimplexFG AvailableChainKitFG
-extrecs=$(mktemp)
-lake env lean --run scripts/FGPinIds.lean --ext > "$extrecs"
-lake env lean --run scripts/CheckFGSAExt.lean "$extrecs"
-rm -f "$extrecs"
-
-echo "== negative controls"
 neg=$(mktemp -d "$PWD/.lake/fgsa-neg.XXXXXX")
 trap 'rm -rf "$neg"' EXIT
+lake build --wfail AvailableChainSimplexFG AvailableChainKitFG
+nlean=$(perl -CSD -e "$strip_comments" < AvailableChainKitFG/Pins.lean | grep -o '\.leanIn ""' |
+  wc -l | tr -d ' ')
+check_ext() {  # EMITTER: its ext records, the lower bound, and CheckFGSAExt.lean
+  lake env lean --run "$1" --ext > "$neg/extrecs" || { echo "EMITTER FAILED (--ext)"; return 2; }
+  local n
+  n=$(tail -1 "$neg/extrecs" | sed -n 's/^END ext \([0-9][0-9]*\)$/\1/p')
+  if [ "$nlean" -gt 0 ] && [ "${n:-0}" -eq 0 ]; then
+    echo "NO EXT RECORDS: $nlean leanIn clauses in Pins.lean"; return 1
+  fi
+  lake env lean --run scripts/CheckFGSAExt.lean "$neg/extrecs"
+}
+check_ext scripts/FGPinIds.lean
+
+echo "== negative controls"
 # expect_fail NAME CODE OUT PATTERN...: the check failed with CODE and printed
 # every PATTERN (fixed strings).
 expect_fail() {
@@ -356,4 +366,33 @@ run env FGPINIDS="$neg/FGPinIdsC.lean" bash scripts/check-fg-pins.sh
 expect_fail "unknown ext library (check-fg-pins.sh step 0)" $code "$out" \
   "UNKNOWN EXT LIBRARY: AvailableChainFGSAX (pin neg.ctl.v1, name AvailableChain.FGSA.gateStep)" \
   "EMITTER FAILED"
+sed 's/^def table : List Pin := pins$/def table : List Pin := []/' scripts/FGPinIds.lean \
+  > "$neg/FGPinIdsE.lean"
+grep -q '^def table : List Pin := \[\]$' "$neg/FGPinIdsE.lean" ||
+  { echo "NEGATIVE CONTROL no ext records: the table line did not change"; exit 1; }
+run check_ext "$neg/FGPinIdsE.lean"
+expect_fail "no ext records while Pins.lean has leanIn clauses" $code "$out" \
+  "NO EXT RECORDS: $nlean leanIn clauses in Pins.lean"
+printf 'ext AvailableChainFGSA\nEND ext 1\n' > "$neg/extM"
+run lake env lean --run scripts/CheckFGSAExt.lean "$neg/extM"
+expect_fail "malformed ext record" $code "$out" "MALFORMED EXT RECORD: ext AvailableChainFGSA"
+printf 'ext AvailableChainFGSA AvailableChain.FGSA.gateStep\nEND ext 2\n' > "$neg/extT"
+run lake env lean --run scripts/CheckFGSAExt.lean "$neg/extT"
+expect_fail "malformed ext trailer" $code "$out" "MALFORMED TRAILER: END ext 2 (1 records)"
+# A bad axiom: an FGSA module with a sorry, compiled into the copy of the FGSA
+# build ($neg/c, made for the compiled allowlist control above).
+printf 'theorem AvailableChain.FGSA.negExtAx : False := sorry\n' > "$neg/NegExtAx.lean"
+lake env bash -c 'LEAN_PATH="$0/c:$LEAN_PATH" lean -o "$0/c/AvailableChainFGSA/NegExtAx.olean" "$0/NegExtAx.lean"' \
+  "$neg" >/dev/null 2>&1 || { echo "NEGATIVE CONTROL bad axiom: the module did not compile"; exit 1; }
+printf 'ext AvailableChainFGSA AvailableChain.FGSA.negExtAx\nEND ext 1\n' > "$neg/extX"
+run lake env bash -c 'LEAN_PATH="$0/c:$LEAN_PATH" lean --run scripts/CheckFGSAExt.lean --root AvailableChainFGSA.NegExtAx "$0/extX"' "$neg"
+expect_fail "ext name with a bad axiom" $code "$out" \
+  "BAD AXIOM: AvailableChain.FGSA.negExtAx uses sorryAx"
+# The FG import closure with AvailableChainFGSA in it (CheckFGAxioms.lean; the
+# FG-environment control of check-fg.sh uses a stand-in library).
+printf 'import AvailableChainFGSA\n' > "$neg/FGClosureNegFGSA.lean"
+lake env lean -o "$neg/FGClosureNegFGSA.olean" "$neg/FGClosureNegFGSA.lean"
+run lake env bash -c 'LEAN_PATH="$0:$LEAN_PATH" lean --run scripts/CheckFGAxioms.lean --root FGClosureNegFGSA' "$neg"
+expect_fail "AvailableChainFGSA in the FG import closure" $code "$out" \
+  "FORBIDDEN LIBRARY IN THE FG IMPORT CLOSURE: AvailableChainFGSA"
 echo "all FGSA checks pass"

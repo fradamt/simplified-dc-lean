@@ -15,10 +15,17 @@ compare them with the sources. Run `lake build AvailableChainSimplexFG
 AvailableChainKitFG` first, or use `bash scripts/check-fg.sh`, which builds and
 then runs every FG check.
 
-Run: `lake env lean --run scripts/CheckFGAxioms.lean [--expect N …]`.
+It also checks the import closure of the two FG roots (the compiled import
+data): the root of every module in it is on `closureRoots` (Lean, its
+standard libraries, Mathlib and its dependencies, `AvailableChainModel` and the
+two FG libraries). So no FG module, `AvailableChainKitFG/Pins.lean` included,
+imports `AvailableChainFGSA` or another library above the FG libraries.
+
+Run: `lake env lean --run scripts/CheckFGAxioms.lean [--root M] [--expect N …]`.
+`--root M` imports one more root module (negative controls only).
 With `--expect`, each named constant must be a checked constant (a short
 name matches a qualified one by suffix).
-Exit codes: 0 clean; 1 a bad axiom; 2 nothing found, a usage error (an
+Exit codes: 0 clean; 1 a bad axiom or a module outside `closureRoots`; 2 nothing found, a usage error (an
 unknown argument, or `--expect` without a name), or an expected name missing.
 Each missing expected name forces exit 2, also after a bad axiom or after
 other expected names that are present. -/
@@ -39,15 +46,32 @@ def axiomsOf (env : Environment) (n : Name) : IO (Array Name) :=
   Core.CoreM.toIO' (collectAxioms n)
     { fileName := "CheckFGAxioms", fileMap := .ofString "" } { env := env }
 
+/-- The libraries that the import closure of the two FG roots may contain
+(module roots; a literal list, fail closed). -/
+def closureRoots : List Name :=
+  [`Init, `Lean, `Std, `Lake, `Batteries, `Mathlib, `ImportGraph, `Aesop, `Qq,
+    `Plausible, `LeanSearchClient, `ProofWidgets, `AvailableChainModel,
+    `AvailableChainSimplexFG, `AvailableChainKitFG]
+
 def main (args : List String) : IO UInt32 := do
+  let usage := "USAGE: lake env lean --run scripts/CheckFGAxioms.lean [--root M] [--expect N …]"
+  let (extra, args) := match args with
+    | "--root" :: m :: r => (#[m.toName], r)
+    | _ => (#[], args)
   -- Reject an unknown argument: a typo must not skip the `--expect` test.
   unless args.isEmpty || (args.head? == some "--expect" && args.length ≥ 2) do
-    IO.eprintln "USAGE: lake env lean --run scripts/CheckFGAxioms.lean [--expect N …]"
+    IO.eprintln usage
     return 2
   let expected := args.drop 1
   initSearchPath (← findSysroot)
   let env ← importModules
-    #[{ module := `AvailableChainSimplexFG }, { module := `AvailableChainKitFG }] {}
+    ((#[`AvailableChainSimplexFG, `AvailableChainKitFG] ++ extra).map ({ module := · })) {}
+  let mut badClosure := false
+  for m in env.header.moduleNames do
+    if extra.contains m then continue
+    unless closureRoots.contains m.getRoot do
+      IO.println s!"FORBIDDEN LIBRARY IN THE FG IMPORT CLOSURE: {m}"
+      badClosure := true
   let cs := env.constants.toList.filter (fun (n, _) => inFG env n)
   if cs.isEmpty then
     IO.eprintln "NO CONSTANTS FOUND"
@@ -70,4 +94,4 @@ def main (args : List String) : IO UInt32 := do
   if missing > 0 then
     IO.println s!"{missing} expected names not checked"
     return 2
-  return if badAxioms then 1 else 0
+  return if badAxioms || badClosure then 1 else 0
