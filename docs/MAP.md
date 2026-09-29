@@ -125,7 +125,8 @@ The base contract is unchanged. See [SA-PC status](SAPC-STATUS.md).
 without an import of the framework. `excludes` stays `fun _ _ => false`
 (`sapc_excludes`): SA-PC has no permanent refusal at the level of
 `processed`, so this is the E4 classification. The file comment gives the
-reasons. No Registry instance assembles these facts into `HooksSound` yet.
+reasons. `sapcHooks` in `AvailableChainRegistry/Instances/SAPC.lean`
+assembles them into `HooksSound (sapc p)`.
 
 Recovery uses exact lease sources, SA's shared source-support induction,
 and F4 transfer. `RecoveryBoundary` proves the two-lease support boundary;
@@ -424,8 +425,9 @@ contract statement is in `AvailableChainLStar/Statements/Contract.lean`.
 general proof remains pending.
 `Proofs/Hooks.lean` proves the E4 hook facts for `lstar p n` without an
 import of the framework or Grid CO. `excludes` does not read the clock, so
-`excludes_stable` does not use the schedule premise. No Registry instance
-assembles these facts into `HooksSound` yet.
+`excludes_stable` does not use the schedule premise. `lstarHooks` in
+`AvailableChainRegistry/Instances/LStar.lean` assembles them into
+`HooksSound (lstar p n)`.
 The `#eval` and `#guard` checks are in `AvailableChainLStar/Tests/Smoke.lean`.
 
 ## Witnesses (§2a K8, §7)
@@ -627,6 +629,21 @@ paths below are relative to `AvailableChainRegistry/`.
 │ GridCOHooks      │ hook facts in AvailableChainGridCO/Proofs/  │ GridCOHooks.lean      │
 │                  │ Hooks.lean; SA uses @gridHooks              │                       │
 │                  │ slowLeasePolicy p.engine                    │                       │
+│ Instances/GridCO │ gridInst (Grid CO, default lease policy);   │ Instances/GridCO.lean │
+│                  │ grid_holds, grid_holds_core (G = 1) and     │                       │
+│                  │ their _of_pos forms (0 < G): ac43 and core  │                       │
+│                  │ holdsAt, not certificates                   │                       │
+│ Instances/SA     │ saInst (hooks: @gridHooks slowLeasePolicy   │ Instances/SA.lean     │
+│                  │ p.engine); sa_holds, sa_holds_core (G = 1)  │                       │
+│                  │ and their _of_pos forms                     │                       │
+│ Instances/SAPC   │ sapcHooks (HooksSound (sapc p)); sapcInst   │ Instances/SAPC.lean   │
+│                  │ (a StrongInstance); sapc_holds_ac43,        │                       │
+│                  │ sapc_holds_strong1, sapc_holds_core (G = 1) │                       │
+│                  │ and their _of_pos forms; sapc_holds_shared  │                       │
+│                  │ (ac43 and strong1 at one C)                 │                       │
+│ Instances/LStar  │ lstarHooks (HooksSound (lstar p n));        │ Instances/LStar.lean  │
+│                  │ lstarInst; no holdsAt theorem (L* has no    │                       │
+│                  │ contract proof)                             │                       │
 │ Counter          │ counter (a toy height protocol);            │ Counter.lean          │
 │                  │ counterIface; counter_hooks; counterInst    │                       │
 │ CounterRun       │ canonical (the synchronous run from         │ CounterRun.lean       │
