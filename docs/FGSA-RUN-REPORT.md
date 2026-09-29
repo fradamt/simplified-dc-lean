@@ -386,19 +386,51 @@ Notes and open items:
   `--expect` lists the main outputs; a negative control checks that a name
   in `--expect` that the scan does not find fails with `NOT CHECKED`.
 
-Validation (branch `fgsa-t7-2`, final head; Mac, `pgrep -x lean.orig` below
-3 before each build):
+Lease checks on the owner map (`scripts/CheckFGSALease.lean`,
+`scripts/CheckFGSARunLease.lean`): a generated constant (also with a private
+name) whose owner is a definition outside the scanned roots is skipped, and
+its owner is inspected.
+
+- No control separates the old rule (`eq_<k>`/`eq_def`, owner
+  `n.getPrefix`) from the new one. The old rule was stricter than needed,
+  never unsound: it scanned a private generated constant as an ordinary
+  constant, and no current generated constant has a policy parameter.
+- Safety of the new rule: every generated constant that it skips has its
+  owner inspected, and the policy is checked at every use of the constant.
+- Controls (in `check-fgsa.sh` and `check-fgsa-run.sh`): NEGATIVE, the owner
+  of an `eq_def` carries the default policy (`ownerFixedGate`) and is
+  refused; OWNER PATH ONLY, the equation `ownerBetaGen.eq_1` has a policy
+  parameter, is realized in the scanned module and skipped, and the only
+  report is the inspection of its owner (a policy bound by a beta-redex);
+  POSITIVE, `split` and `simp` over `GridCO.admitVote` and `GridCO.excludes`
+  give no report.
+- Effect on the libraries: more generated constants are skipped (store 18 →
+  51, run 8 → 27), with the same lease arguments and the same backstop reach.
+  Eight compiler helpers of `AvailableChain.Auth` (`noConfusion`, `elim`,
+  …), which have no policy, are no longer inspected; the backstop still
+  reaches them.
+
+Port to v4.34.1: `processedS_ofRow` and `handlesS_ofRow_iff` now also show
+`Classical.choice`. It enters through `Finset.instSetLike` (the proposal
+clause of `processedS`, `∃ Y ∈ st.fg.TF`, and `parentFG` →
+`SimplexFG.pickPair` in `handlesS`): `Finset.instSetLike._proof_1` →
+`Multiset.Nodup.ext` → `List.perm_ext_iff_of_nodup` →
+`Classical.propDecidable`. This is the path that the port rule accepts.
+
+Validation (branch `fgsa-t7-2` on the ported main `b97209a`, Lean v4.34.1;
+Mac, `pgrep -x lean.orig` below 3 before each build):
 
 ```text
 ┌──────────────────────────────────────────────┬──────────────────────────────┐
 │ Command                                      │ Result                       │
 ├──────────────────────────────────────────────┼──────────────────────────────┤
-│ lake build --wfail AvailableChainFGSARun     │ pass (3390 jobs)             │
-│ bash scripts/check-fgsa-run.sh               │ pass; 16 controls behave as  │
+│ lake build --wfail AvailableChainFGSARun     │ pass (3185 jobs)             │
+│ bash scripts/check-fgsa-run.sh               │ pass; 19 controls behave as  │
 │                                              │ expected                     │
 │ bash scripts/check-fgsa-run.sh (T7.2 commit  │ pass; 14 controls (no owner  │
 │   alone, before the checker fix)             │ controls)                    │
-│ bash scripts/check-fgsa.sh                   │ pass                         │
+│ bash scripts/check-fgsa.sh                   │ pass; 21 controls behave as  │
+│                                              │ expected                     │
 │ lake env lean --run scripts/V2Manifest.lean  │ pass                         │
 │   --check                                    │                              │
 │ Tests/Axioms.lean (99 lines)                 │ only propext, Classical.     │

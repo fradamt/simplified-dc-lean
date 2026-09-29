@@ -593,6 +593,85 @@ expect_fail "lease controls in imported definitions" $code "$out" \
   "AdvLib.0.AvailableChain.GridCO.fixedPriv: AvailableChain.GridCO.gate at AvailableChain.GridCO.gridLeasePolicy" \
   "AvailableChain.FGSA.useIrr: AvailableChain.GridCO.genI at cast" \
   "Evil.fixedGate: mentions AvailableChain.GridCO.gridLeasePolicy (reach)"
+# Generated constants (T7.2 R-A; the owner map of
+# scripts/AvailableChainCheckSupport/GeneratedOwner.lean). NEGATIVE: an
+# imported definition with no policy parameter that fixes the default policy,
+# used through its generated equation (`eq_def`): its owner is inspected and
+# refused. POSITIVE: `split` and `simp` over `GridCO.admitVote` and
+# `GridCO.excludes` (private matcher equations and sparse `casesOn`
+# equations): no report. OWNER PATH ONLY: a generated equation with a policy
+# parameter, realized in the scanned module, is skipped, and only its owner's
+# inspection refuses it. No control separates the owner map from the earlier
+# `eq_<k>`/`eq_def` rule: that rule was stricter than needed, never unsound (it
+# scanned a private generated constant as an ordinary one). The owner map is
+# safe: every generated constant that it skips has its owner inspected, and
+# the policy is checked at every use.
+cat > "$neg/RunLeaseOwnLib.lean" <<'LEAN'
+import AvailableChainFGSA
+namespace AvailableChain.GridCO
+/-- An imported definition with no policy parameter that fixes the default. -/
+def ownerFixedGate (p : Params) (st : State 1) (r : Nat) : State 1 :=
+  @gate gridLeasePolicy p 1 st r
+/-- A policy-generic imported definition that passes its own policy through a
+beta-redex: at `gate` the policy is a bound variable, not an own parameter. -/
+def ownerBetaGen [L : LeasePolicy] (p : Params) (st : State 1) (r : Nat) : State 1 :=
+  (fun (pol : LeasePolicy) => @gate pol p 1 st r) L
+end AvailableChain.GridCO
+LEAN
+cat > "$neg/RunLeaseOwnOnly.lean" <<'LEAN'
+import RunLeaseOwnLib
+-- Realizes the equation `ownerBetaGen.eq_1` (it has the policy parameter `L`)
+-- in this scanned module; no declaration of this module mentions the owner.
+attribute [simp] AvailableChain.GridCO.ownerBetaGen.eq_1
+namespace AvailableChain.FGSA
+def ownOnlyAnchor : Nat := 0
+end AvailableChain.FGSA
+LEAN
+cat > "$neg/RunLeaseOwnNeg.lean" <<'LEAN'
+import RunLeaseOwnLib
+namespace AvailableChain.FGSA
+theorem negLeaseOwner (p : GridCO.Params) (st : GridCO.State 1) (r : Nat) :
+    GridCO.ownerFixedGate p st r = GridCO.ownerFixedGate p st r := by
+  rw [GridCO.ownerFixedGate.eq_def]
+end AvailableChain.FGSA
+LEAN
+cat > "$neg/RunLeaseOwnPos.lean" <<'LEAN'
+import AvailableChainFGSA
+namespace AvailableChain.FGSA
+theorem posLeaseSplit (q : GridCO.Params) {n : Nat} (st : GridCO.State n) (o : GridCO.Wire n) :
+    (GridCO.admitVote q st o).now = st.now := by
+  unfold GridCO.admitVote
+  split
+  · dsimp only; split <;> rfl
+  · rfl
+theorem posLeaseSimp (q : GridCO.Params) {n : Nat} {st st' : GridCO.State n}
+    (hv : st'.votes = st.votes) (hn : st'.now = st.now) (o : GridCO.Wire n) :
+    GridCO.excludes q st' o = GridCO.excludes q st o := by
+  simp only [GridCO.excludes, GridCO.votesAt, hv, hn]
+end AvailableChain.FGSA
+LEAN
+for m in RunLeaseOwnLib RunLeaseOwnNeg RunLeaseOwnPos RunLeaseOwnOnly; do
+  lake env bash -c 'LEAN_PATH="$0:$LEAN_PATH" lean -o "$0/$1.olean" "$0/$1.lean"' "$neg" "$m"
+done
+run lake env bash -c 'LEAN_PATH="$0:$LEAN_PATH" lean --run scripts/CheckFGSARunLease.lean RunLeaseOwnNeg' "$neg"
+expect_fail "lease: a policy-fixing definition through its generated equation (owner)" $code "$out" \
+  "AvailableChain.GridCO.ownerFixedGate: AvailableChain.GridCO.gate at AvailableChain.GridCO.gridLeasePolicy" \
+  "AvailableChain.FGSA.negLeaseOwner: mentions AvailableChain.GridCO.gridLeasePolicy (reach)"
+# OWNER PATH ONLY: the generated equation with a policy parameter is skipped
+# (it is not scanned as a constant of the scanned module, so no "has a policy
+# parameter" report), and its owner is inspected and refused. No other report
+# (no backstop "reach" line): the owner mentions no default policy.
+run lake env bash -c 'LEAN_PATH="$0:$LEAN_PATH" lean --run scripts/CheckFGSARunLease.lean RunLeaseOwnOnly' "$neg"
+expect_fail "lease: a policy-generic owner caught only through its skipped equation" $code "$out" \
+  "BAD LEASE INSTANCE AvailableChain.GridCO.ownerBetaGen: AvailableChain.GridCO.gate at #0"
+if [ "$(printf '%s\n' "$out" | grep -cF 'BAD LEASE INSTANCE')" -ne 1 ]; then
+  echo "$out"; echo "NEGATIVE CONTROL lease owner path: a report other than the owner's"; exit 1
+fi
+run lake env bash -c 'LEAN_PATH="$0:$LEAN_PATH" lean --run scripts/CheckFGSARunLease.lean RunLeaseOwnPos' "$neg"
+if [ "$code" -ne 0 ] || printf '%s\n' "$out" | grep -qF 'BAD LEASE INSTANCE'; then
+  echo "$out"; echo "POSITIVE CONTROL lease owner map: split/simp over GridCO.admitVote was refused"; exit 1
+fi
+echo "accepted, as expected: lease: generated equations of Grid CO model definitions (owner)"
 # A name in --expect that the scan does not find fails the check (fail closed).
 run lake env lean --run scripts/CheckFGSARunAxioms.lean "${AX_OPTS[@]}" Run.negNotADeclaration
 expect_fail "an expected name that is not checked" $code "$out" \

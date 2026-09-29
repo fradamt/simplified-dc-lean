@@ -1,6 +1,7 @@
 import AvailableChainFGSARun
+import AvailableChainCheckSupport.GeneratedOwner
 import Lean
-open Lean Meta
+open Lean Meta AvailableChainCheckSupport
 
 /-! FGSA run-library lease-instance check (plan
 `docs/plans/2026-09-29-fgsa-composition-t7-t1.md` §3.1, T7.1). A copy of
@@ -51,13 +52,17 @@ use, which the rules check), and definitions outside the namespace `AvailableCha
 core, Batteries, Mathlib: they do not mention GridCO). The backstop covers
 these definitions too.
 
-Skipped: a constant whose last name component is `eq_<k>` or `eq_def`, whose
-prefix is a definition declared in a module outside the scanned roots (for
-example `GridCO.recordGenuine.eq_1`, which Lean realizes in a run-library module
-when a proof there unfolds `recordGenuine`). Its policy is a bound variable, and
-each use of it is checked at the use. Its definition is inspected as an
-imported definition (the equation states the body of that definition). Lean
-reserves these names: a user declaration cannot have one.
+Skipped: a generated constant (an equation `eq_<k>` or `eq_def`, a matcher
+splitter or congruence equation, a sparse `casesOn` or its fallback equation,
+also with a private name) whose owner is a definition declared in a module
+outside the scanned roots (for example `GridCO.recordGenuine.eq_1`, which Lean
+realizes in a run-library module when a proof there unfolds `recordGenuine`).
+The owner comes from `AvailableChainCheckSupport.generatedOwner`
+(`scripts/AvailableChainCheckSupport/GeneratedOwner.lean`): the private prefix
+and the generated last components are stripped until the name is declared. Its
+policy is a bound variable, and each use of it is checked at the use. Its owner
+is inspected as an imported definition (the equation states the body of that
+definition). Lean reserves these names: a user declaration cannot have one.
 
 It checks BUILT data, as `scripts/CheckFGSARunAxioms.lean`: run
 `lake build AvailableChainFGSARun` first, or use
@@ -81,16 +86,11 @@ def inRoots (roots : List Name) (env : Environment) (n : Name) : Bool :=
   | some m => roots.any (·.isPrefixOf m)
   | none => false
 
-/-- A generated equation lemma of a definition of another library. -/
-def generatedEqn (roots : List Name) (env : Environment) (n : Name) : Bool :=
-  match n with
-  | .str pre s =>
-      let k := s.drop 3
-      let isEqn := s == "eq_def" || (s.startsWith "eq_" && !k.isEmpty && k.all Char.isDigit)
-      isEqn && (match env.find? pre with
-        | some (.defnInfo _) => !inRoots roots env pre
-        | _ => false)
-  | _ => false
+/-- A generated constant of a definition of another library, with its owner
+(`AvailableChainCheckSupport.generatedOwner`: the private prefix and the
+generated last components stripped). -/
+def generatedEqn (roots : List Name) (env : Environment) (n : Name) : Option Name :=
+  generatedOfOther env (inRoots roots env) n
 
 /-- A policy type: `GridCO.LeasePolicy` after `whnf` with all transparency. -/
 def isPolicyType (t : Expr) : MetaM Bool :=
@@ -222,10 +222,10 @@ def main (args : List String) : IO UInt32 := do
     let mut st : Scan := {}
     let mut skipped := 0
     for (n, ci) in cs do
-      if generatedEqn roots env n then
+      if let some o := generatedEqn roots env n then
         -- The equation states the body of its definition: inspect that body.
         skipped := skipped + 1
-        st := { st with reached := st.reached.insert n.getPrefix }
+        st := { st with reached := st.reached.insert o }
         continue
       let ((), st') ← (do
         unless (← posOf ci.name).isEmpty do
