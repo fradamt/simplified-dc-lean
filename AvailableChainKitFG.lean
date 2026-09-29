@@ -5,6 +5,8 @@ public import AvailableChainKitFG.Accountable
 public import AvailableChainKitFG.ClientSafety
 public import AvailableChainKitFG.Correspondence
 public import AvailableChainKitFG.StoreInvDef
+public import AvailableChainKitFG.ViewLock
+public import AvailableChainKitFG.HonestRows
 public import AvailableChainKitFG.Provenance
 public import AvailableChainKitFG.CausalCap
 public import AvailableChainKitFG.CrossingNoFinal
