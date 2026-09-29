@@ -104,9 +104,10 @@ own plan and a full audit after plan 1b.
   `docs/audit/i9-branch-final-report.md`, MERGE WITH FIXES 0/1/2. F1
   (major): `fg_ba` and `fg_bb` were deleted outside the statement rule;
   they are restored with their old text (§5.9). F2 (minor): the
-  carried-vote check of the FG-SA duplicate test `wDup` was vacuous; it is
-  fixed (§6.1). F3 (minor): the `CONTRACT.md` D9 sentence; the docs review
-  fix (factual error 1) covers it. F1 and F2 are fixed in a separate Lean
+  carried-vote check of the FG-SA duplicate smoke test `wDup` was vacuous;
+  the test now carries a fresh label-2 vote that direct delivery admits
+  (§6.1). F3 (minor): the `CONTRACT.md` D9 sentence, fixed in `7790316`
+  (docs review, factual error 1). F1 and F2 are fixed in a separate Lean
   commit.
 - Docs review of the branch documents (§9): Needs fixes (3 factual, 5 stale,
   3 inconsistencies, 9 minor); fixed in the final docs commit before the
@@ -791,9 +792,10 @@ injectivity", the `fj.frame.v1` FJ_FRAME row text changed, and each other
 │ Class (c)                          │ stY.fg.TF →                      │ stY.fg.TF → KitFG.RootInjectiveOn  │
 │                                    │ KitFG.RootInjectiveOn B₁ B₂)     │ B₁ B₂                              │
 ├────────────────────────────────────┼──────────────────────────────────┼────────────────────────────────────┤
-│ fg_ba, fg_bb (RootCollision)       │ theorem fg_ba : ∃ X ∈ stX.fg.TF, │ no change: deleted in Task 9,      │
-│ No class (restored)                │ eraseFG X = ba; theorem fg_bb :  │ restored after the final review    │
-│                                    │ ∃ Y ∈ stY.fg.TF, eraseFG Y = bb  │ (Astra F1) with the old text       │
+│ fg_ba, fg_bb (RootCollision)       │ theorem fg_ba : ∃ X ∈ stX.fg.TF, │ deleted in Task 9, restored after  │
+│ No class (restored)                │ eraseFG X = ba; theorem fg_bb :  │ the final review (Astra F1) with   │
+│                                    │ ∃ Y ∈ stY.fg.TF, eraseFG Y = bb  │ the old text; no net statement     │
+│                                    │                                  │ change                             │
 ├────────────────────────────────────┼──────────────────────────────────┼────────────────────────────────────┤
 │ ba, c1, bb (RootCollision)         │ .node .genesis 4 ⟨4⟩; .node      │ pb .genesis 4 0 []; pb .genesis 1  │
 │ Class (a)                          │ .genesis 1 ⟨1⟩; .node c1 2 ⟨4⟩   │ 0 []; pb c1 2 0 []                 │
