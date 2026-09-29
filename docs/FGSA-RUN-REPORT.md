@@ -376,7 +376,11 @@ Notes and open items:
   through the owner; POSITIVE, `posOwnerSplit` and `posOwnerSimp` `split`
   and `simp` over `GridCO.admitVote` and `GridCO.excludes` and pass. The
   positive control fails under the old rule (two `FORBIDDEN CONSTANT` lines
-  for `headLabel?.match_1.eq_2`) and passes under the new one.
+  for `headLabel?.match_1.eq_2`) and passes under the new one. After the
+  v4.34.1 port the owner map is in the library `AvailableChainCheckSupport`
+  (`scripts/AvailableChainCheckSupport/GeneratedOwner.lean`; imports only
+  `Lean`; not a default target, the check scripts build it first); a grep in
+  `scripts/check-fgsa.sh` shows that no protocol library imports it.
 - Guards: every public theorem of `Proofs/Protocol.lean` and
   `Proofs/Excludes.lean` has a `#print axioms` line in `Tests/Axioms.lean`;
   `--expect` lists the main outputs; a negative control checks that a name

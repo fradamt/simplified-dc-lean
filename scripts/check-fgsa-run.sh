@@ -16,6 +16,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 for f in scripts/CheckFGSARunAxioms.lean scripts/CheckFGSARunLease.lean \
+    scripts/AvailableChainCheckSupport/GeneratedOwner.lean \
     scripts/fgsa-controls/AdvG.lean scripts/fgsa-controls/AdvLib.lean; do
   [ -f "$f" ] || { echo "MISSING CHECK SCRIPT: $f"; exit 2; }
 done
@@ -185,6 +186,10 @@ check_v2_open() {
 
 echo "== lake build --wfail AvailableChainFGSARun"
 lake build --wfail AvailableChainFGSARun
+# The check support library (the owner map of generated constants) is not a
+# default target: build it here, so that a clean checkout works.
+echo "== lake build --wfail AvailableChainCheckSupport"
+lake build --wfail AvailableChainCheckSupport
 echo "== root imports"
 check_root_imports . || exit 2
 echo "== native evaluation"

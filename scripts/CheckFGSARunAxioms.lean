@@ -1,6 +1,7 @@
 import AvailableChainFGSARun
+import AvailableChainCheckSupport.GeneratedOwner
 import Lean
-open Lean
+open Lean AvailableChainCheckSupport
 
 /-! FGSA run-library axiom and import check (plan
 `docs/plans/2026-09-29-fgsa-composition-t7-t1.md` §3.1, T7.1). Adapted from
@@ -37,7 +38,8 @@ It also checks four facts on the COMPILED data:
   `AvailableChainFGSA.Proofs` may use such constants in their own proofs.
   A generated constant (an equation, a splitter, a congruence equation, a
   sparse `casesOn` or its fallback equation, also with a private name) is
-  judged by its owner definition (`generatedOwner`), not by the module that
+  judged by its owner definition (`generatedOwner`, in
+  `scripts/AvailableChainCheckSupport/GeneratedOwner.lean`), not by the module that
   realized it: the owner must be a definition in a module that is not
   forbidden. Skipped as a checked constant: a generated constant of a
   definition of another library. Lean realizes it in the module that unfolds
@@ -127,51 +129,11 @@ def inLib (env : Environment) (n : Name) : Bool :=
   | some m => lib.isPrefixOf m
   | none => false
 
-/-- A last name component that Lean generates for a definition: an equation
-(`eq_<k>`, `eq_def`), a matcher splitter or congruence equation (`splitter`,
-`congr_eq_<k>`), or a sparse `casesOn` and its fallback equation
-(`_sparseCasesOn_<k>`, `else_eq`). -/
-def generatedSuffix (s : String) : Bool :=
-  let numbered (pre : String) :=
-    s.startsWith pre && !(s.drop pre.length).isEmpty && (s.drop pre.length).all Char.isDigit
-  s == "eq_def" || s == "splitter" || s == "else_eq" || numbered "eq_" ||
-    numbered "congr_eq_" || numbered "_sparseCasesOn_"
-
-/-- The declared constant `n`, or the declared constant of the user name of
-the private name `n`. -/
-def declaredName (env : Environment) (n : Name) : Option Name :=
-  if env.contains n then some n else
-    match privateToUserName? n with
-    | some u => if env.contains u then some u else none
-    | none => none
-
-/-- The owner of a generated constant: strip one generated last component at a
-time (`generatedSuffix`) until the name is a declared constant (directly, or
-through the user name of a private name). `none` if the last component of `n`
-is not generated, or if no owner is found. Lean realizes a generated constant
-in the first module that needs it, possibly a private copy (for example a
-matcher equation `_private.M.0.X.match_1.eq_2`), so its module does not tell
-where its definition is; the owner does. -/
-def generatedOwner (env : Environment) : Name → Option Name
-  | .str pre s =>
-      if generatedSuffix s then
-        match declaredName env pre with
-        | some o => some o
-        | none => generatedOwner env pre
-      else none
-  | _ => none
-
-/-- The owner of a generated constant is a definition. -/
-def ownerIsDefn (env : Environment) (o : Name) : Bool :=
-  env.find? o matches some (.defnInfo _)
-
 /-- A generated constant (`generatedOwner`) of a definition of another
 library. Lean realizes it in the module that unfolds the definition, and it
 states the body of that definition, which is not a T7 declaration. -/
 def generatedEqn (env : Environment) (n : Name) : Bool :=
-  match generatedOwner env n with
-  | some o => ownerIsDefn env o && !inLib env o
-  | none => false
+  (generatedOfOther env (inLib env) n).isSome
 
 /-- The used constant `u` is forbidden. A generated constant is judged by its
 owner: the owner must be a definition in a module that is not forbidden (the

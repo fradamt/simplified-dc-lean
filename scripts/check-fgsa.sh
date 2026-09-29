@@ -117,6 +117,12 @@ check_boundary() {
 
 echo "== lake build --wfail AvailableChainFGSA"
 lake build --wfail AvailableChainFGSA
+# The check support library (scripts/AvailableChainCheckSupport/) is not a
+# default target: build it here, so that a clean checkout works.
+echo "== lake build --wfail AvailableChainCheckSupport"
+lake build --wfail AvailableChainCheckSupport
+echo "== no protocol library imports the check support library"
+! grep -RlE 'import[[:space:]]+AvailableChainCheckSupport' AvailableChain*/ AvailableChain*.lean || { echo "PROTOCOL LIBRARY IMPORTS AvailableChainCheckSupport"; exit 1; }
 echo "== root imports"
 check_root_imports . || exit 2
 echo "== native evaluation"
