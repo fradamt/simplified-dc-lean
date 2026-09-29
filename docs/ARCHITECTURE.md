@@ -87,10 +87,13 @@ changes, and tell the other sessions._
 - Design rules (user): stay close to DC and justify every divergence;
   latest certificate only; outputs nest by construction; FG never vetoes
   blocks; timeliness only on sending.
-- Authority: `spec/fgsa-protocol.tex` (adopted 4e85ff34, 2026-09-29;
-  replaces 42d557a2; only change: `genuine_result` runs `ghost` from Σ.F
-  on act(Σ), final eligibility test kept; `spec/archive/CHANGES-42d557a2-
-  to-4e85ff34.md`). Proofs: `blueprint/` (00 outline; 01 foundations; 02
+- Authority: `spec/fgsa-protocol.tex` (adopted c1ea1db0, 2026-09-29;
+  replaces 4e85ff34 with two changes: the pre-GST delivery clause of the
+  partial-synchrony premise (OD6, as v2 `PartialSynchrony`) and the
+  healing-interface names aligned with the blueprint;
+  `spec/archive/CHANGES-4e85ff34-to-c1ea1db0.md`; 4e85ff34 made the SA
+  walk start at Σ.F). Blueprint line citations use the 4e85ff34 numbering.
+  Proofs: `blueprint/` (00 outline; 01 foundations; 02
   Clean; 03 P1 and inclusion; 21 healing with `HEALING_INPUT`; 22
   finality).
 
