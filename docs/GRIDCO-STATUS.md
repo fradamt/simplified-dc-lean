@@ -71,9 +71,9 @@ counterexamples and conditional constructors have been removed.
   (and so `sa`) now has a real `excludes`: a HEAD that is not yet stored
   is excluded when its label is before the previous slot or its seat
   already equivocates at that label. Proposals are never excluded.
-  `excludes_head_iff` and `excludes_proposal` show that these are exactly
-  the permanent refusals of `admitVote`; `excludes_stable` uses the valid
-  schedule, because the old-label test needs a clock that does not move
+  `excludes_head_iff` and `excludes_proposal` fix the definition;
+  `excludes_inert` and `excludes_stable` show that `admitVote` refuses
+  these HEADs for good. `excludes_stable` uses the valid schedule, because the old-label test needs a clock that does not move
   backwards. The five relay lemmas that used `excludes = false` by `rfl`
   now take the premise "not excluded up to the cutoff".
   `Proofs/WindowMargin.lean` proves that premise for each caller: before

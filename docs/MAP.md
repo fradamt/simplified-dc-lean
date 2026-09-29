@@ -52,7 +52,8 @@ The main proof paths below use files in `AvailableChainGridCO/Proofs/`.
   the object up to the cutoff" for each caller of the five relay lemmas
   (`synchronous_head_handled_early`, `synchronous_proposal_delivered`,
   `synchronous_receipt_before`, `synchronous_block_path_at_gate`,
-  `handled_before_proposal_of_ready`). `Hooks.lean` proves the E4 hook
+  `handled_before_proposal_of_ready`). Its `head_not_excluded_before`
+  replaces the old Registry lemma `inWindow_not_excluded`. `Hooks.lean` proves the E4 hook
   facts for `gridCO p` (`excludes_inert`, `excludes_stable`,
   `processed_stable`, `deps_stable`, `handles_carries`) and the exactness
   tests of `excludes` (`excludes_head_iff`, `excludes_proposal`,
