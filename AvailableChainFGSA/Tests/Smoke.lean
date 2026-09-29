@@ -411,8 +411,11 @@ def stFw (b : Block) : State pT.n :=
 `b1` has score 0. The walk from genesis gives genesis (shown for contrast), but
 the walk from F = B1 stops at `b1`, and `b1` fails the final strict-majority
 test. So the saved result is empty, `fastWrite[3] = ∅`, no lease is written,
-and S = F. This is the empty case of the transfer lemma (spec 2096–2103). -/
+and S = F. This is the empty case of the transfer lemma (spec 2096–2103). Only
+the `savedGenuine` conjunct tells the two walks apart. Label 3 is unsaved
+before the gate, so the gate runs. -/
 example : (stFw .genesis).fg.F = B1 ∧ b1 ≠ .genesis ∧
+    GridCO.savedGenuine (stFw .genesis).base 3 = none ∧
     SA.confirmation pT.toParams (actView (stFw .genesis)) 3 = some .genesis ∧
     GridCO.savedGenuine (gateStep pT (stFw .genesis) 3).base 3 = some none ∧
     fastWriteAt (gateStep pT (stFw .genesis) 3) 3 = some [] ∧
@@ -424,6 +427,7 @@ example : (stFw .genesis).fg.F = B1 ∧ b1 ≠ .genesis ∧
 The saved result is b2, the same as the walk from genesis, and the fast set is
 `[b1, b2]` (τ = 2 ≤ p(3, B) = 2). -/
 example : (stFw (eraseFG B2)).fg.F = B1 ∧
+    GridCO.savedGenuine (stFw (eraseFG B2)).base 3 = none ∧
     GridCO.savedGenuine (gateStep pT (stFw (eraseFG B2)) 3).base 3 =
       some (some (eraseFG B2)) ∧
     SA.confirmation pT.toParams (actView (stFw (eraseFG B2))) 3 = some (eraseFG B2) ∧
@@ -435,7 +439,7 @@ when the block is Σ.F). By hand: b1 has score 2 and 2·2 > 2; its child b2 has
 score 0, so no child of F is eligible. The walk stays at F = B1, and F passes
 the final test: the saved result is `b1`. With T1, this fixes the rule "the walk
 tests eligibility at F". -/
-example : (stFw b1).fg.F = B1 ∧
+example : (stFw b1).fg.F = B1 ∧ GridCO.savedGenuine (stFw b1).base 3 = none ∧
     GridCO.savedGenuine (gateStep pT (stFw b1) 3).base 3 = some (some b1) ∧
     fastWriteAt (gateStep pT (stFw b1) 3) 3 = some [b1] := by decide +kernel
 
@@ -588,8 +592,8 @@ example : (attest pT stC1 Record.initial 0).1.finality_pair = none ∧
 /-- G5: the evaluate-once guard skips the lease and S writes (spec 756). After a
 successful gate of label 2 on `stS` (leases on b1, b2; S = b2), clear the leases
 and S by hand. A second gate of label 2 is skipped, so no lease comes back and S
-stays genesis (F = genesis). Without the guard, `SA.gate` would write the leases
-again and set S = b2. -/
+stays genesis (F = genesis). Without the guard, `SA.gateFrom` (here equal to
+`SA.gate`, because F = genesis) would write the leases again and set S = b2. -/
 def g' : State pT.n :=
   let g := gateStep pT stS 2
   { g with base := { g.base with obligations := [], stableRecord := .genesis } }

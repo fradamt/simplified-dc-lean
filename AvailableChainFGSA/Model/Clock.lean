@@ -35,7 +35,8 @@ def gateStep (p : Params) (st : State p.n) (s : Slot) : State p.n :=
 /-- [spec 683–694, 709–752; M8] The tick before the gate: set the time and
 expire leases; the freeze and early caches (on the active view; model-only,
 DQ8); the release at `q_{s−1}` (on the active view). The step order and the
-time tests are those of `GridCO.clock` (`GridCO/Model/Protocol.lean:485`). -/
+time tests are those of `GridCO.clockFrom` (`GridCO/Model/Protocol.lean:523`;
+`GridCO.clock` at :541 is its case at genesis). -/
 def clockPre (p : Params) (st : State p.n) (t : Time) : State p.n :=
   let q := p.toParams
   let st := { st with base := GridCO.expire { st.base with now := t } t }

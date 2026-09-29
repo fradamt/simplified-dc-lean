@@ -66,9 +66,10 @@ relation that K1 needs; it is not a proof of every clause of
 │                  │                                      │ = absent                           │
 │ bp.activeView.v1 │ items 1–6: actView_blocks,           │ items 1, 2, 4 and actView_eq_image │
 │                  │ actView_genesis_F (1); actView_      │ need CStoreInv; items 3, 5, 6 need │
-│                  │ ancestor_closed (2); actView_        │ none (item 6: K ⪯ F). Genesis      │
-│                  │ antitone (3); actView_path (4);      │ result of item 6: actView_genesis_F│
-│                  │ blockExcluded_stable, actView_eq,    │ or block_genesis_preceq (G7 m4)    │
+│                  │ ancestor_closed (2); actView_        │ none (item 6: K ⪯ F). A result at  │
+│                  │ antitone (3); actView_path (4);      │ the anchor F of item 6 (walk from  │
+│                  │ blockExcluded_stable, actView_eq,    │ F since 4e85ff34): F ∈ A by        │
+│                  │                                      │ actView_genesis_F (G7 m4)          │
 │                  │ actView_fields (5); actView_noVeto,  │                                    │
 │                  │ actView_releaseCount_zero (6);       │                                    │
 │                  │ actView_eq_image                     │                                    │
@@ -91,7 +92,13 @@ Not done here (out of scope): K6–K11, theorems (b), (c), (c′), (d)
 
 Against the spec (archive 2e884811): no new undeclared rule difference at the
 stated protocol boundary (checked inputs, scheduled event order; G3–G6
-reviews, the Astra model check r195, G13). Declared differences:
+reviews, the Astra model check r195, G13). Since the spec sync (branch
+fgsa-spec-sync, 2026-09-29) the model follows spec 4e85ff34 in
+`genuine_result` (the walk from Σ.F with the final test also at F), so it
+differs from 2e884811 there: in Smoke test T1, 2e884811 saves `some genesis`
+and the model saves `none`. Every other rule is unchanged.
+
+Declared differences:
 - DQ10/DQ2 (G13 Opus m4): closed by I9. Roots are derived and injective, so
   the DQ2 root test refuses a block only when the same block is stored. This
   agrees with the spec idealization of distinct roots (spec 167, 521).
