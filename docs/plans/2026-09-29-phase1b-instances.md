@@ -44,12 +44,12 @@ Plan 1a's scope table gave plan 1b eligibility, the run-extension theorem, inhab
 
 ## Findings that change the premises (survey, 2026-09-29)
 
-1. **The contract needs no E4 change.** Design §2 E4 (lines 154–163) says that `AcceptedObjectRelay` and `HealthyAcceptedObjectRelay` are regime conditions without an exclusion exemption, and that Phase 1 must fix them. This text is out of date. The receipt-relay merge (`1a3f73a`) removed the `acceptedRelay` field from all five regimes (`SleepyRegime`, `OutageRegime`, `RecoveryRegime`, `StrongArmedRegime`, SA-PC's `QuorumRecoveryRegime`; `docs/CONTRACT.md:283-299`). Today every regime uses `PartialSynchrony` (`Generic/Conditions.lean:104-127`) or `HealthyPrefixDelivery` (`:129-151`). Both relay handler calls, not acceptance, and both have had the exclusion exemption since the first commit. `AcceptedObjectRelay` survives only as derived SA-PC adapters (`AvailableChainSAPC/Proofs/ReceiptRelay.lean:260-306`). So the coverage gap that design §2 describes is already closed, and this plan does not change `AvailableChainStatements`.
+1. **The contract needs no E4 change.** Design §2 E4 (lines 154–163) says that `AcceptedObjectRelay` and `HealthyAcceptedObjectRelay` are regime conditions without an exclusion exemption, and that Phase 1 must fix them. This text is out of date. The receipt-relay merge (`1a3f73a`) removed the `acceptedRelay` field from all five regimes (`SleepyRegime`, `OutageRegime`, `RecoveryRegime`, `StrongArmedRegime`, SA-PC's `QuorumRecoveryRegime`; `docs/CONTRACT.md:283-299`). Today every regime uses `PartialSynchrony` (`Generic/Conditions.lean:104-127`) or `HealthyPrefixDelivery` (`:129-151`). Both relay handler calls, not acceptance, and both have had the exclusion exemption since the first commit. `AcceptedObjectRelay` survives only in derived results, none of them a regime field: the SA-PC adapters (`AvailableChainSAPC/Proofs/ReceiptRelay.lean:260-306`), `healthyPrefix_acceptedRelay` (`AvailableChainGridCO/Proofs/HealthyPrefix.lean:93-95`) and Counter's `canonical_relay` (`AvailableChainRegistry/CounterRun.lean:470`). So the coverage gap that design §2 describes is already closed, and this plan does not change `AvailableChainStatements`.
 2. **SA-PC has no permanent refusal.** SA-PC's `processed` for a HEAD is membership in the archive `receivedHeads` (`AvailableChainSAPC/Model/Handlers.lean:82`). `receiveHead` refuses only a future label (`:12`), which is temporary. The Grid CO old-label and equivocation refusals act only on the base cache (`:16`), not on `processed`. PCs are refused only before `pcEnvelopeReady` (temporary). Under E4, `excludes := fun _ _ => false` is therefore the correct classification for SA-PC, and `receipt_acceptedRelay` (which uses it) stays valid. Design §2's "and for SA and SA-PC too" holds for SA (the same code as Grid CO) but not for SA-PC.
 3. **Grid CO and SA have two permanent HEAD refusals** in `admitVote` (`AvailableChainGridCO/Model/Protocol.lean:300-309`): a HEAD of label `r` when `r < current - 1` (line 306; the clock only goes forward), and a HEAD from a seat that already equivocates at `r` (line 307). `gridCOx` (`AvailableChainRegistry/GridCOHooks.lean:15-24`) models both, and `gridCOx_hooks` proves `HooksSound` for it. Its old-label clause does not test `processed` (PHASE0-REPORT §6, GridCO row). The E4 reason to move it into `gridCO` is the delivery classification (RelayFeasible, plan 1c): with `excludes = false`, a late HEAD refusal is a "temporary refusal" that never ends. Coverage is not the reason (finding 1).
-4. **L* has one permanent refusal**: the third equivocation (`AvailableChainLStar/Model/Protocol.lean:273-274`). It admits late votes of old labels (`:270-272`). L* has no claim proofs (`Statements/Contract.lean:60-63` is a statement only), so it gets an instance but no `holdsAt` theorem.
+4. **L* has two permanent refusals** (corrected by the Claude review, M3): the third equivocation (`AvailableChainLStar/Model/Protocol.lean:273-274`), and a proposal wire whose block is already stored. L* `processed` for a proposal is wire membership (`:314-315`), but `admitProposal` refuses when `b ∈ st.blocks` (`:283`): a faulty proposer can sign two well-formed wires with the same block, and the second wire is refused for good. L* admits late votes of old labels (`:270-272`). Grid CO and SA-PC do not have the proposal refusal, because their `processed` for a proposal is block-level (`blockKnown`). L* has no claim proofs (`Statements/Contract.lean:60-63` is a statement only), so it gets an instance but no `holdsAt` theorem.
 5. **Eligibility belongs with its consumer.** `EmitWellFormed`, `HandlerCoverage`, `Deliverable` and `RelayFeasible` do not exist in Lean. Their only consumer is the run-extension theorem, which does not exist either: Phase 0's "run extension" is `canonical_sleepy` for Counter only (`AvailableChainRegistry/CounterRun.lean:508`), whose scheduler hard-codes the delivered objects. No append or extension lemma exists; the only prefix lemmas restrict a run (`AvailableChainGridCO/Proofs/RunPrefix.lean`). Definitions in `AvailableChainFramework` are locked on first write. Definitions written before the theorem that uses them are likely to need a lock change. So plan 1c defines `Eligible` and proves the theorem in the same plan.
-6. **No run of any of the four protocols exists for every horizon**, and persistence certificates need `C.budget > 0`, so `η > 0` (every `Params` allows `η = 0`). Both are plan 1c inputs.
+6. **No proved construction of a run for every horizon exists for any of the four protocols** (a missing construction, not a proof that none exists; Astra P1b-08), and persistence certificates need `C.budget > 0`, so `η > 0` (every `Params` allows `η = 0`). Both are plan 1c inputs.
 7. **The engine-generic lemmas live in the Grid CO library.** Namespace `AvailableChain.Engine` is in `AvailableChainGridCO/Proofs/{Execution (lines 1–210), EngineClock, RunPrefix, HealthyPrefix, HealthyInterior, ProtectionInduction, SourceHistory}.lean`, and `Execution.lean:2` imports `AvailableChainGridCO.Proofs.History` only for its transitive imports. SA, SA-PC and the Registry have about 124 references to it.
 
 ## Rulings in this plan
@@ -57,10 +57,10 @@ Plan 1a's scope table gave plan 1b eligibility, the run-extension theorem, inhab
 - **No contract change, no lock break.** `AvailableChainStatements` is not edited. `AcceptedObjectRelay` and `HealthyAcceptedObjectRelay` keep their text (no regime uses them). The catalog lock reaches only `AvailableChainFramework` and the Statements and Model definitions in its closure (`scripts/CatalogLock.lean:55-70`); the protocol libraries are outside it. The only lock change is ADDED lines for Task 4. If any task shows a CHANGED or REMOVED lock line, it stops.
 - **Grid CO `excludes`** (Task 1) is exactly the permanent refusals of a HEAD that is not yet processed. It is disjoint from `processed` by construction (answers PHASE0-REPORT §6 GridCO row 1: yes, they stay disjoint). Proposals are never excluded.
 - **The WindowMargin interface** (async M-series; DC-simplify 2026-09-29). Every Grid CO relay lemma that used `excludes = false` by `rfl` gets a premise "the reader does not exclude `o` at the deadline". One module, `AvailableChainGridCO/Proofs/WindowMargin.lean`, proves that premise for every caller. A later admission guard (I9) extends `excludes` to more objects; then only WindowMargin lemmas change, not the relay lemmas. See "Shared sites with I9".
-- **Hook facts live in the protocol libraries; `HooksSound` values live in the Registry.** A protocol library does not import `AvailableChainFramework` (layering, AGENTS.md). Each library proves the five hook facts in its own namespace with the same statement shape as the `HooksSound` fields (`AvailableChainFramework/Hooks.lean:31-50`); the Registry assembles them.
+- **Hook facts live in the protocol libraries; `HooksSound` values live in the Registry.** No protocol library imports `AvailableChainFramework` today. No written rule forbids it (Astra P1b-09); this plan CHOOSES that import boundary, so that the protocol libraries stay independent of the framework's locked types. Each library proves the five hook facts in its own namespace with the same statement shape as the `HooksSound` fields (`AvailableChainFramework/Hooks.lean:31-50`); the Registry assembles them.
 - **`holdsAt` is not a certificate.** A theorem `ac43.holdsAt I C` proves the claims' propositions without inhabitation (design §5: "Transport of `holds` does not transport `inhabited`"). The registry shows it with the new kind `profile-holds`, and `MATRIX.md` shows it as `holds`, never as `cert`.
 - **Kit split** (PHASE0-REPORT §6, Kit row): library `AvailableChainKit` (L5: `Core`, `Engine/*`) and library `AvailableChainEngineV2` (the L0 sketch, which plan 2 grows). Namespaces do not change (`AvailableChain.Engine` for the engine lemmas), so references do not change; only imports change. `AvailableChainFramework` does not import the Kit (Kit is L5, above the Framework's L2–L3).
-- **Constraint from the FG-SA branch** (`fgsa-composition`, merge-base `d415a7c`; DC-simplify 2026-09-29). That branch uses the Grid CO and SA state functions `admitProposal`, `admitVote`, `gate`, `propose` and the voter views, and the lemmas `gate_target_origin`, `confirmation_mem`, `gate_eq_writeKeys`, `admitVote_*`, `gate_blocks`, `recordGenuine` (at `slowLeasePolicy`). It imports `AvailableChainGridCO.Proofs.{GenuineHistory, History, Map, RecordSlots, Roots}`. This plan does not change those function bodies, those lemma statements, or those module paths. A rebase of that branch then needs a rebuild and a lakefile merge only.
+- **Constraint from the FG-SA branch** (`fgsa-composition`, merge-base `d415a7c`; DC-simplify 2026-09-29). That branch uses the Grid CO and SA state functions `admitProposal`, `admitVote`, `gate`, `propose` and the voter views, and the lemmas `gate_target_origin`, `confirmation_mem`, `gate_eq_writeKeys`, `admitVote_*`, `gate_blocks`, `recordGenuine` (at `slowLeasePolicy`). It imports `AvailableChainGridCO.Proofs.{GenuineHistory, History, Map, RecordSlots, Roots}`, `AvailableChainSA.Model.Protocol` and `AvailableChainKitFG.Correspondence`. This plan does not change those function bodies, those lemma statements, or those module paths. A rebase of that branch then needs a rebuild and a lakefile merge only.
 
 ## Shared sites with I9 (root collisions; a user decision, NOT in this plan)
 
@@ -70,22 +70,34 @@ r194/r196 (`research/async-resilient-committees/tip-stability/codex/root-design.
 ┌──────────────────────────────────────┬──────────────────────┬──────────────────────────────┐
 │ Site                                 │ This plan            │ I9 (later)                   │
 ├──────────────────────────────────────┼──────────────────────┼──────────────────────────────┤
+│ Grid CO `propose` (Protocol.lean:    │ not changed          │ builds `mkBlock`; also an    │
+│ 287-292)                             │                      │ FG-SA constraint site        │
+│ SA-PC `propose` (Choice.lean),       │ not changed          │ builds `mkBlock`             │
+│ L* `propose` (Protocol.lean:253-259) │                      │                              │
 │ Grid CO `admitProposal`              │ not changed          │ adds `rootOK` before insert  │
 │ Grid CO proposal `wellFormed`        │ not changed          │ adds `rootOK`                │
-│ Grid CO `excludes`                   │ NEW (HEADs only)     │ may add bad-root proposals   │
-│ Grid CO relay lemmas (ClockBounds,   │ premise "not         │ unchanged if I9 only extends │
-│ ProposalDelivery, CrossView, Paths,  │ excluded at the      │ `excludes`                   │
-│ Proposals)                           │ deadline" added      │                              │
-│ Grid CO WindowMargin.lean            │ NEW: proves the      │ adds: honest proposals have  │
-│                                      │ premise per caller   │ good roots, so not excluded  │
+│ Grid CO `excludes`                   │ NEW (HEADs only)     │ unchanged in r196's minimal  │
+│                                      │                      │ variant (see note); else may │
+│                                      │                      │ add bad-root proposals       │
+│ Grid CO relay lemmas (ClockBounds,   │ premise "not         │ unchanged: the premise       │
+│ ProposalDelivery, CrossView, Paths,  │ excluded up to the   │ covers every object class    │
+│ Proposals)                           │ cutoff", all five    │                              │
+│ Grid CO WindowMargin.lean            │ NEW: proves the      │ `proposal_not_excluded` then │
+│                                      │ premise per caller,  │ needs "an ACCEPTED proposal  │
+│                                      │ all object classes   │ has a good root" (source     │
+│                                      │                      │ acceptance gives it, also    │
+│                                      │                      │ for a faulty proposer)       │
 │ SA-PC `wellFormed`, `proposalBase`   │ not changed          │ adds `rootOK`                │
-│ SA-PC `excludes`                     │ stays false          │ may add bad-root proposals;  │
+│ SA-PC `excludes`                     │ stays false          │ as Grid CO: only if admission│
+│                                      │                      │ checks more than the wire;   │
+│                                      │                      │ then                         │
 │                                      │                      │ then receipt_acceptedRelay's │
 │                                      │                      │ `rfl` (ReceiptRelay.lean:265,│
 │                                      │                      │ 275) needs a WindowMargin    │
 │                                      │                      │ lemma as in Grid CO          │
 │ L* handler and wire rule             │ `excludes` added     │ adds `rootOK`                │
-│                                      │ (equivocation only)  │                              │
+│                                      │ (equivocation and    │                              │
+│                                      │ stored-block wire)   │                              │
 │ FG-SA branch Proofs/Admission.lean   │ not affected         │ base_admitProposal_accepts   │
 │ (base_admitProposal_accepts,         │                      │ and admission agreement      │
 │ admission agreement)                 │                      │ compare FG and Grid CO       │
@@ -95,6 +107,8 @@ r194/r196 (`research/async-resilient-committees/tip-stability/codex/root-design.
 └──────────────────────────────────────┴──────────────────────┴──────────────────────────────┘
 ```
 
+Note (Claude review m9b). In r196's minimal variant, `rootOK` is in `wellFormed` and in admission, as the same local check. A proposal with a bad root is then outside `ExecutionValid` (`DeliveryWellFormed.wire`, `Conditions.lean:55-57`), so admission never refuses a valid delivery for its root. I9 then adds no permanent refusal: neither `excludes` nor SA-PC's `rfl` sites change. They change only if admission checks more than the wire check.
+
 ## Global Constraints
 
 - Toolchain and Mathlib v4.30.0-rc2. Do not run `lake update`.
@@ -103,7 +117,7 @@ r194/r196 (`research/async-resilient-committees/tip-stability/codex/root-design.
 - Do not edit `AvailableChainStatements/**` or `AvailableChainModel/**`.
 - Do not change the statement of `gridContract_from_engine`, `saContract_from_engine`, `sapcContract_from_engine`, `sapcStrong_from_engine`, or of any theorem that `AvailableChainSA/Tests/Axioms.lean` or `AvailableChainSAPC/Tests/Axioms.lean` prints. A statement change elsewhere in a protocol library is allowed only to add the "not excluded at the deadline" premise of Task 1 and must be listed in the task report.
 - The FG-SA constraint above: no change to the bodies of `admitProposal`, `admitVote`, `gate`, `propose`, the voter views; no change to the statements of `gate_target_origin`, `confirmation_mem`, `gate_eq_writeKeys`, `admitVote_*`, `gate_blocks`, `recordGenuine`; no move of `AvailableChainGridCO.Proofs.{GenuineHistory, History, Map, RecordSlots, Roots}`.
-- The catalog lock: `CatalogLock --check` exits 0 after every task, with no CHANGED or REMOVED line. Task 4 adds lines with `--write` (no `--allow-changes`).
+- The catalog lock: `CatalogLock --check` exits 0 even when lines are only ADDED (Claude review, lock note). So every checkpoint that says "lock unchanged" requires `--check` to exit 0 AND print nothing, and `git diff docs/catalog.lock` to be empty. Task 4 is the only task that adds lines, with `--write` (no `--allow-changes`).
 - Registry: `scripts/Registry.lean` then `--check` exit 0 after every task that changes the Registry library.
 - `bash scripts/check-fg.sh` exits 0 at Tasks 0 and 7 (the Kit move changes GridCO imports; KitFG must still build).
 - Commit by explicit path. Never stage `log.md`, `state.md`, `docs/FG-COMPOSITION.md`. Commit messages end with the `Claude-Session:` line.
@@ -125,10 +139,10 @@ r194/r196 (`research/async-resilient-committees/tip-stability/codex/root-design.
 - Modify: `lakefile.toml` (two `[[lean_lib]]` entries; `defaultTargets`)
 - Create: `AvailableChainKit.lean`, `AvailableChainKit/Core.lean` (moved from `AvailableChainFramework/Kit/Core.lean`), `AvailableChainKit/Engine/{Execution,EngineClock,RunPrefix,HealthyPrefix,HealthyInterior,ProtectionInduction,SourceHistory,Stable}.lean`
 - Create: `AvailableChainEngineV2.lean`, `AvailableChainEngineV2/Sketch.lean` (moved from `AvailableChainFramework/Engine/V2Sketch.lean`)
-- Modify: `AvailableChainFramework.lean` (remove the two imports), `AvailableChainGridCO/Proofs/Execution.lean` (keeps only its Grid CO part, lines 212 onward), every importer of a moved module, `AvailableChainGridCO/Proofs/Map.lean:25` (delete the private `block_preceq_trans`; use the Kit one), `AvailableChainRegistry/GridCOHooks.lean` (remove `stateBefore_stable`), `scripts/CheckFrameworkAxioms.lean:22` (add both libraries), `docs/MAP.md`
+- Modify: `AvailableChainFramework.lean` (remove the two imports), `AvailableChainGridCO/Proofs/Execution.lean` (keeps only its Grid CO part, lines 212 onward), every importer of a moved module, `AvailableChainRegistry/GridCOHooks.lean` (remove `stateBefore_stable`), `scripts/CheckFrameworkAxioms.lean` (add `import AvailableChainKit`, `import AvailableChainEngineV2`, and both names in `libraries` at `:22`; without the imports the new libraries stay unchecked, Claude review m3), `docs/MAP.md`
 
 **Interfaces:**
-- Produces: library `AvailableChainKit` with namespace `AvailableChain.Engine` (all moved engine lemmas, names unchanged) and `AvailableChain.Kit` (`block_preceq_trans`, `includedPersist_of_safe`); `AvailableChain.Engine.stateBefore_stable`; library `AvailableChainEngineV2` (namespace `AvailableChain.Framework.V2Sketch` unchanged).
+- Produces: library `AvailableChainKit` with namespace `AvailableChain.Engine` (all moved engine lemmas, names unchanged) and `AvailableChain.Framework.Kit` (`block_preceq_trans`, `includedPersist_of_safe`; the namespace does not change, Claude m2 / Astra P1b-06); `AvailableChain.Engine.stateBefore_stable`; library `AvailableChainEngineV2` (namespace `AvailableChain.Framework.V2Sketch` unchanged).
 
 - [ ] **Step 1: Check genericity.** For each candidate file, confirm that it uses no declaration from `AvailableChain.GridCO`, `AvailableChain.SA` or `AvailableChain.SAPC`: `grep -n 'GridCO\.\|gridCO\|SAPC\.\|SA\.' <file>`. A file that uses one stays in Grid CO; record it in the report. `Execution.lean` splits at line 212: lines 1–210 (namespace `AvailableChain.Engine`) move; the `AvailableChain.GridCO` re-exports stay in `AvailableChainGridCO/Proofs/Execution.lean`, which then imports `AvailableChainKit.Engine.Execution`.
 - [ ] **Step 2: Imports of the new library.** Each Kit file imports only `AvailableChainModel.*`, `AvailableChainStatements.*`, Mathlib and other Kit files. Replace `public import AvailableChainGridCO.Proofs.History` in the moved `Execution.lean` by the Statements and Mathlib modules that it needs (find them with a build error loop; start from `AvailableChainStatements.Generic.Regimes` and `Mathlib.Tactic`).
@@ -146,22 +160,22 @@ name = "AvailableChainEngineV2"
 ```
 
   and add both names to `defaultTargets`. Copy the style of the existing entries (check `lakefile.toml` first; keep their key order and options).
-- [ ] **Step 5: Importers.** `grep -rln 'AvailableChainGridCO.Proofs.\(EngineClock\|RunPrefix\|HealthyPrefix\|HealthyInterior\|ProtectionInduction\|SourceHistory\)\|AvailableChainFramework.Kit\|AvailableChainFramework.Engine' --include=*.lean .` and change each import to the new path. Do not change any proof.
-- [ ] **Step 6: Dedupe.** Delete the private `block_preceq_trans` at `AvailableChainGridCO/Proofs/Map.lean:25`; `Map.lean` uses `AvailableChain.Kit.block_preceq_trans` (open the namespace or qualify). The statements must be identical; if they differ, keep both and report.
-- [ ] **Step 7: CHECKPOINT.** `lake build --wfail` (every default target) is green. `CatalogLock --check` exits 0 and `docs/catalog.lock` is unchanged. `Registry` then `--check` exit 0; `docs/REGISTRY.md` unchanged. `CheckFrameworkAxioms` exits 0 (now over Framework, Registry, Kit, EngineV2). `bash scripts/check-fg.sh` exits 0. `git diff -M --stat` shows the moves as renames. Update `docs/MAP.md` (new libraries; moved files). Commit `Kit: engine-generic lemmas and the v2 sketch in their own libraries`.
+- [ ] **Step 5: Importers.** The moved files now reach Grid CO modules transitively (`EngineClock`, `RunPrefix` and `ProtectionInduction` import `GridCO.Proofs.Execution`, which imports `History`). An importer that switches to the Kit path can lose those transitive imports: then add the missing Grid CO import to that importer, with no proof change (Claude m4). `grep -rln 'AvailableChainGridCO.Proofs.\(EngineClock\|RunPrefix\|HealthyPrefix\|HealthyInterior\|ProtectionInduction\|SourceHistory\)\|AvailableChainFramework.Kit\|AvailableChainFramework.Engine' --include=*.lean .` and change each import to the new path. Do not change any proof.
+- [ ] **Step 6: No dedupe.** The two `block_preceq_trans` have different statements: the Kit one uses `Block.Preceq` (`Kit/Core.lean:13-14`), the private Grid CO one `Block.preceq … = true` (`Map.lean:25-28`); they are only definitionally equivalent (Claude m2, Astra Q6). Keep both. Task 7 records the ruling in PHASE0-REPORT §6, Kit row.
+- [ ] **Step 7: CHECKPOINT.** `lake build --wfail` (every default target) is green. `CatalogLock --check` exits 0 and prints nothing, and `docs/catalog.lock` is unchanged. `Registry` then `--check` exit 0; `docs/REGISTRY.md` unchanged. `CheckFrameworkAxioms` exits 0 (now over Framework, Registry, Kit, EngineV2). `bash scripts/check-fg.sh` exits 0. `git diff -M --stat` shows the moves as renames. Update `docs/MAP.md` (new libraries; moved files). Commit `Kit: engine-generic lemmas and the v2 sketch in their own libraries`.
 
 ### Task 1: Grid CO permanent exclusion (E4) and hook facts
 
 **Files:**
 - Modify: `AvailableChainGridCO/Model/Protocol.lean` (new `excludes`; `gridCO.excludes := excludes p`)
 - Create: `AvailableChainGridCO/Proofs/Hooks.lean`, `AvailableChainGridCO/Proofs/WindowMargin.lean`
-- Modify: the Grid CO relay lemmas that used `rfl` for `excludes` — `ClockBounds.lean:139` (`synchronous_head_handled_early`), `ProposalDelivery.lean:139` (`synchronous_proposal_delivered`), `CrossView.lean:17` (`synchronous_receipt_before`), `Paths.lean:288` (`synchronous_block_path_at_gate`), `Proposals.lean:102` (`handled_before_proposal_of_ready`) — and their callers in Grid CO, SA and SA-PC; `AvailableChainGridCO.lean` (imports)
+- Modify: the five Grid CO relay lemmas that used `rfl` for `excludes` — `ClockBounds.lean:139` (`synchronous_head_handled_early`), `ProposalDelivery.lean:139` (`synchronous_proposal_delivered`), `CrossView.lean:17` (`synchronous_receipt_before`), `Paths.lean:288` (`synchronous_block_path_at_gate`), `Proposals.lean:102` (`handled_before_proposal_of_ready`) — and their callers, which are only in Grid CO: `ClockBounds:176`, `CrossView:54`, `CrossView:84`, `ProposalDelivery:186`, `ProposalViewRelay:31`, `ProposalViewRelay:91` (Claude m7). None of the five is in `catalog.lock`, `REGISTRY.md`, a `Tests/Axioms` file or the FG-SA branch; `AvailableChainGridCO.lean` (imports)
 - Modify: `AvailableChainRegistry/GridCOHooks.lean` → rename to `AvailableChainRegistry/Instances/GridCOHooks.lean`, reduced to the `HooksSound (gridCO p)` assembly; `gridExcludes`, `gridCOx` and the model facts are removed from the Registry
 - Modify: `AvailableChainGridCO.lean`, `docs/GRIDCO-STATUS.md` (one dated paragraph)
 
 **Interfaces:**
 - Consumes: Task 0 (`AvailableChain.Engine.stateBefore_stable`).
-- Produces: `AvailableChain.GridCO.excludes`; in `AvailableChain.GridCO`: `excludes_inert`, `excludes_stable`, `processed_stable`, `deps_stable`, `handles_carries` (the `HooksSound` field shapes, specialized to `gridCO p`, generic in `[LeasePolicy]`); `excludes_proposal`, `excludes_head_iff`, `head_not_excluded_before` and the per-caller WindowMargin lemmas; `AvailableChain.Registry.GridCO.gridHooks : HooksSound (gridCO p)`.
+- Produces: `AvailableChain.GridCO.excludes`; in `AvailableChain.GridCO`: `excludes_inert`, `excludes_stable`, `processed_stable`, `deps_stable`, `handles_carries` (the `HooksSound` field shapes, specialized to `gridCO p`, generic in `[LeasePolicy]`); `excludes_proposal`, `excludes_head_iff`, `head_not_excluded_before`, `head_excluded_before_equivocates`, `proposal_not_excluded` and the per-caller WindowMargin lemmas; `AvailableChain.Registry.GridCO.gridHooks : HooksSound (gridCO p)`.
 
 - [ ] **Step 1: The definition** (in `Model/Protocol.lean`, before `gridCO`):
 
@@ -169,8 +183,11 @@ name = "AvailableChainEngineV2"
 /-- Permanent rejection (design §2 E4) of a HEAD that is not yet processed:
 its label `r` is before the previous slot (the clock only goes forward), or
 its seat already equivocates at `r`. `admitVote` returns the state unchanged
-in both cases, and in no later state accepts the HEAD. A processed HEAD is not
-excluded, and a proposal is never excluded. -/
+in both cases, and in no later state of a valid run accepts the HEAD. A
+processed HEAD is not excluded, and a proposal is never excluded. "Exactly the
+permanent refusals" holds for objects that pass the wire check (`wellFormed`);
+an ill-formed object is also refused for good, but `DeliveryWellFormed.wire`
+keeps it out of every valid run (Claude m13). -/
 def excludes (p : Params) {n : Nat} (st : State n) (o : Wire n) : Bool :=
   match o.auth, o.payload with
   | .seat r i, .head _ =>
@@ -200,15 +217,15 @@ theorem excludes_not_processed (p : Params) {n : Nat} (st : State n) (o : Wire n
 ```
 
   Adapt the binder types (`HeadWire`, the `head` payload argument) to the real `Msg` constructors; the statements' meaning must not change.
-- [ ] **Step 3: Hook facts.** Move `clock_votes` (`GridCOHooks.lean:108`), `gate_votes` (`:90`), `process_votes_subset` (`:209`), `process_blocks_subset` (`:234`, now public), `engineClockx` (`:251`) into `Proofs/Hooks.lean`, namespace `AvailableChain.GridCO` (PHASE0-REPORT §6, GridCO row 2). Prove the five run-level facts for `gridCO p`, each with the statement of the matching `HooksSound` field (`AvailableChainFramework/Hooks.lean:33-50`) with `P := gridCO p`. Proof guide: port `gridCOx_hooks` (`GridCOHooks.lean:257-344`); the new `!decide (o ∈ st.votes)` conjunct makes `excludes_stable` need `processed` to stay false for an excluded HEAD. It does: `process` on an excluded HEAD is the identity (`excludes_inert`), and a carried raw HEAD enters only through `admitVote`, which refuses it on the same tests (`handles`, `Model/Protocol.lean:364-368`). If this is false for some path, stop and report.
-- [ ] **Step 4: The relay premise.** For each of the five lemmas, replace the `rfl` for the `excludes` argument. If the object is a proposal, use `excludes_proposal`. Otherwise add the premise
+- [ ] **Step 3: Hook facts.** Move `clock_votes` (`GridCOHooks.lean:108`), `gate_votes` (`:90`), `process_votes_subset` (`:209`), `process_blocks_subset` (`:234`, now public) into `Proofs/Hooks.lean`; delete `engineClockx` (`:251`), because `engineClock` (`ClockBounds.lean:48`) is already `ClockLaws (gridCO p)` (Claude m6), namespace `AvailableChain.GridCO` (PHASE0-REPORT §6, GridCO row 2). Prove the five run-level facts for `gridCO p`, each with the statement of the matching `HooksSound` field (`AvailableChainFramework/Hooks.lean:33-50`) with `P := gridCO p`. Proof guide: port `gridCOx_hooks` (`GridCOHooks.lean:257-344`); the new `!decide (o ∈ st.votes)` conjunct makes `excludes_stable` need `processed` to stay false for an excluded HEAD. That needs the old-label test at every later state, which holds only because `now` does not decrease on a valid run; `stateBefore_stable` asks for the property after every `clock st t` for any `t`, so it cannot prove this. Prove a run-indexed variant in which the clock step gets `now` monotonicity from `ScheduleWellFormed` (Claude m5; not a stop condition). It does: `process` on an excluded HEAD is the identity (`excludes_inert`), and a carried raw HEAD enters only through `admitVote`, which refuses it on the same tests (`handles`, `Model/Protocol.lean:364-368`). If this is false for some path, stop and report.
+- [ ] **Step 4: The relay premise, for every object class.** Add to each of the five lemmas the premise
 
 ```lean
-    (hx : (gridCO p).excludes
-        (Run.stateBeforeTime (gridCO p) rho <deadline> reader) o = false)
+    (hx : ∀ u, u ≤ <cutoff> →
+        (gridCO p).excludes (Run.stateBeforeTime (gridCO p) rho u reader) o = false)
 ```
 
-  where `<deadline>` is exactly the deadline that the lemma passes to `hnet.broadcast`/`hnet.relay` (`max t E.t_GST + E.Δ`, or `t + E.Δ` for `HealthyPrefixDelivery`). Keep the rest of each statement.
+  where `<cutoff>` is the lemma's own cutoff (`cut`, `proposalTime p s`, or the bound the lemma already has on its deadline). One deadline is not enough: two lemmas choose the network branch inside the proof, and the branches use `max t E.t_GST + E.Δ` and `t + E.Δ`; both are at most the cutoff. The `∀ u ≤ cutoff` form needs no stability argument, which `handled_before_proposal_of_ready` could not make (its `ProposalRelayReady` premise has no `ScheduleWellFormed`, `Windows.lean:138-141`) (Claude M2, Astra Q3). The two proposal lemmas also get the premise, although today `excludes_proposal` discharges it: the relay lemmas then do not depend on which object classes `excludes` covers, and a later exclusion of proposals (I9, non-minimal variant) changes only the WindowMargin lemma `proposal_not_excluded` and its callers, not the relay lemmas (Astra P1b-05). Keep the rest of each statement.
 - [ ] **Step 5: WindowMargin** (`Proofs/WindowMargin.lean`). Prove, for the reader's state at a time `u`, the bound on `now` from the clock laws (`AvailableChain.Engine.stateBefore_now_le_event`, `ClockLaws` in the Kit), and then:
 
 ```lean
@@ -219,7 +236,24 @@ theorem head_not_excluded_before … (hu : u ≤ proposalTime p (r + 2))
     (gridCO p).excludes (Run.stateBeforeTime (gridCO p) rho u w) ⟨.seat r i, .head x⟩ = false
 ```
 
-  and a lemma that an honest seat never equivocates in an honest reader's votes in an `ExecutionValid` run (search Grid CO for an existing one first: `grep -rn 'equivocates' AvailableChainGridCO/Proofs | grep theorem`). Discharge `hx` at every caller with these lemmas. The callers' cutoffs are at most `gateTime r` (t_r + 6Δ) for label-`r` HEADs (survey: `CrossView.lean:62-86`, `ProposalViewRelay.lean:67-99`), which is before `proposalTime (r + 2)` (t_r + 8Δ): the margin is 2Δ ≥ Δ (design §2, WindowMargin). A caller that relays a faulty HEAD and cannot exclude equivocation must already allow "`∨ equivocates`" in its conclusion (Review Focus 3); if one does not, stop and report it with the lemma name. Do not weaken a conclusion to make a proof go through.
+  and
+
+```lean
+/-- A label-`r` HEAD that the reader excludes before `proposalTime p (r + 2)`
+is excluded for equivocation: the reader already holds two label-`r` HEADs
+of that seat (Claude M1). -/
+theorem head_excluded_before_equivocates … (hu : u ≤ proposalTime p (r + 2))
+    (hx : (gridCO p).excludes (Run.stateBeforeTime (gridCO p) rho u w)
+        ⟨.seat r i, .head x⟩ = true) :
+    equivocates (votesAt (Run.stateBeforeTime (gridCO p) rho u w) r) i = true
+
+/-- Today every proposal; the one place to change if `excludes` ever covers
+proposals (I9, non-minimal variant). -/
+theorem proposal_not_excluded … (hp : o.payload = .proposal B raw support) :
+    ∀ u, (gridCO p).excludes (Run.stateBeforeTime (gridCO p) rho u w) o = false
+```
+
+  The honest caller (`ClockBounds.lean:176`) uses `honest_not_equivocating_at_event` (`Votes.lean:375`) with `head_not_excluded_before`. The two callers that relay a label-`r` HEAD of an arbitrary seat, `CrossView.lean:84` (`synchronous_accepted_head_before`) and `ProposalViewRelay.lean:91` (`stored_head_before_ready_proposal`), get an explicit case split before the call to `accepted_head_receipt_before`. Either the HEAD is not excluded at any `u ≤ cutoff`, and the premise holds; or it is excluded at some `X ≤ cutoff ≤ gateTime r`, and `head_excluded_before_equivocates` gives two stored label-`r` HEADs of that seat with stamps before `X`, which is the conclusion's existing "`∨ equivocates`" outcome. For CrossView use `stored_vote_stamp_before_cut` and `equivocates_mono`; for ProposalViewRelay, `votesAt` is monotone up to `proposalTime (r + 1)` (Claude M1). The proposal callers use `proposal_not_excluded`. The callers' cutoffs are at most `gateTime r` (t_r + 6Δ) for label-`r` HEADs (survey: `CrossView.lean:62-86`, `ProposalViewRelay.lean:67-99`), which is before `proposalTime (r + 2)` (t_r + 8Δ): the margin is 2Δ ≥ Δ (design §2, WindowMargin). Both reviews checked every caller: each caller that relays a faulty HEAD already allows "`∨ equivocates`" (Review Focus 3). If the implementer finds one that does not, stop and report it with the lemma name. Do not weaken a conclusion to make a proof go through.
 - [ ] **Step 6: Registry.** `AvailableChainRegistry/Instances/GridCOHooks.lean` defines `gridHooks [LeasePolicy] (p : Params) : HooksSound (gridCO p) := ⟨excludes_inert p, …⟩`. Delete `gridExcludes`, `gridCOx`, `gridCOx_hooks`, `inWindow_not_excluded` from the Registry (`inWindow_not_excluded` becomes a Grid CO WindowMargin lemma). Registry root import updated.
 - [ ] **Step 7: CHECKPOINT.** `lake build --wfail` (every default target) green. The four contract theorems keep their statements (`git diff` of `Proofs/Contract.lean` files and `Statements/` is empty). `AvailableChainSA/Tests/Axioms.lean` and `AvailableChainSAPC/Tests/Axioms.lean` build and print only the allowed axioms. Lock `--check` exit 0, unchanged. Registry and `--check` exit 0. `check-fg.sh` exit 0. The report lists every statement that gained the premise, with its callers and the WindowMargin lemma that discharges it. One dated paragraph in `docs/GRIDCO-STATUS.md`. Commit `GridCO: E4 permanent exclusion of HEADs, hook facts, WindowMargin`.
 
@@ -233,9 +267,9 @@ theorem head_not_excluded_before … (hu : u ≤ proposalTime p (r + 2))
 **Interfaces:**
 - Produces: `AvailableChain.LStar.excludes` and the five run-level hook facts for `lstar p n`.
 
-- [ ] **Step 1:** Read `admitVote` (`Protocol.lean:266-276`) and `processed` (`:312-315` and the HEAD case). Define `excludes` as "not processed and the seat already equivocates at `r`" for HEADs, false otherwise, in the style of Task 1 Step 1. L* has no old-label refusal (`:270-272`); do not add one.
-- [ ] **Step 2:** Prove `excludes_head_iff` and `excludes_not_processed` as in Task 1 Step 2, and the five hook facts for `lstar p n`. L* has its own engine (it does not import Grid CO): prove the monotonicity of its votes, proposals and blocks under `clock` and `process` directly, then lift them with `AvailableChain.Engine.stateBefore_stable`.
-- [ ] **Step 3: CHECKPOINT.** Build green; lock unchanged; `docs/MAP.md` row. Commit `LStar: E4 exclusion of a third equivocation, hook facts`.
+- [ ] **Step 1:** Read `admitVote` (`Protocol.lean:266-276`), `admitProposal` (`:280-288`) and `processed` (`:312-315` and the HEAD case). Define `excludes` in the style of Task 1 Step 1 with two clauses: a HEAD that is not processed and whose seat already equivocates at `r`; and a proposal wire `o` with block `b` such that `o ∉ st.proposals ∧ b ∈ st.blocks` (the stored-block refusal at `:283`; Claude M3, Astra P1b-01). False otherwise. L* has no old-label refusal (`:270-272`); do not add one.
+- [ ] **Step 2:** Prove `excludes_head_iff`, `excludes_proposal_iff` (both directions; with the test that a second well-formed wire for an already stored block is excluded and that a wire whose block is not stored is not), the permanence of both clauses (stored blocks are never removed; equivocation evidence only grows) and `excludes_not_processed`, as in Task 1 Step 2, and the five hook facts for `lstar p n`. L* has its own engine (it does not import Grid CO): prove the monotonicity of its votes, proposals and blocks under `clock` and `process` directly, then lift them with `AvailableChain.Engine.stateBefore_stable`.
+- [ ] **Step 3: CHECKPOINT.** Build green; lock unchanged; `docs/MAP.md` row. Commit `LStar: E4 exclusion (third equivocation, stored-block wire), hook facts`.
 
 ### Task 3: SA-PC hook facts
 
@@ -246,7 +280,7 @@ theorem head_not_excluded_before … (hu : u ≤ proposalTime p (r + 2))
 **Interfaces:**
 - Produces: the five run-level hook facts for `sapc p` (with `excludes = false`, the two exclusion facts are immediate).
 
-- [ ] **Step 1:** Prove `processed_stable` from `stateBefore_archive_mono` (`Proofs/Acceptance.lean:44`), `stateBefore_blocks_mono` (`Proofs/Paths.lean:120`) and `pcValid_mono` (`Proofs/CertificateValidity.lean:39`); `deps_stable` from `pathKnown_mono`/`pcPaths_mono` (`:21`, `:30`) and the block monotonicity; `handles_carries` from `handles` ⊆ `carries` (`Model/Handlers.lean:74-99`: `raw ++ pcMembers c` ⊆ `raw ++ support ++ pcMembers c`; check the PC branch, whose `handles` members must be among `c.witnesses`). If `handles_carries` is false for the PC branch, stop and report: that is a model finding.
+- [ ] **Step 1:** Prove `processed_stable` from `stateBefore_archive_mono` (`Proofs/Acceptance.lean:44`), `stateBefore_blocks_mono` (`Proofs/Paths.lean:120`) and `pcValid_mono` (`Proofs/CertificateValidity.lean:39`); `deps_stable` from `pathKnown_mono`/`pcPaths_mono` (`:21`, `:30`) and the block monotonicity; `handles_carries` from `handles` ⊆ `carries` (`Model/Handlers.lean:74-99`: `raw ++ pcMembers c` ⊆ `raw ++ support ++ pcMembers c`; check the PC branch, whose `handles` members must be among `c.witnesses`). Both reviews checked the PC branch: it handles `c.witnesses`, and `carries` uses the same list (`Handlers.lean:88-99`).
 - [ ] **Step 2:** Add a docstring to `sapc`'s `excludes` field use site (a comment in `Proofs/Hooks.lean`, not in the model) that records finding 2: no permanent refusal exists at the level of `processed`, so `excludes = false` is the E4 classification, not an omission.
 - [ ] **Step 3: CHECKPOINT.** Build green; `AvailableChainSAPC/Tests/Axioms.lean` unchanged output; lock unchanged. Commit `SAPC: hook facts`.
 
@@ -257,7 +291,7 @@ theorem head_not_excluded_before … (hu : u ≤ proposalTime p (r + 2))
 - Modify: `AvailableChainFramework.lean`, `docs/catalog.lock` (ADDED lines only)
 
 **Interfaces:**
-- Produces: `core_holdsAt_of_ac43`, `candidateOfAc43`.
+- Produces: `core_holdsAt_of_ac43`. (`candidateOfAc43` moves to plan 1c with its first consumer, by the same rule as `Eligible`: a locked definition is written together with its consumer; Claude m8.)
 
 - [ ] **Step 1:**
 
@@ -267,13 +301,11 @@ constant `D := C.D_c` (PHASE1A-REPORT, plan 1b input 3). -/
 theorem core_holdsAt_of_ac43 {I : Instance} {C : Constants} (h : ac43.holdsAt I C) :
     core.holdsAt I C.D_c
 
-/-- A profile certificate of `ac-4.3` gives a candidate (the floor). -/
-noncomputable def candidateOfAc43 {I : Instance} (pc : ProfileCert ac43 I) : Candidate I
 ```
 
   `core.valid` needs `0 ≤ C.D_c`: take it from `Constants.Valid` (check the field name in `AvailableChainStatements/Generic/Constants.lean`). Membership in the entry lists: the pattern in `Catalog/Profiles.lean` (`List.mem_cons.1`, typed numerals).
-- [ ] **Step 2:** A test in `AvailableChainRegistry/Tests/Relations.lean`: `candidateOfAc43` applied to nothing is not possible yet (no `ProfileCert ac43` exists), so test `core_holdsAt_of_ac43` on `counterInst` if a `holdsAt ac43` for Counter is cheap; otherwise an `example` that the definitions elaborate with a `ProfileCert` variable.
-- [ ] **Step 3: CHECKPOINT.** Build green. Lock `--check` shows ADDED lines only (save the output); `--write`; `--check` exit 0. Commit `Framework: ac-4.3 to core relation lemmas` with `docs/catalog.lock`.
+- [ ] **Step 2:** Task 5 uses `core_holdsAt_of_ac43` for `grid_holds_core`, `sa_holds_core` and `sapc_holds_core`; that is its test.
+- [ ] **Step 3: CHECKPOINT.** Build green. Lock `--check` shows ADDED lines only (save the output); `--write`; `--check` exit 0. Commit `Framework: ac-4.3 to core relation lemma` with `docs/catalog.lock`.
 
 ### Task 5: Instances and `holdsAt` theorems
 
@@ -283,7 +315,7 @@ noncomputable def candidateOfAc43 {I : Instance} (pc : ProfileCert ac43 I) : Can
 
 **Interfaces:**
 - Consumes: Tasks 1–4; `ac43_iff`, `strong1_iff` (`Catalog/Profiles.lean:95-97`, `:203-205`).
-- Produces: `gridInst (p) : Instance`, `saInst (p) : Instance`, `sapcInst (p) : StrongInstance`, `lstarInst (p n) : Instance`; `grid_holds`, `sa_holds`, `sapc_holds_ac43`, `sapc_holds_strong1`, `sapc_holds_shared`, and `*_holds_core` via Task 4.
+- Produces: `gridInst (p) : Instance`, `saInst (p) : Instance`, `sapcInst (p) : StrongInstance`, `lstarInst (p n) : Instance`; the row theorems `grid_holds`, `sa_holds`, `sapc_holds_ac43`, `sapc_holds_strong1`, `*_holds_core` (at `G = 1`), their `*_of_pos` forms, and `sapc_holds_shared`.
 
 - [ ] **Step 1: Instances.**
 
@@ -307,18 +339,21 @@ def lstarInst (p : LStar.Params) (n : Nat) : Instance :=
 - [ ] **Step 2: `holdsAt`.**
 
 ```lean
-theorem grid_holds (p : GridCO.Params) (G : Time) (hG : 0 < G) :
+theorem grid_holds_of_pos (p : GridCO.Params) (G : Time) (hG : 0 < G) :
     ac43.holdsAt (gridInst p) (gridConstants p G) :=
-  (ac43_iff _ _).1 fun W E hΔ => (gridContract_from_engine p E G hG hΔ).2
+  (ac43_iff _ _).1 fun _ E hΔ => (gridContract_from_engine p E G hG hΔ).2
 
-theorem sa_holds (p : SA.Params) (G : Time) (hG : 0 < G) :
-    ac43.holdsAt (saInst p) (saConstants p G)
+/-- The registry row: every parameter record, at the proposer gap `G = 1`. -/
+theorem grid_holds (p : GridCO.Params) : ac43.holdsAt (gridInst p) (gridConstants p 1) :=
+  grid_holds_of_pos p 1 one_pos
 
-theorem sapc_holds_ac43 (p : SA.Params) (G : Time) (hG : 0 < G) :
-    ac43.holdsAt (sapcInst p).toInstance (sapcConstants p G)
+theorem sa_holds (p : SA.Params) : ac43.holdsAt (saInst p) (saConstants p 1)
 
-theorem sapc_holds_strong1 (p : SA.Params) (G : Time) (hG : 0 < G) :
-    strong1.holdsAt (sapcInst p) (sapcConstants p G, sapcStrongConstants p)
+theorem sapc_holds_ac43 (p : SA.Params) :
+    ac43.holdsAt (sapcInst p).toInstance (sapcConstants p 1)
+
+theorem sapc_holds_strong1 (p : SA.Params) :
+    strong1.holdsAt (sapcInst p) (sapcConstants p 1, sapcStrongConstants p)
 
 /-- Both SA-PC profiles at one `C` (PHASE1A-REPORT, plan 1b input 2, at the
 `holds` level; the certificate pair is plan 1c). -/
@@ -329,7 +364,7 @@ theorem sapc_holds_shared (p : SA.Params) (G : Time) (hG : 0 < G) :
 theorem grid_holds_core … : core.holdsAt (gridInst p) (gridConstants p G).D_c
 ```
 
-  (and `sa_holds_core`, `sapc_holds_core` the same way). `strong1_iff` needs `I.sface` to be `sapcInterface p`: `StrongInstance.sface` is `{ I.iface with strong := I.strong }` (`Facets/Strong.lean:17-18`), which is `sapcInterface p` by structure eta; if `rfl` fails, prove the equality and rewrite. L*: `lstarInst` only, with a docstring: "No `holdsAt` theorem: L* has no contract proof (`Statements/Contract.lean:60-63` is a statement)."
+  (and `sa_holds_core`, `sapc_holds_core` the same way). Each row theorem (`*_holds`, `*_holds_core`) has a general `*_of_pos` form over `G` with `0 < G`; only the `G = 1` forms are registry rows, because a leading hypothesis `0 < G` makes a row CONDITIONAL (Task 6). Use `_` for unused binders in the `ac43_iff` lambdas (`--wfail`; Astra Q7). Qualify every hook-fact name (`GridCO.processed_stable`, `SAPC.processed_stable`, `LStar.processed_stable`) in the `Instances/*` files; do not open two protocol namespaces in one file (Claude m11). `strong1_iff` needs `I.sface` to be `sapcInterface p`: `StrongInstance.sface` is `{ I.iface with strong := I.strong }` (`Facets/Strong.lean:17-18`), which is `sapcInterface p` by structure eta; if `rfl` fails, prove the equality and rewrite. L*: `lstarInst` only, with a docstring: "No `holdsAt` theorem: L* has no contract proof (`Statements/Contract.lean:60-63` is a statement)." A docstring on each instance: "An instance with hooks. It is not an eligible candidate: eligibility and certificates are plan 1c" (Astra Q8).
 - [ ] **Step 3: CHECKPOINT.** Build green; lock unchanged. The new theorems are not registry rows yet (their type head `Profile.holdsAt` is not in `kinds` until Task 6), so Registry and `--check` exit 0 and REGISTRY.md is unchanged. Commit `Registry: Grid CO, SA, SA-PC and L* instances with holdsAt theorems`.
 
 ### Task 6: Row kind `profile-holds` and MATRIX.md
@@ -341,15 +376,16 @@ theorem grid_holds_core … : core.holdsAt (gridInst p) (gridConstants p G).D_c
 **Interfaces:**
 - Produces: row kind `profile-holds` for a theorem of type `Profile.holdsAt p I C` (args `K p I C`; the claim column shows the profile id, as `profile-cert`); `docs/MATRIX.md`; `--check` covers both files.
 
-- [ ] **Step 1: Row kind.** Add `(``AvailableChain.Framework.Profile.holdsAt, "profile-holds")` to `kinds`. The claim column uses `profileColumn env K p`; the instance column prints `I`. The status rules are unchanged (`LEAN`, `KNOWN-GAP`, …). The module docstring states: "A `profile-holds` row proves the profile's claim propositions at one constant, without inhabitation. It is not a certificate."
-- [ ] **Step 2: MATRIX.md.** Generated by the same script run, from the same rows: one line per instance (every constant in `instanceLibraries` whose type is `Instance` or `StrongInstance`, including instances without rows, such as `lstarInst`), one column per catalog claim (every `ClaimSpec`-typed constant under `AvailableChainFramework.Catalog`, shown by its id, in lock order) and one column per profile (`core.v1`, `ac-4.3`, `strong-1`). A cell holds the kinds of the rows for that (instance, claim or profile): `cert`, `refuted`, `family`, `holds`, `gap`, joined by `+`; an empty cell is `·`. Instances that take parameters (for example `gridInst p`) appear once, by their constant name. A header paragraph gives the legend and the KNOWN-GAP consumer contract ("`gap` cells are records, not results; MATRIX consumers ignore them").
+- [ ] **Step 1: Row kind and the family rule.** Add `(``AvailableChain.Framework.Profile.holdsAt, "profile-holds")` to `kinds`. The claim column uses `profileColumn env K p`. Today the scanner marks a row CONDITIONAL if its type has ANY leading binder (`scripts/Registry.lean:46`, `:157`), so the Task 5 rows (binder `p`) would be CONDITIONAL (Astra P1b-02). Change the rule: a leading binder whose type is a `Prop` makes the row CONDITIONAL (as today); a leading binder over data (for example `p : Params`) makes the row a FAMILY, whose status is computed as for a closed row (axiom check included) and printed with the suffix ` (family)`, for example `LEAN (family)`. Check first that every existing row keeps its status (`REGISTRY.md` diff: only the new rows). The module docstring states: "A `profile-holds` row proves the profile's claim propositions at one constant, without inhabitation; it can be vacuous. It is not a certificate. A family row holds for every value of its data binders."
+- [ ] **Step 1a: Instance identity** (Astra P1b-04). The instance column of a row must name the source instance: if the instance argument is `StrongInstance.toInstance x` (or another structure projection to `Instance`), print the head of `x` (`sapcInst`), not `StrongInstance.toInstance`. Test: `sapc_holds_ac43` and `sapc_holds_strong1` show the same instance name, and MATRIX puts them on one line.
+- [ ] **Step 2: MATRIX.md.** Generated by the same script run, from the same rows: one line per instance (every constant in `instanceLibraries` whose type is `Instance` or `StrongInstance`, including instances without rows, such as `lstarInst`), one column per catalog claim (every `ClaimSpec`-typed constant under `AvailableChainFramework.Catalog`, shown by its id, in lock order) and one column per profile (`core.v1`, `ac-4.3`, `strong-1`). A cell is computed from the rows for that (instance, claim or profile), GATED BY STATUS (Astra P1b-03): only a row with status `LEAN` or `LEAN (family)` gives a result cell (`cert`, `refuted`, `refuted-all` for a refutation family, `holds`); a `KNOWN-GAP` row gives `gap`; a `CONDITIONAL` row gives `cond`; any other status gives `unsound`. Several cells join with `+`; an empty cell is `·`. Instances that take parameters (for example `gridInst p`) appear once, by their constant name. A header paragraph gives the legend with this text for `holds`: "the claim propositions at one constant; no inhabitation; can be vacuous; not a certificate and not a `Candidate`" (Claude m12), and the KNOWN-GAP consumer contract ("`gap` and `cond` cells are records, not results; MATRIX consumers ignore them").
 - [ ] **Step 3:** `--check` compares both files with the generated text; exit 1 names the file that differs.
-- [ ] **Step 4: CHECKPOINT.** `Registry` writes both files; `--check` exit 0. REGISTRY.md gains the `profile-holds` rows of Task 5 (six or seven rows, all `LEAN`). Commit `Registry: profile-holds rows and MATRIX.md`.
+- [ ] **Step 4: CHECKPOINT.** `Registry` writes both files; `--check` exit 0. REGISTRY.md gains the `profile-holds` rows of Task 5: the `G = 1` rows with status `LEAN (family)`, and the `*_of_pos` rows with status `CONDITIONAL (not a certificate)`; every earlier row keeps its status. MATRIX shows `holds` only for the `LEAN (family)` rows, and the SA-PC `ac-4.3` and `strong-1` cells on the `sapcInst` line. Commit `Registry: profile-holds rows and MATRIX.md`.
 
 ### Task 7: Documents and handoff
 
 **Files:**
-- Modify: `docs/FRAMEWORK-DESIGN.md` (dated "As implemented in plan 1b" notes under §2 E4, §3 and §6; the approved text does not change), `docs/PHASE0-REPORT.md` §6 (close: GridCO rows 1 and 2, Engine, Kit; note the L*/SA-PC E4 status), `docs/MAP.md`, `docs/CONTRACT.md` (only the stale SA-PC fast-outage line 275-276, if the survey is confirmed), `state.md` is the controller's.
+- Modify: `docs/FRAMEWORK-DESIGN.md` (dated "As implemented in plan 1b" notes under §2 E4, §3 and §6; the approved text does not change), `docs/PHASE0-REPORT.md` §6 (close: GridCO rows 1 and 2, Kit (with the no-dedupe ruling); Engine only in part: `stateBefore_stable` moved, the Counter run/step helpers stay open for plan 1c, whose run-extension work generalizes them (Astra P1b-07); note the L*/SA-PC E4 status), `docs/MAP.md`, `docs/CONTRACT.md` (only the stale SA-PC fast-outage line 275-276, if the survey is confirmed), `state.md` is the controller's.
 - Create: `docs/PHASE1B-REPORT.md` (controller)
 
 - [ ] **Step 1: Design notes.** Under §2 E4: the relay-condition status (finding 1), the E4 classification per protocol (Grid CO and SA: two permanent HEAD refusals; SA-PC: none; L*: third equivocation), WindowMargin as a per-protocol lemma module with a premise on the relay lemmas (not a framework predicate), and that `Eligible` and the run-extension theorem are plan 1c. Under §3: the instance values. Under §6: the Kit libraries.
@@ -364,6 +400,8 @@ theorem grid_holds_core … : core.holdsAt (gridInst p) (gridConstants p G).D_c
 - Kit.Engine: the canonical synchronous scheduler for a general `ProtocolSpec`; append lemmas for `stateBefore`, `readAt` and the `ExecutionValid` fields; the run-extension theorem from every valid prefix; the Counter canonical run as its first instance (replaces `canonical_sleepy`'s hand-built scheduler).
 - Eligibility proofs for Grid CO, SA, SA-PC (RelayFeasible uses Task 1's `excludes`); inhabitation runs for every horizon with `η > 0` parameters; certificates, `ProfileCert ac43`, `Candidate` via `candidateOfAc43`, the shared-C SA-PC certificate pair.
 - The I1 witness against `Candidate × Eligible` (`clockInst`, and the `excludes := false` variant with delivery).
+- `candidateOfAc43 : ProfileCert ac43 I → Candidate I`, with its first consumer (moved from 1b, Claude m8).
+- Astra Q8: specify the admissible prefixes and the outstanding delivery obligations, and account for EVERY regime field. The four delivery obligations do not give `RootInjective`; for Grid CO, SA and SA-PC it fails on forks (I9), so an inhabitation run must avoid root collisions (for example an honest synchronous run with no fork), unless I9 is decided first.
 - Registry M2/M3, Lock M8 if still open.
 
 ## Risks
@@ -372,18 +410,64 @@ theorem grid_holds_core … : core.holdsAt (gridInst p) (gridConstants p G).D_c
 ┌────┬──────────────────────────────────────┬───────────────────────────────────────────┐
 │ R  │ Risk                                 │ Response                                  │
 ├────┼──────────────────────────────────────┼───────────────────────────────────────────┤
-│ R1 │ A Grid CO proof relays a faulty HEAD │ Task 1 Step 5 stop rule; the report names │
-│    │ of an equivocating seat and needs a  │ the lemma; the controller rules (a        │
-│    │ handler call (Review Focus 3)        │ conclusion with "∨ equivocates", or a     │
-│    │                                      │ narrower `excludes`), with a review       │
+│ R1 │ A Grid CO proof relays a faulty HEAD │ Known discharge (both reviews): the two   │
+│    │ of an equivocating seat and needs a  │ callers already conclude "∨ equivocates"; │
+│    │ handler call (Review Focus 3)        │ `head_excluded_before_equivocates` and a  │
+│    │                                      │ case split. Stop rule kept for surprises  │
 │ R2 │ A moved Kit file uses a Grid CO      │ Task 0 Step 1: it stays in Grid CO        │
 │    │ declaration                          │                                           │
-│ R3 │ The SA-PC PC branch of `handles` is  │ Task 3 stop rule; a model finding for the │
-│    │ not inside `carries`                 │ user, not a silent change                 │
+│ R3 │ The SA-PC PC branch of `handles` is  │ Resolved: both reviews checked it; the    │
+│    │ not inside `carries`                 │ branch is inside `carries`                │
 │ R4 │ FG-SA branch rebase                  │ constraint above; the branch needs a      │
 │    │                                      │ rebuild and a lakefile merge              │
-│ R5 │ A task shows a CHANGED lock line     │ stop; a lock change needs its own review  │
+│ R5 │ A task shows a CHANGED lock line, or │ stop; a lock change needs its own review. │
+│    │ an ADDED line outside Task 4         │ `--check` must print nothing (it exits 0  │
+│    │                                      │ on additions)                             │
+│ R6 │ The registry family rule changes the │ Task 6 Step 1: the REGISTRY.md diff shows │
+│    │ status of an existing row            │ only new rows                             │
 └────┴──────────────────────────────────────┴───────────────────────────────────────────┘
+```
+
+## Audit disposition
+
+Two reviews ran on the first version (`0d8d995`): Astra (`docs/audit/phase1b-plan-audit-report.md`, REVISE 1/4/4) and a Claude review by DC-simplify's Opus reviewer (`docs/audit/phase1b-plan-claude-review.md`, PASS WITH FIXES 0/3/13). This version applies every finding.
+
+```text
+┌──────────────────────────┬──────────────────────────────────────────────────────┐
+│ Finding                  │ Disposition                                          │
+├──────────────────────────┼──────────────────────────────────────────────────────┤
+│ Astra P1b-01 (BLOCKING), │ L* stored-block proposal refusal: finding 4          │
+│ Claude M3                │ corrected; Task 2 second `excludes` clause and       │
+│                          │ `excludes_proposal_iff`                              │
+│ Claude M1                │ `head_excluded_before_equivocates`; case split at    │
+│                          │ CrossView:84 and ProposalViewRelay:91; R1 = known    │
+│                          │ discharge                                            │
+│ Claude M2, Astra Q3      │ premise `∀ u ≤ cutoff, ¬ excluded`                   │
+│ Astra P1b-02             │ registry family rule (data binders); rows at G = 1,  │
+│                          │ `*_of_pos` forms CONDITIONAL                         │
+│ Astra P1b-03             │ MATRIX cells gated by status                         │
+│ Astra P1b-04             │ instance column resolves `StrongInstance.toInstance` │
+│ Astra P1b-05             │ premise on all five relay lemmas;                    │
+│                          │ `proposal_not_excluded`; I9 table reworded           │
+│ Astra P1b-06, Claude m2  │ Kit namespace unchanged; no dedupe                   │
+│ Astra P1b-07             │ Engine row closed only in part                       │
+│ Astra P1b-08, Claude m1  │ findings 1 and 6 reworded                            │
+│ Astra P1b-09             │ import boundary stated as a choice                   │
+│ Claude m3, m4            │ Task 0: CheckFrameworkAxioms imports; transitive     │
+│                          │ imports allowed                                      │
+│ Claude m5, m6            │ Task 1 Step 3: run-indexed stability; engineClockx   │
+│                          │ deleted                                              │
+│ Claude m7                │ Task 1 Files: the callers listed                     │
+│ Claude m8                │ `candidateOfAc43` to plan 1c                         │
+│ Claude m9                │ I9 table: `propose` sites; minimal-variant note      │
+│ Claude m10               │ FG-SA import list completed                          │
+│ Claude m11               │ Task 5: qualified names                              │
+│ Claude m12               │ MATRIX legend text for `holds`                       │
+│ Claude m13               │ `excludes` docstring: scope is well-formed objects   │
+│ Claude lock note         │ Global Constraints: `--check` must print nothing     │
+│ Astra Q7                 │ `_` binders; "not an eligible candidate" docstrings  │
+│ Astra Q8                 │ plan 1c outline: every regime field; RootInjective   │
+└──────────────────────────┴──────────────────────────────────────────────────────┘
 ```
 
 ## Reviews before execution
@@ -392,4 +476,4 @@ This plan changes protocol libraries (Grid CO, SA through Grid CO, L*). Under th
 1. a proper independent audit by Astra (`docs/audit/phase1b-plan-audit.md`, xhigh, read-only), and
 2. a review by DC-simplify,
 
-with every BLOCKING and MAJOR finding resolved in the plan text and recorded in an "Audit disposition" section.
+with every BLOCKING and MAJOR finding resolved in the plan text and recorded in "Audit disposition" above. DC-simplify re-checks the revision diff against the findings; execution starts after that check passes.
