@@ -73,6 +73,7 @@ public import AvailableChainSAPC.Proofs.StrongPersistence
 public import AvailableChainSAPC.Proofs.RecoveryTransfer
 public import AvailableChainSAPC.Proofs.Contract
 public import AvailableChainSAPC.Proofs.StrongContract
+public import AvailableChainSAPC.Proofs.Hooks
 
 @[expose] public section
 end

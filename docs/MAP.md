@@ -120,6 +120,13 @@ including SA-PC `fastP1_from_engine`. `sapcStrong_from_engine` in
 Both require `G > 0` and `E.Δ = p.Δ`. No requested claim remains pending.
 The base contract is unchanged. See [SA-PC status](SAPC-STATUS.md).
 
+`Proofs/Hooks.lean` proves the E4 hook facts for `sapc p` (`excludes_inert`,
+`excludes_stable`, `processed_stable`, `deps_stable`, `handles_carries`)
+without an import of the framework. `excludes` stays `fun _ _ => false`
+(`sapc_excludes`): SA-PC has no permanent refusal at the level of
+`processed`, so this is the E4 classification. The file comment gives the
+reasons. No Registry instance assembles these facts into `HooksSound` yet.
+
 Recovery uses exact lease sources, SA's shared source-support induction,
 and F4 transfer. `RecoveryBoundary` proves the two-lease support boundary;
 `RecoveryRoots` and `RecoveryProposal` prove common exact proposal HEADs;
