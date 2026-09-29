@@ -41,8 +41,10 @@ changes, and tell the other session. Owners: §1–§2 and §6–§7 lead sessio
 - Design rules (user): stay close to DC and justify every divergence;
   latest certificate only; outputs nest by construction; FG never vetoes
   blocks; timeliness only on sending.
-- Authority: `spec/fgsa-protocol.tex` (adopted 42d557a2; next revision:
-  SA walk from F). Proofs: `blueprint/` (00 outline; 02 Clean; 03 P1 and
+- Authority: `spec/fgsa-protocol.tex` (adopted 4e85ff34, 2026-09-29;
+  replaces 42d557a2; only change: `genuine_result` runs `ghost` from Σ.F
+  on act(Σ), final eligibility test kept; `spec/archive/CHANGES-42d557a2-
+  to-4e85ff34.md`). Proofs: `blueprint/` (00 outline; 02 Clean; 03 P1 and
   inclusion; 21 healing with the `HEALING_INPUT` interface; 22 finality,
   which imports only that interface).
 
@@ -174,7 +176,10 @@ Engine v2 decisions (design §2), one line each:
   healing as the composition theorem? (study running:
   `codex/scratch/modular-spec-study.md`)
 - The post-gate cut is not a v2 read (F0 must choose a reader).
-- One-repair healing; healing bound tightening (r206 under review).
+- One-repair healing. Healing bounds: HG.7 (r206, red-team confirmed) is a
+  separate bound, [77Δ−1 tick, 268Δ] at R=2 and [93Δ−1 tick, 312Δ] at R=3,
+  k ≤ 2R+1; B_H stays 295Δ/343Δ as the general target. An independent
+  three-charge result (220–228Δ / 256–268Δ) is under Astra verification.
 
 ## 8. Where the detail is
 
