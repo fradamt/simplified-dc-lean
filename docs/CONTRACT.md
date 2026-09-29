@@ -306,6 +306,30 @@ still rule out unrestricted base-vote acceptance, expired-vote transport,
 and packet receipt without dependency-ready handling. No handler, delay,
 or FG module changes are part of this refactor.
 
+## Derived roots (I9) — 2026-09-29
+
+The user decided this change (`FRAMEWORK-DESIGN.md` §12 I9). The text
+of every regime, claim and constant is unchanged. `RootInjective` keeps
+its definition, and each regime keeps its `rootInjective` field.
+
+The `Block` type changed. A node has a body, not a root, and
+`Block.root` computes the root from the content. `Block.root_injective`
+holds for every block. Thus `RootInjective E I rho` holds for every run
+(`rootInjective_all`, `AvailableChainKit/Roots.lean`). The root premise
+in §4 and in the Draft 4.2 change is a theorem now, not an assumption:
+an instance fills the field with `rootInjective_all`. A later plan can
+remove the field. The round-14 root-collision run cannot occur.
+
+The parent-root check is the store dependency lookup. A proposal with an
+unknown parent root is a temporary missing dependency. No `excludes` and
+no `wellFormed` changed. Payloads still carry resolved blocks, so the
+`Interface` did not change.
+
+This is a lock break. [[CONTROLLER: number of changed lock lines after
+the Task 11 rewrite]] lines of `docs/catalog.lock` changed, because
+their closure reaches `Block`. No locked declaration changed its source
+text or its type.
+
 ## Strong companion (additive)
 
 The optional companion in `AvailableChainStatements/Strong/` adds a

@@ -12,6 +12,51 @@ from actual runs. Exact proposal vote-set helpers are replaced.
 specialized regime methods for its archive consumers. No model rule or
 public contract conclusion changes.
 
+## Derived roots update (2026-09-29)
+
+Plan I9 (`docs/plans/2026-09-29-i9-derived-roots.md`; `FRAMEWORK-DESIGN.md`
+§12 I9) makes block roots derived. The dated I9 note in `CONTRACT.md`
+supersedes references below to `RootInjective` as a run assumption: the
+regimes keep the field, and `rootInjective_all` proves it for every run.
+The FG-SA rows below for `ContentAgree` (a premise) and
+`Tests/RootCollision.lean` (the DQ10/I9 limit) are out of date after
+Task 9. [[CONTROLLER: confirm the FG-SA rows after Task 9]] The new names:
+
+```text
+┌──────────────────────────────────────┬──────────────────────────────────────────────┐
+│ File (without .lean)                 │ I9 names                                     │
+├──────────────────────────────────────┼──────────────────────────────────────────────┤
+│ AvailableChainModel/Objects/Codec    │ epair, efst, esnd, epair_inj, encList,       │
+│                                      │ encOption, encBool (length-delimited codec)  │
+│ AvailableChainModel/Objects/Blocks   │ nodeRoot; Block.node parent slot body;       │
+│                                      │ Block.root, Block.body (derived);            │
+│                                      │ Block.root_injective; parent_mem_iff_root,   │
+│                                      │ parent_mem_and_iff_root (lookup)             │
+│ AvailableChainKit/Roots              │ rootInjective_all                            │
+│ AvailableChainGridCO/Proofs/Handling │ blockKnown_parent_slot_iff_root,             │
+│                                      │ admitProposal_missingParent                  │
+│ AvailableChainGridCO/Proofs/Roots    │ rootInjectiveBelow_all                       │
+│ AvailableChainSAPC/Proofs/BaseViews  │ blockKnown_parent_slot_iff_root,             │
+│                                      │ proposalEnters_missingParent,                │
+│                                      │ admitProposal_missingParent                  │
+│ AvailableChainSAPC/Proofs/           │ process_pc_missingPaths                      │
+│ CertificateValidity                  │                                              │
+│ AvailableChainLStar/Proofs/Hooks     │ blockKnown_parent_slot_iff_root,             │
+│                                      │ admitProposal_missingParent                  │
+│ AvailableChainRegistry/CounterRun    │ chain_depth, chain_injective (chain_root is  │
+│                                      │ removed)                                     │
+│ AvailableChainRegistry/Gaps/NoInput  │ clockBlock_depth, clockBlock_injective       │
+│                                      │ (clockBlock_root is removed)                 │
+│ AvailableChainSimplexFG/Objects      │ RowCodec, fgBodyTag, encFGBody,              │
+│                                      │ encFGBody_inj, FGBlock.root (derived),       │
+│                                      │ FGBlock.root_injective                       │
+│ AvailableChainKitFG/Accountable      │ rootInjectiveOn_all                          │
+│ AvailableChainKitFG/Correspondence   │ viewRootInj_all                              │
+│ AvailableChainFGSA                   │ [[CONTROLLER: Task 9 names (packBody,        │
+│                                      │ rowsOk, ContentAgree theorem, lookup)]]      │
+└──────────────────────────────────────┴──────────────────────────────────────────────┘
+```
+
 
 `M` means `AvailableChainModel`; `S` means `AvailableChainStatements`.
 Statement names are in `AvailableChain.Statements.Generic`; model names are

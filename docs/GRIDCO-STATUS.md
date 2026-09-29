@@ -82,6 +82,21 @@ counterexamples and conditional constructors have been removed.
   equivocation, and each caller's cutoff is at most `gateTime r`. The two
   callers that relay a HEAD of any seat take the equivocation outcome
   that their conclusions already allow. No contract statement changed.
+- **2026-09-29: derived roots (I9).** The honest root formula
+  `s * (parent.root + 1)` is removed. A block has a body, not a root, and
+  `Block.root` computes the root from the content. Honest `propose` uses
+  body 0 (`Model/Protocol.lean:292`). `Block.root_injective` holds for
+  every block, so the `RootInjective` premise of each regime is a theorem
+  (`rootInjective_all`). The regime field stays. `rootInjectiveBelow_all`
+  proves `RootInjectiveBelow` for every tree. The four lemmas of
+  `Proofs/Roots.lean` that take `hroot` keep their statements; a later
+  plan removes that premise. The parent check of `admitProposal` is the
+  dependency lookup by root (`blockKnown_parent_slot_iff_root`), and a
+  proposal with an unknown parent leaves the state unchanged
+  (`admitProposal_missingParent`). One statement changed:
+  `honest_proposal_views` now states `B = .node parent s 0`. `excludes`
+  did not change. SA gets the same changes. Validation after I9:
+  [[CONTROLLER: full-build job count after Task 11]].
 
 ## Validation
 

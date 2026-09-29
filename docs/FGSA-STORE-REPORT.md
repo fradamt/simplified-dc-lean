@@ -274,3 +274,36 @@ the direct-import allowlist does not change.
 │                         │ fastOrigin_gateStep                                        │
 └─────────────────────────┴────────────────────────────────────────────────────────────┘
 ```
+
+## 7. Status after plan I9 (2026-09-29)
+
+This section does not change the text above. Plan I9
+(`docs/plans/2026-09-29-i9-derived-roots.md`) makes block roots derived
+(`FRAMEWORK-DESIGN.md` §12 I9). The user decided the open DQ10/DQ3
+question of §3: content-coded roots, with the parent-root check as the
+store dependency lookup.
+
+- DQ10 is superseded. The GridCO root formula is removed. Base and FG
+  roots use the same `nodeRoot`, and both root functions are injective
+  on their whole types (`Block.root_injective`,
+  `FGBlock.root_injective`). So the DQ10 root limit of §2, §3 and §5 does
+  not hold now: honest forks and faulty proposers cannot give two
+  distinct blocks with one root. `RootInjective` holds for every run
+  (`rootInjective_all`).
+- DQ2 keeps its root test, but its declared difference in §2 is gone.
+  The case "same root, distinct block" is impossible now. So the DQ2
+  root test refuses a block only when the same block is already stored.
+  `Tests/RootCollision.lean` cannot show the old limit; Task 9 changes
+  it into positive tests (distinct roots, `ContentAgree` holds, and a
+  repeated block is refused as a duplicate). [[CONTROLLER: confirm
+  after Task 9]]
+- DQ3(b) and `ContentAgree`: planned in Task 9. The base body packs the
+  application value and the ordered signed rows (`packBody`). `rowsOk`
+  checks this packing in `wellFormed` and in `blockAccepted`; it is a
+  content check, not a root check. `MetaInv.wireTree` gets the stored
+  content equality. Then `ContentAgree st st'` is a theorem for any two
+  stores that satisfy `CStoreInv` and `MetaInv`. The cross-node theorems
+  keep their `ContentAgree` premises, which are now redundant.
+  [[CONTROLLER: confirm after Task 9: theorem names, the status of the
+  run premise `ContentRootInjective` of §5, and the §4 validation
+  numbers]]
