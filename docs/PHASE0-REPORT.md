@@ -126,6 +126,17 @@ exclusion. `Deliverable`, `RelayFeasible`, and `WindowMargin` for Grid
 CO move to Phase 1, with the `excludes` change in `gridCO` itself
 (deviation (b)).
 
+Note (2026-09-29, plan 1b). Plan 1b Task 1 (`05cec33`) removed
+`gridCOx`, `gridExcludes`, `gridCOx_hooks` and `engineClockx`.
+`gridCO` itself now has `excludes`
+(`AvailableChainGridCO/Model/Protocol.lean`), with the equivocation
+clause. `clock_votes` and the other hook facts are in
+`AvailableChainGridCO/Proofs/Hooks.lean`. The Registry file moved to
+`AvailableChainRegistry/Instances/GridCOHooks.lean`, and it now has only
+`gridHooks : HooksSound (gridCO p)`. WindowMargin is
+`AvailableChainGridCO/Proofs/WindowMargin.lean`. `Deliverable` and
+`RelayFeasible` are plan 1c.
+
 ## 5. Deviations from the plan
 
 ### 5.1 Design deviations (accepted by the user, 2026-09-28)
@@ -144,6 +155,12 @@ CO move to Phase 1, with the `excludes` change in `gridCO` itself
 │     │                        │ Deliverable, RelayFeasible, and WindowMargin │
 │     │                        │ move to Phase 1, with the excludes change in │
 │     │                        │ gridCO itself.                               │
+│     │                        │ Plan 1b (2026-09-29): gridCOx is removed.    │
+│     │                        │ The excludes change is in gridCO itself, and │
+│     │                        │ HooksSound (gridCO p) is gridHooks (Task 1,  │
+│     │                        │ 05cec33). WindowMargin is the Grid CO module │
+│     │                        │ Proofs/WindowMargin.lean. Deliverable and    │
+│     │                        │ RelayFeasible: plan 1c.                      │
 │ c   │ Run ext.: genesis      │ The run-extension theorem is proved from     │
 │     │                        │ genesis (the Counter canonical run, every    │
 │     │                        │ horizon, Sleepy from 0). The general form,   │
@@ -218,6 +235,10 @@ scripts, tactics, or witness terms only.
 │        │ the Grid CO Step 1 finding). linter.unusedSectionVars is       │
 │        │ disabled file-wide, matching the existing Grid CO idiom for    │
 │        │ the [LeasePolicy] section variable.                            │
+│        │ Plan 1b (2026-09-29): gridExcludes_inert and gridCOx_hooks are │
+│        │ removed with gridCOx (Task 1, 05cec33). gridHooks, over the    │
+│        │ hook facts in AvailableChainGridCO/Proofs/Hooks.lean, replaces │
+│        │ them.                                                          │
 │ 8      │ toyV2's process_base witness uses Nat.max, not max: instance   │
 │        │ search for Max toyV2.Base runs before the toyV2.Base           │
 │        │ projection unfolds to Nat, and fails. output_tick uses the     │
@@ -241,6 +262,9 @@ Status after plan 1a (2026-09-28): a row that plan 1a closes or changes
 ends with a note "Plan 1a: …". The rows for plan 1b stay open. The last
 row (I9) is new.
 
+Status after plan 1b (2026-09-29): a row that plan 1b closes or changes
+ends with a note "Plan 1b: …". The row E4 is new.
+
 ```text
 ┌───────────┬────────────────────────────────────────────────────────────┐
 │ Area      │ Open item                                                  │
@@ -262,15 +286,31 @@ row (I9) is new.
 │           │ first). Must the two stay disjoint under the Phase 1       │
 │           │ excludes change?                                           │
 │           │ Plan 1a: open (plan 1b, with the Grid CO excludes change). │
+│           │ Plan 1b: CLOSED. Task 1 (05cec33): yes, they stay          │
+│           │ disjoint. excludes tests o ∉ st.votes before both clauses, │
+│           │ and excludes_not_processed                                 │
+│           │ (AvailableChainGridCO/Proofs/Hooks.lean) holds for every   │
+│           │ state, so for every state of a run.                        │
 │ GridCO    │ Grid CO model facts (gate_votes, clock_votes,              │
 │           │ engineClockx) are public in the Registry namespace. Move   │
 │           │ them with the Phase 1 excludes change.                     │
 │           │ Plan 1a: open (plan 1b).                                   │
+│           │ Plan 1b: CLOSED. Task 1 (05cec33): gate_votes,             │
+│           │ clock_votes, process_votes_subset and                      │
+│           │ process_blocks_subset are in                               │
+│           │ AvailableChainGridCO/Proofs/Hooks.lean (namespace          │
+│           │ AvailableChain.GridCO). engineClockx is removed with       │
+│           │ gridCOx.                                                   │
 │ Engine    │ stateBefore_stable (GridCOHooks.lean) and the run/step     │
 │           │ lemmas in Registry.Counter (Counter.lean, CounterRun.lean) │
 │           │ are engine-generic, for any ProtocolSpec, but live in L4.  │
 │           │ Move them into Kit.Engine in Phase 1.                      │
 │           │ Plan 1a: open (plan 1b).                                   │
+│           │ Plan 1b: IN PART. Task 0 (c79b473): stateBefore_stable     │
+│           │ moved to AvailableChainKit/Engine/Stable.lean, as          │
+│           │ AvailableChain.Engine.stateBefore_stable. The Counter run  │
+│           │ and step helpers stay open for plan 1c, whose              │
+│           │ run-extension work generalizes them (Astra P1b-07).        │
 │ Registry  │ Candidate and ProfileCert values (sanity's refutation      │
 │           │ path, counterInst's candidate) are not rows of             │
 │           │ REGISTRY.md: their type is a Pi-type over c ∈ p.claims,    │
@@ -370,6 +410,13 @@ row (I9) is new.
 │           │ and the stranded L4 lemmas. Dedupe `block_preceq_trans`    │
 │           │ (`Kit/Core.lean:13` and `GridCO/Proofs/Map.lean:25`).      │
 │           │ Plan 1a: open (plan 1b).                                   │
+│           │ Plan 1b: CLOSED. Task 0 (c79b473): library                 │
+│           │ AvailableChainKit (L5: Core, Engine/*) and library         │
+│           │ AvailableChainEngineV2 (L0: Sketch); the                   │
+│           │ AvailableChain.Engine lemmas are in                        │
+│           │ AvailableChainKit/Engine/. No dedupe (ruling): the Kit     │
+│           │ block_preceq_trans and the private one in Map.lean have    │
+│           │ different statements, and both stay.                       │
 │ Roots     │ I9 (reasoned; a `decide` check in the async session's      │
 │           │ scratch): every regime has the premise `RootInjective`     │
 │           │ (`Generic/Conditions.lean:28`), but the honest root        │
@@ -387,6 +434,20 @@ row (I9) is new.
 │           │ checked at admission (FG-SA plan D4), so that              │
 │           │ `RootInjective` follows from admission. Not in plans 1a,   │
 │           │ 1b or 2 until decided.                                     │
+│           │ Plan 1b: DECIDED 2026-09-29 (user), not in plan 1b: a      │
+│           │ derived root root(B) := H(content) with H injective; a     │
+│           │ block carries its parent root. It is a contract and lock   │
+│           │ break, with its own plan and a full audit after plan 1b    │
+│           │ (FRAMEWORK-DESIGN.md §12 I9).                              │
+│ E4        │ New after plan 1a. Plan 1b: Grid CO, SA, SA-PC and L* each │
+│           │ have an E4 excludes and the five hook facts, in their own  │
+│           │ library. Grid CO and SA: two permanent HEAD refusals (an   │
+│           │ old label; a third equivocation), Task 1. L*: the third    │
+│           │ equivocation and a proposal wire whose block is already    │
+│           │ stored, Task 2 (41750af). SA-PC: no permanent refusal, so  │
+│           │ excludes stays false, Task 3 (22e29b7). Deliverable,       │
+│           │ RelayFeasible, Eligible and the run-extension theorem:     │
+│           │ plan 1c.                                                   │
 └───────────┴────────────────────────────────────────────────────────────┘
 ```
 

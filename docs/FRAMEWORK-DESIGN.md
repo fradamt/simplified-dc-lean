@@ -196,6 +196,92 @@ Two limits (async review):
 These are NEW eligibility obligations. They are proved per migrated
 instance; they are not silently added to the v1 hooks (V07, M03).
 
+**As implemented in plan 1b (2026-09-29).** This note does not change
+the text above.
+
+- Relay condition. The paragraph "The acceptance-relay regime condition
+  …" is out of date. The receipt-relay merge (`1a3f73a`) removed the
+  field `acceptedRelay` from `SleepyRegime`, `OutageRegime`,
+  `RecoveryRegime` and `StrongArmedRegime` (`CONTRACT.md`, "Relay
+  premise — 2026-09-28"), and SA-PC's `QuorumRecoveryRegime` has no such
+  field. Each regime uses `PartialSynchrony` or `HealthyPrefixDelivery`
+  (`Generic/Conditions.lean`). Both conditions give a handler call, not
+  acceptance, and both have no obligation for an object that the
+  receiver excludes at the deadline. `AcceptedObjectRelay` and
+  `HealthyAcceptedObjectRelay` keep their text, but only derived results
+  use them: the SA-PC adapters
+  (`AvailableChainSAPC/Proofs/ReceiptRelay.lean`),
+  `healthyPrefix_acceptedRelay` and Counter's `canonical_relay`. Thus the
+  coverage gap that the paragraph describes is closed, and plan 1b did
+  not change `AvailableChainStatements`. The reason to define `excludes`
+  is the delivery classification of `RelayFeasible` (plan 1c): with
+  `excludes = false`, a permanent refusal counts as a temporary refusal
+  that never ends.
+- E4 classification per protocol. The "and for SA and SA-PC too" above
+  holds for SA only.
+
+```text
+┌──────────┬───────────────────────────────────────────┬─────────────────────────────┐
+│ Protocol │ excludes (an object that is not processed)│ Where                       │
+├──────────┼───────────────────────────────────────────┼─────────────────────────────┤
+│ Grid CO  │ a HEAD of label r with r + 1 < the current│ `excludes`,                 │
+│          │ slot (the clock only goes forward), or a  │ `AvailableChainGridCO/Model/│
+│          │ HEAD whose seat already equivocates at r. │ Protocol.lean`; exactness:  │
+│          │ Never a proposal.                         │ `excludes_head_iff`,        │
+│          │                                           │ `excludes_proposal`,        │
+│          │                                           │ `excludes_not_processed`    │
+│          │                                           │ (`Proofs/Hooks.lean`)       │
+│ SA       │ the same as Grid CO (`sa p` is `gridCO`   │ as Grid CO                  │
+│          │ with `slowLeasePolicy`)                   │                             │
+│ SA-PC    │ none: `excludes := fun _ _ => false`. A   │ `AvailableChainSAPC/Proofs/ │
+│          │ HEAD is processed when it is in the       │ Hooks.lean` (module         │
+│          │ archive `receivedHeads`; `receiveHead`    │ docstring gives the reason  │
+│          │ refuses only a future label (temporary).  │ per object class)           │
+│          │ The Grid CO refusals act only on the base │                             │
+│          │ cache. A PC is refused only before        │                             │
+│          │ `pcEnvelopeReady` (temporary).            │                             │
+│ L*       │ a HEAD whose seat already equivocates at  │ `excludes`,                 │
+│          │ its label (a third equivocation); a       │ `AvailableChainLStar/Model/ │
+│          │ proposal wire whose block is already      │ Protocol.lean`;             │
+│          │ stored (a faulty proposer can sign two    │ `excludes_head_iff`,        │
+│          │ wires with one block). L* admits late     │ `excludes_proposal_iff`,    │
+│          │ votes of old labels, so it has no         │ `excludes_second_wire`      │
+│          │ old-label clause.                         │ (`Proofs/Hooks.lean`)       │
+└──────────┴───────────────────────────────────────────┴─────────────────────────────┘
+```
+
+- Hook facts. Each protocol library proves the five hook facts
+  (`excludes_inert`, `excludes_stable`, `processed_stable`,
+  `deps_stable`, `handles_carries`) in its own namespace, with the
+  statement shape of the `HooksSound` fields. The protocol libraries do
+  not import `AvailableChainFramework`. The Registry assembles the values
+  `gridHooks` (SA uses it at `slowLeasePolicy`), `sapcHooks` and
+  `lstarHooks`. The Phase 0 variant `gridCOx` and its `gridExcludes`,
+  `gridCOx_hooks` and `inWindow_not_excluded` are removed.
+- `WindowMargin` is a per-protocol lemma module,
+  `AvailableChainGridCO/Proofs/WindowMargin.lean`, not a framework
+  predicate. Each Grid CO relay lemma that used `excludes = false` by
+  `rfl` (`synchronous_head_handled_early`,
+  `synchronous_proposal_delivered`, `synchronous_receipt_before`,
+  `synchronous_block_path_at_gate`, `handled_before_proposal_of_ready`)
+  has a premise: the reader does not exclude the object at any time up
+  to the lemma's cutoff. The module proves that premise for each caller.
+  A label-r HEAD whose seat does not equivocate is not excluded before
+  `proposalTime p (r + 2)` (`head_not_excluded_before`), and every
+  caller's cutoff is at most `gateTime p r`, a margin of 2Δ. An honest
+  HEAD is never excluded in that window
+  (`honest_head_not_excluded_before`). For a HEAD of any seat, the
+  caller gets the case split `head_not_excluded_or_equivocates` and
+  ends in its existing "or equivocates" outcome. A proposal is never
+  excluded (`proposal_not_excluded`). If `excludes` covers more objects
+  later (I9, §12), only this module changes.
+- Not in plan 1b: `EmitWellFormed`, `HandlerCoverage`, `Deliverable`,
+  `RelayFeasible`, the predicate `Eligible` and the run-extension theorem.
+  Their only consumer is the run-extension theorem. A definition in a
+  locked module of `AvailableChainFramework` gets its lock line when it
+  is first written, so a later change to it is a lock change. Thus plan
+  1c defines them and proves the theorem in the same plan.
+
 **E5. Own-signature record.**
 - `selfVisible : Label → Bool`, `recordOwn : State → Object → State`.
 - `World.step` takes the run context (seat assignment and `awake`).
@@ -281,6 +367,53 @@ and its certificates pull back along the map (`ClaimSpec.pull`,
 record isolation; eligibility is a separate predicate `Eligible I` (plan
 1b). The field `Δ_pos : 0 < Δ` is new: without it, no environment has
 the instance's Δ, and every claim holds vacuously.
+
+**As implemented in plan 1b (2026-09-29).** This note does not change
+the text above. The Registry has four protocol instances, in
+`AvailableChainRegistry/Instances/`. Each is an instance with hooks, not
+an eligible candidate: `Eligible I` moved to plan 1c (E4 note).
+
+```text
+┌─────────────────────┬─────────────┬───────────────────┬──────────────────────────────┐
+│ Instance            │ P           │ hooks             │ holdsAt theorems             │
+├─────────────────────┼─────────────┼───────────────────┼──────────────────────────────┤
+│ gridInst p          │ gridCO p    │ gridHooks p       │ grid_holds (ac-4.3 at        │
+│ (GridCO.Params)     │ (default    │                   │ gridConstants p 1),          │
+│                     │ lease       │                   │ grid_holds_core (core.v1 at  │
+│                     │ policy)     │                   │ its D_c)                     │
+│ saInst p            │ sa p        │ @gridHooks        │ sa_holds, sa_holds_core      │
+│ (SA.Params)         │             │ slowLeasePolicy   │                              │
+│                     │             │ p.engine          │                              │
+│ sapcInst p          │ sapc p      │ sapcHooks p       │ sapc_holds_ac43,             │
+│ (SAPC.Params; a     │             │                   │ sapc_holds_strong1,          │
+│ StrongInstance)     │             │                   │ sapc_holds_core,             │
+│                     │             │                   │ sapc_holds_shared            │
+│ lstarInst p n       │ lstar p n   │ lstarHooks p n    │ none: L* has no contract     │
+│ (LStar.Params, Nat) │             │                   │ proof                        │
+└─────────────────────┴─────────────┴───────────────────┴──────────────────────────────┘
+```
+
+- The rows are at the proposer gap `G = 1`. Each has an `_of_pos` form
+  for every `0 < G`. `sapc_holds_shared` states both SA-PC profiles at
+  one constant, `C := sapcConstants p G`.
+- A `holdsAt` theorem proves the claim propositions at one constant,
+  without inhabitation (§5). It is not a certificate, and it does not
+  make the instance a `Candidate`.
+- The core rows use `core_holdsAt_of_ac43`
+  (`AvailableChainFramework/Catalog/Relations.lean`): `ac-4.3` at `C`
+  gives `core.v1` at `C.D_c`. It is the one lock line that plan 1b adds;
+  no lock line changed.
+- The Registry shows the theorems as rows of kind `profile-holds`. A
+  row whose only binder has a type in the syntactic allowlist
+  `familyBinders` (`GridCO.Params`, `SA.Params`, `SAPC.Params`, each
+  with a checked witness) is a family row, with status `LEAN (family)`.
+  The `_of_pos` rows are CONDITIONAL. `docs/MATRIX.md` shows a family
+  row as `holds*`, never as `cert`. `sapc_holds_shared` is a
+  conjunction, so it has no row.
+- No protocol instance has a certificate. The certificates need
+  inhabitation (a run for every horizon; none is proved for these four
+  protocols) and, for persistence, a budget above zero, but every
+  `Params` allows `η = 0`. Both are inputs for plan 1c.
 
 ## 4. Claim catalog (L3)
 
@@ -445,6 +578,35 @@ compares by name; see the lock change log in §8.
 - `Kit.FG`, `Kit.Compose`: see §7 and FG-COMPOSITION.md.
 - Explorer: executable instances; regime and conclusion checkers;
   refutation files.
+
+**As implemented in plan 1b (2026-09-29).** This note does not change
+the text above. Plan 1b made two Lake libraries, both default targets.
+`AvailableChainFramework` imports neither.
+
+- `AvailableChainKit` (L5). `Core` (namespace
+  `AvailableChain.Framework.Kit`: `includedPersist_of_safe`,
+  `block_preceq_trans`) came from `AvailableChainFramework/Kit/`.
+  `Engine/{Execution, EngineClock, RunPrefix, HealthyPrefix,
+  HealthyInterior, ProtectionInduction, SourceHistory}` (namespace
+  `AvailableChain.Engine`) came from the Grid CO library; `Execution`
+  was split, and its Grid CO part stays in Grid CO. `Engine/Stable` has
+  `stateBefore_stable`, which came from the Registry. The library imports
+  only `AvailableChainModel`, `AvailableChainStatements`, Mathlib and its
+  own modules.
+- `AvailableChainEngineV2` (L0). `Sketch` is the former
+  `AvailableChainFramework/Engine/V2Sketch.lean`; plan 2 grows it into
+  engine v2.
+- No name and no namespace changed, with one exception:
+  `stateBefore_stable` is now `AvailableChain.Engine.stateBefore_stable`.
+  Two lemmas of `Engine/Execution` are no longer private, because the
+  Grid CO part uses them.
+- No dedupe: the Kit's `block_preceq_trans` and Grid CO's private
+  `block_preceq_trans` (`Map.lean`) have different statements, and both
+  stay.
+- Still open: the Counter run and step helpers (`Counter.lean`,
+  `CounterRun.lean`) stay in the Registry. The run-extension work of
+  plan 1c generalizes them. `Kit.Engine` has no run-extension theorem
+  and no inhabitation lemma yet.
 
 ## 7. FG composition: interface shapes
 
@@ -682,6 +844,11 @@ Phases 0–2 land before the FG-SA Lean instance starts.
     changed is on the premise side: `includedConfirmed` inhabitation needs a
     proposal at a time of at least `H` (the Counter certificate was rebuilt),
     `Instance` needs `Δ_pos`, and `HooksSound` needs `deps_stable`.
+  - Note (2026-09-29, plan 1b). `GridCOHooks` as named above is gone:
+    plan 1b Task 1 removed `gridCOx` and `gridCOx_hooks`. The registry
+    still has no Grid CO certificate. It now has the instance `gridInst`,
+    with the hooks `gridHooks` of `gridCO` itself, and `profile-holds`
+    rows for it (§3 note).
   - Registry after the regeneration (`docs/REGISTRY.md`, 16 rows): Counter
     4 `cert` rows and `candidate` (`profile-cert`, `core.v1`), all `LEAN`;
     `Gaps.NoInput` 4 `cert` rows and `clockCandidate` (`profile-cert`,
@@ -691,6 +858,10 @@ Phases 0–2 land before the FG-SA Lean instance starts.
     NON-CATALOG`), both `LEAN`. New row kind `profile-cert` (for
     `ProfileCert K p I` and `Candidate I`; the claim column shows the
     profile `id`). A pulled claim shows its base claim and `(pulled)`.
+- 2026-09-29, plan 1b Task 4 (`06a5267`): one `ADDED` line,
+  `AvailableChain.Framework.Catalog.core_holdsAt_of_ac43`, written with
+  `--write` and no `--allow-changes`. No line changed, and no line was
+  removed.
 
 ## 9. Changes to standing rules (approved by the user 2026-09-28)
 
@@ -789,3 +960,9 @@ extra-tier entry.
   protocol libraries): content-coded roots checked at admission (FG-SA
   plan D4), so that `RootInjective` follows from admission. Not in plans
   1a, 1b or 2 until decided.
+
+  Decided 2026-09-29 (user): a derived root `root(B) := H(content)` with
+  `H` injective. A block carries its parent's root, and the validity
+  condition is that the carried parent root equals `root(parent)`. This
+  changes the shared `Block` type, so it is a contract and lock break. It
+  gets its own plan and a full audit after plan 1b.

@@ -491,98 +491,101 @@ the contract (`AvailableChainStatements`). Its namespace is
 §8 for the Phase 0 row, the accepted deviations and the lock change log.
 Plan 1a (`docs/plans/2026-09-28-phase1a-gate-catalog.md`) added claim
 domains, facets, shared profile constants, late triggers, the standard and
-strong tiers, and the profiles `ac-4.3` and `strong-1`. The tables below
-show the state after plan 1a. File paths below are relative to
-`AvailableChainFramework/`.
+strong tiers, and the profiles `ac-4.3` and `strong-1`. Plan 1b
+(`docs/plans/2026-09-29-phase1b-instances.md`) added the relation
+`core_holdsAt_of_ac43`, the Grid CO, SA, SA-PC and L* instances in the
+Registry, the row kind `profile-holds` and `docs/MATRIX.md`, and moved
+the Kit out of this library. The tables below show the state after plan
+1b. File paths below are relative to `AvailableChainFramework/`.
 
 ```text
-┌──────────────────┬─────────────────────────────────────────────┬───────────────────────┐
-│ Module           │ Contents                                    │ File                  │
-├──────────────────┼─────────────────────────────────────────────┼───────────────────────┤
-│ ClaimDomain      │ Validators (bundled V, DecidableEq,         │ ClaimDomain.lean      │
-│                  │ Fintype); ClaimDomain (id, Inst, Ctx,       │                       │
-│                  │ admissible, horizon): the instances that a  │                       │
-│                  │ claim speaks about and their run contexts   │                       │
-│ Hooks            │ Outcome (E4 classification); classify;      │ Hooks.lean            │
-│                  │ HooksSound (5 fields: excludes_inert,       │                       │
-│                  │ excludes_stable, processed_stable,          │                       │
-│                  │ deps_stable, handles_carries)               │                       │
-│ Instance         │ Instance (n, P, Δ, Δ_pos, iface, hooks);    │ Instance.lean         │
-│                  │ V1Ctx (an environment and a v1 run);        │                       │
-│                  │ ClaimDomain.v1                              │                       │
-│ Claim            │ RefutationKind; ClaimSpec K (id, Const,     │ Claim.lean            │
-│                  │ valid, le, le_refl, le_trans, Point,        │                       │
-│                  │ regime, conclusion, trigger with a time H,  │                       │
-│                  │ transport, refutable); holds; inhabited     │                       │
-│                  │ (the trigger at a time of at least H)       │                       │
-│ Cert             │ Cert; Refutation; RefutationFamily;         │ Cert.lean             │
-│                  │ Cert.weaken; Cert.not_refuted;              │                       │
-│                  │ Refutation.family_of (all over a claim      │                       │
-│                  │ domain K)                                   │                       │
-│ DomainMap        │ DomainMap K' K (an instance map and an      │ DomainMap.lean        │
-│                  │ equivalence of contexts); ClaimSpec.pull;   │                       │
-│                  │ holds_pull; inhabited_pull; Cert.pull;      │                       │
-│                  │ ClaimDomain.ofV1; DomainMap.ofV1            │                       │
-│ Facets/Strong    │ StrongInstance (extends Instance with the   │ Facets/Strong.lean    │
-│                  │ strong output); StrongInstance.sface;       │                       │
-│                  │ ClaimDomain.strong; DomainMap.strongV1      │                       │
-│ Profile          │ Profile.Entry (a claim and the projection   │ Profile.lean          │
-│                  │ of the shared constant); Profile K (id,     │                       │
-│                  │ Shared, valid, entries); ProfileCert (one   │                       │
-│                  │ shared constant, one certificate per entry  │                       │
-│                  │ at its projection; Type 1);                 │                       │
-│                  │ Profile.holdsAt; ProfileCert.holdsAt        │                       │
-│ Pareto           │ stronger; pareto; pareto_sub; pareto_covers │ Pareto.lean           │
-│                  │ (every constant is covered by a Pareto      │                       │
-│                  │ constant)                                   │                       │
-│ Catalog/Core     │ sleepy; safeOf; safeConfirmed; safeStable;  │ Catalog/Core.lean     │
-│                  │ prefixOrder; includedConfirmed;             │                       │
-│                  │ includedConfirmed_trigger_late; core (the   │                       │
-│                  │ floor profile; Shared := Time, the D of     │                       │
-│                  │ includedConfirmed); Candidate (Type 1);     │                       │
-│                  │ not_candidate_of_family                     │                       │
-│ Catalog/Meaning  │ meaning pins: <claim>_holds_iff and         │ Catalog/Meaning.lean  │
-│                  │ <claim>_inhabited_iff for the four core     │                       │
-│                  │ claims, in the Phase 0 form with L1         │                       │
-│                  │ predicates only                             │                       │
-│ Catalog/Mono     │ zeroConstants; the monotonicity lemmas that │ Catalog/Mono.lean     │
-│                  │ the transport proofs use: etaSleepy_mono,   │                       │
-│                  │ recurrence_mono, safeFrom_mono,             │                       │
-│                  │ includedFrom_mono, and <regime>_mono for    │                       │
-│                  │ StableSleepy, Outage, FastOutage, Recovery  │                       │
-│                  │ and recoveredAt                             │                       │
-│ Catalog/Standard │ the standard tier over ClaimDomain.v1:      │ Catalog/Standard.lean │
-│                  │ EtaConst; OutageConst; RecoveryConst;       │                       │
-│                  │ includedStable; includedStableFast;         │                       │
-│                  │ persistOutage; persistOutageFast;           │                       │
-│                  │ recovered; persistTrigger; for each claim   │                       │
-│                  │ <claim>_le_trans, <claim>_transport and     │                       │
-│                  │ <claim>_trigger_late;                       │                       │
-│                  │ <claim>_no_witness_at_zero_budget for the   │                       │
-│                  │ two persistence claims                      │                       │
-│ Catalog/Strong   │ the strong tier over ClaimDomain.strong:    │ Catalog/Strong.lean   │
-│                  │ StrongIncConst; StrongRecConst;             │                       │
-│                  │ StrongRecIncConst; strongSafe;              │                       │
-│                  │ strongIncluded; strongPersist;              │                       │
-│                  │ strongRecoveredSafe;                        │                       │
-│                  │ strongRecoveredIncluded;                    │                       │
-│                  │ strongIncludedTrigger; for each claim       │                       │
-│                  │ <claim>_le_trans and <claim>_transport;     │                       │
-│                  │ <claim>_trigger_late for each claim with a  │                       │
-│                  │ trigger other than True                     │                       │
-│ Catalog/Profiles │ the five regime adapters                    │ Catalog/Profiles.lean │
-│                  │ (stableSleepyRegime_iff, outageRegime_iff,  │                       │
-│                  │ fastOutageRegime_iff, recoveryRegime_iff,   │                       │
-│                  │ recoveredAt_iff); ac43 (ac-4.3:             │                       │
-│                  │ Shared := Constants, nine claims); ac43_iff │                       │
-│                  │ (↔ AvailableChain); ac43_valid_cross;       │                       │
-│                  │ strong1 (strong-1:                          │                       │
-│                  │ Shared := Constants × StrongConstants, five │                       │
-│                  │ claims); strong1_iff (↔ StrongClaims)       │                       │
-│ Catalog/Relations│ relations between profiles (plan 1b Task    │ Catalog/Relations.lean│
-│                  │ 4): core_holdsAt_of_ac43 (ac-4.3 holds at C │                       │
-│                  │ → core holds at D := C.D_c)                 │                       │
-└──────────────────┴─────────────────────────────────────────────┴───────────────────────┘
+┌───────────────────┬─────────────────────────────────────────────┬────────────────────────┐
+│ Module            │ Contents                                    │ File                   │
+├───────────────────┼─────────────────────────────────────────────┼────────────────────────┤
+│ ClaimDomain       │ Validators (bundled V, DecidableEq,         │ ClaimDomain.lean       │
+│                   │ Fintype); ClaimDomain (id, Inst, Ctx,       │                        │
+│                   │ admissible, horizon): the instances that a  │                        │
+│                   │ claim speaks about and their run contexts   │                        │
+│ Hooks             │ Outcome (E4 classification); classify;      │ Hooks.lean             │
+│                   │ HooksSound (5 fields: excludes_inert,       │                        │
+│                   │ excludes_stable, processed_stable,          │                        │
+│                   │ deps_stable, handles_carries)               │                        │
+│ Instance          │ Instance (n, P, Δ, Δ_pos, iface, hooks);    │ Instance.lean          │
+│                   │ V1Ctx (an environment and a v1 run);        │                        │
+│                   │ ClaimDomain.v1                              │                        │
+│ Claim             │ RefutationKind; ClaimSpec K (id, Const,     │ Claim.lean             │
+│                   │ valid, le, le_refl, le_trans, Point,        │                        │
+│                   │ regime, conclusion, trigger with a time H,  │                        │
+│                   │ transport, refutable); holds; inhabited     │                        │
+│                   │ (the trigger at a time of at least H)       │                        │
+│ Cert              │ Cert; Refutation; RefutationFamily;         │ Cert.lean              │
+│                   │ Cert.weaken; Cert.not_refuted;              │                        │
+│                   │ Refutation.family_of (all over a claim      │                        │
+│                   │ domain K)                                   │                        │
+│ DomainMap         │ DomainMap K' K (an instance map and an      │ DomainMap.lean         │
+│                   │ equivalence of contexts); ClaimSpec.pull;   │                        │
+│                   │ holds_pull; inhabited_pull; Cert.pull;      │                        │
+│                   │ ClaimDomain.ofV1; DomainMap.ofV1            │                        │
+│ Facets/Strong     │ StrongInstance (extends Instance with the   │ Facets/Strong.lean     │
+│                   │ strong output); StrongInstance.sface;       │                        │
+│                   │ ClaimDomain.strong; DomainMap.strongV1      │                        │
+│ Profile           │ Profile.Entry (a claim and the projection   │ Profile.lean           │
+│                   │ of the shared constant); Profile K (id,     │                        │
+│                   │ Shared, valid, entries); ProfileCert (one   │                        │
+│                   │ shared constant, one certificate per entry  │                        │
+│                   │ at its projection; Type 1);                 │                        │
+│                   │ Profile.holdsAt; ProfileCert.holdsAt        │                        │
+│ Pareto            │ stronger; pareto; pareto_sub; pareto_covers │ Pareto.lean            │
+│                   │ (every constant is covered by a Pareto      │                        │
+│                   │ constant)                                   │                        │
+│ Catalog/Core      │ sleepy; safeOf; safeConfirmed; safeStable;  │ Catalog/Core.lean      │
+│                   │ prefixOrder; includedConfirmed;             │                        │
+│                   │ includedConfirmed_trigger_late; core (the   │                        │
+│                   │ floor profile; Shared := Time, the D of     │                        │
+│                   │ includedConfirmed); Candidate (Type 1);     │                        │
+│                   │ not_candidate_of_family                     │                        │
+│ Catalog/Meaning   │ meaning pins: <claim>_holds_iff and         │ Catalog/Meaning.lean   │
+│                   │ <claim>_inhabited_iff for the four core     │                        │
+│                   │ claims, in the Phase 0 form with L1         │                        │
+│                   │ predicates only                             │                        │
+│ Catalog/Mono      │ zeroConstants; the monotonicity lemmas that │ Catalog/Mono.lean      │
+│                   │ the transport proofs use: etaSleepy_mono,   │                        │
+│                   │ recurrence_mono, safeFrom_mono,             │                        │
+│                   │ includedFrom_mono, and <regime>_mono for    │                        │
+│                   │ StableSleepy, Outage, FastOutage, Recovery  │                        │
+│                   │ and recoveredAt                             │                        │
+│ Catalog/Standard  │ the standard tier over ClaimDomain.v1:      │ Catalog/Standard.lean  │
+│                   │ EtaConst; OutageConst; RecoveryConst;       │                        │
+│                   │ includedStable; includedStableFast;         │                        │
+│                   │ persistOutage; persistOutageFast;           │                        │
+│                   │ recovered; persistTrigger; for each claim   │                        │
+│                   │ <claim>_le_trans, <claim>_transport and     │                        │
+│                   │ <claim>_trigger_late;                       │                        │
+│                   │ <claim>_no_witness_at_zero_budget for the   │                        │
+│                   │ two persistence claims                      │                        │
+│ Catalog/Strong    │ the strong tier over ClaimDomain.strong:    │ Catalog/Strong.lean    │
+│                   │ StrongIncConst; StrongRecConst;             │                        │
+│                   │ StrongRecIncConst; strongSafe;              │                        │
+│                   │ strongIncluded; strongPersist;              │                        │
+│                   │ strongRecoveredSafe;                        │                        │
+│                   │ strongRecoveredIncluded;                    │                        │
+│                   │ strongIncludedTrigger; for each claim       │                        │
+│                   │ <claim>_le_trans and <claim>_transport;     │                        │
+│                   │ <claim>_trigger_late for each claim with a  │                        │
+│                   │ trigger other than True                     │                        │
+│ Catalog/Profiles  │ the five regime adapters                    │ Catalog/Profiles.lean  │
+│                   │ (stableSleepyRegime_iff, outageRegime_iff,  │                        │
+│                   │ fastOutageRegime_iff, recoveryRegime_iff,   │                        │
+│                   │ recoveredAt_iff); ac43 (ac-4.3:             │                        │
+│                   │ Shared := Constants, nine claims); ac43_iff │                        │
+│                   │ (↔ AvailableChain); ac43_valid_cross;       │                        │
+│                   │ strong1 (strong-1:                          │                        │
+│                   │ Shared := Constants × StrongConstants, five │                        │
+│                   │ claims); strong1_iff (↔ StrongClaims)       │                        │
+│ Catalog/Relations │ relations between profiles (plan 1b Task    │ Catalog/Relations.lean │
+│                   │ 4): core_holdsAt_of_ac43 (ac-4.3 holds at C │                        │
+│                   │ → core holds at D := C.D_c)                 │                        │
+└───────────────────┴─────────────────────────────────────────────┴────────────────────────┘
 ```
 
 Plan 1b Task 0 moved `Kit/Core` and `Engine/V2Sketch` out of this

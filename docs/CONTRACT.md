@@ -272,9 +272,11 @@ persistence conclusion are retained. The general lag is not an extra test.
 SA and SA-PC set the fast lag to `4Δ`. Grid CO and L* set it equal to
 their general lag. Grid CO derives the new field from general P1; L*
 has the same conditional derivation, with its claim proofs still pending.
-SA uses `fastP1_from_engine` in its complete bundle. SA-PC keeps the
-proof pending with its other unfinished claims. The separate SA and
-SA-PC extra-claim statements are removed.
+SA uses `fastP1_from_engine` in its complete bundle. SA-PC also uses
+its own `fastP1_from_engine` in its complete bundle
+`sapcContract_from_engine` (status 2026-09-29; when this change was
+made, the SA-PC proof was pending). The separate SA and SA-PC
+extra-claim statements are removed.
 
 This is the one-time authorized scope extension. The base contract is
 now frozen at Draft 4.3. The strong companion below is additive.
