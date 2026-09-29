@@ -578,6 +578,17 @@ use the r148 numbers. r148 F2 is `fj.crossingNoFinal.v1`.
   by root need it: DC's selector `pickUnique?` returns none on a tie of
   distinct blocks (Astra plan audit G03,
   `docs/audit/fg-plan-audit-report.md` lines 71–72).
+  After I9 (2026-09-29), this idealization is not necessary.
+  `viewRootInj_all` (`AvailableChainKitFG/Correspondence.lean`) proves
+  `ViewRootInj` for every view, and `rootInjectiveOn_all`
+  (`AvailableChainKitFG/Accountable.lean`) proves `RootInjectiveOn` for
+  every two tips. The design: block roots are derived (`nodeRoot`,
+  `epair`), the FG rows are packed into the block body, and `rowsOk`
+  checks them. Thus the root is a function of the block content
+  (`FGBlock.root_injective`). The statements keep `ViewRootInj` as a
+  binder. The entries below that name it are marked "discharged by
+  `viewRootInj_all` (I9, 2026-09-29)"; the history of the assumption
+  stays visible.
 
 ## Index
 
@@ -867,7 +878,8 @@ Ret_d(B) := B⪯Z_d
   height per block; the entry `T_h` is the block that entered h). It does
   not use `a≤f`.
 - Hypothesis added 2026-09-28 (§0 rule (b): the rule uses the lex order
-  `(h_j, J.root)` and ties by root): `ViewRootInj` (§0.4).
+  `(h_j, J.root)` and ties by root): `ViewRootInj` (§0.4); discharged by
+  `viewRootInj_all` (I9, 2026-09-29).
 - Lean coverage (2026-09-28): Lean covers step 1 and part (ii)
   (`fBasis_lexMax`); part (i) and step 4 stay paper.
 - Note (2026-09-28, ALFS): part (ii) is now proved without the F basis
@@ -3512,7 +3524,9 @@ in §4. Every status below is for the FG-SA client (§0).
   `934fe2927f047a11e37dbe52aba9d754d5c461927f24b91902077f17459d47d2`).
 - Lean plan: DC-fj module (user 2026-09-28).
 - Hypotheses: the run satisfies the DC slashable bound (`a≤f`); roots are
-  collision-free; the honest DC client (E1).
+  collision-free (in the Lean port `RootInjectiveOn`, discharged by
+  `rootInjectiveOn_all` (I9, 2026-09-29); the DC pin below keeps
+  `NamedRootCollisionFree`); the honest DC client (E1).
 - Statement (registry): if D is a block of the run with finalized
   checkpoint `F(D)` at height `h_F(D)`, then every block C of the run with
   `h(C) > h_F(D)` extends `F(D)`.
@@ -4017,7 +4031,8 @@ M0. r151 calls this cap μ and calls M0 simply M.
   `7df2a540134deddede78ea711754bb322911fced62271868f8b5034164db9f4e`).
 - Lean plan: DC-fj module (user 2026-09-28).
 - Hypotheses (named 2026-09-28; §0 rule (b): the pinned text uses the
-  lex order `(h_j, J.root)` and ties by root): `ViewRootInj` (§0.4).
+  lex order `(h_j, J.root)` and ties by root): `ViewRootInj` (§0.4);
+  discharged by `viewRootInj_all` (I9, 2026-09-29).
 - Lean coverage (DC-fj module): frame only (F, H, j, J, Z, lo, D,
   contest, viability). `fgsa_head`, eligibility and the walk are AP data;
   see `ap.headReachesLo.v1` (user design correction 2026-09-28).
@@ -4130,7 +4145,7 @@ M0. r151 calls this cap μ and calls M0 simply M.
   `storeControls_eq_fjControls` (under `StoreInv` and `ViewRootInj`);
   `fjFrame = filteredFrom (fjControls V) V` is the special case.
 - Hypotheses: `ViewRootInj` (§0.4), for the lex order of `update_finality`
-  (lines 828–831).
+  (lines 828–831); discharged by `viewRootInj_all` (I9, 2026-09-29).
 - Summary (registry): controls from the live store caches (F, J, h_j,
   hmax; the contest from the full T_F, never a view); the domain filter
   applied to any block set; the HEAD walks the frozen voter tree from
@@ -4357,7 +4372,7 @@ M0. r151 calls this cap μ and calls M0 simply M.
   `storeControls_eq_fjControls` (under `StoreInv` and `ViewRootInj`);
   `fjFrame = filteredFrom (fjControls V) V` is the special case.
 - Hypotheses: `ViewRootInj` (§0.4), for the lex order of `update_finality`
-  (lines 850–853).
+  (lines 850–853); discharged by `viewRootInj_all` (I9, 2026-09-29).
 - Summary (registry): controls from the live store caches (F, J, h_j,
   hmax; the contest from the full cumulative Σ.T, never a view); the
   domain filter applied to any block set; the HEAD walks the frozen voter
@@ -4644,7 +4659,8 @@ M0. r151 calls this cap μ and calls M0 simply M.
   and (b) every W ∈ V with `h(W) > h_F` extends F (the pure form of
   `fg.finalLock.v1`, without slashable weight); for part (2) in the
   uncontested phase and for part (3), `ViewRootInj` (§0.4), named 2026-09-28 (§0
-  rule (b): the selected pair is the lex-max by root); V is
+  rule (b): the selected pair is the lex-max by root), discharged by
+  `viewRootInj_all` (I9, 2026-09-29); V is
   ancestor-closed and not empty.
 - Statement (registry, 2026-09-28): let (F, H, j, J, Z, lo, D) be the FJ
   frame of a view V.
@@ -4873,7 +4889,8 @@ M0. r151 calls this cap μ and calls M0 simply M.
   sha256 `934fe2927f047a11e37dbe52aba9d754d5c461927f24b91902077f17459d47d2`.
 - Lean plan: DC-fj module (user 2026-09-28).
 - Hypotheses (named 2026-09-28; §0 rule (b): the pinned text uses the
-  lex order `(h_j, J.root)` and ties by root): `ViewRootInj` (§0.4).
+  lex order `(h_j, J.root)` and ties by root): `ViewRootInj` (§0.4);
+  discharged by `viewRootInj_all` (I9, 2026-09-29).
 - Statement (pinned):
 
 > _fj-redteam.md, lines 577–597:_
@@ -4995,7 +5012,8 @@ M0. r151 calls this cap μ and calls M0 simply M.
 - Hypotheses: `fj.frame.v1`; `fg.uniqueJust.v1` (at most one justified
   entry at m−1); `fg.finalLock.v1`; `fj.crossingNoFinal.v1` (the "F2" of
   line 783, r148 numbering); `ViewRootInj` (§0.4), named 2026-09-28 (§0 rule (b):
-  "the same unique top J" compares entries by root).
+  "the same unique top J" compares entries by root), discharged by
+  `viewRootInj_all` (I9, 2026-09-29).
 - Statement (registry): fix a frontier m in a no-rise interval. Let
   J_(m−1) be the justified entry at m−1, if one exists. For an honest duty
   d with `H_d = m`, let `E_J(d)` mean "V_d holds a carrier of J_(m−1)",
@@ -5061,7 +5079,8 @@ M0. r151 calls this cap μ and calls M0 simply M.
   (1) "F move at m−1 keeps the uncontested phase, Z = F′, lo = m−1 and
   D" (line 376) is PARTIAL: `Fmove_atTop` derives it from extra premises
   (`m ≥ 2`, a carrier K of F′ with `h_F(K) = m−1`, `huniq`, `hext`,
-  `ViewRootInj`). (2) "at m−1 the contested phase is impossible" (line
+  `ViewRootInj`; `ViewRootInj` is discharged by `viewRootInj_all` (I9,
+  2026-09-29)). (2) "at m−1 the contested phase is impossible" (line
   381) is BY HYPOTHESIS: at frontier m, `hext` (every view block above
   m−1 extends F′) is equivalent to ¬E_C(m, F′), so this step is assumed,
   not derived. The BY HYPOTHESIS kind applies to row (2) only.
@@ -6960,7 +6979,8 @@ SUPERSEDED entry is the conjunction of its successors.
   r153a (`c85c0dcc`), which the adjudicator overwrote. `dc/consensus.tex`
   is kept by Git (commit `9f5ed71`).
 - Plan questions from ethereum-f1 (2026-09-28): §0.4 defines
-  `ViewRootInj` (collision-free roots in a view; G03). It is added by
+  `ViewRootInj` (collision-free roots in a view; G03; discharged by
+  `viewRootInj_all` (I9, 2026-09-29)). It is added by
   §0 rule (b) to `fj.frame.v1`, `fj.frameFeasible.v1` (part (2)
   uncontested and part (3)), `fg.frameCompat.v1`, `fj.inBandLock.v1` and
   `fj.twoChanges.core.v1`. `fj.twoChanges.core.v1`: the formal reading
