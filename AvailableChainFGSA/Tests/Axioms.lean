@@ -186,6 +186,7 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 #print axioms AvailableChain.FGSA.fastOrigin_congr
 #print axioms AvailableChain.FGSA.cstoreInv_of_sublist
 #print axioms AvailableChain.FGSA.cstoreInv_normalizeS
+#print axioms AvailableChain.FGSA.rootInj_all
 #print axioms AvailableChain.FGSA.cstoreInv_init
 #print axioms AvailableChain.FGSA.cstoreInv_accepted_pre
 #print axioms AvailableChain.FGSA.cstoreInv_admitBlock

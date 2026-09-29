@@ -115,12 +115,14 @@ example : rowsOk bR ([] : List (RowWire 4)) = false ∧
 
 /-- A body with the right signed-row code and a wrong outer decoded-row list:
 `encFGBody (packInner 0 [ra]) []`. The content check refuses it, and both stores
-stay unchanged. (The companion with the right decoded rows is `bR`, above.) -/
+and the stored wires stay unchanged. (The companion with the right decoded rows
+is `bR`, above.) -/
 def bW : Block := .node .genesis 1 (encFGBody (packInner 0 [ra]) ([] : List (Row (Fin 4))))
 example : appOf bW.body = 0 ∧ rowsOk bW [ra] = false ∧
     wellFormed pT ⟨.proposer 1, .proposal bW [] [] [ra]⟩ = false ∧
     (process pT stT ⟨.proposer 1, .proposal bW [] [] [ra]⟩).base.blocks = stT.base.blocks ∧
-    (process pT stT ⟨.proposer 1, .proposal bW [] [] [ra]⟩).fg.TF = stT.fg.TF := by
+    (process pT stT ⟨.proposer 1, .proposal bW [] [] [ra]⟩).fg.TF = stT.fg.TF ∧
+    (process pT stT ⟨.proposer 1, .proposal bW [] [] [ra]⟩).proposals = stT.proposals := by
   decide +kernel
 
 /-- Two signed row lists with the same decoded rows and different rounds give

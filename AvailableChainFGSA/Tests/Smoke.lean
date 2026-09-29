@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSA.Model.Handlers
 public import AvailableChainFGSA.Model.Frame
+public import AvailableChainFGSA.Tests.Support
 
 @[expose] public section
 
@@ -201,37 +202,6 @@ def wProp (B : FGBlock (Fin 4)) (r : Nat) (raw : List (HeadWire 4) := []) : Wire
 /-- Now = 12: slot 3, round 1. -/
 def st0 : State pT.n := { base := { GridCO.initial 4 with now := 12 } }
 def stA : State pT.n := [wProp B1 0, wProp B2 1, wProp B3 1].foldl (process pT) st0
-
-/-- [test helper] The accepted branch of `admitBlock`, with an explicit FG block
-`B` in place of `fgBlock P b rows`. The kernel reduces `fgBlock P b rows` again
-at each use, and each reduction decodes the body (`appOf`). On a large store
-this makes a `decide +kernel` check too slow, so such a test first rewrites
-with `process_eq_admitWith` (for the `B` with `fgBlock P b rows = B`). -/
-def admitWith (p : Params) (st : State p.n) (s : Slot) (b : Block)
-    (raw support : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (P B : FGBlock (Fin p.n)) : State p.n :=
-  if blockAccepted p st s b P rows then
-    let st1 : State p.n := { st with
-      base := GridCO.admitProposal p.toParams.engine st.base
-        (baseProposal s b raw support) b (raw.map baseHead)
-      fg := on_block p.E p.cfg st.fg B
-      proposals := st.proposals ++ [⟨.proposer s, .proposal b raw support rows⟩] }
-    let st2 := if st1.fg.F = st.fg.F then st1 else reconcile st1
-    rows.foldl (admitRow p) st2
-  else st
-
-/-- [test helper] A proposal delivery, with its FG parent `P` and its FG block
-`B` explicit. -/
-theorem process_eq_admitWith (p : Params) (st : State p.n) (s : Slot) (b : Block)
-    (raw support : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (P B : FGBlock (Fin p.n)) (hP : parentFG st b = some P) (hB : fgBlock P b rows = B) :
-    process p st ⟨.proposer s, .proposal b raw support rows⟩ =
-      admitWith p st s b raw support rows P B := by
-  subst hB
-  change admitBlock p st s b raw support rows = _
-  unfold admitBlock
-  rw [hP]
-  rfl
 
 /-- [test helper] `admitWith` for the wire `wProp B r` with FG parent `P`. -/
 def aw (st : State pT.n) (B P : FGBlock (Fin 4)) (r : Nat) : State pT.n :=
