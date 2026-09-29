@@ -73,11 +73,14 @@ relation that K1 needs; it is not a proof of every clause of
 │                  │ actView_releaseCount_zero (6);       │                                    │
 │                  │ actView_eq_image                     │                                    │
 │ SA bridges       │ clock_eq_saClock_offGate,            │ offGate: t not a gate time. gate:  │
-│ comp D3, J3      │ clock_eq_saClock_gate (and _gate'),  │ gate time of s, hnew (label not    │
-│                  │ actView_admitBlock_sameF,            │ saved; DQ5). Block: CStoreInv, hP, │
-│                  │ actView_admitBlock_movedF            │ hacc, F same / F moved (movedF is  │
-│                  │                                      │ the SA admission, filtered by the  │
-│                  │                                      │ new F, plus reconcile's 3 writes)  │
+│ comp D3, J3      │ clock_eq_saClockFrom_gate (and       │ gate time of s, hnew (label not    │
+│                  │ _gate'), actView_admitBlock_sameF,   │ saved; DQ5); the SA tick with the  │
+│                  │ actView_admitBlock_movedF            │ walk from F (SA.clockFrom at       │
+│                  │                                      │ eraseFG F; spec 4e85ff34). Block:  │
+│                  │                                      │ CStoreInv, hP, hacc, F same / F    │
+│                  │                                      │ moved (movedF is the SA admission, │
+│                  │                                      │ filtered by the new F, plus        │
+│                  │                                      │ reconcile's 3 writes)              │
 └──────────────────┴──────────────────────────────────────┴────────────────────────────────────┘
 ```
 
@@ -284,7 +287,7 @@ the direct-import allowlist does not change.
   honest `node(node(genesis, 1), 2)`, root 4). So the model differed from the
   spec there, and the K8 run form and every coverage claim needed
   `RootInjective` for this reason too.
-- `clock_eq_saClock_gate` needs one tick per public time (DQ5).
+- `clock_eq_saClockFrom_gate` needs one tick per public time (DQ5).
 - Release event order (G13 Astra N2): the release at `q_r` must run before
   the deliveries of the same time and must not repeat at `q_r` or run after a
   backward clock; then `GridCO.releaseCount` equals the spec count. One tick
