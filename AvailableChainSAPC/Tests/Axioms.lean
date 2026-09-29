@@ -1036,3 +1036,4 @@ public import AvailableChainSAPC.Proofs.RunCleanCapped
 #print axioms AvailableChain.SAPC.proposalEnters_missingParent
 #print axioms AvailableChain.SAPC.admitProposal_missingParent
 #print axioms AvailableChain.SAPC.process_pc_missingPaths
+#print axioms AvailableChain.SAPC.Tests.CleanInvariantCounterexample.y_root_lt_x_root

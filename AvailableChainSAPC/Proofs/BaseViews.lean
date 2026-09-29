@@ -199,6 +199,15 @@ theorem proposalEnters_data (p : Params) {n : Nat} (st : State n) (o : Wire n)
       have hgt := Nat.lt_of_not_ge hn
       simp [SA.Params.engine, hgt] at hg
 
+/-- The store dependency lookup with the `wellFormed` parent-slot test: the
+parent is in the base store with a slot below `s` iff a stored block has the
+parent's root and a slot below `s`. `wellFormed` itself reads no store. -/
+theorem blockKnown_parent_slot_iff_root {n : Nat} (st : State n) (b : Block) (s : Slot) :
+    (GridCO.blockKnown st.base b.parent = true ∧ b.parent.slot < s) ↔
+      ∃ q ∈ st.base.blocks, q.root = b.parent.root ∧ q.slot < s := by
+  simpa [GridCO.blockKnown] using
+    parent_mem_and_iff_root b st.base.blocks (fun q => q.slot < s)
+
 /-- A proposal with an unknown parent is a missing dependency: its block does
 not enter the base store. -/
 theorem proposalEnters_missingParent (p : Params) {n : Nat} (st : State n) (o : Wire n)

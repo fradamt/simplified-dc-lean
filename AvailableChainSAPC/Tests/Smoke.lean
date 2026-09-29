@@ -12,8 +12,8 @@ def y : Block := .node .genesis 5 0
 def d : Block := .node x 9 0
 
 /-- The derived roots keep the old literal sibling orders (x ⟨1⟩ < y ⟨5⟩;
-c ⟨2⟩ < d ⟨9⟩ < the slot-4 child ⟨44⟩ of `carriedDisableCheck`). A reversal
-of any one of these orders changes no check below. -/
+c ⟨2⟩ < d ⟨9⟩ < the slot-4 child ⟨44⟩ of `carriedDisableCheck`). No check below
+depends on these orders. -/
 example : x.root < y.root := by decide
 example : c.root < d.root := by decide
 example : d.root < (Block.node x 4 1).root := by decide
