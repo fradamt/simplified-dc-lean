@@ -76,9 +76,11 @@ in Σ.T, with the SAME ordered rows (`filterMap toRow?`), and whose rows all
 decode. `treeWire`: every non-genesis block of Σ.T has exactly one stored wire.
 `stampKeys`: the block stamps are keyed by the base list, once each.
 `pool*`: the row pool holds decoded rows, no duplicate, at most two per
-identity and round (used by `proposalRows`). `wireTree` and `poolDecodes` also
-make every `proposalRows` candidate decode, so its grouping key is never `none`
-(G6 item 9). -/
+identity and round (used by `proposalRows`). `noGenesisWire`: no stored wire
+carries genesis (G12 m1; with `treeWire` it gives `contentAgree_self`). The
+grouping key of `proposalRows` is never `none` on any store, because its
+`round?` filter (`Model/Frame.lean`, `proposalRows` and `blockWireRows`) drops
+every row that does not decode (G6 item 9; G12 m2). -/
 structure MetaInv (p : Params) (st : State p.n) : Prop where
   wireTree : ∀ o ∈ st.proposals, ∃ s b raw sup rows,
     o = ⟨.proposer s, .proposal b raw sup rows⟩ ∧ (∀ a ∈ rows, (RowWire.decode? a).isSome) ∧
@@ -92,16 +94,20 @@ structure MetaInv (p : Params) (st : State p.n) : Prop where
   poolNodup : st.rowPool.Nodup
   poolCap : ∀ r i, (st.rowPool.filter (fun a =>
     a.decode?.map (fun x => (x.1, x.2.1)) == some (r, i))).length ≤ 2
+  noGenesisWire : ∀ o ∈ st.proposals, Wire.block? o ≠ some .genesis
 
-/-- [bp bp.carrier.v1; K5 cross-node; DQ3(b), which REVERSES comp D4; audit M2]
-The content premise on two stores: stored proposal wires whose blocks have equal
-roots have equal payloads (erased block with its parent chain, ordered signed
-votes, support subset, ordered signed rows with their rounds). T7 derives it for
-every pair of honest stores of a run from the run premise
-`ContentRootInjective`. -/
+/-- [bp bp.carrier.v1; K5 cross-node; DQ3(b), which REVERSES comp D4; audit M2;
+narrowed at G12] The content premise on two stores: stored proposal wires whose
+blocks have equal roots have the same erased block (with its parent chain) and
+the same ordered signed rows (with their rounds). The carried votes and the
+support list are free: no cross-node proof reads them. T7 derives it for every
+pair of honest stores of a run from the run premise `ContentRootInjective` and
+the run fact that every stored wire is a payload that the node processed. -/
 def ContentAgree {n : Nat} (st st' : State n) : Prop :=
-  ∀ o ∈ st.proposals, ∀ o' ∈ st'.proposals, ∀ b b',
-    Wire.block? o = some b → Wire.block? o' = some b' → b.root = b'.root → o.payload = o'.payload
+  ∀ s b raw sup rows, (⟨.proposer s, .proposal b raw sup rows⟩ : Wire n) ∈ st.proposals →
+  ∀ s' b' raw' sup' rows',
+    (⟨.proposer s', .proposal b' raw' sup' rows'⟩ : Wire n) ∈ st'.proposals →
+    b.root = b'.root → b = b' ∧ rows = rows'
 
 end AvailableChain.FGSA
 end

@@ -243,7 +243,7 @@ theorem process_cumulative (p : Params) (st : State p.n) (o : Wire p.n) :
 /-! ### The metadata invariant -/
 
 theorem metaInv_init (p : Params) : MetaInv p (initial p.n) := by
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
   · intro o ho; simp [initial] at ho
   · intro B hB hg
     simp only [initial, Store.init, Finset.mem_singleton] at hB
@@ -254,6 +254,7 @@ theorem metaInv_init (p : Params) : MetaInv p (initial p.n) := by
   · intro a ha; simp [initial] at ha
   · simp [initial]
   · intro r i; simp [initial]
+  · intro o ho; simp [initial] at ho
 
 /-- [helper] `Wire.block?` of a proposal wire. -/
 theorem block?_proposal {n : Nat} (s : Slot) (b : Block) (raw sup : List (HeadWire n))
@@ -274,7 +275,8 @@ theorem metaInv_admitRow (p : Params) (st : State p.n) (m : MetaInv p st) (a : R
       simp only [Bool.or_eq_true, decide_eq_true_eq, not_or, not_le] at hcond
       obtain ⟨⟨⟨-, -⟩, hnot⟩, hlt⟩ := hcond
       have hkey : a.decode?.map (fun x => (x.1, x.2.1)) = some (r, i) := by rw [hd]; rfl
-      refine ⟨m.wireTree, m.treeWire, m.proposalsNodup, m.stampKeys, m.blocksNodup, ?_, ?_, ?_⟩
+      refine ⟨m.wireTree, m.treeWire, m.proposalsNodup, m.stampKeys, m.blocksNodup, ?_, ?_, ?_,
+        m.noGenesisWire⟩
       · intro c hc
         rw [List.mem_append, List.mem_singleton] at hc
         rcases hc with hc | rfl
@@ -347,7 +349,7 @@ theorem metaInv_accepted (p : Params) (st : State p.n) (h : CStoreInv p st) (m :
     (hdec : ∀ a ∈ rows, (RowWire.decode? a).isSome) : MetaInv p X := by
   have hwb : ∀ {o : Wire p.n}, o ∈ st.proposals → ∀ {c : Block}, Wire.block? o = some c →
       c ∈ st.base.blocks := fun ho _ hc => wire_block_mem p st h m ho hc
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
   · intro o ho
     rw [hX1, List.mem_append, List.mem_singleton] at ho
     rcases ho with ho | rfl
@@ -396,6 +398,12 @@ theorem metaInv_accepted (p : Params) (st : State p.n) (h : CStoreInv p st) (m :
   · rw [hX6]; exact m.poolDecodes
   · rw [hX6]; exact m.poolNodup
   · rw [hX6]; exact m.poolCap
+  · intro o ho
+    rw [hX1, List.mem_append, List.mem_singleton] at ho
+    rcases ho with ho | rfl
+    · exact m.noGenesisWire o ho
+    · rw [block?_proposal, ne_eq, Option.some.injEq]
+      exact hg
 
 theorem metaInv_process (p : Params) (st : State p.n) (h : CStoreInv p st) (m : MetaInv p st)
     (o : Wire p.n) : MetaInv p (process p st o) := by
@@ -404,7 +412,7 @@ theorem metaInv_process (p : Params) (st : State p.n) (h : CStoreInv p st) (m : 
   · rename_i s i b _
     have hv := admitVote_stamps p.toParams.engine st.base ⟨.seat s i, .head b⟩
     refine ⟨m.wireTree, m.treeWire, m.proposalsNodup, ?_, ?_, m.poolDecodes, m.poolNodup,
-      m.poolCap⟩
+      m.poolCap, m.noGenesisWire⟩
     · change (GridCO.admitVote _ _ _).blockStamp.map Prod.fst = (GridCO.admitVote _ _ _).blocks
       rw [hv.1, hv.2.1]; exact m.stampKeys
     · change (GridCO.admitVote _ _ _).blocks.Nodup
@@ -438,7 +446,7 @@ theorem metaInv_process (p : Params) (st : State p.n) (h : CStoreInv p st) (m : 
 theorem metaInv_clock (p : Params) (st : State p.n) (m : MetaInv p st) (t : Time) :
     MetaInv p (clock p st t) := by
   obtain ⟨c1, c2, c3, -, c5, c6⟩ := clock_cumulative p st t
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
   · rw [c5, c1]; exact m.wireTree
   · rw [c5, c1]; exact m.treeWire
   · rw [c5]; exact m.proposalsNodup
@@ -447,6 +455,7 @@ theorem metaInv_clock (p : Params) (st : State p.n) (m : MetaInv p st) (t : Time
   · rw [c6]; exact m.poolDecodes
   · rw [c6]; exact m.poolNodup
   · rw [c6]; exact m.poolCap
+  · rw [c5]; exact m.noGenesisWire
 
 /-- [bp bp.store.v1; K4 metadata] -/
 theorem metadataInvariant (p : Params) : MetadataInvariant p := by

@@ -12,8 +12,32 @@ that satisfy `ContentAgree` read their stored FG blocks the same way. -/
 
 /-- [helper] `ContentAgree` is symmetric. -/
 theorem contentAgree_symm {n : Nat} {st st' : State n} (hc : ContentAgree st st') :
-    ContentAgree st' st :=
-  fun o' ho' o ho b' b hb' hb hr => (hc o ho o' ho' b b' hb hb' hr.symm).symm
+    ContentAgree st' st := by
+  intro s b raw sup rows ho s' b' raw' sup' rows' ho' hr
+  obtain ⟨h1, h2⟩ := hc _ _ _ _ _ ho' _ _ _ _ _ ho hr.symm
+  exact ⟨h1.symm, h2.symm⟩
+
+/-- [bp bp.carrier.v1; G12 m1] One store agrees with itself: `ContentAgree st st`
+follows from the local invariants, with no run premise. -/
+theorem contentAgree_self (p : Params) (st : State p.n) (h : CStoreInv p st)
+    (m : MetaInv p st) : ContentAgree st st := by
+  intro s b raw sup rows ho s' b' raw' sup' rows' ho' hr
+  obtain ⟨_, _, _, _, _, he, -, B, hB, hBe, -⟩ := m.wireTree _ ho
+  obtain ⟨_, _, _, _, _, he', -, B', hB', hBe', -⟩ := m.wireTree _ ho'
+  simp only [Signed.mk.injEq, Msg.proposal.injEq] at he he'
+  obtain ⟨-, rfl, -, -, rfl⟩ := he
+  obtain ⟨-, rfl, -, -, rfl⟩ := he'
+  have hBB : B = B' :=
+    h.rootInj B hB B' hB' (by rw [← eraseFG_root, ← eraseFG_root, hBe, hBe', hr])
+  subst hBB
+  have hg : B ≠ .genesis := by
+    rintro rfl
+    exact m.noGenesisWire _ ho (by rw [block?_proposal, ← hBe]; rfl)
+  obtain ⟨w, -, hu⟩ := m.treeWire B hB hg
+  have e := (hu _ ⟨ho, by rw [block?_proposal, hBe]⟩).trans
+    (hu _ ⟨ho', by rw [block?_proposal, hBe']⟩).symm
+  simp only [Signed.mk.injEq, Msg.proposal.injEq] at e
+  exact ⟨e.2.1, e.2.2.2.2⟩
 
 /-- [helper] The erased ancestor of a stored FG block has a stored FG ancestor,
 with the same erasure. -/
@@ -53,10 +77,7 @@ theorem fg_eq_of_eraseFG_eq_across (p : Params) (st st' : State p.n)
             stored_wire_of_block p st h m hX (by simp)
           obtain ⟨sy, raw', sup', rw', ho', hYr⟩ :=
             stored_wire_of_block p st' h' m' hY (by simp)
-          have hpay := hc _ ho _ ho' _ _ (block?_proposal _ _ _ _ _)
-            (block?_proposal _ _ _ _ _) (by rw [he])
-          simp only [Msg.proposal.injEq] at hpay
-          obtain ⟨-, -, -, rfl⟩ := hpay
+          obtain ⟨-, rfl⟩ := hc _ _ _ _ _ ho _ _ _ _ _ ho' (by rw [he])
           change rows = _ at hXr
           change rows' = _ at hYr
           rw [hXr, hYr]
@@ -74,9 +95,7 @@ theorem fg_eq_of_root_eq_across (p : Params) (st st' : State p.n)
     exact h.rootInj _ hX _ h.fg.gen hr
   obtain ⟨_, _, _, _, ho, -⟩ := stored_wire_of_block p st h m hX hXg
   obtain ⟨_, _, _, _, ho', -⟩ := stored_wire_of_block p st' h' m' hY hYg
-  have hpay := hc _ ho _ ho' _ _ (block?_proposal _ _ _ _ _) (block?_proposal _ _ _ _ _)
-    (by rw [eraseFG_root, eraseFG_root, hr])
-  simp only [Msg.proposal.injEq] at hpay
+  have hpay := hc _ _ _ _ _ ho _ _ _ _ _ ho' (by rw [eraseFG_root, eraseFG_root, hr])
   exact fg_eq_of_eraseFG_eq_across p st st' h h' m m' hc hX hY hpay.1
 
 /-- [bp bp.carrier.v1; K5 cross-node] Erasure preserves and reflects ancestry
