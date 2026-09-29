@@ -13,8 +13,10 @@ and a small term for the length of `b`, so nested pairs stay small.
 
 The definitions use only `+`, `-`, `*`, `/`, `%`, `2 ^ ·` and `>>>`, with
 structural recursion on a fuel. The kernel has fast paths for these
-operations, so `decide +kernel` can evaluate codes with many bits.
-`Nat.log2` has no fast path, so the definitions do not use it. -/
+operations, so `decide +kernel` can evaluate codes with many bits. The fast
+path for `2 ^ k` holds only for `k < 2 ^ 24`, so each component must have
+fewer than `2 ^ 24` bits. `Nat.log2` has no fast path, so the definitions do
+not use it. -/
 
 /-- Phase 1 of `bitLen`: double `w` until `n >>> w = 0`. -/
 def bitLenDouble : Nat → Nat → Nat → Nat
@@ -138,11 +140,14 @@ theorem bitLen_eq_size (n : Nat) : bitLen n = Nat.size n := by
     obtain ⟨hlo, hhi⟩ := bitLenDouble_spec (n + 1) n 1 (Nat.le_refl 1) (by omega) (by omega)
     exact bitLenSearch_spec _ _ _ _ hlo hhi (by omega)
 
+/-- The bit length of `0` is `0`. -/
 theorem bitLen_zero : bitLen 0 = 0 := by simp [bitLen_eq_size, Nat.size_zero]
 
+/-- Every `n` is below `2 ^ bitLen n`. -/
 theorem lt_two_pow_bitLen (n : Nat) : n < 2 ^ bitLen n := by
   rw [bitLen_eq_size]; exact Nat.lt_size_self n
 
+/-- A nonzero `n` has its top bit at `bitLen n - 1`. -/
 theorem two_pow_bitLen_sub_one_le {n : Nat} (h : n ≠ 0) : 2 ^ (bitLen n - 1) ≤ n := by
   rw [bitLen_eq_size]
   have : 0 < Nat.size n := Nat.size_pos.2 (Nat.pos_of_ne_zero h)
@@ -159,6 +164,7 @@ theorem bitLen_eq_log2 (n : Nat) : bitLen n = if n = 0 then 0 else Nat.log2 n + 
       have := (Nat.log2_lt h).2 (lt_two_pow_bitLen n)
       omega
 
+/-- `bitLen n ≤ k` exactly when `n < 2 ^ k`. -/
 theorem bitLen_le_iff {n k : Nat} : bitLen n ≤ k ↔ n < 2 ^ k := by
   rw [bitLen_eq_size]; exact Nat.size_le
 
@@ -234,23 +240,26 @@ private theorem lpair_decode (a b : Nat) :
     Nat.mul_div_cancel_left _ (Nat.two_pow_pos _)]
   omega
 
+/-- `lfst` inverts `lpair` in the first argument. -/
 theorem lfst_lpair (a b : Nat) : lfst (lpair a b) = a := by
   unfold lfst
   rw [lpair_decode, lpair_add_one, tz_two_pow_mul (by omega)]
   exact two_pow_mul_add_div (lt_two_pow_bitLen b)
 
+/-- `lsnd` inverts `lpair` in the second argument. -/
 theorem lsnd_lpair (a b : Nat) : lsnd (lpair a b) = b := by
   unfold lsnd
   rw [lpair_decode, lpair_add_one, tz_two_pow_mul (by omega)]
   exact two_pow_mul_add_mod (lt_two_pow_bitLen b)
 
-/-- The decoders invert `epair` for every input. -/
-theorem efst_epair (a b : Nat) : efst (epair a b) = a := by
+/-- `efst` inverts `epair` in the first argument, for every input. -/
+@[simp] theorem efst_epair (a b : Nat) : efst (epair a b) = a := by
   unfold efst epair
   rw [lfst_lpair, lsnd_lpair]
   exact two_pow_mul_add_div (lt_two_pow_bitLen b)
 
-theorem esnd_epair (a b : Nat) : esnd (epair a b) = b := by
+/-- `esnd` inverts `epair` in the second argument, for every input. -/
+@[simp] theorem esnd_epair (a b : Nat) : esnd (epair a b) = b := by
   unfold esnd epair
   rw [lfst_lpair, lsnd_lpair]
   exact two_pow_mul_add_mod (lt_two_pow_bitLen b)
@@ -302,12 +311,13 @@ theorem encList_inj {α : Type} {enc : α → Nat} (h : Function.Injective enc) 
       obtain ⟨hxy, hrest⟩ := epair_inj hys
       rw [h hxy, ih hrest]
 
+/-- An injective element code gives an injective option code. -/
 theorem encOption_inj {α : Type} {enc : α → Nat} (h : Function.Injective enc) :
     Function.Injective (encOption enc) := by
   intro x y hxy
-  cases x <;> cases y <;> simp_all [encOption]
-  exact h hxy
+  cases x <;> cases y <;> simp_all [encOption, h.eq_iff]
 
+/-- The Boolean code is injective. -/
 theorem encBool_inj : Function.Injective encBool := by
   intro x y h
   cases x <;> cases y <;> simp_all [encBool]
