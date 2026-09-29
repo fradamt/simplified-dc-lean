@@ -10,7 +10,15 @@ F-13 dup armingHeadsCompatible_of_heads AvailableChainGridCO AvailableChainSAPC
 F-13 dup armingHeadsCompatible_of_protection AvailableChainGridCO AvailableChainSAPC
 F-13 dup blockInRun_of_prefix AvailableChainGridCO AvailableChainSAPC
 F-13 dup blockKnown_parent_slot_iff_root AvailableChainGridCO AvailableChainLStar AvailableChainSAPC
-F-13 dup block_preceq_trans AvailableChainFGSA AvailableChainGridCO AvailableChainKit
+F-13 dup block_compatible_comm AvailableChainFGSA AvailableChainGeneric
+F-13 dup block_compatible_of_common AvailableChainFGSA AvailableChainGeneric
+F-13 dup block_compatible_of_preceq_compatible AvailableChainFGSA AvailableChainGeneric
+F-13 dup block_genesis_preceq AvailableChainFGSA AvailableChainGeneric
+F-13 dup block_incompatible_of_preceq AvailableChainFGSA AvailableChainGeneric
+F-13 dup block_preceq_antisymm AvailableChainFGSA AvailableChainGeneric
+F-13 dup block_preceq_refl AvailableChainFGSA AvailableChainGeneric
+F-13 dup block_preceq_total_of_common AvailableChainFGSA AvailableChainGeneric
+F-13 dup block_preceq_trans AvailableChainFGSA AvailableChainGeneric AvailableChainGridCO AvailableChainKit
 F-13 dup cleanSupport_not_equivocating AvailableChainGridCO AvailableChainSAPC
 F-13 dup clean_history_at_ordinary_proposal AvailableChainGridCO AvailableChainSAPC
 F-13 dup clean_proposal_parent_ordinary AvailableChainGridCO AvailableChainSAPC
@@ -77,9 +85,13 @@ F-13 dup monotone_from_engine AvailableChainGridCO AvailableChainSA
 F-13 dup no_delivery AvailableChainRegistry AvailableChainWitnesses
 F-13 dup non_equivocating_unique AvailableChainGridCO AvailableChainSAPC
 F-13 dup outputOrder AvailableChainGridCO AvailableChainSA AvailableChainSAPC
+F-13 dup pathNodes_spec AvailableChainGeneric AvailableChainGridCO
+F-13 dup path_child AvailableChainGeneric AvailableChainGridCO
 F-13 dup preceq_depth_le AvailableChainGridCO AvailableChainKitFG
 F-13 dup preceq_refl AvailableChainKitFG AvailableChainRegistry
 F-13 dup preceq_trans AvailableChainGridCO AvailableChainKitFG
+F-13 dup prefix_depth AvailableChainGeneric AvailableChainGridCO
+F-13 dup prefix_eq_of_depth AvailableChainGeneric AvailableChainGridCO
 F-13 dup process_blocks_subset AvailableChainGridCO AvailableChainLStar
 F-13 dup process_genuine AvailableChainGridCO AvailableChainSAPC
 F-13 dup process_new_block AvailableChainGridCO AvailableChainSAPC
