@@ -438,6 +438,63 @@ run lake env bash -c 'LEAN_PATH="$0/c:$LEAN_PATH" lean --run scripts/CheckFGSARu
 expect_fail "a Grid CO proof predicate in a statement type (G-walk)" $code "$out" \
   "FORBIDDEN CONSTANT: AvailableChain.FGSA.Run.negctl_walkWrapper_proofPredicate uses AvailableChain.GridCO.RootInjectiveBelow (AvailableChainGridCO.Proofs.Roots)"
 
+# New (T7.2 R-A, Opus 2): generated constants are judged by their owner
+# definition. NEGATIVE: a proof that unfolds a definition of a forbidden module
+# (`GridCO.RootInjectiveBelow`, Grid CO proofs) by its generated equation
+# (`eq_def`); the equation is refused through its owner. POSITIVE: proofs that `split` and
+# `simp` over `GridCO.admitVote` and `GridCO.excludes` (Grid CO model); Lean
+# realizes private matcher equations in the library that use
+# `_sparseCasesOn_<k>.else_eq` constants of `AvailableChainGridCO.Proofs.Map`,
+# and the check accepts them, because their owners are Grid CO model
+# definitions.
+mk_tree
+cat > "$neg/tree/AvailableChainFGSARun/Proofs/NegOwner.lean" <<'LEAN'
+module
+public import AvailableChainFGSA.Proofs.StoreInv
+@[expose] public section
+namespace AvailableChain.FGSA.Run
+theorem negOwnerRoots (t : List Block) (h : GridCO.RootInjectiveBelow t) :
+    ∀ A C, (∃ B ∈ t, Block.Preceq A B) → (∃ B ∈ t, Block.Preceq C B) →
+      A.root = C.root → A = C := by
+  rw [GridCO.RootInjectiveBelow.eq_def] at h
+  exact h
+end AvailableChain.FGSA.Run
+end
+LEAN
+cat > "$neg/tree/AvailableChainFGSARun/Proofs/PosOwner.lean" <<'LEAN'
+module
+public import AvailableChainFGSA.Proofs.StoreInv
+@[expose] public section
+namespace AvailableChain.FGSA.Run
+theorem posOwnerSplit (q : GridCO.Params) {n : Nat} (st : GridCO.State n) (o : GridCO.Wire n) :
+    (GridCO.admitVote q st o).now = st.now := by
+  unfold GridCO.admitVote
+  split
+  · dsimp only; split <;> rfl
+  · rfl
+theorem posOwnerSimp (q : GridCO.Params) {n : Nat} {st st' : GridCO.State n}
+    (hv : st'.votes = st.votes) (hn : st'.now = st.now) (o : GridCO.Wire n) :
+    GridCO.excludes q st' o = GridCO.excludes q st o := by
+  simp only [GridCO.excludes, GridCO.votesAt, hv, hn]
+end AvailableChain.FGSA.Run
+end
+LEAN
+echo 'public import AvailableChainFGSARun.Proofs.NegOwner' >> "$neg/tree/AvailableChainFGSARun.lean"
+echo 'public import AvailableChainFGSARun.Proofs.PosOwner' >> "$neg/tree/AvailableChainFGSARun.lean"
+rm -rf "$neg/c" && mkdir -p "$neg/c/AvailableChainFGSARun/Proofs"
+cp -R .lake/build/lib/lean/AvailableChainFGSARun .lake/build/lib/lean/AvailableChainFGSARun.* "$neg/c/"
+for m in NegOwner PosOwner; do
+  lake env lean -o "$neg/c/AvailableChainFGSARun/Proofs/$m.olean" "$neg/tree/AvailableChainFGSARun/Proofs/$m.lean"
+done
+run lake env bash -c 'LEAN_PATH="$0/c:$LEAN_PATH" lean --run scripts/CheckFGSARunAxioms.lean --root AvailableChainFGSARun.Proofs.NegOwner --root AvailableChainFGSARun.Proofs.PosOwner --files "$0/tree/AvailableChainFGSARun" "${@}"' "$neg" "${AX_OPTS[@]}"
+expect_fail "a generated equation of a Grid CO proof definition (owner)" $code "$out" \
+  "FORBIDDEN CONSTANT: AvailableChain.FGSA.Run.negOwnerRoots uses" \
+  "(owner AvailableChain.GridCO.RootInjectiveBelow (AvailableChainGridCO.Proofs.Roots))"
+if printf '%s\n' "$out" | grep -F 'FORBIDDEN CONSTANT' | grep -qv 'negOwnerRoots'; then
+  echo "$out"; echo "POSITIVE CONTROL owner mapping: a Grid CO model matcher equation was refused"; exit 1
+fi
+echo "accepted, as expected: generated equations of Grid CO model definitions (owner)"
+
 # Lease controls (the controls of scripts/check-fgsa.sh, over the run library):
 # a direct default-instance call; the anchored gate and tick at the grid
 # policy; an alias wrapper with its own policy parameter in another namespace;

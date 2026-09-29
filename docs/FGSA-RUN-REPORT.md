@@ -361,8 +361,44 @@ Notes and open items:
   `_private` names. Workaround in the proofs: `grid_excludes_congr`,
   `grid_admitVote_now`, `grid_admitVote_votes_subset` and
   `grid_admitVote_keeps` use `unfold` and case analysis on the wire, not
-  `simp` or `split` over that matcher.
+  `simp` or `split` over that matcher. They stay as they are.
+- Checker fix (commit "T7.1 check: used-constant owner mapping for generated
+  equations"). `scripts/CheckFGSARunAxioms.lean` judges a generated USED
+  constant by its owner: `generatedOwner` strips the private prefix
+  (`privateToUserName?`) and the generated last components `eq_<k>`,
+  `eq_def`, `splitter`, `else_eq`, `_sparseCasesOn_<k>` and
+  `congr_eq_<k>`, one at a time, until the name is a declared constant. The
+  check accepts the constant only if the owner is a definition in a module
+  that is not forbidden. `generatedEqn` (the skip of a CHECKED constant)
+  uses the same owner mapping, so it also sees private names. The rule has
+  no list of names. Controls: NEGATIVE, `negOwnerRoots` rewrites with
+  `GridCO.RootInjectiveBelow.eq_def` (Grid CO proofs) and is refused
+  through the owner; POSITIVE, `posOwnerSplit` and `posOwnerSimp` `split`
+  and `simp` over `GridCO.admitVote` and `GridCO.excludes` and pass. The
+  positive control fails under the old rule (two `FORBIDDEN CONSTANT` lines
+  for `headLabel?.match_1.eq_2`) and passes under the new one.
 - Guards: every public theorem of `Proofs/Protocol.lean` and
   `Proofs/Excludes.lean` has a `#print axioms` line in `Tests/Axioms.lean`;
   `--expect` lists the main outputs; a negative control checks that a name
   in `--expect` that the scan does not find fails with `NOT CHECKED`.
+
+Validation (branch `fgsa-t7-2`, final head; Mac, `pgrep -x lean.orig` below
+3 before each build):
+
+```text
+┌──────────────────────────────────────────────┬──────────────────────────────┐
+│ Command                                      │ Result                       │
+├──────────────────────────────────────────────┼──────────────────────────────┤
+│ lake build --wfail AvailableChainFGSARun     │ pass (3390 jobs)             │
+│ bash scripts/check-fgsa-run.sh               │ pass; 16 controls behave as  │
+│                                              │ expected                     │
+│ bash scripts/check-fgsa-run.sh (T7.2 commit  │ pass; 14 controls (no owner  │
+│   alone, before the checker fix)             │ controls)                    │
+│ bash scripts/check-fgsa.sh                   │ pass                         │
+│ lake env lean --run scripts/V2Manifest.lean  │ pass                         │
+│   --check                                    │                              │
+│ Tests/Axioms.lean (99 lines)                 │ only propext, Classical.     │
+│                                              │ choice, Quot.sound; no       │
+│                                              │ sorryAx                      │
+└──────────────────────────────────────────────┴──────────────────────────────┘
+```
