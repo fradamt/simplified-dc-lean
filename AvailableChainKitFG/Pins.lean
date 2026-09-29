@@ -184,8 +184,10 @@ def pins : List Pin := [
         filter, the SA walk does not"⟩,
     ⟨"Trees 4: act(Σ) is a view of Σ.T (fgsa3 493–496)",
       .lean [``activeView, ``activeView_subset]⟩,
-    ⟨"Trees 4: only the SA base reads act(Σ) (fgsa3 497–499)",
-      .apData "no FG definition or lemma reads activeView"⟩,
+    ⟨"Trees 4: the SA base reads only the active view: the gate, release, resolution, \
+      saved-result tests, leases and the confirmation walk (fgsa3 497–499)",
+      .apData "the SA base of the composite runs on the active view (FG-SA actView); \
+        no FG definition or lemma reads activeView"⟩,
     ⟨"on_block: duplicate, parent, F ⋠ B and parent-slot refusals before the state \
       computation (fgsa3 944–969)",
       .leanHyp [``on_block, ``on_block_of_refused, ``storeInv_on_block]
@@ -325,7 +327,8 @@ def pins : List Pin := [
     ⟨"(1) a nonempty D reaches lo", .lean [``filteredFrom_reachesLo]⟩,
     ⟨"(2) D is not empty under (a) and (b)",
       .leanHyp [``fjFrame_D_nonempty, ``storeFrame_feasible]
-        "fjFrame: (a) K ∈ V finalizes F, (b) pure fg.finalLock.v1, ViewRootInj \
+        "fjFrame: (a) K ∈ V finalizes F, (b) pure fg.finalLock.v1 (current reading: the \
+        carrier clause of fg.finalLock.v2, Lean finalLock; registry §9), ViewRootInj \
         (viewRootInj_all); \
         stronger form: the proof of fjFrame_D_nonempty does not use ViewRootInj or \
         σ[K].F = F (binders kept); store form: StoreInv gives (a) on Σ.T, (b) and \
@@ -335,17 +338,19 @@ def pins : List Pin := [
         "(a); (b); ViewRootInj (viewRootInj_all); V ancestor-closed"⟩,
     ⟨"(4) below lo every block of D has a child in D",
       .leanHyp [``filteredFrom_viable_child] "any controls; the block set is ancestor-closed"⟩,
-    ⟨"(2), (3) on the frozen voter tree (ALFS note)",
+    ⟨"(2), (3) on the frozen voter tree of a HEAD duty (the ALFS note; the same \
+      functions in fgsa3: voter trees 1361–1376, get_head_in_tree 1240–1247)",
       .ap "ap.headReachesLo.v6" "not unconditional: a late contest can empty D_V, ldp \
         L6; the plan reads clause 3, Z ∈ D_V from D_V ≠ ∅, as filteredFrom_Z_mem (the \
         plan's reading, not a registry discharge)"⟩,
     ⟨"the walk below lo (last two pinned sentences), view form: the head read from a \
       duty view is in D with state height ≥ lo, under the v1 premises (fj.frame.v1, \
-      R1 duty views, fg.finalLock.v1 and a ≤ f); no unfiltered fallback",
+      R1 duty views, fg.finalLock.v1 and a ≤ f; fg.finalLock.v1 reads as the carrier \
+      clause of fg.finalLock.v2, registry §9); no unfiltered fallback",
       .ap "ap.headReachesLo.v1" ""⟩,
-    ⟨"the walk below lo (last two pinned sentences), ALFS: the HEAD is in D_V with \
-      state height ≥ lo if its anchor A = live_root is in D_V or has an eligible \
-      child in D_V; otherwise the HEAD is A (clause 2)",
+    ⟨"the walk below lo (last two pinned sentences), FG-SA form (fgsa3 1226–1247): the \
+      HEAD is in D_V with state height ≥ lo if its anchor A = live_root is in D_V or \
+      has an eligible child in D_V; otherwise the HEAD is A (v6 clause 2)",
       .ap "ap.headReachesLo.v6" "clauses 1–2"⟩ ] },
   -- Port difference: accountable_oriented (the helper behind `accountable`) gives
   -- HasE1WeightBetween of the two chains' rows; DC's namedAccountableSafety_oriented
@@ -370,14 +375,15 @@ def pins : List Pin := [
   { id := "fg.finalLock.v2", sources := [bp01, bp00], clauses := [
     ⟨"carrier form: for a chain B and a block W with h(W) > h_F(B), W extends F(B), or \
       B's finality rows and W's crossing rows give 2q−W E1 weight (no fault bound); \
-      h_F(B) = 0 gives F(B) = genesis (bp01 725–743)",
+      h_F(B) = 0 gives F(B) = genesis (bp01 701–723, 741–743)",
       .leanHyp [``finalLock_e1, ``finalLock]
         "RootInjectiveOn B W (rootInjectiveOn_all); finalLock is the slashable-or \
         form; the threshold is the carrier's h_F, not yet the accepted certificate's \
         entry height"⟩,
     ⟨"accepted-carrier wrapper: for the accepted F at e, finheight(F,e) is 0 for \
       genesis and else the entry height of its accepted certificate; the carrier \
-      form holds at that threshold (bp01 725–743, bp00 643–651)",
+      form holds at that threshold (bp01 725–743, bp00 643–651; paper argument bp01 \
+      734–736)",
       .open_ "accepted-carrier wrapper: proof pending (r213b item 2)"⟩,
     ⟨"under a ≤ f and honest client discipline, F ⪯ W (bp01 725–743)",
       .paper "2q_F − n > a removes the evidence branch"⟩ ] },
@@ -475,17 +481,20 @@ def pins : List Pin := [
         "carrier hcar; F ⪯ J' (hFJ', partial coverage per the registry note); huniq \
         (uniqueness at h(C): paper fg.uniqueJust.v1, uniqueJust_chains gives it for \
         two chains); ViewRootInj (§0.4; viewRootInj_all)"⟩,
-    ⟨"derivation of F ⪯ J' from fg.finalLock.v1", .open_ "later helper pinned here"⟩,
+    ⟨"derivation of F ⪯ J' from the finality lock (fg.finalLock.v1 in the pinned text; \
+      current reading: fg.finalLock.v2, registry §9)", .open_ "later helper pinned here"⟩,
     ⟨"view form: in a contest the AP head read from a duty view is in D with state \
       height ≥ lo = H, under the v1 premises (fj.frame.v1, R1 duty views, \
-      fg.finalLock.v1 and a ≤ f); no unfiltered fallback",
+      fg.finalLock.v1 and a ≤ f; fg.finalLock.v1 reads as the carrier clause of \
+      fg.finalLock.v2, registry §9); no unfiltered fallback",
       .ap "ap.headReachesLo.v1" "view form"⟩,
-    ⟨"ALFS form: in a contest the frozen HEAD reaches H if its anchor A = live_root is \
-      in D_V (the filtered domain of the frozen voter tree V) or has an eligible child \
-      in D_V; otherwise the HEAD is A (clause 2), which can be below H",
+    ⟨"FG-SA form (fgsa3 1226–1247, 1361–1376): in a contest the frozen HEAD reaches H \
+      if its anchor A = live_root is in D_V (the filtered domain of the frozen voter \
+      tree V) or has an eligible child in D_V; otherwise the HEAD is A (v6 clause 2), \
+      which can be below H",
       .ap "ap.headReachesLo.v6" "clauses 1–2"⟩,
     ⟨"in a contest the FG action head (get_filtered_block_tree over the full tree Σ.T, \
-      domain D; alfs4 1021–1025) reaches H if A is in D or has an eligible child in D; \
+      domain D; fgsa3 1173–1177) reaches H if A is in D or has an eligible child in D; \
       otherwise the head is A, which can be below H",
       .ap "ap.headReachesLo.v6" "the plan's reading of clauses 1–2 with Σ.T in place \
         of V (v6 is stated only for a HEAD duty's frozen voter tree); the anchor \
@@ -592,9 +601,12 @@ def notFormalized : List (String × String) := [
   ("comp.outputNesting.v1", "AP accessor fact; the finalized ⪯ available clause") ]
 
 /-- Pins kept only as history: their registry status is WITHDRAWN or
-SUPERSEDED, and no current composition cites them. `scripts/check-fg-pins.sh`
-exempts them and their references from the status test, and each one must be
-on the allowlist of that script, with a reason and a date. -/
+SUPERSEDED (`scripts/check-fg-pins.sh` step 5 checks it). No current pin cites
+them by a structured id (`.ap`, `.external`); a current citation in free text or
+in a registry entry reads as the successor (registry §9, "Current reading of
+withdrawn ids"). The pin check exempts them and their references from the
+status test, and each one must be on the allowlist of that script, with a
+reason and a date. -/
 def historicalPins : List String :=
   ["fj.frame.v3", "fg.finalLock.v1", "fj.twoChanges.core.v1"]
 

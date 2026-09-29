@@ -912,7 +912,7 @@ registry id, or the AP fact that carries the clause).
 ├─────────────────────────────┼──────────────────────────────────────────────┼─────────────────────┤
 │ scripts/check-fg.sh         │ builds the two libraries once (--wfail),     │ 0 all pass; else    │
 │                             │ then runs the root-import check, the four    │ the failed step's   │
-│                             │ checks below and four negative controls of   │ code (1 for a       │
+│                             │ checks below and five negative controls of   │ code (1 for a       │
 │                             │ check-fg-pins.sh (temporary emitter,         │ control that is not │
 │                             │ registry and allowlist copies); stops at the │ detected)           │
 │                             │ first failure                                │                     │
@@ -939,7 +939,11 @@ registry id, or the AP fact that carries the clause).
 │                             │ row; no id that a current pin names (its own │                     │
 │                             │ id or a dep: an .ap or .external id) is      │                     │
 │                             │ SUPERSEDED or WITHDRAWN; the hist pins are   │                     │
-│                             │ exactly the script's dated allowlist         │                     │
+│                             │ exactly the script's dated allowlist, each   │                     │
+│                             │ WITHDRAWN or SUPERSEDED; prints the number   │                     │
+│                             │ of leanIn names. The full pin gate is        │                     │
+│                             │ check-fg.sh PLUS check-fgsa.sh (the leanIn   │                     │
+│                             │ names)                                       │                     │
 └─────────────────────────────┴──────────────────────────────────────────────┴─────────────────────┘
 ```
 

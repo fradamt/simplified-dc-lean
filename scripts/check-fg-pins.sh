@@ -31,11 +31,17 @@
 #    the module does not formalize). Direct dep edges suffice: in Pins.lean
 #    (the Cov type) only .ap and .external carry an id. A dep on another pin
 #    is an .external id: if that pin is a hist pin, its own WITHDRAWN or
-#    SUPERSEDED status fails here; if it is current, its own deps are checked
-#    as a current pin's deps. So no transitive closure is needed.
+#    SUPERSEDED status fails here (step 5 makes sure that a hist pin has such
+#    a status); if it is current, its own deps are checked as a current pin's
+#    deps. So no transitive closure is needed. The check sees only these
+#    structured ids (.ap, .external); an id in the free text of .leanHyp,
+#    .byHyp, .open_, .paper or a clause label is not checked (registry §9,
+#    "Current reading of withdrawn ids", covers such citations).
 # 5) the hist pins are exactly the ids of the allowlist HIST below. Each
 #    allowlist entry has an id, a date and a reason. A hist pin with no
-#    allowlist entry fails; an allowlist entry with no hist record fails.
+#    allowlist entry fails; an allowlist entry with no hist record fails; a
+#    hist pin whose Index status does not start with WITHDRAWN or SUPERSEDED
+#    fails.
 # A failed build prints BUILD FAILED and exits 2.
 # `leanIn` names (constants of a library above the FG libraries) are not in
 # the manifest. The emitter fails in step 0 when a `leanIn` library is not on
@@ -182,10 +188,26 @@ done
 for i in $(comm -13 "$tmp/hist" <(sort -u "$tmp/allowIds")); do
   echo "ALLOWLIST ENTRY WITHOUT A HIST RECORD: $i"; status=1
 done
+while read -r i; do
+  [ -n "$i" ] || continue
+  st=$(I="$i" awk -F'│' '/^## Index/ { s = 1; next } /^## / { s = 0 }
+    s && index($0, "│ " ENVIRON["I"] " ") == 1 { gsub(/^ +| +$/, "", $4); print $4 }' "$REG")
+  case $st in
+    WITHDRAWN*|SUPERSEDED*) ;;
+    *) echo "HIST PIN IS CURRENT: $i ($st)"; status=1 ;;
+  esac
+done < "$tmp/hist"
 nref=$(grep -Ec '^(ap|external) ' "$tmp/ids" || true)
 nnf=$(grep -c '^notFormalized ' "$tmp/ids" || true)
 ndep=$(grep -c '^dep ' "$tmp/body" || true)
 nhist=$(grep -c '^hist ' "$tmp/body" || true)
 echo "checked $nsrc sources, $npin pin ids ($nhist historical), $nref active references, \
 $ndep dependency edges and $nnf not-formalized ids"
+# The leanIn names are not in the manifest: report their count (the default
+# emitter only; the negative-test emitters have no --ext mode).
+if [ -z "${FGPINIDS:-}" ]; then
+  next=$(lake env lean --run "$EMIT" --ext | tail -1 | sed -n 's/^END ext \([0-9][0-9]*\)$/\1/p')
+  [ -n "$next" ] || { echo "EMITTER FAILED (--ext)"; exit 2; }
+  echo "$next leanIn names: checked by check-fgsa.sh"
+fi
 exit $status

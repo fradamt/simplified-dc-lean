@@ -80,4 +80,7 @@ echo "$cur 2026-09-29 control (d)" >> "$neg/allow"
 run env FGHISTALLOW="$neg/allow" bash scripts/check-fg-pins.sh
 expect_fail "(d) an allowlist entry with no hist record" \
   "ALLOWLIST ENTRY WITHOUT A HIST RECORD: $cur"
+# (e) a hist pin on the allowlist whose Index status is current (PROVED).
+run env FGPINIDS="$neg/NegC.lean" FGHISTALLOW="$neg/allow" bash scripts/check-fg-pins.sh
+expect_fail "(e) a hist pin with a current status" "HIST PIN IS CURRENT: $cur (PROVED"
 echo "all FG checks pass"

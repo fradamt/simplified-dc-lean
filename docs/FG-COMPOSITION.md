@@ -2064,6 +2064,10 @@ in §4. Every status below is for the FG-SA client (§0).
   do not change; the Trees clauses change (no deletion from Σ.T, the SA
   walk starts at Σ.F). The note above is history. A current citation of
   `fj.frame.v2` or `fj.frame.v3` here reads as `fj.frame.v4`.
+- Note (2026-09-29; current use): `fg.finalLock.v1` is WITHDRAWN for current
+  use. The citations above are history. A current use of this entry
+  reads them as §9, "Current reading of withdrawn ids".
+
 
 ### `ap.headReachesLo.v2` — the AP head under ALFS (frozen tree, live anchor)
 
@@ -3685,7 +3689,7 @@ in §4. Every status below is for the FG-SA client (§0).
 
 - Variant `both`. Sources: blueprint 01 §8.2, file
   `blueprint/archive/01-foundations-200c9c07.md` (key `bp01`), lines
-  725–743, sha256
+  701–723 (the carrier-form proof) and 725–743 (the statement), sha256
   `200c9c07a01bd5826750d0e89a985be87e588f98132a68534cdd719531302a99`;
   blueprint 00 §3, file `blueprint/archive/00-outline-e6dcbcc1.md` (key
   `bp00`), lines 643–651.
@@ -3694,12 +3698,38 @@ in §4. Every status below is for the FG-SA client (§0).
   form is Lean: `KFG.finalLock_e1` (the evidence alternative) and
   `KFG.finalLock` (the slashable-or form), with the carrier's h_F as the
   threshold. The accepted-carrier wrapper (the entry height of the
-  accepted certificate; 0 for genesis; certificate provenance) is OPEN:
-  no proof yet, neither Lean nor paper step (r213b item 2).
+  accepted certificate; 0 for genesis; certificate provenance): Lean
+  OPEN (r213b item 2); paper: bp01 734–736.
 - Hypotheses: none for the evidence alternative; `a ≤ f` and honest
   client discipline for `F ⪯ W`. Dependencies: bp.carrier.v1,
   bp.chainCertificates.v1, bp.clientSafety.v1 (blueprint ids).
 - Statement (pinned):
+
+> _01-foundations-200c9c07.md, lines 701–723:_
+>
+> ### 8.2 Crossing and accountability — fg.finalLock.v2, fg.accountable.v1
+>
+> **REUSE of KFG.finalLock_e1 and accountable; proof expanded.**
+> `KFG.accountable` requires `KFG.RootInjectiveOn` and gives the weight
+> inequality `2q≤W+w(Slashable)`. Section 2 supplies root injectivity;
+> unit weights give the identity count used here. The DC declaration
+> `DecoupledConsensusModel.Proofs.NamedFinalizationBridge.finalized_preceq_of_height_lt`
+> requires `SlashableBound` and root-collision freedom. It proves the
+> fault-bounded ancestry clause only. The evidence alternative below uses
+> `KFG.finalLock_e1`. The finalized height is the carrier's `h_F`;
+> for genesis this can be 0 initially or 1 after its height-1 finalization.
+> For two quorums Q₁,Q₂⊆V,
+> |Q₁∩Q₂|=|Q₁|+|Q₂|−|Q₁∪Q₂|≥2q_F−n.
+>
+> Let D finalize F at height m, and ht(W)>m. If m=0, F=g by the
+> genesis invariant, so F⪯W. If m>0, §3 supplies a finality quorum
+> Q_f for (m,F) on D and a progress quorum Q_c matching the height-m
+> entry E on W. If E=F, that entry is an ancestor of W, so F⪯W.
+> If E≠F, root injectivity gives different roots. For each i∈Q_f∩Q_c,
+> select its finality row on D and matching progress row on W.
+> If the progress row is a timeout, the pair is E1. If it is a target,
+> it targets E≠F, so the pair is E1. Distinct identities count once.
+> This proves the evidence alternative of finalLock without any time bound.
 
 > _01-foundations-200c9c07.md, lines 725–743:_
 >
@@ -3736,8 +3766,8 @@ in §4. Every status below is for the FG-SA client (§0).
 > under registry §0, successor fg.finalLock.v2. Its old theorem stays true.
 
 - Status: 2026-09-29 — PROVED (paper; blueprint 01 §8.2). Clause 1 of
-  `fj.frame.v4` cites this entry. Lean: the carrier form; the
-  accepted-carrier wrapper is OPEN.
+  `fj.frame.v4` cites this entry. Lean: the carrier form. The
+  accepted-carrier wrapper: Lean OPEN; paper: bp01 734–736.
 
 ### `fg.trunk.v1` — F advance below the band
 
@@ -3782,6 +3812,10 @@ in §4. Every status below is for the FG-SA client (§0).
 - Status: 2026-09-28 — PROVED (a≤f).
 - Note: the lemma compares one view with two roots. It does not transport a
   comparison between two views (r149 §4.3).
+- Note (2026-09-29; current use): `fg.finalLock.v1` is WITHDRAWN for current
+  use. The citations above are history. A current use of this entry
+  reads them as §9, "Current reading of withdrawn ids".
+
 
 ### `fg.oneBullet.v1` — at most one effective filter change
 
@@ -3882,6 +3916,10 @@ in §4. Every status below is for the FG-SA client (§0).
 - Composition: with `comp.settle.v1`, take `t1 = t_J` (views are subsets
   of stores) and `t2 = max(t_m, t_J)+θ`, and restrict to duties in
   `[t_m+θ, t_up)`, where `H_d = m`. This gives the full bp §4.2 count.
+- Note (2026-09-29; current use): `fg.finalLock.v1` is WITHDRAWN for current
+  use. The citations above are history. A current use of this entry
+  reads them as §9, "Current reading of withdrawn ids".
+
 
 ### `fg.H19.v1` — HNI-a
 
@@ -3964,6 +4002,10 @@ in §4. Every status below is for the FG-SA client (§0).
 - Status: 2026-09-28 — PROVED.
 - Note (audit W09): this is a lemma. The base-selection output is the
   witness record of `fg.baseSel.nj.v1`.
+- Note (2026-09-29; current use): `fg.finalLock.v1` is WITHDRAWN for current
+  use. The citations above are history. A current use of this entry
+  reads them as §9, "Current reading of withdrawn ids".
+
 
 ### `fg.base.nj.v1` — NJ arm gives HNI(H+1) run-wide
 
@@ -3989,6 +4031,10 @@ in §4. Every status below is for the FG-SA client (§0).
 - Note (audit W09): run-wide HNI(H+1) is DERIVED inside the joint induction
   of `comp.theoremN.v1` (clause (ii) with F1). It is not a base-selection
   input. The base returns only the prefix NJ facts.
+- Note (2026-09-29; current use): `fg.finalLock.v1` is WITHDRAWN for current
+  use. The citations above are history. A current use of this entry
+  reads them as §9, "Current reading of withdrawn ids".
+
 
 ### `fg.baseSel.nj.v1` — base-selection witness record (NJ or finalized)
 
@@ -4112,6 +4158,10 @@ in §4. Every status below is for the FG-SA client (§0).
   claims 2a and 2b; r143 claim C12 (first transfer).
 - Note: a Lean port of the consumer must re-derive the DC chain-state facts
   for a mixed instance (bp lines 494–498).
+- Note (2026-09-29; current use): `fg.finalLock.v1` is WITHDRAWN for current
+  use. The citations above are history. A current use of this entry
+  reads them as §9, "Current reading of withdrawn ids".
+
 
 ### `fg.accountable.v1` — accountable FG safety
 
@@ -4577,8 +4627,8 @@ M0. r151 calls this cap μ and calls M0 simply M.
 │    │                                          │ on_block_TF_subset,            │
 │    │                                          │ update_finality_TF             │
 │ 1  │ A block of Σ.T outside the active view   │ fg.finalLock.v2 (external).    │
-│    │ with state height above the entry height │ Paper obligation: the          │
-│    │ of the accepted finalization (0 for      │ accepted-carrier wrapper       │
+│    │ with state height above the entry height │ The accepted-carrier wrapper:  │
+│    │ of the accepted finalization (0 for      │ Lean OPEN; paper: bp01 734–736 │
 │    │ genesis) needs a slashable conflict      │                                │
 │    │ (502–506)                                │                                │
 │ 2  │ No rule deletes a block of Σ.T; storage  │ Lean: on_block_TF_subset,      │
@@ -4596,9 +4646,9 @@ M0. r151 calls this cap μ and calls M0 simply M.
 │    │                                          │ clock_eq_saClockFrom_gate      │
 │ 3b │ The FJ viability and band filter does    │ AP data (the SA walk; the      │
 │    │ not restrict that walk (514–515)         │ HEAD and FG duties filter)     │
-│ 4  │ act(Σ) is a view of Σ.T (493–496); only  │ Lean: activeView,              │
-│    │ the SA base reads it (497–499)           │ activeView_subset; AP data for │
-│    │                                          │ the reader                     │
+│ 4  │ act(Σ) is a view of Σ.T (493–496); the   │ Lean: activeView,              │
+│    │ SA base reads only the active view       │ activeView_subset; AP data:    │
+│    │ (497–499)                                │ the SA base runs on actView    │
 └────┴──────────────────────────────────────────┴────────────────────────────────┘
 ```
 
@@ -5274,6 +5324,10 @@ M0. r151 calls this cap μ and calls M0 simply M.
   do not change; the Trees clauses change (no deletion from Σ.T, the SA
   walk starts at Σ.F). The note above is history. A current citation of
   `fj.frame.v2` or `fj.frame.v3` here reads as `fj.frame.v4`.
+- Note (2026-09-29; current use): `fg.finalLock.v1` is WITHDRAWN for current
+  use. The citations above are history. A current use of this entry
+  reads them as §9, "Current reading of withdrawn ids".
+
 
 ### `fj.crossingNoFinal.v1` — r148 F2: a conflicting crossing of j proves that J cannot finalize
 
@@ -5318,6 +5372,10 @@ M0. r151 calls this cap μ and calls M0 simply M.
   finalization of J. It is registered for `fj` because FJ uses it in the
   contested phase (`fj.twoChanges.core.v1`); the argument uses only the DC
   certificate rules, so it also holds for `nj`.
+- Note (2026-09-29; current use): `fg.finalLock.v1`, `fj.twoChanges.core.v1` are WITHDRAWN for current
+  use. The citations above are history. A current use of this entry
+  reads them as §9, "Current reading of withdrawn ids".
+
 
 ### `fj.descent.v1` — descent lemma under FJ
 
@@ -5576,6 +5634,10 @@ M0. r151 calls this cap μ and calls M0 simply M.
   is a run fact.
 - Note: the old-band variant (FJ root test, band `{H−1,H}`) stalls (r148
   F11, REFUTED by the exact N12 execution, lines 599–711).
+- Note (2026-09-29; current use): `fg.finalLock.v1`, `ap.headReachesLo.v5` are WITHDRAWN for current
+  use. The citations above are history. A current use of this entry
+  reads them as §9, "Current reading of withdrawn ids".
+
 
 ### `fj.twoChanges.v1` — F12: at most two effective changes per frontier
 
@@ -6011,6 +6073,10 @@ M0. r151 calls this cap μ and calls M0 simply M.
 - Note (r151): the reset witness is now pinned as `fj.reset.v1`. This
   entry keeps the supplied arrival `B_R` and handoff `B_base`; r151
   §5.4 uses `B_R` as the supplied uniform producer.
+- Note (2026-09-29; current use): `fj.twoChanges.core.v1`, `ap.headReachesLo.v5` are WITHDRAWN for current
+  use. The citations above are history. A current use of this entry
+  reads them as §9, "Current reading of withdrawn ids".
+
 
 ### `fj.firstFinality.v1` — F17: first finality after damage
 
@@ -6130,6 +6196,10 @@ r151 names; `μ ≤ M`.
 > its first transfer, including when readers see different old J evidence.
 
 - Status: 2026-09-28 — PROVED (r151 claim table line 21).
+- Note (2026-09-29; current use): `fg.finalLock.v1` is WITHDRAWN for current
+  use. The citations above are history. A current use of this entry
+  reads them as §9, "Current reading of withdrawn ids".
+
 
 ### `fj.theoremN.v1` — Theorem N for all protected fast and slow bodies
 
@@ -6254,6 +6324,10 @@ r151 names; `μ ≤ M`.
   literal (L) (r153a lines 35 and 317–329: literal N1 fixes F, so the F
   basis is fixed; r153 line 31). It is the valid arrival bound under the
   current rules. r153a did not re-audit r147.
+- Note (2026-09-29; current use): `fj.twoChanges.core.v1`, `ap.headReachesLo.v5` are WITHDRAWN for current
+  use. The citations above are history. A current use of this entry
+  reads them as §9, "Current reading of withdrawn ids".
+
 
 ### `fj.rise.movingF.v1` — effective-N1 split and arrival
 
@@ -6333,6 +6407,10 @@ r151 names; `μ ≤ M`.
   HOLDS. C3 HOLDS (r161 line 608).
 - Note: the missing premise is the same common supported band prefix as
   `ap.reach.v1` (r151 lines 408–412).
+- Note (2026-09-29; current use): `fj.twoChanges.core.v1`, `ap.headReachesLo.v5` are WITHDRAWN for current
+  use. The citations above are history. A current use of this entry
+  reads them as §9, "Current reading of withdrawn ids".
+
 
 ### `fj.Xplus.v1` — FJ (X+), band stated with lo
 
@@ -6492,6 +6570,10 @@ r151 names; `μ ≤ M`.
   Recovery premises (r161 §6.4, lines 629–668; spec lines 1604–1612).
   F-origin assignments to S need one extra case in the "S has a genuine
   gate origin" lemma (r161 lines 640–644).
+- Note (2026-09-29; current use): `ap.headReachesLo.v5` is WITHDRAWN for current
+  use. The citations above are history. A current use of this entry
+  reads them as §9, "Current reading of withdrawn ids".
+
 
 ### `fj.healedUnif.v1` — uniform bound under effective N1
 
@@ -7918,6 +8000,26 @@ list" (an append-only scratch report, not archived).
   finality-head triple are named; the finality pair is the FG client
   function on that triple. The H3 exact-HEAD use map includes Q0 and QF4
   S2.
+- Current reading of withdrawn ids (2026-09-29). Registry §0 says that no
+  composite may cite a WITHDRAWN entry. Current entries and pins that
+  still cite one carry a dated pointer to this item; their pinned text
+  and status do not change. A current use reads the citation as follows:
+  - `fg.finalLock.v1` ("F4", "pure form", "finalized crossing"): the
+    carrier clause of `fg.finalLock.v2`, that is the Lean carrier theorem
+    `finalLock` (with `finalLock_e1`), which stays true. Where the use
+    needs the threshold of the accepted finalization, it reads as
+    `fg.finalLock.v2` (the accepted-carrier wrapper: Lean OPEN; paper:
+    bp01 734–736).
+  - `fj.twoChanges.core.v1`: `fj.twoChanges.core.v2` (evidence in the
+    cumulative Σ.T and the live caches). The v1 fixed-view Lean lemmas
+    stay true for a fixed view; v2's premises apply to the current frame.
+  - `ap.headReachesLo.v5`: `ap.headReachesLo.v6` (clauses 1–3 have the
+    same form; clauses 4–6 use Recovery₂, R≥2, strict receipt, θ=3Δ).
+  - `fj.descent.v1`: `fj.descent.v2`. `fj.frame.v3`: `fj.frame.v4` (see
+    the notes at the frame citations).
+  A use that needs more than the successor states needs its own proof.
+  The pin check sees only structured ids (`.ap`, `.external`); ids in
+  free text are covered by these pointers, not by the check.
 - μ (r213; blueprint 21 H.11 and both HEALING_INPUT copies): μ is
   μ(run,GST), a function of the run and GST. It is not a field of an
   existential witness; all uses have the same value. The interface text
