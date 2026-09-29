@@ -743,6 +743,16 @@ domains (plan 1a); (g), (h) delivered (plan 1a); (i) kept.
 
 Phases 0–2 land before the FG-SA Lean instance starts.
 
+**Order after plan 1b (2026-09-29; user, DC-simplify, Astra
+`docs/audit/phase2-order-check-report.md`).** The FG-SA store merge, then
+the I9 plan, then Phase 2 (2a: core, E1, E2, E5, with the NoRestart,
+`durable` and input interfaces reserved; 2b: the lift; 2c: E6, the toy
+protocol, I1 with a versioned floor), then plan 1c on engine v2. The Phase 1
+acceptance item "eligibility per migrated instance" is OPEN and moves to
+plan 1c; until then MATRIX shows `holds*` and no protocol certificate. The
+FG-SA run lift (T7) is on v2 and can start after 2a. Details:
+`docs/PHASE1B-REPORT.md`.
+
 **Lock change log.**
 - 2026-09-28, approved by the user. The receipt-relay merge (`1a3f73a`, r162)
   removed the `acceptedRelay` field from `SleepyRegime`. The regimes now use
