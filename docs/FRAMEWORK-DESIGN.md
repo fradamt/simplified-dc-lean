@@ -334,7 +334,8 @@ the dependent `Fin` casts); old duty and proposal order preserved; no
 self-visible labels, `NoRestart`, trivial `durable`. Every v2 run in the
 lifted legacy regime has a corresponding v1 run. The lift transports
 claim PROPOSITIONS; certificate eligibility (E4, §5) is proved
-separately per instance. Estimate: several engineer-weeks (audit).
+separately per instance. Scope: the simulation relation, its step
+correspondence for each event kind, and the claim transport.
 
 ## 3. Instances and facets (L2, L4)
 
