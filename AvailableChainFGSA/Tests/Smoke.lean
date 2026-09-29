@@ -355,7 +355,7 @@ def stS : State pT.n := atTime ([hv2 0, hv2 1].foldl (process pT) (atTime stS0 9
 
 /-- Successful fast gate (spec 756–777, 457–461). By hand: both votes resolve
 before e_2 = 10 and are late participants (stamps < d_2 = 14), so the scores are
-b1: 2, b2: 2, and 2·2 > 2; the GHOST walk from genesis gives b2. The admission
+b1: 2, b2: 2, and 2·2 > 2; the GHOST walk from F = genesis gives b2. The admission
 level is τ = ⌈4/2⌉ = 2 ≤ p(2, B) = 2 for b1 and b2. The deadline is
 d_2 + L = 14 + (4k − 1)Δ = 14 + 7 = 21. No lease exists, so there is no veto;
 S := advance(genesis, b2) = b2. -/
@@ -396,6 +396,48 @@ def stW : State pT.n :=
   { st with base := { st.base with genuine := [(1, some (eraseFG B2))] } }
 example : leaseOf (gateStep pT stW 2) b1 = some 21 ∧
     fastWriteAt (gateStep pT stW 2) 2 = some [] := by decide +kernel
+
+/-! The walk from F (spec 4e85ff34: 1280–1297, 502–505). In `stA`, F = B1 ≠
+genesis. Two label-3 HEADs for block `b` enter at now = 13 (stamps 13 < e_3 = 14,
+and the blocks have stamp 12), and the gate of label 3 runs at d_3 = 18. -/
+
+/-- A label-3 HEAD vote of seat `i` for block `b`. -/
+def hv3 (i : Fin 4) (b : Block) : Wire 4 := ⟨.seat (.head 3) i, .head b⟩
+/-- `stA` (F = B1) with the label-3 HEADs of seats 0 and 1 for `b`, at d_3 = 18. -/
+def stFw (b : Block) : State pT.n :=
+  atTime ([hv3 0 b, hv3 1 b].foldl (process pT) (atTime stA 13)) 18
+
+/-- T1: HEADs only for genesis. By hand: genesis has score 2 and 2·2 > 2, and
+`b1` has score 0. The walk from genesis gives genesis (shown for contrast), but
+the walk from F = B1 stops at `b1`, and `b1` fails the final strict-majority
+test. So the saved result is empty, `fastWrite[3] = ∅`, no lease is written,
+and S = F. This is the empty case of the transfer lemma (spec 2096–2103). -/
+example : (stFw .genesis).fg.F = B1 ∧ b1 ≠ .genesis ∧
+    SA.confirmation pT.toParams (actView (stFw .genesis)) 3 = some .genesis ∧
+    GridCO.savedGenuine (gateStep pT (stFw .genesis) 3).base 3 = some none ∧
+    fastWriteAt (gateStep pT (stFw .genesis) 3) 3 = some [] ∧
+    (gateStep pT (stFw .genesis) 3).base.obligations = [] ∧
+    (gateStep pT (stFw .genesis) 3).base.stableRecord = b1 := by decide +kernel
+
+/-- T2: HEADs for `b2 ⪰ b1`. By hand: b1 and b2 have score 2, and b3 has score
+0. The walk from F = B1 goes to b2 and stops there; b2 passes the final test.
+The saved result is b2, the same as the walk from genesis, and the fast set is
+`[b1, b2]` (τ = 2 ≤ p(3, B) = 2). -/
+example : (stFw (eraseFG B2)).fg.F = B1 ∧
+    GridCO.savedGenuine (gateStep pT (stFw (eraseFG B2)) 3).base 3 =
+      some (some (eraseFG B2)) ∧
+    SA.confirmation pT.toParams (actView (stFw (eraseFG B2))) 3 = some (eraseFG B2) ∧
+    fastWriteAt (gateStep pT (stFw (eraseFG B2)) 3) 3 = some [b1, eraseFG B2] := by
+  decide +kernel
+
+/-- T3: HEADs for F itself (spec 4e85ff34: 503–504, the final test applies also
+when the block is Σ.F). By hand: b1 has score 2 and 2·2 > 2; its child b2 has
+score 0, so no child of F is eligible. The walk stays at F = B1, and F passes
+the final test: the saved result is `b1`. With T1, this fixes the rule "the walk
+tests eligibility at F". -/
+example : (stFw b1).fg.F = B1 ∧
+    GridCO.savedGenuine (gateStep pT (stFw b1) 3).base 3 = some (some b1) ∧
+    fastWriteAt (gateStep pT (stFw b1) 3) 3 = some [b1] := by decide +kernel
 
 /-- G5 coverage: expiry (spec 713, 736–742). After the gate, both leases have the
 deadline 21. At t = 20 no step runs (f_4 = 19, e_4 = 18, q_3 = 17, d_3 = 18),
