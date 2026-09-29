@@ -103,8 +103,14 @@ theorem blockExcluded_stable (st : State n) {F' : FGBlock (Fin n)} (h : FGBlock.
   have := block_incompatible_of_preceq hn (eraseFG_preceq h)
   simpa [Block.Compatible] using this
 
+/-- [bp bp.activeView.v1] (item 5, second sentence; G7 m1) View restriction
+changes only the block list: every other SA field is the field of the base. -/
+theorem actView_eq (st : State n) :
+    actView st = { st.base with blocks := st.base.blocks.filter (activeCompatible st) } := rfl
+
 /-- [bp bp.activeView.v1] (item 5, second sentence) View restriction changes no
-signed pool, no stamp and no other SA field. -/
+signed pool, no stamp, no lease, no saved result, no S and no time. `actView_eq`
+gives every other field. -/
 theorem actView_fields (st : State n) :
     (actView st).votes = st.base.votes ∧ (actView st).voteStamp = st.base.voteStamp ∧
     (actView st).blockStamp = st.base.blockStamp ∧ (actView st).proposals = st.base.proposals ∧
@@ -233,6 +239,22 @@ theorem clock_eq_saClock_gate (p : Params) (st : State p.n) (t : Time) (s : Slot
   subst hs
   rw [show SA.clock p.toParams (actView st) t = _ from if_pos hc]
   rfl
+
+/-- [comp D3; M7, DQ5; G7 m3] `clock_eq_saClock_gate` with only the gate time and
+the unsaved label: the other two premises follow from `Δ > 0`. -/
+theorem clock_eq_saClock_gate' (p : Params) (st : State p.n) (t : Time) (s : Slot)
+    (ht : t = SA.gateTime p.toParams s)
+    (hnew : GridCO.savedGenuine st.base s = none) :
+    clock p st t = normalizeS { st with
+      base := { SA.clock p.toParams (actView st) t with blocks := st.base.blocks },
+      fastWrite := st.fastWrite ++ [(s, fastSet p (actView (clockPre p st t)) s)] } := by
+  have hΔ : 0 < p.Δ := p.deltaPos
+  have h4 : t - 6 * p.Δ = 4 * p.Δ * (s : Int) := by
+    rw [ht]; simp only [SA.gateTime, GridCO.gateTime, GridCO.proposalTime]
+    change 4 * p.Δ * (s : Int) + 6 * p.Δ - 6 * p.Δ = _; ring
+  refine clock_eq_saClock_gate p st t s ?_ (by rw [h4]; positivity) ht hnew
+  rw [h4, Int.mul_ediv_cancel_left _ (by positivity)]
+  simp
 
 end AvailableChain.FGSA
 end

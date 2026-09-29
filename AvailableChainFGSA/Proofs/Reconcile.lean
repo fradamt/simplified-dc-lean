@@ -29,26 +29,35 @@ theorem reconcile_obligations (st : State n) :
     (reconcile st).base.obligations =
       st.base.obligations.filter (fun row => activeCompatible st row.1) := by
   rw [reconcile_eq]
+
+/-- [bp bp.reconcile.v1] (§6.2, exact effects) -/
 theorem reconcile_genuine (st : State n) :
     (reconcile st).base.genuine =
       st.base.genuine.map (fun row => (row.1, row.2.filter (activeCompatible st))) := by
   rw [reconcile_eq]
-/-- A label stays evaluated; a result is kept or emptied, never replaced. -/
+
+/-- [bp bp.reconcile.v1] (§6.2, exact effects) A label stays evaluated; a result
+is kept or emptied, never replaced. -/
 theorem reconcile_savedGenuine (st : State n) (r : Slot) :
     GridCO.savedGenuine (reconcile st).base r =
       (GridCO.savedGenuine st.base r).map (fun c => c.filter (activeCompatible st)) := by
   unfold GridCO.savedGenuine
   rw [reconcile_genuine, List.find?_map, Option.map_map, Option.map_map]
   rfl
+
+/-- [bp bp.reconcile.v1] (§6.2, exact effects) -/
 theorem reconcile_fastWrite (st : State n) :
     (reconcile st).fastWrite =
       st.fastWrite.map (fun row => (row.1, row.2.filter (activeCompatible st))) := by
   rw [reconcile_eq]
+
+/-- [bp bp.reconcile.v1] (§6.2, exact effects) -/
 theorem reconcile_stable (st : State n) :
     (reconcile st).base.stableRecord =
       if Block.preceq (eraseFG st.fg.F) st.base.stableRecord then st.base.stableRecord
       else eraseFG st.fg.F := by
   rw [reconcile_eq]
+
 /-- [bp bp.reconcile.v1, bp.frame.v1; K3] Reconcile writes no frame input and no
 other field: Σ.T, the FG caches, the stamps, both pools, the proposals, the
 time, the frozen and early caches, the release snapshots and G. -/
@@ -67,6 +76,8 @@ theorem reconcile_frame (st : State n) :
     (reconcile st).base.goldfishRecord = st.base.goldfishRecord := by
   rw [reconcile_eq]
   exact ⟨rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl⟩
+
+/-- [bp bp.frame.v1, bp.reconcile.v1; K3] Reconcile keeps the FG frame. -/
 theorem storeControls_reconcile (p : Params) (st : State p.n) :
     storeControls p.E p.cfg (reconcile st).fg = storeControls p.E p.cfg st.fg := by
   rw [reconcile_fg]

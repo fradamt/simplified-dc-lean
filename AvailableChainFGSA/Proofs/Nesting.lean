@@ -10,7 +10,9 @@ open AvailableChain.Generic AvailableChain.SimplexFG
 
 /-! Output nesting in store form (K2; `comp.outputNesting.v1`, `v2`). The proof
 needs no other invariant: the gate and every F advance end with `normalizeS`,
-and every other step writes neither F nor S. -/
+and every other completed step writes neither F nor S. The claim is about
+completed events only: inside `admitBlock`, the state before `reconcile` can
+have a moved F and the old S (G8 m3). -/
 
 /-- [bp comp.outputNesting.v1] The accessor form: `F ⪯ (if F ⪯ S then S else F)`. -/
 theorem outputNesting_v1 (F S : Block) : Block.Preceq F (if Block.preceq F S then S else F) := by
@@ -64,9 +66,9 @@ theorem admitProposal_stable (q : GridCO.Params) {n : Nat} (v : GridCO.State n)
   · rfl
   · rw [hfold]
 
-/-- [helper] A delivery keeps `F ⪯ S`: a vote or a row writes neither; a refused
-block changes nothing; an accepted block keeps S, and a moved F ends with
-`reconcile`. -/
+/-- [helper] A completed delivery keeps `F ⪯ S`: a vote or a row writes neither;
+a refused block changes nothing; an accepted block keeps S, and a moved F ends
+with `reconcile`. -/
 theorem process_nest (p : Params) (st : State p.n) (o : Wire p.n) (h : NestOK st) :
     NestOK (process p st o) := by
   unfold process
@@ -117,6 +119,12 @@ theorem outputNesting_stored (p : Params) : OutputNestingStored p := by
   | init => exact block_preceq_refl _
   | tick t _ ih => exact clock_nest p _ t ih
   | deliver o _ ih => exact process_nest p _ o ih
+
+/-- [bp comp.outputNesting.v2; K2; G8 m2] The accessor form (spec 558–561): at
+every reachable state, `finalized ⪯ stable` after erasure. -/
+theorem finalized_preceq_stable (p : Params) (st : State p.n) (hst : Reachable p st) :
+    Block.Preceq (eraseFG (finalized st)) (stable st) :=
+  (outputNesting_stored p st hst).1
 
 end AvailableChain.FGSA
 end

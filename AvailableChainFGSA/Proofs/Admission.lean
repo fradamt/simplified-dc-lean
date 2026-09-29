@@ -11,6 +11,10 @@ open AvailableChain.Generic AvailableChain.SimplexFG
 acceptance sufficiency (K8). The composite test decides; the FG and GridCO
 tests then take their accepting branch. -/
 
+/-- [helper; G10 m3] The first three fields of `CStoreInv`. -/
+theorem CStoreInv.toInv0 {p : Params} {st : State p.n} (h : CStoreInv p st) : Inv0 p st :=
+  ⟨h.fg, h.rootInj, h.baseTree⟩
+
 /-! ### Selectors and the FG block of a wire -/
 
 /-- [helper] Selector soundness (audit: `pickPair_eq_of_unique` is only the
@@ -50,15 +54,19 @@ theorem eraseFG_fgBlock {n : Nat} {P : FGBlock (Fin n)} {b : Block} (hb : b ≠ 
       simp only [fgBlock, eraseFG, Block.slot, Block.root]
       rw [hP]
       rfl
+/-- [helper] -/
 theorem fgBlock_parent {n : Nat} (P : FGBlock (Fin n)) (b : Block) (rows : List (RowWire n)) :
     (fgBlock P b rows).parent = P := rfl
+/-- [helper] -/
 theorem fgBlock_slot {n : Nat} (P : FGBlock (Fin n)) (b : Block) (rows : List (RowWire n)) :
     (fgBlock P b rows).slot = b.slot := rfl
+/-- [helper] -/
 theorem fgBlock_root {n : Nat} (P : FGBlock (Fin n)) (b : Block) (rows : List (RowWire n)) :
     (fgBlock P b rows).root = b.root := rfl
+/-- [helper] -/
 theorem fgBlock_rows {n : Nat} (P : FGBlock (Fin n)) (b : Block) (rows : List (RowWire n)) :
     (fgBlock P b rows).rows = rows.filterMap RowWire.toRow? := rfl
-/-- A block with a fresh root is not in Σ.T. -/
+/-- [helper; DQ2] A block with a fresh root is not in Σ.T. -/
 theorem fgBlock_notMem {n : Nat} (st : State n) (P : FGBlock (Fin n)) (b : Block)
     (rows : List (RowWire n)) (hfresh : ¬ ∃ Y ∈ st.fg.TF, Y.root = b.root) :
     fgBlock P b rows ∉ st.fg.TF :=
@@ -375,7 +383,7 @@ theorem actView_admitBlock_sameF (p : Params) (st : State p.n) (h : CStoreInv p 
     actView (admitBlock p st s b raw support rows) =
       GridCO.admitProposal p.toParams.engine (actView st) (baseProposal s b raw support) b
         (raw.map baseHead) := by
-  have h0 : Inv0 p st := ⟨h.fg, h.rootInj, h.baseTree⟩
+  have h0 : Inv0 p st := h.toInv0
   obtain ⟨hB, hV, hW⟩ := admitProposal_base_view p st h0 s b raw support P rows hP hacc
   obtain ⟨-, -, hFb⟩ := accepted_F_facts p st h0 hP hacc
   unfold admitBlock at hF ⊢
@@ -424,7 +432,7 @@ theorem actView_admitBlock_movedF (p : Params) (st : State p.n) (h : CStoreInv p
       genuine := A.genuine.map (fun row => (row.1, row.2.filter ok))
       stableRecord := if Block.preceq (eraseFG st'.fg.F) A.stableRecord then A.stableRecord
         else eraseFG st'.fg.F } := by
-  have h0 : Inv0 p st := ⟨h.fg, h.rootInj, h.baseTree⟩
+  have h0 : Inv0 p st := h.toInv0
   obtain ⟨hB, hV, hW⟩ := admitProposal_base_view p st h0 s b raw support P rows hP hacc
   dsimp only
   unfold admitBlock at hF ⊢
@@ -458,9 +466,11 @@ theorem actView_admitBlock_movedF (p : Params) (st : State p.n) (h : CStoreInv p
 
 /-! ### Acceptance sufficiency (K8) -/
 
-/-- [bp bp.receiptCoverage.v1 §10.1; K8; Opus m2] Acceptance sufficiency: a
-checked, absent block with a stored parent, a slot that is not in the future, a
-fresh root and `F ⪯ b` is admitted. -/
+/-- [bp bp.receiptCoverage.v1 §10.1; K8; DQ2; Opus m2] Acceptance sufficiency: a
+checked block with a stored parent, a slot that is not in the future, a fresh
+root and `F ⪯ b` is admitted. The blueprint premise is "absent"; the Lean
+premise is the fresh root (DQ2). `admitBlock_sufficient_absent` takes the
+blueprint premise with a root premise, as `rootTest_iff_blockTest` does. -/
 theorem admitBlock_sufficient (p : Params) (st : State p.n) (h : CStoreInv p st) (s : Slot)
     (b : Block) (raw support : List (HeadWire p.n)) (rows : List (RowWire p.n))
     (hwf : wellFormed p ⟨.proposer s, .proposal b raw support rows⟩ = true)
@@ -470,7 +480,7 @@ theorem admitBlock_sufficient (p : Params) (st : State p.n) (h : CStoreInv p st)
     b ∈ (process p st ⟨.proposer s, .proposal b raw support rows⟩).base.blocks ∧
       ∃ P, parentFG st b = some P ∧
         fgBlock P b rows ∈ (process p st ⟨.proposer s, .proposal b raw support rows⟩).fg.TF := by
-  have h0 : Inv0 p st := ⟨h.fg, h.rootInj, h.baseTree⟩
+  have h0 : Inv0 p st := h.toInv0
   have hg : b ≠ .genesis := by
     intro hb
     simp [wellFormed, Wire.decode, hb] at hwf
@@ -515,6 +525,21 @@ theorem admitBlock_sufficient (p : Params) (st : State p.n) (h : CStoreInv p st)
     exact Finset.mem_insert_self _ _
   · rw [reconcile_fg, fg_on_block_accepts p st s b P rows hP hacc, KitFG.update_finality_TF]
     exact Finset.mem_insert_self _ _
+
+/-- [bp bp.receiptCoverage.v1 §10.1; K8; DQ2; G10 m2] `admitBlock_sufficient` with
+the blueprint premise "absent" and a root premise on the base list and `b` (the
+premise of `rootTest_iff_blockTest`) in place of the fresh root. -/
+theorem admitBlock_sufficient_absent (p : Params) (st : State p.n) (h : CStoreInv p st)
+    (s : Slot) (b : Block) (raw support : List (HeadWire p.n)) (rows : List (RowWire p.n))
+    (hwf : wellFormed p ⟨.proposer s, .proposal b raw support rows⟩ = true)
+    (hpar : b.parent ∈ st.base.blocks) (hslot : b.slot ≤ st.slot p)
+    (habs : b ∉ st.base.blocks) (hinj : ∀ c ∈ st.base.blocks, c.root = b.root → c = b)
+    (hF : Block.Preceq (eraseFG st.fg.F) b) :
+    b ∈ (process p st ⟨.proposer s, .proposal b raw support rows⟩).base.blocks ∧
+      ∃ P, parentFG st b = some P ∧
+        fgBlock P b rows ∈ (process p st ⟨.proposer s, .proposal b raw support rows⟩).fg.TF :=
+  admitBlock_sufficient p st h s b raw support rows hwf hpar hslot
+    (fun c hc hr => habs (hinj c hc hr ▸ hc)) hF
 
 end AvailableChain.FGSA
 end

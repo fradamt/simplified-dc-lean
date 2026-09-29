@@ -9,7 +9,9 @@ open AvailableChain.Generic AvailableChain.SimplexFG
 
 /-- [bp comp.outputNesting.v2; K2] At every reachable state, `F ⪯ S`, and both
 available accessors return S; for every `a`, without synchrony, including
-empty and vetoed gates (spec 563–568). -/
+empty and vetoed gates (spec 563–568). Conjuncts 2 and 3 are definitional
+(`rfl`, DQ7): they are a regression check on the accessor bodies, not proved
+content (G8 m1). -/
 def OutputNestingStored (p : Params) : Prop :=
   ∀ st, Reachable p st → NestOK st ∧ confirmed st = st.base.stableRecord ∧ stable st = confirmed st
 

@@ -153,7 +153,7 @@ theorem cstoreInv_accepted_pre (p : Params) (st : State p.n) (h : CStoreInv p st
       st1.base.stableRecord = st.base.stableRecord ∧ st1.fastWrite = st.fastWrite ∧
       st.base.blocks ⊆ st1.base.blocks ∧ FGBlock.Preceq st.fg.F st1.fg.F := by
   intro st1
-  have h0 : Inv0 p st := ⟨h.fg, h.rootInj, h.baseTree⟩
+  have h0 : Inv0 p st := h.toInv0
   obtain ⟨hg, -, hfr, hFB, -, -⟩ := blockAccepted_facts hacc
   obtain ⟨hPT, hPe, -, -⟩ := accepted_base_facts p st h0 hP hacc
   obtain ⟨hbl, -, -, hob, hgen, hstab, -⟩ :=
@@ -456,7 +456,7 @@ theorem cstoreInv_gateFresh (p : Params) (st : State p.n) (h : CStoreInv p st) (
     rw [List.mem_append, List.mem_singleton] at hrow
     rcases hrow with hrow | rfl
     · exact h.saCompat.2.2 row hrow B hB
-    · obtain ⟨-, -, -, hm⟩ := fastSet_prefix p (actView st) s hB
+    · obtain ⟨-, -, -, hm, -⟩ := fastSet_prefix p (actView st) s hB
       exact ((actView_blocks st B).1 hm).2
   · change (SA.gate p.toParams (actView st) s).stableRecord ∈ st.base.blocks
     rcases hS with hS | ⟨C, hc, hS⟩
@@ -474,7 +474,7 @@ theorem cstoreInv_gateFresh (p : Params) (st : State p.n) (h : CStoreInv p st) (
     · have hne : row.1 ≠ s := ne_of_saved (h.fastDom.2 row.1 (List.mem_map_of_mem hrow)) hnew
       rw [hsv, if_neg hne]
       exact h.fastOrigin row hrow B hB
-    · obtain ⟨C, hc, hBC, -⟩ := fastSet_prefix p (actView st) s hB
+    · obtain ⟨C, hc, hBC, -, -⟩ := fastSet_prefix p (actView st) s hB
       left
       refine ⟨C, ?_, hBC⟩
       rw [hsv, if_pos rfl, hc]

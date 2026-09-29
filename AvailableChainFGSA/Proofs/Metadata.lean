@@ -129,7 +129,7 @@ theorem accepted_st2 (p : Params) (st : State p.n) (h : CStoreInv p st) (s : Slo
       st2.base.blocks = st.base.blocks ++ [b] ∧
       st2.base.blockStamp = st.base.blockStamp ++ [(b, st.base.now)] ∧
       st.base.voteStamp <+: st2.base.voteStamp ∧ st2.rowPool = st.rowPool := by
-  have h0 : Inv0 p st := ⟨h.fg, h.rootInj, h.baseTree⟩
+  have h0 : Inv0 p st := h.toInv0
   obtain ⟨hbl, hbs, -, -, -, -, -⟩ :=
     base_admitProposal_accepts p st h0 s b raw support P rows hP hacc
   obtain ⟨hB, -, -⟩ := admitProposal_base_view p st h0 s b raw support P rows hP hacc
@@ -421,7 +421,7 @@ theorem metaInv_process (p : Params) (st : State p.n) (h : CStoreInv p st) (m : 
             rw [admitBlock_refused p st s b raw support rows (Or.inr ⟨P, hP, hacc⟩)]
             exact m
         | true =>
-            have h0 : Inv0 p st := ⟨h.fg, h.rootInj, h.baseTree⟩
+            have h0 : Inv0 p st := h.toInv0
             obtain ⟨hg, -, -, -, -, -⟩ := blockAccepted_facts hacc
             obtain ⟨-, hPe, -, hb⟩ := accepted_base_facts p st h0 hP hacc
             have key := accepted_st2 p st h s b raw support P rows hP hacc

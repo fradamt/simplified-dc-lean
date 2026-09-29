@@ -234,7 +234,8 @@ theorem gateStep_saved (p : Params) (st : State p.n) (s : Slot)
 /-- [helper] Every member of `fastSet` is a non-genesis prefix of the confirmation. -/
 theorem fastSet_prefix (p : Params) (v : GridCO.State p.n) (s : Slot) {B : Block}
     (hB : B ∈ fastSet p v s) :
-    ∃ h, SA.confirmation p.toParams v s = some h ∧ Block.Preceq B h ∧ B ∈ v.blocks := by
+    ∃ h, SA.confirmation p.toParams v s = some h ∧ Block.Preceq B h ∧ B ∈ v.blocks ∧
+      B ≠ .genesis := by
   unfold fastSet at hB
   split at hB
   · simp at hB
@@ -242,7 +243,7 @@ theorem fastSet_prefix (p : Params) (v : GridCO.State p.n) (s : Slot) {B : Block
     split at hB
     · simp at hB
     · simp only [List.mem_filter, Bool.and_eq_true] at hB
-      exact ⟨h, hc, hB.2.1.2, hB.1⟩
+      exact ⟨h, hc, hB.2.1.2, hB.1, by simpa using hB.2.1.1⟩
 
 /-! ### The tick -/
 
