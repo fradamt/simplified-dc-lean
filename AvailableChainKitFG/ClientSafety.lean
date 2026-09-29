@@ -423,7 +423,7 @@ end NoSlash
 
 /-! ## The pinned statements -/
 
-variable {V : Type} [DecidableEq V] [Fintype V]
+variable {V : Type} [DecidableEq V] [Fintype V] [RowCodec V]
 
 /-- [helper] `createRow` is one client step on the source fields. -/
 theorem createRow_eq (E : Electorate V) (cfg : FGConfig) (Λ : Record) (i : V)

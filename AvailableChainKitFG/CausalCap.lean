@@ -17,7 +17,7 @@ new; they cannot cross a height alone. Part (a) (an honest row of height h has
 `h ≤` the signer's archival maximum) is a run fact: `provenance_entry` with
 `comp.cut.v1`. -/
 
-variable {V : Type} [DecidableEq V] [Fintype V]
+variable {V : Type} [DecidableEq V] [Fintype V] [RowCodec V]
 
 /-- [pin fg.causalCap.core.v1] (b) A chain whose rows from signers outside
 `faulty` all have height ≤ M has state height ≤ M+1 and justified height ≤ M,
