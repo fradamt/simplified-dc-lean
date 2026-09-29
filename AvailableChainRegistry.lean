@@ -1,6 +1,6 @@
 module
 public import AvailableChainRegistry.Sanity
-public import AvailableChainRegistry.GridCOHooks
+public import AvailableChainRegistry.Instances.GridCOHooks
 public import AvailableChainRegistry.Counter
 public import AvailableChainRegistry.CounterRun
 public import AvailableChainRegistry.CounterIncluded

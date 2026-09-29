@@ -1,5 +1,5 @@
 module
-public import AvailableChainGridCO.Proofs.Handling
+public import AvailableChainGridCO.Proofs.WindowMargin
 public import AvailableChainKit.Engine.EngineClock
 
 @[expose] public section
@@ -140,7 +140,9 @@ theorem synchronous_head_handled_early {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
     (r : Slot) (hsync : EarlyDelivery p E rho r)
     (source reader : V) (hs : source ∈ rho.honest) (hr : reader ∈ rho.honest)
-    (o : Wire p.n) (he : Run.emits (gridCO p) E rho source o (voteTime p r)) :
+    (o : Wire p.n) (he : Run.emits (gridCO p) E rho source o (voteTime p r))
+    (hx : ∀ u, u ≤ earlyTime p r →
+        (gridCO p).excludes (Run.stateBeforeTime (gridCO p) rho u reader) o = false) :
     ∃ index t, voteTime p r ≤ t ∧ t < earlyTime p r ∧
       Run.handlesAt (gridCO p) rho index reader o t := by
   have hdeadline : voteTime p r + E.Δ = earlyTime p r := by
@@ -152,10 +154,10 @@ theorem synchronous_head_handled_early {V : Type} [DecidableEq V]
       linarith [p.deltaPos]
     have hmax : max (voteTime p r) E.t_GST = voteTime p r := max_eq_left hg
     obtain ⟨t, ht, hd, index, hh⟩ := hnet.broadcast source hs o _ he reader hr
-      (by rw [hmax, hdeadline]; exact hsync.horizon) rfl
+      (by rw [hmax, hdeadline]; exact hsync.horizon) (hx _ (by rw [hmax, hdeadline]))
     exact ⟨index, t, ht, by simpa [hmax, hdeadline] using hd, hh⟩
   · obtain ⟨t, ht, hd, index, hh⟩ := hnet.broadcast source hs o _ he reader hr
-      (by rw [hdeadline]; exact hcut) rfl
+      (by rw [hdeadline]; exact hcut) (hx _ hdeadline.le)
     exact ⟨index, t, ht, by simpa [hdeadline] using hd, hh⟩
 
 /-- A synchronous honest HEAD is stored before the early cutoff at every
@@ -174,6 +176,8 @@ theorem synchronous_honest_head_stored_early
         (Run.stateBefore (gridCO p) rho (index + 1) reader).votes := by
   obtain ⟨index, t, hlo, hhi, hhandle⟩ :=
     synchronous_head_handled_early p E rho hΔ r hsync (rho.seatOf r i) reader hh hr _ he
+      (honest_head_not_excluded_before p E rho hsync.execution reader r i B hh _
+        (by dsimp [earlyTime, proposalTime]; nlinarith [p.deltaPos]))
   exact ⟨index, t, hlo, hhi, hhandle,
     early_handled_honest_head_stored p E rho hsync.execution hΔ index reader r i B t
       hh hlo hhi hhandle⟩

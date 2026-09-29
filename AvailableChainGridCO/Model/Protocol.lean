@@ -561,6 +561,21 @@ theorem slotsAt_nodup (p : Params) (t : Time) : (slotsAt p t).Nodup := by
 theorem duties_nodup (p : Params) (t : Time) : (duties p t).Nodup := by
   exact List.Nodup.filter _ List.nodup_range
 
+/-- Permanent rejection (design §2 E4) of a HEAD that is not yet processed:
+its label `r` is before the previous slot (the clock only goes forward), or
+its seat already equivocates at `r`. `admitVote` returns the state unchanged
+in both cases, and in no later state of a valid run accepts the HEAD. A
+processed HEAD is not excluded, and a proposal is never excluded. "Exactly the
+permanent refusals" holds for objects that pass the wire check (`wellFormed`);
+an ill-formed object is also refused for good, but `DeliveryWellFormed.wire`
+keeps it out of every valid run. -/
+def excludes (p : Params) {n : Nat} (st : State n) (o : Wire n) : Bool :=
+  match o.auth, o.payload with
+  | .seat r i, .head _ =>
+      !decide (o ∈ st.votes) &&
+        (decide (r + 1 < (st.now / (4 * p.Δ)).toNat) || equivocates (votesAt st r) i)
+  | _, _ => false
+
 /-- The C* instance: seat identities occur in authentication only. Every
 seat of a label signs the same payload. Source: CONTRACT.md §2a. -/
 def gridCO [LeasePolicy] (p : Params) : ProtocolSpec p.n where
@@ -584,7 +599,7 @@ def gridCO [LeasePolicy] (p : Params) : ProtocolSpec p.n where
   wellFormed := wellFormed
   depsPresent := depsPresent
   processed := processed
-  excludes := fun _ _ => false
+  excludes := excludes p
   handles := handles p
   carries := carries
 

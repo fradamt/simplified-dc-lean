@@ -48,6 +48,15 @@ The main proof paths below use files in `AvailableChainGridCO/Proofs/`.
   the library `AvailableChainKit` (see "Kit and engine v2 sketch").
   `Votes.lean` proves authentication and count bounds; `RecordSlots.lean`
   proves slot order and fresh-record replacement.
+- `WindowMargin.lean` proves the relay premise "the reader does not exclude
+  the object up to the cutoff" for each caller of the five relay lemmas
+  (`synchronous_head_handled_early`, `synchronous_proposal_delivered`,
+  `synchronous_receipt_before`, `synchronous_block_path_at_gate`,
+  `handled_before_proposal_of_ready`). `Hooks.lean` proves the E4 hook
+  facts for `gridCO p` (`excludes_inert`, `excludes_stable`,
+  `processed_stable`, `deps_stable`, `handles_carries`) and the exactness
+  tests of `excludes` (`excludes_head_iff`, `excludes_proposal`,
+  `excludes_not_processed`).
 - `Goldfish.lean`, `Relay.lean`, and `Map.lean` prove local walk, gate,
   snapshot-count, and obligation invariants. `CrossView.lean` proves
   `sameLabel_from_engine`; `Snapshot.lean` proves `snapshot_from_engine`.
@@ -591,11 +600,10 @@ paths below are relative to `AvailableChainRegistry/`.
 │                  │ refutedBadStrong; refutedBadStrongSafe;     │                       │
 │                  │ certStrongSafeCounter (a strong-tier        │                       │
 │                  │ certificate)                                │                       │
-│ GridCOHooks      │ gridExcludes (E4 exclude); gridCOx;         │ GridCOHooks.lean      │
-│                  │ gridCOx_hooks (HooksSound); clock_votes     │                       │
-│                  │ (Task 7 Step 1 finding: no clock evaluation │                       │
-│                  │ removes votes); gate_votes;                 │                       │
-│                  │ inWindow_not_excluded                       │                       │
+│ Instances/       │ gridHooks (HooksSound (gridCO p)), from the │ Instances/            │
+│ GridCOHooks      │ hook facts in AvailableChainGridCO/Proofs/  │ GridCOHooks.lean      │
+│                  │ Hooks.lean; SA uses @gridHooks              │                       │
+│                  │ slowLeasePolicy p.engine                    │                       │
 │ Counter          │ counter (a toy height protocol);            │ Counter.lean          │
 │                  │ counterIface; counter_hooks; counterInst    │                       │
 │ CounterRun       │ canonical (the synchronous run from         │ CounterRun.lean       │
@@ -707,8 +715,8 @@ changed. `AvailableChainKit` imports only `AvailableChainModel`,
 │ AvailableChainKit.Engine.    │ namespace AvailableChain.Engine: the     │ AvailableChainGridCO/Proofs/Execution    │
 │ Execution                    │ schedule bridges (stateBefore_succ_event,│ (the engine part; the Grid CO forms stay │
 │                              │ readAt_eq_stateBefore, …)                │ in Grid CO Proofs/Execution.lean)        │
-│ AvailableChainKit.Engine.    │ ClockLaws; now bounds; invariants        │ AvailableChainGridCO/Proofs/EngineClock  │
-│ EngineClock                  │                                          │                                          │
+│ AvailableChainKit.Engine.    │ ClockLaws; now bounds; invariants;       │ AvailableChainGridCO/Proofs/EngineClock  │
+│ EngineClock                  │ stateBefore_stable_clock (plan 1b, new)  │                                          │
 │ AvailableChainKit.Engine.    │ runPrefix and its read lemmas            │ AvailableChainGridCO/Proofs/RunPrefix    │
 │ RunPrefix                    │                                          │                                          │
 │ AvailableChainKit.Engine.    │ prefixEnv; healthyPrefix_* regime        │ AvailableChainGridCO/Proofs/HealthyPrefix│

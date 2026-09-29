@@ -30,6 +30,7 @@ theorem accepted_block_before_ready_proposal {V : Type} [DecidableEq V]
       by change t < proposalTime p s; linarith [E.Δ_pos], hk⟩
   obtain ⟨j, t', hj, htt, ht⟩ := handled_before_proposal_of_ready p E rho s hready hh
     source reader hs hr index o t ha (Bool.eq_false_iff.mpr hk) hd
+    (fun u _ => proposal_not_excluded p rho reader o B raw support hp u)
   have hm := accepted_proposal_handled_stored p E rho hx hΔ index j source reader
     o B raw support t t' hp ha hj htt
   obtain ⟨parent', he, _⟩ := hj
@@ -84,12 +85,25 @@ theorem stored_head_before_ready_proposal {V : Type} [DecidableEq V]
     cases o with
     | mk auth payload => cases auth <;> cases payload <;> simp_all [headLabel?, headSeat?]
   subst o
+  have hwin : proposalTime p (r + 1) ≤ proposalTime p (r + 2) := by
+    dsimp [proposalTime]; nlinarith [p.deltaPos]
+  rcases head_not_excluded_or_equivocates p E rho hsched reader r i target _ hwin with
+    hx | ⟨u, hu, heq⟩
+  swap
+  · -- The reader's votes only grow up to the proposal read.
+    have hsub : votesAt (Run.stateBeforeTime (gridCO p) rho u reader) r ⊆
+        votesAt (Run.stateBeforeTime (gridCO p) rho (proposalTime p (r + 1)) reader) r := by
+      rw [time_input_eq_event_prefix p E rho hsched, time_input_eq_event_prefix p E rho hsched]
+      intro q hq
+      obtain ⟨hm, hl⟩ := List.mem_filter.mp hq
+      exact List.mem_filter.mpr ⟨(stateBefore_receiptPrefix p rho
+        (read_length_mono _ _ (by linarith)) reader).votes.subset hm, hl⟩
+    exact Or.inr (equivocates_mono _ _ i hsub heq)
   have hrec := accepted_head_receipt_before p E rho hsched hΔ index source reader r i target
     t (proposalTime p (r + 1)) (proposalTime p (r + 1)) ha
-    (by linarith [E.Δ_pos]) (le_refl _)
-    (by dsimp [proposalTime]; nlinarith [p.deltaPos]) (fun hm => by
+    (by linarith [E.Δ_pos]) (le_refl _) hwin (fun hm => by
       obtain ⟨j, t', hj, htt, ht'⟩ := handled_before_proposal_of_ready p E rho (r + 1)
-        hready hh source reader hs hr index _ t ha hm (by linarith)
+        hready hh source reader hs hr index _ t ha hm (by linarith) hx
       exact ⟨t', htt, ht', j, hj⟩)
   rcases hrec with hm | he
   · exact Or.inl (List.mem_filter.mp hm).1

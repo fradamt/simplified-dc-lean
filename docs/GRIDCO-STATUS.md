@@ -67,6 +67,21 @@ The regime witnesses, sanity and accumulation witnesses, and Grid CO and
 L* smoke tests remain in the default build. The old proof-interface
 counterexamples and conditional constructors have been removed.
 
+- **2026-09-29: E4 permanent exclusion (plan 1b, Task 1).** `gridCO`
+  (and so `sa`) now has a real `excludes`: a HEAD that is not yet stored
+  is excluded when its label is before the previous slot or its seat
+  already equivocates at that label. Proposals are never excluded.
+  `excludes_head_iff` and `excludes_proposal` show that these are exactly
+  the permanent refusals of `admitVote`; `excludes_stable` uses the valid
+  schedule, because the old-label test needs a clock that does not move
+  backwards. The five relay lemmas that used `excludes = false` by `rfl`
+  now take the premise "not excluded up to the cutoff".
+  `Proofs/WindowMargin.lean` proves that premise for each caller: before
+  `proposalTime (r + 2)` a label-`r` HEAD is excluded only for
+  equivocation, and each caller's cutoff is at most `gateTime r`. The two
+  callers that relay a HEAD of any seat take the equivocation outcome
+  that their conclusions already allow. No contract statement changed.
+
 ## Validation
 
 `lake build --wfail` passes all 3,394 jobs with no warnings, including

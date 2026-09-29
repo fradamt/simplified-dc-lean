@@ -142,7 +142,9 @@ theorem synchronous_proposal_delivered {V : Type} [DecidableEq V]
     (source reader : V) (hs : source ∈ rho.honest) (hr : reader ∈ rho.honest)
     (o : Wire p.n) (B : Block) (raw support : List (HeadWire p.n))
     (hp : o.payload = .proposal B raw support)
-    (hem : Run.emits (gridCO p) E rho source o (proposalTime p s)) :
+    (hem : Run.emits (gridCO p) E rho source o (proposalTime p s))
+    (hx : ∀ u, u ≤ voteTime p s →
+        (gridCO p).excludes (Run.stateBeforeTime (gridCO p) rho u reader) o = false) :
     ∃ (index : Nat) (t : Time), proposalTime p s ≤ t ∧ t < voteTime p s ∧
       rho.events[index]? = some (Event.deliver reader o t) := by
   have hdeadline : proposalTime p s + E.Δ = voteTime p s := by rw [hΔ]; rfl
@@ -153,10 +155,11 @@ theorem synchronous_proposal_delivered {V : Type} [DecidableEq V]
     rcases hsync.delivery with ⟨hgst, hnet⟩ | ⟨cut, hcut, hnet⟩
     · have hmax : max (proposalTime p s) E.t_GST = proposalTime p s := max_eq_left hgst
       obtain ⟨t, ht, hd, index, hh⟩ := hnet.broadcast source hs o _ hem reader hr
-        (by rw [hmax, hdeadline]; exact hv.trans hsync.horizon) rfl
+        (by rw [hmax, hdeadline]; exact hv.trans hsync.horizon)
+        (hx _ (by rw [hmax, hdeadline]))
       exact ⟨t, ht, by simpa [hmax, hdeadline] using hd, index, hh⟩
     · obtain ⟨t, ht, hd, index, hh⟩ := hnet.broadcast source hs o _ hem reader hr
-        (by rw [hdeadline]; exact hv.trans hcut) rfl
+        (by rw [hdeadline]; exact hv.trans hcut) (hx _ hdeadline.le)
       exact ⟨t, ht, by simpa [hdeadline] using hd, index, hh⟩
   obtain ⟨t, hlo, hhi, index, outer, hi, hh⟩ := hh
   have he := handles_proposal_direct p _ outer o B raw support hp hh
@@ -185,6 +188,7 @@ theorem honest_proposal_stored_at_head {V : Type} [DecidableEq V]
   obtain ⟨_, _, hem⟩ := honest_proposal_views p E rho hs (r + 1) B hB
   obtain ⟨index, t, hlo, hhi, hi⟩ := synchronous_proposal_delivered p E rho hΔ (r + 1)
     hsync (rho.proposerOf (r + 1)) reader hB.1 hr o B raw support rfl hem
+    (fun u _ => proposal_not_excluded p rho reader o B raw support rfl u)
   have hstored := delivered_proposal_stored p E rho hsync.execution hΔ index reader
     (r + 1) B raw support t hlo hhi hi
   rw [← release_eq_next_vote] at hhi

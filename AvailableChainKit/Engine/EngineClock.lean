@@ -169,6 +169,40 @@ theorem stateBefore_invariant {V : Type} [DecidableEq V]
                 simpa only [World.step, Function.update_self] using hprocess _ o ih
               · simpa [World.step, hv] using ih
 
+/-- A state property that `process` keeps, and that `clock` keeps when the
+tick does not move backwards, holds for the rest of a valid run. This is
+the run-indexed form of `stateBefore_stable`. -/
+theorem stateBefore_stable_clock {V : Type} [DecidableEq V]
+    {n : Nat} {P : ProtocolSpec n} (C : ClockLaws P)
+    (E : Env V) (rho : Run V P) (hs : ScheduleWellFormed E rho)
+    (Q : P.State → Prop)
+    (hclock : ∀ st t, C.now st ≤ t → Q st → Q (P.clock st t))
+    (hprocess : ∀ st o, Q st → Q (P.process st o))
+    {i j : Nat} (hij : i ≤ j) (v : V)
+    (hi : Q (Run.stateBefore P rho i v)) : Q (Run.stateBefore P rho j v) := by
+  induction j with
+  | zero => rwa [Nat.le_zero.mp hij] at hi
+  | succ j ih =>
+      rcases Nat.eq_or_lt_of_le hij with rfl | hlt
+      · exact hi
+      · have hj := ih (by omega)
+        cases he : rho.events[j]? with
+        | none => simpa [Run.stateBefore, List.take_add_one, he] using hj
+        | some e =>
+            rw [stateBefore_succ_event he]
+            cases e with
+            | tick u t =>
+                by_cases hv : v = u
+                · subst u
+                  simpa only [World.step, Function.update_self] using
+                    hclock _ t (stateBefore_now_le_event C E rho hs he v) hj
+                · simpa [World.step, hv] using hj
+            | deliver u o t =>
+                by_cases hv : v = u
+                · subst u
+                  simpa only [World.step, Function.update_self] using hprocess _ o hj
+                · simpa [World.step, hv] using hj
+
 /-- A stored row whose only source is a local clock has a prior tick
 with that source property. This includes immutable saves and freezes. -/
 theorem clock_field_origin {V : Type} [DecidableEq V] {n : Nat} {P : ProtocolSpec n}

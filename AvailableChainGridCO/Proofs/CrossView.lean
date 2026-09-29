@@ -22,17 +22,19 @@ theorem synchronous_receipt_before {V : Type} [DecidableEq V] [Fintype V]
     (ha : Run.acceptsAt (gridCO p) rho index source o t)
     (hm : processed (Run.stateBefore (gridCO p) rho (index + 1) reader) o = false)
     (hd : t + E.Δ ≤ cut) (hg : proposalTime p r + E.Δ ≤ cut)
-    (hc : cut ≤ gateTime p r) :
+    (hc : cut ≤ gateTime p r)
+    (hx : ∀ u, u ≤ cut →
+        (gridCO p).excludes (Run.stateBeforeTime (gridCO p) rho u reader) o = false) :
     ∃ t', t ≤ t' ∧ t' < cut ∧ ∃ j, Run.handlesAt (gridCO p) rho j reader o t' := by
   rcases hsync.2.2.2 with ⟨hgst, relay⟩ | ⟨endTime, hend, relay⟩
   · have hbound : max t E.t_GST + E.Δ ≤ cut := by
       rw [← max_add_add_right]
       exact max_le hd (by linarith)
     obtain ⟨t', htt, ht', j, hj⟩ := relay.relay source hs index o t ha reader hr hm
-      (hbound.trans (hc.trans hsync.2.2.1)) rfl
+      (hbound.trans (hc.trans hsync.2.2.1)) (hx _ hbound)
     exact ⟨t', htt, ht'.trans_le hbound, j, hj⟩
   · obtain ⟨t', htt, ht', j, hj⟩ := relay.relay source hs index o t ha reader hr hm
-      (hd.trans (hc.trans hend)) rfl
+      (hd.trans (hc.trans hend)) (hx _ hd)
     exact ⟨t', htt, ht'.trans_le hd, j, hj⟩
 
 /-- Exact block transport follows from the checked causal handler bridge. -/
@@ -53,10 +55,36 @@ theorem synchronous_accepted_block_before {V : Type} [DecidableEq V] [Fintype V]
   · exact ⟨index, .deliver source parent t, hi, ht, hk⟩
   obtain ⟨t', htt, ht', j, hh⟩ := synchronous_receipt_before p E rho r hsync
     source reader hs hr index o t cut ha (Bool.eq_false_iff.mpr hk) hd hg hc
+    (fun u _ => proposal_not_excluded p rho reader o B raw support hp u)
   have hm := accepted_proposal_handled_stored p E rho hsync.1 hΔ index j source reader
     o B raw support t t' hp ha hh htt
   obtain ⟨parent', hj, _⟩ := hh
   exact ⟨j, .deliver reader parent' t', hj, ht', by simpa [processed, hp, blockKnown] using hm⟩
+
+/-- Every label-`r` HEAD of a strict read at `u ≤ cut` is in each later read
+with a stamp before `cut`. -/
+private theorem time_read_votesAt_stamped {V : Type} [DecidableEq V] (p : Params)
+    (E : Env V) (rho : Run V (gridCO p)) (hs : ScheduleWellFormed E rho) (reader : V)
+    (r : Slot) (u cut read : Time) (hu : u ≤ cut) (hread : cut ≤ read) :
+    votesAt (Run.stateBeforeTime (gridCO p) rho u reader) r ⊆
+      stampedVotes (Run.stateBeforeTime (gridCO p) rho read reader) r cut := by
+  intro q hq
+  obtain ⟨hm, hl⟩ := List.mem_filter.mp hq
+  rw [time_input_eq_event_prefix p E rho hs] at hm
+  obtain ⟨k, hk⟩ : ∃ k, k = (rho.events.filter (fun e => decide (e.time ≤ u - 1))).length :=
+    ⟨_, rfl⟩
+  rw [← hk] at hm
+  cases k with
+  | zero => simp [Run.stateBefore, World.init, gridCO, initial] at hm
+  | succ k =>
+      have hlt : k < rho.events.length := by
+        have := List.length_filter_le (fun e => decide (e.time ≤ u - 1)) rho.events
+        omega
+      have he : rho.events[k]? = some rho.events[k] := List.getElem?_eq_getElem hlt
+      have hle := (index_lt_read_length_iff hs (u - 1) he).mp (by omega)
+      obtain ⟨hm', hstamp⟩ := stored_vote_stamp_before_cut p E rho hs he hm
+        (show rho.events[k].time < cut by linarith) hread
+      exact List.mem_filter.mpr ⟨List.mem_filter.mpr ⟨hm', hl⟩, by simpa using hstamp⟩
 
 /-- HEAD relay gives membership or equivocation within the admission window. -/
 theorem synchronous_accepted_head_before {V : Type} [DecidableEq V] [Fintype V]
@@ -77,12 +105,18 @@ theorem synchronous_accepted_head_before {V : Type} [DecidableEq V] [Fintype V]
     cases o with
     | mk auth payload => cases auth <;> cases payload <;> simp_all [headLabel?, headSeat?]
   subst o
-  apply accepted_head_receipt_before p E rho hsync.1.toScheduleWellFormed hΔ
-    index source reader r i B t cut read ha (by linarith [E.Δ_pos]) hread
-    (hc.trans (by dsimp [gateTime, proposalTime]; nlinarith [p.deltaPos]))
-  intro hm
-  exact synchronous_receipt_before p E rho r hsync source reader hs hr index _ t cut
-    ha hm hd hg hc
+  have hsched := hsync.1.toScheduleWellFormed
+  have hwin : cut ≤ proposalTime p (r + 2) :=
+    hc.trans (by dsimp [gateTime, proposalTime]; nlinarith [p.deltaPos])
+  rcases head_not_excluded_or_equivocates p E rho hsched reader r i B cut hwin with
+    hx | ⟨u, hu, heq⟩
+  · apply accepted_head_receipt_before p E rho hsched hΔ
+      index source reader r i B t cut read ha (by linarith [E.Δ_pos]) hread hwin
+    intro hm
+    exact synchronous_receipt_before p E rho r hsync source reader hs hr index _ t cut
+      ha hm hd hg hc hx
+  · exact Or.inr (equivocates_mono _ _ i
+      (time_read_votesAt_stamped p E rho hsched reader r u cut read hu hread) heq)
 
 /-- Every early HEAD settles in each honest late pool as that vote or
 equivocation evidence for its seat. -/

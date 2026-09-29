@@ -107,17 +107,20 @@ theorem handled_before_proposal_of_ready {V : Type} [DecidableEq V]
     (i : Nat) (o : Wire p.n) (t : Time)
     (ha : Run.acceptsAt (gridCO p) rho i source o t)
     (hm : processed (Run.stateBefore (gridCO p) rho (i + 1) reader) o = false)
-    (hdeadline : t + E.Δ ≤ proposalTime p s) :
+    (hdeadline : t + E.Δ ≤ proposalTime p s)
+    (hx : ∀ u, u ≤ proposalTime p s →
+        (gridCO p).excludes (Run.stateBeforeTime (gridCO p) rho u reader) o = false) :
     ∃ j t', Run.handlesAt (gridCO p) rho j reader o t' ∧
       t ≤ t' ∧ t' < proposalTime p s := by
   rcases hready with ⟨hstart, hrelay⟩ | ⟨cut, hcut, hrelay⟩
   · have hd : max t E.t_GST + E.Δ ≤ proposalTime p s := by
       rw [← max_add_add_right]
       exact max_le hdeadline hstart
-    obtain ⟨t', ht, hd', j, hj⟩ := hrelay.relay source hs i o t ha reader hr hm (hd.trans hh) rfl
+    obtain ⟨t', ht, hd', j, hj⟩ := hrelay.relay source hs i o t ha reader hr hm (hd.trans hh)
+      (hx _ hd)
     exact ⟨j, t', hj, ht, hd'.trans_le hd⟩
   · obtain ⟨t', ht, hd, j, hj⟩ := hrelay.relay source hs i o t ha reader hr hm
-      (hdeadline.trans hcut) rfl
+      (hdeadline.trans hcut) (hx _ hdeadline)
     exact ⟨j, t', hj, ht, hd.trans_le hdeadline⟩
 
 private theorem head_conversion {n : Nat} (o : Wire n) (r : Slot)

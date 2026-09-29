@@ -289,7 +289,10 @@ theorem synchronous_block_path_at_gate {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
     (r : Slot) (hsync : EarlyDelivery p E rho r)
     (source reader : V) (hs : source ∈ rho.honest) (hr : reader ∈ rho.honest)
-    (B : Block) (hm : B ∈ (Run.stateBeforeTime (gridCO p) rho (voteTime p r) source).blocks) :
+    (B : Block) (hm : B ∈ (Run.stateBeforeTime (gridCO p) rho (voteTime p r) source).blocks)
+    (hx : ∀ o : Wire p.n, (∃ raw support, o.payload = .proposal B raw support) →
+      ∀ u, u ≤ earlyTime p r →
+        (gridCO p).excludes (Run.stateBeforeTime (gridCO p) rho u reader) o = false) :
     B ∈ (gateInput p rho r reader).blocks ∧
       stampBlock (gateInput p rho r reader) B < earlyTime p r := by
   have hsched := hsync.execution.toScheduleWellFormed
@@ -331,10 +334,10 @@ theorem synchronous_block_path_at_gate {V : Type} [DecidableEq V]
         dsimp [earlyTime]
         linarith [p.deltaPos]
       obtain ⟨t', htt, ht', j, hj⟩ := relay.relay source hs index o t ha reader hr hmissing
-        (hd.trans hsync.horizon) rfl
+        (hd.trans hsync.horizon) (hx o ⟨raw, support, hp⟩ _ hd)
       exact ⟨j, t', hj, htt, ht'.trans_le hd⟩
     · obtain ⟨t', htt, ht', j, hj⟩ := relay.relay source hs index o t ha reader hr hmissing
-        (hdeadline.trans hcut) rfl
+        (hdeadline.trans hcut) (hx o ⟨raw, support, hp⟩ _ hdeadline)
       exact ⟨j, t', hj, htt, ht'.trans_le hdeadline⟩
   obtain ⟨j, t', hh, htt, ht'⟩ := hrelay
   have hm := accepted_proposal_handled_stored p E rho hsync.execution hΔ
@@ -356,6 +359,7 @@ theorem synchronous_honest_head_resolved {V : Type} [DecidableEq V]
   obtain ⟨hv, hstamp⟩ := synchronous_honest_head_at_gate p E rho hΔ r hsync i B hh he reader hr
   obtain ⟨hb, hbstamp⟩ := synchronous_block_path_at_gate p E rho hΔ r hsync
     (rho.seatOf r i) reader hh hr B hm
+    (fun o ⟨raw, support, hp⟩ u _ => proposal_not_excluded p rho reader o B raw support hp u)
   simp [earlyVotes, votesAt, hv, headLabel?, resolvedBefore, headTarget?, blockKnown,
     hb, hslot, hstamp, hbstamp]
 
