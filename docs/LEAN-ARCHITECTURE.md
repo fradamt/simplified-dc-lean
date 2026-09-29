@@ -43,7 +43,7 @@ document adds the proof architecture below it.
 │ S4    │ lean-framework scratchpad a0-s4-build.md,     │ lean-framework │ build.md r3.2        │
 │       │ a0-s4-port.md (S4p)                           │                │                      │
 │ 1c    │ AC/claude-files/1c/plan.md r3.3 (+ r4-inputs) │ lean-framework │ r4 follows A0        │
-│ P3    │ TS/codex/scratch/fgsa-f0-f2-plan-draft.md     │ fgsa-lean      │ r3.5.1 c4e94221      │
+│ P3    │ TS/codex/scratch/fgsa-f0-f2-plan-draft.md     │ fgsa-lean      │ r3.5.2 90c91821      │
 │ T7    │ FP/docs/plans/…-t7-t1.md                      │ fgsa-lean      │ r16 4d11b505         │
 │       │                                               │                │ (fixes §11)          │
 └───────┴───────────────────────────────────────────────┴────────────────┴──────────────────────┘
@@ -243,12 +243,14 @@ Authority: **S1** (catalogue, regime records, composites) and **S3 §4**
 │ G37 healed monotonicity  │ Statements/Healed + FGSAProofs/    │ fgsa-lean      │ —                            │
 │                          │ Shared/Healed (P3:775, :3329–3333) │                │                              │
 │ G17 row cap              │ instance of KitFG/CausalCap        │ fgsa-lean      │ a second rowCap core in F1.7 │
-│ E-15 chain order         │ one survivor of liveRoot_stored /  │ fgsa-lean +    │ two names without a          │
-│                          │ fgHead_stored: fgHead_stored       │ lean-framework │ survivor                     │
-│                          │ (StoreInv.lean:756) stays in the   │                │                              │
-│                          │ store library, liveRoot_stored is  │                │                              │
-│                          │ its wrapper; only the ChainOrder   │                │                              │
-│                          │ facts move to KitFG/Certificates   │                │                              │
+│ E-15 chain order         │ liveRoot_stored and fgHead_stored  │ fgsa-lean +    │ fgHead_stored re-proving     │
+│                          │ both stay in the store library     │ lean-framework │ liveRoot membership; the     │
+│                          │ (StoreInv.lean); fgHead_stored     │                │ earlier "liveRoot_stored is  │
+│                          │ uses liveRoot_stored (fgHead is    │                │ a wrapper of fgHead_stored"  │
+│                          │ the ghost walk result, possibly a  │                │ (impossible: fgHead ∈ blocks │
+│                          │ strict descendant); only the       │                │ does not give liveRoot ∈     │
+│                          │ ChainOrder facts move to           │                │ blocks)                      │
+│                          │ KitFG/Certificates                 │                │                              │
 │ F2 producers             │ P3:3138–3142 "1.8k lines to prove  │ fgsa-lean      │ the sizing text is rewritten │
 │                          │ again" → routed through G03, G13,  │                │ with an S3 §8 row            │
 │                          │ G24, E-14                          │                │                              │
