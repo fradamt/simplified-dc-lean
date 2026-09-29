@@ -492,9 +492,9 @@ theorem duties_nodup (p : Params) (t : Time) : (duties p t).Nodup := by
   sign two wires with the same block; the store refuses the second wire for
   good.
 Both handlers return the state unchanged in these cases. Late HEADs of old
-labels are admitted, so no old-label clause applies. A HEAD of a future label
-(`current < r`) is refused only until the clock reaches `r`, so it is not
-excluded. A processed object is not excluded. An object whose
+labels are admitted, so no old-label clause applies. The future-label refusal
+(`current < r`) is temporary, so `excludes` does not test the clock; a HEAD of
+a future label is excluded only by the equivocation clause. A processed object is not excluded. An object whose
 authentication does not match its payload (for example a HEAD with proposer
 authentication) is also refused for good, but it fails the wire check
 (`wellFormed`), and `DeliveryWellFormed.wire` keeps it out of every valid

@@ -34,7 +34,8 @@ theorem excludes_proposal_iff {n : Nat} (st : State n) (s : Slot) (b : Block)
   simp [excludes]
 
 /-- A proposal wire whose block is not stored is not excluded, whatever its
-authentication: `admitProposal` can still accept it later. -/
+authentication. With proposer authentication, `admitProposal` can still
+accept it later. -/
 theorem excludes_proposal_not_stored {n : Nat} (st : State n) (o : Wire n) (b : Block)
     (raw support : List (HeadWire n)) (hp : o.payload = .proposal b raw support)
     (hb : b ∉ st.blocks) : excludes st o = false := by
