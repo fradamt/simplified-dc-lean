@@ -1,11 +1,23 @@
 # FG-SA architecture map
 
-_Shared map for the lead session (tip-stability, DC-simplify) and the
-framework session (available-chain). Created 2026-09-29 from DC-simplify's
+_Shared map for three sessions. Created 2026-09-29 from DC-simplify's
 draft 1. One screen per section; detail goes in the linked documents.
 Update it when a module, an interface, a constraint or the milestone order
-changes, and tell the other session. Owners: §1–§2 and §6–§7 lead session;
-§3–§4 framework session; §5 and §8 shared._
+changes, and tell the other sessions._
+
+```text
+┌────────────────┬──────────────────────────────────┬─────────────────────┐
+│ Session        │ Owns                             │ Map sections        │
+├────────────────┼──────────────────────────────────┼─────────────────────┤
+│ DC-simplify    │ spec, blueprint, research        │ §1–§2, §6–§7        │
+│ (tip-stability)│                                  │                     │
+│ lean-framework │ engine, framework, I9, 2a/2b/2c, │ §3–§4               │
+│                │ 1c                               │                     │
+│ fgsa-lean      │ T7/T1, F0–F6 (FG-SA claims in    │ (reports to both)   │
+│                │ Lean)                            │                     │
+│ all            │ milestones, links                │ §5, §8 (shared)     │
+└────────────────┴──────────────────────────────────┴─────────────────────┘
+```
 
 ## 1. Goal and priority
 
