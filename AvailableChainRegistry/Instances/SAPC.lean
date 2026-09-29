@@ -42,12 +42,12 @@ theorem sapc_holds_strong1 (p : Params) :
     strong1.holdsAt (sapcInst p) (sapcConstants p 1, sapcStrongConstants p) :=
   sapc_holds_strong1_of_pos p 1 one_pos
 
-/-- Both SA-PC profiles at one `C` (PHASE1A-REPORT, plan 1b input 2, at the
-`holds` level; the certificate pair is plan 1c). -/
+/-- Both SA-PC profiles at one `C := sapcConstants p G` (PHASE1A-REPORT, plan
+1b input 2, at the `holds` level; the certificate pair is plan 1c). -/
 theorem sapc_holds_shared (p : Params) (G : Time) (hG : 0 < G) :
-    ∃ C, ac43.holdsAt (sapcInst p).toInstance C ∧
-      strong1.holdsAt (sapcInst p) (C, sapcStrongConstants p) :=
-  ⟨sapcConstants p G, sapc_holds_ac43_of_pos p G hG, sapc_holds_strong1_of_pos p G hG⟩
+    ac43.holdsAt (sapcInst p).toInstance (sapcConstants p G) ∧
+      strong1.holdsAt (sapcInst p) (sapcConstants p G, sapcStrongConstants p) :=
+  ⟨sapc_holds_ac43_of_pos p G hG, sapc_holds_strong1_of_pos p G hG⟩
 
 theorem sapc_holds_core_of_pos (p : Params) (G : Time) (hG : 0 < G) :
     core.holdsAt (sapcInst p).toInstance (sapcConstants p G).D_c :=
