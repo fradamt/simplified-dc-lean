@@ -600,6 +600,7 @@ AvailableChainKitFG.Ancestry _private.AvailableChainKitFG.Ancestry.0.AvailableCh
 AvailableChainKitFG.Ancestry _private.AvailableChainKitFG.Ancestry.0.AvailableChain.SimplexFG.FGBlock.slot.match_1.eq_1
 AvailableChainKitFG.Ancestry _private.AvailableChainKitFG.Ancestry.0.AvailableChain.SimplexFG.FGBlock.slot.match_1.eq_2
 AvailableChainKitFG.Ancestry _private.AvailableChainKitFG.Ancestry.0.AvailableChain.SimplexFG.FGBlock.slot.match_1.splitter
+AvailableChainKitFG.Certificates AvailableChain.KitFG.insertIf.eq_1
 AvailableChainKitFG.Certificates AvailableChain.SimplexFG.ChainState.finalityQuorum.eq_1
 AvailableChainKitFG.Certificates AvailableChain.SimplexFG.ChainState.progQuorum.eq_1
 AvailableChainKitFG.Certificates AvailableChain.SimplexFG.ChainState.targetQuorum.eq_1
