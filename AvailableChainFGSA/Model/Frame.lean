@@ -136,18 +136,20 @@ def proposalRows (p : Params) (st : State p.n) (H : Block) : List (RowWire p.n) 
     if decide (a ∈ acc) || 2 ≤ (acc.filter (fun x => key x == key a)).length then acc
     else acc ++ [a]) A
 
-/-- [spec 1236–1253; DQ10] `propose_block` at `t_s`, `s > 0`. The root formula
-is GridCO's; it is not a content code and it can collide (DQ10). Condition
-(G6 O-m3): the spec sets `s ← Σ.s` (spec 1238), and `eligible` and
-`proposalRows` read `Σ.s`, so this agrees with the spec only when
-`s = st.slot p`; the caller (T7) must guarantee it. -/
+/-- [spec 1236–1253; D5, D9] `propose_block` at `t_s`, `s > 0`. It selects the
+head and the signed rows first; then it builds the block with the packed body
+of application value `0` and those rows, so the rows are in the block identity
+(`rowsOk` holds). Condition (G6 O-m3): the spec sets `s ← Σ.s` (spec 1238), and
+`eligible` and `proposalRows` read `Σ.s`, so this agrees with the spec only
+when `s = st.slot p`; the caller (T7) must guarantee it. -/
 def propose (p : Params) (st : State p.n) (s : Slot) : Option (Msg p.n) :=
   if s = 0 then none else
     let raw := proposerVotes st s
     let sup := proposerSupport st s
     let H := getHead p st raw sup
-    some (.proposal (.node H s ⟨s * (H.root.value + 1)⟩) (raw.filterMap liftHead?)
-      (sup.filterMap liftHead?) (proposalRows p st H))
+    let rows := proposalRows p st H
+    some (.proposal (.node H s (packBody 0 rows)) (raw.filterMap liftHead?)
+      (sup.filterMap liftHead?) rows)
 
 /-- [spec 1318–1323] The finality head: `get_head` with the current-slot votes
 and their active resolved subset. -/
@@ -165,7 +167,8 @@ def fgBlockOf {n : Nat} (st : State n) (b : Block) : Option (FGBlock (Fin n)) :=
   pickPair st.fg.TF (fun B => decide (eraseFG B = b))
 /-- [spec 260–262, 1327–1335; DQ13] The deepest member (depth of the erasure);
 ties: the greater root. `deepest ∅ = none`. For a nonempty set, `none` only if
-two distinct maximal candidates share both depth and root; a tie between
+two distinct maximal candidates share both depth and root (which
+`FGBlock.root_injective` excludes); a tie between
 members that are not maximal does not cause `none`. For a nonempty subset of
 Σ.T, the result is `some` (Task 11, `deepest_spec`). -/
 def deepest {n : Nat} (X : Finset (FGBlock (Fin n))) : Option (FGBlock (Fin n)) :=

@@ -115,12 +115,15 @@ theorem cstoreInv_normalizeS (p : Params) (st : State p.n) (h : CStoreInv p st) 
       h.leaseKeys⟩
     exact (h.baseTree _).2 ⟨_, h.fg.Fmem, rfl⟩
 
+/-- [bp bp.store.v1; D6] Σ.T is root-injective on every store: roots are derived
+from the content (`FGBlock.root_injective`). It fills `CStoreInv.rootInj`. -/
+theorem rootInj_all {n : Nat} (st : State n) :
+    ∀ X ∈ st.fg.TF, ∀ Y ∈ st.fg.TF, X.root = Y.root → X = Y :=
+  fun _ _ _ _ hr => FGBlock.root_injective hr
+
 /-- [bp bp.store.v1] -/
 theorem cstoreInv_init (p : Params) : CStoreInv p (initial p.n) := by
-  refine ⟨KitFG.storeInv_init p.E p.cfg, ?_, ?_, ⟨?_, ?_, ?_⟩, ?_, ?_, ?_, ?_, ?_⟩
-  · intro X hX Y hY _
-    simp only [initial, Store.init, Finset.mem_singleton] at hX hY
-    rw [hX, hY]
+  refine ⟨KitFG.storeInv_init p.E p.cfg, rootInj_all _, ?_, ⟨?_, ?_, ?_⟩, ?_, ?_, ?_, ?_, ?_⟩
   · intro b
     simp only [initial, GridCO.initial, Store.init, List.mem_singleton, Finset.mem_singleton,
       exists_eq_left, eraseFG]
@@ -155,22 +158,17 @@ theorem cstoreInv_accepted_pre (p : Params) (st : State p.n) (h : CStoreInv p st
       st.base.blocks ⊆ st1.base.blocks ∧ FGBlock.Preceq st.fg.F st1.fg.F := by
   intro st1
   have h0 : Inv0 p st := h.toInv0
-  obtain ⟨hg, -, hfr, hFB, -, -⟩ := blockAccepted_facts hacc
+  obtain ⟨hg, -, -, hFB, -, -⟩ := blockAccepted_facts hacc
   obtain ⟨hPT, hPe, -, -⟩ := accepted_base_facts p st h0 hP hacc
   obtain ⟨hbl, -, -, hob, hgen, hstab, -⟩ :=
     base_admitProposal_accepts p st h0 s b raw support P rows hP hacc
   have hTF : st1.fg.TF = insert (fgBlock P b rows) st.fg.TF := by
     change (on_block p.E p.cfg st.fg (fgBlock P b rows)).TF = _
     rw [fg_on_block_accepts p st s b P rows hP hacc, KitFG.update_finality_TF]
+  have hok := blockAccepted_rowsOk hacc
   have hri : ∀ X ∈ insert (fgBlock P b rows) st.fg.TF, ∀ Y ∈ insert (fgBlock P b rows) st.fg.TF,
-      X.root = Y.root → X = Y := by
-    intro X hX Y hY hr
-    rw [Finset.mem_insert] at hX hY
-    rcases hX with rfl | hX <;> rcases hY with rfl | hY
-    · rfl
-    · exact absurd ⟨Y, hY, by rw [← hr, fgBlock_root]⟩ hfr
-    · exact absurd ⟨X, hX, by rw [hr, fgBlock_root]⟩ hfr
-    · exact h.rootInj X hX Y hY hr
+      X.root = Y.root → X = Y :=
+    fun _ _ _ _ hr => FGBlock.root_injective hr
   have hcl : ∀ B ∈ insert (fgBlock P b rows) st.fg.TF,
       B.parent ∈ insert (fgBlock P b rows) st.fg.TF := by
     intro B hB
@@ -181,7 +179,7 @@ theorem cstoreInv_accepted_pre (p : Params) (st : State p.n) (h : CStoreInv p st
   refine ⟨?_, ?_, ?_, hob, hgen, hstab, rfl, ?_, KitFG.on_block_F_mono p.E p.cfg st.fg _⟩
   · exact KitFG.storeInv_on_block p.E p.cfg st.fg _ h.fg
       (fun _ => viewRootInj_of_rootInj hcl hri)
-  · rw [hTF]; exact hri
+  · exact rootInj_all st1
   · intro c
     change c ∈ (GridCO.admitProposal p.toParams.engine st.base (baseProposal s b raw support) b
       (raw.map baseHead)).blocks ↔ _
@@ -189,11 +187,11 @@ theorem cstoreInv_accepted_pre (p : Params) (st : State p.n) (h : CStoreInv p st
     constructor
     · rintro (⟨B, hB, rfl⟩ | rfl)
       · exact ⟨B, Finset.mem_insert_of_mem hB, rfl⟩
-      · exact ⟨_, Finset.mem_insert_self _ _, eraseFG_fgBlock hg hPe rows⟩
+      · exact ⟨_, Finset.mem_insert_self _ _, eraseFG_fgBlock hg hPe rows hok⟩
     · rintro ⟨B, hB, rfl⟩
       rw [Finset.mem_insert] at hB
       rcases hB with rfl | hB
-      · exact Or.inr (eraseFG_fgBlock hg hPe rows)
+      · exact Or.inr (eraseFG_fgBlock hg hPe rows hok)
       · exact Or.inl ⟨B, hB, rfl⟩
   · intro c hc
     change c ∈ (GridCO.admitProposal p.toParams.engine st.base (baseProposal s b raw support) b

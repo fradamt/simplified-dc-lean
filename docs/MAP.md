@@ -12,6 +12,67 @@ from actual runs. Exact proposal vote-set helpers are replaced.
 specialized regime methods for its archive consumers. No model rule or
 public contract conclusion changes.
 
+## Derived roots update (2026-09-29)
+
+Plan I9 (`docs/plans/2026-09-29-i9-derived-roots.md`; `FRAMEWORK-DESIGN.md`
+§12 I9) makes block roots derived. The dated I9 note in `CONTRACT.md`
+supersedes references below to `RootInjective` as a run assumption: the
+regimes keep the field, and `rootInjective_all` proves it for every run.
+The FG-SA rows below give the facts after Task 9. `ContentAgree` is a
+theorem (`contentAgree`), and `Tests/RootCollision.lean` holds positive
+tests. Before I9 (2026-09-29), `ContentAgree` was a store-pair premise,
+and `Tests/RootCollision.lean` showed the DQ10/I9 root collision. The new
+names:
+
+```text
+┌──────────────────────────────────────┬──────────────────────────────────────────────┐
+│ File (without .lean)                 │ I9 names                                     │
+├──────────────────────────────────────┼──────────────────────────────────────────────┤
+│ AvailableChainModel/Objects/Codec    │ epair, efst, esnd, epair_inj, encList,       │
+│                                      │ encOption, encBool (length-delimited codec)  │
+│ AvailableChainModel/Objects/Blocks   │ nodeRoot; Block.node parent slot body;       │
+│                                      │ Block.root (derived), Block.body;            │
+│                                      │ Block.root_injective; parent_mem_iff_root,   │
+│                                      │ parent_mem_and_iff_root (lookup)             │
+│ AvailableChainKit/Roots              │ rootInjective_all                            │
+│ AvailableChainGridCO/Proofs/Handling │ blockKnown_parent_slot_iff_root,             │
+│                                      │ admitProposal_missingParent                  │
+│ AvailableChainGridCO/Proofs/Roots    │ rootInjectiveBelow_all                       │
+│ AvailableChainSAPC/Proofs/BaseViews  │ blockKnown_parent_slot_iff_root,             │
+│                                      │ proposalEnters_missingParent,                │
+│                                      │ admitProposal_missingParent                  │
+│ AvailableChainSAPC/Proofs/           │ process_pc_missingPaths                      │
+│ CertificateValidity                  │                                              │
+│ AvailableChainLStar/Proofs/Hooks     │ blockKnown_parent_slot_iff_root,             │
+│                                      │ admitProposal_missingParent                  │
+│ AvailableChainRegistry/CounterRun    │ chain_depth, chain_injective (chain_root is  │
+│                                      │ removed)                                     │
+│ AvailableChainRegistry/Gaps/NoInput  │ clockBlock_depth, clockBlock_injective       │
+│                                      │ (clockBlock_root is removed)                 │
+│ AvailableChainSimplexFG/Objects      │ RowCodec, fgBodyTag, encFGBody,              │
+│                                      │ encFGBody_inj, FGBlock.root (derived),       │
+│                                      │ FGBlock.root_injective                       │
+│ AvailableChainKitFG/Accountable      │ rootInjectiveOn_all                          │
+│ AvailableChainKitFG/Correspondence   │ viewRootInj_all                              │
+│ AvailableChainFGSA/Model             │ packInner, packBody, appOf, rowsOk (in       │
+│                                      │ wellFormed and blockAccepted); fgBlock (body │
+│                                      │ from packInner); eraseFG (body encFGBody)    │
+│ AvailableChainFGSA/Statements/       │ MetaInv.wireTree (with rowsOk)               │
+│ Invariants                           │                                              │
+│ AvailableChainFGSA/Proofs/Carrier    │ eraseFG_root (re-proved by induction),       │
+│                                      │ eraseFG_injective, packBody_inj, rowsOk_iff, │
+│                                      │ rows_eq_of_rowsOk                            │
+│ AvailableChainFGSA/Proofs/Admission  │ parentFG_isSome_iff_root (lookup),           │
+│                                      │ admitBlock_missingParent (no-op),            │
+│                                      │ blockAccepted_rowsOk                         │
+│ AvailableChainFGSA/Proofs/StoreInv   │ rootInj_all                                  │
+│ AvailableChainFGSA/Proofs/CrossNode  │ contentAgree (MetaInv at both stores),       │
+│                                      │ contentAgree_reachable                       │
+│ AvailableChainFGSA/Tests/Support     │ admitWith, process_eq_admitWith              │
+└──────────────────────────────────────┴──────────────────────────────────────────────┘
+```
+
+## Notation
 
 `M` means `AvailableChainModel`; `S` means `AvailableChainStatements`.
 Statement names are in `AvailableChain.Statements.Generic`; model names are
@@ -882,17 +943,19 @@ only after `lake build AvailableChainSimplexFG AvailableChainKitFG`, with
 ## FG-SA composite model (store)
 
 The library `AvailableChainFGSA` (namespace `AvailableChain.FGSA`) is the
-composite FG-SA store: the SA base (`GridCO.State` under `slowLeasePolicy`),
-the FG store of `SimplexFG`, the stored proposal wires, the row pool and the
-fast writes. Its plan is `docs/plans/2026-09-29-fgsa-model-store.md`; its
-report is `docs/FGSA-STORE-REPORT.md`; the gate reports are
+composite FG-SA store: the SA base (`GridCO.State` under `slowLeasePolicy`), the
+FG store of `SimplexFG`, the stored proposal wires, the row pool and the fast
+writes. Its plan is `docs/plans/2026-09-29-fgsa-model-store.md`; its report is
+`docs/FGSA-STORE-REPORT.md`; the gate reports are
 `docs/audit/fgsa-task*-opus-review.md`, `docs/audit/fgsa-model-check-report.md`
 and `docs/audit/fgsa-final-audit-*.md`. It is a default target. It does not
 import the framework, the registry, SA-PC or the witnesses, and it names no
 engine (`bash scripts/check-fgsa.sh` checks this). The results are local store
-facts; the cross-node results hold only for store pairs under `ContentAgree`;
-the run lifts are composition task T7. The first row and the rows under
-`scripts/` are paths from the repository root.
+facts; the cross-node results take `ContentAgree`, which holds for any two
+stores with `MetaInv` (`contentAgree`, I9 Task 9); the run lifts are composition
+task T7. Before I9 (2026-09-29), `ContentAgree` was a store-pair premise, and
+the cross-node results held only for store pairs under it. The first row and the
+rows under `scripts/` are paths from the repository root.
 
 ```text
 ┌────────────────────────────────┬────────────────────────────────────────────────┬────────────────────┐
@@ -900,7 +963,8 @@ the run lifts are composition task T7. The first row and the rows under
 ├────────────────────────────────┼────────────────────────────────────────────────┼────────────────────┤
 │ AvailableChainFGSA.lean        │ root; imports every file below                 │                    │
 │ Model/Objects.lean             │ Params, labels, row bodies, wires, Msg, Input, │                    │
-│                                │ decoders, eraseFG, base conversions, rounds    │                    │
+│                                │ decoders, eraseFG, base conversions, rounds;   │                    │
+│                                │ packInner, packBody, appOf, rowsOk (D9)        │                    │
 │ Model/Store.lean               │ State, initial, outputs (finalized, confirmed, │ bp.activeView.v1,  │
 │                                │ stable), actView, onView, normalizeS,          │ bp.reconcile.v1    │
 │                                │ reconcile, lease and fastWrite reads,          │ (defs)             │
@@ -913,8 +977,8 @@ the run lifts are composition task T7. The first row and the rows under
 │                                │ fgHead, fgSource, fgInputs, attest             │                    │
 │ Statements/Invariants.lean     │ Reachable, NestOK, SACompat, FastOrigin,       │ K4, K5 premise     │
 │                                │ CStoreInv, Inv0, MetaInv, ContentAgree (the    │                    │
-│                                │ store-pair content premise, DQ3(b); its run    │                    │
-│                                │ form ContentRootInjective is T7)               │                    │
+│                                │ store-pair content property, DQ3(b); a theorem │                    │
+│                                │ after I9: contentAgree)                        │                    │
 │ Statements/Store.lean          │ OutputNestingStored, StoreInvariant,           │ K2, K4             │
 │                                │ FMonotone, MetadataInvariant                   │                    │
 │ Proofs/BlockAncestry.lean      │ public Block ancestry lemmas                   │                    │
@@ -930,22 +994,30 @@ the run lifts are composition task T7. The first row and the rows under
 │                                │ is a helper)                                   │                    │
 │ Proofs/Admission.lean          │ refusal and accept-branch agreement; block-    │ J3, K8 input       │
 │                                │ step SA bridge (actView_admitBlock_*);         │                    │
-│                                │ admitBlock_sufficient                          │                    │
+│                                │ admitBlock_sufficient; parentFG_isSome_iff_    │                    │
+│                                │ root, admitBlock_missingParent (I9)            │                    │
 │ Proofs/StoreInv.lean           │ storeInvariant, J_mem, fMonotone,              │ K4 core, K1        │
 │                                │ viewRootInj_TF, SACompat, FastOrigin,          │                    │
-│                                │ admitBlock_reconcile_harmless, selector facts  │                    │
+│                                │ admitBlock_reconcile_harmless, selector facts, │                    │
+│                                │ rootInj_all (I9)                               │                    │
 │ Proofs/Metadata.lean           │ metadataInvariant, process_cumulative,         │ K4 metadata        │
 │                                │ clock_cumulative, stored_wire_of_block         │                    │
 │ Proofs/CrossNode.lean          │ fg_eq_of_eraseFG_eq_across, preceq_iff_across, │ K5 cross-node      │
 │                                │ compatible_iff_across, rootInjectiveOn_across  │                    │
 │                                │ under CStoreInv, MetaInv and ContentAgree;     │                    │
-│                                │ contentAgree_self (CStoreInv, MetaInv)         │                    │
+│                                │ contentAgree_self (CStoreInv, MetaInv);        │                    │
+│                                │ contentAgree (MetaInv at both stores),         │                    │
+│                                │ contentAgree_reachable (I9)                    │                    │
+│ Tests/Support.lean             │ admitWith, process_eq_admitWith: proved        │                    │
+│                                │ rewrite of a delivery for kernel checks        │                    │
 │ Tests/Smoke.lean               │ decide examples of the model                   │                    │
-│ Tests/RootCollision.lean       │ DQ10/I9 limit: two honest blocks with root 4;  │                    │
-│                                │ ContentAgree fails, and the DQ2 root test      │                    │
-│                                │ refuses an honest block                        │                    │
+│ Tests/RootCollision.lean       │ I9 positive tests: the former colliding blocks │                    │
+│                                │ have distinct roots; ContentAgree holds; a     │                    │
+│                                │ repeated block is refused as a duplicate;      │                    │
+│                                │ wrong row lists are refused (before I9: DQ10   │                    │
+│                                │ root collision, ContentAgree failed)           │                    │
 │ Tests/Axioms.lean              │ #print axioms of every public theorem of Tasks │                    │
-│                                │ 2 and 7–12                                     │                    │
+│                                │ 2 and 7–12, and of I9 Task 9                   │                    │
 │ scripts/check-fgsa.sh          │ build (--wfail); root imports and the direct-  │                    │
 │                                │ import allowlist with directory rules, on      │                    │
 │                                │ parsed headers; native scan; Q1/Q5 grep; the   │                    │

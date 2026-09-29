@@ -291,6 +291,15 @@ the text above.
   is first written, so a later change to it is a lock change. Thus plan
   1c defines them and proves the theorem in the same plan.
 
+*Note 2026-09-29 (plan I9).* This note does not change the text above.
+Plan I9 (derived roots, §12) added no clause to any `excludes`. A
+proposal with an unknown parent root is a temporary missing dependency:
+the handler returns the state unchanged (`admitProposal_missingParent`
+in Grid CO, SA-PC and L*), and the proposal can enter after its parent.
+So the E4 table above and `Proofs/WindowMargin.lean` did not change. The
+sentence "If `excludes` covers more objects later (I9, §12), only this
+module changes" did not apply.
+
 **E5. Own-signature record.**
 - `selfVisible : Label → Bool`, `recordOwn : State → Object → State`.
 - `World.step` takes the run context (seat assignment and `awake`).
@@ -321,7 +330,13 @@ the text above.
 **E6. Restart.** `Event.restart v t`; order at one time: restart, ticks,
 deliveries. Step: `st ↦ restore (durable st)`. For an FG composite,
 `durable` = Λ + F + the F basis; h_max and J are derived again from
-received chain states. Each restart starts a new EPOCH of the node. Receipt facts (`processed`,
+received chain states. *Note 2026-09-29 (user decisions, via DC-simplify; this replaces two
+earlier notes of the same day):* the faithful form: an FG composite keeps
+Λ (the slashing-protection database) and F with F's chain state (the
+anchor) durable, and the history below F is pruned. This form comes with the
+planned anchor-and-pruning feature (§8). Until then FG-SA uses an INTERIM
+form: Λ is kept and the store is reset to its initial state; no FG-SA claim
+reads F across a restart. Each restart starts a new EPOCH of the node. Receipt facts (`processed`,
 `depsPresent`) reset with the epoch (audit W04): a block outside the
 durable part is lost, and it can be delivered again (the freshness check
 allows it). Delivery obligations toward a restarted node cover objects
@@ -673,6 +688,15 @@ a tie rule or a filter can still stall (N12). SA discharges it with its
 walk (start at the live root; below lo a child is eligible without a
 majority; every viable node below lo has a viable child in D).
 
+*Note 2026-09-29 (STALE, marked for correction; DC-simplify, modular-spec
+study `research/async-resilient-committees/tip-stability/codex/scratch/
+modular-spec-study.md` item 9):* the obligation above ("the AP head read
+from each duty view is in D with height ≥ lo") is false for the current
+FG-SA design, because 21 H.3 permits an outside-anchor return. The duty
+view frame is also older than the spec frame, which reads live caches and
+"never reads a view" (spec 749–752). The section stays as history until the
+FG interface is restated with the F0 channel files (ARCHITECTURE.md §2).
+
 **7.3 AP template and policy type (LM; audit V10).**
 - `Policy`: the type of honest FG signing rules. A policy reads the FG
   sub-state, the record, and the AP facets through `base`; it emits
@@ -758,6 +782,19 @@ acceptance item "eligibility per migrated instance" is OPEN and moves to
 plan 1c; until then MATRIX shows `holds*` and no protocol certificate. The
 FG-SA run lift (T7) is on v2 and can start after 2a. Details:
 `docs/PHASE1B-REPORT.md`.
+
+*Planned item, not scheduled (2026-09-29, user decisions via DC-simplify):*
+anchor and pruning, as an OPTIONAL CLAIM. A protocol may prove "prunable at
+F": every later read and output does not change when the store prunes below
+F as F advances. A protocol may also start from an anchor (a block and its
+chain state) instead of genesis; genesis is the special case. This is not an
+engine or protocol obligation: a protocol that does not make the claim
+changes nothing, and the target for such protocols is zero changed lock
+lines. For FG composites the claim gives the faithful E6 restart form.
+Inputs: a protocol study (r207, `codex/pruning-rule.md`, landed; an Opus
+red-team runs), an extraction of the decoupled-consensus pruning method, and
+a Lean design and impact study (fgsa-impl). Its place in the order is decided
+when these land (after I9 and 2a).
 
 **Lock change log.**
 - 2026-09-28, approved by the user. The receipt-relay merge (`1a3f73a`, r162)
@@ -887,6 +924,28 @@ FG-SA run lift (T7) is on v2 and can start after 2a. Details:
   `AvailableChain.Framework.Catalog.core_holdsAt_of_ac43`, written with
   `--write` and no `--allow-changes`. No line changed, and no line was
   removed.
+- 2026-09-29, I9 Task 11 (derived roots, §12; user decisions
+  2026-09-29): 91 `CHANGED` lines, 0 `ADDED`, 0 `REMOVED`, written with
+  `--write --allow-changes` on the tree with main merged in (`f756404`).
+  The old lock is git blob `6a4d14869c409efa92f1c27cf3ce7a7d2bebc773`
+  (250 lines); the new lock has 250 lines. Reason: the closure of each
+  line reaches `Block`. `Block.node` has no root field now, and
+  `Block.root` is derived from the content. No file of
+  `AvailableChainFramework/` changed (`git diff main`), so no locked
+  declaration changed its source text or its type. The changed or new
+  definitions that the 91 closures reach are only these: the
+  constructor `Block.node` and the declarations that Lean generated for
+  `Block` (`rec`, `casesOn`, `below`, `brecOn.go`, the matchers of
+  `preceq` and `slot`, and `DecidableEq`); `Block.root` and
+  `Block.root._f`; `nodeRoot`; and the codec `epair`, `lpair`, `bitLen`,
+  `bitLenDouble` and `bitLenSearch`. The closures also reach
+  `BlockId.value` and the core `ShiftRight` instances, which did not
+  change. The names are the 91 rows of `docs/plans/i9-lock-expected.tsv`
+  (set equality with the `--check` output): 69 `Catalog.` names, and
+  `Instance` and `Instance.{P, hooks, iface, mk, n, Δ, Δ_pos}`;
+  `StrongInstance` and `StrongInstance.{mk, sface, strong, toInstance}`;
+  `V1Ctx` and `V1Ctx.{E, mk, rho}`; `ClaimDomain.{ofV1, strong, v1}`;
+  `DomainMap.{ofV1, strongV1}`.
 
 ## 9. Changes to standing rules (approved by the user 2026-09-28)
 
@@ -904,6 +963,12 @@ FG-SA run lift (T7) is on v2 and can start after 2a. Details:
 
 - User decisions (2026-09-28): core §0–§6 APPROVED; §9 rule changes
   APPROVED; core tier = floor of safety + confirmed inclusion (§4).
+- Stale FG pins (2026-09-29, modular-spec study item 9; fix in the FG-SA
+  spec-sync task after the I9 merge, because I9 changes `Pins.lean`):
+  `fj.descent.v1` and `fj.twoChanges.core.v1` use duty-view frames (restate
+  over the node store T; `fj.descent` also lacks case (2), the contested
+  floor); `ap.headReachesLo.v5` keeps R ≥ 3 and θ = 4Δ, while 21 H.8 proves
+  3Δ at R ≥ 2; §7.2's generic AP obligation is false (note there).
 - FG research (tracked in FG-COMPOSITION.md): r149 (strengthened (S),
   (S_slow), (L), (X)); r148 (FJ root rule); "ρ once globally"; full
   healing at q_s*; the timed finality obligations.
@@ -998,3 +1063,65 @@ extra-tier entry.
   unknown parent root is a temporary missing dependency. So `excludes`
   gets no clause, SA-PC keeps its `rfl`, and wire validity has no root
   check. Wire forwarding rules wait for a P2P spec discussion.
+
+  **As implemented in plan I9 (2026-09-29).** This note does not change
+  the text above. Plan: `docs/plans/2026-09-29-i9-derived-roots.md`.
+  Report: `docs/I9-REPORT.md`.
+
+  - Roots are derived. `Block.node` has a parent, a slot and a
+    `body : Nat`; it has no root field. `Block.root` computes the root
+    from the content: `nodeRoot pr s x := ⟨epair pr.value (epair s x) + 1⟩`
+    (`AvailableChainModel/Objects/Blocks.lean`). `epair` is a
+    length-delimited pairing (`Objects/Codec.lean`). Honest proposers use
+    body 0, so the formula `s * (parent.root + 1)` is removed. An FG block
+    uses the same `nodeRoot` with the body code `encFGBody x rows`, which
+    starts with the domain tag `fgBodyTag = 1`
+    (`AvailableChainSimplexFG/Objects.lean`).
+  - `Block.root_injective` holds for every block. So `RootInjective` is a
+    theorem for every run (`rootInjective_all`,
+    `AvailableChainKit/Roots.lean`), not a run premise, and the forged
+    collision above cannot occur. The FG forms are
+    `FGBlock.root_injective`, `rootInjectiveOn_all` and `viewRootInj_all`.
+  - The store check is the dependency lookup. `parent_mem_iff_root` and
+    `parent_mem_and_iff_root` show that "the store holds the carried
+    parent" is equivalent to "the store holds a block with the parent's
+    root". Grid CO, SA-PC and L* prove the lookup form
+    (`blockKnown_parent_slot_iff_root`) and the no-op fact for a missing
+    parent (`admitProposal_missingParent`; SA-PC also
+    `proposalEnters_missingParent` and `process_pc_missingPaths`). No
+    `wellFormed`, handler or `excludes` got a root check (§2 E4 note).
+    FG-SA proves the lookup form `parentFG_isSome_iff_root` and the
+    no-op fact `admitBlock_missingParent`
+    (`AvailableChainFGSA/Proofs/Admission.lean`).
+  - Resolved-block model. A payload carries the resolved block, and the
+    carried parent root is `b.parent.root`. The lookup lemmas show that
+    the store check is equivalent to a lookup by root. They do not give a
+    root-only wire. A root-only wire refinement is open. Its adapter must
+    also keep authentication, dependencies, handler calls, refusals and
+    proposal origin.
+  - L* obligation. The L* handler does not repeat the parent-slot test of
+    `wellFormed` (`AvailableChainLStar/Model/Protocol.lean:283, 300`). So
+    a future root-only adapter must apply the L* parent-slot test after
+    the store lookup.
+  - Regime fields. The regime root fields (`rootInjective`) and the
+    lemma premises of the `hroot` type stay. `rootInjective_all`,
+    `rootInjectiveBelow_all`, `rootInjectiveOn_all` and `viewRootInj_all`
+    fill them. Their removal is a later plan (plan I9 D6).
+  - FG-SA. The base body packs the application value and the ordered
+    signed rows. `rowsOk` checks this packing in `wellFormed` and in
+    `blockAccepted`; it is a content check, not a root check. With it,
+    `ContentAgree` becomes a theorem. Task 9 did this. `packBody`
+    packs `packInner app rows` and the decoded rows into `encFGBody`.
+    `fgBlock` builds the FG body from `packInner`, not from `b.root`.
+    `eraseFG` maps an FG block back with `encFGBody`.
+    `MetaInv.wireTree` carries `rowsOk` for every stored wire.
+    `contentAgree` needs only `MetaInv` at the two stores, and
+    `contentAgree_reachable` gives `ContentAgree` for any two reachable
+    stores (`Proofs/CrossNode.lean`). `rootInj_all` fills
+    `CStoreInv.rootInj`. The cross-node theorems keep their
+    `ContentAgree` premise, which is now redundant.
+  - Open: relay feasibility (plan 1c). A missing dependency is a handler
+    fact, not a run fact. `PartialSynchrony` and `HealthyPrefixDelivery`
+    have relay obligations with no dependency guard
+    (`AvailableChainStatements/Generic/Conditions.lean`). I9 proves only
+    the lookup lemmas and the no-op facts.

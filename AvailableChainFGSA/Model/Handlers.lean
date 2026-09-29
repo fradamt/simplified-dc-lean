@@ -28,17 +28,20 @@ returns `none` on two candidates; Task 10 shows there is at most one. -/
 def parentFG {n : Nat} (st : State n) (b : Block) : Option (FGBlock (Fin n)) :=
   pickPair st.fg.TF (fun P => decide (eraseFG P = b.parent))
 
-/-- [spec 818–819, 902–912; M3] The FG block of an admitted proposal: the stored
-parent, the slot and root of the wire block, and its rows. -/
+/-- [spec 818–819, 902–912; M3; D9] The FG block of an admitted proposal: the
+stored parent, the slot of the wire block, the inner packed value of its
+application value and signed rows, and the decoded rows. Under `rowsOk` its
+erasure is the wire block (`eraseFG_fgBlock`). -/
 def fgBlock {n : Nat} (P : FGBlock (Fin n)) (b : Block) (rows : List (RowWire n)) :
     FGBlock (Fin n) :=
-  .node P b.slot b.root (rows.filterMap RowWire.toRow?)
+  .node P b.slot (packInner (appOf b.body) rows) (rows.filterMap RowWire.toRow?)
 
-/-- [spec 530–536, 806–817; M5, DQ2, DQ12, DQ14] The acceptance tests of
+/-- [spec 530–536, 806–817; M5, DQ2, DQ12, DQ14; D9] The acceptance tests of
 `on_block`, all before any write: not genesis; `b.slot ≤ Σ.s`; no stored block
-has the root of `b`; `F ⪯ B`; `b.parent.slot < b.slot`; the slot-`b.slot`
-proposer signs it; every row decodes as a row with round `≤ round(b.slot)`. The
-parent test is `parentFG st b = some P`. -/
+has the root of `b` (the duplicate test); `F ⪯ B`; `b.parent.slot < b.slot`;
+the slot-`b.slot` proposer signs it; every row decodes as a row with round
+`≤ round(b.slot)`; the body packs the carried rows (`rowsOk`, the same check as
+in `wellFormed`). The parent test is `parentFG st b = some P`. -/
 def blockAccepted (p : Params) (st : State p.n) (s : Slot) (b : Block)
     (P : FGBlock (Fin p.n)) (rows : List (RowWire p.n)) : Bool :=
   b != .genesis && decide (b.slot ≤ st.slot p) &&
@@ -47,7 +50,8 @@ def blockAccepted (p : Params) (st : State p.n) (s : Slot) (b : Block)
     decide (b.parent.slot < b.slot) && s == b.slot &&
     rows.all (fun a => match a.decode? with
       | some (r, _, _) => decide (r ≤ p.round b.slot)
-      | none => false)
+      | none => false) &&
+    rowsOk b rows
 
 /-- [spec 804–829; M6] `on_block`. On refusal the state does not change. On
 acceptance: the SA block admission and the carried votes (SA code on the
@@ -87,7 +91,8 @@ not genesis; the proposer key of its slot; every carried vote a HEAD seat of
 slot `b.slot − 1`; support ⊆ votes; every carried row passes the SAME row check
 (`RowWire.valid`). The flat wire carries the parent slot and the row rounds, so
 the check also has `b.parent.slot < b.slot` and `round ≤ round(b.slot)` (DQ14;
-`blockAccepted` keeps both, in the spec's place). -/
+`blockAccepted` keeps both, in the spec's place). The body packs the carried
+rows (`rowsOk`, D9): a content check, the same one as in `blockAccepted`. -/
 def wellFormed (p : Params) (o : Wire p.n) : Bool :=
   match o.decode with
   | some (.vote _ _ _) => true
@@ -100,7 +105,8 @@ def wellFormed (p : Params) (o : Wire p.n) : Bool :=
         support.all (fun v => decide (v ∈ raw)) &&
         rows.all (fun a => a.valid && match a.decode? with
           | some (r, _, _) => decide (r ≤ p.round b.slot)
-          | none => false)
+          | none => false) &&
+        rowsOk b rows
   | none => false
 
 end AvailableChain.FGSA

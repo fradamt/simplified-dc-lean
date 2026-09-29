@@ -40,10 +40,10 @@
 │    │ included                                      │                              │
 │ D8 │ Order: I9 before Phase 2 and plan 1c          │ user, 2026-09-29             │
 │ D9 │ FG-SA `rowsOk` is a full reconstruction check │ controller; Astra A02,       │
-│    │ in `wellFormed` and `blockAccepted` (a wire-  │ DC m5 accepts; not a user    │
-│    │ validity choice; listed in I9-REPORT)         │ decision                     │
-│    │ of the base body; it is a content check, not  │ fgsa-impl F1/F6              │
-│    │ a root check, so it is inside D2              │                              │
+│    │ of the base body in `wellFormed` and          │ fgsa-impl F1/F6; DC m5       │
+│    │ `blockAccepted`. It is a content check, not a │ accepts; not a user decision │
+│    │ root check, so it is inside D2. It is a wire- │                              │
+│    │ validity choice; I9-REPORT lists it           │                              │
 │ D10│ The FG codec is a type class `RowCodec V`     │ controller; fgsa-impl F2     │
 │    │ with an instance for `Fin n`, so statement    │                              │
 │    │ texts keep their form                         │                              │
@@ -106,10 +106,12 @@
 │ FGSA Carrier: `eraseFG_slot`,        │ `finalLock`, `accountable`, `causalCap`,   │
 │ `eraseFG_root`, `eraseFG_parent`,    │ `causalCap_notRoot`, and the twelve        │
 │ `eraseFG_eq_genesis`, …)             │ Carrier theorems                           │
+│ Deleted private helpers (5 names;    │ allowed; controller ruling on I9-A01       │
+│ see the note below)                  │ (added 2026-09-29)                         │
 └──────────────────────────────────────┴────────────────────────────────────────────┘
 ```
 
-A statement change outside (a), (b) and this table stops the task: report it to the controller. The constructor terms inside `GridCO.honest_proposal_exists` and `SAPC.honest_proposal_exists` are proof terms, not statement text.
+*Added 2026-09-29 (controller ruling on Astra's pre-final audit I9-A01, `docs/audit/i9-branch-audit-0-8-report.md`):* the deletion of private helper theorems that served only a removed root-field or root-formula proof is allowed, when the public statement they served is kept or is in this table. The deleted helpers are `delivered_blocks`, `emitted_blocks`, `named_block` and `roots` (`SAPC/Tests/CleanInvariantCounterexample.lean`) and `emitted_proposed` (`Witnesses/Sanity.lean`); `docs/I9-REPORT.md` lists them. A statement change outside (a), (b) and this table stops the task: report it to the controller. The constructor terms inside `GridCO.honest_proposal_exists` and `SAPC.honest_proposal_exists` are proof terms, not statement text.
 
 ## Review Focus
 

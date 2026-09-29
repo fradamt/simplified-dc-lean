@@ -1,5 +1,16 @@
 # SA status
 
+## Derived roots (I9) — 2026-09-29
+
+Plan I9 makes block roots derived. See the dated I9 note in
+`CONTRACT.md` and the I9 entry in `GRIDCO-STATUS.md`. SA reuses the
+Grid CO `propose` (`Model/Protocol.lean:85`), so honest proposers use
+body 0. `Block.root_injective` holds for every block, so the
+`RootInjective` premise of each regime is a theorem
+(`rootInjective_all`). The regime field stays; its removal is a later
+plan (plan I9 D6). No SA statement and no SA model file changed.
+`Tests/Axioms.lean` also prints the five Grid CO theorems of I9.
+
 ## Receipt relay — 2026-09-28
 
 The contract now uses DC receipt relay. The previous accepted-object
@@ -43,6 +54,8 @@ The bundle requires `G > 0` and `E.Δ = p.Δ`.
 - `Π = min(η,L)` and `ρ = 2L + G + 8Δ`.
 
 Every run premise comes from Draft 4.3, including `RootInjective`.
+After I9 (2026-09-29), `RootInjective` is a theorem
+(`rootInjective_all`); the field stays.
 There is no added support, view, lease, or repair assumption.
 Draft 4.3 adds the fast arming constant and fast P1 field.
 

@@ -128,6 +128,8 @@ premise for block roots. Its scope contains genesis and every ancestor
 or emitted payload. Within this scope, equal roots imply equal blocks.
 Sleepy, Outage, and Recovery use the same predicate. StableSleepy and Fast
 inherit it from Sleepy. This does not restrict the raw `Block` datatype.
+Since I9 (2026-09-29), `rootInjective_all` proves it for every run; see
+"Derived roots (I9)".
 
 Outage participation premises hold at every `0 ≤ t < b₀`, including
 times before the protected read `T`. The healthy prefix starts at genesis.
@@ -305,6 +307,32 @@ acceptance. The negative examples N1–N4 in the r160 receipt-relay plan
 still rule out unrestricted base-vote acceptance, expired-vote transport,
 and packet receipt without dependency-ready handling. No handler, delay,
 or FG module changes are part of this refactor.
+
+## Derived roots (I9) — 2026-09-29
+
+The user decided this change (`FRAMEWORK-DESIGN.md` §12 I9). The text
+of every regime, claim and constant is unchanged. `RootInjective` keeps
+its definition, and each regime keeps its `rootInjective` field.
+
+The `Block` type changed. A node has a body, not a root, and
+`Block.root` computes the root from the content. `Block.root_injective`
+holds for every block. Thus `RootInjective E I rho` holds for every run
+(`rootInjective_all`, `AvailableChainKit/Roots.lean`). The root premise
+in §4 and in the Draft 4.2 change is a theorem now, not an assumption:
+any caller can fill the field with `rootInjective_all`. Removal of the
+field is a later plan (plan I9 D6). The round-14 root-collision run
+cannot occur.
+
+The parent-root check is the store dependency lookup. A proposal with an
+unknown parent root is a temporary missing dependency. No `excludes`
+changed. No `wellFormed` of Grid CO, SA, SA-PC or L* changed. FG-SA
+`wellFormed` got the content check `rowsOk` (plan I9 D9), which is not a
+root check. Payloads still carry resolved blocks, so the `Interface` did
+not change.
+
+This is a lock break. 91 lines of `docs/catalog.lock` changed, because
+their closure reaches `Block`. No locked declaration changed its source
+text or its type.
 
 ## Strong companion (additive)
 

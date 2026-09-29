@@ -14,16 +14,19 @@ With the flat wire (DQ1) there is one erasure, `eraseFG`. Step 3 of bp01
 becomes the root injectivity of ONE view (`ViewRootInj`). The two-store form
 needs the content premise `ContentAgree` (Task 12). -/
 
-variable {V : Type} [DecidableEq V]
+variable {V : Type} [DecidableEq V] [RowCodec V]
 
 omit [DecidableEq V] in
 /-- [bp bp.carrier.v1; K5 local] (step 1) -/
 theorem eraseFG_slot (B : FGBlock V) : (eraseFG B).slot = B.slot := by
   cases B <;> rfl
 omit [DecidableEq V] in
-/-- [bp bp.carrier.v1; K5 local] (step 1) -/
+/-- [bp bp.carrier.v1; K5 local] (step 1) The erasure keeps the root, on every
+FG block: both roots read the same content with the same outer code. -/
 theorem eraseFG_root (B : FGBlock V) : (eraseFG B).root = B.root := by
-  cases B <;> rfl
+  induction B with
+  | genesis => rfl
+  | node p s x rs ih => simp only [eraseFG, Block.root, FGBlock.root, ih]
 omit [DecidableEq V] in
 /-- [bp bp.carrier.v1; K5 local] (step 1) -/
 theorem eraseFG_parent (B : FGBlock V) : (eraseFG B).parent = eraseFG B.parent := by
@@ -45,7 +48,7 @@ theorem eraseFG_preceq {A B : FGBlock V} (h : FGBlock.Preceq A B) :
       rcases h with rfl | h
       · exact block_preceq_refl _
       · have hp := ih h
-        change Block.preceq (eraseFG A) (Block.node (eraseFG p) s r) = true
+        change Block.preceq (eraseFG A) (Block.node (eraseFG p) s (encFGBody r rs)) = true
         simp only [Block.preceq, Bool.or_eq_true]
         exact Or.inr hp
 /-- [bp bp.carrier.v1; K5 local] (step 2) Forward compatibility. -/
@@ -74,7 +77,7 @@ theorem preceq_of_eraseFG_preceq {Vw : View V} (hinj : ViewRootInj Vw) {A B : FG
       rw [eraseFG_eq_genesis.mp hg]
       exact KitFG.preceq_refl _
   | node p s r rs ih =>
-      change Block.preceq (eraseFG A) (Block.node (eraseFG p) s r) = true at h
+      change Block.preceq (eraseFG A) (Block.node (eraseFG p) s (encFGBody r rs)) = true at h
       simp only [Block.preceq, Bool.or_eq_true, decide_eq_true_eq] at h
       rcases h with h | h
       · have hAB : A = .node p s r rs := eraseFG_injOn hinj hA hB h
@@ -126,6 +129,98 @@ theorem erase_rootInjective {T : Finset (FGBlock V)} (hinj : ViewRootInj T) :
   obtain ⟨Y, hY, rfl⟩ := Finset.mem_image.mp hc
   rw [eraseFG_root, eraseFG_root] at hr
   rw [hinj X Y ⟨X, hX, KitFG.preceq_refl X⟩ ⟨Y, hY, KitFG.preceq_refl Y⟩ hr]
+
+omit [DecidableEq V] in
+/-- [bp bp.carrier.v1; derived roots] The erasure is injective on all FG blocks:
+it keeps the root, and FG roots are injective. -/
+theorem eraseFG_injective : Function.Injective (eraseFG (V := V)) := by
+  intro A B h
+  apply FGBlock.root_injective
+  rw [← eraseFG_root A, ← eraseFG_root B, h]
+
+/-! ### The packed content (D9) -/
+
+section Packing
+variable {n : Nat}
+
+/-- [helper] The label code is injective. -/
+theorem encLabel_inj : Function.Injective encLabel := by
+  intro a b h
+  cases a <;> cases b <;> simp only [encLabel] at h <;>
+    first
+    | exact absurd (epair_inj h).1 (by decide)
+    | rw [(epair_inj h).2]
+
+/-- [helper] The auth code is injective. -/
+theorem encAuth_inj : Function.Injective (encAuth (n := n)) := by
+  intro a b h
+  cases a <;> cases b <;> simp only [encAuth] at h <;>
+    first
+    | exact absurd (epair_inj h).1 (by decide)
+    | skip
+  · obtain ⟨-, h⟩ := epair_inj h
+    obtain ⟨hl, hi⟩ := epair_inj h
+    rw [encLabel_inj hl, Fin.ext hi]
+  · rw [(epair_inj h).2]
+  · rfl
+
+/-- [helper] The row-body code is injective. -/
+theorem encRowBody_inj : Function.Injective encRowBody := by
+  intro a b h
+  obtain ⟨hh, hf⟩ := epair_inj h
+  cases a; cases b
+  cases encHeightPair_inj hh
+  cases encOption_inj encFinalityPair_inj hf
+  rfl
+
+/-- [helper] The signed-row code is injective: it keeps the auth (round and
+seat included) and the body. -/
+theorem encRowWire_inj : Function.Injective (encRowWire (n := n)) := by
+  intro a b h
+  obtain ⟨ha, hb⟩ := epair_inj h
+  cases a; cases b
+  cases encAuth_inj ha
+  cases encRowBody_inj hb
+  rfl
+
+/-- [D9] The application value of a packed body. -/
+@[simp] theorem appOf_packBody (app : Nat) (rw : List (RowWire n)) :
+    appOf (packBody app rw) = app := by
+  simp [appOf, packBody, packInner, encFGBody]
+
+/-- [D9] The inner packed value is injective in the application value and the
+ordered signed rows. -/
+theorem packInner_inj {app app' : Nat} {rw rw' : List (RowWire n)}
+    (h : packInner app rw = packInner app' rw') : app = app' ∧ rw = rw' := by
+  obtain ⟨ha, hr⟩ := epair_inj h
+  exact ⟨ha, encList_inj encRowWire_inj hr⟩
+
+/-- [D9] The packed body is injective in the application value and the ordered
+signed rows, rounds included. -/
+theorem packBody_inj {app app' : Nat} {rw rw' : List (RowWire n)}
+    (h : packBody app rw = packBody app' rw') : app = app' ∧ rw = rw' :=
+  packInner_inj (encFGBody_inj h).1
+
+/-- [D9] The content check is the full packing equality of the body. -/
+theorem rowsOk_iff (b : Block) (rw : List (RowWire n)) :
+    rowsOk b rw = true ↔ b.body = packBody (appOf b.body) rw := by
+  simp [rowsOk]
+
+/-- [D9] A node whose body packs the rows passes the content check (the honest
+proposer's block, `propose`). -/
+theorem rowsOk_node_packBody (P : Block) (s : Slot) (app : Nat) (rw : List (RowWire n)) :
+    rowsOk (.node P s (packBody app rw)) rw = true := by
+  rw [rowsOk_iff]
+  simp [Block.body]
+
+/-- [D9] Two bodies that pass the content check are equal only for equal
+ordered signed rows. -/
+theorem rows_eq_of_rowsOk {b : Block} {rw rw' : List (RowWire n)} (h : rowsOk b rw = true)
+    (h' : rowsOk b rw' = true) : rw = rw' := by
+  rw [rowsOk_iff] at h h'
+  exact (packBody_inj (h.symm.trans h')).2
+
+end Packing
 
 end AvailableChain.FGSA
 end

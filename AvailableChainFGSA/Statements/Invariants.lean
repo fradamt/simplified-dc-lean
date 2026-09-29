@@ -48,7 +48,8 @@ def FastOrigin {n : Nat} (Fb : Block) (st : State n) : Prop :=
 /-- [bp bp.store.v1; K4 core; K1] The composite store invariant. `fg`: the FG
 module's invariant (K4). `rootInj`: Σ.T is root-injective (DQ2). `baseTree`: the
 base list is Σ.T erased. `Smem`: S is stored. `fastOrigin`, `fastDom`: the
-fast-write origins (M3). `genuineKeys`, `leaseKeys`: one saved result per label
+fast-write origins (M3). `rootInj` holds on every store (`FGBlock.root_injective`,
+derived roots); the field stays (D6). `genuineKeys`, `leaseKeys`: one saved result per label
 and one lease row per target, at the SA level (audit M4; used by `fastWriteAt`,
 `leaseOf`). -/
 structure CStoreInv (p : Params) (st : State p.n) : Prop where
@@ -71,9 +72,10 @@ def Inv0 (p : Params) (st : State p.n) : Prop :=
     (∀ b, b ∈ st.base.blocks ↔ ∃ B ∈ st.fg.TF, eraseFG B = b)
 
 /-- [bp bp.store.v1, bp.frame.v1; K4 metadata; audit M4] The local metadata
-invariant. `wireTree`: every stored wire is a decoded proposal whose FG block is
-in Σ.T, with the SAME ordered rows (`filterMap toRow?`), and whose rows all
-decode. `treeWire`: every non-genesis block of Σ.T has exactly one stored wire.
+invariant. `wireTree`: every stored wire is a decoded proposal whose body packs
+its signed rows (`rowsOk`, D9: the full stored content), whose rows all decode,
+and whose FG block is in Σ.T, with the SAME ordered rows (`filterMap toRow?`).
+`treeWire`: every non-genesis block of Σ.T has exactly one stored wire.
 `stampKeys`: the block stamps are keyed by the base list, once each.
 `pool*`: the row pool holds decoded rows, no duplicate, at most two per
 identity and round (used by `proposalRows`). `noGenesisWire`: no stored wire
@@ -83,7 +85,8 @@ grouping key of `proposalRows` is never `none` on any store, because its
 every row that does not decode (G6 item 9; G12 m2). -/
 structure MetaInv (p : Params) (st : State p.n) : Prop where
   wireTree : ∀ o ∈ st.proposals, ∃ s b raw sup rows,
-    o = ⟨.proposer s, .proposal b raw sup rows⟩ ∧ (∀ a ∈ rows, (RowWire.decode? a).isSome) ∧
+    o = ⟨.proposer s, .proposal b raw sup rows⟩ ∧ rowsOk b rows = true ∧
+    (∀ a ∈ rows, (RowWire.decode? a).isSome) ∧
     ∃ B ∈ st.fg.TF, eraseFG B = b ∧ B.rows = rows.filterMap RowWire.toRow?
   treeWire : ∀ B ∈ st.fg.TF, B ≠ .genesis →
     ∃! o, o ∈ st.proposals ∧ Wire.block? o = some (eraseFG B)
@@ -100,9 +103,9 @@ structure MetaInv (p : Params) (st : State p.n) : Prop where
 narrowed at G12] The content premise on two stores: stored proposal wires whose
 blocks have equal roots have the same erased block (with its parent chain) and
 the same ordered signed rows (with their rounds). The carried votes and the
-support list are free: no cross-node proof reads them. T7 derives it for every
-pair of honest stores of a run from the run premise `ContentRootInjective` and
-the run fact that every stored wire is a payload that the node processed. -/
+support list are free: no cross-node proof reads them. With derived roots and
+the content check `rowsOk` it is a theorem for any two stores with the metadata
+invariant (`contentAgree`, `Proofs/CrossNode.lean`); no run premise is needed. -/
 def ContentAgree {n : Nat} (st st' : State n) : Prop :=
   ∀ s b raw sup rows, (⟨.proposer s, .proposal b raw sup rows⟩ : Wire n) ∈ st.proposals →
   ∀ s' b' raw' sup' rows',
