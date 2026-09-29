@@ -577,6 +577,9 @@ show the state after plan 1a. File paths below are relative to
 │                  │ strong1 (strong-1:                          │                       │
 │                  │ Shared := Constants × StrongConstants, five │                       │
 │                  │ claims); strong1_iff (↔ StrongClaims)       │                       │
+│ Catalog/Relations│ relations between profiles (plan 1b Task    │ Catalog/Relations.lean│
+│                  │ 4): core_holdsAt_of_ac43 (ac-4.3 holds at C │                       │
+│                  │ → core holds at D := C.D_c)                 │                       │
 └──────────────────┴─────────────────────────────────────────────┴───────────────────────┘
 ```
 
