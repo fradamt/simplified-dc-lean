@@ -41,18 +41,16 @@ It also checks four facts on the COMPILED data:
   not a T7 declaration.
 
 Run: `lake env lean --run scripts/CheckFGSARunAxioms.lean [--root M …]
-[--files D] [--allow-empty] [--expect N …]`, with the options in this order.
+[--files D] [--expect N …]`, with the options in this order.
 `--root M` imports one more root module (negative controls); `--files D` sets
 the source directory (its last component must be `AvailableChainFGSARun`).
-`--allow-empty` accepts a library with no constant (T7.1 only: the library has
-no declaration yet). With `--expect`, each named constant must be a checked
-constant (a short name matches a qualified one by suffix).
+With `--expect`, each named constant must be a checked constant (a short name
+matches a qualified one by suffix).
 Exit codes: 0 clean; 1 a bad axiom, a source file outside the build, a direct
 import outside the allowlist, a forbidden library in the closure, or a
-forbidden used constant; 2 nothing found (without `--allow-empty`), a usage
-error (an unknown argument, or `--expect` without a name), or an expected name
-missing. Each missing expected name forces exit 2, also after other
-failures. -/
+forbidden used constant; 2 nothing found, a usage error (an unknown argument,
+or `--expect` without a name), or an expected name missing. Each missing
+expected name forces exit 2, also after other failures. -/
 
 def lib : Name := `AvailableChainFGSARun
 
@@ -145,11 +143,10 @@ def axiomsOf (env : Environment) (n : Name) : IO (Array Name) :=
 
 def main (args : List String) : IO UInt32 := do
   let usage := "USAGE: lake env lean --run scripts/CheckFGSARunAxioms.lean \
-    [--root M …] [--files D] [--allow-empty] [--expect N …]"
+    [--root M …] [--files D] [--expect N …]"
   let mut rest := args
   let mut extra : Array Name := #[]
   let mut dir : System.FilePath := "AvailableChainFGSARun"
-  let mut allowEmpty := false
   while rest.head? == some "--root" do
     match rest with
     | _ :: m :: r => extra := extra.push m.toName; rest := r
@@ -158,9 +155,6 @@ def main (args : List String) : IO UInt32 := do
     match rest with
     | _ :: d :: r => dir := d; rest := r
     | _ => IO.eprintln usage; return 2
-  if rest.head? == some "--allow-empty" then
-    allowEmpty := true
-    rest := rest.drop 1
   -- Reject an unknown argument: a typo must not skip the `--expect` test.
   unless rest.isEmpty || (rest.head? == some "--expect" && rest.length ≥ 2) do
     IO.eprintln usage
@@ -188,7 +182,7 @@ def main (args : List String) : IO UInt32 := do
       IO.println s!"FORBIDDEN LIBRARY IN THE IMPORT CLOSURE: {m}"
       badImports := true
   let cs := env.constants.toList.filter (fun (n, _) => inLib env n)
-  if cs.isEmpty && !allowEmpty then
+  if cs.isEmpty then
     IO.eprintln "NO CONSTANTS FOUND"
     return 2
   let thms := cs.filterMap fun (n, ci) => if ci matches .thmInfo _ then some n else none

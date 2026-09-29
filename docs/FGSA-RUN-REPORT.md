@@ -157,5 +157,212 @@ Validation at T7.1 (Mac, `pgrep -x lean | wc -l` = 0 before each run):
 13 negative controls rejected as expected, the G-walk control included);
 `lake env lean --run scripts/V2Manifest.lean --check` exit 0 (280 entries in
 17 modules). At T7.1 the library has no declaration, so the script passes
-`--allow-empty` to the two compiled checks; T7.2 replaces it with an
-`--expect` list.
+`--allow-empty` to the two compiled checks. T7.2 removes the option from both
+scripts and passes an `--expect` list to the axiom script.
+
+## T7.2 The protocol, label families and isolation
+
+Files: `Model/Protocol.lean` (`AppCodec`, `unitCodec`, `RunLabel`, `Node`,
+`Obj`, the adapter `toAuth`, `ofAuth`, `toWire`, `ofWire`, `toWireEquiv`,
+`ofHead`, `ofRow`, `duties` with `duties_spec` and `duties_nodup`, `withApp`,
+`actS`, `act`, `recordRow?`, the store hooks `depsS`, `processedS`,
+`excludesS`, `handlesS`, `carriesS`, and `fgsa`); `Model/Families.lean`
+(`fgsaFamilies`, `fgsaIso`); `Proofs/Protocol.lean` (the lemmas of the task
+text and a few more, below); `Tests/Protocol.lean` (the smoke tests). All
+names are in the namespace `AvailableChain.FGSA.Run`.
+
+Differences from the plan text (for review gate R-A):
+
+- The field Λ of `Node` is `record`, not `rec`: Lean reserves `Node.rec` for
+  the recursor of the structure. The lemma names of the plan stay
+  (`restore_rec`, `clock_rec`, `process_rec`); they read `nd.record`.
+- Layout: the plan names `Model/Protocol.lean` and `Model/Families.lean`.
+  The proofs that are fields of `fgsa`, `toWireEquiv` and `fgsaIso`
+  (`duties_spec`, `duties_nodup` with the helper `slotOf_offset`, the
+  inverse laws, `act_base`, `hooks_base`, `separation`) are in these Model
+  files, as in `GridCO/Model/Protocol.lean`. The other lemmas are in
+  `Proofs/Protocol.lean`, and the smoke tests in `Tests/Protocol.lean`.
+  `rowsOk_withApp` needs the store lemma `appOf_packBody`
+  (`AvailableChainFGSA.Proofs.Carrier`), which only `Proofs/` and `Tests/`
+  may import.
+- `duties t` takes the three candidates from the slot of `t` (the action
+  time of round `r` is in slot `rR + 1`) and keeps each one whose act time is
+  `t`. Each candidate has its own constructor, so `duties_nodup` does not use
+  the residues `0`, `Δ`, `2Δ` mod `4Δ`; `duties_spec` uses `Δ > 0` and
+  `R ≥ 1` (from `R ≥ 2`).
+- `rowsOk_withApp` is stated on the proposal output: if
+  `(propose p st s).map (withApp a) = some m`, then `m` is a proposal whose
+  block is `.node H s (packBody a rows)` with its carried `rows`, `rowsOk`
+  holds, and the application value is `a`.
+- Added (not in the task text): `DecidableEq` instances for
+  `(fgsa p c).Label` and `(fgsa p c).Payload` (the projections do not unfold
+  at instance transparency; the smoke tests and later concrete runs need
+  them); `recordOwn_rec`, `act_fg`, `act_prop`, `act_prop_zero`;
+  `singleSeat_prop` and `linked_selfVisible` (the family facts of the task
+  text); `tick_st` (the store after a tick is `FGSA.clock` of the store
+  before it, from `Isolation.base_tick`); the adapter lemmas
+  `ofWire_toWire`, `toWire_ofWire`, `toWire_injective`, `toWire_ofHead`,
+  `toWire_ofRow`.
+
+Choices inside the task text (for review gate R-A):
+
+- `processed` of a proposal is the duplicate-root test of `blockAccepted`,
+  `∃ Y ∈ st.fg.TF, Y.root = b.root` (DQ9). Its reading as "the erased block
+  is stored" is a later lemma (I9 erasure-root law and
+  `Block.root_injective`).
+- `excludes` of a proposal is `blockExcluded st b`, with no `processed`
+  guard (the task text). So a stored block that F later excludes is both
+  processed and excluded. The HEAD clause (`GridCO.excludes`) and the row
+  clause have the guard "not stored".
+- `handles` of a proposal: the gate is the acceptance test of `admitBlock`
+  (`parentFG st b = some P` and `blockAccepted`), and the handled objects are
+  the raw HEADs (`ofHead`) and the rows (`ofRow`), as Grid CO `handles` (raw
+  HEADs only; the support list is metadata). `carries` is structural: raw
+  HEADs, support HEADs and rows.
+- `depsPresent`, `processed`, `excludes` and `handles` read the object only
+  through `(toWire p o).decode`; a malformed wire has no dependency, is not
+  processed and is not excluded. `carries` reads the payload.
+- `withApp a` on a proposal whose block is a node rebuilds the body as
+  `packBody a rows` from the carried rows; every other payload does not
+  change. On the I9 `propose` output this replaces only the application
+  value (`withApp_zero`).
+
+## T7.2 Adapter lemmas and `excludes_inert` (lead GO, 2026-09-29)
+
+Adapter lemmas (M8, `codex/scratch/a0-s3c-read-layer-fit.md` §2.7), in
+`Proofs/Protocol.lean`. T7.7 reuses them.
+
+```text
+┌──────────────────────┬──────────────────────────────────────────────────────┐
+│ Lemma                │ Statement                                            │
+├──────────────────────┼──────────────────────────────────────────────────────┤
+│ ofRow_injective      │ Function.Injective (ofRow p)                         │
+│ ofHead_injective     │ Function.Injective (ofHead p)                        │
+│ ofRow_auth           │ (ofRow p a).auth = ofAuth p a.auth                   │
+│ processedS_ofRow     │ a.decode? = some (r, i, body) →                      │
+│                      │   processedS p st (ofRow p a) = decide (a ∈ rowPool) │
+│ excludesS_ofRow      │ a.decode? = some (r, i, body) →                      │
+│                      │   excludesS p st (ofRow p a) = rowExcl p st a r i    │
+│ handlesS_ofRow_iff   │ handlesS p st o (ofRow p a) ↔ o = ofRow p a ∨        │
+│                      │   ∃ s b raw sup rows P, decode = .block …,           │
+│                      │   parentFG st b = some P, blockAccepted … = true,    │
+│                      │   a ∈ rows                                           │
+└──────────────────────┴──────────────────────────────────────────────────────┘
+```
+
+With them: `decode_eq_vote`, `decode_eq_row`, `decode_eq_block` (the decoder
+inverted, as iff lemmas; F1b.6 uses `decode_eq_block`) and `rowWire_decode`.
+
+The row clause is defined once, in `Model/Protocol.lean`: `rowCount st r i`
+(the rows of seat `i` and round `r` in the pool) and `rowExcl p st a r i`
+(`a` not in the pool, and old or capped). `excludesS` uses `rowExcl`, with no
+change of behaviour; `excludesFixed` uses `rowCount`; `rowExcl_iff` gives the
+Prop form `a ∉ st.rowPool ∧ (r + p.wF < p.round (st.slot p) ∨ 2 ≤ rowCount
+st r i)`.
+
+`excludes_inert` (`Statements/Excludes.lean`, `Proofs/Excludes.lean`):
+
+- One state. `excludesS_inert : excludesS p st o = true →
+  FGSA.process p st (toWire p o) = st`, for EVERY store `st`, and
+  `excludes_inert c : ∀ nd o, (fgsa p c).excludes nd o = true →
+  (fgsa p c).process nd o = nd`. This is the frozen `HooksSound` field
+  `excludes_inert`. It uses the three lemmas of the lead's input:
+  (i) `Internal.lt_sub_one_iff_add_one_lt : r < cur - 1 ↔ r + 1 < cur`;
+  (ii) `row_wire_roundtrip` (a row decode gives back the signed row);
+  (iii) `admitBlock_of_blockExcluded : blockExcluded st b = true →
+  admitBlock p st s b raw sup rows = st`. HEAD: the Grid CO exclusion makes
+  `admitVote` return the base (local reproof; T7 imports no Grid CO proof
+  module). Row: `admitRow_of_rowExcl`. Unsigned or malformed: `process`
+  returns `st`.
+- One step. `excludesS_process : excludesS p st o = true →
+  excludesS p (FGSA.process p st w) o = true` (a delivery of any wire keeps
+  an exclusion); `excludesS_clock` (a tick that does not move the clock
+  back keeps it).
+- One epoch. `EpochStep p mono` is one store step of a restart epoch: a
+  delivery (`FGSA.process`) or a tick (`FGSA.clock`); with `mono = true`, a
+  tick does not move `base.now` back. `Epoch p mono` is its reflexive
+  transitive closure; `Epoch.weaken : Epoch p mono st st' → Epoch p false
+  st st'`.
+
+  ```lean
+  theorem excludes_inert_epoch {st st' : State p.n} (hE : Epoch p true st st')
+      {o : Obj p} (h : excludesS p st o = true) :
+      excludesS p st' o = true ∧ FGSA.process p st' (toWire p o) = st'
+  theorem excludesFixed_inert_epoch {mono : Bool} {st st' : State p.n}
+      (hE : Epoch p mono st st') {o : Obj p} (h : excludesFixed p st o = true) :
+      excludesFixed p st' o = true ∧ FGSA.process p st' (toWire p o) = st'
+  ```
+
+  `restartFree` is not a premise. `excludesFixed` is the part of the
+  exclusion that does not read the clock (HEAD equivocation, the row cap,
+  the proposal clause); it holds on an epoch with any ticks. Only the
+  old-label HEAD and row clauses need `mono = true`.
+- Runs. `epoch_of_restartFree`: on `restartFree rho v i j` the stores of `v`
+  from `stateBefore i` to `stateBefore j` are an `Epoch p mono`; with
+  `mono = true`, the premise `hmono` says that no tick of `v` in `[i, j)`
+  moves the store clock of `v` back. Corollaries:
+
+  ```lean
+  theorem excludes_stable_epoch (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) (v : V)
+      (o : (fgsa p c).Object) {i j : Nat} (hij : i ≤ j) (hrf : V2.restartFree rho v i j)
+      (hmono : ∀ k t, i ≤ k → k < j → rho.events[k]? = some (.tick v t) →
+        (V2.Run.stateBefore E rho k v).st.base.now ≤ t)
+      (h : (fgsa p c).excludes (V2.Run.stateBefore E rho i v) o = true) :
+      (fgsa p c).excludes (V2.Run.stateBefore E rho j v) o = true ∧
+        (fgsa p c).process (V2.Run.stateBefore E rho j v) o =
+          V2.Run.stateBefore E rho j v
+  ```
+
+  `excludesFixed_stable_epoch` is the same for `excludesFixed`, with no
+  `hmono` (it holds on every restart-free interval of every run).
+
+Notes and open items:
+
+- `fgsaIso.Base = State p.n` is forced, not a choice: the proposal is an AP
+  label, and its hooks read F and the FG block store (`blockExcluded`,
+  `parentFG`). The I-2 bridges add a separate Channels structure and a
+  base-transport law; they do not shrink `fgsaIso.base` to `nd.st.base`.
+- The `HooksSound` field `excludes_stable` is assembled in T7.7 from
+  `excludes_stable_epoch` and the T7.4 clock laws: `hmono` follows from
+  `ScheduleWellFormed` by the Kit law `stateBefore_now_le_event`, with
+  `fgsaClock : V2.Engine.ClockLaws (fgsa p c)` (`now nd = nd.st.base.now`)
+  and `fgsa_hrestore_now`. T7.2 does not do T7.4 or T7.7.
+- I-3: option B is decided. `depsS` does not change; the law takes a
+  `Timely` premise and holds at the states of scheduled runs. Astra R-A
+  refinement: the conclusion is post-delivery `processed ∨ excludes`,
+  because the in-delivery row cap can refuse a carried row that was not
+  excluded before the delivery (Astra item 1). The lead and lean-framework
+  own the law.
+- The exact descriptions of the handlers (for example "a HEAD is processed
+  iff its base vote is stored") hold under the store invariant only (Astra
+  item 2). This is not a `HooksSound` violation: `HooksSound` asks for no
+  such description.
+- `recordOwn` does not put the own row into `rowPool`. This is the
+  divergence that T7.10 approves (Astra item 3).
+- `EpochStep` over-approximates the store steps of a scheduled run: it
+  allows any wire and any tick time. The own record (`recordOwn` does not
+  change the store, `recordOwn_st`) and events of other nodes are covered
+  by reflexivity (Astra).
+- Placement: the theorems are in `Proofs/Excludes.lean`;
+  `Statements/Excludes.lean` holds only `EpochStep`, `Epoch` and
+  `excludesFixed`. The general-purpose helpers (`grid_*`,
+  `lt_sub_one_iff_add_one_lt`, `slotOf_mono`, `saGateFrom_vn`,
+  `clockPre_vn`, `gateStep_vn`, `foldl_vn`, `admitRow_base`,
+  `foldl_admitRow_base`, `ite_reconcile`, `eraseDups_nodup'`) are in the
+  namespace `AvailableChain.FGSA.Run.Internal`, not `private` (private
+  names hit the checker gap below). T7.7 can use `process_votes_subset` and
+  `clock_vn` (the plan's `clock_votes`).
+- Checker gap. A `simp` or `split` over a Grid CO definition with a
+  `match o.auth, o.payload` (the shared matcher `GridCO.headLabel?.match_1`)
+  makes Lean generate a PRIVATE matcher equation in this library. That
+  equation uses `_sparseCasesOn_1.else_eq` constants, whose home module is
+  `AvailableChainGridCO.Proofs.Map`. The used-constant check refuses it:
+  its skip rule for generated equation lemmas (`generatedEqn`) does not see
+  `_private` names. Workaround in the proofs: `grid_excludes_congr`,
+  `grid_admitVote_now`, `grid_admitVote_votes_subset` and
+  `grid_admitVote_keeps` use `unfold` and case analysis on the wire, not
+  `simp` or `split` over that matcher.
+- Guards: every public theorem of `Proofs/Protocol.lean` and
+  `Proofs/Excludes.lean` has a `#print axioms` line in `Tests/Axioms.lean`;
+  `--expect` lists the main outputs; a negative control checks that a name
+  in `--expect` that the scan does not find fails with `NOT CHECKED`.

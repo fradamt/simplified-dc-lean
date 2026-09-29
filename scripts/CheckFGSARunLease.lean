@@ -63,11 +63,10 @@ It checks BUILT data, as `scripts/CheckFGSARunAxioms.lean`: run
 `lake build AvailableChainFGSARun` first, or use
 `bash scripts/check-fgsa-run.sh`.
 
-Run: `lake env lean --run scripts/CheckFGSARunLease.lean [--allow-empty] [M …]`.
-Each optional `M` is one more root module to import and scan (the negative
-controls in `check-fgsa-run.sh` use this). `--allow-empty` accepts a library
-with no constant (T7.1 only: the library has no declaration yet).
-Exit codes: 0 clean; 1 a bad use; 2 nothing found (without `--allow-empty`). -/
+Run: `lake env lean --run scripts/CheckFGSARunLease.lean [M …]`. Each optional
+`M` is one more root module to import and scan (the negative controls in
+`check-fgsa-run.sh` use this).
+Exit codes: 0 clean; 1 a bad use; 2 nothing found. -/
 
 def policyName : Name := `AvailableChain.GridCO.LeasePolicy
 def slowName : Name := `AvailableChain.GridCO.slowLeasePolicy
@@ -211,13 +210,12 @@ def backstop (env : Environment) (inRoot : Name → Bool) (start : List Name) :
   return (bad, seen.size)
 
 def main (args : List String) : IO UInt32 := do
-  let allowEmpty := args.head? == some "--allow-empty"
-  let extra := (if allowEmpty then args.drop 1 else args).map String.toName
+  let extra := args.map String.toName
   let roots := `AvailableChainFGSARun :: extra
   initSearchPath (← findSysroot)
   let env ← importModules (roots.toArray.map ({ module := · })) {}
   let cs := env.constants.toList.filter (fun (n, _) => inRoots roots env n)
-  if cs.isEmpty && !allowEmpty then
+  if cs.isEmpty then
     IO.eprintln "NO CONSTANTS FOUND"
     return 2
   let run : MetaM (Scan × Nat × Nat) := do

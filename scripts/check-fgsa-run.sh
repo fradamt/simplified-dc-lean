@@ -19,11 +19,17 @@ for f in scripts/CheckFGSARunAxioms.lean scripts/CheckFGSARunLease.lean \
     scripts/fgsa-controls/AdvG.lean scripts/fgsa-controls/AdvLib.lean; do
   [ -f "$f" ] || { echo "MISSING CHECK SCRIPT: $f"; exit 2; }
 done
-# Options of the compiled checks. T7.1: the library has no declaration yet, so
-# both accept an empty constant set; T7.2 replaces this with an `--expect` list
-# for the axiom script and no option for the lease script.
-AX_OPTS=(--allow-empty)
-LEASE_OPTS=(--allow-empty)
+# The declarations that the axiom script must find and check (fail closed: a
+# scan that misses the library fails). Each task adds its main outputs.
+AX_OPTS=(--expect Run.fgsa Run.fgsaFamilies Run.fgsaIso Run.toWireEquiv Run.duties_spec
+  Run.duties_nodup Run.withApp_zero Run.rowsOk_withApp Run.recordOwn_attest
+  Run.attest_signer_irrel Run.ofRow_injective Run.ofHead_injective Run.ofRow_auth
+  Run.processedS_ofRow Run.excludesS_ofRow Run.handlesS_ofRow_iff Run.excludesS_inert
+  Run.excludes_inert Run.excludes_inert_epoch Run.excludesFixed_inert_epoch
+  Run.epoch_of_restartFree Run.excludes_stable_epoch Run.excludesFixed_stable_epoch
+  Run.restore_st Run.restore_rec Run.clock_rec Run.process_rec Run.recordOwn_st
+  Run.process_base_now Run.clock_vn Run.process_votes_subset Run.excludesS_process
+  Run.rowCount Run.rowExcl Run.rowExcl_iff Run.Epoch.weaken)
 
 # Remove comments (the tokenizer of scripts/check-fgsa.sh): strings, character
 # literals, raw strings (r"...", r#"..."#) and nested block comments. A "--"
@@ -196,7 +202,7 @@ check_v2_open . || exit 1
 echo "== axioms, build coverage, import closure, used constants"
 lake env lean --run scripts/CheckFGSARunAxioms.lean "${AX_OPTS[@]}"
 echo "== lease instances"
-lake env lean --run scripts/CheckFGSARunLease.lean ${LEASE_OPTS[@]+"${LEASE_OPTS[@]}"}
+lake env lean --run scripts/CheckFGSARunLease.lean
 
 echo "== negative controls"
 neg=$(mktemp -d "$PWD/.lake/fgsa-run-neg.XXXXXX")
@@ -499,7 +505,7 @@ LEAN
 for m in FGSALeaseNeg FGSALeaseLib FGSALeaseUse; do
   lean_c "$neg/$m.olean" "$neg/$m.lean"
 done
-run lake env bash -c 'LEAN_PATH="$0:$LEAN_PATH" lean --run scripts/CheckFGSARunLease.lean "${@}" FGSALeaseNeg FGSALeaseUse' "$neg" ${LEASE_OPTS[@]+"${LEASE_OPTS[@]}"}
+run lake env bash -c 'LEAN_PATH="$0:$LEAN_PATH" lean --run scripts/CheckFGSARunLease.lean FGSALeaseNeg FGSALeaseUse' "$neg"
 expect_fail "lease controls" $code "$out" \
   "leaseNegControl: AvailableChain.GridCO.gate at AvailableChain.GridCO.gridLeasePolicy" \
   "leaseNegGateFrom: AvailableChain.GridCO.gateFrom at AvailableChain.GridCO.gridLeasePolicy" \
@@ -517,11 +523,15 @@ cp scripts/fgsa-controls/AdvLib.lean scripts/fgsa-controls/AdvUse.lean "$neg/"
 for m in AdvLib AdvUse; do
   lean_c "$neg/$m.olean" "$neg/$m.lean"
 done
-run lake env bash -c 'LEAN_PATH="$0:$LEAN_PATH" lean --run scripts/CheckFGSARunLease.lean "${@}" AdvUse' "$neg" ${LEASE_OPTS[@]+"${LEASE_OPTS[@]}"}
+run lake env bash -c 'LEAN_PATH="$0:$LEAN_PATH" lean --run scripts/CheckFGSARunLease.lean AdvUse' "$neg"
 expect_fail "lease controls in imported definitions" $code "$out" \
   "AvailableChain.GridCO.fixedLet: AvailableChain.GridCO.gate at #0" \
   "AvailableChain.GridCO.fixedBeta: AvailableChain.GridCO.gate at #0" \
   "AdvLib.0.AvailableChain.GridCO.fixedPriv: AvailableChain.GridCO.gate at AvailableChain.GridCO.gridLeasePolicy" \
   "AvailableChain.FGSA.useIrr: AvailableChain.GridCO.genI at cast" \
   "Evil.fixedGate: mentions AvailableChain.GridCO.gridLeasePolicy (reach)"
+# A name in --expect that the scan does not find fails the check (fail closed).
+run lake env lean --run scripts/CheckFGSARunAxioms.lean "${AX_OPTS[@]}" Run.negNotADeclaration
+expect_fail "an expected name that is not checked" $code "$out" \
+  "NOT CHECKED: Run.negNotADeclaration" "1 expected names not checked"
 echo "all FGSA run checks pass"
