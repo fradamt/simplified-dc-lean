@@ -275,13 +275,15 @@ example : stR2.fg.F = B1 ∧ stR2.base.obligations = [] ∧
     stR2.base.stableRecord = b1 ∧ b1' ∈ stR2.base.blocks ∧
     b1' ∉ (actView stR2).blocks := by decide +kernel
 
-/-- DQ2, the duplicate test: a new wire whose block is already stored (the block
-of `B2` with its rows, and a carried label-1 vote) is refused by the root test.
-Distinct blocks have distinct roots, so the root test is the block test. The
-wire passes the input check, and the vote is not admitted. -/
-def wDup : Wire 4 :=
-  ⟨.proposer 2, .proposal (eraseFG B2) [⟨.seat (.head 1) 0, b1⟩] [] (rowsOf 1 B2)⟩
+/-- DQ2, the duplicate test: a new wire whose block is already stored (the
+slot-3 block of `B3` with its rows, and the carried label-2 vote `v2`) is
+refused by the root test. Distinct blocks have distinct roots, so the root test
+is the block test. The wire passes the input check. Direct delivery admits `v2`
+at `stA`, but the duplicate does not admit it. -/
+def wDup : Wire 4 := wProp B3 1 [v2]
 example : wellFormed pT wDup = true ∧ wDup ∉ stA.proposals ∧
+    baseVote v2 ∉ stA.base.votes ∧
+    baseVote v2 ∈ (process pT stA ⟨v2.auth, .head v2.payload⟩).base.votes ∧
     (process pT stA wDup).fg.TF = stA.fg.TF ∧
     (process pT stA wDup).proposals = stA.proposals ∧
     (process pT stA wDup).base.votes = stA.base.votes := by decide +kernel

@@ -44,6 +44,8 @@ theorem reachable_stY : Reachable pT stY := .deliver _ (.deliver _ (.tick _ .ini
 
 theorem wa_mem : wa ∈ stX.proposals := by decide +kernel
 theorem wb_mem : wb ∈ stY.proposals := by decide +kernel
+theorem fg_ba : ∃ X ∈ stX.fg.TF, eraseFG X = ba := by decide +kernel
+theorem fg_bb : ∃ Y ∈ stY.fg.TF, eraseFG Y = bb := by decide +kernel
 /-- (1) Both blocks are admitted: the stores are not trivial. -/
 example : ba ∈ stX.base.blocks ∧ bb ∈ stY.base.blocks ∧ c1 ∈ stY.base.blocks := by
   decide +kernel
