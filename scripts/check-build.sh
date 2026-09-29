@@ -5,7 +5,7 @@
 #       AvailableChainGridCO.Proofs.Map; a throwaway copy and one Lean build)
 #   (d) CheckProofEqns.lean       (e) check-layers.py
 #   (f) shake-report.sh (REPORT only; never fails the run unless it cannot run)
-#   (g) chain-depth.py            (h) check-transparency.py
+#   (g) chain-depth.py (REPORT only) (h) check-transparency.py
 #   (i) check-gly-rules.sh
 # (d) and (e) run when their script exists; else "SKIPPED: not yet present".
 # SKIP_CONE=1 skips (c) (it needs a built tree and a Lean build).
@@ -34,7 +34,8 @@ if [ -f scripts/check-layers.py ]; then run e check-layers python3 scripts/check
 else skip e check-layers "not yet present"; fi
 echo "=== (f) shake-report"
 if bash scripts/shake-report.sh; then RESULTS+=("(f) shake-report: REPORT"); else RESULTS+=("(f) shake-report: FAIL (could not run)"); FAILED=1; fi
-run g chain-depth python3 scripts/chain-depth.py
+echo "=== (g) chain-depth"
+if python3 scripts/chain-depth.py; then RESULTS+=("(g) chain-depth: REPORT"); else RESULTS+=("(g) chain-depth: FAIL (could not run)"); FAILED=1; fi
 run h check-transparency python3 scripts/check-transparency.py
 run i check-gly-rules bash scripts/check-gly-rules.sh
 echo "=== summary"

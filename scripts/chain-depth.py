@@ -8,15 +8,16 @@ modules. Per library:
   pass through other libraries);
 - Local: the longest chain that stays in the library.
 
-Baseline scripts/baselines/chain-depth.txt: `<Library> <Global>` per legacy
-library. A legacy library whose Global depth is above its baseline fails (a
-B9 regression: shorten the chain, or review and raise the baseline with
---write-baseline). A new library (scripts/new-libraries.txt) is reported
-only: its limit is the G-F0a target (BUILD §7.6). A legacy library with no
-baseline line fails.
+REPORT only (BUILD §7.2 B9: "reported at each gate"). The baseline
+scripts/baselines/chain-depth.txt holds `<Library> <Global>` per legacy
+library, taken on main 7ac5b0c. The report shows each depth and its
+difference from the baseline (+N deeper, -N shorter, "new" for a library
+with no baseline line). AvailableChainCheckSupport (script support, not a
+protocol library) is excluded.
 
 Run: python3 scripts/chain-depth.py [--chain <Library>] [--write-baseline].
-Exit 0: no regression; 1: a regression."""
+Exit 0: report printed (a deeper chain does not fail); 2: a parse error
+(an unreadable lakefile, header or baseline line, or an import cycle)."""
 import argparse
 import sys
 
@@ -24,6 +25,11 @@ sys.dont_write_bytecode = True
 import check_common as C  # noqa: E402
 
 NAME = 'chain-depth'
+EXCLUDED = {'AvailableChainCheckSupport'}
+
+
+class ParseError(Exception):
+    pass
 
 
 def main():
@@ -33,7 +39,7 @@ def main():
     ap.add_argument('--write-baseline', action='store_true')
     a = ap.parse_args()
     scope = C.Scope()
-    files = C.library_files()
+    files = [lf for lf in C.library_files() if lf.lib not in EXCLUDED]
     lib = {lf.module: lf.lib for lf in files}
     graph = {m: [t for t in ts if t in lib] for m, ts in C.import_graph(files).items()}
     sys.setrecursionlimit(20000)
@@ -45,7 +51,7 @@ def main():
             if m in memo:
                 return memo[m]
             if m in stack:
-                sys.exit(f'import cycle through {m}')
+                raise ParseError(f'import cycle through {m}')
             best = [m]
             for t in graph[m]:
                 if restrict and lib[t] != lib[m]:
@@ -58,7 +64,7 @@ def main():
         return go
 
     glob, loc = longest(False), longest(True)
-    libs = [n for n, _ in C.libraries()]
+    libs = [n for n, _ in C.libraries() if n not in EXCLUDED]
     rows = []
     for L in libs:
         mods = [m for m in graph if lib[m] == L]
@@ -79,31 +85,29 @@ def main():
         return 0
 
     base = {}
-    for line in open(C.baseline_path(NAME), encoding='utf-8'):
+    for n, line in enumerate(open(C.baseline_path(NAME), encoding='utf-8'), 1):
         if line.strip() and not line.startswith('#'):
-            k, v = line.split()
-            base[k] = int(v)
+            parts = line.split()
+            if len(parts) != 2 or not parts[1].isdigit():
+                raise ParseError(f'scripts/baselines/{NAME}.txt:{n}: expected <Library> <depth>')
+            base[parts[0]] = int(parts[1])
 
     w = max(len(r[0]) for r in rows)
-    top = f'┌{"─" * (w + 2)}┬─────────┬────────┬───────┬──────────┬{"─" * 12}┐'
+    top = f'┌{"─" * (w + 2)}┬─────────┬────────┬───────┬──────────┬────────┐'
     print(top)
-    print(f'│ {"Library".ljust(w)} │ Modules │ Global │ Local │ Baseline │ {"Result".ljust(10)} │')
+    print(f'│ {"Library".ljust(w)} │ Modules │ Global │ Local │ Baseline │ Change │')
     print(top.replace('┌', '├').replace('┬', '┼').replace('┐', '┤'))
-    fails = []
+    deeper = []
     for L, n, g, l in rows:
-        new = L in scope.new_libs
         b = base.get(L)
-        if new:
-            res, bs = 'REPORT', '—'
-        elif b is None:
-            res, bs = 'FAIL', 'none'
-            fails.append(f'{L}: no baseline line')
-        elif len(g) > b:
-            res, bs = 'FAIL', str(b)
-            fails.append(f'{L}: Global {len(g)} > baseline {b}: {" → ".join(g)}')
+        if b is None:
+            bs, ch = '—', 'new'
         else:
-            res, bs = ('PASS' if len(g) == b else 'PASS (<)'), str(b)
-        print(f'│ {L.ljust(w)} │ {n:7d} │ {len(g):6d} │ {len(l):5d} │ {bs:>8} │ {res.ljust(10)} │')
+            bs, d = str(b), len(g) - b
+            ch = f'{d:+d}' if d else '0'
+            if d > 0:
+                deeper.append(f'{L}: Global {len(g)} = baseline {b} +{d}: {" → ".join(g)}')
+        print(f'│ {L.ljust(w)} │ {n:7d} │ {len(g):6d} │ {len(l):5d} │ {bs:>8} │ {ch:>6} │')
     print(top.replace('┌', '└').replace('┬', '┴').replace('┐', '┘'))
     L, n, g, l = max(rows, key=lambda r: len(r[2]))
     print(f'longest chain: {len(g)} modules: {g[0]} → … → {g[-1]}')
@@ -112,11 +116,18 @@ def main():
             if L == want:
                 print(f'{L} global chain ({len(g)}):')
                 print('\n'.join('  ' + m for m in g))
-    for f in fails:
-        print('FAIL ' + f)
-    print(f'{NAME}: {"FAIL" if fails else "PASS"}: {len(fails)} failing')
-    return 1 if fails else 0
+    for x in deeper:
+        print('DEEPER ' + x)
+    print(f'{NAME}: REPORT: {len(rows)} libraries; {len(deeper)} deeper than the baseline')
+    return 0
 
+
+def run():
+    try:
+        return main()
+    except (ParseError, OSError, ValueError, KeyError) as e:
+        print(f'{NAME}: ERROR: {e}', file=sys.stderr)
+        return 2
 
 if __name__ == '__main__':
-    sys.exit(main())
+    sys.exit(run())
