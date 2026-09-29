@@ -21,7 +21,14 @@ at the emission time; at time 1 both tick and the proposal of slot 1 goes to
 both nodes. The run is `ExecutionValid`, it satisfies `SelfDelivery`,
 `PartialSynchrony` and `HealthyPrefixDelivery` at every cut, and the
 hypotheses of `selfDelivery_admissible` hold at the self-delivery of
-validator 0. -/
+validator 0. A second, shorter run `pre` shows the append form
+`ExecutionValid.snoc_selfDelivery`.
+
+Limits. In the runs, every row is `row 0`: the row label is due only at time
+0, when the own record is empty. The row payload reads the own record only
+in an off-run check. The toy does not exercise exclusion (`excludes` is
+`false`), carried objects (`carries` is `False`), the fresh family (it is
+empty) or restarts (`restore` is the identity; restart toys are plan 2c). -/
 
 namespace AvailableChain.V2.Tests.Toy
 
@@ -433,6 +440,77 @@ example : Run.stateBefore toyEnv toyRun 3 0 = Run.stateBefore toyEnv toyRun (0 +
 example : toyP.processed (Run.stateBefore toyEnv toyRun 3 0) (rowObj 0) = false :=
   (selfDelivery_admissible toyHooks (i := 0) (j := 3) rfl (by decide +kernel) row0_emitOk
     (by decide +kernel)).2.2.1
+
+/-! ### The append form (Task 6 review M1)
+
+`ExecutionValid.snoc_selfDelivery` on the toy: a valid prefix `pre` with two
+honest validators, an event of the other node after the tick (so `hlast` is
+not vacuous), receipts that `processed` reads, and an own record that
+changes the state. Its premise `hkey` (every event key at most `(t, 2)`) and
+the field `tick_total` force the appended run to end at time `t`: its
+horizon is below the next public time. So a witness that continues after the
+self-delivery, like `toyRun`, needs the direct proof above. -/
+
+/-- Both validators tick at time 0, and validator 1 gets the row of validator
+0; validator 0 has no event after its tick. -/
+def pre : Run (Fin 2) toyP where
+  honest := Finset.univ
+  horizon := 0
+  events := [.tick 0 0, .tick 1 0, .deliver 1 (rowObj 0) 0]
+  seatOf := toyRun.seatOf
+  input := toyRun.input
+
+/-- No delivery of `pre` repeats an object at its receiver. -/
+theorem pre_fresh :
+    allDeliveries pre (fun k v o _ => !toyP.processed (Run.stateBefore toyEnv pre k v) o)
+      = true := by decide +kernel
+
+/-- An honest holder of an object delivered in `pre` emitted it. -/
+theorem pre_signed :
+    allDeliveries pre (fun _ _ o t => (List.finRange 2).all fun u =>
+      !decide (Run.holder pre o.auth = some u) || emittedBy toyEnv pre u o t) = true := by
+  decide +kernel
+
+/-- The prefix is valid. -/
+theorem pre_valid : ExecutionValid toyEnv pre := by
+  refine { toScheduleWellFormed := ?_, toDeliveryWellFormed := ?_,
+           toUnforgeableSignatures := ?_ }
+  · refine ⟨by decide, by decide +kernel, by decide +kernel, by decide +kernel,
+      fun _ _ => Finset.mem_univ _, ?_, ?_⟩
+    · intro v t h
+      have h0 := ((by decide +kernel : ∀ e ∈ pre.events, e.time = 0) _ h)
+      exact ⟨0, by change t = ((0 : Nat) : Time) * 1; simpa using h0⟩
+    · intro v _ t _ h0 h1
+      change t ≤ 0 at h1
+      have ht : t = 0 := le_antisymm h1 h0
+      subst ht
+      have hv : ∀ u : Fin 2, Event.tick u 0 ∈ pre.events := by decide +kernel
+      exact hv v
+  · refine ⟨fun _ _ _ _ _ => rfl, fun _ _ _ _ _ => rfl, fun k v o t hk => ?_⟩
+    simpa using allDeliveries_spec pre_fresh hk
+  · refine ⟨?_, fun _ _ _ _ _ hc => hc.elim⟩
+    rintro v o t ⟨k, hk⟩ u _ hu
+    have h := List.all_eq_true.mp (allDeliveries_spec pre_signed hk) u (List.mem_finRange u)
+    rw [hu] at h
+    exact emittedBy_spec (by simpa using h)
+
+/-- The row of validator 0 passes `EmitOk` at its tick in `pre`. -/
+theorem pre_emitOk : EmitOk toyEnv pre (Run.stateBefore toyEnv pre 0 0) 0 0 (rowObj 0) :=
+  ⟨rfl, rfl, by decide +kernel, fun _ h => h⟩
+
+-- The append form: `pre` with the self-delivery of the row of validator 0 at
+-- time 0 appended is valid.
+example : ExecutionValid toyEnv
+    ({ pre with events := pre.events ++ [.deliver 0 (rowObj 0) 0] } : Run (Fin 2) toyP) :=
+  pre_valid.snoc_selfDelivery toyHooks (i := 0) (by decide +kernel) rfl
+    (fun k e hk he => by
+      match k, hk, he with
+      | 1, _, he => cases he; decide
+      | 2, _, he => cases he; decide
+      | _ + 3, _, he => simp [pre] at he)
+    (by decide +kernel) pre_emitOk
+
+/-! ### The optional condition `SelfDelivery` -/
 
 /-- Every self-visible object that a tick releases goes to its emitter at the
 emission time, after the tick. -/
