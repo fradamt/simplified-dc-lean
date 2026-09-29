@@ -1173,6 +1173,11 @@ rows under `scripts/` are paths from the repository root.
 │                                │ preceq_getHead_of_preceq_F,                    │                    │
 │                                │ preceq_fgHead_of_preceq_F,                     │                    │
 │                                │ preceq_headVote_of_preceq_F (s > 0 only)       │                    │
+│ Proofs/ChainOrder.lean         │ the chain-state row fold is order-free:        │ T7.W (extra item)  │
+│                                │ process_row_eq (three conditional inserts),    │                    │
+│                                │ process_row_comm, process_row_idem;            │                    │
+│                                │ transition_perm, transition_eq_of_mem_iff,     │                    │
+│                                │ transition_eq_of_toFinset                      │                    │
 │ Tests/Support.lean             │ admitWith, process_eq_admitWith: proved        │                    │
 │                                │ rewrite of a delivery for kernel checks        │                    │
 │ Tests/Smoke.lean               │ decide examples of the model                   │                    │
