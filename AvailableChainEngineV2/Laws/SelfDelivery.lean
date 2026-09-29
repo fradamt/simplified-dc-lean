@@ -37,7 +37,7 @@ structure EmitOk (E : Generic.Env V) (rho : Run V P) (st : P.State) (v : V) (t :
 
 /-- The holder of a signed object that a tick of `v` releases is `v`: the
 engine signs only with the seats of `v`. -/
-theorem holder_of_mem_tick {E : Generic.Env V} {rho : Run V P} {st : P.State} {v : V}
+theorem Run.holder_of_mem_tick {E : Generic.Env V} {rho : Run V P} {st : P.State} {v : V}
     {t : Time} {o : P.Object} {u : V} (ho : o ∈ (tick E rho st v t).2)
     (hu : Run.holder rho o.auth = some u) : u = v := by
   simp only [tick] at ho
@@ -110,12 +110,12 @@ theorem selfDelivery_admissible {E : Generic.Env V} {rho : Run V P} (hH : HooksS
   refine ⟨hok.wire, hok.deps, ?_, fun u _ hu => ?_, fun o' hc => (hok.noCarried o' hc).elim⟩
   · rw [hH.processed_tick]; exact hok.fresh
   · rw [hemit] at ho
-    rw [holder_of_mem_tick ho hu]
+    rw [Run.holder_of_mem_tick ho hu]
     exact ⟨t, le_rfl, i, hi, by rw [hemit]; exact ho⟩
 
 /-! ### The append form (DC N3) -/
 
-section Snoc
+namespace Run
 
 variable {E : Generic.Env V} {rho : Run V P} {e : Event V P.Object}
 
@@ -130,35 +130,34 @@ theorem tick_snoc :
     tick E ({ rho with events := rho.events ++ [e] } : Run V P) = tick E rho :=
   rfl
 
-/-- `EmitOk` does not read the event list. -/
-theorem EmitOk.snoc {st : P.State} {v : V} {t : Time} {o : P.Object}
-    (h : EmitOk E rho st v t o) :
-    EmitOk E ({ rho with events := rho.events ++ [e] } : Run V P) st v t o :=
-  ⟨h.wire, by rw [tick_snoc]; exact h.deps, h.fresh, h.noCarried⟩
-
 /-- Prefixes of the old run keep their state after an append. -/
 theorem stateBefore_snoc_of_le {k : Nat} (hk : k ≤ rho.events.length) :
-    Run.stateBefore E ({ rho with events := rho.events ++ [e] } : Run V P) k =
-      Run.stateBefore E rho k := by
-  simp only [Run.stateBefore, List.take_append_of_le_length hk]
+    stateBefore E ({ rho with events := rho.events ++ [e] } : Run V P) k =
+      stateBefore E rho k := by
+  simp only [stateBefore, List.take_append_of_le_length hk]
   rfl
 
 /-- Old ticks release the same objects after an append. -/
 theorem emitsAt_snoc_of_lt {k : Nat} (hk : k < rho.events.length) :
-    Run.emitsAt E ({ rho with events := rho.events ++ [e] } : Run V P) k =
-      Run.emitsAt E rho k := by
-  simp only [Run.emitsAt, getElem?_snoc_of_lt hk, stateBefore_snoc_of_le (Nat.le_of_lt hk)]
+    emitsAt E ({ rho with events := rho.events ++ [e] } : Run V P) k = emitsAt E rho k := by
+  simp only [emitsAt, getElem?_snoc_of_lt hk, stateBefore_snoc_of_le (Nat.le_of_lt hk)]
   rfl
 
 /-- An emission of the old run is an emission after an append. -/
-theorem emits_snoc {u : V} {o : P.Object} {t : Time} (h : Run.emits E rho u o t) :
-    Run.emits E ({ rho with events := rho.events ++ [e] } : Run V P) u o t := by
+theorem emits_snoc {u : V} {o : P.Object} {t : Time} (h : emits E rho u o t) :
+    emits E ({ rho with events := rho.events ++ [e] } : Run V P) u o t := by
   obtain ⟨k, hk, ho⟩ := h
   have hlt : k < rho.events.length := (List.getElem?_eq_some_iff.mp hk).1
   exact ⟨k, by rw [getElem?_snoc_of_lt hlt]; exact hk, by
     rw [emitsAt_snoc_of_lt hlt]; exact ho⟩
 
-end Snoc
+end Run
+
+/-- `EmitOk` does not read the event list. -/
+theorem EmitOk.snoc {E : Generic.Env V} {rho : Run V P} {e : Event V P.Object}
+    {st : P.State} {v : V} {t : Time} {o : P.Object} (h : EmitOk E rho st v t o) :
+    EmitOk E ({ rho with events := rho.events ++ [e] } : Run V P) st v t o :=
+  ⟨h.wire, by rw [Run.tick_snoc]; exact h.deps, h.fresh, h.noCarried⟩
 
 /-- The append form of self-delivery (DC N3; Astra re-check 2, M3). Let `rho`
 be `ExecutionValid`, with every event key at most `(t, 2)`. Let the event at
@@ -193,7 +192,7 @@ theorem ExecutionValid.snoc_selfDelivery {E : Generic.Env V} {rho : Run V P}
         (k = rho.events.length ∧ f = d) := by
     intro k f hk
     by_cases hlt : k < rho.events.length
-    · exact Or.inl ⟨hlt, by rw [← getElem?_snoc_of_lt hlt]; exact hk⟩
+    · exact Or.inl ⟨hlt, by rw [← Run.getElem?_snoc_of_lt hlt]; exact hk⟩
     · have hk' : k < rho'.events.length := (List.getElem?_eq_some_iff.mp hk).1
       have hkn : k = rho.events.length := by omega
       subst hkn
@@ -203,12 +202,13 @@ theorem ExecutionValid.snoc_selfDelivery {E : Generic.Env V} {rho : Run V P}
   have hstate : Run.stateBefore E rho' rho.events.length v =
       Run.stateBefore E rho' (i + 1) v := by
     refine Run.stateBefore_eq_of_node_ne E rho' hilen fun k f hik hkn hkf => ?_
-    rw [getElem?_snoc_of_lt hkn] at hkf
+    rw [Run.getElem?_snoc_of_lt hkn] at hkf
     exact hlast k f (by omega) hkf
-  have hi' : rho'.events[i]? = some (.tick v t) := by rw [getElem?_snoc_of_lt hilen]; exact hi
-  have ho' : o ∈ Run.emitsAt E rho' i := by rw [emitsAt_snoc_of_lt hilen]; exact ho
+  have hi' : rho'.events[i]? = some (.tick v t) := by
+    rw [Run.getElem?_snoc_of_lt hilen]; exact hi
+  have ho' : o ∈ Run.emitsAt E rho' i := by rw [Run.emitsAt_snoc_of_lt hilen]; exact ho
   have hok' : EmitOk E rho' (Run.stateBefore E rho' i v) v t o := by
-    rw [stateBefore_snoc_of_le (Nat.le_of_lt hilen)]; exact hok.snoc
+    rw [Run.stateBefore_snoc_of_le (Nat.le_of_lt hilen)]; exact hok.snoc
   obtain ⟨hwire, hdeps, hfresh, hprov, hcarr⟩ := selfDelivery_admissible hH hi' ho' hok' hstate
   refine { toScheduleWellFormed := ?_, toDeliveryWellFormed := ?_,
            toUnforgeableSignatures := ?_ }
@@ -250,22 +250,22 @@ theorem ExecutionValid.snoc_selfDelivery {E : Generic.Env V} {rho : Run V P}
       · obtain ⟨-, rfl, -⟩ := Event.deliver.inj hk; exact hwire
     · intro k u p s hk
       rcases hcases k _ hk with ⟨hlt, hk'⟩ | ⟨rfl, hk'⟩
-      · rw [stateBefore_snoc_of_le (Nat.le_of_lt hlt)]; exact hvalid.deps k u p s hk'
+      · rw [Run.stateBefore_snoc_of_le (Nat.le_of_lt hlt)]; exact hvalid.deps k u p s hk'
       · obtain ⟨rfl, rfl, -⟩ := Event.deliver.inj hk'; exact hdeps
     · intro k u p s hk
       rcases hcases k _ hk with ⟨hlt, hk'⟩ | ⟨rfl, hk'⟩
-      · rw [stateBefore_snoc_of_le (Nat.le_of_lt hlt)]; exact hvalid.fresh k u p s hk'
+      · rw [Run.stateBefore_snoc_of_le (Nat.le_of_lt hlt)]; exact hvalid.fresh k u p s hk'
       · obtain ⟨rfl, rfl, -⟩ := Event.deliver.inj hk'; exact hfresh
   · refine ⟨?_, ?_⟩
     · rintro u p s ⟨k, hk⟩ w hw hhold
       rcases hcases k _ hk with ⟨-, hk'⟩ | ⟨-, hk'⟩
       · obtain ⟨t', ht', he⟩ := hvalid.unforgeable u p s ⟨k, hk'⟩ w hw hhold
-        exact ⟨t', ht', emits_snoc he⟩
+        exact ⟨t', ht', Run.emits_snoc he⟩
       · obtain ⟨-, rfl, rfl⟩ := Event.deliver.inj hk'; exact hprov w hw hhold
     · rintro u p s ⟨k, hk⟩ p' hc w hw hhold
       rcases hcases k _ hk with ⟨-, hk'⟩ | ⟨-, hk'⟩
       · obtain ⟨t', ht', he⟩ := hvalid.carried u p s ⟨k, hk'⟩ p' hc w hw hhold
-        exact ⟨t', ht', emits_snoc he⟩
+        exact ⟨t', ht', Run.emits_snoc he⟩
       · obtain ⟨-, rfl, rfl⟩ := Event.deliver.inj hk'; exact hcarr p' hc w hw hhold
 
 end AvailableChain.V2

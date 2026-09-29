@@ -13,20 +13,22 @@ open AvailableChain
 
 variable {In : Type} {P : ProtocolSpec In}
 
-/-- An AP object: an object signed with a seat of an AP label (`F.ap`). An
-unsigned object is not an AP object. -/
+/-- An object of the AP projection: an object signed with a seat of an AP
+label (`F.ap`), or an unsigned object. Unsigned objects belong to the
+projection because it emits unsigned gossip (`Isolation.gossip_base`; for
+example the SA-PC proposal certificates). -/
 def LabelFamilies.APObject (F : LabelFamilies P) (o : P.Object) : Prop :=
   match o.auth with
   | .seat ℓ _ => F.ap ℓ
-  | .none => False
+  | .none => True
 
 @[simp] theorem LabelFamilies.apObject_seat (F : LabelFamilies P) (ℓ : P.Label)
     (i : Fin (P.seats ℓ)) (p : P.Payload) : F.APObject ⟨.seat ℓ i, p⟩ ↔ F.ap ℓ :=
   Iff.rfl
 
-@[simp] theorem LabelFamilies.not_apObject_none (F : LabelFamilies P) (p : P.Payload) :
-    ¬ F.APObject ⟨.none, p⟩ :=
-  id
+@[simp] theorem LabelFamilies.apObject_none (F : LabelFamilies P) (p : P.Payload) :
+    F.APObject ⟨.none, p⟩ :=
+  trivial
 
 /-- The isolation laws of a protocol with the label families `F` (design §2
 E5). `base` is the part of the state that the AP protocol reads.
@@ -35,7 +37,9 @@ E5). `base` is the part of the state that the AP protocol reads.
   or the object (`clockB`, `processB`); `recordOwn` does not change `base`.
 * `act` on the AP labels (`actB`, with the input) and all `gossip`
   (`gossipB`) factor through `base`.
-* The hooks restricted to AP objects factor through `base` (`hooks_base`).
+* The hooks restricted to objects of the AP projection (`F.APObject`: AP
+  labels and unsigned objects) factor through `base` (`depsB`,
+  `processedB`, `excludesB`, `handlesB`; law `hooks_base`).
 * Separation: AP labels and the fresh labels are not self-visible.
 
 The E6 restore law is not a field. Plan 2c adds it as a separate structure
@@ -54,17 +58,24 @@ structure Isolation (P : ProtocolSpec In) (F : LabelFamilies P) where
   act_base : ∀ st ℓ x, F.ap ℓ → P.act st ℓ x = actB (base st) ℓ x
   gossipB : Base → Time → List P.Payload
   gossip_base : ∀ st t, P.gossip st t = gossipB (base st) t
-  /-- Hook projection (design §2 E5): `depsPresent`, `processed` and
-  `excludes` on AP objects, and `handles` when both objects are AP objects,
-  are functions of `base`. `wellFormed` reads no state. As in `Sketch.lean`,
-  "factors through `base`" is an existential over functions on `Base`;
-  `handles` is a proposition, so its factor is a relation and the law is an
-  `↔`. `Isolation.hooks_congr` gives the form for two states with equal
-  bases. -/
-  hooks_base : ∃ (depsB processedB excludesB : Base → P.Object → Bool)
-      (handlesB : Base → P.Object → P.Object → Prop),
-    ∀ st o, F.APObject o →
-      P.depsPresent st o = depsB (base st) o ∧ P.processed st o = processedB (base st) o ∧
+  /-- The factor of `depsPresent` on `Base`. -/
+  depsB : Base → P.Object → Bool
+  /-- The factor of `processed` on `Base`. -/
+  processedB : Base → P.Object → Bool
+  /-- The factor of `excludes` on `Base`. -/
+  excludesB : Base → P.Object → Bool
+  /-- The factor of `handles` on `Base`. `handles` is a proposition, so its
+  factor is a relation. -/
+  handlesB : Base → P.Object → P.Object → Prop
+  /-- Hook projection (design §2 E5): on objects of the AP projection
+  (`F.APObject`), `depsPresent`, `processed` and `excludes` equal their
+  factors at `base st`; `handles` does when both objects are objects of the
+  AP projection (the law is an `↔`). The factors are data, like `clockB`, so
+  the AP projection can use them directly. `wellFormed` reads no state, so it
+  has no factor. `Isolation.hooks_congr` gives the form for two states with
+  equal bases. -/
+  hooks_base : ∀ st o, F.APObject o →
+    P.depsPresent st o = depsB (base st) o ∧ P.processed st o = processedB (base st) o ∧
       P.excludes st o = excludesB (base st) o ∧
       ∀ o', F.APObject o' → (P.handles st o o' ↔ handlesB (base st) o o')
   /-- Separation (design §2 E5): no AP label and no label of the designated
@@ -107,9 +118,8 @@ theorem hooks_congr (iso : Isolation P F) {st st' : P.State}
     P.depsPresent st o = P.depsPresent st' o ∧ P.processed st o = P.processed st' o ∧
       P.excludes st o = P.excludes st' o ∧
       ∀ o', F.APObject o' → (P.handles st o o' ↔ P.handles st' o o') := by
-  obtain ⟨dB, pB, xB, hB, hf⟩ := iso.hooks_base
-  obtain ⟨hd, hp, hx, hh⟩ := hf st o ho
-  obtain ⟨hd', hp', hx', hh'⟩ := hf st' o ho
+  obtain ⟨hd, hp, hx, hh⟩ := iso.hooks_base st o ho
+  obtain ⟨hd', hp', hx', hh'⟩ := iso.hooks_base st' o ho
   refine ⟨by rw [hd, hd', h], by rw [hp, hp', h], by rw [hx, hx', h], fun o' ho' => ?_⟩
   rw [hh o' ho', hh' o' ho', h]
 

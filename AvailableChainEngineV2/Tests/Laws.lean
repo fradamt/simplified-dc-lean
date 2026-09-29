@@ -7,7 +7,9 @@ public import AvailableChainEngineV2.Tests.Conditions
 
 /-! Tests of the laws without blocks (plan 2a, Task 3). Separation (Review
 Focus 3): a spec with a self-visible AP label, or a self-visible fresh label,
-has no `Isolation` value; a self-visible linked label is allowed. A one-seat
+has no `Isolation` value; a self-visible linked label is allowed. The hook
+projection covers unsigned objects, and it fails for a hook that reads the
+own record (on an AP object and on an unsigned object). A one-seat
 label in a `CStar` family forces one validator. `HooksSound` holds for
 `specA`, and `ExecutionValid.snoc_selfDelivery` appends a self-delivery to a
 valid run of `specA`. -/
@@ -33,7 +35,8 @@ example : IsEmpty (Isolation specA famAllFresh) :=
   ⟨fun iso => absurd (iso.separation true (Or.inr trivial)) (by decide)⟩
 
 /-- A self-visible linked label is allowed. The base is trivial: no label is
-an AP label, so no hook and no payload needs to factor. -/
+an AP label, and the hooks of `specA` are constant, so they factor on the
+unsigned objects too. -/
 def isoLinked : Isolation specA famAllLinked where
   Base := Unit
   base := fun _ => ()
@@ -46,13 +49,22 @@ def isoLinked : Isolation specA famAllLinked where
   act_base := fun _ _ _ h => h.elim
   gossipB := fun _ _ => []
   gossip_base := fun _ _ => rfl
-  hooks_base := ⟨fun _ _ => true, fun _ _ => false, fun _ _ => false, fun _ o o' => o = o',
-    fun _ o ho => by
-      obtain ⟨a, p⟩ := o
-      cases a with
-      | seat ℓ i => exact ho.elim
-      | none => exact ho.elim⟩
+  depsB := fun _ _ => true
+  processedB := fun _ _ => false
+  excludesB := fun _ _ => false
+  handlesB := fun _ o o' => o = o'
+  hooks_base := fun _ _ _ => ⟨rfl, rfl, rfl, fun _ _ => Iff.rfl⟩
   separation := fun _ h => h.elim (fun h => h.elim) (fun h => h.elim)
+
+-- An unsigned object is an object of the AP projection, so `hooks_base`
+-- covers it, and the factors of `isoLinked` compute by `rfl`.
+example : famAllLinked.APObject (⟨.none, 3⟩ : specA.Object) := trivial
+example (st : Nat) : specA.processed st ⟨.none, 3⟩ =
+    isoLinked.processedB (isoLinked.base st) ⟨.none, 3⟩ :=
+  (isoLinked.hooks_base st ⟨.none, 3⟩ trivial).2.1
+example : isoLinked.processedB () ⟨.none, 3⟩ = false := rfl
+-- A signed object of a linked label is not.
+example : ¬ famAllLinked.APObject (⟨.seat true 0, 3⟩ : specA.Object) := id
 
 /-- `specB` (no self-visible label) with its one label in `ap` and `fresh`.
 The base is the whole state. -/
@@ -68,13 +80,62 @@ def isoB : Isolation specB ⟨fun _ => True, fun _ => True, fun _ => False⟩ wh
   act_base := fun _ _ _ _ => rfl
   gossipB := fun _ _ => []
   gossip_base := fun _ _ => rfl
-  hooks_base := ⟨fun _ _ => true, fun _ _ => false, fun _ _ => false, fun _ o o' => o = o',
-    fun _ _ _ => ⟨rfl, rfl, rfl, fun _ _ => Iff.rfl⟩⟩
+  depsB := fun _ _ => true
+  processedB := fun _ _ => false
+  excludesB := fun _ _ => false
+  handlesB := fun _ o o' => o = o'
+  hooks_base := fun _ _ _ => ⟨rfl, rfl, rfl, fun _ _ => Iff.rfl⟩
   separation := fun _ _ => rfl
 
 -- `base_tick` for `isoB`: the tick of `rhoB` at time 5 keeps the base.
 example (st : Nat) : isoB.base (tick (envAwake _) rhoB st () 5).1 = st :=
   isoB.base_tick _ _ _ _ _
+
+/-! ### `hooks_base` can fail -/
+
+/-- One label, not self-visible, due at time 5. The state is a flag. The own
+record sets the flag, and `processed` reads it for every object. -/
+abbrev specF : ProtocolSpec Unit where
+  State := Bool
+  Label := Unit
+  seats := fun _ => 1
+  Payload := Nat
+  Durable := Unit
+  init := false
+  clock := fun s _ => s
+  actTime := fun _ => 5
+  duties := dutiesB
+  duties_spec := specB.duties_spec
+  duties_nodup := specB.duties_nodup
+  act := fun _ _ _ => none
+  gossip := fun _ _ => []
+  process := fun s _ => s
+  selfVisible := fun _ => false
+  recordOwn := fun _ _ => true
+  durable := fun _ => ()
+  restore := fun _ => false
+  wellFormed := fun _ => true
+  depsPresent := fun _ _ => true
+  processed := fun s _ => s
+  excludes := fun _ _ => false
+  handles := fun _ o o' => o = o'
+  carries := fun _ _ => False
+
+/-- `recordOwn_base` makes the base forget the flag, so a hook of an object of
+the AP projection that reads the flag does not factor through the base. -/
+theorem specF_not_isolated (F : LabelFamilies specF) (o : specF.Object)
+    (ho : F.APObject o) : IsEmpty (Isolation specF F) :=
+  ⟨fun iso => by
+    have h : iso.base true = iso.base false := iso.recordOwn_base false o
+    have hp := (iso.hooks_congr h ho).2.1
+    exact Bool.noConfusion hp⟩
+
+-- With the label in `ap`: an AP object reads the flag.
+example : IsEmpty (Isolation specF ⟨fun _ => True, fun _ => False, fun _ => False⟩) :=
+  specF_not_isolated _ ⟨.seat () 0, 0⟩ trivial
+-- With no AP label: an unsigned object reads the flag (the widened law).
+example : IsEmpty (Isolation specF ⟨fun _ => False, fun _ => False, fun _ => True⟩) :=
+  specF_not_isolated _ ⟨.none, 0⟩ trivial
 
 -- DC N9: a one-seat label in a `CStar` family forces one validator.
 example {V : Type} [Fintype V] {In : Type} {P : ProtocolSpec In} {F : P.Label → Prop}

@@ -79,6 +79,18 @@ theorem foldl_recordOwn_deps (h : HooksSound P) (o' : P.Object) :
       intro s
       rw [List.foldl_cons, ih, h.recordOwn_deps]
 
+/-- A fold of the own record keeps an exclusion. -/
+theorem foldl_recordOwn_excludes (h : HooksSound P) (o' : P.Object) :
+    ∀ (l : List P.Object) (s : P.State), P.excludes s o' = true →
+      P.excludes (l.foldl P.recordOwn s) o' = true := by
+  intro l
+  induction l with
+  | nil => intro s hs; exact hs
+  | cons o rest ih =>
+      intro s hs
+      rw [List.foldl_cons]
+      exact ih _ (h.recordOwn_excludes s o o' hs)
+
 /-- After a tick, `processed` is its value in the post-clock state. -/
 theorem processed_tick (h : HooksSound P) {V : Type} [DecidableEq V] (E : Generic.Env V)
     (rho : Run V P) (st : P.State) (v : V) (t : Time) (o : P.Object) :
@@ -90,6 +102,13 @@ theorem deps_tick (h : HooksSound P) {V : Type} [DecidableEq V] (E : Generic.Env
     (rho : Run V P) (st : P.State) (v : V) (t : Time) (o : P.Object) :
     P.depsPresent (tick E rho st v t).1 o = P.depsPresent (P.clock st t) o := by
   rw [tick_decomp, h.foldl_recordOwn_deps]
+
+/-- A tick keeps an exclusion of the post-clock state. -/
+theorem excludes_tick (h : HooksSound P) {V : Type} [DecidableEq V] (E : Generic.Env V)
+    (rho : Run V P) (st : P.State) (v : V) (t : Time) (o : P.Object)
+    (hx : P.excludes (P.clock st t) o = true) :
+    P.excludes (tick E rho st v t).1 o = true := by
+  rw [tick_decomp]; exact h.foldl_recordOwn_excludes o _ _ hx
 
 end HooksSound
 
