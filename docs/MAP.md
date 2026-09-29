@@ -396,6 +396,14 @@ arming need not satisfy the general lag test.
 │ memoryDenominator; quorum    │                                                     │
 │ confirmation; gate; clock   │ Genuine Goldfish gate; lock acquire/renew/expire  │
 │ advance; stable; confirmed  │ L* separate S and G records and nested accessor   │
+│ excludes                     │ E4 permanent refusals: an unprocessed HEAD whose    │
+│                              │ seat equivocates; an unprocessed proposal wire      │
+│                              │ whose block is stored (`admitProposal`)             │
+│ Proofs/Hooks: excludes_inert;│ E4 hook facts for `lstar p n` (`HooksSound`         │
+│ excludes_stable;             │ field shapes); exactness tests excludes_head_iff,   │
+│ processed_stable;            │ excludes_proposal_iff, excludes_not_processed,      │
+│ deps_stable; handles_carries │ excludes_second_wire                                │
+│ Tests.smokeSecondWirePass    │ Second wire for a stored block is excluded          │
 │ lstar; lstarInterface        │ Contract §2a ProtocolSpec and §3 interface        │
 │ lstarConstants;              │ Contract §6, L* result constants and statement   │
 │ LStarContract                │                                                     │
@@ -407,7 +415,11 @@ The executable model is in `AvailableChainLStar/Model/Protocol.lean`; the
 contract statement is in `AvailableChainLStar/Statements/Contract.lean`.
 `Proofs/FastOutage.lean` derives fast P1 from a general P1 proof; the
 general proof remains pending.
-The `#eval` check is in `AvailableChainLStar/Tests/Smoke.lean`.
+`Proofs/Hooks.lean` proves the E4 hook facts for `lstar p n` without an
+import of the framework or Grid CO. `excludes` does not read the clock, so
+`excludes_stable` does not use the schedule premise. No Registry instance
+assembles these facts into `HooksSound` yet.
+The `#eval` and `#guard` checks are in `AvailableChainLStar/Tests/Smoke.lean`.
 
 ## Witnesses (§2a K8, §7)
 

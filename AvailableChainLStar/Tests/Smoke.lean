@@ -74,6 +74,27 @@ def smokePass : Bool :=
       Block.preceq smokeProposalBlock (stable st) &&
         Block.preceq smokeProposalBlock (confirmed st))
 
+/-- E4 second-wire test: after the slot-1 proposal is stored, a second
+well-formed wire with the same block and another raw view is excluded. Before
+the block is stored, that wire is not excluded. -/
+def smokeStored : State 4 :=
+  process smokeParams (clock smokeParams (initial 4) 8) smokeProposal
+
+def smokeSecondWire : Wire 4 :=
+  ⟨.proposer 1, .proposal smokeProposalBlock [⟨.seat 0 3, .genesis⟩] []⟩
+
+def smokeSecondWirePass : Bool :=
+  wellFormed smokeProposal && wellFormed smokeSecondWire &&
+    smokeSecondWire != smokeProposal &&
+    decide (smokeProposalBlock ∈ smokeStored.blocks) &&
+    excludes smokeStored smokeSecondWire &&
+    !excludes smokeStored smokeProposal &&
+    !excludes (clock smokeParams (initial 4) 8) smokeSecondWire
+
+-- `#guard` fails the build if the test fails; `#eval` does not.
+set_option linter.hashCommand false in
+#guard smokeSecondWirePass
+
 #eval smokeProposalBlock
 #eval smokeOutputs
 #eval smokePass

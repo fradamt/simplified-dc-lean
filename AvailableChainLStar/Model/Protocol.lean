@@ -484,6 +484,27 @@ theorem slotsAt_nodup (p : Params) (t : Time) : (slotsAt p t).Nodup := by
 theorem duties_nodup (p : Params) (t : Time) : (duties p t).Nodup := by
   exact List.Nodup.filter _ List.nodup_range
 
+/-- Permanent rejection (design §2 E4). Two refusals are permanent:
+- a HEAD that is not yet processed, whose seat already equivocates at its
+  label `r` (`admitVote`; equivocation evidence only grows);
+- a proposal wire that is not yet processed, whose block is already stored
+  (`admitProposal`; stored blocks are never removed). A faulty proposer can
+  sign two wires with the same block; the store refuses the second wire for
+  good.
+Both handlers return the state unchanged in these cases. Late HEADs of old
+labels are admitted, so no old-label clause applies. A HEAD of a future label
+(`current < r`) is refused only until the clock reaches `r`, so it is not
+excluded. A processed object is not excluded. An object whose
+authentication does not match its payload (for example a HEAD with proposer
+authentication) is also refused for good, but it fails the wire check
+(`wellFormed`), and `DeliveryWellFormed.wire` keeps it out of every valid
+run. -/
+def excludes {n : Nat} (st : State n) (o : Wire n) : Bool :=
+  match o.auth, o.payload with
+  | .seat r i, .head _ => !decide (o ∈ st.votes) && equivocates (votesAt st r) i
+  | .proposer _, .proposal b _ _ => !decide (o ∈ st.proposals) && decide (b ∈ st.blocks)
+  | _, _ => false
+
 /-- The C* instance: seat identities occur in authentication only. Every
 seat of a label signs the same payload. Source: CONTRACT.md §2a. -/
 def lstar (p : Params) (n : Nat) : ProtocolSpec n where
@@ -507,7 +528,7 @@ def lstar (p : Params) (n : Nat) : ProtocolSpec n where
   wellFormed := wellFormed
   depsPresent := depsPresent
   processed := processed
-  excludes := fun _ _ => false
+  excludes := excludes
   handles := handles p
   carries := carries
 
