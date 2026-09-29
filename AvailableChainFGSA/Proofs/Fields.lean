@@ -111,12 +111,12 @@ theorem freeze_blocks (q : GridCO.Params) (v : GridCO.State n) (r : Slot) :
 /-- [helper] The release step keeps `blocks`. -/
 theorem release_blocks (p : SA.Params) (v : GridCO.State n) (r : Slot) :
     (SA.release p v r).blocks = v.blocks := rfl
-/-- [helper] The SA gate keeps `blocks`. Proof: `@GridCO.gate_blocks
-GridCO.slowLeasePolicy p.engine n v r` (the default instance would elaborate the
-GRID gate). -/
-theorem saGate_blocks (p : SA.Params) (v : GridCO.State n) (r : Slot) :
-    (SA.gate p v r).blocks = v.blocks :=
-  @GridCO.gate_blocks GridCO.slowLeasePolicy p.engine n v r
+/-- [helper] The SA gate with the walk from `a` keeps `blocks`. Proof:
+`@GridCO.gateFrom_blocks GridCO.slowLeasePolicy p.engine n a v r` (the default
+instance would elaborate the GRID gate). -/
+theorem saGate_blocks (p : SA.Params) (a : Block) (v : GridCO.State n) (r : Slot) :
+    (SA.gateFrom p a v r).blocks = v.blocks :=
+  @GridCO.gateFrom_blocks GridCO.slowLeasePolicy p.engine n a v r
 
 /-! ### The gate -/
 
@@ -166,11 +166,12 @@ theorem savedGenuine_append (v : GridCO.State n) (s : Slot) (x : Option Block)
         have hne : ((s, x).1 == r) = false := beq_false_of_ne (Ne.symm hr)
         simp [List.find?, hne]
 
-/-- [helper] The SA gate on a view whose label `s` is not saved appends
-`(s, confirmation)` to `genuine` and writes no other saved result. -/
-theorem saGate_genuine (p : SA.Params) (v : GridCO.State n) (s : Slot)
+/-- [helper] The SA gate with the walk from `a`, on a view whose label `s` is not
+saved, appends `(s, confirmationFrom a)` to `genuine` and writes no other saved
+result. -/
+theorem saGate_genuine (p : SA.Params) (a : Block) (v : GridCO.State n) (s : Slot)
     (hnew : GridCO.savedGenuine v s = none) :
-    (SA.gate p v s).genuine = v.genuine ++ [(s, SA.confirmation p v s)] := by
+    (SA.gateFrom p a v s).genuine = v.genuine ++ [(s, SA.confirmationFrom p a v s)] := by
   have hrec : ∀ x, @GridCO.recordGenuine GridCO.slowLeasePolicy n v s x =
       v.genuine ++ [(s, x)] := by
     intro x
@@ -189,7 +190,7 @@ theorem saGate_genuine (p : SA.Params) (v : GridCO.State n) (s : Slot)
         induction gs generalizing acc with
         | nil => rfl
         | cons g gs ihg => simp only [List.foldl_cons]; rw [ihg]; rfl
-  simp only [SA.gate, GridCO.gate, SA.confirmation]
+  simp only [SA.gateFrom, GridCO.gateFrom, SA.confirmationFrom]
   split
   · next hc => simp only [hrec, hc]
   · next h hc =>
@@ -198,21 +199,25 @@ theorem saGate_genuine (p : SA.Params) (v : GridCO.State n) (s : Slot)
     · rw [hfold]
       simp only [hrec, hc]
 
-/-- [bp bp.leaseOrigins.v1; K1, K6] A fresh gate saves the confirmation of the
-view and adds exactly `fastSet` of the view; a saved label changes neither. -/
+/-- [bp bp.leaseOrigins.v1; K1, K6; spec 4e85ff34: 885–913, 1280–1297] A fresh
+gate saves the confirmation of the view with the walk from `Σ.F`
+(`genuine_result`) and adds exactly `fastSet` of the view at the same anchor; a
+saved label changes neither. -/
 theorem gateStep_fresh (p : Params) (st : State p.n) (s : Slot)
     (hnew : GridCO.savedGenuine st.base s = none) :
     GridCO.savedGenuine (gateStep p st s).base s =
-      some (SA.confirmation p.toParams (actView st) s) ∧
+      some (SA.confirmationFrom p.toParams (eraseFG st.fg.F) (actView st) s) ∧
     (∀ r ≠ s, GridCO.savedGenuine (gateStep p st s).base r = GridCO.savedGenuine st.base r) ∧
-    (gateStep p st s).fastWrite = st.fastWrite ++ [(s, fastSet p (actView st) s)] := by
+    (gateStep p st s).fastWrite =
+      st.fastWrite ++ [(s, fastSet p (eraseFG st.fg.F) (actView st) s)] := by
   have hv : GridCO.savedGenuine (actView st) s = none := hnew
-  have hg := saGate_genuine p.toParams (actView st) s hv
+  have hg := saGate_genuine p.toParams (eraseFG st.fg.F) (actView st) s hv
   have hsave : ∀ r, GridCO.savedGenuine (gateStep p st s).base r =
-      if r = s then some (SA.confirmation p.toParams (actView st) s)
+      if r = s then some (SA.confirmationFrom p.toParams (eraseFG st.fg.F) (actView st) s)
       else GridCO.savedGenuine st.base r := by
     intro r
-    have := savedGenuine_append (actView st) s (SA.confirmation p.toParams (actView st) s) hv r
+    have := savedGenuine_append (actView st) s
+      (SA.confirmationFrom p.toParams (eraseFG st.fg.F) (actView st) s) hv r
     unfold gateStep
     rw [normalizeS_fields]
     simp only [hnew, Option.isSome_none, Bool.false_eq_true, if_false]
@@ -231,10 +236,11 @@ theorem gateStep_saved (p : Params) (st : State p.n) (s : Slot)
   unfold gateStep
   simp only [hs, if_true]
 
-/-- [helper] Every member of `fastSet` is a non-genesis prefix of the confirmation. -/
-theorem fastSet_prefix (p : Params) (v : GridCO.State p.n) (s : Slot) {B : Block}
-    (hB : B ∈ fastSet p v s) :
-    ∃ h, SA.confirmation p.toParams v s = some h ∧ Block.Preceq B h ∧ B ∈ v.blocks ∧
+/-- [helper] Every member of `fastSet` at anchor `a` is a non-genesis prefix of
+the confirmation with the walk from `a`. -/
+theorem fastSet_prefix (p : Params) (a : Block) (v : GridCO.State p.n) (s : Slot)
+    {B : Block} (hB : B ∈ fastSet p a v s) :
+    ∃ h, SA.confirmationFrom p.toParams a v s = some h ∧ Block.Preceq B h ∧ B ∈ v.blocks ∧
       B ≠ .genesis := by
   unfold fastSet at hB
   split at hB

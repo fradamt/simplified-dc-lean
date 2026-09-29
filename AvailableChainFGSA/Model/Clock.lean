@@ -7,25 +7,29 @@ namespace AvailableChain.FGSA
 
 open AvailableChain.Generic AvailableChain.SimplexFG
 
-/-- [spec 761–775, 457–461] The fast-write set of gate `s`, computed on the
-active view before the gate: empty if the result is empty or vetoed; else the
-non-genesis active prefixes of the result that pass the fast test `p(s,B) ≥ τ`.
-A renewal counts also when the deadline does not change. -/
-def fastSet (p : Params) (v : GridCO.State p.n) (s : Slot) : List Block :=
-  match SA.confirmation p.toParams v s with
+/-- [spec 4e85ff34: 892–906, 588–592, 1280–1297] The fast-write set of gate
+`s`, computed on the active view before the gate: empty if the result is empty
+or vetoed; else the non-genesis active prefixes of the result that pass the fast
+test `p(s,B) ≥ τ`. The result is `genuine_result`: the walk from the anchor `a`
+(the gate passes `Σ.F`), with the final strict-majority test also at `a`. A
+renewal counts also when the deadline does not change. -/
+def fastSet (p : Params) (a : Block) (v : GridCO.State p.n) (s : Slot) : List Block :=
+  match SA.confirmationFrom p.toParams a v s with
   | none => []
   | some h =>
       if v.obligations.any (fun row => !Block.compatible row.1 h) then [] else
         v.blocks.filter (fun b => b != .genesis && Block.preceq b h &&
           decide (SA.releaseThreshold p.toParams ≤ SA.prefixSupport p.toParams v s b))
 
-/-- [spec 754–782; M7, DQ5] `update_confirmation`: if label `s` is not saved,
-run the SA gate on the active view and record `fastWrite[s]`; then `S := F`
-if `F ⋠ S`, also after an empty or vetoed gate. -/
+/-- [spec 4e85ff34: 885–913, 1280–1297, 502–505; M7, DQ5]
+`update_confirmation`: if label `s` is not saved, run the SA gate on the active
+view with the walk from `Σ.F` (`genuine_result`) and record `fastWrite[s]`; then
+`S := F` if `F ⋠ S`, also after an empty or vetoed gate. -/
 def gateStep (p : Params) (st : State p.n) (s : Slot) : State p.n :=
+  let a := eraseFG st.fg.F
   let st := if (GridCO.savedGenuine st.base s).isSome then st else
-    { onView (fun v => SA.gate p.toParams v s) st with
-      fastWrite := st.fastWrite ++ [(s, fastSet p (actView st) s)] }
+    { onView (fun v => SA.gateFrom p.toParams a v s) st with
+      fastWrite := st.fastWrite ++ [(s, fastSet p a (actView st) s)] }
   normalizeS st
 
 /-- [spec 683–694, 709–752; M8] The tick before the gate: set the time and
