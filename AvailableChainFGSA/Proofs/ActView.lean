@@ -212,16 +212,21 @@ theorem clock_eq_saClock_offGate (p : Params) (st : State p.n) (t : Time)
   rw [if_neg hc, clockPre_eq, show SA.clock p.toParams (actView st) t = _ from if_neg hc]
   rfl
 
-/-- [comp D3; M7, DQ5; Opus m1] At a gate time of an unsaved label, the composite
-tick is `normalizeS` of the SA tick on the active view, with EXACTLY the fast set
-of the view before the gate added. -/
-theorem clock_eq_saClock_gate (p : Params) (st : State p.n) (t : Time) (s : Slot)
+/-- [comp D3; M7, DQ5; Opus m1; spec 4e85ff34: 885–913, 1280–1297] At a gate
+time of an unsaved label, the composite tick is `normalizeS` of the SA tick with
+the walk from F (`SA.clockFrom` at `eraseFG st.fg.F`) on the active view, with
+EXACTLY the fast set (at the same anchor) of the view before the gate added. The
+tick does not move F before the gate (`clockPre_fg`), so the anchor is F of the
+tick input. -/
+theorem clock_eq_saClockFrom_gate (p : Params) (st : State p.n) (t : Time) (s : Slot)
     (hs : s = ((t - 6 * p.Δ) / (4 * p.Δ)).toNat) (hg : 0 ≤ t - 6 * p.Δ)
     (ht : t = SA.gateTime p.toParams s)
     (hnew : GridCO.savedGenuine st.base s = none) :
     clock p st t = normalizeS { st with
-      base := { SA.clock p.toParams (actView st) t with blocks := st.base.blocks },
-      fastWrite := st.fastWrite ++ [(s, fastSet p (actView (clockPre p st t)) s)] } := by
+      base := { SA.clockFrom p.toParams (eraseFG st.fg.F) (actView st) t with
+        blocks := st.base.blocks },
+      fastWrite := st.fastWrite ++
+        [(s, fastSet p (eraseFG st.fg.F) (actView (clockPre p st t)) s)] } := by
   have hc : (decide (0 ≤ t - 6 * p.Δ) &&
       t == SA.gateTime p.toParams ((t - 6 * p.Δ) / (4 * p.Δ)).toNat) = true := by
     rw [← hs]
@@ -234,25 +239,28 @@ theorem clock_eq_saClock_gate (p : Params) (st : State p.n) (t : Time) (s : Slot
   unfold clock
   rw [if_pos hc, ← hs]
   unfold gateStep
-  rw [if_neg (by simp [hn]), clockPre_fastWrite]
+  dsimp only
+  rw [if_neg (by simp [hn]), clockPre_fastWrite, clockPre_fg]
   rw [clockPre_eq, onView_onView _ _ (fun v => by dsimp only; split <;> split <;> split <;> rfl)]
   subst hs
-  rw [show SA.clock p.toParams (actView st) t = _ from if_pos hc]
+  rw [show SA.clockFrom p.toParams (eraseFG st.fg.F) (actView st) t = _ from if_pos hc]
   rfl
 
-/-- [comp D3; M7, DQ5; G7 m3] `clock_eq_saClock_gate` with only the gate time and
-the unsaved label: the other two premises follow from `Δ > 0`. -/
-theorem clock_eq_saClock_gate' (p : Params) (st : State p.n) (t : Time) (s : Slot)
+/-- [comp D3; M7, DQ5; G7 m3] `clock_eq_saClockFrom_gate` with only the gate time
+and the unsaved label: the other two premises follow from `Δ > 0`. -/
+theorem clock_eq_saClockFrom_gate' (p : Params) (st : State p.n) (t : Time) (s : Slot)
     (ht : t = SA.gateTime p.toParams s)
     (hnew : GridCO.savedGenuine st.base s = none) :
     clock p st t = normalizeS { st with
-      base := { SA.clock p.toParams (actView st) t with blocks := st.base.blocks },
-      fastWrite := st.fastWrite ++ [(s, fastSet p (actView (clockPre p st t)) s)] } := by
+      base := { SA.clockFrom p.toParams (eraseFG st.fg.F) (actView st) t with
+        blocks := st.base.blocks },
+      fastWrite := st.fastWrite ++
+        [(s, fastSet p (eraseFG st.fg.F) (actView (clockPre p st t)) s)] } := by
   have hΔ : 0 < p.Δ := p.deltaPos
   have h4 : t - 6 * p.Δ = 4 * p.Δ * (s : Int) := by
     rw [ht]; simp only [SA.gateTime, GridCO.gateTime, GridCO.proposalTime]
     change 4 * p.Δ * (s : Int) + 6 * p.Δ - 6 * p.Δ = _; ring
-  refine clock_eq_saClock_gate p st t s ?_ (by rw [h4]; positivity) ht hnew
+  refine clock_eq_saClockFrom_gate p st t s ?_ (by rw [h4]; positivity) ht hnew
   rw [h4, Int.mul_ediv_cancel_left _ (by positivity)]
   simp
 

@@ -382,6 +382,17 @@ def cleanSupport (p : Params) {n : Nat} (st : State n) (r : Slot) : List (Wire n
   (earlyVotes p st r).filter (fun o =>
     !(lateVotes p st r).any (fun u => sameSeat u o && u != o))
 
+/-- Genuine Goldfish confirmation at `d_r` with the walk anchored at `a`:
+early resolved support, late equivocation exclusion, and a strict majority
+of late participants. The final test checks the walk result itself. -/
+def confirmationFrom (p : Params) {n : Nat} (a : Block) (st : State n) (r : Slot) :
+    Option Block :=
+  let support := cleanSupport p st r
+  let late := lateVotes p st r
+  let eligible := fun b => 2 * goldfishScore st.blocks support support b > voterCount late
+  let h := ghost a st.blocks (goldfishScore st.blocks support support) eligible
+  if eligible h then some h else none
+
 /-- Genuine Goldfish confirmation at `d_r`: early resolved support,
 late equivocation exclusion, and a strict majority of late participants.
 The walk starts at genesis; proposals and HEADs start at the live root. -/
@@ -391,6 +402,9 @@ def confirmation (p : Params) {n : Nat} (st : State n) (r : Slot) : Option Block
   let eligible := fun b => 2 * goldfishScore st.blocks support support b > voterCount late
   let h := ghost .genesis st.blocks (goldfishScore st.blocks support support) eligible
   if eligible h then some h else none
+
+theorem confirmation_eq_from_genesis (p : Params) {n : Nat} (st : State n) (r : Slot) :
+    confirmation p st r = confirmationFrom p .genesis st r := rfl
 
 /-- A resolved label-r HEAD contributes to release only when its seat has
 exactly one known label-r HEAD and its target conflicts with the obligation. -/
@@ -462,6 +476,26 @@ def admissionLevels [LeasePolicy] (p : Params) {n : Nat} (st : State n)
     (List.range (p.n + 1)).filter (fun g => g ∈ p.grid && g ≤ prefixSupport p st r b)
 
 /-- A genuine gate advances G. It advances S and writes obligations only
+when the result is compatible with every live target. The walk starts at `a`. -/
+def gateFrom [LeasePolicy] (p : Params) {n : Nat} (a : Block) (st : State n) (r : Slot) :
+    State n :=
+  match confirmationFrom p a st r with
+  | none => { st with genuine := recordGenuine st r none }
+  | some h =>
+      let levels := admissionLevels p st r
+      let st := { st with
+        goldfishRecord := advance st.goldfishRecord h
+        genuine := recordGenuine st r (some h) }
+      if st.obligations.any (fun (target, _, _) =>
+        !Block.compatible target h) then st else
+        let st := { st with stableRecord := advance st.stableRecord h }
+        let prefixes := st.blocks.filter (fun b =>
+          b != .genesis && Block.preceq b h)
+        prefixes.foldl (fun acc b =>
+          (levels b).foldl
+            (fun acc g => writeObligation acc b g (gateTime p r + lifetime p)) acc) st
+
+/-- A genuine gate advances G. It advances S and writes obligations only
 when the result is compatible with every live target. -/
 def gate [LeasePolicy] (p : Params) {n : Nat} (st : State n) (r : Slot) : State n :=
   match confirmation p st r with
@@ -480,6 +514,28 @@ def gate [LeasePolicy] (p : Params) {n : Nat} (st : State n) (r : Slot) : State 
           (levels b).foldl
             (fun acc g => writeObligation acc b g (gateTime p r + lifetime p)) acc) st
 
+theorem gate_eq_from_genesis [LeasePolicy] (p : Params) {n : Nat} (st : State n)
+    (r : Slot) : gate p st r = gateFrom p .genesis st r := rfl
+
+/-- Local public-time evaluations run for awake and asleep nodes. Equality
+checks make each cutoff run once; same-time expiry precedes acquisition.
+The gate walk starts at `a`. -/
+def clockFrom [LeasePolicy] (p : Params) {n : Nat} (a : Block) (st : State n) (t : Time) :
+    State n :=
+  let st := expire { st with now := t } t
+  let fSlot := ((t - 3 * p.Δ) / (4 * p.Δ)).toNat
+  let st := if 0 ≤ t - 3 * p.Δ && t == freezeTime p fSlot then
+    freeze p st fSlot else st
+  let eSlot := ((t - 2 * p.Δ) / (4 * p.Δ)).toNat
+  let st := if 0 ≤ t - 2 * p.Δ && t == earlyTime p eSlot then
+    { st with early := st.early ++ [(eSlot, earlyVotes p st eSlot)] }
+    else st
+  let qSlot := ((t - 5 * p.Δ) / (4 * p.Δ)).toNat
+  let st := if 0 ≤ t - 5 * p.Δ && t == releaseTime p qSlot then
+    release p st qSlot else st
+  let dSlot := ((t - 6 * p.Δ) / (4 * p.Δ)).toNat
+  if 0 ≤ t - 6 * p.Δ && t == gateTime p dSlot then gateFrom p a st dSlot else st
+
 /-- Local public-time evaluations run for awake and asleep nodes. Equality
 checks make each cutoff run once; same-time expiry precedes acquisition. -/
 def clock [LeasePolicy] (p : Params) {n : Nat} (st : State n) (t : Time) : State n :=
@@ -496,6 +552,9 @@ def clock [LeasePolicy] (p : Params) {n : Nat} (st : State n) (t : Time) : State
     release p st qSlot else st
   let dSlot := ((t - 6 * p.Δ) / (4 * p.Δ)).toNat
   if 0 ≤ t - 6 * p.Δ && t == gateTime p dSlot then gate p st dSlot else st
+
+theorem clock_eq_from_genesis [LeasePolicy] (p : Params) {n : Nat} (st : State n)
+    (t : Time) : clock p st t = clockFrom p .genesis st t := rfl
 
 def confirmed {n : Nat} (st : State n) : Block := st.stableRecord
 

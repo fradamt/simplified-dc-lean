@@ -235,16 +235,25 @@ expect_fail "header forms and file names (compiled allowlist)" $code "$out" \
   "COMPILED IMPORT NOT ALLOWED: AvailableChainFGSA.Model.AdvCase imports AvailableChainLStar.Model.Protocol" \
   "COMPILED IMPORT NOT ALLOWED: AvailableChainFGSA.Model.Sub.X imports AvailableChainLStar.Model.Protocol"
 
-# Lease controls: a direct default-instance call; an alias wrapper with its own
-# policy parameter in another namespace (Astra M1); a generic wrapper whose
-# policy binder has an alias type (Opus m2); an imported wrapper that fixes the
-# default instance inside.
+# Lease controls: a direct default-instance call; the anchored gate and tick
+# (`gateFrom`, `clockFrom`) at the grid policy (spec sync C1); an alias wrapper
+# with its own policy parameter in another namespace (Astra M1); a generic
+# wrapper whose policy binder has an alias type (Opus m2); an imported wrapper
+# that fixes the default instance inside.
 cat > "$neg/FGSALeaseNeg.lean" <<'LEAN'
 import AvailableChainFGSA
 namespace AvailableChain.FGSA
 /-- A GridCO gate at the default instance `gridLeasePolicy`. -/
 def leaseNegControl (p : GridCO.Params) (st : GridCO.State 1) (r : Nat) : GridCO.State 1 :=
   GridCO.gate p st r
+/-- The anchored GridCO gate at `gridLeasePolicy`. -/
+def leaseNegGateFrom (p : GridCO.Params) (a : Block) (st : GridCO.State 1) (r : Nat) :
+    GridCO.State 1 :=
+  @GridCO.gateFrom GridCO.gridLeasePolicy p 1 a st r
+/-- The anchored GridCO tick at `gridLeasePolicy`. -/
+def leaseNegClockFrom (p : GridCO.Params) (a : Block) (st : GridCO.State 1) (t : Int) :
+    GridCO.State 1 :=
+  @GridCO.clockFrom GridCO.gridLeasePolicy p 1 a st t
 end AvailableChain.FGSA
 namespace AvailableChain.LeaseAuditAlias
 def gate (_policy : GridCO.LeasePolicy) (p : GridCO.Params)
@@ -294,6 +303,8 @@ done
 run lake env bash -c 'LEAN_PATH="$0:$LEAN_PATH" lean --run scripts/CheckFGSALease.lean FGSALeaseNeg FGSALeaseUse' "$neg"
 expect_fail "lease controls" $code "$out" \
   "leaseNegControl: AvailableChain.GridCO.gate at AvailableChain.GridCO.gridLeasePolicy" \
+  "leaseNegGateFrom: AvailableChain.GridCO.gateFrom at AvailableChain.GridCO.gridLeasePolicy" \
+  "leaseNegClockFrom: AvailableChain.GridCO.clockFrom at AvailableChain.GridCO.gridLeasePolicy" \
   "AvailableChain.LeaseAuditAlias.gate: has a policy parameter" \
   "AvailableChain.GridCO.sneakyGate: has a policy parameter" \
   "AvailableChain.GridCO.fixedGate: AvailableChain.GridCO.gate at AvailableChain.GridCO.gridLeasePolicy" \

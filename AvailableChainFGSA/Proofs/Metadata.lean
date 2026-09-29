@@ -51,24 +51,25 @@ theorem writeKeys_stamps {n : Nat} (v : GridCO.State n) (keys : List (Block × N
       simp only [GridCO.writeKeys, List.foldl_cons]
       exact ih _
 
-/-- [helper] The SA gate keeps both stamp lists. -/
-theorem saGate_stamps (p : SA.Params) {n : Nat} (v : GridCO.State n) (s : Slot) :
-    (SA.gate p v s).blockStamp = v.blockStamp ∧ (SA.gate p v s).voteStamp = v.voteStamp := by
-  cases hc : SA.confirmation p v s with
+/-- [helper] The SA gate with the walk from `a` keeps both stamp lists. -/
+theorem saGate_stamps (p : SA.Params) {n : Nat} (a : Block) (v : GridCO.State n) (s : Slot) :
+    (SA.gateFrom p a v s).blockStamp = v.blockStamp ∧
+      (SA.gateFrom p a v s).voteStamp = v.voteStamp := by
+  cases hc : SA.confirmationFrom p a v s with
   | none =>
-      simp only [SA.gate, GridCO.gate]
-      rw [show GridCO.confirmation p.engine v s = none from hc]
+      simp only [SA.gateFrom, GridCO.gateFrom]
+      rw [show GridCO.confirmationFrom p.engine a v s = none from hc]
       exact ⟨rfl, rfl⟩
   | some C =>
       cases hg : v.obligations.any (fun (target, _, _) => !Block.compatible target C) with
       | true =>
-          simp only [SA.gate, GridCO.gate]
-          rw [show GridCO.confirmation p.engine v s = some C from hc]
+          simp only [SA.gateFrom, GridCO.gateFrom]
+          rw [show GridCO.confirmationFrom p.engine a v s = some C from hc]
           simp only [hg, if_true]
           exact ⟨trivial, trivial⟩
       | false =>
-          have he := @GridCO.gate_eq_writeKeys GridCO.slowLeasePolicy p.engine n v s C hc hg
-          change SA.gate p v s = _ at he
+          have he := @GridCO.gateFrom_eq_writeKeys GridCO.slowLeasePolicy p.engine n a v s C hc hg
+          change SA.gateFrom p a v s = _ at he
           rw [he]
           exact writeKeys_stamps _ _ _
 
@@ -80,7 +81,7 @@ theorem gateStep_stamps (p : Params) (st : State p.n) (s : Slot) :
   rw [normalizeS_fields]
   split
   · exact ⟨rfl, rfl⟩
-  · exact saGate_stamps p.toParams (actView st) s
+  · exact saGate_stamps p.toParams (eraseFG st.fg.F) (actView st) s
 
 /-- [helper] The tick before the gate keeps both stamp lists. -/
 theorem clockPre_stamps (p : Params) (st : State p.n) (t : Time) :

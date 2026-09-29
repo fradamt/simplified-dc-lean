@@ -28,18 +28,18 @@ private theorem writeKeys_target_origin {n : Nat} (st : State n)
           exact Or.inr ⟨key.2, List.mem_cons.mpr (Or.inl (by simp [he]))⟩
       · exact Or.inr ⟨k, List.mem_cons_of_mem key hk⟩
 
-/-- A gate can add only prefixes of its genuine result to the map. -/
-theorem gate_target_origin (p : Params) {n : Nat} (st : State n)
+/-- An anchored gate can add only prefixes of its genuine result to the map. -/
+theorem gateFrom_target_origin (p : Params) {n : Nat} (a : Block) (st : State n)
     (r : Slot) (B : Block) (g : Nat) (d : Time)
-    (hm : (B, g, d) ∈ (gate p st r).obligations) :
+    (hm : (B, g, d) ∈ (gateFrom p a st r).obligations) :
     (∃ k deadline, (B, k, deadline) ∈ st.obligations) ∨
-      ∃ C, confirmation p st r = some C ∧ Block.Preceq B C := by
-  cases hc : confirmation p st r with
-  | none => exact Or.inl ⟨g, d, by simpa [gate, hc] using hm⟩
+      ∃ C, confirmationFrom p a st r = some C ∧ Block.Preceq B C := by
+  cases hc : confirmationFrom p a st r with
+  | none => exact Or.inl ⟨g, d, by simpa [gateFrom, hc] using hm⟩
   | some C =>
       by_cases hg : st.obligations.any (fun (target, _, _) => !Block.compatible target C) = true
-      · exact Or.inl ⟨g, d, by simpa [gate, hc, hg] using hm⟩
-      · rw [gate_eq_writeKeys p st r C hc (Bool.eq_false_iff.mpr hg)] at hm
+      · exact Or.inl ⟨g, d, by simpa [gateFrom, hc, hg] using hm⟩
+      · rw [gateFrom_eq_writeKeys p a st r C hc (Bool.eq_false_iff.mpr hg)] at hm
         rcases writeKeys_target_origin _ _ _ B g d hm with hold | ⟨k, hk⟩
         · exact Or.inl hold
         · obtain ⟨A, hA, hmap⟩ := List.mem_flatMap.mp hk
@@ -47,6 +47,14 @@ theorem gate_target_origin (p : Params) {n : Nat} (st : State n)
           have heA : A = B := congrArg Prod.fst he
           subst A
           exact Or.inr ⟨C, rfl, (Bool.and_eq_true_iff.mp (List.mem_filter.mp hA).2).2⟩
+
+/-- A gate can add only prefixes of its genuine result to the map. -/
+theorem gate_target_origin (p : Params) {n : Nat} (st : State n)
+    (r : Slot) (B : Block) (g : Nat) (d : Time)
+    (hm : (B, g, d) ∈ (gate p st r).obligations) :
+    (∃ k deadline, (B, k, deadline) ∈ st.obligations) ∨
+      ∃ C, confirmation p st r = some C ∧ Block.Preceq B C :=
+  gateFrom_target_origin p .genesis st r B g d hm
 
 /-- Expiry and release add no target. A new clock target comes from its
 actual gate and the genuine result of the strict input. -/

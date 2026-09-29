@@ -692,6 +692,20 @@ theorem gateWriteKeys_closed (p : Params) {n : Nat} (st : State n)
   refine ⟨B, List.mem_filter.mpr ⟨hBstored, by simp [hB, hBC]⟩, ?_⟩
   exact List.mem_map.mpr ⟨g, admissionLevels_mono p st r B K hBK g hg', rfl⟩
 
+theorem gateFrom_eq_writeKeys (p : Params) {n : Nat} (a : Block) (st : State n)
+    (r : Slot) (C : Block)
+    (hc : confirmationFrom p a st r = some C)
+    (hguard : st.obligations.any (fun (target, _, _) =>
+      !Block.compatible target C) = false) :
+    gateFrom p a st r =
+      writeKeys { st with
+        goldfishRecord := advance st.goldfishRecord C
+        genuine := recordGenuine st r (some C)
+        stableRecord := advance st.stableRecord C }
+        (gateWriteKeys p st r C) (gateTime p r + lifetime p) := by
+  simp [gateFrom, hc, hguard, writeKeys, gateWriteKeys,
+    List.foldl_flatMap, List.foldl_map]
+
 theorem gate_eq_writeKeys (p : Params) {n : Nat} (st : State n)
     (r : Slot) (C : Block)
     (hc : confirmation p st r = some C)
@@ -703,8 +717,8 @@ theorem gate_eq_writeKeys (p : Params) {n : Nat} (st : State n)
         genuine := recordGenuine st r (some C)
         stableRecord := advance st.stableRecord C }
         (gateWriteKeys p st r C) (gateTime p r + lifetime p) := by
-  simp [gate, hc, hguard, writeKeys, gateWriteKeys,
-    List.foldl_flatMap, List.foldl_map]
+  rw [gate_eq_from_genesis]
+  exact gateFrom_eq_writeKeys p .genesis st r C hc hguard
 
 theorem gate_deadlines_at_most (p : Params) {n : Nat}
     (st : State n) (r : Slot)
@@ -937,21 +951,25 @@ theorem gate_now (p : Params) {n : Nat} (st : State n) (r : Slot) :
           intro acc g
           rfl
 
-theorem gate_blocks (p : Params) {n : Nat} (st : State n) (r : Slot) :
-    (gate p st r).blocks = st.blocks := by
-  cases hc : confirmation p st r with
-  | none => simp [gate, hc]
+theorem gateFrom_blocks (p : Params) {n : Nat} (a : Block) (st : State n) (r : Slot) :
+    (gateFrom p a st r).blocks = st.blocks := by
+  cases hc : confirmationFrom p a st r with
+  | none => simp [gateFrom, hc]
   | some C =>
       cases hguard : st.obligations.any (fun (target, _, _) =>
           !Block.compatible target C) with
-      | true => simp [gate, hc, hguard]
+      | true => simp [gateFrom, hc, hguard]
       | false =>
-          simp only [gate, hc, hguard]
+          simp only [gateFrom, hc, hguard]
           apply foldl_blocks
           intro acc b
           apply foldl_blocks
           intro acc g
           rfl
+
+theorem gate_blocks (p : Params) {n : Nat} (st : State n) (r : Slot) :
+    (gate p st r).blocks = st.blocks :=
+  gateFrom_blocks p .genesis st r
 
 theorem clock_blocks (p : Params) {n : Nat} (st : State n) (t : Time) :
     (clock p st t).blocks = st.blocks := by

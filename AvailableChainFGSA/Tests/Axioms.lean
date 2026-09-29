@@ -107,8 +107,8 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 #print axioms AvailableChain.FGSA.clockPre_eq
 #print axioms AvailableChain.FGSA.onView_onView
 #print axioms AvailableChain.FGSA.clock_eq_saClock_offGate
-#print axioms AvailableChain.FGSA.clock_eq_saClock_gate
-#print axioms AvailableChain.FGSA.clock_eq_saClock_gate'
+#print axioms AvailableChain.FGSA.clock_eq_saClockFrom_gate
+#print axioms AvailableChain.FGSA.clock_eq_saClockFrom_gate'
 
 -- Proofs/Nesting.lean
 #print axioms AvailableChain.FGSA.outputNesting_v1

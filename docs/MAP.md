@@ -1037,7 +1037,8 @@ rows under `scripts/` are paths from the repository root.
 │                                │ ancestry and compatibility                     │                    │
 │ Proofs/Fields.lean             │ write sets of every step                       │                    │
 │ Proofs/ActView.lean            │ actView laws (items 1–6); SA bridge of the     │ bp.activeView.v1   │
-│                                │ tick (clock_eq_saClock_*)                      │                    │
+│                                │ tick (clock_eq_saClock_offGate,                │                    │
+│                                │ clock_eq_saClockFrom_gate: the walk from F)    │                    │
 │ Proofs/Nesting.lean            │ outputNesting_stored, finalized_preceq_stable  │ K2                 │
 │ Proofs/Reconcile.lean          │ exact effects, idempotence, reconcile_frame,   │ K3, K1             │
 │                                │ storeControls_reconcile;                       │                    │

@@ -66,18 +66,22 @@ relation that K1 needs; it is not a proof of every clause of
 │                  │                                      │ = absent                           │
 │ bp.activeView.v1 │ items 1–6: actView_blocks,           │ items 1, 2, 4 and actView_eq_image │
 │                  │ actView_genesis_F (1); actView_      │ need CStoreInv; items 3, 5, 6 need │
-│                  │ ancestor_closed (2); actView_        │ none (item 6: K ⪯ F). Genesis      │
-│                  │ antitone (3); actView_path (4);      │ result of item 6: actView_genesis_F│
-│                  │ blockExcluded_stable, actView_eq,    │ or block_genesis_preceq (G7 m4)    │
+│                  │ ancestor_closed (2); actView_        │ none (item 6: K ⪯ F). A result at  │
+│                  │ antitone (3); actView_path (4);      │ the anchor F of item 6 (walk from  │
+│                  │ blockExcluded_stable, actView_eq,    │ F since 4e85ff34): F ∈ A by        │
+│                  │                                      │ actView_genesis_F (G7 m4)          │
 │                  │ actView_fields (5); actView_noVeto,  │                                    │
 │                  │ actView_releaseCount_zero (6);       │                                    │
 │                  │ actView_eq_image                     │                                    │
 │ SA bridges       │ clock_eq_saClock_offGate,            │ offGate: t not a gate time. gate:  │
-│ comp D3, J3      │ clock_eq_saClock_gate (and _gate'),  │ gate time of s, hnew (label not    │
-│                  │ actView_admitBlock_sameF,            │ saved; DQ5). Block: CStoreInv, hP, │
-│                  │ actView_admitBlock_movedF            │ hacc, F same / F moved (movedF is  │
-│                  │                                      │ the SA admission, filtered by the  │
-│                  │                                      │ new F, plus reconcile's 3 writes)  │
+│ comp D3, J3      │ clock_eq_saClockFrom_gate (and       │ gate time of s, hnew (label not    │
+│                  │ _gate'), actView_admitBlock_sameF,   │ saved; DQ5); the SA tick with the  │
+│                  │ actView_admitBlock_movedF            │ walk from F (SA.clockFrom at       │
+│                  │                                      │ eraseFG F; spec 4e85ff34). Block:  │
+│                  │                                      │ CStoreInv, hP, hacc, F same / F    │
+│                  │                                      │ moved (movedF is the SA admission, │
+│                  │                                      │ filtered by the new F, plus        │
+│                  │                                      │ reconcile's 3 writes)              │
 └──────────────────┴──────────────────────────────────────┴────────────────────────────────────┘
 ```
 
@@ -88,7 +92,13 @@ Not done here (out of scope): K6–K11, theorems (b), (c), (c′), (d)
 
 Against the spec (archive 2e884811): no new undeclared rule difference at the
 stated protocol boundary (checked inputs, scheduled event order; G3–G6
-reviews, the Astra model check r195, G13). Declared differences:
+reviews, the Astra model check r195, G13). Since the spec sync (branch
+fgsa-spec-sync, 2026-09-29) the model follows spec 4e85ff34 in
+`genuine_result` (the walk from Σ.F with the final test also at F), so it
+differs from 2e884811 there: in Smoke test T1, 2e884811 saves `some genesis`
+and the model saves `none`. Every other rule is unchanged.
+
+Declared differences:
 - DQ10/DQ2 (G13 Opus m4): closed by I9. Roots are derived and injective, so
   the DQ2 root test refuses a block only when the same block is stored. This
   agrees with the spec idealization of distinct roots (spec 167, 521).
@@ -284,7 +294,7 @@ the direct-import allowlist does not change.
   honest `node(node(genesis, 1), 2)`, root 4). So the model differed from the
   spec there, and the K8 run form and every coverage claim needed
   `RootInjective` for this reason too.
-- `clock_eq_saClock_gate` needs one tick per public time (DQ5).
+- `clock_eq_saClockFrom_gate` needs one tick per public time (DQ5).
 - Release event order (G13 Astra N2): the release at `q_r` must run before
   the deliveries of the same time and must not repeat at `q_r` or run after a
   backward clock; then `GridCO.releaseCount` equals the spec count. One tick

@@ -352,39 +352,39 @@ theorem saGateWriteKeys_level (p : SA.Params) {n : Nat} (v : GridCO.State n) (s 
     · simp at hgl
   · exact absurd rfl ‹_›
 
-/-- [helper] The SA gate on a view: an empty or vetoed gate writes no lease and
-no S; otherwise S := advance(S, C) and the leases keep one row per target at
-the one SA level. -/
-theorem saGate_cases (p : SA.Params) {n : Nat} (v : GridCO.State n) (s : Slot)
+/-- [helper] The SA gate with the walk from `a` on a view: an empty or vetoed gate
+writes no lease and no S; otherwise S := advance(S, C) and the leases keep one row
+per target at the one SA level. -/
+theorem saGate_cases (p : SA.Params) {n : Nat} (a : Block) (v : GridCO.State n) (s : Slot)
     (hN : (v.obligations.map Prod.fst).Nodup)
     (hL : ∀ row ∈ v.obligations, row.2.1 = SA.releaseThreshold p) :
-    ((SA.gate p v s).obligations.map Prod.fst).Nodup ∧
-      (∀ row ∈ (SA.gate p v s).obligations, row.2.1 = SA.releaseThreshold p) ∧
-      ((SA.gate p v s).stableRecord = v.stableRecord ∨
-        ∃ C, SA.confirmation p v s = some C ∧
-          (SA.gate p v s).stableRecord = GridCO.advance v.stableRecord C) := by
-  cases hc : SA.confirmation p v s with
+    ((SA.gateFrom p a v s).obligations.map Prod.fst).Nodup ∧
+      (∀ row ∈ (SA.gateFrom p a v s).obligations, row.2.1 = SA.releaseThreshold p) ∧
+      ((SA.gateFrom p a v s).stableRecord = v.stableRecord ∨
+        ∃ C, SA.confirmationFrom p a v s = some C ∧
+          (SA.gateFrom p a v s).stableRecord = GridCO.advance v.stableRecord C) := by
+  cases hc : SA.confirmationFrom p a v s with
   | none =>
-      have he : SA.gate p v s = { v with
+      have he : SA.gateFrom p a v s = { v with
           genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy n v s none } := by
-        simp only [SA.gate, GridCO.gate]
-        rw [show GridCO.confirmation p.engine v s = none from hc]
+        simp only [SA.gateFrom, GridCO.gateFrom]
+        rw [show GridCO.confirmationFrom p.engine a v s = none from hc]
       rw [he]
       exact ⟨hN, hL, Or.inl rfl⟩
   | some C =>
       cases hg : v.obligations.any (fun (target, _, _) => !Block.compatible target C) with
       | true =>
-          have he : SA.gate p v s = { v with
+          have he : SA.gateFrom p a v s = { v with
               goldfishRecord := GridCO.advance v.goldfishRecord C
               genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy n v s (some C) } := by
-            simp only [SA.gate, GridCO.gate]
-            rw [show GridCO.confirmation p.engine v s = some C from hc]
+            simp only [SA.gateFrom, GridCO.gateFrom]
+            rw [show GridCO.confirmationFrom p.engine a v s = some C from hc]
             simp only [hg, if_true]
           rw [he]
           exact ⟨hN, hL, Or.inl rfl⟩
       | false =>
-          have he := @GridCO.gate_eq_writeKeys GridCO.slowLeasePolicy p.engine n v s C hc hg
-          change SA.gate p v s = _ at he
+          have he := @GridCO.gateFrom_eq_writeKeys GridCO.slowLeasePolicy p.engine n a v s C hc hg
+          change SA.gateFrom p a v s = _ at he
           obtain ⟨h1, h2, h3, -⟩ := writeKeys_keys
             { v with
               goldfishRecord := GridCO.advance v.goldfishRecord C
@@ -412,40 +412,44 @@ theorem notMem_keys_of_unsaved {n : Nat} {v : GridCO.State n} {s : Slot}
   obtain ⟨row, hrow, rfl⟩ := List.mem_map.1 hm
   exact hs row hrow (by simp)
 
-/-- [helper] The active view is compatible with F: a genesis or active result,
-and every prefix of it. -/
+/-- [helper] The result of the walk from F on the active view is compatible with
+F and stored: F itself or an active result, and every prefix of it. -/
 theorem compat_of_confirmation (p : Params) (st : State p.n) (h : CStoreInv p st) {s : Slot}
-    {C : Block} (hc : SA.confirmation p.toParams (actView st) s = some C) :
+    {C : Block}
+    (hc : SA.confirmationFrom p.toParams (eraseFG st.fg.F) (actView st) s = some C) :
     Block.Compatible C (eraseFG st.fg.F) ∧ C ∈ st.base.blocks := by
-  rcases @GridCO.confirmation_mem GridCO.slowLeasePolicy p.toParams.engine _ (actView st) s C hc
+  rcases GridCO.confirmationFrom_mem p.toParams.engine (eraseFG st.fg.F) (actView st) s C hc
     with rfl | hm
-  · exact ⟨block_compatible_of_preceq (block_genesis_preceq _), (actView_genesis_F p st h).1 |>
-      fun hg => ((actView_blocks st _).1 hg).1⟩
+  · exact ⟨block_compatible_of_preceq (block_preceq_refl _),
+      ((actView_blocks st _).1 (actView_genesis_F p st h).2).1⟩
   · exact ⟨((actView_blocks st C).1 hm).2, ((actView_blocks st C).1 hm).1⟩
 
 /-- [helper] A fresh gate (before `S := F`) keeps the invariant. -/
 theorem cstoreInv_gateFresh (p : Params) (st : State p.n) (h : CStoreInv p st) (s : Slot)
     (hnew : GridCO.savedGenuine st.base s = none) :
-    CStoreInv p { onView (fun v => SA.gate p.toParams v s) st with
-      fastWrite := st.fastWrite ++ [(s, fastSet p (actView st) s)] } := by
+    CStoreInv p { onView (fun v => SA.gateFrom p.toParams (eraseFG st.fg.F) v s) st with
+      fastWrite := st.fastWrite ++ [(s, fastSet p (eraseFG st.fg.F) (actView st) s)] } := by
   have hv : GridCO.savedGenuine (actView st) s = none := hnew
-  have hgen := saGate_genuine p.toParams (actView st) s hv
+  have hgen := saGate_genuine p.toParams (eraseFG st.fg.F) (actView st) s hv
   have hsv : ∀ r, GridCO.savedGenuine
-      (SA.gate p.toParams (actView st) s) r =
-        if r = s then some (SA.confirmation p.toParams (actView st) s)
+      (SA.gateFrom p.toParams (eraseFG st.fg.F) (actView st) s) r =
+        if r = s then some (SA.confirmationFrom p.toParams (eraseFG st.fg.F) (actView st) s)
         else GridCO.savedGenuine st.base r := by
     intro r
-    have := savedGenuine_append (actView st) s (SA.confirmation p.toParams (actView st) s) hv r
+    have := savedGenuine_append (actView st) s
+      (SA.confirmationFrom p.toParams (eraseFG st.fg.F) (actView st) s) hv r
     exact (savedGenuine_congr hgen r).trans this
-  obtain ⟨hN, hL, hS⟩ := saGate_cases p.toParams (actView st) s h.leaseKeys.1 h.leaseKeys.2
+  obtain ⟨hN, hL, hS⟩ :=
+    saGate_cases p.toParams (eraseFG st.fg.F) (actView st) s h.leaseKeys.1 h.leaseKeys.2
   refine ⟨h.fg, h.rootInj, h.baseTree, ⟨?_, ?_, ?_⟩, ?_, ?_, ?_, ?_, ⟨hN, hL⟩⟩
   · rintro ⟨B, g, d⟩ hrow
-    rcases @GridCO.gate_target_origin GridCO.slowLeasePolicy p.toParams.engine _ (actView st) s B g
+    rcases @GridCO.gateFrom_target_origin GridCO.slowLeasePolicy p.toParams.engine _
+      (eraseFG st.fg.F) (actView st) s B g
       d hrow with ⟨k, dl, hold⟩ | ⟨C, hc, hBC⟩
     · exact h.saCompat.1 (B, k, dl) hold
     · exact block_compatible_of_preceq_compatible hBC (compat_of_confirmation p st h hc).1
   · intro r C hC
-    change (r, some C) ∈ (SA.gate p.toParams (actView st) s).genuine at hC
+    change (r, some C) ∈ (SA.gateFrom p.toParams (eraseFG st.fg.F) (actView st) s).genuine at hC
     rw [hgen, List.mem_append, List.mem_singleton] at hC
     rcases hC with hC | hC
     · exact h.saCompat.2.1 r C hC
@@ -455,9 +459,10 @@ theorem cstoreInv_gateFresh (p : Params) (st : State p.n) (h : CStoreInv p st) (
     rw [List.mem_append, List.mem_singleton] at hrow
     rcases hrow with hrow | rfl
     · exact h.saCompat.2.2 row hrow B hB
-    · obtain ⟨-, -, -, hm, -⟩ := fastSet_prefix p (actView st) s hB
+    · obtain ⟨-, -, -, hm, -⟩ := fastSet_prefix p (eraseFG st.fg.F) (actView st) s hB
       exact ((actView_blocks st B).1 hm).2
-  · change (SA.gate p.toParams (actView st) s).stableRecord ∈ st.base.blocks
+  · change (SA.gateFrom p.toParams (eraseFG st.fg.F) (actView st) s).stableRecord ∈
+      st.base.blocks
     rcases hS with hS | ⟨C, hc, hS⟩
     · rw [hS]; exact h.Smem
     · rw [hS]
@@ -466,20 +471,21 @@ theorem cstoreInv_gateFresh (p : Params) (st : State p.n) (h : CStoreInv p st) (
       · exact h.Smem
       · exact (compat_of_confirmation p st h hc).2
   · intro row hrow B hB
-    change (∃ C, GridCO.savedGenuine (SA.gate p.toParams (actView st) s) row.1 = some (some C) ∧
-      Block.Preceq B C) ∨ Block.Preceq B (eraseFG st.fg.F)
+    change (∃ C, GridCO.savedGenuine (SA.gateFrom p.toParams (eraseFG st.fg.F) (actView st) s)
+      row.1 = some (some C) ∧ Block.Preceq B C) ∨ Block.Preceq B (eraseFG st.fg.F)
     rw [List.mem_append, List.mem_singleton] at hrow
     rcases hrow with hrow | rfl
     · have hne : row.1 ≠ s := ne_of_saved (h.fastDom.2 row.1 (List.mem_map_of_mem hrow)) hnew
       rw [hsv, if_neg hne]
       exact h.fastOrigin row hrow B hB
-    · obtain ⟨C, hc, hBC, -, -⟩ := fastSet_prefix p (actView st) s hB
+    · obtain ⟨C, hc, hBC, -, -⟩ := fastSet_prefix p (eraseFG st.fg.F) (actView st) s hB
       left
       refine ⟨C, ?_, hBC⟩
       rw [hsv, if_pos rfl, hc]
-  · change ((st.fastWrite ++ [(s, fastSet p (actView st) s)]).map Prod.fst).Nodup ∧
-      ∀ r ∈ (st.fastWrite ++ [(s, fastSet p (actView st) s)]).map Prod.fst,
-        (GridCO.savedGenuine (SA.gate p.toParams (actView st) s) r).isSome
+  · change ((st.fastWrite ++
+        [(s, fastSet p (eraseFG st.fg.F) (actView st) s)]).map Prod.fst).Nodup ∧
+      ∀ r ∈ (st.fastWrite ++ [(s, fastSet p (eraseFG st.fg.F) (actView st) s)]).map Prod.fst,
+        (GridCO.savedGenuine (SA.gateFrom p.toParams (eraseFG st.fg.F) (actView st) s) r).isSome
     rw [List.map_append]
     refine ⟨List.nodup_append.2 ⟨h.fastDom.1, List.nodup_singleton _, ?_⟩, ?_⟩
     · intro x hx y hy
@@ -495,7 +501,7 @@ theorem cstoreInv_gateFresh (p : Params) (st : State p.n) (h : CStoreInv p st) (
       · simp only [List.map_cons, List.map_nil, List.mem_singleton] at hr
         rw [if_pos hr]
         rfl
-  · change ((SA.gate p.toParams (actView st) s).genuine.map Prod.fst).Nodup
+  · change ((SA.gateFrom p.toParams (eraseFG st.fg.F) (actView st) s).genuine.map Prod.fst).Nodup
     rw [hgen, List.map_append, List.nodup_append]
     refine ⟨h.genuineKeys, List.nodup_singleton _, ?_⟩
     intro x hx y hy
@@ -512,6 +518,7 @@ theorem cstoreInv_gateStep (p : Params) (st : State p.n) (h : CStoreInv p st) (s
     exact cstoreInv_normalizeS p st h
   · have hnew : GridCO.savedGenuine st.base s = none := by simpa using hs
     unfold gateStep
+    dsimp only
     rw [if_neg hs]
     exact cstoreInv_normalizeS p _ (cstoreInv_gateFresh p st h s hnew)
 
