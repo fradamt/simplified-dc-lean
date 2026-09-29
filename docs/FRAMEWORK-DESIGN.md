@@ -308,6 +308,11 @@ module changes" did not apply.
   then seat order; release.
 - Separation: every label in `APLabels`, and every label in a `CStar`
   family, has `selfVisible = false`.
+  *Note 2026-09-29 (Phase 2a; fgsa-impl via DC-simplify):* the restriction
+  applies to the AP labels and to the declared fresh family (`F.fresh`),
+  not to every `CStar` family. `Linked` implies `CStar`, and `Linked`
+  labels (FG rows) may be self-visible. The 2a `separation` field states
+  it this way: `F.ap ℓ ∨ F.fresh ℓ → selfVisible ℓ = false`.
 - Isolation laws, with `base : State → B`:
   - `base` after `clock` and `process` is a function of `base` before and
     of the time or object; `recordOwn` does not change `base`;
@@ -325,7 +330,13 @@ module changes" did not apply.
 **E6. Restart.** `Event.restart v t`; order at one time: restart, ticks,
 deliveries. Step: `st ↦ restore (durable st)`. For an FG composite,
 `durable` = Λ + F + the F basis; h_max and J are derived again from
-received chain states. Each restart starts a new EPOCH of the node. Receipt facts (`processed`,
+received chain states. *Note 2026-09-29 (user decisions, via DC-simplify; this replaces two
+earlier notes of the same day):* the faithful form: an FG composite keeps
+Λ (the slashing-protection database) and F with F's chain state (the
+anchor) durable, and the history below F is pruned. This form comes with the
+planned anchor-and-pruning feature (§8). Until then FG-SA uses an INTERIM
+form: Λ is kept and the store is reset to its initial state; no FG-SA claim
+reads F across a restart. Each restart starts a new EPOCH of the node. Receipt facts (`processed`,
 `depsPresent`) reset with the epoch (audit W04): a block outside the
 durable part is lost, and it can be delivered again (the freshness check
 allows it). Delivery obligations toward a restarted node cover objects
@@ -677,6 +688,15 @@ a tie rule or a filter can still stall (N12). SA discharges it with its
 walk (start at the live root; below lo a child is eligible without a
 majority; every viable node below lo has a viable child in D).
 
+*Note 2026-09-29 (STALE, marked for correction; DC-simplify, modular-spec
+study `research/async-resilient-committees/tip-stability/codex/scratch/
+modular-spec-study.md` item 9):* the obligation above ("the AP head read
+from each duty view is in D with height ≥ lo") is false for the current
+FG-SA design, because 21 H.3 permits an outside-anchor return. The duty
+view frame is also older than the spec frame, which reads live caches and
+"never reads a view" (spec 749–752). The section stays as history until the
+FG interface is restated with the F0 channel files (ARCHITECTURE.md §2).
+
 **7.3 AP template and policy type (LM; audit V10).**
 - `Policy`: the type of honest FG signing rules. A policy reads the FG
   sub-state, the record, and the AP facets through `base`; it emits
@@ -762,6 +782,19 @@ acceptance item "eligibility per migrated instance" is OPEN and moves to
 plan 1c; until then MATRIX shows `holds*` and no protocol certificate. The
 FG-SA run lift (T7) is on v2 and can start after 2a. Details:
 `docs/PHASE1B-REPORT.md`.
+
+*Planned item, not scheduled (2026-09-29, user decisions via DC-simplify):*
+anchor and pruning, as an OPTIONAL CLAIM. A protocol may prove "prunable at
+F": every later read and output does not change when the store prunes below
+F as F advances. A protocol may also start from an anchor (a block and its
+chain state) instead of genesis; genesis is the special case. This is not an
+engine or protocol obligation: a protocol that does not make the claim
+changes nothing, and the target for such protocols is zero changed lock
+lines. For FG composites the claim gives the faithful E6 restart form.
+Inputs: a protocol study (r207, `codex/pruning-rule.md`, landed; an Opus
+red-team runs), an extraction of the decoupled-consensus pruning method, and
+a Lean design and impact study (fgsa-impl). Its place in the order is decided
+when these land (after I9 and 2a).
 
 **Lock change log.**
 - 2026-09-28, approved by the user. The receipt-relay merge (`1a3f73a`, r162)
@@ -908,6 +941,12 @@ FG-SA run lift (T7) is on v2 and can start after 2a. Details:
 
 - User decisions (2026-09-28): core §0–§6 APPROVED; §9 rule changes
   APPROVED; core tier = floor of safety + confirmed inclusion (§4).
+- Stale FG pins (2026-09-29, modular-spec study item 9; fix in the FG-SA
+  spec-sync task after the I9 merge, because I9 changes `Pins.lean`):
+  `fj.descent.v1` and `fj.twoChanges.core.v1` use duty-view frames (restate
+  over the node store T; `fj.descent` also lacks case (2), the contested
+  floor); `ap.headReachesLo.v5` keeps R ≥ 3 and θ = 4Δ, while 21 H.8 proves
+  3Δ at R ≥ 2; §7.2's generic AP obligation is false (note there).
 - FG research (tracked in FG-COMPOSITION.md): r149 (strengthened (S),
   (S_slow), (L), (X)); r148 (FJ root rule); "ρ once globally"; full
   healing at q_s*; the timed finality obligations.
