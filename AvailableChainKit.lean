@@ -1,5 +1,6 @@
 module
 public import AvailableChainKit.Core
+public import AvailableChainKit.Roots
 public import AvailableChainKit.Engine.Execution
 public import AvailableChainKit.Engine.EngineClock
 public import AvailableChainKit.Engine.RunPrefix

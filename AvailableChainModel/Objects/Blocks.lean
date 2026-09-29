@@ -111,7 +111,9 @@ wire needs more than these lemmas and a decoder: its adapter must also keep
 authentication, dependencies, handler calls, refusals and proposal origin.
 That refinement is open. -/
 
-/-- The parent is in the store exactly when a stored block has its root. -/
+/-- The parent is in the store exactly when a stored block has its root. This
+holds in the resolved-block model only; see the section note for what a
+root-only wire needs. -/
 theorem parent_mem_iff_root (b : Block) (blocks : List Block) :
     b.parent ∈ blocks ↔ ∃ p ∈ blocks, p.root = b.parent.root := by
   constructor
@@ -121,7 +123,7 @@ theorem parent_mem_iff_root (b : Block) (blocks : List Block) :
     rwa [← Block.root_injective hroot]
 
 /-- A test `q` on the stored parent is the same test on the stored block that
-the root lookup finds. -/
+the root lookup finds. Pass `q` explicitly. -/
 theorem parent_mem_and_iff_root (b : Block) (blocks : List Block) (q : Block → Prop) :
     (b.parent ∈ blocks ∧ q b.parent) ↔ ∃ p ∈ blocks, p.root = b.parent.root ∧ q p := by
   constructor
