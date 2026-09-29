@@ -166,7 +166,7 @@ Answered by DC-simplify (2026-09-29; survey R6): FG-SA HEAD labels (the SA base,
 **Files:**
 - Create: `AvailableChainEngineV2/Tests/Toy.lean`.
 
-- [ ] **Step 1:** A toy spec on the new engine: receipts in `base`, the own record outside `base`, a state-preserving clock, one Linked self-visible label that emits a previously unseen row and carries nothing, one AP label with one seat. Give its `Isolation`, `OutputsFactor` and `HooksSound` values.
+- [ ] **Step 1:** A toy spec on the new engine: receipts in `base`, the own record outside `base`, a state-preserving clock, one Linked self-visible label that emits a previously unseen row and carries nothing, one-seat AP proposal labels indexed by slot (`propLabel` injective, as `Interface.propLabel_injective` requires; 2a Task 5 fix round 1). Give its `Interface`, `Isolation`, `OutputsFactor` and `HooksSound` values. Also show that a run with an honest emitter satisfies `HealthyPrefixDelivery` at a cut past `t + Δ`, and add one relay case (an accepted object that another node handles before the deadline) (Task 5 review M1).
 - [ ] **Step 2:** A complete finite run with a tick, a self-delivery at the emission time, and a delivery to another node. Prove `ExecutionValid` for the whole run (Review Focus 4), and check that `selfDelivery_admissible`'s hypotheses hold at the self-delivery.
 - [ ] **Step 3: Checkpoint.** `lake build --wfail AvailableChainEngineV2`; axiom check. Commit `EngineV2: toy run with a self-delivery`.
 
