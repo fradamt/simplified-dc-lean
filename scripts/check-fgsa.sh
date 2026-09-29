@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # FGSA checks: build (--wfail), root imports, native evaluation outside
 # comments, the import rules (direct and closure), the Q1/Q5 boundary grep,
-# and (once present) the axiom check.
+# the axiom check, and the lease-instance check with a negative control.
 # Run: bash scripts/check-fgsa.sh. Exit 0 when every check passes.
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -73,5 +73,30 @@ fi
 if [ -f scripts/CheckFGSAAxioms.lean ]; then
   echo "== axioms"
   lake env lean --run scripts/CheckFGSAAxioms.lean
+fi
+if [ -f scripts/CheckFGSALease.lean ]; then
+  echo "== lease instances"
+  lake env lean --run scripts/CheckFGSALease.lean
+  # Negative control: a use at the default instance must fail the check.
+  neg=$(mktemp -d "$PWD/.lake/fgsa-lease-neg.XXXXXX")
+  trap 'rm -rf "$neg"' EXIT
+  cat > "$neg/FGSALeaseNeg.lean" <<'LEAN'
+import AvailableChainFGSA
+namespace AvailableChain.FGSA
+/-- A GridCO gate at the default instance `gridLeasePolicy`. -/
+def leaseNegControl (p : GridCO.Params) (st : GridCO.State 1) (r : Nat) : GridCO.State 1 :=
+  GridCO.gate p st r
+end AvailableChain.FGSA
+LEAN
+  lake env lean -o "$neg/FGSALeaseNeg.olean" "$neg/FGSALeaseNeg.lean"
+  set +e
+  out=$(lake env bash -c 'LEAN_PATH="$0:$LEAN_PATH" lean --run scripts/CheckFGSALease.lean FGSALeaseNeg' "$neg")
+  code=$?
+  set -e
+  if [ $code -ne 1 ] || ! echo "$out" | grep -q 'leaseNegControl: AvailableChain.GridCO.gate at AvailableChain.GridCO.gridLeasePolicy'; then
+    echo "$out"
+    echo "LEASE NEGATIVE CONTROL NOT DETECTED (exit $code)"; exit 1
+  fi
+  echo "negative control rejected, as expected"
 fi
 echo "all FGSA checks pass"

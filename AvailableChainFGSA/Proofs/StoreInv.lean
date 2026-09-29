@@ -27,7 +27,8 @@ theorem storeControls_eq (p : Params) (st : State p.n) (h : CStoreInv p st) :
     controls p st = fjControls p.E p.cfg st.fg.F st.fg.TF :=
   KitFG.storeControls_eq_fjControls p.E p.cfg st.fg h.fg
 
-/-- [helper] The live J is in Σ.T. -/
+/-- [bp bp.store.v1; K4] The live J is in Σ.T (the clause "F, J ∈ T"; `Fmem` of
+`KitFG.StoreInv` gives F). -/
 theorem J_mem (p : Params) (st : State p.n) (h : CStoreInv p st) : st.fg.J ∈ st.fg.TF := by
   have hpair := h.fg.pair
   by_cases hne : ∃ K ∈ st.fg.TF, FGBlock.Preceq st.fg.F (derive p.E p.cfg K).J
@@ -574,12 +575,22 @@ theorem fg_step_cases (p : Params) (st : State p.n) (o : Wire p.n) :
             · rw [reconcile_fg]
   · exact Or.inl rfl
 
+/-- [bp bp.store.v1; K4] -/
 theorem fMonotone (p : Params) : FMonotone p := by
   intro st
   refine ⟨fun o => ?_, fun t => by rw [clock_fg]⟩
   rcases fg_step_cases p st o with he | ⟨B, he⟩ <;> rw [he]
   · exact KitFG.preceq_refl _
   · exact KitFG.on_block_F_mono p.E p.cfg st.fg B
+
+/-- [bp bp.store.v1; K4; G11 m1] A delivery moves F only to a descendant. -/
+theorem process_F_mono (p : Params) (st : State p.n) (o : Wire p.n) :
+    FGBlock.Preceq st.fg.F (process p st o).fg.F :=
+  (fMonotone p st).1 o
+
+/-- [bp bp.store.v1; K4; G11 m1] A tick does not change F. -/
+theorem clock_F_eq (p : Params) (st : State p.n) (t : Time) : (clock p st t).fg.F = st.fg.F :=
+  (fMonotone p st).2 t
 
 /-- [bp bp.frame.v1] `h_max` never decreases. -/
 theorem process_hmax_mono (p : Params) (st : State p.n) (o : Wire p.n) :
@@ -627,8 +638,9 @@ theorem actView_eq_image (p : Params) (st : State p.n) (h : CStoreInv p st) (b :
     exact hc
 
 /-- [bp bp.reconcile.v1; K1] K1 at a block step, blueprint form: at an accepted
-block that moves F, if the new F is compatible with every live lease, every
-saved nonempty result and S of the state before the step, then reconcile
+block that moves F, if the new F is compatible with every live lease (every row
+of `obligations`, due leases included; G9 m2), every saved nonempty result and S
+of the state before the step, then reconcile
 deletes no lease, no body and no fastWrite member, and only extends S. No
 fastWrite premise: `FastOrigin` comes from `CStoreInv`. -/
 theorem admitBlock_reconcile_harmless (p : Params) (st : State p.n) (h : CStoreInv p st)
@@ -740,7 +752,7 @@ theorem fgHead_stored (p : Params) (st : State p.n) (h : CStoreInv p st) :
     fgHead p st ∈ st.base.blocks := by
   unfold fgHead getHead headInTree GridCO.ghost
   dsimp only
-  rcases GridCO.ghostWalk_mem _ _ _ _ (liveRoot p st) with he | hm
+  rcases @GridCO.ghostWalk_mem GridCO.slowLeasePolicy _ _ _ _ (liveRoot p st) with he | hm
   · rw [he]
     unfold liveRoot
     dsimp only
