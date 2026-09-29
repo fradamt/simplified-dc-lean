@@ -712,9 +712,10 @@ and the stated phase premises.
 
 Thus the HEAD is in D with height ≥ lo only under clause 1; clause 2
 keeps the outside-start exception (the HEAD is A), and clause 4 gives
-a witness, not `ht(K)≥lo`. `ap.headReachesLo.v5` stays active (R ≥ 3,
-θ = 4Δ); v6 is its successor with changed hypotheses, not a
-SUPERSEDED replacement (§10).
+a witness, not `ht(K)≥lo`. `ap.headReachesLo.v5` is WITHDRAWN for
+current use; it is still true in its stated scope (R ≥ 3, θ = 4Δ, spec
+bd942ca0). v6 is its successor with changed hypotheses, not a SUPERSEDED
+replacement (§10).
 
 *History (text to 2026-09-29, replaced by v6):* "The FG constrains it
 through one generic AP obligation (`ap.headReachesLo.v1`, both
@@ -1013,8 +1014,10 @@ when these land (after I9 and 2a).
   3Δ at R ≥ 2; §7.2's generic AP obligation is false (note there).
   Statuses (2026-09-29, after the I9 merge): `fj.descent.v1` and
   `fj.twoChanges.core.v1` are WITHDRAWN for current use.
-  `ap.headReachesLo.v5` stays ACTIVE (PROVED, R ≥ 3, 4Δ); its successor
-  is `ap.headReachesLo.v6` (spec 4e85ff34, R ≥ 2, strict receipt,
+  `ap.headReachesLo.v5` is also WITHDRAWN for current use (registry policy,
+  FG-COMPOSITION §0: a change of statement or hypotheses gets a new id). It
+  is still true in its stated scope (PROVED; R ≥ 3, 4Δ, spec bd942ca0). Its
+  successor is `ap.headReachesLo.v6` (spec 4e85ff34, R ≥ 2, strict receipt,
   θ = 3Δ; §7.2). None of the three is SUPERSEDED. The Lean `Pins.lean`
   update belongs to the FG-SA re-pin commit (session fgsa-lean).
 - FG research (tracked in FG-COMPOSITION.md): r149 (strengthened (S),
