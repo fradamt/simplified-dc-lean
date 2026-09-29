@@ -1,5 +1,6 @@
 module
 public import AvailableChainKitV2.Stable
+public import AvailableChainGeneric.Statements.V2.Regimes
 
 public section
 
@@ -111,5 +112,17 @@ theorem write_once_along_run {α : Type} (field : P.State → Option α)
     field (Run.stateBefore E rho j v) = some a := by
   exact stateBefore_step_induction E rho (fun st => field st = some a) hij v
     (fun k e hik hkj he hv => hstep k e hik hkj he hv a) hi
+
+/-- A seed at `start` persists to every index up to `stop` if each local event
+in `[start, stop)` preserves it. Signature from fgsa-lean (ruling D17); one
+application of `interval_induction_all`. Sources: GLY:860–863; D09 row. -/
+theorem kept_from_seed (E : Generic.Env V) (rho : Run V P)
+    (Q : V → P.State → Prop) {start stop : Nat}
+    (seed : SeedAt E rho start Q)
+    (step : ∀ v k e, start ≤ k → k < stop → rho.events[k]? = some e → e.node = v →
+      Q v (Run.stateBefore E rho k v) →
+        Q v (World.step E rho (Run.stateBefore E rho k) e v)) :
+    ∀ j, start ≤ j → j ≤ stop → SeedAt E rho j Q :=
+  fun j h1 h2 v => interval_induction_all E rho Q seed step j h1 h2 v
 
 end AvailableChain.Gen.V2

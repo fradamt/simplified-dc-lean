@@ -72,12 +72,22 @@ structure RecoveryCore {In : Type} (P : ProtocolSpec In) (I : Interface P)
   gap  : ∀ t, E.t_GST ≤ t → t + G ≤ rho.horizon →
            ∃ s, t < proposalTime I s ∧ proposalTime I s ≤ t + G ∧ HonestSlot rho I s
 
-/-- DESIGNED from GLY:860–863,1022–1023,2165 (F-16).
-At event index `start`, each honest node satisfies its state predicate.
-The environment is implicit so the explicit arguments are `rho start Q`.
-This record stores the start condition; preservation is a separate premise. -/
-structure SeedAt {E : Generic.Env V} (rho : Run V P) (start : Nat)
-    (Q : V → P.State → Prop) : Prop where
-  holds : ∀ v ∈ rho.honest, Q v (Run.stateBefore E rho start v)
+/-- Body from fgsa-lean (ruling D17; Astra fit report
+`TS/codex/scratch/seedat-fit-2a9b2ef4.md`). At event index `start`, every node
+satisfies its state predicate. For an honest-only seed, take
+`Q v st := v ∈ rho.honest → R v st`. `Q` must not depend on the current index
+(L33). The producer picks the event cut explicitly: `Run.idxBefore` is strict,
+so it does not replace an inclusive or post-tick cut. SeedAt does not carry the
+T7.5 invariant triple, the T7.9 fold, CleanHist, full P1 history, the healing
+transfer, Healed, chain-bit persistence or GST premises.
+Sources: GLY:860–863, 1022–1023, 2165 (F-16). -/
+def SeedAt (E : Generic.Env V) (rho : Run V P) (start : Nat)
+    (Q : V → P.State → Prop) : Prop :=
+  ∀ v, Q v (Run.stateBefore E rho start v)
+
+theorem SeedAt_def (E : Generic.Env V) (rho : Run V P) (start : Nat)
+    (Q : V → P.State → Prop) :
+    SeedAt E rho start Q = ∀ v, Q v (Run.stateBefore E rho start v) := by
+  rw [SeedAt]
 
 end AvailableChain.Gen.V2
