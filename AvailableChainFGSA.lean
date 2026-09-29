@@ -16,6 +16,7 @@ public import AvailableChainFGSA.Proofs.Admission
 public import AvailableChainFGSA.Proofs.StoreInv
 public import AvailableChainFGSA.Proofs.Metadata
 public import AvailableChainFGSA.Proofs.CrossNode
+public import AvailableChainFGSA.Proofs.Head
 public import AvailableChainFGSA.Tests.Support
 public import AvailableChainFGSA.Tests.Smoke
 public import AvailableChainFGSA.Tests.Axioms

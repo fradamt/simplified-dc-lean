@@ -1164,6 +1164,15 @@ rows under `scripts/` are paths from the repository root.
 │                                │ contentAgree_self (CStoreInv, MetaInv);        │                    │
 │                                │ contentAgree (MetaInv at both stores),         │                    │
 │                                │ contentAgree_reachable (I9)                    │                    │
+│ Proofs/Head.lean               │ T7.W walk wrappers (Grid CO walk lemmas at     │ T7.W (W1), (W2)    │
+│                                │ slowLeasePolicy): (W1) liveRoot_stored,        │                    │
+│                                │ headInTree_stored, getHead_stored,             │                    │
+│                                │ headVote_stored; (W2)                          │                    │
+│                                │ liveRoot_preceq_headInTree, F_preceq_liveRoot, │                    │
+│                                │ F_preceq_headInTree; from B ⪯ F:               │                    │
+│                                │ preceq_getHead_of_preceq_F,                    │                    │
+│                                │ preceq_fgHead_of_preceq_F,                     │                    │
+│                                │ preceq_headVote_of_preceq_F (s > 0 only)       │                    │
 │ Tests/Support.lean             │ admitWith, process_eq_admitWith: proved        │                    │
 │                                │ rewrite of a delivery for kernel checks        │                    │
 │ Tests/Smoke.lean               │ decide examples of the model                   │                    │
@@ -1173,7 +1182,7 @@ rows under `scripts/` are paths from the repository root.
 │                                │ wrong row lists are refused (before I9: DQ10   │                    │
 │                                │ root collision, ContentAgree failed)           │                    │
 │ Tests/Axioms.lean              │ #print axioms of every public theorem of Tasks │                    │
-│                                │ 2 and 7–12, and of I9 Task 9                   │                    │
+│                                │ 2 and 7–12, of I9 Task 9, and of T7.W          │                    │
 │ scripts/check-fgsa.sh          │ build (--wfail); root imports and the direct-  │                    │
 │                                │ import allowlist with directory rules, on      │                    │
 │                                │ parsed headers; native scan; Q1/Q5 grep; the   │                    │

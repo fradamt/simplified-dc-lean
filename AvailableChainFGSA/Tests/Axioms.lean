@@ -9,6 +9,7 @@ public import AvailableChainFGSA.Proofs.Admission
 public import AvailableChainFGSA.Proofs.StoreInv
 public import AvailableChainFGSA.Proofs.Metadata
 public import AvailableChainFGSA.Proofs.CrossNode
+public import AvailableChainFGSA.Proofs.Head
 
 /-! Kernel dependency audit (Task 13 Step 1): one line for each public theorem of
 Tasks 2 and 7–12. Each prints only `propext`, `Classical.choice`, `Quot.sound`, or
@@ -256,3 +257,16 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 #print axioms AvailableChain.FGSA.preceq_iff_across
 #print axioms AvailableChain.FGSA.compatible_iff_across
 #print axioms AvailableChain.FGSA.rootInjectiveOn_across
+
+-- Proofs/Head.lean (T7.W)
+#print axioms AvailableChain.FGSA.erasedList_subset
+#print axioms AvailableChain.FGSA.liveRoot_stored
+#print axioms AvailableChain.FGSA.headInTree_stored
+#print axioms AvailableChain.FGSA.getHead_stored
+#print axioms AvailableChain.FGSA.headVote_stored
+#print axioms AvailableChain.FGSA.liveRoot_preceq_headInTree
+#print axioms AvailableChain.FGSA.F_preceq_liveRoot
+#print axioms AvailableChain.FGSA.F_preceq_headInTree
+#print axioms AvailableChain.FGSA.preceq_getHead_of_preceq_F
+#print axioms AvailableChain.FGSA.preceq_fgHead_of_preceq_F
+#print axioms AvailableChain.FGSA.preceq_headVote_of_preceq_F
