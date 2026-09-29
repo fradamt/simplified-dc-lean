@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSA.Model.Frame
-public import AvailableChainKitFG.Correspondence
+public import AvailableChainKitFG.StoreInvDef
 
 @[expose] public section
 
