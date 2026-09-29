@@ -19,11 +19,11 @@ A type with leading binders (`∀ …, Cert c I`) is CONDITIONAL and is not a
 certificate; it is still written as a row, with status `CONDITIONAL (not a
 certificate)`. The one exception is a FAMILY row: a row of kind
 `profile-holds` whose binder telescope (implicit and instance binders
-included) has exactly one binder, whose type is not a `Prop` and is, after
-`whnfR`, a type of `familyBinders` (so `SAPC.Params`, an `abbrev` of
-`SA.Params`, counts). Each type of `familyBinders` has a witness, and the script
-checks that the witness exists, has exactly that type and uses only the
-allowed axioms (exit 2 otherwise). So the domain is not empty, and the `Prop`
+included) has exactly one binder, whose type is not a `Prop` and is
+syntactically a type of `familyBinders` (an `abbrev` alias is not unfolded, so
+`SAPC.Params` has its own entry). Each type of `familyBinders` has a witness, and the script
+checks that the witness exists, is not `unsafe`, has exactly that type and uses
+only the allowed axioms (exit 2 otherwise). So the domain is not empty, and the `Prop`
 fields of the type (`deltaPos`, …) stay visible as the constraints of the
 domain. A witness does not show that a run exists. Every other leading binder
 (a `Prop`, a data type outside `familyBinders`, a function type, two or more
@@ -33,7 +33,9 @@ A row that is not CONDITIONAL has status `LEAN` only if every axiom the
 declaration transitively depends on (`Lean.collectAxioms`) is one of
 `propext`, `Classical.choice`, `Quot.sound`. Any other axiom (including
 `sorryAx`) gives status `UNSOUND(<axiom names>)`; a CONDITIONAL row is not
-checked, since it is not a certificate. A row's claim column keeps the
+checked, since it is not a certificate. An `unsafe` declaration has status
+`UNSOUND(unsafe)`, with or without binders, since an `unsafe` self-reference
+proves any type without an axiom. A row's claim column keeps the
 claim's name and appends `NON-CATALOG` if the `ClaimSpec` it certifies is not
 declared in a module under `AvailableChainFramework.Catalog`.
 
@@ -79,12 +81,14 @@ other family shape needs its own domain and a checked proof over the whole
 domain before it is added here. -/
 def familyBinders : List (Name × Name) :=
   [(`AvailableChain.GridCO.Params, `AvailableChain.GridCO.Tests.smokeParams),
-   (`AvailableChain.SA.Params, `AvailableChain.SA.Tests.p)]
+   (`AvailableChain.SA.Params, `AvailableChain.SA.Tests.p),
+   (`AvailableChain.SAPC.Params, `AvailableChain.SAPC.Tests.p)]
 
 /-- The modules of the witnesses in `familyBinders`. The script imports them;
 they give no rows. -/
 def witnessModules : List Name :=
-  [`AvailableChainGridCO.Tests.Smoke, `AvailableChainSA.Tests.Smoke]
+  [`AvailableChainGridCO.Tests.Smoke, `AvailableChainSA.Tests.Smoke,
+   `AvailableChainSAPC.Tests.Smoke]
 
 /-- The head constant after all leading binders, and whether binders exist. -/
 partial def headOf (e : Expr) (binders : Bool := false) : Option Name × Bool :=
@@ -135,14 +139,17 @@ def statusOf (env : Environment) (n : Name) : IO String := do
   else
     return s!"UNSOUND({String.intercalate ", " (bad.toList.map toString)})"
 
-/-- The problems with the witnesses of `familyBinders`: a missing witness, a
-witness whose type is not exactly its binder type, or a bad axiom. -/
+/-- The problems with the witnesses of `familyBinders`: a missing witness, an
+`unsafe` witness, a witness whose type is not exactly its binder type, or a bad
+axiom. -/
 def witnessProblems (env : Environment) : IO (List String) := do
   let mut out := []
   for (ty, w) in familyBinders do
     match env.find? w with
     | none => out := out ++ [s!"missing witness {w} for {ty}"]
     | some ci =>
+        if ci.isUnsafe then
+          out := out ++ [s!"witness {w} is unsafe"]
         if ci.type != mkConst ty then
           out := out ++ [s!"witness {w} does not have the type {ty}"]
         let bad ← badAxioms env w
@@ -151,12 +158,11 @@ def witnessProblems (env : Environment) : IO (List String) := do
   return out
 
 /-- The types of the leading binders of `t` (implicit and instance binders
-included), each after `whnfR` (so that an `abbrev` alias such as
-`SAPC.Params := SA.Params` counts) and with whether it is a `Prop`. -/
+included), each with whether it is a `Prop`. -/
 def bindersOf (env : Environment) (t : Expr) : IO (Array (Expr × Bool)) :=
   runMeta env <| Meta.forallTelescope t fun xs _ => xs.mapM fun x => do
     let ty ← Meta.inferType x
-    return (← Meta.whnfR ty, ← Meta.isProp ty)
+    return (ty, ← Meta.isProp ty)
 
 /-- The row is a family: kind `profile-holds`, exactly one binder, and that
 binder's type is not a `Prop` and is a type of `familyBinders`. -/
@@ -221,22 +227,29 @@ def profileColumn (env : Environment) (K p : Expr) : IO String := do
   let pid ← idOf? env ``AvailableChain.Framework.Profile.id K p
   return claimOf env n (idText (pid.getD n))
 
+/-- The field `k` of the structure `s` is a parent (subobject) field whose
+parent is an `instanceTypes` type. -/
+def parentInstField (env : Environment) (s : Name) (k : Nat) : Bool :=
+  isStructure env s &&
+    match (getStructureFields env s)[k]? with
+    | some f => (isSubobjectField? env s f).any instanceTypes.contains
+    | none => false
+
 /-- The instance column: the head constant of the instance argument `i`. For a
-structure projection to an `instanceTypes` type (`StrongInstance.toInstance
-x`), the column of `x`. -/
+parent projection to an `instanceTypes` type (`StrongInstance.toInstance x`,
+or the same `Expr.proj`), the column of `x`. Any other projection is shown by
+its own name. -/
 partial def instName (env : Environment) (i : Expr) : String :=
   match i with
-  | .proj _ _ x => instName env x
+  | .proj s k x => if parentInstField env s k then instName env x else "?"
   | _ =>
     match i.getAppFn.constName? with
     | none => "?"
     | some f =>
-        let toInst := match env.find? f with
-          | some ci => (headOf ci.type).1.any instanceTypes.contains
-          | none => false
         match env.getProjectionFnInfo? f with
         | some info =>
-            if toInst && i.getAppNumArgs == info.numParams + 1 then instName env i.appArg!
+            if parentInstField env info.ctorName.getPrefix info.i &&
+                i.getAppNumArgs == info.numParams + 1 then instName env i.appArg!
             else toString f
         | none => toString f
 
@@ -282,7 +295,10 @@ def rowOf (env : Environment) (n : Name) (ci : ConstantInfo) (m : Name) :
         pure (claimColumn env args[1]!, col, args[2]!)
   let bs ← bindersOf env ci.type
   let family := isFamily kind bs
-  let status ← if bs.isEmpty || family then statusOf env n
+  -- `collectAxioms` finds no axiom in an `unsafe` self-reference, which
+  -- proves any type.
+  let status ← if ci.isUnsafe then pure "UNSOUND(unsafe)"
+    else if bs.isEmpty || family then statusOf env n
     else pure "CONDITIONAL (not a certificate)"
   let status := if status == "LEAN" && gapsPrefix.isPrefixOf m then "KNOWN-GAP" else status
   let status := if family then status ++ " (family)" else status
@@ -371,9 +387,19 @@ def matrixText (env : Environment) (rows : Array Row) (insts : Array Name) : IO 
       let parts := cellOrder.filter parts.contains
       if parts.isEmpty then "·" else String.intercalate "+" parts
   let header := "Instance" :: cols.toList.map (idText ·.2)
+  -- The rows without a cell, each with the reason.
+  let isCol (c : Option Name) := c.any fun c => cols.any (·.1 == c)
+  let what (r : Row) := if r.kind.startsWith "profile" then "profile" else "claim"
+  let dropped := rows.toList.filterMap fun r =>
+    if r.inst == "?" then some s!"- `{r.decl}` ({r.status}): no instance.\n"
+    else if !isCol r.col then some s!"- `{r.decl}` ({r.status}): {what r} not in the catalog.\n"
+    else none
+  let dropped := if dropped.isEmpty then "Rows without a cell: none.\n"
+    else "Rows without a cell:\n\n" ++ String.join dropped
   let libs := String.intercalate ", " (instanceLibraries.map (s!"`{·}`"))
   return "# Matrix (generated by scripts/Registry.lean; do not edit)\n\n" ++
-    s!"Scanned libraries: {libs}. The rows are the rows of `docs/REGISTRY.md`.\n\n" ++
+    s!"Scanned libraries: {libs}. The cells come from the rows of `docs/REGISTRY.md`; " ++
+    "rows without a cell are listed below the table.\n\n" ++
     "One line per instance: a constant whose type, after its leading binders, is " ++
     "`Instance` or `StrongInstance`. An instance with parameters (`gridInst p`) has " ++
     "one line, by its constant name. One column per catalog claim, then one column " ++
@@ -393,7 +419,8 @@ def matrixText (env : Environment) (rows : Array Row) (insts : Array Name) : IO 
     "- `+` joins the parts of one cell. `·`: no row.\n\n" ++
     "```text\n" ++ boxTable header body ++ "\n```\n\n" ++
     "`*`: a family row. `holds` means the claim propositions at one constant; no " ++
-    "inhabitation; can be vacuous; not a certificate and not a `Candidate`.\n"
+    "inhabitation; can be vacuous; not a certificate and not a `Candidate`.\n\n" ++
+    dropped
 
 def registryPath : System.FilePath := "docs/REGISTRY.md"
 def matrixPath : System.FilePath := "docs/MATRIX.md"
