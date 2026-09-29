@@ -3,7 +3,8 @@
 Branch `fgsa-composition`. Plan: `docs/plans/2026-09-29-fgsa-model-store.md`.
 Gate reports: `docs/audit/fgsa-task{6..12}-opus-review.md`,
 `docs/audit/fgsa-model-check-report.md`, and the final audit (G13):
-`docs/audit/fgsa-final-audit-astra.md`, `docs/audit/fgsa-final-audit-opus.md`.
+`docs/audit/fgsa-final-audit-astra.md`, `docs/audit/fgsa-final-audit-opus.md`,
+with the verification of its fold: `docs/audit/fgsa-final-audit-fold-verify.md`.
 This file is the Task 13 report with the G13 corrections.
 
 Scope. All results are LOCAL store facts over the over-approximate `Reachable`
@@ -153,29 +154,40 @@ Q1 (engine) and Q5 (deliverable) stay open; objects are v1-typed (J1).
 │ lake build --wfail (full project target)           │ pass, 3601 jobs                      │
 │ bash scripts/check-fgsa.sh                         │ exit 0: build; root imports and      │
 │                                                    │ direct-import allowlist on parsed    │
-│                                                    │ headers; native scan; Q1/Q5 grep     │
+│                                                    │ headers (fail closed; find -L        │
+│                                                    │ -iname); native scan; Q1/Q5 grep     │
 │                                                    │ (Run, Env, Interface, Claims added); │
 │                                                    │ axioms (805 constants, 442           │
-│                                                    │ theorems), build coverage, import    │
-│                                                    │ closure (5503 modules, no forbidden  │
-│                                                    │ library); lease instances (788       │
-│                                                    │ constants, 17 generated equation     │
-│                                                    │ lemmas skipped, 332 imported         │
-│                                                    │ definitions inspected, 116 lease     │
-│                                                    │ arguments)                           │
+│                                                    │ theorems), build coverage, direct    │
+│                                                    │ imports of 21 FGSA modules on the    │
+│                                                    │ compiled data, import closure (5503  │
+│                                                    │ modules, no forbidden library);      │
+│                                                    │ lease instances (788 constants, 17   │
+│                                                    │ generated equation lemmas skipped,   │
+│                                                    │ 335 imported definitions inspected,  │
+│                                                    │ 76 lease arguments, backstop over    │
+│                                                    │ 4203 reached constants)              │
 │ negative controls in check-fgsa.sh                 │ all rejected: unlisted library;      │
 │                                                    │ wrong-layer import (KitFG in Model/, │
 │                                                    │ Proofs in Statements/); import after │
 │                                                    │ a comment and a line break; orphan   │
-│                                                    │ module with a sorry behind a         │
-│                                                    │ commented root import (root check    │
-│                                                    │ and compiled coverage check); SAPC   │
-│                                                    │ in the closure; lease: direct        │
-│                                                    │ default call, alias wrapper with its │
-│                                                    │ own policy parameter, generic        │
-│                                                    │ wrapper with an alias policy type,   │
-│                                                    │ imported wrapper that fixes the      │
-│                                                    │ default                              │
+│                                                    │ modules with a sorry (behind a       │
+│                                                    │ commented root import, and with a    │
+│                                                    │ .LEAN name; root check and compiled  │
+│                                                    │ coverage check); SAPC in the         │
+│                                                    │ closure; a «» module name, a prelude │
+│                                                    │ line, a .LEAN file and a linked      │
+│                                                    │ directory (text allowlist, Q1/Q5     │
+│                                                    │ grep, compiled allowlist); lease:    │
+│                                                    │ direct default call, alias wrapper   │
+│                                                    │ with its own policy parameter,       │
+│                                                    │ generic wrapper with an alias policy │
+│                                                    │ type, imported wrapper that fixes    │
+│                                                    │ the default, LeasePolicy.mk outside  │
+│                                                    │ AvailableChain; imported let, beta,  │
+│                                                    │ private, irreducible-alias and non-  │
+│                                                    │ AvailableChain wrappers (G13 fold    │
+│                                                    │ verification)                        │
 │ lake env lean --run scripts/CheckFGSAAxioms.lean   │ exit 0                               │
 │ --expect <the 15 names of Step 2>                  │                                      │
 │ Tests/Axioms.lean (206 #print axioms)              │ only propext, Classical.choice,      │

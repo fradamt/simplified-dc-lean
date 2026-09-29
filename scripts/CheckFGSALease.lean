@@ -1,19 +1,22 @@
 import AvailableChainFGSA
 open Lean Meta
 
-/-! FGSA lease-instance check (G11 M1; G13 Astra M1, Opus m2). The SA base runs
-GridCO with `GridCO.slowLeasePolicy`. A parameter is a policy parameter if its
-type, reduced by `whnf`, is `GridCO.LeasePolicy` (so an alias of the type is
-caught).
+/-! FGSA lease-instance check (G11 M1; G13 Astra M1, Opus m2; G13 fold MINOR-1).
+The SA base runs GridCO with `GridCO.slowLeasePolicy`. A parameter is a policy
+parameter if its type, reduced by `whnf` with ALL transparency, is
+`GridCO.LeasePolicy` (so an alias of the type is caught, also an
+`@[irreducible]` one).
 
-Scanned (the types and values of these constants):
+Scanned (the types and values of these constants; the value of a theorem is its
+proof, so theorem proofs are scanned too, which is stricter than soundness
+needs, on purpose):
 - every compiled constant of the modules of `AvailableChainFGSA` (and of each
   extra root module `M` on the command line), except the equation lemmas that
   Lean generates for a definition of another library (see "Skipped");
 - inspected imported definitions: every definition in a namespace
-  `AvailableChain.*` of a module outside the scanned roots that a scanned
-  constant reaches, directly or through the values of other inspected
-  definitions.
+  `AvailableChain.*` (tested on the name without its `private` prefix) of a
+  module outside the scanned roots that a scanned constant reaches, directly or
+  through the values of other inspected definitions.
 
 Rules:
 - A scanned constant must not have a policy parameter. FGSA never needs a
@@ -23,23 +26,31 @@ Rules:
   constant must be the constant `GridCO.slowLeasePolicy`. The default instance
   `gridLeasePolicy`, any other term, a bound variable, a partial use and an
   unapplied use fail.
-- In an inspected imported definition, a policy argument may also be a bound
-  variable (a generic definition that passes its own policy parameter
-  through); every closed policy argument must be `GridCO.slowLeasePolicy`.
-  So an imported wrapper that fixes `gridLeasePolicy` inside and that FGSA
-  reaches fails.
+- In an inspected imported definition, a policy argument may also be one of the
+  definition's OWN policy parameters (a leading binder of its type or value
+  whose type is a policy type). A variable that a `let` or a `fun` inside the
+  body binds fails. So an imported wrapper that fixes `gridLeasePolicy` inside
+  (directly, through a `let`, through a beta-redex, or through a private
+  helper) and that FGSA reaches fails.
+- Reachability backstop: in the closure of the scanned constants (types and
+  values of every reached constant, all namespaces, private names included;
+  the proofs of imported theorems excluded), no constant may mention
+  `GridCO.gridLeasePolicy`, and only the value of `GridCO.slowLeasePolicy` may
+  mention the constructor `GridCO.LeasePolicy.mk`.
 
-Trusted, not inspected: the proofs of imported theorems (their statements
-reach FGSA only through the arguments at each use, which the rules check), and
-definitions outside the namespace `AvailableChain` (Lean core, Batteries,
-Mathlib: they do not mention GridCO).
+Trusted, not inspected by the argument rules: the proofs of imported theorems
+(their statements reach FGSA only through the arguments at each use, which the
+rules check), and definitions outside the namespace `AvailableChain` (Lean
+core, Batteries, Mathlib: they do not mention GridCO). The backstop covers
+these definitions too.
 
 Skipped: a constant whose last name component is `eq_<k>` or `eq_def`, whose
 prefix is a definition declared in a module outside the scanned roots (for
 example `GridCO.recordGenuine.eq_1`, which Lean realizes in an FGSA module when
 an FGSA proof unfolds `recordGenuine`). Its policy is a bound variable, and
 each use of it is checked at the use. Its definition is inspected as an
-imported definition (the equation states the body of that definition).
+imported definition (the equation states the body of that definition). Lean
+reserves these names: a user declaration cannot have one.
 
 It checks BUILT data, as `scripts/CheckFGSAAxioms.lean`: run
 `lake build AvailableChainFGSA` first, or use `bash scripts/check-fgsa.sh`.
@@ -51,6 +62,8 @@ Exit codes: 0 clean; 1 a bad use; 2 nothing found. -/
 
 def policyName : Name := `AvailableChain.GridCO.LeasePolicy
 def slowName : Name := `AvailableChain.GridCO.slowLeasePolicy
+def gridName : Name := `AvailableChain.GridCO.gridLeasePolicy
+def mkName : Name := `AvailableChain.GridCO.LeasePolicy.mk
 
 def moduleOf (env : Environment) (n : Name) : Option Name :=
   (env.getModuleIdxFor? n).map fun idx => env.header.moduleNames[idx.toNat]!
@@ -71,13 +84,17 @@ def generatedEqn (roots : List Name) (env : Environment) (n : Name) : Bool :=
         | _ => false)
   | _ => false
 
-/-- The positions of the policy parameters of a constant (types reduced). -/
+/-- A policy type: `GridCO.LeasePolicy` after `whnf` with all transparency. -/
+def isPolicyType (t : Expr) : MetaM Bool :=
+  withTransparency .all do return (← whnf t).isConstOf policyName
+
+/-- The positions of the policy parameters of a constant (types reduced with
+all transparency). -/
 def leasePositions (ci : ConstantInfo) : MetaM (Array Nat) :=
-  forallTelescopeReducing ci.type fun xs _ => do
+  withTransparency .all <| forallTelescopeReducing ci.type fun xs _ => do
     let mut out := #[]
     for i in [0:xs.size] do
-      let t ← whnf (← inferType xs[i]!)
-      if t.isConstOf policyName then out := out.push i
+      if ← isPolicyType (← inferType xs[i]!) then out := out.push i
     return out
 
 structure Scan where
@@ -86,6 +103,8 @@ structure Scan where
   bad : Array String := #[]
   uses : Nat := 0
   reached : Std.HashSet Name := {}
+  /-- The own policy parameters of the inspected imported definition. -/
+  own : Array Expr := #[]
 
 def posOf (c : Name) : StateT Scan MetaM (Array Nat) := do
   if let some ps := (← get).cache[c]? then return ps
@@ -101,9 +120,10 @@ def report (msg : String) : StateT Scan MetaM Unit :=
 def note (c : Name) : StateT Scan MetaM Unit :=
   modify fun s => { s with reached := s.reached.insert c }
 
-/-- Scan `e`, a type or value of `owner`. `generic`: a bound variable is a valid
-policy argument (only in an inspected imported definition). -/
-partial def scan (owner : Name) (generic : Bool) (e : Expr) : StateT Scan MetaM Unit := do
+/-- Scan `e`, a part of a type or value of `owner`. A policy argument is valid
+if it is `slowLeasePolicy` or one of the owner's own policy parameters
+(`Scan.own`, empty for a scanned FGSA constant). -/
+partial def scan (owner : Name) (e : Expr) : StateT Scan MetaM Unit := do
   if (← get).seen.contains e then return
   modify fun s => { s with seen := s.seen.insert e }
   match e with
@@ -116,25 +136,70 @@ partial def scan (owner : Name) (generic : Bool) (e : Expr) : StateT Scan MetaM 
           modify fun s => { s with uses := s.uses + 1 }
           if h : i < args.size then
             let a := args[i]
-            unless a.isConstOf slowName || (generic && a.isBVar) do
+            unless a.isConstOf slowName || (← get).own.contains a do
               report s!"{owner}: {c} at {a}"
           else
             report s!"{owner}: {c} (partial)"
-      else scan owner generic f
-      for a in args do scan owner generic a
+      else scan owner f
+      for a in args do scan owner a
   | .const c _ =>
       note c
       unless (← posOf c).isEmpty do report s!"{owner}: {c} (unapplied)"
-  | .lam _ t b _ | .forallE _ t b _ => do scan owner generic t; scan owner generic b
-  | .letE _ t v b _ => do scan owner generic t; scan owner generic v; scan owner generic b
-  | .mdata _ b | .proj _ _ b => scan owner generic b
+  | .lam _ t b _ | .forallE _ t b _ => do scan owner t; scan owner b
+  | .letE _ t v b _ => do scan owner t; scan owner v; scan owner b
+  | .mdata _ b | .proj _ _ b => scan owner b
   | _ => pure ()
+
+/-- The policy-typed variables among `xs`. -/
+def policyVars (xs : Array Expr) : MetaM (Array Expr) :=
+  xs.filterM fun x => do isPolicyType (← inferType x)
+
+/-- Scan a type or value after opening its leading binders. With `generic`, the
+policy-typed leading binders are the owner's own policy parameters. The binder
+types are scanned too. -/
+def scanOpen (owner : Name) (generic : Bool) (lam : Bool) (e : Expr) :
+    StateT Scan MetaM Unit := do
+  let go : Array Expr → Expr → StateT Scan MetaM Unit := fun xs body => do
+    let own ← if generic then policyVars xs else pure #[]
+    modify fun s => { s with own }
+    for x in xs do scan owner (← inferType x)
+    scan owner body
+  let st ← get
+  let ((), st') ← (if lam then lambdaTelescope e fun xs b => (go xs b).run st
+    else forallTelescope e fun xs b => (go xs b).run st : MetaM _)
+  set { st' with own := #[] }
 
 def scanConst (owner : Name) (generic : Bool) (ci : ConstantInfo) :
     StateT Scan MetaM Unit := do
   modify fun s => { s with seen := {} }
-  scan owner generic ci.type
-  if let some v := ci.value? (allowOpaque := true) then scan owner generic v
+  scanOpen owner generic false ci.type
+  if let some v := ci.value? (allowOpaque := true) then
+    modify fun s => { s with seen := {} }
+    scanOpen owner generic true v
+
+/-- The backstop: the closure of `start` through types and values (not the
+proofs of imported theorems). Reports every reached constant that mentions
+`gridLeasePolicy`, and every one other than `slowLeasePolicy` that mentions
+`LeasePolicy.mk`. Returns the reports and the number of reached constants. -/
+def backstop (env : Environment) (inRoot : Name → Bool) (start : List Name) :
+    Array String × Nat := Id.run do
+  let mut todo := start.toArray
+  let mut seen : NameSet := {}
+  let mut bad := #[]
+  while h : todo.size > 0 do
+    let c := todo.back
+    todo := todo.pop
+    if seen.contains c then continue
+    seen := seen.insert c
+    let some ci := env.find? c | continue
+    let mut used := ci.type.getUsedConstants
+    unless !inRoot c && ci matches .thmInfo _ do
+      if let some v := ci.value? (allowOpaque := true) then used := used ++ v.getUsedConstants
+    if used.contains gridName then bad := bad.push s!"{c}: mentions {gridName} (reach)"
+    if c != slowName && used.contains mkName then bad := bad.push s!"{c}: mentions {mkName} (reach)"
+    for u in used do
+      unless seen.contains u do todo := todo.push u
+  return (bad, seen.size)
 
 def main (args : List String) : IO UInt32 := do
   let extra := args.map String.toName
@@ -168,7 +233,8 @@ def main (args : List String) : IO UInt32 := do
       todo := todo.tail!
       if done.contains c then continue
       done := done.insert c
-      if !(`AvailableChain).isPrefixOf c || inRoots roots env c then continue
+      let user := (privateToUserName? c).getD c
+      if !(`AvailableChain).isPrefixOf user || inRoots roots env c then continue
       match env.find? c with
       | some ci@(.defnInfo _) =>
           inspected := inspected + 1
@@ -179,7 +245,9 @@ def main (args : List String) : IO UInt32 := do
     return (st, skipped, inspected)
   let (st, skipped, inspected) ← run.run' {} |>.toIO'
     { fileName := "CheckFGSALease", fileMap := .ofString "" } { env := env }
-  for b in st.bad do IO.println s!"BAD LEASE INSTANCE {b}"
+  let (reach, nReach) := backstop env (inRoots roots env) (cs.map (·.1))
+  for b in st.bad ++ reach do IO.println s!"BAD LEASE INSTANCE {b}"
   IO.println s!"checked {cs.length - skipped} constants ({skipped} generated equation \
-    lemmas skipped), {inspected} imported definitions inspected, {st.uses} lease arguments"
-  return if st.bad.isEmpty then 0 else 1
+    lemmas skipped), {inspected} imported definitions inspected, {st.uses} lease arguments, \
+    {nReach} constants reached (backstop)"
+  return if st.bad.isEmpty && reach.isEmpty then 0 else 1

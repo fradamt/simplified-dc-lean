@@ -13,12 +13,17 @@ It checks BUILT data: `lean --run` imports the `.olean` files and does not
 compare them with the sources. Run `lake build AvailableChainFGSA` first, or
 use `bash scripts/check-fgsa.sh`, which builds and then runs every FGSA check.
 
-It also checks two import facts on the COMPILED import graph (G13 Astra M2,
-Opus m1):
-- build coverage: every `.lean` file under the source directory (default
-  `AvailableChainFGSA`) is a module of the import closure, so a file that the
-  root does not import (for example behind a commented-out import) cannot
-  escape the build and this axiom check;
+It also checks three import facts on the COMPILED import graph (G13 Astra M2,
+Opus m1; G13 fold MINOR-2):
+- build coverage: every `.lean` file (extension in any case) under the source
+  directory (default `AvailableChainFGSA`; symbolic links are followed) is a
+  module of the import closure, so a file that the root does not import (for
+  example behind a commented-out import) cannot escape the build and this
+  axiom check;
+- direct imports: the direct imports of every `AvailableChainFGSA` module in
+  the closure, as the `.olean` files record them, obey the allowlist and the
+  layer rules of `scripts/check-fgsa.sh` (`allowedImport`). This check does
+  not depend on the header syntax, the file name or the directory layout;
 - closure: no module of `AvailableChainFramework`, `AvailableChainRegistry`,
   `AvailableChainSAPC` or `AvailableChainWitnesses` is in the import closure.
   `AvailableChainStatements` is allowed there (the declared transitive
@@ -30,8 +35,8 @@ root module (negative controls); `--files D` sets the source directory (its
 last component must be `AvailableChainFGSA`). With `--expect`, each named
 constant must be a checked constant (a short name matches a qualified one by
 suffix).
-Exit codes: 0 clean; 1 a bad axiom, a source file outside the build, or a
-forbidden library in the closure; 2 nothing found, a usage error (an unknown
+Exit codes: 0 clean; 1 a bad axiom, a source file outside the build, a direct
+import outside the allowlist, or a forbidden library in the closure; 2 nothing found, a usage error (an unknown
 argument, or `--expect` without a name), or an expected name missing. Each
 missing expected name forces exit 2, also after a bad axiom or after other
 expected names that are present. -/
@@ -42,13 +47,42 @@ def forbiddenRoots : List Name :=
   [`AvailableChainFramework, `AvailableChainRegistry, `AvailableChainSAPC,
     `AvailableChainWitnesses]
 
+/-- The external modules that every layer may import (the allowlist of
+`scripts/check-fgsa.sh`). -/
+def externalOK (m : Name) : Bool :=
+  (`AvailableChainModel).isPrefixOf m || m == `AvailableChainGridCO.Model.Protocol ||
+    m == `AvailableChainSA.Model.Protocol || (`AvailableChainSimplexFG).isPrefixOf m ||
+    (`Mathlib).isPrefixOf m
+
+/-- The direct-import allowlist with its layer rules (plan, Global Constraints
+"Imports"; the same rules as `check_direct_imports` in `scripts/check-fgsa.sh`).
+The layer of `AvailableChainFGSA.L.…` is `L`; the root `AvailableChainFGSA`
+imports only FGSA modules; a module directly under the root or in another
+directory imports nothing but `Init`. -/
+def allowedImport (mod imp : Name) : Bool :=
+  let fgsa (l : String) := (Name.str `AvailableChainFGSA l).isPrefixOf imp
+  imp == `Init ||
+  match mod.components.map (·.toString) with
+  | ["AvailableChainFGSA"] => (`AvailableChainFGSA).isPrefixOf imp && imp != `AvailableChainFGSA
+  | "AvailableChainFGSA" :: l :: _ :: _ =>
+      match l with
+      | "Tests" => ((`AvailableChainFGSA).isPrefixOf imp && imp != `AvailableChainFGSA) ||
+          externalOK imp
+      | "Model" => fgsa "Model" || externalOK imp
+      | "Statements" => fgsa "Model" || fgsa "Statements" || externalOK imp ||
+          (`AvailableChainKitFG).isPrefixOf imp
+      | "Proofs" => fgsa "Model" || fgsa "Statements" || fgsa "Proofs" || externalOK imp ||
+          (`AvailableChainGridCO.Proofs).isPrefixOf imp || (`AvailableChainKitFG).isPrefixOf imp
+      | _ => false
+  | _ => false
+
 /-- The module names of the `.lean` files under `dir`, whose last component is
 `AvailableChainFGSA`. -/
 def sourceModules (dir : System.FilePath) : IO (Array Name) := do
   let files ← dir.walkDir
   let mut out := #[]
   for f in files do
-    if f.extension == some "lean" then
+    if f.extension.map String.toLower == some "lean" then
       let parts := (f.withExtension "").components.drop dir.components.length
       out := out.push (parts.foldl (fun n s => Name.str n s) `AvailableChainFGSA)
   return out
@@ -95,6 +129,15 @@ def main (args : List String) : IO UInt32 := do
     unless mods.contains m do
       IO.println s!"NOT IN THE BUILD: {m} (the root does not import it)"
       badImports := true
+  let mut fgsaMods := 0
+  for h : i in [0:mods.size] do
+    let m := mods[i]
+    unless (`AvailableChainFGSA).isPrefixOf m do continue
+    fgsaMods := fgsaMods + 1
+    for imp in env.header.moduleData[i]!.imports do
+      unless allowedImport m imp.module do
+        IO.println s!"COMPILED IMPORT NOT ALLOWED: {m} imports {imp.module}"
+        badImports := true
   for m in mods do
     if forbiddenRoots.any (·.isPrefixOf m) then
       IO.println s!"FORBIDDEN LIBRARY IN THE IMPORT CLOSURE: {m}"
@@ -118,7 +161,7 @@ def main (args : List String) : IO UInt32 := do
       IO.println s!"NOT CHECKED: {s}"
       missing := missing + 1
   IO.println s!"checked {cs.length} constants, {thms.length} theorems, {mods.size} modules \
-    in the import closure"
+    in the import closure, direct imports of {fgsaMods} FGSA modules"
   if missing > 0 then
     IO.println s!"{missing} expected names not checked"
     return 2

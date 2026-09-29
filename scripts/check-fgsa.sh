@@ -3,7 +3,10 @@
 # comments, the direct-import allowlist with its directory rules, the Q1/Q5
 # boundary grep, the axiom check (with build coverage and the import-closure
 # check), the lease-instance check, and the negative controls of these checks.
-# Import headers are parsed after comment removal (G13 Astra M2, Opus m1).
+# Import headers are parsed after comment removal (G13 Astra M2, Opus m1). The
+# parser fails closed, and the axiom script checks the same allowlist again on
+# the compiled import data (G13 fold MINOR-2). Source files: `find -L` with
+# `-iname '*.lean'` (symbolic links followed, extension in any case).
 # Run: bash scripts/check-fgsa.sh. Exit 0 when every check passes.
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -35,21 +38,30 @@ strip_comments='
   print $o;'
 # The modules of the import header of a file, one per line, after comment
 # removal: [module] then [public] [meta] import [all] <Name>, any whitespace.
+# Fail closed: if the rest of the file still has the token `import` or
+# `prelude` (for example after a `prelude` line or a module name with `«`), it
+# prints the line `!UNPARSED`.
 header_imports='
   local $/; my $s = <STDIN>;
   $s =~ s/^\s+//; $s =~ s/^module\s+//;
   while ($s =~ s/^(?:public\s+)?(?:meta\s+)?import\s+(?:all\s+)?([A-Za-z_][A-Za-z0-9_.]*)\s*//) {
     print "$1\n";
-  }'
+  }
+  print "!UNPARSED\n" if $s =~ /(?<![\w.\x27!?])(?:import|prelude)(?![\w\x27!?])/;'
 imports_of() { perl -CSD -e "$strip_comments" < "$1" | perl -CSD -e "$header_imports"; }
+# The FGSA source files under base directory $1, relative to it.
+source_files() { (cd "$1" && find -L AvailableChainFGSA -iname '*.lean' | sort); }
 
 # Root imports under base directory $1: every source file is a root import.
 check_root_imports() {
   local base=$1 missing
   missing=$(comm -23 \
-    <(cd "$base" && find AvailableChainFGSA -name '*.lean' | sed 's/\.lean$//; s|/|.|g' | sort) \
+    <(source_files "$base" | sed -E 's/\.[lL][eE][aA][nN]$//; s|/|.|g' | sort) \
     <(imports_of "$base/AvailableChainFGSA.lean" | sort))
   [ -z "$missing" ] || { echo "NOT IMPORTED BY THE ROOT: $missing"; return 1; }
+  if imports_of "$base/AvailableChainFGSA.lean" | grep -qx '!UNPARSED'; then
+    echo "UNPARSED IMPORT HEADER: AvailableChainFGSA.lean"; return 1
+  fi
 }
 
 # The direct-import allowlist (plan, Global Constraints "Imports") under base
@@ -62,10 +74,11 @@ check_root_imports() {
 # Proofs/; AvailableChainKitFG.* only in Statements/ and Proofs/.
 check_direct_imports() {
   local base=$1 bad=0 f rel layer m
-  for f in $(cd "$base" && find AvailableChainFGSA -name '*.lean' | sort) AvailableChainFGSA.lean; do
+  for f in $(source_files "$base") AvailableChainFGSA.lean; do
     rel=${f#AvailableChainFGSA/}
     if [ "$f" = AvailableChainFGSA.lean ]; then layer=root; else layer=${rel%%/*}; fi
     for m in $(imports_of "$base/$f"); do
+      if [ "$m" = '!UNPARSED' ]; then echo "UNPARSED IMPORT HEADER: $f"; bad=1; continue; fi
       case "$layer:$m" in
         root:AvailableChainFGSA.*|Tests:AvailableChainFGSA.*) continue ;;
         Model:AvailableChainFGSA.Model.*) continue ;;
@@ -92,7 +105,7 @@ check_direct_imports() {
 # Q1/Q5 boundary (plan, Global Constraints) on comment-free text.
 check_boundary() {
   local base=$1 bad=0 f
-  for f in $(cd "$base" && find AvailableChainFGSA -name '*.lean') AvailableChainFGSA.lean; do
+  for f in $(source_files "$base") AvailableChainFGSA.lean; do
     if perl -CSD -e "$strip_comments" < "$base/$f" |
         grep -nE 'ProtocolSpec|Generic\.Run|(^|[^A-Za-z0-9_])(Run|Env)([^A-Za-z0-9_]|$)|World|Interface|Claims|pendingRow'; then
       echo "ENGINE REFERENCE in $f"; bad=1
@@ -107,7 +120,7 @@ echo "== root imports"
 check_root_imports . || exit 2
 echo "== native evaluation"
 status=0
-for f in $(find AvailableChainFGSA -name '*.lean') AvailableChainFGSA.lean; do
+for f in $(source_files .) AvailableChainFGSA.lean; do
   if perl -CSD -e "$strip_comments" < "$f" |
       grep -nE '(^|[^A-Za-z0-9_.])native_decide([^A-Za-z0-9_]|$)|\+native|native := true|ofReduceBool|ofReduceNat' >/dev/null; then
     echo "native evaluation in $f"; status=1
@@ -167,10 +180,13 @@ expect_fail "import after a comment and a line break" $code "$out" \
 mk_tree
 printf 'module\n@[expose] public section\ntheorem negOrphan : False := sorry\nend\n' \
   > "$neg/tree/AvailableChainFGSA/Tests/NegOrphan.lean"
+printf 'module\n@[expose] public section\ntheorem negOrphanC : False := sorry\nend\n' \
+  > "$neg/tree/AvailableChainFGSA/Tests/NegOrphanC.LEAN"
 echo '/- public import AvailableChainFGSA.Tests.NegOrphan -/' >> "$neg/tree/AvailableChainFGSA.lean"
 run check_root_imports "$neg/tree"
-expect_fail "orphan module behind a commented import (root check)" $code "$out" \
-  "NOT IMPORTED BY THE ROOT: AvailableChainFGSA.Tests.NegOrphan"
+expect_fail "orphan modules behind a commented import and with a .LEAN name (root check)" \
+  $code "$out" "NOT IMPORTED BY THE ROOT: AvailableChainFGSA.Tests.NegOrphan" \
+  "AvailableChainFGSA.Tests.NegOrphanC"
 
 # The compiled checks: the orphan file (with a sorry) against the build, and a
 # forbidden library in the import closure.
@@ -179,9 +195,45 @@ import AvailableChainSAPC.Model.Choice
 LEAN
 lake env lean -o "$neg/FGSAClosureNeg.olean" "$neg/FGSAClosureNeg.lean"
 run lake env bash -c 'LEAN_PATH="$0:$LEAN_PATH" lean --run scripts/CheckFGSAAxioms.lean --root FGSAClosureNeg --files "$0/tree/AvailableChainFGSA"' "$neg"
-expect_fail "orphan module and forbidden closure (axiom script)" $code "$out" \
-  "NOT IN THE BUILD: AvailableChainFGSA.Tests.NegOrphan" \
+expect_fail "orphan modules and forbidden closure (axiom script)" $code "$out" \
+  "NOT IN THE BUILD: AvailableChainFGSA.Tests.NegOrphan " \
+  "NOT IN THE BUILD: AvailableChainFGSA.Tests.NegOrphanC " \
   "FORBIDDEN LIBRARY IN THE IMPORT CLOSURE: AvailableChainSAPC"
+
+# Header forms and file names that an earlier parser missed (G13 fold MINOR-2;
+# the auditor's files in scripts/fgsa-controls/): a module name with «», a
+# `prelude` line, a .LEAN file, and a linked directory. Each imports L*, which
+# the allowlist forbids. First the text checks, then the compiled check (the
+# four modules compiled as FGSA modules, over a copy of the FGSA build).
+mk_tree
+cp scripts/fgsa-controls/AdvG.lean scripts/fgsa-controls/AdvP.lean \
+  scripts/fgsa-controls/AdvCase.LEAN "$neg/tree/AvailableChainFGSA/Model/"
+mkdir -p "$neg/sub" && cp scripts/fgsa-controls/Sub/X.lean "$neg/sub/"
+ln -s "$neg/sub" "$neg/tree/AvailableChainFGSA/Model/Sub"
+printf 'public import AvailableChainFGSA.Model.%s\n' AdvG AdvP AdvCase Sub.X \
+  >> "$neg/tree/AvailableChainFGSA.lean"
+run check_direct_imports "$neg/tree"
+expect_fail "header forms and file names (text allowlist)" $code "$out" \
+  "UNPARSED IMPORT HEADER: AvailableChainFGSA/Model/AdvG.lean" \
+  "UNPARSED IMPORT HEADER: AvailableChainFGSA/Model/AdvP.lean" \
+  "IMPORT NOT ALLOWED: AvailableChainFGSA/Model/AdvCase.LEAN imports AvailableChainLStar.Model.Protocol" \
+  "IMPORT NOT ALLOWED: AvailableChainFGSA/Model/Sub/X.lean imports AvailableChainLStar.Model.Protocol"
+run check_boundary "$neg/tree"
+expect_fail "Q1/Q5 grep in a .LEAN file and a linked directory" $code "$out" \
+  "ENGINE REFERENCE in AvailableChainFGSA/Model/AdvCase.LEAN" \
+  "ENGINE REFERENCE in AvailableChainFGSA/Model/Sub/X.lean"
+mkdir -p "$neg/c"
+cp -R .lake/build/lib/lean/AvailableChainFGSA .lake/build/lib/lean/AvailableChainFGSA.* "$neg/c/"
+for m in AdvG:AdvG.lean AdvP:AdvP.lean AdvCase:AdvCase.LEAN Sub/X:Sub/X.lean; do
+  mkdir -p "$neg/c/AvailableChainFGSA/Model/Sub"
+  lake env lean -o "$neg/c/AvailableChainFGSA/Model/${m%%:*}.olean" "$neg/tree/AvailableChainFGSA/Model/${m#*:}"
+done
+run lake env bash -c 'LEAN_PATH="$0/c:$LEAN_PATH" lean --run scripts/CheckFGSAAxioms.lean --root AvailableChainFGSA.Model.AdvG --root AvailableChainFGSA.Model.AdvP --root AvailableChainFGSA.Model.AdvCase --root AvailableChainFGSA.Model.Sub.X --files "$0/tree/AvailableChainFGSA"' "$neg"
+expect_fail "header forms and file names (compiled allowlist)" $code "$out" \
+  "COMPILED IMPORT NOT ALLOWED: AvailableChainFGSA.Model.AdvG imports AvailableChainLStar.Model.Protocol" \
+  "COMPILED IMPORT NOT ALLOWED: AvailableChainFGSA.Model.AdvP imports AvailableChainLStar.Model.Protocol" \
+  "COMPILED IMPORT NOT ALLOWED: AvailableChainFGSA.Model.AdvCase imports AvailableChainLStar.Model.Protocol" \
+  "COMPILED IMPORT NOT ALLOWED: AvailableChainFGSA.Model.Sub.X imports AvailableChainLStar.Model.Protocol"
 
 # Lease controls: a direct default-instance call; an alias wrapper with its own
 # policy parameter in another namespace (Astra M1); a generic wrapper whose
@@ -220,12 +272,20 @@ namespace AvailableChain.GridCO
 def fixedGate (p : Params) (st : State 1) (r : Nat) : State 1 :=
   @gate gridLeasePolicy p 1 st r
 end AvailableChain.GridCO
+namespace LeaseMk
+/-- Outside `AvailableChain`: a new policy value built with the constructor. -/
+def mkGate (p : AvailableChain.GridCO.Params) (st : AvailableChain.GridCO.State 1) (r : Nat) :
+    AvailableChain.GridCO.State 1 :=
+  @AvailableChain.GridCO.gate ⟨false⟩ p 1 st r
+end LeaseMk
 LEAN
 cat > "$neg/FGSALeaseUse.lean" <<'LEAN'
 import FGSALeaseLib
 namespace AvailableChain.FGSA
 def badGate3 (p : GridCO.Params) (st : GridCO.State 1) (r : Nat) : GridCO.State 1 :=
   GridCO.fixedGate p st r
+def badGate4 (p : GridCO.Params) (st : GridCO.State 1) (r : Nat) : GridCO.State 1 :=
+  LeaseMk.mkGate p st r
 end AvailableChain.FGSA
 LEAN
 for m in FGSALeaseNeg FGSALeaseLib FGSALeaseUse; do
@@ -236,5 +296,22 @@ expect_fail "lease controls" $code "$out" \
   "leaseNegControl: AvailableChain.GridCO.gate at AvailableChain.GridCO.gridLeasePolicy" \
   "AvailableChain.LeaseAuditAlias.gate: has a policy parameter" \
   "AvailableChain.GridCO.sneakyGate: has a policy parameter" \
-  "AvailableChain.GridCO.fixedGate: AvailableChain.GridCO.gate at AvailableChain.GridCO.gridLeasePolicy"
+  "AvailableChain.GridCO.fixedGate: AvailableChain.GridCO.gate at AvailableChain.GridCO.gridLeasePolicy" \
+  "LeaseMk.mkGate: mentions AvailableChain.GridCO.LeasePolicy.mk (reach)"
+
+# Imported definitions (G13 fold MINOR-1; the auditor's AdvLib/AdvUse in
+# scripts/fgsa-controls/): a let-bound and a beta-bound default policy, a
+# private wrapper, an irreducible alias of the policy type, and a wrapper
+# outside the namespace AvailableChain (the reachability backstop).
+cp scripts/fgsa-controls/AdvLib.lean scripts/fgsa-controls/AdvUse.lean "$neg/"
+for m in AdvLib AdvUse; do
+  lake env bash -c 'LEAN_PATH="$0:$LEAN_PATH" lean -o "$0/$1.olean" "$0/$1.lean"' "$neg" "$m"
+done
+run lake env bash -c 'LEAN_PATH="$0:$LEAN_PATH" lean --run scripts/CheckFGSALease.lean AdvUse' "$neg"
+expect_fail "lease controls in imported definitions" $code "$out" \
+  "AvailableChain.GridCO.fixedLet: AvailableChain.GridCO.gate at #0" \
+  "AvailableChain.GridCO.fixedBeta: AvailableChain.GridCO.gate at #0" \
+  "AdvLib.0.AvailableChain.GridCO.fixedPriv: AvailableChain.GridCO.gate at AvailableChain.GridCO.gridLeasePolicy" \
+  "AvailableChain.FGSA.useIrr: AvailableChain.GridCO.genI at cast" \
+  "Evil.fixedGate: mentions AvailableChain.GridCO.gridLeasePolicy (reach)"
 echo "all FGSA checks pass"
