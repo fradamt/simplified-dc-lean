@@ -33,8 +33,17 @@ exempt. Thus two pulls of one base claim along one map are not found by this
 check (by design).
 
 Run: `lake env lean --run scripts/CatalogLock.lean
-  (--check | --write [--allow-changes]) [--lock <path>]`.
+  (--check | --write [--allow-changes]) [--local] [--lock <path>]`.
 The lock file is `docs/catalog.lock` if `--lock` is not given.
+`--local` makes the local-closure lock: the closure stops at a constant of
+a module outside the project (core, Std, Mathlib, …), and such a constant
+is hashed by its name only. The local lock does not change when a
+toolchain or Mathlib bump changes a foreign definition, so it shows that
+no project declaration changed. `--local` needs `--lock`; it never uses
+`docs/catalog.lock`. Bump procedure: on the old toolchain, `--write
+--local --lock <file>`; on the new one, `--check --local --lock <file>`
+(it must be clean); then `--write --allow-changes` of the full lock, with
+a lock-log entry (design §8; example: `docs/lock-log/v4.34.1/`).
 `--check` compares by name. It prints `REMOVED <name>` for an old name that is
 not locked now, `CHANGED <name> <old> -> <new>` for a different hash, and
 `ADDED <name>` for a new name.
@@ -136,6 +145,12 @@ def deps (ci : ConstantInfo) : Array Name :=
   | .thmInfo _ => ci.type.getUsedConstants
   | _ => ci.getUsedConstantsAsSet.toArray
 
+/-- A constant of a module outside the project (core, Std, Mathlib, …). -/
+def foreign (env : Environment) (n : Name) : Bool :=
+  match moduleOf? env n with
+  | some m => !(m.getRoot.toString.startsWith "AvailableChain")
+  | none => false
+
 /-- The cached own hash and dependencies of a declaration. -/
 structure Node where
   own : UInt64
@@ -144,15 +159,17 @@ structure Node where
 /-- The cache holds only per-declaration data, never a closure hash. -/
 abbrev HashM := StateT (Std.HashMap Name Node) (Except String)
 
-def node (env : Environment) (n : Name) : HashM Node := do
+/-- With `loc` (`--local`), a foreign constant is a leaf hashed by name. -/
+def node (env : Environment) (n : Name) (loc : Bool := false) : HashM Node := do
   if let some x := (← get)[n]? then return x
   let some ci := env.find? n | throw s!"missing declaration: {n}"
-  let x : Node := { own := ownHash ci, deps := deps ci }
+  let x : Node := if loc && foreign env n then { own := mixHash 99 (hash n), deps := #[] }
+    else { own := ownHash ci, deps := deps ci }
   modify (·.insert n x)
   return x
 
 /-- Every declaration that `n` reaches by `deps`, and `n`. -/
-def closure (env : Environment) (n : Name) : HashM (Array Name) := do
+def closure (env : Environment) (n : Name) (loc : Bool := false) : HashM (Array Name) := do
   let mut seen : Std.HashSet Name := ({} : Std.HashSet Name).insert n
   let mut stack := #[n]
   let mut out := #[]
@@ -160,7 +177,7 @@ def closure (env : Environment) (n : Name) : HashM (Array Name) := do
     let m := stack[stack.size - 1]
     stack := stack.pop
     out := out.push m
-    for d in (← node env m).deps do
+    for d in (← node env m loc).deps do
       unless seen.contains d do
         seen := seen.insert d
         stack := stack.push d
@@ -168,10 +185,10 @@ def closure (env : Environment) (n : Name) : HashM (Array Name) := do
 
 /-- The fold of `mixHash` over the own hashes of the closure, in `Name.lt`
 order. -/
-def lockHash (env : Environment) (n : Name) : HashM UInt64 := do
+def lockHash (env : Environment) (n : Name) (loc : Bool := false) : HashM UInt64 := do
   let mut h : UInt64 := 0
-  for m in (← closure env n).qsort Name.lt do
-    h := mixHash h (← node env m).own
+  for m in (← closure env n loc).qsort Name.lt do
+    h := mixHash h (← node env m loc).own
   return h
 
 def hex (u : UInt64) : String :=
@@ -280,19 +297,23 @@ def diff (old new : Array (String × String)) : Array String × Bool := Id.run d
 structure Opts where
   mode : String := ""
   allowChanges : Bool := false
+  loc : Bool := false
+  lockGiven : Bool := false
   lock : System.FilePath := "docs/catalog.lock"
 
 def parseArgs : List String → Opts → Option Opts
-  | [], o => if o.mode.isEmpty || (o.allowChanges && o.mode != "write") then none else some o
+  | [], o => if o.mode.isEmpty || (o.allowChanges && o.mode != "write") ||
+      (o.loc && !o.lockGiven) then none else some o
   | "--check" :: r, o => if o.mode.isEmpty then parseArgs r { o with mode := "check" } else none
   | "--write" :: r, o => if o.mode.isEmpty then parseArgs r { o with mode := "write" } else none
   | "--allow-changes" :: r, o => parseArgs r { o with allowChanges := true }
-  | "--lock" :: p :: r, o => parseArgs r { o with lock := p }
+  | "--local" :: r, o => parseArgs r { o with loc := true }
+  | "--lock" :: p :: r, o => parseArgs r { o with lock := p, lockGiven := true }
   | _, _ => none
 
 def main (args : List String) : IO UInt32 := do
   let some o := parseArgs args {} | do
-    IO.eprintln "usage: lake env lean --run scripts/CatalogLock.lean (--check | --write [--allow-changes]) [--lock <path>]"
+    IO.eprintln "usage: lake env lean --run scripts/CatalogLock.lean (--check | --write [--allow-changes]) [--local] [--lock <path>]"
     return 2
   initSearchPath (← findSysroot)
   let env ← importModules #[{ module := frameworkLibrary }] {}
@@ -301,7 +322,7 @@ def main (args : List String) : IO UInt32 := do
   unless problems.isEmpty do
     for p in problems do IO.eprintln p
     return 2
-  let hashes := names.mapM (fun n => return (toString n, hex (← lockHash env n)))
+  let hashes := names.mapM (fun n => return (toString n, hex (← lockHash env n o.loc)))
   let new ← match hashes.run' {} with
     | .ok x => pure x
     | .error e => IO.eprintln e; return 2
