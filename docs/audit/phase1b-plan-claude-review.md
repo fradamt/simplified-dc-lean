@@ -257,3 +257,172 @@ exact `excludes`. Close M3 before 1c uses L* at all.
 - A real `excludes` makes the regimes contain more runs: late faulty HEADs
   no longer need a handler call. With the same text, the contract theorems
   then state more. This is an instance change, not a contract change.
+
+## Re-check of 13fabba
+
+Subject: `docs/plans/2026-09-29-phase1b-instances.md` at `13fabba` (the
+diff from `0d8d995`), with the Astra report
+`docs/audit/phase1b-plan-audit-report.md`. Read-only. No Lean run was
+necessary for this re-check.
+
+**Verdict: PASS WITH FIXES.** M1, M2 and M3 are fixed correctly. The fixes
+for all 13 minors and for Astra P1b-01, P1b-03, P1b-04, P1b-06..09 are
+correct. The fix for P1b-02 (the registry family rule) adds a new MAJOR
+defect: a family row can be vacuous and still get the status
+`LEAN (family)` (N1). The fix for P1b-05 adds a MINOR defect (N2). There are
+4 more MINOR findings (N3–N6).
+
+### R.1 Disposition checks
+
+```text
+┌──────────────────┬──────────┬───────────────────────────────────────────────┐
+│ Finding          │ Result   │ Note                                          │
+├──────────────────┼──────────┼───────────────────────────────────────────────┤
+│ M1 / R1          │ FIXED    │ plan:241-256. See R.2.                        │
+│ M2, Astra Q3     │ FIXED    │ plan:221-228; one form for both branches.     │
+│ M3, P1b-01       │ FIXED    │ plan:50, :270-271. See R.3. Task 7 still      │
+│                  │          │ stale (N5).                                   │
+│ P1b-02           │ FIXED,   │ Rows would be CONDITIONAL today (confirmed:   │
+│                  │ NEW N1   │ Registry.lean:45-48, :157). New rule unsafe.  │
+│ P1b-03           │ FIXED    │ Gating by status is correct; see N3.          │
+│ P1b-04           │ FIXED    │ Resolve `StrongInstance.toInstance x` to the  │
+│                  │          │ head of `x`. Sound for the elaborated app.    │
+│ P1b-05           │ FIXED,   │ Premise on all five lemmas, and               │
+│                  │ NEW N2   │ `proposal_not_excluded`. One lemma has no `o`.│
+│ m1..m13, lock    │ FIXED    │ m2 changed to "no dedupe"; this is correct    │
+│ note             │          │ (the Map lemma is private, so no clash).      │
+│ P1b-06..09, Q7,  │ FIXED    │ —                                             │
+│ Q8               │          │                                               │
+└──────────────────┴──────────┴───────────────────────────────────────────────┘
+```
+
+### R.2 The premise `∀ u ≤ cutoff, ¬ excluded` and its discharge
+
+The cutoff is at least the network deadline in both branches of each lemma:
+
+```text
+┌───────────────────────────────────┬───────────────┬───────────────────────────────┐
+│ Lemma                             │ Cutoff        │ Callers and discharge         │
+├───────────────────────────────────┼───────────────┼───────────────────────────────┤
+│ synchronous_head_handled_early    │ earlyTime r   │ ClockBounds:176 honest seat:  │
+│ (ClockBounds:139)                 │ (both         │ head_not_excluded_before with │
+│                                   │ branches)     │ honest_not_equivocating_at_   │
+│                                   │               │ event through                 │
+│                                   │               │ time_input_eq_event_prefix    │
+│                                   │               │ (hsync.execution). OK.        │
+│ synchronous_proposal_delivered    │ voteTime s    │ ProposalDelivery:186:         │
+│ (ProposalDelivery:139)            │               │ proposal_not_excluded. OK.    │
+│ synchronous_receipt_before        │ cut           │ CrossView:54: proposal. OK.   │
+│ (CrossView:17)                    │ (hbound, hd)  │ CrossView:84: case split. OK. │
+│ synchronous_block_path_at_gate    │ earlyTime r   │ Paths:357. N2: `o` is not a   │
+│ (Paths:288)                       │               │ parameter of the lemma.       │
+│ handled_before_proposal_of_ready  │ proposalTime s│ ProposalViewRelay:31:         │
+│ (Proposals:102)                   │               │ proposal. OK. :91: case       │
+│                                   │               │ split. OK.                    │
+└───────────────────────────────────┴───────────────┴───────────────────────────────┘
+```
+
+`head_excluded_before_equivocates` (plan:245-248) is true as stated, and it
+needs no schedule premise. In `stateBeforeTime u`, `now` is the time of the
+last tick before `u`, or the initial value when there is no such tick. So
+`now < u ≤ proposalTime (r+2) = 4Δ(r+2)`, thus `current ≤ r+1`, and the
+old-label test is false. Then `excludes_head_iff` leaves only the
+equivocation clause. The same bound proves `head_not_excluded_before` for
+every `u`, also for `u ≤ 0`.
+
+The case split at `CrossView:84` works. Suppose the HEAD is excluded at some
+`X ≤ cut ≤ gateTime r`. Then the two label-`r` HEADs of the seat are in
+`stateBeforeTime X`. Their stamps are ticks before `X`, so the stamps are
+`< X ≤ cut`. They stay in `stateBeforeTime read` (`read ≥ cut`), so
+`equivocates (stampedVotes … r cut) i` follows by
+`stored_vote_stamp_before_cut` and `equivocates_mono`.
+
+The case split at `ProposalViewRelay:91` also works. There
+`X ≤ proposalTime (r+1)`, and `votesAt` is monotone with `hsched`.
+
+When the HEAD is not excluded, the caller passes the `∀` premise unchanged.
+No other caller of the five lemmas exists. No statement above these lemmas
+changes.
+
+### R.3 L* second clause
+
+The clause `o ∉ st.proposals ∧ b ∈ st.blocks` is sound, complete and
+permanent:
+
+- Sound (inert). `admitProposal` returns `st` when `b ∈ st.blocks`
+  (`:283`), and `process` ignores a proposal payload that has another auth.
+  An excluded wire therefore does not change the state.
+- Permanent. `st.blocks` changes only by append (`:285`). The `blocks` at
+  `:211` is a local `let` in `freeze`, not a state update. `o` enters
+  `proposals` only in the branch where `b ∉ blocks` (`:287`). Both facts
+  hold for every step, so the plain `stateBefore_stable` proves them. L*
+  needs no run-indexed variant.
+- Disjoint from `processed`, because `processed` is `o ∈ proposals`
+  (`:315`).
+- Complete. The other L* refusals are temporary (a future label or slot, a
+  missing parent) or already processed.
+
+### R.4 The "LEAN (family)" rule: is it honest?
+
+It is not honest as written. **N1 (MAJOR).** The rule (plan:379) marks a row
+FAMILY when every leading binder has a data type. It then gives the family
+the status of a closed row. The scanner does not check that the binder types
+are inhabited. Thus a row over an empty or constrained data type is vacuous
+but still gets `LEAN (family)`. Examples:
+
+- `theorem t (e : Empty) : Cert c I`;
+- `(h : PLift False)`, a Prop smuggled in as data;
+- a parameter structure that has an unsatisfiable Prop field.
+
+The rule applies to every kind, not only to `profile-holds`. So MATRIX
+(plan:381) prints `cert` or `refuted-all` for such a row. This is the defect
+that P1b-03 removed, now through the binder type. It also breaks design §5:
+"a theorem with extra unproved premises is not a certificate".
+
+Today no row has a binder (REGISTRY.md has no CONDITIONAL row). The planned
+binders `p : GridCO.Params`, `SA.Params`, `LStar.Params` and `n : Nat` are
+inhabited. Thus the planned rows are honest. The rule is not.
+
+Fix: allow FAMILY only for the kind `profile-holds`, because `cert`,
+`refutation`, `refutation-family`, `profile-cert` and `Candidate` rows must
+stay closed terms. Also allow a data binder only if its type is in an
+allowlist of parameter types. Each type in the allowlist must have an
+inhabitant that the script checks, for example a Registry
+`example : Nonempty GridCO.Params`. Every other binder makes the row
+CONDITIONAL. Check the Prop-ness of dependent binders with
+`forallTelescope` and `isProp`.
+
+### R.5 Remaining findings
+
+- **N1 (MAJOR)**: see R.4.
+- **N2 (MINOR, new with P1b-05)**. `synchronous_block_path_at_gate` has no
+  parameter `o`. The proposal wire is obtained inside the proof
+  (`stored_block_accepted`, `Paths.lean:308-309`). The premise must be
+  restricted to proposal wires of the block, for example
+  `∀ o raw support, o.payload = .proposal B raw support → ∀ u ≤ earlyTime r,
+  ¬ excluded`. A premise over all `o` is false for excluded HEADs, and
+  `Paths:357` cannot discharge it. State the form in Task 1 Step 4.
+- **N3 (MINOR)**. The gap rule compares `status == "LEAN"`
+  (`Registry.lean:158`). A family row in `AvailableChainRegistry.Gaps` would
+  keep `LEAN (family)`, and MATRIX would show a result cell for a known gap.
+  Apply the gap rule before the ` (family)` suffix is added.
+- **N4 (MINOR; this text is also in 0d8d995, and the first review missed
+  it)**. The MATRIX line rule (plan:381) says "type is `Instance` or
+  `StrongInstance`". `gridInst`, `saInst` and `sapcInst` take `Params`, and
+  `lstarInst` takes `Params` and `Nat`, so their types are functions. Use
+  "the result type after the leading binders", or the plan's own examples
+  (`lstarInst`) are left out.
+- **N5 (MINOR, stale text)**.
+  - Task 7 Step 1 (plan:391) still gives L* as "third equivocation" only.
+  - Architecture (plan:7), Rulings (plan:59) and Global Constraints
+    (plan:118) still say "not excluded at the deadline". Global Constraints
+    allows a statement change "only to add" that premise, so a strict
+    reader would reject the new `∀ u ≤ cutoff` form. Change the text to
+    "the premise of Task 1 Step 4".
+  - The I9 table says "then" twice (plan:93-94).
+  - In plan:220, "It does:" now follows the inserted sentence and no longer
+    answers the sentence before it.
+- **N6 (MINOR)**. At Task 6 Step 4, each profile cell of the three
+  instances becomes `holds+cond`, because the `*_of_pos` CONDITIONAL rows
+  are on the same cells. This is correct by the legend. State it in the
+  checkpoint so that the implementer does not read it as a defect.
