@@ -7,7 +7,12 @@ check PASS WITH ONE FIX). Branch `v2-2a` in
 `~/worktrees/available-chain-v2`, from `f795cd8`. Executed under the user's rule, as DC-simplify relayed it: act
 independently; get a review from Astra and DC before big decisions._
 
-[[CONTROLLER: gate review verdict; merge commit]]
+Gate verdict: the gate review found 0 critical, 2 important and 7 minor
+issues (freeze mechanism); the fix round `ec5db1e` addressed all of them. The
+re-review APPROVED it and found 5 new minors, fixed in `6cecee2`. Main
+(1944bb8, with I9, the Grid CO walk anchor and the FG-SA spec sync) was merged
+into `v2-2a` as `833bd6a`, and every check below ran on that tree. Main was
+then fast-forwarded to the branch head on 2026-09-29.
 
 ## Result
 
@@ -26,9 +31,11 @@ Phase 2a is complete up to the merge (Task 7 Step 7).
   or invariant lemma. It also has generic emission lemmas (DC N7) and finite
   run checks (`RunCheck`).
 - **Freeze.** `docs/V2-API.md` lists 280 declarations. The 224 engine
-  entries are locked through one anchor definition,
-  `AvailableChain.Framework.V2.anchor`, under the new locked prefix
-  `AvailableChainFramework.V2`. The lock gained one ADDED line. The 56 Kit
+  entries are locked through the anchor definitions under the locked prefix
+  (today one,
+  `AvailableChain.Framework.V2.anchor`), in the new locked prefix
+  `AvailableChainFramework.V2`. Every manifest line (engine and Kit) also
+  carries its own entry hash. The lock gained one ADDED line. The 56 Kit
   entries are frozen by rule, and `V2Manifest --check` compares a hash of
   each Kit statement.
 - **Evidence.** A toy protocol has `Interface`, `Isolation`,
@@ -68,9 +75,11 @@ Review counts are Critical/Important/Minor.
 │ 6      │ Toy protocol, complete valid run   │ 51db510; 81dae24; 836ac48; │ APPROVED 0/0/4             │
 │        │ with a self-delivery, append-form  │ 1cece1d                    │                            │
 │        │ run, RunCheck                      │                            │                            │
-│ 7      │ Gate: merge main, V2-API manifest, │ 783bd1c (merge main        │ gate review: see the       │
-│ (0–5)  │ anchor, V2Manifest script, lock;   │ 3403e58); fa190ec; 64a48cd │ placeholder above          │
-│        │ Sketch deleted; Kit hashes         │                            │                            │
+│ 7      │ Gate: merge main, V2-API manifest, │ 783bd1c (merge main        │ NEEDS FIXES 0/2/7;         │
+│ (0–5)  │ anchor, V2Manifest script, lock;   │ 3403e58); fa190ec;         │ re-review: approved, 5     │
+│        │ Sketch deleted; entry hashes;      │ 64a48cd; ec5db1e; 6cecee2; │ minors fixed               │
+│        │ anchor rules                       │ 833bd6a                    │                            │
+│        │                                    │ (merge main 1944bb8)       │                            │
 │ 7 (6)  │ Docs: MAP rows, design §2 note, §8 │ this commit                │ —                          │
 │        │ row, this report                   │                            │                            │
 │ merges │ main into v2-2a (plan edits; 2b    │ e0b596c; 2b08ee5; 9f4d6c2  │ —                          │
@@ -85,38 +94,40 @@ Review counts are Critical/Important/Minor.
 ┌──────────────────────────────────┬────────────────────────────────────────────────────┬──────────┐
 │ Check                            │ Result                                             │ At       │
 ├──────────────────────────────────┼────────────────────────────────────────────────────┼──────────┤
-│ lake build --wfail (all default  │ 3654 jobs, exit 0                                  │ 64a48cd  │
+│ lake build --wfail (all default  │ 3654 jobs, exit 0                                  │ 833bd6a  │
 │ targets, AvailableChainKitV2     │                                                    │          │
 │ included)                        │                                                    │          │
-│ CatalogLock --check              │ no output, exit 0. Against the lock of main        │ 64a48cd  │
+│ CatalogLock --check              │ no output, exit 0. Against the lock of main        │ 833bd6a  │
 │                                  │ (3403e58): 1 ADDED line,                           │          │
 │                                  │ AvailableChain.Framework.V2.anchor                 │          │
 │                                  │ d7bf19c118bcf687; no CHANGED, no REMOVED; 251      │          │
 │                                  │ lines                                              │          │
-│ V2Manifest --check               │ 280 entries in 17 modules, complete: 224 engine    │ 64a48cd  │
+│ V2Manifest --check               │ 280 entries in 17 modules, complete: 224 engine    │ 833bd6a  │
 │                                  │ entries, each in the closure of the anchor         │          │
 │                                  │ (locked); 56 Kit entries, each with a matching     │          │
 │                                  │ ownHash (frozen, not locked); exit 0               │          │
-│ CheckFrameworkAxioms             │ 1372 constants scanned, EngineV2 and KitV2         │ 64a48cd  │
+│ CheckFrameworkAxioms             │ 1372 constants scanned, EngineV2 and KitV2         │ 833bd6a  │
 │                                  │ included (with 6 test modules); exit 0             │          │
-│ Registry --check                 │ no output, exit 0                                  │ 64a48cd  │
-│ check-fg.sh                      │ all FG checks pass, exit 0                         │ fa190ec  │
-│ check-fgsa.sh                    │ all FGSA checks pass, exit 0                       │ fa190ec  │
-│ grep sorry|native_decide|^axiom; │ no match in the new and changed files              │ 64a48cd  │
+│ Registry --check                 │ no output, exit 0                                  │ 833bd6a  │
+│ check-fg.sh                      │ all FG checks pass, exit 0                         │ 833bd6a  │
+│ check-fgsa.sh                    │ all FGSA checks pass, exit 0                       │ 833bd6a  │
+│ grep sorry|native_decide|^axiom; │ no match in the new and changed files              │ 833bd6a  │
 │ grep -w admit                    │                                                    │          │
 │ V2Manifest negative tests        │ A: an unlisted entry gives NOT LISTED; B: an entry │ fa190ec, │
-│                                  │ outside the anchor gives NOT ANCHORED; C: no       │ 64a48cd  │
+│                                  │ outside the anchor gives NOT ANCHORED; C: no       │ 833bd6a  │
 │                                  │ anchor import gives MISSING ANCHOR; D: a changed   │          │
 │                                  │ Kit statement gives CHANGED; each exit 1, then     │          │
 │                                  │ restored                                           │          │
 └──────────────────────────────────┴────────────────────────────────────────────────────┴──────────┘
 ```
 
-`check-fg.sh` and `check-fgsa.sh` ran at `fa190ec`. `64a48cd` changed only
-EngineV2 docstrings, the Sketch (only the library root imported it), the
-manifest and
-`scripts/V2Manifest.lean`, and the gate record shows no second run of the
-two scripts.
+All rows ran on the merged tree `833bd6a` (main 1944bb8 merged in). The
+V2Manifest negative tests ran during the fix rounds (`fa190ec`, `64a48cd`,
+`ec5db1e`, `6cecee2`): D (a changed statement), E (a pattern-only change in
+`allTicks`; the pre-fix hash missed it), F (a new engine module anchored by a
+new anchor def: the lock shows only an ADDED line), G (a changed engine lemma
+is named by its entry hash while the anchor line also changes), N1a/N1b (an
+unrelated earlier declaration no longer gives a false CHANGED).
 
 ## Freeze rules for later stages
 
@@ -125,13 +136,22 @@ two scripts.
   inductive never gains a constructor, and a 2a definition never gains a
   parameter. Stages 2b and 2c add declarations or separate structures (for
   example `RestoreLaw` and `InputInstance` in 2c).
-- **Engine entries are locked.** The value of `anchor` references each of
-  the 224 engine entries, so its lock line hashes their closure. A changed
-  engine entry gives a `CHANGED` line, which is a declared lock break with
-  DC-simplify's review (plan R3). A change to a model module in the closure
-  (for example `Objects.Time` or `Objects.Blocks`) also changes the anchor
-  line. To lock a new engine declaration, add a second anchor definition
-  (an ADDED line); do not edit `anchor` (a CHANGED line).
+- **Engine entries are locked.** The anchor definitions under
+  `AvailableChainFramework.V2` reference the 224 engine entries, so their lock
+  lines hash the closure. Never edit `anchor`: a later stage adds a new anchor
+  definition (an ADDED lock line). Put new declarations AFTER the existing
+  ones in a 2a module, or in a new module, because Lean reuses a `match`
+  helper of the same shape on a first-come basis. A change to a model module
+  in the closure (for example `Objects.Blocks`) also changes the anchor line.
+- **Entry hashes.** Every manifest line carries a hash of the entry and of the
+  generated or private constants in its closure that lie in a v2 module or in
+  its own module (for example `match` helpers). The hash covers the type, the
+  value of a definition (not the proof of a theorem), the binder names
+  (hygienic scopes erased) and binder infos, the reducibility status and the
+  instance flag. `--check` reports `CHANGED` per entry, so a later CHANGED
+  anchor line can always be traced. Dependencies outside v2 (for example a
+  Model declaration that only Kit entries use) are not in the entry hash;
+  they are frozen by rule only.
 - **`V2Manifest --check` enforces completeness.** It exits 1 if a public
   declaration of a scope module (`AvailableChainEngineV2.Engine.*`,
   `.Conditions.*`, `.Laws.*`, and every `AvailableChainKitV2` module
@@ -142,10 +162,9 @@ two scripts.
   traversal and `ownHash` in `scripts/V2Manifest.lean` are copied from
   `scripts/CatalogLock.lean`. A change to one needs the same change in the
   other.
-- **Kit statement hashes.** Each Kit line carries the `ownHash` of its
-  declaration: the kind, the name and the type; for a definition also the
-  value; for a theorem not the proof. `--check` reports `CHANGED` when a
-  hash differs. A new proof keeps the hash.
+- **Append-only.** The module blocks of `docs/V2-API.md` are append-only; a
+  changed or removed entry line is a freeze break unless a named user
+  decision allows it. The counts table and the date change with every ADD.
 - Derived instances and structure constructors are entries (for example
   `instDecidableEqAuth`), so a change to a `deriving` clause breaks the
   freeze.
@@ -258,8 +277,8 @@ this report.
 │ 25 │ Delete                                 │ The Laws supersede it; a freeze    │ Restore from git.          │
 │    │ AvailableChainEngineV2/Sketch.lean at  │ would freeze a clashing older API. │                            │
 │    │ the gate.                              │                                    │                            │
-│ 26 │ Add Kit ownHash values to the manifest │ Without them the Kit freeze has no │ Small script work.         │
-│    │ check.                                 │ statement check; T7 depends on     │                            │
+│ 26 │ Add Kit hashes to the manifest (later  │ Without them the Kit freeze has no │ Small script work.         │
+│    │ per-entry hashes, rows 29–31).         │ statement check; T7 depends on     │                            │
 │    │                                        │ RunCheck.                          │                            │
 │ 27 │ Accept derived instances and           │ The CatalogLock rule lists them.   │ A deriving change breaks   │
 │    │ constructors as manifest entries (Task │                                    │ the freeze.                │
@@ -267,6 +286,13 @@ this report.
 │ 28 │ Accept a separate script V2Manifest,   │ The completeness check imports     │ Two copies of the          │
 │    │ not a CatalogLock option (Task 7).     │ AvailableChainKitV2; the lock must │ dependency rules to keep   │
 │    │                                        │ not.                               │ equal.                     │
+│ 29 │ Per-entry hashes for engine entries    │ A CHANGED anchor line alone would  │ Hash regeneration, before  │
+│    │ too, and new anchor defs instead of    │ hide which frozen entry changed;   │ the baseline.              │
+│    │ edits to anchor (gate review I1).      │ an edit of anchor breaks ADD-only. │                            │
+│ 30 │ Entry hash covers generated/private    │ A pattern-only change in a Kit def │ Script work.               │
+│    │ auxiliaries in v2 modules (I2).        │ escaped the own-hash (test E0).    │                            │
+│ 31 │ Binder hash erases macro scopes        │ An unrelated earlier declaration   │ 203 hashes regenerated.    │
+│    │ (re-review N1).                        │ gave a false CHANGED (test N1a).   │                            │
 └────┴────────────────────────────────────────┴────────────────────────────────────┴────────────────────────────┘
 ```
 
@@ -291,9 +317,11 @@ do not require `SelfDelivery`.
   `ClaimSim`, `ClaimSim.holds`.
 - The concrete parts in L4: lifted instances, transported results,
   Counter certificates, Sanity refutations and finite checked traces of
-  the lifted instances. Scope under the user priority (below): SA is
-  `gridCO` at `slowLeasePolicy`, so an SA lift needs most of a Grid CO
-  lift; the 2b plan must say which lifts it does now.
+  the lifted instances. Scope (settled with DC-simplify, 2026-09-29): SA is
+  `gridCO` at `slowLeasePolicy`, so every Grid CO proof that is generic in
+  `[LeasePolicy]` stays and is used for SA; only the work for Grid CO's own
+  policy instance (its lifted instance, `grid_holds`, its certificates and
+  trace) is deferred, not removed.
 - Input in the context correspondence (Astra A04); hooks for lifted
   instances proved on v2 with the legacy restart behaviour and the Kit
   restore premises (A05); `n` against `Fintype.card V` from `CStar` (A06).
@@ -364,4 +392,7 @@ The user priority (2026-09-29): FG-SA verified first, then SA. No feature
 work on Grid CO, SA-PC, L* or SimplexFG; their builds and checks stay
 green. This work is deferred, not removed. The 2b outline keeps the lifts
 of Grid CO and SA-PC; the 2b plan decides when they occur. Phase 2a
-changed no file of these libraries.
+changed no file of these libraries. Order after 2a (proposed by DC-simplify,
+waiting for the user): 1c for FG-SA (run construction and inhabitation for
+every horizon) before 2b and 2c, because the main FG-SA claims need 2a, T7 and
+that part of 1c; 2b is optional for them and 2c is not needed.
