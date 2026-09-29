@@ -7,9 +7,14 @@ namespace AvailableChain.SA.Tests
 open AvailableChain.Generic
 
 def p : Params := ⟨1, 4, 3, 11, by decide, by decide, by decide, by decide⟩
-def B : Block := .node .genesis 1 ⟨1⟩
-def C : Block := .node B 2 ⟨2⟩
-def X : Block := .node .genesis 1 ⟨3⟩
+def B : Block := .node .genesis 1 0
+def C : Block := .node B 2 0
+/-- A sibling of `B` at slot 1 with a different body. -/
+def X : Block := .node .genesis 1 1
+
+/-- The derived roots keep the old sibling order (`⟨1⟩ < ⟨3⟩`). No check below
+compares the two roots: every walk has at most one eligible child of genesis. -/
+example : B.root < X.root := by decide
 
 def batch (st : State 4) (r : Slot) (target : Block) (seats : List (Fin 4)) : State 4 :=
   let votes := seats.map (fun i => (⟨.seat r i, .head target⟩ : Wire 4))

@@ -16,21 +16,21 @@ variable [DecidableEq V]
 
 -- port: DC/DecoupledConsensusProofs/Protocol/ChainState/EntryHeight.lean:18-24
 /-- [helper] An ancestor of the parent is an ancestor of the node. -/
-theorem preceq_node_of_preceq {A p : FGBlock V} (s : Slot) (r : BlockId) (rs : List (Row V))
-    (h : FGBlock.Preceq A p) : FGBlock.Preceq A (.node p s r rs) := by
+theorem preceq_node_of_preceq {A p : FGBlock V} (s : Slot) (x : Nat) (rs : List (Row V))
+    (h : FGBlock.Preceq A p) : FGBlock.Preceq A (.node p s x rs) := by
   simp only [FGBlock.Preceq, FGBlock.preceq, Bool.or_eq_true]
   exact Or.inr h
 
 -- port: DC/DecoupledConsensusProofs/Protocol/ChainState/Chain.lean:66-70 (preceq_node)
 /-- [helper] A block's parent precedes it. -/
-theorem preceq_parent_node (p : FGBlock V) (s : Slot) (r : BlockId) (rs : List (Row V)) :
-    FGBlock.Preceq p (.node p s r rs) :=
-  preceq_node_of_preceq s r rs (preceq_refl p)
+theorem preceq_parent_node (p : FGBlock V) (s : Slot) (x : Nat) (rs : List (Row V)) :
+    FGBlock.Preceq p (.node p s x rs) :=
+  preceq_node_of_preceq s x rs (preceq_refl p)
 
 /-- [helper] A strict ancestor of a node is an ancestor of its parent. -/
-theorem preceq_parent_of_preceq_node {A p : FGBlock V} {s : Slot} {r : BlockId}
-    {rs : List (Row V)} (h : FGBlock.Preceq A (.node p s r rs))
-    (hne : A ≠ .node p s r rs) : FGBlock.Preceq A p := by
+theorem preceq_parent_of_preceq_node {A p : FGBlock V} {s : Slot} {x : Nat}
+    {rs : List (Row V)} (h : FGBlock.Preceq A (.node p s x rs))
+    (hne : A ≠ .node p s x rs) : FGBlock.Preceq A p := by
   simp only [FGBlock.Preceq, FGBlock.preceq, Bool.or_eq_true, decide_eq_true_eq] at h
   rcases h with h | h
   · exact absurd h hne
@@ -43,10 +43,10 @@ def OnChain (B : FGBlock V) (a : Row V) : Prop :=
 
 -- port: DC/DecoupledConsensusProofs/Protocol/ChainState/MatchingProgress.lean:134-141
 /-- [helper] A row on the parent's chain is on the node's chain. -/
-theorem onChain_parent {p : FGBlock V} (s : Slot) (r : BlockId) (rs : List (Row V))
-    {a : Row V} (h : OnChain p a) : OnChain (.node p s r rs) a := by
+theorem onChain_parent {p : FGBlock V} (s : Slot) (x : Nat) (rs : List (Row V))
+    {a : Row V} (h : OnChain p a) : OnChain (.node p s x rs) a := by
   obtain ⟨carrier, hc, ha⟩ := h
-  exact ⟨carrier, preceq_node_of_preceq s r rs hc, ha⟩
+  exact ⟨carrier, preceq_node_of_preceq s x rs hc, ha⟩
 
 -- port: DC/DecoupledConsensusProofs/Protocol/ChainState/MatchingProgress.lean:144-145
 /-- [helper] A block's own rows are on its chain. -/
@@ -66,7 +66,7 @@ theorem isQuorum_of_subset [Fintype V] (E : Electorate V) {S T : Finset V} (h : 
 (port: DC/DecoupledConsensusProofs/Protocol/ChainState/Chain.lean:110-175) -/
 
 section RowFold
-variable [DecidableEq V]
+variable [DecidableEq V] [RowCodec V]
 
 -- port: DC/DecoupledConsensusProofs/Protocol/ChainState/Chain.lean:112-121
 /-- [helper] `process_row` writes only the three quorum sets. -/
@@ -383,7 +383,7 @@ theorem chainOrder_initial : ChainOrder (ChainState.initial : ChainState V) :=
 -- port: DC/DecoupledConsensusProofs/Protocol/ChainState/DerivationGeometry.lean:36-67
 /-- [helper] The row fold keeps the chain order when the new latest block extends
 the old one. -/
-theorem chainOrder_foldRows {σ : ChainState V} (B : FGBlock V) (rows : List (Row V))
+theorem chainOrder_foldRows [RowCodec V] {σ : ChainState V} (B : FGBlock V) (rows : List (Row V))
     (h : ChainOrder σ) (hL : FGBlock.Preceq σ.L B) : ChainOrder (foldRows σ B rows) := by
   obtain ⟨hL', hh, hT, hJ, hhj, hF, hhF⟩ := foldRows_fields σ B rows
   refine
@@ -408,6 +408,8 @@ end ChainOrderSec
 /-! ## Row witnesses of the quorum sets
 (port: DC/DecoupledConsensusProofs/Protocol/ChainState/MatchingProgress.lean:19-159,
 FinalityCertificates.lean:59-156, JustificationCertificates.lean:59-172) -/
+
+variable [RowCodec V]
 
 -- port: DC/DecoupledConsensusProofs/Protocol/ChainState/MatchingProgress.lean:19-22
 -- port: DC/DecoupledConsensusProofs/Protocol/ChainState/FinalityCertificates.lean:60-62
@@ -576,9 +578,9 @@ variable [DecidableEq V] [Fintype V]
 -- port: DC/DecoupledConsensusProofs/Protocol/Handlers/BlockProcessingDefaults.lean:22-27
 /-- [helper] One step of `derive`: the row fold, then the height events. -/
 theorem derive_node (E : Electorate V) (cfg : FGConfig) (p : FGBlock V) (s : Slot)
-    (r : BlockId) (rs : List (Row V)) :
-    derive E cfg (.node p s r rs) =
-      process_height_events E cfg (foldRows (derive E cfg p) (.node p s r rs) rs) := rfl
+    (x : Nat) (rs : List (Row V)) :
+    derive E cfg (.node p s x rs) =
+      process_height_events E cfg (foldRows (derive E cfg p) (.node p s x rs) rs) := rfl
 
 -- port: DC/DecoupledConsensusProofs/Protocol/ChainState/DerivationGeometry.lean:82-87
 /-- [helper] The latest block of `derive E cfg B` is `B`. -/
@@ -586,10 +588,11 @@ theorem derive_L (E : Electorate V) (cfg : FGConfig) (B : FGBlock V) :
     (derive E cfg B).L = B := by
   cases B with
   | genesis => rfl
-  | node p s r rs =>
+  | node p s x rs =>
       rw [derive_node, process_height_events_L]
       rfl
 
+omit [RowCodec V] in
 -- port: DC/DecoupledConsensusProofs/Protocol/ChainState/Chain.lean:460-470
 /-- [helper] The finality branch keeps the chain order: `F ← J` is the reflexive
 case of `F ⪯ J`. -/
@@ -605,6 +608,7 @@ theorem chainOrder_afterFin (E : Electorate V) {σ : ChainState V} (h : ChainOrd
         justified_below_height := h.justified_below_height }
   · exact h
 
+omit [RowCodec V] in
 -- port: DC/DecoupledConsensusProofs/Protocol/ChainState/Chain.lean:475-495
 /-- [helper] `process_height_events` keeps the chain order: the justification
 branch uses `J ⪯ T_h` and `h_j < h`, and `advance_height` uses `T_h ⪯ L`. -/
@@ -635,12 +639,12 @@ theorem chainOrder_derive (E : Electorate V) (cfg : FGConfig) (B : FGBlock V) :
     ChainOrder (derive E cfg B) := by
   induction B with
   | genesis => exact chainOrder_initial
-  | node p s r rs ih =>
+  | node p s x rs ih =>
       rw [derive_node]
       apply chainOrder_process_height_events
       apply chainOrder_foldRows _ _ ih
       rw [derive_L]
-      exact preceq_parent_node p s r rs
+      exact preceq_parent_node p s x rs
 
 -- port: DC/DecoupledConsensusProofs/Protocol/ChainState/DerivationGeometry.lean:104-111
 /-- [helper] `F ⪯ D` and `J ⪯ D`. -/
@@ -699,12 +703,12 @@ theorem entry_preceq (E : Electorate V) (cfg : FGConfig) (D : FGBlock V) :
 /-- [helper] A block keeps the height and the entry of its parent, or it raises
 the height by one and is the new entry. -/
 theorem derive_node_height_entry_cases (E : Electorate V) (cfg : FGConfig) (p : FGBlock V)
-    (s : Slot) (r : BlockId) (rs : List (Row V)) :
-    ((derive E cfg (.node p s r rs)).h = (derive E cfg p).h ∧
-        (derive E cfg (.node p s r rs)).T_h = (derive E cfg p).T_h) ∨
-      ((derive E cfg (.node p s r rs)).h = (derive E cfg p).h + 1 ∧
-        (derive E cfg (.node p s r rs)).T_h = .node p s r rs) := by
-  obtain ⟨hL, hh, hT, -⟩ := foldRows_fields (derive E cfg p) (.node p s r rs) rs
+    (s : Slot) (x : Nat) (rs : List (Row V)) :
+    ((derive E cfg (.node p s x rs)).h = (derive E cfg p).h ∧
+        (derive E cfg (.node p s x rs)).T_h = (derive E cfg p).T_h) ∨
+      ((derive E cfg (.node p s x rs)).h = (derive E cfg p).h + 1 ∧
+        (derive E cfg (.node p s x rs)).T_h = .node p s x rs) := by
+  obtain ⟨hL, hh, hT, -⟩ := foldRows_fields (derive E cfg p) (.node p s x rs) rs
   rw [derive_node, process_height_events_eq]
   split_ifs
   · exact Or.inr ⟨congrArg (· + 1) ((afterFin_h E _).trans hh), (afterFin_L E _).trans hL⟩
@@ -714,10 +718,10 @@ theorem derive_node_height_entry_cases (E : Electorate V) (cfg : FGConfig) (p : 
 -- port: DC/DecoupledConsensusProofs/Protocol/ChainState/EntryHeight.lean:64-73
 /-- [helper] A block raises the height of its parent by at most one. -/
 theorem derive_node_height_cases (E : Electorate V) (cfg : FGConfig) (p : FGBlock V)
-    (s : Slot) (r : BlockId) (rs : List (Row V)) :
-    (derive E cfg (.node p s r rs)).h = (derive E cfg p).h ∨
-      (derive E cfg (.node p s r rs)).h = (derive E cfg p).h + 1 := by
-  rcases derive_node_height_entry_cases E cfg p s r rs with h | h
+    (s : Slot) (x : Nat) (rs : List (Row V)) :
+    (derive E cfg (.node p s x rs)).h = (derive E cfg p).h ∨
+      (derive E cfg (.node p s x rs)).h = (derive E cfg p).h + 1 := by
+  rcases derive_node_height_entry_cases E cfg p s x rs with h | h
   · exact Or.inl h.1
   · exact Or.inr h.1
 
@@ -729,12 +733,12 @@ theorem h_mono (E : Electorate V) (cfg : FGConfig) {A B : FGBlock V}
   | genesis =>
       obtain rfl := preceq_genesis.mp hAB
       exact le_refl _
-  | node p s r rs ih =>
+  | node p s x rs ih =>
       simp only [FGBlock.Preceq, FGBlock.preceq, Bool.or_eq_true, decide_eq_true_eq] at hAB
       rcases hAB with rfl | hp
       · exact le_refl _
       · have hle := ih hp
-        rcases derive_node_height_cases E cfg p s r rs with h | h <;>
+        rcases derive_node_height_cases E cfg p s x rs with h | h <;>
           (simp only [Height] at *; omega)
 
 -- port: DC/DecoupledConsensusProofs/Protocol/ChainState/EntryHeight.lean:95-107
@@ -743,8 +747,8 @@ theorem entry_same_height (E : Electorate V) (cfg : FGConfig) (B : FGBlock V) :
     (derive E cfg (derive E cfg B).T_h).h = (derive E cfg B).h := by
   induction B with
   | genesis => rfl
-  | node p s r rs ih =>
-      rcases derive_node_height_entry_cases E cfg p s r rs with h | h
+  | node p s x rs ih =>
+      rcases derive_node_height_entry_cases E cfg p s x rs with h | h
       · rw [h.2, h.1]
         exact ih
       · rw [h.2]
@@ -752,10 +756,10 @@ theorem entry_same_height (E : Electorate V) (cfg : FGConfig) (B : FGBlock V) :
 -- port: DC/DecoupledConsensusProofs/Protocol/ChainState/EntryHeight.lean:116-129
 /-- [helper] Equal child and parent heights force equal entries. -/
 theorem node_entry_eq_of_height_eq (E : Electorate V) (cfg : FGConfig) (p : FGBlock V)
-    (s : Slot) (r : BlockId) (rs : List (Row V))
-    (hh : (derive E cfg (.node p s r rs)).h = (derive E cfg p).h) :
-    (derive E cfg (.node p s r rs)).T_h = (derive E cfg p).T_h := by
-  rcases derive_node_height_entry_cases E cfg p s r rs with h | h
+    (s : Slot) (x : Nat) (rs : List (Row V))
+    (hh : (derive E cfg (.node p s x rs)).h = (derive E cfg p).h) :
+    (derive E cfg (.node p s x rs)).T_h = (derive E cfg p).T_h := by
+  rcases derive_node_height_entry_cases E cfg p s x rs with h | h
   · exact h.2
   · exfalso
     have := h.1
@@ -771,17 +775,17 @@ theorem entry_eq_on_plateau (E : Electorate V) (cfg : FGConfig) {A B : FGBlock V
   | genesis =>
       obtain rfl := preceq_genesis.mp hAB
       rfl
-  | node p s r rs ih =>
-      by_cases hAe : A = .node p s r rs
+  | node p s x rs ih =>
+      by_cases hAe : A = .node p s x rs
       · subst hAe
         rfl
       · have hp := preceq_parent_of_preceq_node hAB hAe
         have hlow := h_mono E cfg hp
-        have hhigh := h_mono E cfg (preceq_parent_node p s r rs)
-        have hpar : (derive E cfg p).h = (derive E cfg (.node p s r rs)).h := by
+        have hhigh := h_mono E cfg (preceq_parent_node p s x rs)
+        have hpar : (derive E cfg p).h = (derive E cfg (.node p s x rs)).h := by
           simp only [Height] at *; omega
         exact (ih hp (hh.trans hpar.symm)).trans
-          (node_entry_eq_of_height_eq E cfg p s r rs hpar.symm).symm
+          (node_entry_eq_of_height_eq E cfg p s x rs hpar.symm).symm
 
 /-- [helper] The entry of an entry is itself. -/
 theorem entry_idem (E : Electorate V) (cfg : FGConfig) (B : FGBlock V) :
@@ -795,8 +799,8 @@ theorem entry_parent_height (E : Electorate V) (cfg : FGConfig) (D : FGBlock V)
     (derive E cfg (derive E cfg D).T_h.parent).h < (derive E cfg D).h := by
   induction D with
   | genesis => exact absurd rfl hT
-  | node p s r rs ih =>
-      rcases derive_node_height_entry_cases E cfg p s r rs with h | h
+  | node p s x rs ih =>
+      rcases derive_node_height_entry_cases E cfg p s x rs with h | h
       · rw [h.2] at hT ⊢
         rw [h.1]
         exact ih hT
@@ -812,19 +816,19 @@ theorem derive_witnesses (E : Electorate V) (cfg : FGConfig) (B : FGBlock V) :
     RowWitnesses (OnChain B) (derive E cfg B) := by
   induction B with
   | genesis => exact witnesses_empty rfl rfl rfl
-  | node p s r rs ih =>
+  | node p s x rs ih =>
       rw [derive_node]
       exact witnesses_height_events E cfg
-        (witnesses_foldRows _ rs (fun _ ha => onChain_own (.node p s r rs) ha)
-          (witnesses_mono ih (fun _ ha => onChain_parent s r rs ha)))
+        (witnesses_foldRows _ rs (fun _ ha => onChain_own (.node p s x rs) ha)
+          (witnesses_mono ih (fun _ ha => onChain_parent s x rs ha)))
 
 -- port: DC/DecoupledConsensusProofs/Protocol/ChainState/FinalityCertificates.lean:147-156
 /-- [helper] The folded state of a node has witnesses on the node's chain. -/
 theorem folded_witnesses (E : Electorate V) (cfg : FGConfig) (p : FGBlock V) (s : Slot)
-    (r : BlockId) (rs : List (Row V)) :
-    RowWitnesses (OnChain (.node p s r rs)) (foldRows (derive E cfg p) (.node p s r rs) rs) :=
-  witnesses_foldRows _ rs (fun _ ha => onChain_own (.node p s r rs) ha)
-    (witnesses_mono (derive_witnesses E cfg p) (fun _ ha => onChain_parent s r rs ha))
+    (x : Nat) (rs : List (Row V)) :
+    RowWitnesses (OnChain (.node p s x rs)) (foldRows (derive E cfg p) (.node p s x rs) rs) :=
+  witnesses_foldRows _ rs (fun _ ha => onChain_own (.node p s x rs) ha)
+    (witnesses_mono (derive_witnesses E cfg p) (fun _ ha => onChain_parent s x rs ha))
 
 /-! ## The height crossing
 (port: DC/DecoupledConsensusProofs/Protocol/ChainState/MatchingProgress.lean:161-189,
@@ -834,14 +838,14 @@ FinalityCertificates.lean:266-307) -/
 /-- [helper] A block that raises the height carries, on its chain, a quorum of
 rows that match the parent's height and entry. -/
 theorem crossing_matching_quorum (E : Electorate V) (cfg : FGConfig) (p : FGBlock V)
-    (s : Slot) (r : BlockId) (rs : List (Row V))
-    (hAdvance : (derive E cfg (.node p s r rs)).h ≠ (derive E cfg p).h) :
+    (s : Slot) (x : Nat) (rs : List (Row V))
+    (hAdvance : (derive E cfg (.node p s x rs)).h ≠ (derive E cfg p).h) :
     ∃ Q : Finset V, E.IsQuorum Q ∧
       ∀ i ∈ Q, ∃ carrier : FGBlock V, ∃ a : Row V,
-        FGBlock.Preceq carrier (.node p s r rs) ∧ a ∈ carrier.rows ∧ a.signer = i ∧
+        FGBlock.Preceq carrier (.node p s x rs) ∧ a ∈ carrier.rows ∧ a.signer = i ∧
         a.height_pair.matchesEntry (derive E cfg p).h (derive E cfg p).T_h.root = true := by
-  have hw := folded_witnesses E cfg p s r rs
-  obtain ⟨-, hh, hT, -⟩ := foldRows_fields (derive E cfg p) (.node p s r rs) rs
+  have hw := folded_witnesses E cfg p s x rs
+  obtain ⟨-, hh, hT, -⟩ := foldRows_fields (derive E cfg p) (.node p s x rs) rs
   rcases height_advance_step E cfg hw.target_sub with hstay | ⟨-, hq⟩
   · exfalso
     apply hAdvance
@@ -868,19 +872,19 @@ theorem height_crossing (E : Electorate V) (cfg : FGConfig) (C : FGBlock V) (h :
       change h < 1 at hlt
       simp only [Height] at *
       omega
-  | node p s r rs ih =>
+  | node p s x rs ih =>
       by_cases hp : h < (derive E cfg p).h
       · obtain ⟨X, hX, hXh, Q, hQ, hw⟩ := ih hp
-        refine ⟨X, preceq_node_of_preceq s r rs hX, hXh, Q, hQ, fun i hi => ?_⟩
+        refine ⟨X, preceq_node_of_preceq s x rs hX, hXh, Q, hQ, fun i hi => ?_⟩
         obtain ⟨carrier, a, hc, ha, hs, hm⟩ := hw i hi
-        exact ⟨carrier, a, preceq_node_of_preceq s r rs hc, ha, hs, hm⟩
+        exact ⟨carrier, a, preceq_node_of_preceq s x rs hc, ha, hs, hm⟩
       · have hParent : (derive E cfg p).h = h := by
-          rcases derive_node_height_cases E cfg p s r rs with h1 | h1 <;>
+          rcases derive_node_height_cases E cfg p s x rs with h1 | h1 <;>
             (simp only [Height] at *; omega)
-        have hAdvance : (derive E cfg (.node p s r rs)).h ≠ (derive E cfg p).h := by
+        have hAdvance : (derive E cfg (.node p s x rs)).h ≠ (derive E cfg p).h := by
           simp only [Height] at *; omega
-        obtain ⟨Q, hQ, hw⟩ := crossing_matching_quorum E cfg p s r rs hAdvance
-        refine ⟨(derive E cfg p).T_h, preceq_node_of_preceq s r rs (entry_preceq E cfg p),
+        obtain ⟨Q, hQ, hw⟩ := crossing_matching_quorum E cfg p s x rs hAdvance
+        refine ⟨(derive E cfg p).T_h, preceq_node_of_preceq s x rs (entry_preceq E cfg p),
           (entry_same_height E cfg p).trans hParent, Q, hQ, fun i hi => ?_⟩
         obtain ⟨carrier, a, hc, ha, hs, hm⟩ := hw i hi
         rw [hParent] at hm
@@ -896,10 +900,10 @@ theorem finalized_zero_is_genesis (E : Electorate V) (cfg : FGConfig) (D : FGBlo
     (hz : (derive E cfg D).h_F = 0) : (derive E cfg D).F = .genesis := by
   induction D with
   | genesis => rfl
-  | node p s r rs ih =>
-      obtain ⟨-, -, -, -, -, hF, hhF⟩ := foldRows_fields (derive E cfg p) (.node p s r rs) rs
+  | node p s x rs ih =>
+      obtain ⟨-, -, -, -, -, hF, hhF⟩ := foldRows_fields (derive E cfg p) (.node p s x rs) rs
       rw [derive_node] at hz ⊢
-      rcases finality_pair_cases E cfg (foldRows (derive E cfg p) (.node p s r rs) rs) with
+      rcases finality_pair_cases E cfg (foldRows (derive E cfg p) (.node p s x rs) rs) with
         ⟨h1, h2⟩ | ⟨-, h2, hf⟩
       · rw [h1, hF]
         exact ih (hhF.symm.trans (h2.symm.trans hz))
@@ -920,18 +924,18 @@ theorem finality_certificate (E : Electorate V) (cfg : FGConfig) (D : FGBlock V)
   refine ⟨_, (derive_anchors_preceq E cfg D).1, rfl, ?_⟩
   induction D with
   | genesis => exact absurd rfl hnz
-  | node p s r rs ih =>
-      obtain ⟨-, -, -, -, -, hF, hhF⟩ := foldRows_fields (derive E cfg p) (.node p s r rs) rs
-      have hw := folded_witnesses E cfg p s r rs
+  | node p s x rs ih =>
+      obtain ⟨-, -, -, -, -, hF, hhF⟩ := foldRows_fields (derive E cfg p) (.node p s x rs) rs
+      have hw := folded_witnesses E cfg p s x rs
       rw [derive_node] at hnz ⊢
-      rcases finality_pair_cases E cfg (foldRows (derive E cfg p) (.node p s r rs) rs) with
+      rcases finality_pair_cases E cfg (foldRows (derive E cfg p) (.node p s x rs) rs) with
         ⟨h1, h2⟩ | ⟨h1, h2, hf⟩
       · rw [h1, h2, hF, hhF]
         rw [h2, hhF] at hnz
         obtain ⟨Q, hQ, hw'⟩ := ih hnz
         refine ⟨Q, hQ, fun i hi => ?_⟩
         obtain ⟨carrier, a, hc, ha, hs, hp⟩ := hw' i hi
-        exact ⟨carrier, a, preceq_node_of_preceq s r rs hc, ha, hs, hp⟩
+        exact ⟨carrier, a, preceq_node_of_preceq s x rs hc, ha, hs, hp⟩
       · rw [h1, h2]
         refine ⟨_, isQuorum_of_finalityReady E hf, fun i hi => ?_⟩
         obtain ⟨a, ⟨carrier, hc, ha⟩, hs, hp⟩ := hw.finalize i hi
@@ -943,11 +947,11 @@ theorem justified_zero_is_genesis (E : Electorate V) (cfg : FGConfig) (D : FGBlo
     (hz : (derive E cfg D).h_j = 0) : (derive E cfg D).J = .genesis := by
   induction D with
   | genesis => rfl
-  | node p s r rs ih =>
-      obtain ⟨-, hh, -, hJ, hhj, -, -⟩ := foldRows_fields (derive E cfg p) (.node p s r rs) rs
+  | node p s x rs ih =>
+      obtain ⟨-, hh, -, hJ, hhj, -, -⟩ := foldRows_fields (derive E cfg p) (.node p s x rs) rs
       have hpos := justified_below_height E cfg p
       rw [derive_node] at hz ⊢
-      rcases justification_pair_cases E cfg (foldRows (derive E cfg p) (.node p s r rs) rs)
+      rcases justification_pair_cases E cfg (foldRows (derive E cfg p) (.node p s x rs) rs)
         with ⟨h1, h2⟩ | ⟨-, h2, -⟩
       · rw [h1, hJ]
         exact ih (hhj.symm.trans (h2.symm.trans hz))
@@ -963,18 +967,18 @@ theorem justification_certificate (E : Electorate V) (cfg : FGConfig) (D : FGBlo
       a.height_pair = .vote (derive E cfg D).h_j (derive E cfg D).J.root false := by
   induction D with
   | genesis => exact absurd rfl hnz
-  | node p s r rs ih =>
-      obtain ⟨-, hh, hT, hJ, hhj, -, -⟩ := foldRows_fields (derive E cfg p) (.node p s r rs) rs
-      have hw := folded_witnesses E cfg p s r rs
+  | node p s x rs ih =>
+      obtain ⟨-, hh, hT, hJ, hhj, -, -⟩ := foldRows_fields (derive E cfg p) (.node p s x rs) rs
+      have hw := folded_witnesses E cfg p s x rs
       rw [derive_node] at hnz ⊢
-      rcases justification_pair_cases E cfg (foldRows (derive E cfg p) (.node p s r rs) rs)
+      rcases justification_pair_cases E cfg (foldRows (derive E cfg p) (.node p s x rs) rs)
         with ⟨h1, h2⟩ | ⟨h1, h2, hq⟩
       · rw [h1, h2, hJ, hhj]
         rw [h2, hhj] at hnz
         obtain ⟨Q, hQ, hw'⟩ := ih hnz
         refine ⟨Q, hQ, fun i hi => ?_⟩
         obtain ⟨carrier, a, hc, ha, hs, hp⟩ := hw' i hi
-        exact ⟨carrier, a, preceq_node_of_preceq s r rs hc, ha, hs, hp⟩
+        exact ⟨carrier, a, preceq_node_of_preceq s x rs hc, ha, hs, hp⟩
       · rw [h1, h2]
         refine ⟨_, hq, fun i hi => ?_⟩
         obtain ⟨a, ⟨carrier, hc, ha⟩, hs, hp⟩ := hw.target i hi
@@ -987,10 +991,10 @@ theorem J_is_entry (E : Electorate V) (cfg : FGConfig) (D : FGBlock V) :
     (derive E cfg (derive E cfg D).J).T_h = (derive E cfg D).J := by
   induction D with
   | genesis => rfl
-  | node p s r rs ih =>
-      obtain ⟨-, -, hT, hJ, -, -, -⟩ := foldRows_fields (derive E cfg p) (.node p s r rs) rs
+  | node p s x rs ih =>
+      obtain ⟨-, -, hT, hJ, -, -, -⟩ := foldRows_fields (derive E cfg p) (.node p s x rs) rs
       rw [derive_node]
-      rcases justification_pair_cases E cfg (foldRows (derive E cfg p) (.node p s r rs) rs)
+      rcases justification_pair_cases E cfg (foldRows (derive E cfg p) (.node p s x rs) rs)
         with ⟨h1, -⟩ | ⟨h1, -, -⟩
       · rw [h1, hJ]
         exact ih
@@ -1006,10 +1010,10 @@ theorem entry_height (E : Electorate V) (cfg : FGConfig) (D : FGBlock V)
     (derive E cfg (derive E cfg D).J).h = (derive E cfg D).h_j := by
   induction D with
   | genesis => exact absurd rfl hnz
-  | node p s r rs ih =>
-      obtain ⟨-, hh, hT, hJ, hhj, -, -⟩ := foldRows_fields (derive E cfg p) (.node p s r rs) rs
-      rw [derive_node E cfg p s r rs] at hnz ⊢
-      rcases justification_pair_cases E cfg (foldRows (derive E cfg p) (.node p s r rs) rs)
+  | node p s x rs ih =>
+      obtain ⟨-, hh, hT, hJ, hhj, -, -⟩ := foldRows_fields (derive E cfg p) (.node p s x rs) rs
+      rw [derive_node E cfg p s x rs] at hnz ⊢
+      rcases justification_pair_cases E cfg (foldRows (derive E cfg p) (.node p s x rs) rs)
         with ⟨h1, h2⟩ | ⟨h1, h2, -⟩
       · rw [h1, h2, hJ, hhj]
         rw [h2, hhj] at hnz
@@ -1027,7 +1031,7 @@ theorem entry_first (E : Electorate V) (cfg : FGConfig) (D A : FGBlock V)
   generalize (derive E cfg D).T_h = X at hT hA hne hlt
   cases X with
   | genesis => exact absurd rfl hT
-  | node p s r rs =>
+  | node p s x rs =>
       exact lt_of_le_of_lt (h_mono E cfg (preceq_parent_of_preceq_node hA hne)) hlt
 
 /-- [helper] A block C at state height m that extends an entry J justified at m
@@ -1047,12 +1051,12 @@ theorem F_eq_J_of_heights (E : Electorate V) (cfg : FGConfig) (D : FGBlock V)
     (derive E cfg D).F = (derive E cfg D).J := by
   induction D with
   | genesis => rfl
-  | node p s r rs ih =>
-      obtain ⟨-, -, -, hJ, hhj, hF, hhF⟩ := foldRows_fields (derive E cfg p) (.node p s r rs) rs
-      have hord := chainOrder_afterFin E (chainOrder_foldRows (.node p s r rs) rs
-        (chainOrder_derive E cfg p) (by rw [derive_L]; exact preceq_parent_node p s r rs))
-      rw [derive_node E cfg p s r rs] at h ⊢
-      set σ := foldRows (derive E cfg p) (.node p s r rs) rs with hσ
+  | node p s x rs ih =>
+      obtain ⟨-, -, -, hJ, hhj, hF, hhF⟩ := foldRows_fields (derive E cfg p) (.node p s x rs) rs
+      have hord := chainOrder_afterFin E (chainOrder_foldRows (.node p s x rs) rs
+        (chainOrder_derive E cfg p) (by rw [derive_L]; exact preceq_parent_node p s x rs))
+      rw [derive_node E cfg p s x rs] at h ⊢
+      set σ := foldRows (derive E cfg p) (.node p s x rs) rs with hσ
       have key : (afterFin E σ).h_F = (afterFin E σ).h_j →
           (afterFin E σ).F = (afterFin E σ).J := by
         intro hx

@@ -22,7 +22,7 @@ maturity slot) is a paper step. (4) "J cannot finalize in a continuation that
 keeps the fault bound" is a paper step from (1): the E1 weight is
 `≥ 2q − W > a`. -/
 
-variable {V : Type} [DecidableEq V] [Fintype V]
+variable {V : Type} [DecidableEq V] [Fintype V] [RowCodec V]
 
 /-- [helper] The crossing of j on W's chain names an entry X with `X.root ≠ J.root`,
 with a quorum of rows on W's chain that match `(j, X.root)` (a target or a
@@ -126,17 +126,17 @@ theorem crossingNeedsTimeout (E : Electorate V) (cfg : FGConfig) (faulty : Finse
 height does so with a target quorum for the parent's entry, or at a slot at
 least the entry's slot plus δ_t (spec `process_height_events`, lines 921–943). -/
 theorem crossing_maturity (E : Electorate V) (cfg : FGConfig) (p : FGBlock V) (s : Slot)
-    (r : BlockId) (rs : List (Row V))
-    (hup : (derive E cfg p).h < (derive E cfg (.node p s r rs)).h) :
-    (∃ Q : Finset V, E.IsQuorum Q ∧ ∀ i ∈ Q, ∃ a ∈ chainRows (.node p s r rs), a.signer = i ∧
+    (x : Nat) (rs : List (Row V))
+    (hup : (derive E cfg p).h < (derive E cfg (.node p s x rs)).h) :
+    (∃ Q : Finset V, E.IsQuorum Q ∧ ∀ i ∈ Q, ∃ a ∈ chainRows (.node p s x rs), a.signer = i ∧
         a.height_pair = .vote (derive E cfg p).h (derive E cfg p).T_h.root false) ∨
       (derive E cfg p).T_h.slot + cfg.timeoutDelay ≤ s := by
-  set σ := foldRows (derive E cfg p) (.node p s r rs) rs with hσ
-  obtain ⟨-, hh, hT, -⟩ := foldRows_fields (derive E cfg p) (.node p s r rs) rs
-  have hs : σ.s = s := foldRows_s (derive E cfg p) (.node p s r rs) rs
-  have hw := folded_witnesses E cfg p s r rs
+  set σ := foldRows (derive E cfg p) (.node p s x rs) rs with hσ
+  obtain ⟨-, hh, hT, -⟩ := foldRows_fields (derive E cfg p) (.node p s x rs) rs
+  have hs : σ.s = s := foldRows_s (derive E cfg p) (.node p s x rs) rs
+  have hw := folded_witnesses E cfg p s x rs
   have htarget : E.IsQuorum (afterFin E σ).target_participation →
-      ∃ Q : Finset V, E.IsQuorum Q ∧ ∀ i ∈ Q, ∃ a ∈ chainRows (.node p s r rs),
+      ∃ Q : Finset V, E.IsQuorum Q ∧ ∀ i ∈ Q, ∃ a ∈ chainRows (.node p s x rs),
         a.signer = i ∧
         a.height_pair = .vote (derive E cfg p).h (derive E cfg p).T_h.root false := by
     intro hq

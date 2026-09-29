@@ -12,18 +12,25 @@ variable {V : Type} [DecidableEq V]
 /-! ## Root injectivity and evidence helpers -/
 
 -- port: DC/DecoupledConsensusModel/Execution/Setup.lean:51-56 (RootInjectiveOnAncestors)
-/-- [helper] Roots identify blocks on the two compared chains (the collision-free hash
-idealization; port: DC `RootInjectiveOnAncestors`). -/
-def RootInjectiveOn (B₁ B₂ : FGBlock V) : Prop :=
+/-- [helper] Roots identify blocks on the two compared chains (port: DC
+`RootInjectiveOnAncestors`, a collision-free hash idealization in DC). Here the
+root is a function of the content, so it holds for every two tips
+(`rootInjectiveOn_all`). -/
+def RootInjectiveOn [RowCodec V] (B₁ B₂ : FGBlock V) : Prop :=
   ∀ X Y : FGBlock V, (X.Preceq B₁ ∨ X.Preceq B₂) → (Y.Preceq B₁ ∨ Y.Preceq B₂) →
     X.root = Y.root → X = Y
 
 -- port: DC/DecoupledConsensusProofs/Protocol/ChainState/Main.lean:39-48
 -- (rootInjectiveOnAncestors_symm)
 /-- [helper] `RootInjectiveOn` is symmetric in the two tips. -/
-theorem RootInjectiveOn.symm {B₁ B₂ : FGBlock V} (h : RootInjectiveOn B₁ B₂) :
+theorem RootInjectiveOn.symm [RowCodec V] {B₁ B₂ : FGBlock V} (h : RootInjectiveOn B₁ B₂) :
     RootInjectiveOn B₂ B₁ :=
   fun X Y hX hY hr => h X Y hX.symm hY.symm hr
+
+/-- [helper] `RootInjectiveOn` holds for every two tips: the root is a function of
+the content, and `FGBlock.root_injective` proves it injective. -/
+theorem rootInjectiveOn_all [RowCodec V] (B₁ B₂ : FGBlock V) : RootInjectiveOn B₁ B₂ :=
+  fun _ _ _ _ hr => FGBlock.root_injective hr
 
 -- port: DC/DecoupledConsensusProofs/Protocol/ChainState/FinalityComparison.lean:31-48
 -- (matching_finality_e1)
@@ -150,6 +157,8 @@ theorem uniqueJust_slashable (E : Electorate V) {A₁ A₂ : Finset (Row V)} {Q�
     (hw₂ : ∀ i ∈ Q₂, ∃ b ∈ A₂, b.signer = i ∧ b.height_pair = .vote h T₂ false) :
     HasSlashableWeightBetween E A₁ A₂ :=
   hasSlashableWeightBetween_of_hasE2WeightAt hne (uniqueJust E hQ₁ hQ₂ hw₁ hw₂)
+
+variable [RowCodec V]
 
 /-- [helper] The justification certificate of a chain, with its witnesses in
 the chain's rows. -/

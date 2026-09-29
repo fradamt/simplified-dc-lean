@@ -67,8 +67,8 @@ structure HeadFields where
 
 /-- The head fields of the head block `Hd`: `(σ.h_j, σ.J.root, σ.h_F)` with
 `σ = derive E cfg Hd`. -/
-def HeadFields.ofBlock {V : Type} [DecidableEq V] [Fintype V] (E : Electorate V)
-    (cfg : FGConfig) (Hd : FGBlock V) : HeadFields :=
+def HeadFields.ofBlock {V : Type} [DecidableEq V] [Fintype V] [RowCodec V]
+    (E : Electorate V) (cfg : FGConfig) (Hd : FGBlock V) : HeadFields :=
   ⟨(derive E cfg Hd).h_j, (derive E cfg Hd).J.root, (derive E cfg Hd).h_F⟩
 
 -- port: DC/DecoupledConsensusModel/Protocol/ValidatorClient.lean:160-170
@@ -135,7 +135,7 @@ def record_row {V : Type} (Λ : Record) (a : Row V) : Record :=
   | .vote h T false =>
       if afterLock.target h = none then afterLock.with_target h T else afterLock
 
-variable {V : Type} [DecidableEq V] [Fintype V]
+variable {V : Type} [DecidableEq V] [Fintype V] [RowCodec V]
 
 -- port: DC/DecoupledConsensusModel/Protocol/ValidatorClient.lean:253-260
 /-- [helper] `create_attestation` (alfs4 lines 1379–1387): the finality pair, then the
@@ -173,24 +173,30 @@ example :
     (createRow E4 cfg1 Record.initial 0 (some .genesis) clientHdNone).1.height_pair =
       .vote 1 genesisRoot false := by decide
 
-/-- `clientB1alt` has the same rows as `B1` but root `⟨2⟩`: height 2, entry root
-`⟨2⟩`. -/
-def clientB1alt : FGBlock (Fin 4) := .node .genesis 1 ⟨2⟩ [rowT 0, rowT 1, rowT 2]
+/-- `clientB1alt` has the parent, the slot and the rows of `B1` but body `1`:
+height 2, a different entry root. With the same content, it is `B1b` of
+Frame.lean (it was the same term before I9 too). -/
+def clientB1alt : FGBlock (Fin 4) := .node .genesis 1 1 [rowT 0, rowT 1, rowT 2]
+
+/-- The two entries are different: distinct content gives distinct roots. -/
+example : B1.root ≠ clientB1alt.root := fun h => absurd (FGBlock.root_injective h) (by decide)
 
 /-- A second call at height 2 with a different entry repeats no target: it
 times out (DC's target-repeat rule). -/
 example :
     clientRun E4 cfg1 0 Record.initial
         [(some B1, clientHdNone), (some clientB1alt, clientHdNone)] =
-      [⟨0, .vote 2 ⟨1⟩ false, none⟩, ⟨0, .vote 2 ⟨2⟩ true, none⟩] := by decide
+      [⟨0, .vote 2 B1.root false, none⟩, ⟨0, .vote 2 clientB1alt.root true, none⟩] := by
+  decide
 
 /-- Rejection in a run (Astra G01): after the timeout at height 2, a head with
-`(h_j, J) = (2, ⟨1⟩)` gives no finality pair. Without the timeout guard the
-third row would carry `(2, ⟨1⟩)`, which is E1 with the second row. -/
+`(h_j, J) = (2, B1.root)` gives no finality pair. Without the timeout guard the
+third row would carry `(2, B1.root)`, which is E1 with the second row. -/
 example :
     clientRun E4 cfg1 0 Record.initial
-        [(some B1, clientHdNone), (some clientB1alt, clientHdNone), (none, ⟨2, ⟨1⟩, 0⟩)] =
-      [⟨0, .vote 2 ⟨1⟩ false, none⟩, ⟨0, .vote 2 ⟨2⟩ true, none⟩, ⟨0, .empty, none⟩] := by
+        [(some B1, clientHdNone), (some clientB1alt, clientHdNone), (none, ⟨2, B1.root, 0⟩)] =
+      [⟨0, .vote 2 B1.root false, none⟩, ⟨0, .vote 2 clientB1alt.root true, none⟩,
+        ⟨0, .empty, none⟩] := by
   decide
 
 /-- The same rule on the fields directly, at height 1. -/
@@ -235,7 +241,9 @@ example : height_pair Record.initial (some (1, ⟨7⟩)) (some ⟨1, genesisRoot
 example :
     height_pair Record.initial (some (1, genesisRoot)) (some ⟨1, genesisRoot⟩) =
       .vote 1 genesisRoot false := by decide
-/-- Through `createRow`: the source `B1` (`h = 2`, entry root `⟨1⟩`) and the
+/-- The free root `⟨5⟩` of the next two examples is not the entry `B1.root`. -/
+example : B1.root ≠ ⟨5⟩ := by decide
+/-- Through `createRow`: the source `B1` (`h = 2`, entry `B1.root`) and the
 free head fields `(2, ⟨5⟩, 0)` give the finality pair `(2, ⟨5⟩)` and an empty
 height pair. -/
 example :
@@ -243,7 +251,7 @@ example :
       ⟨0, .empty, some ⟨2, ⟨5⟩⟩⟩ := by decide
 
 /-- A lock kept across calls: the first row locks height 2 on `⟨5⟩`; with the
-returned record, the source `B1` (height 2, entry root `⟨1⟩`) gives the empty
+returned record, the source `B1` (height 2, entry `B1.root`) gives the empty
 pair through the stored lock. -/
 example :
     (createRow E4 cfg1 Record.initial 0 none ⟨2, ⟨5⟩, 0⟩).1.finality_pair = some ⟨2, ⟨5⟩⟩ ∧

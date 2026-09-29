@@ -8,7 +8,8 @@ namespace AvailableChain.KitFG
 
 open AvailableChain.SimplexFG
 
-variable {V : Type} [DecidableEq V] [Fintype V] (E : Electorate V) (cfg : FGConfig)
+variable {V : Type} [DecidableEq V] [Fintype V] [RowCodec V] (E : Electorate V)
+  (cfg : FGConfig)
 
 /-- [helper] The store invariant. `pair` and `FJ` are what the F-acceptance
 test needs; `Fcar` is the admitted block that finalized F (the accepting
@@ -30,6 +31,12 @@ omit [Fintype V] in
 theorem viewRootInj_mono {Vw Vw' : View V} (hinj : ViewRootInj Vw') (h : Vw ⊆ Vw') :
     ViewRootInj Vw := fun X Y ⟨W, hW, hXW⟩ ⟨W', hW', hYW'⟩ hr =>
   hinj X Y ⟨W, h hW, hXW⟩ ⟨W', h hW', hYW'⟩ hr
+
+omit [Fintype V] in
+/-- [helper] Collision freedom holds on every view: the root is a function of the
+content, and `FGBlock.root_injective` proves it injective. -/
+theorem viewRootInj_all (Vw : View V) : ViewRootInj Vw :=
+  fun _ _ _ _ hr => FGBlock.root_injective hr
 
 -- port: DC/DecoupledConsensusProofs/Protocol/ForkChoice/Goldfish/Walk.lean:53-64
 omit [Fintype V] in
@@ -317,7 +324,7 @@ theorem update_finality_F_mono (st : Store V) (B : FGBlock V) :
 
 /-! ## The store invariant -/
 
-omit [Fintype V] in
+omit [Fintype V] [RowCodec V] in
 /-- [helper] A parent-closed block set is ancestor-closed. -/
 theorem ancestor_closed_of_parent_closed (T : Finset (FGBlock V))
     (hcl : ∀ B ∈ T, B.parent ∈ T) : ∀ B ∈ T, ∀ A, FGBlock.Preceq A B → A ∈ T := by
@@ -481,7 +488,7 @@ theorem on_block_TF_subset (st : Store V) (B : FGBlock V) :
   · rw [on_block_of_accepted E cfg st B hc, update_finality_TF]
     exact Finset.subset_insert B st.TF
 
-omit [Fintype V] in
+omit [Fintype V] [RowCodec V] in
 /-- [pin fj.frame.v3] (Trees: act(Σ) is a view; AP interface) The active view is a
 subset of the tree. -/
 theorem activeView_subset (st : Store V) : activeView st ⊆ st.TF := by
@@ -528,13 +535,13 @@ theorem mem_filteredFrom (c : Controls V) (blocks : Finset (FGBlock V)) (B : FGB
   simp only [filteredFrom, Finset.mem_filter, Bool.and_eq_true, decide_eq_true_eq,
     FGBlock.Preceq, and_assoc]
 
-omit [DecidableEq V] [Fintype V] in
+omit [DecidableEq V] [Fintype V] [RowCodec V] in
 /-- [helper] The band floor is at most the frontier. -/
 theorem Controls.lo_le_H (c : Controls V) : c.lo ≤ c.H := by
   unfold Controls.lo
   split_ifs <;> simp only [Height] at * <;> omega
 
-omit [DecidableEq V] [Fintype V] in
+omit [DecidableEq V] [Fintype V] [RowCodec V] in
 /-- [helper] The band floor is at least `H − 1`. -/
 theorem Controls.H_sub_one_le_lo (c : Controls V) : c.H - 1 ≤ c.lo := by
   unfold Controls.lo

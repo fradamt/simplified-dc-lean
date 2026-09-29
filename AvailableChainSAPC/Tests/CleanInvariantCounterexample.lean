@@ -1,5 +1,6 @@
 module
 public import AvailableChainSAPC.Proofs.RunCleanPath
+public import AvailableChainKit.Roots
 public meta import AvailableChainSAPC.Model.Protocol
 
 /-!
@@ -24,8 +25,13 @@ open AvailableChain.Generic AvailableChain.Statements.Generic
 abbrev p : Params := ⟨1, 4, 2, 0, by decide, by decide, by decide, by decide⟩
 local instance : DecidableEq (sapc p).Object := inferInstanceAs (DecidableEq (Wire 4))
 
-def x : Block := .node .genesis 1 ⟨2⟩
-def y : Block := .node .genesis 1 ⟨1⟩
+def x : Block := .node .genesis 1 1
+def y : Block := .node .genesis 1 0
+
+/-- `x` and `y` are siblings at slot 1 with different bodies. The time-5
+HEAD choice is a score tie between them, so the larger root, `x`, wins it. -/
+theorem y_root_lt_x_root : y.root < x.root := by decide
+
 def proposal (b : Block) : Wire 4 := ⟨.proposer 1, .proposal b [] [] none⟩
 def head (r : Slot) (v : Fin 4) (b : Block) : Wire 4 :=
   ⟨.seat r v, .head ⟨b, none⟩⟩
@@ -202,49 +208,9 @@ private theorem synchrony : PartialSynchrony (sapc p) env run := by
     obtain ⟨t', hlo, hhi, j, hj⟩ := relay v hv i o t ha w hw hp hd
     exact ⟨t', hlo, hhi, j, hj.1⟩
 
-
-private theorem delivered_blocks : ∀ e ∈ run.events, ∀ o ∈ e.object?.toList,
-    (sapcInterface p).block o.payload = none ∨
-    (sapcInterface p).block o.payload = some x ∨
-    (sapcInterface p).block o.payload = some y := by decide
-
-private theorem emitted_blocks : ∀ i : Fin run.events.length,
-    (match run.events[i.val] with
-    | .deliver _ _ _ => true
-    | .tick v t => decide (∀ o ∈ Run.emittedAt (sapc p) env run i v t,
-        (sapcInterface p).block o.payload = none)) = true := by decide
-
-private theorem named_block (b : Block)
-    (hb : BlockInRun env (sapcInterface p).toInterface run b) :
-    b = .genesis ∨ b = x ∨ b = y := by
-  rcases hb with hg | ⟨v, o, t, tip, ho, htip, hpre⟩
-  · exact Or.inl hg
-  have ht : tip = x ∨ tip = y := by
-    rcases ho with ⟨i, he⟩ | ⟨i, he, hm⟩
-    · have hs := delivered_blocks _ (List.mem_iff_getElem?.mpr ⟨i, he⟩) o (by simp [Event.object?])
-      rw [htip] at hs
-      simpa only [Option.some.injEq, reduceCtorEq, false_or] using hs
-    · obtain ⟨hi, he⟩ := List.getElem?_eq_some_iff.mp he
-      have hs := emitted_blocks ⟨i, hi⟩
-      rw [he] at hs
-      have hn := of_decide_eq_true hs o hm
-      rw [htip] at hn
-      contradiction
-  rcases ht with rfl | rfl
-  · have hx : b = x ∨ b = .genesis := by simpa [x, Block.Preceq, Block.preceq] using hpre
-    tauto
-  · have hy : b = y ∨ b = .genesis := by simpa [y, Block.Preceq, Block.preceq] using hpre
-    tauto
-
-private theorem roots : RootInjective env (sapcInterface p).toInterface run := by
-  intro a b ha hb hr
-  rcases named_block a ha with rfl | rfl | rfl <;>
-    rcases named_block b hb with rfl | rfl | rfl <;>
-    simp_all [x, y, Block.root, genesisRoot]
-
 /-- A full Sleepy execution with the fault cap and full honest participation. -/
 theorem sleepy : SleepyRegime (sapc p) env (sapcInterface p).toInterface run 0 := by
-  refine { rootInjective := roots
+  refine { rootInjective := Framework.Kit.rootInjective_all env _ run
            execution := execution
            partialSynchrony := synchrony
            gst_zero := rfl

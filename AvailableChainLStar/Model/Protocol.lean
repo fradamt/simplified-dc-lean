@@ -255,7 +255,7 @@ def propose (_p : Params) {n : Nat} (st : State n) (s : Slot) : Option (Msg n) :
     let raw := proposerView st s
     let support := proposerSupportView st s
     let parent := forkChoice st st.blocks raw support s
-    let b := Block.node parent s ⟨s * (parent.root.value + 1)⟩
+    let b := Block.node parent s 0
     some (.proposal b (raw.filterMap toHead?) (support.filterMap toHead?))
 
 def act (p : Params) {n : Nat} (st : State n) (s : Slot) : Option (Msg n) :=

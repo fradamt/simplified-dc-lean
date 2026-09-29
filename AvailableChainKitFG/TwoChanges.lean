@@ -63,7 +63,8 @@ def phaseFrame {V : Type} (m : Height) (Jm : FGBlock V) : Phase → NFrame V
 abbreviation). -/
 local macro "homega" : tactic => `(tactic| ((try simp only [Height] at *) <;> omega))
 
-variable {V : Type} [DecidableEq V] [Fintype V] (E : Electorate V) (cfg : FGConfig)
+variable {V : Type} [DecidableEq V] [Fintype V] [RowCodec V] (E : Electorate V)
+  (cfg : FGConfig)
 variable {F F' : FGBlock V} {Vw : View V} {m : Height} {Jm : FGBlock V}
 
 /-- The FJ phase of a view: no top J, top J uncontested, or top J contested. -/
@@ -736,7 +737,7 @@ B1, leaves D. -/
 example : frontier E4 cfg1 {.genesis, B1, B2, B3} = 4 ∧ hOf E4 cfg1 B1 = 2 ∧
     (fjFrame E4 cfg1 .genesis {.genesis, B1, B2, B3}).j = 2 ∧
     (fjFrame E4 cfg1 .genesis {.genesis, B1, B2, B3}).J = B1 := by
-  decide
+  decide +kernel
 
 /-- Both frames are gap frames with `lo = 3`; the normalized frame is the same. -/
 example : phaseOf E4 cfg1 .genesis {.genesis, B1, B2, B3} = .gap ∧
@@ -744,27 +745,27 @@ example : phaseOf E4 cfg1 .genesis {.genesis, B1, B2, B3} = .gap ∧
     (fjFrame E4 cfg1 .genesis {.genesis, B1, B2, B3}).lo = 3 ∧
     (fjFrame E4 cfg1 B1 {.genesis, B1, B2, B3}).lo = 3 ∧
     nFrame E4 cfg1 .genesis {.genesis, B1, B2, B3} = nFrame E4 cfg1 B1 {.genesis, B1, B2, B3} := by
-  decide
+  decide +kernel
 
 /-- The old D holds genesis; the new D does not: D is cut at F′ = B1. -/
 example : FGBlock.genesis ∈ (fjFrame E4 cfg1 .genesis {.genesis, B1, B2, B3}).D ∧
     FGBlock.genesis ∉ (fjFrame E4 cfg1 B1 {.genesis, B1, B2, B3}).D ∧
     (fjFrame E4 cfg1 .genesis {.genesis, B1, B2, B3}).D = {.genesis, B1, B2, B3} ∧
     (fjFrame E4 cfg1 B1 {.genesis, B1, B2, B3}).D = {B1, B2, B3} := by
-  decide
+  decide +kernel
 
 /-! ### `Fmove_atTop`: the hypotheses are satisfiable
 
 `K3` is a child of `B2` (slot 3) with three rows that carry only the finality
 pair `(2, B1)`. It finalizes `B1` at height 2 and stays at state height 3. In
 the view `{genesis, B1, B2, K3}` (`m = 3`), the move F = genesis → F′ = B1 is
-case (ii) of item 3. `ViewRootInj` is not decidable here; the roots of the view
-and its ancestors (`genesisRoot`, `⟨1⟩`, `⟨5⟩`, `⟨7⟩`) are distinct. -/
+case (ii) of item 3. `K3` has body 0, as every block of the G02 chain. The
+hypothesis `ViewRootInj` holds on every view (`viewRootInj_all`). -/
 
 /-- [helper] A row with no height pair and the finality pair `(2, B1)`. -/
 def rowK3 (i : Fin 4) : Row (Fin 4) := ⟨i, .empty, some ⟨2, B1.root⟩⟩
 
-def K3 : FGBlock (Fin 4) := .node B2 3 ⟨7⟩ [rowK3 0, rowK3 1, rowK3 2]
+def K3 : FGBlock (Fin 4) := .node B2 3 0 [rowK3 0, rowK3 1, rowK3 2]
 
 /-- The decidable hypotheses of `Fmove_atTop` hold with `K = K3`, `F = genesis`,
 `F′ = B1`, `m = 3`. -/
@@ -777,7 +778,7 @@ example : frontier E4 cfg1 {.genesis, B1, B2, K3} = 3 ∧
           (derive E4 cfg1 K₁).J = (derive E4 cfg1 K₂).J) ∧
     (∀ W ∈ ({.genesis, B1, B2, K3} : View (Fin 4)), 2 < hOf E4 cfg1 W →
       FGBlock.Preceq B1 W) := by
-  decide
+  decide +kernel
 
 /-- The conclusions of `Fmove_atTop`: both phases are uncontested, Z = B1,
 lo = 2, and D does not change. -/
@@ -789,7 +790,15 @@ example : phaseOf E4 cfg1 .genesis {.genesis, B1, B2, K3} = .uncontested ∧
     (fjFrame E4 cfg1 B1 {.genesis, B1, B2, K3}).lo = 2 ∧
     (fjFrame E4 cfg1 B1 {.genesis, B1, B2, K3}).D =
       (fjFrame E4 cfg1 .genesis {.genesis, B1, B2, K3}).D := by
-  decide
+  decide +kernel
+
+/-- `Fmove_atTop` applies to `K3`: `viewRootInj_all` gives its root hypothesis,
+and each other hypothesis is decided. -/
+example : (fjFrame E4 cfg1 B1 {.genesis, B1, B2, K3}).D =
+    (fjFrame E4 cfg1 .genesis {.genesis, B1, B2, K3}).D :=
+  (Fmove_atTop E4 cfg1 (m := 3) (F := .genesis) (F' := B1) (by decide) (viewRootInj_all _)
+    (by decide +kernel) (by decide) K3 (by decide) (by decide +kernel) (by decide +kernel)
+    (by decide +kernel) (by decide +kernel)).2.2.2.2.2.2
 
 end AvailableChain.KitFG
 end

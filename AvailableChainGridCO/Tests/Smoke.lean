@@ -2,8 +2,6 @@ module
 public import AvailableChainGridCO.Model.Protocol
 public import AvailableChainGridCO.Proofs.Handling
 import Mathlib.Tactic.IntervalCases
-public meta import AvailableChainGridCO.Model.Protocol
-public meta import AvailableChainGridCO.Proofs.Handling
 
 @[expose] public section
 
@@ -53,13 +51,18 @@ def tinyHeadCount : Nat :=
 
 /-- Expiry at the deadline removes the entry before an act at that tick. -/
 def tinyExpiry : Bool :=
-  let b := Block.node .genesis 1 ⟨1⟩
+  let b := Block.node .genesis 1 0
   let st : State 1 := { obligations := [(b, 1, 5)] }
   (expire st 4).obligations.length == 1 &&
     (expire st 5).obligations.isEmpty
 
-def blockB : Block := Block.node .genesis 1 ⟨1⟩
-def blockC : Block := Block.node .genesis 2 ⟨2⟩
+def blockB : Block := Block.node .genesis 1 0
+def blockC : Block := Block.node .genesis 2 0
+
+/-- The derived roots keep the old literal order (`⟨1⟩ < ⟨2⟩`). No check below
+compares the two roots: no walk has both blocks as eligible children. -/
+example : blockB.root < blockC.root := by decide
+
 def headB : Wire 1 := ⟨.seat 1 0, .head blockB⟩
 def headC : Wire 1 := ⟨.seat 2 0, .head blockC⟩
 
@@ -105,7 +108,7 @@ def blockAdmissionPass : Bool :=
   let other : Wire 1 := ⟨.proposer 1, .proposal blockB [⟨.seat 0 0, .genesis⟩] []⟩
   let st := admitProposal smokeParams ({ now := 4 } : State 1) first blockB []
   let again := admitProposal smokeParams st other blockB [⟨.seat 0 0, .genesis⟩]
-  let badChild := Block.node blockB 1 ⟨3⟩
+  let badChild := Block.node blockB 1 0
   let badParentSlot : Wire 1 := ⟨.proposer 1, .proposal badChild [] []⟩
   let wrongSigner : Wire 1 := ⟨.proposer 1, .proposal blockC [] []⟩
   again.proposals.length == 1 && again.votes.isEmpty &&
@@ -135,14 +138,14 @@ def handlingPass : Bool :=
     decide (handles smokeParams late envelope headB) &&
     !(processed (process smokeParams late envelope) headB)
 
-#eval tinyHeadCount
-#eval tinyExpiry
-#eval tinyGatePass
-#eval tinyReleasePass
-#eval ingressPass
-#eval blockAdmissionPass
-#eval handlingPass
-#eval stable (Run.readAt (gridCO smokeParams) tinyRun 2 0)
+example : tinyHeadCount = 1 := by decide
+example : tinyExpiry = true := by decide
+example : tinyGatePass = true := by decide
+example : tinyReleasePass = true := by decide
+example : ingressPass = true := by decide
+example : blockAdmissionPass = true := by decide
+example : handlingPass = true := by decide
+example : stable (Run.readAt (gridCO smokeParams) tinyRun 2 0) = .genesis := by decide
 
 end AvailableChain.GridCO.Tests
 end

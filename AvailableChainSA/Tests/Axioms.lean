@@ -80,3 +80,8 @@ public import AvailableChainGridCO.Proofs.Contract
 #print axioms AvailableChain.GridCO.ScorePreservingViewExtension.equivocates_eq
 #print axioms AvailableChain.GridCO.ScorePreservingViewExtension.score_eq
 #print axioms AvailableChain.GridCO.ScorePreservingViewExtension.eligible_eq
+#print axioms AvailableChain.GridCO.honest_proposal_views
+#print axioms AvailableChain.GridCO.honest_proposal_exists
+#print axioms AvailableChain.GridCO.blockKnown_parent_slot_iff_root
+#print axioms AvailableChain.GridCO.admitProposal_missingParent
+#print axioms AvailableChain.GridCO.rootInjectiveBelow_all

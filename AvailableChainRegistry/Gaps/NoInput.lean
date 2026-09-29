@@ -1,5 +1,6 @@
 module
 public import AvailableChainFramework
+public import AvailableChainKit.Roots
 public import Mathlib.Tactic
 
 @[expose] public section
@@ -37,7 +38,7 @@ open AvailableChain.Statements.Generic AvailableChain.Framework.Catalog
 /-- The block of slot `k` on the clock chain. -/
 def clockBlock : Nat → Block
   | 0 => .genesis
-  | k + 1 => .node (clockBlock k) (k + 1) ⟨k + 1⟩
+  | k + 1 => .node (clockBlock k) (k + 1) 0
 
 /-- A protocol that reads no input (design §12, I1): it excludes every
 object, and its outputs depend on the clock only. -/
@@ -188,14 +189,19 @@ end Mono
 
 /-! ### Blocks -/
 
-theorem clockBlock_root (m : Nat) : (clockBlock m).root = ⟨m⟩ := by
-  cases m <;> rfl
+theorem clockBlock_depth : ∀ m : Nat, (clockBlock m).depth = m
+  | 0 => rfl
+  | m + 1 => by simp [clockBlock, Block.depth, clockBlock_depth m]
+
+/-- Distinct slots give distinct blocks. -/
+theorem clockBlock_injective {i j : Nat} (h : clockBlock i = clockBlock j) : i = j := by
+  simpa [clockBlock_depth] using congrArg Block.depth h
 
 theorem preceq_refl (B : Block) : Block.Preceq B B := by
   cases B <;> simp [Block.Preceq, Block.preceq]
 
-theorem preceq_node {B p : Block} (s : Slot) (r : BlockId) (h : Block.Preceq B p) :
-    Block.Preceq B (.node p s r) := by
+theorem preceq_node {B p : Block} (s : Slot) (x : Nat) (h : Block.Preceq B p) :
+    Block.Preceq B (.node p s x) := by
   simp only [Block.Preceq, Block.preceq, Bool.or_eq_true, decide_eq_true_eq] at h ⊢
   exact Or.inr h
 
@@ -228,16 +234,10 @@ theorem blockInRun_clock {V : Type} [DecidableEq V] {E : Env V}
     subst this
     exact preceq_clockBlock hpre
 
-/-- The roots of `clockBlock k` are `⟨k⟩`, so roots are injective in every
-run. -/
+/-- Roots are computed from block content, so they are injective in every run. -/
 theorem clock_rootInjective {V : Type} [DecidableEq V] (E : Env V)
-    (rho : Run V clockChain) : RootInjective E clockIface rho := by
-  intro B C hB hC hr
-  obtain ⟨a, rfl⟩ := blockInRun_clock hB
-  obtain ⟨b, rfl⟩ := blockInRun_clock hC
-  rw [clockBlock_root, clockBlock_root] at hr
-  cases hr
-  rfl
+    (rho : Run V clockChain) : RootInjective E clockIface rho :=
+  Framework.Kit.rootInjective_all E clockIface rho
 
 /-! ### Safety, prefix and inclusion -/
 

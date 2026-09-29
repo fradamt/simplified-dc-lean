@@ -17,9 +17,9 @@ source C, so `T ⪯ C`; (3) a finality row names the justified pair `(h_j, J)`
 of the signer's head state; hence a finality QC names an already justified
 entry, with an earlier target QC. -/
 
-variable {V : Type} [DecidableEq V] [Fintype V]
+variable {V : Type} [DecidableEq V] [Fintype V] [RowCodec V]
 
-omit [DecidableEq V] in
+omit [DecidableEq V] [RowCodec V] in
 /-- [pin fg.provenance.v2] (1) Every quorum of rows contains a row of a signer
 outside a set of weight below q. -/
 theorem provenance_honestRow (E : Electorate V) (faulty : Finset V)

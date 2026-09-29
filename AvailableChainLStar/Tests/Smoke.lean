@@ -95,10 +95,14 @@ def smokeSecondWirePass : Bool :=
 set_option linter.hashCommand false in
 #guard smokeSecondWirePass
 
-#eval smokeProposalBlock
-#eval smokeOutputs
-#eval smokePass
-#eval honestNodes.all (fun v => smokeEnv.awake v 10)
+/-- The honest slot-1 proposal has body 0. Each honest reader outputs it as
+stable and confirmed at time 20. The run stores one block besides genesis, so
+no output depends on a root order. -/
+example : smokeProposalBlock = .node .genesis 1 0 := by decide
+example : smokeOutputs = List.replicate 3 (.node .genesis 1 0, .node .genesis 1 0) := by
+  decide
+example : smokePass = true := by decide
+example : honestNodes.all (fun v => smokeEnv.awake v 10) = true := by decide
 
 end AvailableChain.LStar.Tests
 end

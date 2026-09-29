@@ -36,7 +36,13 @@ tag: the tag names its main id, and a row of another id can use it (for example
 `scripts/check-fg-pins.sh` checks it against the registry. `scripts/FGPinIds.lean
 --check-names` checks that every Lean name of this table is a constant of the
 two FG libraries, so that `scripts/CheckFGAxioms.lean` checks its axioms.
-`scripts/check-fg.sh` builds the two libraries and runs every check. -/
+`scripts/check-fg.sh` builds the two libraries and runs every check.
+
+Root injectivity. The root of an FG block is a function of its content
+(`FGBlock.root_injective`), so the binders `ViewRootInj` and `RootInjectiveOn`
+are not run idealizations: `viewRootInj_all` and `rootInjectiveOn_all` prove
+them for every view and every two tips. The statements keep them as binders; a
+clause below that names one of them is discharged by these two lemmas. -/
 
 /-- A registered source: its §0.1 key in FG-COMPOSITION.md, its directory
 root, its path under that root, and its full SHA-256. -/
@@ -127,8 +133,8 @@ def pins : List Pin := [
       .leanHyp [``Store, ``storeInv_init, ``storeInv_on_block, ``on_block_TF_subset,
           ``update_finality_TF]
         "parent closure is StoreInv.closed (storeInv_init, storeInv_on_block; \
-        ViewRootInj on the new Σ.T when B is accepted); cumulativity needs no \
-        hypothesis"⟩,
+        ViewRootInj on the new Σ.T when B is accepted, viewRootInj_all); \
+        cumulativity needs no hypothesis"⟩,
     ⟨"Trees: act(Σ) is a view of Σ.T (alfs4 356–359)",
       .lean [``activeView, ``activeView_subset]⟩,
     ⟨"Trees: only the SA base reads act(Σ) (alfs4 360–362)",
@@ -152,7 +158,7 @@ def pins : List Pin := [
       (alfs4 970–986, 1004–1011)",
       .leanHyp [``storeControls, ``Controls.rootIsJ, ``Controls.Z, ``Controls.lo,
           ``storeControls_eq_fjControls]
-        "StoreInv (ViewRootInj is used only by storeInv_on_block)"⟩,
+        "StoreInv (ViewRootInj is used only by storeInv_on_block; viewRootInj_all)"⟩,
     ⟨"viable_tree_from and get_filtered_block_tree_from on any block set \
       (alfs4 988–994, 1013–1020)",
       .leanHyp [``filteredFrom, ``mem_filteredFrom]
@@ -165,7 +171,8 @@ def pins : List Pin := [
         every store: a stronger form)"⟩,
     ⟨"update_finality: hmax, lex-order J update, F acceptance (alfs4 847–860)",
       .leanHyp [``update_finality, ``storeInv_on_block]
-        "ViewRootInj on the new Σ.T when B is accepted (lex order, lines 850–853)"⟩,
+        "ViewRootInj on the new Σ.T when B is accepted (lex order, lines 850–853); \
+        viewRootInj_all proves it"⟩,
     ⟨"reconcile_with_finality: SA fields only; Σ.T and hmax unchanged (alfs4 862–882)",
       .apData "it writes no FG field"⟩,
     ⟨"live_root and get_head_in_tree (alfs4 1074–1095)",
@@ -182,9 +189,9 @@ def pins : List Pin := [
     ⟨"FJ_FRAME: H, (j, J), contest, the Z/lo table, viable, D (r148 148–169)",
       .leanHyp [``fjControls, ``fjFrame, ``fjFrame_lo, ``fjFrame_D]
         "definition only; F is a parameter (the caller's F, not 'current accepted \
-        F'); the definitions assume nothing, but lexMax is the lex-greatest pair only \
-        under ViewRootInj (§0.4): on a root collision at the greatest key the \
-        selector falls back to (0, genesis)"⟩,
+        F'); the definitions assume nothing; lexMax is the lex-greatest pair under \
+        ViewRootInj (§0.4), which viewRootInj_all proves for every view, so the \
+        selector falls back to (0, genesis) only on an empty candidate set"⟩,
     ⟨"get_fg_root and get_filtered_block_tree_from (r148 171–175)",
       .leanHyp [``fjFrame] "definition only"⟩,
     ⟨"the contest witness at H = j+1: some W of the view with h(W) = j+1 and J ⋠ W \
@@ -194,10 +201,11 @@ def pins : List Pin := [
       (r148 267–268), direction witness ⇒ crossing",
       .leanHyp [``crossing_other_entry]
         "PARTIAL: a W with h(W) > j and J ⋠ W has, on its chain, a crossing of j \
-        that names X ≠ J with a matching quorum; RootInjectiveOn B W and h_j ≠ 0; \
+        that names X ≠ J with a matching quorum; RootInjectiveOn B W \
+        (rootInjectiveOn_all) and h_j ≠ 0; \
         that the crossing block is in the view (ancestor closure) is not stated; \
         J is `(derive B).J` of a carrier B, not the frame's J (the link to the \
-        frame's (j, J) is `lexMax` under ViewRootInj)"⟩,
+        frame's (j, J) is `lexMax` under ViewRootInj, viewRootInj_all)"⟩,
     ⟨"the converse (a conflicting crossing of j in the view gives a witness) \
       (r148 267–268)",
       .paper "r148 lines 267–268; no Lean"⟩,
@@ -218,13 +226,14 @@ def pins : List Pin := [
     ⟨"(1) a nonempty D reaches lo", .lean [``filteredFrom_reachesLo]⟩,
     ⟨"(2) D is not empty under (a) and (b)",
       .leanHyp [``fjFrame_D_nonempty, ``storeFrame_feasible]
-        "fjFrame: (a) K ∈ V finalizes F, (b) pure fg.finalLock.v1, ViewRootInj; \
+        "fjFrame: (a) K ∈ V finalizes F, (b) pure fg.finalLock.v1, ViewRootInj \
+        (viewRootInj_all); \
         stronger form: the proof of fjFrame_D_nonempty does not use ViewRootInj or \
         σ[K].F = F (binders kept); store form: StoreInv gives (a) on Σ.T, (b) and \
         ViewRootInj on Σ.T are hypotheses"⟩,
     ⟨"(3) Z ∈ D under (a) and (b)",
       .leanHyp [``fjFrame_Z_mem_D, ``storeFrame_feasible]
-        "(a); (b); ViewRootInj; V ancestor-closed"⟩,
+        "(a); (b); ViewRootInj (viewRootInj_all); V ancestor-closed"⟩,
     ⟨"(4) below lo every block of D has a child in D",
       .leanHyp [``filteredFrom_viable_child] "any controls; the block set is ancestor-closed"⟩,
     ⟨"(2), (3) on the frozen voter tree (ALFS note)",
@@ -244,7 +253,7 @@ def pins : List Pin := [
   -- pins the pair (HasE1WeightAt). The Lean form is weaker, and enough for the clause.
   { id := "fg.accountable.v1", sources := [r143, r148], clauses := [
     ⟨"conflicting finalizations give 2q−n E1/E2 identities, without NJ",
-      .leanHyp [``accountable] "RootInjectiveOn"⟩,
+      .leanHyp [``accountable] "RootInjectiveOn (rootInjectiveOn_all)"⟩,
     ⟨"under a≤f conflicting finalizations are impossible", .paper "2q−n > a"⟩,
     ⟨"local F never retreats", .lean [``update_finality_F_mono, ``on_block_F_mono]⟩,
     ⟨"finalized ⪯ available at every read", .external "comp.outputNesting.v1" ""⟩ ] },
@@ -253,12 +262,12 @@ def pins : List Pin := [
       .lean [``uniqueJust]⟩,
     ⟨"Lemma U, chain form: two chains justified at one height have one J, or E2 \
       weight exists between their rows",
-      .leanHyp [``uniqueJust_chains] "RootInjectiveOn"⟩,
+      .leanHyp [``uniqueJust_chains] "RootInjectiveOn (rootInjectiveOn_all)"⟩,
     ⟨"at most one justified entry per height in the whole run",
       .paper "2q_F−n > a and honest E2 compliance"⟩ ] },
   { id := "fg.finalLock.v1", sources := [bp, vcF, r148], clauses := [
     ⟨"every block above h_F(D) extends F(D)",
-      .leanHyp [``finalLock] "slashable-or form; RootInjectiveOn"⟩ ] },
+      .leanHyp [``finalLock] "slashable-or form; RootInjectiveOn (rootInjectiveOn_all)"⟩ ] },
   -- ALFS note (registry 4bc6690): part (ii) without the F basis; StoreInv.Fcar.
   { id := "fg.frameCompat.v1", sources := [spec, dc], clauses := [
     ⟨"step 1: checkpoint heights",
@@ -268,7 +277,7 @@ def pins : List Pin := [
     ⟨"part (ii), ALFS form: the live pair extends F and is the lex-max pair of Σ.T",
       .leanHyp [``storeControls_eq_fjControls, ``lexMax_of_candidate]
         "StoreInv (pair, FJ, Fcar) for storeControls_eq_fjControls; ViewRootInj for \
-        lexMax_of_candidate"⟩,
+        lexMax_of_candidate (viewRootInj_all)"⟩,
     ⟨"step 4: P1 = P2", .paper "registry proof, step 4"⟩ ] },
   { id := "fg.provenance.v2", sources := [r146, r143, bp, r148, spec], clauses := [
     ⟨"(1) every target, progress or finality QC has an honest row",
@@ -325,12 +334,14 @@ def pins : List Pin := [
     ⟨"a finality QC for J (any row pool, before or after the crossing) and the crossing \
       give E1 against it",
       .leanHyp [``crossingNoFinal_QC]
-        "RootInjectiveOn B W; stronger form: no honesty hypothesis, E1 weight ≥ 2q−W \
+        "RootInjectiveOn B W (rootInjectiveOn_all); stronger form: no honesty \
+        hypothesis, E1 weight ≥ 2q−W \
         between the pool and W's rows"⟩,
     ⟨"an honest intersection member's crossing row is a timeout",
       .leanHyp [``crossingNeedsTimeout]
         "faulty weight + W < 2q (a < 2q−n); hhonest: no signer outside faulty has an \
-        E1/E2 pair between B's and W's rows; RootInjectiveOn B W; static (no time \
+        E1/E2 pair between B's and W's rows; RootInjectiveOn B W \
+        (rootInjectiveOn_all); static (no time \
         order: 'has ALREADY targeted J' is not in the statement)"⟩,
     ⟨"the timeout branch is at the uniform maturity slot, general form: a block that \
       raises its parent's height has a target quorum for the parent's entry, or a \
@@ -345,7 +356,7 @@ def pins : List Pin := [
       .leanHyp [``inBandLock]
         "carrier hcar; F ⪯ J' (hFJ', partial coverage per the registry note); huniq \
         (uniqueness at h(C): paper fg.uniqueJust.v1, uniqueJust_chains gives it for \
-        two chains); ViewRootInj (§0.4)"⟩,
+        two chains); ViewRootInj (§0.4; viewRootInj_all)"⟩,
     ⟨"derivation of F ⪯ J' from fg.finalLock.v1", .open_ "later helper pinned here"⟩,
     ⟨"view form: in a contest the AP head read from a duty view is in D with state \
       height ≥ lo = H, under the v1 premises (fj.frame.v1, R1 duty views, \
@@ -376,7 +387,7 @@ def pins : List Pin := [
       .leanHyp [``effFrame_of_bits]
         "PARTIAL: m ≥ 2; frontier = m; pairs at m−1 name Jm (huniq; paper \
         fg.uniqueJust.v1); hFJ: F ⪯ Jm under E_J (extra; derivation above); \
-        ViewRootInj"⟩,
+        ViewRootInj (viewRootInj_all)"⟩,
     ⟨"item 2: bits false before the first store holds the evidence",
       .leanHyp [``evidence_mono]
         "PARTIAL: a view ⊆ a store keeps each bit; 'before the first time an honest \
@@ -393,12 +404,13 @@ def pins : List Pin := [
         F′ ⪯ J in the J-root phase; pure fg.finalLock.v1 at F′ (hext)"⟩,
     ⟨"item 3 (i), fjFrame special case (controls recomputed under F and F′)",
       .leanHyp [``Fmove_below]
-        "h(F′) < m−1; frontier = m; pure fg.finalLock.v1 at F′ (hext); ViewRootInj"⟩,
+        "h(F′) < m−1; frontier = m; pure fg.finalLock.v1 at F′ (hext); ViewRootInj \
+        (viewRootInj_all)"⟩,
     ⟨"item 3 (ii): F move at m−1 keeps the uncontested phase, Z = F′, lo = m−1 and D",
       .leanHyp [``Fmove_atTop]
         "m ≥ 2; a carrier K of F′ in the view with h_F(K) = m−1; uniqueness at m−1 \
         (huniq, pairwise; paper fg.uniqueJust.v1); pure fg.finalLock.v1 above m−1 \
-        (hext); ViewRootInj"⟩,
+        (hext); ViewRootInj (viewRootInj_all)"⟩,
     ⟨"item 3 (ii): at m−1 the contested phase is impossible (the registry cites \
       fj.crossingNoFinal.v1)",
       .byHyp [``Fmove_atTop]

@@ -84,7 +84,7 @@ def propose (p : Params) {n : Nat} (st : State n) (r : Slot) : Option (Msg n) :=
     let raw := GridCO.proposerView st.base r
     let support := GridCO.proposerSupportView st.base r
     let parent := choice p st st.base.blocks raw support r st.bestPC
-    let b := Block.node parent r ⟨r * (parent.root.value + 1)⟩
+    let b := Block.node parent r 0
     some (.proposal b (originalHeads st raw) (originalHeads st support) st.bestPC)
 
 end AvailableChain.SAPC

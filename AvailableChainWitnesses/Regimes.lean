@@ -39,7 +39,7 @@ def viewProtocol : ProtocolSpec 6 where
 def interface : Interface viewProtocol where
   confirmed := fun _ => .genesis
   stable := fun _ => .genesis
-  block := fun _ => some (.node .genesis 2 ⟨1⟩)
+  block := fun _ => some (.node .genesis 2 0)
   opening := fun s => s = 2
 
 def sleepyEnv : Env (Fin 6) where
@@ -251,20 +251,9 @@ theorem belowQuarter : BelowQuarter witnessRun := by
   simp [witnessRun]
   decide
 
-/-- The witness names one non-genesis block, whose root differs from genesis. -/
-theorem rootInjective (E : Env (Fin 6)) : RootInjective E interface witnessRun := by
-  have hseen : ∀ B, BlockInRun E interface witnessRun B →
-      B = .genesis ∨ B = .node .genesis 2 ⟨1⟩ := by
-    intro B hB
-    rcases hB with hB | ⟨v, o, t, tip, _, htip, hprefix⟩
-    · exact Or.inl hB
-    · have ht : tip = .node .genesis 2 ⟨1⟩ := (Option.some.inj htip).symm
-      subst tip
-      simpa [Block.Preceq, Block.preceq, or_comm] using hprefix
-  intro B C hB hC hr
-  rcases hseen B hB with rfl | rfl <;>
-    rcases hseen C hC with rfl | rfl <;>
-    simp_all [Block.root, genesisRoot]
+/-- Roots are computed from block content, so they are injective on every block. -/
+theorem rootInjective (E : Env (Fin 6)) : RootInjective E interface witnessRun :=
+  fun _ _ _ _ h => Block.root_injective h
 
 theorem sleepy : SleepyRegime viewProtocol sleepyEnv interface witnessRun 0 := by
   refine { rootInjective := rootInjective _
@@ -387,7 +376,7 @@ theorem recovery : RecoveryRegime viewProtocol fullEnv interface constants witne
     exact ⟨by decide, by decide⟩
 
 theorem recoveryProposalEmitted : HonestProposalAt fullEnv interface witnessRun 2
-    (.node .genesis 2 ⟨1⟩) := by
+    (.node .genesis 2 0) := by
   refine ⟨by decide, (), rfl, ?_⟩
   refine ⟨15, rfl, ?_⟩
   change ({ auth := Auth.proposer 2, payload := () } : Wire) ∈

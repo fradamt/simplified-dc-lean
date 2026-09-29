@@ -1032,3 +1032,8 @@ public import AvailableChainSAPC.Proofs.RunCleanCapped
 #print axioms AvailableChain.SAPC.receipt_acceptedRelay
 #print axioms AvailableChain.SAPC.receipt_healthyAcceptedRelay
 #print axioms AvailableChain.SAPC.accepted_receipt_accepts_before
+#print axioms AvailableChain.SAPC.blockKnown_parent_slot_iff_root
+#print axioms AvailableChain.SAPC.proposalEnters_missingParent
+#print axioms AvailableChain.SAPC.admitProposal_missingParent
+#print axioms AvailableChain.SAPC.process_pc_missingPaths
+#print axioms AvailableChain.SAPC.Tests.CleanInvariantCounterexample.y_root_lt_x_root

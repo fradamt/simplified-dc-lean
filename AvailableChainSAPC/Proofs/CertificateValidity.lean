@@ -126,6 +126,12 @@ theorem pcEnvelopeReady_valid (p : Params) {n : Nat} (st : State n) (c : PC n)
     exact receiveHeads_mem p st c.witnesses o ho (c.slot + 1)
       (pcWellFormed_witness p c h.1.1 o ho).1 h.2
 
+/-- A direct PC with a missing path is a missing dependency: `pcEnvelopeReady`
+fails and the handler returns the state unchanged. -/
+theorem process_pc_missingPaths (p : Params) {n : Nat} (st : State n) (c : PC n)
+    (h : pcPaths st c = false) : process p st ⟨.none, .pc c⟩ = st := by
+  simp [process, pcEnvelopeReady, h]
+
 theorem process_valid (p : Params) {n : Nat} (st : State n) (o : Wire n)
     (h : StoredPCValid p st) : StoredPCValid p (process p st o) := by
   unfold process

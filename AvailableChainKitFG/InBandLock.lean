@@ -23,7 +23,7 @@ justification uniqueness" is `fg.uniqueJust.v1` (the paper form of `huniq`;
 hypothesis. The step "in a contest, an actual head reaches H" is AP data
 (`ap.headReachesLo.v5` under ALFS) and is not in this file. -/
 
-variable {V : Type} [DecidableEq V] [Fintype V]
+variable {V : Type} [DecidableEq V] [Fintype V] [RowCodec V]
 
 /-- [pin fj.inBandLock.v1] For an in-band selected source C of height m, any
 carrier in the full view of a justified entry J' at m (with F ⪯ J') forces C's
