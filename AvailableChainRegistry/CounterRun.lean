@@ -1,5 +1,6 @@
 module
 public import AvailableChainRegistry.Counter
+public import AvailableChainKit.Roots
 
 @[expose] public section
 
@@ -284,14 +285,19 @@ theorem emittedAt_eq {k H i : Nat} {v : Fin k.succ} {m : Nat}
 
 /-! ### Blocks -/
 
-theorem chain_root (m : Nat) : (chain m).root = ⟨m⟩ := by
-  cases m <;> rfl
+theorem chain_depth : ∀ m : Nat, (chain m).depth = m
+  | 0 => rfl
+  | m + 1 => by simp [chain, Block.depth, chain_depth m]
+
+/-- Distinct heights give distinct blocks. -/
+theorem chain_injective {i j : Nat} (h : chain i = chain j) : i = j := by
+  simpa [chain_depth] using congrArg Block.depth h
 
 theorem preceq_refl (B : Block) : Block.Preceq B B := by
   cases B <;> simp [Block.Preceq, Block.preceq]
 
-theorem preceq_node {B p : Block} (s : Slot) (r : BlockId) (h : Block.Preceq B p) :
-    Block.Preceq B (.node p s r) := by
+theorem preceq_node {B p : Block} (s : Slot) (x : Nat) (h : Block.Preceq B p) :
+    Block.Preceq B (.node p s x) := by
   simp only [Block.Preceq, Block.preceq, Bool.or_eq_true, decide_eq_true_eq] at h ⊢
   exact Or.inr h
 
@@ -322,14 +328,10 @@ theorem blockInRun_chain {V : Type} [DecidableEq V] {E : Env V}
     subst this
     exact preceq_chain hpre
 
+/-- Roots are computed from block content, so they are injective in every run. -/
 theorem counter_rootInjective {V : Type} [DecidableEq V] (E : Env V)
-    (rho : Run V counter) : RootInjective E counterIface rho := by
-  intro B C hB hC hr
-  obtain ⟨a, rfl⟩ := blockInRun_chain hB
-  obtain ⟨b, rfl⟩ := blockInRun_chain hC
-  rw [chain_root, chain_root] at hr
-  cases hr
-  rfl
+    (rho : Run V counter) : RootInjective E counterIface rho :=
+  Framework.Kit.rootInjective_all E counterIface rho
 
 theorem tick_mem {k H j : Nat} (hj : j ≤ H) (v : Fin k.succ) :
     Event.tick v (j : Time) ∈ (canonical k H).events := by

@@ -8,7 +8,7 @@ namespace AvailableChain.Witnesses.Sanity
 
 open AvailableChain AvailableChain.Generic AvailableChain.Statements.Generic
 
-def proposed (s : Slot) : Block := .node .genesis s ⟨s + 1⟩
+def proposed (s : Slot) : Block := .node .genesis s 0
 
 /-- This protocol proposes blocks but never advances either output. -/
 def alwaysGenesis (n : Nat) : ProtocolSpec n where
@@ -214,49 +214,10 @@ theorem exampleSynchrony (D : Time) :
     rcases ha.1 with ⟨o', hi, _⟩
     exact (no_delivery D i v o' t hi).elim
 
-private theorem emitted_proposed (D : Time) (v : Fin 1)
-    (o : (alwaysGenesis 1).Object) (t : Time)
-    (h : Run.emits (alwaysGenesis 1) exampleEnv (exampleRun D) v o t) :
-    ∃ s, o.payload = proposed s := by
-  obtain ⟨i, hi, ho⟩ := h
-  have hv : v = 0 := Subsingleton.elim _ _
-  subst v
-  have ht : 0 ≤ t := ((exampleExecution D).in_horizon _
-    (List.mem_iff_getElem?.mpr ⟨i, hi⟩)).1
-  by_cases hz : t = 0
-  · simp [Run.emittedAt, alwaysGenesis, exampleEnv, exampleRun, hz] at ho
-    exact (List.not_mem_nil ho).elim
-  · have htpos : 0 < t := lt_of_le_of_ne ht (Ne.symm hz)
-    have hn : ¬ t ≤ 0 := not_le.mpr htpos
-    simp [Run.emittedAt, alwaysGenesis, exampleEnv, exampleRun, ht, hn] at ho
-    have he : o = ⟨.proposer t.toNat, proposed t.toNat⟩ :=
-      List.mem_singleton.mp ho
-    exact ⟨t.toNat, congrArg Signed.payload he⟩
-
-/-- Distinct slots have distinct positive roots; genesis has root zero. -/
+/-- Roots are computed from block content, so they are injective on every block. -/
 theorem exampleRootInjective (D : Time) :
-    RootInjective exampleEnv (interface 1) (exampleRun D) := by
-  have hseen : ∀ B, BlockInRun exampleEnv (interface 1) (exampleRun D) B →
-      B = .genesis ∨ ∃ s, B = proposed s := by
-    intro B hB
-    rcases hB with hB | ⟨v, o, t, tip, hsource, htip, hprefix⟩
-    · exact Or.inl hB
-    · rcases hsource with ⟨i, hi⟩ | hem
-      · exact (no_delivery D i v o t hi).elim
-      · obtain ⟨s, hs⟩ := emitted_proposed D v o t hem
-        have ht : tip = proposed s := (Option.some.inj htip).symm.trans hs
-        subst tip
-        have hp : B = proposed s ∨ B = .genesis := by
-          simpa [Block.Preceq, Block.preceq, proposed] using hprefix
-        exact hp.elim (fun h => Or.inr ⟨s, h⟩) Or.inl
-  intro B C hB hC hr
-  rcases hseen B hB with rfl | ⟨s, rfl⟩ <;>
-    rcases hseen C hC with rfl | ⟨t, rfl⟩
-  · rfl
-  · simp [proposed, Block.root, genesisRoot] at hr
-  · simp [proposed, Block.root, genesisRoot] at hr
-  · have he : s = t := by simpa [proposed, Block.root] using hr
-    rw [he]
+    RootInjective exampleEnv (interface 1) (exampleRun D) :=
+  fun _ _ _ _ h => Block.root_injective h
 
 theorem exampleSleepy (D : Time) : SleepyRegime (alwaysGenesis 1) exampleEnv
     (interface 1) (exampleRun D) 0 := by
