@@ -22,9 +22,10 @@ structure Store (V : Type) where
   h_max : Height
   deriving DecidableEq
 
-variable {V : Type} [DecidableEq V] [Fintype V] (E : Electorate V) (cfg : FGConfig)
+variable {V : Type} [DecidableEq V] [Fintype V] [RowCodec V] (E : Electorate V)
+  (cfg : FGConfig)
 
-omit [DecidableEq V] [Fintype V] in
+omit [DecidableEq V] [Fintype V] [RowCodec V] in
 /-- [pin fj.frame.v3] The initial store (alfs4 lines 474–482): the genesis tree,
 `F = J = genesis`, `h_j = 0`, `h_max = 1`. -/
 def Store.init : Store V := ⟨{.genesis}, .genesis, .genesis, 0, 1⟩
@@ -84,7 +85,7 @@ def storeControls (st : Store V) : Controls V :=
 def storeFrame (st : Store V) (blocks : Finset (FGBlock V)) : Finset (FGBlock V) :=
   filteredFrom E cfg (storeControls E cfg st) blocks
 
-omit [Fintype V] in
+omit [Fintype V] [RowCodec V] in
 /-- [pin fj.frame.v3] The active view `act(Σ) = {B ∈ Σ.T : B ⪯ Σ.F or Σ.F ⪯ B}` (alfs4 line 358;
 r161 §2). AP interface only: only the SA base reads it. It is a view, not a
 deletion: `TF` keeps every block. No FG definition or lemma reads it. -/
@@ -125,7 +126,7 @@ casts along `TF = TF'`, which holds only as a proposition. So the fields are
 compared one by one.) -/
 example : stC.TF = {.genesis, B1a, childA, B1b, Y, X} ∧ stC.F = .genesis ∧
     stC.J = B1a ∧ stC.h_j = 2 ∧ stC.h_max = 3 := by
-  decide
+  decide +kernel
 
 /-- On the reachable store `stC`, the live caches are the controls of its tree
 (the central lemma `storeControls_eq_fjControls`, Kit). -/
@@ -133,13 +134,13 @@ example : (storeControls E4 cfg1 stC).H = (fjControls E4 cfg1 stC.F stC.TF).H �
     (storeControls E4 cfg1 stC).j = (fjControls E4 cfg1 stC.F stC.TF).j ∧
     (storeControls E4 cfg1 stC).J = (fjControls E4 cfg1 stC.F stC.TF).J ∧
     (storeControls E4 cfg1 stC).contest = (fjControls E4 cfg1 stC.F stC.TF).contest := by
-  decide
+  decide +kernel
 
 /-- Review Focus 5: in a contest, acceptance viability (band start `H − 1 = 2`)
 holds `X` (height 2), and the filtered tree (band start `lo = 3`) does not. -/
 example : (storeControls E4 cfg1 stC).contest = true ∧ hOf E4 cfg1 X = 2 ∧
     X ∈ acceptViable E4 cfg1 stC ∧ X ∉ storeFrame E4 cfg1 stC stC.TF := by
-  decide
+  decide +kernel
 
 /-- The frozen-tree form: over the smaller set without `Y`, the store controls
 (contest, `Z = genesis`, `lo = 3`) drop `X`; the controls of that set (no
@@ -147,12 +148,12 @@ contest, `Z = B1a`, `lo = 2`) keep it. The controls come from the store, not
 from the set. -/
 example : X ∉ storeFrame E4 cfg1 stC {.genesis, B1a, childA, B1b, X} ∧
     X ∈ (fjFrame E4 cfg1 .genesis {.genesis, B1a, childA, B1b, X}).D := by
-  decide
+  decide +kernel
 
 /-- The empty frozen domain (Astra K01; ldp L6): the store is contested
 (`lo = H = 3`), and every block of the frozen set is below height 3. -/
 example : storeFrame E4 cfg1 stC {.genesis, B1a, B1b, X} = ∅ := by
-  decide
+  decide +kernel
 
 /-! ### Review Focus 7: refusal (alfs4 lines 794–798) and the active view
 
@@ -160,25 +161,27 @@ example : storeFrame E4 cfg1 stC {.genesis, B1a, B1b, X} = ∅ := by
 carries three targets for `(2, B1)`: state height 3, pair `(2, B1)`. `B3`
 (slot 3) carries three timeouts for `(3, B2)`, each with the finality pair
 `(2, B1)`: state height 4, and it finalizes `B1`. `B1'` (slot 2, parent
-genesis, root `⟨3⟩`) carries three targets at height 1 for genesis: it
-conflicts with `B1`. -/
+genesis) carries three targets at height 1 for genesis: it conflicts with `B1`.
+Each block has body `0`, and each row names a derived root. With the same
+content, `B2` is `childA` of Frame.lean and `B1'` is `B1c`: a block is its
+content. -/
 
 def B2 : FGBlock (Fin 4) :=
-  .node B1 2 ⟨5⟩ [rowAt 2 B1.root false 0, rowAt 2 B1.root false 1, rowAt 2 B1.root false 2]
+  .node B1 2 0 [rowAt 2 B1.root false 0, rowAt 2 B1.root false 1, rowAt 2 B1.root false 2]
 
 /-- [helper] A timeout row for `(3, B2)` with the finality pair `(2, B1)`. -/
 def rowB3 (i : Fin 4) : Row (Fin 4) := ⟨i, .vote 3 B2.root true, some ⟨2, B1.root⟩⟩
 
-def B3 : FGBlock (Fin 4) := .node B2 3 ⟨6⟩ [rowB3 0, rowB3 1, rowB3 2]
+def B3 : FGBlock (Fin 4) := .node B2 3 0 [rowB3 0, rowB3 1, rowB3 2]
 
-def B1' : FGBlock (Fin 4) := .node .genesis 2 ⟨3⟩ [rowT 0, rowT 1, rowT 2]
+def B1' : FGBlock (Fin 4) := .node .genesis 2 0 [rowT 0, rowT 1, rowT 2]
 
 /-- The G02 chain: `B2` justifies `B1` at height 2; `B3` reaches height 4 and
 finalizes `B1`. -/
 example : (derive E4 cfg1 B2).h = 3 ∧ (derive E4 cfg1 B2).h_j = 2 ∧
     (derive E4 cfg1 B2).J = B1 ∧ (derive E4 cfg1 B3).h = 4 ∧
     (derive E4 cfg1 B3).F = B1 ∧ (derive E4 cfg1 B3).h_F = 2 := by
-  decide
+  decide +kernel
 
 /-- [helper] The reachable store after `B1`, `B2`, `B3`. -/
 def stF : Store (Fin 4) := [B1, B2, B3].foldl (on_block E4 cfg1) Store.init
@@ -187,7 +190,7 @@ def stF : Store (Fin 4) := [B1, B2, B3].foldl (on_block E4 cfg1) Store.init
 for `stC`). -/
 example : stF.TF = {.genesis, B1, B2, B3} ∧ stF.F = B1 ∧ stF.J = B1 ∧ stF.h_j = 2 ∧
     stF.h_max = 4 := by
-  decide
+  decide +kernel
 
 /-- Refusal of `F ⋠ B` (alfs4 line 796): `B1'` is new, its parent is in the tree,
 and its slot is greater than its parent's slot, but `B1 ⋠ B1'`. Only the F test
@@ -195,11 +198,11 @@ refuses it: the store does not change, and `B1'` is not stored. -/
 example : B1' ∉ stF.TF ∧ B1'.parent ∈ stF.TF ∧ ¬ FGBlock.Preceq stF.F B1' ∧
     B1'.parent.slot < B1'.slot ∧
     on_block E4 cfg1 stF B1' = stF ∧ B1' ∉ (on_block E4 cfg1 stF B1').TF := by
-  decide
+  decide +kernel
 
 /-- Refusal of a block that is already in the tree (alfs4 line 794). -/
 example : on_block E4 cfg1 stF B2 = stF := by
-  decide
+  decide +kernel
 
 /-- Refusal of a block whose parent is not in the tree (alfs4 line 795). -/
 example : on_block E4 cfg1 Store.init B2 = Store.init := by
@@ -209,7 +212,7 @@ example : on_block E4 cfg1 Store.init B2 = Store.init := by
 def st1 : Store (Fin 4) := on_block E4 cfg1 Store.init B1
 
 /-- [helper] A child of `B1` at slot 1, the slot of `B1`. -/
-def Bs : FGBlock (Fin 4) := .node B1 1 ⟨4⟩ []
+def Bs : FGBlock (Fin 4) := .node B1 1 0 []
 
 /-- The parent-slot refusal (alfs4 line 798; DC `consensus.tex` 791 and 2220):
 `Bs` is new, its parent `B1` is in the tree, and it extends `F = genesis`, but
@@ -228,7 +231,7 @@ example : stAct.F = B1 ∧ (stAct.h_j, stAct.J) = (2, B1) ∧ stAct.h_max = 4 �
     B1' ∈ stAct.TF ∧ B1' ∉ activeView stAct ∧
     FGBlock.genesis ∈ activeView stAct ∧ B1 ∈ activeView stAct ∧
     B2 ∈ activeView stAct ∧ B3 ∈ activeView stAct := by
-  decide
+  decide +kernel
 
 end AvailableChain.SimplexFG
 end
