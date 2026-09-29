@@ -929,6 +929,71 @@ the report is [PHASE2A-REPORT.md](PHASE2A-REPORT.md). One row per module:
 The gate deleted `AvailableChainEngineV2.Sketch` (64a48cd). The laws of
 `Laws/Isolation` and `Laws/Outputs` replace its shapes.
 
+## Generic library (A0 step 2)
+
+`AvailableChainGeneric` is a default library for the shared Pure, V2 and AC
+layers. Its namespaces are `AvailableChain.Gen.Pure`, `.V2` and `.AC`.
+`Run.idxBefore` and `Run.nthIdx?` extend `AvailableChain.V2.Run` (D03).
+Statements expose definitions, closed `...Statement : Prop` declarations and
+`f_def` lemmas. Proofs do not expose proof bodies. Step 3 supplies the deferred
+receipt, walk and gate proofs. The facade `AvailableChainGeneric.lean` imports
+the 20 Statements and Proofs modules in the order below. Library globs build
+Tests; the facade excludes Tests. Paths omit `AvailableChainGeneric/` and `.lean`.
+
+```text
+┌──────────────────────────┬──────────────────────────────────────────────┐
+│ Module                   │ Role                                         │
+├──────────────────────────┼──────────────────────────────────────────────┤
+│ Statements/Pure/Quorum   │ qF; FaultQ, FaultX and Batch bounds          │
+│ Statements/Pure/FirstBad │ AGRule, FirstFailure, WindowRule, RetroAt    │
+│ Statements/Pure/Schedule │ Patterns, recurrence and window definitions  │
+│ Statements/Pure/Walk     │ Suffix premises and E-4 walk statements      │
+│ Statements/Pure/Props    │ CompatOn/At, MonoOn, BelowOn, ServedOn       │
+│ Statements/V2/Reads      │ Run indices, pubFloor, HonestSlot, Pending   │
+│ Statements/V2/Counts     │ faulty and awakeHonest                       │
+│ Statements/V2/Obs        │ Time observations with optional proposals    │
+│ Statements/V2/Interface  │ FinalityInterface extends the v2 interface   │
+│ Statements/V2/Receipt    │ DeliveryWithin; E-9 receipt statements       │
+│ Statements/V2/Regimes    │ Regime cores, LabelSync, LabelFacts, SeedAt  │
+│ Statements/AC/Reads      │ ACReads, ACLaws, gate and reconcile reads    │
+│ Proofs/Pure/FirstBad     │ Strong induction for the FirstBad rules      │
+│ Proofs/Pure/Schedule     │ Pattern, window and recurrence facts         │
+│ Proofs/Pure/BlockOrder   │ Block order, compatibility and path facts    │
+│ Proofs/V2/Fields         │ ownRecord_fold_restart                       │
+│ Proofs/V2/Induction      │ Invariant and interval lifts; kept_from_seed │
+│ Proofs/V2/Receipt        │ Two DeliveryWithin producers                 │
+│ Proofs/V2/Regimes        │ Six LabelSync and LabelFacts facts           │
+│ Proofs/AC/Output         │ output_step_of_restartFree                   │
+│ Tests/Axioms             │ Kernel axiom audit of every public theorem   │
+│ Tests/FoldRestart        │ Two special cases of the restart fold        │
+│ Tests/Schedule           │ Window-bound and recurrence examples         │
+└──────────────────────────┴──────────────────────────────────────────────┘
+```
+
+`docs/GEN-API.md` records the Statements types and values. Run
+`lake env lean --run scripts/V2Manifest.lean --scope gen --check` after a build.
+Before G-F0a, a Statements edit updates this manifest in the same commit;
+from G-F0a it is append-only (D15). `docs/LEAN-ARCHITECTURE.md` gives the layer
+rules. The CatalogLock and v2 manifest remain separate checks.
+
+`bash scripts/check-build.sh` runs checks (a)–(i) after a full build:
+
+```text
+┌───────┬─────────────────────────┬──────────────────────────────────────────┐
+│ Check │ Script (scripts/)       │ Rule                                     │
+├───────┼─────────────────────────┼──────────────────────────────────────────┤
+│ (a)   │ check-module-headers.py │ module headers and public imports        │
+│ (b)   │ check-expose.py         │ Proofs expose only allowed definitions   │
+│ (c)   │ rebuild-cone-test.sh    │ A proof-only edit rebuilds one module    │
+│ (d)   │ CheckProofEqns.lean     │ Proofs export no new equation lemmas     │
+│ (e)   │ check-layers.py         │ Module imports follow the layer rules    │
+│ (f)   │ shake-report.sh         │ Unused imports; report only, no --fix    │
+│ (g)   │ chain-depth.py          │ Longest import chain; report only        │
+│ (h)   │ check-transparency.py   │ Transparency option position and reasons │
+│ (i)   │ check-gly-rules.sh      │ GLY rules and per-rule baselines         │
+└───────┴─────────────────────────┴──────────────────────────────────────────┘
+```
+
 ## Simplex FG module (DC-fj)
 
 The FG module `SimplexFG.fj` is DC's FG without SG and grades, with the FJ
@@ -950,12 +1015,29 @@ registry id, or the AP fact that carries the clause).
 │                         │ cumulative admitted tree, on_block,      │                             │
 │                         │ update_finality, activeView), the FJ     │                             │
 │                         │ controls, filteredFrom, fjFrame          │                             │
-│ AvailableChainKitFG     │ L5, proofs: DC certificate ports, the    │ AvailableChain.KitFG        │
+│ AvailableChainKitFG     │ L5, definitions and proofs: certificates, │ AvailableChain.KitFG        │
 │                         │ pinned FG lemmas (fg.* and fj.* ids),    │                             │
 │                         │ the store invariant and store controls,  │                             │
 │                         │ and the pin table (Pins.lean)            │                             │
 └─────────────────────────┴──────────────────────────────────────────┴─────────────────────────────┘
 ```
+
+Step 2 adds the following modules and E-15 facts. Paths are relative to
+`AvailableChainKitFG/`; the facade imports all four modules.
+
+```text
+┌──────────────────────────┬─────────────────────────────────────────────────────────────────┐
+│ Module                   │ Role                                                            │
+├──────────────────────────┼─────────────────────────────────────────────────────────────────┤
+│ StoreInvDef.lean         │ StoreInv moved from Correspondence with its name and fields     │
+│ ViewLock.lean            │ ViewLock and f_def; blocks strictly above the height extend Fb  │
+│ HonestRows.lean          │ HonestRows: emission, no slashing, and the row height cap       │
+│ Certificates.lean (E-15) │ Row commutativity/idempotence; folds and transitions by row set │
+└──────────────────────────┴─────────────────────────────────────────────────────────────────┘
+```
+
+`StoreInvDef`, `ViewLock` and `HonestRows` are definition modules with
+`@[expose] public section`; `scripts/baselines/kitfg-def-modules.txt` lists them.
 
 ```text
 ┌─────────────────────────────┬──────────────────────────────────────────────┬─────────────────────┐
@@ -1050,8 +1132,10 @@ rows under `scripts/` are paths from the repository root.
 │                                │ CStoreInv, Inv0, MetaInv, ContentAgree (the    │                    │
 │                                │ store-pair content property, DQ3(b); a theorem │                    │
 │                                │ after I9: contentAgree)                        │                    │
+│                                │ LeaseBelowOutputStore and its f_def (E-11)      │                    │
 │ Statements/Store.lean          │ OutputNestingStored, StoreInvariant,           │ K2, K4             │
 │                                │ FMonotone, MetadataInvariant                   │                    │
+│                                │ StoreBundle, StoreBundleInvariant, f_def       │ E-11, D14          │
 │ Proofs/BlockAncestry.lean      │ public Block ancestry lemmas                   │                    │
 │ Proofs/Carrier.lean            │ local carrier: eraseFG slot, root, parent,     │ K5 local           │
 │                                │ ancestry and compatibility                     │                    │
@@ -1119,3 +1203,29 @@ rows under `scripts/` are paths from the repository root.
 
 Run `bash scripts/check-fgsa.sh` for all checks. The Lean scripts read the
 built `.olean` files: run them alone only after `lake build AvailableChainFGSA`.
+
+E-11 `StoreBundle` has cstore, meta, nest and lease fields. Its reachability
+proof is deferred to step 3; `LeaseBelowOutputStore` states the live lease bound.
+
+## FG-SA run library (T7.2)
+
+`AvailableChainFGSARun` is a default library with namespace
+`AvailableChain.FGSA.Run`. Its facade imports Model, Statements and Proofs;
+the library glob builds Tests. It adapts the FG-SA store to engine v2.
+
+```text
+┌─────────────────────────────────┬───────────────────────────────────────┐
+│ Module (AvailableChainFGSARun/) │ Role                                  │
+├─────────────────────────────────┼───────────────────────────────────────┤
+│ Model/Protocol.lean             │ fgsa protocol, node and wire adapters │
+│ Model/Families.lean             │ Label families and isolation          │
+│ Statements/Excludes.lean        │ Exclusion and epoch predicates        │
+│ Proofs/Protocol.lean            │ Adapter, field and decoder facts      │
+│ Proofs/Excludes.lean            │ Exclusion stability and epoch proofs  │
+│ Tests/Protocol.lean             │ Protocol examples                     │
+│ Tests/Axioms.lean               │ Public theorem axiom audit            │
+└─────────────────────────────────┴───────────────────────────────────────┘
+```
+
+`bash scripts/check-fgsa-run.sh` checks the build, root imports, import layers,
+used constants, axioms, lease instances and negative controls.

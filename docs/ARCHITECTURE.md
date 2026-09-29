@@ -124,6 +124,54 @@ Layers (design §1). L0, L1, LM, L2 and L3 import nothing from L4–L6.
 └────┴────────────┴──────────────────────────────────────────────────────┘
 ```
 
+A0 step 2 adds `AvailableChainGeneric`, a default library with separate
+Statements and Proofs modules in Pure, V2 and AC. Statements expose definitions
+and `f_def` lemmas; Proofs have a public section without `@[expose]`.
+`AvailableChainGeneric.lean` imports the 20 modules below in order. The library
+glob also builds Tests; the facade does not import Tests. Paths below are
+relative to `AvailableChainGeneric/` and omit `.lean`.
+
+```text
+┌──────────────────────────┬──────────────────────────────────────────────┐
+│ Module                   │ Role                                         │
+├──────────────────────────┼──────────────────────────────────────────────┤
+│ Statements/Pure/Quorum   │ qF; FaultQ, FaultX and Batch bounds          │
+│ Statements/Pure/FirstBad │ AGRule, FirstFailure, WindowRule, RetroAt    │
+│ Statements/Pure/Schedule │ Patterns, recurrence and window definitions  │
+│ Statements/Pure/Walk     │ Suffix premises and E-4 walk statements      │
+│ Statements/Pure/Props    │ CompatOn/At, MonoOn, BelowOn, ServedOn       │
+│ Statements/V2/Reads      │ Run indices, pubFloor, HonestSlot, Pending   │
+│ Statements/V2/Counts     │ faulty and awakeHonest                       │
+│ Statements/V2/Obs        │ Time observations with optional proposals    │
+│ Statements/V2/Interface  │ FinalityInterface extends the v2 interface   │
+│ Statements/V2/Receipt    │ DeliveryWithin; E-9 receipt statements       │
+│ Statements/V2/Regimes    │ Regime cores, LabelSync, LabelFacts, SeedAt  │
+│ Statements/AC/Reads      │ ACReads, ACLaws, gate and reconcile reads    │
+│ Proofs/Pure/FirstBad     │ Strong induction for the FirstBad rules      │
+│ Proofs/Pure/Schedule     │ Pattern, window and recurrence facts         │
+│ Proofs/Pure/BlockOrder   │ Block order, compatibility and path facts    │
+│ Proofs/V2/Fields         │ ownRecord_fold_restart                       │
+│ Proofs/V2/Induction      │ Invariant and interval lifts; kept_from_seed │
+│ Proofs/V2/Receipt        │ Two DeliveryWithin producers                 │
+│ Proofs/V2/Regimes        │ Six LabelSync and LabelFacts facts           │
+│ Proofs/AC/Output         │ output_step_of_restartFree                   │
+│ Tests/Axioms             │ Kernel axiom audit of every public theorem   │
+│ Tests/FoldRestart        │ Two special cases of the restart fold        │
+│ Tests/Schedule           │ Window-bound and recurrence examples         │
+└──────────────────────────┴──────────────────────────────────────────────┘
+```
+
+- KitFG definition modules: `StoreInvDef` holds the unchanged `StoreInv`;
+  `ViewLock` states the strict height bound; `HonestRows` holds the three
+  honest-row premises. Each uses `@[expose] public section`.
+- KitFG `Certificates` adds E-15 row-step commutativity and idempotence,
+  fold permutation and duplicate removal, and transition equality by row set.
+- FGSA E-11 adds `LeaseBelowOutputStore` in `Statements/Invariants` and
+  `StoreBundle` with `StoreBundleInvariant` in `Statements/Store`. The bundle
+  has cstore, meta, nest and lease fields; its reachability proof is step 3.
+- `AvailableChainFGSARun` (T7.2) holds the v2 protocol, label families,
+  isolation, wire adapters, and exclusion proofs, with separate Tests.
+
 How the pieces meet:
 - FG-SA store: `FGSA.State = { base : GridCO.State, fg : SimplexFG.Store,
   pools, … }` with glue handlers. Base facts come from the policy-generic
@@ -159,7 +207,7 @@ Engine v2 decisions (design §2), one line each:
 
 - Proofs: no `sorry`, `admit`, `native_decide` or new axioms;
   `decide +kernel` is allowed. Every gate runs an axiom check.
-- Toolchain v4.30.0-rc2; never `lake update`; never a new `lean_exe`
+- Toolchain v4.34.1, Mathlib d13f23b7; never `lake update`; never a new `lean_exe`
   (scripts run with `lake env lean --run`). The Mac has 3 Lean slots
   (check `pgrep -fl lean` first); FCR builds run on the NUC.
 - Lock: `scripts/CatalogLock.lean` hashes the dependency closure of every
@@ -180,27 +228,51 @@ Engine v2 decisions (design §2), one line each:
   `AvailableChainFGSA.Proofs.*` (option b2; `fgHead_stored` is the
   precedent). Wrapper statements use only model-level constants. The move
   of the pure lemmas to `GridCO/Walk/` (about 70 declarations) is deferred.
-- DC Lean is a reference, not a dependency (toolchain v4.34 vs v4.30,
-  `using!`, R ≥ 3).
+- DC Lean is a reference, not a dependency (`using!`, R ≥ 3).
 - Process: a plan per phase with an audit; a task review for each task and
   a final branch review; Claude + Astra before big decisions, a full audit
   before major ones; decisions taken without the user are logged. Codex
   always with `-c service_tier="fast"`. Commits by explicit path;
   worktrees under `~/worktrees/`.
 
+- Generic API: `docs/GEN-API.md` records Statements types and values;
+  `lake env lean --run scripts/V2Manifest.lean --scope gen --check` checks it.
+  Before G-F0a, a Statements edit updates the manifest in the same commit;
+  from G-F0a it is append-only (D15).
+- `bash scripts/check-build.sh` runs all checks below after a full build.
+  `docs/LEAN-ARCHITECTURE.md` gives the module and import rules.
+
+```text
+┌───────┬─────────────────────────┬──────────────────────────────────────────┐
+│ Check │ Script (scripts/)       │ Rule                                     │
+├───────┼─────────────────────────┼──────────────────────────────────────────┤
+│ (a)   │ check-module-headers.py │ module headers and public imports        │
+│ (b)   │ check-expose.py         │ Proofs expose only allowed definitions   │
+│ (c)   │ rebuild-cone-test.sh    │ A proof-only edit rebuilds one module    │
+│ (d)   │ CheckProofEqns.lean     │ Proofs export no new equation lemmas     │
+│ (e)   │ check-layers.py         │ Module imports follow the layer rules    │
+│ (f)   │ shake-report.sh         │ Unused imports; report only, no --fix    │
+│ (g)   │ chain-depth.py          │ Longest import chain; report only        │
+│ (h)   │ check-transparency.py   │ Transparency option position and reasons │
+│ (i)   │ check-gly-rules.sh      │ GLY rules and per-rule baselines         │
+└───────┴─────────────────────────┴──────────────────────────────────────────┘
+```
+
 ## 5. Milestones
 
 ```text
 ┌────┬──────────────────────────────────────┬──────────────────────────┐
-│ M  │ Content                              │ Status 2026-09-29        │
+│ M  │ Content                              │ Status 2026-09-30        │
 ├────┼──────────────────────────────────────┼──────────────────────────┤
 │ 1  │ I9 derived roots + engine v2 core    │ done: I9 3403e58; 2a     │
 │    │ (2a)                                 │ 1aa6885                  │
 │ 1+ │ Post-I9: walk anchor                 │ anchor 713f56f and spec  │
 │    │ (`confirmationFrom`/`gateFrom`);     │ sync 1944bb8 done; Pins  │
 │    │ FG-SA spec sync (walk from F, Pins)  │ re-pin next (fgsa-lean)  │
-│ 2  │ T7/T1: FG-SA run instance on v2,     │ plan r11 adopted; T7.0   │
-│    │ FGSAClaims, registry map             │ base ready (1aa6885)     │
+│ 2  │ T7/T1: FG-SA run instance on v2,     │ T7.0 base ready;         │
+│    │ FGSAClaims, registry map             │ T7.2 landed (30a843f)    │
+│ A0 │ Step 2: Generic statements and kits  │ I01–I23, I25 landed;     │
+│    │ plus the build checks and manifest  │ I24 close gate in review │
 │ 3  │ 1c for FG-SA: run construction and   │ to plan; order (before   │
 │    │ inhabitation for every horizon       │ 2b/2c) waits for user    │
 │ 4  │ F0 statement layer → F1 foundations  │ scoped; F0–F2 draft      │
@@ -252,6 +324,8 @@ Engine v2 decisions (design §2), one line each:
   `codex/`.
 - Lean: `docs/FRAMEWORK-DESIGN.md` (framework), `docs/FG-COMPOSITION.md`
   (FG composition), `docs/MAP.md` (contract to Lean), `docs/audit/`.
+- Lean module rules: `docs/LEAN-ARCHITECTURE.md`; Generic Statements API:
+  `docs/GEN-API.md` (checked by `V2Manifest --scope gen --check`).
 - Plans (`docs/plans/`): framework-phase0, phase1a-gate-catalog,
   phase1b-instances, fg-module, fgsa-model-store (all closed);
   i9-derived-roots (merged 3403e58); phase2a-engine-v2-core (merged
