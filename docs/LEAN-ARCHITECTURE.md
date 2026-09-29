@@ -36,15 +36,15 @@ document adds the proof architecture below it.
 │ S1    │ TS/codex/scratch/a0-s1-reuse-map.md           │ lead           │ final                │
 │       │ (G01–G38)                                     │                │                      │
 │ S2    │ lean-framework scratchpad a0-s2.md            │ lean-framework │ final                │
-│ S3    │ TS/codex/scratch/a0-s3-claim-structure.md     │ fgsa-lean      │ r3.3 867863b2        │
+│ S3    │ TS/codex/scratch/a0-s3-claim-structure.md     │ fgsa-lean      │ r3.4 1bedacd2        │
 │       │ (D01–D79)                                     │                │ (fixes §11 applied)  │
 │ GLY   │ AC/claude-files/a0/generic-layer.md           │ lean-framework │ r3.11 6159b36b       │
 │       │                                               │                │ (fixes §11 applied)  │
 │ S4    │ lean-framework scratchpad a0-s4-build.md,     │ lean-framework │ build.md r3.2        │
 │       │ a0-s4-port.md (S4p)                           │                │                      │
 │ 1c    │ AC/claude-files/1c/plan.md r3.3 (+ r4-inputs) │ lean-framework │ r4 follows A0        │
-│ P3    │ TS/codex/scratch/fgsa-f0-f2-plan-draft.md     │ fgsa-lean      │ r3.4 draft 8e6670af  │
-│ T7    │ FP/docs/plans/…-t7-t1.md                      │ fgsa-lean      │ r15 93b69c8d         │
+│ P3    │ TS/codex/scratch/fgsa-f0-f2-plan-draft.md     │ fgsa-lean      │ r3.5.1 c4e94221      │
+│ T7    │ FP/docs/plans/…-t7-t1.md                      │ fgsa-lean      │ r16 4d11b505         │
 │       │                                               │                │ (fixes §11)          │
 └───────┴───────────────────────────────────────────────┴────────────────┴──────────────────────┘
 ```
@@ -263,7 +263,7 @@ Authority: **S1** (catalogue, regime records, composites) and **S3 §4**
   local copies stay with their reason stated (T7 HEAD exclusion and HEAD
   split re-proofs: the Grid CO proof modules are outside the FG import rule;
   the T7.W and FR3 conditional re-proofs; the E-14 history restatement,
-  deleted after F2; full list P3 r3.5 :4236–4243, :5015–5019). No
+  deleted after F2; full list P3 r3.5.1 :4470–4477, :5293–5297). No
   T7-local record-fold fallback: R1 is the route, and any other route
   needs a new register entry (L33). The local-K8 fallback text in P3
   (3243–3244, 3716) is removed: T7.12 is the one K8 statement.
@@ -884,9 +884,9 @@ edit 8ef4ed3b. Other inputs: fgsa-lean's OPEN 7 draft with its Astra review
 │ BUILD: "three known exceptions" (P7); Shared │ lean-framework │ step 2             │
 │ list current                                 │                │                    │
 │ GLY E-14: Grid CO copies deleted after F2 (P3│ lean-framework │ step 2             │
-│ :5015–5019)                                  │                │                    │
-│ P3 r3.5.1 candidate (4851ee94) with the      │ fgsa-lean;     │ before F lanes     │
-│ above; short check                           │ lead check     │                    │
+│ r3.5.1 :5293–5297)                           │                │                    │
+│ DONE: S3 r3.4 1bedacd2, T7 r16 4d11b505      │ fgsa-lean;     │ checked by lead    │
+│ (535b930), P3 r3.5.1 c4e94221                │ lead check     │                    │
 │ Hash and citation drift in S3/T7/P3/GLY      │ owners         │ next revision      │
 └──────────────────────────────────────────────┴────────────────┴────────────────────┘
 ```
