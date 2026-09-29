@@ -348,8 +348,10 @@ store dependency lookup.
   as a duplicate. More checks: genesis versus a slot-0 node; one parent
   and slot with different bodies; the same decoded rows with different
   rounds; and two wrong row lists that `rowsOk` and `wellFormed` refuse
-  with no store change. `not_contentAgree`, the negated cross-store
-  example and its helpers `fg_ba` and `fg_bb` are deleted.
+  with no store change. `not_contentAgree` and the negated cross-store
+  example are deleted. Its helpers `fg_ba` and `fg_bb` were deleted in
+  Task 9 and restored after the final review (Astra F1), with the old
+  text; they are still true after I9.
 - DQ3(b) and `ContentAgree`: done in Task 9 (commits 8298916, 731b4c5).
   `packInner app rw` packs the application value and the ordered signed
   rows. `packBody app rw` puts `packInner app rw` and the decoded rows into

@@ -100,6 +100,14 @@ own plan and a full audit after plan 1b.
   `docs/audit/i9-branch-audit-0-8-report.md`, READY WITH FIXES 0/1/0. The
   one major finding (I9-A01) is resolved by a named exception (§5.10; §7,
   decision 4).
+- Final branch review (`f0f656e...9b5892b`): Astra
+  `docs/audit/i9-branch-final-report.md`, MERGE WITH FIXES 0/1/2. F1
+  (major): `fg_ba` and `fg_bb` were deleted outside the statement rule;
+  they are restored with their old text (§5.9). F2 (minor): the
+  carried-vote check of the FG-SA duplicate test `wDup` was vacuous; it is
+  fixed (§6.1). F3 (minor): the `CONTRACT.md` D9 sentence; the docs review
+  fix (factual error 1) covers it. F1 and F2 are fixed in a separate Lean
+  commit.
 - Docs review of the branch documents (§9): Needs fixes (3 factual, 5 stale,
   3 inconsistencies, 9 minor); fixed in the final docs commit before the
   merge.
@@ -159,9 +167,9 @@ The branch commits, in order. Reviews: `Critical/Important/Minor`.
 │             │               │ notes                                          │                              │
 ├─────────────┼───────────────┼────────────────────────────────────────────────┼──────────────────────────────┤
 │ 11 Build,   │ f756404       │ Merge main into i9-derived-roots before the    │ Task 11 checks: §3; docs     │
-│ lock, merge │               │ lock step                                      │ review fixes: §9             │
-│             │ 9b5892b       │ I9: lock break (91 names); full checks         │                              │
-│             │ (this commit) │ docs: I9 docs review fixes; I9-REPORT          │                              │
+│ lock, merge │               │ lock step                                      │ review fixes: §9; Astra      │
+│             │ 9b5892b       │ I9: lock break (91 names); full checks         │ final review MERGE WITH      │
+│             │ 7790316       │ docs: I9 docs review fixes; I9-REPORT          │ FIXES 0/1/2 (§1)             │
 │             │ (§10)         │ merge into main                                │                              │
 └─────────────┴───────────────┴────────────────────────────────────────────────┴──────────────────────────────┘
 ```
@@ -416,7 +424,9 @@ private helpers that served only a removed root proof (I9-A01, §5.10).
 Astra's branch audit of Tasks 0–8 found 18 kept theorems with a direct
 statement-text change and seven deleted theorems, and 141 KitFG theorems that
 gain `[RowCodec V]` (132 of them class (b) only). Task 9 adds the FG-SA
-changes below. No change falls outside (a), (b) and (c).
+changes below. Astra's final review (F1) found two deletions outside (a),
+(b) and (c): `fg_ba` and `fg_bb` (§5.9). They are restored with their old
+text. No other change falls outside (a), (b) and (c).
 
 Declarations with a `def`, `structure` or `inductive` body are included where
 their signature or body changed as part of the plan.
@@ -781,9 +791,9 @@ injectivity", the `fj.frame.v1` FJ_FRAME row text changed, and each other
 │ Class (c)                          │ stY.fg.TF →                      │ stY.fg.TF → KitFG.RootInjectiveOn  │
 │                                    │ KitFG.RootInjectiveOn B₁ B₂)     │ B₁ B₂                              │
 ├────────────────────────────────────┼──────────────────────────────────┼────────────────────────────────────┤
-│ fg_ba, fg_bb (RootCollision)       │ theorem fg_ba : ∃ X ∈ stX.fg.TF, │ deleted (helpers of the negated    │
-│ Class (c)                          │ eraseFG X = ba; theorem fg_bb :  │ example only)                      │
-│                                    │ ∃ Y ∈ stY.fg.TF, eraseFG Y = bb  │                                    │
+│ fg_ba, fg_bb (RootCollision)       │ theorem fg_ba : ∃ X ∈ stX.fg.TF, │ no change: deleted in Task 9,      │
+│ No class (restored)                │ eraseFG X = ba; theorem fg_bb :  │ restored after the final review    │
+│                                    │ ∃ Y ∈ stY.fg.TF, eraseFG Y = bb  │ (Astra F1) with the old text       │
 ├────────────────────────────────────┼──────────────────────────────────┼────────────────────────────────────┤
 │ ba, c1, bb (RootCollision)         │ .node .genesis 4 ⟨4⟩; .node      │ pb .genesis 4 0 []; pb .genesis 1  │
 │ Class (a)                          │ .genesis 1 ⟨1⟩; .node c1 2 ⟨4⟩   │ 0 []; pb c1 2 0 []                 │
@@ -868,10 +878,16 @@ root orders that the fixtures now prove.
 │                                  │ false; a reader that holds `ba`    │ in `FGSA-STORE-REPORT.md` §7           │
 │                                  │ accepts `c1` and refuses `bb`      │                                        │
 ├──────────────────────────────────┼────────────────────────────────────┼────────────────────────────────────────┤
-│ FG-SA Smoke DQ2 case (old        │ A distinct block with the same     │ The declared duplicate test `wDup`:    │
-│ `:208–210`)                      │ root is refused                    │ the stored block of `B2` with its rows │
-│                                  │                                    │ and a new label-1 vote; `wellFormed`   │
-│                                  │                                    │ true; refused; votes unchanged         │
+│ FG-SA Smoke DQ2 case (old        │ A distinct block with the same     │ The declared duplicate test `wDup =    │
+│ `:208–210`)                      │ root is refused                    │ wProp B3 1 [v2]`: the stored slot-3    │
+│                                  │                                    │ block of `B3` with its rows and the    │
+│                                  │                                    │ carried label-2 vote `v2`;             │
+│                                  │                                    │ `wellFormed` true; refused; votes      │
+│                                  │                                    │ unchanged. Direct delivery admits `v2` │
+│                                  │                                    │ at `stA`, so the carried-vote check is │
+│                                  │                                    │ not vacuous (Astra F2; before the fix, │
+│                                  │                                    │ a label-1 vote that direct delivery    │
+│                                  │                                    │ also refused)                          │
 ├──────────────────────────────────┼────────────────────────────────────┼────────────────────────────────────────┤
 │ FG-SA Smoke `X` (stK contest)    │ `X` (root `⟨100⟩`) wins the root   │ Same intent, new cause: `X` has        │
 │                                  │ tie against `childA` (`⟨11⟩`) in   │ application value `2 ^ 4096`. With     │
