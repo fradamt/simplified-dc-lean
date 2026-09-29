@@ -22,9 +22,11 @@ def BlockInRun (E : AvailableChain.Generic.Env V) (I : Interface P)
       AvailableChain.Generic.Run.emits P E rho v o t) ∧
     I.block o.payload = some tip ∧ Block.Preceq B tip
 
-/-- Collision resistance of block roots, idealized as injectivity on
-genesis and the ancestors of all blocks named by this run. The raw `Block`
-type stays unrestricted; only the run's named scope must be collision-free. -/
+/-- Injectivity of block roots on genesis and the ancestors of all blocks
+named by this run. Roots are computed from block content, and
+`Block.root_injective` holds on the whole `Block` type, so this condition is a
+theorem for every run: `rootInjective_all` in `AvailableChainKit/Roots.lean`
+proves it. -/
 def RootInjective (E : AvailableChain.Generic.Env V) (I : Interface P)
     (rho : AvailableChain.Generic.Run V P) : Prop :=
   ∀ B C, BlockInRun E I rho B → BlockInRun E I rho C →
