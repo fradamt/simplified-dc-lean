@@ -1,0 +1,617 @@
+#!/usr/bin/env python3
+"""Check direct Lean module imports. Python 3.11+, standard library only.
+
+Rule table (line numbers refer to the source snapshots read on 2026-09-29):
+ID                 Rule                                      Source
+B4                 Model/Statements import no proof modules   BUILD:63-65,111
+B6-FACADE          No foreign facade; new FGSA libs: none    BUILD:69-72,199-213
+B6-MATHLIB         No whole Mathlib import                    BUILD:69-72
+B6-TACTIC          Whole Mathlib.Tactic only in leaf proofs   BUILD:69-72
+                   or leaf test modules
+B7-TESTS           A facade imports no Tests module           BUILD:73-75,112
+B7-BODY            A facade contains only its import header   BUILD:73-75
+B7-GLOBS           Library globs: Lib.* (CheckSupport: Lib.+)  BUILD:73-75,171-175
+GLY-SPURE          S/Pure import set; Walk exception          GLY:401-403,463-465
+GLY-SV2            S/V2 set; only KitV2.ClockLaws              GLY:404-408; BUILD:115-116
+GLY-SAC            S/AC import set                            GLY:409-410
+GLY-PPURE          P/Pure import set; Walk exception          GLY:411,463-465
+GLY-PV2            P/V2 import set                            GLY:412
+GLY-PAC            P/AC import set                            GLY:413-414
+GLY-FG             Generic imports no FG library              GLY:420-422
+GLY-AC-USE         Only Gen, SA and FGSA may use AC now        GLY:409-414,426-427
+GLY-KITFG-DEF      KitFG definitions: S/Pure, except Walk      GLY:434-437; BUILD:112-114
+GLY-KITFG-PROOF    KitFG proofs: S/Pure + P/Pure, except Walk  GLY:434-450; BUILD:113-114
+                   WeightsBridge: S/Pure only
+GLY-LOCKED         Locked modules: S/Pure !Walk + S/V2        GLY:446-447; BUILD:116-118
+GLY-NOGEN          SimplexFG and GridCO.Model import no Gen    GLY:423-427,2141-2146
+GLY-WALK           GridCO.Model.Walk: Mathlib/Model.Objects    GLY:466-479
+FG-GRID            FGSA*/KitFG: GridCO proofs only StoreFacts BUILD:118-120,199-207
+RUN                FGSARun import set                         BUILD:199-200
+CLAIMS             FGSAClaims statement-only import set       BUILD:201-203
+LANE               A proof lane imports only its allowed set SYN:106-114; BUILD:204-212
+SHARED             Shared imports no lane/Export/Assembly    SYN:106-114; BUILD:204-212
+ASSEMBLY           Assembly joins lanes through Exports      SYN:112-114; BUILD:210-212
+CLAIM-USE          Claims/<F> only from matching lane Export SYN:112-114; BUILD:234-236
+EXPORT-USE         Exports only from Assembly                SYN:112-114; BUILD:126-128
+INHABIT            FGSAInhabit import set                     BUILD:213
+TEST-USE           Nothing imports a test (facades: B7-TESTS) BUILD:214,241-243
+TEST-SCOPE         Tests import only their own project lib    BUILD:214
+PHASES             PhasesInternal only from the F4 tree      BUILD:218-225; SYN:237-242
+CHECK-SUPPORT      Only files in scripts/ import CheckSupport BUILD:132-135
+
+BUILD = claude-files/a0/build.md r3.4; GLY = generic-layer.md A.3-A.4/F-8
+(the supplied file is r3.13); SYN = docs/LEAN-ARCHITECTURE.md P10/section 3.
+KitFG definition names come from baselines/kitfg-def-modules.txt (D06).
+Locked module names/prefixes come from CatalogLock.lean:64-74, not a copy.
+
+Scope: all files below each lean_lib's roots/glob prefixes, regardless of
+whether its globs build them, plus root facades. srcDir and roots are read
+from lakefile.toml. Other repository .lean files get CHECK-SUPPORT only.
+Hidden directories (including .lake and .git) and symlink directories are
+not scanned. Imported modules need not exist: future rules still apply.
+
+Readings used where sources differ:
+* All 'may import' sets are closed sets. The Generic sets and GridCO Walk
+  allow only Mathlib as an external library. Other FGSA role rules also
+  allow Init/Lean/Std. Same-layer imports are allowed.
+* Only the exact S/Pure/Walk and P/Pure/Walk modules can directly import
+  GridCO.Model.Walk. Other S/Pure modules cannot import S/Pure/Walk.
+* P/AC's later GridCO.Proofs/SAPC consumers are not enabled before F2.
+* Claims and Export restrictions apply to facades, tests and 1c as well.
+  'Nothing imports a test' includes other tests. Scripts are outside the
+  library checks. Whole Mathlib.Tactic requires a proof or test with no
+  direct library importer (including facade/test importers).
+* Both FGSAProofs/<lane> and FGSAProofs/Proofs/<lane> paths are recognized;
+  F4 and Finality denote the F4 tree. Same-lane proof imports are allowed.
+  Shared accepts only the upstream set; its name cannot hide a lane.
+* KitFG modules not on D06's list are proof modules (except the facade and
+  Tests). The tighter WeightsBridge S/Pure limit at GLY:448-450 also applies.
+* B7 is literal: even empty section/end commands are facade body content.
+  B7-BODY and B7-GLOBS use <body:token> and <globs:Lib.*> in the target
+  column because these two findings have no imported module.
+
+This is a direct-import check, not a Lean parser/elaborator or an unused-
+import check (BUILD check (f)). It does not inspect declaration bodies,
+axioms, equation lemmas, closureRoots, or proof/definition content.
+"""
+
+from __future__ import annotations
+
+import argparse
+from dataclasses import dataclass
+import os
+from pathlib import Path
+import re
+import sys
+import tomllib
+from collections.abc import Callable, Iterator
+
+
+GEN = "AvailableChainGeneric"
+SP = GEN + ".Statements.Pure"
+SV = GEN + ".Statements.V2"
+SA = GEN + ".Statements.AC"
+PP = GEN + ".Proofs.Pure"
+PV = GEN + ".Proofs.V2"
+PA = GEN + ".Proofs.AC"
+KITFG = "AvailableChainKitFG"
+FGSA = "AvailableChainFGSA"
+RUN = "AvailableChainFGSARun"
+CLAIMS = "AvailableChainFGSAClaims"
+PROOFS = "AvailableChainFGSAProofs"
+INHABIT = "AvailableChainFGSAInhabit"
+CLOCK = "AvailableChainKitV2.ClockLaws"
+WALK = "AvailableChainGridCO.Model.Walk"
+STORE_FACTS = "AvailableChainGridCO.Proofs.StoreFacts"
+FUTURE_LIBS = {GEN, RUN, CLAIMS, PROOFS, INHABIT, "AvailableChainCheckSupport"}
+BASELINE = Path("scripts/baselines/check-layers.txt")
+NAME_PART = r"(?:«[^»]+»|[^\W\d][\w'!?]*)"
+NAME = re.compile(NAME_PART + r"(?:\." + NAME_PART + r")*")
+Finding = tuple[str, str, str]
+
+
+def under(name: str, prefix: str) -> bool:
+    """Use module components, never a raw string-prefix test."""
+    return name == prefix or name.startswith(prefix + ".")
+
+
+def any_under(name: str, prefixes: tuple[str, ...]) -> bool:
+    return any(under(name, prefix) for prefix in prefixes)
+
+
+def lean_tokens(source: str) -> Iterator[str]:
+    """Read header tokens, including nested comments and quoted identifiers.
+
+    The caller stops at the first body token. Thus import-like text in a
+    string, quotation or command body cannot create a dependency.
+    """
+    i = 0
+    while i < len(source):
+        if source[i].isspace() or source[i] == "\ufeff":
+            i += 1
+        elif source.startswith("--", i):
+            end = source.find("\n", i)
+            i = len(source) if end == -1 else end + 1
+        elif source.startswith("/-", i):
+            depth = 1
+            i += 2
+            while depth and i < len(source):
+                if source.startswith("/-", i):
+                    depth += 1
+                    i += 2
+                elif source.startswith("-/", i):
+                    depth -= 1
+                    i += 2
+                else:
+                    i += 1
+            if depth:
+                raise ValueError("unterminated block comment in import header")
+        else:
+            match = NAME.match(source, i)
+            if match:
+                yield match.group()
+                i = match.end()
+            else:
+                yield source[i]
+                i += 1
+
+
+def read_header(source: str) -> tuple[tuple[str, ...], str]:
+    """Match Lean's [module] [prelude] ([public] [meta] import [all] id)*.
+
+    Whitespace, newlines, comments and same-line import commands work alike.
+    Import visibility is irrelevant for this check; check (a) enforces B1.
+    """
+    tokens = iter(lean_tokens(source))
+    token = next(tokens, "")
+    for keyword in ("module", "prelude"):
+        if token == keyword:
+            token = next(tokens, "")
+    imports = set()
+    while token:
+        first = token
+        if token == "public":
+            token = next(tokens, "")
+        if token == "meta":
+            token = next(tokens, "")
+        if token != "import":
+            return tuple(sorted(imports)), first
+        token = next(tokens, "")
+        if token == "all":
+            token = next(tokens, "")
+        if not NAME.fullmatch(token) or token in {"import", "public", "meta"}:
+            raise ValueError("missing module name after import")
+        imports.add(re.sub(r"«([^»]+)»", r"\1", token))
+        token = next(tokens, "")
+    return tuple(sorted(imports)), ""
+
+
+@dataclass(frozen=True)
+class Module:
+    name: str
+    path: Path
+    library: str | None
+    facade: bool
+    imports: tuple[str, ...]
+    body: str
+
+
+@dataclass
+class Context:
+    root: Path
+    modules: dict[str, Module]
+    libraries: list[dict]
+    facades: set[str]
+    definitions: set[str]
+    locked: set[str]
+    locked_prefixes: tuple[str, ...]
+    importers: dict[str, set[str]]
+
+
+def lean_files(directory: Path) -> Iterator[Path]:
+    for current, dirs, files in os.walk(directory):
+        dirs[:] = sorted(d for d in dirs if not d.startswith("."))
+        for filename in sorted(files):
+            if filename.endswith(".lean"):
+                yield Path(current) / filename
+
+
+def locked_scope(root: Path) -> tuple[set[str], tuple[str, ...]]:
+    source = (root / "scripts/CatalogLock.lean").read_text(encoding="utf-8")
+    lists = []
+    for name in ("lockedModules", "lockedModulePrefixes"):
+        match = re.search(r"\bdef\s+" + name + r"\s*:\s*List\s+Name\s*:=\s*\[([^]]*)\]", source)
+        if not match:
+            raise ValueError(f"cannot read {name} from scripts/CatalogLock.lean")
+        lists.append(re.findall(r"`([\w.]+)", match[1]))
+    return set(lists[0]), tuple(lists[1])
+
+
+def load_context(root: Path) -> Context:
+    config = tomllib.loads((root / "lakefile.toml").read_text(encoding="utf-8"))
+    libraries = config.get("lean_lib", [])
+    if not libraries:
+        raise ValueError("lakefile.toml has no lean_lib entries")
+    modules: dict[str, Module] = {}
+    paths: set[Path] = set()
+    facades = set(FUTURE_LIBS)
+
+    def add(path: Path, src: Path, library: str | None, roots: list[str]) -> None:
+        if path in paths:
+            return
+        name = ".".join(path.relative_to(src).with_suffix("").parts)
+        imports, body = read_header(path.read_text(encoding="utf-8"))
+        if name in modules:
+            raise ValueError(f"duplicate module {name}: {modules[name].path} and {path}")
+        modules[name] = Module(name, path.relative_to(root), library, name in roots, imports, body)
+        paths.add(path)
+
+    for lib in libraries:
+        name = lib["name"]
+        src = root / lib.get("srcDir", config.get("srcDir", "."))
+        if not src.resolve().is_relative_to(root):
+            raise ValueError(f"srcDir for {name} is outside the selected root")
+        roots = lib.get("roots", [name])
+        facades.update([name, *roots])
+        prefixes = set(roots)
+        for glob in lib.get("globs", []):
+            prefixes.add(glob[:-2] if glob.endswith((".*", ".+")) else glob)
+        for prefix in sorted(prefixes):
+            stem = src.joinpath(*prefix.split("."))
+            facade = stem.with_suffix(".lean")
+            if facade.is_file():
+                add(facade, src, name, roots)
+            for path in lean_files(stem):
+                add(path, src, name, roots)
+    # The support guard says 'no module outside scripts/', not just libraries.
+    for path in lean_files(root):
+        if path not in paths:
+            add(path, root, None, [])
+    definitions = set()
+    def_path = root / "scripts/baselines/kitfg-def-modules.txt"
+    for line in def_path.read_text(encoding="utf-8").splitlines():
+        line = line.split("#", 1)[0].strip()
+        if line:
+            if not NAME.fullmatch(line):
+                raise ValueError(f"invalid KitFG definition module: {line}")
+            definitions.add(line if under(line, KITFG) else KITFG + "." + line)
+    locked, prefixes = locked_scope(root)
+    importers: dict[str, set[str]] = {}
+    for module in modules.values():
+        if module.library is not None and module.path.parts[0] != "scripts":
+            for dep in module.imports:
+                importers.setdefault(dep, set()).add(module.name)
+    return Context(root, modules, libraries, facades, definitions, locked, prefixes, importers)
+
+
+def is_test(name: str) -> bool:
+    return "Tests" in name.split(".")[1:]
+
+
+def is_statement(ctx: Context, name: str) -> bool:
+    return (any(x in name.split(".")[1:] for x in ("Model", "Statements"))
+            or any_under(name, ("AvailableChainModel", "AvailableChainStatements"))
+            or name in ctx.definitions)
+
+
+def is_proof(ctx: Context, name: str) -> bool:
+    if name in ctx.facades or is_test(name) or name in ctx.definitions or name == CLOCK:
+        return False
+    return ("Proofs" in name.split(".")[1:]
+            or any_under(name, (KITFG, "AvailableChainKit", "AvailableChainKitV2", PROOFS)))
+
+
+def foundation(dep: str) -> bool:
+    return any_under(dep, ("Init", "Lean", "Std", "Mathlib"))
+
+
+def pure_base(dep: str) -> bool:
+    return under(dep, "Mathlib") or under(dep, "AvailableChainModel.Objects")
+
+
+def pure_statements(dep: str) -> bool:
+    return under(dep, SP) and not under(dep, SP + ".Walk")
+
+
+def v2_base(dep: str) -> bool:
+    return (pure_base(dep) or pure_statements(dep) or under(dep, SV) or dep == CLOCK
+            or any_under(dep, tuple("AvailableChainEngineV2." + p for p in ("Engine", "Conditions", "Laws"))))
+
+
+def ac_models(dep: str) -> bool:
+    return any_under(dep, ("AvailableChainGridCO.Model", "AvailableChainSA.Model"))
+
+
+def pure_proofs(dep: str) -> bool:
+    return pure_base(dep) or any_under(dep, (SP, PP))
+
+
+def v2_proofs(dep: str) -> bool:
+    return pure_proofs(dep) or v2_base(dep) or any_under(dep, (PV, "AvailableChainKitV2"))
+
+
+def b4(ctx: Context, m: Module, dep: str) -> bool:
+    return not m.facade and is_statement(ctx, m.name) and is_proof(ctx, dep)
+
+
+def b6_facade(ctx: Context, m: Module, dep: str) -> bool:
+    if dep not in ctx.facades:
+        return False
+    if any_under(m.name, (RUN, CLAIMS, PROOFS, INHABIT)):
+        return True
+    owner = ctx.modules[dep].library if dep in ctx.modules else dep
+    return owner != m.library
+
+
+def b6_mathlib(ctx: Context, m: Module, dep: str) -> bool:
+    return dep == "Mathlib"
+
+
+def b6_tactic(ctx: Context, m: Module, dep: str) -> bool:
+    leaf = not ctx.importers.get(m.name)
+    return dep == "Mathlib.Tactic" and not (leaf and (is_test(m.name) or is_proof(ctx, m.name)))
+
+
+def b7_tests(ctx: Context, m: Module, dep: str) -> bool:
+    return m.facade and is_test(dep)
+
+
+def b7_body(module: Module) -> Finding | None:
+    if module.facade and module.body:
+        return ("B7-BODY", module.name, f"<body:{module.body}>")
+    return None
+
+
+def b7_globs(ctx: Context) -> Iterator[Finding]:
+    for lib in ctx.libraries:
+        name = lib["name"]
+        suffix = ".+" if name == "AvailableChainCheckSupport" else ".*"
+        if lib.get("globs") != [name + suffix]:
+            yield ("B7-GLOBS", name, f"<globs:{name}{suffix}>")
+
+
+def gly_spure(ctx: Context, m: Module, dep: str) -> bool:
+    return under(m.name, SP) and not (pure_base(dep) or pure_statements(dep)
+        or (m.name == SP + ".Walk" and dep in {WALK, SP + ".Walk"}))
+
+
+def gly_sv2(ctx: Context, m: Module, dep: str) -> bool:
+    return under(m.name, SV) and not v2_base(dep)
+
+
+def gly_sac(ctx: Context, m: Module, dep: str) -> bool:
+    return under(m.name, SA) and not (v2_base(dep) or under(dep, SA) or ac_models(dep))
+
+
+def gly_ppure(ctx: Context, m: Module, dep: str) -> bool:
+    return under(m.name, PP) and not (pure_proofs(dep) or (m.name == PP + ".Walk" and dep == WALK))
+
+
+def gly_pv2(ctx: Context, m: Module, dep: str) -> bool:
+    return under(m.name, PV) and not v2_proofs(dep)
+
+
+def gly_pac(ctx: Context, m: Module, dep: str) -> bool:
+    return under(m.name, PA) and not (v2_proofs(dep) or any_under(dep, (SA, PA)) or ac_models(dep))
+
+
+def is_fg(name: str) -> bool:
+    return any_under(name, ("AvailableChainSimplexFG", KITFG, FGSA, RUN, CLAIMS, PROOFS, INHABIT))
+
+
+def gly_fg(ctx: Context, m: Module, dep: str) -> bool:
+    return under(m.name, GEN) and is_fg(dep)
+
+
+def gly_ac_use(ctx: Context, m: Module, dep: str) -> bool:
+    return any_under(dep, (SA, PA)) and not any_under(m.name, (GEN, "AvailableChainSA", FGSA, RUN, CLAIMS, PROOFS, INHABIT))
+
+
+def gly_kitfg_def(ctx: Context, m: Module, dep: str) -> bool:
+    return m.name in ctx.definitions and under(dep, GEN) and not pure_statements(dep)
+
+
+def gly_kitfg_proof(ctx: Context, m: Module, dep: str) -> bool:
+    allowed = pure_statements(dep) or (under(dep, PP) and not under(dep, PP + ".Walk"))
+    if m.name == KITFG + ".WeightsBridge":
+        allowed = pure_statements(dep)
+    return under(m.name, KITFG) and m.name not in ctx.definitions and under(dep, GEN) and not allowed
+
+
+def gly_locked(ctx: Context, m: Module, dep: str) -> bool:
+    locked = m.name in ctx.locked or any_under(m.name, ctx.locked_prefixes)
+    return locked and under(dep, GEN) and not (pure_statements(dep) or under(dep, SV))
+
+
+def gly_nogen(ctx: Context, m: Module, dep: str) -> bool:
+    return any_under(m.name, ("AvailableChainSimplexFG", "AvailableChainGridCO.Model")) and under(dep, GEN)
+
+
+def gly_walk(ctx: Context, m: Module, dep: str) -> bool:
+    return m.name == WALK and not pure_base(dep)
+
+
+def fg_grid(ctx: Context, m: Module, dep: str) -> bool:
+    return (any_under(m.name, (KITFG, FGSA, RUN, CLAIMS, PROOFS, INHABIT))
+            and under(dep, "AvailableChainGridCO.Proofs") and dep != STORE_FACTS)
+
+
+def run(ctx: Context, m: Module, dep: str) -> bool:
+    return under(m.name, RUN) and not m.facade and not is_test(m.name) and not (
+        foundation(dep) or any_under(dep, (RUN, FGSA, GEN, "AvailableChainEngineV2", "AvailableChainKitV2"))
+        or dep == STORE_FACTS)
+
+
+def claims(ctx: Context, m: Module, dep: str) -> bool:
+    allowed = foundation(dep) or dep in ctx.definitions or any_under(dep, (
+        CLAIMS, RUN + ".Model", RUN + ".Statements", FGSA + ".Model", FGSA + ".Statements", GEN + ".Statements"))
+    return under(m.name, CLAIMS) and not m.facade and not is_test(m.name) and (not allowed or is_proof(ctx, dep))
+
+
+def proof_path(name: str) -> tuple[str, ...]:
+    if not under(name, PROOFS) or name == PROOFS:
+        return ()
+    parts = tuple(name.split(".")[1:])
+    return parts[1:] if parts[0] == "Proofs" else parts
+
+
+def claim_path(name: str) -> tuple[str, ...]:
+    prefix = CLAIMS + ".Claims"
+    return tuple(name[len(prefix) + 1:].split(".")) if name.startswith(prefix + ".") else ()
+
+
+def is_export(name: str) -> bool:
+    parts = proof_path(name)
+    return len(parts) >= 2 and parts[0] not in {"Shared", "Assembly"} and parts[1] == "Export"
+
+
+def lane_upstream(ctx: Context, dep: str) -> bool:
+    return (foundation(dep) or is_statement(ctx, dep)
+            or any_under(dep, (GEN, KITFG, "AvailableChainEngineV2", "AvailableChainKitV2", FGSA, RUN))
+            or dep == STORE_FACTS)
+
+
+def lane(ctx: Context, m: Module, dep: str) -> bool:
+    parts, target = proof_path(m.name), proof_path(dep)
+    if not parts or parts[0] in {"Shared", "Assembly", "Statements", "Model", "Tests"}:
+        return False
+    if target and target[0] not in {"Statements", "Model"}:
+        return target[0] not in {parts[0], "Shared"} or is_export(dep)
+    own_claim = is_export(m.name) and claim_path(dep) == (parts[0],)
+    return not (lane_upstream(ctx, dep) or own_claim)
+
+
+def shared(ctx: Context, m: Module, dep: str) -> bool:
+    parts, target = proof_path(m.name), proof_path(dep)
+    if not parts or parts[0] != "Shared":
+        return False
+    if target and target[0] not in {"Statements", "Model"}:
+        return target[0] != "Shared"
+    return not lane_upstream(ctx, dep)
+
+
+def assembly(ctx: Context, m: Module, dep: str) -> bool:
+    parts, target = proof_path(m.name), proof_path(dep)
+    if not parts or parts[0] != "Assembly":
+        return False
+    if target and target[0] not in {"Statements", "Model"}:
+        return target[0] != "Shared" and not is_export(dep)
+    return not lane_upstream(ctx, dep)
+
+
+def claim_use(ctx: Context, m: Module, dep: str) -> bool:
+    parts = claim_path(dep)
+    if not parts and dep != CLAIMS + ".Claims":
+        return False
+    return not (is_export(m.name) and len(parts) == 1 and proof_path(m.name) == (parts[0], "Export"))
+
+
+def export_use(ctx: Context, m: Module, dep: str) -> bool:
+    parts = proof_path(m.name)
+    return is_export(dep) and not (len(parts) >= 2 and parts[0] == "Assembly")
+
+
+def inhabit(ctx: Context, m: Module, dep: str) -> bool:
+    return under(m.name, INHABIT) and not m.facade and not is_test(m.name) and not (
+        foundation(dep) or any_under(dep, (INHABIT, CLAIMS, RUN, "AvailableChainKitV2", GEN)))
+
+
+def test_use(ctx: Context, m: Module, dep: str) -> bool:
+    return not m.facade and is_test(dep)
+
+
+def test_scope(ctx: Context, m: Module, dep: str) -> bool:
+    if not is_test(m.name) or foundation(dep):
+        return False
+    owner = ctx.modules[dep].library if dep in ctx.modules else dep.split(".")[0]
+    return owner != m.library
+
+
+def phases(ctx: Context, m: Module, dep: str) -> bool:
+    if not under(dep, CLAIMS + ".Statements.PhasesInternal"):
+        return False
+    parts = proof_path(m.name)
+    return not parts or parts[0] not in {"F4", "Finality"}
+
+
+def check_support(ctx: Context, m: Module, dep: str) -> bool:
+    return m.path.parts[0] != "scripts" and under(dep, "AvailableChainCheckSupport")
+
+
+EDGE_RULES: dict[str, Callable[[Context, Module, str], bool]] = {
+    "B4": b4, "B6-FACADE": b6_facade, "B6-MATHLIB": b6_mathlib,
+    "B6-TACTIC": b6_tactic, "B7-TESTS": b7_tests,
+    "GLY-SPURE": gly_spure, "GLY-SV2": gly_sv2, "GLY-SAC": gly_sac,
+    "GLY-PPURE": gly_ppure, "GLY-PV2": gly_pv2, "GLY-PAC": gly_pac,
+    "GLY-FG": gly_fg, "GLY-AC-USE": gly_ac_use,
+    "GLY-KITFG-DEF": gly_kitfg_def, "GLY-KITFG-PROOF": gly_kitfg_proof,
+    "GLY-LOCKED": gly_locked, "GLY-NOGEN": gly_nogen, "GLY-WALK": gly_walk,
+    "FG-GRID": fg_grid, "RUN": run, "CLAIMS": claims, "LANE": lane,
+    "SHARED": shared, "ASSEMBLY": assembly, "CLAIM-USE": claim_use, "EXPORT-USE": export_use,
+    "INHABIT": inhabit, "TEST-USE": test_use, "TEST-SCOPE": test_scope,
+    "PHASES": phases, "CHECK-SUPPORT": check_support,
+}
+RULE_IDS = set(EDGE_RULES) | {"B7-BODY", "B7-GLOBS"}
+
+
+def findings(ctx: Context) -> set[Finding]:
+    found = set(b7_globs(ctx))
+    for module in ctx.modules.values():
+        library_file = module.library is not None and module.path.parts[0] != "scripts"
+        if library_file and (body_finding := b7_body(module)):
+            found.add(body_finding)
+        rules = EDGE_RULES if library_file else {"CHECK-SUPPORT": check_support}
+        for dep in module.imports:
+            for rule_id, predicate in rules.items():
+                if predicate(ctx, module, dep):
+                    found.add((rule_id, module.name, dep))
+    return found
+
+
+def read_baseline(path: Path) -> set[Finding]:
+    if not path.exists():
+        return set()
+    result = set()
+    for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        parts = line.split()
+        if len(parts) != 3 or parts[0] not in RULE_IDS:
+            raise ValueError(f"{path}:{line_number}: invalid baseline finding")
+        result.add(tuple(parts))
+    return result
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parent.parent,
+                        help="repository or temporary fixture tree")
+    parser.add_argument("--write-baseline", action="store_true", help="replace the baseline with current findings")
+    args = parser.parse_args()
+    root = args.root.resolve()
+    try:
+        ctx = load_context(root)
+        current = findings(ctx)
+        path = root / BASELINE
+        if args.write_baseline:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            header = ("# Generated with: python3 scripts/check-layers.py --write-baseline\n"
+                      "# Initial snapshot: available-chain main 7ac5b0c (2026-09-29).\n"
+                      "# Format: rule-id importer imported-module (B7 body/globs use markers).\n")
+            path.write_text(header + "".join(" ".join(f) + "\n" for f in sorted(current)), encoding="utf-8")
+            new = set()
+        else:
+            new = current - read_baseline(path)
+        # All legacy findings remain visible; baseline matching is exact.
+        for finding in sorted(current):
+            print(" ".join(finding))
+        print(f"check-layers: {len(current)} findings, {len(new)} new"
+              + ("; baseline written" if args.write_baseline else ""), file=sys.stderr)
+        return 1 if new else 0
+    except (OSError, ValueError, KeyError, TypeError) as error:
+        print(f"check-layers: {error}", file=sys.stderr)
+        return 2
+
+
+if __name__ == "__main__":
+    sys.exit(main())
