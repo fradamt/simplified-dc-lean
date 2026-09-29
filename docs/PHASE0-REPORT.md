@@ -410,7 +410,8 @@ ends with a note "Plan 1b: …". The row E4 is new.
 │           │ and the stranded L4 lemmas. Dedupe `block_preceq_trans`    │
 │           │ (`Kit/Core.lean:13` and `GridCO/Proofs/Map.lean:25`).      │
 │           │ Plan 1a: open (plan 1b).                                   │
-│           │ Plan 1b: CLOSED. Task 0 (c79b473): library                 │
+│           │ Plan 1b: CLOSED, except the stranded L4 lemmas: see the    │
+│           │ Engine row (plan 1c). Task 0 (c79b473): library            │
 │           │ AvailableChainKit (L5: Core, Engine/*) and library         │
 │           │ AvailableChainEngineV2 (L0: Sketch); the                   │
 │           │ AvailableChain.Engine lemmas are in                        │
@@ -436,9 +437,17 @@ ends with a note "Plan 1b: …". The row E4 is new.
 │           │ 1b or 2 until decided.                                     │
 │           │ Plan 1b: DECIDED 2026-09-29 (user), not in plan 1b: a      │
 │           │ derived root root(B) := H(content) with H injective; a     │
-│           │ block carries its parent root. It is a contract and lock   │
-│           │ break, with its own plan and a full audit after plan 1b    │
-│           │ (FRAMEWORK-DESIGN.md §12 I9).                              │
+│           │ block carries its parent root, and the store accepts a     │
+│           │ block only when it knows a parent with the carried root    │
+│           │ (dependency lookup). It is a contract and lock break, with │
+│           │ its own plan and a full audit after plan 1b                │
+│           │ (FRAMEWORK-DESIGN.md §12 I9). Point 2 (2026-09-29, user,   │
+│           │ via DC-simplify): the parent-root check is the store       │
+│           │ dependency lookup (depsPresent/blockKnown): a block claims │
+│           │ no root of its own, and an unknown parent root is a        │
+│           │ temporary missing dependency. So excludes gets no clause,  │
+│           │ SA-PC keeps its rfl, and wire validity has no root check.  │
+│           │ Wire forwarding rules wait for a P2P spec discussion.      │
 │ E4        │ New after plan 1a. Plan 1b: Grid CO, SA, SA-PC and L* each │
 │           │ have an E4 excludes and the five hook facts, in their own  │
 │           │ library. Grid CO and SA: two permanent HEAD refusals (an   │

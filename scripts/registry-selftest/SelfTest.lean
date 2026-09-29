@@ -114,6 +114,29 @@ unsafe def unsafeFamily (q : AvailableChain.GridCO.Params) :
     ac43.holdsAt (GridCO.gridInst q) (AvailableChain.GridCO.gridConstants q 1) :=
   unsafeFamily q
 
+/-- The binder does not reach the instance: a row at one parameter record, so
+CONDITIONAL, and its instance column is the closed term (final review F2). -/
+theorem negFamLeak (_p : AvailableChain.GridCO.Params) :
+    ac43.holdsAt (GridCO.gridInst Sm) (AvailableChain.GridCO.gridConstants Sm 1) :=
+  GridCO.grid_holds _
+
+/-! Closed rows at one parameter record: `holds`, on the MATRIX line of the
+closed instance term, not on the `gridInst` line. -/
+
+theorem closedOne :
+    ac43.holdsAt (GridCO.gridInst Sm) (AvailableChain.GridCO.gridConstants Sm 1) :=
+  GridCO.grid_holds _
+
+theorem closedSapc :
+    strong1.holdsAt (SAPC.sapcInst AvailableChain.SAPC.Tests.p)
+      (AvailableChain.SAPC.sapcConstants AvailableChain.SAPC.Tests.p 1,
+        AvailableChain.SAPC.sapcStrongConstants AvailableChain.SAPC.Tests.p) :=
+  SAPC.sapc_holds_strong1 _
+
+/-- A claim outside the catalog: no MATRIX cell. -/
+def nonCatalog : RefutationFamily Tests.testStrongSafe Tests.badStrong :=
+  Tests.refutedBadStrong
+
 /-! Families. -/
 
 theorem posGrid (p : AvailableChain.GridCO.Params) :

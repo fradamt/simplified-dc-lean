@@ -73,7 +73,8 @@ counterexamples and conditional constructors have been removed.
   already equivocates at that label. Proposals are never excluded.
   `excludes_head_iff` and `excludes_proposal` fix the definition;
   `excludes_inert` and `excludes_stable` show that `admitVote` refuses
-  these HEADs for good. `excludes_stable` uses the valid schedule, because the old-label test needs a clock that does not move
+  these HEADs for good. `excludes_stable` uses the valid schedule,
+  because the old-label test needs a clock that does not move
   backwards. The five relay lemmas that used `excludes = false` by `rfl`
   now take the premise "not excluded up to the cutoff".
   `Proofs/WindowMargin.lean` proves that premise for each caller: before
@@ -84,7 +85,8 @@ counterexamples and conditional constructors have been removed.
 
 ## Validation
 
-`lake build --wfail` passes all 3,394 jobs with no warnings, including
+`lake build --wfail` passes all 3,603 jobs with no warnings (2026-09-29,
+after plan 1b), including
 the new SA instance. Shared engine proofs now support either lease policy;
 Grid CO keeps its original admission rule and constants. All six Grid CO
 Boolean smoke checks and both L* checks pass. `#print axioms` for

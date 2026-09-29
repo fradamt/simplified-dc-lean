@@ -226,7 +226,7 @@ the text above.
 ├──────────┼───────────────────────────────────────────┼─────────────────────────────┤
 │ Grid CO  │ a HEAD of label r with r + 1 < the current│ `excludes`,                 │
 │          │ slot (the clock only goes forward), or a  │ `AvailableChainGridCO/Model/│
-│          │ HEAD whose seat already equivocates at r. │ Protocol.lean`; exactness:  │
+│          │ HEAD whose seat already equivocates at r. │ Protocol.lean`; shape:      │
 │          │ Never a proposal.                         │ `excludes_head_iff`,        │
 │          │                                           │ `excludes_proposal`,        │
 │          │                                           │ `excludes_not_processed`    │
@@ -250,6 +250,13 @@ the text above.
 └──────────┴───────────────────────────────────────────┴─────────────────────────────┘
 ```
 
+- Shape and direction. `excludes_head_iff`, `excludes_proposal` and
+  `excludes_not_processed` give the shape of `excludes` (they unfold the
+  definition). Against the handler, Lean proves one direction: an
+  excluded object is refused for the rest of the run (`excludes_inert`,
+  `excludes_stable`). The other direction (an unprocessed object that the
+  handler refuses for good is excluded) is not proved. It is a plan 1c
+  input, because `RelayFeasible` needs it.
 - Hook facts. Each protocol library proves the five hook facts
   (`excludes_inert`, `excludes_stable`, `processed_stable`,
   `deps_stable`, `handles_carries`) in its own namespace, with the
@@ -274,7 +281,9 @@ the text above.
   caller gets the case split `head_not_excluded_or_equivocates` and
   ends in its existing "or equivocates" outcome. A proposal is never
   excluded (`proposal_not_excluded`). If `excludes` covers more objects
-  later (I9, §12), only this module changes.
+  later (I9, §12), only this module changes. Superseded 2026-09-29 by
+  the user's I9 decision (§12): no `rootOK` in `wellFormed`; the root
+  check is the dependency lookup.
 - Not in plan 1b: `EmitWellFormed`, `HandlerCoverage`, `Deliverable`,
   `RelayFeasible`, the predicate `Eligible` and the run-extension theorem.
   Their only consumer is the run-extension theorem. A definition in a
@@ -962,7 +971,14 @@ extra-tier entry.
   1a, 1b or 2 until decided.
 
   Decided 2026-09-29 (user): a derived root `root(B) := H(content)` with
-  `H` injective. A block carries its parent's root, and the validity
-  condition is that the carried parent root equals `root(parent)`. This
-  changes the shared `Block` type, so it is a contract and lock break. It
-  gets its own plan and a full audit after plan 1b.
+  `H` injective. A block carries its parent's root, and the store accepts
+  a block only when it knows a parent with the carried root (dependency
+  lookup). This changes the shared `Block` type, so it is a contract and
+  lock break. It gets its own plan and a full audit after plan 1b.
+
+  Point 2 of the decision (2026-09-29, user, via DC-simplify): the
+  parent-root check is the store dependency lookup
+  (`depsPresent`/`blockKnown`). A block claims no root of its own, and an
+  unknown parent root is a temporary missing dependency. So `excludes`
+  gets no clause, SA-PC keeps its `rfl`, and wire validity has no root
+  check. Wire forwarding rules wait for a P2P spec discussion.

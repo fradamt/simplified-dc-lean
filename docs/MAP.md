@@ -684,13 +684,14 @@ paths below are relative to `AvailableChainRegistry/`.
 │                                    │ given                                    │ written; 2 as for   │
 │                                    │                                          │ --check             │
 │ scripts/Registry.lean [--check |   │ writes docs/REGISTRY.md and              │ 0 written, or the   │
-│ --selftest <file> [<module>]]      │ docs/MATRIX.md; with --check, compares   │ same; 1 different;  │
-│                                    │ both texts with the files, names each    │ 2 a usage error, an │
+│ (--selftest | --selftest-write)    │ docs/MATRIX.md; with --check, compares   │ same; 1 different;  │
+│ <file> [<module>]]                 │ both texts with the files, names each    │ 2 a usage error, an │
 │                                    │ file that differs and writes nothing;    │ unreadable file, a  │
-│                                    │ with --selftest, prints the rows of one  │ bad family witness, │
-│                                    │ Lean file (not a scanned library)        │ or a self-test file │
-│                                    │                                          │ that does not       │
-│                                    │                                          │ elaborate           │
+│                                    │ with --selftest, prints the rows and     │ bad family witness, │
+│                                    │ MATRIX cells of one Lean file (not a     │ or a self-test file │
+│                                    │ scanned library) and compares them with  │ that does not       │
+│                                    │ its .expected file; --selftest-write     │ elaborate           │
+│                                    │ writes that file                         │                     │
 │ scripts/CheckFrameworkAxioms.lean  │ every constant of                        │ 0 clean; 1 a bad    │
 │                                    │ AvailableChainFramework,                 │ axiom; 2 nothing    │
 │                                    │ AvailableChainRegistry,                  │ found or a usage    │
@@ -708,34 +709,41 @@ only `AvailableChainRegistry`) for constants whose type is `Cert c I`,
 or `Profile.holdsAt p I C`, and writes one row per constant to
 `docs/REGISTRY.md`. The file header names the scanned libraries. A
 `ProfileCert` or `Candidate` row has the kind `profile-cert`, and its
-claim column shows the profile `id` (for example `core.v1`). A certificate
-of a pulled claim shows the base claim with `(pulled)`. A type behind
-leading binders (`∀ …, Cert c I`) is CONDITIONAL and is still written as a
-row, with status `CONDITIONAL (not a certificate)`: it is a row of the
-table, not a certificate. A row of kind `profile-holds` (a `holdsAt`
-theorem) proves the claim propositions at one constant, without
-inhabitation; it can be vacuous, and it is not a certificate. Such a row
-is a FAMILY, with the status suffix ` (family)`, only if its binder
-telescope has exactly one binder and that binder's type is syntactically
-in `familyBinders` (`GridCO.Params`, `SA.Params`, `SAPC.Params`); the
-script checks that each type's witness exists, is not `unsafe`, has that
-type and uses only the allowed axioms. A family row, and a row without
-binders, has status `LEAN` only if `Lean.collectAxioms` finds no axiom
-outside `propext`, `Classical.choice`, `Quot.sound`; any other axiom
-(including `sorryAx`) gives status `UNSOUND(<axiom names>)`. An `unsafe`
-declaration has status `UNSOUND(unsafe)`. A row of a module under
-`AvailableChainRegistry.Gaps` has status `KNOWN-GAP` in place of `LEAN`
-(plan 1a Task 0, `gapsPrefix`). A row's claim column keeps the claim's
-name and appends `NON-CATALOG` if the `ClaimSpec` is not declared in a
-module under `AvailableChainFramework.Catalog`. The instance column looks
-through a parent projection to an instance type, so `(sapcInst
-p).toInstance` shows `sapcInst`. The same run writes `docs/MATRIX.md`: one
-line per instance constant, one column per catalog claim and per catalog
-profile; its header gives the meaning of each cell (`holds*` for a family
-row; `gap` and `cond` are records, not results), and a list under the
-table names each row without a cell. The self-test files in
-`scripts/registry-selftest/` (not a Lake library) check the family rule;
-their `README.md` gives the commands and the expected statuses.
+claim column shows the profile `id` (for example `core.v1`) and then the
+row's constant as `at C = <term>` (for `profile-holds`, the argument `C`;
+for `profile-cert`, the field `shared` of the value). A certificate of a
+pulled claim shows the base claim with `(pulled)`. A type behind leading
+binders (`∀ …, Cert c I`) is CONDITIONAL and is still written as a row,
+with status `CONDITIONAL (not a certificate)`: it is a row of the table,
+not a certificate. A row of kind `profile-holds` (a `holdsAt` theorem)
+proves the claim propositions at one constant, without inhabitation; it
+can be vacuous, and it is not a certificate. Such a row is a FAMILY, with
+the status suffix ` (family)`, only if its binder telescope has exactly
+one binder and that binder's type is syntactically in `familyBinders`
+(`GridCO.Params`, `SA.Params`, `SAPC.Params`) and the instance argument
+uses that binder (`gridInst p`); the script checks that each type's
+witness exists, is not `unsafe`, has that type and uses only the allowed
+axioms. A family row, and a row without binders, has status `LEAN` only if
+`Lean.collectAxioms` finds no axiom outside `propext`, `Classical.choice`,
+`Quot.sound`; any other axiom (including `sorryAx`) gives status
+`UNSOUND(<axiom names>)`. An `unsafe` declaration has status
+`UNSOUND(unsafe)`. A row of a module under `AvailableChainRegistry.Gaps`
+has status `KNOWN-GAP` in place of `LEAN` (plan 1a Task 0, `gapsPrefix`).
+A row's claim column keeps the claim's name and appends `NON-CATALOG` if
+the `ClaimSpec` is not declared in a module under
+`AvailableChainFramework.Catalog`. The instance column looks through a
+parent projection to an instance type, so `(sapcInst p).toInstance` shows
+`sapcInst`. It shows the head constant of an instance that depends on a
+binder (`gridInst p` shows `gridInst`), and the full term of a closed
+instance (`gridInst smokeParams`), which then gets its own MATRIX line.
+The same run writes `docs/MATRIX.md`: one line per instance constant, one
+column per catalog claim and per catalog profile; its header gives the
+meaning of each cell (`holds*` for a family row; `gap` and `cond` are
+records, not results), and a list under the table names each row without a
+cell. The self-test files in `scripts/registry-selftest/` (not a Lake
+library) check the family rule and the MATRIX cell rule; `--selftest`
+compares their output with the committed `.expected` files, and their
+`README.md` gives the commands and the expected statuses.
 `docs/REGISTRY.md` and `docs/MATRIX.md` are generated; do not edit them by
 hand.
 

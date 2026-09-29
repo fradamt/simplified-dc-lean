@@ -2,7 +2,7 @@
 
 Scanned libraries: `AvailableChainRegistry`. The cells come from the rows of `docs/REGISTRY.md`; rows without a cell are listed below the table.
 
-One line per instance: a constant whose type, after its leading binders, is `Instance` or `StrongInstance`. An instance with parameters (`gridInst p`) has one line, by its constant name. One column per catalog claim, then one column per catalog profile, each by its `id`, in lock order. A row of a pulled claim goes in the column of its base claim. A row of a claim or profile that is not in the catalog has no column.
+One line per instance: a constant whose type, after its leading binders, is `Instance` or `StrongInstance`. An instance with parameters (`gridInst p`) has one line, by its constant name. A row at a closed instance term (`gridInst smokeParams`, one parameter record) has its own line, by that term. One column per catalog claim, then one column per catalog profile, each by its `id`, in lock order. A row of a pulled claim goes in the column of its base claim. A row of a claim or profile that is not in the catalog has no column.
 
 A cell shows its rows. Only a row with status `LEAN` or `LEAN (family)` gives a result:
 

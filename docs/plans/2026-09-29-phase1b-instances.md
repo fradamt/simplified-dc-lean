@@ -106,6 +106,8 @@ r194/r196 (`research/async-resilient-committees/tip-stability/codex/root-design.
 └──────────────────────────────────────┴──────────────────────┴──────────────────────────────┘
 ```
 
+Superseded 2026-09-29 by the user's I9 decision (design §12): no `rootOK` in `wellFormed`; the root check is the dependency lookup.
+
 Note (Claude review m9b). In r196's minimal variant, `rootOK` is in `wellFormed` and in admission, as the same local check. A proposal with a bad root is then outside `ExecutionValid` (`DeliveryWellFormed.wire`, `Conditions.lean:55-57`), so admission never refuses a valid delivery for its root. I9 then adds no permanent refusal: neither `excludes` nor SA-PC's `rfl` sites change. They change only if admission checks more than the wire check.
 
 ## Global Constraints

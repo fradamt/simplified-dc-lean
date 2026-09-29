@@ -566,9 +566,9 @@ its label `r` is before the previous slot (the clock only goes forward), or
 its seat already equivocates at `r`. `admitVote` returns the state unchanged
 in both cases, and in no later state of a valid run accepts the HEAD. A
 processed HEAD is not excluded, and a proposal is never excluded. "Exactly the
-permanent refusals" holds for objects that pass the wire check (`wellFormed`);
-an ill-formed object is also refused for good, but `DeliveryWellFormed.wire`
-keeps it out of every valid run. -/
+permanent refusals" is a statement about objects that pass the wire check
+(`wellFormed`). An ill-formed object is outside every valid run by
+`DeliveryWellFormed.wire`, so `excludes` does not have to cover it. -/
 def excludes (p : Params) {n : Nat} (st : State n) (o : Wire n) : Bool :=
   match o.auth, o.payload with
   | .seat r i, .head _ =>

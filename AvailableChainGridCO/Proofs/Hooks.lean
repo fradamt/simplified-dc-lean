@@ -49,12 +49,6 @@ theorem excludes_not_processed (p : Params) {n : Nat} (st : State n) (o : Wire n
   obtain ⟨r, i, x, rfl⟩ := excludes_head p st o h
   simpa [processed] using ((excludes_head_iff p st r i x).mp h).1
 
-private theorem votesAt_subset {n : Nat} (a b : State n) (r : Slot)
-    (hsub : a.votes ⊆ b.votes) : votesAt a r ⊆ votesAt b r := by
-  intro o ho
-  obtain ⟨hm, hl⟩ := List.mem_filter.mp ho
-  exact List.mem_filter.mpr ⟨hsub hm, hl⟩
-
 /-- An exclusion survives a state change that keeps the clock, keeps the
 stored HEADs, and does not store the excluded HEAD. -/
 private theorem excludes_of_votes (p : Params) {n : Nat} (st st' : State n) (o : Wire n)
@@ -255,8 +249,7 @@ theorem excludes_inert (p : Params) :
   · simp [hc]
 
 -- The run-level facts keep the `HooksSound` field shape, `[Fintype V]` included.
-set_option linter.unusedFintypeInType false
-
+set_option linter.unusedFintypeInType false in
 /-- Exclusion is stable along a valid run. The old-label test needs the
 clock not to move backwards, which only a valid schedule gives. -/
 theorem excludes_stable (p : Params) :
@@ -270,6 +263,7 @@ theorem excludes_stable (p : Params) :
     (fun st t ht hq => excludes_clock p st o t ht hq)
     (fun st o' hq => excludes_process p st o o' hq) hij v h
 
+set_option linter.unusedFintypeInType false in
 theorem processed_stable (p : Params) :
     ∀ {V : Type} [DecidableEq V] [Fintype V] (E : Env V)
       (rho : Run V (gridCO p)), ScheduleWellFormed E rho → ∀ v o i j, i ≤ j →
@@ -297,6 +291,7 @@ theorem processed_stable (p : Params) :
           exact process_blocks_subset p st o' hq)
     rho hij v h
 
+set_option linter.unusedFintypeInType false in
 theorem deps_stable (p : Params) :
     ∀ {V : Type} [DecidableEq V] [Fintype V] (E : Env V)
       (rho : Run V (gridCO p)), ScheduleWellFormed E rho → ∀ v o i j, i ≤ j →

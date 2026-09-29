@@ -35,7 +35,8 @@ theorem equivocates_mono {n : Nat} (xs ys : List (Wire n)) (i : Fin n)
   simp only [equivocates, decide_eq_true_eq] at he ⊢
   omega
 
-private theorem votesAt_subset {n : Nat} (a b : State n) (r : Slot)
+/-- The HEADs of one label grow with the stored HEADs. -/
+theorem votesAt_subset {n : Nat} (a b : State n) (r : Slot)
     (hsub : a.votes ⊆ b.votes) : votesAt a r ⊆ votesAt b r := by
   intro o ho
   obtain ⟨hm, hl⟩ := List.mem_filter.mp ho

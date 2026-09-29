@@ -20,14 +20,17 @@ certificate; it is still written as a row, with status `CONDITIONAL (not a
 certificate)`. The one exception is a FAMILY row: a row of kind
 `profile-holds` whose binder telescope (implicit and instance binders
 included) has exactly one binder, whose type is not a `Prop` and is
-syntactically a type of `familyBinders` (an `abbrev` alias is not unfolded, so
-`SAPC.Params` has its own entry). Each type of `familyBinders` has a witness, and the script
-checks that the witness exists, is not `unsafe`, has exactly that type and uses
-only the allowed axioms (exit 2 otherwise). So the domain is not empty, and the `Prop`
-fields of the type (`deltaPos`, …) stay visible as the constraints of the
-domain. A witness does not show that a run exists. Every other leading binder
-(a `Prop`, a data type outside `familyBinders`, a function type, two or more
-binders) makes the row CONDITIONAL.
+syntactically a type of `familyBinders` (an `abbrev` alias is not unfolded,
+so `SAPC.Params` has its own entry), and whose instance argument, below its
+parent projections, is `f x` with `x` that binder (so the binder reaches the
+instance). Each type of `familyBinders` has a witness, and the script checks
+that the witness exists, is not `unsafe`, has exactly that type and uses only
+the allowed axioms (exit 2 otherwise). So the domain is not empty, and the
+`Prop` fields of the type (`deltaPos`, …) stay visible as the constraints of
+the domain. A witness does not show that a run exists. Every other leading
+binder (a `Prop`, a data type outside `familyBinders`, a function type, two
+or more binders, a binder that the instance does not use) makes the row
+CONDITIONAL.
 
 A row that is not CONDITIONAL has status `LEAN` only if every axiom the
 declaration transitively depends on (`Lean.collectAxioms`) is one of
@@ -35,17 +38,20 @@ declaration transitively depends on (`Lean.collectAxioms`) is one of
 `sorryAx`) gives status `UNSOUND(<axiom names>)`; a CONDITIONAL row is not
 checked, since it is not a certificate. An `unsafe` declaration has status
 `UNSOUND(unsafe)`, with or without binders, since an `unsafe` self-reference
-proves any type without an axiom. A row's claim column keeps the
-claim's name and appends `NON-CATALOG` if the `ClaimSpec` it certifies is not
+proves any type without an axiom. A row's claim column keeps the claim's
+name and appends `NON-CATALOG` if the `ClaimSpec` it certifies is not
 declared in a module under `AvailableChainFramework.Catalog`.
 
 A certificate of a pulled claim `ClaimSpec.pull m c` shows the base claim
 `c` with the suffix `(pulled)`. A row of kind `profile-cert` (a `ProfileCert p
 I`, or a `Candidate I`, which is `ProfileCert core I`) or `profile-holds`
-shows the profile `id` in the claim column, for example `core.v1`. The
-instance column names the source instance: for a structure projection to an
-instance type (`(sapcInst p).toInstance`), the instance below the projection
-(`sapcInst`).
+shows the profile `id` in the claim column, for example `core.v1`, and then
+its constant as ` at C = <term>` (`constSuffix`). The instance column names
+the source instance: below a parent projection to an instance type
+(`(sapcInst p).toInstance` gives `sapcInst`), the head constant if the
+instance depends on a binder (`gridInst p` gives `gridInst`), and the full
+term if it is closed (`gridInst smokeParams`), so that a row at one parameter
+record does not read as a row for every record.
 
 The libraries in `instanceLibraries` are imported, and only their modules
 give rows. A row of a module under `AvailableChainRegistry.Gaps` has status
@@ -55,18 +61,22 @@ row gets the suffix ` (family)` after this rule: `LEAN (family)` or
 
 The same run writes `docs/MATRIX.md` from the same rows: one line per
 constant of `instanceLibraries` whose type (after its leading binders) is an
-`instanceTypes` type, one column per catalog claim and one per catalog
+`instanceTypes` type, and one line per other instance column of a row (a
+closed instance term); one column per catalog claim and one per catalog
 profile. Its header gives the meaning of each cell.
 
-Run: `lake env lean --run scripts/Registry.lean [--check | --selftest <file>
-[<module>]]`. Without an argument, write `docs/REGISTRY.md` and
-`docs/MATRIX.md`. With `--check`, compare the texts with the two files, name
-each file that is different, and write nothing. With `--selftest`, elaborate
-the Lean file `<file>` as the module `<module>` (default `RegistrySelfTest`)
-and print the rows of its own declarations; write nothing.
+Run: `lake env lean --run scripts/Registry.lean [--check | (--selftest |
+--selftest-write) <file> [<module>]]`. Without an argument, write
+`docs/REGISTRY.md` and `docs/MATRIX.md`. With `--check`, compare the texts
+with the two files, name each file that is different, and write nothing.
+With `--selftest`, elaborate the Lean file `<file>` as the module `<module>`
+(default `RegistrySelfTest`), print one line per row of its own declarations
+(the row and its MATRIX cell), and compare the lines with the file
+`<file>.expected` (`<file>.<module>.expected` for another module).
+`--selftest-write` writes that file in place of the comparison.
 Exit codes: 0 written, or the same; 1 different; 2 a usage error, an
-unreadable file, a missing witness, a witness of a wrong type or with a bad
-axiom, or a self-test file that does not elaborate. -/
+unreadable file, a missing witness, a witness of a wrong type, `unsafe` or
+with a bad axiom, or a self-test file that does not elaborate. -/
 
 /-- The libraries that hold certificates and refutations. The script imports
 them and scans only their modules. -/
@@ -235,23 +245,64 @@ def parentInstField (env : Environment) (s : Name) (k : Nat) : Bool :=
     | some f => (isSubobjectField? env s f).any instanceTypes.contains
     | none => false
 
-/-- The instance column: the head constant of the instance argument `i`. For a
-parent projection to an `instanceTypes` type (`StrongInstance.toInstance x`,
-or the same `Expr.proj`), the column of `x`. Any other projection is shown by
-its own name. -/
-partial def instName (env : Environment) (i : Expr) : String :=
+/-- The instance argument `i` below its parent projections to an
+`instanceTypes` type (`StrongInstance.toInstance x`, or the same `Expr.proj`,
+gives `x`). Any other projection stays. -/
+partial def instCore (env : Environment) (i : Expr) : Expr :=
   match i with
-  | .proj s k x => if parentInstField env s k then instName env x else "?"
+  | .proj s k x => if parentInstField env s k then instCore env x else i
   | _ =>
-    match i.getAppFn.constName? with
-    | none => "?"
-    | some f =>
-        match env.getProjectionFnInfo? f with
-        | some info =>
-            if parentInstField env info.ctorName.getPrefix info.i &&
-                i.getAppNumArgs == info.numParams + 1 then instName env i.appArg!
-            else toString f
-        | none => toString f
+    match i.getAppFn.constName?.bind env.getProjectionFnInfo? with
+    | some info =>
+        if parentInstField env info.ctorName.getPrefix info.i &&
+            i.getAppNumArgs == info.numParams + 1 then instCore env i.appArg!
+        else i
+    | none => i
+
+/-- `e` pretty-printed on one line, with full names. -/
+def ppLine (e : Expr) : MetaM String := do
+  let f ← withOptions (fun o => o.setBool `pp.fullNames true) (Meta.ppExpr e)
+  -- One space for each run of white space.
+  let (out, _) := (toString f).foldl (init := ("", false)) fun (acc, sp) c =>
+    if c.isWhitespace then (if sp then (acc, true) else (acc.push ' ', true))
+    else (acc.push c, false)
+  return out
+
+/-- The instance column of the instance argument `i` of the type `t` (after the
+binders of `t`), below its parent projections (`instCore`): its head constant
+if it depends on a binder or has no arguments (`gridInst p` gives `gridInst`),
+else the full closed term (`gridInst smokeParams`), so that a row at one
+parameter record gets its own MATRIX line. `?` if the head is not a constant. -/
+def instName (env : Environment) (t i : Expr) : IO String := do
+  let c := instCore env i
+  let some f := c.getAppFn.constName? | return "?"
+  if c.hasLooseBVars || c.getAppNumArgs == 0 then return toString f
+  runMeta env <| Meta.forallTelescope t fun _ _ => ppLine c
+
+/-- The instance argument `i` (after one binder), below its parent
+projections, is `f x` with `x` that binder: the binder reaches the instance. -/
+def bindsInstance (env : Environment) (i : Expr) : Bool :=
+  let c := instCore env i
+  c.getAppFn.isConst && c.getAppNumArgs == 1 && c.appArg! == .bvar 0
+
+/-- The constant of a row of kind `profile-holds` or `profile-cert`, as the
+suffix ` at C = <term>` of its claim column. For `profile-holds`, the argument
+`C` of `holdsAt p I C` (with the binder names of the type). For
+`profile-cert`, the field `shared` of the value, if the value reduces to
+`ProfileCert.mk`; else `?`. -/
+def constSuffix (env : Environment) (h : Name) (ci : ConstantInfo) : IO String := do
+  let c ← try
+      runMeta env <| Meta.forallTelescope ci.type fun _ body => do
+        if h == ``AvailableChain.Framework.Profile.holdsAt then
+          ppLine body.getAppArgs[3]!
+        else
+          let some v := ci.value? | return "?"
+          let v ← Meta.whnf v
+          if v.isAppOfArity ``AvailableChain.Framework.ProfileCert.mk 6 then
+            ppLine v.getAppArgs[3]!
+          else return "?"
+    catch _ => pure "?"
+  return s!" at C = {c}"
 
 /-- One row of `docs/REGISTRY.md`. `col` is the constant of the catalog claim
 (the base claim of a pull) or catalog profile of the row, if there is one. -/
@@ -280,21 +331,21 @@ def rowOf (env : Environment) (n : Name) (ci : ConstantInfo) (m : Name) :
         -- `K p I` (and `C`): the claim domain, the profile, the instance.
         let p := args[1]!
         let col := p.getAppFn.constName?.filter (inCatalog env)
-        pure (← profileColumn env args[0]! p, col, args[2]!)
+        pure ((← profileColumn env args[0]! p) ++ (← constSuffix env h ci), col, args[2]!)
     | ``AvailableChain.Framework.Catalog.Candidate =>
         -- `I`: `Candidate I` is `ProfileCert core I` over `v1`. The two
         -- constants are hard-coded here. A change to `Candidate` or `core`
         -- changes their lines in `docs/catalog.lock`, so `CatalogLock
         -- --check` fails until this path is checked again.
-        pure (← profileColumn env (mkConst ``AvailableChain.Framework.ClaimDomain.v1)
-            (mkConst ``AvailableChain.Framework.Catalog.core),
+        pure ((← profileColumn env (mkConst ``AvailableChain.Framework.ClaimDomain.v1)
+            (mkConst ``AvailableChain.Framework.Catalog.core)) ++ (← constSuffix env h ci),
           some ``AvailableChain.Framework.Catalog.core, args[0]!)
     | _ =>
         -- `K c I`: the claim domain, the claim, the instance.
         let col := (pullBase args[1]!).1.getAppFn.constName?.filter (inCatalog env)
         pure (claimColumn env args[1]!, col, args[2]!)
   let bs ← bindersOf env ci.type
-  let family := isFamily kind bs
+  let family := isFamily kind bs && bindsInstance env i
   -- `collectAxioms` finds no axiom in an `unsafe` self-reference, which
   -- proves any type.
   let status ← if ci.isUnsafe then pure "UNSOUND(unsafe)"
@@ -302,7 +353,7 @@ def rowOf (env : Environment) (n : Name) (ci : ConstantInfo) (m : Name) :
     else pure "CONDITIONAL (not a certificate)"
   let status := if status == "LEAN" && gapsPrefix.isPrefixOf m then "KNOWN-GAP" else status
   let status := if family then status ++ " (family)" else status
-  return some { decl := n, kind, claim, col, inst := instName env i, status }
+  return some { decl := n, kind, claim, col, inst := ← instName env ci.type i, status }
 
 /-- The rows of the declarations of `instanceLibraries` modules, sorted by
 line, and the instance constants of those modules. -/
@@ -370,13 +421,25 @@ def boxTable (header : List String) (body : List (List String)) : String :=
     ([rule "┌" "┬" "┐", line header, rule "├" "┼" "┤"] ++ body.map line ++
       [rule "└" "┴" "┘"])
 
-/-- The text of `docs/MATRIX.md`. -/
-def matrixText (env : Environment) (rows : Array Row) (insts : Array Name) : IO String := do
+/-- The MATRIX columns: the catalog claims, then the catalog profiles, each
+with its `id`. -/
+def matrixColumns (env : Environment) : IO (Array (Name × Name)) := do
   let claims ← catalogColumns env ``AvailableChain.Framework.ClaimSpec
     ``AvailableChain.Framework.ClaimSpec.id
   let profiles ← catalogColumns env ``AvailableChain.Framework.Profile
     ``AvailableChain.Framework.Profile.id
-  let cols := claims ++ profiles
+  return claims ++ profiles
+
+/-- Why the row `r` has no MATRIX cell, if it has none. -/
+def noCell (cols : Array (Name × Name)) (r : Row) : Option String :=
+  let what := if r.kind.startsWith "profile" then "profile" else "claim"
+  if r.inst == "?" then some "no instance"
+  else if !r.col.any (fun c => cols.any (·.1 == c)) then some s!"{what} not in the catalog"
+  else none
+
+/-- The text of `docs/MATRIX.md`. -/
+def matrixText (env : Environment) (rows : Array Row) (insts : Array Name) : IO String := do
+  let cols ← matrixColumns env
   -- An instance of a row that is not an instance constant still gets a line.
   let extra := (rows.map (·.inst)).filter fun s =>
     s != "?" && !insts.any (toString · == s)
@@ -388,12 +451,8 @@ def matrixText (env : Environment) (rows : Array Row) (insts : Array Name) : IO 
       if parts.isEmpty then "·" else String.intercalate "+" parts
   let header := "Instance" :: cols.toList.map (idText ·.2)
   -- The rows without a cell, each with the reason.
-  let isCol (c : Option Name) := c.any fun c => cols.any (·.1 == c)
-  let what (r : Row) := if r.kind.startsWith "profile" then "profile" else "claim"
   let dropped := rows.toList.filterMap fun r =>
-    if r.inst == "?" then some s!"- `{r.decl}` ({r.status}): no instance.\n"
-    else if !isCol r.col then some s!"- `{r.decl}` ({r.status}): {what r} not in the catalog.\n"
-    else none
+    (noCell cols r).map fun why => s!"- `{r.decl}` ({r.status}): {why}.\n"
   let dropped := if dropped.isEmpty then "Rows without a cell: none.\n"
     else "Rows without a cell:\n\n" ++ String.join dropped
   let libs := String.intercalate ", " (instanceLibraries.map (s!"`{·}`"))
@@ -402,7 +461,9 @@ def matrixText (env : Environment) (rows : Array Row) (insts : Array Name) : IO 
     "rows without a cell are listed below the table.\n\n" ++
     "One line per instance: a constant whose type, after its leading binders, is " ++
     "`Instance` or `StrongInstance`. An instance with parameters (`gridInst p`) has " ++
-    "one line, by its constant name. One column per catalog claim, then one column " ++
+    "one line, by its constant name. A row at a closed instance term " ++
+    "(`gridInst smokeParams`, one parameter record) has its own line, by that term. " ++
+    "One column per catalog claim, then one column " ++
     "per catalog profile, each by its `id`, in lock order. A row of a pulled claim " ++
     "goes in the column of its base claim. A row of a claim or profile that is not " ++
     "in the catalog has no column.\n\n" ++
@@ -423,6 +484,9 @@ def matrixText (env : Environment) (rows : Array Row) (insts : Array Name) : IO 
     dropped
 
 def registryPath : System.FilePath := "docs/REGISTRY.md"
+
+/-- The default module name of a self-test file. -/
+def selftestModule : Name := `RegistrySelfTest
 def matrixPath : System.FilePath := "docs/MATRIX.md"
 
 /-- The environment of `instanceLibraries` and `witnessModules`. -/
@@ -441,21 +505,49 @@ def generated : IO (List (System.FilePath × String)) := do
   let (rows, insts) ← scan env
   return [(registryPath, registryText rows), (matrixPath, ← matrixText env rows insts)]
 
-/-- Elaborate `file` as the module `m` and print the rows of its own
-declarations. -/
-def selftest (file : System.FilePath) (m : Name) : IO UInt32 := do
+/-- The expected-output file of a self-test: `<file>.expected` for the default
+module, `<file>.<module>.expected` for another module. -/
+def expectedPath (file : System.FilePath) (m : Name) : System.FilePath :=
+  let stem := file.withExtension ""
+  if m == selftestModule then stem.addExtension "expected"
+  else (stem.addExtension m.toString).addExtension "expected"
+
+/-- Elaborate `file` as the module `m`, and give one line per row of its own
+declarations: the row and its MATRIX cell (or `no cell: <reason>`). -/
+def selftestText (file : System.FilePath) (m : Name) : IO String := do
   let input ← IO.FS.readFile file
   -- `runFrontend` imports with environment extensions.
   unsafe enableInitializersExecution
   let some env ← Elab.runFrontend input {} file.toString m
-    | IO.eprintln s!"{file} does not elaborate"; return 2
+    | throw (IO.userError s!"{file} does not elaborate")
   checkWitnesses env
+  let cols ← matrixColumns env
   let mut rows : Array Row := #[]
   for (n, ci) in env.constants.map₂.toList do
     if n.isInternal then continue
     if let some r ← rowOf env n ci m then rows := rows.push r
-  for r in rows.qsort (·.line < ·.line) do IO.println r.line
-  return 0
+  let lines := (rows.qsort (·.line < ·.line)).toList.map fun r =>
+    let cell := match noCell cols r with
+      | some why => s!"no cell: {why}"
+      | none => cellOf r
+    s!"{r.line} {cell} │\n"
+  return String.join lines
+
+/-- Print the self-test lines of `file` as the module `m`, and compare them
+with the expected-output file (exit 1 if different). With `write`, write the
+expected-output file instead. -/
+def selftest (file : System.FilePath) (m : Name) (write : Bool := false) : IO UInt32 := do
+  let text ← selftestText file m
+  IO.print text
+  let path := expectedPath file m
+  if write then
+    IO.FS.writeFile path text
+    return 0
+  let old ← try IO.FS.readFile path
+    catch e => throw (IO.userError s!"cannot read {path}: {e}")
+  if old == text then return 0
+  IO.eprintln s!"{path} differs from the self-test output"
+  return 1
 
 /-- Write both files. -/
 def writeFiles : IO UInt32 := do
@@ -479,11 +571,13 @@ def main (args : List String) : IO UInt32 := do
   let run : IO UInt32 := match args with
     | [] => writeFiles
     | ["--check"] => checkFiles
-    | ["--selftest", file] => selftest file `RegistrySelfTest
+    | ["--selftest", file] => selftest file selftestModule
     | ["--selftest", file, m] => selftest file m.toName
+    | ["--selftest-write", file] => selftest file selftestModule true
+    | ["--selftest-write", file, m] => selftest file m.toName true
     | _ => do
-        IO.eprintln
-          "usage: lake env lean --run scripts/Registry.lean [--check | --selftest <file> [<module>]]"
+        IO.eprintln <| "usage: lake env lean --run scripts/Registry.lean " ++
+          "[--check | (--selftest | --selftest-write) <file> [<module>]]"
         return 2
   tryCatch run fun e => do
     IO.eprintln s!"{e}"
