@@ -219,7 +219,7 @@ not re-pinned now. A citation of the form "spec/fgsa-protocol.tex, lines
 │       │   FinalityComparison.lean                                        │                                  │                                  │
 │ vcW   │ vc/DecoupledConsensusProofs/Protocol/ValidatorClient/            │ f0d45fa7fd93a0a1c9f4dfccaf6c3f7c │ 63c43245c5deee7182a25f3963c22b5d │
 │       │   WeakHeightBounds.lean                                          │                                  │                                  │
-│ acG   │ ac/AvailableChainGridCO/Model/Protocol.lean                      │ 09daa0d53ac4b2b5a1df002bf4263e19 │ aebcbf3be0a79a593582d8b63a92507f │
+│ acG   │ ac/AvailableChainGridCO/Model/Protocol.lean                      │ f2e8afcecfe06101852ddddb2b0002a7 │ 64982d34413edcac0f958dc7934b86bc │
 └───────┴──────────────────────────────────────────────────────────────────┴──────────────────────────────────┴──────────────────────────────────┘
 ```
 
@@ -1791,11 +1791,13 @@ in §4. Every status below is for the FG-SA client (§0).
   `8907540c5c71fe06703bc8d2ec2d30bc6cbc752a5f7577219a69196e2fd8ef37`); the
   SA rule, sa lines 83–91, 157–161 and 219 (file `slow-arming.md`, sha256
   `c1d1a4e343c6910a1072cc7e6e8816b6ab6ac94b4940f204573f3a39c500db0b`); the
-  SA Lean model, acG lines 381–383, 445–449 and 470–475 (file
-  `AvailableChainGridCO/Model/Protocol.lean` at main `3e48c9f`, sha256
-  `09daa0d53ac4b2b5a1df002bf4263e19aebcbf3be0a79a593582d8b63a92507f`;
+  SA Lean model, acG lines 352–354, 416–420 and 441–446 (file
+  `AvailableChainGridCO/Model/Protocol.lean` at main `03bd912`, sha256
+  `f2e8afcecfe06101852ddddb2b0002a764982d34413edcac0f958dc7934b86bc`;
   refreshed 2026-09-29: the cited text is byte-identical to the registered
-  lines 381–383, 431–435 and 456–461 at `1a3f73a`, sha256 `2cb079fd…`); bp
+  lines 381–383, 431–435 and 456–461 at `1a3f73a`, sha256 `2cb079fd…`,
+  and to lines 381–383, 445–449 and 470–475 at `3e48c9f`, sha256
+  `09daa0d5…`; E-3 moved the walk definitions to GridCO/Model/Walk); bp
   F-table row B3, line 314.
 - Hypotheses: the static faulty set has size a with `h > a` and
   `h + a ≤ n` (so `a < τ`; under `a≤f` also `τ > a`); authentic HEADs.
@@ -1846,8 +1848,8 @@ in §4. Every status below is for the FG-SA client (§0).
 > ```
 
 > _AvailableChainGridCO/Model/Protocol.lean at `1a3f73a`, lines 381–383,
-> 431–435 and 456–461 (at `3e48c9f`: 381–383, 445–449 and 470–475, the same
-> text):_
+> 431–435 and 456–461 (at `3e48c9f`: 381–383, 445–449 and 470–475; at
+> `03bd912`: 352–354, 416–420 and 441–446; the same text):_
 >
 > ```lean
 > def cleanSupport (p : Params) {n : Nat} (st : State n) (r : Slot) : List (Wire n) :=
@@ -1873,7 +1875,7 @@ in §4. Every status below is for the FG-SA client (§0).
   the v1 provenance sentence "Each such C has an honest supporter since
   `τ>a`" (`fg.provenance.v1`).
 - Note: the Lean model has no separate `FastWrite` record. The fast test is
-  the first disjunct of `admissionLevels` (acG line 473; line 459 at `1a3f73a`). A Lean statement
+  the first disjunct of `admissionLevels` (acG line 444 at `03bd912`; line 473 at `3e48c9f`; line 459 at `1a3f73a`). A Lean statement
   of this entry must name that disjunct, not the slow one.
 
 ### `ap.headReachesLo.v1` — the AP head is in D at height at least lo
