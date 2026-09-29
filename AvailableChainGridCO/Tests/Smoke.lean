@@ -2,8 +2,6 @@ module
 public import AvailableChainGridCO.Model.Protocol
 public import AvailableChainGridCO.Proofs.Handling
 import Mathlib.Tactic.IntervalCases
-public meta import AvailableChainGridCO.Model.Protocol
-public meta import AvailableChainGridCO.Proofs.Handling
 
 @[expose] public section
 
@@ -140,14 +138,14 @@ def handlingPass : Bool :=
     decide (handles smokeParams late envelope headB) &&
     !(processed (process smokeParams late envelope) headB)
 
-#eval tinyHeadCount
-#eval tinyExpiry
-#eval tinyGatePass
-#eval tinyReleasePass
-#eval ingressPass
-#eval blockAdmissionPass
-#eval handlingPass
-#eval stable (Run.readAt (gridCO smokeParams) tinyRun 2 0)
+example : tinyHeadCount = 1 := by decide
+example : tinyExpiry = true := by decide
+example : tinyGatePass = true := by decide
+example : tinyReleasePass = true := by decide
+example : ingressPass = true := by decide
+example : blockAdmissionPass = true := by decide
+example : handlingPass = true := by decide
+example : stable (Run.readAt (gridCO smokeParams) tinyRun 2 0) = .genesis := by decide
 
 end AvailableChain.GridCO.Tests
 end

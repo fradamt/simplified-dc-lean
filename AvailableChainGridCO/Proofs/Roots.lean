@@ -13,7 +13,9 @@ variable [LeasePolicy]
 
 open AvailableChain.Generic AvailableChain.Statements.Generic
 
-/-- The reference root idealization, on the ancestors of a local tree. -/
+/-- The reference root idealization, on the ancestors of a local tree. Roots
+are computed from block content, so the property holds for every tree
+(`rootInjectiveBelow_all`). -/
 def RootInjectiveBelow (tree : List Block) : Prop :=
   ∀ A C, (∃ B ∈ tree, Block.Preceq A B) →
     (∃ B ∈ tree, Block.Preceq C B) → A.root = C.root → A = C
