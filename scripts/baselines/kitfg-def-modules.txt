@@ -1,0 +1,6 @@
+# KitFG definition modules (step-2 ruling D06): `@[expose] public section`,
+# definitions and f_def lemmas only. Read by check (b) check-expose and
+# check (e) check-layers. One short module name per line.
+StoreInvDef
+ViewLock
+HonestRows
