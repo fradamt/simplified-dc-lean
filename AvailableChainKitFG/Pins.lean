@@ -38,6 +38,13 @@ tag: the tag names its main id, and a row of another id can use it (for example
 two FG libraries, so that `scripts/CheckFGAxioms.lean` checks its axioms.
 `scripts/check-fg.sh` builds the two libraries and runs every check.
 
+A clause can also cite constants of a library above the FG libraries with
+`leanIn lib names` (single-backtick names, so this file does not import that
+library). `scripts/FGPinIds.lean` rejects a `lib` that is not on its allowlist,
+and `scripts/check-fgsa.sh` checks those names in the environment of `lib`. The
+pin gate for a pin with `leanIn` evidence is `scripts/check-fg.sh` plus
+`scripts/check-fgsa.sh`.
+
 Root injectivity. The root of an FG block is a function of its content
 (`FGBlock.root_injective`), so the binders `ViewRootInj` and `RootInjectiveOn`
 are not run idealizations: `viewRootInj_all` and `rootInjectiveOn_all` prove
@@ -57,6 +64,9 @@ structure Src where
 inductive Cov where
   | lean (names : List Lean.Name)                   -- a theorem proves it; no extra
                                                     -- hypothesis
+  | leanIn (lib : String) (names : List Lean.Name)  -- as `lean`, with constants of the
+    -- library `lib` above the FG libraries (not imported here: single-backtick names);
+    -- scripts/check-fgsa.sh checks them in the environment of `lib`
   | leanHyp (names : List Lean.Name) (hyps : String) -- proved with these hypotheses, or
                                                     -- "definition only"
   | byHyp (names : List Lean.Name) (hyp : String) (discharge : String)
@@ -510,7 +520,8 @@ def manifest (ps : List Pin) (ds : List DefPin) (nf : List (String × String))
       (rs.map (·.1)).mergeSort (fun a b => decide (a ≤ b)))
 
 /-- Every Lean name of the table (the pins, `defPins` and `helpers`), without
-duplicates, for `scripts/FGPinIds.lean --check-names`. -/
+duplicates, for `scripts/FGPinIds.lean --check-names`. The `leanIn` names are
+not in it: see `extNames`. -/
 def pinNames (ps : List Pin) (ds : List DefPin) (hs : List Lean.Name) : List Lean.Name :=
   (ps.flatMap fun p => p.clauses.flatMap fun c =>
     match c.cov with
@@ -518,6 +529,15 @@ def pinNames (ps : List Pin) (ds : List DefPin) (hs : List Lean.Name) : List Lea
     | .leanHyp ns _ => ns
     | .byHyp ns _ _ => ns
     | _ => []) ++ ds.map (·.lean) ++ hs |>.eraseDups
+
+/-- The `leanIn` citations of the table as `(pin id, lib, name)`, for
+`scripts/FGPinIds.lean` (the library allowlist, and the `--ext` records that
+`scripts/check-fgsa.sh` checks). -/
+def extNames (ps : List Pin) : List (String × String × Lean.Name) :=
+  ps.flatMap fun p => p.clauses.flatMap fun c =>
+    match c.cov with
+    | .leanIn lib ns => ns.map (p.id, lib, ·)
+    | _ => []
 
 /-! ## Each Lean name of the table elaborates (the build fails when a name moves) -/
 

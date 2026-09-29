@@ -36,6 +36,10 @@
 #    allowlist entry has an id, a date and a reason. A hist pin with no
 #    allowlist entry fails; an allowlist entry with no hist record fails.
 # A failed build prints BUILD FAILED and exits 2.
+# `leanIn` names (constants of a library above the FG libraries) are not in
+# the manifest. The emitter fails in step 0 when a `leanIn` library is not on
+# its allowlist; scripts/check-fgsa.sh checks the names themselves. The pin
+# gate for a pin with `leanIn` evidence is check-fg.sh plus check-fgsa.sh.
 # Negative tests only: FGPINIDS=<file> runs another emitter script,
 # FGREG=<file> reads another registry, FGHISTALLOW=<file> reads another
 # allowlist (scripts/check-fg.sh runs these controls).

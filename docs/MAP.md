@@ -926,8 +926,10 @@ registry id, or the AP fact that carries the clause).
 │                             │ the names exist; reads built data            │                     │
 │ scripts/FGPinIds.lean       │ prints the manifest of the elaborated pin    │ 0 clean; 2 a pinned │
 │                             │ table; --check-names checks that each pinned │ name is not an FG   │
-│                             │ Lean name is an FG constant; reads built     │ constant            │
-│                             │ data                                         │                     │
+│                             │ Lean name is an FG constant; --ext prints    │ constant, or a      │
+│                             │ the leanIn names; every mode rejects a       │ leanIn library is   │
+│                             │ leanIn library that is not on its allowlist; │ not on the          │
+│                             │ reads built data                             │ allowlist           │
 │ scripts/check-fg-pins.sh    │ builds the two libraries, runs               │ 0 clean; 1 registry │
 │                             │ FGPinIds.lean; strict manifest grammar and   │ mismatch; 2 build   │
 │                             │ trailers; no pin id is also a notFormalized  │ failed, bad or      │
@@ -1028,9 +1030,9 @@ rows under `scripts/` are paths from the repository root.
 │ scripts/check-fgsa.sh          │ build (--wfail); root imports and the direct-  │                    │
 │                                │ import allowlist with directory rules, on      │                    │
 │                                │ parsed headers; native scan; Q1/Q5 grep; the   │                    │
-│                                │ two Lean checks (both required); negative      │                    │
-│                                │ controls for each import, closure, coverage    │                    │
-│                                │ and lease rule                                 │                    │
+│                                │ three Lean checks (all required); negative     │                    │
+│                                │ controls for each import, closure, coverage,   │                    │
+│                                │ lease and ext-name rule                        │                    │
 │ scripts/CheckFGSAAxioms.lean   │ axioms of every compiled FGSA constant; every  │                    │
 │                                │ source file is in the build; no Framework,     │                    │
 │                                │ Registry, SAPC or Witnesses module in the      │                    │
@@ -1040,6 +1042,12 @@ rows under `scripts/` are paths from the repository root.
 │                                │ the reached AvailableChain.* definitions is    │                    │
 │                                │ slowLeasePolicy (or, in a generic imported     │                    │
 │                                │ definition, its own parameter)                 │                    │
+│ scripts/CheckFGSAExt.lean      │ each leanIn name of the FG pin table (records  │                    │
+│                                │ of FGPinIds.lean --ext) exists, is declared in │                    │
+│                                │ an AvailableChainFGSA module and uses only the │                    │
+│                                │ three standard axioms (the checks of a .lean   │                    │
+│                                │ name); the pin gate for a pin with leanIn      │                    │
+│                                │ evidence is check-fg.sh plus check-fgsa.sh     │                    │
 └────────────────────────────────┴────────────────────────────────────────────────┴────────────────────┘
 ```
 

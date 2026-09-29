@@ -2,7 +2,8 @@
 # FGSA checks: build (--wfail), root imports, native evaluation outside
 # comments, the direct-import allowlist with its directory rules, the Q1/Q5
 # boundary grep, the axiom check (with build coverage and the import-closure
-# check), the lease-instance check, and the negative controls of these checks.
+# check), the lease-instance check, the ext-name check of the FG pin table, and
+# the negative controls of these checks.
 # Import headers are parsed after comment removal (G13 Astra M2, Opus m1). The
 # parser fails closed, and the axiom script checks the same allowlist again on
 # the compiled import data (G13 fold MINOR-2). Source files: `find -L` with
@@ -10,7 +11,7 @@
 # Run: bash scripts/check-fgsa.sh. Exit 0 when every check passes.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-for f in scripts/CheckFGSAAxioms.lean scripts/CheckFGSALease.lean; do
+for f in scripts/CheckFGSAAxioms.lean scripts/CheckFGSALease.lean scripts/CheckFGSAExt.lean; do
   [ -f "$f" ] || { echo "MISSING CHECK SCRIPT: $f"; exit 2; }
 done
 
@@ -135,6 +136,17 @@ echo "== axioms, build coverage, import closure"
 lake env lean --run scripts/CheckFGSAAxioms.lean
 echo "== lease instances"
 lake env lean --run scripts/CheckFGSALease.lean
+# The `leanIn "AvailableChainFGSA"` names of AvailableChainKitFG/Pins.lean get
+# the checks of a `.lean` name (existence, the library of the declaring module,
+# the three standard axioms) in this environment; see scripts/CheckFGSAExt.lean.
+# FGPinIds.lean rejects a library that is not on its allowlist. The pin gate for
+# a pin with `leanIn` evidence is check-fg.sh plus this script.
+echo "== ext names of the FG pin table"
+lake build --wfail AvailableChainSimplexFG AvailableChainKitFG
+extrecs=$(mktemp)
+lake env lean --run scripts/FGPinIds.lean --ext > "$extrecs"
+lake env lean --run scripts/CheckFGSAExt.lean "$extrecs"
+rm -f "$extrecs"
 
 echo "== negative controls"
 neg=$(mktemp -d "$PWD/.lake/fgsa-neg.XXXXXX")
@@ -325,4 +337,23 @@ expect_fail "lease controls in imported definitions" $code "$out" \
   "AdvLib.0.AvailableChain.GridCO.fixedPriv: AvailableChain.GridCO.gate at AvailableChain.GridCO.gridLeasePolicy" \
   "AvailableChain.FGSA.useIrr: AvailableChain.GridCO.genI at cast" \
   "Evil.fixedGate: mentions AvailableChain.GridCO.gridLeasePolicy (reach)"
+# Ext-name controls: a name that does not exist; a name outside the library (a
+# KitFG constant under AvailableChainFGSA); an unknown library, which fails in
+# the manifest step (step 0) of check-fg-pins.sh, in the FG environment.
+printf 'ext AvailableChainFGSA AvailableChain.FGSA.noSuchName\nEND ext 1\n' > "$neg/extA"
+run lake env lean --run scripts/CheckFGSAExt.lean "$neg/extA"
+expect_fail "ext name that does not exist" $code "$out" \
+  "EXT NAME NOT FOUND: AvailableChain.FGSA.noSuchName"
+printf 'ext AvailableChainFGSA AvailableChain.KitFG.finalLock\nEND ext 1\n' > "$neg/extB"
+run lake env lean --run scripts/CheckFGSAExt.lean "$neg/extB"
+expect_fail "ext name outside its library" $code "$out" \
+  "EXT NAME OUTSIDE AvailableChainFGSA: AvailableChain.KitFG.finalLock"
+sed 's/^def table : List Pin := pins$/def table : List Pin := pins ++ [{ id := "neg.ctl.v1", sources := [], clauses := [⟨"control", .leanIn "AvailableChainFGSAX" [`AvailableChain.FGSA.gateStep]⟩] }]/' \
+  scripts/FGPinIds.lean > "$neg/FGPinIdsC.lean"
+grep -q 'AvailableChainFGSAX' "$neg/FGPinIdsC.lean" ||
+  { echo "NEGATIVE CONTROL unknown ext library: the table line did not change"; exit 1; }
+run env FGPINIDS="$neg/FGPinIdsC.lean" bash scripts/check-fg-pins.sh
+expect_fail "unknown ext library (check-fg-pins.sh step 0)" $code "$out" \
+  "UNKNOWN EXT LIBRARY: AvailableChainFGSAX (pin neg.ctl.v1, name AvailableChain.FGSA.gateStep)" \
+  "EMITTER FAILED"
 echo "all FGSA checks pass"
