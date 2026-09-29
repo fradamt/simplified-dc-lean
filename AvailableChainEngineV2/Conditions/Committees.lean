@@ -14,12 +14,15 @@ open AvailableChain
 
 variable {V : Type} {In : Type} {P : ProtocolSpec In}
 
-/-- The label families that a protocol declares (design §2 E2, E5).
+/-- The label families that a protocol declares (design §2 E2, E5). This
+structure only names the three families; it holds no law. The separation law
+and the factoring laws are fields of `Isolation` (plan 2a, Task 3), and the
+committee models are run conditions (`CStar`, `Linked`).
 
-* `ap`: the AP labels (`APLabels`). Their payloads and hooks factor through
-  the base (the isolation laws).
-* `fresh`: the designated fresh family. Regimes put `CStar` on it; its labels
-  are never self-visible (separation).
+* `ap`: the AP labels (`APLabels`). `Isolation` makes their payloads and
+  hooks factor through the base.
+* `fresh`: the designated fresh family. Regimes put `CStar` on it;
+  `Isolation` makes its labels not self-visible.
 * `linked`: the family with one validator identity across labels (for
   example FG labels). Regimes may put `Linked` on it; its labels may be
   self-visible. -/
@@ -36,14 +39,15 @@ def CStar (F : P.Label → Prop) (rho : Run V P) : Prop :=
 
 /-- Linked: one bijection `e : Fin N ≃ V` for all labels of `F`. Every label
 of `F` has `N` seats, and seat `i` of it is held by `e i` (through
-`Fin.cast`), so equal seat indices name one validator across labels. -/
+`Fin.cast`), so equal seat indices name one validator across labels.
+`Linked` also says that `V` is finite: it needs some `Fin N ≃ V`. -/
 def Linked (F : P.Label → Prop) (rho : Run V P) : Prop :=
   ∃ (N : Nat) (e : Fin N ≃ V), ∀ ℓ, F ℓ →
     ∃ h : P.seats ℓ = N, ∀ i, rho.seatOf ℓ i = e (Fin.cast h i)
 
 /-- Every label of `F` has one seat (for example a proposal duty). The holder
 of that seat is run data. -/
-def SingleSeat (F : P.Label → Prop) : Prop :=
+def SingleSeat (P : ProtocolSpec In) (F : P.Label → Prop) : Prop :=
   ∀ ℓ, F ℓ → P.seats ℓ = 1
 
 /-- `Linked` implies `CStar` on the same family. -/
