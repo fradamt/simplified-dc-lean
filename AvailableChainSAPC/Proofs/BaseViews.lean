@@ -199,6 +199,21 @@ theorem proposalEnters_data (p : Params) {n : Nat} (st : State n) (o : Wire n)
       have hgt := Nat.lt_of_not_ge hn
       simp [SA.Params.engine, hgt] at hg
 
+/-- A proposal with an unknown parent is a missing dependency: its block does
+not enter the base store. -/
+theorem proposalEnters_missingParent (p : Params) {n : Nat} (st : State n) (o : Wire n)
+    (b : Block) (raw support : List (HeadWire n))
+    (h : ¬ GridCO.blockKnown st.base b.parent) :
+    proposalEnters p st o b raw support = false := by
+  simp [proposalEnters, proposalBase, GridCO.admitProposal, h]
+
+/-- The proposal handler returns the state unchanged for an unknown parent. -/
+theorem admitProposal_missingParent (p : Params) {n : Nat} (st : State n) (o : Wire n)
+    (b : Block) (raw support : List (HeadWire n)) (c : Option (PC n))
+    (h : ¬ GridCO.blockKnown st.base b.parent) :
+    admitProposal p st o b raw support c = st := by
+  simp [admitProposal, proposalEnters_missingParent p st o b raw support h]
+
 theorem process_proposalViewsArchived (p : Params) {n : Nat} (st : State n) (o : Wire n)
     (h : ProposalViewsArchived st) : ProposalViewsArchived (process p st o) := by
   have hcollect (st : State n) (h : ProposalViewsArchived st) :

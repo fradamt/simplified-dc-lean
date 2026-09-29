@@ -71,6 +71,15 @@ def wellFormed (p : Params) {n : Nat} (o : Wire n) : Bool :=
   | .none, .pc c => pcWellFormed p c
   | _, _ => false
 
+/-- The store dependency lookup with the `wellFormed` parent-slot test: the
+parent is in the base store with a slot below `s` iff a stored block has the
+parent's root and a slot below `s`. `wellFormed` itself reads no store. -/
+theorem blockKnown_parent_slot_iff_root {n : Nat} (st : State n) (b : Block) (s : Slot) :
+    (GridCO.blockKnown st.base b.parent = true ∧ b.parent.slot < s) ↔
+      ∃ q ∈ st.base.blocks, q.root = b.parent.root ∧ q.slot < s := by
+  simpa [GridCO.blockKnown] using
+    parent_mem_and_iff_root b st.base.blocks (fun q => q.slot < s)
+
 def depsPresent {n : Nat} (st : State n) (o : Wire n) : Bool :=
   match o.payload with
   | .head _ => true
