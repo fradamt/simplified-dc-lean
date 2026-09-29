@@ -40,15 +40,15 @@ F-13 dup compatible_with_prefix AvailableChainGridCO AvailableChainSAPC
 F-13 dup delivery_now_ge_public AvailableChainGridCO AvailableChainKit AvailableChainKitV2 AvailableChainSAPC
 F-13 dup deps_stable AvailableChainGridCO AvailableChainLStar AvailableChainSAPC
 F-13 dup downward_lt AvailableChainKit AvailableChainKitV2
-F-13 dup duties_nodup AvailableChainGridCO AvailableChainLStar
-F-13 dup duties_spec AvailableChainGridCO AvailableChainLStar
+F-13 dup duties_nodup AvailableChainFGSARun AvailableChainGridCO AvailableChainLStar
+F-13 dup duties_spec AvailableChainFGSARun AvailableChainGridCO AvailableChainLStar
 F-13 dup emitted_head_compatible_of_protection AvailableChainGridCO AvailableChainSAPC
 F-13 dup equivocates_mono AvailableChainGridCO AvailableChainLStar
 F-13 dup eraseDups_nodup AvailableChainGridCO AvailableChainLStar
 F-13 dup eventIndex_lt_of_time_lt AvailableChainGridCO AvailableChainKit AvailableChainKitV2
 F-13 dup excludes_clock AvailableChainGridCO AvailableChainLStar
 F-13 dup excludes_head_iff AvailableChainGridCO AvailableChainLStar
-F-13 dup excludes_inert AvailableChainGridCO AvailableChainLStar AvailableChainSAPC
+F-13 dup excludes_inert AvailableChainFGSARun AvailableChainGridCO AvailableChainLStar AvailableChainSAPC
 F-13 dup excludes_not_processed AvailableChainGridCO AvailableChainLStar
 F-13 dup excludes_process AvailableChainGridCO AvailableChainLStar
 F-13 dup excludes_stable AvailableChainGridCO AvailableChainLStar AvailableChainSAPC
@@ -104,7 +104,7 @@ F-13 dup process_proposals_subset AvailableChainGridCO AvailableChainLStar
 F-13 dup process_stable AvailableChainGridCO AvailableChainSAPC
 F-13 dup process_stamped AvailableChainGridCO AvailableChainSAPC
 F-13 dup process_stampsBounded AvailableChainGridCO AvailableChainSAPC
-F-13 dup process_votes_subset AvailableChainGridCO AvailableChainLStar
+F-13 dup process_votes_subset AvailableChainFGSARun AvailableChainGridCO AvailableChainLStar
 F-13 dup processed_stable AvailableChainGridCO AvailableChainLStar AvailableChainSAPC
 F-13 dup proposalState_target_genuine_origin AvailableChainGridCO AvailableChainSAPC
 F-13 dup proposalViewTransport_from_engine AvailableChainGridCO AvailableChainSAPC
