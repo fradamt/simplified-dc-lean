@@ -41,7 +41,7 @@
 └────┴─────────────────────────────────────────────────┴──────────────────────────────┘
 ```
 
-Questions for DC-simplify before Task 3 (survey R6): FG-SA head labels are in the `fresh` (CStar) family and FG labels in the `linked` family; FG-SA regimes do not include `SelfDelivery`. Claim ids for v2 (survey R7) are a 2b question for the user.
+Answered by DC-simplify (2026-09-29; survey R6): FG-SA HEAD labels (the SA base, AP duties) are in the `fresh` (CStar) family; FG labels (`.fg r`) are in the `linked` family (one FG identity across rounds, needed for client safety). FG-SA regimes do not require `SelfDelivery`; every FG-SA result holds for both self-delivery timings. `selfDelivery_admissible` shows that one such delivery is admissible; that complete regime runs with the DC timing exist is an inhabitation question (plan 1c). Claim ids for v2 (survey R7) are a 2b question for the user.
 
 ## Global Constraints
 
