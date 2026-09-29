@@ -40,10 +40,10 @@
 │    │ included                                      │                              │
 │ D8 │ Order: I9 before Phase 2 and plan 1c          │ user, 2026-09-29             │
 │ D9 │ FG-SA `rowsOk` is a full reconstruction check │ controller; Astra A02,       │
-│    │ in `wellFormed` and `blockAccepted` (a wire-  │ DC m5 accepts; not a user    │
-│    │ validity choice; listed in I9-REPORT)         │ decision                     │
-│    │ of the base body; it is a content check, not  │ fgsa-impl F1/F6              │
-│    │ a root check, so it is inside D2              │                              │
+│    │ of the base body in `wellFormed` and          │ fgsa-impl F1/F6; DC m5       │
+│    │ `blockAccepted`. It is a content check, not a │ accepts; not a user decision │
+│    │ root check, so it is inside D2. It is a wire- │                              │
+│    │ validity choice; I9-REPORT lists it           │                              │
 │ D10│ The FG codec is a type class `RowCodec V`     │ controller; fgsa-impl F2     │
 │    │ with an instance for `Fin n`, so statement    │                              │
 │    │ texts keep their form                         │                              │

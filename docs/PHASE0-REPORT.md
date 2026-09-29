@@ -265,6 +265,9 @@ row (I9) is new.
 Status after plan 1b (2026-09-29): a row that plan 1b closes or changes
 ends with a note "Plan 1b: …". The row E4 is new.
 
+Status after plan I9 (2026-09-29): the row Roots ends with a note
+"Plan I9: …".
+
 ```text
 ┌───────────┬────────────────────────────────────────────────────────────┐
 │ Area      │ Open item                                                  │
@@ -448,6 +451,14 @@ ends with a note "Plan 1b: …". The row E4 is new.
 │           │ temporary missing dependency. So excludes gets no clause,  │
 │           │ SA-PC keeps its rfl, and wire validity has no root check.  │
 │           │ Wire forwarding rules wait for a P2P spec discussion.      │
+│           │ Plan I9: CLOSED (2026-09-29). Roots are derived from       │
+│           │ content (nodeRoot, epair). Block.root_injective holds for  │
+│           │ every block, so RootInjective is a theorem                 │
+│           │ (rootInjective_all). The honest formula is removed; honest │
+│           │ proposers use body 0. The regime fields stay, filled by    │
+│           │ rootInjective_all; a later plan removes them. Open: a      │
+│           │ root-only wire refinement, and the relay feasibility       │
+│           │ question (plan 1c). See FRAMEWORK-DESIGN.md §12 I9.        │
 │ E4        │ New after plan 1a. Plan 1b: Grid CO, SA, SA-PC and L* each │
 │           │ have an E4 excludes and the five hook facts, in their own  │
 │           │ library. Grid CO and SA: two permanent HEAD refusals (an   │

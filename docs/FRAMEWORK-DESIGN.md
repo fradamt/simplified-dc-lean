@@ -291,6 +291,15 @@ the text above.
   is first written, so a later change to it is a lock change. Thus plan
   1c defines them and proves the theorem in the same plan.
 
+*Note 2026-09-29 (plan I9).* This note does not change the text above.
+Plan I9 (derived roots, §12) added no clause to any `excludes`. A
+proposal with an unknown parent root is a temporary missing dependency:
+the handler returns the state unchanged (`admitProposal_missingParent`
+in Grid CO, SA-PC and L*), and the proposal can enter after its parent.
+So the E4 table above and `Proofs/WindowMargin.lean` did not change. The
+sentence "If `excludes` covers more objects later (I9, §12), only this
+module changes" did not apply.
+
 **E5. Own-signature record.**
 - `selfVisible : Label → Bool`, `recordOwn : State → Object → State`.
 - `World.step` takes the run context (seat assignment and `awake`).
@@ -993,3 +1002,56 @@ extra-tier entry.
   unknown parent root is a temporary missing dependency. So `excludes`
   gets no clause, SA-PC keeps its `rfl`, and wire validity has no root
   check. Wire forwarding rules wait for a P2P spec discussion.
+
+  **As implemented in plan I9 (2026-09-29).** This note does not change
+  the text above. Plan: `docs/plans/2026-09-29-i9-derived-roots.md`.
+  Report: `docs/I9-REPORT.md`.
+
+  - Roots are derived. `Block.node` has a parent, a slot and a
+    `body : Nat`; it has no root field. `Block.root` computes the root
+    from the content: `nodeRoot pr s x := ⟨epair pr.value (epair s x) + 1⟩`
+    (`AvailableChainModel/Objects/Blocks.lean`). `epair` is a
+    length-delimited pairing (`Objects/Codec.lean`). Honest proposers use
+    body 0, so the formula `s * (parent.root + 1)` is removed. An FG block
+    uses the same `nodeRoot` with the body code `encFGBody x rows`, which
+    starts with the domain tag `fgBodyTag = 1`
+    (`AvailableChainSimplexFG/Objects.lean`).
+  - `Block.root_injective` holds for every block. So `RootInjective` is a
+    theorem for every run (`rootInjective_all`,
+    `AvailableChainKit/Roots.lean`), not a run premise, and the forged
+    collision above cannot occur. The FG forms are
+    `FGBlock.root_injective`, `rootInjectiveOn_all` and `viewRootInj_all`.
+  - The store check is the dependency lookup. `parent_mem_iff_root` and
+    `parent_mem_and_iff_root` show that "the store holds the carried
+    parent" is equivalent to "the store holds a block with the parent's
+    root". Grid CO, SA-PC and L* prove the lookup form
+    (`blockKnown_parent_slot_iff_root`) and the no-op fact for a missing
+    parent (`admitProposal_missingParent`; SA-PC also
+    `proposalEnters_missingParent` and `process_pc_missingPaths`). No
+    `wellFormed`, handler or `excludes` got a root check (§2 E4 note).
+    FG-SA: [[CONTROLLER: FG-SA lookup and no-op lemma names after
+    Task 9]].
+  - Resolved-block model. A payload carries the resolved block, and the
+    carried parent root is `b.parent.root`. The lookup lemmas show that
+    the store check is equivalent to a lookup by root. They do not give a
+    root-only wire. A root-only wire refinement is open. Its adapter must
+    also keep authentication, dependencies, handler calls, refusals and
+    proposal origin.
+  - L* obligation. The L* handler does not repeat the parent-slot test of
+    `wellFormed` (`AvailableChainLStar/Model/Protocol.lean:283, 300`). So
+    a future root-only adapter must apply the L* parent-slot test after
+    the store lookup.
+  - Regime fields. The regime root fields (`rootInjective`) and the
+    lemma premises of the `hroot` type stay. `rootInjective_all`,
+    `rootInjectiveBelow_all`, `rootInjectiveOn_all` and `viewRootInj_all`
+    fill them. A later plan removes them.
+  - FG-SA. The base body packs the application value and the ordered
+    signed rows. `rowsOk` checks this packing in `wellFormed` and in
+    `blockAccepted`; it is a content check, not a root check. With it,
+    `ContentAgree` becomes a theorem. [[CONTROLLER: confirm after
+    Task 9]]
+  - Open: relay feasibility (plan 1c). A missing dependency is a handler
+    fact, not a run fact. `PartialSynchrony` and `HealthyPrefixDelivery`
+    have relay obligations with no dependency guard
+    (`AvailableChainStatements/Generic/Conditions.lean`). I9 proves only
+    the lookup lemmas and the no-op facts.
