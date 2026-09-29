@@ -1232,4 +1232,6 @@ lines give a title and say so. The FG-COMPOSITION items are in §8.
 
 ## 10. Merge
 
-[[CONTROLLER: merge commit]]
+main was fast-forwarded to 3403e58 on 2026-09-29. Checks on the merged
+tree: `lake build --wfail` 3629 jobs, `CatalogLock --check` exit 0,
+`CheckFrameworkAxioms` 771 constants, `Registry --check` exit 0.

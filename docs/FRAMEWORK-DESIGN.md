@@ -681,12 +681,49 @@ view of the frame; the AP may pick among them with its `AnchorChoice`. The
 FG module exports the frame only (Z, lo, D, viability). Head selection
 (the walk, its score, and eligibility tests such as a majority or the
 current slot) is AP data (user decision 2026-09-28). The FG constrains it
+through the AP obligation `ap.headReachesLo.v6` (PROVED-paper; source
+`research/async-resilient-committees/tip-stability/blueprint/21-healing.md`,
+"Registry restatement — ap.headReachesLo.v6", 2026-09-29). The
+blueprint states it as follows. Authority is the current spec 4e85ff34.
+Clauses 1–3 use its live-cache FJ frame, frozen voter domain,
+full-domain live start, and exact HEAD merge. Clauses 4–6 use Recovery₂
+(`a≤f`, `R≥2`, `δ_t=2R`), strict receipt `<Δ` with receiver exclusion,
+and the stated phase premises.
+
+1. If start A is in `D(V_s)`, or has an eligible child there, the HEAD
+   is in `D(V_s)` at height at least lo.
+2. Otherwise the HEAD is A, including when `D(V_s)` is nonempty.
+3. If A=Z and `D(V_s)` is nonempty, Z belongs to `D(V_s)`.
+4. In a settled phase, every honest HEAD K has a full-store witness
+   `W⪰K` with `ht(W)≥lo`. Every honest receiver admits W and its path
+   before `e_s`; for a protected prefix of K use admission or finality
+   coverage. This does not assert `ht(K)≥lo` for an outside start.
+5. Let β be the first proposal label strictly after settlement u and
+   `ℓ=β+2k−1`. Every honest P at `t_s>t_ℓ` has exact HEAD and fresh
+   fast-write service if the phase persists through d_s. Such a gate
+   occurs by `u+ρΓ`, or the phase stops sooner. Service continues for
+   later honest proposals in that phase. Equal scores are required
+   only on the retained comparison suffix, with H.5's path premises.
+6. Evidence first accepted at `w≥GST` is in all full stores before
+   `w+Δ`, and in every HEAD view with `v_s≥w+3Δ`, unless a frontier
+   rise ends the task. Thus one effective event costs `θ=3Δ` before
+   repair starts. Lower F moves and individual outside-start returns
+   do not add event charges. A later effective event stops the attempt.
+
+Thus the HEAD is in D with height ≥ lo only under clause 1; clause 2
+keeps the outside-start exception (the HEAD is A), and clause 4 gives
+a witness, not `ht(K)≥lo`. `ap.headReachesLo.v5` is WITHDRAWN for
+current use; it is still true in its stated scope (R ≥ 3, θ = 4Δ, spec
+bd942ca0). v6 is its successor with changed hypotheses, not a SUPERSEDED
+replacement (§10).
+
+*History (text to 2026-09-29, replaced by v6):* "The FG constrains it
 through one generic AP obligation (`ap.headReachesLo.v1`, both
 phases): for each duty view, the AP head read from it is in D and has
 state height ≥ lo. A weaker "the head may leave H−1" form is not enough:
 a tie rule or a filter can still stall (N12). SA discharges it with its
 walk (start at the live root; below lo a child is eligible without a
-majority; every viable node below lo has a viable child in D).
+majority; every viable node below lo has a viable child in D)."
 
 *Note 2026-09-29 (STALE, marked for correction; DC-simplify, modular-spec
 study `research/async-resilient-committees/tip-stability/codex/scratch/
@@ -696,6 +733,12 @@ FG-SA design, because 21 H.3 permits an outside-anchor return. The duty
 view frame is also older than the spec frame, which reads live caches and
 "never reads a view" (spec 749–752). The section stays as history until the
 FG interface is restated with the F0 channel files (ARCHITECTURE.md §2).
+*Resolved 2026-09-29 by `ap.headReachesLo.v6`:* the unconditional
+obligation is replaced by the v6 clauses above, which keep the
+outside-start exception and use the live-cache FJ frame of spec 4e85ff34.
+The `frameOf` text at the start of §7.2 still describes the duty-view
+frame; it changes when the FG interface is restated with the F0 channel
+files.
 
 **7.3 AP template and policy type (LM; audit V10).**
 - `Policy`: the type of honest FG signing rules. A policy reads the FG
@@ -969,6 +1012,14 @@ when these land (after I9 and 2a).
   over the node store T; `fj.descent` also lacks case (2), the contested
   floor); `ap.headReachesLo.v5` keeps R ≥ 3 and θ = 4Δ, while 21 H.8 proves
   3Δ at R ≥ 2; §7.2's generic AP obligation is false (note there).
+  Statuses (2026-09-29, after the I9 merge): `fj.descent.v1` and
+  `fj.twoChanges.core.v1` are WITHDRAWN for current use.
+  `ap.headReachesLo.v5` is also WITHDRAWN for current use (registry policy,
+  FG-COMPOSITION §0: a change of statement or hypotheses gets a new id). It
+  is still true in its stated scope (PROVED; R ≥ 3, 4Δ, spec bd942ca0). Its
+  successor is `ap.headReachesLo.v6` (spec 4e85ff34, R ≥ 2, strict receipt,
+  θ = 3Δ; §7.2). None of the three is SUPERSEDED. The Lean `Pins.lean`
+  update belongs to the FG-SA re-pin commit (session fgsa-lean).
 - FG research (tracked in FG-COMPOSITION.md): r149 (strengthened (S),
   (S_slow), (L), (X)); r148 (FJ root rule); "ρ once globally"; full
   healing at q_s*; the timed finality obligations.
