@@ -299,6 +299,11 @@ the text above.
   then seat order; release.
 - Separation: every label in `APLabels`, and every label in a `CStar`
   family, has `selfVisible = false`.
+  *Note 2026-09-29 (Phase 2a; fgsa-impl via DC-simplify):* the restriction
+  applies to the AP labels and to the declared fresh family (`F.fresh`),
+  not to every `CStar` family. `Linked` implies `CStar`, and `Linked`
+  labels (FG rows) may be self-visible. The 2a `separation` field states
+  it this way: `F.ap ℓ ∨ F.fresh ℓ → selfVisible ℓ = false`.
 - Isolation laws, with `base : State → B`:
   - `base` after `clock` and `process` is a function of `base` before and
     of the time or object; `recordOwn` does not change `base`;
