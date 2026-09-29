@@ -1845,8 +1845,9 @@ in §4. Every status below is for the FG-SA client (§0).
 > fast_i(r,B) ⇔ B ⪯ C_i[r] and p_i(r,B)≥τ.
 > ```
 
-> _AvailableChainGridCO/Model/Protocol.lean, lines 381–383, 431–435 and
-> 456–461:_
+> _AvailableChainGridCO/Model/Protocol.lean at `1a3f73a`, lines 381–383,
+> 431–435 and 456–461 (at `3e48c9f`: 381–383, 445–449 and 470–475, the same
+> text):_
 >
 > ```lean
 > def cleanSupport (p : Params) {n : Nat} (st : State n) (r : Slot) : List (Wire n) :=
