@@ -17,6 +17,22 @@ def OutputNestingStored (p : Params) : Prop :=
 
 /-- [bp bp.store.v1; K4 core] Every reachable state satisfies the composite invariant. -/
 def StoreInvariant (p : Params) : Prop := ∀ st, Reachable p st → CStoreInv p st
+
+/-- [GLY E-11, §C.3; D14] The store, metadata, nesting, and live lease invariants. -/
+structure StoreBundle (p : Params) (st : State p.n) : Prop where
+  cstore : CStoreInv p st
+  «meta» : MetaInv p st
+  nest : NestOK st
+  lease : LeaseBelowOutputStore p st
+
+/-- [GLY E-11; D14] Every reachable state satisfies the store bundle.
+The proof is in step 3. -/
+def StoreBundleInvariant (p : Params) : Prop := ∀ st, Reachable p st → StoreBundle p st
+
+theorem StoreBundleInvariant_def (p : Params) :
+    StoreBundleInvariant p = (∀ st, Reachable p st → StoreBundle p st) := by
+  rw [StoreBundleInvariant]
+
 /-- [bp bp.store.v1] Local F moves only to a descendant, at every step. -/
 def FMonotone (p : Params) : Prop :=
   ∀ st : State p.n, (∀ o, FGBlock.Preceq st.fg.F (process p st o).fg.F) ∧

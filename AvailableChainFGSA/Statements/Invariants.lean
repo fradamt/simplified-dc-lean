@@ -34,6 +34,17 @@ def SACompat {n : Nat} (st : State n) : Prop :=
   (∀ r C, (r, some C) ∈ st.base.genuine → Block.Compatible C (eraseFG st.fg.F)) ∧
   (∀ row ∈ st.fastWrite, ∀ b ∈ row.2, Block.Compatible b (eraseFG st.fg.F))
 
+/-- [GLY E-11, §C.3; D14] Every live lease target is below the stored output.
+For a GridCO obligation, `ℓ.1` is the target and `ℓ.2.2` is the deadline.
+There is no honest premise. -/
+def LeaseBelowOutputStore (p : Params) (st : State p.n) : Prop :=
+  ∀ ℓ ∈ st.base.obligations, st.base.now < ℓ.2.2 → Block.Preceq ℓ.1 st.base.stableRecord
+
+theorem LeaseBelowOutputStore_def (p : Params) (st : State p.n) :
+    LeaseBelowOutputStore p st =
+      (∀ ℓ ∈ st.base.obligations, st.base.now < ℓ.2.2 → Block.Preceq ℓ.1 st.base.stableRecord) := by
+  rw [LeaseBelowOutputStore]
+
 /-- [bp bp.leaseOrigins.v1 (fastWrite clause), bp.reconcile.v1 §6.3; K1; Opus M3]
 The local fast-write origin invariant, relative to a block `Fb` (the erased F):
 each member `B` of `fastWrite[r]` is below the saved body `C` of label `r`, or
