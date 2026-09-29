@@ -1,4 +1,4 @@
-# I9: derived block roots (store-only) — Implementation Plan (r2)
+# I9: derived block roots (store-only) — Implementation Plan (r3)
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -40,6 +40,8 @@
 │    │ included                                      │                              │
 │ D8 │ Order: I9 before Phase 2 and plan 1c          │ user, 2026-09-29             │
 │ D9 │ FG-SA `rowsOk` is a full reconstruction check │ controller; Astra A02,       │
+│    │ in `wellFormed` and `blockAccepted` (a wire-  │ DC m5 accepts; not a user    │
+│    │ validity choice; listed in I9-REPORT)         │ decision                     │
 │    │ of the base body; it is a content check, not  │ fgsa-impl F1/F6              │
 │    │ a root check, so it is inside D2              │                              │
 │ D10│ The FG codec is a type class `RowCodec V`     │ controller; fgsa-impl F2     │
@@ -61,7 +63,7 @@
 ## Global Constraints
 
 - Toolchain and Mathlib v4.30.0-rc2. Do not run `lake update`.
-- No `sorry`, `admit`, `native_decide` or new axioms. Allowed axioms: `propext`, `Classical.choice`, `Quot.sound`. `decide +kernel` is allowed (the kernel checks it; it adds no axiom).
+- No `sorry`, `admit`, `native_decide` or new axioms. Allowed axioms: `propext`, `Classical.choice`, `Quot.sound`. `decide +kernel` is allowed (the kernel checks it; it adds no axiom). A switch from `decide` or `rfl` to `decide +kernel` in a base fixture (Tasks 3–6) is a proof change: list it in the task report (DC m3).
 - The Mac `lean` is a 3-slot throttle wrapper. Run `pgrep -fl lean` before a build. Use `lake env lean --run <file>` for scripts; never a `lean_exe`.
 - **Worktree.** All work is in `~/worktrees/available-chain-i9` on branch `i9-derived-roots`, created from main at the plan's approval commit. Clone `.lake/packages` with `cp -c -R`. Main does not change until Task 11. Every commit ends with the `Claude-Session:` line. Commit by explicit path (`git add <paths>`, then `git commit -m` with no pathspec).
 - **Build states.** After Task N, every library that Task N or an earlier task owns builds with `--wfail`. Downstream libraries may fail until their task. This replaces, for this plan only, the full-default-target checkpoint rule of `docs/PHASE1B-REPORT.md:120`; Task 11 restores it. A task never weakens a downstream file to make it build.
@@ -125,7 +127,7 @@ The change of `Block`'s third constructor argument (from `root : BlockId` to `bo
 - Produces: `bitLen : Nat → Nat`, `tz : Nat → Nat` (trailing zeros), `lpair`, `epair : Nat → Nat → Nat`, `efst`, `esnd`, `efst_epair`, `esnd_epair`, `epair_inj`, `bitLen_epair_le`; `encList`, `encOption`, `encBool` with injectivity lemmas.
 
 - [ ] **Step 1: Definitions.** In arithmetic form (Astra A01):
-  - `bitLen n := if n = 0 then 0 else Nat.log2 n + 1`.
+  - `bitLen` by a log-step search (DC-simplify M1): an exponential search on `n >>> 2^j`, then a binary search on `>>>`, with a structural fuel of 64 (enough for `n < 2^(2^64)`). Prove `bitLen n = if n = 0 then 0 else Nat.log2 n + 1` for `n` below the fuel bound, or prove only the two facts the laws need: `n < 2 ^ bitLen n` and `n ≠ 0 → 2 ^ (bitLen n - 1) ≤ n`. Do not use `Nat.log2` in the evaluated path: its kernel unfolding is quadratic in the bit length (DC measured about 50 s at 10^5 bits, and no result in 10 min for a 175,564-bit depth-4 FG-SA comparison; the log-step form took under 1 s).
   - `lpair a b := 2 ^ bitLen b * (2 * (a * 2 ^ bitLen b + b) + 1) - 1`. The factor in parentheses is odd, so `tz (lpair a b + 1) = bitLen b`.
   - `epair a b := lpair (a * 2 ^ bitLen b + b) (bitLen b)`. The delimiter codes the length of `b`, not `b`.
   - `tz` by a `Nat.rec` on a fuel argument with `%` and `/` steps, in the style of `Nat.log2` (Finding 2). The decoders `efst`, `esnd` use `tz`, `/`, `%` and `2 ^ ·` only.
@@ -133,7 +135,8 @@ The change of `Block`'s third constructor argument (from `root : BlockId` to `bo
 - [ ] **Step 3: Size and kernel spike** (A01, F4). In the scratch directory, build with `epair`:
   - the generic G02 FG chain (three blocks with the rows of `SimplexFG/Store.lean:163–212`, rows naming earlier roots, body 0), with r203's row encoders (§3);
   - the FG-SA signed-row packing of that chain (`packBody` of Task 9, with the `RowWire` rounds of `FGSA/Tests/Smoke.lean`'s `stA`).
-  Record the bit length of every root, by `#eval`. Then prove one root inequality and one root order comparison between B3-depth roots by `decide +kernel`, and one `efst`/`esnd` round trip on a B3-size value by `decide +kernel`. **Stop rule:** if a B3 root has more than 10^6 bits, or a kernel check does not finish, stop and report; do not continue with Task 1.
+  - a B4 block on the generic chain, and one store-level fixture: FG-SA `stA` with `process` (admission of a packed proposal).
+  Record the bit length of every root, by `#eval`. Then prove one root inequality and one root order comparison between B3-depth roots and between B4-depth roots by `decide +kernel`, and one `efst`/`esnd` round trip on a B3-size value by `decide +kernel`. Record the wall time and the peak RSS of each check (`/usr/bin/time -l`) against `LEAN_CAP_GB`. Before a kernel check counts as "does not finish", `#eval` its Boolean: a false `decide +kernel` goal shows as "maximum recursion depth" or "deep recursion", not as false (DC m2). **Stop rule:** if a B3 root has more than 10^6 bits, if a true kernel check does not finish, or if a check comes near `LEAN_CAP_GB`, stop and report; do not continue with Task 1.
 - [ ] **Step 4: Checkpoint.** `lake build --wfail AvailableChainModel`; `#print axioms` for the laws. Commit `Model: length-delimited codec` (the spike files stay uncommitted in `claude-files/`).
 
 ### Task 1: Block with a body; universal root injectivity
@@ -141,7 +144,7 @@ The change of `Block`'s third constructor argument (from `root : BlockId` to `bo
 **Files:**
 - Modify: `AvailableChainModel/Objects/Blocks.lean`
 - Modify: `AvailableChainStatements/Generic/Conditions.lean` (docstring of `RootInjective` only)
-- Modify: `AvailableChainKit/Core.lean` (new theorem `rootInjective_all`; Core imports `AvailableChainStatements.Generic.Properties`)
+- Create: `AvailableChainKit/Roots.lean` (new theorem `rootInjective_all`; it imports `AvailableChainStatements.Generic.Conditions`, where `RootInjective` is (`Conditions.lean:28`); `AvailableChainKit/Core.lean` imports only `Generic.Properties`; DC m1). Match the section binders of `RootInjective` (including any `[Fintype V]`).
 
 **Interfaces:**
 - Consumes: Task 0's `epair`, `epair_inj`.
@@ -153,7 +156,7 @@ The change of `Block`'s third constructor argument (from `root : BlockId` to `bo
   - `parent_mem_iff_root : b.parent ∈ blocks ↔ ∃ p ∈ blocks, p.root = b.parent.root`;
   - `parent_mem_and_iff_root : (b.parent ∈ blocks ∧ q b.parent) ↔ ∃ p ∈ blocks, p.root = b.parent.root ∧ q p`, for any predicate `q` on blocks. This covers the four state-free parent-slot tests (Finding 4) once the child-shape and authentication checks are kept separate.
   Docstring (A05): the lookup is over the image of `Block.root`, genesis included. The model is a resolved-block model: every carried parent is some `Block`, and the store check is equivalent to a lookup by its root. A root-only wire needs more than this lemma and a decoder: its adapter must also preserve authentication, dependencies, handler calls, refusals and proposal origin (r203 `derived-root.md:106`). That refinement is open.
-- [ ] **Step 4: Kit.** `rootInjective_all (E) (I) (rho) : RootInjective E I rho` from `Block.root_injective`, in `AvailableChainKit/Core.lean`. Update the `RootInjective` docstring in Statements (text only): it is now a theorem for every run, proved in the Kit.
+- [ ] **Step 4: Kit.** `rootInjective_all (E) (I) (rho) : RootInjective E I rho` from `Block.root_injective`, in `AvailableChainKit/Roots.lean`. Update the `RootInjective` docstring in Statements (text only): it is now a theorem for every run, proved in the Kit.
 - [ ] **Step 5: Checkpoint.** `lake build --wfail AvailableChainModel AvailableChainStatements`. Commit `Model: derived block roots; universal root injectivity`. (`AvailableChainKit` builds in Task 2.)
 
 ### Task 2: Kit, engine v2 sketch, Framework
@@ -261,7 +264,7 @@ The change of `Block`'s third constructor argument (from `root : BlockId` to `bo
 **Files:**
 - Modify: `docs/FRAMEWORK-DESIGN.md` (§12 I9: "As implemented" note; §2 E4 note that I9 added no exclusion), `docs/CONTRACT.md` (the `RootInjective` premise is now a theorem), `docs/MAP.md`, `docs/GRIDCO-STATUS.md`, `docs/FGSA-STORE-REPORT.md` (DQ2/DQ10/I9 status), `docs/PHASE0-REPORT.md` (Roots row closed).
 
-- [ ] **Step 1:** Dated notes only; the approved text stays. Remove no history. State: roots are derived; the store check is the dependency lookup; the model is a resolved-block model and a root-only wire refinement is open; the regime root fields are kept and filled by `rootInjective_all`; their removal is a later plan; the relay feasibility question (Finding 7) is open for plan 1c.
+- [ ] **Step 1:** Dated notes only; the approved text stays. Remove no history. Name the L* obligation (DC m4): a future root-only adapter must apply the L* parent-slot test after the store lookup, because the L* handler does not repeat the `wellFormed` parent-slot test (`LStar/Model/Protocol.lean:283, 300`). State: roots are derived; the store check is the dependency lookup; the model is a resolved-block model and a root-only wire refinement is open; the regime root fields are kept and filled by `rootInjective_all`; their removal is a later plan; the relay feasibility question (Finding 7) is open for plan 1c.
 - [ ] **Step 2: Checkpoint.** Commit `docs: I9 derived roots`.
 
 ### Task 11: Full build, lock, merge
@@ -269,7 +272,7 @@ The change of `Block`'s third constructor argument (from `root : BlockId` to `bo
 **Files:** `docs/catalog.lock`, `docs/FRAMEWORK-DESIGN.md` (§8 lock log), `docs/I9-REPORT.md` (new).
 
 - [ ] **Step 1:** `pgrep -fl lean`; `lake build --wfail` (every default target; the full-target rule applies again); `CheckFrameworkAxioms`; `check-fg.sh`; `check-fgsa.sh`; `Registry --check`; the self-test compare; the grep `sorry|admit|native_decide|^axiom` over every changed Lean file (outside `scripts/registry-selftest/`); every library root file imports its modules (import coverage).
-- [ ] **Step 2: Lock** (A08). `CatalogLock --check > claude-files/i9/lock-final.out`. The checker must exit normally before its output is read. Stop, and do not write, unless all of these hold:
+- [ ] **Step 2: Lock** (A08). If main has changed `docs/catalog.lock` or `AvailableChainFramework/**` since the branch point, first merge main into the branch and rebuild with `--wfail`; run the lock step on the merged tree (DC m6). Then `CatalogLock --check > claude-files/i9/lock-final.out`. The checker must exit normally before its output is read. Stop, and do not write, unless all of these hold:
   - the CHANGED names are exactly the 91 names of `docs/plans/i9-lock-expected.tsv`;
   - no locked name is REMOVED or ADDED;
   - `git diff main -- AvailableChainFramework/` shows no source change, or only binder repairs in `Catalog/Mono.lean` that keep every declaration's type;
@@ -354,3 +357,5 @@ r1 (24ecaaa) had two reviews: Astra `docs/audit/i9-plan-audit-report.md` (REVISE
 │ F6  │ rowsOk inside D2                     │ D9                                       │
 └─────┴──────────────────────────────────────┴──────────────────────────────────────────┘
 ```
+
+DC-simplify's combined verdict on r2 (Opus review `docs/audit/i9-plan-claude-review.md` with fgsa-impl): ADOPT WITH FIXES, 0 blocking, 1 major, 6 minor. r3 applies all of them: M1 (log-step `bitLen`; B4 and store-level spike; time and RSS in the stop rule; Task 0 Step 1, Step 3), m1 (`AvailableChainKit/Roots.lean` imports `Generic.Conditions`), m2 (`#eval` before "does not finish"), m3 (`decide +kernel` switches listed per task), m4 (L* obligation in Task 10), m5 (D9 is a decision without the user; I9-REPORT lists it), m6 (merge main before the lock step). Gate: one Astra pass on r3 with no blocking and no major finding.
