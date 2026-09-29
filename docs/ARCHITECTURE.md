@@ -21,21 +21,38 @@ changes, and tell the other session. Owners: §1–§2 and §6–§7 lead sessio
 ## 2. Protocol architecture (paper)
 
 ```text
-            targets (C_fg: fresh fast source; target/timeout from Λ)
-   ┌────────────────────────────────────────────────────────────┐
-   │                                                            ▼
-┌──┴──────────────────────────┐                 ┌───────────────────────────┐
-│ AC = plain SA               │                 │ FG = DC finality gadget   │
-│ votes, leases, fast/slow    │                 │ rows, chain states σ,     │
-│ lock, genuine results,      │                 │ F, J, h_max, finality     │
-│ available output            │                 │ acceptance, Λ record      │
-└──▲──────────────────────────┘                 └──┬────────────────────────┘
-   │  restrictions on the tree: FJ root + contest band, SA walk from F,    │
-   └──────── reconciliation of AC records when F advances ─────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│ Substrate: cumulative tree Σ.T (fixed σ, stamps), admission F ⪯ B,   │
+│ receipt premise                                                      │
+├───────────────────────────────┬──────────────────────────────────────┤
+│ AC = plain SA                 │ FG = DC finality gadget              │
+│ votes, leases, fast/slow      │ rows, chain states σ, F, J, h_max,   │
+│ lock, genuine results,        │ finality acceptance, Λ record        │
+│ available output              │                                      │
+├───────────────────────────────┴──────────────────────────────────────┤
+│ Composition: four joint selection functions                          │
+│ live_root · HEAD eligibility · C_fg · finality pair                  │
+└──────────────────────────────────────────────────────────────────────┘
+ AC → FG (targets): C_fg as deepest member of AC's export X_r in D(T),
+          plus finality head, HEAD votes, proposal parents with rows, S
+ FG → AC (frame): FJ root + contest band; band floor lo also relaxes AC
+          eligibility; one-way reads of F: gate walk (from Σ.F),
+          admission, reconcile
 ```
 
 - The glue goes both ways by design (user): AC creates targets for FG; FG
-  feeds back restrictions on the tree.
+  feeds back restrictions on the tree. Modular-spec study
+  (`tip-stability/codex/scratch/modular-spec-study.md`): the spec splits
+  into substrate, FG module, AC module and a composition section; no
+  protocol change is needed.
+- Proofs are an assume-guarantee composition by induction over the trace
+  index (as in DC): Clean, P1 and 6Δ inclusion use only channel
+  properties; the finality kernel is an FG theorem given four AC-output
+  properties; healing is the joint part (about twelve more channel
+  properties and a joint witness record r_G, u₀, M, μ, r*, s*, C*).
+- Lean consequence: v2 `Isolation` cannot express the channels
+  (`fgsaIso` puts the whole FG store in base), so F0 adds channel files
+  in the FG-SA claims library (`Channels`, `ChannelProps`, `Compose`).
 - Transport: FG rows travel packed in the block body (I9 `packBody`,
   `rowsOk` in `wellFormed`); the block root commits to them.
 - Design rules (user): stay close to DC and justify every divergence;
@@ -44,9 +61,9 @@ changes, and tell the other session. Owners: §1–§2 and §6–§7 lead sessio
 - Authority: `spec/fgsa-protocol.tex` (adopted 4e85ff34, 2026-09-29;
   replaces 42d557a2; only change: `genuine_result` runs `ghost` from Σ.F
   on act(Σ), final eligibility test kept; `spec/archive/CHANGES-42d557a2-
-  to-4e85ff34.md`). Proofs: `blueprint/` (00 outline; 02 Clean; 03 P1 and
-  inclusion; 21 healing with the `HEALING_INPUT` interface; 22 finality,
-  which imports only that interface).
+  to-4e85ff34.md`). Proofs: `blueprint/` (00 outline; 01 foundations; 02
+  Clean; 03 P1 and inclusion; 21 healing with `HEALING_INPUT`; 22
+  finality).
 
 ## 3. Lean architecture (available-chain)
 
@@ -172,14 +189,25 @@ Engine v2 decisions (design §2), one line each:
 
 ## 7. Open architectural questions
 
-- Modular spec: can AC and FG be specified against the two channels, with
-  healing as the composition theorem? (study running:
-  `codex/scratch/modular-spec-study.md`)
-- The post-gate cut is not a v2 read (F0 must choose a reader).
-- One-repair healing. Healing bounds: HG.7 (r206, red-team confirmed) is a
-  separate bound, [77Δ−1 tick, 268Δ] at R=2 and [93Δ−1 tick, 312Δ] at R=3,
-  k ≤ 2R+1; B_H stays 295Δ/343Δ as the general target. An independent
-  three-charge result (220–228Δ / 256–268Δ) is under Astra verification.
+- Interface gap: chapter 22 Q0 cites 21 H.16 and the H.2 count, so
+  `HEALING_INPUT` is not the whole interface. Fix (blueprint, pending):
+  add H5 (raw-result transfer) and H6 (unanimous gate service); split
+  `HEALING_INPUT` into witness, T-stream, AC-output and FG parts; correct
+  the kernel dependency list in 00-outline; restate bp.scoreSuffix.v1 for
+  candidates X ⪰ D (removes the one FG-internal step in 03 §2.2).
+- Stale registry entries: fj.descent.v1, fj.twoChanges.core.v1,
+  ap.headReachesLo.v5 (still R ≥ 3, θ = 4Δ); FRAMEWORK-DESIGN §7.2's
+  obligation is false for the current design.
+- Representation option (needs a proof first): filter AC records by the
+  current F at read time, as DC does, instead of the reconcile write.
+- The post-gate cut: F0–F2 draft uses a new reader `afterTicks` (no v2
+  change).
+- One-repair healing is open. Healing bounds: HG.7 (r206, red-team
+  confirmed) is a separate bound, [77Δ−1 tick, 268Δ] at R=2 and
+  [93Δ−1 tick, 312Δ] at R=3, k ≤ 2R+1; B_H stays 295Δ/343Δ as the general
+  target. Astra r211 claims [81Δ, 196Δ] / [97Δ, 228Δ] (three repair
+  charges, a later cut, a new lower-bound execution); Opus red-team
+  running.
 
 ## 8. Where the detail is
 
