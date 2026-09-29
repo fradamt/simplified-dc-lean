@@ -15,6 +15,7 @@ public import AvailableChainFramework.Catalog.Standard
 public import AvailableChainFramework.Catalog.Strong
 public import AvailableChainFramework.Catalog.Profiles
 public import AvailableChainFramework.Catalog.Relations
+public import AvailableChainFramework.V2.Anchor
 
 @[expose] public section
 end
