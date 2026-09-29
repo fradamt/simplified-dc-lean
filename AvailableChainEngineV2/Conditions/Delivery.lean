@@ -16,7 +16,12 @@ open AvailableChain
 variable {V : Type} [DecidableEq V] {In : Type} {P : ProtocolSpec In}
 
 /-- Broadcast and accepted-object relay complete after GST,
-except for objects excluded by the receiver at the deadline. -/
+except for objects excluded by the receiver at the deadline.
+
+The relay premise reads `processed` at the receiver after event `i`, and the
+exemption reads `excludes` at the receiver at the deadline. With restarts,
+both premises read the receiver's current epoch; restart regimes add a rejoin
+condition (design E6). -/
 structure PartialSynchrony (E : Generic.Env V) (rho : Run V P) : Prop where
   broadcast : ∀ v ∈ rho.honest, ∀ o t,
     Run.emits E rho v o t → ∀ w ∈ rho.honest,
@@ -32,7 +37,9 @@ structure PartialSynchrony (E : Generic.Env V) (rho : Run V P) : Prop where
         ∃ t', t ≤ t' ∧ t' < max t E.t_GST + E.Δ ∧
             ∃ j, Run.handlesAt E rho j w o t'
 
-/-- The same broadcast and relay guarantees on a finite healthy prefix, with the same exclusion. -/
+/-- The same broadcast and relay guarantees on a finite healthy prefix, with the same exclusion.
+With restarts, both premises read the receiver's current epoch; restart
+regimes add a rejoin condition (design E6). -/
 structure HealthyPrefixDelivery (E : Generic.Env V) (rho : Run V P) (cut : Time) : Prop where
   broadcast : ∀ v ∈ rho.honest, ∀ o t,
     Run.emits E rho v o t → ∀ w ∈ rho.honest,

@@ -20,7 +20,8 @@ variable {V : Type} {In : Type} {P : ProtocolSpec In}
 
 /-- What an instance exposes. There is no proposal schedule field and no
 proposer field: the proposal duty of slot `s` is the label `propLabel s`,
-which has one seat (`propLabel_single`). Its act time is the proposal time
+which has one seat (`propLabel_single`) and belongs to no other slot
+(`propLabel_injective`). Its act time is the proposal time
 (`proposalTime`), and the holder of its seat is run data (`proposerOf`). -/
 structure Interface (P : ProtocolSpec In) where
   /-- The two user-facing outputs, as getters on the node state. -/
@@ -35,6 +36,11 @@ structure Interface (P : ProtocolSpec In) where
   propLabel : Slot → P.Label
   /-- A proposal duty has one seat. -/
   propLabel_single : ∀ s, P.seats (propLabel s) = 1
+  /-- Each slot has its own proposal duty, as each slot had its own
+  `Auth.proposer s` in v1. So the seat maps of distinct slots are independent
+  run data, and the proposers of distinct slots vary independently over
+  runs. -/
+  propLabel_injective : Function.Injective propLabel
 
 /-- The proposal time of slot `s`: the act time of its proposal duty. -/
 def proposalTime (I : Interface P) (s : Slot) : Time :=
@@ -65,13 +71,13 @@ theorem holder_propLabel (rho : Run V P) (I : Interface P) (s : Slot)
 abbrev Output (P : ProtocolSpec In) :=
   P.State → Block
 
+variable [DecidableEq V]
+
 /-- The output `g` read at node `v` and time `t`, after every event up to and
 including time `t` (`Run.readAt`). -/
-def outputAt [DecidableEq V] (E : Generic.Env V) (rho : Run V P) (g : Output P) (v : V)
-    (t : Time) : Block :=
+def outputAt (E : Generic.Env V) (rho : Run V P) (g : Output P) (v : V) (t : Time) :
+    Block :=
   g (Run.readAt E rho t v)
-
-variable [DecidableEq V]
 
 /-- Genesis and every ancestor (including the tip itself) of a block
 named by `I.block` in a delivered or emitted payload. -/
