@@ -13,6 +13,7 @@ defaultTargets = [
   "AvailableChainRegistry",
   "AvailableChainSimplexFG",
   "AvailableChainKitFG",
+  "AvailableChainFGSA",
 ]
 
 [leanOptions]

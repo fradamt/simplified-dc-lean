@@ -615,3 +615,76 @@ Run `bash scripts/check-fg.sh` for all checks. The Lean scripts read the built
 `.olean` files, which Lean does not compare with the sources: run them alone
 only after `lake build AvailableChainSimplexFG AvailableChainKitFG`, with
 `lake env lean --run scripts/<file>.lean`.
+
+## FG-SA composite model (store)
+
+The library `AvailableChainFGSA` (namespace `AvailableChain.FGSA`) is the
+composite FG-SA store: the SA base (`GridCO.State` under `slowLeasePolicy`),
+the FG store of `SimplexFG`, the stored proposal wires, the row pool and the
+fast writes. Its plan is `docs/plans/2026-09-29-fgsa-model-store.md`; the gate
+reports are `docs/audit/fgsa-task*-opus-review.md` and
+`docs/audit/fgsa-model-check-report.md`. It is a default target. It does not
+import the framework, the registry, SA-PC or the witnesses, and it names no
+engine (`bash scripts/check-fgsa.sh` checks this). The results are local store
+facts; the run lifts are composition task T7. The first row and the rows under
+`scripts/` are paths from the repository root.
+
+```text
+┌────────────────────────────────┬────────────────────────────────────────────────┬────────────────────┐
+│ File (AvailableChainFGSA/)     │ Role                                           │ K / blueprint ids  │
+├────────────────────────────────┼────────────────────────────────────────────────┼────────────────────┤
+│ AvailableChainFGSA.lean        │ root; imports every file below                 │                    │
+│ Model/Objects.lean             │ Params, labels, row bodies, wires, Msg, Input, │                    │
+│                                │ decoders, eraseFG, base conversions, rounds    │                    │
+│ Model/Store.lean               │ State, initial, outputs (finalized, confirmed, │ bp.activeView.v1,  │
+│                                │ stable), actView, onView, normalizeS,          │ bp.reconcile.v1    │
+│                                │ reconcile, lease and fastWrite reads,          │ (defs)             │
+│                                │ blockExcluded                                  │                    │
+│ Model/Handlers.lean            │ admitHead, admitRow, parentFG, fgBlock,        │                    │
+│                                │ blockAccepted, admitBlock, process, wellFormed │                    │
+│ Model/Clock.lean               │ fastSet, gateStep, clockPre, clock             │                    │
+│ Model/Frame.lean               │ controls, fullTree, liveRoot, HEAD votes and   │                    │
+│                                │ support, getHead, proposalRows, propose,       │                    │
+│                                │ fgHead, fgSource, fgInputs, attest             │                    │
+│ Statements/Invariants.lean     │ Reachable, NestOK, SACompat, FastOrigin,       │ K4, K5 premise     │
+│                                │ CStoreInv, Inv0, MetaInv, ContentAgree (run    │                    │
+│                                │ premise, DQ3(b))                               │                    │
+│ Statements/Store.lean          │ OutputNestingStored, StoreInvariant,           │ K2, K4             │
+│                                │ FMonotone, MetadataInvariant                   │                    │
+│ Proofs/BlockAncestry.lean      │ public Block ancestry lemmas                   │                    │
+│ Proofs/Carrier.lean            │ local carrier: eraseFG slot, root, parent,     │ K5 local           │
+│                                │ ancestry and compatibility                     │                    │
+│ Proofs/Fields.lean             │ write sets of every step                       │                    │
+│ Proofs/ActView.lean            │ actView laws (items 1–6); SA bridge of the     │ bp.activeView.v1   │
+│                                │ tick (clock_eq_saClock_*)                      │                    │
+│ Proofs/Nesting.lean            │ outputNesting_stored, finalized_preceq_stable  │ K2                 │
+│ Proofs/Reconcile.lean          │ exact effects, idempotence, reconcile_frame,   │ K3, K1             │
+│                                │ storeControls_reconcile;                       │                    │
+│                                │ reconcile_harmless_origin (reconcile_harmless  │                    │
+│                                │ is a helper)                                   │                    │
+│ Proofs/Admission.lean          │ refusal and accept-branch agreement; block-    │ J3, K8 input       │
+│                                │ step SA bridge (actView_admitBlock_*);         │                    │
+│                                │ admitBlock_sufficient                          │                    │
+│ Proofs/StoreInv.lean           │ storeInvariant, J_mem, fMonotone,              │ K4 core, K1        │
+│                                │ viewRootInj_TF, SACompat, FastOrigin,          │                    │
+│                                │ admitBlock_reconcile_harmless, selector facts  │                    │
+│ Proofs/Metadata.lean           │ metadataInvariant, process_cumulative,         │ K4 metadata        │
+│                                │ clock_cumulative, stored_wire_of_block         │                    │
+│ Proofs/CrossNode.lean          │ fg_eq_of_eraseFG_eq_across, preceq_iff_across, │ K5 cross-node      │
+│                                │ compatible_iff_across, rootInjectiveOn_across  │                    │
+│                                │ under ContentAgree; contentAgree_self          │                    │
+│ Tests/Smoke.lean               │ decide examples of the model                   │                    │
+│ Tests/Axioms.lean              │ #print axioms of every public theorem of Tasks │                    │
+│                                │ 2 and 7–12                                     │                    │
+│ scripts/check-fgsa.sh          │ build (--wfail), root imports, native scan,    │                    │
+│                                │ import rules, Q1/Q5 grep, axiom check, lease-  │                    │
+│                                │ instance check with a negative control         │                    │
+│ scripts/CheckFGSAAxioms.lean   │ axioms of every compiled FGSA constant;        │                    │
+│                                │ --expect N …                                   │                    │
+│ scripts/CheckFGSALease.lean    │ every GridCO [LeasePolicy] argument in FGSA is │                    │
+│                                │ slowLeasePolicy                                │                    │
+└────────────────────────────────┴────────────────────────────────────────────────┴────────────────────┘
+```
+
+Run `bash scripts/check-fgsa.sh` for all checks. The Lean scripts read the
+built `.olean` files: run them alone only after `lake build AvailableChainFGSA`.
