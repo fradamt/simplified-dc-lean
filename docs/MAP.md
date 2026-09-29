@@ -31,7 +31,7 @@ names:
 │ AvailableChainModel/Objects/Codec    │ epair, efst, esnd, epair_inj, encList,       │
 │                                      │ encOption, encBool (length-delimited codec)  │
 │ AvailableChainModel/Objects/Blocks   │ nodeRoot; Block.node parent slot body;       │
-│                                      │ Block.root, Block.body (derived);            │
+│                                      │ Block.root (derived), Block.body;            │
 │                                      │ Block.root_injective; parent_mem_iff_root,   │
 │                                      │ parent_mem_and_iff_root (lookup)             │
 │ AvailableChainKit/Roots              │ rootInjective_all                            │
@@ -59,8 +59,9 @@ names:
 │                                      │ from packInner); eraseFG (body encFGBody)    │
 │ AvailableChainFGSA/Statements/       │ MetaInv.wireTree (with rowsOk)               │
 │ Invariants                           │                                              │
-│ AvailableChainFGSA/Proofs/Carrier    │ eraseFG_root, eraseFG_injective,             │
-│                                      │ packBody_inj, rowsOk_iff, rows_eq_of_rowsOk  │
+│ AvailableChainFGSA/Proofs/Carrier    │ eraseFG_root (re-proved by induction),       │
+│                                      │ eraseFG_injective, packBody_inj, rowsOk_iff, │
+│                                      │ rows_eq_of_rowsOk                            │
 │ AvailableChainFGSA/Proofs/Admission  │ parentFG_isSome_iff_root (lookup),           │
 │                                      │ admitBlock_missingParent (no-op),            │
 │                                      │ blockAccepted_rowsOk                         │
@@ -71,6 +72,7 @@ names:
 └──────────────────────────────────────┴──────────────────────────────────────────────┘
 ```
 
+## Notation
 
 `M` means `AvailableChainModel`; `S` means `AvailableChainStatements`.
 Statement names are in `AvailableChain.Statements.Generic`; model names are
@@ -1015,7 +1017,7 @@ rows under `scripts/` are paths from the repository root.
 │                                │ wrong row lists are refused (before I9: DQ10   │                    │
 │                                │ root collision, ContentAgree failed)           │                    │
 │ Tests/Axioms.lean              │ #print axioms of every public theorem of Tasks │                    │
-│                                │ 2 and 7–12                                     │                    │
+│                                │ 2 and 7–12, and of I9 Task 9                   │                    │
 │ scripts/check-fgsa.sh          │ build (--wfail); root imports and the direct-  │                    │
 │                                │ import allowlist with directory rules, on      │                    │
 │                                │ parsed headers; native scan; Q1/Q5 grep; the   │                    │

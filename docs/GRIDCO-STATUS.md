@@ -89,15 +89,15 @@ counterexamples and conditional constructors have been removed.
   every block, so the `RootInjective` premise of each regime is a theorem
   (`rootInjective_all`). The regime field stays. `rootInjectiveBelow_all`
   proves `RootInjectiveBelow` for every tree. The four lemmas of
-  `Proofs/Roots.lean` that take `hroot` keep their statements; a later
-  plan removes that premise. The parent check of `admitProposal` is the
-  dependency lookup by root (`blockKnown_parent_slot_iff_root`), and a
-  proposal with an unknown parent leaves the state unchanged
-  (`admitProposal_missingParent`). One statement changed:
-  `honest_proposal_views` now states `B = .node parent s 0`. `excludes`
-  did not change. SA gets the same changes. Validation after I9:
-  `lake build --wfail` passes all 3,629 jobs with no warnings
-  (2026-09-29, I9 Task 11).
+  `Proofs/Roots.lean` that take `hroot` keep their statements; the
+  removal of that premise is a later plan (plan I9 D6). The parent check
+  of `admitProposal` is the dependency lookup by root
+  (`blockKnown_parent_slot_iff_root`), and a proposal with an unknown
+  parent leaves the state unchanged (`admitProposal_missingParent`). One
+  statement changed: `honest_proposal_views` now states
+  `B = .node parent s 0`. `excludes` did not change. SA gets the same
+  changes. Validation after I9: `lake build --wfail` passes all 3,629
+  jobs with no warnings (2026-09-29, I9 Task 11).
 
 ## Validation
 

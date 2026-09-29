@@ -455,10 +455,11 @@ Status after plan I9 (2026-09-29): the row Roots ends with a note
 │           │ content (nodeRoot, epair). Block.root_injective holds for  │
 │           │ every block, so RootInjective is a theorem                 │
 │           │ (rootInjective_all). The honest formula is removed; honest │
-│           │ proposers use body 0. The regime fields stay, filled by    │
-│           │ rootInjective_all; a later plan removes them. Open: a      │
-│           │ root-only wire refinement, and the relay feasibility       │
-│           │ question (plan 1c). See FRAMEWORK-DESIGN.md §12 I9.        │
+│           │ proposers use body 0 (FG-SA: packBody 0 rows). The regime  │
+│           │ fields stay, filled by rootInjective_all; their removal is │
+│           │ a later plan (plan I9 D6). Open: a root-only wire          │
+│           │ refinement, and the relay feasibility question (plan 1c).  │
+│           │ See FRAMEWORK-DESIGN.md §12 I9.                            │
 │ E4        │ New after plan 1a. Plan 1b: Grid CO, SA, SA-PC and L* each │
 │           │ have an E4 excludes and the five hook facts, in their own  │
 │           │ library. Grid CO and SA: two permanent HEAD refusals (an   │

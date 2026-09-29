@@ -1,3 +1,11 @@
+# Astra audit report: I9 branch, Tasks 0–8 (pre-final)
+
+_This file is the verbatim audit output (2026-09-29). The table widths,
+the prose and the absolute links are as Astra wrote them. A link under
+`/Users/francesco/worktrees/available-chain-i9/` refers to the same path
+from the repository root. The prompt is `i9-branch-audit-0-8.md`. The
+disposition of I9-A01 is in `docs/I9-REPORT.md` §7, decision 4._
+
 VERDICT: READY WITH FIXES
 
 This verdict covers `a5aaf3c..e42bb37`, Tasks 0–8 only. FG-SA was excluded. No files were changed.

@@ -5,7 +5,8 @@ Gate reports: `docs/audit/fgsa-task{6..12}-opus-review.md`,
 `docs/audit/fgsa-model-check-report.md`, and the final audit (G13):
 `docs/audit/fgsa-final-audit-astra.md`, `docs/audit/fgsa-final-audit-opus.md`,
 with the verification of its fold: `docs/audit/fgsa-final-audit-fold-verify.md`.
-This file is the Task 13 report with the G13 corrections.
+This file is the Task 13 report with the G13 corrections. §7 adds the
+status after plan I9 (2026-09-29).
 
 Scope. All results are LOCAL store facts over the over-approximate `Reachable`
 (no input check, any clock value; DQ14). The cross-node results take the
@@ -43,9 +44,9 @@ relation that K1 needs; it is not a proof of every clause of
 │ bp.store.v1      │ fields incl. noGenesisWire),         │ unchanged": process_cumulative,    │
 │                  │ process_cumulative, clock_cumulative │ clock_cumulative, MetaInv          │
 │ K5 local         │ viewRootInj_TF, viewRootInj_of_      │ CStoreInv (root injectivity of Σ.T │
-│ bp.carrier.v1    │ rootInj, compatible_iff_eraseFG,     │ holds by construction, DQ2)        │
-│                  │ preceq_of_eraseFG_preceq,            │                                    │
-│                  │ rootInjectiveOn_of_viewRootInj       │                                    │
+│ bp.carrier.v1    │ rootInj, compatible_iff_eraseFG,     │ holds by construction, DQ2). After │
+│                  │ preceq_of_eraseFG_preceq,            │ I9: rootInj_all, viewRootInj_all;  │
+│                  │ rootInjectiveOn_of_viewRootInj       │ no premise                         │
 │ K5 cross-node    │ fg_eq_of_eraseFG_eq_across,          │ CStoreInv, MetaInv at both stores, │
 │ bp.carrier.v1    │ preceq_iff_across,                   │ ContentAgree st st' (DQ3(b),       │
 │                  │ compatible_iff_across,               │ narrowed at G12). After I9 it is a │
@@ -59,7 +60,10 @@ relation that K1 needs; it is not a proof of every clause of
 │ K8 input         │ admitBlock_sufficient,               │ CStoreInv, wellFormed wire, stored │
 │ bp.receipt-      │ admitBlock_sufficient_absent         │ parent, slot ≤ Σ.s, fresh root     │
 │ Coverage.v1      │                                      │ (DQ2) or absent + root premise,    │
-│                  │                                      │ F ⪯ b. Run form of K8: T7          │
+│                  │                                      │ F ⪯ b. Run form of K8: T7. After   │
+│                  │                                      │ I9 the root premise is a theorem   │
+│                  │                                      │ (Block.root_injective); fresh root │
+│                  │                                      │ = absent                           │
 │ bp.activeView.v1 │ items 1–6: actView_blocks,           │ items 1, 2, 4 and actView_eq_image │
 │                  │ actView_genesis_F (1); actView_      │ need CStoreInv; items 3, 5, 6 need │
 │                  │ ancestor_closed (2); actView_        │ none (item 6: K ⪯ F). Genesis      │
@@ -109,7 +113,8 @@ Against the blueprint:
 - DQ1 flat wire: `eraseFG (fg B) = erase B` is `eraseFG_fgBlock`.
 - DQ2: the duplicate test is root freshness, not "absent". K8
   (`admitBlock_sufficient`) takes a fresh root; `admitBlock_sufficient_absent`
-  takes "absent" plus a root premise (G10 m2).
+  takes "absent" plus a root premise (G10 m2). After I9 the root premise
+  is a theorem (`Block.root_injective`); fresh root = absent.
 - K1: `hL` quantifies over every row of `obligations`, including due leases
   that the next tick expires (spec 447–448, 736–741). With "live" read as
   "deadline in the future", the blueprint claim is false for such a row
@@ -172,6 +177,8 @@ or content-coded roots with an admission check across GridCO/SA/FG-SA.
 Q1 (engine) and Q5 (deliverable) stay open; objects are v1-typed (J1).
 
 ## 4. Validation
+
+Before I9 (2026-09-29). The values after I9 Task 9 are in §7.
 
 ```text
 ┌────────────────────────────────────────────────────┬──────────────────────────────────────┐
@@ -288,7 +295,7 @@ the direct-import allowlist does not change.
 - K8 run form needs `hfresh` from `RootInjective` plus absence (or use
   `admitBlock_sufficient_absent`), and `hwf` from `DeliveryWellFormed`.
   After I9, `RootInjective` is a theorem (`rootInjective_all`), and
-  `rootInj_all` gives root injectivity of Σ.T on every store.
+  `Block.root_injective` gives `hinj` of `admitBlock_sufficient_absent`.
 
 ## 6. Inputs for composition task T1 (registry)
 
@@ -309,7 +316,8 @@ the direct-import allowlist does not change.
 │                         │ reconcile_harmless_origin (K1), admitBlock_reconcile_      │
 │                         │ harmless (K1 at a block step), reconcile_fastOrigin        │
 │ bp.carrier.v1           │ Carrier.lean (local), viewRootInj_TF, CrossNode.lean       │
-│                         │ (cross-node, ContentAgree), stored_wire_of_block           │
+│                         │ (cross-node, ContentAgree), stored_wire_of_block; after    │
+│                         │ I9: contentAgree, contentAgree_reachable, rootInj_all      │
 │ bp.activeView.v1        │ the six items above, actView_eq_image, saCompat_gateStep,  │
 │                         │ fastOrigin_gateStep                                        │
 └─────────────────────────┴────────────────────────────────────────────────────────────┘

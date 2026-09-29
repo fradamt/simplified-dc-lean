@@ -1106,7 +1106,7 @@ extra-tier entry.
   - Regime fields. The regime root fields (`rootInjective`) and the
     lemma premises of the `hroot` type stay. `rootInjective_all`,
     `rootInjectiveBelow_all`, `rootInjectiveOn_all` and `viewRootInj_all`
-    fill them. A later plan removes them.
+    fill them. Their removal is a later plan (plan I9 D6).
   - FG-SA. The base body packs the application value and the ordered
     signed rows. `rowsOk` checks this packing in `wellFormed` and in
     `blockAccepted`; it is a content check, not a root check. With it,

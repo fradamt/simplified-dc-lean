@@ -1,5 +1,28 @@
 # SA-PC status
 
+## Derived roots (I9) — 2026-09-29
+
+Plan I9 makes block roots derived. See the dated I9 note in
+`CONTRACT.md`. A block has a body, not a root, and `Block.root`
+computes the root from the content. Honest `propose` uses body 0
+(`Model/Choice.lean:87`). `Block.root_injective` holds for every block,
+so the `RootInjective` premise of each regime is a theorem
+(`rootInjective_all`). The regime field stays; its removal is a later
+plan (plan I9 D6). The parent check is the dependency lookup by root
+(`blockKnown_parent_slot_iff_root`, `Proofs/BaseViews.lean`). The block
+of a proposal with an unknown parent does not enter the store
+(`proposalEnters_missingParent`), and the handler returns the state
+unchanged (`admitProposal_missingParent`). A direct PC with a missing
+path also leaves the state unchanged (`process_pc_missingPaths`,
+`Proofs/CertificateValidity.lean`). One statement changed (a named
+exception of the plan): `honest_proposal_views`
+(`Proofs/Proposals.lean:55`) now states `b = .node parent s 0`.
+`sapcContract_from_engine`, `sapcStrong_from_engine` and `excludes` did
+not change. The test file `Tests/CleanInvariantCounterexample.lean`
+proves `y_root_lt_x_root` and fills `rootInjective` with
+`rootInjective_all`; its four private root helpers are deleted
+(I9-A01, see `docs/I9-REPORT.md`).
+
 ## Receipt relay — 2026-09-28
 
 The contract now uses DC receipt relay. The previous accepted-object
