@@ -1,0 +1,7 @@
+# Check (b) allow list (BUILD §7.2 B8, §7.3; E7 in a0-s4-build.md §2.2): a
+# `def`, `abbrev` or `instance` in a proof module that may carry its own
+# `@[expose]`, because a test decides it. One line: <path> <declName>.
+AvailableChainKitFG/ClientSafety.lean clientRow
+AvailableChainKitFG/Certificates.lean afterFin
+AvailableChainKitFG/Certificates.lean foldRows
+AvailableChainKitV2/RunCheck.lean allDeliveries

@@ -1,0 +1,3 @@
+# Check (i) allow list: `<rule> <declaration (full name)>` lines that a rule
+# skips in every library. F-3: the old-name wrappers of E-13 (GLY §F F-3);
+# empty now, and empty again after F2.
