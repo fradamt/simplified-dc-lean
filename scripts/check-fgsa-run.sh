@@ -389,6 +389,49 @@ expect_fail "used constants of the v1 Kit, v1 statements, v1 engine and Grid CO 
   "FORBIDDEN CONSTANT: AvailableChain.FGSA.Run.negStatements uses AvailableChain.Statements.Generic.Constants (AvailableChainStatements.Generic.Constants)" \
   "FORBIDDEN CONSTANT: AvailableChain.FGSA.Run.negGridProof uses AvailableChain.GridCO.RootInjectiveBelow (AvailableChainGridCO.Proofs.Roots)"
 
+# New (review gate G-walk, the T7.W wrapper statement rule): no declaration
+# TYPE of the library may name a Grid CO proof constant, so the used-constant
+# check scans types, not only values. The control is a theorem whose statement
+# names the Grid CO proof predicate `GridCO.RootInjectiveBelow` and whose proof
+# is the store lemma `FGSA.rootInjectiveBelow_base` (allowed): only its type
+# names the forbidden constant.
+# After the T7.W merge (AvailableChainFGSA.Proofs.Head, branch fgsa-t7w at
+# 9d239ce), this text replaces the control file (the lead's text; the namespace
+# is the library's):
+#   module
+#   public import AvailableChainFGSA.Proofs.Head
+#   @[expose] public section
+#   namespace AvailableChain.FGSA.Run
+#   open AvailableChain.FGSA
+#   theorem negctl_walkWrapper_proofPredicate (p : Params) (st : State p.n)
+#       (h : CStoreInv p st) : GridCO.RootInjectiveBelow st.base.blocks :=
+#     rootInjectiveBelow_base p st h
+#   end AvailableChain.FGSA.Run
+#   end
+mk_tree
+cat > "$neg/tree/AvailableChainFGSARun/Proofs/NegWalk.lean" <<'LEAN'
+module
+public import AvailableChainFGSA.Proofs.StoreInv
+@[expose] public section
+namespace AvailableChain.FGSA.Run
+open AvailableChain.FGSA
+/-- NEGATIVE CONTROL (T7.W wrapper statement rule): the statement names the Grid
+CO proof predicate `GridCO.RootInjectiveBelow`. The used-constant check must
+reject this declaration. -/
+theorem negctl_walkWrapper_proofPredicate (p : Params) (st : State p.n) (h : CStoreInv p st) :
+    GridCO.RootInjectiveBelow st.base.blocks :=
+  rootInjectiveBelow_base p st h
+end AvailableChain.FGSA.Run
+end
+LEAN
+echo 'public import AvailableChainFGSARun.Proofs.NegWalk' >> "$neg/tree/AvailableChainFGSARun.lean"
+rm -rf "$neg/c" && mkdir -p "$neg/c/AvailableChainFGSARun/Proofs"
+cp -R .lake/build/lib/lean/AvailableChainFGSARun .lake/build/lib/lean/AvailableChainFGSARun.* "$neg/c/"
+lake env lean -o "$neg/c/AvailableChainFGSARun/Proofs/NegWalk.olean" "$neg/tree/AvailableChainFGSARun/Proofs/NegWalk.lean"
+run lake env bash -c 'LEAN_PATH="$0/c:$LEAN_PATH" lean --run scripts/CheckFGSARunAxioms.lean --root AvailableChainFGSARun.Proofs.NegWalk --files "$0/tree/AvailableChainFGSARun" "${@}"' "$neg" "${AX_OPTS[@]}"
+expect_fail "a Grid CO proof predicate in a statement type (G-walk)" $code "$out" \
+  "FORBIDDEN CONSTANT: AvailableChain.FGSA.Run.negctl_walkWrapper_proofPredicate uses AvailableChain.GridCO.RootInjectiveBelow (AvailableChainGridCO.Proofs.Roots)"
+
 # Lease controls (the controls of scripts/check-fgsa.sh, over the run library):
 # a direct default-instance call; the anchored gate and tick at the grid
 # policy; an alias wrapper with its own policy parameter in another namespace;

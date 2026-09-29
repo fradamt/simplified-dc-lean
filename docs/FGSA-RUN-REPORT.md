@@ -137,11 +137,24 @@ The check script is adapted from `scripts/check-fgsa.sh` (plan §3.1):
   selective open that must pass); used constants of the v1 Kit, the v1
   statements, the v1 engine, and a Grid CO proof predicate in a statement
   (the T7.W wrapper rule).
+- G-walk control (lead, the T7.W wrapper statement rule): the used-constant
+  check scans declaration TYPES as well as values. The control
+  `negctl_walkWrapper_proofPredicate` states `GridCO.RootInjectiveBelow
+  st.base.blocks` and is proved by the store lemma
+  `FGSA.rootInjectiveBelow_base` (allowed), so only its type names the
+  forbidden constant; the check must print "FORBIDDEN CONSTANT:
+  AvailableChain.FGSA.Run.negctl_walkWrapper_proofPredicate uses
+  AvailableChain.GridCO.RootInjectiveBelow (AvailableChainGridCO.Proofs.Roots)".
+  It imports `AvailableChainFGSA.Proofs.StoreInv`. After the T7.W merge, the
+  lead's text (import `AvailableChainFGSA.Proofs.Head`, the same theorem)
+  replaces it; the script has that text in a comment. The lead's namespace
+  `AvailableChain.FGSARun` is changed to the library namespace
+  `AvailableChain.FGSA.Run`.
 
 Validation at T7.1 (Mac, `pgrep -x lean | wc -l` = 0 before each run):
 `lake build --wfail AvailableChainFGSARun` exit 0 (4 jobs);
 `bash scripts/check-fgsa-run.sh` exit 0 (0 constants, 592 closure modules,
-12 negative controls rejected as expected; 3 min 46 s);
+13 negative controls rejected as expected, the G-walk control included);
 `lake env lean --run scripts/V2Manifest.lean --check` exit 0 (280 entries in
 17 modules). At T7.1 the library has no declaration, so the script passes
 `--allow-empty` to the two compiled checks; T7.2 replaces it with an
