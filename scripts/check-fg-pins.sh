@@ -17,7 +17,8 @@
 #    record is a pin id, and the dep targets are exactly the ap and external
 #    ids. Else exit 2.
 # 1) each src resolves to its REGISTERED version (tsc/: the archive copy by
-#    hash; spec: the archived file; vc and dc: the registered Git commit), and
+#    hash; spec and blueprint: the archived file; vc and dc: the registered Git
+#    commit), and
 #    that version has the pinned hash;
 # 2) each src (key, path, hash) is exactly the row of its key in the §0.1
 #    tables (a continuation line counts only when its key column is blank);
@@ -50,12 +51,15 @@ ETH=/Users/francesco/ethereum
 REG=${FGREG:-docs/FG-COMPOSITION.md}
 # The allowlist of hist pins, one per line: <id> <date YYYY-MM-DD> <reason>.
 HIST='
+fj.frame.v3 2026-09-29 WITHDRAWN for current use, r212/r213; successor fj.frame.v4
+fg.finalLock.v1 2026-09-29 WITHDRAWN for current use, r212/r213; successor fg.finalLock.v2
+fj.twoChanges.core.v1 2026-09-29 WITHDRAWN for current use, r212/r213; successor fj.twoChanges.core.v2
 '
 [ -z "${FGHISTALLOW:-}" ] || HIST=$(cat "$FGHISTALLOW")
 EMIT=${FGPINIDS:-scripts/FGPinIds.lean}
 ID='[a-z][A-Za-z0-9.]*\.v[0-9]+'   # the registry's id grammar
 KEY='[A-Za-z0-9]+'
-ROOT='(tsc|spec|vc@b97b902|research@9f5ed71)'
+ROOT='(tsc|spec|blueprint|vc@b97b902|research@9f5ed71)'
 FILE='[A-Za-z0-9._/-]+'
 HASH='[0-9a-f]{64}'
 resolve() {  # root path pinned-hash -> sha256 of the registered version
@@ -64,6 +68,8 @@ resolve() {  # root path pinned-hash -> sha256 of the registered version
     tsc) f="$ETH/research/async-resilient-committees/tip-stability/codex/archive/${path%.*}-${h:0:8}.${path##*.}"
          [ -f "$f" ] || return 1; shasum -a 256 "$f" | cut -c1-64 ;;
     spec) f="$ETH/research/async-resilient-committees/tip-stability/spec/$path"
+          [ -f "$f" ] || return 1; shasum -a 256 "$f" | cut -c1-64 ;;
+    blueprint) f="$ETH/research/async-resilient-committees/tip-stability/blueprint/$path"
           [ -f "$f" ] || return 1; shasum -a 256 "$f" | cut -c1-64 ;;
     vc@*) git -C "$ETH/lean/decoupled-consensus/verified-consensus" show "${root#vc@}:$path" 2>/dev/null |
             shasum -a 256 | cut -c1-64 ;;

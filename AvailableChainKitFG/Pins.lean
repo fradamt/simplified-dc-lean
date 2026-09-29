@@ -55,7 +55,7 @@ clause below that names one of them is discharged by these two lemmas. -/
 root, its path under that root, and its full SHA-256. -/
 structure Src where
   key : String
-  root : String     -- "tsc" | "spec" | "vc@b97b902" | "research@9f5ed71"
+  root : String     -- "tsc" | "spec" | "blueprint" | "vc@b97b902" | "research@9f5ed71"
   path : String     -- tsc: the registered name, resolved to tsc/archive/ by hash
   sha256 : String
   deriving BEq
@@ -114,6 +114,15 @@ def spec : Src := ⟨"spec", "spec", "archive/fgsa-protocol-ae4497ab.tex",
   "ae4497abc7c5b3a6f73697f341bf730a63c7d34bd2f7546154bd022bc95af223"⟩
 def alfs4 : Src := ⟨"alfs4", "spec", "archive/fgsa-protocol-bd942ca0.tex",
   "bd942ca0bce0b4251b969a503a8c8175db87494ab93bf028e3a2303b7683dda7"⟩
+/-- The adopted FG-SA spec (2026-09-29): the SA walk starts at Σ.F, no rule
+deletes a block of Σ.T, and the pre-GST delivery clause. -/
+def fgsa3 : Src := ⟨"fgsa3", "spec", "archive/fgsa-protocol-c1ea1db0.tex",
+  "c1ea1db08f1da37bcde075df5d70f23af7c9941bd05ae5e8aca1bb48d1b777ed"⟩
+/-- The adopted blueprint (2026-09-29), chapters 00 and 01 (archive copies). -/
+def bp00 : Src := ⟨"bp00", "blueprint", "archive/00-outline-06aff758.md",
+  "06aff758725e9e80211f87da1fa67341ad1992d60cd54416c09d7eeae68097c3"⟩
+def bp01 : Src := ⟨"bp01", "blueprint", "archive/01-foundations-200c9c07.md",
+  "200c9c07a01bd5826750d0e89a985be87e588f98132a68534cdd719531302a99"⟩
 def ldp : Src := ⟨"ldp", "tsc", "fgsa-live-dc-port.md",
   "816776723e439f24612c409f2007c2a236bb3fa2dbde605c68516333ee4c7b38"⟩
 def r161 : Src := ⟨"r161", "tsc", "filtered-base.md",
@@ -135,6 +144,85 @@ def vcW : Src := ⟨"vcW", "vc@b97b902",
 open AvailableChain.SimplexFG in
 /-- The clause-level pin table. -/
 def pins : List Pin := [
+  -- The FG-SA frame (registry 2026-09-29; fgsa3 = spec c1ea1db0; blueprint 00 §3,
+  -- 01 §4, §6, §11). Trees clauses 0, 1, 2, 3a, 3b, 4 of the registry entry; the
+  -- other clauses are v3's, with fgsa3 line numbers (the pinned text is identical).
+  { id := "fj.frame.v4", sources := [fgsa3, ldp, r161], clauses := [
+    ⟨"Trees 0: Σ.T is parent-closed and cumulative; a new block enters it only if it \
+      extends F (fgsa3 489–492)",
+      .leanHyp [``Store, ``storeInv_init, ``storeInv_on_block, ``on_block_TF_subset,
+          ``update_finality_TF]
+        "parent closure is StoreInv.closed (storeInv_init, storeInv_on_block; \
+        ViewRootInj on the new Σ.T when B is accepted, viewRootInj_all); \
+        cumulativity needs no hypothesis"⟩,
+    ⟨"Trees 1: a block of Σ.T outside the active view whose state height exceeds the \
+      entry height of the accepted finalization's certificate (0 for genesis) needs a \
+      slashable conflict (fgsa3 502–506)",
+      .external "fg.finalLock.v2" "the accepted-carrier wrapper (certificate entry \
+        height, genesis normalization) is open in the pin fg.finalLock.v2"⟩,
+    ⟨"Trees 2: no rule deletes a block of Σ.T; storage pruning is a retention item \
+      (fgsa3 506–511); FG store: on_block and update_finality keep TF",
+      .lean [``on_block_TF_subset, ``update_finality_TF]⟩,
+    ⟨"Trees 2, FG-SA store: a delivery keeps st.fg.TF (⊆), a tick keeps it (=)",
+      .leanIn "AvailableChainFGSA"
+        [`AvailableChain.FGSA.process_cumulative, `AvailableChain.FGSA.clock_cumulative]⟩,
+    ⟨"Trees 2, remark: deleting a block outside the active view can change the HEAD \
+      and S, also at a ≤ f (fgsa3 507–510)",
+      .paper "a counterexample fact (FR M1, N2; blueprint 01 §11.1–§11.2), not an \
+        output-preservation claim"⟩,
+    ⟨"Trees 3a: the confirmation walk starts at Σ.F in act(Σ); it returns a block only \
+      if that block passes the strict-majority test, also when the block is Σ.F \
+      (fgsa3 511–513, 1289–1306): gateStep and fastSet run SA.confirmationFrom (an \
+      AvailableChainSA definition) from Σ.F; clock_eq_saClockFrom_gate is the tick",
+      .leanIn "AvailableChainFGSA"
+        [`AvailableChain.FGSA.gateStep, `AvailableChain.FGSA.fastSet,
+          `AvailableChain.FGSA.clock_eq_saClockFrom_gate]⟩,
+    ⟨"Trees 3b: the FJ viability and band filter does not restrict the SA \
+      confirmation walk (fgsa3 514–515)",
+      .apData "the SA confirmation walk; the HEAD, proposal and FG duties use the \
+        filter, the SA walk does not"⟩,
+    ⟨"Trees 4: act(Σ) is a view of Σ.T (fgsa3 493–496)",
+      .lean [``activeView, ``activeView_subset]⟩,
+    ⟨"Trees 4: only the SA base reads act(Σ) (fgsa3 497–499)",
+      .apData "no FG definition or lemma reads activeView"⟩,
+    ⟨"on_block: duplicate, parent, F ⋠ B and parent-slot refusals before the state \
+      computation (fgsa3 944–969)",
+      .leanHyp [``on_block, ``on_block_of_refused, ``storeInv_on_block]
+        "the refused branch changes nothing (on_block_of_refused); FG admission \
+        input contract: the future-slot bound (line 946), the proposer signature \
+        (lines 950–951) and the row-round check (lines 954–957)"⟩,
+    ⟨"fg_contest, band_floor, get_fg_root on the live caches; contest over Σ.T \
+      (fgsa3 1122–1138, 1156–1163)",
+      .leanHyp [``storeControls, ``Controls.rootIsJ, ``Controls.Z, ``Controls.lo,
+          ``storeControls_eq_fjControls]
+        "StoreInv (ViewRootInj is used only by storeInv_on_block; viewRootInj_all)"⟩,
+    ⟨"viable_tree_from and get_filtered_block_tree_from on any block set \
+      (fgsa3 1140–1146, 1165–1172)",
+      .leanHyp [``filteredFrom, ``mem_filteredFrom]
+        "definition only (mem_filteredFrom unfolds filteredFrom)"⟩,
+    ⟨"get_filtered_block_tree: the filter of Σ.T (fgsa3 1173–1177)",
+      .leanHyp [``storeFrame, ``storeFrame_full] "StoreInv"⟩,
+    ⟨"viable_tree: acceptance only, band hmax−1 also in a contest (fgsa3 1148–1154)",
+      .leanHyp [``acceptViable, ``frameViable_subset_accept]
+        "a StoreInv binder that the proof does not use (the Lean fact holds for \
+        every store: a stronger form)"⟩,
+    ⟨"update_finality: hmax, lex-order J update, F acceptance (fgsa3 999–1012)",
+      .leanHyp [``update_finality, ``storeInv_on_block]
+        "ViewRootInj on the new Σ.T when B is accepted (lex order, lines 1002–1005); \
+        viewRootInj_all proves it"⟩,
+    ⟨"reconcile_with_finality: SA fields only; Σ.T and hmax unchanged (fgsa3 1014–1034)",
+      .apData "it writes no FG field"⟩,
+    ⟨"live_root and get_head_in_tree (fgsa3 1226–1247)",
+      .ap "ap.headReachesLo.v6" "clauses 1–2: the head is in D_V with height ≥ lo if \
+        the anchor is in D_V or has an eligible child there; otherwise the head is \
+        the anchor"⟩,
+    ⟨"voter_processed_block_tree, voter_filtered_block_tree, the HEAD duty call \
+      (fgsa3 1361–1376, 1437–1439)",
+      .apData "the frozen block set; filteredFrom takes it as a parameter"⟩ ] },
+  -- HISTORICAL (historicalPins): WITHDRAWN for current use 2026-09-29, successor
+  -- fj.frame.v4. Not true as pinned: the deletion clause (alfs4 368–369) is refuted
+  -- also under alfs4 (blueprint 01 §11.2 N2), and fgsa3 511–513 changes the
+  -- genesis-walk clause. The pins below are the alfs4 history, unchanged.
   -- The ALFS frame with the filtered base (registry 648f255, note 504f5ae; alfs4).
   -- ALFS fields read only by the AP (act(Σ), the confirmation walk) are .apData clauses.
   -- History: fj.frame.v2 (4bc6690; alfs, alfs2, alfs3) is SUPERSEDED by v3.
@@ -247,7 +335,7 @@ def pins : List Pin := [
     ⟨"(4) below lo every block of D has a child in D",
       .leanHyp [``filteredFrom_viable_child] "any controls; the block set is ancestor-closed"⟩,
     ⟨"(2), (3) on the frozen voter tree (ALFS note)",
-      .ap "ap.headReachesLo.v5" "not unconditional: a late contest can empty D_V, ldp \
+      .ap "ap.headReachesLo.v6" "not unconditional: a late contest can empty D_V, ldp \
         L6; the plan reads clause 3, Z ∈ D_V from D_V ≠ ∅, as filteredFrom_Z_mem (the \
         plan's reading, not a registry discharge)"⟩,
     ⟨"the walk below lo (last two pinned sentences), view form: the head read from a \
@@ -257,7 +345,7 @@ def pins : List Pin := [
     ⟨"the walk below lo (last two pinned sentences), ALFS: the HEAD is in D_V with \
       state height ≥ lo if its anchor A = live_root is in D_V or has an eligible \
       child in D_V; otherwise the HEAD is A (clause 2)",
-      .ap "ap.headReachesLo.v5" "clauses 1–2"⟩ ] },
+      .ap "ap.headReachesLo.v6" "clauses 1–2"⟩ ] },
   -- Port difference: accountable_oriented (the helper behind `accountable`) gives
   -- HasE1WeightBetween of the two chains' rows; DC's namedAccountableSafety_oriented
   -- pins the pair (HasE1WeightAt). The Lean form is weaker, and enough for the clause.
@@ -275,6 +363,25 @@ def pins : List Pin := [
       .leanHyp [``uniqueJust_chains] "RootInjectiveOn (rootInjectiveOn_all)"⟩,
     ⟨"at most one justified entry per height in the whole run",
       .paper "2q_F−n > a and honest E2 compliance"⟩ ] },
+  -- The finality lock at the accepted threshold (registry 2026-09-29; blueprint 01
+  -- §8.2, 00 §3). finalLock_e1 and finalLock are carrier forms: the threshold is
+  -- h_F of a chain B. The accepted-carrier wrapper is open.
+  { id := "fg.finalLock.v2", sources := [bp01, bp00], clauses := [
+    ⟨"carrier form: for a chain B and a block W with h(W) > h_F(B), W extends F(B), or \
+      B's finality rows and W's crossing rows give 2q−W E1 weight (no fault bound); \
+      h_F(B) = 0 gives F(B) = genesis (bp01 725–743)",
+      .leanHyp [``finalLock_e1, ``finalLock]
+        "RootInjectiveOn B W (rootInjectiveOn_all); finalLock is the slashable-or \
+        form; the threshold is the carrier's h_F, not yet the accepted certificate's \
+        entry height"⟩,
+    ⟨"accepted-carrier wrapper: for the accepted F at e, finheight(F,e) is 0 for \
+      genesis and else the entry height of its accepted certificate; the carrier \
+      form holds at that threshold (bp01 725–743, bp00 643–651)",
+      .open_ "accepted-carrier wrapper: proof pending (r213b item 2)"⟩,
+    ⟨"under a ≤ f and honest client discipline, F ⪯ W (bp01 725–743)",
+      .paper "2q_F − n > a removes the evidence branch"⟩ ] },
+  -- HISTORICAL (historicalPins): WITHDRAWN for current use 2026-09-29, successor
+  -- fg.finalLock.v2 (the accepted threshold, 0 for genesis). Its theorem stays true.
   { id := "fg.finalLock.v1", sources := [bp, vcF, r148], clauses := [
     ⟨"every block above h_F(D) extends F(D)",
       .leanHyp [``finalLock] "slashable-or form; RootInjectiveOn (rootInjectiveOn_all)"⟩ ] },
@@ -375,12 +482,12 @@ def pins : List Pin := [
     ⟨"ALFS form: in a contest the frozen HEAD reaches H if its anchor A = live_root is \
       in D_V (the filtered domain of the frozen voter tree V) or has an eligible child \
       in D_V; otherwise the HEAD is A (clause 2), which can be below H",
-      .ap "ap.headReachesLo.v5" "clauses 1–2"⟩,
+      .ap "ap.headReachesLo.v6" "clauses 1–2"⟩,
     ⟨"in a contest the FG action head (get_filtered_block_tree over the full tree Σ.T, \
       domain D; alfs4 1021–1025) reaches H if A is in D or has an eligible child in D; \
       otherwise the head is A, which can be below H",
-      .ap "ap.headReachesLo.v5" "the plan's reading of clauses 1–2 with Σ.T in place \
-        of V (v5 is stated only for a HEAD duty's frozen voter tree); the anchor \
+      .ap "ap.headReachesLo.v6" "the plan's reading of clauses 1–2 with Σ.T in place \
+        of V (v6 is stated only for a HEAD duty's frozen voter tree); the anchor \
         premise is AP and comp work"⟩,
     ⟨"a lock at H needs a carrier at H+1",
       .leanHyp [``finalityPair_carrier_above] "head fields = HeadFields.ofBlock"⟩,
@@ -388,6 +495,9 @@ def pins : List Pin := [
     ⟨"locks at H−1 do not block rows at H; old different targets cause timeouts, which \
       still contribute progress",
       .paper "r148 lines 590–593; no Lean"⟩ ] },
+  -- HISTORICAL (historicalPins): WITHDRAWN for use under fgsa3 (2026-09-29),
+  -- successor fj.twoChanges.core.v2 (live-cache evidence; not pinned here). Its pins
+  -- and partial Lean coverage stay as history.
   -- hFJ (E_J → F ⪯ Jm) is an extra hypothesis of effFrame_of_bits, twoChanges,
   -- twoChanges_count and twoChanges_nested. Paper derivation: fg.finalLock.v1 if
   -- h(F) < m−1; fg.uniqueJust.v1 if h(F) = m−1; StoreInv.Fcar and Fmove_atFrontier
@@ -468,9 +578,11 @@ def notFormalized : List (String × String) := [
   ("fg.frame.v2", "nj frame; the module is fj only (user decision 2026-09-28)"),
   ("fg.oneBullet.core.v1", "nj only; fj uses fj.twoChanges.core.v1"),
   ("ap.headReachesLo.v1", "AP service fact, view form; the FG side is fj.frameFeasible.v1"),
-  ("ap.headReachesLo.v5", "AP service fact, ALFS form (filtered base); obligation \
-    clauses 1–3; FG inputs (the plan's reading, not a registry discharge): \
+  ("ap.headReachesLo.v6", "AP service fact, FG-SA form (spec c1ea1db0; R ≥ 2, θ = 3Δ); \
+    obligation clauses 1–3; FG inputs (the plan's reading, not a registry discharge): \
     filteredFrom_reachesLo, filteredFrom_Z_mem (clause 3), filteredFrom_viable_child"),
+  ("ap.headReachesLo.v5", "WITHDRAWN for current use (2026-09-29), successor v6; \
+    still true in its stated scope (R ≥ 3, 4Δ, spec bd942ca0); ALFS form"),
   ("ap.headReachesLo.v2", "SUPERSEDED by v3, then v4"),
   ("ap.headReachesLo.v3", "SUPERSEDED by v4"),
   ("ap.headReachesLo.v4", "SUPERSEDED by v5 (648f255); the conclusions of clauses 1–3 \
@@ -482,7 +594,8 @@ def notFormalized : List (String × String) := [
 SUPERSEDED, and no current composition cites them. `scripts/check-fg-pins.sh`
 exempts them and their references from the status test, and each one must be
 on the allowlist of that script, with a reason and a date. -/
-def historicalPins : List String := []
+def historicalPins : List String :=
+  ["fj.frame.v3", "fg.finalLock.v1", "fj.twoChanges.core.v1"]
 
 /-- The manifest that `scripts/check-fg-pins.sh` checks, from the elaborated
 values (Astra P01, Q01–Q03, T01), one record per line: `src <key> <root> <path>
@@ -578,6 +691,7 @@ example := @update_finality_F_mono
 example := @uniqueJust
 example := @uniqueJust_chains
 example := @finalLock
+example := @finalLock_e1
 example := @entry_height
 example := @entry_first
 example := @lexMax_of_candidate

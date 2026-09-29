@@ -165,6 +165,27 @@ paragraph are byte-identical to `fgsa1`; the change record is
 pin `fgsa2`. The live FG entries keep their pins (`alfs4`, `spec`); no
 entry is re-pinned.
 
+Re-pin (registered 2026-09-29). `fgsa3` is the adopted FG-SA spec
+c1ea1db0, registered from its archive copy; a pin to it names the file
+`fgsa-protocol-c1ea1db0.tex`. Against `alfs4`, the Trees paragraph
+changes: no rule deletes a block of Σ.T, the SA confirmation walk starts
+at Σ.F, and the inactive-block threshold is the entry height of the
+accepted finalization. The protocol functions that the FJ frame pins
+(`on_block`, `update_finality`, `reconcile_with_finality`, `fg_contest`
+to `get_filtered_block_tree`, `live_root`, `get_head_in_tree`, the voter
+trees and the HEAD duty call) are byte-identical, at new line numbers.
+The intermediate spec 4e85ff34 is not registered. Its change record to
+`fgsa3` is `spec/archive/CHANGES-4e85ff34-to-c1ea1db0.md` (the pre-GST
+delivery clause and the healing-interface names). The blueprint cites
+4e85ff34 line numbers: line L of 4e85ff34 with 200 < L ≤ 1888 is line
+L+9 of `fgsa3` (diff hunks `199,200c199,209`, `1888a1898,1899`, and
+later hunks after line 2029). `fj.frame.v4`, `fg.finalLock.v2`,
+`fj.descent.v2`, `fj.twoChanges.core.v2` and `ap.headReachesLo.v6` pin
+`fgsa3` or the adopted blueprint. `blueprint/` =
+`research/async-resilient-committees/tip-stability/blueprint/`; the
+keys `bp00`, `bp01` and `bp21` are its archive copies (the adopted
+blueprint of 2026-09-29).
+
 Note (2026-09-28): `spec/fgsa-protocol.tex` is not tracked in Git. It
 changed after registration (sha256 then
 `bc093836f57fd6decbf5d743afa0c4b14061d3e589e1cef83d58708ae35fec10`: `R ≥ 2`
@@ -188,6 +209,10 @@ not re-pinned now. A citation of the form "spec/fgsa-protocol.tex, lines
 │ alfs4 │ spec/archive/fgsa-protocol-bd942ca0.tex                          │ bd942ca0bce0b4251b969a503a8c8175 │ db87494ab93bf028e3a2303b7683dda7 │
 │ fgsa1 │ spec/archive/fgsa-protocol-2e884811.tex                          │ 2e88481117ba3e663c559f95218ce545 │ aba5639f201063c1942dc5599adb9787 │
 │ fgsa2 │ spec/archive/fgsa-protocol-dbcb7f05.tex                          │ dbcb7f05106cff51070fc767de45e3fe │ df45d0c74c8b5aeeca794a6110978864 │
+│ fgsa3 │ spec/archive/fgsa-protocol-c1ea1db0.tex                          │ c1ea1db08f1da37bcde075df5d70f23a │ f7c9941bd05ae5e8aca1bb48d1b777ed │
+│ bp00  │ blueprint/archive/00-outline-06aff758.md                         │ 06aff758725e9e80211f87da1fa67341 │ ad1992d60cd54416c09d7eeae68097c3 │
+│ bp01  │ blueprint/archive/01-foundations-200c9c07.md                     │ 200c9c07a01bd5826750d0e89a985be8 │ 7e588f98132a68534cdd719531302a99 │
+│ bp21  │ blueprint/archive/21-healing-576d02a1.md                         │ 576d02a1757d7722042505d26dea2fc6 │ 28a7c6cd4a6293c145b91255b0f5859b │
 │ dc    │ dc/consensus.tex                                                 │ dc471b47a46896fe0a3df300c188fef1 │ 512f475615ce0fc0df18dbea6d2e5517 │
 │ vcE   │ vc/DecoupledConsensusProofs/Protocol/ValidatorClient/Engine.lean │ 92fb0e64c1288afea98b53212cb3ad5c │ 843c9c720187367eea578d17a9d53454 │
 │ vcF   │ vc/DecoupledConsensusProofs/Protocol/ChainState/                 │ aa0ed92740eb1ec8ee69e90fd2ae75f0 │ 3179a27c05accf5f631e7a254589b94c │
@@ -609,7 +634,9 @@ the uniform clause is REFUTED; "impl. PRV" = the
 implication is PROVED. The entry has the full dated status line. The
 index shows the status under the old spec (R1 views); status lines marked
 "under ALFS (spec 183f2c40)", "(spec c7c41a43)", "(spec 1c6952b6)" or
-"(spec bd942ca0)" are in the entries only.
+"(spec bd942ca0)" are in the entries only. Exception (2026-09-29, §9):
+the index shows the WITHDRAWN status of the ids that the re-pin to
+`fgsa3` withdraws, and the status of their successors.
 
 ```text
 ┌───────────────────────┬──────┬─────────────────────┬───┬────────────────────────┐
@@ -649,13 +676,15 @@ index shows the status under the old spec (R1 views); status lines marked
 │ ap.headReachesLo.v2   │ fj   │ SUPERSEDED (PROVED) │ 2 │ —                      │
 │ ap.headReachesLo.v3   │ fj   │ SUPERSEDED (PROVED) │ 2 │ —                      │
 │ ap.headReachesLo.v4   │ fj   │ SUPERSEDED (PROVED) │ 2 │ —                      │
-│ ap.headReachesLo.v5   │ fj   │ PROVED (ALFS, paper)│ 2 │ —                      │
+│ ap.headReachesLo.v5   │ fj   │ WITHDRAWN (PROVED)  │ 2 │ —                      │
+│ ap.headReachesLo.v6   │ fj   │ PROVED (paper)      │ 2 │ —                      │
 │ fg.provenance.v1      │ both │ SUPERSEDED (PROVED) │ 3 │ —                      │
 │ fg.provenance.v2      │ both │ PROVED              │ 3 │ DC-fj                  │
 │ fg.causalCap.v1       │ both │ SUPERSEDED (PROVED) │ 3 │ —                      │
 │ fg.causalCap.core.v1  │ both │ PROVED; LEAN (DC)   │ 3 │ DC-fj                  │
 │ fg.uniqueJust.v1      │ both │ LEAN (DC, Lemma U)  │ 3 │ DC-fj                  │
-│ fg.finalLock.v1       │ both │ LEAN (DC)           │ 3 │ DC-fj                  │
+│ fg.finalLock.v1       │ both │ WITHDRAWN (LEAN, DC)│ 3 │ DC-fj                  │
+│ fg.finalLock.v2       │ both │ PROVED (paper)      │ 3 │ DC-fj                  │
 │ fg.trunk.v1           │ nj   │ PROVED (a≤f)        │ 3 │ none (nj)              │
 │ fg.oneBullet.v1       │ nj   │ SUPERSEDED (PROVED) │ 3 │ none (nj)              │
 │ fg.oneBullet.core.v1  │ nj   │ PROVED (a≤f)        │ 3 │ none (nj)              │
@@ -667,14 +696,17 @@ index shows the status under the old spec (R1 views); status lines marked
 │ fg.accountable.v1     │ both │ PROVED; LEAN (DC)   │ 3 │ DC-fj                  │
 │ fj.frame.v1           │ fj   │ def                 │ 4 │ DC-fj                  │
 │ fj.frame.v2           │ fj   │ SUPERSEDED (def)    │ 4 │ DC-fj                  │
-│ fj.frame.v3           │ fj   │ def (spec bd942ca0) │ 4 │ DC-fj                  │
+│ fj.frame.v3           │ fj   │ WITHDRAWN (def)     │ 4 │ DC-fj                  │
+│ fj.frame.v4           │ fj   │ PROVED (paper)      │ 4 │ DC-fj                  │
 │ fj.frameFeasible.v1   │ fj   │ PROVED              │ 4 │ DC-fj                  │
 │ fj.crossingNoFinal.v1 │ fj   │ PROVED              │ 4 │ DC-fj                  │
-│ fj.descent.v1         │ fj   │ PROVED              │ 4 │ —                      │
+│ fj.descent.v1         │ fj   │ WITHDRAWN (PROVED)  │ 4 │ —                      │
+│ fj.descent.v2         │ fj   │ PROVED (paper)      │ 4 │ —                      │
 │ fj.canonical.v1       │ fj   │ PROVED              │ 4 │ —                      │
 │ fj.inBandLock.v1      │ fj   │ PROVED              │ 4 │ DC-fj                  │
 │ fj.twoChanges.v1      │ fj   │ SUPERSEDED (PROVED) │ 4 │ —                      │
-│ fj.twoChanges.core.v1 │ fj   │ PROVED (a≤f)        │ 4 │ DC-fj                  │
+│ fj.twoChanges.core.v1 │ fj   │ WITHDRAWN (PROVED)  │ 4 │ DC-fj                  │
+│ fj.twoChanges.core.v2 │ fj   │ PROVED (paper)      │ 4 │ —                      │
 │ fj.armedSafe.v1       │ fj   │ PROVED              │ 4 │ —                      │
 │ fg.base.fj.v1         │ fj   │ REFUTED (uniform)   │ 4 │ —                      │
 │ fj.firstFinality.v1   │ fj   │ local PROVED; unif. │ 4 │ —                      │
@@ -928,6 +960,11 @@ Ret_d(B) := B⪯Z_d
   `fj.frame.v3` (spec bd942ca0: Σ.T in place of Σ.T_F, the same set;
   `update_finality` also calls `reconcile_with_finality`, which writes no
   frame input). A citation of `fj.frame.v2` here reads as `fj.frame.v3`.
+- Note (2026-09-29; current use): `fj.frame.v3` is WITHDRAWN for current
+  use; its successor is `fj.frame.v4` (spec `fgsa3`). The frame controls
+  do not change; the Trees clauses change (no deletion from Σ.T, the SA
+  walk starts at Σ.F). The note above is history. A current citation of
+  `fj.frame.v2` or `fj.frame.v3` here reads as `fj.frame.v4`.
 
 ### `fg.Ret.v1` — keep predicate
 
@@ -2022,6 +2059,11 @@ in §4. Every status below is for the FG-SA client (§0).
   `fj.frame.v3` (spec bd942ca0: Σ.T in place of Σ.T_F, the same set;
   `update_finality` also calls `reconcile_with_finality`, which writes no
   frame input). A citation of `fj.frame.v2` here reads as `fj.frame.v3`.
+- Note (2026-09-29; current use): `fj.frame.v3` is WITHDRAWN for current
+  use; its successor is `fj.frame.v4` (spec `fgsa3`). The frame controls
+  do not change; the Trees clauses change (no deletion from Σ.T, the SA
+  walk starts at Σ.F). The note above is history. A current citation of
+  `fj.frame.v2` or `fj.frame.v3` here reads as `fj.frame.v4`.
 
 ### `ap.headReachesLo.v2` — the AP head under ALFS (frozen tree, live anchor)
 
@@ -3250,6 +3292,78 @@ in §4. Every status below is for the FG-SA client (§0).
 - Note: `ap.headReachesLo.v1` is the view form and is not superseded.
   `ap.headReachesLo.v2`, `v3` and `v4` are SUPERSEDED; v5 is the current
   form.
+- Status: 2026-09-29 — WITHDRAWN for current use (§0; not SUPERSEDED).
+  Still true in its stated scope (R≥3, 4Δ, spec bd942ca0; the HEAD
+  functions are unchanged in 4e85ff34 and bp.genuineFromF.v1 with F⪯P
+  transfers clause 5); successor ap.headReachesLo.v6. H.6 gives the
+  direct current-spec proof; H.8 gives θ=3Δ. The change of hypotheses
+  invokes registry §0. The note above ("v5 is the current form") is
+  history.
+
+
+### `ap.headReachesLo.v6` — the AP head under FG-SA (R ≥ 2, strict receipt, θ = 3Δ)
+
+- Variant `fj` (its premise is the frame `fj.frame.v4`, spec `fgsa3`).
+  Source: blueprint 21, registry restatement after H.8, file
+  `blueprint/archive/21-healing-576d02a1.md` (key `bp21`), lines
+  1059–1098, sha256
+  `576d02a1757d7722042505d26dea2fc628a7c6cd4a6293c145b91255b0f5859b`.
+  Proofs: 21 H.3 (clauses 1–4), H.5–H.6 (clause 5), H.8 (clause 6).
+- Lean pin: not yet pinned (2026-09-29): `AvailableChainKitFG/Pins.lean`
+  cites this id through `.ap` only; the entry has no clause table yet.
+- Lean plan: — (an AP service fact). FG inputs of clauses 1–3, as for
+  v5: `filteredFrom_reachesLo`, `filteredFrom_Z_mem`,
+  `filteredFrom_viable_child`.
+- Hypotheses: clauses 1–3: the live-cache FJ frame, the frozen voter
+  domain, the full-domain live start and the exact HEAD merge. Clauses
+  4–6: Recovery₂ (`a≤f`, `R≥2`, `δ_t=2R`), strict receipt `<Δ` with
+  receiver exclusion, and the phase premises of the statement.
+- Statement (pinned):
+
+> _21-healing-576d02a1.md, lines 1059–1098:_
+>
+> ### Registry restatement — ap.headReachesLo.v6 — PROVED-paper
+>
+> _2026-09-29. ap.headReachesLo.v5 is WITHDRAWN for current use under
+> registry §0: changed statements or hypotheses get a new id. It is still
+> true in its stated scope (R≥3, 4Δ, spec bd942ca0). The HEAD functions
+> are unchanged in 4e85ff34. Clause 5 transfers by bp.genuineFromF.v1
+> (01 §6.5) with F⪯P in a settled phase: a lower F has certificate height
+> below lo≤ht(P), and in top J one has F⪯J⪯P. Strict 3Δ settlement also
+> implies the weaker 4Δ bound. Keep its old pins. Successor:
+> ap.headReachesLo.v6 (spec 4e85ff34, R≥2, strict receipt, θ=3Δ).
+> This is WITHDRAWN, not SUPERSEDED._
+>
+> Authority is the current spec 4e85ff34. Clauses 1–3 use its live-cache
+> FJ frame, frozen voter domain, full-domain live start, and exact HEAD
+> merge. Clauses 4–6 use Recovery₂ (`a≤f`, `R≥2`, `δ_t=2R`), strict
+> receipt `<Δ` with receiver exclusion, and the stated phase premises.
+>
+> 1. If start A is in `D(V_s)`, or has an eligible child there, the HEAD
+>    is in `D(V_s)` at height at least lo.
+> 2. Otherwise the HEAD is A, including when `D(V_s)` is nonempty.
+> 3. If A=Z and `D(V_s)` is nonempty, Z belongs to `D(V_s)`.
+> 4. In a settled phase, every honest HEAD K has a full-store witness
+>    `W⪰K` with `ht(W)≥lo`. Every honest receiver admits W and its path
+>    before `e_s`; for a protected prefix of K use admission or finality
+>    coverage. This does not assert `ht(K)≥lo` for an outside start.
+> 5. Let β be the first proposal label strictly after settlement u and
+>    `ℓ=β+2k−1`. Every honest P at `t_s>t_ℓ` has exact HEAD and fresh
+>    fast-write service if the phase persists through d_s. Such a gate
+>    occurs by `u+ρΓ`, or the phase stops sooner. Service continues for
+>    later honest proposals in that phase. Equal scores are required
+>    only on the retained comparison suffix, with H.5's path premises.
+> 6. Evidence first accepted at `w≥GST` is in all full stores before
+>    `w+Δ`, and in every HEAD view with `v_s≥w+3Δ`, unless a frontier
+>    rise ends the task. Thus one effective event costs `θ=3Δ` before
+>    repair starts. Lower F moves and individual outside-start returns
+>    do not add event charges. A later effective event stops the attempt.
+>
+> **Proof.** H.3 proves 1–4; H.5–H.6 prove 5; H.8 proves 6, including
+> equality at `v_s=w+3Δ` under strict delivery. H.21 checks `R≥2`.
+> This is a paper theorem. It does not assert a new Lean discharge.
+
+- Status: 2026-09-29 — PROVED (paper; blueprint 21 H.3, H.5–H.6, H.8).
 
 ## 3. `SimplexFG.nj` lemmas (`Kit.FG`)
 
@@ -3560,6 +3674,70 @@ in §4. Every status below is for the FG-SA client (§0).
 - Status: 2026-09-28 — LEAN (DC). There is no FG-SA Lean instance. bp
   §7.9, lines 831–843 (pinned in `fg.base.finalized.v1`), explains why
   the proof also covers crossings signed before the finality pairs.
+- Status: 2026-09-29 — WITHDRAWN for current use (§0); successor
+  `fg.finalLock.v2` (the accepted threshold, with genesis, and the
+  evidence alternative without a fault bound). The pinned theorem stays
+  true (carrier h_F, `a ≤ f`); `AvailableChainKitFG/Pins.lean` keeps the
+  pin as a historical pin.
+
+
+### `fg.finalLock.v2` — finality lock at the accepted threshold
+
+- Variant `both`. Sources: blueprint 01 §8.2, file
+  `blueprint/archive/01-foundations-200c9c07.md` (key `bp01`), lines
+  725–743, sha256
+  `200c9c07a01bd5826750d0e89a985be87e588f98132a68534cdd719531302a99`;
+  blueprint 00 §3, file `blueprint/archive/00-outline-06aff758.md` (key
+  `bp00`), lines 643–651.
+- Lean plan: DC-fj module (pin `fg.finalLock.v2` of
+  `AvailableChainKitFG/Pins.lean`, sources `bp01`, `bp00`). The carrier
+  form is Lean: `KFG.finalLock_e1` (the evidence alternative) and
+  `KFG.finalLock` (the slashable-or form), with the carrier's h_F as the
+  threshold. The accepted-carrier wrapper (the entry height of the
+  accepted certificate; 0 for genesis; certificate provenance) is OPEN:
+  no proof yet, neither Lean nor paper step (r213b item 2).
+- Hypotheses: none for the evidence alternative; `a ≤ f` and honest
+  client discipline for `F ⪯ W`. Dependencies: bp.carrier.v1,
+  bp.chainCertificates.v1, bp.clientSafety.v1 (blueprint ids).
+- Statement (pinned):
+
+> _01-foundations-200c9c07.md, lines 725–743:_
+>
+> **fg.finalLock.v2 — accepted-finalization threshold — PROVED-paper.**
+> Let an honest node's accepted finalized block at e be F. Define
+> `finheight(F,e)=0` for genesis, and otherwise the entry height of its
+> accepted certificate. For every authenticated run block W emitted by
+> e, if `ht(W)>finheight(F,e)`, then `F⪯W` or the certificate carrier
+> and W expose at least `2q_F−n` slashable identities. This statement
+> has no fault bound for the evidence alternative; under `a≤f` and
+> honest client discipline it gives `F⪯W`.
+>
+> For non-genesis F, its admitted certificate carrier D has
+> `σ[D].h_F=finheight(F,e)` by provenance; the proof above applies.
+> For genesis, every block extends F, also when a carrier has `h_F=1`.
+> This proves exactly the 4e85ff34 threshold (lines 494–497).
+> The external registry's v1 is pinned to the carrier h_F and to the
+> DC fault-bounded ancestry theorem. It does not state this normalized
+> threshold and evidence alternative. Keep that pin as historical text;
+> v2 supplies the new clause. Lean reuse: `KFG.finalLock_e1` for evidence,
+> `KFG.finalLock` for the bounded corollary, and an accepted-carrier
+> wrapper with the genesis case. The wrapper still needs a Lean proof.
+
+> _00-outline-06aff758.md, lines 643–651:_
+>
+> **fg.finalLock.v2 — NEW — PROVED-paper.** For accepted F, put
+> `finheight=0` for genesis and otherwise use its certificate entry height.
+> For an authenticated run block W emitted by the event read with
+> `ht(W)>finheight`, either `F⪯W` or its rows with the F carrier expose
+> at least `2q_F−n` slashable identities. Under a≤f and client discipline,
+> `F⪯W`. Proof and the genesis normalization: 01 §8.2. Dependencies:
+> bp.carrier.v1, bp.chainCertificates.v1, bp.clientSafety.v1 (last clause).
+> Keep fg.finalLock.v1's pinned text; mark it WITHDRAWN for current use
+> under registry §0, successor fg.finalLock.v2. Its old theorem stays true.
+
+- Status: 2026-09-29 — PROVED (paper; blueprint 01 §8.2). Clause 1 of
+  `fj.frame.v4` cites this entry. Lean: the carrier form; the
+  accepted-carrier wrapper is OPEN.
 
 ### `fg.trunk.v1` — F advance below the band
 
@@ -4119,6 +4297,11 @@ M0. r151 calls this cap μ and calls M0 simply M.
   `fj.frame.v3` (spec bd942ca0: Σ.T in place of Σ.T_F, the same set;
   `update_finality` also calls `reconcile_with_finality`, which writes no
   frame input). A citation of `fj.frame.v2` here reads as `fj.frame.v3`.
+- Note (2026-09-29; current use): `fj.frame.v3` is WITHDRAWN for current
+  use; its successor is `fj.frame.v4` (spec `fgsa3`). The frame controls
+  do not change; the Trees clauses change (no deletion from Σ.T, the SA
+  walk starts at Σ.F). The note above is history. A current citation of
+  `fj.frame.v2` or `fj.frame.v3` here reads as `fj.frame.v4`.
 
 ### `fj.frame.v2` — FJ frame from the live store caches (ALFS)
 
@@ -4142,7 +4325,8 @@ M0. r151 calls this cap μ and calls M0 simply M.
   `tsc/fgsa-live-dc-port.md` (key ldp; ALFS is its §1).
 - Lean plan: DC-fj module (user 2026-09-28). Lean names (f1's plan):
   `storeControls`, `fjControls`, `filteredFrom`,
-  `storeControls_eq_fjControls` (under `StoreInv` and `ViewRootInj`);
+  `storeControls_eq_fjControls` (under `StoreInv` and `ViewRootInj`;
+  `ViewRootInj` is discharged by `viewRootInj_all`, I9, 2026-09-29);
   `fjFrame = filteredFrom (fjControls V) V` is the special case.
 - Hypotheses: `ViewRootInj` (§0.4), for the lex order of `update_finality`
   (lines 828–831); discharged by `viewRootInj_all` (I9, 2026-09-29).
@@ -4351,6 +4535,365 @@ M0. r151 calls this cap μ and calls M0 simply M.
   also in a contest (lines 956–957). The spec has no F basis and no J carrier
   (compare `fg.frame.v2`, `fg.frameCompat.v1`).
 
+### `fj.frame.v4` — FJ frame from the live store caches (FG-SA, spec c1ea1db0)
+
+- Variant `fj`. Source: the adopted FG-SA spec, file
+  `spec/archive/fgsa-protocol-c1ea1db0.tex` (key `fgsa3`), sha256
+  `c1ea1db08f1da37bcde075df5d70f23af7c9941bd05ae5e8aca1bb48d1b777ed`:
+  the Trees paragraph, lines 489–515, `on_block` 944–969,
+  `fg_contest` 1122–1128, `band_floor` 1130–1138,
+  `viable_tree_from` 1140–1146, `viable_tree` (acceptance) 1148–1154,
+  `get_fg_root` 1156–1163, `get_filtered_block_tree_from` and
+  `get_filtered_block_tree` 1165–1177, `live_root` 1226–1238,
+  `get_head_in_tree` 1240–1247, `voter_processed_block_tree` and
+  `voter_filtered_block_tree` 1361–1376, the HEAD duty call 1437–1439, and
+  the cache update `update_finality` 999–1012. Clause split: blueprint 00
+  §3, file `blueprint/archive/00-outline-06aff758.md` (key `bp00`), lines
+  589–641, sha256
+  `06aff758725e9e80211f87da1fa67341ad1992d60cd54416c09d7eeae68097c3`.
+  Proofs: blueprint 01 §4, §6.5–§6.6, §8.2 and §11 (key `bp01`). The
+  blueprint cites 4e85ff34 lines; add 9 for `fgsa3` (§0.1). Proof sources
+  of the carried clauses: ldp §1 and r161 §2, as for `fj.frame.v3`.
+- Lean plan: DC-fj module. The clause-level coverage is the pin
+  `fj.frame.v4` of `AvailableChainKitFG/Pins.lean`. Clauses 2 and 3a also
+  cite FG-SA constants (`leanIn "AvailableChainFGSA"`): the pin gate is
+  `scripts/check-fg.sh` plus `scripts/check-fgsa.sh`. Lean names of the
+  carried clauses, as for `fj.frame.v3`: `storeControls`, `fjControls`,
+  `filteredFrom`, `storeControls_eq_fjControls` (under `StoreInv`;
+  `ViewRootInj` is discharged by `viewRootInj_all`, I9).
+- Hypotheses: `ViewRootInj` (§0.4), for the lex order of `update_finality`
+  (lines 1002–1005); discharged by `viewRootInj_all` (I9). Clause 1 uses
+  `fg.finalLock.v2`.
+- Clauses. The Trees clauses replace those of `fj.frame.v3`. Each clause
+  has one evidence kind:
+
+```text
+┌────┬──────────────────────────────────────────┬────────────────────────────────┐
+│ #  │ Clause (fgsa3 lines)                     │ Evidence                       │
+├────┼──────────────────────────────────────────┼────────────────────────────────┤
+│ 0  │ Σ.T is parent-closed and cumulative; a   │ Lean with hypotheses (v3's):   │
+│    │ new block enters only if it extends F    │ Store, storeInv_init,          │
+│    │ (489–492)                                │ storeInv_on_block,             │
+│    │                                          │ on_block_TF_subset,            │
+│    │                                          │ update_finality_TF             │
+│ 1  │ A block of Σ.T outside the active view   │ fg.finalLock.v2 (external).    │
+│    │ with state height above the entry height │ Paper obligation: the          │
+│    │ of the accepted finalization (0 for      │ accepted-carrier wrapper       │
+│    │ genesis) needs a slashable conflict      │                                │
+│    │ (502–506)                                │                                │
+│ 2  │ No rule deletes a block of Σ.T; storage  │ Lean: on_block_TF_subset,      │
+│    │ pruning is a retention item (506–511)    │ update_finality_TF (FG store); │
+│    │                                          │ Lean in AvailableChainFGSA:    │
+│    │                                          │ process_cumulative,            │
+│    │                                          │ clock_cumulative (FG-SA store) │
+│    │ Remark: deletion can change the HEAD and │ paper (FR M1, N2; blueprint 01 │
+│    │ S, also at a ≤ f (507–510)               │ §11.1–§11.2)                   │
+│ 3a │ The confirmation walk starts at Σ.F in   │ Lean in AvailableChainFGSA:    │
+│    │ act(Σ); its result passes the strict-    │ gateStep, fastSet (they run    │
+│    │ majority test, also at Σ.F (511–513)     │ SA.confirmationFrom from Σ.F), │
+│    │                                          │ clock_eq_saClockFrom_gate      │
+│ 3b │ The FJ viability and band filter does    │ AP data (the SA walk; the      │
+│    │ not restrict that walk (514–515)         │ HEAD and FG duties filter)     │
+│ 4  │ act(Σ) is a view of Σ.T (493–496); only  │ Lean: activeView,              │
+│    │ the SA base reads it (497–499)           │ activeView_subset; AP data for │
+│    │                                          │ the reader                     │
+└────┴──────────────────────────────────────────┴────────────────────────────────┘
+```
+
+- Change against `fj.frame.v3` (2026-09-29): only the Trees paragraph
+  changes (clauses 1, 2 and 3a above; clauses 0, 3b and 4 have the same
+  text at new lines). The other pinned blocks are byte-identical to those
+  of `fj.frame.v3`, at bd942ca0 lines + 152 (`on_block` to
+  `get_head_in_tree`, `update_finality`) and + 154 (the voter trees and
+  the HEAD duty call). `reconcile_with_finality` (lines 1014–1034) is
+  also byte-identical and writes no frame input.
+- Statement (pinned):
+
+> _00-outline-06aff758.md, lines 589–641:_
+>
+> **fj.frame.v4 — NEW — PROVED-paper (2026-09-29).**
+> Authority: spec 4e85ff34, Trees at lines 480–507, controls at 747–792.
+> Keep v3's unchanged store projection, cumulative-cache controls, and
+> FJ-domain clauses with their existing proofs. Replace its Trees clauses
+> as follows. **fj.frame.v3: WITHDRAWN for current use (2026-09-29)**
+> under registry §0; successor fj.frame.v4. Not true as pinned: its
+> deletion clause (bd942ca0 368–369) is refuted also under bd942ca0
+> (01 §11.2 N2), and 4e85ff34 502–504 changes its genesis-walk clause.
+> Its other clauses carry into v4. Retain its old pins.
+> The clauses below are separate so that each has its own evidence kind.
+>
+> ```text
+> ┌────┬─────────────────────────────────────────┬───────────────────────────────┐
+> │ #  │ Clause (4e85ff34 lines)                 │ Evidence                      │
+> ├────┼─────────────────────────────────────────┼───────────────────────────────┤
+> │ 0  │ Σ.T is parent-closed and cumulative;    │ unchanged: keep v3 .leanHyp   │
+> │    │ a new block enters only if it extends F │ evidence: Store,              │
+> │    │ (480–483).                              │ storeInv_init,                │
+> │    │                                         │ storeInv_on_block,            │
+> │    │                                         │ on_block_TF_subset,           │
+> │    │                                         │ update_finality_TF            │
+> │ 1  │ An inactive stored block with state     │ .external fg.finalLock.v2;    │
+> │    │ height above the accepted certificate's │ normalized threshold and      │
+> │    │ entry height (0 for genesis) requires   │ evidence alternative, 01 §8.2 │
+> │    │ a slashable conflict (494–497).         │                               │
+> │ 2  │ No rule deletes a block of Σ.T          │ .lean process_cumulative,     │
+> │    │ (497–502). Deletion can change HEAD and │ clock_cumulative (TF grows);  │
+> │    │ S, also at a≤f. Pruning is a retention  │ .paper remark FR M1/N2,       │
+> │    │ item.                                   │ 01 §11.1–§11.2                │
+> │ 3a │ The confirmation walk starts at Σ.F in  │ .lean after the F-start sync; │
+> │    │ act(Σ). Its result must pass strict     │ confirmationFrom, gateStep,   │
+> │    │ majority, also at Σ.F (502–504).        │ fastSet and clock bridge      │
+> │ 3b │ The FJ viability/band filter does not   │ .apData; separate HEAD/FG     │
+> │    │ restrict that walk (505–506).           │ and SA call paths             │
+> │ 4  │ act(Σ) is a view of Σ.T; only the SA    │ unchanged: .lean activeView,  │
+> │    │ base reads act(Σ) (484–490).            │ activeView_subset; .apData    │
+> │    │                                         │ for which module reads it     │
+> └────┴─────────────────────────────────────────┴───────────────────────────────┘
+> ```
+>
+> Clause 1 uses v2 because the external v1 states the carrier-h_F,
+> fault-bounded DC theorem. For genesis the ancestry alternative is
+> immediate. For non-genesis F, certificate provenance identifies the
+> threshold with the carrier h_F. An inactive block conflicts with F,
+> so the ancestry alternative fails and the evidence alternative follows.
+> Clause 2 follows by event induction from `process_cumulative` and
+> `clock_cumulative`; `st.fg.TF` is monotone. Its deletion remark is a
+> counterexample fact, not an output-preservation claim. Clause 3a is
+> proved on paper by 01 §6.5–§6.6 and spec 1280–1297. The Lean pin needs
+> `SA.confirmationFrom`, `FGSA.gateStep`, `fastSet`, and
+> `clock_eq_saClockFrom_gate` after the sync. It is not discharged by the
+> current genesis-walk code. Clause 3b follows from the separate filter
+> arguments; clause 4 keeps the existing active-view proof and read audit.
+
+> _fgsa-protocol-c1ea1db0.tex, lines 489–515:_
+>
+> ```latex
+> \paragraph{Trees.}  $\Sigma.\T$ is DC's admitted tree, with the same
+> name and the same rules as in~\DC{7}.  It is parent-closed and
+> cumulative: a new block enters it only if it extends~$F$, and no block
+> leaves it~\cite{DC}.  A node never computes the state of, or unpacks, a
+> block that does not extend its~$F$.  The \emph{active view} is
+> \[
+>  \act(\Sigma)=\{B\in\Sigma.\T: B\preceq\Sigma.F\ \text{or}\ \Sigma.F\preceq B\}.
+> \]
+> The SA base reads only the active view: the gate, release, resolution,
+> saved-result tests, leases, and the confirmation walk~\cite[\S2]{FB}.
+> Thus a node ignores every block that conflicts with its finality.  The
+> FG functions read $\Sigma.\T$ as in~\DC{7}; their filters already
+> require $\Sigma.F\preceq B$.  The caches $\Sigma.\hmax$ and the contest
+> test read the cumulative $\Sigma.\T$, as the caches of~\DC{5} do.  A
+> block of $\Sigma.\T$ outside the active view whose state height exceeds
+> the height of the accepted finalization (the entry height of its
+> certificate; $0$ for genesis) needs a slashable conflict
+> (\textsf{fg.finalLock}).  As in~\cite{DC}, no rule deletes a block of
+> $\Sigma.\T$.  A block outside the active view can still carry
+> current-slot votes, support declarations, and rows that later reads
+> use; deleting it can change the HEAD and~$S$, also at
+> $a\leq f$~\cite[M1, N2]{FR}.  Storage pruning belongs to the retention
+> item of Section~\ref{sec:open}.  The confirmation walk starts at $\Sigma.F$ in $\act(\Sigma)$.
+> It returns a block only if that block passes the strict-majority
+> test, including when the block is $\Sigma.F$.
+> The FJ viability and band filter is a further filter for HEAD,
+> proposal, and FG duties; it does not restrict the SA confirmation walk.
+> ```
+
+> _fgsa-protocol-c1ea1db0.tex, lines 944–969:_
+>
+> ```latex
+> \Function{on\_block}{$\Sigma,B$}
+>   \Comment{\DC{7}; $B$ passed the input check}
+>   \If{$B.\slot>\Sigma.s$ or $B\in\Sigma.\T$ or
+>       $B.\parent\notin\Sigma.\T$} \State \Return \EndIf
+>   \If{$\Sigma.F\not\preceq B$} \State \Return \EndIf
+>   \Comment{refuse before unpacking}
+>   \If{$B.\parent.\slot\geq B.\slot$ or
+>       the slot-$B.\slot$ proposer key does not sign $B$}
+>     \State \Return
+>   \EndIf
+>   \If{some $a\in B.\attsf$ has $a.\round>\round(B.\slot)$}
+>     \State \Return
+>     \Comment{no row from the block's future}
+>   \EndIf
+>   \State $\Sigma.\sigma[B]\gets
+>     \Call{state\_transition}{\Sigma.\sigma[B.\parent],B}$
+>   \State add $B$ to $\Sigma.\T$; $\Sigma.\timestamp(B)\gets\Sigma.t$
+>   \ForAll{$\mathit{vote}\in B.\votesf$}
+>     \State \Call{on\_goldfish\_vote}{$\Sigma,\mathit{vote}$}
+>   \EndFor
+>   \State \Call{update\_finality}{$\Sigma,\Sigma.\sigma[B]$}
+>   \ForAll{$a\in B.\attsf$}
+>     \State \Call{on\_attestation}{$\Sigma,a$}
+>     \Comment{after the finality update, as in DC}
+>   \EndFor
+> \EndFunction
+> ```
+
+> _fgsa-protocol-c1ea1db0.tex, lines 1122–1128:_
+>
+> ```latex
+> \Function{fg\_contest}{$\Sigma$}
+>   \Comment{new (a): \FJ{2}, on the live caches (\LDP{1})}
+>   \State \Return $\Sigma.\hmax=\Sigma.h_j+1$ \textbf{and} some
+>     $W\in\Sigma.\T$ has $\Sigma.\sigma[W].h=\Sigma.\hmax$ and
+>     $\Sigma.J\not\preceq W$
+>   \Comment{full store, never a view}
+> \EndFunction
+> ```
+
+> _fgsa-protocol-c1ea1db0.tex, lines 1130–1138:_
+>
+> ```latex
+> \Function{band\_floor}{$\Sigma$}
+>   \Comment{new (a): \FJ{2}}
+>   \If{$\Call{fg\_contest}{\Sigma}$}
+>     \State \Return $\Sigma.\hmax$
+>     \Comment{band $\{H\}$}
+>   \EndIf
+>   \State \Return $\Sigma.\hmax-1$
+>   \Comment{\cite{DC}: band $\{H-1,H\}$}
+> \EndFunction
+> ```
+
+> _fgsa-protocol-c1ea1db0.tex, lines 1140–1146:_
+>
+> ```latex
+> \Function{viable\_tree\_from}{$\Sigma,\mathit{blocks}$}
+>   \Comment{\DC{7}, redefined (a): band floor; choice only}
+>   \State $\lo\gets\Call{band\_floor}{\Sigma}$
+>   \State \Return $\{B\in\mathit{blocks}:\Sigma.F\preceq B,\
+>     \exists B'\in\mathit{blocks},\ B\preceq B',\
+>     \Sigma.\sigma[B'].h\geq\lo\}$
+> \EndFunction
+> ```
+
+> _fgsa-protocol-c1ea1db0.tex, lines 1148–1154:_
+>
+> ```latex
+> \Function{viable\_tree}{$\Sigma$}
+>   \Comment{\DC{7}; acceptance only}
+>   \State \Return $\{B\in\Sigma.\T:\Sigma.F\preceq B,\
+>     \exists B'\in\Sigma.\T,\ B\preceq B',\
+>     \Sigma.\sigma[B'].h\geq\Sigma.\hmax-1\}$
+>   \Comment{\cite{DC}'s band, also in a contest (\FJ{2})}
+> \EndFunction
+> ```
+
+> _fgsa-protocol-c1ea1db0.tex, lines 1156–1163:_
+>
+> ```latex
+> \Function{get\_fg\_root}{$\Sigma$}
+>   \Comment{\DC{7}, redefined (a) by \FJ{2}}
+>   \If{$\Sigma.\hmax=\Sigma.h_j+1$ \textbf{and not} $\Call{fg\_contest}{\Sigma}$}
+>     \State \Return $\Sigma.J$
+>   \EndIf
+>   \State \Return $\Sigma.F$
+>   \Comment{a contest roots at $F$}
+> \EndFunction
+> ```
+
+> _fgsa-protocol-c1ea1db0.tex, lines 1165–1177:_
+>
+> ```latex
+> \Function{get\_filtered\_block\_tree\_from}{$\Sigma,\mathit{blocks}$}
+>   \Comment{\DC{7}, unchanged}
+>   \State $\mathit{root}\gets\Call{get\_fg\_root}{\Sigma}$
+>   \State \Return
+>     $\{B\in\Call{viable\_tree\_from}{\Sigma,\mathit{blocks}}:
+>       \mathit{root}\preceq B\}$
+> \EndFunction
+> \vspace{1pt}
+> \Function{get\_filtered\_block\_tree}{$\Sigma$}
+>   \Comment{\DC{7}; DC's tree $\Sigma.\T$}
+>   \State \Return
+>     $\Call{get\_filtered\_block\_tree\_from}{\Sigma,\Sigma.\T}$
+> \EndFunction
+> ```
+
+> _fgsa-protocol-c1ea1db0.tex, lines 1226–1238:_
+>
+> ```latex
+> \Function{live\_root}{$\Sigma$}
+>   \Comment{\DC{7} \fname{get\_sg\_root}, redefined (b); \SAS{} \fname{live\_root}}
+>   \State $\mathit{tree}\gets\Call{get\_filtered\_block\_tree}{\Sigma}$
+>   \Comment{the full filtered tree, not a view}
+>   \State $\mathit{targets}\gets\{B\in\mathit{tree}:\Sigma.\lease[B]\neq\bot\}$
+>   \Comment{they lie on one chain}
+>   \If{$\mathit{targets}=\emptyset$}
+>     \State \Return $\Call{get\_fg\_root}{\Sigma}$
+>     \Comment{no live lease in the tree}
+>   \EndIf
+>   \State \Return the deepest $B\in\mathit{targets}$
+>   \Comment{the deepest live lease in place of grade~1}
+> \EndFunction
+> ```
+
+> _fgsa-protocol-c1ea1db0.tex, lines 1240–1247:_
+>
+> ```latex
+> \Function{get\_head\_in\_tree}{$\Sigma,\mathit{tree},
+>   \mathit{votes},\mathit{support\_votes},k$}
+>   \Comment{\DC{7}, adapted (b): live root}
+>   \State $A\gets\Call{live\_root}{\Sigma}$
+>   \Comment{in place of \fname{get\_sg\_root}}
+>   \State \Return $\Call{goldfish\_fork\_choice}{\Sigma,A,
+>     \mathit{tree},\mathit{votes},\mathit{support\_votes},k}$
+> \EndFunction
+> ```
+
+> _fgsa-protocol-c1ea1db0.tex, lines 1361–1376:_
+>
+> ```latex
+> \Function{voter\_processed\_block\_tree}{$\Sigma,s$}
+>   \Comment{\DC{7}; DC's tree $\Sigma.\T$}
+>   \State $\mathit{freeze}\gets t_{s-1}+3\Delta$
+>   \State $\mathit{proposals}\gets\{P\in\Sigma.\T:P.\slot=s\}$
+>   \State \Return $\{B\in\Sigma.\T:
+>     \Sigma.\timestamp(B)<\mathit{freeze}\ \textbf{or}\
+>     \exists P\in\mathit{proposals},\ B\preceq P\}$
+> \EndFunction
+> \vspace{1pt}
+> \Function{voter\_filtered\_block\_tree}{$\Sigma,s$}
+>   \Comment{\DC{7}, unchanged}
+>   \State $\mathit{blocks}\gets
+>     \Call{voter\_processed\_block\_tree}{\Sigma,s}$
+>   \State \Return
+>     $\Call{get\_filtered\_block\_tree\_from}{\Sigma,\mathit{blocks}}$
+> \EndFunction
+> ```
+
+> _fgsa-protocol-c1ea1db0.tex, lines 1437–1439:_
+>
+> ```latex
+>     \State $\mathit{tree}\gets\Call{voter\_filtered\_block\_tree}{\Sigma,s}$
+>     \State $H\gets\Call{get\_head\_in\_tree}{\Sigma,\mathit{tree},
+>       \mathit{votes},\mathit{support\_votes},s-1}$
+> ```
+
+> _fgsa-protocol-c1ea1db0.tex, lines 999–1012:_
+>
+> ```latex
+> \Function{update\_finality}{$\Sigma,\sigma$}
+>   \Comment{\DC{7}; SA reconciliation replaces grade clipping}
+>   \State $\Sigma.\hmax\gets\max(\Sigma.\hmax,\sigma.h)$
+>   \If{$\Sigma.F\preceq\sigma.J$ \textbf{and}
+>       $(\sigma.h_j,\sigma.J.\rootf)>(\Sigma.h_j,\Sigma.J.\rootf)$}
+>     \Comment{lex order}
+>     \State $(\Sigma.J,\Sigma.h_j)\gets(\sigma.J,\sigma.h_j)$
+>   \EndIf
+>   \If{$\Sigma.F\prec\sigma.F$ \textbf{and} $\sigma.F\preceq\Sigma.J$
+>       \textbf{and} $\sigma.F\in\Call{viable\_tree}{\Sigma}$}
+>     \State $\Sigma.F\gets\sigma.F$
+>     \State \Call{reconcile\_with\_finality}{$\Sigma$}
+>   \EndIf
+> \EndFunction
+> ```
+
+- Status: 2026-09-29 — PROVED (paper; blueprint 00 §3, 01 §4, §6.5–§6.6,
+  §8.2, §11; spec `fgsa3`). Lean coverage per clause: the pin
+  `fj.frame.v4` in `AvailableChainKitFG/Pins.lean`.
+- Note: `fj.frame.v1` is the view form. `fj.frame.v3` is WITHDRAWN for
+  current use; this entry is its successor.
+
 ### `fj.frame.v3` — FJ frame from the live store caches (ALFS, filtered base)
 
 - Variant `fj`. Source: the ALFS spec with the filtered SA base, file
@@ -4369,7 +4912,8 @@ M0. r151 calls this cap μ and calls M0 simply M.
   `fd8e07fe667afae28dee2bc9a54d6c7fc46b49f9bb268865f98818decc308354`).
 - Lean plan: DC-fj module (user 2026-09-28). Lean names (f1's plan), as
   for `fj.frame.v2`: `storeControls`, `fjControls`, `filteredFrom`,
-  `storeControls_eq_fjControls` (under `StoreInv` and `ViewRootInj`);
+  `storeControls_eq_fjControls` (under `StoreInv` and `ViewRootInj`;
+  `ViewRootInj` is discharged by `viewRootInj_all`, I9, 2026-09-29);
   `fjFrame = filteredFrom (fjControls V) V` is the special case.
 - Hypotheses: `ViewRootInj` (§0.4), for the lex order of `update_finality`
   (lines 850–853); discharged by `viewRootInj_all` (I9, 2026-09-29).
@@ -4632,6 +5176,14 @@ M0. r151 calls this cap μ and calls M0 simply M.
   is not this reading.
 - Note: `fj.frame.v1` is the view form and is not superseded.
   `fj.frame.v2` is SUPERSEDED by this entry.
+- Status: 2026-09-29 — WITHDRAWN for current use (§0); successor
+  `fj.frame.v4` (spec `fgsa3`). Not true as pinned: the deletion clause
+  (lines 368–369) is refuted also under bd942ca0 (blueprint 01 §11.2 N2),
+  and `fgsa3` lines 511–513 change the genesis-walk clause (lines
+  369–371). The other clauses carry into v4. The pinned text and the
+  source pins stay as history; `AvailableChainKitFG/Pins.lean` keeps the
+  pin as a historical pin.
+
 
 ### `fj.frameFeasible.v1` — the FJ domain reaches lo and is not empty
 
@@ -4715,6 +5267,11 @@ M0. r151 calls this cap μ and calls M0 simply M.
   `fj.frame.v3` (spec bd942ca0: Σ.T in place of Σ.T_F, the same set;
   `update_finality` also calls `reconcile_with_finality`, which writes no
   frame input). A citation of `fj.frame.v2` here reads as `fj.frame.v3`.
+- Note (2026-09-29; current use): `fj.frame.v3` is WITHDRAWN for current
+  use; its successor is `fj.frame.v4` (spec `fgsa3`). The frame controls
+  do not change; the Trees clauses change (no deletion from Σ.T, the SA
+  walk starts at Σ.F). The note above is history. A current citation of
+  `fj.frame.v2` or `fj.frame.v3` here reads as `fj.frame.v4`.
 
 ### `fj.crossingNoFinal.v1` — r148 F2: a conflicting crossing of j proves that J cannot finalize
 
@@ -4827,6 +5384,77 @@ M0. r151 calls this cap μ and calls M0 simply M.
 
 - Status: 2026-09-28 — PROVED (r144o N3 and "Lemma D under FJ — PROVED";
   r148 F9 proof).
+- Status: 2026-09-29 — WITHDRAWN for current use under `fgsa3` (§0);
+  successor `fj.descent.v2`. Its conclusion reads the controlling QC in
+  the duty view; current controls read the cumulative store and the live
+  caches. The pinned text stays as history.
+
+
+### `fj.descent.v2` — descent at the first bad event, cumulative controls
+
+- Variant `fj`. Source: blueprint 21, registry restatement after H.13,
+  file `blueprint/archive/21-healing-576d02a1.md` (key `bp21`), lines
+  2585–2631, sha256
+  `576d02a1757d7722042505d26dea2fc628a7c6cd4a6293c145b91255b0f5859b`.
+  Proof: 21 H.13 (four exclusion cases, joint first-event argument).
+- Lean pin: not yet pinned (2026-09-29): no clause table yet.
+- Hypotheses: H.13's reachable-run premises, IF.1–IF.6, and μ. μ is a
+  function of the run and GST (μ(run,GST), 21 H.11: the maximum of 1 and
+  the heights of honest rows with a source vote before GST). It is not a
+  field of an existential witness.
+- Statement (pinned):
+
+> _21-healing-576d02a1.md, lines 2585–2631:_
+>
+> ### Registry restatement — fj.descent.v2 — PROVED-paper
+>
+> _2026-09-29. fj.descent.v1 is WITHDRAWN for use under 4e85ff34.
+> Its conclusion puts the controlling QC in the failing HEAD view, but
+> live-cache controls can use evidence outside that frozen view. Thus its
+> pinned descent step is unusable here. Keep its old pins as history;
+> use fj.descent.v2 with cumulative controls and the event-index measure._
+>
+> Use H.13's reachable-run premises, IF.1–IF.6, and μ as the maximum of
+> 1 and the heights of honest rows with source vote before GST. An
+> abandonment of source C of synchronous label s is an honest HEAD at
+> label i≥s+1 that does not cover C. Choose the first event among a loss
+> of a source above μ and the emission of two incompatible sources above μ.
+> Controls F,J,H,Z,lo come from cumulative Σ.T and its live caches. They
+> are not duty-view controls, and a controlling QC need not be frozen.
+>
+> For an alleged loss of C at height c>μ, a lease or score failure cannot
+> be first while C is kept, by H.1–H.2 and same-label compatibility. The
+> remaining cause analysis gives a conflicting honest source C′ at
+> height c′≥c, whose row precedes the failing duty, in the following cases:
+> conflicting F; conflicting uncontested top J; ordinary-band exclusion;
+> or contested exclusion with c=H−1. For ordinary-band exclusion c′=H−1>c;
+> for top J and the equal-height contested case c′=H−1≥c.
+>
+> 1. If C′ has a pre-GST source vote, `c′≤μ`, which contradicts c′≥c>μ.
+> 2. If its synchronous source label `s′>s`, its honest supporter voted
+>    at `v_(s′)≥q_s`. That vote is an earlier abandonment of C, before
+>    the row of C′ and before this failing duty. v1 excluded this case
+>    by its per-source first-abandonment definition; v2 needs it because
+>    its measure is the global event index, not the source label.
+> 3. If `s′<s`, C's honest supporter at `v_s≥q_(s′)` is an earlier
+>    abandonment of C′. Equal labels are excluded by IF.6.
+>
+> For contested exclusion with `c<H−1`, do not infer a frozen height-H
+> witness from a source body of height H−1. The two different entries
+> at H−1 have incompatible honest sources above μ. Both rows precede
+> the contest read, so their emissions give an earlier bad event. If a
+> pair emission is the proposed first bad event, equal labels contradict
+> IF.6; at different labels the later source's supporter already abandoned
+> the earlier source before the pair emission. This closes that case too.
+>
+> **Proof.** These are the four exclusion cases and the joint first-event
+> argument of H.13. Source-body timing is H.12; certificate provenance and
+> crossing are IF.3. The earlier event in every case contradicts the choice
+> of the first bad event. Hence no high synchronous source is lost and no
+> incompatible pair above μ is emitted. The proof uses the source body
+> when it needs a frozen witness; it never substitutes a late carrier.
+
+- Status: 2026-09-29 — PROVED (paper; blueprint 21 H.13).
 
 ### `fj.canonical.v1` — F9: sources above M stay canonical
 
@@ -5123,6 +5751,87 @@ M0. r151 calls this cap μ and calls M0 simply M.
 - Composition: with `comp.settle.v1`, each evidence bit is true at every
   duty from (first store time)+θ, or +P in r148's margin. This gives the
   full r148 F12 count.
+- Status: 2026-09-29 — WITHDRAWN for current use under `fgsa3` (§0);
+  successor `fj.twoChanges.core.v2`. Its evidence is read from duty
+  views; current controls read the cumulative store and the live caches.
+  The pinned text and the partial Lean coverage stay as history;
+  `AvailableChainKitFG/Pins.lean` keeps the pin as a historical pin.
+
+
+### `fj.twoChanges.core.v2` — FJ phases at a fixed frontier, cumulative evidence
+
+- Variant `fj`. Source: blueprint 21, registry restatement after H.8,
+  file `blueprint/archive/21-healing-576d02a1.md` (key `bp21`), lines
+  1003–1057, sha256
+  `576d02a1757d7722042505d26dea2fc628a7c6cd4a6293c145b91255b0f5859b`.
+  Proof: 21 H.7 (uniqueness, contest exclusion, phase order), H.5 (the
+  fixed-set domain identity); H.8 adds the settlement deadline.
+- Lean pin: not yet pinned (2026-09-29): no clause table yet.
+- Lean plan: —. The v1 Lean coverage (`AvailableChainKitFG/TwoChanges.lean`)
+  is fixed-view algebra; it stays as history of v1.
+- Hypotheses: IF.1–IF.4, injective roots, unique justification at the
+  top height, finalized crossing at `a≤f`.
+- Statement (pinned):
+
+> _21-healing-576d02a1.md, lines 1003–1057:_
+>
+> ### Registry restatement — fj.twoChanges.core.v2 — PROVED-paper
+>
+> _2026-09-29. fj.twoChanges.core.v1 is WITHDRAWN for use under 4e85ff34.
+> Its duty-view evidence does not determine the current live-cache frame:
+> new evidence can be in Σ.T but outside the frozen view. Its fixed-view
+> algebra and Lean coverage remain historical. Use fj.twoChanges.core.v2
+> with its cumulative-store premises; do not change the old pins._
+>
+> Assume IF.1–IF.4, injective roots, unique justification at the top height,
+> and finalized crossing at `a≤f`. Fix a no-rise interval at frontier
+> `m≥2`. If a justification at m−1 exists, denote its unique entry by
+> J_(m−1); otherwise both evidence bits are false. At a local read with
+> `H_x=m`, define E_J from a carrier of this justification in cumulative
+> `Σ.T_x`. Define E_C
+> from a height-m off-J block in that same `Σ.T_x`. The live caches and
+> these evidence predicates give the effective phases
+>
+> ```text
+> ┌─────────┬───────────────────┬─────┬────────────────┐
+> │ Phase   │ Evidence in Σ.T_x │ lo  │ Effective root │
+> ├─────────┼───────────────────┼─────┼────────────────┤
+> │ Gap     │ ¬E_J              │ m−1 │ F              │
+> │ Top J   │ E_J ∧ ¬E_C        │ m−1 │ J_(m−1)        │
+> │ Contest │ E_J ∧ E_C         │ m   │ F              │
+> └─────────┴───────────────────┴─────┴────────────────┘
+> ```
+>
+> 1. The frame reads `Σ.T_x` and its caches. It does not recompute E_J,
+>    E_C, H, J, Z, or lo from a frozen duty view. A duty view V only
+>    supplies the arguments and witnesses of `D(V)` with those controls.
+> 2. At each store both evidence bits persist once true. Thus the phase
+>    order is gap → top J → contest, with phases possibly absent. There
+>    are at most two evidence changes at one frontier. Stores can differ
+>    during delivery. The bound for common settled phases uses H.8; the
+>    pure core makes no claim that every successive duty has one frame.
+> 3. Lower F moves add no phase. At a fixed block set V, once top-J
+>    evidence is accounted for, an F-only move to F′ below height m−1
+>    gives `D_new(V)={B∈D_old(V):F′⪯B}` in an F-root phase.
+>    A removed member is a strict ancestor of F′: its band witness has
+>    height at least m−1 and extends F′ by finalized crossing. A top-J
+>    domain is unchanged. Here the height of an F move is its certificate
+>    height. No step asserts that the whole domain stays unchanged.
+> 4. Acceptance of finality at m−1 brings a finality carrier into Σ.T_x.
+>    It therefore also supplies top J if absent. Count that top-J evidence
+>    event once. The unique top is F′, and contest is impossible by H.7.
+>    If the top phase was already present, its domain is unchanged.
+>    Finality at height m requires a carrier above m and ends the interval.
+>
+> **Proof.** H.7 proves uniqueness, contest exclusion, and the phase order
+> from cumulative evidence. IF.4 gives the cache invariant. H.5 proves the
+> fixed-set domain identity and the retained-suffix statement. A finality
+> carrier has `h_F≤h_j<h`, so one at m−1 with height at most m also carries
+> the unique top justification. These facts prove items 1–4. H.8 alone
+> adds the common settlement deadline. At m=1 no positive lower F move
+> acts. This statement does not import the old duty-view evidence premise.
+
+- Status: 2026-09-29 — PROVED (paper; blueprint 21 H.7, H.5, H.8).
 
 ### `fj.armedSafe.v1` — F7: clean safety and P1 under FJ
 
@@ -7164,3 +7873,50 @@ SUPERSEDED entry is the conjunction of its successors.
   clause or its key step, and separates the kind from PARTIAL. A note on
   `fj.twoChanges.core.v1` limits the kind to the row "at m−1 the contested
   phase is impossible"; the F-move row is PARTIAL.
+
+## 9. Re-pin to the adopted FG-SA spec (2026-09-29)
+
+Authority: spec `fgsa3` (c1ea1db0, adopted 2026-09-29) and the adopted
+blueprint (keys `bp00`, `bp01`, `bp21`; §0.1). Source of the edit list:
+`tsc/scratch/r213b/report.md`, section "Final FG-COMPOSITION/Pins edit
+list" (an append-only scratch report, not archived).
+
+- New ids: `fj.frame.v4`, `fg.finalLock.v2`, `ap.headReachesLo.v6`,
+  `fj.descent.v2`, `fj.twoChanges.core.v2`.
+- WITHDRAWN for current use (not SUPERSEDED): `fj.frame.v3`,
+  `fg.finalLock.v1`, `ap.headReachesLo.v5`, `fj.descent.v1`,
+  `fj.twoChanges.core.v1`. Their pinned text and source pins stay. Each
+  entry has a dated status line; the index shows the new status.
+- `AvailableChainKitFG/Pins.lean`: the new sources `fgsa3`, `bp00` and
+  `bp01` (the pin check resolves the root `blueprint` like `spec`), the
+  pins `fj.frame.v4` and `fg.finalLock.v2`, and three historical pins
+  (`fj.frame.v3`, `fg.finalLock.v1`, `fj.twoChanges.core.v1`). Clauses 2
+  and 3a of `fj.frame.v4` cite FG-SA constants with `leanIn`; the pin
+  gate is `scripts/check-fg.sh` plus `scripts/check-fgsa.sh`.
+  `fj.descent.v2`, `fj.twoChanges.core.v2` and `ap.headReachesLo.v6` are
+  not yet pinned. References to
+  `ap.headReachesLo.v5` move to `ap.headReachesLo.v6`. The pin check
+  rejects a WITHDRAWN or SUPERSEDED id that a current pin names; the
+  historical pins are on its dated allowlist.
+- The "Lean names" lines of `fj.frame.v2` and `fj.frame.v3` mark
+  `ViewRootInj` as discharged by `viewRootInj_all` (I9).
+- Healing companion (r213; blueprint 21). Proof map: HG.8-SI, L2-W, L2
+  (with the floor increase after w_a), L3, L4-R, L4-C, HG.8a. HG.8a holds
+  on Recovery₂, k≤2R+1, any G with Γ≥4Δ; at k=2, G=8Δ its values are
+  204Δ/240Δ. HG.7 stays at 268Δ/312Δ and B_H at 295Δ/343Δ; the cut and
+  H-time do not change. The healing lower endpoints are 89Δ−1 / 105Δ−1
+  ticks for Δ≥2, and 77Δ−1 / 93Δ−1 ticks for Δ≥1. No cut option B is
+  adopted. These are blueprint statements; no registry id pins them.
+- Channel proof map (blueprint 01 §1.2–§1.3). T-VOTE is a composition
+  service from AC duties, admission and receipt. T-START holds at every
+  event index (proof for F1.8). R-XING and R-CAP quantify over the blocks
+  that honest nodes hold at the read, with no event cut and no run log of
+  faulty emissions. R-CAP compares the emission times of honest rows;
+  R-XING permits a later read e′≥e. The joint proposer head and the
+  finality-head triple are named; the finality pair is the FG client
+  function on that triple. The H3 exact-HEAD use map includes Q0 and QF4
+  S2.
+- μ (r213; blueprint 21 H.11 and both HEALING_INPUT copies): μ is
+  μ(run,GST), a function of the run and GST. It is not a field of an
+  existential witness; all uses have the same value. The interface text
+  of bp.healingInput.v1 changed; its statement did not.
