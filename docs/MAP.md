@@ -652,6 +652,10 @@ the Kit out of this library. The tables below show the state after plan
 Plan 1b Task 0 moved `Kit/Core` and `Engine/V2Sketch` out of this
 library, to `AvailableChainKit` and `AvailableChainEngineV2` (see "Kit
 and engine v2 sketch"). `AvailableChainFramework` does not import them.
+Note (2026-09-29, Phase 2a gate): the Sketch is deleted. The Framework now
+imports `AvailableChainEngineV2` for one module, `V2/Anchor.lean` (see
+"Engine v2 and Kit v2 (Phase 2a)"). It does not import `AvailableChainKit`
+or `AvailableChainKitV2`.
 
 A claim domain (`ClaimDomain`) names the type of the instances that a
 claim speaks about and the type of their run contexts. `ClaimSpec K`,
@@ -877,6 +881,53 @@ its namespace is now `AvailableChain.Engine`. `time_le_of_key_le` and
 private, because the Grid CO part of `Execution.lean`, now in another
 file, uses them. Grid CO's private `block_preceq_trans` (`Map.lean`) and
 the Kit's `block_preceq_trans` have different statements; both stay.
+
+## Engine v2 and Kit v2 (Phase 2a)
+
+Phase 2a (`docs/plans/2026-09-29-phase2a-engine-v2-core.md`) wrote engine
+v2 in the library `AvailableChainEngineV2` (L0; namespace
+`AvailableChain.V2`) and its lemmas in the new library
+`AvailableChainKitV2` (L5; namespace `AvailableChain.V2.Engine`). Both are
+default targets. The engine imports only Mathlib, the model modules
+`Objects.Identifiers`, `Objects.Time`, `Objects.Blocks` and
+`Generic.Env`, and its own modules. The Kit also imports the engine. Tests
+are in the namespaces `AvailableChain.V2.Tests`,
+`AvailableChain.V2.Tests.Toy` and `AvailableChain.V2.Engine.Tests`.
+`docs/V2-API.md` is the frozen API manifest (280 entries);
+`scripts/V2Manifest.lean --check` checks it. The design note is
+[FRAMEWORK-DESIGN.md](FRAMEWORK-DESIGN.md) §2, "As implemented in Phase 2a";
+the report is [PHASE2A-REPORT.md](PHASE2A-REPORT.md). One row per module:
+
+```text
+┌──────────────────────────────────────────────┬─────────────────────────────────────────────────────────────────────────────────┐
+│ Module                                       │ Contents                                                                        │
+├──────────────────────────────────────────────┼─────────────────────────────────────────────────────────────────────────────────┤
+│ AvailableChainEngineV2.Engine.Objects        │ Auth (seat ℓ i | none); Signed (auth, payload); derived DecidableEq, Repr       │
+│ AvailableChainEngineV2.Engine.Spec           │ ProtocolSpec (In : Type) (24 fields); ProtocolSpec.Object; objSelfVisible       │
+│ AvailableChainEngineV2.Engine.Run            │ Event; World; Run; tick; World.step; stateBefore; emitsAt, emittedAt, emits     │
+│ AvailableChainEngineV2.Conditions.Schedule   │ ScheduleWellFormed … ExecutionValid; NoRestart; restartFree; SelfDelivery       │
+│ AvailableChainEngineV2.Conditions.Committees │ LabelFamilies (ap, fresh, linked); CStar; Linked; SingleSeat; Linked.toCStar    │
+│ AvailableChainEngineV2.Conditions.Delivery   │ PartialSynchrony, HealthyPrefixDelivery (broadcast, relay; exclusion exemption) │
+│ AvailableChainEngineV2.Conditions.Interface  │ Interface (propLabel_injective); proposerOf; outputAt; RootInjective            │
+│ AvailableChainEngineV2.Laws.Isolation        │ LabelFamilies.APObject; Isolation (factors, hooks_base, separation); base_tick  │
+│ AvailableChainEngineV2.Laws.Hooks            │ HooksSound (v1 fields on restartFree intervals; three recordOwn laws)           │
+│ AvailableChainEngineV2.Laws.Outputs          │ OutputsFactor (confirmedB, stableB); confirmed_tick, stable_tick                │
+│ AvailableChainEngineV2.Laws.SelfDelivery     │ EmitOk; selfDelivery_admissible; ExecutionValid.snoc_selfDelivery               │
+│ AvailableChainEngineV2.Tests.*               │ Engine, Conditions, Laws, Interface: tests of Tasks 1, 2, 3 and 5               │
+│ AvailableChainKitV2.ClockLaws                │ ClockLaws (v1 fields and recordOwn_now); now_tick                               │
+│ AvailableChainKitV2.Execution                │ schedule bridges: readAt_eq_stateBefore, tick_index_lt_delivery, …              │
+│ AvailableChainKitV2.EngineClock              │ clock and field lemmas with the D9 premises; _restore and _noRestart forms      │
+│ AvailableChainKitV2.Stable                   │ stateBefore_stable (recordOwn premise, restartFree); tick_preserve              │
+│ AvailableChainKitV2.Emission                 │ mem_tick_seat_iff; emits_bijSeat; linked_index_stable; ownRecord_fold           │
+│ AvailableChainKitV2.RunCheck                 │ allTicks, allDeliveries, emittedBy and their _spec lemmas (finite checks)       │
+│ AvailableChainKitV2.Tests.Counterexamples    │ check_a … check_c (the D9 and A03 premises are necessary); check_d (Unit)       │
+│ AvailableChainKitV2.Tests.Toy                │ toy protocol; toyRun (ExecutionValid, self-delivery); pre (append form)         │
+│ AvailableChainFramework.V2.Anchor            │ anchor: a let chain over the 224 engine entries; one locked line                │
+└──────────────────────────────────────────────┴─────────────────────────────────────────────────────────────────────────────────┘
+```
+
+The gate deleted `AvailableChainEngineV2.Sketch` (64a48cd). The laws of
+`Laws/Isolation` and `Laws/Outputs` replace its shapes.
 
 ## Simplex FG module (DC-fj)
 
