@@ -2,19 +2,21 @@ import AvailableChainFramework
 import AvailableChainRegistry
 import AvailableChainKit
 import AvailableChainEngineV2
+import AvailableChainKitV2
 import Lean.Util.CollectAxioms
 open Lean
 
 /-! Framework axiom check. Every non-internal constant of the modules of
-`AvailableChainFramework`, `AvailableChainRegistry`, `AvailableChainKit` and
-`AvailableChainEngineV2` may depend only on
+`AvailableChainFramework`, `AvailableChainRegistry`, `AvailableChainKit`,
+`AvailableChainEngineV2` and `AvailableChainKitV2` may depend only on
 `propext`, `Classical.choice` and `Quot.sound` (`collectAxioms`, proofs
 included). This rejects `sorryAx`, the auxiliary axioms of `native_decide`
 and project axioms. It is modelled on `scripts/CheckFGAxioms.lean`.
 
 It checks BUILT data: `lean --run` imports the `.olean` files and does not
 compare them with the sources. Run `lake build AvailableChainFramework
-AvailableChainRegistry AvailableChainKit AvailableChainEngineV2` first.
+AvailableChainRegistry AvailableChainKit AvailableChainEngineV2 AvailableChainKitV2`
+first.
 
 Run: `lake env lean --run scripts/CheckFrameworkAxioms.lean`.
 Exit codes: 0 clean; 1 a bad axiom; 2 nothing found or a usage error. -/
@@ -23,7 +25,8 @@ def allowed : List Name := [``propext, ``Classical.choice, ``Quot.sound]
 
 /-- The libraries whose modules are checked. -/
 def libraries : List Name :=
-  [`AvailableChainFramework, `AvailableChainRegistry, `AvailableChainKit, `AvailableChainEngineV2]
+  [`AvailableChainFramework, `AvailableChainRegistry, `AvailableChainKit, `AvailableChainEngineV2,
+    `AvailableChainKitV2]
 
 def inLibraries (env : Environment) (n : Name) : Bool :=
   match env.getModuleIdxFor? n with
