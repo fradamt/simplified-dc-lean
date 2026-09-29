@@ -28,7 +28,7 @@ run b check-expose python3 scripts/check-expose.py
 if [ "${SKIP_CONE:-0}" = 1 ]; then skip c rebuild-cone-test "SKIP_CONE=1"
 else run c "rebuild-cone-test $CONE_MODULE" bash scripts/rebuild-cone-test.sh "$CONE_MODULE"; fi
 if [ -f scripts/CheckProofEqns.lean ]; then
-  run d CheckProofEqns bash -c 'lake build AvailableChainCheckSupport && lake env lean --run scripts/CheckProofEqns.lean'
+  run d CheckProofEqns bash -c 'lake build AvailableChainCheckSupport && lake env lean --run scripts/CheckProofEqns.lean --baseline scripts/baselines/check-proof-eqns.txt'
 else skip d CheckProofEqns "not yet present"; fi
 if [ -f scripts/check-layers.py ]; then run e check-layers python3 scripts/check-layers.py
 else skip e check-layers "not yet present"; fi
