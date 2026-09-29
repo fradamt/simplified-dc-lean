@@ -71,7 +71,7 @@ name = "AvailableChainRegistry"
 [[lean_lib]]
 name = "AvailableChainKit"
 
-# Engine v2 (L0, design §2): the root, the sketch, and every module under
+# Engine v2 (L0, design §2): the root and every module under
 # `Engine/`, `Conditions/`, `Laws/` and `Tests/` (plan 2a). One glob, `.*` (the
 # root and all its submodules): Lake fails on a glob for a directory that does
 # not exist yet.
