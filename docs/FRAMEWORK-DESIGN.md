@@ -321,15 +321,13 @@ the text above.
 **E6. Restart.** `Event.restart v t`; order at one time: restart, ticks,
 deliveries. Step: `st ↦ restore (durable st)`. For an FG composite,
 `durable` = Λ + F + the F basis; h_max and J are derived again from
-received chain states. *Note 2026-09-29 (user decisions, via DC-simplify; the second
-corrects the first):* an FG composite keeps Λ and F durable. Λ is the
-slashing-protection database, which survives restarts. F is kept with the
-stored carrier chain that makes F derivable (`Fcar` in
-`KitFG/Correspondence.lean`: the FG blocks from genesis to the carrier K,
-whose chain state finalizes F); "the F basis" above means that chain, not
-the old `Σ.f_basis`, which the adopted spec removed. FG-SA's `restore`
-rebuilds the store from that chain with Λ; h_max and J are derived again.
-Restarts are a later model extension. Each restart starts a new EPOCH of the node. Receipt facts (`processed`,
+received chain states. *Note 2026-09-29 (user decisions, via DC-simplify; this replaces two
+earlier notes of the same day):* the faithful form: an FG composite keeps
+Λ (the slashing-protection database) and F with F's chain state (the
+anchor) durable, and the history below F is pruned. This form comes with the
+planned anchor-and-pruning feature (§8). Until then FG-SA uses an INTERIM
+form: Λ is kept and the store is reset to its initial state; no FG-SA claim
+reads F across a restart. Each restart starts a new EPOCH of the node. Receipt facts (`processed`,
 `depsPresent`) reset with the epoch (audit W04): a block outside the
 durable part is lost, and it can be delivered again (the freshness check
 allows it). Delivery obligations toward a restarted node cover objects
@@ -766,6 +764,15 @@ acceptance item "eligibility per migrated instance" is OPEN and moves to
 plan 1c; until then MATRIX shows `holds*` and no protocol certificate. The
 FG-SA run lift (T7) is on v2 and can start after 2a. Details:
 `docs/PHASE1B-REPORT.md`.
+
+*Planned item, not scheduled (2026-09-29, user decision via DC-simplify):*
+anchor and pruning. The store starts from an anchor (a block and its chain
+state); genesis is the special case. The protocol prunes below F when F
+advances, with a "pruning can be done" theorem (later reads do not change).
+This gives the faithful E6 restart form for FG composites. Inputs: a protocol
+study (r207, `codex/pruning-rule.md`), an extraction of the decoupled-
+consensus pruning method, and a Lean design and impact study (fgsa-impl).
+Its place in the order is decided when these land (after I9 and 2a).
 
 **Lock change log.**
 - 2026-09-28, approved by the user. The receipt-relay merge (`1a3f73a`, r162)
