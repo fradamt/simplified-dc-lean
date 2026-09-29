@@ -911,8 +911,11 @@ registry id, or the AP fact that carries the clause).
 │ Script                      │ Check                                        │ Exit codes          │
 ├─────────────────────────────┼──────────────────────────────────────────────┼─────────────────────┤
 │ scripts/check-fg.sh         │ builds the two libraries once (--wfail),     │ 0 all pass; else    │
-│                             │ then runs the root-import check and the four │ the failed step's   │
-│                             │ checks below; stops at the first failure     │ code                │
+│                             │ then runs the root-import check, the four    │ the failed step's   │
+│                             │ checks below and four negative controls of   │ code (1 for a       │
+│                             │ check-fg-pins.sh (temporary emitter,         │ control that is not │
+│                             │ registry and allowlist copies); stops at the │ detected)           │
+│                             │ first failure                                │                     │
 │ scripts/check-fg-syntax.sh  │ no native evaluation outside comments in the │ 0 clean; 1 found; 2 │
 │                             │ two FG libraries: native_decide, +native,    │ missing directory,  │
 │                             │ native := true, ofReduceBool, ofReduceNat    │ root file or files  │
@@ -931,7 +934,10 @@ registry id, or the AP fact that carries the clause).
 │                             │ id; each source resolves to its registered   │ missing manifest    │
 │                             │ version with the pinned hash and matches its │                     │
 │                             │ §0.1 row; each id has an entry and one Index │                     │
-│                             │ row; no active id SUPERSEDED                 │                     │
+│                             │ row; no id that a current pin names (its own │                     │
+│                             │ id or a dep: an .ap or .external id) is      │                     │
+│                             │ SUPERSEDED or WITHDRAWN; the hist pins are   │                     │
+│                             │ exactly the script's dated allowlist         │                     │
 └─────────────────────────────┴──────────────────────────────────────────────┴─────────────────────┘
 ```
 

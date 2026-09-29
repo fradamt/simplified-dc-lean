@@ -35,5 +35,5 @@ def main (args : List String) : IO UInt32 := do
   if args == ["--check-names"] then
     checkNames (pinNames pins defPins helpers)
   else
-    for l in manifest pins defPins notFormalized do IO.println l
+    for l in manifest pins defPins notFormalized historicalPins do IO.println l
     return 0

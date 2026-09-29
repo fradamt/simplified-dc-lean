@@ -468,30 +468,42 @@ def notFormalized : List (String × String) := [
   ("fj.frame.v2", "SUPERSEDED by fj.frame.v3 (648f255); same frame controls"),
   ("comp.outputNesting.v1", "AP accessor fact; the finalized ⪯ available clause") ]
 
+/-- Pins kept only as history: their registry status is WITHDRAWN or
+SUPERSEDED, and no current composition cites them. `scripts/check-fg-pins.sh`
+exempts them and their references from the status test, and each one must be
+on the allowlist of that script, with a reason and a date. -/
+def historicalPins : List String := []
+
 /-- The manifest that `scripts/check-fg-pins.sh` checks, from the elaborated
 values (Astra P01, Q01–Q03, T01), one record per line: `src <key> <root> <path>
 <sha256>` for each source of the pins and `defPins`, `pin <id>`, `ap <id>` and
 `external <id>` for each active reference (without repeats), and
 `notFormalized <id>` for each id that this module does not formalize (historical
-ids, and AP or comp ids that it does not formalize). Five trailer lines follow, one
-per kind in this order: `END <kind> <n> <keys>`, where `<keys>` are the record
-keys of that kind (the second field), sorted by `String` order, which is byte
-order on these ASCII tokens. The trailer binds the record set, not only the
-counts. -/
-def manifest (ps : List Pin) (ds : List DefPin) (nf : List (String × String)) :
-    List String :=
+ids, and AP or comp ids that it does not formalize), `dep <pin> <id>` for each
+`.ap` or `.external` id of a pin (without repeats in one pin), and `hist <pin>`
+for each entry of `hist` (repeats kept, so that the check sees them). Seven
+trailer lines follow, one per kind in this order: `END <kind> <n> <keys>`, where
+`<keys>` are the record keys of that kind (the second field; for `dep`,
+`<pin>/<id>`), sorted by `String` order, which is byte order on these ASCII
+tokens. The trailer binds the record set, not only the counts. -/
+def manifest (ps : List Pin) (ds : List DefPin) (nf : List (String × String))
+    (hist : List String) : List String :=
   let srcs := (ps.flatMap (·.sources) ++ ds.map (·.src)).eraseDups
-  let refs (ap : Bool) := (ps.flatMap fun p => p.clauses.filterMap fun c =>
+  let ids (p : Pin) (ap : Bool) := p.clauses.filterMap fun c =>
     match c.cov with
     | .ap i _ => if ap then some i else none
     | .external i _ => if ap then none else some i
-    | _ => none).eraseDups
+    | _ => none
+  let refs (ap : Bool) := (ps.flatMap (ids · ap)).eraseDups
+  let deps := ps.flatMap fun p => (ids p true ++ ids p false).eraseDups.map (p.id, ·)
   let recs : List (String × List (String × String)) :=
     [("src", srcs.map fun s => (s.key, s!"{s.key} {s.root} {s.path} {s.sha256}")),
      ("pin", ps.map fun p => (p.id, p.id)),
      ("ap", (refs true).map fun i => (i, i)),
      ("external", (refs false).map fun i => (i, i)),
-     ("notFormalized", nf.map fun (i, _) => (i, i))]
+     ("notFormalized", nf.map fun (i, _) => (i, i)),
+     ("dep", deps.map fun (p, i) => (s!"{p}/{i}", s!"{p} {i}")),
+     ("hist", hist.map fun i => (i, i))]
   recs.flatMap (fun (t, rs) => rs.map fun (_, r) => s!"{t} {r}") ++
   recs.map fun (t, rs) =>
     " ".intercalate (["END", t, toString rs.length] ++
