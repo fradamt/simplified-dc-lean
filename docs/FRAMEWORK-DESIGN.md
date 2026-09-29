@@ -765,14 +765,18 @@ plan 1c; until then MATRIX shows `holds*` and no protocol certificate. The
 FG-SA run lift (T7) is on v2 and can start after 2a. Details:
 `docs/PHASE1B-REPORT.md`.
 
-*Planned item, not scheduled (2026-09-29, user decision via DC-simplify):*
-anchor and pruning. The store starts from an anchor (a block and its chain
-state); genesis is the special case. The protocol prunes below F when F
-advances, with a "pruning can be done" theorem (later reads do not change).
-This gives the faithful E6 restart form for FG composites. Inputs: a protocol
-study (r207, `codex/pruning-rule.md`), an extraction of the decoupled-
-consensus pruning method, and a Lean design and impact study (fgsa-impl).
-Its place in the order is decided when these land (after I9 and 2a).
+*Planned item, not scheduled (2026-09-29, user decisions via DC-simplify):*
+anchor and pruning, as an OPTIONAL CLAIM. A protocol may prove "prunable at
+F": every later read and output does not change when the store prunes below
+F as F advances. A protocol may also start from an anchor (a block and its
+chain state) instead of genesis; genesis is the special case. This is not an
+engine or protocol obligation: a protocol that does not make the claim
+changes nothing, and the target for such protocols is zero changed lock
+lines. For FG composites the claim gives the faithful E6 restart form.
+Inputs: a protocol study (r207, `codex/pruning-rule.md`, landed; an Opus
+red-team runs), an extraction of the decoupled-consensus pruning method, and
+a Lean design and impact study (fgsa-impl). Its place in the order is decided
+when these land (after I9 and 2a).
 
 **Lock change log.**
 - 2026-09-28, approved by the user. The receipt-relay merge (`1a3f73a`, r162)
