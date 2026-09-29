@@ -210,9 +210,9 @@ not re-pinned now. A citation of the form "spec/fgsa-protocol.tex, lines
 │ fgsa1 │ spec/archive/fgsa-protocol-2e884811.tex                          │ 2e88481117ba3e663c559f95218ce545 │ aba5639f201063c1942dc5599adb9787 │
 │ fgsa2 │ spec/archive/fgsa-protocol-dbcb7f05.tex                          │ dbcb7f05106cff51070fc767de45e3fe │ df45d0c74c8b5aeeca794a6110978864 │
 │ fgsa3 │ spec/archive/fgsa-protocol-c1ea1db0.tex                          │ c1ea1db08f1da37bcde075df5d70f23a │ f7c9941bd05ae5e8aca1bb48d1b777ed │
-│ bp00  │ blueprint/archive/00-outline-06aff758.md                         │ 06aff758725e9e80211f87da1fa67341 │ ad1992d60cd54416c09d7eeae68097c3 │
+│ bp00  │ blueprint/archive/00-outline-e6dcbcc1.md                         │ e6dcbcc1859dca4e9f30f7f947b6608a │ c4e1ab55b99cd1c562bd1f827965647d │
 │ bp01  │ blueprint/archive/01-foundations-200c9c07.md                     │ 200c9c07a01bd5826750d0e89a985be8 │ 7e588f98132a68534cdd719531302a99 │
-│ bp21  │ blueprint/archive/21-healing-576d02a1.md                         │ 576d02a1757d7722042505d26dea2fc6 │ 28a7c6cd4a6293c145b91255b0f5859b │
+│ bp21  │ blueprint/archive/21-healing-9b7f5af8.md                         │ 9b7f5af8d013a473f9c5361f72377df6 │ 3f79728599e02d0b9414cd58789c3ac9 │
 │ dc    │ dc/consensus.tex                                                 │ dc471b47a46896fe0a3df300c188fef1 │ 512f475615ce0fc0df18dbea6d2e5517 │
 │ vcE   │ vc/DecoupledConsensusProofs/Protocol/ValidatorClient/Engine.lean │ 92fb0e64c1288afea98b53212cb3ad5c │ 843c9c720187367eea578d17a9d53454 │
 │ vcF   │ vc/DecoupledConsensusProofs/Protocol/ChainState/                 │ aa0ed92740eb1ec8ee69e90fd2ae75f0 │ 3179a27c05accf5f631e7a254589b94c │
@@ -3305,9 +3305,9 @@ in §4. Every status below is for the FG-SA client (§0).
 
 - Variant `fj` (its premise is the frame `fj.frame.v4`, spec `fgsa3`).
   Source: blueprint 21, registry restatement after H.8, file
-  `blueprint/archive/21-healing-576d02a1.md` (key `bp21`), lines
+  `blueprint/archive/21-healing-9b7f5af8.md` (key `bp21`), lines
   1059–1098, sha256
-  `576d02a1757d7722042505d26dea2fc628a7c6cd4a6293c145b91255b0f5859b`.
+  `9b7f5af8d013a473f9c5361f72377df63f79728599e02d0b9414cd58789c3ac9`.
   Proofs: 21 H.3 (clauses 1–4), H.5–H.6 (clause 5), H.8 (clause 6).
 - Lean pin: not yet pinned (2026-09-29): `AvailableChainKitFG/Pins.lean`
   cites this id through `.ap` only; the entry has no clause table yet.
@@ -3320,7 +3320,7 @@ in §4. Every status below is for the FG-SA client (§0).
   receiver exclusion, and the phase premises of the statement.
 - Statement (pinned):
 
-> _21-healing-576d02a1.md, lines 1059–1098:_
+> _21-healing-9b7f5af8.md, lines 1059–1098:_
 >
 > ### Registry restatement — ap.headReachesLo.v6 — PROVED-paper
 >
@@ -3687,7 +3687,7 @@ in §4. Every status below is for the FG-SA client (§0).
   `blueprint/archive/01-foundations-200c9c07.md` (key `bp01`), lines
   725–743, sha256
   `200c9c07a01bd5826750d0e89a985be87e588f98132a68534cdd719531302a99`;
-  blueprint 00 §3, file `blueprint/archive/00-outline-06aff758.md` (key
+  blueprint 00 §3, file `blueprint/archive/00-outline-e6dcbcc1.md` (key
   `bp00`), lines 643–651.
 - Lean plan: DC-fj module (pin `fg.finalLock.v2` of
   `AvailableChainKitFG/Pins.lean`, sources `bp01`, `bp00`). The carrier
@@ -3723,7 +3723,7 @@ in §4. Every status below is for the FG-SA client (§0).
 > `KFG.finalLock` for the bounded corollary, and an accepted-carrier
 > wrapper with the genesis case. The wrapper still needs a Lean proof.
 
-> _00-outline-06aff758.md, lines 643–651:_
+> _00-outline-e6dcbcc1.md, lines 643–651:_
 >
 > **fg.finalLock.v2 — NEW — PROVED-paper.** For accepted F, put
 > `finheight=0` for genesis and otherwise use its certificate entry height.
@@ -4548,9 +4548,9 @@ M0. r151 calls this cap μ and calls M0 simply M.
   `get_head_in_tree` 1240–1247, `voter_processed_block_tree` and
   `voter_filtered_block_tree` 1361–1376, the HEAD duty call 1437–1439, and
   the cache update `update_finality` 999–1012. Clause split: blueprint 00
-  §3, file `blueprint/archive/00-outline-06aff758.md` (key `bp00`), lines
+  §3, file `blueprint/archive/00-outline-e6dcbcc1.md` (key `bp00`), lines
   589–641, sha256
-  `06aff758725e9e80211f87da1fa67341ad1992d60cd54416c09d7eeae68097c3`.
+  `e6dcbcc1859dca4e9f30f7f947b6608ac4e1ab55b99cd1c562bd1f827965647d`.
   Proofs: blueprint 01 §4, §6.5–§6.6, §8.2 and §11 (key `bp01`). The
   blueprint cites 4e85ff34 lines; add 9 for `fgsa3` (§0.1). Proof sources
   of the carried clauses: ldp §1 and r161 §2, as for `fj.frame.v3`.
@@ -4589,8 +4589,10 @@ M0. r151 calls this cap μ and calls M0 simply M.
 │    │ Remark: deletion can change the HEAD and │ paper (FR M1, N2; blueprint 01 │
 │    │ S, also at a ≤ f (507–510)               │ §11.1–§11.2)                   │
 │ 3a │ The confirmation walk starts at Σ.F in   │ Lean in AvailableChainFGSA:    │
-│    │ act(Σ); its result passes the strict-    │ gateStep, fastSet (they run    │
-│    │ majority test, also at Σ.F (511–513)     │ SA.confirmationFrom from Σ.F), │
+│    │ act(Σ); its result passes the strict-    │ gateStep, fastSet,             │
+│    │ majority test, also at Σ.F (511–513)     │ gateStep_fresh (the saved      │
+│    │                                          │ result is SA.confirmationFrom  │
+│    │                                          │ from Σ.F),                     │
 │    │                                          │ clock_eq_saClockFrom_gate      │
 │ 3b │ The FJ viability and band filter does    │ AP data (the SA walk; the      │
 │    │ not restrict that walk (514–515)         │ HEAD and FG duties filter)     │
@@ -4609,7 +4611,7 @@ M0. r151 calls this cap μ and calls M0 simply M.
   also byte-identical and writes no frame input.
 - Statement (pinned):
 
-> _00-outline-06aff758.md, lines 589–641:_
+> _00-outline-e6dcbcc1.md, lines 589–641:_
 >
 > **fj.frame.v4 — NEW — PROVED-paper (2026-09-29).**
 > Authority: spec 4e85ff34, Trees at lines 480–507, controls at 747–792.
@@ -5393,9 +5395,9 @@ M0. r151 calls this cap μ and calls M0 simply M.
 ### `fj.descent.v2` — descent at the first bad event, cumulative controls
 
 - Variant `fj`. Source: blueprint 21, registry restatement after H.13,
-  file `blueprint/archive/21-healing-576d02a1.md` (key `bp21`), lines
+  file `blueprint/archive/21-healing-9b7f5af8.md` (key `bp21`), lines
   2585–2631, sha256
-  `576d02a1757d7722042505d26dea2fc628a7c6cd4a6293c145b91255b0f5859b`.
+  `9b7f5af8d013a473f9c5361f72377df63f79728599e02d0b9414cd58789c3ac9`.
   Proof: 21 H.13 (four exclusion cases, joint first-event argument).
 - Lean pin: not yet pinned (2026-09-29): no clause table yet.
 - Hypotheses: H.13's reachable-run premises, IF.1–IF.6, and μ. μ is a
@@ -5404,7 +5406,7 @@ M0. r151 calls this cap μ and calls M0 simply M.
   field of an existential witness.
 - Statement (pinned):
 
-> _21-healing-576d02a1.md, lines 2585–2631:_
+> _21-healing-9b7f5af8.md, lines 2585–2631:_
 >
 > ### Registry restatement — fj.descent.v2 — PROVED-paper
 >
@@ -5761,9 +5763,9 @@ M0. r151 calls this cap μ and calls M0 simply M.
 ### `fj.twoChanges.core.v2` — FJ phases at a fixed frontier, cumulative evidence
 
 - Variant `fj`. Source: blueprint 21, registry restatement after H.8,
-  file `blueprint/archive/21-healing-576d02a1.md` (key `bp21`), lines
+  file `blueprint/archive/21-healing-9b7f5af8.md` (key `bp21`), lines
   1003–1057, sha256
-  `576d02a1757d7722042505d26dea2fc628a7c6cd4a6293c145b91255b0f5859b`.
+  `9b7f5af8d013a473f9c5361f72377df63f79728599e02d0b9414cd58789c3ac9`.
   Proof: 21 H.7 (uniqueness, contest exclusion, phase order), H.5 (the
   fixed-set domain identity); H.8 adds the settlement deadline.
 - Lean pin: not yet pinned (2026-09-29): no clause table yet.
@@ -5773,7 +5775,7 @@ M0. r151 calls this cap μ and calls M0 simply M.
   top height, finalized crossing at `a≤f`.
 - Statement (pinned):
 
-> _21-healing-576d02a1.md, lines 1003–1057:_
+> _21-healing-9b7f5af8.md, lines 1003–1057:_
 >
 > ### Registry restatement — fj.twoChanges.core.v2 — PROVED-paper
 >

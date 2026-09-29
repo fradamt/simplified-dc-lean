@@ -119,8 +119,8 @@ deletes a block of Σ.T, and the pre-GST delivery clause. -/
 def fgsa3 : Src := ⟨"fgsa3", "spec", "archive/fgsa-protocol-c1ea1db0.tex",
   "c1ea1db08f1da37bcde075df5d70f23af7c9941bd05ae5e8aca1bb48d1b777ed"⟩
 /-- The adopted blueprint (2026-09-29), chapters 00 and 01 (archive copies). -/
-def bp00 : Src := ⟨"bp00", "blueprint", "archive/00-outline-06aff758.md",
-  "06aff758725e9e80211f87da1fa67341ad1992d60cd54416c09d7eeae68097c3"⟩
+def bp00 : Src := ⟨"bp00", "blueprint", "archive/00-outline-e6dcbcc1.md",
+  "e6dcbcc1859dca4e9f30f7f947b6608ac4e1ab55b99cd1c562bd1f827965647d"⟩
 def bp01 : Src := ⟨"bp01", "blueprint", "archive/01-foundations-200c9c07.md",
   "200c9c07a01bd5826750d0e89a985be87e588f98132a68534cdd719531302a99"⟩
 def ldp : Src := ⟨"ldp", "tsc", "fgsa-live-dc-port.md",
@@ -172,11 +172,12 @@ def pins : List Pin := [
         output-preservation claim"⟩,
     ⟨"Trees 3a: the confirmation walk starts at Σ.F in act(Σ); it returns a block only \
       if that block passes the strict-majority test, also when the block is Σ.F \
-      (fgsa3 511–513, 1289–1306): gateStep and fastSet run SA.confirmationFrom (an \
-      AvailableChainSA definition) from Σ.F; clock_eq_saClockFrom_gate is the tick",
+      (fgsa3 511–513, 1289–1306): gateStep_fresh states that the saved result of an \
+      unsaved gate is SA.confirmationFrom (an AvailableChainSA constant, the anchor) \
+      from Σ.F on the active view; clock_eq_saClockFrom_gate is the tick",
       .leanIn "AvailableChainFGSA"
         [`AvailableChain.FGSA.gateStep, `AvailableChain.FGSA.fastSet,
-          `AvailableChain.FGSA.clock_eq_saClockFrom_gate]⟩,
+          `AvailableChain.FGSA.gateStep_fresh, `AvailableChain.FGSA.clock_eq_saClockFrom_gate]⟩,
     ⟨"Trees 3b: the FJ viability and band filter does not restrict the SA \
       confirmation walk (fgsa3 514–515)",
       .apData "the SA confirmation walk; the HEAD, proposal and FG duties use the \
