@@ -147,6 +147,7 @@ theorem ghostWalk_mem (tree : List Block) (score : Block → Nat)
             exact (ghostStep_child tree score eligible anchor child hs).1
           · exact Or.inr hm
 
+omit [LeasePolicy] in
 theorem confirmationFrom_mem (p : Params) {n : Nat} (a : Block) (st : State n)
     (r : Slot) (B : Block) (hc : confirmationFrom p a st r = some B) :
     B = a ∨ B ∈ st.blocks := by
