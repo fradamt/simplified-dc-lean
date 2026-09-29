@@ -21,7 +21,9 @@ theorem erasedList_subset {n : Nat} (st : State n) (X : Finset (FGBlock (Fin n))
   fun _ hb => (List.mem_filter.1 hb).1
 
 /-- [spec 648–655; T7.W] The live root is stored: it is the erasure of Z or a
-lease target in the full filtered tree. -/
+lease target in the full filtered tree. This proof duplicates the live-root
+branch of `fgHead_stored` (`Proofs/StoreInv.lean:756`); that proof does not
+change. -/
 theorem liveRoot_stored (p : Params) (st : State p.n) (h : CStoreInv p st) :
     liveRoot p st ∈ st.base.blocks := by
   unfold liveRoot
@@ -58,6 +60,11 @@ theorem getHead_stored (p : Params) (st : State p.n) (h : CStoreInv p st)
     (raw support : List (GridCO.Wire p.n)) :
     getHead p st raw support ∈ st.base.blocks :=
   headInTree_stored p st h _ (erasedList_subset st _) raw support
+
+/-- [spec 1276–1302; T7.W; G-walk MINOR-1] The HEAD vote at slot 0 is genesis
+(for the slot-0 branch of T7.12). -/
+theorem headVote_zero (p : Params) (st : State p.n) : headVote p st 0 = .genesis := by
+  simp [headVote]
 
 /-- [spec 1276–1302; T7.W (W1)] The HEAD vote is stored, at every slot. -/
 theorem headVote_stored (p : Params) (st : State p.n) (h : CStoreInv p st) (s : Slot) :

@@ -1172,7 +1172,8 @@ rows under `scripts/` are paths from the repository root.
 │                                │ F_preceq_headInTree; from B ⪯ F:               │                    │
 │                                │ preceq_getHead_of_preceq_F,                    │                    │
 │                                │ preceq_fgHead_of_preceq_F,                     │                    │
-│                                │ preceq_headVote_of_preceq_F (s > 0 only)       │                    │
+│                                │ preceq_headVote_of_preceq_F (s > 0 only);      │                    │
+│                                │ headVote_zero (slot 0 gives genesis)           │                    │
 │ Proofs/ChainOrder.lean         │ the chain-state row fold is order-free:        │ T7.W (extra item)  │
 │                                │ process_row_eq (three conditional inserts),    │                    │
 │                                │ process_row_comm, process_row_idem;            │                    │

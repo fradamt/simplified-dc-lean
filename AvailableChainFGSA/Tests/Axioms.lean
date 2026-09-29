@@ -264,6 +264,7 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 #print axioms AvailableChain.FGSA.liveRoot_stored
 #print axioms AvailableChain.FGSA.headInTree_stored
 #print axioms AvailableChain.FGSA.getHead_stored
+#print axioms AvailableChain.FGSA.headVote_zero
 #print axioms AvailableChain.FGSA.headVote_stored
 #print axioms AvailableChain.FGSA.liveRoot_preceq_headInTree
 #print axioms AvailableChain.FGSA.F_preceq_liveRoot
