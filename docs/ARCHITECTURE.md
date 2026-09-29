@@ -14,7 +14,8 @@ changes, and tell the other sessions._
 │ lean-framework │ engine, framework, I9, 2a/2b/2c, │ §3–§4               │
 │                │ 1c                               │                     │
 │ fgsa-lean      │ T7/T1, F0–F6 (FG-SA claims in    │ (reports to both)   │
-│                │ Lean)                            │                     │
+│                │ Lean); docs/FG-COMPOSITION.md    │                     │
+│                │ (registry, pins)                 │                     │
 │ all            │ milestones, links                │ §5, §8 (shared)     │
 └────────────────┴──────────────────────────────────┴─────────────────────┘
 ```
