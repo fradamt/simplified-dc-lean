@@ -58,9 +58,11 @@ def lockedModules : List Name :=
    `AvailableChainFramework.Profile, `AvailableChainFramework.Pareto,
    `AvailableChainFramework.ClaimDomain, `AvailableChainFramework.DomainMap]
 
-/-- Every declaration of the modules under these prefixes is locked (L2, L3). -/
+/-- Every declaration of the modules under these prefixes is locked (L2, L3,
+and the engine v2 anchor, whose closure holds the frozen v2 engine API). -/
 def lockedModulePrefixes : List Name :=
-  [`AvailableChainFramework.Catalog, `AvailableChainFramework.Facets]
+  [`AvailableChainFramework.Catalog, `AvailableChainFramework.Facets,
+   `AvailableChainFramework.V2]
 
 /-- A declaration whose type is an application of one of these is always
 locked. Names that do not exist yet are ignored. -/

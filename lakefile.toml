@@ -13,6 +13,7 @@ defaultTargets = [
   "AvailableChainRegistry",
   "AvailableChainKit",
   "AvailableChainEngineV2",
+  "AvailableChainKitV2",
   "AvailableChainSimplexFG",
   "AvailableChainKitFG",
   "AvailableChainFGSA",
@@ -70,9 +71,20 @@ name = "AvailableChainRegistry"
 [[lean_lib]]
 name = "AvailableChainKit"
 
-# Engine v2 sketch (L0, design §2 E5/E6). Plan 2 grows it into engine v2.
+# Engine v2 (L0, design §2): the root and every module under
+# `Engine/`, `Conditions/`, `Laws/` and `Tests/` (plan 2a). One glob, `.*` (the
+# root and all its submodules): Lake fails on a glob for a directory that does
+# not exist yet.
 [[lean_lib]]
 name = "AvailableChainEngineV2"
+globs = ["AvailableChainEngineV2.*"]
+
+# Kit v2 (L5): engine lemmas over engine v2. Imports the v2 engine and narrow
+# model modules only. One glob, `.*`: the root and every module, `Tests/`
+# included (the root does not import the tests).
+[[lean_lib]]
+name = "AvailableChainKitV2"
+globs = ["AvailableChainKitV2.*"]
 
 # Simplex FG module SimplexFG.fj (LM): DC's FG without SG, FJ root rule. Definitions only.
 [[lean_lib]]

@@ -357,6 +357,145 @@ claim PROPOSITIONS; certificate eligibility (E4, §5) is proved
 separately per instance. Scope: the simulation relation, its step
 correspondence for each event kind, and the claim transport.
 
+**As implemented in Phase 2a (2026-09-29).** This note does not change
+the text above. Plan: `docs/plans/2026-09-29-phase2a-engine-v2-core.md`.
+Frozen API: `docs/V2-API.md`. Report: `docs/PHASE2A-REPORT.md`. The
+shapes below are frozen (freeze rule, DC N6): a 2a structure never gains a
+field, a 2a inductive never gains a constructor, and a 2a definition never
+gains a parameter. Stages 2b and 2c only ADD declarations.
+
+- Libraries. Engine v2 is in `AvailableChainEngineV2` (`Engine`,
+  `Conditions`, `Laws`; namespace `AvailableChain.V2`). Its lemmas are in
+  `AvailableChainKitV2` (L5; namespace `AvailableChain.V2.Engine`). The
+  Framework does not import the Kit. One Framework declaration,
+  `AvailableChain.Framework.V2.anchor`, references the 224 engine entries
+  of the manifest, so the lock line of the anchor covers them (plan D6).
+- E1. `ProtocolSpec (In : Type)` has 24 fields: `State`, `Label`,
+  `seats`, `Payload`, `Durable`, `init`, `clock`, `actTime`, `duties`,
+  `duties_spec`, `duties_nodup`, `act`, `gossip`, `process`,
+  `selfVisible`, `recordOwn`, `durable`, `restore`, `wellFormed`,
+  `depsPresent`, `processed`, `excludes`, `handles`, `carries`. The input
+  type `In` is a parameter, not a field, so a protocol cannot choose it
+  (plan D3); `act : State → Label → In → Option Payload`. `Auth` is
+  `seat ℓ i | none`, and a wire object is `Signed` (`auth`, `payload`).
+  `Run V P` has `honest`, `horizon`, `events`, `seatOf` and
+  `input : V → Time → In`.
+- `selfVisible` (the agreed text, plan Task 1 Step 2): "`selfVisible`
+  controls the private own-signature record. A normal delivery to the
+  emitting node may occur at the emission timestamp, after the tick
+  phase."
+- Tick. `tick E rho st v t` gives the post-tick state and the released
+  objects. It runs `clock`. An awake node then signs, for each label of
+  `duties t` and each of its seats, the payload of `act` from the
+  post-clock state and `rho.input v t`, in label order and then seat order;
+  unsigned gossip follows. Then `recordOwn` is folded over the released
+  self-visible objects. An asleep node releases and records nothing.
+  Emission is indexed by the tick event (`emitsAt E rho i`), so a restart
+  at the same time (phase 0) is included.
+- E2. `LabelFamilies P` names three families, `ap`, `fresh` and `linked`
+  (each `P.Label → Prop`); it holds no law. `CStar F rho`: every seat map
+  of a label of `F` is bijective. `Linked F rho`: one `e : Fin N ≃ V` for
+  all labels of `F`, so `Linked` implies `CStar` (`Linked.toCStar`).
+  `SingleSeat P F`: every label of `F` has one seat. The FG-SA reference
+  assignment: HEAD labels in `ap` and `fresh`; FG labels in `linked`;
+  proposal labels in `ap`, with `SingleSeat`.
+- E5. `Isolation P F` has data factors and laws. The hook projection
+  applies to `F.APObject`: objects signed with an `F.ap` label, and
+  unsigned objects (the AP projection emits unsigned gossip). `wellFormed`
+  reads no state, so it has no factor. There is no restore law; plan 2c
+  adds `RestoreLaw` with `restore_base` and `durable_base` as a separate
+  structure. The lemma `base_tick` follows: the base after a tick is
+  `clockB` of the base before it.
+
+```text
+┌─────────────────────┬──────────────────────────────────────────────────────────┐
+│ Field               │ Law                                                      │
+├─────────────────────┼──────────────────────────────────────────────────────────┤
+│ Base, base          │ the part of the state that the AP protocol reads         │
+│ clockB              │ clock_base: base (clock st t) = clockB (base st) t       │
+│ processB            │ process_base: for every object, not only AP objects      │
+│ (none)              │ recordOwn_base: base (recordOwn st o) = base st          │
+│ actB                │ act_base: on F.ap labels; actB takes the input           │
+│ gossipB             │ gossip_base: all gossip                                  │
+│ depsB, processedB,  │ hooks_base: on F.APObject o, the three hooks equal their │
+│ excludesB, handlesB │ factors at base st; handles (a Prop) for both objects in │
+│                     │ F.APObject, as an ↔ with the relation handlesB           │
+│ (none)              │ separation: F.ap ℓ ∨ F.fresh ℓ → selfVisible ℓ = false   │
+└─────────────────────┴──────────────────────────────────────────────────────────┘
+```
+
+- E4. `HooksSound P` stays run-level (plan D7). Fields: `excludes_inert`;
+  `excludes_stable`, `processed_stable` and `deps_stable` on the
+  `restartFree` intervals of every run with `ScheduleWellFormed` (over every
+  `V` with `DecidableEq`; v1 also asked for `Fintype V`);
+  `handles_carries`; and three own-record laws: `recordOwn_processed` and
+  `recordOwn_deps` (equalities) and `recordOwn_excludes` (true stays
+  true). `HooksSound` puts no law on a restart.
+- Self-delivery (plan D4). `EmitOk E rho st v t o` has four fields: `wire`
+  (`wellFormed o`), `deps` (`depsPresent` in the post-tick state),
+  `fresh` (not `processed` in the POST-CLOCK state) and `noCarried` (`o`
+  carries no object). `selfDelivery_admissible`: if the tick at index `i`
+  releases `o` with `EmitOk`, and the state of `v` at index `j` is its
+  post-tick state, then a delivery of `o` to `v` at `j` passes the wire,
+  dependency and freshness checks of `DeliveryWellFormed` and the checks
+  of `UnforgeableSignatures`. It does not claim acceptance by the handler.
+  Append form, `ExecutionValid.snoc_selfDelivery`: if `rho` is
+  `ExecutionValid`, `HooksSound P` holds, every event key is at most
+  `(t, 2)`, the tick of `v` at `t` is at index `i` and no later event is
+  of `v`, and `o` is released there with `EmitOk`, then `rho` with
+  `.deliver v o t` appended is `ExecutionValid`. `SelfDelivery E rho` is
+  an optional condition; the FG-SA regimes do not require it.
+- `Interface P`: `confirmed`, `stable`, `block`, `opening`, `propLabel`,
+  `propLabel_single` (one seat) and `propLabel_injective` (each slot has
+  its own proposal duty, as each slot had its own `Auth.proposer s` in
+  v1). It has no proposal schedule and no proposer field: `proposalTime`
+  is the act time of `propLabel s`, and `proposerOf` is the holder of its
+  one seat. The output reader is `outputAt`; `Run.readAt` is the world
+  reader. `RootInjective` holds for every run (`rootInjective_all`).
+- `OutputsFactor I iso`: `confirmedB`, `stableB` and the laws
+  `confirmed_base`, `stable_base`. So the own record does not change an
+  output (`confirmed_recordOwn`, `confirmed_tick` and the `stable`
+  forms).
+- Delivery conditions. `PartialSynchrony` and `HealthyPrefixDelivery`
+  have the v1 texts over v2 runs: `broadcast` of emitted objects and
+  `relay` of accepted objects, each with the exemption for an object that
+  the receiver excludes at the deadline. There is no other forwarding
+  rule (plan D5). `broadcast` includes the emitter, as in v1. With
+  restarts, both premises read the receiver's current epoch; restart
+  regimes add a rejoin condition (2c). `AcceptedObjectRelay` and
+  `HealthyAcceptedObjectRelay` are not ported.
+- Restart (reserved, E6). `Event.restart` (phase 0), `durable`, `restore`,
+  `NoRestart` and `restartFree rho v i j` (no restart of `v` at an index
+  in `[i, j)`) exist. No E6 law, epoch or rejoin condition exists yet.
+- Kit v2 restart premises (plan D9). A lemma takes a restore premise:
+  `hrestore : ∀ st, Q st → Q (P.restore (P.durable st))` for an invariant,
+  and `hrestore_now : ∀ d, C.now (P.restore d) ≤ 0` for a clock lemma.
+  `NoRestart` occurs only where a lemma is false after a restart, and in
+  the `_noRestart` corollaries. Each stability or invariant lemma also has
+  a `recordOwn` premise. With `restore := fun _ => init`, `hrestore` holds
+  for every `Q` with `Q init`, and `hrestore_now` holds by
+  `ClockLaws.init`.
+
+```text
+┌─────────────────────────────────────┬─────────────────────────────────────────────────┐
+│ Kit v2 lemma                        │ Restart premise                                 │
+├─────────────────────────────────────┼─────────────────────────────────────────────────┤
+│ stateBefore_now_le_event            │ hrestore_now; holds across restarts             │
+│ stateBefore_now_source              │ hrestore_now; first alternative now ≤ 0         │
+│ stateBefore_invariant               │ hrestore and hrestore_now                       │
+│ stateBefore_now_mono                │ hrestore_now and restartFree on [i, j)          │
+│ stateBefore_stable_clock            │ hrestore_now and restartFree on [i, j)          │
+│ stateBefore_stable_clock_restore    │ hrestore_now and hrestore; restarts allowed     │
+│ stateBefore_stable                  │ restartFree on [i, j)                           │
+│ clock_field_origin                  │ hrestore_field (restore adds no rows)           │
+│ stateBefore_field_prefix            │ restartFree on [i, j)                           │
+│ stateBefore_field_prefix_restore    │ field st <+: field (restore (durable st))       │
+│ delivery_now_ge_public              │ NoRestart (false after a restart)               │
+│ stateBefore_tick_eq_stateBeforeTime │ NoRestart (false after a restart)               │
+│ ownRecord_fold                      │ NoRestart; ownRecord_fold_interval: restartFree │
+└─────────────────────────────────────┴─────────────────────────────────────────────────┘
+```
+
 ## 3. Instances and facets (L2, L4)
 
 ```lean
@@ -623,9 +762,12 @@ the text above. Plan 1b made two Lake libraries, both default targets.
   `stateBefore_stable`, which came from the Registry. The library imports
   only `AvailableChainModel`, `AvailableChainStatements`, Mathlib and its
   own modules.
-- `AvailableChainEngineV2` (L0). `Sketch` is the former
-  `AvailableChainFramework/Engine/V2Sketch.lean`; plan 2 grows it into
-  engine v2.
+- `AvailableChainEngineV2` (L0). After plan 1b, its only module was
+  `Sketch`, the former `AvailableChainFramework/Engine/V2Sketch.lean`.
+  *Correction 2026-09-29 (Phase 2a gate):* Phase 2a did not grow the
+  Sketch into engine v2. It wrote engine v2 in new modules (`Engine/*`,
+  `Conditions/*`, `Laws/*`), and the gate deleted `Sketch` (`64a48cd`).
+  The library has no `Sketch` now. See §2, "As implemented in Phase 2a".
 - No name and no namespace changed, with one exception:
   `stateBefore_stable` is now `AvailableChain.Engine.stateBefore_stable`.
   Two lemmas of `Engine/Execution` are no longer private, because the
@@ -802,7 +944,13 @@ obligations are proved).
 │   │                           │ equivalences; eligibility per migrated  │
 │   │                           │ instance; MATRIX.md; build --wfail      │
 │ 2 │ Engine v2 + lift          │ v1 propositions transported; a toy      │
-│   │                           │ Linked, self-visible, restart protocol  │
+│   │                           │ Linked, self-visible, restart protocol; │
+│   │                           │ finite checked v2 traces: the 2a toy    │
+│   │                           │ runs `toyRun` (a self-delivery at the   │
+│   │                           │ emission time) and `pre` (append form), │
+│   │                           │ `AvailableChainKitV2/Tests/Toy.lean`    │
+│   │                           │ (2026-09-29); one trace per migrated    │
+│   │                           │ real instance (2b)                      │
 │ 3 │ Kits, explorer, checker   │ r107, Sanity, Accumulation, CE-1        │
 │   │                           │ rediscovered                            │
 │ 4 │ LM Simplex FG, frames,    │ correspondence theorems; FG-COMPOSITION │
@@ -989,6 +1137,14 @@ when these land (after I9 and 2a).
   `StrongInstance` and `StrongInstance.{mk, sface, strong, toInstance}`;
   `V1Ctx` and `V1Ctx.{E, mk, rho}`; `ClaimDomain.{ofV1, strong, v1}`;
   `DomainMap.{ofV1, strongV1}`.
+- 2026-09-29, the Phase 2a gate (`fa190ec`; plan D6): one `ADDED` line,
+  `AvailableChain.Framework.V2.anchor d7bf19c118bcf687`, written with
+  `--write` and no `--allow-changes`. `lockedModulePrefixes` gained
+  `AvailableChainFramework.V2`. No line changed, and no line was removed;
+  the lock has 251 lines. The closure of the anchor contains the 224
+  engine entries of `docs/V2-API.md`, so a change to one of them gives a
+  `CHANGED` line. `64a48cd` deleted the Sketch and changed docstrings only;
+  the anchor line did not change.
 
 ## 9. Changes to standing rules (approved by the user 2026-09-28)
 

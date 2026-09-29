@@ -199,6 +199,7 @@ AvailableChain.Framework.StrongInstance.toInstance df16bf4796cf79a1
 AvailableChain.Framework.V1Ctx.E 117a7ae40565f53c
 AvailableChain.Framework.V1Ctx.mk b6c07b815c64a239
 AvailableChain.Framework.V1Ctx.rho 9a602ccd5f648617
+AvailableChain.Framework.V2.anchor d7bf19c118bcf687
 AvailableChain.Framework.Validators.V c9b074f8fcbcb48a
 AvailableChain.Framework.Validators.dec 4a53eaea29631e65
 AvailableChain.Framework.Validators.fin 62615fec6e2a2f89
