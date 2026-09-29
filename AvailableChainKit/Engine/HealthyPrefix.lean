@@ -1,5 +1,5 @@
 module
-public import AvailableChainGridCO.Proofs.RunPrefix
+public import AvailableChainKit.Engine.RunPrefix
 
 @[expose] public section
 namespace AvailableChain.Engine

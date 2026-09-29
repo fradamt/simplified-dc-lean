@@ -11,6 +11,8 @@ defaultTargets = [
   "AvailableChainWitnesses",
   "AvailableChainFramework",
   "AvailableChainRegistry",
+  "AvailableChainKit",
+  "AvailableChainEngineV2",
   "AvailableChainSimplexFG",
   "AvailableChainKitFG",
 ]
@@ -62,6 +64,14 @@ name = "AvailableChainFramework"
 # Instances with certificates and refutations over the framework (L4), and tests.
 [[lean_lib]]
 name = "AvailableChainRegistry"
+
+# Kit (L5): engine-generic lemmas and derived results. Imports Model and Statements only.
+[[lean_lib]]
+name = "AvailableChainKit"
+
+# Engine v2 sketch (L0, design §2 E5/E6). Plan 2 grows it into engine v2.
+[[lean_lib]]
+name = "AvailableChainEngineV2"
 
 # Simplex FG module SimplexFG.fj (LM): DC's FG without SG, FJ root rule. Definitions only.
 [[lean_lib]]

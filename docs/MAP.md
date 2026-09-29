@@ -43,6 +43,9 @@ The main proof paths below use files in `AvailableChainGridCO/Proofs/`.
 - `Execution.lean`, `History.lean`, `Stamps.lean`, `Handling.lean`,
   `ClockBounds.lean`, `Receipts.lean`, `Paths.lean`, `HeadTargets.lean`,
   and `ReceiptOrigins.lean` connect events, receipts, paths, and reads.
+  `Execution.lean` keeps only the Grid CO forms of the schedule lemmas.
+  The engine-generic lemmas (namespace `AvailableChain.Engine`) are in
+  the library `AvailableChainKit` (see "Kit and engine v2 sketch").
   `Votes.lean` proves authentication and count bounds; `RecordSlots.lean`
   proves slot order and fresh-record replacement.
 - `Goldfish.lean`, `Relay.lean`, and `Map.lean` prove local walk, gate,
@@ -545,14 +548,12 @@ show the state after plan 1a. File paths below are relative to
 │                  │ strong1 (strong-1:                          │                       │
 │                  │ Shared := Constants × StrongConstants, five │                       │
 │                  │ claims); strong1_iff (↔ StrongClaims)       │                       │
-│ Kit/Core         │ includedPersist_of_safe (persistent         │ Kit/Core.lean         │
-│                  │ inclusion from safety and exact-time        │                       │
-│                  │ inclusion; a derived lemma, not a claim)    │                       │
-│ Engine/V2Sketch  │ SpecV2; Isolated (E5); Restorable (E6);     │ Engine/V2Sketch.lean  │
-│                  │ tickV2; restartV2; toyV2 (a two-field toy   │                       │
-│                  │ spec)                                       │                       │
 └──────────────────┴─────────────────────────────────────────────┴───────────────────────┘
 ```
+
+Plan 1b Task 0 moved `Kit/Core` and `Engine/V2Sketch` out of this
+library, to `AvailableChainKit` and `AvailableChainEngineV2` (see "Kit
+and engine v2 sketch"). `AvailableChainFramework` does not import them.
 
 A claim domain (`ClaimDomain`) names the type of the instances that a
 claim speaks about and the type of their run contexts. `ClaimSpec K`,
@@ -636,9 +637,11 @@ paths below are relative to `AvailableChainRegistry/`.
 │                                    │ file and writes nothing                  │ 2 a usage error or  │
 │                                    │                                          │ an unreadable file  │
 │ scripts/CheckFrameworkAxioms.lean  │ every constant of                        │ 0 clean; 1 a bad    │
-│                                    │ AvailableChainFramework and              │ axiom; 2 nothing    │
-│                                    │ AvailableChainRegistry uses only         │ found or a usage    │
-│                                    │ propext, Classical.choice, Quot.sound    │ error               │
+│                                    │ AvailableChainFramework,                 │ axiom; 2 nothing    │
+│                                    │ AvailableChainRegistry,                  │ found or a usage    │
+│                                    │ AvailableChainKit and                    │ error               │
+│                                    │ AvailableChainEngineV2 uses only         │                     │
+│                                    │ propext, Classical.choice, Quot.sound    │                     │
 │                                    │ (this rejects sorryAx and the axioms of  │                     │
 │                                    │ native_decide); reads built data         │                     │
 └────────────────────────────────────┴──────────────────────────────────────────┴─────────────────────┘
@@ -680,7 +683,58 @@ because the script reads the built `.olean` files.
 
 `scripts/CheckFrameworkAxioms.lean` also reads built data. Run all three
 scripts with `lake env lean --run scripts/<file>.lean` after `lake build
-AvailableChainFramework AvailableChainRegistry`.
+AvailableChainFramework AvailableChainRegistry AvailableChainKit
+AvailableChainEngineV2`.
+
+## Kit and engine v2 sketch (plan 1b)
+
+Plan 1b Task 0 (`docs/plans/2026-09-29-phase1b-instances.md`) moved the
+engine-generic lemmas and the Framework Kit into the library
+`AvailableChainKit` (L5), and the engine v2 sketch into the library
+`AvailableChainEngineV2` (L0). Both are Lake libraries and default
+targets. No name and no namespace changed; only file paths and imports
+changed. `AvailableChainKit` imports only `AvailableChainModel`,
+`AvailableChainStatements`, Mathlib and its own modules.
+
+```text
+┌──────────────────────────────┬──────────────────────────────────────────┬──────────────────────────────────────────┐
+│ Module                       │ Contents                                 │ Moved from                               │
+├──────────────────────────────┼──────────────────────────────────────────┼──────────────────────────────────────────┤
+│ AvailableChainKit.Core       │ namespace AvailableChain.Framework.Kit:  │ AvailableChainFramework/Kit/Core.lean    │
+│                              │ block_preceq_trans;                      │                                          │
+│                              │ includedPersist_of_safe (a derived       │                                          │
+│                              │ lemma, not a claim)                      │                                          │
+│ AvailableChainKit.Engine.    │ namespace AvailableChain.Engine: the     │ AvailableChainGridCO/Proofs/Execution    │
+│ Execution                    │ schedule bridges (stateBefore_succ_event,│ (the engine part; the Grid CO forms stay │
+│                              │ readAt_eq_stateBefore, …)                │ in Grid CO Proofs/Execution.lean)        │
+│ AvailableChainKit.Engine.    │ ClockLaws; now bounds; invariants        │ AvailableChainGridCO/Proofs/EngineClock  │
+│ EngineClock                  │                                          │                                          │
+│ AvailableChainKit.Engine.    │ runPrefix and its read lemmas            │ AvailableChainGridCO/Proofs/RunPrefix    │
+│ RunPrefix                    │                                          │                                          │
+│ AvailableChainKit.Engine.    │ prefixEnv; healthyPrefix_* regime        │ AvailableChainGridCO/Proofs/HealthyPrefix│
+│ HealthyPrefix                │ transfer                                 │                                          │
+│ AvailableChainKit.Engine.    │ genesisEnv; healthyInterior_sleepy       │ AvailableChainGridCO/Proofs/             │
+│ HealthyInterior              │                                          │ HealthyInterior                          │
+│ AvailableChainKit.Engine.    │ state_interval_induction;                │ AvailableChainGridCO/Proofs/             │
+│ ProtectionInduction          │ read_field_eq_clock                      │ ProtectionInduction                      │
+│ AvailableChainKit.Engine.    │ clock_field_origin_since                 │ AvailableChainGridCO/Proofs/             │
+│ SourceHistory                │                                          │ SourceHistory                            │
+│ AvailableChainKit.Engine.    │ stateBefore_stable (a state property     │ AvailableChainRegistry/GridCOHooks.lean  │
+│ Stable                       │ that clock and process keep holds for    │ (was AvailableChain.Registry.GridCO)     │
+│                              │ the rest of the run)                     │                                          │
+│ AvailableChainEngineV2.      │ namespace AvailableChain.Framework.      │ AvailableChainFramework/Engine/          │
+│ Sketch                       │ V2Sketch: SpecV2; Isolated (E5);         │ V2Sketch.lean                            │
+│                              │ Restorable (E6); tickV2; restartV2;      │                                          │
+│                              │ toyV2 (a two-field toy spec)             │                                          │
+└──────────────────────────────┴──────────────────────────────────────────┴──────────────────────────────────────────┘
+```
+
+`stateBefore_stable` is the only moved declaration with a new full name:
+its namespace is now `AvailableChain.Engine`. `time_le_of_key_le` and
+`filter_false_of_index_ge` in `Engine/Execution.lean` are no longer
+private, because the Grid CO part of `Execution.lean`, now in another
+file, uses them. Grid CO's private `block_preceq_trans` (`Map.lean`) and
+the Kit's `block_preceq_trans` have different statements; both stay.
 
 ## Simplex FG module (DC-fj)
 

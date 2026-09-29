@@ -1,6 +1,6 @@
 module
 public import AvailableChainSAPC.Proofs.Handling
-public import AvailableChainGridCO.Proofs.EngineClock
+public import AvailableChainKit.Engine.EngineClock
 
 @[expose] public section
 namespace AvailableChain.SAPC

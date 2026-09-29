@@ -1,6 +1,6 @@
 module
 public import AvailableChainGridCO.Proofs.Votes
-public import AvailableChainGridCO.Proofs.ProtectionInduction
+public import AvailableChainKit.Engine.ProtectionInduction
 
 @[expose] public section
 

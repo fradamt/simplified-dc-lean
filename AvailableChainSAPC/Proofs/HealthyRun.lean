@@ -1,5 +1,5 @@
 module
-public import AvailableChainGridCO.Proofs.HealthyPrefix
+public import AvailableChainKit.Engine.HealthyPrefix
 public import AvailableChainSAPC.Proofs.RunClean
 
 @[expose] public section

@@ -1,5 +1,5 @@
 module
-public import AvailableChainGridCO.Proofs.HealthyInterior
+public import AvailableChainKit.Engine.HealthyInterior
 public import AvailableChainSAPC.Proofs.StrongClean
 
 @[expose] public section

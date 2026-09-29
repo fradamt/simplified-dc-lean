@@ -1,7 +1,7 @@
 module
 public import AvailableChainSAPC.Proofs.SlowHistory
 public import AvailableChainSAPC.Proofs.RecoveryTransfer
-public import AvailableChainGridCO.Proofs.SourceHistory
+public import AvailableChainKit.Engine.SourceHistory
 
 @[expose] public section
 namespace AvailableChain.SAPC
