@@ -27,7 +27,10 @@ Opus m1; G13 fold MINOR-2):
 - closure: no module of `AvailableChainFramework`, `AvailableChainRegistry`,
   `AvailableChainSAPC` or `AvailableChainWitnesses` is in the import closure.
   `AvailableChainStatements` is allowed there (the declared transitive
-  dependency through `AvailableChainGridCO.Proofs.Basic`).
+  dependency through `AvailableChainGridCO.Proofs.Basic`), and so is
+  `AvailableChainKit` (Engine): after plan 1b's Kit split (main c79b473), the
+  Grid CO proofs import `AvailableChainKit.Engine.{EngineClock, Execution}`,
+  which hold the engine-generic lemmas (namespace `AvailableChain.Engine`).
 
 Run: `lake env lean --run scripts/CheckFGSAAxioms.lean [--root M …] [--files D]
 [--expect N …]`, with the options in this order. `--root M` imports one more

@@ -197,6 +197,18 @@ Q1 (engine) and Q5 (deliverable) stay open; objects are v1-typed (J1).
 └────────────────────────────────────────────────────┴──────────────────────────────────────┘
 ```
 
+Import closure after the merge with post-1b main (checked read-only on main
+5f65103): FGSA's transitive closure reaches the libraries
+`AvailableChainGridCO`, `AvailableChainKit`, `AvailableChainKitFG`,
+`AvailableChainModel`, `AvailableChainSA`, `AvailableChainSimplexFG` and
+`AvailableChainStatements`. `AvailableChainKit` enters through the Grid CO
+proofs (`AvailableChainKit.Engine.EngineClock` and `.Execution`, after the
+Kit split c79b473); like `AvailableChainStatements`, it is a declared
+transitive dependency. No module of `AvailableChainFramework`,
+`AvailableChainRegistry`, `AvailableChainSAPC`, `AvailableChainWitnesses` or
+`AvailableChainEngineV2` is reached. FGSA imports no Kit module directly, so
+the direct-import allowlist does not change.
+
 ## 5. Inputs for composition task T7
 
 - Duty slot: `headVote` and `propose` need `s = st.slot p` (G6 O-m3).
