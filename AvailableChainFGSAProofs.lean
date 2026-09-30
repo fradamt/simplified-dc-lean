@@ -12,3 +12,4 @@ public import AvailableChainFGSAProofs.Proofs.Foundations.Reconcile
 public import AvailableChainFGSAProofs.Proofs.Assembly.Foundations
 public import AvailableChainFGSAProofs.Proofs.Foundations.Sources
 public import AvailableChainFGSAProofs.Proofs.Foundations.Carrier
+public import AvailableChainFGSAProofs.Proofs.Foundations.Crossing

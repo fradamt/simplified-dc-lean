@@ -37,6 +37,8 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.fgsa_rRec',
     'AvailableChain.FGSA.Run.fgsa_reconcileAt',
     'AvailableChain.FGSA.Run.fgsa_reconcileClaim',
+    'AvailableChain.FGSA.Run.fgsa_finalLock',
+    'AvailableChain.FGSA.Run.fgsa_finalLock_erased',
     'AvailableChain.FGSA.Run.fgsa_carrier_geometry',
     'AvailableChain.FGSA.Run.fgsa_carrierAt',
     'AvailableChain.FGSA.Run.fgsa_carrierClaim',

@@ -1324,6 +1324,8 @@ unused imports, and negative controls. No baseline entries were added.
 │ ean                                             │                                     │
 │ AvailableChainFGSAClaims/Tests/Axioms.lean      │ Claims public-theorem axiom audit   │
 │ AvailableChainFGSAProofs.lean                   │ Proofs library root                 │
+│ AvailableChainFGSAProofs/Proofs/Foundations/Cro │ Strict held-block crossing, FaultX  │
+│ ssing.lean                                      │                                     │
 │ AvailableChainFGSAProofs/Proofs/Foundations/Car │ Run carrier and held row origins    │
 │ rier.lean                                       │                                     │
 │ AvailableChainFGSAProofs/Proofs/Foundations/Exp │ Foundation claim wrappers (L42)     │

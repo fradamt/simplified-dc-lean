@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Foundations.Crossing -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Assembly.Foundations -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Store -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Certificates -- shake: keep (axiom audit commands)
@@ -105,3 +106,5 @@ public import AvailableChainFGSAProofs.Proofs.Shared.Reads -- shake: keep (axiom
 #print axioms AvailableChain.FGSA.Run.fgsa_carrierClaim
 #print axioms AvailableChain.FGSA.Run.held_chain_row_origin
 #print axioms AvailableChain.FGSA.Run.fgsa_carrier_geometry
+#print axioms AvailableChain.FGSA.Run.fgsa_finalLock
+#print axioms AvailableChain.FGSA.Run.fgsa_finalLock_erased
