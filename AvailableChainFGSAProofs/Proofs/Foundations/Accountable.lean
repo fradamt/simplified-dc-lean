@@ -28,6 +28,14 @@ def FinalityRunBlock (X : FGBlock (Fin p.n)) : Prop :=
 def finalityStoreRows (st : State p.n) : Finset (Row (Fin p.n)) :=
   st.fg.TF.biUnion chainRows
 
+/-- DC DecoupledConsensusModel/Protocol/Evidence.lean:67 (store_attestations):
+the evidence pool contains every raw row on every held chain, including ancestor
+rows. No divergence; the direct rowPool is not used for this pool. -/
+theorem fgsa_finalityStoreRows_contains (st : State p.n) (K : FGBlock (Fin p.n))
+    (hK : K ∈ st.fg.TF) : chainRows K ⊆ finalityStoreRows p st := by
+  intro u hu
+  exact Finset.mem_biUnion.mpr ⟨K, hK, hu⟩
+
 /-- Honest carriage is separate from weight-level evidence. -/
 def FinalityCarriage (A : Finset (Row (Fin p.n))) : Prop :=
   ∀ u ∈ A, ∃ (a : RowWire p.n) (r : Nat),
@@ -94,8 +102,10 @@ theorem fgsa_wholeRunAccountable : FGWholeRunAccountable p c E rho where
   reads := fun u _ v _ t t' => store_accountable p _ _
     (storeBundle_readAt E rho t u).cstore (storeBundle_readAt E rho t' v).cstore
 
-/-- DC SlashableBound: no slashable weight between two run certificates.
-This bounds accountable evidence, not the total faulty weight. -/
+/-- DC DecoupledConsensusInternal/Legacy/Assumptions/Weight.lean:30:
+no slashable weight between ALL run blocks, including ancestors of emitted or
+delivered proposals. FinalityRunBlock is definitionally the frozen RunFGBlock;
+it does not require held-chain membership. No scope divergence. -/
 def FGSASlashableBound : Prop :=
   ∀ K W, FinalityRunBlock p c E rho K → FinalityRunBlock p c E rho W →
     ¬ HasSlashableWeightBetween p.E (chainRows K) (chainRows W)
@@ -266,17 +276,21 @@ theorem fgsa_storeSlashableBound_of_faults [Fintype V]
   have ht := hX.lt
   omega
 
-/-- DC's fault-to-slashable-bound bridge keeps honest carriage explicit.
-Linked transports identities; client safety rules out honest E1/E2 pairs. -/
+/-- DC DecoupledConsensusProofs/Protocol/ChainState/AlignedRoundLemmas.lean:284
+(slashableBound_of_belowOneThird). Unit weights turn the strict one-third bound
+into faulty.card ≤ (n - 1) / 3 because p.nPos. Carriage covers ALL run blocks.
+Motivated divergence: Linked transports FG-SA rotating seat identities to holders;
+DC rows use validator identities directly. hC is the expanded ClientSafeAll Prop,
+which avoids a Claims import under X5. -/
 theorem fgsa_slashableBound_of_faults [Fintype V]
     (hL : V2.Linked (fgsaFamilies p c).linked rho)
-    (hX : Gen.Pure.FaultX p.n (Gen.V2.faulty rho).card)
+    (hbot : (Gen.V2.faulty rho).card ≤ (p.n - 1) / 3)
     (hC : ∀ z ∈ rho.honest, EmittedRowsNoSlash p c E rho z)
     (hcar : ∀ K, FinalityRunBlock p c E rho K → FinalityCarriage p c E rho (chainRows K)) :
     FGSASlashableBound p c E rho := by
   intro K W hK hW hev
   have hc := slashable_pool_count p c E rho hL hC _ _ (hcar K hK) (hcar W hW) hev
-  have ht := hX.lt
+  have ht := (Gen.Pure.count_rec p.nPos hbot).lt
   omega
 
 /-- Validator attribution for two honest store observations. -/

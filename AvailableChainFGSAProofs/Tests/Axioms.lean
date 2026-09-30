@@ -208,3 +208,6 @@ public import AvailableChainFGSAProofs.Proofs.Clean.Chain -- shake: keep (axiom 
 #print axioms AvailableChain.FGSA.Run.fgsa_labelBound
 
 #print axioms AvailableChain.FGSA.Run.fgsa_timingContract
+
+#print axioms AvailableChain.FGSA.Run.fgsa_finalityStoreRows_contains
+#print axioms AvailableChain.FGSA.Run.fgsa_finalizedMonotone
