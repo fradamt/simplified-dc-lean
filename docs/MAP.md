@@ -1292,11 +1292,11 @@ unused imports, and negative controls. No baseline entries were added.
 │ AvailableChainFGSAClaims/Tests/Recurrence.lean  │ Astra B1 positive controls          │
 │ AvailableChainFGSAProofs/Proofs/Shared/Recurren │ FG-SA implications and bound proofs │
 │ ce.lean                                         │                                     │
-│ AvailableChainFGSAClaims/Statements/Reads.lean  │ Generic v2 reads and post-gate cut  │
+│ AvailableChainFGSAClaims/Statements/Reads.lean  │ V2 cut and FG-SA store/gate reads   │
 │ AvailableChainFGSAClaims/Tests/Reads.lean       │ Three-read regression on v2         │
 │ AvailableChainFGSAClaims/Tests/Axioms.lean      │ Claims public-theorem axiom audit   │
 │ AvailableChainFGSAProofs.lean                   │ Proofs library root                 │
-│ AvailableChainFGSAProofs/Proofs/Shared/Reads.lean │ Post-gate cut and index proofs      │
+│ AvailableChainFGSAProofs/Proofs/Shared/Reads.lean │ Cut, gate values and index proofs   │
 │ AvailableChainFGSAProofs/Tests/Axioms.lean      │ Proofs public-theorem axiom audit   │
 │ AvailableChainFGSAInhabit.lean                  │ Inhabit library root                │
 │ AvailableChainFGSAInhabit/Tests/Axioms.lean     │ Inhabit public-theorem axiom audit  │

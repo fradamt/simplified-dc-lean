@@ -1,6 +1,8 @@
 module
 public import AvailableChainFGSAClaims.Statements.Reads
-import AvailableChainKitV2.Execution
+public import AvailableChainFGSARun.Statements.Interface
+import AvailableChainFGSARun.Proofs.Schedule
+import AvailableChainGeneric.Proofs.V2.Reads
 
 public section
 
@@ -113,6 +115,140 @@ theorem afterTicksIdx_mono (rho : V2.Run V P) {t u : Time} (htu : t ≤ u) :
   have htu' : toLex (t, (1 : Nat)) ≤ toLex (u, 1) :=
     Prod.Lex.toLex_le_toLex.mpr (htu.lt_or_eq.imp id (fun h => ⟨h, le_rfl⟩))
   exact decide_eq_true ((of_decide_eq_true he).trans htu')
+
+end AvailableChain.FGSA.Run
+
+
+namespace AvailableChain.FGSA.Run
+
+open AvailableChain.SimplexFG
+
+variable (p : Params) {In : Type} (c : AppCodec In)
+    {V : Type} [DecidableEq V] (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+
+private theorem fgsa_read_tickIdx (hs : V2.ScheduleWellFormed E rho)
+    {i : Nat} {x : V} {t : Time} (hi : rho.events[i]? = some (.tick x t)) :
+    V2.Run.tickIdx? rho x t = some i := by
+  have hil := (List.getElem?_eq_some_iff.mp hi).1
+  obtain ⟨j, hj⟩ : ∃ j, V2.Run.tickIdx? rho x t = some j := by
+    rw [V2.Run.tickIdx?, ← Option.isSome_iff_exists, List.findIdx?_isSome, List.any_eq_true]
+    refine ⟨rho.events[i], List.getElem_mem hil, ?_⟩
+    rw [(List.getElem?_eq_some_iff.mp hi).2]
+    simp
+  have hji := fgsa_tick_unique E rho hs (V2.Run.tickIdx?_spec hj) hi
+  exact hji ▸ hj
+
+/-- The time read equals the new-label value saved by the scheduled gate.
+T7.6 uses `gateStep_fresh` on `actView (clockPre ...)`; `clockPre_fg` fixes F. -/
+theorem gateResult_eq_saved (hs : V2.ScheduleWellFormed E rho)
+    {i : Nat} {x : V} {s : Slot} (hi : IsGateTick p c rho i x s) :
+    gateResult p c E rho x s =
+      GridCO.savedGenuine
+        (((fgsa p c).clock (V2.Run.stateBefore E rho i x)
+          (SA.gateTime p.toParams s)).st.base) s := by
+  have ht := fgsa_read_tickIdx p c E rho hs hi
+  rw [gateResult_def, gateIn_def, preTick_def, ht]
+  dsimp only [Option.map_some]
+  rw [clockPre_fg]
+  exact (fgsa_gate_saved_result E rho hs hi).symm
+
+private theorem fgsa_read_gate_label (s : Slot) :
+    ((SA.gateTime p.toParams s - 6 * p.Δ) / (4 * p.Δ)).toNat = s := by
+  have ht : SA.gateTime p.toParams s - 6 * p.Δ = 4 * p.Δ * (s : Int) := by
+    change 4 * p.Δ * (s : Int) + 6 * p.Δ - 6 * p.Δ = _
+    ring
+  have hDelta : (0 : Int) < p.Δ := p.deltaPos
+  have hn : (4 * p.Δ : Int) ≠ 0 := by omega
+  rw [ht, Int.mul_ediv_cancel_left _ hn, Int.toNat_natCast]
+
+/-- The clock test holds exactly at gate times. -/
+theorem isGateTime_iff (p : Params) (t : Time) :
+    isGateTime p t = true ↔ ∃ s : Slot, SA.gateTime p.toParams s = t := by
+  constructor
+  · intro h
+    have hh : 0 ≤ t - 6 * p.Δ ∧
+        t = SA.gateTime p.toParams ((t - 6 * p.Δ) / (4 * p.Δ)).toNat := by
+      simpa only [isGateTime_def, Bool.and_eq_true, decide_eq_true_eq, beq_iff_eq] using h
+    exact ⟨_, hh.2.symm⟩
+  · rintro ⟨s, rfl⟩
+    have hn : 0 ≤ SA.gateTime p.toParams s - 6 * p.Δ := by
+      change 0 ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ - 6 * p.Δ
+      have := p.deltaPos
+      nlinarith [Int.natCast_nonneg s]
+    simp only [isGateTime_def, fgsa_read_gate_label, hn, decide_true,
+      beq_self_eq_true, Bool.and_self]
+
+/-- Index and time forms of the raw gate result agree. -/
+theorem gateResultAt_eq_gateResult (hs : V2.ScheduleWellFormed E rho)
+    {j : Nat} {x : V} {s : Slot} (hj : IsGateTick p c rho j x s) :
+    gateResultAt p c E rho j = gateResult p c E rho x s := by
+  have ht := fgsa_read_tickIdx p c E rho hs hj
+  have hg := (isGateTime_iff p (SA.gateTime p.toParams s)).mpr ⟨s, rfl⟩
+  -- Reduce the index match without exporting its equation lemmas.
+  change (match rho.events[j]? with
+    | some (.tick y t) => if isGateTime p t then
+        some (SA.confirmationFrom p.toParams
+          (eraseFG (FGSA.clockPre p (V2.Run.stateBefore E rho j y).st t).fg.F)
+          (FGSA.actView (FGSA.clockPre p (V2.Run.stateBefore E rho j y).st t))
+          ((t - 6 * p.Δ) / (4 * p.Δ)).toNat)
+      else none
+    | _ => none) = _
+  rw [show rho.events[j]? = some (.tick x (SA.gateTime p.toParams s)) from hj]
+  dsimp only
+  rw [hg, ite_eq_left rfl, fgsa_read_gate_label, gateResult_def, gateIn_def, preTick_def, ht]
+  rfl
+
+/-- The next-vote time read is the HEAD computation at that tick's index. -/
+theorem vHead_eq_headAtIdx (hs : V2.ScheduleWellFormed E rho)
+    {k : Nat} {y : V} {s : Slot}
+    (hk : rho.events[k]? = some (.tick y (SA.voteTime p.toParams (s + 1)))) :
+    vHead p c E rho y s = some (headAtIdx p c E rho k (s + 1)) := by
+  have ht := fgsa_read_tickIdx p c E rho hs hk
+  rw [vHead_def, postClock_def, preTick_def, ht]
+  change _ = some (match rho.events[k]? with
+    | some (.tick x t) => FGSA.headVote p ((fgsa p c).clock
+        (V2.Run.stateBefore E rho k x) t).st (s + 1)
+    | _ => .genesis)
+  rw [hk]
+  rfl
+
+/-- The action source uses the fast-write row of round `r`, with no fallback. -/
+theorem actionSourceFG_eq_round (hs : V2.ScheduleWellFormed E rho)
+    {i : Nat} {x : V} {r : Nat}
+    (hi : rho.events[i]? = some (.tick x (p.actionTime r))) :
+    let st := ((fgsa p c).clock (V2.Run.stateBefore E rho i x) (p.actionTime r)).st
+    actionSourceFG p c E rho x r = some
+      (deepest ((fullTree p st).filter (fun B =>
+        decide (eraseFG B ∈ (fastWriteAt st (r * p.R)).getD []) &&
+          match leaseOf st (eraseFG B) with
+          | some d => decide (st.base.now < d)
+          | none => false))) := by
+  intro st
+  have ht := fgsa_read_tickIdx p c E rho hs hi
+  rw [actionSourceFG_def, postClock_def, preTick_def, ht]
+  change some (deepest ((fullTree p st).filter (fun B =>
+    decide (eraseFG B ∈ (fastWriteAt st (p.round (st.slot p) * p.R)).getD []) &&
+      match leaseOf st (eraseFG B) with
+      | some d => decide (st.base.now < d)
+      | none => false))) = _
+  rw [(fgsa_action_slot_round (c := c) (V2.Run.stateBefore E rho i x) r).2]
+
+/-- An index witness implies finalization in the strict-before state. -/
+theorem acceptsFinalBefore_of_idx (hnr : V2.NoRestart rho)
+    (hs : V2.ScheduleWellFormed E rho) {x : V} {X : FGBlock (Fin p.n)} {d : Time}
+    (h : ∃ i ≤ rho.events.length,
+      (∀ k < i, ∃ e, rho.events[k]? = some e ∧ e.time < d) ∧
+      FGBlock.Preceq X (storeAt p c E rho i x).fg.F) :
+    AcceptsFinalBefore p c E rho x X d :=
+  (Gen.V2.holdsBefore_iff_exists_idx hnr hs (fgsa_monoAlong_preceq_F p c X)).mpr h
+
+/-- The stable read at the post-gate cut is the post-clock stable read. -/
+theorem stable_afterTicks (hs : V2.ScheduleWellFormed E rho) (hnr : V2.NoRestart rho)
+    {i : Nat} {v : V} {t : Time} (hi : rho.events[i]? = some (.tick v t)) :
+    (fgsaInterface p c).stable (afterTicks E rho t v) =
+      (fgsaInterface p c).stable ((fgsa p c).clock (V2.Run.stateBeforeTime E rho t v) t) := by
+  rw [afterTicks_eq_tick_preTick E rho hs hnr hi]
+  exact (fgsaOutputs p c).stable_tick E rho _ v t
 
 end AvailableChain.FGSA.Run
 

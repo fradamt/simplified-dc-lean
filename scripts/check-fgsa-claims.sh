@@ -26,6 +26,13 @@ LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainF
 CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = (
+    'AvailableChain.FGSA.Run.preTick_def',
+    'AvailableChain.FGSA.Run.postClock_def',
+    'AvailableChain.FGSA.Run.gateIn_def',
+    'AvailableChain.FGSA.Run.gateResult_def',
+    'AvailableChain.FGSA.Run.isGateTime_def',
+    'AvailableChain.FGSA.Run.vHead_def',
+    'AvailableChain.FGSA.Run.actionSourceFG_def',
     'AvailableChain.FGSA.Run.fgsa_strongW_recF',
     'AvailableChain.FGSA.Run.fgsa_lit_recF',
     'AvailableChain.FGSA.Run.fgsa_recPat_restricted',
@@ -76,6 +83,34 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.afterTicks_eq_tick_preTick',
     'AvailableChain.FGSA.Run.preIdx_le_afterTicksIdx',
     'AvailableChain.FGSA.Run.afterTicksIdx_mono',
+    'AvailableChain.FGSA.Run.storeAt',
+    'AvailableChain.FGSA.Run.S_at',
+    'AvailableChain.FGSA.Run.F_at',
+    'AvailableChain.FGSA.Run.J_at',
+    'AvailableChain.FGSA.Run.gateIn',
+    'AvailableChain.FGSA.Run.gateResult',
+    'AvailableChain.FGSA.Run.isGateTime',
+    'AvailableChain.FGSA.Run.IsGateTick',
+    'AvailableChain.FGSA.Run.gateResultAt',
+    'AvailableChain.FGSA.Run.gatePassedAt',
+    'AvailableChain.FGSA.Run.fastAt',
+    'AvailableChain.FGSA.Run.headAtIdx',
+    'AvailableChain.FGSA.Run.vHead',
+    'AvailableChain.FGSA.Run.actionSourceFG',
+    'AvailableChain.FGSA.Run.actionSource',
+    'AvailableChain.FGSA.Run.labelBoundAt',
+    'AvailableChain.FGSA.Run.DeliveredAt',
+    'AvailableChain.FGSA.Run.HandlesRowAt',
+    'AvailableChain.FGSA.Run.AcceptsFinalBefore',
+    'AvailableChain.FGSA.Run.cleanResults',
+    'AvailableChain.FGSA.Run.BelowLabel',
+    'AvailableChain.FGSA.Run.gateResult_eq_saved',
+    'AvailableChain.FGSA.Run.isGateTime_iff',
+    'AvailableChain.FGSA.Run.gateResultAt_eq_gateResult',
+    'AvailableChain.FGSA.Run.vHead_eq_headAtIdx',
+    'AvailableChain.FGSA.Run.actionSourceFG_eq_round',
+    'AvailableChain.FGSA.Run.acceptsFinalBefore_of_idx',
+    'AvailableChain.FGSA.Run.stable_afterTicks',
 )
 ORDER = ('Recurrence', 'Bounds', 'Reads', 'Counts', 'Regimes', 'Windows',
          'Packages.Safety', 'Packages.Outage', 'Channels', 'Witness',
@@ -179,8 +214,17 @@ def source_findings(m, raw):
     clean = C.strip(raw)
     if re.search(r'\b(native_decide|sorry|admit|axiom)\b|\+native|native\s*:=\s*true|\bofReduce(?:Bool|Nat)\b', clean):
         findings.append(f'FORBIDDEN EVALUATION/AXIOM: {m}')
-    if L.under(m, CLAIMS) and re.search(r'\b(theorem|lemma)\b', clean):
-        findings.append(f'F-28: {m}')
+    if L.under(m, CLAIMS):
+        lf = C.LeanFile(owner, str(item.path), m)
+        lf._raw = raw
+        decls = C.declarations(lf)
+        defs = {d.full for d in decls if d.kind == 'def'}
+        for d in decls:
+            if d.kind in ('theorem', 'lemma') and not (
+                m.startswith(CLAIMS + '.Statements.') and
+                d.short.endswith('_def') and d.full[:-4] in defs
+            ):
+                findings.append(f'F-28: {m} {d.full}')
     if L.under(m, PROOFS) and not L.is_test(m) and m != PROOFS:
         if re.search(r'@\[[^]]*\bexpose\b', clean):
             findings.append(f'PROOF EXPOSE: {m}')
@@ -205,6 +249,8 @@ run('layers', ['python3', 'scripts/check-layers.py'])
 
 # Independent source controls use the same policy function as the real scan.
 controls = (
+    ('statements-non-def-theorem', CLAIMS + '.Statements.Reads',
+     'def fgsaControl : Nat := 0\ntheorem fgsaControl_eq : fgsaControl = 0 := rfl\n', 'F-28'),
     ('plain-v2-open', CLAIMS + '.Statements.Reads', 'open AvailableChain.V2\n', 'V2 NAME CLASH'),
     ('grid-proof-import', PROOFS + '.Proofs.Shared.Reads', 'public import AvailableChainGridCO.Proofs.Map\n', 'IMPORT NOT ALLOWED'),
     ('rightward-statement', CLAIMS + '.Statements.Reads', 'public import ' + CLAIMS + '.Statements.Counts\n', 'MODULE ORDER'),
@@ -220,6 +266,13 @@ for label, m, body, expected in controls:
     if not any(expected in f for f in hits):
         raise SystemExit(f'STOP: negative control passed: {label}: {hits}')
     print(f'{label}: rc 1, rejected as expected ({expected})', flush=True)
+
+# The seven home equation theorems must pass the same source policy.
+reads_path = Path(CLAIMS + '/Statements/Reads.lean')
+positive_hits = source_findings(module(reads_path), reads_path.read_text())
+if positive_hits:
+    raise SystemExit(f'STOP: Statements _def positive case failed: {positive_hits}')
+print('statements-home-def-theorems: rc 0 (seven matching _def theorems)', flush=True)
 
 for lib in LIBS:
     run('build-' + lib, ['lake', 'build', '--wfail', lib])
