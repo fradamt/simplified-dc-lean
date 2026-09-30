@@ -3,7 +3,8 @@ import AvailableChainEngineV2
 import AvailableChainKitV2
 open Lean
 
-/-! API manifests: v2 (plan 2a, Task 7) and Gen (A0 step 2, I23, D15).
+/-! API manifests: v2 (plan 2a, Task 7), Gen (A0 step 2, I23, D15),
+and FGSA (G-F0a, lead ruling DC 2026-09-30).
 The default scope is `v2`. `docs/V2-API.md` lists the frozen v2
 API: every public declaration of the engine v2 modules under
 `AvailableChainEngineV2.Engine`, `.Conditions` and `.Laws` (locked through the
@@ -17,6 +18,29 @@ With `--scope gen`, `docs/GEN-API.md` lists every public declaration of
 rule. D15: baseline at the A0 step-2 close; before G-F0a a Gen Statements
 edit re-writes the manifest in the same commit; from G-F0a it is append-only.
 
+With `--scope fgsa`, `docs/FGSA-API.md` lists every public declaration under
+`AvailableChainFGSA.Statements`, `AvailableChainFGSARun.Statements`,
+`AvailableChainFGSAClaims.Statements` and `AvailableChainFGSAClaims.Claims`,
+and in the module `AvailableChainFGSAClaims.FGSAClaims` (the safety claims that
+G-F0a freezes). Import each library root only if its `.lean` file exists. Also
+import each source module under these prefixes.
+Public structure projections are separate `field` entries, including parent
+projections. Public `_def` theorems are entries even if `generated` marks them.
+These exceptions apply only to the FGSA entry scan; the shared hash rules and
+the v2 and Gen scans do not change. Structure widening has no exception:
+later fields must go in new structures.
+
+FGSA has one `##` entry section per library and uses the Gen header style.
+`--write` creates the current manifest from code. Before G-F0a, a missing
+current manifest makes `--check` print SKIP and exit 0. Otherwise D15 checks
+the current entries against code first. If the frozen copy exists, verify
+its SHA-256, then require every frozen entry to keep its kind and hash.
+New entries pass. A changed or removed entry needs an allow line with three
+non-empty tab-separated fields: name, reason, plan revision. Lines that start
+with `#` are comments. An allow name absent from the frozen copy fails.
+`scripts/fgsa-freeze.sh` writes the current doc, copies it to the frozen doc,
+and records the frozen SHA-256 as one line. Do this at the freeze commit.
+
 The manifest has one `### \`<module>\`` heading per module, followed by one
 fenced block. Each non-empty line of the block is `<kind> <name> <hash>`.
 The entry hash (`entryHex`, 16 hex digits) mixes:
@@ -24,7 +48,8 @@ The entry hash (`entryHex`, 16 hex digits) mixes:
   constant in its closure (the `deps` rules of `scripts/CatalogLock.lean`)
   that is generated or private and in a library of the selected scope
   (`AvailableChainEngineV2`, `AvailableChainKitV2` for v2;
-  `AvailableChainGeneric` for Gen) or in the module of the entry: its matchers,
+  `AvailableChainGeneric` for Gen; the three FGSA libraries for FGSA)
+  or in the module of the entry: its matchers,
   equation lemmas, `_proof_` constants and private helpers;
 - the binder names (without macro scopes) and binder infos of the entry's
   type (`binderHash`);
@@ -44,28 +69,34 @@ Modes:
 - `--list`: print the manifest blocks (headings, kinds, names and hashes)
   from the environment, in source order.
 - `--anchor`: print a `let` chain over the engine declarations that no anchor
-  covers yet, as the body of a new anchor def (v2 only; usage error for Gen).
+  covers yet, as the body of a new anchor def (v2 only).
+- `--write`: write the FGSA header and entries to the manifest (FGSA only).
 - `--check`: for v2, exit 1 if the anchor `AvailableChain.Framework.V2.anchor` is
   missing or is not in `AvailableChainFramework.V2.Anchor`; if a manifest name
   does not exist or is not in the module of its heading; if a kind word
   differs; if a hash is missing or differs; if a v2 engine entry is not
   anchored; if a public declaration of a scope module, or of a module that
   has a heading, is not in the manifest; or if a scope module has no heading.
-  Gen uses the same checks without the anchor checks.
+  Gen and FGSA use the same checks without the anchor checks. FGSA also
+  rejects extra generated entries and checks the frozen copy as above.
 
 `generated`, `deps`, the closure traversal, `kindTag` and `ownHash` are
 copies of `scripts/CatalogLock.lean` (`ownHash` with the universe renaming);
 a change to one needs the same change in the other.
 
-Run: `lake env lean --run scripts/V2Manifest.lean [--scope (v2 | gen)]
-(--list | --anchor | --check) [--manifest <path>]`. Without `--manifest`,
-the manifest is `docs/V2-API.md` for v2 and `docs/GEN-API.md` for Gen.
+Run: `lake env lean --run scripts/V2Manifest.lean [--scope (v2 | gen | fgsa)]
+(--list | --anchor | --check | --write) [--manifest <path>]
+[--frozen <path>] [--allow <path>] [--frozen-sha <path>]`.
+The last three options require FGSA. Defaults: `docs/V2-API.md` for v2,
+`docs/GEN-API.md` for Gen, `docs/FGSA-API.md` for FGSA;
+`docs/FGSA-API-frozen.md`, `scripts/fgsa-manifest-allow.txt`, and
+`scripts/fgsa-manifest-frozen.sha256` for the FGSA frozen check.
 Exit codes: 0 clean; 1 a check failed; 2 a usage
 error, an unreadable manifest, a missing declaration in a closure, or no
 declaration ranges. -/
 
 inductive Scope where
-  | v2 | gen
+  | v2 | gen | fgsa
   deriving BEq
 
 def anchorName : Name := `AvailableChain.Framework.V2.anchor
@@ -84,6 +115,18 @@ def engineScope : List Name :=
 def kitLibrary : Name := `AvailableChainKitV2
 def kitTests : Name := `AvailableChainKitV2.Tests
 
+def fgsaLibraries : Array Name :=
+  #[`AvailableChainFGSA, `AvailableChainFGSARun, `AvailableChainFGSAClaims]
+
+/-- Module prefixes of the fgsa scope: the three Statements trees and the claim modules
+`Claims/*` (G-F0a freezes the safety claims, which live there). -/
+def fgsaPrefixes : Array Name :=
+  #[`AvailableChainFGSA.Statements, `AvailableChainFGSARun.Statements,
+    `AvailableChainFGSAClaims.Statements, `AvailableChainFGSAClaims.Claims]
+
+/-- Exact modules of the fgsa scope: the claim facade that assembles `FGSASafetyClaims`. -/
+def fgsaModules : Array Name := #[`AvailableChainFGSAClaims.FGSAClaims]
+
 def isEngineModule (m : Name) : Bool := engineScope.any (·.isPrefixOf m)
 
 def isKitModule (m : Name) : Bool :=
@@ -94,6 +137,7 @@ def inScope (scope : Scope) (m : Name) : Bool :=
   | .v2 => isEngineModule m || isKitModule m
   | .gen => (`AvailableChainGeneric.Statements).isPrefixOf m &&
       m != `AvailableChainGeneric.Statements
+  | .fgsa => fgsaPrefixes.any (·.isPrefixOf m) || fgsaModules.contains m
 
 /-- A module of the v2 libraries (tests included). -/
 def isV2Module (m : Name) : Bool :=
@@ -103,6 +147,7 @@ def isScopeLibraryModule (scope : Scope) (m : Name) : Bool :=
   match scope with
   | .v2 => isV2Module m
   | .gen => (`AvailableChainGeneric).isPrefixOf m
+  | .fgsa => fgsaLibraries.any (·.isPrefixOf m)
 
 def moduleOf? (env : Environment) (n : Name) : Option Name :=
   (env.getModuleIdxFor? n).map (env.header.moduleNames[·.toNat]!)
@@ -210,17 +255,33 @@ def kindOf (env : Environment) : ConstantInfo → String
   | .inductInfo d => if isStructure env d.name then "structure" else "inductive"
   | .ctorInfo _ => "ctor" | .recInfo _ => "rec"
 
+/-- True projections and auxiliary parent projections, including Prop fields. -/
+def fgsaField (env : Environment) (n : Name) : Bool :=
+  env.isProjectionFn n || (env.getAuxParentProjectionInfo? n).isSome
+
+/-- The FGSA entry exceptions do not change `generated` or `entryHex`. -/
+def fgsaExplicit (env : Environment) (n : Name) (ci : ConstantInfo) : Bool :=
+  !n.isInternal && !isPrivateName n &&
+    (fgsaField env n || (ci matches .thmInfo _) && (toString n).endsWith "_def")
+
+def scopeKind (scope : Scope) (env : Environment) (ci : ConstantInfo) : String :=
+  if scope == .fgsa && fgsaField env ci.name then "field" else kindOf env ci
+
 /-- The public declarations of the scope modules, per module, in source order
 (line, column, then name). -/
 def scan (scope : Scope) : CoreM (Std.HashMap Name (Array (Name × String))) := do
   let env ← getEnv
   let mut found : Std.HashMap Name (Array (Position × Name × String)) := {}
+  if scope == .fgsa then
+    for m in env.header.moduleNames do
+      if inScope scope m then found := found.insert m #[]
   for (n, ci) in env.constants.toList do
     let some m := moduleOf? env n | continue
     unless inScope scope m do continue
-    if ← generated n then continue
+    if ← generated n then
+      unless scope == .fgsa && fgsaExplicit env n ci do continue
     let pos := (← findDeclarationRangesCore? n).map (·.range.pos) |>.getD ⟨0, 0⟩
-    found := found.insert m ((found.getD m #[]).push (pos, n, kindOf env ci))
+    found := found.insert m ((found.getD m #[]).push (pos, n, scopeKind scope env ci))
   let lt (a b : Position × Name × String) : Bool :=
     a.1.line < b.1.line || (a.1.line == b.1.line &&
       (a.1.column < b.1.column || (a.1.column == b.1.column && Name.lt a.2.1 b.2.1)))
@@ -288,11 +349,137 @@ def runCore (env : Environment) (x : CoreM α) : IO α :=
 def tryCore (env : Environment) (x : CoreM α) : IO (Except String α) :=
   try return .ok (← runCore env x) catch e => return .error (toString e)
 
+/-- Load existing roots and all source modules of the scope, including facade orphans. -/
+def fgsaImports : IO (Array Import) := do
+  let mut roots : Std.HashSet Name := {}
+  let path (m : Name) : System.FilePath :=
+    (m.components.foldl (fun d c => d / c.toString) (System.FilePath.mk ".")).addExtension "lean"
+  for lib in fgsaLibraries do
+    if ← (path lib).pathExists then roots := roots.insert lib
+  for m in fgsaModules do
+    if ← (path m).pathExists then roots := roots.insert m
+  for pre in fgsaPrefixes do
+    if ← (path pre).pathExists then roots := roots.insert pre
+    let dir := pre.components.foldl (fun d c => d / c.toString) (System.FilePath.mk ".")
+    unless ← dir.isDir do continue
+    for f in ← dir.walkDir do
+      unless f.extension == some "lean" do continue
+      let parts := (f.withExtension "").components.filter (· != ".")
+      roots := roots.insert (parts.foldl Name.str .anonymous)
+  return (roots.toArray.qsort Name.lt).map fun m => { module := m }
+
+/-- A complete FGSA doc; each hash still belongs to one declaration. -/
+def fgsaManifest (env : Environment)
+    (decls : Std.HashMap Name (Array (Name × String))) : IO String := do
+  let mut out := "# FG-SA API manifest\n\n\
+    _Baseline for G-F0a (D15, lead ruling DC 2026-09-30)._\n\n\
+    This file lists every public declaration under the Statements prefixes of\n\
+    `AvailableChainFGSA`, `AvailableChainFGSARun` and `AvailableChainFGSAClaims`,\n\
+    by fully qualified name and grouped by library and module. FGSA has no anchor rule.\n\n\
+    ## Baseline rule\n\n\
+    Before G-F0a, a missing doc makes the check print SKIP and exit 0. F0 writers\n\
+    do not update this doc. At G-F0a, run `bash scripts/fgsa-freeze.sh` to write\n\
+    this doc, copy it to `docs/FGSA-API-frozen.md`, and record the frozen SHA-256\n\
+    in `scripts/fgsa-manifest-frozen.sha256`. From G-F0a the API is append-only.\n\
+    Every frozen entry must keep its kind and hash; new entries pass. A changed\n\
+    or removed entry needs an allow line in `scripts/fgsa-manifest-allow.txt`:\n\
+    `<name>\\t<reason>\\t<plan revision>`, with actual tabs and no empty field.\n\
+    Stale allow lines fail. Structure widening has no exception: put later fields\n\
+    in new structures.\n\n\
+    ## How to check\n\n\
+    `scripts/V2Manifest.lean` generates and checks this list.\n\n\
+    - `lake env lean --run scripts/V2Manifest.lean --scope fgsa --list` prints\n\
+      the module blocks from the environment, in source order, with hashes.\n\
+    - `lake env lean --run scripts/V2Manifest.lean --scope fgsa --write` writes this doc.\n\
+    - `lake env lean --run scripts/V2Manifest.lean --scope fgsa --check` checks\n\
+      the names, modules, kinds, hashes and completeness (D15), then the frozen\n\
+      SHA-256 and append-only rule. A failed check exits 1.\n\
+    - `--manifest <path>`, `--frozen <path>`, `--allow <path>` and\n\
+      `--frozen-sha <path>` override the paths. `--anchor` requires v2.\n\n\
+    Each entry hash uses the shared hash rules in `scripts/V2Manifest.lean`:\n\
+    types and definition values, generated or private helpers in the closure,\n\
+    type binder names and infos, reducibility, and instance status. Theorem\n\
+    proofs do not affect the hash. Public `_def` theorems are entries. Each public\n\
+    structure projection is a separate `field` entry beside the structure entry.\n\n"
+  let mods := sortedModules decls
+  for lib in fgsaLibraries do
+    let ms := mods.filter (lib.isPrefixOf ·)
+    if ms.isEmpty then continue
+    out := out ++ s!"## `{lib}`\n\n"
+    for m in ms do
+      out := out ++ s!"### `{m}`\n\n```text\n"
+      for (n, k) in decls.getD m #[] do
+        let h ← runCore env (entryHex .fgsa n)
+        out := out ++ s!"{k} {n} {h}\n"
+      out := out ++ "```\n\n"
+  return out
+
+/-- Full-line comments are allowed. Each data line has three non-empty fields. -/
+def parseAllow (text : String) : Except String (Std.HashSet Name) := do
+  let mut out : Std.HashSet Name := {}
+  for (line, i) in (text.splitOn "\n").zipIdx do
+    let l := line.trimAscii.toString
+    if l.isEmpty || l.startsWith "#" then continue
+    let fields := (line.splitOn "\t").map (·.trimAscii.toString)
+    unless fields.length == 3 do throw s!"INVALID ALLOW line {i + 1}: expected three tab-separated fields"
+    if fields.any String.isEmpty then throw s!"INVALID ALLOW line {i + 1}: empty field"
+    let n := fields[0]!.toName
+    if out.contains n then throw s!"DUPLICATE ALLOW {n}"
+    out := out.insert n
+  return out
+
+/-- Hash the exact frozen file bytes on macOS and Linux. -/
+def sha256 (path : System.FilePath) : IO String := do
+  let p ← IO.Process.output { cmd := "python3", args := #["-c",
+    "import hashlib, pathlib, sys; print(hashlib.sha256(pathlib.Path(sys.argv[1]).read_bytes()).hexdigest())",
+    path.toString] }
+  unless p.exitCode == 0 do throw <| IO.userError s!"cannot hash {path}: {p.stderr}"
+  return p.stdout.trimAscii.toString
+
+/-- D15 must pass before this check. Compare entries by name, kind and hash. -/
+def checkFrozen (current : Array (Name × Array Line))
+    (frozen allow frozenSha : System.FilePath) : IO (Array String) := do
+  unless ← frozen.pathExists do return #[]
+  let expected ← IO.FS.readFile frozenSha
+  let actual ← sha256 frozen
+  unless expected == actual || expected == actual ++ "\n" do
+    return #[s!"FROZEN SHA256 MISMATCH {frozen}: expected {expected.trimAscii}, got {actual}"]
+  let old ← match parseManifest (← IO.FS.readFile frozen) with
+    | .ok x => pure x
+    | .error e => return #[s!"INVALID FROZEN MANIFEST: {e}"]
+  let allowed ← if ← allow.pathExists then
+      match parseAllow (← IO.FS.readFile allow) with
+      | .ok x => pure x
+      | .error e => return #[e]
+    else pure ({} : Std.HashSet Name)
+  let mut now : Std.HashMap Name Line := {}
+  for (_, ls) in current do
+    for l in ls do now := now.insert l.name l
+  let mut names : Std.HashSet Name := {}
+  let mut fails := #[]
+  for (_, ls) in old do
+    for l in ls do
+      if names.contains l.name then fails := fails.push s!"FROZEN DUPLICATE ENTRY {l.name}"
+      names := names.insert l.name
+      if l.hash?.isNone then fails := fails.push s!"FROZEN NO HASH {l.name}"
+      if allowed.contains l.name then continue
+      match now[l.name]? with
+      | none => fails := fails.push s!"FROZEN REMOVED {l.name}"
+      | some n =>
+        if n.kind != l.kind || n.hash? != l.hash? then
+          fails := fails.push s!"FROZEN CHANGED {l.name}: {l.kind} {l.hash?.getD ""} -> {n.kind} {n.hash?.getD ""}"
+  for n in allowed.toArray.qsort Name.lt do
+    unless names.contains n do fails := fails.push s!"STALE ALLOW {n}: no frozen entry"
+  return fails
+
 structure Opts where
   mode : String := ""
   scope : Scope := .v2
   scopeGiven : Bool := false
   manifest? : Option System.FilePath := none
+  frozen? : Option System.FilePath := none
+  allow? : Option System.FilePath := none
+  frozenSha? : Option System.FilePath := none
 
 def parseArgs : List String → Opts → Option Opts
   | [], o => if o.mode.isEmpty then none else some o
@@ -301,37 +488,67 @@ def parseArgs : List String → Opts → Option Opts
       match s with
       | "v2" => parseArgs r { o with scope := .v2, scopeGiven := true }
       | "gen" => parseArgs r { o with scope := .gen, scopeGiven := true }
+      | "fgsa" => parseArgs r { o with scope := .fgsa, scopeGiven := true }
       | _ => none
   | "--manifest" :: p :: r, o =>
       if o.manifest?.isSome then none else parseArgs r { o with manifest? := some p }
+  | "--frozen" :: p :: r, o =>
+      if o.frozen?.isSome then none else parseArgs r { o with frozen? := some p }
+  | "--allow" :: p :: r, o =>
+      if o.allow?.isSome then none else parseArgs r { o with allow? := some p }
+  | "--frozen-sha" :: p :: r, o =>
+      if o.frozenSha?.isSome then none else parseArgs r { o with frozenSha? := some p }
   | m :: r, o =>
-      if o.mode.isEmpty && ["--list", "--anchor", "--check"].contains m then
+      if o.mode.isEmpty && ["--list", "--anchor", "--check", "--write"].contains m then
         parseArgs r { o with mode := m }
       else none
 
 def main (args : List String) : IO UInt32 := do
   let some o := parseArgs args {} | do
-    IO.eprintln "usage: lake env lean --run scripts/V2Manifest.lean [--scope (v2 | gen)] (--list | --anchor | --check) [--manifest <path>]"
+    IO.eprintln "usage: lake env lean --run scripts/V2Manifest.lean [--scope (v2 | gen | fgsa)] (--list | --anchor | --check | --write) [--manifest <path>] [--frozen <path>] [--allow <path>] [--frozen-sha <path>]"
     return 2
-  if o.scope == .gen && o.mode == "--anchor" then
+  if o.scope != .v2 && o.mode == "--anchor" then
     IO.eprintln "usage error: --anchor requires --scope v2"
+    return 2
+  if o.scope != .fgsa && (o.mode == "--write" || o.frozen?.isSome ||
+      o.allow?.isSome || o.frozenSha?.isSome) then
+    IO.eprintln "usage error: --write, --frozen, --allow and --frozen-sha require --scope fgsa"
     return 2
   let mode := o.mode
   let manifest := o.manifest?.getD (match o.scope with
-    | .v2 => "docs/V2-API.md" | .gen => "docs/GEN-API.md")
+    | .v2 => "docs/V2-API.md" | .gen => "docs/GEN-API.md" | .fgsa => "docs/FGSA-API.md")
+  if o.scope == .fgsa && mode == "--check" && !(← manifest.pathExists) then
+    IO.println s!"SKIP: {manifest} does not exist (before G-F0a)"
+    return 0
   initSearchPath (← findSysroot)
-  let imports := match o.scope with
-    | .v2 => #[{ module := `AvailableChainFramework },
+  let imports ← match o.scope with
+    | .v2 => pure #[{ module := `AvailableChainFramework },
         { module := `AvailableChainEngineV2 }, { module := `AvailableChainKitV2 }]
-    | .gen => #[{ module := `AvailableChainGeneric }]
+    | .gen => pure #[{ module := `AvailableChainGeneric }]
+    | .fgsa => fgsaImports
   let env ← importModules imports {}
-  let probe := match o.scope with
-    | .v2 => rangeProbe | .gen => `AvailableChain.Gen.Pure.qF
-  if (← runCore env (findDeclarationRangesCore? probe)).isNone then
-    IO.eprintln s!"no declaration range for {probe}: the .olean.server data is missing"
-    return 2
+  if o.scope == .fgsa then
+    let hasRanges ← runCore env do
+      for (n, _) in env.constants.toList do
+        if let some m := moduleOf? env n then
+          if inScope .fgsa m && (← findDeclarationRangesCore? n).isSome then return true
+      return false
+    unless hasRanges do
+      IO.eprintln "no FGSA declaration ranges: the .olean.server data is missing or the scope is empty"
+      return 2
+  else
+    let probe := if o.scope == .v2 then rangeProbe else `AvailableChain.Gen.Pure.qF
+    if (← runCore env (findDeclarationRangesCore? probe)).isNone then
+      IO.eprintln s!"no declaration range for {probe}: the .olean.server data is missing"
+      return 2
   let decls ← runCore env (scan o.scope)
   let mods := sortedModules decls
+  if mode == "--write" then
+    try
+      IO.FS.writeFile manifest (← fgsaManifest env decls)
+    catch e => IO.eprintln s!"cannot write {manifest}: {e}"; return 2
+    IO.println s!"{manifest}: written; {mods.size} modules"
+    return 0
   if mode == "--list" then
     for m in mods do
       IO.println s!"### `{m}`\n"
@@ -378,11 +595,13 @@ def main (args : List String) : IO UInt32 := do
       count := count + 1
       if listed.contains n then fails := fails.push s!"DUPLICATE ENTRY {n}"
       listed := listed.insert n
+      if o.scope == .fgsa && !(decls.getD m #[]).any (·.1 == n) then
+        fails := fails.push s!"EXTRA ENTRY {n} (heading {m})"
       match env.find? n, moduleOf? env n with
       | some ci, some m' =>
           if m' != m then fails := fails.push s!"WRONG MODULE {n}: {m'}, heading {m}"
-          if l.kind != kindOf env ci then
-            fails := fails.push s!"WRONG KIND {n}: {l.kind}, is {kindOf env ci}"
+          if l.kind != scopeKind o.scope env ci then
+            fails := fails.push s!"WRONG KIND {n}: {l.kind}, is {scopeKind o.scope env ci}"
           if o.scope == .v2 && isEngineModule m' && !covered.contains n then
             fails := fails.push s!"NOT ANCHORED {n}"
           match l.hash?, ← tryCore env (entryHex o.scope n) with
@@ -398,6 +617,14 @@ def main (args : List String) : IO UInt32 := do
       unless listed.contains n do fails := fails.push s!"NOT LISTED {n}"
   for f in fails do IO.println f
   unless fails.isEmpty do return 1
+  if o.scope == .fgsa then
+    let frozenFails ← try
+      checkFrozen entries (o.frozen?.getD "docs/FGSA-API-frozen.md")
+        (o.allow?.getD "scripts/fgsa-manifest-allow.txt")
+        (o.frozenSha?.getD "scripts/fgsa-manifest-frozen.sha256")
+    catch e => IO.eprintln s!"cannot check FGSA frozen manifest: {e}"; return 1
+    for f in frozenFails do IO.println f
+    unless frozenFails.isEmpty do return 1
   if o.scope == .v2 then
     IO.println s!"{manifest}: {count} entries in {headings.size} modules; complete; engine entries anchored; hashes match"
   else

@@ -53,7 +53,7 @@ failed=0
 # run before a commit. Use NUL delimiters for names and disable external diffs.
 tier_path() {
   case "$1" in
-    scripts/*|*allow*.txt|lakefile.toml|lean-toolchain|lake-manifest.json|Statements/*|*/Statements/*)
+    scripts/*|*allow*.txt|lakefile.toml|lean-toolchain|lake-manifest.json|Statements/*|*/Statements/*|docs/FGSA-API.md|docs/FGSA-API-frozen.md)
       reason="gate input changed: $1"; return 0 ;;
   esac
   return 1
@@ -158,6 +158,8 @@ step v2-manifest gate_with_slot lake env lean --run scripts/V2Manifest.lean --ch
 summary v2-manifest
 step gen-manifest gate_with_slot lake env lean --run scripts/V2Manifest.lean --scope gen --check
 summary gen-manifest
+step fgsa-manifest gate_with_slot bash scripts/check-fgsa-manifest.sh
+summary fgsa-manifest
 audit() {
   local path=$1 out=$2 rc=0 count
   gate_with_slot lake env lean "$path" > "$out" 2>&1 || rc=$?
