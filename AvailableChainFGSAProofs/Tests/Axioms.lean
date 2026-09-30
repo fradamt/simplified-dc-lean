@@ -298,3 +298,6 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 
 #print axioms AvailableChain.FGSA.Run.fgsa_releaseStoreClaim
 #print axioms AvailableChain.FGSA.Run.fgsa_releaseClaim
+
+#print axioms AvailableChain.FGSA.Run.fgsa_sameLabel
+#print axioms AvailableChain.FGSA.Run.fgsa_sameLabelClaim

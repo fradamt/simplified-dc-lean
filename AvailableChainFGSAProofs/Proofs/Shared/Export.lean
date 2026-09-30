@@ -1,10 +1,19 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Shared.Release
+public import AvailableChainFGSAProofs.Proofs.Shared.SameLabel
 public import AvailableChainFGSAClaims.Claims.Shared
 
 public section
 
 namespace AvailableChain.FGSA.Run
+
+/-- P3 F1b.2, blueprint 02 §2.2 and 21 IF.6. Class (ii), frozen claim assembly.
+DC: Protocol/ForkChoice/Goldfish/Confirmation.lean:405 `eligible_compatible`.
+INTENTIONAL: optional F-anchored active-view results and label-local synchronization
+(spec/fgsa-protocol.tex:2496–2513). Export boundary: SYN L50. -/
+theorem fgsa_sameLabelClaim (p : Params) : SameLabelClaim p := by
+  intro V _ _ In c E rho pt h
+  exact fgsa_sameLabel p c E rho h.set.valid h.set.noRestart h.set.delta pt.s h.sync
 
 /-- P3 F1b.3, bp.release.v1(a,c), blueprint 01 §5.
 Class (iii), store wrapper. DC counterpart: none; INTENTIONAL SA lifecycle,
