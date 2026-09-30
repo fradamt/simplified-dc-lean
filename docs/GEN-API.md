@@ -503,3 +503,21 @@ theorem AvailableChain.Gen.Pure.FaultXInterHonestStatement_def a9d4c80022e7c64c
 def AvailableChain.Gen.Pure.TwoMajoritiesIntersectStatement b13b774ed3285246
 theorem AvailableChain.Gen.Pure.TwoMajoritiesIntersectStatement_def 000afeafe2351fbc
 ```
+
+### `AvailableChainGeneric.Statements.AC.Support`
+
+```text
+def AvailableChain.Gen.AC.GoldfishScoreAntitoneStatement 2a644bd0f046ed36
+theorem AvailableChain.Gen.AC.GoldfishScoreAntitoneStatement_def 1fa3f58fdc73fcc6
+def AvailableChain.Gen.AC.ConflictingScoreSumLeStatement e1f28e1d341992b7
+theorem AvailableChain.Gen.AC.ConflictingScoreSumLeStatement_def 95bfcc57ccfdf0d5
+def AvailableChain.Gen.AC.VoterCountLeOfSeatsSubsetStatement fc03228e36af1195
+theorem AvailableChain.Gen.AC.VoterCountLeOfSeatsSubsetStatement_def 7029677e43acf1a8
+```
+
+### `AvailableChainGeneric.Statements.Pure.HonestCount`
+
+```text
+def AvailableChain.Gen.Pure.HonestOriginOfCountStatement b90084bf6382c94d
+theorem AvailableChain.Gen.Pure.HonestOriginOfCountStatement_def 7590cf1650656970
+```

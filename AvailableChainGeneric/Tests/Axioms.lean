@@ -41,6 +41,25 @@ public import AvailableChainGeneric.Proofs.AC.Lease
 public import AvailableChainGeneric.Proofs.AC.History
 public import AvailableChainGeneric.Proofs.AC.Transfer
 public import AvailableChainGeneric.Proofs.AC.Votes
+public import AvailableChainGeneric.Statements.AC.Support
+public import AvailableChainGeneric.Statements.Pure.HonestCount
+public import AvailableChainGeneric.Proofs.AC.Support
+public import AvailableChainGeneric.Proofs.Pure.HonestCount
+
+-- A4 support and honest-origin count contracts and proofs.
+#print axioms AvailableChain.Gen.AC.GoldfishScoreAntitoneStatement_def
+#print axioms AvailableChain.Gen.AC.ConflictingScoreSumLeStatement_def
+#print axioms AvailableChain.Gen.AC.VoterCountLeOfSeatsSubsetStatement_def
+#print axioms AvailableChain.Gen.Pure.HonestOriginOfCountStatement_def
+#print axioms AvailableChain.Gen.AC.goldfishScore_antitone_statement
+#print axioms AvailableChain.Gen.AC.goldfishScore_antitone
+#print axioms AvailableChain.Gen.AC.goldfishScore_antitone_of_preceq
+#print axioms AvailableChain.Gen.AC.conflicting_score_sum_le_statement
+#print axioms AvailableChain.Gen.AC.conflicting_score_sum_le
+#print axioms AvailableChain.Gen.AC.voterCount_le_of_seats_subset_statement
+#print axioms AvailableChain.Gen.AC.voterCount_le_of_seats_subset
+#print axioms AvailableChain.Gen.Pure.honest_origin_of_count_statement
+#print axioms AvailableChain.Gen.Pure.honest_origin_of_count
 
 /-! Kernel dependency audit of the Generic library: one line for each public
 theorem, in facade order. The library globs build this test module. -/

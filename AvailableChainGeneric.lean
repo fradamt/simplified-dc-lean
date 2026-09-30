@@ -20,6 +20,8 @@ public import AvailableChainGeneric.Statements.AC.Lease
 public import AvailableChainGeneric.Statements.AC.History
 public import AvailableChainGeneric.Statements.AC.Transfer
 public import AvailableChainGeneric.Statements.AC.Votes
+public import AvailableChainGeneric.Statements.AC.Support
+public import AvailableChainGeneric.Statements.Pure.HonestCount
 public import AvailableChainGeneric.Proofs.Pure.FirstBad
 public import AvailableChainGeneric.Proofs.Pure.Schedule
 public import AvailableChainGeneric.Proofs.Pure.BlockOrder
@@ -41,6 +43,8 @@ public import AvailableChainGeneric.Proofs.AC.Lease
 public import AvailableChainGeneric.Proofs.AC.History
 public import AvailableChainGeneric.Proofs.AC.Transfer
 public import AvailableChainGeneric.Proofs.AC.Votes
+public import AvailableChainGeneric.Proofs.AC.Support
+public import AvailableChainGeneric.Proofs.Pure.HonestCount
 
 /-! Generic library (GLY A): the Pure, V2 and AC layers. The root does not
 import the modules under `Tests/`; the library globs build them. -/

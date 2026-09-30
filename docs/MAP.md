@@ -1415,6 +1415,7 @@ All-run carriage follows from ExecutionValid, as in DC AdmissibleCore.
 │ Accountable.lean    │ FGSASlashableBound_def                                                           │
 └─────────────────────┴──────────────────────────────────────────────────────────────────────────────────┘
 ### A3 unit-seat count modules
+## A4 Gen support and honest-origin count
 
 Paths omit `AvailableChainGeneric/` and `.lean`.
 
@@ -1426,4 +1427,13 @@ Paths omit `AvailableChainGeneric/` and `.lean`.
 │ Statements/Pure/SupportCounts │ Honest-origin and two-majority counts │
 │ Proofs/Pure/SupportCounts     │ Finite-seat majority count proofs     │
 └───────────────────────────────┴───────────────────────────────────────┘
+┌─────────────────────────────┬─────────────────────────────────────────────┐
+│ Module                      │ Role                                        │
+├─────────────────────────────┼─────────────────────────────────────────────┤
+│ Statements/AC/Support       │ Score ancestry, conflict and seat contracts │
+│ Proofs/AC/Support           │ Score antitone and conflicting score bounds │
+│ Statements/Pure/HonestCount │ HonestOriginOfCountStatement                │
+│ Proofs/Pure/HonestCount     │ honest_origin_of_count                      │
+│ Tests/Support               │ Concrete finite-set honest-origin count     │
+└─────────────────────────────┴─────────────────────────────────────────────┘
 ```
