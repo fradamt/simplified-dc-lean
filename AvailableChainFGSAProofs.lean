@@ -25,3 +25,4 @@ public import AvailableChainFGSAProofs.Proofs.Clean.State
 public import AvailableChainFGSAProofs.Proofs.Clean.StateGate
 public import AvailableChainFGSAProofs.Proofs.Shared.Release
 public import AvailableChainFGSAProofs.Proofs.Assembly.Shared
+public import AvailableChainFGSAProofs.Proofs.Shared.Count

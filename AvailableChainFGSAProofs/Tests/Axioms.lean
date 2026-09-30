@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.Count -- shake: keep (F1b.1 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Assembly.Shared -- shake: keep (F1b.3 export axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.Release -- shake: keep (F1b.3 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.Claims -- shake: keep (claim implication axiom audit)
@@ -298,3 +299,12 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 
 #print axioms AvailableChain.FGSA.Run.fgsa_releaseStoreClaim
 #print axioms AvailableChain.FGSA.Run.fgsa_releaseClaim
+
+#print axioms AvailableChain.FGSA.Run.fgsa_honest_head_eq_of_stored
+#print axioms AvailableChain.FGSA.Run.fgsa_active_support_of_receipt
+#print axioms AvailableChain.FGSA.Run.fgsa_covered_honest_head_receipt
+#print axioms AvailableChain.FGSA.Run.fgsa_stored_honest_head_awake
+#print axioms AvailableChain.FGSA.Run.fgsa_late_rest_bound
+#print axioms AvailableChain.FGSA.Run.fgsa_gate_batch_premises
+#print axioms AvailableChain.FGSA.Run.fgsa_active_path_of_coverage
+#print axioms AvailableChain.FGSA.Run.fgsa_gate_zero_of_receipts

@@ -24,3 +24,4 @@ public import AvailableChainFGSA.Tests.Smoke
 public import AvailableChainFGSA.Tests.Axioms
 public import AvailableChainFGSA.Tests.RootCollision
 public import AvailableChainFGSA.Proofs.SetEq
+public import AvailableChainFGSA.Proofs.Head.Pool
