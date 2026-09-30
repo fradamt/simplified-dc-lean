@@ -110,6 +110,45 @@ theorem timely_of_relay_statement : TimelyOfRelayStatement := by
   exact hact.trans (publicTime_le_pubFloor E hclock.2
     (stateBefore_now_le_event C.clock (fun d => le_of_eq (hrestore d)) E rho hS hi v))
 
+-- S3-03; Statements/V2/Receipt.lean:162–179; KitV2/Stable.lean:49.
+theorem firstAccept_of_processed_statement : FirstAcceptOfProcessedStatement := by
+  intro V _ In P E rho w o i₀ k hik hrf h₀ hk htick hdeliv
+  by_contra hno
+  have hfalse : P.processed (Run.stateBefore E rho k w) o = false := by
+    refine stateBefore_step_induction E rho (fun st => P.processed st o = false)
+      hik w ?_ h₀
+    intro i e hi hik' he hv hprev
+    cases e with
+    | restart u t =>
+        dsimp only [Event.node] at hv
+        subst u
+        exact absurd he (hrf i t hi hik')
+    | tick u t =>
+        dsimp only [Event.node] at hv
+        subst u
+        rw [← Run.stateBefore_succ E rho he]
+        exact htick i t hi hik' he hprev
+    | deliver u o' t' =>
+        dsimp only [Event.node] at hv
+        subst u
+        dsimp only [World.step]
+        rw [Function.update_self]
+        cases hprocessed : P.processed (P.process (Run.stateBefore E rho i w) o') o with
+        | false => rfl
+        | true =>
+            have hnext : P.processed (Run.stateBefore E rho (i + 1) w) o = true := by
+              rw [Run.stateBefore_succ E rho he]
+              dsimp only [World.step]
+              rw [Function.update_self]
+              exact hprocessed
+            apply False.elim
+            apply hno
+            refine ⟨i, t', hi, hik', ?_⟩
+            unfold Run.acceptsAt Run.handlesAt
+            exact ⟨⟨o', he, hdeliv i o' t' hi hik' he hprev hprocessed⟩, hprev, hnext⟩
+  rw [hk] at hfalse
+  exact Bool.noConfusion hfalse
+
 -- S3-02 LINK; preserve all frozen binders.
 set_option linter.unusedVariables false in
 theorem timely_of_clock :
@@ -155,5 +194,24 @@ theorem timely_of_relay :
   ∀ (hacc : Run.acceptsAt E rho i v o t),
     C.actTime o ≤ pubFloor E t :=
   @timely_of_relay_statement
+
+-- S3-03 LINK; only unused proof binder names have a leading underscore.
+theorem firstAccept_of_processed :
+  ∀ {V : Type} [DecidableEq V] {In : Type} {P : ProtocolSpec In}
+    (E : Generic.Env V) (rho : Run V P),
+  ∀ (w : V), ∀ (o : P.Object), ∀ (i₀ k : Nat),
+  ∀ (_hik : i₀ ≤ k),
+  ∀ (_hrf : restartFree rho w i₀ k),
+  ∀ (_h₀ : P.processed (Run.stateBefore E rho i₀ w) o = false),
+  ∀ (_hk : P.processed (Run.stateBefore E rho k w) o = true),
+  ∀ (_htick : ∀ i t, i₀ ≤ i → i < k → rho.events[i]? = some (.tick w t) →
+      P.processed (Run.stateBefore E rho i w) o = false →
+      P.processed (Run.stateBefore E rho (i + 1) w) o = false),
+  ∀ (_hdeliv : ∀ i o' t', i₀ ≤ i → i < k → rho.events[i]? = some (.deliver w o' t') →
+      P.processed (Run.stateBefore E rho i w) o = false →
+      P.processed (P.process (Run.stateBefore E rho i w) o') o = true →
+      P.handles (Run.stateBefore E rho i w) o' o),
+    ∃ i t', i₀ ≤ i ∧ i < k ∧ Run.acceptsAt E rho i w o t' :=
+  @firstAccept_of_processed_statement
 
 end AvailableChain.Gen.V2
