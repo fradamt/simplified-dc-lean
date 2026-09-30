@@ -4,6 +4,7 @@ public import AvailableChainFGSAProofs.Proofs.Foundations.Store -- shake: keep (
 public import AvailableChainFGSAProofs.Proofs.Foundations.Certificates -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Leases -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Claims -- shake: keep (axiom audit commands)
+public import AvailableChainFGSAProofs.Proofs.Foundations.Sources -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Regimes -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Channels -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Recurrence -- shake: keep (axiom audit commands)
@@ -89,3 +90,11 @@ public import AvailableChainFGSAProofs.Proofs.Shared.Reads -- shake: keep (axiom
 #print axioms AvailableChain.FGSA.Run.fgsa_leaseOrigins_chain
 #print axioms AvailableChain.FGSA.Run.fgsa_leaseOrigins_ancestorDeadlines
 #print axioms AvailableChain.FGSA.Run.fgsa_leaseOrigins_fastWrites
+#print axioms AvailableChain.FGSA.Run.sourceDiscipline_tSrc
+#print axioms AvailableChain.FGSA.Run.sourceDiscipline_labelBound
+#print axioms AvailableChain.FGSA.Run.sourceDiscipline_emittedName
+#print axioms AvailableChain.FGSA.Run.sourceDiscipline_base
+#print axioms AvailableChain.FGSA.Run.sourceDiscipline_qcOrigin
+#print axioms AvailableChain.FGSA.Run.sourceDiscipline_strat
+#print axioms AvailableChain.FGSA.Run.sourceDiscipline_at
+#print axioms AvailableChain.FGSA.Run.sourceDiscipline_srcFrameAbove

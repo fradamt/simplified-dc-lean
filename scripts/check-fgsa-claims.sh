@@ -54,6 +54,16 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.fgsa_rCert',
     'AvailableChain.FGSA.Run.fgsa_chainCertificatesAt',
     'AvailableChain.FGSA.Run.fgsa_chainCertificatesClaim',
+    'AvailableChain.FGSA.Run.sourceDiscipline_qcOrigin',
+    'AvailableChain.FGSA.Run.sourceDiscipline_strat',
+    'AvailableChain.FGSA.Run.sourceDiscipline_at',
+    'AvailableChain.FGSA.Run.sourceDiscipline_srcFrameAbove',
+
+    'AvailableChain.FGSA.Run.sourceDiscipline_tSrc',
+    'AvailableChain.FGSA.Run.sourceDiscipline_labelBound',
+    'AvailableChain.FGSA.Run.sourceDiscipline_emittedName',
+    'AvailableChain.FGSA.Run.sourceDiscipline_base',
+
     'AvailableChain.FGSA.Run.RCarrierView',
     'AvailableChain.FGSA.Run.RCarrierView_def',
     'AvailableChain.FGSA.Run.RFrame',

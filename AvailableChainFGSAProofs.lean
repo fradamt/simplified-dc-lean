@@ -9,3 +9,4 @@ public import AvailableChainFGSAProofs.Proofs.Foundations.Store
 public import AvailableChainFGSAProofs.Proofs.Foundations.Certificates
 public import AvailableChainFGSAProofs.Proofs.Foundations.Leases
 public import AvailableChainFGSAProofs.Proofs.Assembly.Foundations
+public import AvailableChainFGSAProofs.Proofs.Foundations.Sources
