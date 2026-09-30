@@ -27,8 +27,7 @@ variable {V : Type} [DecidableEq V] [Fintype V] [RowCodec V]
 /-- [helper] The crossing of j on W's chain names an entry X with `X.root ≠ J.root`,
 with a quorum of rows on W's chain that match `(j, X.root)` (a target or a
 timeout). Clauses 1 and 2 use this crossing. -/
-theorem crossing_other_entry (E : Electorate V) (cfg : FGConfig) (B W : FGBlock V)
-    (hroot : RootInjectiveOn B W)
+theorem exists_crossing_quorum_ne_justified (E : Electorate V) (cfg : FGConfig) (B W : FGBlock V)
     (hJ : (derive E cfg B).h_j ≠ 0)
     (hW : (derive E cfg B).h_j < (derive E cfg W).h)
     (hnot : ¬ FGBlock.Preceq (derive E cfg B).J W) :
@@ -38,15 +37,47 @@ theorem crossing_other_entry (E : Electorate V) (cfg : FGConfig) (B W : FGBlock 
   obtain ⟨X, hXW, -, Q, hQ, hw⟩ :=
     height_crossing E cfg W _ (Nat.one_le_iff_ne_zero.mpr hJ) hW
   refine ⟨X, fun hr => hnot ?_, Q, hQ, fun i hi => ?_⟩
-  · rw [← hroot X _ (Or.inr hXW) (Or.inl (derive_anchors_preceq E cfg B).2) hr]
+  · rw [← FGBlock.root_injective hr]
     exact hXW
   · obtain ⟨carrier, b, hc, hb, hbi, hm⟩ := hw i hi
     exact ⟨b, mem_chainRows_of_carrier hc hb, hbi, hm⟩
+
+set_option linter.unusedVariables false in
+/-- Compatibility wrapper for `exists_crossing_quorum_ne_justified`.
+Delete after F2 (GLY E-13). -/
+theorem crossing_other_entry (E : Electorate V) (cfg : FGConfig) (B W : FGBlock V)
+    (hroot : RootInjectiveOn B W)
+    (hJ : (derive E cfg B).h_j ≠ 0)
+    (hW : (derive E cfg B).h_j < (derive E cfg W).h)
+    (hnot : ¬ FGBlock.Preceq (derive E cfg B).J W) :
+    ∃ X : FGBlock V, X.root ≠ (derive E cfg B).J.root ∧ ∃ Q : Finset V, E.IsQuorum Q ∧
+      ∀ i ∈ Q, ∃ b ∈ chainRows W, b.signer = i ∧
+        b.height_pair.matchesEntry (derive E cfg B).h_j X.root = true :=
+  exists_crossing_quorum_ne_justified E cfg B W hJ hW hnot
 
 /-- [pin fj.crossingNoFinal.v1] (clause 1) Let J be justified at j on B, and let
 W of height > j not extend J. Any finality QC for `(j, J)`, in any row pool A
 (before or after the crossing; no chain needs to carry it), gives E1 weight
 between A and W's rows. -/
+theorem e1Weight_of_finalityQC_not_preceq (E : Electorate V) (cfg : FGConfig) (B W : FGBlock V)
+    (hJ : (derive E cfg B).h_j ≠ 0)
+    (hW : (derive E cfg B).h_j < (derive E cfg W).h)
+    (hnot : ¬ FGBlock.Preceq (derive E cfg B).J W)
+    (A : Finset (Row V)) (Q : Finset V) (hQ : E.IsQuorum Q)
+    (hfin : ∀ i ∈ Q, ∃ a ∈ A, a.signer = i ∧
+      a.finality_pair = some ⟨(derive E cfg B).h_j, (derive E cfg B).J.root⟩) :
+    HasE1WeightBetween E A (chainRows W) := by
+  obtain ⟨X, hne, Qc, hQc, hwc⟩ := exists_crossing_quorum_ne_justified E cfg B W hJ hW hnot
+  refine ⟨Q ∩ Qc, quorum_intersection E hQ hQc, fun i hi => ?_⟩
+  obtain ⟨hf, hc⟩ := Finset.mem_inter.mp hi
+  obtain ⟨f, hfA, hfi, hfp⟩ := hfin i hf
+  obtain ⟨b, hbW, hbi, hm⟩ := hwc i hc
+  exact ⟨f, hfA, b, hbW, hfi, hbi,
+    e1Slashable_of_matchesEntry f b _ X.root _ (hfi.trans hbi.symm) hfp hm hne⟩
+
+set_option linter.unusedVariables false in
+/-- Compatibility wrapper for `e1Weight_of_finalityQC_not_preceq`.
+Delete after F2 (GLY E-13). -/
 theorem crossingNoFinal_QC (E : Electorate V) (cfg : FGConfig) (B W : FGBlock V)
     (hroot : RootInjectiveOn B W)
     (hJ : (derive E cfg B).h_j ≠ 0)
@@ -55,21 +86,15 @@ theorem crossingNoFinal_QC (E : Electorate V) (cfg : FGConfig) (B W : FGBlock V)
     (A : Finset (Row V)) (Q : Finset V) (hQ : E.IsQuorum Q)
     (hfin : ∀ i ∈ Q, ∃ a ∈ A, a.signer = i ∧
       a.finality_pair = some ⟨(derive E cfg B).h_j, (derive E cfg B).J.root⟩) :
-    HasE1WeightBetween E A (chainRows W) := by
-  obtain ⟨X, hne, Qc, hQc, hwc⟩ := crossing_other_entry E cfg B W hroot hJ hW hnot
-  refine ⟨Q ∩ Qc, quorum_intersection E hQ hQc, fun i hi => ?_⟩
-  obtain ⟨hf, hc⟩ := Finset.mem_inter.mp hi
-  obtain ⟨f, hfA, hfi, hfp⟩ := hfin i hf
-  obtain ⟨b, hbW, hbi, hm⟩ := hwc i hc
-  exact ⟨f, hfA, b, hbW, hfi, hbi,
-    e1Slashable_of_matchesEntry f b _ X.root _ (hfi.trans hbi.symm) hfp hm hne⟩
+    HasE1WeightBetween E A (chainRows W) :=
+  e1Weight_of_finalityQC_not_preceq E cfg B W hJ hW hnot A Q hQ hfin
 
 /-- [helper] Chain form of clause 1: if `J` is justified at `j` on chain
 `B`, a block `W` of height > j does not extend `J`, and a chain `D` finalizes
 `J` at `j`, then E1 weight exists between `W`'s and `D`'s rows. `B` only
 identifies `J`. -/
-theorem crossingNoFinal (E : Electorate V) (cfg : FGConfig) (B W D : FGBlock V)
-    (hroot : RootInjectiveOn W D ∧ RootInjectiveOn B W)
+theorem slashableWeight_of_finalized_crossing (E : Electorate V) (cfg : FGConfig)
+    (B W D : FGBlock V)
     (hJ : (derive E cfg B).h_j ≠ 0)
     (hW : (derive E cfg B).h_j < (derive E cfg W).h)
     (hnot : ¬ FGBlock.Preceq (derive E cfg B).J W)
@@ -79,18 +104,31 @@ theorem crossingNoFinal (E : Electorate V) (cfg : FGConfig) (B W D : FGBlock V)
   have hnz : (derive E cfg D).h_F ≠ 0 := hfinH ▸ hJ
   obtain ⟨F, -, rfl, Q, hQ, hw⟩ := finality_certificate E cfg D hnz
   refine hasSlashableWeightBetween_of_hasE1WeightBetween_swap
-    (crossingNoFinal_QC E cfg B W hroot.2 hJ hW hnot (chainRows D) Q hQ fun i hi => ?_)
+    (e1Weight_of_finalityQC_not_preceq E cfg B W hJ hW hnot (chainRows D) Q hQ fun i hi => ?_)
   obtain ⟨carrier, a, hc, ha, hai, hap⟩ := hw i hi
   rw [hfinH, hfin] at hap
   exact ⟨a, mem_chainRows_of_carrier hc ha, hai, hap⟩
+
+set_option linter.unusedVariables false in
+/-- Compatibility wrapper for `slashableWeight_of_finalized_crossing`.
+Delete after F2 (GLY E-13). -/
+theorem crossingNoFinal (E : Electorate V) (cfg : FGConfig) (B W D : FGBlock V)
+    (hroot : RootInjectiveOn W D ∧ RootInjectiveOn B W)
+    (hJ : (derive E cfg B).h_j ≠ 0)
+    (hW : (derive E cfg B).h_j < (derive E cfg W).h)
+    (hnot : ¬ FGBlock.Preceq (derive E cfg B).J W)
+    (hfin : (derive E cfg D).F = (derive E cfg B).J)
+    (hfinH : (derive E cfg D).h_F = (derive E cfg B).h_j) :
+    HasSlashableWeightBetween E (chainRows W) (chainRows D) :=
+  slashableWeight_of_finalized_crossing E cfg B W D hJ hW hnot hfin hfinH
 
 /-- [pin fj.crossingNoFinal.v1] (clause 2) Let J be justified at j on B, and let
 W of height > j not extend J. If the faulty weight is below `2q − W`, and no
 signer outside `faulty` has an E1 or E2 pair between the two chains, then some
 signer outside `faulty` has a target row for `(j, J)` on B's chain and a
 TIMEOUT row at j, for an entry X ≠ J, on W's chain. -/
-theorem crossingNeedsTimeout (E : Electorate V) (cfg : FGConfig) (faulty : Finset V)
-    (B W : FGBlock V) (hroot : RootInjectiveOn B W)
+theorem exists_honest_timeout_of_crossing (E : Electorate V) (cfg : FGConfig) (faulty : Finset V)
+    (B W : FGBlock V)
     (hcap : E.weightOf faulty + E.totalWeight < 2 * E.q)
     (hJ : (derive E cfg B).h_j ≠ 0)
     (hW : (derive E cfg B).h_j < (derive E cfg W).h)
@@ -101,7 +139,7 @@ theorem crossingNeedsTimeout (E : Electorate V) (cfg : FGConfig) (faulty : Finse
         a.height_pair = .vote (derive E cfg B).h_j (derive E cfg B).J.root false) ∧
       (∃ b ∈ chainRows W, b.signer = i ∧ b.height_pair = .vote (derive E cfg B).h_j X true) := by
   obtain ⟨Qj, hQj, hwj⟩ := justification_certificate_rows E cfg B hJ
-  obtain ⟨X, hne, Qc, hQc, hwc⟩ := crossing_other_entry E cfg B W hroot hJ hW hnot
+  obtain ⟨X, hne, Qc, hQc, hwc⟩ := exists_crossing_quorum_ne_justified E cfg B W hJ hW hnot
   obtain ⟨i, hi, hif⟩ := honest_in_intersection E faulty hQj hQc hcap
   obtain ⟨hij, hic⟩ := Finset.mem_inter.mp hi
   obtain ⟨a, haB, hai, hap⟩ := hwj i hij
@@ -121,6 +159,22 @@ theorem crossingNeedsTimeout (E : Electorate V) (cfg : FGConfig) (faulty : Finse
             simp [e2Slashable, sameSigner, e2Fields, hap, hbp, hai, hbi, Ne.symm hne]
           change slashable a b = true
           simp only [slashable, h2, Bool.or_true]
+
+set_option linter.unusedVariables false in
+/-- Compatibility wrapper for `exists_honest_timeout_of_crossing`.
+Delete after F2 (GLY E-13). -/
+theorem crossingNeedsTimeout (E : Electorate V) (cfg : FGConfig) (faulty : Finset V)
+    (B W : FGBlock V) (hroot : RootInjectiveOn B W)
+    (hcap : E.weightOf faulty + E.totalWeight < 2 * E.q)
+    (hJ : (derive E cfg B).h_j ≠ 0)
+    (hW : (derive E cfg B).h_j < (derive E cfg W).h)
+    (hnot : ¬ FGBlock.Preceq (derive E cfg B).J W)
+    (hhonest : ∀ a ∈ chainRows B, ∀ b ∈ chainRows W, a.signer ∉ faulty → ¬ Slashable a b) :
+    ∃ i, i ∉ faulty ∧ ∃ X : BlockId, X ≠ (derive E cfg B).J.root ∧
+      (∃ a ∈ chainRows B, a.signer = i ∧
+        a.height_pair = .vote (derive E cfg B).h_j (derive E cfg B).J.root false) ∧
+      (∃ b ∈ chainRows W, b.signer = i ∧ b.height_pair = .vote (derive E cfg B).h_j X true) :=
+  exists_honest_timeout_of_crossing E cfg faulty B W hcap hJ hW hnot hhonest
 
 /-- [pin fj.crossingNoFinal.v1] (clause 3) A block that raises its parent's
 height does so with a target quorum for the parent's entry, or at a slot at

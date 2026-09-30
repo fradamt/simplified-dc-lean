@@ -304,3 +304,9 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 #print axioms AvailableChain.GridCO.gateFrom_blocks
 #print axioms AvailableChain.GridCO.admitVote_stable
 #print axioms AvailableChain.GridCO.genesis_prefix
+
+-- Cross-store forms without a content-agreement premise.
+#print axioms AvailableChain.FGSA.stored_fg_eq_of_erase_eq
+#print axioms AvailableChain.FGSA.stored_fg_preceq_iff_erase
+#print axioms AvailableChain.FGSA.stored_fg_compatible_eq_erase
+#print axioms AvailableChain.FGSA.stored_fg_roots_injective
