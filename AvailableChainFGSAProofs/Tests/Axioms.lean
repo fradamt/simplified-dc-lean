@@ -1,5 +1,6 @@
 module
 import AvailableChainFGSAProofs.Proofs.Shared.Regimes -- shake: keep (axiom audit commands)
+import AvailableChainFGSAProofs.Proofs.Shared.Channels -- shake: keep (axiom audit commands)
 import AvailableChainFGSAProofs.Proofs.Shared.Recurrence -- shake: keep (axiom audit commands)
 import AvailableChainFGSAProofs.Proofs.Shared.Reads -- shake: keep (axiom audit commands)
 
@@ -39,3 +40,12 @@ import AvailableChainFGSAProofs.Proofs.Shared.Reads -- shake: keep (axiom audit 
 #print axioms AvailableChain.FGSA.Run.Outage₂.pos
 #print axioms AvailableChain.FGSA.Run.Outage₂.toCleanCut
 #print axioms AvailableChain.FGSA.Run.Outage₂.faultQ
+#print axioms AvailableChain.FGSA.Run.fgSource_eq_jointSource
+#print axioms AvailableChain.FGSA.Run.propose_head
+#print axioms AvailableChain.FGSA.Run.frameR_congr_fg
+#print axioms AvailableChain.FGSA.Run.domainR_congr_fg
+#print axioms AvailableChain.FGSA.Run.frame_postClock
+#print axioms AvailableChain.FGSA.Run.eligible_lo_live
+#print axioms AvailableChain.FGSA.Run.jointSelections_record_irrel
+#print axioms AvailableChain.FGSA.Run.rowSigner_iff_holder
+#print axioms AvailableChain.FGSA.Run.emit_lt_handles

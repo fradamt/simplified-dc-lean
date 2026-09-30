@@ -1306,6 +1306,16 @@ unused imports, and negative controls. No baseline entries were added.
 │ AvailableChainFGSAClaims/Tests/Regimes.lean     │ Horizon-zero regime smoke values    │
 │ AvailableChainFGSAClaims/Statements/Reads.lean  │ V2 cut and FG-SA store/gate reads   │
 │ AvailableChainFGSAClaims/Tests/Reads.lean       │ Three-read regression on v2         │
+│ AvailableChainFGSAClaims/Statements/Counts.lean │ Provisional honest proposal read    │
+│ AvailableChainFGSAClaims/Statements/Channels.le │ FG-SA channel and signed-row reads  │
+│ an                                              │                                     │
+│ AvailableChainFGSAClaims/Statements/ChannelProp │ FG-SA safety channel predicates     │
+│ s.lean                                          │                                     │
+│ AvailableChainFGSAClaims/Statements/ComposeStmt │ FG-SA post-gate composition windows │
+│ .lean                                           │                                     │
+│ AvailableChainFGSAClaims/Tests/Channels.lean    │ Channel kernel regression controls  │
+│ AvailableChainFGSAProofs/Proofs/Shared/Channels │ Channel equations and row ordering  │
+│ .lean                                           │                                     │
 │ AvailableChainFGSAClaims/Tests/Axioms.lean      │ Claims public-theorem axiom audit   │
 │ AvailableChainFGSAProofs.lean                   │ Proofs library root                 │
 │ AvailableChainFGSAProofs/Proofs/Shared/Reads.lean │ Cut, gate values and index proofs   │

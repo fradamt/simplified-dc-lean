@@ -3,3 +3,6 @@ public import AvailableChainFGSAClaims.Statements.Bounds
 public import AvailableChainFGSAClaims.Statements.Reads
 public import AvailableChainFGSAClaims.Statements.Packages.Safety
 public import AvailableChainFGSAClaims.Statements.Packages.Outage
+public import AvailableChainFGSAClaims.Statements.Channels
+public import AvailableChainFGSAClaims.Statements.ChannelProps
+public import AvailableChainFGSAClaims.Statements.ComposeStmt

@@ -1,7 +1,8 @@
 module
 import AvailableChainFGSAClaims.Statements.Packages.Outage -- shake: keep (axiom audit commands)
 import AvailableChainFGSAClaims.Statements.Packages.Safety -- shake: keep (axiom audit commands)
-import AvailableChainFGSAClaims.Statements.Reads -- shake: keep (axiom audit commands)
+import AvailableChainFGSAClaims.Statements.ChannelProps -- shake: keep (axiom audit commands)
+import AvailableChainFGSAClaims.Statements.ComposeStmt -- shake: keep (axiom audit commands)
 
 /-! Axiom audit. Add one `#print axioms` for each new public theorem.
 The guard scans all compiled constants. -/
@@ -109,3 +110,50 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.OutageSet
 #print axioms AvailableChain.FGSA.Run.outWin
 #print axioms AvailableChain.FGSA.Run.OutagePrem
+#print axioms AvailableChain.FGSA.Run.treeT
+#print axioms AvailableChain.FGSA.Run.treeErased
+#print axioms AvailableChain.FGSA.Run.frameR
+#print axioms AvailableChain.FGSA.Run.domainR
+#print axioms AvailableChain.FGSA.Run.finR
+#print axioms AvailableChain.FGSA.Run.FAdvance
+#print axioms AvailableChain.FGSA.Run.sourceCandidates
+#print axioms AvailableChain.FGSA.Run.jointSource
+#print axioms AvailableChain.FGSA.Run.proposerHead
+#print axioms AvailableChain.FGSA.Run.outputS
+#print axioms AvailableChain.FGSA.Run.frameR_def
+#print axioms AvailableChain.FGSA.Run.jointSource_def
+#print axioms AvailableChain.FGSA.Run.sourceCandidates_def
+#print axioms AvailableChain.FGSA.Run.domainR_def
+#print axioms AvailableChain.FGSA.Run.treeT_def
+#print axioms AvailableChain.FGSA.Run.proposerHead_def
+#print axioms AvailableChain.FGSA.Run.FAdvance_def
+#print axioms AvailableChain.FGSA.Run.R_at
+#print axioms AvailableChain.FGSA.Run.D_at
+#print axioms AvailableChain.FGSA.Run.FAdvanceAt
+#print axioms AvailableChain.FGSA.Run.candidatesAt
+#print axioms AvailableChain.FGSA.Run.proposalHeadAt
+#print axioms AvailableChain.FGSA.Run.actionHead
+#print axioms AvailableChain.FGSA.Run.actionTriple
+#print axioms AvailableChain.FGSA.Run.namedEntry
+#print axioms AvailableChain.FGSA.Run.EntryBelow
+#print axioms AvailableChain.FGSA.Run.RowSigner
+#print axioms AvailableChain.FGSA.Run.HonestRowAt
+#print axioms AvailableChain.FGSA.Run.HonestRowBefore
+#print axioms AvailableChain.FGSA.Run.RowComplete
+#print axioms AvailableChain.FGSA.Run.HonestCarrier
+#print axioms AvailableChain.FGSA.Run.HeldAt
+#print axioms AvailableChain.FGSA.Run.BlockInRunBefore
+#print axioms AvailableChain.FGSA.Run.RowSigner_def
+#print axioms AvailableChain.FGSA.Run.HonestRowAt_def
+#print axioms AvailableChain.FGSA.Run.RStore
+#print axioms AvailableChain.FGSA.Run.RStoreCumul
+#print axioms AvailableChain.FGSA.Run.RMono
+#print axioms AvailableChain.FGSA.Run.RFrameExact
+#print axioms AvailableChain.FGSA.Run.RGeo
+#print axioms AvailableChain.FGSA.Run.RRec
+#print axioms AvailableChain.FGSA.Run.TSrc
+#print axioms AvailableChain.FGSA.Run.LabelBound
+#print axioms AvailableChain.FGSA.Run.TChain
+#print axioms AvailableChain.FGSA.Run.TCompat
+#print axioms AvailableChain.FGSA.Run.AncestorClosed
+#print axioms AvailableChain.FGSA.Run.windowIdx
