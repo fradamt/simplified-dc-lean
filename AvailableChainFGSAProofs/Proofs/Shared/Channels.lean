@@ -2,6 +2,7 @@ module
 public import AvailableChainFGSAClaims.Statements.ChannelProps
 public import AvailableChainFGSARun.Proofs.Emission
 public import AvailableChainFGSARun.Proofs.Hooks
+public import AvailableChainKitFG.FrameChannels
 
 public section
 
@@ -149,6 +150,75 @@ theorem emit_lt_handles (E : Generic.Env V) (h : V2.ExecutionValid E rho)
       have hrow' := (fgsa_emitsAt_row E rho j' y u' hj' r' seat body).mp hem'
       have htu : t ≤ u := hrow.2.1 ▸ (hrow'.2.1.symm ▸ hle)
       exact V2.Engine.tick_index_lt_delivery E rho h.toScheduleWellFormed hj hk htu
+
+/-- P3 §8.7 F2.2; bp02 §§3.1–3.5. Class B channel assembly.
+DC counterparts: ChainState/FGRootWitness.lean:327,493 and
+Execution/WeakGenesisGSTZeroActionSources.lean:106. The all-entry FJ bundle
+and G1 differ intentionally (TS/spec/fgsa-protocol.tex:2557–2571;
+TS/log.md:1475). No source existence or Clean premise is used. -/
+theorem cpPrefix_of_srcFrame (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+    (hsrc : SrcFrameAboveStmt p c E rho) : CPPrefix p c E rho := by
+  intro i x B hx hrows
+  have hs := hsrc (fun e => FGBlock.Preceq e B) 0 (ancestorClosed_preceq p B)
+    (srcFrame_genesis_preceq p B 0) i x hx (by
+      intro y r a e ha hn _
+      obtain ⟨X, hXB, he⟩ := hrows y r a _ ha hn
+      have heX : X = e := FGBlock.root_injective (congrArg Prod.snd he)
+      exact heX ▸ hXB)
+  have hc : ∀ W ∈ (storeAt p c E rho i x).fg.TF, ∀ e ∈ certified p W,
+      FGBlock.Preceq e B := fun W hW e he => hs.1 W hW e he (Nat.zero_le _)
+  have hF := hs.2.1 (Nat.zero_le _)
+  have hJ := hs.2.2.1 (Nat.zero_le _)
+  have hZ := hs.2.2.2 (Nat.zero_le _)
+  let st := storeAt p c E rho i x
+  have hinv := (hstore i x hx).1.fg
+  have hcross : ∀ W ∈ st.fg.TF, ∀ U, FGBlock.Preceq U W →
+      hOf p.E p.cfg U < hOf p.E p.cfg W → FGBlock.Preceq (derive p.E p.cfg U).T_h B := by
+    intro W hW U hU hlt
+    exact hc W hW _ ⟨U, hU, Or.inr (Or.inr ⟨rfl, hlt⟩)⟩
+  have hn := KitFG.storeFrame_noContest_of_crossed p.E p.cfg st.fg hinv (by
+    intro W hW U hU hlt
+    exact KitFG.preceq_total_of_common hJ (hcross W hW U hU hlt))
+  have hlo := KitFG.storeFrame_height_of_crossed_prefix p.E p.cfg st.fg hinv B hn hcross
+  have hcontrols : R_at p c E rho i x = storeControls p.E p.cfg st.fg :=
+    (hframe i x hx).1.trans (KitFG.storeControls_eq_fjControls p.E p.cfg st.fg hinv).symm
+  refine ⟨hc, hF, hJ, hZ, ?_, ?_⟩
+  · rw [hcontrols]; exact hn
+  · rw [hcontrols]; exact hlo
+
+/-- P3 §8.7 F2.2; bp02 §3.4 and P3 App. A.3 CPCompat. Class B.
+DC counterpart: ChainState/FGRootWitness.lean:548 concludes root
+compatibility only. Retention and EVERY contest witness are intentional FJ
+extensions (TS/spec/fgsa-protocol.tex:2557–2571; TS/log.md:1475). G1 is explicit. -/
+theorem cpCompat_of_srcFrame (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+    (hsrc : SrcFrameAboveStmt p c E rho) : CPCompat p c E rho := by
+  intro i x B hx hrows
+  have hs := hsrc (fun e => FGBlock.Preceq e B ∨ FGBlock.Preceq B e) 0
+    (ancestorClosed_compatible p B) (srcFrame_genesis_compatible p B 0) i x hx
+    (fun y r a e ha hn _ => hrows y r a e ha hn)
+  have hc : ∀ W ∈ (storeAt p c E rho i x).fg.TF, ∀ e ∈ certified p W,
+      FGBlock.Preceq e B ∨ FGBlock.Preceq B e :=
+    fun W hW e he => hs.1 W hW e he (Nat.zero_le _)
+  have hF := hs.2.1 (Nat.zero_le _)
+  have hJ := hs.2.2.1 (Nat.zero_le _)
+  let st := storeAt p c E rho i x
+  have hinv := (hstore i x hx).1.fg
+  have hcross : ∀ W ∈ st.fg.TF, ∀ U, FGBlock.Preceq U W →
+      hOf p.E p.cfg U < hOf p.E p.cfg W →
+      FGBlock.Preceq (derive p.E p.cfg U).T_h B ∨ FGBlock.Preceq B (derive p.E p.cfg U).T_h := by
+    intro W hW U hU hlt
+    exact hc W hW _ ⟨U, hU, Or.inr (Or.inr ⟨rfl, hlt⟩)⟩
+  refine ⟨hc, hF, hJ, ?_, ?_⟩
+  · intro hB hFB
+    have hr := KitFG.storeFrame_retention_of_compatible p.E p.cfg st.fg hinv B hB hFB hJ hcross
+    rcases hr with hr | hr
+    · exact Or.inl hr
+    · right
+      rw [← (hframe i x hx).2]
+      exact hr
+  · exact KitFG.storeFrame_contest_of_compatible p.E p.cfg st.fg hinv B hJ hcross
 
 end AvailableChain.FGSA.Run
 end

@@ -1,4 +1,5 @@
 module
+public import AvailableChainKitFG.FrameChannels
 public import AvailableChainKitFG.Accountable
 public import AvailableChainKitFG.CrossingNoFinal
 public import AvailableChainKitFG.Correspondence
@@ -21,3 +22,8 @@ public import AvailableChainKitFG.CausalCap
 #print axioms AvailableChain.KitFG.finalityCap_row
 #print axioms AvailableChain.KitFG.finalityCap_height_row
 #print axioms AvailableChain.KitFG.causalCap
+
+#print axioms AvailableChain.KitFG.storeFrame_noContest_of_crossed
+#print axioms AvailableChain.KitFG.storeFrame_contest_of_compatible
+#print axioms AvailableChain.KitFG.storeFrame_height_of_crossed_prefix
+#print axioms AvailableChain.KitFG.storeFrame_retention_of_compatible

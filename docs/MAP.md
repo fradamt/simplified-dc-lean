@@ -54,6 +54,7 @@ names:
 │                                      │ FGBlock.root_injective                       │
 │ AvailableChainKitFG/Accountable      │ rootInjectiveOn_all                          │
 │ AvailableChainKitFG/Correspondence   │ viewRootInj_all                              │
+│ AvailableChainKitFG/FrameChannels    │ Pure contest, floor and retention geometry  │
 │ AvailableChainFGSA/Model             │ packInner, packBody, appOf, rowsOk (in       │
 │                                      │ wellFormed and blockAccepted); fgBlock (body │
 │                                      │ from packInner); eraseFG (body encFGBody)    │
@@ -1318,6 +1319,8 @@ unused imports, and negative controls. No baseline entries were added.
 │ AvailableChainFGSAProofs/Proofs/Shared/Gate     │ G32 gate service and opening source │
 │ .lean                                           │                                     │
 │ AvailableChainFGSAProofs/Proofs/Shared/Channels │ Channel equations and row ordering  │
+│ .lean                                           │                                     │
+│ AvailableChainFGSAProofs/Proofs/Clean/Frame    │ Given-state Clean frame core        │
 │ .lean                                           │                                     │
 │ AvailableChainFGSAClaims/Claims/Foundations.lean │ Client safety; frozen K8 citation   │
 │ AvailableChainFGSAClaims/Claims/Shared.lean     │ Same-label and pure head claims     │
