@@ -251,3 +251,36 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.clean_gate_fastAt
 #print axioms AvailableChain.FGSA.Run.clean_gate_sOrigin
 #print axioms AvailableChain.FGSA.Run.clean_gate_fastWrite
+
+#print axioms AvailableChain.FGSA.Run.CleanRowSources_def
+#print axioms AvailableChain.FGSA.Run.CleanCertSources_def
+#print axioms AvailableChain.FGSA.Run.CleanStateStep_def
+#print axioms AvailableChain.FGSA.Run.CleanHistStep_def
+#print axioms AvailableChain.FGSA.Run.CleanOrdinaryDelivery_def
+#print axioms AvailableChain.FGSA.Run.CleanBlockDelivery_def
+#print axioms AvailableChain.FGSA.Run.CleanNoGateTick_def
+#print axioms AvailableChain.FGSA.Run.CleanGateTick_def
+#print axioms AvailableChain.FGSA.Run.CleanDeliveryStateStep_def
+#print axioms AvailableChain.FGSA.Run.CleanDeliveryHistStep_def
+#print axioms AvailableChain.FGSA.Run.CleanBlockStateStep_def
+#print axioms AvailableChain.FGSA.Run.CleanBlockHistStep_def
+#print axioms AvailableChain.FGSA.Run.CleanNoGateStateStep_def
+#print axioms AvailableChain.FGSA.Run.CleanNoGateHistStep_def
+#print axioms AvailableChain.FGSA.Run.CleanGateStateStep_def
+#print axioms AvailableChain.FGSA.Run.CleanGateHistStep_def
+
+#print axioms AvailableChain.FGSA.Run.clean_certSources_of_rows
+#print axioms AvailableChain.FGSA.Run.clean_gateInputs_from_rows
+#print axioms AvailableChain.FGSA.Run.clean_delivery_rowSources
+#print axioms AvailableChain.FGSA.Run.clean_noGate_rowSources
+#print axioms AvailableChain.FGSA.Run.clean_block_reconcile_state
+#print axioms AvailableChain.FGSA.Run.clean_deliveryHistStep
+#print axioms AvailableChain.FGSA.Run.clean_blockHistStep
+#print axioms AvailableChain.FGSA.Run.clean_noGateHistStep
+#print axioms AvailableChain.FGSA.Run.cleanState_zero
+#print axioms AvailableChain.FGSA.Run.clean_gate_fields_all
+
+#print axioms AvailableChain.FGSA.Run.clean_deliveryStateStep
+#print axioms AvailableChain.FGSA.Run.clean_blockStateStep
+#print axioms AvailableChain.FGSA.Run.clean_noGateStateStep
+#print axioms AvailableChain.FGSA.Run.clean_gate_state_of_rows

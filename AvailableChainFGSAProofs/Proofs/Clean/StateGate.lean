@@ -386,5 +386,89 @@ theorem clean_gate_fastWrite {i j : Nat} {v : V} {s : Slot}
         List.find?_nil, Option.map_none, Option.getD_none] at hX
       exact (List.not_mem_nil hX).elim
 
+private theorem clean_gate_other_store {j : Nat} {v w : V} {s : Slot}
+    (ht : IsGateTick p c rho j v s) (hw : w ≠ v) :
+    storeAt p c E rho (j + 1) w = storeAt p c E rho j w := by
+  change (V2.Run.stateBefore E rho (j + 1) w).st = _
+  rw [V2.Run.stateBefore_succ E rho ht]
+  simp only [V2.World.step, Function.update_of_ne hw]
+  rfl
+
+/-- bp02 §5.5: the gate preserves the SA fields at every node.
+DC MonotoneFrom restricts to honest reads; here other nodes keep their state
+because the event updates one node. The FG source and frame fields are separate. -/
+theorem clean_gate_fields_all {i j : Nat} {v : V} {s : Slot}
+    (hsch : V2.ScheduleWellFormed E rho) (hnr : V2.NoRestart rho) (hji : j < i)
+    (hh : CleanHist p c E rho i) (hs : CleanState p c E rho j)
+    (ht : IsGateTick p c rho j v s) :
+    (∀ w row, row ∈ (storeAt p c E rho (j + 1) w).base.obligations →
+      ∃ k < j + 1, ∃ r C, IsGateTick p c rho k w r ∧ gatePassedAt p c E rho k ∧
+        gateResultAt p c E rho k = some (some C) ∧ Block.Preceq row.1 C) ∧
+    (∀ w k r C, k < j + 1 → IsGateTick p c rho k w r →
+      gateResultAt p c E rho k = some (some C) →
+      GridCO.savedGenuine (storeAt p c E rho (j + 1) w).base r = some (some C)) ∧
+    (∀ w r C, GridCO.savedGenuine (storeAt p c E rho (j + 1) w).base r = some (some C) →
+      ∃ k < j + 1, IsGateTick p c rho k w r ∧ gateResultAt p c E rho k = some (some C)) ∧
+    (∀ w r X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho (j + 1) w) r).getD [] →
+      ∃ k < j + 1, IsGateTick p c rho k w r ∧ gatePassedAt p c E rho k ∧
+        ∃ C, gateResultAt p c E rho k = some (some C) ∧
+          Block.Preceq X C ∧ fastAt p c E rho w r X) ∧
+    (∀ w, S_at p c E rho (j + 1) w = .genesis ∨
+      (∃ k < j + 1, ∃ r, IsGateTick p c rho k w r ∧
+        gateResultAt p c E rho k = some (some (S_at p c E rho (j + 1) w))) ∨
+      (∃ k ≤ j + 1, S_at p c E rho (j + 1) w = F_at p c E rho k w)) ∧
+    (∀ w k l, k ≤ l → l ≤ j + 1 →
+      Block.Preceq (S_at p c E rho k w) (S_at p c E rho l w)) := by
+  have other (w : V) (hw : w ≠ v) := clean_gate_other_store (E := E) ht hw
+  have hout (w : V) (hw : w ≠ v) : S_at p c E rho (j + 1) w = S_at p c E rho j w :=
+    congrArg (fun st => st.base.stableRecord) (other w hw)
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
+  · intro w row hr
+    by_cases hw : w = v
+    · subst w; exact clean_gate_leases hsch hji hh hs ht row hr
+    · rw [other w hw] at hr
+      obtain ⟨k, hk, r, C, hkt, hp, hC, hpre⟩ := hs.leases w row hr
+      exact ⟨k, Nat.lt_trans hk (Nat.lt_succ_self j), r, C, hkt, hp, hC, hpre⟩
+  · intro w k r C hk hkt hC
+    by_cases hw : w = v
+    · subst w; exact clean_gate_saved hsch hs ht k r C hk hkt hC
+    · rw [other w hw]
+      have hkj : k < j := by
+        rcases Nat.lt_or_eq_of_le (Nat.le_of_lt_succ hk) with hk | rfl
+        · exact hk
+        · exact (hw (V2.Event.tick.inj (Option.some.inj (hkt.symm.trans ht))).1).elim
+      exact hs.saved w k r C hkj hkt hC
+  · intro w r C hC
+    by_cases hw : w = v
+    · subst w; exact clean_gate_savedOnly hsch hs ht r C hC
+    · rw [other w hw] at hC
+      obtain ⟨k, hk, hkt, hresult⟩ := hs.savedOnly w r C hC
+      exact ⟨k, Nat.lt_trans hk (Nat.lt_succ_self j), hkt, hresult⟩
+  · intro w r X hX
+    by_cases hw : w = v
+    · subst w; exact clean_gate_fastWrite hsch hji hh hs ht r X hX
+    · rw [other w hw] at hX
+      obtain ⟨k, hk, hkt, hp, C, hC, hpre, hfast⟩ := hs.fastWrite w r X hX
+      exact ⟨k, Nat.lt_trans hk (Nat.lt_succ_self j), hkt, hp, C, hC, hpre, hfast⟩
+  · intro w
+    by_cases hw : w = v
+    · subst w; exact clean_gate_sOrigin hsch hnr hji hh hs ht
+    · rw [hout w hw]
+      rcases hs.sOrigin w with hg | ⟨k, hk, r, hkt, hC⟩ | ⟨k, hk, hF⟩
+      · exact Or.inl hg
+      · exact Or.inr (Or.inl ⟨k, Nat.lt_trans hk (Nat.lt_succ_self j), r, hkt, hC⟩)
+      · exact Or.inr (Or.inr ⟨k, Nat.le_trans hk (Nat.le_succ j), hF⟩)
+  · have hstep (w : V) : Block.Preceq (S_at p c E rho j w) (S_at p c E rho (j + 1) w) := by
+      by_cases hw : w = v
+      · subst w; exact clean_gate_sExtends hsch hnr hji hh hs ht
+      · rw [hout w hw]; exact block_preceq_refl _
+    intro w k l hkl hlj
+    rcases Nat.lt_or_eq_of_le hlj with hl | rfl
+    · exact hs.sExtends w k l hkl (Nat.le_of_lt_succ hl)
+    · rcases Nat.lt_or_eq_of_le hkl with hk | rfl
+      · exact block_preceq_trans
+          (hs.sExtends w k j (Nat.le_of_lt_succ hk) (Nat.le_refl j)) (hstep w)
+      · exact block_preceq_refl _
+
 end AvailableChain.FGSA.Run
 end

@@ -39,6 +39,16 @@ def CleanRowSources (i : Nat) : Prop :=
       FGBlock.Preceq (derive p.E p.cfg C).T_h C ∧
       BelowLabel p c E rho i (r * p.R) (eraseFG C)
 
+/-- L49 first-unfold equation; bp02 §5, P3 §8.4. -/
+theorem CleanRowSources_def (i : Nat) :
+    CleanRowSources p c E rho i =
+      (∀ j x r a e, j < i → HonestRowAt p c E rho j x r a →
+    namedEntry a.payload.height_pair = some e →
+    ∃ C, actionSourceFG p c E rho x r = some (some C) ∧
+      e = (hOf p.E p.cfg C, (derive p.E p.cfg C).T_h.root) ∧
+      FGBlock.Preceq (derive p.E p.cfg C).T_h C ∧
+      BelowLabel p c E rho i (r * p.R) (eraseFG C)) := by rfl
+
 /-- I2 certificate sources are earlier honest target rows, with their labels.
 The block and certified entry are universal; no common path or tip is chosen. -/
 def CleanCertSources (i : Nat) : Prop :=
@@ -49,6 +59,17 @@ def CleanCertSources (i : Nat) : Prop :=
       actionSourceFG p c E rho x' r = some (some C) ∧
       FGBlock.Preceq e C ∧
       BelowLabel p c E rho i (r * p.R) (eraseFG C)
+
+/-- L49 first-unfold equation; bp02 §5, P3 §8.4. -/
+theorem CleanCertSources_def (i : Nat) :
+    CleanCertSources p c E rho i =
+      (∀ x W e, x ∈ rho.honest → W ∈ (storeAt p c E rho i x).fg.TF →
+    e ∈ certified p W → e ≠ .genesis →
+    ∃ j x' r a C, j < i ∧ HonestRowAt p c E rho j x' r a ∧
+      namedEntry a.payload.height_pair = some (hOf p.E p.cfg e, e.root) ∧
+      actionSourceFG p c E rho x' r = some (some C) ∧
+      FGBlock.Preceq e C ∧
+      BelowLabel p c E rho i (r * p.R) (eraseFG C)) := by rfl
 
 /-- P3 §8.2, I2–I4. Each state fact is about this run and this index.
 Lease origins include due rows. Saved results are event values. -/
@@ -167,12 +188,28 @@ def CleanStateStep (b₀ : Time) (event : Nat → Prop) : Prop :=
   ∀ i, i ≤ timeIdx rho b₀ → CleanHist p c E rho i →
     ∀ j, j < i → event j → CleanState p c E rho j → CleanState p c E rho (j + 1)
 
+/-- L49 first-unfold equation; bp02 §5, P3 §8.4. -/
+theorem CleanStateStep_def (b₀ : Time) (event : Nat → Prop) :
+    CleanStateStep p c E rho b₀ event =
+      (CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
+  FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
+  ∀ i, i ≤ timeIdx rho b₀ → CleanHist p c E rho i →
+    ∀ j, j < i → event j → CleanState p c E rho j → CleanState p c E rho (j + 1)) := by rfl
+
 /-- History step; state facts are available at all earlier indices, P3 §8.4. -/
 def CleanHistStep (b₀ : Time) (event : Nat → Prop) : Prop :=
   CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   ∀ i, i < timeIdx rho b₀ → event i → CleanHist p c E rho i →
     (∀ k, k ≤ i → CleanState p c E rho k) → CleanHist p c E rho (i + 1)
+
+/-- L49 first-unfold equation; bp02 §5, P3 §8.4. -/
+theorem CleanHistStep_def (b₀ : Time) (event : Nat → Prop) :
+    CleanHistStep p c E rho b₀ event =
+      (CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
+  FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
+  ∀ i, i < timeIdx rho b₀ → event i → CleanHist p c E rho i →
+    (∀ k, k ≤ i → CleanState p c E rho k) → CleanHist p c E rho (i + 1)) := by rfl
 
 /-- Vote, row, or refused proposal: no accepted block handler. -/
 def CleanOrdinaryDelivery (j : Nat) : Prop :=
@@ -181,6 +218,15 @@ def CleanOrdinaryDelivery (j : Nat) : Prop :=
       parentFG (storeAt p c E rho j v) b = some P →
       blockAccepted p (storeAt p c E rho j v) s b P rows = false
 
+omit [Fintype V] in
+/-- L49 first-unfold equation; bp02 §5, P3 §8.4. -/
+theorem CleanOrdinaryDelivery_def (j : Nat) :
+    CleanOrdinaryDelivery p c E rho j =
+      (∃ v o t, rho.events[j]? = some (.deliver v o t) ∧
+    ∀ s b raw support rows P, (toWire p o).decode = some (.block s b raw support rows) →
+      parentFG (storeAt p c E rho j v) b = some P →
+      blockAccepted p (storeAt p c E rho j v) s b P rows = false) := by rfl
+
 /-- A checked block receipt. -/
 def CleanBlockDelivery (j : Nat) : Prop :=
   ∃ v o t s b raw support rows P, rho.events[j]? = some (.deliver v o t) ∧
@@ -188,29 +234,90 @@ def CleanBlockDelivery (j : Nat) : Prop :=
     parentFG (storeAt p c E rho j v) b = some P ∧
     blockAccepted p (storeAt p c E rho j v) s b P rows = true
 
+omit [Fintype V] in
+/-- L49 first-unfold equation; bp02 §5, P3 §8.4. -/
+theorem CleanBlockDelivery_def (j : Nat) :
+    CleanBlockDelivery p c E rho j =
+      (∃ v o t s b raw support rows P, rho.events[j]? = some (.deliver v o t) ∧
+    (toWire p o).decode = some (.block s b raw support rows) ∧
+    parentFG (storeAt p c E rho j v) b = some P ∧
+    blockAccepted p (storeAt p c E rho j v) s b P rows = true) := by rfl
+
 /-- A tick that has no gate. -/
 def CleanNoGateTick (j : Nat) : Prop :=
   ∃ v t, rho.events[j]? = some (.tick v t) ∧ isGateTime p t = false
 
+omit [DecidableEq V] [Fintype V] in
+/-- L49 first-unfold equation; bp02 §5, P3 §8.4. -/
+theorem CleanNoGateTick_def (j : Nat) :
+    CleanNoGateTick p c rho j =
+      (∃ v t, rho.events[j]? = some (.tick v t) ∧ isGateTime p t = false) := by rfl
+
 /-- A tick with a gate; the FG action, when due, is part of this tick. -/
 def CleanGateTick (j : Nat) : Prop := ∃ v s, IsGateTick p c rho j v s
 
+omit [DecidableEq V] [Fintype V] in
+/-- L49 first-unfold equation; bp02 §5, P3 §8.4. -/
+theorem CleanGateTick_def (j : Nat) :
+    CleanGateTick p c rho j =
+      (∃ v s, IsGateTick p c rho j v s) := by rfl
+
 def CleanDeliveryStateStep (b₀ : Time) : Prop :=
   CleanStateStep p c E rho b₀ (CleanOrdinaryDelivery p c E rho)
+
+/-- L49 first-unfold equation; bp02 §5, P3 §8.4. -/
+theorem CleanDeliveryStateStep_def (b₀ : Time) :
+    CleanDeliveryStateStep p c E rho b₀ =
+      (CleanStateStep p c E rho b₀ (CleanOrdinaryDelivery p c E rho)) := by rfl
 def CleanDeliveryHistStep (b₀ : Time) : Prop :=
   CleanHistStep p c E rho b₀ (CleanOrdinaryDelivery p c E rho)
+
+/-- L49 first-unfold equation; bp02 §5, P3 §8.4. -/
+theorem CleanDeliveryHistStep_def (b₀ : Time) :
+    CleanDeliveryHistStep p c E rho b₀ =
+      (CleanHistStep p c E rho b₀ (CleanOrdinaryDelivery p c E rho)) := by rfl
 def CleanBlockStateStep (b₀ : Time) : Prop :=
   CleanStateStep p c E rho b₀ (CleanBlockDelivery p c E rho)
+
+/-- L49 first-unfold equation; bp02 §5, P3 §8.4. -/
+theorem CleanBlockStateStep_def (b₀ : Time) :
+    CleanBlockStateStep p c E rho b₀ =
+      (CleanStateStep p c E rho b₀ (CleanBlockDelivery p c E rho)) := by rfl
 def CleanBlockHistStep (b₀ : Time) : Prop :=
   CleanHistStep p c E rho b₀ (CleanBlockDelivery p c E rho)
+
+/-- L49 first-unfold equation; bp02 §5, P3 §8.4. -/
+theorem CleanBlockHistStep_def (b₀ : Time) :
+    CleanBlockHistStep p c E rho b₀ =
+      (CleanHistStep p c E rho b₀ (CleanBlockDelivery p c E rho)) := by rfl
 def CleanNoGateStateStep (b₀ : Time) : Prop :=
   CleanStateStep p c E rho b₀ (CleanNoGateTick p c rho)
+
+/-- L49 first-unfold equation; bp02 §5, P3 §8.4. -/
+theorem CleanNoGateStateStep_def (b₀ : Time) :
+    CleanNoGateStateStep p c E rho b₀ =
+      (CleanStateStep p c E rho b₀ (CleanNoGateTick p c rho)) := by rfl
 def CleanNoGateHistStep (b₀ : Time) : Prop :=
   CleanHistStep p c E rho b₀ (CleanNoGateTick p c rho)
+
+/-- L49 first-unfold equation; bp02 §5, P3 §8.4. -/
+theorem CleanNoGateHistStep_def (b₀ : Time) :
+    CleanNoGateHistStep p c E rho b₀ =
+      (CleanHistStep p c E rho b₀ (CleanNoGateTick p c rho)) := by rfl
 def CleanGateStateStep (b₀ : Time) : Prop :=
   CleanStateStep p c E rho b₀ (CleanGateTick p c rho)
+
+/-- L49 first-unfold equation; bp02 §5, P3 §8.4. -/
+theorem CleanGateStateStep_def (b₀ : Time) :
+    CleanGateStateStep p c E rho b₀ =
+      (CleanStateStep p c E rho b₀ (CleanGateTick p c rho)) := by rfl
 def CleanGateHistStep (b₀ : Time) : Prop :=
   CleanHistStep p c E rho b₀ (CleanGateTick p c rho)
+
+/-- L49 first-unfold equation; bp02 §5, P3 §8.4. -/
+theorem CleanGateHistStep_def (b₀ : Time) :
+    CleanGateHistStep p c E rho b₀ =
+      (CleanHistStep p c E rho b₀ (CleanGateTick p c rho)) := by rfl
 
 /-- A restart is excluded by Base₂.noRestart, P3 §8.4. -/
 def CleanRestartStep (b₀ : Time) : Prop :=

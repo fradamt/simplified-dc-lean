@@ -1,7 +1,10 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Clean.Chain
+public import AvailableChainFGSAProofs.Proofs.Clean.StateGate
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads
 public import AvailableChainFGSARun.Proofs.ClientTrace
+public import AvailableChainFGSARun.Proofs.AC
+public import AvailableChainGeneric.Proofs.V2.Reads
 
 public section
 
@@ -201,6 +204,563 @@ theorem cleanState_index_facts {b₀ : Time} (h : CleanCut₂ p c E rho b₀)
     fun v hv => (hf.store i v hv).1,
     fun v hv => (hf.frame i v hv).1,
     emittedRowsNoSlash E rho h.base.linked⟩
+
+
+omit [Fintype V] in
+private theorem clean_row_tick {j : Nat} {x : V} {r : Nat} {a : RowWire p.n}
+    (ha : HonestRowAt p c E rho j x r a) :
+    rho.events[j]? = some (.tick x (p.actionTime r)) := by
+  obtain ⟨_, hr, t, hj, hem⟩ := ha
+  rcases a with ⟨auth, body⟩
+  cases auth with
+  | none => cases hr
+  | proposer s => cases hr
+  | seat label seat =>
+    cases label with
+    | head s => cases hr
+    | fg r' =>
+      have hrr : r' = r := Option.some.inj hr
+      subst r'
+      obtain ⟨_, ht, _, _⟩ := (fgsa_emitsAt_row E rho j x t hj r seat body).mp hem
+      exact ht ▸ hj
+
+omit [Fintype V] in
+private theorem clean_rows_step {j : Nat}
+    (hs : CleanRowSources p c E rho j)
+    (hn : ∀ x r, rho.events[j]? ≠ some (.tick x (p.actionTime r))) :
+    CleanRowSources p c E rho (j + 1) := by
+  rw [CleanRowSources_def] at hs ⊢
+  intro k x r a e hk ha he
+  have hkj : k < j := by
+    rcases Nat.lt_or_eq_of_le (Nat.le_of_lt_succ hk) with h | rfl
+    · exact h
+    · exact (hn x r (clean_row_tick ha)).elim
+  obtain ⟨C, hc, heq, hp, hb⟩ := hs k x r a e hkj ha he
+  exact ⟨C, hc, heq, hp, belowLabel_mono_index (Nat.le_succ j) hb⟩
+
+omit [Fintype V] in
+/-- bp02 §5.3: the F1 certificate channel and exact row names give all
+certificate sources. DC's GST-zero proof has no FG-SA row-source field. -/
+theorem clean_certSources_of_rows {i : Nat} (hf : FGFoundation p c E rho)
+    (hr : CleanRowSources p c E rho i) : CleanCertSources p c E rho i := by
+  rw [CleanRowSources_def] at hr
+  rw [CleanCertSources_def]
+  intro x W e hx hW he hne
+  obtain ⟨y, r, a, ⟨j, hj, ha⟩, hn⟩ := hf.strat i x W hx hW e he hne
+  obtain ⟨C, hc, heq, hpre, hb⟩ := hr j y r a _ hj ha hn
+  have heC : e = (derive p.E p.cfg C).T_h :=
+    FGBlock.root_injective (congrArg Prod.snd heq)
+  exact ⟨j, y, r, a, C, hj, ha, hn, hc, heC ▸ hpre, hb⟩
+
+omit [Fintype V] in
+private theorem clean_frame_from_rows {i k : Nat} (hki : k ≤ i)
+    (hsrc : SrcFrameAboveStmt p c E rho) (hr : CleanRowSources p c E rho i)
+    (Φ : Block → Prop) (hg : Φ .genesis)
+    (hp : ∀ X Y, Block.Preceq X Y → Φ Y → Φ X)
+    (hrow : ∀ j x r a (C : FGBlock (Fin p.n)), j < k → HonestRowAt p c E rho j x r a →
+      BelowLabel p c E rho i (r * p.R) (eraseFG C) → Φ (eraseFG C))
+    (v : V) (hv : v ∈ rho.honest) :
+    Φ (F_at p c E rho k v) ∧ Φ (J_at p c E rho k v) := by
+  rw [CleanRowSources_def] at hr
+  have hc : AncestorClosed p (fun e => Φ (eraseFG e)) :=
+    ⟨fun X Y hXY hY => hp _ _ (eraseFG_preceq hXY) hY⟩
+  have hh := (hsrc (fun e => Φ (eraseFG e)) 0 hc (fun _ => hg) k v hv ?_).2
+  · exact ⟨hh.1 (Nat.zero_le _), hh.2.1 (Nat.zero_le _)⟩
+  · intro y r a e ha hn _
+    obtain ⟨j, hj, hem⟩ := ha
+    obtain ⟨C, _, heq, hpre, hb⟩ := hr j y r a _ (Nat.lt_of_lt_of_le hj hki) hem hn
+    have heC : e = (derive p.E p.cfg C).T_h :=
+      FGBlock.root_injective (congrArg Prod.snd heq)
+    exact hp _ _ (eraseFG_preceq (heC ▸ hpre)) (hrow j y r a C hj hem hb)
+
+omit [Fintype V] in
+private theorem clean_dishonest_initial (hsch : V2.ScheduleWellFormed E rho)
+    (i : Nat) (v : V) (hv : v ∉ rho.honest) :
+    storeAt p c E rho i v = FGSA.initial p.n := by
+  change (V2.Run.stateBefore E rho i v).st = _
+  rw [V2.Run.stateBefore_eq_of_node_ne E rho (Nat.zero_le i) ?_]
+  · rfl
+  · intro k e _ _ he hnode
+    exact hv (hnode ▸ hsch.honest_only e (List.mem_of_getElem? he))
+
+omit [Fintype V] in
+private theorem clean_row_label {i j : Nat} {x : V} {r : Nat} {a : RowWire p.n}
+    (hsch : V2.ScheduleWellFormed E rho) (hj : j < i)
+    (ha : HonestRowAt p c E rho j x r a) : r * p.R ≤ labelBoundAt p c rho i := by
+  have he := clean_row_tick ha
+  have htime : p.actionTime r ≤
+      (match rho.events[i]? with | some e => e.time | none => rho.horizon) := by
+    cases hi : rho.events[i]? with
+    | none => exact (hsch.in_horizon _ (List.mem_of_getElem? he)).2
+    | some e =>
+      obtain ⟨hjl, hje⟩ := List.getElem?_eq_some_iff.mp he
+      obtain ⟨hil, hie⟩ := List.getElem?_eq_some_iff.mp hi
+      have hkey := (List.pairwise_iff_getElem.mp hsch.sorted) j i hjl hil hj
+      rw [hje, hie] at hkey
+      exact V2.Engine.time_le_of_key_le _ _ hkey
+  have hd : (0 : Int) < 4 * p.Δ := by have := p.deltaPos; positivity
+  have hdiv : (r * p.R : Nat) ≤
+      ((match rho.events[i]? with | some e => e.time | none => rho.horizon) - 6 * p.Δ) /
+        (4 * p.Δ) := by
+    apply (Int.le_ediv_iff_mul_le hd).mpr
+    change 4 * p.Δ * (r * p.R : Nat) + 6 * p.Δ ≤ _ at htime
+    nlinarith
+  have hnat := Int.toNat_le_toNat hdiv
+  dsimp only [labelBoundAt]
+  cases hi : rho.events[i]? <;> rw [hi, Int.toNat_natCast] at hnat <;> exact hnat
+
+
+omit [Fintype V] in
+private theorem clean_fOrigin_from_rows {i : Nat}
+    (hsch : V2.ScheduleWellFormed E rho)
+    (hsrc : SrcFrameAboveStmt p c E rho) (hr : CleanRowSources p c E rho i) :
+    ∀ v, BelowLabel p c E rho i (labelBoundAt p c rho i) (F_at p c E rho i v) ∧
+      BelowLabel p c E rho i (labelBoundAt p c rho i) (J_at p c E rho i v) := by
+  intro v
+  by_cases hv : v ∈ rho.honest
+  · exact clean_frame_from_rows (Nat.le_refl i) hsrc hr _ (belowLabel_genesis _ _)
+      (fun _ _ => belowLabel_of_preceq)
+      (fun _ _ _ _ _ hj ha hb => belowLabel_mono_label (clean_row_label hsch hj ha) hb) v hv
+  · have he := clean_dishonest_initial hsch i v hv
+    change BelowLabel _ _ _ _ _ _ (eraseFG (storeAt p c E rho i v).fg.F) ∧
+      BelowLabel _ _ _ _ _ _ (eraseFG (storeAt p c E rho i v).fg.J)
+    rw [he]
+    exact ⟨belowLabel_genesis _ _, belowLabel_genesis _ _⟩
+
+
+omit [Fintype V] in
+/-- bp02 §5.4: gate inputs use only rows before the gate time.
+DC GSTZeroSafety has no FG-SA labelled gate-input field. -/
+theorem clean_gateInputs_from_rows {i : Nat}
+    (hsch : V2.ScheduleWellFormed E rho) (hnr : V2.NoRestart rho)
+    (hsrc : SrcFrameAboveStmt p c E rho) (hr : CleanRowSources p c E rho i) :
+    ∀ v s, IsGateTick p c rho i v s →
+      let below := fun X => X = .genesis ∨
+        ∃ r B, (r, B) ∈ cleanResults p c E rho i ∧ r < s ∧ Block.Preceq X B
+      below (F_at p c E rho i v) ∧ below (J_at p c E rho i v) := by
+  intro v s ht
+  let k := V2.Run.idxBefore rho (SA.gateTime p.toParams s)
+  have hki : k ≤ i := by
+    by_contra hn
+    have hbad := (Gen.V2.index_lt_idxBefore_iff hsch ht (SA.gateTime p.toParams s)).1
+      (Nat.lt_of_not_ge hn)
+    exact (lt_irrefl _ hbad)
+  have hv := hsch.honest_only _ (List.mem_of_getElem? ht)
+  let Φ := fun X => X = .genesis ∨
+    ∃ r B, (r, B) ∈ cleanResults p c E rho i ∧ r < s ∧ Block.Preceq X B
+  have hp : ∀ X Y, Block.Preceq X Y → Φ Y → Φ X := by
+    intro X Y hXY hY
+    rcases hY with rfl | ⟨r, B, hB, hrs, hYB⟩
+    · exact Or.inl (Gen.Pure.block_preceq_antisymm hXY (Gen.Pure.block_genesis_preceq X))
+    · exact Or.inr ⟨r, B, hB, hrs, Gen.Pure.block_preceq_trans hXY hYB⟩
+  have hrow : ∀ j x r a (C : FGBlock (Fin p.n)), j < k →
+      HonestRowAt p c E rho j x r a →
+      BelowLabel p c E rho i (r * p.R) (eraseFG C) → Φ (eraseFG C) := by
+    intro j x r a C hj ha hb
+    have htime := (Gen.V2.index_lt_idxBefore_iff hsch (clean_row_tick ha)
+      (SA.gateTime p.toParams s)).1 hj
+    have hlabel : r * p.R < s := by
+      change 4 * p.Δ * (r * p.R : Nat) + 6 * p.Δ < 4 * p.Δ * (s : Int) + 6 * p.Δ at htime
+      have hd := p.deltaPos
+      have hh : (r * p.R : Nat) < (s : Int) := by nlinarith
+      exact_mod_cast hh
+    rcases hb with hg | ⟨r', B, hB, hrr, hCB⟩
+    · exact Or.inl hg
+    · exact Or.inr ⟨r', B, hB, Nat.lt_of_le_of_lt hrr hlabel, hCB⟩
+  have hh := clean_frame_from_rows hki hsrc hr Φ (Or.inl rfl) hp hrow v hv
+  have he : storeAt p c E rho i v = storeAt p c E rho k v := by
+    change (V2.Run.stateBefore E rho i v).st = (V2.Run.stateBefore E rho k v).st
+    rw [V2.Engine.stateBefore_tick_eq_stateBeforeTime hsch hnr ht,
+      Gen.V2.stateBefore_idxBefore E rho _ hsch]
+  change Φ (eraseFG (storeAt p c E rho i v).fg.F) ∧
+    Φ (eraseFG (storeAt p c E rho i v).fg.J)
+  rw [he]
+  exact hh
+
+
+omit [Fintype V] in
+/-- bp02 §5.2: a delivery emits no new row. DC GSTZeroSafety uses a
+whole-run statement; this is an FG-SA source-preservation substep. -/
+theorem clean_delivery_rowSources {j : Nat} {v : V} {o} {t : Time}
+    (he : rho.events[j]? = some (.deliver v o t))
+    (hr : CleanRowSources p c E rho j) : CleanRowSources p c E rho (j + 1) := by
+  apply clean_rows_step hr
+  intro x r ht
+  rw [he] at ht
+  cases ht
+
+omit [Fintype V] in
+/-- bp02 §5.2: all action times are gate times, so this tick emits no row.
+DC GSTZeroSafety has no FG-SA action-row predicate. -/
+theorem clean_noGate_rowSources {j : Nat} {v : V} {t : Time}
+    (he : rho.events[j]? = some (.tick v t)) (hn : isGateTime p t = false)
+    (hr : CleanRowSources p c E rho j) : CleanRowSources p c E rho (j + 1) := by
+  apply clean_rows_step hr
+  intro x r ht
+  have htime := (V2.Event.tick.inj (Option.some.inj (he.symm.trans ht))).2
+  have hg : isGateTime p t = true := (isGateTime_iff p t).mpr ⟨r * p.R, htime.symm⟩
+  rw [hn] at hg
+  cases hg
+
+omit [Fintype V] in
+private theorem clean_saved_of_member {st : State p.n} (hs : CStoreInv p st)
+    {r : Slot} {C : Block} (hm : (r, some C) ∈ st.base.genuine) :
+    GridCO.savedGenuine st.base r = some (some C) := by
+  change (st.base.genuine.find? (fun row => row.1 == r)).map Prod.snd = _
+  cases hf : st.base.genuine.find? (fun row => row.1 == r) with
+  | none =>
+    have hbad := (List.find?_eq_none.mp hf) _ hm
+    exact (hbad (by simp only [beq_self_eq_true])).elim
+  | some row =>
+    have hmem := List.mem_of_find?_eq_some hf
+    have hkeyB : (row.1 == r) = true :=
+      List.find?_some (p := fun row : Slot × Option Block => row.1 == r) hf
+    have hkey : row.1 = r := beq_iff_eq.mp hkeyB
+    have he : row = (r, some C) := List.inj_on_of_nodup_map hs.genuineKeys hmem hm hkey
+    rw [he]
+    rfl
+
+/-- bp02 §5.3 steps 3–6: CleanState supplies all three K1 premises.
+Every obligation row is included, even if its deadline is due. DC's clean
+stable-record proof has no FG-SA reconcile handler or obligation rows. -/
+theorem clean_block_reconcile_state {b₀ : Time} {i j : Nat} {v : V} {o} {t : Time}
+    {s : Slot} {B : Block} {raw support : List (HeadWire p.n)}
+    {rows : List (RowWire p.n)} {P : FGBlock (Fin p.n)}
+    (h : CleanCut₂ p c E rho b₀) (hf : FGFoundation p c E rho)
+    (hsrc : SrcFrameAboveStmt p c E rho)
+    (hji : j < i) (hh : CleanHist p c E rho i) (hs : CleanState p c E rho j)
+    (he : rho.events[j]? = some (.deliver v o t))
+    (hd : (toWire p o).decode = some (.block s B raw support rows))
+    (hP : parentFG (storeAt p c E rho j v) B = some P)
+    (ha : blockAccepted p (storeAt p c E rho j v) s B P rows = true) :
+    (storeAt p c E rho (j + 1) v).base.obligations = (storeAt p c E rho j v).base.obligations ∧
+    (storeAt p c E rho (j + 1) v).base.genuine = (storeAt p c E rho j v).base.genuine ∧
+    (storeAt p c E rho (j + 1) v).fastWrite = (storeAt p c E rho j v).fastWrite ∧
+    Block.Preceq (S_at p c E rho j v) (S_at p c E rho (j + 1) v) := by
+  have hv := h.base.valid.honest_only _ (List.mem_of_getElem? he)
+  have hr := clean_delivery_rowSources he hs.sources.1
+  let Φ := fun X => ∃ r, BelowLabel p c E rho (j + 1) r X
+  have hfg := clean_frame_from_rows (Nat.le_refl (j + 1)) hsrc hr Φ
+    ⟨0, belowLabel_genesis _ _⟩
+    (fun X Y hXY ⟨r, hY⟩ => ⟨r, belowLabel_of_preceq hXY hY⟩)
+    (fun _ _ r _ _ _ _ hb => ⟨r * p.R, hb⟩) v hv
+  obtain ⟨rF, hF⟩ := hfg.1
+  have hFi := belowLabel_mono_index (Nat.succ_le_of_lt hji) hF
+  apply clean_block_reconcile he hd hP ha
+  · intro row hrow
+    obtain ⟨k, hk, r, C, hkt, _, hC, hpre⟩ := hs.leases v row hrow
+    exact Gen.Pure.block_compatible_of_preceq_compatible hpre
+      (cleanHist_belowLabel_compatible hh
+        (belowLabel_of_gateResultAt (Nat.lt_trans hk hji) hkt hC (Nat.le_refl r)) hFi)
+  · intro r C hC
+    obtain ⟨k, hk, hkt, hresult⟩ := hs.savedOnly v r C
+      (clean_saved_of_member (cstoreInv_stateBefore E rho j v) hC)
+    exact cleanHist_belowLabel_compatible hh
+      (belowLabel_of_gateResultAt (Nat.lt_trans hk hji) hkt hresult (Nat.le_refl r)) hFi
+  · rcases hs.sOrigin v with hg | ⟨k, hk, r, hkt, hC⟩ | ⟨k, hk, hSF⟩
+    · rw [hg]
+      exact Gen.Pure.block_compatible_of_common
+        (Gen.Pure.block_genesis_preceq _) (Gen.Pure.block_preceq_refl _)
+    · exact cleanHist_belowLabel_compatible hh
+        (belowLabel_of_gateResultAt (Nat.lt_trans hk hji) hkt hC (Nat.le_refl r)) hFi
+    · rw [hSF]
+      have hmono := eraseFG_preceq (hf.mono h.base.noRestart k j v hv hk).1
+      exact cleanHist_belowLabel_compatible hh
+        (belowLabel_mono_index (Nat.le_of_lt hji)
+          (belowLabel_of_preceq hmono (hs.fOrigin v).1)) hFi
+
+
+private theorem clean_state_unchanged {b₀ : Time} {j : Nat}
+    (h : CleanCut₂ p c E rho b₀) (hf : FGFoundation p c E rho)
+    (hsrc : SrcFrameAboveStmt p c E rho) (hs : CleanState p c E rho j)
+    (hr : CleanRowSources p c E rho (j + 1))
+    (hn : ∀ v s, ¬ IsGateTick p c rho j v s)
+    (he : ∀ v, let a := storeAt p c E rho j v
+      let b := storeAt p c E rho (j + 1) v
+      b.fg = a.fg ∧ b.base.stableRecord = a.base.stableRecord ∧
+        b.base.obligations.Sublist a.base.obligations ∧ b.base.genuine = a.base.genuine ∧
+        b.fastWrite = a.fastWrite) : CleanState p c E rho (j + 1) := by
+  obtain ⟨hnest, hstore, hframe, hclient⟩ := cleanState_index_facts h hf (j + 1)
+  have hS (v : V) : S_at p c E rho (j + 1) v = S_at p c E rho j v := (he v).2.1
+  refine ⟨⟨hr, clean_certSources_of_rows hf hr⟩,
+    clean_fOrigin_from_rows h.base.valid.toScheduleWellFormed hsrc hr,
+    clean_gateInputs_from_rows h.base.valid.toScheduleWellFormed h.base.noRestart hsrc hr,
+    ?_, ?_, ?_, ?_, ?_, ?_, hnest, hstore, hframe, hclient, ?_⟩
+  · intro v row hrow
+    obtain ⟨k, hk, r, C, hkt, hp, hC, hpre⟩ := hs.leases v row ((he v).2.2.1.subset hrow)
+    exact ⟨k, Nat.lt_trans hk (Nat.lt_succ_self j), r, C, hkt, hp, hC, hpre⟩
+  · intro v k r C hk hkt hC
+    have hkj : k < j := by
+      rcases Nat.lt_or_eq_of_le (Nat.le_of_lt_succ hk) with hk | rfl
+      · exact hk
+      · exact (hn v r hkt).elim
+    change ((storeAt p c E rho (j + 1) v).base.genuine.find? _).map _ = _
+    rw [(he v).2.2.2.1]
+    exact hs.saved v k r C hkj hkt hC
+  · intro v r C hC
+    change ((storeAt p c E rho (j + 1) v).base.genuine.find? _).map _ = _ at hC
+    rw [(he v).2.2.2.1] at hC
+    obtain ⟨k, hk, hkt, hresult⟩ := hs.savedOnly v r C hC
+    exact ⟨k, Nat.lt_trans hk (Nat.lt_succ_self j), hkt, hresult⟩
+  · intro v r X hX
+    change X ∈ (((storeAt p c E rho (j + 1) v).fastWrite.find? _).map _).getD [] at hX
+    rw [(he v).2.2.2.2] at hX
+    obtain ⟨k, hk, hkt, hp, C, hC, hpre, hfast⟩ := hs.fastWrite v r X hX
+    exact ⟨k, Nat.lt_trans hk (Nat.lt_succ_self j), hkt, hp, C, hC, hpre, hfast⟩
+  · intro v
+    rw [hS]
+    rcases hs.sOrigin v with hg | ⟨k, hk, r, hkt, hC⟩ | ⟨k, hk, hF⟩
+    · exact Or.inl hg
+    · exact Or.inr (Or.inl ⟨k, Nat.lt_trans hk (Nat.lt_succ_self j), r, hkt, hC⟩)
+    · exact Or.inr (Or.inr ⟨k, Nat.le_trans hk (Nat.le_succ j), hF⟩)
+  · intro k v o t hk hv hdel hmov
+    rcases Nat.lt_or_eq_of_le (Nat.le_of_lt_succ hk) with hk | rfl
+    · exact hs.harmless k v o t hk hv hdel hmov
+    · have hm := hmov.2
+      rw [FAdvance_def] at hm
+      exact (hm (congrArg Store.F (he v).1).symm).elim
+  · intro v k l hkl hlj
+    rcases Nat.lt_or_eq_of_le hlj with hl | rfl
+    · exact hs.sExtends v k l hkl (Nat.le_of_lt_succ hl)
+    · rcases Nat.lt_or_eq_of_le hkl with hk | rfl
+      · rw [hS]; exact hs.sExtends v k j (Nat.le_of_lt_succ hk) (Nat.le_refl j)
+      · exact Gen.Pure.block_preceq_refl _
+
+/-- bp02 §5.2: ordinary delivery preserves the full state at every node.
+DC GSTZeroSafety is a whole-run result; this is an FG-SA event substep. -/
+theorem clean_deliveryStateStep {b₀ : Time} : CleanDeliveryStateStep p c E rho b₀ := by
+  rw [CleanDeliveryStateStep_def, CleanStateStep_def]
+  intro h _ hf hsrc i _ _ j _ he hs
+  rw [CleanOrdinaryDelivery_def] at he
+  obtain ⟨v, o, t, he, href⟩ := he
+  apply clean_state_unchanged h hf hsrc hs (clean_delivery_rowSources he hs.sources.1)
+    (delivery_noGate he)
+  intro w
+  by_cases hw : w = v
+  · subst w
+    obtain ⟨hfg, hS, hL, hG, hfw⟩ := clean_delivery_fields he href
+    exact ⟨hfg, hS, hL ▸ List.Sublist.refl _, hG, hfw⟩
+  · have hh : storeAt p c E rho (j + 1) w = storeAt p c E rho j w := by
+      change (V2.Run.stateBefore E rho (j + 1) w).st = _
+      rw [V2.Run.stateBefore_succ E rho he]
+      simp only [V2.World.step, Function.update_of_ne hw]
+      rfl
+    dsimp only
+    rw [hh]
+    exact ⟨rfl, rfl, List.Sublist.refl _, rfl, rfl⟩
+
+/-- bp02 §5.2: a non-gate tick preserves the full state at every node.
+DC GSTZeroSafety has no separate FG-SA clock-handler predicate. -/
+theorem clean_noGateStateStep {b₀ : Time} : CleanNoGateStateStep p c E rho b₀ := by
+  rw [CleanNoGateStateStep_def, CleanStateStep_def]
+  intro h _ hf hsrc i _ _ j _ he hs
+  rw [CleanNoGateTick_def] at he
+  obtain ⟨v, t, he, hn⟩ := he
+  refine clean_state_unchanged h hf hsrc hs (clean_noGate_rowSources he hn hs.sources.1) ?_ ?_
+  · intro w s hgate
+    change rho.events[j]? = some (.tick w _) at hgate
+    have htime := (V2.Event.tick.inj (Option.some.inj (he.symm.trans hgate))).2
+    have hg := (isGateTime_iff p t).mpr ⟨s, htime.symm⟩
+    rw [hn] at hg
+    cases hg
+  · intro w
+    by_cases hw : w = v
+    · subst w; exact clean_noGate_fields he hn
+    · have hh : storeAt p c E rho (j + 1) w = storeAt p c E rho j w := by
+        change (V2.Run.stateBefore E rho (j + 1) w).st = _
+        rw [V2.Run.stateBefore_succ E rho he]
+        simp only [V2.World.step, Function.update_of_ne hw]
+        rfl
+      dsimp only
+      rw [hh]
+      exact ⟨rfl, rfl, List.Sublist.refl _, rfl, rfl⟩
+
+
+/-- bp02 §5.3: admission, certificate origins, and harmless reconcile
+preserve every CleanState field at every node. DC clean stable safety has
+no FG-SA admission/reconcile event predicate. -/
+theorem clean_blockStateStep {b₀ : Time} : CleanBlockStateStep p c E rho b₀ := by
+  rw [CleanBlockStateStep_def, CleanStateStep_def]
+  intro h _ hf hsrc i _ hh j hji he hs
+  rw [CleanBlockDelivery_def] at he
+  obtain ⟨v, o, t, s, B, raw, support, rows, P, he, hd, hP, ha⟩ := he
+  have hr := clean_delivery_rowSources he hs.sources.1
+  have hkeep (w : V) :
+      (storeAt p c E rho (j + 1) w).base.obligations =
+        (storeAt p c E rho j w).base.obligations ∧
+      (storeAt p c E rho (j + 1) w).base.genuine =
+        (storeAt p c E rho j w).base.genuine ∧
+      (storeAt p c E rho (j + 1) w).fastWrite = (storeAt p c E rho j w).fastWrite ∧
+      Block.Preceq (S_at p c E rho j w) (S_at p c E rho (j + 1) w) := by
+    by_cases hw : w = v
+    · subst w; exact clean_block_reconcile_state h hf hsrc hji hh hs he hd hP ha
+    · have hstore : storeAt p c E rho (j + 1) w = storeAt p c E rho j w := by
+        change (V2.Run.stateBefore E rho (j + 1) w).st = _
+        rw [V2.Run.stateBefore_succ E rho he]
+        simp only [V2.World.step, Function.update_of_ne hw]
+        rfl
+      change _ ∧ _ ∧ _ ∧ Block.Preceq (storeAt p c E rho j w).base.stableRecord
+        (storeAt p c E rho (j + 1) w).base.stableRecord
+      rw [hstore]
+      exact ⟨rfl, rfl, rfl, Gen.Pure.block_preceq_refl _⟩
+  obtain ⟨hnest, hstore, hframe, hclient⟩ := cleanState_index_facts h hf (j + 1)
+  refine ⟨⟨hr, clean_certSources_of_rows hf hr⟩,
+    clean_fOrigin_from_rows h.base.valid.toScheduleWellFormed hsrc hr,
+    clean_gateInputs_from_rows h.base.valid.toScheduleWellFormed h.base.noRestart hsrc hr,
+    ?_, ?_, ?_, ?_, ?_, ?_, hnest, hstore, hframe, hclient, ?_⟩
+  · intro w row hrow
+    rw [(hkeep w).1] at hrow
+    obtain ⟨k, hk, r, C, hkt, hp, hC, hpre⟩ := hs.leases w row hrow
+    exact ⟨k, Nat.lt_trans hk (Nat.lt_succ_self j), r, C, hkt, hp, hC, hpre⟩
+  · intro w k r C hk hkt hC
+    have hkj : k < j := by
+      rcases Nat.lt_or_eq_of_le (Nat.le_of_lt_succ hk) with hk | rfl
+      · exact hk
+      · exact (delivery_noGate he w r hkt).elim
+    change ((storeAt p c E rho (j + 1) w).base.genuine.find? _).map _ = _
+    rw [(hkeep w).2.1]
+    exact hs.saved w k r C hkj hkt hC
+  · intro w r C hC
+    change ((storeAt p c E rho (j + 1) w).base.genuine.find? _).map _ = _ at hC
+    rw [(hkeep w).2.1] at hC
+    obtain ⟨k, hk, hkt, hresult⟩ := hs.savedOnly w r C hC
+    exact ⟨k, Nat.lt_trans hk (Nat.lt_succ_self j), hkt, hresult⟩
+  · intro w r X hX
+    change X ∈ (((storeAt p c E rho (j + 1) w).fastWrite.find? _).map _).getD [] at hX
+    rw [(hkeep w).2.2.1] at hX
+    obtain ⟨k, hk, hkt, hp, C, hC, hpre, hfast⟩ := hs.fastWrite w r X hX
+    exact ⟨k, Nat.lt_trans hk (Nat.lt_succ_self j), hkt, hp, C, hC, hpre, hfast⟩
+  · intro w
+    have horigin : S_at p c E rho (j + 1) w = S_at p c E rho j w ∨
+        S_at p c E rho (j + 1) w = F_at p c E rho (j + 1) w := by
+      rcases fgsaAC_output_step E rho j w with heq | hgate | hrec | ⟨t', hrest, _⟩
+      · exact Or.inl heq
+      · rw [Gen.AC.GateWrite_def] at hgate
+        obtain ⟨r, hgate⟩ := hgate
+        rw [he] at hgate
+        cases hgate
+      · rw [Gen.AC.Reconcile_def] at hrec
+        obtain ⟨_, _, _, _, _, _, hout⟩ := hrec
+        change S_at p c E rho (j + 1) w =
+          Gen.AC.normalizeOutput (F_at p c E rho (j + 1) w) (S_at p c E rho j w) at hout
+        rw [Gen.AC.normalizeOutput_def] at hout
+        split at hout
+        · exact Or.inl hout
+        · exact Or.inr hout
+      · rw [he] at hrest
+        cases hrest
+    rcases horigin with heq | hF
+    · rw [heq]
+      rcases hs.sOrigin w with hg | ⟨k, hk, r, hkt, hC⟩ | ⟨k, hk, hF⟩
+      · exact Or.inl hg
+      · exact Or.inr (Or.inl ⟨k, Nat.lt_trans hk (Nat.lt_succ_self j), r, hkt, hC⟩)
+      · exact Or.inr (Or.inr ⟨k, Nat.le_trans hk (Nat.le_succ j), hF⟩)
+    · exact Or.inr (Or.inr ⟨j + 1, Nat.le_refl _, hF⟩)
+  · intro k w o' t' hk hw hdel hmov
+    rcases Nat.lt_or_eq_of_le (Nat.le_of_lt_succ hk) with hk | rfl
+    · exact hs.harmless k w o' t' hk hw hdel hmov
+    · exact ⟨(hkeep w).1, (hkeep w).2.1, (hkeep w).2.2.1⟩
+  · intro w k l hkl hlj
+    rcases Nat.lt_or_eq_of_le hlj with hl | rfl
+    · exact hs.sExtends w k l hkl (Nat.le_of_lt_succ hl)
+    · rcases Nat.lt_or_eq_of_le hkl with hk | rfl
+      · exact Gen.Pure.block_preceq_trans
+          (hs.sExtends w k j (Nat.le_of_lt_succ hk) (Nat.le_refl j)) (hkeep w).2.2.2
+      · exact Gen.Pure.block_preceq_refl _
+
+/-- bp02 §§5.5–5.6: the gate state closes once the action supplies its
+row sources. This is not the frozen CleanGateStateStep Prop: the action
+substep remains separate as required by S3. DC has no FG-SA action rows. -/
+theorem clean_gate_state_of_rows {b₀ : Time} {i j : Nat} {v : V} {s : Slot}
+    (h : CleanCut₂ p c E rho b₀) (hf : FGFoundation p c E rho)
+    (hsrc : SrcFrameAboveStmt p c E rho) (hji : j < i)
+    (hh : CleanHist p c E rho i) (hs : CleanState p c E rho j)
+    (ht : IsGateTick p c rho j v s) (hr : CleanRowSources p c E rho (j + 1)) :
+    CleanState p c E rho (j + 1) := by
+  obtain ⟨hL, hG, hOnly, hFast, hOrigin, hS⟩ :=
+    clean_gate_fields_all h.base.valid.toScheduleWellFormed h.base.noRestart hji hh hs ht
+  obtain ⟨hnest, hstore, hframe, hclient⟩ := cleanState_index_facts h hf (j + 1)
+  refine ⟨⟨hr, clean_certSources_of_rows hf hr⟩,
+    clean_fOrigin_from_rows h.base.valid.toScheduleWellFormed hsrc hr,
+    clean_gateInputs_from_rows h.base.valid.toScheduleWellFormed h.base.noRestart hsrc hr,
+    hL, hG, hOnly, hFast, hOrigin, ?_, hnest, hstore, hframe, hclient, hS⟩
+  intro k w o t hk hw he hmov
+  rcases Nat.lt_or_eq_of_le (Nat.le_of_lt_succ hk) with hk | rfl
+  · exact hs.harmless k w o t hk hw he hmov
+  · exact (delivery_noGate he v s ht).elim
+
+/-- bp02 §5.2: the delivery case of the prefix history induction.
+DC GSTZeroSafety is a whole-run safety result; this is its FG-SA event substep. -/
+theorem clean_deliveryHistStep {b₀ : Time} : CleanDeliveryHistStep p c E rho b₀ := by
+  rw [CleanDeliveryHistStep_def, CleanHistStep_def]
+  intro _ _ _ _ i _ he hh _
+  rw [CleanOrdinaryDelivery_def] at he
+  obtain ⟨v, o, t, he, _⟩ := he
+  exact cleanHist_step_delivery he hh
+
+/-- bp02 §5.3: block admission changes no completed gate history.
+DC GSTZeroSafety has no separate FG-SA block-handler predicate. -/
+theorem clean_blockHistStep {b₀ : Time} : CleanBlockHistStep p c E rho b₀ := by
+  rw [CleanBlockHistStep_def, CleanHistStep_def]
+  intro _ _ _ _ i _ he hh _
+  rw [CleanBlockDelivery_def] at he
+  obtain ⟨v, o, t, _, _, _, _, _, _, he, _⟩ := he
+  exact cleanHist_step_delivery he hh
+
+/-- bp02 §5.2: a tick without a gate changes no completed history.
+DC GSTZeroSafety has no separate FG-SA clock-handler predicate. -/
+theorem clean_noGateHistStep {b₀ : Time} : CleanNoGateHistStep p c E rho b₀ := by
+  rw [CleanNoGateHistStep_def, CleanHistStep_def]
+  intro _ _ _ _ i _ he hh _
+  rw [CleanNoGateTick_def] at he
+  obtain ⟨v, t, he, hn⟩ := he
+  exact cleanHist_step_noGateTick he hn hh
+
+/-- bp02 §5.2: the initial state has no sources or saved gate writes.
+DC GSTZeroSafety uses a genesis execution; this is the FG-SA initial state. -/
+theorem cleanState_zero {b₀ : Time} (h : CleanCut₂ p c E rho b₀)
+    (hf : FGFoundation p c E rho) : CleanState p c E rho 0 := by
+  obtain ⟨hnest, hstore, hframe, hclient⟩ := cleanState_index_facts h hf 0
+  refine ⟨⟨?_, ?_⟩, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_,
+    hnest, hstore, hframe, hclient, ?_⟩
+  · rw [CleanRowSources_def]
+    intro j x r a e hj
+    exact (Nat.not_lt_zero j hj).elim
+  · rw [CleanCertSources_def]
+    intro x W e _ hW he hne
+    have hw : W = .genesis := by
+      change W ∈ ({.genesis} : Finset _) at hW
+      exact Finset.mem_singleton.mp hW
+    subst W
+    rw [certified_def] at he
+    obtain ⟨U, hU, he⟩ := he
+    have hu : U = .genesis := KitFG.preceq_antisymm hU (KitFG.genesis_preceq U)
+    subst U
+    rcases he with he | he | ⟨he, _⟩ <;> exact (hne he).elim
+  · intro v
+    exact ⟨belowLabel_genesis _ _, belowLabel_genesis _ _⟩
+  · intro v s _
+    exact ⟨Or.inl rfl, Or.inl rfl⟩
+  · intro v row hr
+    change row ∈ ([] : List (Block × Nat × Time)) at hr
+    cases hr
+  · intro v j s C hj
+    exact (Nat.not_lt_zero j hj).elim
+  · intro v s C hc
+    change (none : Option (Option Block)) = some (some C) at hc
+    cases hc
+  · intro v s X hx
+    change X ∈ ([] : List Block) at hx
+    cases hx
+  · intro v
+    exact Or.inl rfl
+  · intro j v o t hj
+    exact (Nat.not_lt_zero j hj).elim
+  · intro v j k hj hk
+    have hk0 : k = 0 := Nat.eq_zero_of_le_zero hk
+    have hj0 : j = 0 := Nat.eq_zero_of_le_zero (hj.trans hk)
+    subst j; subst k
+    exact Gen.Pure.block_preceq_refl _
 
 end AvailableChain.FGSA.Run
 end
