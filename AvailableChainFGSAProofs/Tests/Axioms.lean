@@ -101,3 +101,7 @@ public import AvailableChainFGSAProofs.Proofs.Shared.Reads -- shake: keep (axiom
 #print axioms AvailableChain.FGSA.Run.fgsa_rRec
 #print axioms AvailableChain.FGSA.Run.fgsa_reconcileAt
 #print axioms AvailableChain.FGSA.Run.fgsa_reconcileClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_carrierAt
+#print axioms AvailableChain.FGSA.Run.fgsa_carrierClaim
+#print axioms AvailableChain.FGSA.Run.held_chain_row_origin
+#print axioms AvailableChain.FGSA.Run.fgsa_carrier_geometry

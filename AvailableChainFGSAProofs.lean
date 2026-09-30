@@ -11,3 +11,4 @@ public import AvailableChainFGSAProofs.Proofs.Foundations.Leases
 public import AvailableChainFGSAProofs.Proofs.Foundations.Reconcile
 public import AvailableChainFGSAProofs.Proofs.Assembly.Foundations
 public import AvailableChainFGSAProofs.Proofs.Foundations.Sources
+public import AvailableChainFGSAProofs.Proofs.Foundations.Carrier

@@ -4,6 +4,8 @@ public import AvailableChainFGSAProofs.Proofs.Foundations.Store
 public import AvailableChainFGSAProofs.Proofs.Foundations.Certificates
 public import AvailableChainFGSAProofs.Proofs.Foundations.Reconcile -- shake: keep (L42 run reconcile export)
 
+public import AvailableChainFGSAProofs.Proofs.Foundations.Carrier
+
 public section
 
 namespace AvailableChain.FGSA.Run
@@ -44,6 +46,15 @@ theorem fgsa_reconcileAt (st : State p.n) (_h : Reachable p st) : ReconcileAt p 
 
 theorem fgsa_reconcileClaim : ReconcileClaim p :=
   fun st h => fgsa_reconcileAt p st h
+
+/-- The run carrier uses the general FG geometry and the F1.1 view theorem. -/
+theorem fgsa_carrierAt : CarrierAt p c E rho :=
+  ⟨fun X Y _ _ => ⟨(fgsa_carrier_geometry X Y).1, (fgsa_carrier_geometry X Y).2.1⟩,
+    fun X _ => (fgsa_carrier_geometry X X).2.2, fgsa_rCarrierView p c E rho⟩
+
+/-- The frozen all-runs carrier claim. -/
+theorem fgsa_carrierClaim : CarrierClaim p :=
+  fun c E rho => fgsa_carrierAt p c E rho
 
 end AvailableChain.FGSA.Run
 end
