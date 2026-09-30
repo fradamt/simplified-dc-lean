@@ -43,9 +43,8 @@ def FinalityCarriage (A : Finset (Row (Fin p.n))) : Prop :=
     a.toRow? = some u ∧ a.auth = .seat (.fg r) u.signer ∧
     ∀ z : V, RowSigner p c rho a z → z ∈ rho.honest → EmitsRow p c E rho z a
 
-/-- Run-free accountable finality (DC PureAccountableFinalitySafety). DC takes
-root-collision freedom as a premise; in FG-SA it holds for every pair
-(KitFG.rootInjectiveOn_all), so the premise is omitted (GLY F-3). -/
+/-- Run-free accountable finality: same as DC PureAccountableFinalitySafety (no run premise).
+KitFG.rootInjectiveOn_all makes omission of the root premise sound (GLY F-3). -/
 theorem fgsa_pureAccountable (K W T₁ T₂ : FGBlock (Fin p.n)) (h₁ h₂ : Nat)
     (hK : FGFinalizedAt p K T₁ h₁) (hW : FGFinalizedAt p W T₂ h₂) :
     HasSlashableWeightBetween p.E (chainRows K) (chainRows W) ∨
@@ -53,7 +52,8 @@ theorem fgsa_pureAccountable (K W T₁ T₂ : FGBlock (Fin p.n)) (h₁ h₂ : Na
   (KitFG.slashableWeight_or_finalized_compatible p.E p.cfg K W).imp id
     (fun h => hK.1 ▸ hW.1 ▸ h)
 
-/-- DC PureFinalityAgreement; no root-injectivity premise, as above. -/
+/-- Same as DC PureFinalityAgreement (no run premise).
+KitFG.rootInjectiveOn_all makes omission of the root premise sound (GLY F-3). -/
 theorem fgsa_pureAgreement (K W T₁ T₂ : FGBlock (Fin p.n)) (h₁ h₂ : Nat)
     (hK : FGFinalizedAt p K T₁ h₁) (hW : FGFinalizedAt p W T₂ h₂)
     (hb : ¬ HasSlashableWeightBetween p.E (chainRows K) (chainRows W)) :
@@ -316,6 +316,19 @@ theorem fgsa_slashableBound_of_faults [Fintype V]
   have ht := (Gen.Pure.count_rec p.nPos hbot).lt
   omega
 
+/-- DC counterpart: none (store-scope bound adapter).
+Linked and unforgeability supply client safety and stored-row carriage.
+The fault bound excludes store evidence without the remaining BaseSet fields. -/
+theorem fgsa_storeSlashableBound_of_unforgeable [Fintype V]
+    (hL : V2.Linked (fgsaFamilies p c).linked rho)
+    (hU : V2.UnforgeableSignatures E rho)
+    (hbot : (Gen.V2.faulty rho).card ≤ (p.n - 1) / 3)
+    (e e' : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest) :
+    ¬ HasSlashableWeightBetween p.E (finalityStoreRows p (storeAt p c E rho e x))
+      (finalityStoreRows p (storeAt p c E rho e' y)) :=
+  fgsa_storeSlashableBound_of_faults p c E rho hL hU
+    (Gen.Pure.count_rec p.nPos hbot) (fgsa_clientSafeAll p c E rho hL) e e' x y hx hy
+
 /-- DC counterpart: none (store-scope base adapter).
 The fault bridge keeps hC; this adapter supplies it from BaseSet.linked.
 BaseSet retains noRestart, delta and cstar; these fields are unused here. -/
@@ -324,8 +337,8 @@ theorem fgsa_storeSlashableBound_of_base [Fintype V] (hb : BaseSet p c E rho)
     (e e' : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest) :
     ¬ HasSlashableWeightBetween p.E (finalityStoreRows p (storeAt p c E rho e x))
       (finalityStoreRows p (storeAt p c E rho e' y)) :=
-  fgsa_storeSlashableBound_of_faults p c E rho hb.linked hb.valid.toUnforgeableSignatures
-    (Gen.Pure.count_rec p.nPos hbot) (fgsa_clientSafeAll p c E rho hb.linked) e e' x y hx hy
+  fgsa_storeSlashableBound_of_unforgeable p c E rho hb.linked
+    hb.valid.toUnforgeableSignatures hbot e e' x y hx hy
 
 /-- Validator attribution for two honest store observations. -/
 theorem fgsa_accountable [Fintype V]
@@ -393,19 +406,7 @@ theorem carried_rows_carriage (hU : V2.UnforgeableSignatures E rho)
     FinalityCarriage p c E rho (rows.filterMap RowWire.toRow?).toFinset := by
   intro u hu
   obtain ⟨a, ha, hau⟩ := List.mem_filterMap.mp (List.mem_toFinset.mp hu)
-  have auth : ∃ r, a.auth = .seat (.fg r) u.signer := by
-    rcases a with ⟨auth, payload⟩
-    cases auth with
-    | none => cases hau
-    | proposer s => cases hau
-    | seat label i =>
-        cases label with
-        | head s => cases hau
-        | fg r =>
-            have he : (⟨i, payload.height_pair, payload.finality_pair⟩ : Row (Fin p.n)) = u :=
-              Option.some.inj hau
-            exact ⟨r, by rw [← he]⟩
-  obtain ⟨r, har⟩ := auth
+  obtain ⟨r, har⟩ := row_auth_of_toRow a u hau
   have hc : (fgsa p c).carries o (ofRow p a) := by
     change carriesS p o (ofRow p a)
     unfold carriesS
@@ -666,19 +667,7 @@ theorem emitted_runBlock_carriage (hv : V2.ExecutionValid E rho)
       have hcarTop : FinalityCarriage p c E rho (R.filterMap RowWire.toRow?).toFinset := by
         intro u hu
         obtain ⟨w, hwR, hwu⟩ := List.mem_filterMap.mp (List.mem_toFinset.mp hu)
-        have auth : ∃ r, w.auth = .seat (.fg r) u.signer := by
-          rcases w with ⟨auth, payload⟩
-          cases auth with
-          | none => cases hwu
-          | proposer s => cases hwu
-          | seat label i =>
-              cases label with
-              | head s => cases hwu
-              | fg r =>
-                  have he : (⟨i, payload.height_pair, payload.finality_pair⟩ : Row (Fin p.n)) = u :=
-                    Option.some.inj hwu
-                  exact ⟨r, by rw [← he]⟩
-        obtain ⟨r, hwr⟩ := auth
+        obtain ⟨r, hwr⟩ := row_auth_of_toRow w u hwu
         refine ⟨w, r, hwu, hwr, ?_⟩
         apply store_wire_origin p c E rho hv.toUnforgeableSignatures i x w
         rcases proposalRows_source p st H w hwR with hpool | hprop
@@ -721,17 +710,28 @@ theorem fgsa_runBlock_carriage (hv : V2.ExecutionValid E rho) :
   · obtain ⟨i, hi⟩ := List.getElem?_of_mem hd
     exact delivered_runBlock_carriage p c E rho hv i x o t hi b raw sup rows ho K hK
 
+/-- DC counterpart: DecoupledConsensusProofs/Protocol/ChainState/SlashableBoundBridge.lean:53
+(slashableBound_of_admissibleCore_belowOneThird), which composes
+AlignedRoundLemmas.lean:284 and StoreBridge.lean:376.
+ExecutionValid supplies all-run carriage; Linked supplies client safety.
+INTENTIONAL: Linked transports rotating seats to holders (SYN L41). -/
+theorem fgsa_slashableBound_of_valid [Fintype V]
+    (hL : V2.Linked (fgsaFamilies p c).linked rho) (hv : V2.ExecutionValid E rho)
+    (hbot : (Gen.V2.faulty rho).card ≤ (p.n - 1) / 3) :
+    FGSASlashableBound p c E rho :=
+  fgsa_slashableBound_of_faults p c E rho hL hbot
+    (fgsa_clientSafeAll p c E rho hL) (fgsa_runBlock_carriage p c E rho hv)
+
 /-- The all-run bound from BaseSet and the fault bound alone.
-DC DecoupledConsensusProofs/Protocol/ChainState/AlignedRoundLemmas.lean:284
-(slashableBound_of_belowOneThird), with carriage from StoreBridge.lean:376.
+DC counterpart: DecoupledConsensusProofs/Protocol/ChainState/SlashableBoundBridge.lean:53
+(slashableBound_of_admissibleCore_belowOneThird), which composes
+AlignedRoundLemmas.lean:284 and StoreBridge.lean:376.
 INTENTIONAL: Linked transports rotating seats to holders (SYN L41).
 BaseSet retains noRestart, delta and cstar; these fields are unused here. -/
 theorem fgsa_slashableBound_of_base [Fintype V] (hb : BaseSet p c E rho)
     (hbot : (Gen.V2.faulty rho).card ≤ (p.n - 1) / 3) :
     FGSASlashableBound p c E rho :=
-  fgsa_slashableBound_of_faults p c E rho hb.linked hbot
-    (fgsa_clientSafeAll p c E rho hb.linked)
-    (fgsa_runBlock_carriage p c E rho hb.valid)
+  fgsa_slashableBound_of_valid p c E rho hb.linked hb.valid hbot
 
 
 

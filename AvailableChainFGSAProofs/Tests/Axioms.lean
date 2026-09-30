@@ -226,3 +226,9 @@ public import AvailableChainFGSAProofs.Proofs.Clean.Chain -- shake: keep (axiom 
 #print axioms AvailableChain.FGSA.Run.fgsa_finalLock_of_bound
 
 #print axioms AvailableChain.FGSA.Run.FGSASlashableBound_def
+
+#print axioms AvailableChain.FGSA.Run.row_auth_of_toRow
+
+#print axioms AvailableChain.FGSA.Run.fgsa_storeSlashableBound_of_unforgeable
+
+#print axioms AvailableChain.FGSA.Run.fgsa_slashableBound_of_valid
