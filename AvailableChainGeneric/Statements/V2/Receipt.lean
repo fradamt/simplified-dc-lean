@@ -90,6 +90,25 @@ def TimelyOfClockStatement : Prop :=
   ∀ (hrf : restartFree rho w j i),
     Timely (Run.stateBefore E rho i w) o
 
+set_option linter.unusedVariables false in
+theorem TimelyOfClockStatement_def :
+    TimelyOfClockStatement =
+      (∀ {V : Type} [DecidableEq V] {In : Type} {P : ProtocolSpec In}
+        (E : Generic.Env V) (rho : Run V P),
+      ∀ {Timely : P.State → P.Object → Prop},
+      ∀ (C : TimelyClock P Timely),
+      ∀ (hS : ScheduleWellFormed E rho),
+      ∀ (w : V),
+      ∀ (o : P.Object),
+      ∀ (T : Time),
+      ∀ (j i : Nat),
+      ∀ (hact : C.actTime o ≤ T),
+      ∀ (hj : rho.events[j]? = some (.tick w T)),
+      ∀ (hji : j < i),
+      ∀ (hrf : restartFree rho w j i),
+        Timely (Run.stateBefore E rho i w) o) := by
+  rw [TimelyOfClockStatement]
+
 -- GLY:1177–1180; common binders GLY:1109–1110.
 set_option linter.unusedVariables false in
 def TimelyOfEmitStatement : Prop :=
@@ -103,6 +122,21 @@ def TimelyOfEmitStatement : Prop :=
   ∀ (hpub : PublicTime E (C.actTime o)),
   ∀ (hth : C.actTime o ≤ t),
     C.actTime o ≤ pubFloor E t
+
+set_option linter.unusedVariables false in
+theorem TimelyOfEmitStatement_def :
+    TimelyOfEmitStatement =
+      (∀ {V : Type} [DecidableEq V] {In : Type} {P : ProtocolSpec In}
+        (E : Generic.Env V) (rho : Run V P),
+      ∀ {Timely : P.State → P.Object → Prop},
+      ∀ (C : TimelyClock P Timely),
+      ∀ (o : P.Object),
+      ∀ (t : Time),
+      ∀ (ht : 0 ≤ t),
+      ∀ (hpub : PublicTime E (C.actTime o)),
+      ∀ (hth : C.actTime o ≤ t),
+        C.actTime o ≤ pubFloor E t) := by
+  rw [TimelyOfEmitStatement]
 
 -- GLY:1181–1185; common binders GLY:1109–1110.
 set_option linter.unusedVariables false in
@@ -120,6 +154,24 @@ def TimelyOfRelayStatement : Prop :=
   ∀ (t : Time),
   ∀ (hacc : Run.acceptsAt E rho i v o t),
     C.actTime o ≤ pubFloor E t
+
+set_option linter.unusedVariables false in
+theorem TimelyOfRelayStatement_def :
+    TimelyOfRelayStatement =
+      (∀ {V : Type} [DecidableEq V] {In : Type} {P : ProtocolSpec In}
+        (E : Generic.Env V) (rho : Run V P),
+      ∀ {Timely : P.State → P.Object → Prop},
+      ∀ (C : TimelyClock P Timely),
+      ∀ (hAS : AdmitSound P C),
+      ∀ (hS : ScheduleWellFormed E rho),
+      ∀ (hrestore : ∀ d, C.clock.now (P.restore d) = 0),
+      ∀ (v : V),
+      ∀ (i : Nat),
+      ∀ (o : P.Object),
+      ∀ (t : Time),
+      ∀ (hacc : Run.acceptsAt E rho i v o t),
+        C.actTime o ≤ pubFloor E t) := by
+  rw [TimelyOfRelayStatement]
 
 -- GLY:1188–1215; common binders GLY:1109–1110.
 set_option linter.unusedVariables false in
@@ -157,6 +209,43 @@ def AcceptedByDeadlineStatement : Prop :=
   ∀ (hNX : P.excludes (Run.stateBeforeTime E rho (dl t) w) o = false),
     P.processed (Run.stateBeforeTime E rho (dl t) w) o = true
 
+set_option linter.unusedVariables false in
+theorem AcceptedByDeadlineStatement_def :
+    AcceptedByDeadlineStatement =
+      (∀ {V : Type} [DecidableEq V] {In : Type} {P : ProtocolSpec In}
+        (E : Generic.Env V) (rho : Run V P),
+      ∀ {Timely : P.State → P.Object → Prop},
+      ∀ {Inv : P.State → Prop},
+      ∀ (dl : Time → Time),
+      ∀ (cut : Time),
+      ∀ (o : P.Object),
+      ∀ (t : Time),
+      ∀ (w : V),
+      ∀ (hD : DeliveryWithin E rho dl cut),
+      ∀ (hT : Trigger E rho o t),
+      ∀ (hw : w ∈ rho.honest),
+      ∀ (hcut : dl t ≤ cut),
+      ∀ (hlt : t < dl t),
+      ∀ (hS : ScheduleWellFormed E rho),
+      ∀ (hES : ∀ v o i j, i ≤ j → restartFree rho v i j →
+          P.excludes (Run.stateBefore E rho i v) o = true →
+          P.excludes (Run.stateBefore E rho j v) o = true),
+      ∀ (hPS : ∀ v o i j, i ≤ j → restartFree rho v i j →
+          P.processed (Run.stateBefore E rho i v) o = true →
+          P.processed (Run.stateBefore E rho j v) o = true),
+      ∀ (hReady : ∀ i t', i < Run.idxBefore rho (dl t) → Run.handlesAt E rho i w o t' →
+          P.wellFormed o = true ∧ P.depsPresent (Run.stateBefore E rho i w) o = true),
+      ∀ (hA : AcceptanceLaw P Timely Inv),
+      ∀ (C : TimelyClock P Timely),
+      ∀ (hInv : ∀ i, Inv (Run.stateBefore E rho i w)),
+      ∀ (hAdm : C.actTime o ≤ pubFloor E t),
+      ∀ (j : Nat),
+      ∀ (hj : rho.events[j]? = some (.tick w (pubFloor E t))),
+      ∀ (hrf : restartFree rho w j (Run.idxBefore rho (dl t))),
+      ∀ (hNX : P.excludes (Run.stateBeforeTime E rho (dl t) w) o = false),
+        P.processed (Run.stateBeforeTime E rho (dl t) w) o = true) := by
+  rw [AcceptedByDeadlineStatement]
+
 -- GLY:1218–1229; common binders GLY:1109–1110.
 set_option linter.unusedVariables false in
 def FirstAcceptOfProcessedStatement : Prop :=
@@ -177,5 +266,27 @@ def FirstAcceptOfProcessedStatement : Prop :=
       P.processed (P.process (Run.stateBefore E rho i w) o') o = true →
       P.handles (Run.stateBefore E rho i w) o' o),
     ∃ i t', i₀ ≤ i ∧ i < k ∧ Run.acceptsAt E rho i w o t'
+
+set_option linter.unusedVariables false in
+theorem FirstAcceptOfProcessedStatement_def :
+    FirstAcceptOfProcessedStatement =
+      (∀ {V : Type} [DecidableEq V] {In : Type} {P : ProtocolSpec In}
+        (E : Generic.Env V) (rho : Run V P),
+      ∀ (w : V),
+      ∀ (o : P.Object),
+      ∀ (i₀ k : Nat),
+      ∀ (hik : i₀ ≤ k),
+      ∀ (hrf : restartFree rho w i₀ k),
+      ∀ (h₀ : P.processed (Run.stateBefore E rho i₀ w) o = false),
+      ∀ (hk : P.processed (Run.stateBefore E rho k w) o = true),
+      ∀ (htick : ∀ i t, i₀ ≤ i → i < k → rho.events[i]? = some (.tick w t) →
+          P.processed (Run.stateBefore E rho i w) o = false →
+          P.processed (Run.stateBefore E rho (i + 1) w) o = false),
+      ∀ (hdeliv : ∀ i o' t', i₀ ≤ i → i < k → rho.events[i]? = some (.deliver w o' t') →
+          P.processed (Run.stateBefore E rho i w) o = false →
+          P.processed (P.process (Run.stateBefore E rho i w) o') o = true →
+          P.handles (Run.stateBefore E rho i w) o' o),
+        ∃ i t', i₀ ≤ i ∧ i < k ∧ Run.acceptsAt E rho i w o t') := by
+  rw [FirstAcceptOfProcessedStatement]
 
 end AvailableChain.Gen.V2

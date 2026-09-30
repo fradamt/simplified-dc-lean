@@ -117,6 +117,14 @@ def StateBeforeIdxBeforeStatement : Prop :=
     (E : Generic.Env V) (rho : Run V P) (t : Time) (hS : ScheduleWellFormed E rho),
     Run.stateBefore E rho (Run.idxBefore rho t) = Run.stateBeforeTime E rho t
 
+set_option linter.unusedVariables false in
+theorem StateBeforeIdxBeforeStatement_def :
+    StateBeforeIdxBeforeStatement =
+      (∀ {V : Type} [DecidableEq V] {In : Type} {P : ProtocolSpec In}
+        (E : Generic.Env V) (rho : Run V P) (t : Time) (hS : ScheduleWellFormed E rho),
+        Run.stateBefore E rho (Run.idxBefore rho t) = Run.stateBeforeTime E rho t) := by
+  rw [StateBeforeIdxBeforeStatement]
+
 -- GLY r3.16 READS; S3d §2.9 J-10; P3 r3.5.6 F0.2. Closed statement per D01.
 set_option linter.unusedVariables false in
 def HoldsBeforeIffExistsIdxStatement : Prop :=

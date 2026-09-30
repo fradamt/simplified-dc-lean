@@ -258,4 +258,15 @@ def GateWriteOfScheduleWellFormedStatement : Prop :=
           GateWriteAtSpec
             ({ A with raw := fun _ => raw, fast := fun _ => fast } : ACReads E rho) i s x
 
+theorem GateWriteOfScheduleWellFormedStatement_def :
+    GateWriteOfScheduleWellFormedStatement =
+      (∀ {V In : Type} {P : ProtocolSpec In} {E : Generic.Env V} {rho : Run V P}
+        (A : ACReads E rho), ACLaws A → ScheduleWellFormed E rho →
+        ∃ (raw : Slot → V → Option Block) (fast : Slot → V → List Block),
+          ∀ i s x, rho.events[i]? = some (.tick x (SA.gateTime A.prm s)) →
+            A.raw i s x = raw s x ∧ A.fast i s x = fast s x ∧
+              GateWriteAtSpec
+                ({ A with raw := fun _ => raw, fast := fun _ => fast } : ACReads E rho) i s x) := by
+  rw [GateWriteOfScheduleWellFormedStatement]
+
 end AvailableChain.Gen.AC

@@ -121,6 +121,7 @@ theorem AvailableChain.Gen.AC.ACLaws.lease_le_output 95d527e2fea25f64
 theorem AvailableChain.Gen.AC.ACLaws.output_step d83a2ffa9fca4368
 theorem AvailableChain.Gen.AC.ACLaws.gate_write 2f28d336a378176c
 def AvailableChain.Gen.AC.GateWriteOfScheduleWellFormedStatement c4f3ec07b22ee828
+theorem AvailableChain.Gen.AC.GateWriteOfScheduleWellFormedStatement_def d350ef2384bf313f
 ```
 
 ### `AvailableChainGeneric.Statements.Pure.FirstBad`
@@ -283,13 +284,21 @@ theorem AvailableChain.Gen.Pure.SuffixReflects_def 438332a5fff5e2c3
 def AvailableChain.Gen.Pure.SuffixScoresAgree 1c56ca73374f6e4f
 theorem AvailableChain.Gen.Pure.SuffixScoresAgree_def c0298dbec87fbe07
 def AvailableChain.Gen.Pure.WalkCoversOfDominatedSuffixStatement dd370c99f130bca6
+theorem AvailableChain.Gen.Pure.WalkCoversOfDominatedSuffixStatement_def 415b64d1853f7b7b
 def AvailableChain.Gen.Pure.WalkExactOfDominatedSuffixStatement 779ac63322a69584
+theorem AvailableChain.Gen.Pure.WalkExactOfDominatedSuffixStatement_def 8b71ef267c031681
 def AvailableChain.Gen.Pure.WalkReanchorOfDominatedSuffixStatement e1d25e32083c85db
+theorem AvailableChain.Gen.Pure.WalkReanchorOfDominatedSuffixStatement_def eba9e67de323a81c
 def AvailableChain.Gen.Pure.WalkAvoidsUnsupportedChildStatement bf92392755cb55c9
+theorem AvailableChain.Gen.Pure.WalkAvoidsUnsupportedChildStatement_def 9de671ae4903da00
 def AvailableChain.Gen.Pure.WalkCoversOfDominatedSuffixOfAnchorEligibleStatement 04f3b390a0070b3f
+theorem AvailableChain.Gen.Pure.WalkCoversOfDominatedSuffixOfAnchorEligibleStatement_def ec4d786c278ac43f
 def AvailableChain.Gen.Pure.WalkTerminalOfDescendantDepthBoundStatement 0383376a3f1fac6b
+theorem AvailableChain.Gen.Pure.WalkTerminalOfDescendantDepthBoundStatement_def 362f6282f730e355
 def AvailableChain.Gen.Pure.WalkNoEligibleChildOfAnchorClosedStatement 594efa6956805067
+theorem AvailableChain.Gen.Pure.WalkNoEligibleChildOfAnchorClosedStatement_def f44105eff0f46eb7
 def AvailableChain.Gen.Pure.GhostTransferSfxStatement 86e56762231deccc
+theorem AvailableChain.Gen.Pure.GhostTransferSfxStatement_def 8318f9c64d8c9652
 ```
 
 ### `AvailableChainGeneric.Statements.V2.Counts`
@@ -352,6 +361,7 @@ theorem AvailableChain.Gen.V2.MonoAlong_def d552800e48aacdcd
 def AvailableChain.Gen.V2.Pending 146254f3313d45fe
 theorem AvailableChain.Gen.V2.Pending_def ab1e446f7d89302a
 def AvailableChain.Gen.V2.StateBeforeIdxBeforeStatement 945b4f02b4f41524
+theorem AvailableChain.Gen.V2.StateBeforeIdxBeforeStatement_def 6effdbdb2d7478f2
 def AvailableChain.Gen.V2.HoldsBeforeIffExistsIdxStatement 30f57f1d322513ff
 theorem AvailableChain.Gen.V2.HoldsBeforeIffExistsIdxStatement_def 4604dfd6f0748219
 ```
@@ -379,10 +389,15 @@ structure AvailableChain.Gen.V2.AdmitSound 00c6781191a9f6d4
 ctor AvailableChain.Gen.V2.AdmitSound.mk 0aa63f249f4f8aab
 theorem AvailableChain.Gen.V2.AdmitSound.timely 8572cd21a779bfad
 def AvailableChain.Gen.V2.TimelyOfClockStatement 3255eedae708cc6c
+theorem AvailableChain.Gen.V2.TimelyOfClockStatement_def b7896d70f307da43
 def AvailableChain.Gen.V2.TimelyOfEmitStatement 1c31d6719a952b0b
+theorem AvailableChain.Gen.V2.TimelyOfEmitStatement_def eeff51d78e3c470c
 def AvailableChain.Gen.V2.TimelyOfRelayStatement 29ee3f73225c6563
+theorem AvailableChain.Gen.V2.TimelyOfRelayStatement_def 8c8260d22287923b
 def AvailableChain.Gen.V2.AcceptedByDeadlineStatement ff834a06111208ce
+theorem AvailableChain.Gen.V2.AcceptedByDeadlineStatement_def 4258f4f3996c240a
 def AvailableChain.Gen.V2.FirstAcceptOfProcessedStatement c20dde2bb2feb628
+theorem AvailableChain.Gen.V2.FirstAcceptOfProcessedStatement_def f730d8f69e108181
 ```
 
 ### `AvailableChainGeneric.Statements.V2.Regimes`

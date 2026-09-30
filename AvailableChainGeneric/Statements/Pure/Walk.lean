@@ -123,6 +123,14 @@ def WalkCoversOfDominatedSuffixStatement : Prop :=
     Block.Compatible anchor target → DominatedSuffix anchor target tree score eligible →
     Block.Preceq target (GridCO.ghost anchor tree score eligible)
 
+theorem WalkCoversOfDominatedSuffixStatement_def :
+    WalkCoversOfDominatedSuffixStatement =
+      (∀ (anchor target : Block) (tree : List Block) (score : Block → Nat)
+        (eligible : Block → Bool),
+        Block.Compatible anchor target → DominatedSuffix anchor target tree score eligible →
+        Block.Preceq target (GridCO.ghost anchor tree score eligible)) := by
+  rw [WalkCoversOfDominatedSuffixStatement]
+
 /-- `walk_exact_of_dominated_suffix`. A dominated suffix ending at a block
 with no eligible child gives the exact result. Source: S1:707–708;
 GLY:669. Consumers: F1b.4a, exact-head instances in F4/F5. -/
@@ -131,6 +139,15 @@ def WalkExactOfDominatedSuffixStatement : Prop :=
     (eligible : Block → Bool),
     Block.Preceq anchor target → DominatedSuffix anchor target tree score eligible →
     NoEligibleChild tree eligible target → GridCO.ghost anchor tree score eligible = target
+
+theorem WalkExactOfDominatedSuffixStatement_def :
+    WalkExactOfDominatedSuffixStatement =
+      (∀ (anchor target : Block) (tree : List Block) (score : Block → Nat)
+        (eligible : Block → Bool),
+        Block.Preceq anchor target → DominatedSuffix anchor target tree score eligible →
+        NoEligibleChild tree eligible target → GridCO.ghost anchor tree score eligible = target
+      ) := by
+  rw [WalkExactOfDominatedSuffixStatement]
 
 /-- `walk_reanchor_of_dominated_suffix`. Moving the anchor along a
 dominated suffix preserves the result. Source: S1:710; GLY:669.
@@ -141,6 +158,14 @@ def WalkReanchorOfDominatedSuffixStatement : Prop :=
     Block.Preceq anchor target → DominatedSuffix anchor target tree score eligible →
     GridCO.ghost anchor tree score eligible = GridCO.ghost target tree score eligible
 
+theorem WalkReanchorOfDominatedSuffixStatement_def :
+    WalkReanchorOfDominatedSuffixStatement =
+      (∀ (anchor target : Block) (tree : List Block) (score : Block → Nat)
+        (eligible : Block → Bool),
+        Block.Preceq anchor target → DominatedSuffix anchor target tree score eligible →
+        GridCO.ghost anchor tree score eligible = GridCO.ghost target tree score eligible) := by
+  rw [WalkReanchorOfDominatedSuffixStatement]
+
 /-- `walk_avoids_unsupported_child`. An instance supplies the fact that an
 unsupported child is ineligible. A walk from an ancestor of its parent cannot
 cover that child. Source: GLY:669; S1:490 (unsupported-child clause).
@@ -150,6 +175,14 @@ def WalkAvoidsUnsupportedChildStatement : Prop :=
     (eligible : Block → Bool),
     Block.Preceq anchor parent → child.parent? = some parent → eligible child = false →
     ¬ Block.Preceq child (GridCO.ghost anchor tree score eligible)
+
+theorem WalkAvoidsUnsupportedChildStatement_def :
+    WalkAvoidsUnsupportedChildStatement =
+      (∀ (anchor parent child : Block) (tree : List Block) (score : Block → Nat)
+        (eligible : Block → Bool),
+        Block.Preceq anchor parent → child.parent? = some parent → eligible child = false →
+        ¬ Block.Preceq child (GridCO.ghost anchor tree score eligible)) := by
+  rw [WalkAvoidsUnsupportedChildStatement]
 
 /-- `walk_covers_of_dominated_suffix_of_anchor_eligible`. The eligibility
 test at the result passes even when the target is below the anchor.
@@ -162,6 +195,16 @@ def WalkCoversOfDominatedSuffixOfAnchorEligibleStatement : Prop :=
     Block.Preceq target (GridCO.ghost anchor tree score eligible) ∧
       eligible (GridCO.ghost anchor tree score eligible) = true
 
+theorem WalkCoversOfDominatedSuffixOfAnchorEligibleStatement_def :
+    WalkCoversOfDominatedSuffixOfAnchorEligibleStatement =
+      (∀ (anchor target : Block) (tree : List Block) (score : Block → Nat)
+        (eligible : Block → Bool),
+        Block.Compatible anchor target → DominatedSuffix anchor target tree score eligible →
+        eligible anchor = true →
+        Block.Preceq target (GridCO.ghost anchor tree score eligible) ∧
+          eligible (GridCO.ghost anchor tree score eligible) = true) := by
+  rw [WalkCoversOfDominatedSuffixOfAnchorEligibleStatement]
+
 /-- `walk_terminal_of_descendant_depth_bound`. Unrelated tree branches
 need no depth bound. Source: GLY:671–673; P3:4480–4486.
 Consumer: F1b.5 through the anchor-closed terminal form. -/
@@ -171,6 +214,15 @@ def WalkTerminalOfDescendantDepthBoundStatement : Prop :=
     DescendantDepthBound anchor tree fuel →
     GridCO.ghostStep tree score eligible (GridCO.ghostWalk tree score eligible fuel anchor) = none
 
+theorem WalkTerminalOfDescendantDepthBoundStatement_def :
+    WalkTerminalOfDescendantDepthBoundStatement =
+      (∀ (anchor : Block) (tree : List Block) (score : Block → Nat)
+        (eligible : Block → Bool) (fuel : Nat),
+        DescendantDepthBound anchor tree fuel →
+        GridCO.ghostStep tree score eligible
+          (GridCO.ghostWalk tree score eligible fuel anchor) = none) := by
+  rw [WalkTerminalOfDescendantDepthBoundStatement]
+
 /-- `walk_noEligibleChild_of_anchorClosed`. The conclusion is written in
 the source. Source: GLY:674–676; P3:4488–4490. Consumer: F1b.5. -/
 def WalkNoEligibleChildOfAnchorClosedStatement : Prop :=
@@ -178,6 +230,15 @@ def WalkNoEligibleChildOfAnchorClosedStatement : Prop :=
     (eligible : Block → Bool),
     AnchorClosed anchor tree →
     ∀ B ∈ tree, B.parent? = some (GridCO.ghost anchor tree score eligible) → eligible B = false
+
+theorem WalkNoEligibleChildOfAnchorClosedStatement_def :
+    WalkNoEligibleChildOfAnchorClosedStatement =
+      (∀ (anchor : Block) (tree : List Block) (score : Block → Nat)
+        (eligible : Block → Bool),
+        AnchorClosed anchor tree →
+        ∀ B ∈ tree, B.parent? = some (GridCO.ghost anchor tree score eligible) → eligible B = false
+      ) := by
+  rw [WalkNoEligibleChildOfAnchorClosedStatement]
 
 /-- `ghost_transfer_sfx`. A covered source prefix transfers under local
 persist/reflect and score agreement. Persistence supplies the stored suffix;
@@ -192,5 +253,16 @@ def GhostTransferSfxStatement : Prop :=
     SuffixReflects anchor target sourceTree targetTree sourceEligible targetEligible →
     SuffixScoresAgree anchor target targetTree sourceScore targetScore targetEligible →
     Block.Preceq target (GridCO.ghost anchor targetTree targetScore targetEligible)
+
+theorem GhostTransferSfxStatement_def : GhostTransferSfxStatement =
+    (∀ (anchor target : Block) (sourceTree targetTree : List Block)
+      (sourceScore targetScore : Block → Nat) (sourceEligible targetEligible : Block → Bool),
+      Block.Preceq anchor target →
+      Block.Preceq target (GridCO.ghost anchor sourceTree sourceScore sourceEligible) →
+      SuffixPersists anchor target sourceTree targetTree sourceScore sourceEligible targetEligible →
+      SuffixReflects anchor target sourceTree targetTree sourceEligible targetEligible →
+      SuffixScoresAgree anchor target targetTree sourceScore targetScore targetEligible →
+      Block.Preceq target (GridCO.ghost anchor targetTree targetScore targetEligible)) := by
+  rw [GhostTransferSfxStatement]
 
 end AvailableChain.Gen.Pure

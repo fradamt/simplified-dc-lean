@@ -117,5 +117,35 @@ def ReceiptCoverageStatement : Prop :=
         GridCO.headSeat? v₁ = some a ∧ GridCO.headSeat? v₂ = some a ∧
         GridCO.stampVote st.base v₁ < dl t ∧ GridCO.stampVote st.base v₂ < dl t)
 
+theorem ReceiptCoverageStatement_def :
+    ReceiptCoverageStatement =
+      (∀ {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
+        (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+        (dl : Time → Time) (cut D : Time) (first : Nat) (x : V) (B : Block)
+        (required : Obj p → Time → Prop) (paths : Block → Time → Prop),
+        E.Δ = p.Δ → V2.ExecutionValid E rho → V2.NoRestart rho → x ∈ rho.honest →
+        ReceiptCoveragePremises E rho dl cut D first x B required paths →
+        let st := (V2.Run.stateBeforeTime E rho D x).st
+        ((Block.Preceq B (eraseFG st.fg.F) ∧
+          Block.Preceq B st.base.stableRecord ∧
+          (∀ s, 0 < s → Block.Preceq B (headVote p st s)) ∧
+          (∀ raw sup, Block.Preceq B (getHead p st raw sup)) ∧
+          Block.Preceq B (fgHead p st) ∧
+          (∀ lease ∈ st.base.obligations, Block.Compatible B lease.1)) ∨
+         (Block.Preceq (eraseFG st.fg.F) B ∧
+          (∀ o t s b raw sup rows, required o t →
+            (toWire p o).decode = some (.block s b raw sup rows) →
+            ∃ Y ∈ (V2.Run.stateBeforeTime E rho (dl t) x).st.fg.TF, eraseFG Y = b) ∧
+          (∀ K d, paths K d → ∀ b, Block.Preceq b K →
+            ∃ Y ∈ (V2.Run.stateBeforeTime E rho d x).st.fg.TF, eraseFG Y = b))) ∧
+        (∀ o t s a K, required o t → (toWire p o).decode = some (.vote s a K) →
+          let v := baseVote (⟨.seat (.head s) a, K⟩ : HeadWire p.n)
+          (v ∈ st.base.votes ∧ GridCO.stampVote st.base v < dl t) ∨
+          ∃ v₁ ∈ st.base.votes, ∃ v₂ ∈ st.base.votes,
+            v₁ ≠ v₂ ∧ GridCO.headLabel? v₁ = some s ∧ GridCO.headLabel? v₂ = some s ∧
+            GridCO.headSeat? v₁ = some a ∧ GridCO.headSeat? v₂ = some a ∧
+            GridCO.stampVote st.base v₁ < dl t ∧ GridCO.stampVote st.base v₂ < dl t)) := by
+  rw [ReceiptCoverageStatement]
+
 end AvailableChain.FGSA.Run
 end
