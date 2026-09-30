@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-"""Check (i), BUILD §7.3: the GLY §F rules whose enforcement is a grep or a
-mechanical scan (GLY r3.13 §F; step-2 rulings D08 as corrected, D13).
+"""Check (i), BUILD §7.3: the GLY §F rules checked by source scans or compiled
+declaration bodies (GLY r3.13 §F; step-2 rulings D08 as corrected, D13;
+GEN-FIRST lead ruling, 2026-09-30).
 The driver is scripts/check-gly-rules.sh.
 
-Each rule has its own baseline scripts/baselines/check-gly-rules-<rule>.txt.
+Each source rule has a baseline scripts/baselines/check-gly-rules-<rule>.txt.
 A FAIL rule fails on a finding in a new library (scripts/new-libraries.txt)
 and on a legacy finding that its baseline does not list. A REVIEW rule
 ("review list" / "review the output" in GLY §F) lists its findings;
-its baseline separates the reviewed ones. Stale F-1, F-13 or F-18 allow entries
+its baseline separates the reviewed ones. Stale F-1, F-13, F-18 or F-31 allow entries
 always fail. F-13 (duplicate short names) is baselined in new libraries too
 (step-2 ruling D07).
 scripts/gly-rules-allow.txt: `<rule> <declaration>` lines that a rule
@@ -18,7 +19,11 @@ scripts/gly-f13-allow.txt: exact `F-13 dup <name> <Lib> <Lib> [...]` keys
 with a nonempty reason after `#`. F-13 skips only an exact match of the
 short name and all libraries.
 scripts/gly-f18-allow.txt: exact F-18 declaration-and-file keys with a
-nonempty reason after `#`. All three allow files fail on unused entries.
+nonempty reason after `#`.
+scripts/gly-genfirst-allow.txt: exact `GEN-FIRST <constant> <module> -> <Gen>`
+keys with a nonempty reason after `#`. All four allow files fail on unused
+entries. F-31 runs scripts/CheckGenFirst.lean on the built tree; it has no
+baseline exemption and runs compiled negative and positive controls.
 
 Baseline rewrites (lead ruling, 2026-09-29): `--write-baseline` for F-13, or
 for any rule, is allowed only in a commit whose message names the rule and
@@ -70,6 +75,11 @@ Rules (GLY §F row → what this script checks):
                KitFG definition module) whose name does not end in `_def`.
   F-30 FAIL    a Generic declaration in namespace AvailableChain.Generic; a
                GridCO.Proofs module in the closure of a Generic module.
+  F-31 FAIL    GEN-FIRST: an FGSA*, Shared, Claims or KitFG declaration body
+               is a Gen constant, bare or applied only to its own binders,
+               after leading lambdas and mdata are removed. The scope comes
+               from lakefile.toml; GridCO is excluded. See CheckGenFirst.lean
+               for the exact auxiliary and deriving skip rule.
 
 Usage: python3 scripts/check-gly-rules.py [--rule F-n]... [--list-legacy]
 [--write-baseline]. Exit 0: no failing finding; 1: a failing finding;
@@ -77,8 +87,10 @@ Usage: python3 scripts/check-gly-rules.py [--rule F-n]... [--list-legacy]
 import argparse
 import os
 import re
+import shutil
 import subprocess
 import sys
+import tempfile
 from collections import defaultdict
 
 sys.dont_write_bytecode = True
@@ -93,6 +105,9 @@ ALLOW = os.path.join(C.SCRIPTS, 'gly-rules-allow.txt')
 F1_ALLOW = os.path.join(C.SCRIPTS, 'gly-f1-allow.txt')
 F13_ALLOW = os.path.join(C.SCRIPTS, 'gly-f13-allow.txt')
 F18_ALLOW = os.path.join(C.SCRIPTS, 'gly-f18-allow.txt')
+GENFIRST_ALLOW = os.path.join(C.SCRIPTS, 'gly-genfirst-allow.txt')
+GENFIRST_KEY = re.compile(r'GEN-FIRST (\S+) (\S+) -> (AvailableChain\.Gen\.\S+)')
+GENFIRST_LINK = 'AvailableChain.FGSA.Run.fgsa_accepted_by_deadline_of_parentStored'
 KITFG_DEF = os.path.join(C.BASELINES, 'kitfg-def-modules.txt')
 THM = ('theorem', 'lemma')
 
@@ -136,6 +151,8 @@ def read_exact_allow(path, rule):
                 if rule == 'F-18' and not re.fullmatch(
                         r"F-18 [\w']+(?:\.[\w']+)+ (?:[\w'-]+/)+[\w'-]+\.lean", key):
                     raise RuntimeError(f'{where}: expected an exact F-18 declaration-and-file key')
+                if rule == 'F-31' and not GENFIRST_KEY.fullmatch(key):
+                    raise RuntimeError(f'{where}: expected an exact GEN-FIRST key')
                 out.append((key, where))
     return out
 
@@ -510,10 +527,97 @@ def rule_f30(x):
     return out
 
 
+def genfirst_run(command):
+    try:
+        result = subprocess.run(command, cwd=C.ROOT, text=True,
+                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    except OSError as e:
+        raise RuntimeError(f'GEN-FIRST could not run: {e}') from e
+    if result.returncode:
+        raise RuntimeError(f'GEN-FIRST command failed (rc {result.returncode}):\n{result.stdout}')
+    return result.stdout
+
+
+def genfirst_keys(output):
+    keys = set()
+    for line in output.splitlines():
+        if line.startswith('GEN-FIRST '):
+            if not GENFIRST_KEY.fullmatch(line):
+                raise RuntimeError(f'malformed GEN-FIRST key: {line}')
+            keys.add(line)
+        elif not line.startswith('CheckGenFirst: '):
+            raise RuntimeError(f'unexpected GEN-FIRST output: {line}')
+    if not any(line.startswith('CheckGenFirst: scope ') for line in output.splitlines()):
+        raise RuntimeError('GEN-FIRST helper did not report its scope')
+    return keys
+
+
+# ---------------------------------------------------------------------------
+# GEN-FIRST controls. Compile a scratch module in scope; leave library sources intact.
+
+def genfirst_controls(output):
+    positive = GENFIRST_LINK
+    if any(GENFIRST_KEY.fullmatch(key).group(1) == positive for key in genfirst_keys(output)):
+        raise RuntimeError(f'POSITIVE CONTROL flagged: {positive}')
+    print(f'F-31: POSITIVE CONTROL PASS: {positive} is not flagged')
+    module = 'AvailableChainFGSARun.Tests.GenFirstControl'
+    expected = {
+        f'GEN-FIRST AvailableChain.FGSA.Run.fgsa_alias {module} -> AvailableChain.Gen.Pure.qF',
+        f'GEN-FIRST AvailableChain.FGSA.Run.fgsa_alias_theorem {module} -> AvailableChain.Gen.Pure.qF_def',
+    }
+    with tempfile.TemporaryDirectory(prefix='genfirst-neg.', dir=os.path.join(C.ROOT, '.lake')) as scratch:
+        # Lean selects one search directory per library. Keep its built data
+        # with the extra module so the scratch directory does not hide it.
+        built = os.path.join(C.ROOT, '.lake', 'build', 'lib', 'lean')
+        shutil.copytree(os.path.join(built, 'AvailableChainFGSARun'),
+                        os.path.join(scratch, 'AvailableChainFGSARun'))
+        for name in os.listdir(built):
+            if name.startswith('AvailableChainFGSARun.'):
+                shutil.copy2(os.path.join(built, name), scratch)
+        source = os.path.join(scratch, *module.split('.')) + '.lean'
+        os.makedirs(os.path.dirname(source), exist_ok=True)
+        with open(source, 'w', encoding='utf-8') as f:
+            f.write('''module
+public import AvailableChainGeneric.Statements.Pure.Quorum
+public section
+namespace AvailableChain.FGSA.Run
+def fgsa_alias := @AvailableChain.Gen.Pure.qF
+theorem fgsa_alias_theorem (n : Nat) :
+    AvailableChain.Gen.Pure.qF n = (2 * n + 2) / 3 :=
+  AvailableChain.Gen.Pure.qF_def n
+end AvailableChain.FGSA.Run
+end
+''')
+        genfirst_run(['lake', 'env', 'lean', '--root=' + scratch, '-o', source[:-5] + '.olean', source])
+        # Set the scratch search path after lake env sets the built library paths.
+        control = genfirst_run(['lake', 'env', 'bash', '-c',
+                               'LEAN_PATH="$1:$LEAN_PATH" lean --run scripts/CheckGenFirst.lean "$2"',
+                               'genfirst-control', scratch, module])
+        actual = {key for key in genfirst_keys(control) if GENFIRST_KEY.fullmatch(key).group(2) == module}
+        if actual != expected:
+            raise RuntimeError(f'NEGATIVE CONTROL mismatch: expected {sorted(expected)}, got {sorted(actual)}')
+        for key in sorted(actual):
+            print(f'F-31: NEGATIVE CONTROL PASS: {key}')
+
+
+def rule_f31(x):
+    allow = read_exact_allow(GENFIRST_ALLOW, 'F-31')
+    output = genfirst_run(['lake', 'env', 'lean', '--run', 'scripts/CheckGenFirst.lean',
+                          '--expect', GENFIRST_LINK])
+    keys = genfirst_keys(output)
+    for line in output.splitlines():
+        if line.startswith('CheckGenFirst: '):
+            print(line)
+    genfirst_controls(output)
+    # new=True prevents any baseline from accepting a GEN-FIRST finding.
+    return apply_exact_allow([C.Finding(key, key, new=True) for key in sorted(keys)], allow)
+
+
 RULES = {'F-1': rule_f1, 'F-3': rule_f3, 'F-4': rule_f4, 'F-5': rule_f5, 'F-6': rule_f6,
          'F-7': rule_f7, 'F-10': rule_f10, 'F-12': rule_f12, 'F-13': rule_f13, 'F-14': rule_f14,
          'F-15': rule_f15, 'F-18': rule_f18, 'F-20': rule_f20, 'F-21': rule_f21, 'F-23': rule_f23,
-         'F-24': rule_f24, 'F-25': rule_f25, 'F-26': rule_f26, 'F-28': rule_f28, 'F-30': rule_f30}
+         'F-24': rule_f24, 'F-25': rule_f25, 'F-26': rule_f26, 'F-28': rule_f28, 'F-30': rule_f30,
+         'F-31': rule_f31}
 
 
 def main():
@@ -540,11 +644,14 @@ def main():
         def report(line):
             if line.startswith('FAIL NEW-LIBRARY: STALE ALLOW '):
                 line = line.removeprefix('FAIL NEW-LIBRARY: ')
-            if rule in ('F-1', 'F-13', 'F-18') and line.startswith(f'{rule}: '):
+            if rule in ('F-1', 'F-13', 'F-18', 'F-31') and line.startswith(f'{rule}: '):
                 line += f', {stale_allow} stale allow entries'
             print(line)
 
-        if a.write_baseline and not stale_allow:
+        if a.write_baseline and rule == 'F-31':
+            print('F-31: ERROR: GEN-FIRST has no baseline exemption; use an exact allow key')
+            errors += 1
+        elif a.write_baseline and not stale_allow:
             before = C.read_baseline(name)
             n = C.write_baseline(name, findings, [
                 f'check (i) check-gly-rules, GLY §F rule {rule}: legacy findings.',

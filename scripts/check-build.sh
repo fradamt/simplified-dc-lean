@@ -6,7 +6,7 @@
 #   (d) CheckProofEqns.lean       (e) check-layers.py
 #   (f) shake-report.sh (REPORT only; never fails the run unless it cannot run)
 #   (g) chain-depth.py (REPORT only) (h) check-transparency.py
-#   (i) check-gly-rules.sh
+#   (i) check-gly-rules.sh       (includes compiled CheckGenFirst.lean)
 # (d) and (e) run when their script exists; else "SKIPPED: not yet present".
 # SKIP_CONE=1 skips (c) (it needs a built tree and a Lean build).
 # Every check runs; the summary lists each result. Exit 0: every check that
@@ -37,7 +37,7 @@ if bash scripts/shake-report.sh; then RESULTS+=("(f) shake-report: REPORT"); els
 echo "=== (g) chain-depth"
 if python3 scripts/chain-depth.py; then RESULTS+=("(g) chain-depth: REPORT"); else RESULTS+=("(g) chain-depth: FAIL (could not run)"); FAILED=1; fi
 run h check-transparency python3 scripts/check-transparency.py
-run i check-gly-rules bash scripts/check-gly-rules.sh
+run i check-gly-rules bash -c 'targets=$(lake env lean --run scripts/CheckGenFirst.lean --libraries) && lake build $targets && bash scripts/check-gly-rules.sh'
 echo "=== summary"
 printf '%s\n' "${RESULTS[@]}"
 [ $FAILED -eq 0 ] && echo "check-build: PASS" || echo "check-build: FAIL"
