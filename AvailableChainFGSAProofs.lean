@@ -26,3 +26,6 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate
 public import AvailableChainFGSAProofs.Proofs.Clean.Frame
 public import AvailableChainFGSAProofs.Proofs.Clean.Action
 public import AvailableChainFGSAProofs.Proofs.Clean.StepGate
+public import AvailableChainFGSAProofs.Proofs.Shared.Release
+public import AvailableChainFGSAProofs.Proofs.Shared.SameLabel
+public import AvailableChainFGSAProofs.Proofs.Assembly.Shared

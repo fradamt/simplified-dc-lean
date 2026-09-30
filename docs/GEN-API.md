@@ -462,3 +462,64 @@ def AvailableChain.Gen.V2.SlashingInterface.slashes e464437d9cc362da
 def AvailableChain.Gen.V2.HonestNeverSlashed cb7d6d1806cfe47c
 theorem AvailableChain.Gen.V2.HonestNeverSlashed_def a06df42e8668cf32
 ```
+
+### `AvailableChainGeneric.Statements.AC.Votes`
+
+```text
+def AvailableChain.Gen.AC.voteSupports a505536f79025d49
+theorem AvailableChain.Gen.AC.voteSupports_def fbeb911519ac5daa
+def AvailableChain.Gen.AC.poolSupports 03597e7e42083241
+theorem AvailableChain.Gen.AC.poolSupports_def 0e3741e4847fd349
+def AvailableChain.Gen.AC.plainSupporters bb457f8923e27222
+theorem AvailableChain.Gen.AC.plainSupporters_def b06c151456abbe93
+def AvailableChain.Gen.AC.TransferBounds 97f0347e35d97f16
+theorem AvailableChain.Gen.AC.TransferBounds_def bd506dc92b7c135c
+def AvailableChain.Gen.AC.TransferStatement 998560a5e56c286a
+theorem AvailableChain.Gen.AC.TransferStatement_def 9ec4bd661e6f64e8
+def AvailableChain.Gen.AC.BatchBounds 66706533377eff22
+theorem AvailableChain.Gen.AC.BatchBounds_def afae6f825fcfbeb8
+def AvailableChain.Gen.AC.BatchCountsStatement 5ca999a37650b98a
+theorem AvailableChain.Gen.AC.BatchCountsStatement_def 0cd4477e06dabc30
+def AvailableChain.Gen.AC.TransferN2Statement e2835c94ad4a9f70
+theorem AvailableChain.Gen.AC.TransferN2Statement_def 0a75145b33fb9ab6
+def AvailableChain.Gen.AC.ScoreEqOnStatement d54234e3c4437ea9
+theorem AvailableChain.Gen.AC.ScoreEqOnStatement_def 25895f1df739d585
+def AvailableChain.Gen.AC.CapVoteStatement b3d2b00a2dbc17ce
+theorem AvailableChain.Gen.AC.CapVoteStatement_def 62a98693cb5705aa
+def AvailableChain.Gen.AC.CapPairStatement 4509997bea2e6d5a
+theorem AvailableChain.Gen.AC.CapPairStatement_def 2a79f83cee317a4a
+def AvailableChain.Gen.AC.BatchStatement a43eace6488382e3
+theorem AvailableChain.Gen.AC.BatchStatement_def d9c839bb3c6a24f1
+```
+
+### `AvailableChainGeneric.Statements.Pure.QuorumInter`
+
+```text
+def AvailableChain.Gen.Pure.FaultXInterHonestStatement 70a213ef2f525312
+theorem AvailableChain.Gen.Pure.FaultXInterHonestStatement_def a9d4c80022e7c64c
+```
+
+### `AvailableChainGeneric.Statements.Pure.SupportCounts`
+
+```text
+def AvailableChain.Gen.Pure.TwoMajoritiesIntersectStatement b13b774ed3285246
+theorem AvailableChain.Gen.Pure.TwoMajoritiesIntersectStatement_def 000afeafe2351fbc
+```
+
+### `AvailableChainGeneric.Statements.AC.Support`
+
+```text
+def AvailableChain.Gen.AC.GoldfishScoreAntitoneStatement 2a644bd0f046ed36
+theorem AvailableChain.Gen.AC.GoldfishScoreAntitoneStatement_def 1fa3f58fdc73fcc6
+def AvailableChain.Gen.AC.ConflictingScoreSumLeStatement e1f28e1d341992b7
+theorem AvailableChain.Gen.AC.ConflictingScoreSumLeStatement_def 95bfcc57ccfdf0d5
+def AvailableChain.Gen.AC.VoterCountLeOfSeatsSubsetStatement fc03228e36af1195
+theorem AvailableChain.Gen.AC.VoterCountLeOfSeatsSubsetStatement_def 7029677e43acf1a8
+```
+
+### `AvailableChainGeneric.Statements.Pure.HonestCount`
+
+```text
+def AvailableChain.Gen.Pure.HonestOriginOfCountStatement b90084bf6382c94d
+theorem AvailableChain.Gen.Pure.HonestOriginOfCountStatement_def 7590cf1650656970
+```

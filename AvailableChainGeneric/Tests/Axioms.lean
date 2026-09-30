@@ -1,6 +1,8 @@
 module
 public import AvailableChainGeneric.Statements.V2.Slashing
 public import AvailableChainGeneric.Statements.Pure.Quorum
+public import AvailableChainGeneric.Statements.Pure.QuorumInter
+public import AvailableChainGeneric.Statements.Pure.SupportCounts
 public import AvailableChainGeneric.Statements.Pure.FirstBad
 public import AvailableChainGeneric.Statements.Pure.Schedule
 public import AvailableChainGeneric.Statements.Pure.Walk
@@ -17,10 +19,13 @@ public import AvailableChainGeneric.Statements.AC.Reads
 public import AvailableChainGeneric.Statements.AC.Lease
 public import AvailableChainGeneric.Statements.AC.History
 public import AvailableChainGeneric.Statements.AC.Transfer
+public import AvailableChainGeneric.Statements.AC.Votes
 public import AvailableChainGeneric.Proofs.Pure.FirstBad
 public import AvailableChainGeneric.Proofs.Pure.Schedule
 public import AvailableChainGeneric.Proofs.Pure.BlockOrder
+public import AvailableChainGeneric.Proofs.Pure.Walk
 public import AvailableChainGeneric.Proofs.Pure.Quorum
+public import AvailableChainGeneric.Proofs.Pure.SupportCounts
 public import AvailableChainGeneric.Proofs.Pure.Fold
 public import AvailableChainGeneric.Proofs.Pure.Props
 public import AvailableChainGeneric.Proofs.V2.Fields
@@ -35,6 +40,26 @@ public import AvailableChainGeneric.Proofs.AC.Output
 public import AvailableChainGeneric.Proofs.AC.Lease
 public import AvailableChainGeneric.Proofs.AC.History
 public import AvailableChainGeneric.Proofs.AC.Transfer
+public import AvailableChainGeneric.Proofs.AC.Votes
+public import AvailableChainGeneric.Statements.AC.Support
+public import AvailableChainGeneric.Statements.Pure.HonestCount
+public import AvailableChainGeneric.Proofs.AC.Support
+public import AvailableChainGeneric.Proofs.Pure.HonestCount
+
+-- A4 support and honest-origin count contracts and proofs.
+#print axioms AvailableChain.Gen.AC.GoldfishScoreAntitoneStatement_def
+#print axioms AvailableChain.Gen.AC.ConflictingScoreSumLeStatement_def
+#print axioms AvailableChain.Gen.AC.VoterCountLeOfSeatsSubsetStatement_def
+#print axioms AvailableChain.Gen.Pure.HonestOriginOfCountStatement_def
+#print axioms AvailableChain.Gen.AC.goldfishScore_antitone_statement
+#print axioms AvailableChain.Gen.AC.goldfishScore_antitone
+#print axioms AvailableChain.Gen.AC.goldfishScore_antitone_of_preceq
+#print axioms AvailableChain.Gen.AC.conflicting_score_sum_le_statement
+#print axioms AvailableChain.Gen.AC.conflicting_score_sum_le
+#print axioms AvailableChain.Gen.AC.voterCount_le_of_seats_subset_statement
+#print axioms AvailableChain.Gen.AC.voterCount_le_of_seats_subset
+#print axioms AvailableChain.Gen.Pure.honest_origin_of_count_statement
+#print axioms AvailableChain.Gen.Pure.honest_origin_of_count
 
 /-! Kernel dependency audit of the Generic library: one line for each public
 theorem, in facade order. The library globs build this test module. -/
@@ -304,6 +329,16 @@ theorem, in facade order. The library globs build this test module. -/
 #print axioms AvailableChain.Gen.Pure.quorum_intersection
 #print axioms AvailableChain.Gen.Pure.quorum_inter_honest
 
+-- Statements/Pure/QuorumInter.lean and the unit-seat proofs.
+#print axioms AvailableChain.Gen.Pure.FaultXInterHonestStatement_def
+#print axioms AvailableChain.Gen.Pure.faultX_inter_honest_statement
+#print axioms AvailableChain.Gen.Pure.FaultX.inter_honest
+
+-- Statements/Pure/SupportCounts.lean and Proofs/Pure/SupportCounts.lean
+#print axioms AvailableChain.Gen.Pure.TwoMajoritiesIntersectStatement_def
+#print axioms AvailableChain.Gen.Pure.two_majorities_intersect_statement
+#print axioms AvailableChain.Gen.Pure.two_majorities_intersect
+
 -- Proofs/Pure/Fold.lean
 #print axioms AvailableChain.Gen.Pure.fold_field
 #print axioms AvailableChain.Gen.Pure.foldl_select_mem
@@ -344,3 +379,64 @@ theorem, in facade order. The library globs build this test module. -/
 
 -- Statements/V2/Slashing.lean
 #print axioms AvailableChain.Gen.V2.HonestNeverSlashed_def
+
+-- Proofs/Pure/Walk.lean
+#print axioms AvailableChain.Gen.Pure.walk_covers_of_dominated_suffix_statement
+#print axioms AvailableChain.Gen.Pure.walk_covers_of_dominated_suffix
+#print axioms AvailableChain.Gen.Pure.walk_exact_of_dominated_suffix_statement
+#print axioms AvailableChain.Gen.Pure.walk_exact_of_dominated_suffix
+#print axioms AvailableChain.Gen.Pure.walk_reanchor_of_dominated_suffix_statement
+#print axioms AvailableChain.Gen.Pure.walk_reanchor_of_dominated_suffix
+#print axioms AvailableChain.Gen.Pure.walk_avoids_unsupported_child_statement
+#print axioms AvailableChain.Gen.Pure.walk_avoids_unsupported_child
+#print axioms AvailableChain.Gen.Pure.walk_covers_of_dominated_suffix_of_anchor_eligible_statement
+#print axioms AvailableChain.Gen.Pure.walk_covers_of_dominated_suffix_of_anchor_eligible
+#print axioms AvailableChain.Gen.Pure.walk_terminal_of_descendant_depth_bound_statement
+#print axioms AvailableChain.Gen.Pure.walk_terminal_of_descendant_depth_bound
+#print axioms AvailableChain.Gen.Pure.walk_noEligibleChild_of_anchorClosed_statement
+#print axioms AvailableChain.Gen.Pure.walk_noEligibleChild_of_anchorClosed
+#print axioms AvailableChain.Gen.Pure.ghost_transfer_sfx_statement
+#print axioms AvailableChain.Gen.Pure.ghost_transfer_sfx
+
+-- Statements/AC/Votes.lean
+#print axioms AvailableChain.Gen.AC.voteSupports_def
+#print axioms AvailableChain.Gen.AC.poolSupports_def
+#print axioms AvailableChain.Gen.AC.plainSupporters_def
+#print axioms AvailableChain.Gen.AC.TransferBounds_def
+#print axioms AvailableChain.Gen.AC.TransferStatement_def
+#print axioms AvailableChain.Gen.AC.BatchBounds_def
+#print axioms AvailableChain.Gen.AC.BatchCountsStatement_def
+#print axioms AvailableChain.Gen.AC.TransferN2Statement_def
+#print axioms AvailableChain.Gen.AC.ScoreEqOnStatement_def
+#print axioms AvailableChain.Gen.AC.CapVoteStatement_def
+#print axioms AvailableChain.Gen.AC.CapPairStatement_def
+#print axioms AvailableChain.Gen.AC.BatchStatement_def
+
+-- Proofs/AC/Votes.lean
+#print axioms AvailableChain.Gen.AC.vote_pool_eraseDups_nodup
+#print axioms AvailableChain.Gen.AC.cap_pair_statement
+#print axioms AvailableChain.Gen.AC.cap_pair
+#print axioms AvailableChain.Gen.AC.cap_vote_statement
+#print axioms AvailableChain.Gen.AC.cap_vote
+#print axioms AvailableChain.Gen.AC.vote_pool_mem_seats
+#print axioms AvailableChain.Gen.AC.vote_pool_voterCount_card
+#print axioms AvailableChain.Gen.AC.vote_pool_support_witness
+#print axioms AvailableChain.Gen.AC.vote_pool_support_ancestor
+#print axioms AvailableChain.Gen.AC.vote_pool_support_compatible
+#print axioms AvailableChain.Gen.AC.vote_pool_clean_unique
+#print axioms AvailableChain.Gen.AC.vote_pool_equivocates_mono
+#print axioms AvailableChain.Gen.AC.vote_pool_clean_subset
+#print axioms AvailableChain.Gen.AC.vote_pool_equivocates_participant
+#print axioms AvailableChain.Gen.AC.vote_pool_seats_subset
+#print axioms AvailableChain.Gen.AC.vote_pool_seats_backward
+#print axioms AvailableChain.Gen.AC.vote_pool_score_card
+#print axioms AvailableChain.Gen.AC.vote_pool_plain_subset_score
+#print axioms AvailableChain.Gen.AC.vote_pool_support_conflict
+#print axioms AvailableChain.Gen.AC.batch_counts_statement
+#print axioms AvailableChain.Gen.AC.batch_counts
+#print axioms AvailableChain.Gen.AC.transfer_n2_statement
+#print axioms AvailableChain.Gen.AC.transfer_n2
+#print axioms AvailableChain.Gen.AC.score_eq_on_statement
+#print axioms AvailableChain.Gen.AC.score_eq_on
+#print axioms AvailableChain.Gen.AC.transfer_statement
+#print axioms AvailableChain.Gen.AC.transfer
