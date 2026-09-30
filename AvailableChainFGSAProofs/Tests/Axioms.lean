@@ -16,6 +16,8 @@ public import AvailableChainFGSAProofs.Proofs.Shared.Recurrence -- shake: keep (
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads -- shake: keep (axiom audit commands)
 
 public import AvailableChainFGSAProofs.Proofs.Clean.Chain -- shake: keep (axiom audit commands)
+public import AvailableChainFGSAProofs.Proofs.Clean.State -- shake: keep (axiom audit commands)
+public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (axiom audit commands)
 
 #print axioms AvailableChain.FGSA.Run.afterTicks_eq_stateBefore
 #print axioms AvailableChain.FGSA.Run.afterTicks_node
@@ -226,3 +228,26 @@ public import AvailableChainFGSAProofs.Proofs.Clean.Chain -- shake: keep (axiom 
 #print axioms AvailableChain.FGSA.Run.fgsa_finalLock_of_bound
 
 #print axioms AvailableChain.FGSA.Run.FGSASlashableBound_def
+#print axioms AvailableChain.FGSA.Run.cleanResults_eq_of_noGate
+#print axioms AvailableChain.FGSA.Run.cleanHist_step_of_noGate
+#print axioms AvailableChain.FGSA.Run.cleanHist_step_delivery
+#print axioms AvailableChain.FGSA.Run.cleanHist_step_noGateTick
+#print axioms AvailableChain.FGSA.Run.clean_delivery_fields
+#print axioms AvailableChain.FGSA.Run.clean_block_reconcile
+#print axioms AvailableChain.FGSA.Run.clean_noGate_fields
+#print axioms AvailableChain.FGSA.Run.cleanState_index_facts
+#print axioms AvailableChain.FGSA.Run.clean_gate_raw
+#print axioms AvailableChain.FGSA.Run.clean_gate_store
+#print axioms AvailableChain.FGSA.Run.clean_state_gate_guard
+#print axioms AvailableChain.FGSA.Run.clean_gate_passed
+#print axioms AvailableChain.FGSA.Run.clean_gate_writes
+#print axioms AvailableChain.FGSA.Run.clean_gate_lease_targets
+#print axioms AvailableChain.FGSA.Run.clean_gate_fast_prefix
+#print axioms AvailableChain.FGSA.Run.clean_gate_output_compatible
+#print axioms AvailableChain.FGSA.Run.clean_gate_sExtends
+#print axioms AvailableChain.FGSA.Run.clean_gate_leases
+#print axioms AvailableChain.FGSA.Run.clean_gate_saved
+#print axioms AvailableChain.FGSA.Run.clean_gate_savedOnly
+#print axioms AvailableChain.FGSA.Run.clean_gate_fastAt
+#print axioms AvailableChain.FGSA.Run.clean_gate_sOrigin
+#print axioms AvailableChain.FGSA.Run.clean_gate_fastWrite

@@ -21,3 +21,5 @@ public import AvailableChainFGSAProofs.Proofs.Shared.Gate
 public import AvailableChainFGSAProofs.Proofs.Clean.Chain
 public import AvailableChainFGSAProofs.Proofs.Foundations.Counts
 public import AvailableChainFGSAProofs.Proofs.Foundations.Timing
+public import AvailableChainFGSAProofs.Proofs.Clean.State
+public import AvailableChainFGSAProofs.Proofs.Clean.StateGate
