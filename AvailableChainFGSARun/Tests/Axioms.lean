@@ -8,7 +8,6 @@ public import AvailableChainFGSARun.Proofs.ClockLaws
 public import AvailableChainFGSARun.Proofs.Reachable
 public import AvailableChainFGSARun.Proofs.Hooks
 public import AvailableChainFGSARun.Proofs.Acceptance
-public import AvailableChainFGSARun.Tests.Acceptance
 public import AvailableChainFGSARun.Proofs.Emission
 public import AvailableChainFGSARun.Statements.Client
 public import AvailableChainFGSARun.Proofs.ClientTrace
@@ -178,7 +177,6 @@ mechanically. -/
 #print axioms AvailableChain.FGSA.Run.fgsaTrigger_def
 #print axioms AvailableChain.FGSA.Run.fgsa_trigger_of_emit
 #print axioms AvailableChain.FGSA.Run.fgsa_trigger_of_accept
-#print axioms AvailableChain.FGSA.Run.Tests.fgsa_carried_row_cap_control
 -- T7.9 part A
 #print axioms AvailableChain.FGSA.Run.ownRecord_fold_run
 #print axioms AvailableChain.FGSA.Run.fgsa_emits_head

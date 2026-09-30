@@ -438,7 +438,8 @@ def fg_grid(ctx: Context, m: Module, dep: str) -> bool:
 
 def run(ctx: Context, m: Module, dep: str) -> bool:
     return under(m.name, RUN) and not m.facade and not is_test(m.name) and not (
-        foundation(dep) or any_under(dep, (RUN, FGSA, GEN, "AvailableChainEngineV2", "AvailableChainKitV2"))
+        foundation(dep) or any_under(dep, (RUN, FGSA, GEN, "AvailableChainEngineV2", "AvailableChainKitV2",
+                              "AvailableChainKitFG", "AvailableChainSimplexFG"))
         or dep == STORE_FACTS)
 
 

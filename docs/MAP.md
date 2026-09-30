@@ -1253,8 +1253,7 @@ the library glob builds Tests. It adapts the FG-SA store to engine v2.
 │ Proofs/Reachable.lean           │ Run store bundle and proposal origins │
 │ Proofs/Hooks.lean               │ HooksSound and child well-formedness  │
 │ Proofs/Acceptance.lean          │ Thresholds and receipt law proofs     │
-│ Tests/Acceptance.lean           │ Carried row and clock controls        │
-│ Tests/Protocol.lean             │ Protocol examples                     │
+│ Tests/Protocol.lean             │ Protocol and acceptance controls      │
 │ Tests/Axioms.lean               │ Public theorem axiom audit            │
 └─────────────────────────────────┴───────────────────────────────────────┘
 ```
