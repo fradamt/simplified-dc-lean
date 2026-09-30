@@ -482,6 +482,7 @@ theorem AvailableChain.V2.Engine.stateBefore_stable_clock_restore 2dc657a0a55cd6
 theorem AvailableChain.V2.Engine.stateBefore_stable_clock_noRestart 0f5d3314fc7c1d7b
 theorem AvailableChain.V2.Engine.clock_field_origin 990437b00296ba4f
 theorem AvailableChain.V2.Engine.clock_field_origin_noRestart ca95c0f2f9d37f7f
+theorem AvailableChain.V2.Engine.clock_field_origin_of_subset c8458d33c65921ae
 theorem AvailableChain.V2.Engine.stateBefore_field_prefix 7b725593ef3e900a
 theorem AvailableChain.V2.Engine.stateBefore_field_prefix_restore 11b0e702792d7c40
 ```

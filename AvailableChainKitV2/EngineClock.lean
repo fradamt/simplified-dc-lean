@@ -368,6 +368,65 @@ theorem clock_field_origin_noRestart {α : Type} (field : P.State → List α)
   field_origin_aux field hinit hprocess hrecord Q hclock E rho v
     (fun k t _ h => absurd h (hnr k v t)) index row hm
 
+/-- The field origin, for a restart step that adds no rows. -/
+private theorem field_origin_of_subset_aux {α : Type} (field : P.State → List α)
+    (hinit : field P.init = [])
+    (hprocess : ∀ st o a, a ∈ field (P.process st o) → a ∈ field st)
+    (hrecord : ∀ st o x, x ∈ field (P.recordOwn st o) → x ∈ field st)
+    (Q : P.State → Time → α → Prop)
+    (hclock : ∀ st t row, row ∈ field (P.clock st t) → row ∈ field st ∨ Q st t row)
+    (E : Generic.Env V) (rho : Run V P) (v : V)
+    (hR : ∀ k t x, rho.events[k]? = some (.restart v t) →
+      x ∈ field (P.restore (P.durable (Run.stateBefore E rho k v))) →
+      x ∈ field (Run.stateBefore E rho k v))
+    (index : Nat) (row : α) (hm : row ∈ field (Run.stateBefore E rho index v)) :
+    ∃ j < index, ∃ t, rho.events[j]? = some (.tick v t) ∧
+      Q (Run.stateBefore E rho j v) t row := by
+  induction index with
+  | zero => rw [stateBefore_zero, hinit] at hm; simp at hm
+  | succ index ih =>
+      have ih' : row ∈ field (Run.stateBefore E rho index v) → ∃ j < index + 1, ∃ t,
+          rho.events[j]? = some (.tick v t) ∧ Q (Run.stateBefore E rho j v) t row :=
+        fun h => let ⟨j, hj, rest⟩ := ih h; ⟨j, Nat.lt_succ_of_lt hj, rest⟩
+      cases hi : rho.events[index]? with
+      | none => exact ih' (by simpa [Run.stateBefore, List.take_add_one, hi] using hm)
+      | some e =>
+          rw [Run.stateBefore_succ E rho hi] at hm
+          by_cases hv : e.node = v
+          · cases e with
+            | restart u t =>
+                simp only [Event.node] at hv; subst u
+                simp only [World.step, Function.update_self] at hm
+                exact ih' (hR index t row hi hm)
+            | tick u t =>
+                simp only [Event.node] at hv; subst u
+                simp only [World.step, Function.update_self, tick_decomp] at hm
+                rcases hclock _ t row (mem_field_foldl_recordOwn field hrecord row _ _ hm) with
+                  hold | hnew
+                · exact ih' hold
+                · exact ⟨index, Nat.lt_succ_self index, t, hi, hnew⟩
+            | deliver u o t =>
+                simp only [Event.node] at hv; subst u
+                simp only [World.step, Function.update_self] at hm
+                exact ih' (hprocess _ o row hm)
+          · rw [World.step_apply_of_node_ne E rho _ hv] at hm
+            exact ih' hm
+
+/-- [helper] A stored element comes from a prior local tick when all other
+steps can only remove elements. -/
+theorem clock_field_origin_of_subset {α : Type} (field : P.State → List α)
+    (hinit : field P.init = [])
+    (hprocess : ∀ st o a, a ∈ field (P.process st o) → a ∈ field st)
+    (hrecord : ∀ st o a, a ∈ field (P.recordOwn st o) → a ∈ field st)
+    (hrestore : ∀ st a, a ∈ field (P.restore (P.durable st)) → a ∈ field st)
+    (Q : P.State → Time → α → Prop)
+    (hclock : ∀ st t a, a ∈ field (P.clock st t) → a ∈ field st ∨ Q st t a)
+    (E : Generic.Env V) (rho : Run V P) (index : Nat) (v : V) (a : α)
+    (hm : a ∈ field (Run.stateBefore E rho index v)) :
+    ∃ j < index, ∃ t, rho.events[j]? = some (.tick v t) ∧ Q (Run.stateBefore E rho j v) t a :=
+  field_origin_of_subset_aux field hinit hprocess hrecord Q hclock E rho v
+    (fun _ _ x _ h => hrestore _ x h) index a hm
+
 /-- The field prefix on `[i, j)`, for a restart step that keeps the prefix. -/
 private theorem field_prefix_aux {α : Type} (field : P.State → List α)
     (hclock : ∀ st t, field st <+: field (P.clock st t))

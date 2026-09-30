@@ -11,6 +11,7 @@ public import AvailableChainFGSA.Proofs.Metadata
 public import AvailableChainFGSA.Proofs.CrossNode
 public import AvailableChainFGSA.Proofs.Head
 public import AvailableChainFGSA.Proofs.SetEq
+public import AvailableChainFGSA.Proofs.LeaseOutput
 
 /-! Kernel dependency audit (Task 13 Step 1): one line for each public theorem of
 Tasks 2 and 7–12. Each prints only `propext`, `Classical.choice`, `Quot.sound`, or
@@ -311,3 +312,6 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 #print axioms AvailableChain.FGSA.stored_fg_preceq_iff_erase
 #print axioms AvailableChain.FGSA.stored_fg_compatible_eq_erase
 #print axioms AvailableChain.FGSA.stored_fg_roots_injective
+
+-- Proofs/LeaseOutput.lean
+#print axioms AvailableChain.FGSA.storedTargetsBelowOutput_target

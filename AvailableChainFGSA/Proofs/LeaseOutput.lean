@@ -20,6 +20,12 @@ theorem storedTargetsBelowOutput_init (p : Params) :
   intro ℓ hℓ
   exact False.elim (List.not_mem_nil hℓ)
 
+/-- [helper] Each stored target is below the output. -/
+theorem storedTargetsBelowOutput_target (p : Params) (st : State p.n)
+    (h : StoredTargetsBelowOutput p st) (row : Block × Nat × Time)
+    (hr : row ∈ st.base.obligations) : Block.Preceq row.1 st.base.stableRecord :=
+  h row hr
+
 -- Normalization can reset S to F. A compatible target below S is still below
 -- that output: the other direction would give F ⪯ S.
 private theorem target_below_normal {B F S : Block}
