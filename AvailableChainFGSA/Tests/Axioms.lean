@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSA.Proofs.Head.Pool
 public import AvailableChainFGSA.Proofs.BlockAncestry
 public import AvailableChainFGSA.Proofs.Carrier
 public import AvailableChainFGSA.Proofs.Fields
@@ -317,3 +318,10 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 #print axioms AvailableChain.FGSA.storedTargetsBelowOutput_target
 #print axioms AvailableChain.FGSA.admitProposal_obligations_slow
 #print axioms AvailableChain.FGSA.gateFrom_target_origin_slow
+
+#print axioms AvailableChain.FGSA.fgsa_early_subset_late
+#print axioms AvailableChain.FGSA.fgsa_cleanSupport_no_equivocation
+#print axioms AvailableChain.FGSA.fgsa_cleanSupport_seats_subset_late
+#print axioms AvailableChain.FGSA.fgsa_prefixSupport_antitone
+#print axioms AvailableChain.FGSA.fgsa_conflicting_support_sum_le_late
+#print axioms AvailableChain.FGSA.fgsa_confirmationFrom_covers_majority
