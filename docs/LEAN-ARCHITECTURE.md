@@ -31,21 +31,21 @@ document adds the proof architecture below it.
 
 ```text
 ┌───────┬───────────────────────────────────────────────┬────────────────┬──────────────────────┐
-│ Key   │ File                                          │ Owner          │ State at draft 2     │
+│ Key   │ File                                          │ Owner          │ State (2026-09-30)   │
 ├───────┼───────────────────────────────────────────────┼────────────────┼──────────────────────┤
 │ S1    │ TS/codex/scratch/a0-s1-reuse-map.md           │ lead           │ final                │
 │       │ (G01–G38)                                     │                │                      │
 │ S2    │ lean-framework scratchpad a0-s2.md            │ lean-framework │ final                │
 │ S3    │ TS/codex/scratch/a0-s3-claim-structure.md     │ fgsa-lean      │ r3.4 1bedacd2        │
 │       │ (D01–D79)                                     │                │ (fixes §11 applied)  │
-│ GLY   │ AC/claude-files/a0/generic-layer.md           │ lean-framework │ r3.11 6159b36b       │
-│       │                                               │                │ (fixes §11 applied)  │
-│ S4    │ lean-framework scratchpad a0-s4-build.md,     │ lean-framework │ build.md r3.2        │
+│ GLY   │ AC/claude-files/a0/generic-layer.md           │ lean-framework │ r3.17 40a50839       │
+│       │                                               │                │ (census; L40)        │
+│ S4    │ lean-framework scratchpad a0-s4-build.md,     │ lean-framework │ build.md r3.7        │
 │       │ a0-s4-port.md (S4p)                           │                │                      │
 │ 1c    │ AC/claude-files/1c/plan.md r3.3 (+ r4-inputs) │ lean-framework │ r4 follows A0        │
-│ P3    │ TS/codex/scratch/fgsa-f0-f2-plan-draft.md     │ fgsa-lean      │ r3.5.2 90c91821      │
-│ T7    │ FP/docs/plans/…-t7-t1.md                      │ fgsa-lean      │ r16 4d11b505         │
-│       │                                               │                │ (fixes §11)          │
+│ P3    │ TS/codex/scratch/fgsa-f0-f2-plan-draft.md     │ fgsa-lean      │ r3.5.7 721a06c2      │
+│ T7    │ FP/docs/plans/…-t7-t1.md                      │ fgsa-lean      │ r17 98129fb          │
+│       │                                               │                │ (T7 done but T7.10)  │
 └───────┴───────────────────────────────────────────────┴────────────────┴──────────────────────┘
 ```
 
@@ -502,7 +502,8 @@ claim cites the generic statement through the producer; no second proof.
 
 ## 7. Build
 
-Authority: **`claude-files/a0/build.md` r3.2 10e0b813** (lean-framework,
+Authority: **`claude-files/a0/build.md` r3.7 bf8b643a** (lean-framework;
+r3.8 with the G-F0a package adds `gate.sh --critical-path`, L46;
 final §Build; it replaces the draft-1 text and goes into
 `docs/LEAN-ARCHITECTURE.md` §7 at adoption). Summary:
 
@@ -524,9 +525,12 @@ final §Build; it replaces the draft-1 text and goes into
   read definitions that the Props use), and only Assembly closes them (P10).
 - 7.5 the port by the approved re-baseline procedure (L16).
 - 7.6 the wrapper and the NUC rule; measured cold 724 s / critical path
-  296 s (Mac, old wrapper) vs 264 s / 155 s (NUC). OWED: the FG-SA
-  critical path after the port and at G-F0a (with E-18).
-- 7.7 build agents and gates.
+  296 s (Mac, old wrapper) vs 264 s / 155 s (NUC). FG-SA critical path
+  (FGSA + FGSARun, NUC, 3 slots, cold, dab6bf3): 100 s, the G-F0a
+  target; a gate above 120 s blocks. Not comparable to 155 s (whole repo).
+- 7.7 build agents and gates: `scripts/gate.sh` with MERGE and FULL tiers,
+  one global slot cap (3 on the Mac and the NUC), and on the NUC a required
+  MemoryMax=16G scope (after the 2026-09-30 OOM incident; L46).
 
 build.md r2–r3 apply the lead amendments and record the port result:
 `FGSAProofs/Shared/*` is not a lane and FGSAProofs may import it (check
@@ -537,7 +541,8 @@ definition value counts), not theorem proofs.
 
 ## 8. Decision register (lead, 2026-09-29)
 
-S3 §1 (D01–D79) is the claim-level register. The lead register (L1–L39):
+S3 §1 (D01–D79) is the claim-level register. The lead register (L1–L46;
+L40–L46 added after adoption, 2026-09-30):
 
 ```text
 ┌─────┬──────────────────────────────────────────────────────┬────────────────┐
@@ -571,8 +576,8 @@ S3 §1 (D01–D79) is the claim-level register. The lead register (L1–L39):
 │     │ max(GST, 1)); examples at GST = 0                    │ Opus check     │
 │ L16 │ Port to v4.34.1 + mathlib d13f23b7 by the S4p        │ user           │
 │     │ procedure, before the final freeze                   │                │
-│ L17 │ S3 §9: O09 kernel; O12; O14; O15 FGSAInterfaces; O16│ lead           │
-│     │ window bodies; O19 flat imports; O22 GLY r3.7        │                │
+│ L17 │ S3 §9: O09 kernel; O12; O14; O15 FGSAInterfaces;     │ lead           │
+│     │ O16 window bodies; O19 flat imports; O22 GLY r3.7    │                │
 │ L18 │ Throttle wrapper kept and fixed (cap, floor, guard); │ user delegated │
 │     │ installed on v4.34.1; NUC for a second worktree      │                │
 │ L19 │ actTime = admission threshold; AdmitSound; Trigger   │ Opus B1; Astra │
@@ -636,6 +641,34 @@ S3 §1 (D01–D79) is the claim-level register. The lead register (L1–L39):
 │     │ HonestSlot rho I s}. Recovery₂ extends it with base, │ GLY r3.9 after │
 │     │ fault, awake, gapPos (FG-SA only); params dropped    │ the audit      │
 │     │ (hδ binder); r3.3 names frozen; no rename or wrapper │                │
+│ L40 │ count_rec takes hn : 0 < n (false at n = a = 0);     │ lean-framework │
+│     │ count_clean concludes FaultQ n a, never FaultX       │ S4b-07; lead   │
+│     │ (GLY r3.15, r3.16)                                   │                │
+│ L41 │ Linked is required (Q5): FG safety fails without it  │ Q5 runs 1, 2;  │
+│     │ (RowWire.toRow? drops the round; q5-wirecheck,       │ lead           │
+│     │ q5b-check); spec 8ef4ed3b :189–191 implies it; Gen   │                │
+│     │ linked_holder_eq, linked_card_le_of_holders          │                │
+│ L42 │ P10 exact exceptions for Claims/*: the Claims root   │ fgsa-lean STOP;│
+│     │ and facade FGSAClaims; Claims Tests/Axioms;          │ lead           │
+│     │ FGSAProofs Proofs/Shared/Claims (claim → claim only) │                │
+│ L43 │ hReady is a run premise, not an instance field;      │ fgsa-lean;     │
+│     │ producers: non-block, wellFormed at handling, honest │ lead (c)+(iii) │
+│     │ emission; proposal case by fgsa_hReady_of_parent-    │                │
+│     │ Stored; K8 supplies hParent                          │                │
+│ L44 │ SrcFrameAbove gets the genesis premise G1 (P3 form   │ F1.5 design;   │
+│     │ refuted by Φ = False at index 0); certified = C1;    │ lead review    │
+│     │ FrameBelow = FB1, cp*_of_srcFrame take RStore and    │                │
+│     │ RFrameExact; T1 typing; every contest witness        │                │
+│     │ extends B (P3 r3.5.7)                                │                │
+│ L45 │ Freeze by per-entry manifest (FGSA, FGSARun,         │ lead           │
+│     │ FGSAClaims Statements; D15 from G-F0a); later fields │                │
+│     │ go in new structures extending FGSASafetyInterfaces  │                │
+│     │ and FGSASafetyClaims; ReleasePrem: a < SA.release-   │                │
+│     │ Threshold (bp 00:729)                                │                │
+│ L46 │ One review or reviews from different models; fast    │ user;          │
+│     │ tier only for bottleneck jobs; gate tiers, slots and │ lean-framework │
+│     │ memory scope (BUILD r3.7); critical path 100 s, a    │                │
+│     │ gate above 120 s blocks                              │                │
 └─────┴──────────────────────────────────────────────────────┴────────────────┘
 ```
 
