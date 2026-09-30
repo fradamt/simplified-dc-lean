@@ -1,5 +1,6 @@
 module
 public import AvailableChainGridCO.Model.Protocol
+public import AvailableChainGridCO.Model.StoreKeys
 public import AvailableChainGridCO.Statements.Contract
 public import AvailableChainGridCO.Proofs.Contract
 public import AvailableChainGridCO.Proofs.Hooks

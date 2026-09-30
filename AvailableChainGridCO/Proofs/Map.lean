@@ -1,4 +1,5 @@
 module
+public import AvailableChainGridCO.Model.StoreKeys
 public import AvailableChainGridCO.Proofs.Relay
 
 @[expose] public section
@@ -252,10 +253,6 @@ private theorem writeObligation_bound {n : Nat} (st : State n)
     cases h
     exact le_refl _
 
-def writeKeys {n : Nat} (st : State n)
-    (keys : List (Block × Nat)) (limit : Time) : State n :=
-  keys.foldl (fun acc key => writeObligation acc key.1 key.2 limit) st
-
 private theorem writeKeys_bound {n : Nat} (st : State n)
     (keys : List (Block × Nat)) (limit : Time)
     (hbound : DeadlinesAtMost st limit) :
@@ -272,7 +269,7 @@ theorem writeKeys_now {n : Nat} (st : State n)
   induction keys generalizing st with
   | nil => rfl
   | cons key keys ih =>
-      simp only [writeKeys, List.foldl_cons]
+      simp only [writeKeys_def, List.foldl_cons]
       exact (ih (writeObligation st key.1 key.2 limit)).trans rfl
 
 private theorem write_preserves_limit_row {n : Nat} (st : State n)
@@ -665,11 +662,6 @@ theorem admissionLevels_mono (p : Params) {n : Nat} (st : State n)
     obtain ⟨hgrid, hcount⟩ : g ∈ p.grid ∧ g ≤ prefixSupport p st r K := by simpa using ht
     exact List.mem_filter.mpr ⟨hrange, by simp [hgrid, le_trans hcount hscore]⟩
 
-def gateWriteKeys (p : Params) {n : Nat} (st : State n)
-    (r : Slot) (C : Block) : List (Block × Nat) :=
-  (st.blocks.filter (fun b => b != .genesis && Block.preceq b C)).flatMap
-    (fun b => (admissionLevels p st r b).map (fun g => (b, g)))
-
 theorem gateWriteKeys_closed (p : Params) {n : Nat} (st : State n)
     (r : Slot) (C : Block) (hblocks : StoredPrefixClosed st) :
     ∀ K g, (K, g) ∈ gateWriteKeys p st r C → ∀ B,
@@ -703,7 +695,7 @@ theorem gateFrom_eq_writeKeys (p : Params) {n : Nat} (a : Block) (st : State n)
         genuine := recordGenuine st r (some C)
         stableRecord := advance st.stableRecord C }
         (gateWriteKeys p st r C) (gateTime p r + lifetime p) := by
-  simp [gateFrom, hc, hguard, writeKeys, gateWriteKeys,
+  simp [gateFrom, hc, hguard, writeKeys_def, gateWriteKeys_def,
     List.foldl_flatMap, List.foldl_map]
 
 theorem gate_eq_writeKeys (p : Params) {n : Nat} (st : State n)

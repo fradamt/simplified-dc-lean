@@ -298,3 +298,5 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 #print axioms AvailableChain.KitFG.toWeights_q
 #print axioms AvailableChain.KitFG.isQuorum_toWeights_iff
 #print axioms AvailableChain.KitFG.unit_toWeights_q
+#print axioms AvailableChain.GridCO.writeKeys_def
+#print axioms AvailableChain.GridCO.gateWriteKeys_def
