@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Run from the repository root. Freeze gates must use --tier full.
 # The three check scripts run in parallel and share one GATE_SLOTS cap.
+# check-fgsa-claims.sh runs alone after them: its lake calls are not slot-capped
+# (NUC 2026-10-01: 282 s, peak 4.3 GiB; merge tier NEG=0 skips its compiled controls).
 # Defaults: Mac 3, Linux 4; env wins. JOBS is only a per-script pool bound.
 # Linux requires a user scope with GATE_MEM (default 16G) and no swap; without it the gate refuses to run.
 set -euo pipefail
@@ -168,6 +170,8 @@ step gen-manifest gate_with_slot lake env lean --run scripts/V2Manifest.lean --s
 summary gen-manifest
 step fgsa-manifest gate_with_slot bash scripts/check-fgsa-manifest.sh
 summary fgsa-manifest
+step fgsa-claims gate_with_slot bash scripts/check-fgsa-claims.sh
+summary fgsa-claims
 audit() {
   local path=$1 out=$2 rc=0 count
   gate_with_slot lake env lean "$path" > "$out" 2>&1 || rc=$?

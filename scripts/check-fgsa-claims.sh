@@ -614,6 +614,13 @@ run('proof-eqns', ['lake', 'env', 'lean', '--run', 'scripts/CheckProofEqns.lean'
                    '--baseline', 'scripts/baselines/check-proof-eqns.txt'])
 run('unused-imports', ['bash', 'scripts/shake-report.sh', '--fail-on-new', *roots])
 
+# The gate's merge tier sets NEG=0: it skips the compiled negative controls
+# below (about 135 s on the NUC), as the other check scripts do.
+if os.environ.get('NEG', '1') == '0':
+    print('compiled negative controls: SKIPPED (NEG=0)', flush=True)
+    print('all FGSA claims checks pass (NEG=0: no compiled negative controls)', flush=True)
+    raise SystemExit(0)
+
 # Compiled negative controls. They are never added to the real library.
 # Use the real auditor and require its diagnostic, not merely a Lean error.
 neg = work / 'controls'
