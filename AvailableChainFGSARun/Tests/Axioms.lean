@@ -5,6 +5,7 @@ public import AvailableChainFGSARun.Proofs.Protocol
 public import AvailableChainFGSARun.Proofs.Excludes
 public import AvailableChainFGSARun.Proofs.Interface
 public import AvailableChainFGSARun.Proofs.ClockLaws
+public import AvailableChainFGSARun.Proofs.Reachable
 
 /-! Kernel dependency audit of the FG-SA run library (plan
 `docs/plans/2026-09-29-fgsa-composition-t7-t1.md`, T7.1): one `#print axioms`
@@ -131,3 +132,25 @@ mechanically. -/
 #print axioms AvailableChain.FGSA.Run.epoch_of_restartFree
 #print axioms AvailableChain.FGSA.Run.excludes_stable_epoch
 #print axioms AvailableChain.FGSA.Run.excludesFixed_stable_epoch
+
+-- Run-to-store bridge (T7.5)
+#print axioms AvailableChain.FGSA.Run.reachable_stateBefore
+#print axioms AvailableChain.FGSA.Run.reachable_stateBeforeTime
+#print axioms AvailableChain.FGSA.Run.reachable_readAt
+#print axioms AvailableChain.FGSA.Run.reachable_final
+#print axioms AvailableChain.FGSA.Run.reachable_postClock
+#print axioms AvailableChain.FGSA.Run.reachable_postTick
+#print axioms AvailableChain.FGSA.Run.storeBundle_stateBefore
+#print axioms AvailableChain.FGSA.Run.storeBundle_stateBeforeTime
+#print axioms AvailableChain.FGSA.Run.storeBundle_readAt
+#print axioms AvailableChain.FGSA.Run.storeBundle_final
+#print axioms AvailableChain.FGSA.Run.storeBundle_postClock
+#print axioms AvailableChain.FGSA.Run.storeBundle_postTick
+#print axioms AvailableChain.FGSA.Run.inv0_stateBefore
+#print axioms AvailableChain.FGSA.Run.cstoreInv_stateBefore
+#print axioms AvailableChain.FGSA.Run.metaInv_stateBefore
+#print axioms AvailableChain.FGSA.Run.nestOK_stateBefore
+#print axioms AvailableChain.FGSA.Run.outputNesting_run
+#print axioms AvailableChain.FGSA.Run.leaseBelowOutput_stateBefore
+#print axioms AvailableChain.FGSA.Run.leaseBelowOutput_honest
+#print axioms AvailableChain.FGSA.Run.stored_proposal_delivered

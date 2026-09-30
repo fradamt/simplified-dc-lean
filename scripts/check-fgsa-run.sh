@@ -34,7 +34,14 @@ AX_OPTS=(--expect Run.fgsa Run.fgsaFamilies Run.fgsaIso Run.toWireEquiv Run.duti
   Run.decode_eq_block Run.rowWire_decode
   Run.fgsaInterface Run.fgsaOutputs Run.finalizedOut Run.proposalTime_fgsa
   Run.propLabel_injective Run.fgsaClock Run.fgsa_restore_now_eq Run.fgsa_hrestore_now
-  Run.fgsa_hrestore Run.fgsa_hrestore_field)
+  Run.fgsa_hrestore Run.fgsa_hrestore_field
+  Run.reachable_stateBefore Run.reachable_stateBeforeTime Run.reachable_readAt
+  Run.reachable_final Run.reachable_postClock Run.reachable_postTick
+  Run.storeBundle_stateBefore Run.storeBundle_stateBeforeTime Run.storeBundle_readAt
+  Run.storeBundle_final Run.storeBundle_postClock Run.storeBundle_postTick
+  Run.inv0_stateBefore Run.cstoreInv_stateBefore Run.metaInv_stateBefore
+  Run.nestOK_stateBefore Run.outputNesting_run Run.leaseBelowOutput_stateBefore
+  Run.leaseBelowOutput_honest Run.stored_proposal_delivered)
 
 # Remove comments (the tokenizer of scripts/check-fgsa.sh): strings, character
 # literals, raw strings (r"...", r#"..."#) and nested block comments. A "--"
@@ -105,7 +112,8 @@ check_root_imports() {
 # Time, Blocks, Codec}, AvailableChainModel.Generic.Env, AvailableChainSimplexFG.*,
 # AvailableChainGridCO.Model.{Protocol, Walk}, AvailableChainSA.Model.Protocol,
 # Mathlib.*. Proofs/ and Tests/ also: AvailableChainKitV2.*,
-# AvailableChainFGSA.Proofs.*, AvailableChainKitFG.*. Tests/ also:
+# AvailableChainFGSA.Proofs.*, AvailableChainKitFG.*, and the T7.5 core
+# AvailableChainGeneric.Proofs.V2.Induction. Tests/ also:
 # AvailableChainFGSA.Tests.Support. Everything else is refused, in particular
 # the v1 engine (AvailableChainModel.Generic.Run), AvailableChainStatements.*,
 # AvailableChainKit.*, AvailableChainGridCO.Proofs.*, AvailableChainFramework.*,
@@ -133,7 +141,7 @@ check_direct_imports() {
             AvailableChainModel.Generic.Env|AvailableChainSimplexFG.*|Mathlib.*) continue ;;
             AvailableChainGridCO.Model.Protocol|AvailableChainGridCO.Model.Walk) continue ;;
             AvailableChainSA.Model.Protocol) continue ;;
-            AvailableChainKitV2.*|AvailableChainFGSA.Proofs.*|AvailableChainKitFG.*)
+            AvailableChainKitV2.*|AvailableChainFGSA.Proofs.*|AvailableChainKitFG.*|AvailableChainGeneric.Proofs.V2.Induction)
               { [ "$layer" = Proofs ] || [ "$layer" = Tests ]; } && continue ;;
             AvailableChainFGSA.Tests.Support) [ "$layer" = Tests ] && continue ;;
           esac ;;

@@ -1245,6 +1245,7 @@ the library glob builds Tests. It adapts the FG-SA store to engine v2.
 │ Proofs/Excludes.lean            │ Exclusion stability and epoch proofs  │
 │ Proofs/Interface.lean           │ Proposal label injectivity            │
 │ Proofs/ClockLaws.lean           │ Base clock laws and restore premises  │
+│ Proofs/Reachable.lean           │ Run store bundle and proposal origins │
 │ Tests/Protocol.lean             │ Protocol examples                     │
 │ Tests/Axioms.lean               │ Public theorem axiom audit            │
 └─────────────────────────────────┴───────────────────────────────────────┘
