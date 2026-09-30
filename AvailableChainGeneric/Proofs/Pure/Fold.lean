@@ -1,5 +1,4 @@
 module
-public import Init.Data.List.Lemmas
 
 public section
 
