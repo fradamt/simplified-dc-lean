@@ -214,4 +214,86 @@ theorem firstAccept_of_processed :
     ∃ i t', i₀ ≤ i ∧ i < k ∧ Run.acceptsAt E rho i w o t' :=
   @firstAccept_of_processed_statement
 
+-- S3-04; Statements/V2/Receipt.lean:126–158; KitV2/Execution.lean:128.
+theorem accepted_by_deadline_statement : AcceptedByDeadlineStatement := by
+  intro V _ In P E rho Timely Inv dl cut o t w hD hT hw hcut hlt hS
+    hES hPS hReady hA C hInv hAdm j hj hrf hNX
+  let n := Run.idxBefore rho (dl t)
+  have hdeadline : Run.stateBefore E rho n = Run.stateBeforeTime E rho (dl t) :=
+    stateBefore_idxBefore E rho (dl t) hS
+  have hNXn : P.excludes (Run.stateBefore E rho n w) o = false := by
+    rw [hdeadline]
+    exact hNX
+  rw [← hdeadline]
+  have hhandled : ∀ a t', t ≤ t' → t' < dl t → Run.handlesAt E rho a w o t' →
+      P.processed (Run.stateBefore E rho n w) o = true := by
+    intro a t' htt htd ha
+    obtain ⟨o', hea, hhandles⟩ := ha
+    have han : a < n := (index_lt_idxBefore_iff hS hea (dl t)).2 htd
+    have hja : j < a := tick_index_lt_delivery E rho hS hj hea
+      ((pubFloor_le E t).trans htt)
+    have htimely := timely_of_clock E rho C hS w o (pubFloor E t) j a hAdm hj hja
+      (hrf.mono le_rfl (Nat.le_of_lt han))
+    obtain ⟨hWF, hdeps⟩ := hReady a t' han ⟨o', hea, hhandles⟩
+    have hpost : Run.stateBefore E rho (a + 1) w =
+        P.process (Run.stateBefore E rho a w) o' := by
+      rw [Run.stateBefore_succ E rho hea]
+      dsimp only [World.step]
+      rw [Function.update_self]
+    have hrfpost : restartFree rho w (a + 1) n :=
+      hrf.mono (Nat.le_trans (Nat.le_of_lt hja) (Nat.le_succ a)) le_rfl
+    rcases hA.accepts _ o' o (hInv a) hhandles hWF hdeps htimely with hP | hX
+    · exact hPS w o (a + 1) n (Nat.succ_le_of_lt han) hrfpost (by rwa [hpost])
+    · have hXn := hES w o (a + 1) n (Nat.succ_le_of_lt han) hrfpost
+        (by rwa [hpost])
+      rw [hNXn] at hXn
+      exact Bool.noConfusion hXn
+  rw [Trigger_def] at hT
+  rcases hT with ⟨v, hv, hemits⟩ | ⟨v, hv, i, hacc⟩
+  · obtain ⟨t', htt, htd, a, ha⟩ := hD.broadcast v hv o t hemits w hw hcut hNX
+    exact hhandled a t' htt htd ha
+  · cases hprocessed : P.processed (Run.stateBefore E rho (i + 1) w) o with
+    | false =>
+        obtain ⟨t', htt, htd, a, ha⟩ := hD.relay v hv i o t hacc w hw
+          hprocessed hcut hNX
+        exact hhandled a t' htt htd ha
+    | true =>
+        obtain ⟨⟨o', hei, _⟩, _, _⟩ := hacc
+        have hin : i < n := (index_lt_idxBefore_iff hS hei (dl t)).2 hlt
+        have hji : j < i := tick_index_lt_delivery E rho hS hj hei (pubFloor_le E t)
+        exact hPS w o (i + 1) n (Nat.succ_le_of_lt hin)
+          (hrf.mono (Nat.le_trans (Nat.le_of_lt hji) (Nat.le_succ i)) le_rfl) hprocessed
+
+-- S3-04 LINK; only unused proof binder names have a leading underscore.
+theorem accepted_by_deadline :
+  ∀ {V : Type} [DecidableEq V] {In : Type} {P : ProtocolSpec In}
+    (E : Generic.Env V) (rho : Run V P),
+  ∀ {Timely : P.State → P.Object → Prop},
+  ∀ {Inv : P.State → Prop},
+  ∀ (dl : Time → Time), ∀ (cut : Time), ∀ (o : P.Object), ∀ (t : Time), ∀ (w : V),
+  ∀ (_hD : DeliveryWithin E rho dl cut),
+  ∀ (_hT : Trigger E rho o t),
+  ∀ (_hw : w ∈ rho.honest),
+  ∀ (_hcut : dl t ≤ cut),
+  ∀ (_hlt : t < dl t),
+  ∀ (_hS : ScheduleWellFormed E rho),
+  ∀ (_hES : ∀ v o i j, i ≤ j → restartFree rho v i j →
+      P.excludes (Run.stateBefore E rho i v) o = true →
+      P.excludes (Run.stateBefore E rho j v) o = true),
+  ∀ (_hPS : ∀ v o i j, i ≤ j → restartFree rho v i j →
+      P.processed (Run.stateBefore E rho i v) o = true →
+      P.processed (Run.stateBefore E rho j v) o = true),
+  ∀ (_hReady : ∀ i t', i < Run.idxBefore rho (dl t) → Run.handlesAt E rho i w o t' →
+      P.wellFormed o = true ∧ P.depsPresent (Run.stateBefore E rho i w) o = true),
+  ∀ (_hA : AcceptanceLaw P Timely Inv),
+  ∀ (C : TimelyClock P Timely),
+  ∀ (_hInv : ∀ i, Inv (Run.stateBefore E rho i w)),
+  ∀ (_hAdm : C.actTime o ≤ pubFloor E t),
+  ∀ (j : Nat),
+  ∀ (_hj : rho.events[j]? = some (.tick w (pubFloor E t))),
+  ∀ (_hrf : restartFree rho w j (Run.idxBefore rho (dl t))),
+  ∀ (_hNX : P.excludes (Run.stateBeforeTime E rho (dl t) w) o = false),
+    P.processed (Run.stateBeforeTime E rho (dl t) w) o = true :=
+  @accepted_by_deadline_statement
+
 end AvailableChain.Gen.V2
