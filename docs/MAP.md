@@ -1341,7 +1341,7 @@ The Tests targets are `AvailableChainFGSAClaimsTests`,
 The claim facade is `AvailableChainFGSAClaims/FGSAClaims.lean`.
 It holds the complete exported safety-claim aggregate.
 
-### A3 unit-seat count modules
+## A3 unit-seat count modules
 
 Paths omit `AvailableChainGeneric/` and `.lean`.
 
@@ -1350,7 +1350,23 @@ Paths omit `AvailableChainGeneric/` and `.lean`.
 │ Module                        │ Role                                  │
 ├───────────────────────────────┼───────────────────────────────────────┤
 │ Statements/Pure/QuorumInter   │ Unit-seat honest quorum intersection  │
-│ Statements/Pure/SupportCounts │ Honest-origin and two-majority counts │
+│ Statements/Pure/SupportCounts │ Two-majority intersection count       │
 │ Proofs/Pure/SupportCounts     │ Finite-seat majority count proofs     │
 └───────────────────────────────┴───────────────────────────────────────┘
+```
+
+## A4 Gen support and honest-origin count
+
+Paths omit `AvailableChainGeneric/` and `.lean`.
+
+```text
+┌─────────────────────────────┬─────────────────────────────────────────────┐
+│ Module                      │ Role                                        │
+├─────────────────────────────┼─────────────────────────────────────────────┤
+│ Statements/AC/Support       │ Score ancestry, conflict and seat contracts │
+│ Proofs/AC/Support           │ Score antitone and conflicting score bounds │
+│ Statements/Pure/HonestCount │ HonestOriginOfCountStatement                │
+│ Proofs/Pure/HonestCount     │ honest_origin_of_count                      │
+│ Tests/Support               │ Concrete finite-set honest-origin count     │
+└─────────────────────────────┴─────────────────────────────────────────────┘
 ```
