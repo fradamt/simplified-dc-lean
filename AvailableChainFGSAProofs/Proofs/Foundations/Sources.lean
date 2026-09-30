@@ -416,7 +416,8 @@ theorem sourceDiscipline_strat [Fintype V] {Pt : Type} {pt : Pt}
     rw [hXh]
     exact hname
 
-/-- The G1 genesis premise and exact earlier names give the source frame. -/
+/-- The G1 genesis premise and exact earlier names give the source frame.
+The frozen hclosed ancestor-closure premise is unused: exact certified names suffice. -/
 theorem sourceDiscipline_srcFrameAbove [Fintype V] {Pt : Type} {pt : Pt}
     (hb : SourceDisciplinePrem p c E rho pt)
     (hS : RStore p c E rho) :

@@ -211,3 +211,18 @@ public import AvailableChainFGSAProofs.Proofs.Clean.Chain -- shake: keep (axiom 
 
 #print axioms AvailableChain.FGSA.Run.fgsa_finalityStoreRows_contains
 #print axioms AvailableChain.FGSA.Run.fgsa_finalizedMonotone
+
+#print axioms AvailableChain.FGSA.Run.stored_block_wire_delivery
+#print axioms AvailableChain.FGSA.Run.stored_chain_row_origin_delivery
+#print axioms AvailableChain.FGSA.Run.carried_rows_carriage
+#print axioms AvailableChain.FGSA.Run.delivered_runBlock_carriage
+#print axioms AvailableChain.FGSA.Run.proposalRows_source
+#print axioms AvailableChain.FGSA.Run.store_wire_origin
+#print axioms AvailableChain.FGSA.Run.emitted_runBlock_carriage
+#print axioms AvailableChain.FGSA.Run.fgsa_runBlock_carriage
+#print axioms AvailableChain.FGSA.Run.fgsa_slashableBound_of_base
+#print axioms AvailableChain.FGSA.Run.fgsa_storeSlashableBound_of_base
+#print axioms AvailableChain.FGSA.Run.fgsa_eventPrefixAgreement_of_bound
+#print axioms AvailableChain.FGSA.Run.fgsa_finalLock_of_bound
+
+#print axioms AvailableChain.FGSA.Run.FGSASlashableBound_def

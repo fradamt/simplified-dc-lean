@@ -12,15 +12,18 @@ variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
 
 set_option linter.unusedFintypeInType false in
+/-- The retained Fintype instance is unused by the schedule-only source bound. -/
 theorem fgsa_tSrc [Fintype V] {pt : Unit} (hb : BasePrem p c E rho pt) :
     TSrc p c E rho :=
   sourceDiscipline_tSrc p c E rho hb.set.valid.toScheduleWellFormed
 
 set_option linter.unusedFintypeInType false in
+/-- The retained Fintype instance is unused by the schedule-only label bound. -/
 theorem fgsa_labelBound [Fintype V] {pt : Unit} (hb : BasePrem p c E rho pt) :
     LabelBound p c E rho :=
   sourceDiscipline_labelBound p c E rho hb.set.valid.toScheduleWellFormed
 
+/-- The frozen atomic node-honesty premise is unused by the store invariants. -/
 theorem fgsa_timingContract [Fintype V] {pt : Unit}
     (hb : SourceDisciplinePrem p c E rho pt) : TimingContract p c E rho where
   rowLag := fun _ _ _ _ _ _ he hh => emit_lt_handles p c rho E hb.set.valid he hh

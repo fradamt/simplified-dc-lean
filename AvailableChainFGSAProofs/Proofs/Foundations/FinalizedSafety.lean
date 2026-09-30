@@ -1,6 +1,5 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Foundations.Accountable
-public import AvailableChainFGSAProofs.Proofs.Foundations.Client
 public import AvailableChainFGSAProofs.Proofs.Foundations.Store
 public import AvailableChainFGSAClaims.Statements.Packages.Safety
 
@@ -9,8 +8,11 @@ public section
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
 
-/-- Finalized safety at any two honest reads. Gen count_rec converts
-faulty.card ≤ (n − 1) / 3 and n > 0 to FaultX, after identity transport.
+set_option linter.unusedVariables false in
+/-- Finalized safety through the all-run FGSASlashableBound.
+DC DecoupledConsensusInternal/Legacy/Definitions/FinalitySafety.lean:83
+(WholeRunFinalitySafety); stored non-genesis blocks are run blocks.
+The frozen hx and hy binders are unused: reachable stores at any node suffice.
 Local F only extends by fgsa_rMono under NoRestart. -/
 theorem fgsa_finalizedSafety (p : Params) {In V : Type} [DecidableEq V] [Fintype V]
     (c : AppCodec In) (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
@@ -18,10 +20,8 @@ theorem fgsa_finalizedSafety (p : Params) {In V : Type} [DecidableEq V] [Fintype
     (e e' : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest) :
     FGBlock.compatible (storeAt p c E rho e x).fg.F
       (storeAt p c E rho e' y).fg.F = true := by
-  exact fgsa_eventPrefixAgreement p c E rho e e' x y hx hy
-    (fgsa_storeSlashableBound_of_faults p c E rho hp.set.linked
-      (fgsa_unforgeable_of_base p c E rho hp.set) (Gen.Pure.count_rec p.nPos hp.fault)
-      (fgsa_clientSafeAll p c E rho hp.set.linked) e e' x y hx hy)
+  exact fgsa_eventPrefixAgreement_of_bound p c E rho
+    (fgsa_slashableBound_of_base p c E rho hp.set hp.fault) e e' x y
 
 private theorem finality_filter_prefix {α : Type} {R : α → α → Prop} {q : α → Bool}
     (hd : ∀ a b, R a b → q b = true → q a = true)

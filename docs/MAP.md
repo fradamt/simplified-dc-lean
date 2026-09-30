@@ -1349,8 +1349,8 @@ unused imports, and negative controls. No baseline entries were added.
 │ AvailableChainFGSAProofs/Proofs/Shared/Reads.lean │ Cut, gate values and index proofs   │
 │ AvailableChainFGSAProofs/Proofs/Foundations/    │ Source discipline and source frame  │
 │ Sources.lean                                    │ K6; frozen F1.1 and F1.3 inputs     │
-│ AvailableChainFGSAProofs/Proofs/Foundations/    │ Timing interface producers         │
-│ Timing.lean                                     │ TSrc, LabelBound, TimingContract     │
+│ AvailableChainFGSAProofs/Proofs/Foundations/    │ Timing interface producers          │
+│ Timing.lean                                     │ TSrc, LabelBound, TimingContract    │
 │ AvailableChainFGSAProofs/Proofs/Foundations/Cap │ G17 run cap; positive finality lag  │
 │ .lean                                           │                                     │
 │ AvailableChainFGSAProofs/Proofs/Foundations/Acc │ Accountable count; explicit lock    │
@@ -1377,9 +1377,31 @@ It holds the complete exported safety-claim aggregate.
 
 F1 fix X1–X8: Foundations/Accountable.lean now separates pure and whole-run
 weight evidence from validator attribution. Foundations/Export.lean owns the
-lease/source claim assembly, output nesting, and timing interface producers.
+lease/source claim assembly and output nesting.
 Foundations/Carrier.lean supplies the shared delivery and honest-row origins.
 Shared/Gate.lean supplies the R15 exact selector step; temporal composition is separate.
 
 F1 X9: Foundations/Timing.lean owns the three timing interface producers.
 Export imports Timing; only claim assembly remains in Export.
+
+F1 delta: fgsa_finalLock_ev is lane-only and is absent from docs/FGSA-API.md.
+X8 changed its second disjunct from a faulty-holder count to
+HasSlashableWeightBetween p.E (chainRows K) (chainRows W).
+fgsa_finalLock_faulty_count preserves the attribution conclusion.
+fgsa_finalizedSafety now uses FGSASlashableBound; the held-store route remains
+as fgsa_storeSlashableBound_of_faults, with a BaseSet adapter.
+All-run carriage follows from ExecutionValid, as in DC AdmissibleCore.
+
+```text
+┌─────────────────────┬──────────────────────────────────────────────────────────────────────────────────┐
+│ Foundations file    │ New producers                                                                    │
+├─────────────────────┼──────────────────────────────────────────────────────────────────────────────────┤
+│ Carrier.lean        │ stored_block_wire_delivery; stored_chain_row_origin_delivery                     │
+│ Accountable.lean    │ delivered_runBlock_carriage; emitted_runBlock_carriage                           │
+│ Accountable.lean    │ fgsa_runBlock_carriage; fgsa_slashableBound_of_base                              │
+│ Accountable.lean    │ fgsa_storeSlashableBound_of_base; fgsa_eventPrefixAgreement_of_bound             │
+│ Crossing.lean       │ fgsa_finalLock_of_bound                                                          │
+│ Accountable.lean    │ carried_rows_carriage; proposalRows_source; store_wire_origin                    │
+│ Accountable.lean    │ FGSASlashableBound_def                                                           │
+└─────────────────────┴──────────────────────────────────────────────────────────────────────────────────┘
+```

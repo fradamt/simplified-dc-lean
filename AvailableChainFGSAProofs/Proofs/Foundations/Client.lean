@@ -20,7 +20,8 @@ theorem fgsa_clientSafeAll (hL : V2.Linked (fgsaFamilies p c).linked rho) :
   emittedRowsNoSlash E rho hL
 
 set_option linter.unusedFintypeInType false in
-/-- BaseSet supplies authenticity to the validator-attribution adapters. -/
+/-- BaseSet supplies authenticity to the validator-attribution adapters.
+The retained Fintype instance is unused; BaseSet has the frozen instance binder. -/
 theorem fgsa_unforgeable_of_base [Fintype V] (hb : BaseSet p c E rho) :
     V2.UnforgeableSignatures E rho :=
   hb.valid.toUnforgeableSignatures
@@ -50,7 +51,8 @@ private theorem row_at_seat {j : Nat} {x : V} {r : Nat} {a : RowWire p.n}
 set_option linter.unusedFintypeInType false in
 /-- P3 §6, 22 §1: one signed row per honest identity and round.
 G12 gives signed-object uniqueness; T7.6 gives tick uniqueness and totality;
-T7.9 B gives row validity. F0.8a supplies the row and signer channels. -/
+T7.9 B gives row validity. F0.8a supplies the row and signer channels.
+The retained Fintype instance is unused; BaseSet has the frozen instance binder. -/
 theorem honest_one_row_per_round [Fintype V] (hb : BaseSet p c E rho) :
     ∀ x ∈ rho.honest, ∀ r : Nat,
       (∀ (j j' : Nat) (a a' : RowWire p.n), HonestRowAt p c E rho j x r a →

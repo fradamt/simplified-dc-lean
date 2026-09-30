@@ -21,7 +21,10 @@ open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
 
-/-- bp.store.v1, with its frozen local schedule premise. -/
+/-- bp.store.v1, with its frozen local schedule premise.
+The frozen read-length premise is unused: stateBefore is reachable at every index.
+The frozen node-honesty premise is unused for the snapshot invariant.
+The frozen schedule premise is unused by the two temporal producers. -/
 theorem fgsa_storeAt : StoreAt p c E rho :=
   ⟨fun i x _ _ => cstoreInv_stateBefore E rho i x,
     fun _ => ⟨fgsa_rStoreCumul p c E rho, fgsa_rMono p c E rho⟩⟩
@@ -48,14 +51,16 @@ theorem fgsa_chainCertificatesClaim : ChainCertificatesClaim p :=
   fun c E rho => fgsa_chainCertificatesAt p c E rho
 
 /-- bp.reconcile.v1 at every reachable store, including due lease rows.
-K1 uses reconcile_harmless_origin; its block form is admitBlock_reconcile_harmless. -/
+K1 uses reconcile_harmless_origin; its block form is admitBlock_reconcile_harmless.
+The frozen _h reachability premise is unused by these general reconcile identities. -/
 theorem fgsa_reconcileAt (st : State p.n) (_h : Reachable p st) : ReconcileAt p st :=
   ⟨reconcile_eq st, reconcile_idem st, reconcile_harmless_origin st⟩
 
 theorem fgsa_reconcileClaim : ReconcileClaim p :=
   fun st h => fgsa_reconcileAt p st h
 
-/-- The run carrier uses the general FG geometry and the F1.1 view theorem. -/
+/-- The run carrier uses the general FG geometry and the F1.1 view theorem.
+The frozen run-block premises for X and Y are unused by general FG geometry. -/
 theorem fgsa_carrierAt : CarrierAt p c E rho :=
   ⟨fun X Y _ _ => ⟨(fgsa_carrier_geometry X Y).1, (fgsa_carrier_geometry X Y).2.1⟩,
     fun X _ => (fgsa_carrier_geometry X X).2.2, fgsa_rCarrierView p c E rho⟩
@@ -72,7 +77,9 @@ theorem fgsa_clientSafetyClaim : ClientSafetyClaim p :=
 theorem fgsa_clientSafetyBaseClaim : ClientSafetyBaseClaim p :=
   fun c E rho _ hb => fgsa_clientSafeAll p c E rho hb.set.linked
 
-/-- All four clauses of the frozen lease-origin statement. -/
+/-- All four clauses of the frozen lease-origin statement.
+The frozen read-length premise is unused: the producers cover every index.
+The frozen node-honesty premise is unused: the producers cover every node. -/
 theorem fgsa_leaseOriginsAt (hs : V2.ScheduleWellFormed E rho) :
     LeaseOriginsAt p c E rho :=
   fun i x _ _ => ⟨fgsa_leaseOrigins_origins p c E rho i x,
@@ -124,6 +131,8 @@ theorem fgsa_fgFoundationClaim : FGFoundationClaim p :=
       sourceDiscipline_strat p c E rho (pt := pt) hb (fgsa_rStore p c E rho),
       fgsa_rRec p c E rho⟩
 
+/-- The frozen read-length premise is unused: stateBefore is always reachable.
+The frozen node-honesty premise is unused by the reachable-store nesting theorem. -/
 theorem fgsa_outputNestingAt : OutputNestingAt p c E rho :=
   fun i x _ _ => (FGSA.outputNesting_stored p _ (reachable_stateBefore E rho i x)).1
 

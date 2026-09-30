@@ -9,12 +9,25 @@ open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
 
+/-- DC `finalized_preceq_of_height_lt` shape: the agreement form of R-XING
+over run blocks under the all-run bound.
+DC DecoupledConsensusProofs/Protocol/ChainState/FinalityComparison.lean:50.
+INTENTIONAL: FG-SA content roots are injective, so no hroot premise is needed. -/
+theorem fgsa_finalLock_of_bound (hb : FGSASlashableBound p c E rho) (K W : FGBlock (Fin p.n))
+    (hK : FinalityRunBlock p c E rho K) (hW : FinalityRunBlock p c E rho W)
+    (hh : (derive p.E p.cfg K).h_F < (derive p.E p.cfg W).h) :
+    FGBlock.Preceq (derive p.E p.cfg K).F W :=
+  (KitFG.slashableWeight_or_finalized_preceq p.E p.cfg K W hh).resolve_left
+    ((FGSASlashableBound_def p c E rho).mp hb K W hK hW)
+
+
 /-- Strict R-XING (01 §1.3), the run form of `fg.finalLock.v2`.
 The height is that of an accepted certificate: `h_F` of a carrier `K` held by
 `x` at `e` whose finalized checkpoint is the store's F (01:212). The claim holds
 for EVERY such carrier; one F can have carriers of different `h_F` (genesis at
 0 and at 1). The store invariant (`Fcar`) supplies one carrier. The held block
-can be outside the active view. Identity transport precedes `FaultX`. -/
+can be outside the active view. Identity transport precedes `FaultX`.
+The retained _hee binder is unused: the proof compares any two event prefixes. -/
 theorem fgsa_finalLock [Fintype V]
     (hL : V2.Linked (fgsaFamilies p c).linked rho)
     (hX : Gen.Pure.FaultX p.n (Gen.V2.faulty rho).card)
