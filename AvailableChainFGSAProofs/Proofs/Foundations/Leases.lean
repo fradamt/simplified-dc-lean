@@ -312,6 +312,7 @@ private theorem leaseGate_written (hs : V2.ScheduleWellFormed E rho)
   let pre := clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s)
   have hbound : DeadlinesAtMost (actView pre)
       (SA.gateTime p.toParams s + SA.lifetime p.toParams) := by
+    rw [DeadlinesAtMost_def]
     intro K g d hr
     let row := (K, g, d)
     have hold := (clockPre_obligations_sublist p (storeAt p c E rho j x) _).subset hr
@@ -327,7 +328,9 @@ private theorem leaseGate_written (hs : V2.ScheduleWellFormed E rho)
   have hm : (K, g, SA.gateTime p.toParams s + SA.lifetime p.toParams) ∈
       (SA.gateFrom p.toParams (eraseFG pre.fg.F) (actView pre) s).obligations := by
     rw [he]
-    exact writeKeys_mem_of_key_fgsa _ _ K g _ hbound hkey
+    exact writeKeys_mem_of_key_fgsa _ _ K g _
+      ((DeadlinesAtMost_def _ _).2 fun b g d h =>
+        (DeadlinesAtMost_def _ _).1 hbound b g d h) hkey
   have htime := (isGateTime_iff p (SA.gateTime p.toParams s)).mpr ⟨s, rfl⟩
   change _ ∈ (if isGateTime p (SA.gateTime p.toParams s) then
     gateStep p pre ((SA.gateTime p.toParams s - 6 * p.Δ) / (4 * p.Δ)).toNat
