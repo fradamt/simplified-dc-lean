@@ -451,21 +451,26 @@ if printf '%s\n' "$out" | grep -qF 'PosOpen.lean'; then
   echo "$out"; echo "NEGATIVE CONTROL v1/v2 name clash: a selective open was refused"; exit 1
 fi
 
-# New (plan §3.1): the used-constant check. A module with allowed imports only
-# (the store proofs reach the v1 Kit, the v1 statements, the v1 engine and the
-# Grid CO proofs) that uses a v1 Kit constant, a v1 statements constant, a v1
-# engine constant, and a Grid CO proof predicate in a statement (the T7.W
-# wrapper rule).
+# A control constant must be a proof-module theorem, or a def that no model
+# module re-exports (a def can move to a model module; a theorem cannot).
+# New (plan §3.1): the used-constant check. The store proofs reach the v1 Kit,
+# the v1 statements and the v1 engine. The control also imports Grid CO Map
+# directly, so it does not depend on the store's Grid CO proof imports. It
+# uses a v1 Kit constant, a v1 statements constant, a v1 engine constant, and
+# a Grid CO proof predicate in a statement (the T7.W wrapper rule).
 mk_tree
 cat > "$neg/tree/AvailableChainFGSARun/Proofs/NegUse.lean" <<'LEAN'
 module
 public import AvailableChainFGSA.Proofs.StoreInv
+public import AvailableChainGridCO.Proofs.Map
 @[expose] public section
 namespace AvailableChain.FGSA.Run
 def negKitClock {n : Nat} (P : AvailableChain.Generic.ProtocolSpec n) : Type :=
   AvailableChain.Engine.ClockLaws P
 def negStatements : Type := AvailableChain.Statements.Generic.Constants
-theorem negGridProof (t : List Block) (_h : GridCO.RootInjectiveBelow t) : True := trivial
+theorem negGridProof (n : Nat) : True :=
+  have _h := GridCO.initial_prefix_deadline_order n
+  trivial
 end AvailableChain.FGSA.Run
 end
 LEAN
@@ -478,40 +483,30 @@ expect_fail "used constants of the v1 Kit, v1 statements, v1 engine and Grid CO 
   "FORBIDDEN CONSTANT: AvailableChain.FGSA.Run.negKitClock uses AvailableChain.Engine.ClockLaws (AvailableChainKit.Engine.EngineClock)" \
   "FORBIDDEN CONSTANT: AvailableChain.FGSA.Run.negKitClock uses AvailableChain.Generic.ProtocolSpec (AvailableChainModel.Generic.Run)" \
   "FORBIDDEN CONSTANT: AvailableChain.FGSA.Run.negStatements uses AvailableChain.Statements.Generic.Constants (AvailableChainStatements.Generic.Constants)" \
-  "FORBIDDEN CONSTANT: AvailableChain.FGSA.Run.negGridProof uses AvailableChain.GridCO.RootInjectiveBelow (AvailableChainGridCO.Proofs.Roots)"
+  "FORBIDDEN CONSTANT: AvailableChain.FGSA.Run.negGridProof uses AvailableChain.GridCO.initial_prefix_deadline_order (AvailableChainGridCO.Proofs.Map)"
 
 # New (review gate G-walk, the T7.W wrapper statement rule): no declaration
 # TYPE of the library may name a Grid CO proof constant, so the used-constant
 # check scans types, not only values. The control is a theorem whose statement
-# names the Grid CO proof predicate `GridCO.RootInjectiveBelow` and whose proof
-# is the store lemma `FGSA.rootInjectiveBelow_base` (allowed): only its type
-# names the forbidden constant.
-# After the T7.W merge (AvailableChainFGSA.Proofs.Head, branch fgsa-t7w at
-# 9d239ce), this text replaces the control file (the lead's text; the namespace
-# is the library's):
-#   module
-#   public import AvailableChainFGSA.Proofs.Head
-#   @[expose] public section
-#   namespace AvailableChain.FGSA.Run
-#   open AvailableChain.FGSA
-#   theorem negctl_walkWrapper_proofPredicate (p : Params) (st : State p.n)
-#       (h : CStoreInv p st) : GridCO.RootInjectiveBelow st.base.blocks :=
-#     rootInjectiveBelow_base p st h
-#   end AvailableChain.FGSA.Run
-#   end
+# names the Grid CO proof predicate `GridCO.ComparableTargets` and whose proof
+# is the hypothesis with the predicate's body: only its type names the
+# forbidden constant. Import Map directly so the control does not depend on
+# the store's Grid CO proof imports.
 mk_tree
 cat > "$neg/tree/AvailableChainFGSARun/Proofs/NegWalk.lean" <<'LEAN'
 module
 public import AvailableChainFGSA.Proofs.StoreInv
+public import AvailableChainGridCO.Proofs.Map
 @[expose] public section
 namespace AvailableChain.FGSA.Run
-open AvailableChain.FGSA
 /-- NEGATIVE CONTROL (T7.W wrapper statement rule): the statement names the Grid
-CO proof predicate `GridCO.RootInjectiveBelow`. The used-constant check must
+CO proof predicate `GridCO.ComparableTargets`. The used-constant check must
 reject this declaration. -/
-theorem negctl_walkWrapper_proofPredicate (p : Params) (st : State p.n) (h : CStoreInv p st) :
-    GridCO.RootInjectiveBelow st.base.blocks :=
-  rootInjectiveBelow_base p st h
+theorem negctl_walkWrapper_proofPredicate {n : Nat} (st : GridCO.State n)
+    (h : ∀ K g d, (K, g, d) ∈ st.obligations →
+      ∀ B level expiry, (B, level, expiry) ∈ st.obligations →
+        Block.compatible K B = true) : GridCO.ComparableTargets st :=
+  h
 end AvailableChain.FGSA.Run
 end
 LEAN
@@ -521,11 +516,11 @@ cp -R .lake/build/lib/lean/AvailableChainFGSARun .lake/build/lib/lean/AvailableC
 lake env lean -o "$neg/c/AvailableChainFGSARun/Proofs/NegWalk.olean" "$neg/tree/AvailableChainFGSARun/Proofs/NegWalk.lean"
 run lake env bash -c 'LEAN_PATH="$0/c:$LEAN_PATH" lean --run scripts/CheckFGSARunAxioms.lean --root AvailableChainFGSARun.Proofs.NegWalk --files "$0/tree/AvailableChainFGSARun" "${@}"' "$neg" "${AX_OPTS[@]}"
 expect_fail "a Grid CO proof predicate in a statement type (G-walk)" $code "$out" \
-  "FORBIDDEN CONSTANT: AvailableChain.FGSA.Run.negctl_walkWrapper_proofPredicate uses AvailableChain.GridCO.RootInjectiveBelow (AvailableChainGridCO.Proofs.Roots)"
+  "FORBIDDEN CONSTANT: AvailableChain.FGSA.Run.negctl_walkWrapper_proofPredicate uses AvailableChain.GridCO.ComparableTargets (AvailableChainGridCO.Proofs.Map)"
 
 # New (T7.2 R-A, Opus 2): generated constants are judged by their owner
 # definition. NEGATIVE: a proof that unfolds a definition of a forbidden module
-# (`GridCO.RootInjectiveBelow`, Grid CO proofs) by its generated equation
+# (`GridCO.ComparableTargets`, Grid CO proofs) by its generated equation
 # (`eq_def`); the equation is refused through its owner. POSITIVE: proofs that `split` and
 # `simp` over `GridCO.admitVote` and `GridCO.excludes` (Grid CO model); Lean
 # realizes private matcher equations in the library that use
@@ -536,12 +531,14 @@ mk_tree
 cat > "$neg/tree/AvailableChainFGSARun/Proofs/NegOwner.lean" <<'LEAN'
 module
 public import AvailableChainFGSA.Proofs.StoreInv
+public import AvailableChainGridCO.Proofs.Map
 @[expose] public section
 namespace AvailableChain.FGSA.Run
-theorem negOwnerRoots (t : List Block) (h : GridCO.RootInjectiveBelow t) :
-    ∀ A C, (∃ B ∈ t, Block.Preceq A B) → (∃ B ∈ t, Block.Preceq C B) →
-      A.root = C.root → A = C := by
-  rw [GridCO.RootInjectiveBelow.eq_def] at h
+theorem negOwnerRoots {n : Nat} (st : GridCO.State n) (h : GridCO.ComparableTargets st) :
+    ∀ K g d, (K, g, d) ∈ st.obligations →
+      ∀ B level expiry, (B, level, expiry) ∈ st.obligations →
+        Block.compatible K B = true := by
+  rw [GridCO.ComparableTargets.eq_def] at h
   exact h
 end AvailableChain.FGSA.Run
 end
@@ -574,7 +571,7 @@ done
 run lake env bash -c 'LEAN_PATH="$0/c:$LEAN_PATH" lean --run scripts/CheckFGSARunAxioms.lean --root AvailableChainFGSARun.Proofs.NegOwner --root AvailableChainFGSARun.Proofs.PosOwner --files "$0/tree/AvailableChainFGSARun" "${@}"' "$neg" "${AX_OPTS[@]}"
 expect_fail "a generated equation of a Grid CO proof definition (owner)" $code "$out" \
   "FORBIDDEN CONSTANT: AvailableChain.FGSA.Run.negOwnerRoots uses" \
-  "(owner AvailableChain.GridCO.RootInjectiveBelow (AvailableChainGridCO.Proofs.Roots))"
+  "(owner AvailableChain.GridCO.ComparableTargets (AvailableChainGridCO.Proofs.Map))"
 if printf '%s\n' "$out" | grep -F 'FORBIDDEN CONSTANT' | grep -qv 'negOwnerRoots'; then
   echo "$out"; echo "POSITIVE CONTROL owner mapping: a Grid CO model matcher equation was refused"; exit 1
 fi
