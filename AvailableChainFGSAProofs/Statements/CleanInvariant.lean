@@ -1,6 +1,5 @@
 module
 public import AvailableChainFGSAClaims.Statements.ComposeStmt
-public import AvailableChainFGSAClaims.Statements.Regimes
 public import AvailableChainFGSARun.Statements.Client
 public import AvailableChainGeneric.Statements.Pure.FirstBad
 

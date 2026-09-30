@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSAClaims.Statements.Channels
+public import AvailableChainFGSAClaims.Statements.Witness
 public import AvailableChainFGSA.Statements.Invariants
 
 @[expose] public section
@@ -678,6 +678,288 @@ theorem CPCompat_def :
    (R.contest = true → FGBlock.Preceq B R.J ∧
      ∀ W ∈ st.fg.TF, hOf p.E p.cfg W = R.H → ¬ FGBlock.Preceq R.J W →
        FGBlock.Preceq B W))) := rfl
+
+
+/-- R-XING, fg.finalLock.v2 (01:209–217; 00:643–650), P3 A.4.
+Consumers: 21 H.4, H.6, H.14, H.18; 22 Q0. Lead ruling 2026-09-30:
+quantify every accepted carrier of the current F and use its certificate h_F.
+The claim producer supplies FaultX; there is no height function on F. -/
+def RXing : Prop := ∀ i i' x y K W, x ∈ rho.honest → i ≤ i' →
+  K ∈ (storeAt p c E rho i x).fg.TF →
+  (derive p.E p.cfg K).F = (storeAt p c E rho i x).fg.F →
+  HeldAt p c E rho i' y W → (derive p.E p.cfg K).h_F < hOf p.E p.cfg W →
+  FGBlock.Preceq (storeAt p c E rho i x).fg.F W
+
+/-- R-CAP (01:219–233), P3 A.4. Consumers: 21 H.11–H.15; 22 FF1-A.
+The producer requires FaultQ. This is causal row carriage, not finality lag. -/
+def RCap : Prop := ∀ y i x W, HeldAt p c E rho i x W → y + 2 ≤ hOf p.E p.cfg W →
+  ∃ j z r, ∃ (a : RowWire p.n) (e : BlockId), j < i ∧
+    HonestRowAt p c E rho j z r a ∧
+    namedEntry a.payload.height_pair = some (y + 1, e) ∧
+    a ∈ FGSA.chainWireRows (storeAt p c E rho i x) (eraseFG W)
+
+/-- H1/T-HIGH (21 H.22:3059–3065), P3 A.6.
+Consumers: 22 FF2, F9, HP. The claim supplies H0 and HealingSet. -/
+def THigh (w : HealingWitness) : Prop := ∀ x y r r' C C',
+  x ∈ rho.honest → y ∈ rho.honest →
+  actionSourceFG p c E rho x r = some (some C) →
+  actionSourceFG p c E rho y r' = some (some C') → high p w C → high p w C' →
+  Block.Compatible (eraseFG C) (eraseFG C') ∧ Block.Compatible (eraseFG C) w.CStar ∧
+    w.sStar ≤ r * p.R
+/-- H2/T-XFER (21 H.22:3067–3070; 01:80–91), P3 A.6.
+Consumers: 22 FF1-A, F2, F5, F8, FF7. Includes faulty openings. -/
+def TCarrier (w : HealingWitness) : Prop := ∀ x r K v Q,
+  x ∈ rho.honest → actionSourceFG p c E rho x r = some (some K) → high p w K →
+  HonestProposal E rho (fgsaInterface p c) v Q → r * p.R + 2 ≤ v →
+  Block.Preceq (eraseFG K) Q.parent
+/-- T-ROWS selector (21:3072–3076; 01:83–86,95–101), P3 A.6.
+Consumers: 22 F1–F5, F9, FF3–FF4, FL-W, FL-RF, FL-D. Exact signed rows. -/
+def TRowsSelect : Prop := ∀ s Q rows j y r (a : RowWire p.n),
+  HonestCarrier p c E rho s Q rows → HonestRowAt p c E rho j y r a →
+  InRowWindow p s r → heldAtProposal p c E rho s a →
+  a ∈ rows ∨ onParentChain p c E rho s Q a
+/-- T-ROWS synchronous service (21:3076–3080; 01:101–106), P3 A.6.
+Consumers: 22 F1–F5, F9, FF3–FF4, FL-W, FL-RF, FL-D.
+Only receipt needs a horizon guard; carriage ranges over actual proposals. -/
+def TRowsSync : Prop := ∀ j y r (a : RowWire p.n),
+  HonestRowAt p c E rho j y r a → E.t_GST ≤ p.actionTime r →
+  (p.actionTime r + p.Δ ≤ rho.horizon →
+    ∀ x ∈ rho.honest, HeldBefore p c E rho x a (p.actionTime r + p.Δ)) ∧
+  (∀ s Q rows, HonestCarrier p c E rho s Q rows →
+    (p.round s = r ∨ p.round s = r + 1) →
+    p.actionTime r + 2 * p.Δ ≤ SA.proposalTime p.toParams s →
+    a ∈ rows ∨ onParentChain p c E rho s Q a)
+/-- T-ROWS (21 H.22:3072–3084), P3 A.6. Consumers: HealT and 22 I6. -/
+structure TRows : Prop where
+  select : TRowsSelect p c E rho
+  sync : TRowsSync p c E rho
+
+/-- Source of an earlier emitted height row (21 H.13:2487–2585), P3 A.3.
+Consumers: RExcl, RKeep, RFProv. Includes a selected source with an empty signed pair. -/
+def SourceBefore (i : Nat) (C : FGBlock (Fin p.n)) (s : Slot) : Prop :=
+  ∃ j y r, ∃ (a : RowWire p.n), j < i ∧ HonestRowAt p c E rho j y r a ∧
+    actionSourceFG p c E rho y r = some (some C) ∧
+    s = r * p.R
+/-- Kept path (21 H.14:2633–2641), P3 A.3. Consumers: RKeep, H.2, F1b.8.
+X is the duty's own view, so a full-store witness cannot replace a HEAD witness. -/
+def Kept (i : Nat) (x : V) (X : Finset (FGBlock (Fin p.n)))
+    (B : FGBlock (Fin p.n)) : Prop :=
+  FGBlock.Preceq B (R_at p c E rho i x).Z ∨ B ∈ D_at p c E rho i x X ∨
+    FGBlock.Preceq B (storeAt p c E rho i x).fg.F
+/-- Descent alternatives (fj.descent.v2, 00:950–960; 21:2585–2627), P3 A.3.
+Consumers: RExcl and the first-failure proof H.13. -/
+def KeepOrCause (i : Nat) (x : V) (X : Finset (FGBlock (Fin p.n)))
+    (C : FGBlock (Fin p.n)) : Prop :=
+  Kept p c E rho i x X C ∨
+  (∃ C' s, SourceBefore p c E rho i C' s ∧
+    ¬ Block.Compatible (eraseFG C) (eraseFG C') ∧ hOf p.E p.cfg C ≤ hOf p.E p.cfg C') ∨
+  (∃ C₁ C₂ s₁ s₂, SourceBefore p c E rho i C₁ s₁ ∧ SourceBefore p c E rho i C₂ s₂ ∧
+    hOf p.E p.cfg C₁ = hOf p.E p.cfg C₂ ∧ hOf p.E p.cfg C < hOf p.E p.cfg C₁ ∧
+    (derive p.E p.cfg C₁).T_h.root ≠ (derive p.E p.cfg C₂).T_h.root)
+/-- fj.descent.v2 (00:950–960; 21 H.13:2487,2585), P3 A.3.
+Consumer: H.13. The view holds every earlier honest source unless F covers it. -/
+def RExcl : Prop := ∀ i x (X : Finset (FGBlock (Fin p.n))) C,
+  x ∈ rho.honest → X ⊆ (storeAt p c E rho i x).fg.TF →
+  (∀ B, FGBlock.Preceq B C → B ∈ X) →
+  Block.Compatible (eraseFG C) (F_at p c E rho i x) →
+  (∀ C' s, SourceBefore p c E rho i C' s →
+    C' ∈ X ∨ FGBlock.Preceq C' (storeAt p c E rho i x).fg.F) →
+  KeepOrCause p c E rho i x X C
+
+/-- bp.postResetKeep.v1 (00:1055–1064; 21 H.14:2633–2651), P3 A.3.
+Consumers: H.12, H.14–H.17. The claim supplies H0; X is HEAD or full view. -/
+def RKeep (w : HealingWitness) : Prop := ∀ i x (X : Finset (FGBlock (Fin p.n))) C,
+  x ∈ rho.honest → X ⊆ (storeAt p c E rho i x).fg.TF →
+  (∃ t, rho.events[i]? = some (.tick x t) ∧ SA.releaseTime p.toParams w.sStar ≤ t) →
+  C ∈ X → eraseFG C = w.CStar →
+  (∀ K s, SourceBefore p c E rho i K s → high p w K → K ∈ X) →
+  (∀ K s, SourceBefore p c E rho i K s → high p w K →
+    Block.Compatible (eraseFG K) w.CStar) →
+  (∀ K K' s s', SourceBefore p c E rho i K s → SourceBefore p c E rho i K' s' →
+    high p w K → high p w K' → Block.Compatible (eraseFG K) (eraseFG K')) →
+  let st := storeAt p c E rho i x
+  let R := R_at p c E rho i x
+  w.M + 1 ≤ st.fg.h_max ∧ (R.contest = true → st.fg.h_max = w.M + 1) ∧
+  R.lo ≤ max (w.M + 1) (st.fg.h_max - 1) ∧
+  (∀ B ∈ [R.Z, st.fg.F], FGBlock.Preceq B C ∨
+    ∃ K s, SourceBefore p c E rho i K s ∧ high p w K ∧ FGBlock.Preceq B K) ∧
+  (∃ B ∈ X, hOf p.E p.cfg B = max (w.M + 1) (st.fg.h_max - 1)) ∧
+  (∀ B, (∀ A, FGBlock.Preceq A B → A ∈ X) → Block.Compatible (eraseFG B) w.CStar →
+    (∀ K s, SourceBefore p c E rho i K s → high p w K →
+      Block.Compatible (eraseFG B) (eraseFG K)) → Kept p c E rho i x X B)
+
+/-- R-FPROV (21 H.17:2764; H.18:2867), P3 A.3.
+Consumers: H.15, H.17–H.19. Event order is explicit; times need not be strict. -/
+def RFProv (w : HealingWitness) : Prop := ∀ i x,
+  x ∈ rho.honest → afterTicksIdx rho (p.actionTime w.rStar) ≤ i →
+  let t := (storeAt p c E rho i x).base.now
+  (Block.Preceq (F_at p c E rho i x) w.CStar ∨
+    ∃ K s, SourceBefore p c E rho i K s ∧ high p w K ∧
+      SA.gateTime p.toParams s + P p ≤ t ∧
+      Block.Preceq (F_at p c E rho i x) (eraseFG K)) ∧
+  (high p w (storeAt p c E rho i x).fg.J →
+    ∃ K s, SourceBefore p c E rho i K s ∧ high p w K ∧
+      SA.gateTime p.toParams s ≤ t ∧
+      Block.Preceq (J_at p c E rho i x) (eraseFG K))
+
+/-- T-DEL (21 H.12:2456–2463), P3 A.8. Consumers: H.12 and H.14.
+Pre-reset: no witness. Strict receipt includes the path through cumulative storage. -/
+def TDel : Prop := ∀ y r K, y ∈ rho.honest →
+  actionSourceFG p c E rho y r = some (some K) →
+  E.t_GST ≤ SA.voteTime p.toParams (r * p.R) →
+  SA.freezeTime p.toParams (r * p.R) ≤ rho.horizon →
+  ∀ x ∈ rho.honest, Gen.V2.HoldsBefore E rho (fun nd =>
+    (∀ B, FGBlock.Preceq B K → B ∈ nd.st.fg.TF) ∨ FGBlock.Preceq K nd.st.fg.F)
+      (SA.freezeTime p.toParams (r * p.R)) x
+/-- T-DEL reset (21 H.12:2456–2463; H.14), P3 A.8. Consumer: H.14.
+Only this T-delivery clause takes H0. Reset-only facts suffice, but P3 retains full H0. -/
+def TDelReset (w : HealingWitness) : Prop := H0 p c E rho w →
+  SA.releaseTime p.toParams w.sStar ≤ rho.horizon →
+  ∀ x ∈ rho.honest, Gen.V2.HoldsBefore E rho (fun nd =>
+    ∃ C ∈ nd.st.fg.TF, eraseFG C = w.CStar)
+      (SA.releaseTime p.toParams w.sStar) x
+/-- T-GEOM (21 H.6:749–756; H.7:918–1012; H.9(b):1148–1252), P3 A.8.
+Consumers: H.7, H.9(b), HG.3. No reset witness. -/
+def TGeom : Prop :=
+  (∀ s Q st, HonestProposal E rho (fgsaInterface p c) s Q →
+    proposalStateAt p c E rho s = some st → (FGSA.fullTree p st).Nonempty →
+    ∃ B ∈ FGSA.fullTree p st, eraseFG B = Q.parent ∧ (frameR p st).lo ≤ hOf p.E p.cfg B) ∧
+  (∀ x r C, x ∈ rho.honest → actionSourceFG p c E rho x r = some (some C) → C.slot ≤ r * p.R)
+
+/-- Exact gate service (21 H.22:3109–3114), P3 A.9.
+Consumers: H3, TExact, and phase service. The gate is inside the finite horizon. -/
+def ExactService (v : Slot) (Q : Block) : Prop :=
+  (SA.voteTime p.toParams v ≤ rho.horizon →
+    ∀ x ∈ rho.honest, headAtLabel p c E rho x v = some Q) ∧
+  (SA.gateTime p.toParams v ≤ rho.horizon → ∀ x ∈ rho.honest,
+    gateResult p c E rho x v = some (some Q) ∧
+    (∃ j, IsGateTick p c rho j x v ∧ gatePassedAt p c E rho j) ∧
+    (∃ nd, postClock E rho x (SA.gateTime p.toParams v) = some nd ∧
+      Q ∈ (fastWriteAt nd.st v).getD []) ∧
+    (fgsaInterface p c).stable (afterTicks E rho (SA.gateTime p.toParams v) x) = Q ∧
+    (∀ r, v = r * p.R → actionSource p c E rho x r = some (some Q)))
+
+
+/-- A settled fixed phase on an inclusive interval (21 H.7:1003–1012;
+H.8:967–975), P3 A.8. Consumers: TPerm, TRepair, TCommon, TFrontier.
+The common root is J in a top-J phase. In an F-root phase each local F may move.
+This read does not assert a certificate height for F. -/
+def PhaseInterval (u v : Time) (m : Nat) (J : Option (FGBlock (Fin p.n)))
+    (contested : Bool) : Prop := u ≤ v ∧ v ≤ rho.horizon ∧ 2 ≤ m ∧
+  ∀ i x, timeIdx rho u ≤ i → i ≤ timeIdx rho v → x ∈ rho.honest →
+    let R := R_at p c E rho i x
+    R.H = m ∧ R.contest = contested ∧
+      (match J with | some B => R.rootIsJ = true ∧ R.J = B | none => R.rootIsJ = false)
+
+/-- S1–S3 of H.2 (21:521–580), P3 A.8. Consumers: permanence and frontier service.
+All HEAD, parent and output clauses stop at the interval's end. -/
+def Transfers (s : Slot) (B : Block) (v : Time) : Prop :=
+  (∀ x i H, x ∈ rho.honest → s + 1 ≤ i → SA.voteTime p.toParams i ≤ v →
+    headAtLabel p c E rho x i = some H → Block.Preceq B H) ∧
+  (∀ i Q, s + 2 ≤ i → SA.proposalTime p.toParams i ≤ v →
+    HonestProposal E rho (fgsaInterface p c) i Q → Block.Preceq B Q.parent) ∧
+  (∀ i x, x ∈ rho.honest → afterTicksIdx rho (SA.gateTime p.toParams s + 4 * p.Δ) ≤ i →
+    i ≤ timeIdx rho v → Block.Preceq B (S_at p c E rho i x))
+/-- Successful fast or synchronous-window slow body (21 H.4:628–650;
+H.4-S:650–680), P3 A.8. Consumer: TPerm. -/
+def PhaseBody (s : Slot) (B : Block) : Prop :=
+  ∃ x, x ∈ rho.honest ∧
+    ((∃ nd, postClock E rho x (SA.gateTime p.toParams s) = some nd ∧
+      B ∈ (fastWriteAt nd.st s).getD []) ∨
+    (E.t_GST ≤ SA.voteTime p.toParams (s + 1 - p.k) ∧
+      ∃ st C j, gateIn p c E rho x s = some st ∧
+        gateResult p c E rho x s = some (some C) ∧ B ≠ .genesis ∧ Block.Preceq B C ∧
+        GridCO.slowEligible p.toParams.engine (actView st) s B = true ∧
+        IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j))
+/-- T-PERM, bp.phaseSourcePermanence.v1 (00:962–966; 21 H.4/H.4-S:628–680),
+P3 A.8. Consumers: H.6, H.9. H.4-S permits earlier window labels in other phases. -/
+def TPerm : Prop := ∀ u v m J contested s B,
+  E.t_GST ≤ u → PhaseInterval p c E rho u v m J contested →
+  u ≤ SA.voteTime p.toParams s → SA.gateTime p.toParams s ≤ v →
+  PhaseBody p c E rho s B → Transfers p c E rho s B v
+
+/-- The gap predicate, not a regime (21 §2:274–282), P3 A.8.
+Consumer: repair bounds. Recovery₂.gap supplies it. -/
+def ProposalGap (G : Time) : Prop := ∀ t, E.t_GST ≤ t → t + G ≤ rho.horizon →
+  ∃ s, t < V2.proposalTime (fgsaInterface p c) s ∧
+    V2.proposalTime (fgsaInterface p c) s ≤ t + G ∧
+    Gen.V2.HonestSlot rho (fgsaInterface p c) s
+/-- Later-proposal service after a repair threshold (21 H.6:749–756), P3 A.8.
+Consumer: TRepair. -/
+def RepairAfter (l : Slot) (v : Time) : Prop := ∀ s Q,
+  SA.proposalTime p.toParams l < SA.proposalTime p.toParams s →
+  SA.gateTime p.toParams s ≤ v → HonestProposal E rho (fgsaInterface p c) s Q →
+  ExactService p c E rho s Q
+/-- T-REPAIR, bp.phaseRepair.v1 (00:968–978; 21 H.6:749–756;
+H.6-S:821–834), P3 A.8. Consumers: H.9, H.10, HG.3.
+Each budget is used only when the phase and finite horizon include it. -/
+def TRepair : Prop := ∀ G u v m J contested,
+  ProposalGap p c E rho G → 4 * p.Δ ≤ G → E.t_GST ≤ u →
+  PhaseInterval p c E rho u v m J contested →
+  (∀ β, u < SA.proposalTime p.toParams β →
+    (∀ b, u < SA.proposalTime p.toParams b → β ≤ b) →
+    RepairAfter p c E rho (β + 2 * p.k - 1) v ∧
+    (u + ρΓ p G ≤ v → ∃ s Q,
+      SA.proposalTime p.toParams (β + 2 * p.k - 1) < SA.proposalTime p.toParams s ∧
+      SA.gateTime p.toParams s ≤ u + ρΓ p G ∧
+      HonestProposal E rho (fgsaInterface p c) s Q ∧ ExactService p c E rho s Q)) ∧
+  (∀ b, u ≤ SA.voteTime p.toParams b →
+    (∀ i, u ≤ SA.voteTime p.toParams i → b ≤ i) →
+    p.k ≤ b + 1 → E.t_GST ≤ SA.voteTime p.toParams (b + 1 - p.k) →
+    RepairAfter p c E rho (b + p.k) v ∧
+    (u + ρ₁ p G ≤ v → ∃ s Q,
+      SA.proposalTime p.toParams (b + p.k) < SA.proposalTime p.toParams s ∧
+      SA.gateTime p.toParams s < u + ρ₁ p G ∧
+      HonestProposal E rho (fgsaInterface p c) s Q ∧ ExactService p c E rho s Q))
+
+/-- Nonempty sources and signed rows at an opening (21 H.9:1131–1144), P3 A.8.
+Consumer: common-entry and frontier service. -/
+def OpeningExtends (r : Nat) (Q : Block) : Prop := ∀ x ∈ rho.honest,
+  ∃ K nd j a, postClock E rho x (p.actionTime r) = some nd ∧
+    actionSourceFG p c E rho x r = some (some K) ∧ K ∈ FGSA.fullTree p nd.st ∧
+    Block.Preceq Q (eraseFG K) ∧ HonestRowAt p c E rho j x r a ∧
+    namedEntry a.payload.height_pair = some (hOf p.E p.cfg K, (derive p.E p.cfg K).T_h.root)
+/-- One state-height entry at an opening (21 H.9:1140–1144), P3 A.8.
+Consumer: TCommon. Bodies at one state height can differ. -/
+def OpeningEntry (r m : Nat) : Prop := ∃ e, ∀ x K, x ∈ rho.honest →
+  actionSourceFG p c E rho x r = some (some K) →
+  hOf p.E p.cfg K = m ∧ (derive p.E p.cfg K).T_h.root = e
+/-- T-COMMON, bp.commonEntry.v1 (00:1001–1010; 21 H.9:1100–1144),
+P3 A.8. Consumers: H.9 and HG.2. The second opening has its own phase premise. -/
+def TCommon : Prop := ∀ u m J contested q Q Qfg r,
+  E.t_GST ≤ u → HonestProposal E rho (fgsaInterface p c) q Q → eraseFG Qfg = Q →
+  ExactService p c E rho q Q → u ≤ SA.proposalTime p.toParams q → q ≤ r * p.R →
+  (∀ r', q ≤ r' * p.R → r ≤ r') →
+  PhaseInterval p c E rho u (p.actionTime r) m J contested →
+  0 ≤ p.actionTime r - SA.gateTime p.toParams q ∧
+  p.actionTime r - SA.gateTime p.toParams q ≤ P p - 4 * p.Δ ∧
+  OpeningExtends p c E rho r Q ∧
+  (∀ x y K K', x ∈ rho.honest → y ∈ rho.honest →
+    actionSourceFG p c E rho x r = some (some K) →
+    actionSourceFG p c E rho y r = some (some K') → Block.Compatible (eraseFG K) (eraseFG K')) ∧
+  (hOf p.E p.cfg Qfg = m → OpeningEntry p c E rho r m) ∧
+  (hOf p.E p.cfg Qfg = m - 1 → OpeningEntry p c E rho r (m - 1) ∨
+    ((∃ x K, x ∈ rho.honest ∧ actionSourceFG p c E rho x r = some (some K) ∧
+        hOf p.E p.cfg K = m) ∧
+      (PhaseInterval p c E rho u (p.actionTime (r + 1)) m J contested →
+        OpeningEntry p c E rho (r + 1) m)))
+/-- T-FRONTIER (21 HG.1:1333–1350), P3 A.8. Consumers: HG.1–HG.5.
+The initial proposal is served in its phase. Subsequent service stops at frontier rise. -/
+def TFrontier : Prop := ∀ u v m J contested q Q Qfg,
+  E.t_GST ≤ u → HonestProposal E rho (fgsaInterface p c) q Q → eraseFG Qfg = Q →
+  hOf p.E p.cfg Qfg = m → ExactService p c E rho q Q →
+  u ≤ SA.proposalTime p.toParams q →
+  PhaseInterval p c E rho u (SA.gateTime p.toParams q) m J contested →
+  SA.gateTime p.toParams q ≤ v → v ≤ rho.horizon →
+  (∀ i x, timeIdx rho u ≤ i → i ≤ timeIdx rho v → x ∈ rho.honest →
+    (storeAt p c E rho i x).fg.h_max ≤ m) →
+  Transfers p c E rho q Q v ∧ RepairAfter p c E rho q v ∧
+  (∀ r, q ≤ r * p.R → p.actionTime r ≤ v →
+    OpeningExtends p c E rho r Q ∧ OpeningEntry p c E rho r m ∧
+    (∀ x K, x ∈ rho.honest → actionSourceFG p c E rho x r = some (some K) →
+      (derive p.E p.cfg K).T_h = (derive p.E p.cfg Qfg).T_h) ∧
+    ((∀ r', q ≤ r' * p.R → r ≤ r') →
+      p.actionTime r - SA.gateTime p.toParams q ≤ P p - 4 * p.Δ))
 
 end AvailableChain.FGSA.Run
 end

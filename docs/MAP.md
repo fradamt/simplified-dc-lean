@@ -1325,6 +1325,14 @@ unused imports, and negative controls. No baseline entries were added.
 │ AvailableChainFGSAClaims/Tests/Axioms.lean      │ Claims public-theorem axiom audit   │
 │ AvailableChainFGSAProofs.lean                   │ Proofs library root                 │
 │ AvailableChainFGSAProofs/Proofs/Shared/Reads.lean │ Cut, gate values and index proofs   │
+│ AvailableChainFGSAClaims/Statements/            │ Qualified search: Gen export        │
+│ Recurrence.lean                                 │                                     │
+│ AvailableChainFGSAClaims/Statements/Packages/   │ Finality premise packages, FF6/FF7  │
+│ Finality.lean                                   │                                     │
+│ AvailableChainFGSAClaims/Statements/Packages/   │ Healing and joined-kernel packages  │
+│ Healing.lean                                    │                                     │
+│ AvailableChainFGSAProofs/Proofs/Shared/         │ μ bounds and unique full H0 time    │
+│ Compose.lean                                    │                                     │
 │ AvailableChainFGSAClaims/Statements/Witness.lean │ Common healing witness and tstar    │
 │ AvailableChainFGSAClaims/Statements/Healed.lean │ HEALED via the Gen property kernel  │
 │ AvailableChainFGSAProofs/Proofs/Shared/Healed.lean │ Same-time and later-start proofs    │
