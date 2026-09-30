@@ -1,0 +1,65 @@
+module
+public import AvailableChainGeneric.Statements.V2.Counts
+public import AvailableChainFGSAClaims.Statements.Bounds
+public import AvailableChainFGSARun.Statements.Interface
+public import AvailableChainGeneric.Statements.V2.Regimes
+
+@[expose] public section
+
+namespace AvailableChain.FGSA.Run
+
+open Gen.Pure
+open Gen.V2 (faulty awakeHonest HonestSlot RecoveryCore)
+
+variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V] [Fintype V]
+
+structure Base₂ (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) : Prop where
+  valid : V2.ExecutionValid E rho
+  linked : V2.Linked (fgsaFamilies p c).linked rho
+  cstar : V2.CStar (fgsaFamilies p c).fresh rho
+  noRestart : V2.NoRestart rho
+  delta : E.Δ = p.Δ
+
+structure HealthyPrefix₂ (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (b₀ : Time) : Prop where
+  base : Base₂ p c E rho
+  cut : 0 ≤ b₀ ∧ b₀ ≤ rho.horizon
+  healthy : V2.HealthyPrefixDelivery E rho b₀
+  partBefore : ∀ t : Time, 0 ≤ t → t < b₀ → (faulty rho).card < (awakeHonest E rho t).card
+
+structure CleanPrefix₂ (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (b₀ : Time) : Prop extends HealthyPrefix₂ p c E rho b₀ where
+  partAt : (faulty rho).card < (awakeHonest E rho b₀).card
+
+/-- The blueprint cut has no participation premise at the cut and no quorum field. -/
+abbrev CleanCut₂ (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) (b₀ : Time) : Prop :=
+  HealthyPrefix₂ p c E rho b₀
+
+structure Clean₂ (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) : Prop where
+  pre : CleanPrefix₂ p c E rho rho.horizon
+  gst : E.t_GST = 0
+
+/-- Recovery has neither a delta-ratio premise nor a recurrence field. -/
+structure Recovery₂ (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) (G : Time) : Prop
+    extends RecoveryCore (fgsa p c) (fgsaInterface p c) E rho G where
+  base : Base₂ p c E rho
+  fault : (faulty rho).card ≤ (p.n - 1) / 3
+  awake : ∀ v ∈ rho.honest, ∀ t, E.t_GST ≤ t → t ≤ rho.horizon → E.awake v t = true
+  gapPos : 4 * p.Δ ≤ G
+
+abbrev BaseSet (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) : Prop := Base₂ p c E rho
+abbrev CleanSet (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) : Prop := Clean₂ p c E rho
+abbrev CleanCutSet (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) (b₀ : Time) : Prop :=
+  CleanCut₂ p c E rho b₀
+abbrev CleanPrefixSet (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) (b₀ : Time) : Prop :=
+  CleanPrefix₂ p c E rho b₀
+abbrev HealingSet (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) (G : Time) : Prop :=
+  Recovery₂ p c E rho G
+
+structure FinalitySet (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (G : Time) (form : FinForm) (g : Nat) : Prop where
+  core : Recovery₂ p c E rho G
+  recur : form.holds (HonestSlot rho (fgsaInterface p c)) p.R (P p) p.Δ E.t_GST rho.horizon g
+
+end AvailableChain.FGSA.Run
+end

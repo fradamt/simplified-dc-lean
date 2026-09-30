@@ -1,6 +1,6 @@
 module
+import AvailableChainFGSAClaims.Statements.Packages.Safety -- shake: keep (axiom audit commands)
 import AvailableChainFGSAClaims.Statements.Reads -- shake: keep (axiom audit commands)
-import AvailableChainFGSAClaims.Statements.Bounds -- shake: keep (axiom audit commands)
 
 /-! Axiom audit. Add one `#print axioms` for each new public theorem.
 The guard scans all compiled constants. -/
@@ -65,3 +65,41 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.isGateTime_def
 #print axioms AvailableChain.FGSA.Run.vHead_def
 #print axioms AvailableChain.FGSA.Run.actionSourceFG_def
+
+#print axioms AvailableChain.FGSA.Run.awakeHonestIn
+#print axioms AvailableChain.FGSA.Run.HonestProposal
+#print axioms AvailableChain.FGSA.Run.Base₂
+#print axioms AvailableChain.FGSA.Run.HealthyPrefix₂
+#print axioms AvailableChain.FGSA.Run.CleanPrefix₂
+#print axioms AvailableChain.FGSA.Run.CleanCut₂
+#print axioms AvailableChain.FGSA.Run.Clean₂
+#print axioms AvailableChain.FGSA.Run.Recovery₂
+#print axioms AvailableChain.FGSA.Run.BaseSet
+#print axioms AvailableChain.FGSA.Run.CleanSet
+#print axioms AvailableChain.FGSA.Run.CleanCutSet
+#print axioms AvailableChain.FGSA.Run.CleanPrefixSet
+#print axioms AvailableChain.FGSA.Run.HealingSet
+#print axioms AvailableChain.FGSA.Run.FinalitySet
+#print axioms AvailableChain.FGSA.Run.WinSpec
+#print axioms AvailableChain.FGSA.Run.PtB₀
+#print axioms AvailableChain.FGSA.Run.PtT
+#print axioms AvailableChain.FGSA.Run.PtOut
+#print axioms AvailableChain.FGSA.Run.cleanWinAt
+#print axioms AvailableChain.FGSA.Run.cleanWin
+#print axioms AvailableChain.FGSA.Run.cleanPrefixWin
+#print axioms AvailableChain.FGSA.Run.cleanLabelWin
+#print axioms AvailableChain.FGSA.Run.gapWin
+#print axioms AvailableChain.FGSA.Run.formWin
+#print axioms AvailableChain.FGSA.Run.formWinAt
+#print axioms AvailableChain.FGSA.Run.kernelWin
+#print axioms AvailableChain.FGSA.Run.trigWin
+#print axioms AvailableChain.FGSA.Run.PtS
+#print axioms AvailableChain.FGSA.Run.PtSP
+#print axioms AvailableChain.FGSA.Run.PtSX
+#print axioms AvailableChain.FGSA.Run.BasePrem
+#print axioms AvailableChain.FGSA.Run.SameLabelPrem
+#print axioms AvailableChain.FGSA.Run.SourceDisciplinePrem
+#print axioms AvailableChain.FGSA.Run.FinalizedSafetyPrem
+#print axioms AvailableChain.FGSA.Run.CleanPrem
+#print axioms AvailableChain.FGSA.Run.CleanPrefixPrem
+#print axioms AvailableChain.FGSA.Run.CleanCutPrem

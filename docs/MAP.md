@@ -1292,6 +1292,16 @@ unused imports, and negative controls. No baseline entries were added.
 │ AvailableChainFGSAClaims/Tests/Recurrence.lean  │ Astra B1 positive controls          │
 │ AvailableChainFGSAProofs/Proofs/Shared/Recurren │ FG-SA implications and bound proofs │
 │ ce.lean                                         │                                     │
+│ AvailableChainFGSAClaims/Statements/Counts.lean │ FG-SA interval counts and proposals │
+│ AvailableChainFGSAClaims/Statements/Regimes.lea │ FG-SA regimes and named sets        │
+│ n                                               │                                     │
+│ AvailableChainFGSAClaims/Statements/Windows.lea │ FG-SA window specifications         │
+│ n                                               │                                     │
+│ AvailableChainFGSAClaims/Statements/Packages/Sa │ Foundation and Clean packages       │
+│ fety.lean                                       │                                     │
+│ AvailableChainFGSAProofs/Proofs/Shared/Regimes. │ Counts, delivery and seed proofs    │
+│ lean                                            │                                     │
+│ AvailableChainFGSAClaims/Tests/Regimes.lean     │ Horizon-zero regime smoke values    │
 │ AvailableChainFGSAClaims/Statements/Reads.lean  │ V2 cut and FG-SA store/gate reads   │
 │ AvailableChainFGSAClaims/Tests/Reads.lean       │ Three-read regression on v2         │
 │ AvailableChainFGSAClaims/Tests/Axioms.lean      │ Claims public-theorem axiom audit   │

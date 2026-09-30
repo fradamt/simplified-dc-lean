@@ -1,4 +1,5 @@
 module
+import AvailableChainFGSAProofs.Proofs.Shared.Regimes -- shake: keep (axiom audit commands)
 import AvailableChainFGSAProofs.Proofs.Shared.Recurrence -- shake: keep (axiom audit commands)
 import AvailableChainFGSAProofs.Proofs.Shared.Reads -- shake: keep (axiom audit commands)
 
@@ -23,3 +24,14 @@ import AvailableChainFGSAProofs.Proofs.Shared.Reads -- shake: keep (axiom audit 
 #print axioms AvailableChain.FGSA.Run.actionSourceFG_eq_round
 #print axioms AvailableChain.FGSA.Run.acceptsFinalBefore_of_idx
 #print axioms AvailableChain.FGSA.Run.stable_afterTicks
+
+#print axioms AvailableChain.FGSA.Run.card_eq_n_of_linked
+#print axioms AvailableChain.FGSA.Run.CleanPrefix₂.toCleanCut
+#print axioms AvailableChain.FGSA.Run.HealthyPrefix₂.faultQ_of_pos
+#print axioms AvailableChain.FGSA.Run.CleanPrefix₂.faultQ
+#print axioms AvailableChain.FGSA.Run.HealthyPrefix₂.batch
+#print axioms AvailableChain.FGSA.Run.CleanPrefix₂.batchAt
+#print axioms AvailableChain.FGSA.Run.Recovery₂.batch
+#print axioms AvailableChain.FGSA.Run.fgsa_clean_delivery_iff
+#print axioms AvailableChain.FGSA.Run.fgsa_seed_reachable
+#print axioms AvailableChain.FGSA.Run.fgsa_seed_accepted

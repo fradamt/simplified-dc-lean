@@ -1,3 +1,4 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Shared.Recurrence
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads
+public import AvailableChainFGSAProofs.Proofs.Shared.Regimes
