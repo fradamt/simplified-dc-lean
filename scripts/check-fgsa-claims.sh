@@ -77,6 +77,7 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.HeadReachesLoAt',
     'AvailableChain.FGSA.Run.HeadReachesLoClaim',
     'AvailableChain.FGSA.Run.CleanHistoryAt',
+    'AvailableChain.FGSA.Run.CleanGateAt',
     'AvailableChain.FGSA.Run.CleanTruncAt',
     'AvailableChain.FGSA.Run.CleanSafetyAt',
     'AvailableChain.FGSA.Run.CleanCutClaim',

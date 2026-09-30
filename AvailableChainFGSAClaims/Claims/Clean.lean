@@ -58,6 +58,15 @@ def CleanHistoryAt (b₀ : Time) : Prop :=
     st'.base.obligations = st.base.obligations ∧
     st'.base.genuine = st.base.genuine ∧ st'.fastWrite = st.fastWrite)
 
+/-- bp.cleanPrefixTruncation.v1 gate facts (P3:3331; S3a FS6; 03 §6 :439–487). Consumer:
+F3 (03 §6 origin argument). Producer: F2.7. -/
+def CleanGateAt (b₀ : Time) : Prop :=
+  ∀ l x, SA.gateTime p.toParams l ≤ b₀ → x ∈ rho.honest →
+    ∃ B, gateResult p c E rho x l = some (some B) ∧
+      (∃ j, IsGateTick p c rho j x l ∧ gatePassedAt p c E rho j) ∧
+      Block.Preceq B (S_at p c E rho (afterTicksIdx rho (SA.gateTime p.toParams l)) x) ∧
+      ∀ l' < l, ∀ B', gateResult p c E rho x l' = some (some B') → Block.Preceq B' B
+
 /-- bp.cleanPrefixTruncation.v1 (00:795–802). All event states at the
 inclusive cut and all public reads in [0,b₀] have the Clean properties. -/
 def CleanTruncAt (b₀ : Time) : Prop :=
@@ -76,7 +85,8 @@ def CleanTruncAt (b₀ : Time) : Prop :=
       Block.Preceq (eraseFG B) (eraseFG (FGSA.controls p st).Z) ∨
       Block.Preceq (eraseFG B) (eraseFG st.fg.F) ∨
       (FGBlock.Preceq st.fg.F (FGSA.controls p st).Z ∧
-        FGBlock.Preceq (FGSA.controls p st).Z B ∧ B ∈ FGSA.fullTree p st)))
+        FGBlock.Preceq (FGSA.controls p st).Z B ∧ B ∈ FGSA.fullTree p st))) ∧
+  CleanGateAt p c E rho b₀
 
 /-- FS20 named conclusion of bp.cleanSafety.v1, using the Gen property kernel. -/
 def CleanSafetyAt : Prop :=

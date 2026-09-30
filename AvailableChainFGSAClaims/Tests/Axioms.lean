@@ -166,6 +166,7 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.HeadReachesLoAt
 #print axioms AvailableChain.FGSA.Run.HeadReachesLoClaim
 #print axioms AvailableChain.FGSA.Run.CleanHistoryAt
+#print axioms AvailableChain.FGSA.Run.CleanGateAt
 #print axioms AvailableChain.FGSA.Run.CleanTruncAt
 #print axioms AvailableChain.FGSA.Run.CleanSafetyAt
 #print axioms AvailableChain.FGSA.Run.CleanCutClaim
