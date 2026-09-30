@@ -18,7 +18,8 @@ then runs every FG check.
 It also checks the import closure of the two FG roots (the compiled import
 data): the root of every module in it is on `closureRoots` (Lean, its
 standard libraries, Mathlib and its dependencies, `AvailableChainModel` and the
-two FG libraries). So no FG module, `AvailableChainKitFG/Pins.lean` included,
+two FG libraries, and `AvailableChainGeneric` for the Pure weights bridge).
+So no FG module, `AvailableChainKitFG/Pins.lean` included,
 imports `AvailableChainFGSA` or another library above the FG libraries.
 
 Run: `lake env lean --run scripts/CheckFGAxioms.lean [--root M] [--expect N …]`.
@@ -51,7 +52,7 @@ def axiomsOf (env : Environment) (n : Name) : IO (Array Name) :=
 def closureRoots : List Name :=
   [`Init, `Lean, `Std, `Lake, `Batteries, `Mathlib, `ImportGraph, `Aesop, `Qq,
     `Plausible, `LeanSearchClient, `ProofWidgets, `AvailableChainModel,
-    `AvailableChainSimplexFG, `AvailableChainKitFG]
+    `AvailableChainSimplexFG, `AvailableChainKitFG, `AvailableChainGeneric]
 
 def main (args : List String) : IO UInt32 := do
   let usage := "USAGE: lake env lean --run scripts/CheckFGAxioms.lean [--root M] [--expect N …]"

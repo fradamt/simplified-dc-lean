@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSA.Proofs.BlockAncestry
+public import AvailableChainKitFG.WeightsBridge
 public import AvailableChainFGSA.Proofs.Carrier
 public import AvailableChainFGSA.Proofs.Fields
 public import AvailableChainFGSA.Proofs.ActView
@@ -292,3 +293,8 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 #print axioms AvailableChain.FGSA.admitRow_setEq
 #print axioms AvailableChain.FGSA.proposalRows_perm_setEq
 #print axioms AvailableChain.FGSA.propose_setEq
+#print axioms AvailableChain.KitFG.toWeights_totalWeight
+#print axioms AvailableChain.KitFG.toWeights_weightOf
+#print axioms AvailableChain.KitFG.toWeights_q
+#print axioms AvailableChain.KitFG.isQuorum_toWeights_iff
+#print axioms AvailableChain.KitFG.unit_toWeights_q

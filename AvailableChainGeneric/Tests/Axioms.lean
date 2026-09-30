@@ -30,6 +30,11 @@ theorem, in facade order. The library globs build this test module. -/
 
 -- Statements/Pure/Quorum.lean
 #print axioms AvailableChain.Gen.Pure.qF_def
+#print axioms AvailableChain.Gen.Pure.Weights.weight_pos
+#print axioms AvailableChain.Gen.Pure.Weights.totalWeight_def
+#print axioms AvailableChain.Gen.Pure.Weights.weightOf_def
+#print axioms AvailableChain.Gen.Pure.Weights.q_def
+#print axioms AvailableChain.Gen.Pure.Weights.IsQuorum_def
 
 -- Statements/Pure/FirstBad.lean
 #print axioms AvailableChain.Gen.Pure.FirstFailure_def

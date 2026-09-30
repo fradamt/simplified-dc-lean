@@ -152,6 +152,18 @@ theorem AvailableChain.Gen.Pure.FaultX.lt 5390ba1b72281660
 structure AvailableChain.Gen.Pure.Batch 26e76499508d472a
 ctor AvailableChain.Gen.Pure.Batch.mk a23404471be031b8
 theorem AvailableChain.Gen.Pure.Batch.lt 0cac4cb2266d91cb
+structure AvailableChain.Gen.Pure.Weights a11426921553aa73
+ctor AvailableChain.Gen.Pure.Weights.mk 0031422fa3ad6721
+def AvailableChain.Gen.Pure.Weights.weight 277ca4ceecf278ad
+theorem AvailableChain.Gen.Pure.Weights.weight_pos 6b3dee14e2eb0802
+def AvailableChain.Gen.Pure.Weights.totalWeight ef8de7dfc4dcc054
+theorem AvailableChain.Gen.Pure.Weights.totalWeight_def e7ab9affaa88f744
+def AvailableChain.Gen.Pure.Weights.weightOf e81988caf1da057e
+theorem AvailableChain.Gen.Pure.Weights.weightOf_def 60a769dfafc93f2a
+def AvailableChain.Gen.Pure.Weights.q 50465e982d329a6d
+theorem AvailableChain.Gen.Pure.Weights.q_def bf5a87bb975124d9
+def AvailableChain.Gen.Pure.Weights.IsQuorum ac368b5929b58361
+theorem AvailableChain.Gen.Pure.Weights.IsQuorum_def d2a15031c260a64b
 ```
 
 ### `AvailableChainGeneric.Statements.Pure.Schedule`

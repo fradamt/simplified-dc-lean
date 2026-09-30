@@ -1,11 +1,13 @@
 module
+public import Mathlib.Algebra.BigOperators.Group.Finset.Basic
+public import Mathlib.Data.Fintype.Basic
 
 @[expose] public section
 
-/-! Generic Pure layer: the unit-weight quorum and the regime records `FaultQ`,
-`FaultX` and `Batch` (GLY A.3, C.1; step-2 item I01, ruling D05). Definitions
-only. Each record is a one-field `structure … : Prop`, so a proof reads the
-field and needs no equation lemma. -/
+/-! Generic Pure layer: positive weights, the unit-weight quorum, and the regime
+records `FaultQ`, `FaultX` and `Batch` (GLY A.3, C.1, E-5; ruling D05).
+Definitions and defining equations only. Each regime record has one field,
+so a proof reads that field and needs no equation lemma. -/
 
 namespace AvailableChain.Gen.Pure
 
@@ -28,5 +30,41 @@ structure FaultX (n a : Nat) : Prop where
 /-- `m < h`: an honest batch beats the rest (GLY C.1). -/
 structure Batch (h m : Nat) : Prop where
   lt : m < h
+
+/-- Fixed positive weights for a finite set of identities (GLY E-5). -/
+structure Weights (V : Type) [Fintype V] where
+  weight : V → Nat
+  weight_pos : ∀ i, 0 < weight i
+
+namespace Weights
+variable {V : Type} [Fintype V] [DecidableEq V]
+
+def totalWeight (E : Weights V) : Nat := ∑ i, E.weight i
+
+omit [DecidableEq V] in
+theorem totalWeight_def (E : Weights V) : E.totalWeight = ∑ i, E.weight i := by
+  rw [totalWeight]
+
+def weightOf (E : Weights V) (S : Finset V) : Nat := ∑ i ∈ S, E.weight i
+
+omit [DecidableEq V] in
+theorem weightOf_def (E : Weights V) (S : Finset V) :
+    E.weightOf S = ∑ i ∈ S, E.weight i := by
+  rw [weightOf]
+
+def q (E : Weights V) : Nat := (2 * E.totalWeight + 2) / 3
+
+omit [DecidableEq V] in
+theorem q_def (E : Weights V) : E.q = (2 * E.totalWeight + 2) / 3 := by
+  rw [q]
+
+def IsQuorum (E : Weights V) (S : Finset V) : Prop := E.q ≤ E.weightOf S
+
+omit [DecidableEq V] in
+theorem IsQuorum_def (E : Weights V) (S : Finset V) :
+    E.IsQuorum S = (E.q ≤ E.weightOf S) := by
+  rw [IsQuorum]
+
+end Weights
 
 end AvailableChain.Gen.Pure
