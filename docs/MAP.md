@@ -1326,6 +1326,10 @@ unused imports, and negative controls. No baseline entries were added.
 │ AvailableChainFGSAProofs.lean                   │ Proofs library root                 │
 │ AvailableChainFGSAProofs/Proofs/Shared/Reads.lean │ Cut, gate values and index proofs   │
 │ AvailableChainFGSAProofs/Tests/Channels.lean    │ Old source obstruction and G1 tests │
+│ AvailableChainFGSAProofs/Statements/            │ Clean invariant and step statements │
+│ CleanInvariant.lean                             │                                     │
+│ AvailableChainFGSAProofs/Proofs/Clean/          │ Clean AG review contract            │
+│ Interface.lean                                  │                                     │
 │ AvailableChainFGSAProofs/Tests/Axioms.lean      │ Proofs public-theorem axiom audit   │
 │ AvailableChainFGSAInhabit.lean                  │ Inhabit library root                │
 │ AvailableChainFGSAInhabit/Tests/Axioms.lean     │ Inhabit public-theorem axiom audit  │

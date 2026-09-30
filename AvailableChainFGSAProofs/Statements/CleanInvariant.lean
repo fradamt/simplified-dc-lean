@@ -1,0 +1,185 @@
+module
+public import AvailableChainFGSAClaims.Statements.ComposeStmt
+public import AvailableChainFGSAClaims.Statements.Regimes
+public import AvailableChainFGSARun.Statements.Client
+public import AvailableChainGeneric.Statements.Pure.FirstBad
+
+public section
+
+/-! P3 r3.5.8 §§8.1–8.4; bp02 §5. These are F2 review statements.
+Only Proofs/Clean imports this module. The results and label predicate stay
+in Claims/Statements/Reads. No step proof is supplied here. -/
+
+namespace AvailableChain.FGSA.Run
+
+open AvailableChain.SimplexFG
+
+variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V]
+    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+
+/-- P3 §8.2, I1: facts about completed gate events. -/
+structure CleanHist (i : Nat) : Prop where
+  ordered : ∀ s r B C, (s, B) ∈ cleanResults p c E rho i →
+    (r, C) ∈ cleanResults p c E rho i → s < r → Block.Preceq B C
+  same : ∀ s B C, (s, B) ∈ cleanResults p c E rho i →
+    (s, C) ∈ cleanResults p c E rho i → Block.Compatible B C
+  nonempty : ∀ j x s, j < i → IsGateTick p c rho j x s →
+    ∃ B, gateResultAt p c E rho j = some (some B)
+  continues : ∀ j k x y s B, j < i → k < j → IsGateTick p c rho j x s →
+    rho.events[k]? = some (.tick y (SA.voteTime p.toParams (s + 1))) →
+    gateResultAt p c E rho j = some (some B) →
+    Block.Preceq B (headAtIdx p c E rho k (s + 1))
+
+/-- I2 row sources retain the action label and the exact named entry. -/
+def CleanRowSources (i : Nat) : Prop :=
+  ∀ j x r a e, j < i → HonestRowAt p c E rho j x r a →
+    namedEntry a.payload.height_pair = some e →
+    ∃ C, actionSourceFG p c E rho x r = some (some C) ∧
+      e = (hOf p.E p.cfg C, (derive p.E p.cfg C).T_h.root) ∧
+      FGBlock.Preceq (derive p.E p.cfg C).T_h C ∧
+      BelowLabel p c E rho i (r * p.R) (eraseFG C)
+
+/-- I2 certificate sources are earlier honest target rows, with their labels.
+The block and certified entry are universal; no common path or tip is chosen. -/
+def CleanCertSources (i : Nat) : Prop :=
+  ∀ x W e, x ∈ rho.honest → W ∈ (storeAt p c E rho i x).fg.TF →
+    e ∈ certified p W → e ≠ .genesis →
+    ∃ j x' r a C, j < i ∧ HonestRowAt p c E rho j x' r a ∧
+      namedEntry a.payload.height_pair = some (hOf p.E p.cfg e, e.root) ∧
+      actionSourceFG p c E rho x' r = some (some C) ∧
+      FGBlock.Preceq e C ∧
+      BelowLabel p c E rho i (r * p.R) (eraseFG C)
+
+/-- P3 §8.2, I2–I4. Each state fact is about this run and this index.
+Lease origins include due rows. Saved results are event values. -/
+structure CleanState (i : Nat) : Prop where
+  sources : CleanRowSources p c E rho i ∧ CleanCertSources p c E rho i
+  fOrigin : ∀ v,
+    BelowLabel p c E rho i (labelBoundAt p c rho i) (F_at p c E rho i v) ∧
+    BelowLabel p c E rho i (labelBoundAt p c rho i) (J_at p c E rho i v)
+  leases : ∀ v row, row ∈ (storeAt p c E rho i v).base.obligations →
+    ∃ j < i, ∃ s C, IsGateTick p c rho j v s ∧ gatePassedAt p c E rho j ∧
+      gateResultAt p c E rho j = some (some C) ∧ Block.Preceq row.1 C
+  saved : ∀ v j s C, j < i → IsGateTick p c rho j v s →
+    gateResultAt p c E rho j = some (some C) →
+    GridCO.savedGenuine (storeAt p c E rho i v).base s = some (some C)
+  savedOnly : ∀ v s C,
+    GridCO.savedGenuine (storeAt p c E rho i v).base s = some (some C) →
+    ∃ j < i, IsGateTick p c rho j v s ∧ gateResultAt p c E rho j = some (some C)
+  fastWrite : ∀ v s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i v) s).getD [] →
+    ∃ j < i, IsGateTick p c rho j v s ∧ gatePassedAt p c E rho j ∧
+      ∃ C, gateResultAt p c E rho j = some (some C) ∧
+        Block.Preceq X C ∧ fastAt p c E rho v s X
+  sOrigin : ∀ v, S_at p c E rho i v = .genesis ∨
+    (∃ j < i, ∃ s, IsGateTick p c rho j v s ∧
+      gateResultAt p c E rho j = some (some (S_at p c E rho i v))) ∨
+    (∃ j ≤ i, S_at p c E rho i v = F_at p c E rho j v)
+  harmless : ∀ j v o t, j < i → v ∈ rho.honest →
+    rho.events[j]? = some (.deliver v o t) → FAdvanceAt p c E rho j v →
+    (storeAt p c E rho (j + 1) v).base.obligations =
+      (storeAt p c E rho j v).base.obligations ∧
+    (storeAt p c E rho (j + 1) v).base.genuine =
+      (storeAt p c E rho j v).base.genuine ∧
+    (storeAt p c E rho (j + 1) v).fastWrite = (storeAt p c E rho j v).fastWrite
+  nesting : ∀ v, v ∈ rho.honest → FGSA.NestOK (storeAt p c E rho i v)
+  store : ∀ v, v ∈ rho.honest → FGSA.CStoreInv p (storeAt p c E rho i v)
+  frame : ∀ v, v ∈ rho.honest →
+    FGSA.controls p (storeAt p c E rho i v) =
+      fjControls p.E p.cfg (storeAt p c E rho i v).fg.F (storeAt p c E rho i v).fg.TF
+  client : ∀ v, v ∈ rho.honest → EmittedRowsNoSlash p c E rho v
+  sExtends : ∀ v j k, j ≤ k → k ≤ i →
+    Block.Preceq (S_at p c E rho j v) (S_at p c E rho k v)
+
+/-- P3 §8.2: the FG part used in the assume/guarantee rule. -/
+structure FGPart (i : Nat) : Prop where
+  sources : CleanCertSources p c E rho i
+  fOrigin : ∀ v,
+    BelowLabel p c E rho i (labelBoundAt p c rho i) (F_at p c E rho i v) ∧
+    BelowLabel p c E rho i (labelBoundAt p c rho i) (J_at p c E rho i v)
+
+def GT (b₀ : Time) (j : Nat) : Prop :=
+  j < timeIdx rho b₀ → CleanHist p c E rho (j + 1)
+
+def GR (b₀ : Time) (i : Nat) : Prop :=
+  i ≤ timeIdx rho b₀ → FGPart p c E rho i
+
+variable [Fintype V]
+
+/-- R-F2a: Gen.AGRule.fg takes only `∀ j < i, GT j`.
+Gen.Pure.AGRule.holds gives both conclusions at every index once this
+instance is proved. There is no same-index GT premise in the FG step. -/
+def CleanAGStmt (b₀ : Time) : Prop :=
+  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
+  FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
+  Gen.Pure.AGRule (GR p c E rho b₀) (GT p c E rho b₀)
+
+/-- State step under a fixed completed history, P3 §§8.2, 8.4.
+The event predicate separates the handlers without a free path or tip. -/
+def CleanStateStep (b₀ : Time) (event : Nat → Prop) : Prop :=
+  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
+  FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
+  ∀ i, i ≤ timeIdx rho b₀ → CleanHist p c E rho i →
+    ∀ j, j < i → event j → CleanState p c E rho j → CleanState p c E rho (j + 1)
+
+/-- History step; state facts are available at all earlier indices, P3 §8.4. -/
+def CleanHistStep (b₀ : Time) (event : Nat → Prop) : Prop :=
+  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
+  FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
+  ∀ i, i < timeIdx rho b₀ → event i → CleanHist p c E rho i →
+    (∀ k, k ≤ i → CleanState p c E rho k) → CleanHist p c E rho (i + 1)
+
+/-- Vote, row, or refused proposal: no accepted block handler. -/
+def CleanOrdinaryDelivery (j : Nat) : Prop :=
+  ∃ v o t, rho.events[j]? = some (.deliver v o t) ∧
+    ∀ s b raw support rows P, (toWire p o).decode = some (.block s b raw support rows) →
+      parentFG (storeAt p c E rho j v) b = some P →
+      blockAccepted p (storeAt p c E rho j v) s b P rows = false
+
+/-- A checked block receipt. -/
+def CleanBlockDelivery (j : Nat) : Prop :=
+  ∃ v o t s b raw support rows P, rho.events[j]? = some (.deliver v o t) ∧
+    (toWire p o).decode = some (.block s b raw support rows) ∧
+    parentFG (storeAt p c E rho j v) b = some P ∧
+    blockAccepted p (storeAt p c E rho j v) s b P rows = true
+
+/-- A tick that has no gate. -/
+def CleanNoGateTick (j : Nat) : Prop :=
+  ∃ v t, rho.events[j]? = some (.tick v t) ∧ isGateTime p t = false
+
+/-- A tick with a gate; the FG action, when due, is part of this tick. -/
+def CleanGateTick (j : Nat) : Prop := ∃ v s, IsGateTick p c rho j v s
+
+def CleanDeliveryStateStep (b₀ : Time) : Prop :=
+  CleanStateStep p c E rho b₀ (CleanOrdinaryDelivery p c E rho)
+def CleanDeliveryHistStep (b₀ : Time) : Prop :=
+  CleanHistStep p c E rho b₀ (CleanOrdinaryDelivery p c E rho)
+def CleanBlockStateStep (b₀ : Time) : Prop :=
+  CleanStateStep p c E rho b₀ (CleanBlockDelivery p c E rho)
+def CleanBlockHistStep (b₀ : Time) : Prop :=
+  CleanHistStep p c E rho b₀ (CleanBlockDelivery p c E rho)
+def CleanNoGateStateStep (b₀ : Time) : Prop :=
+  CleanStateStep p c E rho b₀ (CleanNoGateTick p c rho)
+def CleanNoGateHistStep (b₀ : Time) : Prop :=
+  CleanHistStep p c E rho b₀ (CleanNoGateTick p c rho)
+def CleanGateStateStep (b₀ : Time) : Prop :=
+  CleanStateStep p c E rho b₀ (CleanGateTick p c rho)
+def CleanGateHistStep (b₀ : Time) : Prop :=
+  CleanHistStep p c E rho b₀ (CleanGateTick p c rho)
+
+/-- A restart is excluded by Base₂.noRestart, P3 §8.4. -/
+def CleanRestartStep (b₀ : Time) : Prop :=
+  CleanCut₂ p c E rho b₀ → ∀ j v t, j < timeIdx rho b₀ →
+    rho.events[j]? = some (.restart v t) → False
+
+/-- P3 §8.4 and bp02 §5.6: an action's new row belongs to the history
+that includes its gate. This is a substep of the same tick, not a new event. -/
+def CleanActionStep (b₀ : Time) : Prop :=
+  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
+  FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
+  ∀ i v r, i < timeIdx rho b₀ →
+    rho.events[i]? = some (.tick v (p.actionTime r)) →
+    CleanHist p c E rho (i + 1) → CleanState p c E rho i →
+    CleanRowSources p c E rho (i + 1)
+
+end AvailableChain.FGSA.Run
+end

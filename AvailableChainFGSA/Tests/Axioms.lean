@@ -159,6 +159,7 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 #print axioms AvailableChain.FGSA.toRow_forall₂
 #print axioms AvailableChain.FGSA.blockAccepted_of_wellFormed
 #print axioms AvailableChain.FGSA.rootTest_iff_blockTest
+#print axioms AvailableChain.FGSA.blockAccepted_slot_pos
 #print axioms AvailableChain.FGSA.blockAccepted_facts
 #print axioms AvailableChain.FGSA.blockAccepted_rowsOk
 #print axioms AvailableChain.FGSA.accepted_base_facts

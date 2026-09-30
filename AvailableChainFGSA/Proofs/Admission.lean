@@ -170,6 +170,26 @@ theorem blockAccepted_facts {p : Params} {st : State p.n} {s : Slot} {b : Block}
   obtain ⟨⟨⟨⟨⟨⟨⟨hg, hsl⟩, hfr⟩, hF⟩, hps⟩, hs⟩, -⟩, -⟩ := hacc
   exact ⟨hg, hsl, hfr, hF, hps, hs⟩
 
+/-- P3 §8.5: an accepted block has a positive slot and needs time at least 4Δ. -/
+theorem blockAccepted_slot_pos {p : Params} {st : State p.n} {s : Slot} {b : Block}
+    {P : FGBlock (Fin p.n)} {rows : List (RowWire p.n)}
+    (hacc : blockAccepted p st s b P rows = true) :
+    0 < b.slot ∧ 4 * p.Δ ≤ st.base.now := by
+  obtain ⟨-, hslot, -, -, hparent, -⟩ := blockAccepted_facts hacc
+  have hpos : 0 < b.slot := Nat.zero_lt_of_lt hparent
+  change b.slot ≤ (st.base.now / (4 * p.Δ)).toNat at hslot
+  have hn : 0 ≤ st.base.now / (4 * p.Δ) := by
+    by_contra hneg
+    have hz := Int.toNat_eq_zero.mpr (le_of_lt (lt_of_not_ge hneg))
+    exact (Nat.not_lt_of_ge (hslot.trans_eq hz)) hpos
+  have hdiv := (Int.le_toNat hn).mp hslot
+  have htime := (Int.le_ediv_iff_mul_le (by linarith [p.deltaPos])).mp hdiv
+  constructor
+  · exact hpos
+  · have hb : (1 : Int) ≤ b.slot := by exact_mod_cast hpos
+    have hd : 0 ≤ 4 * p.Δ := le_of_lt (by linarith [p.deltaPos])
+    exact le_trans (by simpa using mul_le_mul_of_nonneg_right hb hd) htime
+
 /-- [helper; D9] An accepted block packs its rows. -/
 theorem blockAccepted_rowsOk {p : Params} {st : State p.n} {s : Slot} {b : Block}
     {P : FGBlock (Fin p.n)} {rows : List (RowWire p.n)}

@@ -148,7 +148,7 @@ echo "== Q1/Q5 boundary"
 check_boundary . || exit 1
 echo "== axioms, build coverage, import closure"
 gate_with_slot lake env lean --run scripts/CheckFGSAAxioms.lean --expect \
-  StoreSetEq admitRow_setEq proposalRows_perm_setEq propose_setEq
+  StoreSetEq admitRow_setEq proposalRows_perm_setEq propose_setEq blockAccepted_slot_pos
 echo "== lease instances"
 gate_with_slot lake env lean --run scripts/CheckFGSALease.lean
 # The `leanIn "AvailableChainFGSA"` names of AvailableChainKitFG/Pins.lean get

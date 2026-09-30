@@ -464,6 +464,13 @@ controls = (
     ('grid-proof-import', PROOFS + '.Proofs.Shared.Reads', 'public import AvailableChainGridCO.Proofs.Map\n', 'IMPORT NOT ALLOWED'),
     ('rightward-statement', CLAIMS + '.Statements.Reads', 'public import ' + CLAIMS + '.Statements.Counts\n', 'MODULE ORDER'),
     ('clean-proof-path', CLAIMS + '.Statements.Reads', 'public import ' + PROOFS + '.Proofs.Clean.Step\n', 'CLEAN PROOF PATH'),
+    ('f2-constant-in-claim', CLAIMS + '.Claims.Clean',
+     'public import ' + PROOFS + '.Statements.CleanInvariant\n'
+     'public section\n'
+     'def fgsaF2Control : Prop := ∀ (p : AvailableChain.FGSA.Params) '
+     '(c : AvailableChain.FGSA.Run.AppCodec Unit) (E : AvailableChain.Generic.Env Unit) '
+     '(rho : AvailableChain.V2.Run Unit (AvailableChain.FGSA.Run.fgsa p c)), '
+     'AvailableChain.FGSA.Run.CleanHist p c E rho 0\n', 'CLAIMS'),
     ('claims-proof-import', CLAIMS + '.Claims.Clean', 'public import AvailableChainFGSARun.Proofs.ClientTrace\n', 'IMPORT NOT ALLOWED'),
     ('facade-tests', CLAIMS, 'public import ' + CLAIMS + '.Tests.Axioms\n', 'B7-TESTS'),
     ('cross-lane-proof', PROOFS + '.Proofs.Clean.Step', 'public import ' + PROOFS + '.Proofs.Outage.Step\n', 'LANE'),
