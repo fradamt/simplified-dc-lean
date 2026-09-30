@@ -26,6 +26,20 @@ theorem storedTargetsBelowOutput_target (p : Params) (st : State p.n)
     (hr : row ∈ st.base.obligations) : Block.Preceq row.1 st.base.stableRecord :=
   h row hr
 
+section StoreWrappers
+attribute [local instance] GridCO.slowLeasePolicy
+
+/-- [helper] [P3 §2 store wrapper] GridCO `admitProposal_obligations` for the
+FG-SA lease policy: a proposal admission keeps the obligations. The run
+library may not cite GridCO proof constants (T7 used-constant guard). -/
+theorem admitProposal_obligations_slow (p : GridCO.Params) {n : Nat}
+    (st : GridCO.State n) (o : GridCO.Wire n) (b : Block)
+    (raw : List (GridCO.HeadWire n)) :
+    (GridCO.admitProposal p st o b raw).obligations = st.obligations :=
+  GridCO.admitProposal_obligations p st o b raw
+
+end StoreWrappers
+
 -- Normalization can reset S to F. A compatible target below S is still below
 -- that output: the other direction would give F ⪯ S.
 private theorem target_below_normal {B F S : Block}

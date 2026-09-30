@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSA.Proofs.StoreInv
 public import AvailableChainFGSA.Proofs.Reconcile
+public import AvailableChainFGSA.Proofs.LeaseOutput
 public import AvailableChainGeneric.Proofs.AC.Lease
 
 public section
@@ -85,7 +86,7 @@ theorem ancestorDeadlines_process (p : Params) (st : State p.n) (o : Wire p.n)
               AncestorDeadlines st' := by
             intro st' o' b raw he
             apply ancestorDeadlines_of_obligations_eq (st := st) _ h
-            rw [he, @GridCO.admitProposal_obligations GridCO.slowLeasePolicy]
+            rw [he, admitProposal_obligations_slow]
           split
           · exact hbase _ (baseProposal s b raw support) b (raw.map baseHead) rfl
           · exact ancestorDeadlines_reconcile _
@@ -345,9 +346,6 @@ theorem ancestorDeadlines_gateStep (p : Params) (st : State p.n) (s : Slot)
         rw [hg, ite_eq_left rfl]
         rfl
       | false =>
-        have he := @GridCO.gateFrom_eq_writeKeys GridCO.slowLeasePolicy p.toParams.engine p.n
-          (eraseFG st.fg.F) (actView st) s C hc hg
-        change SA.gateFrom p.toParams (eraseFG st.fg.F) (actView st) s = _ at he
         let v : GridCO.State p.n := { actView st with
           goldfishRecord := GridCO.advance (actView st).goldfishRecord C
           genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy p.n (actView st) s (some C)
@@ -361,7 +359,15 @@ theorem ancestorDeadlines_gateStep (p : Params) (st : State p.n) (s : Slot)
         apply ancestorDeadlines_of_obligations_eq
           (st := { st with base := GridCO.writeKeys v keys limit }) _ hw
         change (SA.gateFrom p.toParams (eraseFG st.fg.F) (actView st) s).obligations = _
-        rw [he]
+        -- Unfold the model gate as in the `true` branch (no GridCO proof constant).
+        unfold SA.gateFrom GridCO.gateFrom
+        rw [show GridCO.confirmationFrom p.toParams.engine
+          (eraseFG st.fg.F) (actView st) s = some C from hc]
+        dsimp only
+        rw [hg]
+        simp [v, keys, limit, @GridCO.writeKeys_def GridCO.slowLeasePolicy,
+          @GridCO.gateWriteKeys_def GridCO.slowLeasePolicy,
+          List.foldl_flatMap, List.foldl_map]
 
 /-- [Model/Clock.lean:57–62] Every tick keeps ancestor deadlines.
 `cstoreInv_clockPre` supplies the gate's structural premises. -/
