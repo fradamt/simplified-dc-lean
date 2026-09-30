@@ -1316,6 +1316,11 @@ unused imports, and negative controls. No baseline entries were added.
 │ AvailableChainFGSAClaims/Tests/Channels.lean    │ Channel kernel regression controls  │
 │ AvailableChainFGSAProofs/Proofs/Shared/Channels │ Channel equations and row ordering  │
 │ .lean                                           │                                     │
+│ AvailableChainFGSAClaims/Claims/Foundations.lean │ Client safety; frozen K8 citation   │
+│ AvailableChainFGSAClaims/Claims/Shared.lean     │ Same-label and pure head claims     │
+│ AvailableChainFGSAClaims/Claims/Clean.lean      │ Clean history, cut and safety Props │
+│ AvailableChainFGSAProofs/Proofs/Shared/Claims.l │ Four claim implication/projections  │
+│ ean                                             │                                     │
 │ AvailableChainFGSAClaims/Tests/Axioms.lean      │ Claims public-theorem axiom audit   │
 │ AvailableChainFGSAProofs.lean                   │ Proofs library root                 │
 │ AvailableChainFGSAProofs/Proofs/Shared/Reads.lean │ Cut, gate values and index proofs   │
@@ -1328,4 +1333,4 @@ unused imports, and negative controls. No baseline entries were added.
 The Tests targets are `AvailableChainFGSAClaimsTests`,
 `AvailableChainFGSAProofsTests`, and `AvailableChainFGSAInhabitTests`.
 The later claim facade will be `AvailableChainFGSAClaims/FGSAClaims.lean`;
-F0.6a adds its declarations.
+F0.6a part 1 leaves it deferred; a later job adds all fields at once.

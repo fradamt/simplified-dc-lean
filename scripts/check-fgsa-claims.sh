@@ -26,6 +26,26 @@ LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainF
 CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = (
+    'AvailableChain.FGSA.Run.ClientSafeAll',
+    'AvailableChain.FGSA.Run.ClientSafetyClaim',
+    'AvailableChain.FGSA.Run.ClientSafetyBaseClaim',
+    'AvailableChain.FGSA.Run.SameLabelAt',
+    'AvailableChain.FGSA.Run.SameLabelClaim',
+    'AvailableChain.FGSA.Run.HeadReachesLoAt',
+    'AvailableChain.FGSA.Run.HeadReachesLoClaim',
+    'AvailableChain.FGSA.Run.CleanHistoryAt',
+    'AvailableChain.FGSA.Run.CleanTruncAt',
+    'AvailableChain.FGSA.Run.CleanSafetyAt',
+    'AvailableChain.FGSA.Run.CleanCutClaim',
+    'AvailableChain.FGSA.Run.CleanCutZeroClaim',
+    'AvailableChain.FGSA.Run.CleanHistoryClaim',
+    'AvailableChain.FGSA.Run.CleanPrefixTruncationClaim',
+    'AvailableChain.FGSA.Run.CleanSafetyClaim',
+    'AvailableChain.FGSA.Run.clientSafety_base',
+    'AvailableChain.FGSA.Run.cleanHistory_of_cut',
+    'AvailableChain.FGSA.Run.cleanPrefixTruncation_of_cut',
+    'AvailableChain.FGSA.Run.cleanSafety_outputs',
+
     'AvailableChain.FGSA.Run.Outage₂',
     'AvailableChain.FGSA.Run.OutageSet',
     'AvailableChain.FGSA.Run.outWin',

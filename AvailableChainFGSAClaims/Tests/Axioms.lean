@@ -1,6 +1,8 @@
 module
+import AvailableChainFGSAClaims.Claims.Foundations -- shake: keep (axiom audit commands)
+import AvailableChainFGSAClaims.Claims.Shared -- shake: keep (axiom audit commands)
+import AvailableChainFGSAClaims.Claims.Clean -- shake: keep (axiom audit commands)
 import AvailableChainFGSAClaims.Statements.Packages.Outage -- shake: keep (axiom audit commands)
-import AvailableChainFGSAClaims.Statements.Packages.Safety -- shake: keep (axiom audit commands)
 import AvailableChainFGSAClaims.Statements.ChannelProps -- shake: keep (axiom audit commands)
 import AvailableChainFGSAClaims.Statements.ComposeStmt -- shake: keep (axiom audit commands)
 
@@ -157,3 +159,19 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.TCompat
 #print axioms AvailableChain.FGSA.Run.AncestorClosed
 #print axioms AvailableChain.FGSA.Run.windowIdx
+
+#print axioms AvailableChain.FGSA.Run.ClientSafeAll
+#print axioms AvailableChain.FGSA.Run.ClientSafetyClaim
+#print axioms AvailableChain.FGSA.Run.ClientSafetyBaseClaim
+#print axioms AvailableChain.FGSA.Run.SameLabelAt
+#print axioms AvailableChain.FGSA.Run.SameLabelClaim
+#print axioms AvailableChain.FGSA.Run.HeadReachesLoAt
+#print axioms AvailableChain.FGSA.Run.HeadReachesLoClaim
+#print axioms AvailableChain.FGSA.Run.CleanHistoryAt
+#print axioms AvailableChain.FGSA.Run.CleanTruncAt
+#print axioms AvailableChain.FGSA.Run.CleanSafetyAt
+#print axioms AvailableChain.FGSA.Run.CleanCutClaim
+#print axioms AvailableChain.FGSA.Run.CleanCutZeroClaim
+#print axioms AvailableChain.FGSA.Run.CleanHistoryClaim
+#print axioms AvailableChain.FGSA.Run.CleanPrefixTruncationClaim
+#print axioms AvailableChain.FGSA.Run.CleanSafetyClaim
