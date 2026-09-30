@@ -1383,7 +1383,7 @@ unused imports, and negative controls. No baseline entries were added.
 │ State.lean                                      │                                     │
 │ AvailableChainFGSAProofs/Proofs/Clean/          │ Conditional gate state fields       │
 │ StateGate.lean                                  │                                     │
-│ AvailableChainFGSAProofs/Proofs/Clean/          │ Ordered guard; private skeleton     │
+│ AvailableChainFGSAProofs/Proofs/Clean/          │ Gate Ordered, Same, nonempty; guard │
 │ StepGate.lean                                   │                                     │
 │ AvailableChainFGSAProofs/Tests/Axioms.lean      │ Proofs public-theorem axiom audit   │
 │ AvailableChainFGSAInhabit.lean                  │ Inhabit library root                │
