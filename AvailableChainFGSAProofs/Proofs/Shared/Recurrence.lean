@@ -1,0 +1,86 @@
+module
+public import AvailableChainFGSAClaims.Statements.Bounds
+import AvailableChainGeneric.Proofs.Pure.Schedule
+
+public section
+
+namespace AvailableChain.FGSA.Run
+
+open Gen.Pure
+
+variable (H : Slot → Prop) (R : Nat) (P Δ : Time) (q g : Nat) (t GST horizon : Time)
+
+/-- Pattern inclusion alone is insufficient: the last round and slot also agree. -/
+theorem fgsa_strongW_recF
+    (h : FinForm.strongW.holds H R P Δ GST horizon g) :
+    FinForm.recF.holds H R P Δ GST horizon (g - 1) := by
+  change 3 ≤ g ∧ Gen.Pure.RecPat _ _ _ _ _ _ _ 1 (g - 1) at h
+  change 1 ≤ g - 1 ∧ Gen.Pure.RecPat _ _ _ _ _ _ _ 1 (g - 1)
+  refine ⟨by omega, Gen.Pure.RecPat.recPat_mono (by decide) (le_refl _) (by omega) ?_ h.2⟩
+  intro q
+  simp only [Gen.Pure.windowEnd_def, Gen.Pure.Pattern.tailEnd_def,
+    Gen.Pure.lr_strong, Gen.Pure.lr_recF, Gen.Pure.ls_strong, Gen.Pure.ls_recF, le_refl]
+
+theorem fgsa_lit_recF
+    (h : FinForm.lit.holds H R P Δ GST horizon g) :
+    FinForm.recF.holds H R P Δ GST horizon (g - 2) := by
+  change 3 ≤ g ∧ Gen.Pure.RecPat _ _ _ _ _ _ _ 1 (g - 2) at h
+  change 1 ≤ g - 2 ∧ Gen.Pure.RecPat _ _ _ _ _ _ _ 1 (g - 2)
+  refine ⟨by omega, Gen.Pure.RecPat.recPat_mono (by decide) (le_refl _) (by omega) ?_ h.2⟩
+  intro q
+  change Gen.Pure.windowEnd R P Δ Gen.Pure.FinForm.strongW.pat q (g - 2) ≤
+    Gen.Pure.windowEnd R P Δ Gen.Pure.FinForm.recF.pat q (g - 2)
+  simp only [Gen.Pure.windowEnd_def, Gen.Pure.Pattern.tailEnd_def,
+    Gen.Pure.lr_strong, Gen.Pure.lr_recF, Gen.Pure.ls_strong, Gen.Pure.ls_recF, le_refl]
+
+/-- Remove only the horizon guard from a round recurrence premise. -/
+theorem fgsa_recPat_restricted (pat : Gen.Pure.Pattern) (lo : Nat)
+    (hg : lo ≤ g)
+    (h : ∀ q : Nat, 1 ≤ q → GST ≤ (q : Time) * P →
+      ∃ r, Gen.Pure.InWindow q g r ∧ Gen.Pure.PatAt H R pat r) :
+    Gen.Pure.RecPat H R pat P Δ GST horizon lo g :=
+  ⟨hg, fun q hq hG _ => h q hq hG⟩
+
+/-- Remove only the horizon guard from the integer-time recurrence premise. -/
+theorem fgsa_recPatAt_restricted (pat : Gen.Pure.Pattern) (lo : Nat)
+    (hg : lo ≤ g)
+    (h : ∀ t : Time, max GST 1 ≤ t →
+      ∃ b : Nat, t ≤ (b : Time) * P ∧
+        ((b : Time) + pat.lastRound) * P ≤ t + g * P ∧ Gen.Pure.PatAt H R pat b) :
+    Gen.Pure.RecPatAt H R pat P Δ GST horizon lo g :=
+  ⟨hg, fun t ht _ => h t ht⟩
+
+/-- An unrestricted recurrence supplies every finite horizon. -/
+theorem fgsa_restricted_of_unrestricted (f : FinForm)
+    (h : ∀ horizon : Time, f.holds H R P Δ GST horizon g) :
+    f.holds H R P Δ GST horizon g := h horizon
+
+/-- Restrict a finite recurrence to an earlier horizon. -/
+theorem fgsa_horizon_mono (f : FinForm) {horizon' : Time}
+    (hle : horizon' ≤ horizon) (h : f.holds H R P Δ GST horizon g) :
+    f.holds H R P Δ GST horizon' g := by
+  cases f with
+  | fgood r => exact h
+  | fgood4 r => exact h
+  | recC =>
+    exact ⟨h.1, fun t ht hw => h.2 t ht (hw.trans hle)⟩
+  | recF | recF4 | recS | recSkip | strongW | lit =>
+    exact ⟨h.1, h.2.1, fun q hq hG hw => h.2.2 q hq hG (hw.trans hle)⟩
+
+theorem fgsa_B_max (p : Params) (G ρbar : Time) :
+    B p G ρbar = max (6 * ρbar + 12 * Run.P p + 6 * Γ p G + p.Δ)
+      (4 * ρbar + 14 * Run.P p + 6 * Γ p G - 13 * p.Δ) := by
+  change 3 * Run.P p + 2 * (ρbar + 2 * Run.P p + Γ p G - p.Δ) +
+    2 * max (ρbar + Run.P p + Γ p G + 3 * p.Δ) (2 * Run.P p + Γ p G - 4 * p.Δ) +
+    (ρbar + 2 * Run.P p + Γ p G - 6 * p.Δ) + (ρbar + Run.P p - p.Δ) +
+    Γ p G + 4 * p.Δ = _
+  rcases le_total (ρbar + Run.P p + Γ p G + 3 * p.Δ)
+    (2 * Run.P p + Γ p G - 4 * p.Δ) with h | h
+  · rw [max_eq_right h, max_eq_right (by linarith)]
+    linarith
+  · rw [max_eq_left h, max_eq_left (by linarith)]
+    linarith
+
+end AvailableChain.FGSA.Run
+
+end

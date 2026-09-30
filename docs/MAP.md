@@ -1288,6 +1288,10 @@ unused imports, and negative controls. No baseline entries were added.
 │ Module                                          │ Purpose                             │
 ├─────────────────────────────────────────────────┼─────────────────────────────────────┤
 │ AvailableChainFGSAClaims.lean                   │ Claims library root                 │
+│ AvailableChainFGSAClaims/Statements/Bounds.lean │ FG-SA bound terms                   │
+│ AvailableChainFGSAClaims/Tests/Recurrence.lean  │ Astra B1 positive controls          │
+│ AvailableChainFGSAProofs/Proofs/Shared/Recurren │ FG-SA implications and bound proofs │
+│ ce.lean                                         │                                     │
 │ AvailableChainFGSAClaims/Statements/Reads.lean  │ Generic v2 reads and post-gate cut  │
 │ AvailableChainFGSAClaims/Tests/Reads.lean       │ Three-read regression on v2         │
 │ AvailableChainFGSAClaims/Tests/Axioms.lean      │ Claims public-theorem axiom audit   │

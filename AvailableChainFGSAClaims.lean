@@ -1,2 +1,3 @@
 module
+public import AvailableChainFGSAClaims.Statements.Bounds
 public import AvailableChainFGSAClaims.Statements.Reads
