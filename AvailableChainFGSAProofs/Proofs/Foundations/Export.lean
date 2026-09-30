@@ -1,4 +1,5 @@
 module
+-- shake: keep-all (L42 public foundation export boundary)
 public import AvailableChainFGSAClaims.Claims.Foundations
 public import AvailableChainFGSAProofs.Proofs.Foundations.Store
 public import AvailableChainFGSAProofs.Proofs.Foundations.Certificates
@@ -7,6 +8,9 @@ public import AvailableChainFGSAProofs.Proofs.Foundations.Reconcile -- shake: ke
 public import AvailableChainFGSAProofs.Proofs.Foundations.Carrier
 
 public import AvailableChainFGSAProofs.Proofs.Foundations.Client
+
+public import AvailableChainFGSAProofs.Proofs.Foundations.Leases -- shake: keep (F1.3 claim exports)
+public import AvailableChainFGSAProofs.Proofs.Foundations.Sources
 
 public section
 
@@ -65,6 +69,32 @@ theorem fgsa_clientSafetyClaim : ClientSafetyClaim p :=
 /-- Family (0), through Base₂.linked. -/
 theorem fgsa_clientSafetyBaseClaim : ClientSafetyBaseClaim p :=
   fun c E rho _ hb => fgsa_clientSafeAll p c E rho hb.set.linked
+
+/-- F1.5 base claim, with the F1.3 lease input discharged. -/
+theorem fgsa_sourceDisciplineBaseClaim : SourceDisciplineBaseClaim p :=
+  fun c E rho pt hb => sourceDiscipline_base p c E rho (pt := pt) hb
+    (fgsa_leaseOriginsAt p c E rho hb.set.valid.toScheduleWellFormed)
+
+/-- F1.5 claim, with the F1.1 store and F1.3 lease inputs discharged. -/
+theorem fgsa_sourceDisciplineClaim : SourceDisciplineClaim p :=
+  fun c E rho pt hb => sourceDiscipline_at p c E rho (pt := pt) hb
+    (fgsa_rStore p c E rho)
+    (fgsa_leaseOriginsAt p c E rho hb.set.valid.toScheduleWellFormed)
+
+/-- F1.5 source-frame claim, with both foundation inputs discharged. -/
+theorem fgsa_srcFrameAboveClaim : SrcFrameAboveClaim p :=
+  fun c E rho pt hb => sourceDiscipline_srcFrameAbove p c E rho (pt := pt) hb
+    (fgsa_rStore p c E rho)
+    (fgsa_leaseOriginsAt p c E rho hb.set.valid.toScheduleWellFormed)
+
+/-- The foundation package, with the F1.5 source input discharged. -/
+theorem fgsa_fgFoundationClaim : FGFoundationClaim p :=
+  fun c E rho pt hb =>
+    ⟨fgsa_rStore p c E rho, fgsa_rStoreCumul p c E rho,
+      fgsa_rMono p c E rho, fgsa_rFrameExact p c E rho, fgsa_rGeo p c E rho,
+      sourceDiscipline_strat p c E rho (pt := pt) hb (fgsa_rStore p c E rho)
+        (fgsa_leaseOriginsAt p c E rho hb.set.valid.toScheduleWellFormed),
+      fgsa_rRec p c E rho⟩
 
 end AvailableChain.FGSA.Run
 end

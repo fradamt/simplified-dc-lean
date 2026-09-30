@@ -26,6 +26,16 @@ LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainF
 CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = (
+    'AvailableChain.FGSA.Run.fgsa_fgFoundationClaim',
+    'AvailableChain.FGSA.Run.fgsa_leaseOrigins_writeLabel',
+    'AvailableChain.FGSA.Run.fgsa_leaseOrigins_lastWrite',
+    'AvailableChain.FGSA.Run.fgsa_leaseOrigins_origins',
+    'AvailableChain.FGSA.Run.fgsa_leaseOriginsAt',
+    'AvailableChain.FGSA.Run.fgsa_leaseOriginsClaim',
+    'AvailableChain.FGSA.Run.fgsa_sourceDisciplineBaseClaim',
+    'AvailableChain.FGSA.Run.fgsa_sourceDisciplineClaim',
+    'AvailableChain.FGSA.Run.fgsa_srcFrameAboveClaim',
+
     'AvailableChain.FGSA.Run.fgsa_leaseOrigins_chain',
     'AvailableChain.FGSA.Run.fgsa_leaseOrigins_ancestorDeadlines',
     'AvailableChain.FGSA.Run.fgsa_leaseOrigins_fastWrites',

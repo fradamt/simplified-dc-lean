@@ -1,4 +1,5 @@
 module
+-- shake: keep-all (public imports support the axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Foundations.FinalizedSafety -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Crossing -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Assembly.Foundations -- shake: keep (axiom audit commands)
@@ -137,3 +138,14 @@ public import AvailableChainFGSAProofs.Proofs.Clean.Chain -- shake: keep (axiom 
 #print axioms AvailableChain.FGSA.Run.cleanHist_belowLabel_preceq_result
 #print axioms AvailableChain.FGSA.Run.cleanHist_zero
 #print axioms AvailableChain.FGSA.Run.cleanResults_mem_succ_iff
+
+#print axioms AvailableChain.FGSA.Run.fgsa_leaseOrigins_writeLabel
+#print axioms AvailableChain.FGSA.Run.fgsa_leaseOrigins_lastWrite
+#print axioms AvailableChain.FGSA.Run.fgsa_leaseOrigins_origins
+#print axioms AvailableChain.FGSA.Run.fgsa_leaseOriginsAt
+#print axioms AvailableChain.FGSA.Run.fgsa_leaseOriginsClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_sourceDisciplineBaseClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_sourceDisciplineClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_srcFrameAboveClaim
+
+#print axioms AvailableChain.FGSA.Run.fgsa_fgFoundationClaim
