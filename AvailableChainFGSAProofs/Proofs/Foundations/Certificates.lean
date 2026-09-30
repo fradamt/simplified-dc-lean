@@ -1,0 +1,36 @@
+module
+public import AvailableChainFGSAClaims.Statements.ChannelProps
+public import AvailableChainKitFG.Provenance
+
+public section
+
+namespace AvailableChain.FGSA.Run
+open AvailableChain.SimplexFG
+
+variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+
+/-- Stored-chain geometry from KitFG; these facts hold for every FG block. -/
+theorem fgsa_rGeo : RGeo p c E rho := by
+  intro i x W _ _
+  refine ⟨rfl, fun _ _ h _ => KitFG.h_mono p.E p.cfg h, ?_,
+    fun B _ => ⟨KitFG.entry_preceq p.E p.cfg B, KitFG.entry_same_height p.E p.cfg B⟩,
+    fun _ _ h _ hh => KitFG.entry_eq_on_plateau p.E p.cfg h hh⟩
+  intro B _
+  cases B with
+  | genesis => exact Nat.le_succ _
+  | node P s r rows =>
+    change (derive p.E p.cfg (.node P s r rows)).h ≤ (derive p.E p.cfg P).h + 1
+    rcases KitFG.derive_node_height_cases p.E p.cfg P s r rows with h | h <;> rw [h]
+    · exact Nat.le_succ _
+
+/-- L49 certificate clauses, using the designated KitFG producers directly. -/
+theorem fgsa_rCert : RCert p c E rho := by
+  intro i x W _ _
+  exact ⟨KitFG.height_crossing p.E p.cfg W,
+    KitFG.justification_certificate p.E p.cfg W,
+    KitFG.finality_certificate p.E p.cfg W,
+    KitFG.provenance_finality p.E p.cfg W⟩
+
+end AvailableChain.FGSA.Run
+end

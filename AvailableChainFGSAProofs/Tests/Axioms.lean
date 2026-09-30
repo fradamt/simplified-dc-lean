@@ -1,4 +1,7 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Assembly.Foundations -- shake: keep (axiom audit commands)
+public import AvailableChainFGSAProofs.Proofs.Foundations.Store -- shake: keep (axiom audit commands)
+public import AvailableChainFGSAProofs.Proofs.Foundations.Certificates -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Claims -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Regimes -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Channels -- shake: keep (axiom audit commands)
@@ -59,3 +62,24 @@ public import AvailableChainFGSAProofs.Proofs.Shared.Reads -- shake: keep (axiom
 #print axioms AvailableChain.FGSA.Run.cleanHistory_of_cut
 #print axioms AvailableChain.FGSA.Run.cleanPrefixTruncation_of_cut
 #print axioms AvailableChain.FGSA.Run.cleanSafety_outputs
+
+#print axioms AvailableChain.FGSA.Run.fgsa_rStore
+#print axioms AvailableChain.FGSA.Run.fgsa_store_cumulative
+#print axioms AvailableChain.FGSA.Run.fgsa_rStoreCumul
+#print axioms AvailableChain.FGSA.Run.fgsa_rMono
+#print axioms AvailableChain.FGSA.Run.fgsa_storeAt
+#print axioms AvailableChain.FGSA.Run.fgsa_storeClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_rFrameExact
+#print axioms AvailableChain.FGSA.Run.fgsa_rActive
+#print axioms AvailableChain.FGSA.Run.fgsa_activeViewAt
+#print axioms AvailableChain.FGSA.Run.fgsa_activeViewClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_rCarrierView
+#print axioms AvailableChain.FGSA.Run.fgsa_rFrame
+#print axioms AvailableChain.FGSA.Run.fgsa_frameAt
+#print axioms AvailableChain.FGSA.Run.fgsa_frameClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_seed_stored
+#print axioms AvailableChain.FGSA.Run.fgsa_seed_bounds
+#print axioms AvailableChain.FGSA.Run.fgsa_rGeo
+#print axioms AvailableChain.FGSA.Run.fgsa_rCert
+#print axioms AvailableChain.FGSA.Run.fgsa_chainCertificatesAt
+#print axioms AvailableChain.FGSA.Run.fgsa_chainCertificatesClaim

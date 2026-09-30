@@ -1324,6 +1324,14 @@ unused imports, and negative controls. No baseline entries were added.
 │ ean                                             │                                     │
 │ AvailableChainFGSAClaims/Tests/Axioms.lean      │ Claims public-theorem axiom audit   │
 │ AvailableChainFGSAProofs.lean                   │ Proofs library root                 │
+│ AvailableChainFGSAProofs/Proofs/Foundations/Exp │ Foundation claim wrappers (L42)     │
+│ ort.lean                                        │                                     │
+│ AvailableChainFGSAProofs/Proofs/Assembly/Founda │ Foundation claim export boundary    │
+│ tions.lean                                      │                                     │
+│ AvailableChainFGSAProofs/Proofs/Foundations/Sto │ Run store, frame, views and seeds   │
+│ re.lean                                         │                                     │
+│ AvailableChainFGSAProofs/Proofs/Foundations/Cer │ Run chain geometry and certificates │
+│ tificates.lean                                  │                                     │
 │ AvailableChainFGSAProofs/Proofs/Shared/Reads.lean │ Cut, gate values and index proofs   │
 │ AvailableChainFGSAProofs/Tests/Channels.lean    │ Old source obstruction and G1 tests │
 │ AvailableChainFGSAProofs/Statements/            │ Clean invariant and step statements │
