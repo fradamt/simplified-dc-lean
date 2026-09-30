@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSARun.Proofs.AncestorDeadlines
 public import AvailableChainFGSARun.Proofs.ReceiptCoverage
 public import AvailableChainFGSARun.Proofs.EmissionWellFormed
 public import AvailableChainFGSARun.Model.Protocol
@@ -279,3 +280,18 @@ mechanically. -/
 #print axioms AvailableChain.FGSA.Run.decode_honest
 
 #print axioms AvailableChain.FGSA.Run.fgsa_receiptCoverage
+
+-- Proofs/AncestorDeadlinesStore.lean and Proofs/AncestorDeadlines.lean (F1.3 clause 3)
+#print axioms AvailableChain.FGSA.AncestorDeadlines.protectsUntil
+#print axioms AvailableChain.FGSA.ancestorDeadlines_of_obligations_eq
+#print axioms AvailableChain.FGSA.ancestorDeadlines_init
+#print axioms AvailableChain.FGSA.ancestorDeadlines_reconcile
+#print axioms AvailableChain.FGSA.ancestorDeadlines_process
+#print axioms AvailableChain.FGSA.ancestorDeadlines_expire
+#print axioms AvailableChain.FGSA.ancestorDeadlines_release
+#print axioms AvailableChain.FGSA.ancestorDeadlines_clockPre
+#print axioms AvailableChain.FGSA.ancestorDeadlines_clock_offGate
+#print axioms AvailableChain.FGSA.ancestorDeadlines_gateStep
+#print axioms AvailableChain.FGSA.ancestorDeadlines_clock
+#print axioms AvailableChain.FGSA.Run.ancestorDeadlines_recordOwn
+#print axioms AvailableChain.FGSA.Run.ancestorDeadlines_restore

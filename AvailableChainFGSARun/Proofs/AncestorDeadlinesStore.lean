@@ -1,0 +1,379 @@
+module
+public import AvailableChainFGSA.Proofs.StoreInv
+public import AvailableChainFGSA.Proofs.Reconcile
+public import AvailableChainGeneric.Proofs.AC.Lease
+
+public section
+
+namespace AvailableChain.FGSA
+
+open AvailableChain.Generic AvailableChain.SimplexFG
+
+/-- [bp bp.leaseOrigins.v1, clause (3)] Each non-genesis ancestor has a
+lease at the same level with at least the descendant's deadline. -/
+def AncestorDeadlines {n : Nat} (st : State n) : Prop :=
+  ∀ K g deadline, (K, g, deadline) ∈ st.base.obligations →
+    ∀ B, B ≠ .genesis → Block.Preceq B K →
+      Gen.AC.ProtectsUntil st.base B g deadline
+
+/-- [helper] Read the ancestor protection from the store predicate. -/
+theorem AncestorDeadlines.protectsUntil {n : Nat} {st : State n}
+    (h : AncestorDeadlines st) (K : Block) (g : Nat) (deadline : Time)
+    (hr : (K, g, deadline) ∈ st.base.obligations) (B : Block)
+    (hB : B ≠ .genesis) (hBK : Block.Preceq B K) :
+    Gen.AC.ProtectsUntil st.base B g deadline := h K g deadline hr B hB hBK
+
+/-- [helper] Only the obligations field determines ancestor deadlines. -/
+theorem ancestorDeadlines_of_obligations_eq {n : Nat} {st st' : State n}
+    (he : st'.base.obligations = st.base.obligations) (h : AncestorDeadlines st) :
+    AncestorDeadlines st' := by
+  intro K g d hr B hB hBK
+  rw [he] at hr
+  obtain ⟨limit, hd, hm⟩ := h K g d hr B hB hBK
+  exact ⟨limit, hd, he.symm ▸ hm⟩
+
+/-- [Model/Store.lean:31] The initial store has no obligations. -/
+theorem ancestorDeadlines_init (n : Nat) : AncestorDeadlines (initial n) := by
+  intro K g d hr
+  exact (List.not_mem_nil hr).elim
+
+/-- [Proofs/Reconcile.lean:28] Compatibility with finality is closed under
+ancestors. Reconcile therefore keeps each ancestor of a surviving target. -/
+theorem ancestorDeadlines_reconcile {n : Nat} (st : State n)
+    (h : AncestorDeadlines st) : AncestorDeadlines (reconcile st) := by
+  intro K g d hr B hB hBK
+  rw [reconcile_obligations, List.mem_filter] at hr
+  obtain ⟨limit, hd, hm⟩ := h K g d hr.1 B hB hBK
+  refine ⟨limit, hd, ?_⟩
+  rw [reconcile_obligations]
+  exact List.mem_filter.mpr ⟨hm, block_compatible_of_preceq_compatible hBK hr.2⟩
+
+private theorem ancestorDeadlines_row (p : Params) (st : State p.n) (a : RowWire p.n)
+    (h : AncestorDeadlines st) : AncestorDeadlines (admitRow p st a) := by
+  rcases admitRow_eq p st a with he | he <;> rw [he] <;> exact h
+
+private theorem ancestorDeadlines_rows (p : Params) (rows : List (RowWire p.n))
+    (st : State p.n) (h : AncestorDeadlines st) :
+    AncestorDeadlines (rows.foldl (admitRow p) st) := by
+  induction rows generalizing st with
+  | nil => exact h
+  | cons a rows ih => exact ih _ (ancestorDeadlines_row p st a h)
+
+/-- [Model/Handlers.lean:64–89] Delivery keeps obligations, except for the
+ancestor-closed reconcile filter. No store invariant premise is needed. -/
+theorem ancestorDeadlines_process (p : Params) (st : State p.n) (o : Wire p.n)
+    (h : AncestorDeadlines st) : AncestorDeadlines (process p st o) := by
+  unfold process
+  cases o.decode with
+  | none => exact h
+  | some input =>
+    cases input with
+    | vote s i b => exact ancestorDeadlines_of_obligations_eq (admitHead_obligations ..) h
+    | row r i body => exact ancestorDeadlines_row p st _ h
+    | block s b raw support rows =>
+      change AncestorDeadlines (admitBlock p st s b raw support rows)
+      unfold admitBlock
+      cases parentFG st b with
+      | none => exact h
+      | some P =>
+        dsimp only
+        split
+        · apply ancestorDeadlines_rows
+          have hbase : ∀ (st' : State p.n) (o' : GridCO.Wire p.n)
+              (b : Block) (raw : List (GridCO.HeadWire p.n)),
+              st'.base = GridCO.admitProposal p.toParams.engine st.base o' b raw →
+              AncestorDeadlines st' := by
+            intro st' o' b raw he
+            apply ancestorDeadlines_of_obligations_eq (st := st) _ h
+            rw [he, @GridCO.admitProposal_obligations GridCO.slowLeasePolicy]
+          split
+          · exact hbase _ (baseProposal s b raw support) b (raw.map baseHead) rfl
+          · exact ancestorDeadlines_reconcile _
+              (hbase _ (baseProposal s b raw support) b (raw.map baseHead) rfl)
+        · exact h
+
+/-- [Gen E-7] Expiry keeps the ancestor of each surviving row, because its
+protected deadline is at least as late. -/
+theorem ancestorDeadlines_expire {n : Nat} (st : State n) (t : Time)
+    (h : AncestorDeadlines st) :
+    AncestorDeadlines { st with base := GridCO.expire st.base t } := by
+  intro K g d hr B hB hBK
+  have hm := List.mem_filter.mp hr
+  exact Gen.AC.expire_protectsUntil st.base B g d t
+    (h K g d hm.1 B hB hBK) (of_decide_eq_true hm.2)
+
+private theorem releaseCount_ancestor (p : GridCO.Params) {n : Nat}
+    (st : GridCO.State n) (r : Slot) (B K : Block) (hBK : Block.Preceq B K) :
+    GridCO.releaseCount p st r B ≤ GridCO.releaseCount p st r K := by
+  unfold GridCO.releaseCount
+  rw [← List.countP_eq_length_filter, ← List.countP_eq_length_filter]
+  apply List.countP_mono_left
+  intro i _ hi
+  obtain ⟨hne, ho⟩ := Bool.and_eq_true_iff.mp hi
+  refine Bool.and_eq_true_iff.mpr ⟨hne, ?_⟩
+  obtain ⟨o, hm, hc⟩ := List.any_eq_true.mp ho
+  refine List.any_eq_true.mpr ⟨o, hm, ?_⟩
+  cases ht : GridCO.headTarget? o with
+  | none => simp [ht] at hc
+  | some target =>
+    have hconf : ¬ Block.Compatible target B := by
+      simpa [ht, Block.Compatible] using hc
+    have hconf' := block_incompatible_of_preceq hconf hBK
+    simpa [ht, Block.Compatible] using hconf'
+
+/-- [Gen E-7; Model/Clock.lean:52] Release counts no more conflicts against
+an ancestor than against its descendant. The active view needs no premise. -/
+theorem ancestorDeadlines_release (p : SA.Params) {n : Nat} (st : State n) (r : Slot)
+    (h : AncestorDeadlines st) :
+    AncestorDeadlines (onView (fun v => SA.release p v r) st) := by
+  intro K g d hr B hB hBK
+  have hm := List.mem_filter.mp hr
+  have hc : GridCO.releaseCount p.engine (actView st) r K < g :=
+    of_decide_eq_true hm.2
+  exact Gen.AC.release_protectsUntil p.engine (actView st) r B g d
+    (h K g d hm.1 B hB hBK)
+    (lt_of_le_of_lt (releaseCount_ancestor p.engine (actView st) r B K hBK) hc)
+
+/-- [Model/Clock.lean:40–53] Expiry and release keep ancestor deadlines.
+The freeze and early-cache steps keep the obligations field. -/
+theorem ancestorDeadlines_clockPre (p : Params) (st : State p.n) (t : Time)
+    (h : AncestorDeadlines st) : AncestorDeadlines (clockPre p st t) := by
+  have hexp : AncestorDeadlines
+      { st with base := GridCO.expire { st.base with now := t } t } :=
+    ancestorDeadlines_expire { st with base := { st.base with now := t } } t h
+  unfold clockPre
+  dsimp only
+  split <;> split <;> split
+  all_goals first
+    | apply ancestorDeadlines_release
+      exact hexp
+    | exact hexp
+
+/-- [Model/Clock.lean:57–62] A tick with no gate keeps ancestor deadlines. -/
+theorem ancestorDeadlines_clock_offGate (p : Params) (st : State p.n) (t : Time)
+    (hg : ¬ (0 ≤ t - 6 * p.Δ ∧
+      t = SA.gateTime p.toParams ((t - 6 * p.Δ) / (4 * p.Δ)).toNat))
+    (h : AncestorDeadlines st) : AncestorDeadlines (clock p st t) := by
+  unfold clock
+  rw [ite_eq_right (by simpa using hg)]
+  exact ancestorDeadlines_clockPre p st t h
+
+private theorem write_row_origin {n : Nat} (st : GridCO.State n)
+    (b : Block) (g : Nat) (limit : Time) (row : Block × Nat × Time)
+    (hm : row ∈ (GridCO.writeObligation st b g limit).obligations) :
+    row ∈ st.obligations ∨ (row.1, row.2.1) = (b, g) ∧ row.2.2 = limit := by
+  rcases List.mem_append.mp hm with hold | hnew
+  · exact Or.inl (List.mem_filter.mp hold).1
+  · have he := List.mem_singleton.mp hnew
+    subst row
+    have hlookup : GridCO.deadlineOf st b g =
+        (st.obligations.find? (fun (target, level, _) => target == b && level == g)).map
+          (fun row => row.2.2) := rfl
+    cases hf : st.obligations.find? (fun (target, level, _) => target == b && level == g) with
+    | none => exact Or.inr ⟨rfl, by simp [hlookup, hf]⟩
+    | some row =>
+      have hr := List.mem_of_find?_eq_some hf
+      have hp := List.find?_some hf
+      rcases row with ⟨target, level, d⟩
+      obtain ⟨rfl, rfl⟩ : target = b ∧ level = g := by simpa using hp
+      by_cases hd : d ≤ limit
+      · exact Or.inr ⟨rfl, by simp [hlookup, hf, max_eq_right hd]⟩
+      · left
+        simpa [hlookup, hf, max_eq_left (le_of_not_ge hd)] using hr
+
+private theorem writeKeys_deadline_cases {n : Nat} (st : GridCO.State n)
+    (keys : List (Block × Nat)) (limit : Time) (row : Block × Nat × Time)
+    (hm : row ∈ (GridCO.writeKeys st keys limit).obligations) :
+    row ∈ st.obligations ∨ (row.1, row.2.1) ∈ keys ∧ row.2.2 = limit := by
+  induction keys generalizing st with
+  | nil => exact Or.inl hm
+  | cons key keys ih =>
+    rcases ih _ hm with hold | ⟨hk, hd⟩
+    · rcases write_row_origin st key.1 key.2 limit row hold with hold | ⟨hk, hd⟩
+      · exact Or.inl hold
+      · exact Or.inr ⟨List.mem_cons.mpr (Or.inl hk), hd⟩
+    · exact Or.inr ⟨List.mem_cons_of_mem key hk, hd⟩
+
+private theorem writeKeys_protects {n : Nat} (st : GridCO.State n)
+    (keys : List (Block × Nat)) (limit : Time) (B : Block) (g : Nat) (d : Time)
+    (hu : Gen.AC.UniqueLeaseKeys st) (h : Gen.AC.ProtectsUntil st B g d) :
+    Gen.AC.ProtectsUntil (GridCO.writeKeys st keys limit) B g d := by
+  induction keys generalizing st with
+  | nil => exact h
+  | cons key keys ih =>
+    exact ih _ (Gen.AC.write_unique_keys st key.1 key.2 limit hu)
+      (Gen.AC.write_protectsUntil st B key.1 g key.2 d limit hu h)
+
+private theorem writeKeys_key {n : Nat} (st : GridCO.State n)
+    (keys : List (Block × Nat)) (limit : Time) (B : Block) (g : Nat)
+    (hu : Gen.AC.UniqueLeaseKeys st) (hk : (B, g) ∈ keys) :
+    Gen.AC.ProtectsUntil (GridCO.writeKeys st keys limit) B g limit := by
+  induction keys generalizing st with
+  | nil => simp at hk
+  | cons key keys ih =>
+    have hu' := Gen.AC.write_unique_keys st key.1 key.2 limit hu
+    rcases List.mem_cons.mp hk with he | hk
+    · subst key
+      apply writeKeys_protects _ keys limit B g limit hu'
+      exact ⟨_, le_max_right _ _, List.mem_append.mpr (Or.inr (List.mem_singleton.mpr rfl))⟩
+    · exact ih _ hu' hk
+
+private theorem writeKeys_ancestorDeadlines {n : Nat} (st : State n)
+    (keys : List (Block × Nat)) (limit : Time) (hu : Gen.AC.UniqueLeaseKeys st.base)
+    (h : AncestorDeadlines st)
+    (hkeys : ∀ K g, (K, g) ∈ keys → ∀ B, B ≠ .genesis → Block.Preceq B K →
+      (B, g) ∈ keys) :
+    AncestorDeadlines { st with base := GridCO.writeKeys st.base keys limit } := by
+  intro K g d hr B hB hBK
+  rcases writeKeys_deadline_cases st.base keys limit (K, g, d) hr with hold | ⟨hk, hd⟩
+  · exact writeKeys_protects st.base keys limit B g d hu (h K g d hold B hB hBK)
+  · change d = limit at hd
+    subst d
+    exact writeKeys_key st.base keys limit B g hu (hkeys K g hk B hB hBK)
+
+private theorem prefixSupport_ancestor (p : GridCO.Params) {n : Nat}
+    (st : GridCO.State n) (r : Slot) (B K : Block) (hBK : Block.Preceq B K) :
+    GridCO.prefixSupport p st r K ≤ GridCO.prefixSupport p st r B := by
+  unfold GridCO.prefixSupport GridCO.goldfishScore
+  rw [← List.countP_eq_length_filter, ← List.countP_eq_length_filter]
+  apply List.countP_mono_left
+  intro i _ hi
+  rcases Bool.or_eq_true_iff.mp hi with hequiv | hsupport
+  · exact Bool.or_eq_true_iff.mpr (Or.inl hequiv)
+  · obtain ⟨o, ho, htarget⟩ := List.any_eq_true.mp hsupport
+    cases ht : GridCO.headTarget? o with
+    | none => simp [ht] at htarget
+    | some target =>
+      have hp : (decide (target ∈ st.blocks) &&
+          decide (target.slot ≤ (GridCO.headLabel? o).getD 0)) = true ∧
+          Block.preceq K target = true := by
+        exact Bool.and_eq_true_iff.mp (by simpa only [ht] using htarget)
+      apply Bool.or_eq_true_iff.mpr
+      right
+      apply List.any_eq_true.mpr
+      have hBT : Block.preceq B target = true := block_preceq_trans hBK hp.2
+      exact ⟨o, ho, by simp [ht, hp.1, hBT]⟩
+
+private theorem admissionLevels_ancestor (p : GridCO.Params) {n : Nat}
+    (st : GridCO.State n) (r : Slot) (B K : Block) (hBK : Block.Preceq B K) :
+    ∀ g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p n st r K,
+      g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p n st r B := by
+  intro g hg
+  have hs : GridCO.slowEligible p st r K = true → GridCO.slowEligible p st r B = true := by
+    intro hslow
+    obtain ⟨hlen, hall⟩ := Bool.and_eq_true_iff.mp hslow
+    refine Bool.and_eq_true_iff.mpr ⟨hlen, List.all_eq_true.mpr ?_⟩
+    intro j hj
+    have hc := List.all_eq_true.mp hall j hj
+    cases he : GridCO.savedGenuine st (r - (j + 1)) with
+    | none => simp [he] at hc
+    | some result =>
+      cases result with
+      | none => simp [he] at hc
+      | some C =>
+        have hKC : Block.preceq K C = true := by simpa only [he] using hc
+        have hBC : Block.preceq B C = true := block_preceq_trans hBK hKC
+        simpa only [he] using hBC
+  change g ∈ (if _ then [_] else []) at hg ⊢
+  split at hg
+  · rename_i ht
+    have hb : (decide (GridCO.releaseThreshold p ≤ GridCO.prefixSupport p st r B) ||
+        GridCO.slowEligible p st r B) = true := by
+      rcases Bool.or_eq_true_iff.mp ht with hf | hslow
+      · exact Bool.or_eq_true_iff.mpr (Or.inl (decide_eq_true
+          (le_trans (of_decide_eq_true hf) (prefixSupport_ancestor p st r B K hBK))))
+      · exact Bool.or_eq_true_iff.mpr (Or.inr (hs hslow))
+    simpa [hb] using hg
+  · simp at hg
+
+private theorem gateWriteKeys_ancestor (p : Params) (st : State p.n) (r : Slot) (C : Block)
+    (hC : CStoreInv p st) :
+    ∀ K g, (K, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+      (actView st) r C → ∀ B, B ≠ .genesis → Block.Preceq B K →
+      (B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (actView st) r C := by
+  intro K g hk B hB hBK
+  obtain ⟨K', hK', hm⟩ := List.mem_flatMap.mp hk
+  obtain ⟨g', hg', he⟩ := List.mem_map.mp hm
+  obtain ⟨rfl, rfl⟩ := Prod.mk.inj he
+  have hK := List.mem_filter.mp hK'
+  have hKC := (Bool.and_eq_true_iff.mp hK.2).2
+  apply List.mem_flatMap.mpr
+  refine ⟨B, List.mem_filter.mpr
+    ⟨actView_ancestor_closed p st hC hK.1 hBK, ?_⟩, ?_⟩
+  · simp [hB, show Block.preceq B C = true from block_preceq_trans hBK hKC]
+  · exact List.mem_map.mpr
+      ⟨g', admissionLevels_ancestor p.toParams.engine (actView st) r B K' hBK g' hg', rfl⟩
+
+/-- [Model/Clock.lean:28; Gen E-7] The anchored gate keeps ancestor deadlines.
+`CStoreInv.leaseKeys` supplies unique keys; `actView_ancestor_closed` supplies
+prefix closure. No time bound is needed: renewal uses `max`, and Gen E-7
+keeps every old protected deadline even at a backward tick. -/
+theorem ancestorDeadlines_gateStep (p : Params) (st : State p.n) (s : Slot)
+    (hC : CStoreInv p st) (h : AncestorDeadlines st) :
+    AncestorDeadlines (gateStep p st s) := by
+  have hnorm : ∀ st' : State p.n, AncestorDeadlines st' → AncestorDeadlines (normalizeS st') := by
+    intro st' hh
+    apply ancestorDeadlines_of_obligations_eq (st := st') _ hh
+    rw [normalizeS_fields]
+  unfold gateStep
+  dsimp only
+  apply hnorm
+  split
+  · exact h
+  · have hu : Gen.AC.UniqueLeaseKeys (actView st) := by
+      intro x hx y hy he
+      exact List.inj_on_of_nodup_map hC.leaseKeys.1 hx hy (Prod.mk.inj he).1
+    cases hc : SA.confirmationFrom p.toParams (eraseFG st.fg.F) (actView st) s with
+    | none =>
+      apply ancestorDeadlines_of_obligations_eq (st := st) _ h
+      change (SA.gateFrom p.toParams (eraseFG st.fg.F) (actView st) s).obligations = _
+      unfold SA.gateFrom GridCO.gateFrom
+      rw [show GridCO.confirmationFrom p.toParams.engine
+        (eraseFG st.fg.F) (actView st) s = none from hc]
+      rfl
+    | some C =>
+      cases hg : (actView st).obligations.any
+          (fun (target, _, _) => !Block.compatible target C) with
+      | true =>
+        apply ancestorDeadlines_of_obligations_eq (st := st) _ h
+        change (SA.gateFrom p.toParams (eraseFG st.fg.F) (actView st) s).obligations = _
+        unfold SA.gateFrom GridCO.gateFrom
+        rw [show GridCO.confirmationFrom p.toParams.engine
+          (eraseFG st.fg.F) (actView st) s = some C from hc]
+        dsimp only
+        rw [hg, ite_eq_left rfl]
+        rfl
+      | false =>
+        have he := @GridCO.gateFrom_eq_writeKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (eraseFG st.fg.F) (actView st) s C hc hg
+        change SA.gateFrom p.toParams (eraseFG st.fg.F) (actView st) s = _ at he
+        let v : GridCO.State p.n := { actView st with
+          goldfishRecord := GridCO.advance (actView st).goldfishRecord C
+          genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy p.n (actView st) s (some C)
+          stableRecord := GridCO.advance (actView st).stableRecord C }
+        let keys := @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (actView st) s C
+        let limit := GridCO.gateTime p.toParams.engine s + GridCO.lifetime p.toParams.engine
+        have hw : AncestorDeadlines { st with base := GridCO.writeKeys v keys limit } :=
+          writeKeys_ancestorDeadlines { st with base := v } keys limit hu h
+            (gateWriteKeys_ancestor p st s C hC)
+        apply ancestorDeadlines_of_obligations_eq
+          (st := { st with base := GridCO.writeKeys v keys limit }) _ hw
+        change (SA.gateFrom p.toParams (eraseFG st.fg.F) (actView st) s).obligations = _
+        rw [he]
+
+/-- [Model/Clock.lean:57–62] Every tick keeps ancestor deadlines.
+`cstoreInv_clockPre` supplies the gate's structural premises. -/
+theorem ancestorDeadlines_clock (p : Params) (st : State p.n) (t : Time)
+    (hC : CStoreInv p st) (h : AncestorDeadlines st) :
+    AncestorDeadlines (clock p st t) := by
+  unfold clock
+  dsimp only
+  split
+  · exact ancestorDeadlines_gateStep p _ _ (cstoreInv_clockPre p st hC t)
+      (ancestorDeadlines_clockPre p st t h)
+  · exact ancestorDeadlines_clockPre p st t h
+
+end AvailableChain.FGSA
+end
