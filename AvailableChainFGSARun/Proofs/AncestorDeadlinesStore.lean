@@ -227,7 +227,6 @@ theorem gateFrom_eq_writeKeys_fgsa (p : SA.Params) {n : Nat}
 
 /-- [helper] All deadlines in an FG-SA base store are at most the given limit.
 Source: AvailableChainGridCO/Proofs/Map.lean, `DeadlinesAtMost` (predicate body). -/
-@[expose]
 def DeadlinesAtMost {n : Nat} (st : GridCO.State n) (limit : Time) : Prop :=
   ∀ b g d, (b, g, d) ∈ st.obligations → d ≤ limit
 
