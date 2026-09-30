@@ -1,6 +1,7 @@
 module
 public import AvailableChainKitFG.Accountable
 public import AvailableChainKitFG.CrossingNoFinal
+public import AvailableChainKitFG.Correspondence
 
 /-! Kernel dependency audit for the FG chain lemmas without root premises. -/
 
@@ -13,3 +14,4 @@ public import AvailableChainKitFG.CrossingNoFinal
 #print axioms AvailableChain.KitFG.e1Weight_of_finalityQC_not_preceq
 #print axioms AvailableChain.KitFG.slashableWeight_of_finalized_crossing
 #print axioms AvailableChain.KitFG.exists_honest_timeout_of_crossing
+#print axioms AvailableChain.KitFG.frame_facts

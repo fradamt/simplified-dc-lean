@@ -753,5 +753,84 @@ theorem frameViable_eq_accept_cut (st : Store V) (h : StoreInv E cfg st)
   · rintro ⟨⟨hBT, hF, hw⟩, hJ⟩
     exact ⟨hBT, hF, hJ, hw⟩
 
+/-! ## G18: frame facts from the live caches -/
+
+/-- [pin fj.frame.v1] [GLY G18] R10 at a store read (S1b:566–570).
+The table and band bounds use the live caches. The finality clauses hold for
+each held carrier of F; `StoreInv.Fcar` supplies such a carrier. Its `h_F` is
+the certificate height, not the state height of F. No run premise is needed.
+The last disjunction does not assert that every held block at `lo` extends F:
+in the top-J case, a stale branch can remain in the cumulative tree. -/
+theorem frame_facts (st : Store V) (h : StoreInv E cfg st) :
+    let c := storeControls E cfg st
+    c.j < c.H ∧
+      (c.Z, c.lo) =
+        (if c.H = c.j + 1 ∧ c.contest = false then (c.J, c.H - 1)
+         else if c.contest then (st.F, c.H) else (st.F, c.H - 1)) ∧
+      (c.lo = c.H - 1 ∨ c.lo = c.H) ∧
+      (c.rootIsJ = true ↔ c.H = c.j + 1 ∧ c.contest = false) ∧
+      ∀ K ∈ st.TF, (derive E cfg K).F = st.F →
+        (derive E cfg K).h_F ≤ c.j ∧
+          ((derive E cfg K).h_F < c.lo ∨
+            (c.Z = c.J ∧ c.lo = c.j ∧ c.j = c.H - 1 ∧
+              c.j + 1 = c.H ∧ FGBlock.Preceq st.F c.J)) := by
+  let c := storeControls E cfg st
+  obtain ⟨K₀, hK₀, hK₀F⟩ := h.Fcar
+  obtain ⟨L, hL, -, hp, hmax⟩ := lexMax_spec E cfg st.F st.TF
+    (viewRootInj_all st.TF) ⟨K₀, hK₀, hK₀F ▸ derive_F_preceq_J E cfg K₀⟩
+  have hj : c.j = (derive E cfg L).h_j := congrArg Prod.fst (h.pair.trans hp)
+  have hjH : c.j < c.H := by
+    rw [hj]
+    exact lt_of_lt_of_le (justified_below_height E cfg L)
+      (show (derive E cfg L).h ≤ st.h_max by
+        rw [h.hmax]
+        exact le_frontier E cfg hL)
+  have hFj : ∀ K ∈ st.TF, (derive E cfg K).F = st.F →
+      (derive E cfg K).h_F ≤ c.j := by
+    intro K hK hKF
+    rw [hj]
+    exact le_trans (heights_ordered E cfg K)
+      (fst_le_of_lexKey_le (hmax K hK (hKF ▸ derive_F_preceq_J E cfg K)))
+  have hroot : c.rootIsJ = true ↔ c.H = c.j + 1 ∧ c.contest = false := by
+    unfold Controls.rootIsJ
+    simp only [Bool.and_eq_true, decide_eq_true_eq, Bool.not_eq_true']
+  have htable : (c.Z, c.lo) =
+      (if c.H = c.j + 1 ∧ c.contest = false then (c.J, c.H - 1)
+       else if c.contest then (st.F, c.H) else (st.F, c.H - 1)) := by
+    have hF : c.F = st.F := rfl
+    unfold Controls.Z Controls.lo Controls.rootIsJ
+    by_cases hc : c.contest = true
+    · simp [hc, hF]
+    · have hc : c.contest = false := Bool.eq_false_iff.mpr hc
+      by_cases htop : c.H = c.j + 1 <;>
+        simp [hc, htop, hF]
+  refine ⟨hjH, htable, ?_, hroot, ?_⟩
+  · unfold Controls.lo
+    split_ifs
+    · exact Or.inr rfl
+    · exact Or.inl rfl
+  · intro K hK hKF
+    have hle := hFj K hK hKF
+    refine ⟨hle, ?_⟩
+    by_cases hlt : (derive E cfg K).h_F < c.lo
+    · exact Or.inl hlt
+    · have hc : c.contest = false := by
+        cases heq : c.contest with
+        | false => rfl
+        | true =>
+            have hlo : c.lo = c.H := by unfold Controls.lo; rw [heq]; rfl
+            rw [hlo] at hlt
+            exact False.elim (hlt (lt_of_le_of_lt hle hjH))
+      have hlo : c.lo = c.H - 1 := by unfold Controls.lo; rw [hc]; rfl
+      have htop : c.H = c.j + 1 := by
+        simp only [Height] at *
+        omega
+      have hZ : c.Z = c.J := by
+        unfold Controls.Z
+        rw [hroot.mpr ⟨htop, hc⟩]
+        rfl
+      have hjH₁ : c.j = c.H - 1 := by rw [htop, Nat.add_sub_cancel]
+      exact Or.inr ⟨hZ, hlo.trans hjH₁.symm, hjH₁, htop.symm, h.FJ⟩
+
 end AvailableChain.KitFG
 end
