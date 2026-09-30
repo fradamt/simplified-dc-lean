@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSAClaims.Statements.Packages.Safety
-public import AvailableChainFGSAClaims.Statements.Channels
+public import AvailableChainFGSAClaims.Statements.ComposeStmt
 public import AvailableChainGeneric.Statements.Pure.Props
 
 @[expose] public section
@@ -112,6 +112,15 @@ def CleanSafetyClaim : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) (pt : Unit),
     CleanPrem p c E rho pt → CleanSafetyAt p c E rho
+
+/-- P3 §4.7, L39: the positive F2 lane has both F1 channels as premises.
+This lane Prop is not a field of FGSASafetyClaims. -/
+def CleanCutPosClaim : Prop :=
+  ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) (pt : PtB₀),
+    CleanCutPrem p c E rho pt → 0 < pt.b₀ →
+    FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
+    CleanHistoryAt p c E rho pt.b₀ ∧ CleanTruncAt p c E rho pt.b₀
 
 end AvailableChain.FGSA.Run
 end

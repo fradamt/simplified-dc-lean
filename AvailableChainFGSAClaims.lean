@@ -6,6 +6,4 @@ public import AvailableChainFGSAClaims.Statements.Packages.Outage
 public import AvailableChainFGSAClaims.Statements.Channels
 public import AvailableChainFGSAClaims.Statements.ChannelProps
 public import AvailableChainFGSAClaims.Statements.ComposeStmt
-public import AvailableChainFGSAClaims.Claims.Foundations
-public import AvailableChainFGSAClaims.Claims.Shared
-public import AvailableChainFGSAClaims.Claims.Clean
+public import AvailableChainFGSAClaims.FGSAClaims

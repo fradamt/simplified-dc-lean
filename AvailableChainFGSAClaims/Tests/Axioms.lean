@@ -3,7 +3,6 @@ import AvailableChainFGSAClaims.Claims.Foundations -- shake: keep (axiom audit c
 import AvailableChainFGSAClaims.Claims.Shared -- shake: keep (axiom audit commands)
 import AvailableChainFGSAClaims.Claims.Clean -- shake: keep (axiom audit commands)
 import AvailableChainFGSAClaims.Statements.Packages.Outage -- shake: keep (axiom audit commands)
-import AvailableChainFGSAClaims.Statements.ComposeStmt -- shake: keep (axiom audit commands)
 
 /-! Axiom audit. Add one `#print axioms` for each new public theorem.
 The guard scans all compiled constants. -/
@@ -186,3 +185,35 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.FGFoundation
 #print axioms AvailableChain.FGSA.Run.certified_def
 #print axioms AvailableChain.FGSA.Run.HonestRowBefore_def
+
+-- F0.6a part 2.
+#print axioms AvailableChain.FGSA.Run.CleanCutPosClaim
+#print axioms AvailableChain.FGSA.Run.FGFoundationClaim
+#print axioms AvailableChain.FGSA.Run.SrcFrameAboveClaim
+#print axioms AvailableChain.FGSA.Run.RunFGBlock
+#print axioms AvailableChain.FGSA.Run.CarrierAt
+#print axioms AvailableChain.FGSA.Run.StoreAt
+#print axioms AvailableChain.FGSA.Run.ActiveViewAt
+#print axioms AvailableChain.FGSA.Run.LeaseOriginsAt
+#print axioms AvailableChain.FGSA.Run.SourceDisciplineBaseAt
+#print axioms AvailableChain.FGSA.Run.SourceDisciplineAt
+#print axioms AvailableChain.FGSA.Run.CarrierClaim
+#print axioms AvailableChain.FGSA.Run.ChainCertificatesClaim
+#print axioms AvailableChain.FGSA.Run.StoreClaim
+#print axioms AvailableChain.FGSA.Run.ActiveViewClaim
+#print axioms AvailableChain.FGSA.Run.LeaseOriginsClaim
+#print axioms AvailableChain.FGSA.Run.ReconcileClaim
+#print axioms AvailableChain.FGSA.Run.FrameClaim
+#print axioms AvailableChain.FGSA.Run.SourceDisciplineBaseClaim
+#print axioms AvailableChain.FGSA.Run.SourceDisciplineClaim
+#print axioms AvailableChain.FGSA.Run.ReleaseStoreAt
+#print axioms AvailableChain.FGSA.Run.ReleaseStoreClaim
+#print axioms AvailableChain.FGSA.Run.ReleaseAt
+#print axioms AvailableChain.FGSA.Run.ReleaseClaim
+#print axioms AvailableChain.FGSA.Run.ReleasePrem
+#print axioms AvailableChain.FGSA.Run.ReconcileAt
+#print axioms AvailableChain.FGSA.Run.OutputNestingAt
+#print axioms AvailableChain.FGSA.Run.OutputNestingClaim
+
+-- FGSASafetyClaims is audited by the compiled EXPECTED check through the Claims root.
+-- This test does not import the facade (P3 §4.8).

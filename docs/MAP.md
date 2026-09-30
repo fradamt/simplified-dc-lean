@@ -1288,6 +1288,7 @@ unused imports, and negative controls. No baseline entries were added.
 │ Module                                          │ Purpose                             │
 ├─────────────────────────────────────────────────┼─────────────────────────────────────┤
 │ AvailableChainFGSAClaims.lean                   │ Claims library root                 │
+│ AvailableChainFGSAClaims/FGSAClaims.lean          │ Exported safety-claim aggregate     │
 │ AvailableChainFGSAClaims/Statements/Bounds.lean │ FG-SA bound terms                   │
 │ AvailableChainFGSAClaims/Tests/Recurrence.lean  │ Astra B1 positive controls          │
 │ AvailableChainFGSAProofs/Proofs/Shared/Recurren │ FG-SA implications and bound proofs │
@@ -1333,5 +1334,5 @@ unused imports, and negative controls. No baseline entries were added.
 
 The Tests targets are `AvailableChainFGSAClaimsTests`,
 `AvailableChainFGSAProofsTests`, and `AvailableChainFGSAInhabitTests`.
-The later claim facade will be `AvailableChainFGSAClaims/FGSAClaims.lean`;
-F0.6a part 1 leaves it deferred; a later job adds all fields at once.
+The claim facade is `AvailableChainFGSAClaims/FGSAClaims.lean`.
+It holds the complete exported safety-claim aggregate.

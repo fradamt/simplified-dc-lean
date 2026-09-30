@@ -49,5 +49,11 @@ structure CleanCutPrem (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
     (pt : PtB₀) : Prop where
   set : CleanCutSet p c E rho pt.b₀
 
+/-- R5-65: time-free release premise, family (0). -/
+structure ReleasePrem (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (_pt : Unit) : Prop where
+  set : BaseSet p c E rho
+  lt : (Gen.V2.faulty rho).card < SA.releaseThreshold p.toParams
+
 end AvailableChain.FGSA.Run
 end

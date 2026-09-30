@@ -3,8 +3,8 @@ public import AvailableChainFGSAClaims.Claims.Foundations
 public import AvailableChainFGSAClaims.Claims.Clean
 import AvailableChainFGSAProofs.Proofs.Shared.Regimes
 
-/-! Holds claim → claim implications only; its Claims/* imports are an exact L42
-exception (P3 r3.5.8 R5-66). -/
+/-! Holds claim → claim implications only; its Claims/* imports are an exact L42 exception.
+P3 r3.5.8 R5-66. -/
 
 public section
 
