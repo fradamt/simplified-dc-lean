@@ -1,5 +1,5 @@
 module
-import AvailableChainFGSAClaims.Statements.Regimes
+public import AvailableChainFGSAClaims.Statements.Regimes
 
 -- Test values are private; production code must not import Tests.
 set_option linter.privateModule false

@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSAClaims.Statements.Bounds
-import AvailableChainGeneric.Proofs.Pure.Schedule
+public import AvailableChainGeneric.Proofs.Pure.Schedule
 
 public section
 

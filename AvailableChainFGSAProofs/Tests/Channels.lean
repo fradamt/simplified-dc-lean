@@ -1,5 +1,5 @@
 module
-import AvailableChainFGSAProofs.Proofs.Shared.Channels
+public import AvailableChainFGSAProofs.Proofs.Shared.Channels
 
 set_option linter.privateModule false
 

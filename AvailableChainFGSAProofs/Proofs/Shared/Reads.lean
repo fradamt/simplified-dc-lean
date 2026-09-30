@@ -1,8 +1,8 @@
 module
 public import AvailableChainFGSAClaims.Statements.Reads
 public import AvailableChainFGSARun.Statements.Interface
-import AvailableChainFGSARun.Proofs.Schedule
-import AvailableChainGeneric.Proofs.V2.Reads
+public import AvailableChainFGSARun.Proofs.Schedule
+public import AvailableChainGeneric.Proofs.V2.Reads
 
 public section
 

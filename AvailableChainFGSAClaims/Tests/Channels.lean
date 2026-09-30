@@ -1,5 +1,5 @@
 module
-import AvailableChainFGSAClaims.Statements.Channels
+public import AvailableChainFGSAClaims.Statements.Channels
 
 -- Test fixtures stay private; the Claims guard forbids imports between Tests modules.
 set_option linter.privateModule false

@@ -1,9 +1,9 @@
 module
-import AvailableChainFGSAProofs.Proofs.Shared.Claims -- shake: keep (axiom audit commands)
-import AvailableChainFGSAProofs.Proofs.Shared.Regimes -- shake: keep (axiom audit commands)
-import AvailableChainFGSAProofs.Proofs.Shared.Channels -- shake: keep (axiom audit commands)
-import AvailableChainFGSAProofs.Proofs.Shared.Recurrence -- shake: keep (axiom audit commands)
-import AvailableChainFGSAProofs.Proofs.Shared.Reads -- shake: keep (axiom audit commands)
+public import AvailableChainFGSAProofs.Proofs.Shared.Claims -- shake: keep (axiom audit commands)
+public import AvailableChainFGSAProofs.Proofs.Shared.Regimes -- shake: keep (axiom audit commands)
+public import AvailableChainFGSAProofs.Proofs.Shared.Channels -- shake: keep (axiom audit commands)
+public import AvailableChainFGSAProofs.Proofs.Shared.Recurrence -- shake: keep (axiom audit commands)
+public import AvailableChainFGSAProofs.Proofs.Shared.Reads -- shake: keep (axiom audit commands)
 
 #print axioms AvailableChain.FGSA.Run.afterTicks_eq_stateBefore
 #print axioms AvailableChain.FGSA.Run.afterTicks_node

@@ -1,7 +1,7 @@
 module
 public import AvailableChainFGSAClaims.Statements.ChannelProps
-import AvailableChainFGSARun.Proofs.Emission
-import AvailableChainFGSARun.Proofs.Hooks
+public import AvailableChainFGSARun.Proofs.Emission
+public import AvailableChainFGSARun.Proofs.Hooks
 
 public section
 

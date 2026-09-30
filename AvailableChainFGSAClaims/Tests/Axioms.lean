@@ -1,8 +1,8 @@
 module
-import AvailableChainFGSAClaims.Claims.Foundations -- shake: keep (axiom audit commands)
-import AvailableChainFGSAClaims.Claims.Shared -- shake: keep (axiom audit commands)
-import AvailableChainFGSAClaims.Claims.Clean -- shake: keep (axiom audit commands)
-import AvailableChainFGSAClaims.Statements.Packages.Outage -- shake: keep (axiom audit commands)
+public import AvailableChainFGSAClaims.Claims.Foundations -- shake: keep (axiom audit commands)
+public import AvailableChainFGSAClaims.Claims.Shared -- shake: keep (axiom audit commands)
+public import AvailableChainFGSAClaims.Claims.Clean -- shake: keep (axiom audit commands)
+public import AvailableChainFGSAClaims.Statements.Packages.Outage -- shake: keep (axiom audit commands)
 
 /-! Axiom audit. Add one `#print axioms` for each new public theorem.
 The guard scans all compiled constants. -/
