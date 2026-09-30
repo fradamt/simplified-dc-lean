@@ -82,7 +82,8 @@ AX_OPTS=(--expect Run.fgsa Run.fgsaFamilies Run.fgsaIso Run.toWireEquiv Run.duti
   Run.fgsaAC Run.fgsa_clockPre_gateView Run.fgsaAC_anchor_le_output
   Run.fgsaAC_lease_le_output Run.fgsaAC_gate_write
   Run.fgsaAC_output_step Run.fgsaAC_laws
-  Run.fgsaAC_slot_gate_reads)
+  Run.fgsaAC_slot_gate_reads
+  Run.depsS_of_not_block Run.depsS_of_not_proposal Run.fgsa_hWF_of_delivery Run.fgsa_hReady_of_not_block Run.fgsa_hReady_of_parentStored Run.Tests.fgsa_parentStored_receipt_test)
 
 # Remove comments (the tokenizer of scripts/check-fgsa.sh): strings, character
 # literals, raw strings (r"...", r#"..."#) and nested block comments. A "--"

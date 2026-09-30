@@ -7,6 +7,7 @@ public import AvailableChainFGSARun.Proofs.Interface
 public import AvailableChainFGSARun.Proofs.ClockLaws
 public import AvailableChainFGSARun.Proofs.Reachable
 public import AvailableChainFGSARun.Proofs.Hooks
+public import AvailableChainFGSARun.Proofs.Readiness
 public import AvailableChainFGSARun.Proofs.Acceptance
 public import AvailableChainFGSARun.Proofs.Emission
 public import AvailableChainFGSARun.Statements.Client
@@ -237,3 +238,9 @@ mechanically. -/
 #print axioms AvailableChain.FGSA.Run.fgsaAC_output_step
 #print axioms AvailableChain.FGSA.Run.fgsaAC_laws
 #print axioms AvailableChain.FGSA.Run.fgsaAC_slot_gate_reads
+-- Readiness producers and the generic receipt boundary.
+#print axioms AvailableChain.FGSA.Run.depsS_of_not_block
+#print axioms AvailableChain.FGSA.Run.depsS_of_not_proposal
+#print axioms AvailableChain.FGSA.Run.fgsa_hWF_of_delivery
+#print axioms AvailableChain.FGSA.Run.fgsa_hReady_of_not_block
+#print axioms AvailableChain.FGSA.Run.fgsa_hReady_of_parentStored
