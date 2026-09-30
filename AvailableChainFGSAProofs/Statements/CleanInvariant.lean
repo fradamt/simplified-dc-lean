@@ -6,7 +6,7 @@ public import AvailableChainGeneric.Statements.Pure.FirstBad
 
 public section
 
-/-! P3 r3.5.8 §§8.1–8.4; bp02 §5. These are F2 review statements.
+/-! P3 r3.5.9 §§8.1–8.4; bp02 §5. These are F2 review statements.
 Only Proofs/Clean imports this module. The results and label predicate stay
 in Claims/Statements/Reads. No step proof is supplied here. -/
 
@@ -24,7 +24,7 @@ structure CleanHist (i : Nat) : Prop where
   same : ∀ s B C, (s, B) ∈ cleanResults p c E rho i →
     (s, C) ∈ cleanResults p c E rho i → Block.Compatible B C
   nonempty : ∀ j x s, j < i → IsGateTick p c rho j x s →
-    ∃ B, gateResultAt p c E rho j = some (some B)
+    ∃ B, gateResultAt p c E rho j = some (some B) ∧ (s = 0 → B = .genesis)
   continues : ∀ j k x y s B, j < i → k < j → IsGateTick p c rho j x s →
     rho.events[k]? = some (.tick y (SA.voteTime p.toParams (s + 1))) →
     gateResultAt p c E rho j = some (some B) →
@@ -57,6 +57,12 @@ structure CleanState (i : Nat) : Prop where
   fOrigin : ∀ v,
     BelowLabel p c E rho i (labelBoundAt p c rho i) (F_at p c E rho i v) ∧
     BelowLabel p c E rho i (labelBoundAt p c rho i) (J_at p c E rho i v)
+  /-- P3:5185–5195, bp02 §5.4: no same-batch label may witness a gate input.
+  The strict bound also makes both inputs genesis at label zero. -/
+  gateInputs : ∀ v s, IsGateTick p c rho i v s →
+    let below := fun X => X = .genesis ∨
+      ∃ r B, (r, B) ∈ cleanResults p c E rho i ∧ r < s ∧ Block.Preceq X B
+    below (F_at p c E rho i v) ∧ below (J_at p c E rho i v)
   leases : ∀ v row, row ∈ (storeAt p c E rho i v).base.obligations →
     ∃ j < i, ∃ s C, IsGateTick p c rho j v s ∧ gatePassedAt p c E rho j ∧
       gateResultAt p c E rho j = some (some C) ∧ Block.Preceq row.1 C
@@ -104,6 +110,46 @@ def GR (b₀ : Time) (i : Nat) : Prop :=
   i ≤ timeIdx rho b₀ → FGPart p c E rho i
 
 variable [Fintype V]
+
+/-- F2.4 producer for F2.7, bp02 §5.5: each completed honest gate passes
+and its result is below S after its tick. CleanState.sExtends transports
+this fact to afterTicksIdx for the frozen CleanGateAt export. -/
+def CleanGateOutputStmt (b₀ : Time) : Prop :=
+  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
+  FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
+  ∀ i, i ≤ timeIdx rho b₀ → CleanHist p c E rho i →
+    ∀ j v s, j < i → v ∈ rho.honest → IsGateTick p c rho j v s →
+      ∃ B, gateResultAt p c E rho j = some (some B) ∧
+        gatePassedAt p c E rho j ∧ Block.Preceq B (S_at p c E rho (j + 1) v)
+
+/-- F2.7 source export, bp02 §5.6: all nonempty action-source reads,
+including asleep nodes that emit no row. TSrc supplies the gate origin;
+F2.1 supplies the history-index and label conversion. -/
+def CleanActionSourcesStmt (b₀ : Time) : Prop :=
+  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
+  FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
+  ∀ i, i ≤ timeIdx rho b₀ → CleanHist p c E rho i →
+    ∀ j x r C, j < i → x ∈ rho.honest →
+      rho.events[j]? = some (.tick x (p.actionTime r)) →
+      actionSource p c E rho x r = some (some C) →
+      BelowLabel p c E rho i (labelBoundAt p c rho j) C
+
+/-- F2.2 producer for the F2.7 Clean frame export, bp02 §§3.3–3.4:
+no contest, a labelled root origin, and full-domain retention. -/
+def CleanFrameStmt (b₀ : Time) : Prop :=
+  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
+  FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
+  ∀ i, i ≤ timeIdx rho b₀ → CleanHist p c E rho i →
+    ∀ v, v ∈ rho.honest →
+      let st := storeAt p c E rho i v
+      (FGSA.controls p st).contest = false ∧
+      BelowLabel p c E rho i (labelBoundAt p c rho i) (eraseFG (FGSA.controls p st).Z) ∧
+      (∀ B ∈ st.fg.TF,
+        BelowLabel p c E rho i (labelBoundAt p c rho i) (eraseFG B) →
+        Block.Preceq (eraseFG B) (eraseFG (FGSA.controls p st).Z) ∨
+        Block.Preceq (eraseFG B) (eraseFG st.fg.F) ∨
+        (FGBlock.Preceq st.fg.F (FGSA.controls p st).Z ∧
+          FGBlock.Preceq (FGSA.controls p st).Z B ∧ B ∈ FGSA.fullTree p st))
 
 /-- R-F2a: Gen.AGRule.fg takes only `∀ j < i, GT j`.
 Gen.Pure.AGRule.holds gives both conclusions at every index once this

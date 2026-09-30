@@ -26,6 +26,10 @@ LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainF
 CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = (
+    'AvailableChain.FGSA.Run.CleanState.gateInputs',
+    'AvailableChain.FGSA.Run.CleanGateOutputStmt',
+    'AvailableChain.FGSA.Run.CleanActionSourcesStmt',
+    'AvailableChain.FGSA.Run.CleanFrameStmt',
     'AvailableChain.FGSA.Run.RCarrierView',
     'AvailableChain.FGSA.Run.RCarrierView_def',
     'AvailableChain.FGSA.Run.RFrame',
