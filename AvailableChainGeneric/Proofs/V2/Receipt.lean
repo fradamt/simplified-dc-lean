@@ -195,19 +195,20 @@ theorem timely_of_relay :
     C.actTime o ≤ pubFloor E t :=
   @timely_of_relay_statement
 
--- S3-03 LINK; only unused proof binder names have a leading underscore.
+-- S3-03 LINK; the binder names are the Statement names, for named arguments.
+set_option linter.unusedVariables false in
 theorem firstAccept_of_processed :
   ∀ {V : Type} [DecidableEq V] {In : Type} {P : ProtocolSpec In}
     (E : Generic.Env V) (rho : Run V P),
   ∀ (w : V), ∀ (o : P.Object), ∀ (i₀ k : Nat),
-  ∀ (_hik : i₀ ≤ k),
-  ∀ (_hrf : restartFree rho w i₀ k),
-  ∀ (_h₀ : P.processed (Run.stateBefore E rho i₀ w) o = false),
-  ∀ (_hk : P.processed (Run.stateBefore E rho k w) o = true),
-  ∀ (_htick : ∀ i t, i₀ ≤ i → i < k → rho.events[i]? = some (.tick w t) →
+  ∀ (hik : i₀ ≤ k),
+  ∀ (hrf : restartFree rho w i₀ k),
+  ∀ (h₀ : P.processed (Run.stateBefore E rho i₀ w) o = false),
+  ∀ (hk : P.processed (Run.stateBefore E rho k w) o = true),
+  ∀ (htick : ∀ i t, i₀ ≤ i → i < k → rho.events[i]? = some (.tick w t) →
       P.processed (Run.stateBefore E rho i w) o = false →
       P.processed (Run.stateBefore E rho (i + 1) w) o = false),
-  ∀ (_hdeliv : ∀ i o' t', i₀ ≤ i → i < k → rho.events[i]? = some (.deliver w o' t') →
+  ∀ (hdeliv : ∀ i o' t', i₀ ≤ i → i < k → rho.events[i]? = some (.deliver w o' t') →
       P.processed (Run.stateBefore E rho i w) o = false →
       P.processed (P.process (Run.stateBefore E rho i w) o') o = true →
       P.handles (Run.stateBefore E rho i w) o' o),
@@ -264,35 +265,36 @@ theorem accepted_by_deadline_statement : AcceptedByDeadlineStatement := by
         exact hPS w o (i + 1) n (Nat.succ_le_of_lt hin)
           (hrf.mono (Nat.le_trans (Nat.le_of_lt hji) (Nat.le_succ i)) le_rfl) hprocessed
 
--- S3-04 LINK; only unused proof binder names have a leading underscore.
+-- S3-04 LINK; the binder names are the Statement names, for named arguments.
+set_option linter.unusedVariables false in
 theorem accepted_by_deadline :
   ∀ {V : Type} [DecidableEq V] {In : Type} {P : ProtocolSpec In}
     (E : Generic.Env V) (rho : Run V P),
   ∀ {Timely : P.State → P.Object → Prop},
   ∀ {Inv : P.State → Prop},
   ∀ (dl : Time → Time), ∀ (cut : Time), ∀ (o : P.Object), ∀ (t : Time), ∀ (w : V),
-  ∀ (_hD : DeliveryWithin E rho dl cut),
-  ∀ (_hT : Trigger E rho o t),
-  ∀ (_hw : w ∈ rho.honest),
-  ∀ (_hcut : dl t ≤ cut),
-  ∀ (_hlt : t < dl t),
-  ∀ (_hS : ScheduleWellFormed E rho),
-  ∀ (_hES : ∀ v o i j, i ≤ j → restartFree rho v i j →
+  ∀ (hD : DeliveryWithin E rho dl cut),
+  ∀ (hT : Trigger E rho o t),
+  ∀ (hw : w ∈ rho.honest),
+  ∀ (hcut : dl t ≤ cut),
+  ∀ (hlt : t < dl t),
+  ∀ (hS : ScheduleWellFormed E rho),
+  ∀ (hES : ∀ v o i j, i ≤ j → restartFree rho v i j →
       P.excludes (Run.stateBefore E rho i v) o = true →
       P.excludes (Run.stateBefore E rho j v) o = true),
-  ∀ (_hPS : ∀ v o i j, i ≤ j → restartFree rho v i j →
+  ∀ (hPS : ∀ v o i j, i ≤ j → restartFree rho v i j →
       P.processed (Run.stateBefore E rho i v) o = true →
       P.processed (Run.stateBefore E rho j v) o = true),
-  ∀ (_hReady : ∀ i t', i < Run.idxBefore rho (dl t) → Run.handlesAt E rho i w o t' →
+  ∀ (hReady : ∀ i t', i < Run.idxBefore rho (dl t) → Run.handlesAt E rho i w o t' →
       P.wellFormed o = true ∧ P.depsPresent (Run.stateBefore E rho i w) o = true),
-  ∀ (_hA : AcceptanceLaw P Timely Inv),
+  ∀ (hA : AcceptanceLaw P Timely Inv),
   ∀ (C : TimelyClock P Timely),
-  ∀ (_hInv : ∀ i, Inv (Run.stateBefore E rho i w)),
-  ∀ (_hAdm : C.actTime o ≤ pubFloor E t),
+  ∀ (hInv : ∀ i, Inv (Run.stateBefore E rho i w)),
+  ∀ (hAdm : C.actTime o ≤ pubFloor E t),
   ∀ (j : Nat),
-  ∀ (_hj : rho.events[j]? = some (.tick w (pubFloor E t))),
-  ∀ (_hrf : restartFree rho w j (Run.idxBefore rho (dl t))),
-  ∀ (_hNX : P.excludes (Run.stateBeforeTime E rho (dl t) w) o = false),
+  ∀ (hj : rho.events[j]? = some (.tick w (pubFloor E t))),
+  ∀ (hrf : restartFree rho w j (Run.idxBefore rho (dl t))),
+  ∀ (hNX : P.excludes (Run.stateBeforeTime E rho (dl t) w) o = false),
     P.processed (Run.stateBeforeTime E rho (dl t) w) o = true :=
   @accepted_by_deadline_statement
 
