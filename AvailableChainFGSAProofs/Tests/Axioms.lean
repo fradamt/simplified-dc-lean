@@ -86,3 +86,6 @@ public import AvailableChainFGSAProofs.Proofs.Shared.Reads -- shake: keep (axiom
 #print axioms AvailableChain.FGSA.Run.fgsa_chainCertificatesClaim
 
 #print axioms AvailableChain.FGSA.Run.fgsa_storedTargetsBelowOutput
+#print axioms AvailableChain.FGSA.Run.fgsa_leaseOrigins_chain
+#print axioms AvailableChain.FGSA.Run.fgsa_leaseOrigins_ancestorDeadlines
+#print axioms AvailableChain.FGSA.Run.fgsa_leaseOrigins_fastWrites
