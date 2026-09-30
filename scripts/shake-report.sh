@@ -12,7 +12,8 @@
 # The report: each suggested removal as `remove <path> <import>` (the B6
 # signal), and each suggested addition as `add <path> <import>`. The removals
 # are compared with scripts/baselines/shake-report.txt; a removal that the
-# baseline does not list is marked NEW.
+# baseline does not list is marked NEW, except a B1 downgrade (a `public import`
+# removal paired with an `add` of the same plain import), which B1 forbids.
 #
 # Usage: bash scripts/shake-report.sh [--fail-on-new] [--write-baseline] [<Module>...]
 #   <Module>...       check these modules only (default: every library module)
@@ -92,13 +93,22 @@ if write:
         f.write('\n'.join(removes) + '\n')
     print(f'shake-report: wrote {len(removes)} baseline entries'); sys.exit(0)
 base = C.read_baseline('shake-report')
-new = [l for l in removes if not base[l]]
+# A `public import` removal paired with `add <same path> import <same module>` is a
+# downgrade to a private import, which B1 forbids: it is not a NEW finding (lead-framework
+# ruling 2026-09-30, fgsa-lean tool conflict).
+adds = {tuple(l.split(' ', 2)[1:]) for l in lines if l.startswith('add ')}
+def downgrade(l):
+    _, p, imp = l.split(' ', 2)
+    return imp.startswith('public import ') and (p, imp[len('public '):]) in adds
+downgrades = [l for l in removes if downgrade(l)]
+new = [l for l in removes if not base[l] and not downgrade(l)]
 stale = [l for l in base if l not in set(removes)] if full else []
 for l in new:
     print('NEW ' + l)
 files = len({l.split()[1] for l in lines if l.split()[0] in ('remove', 'add')})
 print(f'shake-report: REPORT: {nmods} modules checked; {files} files with suggestions; '
-      f'{len(removes)} removals ({len(new)} NEW, {len(removes) - len(new)} in baseline), '
+      f'{len(removes)} removals ({len(new)} NEW, {len(downgrades)} B1 downgrades, '
+      f'{len(removes) - len(new) - len(downgrades)} other in baseline), '
       f'{len(lines) - len(removes)} additions/other; {len(stale)} baseline removals no longer suggested; '
       f'full report: {report}')
 sys.exit(1 if (fail_on_new and new) else 0)
