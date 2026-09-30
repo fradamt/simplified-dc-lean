@@ -64,7 +64,7 @@ def CarrierAt : Prop :=
     (FGBlock.Preceq X Y ↔ Block.Preceq (eraseFG X) (eraseFG Y))) ∧
   (∀ X, RunFGBlock p c E rho X →
     eraseFG X.parent = (eraseFG X).parent ∧
-    (eraseFG X).slot = X.slot ∧ (eraseFG X).root = X.root)
+    (eraseFG X).slot = X.slot ∧ (eraseFG X).root = X.root) ∧ RCarrierView p c E rho
 
 /-- bp.store.v1: snapshot invariants and the two temporal channels.
 Each temporal channel retains its NoRestart premise. -/
@@ -105,7 +105,7 @@ def SourceDisciplineBaseAt : Prop :=
 
 /-- bp.sourceDiscipline.v1(a–d), including target/progress and finality origins. -/
 def SourceDisciplineAt : Prop :=
-  SourceDisciplineBaseAt p c E rho ∧ RStrat p c E rho
+  SourceDisciplineBaseAt p c E rho ∧ RStrat p c E rho ∧ RQCOrigin p c E rho
 
 /-- bp.carrier.v1; all runs. -/
 def CarrierClaim : Prop :=
@@ -177,11 +177,15 @@ def OutputNestingClaim : Prop :=
     (E : Generic.Env V) (rho : V2.Run V (fgsa p c)),
     OutputNestingAt p c E rho
 
+/-- bp.frame.v1 (00:581–587), 01 §4.3: exact controls, projection and metadata.
+Consumers: all frame clients. Producer: F1.1. -/
+def FrameAt : Prop := RFrameExact p c E rho ∧ RFrame p c E rho
+
 /-- bp.frame.v1; all runs. -/
 def FrameClaim : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.Run V (fgsa p c)),
-    RFrameExact p c E rho
+    FrameAt p c E rho
 
 /-- bp.sourceDiscipline.v1(a,d); no FaultQ premise. -/
 def SourceDisciplineBaseClaim : Prop :=

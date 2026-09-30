@@ -224,3 +224,11 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.RCert
 #print axioms AvailableChain.FGSA.Run.RCert_def
 #print axioms AvailableChain.FGSA.Run.ChainCertificatesAt
+
+#print axioms AvailableChain.FGSA.Run.RCarrierView
+#print axioms AvailableChain.FGSA.Run.RCarrierView_def
+#print axioms AvailableChain.FGSA.Run.RFrame
+#print axioms AvailableChain.FGSA.Run.RFrame_def
+#print axioms AvailableChain.FGSA.Run.RQCOrigin
+#print axioms AvailableChain.FGSA.Run.RQCOrigin_def
+#print axioms AvailableChain.FGSA.Run.FrameAt

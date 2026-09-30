@@ -14,6 +14,18 @@ open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V]
     (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
 
+/-- bp.carrier.v1 (00:493–501, especially 496), 01 §2: admitted-view root injectivity.
+Consumers: all lanes and KitFG frame lemmas. Producer: F1.1 via `viewRootInj_TF`.
+The claim has no Base premise; the existing run root premise is local here.
+Derived content roots discharge it via `V2.rootInjective_all`. -/
+def RCarrierView : Prop := V2.RootInjective E (fgsaInterface p c) rho →
+  ∀ i x, x ∈ rho.honest → ViewRootInj (storeAt p c E rho i x).fg.TF
+
+theorem RCarrierView_def : RCarrierView p c E rho =
+  (V2.RootInjective E (fgsaInterface p c) rho →
+  ∀ i x, x ∈ rho.honest → ViewRootInj (storeAt p c E rho i x).fg.TF) := by
+  rw [RCarrierView]
+
 /-- bp.store.v1 (00:516–527), bp.activeView.v1 (00:529–536); 01 §§4–5.
 Consumers: all lanes. Producer: T7.5 and F1.1. This is a snapshot;
 `RStoreCumul` states the temporal part. -/
@@ -90,6 +102,134 @@ def RFrameExact : Prop := ∀ i x, x ∈ rho.honest →
   let st := storeAt p c E rho i x
   FGSA.controls p st = SimplexFG.fjControls p.E p.cfg st.fg.F st.fg.TF ∧
   FGSA.fullTree p st = domainR p st st.fg.TF
+
+/-- bp.frame.v1 (00:581–587), 01 §4.3 (435–458): the FG projection and metadata.
+Consumers: 02 §4.1, 22 F6/F8/FL-T7, 21 H.17. Producer: F1.1 via
+`admitBlock_accepted_eq`, `onView_fg`, `clock_fg`, `admitBlock_refused`,
+`reconcile_frame`, `metadataInvariant`, and `process_cumulative`.
+The tree-read inventory is 00 §2.4 (219–239); 01:454–455 preserves its metadata.
+SA changes use the existing operations. Only temporal metadata needs NoRestart. -/
+def RFrame : Prop := ∀ i x, x ∈ rho.honest →
+  let st := storeAt p c E rho i x
+  (∀ s b raw support P rows, parentFG st b = some P →
+    blockAccepted p st s b P rows = true →
+    (admitBlock p st s b raw support rows).fg = on_block p.E p.cfg st.fg (fgBlock P b rows)) ∧
+  ((∀ f : GridCO.State p.n → GridCO.State p.n, (onView f st).fg = st.fg) ∧
+    (∀ s k b, (admitHead p st s k b).fg = st.fg) ∧
+    (∀ a, (admitRow p st a).fg = st.fg) ∧
+    (∀ t, (FGSA.clock p st t).fg = st.fg) ∧
+    (∀ s b raw support rows,
+      (parentFG st b = none ∨
+        ∃ P, parentFG st b = some P ∧ blockAccepted p st s b P rows = false) →
+      (admitBlock p st s b raw support rows).fg = st.fg) ∧
+    (∀ o, o.decode = none → (FGSA.process p st o).fg = st.fg)) ∧
+  (FGSA.controls p (FGSA.reconcile st) = FGSA.controls p st ∧
+    ∀ X, domainR p (FGSA.reconcile st) X = domainR p st X) ∧
+  (MetaInv p st ∧
+    (∀ s, proposalsAt st s = st.proposals.filterMap (fun o => match o.decode with
+      | some (.block _ b raw sup _) => if b.slot = s then some (raw, sup) else none
+      | _ => none)) ∧
+    (∀ H, chainWireRows st H = (st.proposals.filterMap (fun o => match o.decode with
+      | some (.block _ b _ _ rows) => if Block.preceq b H then some rows else none
+      | _ => none)).flatten) ∧
+    (∀ I, blockWireRows p st I = (st.proposals.filterMap (fun o => match o.decode with
+      | some (.block _ b _ _ rows) =>
+          if I (p.round b.slot) then some (rows.filter (fun a => (a.round?.map I).getD false))
+          else none
+      | _ => none)).flatten) ∧
+    (∀ s, voterBlocks p st s = st.fg.TF.filter (fun B =>
+      decide (GridCO.stampBlock st.base (eraseFG B) < SA.freezeTime p.toParams (s - 1)) ||
+      decide (∃ P ∈ st.fg.TF, P.slot = s ∧ FGBlock.Preceq B P))) ∧
+    (∀ s, headVotes p st s =
+      (((GridCO.votesAt st.base (s - 1)).filter (fun o =>
+        decide (GridCO.stampVote st.base o < SA.freezeTime p.toParams (s - 1)))) ++
+        (((proposalsAt st s).flatMap (fun row => row.1.map baseVote)).filter
+          (fun o => GridCO.headLabel? o == some (s - 1)))).eraseDups) ∧
+    (∀ s, headSupport p st s =
+      (((GridCO.votesAt st.base (s - 1)).filter (fun o =>
+        GridCO.resolvedBefore (FGSA.actView st) o (SA.freezeTime p.toParams (s - 1)))) ++
+        (((proposalsAt st s).flatMap (fun row => row.2.map baseVote)).filter (fun o =>
+          GridCO.headLabel? o == some (s - 1) && match GridCO.headTarget? o with
+          | some h => GridCO.blockKnown st.base h && decide (h.slot ≤ s - 1)
+          | none => false))).eraseDups) ∧
+    (∀ H, proposalRows p st H =
+      let r := p.round (st.slot p)
+      let inI : Nat → Bool := fun r' => decide (r ≤ r' + p.wF) && decide (r' ≤ r)
+      let onChain := chainWireRows st H
+      let A := st.rowPool.filter (fun a =>
+        (a.round?.map inI).getD false && !decide (a ∈ onChain))
+      let A' := (blockWireRows p st inI).filter (fun a =>
+        !decide (a ∈ onChain) && !decide (a ∈ A))
+      A'.foldl (fun acc a =>
+        let key := fun (x : RowWire p.n) => x.decode?.map (fun y => (y.1, y.2.1))
+        if decide (a ∈ acc) || 2 ≤ (acc.filter (fun x => key x == key a)).length then acc
+        else acc ++ [a]) A) ∧
+    (V2.NoRestart rho → ∀ j, i ≤ j → j ≤ rho.events.length →
+      let st' := storeAt p c E rho j x
+      st.proposals <+: st'.proposals ∧ st.rowPool <+: st'.rowPool ∧
+      st.base.blockStamp <+: st'.base.blockStamp ∧ st.base.voteStamp <+: st'.base.voteStamp))
+
+theorem RFrame_def : RFrame p c E rho =
+  (∀ i x, x ∈ rho.honest →
+  let st := storeAt p c E rho i x
+  (∀ s b raw support P rows, parentFG st b = some P →
+    blockAccepted p st s b P rows = true →
+    (admitBlock p st s b raw support rows).fg = on_block p.E p.cfg st.fg (fgBlock P b rows)) ∧
+  ((∀ f : GridCO.State p.n → GridCO.State p.n, (onView f st).fg = st.fg) ∧
+    (∀ s k b, (admitHead p st s k b).fg = st.fg) ∧
+    (∀ a, (admitRow p st a).fg = st.fg) ∧
+    (∀ t, (FGSA.clock p st t).fg = st.fg) ∧
+    (∀ s b raw support rows,
+      (parentFG st b = none ∨
+        ∃ P, parentFG st b = some P ∧ blockAccepted p st s b P rows = false) →
+      (admitBlock p st s b raw support rows).fg = st.fg) ∧
+    (∀ o, o.decode = none → (FGSA.process p st o).fg = st.fg)) ∧
+  (FGSA.controls p (FGSA.reconcile st) = FGSA.controls p st ∧
+    ∀ X, domainR p (FGSA.reconcile st) X = domainR p st X) ∧
+  (MetaInv p st ∧
+    (∀ s, proposalsAt st s = st.proposals.filterMap (fun o => match o.decode with
+      | some (.block _ b raw sup _) => if b.slot = s then some (raw, sup) else none
+      | _ => none)) ∧
+    (∀ H, chainWireRows st H = (st.proposals.filterMap (fun o => match o.decode with
+      | some (.block _ b _ _ rows) => if Block.preceq b H then some rows else none
+      | _ => none)).flatten) ∧
+    (∀ I, blockWireRows p st I = (st.proposals.filterMap (fun o => match o.decode with
+      | some (.block _ b _ _ rows) =>
+          if I (p.round b.slot) then some (rows.filter (fun a => (a.round?.map I).getD false))
+          else none
+      | _ => none)).flatten) ∧
+    (∀ s, voterBlocks p st s = st.fg.TF.filter (fun B =>
+      decide (GridCO.stampBlock st.base (eraseFG B) < SA.freezeTime p.toParams (s - 1)) ||
+      decide (∃ P ∈ st.fg.TF, P.slot = s ∧ FGBlock.Preceq B P))) ∧
+    (∀ s, headVotes p st s =
+      (((GridCO.votesAt st.base (s - 1)).filter (fun o =>
+        decide (GridCO.stampVote st.base o < SA.freezeTime p.toParams (s - 1)))) ++
+        (((proposalsAt st s).flatMap (fun row => row.1.map baseVote)).filter
+          (fun o => GridCO.headLabel? o == some (s - 1)))).eraseDups) ∧
+    (∀ s, headSupport p st s =
+      (((GridCO.votesAt st.base (s - 1)).filter (fun o =>
+        GridCO.resolvedBefore (FGSA.actView st) o (SA.freezeTime p.toParams (s - 1)))) ++
+        (((proposalsAt st s).flatMap (fun row => row.2.map baseVote)).filter (fun o =>
+          GridCO.headLabel? o == some (s - 1) && match GridCO.headTarget? o with
+          | some h => GridCO.blockKnown st.base h && decide (h.slot ≤ s - 1)
+          | none => false))).eraseDups) ∧
+    (∀ H, proposalRows p st H =
+      let r := p.round (st.slot p)
+      let inI : Nat → Bool := fun r' => decide (r ≤ r' + p.wF) && decide (r' ≤ r)
+      let onChain := chainWireRows st H
+      let A := st.rowPool.filter (fun a =>
+        (a.round?.map inI).getD false && !decide (a ∈ onChain))
+      let A' := (blockWireRows p st inI).filter (fun a =>
+        !decide (a ∈ onChain) && !decide (a ∈ A))
+      A'.foldl (fun acc a =>
+        let key := fun (x : RowWire p.n) => x.decode?.map (fun y => (y.1, y.2.1))
+        if decide (a ∈ acc) || 2 ≤ (acc.filter (fun x => key x == key a)).length then acc
+        else acc ++ [a]) A) ∧
+    (V2.NoRestart rho → ∀ j, i ≤ j → j ≤ rho.events.length →
+      let st' := storeAt p c E rho j x
+      st.proposals <+: st'.proposals ∧ st.rowPool <+: st'.rowPool ∧
+      st.base.blockStamp <+: st'.base.blockStamp ∧ st.base.voteStamp <+: st'.base.voteStamp))) := by
+  rw [RFrame]
 
 /-- bp.chainCertificates.v1 (00:503–514): path heights and entries.
 Consumers: 02 §3.1, 21 H.9(a), 22 I2. Producer: F1.1 from KitFG
@@ -237,6 +377,84 @@ def RStrat : Prop := ∀ i x W, x ∈ rho.honest →
   ∀ e ∈ certified p W, e ≠ .genesis →
     ∃ y r, ∃ a : RowWire p.n, HonestRowBefore p c E rho i y r a ∧
       namedEntry a.payload.height_pair = some (hOf p.E p.cfg e, e.root)
+
+/-- bp.sourceDiscipline.v1 (00:689–697, especially 691–695), 01 §8.4 (788–793).
+Consumers: F2–F5 through SourceDisciplineAt. Producer: F1.5 via certificate-row
+lifting, the honest action source proof, and KitFG `provenance_finality`.
+SourceDisciplinePrem.quorum supplies FaultQ; no extra count hypothesis is needed.
+Every selected QC has an exact honest row with an earlier source. Finalization
+uses a target QC of its prior justification, with no finality-row height test. -/
+def RQCOrigin : Prop := ∀ i x W, x ∈ rho.honest → W ∈ (storeAt p c E rho i x).fg.TF →
+  let origin := fun (carrier : FGBlock (Fin p.n)) (a : Row (Fin p.n)) =>
+    ∃ y r, ∃ wire : RowWire p.n, HonestRowBefore p c E rho i y r wire ∧
+      wire.toRow? = some a ∧
+      (∃ s raw sup rows,
+        (⟨.proposer s, .proposal (eraseFG carrier) raw sup rows⟩ : Wire p.n) ∈
+          (storeAt p c E rho i x).proposals ∧ wire ∈ rows) ∧
+      ∃ C G, actionSourceFG p c E rho y r = some (some C) ∧
+        namedEntry a.height_pair = some (hOf p.E p.cfg C, (derive p.E p.cfg C).T_h.root) ∧
+        FGBlock.Preceq (derive p.E p.cfg C).T_h C ∧
+        gateResult p c E rho y (r * p.R) = some (some G) ∧
+        Block.Preceq (eraseFG C) G ∧ fastAt p c E rho y (r * p.R) (eraseFG C)
+  (∀ m X (Q : Finset (Fin p.n)) (rows : Fin p.n → FGBlock (Fin p.n) × Row (Fin p.n)),
+    1 ≤ m → m < (derive p.E p.cfg W).h →
+    FGBlock.Preceq X W → (derive p.E p.cfg X).h = m → p.E.IsQuorum Q →
+    (∀ k ∈ Q, FGBlock.Preceq (rows k).1 W ∧ (rows k).2 ∈ (rows k).1.rows ∧
+      (rows k).2.signer = k ∧ (rows k).2.height_pair.matchesEntry m X.root = true) →
+    ∃ k ∈ Q, origin (rows k).1 (rows k).2) ∧
+  (∀ (Q : Finset (Fin p.n)) (rows : Fin p.n → FGBlock (Fin p.n) × Row (Fin p.n)),
+    (derive p.E p.cfg W).h_j ≠ 0 → p.E.IsQuorum Q →
+    (∀ k ∈ Q, FGBlock.Preceq (rows k).1 W ∧ (rows k).2 ∈ (rows k).1.rows ∧
+      (rows k).2.signer = k ∧
+      (rows k).2.height_pair = .vote (derive p.E p.cfg W).h_j (derive p.E p.cfg W).J.root false) →
+    ∃ k ∈ Q, origin (rows k).1 (rows k).2) ∧
+  ((derive p.E p.cfg W).F ≠ .genesis →
+    ∃ C, FGBlock.Preceq C W ∧ (derive p.E p.cfg C).J = (derive p.E p.cfg W).F ∧
+      (derive p.E p.cfg C).h_j = (derive p.E p.cfg W).h_F ∧
+      ∃ (Q : Finset (Fin p.n)) (rows : Fin p.n → FGBlock (Fin p.n) × Row (Fin p.n)),
+        p.E.IsQuorum Q ∧
+        (∀ k ∈ Q, FGBlock.Preceq (rows k).1 C ∧ (rows k).2 ∈ (rows k).1.rows ∧
+          (rows k).2.signer = k ∧
+          (rows k).2.height_pair =
+            .vote (derive p.E p.cfg C).h_j (derive p.E p.cfg C).J.root false) ∧
+        ∃ k ∈ Q, origin (rows k).1 (rows k).2)
+
+theorem RQCOrigin_def : RQCOrigin p c E rho =
+  (∀ i x W, x ∈ rho.honest → W ∈ (storeAt p c E rho i x).fg.TF →
+  let origin := fun (carrier : FGBlock (Fin p.n)) (a : Row (Fin p.n)) =>
+    ∃ y r, ∃ wire : RowWire p.n, HonestRowBefore p c E rho i y r wire ∧
+      wire.toRow? = some a ∧
+      (∃ s raw sup rows,
+        (⟨.proposer s, .proposal (eraseFG carrier) raw sup rows⟩ : Wire p.n) ∈
+          (storeAt p c E rho i x).proposals ∧ wire ∈ rows) ∧
+      ∃ C G, actionSourceFG p c E rho y r = some (some C) ∧
+        namedEntry a.height_pair = some (hOf p.E p.cfg C, (derive p.E p.cfg C).T_h.root) ∧
+        FGBlock.Preceq (derive p.E p.cfg C).T_h C ∧
+        gateResult p c E rho y (r * p.R) = some (some G) ∧
+        Block.Preceq (eraseFG C) G ∧ fastAt p c E rho y (r * p.R) (eraseFG C)
+  (∀ m X (Q : Finset (Fin p.n)) (rows : Fin p.n → FGBlock (Fin p.n) × Row (Fin p.n)),
+    1 ≤ m → m < (derive p.E p.cfg W).h →
+    FGBlock.Preceq X W → (derive p.E p.cfg X).h = m → p.E.IsQuorum Q →
+    (∀ k ∈ Q, FGBlock.Preceq (rows k).1 W ∧ (rows k).2 ∈ (rows k).1.rows ∧
+      (rows k).2.signer = k ∧ (rows k).2.height_pair.matchesEntry m X.root = true) →
+    ∃ k ∈ Q, origin (rows k).1 (rows k).2) ∧
+  (∀ (Q : Finset (Fin p.n)) (rows : Fin p.n → FGBlock (Fin p.n) × Row (Fin p.n)),
+    (derive p.E p.cfg W).h_j ≠ 0 → p.E.IsQuorum Q →
+    (∀ k ∈ Q, FGBlock.Preceq (rows k).1 W ∧ (rows k).2 ∈ (rows k).1.rows ∧
+      (rows k).2.signer = k ∧
+      (rows k).2.height_pair = .vote (derive p.E p.cfg W).h_j (derive p.E p.cfg W).J.root false) →
+    ∃ k ∈ Q, origin (rows k).1 (rows k).2) ∧
+  ((derive p.E p.cfg W).F ≠ .genesis →
+    ∃ C, FGBlock.Preceq C W ∧ (derive p.E p.cfg C).J = (derive p.E p.cfg W).F ∧
+      (derive p.E p.cfg C).h_j = (derive p.E p.cfg W).h_F ∧
+      ∃ (Q : Finset (Fin p.n)) (rows : Fin p.n → FGBlock (Fin p.n) × Row (Fin p.n)),
+        p.E.IsQuorum Q ∧
+        (∀ k ∈ Q, FGBlock.Preceq (rows k).1 C ∧ (rows k).2 ∈ (rows k).1.rows ∧
+          (rows k).2.signer = k ∧
+          (rows k).2.height_pair =
+            .vote (derive p.E p.cfg C).h_j (derive p.E p.cfg C).J.root false) ∧
+        ∃ k ∈ Q, origin (rows k).1 (rows k).2)) := by
+  rw [RQCOrigin]
 
 /-- P3 App. A.10, S3 D09: bp.sourceDiscipline.v1, 01 §8.4.
 T1 names an FG block by its height and root.
