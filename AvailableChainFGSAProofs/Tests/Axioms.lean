@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Clean.StepGate -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.Action -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.Frame -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Claims -- shake: keep (claim implication axiom audit)
@@ -301,3 +302,5 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.clean_gateStateStep
 #print axioms AvailableChain.FGSA.Run.sExtends_upTo
 #print axioms AvailableChain.FGSA.Run.cleanFrame
+
+#print axioms AvailableChain.FGSA.Run.clean_gate_passed_of_ordered

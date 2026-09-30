@@ -25,3 +25,4 @@ public import AvailableChainFGSAProofs.Proofs.Clean.State
 public import AvailableChainFGSAProofs.Proofs.Clean.StateGate
 public import AvailableChainFGSAProofs.Proofs.Clean.Frame
 public import AvailableChainFGSAProofs.Proofs.Clean.Action
+public import AvailableChainFGSAProofs.Proofs.Clean.StepGate
