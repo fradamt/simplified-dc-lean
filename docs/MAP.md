@@ -1356,6 +1356,8 @@ unused imports, and negative controls. No baseline entries were added.
 │ CleanInvariant.lean                             │                                     │
 │ AvailableChainFGSAProofs/Proofs/Clean/          │ Clean AG review contract            │
 │ Interface.lean                                  │                                     │
+│ AvailableChainFGSAProofs/Proofs/Clean/          │ Clean chain algebra and restriction │
+│ Chain.lean                                      │                                     │
 │ AvailableChainFGSAProofs/Tests/Axioms.lean      │ Proofs public-theorem axiom audit   │
 │ AvailableChainFGSAInhabit.lean                  │ Inhabit library root                │
 │ AvailableChainFGSAInhabit/Tests/Axioms.lean     │ Inhabit public-theorem axiom audit  │

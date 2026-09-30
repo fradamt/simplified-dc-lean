@@ -14,6 +14,8 @@ public import AvailableChainFGSAProofs.Proofs.Shared.Channels -- shake: keep (ax
 public import AvailableChainFGSAProofs.Proofs.Shared.Recurrence -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads -- shake: keep (axiom audit commands)
 
+public import AvailableChainFGSAProofs.Proofs.Clean.Chain -- shake: keep (axiom audit commands)
+
 #print axioms AvailableChain.FGSA.Run.afterTicks_eq_stateBefore
 #print axioms AvailableChain.FGSA.Run.afterTicks_node
 #print axioms AvailableChain.FGSA.Run.afterTicks_eq_tick_preTick
@@ -123,3 +125,16 @@ public import AvailableChainFGSAProofs.Proofs.Shared.Reads -- shake: keep (axiom
 #print axioms AvailableChain.FGSA.Run.fgsa_gate_of_coveringBatch
 #print axioms AvailableChain.FGSA.Run.fgsa_S_eq_of_exact
 #print axioms AvailableChain.FGSA.Run.openingSource_extends_served
+#print axioms AvailableChain.FGSA.Run.cleanResults_mono
+#print axioms AvailableChain.FGSA.Run.belowLabel_mono_index
+#print axioms AvailableChain.FGSA.Run.belowLabel_mono_label
+#print axioms AvailableChain.FGSA.Run.belowLabel_of_preceq
+#print axioms AvailableChain.FGSA.Run.belowLabel_genesis
+#print axioms AvailableChain.FGSA.Run.belowLabel_of_mem
+#print axioms AvailableChain.FGSA.Run.belowLabel_of_gateResultAt
+#print axioms AvailableChain.FGSA.Run.cleanHist_restrict
+#print axioms AvailableChain.FGSA.Run.cleanHist_results_compatible
+#print axioms AvailableChain.FGSA.Run.cleanHist_belowLabel_compatible
+#print axioms AvailableChain.FGSA.Run.cleanHist_belowLabel_preceq_result
+#print axioms AvailableChain.FGSA.Run.cleanHist_zero
+#print axioms AvailableChain.FGSA.Run.cleanResults_mem_succ_iff
