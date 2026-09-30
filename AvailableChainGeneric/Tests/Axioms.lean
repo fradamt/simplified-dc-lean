@@ -11,6 +11,7 @@ public import AvailableChainGeneric.Statements.V2.Interface
 public import AvailableChainGeneric.Statements.V2.Receipt
 public import AvailableChainGeneric.Statements.V2.Regimes
 public import AvailableChainGeneric.Statements.AC.Reads
+public import AvailableChainGeneric.Statements.AC.Lease
 public import AvailableChainGeneric.Proofs.Pure.FirstBad
 public import AvailableChainGeneric.Proofs.Pure.Schedule
 public import AvailableChainGeneric.Proofs.Pure.BlockOrder
@@ -20,6 +21,7 @@ public import AvailableChainGeneric.Proofs.V2.Induction
 public import AvailableChainGeneric.Proofs.V2.Receipt
 public import AvailableChainGeneric.Proofs.V2.Regimes
 public import AvailableChainGeneric.Proofs.AC.Output
+public import AvailableChainGeneric.Proofs.AC.Lease
 
 /-! Kernel dependency audit of the Generic library: one line for each public
 theorem, in facade order. The library globs build this test module. -/
@@ -239,3 +241,13 @@ theorem, in facade order. The library globs build this test module. -/
 #print axioms AvailableChain.Gen.AC.output_step_of_restartFree
 #print axioms AvailableChain.Gen.AC.gateWrite_of_scheduleWellFormed_statement
 #print axioms AvailableChain.Gen.AC.gateWrite_of_scheduleWellFormed
+
+-- Statements/AC/Lease.lean
+#print axioms AvailableChain.Gen.AC.LeaseChainStatement_def
+#print axioms AvailableChain.Gen.AC.PendingGateHarmlessStatement_def
+
+-- Proofs/AC/Lease.lean
+#print axioms AvailableChain.Gen.AC.lease_chain_statement
+#print axioms AvailableChain.Gen.AC.pendingGate_harmless_statement
+#print axioms AvailableChain.Gen.AC.lease_chain
+#print axioms AvailableChain.Gen.AC.pendingGate_harmless

@@ -27,6 +27,15 @@ proofs do not affect the hash.
 
 ## Entries
 
+### `AvailableChainGeneric.Statements.AC.Lease`
+
+```text
+def AvailableChain.Gen.AC.LeaseChainStatement fc3471acd62e969a
+theorem AvailableChain.Gen.AC.LeaseChainStatement_def bc48f0949fc5a96c
+def AvailableChain.Gen.AC.PendingGateHarmlessStatement 47d9de1d2d4e6bb2
+theorem AvailableChain.Gen.AC.PendingGateHarmlessStatement_def 4f8ae58f4e732a40
+```
+
 ### `AvailableChainGeneric.Statements.AC.Reads`
 
 ```text

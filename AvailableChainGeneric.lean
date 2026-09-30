@@ -11,6 +11,7 @@ public import AvailableChainGeneric.Statements.V2.Interface
 public import AvailableChainGeneric.Statements.V2.Receipt
 public import AvailableChainGeneric.Statements.V2.Regimes
 public import AvailableChainGeneric.Statements.AC.Reads
+public import AvailableChainGeneric.Statements.AC.Lease
 public import AvailableChainGeneric.Proofs.Pure.FirstBad
 public import AvailableChainGeneric.Proofs.Pure.Schedule
 public import AvailableChainGeneric.Proofs.Pure.BlockOrder
@@ -20,6 +21,7 @@ public import AvailableChainGeneric.Proofs.V2.Induction
 public import AvailableChainGeneric.Proofs.V2.Receipt
 public import AvailableChainGeneric.Proofs.V2.Regimes
 public import AvailableChainGeneric.Proofs.AC.Output
+public import AvailableChainGeneric.Proofs.AC.Lease
 
 /-! Generic library (GLY A): the Pure, V2 and AC layers. The root does not
 import the modules under `Tests/`; the library globs build them. -/
