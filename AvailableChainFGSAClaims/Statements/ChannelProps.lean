@@ -30,6 +30,40 @@ def RStore : Prop := ∀ i x, x ∈ rho.honest →
   (FGSA.actView st).blockStamp = st.base.blockStamp ∧
   (FGSA.actView st).voteStamp = st.base.voteStamp
 
+/-- bp.activeView.v1 (00:529–536), 01 §5: the remaining active-view laws.
+Consumers: all lanes, P3:3263. Producer: F1.1 via `actView_antitone`,
+`actView_path`, `blockExcluded_stable`, `actView_blocks`, and `actView_fields`.
+The run clause excludes a conflicting block after any descendant F move. -/
+def RActive : Prop := (∀ i x, x ∈ rho.honest →
+    let st := storeAt p c E rho i x
+    (∀ F' : FGBlock (Fin p.n), FGBlock.Preceq st.fg.F F' →
+      ∀ b ∈ (FGSA.actView { st with fg := { st.fg with F := F' } }).blocks,
+        b ∈ (FGSA.actView st).blocks) ∧
+    (∀ B K, K ∈ st.base.blocks → Block.Preceq (eraseFG st.fg.F) B →
+      Block.Preceq B K → K ∈ (FGSA.actView st).blocks ∧ B ∈ (FGSA.actView st).blocks) ∧
+    (FGSA.actView st).proposals = st.base.proposals) ∧
+  (∀ i j x b, x ∈ rho.honest → i ≤ j →
+    let st := storeAt p c E rho i x
+    let st' := storeAt p c E rho j x
+    FGBlock.Preceq st.fg.F st'.fg.F →
+    ¬ Block.Compatible b (eraseFG st.fg.F) → b ∉ (FGSA.actView st').blocks)
+
+theorem RActive_def : RActive p c E rho =
+  ((∀ i x, x ∈ rho.honest →
+    let st := storeAt p c E rho i x
+    (∀ F' : FGBlock (Fin p.n), FGBlock.Preceq st.fg.F F' →
+      ∀ b ∈ (FGSA.actView { st with fg := { st.fg with F := F' } }).blocks,
+        b ∈ (FGSA.actView st).blocks) ∧
+    (∀ B K, K ∈ st.base.blocks → Block.Preceq (eraseFG st.fg.F) B →
+      Block.Preceq B K → K ∈ (FGSA.actView st).blocks ∧ B ∈ (FGSA.actView st).blocks) ∧
+    (FGSA.actView st).proposals = st.base.proposals) ∧
+  (∀ i j x b, x ∈ rho.honest → i ≤ j →
+    let st := storeAt p c E rho i x
+    let st' := storeAt p c E rho j x
+    FGBlock.Preceq st.fg.F st'.fg.F →
+    ¬ Block.Compatible b (eraseFG st.fg.F) → b ∉ (FGSA.actView st').blocks)) := by
+  rw [RActive]
+
 /-- bp.store.v1 (00:517–518): cumulative T and unchanged old stamps.
 Consumers: all lanes, 02 §5.2, 21 H.12. Producer: F1.1 via
 `process_cumulative` and `clock_cumulative`. Restarts reset the store. -/
@@ -69,6 +103,55 @@ def RGeo : Prop := ∀ i x W, x ∈ rho.honest → W ∈ (storeAt p c E rho i x)
     hOf p.E p.cfg (derive p.E p.cfg B).T_h = hOf p.E p.cfg B) ∧
   (∀ A B, FGBlock.Preceq A B → FGBlock.Preceq B W →
     hOf p.E p.cfg A = hOf p.E p.cfg B → (derive p.E p.cfg A).T_h = (derive p.E p.cfg B).T_h)
+
+/-- bp.chainCertificates.v1 (00:503–514), 01 §3: stored-block certificates.
+Consumers: P3:3259–3261, 02 §3.1, 21 H.9(a), 22 I2.
+Producer: F1.1 via KitFG `height_crossing`, `justification_certificate`,
+`finality_certificate`, and `provenance_finality`; `J_is_entry` identifies
+its justified entry. No run premise is needed. -/
+def RCert : Prop := ∀ i x W, x ∈ rho.honest → W ∈ (storeAt p c E rho i x).fg.TF →
+  (∀ m, 1 ≤ m → m < (derive p.E p.cfg W).h →
+    ∃ X : FGBlock (Fin p.n), FGBlock.Preceq X W ∧ (derive p.E p.cfg X).h = m ∧
+      ∃ Q : Finset (Fin p.n), p.E.IsQuorum Q ∧
+        ∀ k ∈ Q, ∃ carrier : FGBlock (Fin p.n), ∃ a : Row (Fin p.n),
+          FGBlock.Preceq carrier W ∧ a ∈ carrier.rows ∧ a.signer = k ∧
+          a.height_pair.matchesEntry m X.root = true) ∧
+  ((derive p.E p.cfg W).h_j ≠ 0 →
+    ∃ Q : Finset (Fin p.n), p.E.IsQuorum Q ∧ ∀ k ∈ Q, ∃ carrier a,
+      FGBlock.Preceq carrier W ∧ a ∈ carrier.rows ∧ a.signer = k ∧
+      a.height_pair = .vote (derive p.E p.cfg W).h_j (derive p.E p.cfg W).J.root false) ∧
+  ((derive p.E p.cfg W).h_F ≠ 0 →
+    ∃ F : FGBlock (Fin p.n), FGBlock.Preceq F W ∧ F = (derive p.E p.cfg W).F ∧
+      ∃ Q : Finset (Fin p.n), p.E.IsQuorum Q ∧
+        ∀ k ∈ Q, ∃ carrier : FGBlock (Fin p.n), ∃ a : Row (Fin p.n),
+          FGBlock.Preceq carrier W ∧ a ∈ carrier.rows ∧ a.signer = k ∧
+          a.finality_pair = some ⟨(derive p.E p.cfg W).h_F, F.root⟩) ∧
+  ((derive p.E p.cfg W).h_F ≠ 0 →
+    ∃ C, FGBlock.Preceq C W ∧ (derive p.E p.cfg C).J = (derive p.E p.cfg W).F ∧
+      (derive p.E p.cfg C).h_j = (derive p.E p.cfg W).h_F)
+
+theorem RCert_def : RCert p c E rho =
+  (∀ i x W, x ∈ rho.honest → W ∈ (storeAt p c E rho i x).fg.TF →
+  (∀ m, 1 ≤ m → m < (derive p.E p.cfg W).h →
+    ∃ X : FGBlock (Fin p.n), FGBlock.Preceq X W ∧ (derive p.E p.cfg X).h = m ∧
+      ∃ Q : Finset (Fin p.n), p.E.IsQuorum Q ∧
+        ∀ k ∈ Q, ∃ carrier : FGBlock (Fin p.n), ∃ a : Row (Fin p.n),
+          FGBlock.Preceq carrier W ∧ a ∈ carrier.rows ∧ a.signer = k ∧
+          a.height_pair.matchesEntry m X.root = true) ∧
+  ((derive p.E p.cfg W).h_j ≠ 0 →
+    ∃ Q : Finset (Fin p.n), p.E.IsQuorum Q ∧ ∀ k ∈ Q, ∃ carrier a,
+      FGBlock.Preceq carrier W ∧ a ∈ carrier.rows ∧ a.signer = k ∧
+      a.height_pair = .vote (derive p.E p.cfg W).h_j (derive p.E p.cfg W).J.root false) ∧
+  ((derive p.E p.cfg W).h_F ≠ 0 →
+    ∃ F : FGBlock (Fin p.n), FGBlock.Preceq F W ∧ F = (derive p.E p.cfg W).F ∧
+      ∃ Q : Finset (Fin p.n), p.E.IsQuorum Q ∧
+        ∀ k ∈ Q, ∃ carrier : FGBlock (Fin p.n), ∃ a : Row (Fin p.n),
+          FGBlock.Preceq carrier W ∧ a ∈ carrier.rows ∧ a.signer = k ∧
+          a.finality_pair = some ⟨(derive p.E p.cfg W).h_F, F.root⟩) ∧
+  ((derive p.E p.cfg W).h_F ≠ 0 →
+    ∃ C, FGBlock.Preceq C W ∧ (derive p.E p.cfg C).J = (derive p.E p.cfg W).F ∧
+      (derive p.E p.cfg C).h_j = (derive p.E p.cfg W).h_F)) := by
+  rw [RCert]
 
 /-- bp.reconcile.v1 (00:559–567), 01 §6: the exact AC edits at an F move.
 The displayed record update isolates reconcile from the other admission writes.

@@ -74,7 +74,7 @@ def StoreAt : Prop :=
   (V2.ScheduleWellFormed E rho → RStoreCumul p c E rho ∧ RMono p c E rho)
 
 /-- bp.activeView.v1: the active tree and its unchanged vote/stamp data. -/
-def ActiveViewAt : Prop := RStore p c E rho
+def ActiveViewAt : Prop := RStore p c E rho ∧ RActive p c E rho
 
 /-- bp.leaseOrigins.v1: all obligation rows have a passed gate origin.
 The statement includes due rows, target order, ancestor deadlines and fast writes. -/
@@ -113,11 +113,17 @@ def CarrierClaim : Prop :=
     (E : Generic.Env V) (rho : V2.Run V (fgsa p c)),
     CarrierAt p c E rho
 
+/-- bp.chainCertificates.v1 (00:503–514): geometry and certificates.
+Consumers: P3:3259–3261, 02 §3.1, 21 H.9(a), 22 I2.
+Producer: F1.1 via KitFG geometry lemmas, `height_crossing`,
+`justification_certificate`, `finality_certificate`, and `provenance_finality`. -/
+def ChainCertificatesAt : Prop := RGeo p c E rho ∧ RCert p c E rho
+
 /-- bp.chainCertificates.v1; all runs. -/
 def ChainCertificatesClaim : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.Run V (fgsa p c)),
-    RGeo p c E rho
+    ChainCertificatesAt p c E rho
 
 /-- bp.store.v1; all runs, with local temporal premises. -/
 def StoreClaim : Prop :=
