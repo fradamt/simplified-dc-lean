@@ -455,17 +455,128 @@ REGIME = re.compile(r'(?<![\w.₀-₉])(?:[\w₀-₉]+\.)*(CleanCut₂|Outage₂
                     r'[\w₀-₉]+Set|[\w₀-₉]*Contract)(?![\w₀-₉])')
 
 
-def rule_f23(x):
+# L47 (lead ruling 2026-09-30): the regime-record producer module (P3 §3.1,
+# §4.4). Its theorems may take ONE regime premise (they turn a regime into
+# the small records); a theorem with two or more regime premises fails.
+SHARED_REGIMES = 'AvailableChainFGSAProofs.Proofs.Shared.Regimes'
+TYPE_HEAD = re.compile(r'[\w₀-₉.]+')
+
+
+def _top_groups(text):
+    """The top-level bracket groups of a binder text, without the brackets."""
+    out, depth, start = [], 0, 0
+    for i, c in enumerate(text):
+        if c in '([{⦃⟨':
+            if depth == 0:
+                start = i + 1
+            depth += 1
+        elif c in ')]}⦄⟩':
+            depth -= 1
+            if depth == 0:
+                out.append(text[start:i])
+    return out
+
+
+def _split_top(text, sep):
+    parts, depth, last = [], 0, 0
+    for i, c in enumerate(text):
+        if c in '([{⦃⟨':
+            depth += 1
+        elif c in ')]}⦄⟩':
+            depth -= 1
+        elif depth == 0 and text.startswith(sep, i):
+            parts.append(text[last:i])
+            last = i + len(sep)
+    return parts + [text[last:]]
+
+
+def _is_regime_type(ty):
+    m = TYPE_HEAD.match(ty.strip().lstrip('('))
+    return bool(m and REGIME.fullmatch(m.group(0)))
+
+
+def regime_premises(d):
+    """The number of premises of d whose type head is a regime record, Set or
+    Contract: binder names in bracket groups (named or anonymous) and
+    top-level `→` premises of the type."""
+    binders, ty = d.binders_and_type()
+    n = 0
+    for g in _top_groups(binders):
+        names, colon, gty = g.partition(':')
+        if not colon:
+            names, gty = '', g
+        if _is_regime_type(gty):
+            n += max(1, len(names.split()))
+    for part in _split_top(ty, '→')[:-1]:
+        part = part.strip()
+        if part.startswith(('(', '{', '[', '⦃')) and ':' in part:
+            n += regime_premises_groups(part)
+        elif _is_regime_type(part):
+            n += 1
+    return n
+
+
+def regime_premises_groups(text):
+    n = 0
+    for g in _top_groups(text):
+        names, colon, gty = g.partition(':')
+        if colon and _is_regime_type(gty):
+            n += max(1, len(names.split()))
+    return n
+
+
+def f23_findings(lf, decls, new=None):
     out = []
-    for lf, d in x.all_decls():
+    shared = lf.lib == 'AvailableChainFGSAProofs' and '.Shared.' in lf.module + '.'
+    if not (lf.lib in GEN | KITFG or shared):
+        return out
+    for d in decls:
         if d.kind not in THM:
             continue
-        if not (lf.lib in GEN | KITFG or (lf.lib == 'AvailableChainFGSAProofs' and '.Shared.' in lf.module + '.')):
+        if lf.module == SHARED_REGIMES:
+            n = regime_premises(d)
+            if n > 1:
+                out.append(F('F-23', f'{lf.module} {d.full} MULTI',
+                             f'{lf.path}:{d.line}: {d.full} takes {n} regime premises '
+                             f'(L47: at most one in {SHARED_REGIMES})', new=new))
             continue
         prem, _ = d.premises_and_conclusion()
         for name in sorted({m.group(1) for m in REGIME.finditer(prem)}):
             out.append(F('F-23', f'{lf.module} {d.full} {name}',
-                         f'{lf.path}:{d.line}: {d.full} takes a {name} premise (a regime bundle)', new=x.new(lf)))
+                         f'{lf.path}:{d.line}: {d.full} takes a {name} premise (a regime bundle)', new=new))
+    return out
+
+
+F23_CONTROLS = [
+    # (module, source, expected keys)
+    (SHARED_REGIMES, 'theorem A.one (h : Outage₂ p c E rho b) (hp : 0 < b) : FaultQ n a := rfl\n', set()),
+    (SHARED_REGIMES, 'theorem A.two (h : Outage₂ p c E rho b) (h\' : Recovery₂ p c E rho G) : FaultQ n a := rfl\n',
+     {f'F-23 {SHARED_REGIMES} A.two MULTI'}),
+    (SHARED_REGIMES, 'theorem A.pair (h h\' : HealthyPrefix₂ p c E rho b) : Batch n a := rfl\n',
+     {f'F-23 {SHARED_REGIMES} A.pair MULTI'}),
+    (SHARED_REGIMES, 'theorem A.arrow (h : CleanCut₂ p c E rho b) : Outage₂ p c E rho b → FaultQ n a := rfl\n',
+     {f'F-23 {SHARED_REGIMES} A.arrow MULTI'}),
+    ('AvailableChainFGSAProofs.Proofs.Shared.Other',
+     'theorem A.one (h : Outage₂ p c E rho b) : FaultQ n a := rfl\n',
+     {'F-23 AvailableChainFGSAProofs.Proofs.Shared.Other A.one Outage₂'}),
+]
+
+
+def f23_controls():
+    for module, src, expected in F23_CONTROLS:
+        lf = C.LeanFile('AvailableChainFGSAProofs', module.replace('.', '/') + '.lean', module)
+        lf._raw = src
+        got = {f.key for f in f23_findings(lf, C.declarations(lf))}
+        if got != expected:
+            raise RuntimeError(f'F-23 control failed for {module}: expected {sorted(expected)}, got {sorted(got)}')
+    print(f'F-23: {len(F23_CONTROLS)} L47 controls PASS')
+
+
+def rule_f23(x):
+    f23_controls()
+    out = []
+    for lf in x.files:
+        out += f23_findings(lf, x.decls[lf.path], new=x.new(lf))
     return out
 
 
