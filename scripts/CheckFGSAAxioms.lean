@@ -75,7 +75,8 @@ def allowedImport (mod imp : Name) : Bool :=
       | "Statements" => fgsa "Model" || fgsa "Statements" || externalOK imp ||
           (`AvailableChainKitFG).isPrefixOf imp
       | "Proofs" => fgsa "Model" || fgsa "Statements" || fgsa "Proofs" || externalOK imp ||
-          (`AvailableChainGridCO.Proofs).isPrefixOf imp || (`AvailableChainKitFG).isPrefixOf imp
+          (`AvailableChainGridCO.Proofs).isPrefixOf imp || (`AvailableChainKitFG).isPrefixOf imp ||
+          imp == `AvailableChainGeneric.Proofs.Pure.Fold
       | _ => false
   | _ => false
 

@@ -3,6 +3,7 @@ public import AvailableChainGridCO.Proofs.StoreFacts
 public import AvailableChainFGSA.Statements.Store
 public import AvailableChainFGSA.Proofs.Admission
 public import AvailableChainFGSA.Proofs.Nesting
+public import AvailableChainGeneric.Proofs.Pure.Fold
 
 @[expose] public section
 
@@ -732,23 +733,6 @@ theorem deepest_spec (p : Params) (st : State p.n) (h : CStoreInv p st)
   simp only at hroot
   rw [hroot]
 
-/-- [helper] A left fold that keeps the accumulator or takes an element returns
-the initial value or an element. -/
-theorem foldl_select_mem {α : Type} (f : α → α → Bool) (l : List α) (init : α) :
-    l.foldl (fun best b => if f best b then b else best) init = init ∨
-      l.foldl (fun best b => if f best b then b else best) init ∈ l := by
-  induction l generalizing init with
-  | nil => exact Or.inl rfl
-  | cons x xs ih =>
-      simp only [List.foldl_cons]
-      split
-      · rcases ih x with he | hm
-        · exact Or.inr (by rw [he]; exact List.mem_cons_self)
-        · exact Or.inr (List.mem_cons_of_mem _ hm)
-      · rcases ih init with he | hm
-        · exact Or.inl he
-        · exact Or.inr (List.mem_cons_of_mem _ hm)
-
 /-- [spec 648–655; T7.W] The live root is stored: it is the erasure of Z or a
 lease target in the full filtered tree. `fgHead_stored` and the walk wrappers
 use this proof. -/
@@ -756,7 +740,7 @@ theorem liveRoot_stored (p : Params) (st : State p.n) (h : CStoreInv p st) :
     liveRoot p st ∈ st.base.blocks := by
   unfold liveRoot
   dsimp only
-  rcases foldl_select_mem (fun (best b : Block) => best.depth < b.depth ||
+  rcases Gen.Pure.foldl_select_mem (fun (best b : Block) => best.depth < b.depth ||
       (best.depth == b.depth && best.root < b.root)) _ _ with he | hm
   · rw [he]
     exact (h.baseTree _).2 ⟨_, Z_mem p st h, rfl⟩
@@ -792,22 +776,13 @@ theorem rootInjectiveBelow_base (p : Params) (st : State p.n) (h : CStoreInv p s
   rw [eraseFG_root, eraseFG_root] at hr
   rw [h.rootInj A' hA' C' hC' hr]
 
-/-- [helper] `find?` depends only on the test on the members. -/
-theorem find?_congr_mem {α : Type} {f g : α → Bool} (l : List α) (h : ∀ a ∈ l, f a = g a) :
-    l.find? f = l.find? g := by
-  induction l with
-  | nil => rfl
-  | cons x xs ih =>
-      rw [List.find?_cons, List.find?_cons, h x List.mem_cons_self,
-        ih (fun a ha => h a (List.mem_cons_of_mem _ ha))]
-
 /-- [helper; G3 minor 3] The composite lease read is SA's lease read at its one
 level. -/
 theorem leaseOf_eq_deadlineOf (p : Params) (st : State p.n) (h : CStoreInv p st) (b : Block) :
     leaseOf st b = GridCO.deadlineOf st.base b (SA.releaseThreshold p.toParams) := by
   unfold leaseOf GridCO.deadlineOf
   congr 1
-  apply find?_congr_mem
+  apply Gen.Pure.find?_congr_mem
   rintro ⟨t, l, d⟩ hrow
   have hl : l = SA.releaseThreshold p.toParams := h.leaseKeys.2 _ hrow
   simp [hl]

@@ -218,10 +218,8 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 #print axioms AvailableChain.FGSA.admitBlock_reconcile_harmless
 #print axioms AvailableChain.FGSA.fgBlockOf_spec
 #print axioms AvailableChain.FGSA.deepest_spec
-#print axioms AvailableChain.FGSA.foldl_select_mem
 #print axioms AvailableChain.FGSA.fgHead_stored
 #print axioms AvailableChain.FGSA.rootInjectiveBelow_base
-#print axioms AvailableChain.FGSA.find?_congr_mem
 #print axioms AvailableChain.FGSA.leaseOf_eq_deadlineOf
 
 -- Proofs/Metadata.lean

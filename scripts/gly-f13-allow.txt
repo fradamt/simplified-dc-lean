@@ -1,0 +1,7 @@
+F-13 dup expire_protectsUntil AvailableChainGeneric AvailableChainGridCO # retire: GridCO copy deleted after F2 (lead ruling DC 2026-09-30; GLY r3.16 E-7 relocation row, NO ROW for deletion).
+F-13 dup release_protectsUntil AvailableChainGeneric AvailableChainGridCO # retire: GridCO copy deleted after F2 (lead ruling DC 2026-09-30; GLY r3.16 E-7 relocation row, NO ROW for deletion).
+F-13 dup write_protectsUntil AvailableChainGeneric AvailableChainGridCO # retire: GridCO copy deleted after F2 (lead ruling DC 2026-09-30; GLY r3.16 E-7 relocation row, NO ROW for deletion).
+F-13 dup write_unique_keys AvailableChainGeneric AvailableChainGridCO # retire: GridCO copy deleted after F2 (lead ruling DC 2026-09-30; GLY r3.16 E-7 relocation row, NO ROW for deletion).
+F-13 dup genuine_history_induction AvailableChainGeneric AvailableChainGridCO # retire: GridCO copy deleted after F2 (GLY r3.16 E-14 deletion row).
+F-13 dup fold_field AvailableChainGeneric AvailableChainGridCO AvailableChainSAPC # retire: GridCO copy deleted after F2 (GLY r3.16 E-16 deletion row); SAPC copy deleted at the SA step (lead ruling DC 2026-09-30).
+F-13 dup quorum_intersection AvailableChainGeneric AvailableChainKitFG # KitFG copy is a wrapper of Gen.Pure.quorum_intersection through WeightsBridge (AvailableChainKitFG/Ancestry.lean:28).

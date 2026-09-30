@@ -72,7 +72,8 @@ check_root_imports() {
 # imports only FGSA modules. External: AvailableChainModel.*,
 # AvailableChainGridCO.Model.Protocol, AvailableChainSA.Model.Protocol,
 # AvailableChainSimplexFG.*, Mathlib.*; AvailableChainGridCO.Proofs.* only in
-# Proofs/; AvailableChainKitFG.* only in Statements/ and Proofs/.
+# Proofs/; AvailableChainKitFG.* only in Statements/ and Proofs/;
+# AvailableChainGeneric.Proofs.Pure.Fold only in Proofs/ (F-13 switch).
 check_direct_imports() {
   local base=$1 bad=0 f rel layer m
   for f in $(source_files "$base") AvailableChainFGSA.lean; do
@@ -86,6 +87,7 @@ check_direct_imports() {
         Statements:AvailableChainFGSA.Model.*|Statements:AvailableChainFGSA.Statements.*) continue ;;
         Proofs:AvailableChainFGSA.Model.*|Proofs:AvailableChainFGSA.Statements.*) continue ;;
         Proofs:AvailableChainFGSA.Proofs.*) continue ;;
+        Proofs:AvailableChainGeneric.Proofs.Pure.Fold) continue ;;
         root:*) ;;
         Model:*|Statements:*|Proofs:*|Tests:*)
           case "$m" in

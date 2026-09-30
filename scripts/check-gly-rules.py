@@ -7,15 +7,18 @@ Each rule has its own baseline scripts/baselines/check-gly-rules-<rule>.txt.
 A FAIL rule fails on a finding in a new library (scripts/new-libraries.txt)
 and on a legacy finding that its baseline does not list. A REVIEW rule
 ("review list" / "review the output" in GLY §F) lists its findings;
-its baseline separates the reviewed ones. Stale F-1 or F-18 allow entries
+its baseline separates the reviewed ones. Stale F-1, F-13 or F-18 allow entries
 always fail. F-13 (duplicate short names) is baselined in new libraries too
 (step-2 ruling D07).
 scripts/gly-rules-allow.txt: `<rule> <declaration>` lines that a rule
 skips (the F-3 E-13 wrapper allow list; empty now).
 scripts/gly-f1-allow.txt: complete F-1 group keys with a nonempty reason
 after `#`. F-1 skips only an exact match of the field set and all names.
+scripts/gly-f13-allow.txt: exact `F-13 dup <name> <Lib> <Lib> [...]` keys
+with a nonempty reason after `#`. F-13 skips only an exact match of the
+short name and all libraries.
 scripts/gly-f18-allow.txt: exact F-18 declaration-and-file keys with a
-nonempty reason after `#`. Both allow files fail on unused entries.
+nonempty reason after `#`. All three allow files fail on unused entries.
 
 Baseline rewrites (lead ruling, 2026-09-29): `--write-baseline` for F-13, or
 for any rule, is allowed only in a commit whose message names the rule and
@@ -43,8 +46,8 @@ Rules (GLY §F row → what this script checks):
                Model.Objects.* and Statements.Pure (not Walk); the closure of
                Statements.V2 also holds Statements.V2 and the closures of
                EngineV2.{Engine,Conditions,Laws}.* and KitV2.ClockLaws.
-  F-13 FAIL    a theorem short name in more than one library (baseline =
-               allow list); a `private theorem` in Generic.
+  F-13 FAIL    a theorem short name in more than one library (exact allow
+               keys or legacy baseline); a `private theorem` in Generic.
   F-14 REVIEW  a theorem outside Generic with a PartialSynchrony or
                HealthyPrefixDelivery premise and a handles/processed
                conclusion.
@@ -88,6 +91,7 @@ KITFG = {'AvailableChainKitFG'}
 BASE = os.environ.get('GLY_BASE', '7ac5b0c')
 ALLOW = os.path.join(C.SCRIPTS, 'gly-rules-allow.txt')
 F1_ALLOW = os.path.join(C.SCRIPTS, 'gly-f1-allow.txt')
+F13_ALLOW = os.path.join(C.SCRIPTS, 'gly-f13-allow.txt')
 F18_ALLOW = os.path.join(C.SCRIPTS, 'gly-f18-allow.txt')
 KITFG_DEF = os.path.join(C.BASELINES, 'kitfg-def-modules.txt')
 THM = ('theorem', 'lemma')
@@ -126,6 +130,9 @@ def read_exact_allow(path, rule):
                     raise RuntimeError(f'{where}: {rule} allow entry needs a nonempty reason')
                 if rule == 'F-1' and (not key.startswith('F-1 ') or ' :: ' not in key):
                     raise RuntimeError(f'{where}: expected a complete F-1 group key')
+                if rule == 'F-13' and not re.fullmatch(
+                        r"F-13 dup [\w'!?]+(?: [\w']+){2,}", key):
+                    raise RuntimeError(f'{where}: expected an exact F-13 duplicate-name key')
                 if rule == 'F-18' and not re.fullmatch(
                         r"F-18 [\w']+(?:\.[\w']+)+ (?:[\w'-]+/)+[\w'-]+\.lean", key):
                     raise RuntimeError(f'{where}: expected an exact F-18 declaration-and-file key')
@@ -351,6 +358,7 @@ def rule_f12(x):
 
 
 def rule_f13(x):
+    allow = read_exact_allow(F13_ALLOW, 'F-13')
     libs_of = defaultdict(set)
     where = defaultdict(list)
     for lf, d in x.all_decls():
@@ -368,7 +376,7 @@ def rule_f13(x):
         if d.kind in THM and d.private:
             out.append(F('F-13', f'private {lf.module} {d.full}',
                          f'{lf.path}:{d.line}: private theorem {d.full} in Generic', new=x.new(lf)))
-    return out
+    return apply_exact_allow(out, allow)
 
 
 def rule_f14(x):
@@ -532,7 +540,7 @@ def main():
         def report(line):
             if line.startswith('FAIL NEW-LIBRARY: STALE ALLOW '):
                 line = line.removeprefix('FAIL NEW-LIBRARY: ')
-            if rule in ('F-1', 'F-18') and line.startswith(f'{rule}: '):
+            if rule in ('F-1', 'F-13', 'F-18') and line.startswith(f'{rule}: '):
                 line += f', {stale_allow} stale allow entries'
             print(line)
 

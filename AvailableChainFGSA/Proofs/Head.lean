@@ -67,7 +67,7 @@ theorem F_preceq_liveRoot (p : Params) (st : State p.n) (h : CStoreInv p st) :
     Block.Preceq (eraseFG st.fg.F) (liveRoot p st) := by
   unfold liveRoot
   dsimp only
-  rcases foldl_select_mem (fun (best b : Block) => best.depth < b.depth ||
+  rcases Gen.Pure.foldl_select_mem (fun (best b : Block) => best.depth < b.depth ||
       (best.depth == b.depth && best.root < b.root)) _ _ with he | hm
   · rw [he]
     apply eraseFG_preceq
