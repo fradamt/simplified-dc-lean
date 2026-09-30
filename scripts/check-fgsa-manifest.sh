@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
-# Check the real doc, then run controls on temp files. C4 must fail D15 first.
+# Check the real doc, then (full tier) run controls on temp files. C4 must fail D15 first.
+# The frozen-logic controls use --check-frozen (no Lean environment load).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 lake env lean --run scripts/V2Manifest.lean --scope fgsa --check
+# The controls are negative controls: the merge tier (NEG=0) skips them (BUILD §7.7).
+if [ "${NEG:-1}" != 1 ]; then echo "controls skipped (NEG=0, merge tier)"; exit 0; fi
 mkdir -p .lake
 tmp=$(mktemp -d "$PWD/.lake/fgsa-manifest.XXXXXX")
 trap 'rm -rf "$tmp"' EXIT
@@ -58,9 +61,12 @@ path.write_text("".join(lines))
 PY
 }
 check_copy() {
-  lake env lean --run scripts/V2Manifest.lean --scope fgsa --check \
+  lake env lean --run scripts/V2Manifest.lean --scope fgsa "$mode" \
     --manifest "$current" --frozen "$frozen" --allow "$allow" --frozen-sha "$frozen_sha"
 }
+# Controls of the frozen logic use --check-frozen (no Lean environment load); C4 and C5
+# test D15 and use the full --check.
+mode=--check-frozen
 fail_control() {
   echo "CONTROL $1 FAIL: $2" >&2
   cat "$tmp/$1.log" >&2
@@ -93,16 +99,17 @@ expect_fail C1 "FROZEN CHANGED $entry:"
 reset_copies
 edit_entry "$frozen" drop
 rehash
-expect_pass C2 "complete; hashes match"
+expect_pass C2 "frozen entries present and unchanged"
 
 # C3: an allow line permits a changed frozen entry.
 reset_copies
 edit_entry "$frozen" hash
 rehash
 printf '%s\tcontrol change\tG-F0a control C3\n' "$entry" > "$allow"
-expect_pass C3 "complete; hashes match"
+expect_pass C3 "frozen entries present and unchanged"
 
 # C4: removing a current entry fails D15 before the frozen check.
+mode=--check
 reset_copies
 edit_entry "$current" drop
 expect_fail C4 "NOT LISTED $entry"
@@ -113,11 +120,14 @@ edit_entry "$current" hash
 frozen=$tmp/no-frozen.md
 expect_fail C5 "CHANGED $entry "
 frozen=$tmp/frozen.md
+mode=--check-frozen
 
 # C6: a missing current doc skips even if frozen controls exist.
 reset_copies
 current=$tmp/no-current.md
+mode=--check
 expect_pass C6 "SKIP: $current does not exist (before G-F0a)"
+mode=--check-frozen
 current=$tmp/current.md
 
 # C7: a changed frozen file with its old checksum fails the integrity check.

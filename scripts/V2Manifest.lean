@@ -85,7 +85,7 @@ copies of `scripts/CatalogLock.lean` (`ownHash` with the universe renaming);
 a change to one needs the same change in the other.
 
 Run: `lake env lean --run scripts/V2Manifest.lean [--scope (v2 | gen | fgsa)]
-(--list | --anchor | --check | --write) [--manifest <path>]
+(--list | --anchor | --check | --write | --check-frozen) [--manifest <path>]
 [--frozen <path>] [--allow <path>] [--frozen-sha <path>]`.
 The last three options require FGSA. Defaults: `docs/V2-API.md` for v2,
 `docs/GEN-API.md` for Gen, `docs/FGSA-API.md` for FGSA;
@@ -499,26 +499,44 @@ def parseArgs : List String → Opts → Option Opts
   | "--frozen-sha" :: p :: r, o =>
       if o.frozenSha?.isSome then none else parseArgs r { o with frozenSha? := some p }
   | m :: r, o =>
-      if o.mode.isEmpty && ["--list", "--anchor", "--check", "--write"].contains m then
+      if o.mode.isEmpty && ["--list", "--anchor", "--check", "--write", "--check-frozen"].contains m then
         parseArgs r { o with mode := m }
       else none
 
 def main (args : List String) : IO UInt32 := do
   let some o := parseArgs args {} | do
-    IO.eprintln "usage: lake env lean --run scripts/V2Manifest.lean [--scope (v2 | gen | fgsa)] (--list | --anchor | --check | --write) [--manifest <path>] [--frozen <path>] [--allow <path>] [--frozen-sha <path>]"
+    IO.eprintln "usage: lake env lean --run scripts/V2Manifest.lean [--scope (v2 | gen | fgsa)] (--list | --anchor | --check | --write | --check-frozen) [--manifest <path>] [--frozen <path>] [--allow <path>] [--frozen-sha <path>]"
     return 2
   if o.scope != .v2 && o.mode == "--anchor" then
     IO.eprintln "usage error: --anchor requires --scope v2"
     return 2
-  if o.scope != .fgsa && (o.mode == "--write" || o.frozen?.isSome ||
+  if o.scope != .fgsa && (o.mode == "--write" || o.mode == "--check-frozen" || o.frozen?.isSome ||
       o.allow?.isSome || o.frozenSha?.isSome) then
-    IO.eprintln "usage error: --write, --frozen, --allow and --frozen-sha require --scope fgsa"
+    IO.eprintln "usage error: --write, --check-frozen, --frozen, --allow and --frozen-sha require --scope fgsa"
     return 2
   let mode := o.mode
   let manifest := o.manifest?.getD (match o.scope with
     | .v2 => "docs/V2-API.md" | .gen => "docs/GEN-API.md" | .fgsa => "docs/FGSA-API.md")
   if o.scope == .fgsa && mode == "--check" && !(← manifest.pathExists) then
     IO.println s!"SKIP: {manifest} does not exist (before G-F0a)"
+    return 0
+  -- `--check-frozen` compares the doc with the frozen copy only (no D15, no Lean
+  -- environment). The controls of check-fgsa-manifest.sh use it for the frozen logic.
+  if mode == "--check-frozen" then
+    let text ← match ← (IO.FS.readFile manifest).toBaseIO with
+      | .ok s => pure s
+      | .error e => IO.eprintln s!"cannot read {manifest}: {e}"; return 2
+    let entries ← match parseManifest text with
+      | .ok x => pure x
+      | .error e => IO.eprintln e; return 2
+    let frozenFails ← try
+      checkFrozen entries (o.frozen?.getD "docs/FGSA-API-frozen.md")
+        (o.allow?.getD "scripts/fgsa-manifest-allow.txt")
+        (o.frozenSha?.getD "scripts/fgsa-manifest-frozen.sha256")
+    catch e => IO.eprintln s!"cannot check FGSA frozen manifest: {e}"; return 1
+    for f in frozenFails do IO.println f
+    unless frozenFails.isEmpty do return 1
+    IO.println s!"{manifest}: frozen entries present and unchanged"
     return 0
   initSearchPath (← findSysroot)
   let imports ← match o.scope with
