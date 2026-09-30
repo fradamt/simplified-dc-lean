@@ -1,4 +1,5 @@
 module
+public import AvailableChainGeneric.Statements.V2.Slashing
 public import AvailableChainGeneric.Statements.Pure.Quorum
 public import AvailableChainGeneric.Statements.Pure.FirstBad
 public import AvailableChainGeneric.Statements.Pure.Schedule
@@ -340,3 +341,6 @@ theorem, in facade order. The library globs build this test module. -/
 #print axioms AvailableChain.Gen.V2.emitted_unique_per_label
 #print axioms AvailableChain.Gen.V2.honest_unique_per_label_statement
 #print axioms AvailableChain.Gen.V2.honest_unique_per_label
+
+-- Statements/V2/Slashing.lean
+#print axioms AvailableChain.Gen.V2.HonestNeverSlashed_def

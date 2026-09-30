@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSARun.Statements.Slashing
 public import AvailableChainFGSARun.Proofs.AncestorDeadlines
 public import AvailableChainFGSARun.Proofs.ReceiptCoverage
 public import AvailableChainFGSARun.Proofs.EmissionWellFormed
@@ -303,3 +304,7 @@ mechanically. -/
 #print axioms AvailableChain.FGSA.DeadlinesAtMost
 #print axioms AvailableChain.FGSA.DeadlinesAtMost_def
 #print axioms AvailableChain.FGSA.writeKeys_mem_of_key_fgsa
+
+-- Statements/Slashing.lean
+#print axioms AvailableChain.FGSA.Run.fgsaEvidence
+#print axioms AvailableChain.FGSA.Run.fgsaSlashing

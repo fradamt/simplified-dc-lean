@@ -8,6 +8,7 @@ public import AvailableChainGeneric.Statements.V2.Reads
 public import AvailableChainGeneric.Statements.V2.Counts
 public import AvailableChainGeneric.Statements.V2.Obs
 public import AvailableChainGeneric.Statements.V2.Interface
+public import AvailableChainGeneric.Statements.V2.Slashing
 public import AvailableChainGeneric.Statements.V2.Receipt
 public import AvailableChainGeneric.Statements.V2.Regimes
 public import AvailableChainGeneric.Statements.V2.Linked

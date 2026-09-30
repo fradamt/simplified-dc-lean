@@ -451,3 +451,14 @@ theorem AvailableChain.Gen.AC.GateOfCoveringBatchStatement_def 2a20fc97cfe76483
 def AvailableChain.Gen.AC.SEqOfExactStatement 1ce786afb9bad8f0
 theorem AvailableChain.Gen.AC.SEqOfExactStatement_def 16b40e4e7fb021d6
 ```
+
+### `AvailableChainGeneric.Statements.V2.Slashing`
+
+```text
+structure AvailableChain.Gen.V2.SlashingInterface cfd5424eefe61c74
+def AvailableChain.Gen.V2.SlashingInterface.toFinalityInterface 85edd9caae2fe671
+ctor AvailableChain.Gen.V2.SlashingInterface.mk 0636988bbb255725
+def AvailableChain.Gen.V2.SlashingInterface.slashes e464437d9cc362da
+def AvailableChain.Gen.V2.HonestNeverSlashed cb7d6d1806cfe47c
+theorem AvailableChain.Gen.V2.HonestNeverSlashed_def a06df42e8668cf32
+```

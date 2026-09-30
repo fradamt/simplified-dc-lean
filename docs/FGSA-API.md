@@ -594,3 +594,10 @@ def AvailableChain.FGSA.Run.trigWin 4ebab3ed21cf57cc
 def AvailableChain.FGSA.Run.outWin 4ecaf12f1dd1e83a
 ```
 
+
+### `AvailableChainFGSARun.Statements.Slashing`
+
+```text
+def AvailableChain.FGSA.Run.fgsaEvidence 9eba3b221236d864
+def AvailableChain.FGSA.Run.fgsaSlashing 565d370043431ab5
+```
