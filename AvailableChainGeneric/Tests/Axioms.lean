@@ -237,3 +237,5 @@ theorem, in facade order. The library globs build this test module. -/
 
 -- Proofs/AC/Output.lean
 #print axioms AvailableChain.Gen.AC.output_step_of_restartFree
+#print axioms AvailableChain.Gen.AC.gateWrite_of_scheduleWellFormed_statement
+#print axioms AvailableChain.Gen.AC.gateWrite_of_scheduleWellFormed
