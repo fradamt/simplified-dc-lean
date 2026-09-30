@@ -19,6 +19,9 @@ defaultTargets = [
   "AvailableChainFGSA",
   "AvailableChainGeneric",
   "AvailableChainFGSARun",
+  "AvailableChainFGSAClaims",
+  "AvailableChainFGSAProofs",
+  "AvailableChainFGSAInhabit",
 ]
 
 [leanOptions]
@@ -125,3 +128,33 @@ globs = ["AvailableChainFGSARun.*"]
 name = "AvailableChainCheckSupport"
 srcDir = "scripts"
 globs = ["AvailableChainCheckSupport.+"]
+
+# FG-SA claims work: root and all modules, including the separate Tests target.
+[[lean_lib]]
+name = "AvailableChainFGSAClaims"
+globs = ["AvailableChainFGSAClaims.*"]
+
+[[lean_lib]]
+name = "AvailableChainFGSAClaimsTests"
+roots = []
+globs = ["AvailableChainFGSAClaims.Tests.+"]
+
+# FG-SA claims work: root and all modules, including the separate Tests target.
+[[lean_lib]]
+name = "AvailableChainFGSAProofs"
+globs = ["AvailableChainFGSAProofs.*"]
+
+[[lean_lib]]
+name = "AvailableChainFGSAProofsTests"
+roots = []
+globs = ["AvailableChainFGSAProofs.Tests.+"]
+
+# FG-SA claims work: root and all modules, including the separate Tests target.
+[[lean_lib]]
+name = "AvailableChainFGSAInhabit"
+globs = ["AvailableChainFGSAInhabit.*"]
+
+[[lean_lib]]
+name = "AvailableChainFGSAInhabitTests"
+roots = []
+globs = ["AvailableChainFGSAInhabit.Tests.+"]

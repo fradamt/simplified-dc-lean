@@ -371,6 +371,12 @@ def b7_body(module: Module) -> Finding | None:
 def b7_globs(ctx: Context) -> Iterator[Finding]:
     for lib in ctx.libraries:
         name = lib["name"]
+        # The three F0 Tests targets build submodules of the owning library.
+        if name in {x + "Tests" for x in (CLAIMS, PROOFS, INHABIT)}:
+            owner = name.removesuffix("Tests")
+            if lib.get("roots") != [] or lib.get("globs") != [owner + ".Tests.+"]:
+                yield ("B7-GLOBS", name, f"<globs:{owner}.Tests.+>")
+            continue
         suffix = ".+" if name == "AvailableChainCheckSupport" else ".*"
         if lib.get("globs") != [name + suffix]:
             yield ("B7-GLOBS", name, f"<globs:{name}{suffix}>")

@@ -1274,3 +1274,29 @@ the library glob builds Tests. It adapts the FG-SA store to engine v2.
 
 `bash scripts/check-fgsa-run.sh` checks the build, root imports, import layers,
 used constants, axioms, lease instances and negative controls.
+
+
+## FG-SA claims skeleton (F0.0b)
+
+The three roots contain no declarations. Each library has its own Tests
+target. The roots do not import Tests. `scripts/check-fgsa-claims.sh` checks
+P3 layers, module order, compiled dependencies, leases, equation exports,
+unused imports, and negative controls. No baseline entries were added.
+
+```text
+┌─────────────────────────────────────────────────┬─────────────────────────────────────┐
+│ Module                                          │ Purpose                             │
+├─────────────────────────────────────────────────┼─────────────────────────────────────┤
+│ AvailableChainFGSAClaims.lean                   │ Claims library root                 │
+│ AvailableChainFGSAClaims/Tests/Axioms.lean      │ Claims public-theorem axiom audit   │
+│ AvailableChainFGSAProofs.lean                   │ Proofs library root                 │
+│ AvailableChainFGSAProofs/Tests/Axioms.lean      │ Proofs public-theorem axiom audit   │
+│ AvailableChainFGSAInhabit.lean                  │ Inhabit library root                │
+│ AvailableChainFGSAInhabit/Tests/Axioms.lean     │ Inhabit public-theorem axiom audit  │
+└─────────────────────────────────────────────────┴─────────────────────────────────────┘
+```
+
+The Tests targets are `AvailableChainFGSAClaimsTests`,
+`AvailableChainFGSAProofsTests`, and `AvailableChainFGSAInhabitTests`.
+The later claim facade will be `AvailableChainFGSAClaims/FGSAClaims.lean`;
+F0.6a adds its declarations.
