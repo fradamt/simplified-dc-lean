@@ -70,6 +70,7 @@ F-13 dup frozen_blocks_at_proposer AvailableChainGridCO AvailableChainSAPC
 F-13 dup frozen_raw_at_proposer AvailableChainGridCO AvailableChainSAPC
 F-13 dup frozen_support_at_proposer AvailableChainGridCO AvailableChainSAPC
 F-13 dup gate_genuine AvailableChainGridCO AvailableChainSAPC
+F-13 dup genuine_history_induction AvailableChainGeneric AvailableChainGridCO
 F-13 dup genuine_prefix_at_ordinary_proposal AvailableChainGridCO AvailableChainSAPC
 F-13 dup handles_carries AvailableChainGridCO AvailableChainLStar AvailableChainSAPC
 F-13 dup handles_proposal_direct AvailableChainGridCO AvailableChainSAPC
