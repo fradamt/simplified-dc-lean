@@ -87,6 +87,9 @@ AX_OPTS=(--expect Run.fgsa Run.fgsaFamilies Run.fgsaIso Run.toWireEquiv Run.duti
   Run.fgsaAC_slot_gate_reads
   Run.depsS_of_not_block Run.depsS_of_not_proposal Run.fgsa_hWF_of_delivery Run.fgsa_hReady_of_not_block Run.fgsa_hReady_of_parentStored Run.fgsa_accepted_by_deadline_of_parentStored)
 
+# T7.11 content agreement.
+AX_OPTS+=(Run.contentAgree_run)
+
 # T7.8 public receipt and stamp declarations.
 AX_OPTS+=(Run.excludesS_honestRow_false Run.fgsa_honest_row_receipt)
 AX_OPTS+=(

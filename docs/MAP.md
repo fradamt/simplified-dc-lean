@@ -1260,6 +1260,7 @@ the library glob builds Tests. It adapts the FG-SA store to engine v2.
 │ Proofs/Acceptance.lean          │ Thresholds and receipt law proofs     │
 │ Statements/Receipts.lean        │ Decoded proposal block                │
 │ Proofs/Receipts.lean            │ Receipt splits, stamps and origins    │
+│ Proofs/Content.lean             │ Content agreement at indexed stores   │
 │ Tests/Protocol.lean             │ Protocol and acceptance controls      │
 │ Proofs/Schedule.lean            │ Tick order, release and block slots   │
 │ Proofs/AC.lean                  │ AC laws and slot-only gate corollary  │

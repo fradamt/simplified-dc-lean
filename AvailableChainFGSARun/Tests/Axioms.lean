@@ -6,6 +6,7 @@ public import AvailableChainFGSARun.Proofs.Excludes
 public import AvailableChainFGSARun.Proofs.Interface
 public import AvailableChainFGSARun.Proofs.ClockLaws
 public import AvailableChainFGSARun.Proofs.Reachable
+public import AvailableChainFGSARun.Proofs.Content
 public import AvailableChainFGSARun.Proofs.Hooks
 public import AvailableChainFGSARun.Proofs.Readiness
 public import AvailableChainFGSARun.Proofs.Acceptance
@@ -265,3 +266,6 @@ mechanically. -/
 #print axioms AvailableChain.FGSA.Run.fgsa_honest_head_receipt
 #print axioms AvailableChain.FGSA.Run.excludesS_honestRow_false
 #print axioms AvailableChain.FGSA.Run.fgsa_honest_row_receipt
+
+-- Content agreement (T7.11).
+#print axioms AvailableChain.FGSA.Run.contentAgree_run
