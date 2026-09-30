@@ -1244,6 +1244,7 @@ the library glob builds Tests. It adapts the FG-SA store to engine v2.
 │ Statements/Interface.lean       │ Output interface and store factors    │
 │ Statements/Acceptance.lean      │ Timely, invariant and trigger         │
 │ Statements/AC.lean              │ Event-indexed FG-SA AC reads          │
+│ Statements/ReceiptCoverage.lean │ K8 receipt/coverage Prop and inputs   │
 │ Proofs/Protocol.lean            │ Adapter, field and decoder facts      │
 │ Proofs/Excludes.lean            │ Exclusion stability and epoch proofs  │
 │ Proofs/Interface.lean           │ Proposal label injectivity            │
