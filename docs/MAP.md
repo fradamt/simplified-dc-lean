@@ -1349,6 +1349,7 @@ unused imports, and negative controls. No baseline entries were added.
 │ ent.lean                                        │                                     │
 │ AvailableChainFGSAProofs/Proofs/Shared/Reads.lean │ Cut, gate values and index proofs   │
 │ AvailableChainFGSAProofs/Proofs/Shared/Count   │ Active receipt and batch count bounds │
+│ AvailableChainFGSAProofs/Proofs/Shared/Relay   │ Cross-reader clean-to-late vote relay │
 │ AvailableChainFGSAProofs/Proofs/Shared/Release │ Active release laws and fault bound │
 │ .lean                                           │                                     │
 │ AvailableChainFGSAProofs/Proofs/Shared/Export   │ Frozen Release claim wrappers       │

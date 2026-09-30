@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.Relay -- shake: keep (relay axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.Count -- shake: keep (F1b.1 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Assembly.Shared -- shake: keep (F1b.3 export axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.Release -- shake: keep (F1b.3 axiom audit)
@@ -308,3 +309,5 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_gate_batch_premises
 #print axioms AvailableChain.FGSA.Run.fgsa_active_path_of_coverage
 #print axioms AvailableChain.FGSA.Run.fgsa_gate_zero_of_receipts
+
+#print axioms AvailableChain.FGSA.Run.fgsa_cleanSupport_backward_relay
