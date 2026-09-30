@@ -440,3 +440,14 @@ def AvailableChain.Gen.V2.HonestUniquePerLabelStatement a9107be70e395855
 theorem AvailableChain.Gen.V2.HonestUniquePerLabelStatement_def 25dbc71e6280bc4c
 ```
 
+
+### `AvailableChainGeneric.Statements.AC.Transfer`
+
+```text
+def AvailableChain.Gen.AC.GateService 883c459a1b9e5e59
+theorem AvailableChain.Gen.AC.GateService_def 09cd9fcbf014596a
+def AvailableChain.Gen.AC.GateOfCoveringBatchStatement 0297b3b2934e1759
+theorem AvailableChain.Gen.AC.GateOfCoveringBatchStatement_def 2a20fc97cfe76483
+def AvailableChain.Gen.AC.SEqOfExactStatement 1ce786afb9bad8f0
+theorem AvailableChain.Gen.AC.SEqOfExactStatement_def 16b40e4e7fb021d6
+```

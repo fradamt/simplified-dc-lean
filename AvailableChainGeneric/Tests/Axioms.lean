@@ -15,6 +15,7 @@ public import AvailableChainGeneric.Statements.V2.Signatures
 public import AvailableChainGeneric.Statements.AC.Reads
 public import AvailableChainGeneric.Statements.AC.Lease
 public import AvailableChainGeneric.Statements.AC.History
+public import AvailableChainGeneric.Statements.AC.Transfer
 public import AvailableChainGeneric.Proofs.Pure.FirstBad
 public import AvailableChainGeneric.Proofs.Pure.Schedule
 public import AvailableChainGeneric.Proofs.Pure.BlockOrder
@@ -31,6 +32,7 @@ public import AvailableChainGeneric.Proofs.V2.Signatures
 public import AvailableChainGeneric.Proofs.AC.Output
 public import AvailableChainGeneric.Proofs.AC.Lease
 public import AvailableChainGeneric.Proofs.AC.History
+public import AvailableChainGeneric.Proofs.AC.Transfer
 
 /-! Kernel dependency audit of the Generic library: one line for each public
 theorem, in facade order. The library globs build this test module. -/
@@ -304,6 +306,17 @@ theorem, in facade order. The library globs build this test module. -/
 #print axioms AvailableChain.Gen.AC.GenuineContinues_def
 #print axioms AvailableChain.Gen.AC.GenuineHistory_def
 #print axioms AvailableChain.Gen.AC.genuine_history_induction
+
+-- Statements/AC/Transfer.lean
+#print axioms AvailableChain.Gen.AC.GateService_def
+#print axioms AvailableChain.Gen.AC.GateOfCoveringBatchStatement_def
+#print axioms AvailableChain.Gen.AC.SEqOfExactStatement_def
+
+-- Proofs/AC/Transfer.lean
+#print axioms AvailableChain.Gen.AC.gate_of_coveringBatch_statement
+#print axioms AvailableChain.Gen.AC.S_eq_of_exact_statement
+#print axioms AvailableChain.Gen.AC.gate_of_coveringBatch
+#print axioms AvailableChain.Gen.AC.S_eq_of_exact
 
 -- Statements/V2/Linked.lean and Proofs/V2/Linked.lean
 #print axioms AvailableChain.Gen.V2.LinkedHolderEqStatement_def
