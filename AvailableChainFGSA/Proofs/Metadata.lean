@@ -48,7 +48,7 @@ theorem writeKeys_stamps {n : Nat} (v : GridCO.State n) (keys : List (Block × N
   induction keys generalizing v with
   | nil => exact ⟨rfl, rfl⟩
   | cons key keys ih =>
-      simp only [GridCO.writeKeys_def, List.foldl_cons]
+      simp only [GridCO.writeKeys, List.foldl_cons]
       exact ih _
 
 /-- [helper] The SA gate with the walk from `a` keeps both stamp lists. -/

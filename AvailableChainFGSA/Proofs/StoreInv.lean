@@ -331,7 +331,7 @@ theorem writeKeys_keys {n : Nat} (v : GridCO.State n) (keys : List (Block × Nat
   induction keys generalizing v with
   | nil => exact ⟨hN, hL, rfl, rfl⟩
   | cons key keys ih =>
-      simp only [GridCO.writeKeys_def, List.foldl_cons]
+      simp only [GridCO.writeKeys, List.foldl_cons]
       obtain ⟨hN', hL'⟩ := writeObligation_keys v key.1 key.2 d τ hN hL
         (hk key List.mem_cons_self)
       exact ih _ hN' hL' (fun k hk' => hk k (List.mem_cons_of_mem _ hk'))
@@ -342,7 +342,7 @@ theorem saGateWriteKeys_level (p : SA.Params) {n : Nat} (v : GridCO.State n) (s 
     ∀ key ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.engine n v s C,
       key.2 = SA.releaseThreshold p := by
   intro key hkey
-  simp only [GridCO.gateWriteKeys_def, List.mem_flatMap, List.mem_map] at hkey
+  simp only [GridCO.gateWriteKeys, List.mem_flatMap, List.mem_map] at hkey
   obtain ⟨b, -, g, hgl, rfl⟩ := hkey
   simp only [GridCO.admissionLevels] at hgl
   split at hgl
