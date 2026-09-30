@@ -1332,6 +1332,8 @@ unused imports, and negative controls. No baseline entries were added.
 │ re.lean                                         │                                     │
 │ AvailableChainFGSAProofs/Proofs/Foundations/Cer │ Run chain geometry and certificates │
 │ tificates.lean                                  │                                     │
+│ AvailableChainFGSAProofs/Proofs/Foundations/Lea │ All-row lease target bound          │
+│ ses.lean                                        │                                     │
 │ AvailableChainFGSAProofs/Proofs/Shared/Reads.lean │ Cut, gate values and index proofs   │
 │ AvailableChainFGSAProofs/Tests/Channels.lean    │ Old source obstruction and G1 tests │
 │ AvailableChainFGSAProofs/Statements/            │ Clean invariant and step statements │

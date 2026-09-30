@@ -2,6 +2,7 @@ module
 public import AvailableChainFGSAProofs.Proofs.Assembly.Foundations -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Store -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Certificates -- shake: keep (axiom audit commands)
+public import AvailableChainFGSAProofs.Proofs.Foundations.Leases -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Claims -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Regimes -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Channels -- shake: keep (axiom audit commands)
@@ -83,3 +84,5 @@ public import AvailableChainFGSAProofs.Proofs.Shared.Reads -- shake: keep (axiom
 #print axioms AvailableChain.FGSA.Run.fgsa_rCert
 #print axioms AvailableChain.FGSA.Run.fgsa_chainCertificatesAt
 #print axioms AvailableChain.FGSA.Run.fgsa_chainCertificatesClaim
+
+#print axioms AvailableChain.FGSA.Run.fgsa_storedTargetsBelowOutput

@@ -30,6 +30,7 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.CleanGateOutputStmt',
     'AvailableChain.FGSA.Run.CleanActionSourcesStmt',
     'AvailableChain.FGSA.Run.CleanFrameStmt',
+    'AvailableChain.FGSA.Run.fgsa_storedTargetsBelowOutput',
     'AvailableChain.FGSA.Run.fgsa_rStore',
     'AvailableChain.FGSA.Run.fgsa_store_cumulative',
     'AvailableChain.FGSA.Run.fgsa_rStoreCumul',
