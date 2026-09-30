@@ -127,7 +127,7 @@ Layers (design §1). L0, L1, LM, L2 and L3 import nothing from L4–L6.
 A0 step 2 adds `AvailableChainGeneric`, a default library with separate
 Statements and Proofs modules in Pure, V2 and AC. Statements expose definitions
 and `f_def` lemmas; Proofs have a public section without `@[expose]`.
-`AvailableChainGeneric.lean` imports the 20 modules below in order. The library
+`AvailableChainGeneric.lean` imports the 21 modules below in order. The library
 glob also builds Tests; the facade does not import Tests. Paths below are
 relative to `AvailableChainGeneric/` and omit `.lean`.
 
@@ -141,18 +141,20 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
 │ Statements/Pure/Walk     │ Suffix premises and E-4 walk statements      │
 │ Statements/Pure/Props    │ CompatOn/At, MonoOn, BelowOn, ServedOn       │
 │ Statements/V2/Reads      │ Run indices, pubFloor, HonestSlot, Pending   │
+│                          │ E-9 time/index statement PROVED              │
 │ Statements/V2/Counts     │ faulty and awakeHonest                       │
 │ Statements/V2/Obs        │ Time observations with optional proposals    │
 │ Statements/V2/Interface  │ FinalityInterface extends the v2 interface   │
-│ Statements/V2/Receipt    │ DeliveryWithin; E-9 receipt statements       │
+│ Statements/V2/Receipt    │ DeliveryWithin; E-9 statements PROVED        │
 │ Statements/V2/Regimes    │ Regime cores, LabelSync, LabelFacts, SeedAt  │
 │ Statements/AC/Reads      │ ACReads, ACLaws, gate and reconcile reads    │
 │ Proofs/Pure/FirstBad     │ Strong induction for the FirstBad rules      │
 │ Proofs/Pure/Schedule     │ Pattern, window and recurrence facts         │
 │ Proofs/Pure/BlockOrder   │ Block order, compatibility and path facts    │
 │ Proofs/V2/Fields         │ ownRecord_fold_restart                       │
+│ Proofs/V2/Reads          │ E-9 time/index bridge                        │
 │ Proofs/V2/Induction      │ Invariant and interval lifts; kept_from_seed │
-│ Proofs/V2/Receipt        │ Two DeliveryWithin producers                 │
+│ Proofs/V2/Receipt        │ E-9 proofs; two DeliveryWithin producers     │
 │ Proofs/V2/Regimes        │ Six LabelSync and LabelFacts facts           │
 │ Proofs/AC/Output         │ output_step_of_restartFree                   │
 │ Tests/Axioms             │ Kernel axiom audit of every public theorem   │
@@ -168,7 +170,10 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   fold permutation and duplicate removal, and transition equality by row set.
 - FGSA E-11 adds `LeaseBelowOutputStore` in `Statements/Invariants` and
   `StoreBundle` with `StoreBundleInvariant` in `Statements/Store`. The bundle
-  has cstore, meta, nest and lease fields; its reachability proof is step 3.
+  has cstore, meta, nest and lease fields; the E-11 statements are PROVED.
+- `AvailableChainFGSA/Proofs/LeaseOutput` proves the E-11 stored-target invariant.
+- `AvailableChainFGSA/Proofs/StoreBundle` proves E-11 by bundle induction
+  (`storeBundleInvariant`).
 - `AvailableChainFGSARun` (T7.2) holds the v2 protocol, label families,
   isolation, wire adapters, and exclusion proofs, with separate Tests.
 

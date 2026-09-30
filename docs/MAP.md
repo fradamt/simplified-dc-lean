@@ -935,9 +935,9 @@ The gate deleted `AvailableChainEngineV2.Sketch` (64a48cd). The laws of
 layers. Its namespaces are `AvailableChain.Gen.Pure`, `.V2` and `.AC`.
 `Run.idxBefore` and `Run.nthIdx?` extend `AvailableChain.V2.Run` (D03).
 Statements expose definitions, closed `...Statement : Prop` declarations and
-`f_def` lemmas. Proofs do not expose proof bodies. Step 3 supplies the deferred
-receipt, walk and gate proofs. The facade `AvailableChainGeneric.lean` imports
-the 20 Statements and Proofs modules in the order below. Library globs build
+`f_def` lemmas. Proofs do not expose proof bodies. Step 3 proves E-9; deferred
+walk and gate proofs remain. The facade `AvailableChainGeneric.lean` imports
+the 21 Statements and Proofs modules in the order below. Library globs build
 Tests; the facade excludes Tests. Paths omit `AvailableChainGeneric/` and `.lean`.
 
 ```text
@@ -950,18 +950,20 @@ Tests; the facade excludes Tests. Paths omit `AvailableChainGeneric/` and `.lean
 │ Statements/Pure/Walk     │ Suffix premises and E-4 walk statements      │
 │ Statements/Pure/Props    │ CompatOn/At, MonoOn, BelowOn, ServedOn       │
 │ Statements/V2/Reads      │ Run indices, pubFloor, HonestSlot, Pending   │
+│                          │ E-9 time/index statement PROVED              │
 │ Statements/V2/Counts     │ faulty and awakeHonest                       │
 │ Statements/V2/Obs        │ Time observations with optional proposals    │
 │ Statements/V2/Interface  │ FinalityInterface extends the v2 interface   │
-│ Statements/V2/Receipt    │ DeliveryWithin; E-9 receipt statements       │
+│ Statements/V2/Receipt    │ DeliveryWithin; E-9 statements PROVED        │
 │ Statements/V2/Regimes    │ Regime cores, LabelSync, LabelFacts, SeedAt  │
 │ Statements/AC/Reads      │ ACReads, ACLaws, gate and reconcile reads    │
 │ Proofs/Pure/FirstBad     │ Strong induction for the FirstBad rules      │
 │ Proofs/Pure/Schedule     │ Pattern, window and recurrence facts         │
 │ Proofs/Pure/BlockOrder   │ Block order, compatibility and path facts    │
 │ Proofs/V2/Fields         │ ownRecord_fold_restart                       │
+│ Proofs/V2/Reads          │ E-9 time/index bridge                        │
 │ Proofs/V2/Induction      │ Invariant and interval lifts; kept_from_seed │
-│ Proofs/V2/Receipt        │ Two DeliveryWithin producers                 │
+│ Proofs/V2/Receipt        │ E-9 proofs; two DeliveryWithin producers     │
 │ Proofs/V2/Regimes        │ Six LabelSync and LabelFacts facts           │
 │ Proofs/AC/Output         │ output_step_of_restartFree                   │
 │ Tests/Axioms             │ Kernel axiom audit of every public theorem   │
@@ -1132,10 +1134,10 @@ rows under `scripts/` are paths from the repository root.
 │                                │ CStoreInv, Inv0, MetaInv, ContentAgree (the    │                    │
 │                                │ store-pair content property, DQ3(b); a theorem │                    │
 │                                │ after I9: contentAgree)                        │                    │
-│                                │ LeaseBelowOutputStore and its f_def (E-11)      │                    │
+│                                │ LeaseBelowOutputStore and its f_def (E-11)      │ E-11 PROVED        │
 │ Statements/Store.lean          │ OutputNestingStored, StoreInvariant,           │ K2, K4             │
 │                                │ FMonotone, MetadataInvariant                   │                    │
-│                                │ StoreBundle, StoreBundleInvariant, f_def       │ E-11, D14          │
+│                                │ StoreBundle, StoreBundleInvariant, f_def       │ E-11, D14; PROVED  │
 │ Proofs/BlockAncestry.lean      │ public Block ancestry lemmas                   │                    │
 │ Proofs/Carrier.lean            │ local carrier: eraseFG slot, root, parent,     │ K5 local           │
 │                                │ ancestry and compatibility                     │                    │
@@ -1158,6 +1160,8 @@ rows under `scripts/` are paths from the repository root.
 │                                │ rootInj_all (I9)                               │                    │
 │ Proofs/Metadata.lean           │ metadataInvariant, process_cumulative,         │ K4 metadata        │
 │                                │ clock_cumulative, stored_wire_of_block         │                    │
+│ Proofs/LeaseOutput.lean        │ E-11 stored-target invariant                   │ E-11               │
+│ Proofs/StoreBundle.lean        │ E-11 bundle induction; storeBundleInvariant    │ E-11, D14          │
 │ Proofs/CrossNode.lean          │ fg_eq_of_eraseFG_eq_across, preceq_iff_across, │ K5 cross-node      │
 │                                │ compatible_iff_across, rootInjectiveOn_across  │                    │
 │                                │ under CStoreInv, MetaInv and ContentAgree;     │                    │
@@ -1215,7 +1219,7 @@ Run `bash scripts/check-fgsa.sh` for all checks. The Lean scripts read the
 built `.olean` files: run them alone only after `lake build AvailableChainFGSA`.
 
 E-11 `StoreBundle` has cstore, meta, nest and lease fields. Its reachability
-proof is deferred to step 3; `LeaseBelowOutputStore` states the live lease bound.
+proof and the `LeaseBelowOutputStore` live lease bound are PROVED.
 
 The T7.W row-fold declarations are now in `AvailableChainKitFG/Certificates.lean`
 (namespace `AvailableChain.KitFG`, I14): `process_row_eq`, `process_row_comm`,

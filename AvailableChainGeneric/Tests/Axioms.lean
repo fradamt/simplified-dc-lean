@@ -15,6 +15,7 @@ public import AvailableChainGeneric.Proofs.Pure.FirstBad
 public import AvailableChainGeneric.Proofs.Pure.Schedule
 public import AvailableChainGeneric.Proofs.Pure.BlockOrder
 public import AvailableChainGeneric.Proofs.V2.Fields
+public import AvailableChainGeneric.Proofs.V2.Reads
 public import AvailableChainGeneric.Proofs.V2.Induction
 public import AvailableChainGeneric.Proofs.V2.Receipt
 public import AvailableChainGeneric.Proofs.V2.Regimes
@@ -198,6 +199,13 @@ theorem, in facade order. The library globs build this test module. -/
 -- Proofs/V2/Fields.lean
 #print axioms AvailableChain.Gen.V2.ownRecord_fold_restart
 
+-- Proofs/V2/Reads.lean
+#print axioms AvailableChain.Gen.V2.stateBefore_idxBefore_statement
+#print axioms AvailableChain.Gen.V2.stateBefore_idxBefore
+#print axioms AvailableChain.Gen.V2.pubFloor_le
+#print axioms AvailableChain.Gen.V2.publicTime_le_pubFloor
+#print axioms AvailableChain.Gen.V2.index_lt_idxBefore_iff
+
 -- Proofs/V2/Induction.lean
 #print axioms AvailableChain.Gen.V2.invariant_triple
 #print axioms AvailableChain.Gen.V2.invariant_clock_free
@@ -208,6 +216,16 @@ theorem, in facade order. The library globs build this test module. -/
 -- Proofs/V2/Receipt.lean
 #print axioms AvailableChain.Gen.V2.deliveryWithin_of_partialSynchrony
 #print axioms AvailableChain.Gen.V2.deliveryWithin_of_healthyPrefix
+#print axioms AvailableChain.Gen.V2.timely_of_clock_statement
+#print axioms AvailableChain.Gen.V2.timely_of_emit_statement
+#print axioms AvailableChain.Gen.V2.timely_of_relay_statement
+#print axioms AvailableChain.Gen.V2.firstAccept_of_processed_statement
+#print axioms AvailableChain.Gen.V2.timely_of_clock
+#print axioms AvailableChain.Gen.V2.timely_of_emit
+#print axioms AvailableChain.Gen.V2.timely_of_relay
+#print axioms AvailableChain.Gen.V2.firstAccept_of_processed
+#print axioms AvailableChain.Gen.V2.accepted_by_deadline_statement
+#print axioms AvailableChain.Gen.V2.accepted_by_deadline
 
 -- Proofs/V2/Regimes.lean
 #print axioms AvailableChain.Gen.V2.LabelSync.dl_vt_le

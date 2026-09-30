@@ -15,6 +15,7 @@ public import AvailableChainGeneric.Proofs.Pure.FirstBad
 public import AvailableChainGeneric.Proofs.Pure.Schedule
 public import AvailableChainGeneric.Proofs.Pure.BlockOrder
 public import AvailableChainGeneric.Proofs.V2.Fields
+public import AvailableChainGeneric.Proofs.V2.Reads
 public import AvailableChainGeneric.Proofs.V2.Induction
 public import AvailableChainGeneric.Proofs.V2.Receipt
 public import AvailableChainGeneric.Proofs.V2.Regimes
