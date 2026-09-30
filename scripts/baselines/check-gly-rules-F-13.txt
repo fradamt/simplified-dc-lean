@@ -104,7 +104,6 @@ F-13 dup process_stable AvailableChainGridCO AvailableChainSAPC
 F-13 dup process_stamped AvailableChainGridCO AvailableChainSAPC
 F-13 dup process_stampsBounded AvailableChainGridCO AvailableChainSAPC
 F-13 dup process_votes_subset AvailableChainFGSARun AvailableChainGridCO AvailableChainLStar
-F-13 dup processed_stable AvailableChainGridCO AvailableChainLStar AvailableChainSAPC
 F-13 dup proposalState_target_genuine_origin AvailableChainGridCO AvailableChainSAPC
 F-13 dup proposalViewTransport_from_engine AvailableChainGridCO AvailableChainSAPC
 F-13 dup proposal_blocks_at_head AvailableChainGridCO AvailableChainSAPC

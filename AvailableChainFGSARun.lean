@@ -19,3 +19,5 @@ public import AvailableChainFGSARun.Proofs.Schedule
 public import AvailableChainFGSARun.Statements.AC
 public import AvailableChainFGSARun.Statements.ReceiptCoverage
 public import AvailableChainFGSARun.Proofs.AC
+public import AvailableChainFGSARun.Statements.Receipts
+public import AvailableChainFGSARun.Proofs.Receipts

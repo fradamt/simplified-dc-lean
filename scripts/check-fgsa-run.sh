@@ -86,6 +86,24 @@ AX_OPTS=(--expect Run.fgsa Run.fgsaFamilies Run.fgsaIso Run.toWireEquiv Run.duti
   Run.fgsaAC_slot_gate_reads
   Run.depsS_of_not_block Run.depsS_of_not_proposal Run.fgsa_hWF_of_delivery Run.fgsa_hReady_of_not_block Run.fgsa_hReady_of_parentStored Run.fgsa_accepted_by_deadline_of_parentStored)
 
+# T7.8 public receipt and stamp declarations.
+AX_OPTS+=(
+  Run.blockOf?
+  Run.fgsa_clockOf_nonneg
+  Run.processed_stable
+  Run.rowPool_provenance
+  Run.fgsa_vote_stamp_source
+  Run.fgsa_vote_accepted_before
+  Run.fgsa_block_stamp_source
+  Run.fgsa_block_accepted_before
+  Run.fgsa_head_excluded_before
+  Run.fgsa_head_receipt
+  Run.fgsa_head_cap_sources
+  Run.fgsa_row_receipt
+  Run.fgsa_proposal_receipt
+  Run.fgsa_honest_head_receipt
+)
+
 # Remove comments (the tokenizer of scripts/check-fgsa.sh): strings, character
 # literals, raw strings (r"...", r#"..."#) and nested block comments. A "--"
 # in a string does not start a comment, and a "/-" in a line comment does not

@@ -14,6 +14,7 @@ public import AvailableChainFGSARun.Statements.Client
 public import AvailableChainFGSARun.Proofs.ClientTrace
 public import AvailableChainFGSARun.Proofs.Schedule
 public import AvailableChainFGSARun.Proofs.AC
+public import AvailableChainFGSARun.Proofs.Receipts
 
 /-! Kernel dependency audit of the FG-SA run library (plan
 `docs/plans/2026-09-29-fgsa-composition-t7-t1.md`, T7.1): one `#print axioms`
@@ -245,3 +246,19 @@ mechanically. -/
 #print axioms AvailableChain.FGSA.Run.fgsa_hReady_of_not_block
 #print axioms AvailableChain.FGSA.Run.fgsa_hReady_of_parentStored
 #print axioms AvailableChain.FGSA.Run.fgsa_accepted_by_deadline_of_parentStored
+
+-- Receipt and stamp proofs (T7.8).
+#print axioms AvailableChain.FGSA.Run.blockOf?
+#print axioms AvailableChain.FGSA.Run.fgsa_clockOf_nonneg
+#print axioms AvailableChain.FGSA.Run.processed_stable
+#print axioms AvailableChain.FGSA.Run.rowPool_provenance
+#print axioms AvailableChain.FGSA.Run.fgsa_vote_stamp_source
+#print axioms AvailableChain.FGSA.Run.fgsa_vote_accepted_before
+#print axioms AvailableChain.FGSA.Run.fgsa_block_stamp_source
+#print axioms AvailableChain.FGSA.Run.fgsa_block_accepted_before
+#print axioms AvailableChain.FGSA.Run.fgsa_head_excluded_before
+#print axioms AvailableChain.FGSA.Run.fgsa_head_receipt
+#print axioms AvailableChain.FGSA.Run.fgsa_head_cap_sources
+#print axioms AvailableChain.FGSA.Run.fgsa_row_receipt
+#print axioms AvailableChain.FGSA.Run.fgsa_proposal_receipt
+#print axioms AvailableChain.FGSA.Run.fgsa_honest_head_receipt
