@@ -18,3 +18,4 @@ public import AvailableChainFGSAProofs.Proofs.Foundations.Accountable
 public import AvailableChainFGSAProofs.Proofs.Foundations.FinalizedSafety
 public import AvailableChainFGSAProofs.Proofs.Shared.Gate
 public import AvailableChainFGSAProofs.Proofs.Clean.Chain
+public import AvailableChainFGSAProofs.Proofs.Foundations.Counts

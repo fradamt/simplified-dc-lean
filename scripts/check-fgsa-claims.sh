@@ -35,6 +35,11 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.fgsa_sourceDisciplineBaseClaim',
     'AvailableChain.FGSA.Run.fgsa_sourceDisciplineClaim',
     'AvailableChain.FGSA.Run.fgsa_srcFrameAboveClaim',
+    'AvailableChain.FGSA.Run.fgsa_faultX_of_count',
+    'AvailableChain.FGSA.Run.fgsa_faultQ_of_count',
+    'AvailableChain.FGSA.Run.fgsa_target_exact_quorum',
+    'AvailableChain.FGSA.Run.Recovery₂.faultX',
+    'AvailableChain.FGSA.Run.Recovery₂.faultQ',
 
     'AvailableChain.FGSA.Run.fgsa_leaseOrigins_chain',
     'AvailableChain.FGSA.Run.fgsa_leaseOrigins_ancestorDeadlines',

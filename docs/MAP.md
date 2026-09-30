@@ -1325,6 +1325,8 @@ unused imports, and negative controls. No baseline entries were added.
 │ AvailableChainFGSAProofs/Proofs/Shared/Claims.l │ Four claim implication/projections  │
 │ ean                                             │                                     │
 │ AvailableChainFGSAClaims/Tests/Axioms.lean      │ Claims public-theorem axiom audit   │
+│ AvailableChainFGSAProofs/Proofs/Foundations/Cou │ Recovery counts and exact target    │
+│ nts.lean                                        │ quorum consumption (22 I7)          │
 │ AvailableChainFGSAProofs.lean                   │ Proofs library root                 │
 │ AvailableChainFGSAProofs/Proofs/Foundations/Cro │ Strict held-block crossing, FaultX  │
 │ ssing.lean                                      │                                     │
