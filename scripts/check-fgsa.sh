@@ -9,7 +9,9 @@
 # the compiled import data (G13 fold MINOR-2). Source files: `find -L` with
 # `-iname '*.lean'` (symbolic links followed, extension in any case).
 # Run: bash scripts/check-fgsa.sh. Exit 0 when every check passes.
-# JOBS bounds the negative-control pool (default 3 on the Mac, 6 on the NUC; env wins).
+# JOBS bounds this script's pool (default Mac 3, Linux 6; env wins).
+# GATE_SLOTS caps shared controls and heavy steps (Mac 3, Linux 4; env wins).
+# JOBS alone does not set machine concurrency.
 # --no-negative or NEG=0 keeps all positive checks for the merge tier.
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -145,10 +147,10 @@ check_direct_imports . || exit 1
 echo "== Q1/Q5 boundary"
 check_boundary . || exit 1
 echo "== axioms, build coverage, import closure"
-lake env lean --run scripts/CheckFGSAAxioms.lean --expect \
+gate_with_slot lake env lean --run scripts/CheckFGSAAxioms.lean --expect \
   StoreSetEq admitRow_setEq proposalRows_perm_setEq propose_setEq
 echo "== lease instances"
-lake env lean --run scripts/CheckFGSALease.lean
+gate_with_slot lake env lean --run scripts/CheckFGSALease.lean
 # The `leanIn "AvailableChainFGSA"` names of AvailableChainKitFG/Pins.lean get
 # the checks of a `.lean` name (existence, the library of the declaring module,
 # the three standard axioms) in this environment; see scripts/CheckFGSAExt.lean.
@@ -163,7 +165,11 @@ gate_build --wfail AvailableChainSimplexFG AvailableChainKitFG
 nlean=$(perl -CSD -e "$strip_comments" < AvailableChainKitFG/Pins.lean | grep -o '\.leanIn ""' |
   wc -l | tr -d ' ')
 check_ext() {  # EMITTER: its ext records, the lower bound, and CheckFGSAExt.lean
-  lake env lean --run "$1" --ext > "$neg/extrecs" || { echo "EMITTER FAILED (--ext)"; return 2; }
+  lake env lean --run "$1" --ext > "$neg/extrecs" || {
+    local rc=$?
+    [ "$rc" -lt 128 ] || return "$rc"
+    echo "EMITTER FAILED (--ext)"; return 2
+  }
   local n
   n=$(tail -1 "$neg/extrecs" | sed -n 's/^END ext \([0-9][0-9]*\)$/\1/p')
   if [ "$nlean" -gt 0 ] && [ "${n:-0}" -eq 0 ]; then
@@ -171,7 +177,7 @@ check_ext() {  # EMITTER: its ext records, the lower bound, and CheckFGSAExt.lea
   fi
   lake env lean --run scripts/CheckFGSAExt.lean "$neg/extrecs"
 }
-check_ext scripts/FGPinIds.lean
+gate_with_slot check_ext scripts/FGPinIds.lean
 
 # Keep each fixture private; only completed logs go to stdout.
 gate_pool_init "$neg/controls"
@@ -181,6 +187,7 @@ else echo "negative controls: SKIPPED (merge tier)"; fi
 # every PATTERN (fixed strings).
 expect_fail() {
   local name=$1 code=$2 out=$3 p; shift 3
+  gate_control_check "$name" "$code" "$out" || exit 1
   if [ "$code" -eq 0 ]; then echo "$out"; echo "NEGATIVE CONTROL NOT DETECTED: $name"; exit 1; fi
   for p in "$@"; do
     if ! printf '%s\n' "$out" | grep -qF -- "$p"; then
@@ -491,6 +498,7 @@ positive_lease_owner() {
 lease_owner_files
 compile_lease_owner LeaseOwnPos
 run lake env bash -c 'LEAN_PATH="$0:$LEAN_PATH" lean --run scripts/CheckFGSALease.lean LeaseOwnPos' "$neg"
+gate_control_check "lease owner map" "$code" "$out" || exit 1
 if [ "$code" -ne 0 ] || printf '%s\n' "$out" | grep -qF 'BAD LEASE INSTANCE'; then
   echo "$out"; echo "POSITIVE CONTROL lease owner map: split/simp over GridCO.admitVote was refused"; exit 1
 fi
@@ -550,7 +558,11 @@ mkdir -p "$neg/c"
 cp -R .lake/build/lib/lean/AvailableChainFGSA .lake/build/lib/lean/AvailableChainFGSA.* "$neg/c/"
 printf 'theorem AvailableChain.FGSA.negExtAx : False := sorry\n' > "$neg/NegExtAx.lean"
 lake env bash -c 'LEAN_PATH="$0/c:$LEAN_PATH" lean -o "$0/c/AvailableChainFGSA/NegExtAx.olean" "$0/NegExtAx.lean"' \
-  "$neg" >/dev/null 2>&1 || { echo "NEGATIVE CONTROL bad axiom: the module did not compile"; exit 1; }
+  "$neg" >/dev/null 2>&1 || {
+    local rc=$?
+    [ "$rc" -lt 128 ] || exit "$rc"
+    echo "NEGATIVE CONTROL bad axiom: the module did not compile"; exit 1
+  }
 printf 'ext AvailableChainFGSA AvailableChain.FGSA.negExtAx\nEND ext 1\n' > "$neg/extX"
 run lake env bash -c 'LEAN_PATH="$0/c:$LEAN_PATH" lean --run scripts/CheckFGSAExt.lean --root AvailableChainFGSA.NegExtAx "$0/extX"' "$neg"
 expect_fail "ext name with a bad axiom" $code "$out" \

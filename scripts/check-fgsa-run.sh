@@ -13,7 +13,9 @@
 # compiled import data, and source files come from `find -L` with
 # `-iname '*.lean'` (symbolic links followed, extension in any case).
 # Run: bash scripts/check-fgsa-run.sh. Exit 0 when every check passes.
-# JOBS bounds the negative-control pool (default 3 on the Mac, 6 on the NUC; env wins).
+# JOBS bounds this script's pool (default Mac 3, Linux 6; env wins).
+# GATE_SLOTS caps shared controls and heavy steps (Mac 3, Linux 4; env wins).
+# JOBS alone does not set machine concurrency.
 # --no-negative or NEG=0 keeps all positive checks for the merge tier.
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -305,9 +307,9 @@ echo "== axioms, build coverage, import closure, used constants"
 TEST_MODS=($(test_modules .))
 TEST_ROOTS=()
 for m in "${TEST_MODS[@]}"; do TEST_ROOTS+=(--root "$m"); done
-lake env lean --run scripts/CheckFGSARunAxioms.lean "${TEST_ROOTS[@]}" "${AX_OPTS[@]}"
+gate_with_slot lake env lean --run scripts/CheckFGSARunAxioms.lean "${TEST_ROOTS[@]}" "${AX_OPTS[@]}"
 echo "== lease instances"
-lake env lean --run scripts/CheckFGSARunLease.lean "${TEST_MODS[@]}"
+gate_with_slot lake env lean --run scripts/CheckFGSARunLease.lean "${TEST_MODS[@]}"
 
 neg=$(mktemp -d "$PWD/.lake/fgsa-run-neg.XXXXXX")
 trap 'rm -rf "$neg"' EXIT
@@ -320,6 +322,7 @@ else echo "negative controls: SKIPPED (merge tier)"; fi
 # every PATTERN (fixed strings).
 expect_fail() {
   local name=$1 code=$2 out=$3 p; shift 3
+  gate_control_check "$name" "$code" "$out" || exit 1
   if [ "$code" -eq 0 ]; then echo "$out"; echo "NEGATIVE CONTROL NOT DETECTED: $name"; exit 1; fi
   for p in "$@"; do
     if ! printf '%s\n' "$out" | grep -qF -- "$p"; then
@@ -859,6 +862,7 @@ positive_lease_owner() {
 lease_owner_files
 compile_lease_owner RunLeaseOwnPos
 run lake env bash -c 'LEAN_PATH="$0:$LEAN_PATH" lean --run scripts/CheckFGSARunLease.lean RunLeaseOwnPos' "$neg"
+gate_control_check "lease owner map" "$code" "$out" || exit 1
 if [ "$code" -ne 0 ] || printf '%s\n' "$out" | grep -qF 'BAD LEASE INSTANCE'; then
   echo "$out"; echo "POSITIVE CONTROL lease owner map: split/simp over GridCO.admitVote was refused"; exit 1
 fi

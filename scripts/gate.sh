@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 # Run from the repository root. Freeze gates must use --tier full.
-# Linux runs the three check scripts in parallel. Mac runs them in sequence.
+# The three check scripts run in parallel and share one GATE_SLOTS cap.
+# Defaults: Mac 3, Linux 4; env wins. JOBS is only a per-script pool bound.
+# Linux requires a user scope with GATE_MEM (default 16G) and no swap; without it the gate refuses to run.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 source scripts/gate-common.sh
+gate_args=("$@")
 tier=auto; base=
 usage() { echo "usage: bash scripts/gate.sh [--tier merge|full|auto] [--base <ref>] [--jobs N]"; }
 while [ $# -gt 0 ]; do
@@ -19,7 +22,29 @@ done
 case "$tier" in auto|merge|full) ;; *) usage >&2; exit 2 ;; esac
 gate_jobs
 export JOBS
+
+# Probe the user manager and memory properties before replacing this driver.
+# Keep every argument and never retry a failed gate outside its memory scope.
+memory_limit="Mac Lean wrapper"
+if [ "$(uname -s)" = Linux ]; then
+  memory_limit=${GATE_MEM:-16G}
+  if [ "${GATE_MEM_SCOPED:-0}" != 1 ]; then
+    if command -v systemd-run >/dev/null 2>&1 &&
+        systemd-run --user --scope -q -p "MemoryMax=$memory_limit" -p MemorySwapMax=0 true; then
+      export GATE_MEM_SCOPED=1
+      exec systemd-run --user --scope -q -p "MemoryMax=$memory_limit" -p MemorySwapMax=0 \
+        bash scripts/gate.sh "${gate_args[@]}"
+    fi
+    # Lead ruling (DC 2026-09-30, after the NUC OOM): no gate without the scope.
+    echo "REFUSED: cannot create a systemd-run --user scope with MemoryMax=$memory_limit; the gate does not run unlimited" >&2
+    exit 2
+  else
+    memory_limit="$memory_limit, swap=0"
+  fi
+fi
 mkdir -p .lake
+GATE_SLOT_DIR=$(mktemp -d "$PWD/.lake/gate-slots.XXXXXX")
+gate_slots_init
 logs=$(mktemp -d "$PWD/.lake/gate-logs.XXXXXX")
 started=$(date +%s)
 failed=0
@@ -68,7 +93,7 @@ choose_tier() {
   tier=merge; reason="no full-tier changes; full PASS is less than 24 h old"
 }
 choose_tier
-echo "tier: $(printf '%s' "$tier" | tr '[:lower:]' '[:upper:]') ($reason)"
+echo "tier: $(printf '%s' "$tier" | tr '[:lower:]' '[:upper:]') ($reason); slots=$GATE_SLOTS memory=$memory_limit"
 echo "logs: $logs"
 echo "reminder: run bash scripts/check-fg.sh on the Mac (research files required)"
 
@@ -92,16 +117,23 @@ summary() {
   fi
 }
 finish() {
+  local cg peak
+  # Peak memory of this gate's own cgroup (the MemoryMax scope on Linux).
+  if [ -r /proc/self/cgroup ]; then
+    cg=$(sed -n 's/^0:://p' /proc/self/cgroup)
+    peak=$(cat "/sys/fs/cgroup$cg/memory.peak" 2>/dev/null) &&
+      echo "memory.peak=$((peak / 1048576)) MiB (cgroup $cg)"
+  fi
   if [ "$failed" -eq 0 ]; then
     if [ "$tier" = full ]; then touch .lake/gate-last-full; fi
-    echo "GATE PASS tier=$tier wall=$(($(date +%s)-started))s"
+    echo "GATE PASS tier=$tier slots=$GATE_SLOTS memory=$memory_limit wall=$(($(date +%s)-started))s"
   else
-    echo "GATE FAIL tier=$tier wall=$(($(date +%s)-started))s"
+    echo "GATE FAIL tier=$tier slots=$GATE_SLOTS memory=$memory_limit wall=$(($(date +%s)-started))s"
   fi
 }
 build_all() {
   local targets
-  targets=$(lake env lean --run scripts/CheckGenFirst.lean --libraries)
+  targets=$(gate_with_slot lake env lean --run scripts/CheckGenFirst.lean --libraries)
   [ -n "$targets" ] || { echo "CheckGenFirst returned no build targets"; return 1; }
   # @ selects every default target of the root package, plus check support
   # and every module that CheckGenFirst scans (including facade orphans).
@@ -115,20 +147,20 @@ export GATE_NO_BUILD=1
 export NEG=1 SKIP_CONE=0
 if [ "$tier" = merge ]; then NEG=0; fi
 checks=(check-build check-fgsa check-fgsa-run)
-# In parallel on both machines; on the Mac the Lean wrapper caps concurrent lean.
+# Shared slots cap controls and heavy steps across all three scripts.
 pids=()
 for name in "${checks[@]}"; do step "$name" bash "scripts/$name.sh" & pids+=("$!"); done
 for pid in "${pids[@]}"; do wait "$pid"; done
 for name in "${checks[@]}"; do summary "$name"; done
-step catalog-lock lake env lean --run scripts/CatalogLock.lean --check
+step catalog-lock gate_with_slot lake env lean --run scripts/CatalogLock.lean --check
 summary catalog-lock
-step v2-manifest lake env lean --run scripts/V2Manifest.lean --check
+step v2-manifest gate_with_slot lake env lean --run scripts/V2Manifest.lean --check
 summary v2-manifest
-step gen-manifest lake env lean --run scripts/V2Manifest.lean --scope gen --check
+step gen-manifest gate_with_slot lake env lean --run scripts/V2Manifest.lean --scope gen --check
 summary gen-manifest
 audit() {
   local path=$1 out=$2 rc=0 count
-  lake env lean "$path" > "$out" 2>&1 || rc=$?
+  gate_with_slot lake env lean "$path" > "$out" 2>&1 || rc=$?
   cat "$out"
   count=$(grep -c sorryAx "$out" || :)
   echo "sorryAx = $count"
