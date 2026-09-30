@@ -334,5 +334,16 @@ def CleanActionStep (b₀ : Time) : Prop :=
     CleanHist p c E rho (i + 1) → CleanState p c E rho i →
     CleanRowSources p c E rho (i + 1)
 
+/-- L49 first-unfold equation; P3 §8.4, bp02 §5.6, lead R2(a).
+DC counterpart: none; FG-SA emits action rows in the gate tick. -/
+theorem CleanActionStep_def (b₀ : Time) :
+    CleanActionStep p c E rho b₀ =
+      (CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
+  FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
+  ∀ i v r, i < timeIdx rho b₀ →
+    rho.events[i]? = some (.tick v (p.actionTime r)) →
+    CleanHist p c E rho (i + 1) → CleanState p c E rho i →
+    CleanRowSources p c E rho (i + 1)) := by rfl
+
 end AvailableChain.FGSA.Run
 end

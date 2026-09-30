@@ -284,3 +284,8 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.clean_blockStateStep
 #print axioms AvailableChain.FGSA.Run.clean_noGateStateStep
 #print axioms AvailableChain.FGSA.Run.clean_gate_state_of_rows
+
+#print axioms AvailableChain.FGSA.Run.CleanActionStep_def
+#print axioms AvailableChain.FGSA.Run.clean_gateStateStep_of_action
+#print axioms AvailableChain.FGSA.Run.cleanState_of_hist
+#print axioms AvailableChain.FGSA.Run.sExtends_upTo_of_action

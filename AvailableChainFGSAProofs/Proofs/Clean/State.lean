@@ -762,5 +762,102 @@ theorem cleanState_zero {b₀ : Time} (h : CleanCut₂ p c E rho b₀)
     subst j; subst k
     exact Gen.Pure.block_preceq_refl _
 
+/-- P3 §§8.2, 8.4, 8.7; bp02 §§5.5–5.6; lead R2(b).
+DC counterpart: none; FG-SA's action shares the gate tick. The action
+premise supplies successor row sources from the given prior state. -/
+theorem clean_gateStateStep_of_action {b₀ : Time}
+    (hact : CleanActionStep p c E rho b₀) : CleanGateStateStep p c E rho b₀ := by
+  rw [CleanActionStep_def] at hact
+  rw [CleanGateStateStep_def, CleanStateStep_def]
+  intro h hq hf hsrc i hi hh j hji ht hs
+  rw [CleanGateTick_def] at ht
+  obtain ⟨v, s, ht⟩ := ht
+  apply clean_gate_state_of_rows h hf hsrc hji hh hs ht
+  by_cases ha : ∃ x r, rho.events[j]? = some (.tick x (p.actionTime r))
+  · obtain ⟨x, r, ha⟩ := ha
+    exact hact h hq hf hsrc j x r (Nat.lt_of_lt_of_le hji hi) ha
+      (cleanHist_restrict (Nat.succ_le_of_lt hji) hh) hs
+  · exact clean_rows_step hs.sources.1 (fun x r he => ha ⟨x, r, he⟩)
+
+/-- P3 §§8.2–8.4, 8.7; bp02 §5; lead R2(c), S2 and S3.
+DC counterpart: none for this fixed-history state predicate. DC's
+Protocol/ChainState/Chain.lean carries the chain-order bundle; FG-SA
+instead derives the full state over event indices from a fixed history
+and the separate action step. -/
+theorem cleanState_of_hist {b₀ : Time} {i : Nat}
+    (h : CleanCut₂ p c E rho b₀) (hq : Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card)
+    (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho)
+    (hact : CleanActionStep p c E rho b₀)
+    (hi : i ≤ timeIdx rho b₀) (hh : CleanHist p c E rho i) : CleanState p c E rho i := by
+  have hd := clean_deliveryStateStep (p := p) (c := c) (E := E) (rho := rho) (b₀ := b₀)
+  have hb := clean_blockStateStep (p := p) (c := c) (E := E) (rho := rho) (b₀ := b₀)
+  have hn := clean_noGateStateStep (p := p) (c := c) (E := E) (rho := rho) (b₀ := b₀)
+  have hg := clean_gateStateStep_of_action hact
+  rw [CleanDeliveryStateStep_def, CleanStateStep_def] at hd
+  rw [CleanBlockStateStep_def, CleanStateStep_def] at hb
+  rw [CleanNoGateStateStep_def, CleanStateStep_def] at hn
+  rw [CleanGateStateStep_def, CleanStateStep_def] at hg
+  have hall : ∀ j, j ≤ i → CleanState p c E rho j := by
+    intro j
+    induction j with
+    | zero => intro _; exact cleanState_zero h hf
+    | succ j ih =>
+      intro hsucc
+      have hji : j < i := Nat.lt_of_succ_le hsucc
+      have hs := ih (Nat.le_of_lt hji)
+      have hjlen : j < rho.events.length := by
+        have hlen : timeIdx rho b₀ ≤ rho.events.length := by
+          dsimp only [timeIdx]
+          exact List.length_filter_le ..
+        exact Nat.lt_of_lt_of_le hji (hi.trans hlen)
+      obtain ⟨e, he⟩ : ∃ e, rho.events[j]? = some e :=
+        ⟨rho.events[j], List.getElem?_eq_some_iff.mpr ⟨hjlen, rfl⟩⟩
+      cases e with
+      | restart v t => exact (h.base.noRestart j v t he).elim
+      | tick v t =>
+        cases ht : isGateTime p t with
+        | false =>
+          apply hn h hq hf hsrc i hi hh j hji ?_ hs
+          rw [CleanNoGateTick_def]
+          exact ⟨v, t, he, ht⟩
+        | true =>
+          obtain ⟨s, hsTime⟩ := (isGateTime_iff p t).mp ht
+          apply hg h hq hf hsrc i hi hh j hji ?_ hs
+          rw [CleanGateTick_def]
+          refine ⟨v, s, ?_⟩
+          change rho.events[j]? = some (.tick v (SA.gateTime p.toParams s))
+          rw [hsTime]
+          exact he
+      | deliver v o t =>
+        by_cases ha : ∃ s B raw support rows P,
+            (toWire p o).decode = some (.block s B raw support rows) ∧
+            parentFG (storeAt p c E rho j v) B = some P ∧
+            blockAccepted p (storeAt p c E rho j v) s B P rows = true
+        · obtain ⟨s, B, raw, support, rows, P, hdec, hparent, hacc⟩ := ha
+          apply hb h hq hf hsrc i hi hh j hji ?_ hs
+          rw [CleanBlockDelivery_def]
+          exact ⟨v, o, t, s, B, raw, support, rows, P, he, hdec, hparent, hacc⟩
+        · apply hd h hq hf hsrc i hi hh j hji ?_ hs
+          rw [CleanOrdinaryDelivery_def]
+          refine ⟨v, o, t, he, ?_⟩
+          intro s B raw support rows P hdec hparent
+          cases hacc : blockAccepted p (storeAt p c E rho j v) s B P rows with
+          | false => rfl
+          | true => exact (ha ⟨s, B, raw, support, rows, P, hdec, hparent, hacc⟩).elim
+  exact hall i (Nat.le_refl i)
+
+/-- P3 §8.2, §8.7; bp02 §5.5; lead R2(b), S2.
+DC counterpart: Generic/Properties.lean MonotoneFrom. This event-index
+form uses a fixed CleanHist and an explicit action step, which F2.6
+discharges before the whole-run monotonicity result. -/
+theorem sExtends_upTo_of_action {b₀ : Time} {i : Nat}
+    (h : CleanCut₂ p c E rho b₀) (hq : Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card)
+    (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho)
+    (hact : CleanActionStep p c E rho b₀)
+    (hi : i ≤ timeIdx rho b₀) (hh : CleanHist p c E rho i) :
+    ∀ v j k, j ≤ k → k ≤ i →
+      Block.Preceq (S_at p c E rho j v) (S_at p c E rho k v) :=
+  (cleanState_of_hist h hq hf hsrc hact hi hh).sExtends
+
 end AvailableChain.FGSA.Run
 end
