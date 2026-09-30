@@ -31,6 +31,7 @@ CLAIMS             FGSAClaims statement-only import set       BUILD:201-203
 LANE               A proof lane imports only its allowed set SYN:106-114; BUILD:204-212
 SHARED             Shared imports no lane/Export/Assembly    SYN:106-114; BUILD:204-212; L42
 ASSEMBLY           Assembly joins lanes through Exports      SYN:112-114; BUILD:210-212
+                   (Shared has an Export too: SYN L50)
 CLAIM-USE          Claims/<F> only from matching lane Export SYN:112-114; BUILD:234-236; L42
 LANE-CLAIMS        A lane module other than its Export reaches R-F1 D6 (fgsa-lean
                    no Claims/* or Shared.Claims, directly    2026-09-30); R5-66
@@ -119,6 +120,11 @@ BASELINE = Path("scripts/baselines/check-layers.txt")
 CLAIM_USE_EXEMPT = frozenset({CLAIMS, CLAIMS + ".FGSAClaims", CLAIMS + ".Tests.Axioms",
                               PROOFS + ".Proofs.Shared.Claims"})
 SHARED_CLAIMS = PROOFS + ".Proofs.Shared.Claims"
+# L50 (lead ruling 2026-10-01): the Shared lane has an Export. It is the only
+# proof module that may import Claims/Shared; it imports Shared proof modules
+# and Claims/Shared only; only Assembly imports it (EXPORT-USE, as for every
+# lane Export).
+SHARED_EXPORT = PROOFS + ".Proofs.Shared.Export"
 NAME_PART = r"(?:«[^»]+»|[^\W\d][\w'!?]*)"
 NAME = re.compile(NAME_PART + r"(?:\." + NAME_PART + r")*")
 Finding = tuple[str, str, str]
@@ -484,7 +490,7 @@ def claim_path(name: str) -> tuple[str, ...]:
 
 def is_export(name: str) -> bool:
     parts = proof_path(name)
-    return len(parts) >= 2 and parts[0] not in {"Shared", "Assembly"} and parts[1] == "Export"
+    return len(parts) >= 2 and parts[0] != "Assembly" and parts[1] == "Export"
 
 
 def lane_upstream(ctx: Context, dep: str) -> bool:
@@ -507,6 +513,9 @@ def shared(ctx: Context, m: Module, dep: str) -> bool:
     parts, target = proof_path(m.name), proof_path(dep)
     if not parts or parts[0] != "Shared":
         return False
+    if is_export(m.name):
+        own = bool(target) and target[0] == "Shared" and not is_export(dep)
+        return not (foundation(dep) or own or claim_path(dep) == ("Shared",))
     if m.name == SHARED_CLAIMS and (claim_path(dep) or dep == CLAIMS + ".Claims"):
         return False
     if target and target[0] not in {"Statements", "Model"}:
@@ -527,7 +536,7 @@ def claim_use(ctx: Context, m: Module, dep: str) -> bool:
     parts = claim_path(dep)
     if not parts and dep != CLAIMS + ".Claims":
         return False
-    if m.name in CLAIM_USE_EXEMPT:
+    if m.name in CLAIM_USE_EXEMPT and not (m.name == SHARED_CLAIMS and parts == ("Shared",)):
         return False
     return not (is_export(m.name) and len(parts) == 1 and proof_path(m.name) == (parts[0], "Export"))
 
