@@ -224,6 +224,8 @@ theorem, in facade order. The library globs build this test module. -/
 #print axioms AvailableChain.Gen.Pure.prefix_eq_of_depth
 #print axioms AvailableChain.Gen.Pure.path_child
 #print axioms AvailableChain.Gen.Pure.pathNodes_spec
+#print axioms AvailableChain.Gen.Pure.two_conflicts
+#print axioms AvailableChain.Gen.Pure.deepest_of_compatible
 
 -- Proofs/V2/Fields.lean
 #print axioms AvailableChain.Gen.V2.ownRecord_fold_restart

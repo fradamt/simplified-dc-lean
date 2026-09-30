@@ -1,6 +1,7 @@
 module
 public import AvailableChainModel.Objects.Blocks
 public import Mathlib.Data.List.Nodup
+public import Mathlib.Data.Finset.Max
 
 public section
 
@@ -215,5 +216,50 @@ theorem pathNodes_spec (B : Block) :
         rcases List.mem_cons.mp hc with rfl | hp
         · exact ⟨by simp, block_preceq_refl _⟩
         · exact ⟨(ih.2.2 C hp).1, Bool.or_eq_true_iff.mpr (Or.inr (ih.2.2 C hp).2)⟩
+
+-- Source: TS/codex/scratch/a0-s1-reuse-map.md:678 (GLY G09; S1a RP24:1556).
+/-- [helper] [GLY G09] A block compatible with two conflicting blocks
+precedes both of them. -/
+theorem two_conflicts {E J B : Block} (hEJ : ¬ Block.Compatible E J)
+    (hE : Block.Compatible E B) (hJ : Block.Compatible J B) :
+    Block.Preceq B E ∧ Block.Preceq B J := by
+  have hBJcomp : Block.Compatible B J := by
+    simpa only [Block.Compatible, block_compatible_comm J B] using hJ
+  have hBE : Block.Preceq B E := by
+    have hcases := hE
+    unfold Block.Compatible Block.compatible at hcases
+    simp only [Bool.or_eq_true] at hcases
+    rcases hcases with hEB | hBE
+    · exact (hEJ (block_compatible_of_preceq_compatible hEB hBJcomp)).elim
+    · exact hBE
+  have hBJ : Block.Preceq B J := by
+    unfold Block.Compatible Block.compatible at hJ
+    simp only [Bool.or_eq_true] at hJ
+    rcases hJ with hJB | hBJ
+    · apply False.elim
+      apply hEJ
+      unfold Block.Compatible Block.compatible
+      exact Bool.or_eq_true_iff.mpr (Or.inr (block_preceq_trans hJB hBE))
+    · exact hBJ
+  exact ⟨hBE, hBJ⟩
+
+-- Source: TS/codex/scratch/a0-s1-reuse-map.md:679–680 (GLY G09; S3d AF-15).
+/-- [helper] [GLY G09] A nonempty finite set of pairwise compatible blocks
+has a member that follows every member. S3d calls this
+`exists_deepest_of_pairwise_compatible`. -/
+theorem deepest_of_compatible (S : Finset Block) (hne : S.Nonempty)
+    (hc : ∀ x ∈ S, ∀ y ∈ S, Block.Compatible x y) :
+    ∃ M ∈ S, ∀ x ∈ S, Block.Preceq x M := by
+  obtain ⟨M, hM, hmax⟩ := Finset.exists_max_image S Block.depth hne
+  refine ⟨M, hM, ?_⟩
+  intro x hx
+  have hcomp := hc x hx M hM
+  unfold Block.Compatible Block.compatible at hcomp
+  simp only [Bool.or_eq_true] at hcomp
+  rcases hcomp with hxM | hMx
+  · exact hxM
+  · have heq := prefix_eq_of_depth M x hMx (hmax x hx)
+    subst M
+    exact block_preceq_refl x
 
 end AvailableChain.Gen.Pure
