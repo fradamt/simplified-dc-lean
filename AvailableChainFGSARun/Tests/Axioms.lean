@@ -295,3 +295,11 @@ mechanically. -/
 #print axioms AvailableChain.FGSA.ancestorDeadlines_clock
 #print axioms AvailableChain.FGSA.Run.ancestorDeadlines_recordOwn
 #print axioms AvailableChain.FGSA.Run.ancestorDeadlines_restore
+
+-- F1.3 store facts, proved from the model without GridCO proof constants.
+#print axioms AvailableChain.FGSA.writeKeys_deadline_cases
+#print axioms AvailableChain.FGSA.writeKeys_row_cases
+#print axioms AvailableChain.FGSA.gateFrom_eq_writeKeys_fgsa
+#print axioms AvailableChain.FGSA.DeadlinesAtMost
+#print axioms AvailableChain.FGSA.DeadlinesAtMost_def
+#print axioms AvailableChain.FGSA.writeKeys_mem_of_key_fgsa

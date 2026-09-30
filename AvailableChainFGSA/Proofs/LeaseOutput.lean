@@ -29,6 +29,15 @@ theorem storedTargetsBelowOutput_target (p : Params) (st : State p.n)
 section StoreWrappers
 attribute [local instance] GridCO.slowLeasePolicy
 
+/-- [helper] A slow-policy gate keeps an old target or adds a prefix of its result.
+Source: AvailableChainGridCO/Proofs/StoreFacts.lean, `gateFrom_target_origin`. -/
+theorem gateFrom_target_origin_slow (p : GridCO.Params) {n : Nat}
+    (a : Block) (st : GridCO.State n) (r : Slot) (B : Block) (g : Nat) (d : Time)
+    (hm : (B, g, d) ∈ (@GridCO.gateFrom GridCO.slowLeasePolicy p n a st r).obligations) :
+    (∃ k deadline, (B, k, deadline) ∈ st.obligations) ∨
+      ∃ C, GridCO.confirmationFrom p a st r = some C ∧ Block.Preceq B C :=
+  @GridCO.gateFrom_target_origin GridCO.slowLeasePolicy p n a st r B g d hm
+
 /-- [helper] [P3 §2 store wrapper] GridCO `admitProposal_obligations` for the
 FG-SA lease policy: a proposal admission keeps the obligations. The run
 library may not cite GridCO proof constants (T7 used-constant guard). -/

@@ -316,3 +316,4 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 -- Proofs/LeaseOutput.lean
 #print axioms AvailableChain.FGSA.storedTargetsBelowOutput_target
 #print axioms AvailableChain.FGSA.admitProposal_obligations_slow
+#print axioms AvailableChain.FGSA.gateFrom_target_origin_slow

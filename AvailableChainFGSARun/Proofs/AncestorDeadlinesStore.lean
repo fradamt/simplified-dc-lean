@@ -182,7 +182,9 @@ private theorem write_row_origin {n : Nat} (st : GridCO.State n)
       · left
         simpa [hlookup, hf, max_eq_left (le_of_not_ge hd)] using hr
 
-private theorem writeKeys_deadline_cases {n : Nat} (st : GridCO.State n)
+/-- [helper] Each written row is an old row or has a selected key and the new deadline.
+Source: GridCO model `writeObligation` and `writeKeys`; local `write_row_origin`. -/
+theorem writeKeys_deadline_cases {n : Nat} (st : GridCO.State n)
     (keys : List (Block × Nat)) (limit : Time) (row : Block × Nat × Time)
     (hm : row ∈ (GridCO.writeKeys st keys limit).obligations) :
     row ∈ st.obligations ∨ (row.1, row.2.1) ∈ keys ∧ row.2.2 = limit := by
@@ -194,6 +196,120 @@ private theorem writeKeys_deadline_cases {n : Nat} (st : GridCO.State n)
       · exact Or.inl hold
       · exact Or.inr ⟨List.mem_cons.mpr (Or.inl hk), hd⟩
     · exact Or.inr ⟨List.mem_cons_of_mem key hk, hd⟩
+
+/-- [helper] Public row cases for FG-SA gate writes. Keep the old name for existing proofs.
+Source: `writeKeys_deadline_cases` in this file. -/
+theorem writeKeys_row_cases {n : Nat} (st : GridCO.State n)
+    (keys : List (Block × Nat)) (limit : Time) (row : Block × Nat × Time)
+    (hm : row ∈ (GridCO.writeKeys st keys limit).obligations) :
+    row ∈ st.obligations ∨ (row.1, row.2.1) ∈ keys ∧ row.2.2 = limit :=
+  writeKeys_deadline_cases st keys limit row hm
+
+/-- [helper] A passed FG-SA gate equals the selected writes with the gate deadline.
+Source: AvailableChainSA/Model/Protocol.lean, `gateFrom`; GridCO model `gateFrom`. -/
+theorem gateFrom_eq_writeKeys_fgsa (p : SA.Params) {n : Nat}
+    (a : Block) (st : GridCO.State n) (r : Slot) (C : Block)
+    (hc : SA.confirmationFrom p a st r = some C)
+    (hguard : st.obligations.any (fun row => !Block.compatible row.1 C) = false) :
+    SA.gateFrom p a st r =
+      GridCO.writeKeys { st with
+        goldfishRecord := GridCO.advance st.goldfishRecord C
+        genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy n st r (some C)
+        stableRecord := GridCO.advance st.stableRecord C }
+        (@GridCO.gateWriteKeys GridCO.slowLeasePolicy p.engine n st r C)
+        (SA.gateTime p r + SA.lifetime p) := by
+  unfold SA.gateFrom GridCO.gateFrom
+  rw [show GridCO.confirmationFrom p.engine a st r = some C from hc]
+  dsimp only
+  rw [hguard]
+  simp [@GridCO.writeKeys_def GridCO.slowLeasePolicy,
+    @GridCO.gateWriteKeys_def GridCO.slowLeasePolicy, List.foldl_flatMap, List.foldl_map]
+
+/-- [helper] All deadlines in an FG-SA base store are at most the given limit.
+Source: AvailableChainGridCO/Proofs/Map.lean, `DeadlinesAtMost` (predicate body). -/
+@[expose]
+def DeadlinesAtMost {n : Nat} (st : GridCO.State n) (limit : Time) : Prop :=
+  ∀ b g d, (b, g, d) ∈ st.obligations → d ≤ limit
+
+/-- [helper] Read the deadline bound as a statement about each row.
+Source: `DeadlinesAtMost` in this file. -/
+theorem DeadlinesAtMost_def {n : Nat} (st : GridCO.State n) (limit : Time) :
+    DeadlinesAtMost st limit ↔ ∀ b g d, (b, g, d) ∈ st.obligations → d ≤ limit :=
+  Iff.rfl
+
+private theorem deadlineOf_le_fgsa {n : Nat} (st : GridCO.State n) (b : Block)
+    (g : Nat) (limit : Time) (hbound : DeadlinesAtMost st limit) :
+    (GridCO.deadlineOf st b g).getD limit ≤ limit := by
+  unfold GridCO.deadlineOf
+  cases hfind : st.obligations.find? (fun row => row.1 == b && row.2.1 == g) with
+  | none => simp
+  | some row =>
+    have hmem : row ∈ st.obligations := List.mem_of_find?_eq_some hfind
+    simpa [hfind] using hbound row.1 row.2.1 row.2.2 hmem
+
+private theorem writeObligation_shape_fgsa {n : Nat} (st : GridCO.State n)
+    (b : Block) (g : Nat) (limit : Time) (hbound : DeadlinesAtMost st limit) :
+    (GridCO.writeObligation st b g limit).obligations =
+      st.obligations.filter (fun row => !(row.1 == b && row.2.1 == g)) ++
+        [(b, g, limit)] := by
+  unfold GridCO.writeObligation
+  simp only [max_eq_right (deadlineOf_le_fgsa st b g limit hbound)]
+
+private theorem writeObligation_bound_fgsa {n : Nat} (st : GridCO.State n)
+    (b : Block) (g : Nat) (limit : Time) (hbound : DeadlinesAtMost st limit) :
+    DeadlinesAtMost (GridCO.writeObligation st b g limit) limit := by
+  intro K level d hrow
+  rw [writeObligation_shape_fgsa st b g limit hbound] at hrow
+  rcases List.mem_append.mp hrow with hold | hnew
+  · exact hbound K level d (List.mem_filter.mp hold).1
+  · have he : (K, level, d) = (b, g, limit) := List.mem_singleton.mp hnew
+    cases he
+    exact le_refl _
+
+private theorem write_preserves_limit_row_fgsa {n : Nat} (st : GridCO.State n)
+    (K : Block) (g : Nat) (limit : Time) (key : Block × Nat)
+    (hbound : DeadlinesAtMost st limit) (hrow : (K, g, limit) ∈ st.obligations) :
+    (K, g, limit) ∈ (GridCO.writeObligation st key.1 key.2 limit).obligations := by
+  rw [writeObligation_shape_fgsa st key.1 key.2 limit hbound]
+  apply List.mem_append.mpr
+  by_cases hkey : (K, g) = key
+  · exact Or.inr (by simp [← hkey])
+  · apply Or.inl
+    apply List.mem_filter.mpr
+    refine ⟨hrow, ?_⟩
+    have hne : K ≠ key.1 ∨ g ≠ key.2 := by
+      rcases key with ⟨b, level⟩
+      simpa only [Prod.mk.injEq, not_and_or] using hkey
+    rcases hne with hne | hne <;> simp [hne]
+
+private theorem writeKeys_preserves_limit_row_fgsa {n : Nat} (st : GridCO.State n)
+    (keys : List (Block × Nat)) (K : Block) (g : Nat) (limit : Time)
+    (hbound : DeadlinesAtMost st limit) (hrow : (K, g, limit) ∈ st.obligations) :
+    (K, g, limit) ∈ (GridCO.writeKeys st keys limit).obligations := by
+  induction keys generalizing st with
+  | nil => exact hrow
+  | cons key keys ih =>
+    exact ih (GridCO.writeObligation st key.1 key.2 limit)
+      (writeObligation_bound_fgsa st key.1 key.2 limit hbound)
+      (write_preserves_limit_row_fgsa st K g limit key hbound hrow)
+
+/-- [helper] A bounded write installs each selected key at the given deadline.
+Source: AvailableChainGridCO/Proofs/Map.lean, `writeKeys_mem_of_key` (local model proof). -/
+theorem writeKeys_mem_of_key_fgsa {n : Nat} (st : GridCO.State n)
+    (keys : List (Block × Nat)) (K : Block) (g : Nat) (limit : Time)
+    (hbound : DeadlinesAtMost st limit) (hkey : (K, g) ∈ keys) :
+    (K, g, limit) ∈ (GridCO.writeKeys st keys limit).obligations := by
+  induction keys generalizing st with
+  | nil => simp at hkey
+  | cons key keys ih =>
+    rcases List.mem_cons.mp hkey with hfirst | htail
+    · subst key
+      apply writeKeys_preserves_limit_row_fgsa (GridCO.writeObligation st K g limit)
+        keys K g limit (writeObligation_bound_fgsa st K g limit hbound)
+      rw [writeObligation_shape_fgsa st K g limit hbound]
+      simp
+    · exact ih (GridCO.writeObligation st key.1 key.2 limit)
+        (writeObligation_bound_fgsa st key.1 key.2 limit hbound) htail
 
 private theorem writeKeys_protects {n : Nat} (st : GridCO.State n)
     (keys : List (Block × Nat)) (limit : Time) (B : Block) (g : Nat) (d : Time)
