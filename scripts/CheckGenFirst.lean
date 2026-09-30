@@ -149,8 +149,10 @@ def runCheck (extra expected : List String) : IO UInt32 := do
 def main (args : List String) : IO UInt32 := do
   try
     if args == ["--libraries"] then
-      let (libs, _) ← scopedModules
-      IO.println (String.intercalate " " (libs.toList.map toString))
+      -- Every scanned module is a build target: a library without globs builds only its
+      -- root closure, so a module such as `Tests/Axioms` may have no object file.
+      let (_, roots) ← scopedModules
+      IO.println (String.intercalate " " (roots.toList.map toString))
       return 0
     let roots := args.takeWhile (· != "--expect")
     let expected := (args.drop roots.length).drop 1
