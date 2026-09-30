@@ -20,6 +20,7 @@ public import AvailableChainGeneric.Statements.AC.Transfer
 public import AvailableChainGeneric.Proofs.Pure.FirstBad
 public import AvailableChainGeneric.Proofs.Pure.Schedule
 public import AvailableChainGeneric.Proofs.Pure.BlockOrder
+public import AvailableChainGeneric.Proofs.Pure.Walk
 public import AvailableChainGeneric.Proofs.Pure.Quorum
 public import AvailableChainGeneric.Proofs.Pure.Fold
 public import AvailableChainGeneric.Proofs.Pure.Props
@@ -344,3 +345,21 @@ theorem, in facade order. The library globs build this test module. -/
 
 -- Statements/V2/Slashing.lean
 #print axioms AvailableChain.Gen.V2.HonestNeverSlashed_def
+
+-- Proofs/Pure/Walk.lean
+#print axioms AvailableChain.Gen.Pure.walk_covers_of_dominated_suffix_statement
+#print axioms AvailableChain.Gen.Pure.walk_covers_of_dominated_suffix
+#print axioms AvailableChain.Gen.Pure.walk_exact_of_dominated_suffix_statement
+#print axioms AvailableChain.Gen.Pure.walk_exact_of_dominated_suffix
+#print axioms AvailableChain.Gen.Pure.walk_reanchor_of_dominated_suffix_statement
+#print axioms AvailableChain.Gen.Pure.walk_reanchor_of_dominated_suffix
+#print axioms AvailableChain.Gen.Pure.walk_avoids_unsupported_child_statement
+#print axioms AvailableChain.Gen.Pure.walk_avoids_unsupported_child
+#print axioms AvailableChain.Gen.Pure.walk_covers_of_dominated_suffix_of_anchor_eligible_statement
+#print axioms AvailableChain.Gen.Pure.walk_covers_of_dominated_suffix_of_anchor_eligible
+#print axioms AvailableChain.Gen.Pure.walk_terminal_of_descendant_depth_bound_statement
+#print axioms AvailableChain.Gen.Pure.walk_terminal_of_descendant_depth_bound
+#print axioms AvailableChain.Gen.Pure.walk_noEligibleChild_of_anchorClosed_statement
+#print axioms AvailableChain.Gen.Pure.walk_noEligibleChild_of_anchorClosed
+#print axioms AvailableChain.Gen.Pure.ghost_transfer_sfx_statement
+#print axioms AvailableChain.Gen.Pure.ghost_transfer_sfx

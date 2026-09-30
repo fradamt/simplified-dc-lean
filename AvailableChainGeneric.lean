@@ -20,6 +20,7 @@ public import AvailableChainGeneric.Statements.AC.Transfer
 public import AvailableChainGeneric.Proofs.Pure.FirstBad
 public import AvailableChainGeneric.Proofs.Pure.Schedule
 public import AvailableChainGeneric.Proofs.Pure.BlockOrder
+public import AvailableChainGeneric.Proofs.Pure.Walk
 public import AvailableChainGeneric.Proofs.Pure.Quorum
 public import AvailableChainGeneric.Proofs.Pure.Fold
 public import AvailableChainGeneric.Proofs.Pure.Props
