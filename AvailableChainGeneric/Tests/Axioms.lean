@@ -25,6 +25,7 @@ public import AvailableChainGeneric.Proofs.Pure.Props
 public import AvailableChainGeneric.Proofs.V2.Fields
 public import AvailableChainGeneric.Proofs.V2.Reads
 public import AvailableChainGeneric.Proofs.V2.Induction
+public import AvailableChainGeneric.Proofs.V2.BaseTransport
 public import AvailableChainGeneric.Proofs.V2.Receipt
 public import AvailableChainGeneric.Proofs.V2.Regimes
 public import AvailableChainGeneric.Proofs.V2.Linked
@@ -242,6 +243,10 @@ theorem, in facade order. The library globs build this test module. -/
 #print axioms AvailableChain.Gen.V2.interval_induction_all
 #print axioms AvailableChain.Gen.V2.write_once_along_run
 #print axioms AvailableChain.Gen.V2.kept_from_seed
+
+-- Proofs/V2/BaseTransport.lean
+#print axioms AvailableChain.Gen.V2.base_invariant
+#print axioms AvailableChain.Gen.V2.base_invariant_holdsBefore
 
 -- Proofs/V2/Receipt.lean
 #print axioms AvailableChain.Gen.V2.deliveryWithin_of_partialSynchrony

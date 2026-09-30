@@ -25,6 +25,7 @@ public import AvailableChainGeneric.Proofs.Pure.Props
 public import AvailableChainGeneric.Proofs.V2.Fields
 public import AvailableChainGeneric.Proofs.V2.Reads
 public import AvailableChainGeneric.Proofs.V2.Induction
+public import AvailableChainGeneric.Proofs.V2.BaseTransport
 public import AvailableChainGeneric.Proofs.V2.Receipt
 public import AvailableChainGeneric.Proofs.V2.Regimes
 public import AvailableChainGeneric.Proofs.V2.Linked
