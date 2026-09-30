@@ -1,0 +1,3 @@
+F-1 lt :: AvailableChain.Gen.Pure.Batch AvailableChain.Gen.Pure.FaultQ AvailableChain.Gen.Pure.FaultX # D05: distinct one-field bounds.
+F-1 ac,fg :: AvailableChain.Gen.Pure.AGRule AvailableChain.Gen.Pure.WindowRule # D12/I02: distinct rules with the intended ac and fg fields.
+F-1 broadcast,relay :: AvailableChain.Gen.V2.DeliveryWithin AvailableChain.Statements.Generic.HealthyPrefixDelivery AvailableChain.Statements.Generic.PartialSynchrony AvailableChain.V2.HealthyPrefixDelivery AvailableChain.V2.PartialSynchrony # GLY C.3: common delivery shape with distinct deadline and regime meanings.

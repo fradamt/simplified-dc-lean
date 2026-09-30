@@ -11,6 +11,8 @@ never fails; its baseline separates the reviewed ones. F-13 (duplicate
 short names) is baselined in new libraries too (step-2 ruling D07).
 scripts/gly-rules-allow.txt: `<rule> <declaration>` lines that a rule
 skips (the F-3 E-13 wrapper allow list; empty now).
+scripts/gly-f1-allow.txt: complete F-1 group keys with a nonempty reason
+after `#`. F-1 skips only an exact match of the field set and all names.
 
 Baseline rewrites (lead ruling, 2026-09-29): `--write-baseline` for F-13, or
 for any rule, is allowed only in a commit whose message names the rule and
@@ -82,6 +84,7 @@ FGSA_ALL = {'AvailableChainFGSA', 'AvailableChainFGSARun', 'AvailableChainFGSACl
 KITFG = {'AvailableChainKitFG'}
 BASE = os.environ.get('GLY_BASE', '7ac5b0c')
 ALLOW = os.path.join(C.SCRIPTS, 'gly-rules-allow.txt')
+F1_ALLOW = os.path.join(C.SCRIPTS, 'gly-f1-allow.txt')
 KITFG_DEF = os.path.join(C.BASELINES, 'kitfg-def-modules.txt')
 THM = ('theorem', 'lemma')
 
@@ -102,6 +105,24 @@ def read_allow():
             line = line.split('#', 1)[0].split()
             if len(line) == 2:
                 out.add(tuple(line))
+    return out
+
+
+def read_f1_allow():
+    out = set()
+    if os.path.exists(F1_ALLOW):
+        with open(F1_ALLOW, encoding='utf-8') as f:
+            for n, line in enumerate(f, 1):
+                key, sep, reason = line.partition('#')
+                key = key.strip()
+                if not key:
+                    continue
+                where = f'{os.path.relpath(F1_ALLOW, C.ROOT)}:{n}'
+                if not sep or not reason.strip():
+                    raise RuntimeError(f'{where}: F-1 allow entry needs a nonempty reason')
+                if not key.startswith('F-1 ') or ' :: ' not in key:
+                    raise RuntimeError(f'{where}: expected a complete F-1 group key')
+                out.add(key)
     return out
 
 
@@ -171,6 +192,7 @@ def struct_fields(d):
 
 
 def rule_f1(x):
+    allow = read_f1_allow()
     groups = defaultdict(list)
     for lf, d in x.all_decls():
         if d.kind in ('structure', 'class'):
@@ -181,7 +203,10 @@ def rule_f1(x):
     for fs, members in groups.items():
         if len(members) > 1:
             names = sorted(d.full for _, d in members)
-            out.append(F('F-1', f'{",".join(sorted(fs))} :: {" ".join(names)}',
+            key = f'{",".join(sorted(fs))} :: {" ".join(names)}'
+            if f'F-1 {key}' in allow:
+                continue
+            out.append(F('F-1', key,
                          f'structures with the field set {{{", ".join(sorted(fs))}}}: {", ".join(names)}',
                          new=any(x.new(lf) for lf, _ in members), review=True))
     return out
