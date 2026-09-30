@@ -1146,6 +1146,7 @@ rows under `scripts/` are paths from the repository root.
 │                                │ ancestry and compatibility                     │                    │
 │ Proofs/Fields.lean             │ write sets of every step                       │                    │
 │ Proofs/Head/Pool.lean          │ Clean support counts; F-anchored confirmation │ P3 F1b.1          │
+│ Proofs/Head/Transfer.lean      │ HEAD coverage from transfer bounds           │ P3 F2.3           │
 │ Proofs/ActView.lean            │ actView laws (items 1–6); SA bridge of the     │ bp.activeView.v1   │
 │                                │ tick (clock_eq_saClock_offGate,                │                    │
 │                                │ clock_eq_saClockFrom_gate: the walk from F)    │                    │

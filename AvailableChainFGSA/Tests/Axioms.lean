@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSA.Proofs.Head.Transfer
 public import AvailableChainFGSA.Proofs.Head.Pool
 public import AvailableChainFGSA.Proofs.BlockAncestry
 public import AvailableChainFGSA.Proofs.Carrier
@@ -325,3 +326,5 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 #print axioms AvailableChain.FGSA.fgsa_prefixSupport_antitone
 #print axioms AvailableChain.FGSA.fgsa_conflicting_support_sum_le_late
 #print axioms AvailableChain.FGSA.fgsa_confirmationFrom_covers_majority
+
+#print axioms AvailableChain.FGSA.fgsa_headVote_covers_of_transfer

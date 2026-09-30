@@ -45,6 +45,30 @@ private theorem relay_clean_mem (p : Params) (v : GridCO.State p.n) (s : Slot)
   have hn := List.any_eq_false.mp hc' u hu
   simpa only [hs, Bool.true_and, bne_iff_ne, not_not] using hn
 
+/-- P3 §4.4.3 C5/C6; bp02 §4.2, G24 item 3. Class (iii), pool instance.
+DC: Goldfish/Adoption.lean:53–67,257. Same late-pool seat cleanliness;
+the proof uses the late filter, not reverse equivocation monotonicity. -/
+theorem fgsa_cleanSupport_seat_clean_late (p : Params) (v : GridCO.State p.n)
+    (s : Slot) (o : GridCO.Wire p.n)
+    (ho : o ∈ GridCO.cleanSupport p.toParams.engine v s)
+    (k : Fin p.n) (hk : GridCO.headSeat? o = some k) :
+    GridCO.equivocates (GridCO.lateVotes p.toParams.engine v s) k = false := by
+  have hc := relay_clean_mem p v s o ho
+  obtain ⟨B, rfl⟩ := relay_vote_shape o s k hc.2.1 hk
+  apply Bool.eq_false_iff.mpr
+  intro he
+  obtain ⟨u, hu, w, hw, hn, hku, hkw⟩ := (cap_pair _ k).mp he
+  have same (a : GridCO.Wire p.n) (ha : a ∈ GridCO.lateVotes p.toParams.engine v s)
+      (hka : GridCO.headSeat? a = some k) :
+      GridCO.sameSeat a ⟨.seat s k, .head B⟩ = true := by
+    have hl : GridCO.headLabel? a = some s := by
+      simpa only [beq_iff_eq] using (List.mem_filter.mp (List.mem_filter.mp ha).1).2
+    obtain ⟨C, rfl⟩ := relay_vote_shape a s k hl hka
+    change (s == s && k == k) = true
+    simp only [beq_self_eq_true, Bool.and_self]
+  exact hn ((hc.2.2.2 u hu (same u hu hku)).trans
+    (hc.2.2.2 w hw (same w hw hkw)).symm)
+
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
 omit [DecidableEq V] in
@@ -210,6 +234,140 @@ theorem fgsa_cleanSupport_backward_relay (E : Generic.Env V) (rho : V2.Run V (fg
   · exact Or.inr ((cap_pair _ k).mpr ⟨u,
       relay_gate_late E rho hE.toScheduleWellFormed hiy u (hkeep hu) hlu, v,
       relay_gate_late E rho hE.toScheduleWellFormed hiy v (hkeep hv) hlv, hne, hku, hkv⟩)
+
+private theorem relay_proposals_process (st : State p.n) (o : Obj p)
+    (h : ∀ w ∈ st.proposals, FGSA.wellFormed p w = true)
+    (hw : FGSA.wellFormed p (toWire p o) = true) :
+    ∀ w ∈ (FGSA.process p st (toWire p o)).proposals, FGSA.wellFormed p w = true := by
+  change ∀ w ∈ (match (toWire p o).decode with
+    | some (.vote s i b) => admitHead p st s i b
+    | some (.row _ _ body) => admitRow p st ⟨(toWire p o).auth, body⟩
+    | some (.block s b raw sup rows) => admitBlock p st s b raw sup rows
+    | none => st).proposals, _
+  cases hd : (toWire p o).decode with
+  | none => exact h
+  | some m =>
+    cases m with
+    | vote s i b => exact h
+    | row r i body =>
+      dsimp only
+      rcases admitRow_eq p st ⟨(toWire p o).auth, body⟩ with he | he <;> rw [he] <;> exact h
+    | block s b raw sup rows =>
+      dsimp only
+      cases hp : parentFG st b with
+      | none => rw [admitBlock_refused p st s b raw sup rows (Or.inl hp)]; exact h
+      | some P =>
+        cases ha : blockAccepted p st s b P rows with
+        | false =>
+          rw [admitBlock_refused p st s b raw sup rows (Or.inr ⟨P, hp, ha⟩)]
+          exact h
+        | true =>
+          obtain ⟨pool, he, -⟩ := admitBlock_accepted_eq p st s b raw sup P rows hp ha
+          rw [he]
+          have hs : ∀ w ∈ st.proposals ++ [⟨.proposer s, .proposal b raw sup rows⟩],
+              FGSA.wellFormed p w = true := by
+            intro w hm
+            rcases List.mem_append.mp hm with hm | hm
+            · exact h w hm
+            · rw [List.mem_singleton.mp hm, ← decode_eq_block.mp hd]
+              exact hw
+          dsimp only
+          split
+          · exact hs
+          · rw [(reconcile_frame _).2.1]
+            exact hs
+
+private theorem relay_proposals_wf (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (hE : V2.ExecutionValid E rho) (i : Nat) (x : V) :
+    ∀ o ∈ (V2.Run.stateBefore E rho i x).st.proposals, FGSA.wellFormed p o = true := by
+  refine V2.Engine.stateBefore_step_induction E rho
+    (fun nd => ∀ o ∈ nd.st.proposals, FGSA.wellFormed p o = true) (Nat.zero_le i) x ?_ ?_
+  · intro j e _ _ he hx hj
+    cases e with
+    | restart v t =>
+      change v = x at hx; subst v
+      simp only [V2.World.step, Function.update_self]
+      exact fun _ h => (List.not_mem_nil h).elim
+    | tick v t =>
+      change v = x at hx; subst v
+      simp only [V2.World.step, Function.update_self]
+      rw [tick_st E rho (V2.Run.stateBefore E rho j x) x t, clock_proposals]
+      exact hj
+    | deliver v o t =>
+      change v = x at hx; subst v
+      simp only [V2.World.step, Function.update_self]
+      exact relay_proposals_process _ o hj (hE.wire j x o t he)
+  · exact fun _ h => (List.not_mem_nil h).elim
+
+private theorem relay_support_subset (st : State p.n) (s : Slot)
+    (h : ∀ w ∈ st.proposals, FGSA.wellFormed p w = true) :
+    headSupport p st s ⊆ headVotes p st s := by
+  intro o ho
+  change o ∈ List.eraseDups (_ ++ _) at ho ⊢
+  rw [List.mem_eraseDups, List.mem_append] at ho ⊢
+  rcases ho with ho | ho
+  · left
+    obtain ⟨hv, hr⟩ := List.mem_filter.mp ho
+    apply List.mem_filter.mpr
+    refine ⟨hv, ?_⟩
+    change (match GridCO.headTarget? o with | none => false | some _ => _) = true at hr
+    cases ht : GridCO.headTarget? o with
+    | none => simp only [ht, Bool.false_eq_true] at hr
+    | some B =>
+      rw [ht] at hr
+      exact (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp hr).1).2
+  · right
+    obtain ⟨hm, hf⟩ := List.mem_filter.mp ho
+    apply List.mem_filter.mpr
+    refine ⟨?_, (Bool.and_eq_true_iff.mp hf).1⟩
+    obtain ⟨row, hr, hm⟩ := List.mem_flatMap.mp hm
+    obtain ⟨a, ha, he⟩ := List.mem_map.mp hm
+    have hrow := hr
+    obtain ⟨w, hw, hd⟩ := List.mem_filterMap.mp hr
+    cases hdw : w.decode with
+    | none => rw [hdw] at hd; cases hd
+    | some m =>
+      cases m with
+      | vote r k B => rw [hdw] at hd; cases hd
+      | row r k body => rw [hdw] at hd; cases hd
+      | block r B raw sup rows =>
+        rw [hdw] at hd
+        dsimp only at hd
+        split at hd
+        · cases hd
+          have hwf := h w hw
+          change (match w.decode with
+            | some (.vote _ _ _) => true
+            | some (.row _ _ body) => body.valid
+            | some (.block r B raw sup rows) =>
+              B != .genesis && r == B.slot && decide (B.parent.slot < B.slot) &&
+                raw.all (fun v => match v.decode? with
+                  | some (r, _, _) => r + 1 == B.slot | none => false) &&
+                sup.all (fun v => decide (v ∈ raw)) &&
+                rows.all (fun a => a.valid && match a.decode? with
+                  | some (r, _, _) => decide (r ≤ p.round B.slot) | none => false) && rowsOk B rows
+            | none => false) = true at hwf
+          rw [hdw] at hwf
+          have hsub := (Bool.and_eq_true_iff.mp
+            (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp hwf).1).1).2
+          apply List.mem_flatMap.mpr
+          refine ⟨(raw, sup), hrow, ?_⟩
+          exact List.mem_map.mpr ⟨a, of_decide_eq_true (List.all_eq_true.mp hsub a ha), he⟩
+        · cases hd
+
+/-- P3 §4.4.3 C5/C6; bp02 §4.2, G24 support inclusion. Class (ii), run instance.
+DC: Handlers/GoldfishVotePool.lean:355–405. Same carried support subset;
+INTENTIONAL: use admitted wire metadata and the actual post-clock HEAD store
+(Model/Frame.lean:67–85), including inactive admitted proposals. -/
+theorem fgsa_headSupport_subset_headVotes (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (hE : V2.ExecutionValid E rho) (i : Nat) (x : V) (s : Slot) :
+    let dst := ((fgsa p c).clock (V2.Run.stateBefore E rho i x)
+      (SA.voteTime p.toParams (s + 1))).st
+    headSupport p dst (s + 1) ⊆ headVotes p dst (s + 1) := by
+  apply relay_support_subset
+  change ∀ o ∈ (clock p _ _).proposals, _
+  rw [clock_proposals]
+  exact relay_proposals_wf E rho hE i x
 
 end AvailableChain.FGSA.Run
 end
