@@ -153,6 +153,10 @@ def AvailableChain.Gen.Pure.BelowOn fc80e65d84b837d2
 theorem AvailableChain.Gen.Pure.BelowOn_def deca29c78975f8b5
 def AvailableChain.Gen.Pure.ServedOn 1d4f8e9b20045cea
 theorem AvailableChain.Gen.Pure.ServedOn_def 0ec9a3a5ece68131
+def AvailableChain.Gen.Pure.CompatOnOfCompatAtMonoStatement 6f6f9180bd36d34e
+theorem AvailableChain.Gen.Pure.CompatOnOfCompatAtMonoStatement_def 6fc9b363256f62a5
+def AvailableChain.Gen.Pure.ServedOnMonoStatement 1b9d631fbfb77cd6
+theorem AvailableChain.Gen.Pure.ServedOnMonoStatement_def 9e1e69ca011d4a97
 ```
 
 ### `AvailableChainGeneric.Statements.Pure.Quorum`

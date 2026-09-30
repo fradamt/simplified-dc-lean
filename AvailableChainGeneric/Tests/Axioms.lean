@@ -20,6 +20,7 @@ public import AvailableChainGeneric.Proofs.Pure.Schedule
 public import AvailableChainGeneric.Proofs.Pure.BlockOrder
 public import AvailableChainGeneric.Proofs.Pure.Quorum
 public import AvailableChainGeneric.Proofs.Pure.Fold
+public import AvailableChainGeneric.Proofs.Pure.Props
 public import AvailableChainGeneric.Proofs.V2.Fields
 public import AvailableChainGeneric.Proofs.V2.Reads
 public import AvailableChainGeneric.Proofs.V2.Induction
@@ -94,6 +95,8 @@ theorem, in facade order. The library globs build this test module. -/
 #print axioms AvailableChain.Gen.Pure.MonoOn_def
 #print axioms AvailableChain.Gen.Pure.BelowOn_def
 #print axioms AvailableChain.Gen.Pure.ServedOn_def
+#print axioms AvailableChain.Gen.Pure.CompatOnOfCompatAtMonoStatement_def
+#print axioms AvailableChain.Gen.Pure.ServedOnMonoStatement_def
 
 -- Statements/V2/Reads.lean
 #print axioms AvailableChain.V2.Run.idxBefore_def
@@ -197,6 +200,12 @@ theorem, in facade order. The library globs build this test module. -/
 #print axioms AvailableChain.Gen.Pure.event_le_windowEndAt
 #print axioms AvailableChain.Gen.Pure.FinForm.len_pos
 #print axioms AvailableChain.Gen.Pure.strong_all
+
+-- Proofs/Pure/Props.lean
+#print axioms AvailableChain.Gen.Pure.compatOn_of_compatAt_mono_statement
+#print axioms AvailableChain.Gen.Pure.compatOn_of_compatAt_mono
+#print axioms AvailableChain.Gen.Pure.servedOn_mono_statement
+#print axioms AvailableChain.Gen.Pure.servedOn_mono
 
 -- Proofs/Pure/BlockOrder.lean
 #print axioms AvailableChain.Gen.Pure.block_preceq_refl

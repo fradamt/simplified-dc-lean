@@ -76,4 +76,40 @@ theorem ServedOn_def (out : ι → V → Block) (B : Block) (A : ι → Prop) :
       (∀ i x, A i → N x → Block.Preceq B (out i x)) := by
   rw [ServedOn]
 
+-- GLY r3.16:859–862; P3 r3.5.6:3644–3657 adopts S3a FS2:1852–1853.
+-- A preorder alone does not compare every pair of reads.
+set_option linter.unusedVariables false in
+def CompatOnOfCompatAtMonoStatement : Prop :=
+  ∀ {V ι : Type} [Preorder ι] {N : V → Prop} {out : ι → V → Block} {A : ι → Prop}
+    (hc : CompatAt N out A) (hm : MonoOn N out A)
+    (htot : ∀ i j : ι, i ≤ j ∨ j ≤ i), CompatOn N out A
+
+-- Equation export required by BUILD §7.2 B3a; preserve the statement binders.
+set_option linter.unusedVariables false in
+theorem CompatOnOfCompatAtMonoStatement_def :
+    CompatOnOfCompatAtMonoStatement =
+      (∀ {V ι : Type} [Preorder ι] {N : V → Prop} {out : ι → V → Block} {A : ι → Prop}
+        (hc : CompatAt N out A) (hm : MonoOn N out A)
+        (htot : ∀ i j : ι, i ≤ j ∨ j ≤ i), CompatOn N out A) := by
+  rw [CompatOnOfCompatAtMonoStatement]
+
+-- S3a:1854; P3 r3.5.6:3650.
+-- form: lean-framework ruling 2026-09-30 (later-read transport).
+set_option linter.unusedVariables false in
+def ServedOnMonoStatement : Prop :=
+  ∀ {V ι : Type} [Preorder ι] {N : V → Prop} {out : ι → V → Block} {B : Block}
+    {A A' : ι → Prop}
+    (hs : ServedOn N out B A) (hm : MonoOn N out A')
+    (hlater : ∀ j, A' j → ∃ i, A i ∧ A' i ∧ i ≤ j), ServedOn N out B A'
+
+-- Equation export required by BUILD §7.2 B3a; preserve the statement binders.
+set_option linter.unusedVariables false in
+theorem ServedOnMonoStatement_def :
+    ServedOnMonoStatement =
+      (∀ {V ι : Type} [Preorder ι] {N : V → Prop} {out : ι → V → Block} {B : Block}
+        {A A' : ι → Prop}
+        (hs : ServedOn N out B A) (hm : MonoOn N out A')
+        (hlater : ∀ j, A' j → ∃ i, A i ∧ A' i ∧ i ≤ j), ServedOn N out B A') := by
+  rw [ServedOnMonoStatement]
+
 end AvailableChain.Gen.Pure
