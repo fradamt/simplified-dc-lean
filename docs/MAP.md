@@ -1325,6 +1325,9 @@ unused imports, and negative controls. No baseline entries were added.
 │ AvailableChainFGSAClaims/Tests/Axioms.lean      │ Claims public-theorem axiom audit   │
 │ AvailableChainFGSAProofs.lean                   │ Proofs library root                 │
 │ AvailableChainFGSAProofs/Proofs/Shared/Reads.lean │ Cut, gate values and index proofs   │
+│ AvailableChainFGSAClaims/Statements/Witness.lean │ Common healing witness and tstar    │
+│ AvailableChainFGSAClaims/Statements/Healed.lean │ HEALED via the Gen property kernel  │
+│ AvailableChainFGSAProofs/Proofs/Shared/Healed.lean │ Same-time and later-start proofs    │
 │ AvailableChainFGSAProofs/Tests/Channels.lean    │ Old source obstruction and G1 tests │
 │ AvailableChainFGSAProofs/Statements/            │ Clean invariant and step statements │
 │ CleanInvariant.lean                             │                                     │

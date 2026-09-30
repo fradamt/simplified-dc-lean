@@ -7,3 +7,4 @@ public import AvailableChainFGSAClaims.Statements.Channels
 public import AvailableChainFGSAClaims.Statements.ChannelProps
 public import AvailableChainFGSAClaims.Statements.ComposeStmt
 public import AvailableChainFGSAClaims.FGSAClaims
+public import AvailableChainFGSAClaims.Statements.Healed

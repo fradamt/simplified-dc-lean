@@ -5,3 +5,4 @@ public import AvailableChainFGSAProofs.Proofs.Shared.Regimes
 public import AvailableChainFGSAProofs.Proofs.Shared.Channels
 public import AvailableChainFGSAProofs.Proofs.Shared.Claims
 public import AvailableChainFGSAProofs.Proofs.Clean.Interface
+public import AvailableChainFGSAProofs.Proofs.Shared.Healed

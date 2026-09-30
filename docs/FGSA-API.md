@@ -422,6 +422,14 @@ def AvailableChain.FGSA.Run.awakeHonestIn e6da9b5b14f52cbe
 def AvailableChain.FGSA.Run.HonestProposal a6bc4ac45f62db72
 ```
 
+### `AvailableChainFGSAClaims.Statements.Healed`
+
+```text
+def AvailableChain.FGSA.Run.healStart 880932e9f4eefa58
+def AvailableChain.FGSA.Run.HealSuffix 5a72f2bf575e2232
+def AvailableChain.FGSA.Run.Healed 7d1190e75214f5be
+```
+
 ### `AvailableChainFGSAClaims.Statements.Packages.Outage`
 
 ```text
@@ -592,5 +600,21 @@ def AvailableChain.FGSA.Run.formWinAt 4b4823f46a0a376c
 def AvailableChain.FGSA.Run.kernelWin eeceff4632e80ceb
 def AvailableChain.FGSA.Run.trigWin 4ebab3ed21cf57cc
 def AvailableChain.FGSA.Run.outWin 4ecaf12f1dd1e83a
+```
+
+### `AvailableChainFGSAClaims.Statements.Witness`
+
+```text
+structure AvailableChain.FGSA.Run.HealingWitness 98857114d31fca1b
+ctor AvailableChain.FGSA.Run.HealingWitness.mk 533a1ca9d6d6e71f
+field AvailableChain.FGSA.Run.HealingWitness.rG 24abf3bc4016a096
+field AvailableChain.FGSA.Run.HealingWitness.u₀ a69f530f1425b734
+field AvailableChain.FGSA.Run.HealingWitness.M 931bea3059c247b7
+field AvailableChain.FGSA.Run.HealingWitness.rStar 4b76ab1c2e507188
+field AvailableChain.FGSA.Run.HealingWitness.sStar 2d11909925076825
+field AvailableChain.FGSA.Run.HealingWitness.CStar a6650ab30193da26
+field AvailableChain.FGSA.Run.HealingWitness.u 53e15c872782e203
+field AvailableChain.FGSA.Run.HealingWitness.QStar c0854bdbccdf113f
+def AvailableChain.FGSA.Run.tstar baaa14187df71f6a
 ```
 

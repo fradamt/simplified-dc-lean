@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.Healed -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Claims -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Regimes -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Channels -- shake: keep (axiom audit commands)
@@ -59,3 +60,6 @@ public import AvailableChainFGSAProofs.Proofs.Shared.Reads -- shake: keep (axiom
 #print axioms AvailableChain.FGSA.Run.cleanHistory_of_cut
 #print axioms AvailableChain.FGSA.Run.cleanPrefixTruncation_of_cut
 #print axioms AvailableChain.FGSA.Run.cleanSafety_outputs
+
+#print axioms AvailableChain.FGSA.Run.healed_same_time
+#print axioms AvailableChain.FGSA.Run.healed_mono_start
