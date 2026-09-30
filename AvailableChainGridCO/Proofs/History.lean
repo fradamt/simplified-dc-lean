@@ -1,4 +1,5 @@
 module
+public import AvailableChainGridCO.Proofs.StoreFacts
 public import AvailableChainGridCO.Proofs.Windows
 
 @[expose] public section
@@ -27,9 +28,6 @@ theorem prefix_trans (A B C : Block)
       · simp only [Block.Preceq, Block.preceq, Bool.or_eq_true]
         exact Or.inr (ih h)
 
-@[simp] theorem genesis_prefix (B : Block) : Block.Preceq .genesis B := by
-  induction B <;> simp_all [Block.Preceq, Block.preceq]
-
 theorem ancestors_compatible (A B C : Block)
     (hA : Block.Preceq A C) (hB : Block.Preceq B C) : Block.Compatible A B := by
   change Block.preceq A C = true at hA
@@ -56,13 +54,6 @@ private theorem fold_stable {n : Nat} {α : Type}
   induction xs generalizing st with
   | nil => rfl
   | cons x xs ih => rw [List.foldl_cons, ih, hf]
-
-theorem admitVote_stable (p : Params) {n : Nat} (st : State n) (o : Wire n) :
-    (admitVote p st o).stableRecord = st.stableRecord := by
-  unfold admitVote
-  split
-  · dsimp only; split <;> rfl
-  · rfl
 
 /-- Deliveries do not change the exposed record. -/
 theorem process_stable (p : Params) {n : Nat} (st : State n) (o : Wire n) :

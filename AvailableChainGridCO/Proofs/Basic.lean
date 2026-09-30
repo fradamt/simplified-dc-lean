@@ -1,4 +1,5 @@
 module
+public import AvailableChainGridCO.Proofs.StoreFacts
 public import AvailableChainGridCO.Statements.Contract
 public import Mathlib.Tactic.Ring
 
@@ -125,9 +126,6 @@ theorem one_le_roundedLevel (p : Params) (h : Nat) (hh : 1 ≤ h) :
     · simp [p.one_mem, hh]
   unfold roundedLevel gridLevel
   exact mem_le_foldl_max _ 0 1 hm
-
-theorem block_preceq_self (b : Block) : Block.Preceq b b := by
-  cases b <;> simp [Block.Preceq, Block.preceq]
 
 /-- The exposed outputs are nested at every honest read, in every run. -/
 theorem outputOrder {V : Type} [DecidableEq V] (p : Params)

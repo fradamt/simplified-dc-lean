@@ -133,5 +133,10 @@ theorem parent_mem_and_iff_root (b : Block) (blocks : List Block) (q : Block →
     rw [← Block.root_injective hroot]
     exact ⟨hp, hq⟩
 
+private theorem Block.Compatible_eq_1_export : type_of% (@Block.Compatible.eq_1) :=
+  @Block.Compatible.eq_1
+private theorem Block.compatible_eq_1_export : type_of% (@Block.compatible.eq_1) :=
+  @Block.compatible.eq_1
+
 end AvailableChain
 end

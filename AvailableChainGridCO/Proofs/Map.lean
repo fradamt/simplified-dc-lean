@@ -1,4 +1,5 @@
 module
+public import AvailableChainGridCO.Proofs.StoreFacts
 public import AvailableChainGridCO.Model.StoreKeys
 public import AvailableChainGridCO.Proofs.Relay
 
@@ -437,20 +438,8 @@ private theorem stored_prefix_closed_of_same_blocks {n : Nat}
   rw [hblocks] at hK ⊢
   exact hclosed K hK B hB hBK
 
-theorem admitVote_blocks (p : Params) {n : Nat} (st : State n)
-    (o : Wire n) : (admitVote p st o).blocks = st.blocks := by
-  unfold admitVote
-  split <;> simp_all
-  split <;> rfl
-
 theorem admitVote_now (p : Params) {n : Nat} (st : State n)
     (o : Wire n) : (admitVote p st o).now = st.now := by
-  unfold admitVote
-  split <;> simp_all
-  split <;> rfl
-
-theorem admitVote_obligations (p : Params) {n : Nat} (st : State n)
-    (o : Wire n) : (admitVote p st o).obligations = st.obligations := by
   unfold admitVote
   split <;> simp_all
   split <;> rfl
@@ -481,17 +470,6 @@ private theorem fold_admitVote_now (p : Params) {n : Nat}
       simpa only [List.foldl_cons] using
         (ih (admitVote p st (fromHead row))).trans (admitVote_now p st (fromHead row))
 
-private theorem fold_admitVote_obligations (p : Params) {n : Nat}
-    (raw : List (HeadWire n)) (st : State n) :
-    (raw.foldl (fun acc row => admitVote p acc (fromHead row)) st).obligations =
-      st.obligations := by
-  induction raw generalizing st with
-  | nil => rfl
-  | cons row raw ih =>
-      simpa only [List.foldl_cons] using
-        (ih (admitVote p st (fromHead row))).trans
-          (admitVote_obligations p st (fromHead row))
-
 theorem admitProposal_now (p : Params) {n : Nat}
     (st : State n) (o : Wire n) (b : Block) (raw : List (HeadWire n)) :
     (admitProposal p st o b raw).now = st.now := by
@@ -510,26 +488,6 @@ theorem admitProposal_now (p : Params) {n : Nat}
   split
   · rfl
   · exact fold_admitVote_now p raw st'
-
-theorem admitProposal_obligations (p : Params) {n : Nat}
-    (st : State n) (o : Wire n) (b : Block) (raw : List (HeadWire n)) :
-    (admitProposal p st o b raw).obligations = st.obligations := by
-  let bad : Bool :=
-    b.slot > (st.now / (4 * p.Δ)).toNat || !blockKnown st b.parent ||
-      b ∈ st.blocks || !(b.parent.slot < b.slot) ||
-      !(match o.auth with
-        | .proposer s => s == b.slot
-        | _ => false)
-  let st' : State n := { st with
-    blocks := st.blocks ++ [b]
-    blockStamp := st.blockStamp ++ [(b, st.now)]
-    proposals := st.proposals ++ [o] }
-  change (if bad then st else
-    raw.foldl (fun acc row => admitVote p acc (fromHead row)) st').obligations =
-      st.obligations
-  split
-  · rfl
-  · exact fold_admitVote_obligations p raw st'
 
 theorem process_now (p : Params) {n : Nat} (st : State n) (o : Wire n) :
     (process p st o).now = st.now := by
@@ -683,20 +641,6 @@ theorem gateWriteKeys_closed (p : Params) {n : Nat} (st : State n)
   apply List.mem_flatMap.mpr
   refine ⟨B, List.mem_filter.mpr ⟨hBstored, by simp [hB, hBC]⟩, ?_⟩
   exact List.mem_map.mpr ⟨g, admissionLevels_mono p st r B K hBK g hg', rfl⟩
-
-theorem gateFrom_eq_writeKeys (p : Params) {n : Nat} (a : Block) (st : State n)
-    (r : Slot) (C : Block)
-    (hc : confirmationFrom p a st r = some C)
-    (hguard : st.obligations.any (fun (target, _, _) =>
-      !Block.compatible target C) = false) :
-    gateFrom p a st r =
-      writeKeys { st with
-        goldfishRecord := advance st.goldfishRecord C
-        genuine := recordGenuine st r (some C)
-        stableRecord := advance st.stableRecord C }
-        (gateWriteKeys p st r C) (gateTime p r + lifetime p) := by
-  simp [gateFrom, hc, hguard, writeKeys_def, gateWriteKeys_def,
-    List.foldl_flatMap, List.foldl_map]
 
 theorem gate_eq_writeKeys (p : Params) {n : Nat} (st : State n)
     (r : Slot) (C : Block)
@@ -907,16 +851,6 @@ theorem gate_comparable_targets (p : Params) {n : Nat}
               exact hbeq ▸ (Bool.and_eq_true_iff.mp (List.mem_filter.mp hb').2).2
             exact block_ancestors_compatible key.1 other.1 C hkeypre hotherpre
 
-private theorem foldl_blocks {n : Nat} {α : Type}
-    (f : State n → α → State n) (xs : List α) (st : State n)
-    (hf : ∀ acc x, (f acc x).blocks = acc.blocks) :
-    (xs.foldl f st).blocks = st.blocks := by
-  induction xs generalizing st with
-  | nil => rfl
-  | cons x xs ih =>
-      simp only [List.foldl_cons]
-      rw [ih, hf]
-
 private theorem foldl_now {n : Nat} {α : Type}
     (f : State n → α → State n) (xs : List α) (st : State n)
     (hf : ∀ acc x, (f acc x).now = acc.now) :
@@ -940,22 +874,6 @@ theorem gate_now (p : Params) {n : Nat} (st : State n) (r : Slot) :
           apply foldl_now
           intro acc b
           apply foldl_now
-          intro acc g
-          rfl
-
-theorem gateFrom_blocks (p : Params) {n : Nat} (a : Block) (st : State n) (r : Slot) :
-    (gateFrom p a st r).blocks = st.blocks := by
-  cases hc : confirmationFrom p a st r with
-  | none => simp [gateFrom, hc]
-  | some C =>
-      cases hguard : st.obligations.any (fun (target, _, _) =>
-          !Block.compatible target C) with
-      | true => simp [gateFrom, hc, hguard]
-      | false =>
-          simp only [gateFrom, hc, hguard]
-          apply foldl_blocks
-          intro acc b
-          apply foldl_blocks
           intro acc g
           rfl
 

@@ -633,5 +633,15 @@ def gridCO [LeasePolicy] (p : Params) : ProtocolSpec p.n where
   handles := handles p
   carries := carries
 
+private theorem proposalTime_eq_1_export : type_of% (@proposalTime.eq_1) := @proposalTime.eq_1
+private theorem gateTime_eq_1_export : type_of% (@gateTime.eq_1) := @gateTime.eq_1
+private theorem initial_eq_1_export : type_of% (@initial.eq_1) := @initial.eq_1
+private theorem blockKnown_eq_1_export : type_of% (@blockKnown.eq_1) := @blockKnown.eq_1
+private theorem votesAt_eq_1_export : type_of% (@votesAt.eq_1) := @votesAt.eq_1
+private theorem equivocates_eq_1_export : type_of% (@equivocates.eq_1) := @equivocates.eq_1
+private theorem writeObligation_eq_1_export : type_of% (@writeObligation.eq_1) :=
+  @writeObligation.eq_1
+private theorem excludes_eq_1_export : type_of% (@excludes.eq_1) := @excludes.eq_1
+
 end AvailableChain.GridCO
 end

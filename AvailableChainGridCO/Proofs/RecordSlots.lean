@@ -1,4 +1,5 @@
 module
+public import AvailableChainGridCO.Proofs.StoreFacts
 public import AvailableChainGridCO.Proofs.Stamps
 
 @[expose] public section
@@ -125,42 +126,6 @@ theorem confirmation_slot_le (p : Params) {n : Nat} (st : State n) (r : Slot)
   have hmajority := confirmation_majority p st r B hresult
   obtain ⟨target, ht, hslot, hprefix⟩ := prefixSupport_target p st r B (by omega)
   exact le_trans (slot_le_of_prefix B target (hordered target ht) hprefix) hslot
-
-/-- The GHOST walk returns its anchor or a member of its tree. This ports
-the source `Records.ghost_walk_mem` argument to the list-based walk. -/
-theorem ghostWalk_mem (tree : List Block) (score : Block → Nat)
-    (eligible : Block → Bool) (fuel : Nat) (anchor : Block) :
-    ghostWalk tree score eligible fuel anchor = anchor ∨
-      ghostWalk tree score eligible fuel anchor ∈ tree := by
-  induction fuel generalizing anchor with
-  | zero => exact Or.inl rfl
-  | succ fuel ih =>
-      simp only [ghostWalk]
-      cases hs : ghostStep tree score eligible anchor with
-      | none => exact Or.inl rfl
-      | some child =>
-          change ghostWalk tree score eligible fuel child = anchor ∨
-            ghostWalk tree score eligible fuel child ∈ tree
-          rcases ih child with he | hm
-          · apply Or.inr
-            rw [he]
-            exact (ghostStep_child tree score eligible anchor child hs).1
-          · exact Or.inr hm
-
-omit [LeasePolicy] in
-theorem confirmationFrom_mem (p : Params) {n : Nat} (a : Block) (st : State n)
-    (r : Slot) (B : Block) (hc : confirmationFrom p a st r = some B) :
-    B = a ∨ B ∈ st.blocks := by
-  unfold confirmationFrom at hc
-  dsimp only at hc
-  split at hc
-  · have he := Option.some.inj hc
-    rw [← he]
-    rcases ghostWalk_mem st.blocks.eraseDups _ _ st.blocks.eraseDups.length a
-      with hg | hm
-    · exact Or.inl hg
-    · exact Or.inr (List.mem_eraseDups.mp hm)
-  · contradiction
 
 theorem confirmation_mem (p : Params) {n : Nat} (st : State n) (r : Slot)
     (B : Block) (hc : confirmation p st r = some B) : B = .genesis ∨ B ∈ st.blocks :=

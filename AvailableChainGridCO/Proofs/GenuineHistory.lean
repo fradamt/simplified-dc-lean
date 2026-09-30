@@ -1,4 +1,5 @@
 module
+public import AvailableChainGridCO.Proofs.StoreFacts
 public import AvailableChainGridCO.Proofs.MergedViews
 public import AvailableChainGridCO.Proofs.Preservation
 public import AvailableChainGridCO.Proofs.HistoryInduction
@@ -13,40 +14,6 @@ set_option linter.unusedSectionVars false
 variable [LeasePolicy]
 
 open AvailableChain.Generic AvailableChain.Statements.Generic
-
-private theorem writeKeys_target_origin {n : Nat} (st : State n)
-    (keys : List (Block × Nat)) (limit : Time) (B : Block) (g : Nat) (d : Time)
-    (hm : (B, g, d) ∈ (writeKeys st keys limit).obligations) :
-    (∃ k deadline, (B, k, deadline) ∈ st.obligations) ∨ ∃ k, (B, k) ∈ keys := by
-  induction keys generalizing st with
-  | nil => exact Or.inl ⟨g, d, hm⟩
-  | cons key keys ih =>
-      rcases ih _ hm with ⟨k, deadline, hold⟩ | ⟨k, hk⟩
-      · rcases List.mem_append.mp hold with hold | hnew
-        · exact Or.inl ⟨k, deadline, (List.mem_filter.mp hold).1⟩
-        · have he : B = key.1 := congrArg Prod.fst (List.mem_singleton.mp hnew)
-          exact Or.inr ⟨key.2, List.mem_cons.mpr (Or.inl (by simp [he]))⟩
-      · exact Or.inr ⟨k, List.mem_cons_of_mem key hk⟩
-
-/-- An anchored gate can add only prefixes of its genuine result to the map. -/
-theorem gateFrom_target_origin (p : Params) {n : Nat} (a : Block) (st : State n)
-    (r : Slot) (B : Block) (g : Nat) (d : Time)
-    (hm : (B, g, d) ∈ (gateFrom p a st r).obligations) :
-    (∃ k deadline, (B, k, deadline) ∈ st.obligations) ∨
-      ∃ C, confirmationFrom p a st r = some C ∧ Block.Preceq B C := by
-  cases hc : confirmationFrom p a st r with
-  | none => exact Or.inl ⟨g, d, by simpa [gateFrom, hc] using hm⟩
-  | some C =>
-      by_cases hg : st.obligations.any (fun (target, _, _) => !Block.compatible target C) = true
-      · exact Or.inl ⟨g, d, by simpa [gateFrom, hc, hg] using hm⟩
-      · rw [gateFrom_eq_writeKeys p a st r C hc (Bool.eq_false_iff.mpr hg)] at hm
-        rcases writeKeys_target_origin _ _ _ B g d hm with hold | ⟨k, hk⟩
-        · exact Or.inl hold
-        · obtain ⟨A, hA, hmap⟩ := List.mem_flatMap.mp hk
-          obtain ⟨_, _, he⟩ := List.mem_map.mp hmap
-          have heA : A = B := congrArg Prod.fst he
-          subst A
-          exact Or.inr ⟨C, rfl, (Bool.and_eq_true_iff.mp (List.mem_filter.mp hA).2).2⟩
 
 /-- A gate can add only prefixes of its genuine result to the map. -/
 theorem gate_target_origin (p : Params) {n : Nat} (st : State n)

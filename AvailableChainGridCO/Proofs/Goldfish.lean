@@ -1,4 +1,5 @@
 module
+public import AvailableChainGridCO.Proofs.StoreFacts
 public import AvailableChainGridCO.Proofs.Basic
 
 @[expose] public section
@@ -17,115 +18,6 @@ theorem deadline_eq_release (p : Params) (r : Slot) :
     gateTime p r + lifetime p = releaseTime p (r + p.m) := by
   simp [gateTime, lifetime, releaseTime, proposalTime, Nat.cast_add]
   ring
-
-private theorem foldl_option_origin {α : Type}
-    (f : Option α → α → Option α)
-    (hchoose : ∀ acc x, f acc x = acc ∨ f acc x = some x)
-    (xs : List α) (acc : Option α) (b : α)
-    (hresult : xs.foldl f acc = some b) :
-    acc = some b ∨ b ∈ xs := by
-  induction xs generalizing acc with
-  | nil => exact Or.inl hresult
-  | cons x xs ih =>
-      rcases ih (f acc x) hresult with hfirst | htail
-      · rcases hchoose acc x with hkeep | htake
-        · exact Or.inl (hkeep.symm.trans hfirst)
-        · have heq : x = b := Option.some.inj (htake.symm.trans hfirst)
-          exact Or.inr (List.mem_cons.mpr (Or.inl heq.symm))
-      · exact Or.inr (List.mem_cons.mpr (Or.inr htail))
-
-/-- A successful GHOST step selects a stored eligible child of its anchor. -/
-theorem ghostStep_child (tree : List Block) (score : Block → Nat)
-    (eligible : Block → Bool) (anchor child : Block)
-    (hstep : ghostStep tree score eligible anchor = some child) :
-    child ∈ tree ∧ child.parent? = some anchor ∧ eligible child = true := by
-  let children := tree.filter (fun b => b.parent? == some anchor && eligible b)
-  let select : Option Block → Block → Option Block := fun best b =>
-    match best with
-    | none => some b
-    | some old =>
-        if score old < score b || (score old == score b && old.root < b.root)
-        then some b else best
-  have hchoose : ∀ best b, select best b = best ∨ select best b = some b := by
-    intro best b
-    cases best with
-    | none => exact Or.inr rfl
-    | some old =>
-        simp only [select]
-        split
-        · exact Or.inr rfl
-        · exact Or.inl rfl
-  let best := children.foldl select none
-  change (match best with
-    | none => none
-    | some b =>
-      if children.any (fun c => c != b && score c == score b && c.root == b.root)
-      then none else some b) = some child at hstep
-  cases hbest : best with
-  | none => simp [hbest] at hstep
-  | some b =>
-      have hb : b ∈ children := by
-        rcases foldl_option_origin select hchoose children none b hbest with
-          himpossible | hmem
-        · cases himpossible
-        · exact hmem
-      simp only [hbest] at hstep
-      split at hstep
-      · simp at hstep
-      · have hchild : b = child := Option.some.inj hstep
-        subst b
-        have hp := List.mem_filter.mp hb
-        have ⟨hparent, helig⟩ := Bool.and_eq_true_iff.mp hp.2
-        exact ⟨hp.1, by simpa using hparent, helig⟩
-
-private theorem preceq_trans (A B C : Block)
-    (hAB : Block.preceq A B = true)
-    (hBC : Block.preceq B C = true) :
-    Block.preceq A C = true := by
-  induction C with
-  | genesis =>
-      have h : B = .genesis := by simpa [Block.preceq] using hBC
-      subst B
-      exact hAB
-  | node parent slot root ih =>
-      have h : B = .node parent slot root ∨ Block.preceq B parent = true := by
-        simpa [Block.preceq, Bool.or_eq_true] using hBC
-      rcases h with h | h
-      · subst B
-        exact hAB
-      · have hAC := ih h
-        simp [Block.preceq, hAC]
-
-private theorem preceq_parent (anchor child : Block)
-    (hparent : child.parent? = some anchor) :
-    Block.preceq anchor child = true := by
-  cases child with
-  | genesis => simp [Block.parent?] at hparent
-  | node parent slot root =>
-      have h : parent = anchor := by simpa [Block.parent?] using hparent
-      subst parent
-      simp only [Block.preceq, Bool.or_eq_true]
-      exact Or.inr (block_preceq_self anchor)
-
-theorem ghostWalk_extends (tree : List Block) (score : Block → Nat)
-    (eligible : Block → Bool) (fuel : Nat) (anchor : Block) :
-    Block.preceq anchor (ghostWalk tree score eligible fuel anchor) = true := by
-  induction fuel generalizing anchor with
-  | zero => exact block_preceq_self anchor
-  | succ fuel ih =>
-      cases hstep : ghostStep tree score eligible anchor with
-      | none => simpa [ghostWalk, hstep] using! block_preceq_self anchor
-      | some child =>
-          have hchild := ghostStep_child tree score eligible anchor child hstep
-          have hpre := preceq_parent anchor child hchild.2.1
-          simpa [ghostWalk, hstep] using
-            preceq_trans anchor child (ghostWalk tree score eligible fuel child)
-              hpre (ih child)
-
-theorem ghost_extends (anchor : Block) (tree : List Block)
-    (score : Block → Nat) (eligible : Block → Bool) :
-    Block.preceq anchor (ghost anchor tree score eligible) = true := by
-  exact ghostWalk_extends tree.eraseDups score eligible tree.eraseDups.length anchor
 
 omit [LeasePolicy] in
 /-- An anchored genuine result extends its walk anchor. -/

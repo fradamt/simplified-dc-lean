@@ -1,8 +1,7 @@
 module
+public import AvailableChainGridCO.Proofs.StoreFacts
 public import AvailableChainFGSA.Model.Frame
 public import AvailableChainFGSA.Proofs.BlockAncestry
-public import AvailableChainGridCO.Proofs.Map
-public import AvailableChainGridCO.Proofs.History
 
 @[expose] public section
 

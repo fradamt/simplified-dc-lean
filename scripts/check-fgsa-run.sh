@@ -464,6 +464,7 @@ cat > "$neg/tree/AvailableChainFGSARun/Proofs/NegUse.lean" <<'LEAN'
 module
 public import AvailableChainFGSA.Proofs.StoreInv
 public import AvailableChainGridCO.Proofs.Map
+public import AvailableChainKit.Engine.EngineClock
 @[expose] public section
 namespace AvailableChain.FGSA.Run
 def negKitClock {n : Nat} (P : AvailableChain.Generic.ProtocolSpec n) : Type :=

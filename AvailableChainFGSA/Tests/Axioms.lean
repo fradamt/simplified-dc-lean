@@ -294,3 +294,15 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 #print axioms AvailableChain.FGSA.propose_setEq
 #print axioms AvailableChain.GridCO.writeKeys_def
 #print axioms AvailableChain.GridCO.gateWriteKeys_def
+
+-- GridCO StoreFacts used by FGSA.
+#print axioms AvailableChain.GridCO.ghostStep_child
+#print axioms AvailableChain.GridCO.ghostWalk_mem
+#print axioms AvailableChain.GridCO.confirmationFrom_mem
+#print axioms AvailableChain.GridCO.gateFrom_target_origin
+#print axioms AvailableChain.GridCO.gateFrom_eq_writeKeys
+#print axioms AvailableChain.GridCO.admitVote_blocks
+#print axioms AvailableChain.GridCO.admitVote_obligations
+#print axioms AvailableChain.GridCO.gateFrom_blocks
+#print axioms AvailableChain.GridCO.admitVote_stable
+#print axioms AvailableChain.GridCO.genesis_prefix

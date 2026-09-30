@@ -61,11 +61,6 @@ B7-TESTS AvailableChainSA AvailableChainSA.Tests.Smoke
 B7-TESTS AvailableChainSAPC AvailableChainSAPC.Tests.Axioms
 B7-TESTS AvailableChainSAPC AvailableChainSAPC.Tests.CleanInvariantCounterexample
 B7-TESTS AvailableChainSAPC AvailableChainSAPC.Tests.Smoke
-FG-GRID AvailableChainFGSA.Proofs.Fields AvailableChainGridCO.Proofs.History
-FG-GRID AvailableChainFGSA.Proofs.Fields AvailableChainGridCO.Proofs.Map
-FG-GRID AvailableChainFGSA.Proofs.StoreInv AvailableChainGridCO.Proofs.GenuineHistory
-FG-GRID AvailableChainFGSA.Proofs.StoreInv AvailableChainGridCO.Proofs.RecordSlots
-FG-GRID AvailableChainFGSA.Proofs.StoreInv AvailableChainGridCO.Proofs.Roots
 TEST-SCOPE AvailableChainKitV2.Tests.Toy AvailableChainEngineV2.Conditions.Delivery
 TEST-SCOPE AvailableChainKitV2.Tests.Toy AvailableChainEngineV2.Laws.Outputs
 TEST-SCOPE AvailableChainKitV2.Tests.Toy AvailableChainEngineV2.Laws.SelfDelivery

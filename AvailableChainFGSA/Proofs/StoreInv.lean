@@ -1,10 +1,8 @@
 module
+public import AvailableChainGridCO.Proofs.StoreFacts
 public import AvailableChainFGSA.Statements.Store
 public import AvailableChainFGSA.Proofs.Admission
 public import AvailableChainFGSA.Proofs.Nesting
-public import AvailableChainGridCO.Proofs.RecordSlots
-public import AvailableChainGridCO.Proofs.GenuineHistory
-public import AvailableChainGridCO.Proofs.Roots
 
 @[expose] public section
 
