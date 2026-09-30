@@ -15,6 +15,7 @@ public import AvailableChainGeneric.Statements.AC.Lease
 public import AvailableChainGeneric.Proofs.Pure.FirstBad
 public import AvailableChainGeneric.Proofs.Pure.Schedule
 public import AvailableChainGeneric.Proofs.Pure.BlockOrder
+public import AvailableChainGeneric.Proofs.Pure.Quorum
 public import AvailableChainGeneric.Proofs.V2.Fields
 public import AvailableChainGeneric.Proofs.V2.Reads
 public import AvailableChainGeneric.Proofs.V2.Induction

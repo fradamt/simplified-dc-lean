@@ -15,6 +15,7 @@ public import AvailableChainGeneric.Statements.AC.Lease
 public import AvailableChainGeneric.Proofs.Pure.FirstBad
 public import AvailableChainGeneric.Proofs.Pure.Schedule
 public import AvailableChainGeneric.Proofs.Pure.BlockOrder
+public import AvailableChainGeneric.Proofs.Pure.Quorum
 public import AvailableChainGeneric.Proofs.V2.Fields
 public import AvailableChainGeneric.Proofs.V2.Reads
 public import AvailableChainGeneric.Proofs.V2.Induction
@@ -251,3 +252,7 @@ theorem, in facade order. The library globs build this test module. -/
 #print axioms AvailableChain.Gen.AC.pendingGate_harmless_statement
 #print axioms AvailableChain.Gen.AC.lease_chain
 #print axioms AvailableChain.Gen.AC.pendingGate_harmless
+
+-- Proofs/Pure/Quorum.lean
+#print axioms AvailableChain.Gen.Pure.count_rec
+#print axioms AvailableChain.Gen.Pure.count_clean
