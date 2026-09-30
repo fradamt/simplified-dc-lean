@@ -1,5 +1,7 @@
 module
 public import AvailableChainGeneric.Statements.Pure.Quorum
+public import AvailableChainGeneric.Statements.Pure.QuorumInter
+public import AvailableChainGeneric.Statements.Pure.SupportCounts
 public import AvailableChainGeneric.Statements.Pure.FirstBad
 public import AvailableChainGeneric.Statements.Pure.Schedule
 public import AvailableChainGeneric.Statements.Pure.Walk
@@ -23,6 +25,7 @@ public import AvailableChainGeneric.Proofs.Pure.Schedule
 public import AvailableChainGeneric.Proofs.Pure.BlockOrder
 public import AvailableChainGeneric.Proofs.Pure.Walk
 public import AvailableChainGeneric.Proofs.Pure.Quorum
+public import AvailableChainGeneric.Proofs.Pure.SupportCounts
 public import AvailableChainGeneric.Proofs.Pure.Fold
 public import AvailableChainGeneric.Proofs.Pure.Props
 public import AvailableChainGeneric.Proofs.V2.Fields

@@ -491,3 +491,17 @@ theorem AvailableChain.Gen.AC.CapPairStatement_def 2a79f83cee317a4a
 def AvailableChain.Gen.AC.BatchStatement a43eace6488382e3
 theorem AvailableChain.Gen.AC.BatchStatement_def d9c839bb3c6a24f1
 ```
+
+### `AvailableChainGeneric.Statements.Pure.QuorumInter`
+
+```text
+def AvailableChain.Gen.Pure.FaultXInterHonestStatement 70a213ef2f525312
+theorem AvailableChain.Gen.Pure.FaultXInterHonestStatement_def a9d4c80022e7c64c
+```
+
+### `AvailableChainGeneric.Statements.Pure.SupportCounts`
+
+```text
+def AvailableChain.Gen.Pure.TwoMajoritiesIntersectStatement b13b774ed3285246
+theorem AvailableChain.Gen.Pure.TwoMajoritiesIntersectStatement_def 000afeafe2351fbc
+```

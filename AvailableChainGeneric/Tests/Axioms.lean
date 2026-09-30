@@ -1,6 +1,8 @@
 module
 public import AvailableChainGeneric.Statements.V2.Slashing
 public import AvailableChainGeneric.Statements.Pure.Quorum
+public import AvailableChainGeneric.Statements.Pure.QuorumInter
+public import AvailableChainGeneric.Statements.Pure.SupportCounts
 public import AvailableChainGeneric.Statements.Pure.FirstBad
 public import AvailableChainGeneric.Statements.Pure.Schedule
 public import AvailableChainGeneric.Statements.Pure.Walk
@@ -23,6 +25,7 @@ public import AvailableChainGeneric.Proofs.Pure.Schedule
 public import AvailableChainGeneric.Proofs.Pure.BlockOrder
 public import AvailableChainGeneric.Proofs.Pure.Walk
 public import AvailableChainGeneric.Proofs.Pure.Quorum
+public import AvailableChainGeneric.Proofs.Pure.SupportCounts
 public import AvailableChainGeneric.Proofs.Pure.Fold
 public import AvailableChainGeneric.Proofs.Pure.Props
 public import AvailableChainGeneric.Proofs.V2.Fields
@@ -306,6 +309,16 @@ theorem, in facade order. The library globs build this test module. -/
 #print axioms AvailableChain.Gen.Pure.quorum_honest
 #print axioms AvailableChain.Gen.Pure.quorum_intersection
 #print axioms AvailableChain.Gen.Pure.quorum_inter_honest
+
+-- Statements/Pure/QuorumInter.lean and the unit-seat proofs.
+#print axioms AvailableChain.Gen.Pure.FaultXInterHonestStatement_def
+#print axioms AvailableChain.Gen.Pure.faultX_inter_honest_statement
+#print axioms AvailableChain.Gen.Pure.FaultX.inter_honest
+
+-- Statements/Pure/SupportCounts.lean and Proofs/Pure/SupportCounts.lean
+#print axioms AvailableChain.Gen.Pure.TwoMajoritiesIntersectStatement_def
+#print axioms AvailableChain.Gen.Pure.two_majorities_intersect_statement
+#print axioms AvailableChain.Gen.Pure.two_majorities_intersect
 
 -- Proofs/Pure/Fold.lean
 #print axioms AvailableChain.Gen.Pure.fold_field

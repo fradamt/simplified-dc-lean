@@ -1340,3 +1340,17 @@ The Tests targets are `AvailableChainFGSAClaimsTests`,
 `AvailableChainFGSAProofsTests`, and `AvailableChainFGSAInhabitTests`.
 The claim facade is `AvailableChainFGSAClaims/FGSAClaims.lean`.
 It holds the complete exported safety-claim aggregate.
+
+### A3 unit-seat count modules
+
+Paths omit `AvailableChainGeneric/` and `.lean`.
+
+```text
+┌───────────────────────────────┬───────────────────────────────────────┐
+│ Module                        │ Role                                  │
+├───────────────────────────────┼───────────────────────────────────────┤
+│ Statements/Pure/QuorumInter   │ Unit-seat honest quorum intersection  │
+│ Statements/Pure/SupportCounts │ Honest-origin and two-majority counts │
+│ Proofs/Pure/SupportCounts     │ Finite-seat majority count proofs     │
+└───────────────────────────────┴───────────────────────────────────────┘
+```
