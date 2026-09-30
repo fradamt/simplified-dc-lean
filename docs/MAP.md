@@ -1320,6 +1320,8 @@ unused imports, and negative controls. No baseline entries were added.
 │ .lean                                           │                                     │
 │ AvailableChainFGSAProofs/Proofs/Shared/Channels │ Channel equations and row ordering  │
 │ .lean                                           │                                     │
+│ AvailableChainFGSAProofs/Proofs/Clean/Action   │ Action step and frozen corollaries │
+│ .lean                                           │                                     │
 │ AvailableChainFGSAProofs/Proofs/Clean/Frame    │ Given-state Clean frame core        │
 │ .lean                                           │                                     │
 │ AvailableChainFGSAClaims/Claims/Foundations.lean │ Client safety; frozen K8 citation   │

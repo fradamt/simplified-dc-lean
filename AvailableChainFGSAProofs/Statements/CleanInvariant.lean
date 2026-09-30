@@ -172,6 +172,25 @@ def CleanFrameStmt (b₀ : Time) : Prop :=
         (FGBlock.Preceq st.fg.F (FGSA.controls p st).Z ∧
           FGBlock.Preceq (FGSA.controls p st).Z B ∧ B ∈ FGSA.fullTree p st))
 
+/-- P3 §8.7; bp02 §§3.3–3.4. Class B first-unfold equation.
+DC counterpart: none; FG-SA-specific frame bundle. -/
+theorem CleanFrameStmt_def (b₀ : Time) :
+    CleanFrameStmt p c E rho b₀ =
+      (
+  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
+  FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
+  ∀ i, i ≤ timeIdx rho b₀ → CleanHist p c E rho i →
+    ∀ v, v ∈ rho.honest →
+      let st := storeAt p c E rho i v
+      (FGSA.controls p st).contest = false ∧
+      BelowLabel p c E rho i (labelBoundAt p c rho i) (eraseFG (FGSA.controls p st).Z) ∧
+      (∀ B ∈ st.fg.TF,
+        BelowLabel p c E rho i (labelBoundAt p c rho i) (eraseFG B) →
+        Block.Preceq (eraseFG B) (eraseFG (FGSA.controls p st).Z) ∨
+        Block.Preceq (eraseFG B) (eraseFG st.fg.F) ∨
+        (FGBlock.Preceq st.fg.F (FGSA.controls p st).Z ∧
+          FGBlock.Preceq (FGSA.controls p st).Z B ∧ B ∈ FGSA.fullTree p st))) := by rfl
+
 /-- R-F2a: Gen.AGRule.fg takes only `∀ j < i, GT j`.
 Gen.Pure.AGRule.holds gives both conclusions at every index once this
 instance is proved. There is no same-index GT premise in the FG step. -/
