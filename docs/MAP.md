@@ -1370,3 +1370,17 @@ Paths omit `AvailableChainGeneric/` and `.lean`.
 │ Tests/Support               │ Concrete finite-set honest-origin count     │
 └─────────────────────────────┴─────────────────────────────────────────────┘
 ```
+
+## B2 Gen lease windows (G26)
+
+Paths omit `AvailableChainGeneric/` and `.lean`.
+
+```text
+┌───────────────────────────┬───────────────────────────────────────────────────────┐
+│ Module                    │ Role                                                  │
+├───────────────────────────┼───────────────────────────────────────────────────────┤
+│ Statements/AC/LeaseWindow │ Slow-window conflict and threshold expiry contracts   │
+│ Proofs/AC/Lease           │ Slow-window contradiction and threshold expiry proofs │
+│ Tests/LeaseWindow         │ Gen live-row adapter and boundary checks              │
+└───────────────────────────┴───────────────────────────────────────────────────────┘
+```

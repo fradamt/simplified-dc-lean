@@ -17,6 +17,7 @@ public import AvailableChainGeneric.Statements.V2.Linked
 public import AvailableChainGeneric.Statements.V2.Signatures
 public import AvailableChainGeneric.Statements.AC.Reads
 public import AvailableChainGeneric.Statements.AC.Lease
+public import AvailableChainGeneric.Statements.AC.LeaseWindow
 public import AvailableChainGeneric.Statements.AC.History
 public import AvailableChainGeneric.Statements.AC.Transfer
 public import AvailableChainGeneric.Statements.AC.Votes

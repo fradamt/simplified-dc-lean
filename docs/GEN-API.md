@@ -523,3 +523,12 @@ theorem AvailableChain.Gen.AC.VoterCountLeOfSeatsSubsetStatement_def 7029677e43a
 def AvailableChain.Gen.Pure.HonestOriginOfCountStatement b90084bf6382c94d
 theorem AvailableChain.Gen.Pure.HonestOriginOfCountStatement_def 7590cf1650656970
 ```
+
+### `AvailableChainGeneric.Statements.AC.LeaseWindow`
+
+```text
+def AvailableChain.Gen.AC.SlowWindowConflictAbsurdStatement 0bf60151901c729a
+theorem AvailableChain.Gen.AC.SlowWindowConflictAbsurdStatement_def c300da53046dea8e
+def AvailableChain.Gen.AC.ExpireByThresholdStatement fd661a182a71632b
+theorem AvailableChain.Gen.AC.ExpireByThresholdStatement_def 3798a2e9c79cf96c
+```

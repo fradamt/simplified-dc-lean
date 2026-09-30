@@ -440,3 +440,13 @@ theorem, in facade order. The library globs build this test module. -/
 #print axioms AvailableChain.Gen.AC.score_eq_on
 #print axioms AvailableChain.Gen.AC.transfer_statement
 #print axioms AvailableChain.Gen.AC.transfer
+
+-- Statements/AC/LeaseWindow.lean
+#print axioms AvailableChain.Gen.AC.SlowWindowConflictAbsurdStatement_def
+#print axioms AvailableChain.Gen.AC.ExpireByThresholdStatement_def
+
+-- Proofs/AC/Lease.lean (G26)
+#print axioms AvailableChain.Gen.AC.slow_window_conflict_absurd_statement
+#print axioms AvailableChain.Gen.AC.slow_window_conflict_absurd
+#print axioms AvailableChain.Gen.AC.expire_by_threshold_statement
+#print axioms AvailableChain.Gen.AC.expire_by_threshold
