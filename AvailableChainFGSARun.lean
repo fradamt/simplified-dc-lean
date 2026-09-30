@@ -14,3 +14,4 @@ public import AvailableChainFGSARun.Proofs.Acceptance
 public import AvailableChainFGSARun.Proofs.Emission
 public import AvailableChainFGSARun.Statements.Client
 public import AvailableChainFGSARun.Proofs.ClientTrace
+public import AvailableChainFGSARun.Proofs.Schedule

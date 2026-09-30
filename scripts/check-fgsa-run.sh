@@ -53,7 +53,32 @@ AX_OPTS=(--expect Run.fgsa Run.fgsaFamilies Run.fgsaIso Run.toWireEquiv Run.duti
   Run.EmittedRowsNoSlash Run.decodeRowObject Run.fgClientEvent
   Run.fgClientEvents Run.fgsa_tick_rows_of_seats Run.fgsa_client_trace_of_seats
   Run.fgsa_linked_seats Run.fgsa_ownSeats_bijSeat Run.fgsa_decode_attest_object
-  Run.fgsa_client_trace Run.emittedRowsNoSlash)
+  Run.fgsa_client_trace Run.emittedRowsNoSlash
+  Run.fgsa_tick_time_strict
+  Run.fgsa_tick_unique
+  Run.fgsa_tick_total
+  Run.fgsa_tick_before_delivery
+  Run.fgsa_postClock_slot
+  Run.fgsa_proposal_slot
+  Run.fgsa_vote_slot
+  Run.fgsa_action_slot_round
+  Run.fgsa_gate_slot
+  Run.fgsa_saved_label_origin
+  Run.fgsa_gate_fresh
+  Run.fgsa_gate_clock_bridge
+  Run.fgsa_stateBefore_bounds
+  Run.fgsa_preTick_now_lt
+  Run.fgsa_release_votes_stamped
+  Run.fgsa_vote_stamp_keys
+  Run.fgsa_release_clockPre
+  Run.fgsa_release_input_votes_stamped
+  Run.fgsa_stored_block_slots
+  Run.fgsa_release_count_bridge
+  Run.fgsa_action_gate_time
+  Run.fgsa_action_reads_gate
+  Run.fgsa_gate_saved_result
+  Run.fgsa_stored_block_origin
+  Run.fgsa_preTick_eq_timeRead)
 
 # Remove comments (the tokenizer of scripts/check-fgsa.sh): strings, character
 # literals, raw strings (r"...", r#"..."#) and nested block comments. A "--"

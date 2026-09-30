@@ -11,6 +11,7 @@ public import AvailableChainFGSARun.Proofs.Acceptance
 public import AvailableChainFGSARun.Proofs.Emission
 public import AvailableChainFGSARun.Statements.Client
 public import AvailableChainFGSARun.Proofs.ClientTrace
+public import AvailableChainFGSARun.Proofs.Schedule
 
 /-! Kernel dependency audit of the FG-SA run library (plan
 `docs/plans/2026-09-29-fgsa-composition-t7-t1.md`, T7.1): one `#print axioms`
@@ -198,3 +199,30 @@ mechanically. -/
 #print axioms AvailableChain.FGSA.Run.fgsa_decode_attest_object
 #print axioms AvailableChain.FGSA.Run.fgsa_client_trace
 #print axioms AvailableChain.FGSA.Run.emittedRowsNoSlash
+
+-- Schedule facts (T7.6)
+#print axioms AvailableChain.FGSA.Run.fgsa_tick_time_strict
+#print axioms AvailableChain.FGSA.Run.fgsa_tick_unique
+#print axioms AvailableChain.FGSA.Run.fgsa_tick_total
+#print axioms AvailableChain.FGSA.Run.fgsa_tick_before_delivery
+#print axioms AvailableChain.FGSA.Run.fgsa_postClock_slot
+#print axioms AvailableChain.FGSA.Run.fgsa_proposal_slot
+#print axioms AvailableChain.FGSA.Run.fgsa_vote_slot
+#print axioms AvailableChain.FGSA.Run.fgsa_action_slot_round
+#print axioms AvailableChain.FGSA.Run.fgsa_gate_slot
+#print axioms AvailableChain.FGSA.Run.fgsa_saved_label_origin
+#print axioms AvailableChain.FGSA.Run.fgsa_gate_fresh
+#print axioms AvailableChain.FGSA.Run.fgsa_gate_clock_bridge
+#print axioms AvailableChain.FGSA.Run.fgsa_stateBefore_bounds
+#print axioms AvailableChain.FGSA.Run.fgsa_preTick_now_lt
+#print axioms AvailableChain.FGSA.Run.fgsa_release_votes_stamped
+#print axioms AvailableChain.FGSA.Run.fgsa_vote_stamp_keys
+#print axioms AvailableChain.FGSA.Run.fgsa_release_clockPre
+#print axioms AvailableChain.FGSA.Run.fgsa_release_input_votes_stamped
+#print axioms AvailableChain.FGSA.Run.fgsa_stored_block_slots
+#print axioms AvailableChain.FGSA.Run.fgsa_release_count_bridge
+#print axioms AvailableChain.FGSA.Run.fgsa_action_gate_time
+#print axioms AvailableChain.FGSA.Run.fgsa_action_reads_gate
+#print axioms AvailableChain.FGSA.Run.fgsa_gate_saved_result
+#print axioms AvailableChain.FGSA.Run.fgsa_stored_block_origin
+#print axioms AvailableChain.FGSA.Run.fgsa_preTick_eq_timeRead
