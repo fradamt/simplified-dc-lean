@@ -396,6 +396,10 @@ def direct_ok(m, dep):
         'AvailableChainKitV2.', 'AvailableChainKitFG.', 'AvailableChainFGSA.Proofs.',
         'AvailableChainFGSARun.Proofs.', 'AvailableChainGeneric.Proofs.'))
 
+# O m4: the F2 constants are the declarations of Statements/CleanInvariant.
+F2_NAMES = set(re.findall(r"(?m)^(?:def|structure|abbrev|theorem)\s+([A-Za-z_][A-Za-z0-9_']*)",
+                          Path(PROOFS + '/Statements/CleanInvariant.lean').read_text()))
+
 def source_findings(m, raw):
     imports, body = L.read_header(raw)
     owner = next(x for x in LIBS if L.under(m, x))
@@ -412,12 +416,17 @@ def source_findings(m, raw):
             left, right = m[len(prefix):], dep[len(prefix):]
             if left not in ORDER or right not in ORDER or ORDER.index(right) >= ORDER.index(left):
                 findings.append(f'MODULE ORDER: {m} imports {dep}')
-        if dep == prefix + 'CleanInvariant' or dep.endswith('Internal'):
+        if dep in (prefix + 'CleanInvariant', PROOFS + '.Statements.CleanInvariant') or dep.endswith('Internal'):
             lane = 'Clean' if dep.endswith('CleanInvariant') else 'Finality'
             if not m.startswith(PROOFS + '.Proofs.' + lane + '.'):
                 findings.append(f'INTERNAL STATEMENT: {m} imports {dep}')
         if L.under(m, CLAIMS) and dep.startswith(PROOFS + '.Proofs.Clean.'):
             findings.append(f'CLEAN PROOF PATH: {m} imports {dep}')
+    if L.under(m, CLAIMS):
+        for tok in re.findall(r"[A-Za-z_][A-Za-z0-9_'.]*", C.strip(raw)):
+            last = tok.split('.')[-1]
+            if last in F2_NAMES and (tok == last or tok.endswith('Run.' + last)):
+                findings.append(f'F2 CONSTANT: {m} names {tok}')
     if m in LIBS and body:
         findings.append(f'B7-BODY: {m}')
     clean = C.strip(raw)
@@ -465,12 +474,13 @@ controls = (
     ('rightward-statement', CLAIMS + '.Statements.Reads', 'public import ' + CLAIMS + '.Statements.Counts\n', 'MODULE ORDER'),
     ('clean-proof-path', CLAIMS + '.Statements.Reads', 'public import ' + PROOFS + '.Proofs.Clean.Step\n', 'CLEAN PROOF PATH'),
     ('f2-constant-in-claim', CLAIMS + '.Claims.Clean',
-     'public import ' + PROOFS + '.Statements.CleanInvariant\n'
      'public section\n'
      'def fgsaF2Control : Prop := ∀ (p : AvailableChain.FGSA.Params) '
      '(c : AvailableChain.FGSA.Run.AppCodec Unit) (E : AvailableChain.Generic.Env Unit) '
      '(rho : AvailableChain.V2.Run Unit (AvailableChain.FGSA.Run.fgsa p c)), '
-     'AvailableChain.FGSA.Run.CleanHist p c E rho 0\n', 'CLAIMS'),
+     'AvailableChain.FGSA.Run.CleanHist p c E rho 0\n', 'F2 CONSTANT'),
+    ('clean-invariant-import', PROOFS + '.Proofs.Outage.Step',
+     'public import ' + PROOFS + '.Statements.CleanInvariant\n', 'INTERNAL STATEMENT'),
     ('claims-proof-import', CLAIMS + '.Claims.Clean', 'public import AvailableChainFGSARun.Proofs.ClientTrace\n', 'IMPORT NOT ALLOWED'),
     ('facade-tests', CLAIMS, 'public import ' + CLAIMS + '.Tests.Axioms\n', 'B7-TESTS'),
     ('cross-lane-proof', PROOFS + '.Proofs.Clean.Step', 'public import ' + PROOFS + '.Proofs.Outage.Step\n', 'LANE'),
@@ -482,6 +492,16 @@ for label, m, body, expected in controls:
     if not any(expected in f for f in hits):
         raise SystemExit(f'STOP: negative control passed: {label}: {hits}')
     print(f'{label}: rc 1, rejected as expected ({expected})', flush=True)
+
+# Positive twin of f2-constant-in-claim: the same Prop over a frozen Claims name passes.
+twin_hits = [f for f in source_findings(CLAIMS + '.Claims.Clean', 'module\npublic section\n'
+    'def fgsaF2Twin : Prop := ∀ (p : AvailableChain.FGSA.Params) '
+    '(c : AvailableChain.FGSA.Run.AppCodec Unit) (E : AvailableChain.Generic.Env Unit) '
+    '(rho : AvailableChain.V2.Run Unit (AvailableChain.FGSA.Run.fgsa p c)), '
+    'AvailableChain.FGSA.Run.CleanTruncAt p c E rho 0\n') if f.startswith('F2 CONSTANT')]
+if twin_hits:
+    raise SystemExit(f'STOP: F2 constant positive twin failed: {twin_hits}')
+print('f2-constant-twin: rc 0 (a frozen Claims name passes)', flush=True)
 
 # The seven home equation theorems must pass the same source policy.
 reads_path = Path(CLAIMS + '/Statements/Reads.lean')
