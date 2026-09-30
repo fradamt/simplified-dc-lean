@@ -29,9 +29,9 @@ FG-GRID            FGSA*/KitFG: GridCO proofs only StoreFacts BUILD:118-120,199-
 RUN                FGSARun import set                         BUILD:199-200
 CLAIMS             FGSAClaims statement-only import set       BUILD:201-203
 LANE               A proof lane imports only its allowed set SYN:106-114; BUILD:204-212
-SHARED             Shared imports no lane/Export/Assembly    SYN:106-114; BUILD:204-212
+SHARED             Shared imports no lane/Export/Assembly    SYN:106-114; BUILD:204-212; L42
 ASSEMBLY           Assembly joins lanes through Exports      SYN:112-114; BUILD:210-212
-CLAIM-USE          Claims/<F> only from matching lane Export SYN:112-114; BUILD:234-236
+CLAIM-USE          Claims/<F> only from matching lane Export SYN:112-114; BUILD:234-236; L42
 EXPORT-USE         Exports only from Assembly                SYN:112-114; BUILD:126-128
 INHABIT            FGSAInhabit import set                     BUILD:213
 TEST-USE           Nothing imports a test (facades: B7-TESTS) BUILD:214,241-243
@@ -105,6 +105,12 @@ WALK = "AvailableChainGridCO.Model.Walk"
 STORE_FACTS = "AvailableChainGridCO.Proofs.StoreFacts"
 FUTURE_LIBS = {GEN, RUN, CLAIMS, PROOFS, INHABIT, "AvailableChainCheckSupport"}
 BASELINE = Path("scripts/baselines/check-layers.txt")
+# L42 (SYN P10 amendment): the only modules outside a lane Export that may
+# import Claims/*. Exact module names, not prefixes. Statement-only assembly
+# (root, facade), audit (Tests.Axioms), claim -> claim implications (Shared).
+CLAIM_USE_EXEMPT = frozenset({CLAIMS, CLAIMS + ".FGSAClaims", CLAIMS + ".Tests.Axioms",
+                              PROOFS + ".Proofs.Shared.Claims"})
+SHARED_CLAIMS = PROOFS + ".Proofs.Shared.Claims"
 NAME_PART = r"(?:«[^»]+»|[^\W\d][\w'!?]*)"
 NAME = re.compile(NAME_PART + r"(?:\." + NAME_PART + r")*")
 Finding = tuple[str, str, str]
@@ -486,6 +492,8 @@ def shared(ctx: Context, m: Module, dep: str) -> bool:
     parts, target = proof_path(m.name), proof_path(dep)
     if not parts or parts[0] != "Shared":
         return False
+    if m.name == SHARED_CLAIMS and (claim_path(dep) or dep == CLAIMS + ".Claims"):
+        return False
     if target and target[0] not in {"Statements", "Model"}:
         return target[0] != "Shared"
     return not lane_upstream(ctx, dep)
@@ -503,6 +511,8 @@ def assembly(ctx: Context, m: Module, dep: str) -> bool:
 def claim_use(ctx: Context, m: Module, dep: str) -> bool:
     parts = claim_path(dep)
     if not parts and dep != CLAIMS + ".Claims":
+        return False
+    if m.name in CLAIM_USE_EXEMPT:
         return False
     return not (is_export(m.name) and len(parts) == 1 and proof_path(m.name) == (parts[0], "Export"))
 

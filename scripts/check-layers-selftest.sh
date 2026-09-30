@@ -208,6 +208,12 @@ with tempfile.TemporaryDirectory(prefix="check-layers-selftest-") as temporary:
             (X + ".Proofs.Leaf", "Mathlib.Tactic"),
             (X, X + ".Proofs.Helper"),
             (X + ".Control", "AvailableChainCheckSupportExtra.Helper"),
+            # L42: the exact modules that may import Claims/*.
+            (C, C + ".Claims.Clean"),
+            (C + ".FGSAClaims", C + ".Claims.Clean"),
+            (C + ".Tests.Axioms", C + ".Claims.Clean"),
+            (P + ".Proofs.Shared.Claims", C + ".Claims.Clean"),
+            (P + ".Proofs.Shared.Claims", C + ".Claims"),
         ]
         for index, (importer, dep) in enumerate(positives):
             root = temp / f"positive-{index}"
@@ -249,6 +255,15 @@ with tempfile.TemporaryDirectory(prefix="check-layers-selftest-") as temporary:
             (P + ".Assembly.Control", C + ".Claims.F1", "CLAIM-USE"),
             (I + ".Control", P + ".F1.Control", "INHABIT"),
             (P + ".Proofs.F5.Control", C + ".Statements.PhasesInternal", "PHASES"),
+            # L42 negatives: any other module that imports Claims/* is rejected;
+            # the Shared.Claims exception covers Claims/* only.
+            (C + ".Statements.Control", C + ".Claims.Clean", "CLAIM-USE"),
+            (C + ".FGSAClaims.Extra", C + ".Claims.Clean", "CLAIM-USE"),
+            (C + ".Tests.Control", C + ".Claims.Clean", "CLAIM-USE"),
+            (P + ".Proofs.Shared.Other", C + ".Claims.Clean", "CLAIM-USE"),
+            (P + ".Proofs.Shared.Other", C + ".Claims.Clean", "SHARED"),
+            (P + ".Shared.Claims", C + ".Claims.Clean", "CLAIM-USE"),
+            (P + ".Proofs.Shared.Claims", P + ".Proofs.F1.Helper", "SHARED"),
         ]
         for index, (importer, dep, rule) in enumerate(boundaries):
             root = temp / f"boundary-{index}"
