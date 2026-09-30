@@ -11,40 +11,26 @@ open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
 
-/-- The accepted certificate height at a store read: zero for genesis,
-otherwise `h_F` of a held carrier supplied by the store invariant.
-This selects an existing certificate; it adds no store field. -/
-noncomputable def fgsa_finheight (e : Nat) (x : V) : Nat :=
-  if (storeAt p c E rho e x).fg.F = .genesis then 0
-  else (derive p.E p.cfg
-    (Classical.choose (storeBundle_stateBefore E rho e x).cstore.fg.Fcar)).h_F
-
 /-- Strict R-XING (01 §1.3), the run form of `fg.finalLock.v2`.
-The held block can be outside the active view. Identity transport precedes
-application of `FaultX`. The proof also permits an earlier held read. -/
+The height is that of an accepted certificate: `h_F` of a carrier `K` held by
+`x` at `e` whose finalized checkpoint is the store's F (01:212). The claim holds
+for EVERY such carrier; one F can have carriers of different `h_F` (genesis at
+0 and at 1). The store invariant (`Fcar`) supplies one carrier. The held block
+can be outside the active view. Identity transport precedes `FaultX`. -/
 theorem fgsa_finalLock [Fintype V]
     (hL : V2.Linked (fgsaFamilies p c).linked rho)
     (hX : Gen.Pure.FaultX p.n (Gen.V2.faulty rho).card)
     (hU : V2.UnforgeableSignatures E rho)
     (hC : ∀ z ∈ rho.honest, EmittedRowsNoSlash p c E rho z)
     (x : V) (hx : x ∈ rho.honest) (e e' : Nat) (_hee : e ≤ e')
+    (K : FGBlock (Fin p.n)) (hKe : K ∈ (storeAt p c E rho e x).fg.TF)
+    (hKF : (derive p.E p.cfg K).F = (storeAt p c E rho e x).fg.F)
     (y : V) (W : FGBlock (Fin p.n)) (hW : HeldAt p c E rho e' y W)
-    (hh : fgsa_finheight p c E rho e x < hOf p.E p.cfg W) :
+    (hheight : (derive p.E p.cfg K).h_F < hOf p.E p.cfg W) :
     FGBlock.Preceq (storeAt p c E rho e x).fg.F W := by
   classical
-  by_cases hg : (storeAt p c E rho e x).fg.F = .genesis
-  · rw [hg]
-    exact KitFG.genesis_preceq W
-  let hc := (storeBundle_stateBefore E rho e x).cstore.fg.Fcar
-  let K := Classical.choose hc
-  have hK := Classical.choose_spec hc
-  change K ∈ (storeAt p c E rho e x).fg.TF ∧
-    (derive p.E p.cfg K).F = (storeAt p c E rho e x).fg.F at hK
-  have hheight : (derive p.E p.cfg K).h_F < (derive p.E p.cfg W).h := by
-    change (if (storeAt p c E rho e x).fg.F = .genesis then 0
-      else (derive p.E p.cfg K).h_F) < (derive p.E p.cfg W).h at hh
-    rw [ite_eq_right hg] at hh
-    exact hh
+  have hK : K ∈ (storeAt p c E rho e x).fg.TF ∧
+      (derive p.E p.cfg K).F = (storeAt p c E rho e x).fg.F := ⟨hKe, hKF⟩
   rcases KitFG.slashableWeight_or_finalized_preceq p.E p.cfg K W hheight with hev | hF
   · obtain ⟨S, hw, hs⟩ := hev
     have hcard := Gen.V2.linked_card_le_of_holders hL (S.image Fin.val)
@@ -101,10 +87,13 @@ theorem fgsa_finalLock_erased [Fintype V]
     (hU : V2.UnforgeableSignatures E rho)
     (hC : ∀ z ∈ rho.honest, EmittedRowsNoSlash p c E rho z)
     (x : V) (hx : x ∈ rho.honest) (e e' : Nat) (hee : e ≤ e')
+    (K : FGBlock (Fin p.n)) (hKe : K ∈ (storeAt p c E rho e x).fg.TF)
+    (hKF : (derive p.E p.cfg K).F = (storeAt p c E rho e x).fg.F)
     (y : V) (W : FGBlock (Fin p.n)) (hW : HeldAt p c E rho e' y W)
-    (hh : fgsa_finheight p c E rho e x < hOf p.E p.cfg W) :
+    (hheight : (derive p.E p.cfg K).h_F < hOf p.E p.cfg W) :
     Block.Preceq (eraseFG (storeAt p c E rho e x).fg.F) (eraseFG W) :=
-  eraseFG_preceq (fgsa_finalLock p c E rho hL hX hU hC x hx e e' hee y W hW hh)
+  eraseFG_preceq
+    (fgsa_finalLock p c E rho hL hX hU hC x hx e e' hee K hKe hKF y W hW hheight)
 
 end AvailableChain.FGSA.Run
 end
