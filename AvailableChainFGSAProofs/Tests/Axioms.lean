@@ -6,6 +6,7 @@ public import AvailableChainFGSAProofs.Proofs.Foundations.Store -- shake: keep (
 public import AvailableChainFGSAProofs.Proofs.Foundations.Certificates -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Leases -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Client -- shake: keep (axiom audit commands)
+public import AvailableChainFGSAProofs.Proofs.Shared.Gate -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Claims -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Sources -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Regimes -- shake: keep (axiom audit commands)
@@ -119,3 +120,6 @@ public import AvailableChainFGSAProofs.Proofs.Shared.Reads -- shake: keep (axiom
 #print axioms AvailableChain.FGSA.Run.fgsa_accountable
 #print axioms AvailableChain.FGSA.Run.fgsa_finalLock_ev
 #print axioms AvailableChain.FGSA.Run.fgsa_finalizedSafety
+#print axioms AvailableChain.FGSA.Run.fgsa_gate_of_coveringBatch
+#print axioms AvailableChain.FGSA.Run.fgsa_S_eq_of_exact
+#print axioms AvailableChain.FGSA.Run.openingSource_extends_served

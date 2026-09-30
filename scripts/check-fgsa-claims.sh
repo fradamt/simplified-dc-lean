@@ -81,6 +81,9 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.sourceDiscipline_emittedName',
     'AvailableChain.FGSA.Run.sourceDiscipline_base',
 
+    'AvailableChain.FGSA.Run.fgsa_gate_of_coveringBatch',
+    'AvailableChain.FGSA.Run.fgsa_S_eq_of_exact',
+    'AvailableChain.FGSA.Run.openingSource_extends_served',
     'AvailableChain.FGSA.Run.RCarrierView',
     'AvailableChain.FGSA.Run.RCarrierView_def',
     'AvailableChain.FGSA.Run.RFrame',

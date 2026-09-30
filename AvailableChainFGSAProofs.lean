@@ -16,3 +16,4 @@ public import AvailableChainFGSAProofs.Proofs.Foundations.Carrier
 public import AvailableChainFGSAProofs.Proofs.Foundations.Crossing
 public import AvailableChainFGSAProofs.Proofs.Foundations.Accountable
 public import AvailableChainFGSAProofs.Proofs.Foundations.FinalizedSafety
+public import AvailableChainFGSAProofs.Proofs.Shared.Gate
