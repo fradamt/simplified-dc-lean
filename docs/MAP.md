@@ -1414,4 +1414,16 @@ All-run carriage follows from ExecutionValid, as in DC AdmissibleCore.
 │ Accountable.lean    │ carried_rows_carriage; proposalRows_source; store_wire_origin                    │
 │ Accountable.lean    │ FGSASlashableBound_def                                                           │
 └─────────────────────┴──────────────────────────────────────────────────────────────────────────────────┘
+### A3 unit-seat count modules
+
+Paths omit `AvailableChainGeneric/` and `.lean`.
+
+```text
+┌───────────────────────────────┬───────────────────────────────────────┐
+│ Module                        │ Role                                  │
+├───────────────────────────────┼───────────────────────────────────────┤
+│ Statements/Pure/QuorumInter   │ Unit-seat honest quorum intersection  │
+│ Statements/Pure/SupportCounts │ Honest-origin and two-majority counts │
+│ Proofs/Pure/SupportCounts     │ Finite-seat majority count proofs     │
+└───────────────────────────────┴───────────────────────────────────────┘
 ```
