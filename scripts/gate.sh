@@ -7,14 +7,15 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 source scripts/gate-common.sh
 gate_args=("$@")
-tier=auto; base=
-usage() { echo "usage: bash scripts/gate.sh [--tier merge|full|auto] [--base <ref>] [--jobs N]"; }
+tier=auto; base=; critical_path=0
+usage() { echo "usage: bash scripts/gate.sh [--tier merge|full|auto] [--base <ref>] [--jobs N] | --critical-path"; }
 while [ $# -gt 0 ]; do
   case "$1" in
     --tier|--base|--jobs)
       [ $# -ge 2 ] || { usage >&2; exit 2; }
       case "$1" in --tier) tier=$2 ;; --base) base=$2 ;; --jobs) JOBS=$2 ;; esac
       shift 2 ;;
+    --critical-path) critical_path=1; shift ;;
     --help|-h) usage; exit 0 ;;
     *) usage >&2; exit 2 ;;
   esac
@@ -41,6 +42,13 @@ if [ "$(uname -s)" = Linux ]; then
   else
     memory_limit="$memory_limit, swap=0"
   fi
+fi
+# BUILD §7.7: the critical-path measurement is separate from the tiers (freeze gates and
+# weekly). It runs in the same memory scope; the caller holds the NUC lock.
+if [ "$critical_path" = 1 ]; then
+  [ "$(uname -s)" = Linux ] || { echo "gate.sh --critical-path: NUC (Linux) only" >&2; exit 2; }
+  echo "critical-path: memory=$memory_limit"
+  exec bash scripts/critical-path.sh
 fi
 mkdir -p .lake
 GATE_SLOT_DIR=$(mktemp -d "$PWD/.lake/gate-slots.XXXXXX")
