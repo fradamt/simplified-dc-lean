@@ -10,7 +10,8 @@ Run from the repository root on the built tree:
   lake env lean --run scripts/CheckGenFirst.lean --libraries
 
 The scope comes from the lean_lib tables in lakefile.toml: all FGSA*
-libraries, Shared and Claims if present, and KitFG. Import each source
+libraries, Shared and Claims if present, and KitFG; each library gives its
+modules through its roots and globs (not through its name). Import each source
 module, including modules absent from its facade. Extra modules are roots
 for controls; they must be in scope. Missing compiled modules are errors.
 Load private module data too: an unexposed theorem still has a proof to check.
@@ -44,6 +45,19 @@ def tomlString (v : Lake.Toml.Value) : IO String :=
   | .string _ s => pure s
   | _ => throw <| IO.userError "lakefile.toml: expected a string"
 
+def tomlStrings (v? : Option Lake.Toml.Value) : IO (Option (Array String)) :=
+  match v? with
+  | none => pure none
+  | some (.array _ vs) => some <$> vs.mapM tomlString
+  | some _ => throw <| IO.userError "lakefile.toml: expected an array of strings"
+
+def moduleDir (srcDir : System.FilePath) (m : Name) : System.FilePath :=
+  m.components.foldl (fun d c => d / c.toString) srcDir
+
+/-- A library is in scope by its name; its modules come from its `roots` (default: the
+name) and the stems of its `globs`, never from the name. A Tests target such as
+`AvailableChainFGSAClaimsTests` (roots `[]`, globs `AvailableChainFGSAClaims.Tests.+`)
+adds module prefixes of its owner, not a prefix of its own name. -/
 def scopedModules : IO (Array Name × Array Name) := do
   let path := "lakefile.toml"
   let input ← IO.FS.readFile path
@@ -58,19 +72,31 @@ def scopedModules : IO (Array Name × Array Name) := do
     let some n := library.find? `name | continue
     let name ← tomlString n
     unless inScope name do continue
-    libs := libs.push name.toName
-    roots := roots.push name.toName
     let srcDir ← match library.find? `srcDir with
       | some v => System.FilePath.mk <$> tomlString v
       | none => pure "."
-    let dir := srcDir / name
-    unless ← dir.isDir do continue
-    for file in ← dir.walkDir do
-      unless file.extension.map String.toLower == some "lean" do continue
-      let parts := (file.withExtension "").components.drop srcDir.components.length
-      roots := roots.push (parts.foldl Name.str .anonymous)
+    let rootNames := (← tomlStrings (library.find? `roots)).getD #[name]
+    let globs := (← tomlStrings (library.find? `globs)).getD #[]
+    -- Each root and each glob stem is a module prefix; scan every source file under it
+    -- (also modules that the library's facade or globs do not build).
+    let stems := rootNames ++ globs.map fun g =>
+      if g.endsWith ".*" || g.endsWith ".+" then String.ofList (g.toList.take (g.length - 2)) else g
+    for r in rootNames do
+      roots := roots.push r.toName
+    for stem in stems do
+      let p := stem.toName
+      libs := libs.push p
+      if ← (moduleDir srcDir p |>.addExtension "lean").pathExists then
+        roots := roots.push p
+      let dir := moduleDir srcDir p
+      unless ← dir.isDir do continue
+      for file in ← dir.walkDir do
+        unless file.extension.map String.toLower == some "lean" do continue
+        let parts := (file.withExtension "").components.drop srcDir.components.length
+        roots := roots.push (parts.foldl Name.str .anonymous)
   if libs.isEmpty then throw <| IO.userError "lakefile.toml: no GEN-FIRST libraries"
-  return (libs.qsort Name.lt, (Std.HashSet.ofList roots.toList).toArray.qsort Name.lt)
+  return ((Std.HashSet.ofList libs.toList).toArray.qsort Name.lt,
+    (Std.HashSet.ofList roots.toList).toArray.qsort Name.lt)
 
 def generatedInstance (env : Environment) (n : Name) : Bool :=
   if Meta.isInstanceCore env n then
