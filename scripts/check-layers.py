@@ -32,6 +32,9 @@ LANE               A proof lane imports only its allowed set SYN:106-114; BUILD:
 SHARED             Shared imports no lane/Export/Assembly    SYN:106-114; BUILD:204-212; L42
 ASSEMBLY           Assembly joins lanes through Exports      SYN:112-114; BUILD:210-212
 CLAIM-USE          Claims/<F> only from matching lane Export SYN:112-114; BUILD:234-236; L42
+LANE-CLAIMS        A lane module other than its Export reaches R-F1 D6 (fgsa-lean
+                   no Claims/* or Shared.Claims, directly    2026-09-30); R5-66
+                   or transitively
 EXPORT-USE         Exports only from Assembly                SYN:112-114; BUILD:126-128
 INHABIT            FGSAInhabit import set                     BUILD:213
 TEST-USE           Nothing imports a test (facades: B7-TESTS) BUILD:214,241-243
@@ -70,7 +73,12 @@ Readings used where sources differ:
   B7-BODY and B7-GLOBS use <body:token> and <globs:Lib.*> in the target
   column because these two findings have no imported module.
 
-This is a direct-import check, not a Lean parser/elaborator or an unused-
+LANE-CLAIMS is the one transitive rule: the finding names the direct import
+through which the importer reaches Claims/* or Shared.Claims (a missing
+module is a leaf). Exports, Assembly, Shared.Claims (claim-to-claim
+implications only, R5-66), Tests and facades are outside its scope.
+
+Apart from LANE-CLAIMS, this is a direct-import check, not a Lean parser/elaborator or an unused-
 import check (BUILD check (f)). It does not inspect declaration bodies,
 axioms, equation lemmas, closureRoots, or proof/definition content.
 """
@@ -78,7 +86,7 @@ axioms, equation lemmas, closureRoots, or proof/definition content.
 from __future__ import annotations
 
 import argparse
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import os
 from pathlib import Path
 import re
@@ -212,6 +220,7 @@ class Context:
     locked: set[str]
     locked_prefixes: tuple[str, ...]
     importers: dict[str, set[str]]
+    claims_reach: dict[str, bool] = field(default_factory=dict)
 
 
 def lean_files(directory: Path) -> Iterator[Path]:
@@ -523,6 +532,27 @@ def claim_use(ctx: Context, m: Module, dep: str) -> bool:
     return not (is_export(m.name) and len(parts) == 1 and proof_path(m.name) == (parts[0], "Export"))
 
 
+def claims_target(dep: str) -> bool:
+    return bool(claim_path(dep)) or dep in {CLAIMS + ".Claims", SHARED_CLAIMS}
+
+
+def reaches_claims(ctx: Context, dep: str) -> bool:
+    memo = ctx.claims_reach
+    if dep not in memo:
+        memo[dep] = False  # Lean imports are acyclic; this only stops a bad fixture.
+        memo[dep] = claims_target(dep) or (
+            dep in ctx.modules and any(reaches_claims(ctx, d) for d in ctx.modules[dep].imports))
+    return memo[dep]
+
+
+def lane_claims(ctx: Context, m: Module, dep: str) -> bool:
+    parts = proof_path(m.name)
+    if (not parts or parts[0] in {"Shared", "Assembly", "Statements", "Model", "Tests"}
+            or m.facade or is_test(m.name) or is_export(m.name)):
+        return False
+    return reaches_claims(ctx, dep)
+
+
 def export_use(ctx: Context, m: Module, dep: str) -> bool:
     parts = proof_path(m.name)
     return is_export(dep) and not (len(parts) >= 2 and parts[0] == "Assembly")
@@ -564,7 +594,8 @@ EDGE_RULES: dict[str, Callable[[Context, Module, str], bool]] = {
     "GLY-KITFG-DEF": gly_kitfg_def, "GLY-KITFG-PROOF": gly_kitfg_proof,
     "GLY-LOCKED": gly_locked, "GLY-NOGEN": gly_nogen, "GLY-WALK": gly_walk,
     "FG-GRID": fg_grid, "RUN": run, "CLAIMS": claims, "LANE": lane,
-    "SHARED": shared, "ASSEMBLY": assembly, "CLAIM-USE": claim_use, "EXPORT-USE": export_use,
+    "SHARED": shared, "ASSEMBLY": assembly, "CLAIM-USE": claim_use,
+    "LANE-CLAIMS": lane_claims, "EXPORT-USE": export_use,
     "INHABIT": inhabit, "TEST-USE": test_use, "TEST-SCOPE": test_scope,
     "PHASES": phases, "CHECK-SUPPORT": check_support,
 }

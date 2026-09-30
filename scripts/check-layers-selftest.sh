@@ -68,6 +68,7 @@ controls = {
     "SHARED": (P + ".Proofs.Shared.Control", P + ".Proofs.F1.Helper"),
     "ASSEMBLY": (P + ".Proofs.Assembly.Control", P + ".Proofs.F1.Helper"),
     "CLAIM-USE": (X + ".Control", C + ".Claims.F1"),
+    "LANE-CLAIMS": (P + ".Proofs.F1.Control", P + ".Proofs.Shared.Claims"),
     "EXPORT-USE": (X + ".Control", P + ".Proofs.F1.Export"),
     "INHABIT": (I + ".Control", "AvailableChainFramework.Hooks"),
     "TEST-USE": (X + ".Proofs.Control", X + ".Tests.Helper"),
@@ -79,6 +80,7 @@ assert controls.keys() == rule_ids, (controls.keys() ^ rule_ids)
 
 config = tomllib.loads((repo / "lakefile.toml").read_text())
 lib_names = sorted({lib["name"] for lib in config["lean_lib"]} | api["FUTURE_LIBS"])
+tests_libs = {x + "Tests" for x in (C, P, I)}
 
 
 def put(root, relative, text):
@@ -99,7 +101,10 @@ def setup(root):
         support = name == "AvailableChainCheckSupport"
         suffix = ".+" if support else ".*"
         text += f'\n[[lean_lib]]\nname = {json.dumps(name)}\n'
-        text += f'globs = [{json.dumps(name + suffix)}]\n'
+        if name in tests_libs:  # F0.0b Tests targets: submodules of the owner.
+            text += f'roots = []\nglobs = [{json.dumps(name.removesuffix("Tests") + ".Tests.+")}]\n'
+        else:
+            text += f'globs = [{json.dumps(name + suffix)}]\n'
         if support:
             text += 'srcDir = "scripts"\n'
     put(root, "lakefile.toml", text)
@@ -214,6 +219,11 @@ with tempfile.TemporaryDirectory(prefix="check-layers-selftest-") as temporary:
             (C + ".Tests.Axioms", C + ".Claims.Clean"),
             (P + ".Proofs.Shared.Claims", C + ".Claims.Clean"),
             (P + ".Proofs.Shared.Claims", C + ".Claims"),
+            # R-F1 D6: the modules that may import Shared.Claims.
+            (P + ".Proofs.F1.Export", P + ".Proofs.Shared.Claims"),
+            (P + ".Proofs.Assembly.Control", P + ".Proofs.Shared.Claims"),
+            (P + ".Tests.Axioms", P + ".Proofs.Shared.Claims"),
+            (P, P + ".Proofs.Shared.Claims"),
         ]
         for index, (importer, dep) in enumerate(positives):
             root = temp / f"positive-{index}"
@@ -272,6 +282,25 @@ with tempfile.TemporaryDirectory(prefix="check-layers-selftest-") as temporary:
             result = run(root, 1)
             assert (rule, importer, dep) in result, (rule, result)
         print(f"PASS rule boundaries: {len(boundaries)} cases -> exit 1")
+
+        # R-F1 D6 is transitive: a lane helper that imports Shared.Claims
+        # taints every lane module that imports the helper.
+        root = temp / "lane-claims-transitive"
+        setup(root)
+        module(root, P + ".Proofs.F1.Helper", P + ".Proofs.Shared.Claims")
+        module(root, P + ".Proofs.F1.Control", P + ".Proofs.F1.Helper")
+        module(root, P + ".Proofs.F1.Export", P + ".Proofs.F1.Helper")
+        run(root, 1, {("LANE-CLAIMS", P + ".Proofs.F1.Helper", P + ".Proofs.Shared.Claims"),
+                      ("LANE-CLAIMS", P + ".Proofs.F1.Control", P + ".Proofs.F1.Helper")})
+        root = temp / "lane-claims-via-shared"
+        setup(root)
+        module(root, P + ".Proofs.Shared.Mid", P + ".Proofs.Shared.Claims")
+        module(root, P + ".F2.Control", P + ".Shared.Mid")
+        module(root, P + ".Shared.Mid", C + ".Claims.F2")
+        found = run(root, 1)
+        assert ("LANE-CLAIMS", P + ".F2.Control", P + ".Shared.Mid") in found, found
+        assert not any(f[0] == "LANE-CLAIMS" and f[1].startswith(P + ".Proofs.Shared") for f in found), found
+        print("PASS lane claims transitive: helper and importer rejected; Export and Shared exempt")
 
         root = temp / "test-tactic-leaf"
         setup(root)
