@@ -1349,6 +1349,10 @@ unused imports, and negative controls. No baseline entries were added.
 │ AvailableChainFGSAProofs/Proofs/Shared/Reads.lean │ Cut, gate values and index proofs   │
 │ AvailableChainFGSAProofs/Proofs/Shared/Release │ Active release laws and fault bound │
 │ .lean                                           │                                     │
+│ AvailableChainFGSAProofs/Proofs/Shared/Export   │ Frozen Release claim wrappers       │
+│ .lean                                           │ SYN L50 Shared export boundary      │
+│ AvailableChainFGSAProofs/Proofs/Assembly/Shared │ Shared exports for the package root │
+│ .lean                                           │ SYN L50 assembly boundary           │
 │ AvailableChainFGSAProofs/Proofs/Foundations/    │ Source discipline and source frame  │
 │ Sources.lean                                    │ K6; frozen F1.1 and F1.3 inputs     │
 │ AvailableChainFGSAProofs/Proofs/Foundations/    │ Timing interface producers          │
