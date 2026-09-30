@@ -412,3 +412,12 @@ def AvailableChain.Gen.V2.SeedAt 780753617390c751
 theorem AvailableChain.Gen.V2.SeedAt_def 69701b3a54d54510
 ```
 
+### `AvailableChainGeneric.Statements.V2.Signatures`
+
+```text
+def AvailableChain.Gen.V2.EmittedUniquePerLabelStatement c36c47f1e7214d31
+theorem AvailableChain.Gen.V2.EmittedUniquePerLabelStatement_def bffd654004ae0429
+def AvailableChain.Gen.V2.HonestUniquePerLabelStatement a9107be70e395855
+theorem AvailableChain.Gen.V2.HonestUniquePerLabelStatement_def 25dbc71e6280bc4c
+```
+

@@ -11,6 +11,7 @@ public import AvailableChainGeneric.Statements.V2.Interface
 public import AvailableChainGeneric.Statements.V2.Receipt
 public import AvailableChainGeneric.Statements.V2.Regimes
 public import AvailableChainGeneric.Statements.V2.Linked
+public import AvailableChainGeneric.Statements.V2.Signatures
 public import AvailableChainGeneric.Statements.AC.Reads
 public import AvailableChainGeneric.Statements.AC.Lease
 public import AvailableChainGeneric.Statements.AC.History
@@ -25,6 +26,7 @@ public import AvailableChainGeneric.Proofs.V2.Induction
 public import AvailableChainGeneric.Proofs.V2.Receipt
 public import AvailableChainGeneric.Proofs.V2.Regimes
 public import AvailableChainGeneric.Proofs.V2.Linked
+public import AvailableChainGeneric.Proofs.V2.Signatures
 public import AvailableChainGeneric.Proofs.AC.Output
 public import AvailableChainGeneric.Proofs.AC.Lease
 public import AvailableChainGeneric.Proofs.AC.History
@@ -301,3 +303,11 @@ theorem, in facade order. The library globs build this test module. -/
 #print axioms AvailableChain.Gen.V2.linked_holder_eq
 #print axioms AvailableChain.Gen.V2.linked_card_le_of_holders_statement
 #print axioms AvailableChain.Gen.V2.linked_card_le_of_holders
+
+-- Statements/V2/Signatures.lean and Proofs/V2/Signatures.lean
+#print axioms AvailableChain.Gen.V2.EmittedUniquePerLabelStatement_def
+#print axioms AvailableChain.Gen.V2.HonestUniquePerLabelStatement_def
+#print axioms AvailableChain.Gen.V2.emitted_unique_per_label_statement
+#print axioms AvailableChain.Gen.V2.emitted_unique_per_label
+#print axioms AvailableChain.Gen.V2.honest_unique_per_label_statement
+#print axioms AvailableChain.Gen.V2.honest_unique_per_label

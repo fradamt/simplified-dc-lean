@@ -937,8 +937,8 @@ layers. Its namespaces are `AvailableChain.Gen.Pure`, `.V2` and `.AC`.
 Statements expose definitions, closed `...Statement : Prop` declarations and
 `f_def` lemmas. Proofs do not expose proof bodies. Step 3 proves E-9; deferred
 walk and gate proofs remain. The facade `AvailableChainGeneric.lean` imports
-the 21 Statements and Proofs modules in the order below. Library globs build
-Tests; the facade excludes Tests. Paths omit `AvailableChainGeneric/` and `.lean`.
+the Statements and Proofs modules. The table below lists their main roles.
+Library globs build Tests; the facade excludes Tests. Paths omit `AvailableChainGeneric/` and `.lean`.
 
 ```text
 ┌──────────────────────────┬──────────────────────────────────────────────┐
@@ -956,6 +956,7 @@ Tests; the facade excludes Tests. Paths omit `AvailableChainGeneric/` and `.lean
 │ Statements/V2/Interface  │ FinalityInterface extends the v2 interface   │
 │ Statements/V2/Receipt    │ DeliveryWithin; E-9 statements PROVED        │
 │ Statements/V2/Regimes    │ Regime cores, LabelSync, LabelFacts, SeedAt  │
+│ Statements/V2/Signatures │ G12 emission and honest uniqueness           │
 │ Statements/AC/Reads      │ ACReads, ACLaws, gate and reconcile reads    │
 │ Proofs/Pure/FirstBad     │ Strong induction for the FirstBad rules      │
 │ Proofs/Pure/Schedule     │ Pattern, window and recurrence facts         │
@@ -965,6 +966,7 @@ Tests; the facade excludes Tests. Paths omit `AvailableChainGeneric/` and `.lean
 │ Proofs/V2/Induction      │ Invariant and interval lifts; kept_from_seed │
 │ Proofs/V2/Receipt        │ E-9 proofs; two DeliveryWithin producers     │
 │ Proofs/V2/Regimes        │ Six LabelSync and LabelFacts facts           │
+│ Proofs/V2/Signatures     │ G12 proofs; no receipt-window premise        │
 │ Proofs/AC/Output         │ output_step_of_restartFree                   │
 │ Tests/Axioms             │ Kernel axiom audit of every public theorem   │
 │ Tests/FoldRestart        │ Two special cases of the restart fold        │

@@ -11,6 +11,7 @@ public import AvailableChainGeneric.Statements.V2.Interface
 public import AvailableChainGeneric.Statements.V2.Receipt
 public import AvailableChainGeneric.Statements.V2.Regimes
 public import AvailableChainGeneric.Statements.V2.Linked
+public import AvailableChainGeneric.Statements.V2.Signatures
 public import AvailableChainGeneric.Statements.AC.Reads
 public import AvailableChainGeneric.Statements.AC.Lease
 public import AvailableChainGeneric.Statements.AC.History
@@ -25,6 +26,7 @@ public import AvailableChainGeneric.Proofs.V2.Induction
 public import AvailableChainGeneric.Proofs.V2.Receipt
 public import AvailableChainGeneric.Proofs.V2.Regimes
 public import AvailableChainGeneric.Proofs.V2.Linked
+public import AvailableChainGeneric.Proofs.V2.Signatures
 public import AvailableChainGeneric.Proofs.AC.Output
 public import AvailableChainGeneric.Proofs.AC.Lease
 public import AvailableChainGeneric.Proofs.AC.History
