@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSARun.Proofs.EmissionWellFormed
 public import AvailableChainFGSARun.Model.Protocol
 public import AvailableChainFGSARun.Model.Families
 public import AvailableChainFGSARun.Proofs.Protocol
@@ -269,3 +270,9 @@ mechanically. -/
 
 -- Content agreement (T7.11).
 #print axioms AvailableChain.FGSA.Run.contentAgree_run
+
+-- T7.9 Part B: row validity, proposal parent, wire check and application decoding.
+#print axioms AvailableChain.FGSA.Run.fgsa_emissionRowsValid
+#print axioms AvailableChain.FGSA.Run.fgsa_propose_parent_lt
+#print axioms AvailableChain.FGSA.Run.honest_emit_wellFormed
+#print axioms AvailableChain.FGSA.Run.decode_honest

@@ -1252,6 +1252,8 @@ the library glob builds Tests. It adapts the FG-SA store to engine v2.
 │ Proofs/Interface.lean           │ Proposal label injectivity            │
 │ Statements/Client.lean          │ Row safety and indexed client inputs  │
 │ Proofs/Emission.lean            │ Emission, decoding and restart fold   │
+│ Statements/Emission.lean        │ Wire check and input decoding Props   │
+│ Proofs/EmissionWellFormed.lean  │ Row validity and well-formed emission │
 │ Proofs/ClientTrace.lean         │ Linked client trace and no slashing   │
 │ Proofs/ClockLaws.lean           │ Base clock laws and restore premises  │
 │ Proofs/Reachable.lean           │ Run store bundle and proposal origins │
