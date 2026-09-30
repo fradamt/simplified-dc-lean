@@ -343,9 +343,13 @@ def AvailableChain.Gen.V2.HonestSlot 609c00845efe5768
 theorem AvailableChain.Gen.V2.HonestSlot_def 90ae4bd22be09caa
 def AvailableChain.Gen.V2.HoldsBefore 05c88a204ff8c588
 theorem AvailableChain.Gen.V2.HoldsBefore_def 3d54f870ba50a47c
+def AvailableChain.Gen.V2.MonoAlong 687a73d2e9109571
+theorem AvailableChain.Gen.V2.MonoAlong_def d552800e48aacdcd
 def AvailableChain.Gen.V2.Pending 146254f3313d45fe
 theorem AvailableChain.Gen.V2.Pending_def ab1e446f7d89302a
 def AvailableChain.Gen.V2.StateBeforeIdxBeforeStatement 945b4f02b4f41524
+def AvailableChain.Gen.V2.HoldsBeforeIffExistsIdxStatement 30f57f1d322513ff
+theorem AvailableChain.Gen.V2.HoldsBeforeIffExistsIdxStatement_def 4604dfd6f0748219
 ```
 
 ### `AvailableChainGeneric.Statements.V2.Receipt`

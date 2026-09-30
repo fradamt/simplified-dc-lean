@@ -34,7 +34,8 @@ AX_OPTS=(--expect Run.fgsa Run.fgsaFamilies Run.fgsaIso Run.toWireEquiv Run.duti
   Run.rowCount Run.rowExcl Run.rowExcl_iff Run.Epoch.weaken Run.decode_eq_vote
   Run.decode_eq_block Run.rowWire_decode
   Run.fgsaInterface Run.fgsaOutputs Run.finalizedOut Run.proposalTime_fgsa
-  Run.propLabel_injective Run.fgsaClock Run.fgsa_restore_now_eq Run.fgsa_hrestore_now
+  Run.propLabel_injective Run.fgsaClock Run.fgsa_monoAlong_preceq_F
+  Run.fgsa_restore_now_eq Run.fgsa_hrestore_now
   Run.fgsa_hrestore Run.fgsa_hrestore_field
   Run.reachable_stateBefore Run.reachable_stateBeforeTime Run.reachable_readAt
   Run.reachable_final Run.reachable_postClock Run.reachable_postTick

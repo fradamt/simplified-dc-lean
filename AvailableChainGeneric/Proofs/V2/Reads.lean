@@ -1,6 +1,6 @@
 module
 public import AvailableChainGeneric.Statements.V2.Reads
-public import AvailableChainKitV2.Execution
+public import AvailableChainKitV2.Stable
 
 public section
 
@@ -64,5 +64,42 @@ theorem index_lt_idxBefore_iff {V In : Type} {P : ProtocolSpec In}
     by_contra hn
     have hf := filter_false_of_index_ge hS q hdown (Nat.le_of_not_gt hn) hi
     simp [q, ht] at hf
+
+-- GLY r3.16 READS; S3d §2.9 J-10. The deadline cut is an event prefix.
+-- NoRestart and MonoAlong are used only from the index form to the state form.
+theorem holdsBefore_iff_exists_idx_statement : HoldsBeforeIffExistsIdxStatement := by
+  rw [HoldsBeforeIffExistsIdxStatement_def]
+  intro V inst In P E rho Q d x hNR hS hmono
+  rw [HoldsBefore_def, ← stateBefore_idxBefore E rho d hS]
+  have hlen : Run.idxBefore rho d ≤ rho.events.length := by
+    rw [Run.idxBefore_def]
+    exact List.length_filter_le ..
+  constructor
+  · intro hQ
+    refine ⟨Run.idxBefore rho d, hlen, ?_, hQ⟩
+    intro k hk
+    have hklen : k < rho.events.length := lt_of_lt_of_le hk hlen
+    have he := List.getElem?_eq_getElem hklen
+    exact ⟨rho.events[k], he, (index_lt_idxBefore_iff hS he d).mp hk⟩
+  · rintro ⟨i, hi, hbefore, hQ⟩
+    have hiCut : i ≤ Run.idxBefore rho d := by
+      by_contra hn
+      obtain ⟨e, he, ht⟩ := hbefore (Run.idxBefore rho d) (Nat.lt_of_not_ge hn)
+      exact (Nat.lt_irrefl _) ((index_lt_idxBefore_iff hS he d).mpr ht)
+    rw [MonoAlong_def] at hmono
+    exact stateBefore_stable Q hmono.1 hmono.2.1 hmono.2.2 E rho hiCut x
+      (hNR.restartFree x i (Run.idxBefore rho d)) hQ
+
+-- LINK; keep the closed Statement's binder names.
+set_option linter.unusedVariables false in
+theorem holdsBefore_iff_exists_idx
+    {V : Type} [DecidableEq V] {In : Type} {P : ProtocolSpec In}
+    {E : Generic.Env V} {rho : Run V P} {Q : P.State → Prop} {d : Time} {x : V}
+    (hNR : NoRestart rho) (hS : ScheduleWellFormed E rho) (hmono : MonoAlong Q) :
+    HoldsBefore E rho Q d x ↔
+      ∃ i ≤ rho.events.length,
+        (∀ k < i, ∃ e, rho.events[k]? = some e ∧ e.time < d) ∧
+        Q (Run.stateBefore E rho i x) :=
+  @holdsBefore_iff_exists_idx_statement V _ In P E rho Q d x hNR hS hmono
 
 end AvailableChain.Gen.V2

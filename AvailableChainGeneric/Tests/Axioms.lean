@@ -99,6 +99,8 @@ theorem, in facade order. The library globs build this test module. -/
 #print axioms AvailableChain.Gen.V2.pubFloor_def
 #print axioms AvailableChain.Gen.V2.HonestSlot_def
 #print axioms AvailableChain.Gen.V2.HoldsBefore_def
+#print axioms AvailableChain.Gen.V2.MonoAlong_def
+#print axioms AvailableChain.Gen.V2.HoldsBeforeIffExistsIdxStatement_def
 #print axioms AvailableChain.Gen.V2.Pending_def
 
 -- Statements/V2/Counts.lean
@@ -218,6 +220,8 @@ theorem, in facade order. The library globs build this test module. -/
 #print axioms AvailableChain.Gen.V2.pubFloor_le
 #print axioms AvailableChain.Gen.V2.publicTime_le_pubFloor
 #print axioms AvailableChain.Gen.V2.index_lt_idxBefore_iff
+#print axioms AvailableChain.Gen.V2.holdsBefore_iff_exists_idx_statement
+#print axioms AvailableChain.Gen.V2.holdsBefore_iff_exists_idx
 
 -- Proofs/V2/Induction.lean
 #print axioms AvailableChain.Gen.V2.invariant_triple

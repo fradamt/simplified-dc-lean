@@ -1,12 +1,15 @@
 module
 public import AvailableChainFGSARun.Proofs.Excludes
 public import AvailableChainKitV2.ClockLaws
+public import AvailableChainGeneric.Statements.V2.Reads
 
 public section
 
 /-! The base clock and the restore premises for FG-SA (plan T7.4). -/
 
 namespace AvailableChain.FGSA.Run
+
+open AvailableChain.SimplexFG
 
 variable (p : Params) {In : Type} (c : AppCodec In)
 
@@ -22,6 +25,19 @@ def fgsaClock : V2.Engine.ClockLaws (fgsa p c) where
 theorem fgsa_clock_now (nd : Node p) : (fgsaClock p c).now nd = nd.st.base.now := by
   change nd.st.base.now = nd.st.base.now
   rfl
+
+/-- [P3 r3.5.6 F0.2] An ancestor of F stays an ancestor through each local step. -/
+theorem fgsa_monoAlong_preceq_F (X : FGBlock (Fin p.n)) :
+    Gen.V2.MonoAlong (P := fgsa p c) (fun nd => FGBlock.Preceq X nd.st.fg.F) := by
+  rw [Gen.V2.MonoAlong_def]
+  refine ⟨?_, ?_, ?_⟩
+  · intro nd t h
+    change FGBlock.Preceq X (clock p nd.st t).fg.F
+    rwa [clock_F_eq]
+  · intro nd o h
+    exact KitFG.preceq_trans h (process_F_mono p nd.st (toWire p o))
+  · intro nd o h
+    exact h
 
 /-- Restore resets the base clock to zero, for every durable record. -/
 theorem fgsa_restore_now_eq :

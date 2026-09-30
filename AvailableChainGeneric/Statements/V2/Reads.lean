@@ -78,6 +78,24 @@ theorem HoldsBefore_def (E : Generic.Env V) (rho : Run V P) (Q : P.State → Pro
     HoldsBefore E rho Q d x = Q (AvailableChain.V2.Run.stateBeforeTime E rho d x) := by
   rw [HoldsBefore]
 
+-- GLY r3.16 READS; S3d §2.9 J-10 (a0-s3d-generic-forms-layout-r2.md:1000);
+-- P3 r3.5.6:1662–1667 (F0.2 acceptsFinalBefore_of_idx).
+-- A tick runs clock, then recordOwn. These local laws have no run argument
+-- and impose no law on restore.
+def MonoAlong (Q : P.State → Prop) : Prop :=
+  (∀ st t, Q st → Q (P.clock st t)) ∧
+  (∀ st o, Q st → Q (P.process st o)) ∧
+  (∀ st o, Q st → Q (P.recordOwn st o))
+
+-- Equation export required by BUILD §7.2 B3a.
+omit [DecidableEq V] in
+theorem MonoAlong_def (Q : P.State → Prop) :
+    MonoAlong Q =
+      ((∀ st t, Q st → Q (P.clock st t)) ∧
+       (∀ st o, Q st → Q (P.process st o)) ∧
+       (∀ st o, Q st → Q (P.recordOwn st o))) := by
+  rw [MonoAlong]
+
 -- P3:6438–6443; D12 removes the FG-SA arguments (p) and (c).
 def Pending (rho : Run V P) (deadline : Time) (served : Nat → Prop) (i : Nat) : Prop :=
   (∃ e, rho.events[i]? = some e ∧ deadline ≤ e.time) →
@@ -98,5 +116,29 @@ def StateBeforeIdxBeforeStatement : Prop :=
   ∀ {V : Type} [DecidableEq V] {In : Type} {P : ProtocolSpec In}
     (E : Generic.Env V) (rho : Run V P) (t : Time) (hS : ScheduleWellFormed E rho),
     Run.stateBefore E rho (Run.idxBefore rho t) = Run.stateBeforeTime E rho t
+
+-- GLY r3.16 READS; S3d §2.9 J-10; P3 r3.5.6 F0.2. Closed statement per D01.
+set_option linter.unusedVariables false in
+def HoldsBeforeIffExistsIdxStatement : Prop :=
+  ∀ {V : Type} [DecidableEq V] {In : Type} {P : ProtocolSpec In}
+    {E : Generic.Env V} {rho : Run V P} {Q : P.State → Prop} {d : Time} {x : V}
+    (hNR : NoRestart rho) (hS : ScheduleWellFormed E rho) (hmono : MonoAlong Q),
+    HoldsBefore E rho Q d x ↔
+      ∃ i ≤ rho.events.length,
+        (∀ k < i, ∃ e, rho.events[k]? = some e ∧ e.time < d) ∧
+        Q (Run.stateBefore E rho i x)
+
+-- Equation export required by BUILD §7.2 B3a; preserve the statement binders.
+set_option linter.unusedVariables false in
+theorem HoldsBeforeIffExistsIdxStatement_def :
+    HoldsBeforeIffExistsIdxStatement =
+      (∀ {V : Type} [DecidableEq V] {In : Type} {P : ProtocolSpec In}
+        {E : Generic.Env V} {rho : Run V P} {Q : P.State → Prop} {d : Time} {x : V}
+        (hNR : NoRestart rho) (hS : ScheduleWellFormed E rho) (hmono : MonoAlong Q),
+        HoldsBefore E rho Q d x ↔
+          ∃ i ≤ rho.events.length,
+            (∀ k < i, ∃ e, rho.events[k]? = some e ∧ e.time < d) ∧
+            Q (Run.stateBefore E rho i x)) := by
+  rw [HoldsBeforeIffExistsIdxStatement]
 
 end AvailableChain.Gen.V2
