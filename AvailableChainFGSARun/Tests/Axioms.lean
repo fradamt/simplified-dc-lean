@@ -244,3 +244,4 @@ mechanically. -/
 #print axioms AvailableChain.FGSA.Run.fgsa_hWF_of_delivery
 #print axioms AvailableChain.FGSA.Run.fgsa_hReady_of_not_block
 #print axioms AvailableChain.FGSA.Run.fgsa_hReady_of_parentStored
+#print axioms AvailableChain.FGSA.Run.fgsa_accepted_by_deadline_of_parentStored
