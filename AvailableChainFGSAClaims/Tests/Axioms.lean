@@ -185,6 +185,22 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.FGFoundation
 #print axioms AvailableChain.FGSA.Run.certified_def
 #print axioms AvailableChain.FGSA.Run.HonestRowBefore_def
+#print axioms AvailableChain.FGSA.Run.RStore_def
+#print axioms AvailableChain.FGSA.Run.RStoreCumul_def
+#print axioms AvailableChain.FGSA.Run.RMono_def
+#print axioms AvailableChain.FGSA.Run.RFrameExact_def
+#print axioms AvailableChain.FGSA.Run.RGeo_def
+#print axioms AvailableChain.FGSA.Run.RRec_def
+#print axioms AvailableChain.FGSA.Run.TSrc_def
+#print axioms AvailableChain.FGSA.Run.LabelBound_def
+#print axioms AvailableChain.FGSA.Run.TChain_def
+#print axioms AvailableChain.FGSA.Run.TCompat_def
+#print axioms AvailableChain.FGSA.Run.FrameBelow_def
+#print axioms AvailableChain.FGSA.Run.RStrat_def
+#print axioms AvailableChain.FGSA.Run.SrcFrameAbove_def
+#print axioms AvailableChain.FGSA.Run.SrcFrameAboveStmt_def
+#print axioms AvailableChain.FGSA.Run.CPPrefix_def
+#print axioms AvailableChain.FGSA.Run.CPCompat_def
 
 -- F0.6a part 2.
 #print axioms AvailableChain.FGSA.Run.CleanCutPosClaim

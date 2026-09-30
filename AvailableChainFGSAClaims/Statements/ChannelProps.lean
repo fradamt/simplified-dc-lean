@@ -42,6 +42,21 @@ def RStore : Prop := ∀ i x, x ∈ rho.honest →
   (FGSA.actView st).blockStamp = st.base.blockStamp ∧
   (FGSA.actView st).voteStamp = st.base.voteStamp
 
+-- equation export required by BUILD §7.2 B3a
+theorem RStore_def :
+    RStore p c E rho = (∀ i x, x ∈ rho.honest →
+  let st := storeAt p c E rho i x
+  FGSA.CStoreInv p st ∧
+  (∀ b, b ∈ (FGSA.actView st).blocks ↔
+    b ∈ st.base.blocks ∧ Block.Compatible b (eraseFG st.fg.F)) ∧
+  Block.genesis ∈ (FGSA.actView st).blocks ∧
+  eraseFG st.fg.F ∈ (FGSA.actView st).blocks ∧
+  (∀ b ∈ (FGSA.actView st).blocks, ∀ a, Block.Preceq a b →
+    a ∈ (FGSA.actView st).blocks) ∧
+  (FGSA.actView st).votes = st.base.votes ∧
+  (FGSA.actView st).blockStamp = st.base.blockStamp ∧
+  (FGSA.actView st).voteStamp = st.base.voteStamp) := rfl
+
 /-- bp.activeView.v1 (00:529–536), 01 §5: the remaining active-view laws.
 Consumers: all lanes, P3:3263. Producer: F1.1 via `actView_antitone`,
 `actView_path`, `blockExcluded_stable`, `actView_blocks`, and `actView_fields`.
@@ -86,6 +101,15 @@ def RStoreCumul : Prop := V2.NoRestart rho → ∀ i j x, x ∈ rho.honest →
   st.fg.TF ⊆ st'.fg.TF ∧ st.base.blocks <+: st'.base.blocks ∧
   st.base.blockStamp <+: st'.base.blockStamp ∧ st.base.voteStamp <+: st'.base.voteStamp
 
+-- equation export required by BUILD §7.2 B3a
+theorem RStoreCumul_def :
+    RStoreCumul p c E rho = (V2.NoRestart rho → ∀ i j x, x ∈ rho.honest →
+  i ≤ j → j ≤ rho.events.length →
+  let st := storeAt p c E rho i x
+  let st' := storeAt p c E rho j x
+  st.fg.TF ⊆ st'.fg.TF ∧ st.base.blocks <+: st'.base.blocks ∧
+  st.base.blockStamp <+: st'.base.blockStamp ∧ st.base.voteStamp <+: st'.base.voteStamp) := rfl
+
 /-- bp.store.v1 (00:516–527), last sentence: F, the lex pair, and H increase.
 Consumers: 02 §5.3, 03 F′ cases, 22 FF2. Producer: F1.1 via `fMonotone`,
 `process_pair_mono`, and `process_hmax_mono`. -/
@@ -96,12 +120,28 @@ def RMono : Prop := V2.NoRestart rho → ∀ i j x, x ∈ rho.honest → i ≤ j
   lexKey (st.fg.h_j, st.fg.J) ≤ lexKey (st'.fg.h_j, st'.fg.J) ∧
   st.fg.h_max ≤ st'.fg.h_max
 
+-- equation export required by BUILD §7.2 B3a
+theorem RMono_def :
+    RMono p c E rho = (V2.NoRestart rho → ∀ i j x, x ∈ rho.honest → i ≤ j →
+  let st := storeAt p c E rho i x
+  let st' := storeAt p c E rho j x
+  FGBlock.Preceq st.fg.F st'.fg.F ∧
+  lexKey (st.fg.h_j, st.fg.J) ≤ lexKey (st'.fg.h_j, st'.fg.J) ∧
+  st.fg.h_max ≤ st'.fg.h_max) := rfl
+
 /-- bp.frame.v1 (00:581–587), 01 §1.1 and §4.3: cached controls and D(Σ.T).
 Consumers: 02 §4.1, 22 F6/F8/FL-T7, 21 H.17. Producer: F1.1 via `storeControls_eq`. -/
 def RFrameExact : Prop := ∀ i x, x ∈ rho.honest →
   let st := storeAt p c E rho i x
   FGSA.controls p st = SimplexFG.fjControls p.E p.cfg st.fg.F st.fg.TF ∧
   FGSA.fullTree p st = domainR p st st.fg.TF
+
+-- equation export required by BUILD §7.2 B3a
+theorem RFrameExact_def :
+    RFrameExact p c E rho = (∀ i x, x ∈ rho.honest →
+  let st := storeAt p c E rho i x
+  FGSA.controls p st = SimplexFG.fjControls p.E p.cfg st.fg.F st.fg.TF ∧
+  FGSA.fullTree p st = domainR p st st.fg.TF) := rfl
 
 /-- bp.frame.v1 (00:581–587), 01 §4.3 (435–458): the FG projection and metadata.
 Consumers: 02 §4.1, 22 F6/F8/FL-T7, 21 H.17. Producer: F1.1 via
@@ -244,6 +284,18 @@ def RGeo : Prop := ∀ i x W, x ∈ rho.honest → W ∈ (storeAt p c E rho i x)
   (∀ A B, FGBlock.Preceq A B → FGBlock.Preceq B W →
     hOf p.E p.cfg A = hOf p.E p.cfg B → (derive p.E p.cfg A).T_h = (derive p.E p.cfg B).T_h)
 
+-- equation export required by BUILD §7.2 B3a
+theorem RGeo_def :
+    RGeo p c E rho = (∀ i x W, x ∈ rho.honest → W ∈ (storeAt p c E rho i x).fg.TF →
+  hOf p.E p.cfg (.genesis : FGBlock (Fin p.n)) = 1 ∧
+  (∀ A B, FGBlock.Preceq A B → FGBlock.Preceq B W → hOf p.E p.cfg A ≤ hOf p.E p.cfg B) ∧
+  (∀ B, FGBlock.Preceq B W → hOf p.E p.cfg B ≤ hOf p.E p.cfg B.parent + 1) ∧
+  (∀ B, FGBlock.Preceq B W →
+    FGBlock.Preceq (derive p.E p.cfg B).T_h B ∧
+    hOf p.E p.cfg (derive p.E p.cfg B).T_h = hOf p.E p.cfg B) ∧
+  (∀ A B, FGBlock.Preceq A B → FGBlock.Preceq B W →
+    hOf p.E p.cfg A = hOf p.E p.cfg B → (derive p.E p.cfg A).T_h = (derive p.E p.cfg B).T_h)) := rfl
+
 /-- bp.chainCertificates.v1 (00:503–514), 01 §3: stored-block certificates.
 Consumers: P3:3259–3261, 02 §3.1, 21 H.9(a), 22 I2.
 Producer: F1.1 via KitFG `height_crossing`, `justification_certificate`,
@@ -317,6 +369,29 @@ def RRec : Prop := ∀ i x, x ∈ rho.honest → FAdvanceAt p c E rho i x →
         u.base.stableRecord else eraseFG u.fg.F }
     fastWrite := u.fastWrite.map (fun row => (row.1, row.2.filter (FGSA.activeCompatible u))) })
 
+-- equation export required by BUILD §7.2 B3a
+theorem RRec_def :
+    RRec p c E rho = (∀ i x, x ∈ rho.honest → FAdvanceAt p c E rho i x →
+  let st := storeAt p c E rho i x
+  let st' := storeAt p c E rho (i + 1) x
+  st'.base.obligations = st.base.obligations.filter (fun row => FGSA.activeCompatible st' row.1) ∧
+  st'.base.genuine = st.base.genuine.map
+    (fun row => (row.1, row.2.filter (FGSA.activeCompatible st'))) ∧
+  st'.fastWrite = st.fastWrite.map
+    (fun row => (row.1, row.2.filter (FGSA.activeCompatible st'))) ∧
+  st'.base.stableRecord =
+    (if Block.preceq (eraseFG st'.fg.F) st.base.stableRecord then st.base.stableRecord
+     else eraseFG st'.fg.F) ∧
+  (V2.Run.stateBefore E rho (i + 1) x).record = (V2.Run.stateBefore E rho i x).record ∧
+  (∀ u : State p.n, FGSA.reconcile u = { u with
+    base := { u.base with
+      obligations := u.base.obligations.filter (fun row => FGSA.activeCompatible u row.1)
+      genuine := u.base.genuine.map (fun row => (row.1, row.2.filter (FGSA.activeCompatible u)))
+      stableRecord := if Block.preceq (eraseFG u.fg.F) u.base.stableRecord then
+        u.base.stableRecord else eraseFG u.fg.F }
+    fastWrite := u.fastWrite.map (fun row => (row.1, row.2.filter (FGSA.activeCompatible u))) })) :=
+  rfl
+
 /-- 01 §1.1 T-SRC (74–79), bp.sourceDiscipline.v1(a) (00:689–697).
 Consumers: CPPrefix in 02 §5.4 and 03 §8, 21 H.11, 22 kernel.
 Producer: F1.5(a) via `FastOrigin`, `fastOrigin_gateStep`, `deepest_spec`. -/
@@ -326,6 +401,15 @@ def TSrc : Prop := ∀ x r C, x ∈ rho.honest →
     gateResult p c E rho x (r * p.R) = some (some G) ∧
     (∀ B ∈ X, Block.Preceq B G) ∧ (∀ B ∈ X, fastAt p c E rho x (r * p.R) B) ∧
     ∃ j, IsGateTick p c rho j x (r * p.R) ∧ gatePassedAt p c E rho j
+
+-- equation export required by BUILD §7.2 B3a
+theorem TSrc_def :
+    TSrc p c E rho = (∀ x r C, x ∈ rho.honest →
+  actionSource p c E rho x r = some (some C) →
+  ∃ X G, candidatesAt p c E rho x r = some X ∧ C ∈ X ∧
+    gateResult p c E rho x (r * p.R) = some (some G) ∧
+    (∀ B ∈ X, Block.Preceq B G) ∧ (∀ B ∈ X, fastAt p c E rho x (r * p.R) B) ∧
+    ∃ j, IsGateTick p c rho j x (r * p.R) ∧ gatePassedAt p c E rho j) := rfl
 
 /-- 01 §8.4 (795–801): earlier honest row sources have bounded gate labels.
 This also applies to every such row used by a duty. At q_s the bound is s−1;
@@ -337,6 +421,15 @@ def LabelBound : Prop := ∀ i x y r a t, x ∈ rho.honest →
   (∀ s, t = SA.releaseTime p.toParams s → r * p.R ≤ s - 1) ∧
   (∀ s, 1 ≤ s → (t = SA.proposalTime p.toParams s ∨ t = SA.voteTime p.toParams s) →
     r * p.R ≤ s - 2)
+
+-- equation export required by BUILD §7.2 B3a
+theorem LabelBound_def :
+    LabelBound p c E rho = (∀ i x y r a t, x ∈ rho.honest →
+  rho.events[i]? = some (.tick x t) → HonestRowBefore p c E rho i y r a →
+  r * p.R ≤ labelBoundAt p c rho i ∧
+  (∀ s, t = SA.releaseTime p.toParams s → r * p.R ≤ s - 1) ∧
+  (∀ s, 1 ≤ s → (t = SA.proposalTime p.toParams s ∨ t = SA.voteTime p.toParams s) →
+    r * p.R ≤ s - 2)) := rfl
 
 /-- bp.cleanHistory.v1 (00:767–775): honest raw results through b₀ lie on
 one chain; each nonempty emitted name through b₀ lies below such a result.
@@ -351,11 +444,28 @@ def TChain (b₀ : Time) : Prop :=
     ∃ s B X, SA.gateTime p.toParams s ≤ b₀ ∧ gateResult p c E rho x s = some (some B) ∧
       (hOf p.E p.cfg X, X.root) = e ∧ Block.Preceq (eraseFG X) B)
 
+-- equation export required by BUILD §7.2 B3a
+theorem TChain_def (b₀ : Time) :
+    TChain p c E rho b₀ = ((∀ x y s r B C, x ∈ rho.honest → y ∈ rho.honest →
+    SA.gateTime p.toParams s ≤ b₀ → SA.gateTime p.toParams r ≤ b₀ →
+    gateResult p c E rho x s = some (some B) → gateResult p c E rho y r = some (some C) →
+    Block.Compatible B C) ∧
+  (∀ i x r a e t, HonestRowAt p c E rho i x r a →
+    rho.events[i]? = some (.tick x t) → t ≤ b₀ → namedEntry a.payload.height_pair = some e →
+    ∃ s B X, SA.gateTime p.toParams s ≤ b₀ ∧ gateResult p c E rho x s = some (some B) ∧
+      (hOf p.E p.cfg X, X.root) = e ∧ Block.Preceq (eraseFG X) B)) := rfl
+
 /-- 03 §8.3 (702–726): after arming at d_j, honest sources are compatible
 with protected B. Consumers: no lane assumes this; F3 proves it. -/
 def TCompat (B : Block) (j : Slot) : Prop := ∀ x r C, x ∈ rho.honest →
   SA.gateTime p.toParams j ≤ p.actionTime r → actionSource p c E rho x r = some (some C) →
   Block.Compatible C B
+
+-- equation export required by BUILD §7.2 B3a
+theorem TCompat_def (B : Block) (j : Slot) :
+    TCompat p c E rho B j = (∀ x r C, x ∈ rho.honest →
+  SA.gateTime p.toParams j ≤ p.actionTime r → actionSource p c E rho x r = some (some C) →
+  Block.Compatible C B) := rfl
 
 /-- S3 D09, P3 App. A.10: the source-frame predicate is closed under ancestors.
 Consumers: F1.5 source frame, then F2–F5 via SrcFrameAboveStmt. -/
@@ -370,6 +480,13 @@ def FrameBelow (Φ : FGBlock (Fin p.n) → Prop) (c₀ : Nat)
   (c₀ ≤ hOf p.E p.cfg R.J → Φ R.J) ∧
   (c₀ ≤ hOf p.E p.cfg R.Z → Φ R.Z)
 
+-- equation export required by BUILD §7.2 B3a
+theorem FrameBelow_def (Φ : FGBlock (Fin p.n) → Prop) (c₀ : Nat)
+    (R : Controls (Fin p.n)) :
+    FrameBelow p Φ c₀ R = ((c₀ ≤ hOf p.E p.cfg R.F → Φ R.F) ∧
+  (c₀ ≤ hOf p.E p.cfg R.J → Φ R.J) ∧
+  (c₀ ≤ hOf p.E p.cfg R.Z → Φ R.Z)) := rfl
+
 /-- P3 App. A.2: bp.sourceDiscipline.v1(b,c), 01 §8.4, 02 §§3.3–3.5.
 Each non-genesis certified entry has an earlier honest row at its height. -/
 def RStrat : Prop := ∀ i x W, x ∈ rho.honest →
@@ -377,6 +494,14 @@ def RStrat : Prop := ∀ i x W, x ∈ rho.honest →
   ∀ e ∈ certified p W, e ≠ .genesis →
     ∃ y r, ∃ a : RowWire p.n, HonestRowBefore p c E rho i y r a ∧
       namedEntry a.payload.height_pair = some (hOf p.E p.cfg e, e.root)
+
+-- equation export required by BUILD §7.2 B3a
+theorem RStrat_def :
+    RStrat p c E rho = (∀ i x W, x ∈ rho.honest →
+  W ∈ (storeAt p c E rho i x).fg.TF →
+  ∀ e ∈ certified p W, e ≠ .genesis →
+    ∃ y r, ∃ a : RowWire p.n, HonestRowBefore p c E rho i y r a ∧
+      namedEntry a.payload.height_pair = some (hOf p.E p.cfg e, e.root)) := rfl
 
 /-- bp.sourceDiscipline.v1 (00:689–697, especially 691–695), 01 §8.4 (788–793).
 Consumers: F2–F5 through SourceDisciplineAt. Producer: F1.5 via certificate-row
@@ -469,6 +594,18 @@ def SrcFrameAbove (Φ : FGBlock (Fin p.n) → Prop) (c₀ : Nat) : Prop :=
     (∀ W ∈ (storeAt p c E rho i x).fg.TF, ∀ e ∈ certified p W,
       c₀ ≤ hOf p.E p.cfg e → Φ e) ∧ FrameBelow p Φ c₀ (R_at p c E rho i x)
 
+-- equation export required by BUILD §7.2 B3a
+theorem SrcFrameAbove_def (Φ : FGBlock (Fin p.n) → Prop) (c₀ : Nat) :
+    SrcFrameAbove p c E rho Φ c₀ =
+      ((c₀ ≤ hOf p.E p.cfg (.genesis : FGBlock (Fin p.n)) → Φ .genesis) →
+  ∀ i x, x ∈ rho.honest →
+    (∀ y r (a : RowWire p.n) (e : FGBlock (Fin p.n)),
+      HonestRowBefore p c E rho i y r a →
+      namedEntry a.payload.height_pair = some (hOf p.E p.cfg e, e.root) →
+      c₀ ≤ hOf p.E p.cfg e → Φ e) →
+    (∀ W ∈ (storeAt p c E rho i x).fg.TF, ∀ e ∈ certified p W,
+      c₀ ≤ hOf p.E p.cfg e → Φ e) ∧ FrameBelow p Φ c₀ (R_at p c E rho i x)) := rfl
+
 /-- P3 App. A.10, S3 D09: source frame at threshold zero. -/
 abbrev SrcFrame (Φ : FGBlock (Fin p.n) → Prop) : Prop :=
   SrcFrameAbove p c E rho Φ 0
@@ -479,6 +616,11 @@ def SrcFrameAboveStmt : Prop :=
   ∀ (Φ : FGBlock (Fin p.n) → Prop) (c₀ : Nat),
     AncestorClosed p Φ → SrcFrameAbove p c E rho Φ c₀
 
+-- equation export required by BUILD §7.2 B3a
+theorem SrcFrameAboveStmt_def :
+    SrcFrameAboveStmt p c E rho = (∀ (Φ : FGBlock (Fin p.n) → Prop) (c₀ : Nat),
+    AncestorClosed p Φ → SrcFrameAbove p c E rho Φ c₀) := rfl
+
 /-- P3 App. A.3: bp.cleanFrame.v1 (00:733–741), 02 §3.
 The EntryBelow premise and prefix conclusion are frozen. -/
 def CPPrefix : Prop := ∀ i x (B : FGBlock (Fin p.n)), x ∈ rho.honest →
@@ -488,6 +630,16 @@ def CPPrefix : Prop := ∀ i x (B : FGBlock (Fin p.n)), x ∈ rho.honest →
   (let R := R_at p c E rho i x
    FGBlock.Preceq R.F B ∧ FGBlock.Preceq R.J B ∧ FGBlock.Preceq R.Z B ∧
    R.contest = false ∧ R.lo ≤ hOf p.E p.cfg B)
+
+-- equation export required by BUILD §7.2 B3a
+theorem CPPrefix_def :
+    CPPrefix p c E rho = (∀ i x (B : FGBlock (Fin p.n)), x ∈ rho.honest →
+  (∀ y r (a : RowWire p.n) e, HonestRowBefore p c E rho i y r a →
+    namedEntry a.payload.height_pair = some e → EntryBelow p e B) →
+  (∀ W ∈ (storeAt p c E rho i x).fg.TF, ∀ e ∈ certified p W, FGBlock.Preceq e B) ∧
+  (let R := R_at p c E rho i x
+   FGBlock.Preceq R.F B ∧ FGBlock.Preceq R.J B ∧ FGBlock.Preceq R.Z B ∧
+   R.contest = false ∧ R.lo ≤ hOf p.E p.cfg B)) := rfl
 
 /-- P3 App. A.3: bp.outageCompatibility.v1 (00:850–859), 03 §7.
 Every contest witness extends B (lead-approved universal form). -/
@@ -507,6 +659,25 @@ def CPCompat : Prop := ∀ i x (B : FGBlock (Fin p.n)), x ∈ rho.honest →
    (R.contest = true → FGBlock.Preceq B R.J ∧
      ∀ W ∈ st.fg.TF, hOf p.E p.cfg W = R.H → ¬ FGBlock.Preceq R.J W →
        FGBlock.Preceq B W))
+
+-- equation export required by BUILD §7.2 B3a
+theorem CPCompat_def :
+    CPCompat p c E rho = (∀ i x (B : FGBlock (Fin p.n)), x ∈ rho.honest →
+  (∀ y r (a : RowWire p.n) (e : FGBlock (Fin p.n)),
+    HonestRowBefore p c E rho i y r a →
+    namedEntry a.payload.height_pair = some (hOf p.E p.cfg e, e.root) →
+    FGBlock.Preceq e B ∨ FGBlock.Preceq B e) →
+  (∀ W ∈ (storeAt p c E rho i x).fg.TF, ∀ e ∈ certified p W,
+    FGBlock.Preceq e B ∨ FGBlock.Preceq B e) ∧
+  (let st := storeAt p c E rho i x
+   let R := R_at p c E rho i x
+   (FGBlock.Preceq R.F B ∨ FGBlock.Preceq B R.F) ∧
+   (FGBlock.Preceq R.J B ∨ FGBlock.Preceq B R.J) ∧
+   (B ∈ st.fg.TF → FGBlock.Preceq R.F B →
+     FGBlock.Preceq B R.Z ∨ B ∈ domainR p st st.fg.TF) ∧
+   (R.contest = true → FGBlock.Preceq B R.J ∧
+     ∀ W ∈ st.fg.TF, hOf p.E p.cfg W = R.H → ¬ FGBlock.Preceq R.J W →
+       FGBlock.Preceq B W))) := rfl
 
 end AvailableChain.FGSA.Run
 end
