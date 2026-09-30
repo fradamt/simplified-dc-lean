@@ -462,3 +462,32 @@ def AvailableChain.Gen.V2.SlashingInterface.slashes e464437d9cc362da
 def AvailableChain.Gen.V2.HonestNeverSlashed cb7d6d1806cfe47c
 theorem AvailableChain.Gen.V2.HonestNeverSlashed_def a06df42e8668cf32
 ```
+
+### `AvailableChainGeneric.Statements.AC.Votes`
+
+```text
+def AvailableChain.Gen.AC.voteSupports a505536f79025d49
+theorem AvailableChain.Gen.AC.voteSupports_def fbeb911519ac5daa
+def AvailableChain.Gen.AC.poolSupports 03597e7e42083241
+theorem AvailableChain.Gen.AC.poolSupports_def 0e3741e4847fd349
+def AvailableChain.Gen.AC.plainSupporters bb457f8923e27222
+theorem AvailableChain.Gen.AC.plainSupporters_def b06c151456abbe93
+def AvailableChain.Gen.AC.TransferBounds 97f0347e35d97f16
+theorem AvailableChain.Gen.AC.TransferBounds_def bd506dc92b7c135c
+def AvailableChain.Gen.AC.TransferStatement 998560a5e56c286a
+theorem AvailableChain.Gen.AC.TransferStatement_def 9ec4bd661e6f64e8
+def AvailableChain.Gen.AC.BatchBounds 66706533377eff22
+theorem AvailableChain.Gen.AC.BatchBounds_def afae6f825fcfbeb8
+def AvailableChain.Gen.AC.BatchCountsStatement 5ca999a37650b98a
+theorem AvailableChain.Gen.AC.BatchCountsStatement_def 0cd4477e06dabc30
+def AvailableChain.Gen.AC.TransferN2Statement e2835c94ad4a9f70
+theorem AvailableChain.Gen.AC.TransferN2Statement_def 0a75145b33fb9ab6
+def AvailableChain.Gen.AC.ScoreEqOnStatement d54234e3c4437ea9
+theorem AvailableChain.Gen.AC.ScoreEqOnStatement_def 25895f1df739d585
+def AvailableChain.Gen.AC.CapVoteStatement b3d2b00a2dbc17ce
+theorem AvailableChain.Gen.AC.CapVoteStatement_def 62a98693cb5705aa
+def AvailableChain.Gen.AC.CapPairStatement 4509997bea2e6d5a
+theorem AvailableChain.Gen.AC.CapPairStatement_def 2a79f83cee317a4a
+def AvailableChain.Gen.AC.BatchStatement a43eace6488382e3
+theorem AvailableChain.Gen.AC.BatchStatement_def d9c839bb3c6a24f1
+```

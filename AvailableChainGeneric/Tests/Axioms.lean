@@ -17,6 +17,7 @@ public import AvailableChainGeneric.Statements.AC.Reads
 public import AvailableChainGeneric.Statements.AC.Lease
 public import AvailableChainGeneric.Statements.AC.History
 public import AvailableChainGeneric.Statements.AC.Transfer
+public import AvailableChainGeneric.Statements.AC.Votes
 public import AvailableChainGeneric.Proofs.Pure.FirstBad
 public import AvailableChainGeneric.Proofs.Pure.Schedule
 public import AvailableChainGeneric.Proofs.Pure.BlockOrder
@@ -36,6 +37,7 @@ public import AvailableChainGeneric.Proofs.AC.Output
 public import AvailableChainGeneric.Proofs.AC.Lease
 public import AvailableChainGeneric.Proofs.AC.History
 public import AvailableChainGeneric.Proofs.AC.Transfer
+public import AvailableChainGeneric.Proofs.AC.Votes
 
 /-! Kernel dependency audit of the Generic library: one line for each public
 theorem, in facade order. The library globs build this test module. -/
@@ -363,3 +365,46 @@ theorem, in facade order. The library globs build this test module. -/
 #print axioms AvailableChain.Gen.Pure.walk_noEligibleChild_of_anchorClosed
 #print axioms AvailableChain.Gen.Pure.ghost_transfer_sfx_statement
 #print axioms AvailableChain.Gen.Pure.ghost_transfer_sfx
+
+-- Statements/AC/Votes.lean
+#print axioms AvailableChain.Gen.AC.voteSupports_def
+#print axioms AvailableChain.Gen.AC.poolSupports_def
+#print axioms AvailableChain.Gen.AC.plainSupporters_def
+#print axioms AvailableChain.Gen.AC.TransferBounds_def
+#print axioms AvailableChain.Gen.AC.TransferStatement_def
+#print axioms AvailableChain.Gen.AC.BatchBounds_def
+#print axioms AvailableChain.Gen.AC.BatchCountsStatement_def
+#print axioms AvailableChain.Gen.AC.TransferN2Statement_def
+#print axioms AvailableChain.Gen.AC.ScoreEqOnStatement_def
+#print axioms AvailableChain.Gen.AC.CapVoteStatement_def
+#print axioms AvailableChain.Gen.AC.CapPairStatement_def
+#print axioms AvailableChain.Gen.AC.BatchStatement_def
+
+-- Proofs/AC/Votes.lean
+#print axioms AvailableChain.Gen.AC.vote_pool_eraseDups_nodup
+#print axioms AvailableChain.Gen.AC.cap_pair_statement
+#print axioms AvailableChain.Gen.AC.cap_pair
+#print axioms AvailableChain.Gen.AC.cap_vote_statement
+#print axioms AvailableChain.Gen.AC.cap_vote
+#print axioms AvailableChain.Gen.AC.vote_pool_mem_seats
+#print axioms AvailableChain.Gen.AC.vote_pool_voterCount_card
+#print axioms AvailableChain.Gen.AC.vote_pool_support_witness
+#print axioms AvailableChain.Gen.AC.vote_pool_support_ancestor
+#print axioms AvailableChain.Gen.AC.vote_pool_support_compatible
+#print axioms AvailableChain.Gen.AC.vote_pool_clean_unique
+#print axioms AvailableChain.Gen.AC.vote_pool_equivocates_mono
+#print axioms AvailableChain.Gen.AC.vote_pool_clean_subset
+#print axioms AvailableChain.Gen.AC.vote_pool_equivocates_participant
+#print axioms AvailableChain.Gen.AC.vote_pool_seats_subset
+#print axioms AvailableChain.Gen.AC.vote_pool_seats_backward
+#print axioms AvailableChain.Gen.AC.vote_pool_score_card
+#print axioms AvailableChain.Gen.AC.vote_pool_plain_subset_score
+#print axioms AvailableChain.Gen.AC.vote_pool_support_conflict
+#print axioms AvailableChain.Gen.AC.batch_counts_statement
+#print axioms AvailableChain.Gen.AC.batch_counts
+#print axioms AvailableChain.Gen.AC.transfer_n2_statement
+#print axioms AvailableChain.Gen.AC.transfer_n2
+#print axioms AvailableChain.Gen.AC.score_eq_on_statement
+#print axioms AvailableChain.Gen.AC.score_eq_on
+#print axioms AvailableChain.Gen.AC.transfer_statement
+#print axioms AvailableChain.Gen.AC.transfer
