@@ -26,13 +26,15 @@ theorem fgsa_carrier_geometry {n : Nat} (X Y : FGBlock (Fin n)) :
 /-- Every held-chain row has an authenticated wire from a delivered proposal.
 T7.5 supplies the stored wire and its delivery; unforgeability supplies the
 honest holder's emission. No schedule or execution-validity premise is needed. -/
-theorem held_chain_row_origin (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
+theorem held_chain_row_origin_delivery (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
     (hU : V2.UnforgeableSignatures E rho)
     (e : Nat) (x : V) (W : FGBlock (Fin p.n)) (hW : HeldAt p c E rho e x W) :
     ∀ u ∈ chainRows W, ∃ (a : RowWire p.n) (r : Nat),
       RowWire.toRow? a = some u ∧ a.auth = .seat (.fg r) u.signer ∧
-      ∀ z : V, RowSigner p c rho a z → z ∈ rho.honest → EmitsRow p c E rho z a := by
+      ∃ k o t, k < e ∧ rho.events[k]? = some (.deliver x o t) ∧
+        ∀ z : V, RowSigner p c rho a z → z ∈ rho.honest →
+          ∃ j, HonestRowAt p c E rho j z r a ∧ p.actionTime r ≤ t := by
   have hs := storeBundle_stateBefore E rho e x
   have held := hW.2
   clear hW
@@ -62,9 +64,7 @@ theorem held_chain_row_origin (p : Params) {In V : Type} [DecidableEq V] (c : Ap
                     Option.some.inj hau
                   exact ⟨r, by rw [← he]⟩
         obtain ⟨r, har⟩ := auth
-        refine ⟨a, r, hau, har, ?_⟩
-        intro z hz hzh
-        obtain ⟨j, o, t, _, hd, ho, _, _⟩ := stored_proposal_delivered E rho e x _ hw
+        obtain ⟨j, o, t, hje, hd, ho, _, _⟩ := stored_proposal_delivered E rho e x _ hw
         have he : o = ofWire p ⟨.proposer slot,
             .proposal (eraseFG (.node P s body rows)) raw sup wires⟩ := by
           apply toWire_injective
@@ -72,9 +72,57 @@ theorem held_chain_row_origin (p : Params) {In V : Type} [DecidableEq V] (c : Ap
         have hc : (fgsa p c).carries o (ofRow p a) := by
           rw [he]
           exact Or.inr (Or.inr (List.mem_map.mpr ⟨a, ha, rfl⟩))
-        obtain ⟨t', _, k, hk, hem⟩ := fgsa_carried_row E rho hU x z o t ⟨j, hd⟩ a hc hzh
+        refine ⟨a, r, hau, har, j, o, t, hje, hd, ?_⟩
+        intro z hz hzh
+        obtain ⟨t', htt, k, hk, hem⟩ := fgsa_carried_row E rho hU x z o t ⟨j, hd⟩ a hc hzh
           ((rowSigner_iff_holder p c rho a z).mp hz).2
-        exact ⟨k, t', hk, hem⟩
+        rcases a with ⟨auth, payload⟩
+        change auth = .seat (.fg r) u.signer at har
+        subst auth
+        have hrow := (fgsa_emitsAt_row E rho k z t' hk r u.signer payload).mp hem
+        exact ⟨k, ⟨hzh, rfl, t', hk, hem⟩, hrow.2.1 ▸ htt⟩
+
+/-- The scheduled origin keeps the delivery index and the earlier honest row.
+The schedule is used only to turn emission time order into event index order. -/
+theorem held_chain_row_origin_before (p : Params) {In V : Type} [DecidableEq V]
+    (c : AppCodec In) (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (hU : V2.UnforgeableSignatures E rho) (hs : V2.ScheduleWellFormed E rho)
+    (e : Nat) (x : V) (W : FGBlock (Fin p.n)) (hW : HeldAt p c E rho e x W)
+    (u : Row (Fin p.n)) (hu : u ∈ chainRows W) :
+    ∃ (a : RowWire p.n) (r : Nat),
+      a.toRow? = some u ∧ a.auth = .seat (.fg r) u.signer ∧
+      ∃ k o t, k < e ∧ rho.events[k]? = some (.deliver x o t) ∧
+        ∀ z : V, RowSigner p c rho a z → z ∈ rho.honest →
+          HonestRowBefore p c E rho e z r a ∧ p.actionTime r ≤ t := by
+  obtain ⟨a, r, ha, har, k, o, t, hke, hk, he⟩ :=
+    held_chain_row_origin_delivery p c E rho hU e x W hW u hu
+  refine ⟨a, r, ha, har, k, o, t, hke, hk, ?_⟩
+  intro z hz hzh
+  obtain ⟨j, hj, ht⟩ := he z hz hzh
+  have htime : ∃ t', rho.events[j]? = some (.tick z t') ∧ t' = p.actionTime r := by
+    obtain ⟨_, hr, t', hjt, hem⟩ := hj
+    rcases a with ⟨auth, payload⟩
+    change auth = .seat (.fg r) u.signer at har
+    subst auth
+    exact ⟨t', hjt, ((fgsa_emitsAt_row E rho j z t' hjt r u.signer payload).mp hem).2.1.symm⟩
+  obtain ⟨t', hjt, rfl⟩ := htime
+  exact ⟨⟨j, (V2.Engine.tick_index_lt_delivery E rho hs hjt hk ht).trans hke, hj⟩, ht⟩
+
+/-- The original schedule-free origin is a projection of the delivery producer. -/
+theorem held_chain_row_origin (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (hU : V2.UnforgeableSignatures E rho)
+    (e : Nat) (x : V) (W : FGBlock (Fin p.n)) (hW : HeldAt p c E rho e x W) :
+    ∀ u ∈ chainRows W, ∃ (a : RowWire p.n) (r : Nat),
+      RowWire.toRow? a = some u ∧ a.auth = .seat (.fg r) u.signer ∧
+      ∀ z : V, RowSigner p c rho a z → z ∈ rho.honest → EmitsRow p c E rho z a := by
+  intro u hu
+  obtain ⟨a, r, ha, har, _, _, _, _, _, he⟩ :=
+    held_chain_row_origin_delivery p c E rho hU e x W hW u hu
+  refine ⟨a, r, ha, har, ?_⟩
+  intro z hz hzh
+  obtain ⟨_, _, t, hj, hem⟩ := (he z hz hzh).choose_spec.1
+  exact ⟨(he z hz hzh).choose, t, hj, hem⟩
 
 end AvailableChain.FGSA.Run
 end

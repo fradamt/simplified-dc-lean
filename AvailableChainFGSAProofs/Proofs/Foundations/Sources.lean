@@ -1,6 +1,6 @@
 module
--- L42: access the frozen conclusions through the allowed Shared module.
-public import AvailableChainFGSAProofs.Proofs.Shared.Claims -- shake: keep
+public import AvailableChainFGSAProofs.Proofs.Foundations.Leases
+public import AvailableChainFGSAClaims.Statements.Packages.Safety
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads
 public import AvailableChainFGSAProofs.Proofs.Shared.Channels
 public import AvailableChainKitFG.Provenance
@@ -31,8 +31,7 @@ private theorem source_tick_read (x : V) (r : Nat) (C : FGBlock (Fin p.n))
     rfl
 
 /-- The action's candidates have a passed gate origin (F1.3 supplies lease origins). -/
-theorem sourceDiscipline_tSrc (hs : V2.ScheduleWellFormed E rho)
-    (hL : LeaseOriginsAt p c E rho) : TSrc p c E rho := by
+theorem sourceDiscipline_tSrc (hs : V2.ScheduleWellFormed E rho) : TSrc p c E rho := by
   intro x r C hx hc
   change Option.map (Option.map eraseFG) (actionSourceFG p c E rho x r) = _ at hc
   cases hf : actionSourceFG p c E rho x r with
@@ -51,8 +50,7 @@ theorem sourceDiscipline_tSrc (hs : V2.ScheduleWellFormed E rho)
         change (V2.Run.stateBefore E rho (i + 1) x).st = st
         rw [(V2.Run.step_tick_eq E rho hi).1]
         exact tick_st (p := p) (c := c) E rho _ _ _
-      have hlen : i + 1 ≤ rho.events.length := Nat.succ_le_of_lt (List.getElem?_eq_some_iff.mp hi).1
-      have horig := (hL (i + 1) x hlen hx).2.2.2
+      have horig := fgsa_leaseOrigins_fastWrites p c E rho hs (i + 1) x
       rw [hst] at horig
       have hround : p.round (st.slot p) = r := (fgsa_action_slot_round (c := c) _ r).2
       have hmem : eraseFG B ∈ sourceCandidates p st := by
@@ -135,8 +133,7 @@ theorem sourceDiscipline_labelBound (hs : V2.ScheduleWellFormed E rho) :
       omega
 
 /-- A nonempty emitted name comes from the actual FG action source. -/
-theorem sourceDiscipline_emittedName (hs : V2.ScheduleWellFormed E rho)
-    (hL : LeaseOriginsAt p c E rho) {j : Nat} {x : V} {r : Nat}
+theorem sourceDiscipline_emittedName (hs : V2.ScheduleWellFormed E rho) {j : Nat} {x : V} {r : Nat}
     {a : RowWire p.n} {e : Height × BlockId}
     (ha : HonestRowAt p c E rho j x r a)
     (he : namedEntry a.payload.height_pair = some e) :
@@ -180,18 +177,9 @@ theorem sourceDiscipline_emittedName (hs : V2.ScheduleWellFormed E rho)
       change Option.map (Option.map eraseFG) _ = _
       rw [hread]; rfl
     obtain ⟨X, G, hX, hCX, hG, hbelow, hfast, _⟩ :=
-      sourceDiscipline_tSrc p c E rho hs hL x r _ hx herase
+      sourceDiscipline_tSrc p c E rho hs x r _ hx herase
     exact ⟨C, G, hread, heq, KitFG.entry_preceq p.E p.cfg C, hG,
       hbelow _ hCX, hfast _ hCX⟩
-
-/-- Source discipline without the quorum clauses, with the frozen F1.3 input. -/
-theorem sourceDiscipline_base {Pt : Type} {pt : Pt}
-    (hb : BasePrem p c E rho pt) (hL : LeaseOriginsAt p c E rho) :
-    SourceDisciplineBaseAt p c E rho := by
-  have hs := hb.set.valid.toScheduleWellFormed
-  exact ⟨sourceDiscipline_tSrc p c E rho hs hL,
-    sourceDiscipline_labelBound p c E rho hs,
-    fun _ _ _ _ _ ha he => sourceDiscipline_emittedName p c E rho hs hL ha he⟩
 
 private theorem source_stored_row (hv : V2.ExecutionValid E rho)
     (e : Fin p.n ≃ V)
@@ -265,7 +253,7 @@ private theorem source_quorum_honest [Fintype V]
 Finalization uses the target QC of its prior justification. -/
 theorem sourceDiscipline_qcOrigin [Fintype V] {Pt : Type} {pt : Pt}
     (hb : SourceDisciplinePrem p c E rho pt)
-    (hS : RStore p c E rho) (hL : LeaseOriginsAt p c E rho) :
+    (hS : RStore p c E rho) :
     RQCOrigin p c E rho := by
   classical
   obtain ⟨e, he⟩ := fgsa_linked_seats rho hb.set.linked
@@ -302,7 +290,7 @@ theorem sourceDiscipline_qcOrigin [Fintype V] {Pt : Type} {pt : Pt}
     have hwname : namedEntry wire.payload.height_pair = some pair := hheight ▸ hp
     obtain ⟨j, hj, hemit⟩ := hbefore
     obtain ⟨C, G, hsrc, hpair, hpre, hgate, hbelow, hfast⟩ :=
-      sourceDiscipline_emittedName p c E rho hb.set.valid.toScheduleWellFormed hL hemit hwname
+      sourceDiscipline_emittedName p c E rho hb.set.valid.toScheduleWellFormed hemit hwname
     exact ⟨k, hk, e (rows k).2.signer, r, wire, ⟨j, hj, hemit⟩,
       hdecode, hwire, C, G, hsrc, hp.trans (congrArg some hpair), hpre, hgate, hbelow, hfast⟩
   refine ⟨?_, ?_, ?_⟩
@@ -365,7 +353,7 @@ private theorem source_named_quorum [Fintype V] {Pt : Type} {pt : Pt}
 /-- Each non-genesis certified entry has an earlier honest name. -/
 theorem sourceDiscipline_strat [Fintype V] {Pt : Type} {pt : Pt}
     (hb : SourceDisciplinePrem p c E rho pt)
-    (hS : RStore p c E rho) (hL : LeaseOriginsAt p c E rho) : RStrat p c E rho := by
+    (hS : RStore p c E rho) : RStrat p c E rho := by
   intro i x W hx hW e he hne
   obtain ⟨U, hUW, hentry⟩ := he
   have just (D : FGBlock (Fin p.n)) (hDW : FGBlock.Preceq D W)
@@ -412,7 +400,7 @@ theorem sourceDiscipline_strat [Fintype V] {Pt : Type} {pt : Pt}
             exact congrArg some (Prod.ext hp'.1 hp'.2))
     obtain ⟨j, hj, hem⟩ := hbefore
     obtain ⟨C, G, _, hpair, _, _, _, _⟩ :=
-      sourceDiscipline_emittedName p c E rho hb.set.valid.toScheduleWellFormed hL hem hname
+      sourceDiscipline_emittedName p c E rho hb.set.valid.toScheduleWellFormed hem hname
     have hXC : X = (derive p.E p.cfg C).T_h :=
       FGBlock.root_injective (congrArg Prod.snd hpair)
     have hXentry : (derive p.E p.cfg X).T_h = X := by
@@ -428,21 +416,12 @@ theorem sourceDiscipline_strat [Fintype V] {Pt : Type} {pt : Pt}
     rw [hXh]
     exact hname
 
-/-- The source-discipline conclusion, with the frozen F1.1 and F1.3 inputs. -/
-theorem sourceDiscipline_at [Fintype V] {Pt : Type} {pt : Pt}
-    (hb : SourceDisciplinePrem p c E rho pt)
-    (hS : RStore p c E rho) (hL : LeaseOriginsAt p c E rho) :
-    SourceDisciplineAt p c E rho :=
-  ⟨sourceDiscipline_base p c E rho (pt := pt) ⟨hb.set⟩ hL,
-    sourceDiscipline_strat p c E rho hb hS hL,
-    sourceDiscipline_qcOrigin p c E rho hb hS hL⟩
-
 /-- The G1 genesis premise and exact earlier names give the source frame. -/
 theorem sourceDiscipline_srcFrameAbove [Fintype V] {Pt : Type} {pt : Pt}
     (hb : SourceDisciplinePrem p c E rho pt)
-    (hS : RStore p c E rho) (hL : LeaseOriginsAt p c E rho) :
+    (hS : RStore p c E rho) :
     SrcFrameAboveStmt p c E rho := by
-  have hstrat := sourceDiscipline_strat p c E rho hb hS hL
+  have hstrat := sourceDiscipline_strat p c E rho hb hS
   intro Φ c₀ hclosed hg i x hx hrows
   have hcert : ∀ W ∈ (storeAt p c E rho i x).fg.TF,
       ∀ e ∈ certified p W, c₀ ≤ hOf p.E p.cfg e → Φ e := by

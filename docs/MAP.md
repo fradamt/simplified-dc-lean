@@ -1372,3 +1372,9 @@ The Tests targets are `AvailableChainFGSAClaimsTests`,
 `AvailableChainFGSAProofsTests`, and `AvailableChainFGSAInhabitTests`.
 The claim facade is `AvailableChainFGSAClaims/FGSAClaims.lean`.
 It holds the complete exported safety-claim aggregate.
+
+F1 fix X1–X8: Foundations/Accountable.lean now separates pure and whole-run
+weight evidence from validator attribution. Foundations/Export.lean owns the
+lease/source claim assembly, output nesting, and timing interface producers.
+Foundations/Carrier.lean supplies the shared delivery and honest-row origins.
+Shared/Gate.lean supplies the R15 exact selector step; temporal composition is separate.

@@ -1,6 +1,4 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Shared.Claims
--- shake: keep (L42 frozen lease claim access)
 public import AvailableChainFGSA.Proofs.LeaseOutput
 
 public import AvailableChainFGSARun.Proofs.AncestorDeadlines
@@ -507,18 +505,6 @@ theorem fgsa_leaseOrigins_ancestorDeadlines (i : Nat) (x : V) :
         exact Or.inr (Or.inr ⟨(fgsa p c).durable (V2.Run.stateBefore E rho k v), by
           simp only [V2.Event.node, V2.World.step, Function.update_self]⟩)) i x
   exact fun K g d hr B hB hBK => h.protectsUntil K g d hr B hB hBK
-
-/-- All four clauses of the frozen lease-origin statement. -/
-theorem fgsa_leaseOriginsAt (hs : V2.ScheduleWellFormed E rho) :
-    LeaseOriginsAt p c E rho :=
-  fun i x _ _ => ⟨fgsa_leaseOrigins_origins p c E rho i x,
-    fgsa_leaseOrigins_chain p c E rho i x,
-    fgsa_leaseOrigins_ancestorDeadlines p c E rho i x,
-    fgsa_leaseOrigins_fastWrites p c E rho hs i x⟩
-
-/-- The frozen lease-origin claim for scheduled runs. -/
-theorem fgsa_leaseOriginsClaim : LeaseOriginsClaim p :=
-  fun c E rho hs => fgsa_leaseOriginsAt p c E rho hs
 
 end AvailableChain.FGSA.Run
 end

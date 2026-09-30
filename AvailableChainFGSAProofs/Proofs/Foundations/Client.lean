@@ -19,6 +19,12 @@ theorem fgsa_clientSafeAll (hL : V2.Linked (fgsaFamilies p c).linked rho) :
     ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x :=
   emittedRowsNoSlash E rho hL
 
+set_option linter.unusedFintypeInType false in
+/-- BaseSet supplies authenticity to the validator-attribution adapters. -/
+theorem fgsa_unforgeable_of_base [Fintype V] (hb : BaseSet p c E rho) :
+    V2.UnforgeableSignatures E rho :=
+  hb.valid.toUnforgeableSignatures
+
 private theorem row_at_seat {j : Nat} {x : V} {r : Nat} {a : RowWire p.n}
     (ha : HonestRowAt p c E rho j x r a) :
     ∃ i body, a = ⟨.seat (.fg r) i, body⟩ ∧

@@ -1,5 +1,5 @@
 module
--- shake: keep-all (public imports support the axiom audit commands)
+public import AvailableChainFGSAProofs.Proofs.Shared.Claims -- shake: keep (claim implication axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Counts -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Cap -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Foundations.FinalizedSafety -- shake: keep (axiom audit commands)
@@ -7,7 +7,6 @@ public import AvailableChainFGSAProofs.Proofs.Foundations.Crossing -- shake: kee
 public import AvailableChainFGSAProofs.Proofs.Assembly.Foundations -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Store -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Certificates -- shake: keep (axiom audit commands)
-public import AvailableChainFGSAProofs.Proofs.Foundations.Leases -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Client -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Gate -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Sources -- shake: keep (axiom audit commands)
@@ -161,3 +160,51 @@ public import AvailableChainFGSAProofs.Proofs.Clean.Chain -- shake: keep (axiom 
 #print axioms AvailableChain.FGSA.Run.fgsa_rCap_time
 #print axioms AvailableChain.FGSA.Run.fgsa_rCap_before
 #print axioms AvailableChain.FGSA.Run.fgsa_finalityLag
+
+#print axioms AvailableChain.FGSA.Run.openingSource_eq_of_no_strict_extension
+
+#print axioms AvailableChain.FGSA.Run.FGFinalizedAt
+
+#print axioms AvailableChain.FGSA.Run.FinalityRunBlock
+
+#print axioms AvailableChain.FGSA.Run.finalityStoreRows
+
+#print axioms AvailableChain.FGSA.Run.FinalityCarriage
+
+#print axioms AvailableChain.FGSA.Run.fgsa_pureAccountable
+
+#print axioms AvailableChain.FGSA.Run.fgsa_pureAgreement
+
+#print axioms AvailableChain.FGSA.Run.FGWholeRunAccountable
+
+#print axioms AvailableChain.FGSA.Run.fgsa_wholeRunAccountable
+
+#print axioms AvailableChain.FGSA.Run.FGSASlashableBound
+
+#print axioms AvailableChain.FGSA.Run.fgsa_wholeRunAgreement
+
+#print axioms AvailableChain.FGSA.Run.fgsa_eventPrefixAgreement
+
+#print axioms AvailableChain.FGSA.Run.fgsa_storeSlashableBound_of_faults
+
+#print axioms AvailableChain.FGSA.Run.fgsa_slashableBound_of_faults
+
+#print axioms AvailableChain.FGSA.Run.fgsa_finalLock_faulty_count
+
+#print axioms AvailableChain.FGSA.Run.fgsa_accountable_base
+
+#print axioms AvailableChain.FGSA.Run.fgsa_unforgeable_of_base
+
+#print axioms AvailableChain.FGSA.Run.held_chain_row_origin_delivery
+
+#print axioms AvailableChain.FGSA.Run.held_chain_row_origin_before
+
+#print axioms AvailableChain.FGSA.Run.fgsa_outputNestingAt
+
+#print axioms AvailableChain.FGSA.Run.fgsa_outputNestingClaim
+
+#print axioms AvailableChain.FGSA.Run.fgsa_tSrc
+
+#print axioms AvailableChain.FGSA.Run.fgsa_labelBound
+
+#print axioms AvailableChain.FGSA.Run.fgsa_timingContract

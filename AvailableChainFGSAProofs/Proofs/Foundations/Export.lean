@@ -1,5 +1,4 @@
 module
--- shake: keep-all (L42 public foundation export boundary)
 public import AvailableChainFGSAClaims.Claims.Foundations
 public import AvailableChainFGSAProofs.Proofs.Foundations.Store
 public import AvailableChainFGSAProofs.Proofs.Foundations.Certificates
@@ -12,9 +11,11 @@ public import AvailableChainFGSAProofs.Proofs.Foundations.Client
 public import AvailableChainFGSAProofs.Proofs.Foundations.Leases -- shake: keep (F1.3 claim exports)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Sources
 
+
 public section
 
 namespace AvailableChain.FGSA.Run
+open AvailableChain.SimplexFG
 
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
@@ -70,31 +71,86 @@ theorem fgsa_clientSafetyClaim : ClientSafetyClaim p :=
 theorem fgsa_clientSafetyBaseClaim : ClientSafetyBaseClaim p :=
   fun c E rho _ hb => fgsa_clientSafeAll p c E rho hb.set.linked
 
+/-- All four clauses of the frozen lease-origin statement. -/
+theorem fgsa_leaseOriginsAt (hs : V2.ScheduleWellFormed E rho) :
+    LeaseOriginsAt p c E rho :=
+  fun i x _ _ => ⟨fgsa_leaseOrigins_origins p c E rho i x,
+    fgsa_leaseOrigins_chain p c E rho i x,
+    fgsa_leaseOrigins_ancestorDeadlines p c E rho i x,
+    fgsa_leaseOrigins_fastWrites p c E rho hs i x⟩
+
+/-- The frozen lease-origin claim for scheduled runs. -/
+theorem fgsa_leaseOriginsClaim : LeaseOriginsClaim p :=
+  fun c E rho hs => fgsa_leaseOriginsAt p c E rho hs
+
+/-- Source discipline without the quorum clauses, with the frozen F1.3 input. -/
+theorem sourceDiscipline_base {Pt : Type} {pt : Pt}
+    (hb : BasePrem p c E rho pt) :
+    SourceDisciplineBaseAt p c E rho := by
+  have hs := hb.set.valid.toScheduleWellFormed
+  exact ⟨sourceDiscipline_tSrc p c E rho hs,
+    sourceDiscipline_labelBound p c E rho hs,
+    fun _ _ _ _ _ ha he => sourceDiscipline_emittedName p c E rho hs ha he⟩
+
+/-- The source-discipline conclusion, with the frozen F1.1 and F1.3 inputs. -/
+theorem sourceDiscipline_at [Fintype V] {Pt : Type} {pt : Pt}
+    (hb : SourceDisciplinePrem p c E rho pt)
+    (hS : RStore p c E rho) :
+    SourceDisciplineAt p c E rho :=
+  ⟨sourceDiscipline_base p c E rho (pt := pt) ⟨hb.set⟩,
+    sourceDiscipline_strat p c E rho hb hS,
+    sourceDiscipline_qcOrigin p c E rho hb hS⟩
+
 /-- F1.5 base claim, with the F1.3 lease input discharged. -/
 theorem fgsa_sourceDisciplineBaseClaim : SourceDisciplineBaseClaim p :=
   fun c E rho pt hb => sourceDiscipline_base p c E rho (pt := pt) hb
-    (fgsa_leaseOriginsAt p c E rho hb.set.valid.toScheduleWellFormed)
 
 /-- F1.5 claim, with the F1.1 store and F1.3 lease inputs discharged. -/
 theorem fgsa_sourceDisciplineClaim : SourceDisciplineClaim p :=
   fun c E rho pt hb => sourceDiscipline_at p c E rho (pt := pt) hb
     (fgsa_rStore p c E rho)
-    (fgsa_leaseOriginsAt p c E rho hb.set.valid.toScheduleWellFormed)
 
 /-- F1.5 source-frame claim, with both foundation inputs discharged. -/
 theorem fgsa_srcFrameAboveClaim : SrcFrameAboveClaim p :=
   fun c E rho pt hb => sourceDiscipline_srcFrameAbove p c E rho (pt := pt) hb
     (fgsa_rStore p c E rho)
-    (fgsa_leaseOriginsAt p c E rho hb.set.valid.toScheduleWellFormed)
 
 /-- The foundation package, with the F1.5 source input discharged. -/
 theorem fgsa_fgFoundationClaim : FGFoundationClaim p :=
   fun c E rho pt hb =>
     ⟨fgsa_rStore p c E rho, fgsa_rStoreCumul p c E rho,
       fgsa_rMono p c E rho, fgsa_rFrameExact p c E rho, fgsa_rGeo p c E rho,
-      sourceDiscipline_strat p c E rho (pt := pt) hb (fgsa_rStore p c E rho)
-        (fgsa_leaseOriginsAt p c E rho hb.set.valid.toScheduleWellFormed),
+      sourceDiscipline_strat p c E rho (pt := pt) hb (fgsa_rStore p c E rho),
       fgsa_rRec p c E rho⟩
+
+theorem fgsa_outputNestingAt : OutputNestingAt p c E rho :=
+  fun i x _ _ => (FGSA.outputNesting_stored p _ (reachable_stateBefore E rho i x)).1
+
+theorem fgsa_outputNestingClaim : OutputNestingClaim p :=
+  fun c E rho => fgsa_outputNestingAt p c E rho
+
+set_option linter.unusedFintypeInType false in
+theorem fgsa_tSrc [Fintype V] {pt : Unit} (hb : BasePrem p c E rho pt) :
+    TSrc p c E rho :=
+  sourceDiscipline_tSrc p c E rho hb.set.valid.toScheduleWellFormed
+
+set_option linter.unusedFintypeInType false in
+theorem fgsa_labelBound [Fintype V] {pt : Unit} (hb : BasePrem p c E rho pt) :
+    LabelBound p c E rho :=
+  sourceDiscipline_labelBound p c E rho hb.set.valid.toScheduleWellFormed
+
+theorem fgsa_timingContract [Fintype V] {pt : Unit}
+    (hb : SourceDisciplinePrem p c E rho pt) : TimingContract p c E rho where
+  rowLag := fun _ _ _ _ _ _ he hh => emit_lt_handles p c rho E hb.set.valid he hh
+  certLag := sourceDiscipline_strat p c E rho hb (fgsa_rStore p c E rho)
+  label := sourceDiscipline_labelBound p c E rho hb.set.valid.toScheduleWellFormed
+  atomic := fun i x _ => ⟨(cstoreInv_stateBefore E rho i x).saCompat,
+    (storeBundle_stateBefore E rho i x).nest⟩
+  tickFG := by
+    intro x t nd hpre nd' hpost
+    rw [postClock_def, hpre] at hpost
+    cases hpost
+    exact clock_fg p nd.st t
 
 end AvailableChain.FGSA.Run
 end

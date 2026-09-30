@@ -61,7 +61,7 @@ theorem fgsa_S_eq_of_exact (hs : V2.ScheduleWellFormed E rho)
       (fun hr hg => (hrun.accept X hr hg).1) hraw hguard hold hanchor
       (fgsaAC_lease_le_output E rho (i + 1) x hx)
 
-/-- G32 opening-source coverage from the local retention and service facts
+/-- COVERING SELECTOR STEP: G32 opening-source coverage from local retention and service facts
 of S1b R15 and S1c P5. `sourceCandidates` requires the selected fast-write
 label and a live lease. Retention in the full filtered domain is separate. -/
 theorem openingSource_extends_served (i : Nat) (x : V) (r : Nat)
@@ -109,6 +109,24 @@ theorem openingSource_extends_served (i : Nat) (x : V) (r : Nat)
     · exact hDC
     · rw [Gen.Pure.prefix_eq_of_depth _ _ hCD hdepth]
       exact Gen.Pure.block_preceq_refl _
+
+/-- R15 EXACT selector step. No selected candidate strictly extends D.
+The temporal first-opening composition is a separate consumer result. -/
+theorem openingSource_eq_of_no_strict_extension (i : Nat) (x : V) (r : Nat)
+    (D : FGBlock (Fin p.n)) :
+    let st := ((fgsa p c).clock (V2.Run.stateBefore E rho i x) (p.actionTime r)).st
+    D ∈ domainR p st (treeT p st) →
+    eraseFG D ∈ sourceCandidates p st →
+    (∀ C, C ∈ domainR p st (treeT p st) → eraseFG C ∈ sourceCandidates p st →
+      FGBlock.Preceq D C → C = D) →
+    FGSA.fgSource p st = some D := by
+  intro st hkept hserved hmax
+  obtain ⟨C, hC, hDC⟩ := openingSource_extends_served E rho i x r D hkept hserved
+  have hm := hC
+  rw [fgSource_eq_jointSource] at hm
+  have hmem := (Finset.mem_filter.mp (FGSA.pickPair_some_spec _ _ hm).1)
+  have heq := hmax C hmem.1 (of_decide_eq_true hmem.2) hDC
+  exact heq ▸ hC
 
 end AvailableChain.FGSA.Run
 end

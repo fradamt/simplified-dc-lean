@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Shared.Channels
+public import AvailableChainFGSAProofs.Proofs.Foundations.Carrier
 public import AvailableChainFGSARun.Proofs.Reachable
 public import AvailableChainGeneric.Proofs.V2.Linked
 public import AvailableChainGeneric.Statements.V2.Counts
@@ -48,64 +48,29 @@ private def CapOrigin (i : Nat) (x : V) (u : Row (Fin p.n)) : Prop :=
     a.toRow? = some u ∧ ∃ k o s, k < i ∧
       rho.events[k]? = some (.deliver x o s) ∧ p.actionTime r ≤ s
 
-private theorem cap_origins
+private theorem cap_origin_of_held
     (hL : V2.Linked (fgsaFamilies p c).linked rho) (hv : V2.ExecutionValid E rho)
     (i : Nat) (x : V) (W : FGBlock (Fin p.n)) (hW : HeldAt p c E rho i x W) :
     ∀ u ∈ chainRows W, u.signer ∉ capFaulty p c rho → CapOrigin p c E rho i x u := by
   classical
-  have hs := storeBundle_stateBefore E rho i x
-  have held := hW.2
-  clear hW
-  induction W with
-  | genesis => intro u hu; exact (Finset.notMem_empty u hu).elim
-  | node P s body rows ih =>
-      intro u hu hf
-      change u ∈ rows.toFinset ∪ chainRows P at hu
-      rcases (Finset.mem_union.mp hu).symm with hu | hu
-      · exact ih (hs.cstore.fg.closed _ held) u hu hf
-      · obtain ⟨slot, raw, sup, wires, hw, hr⟩ :=
-          stored_wire_of_block p _ hs.cstore hs.«meta» held (by intro h; cases h)
-        change rows = wires.filterMap RowWire.toRow? at hr
-        have hur : u ∈ rows := List.mem_toFinset.mp hu
-        rw [hr] at hur
-        obtain ⟨a, ha, hau⟩ := List.mem_filterMap.mp hur
-        obtain ⟨k, o, t, hki, hk, ho, _, _⟩ := stored_proposal_delivered E rho i x _ hw
-        have he : o = ofWire p ⟨.proposer slot,
-            .proposal (eraseFG (.node P s body rows)) raw sup wires⟩ := by
-          apply toWire_injective
-          rw [toWire_ofWire, ho]
-        have hc : (fgsa p c).carries o (ofRow p a) := by
-          rw [he]
-          exact Or.inr (Or.inr (List.mem_map.mpr ⟨a, ha, rfl⟩))
-        rcases a with ⟨auth, payload⟩
-        cases auth with
-        | none => cases hau
-        | proposer s => cases hau
-        | seat label seat =>
-          cases label with
-          | head s => cases hau
-          | fg r =>
-            have heq : (⟨seat, payload.height_pair, payload.finality_pair⟩ : Row (Fin p.n)) = u :=
-              Option.some.inj hau
-            subst u
-            let z := rho.seatOf (.base (.fg r)) seat
-            have hz : z ∈ rho.honest := by
-              have hh : rho.seatOf (.base (.fg 0)) seat ∈ rho.honest := by
-                by_contra hn
-                exact hf (Finset.mem_filter.mpr ⟨Finset.mem_univ _, hn⟩)
-              have he := Gen.V2.linked_holder_eq hL (ℓ := .base (.fg r))
-                (ℓ' := .base (.fg 0)) (by trivial) (by trivial) seat seat rfl
-              change rho.seatOf (.base (.fg r)) seat ∈ rho.honest
-              rw [he]
-              exact hh
-            have hsign : RowSigner p c rho ⟨.seat (.fg r) seat, payload⟩ z :=
-              ⟨r, seat, rfl, rfl⟩
-            obtain ⟨t', htt, j, hj, hem⟩ := fgsa_carried_row E rho hv.toUnforgeableSignatures
-              x z o t ⟨k, hk⟩ _ hc hz ((rowSigner_iff_holder p c rho _ z).mp hsign).2
-            have hrow := (fgsa_emitsAt_row E rho j z t' hj r seat payload).mp hem
-            have hjk := V2.Engine.tick_index_lt_delivery E rho hv.toScheduleWellFormed hj hk htt
-            exact ⟨z, r, _, ⟨j, hjk.trans hki, hz, rfl, t', hj, hem⟩,
-              hsign, rfl, k, o, t, hki, hk, hrow.2.1 ▸ htt⟩
+  intro u hu hf
+  obtain ⟨a, r, ha, har, k, o, t, hki, hk, he⟩ := held_chain_row_origin_before
+    p c E rho hv.toUnforgeableSignatures hv.toScheduleWellFormed i x W hW u hu
+  let z := rho.seatOf (.base (.fg r)) u.signer
+  have hz : z ∈ rho.honest := by
+    have hh : rho.seatOf (.base (.fg 0)) u.signer ∈ rho.honest := by
+      by_contra hn
+      exact hf (Finset.mem_filter.mpr ⟨Finset.mem_univ _, hn⟩)
+    have heq := Gen.V2.linked_holder_eq hL (ℓ := .base (.fg r))
+      (ℓ' := .base (.fg 0)) (by trivial) (by trivial) u.signer u.signer rfl
+    change rho.seatOf (.base (.fg r)) u.signer ∈ rho.honest
+    rw [heq]
+    exact hh
+  have hsign : RowSigner p c rho a z := (rowSigner_iff_holder p c rho a z).mpr
+    ⟨⟨r, u.signer, har⟩, by
+      change V2.Run.holder rho (ofAuth p a.auth) = some z
+      rw [har]; rfl⟩
+  exact ⟨z, r, a, (he z hsign hz).1, hsign, ha, k, o, t, hki, hk, (he z hsign hz).2⟩
 
 /-- R-CAP, P3 App. A.4: an instance of G17 on the held-block domain.
 The authentic height row was released at an index strictly below the read. -/
@@ -121,7 +86,7 @@ theorem fgsa_rCap [Fintype V]
       u.height_pair = .vote (y' + 1) T timeout := by
   obtain ⟨u, hu, _, ho, T, timeout, hh⟩ :=
     KitFG.causalCap_row p.E p.cfg (capFaulty p c rho) (cap_weight p c rho hL hQ)
-      y' W (CapOrigin p c E rho i' x) (cap_origins p c E rho hL hv i' x W hW) hheight
+      y' W (CapOrigin p c E rho i' x) (cap_origin_of_held p c E rho hL hv i' x W hW) hheight
   obtain ⟨z, r, a, hb, hs, hd, _⟩ := ho
   exact ⟨z, r, a, u, T, timeout, hb, hs, hd, hu, hh⟩
 
@@ -158,7 +123,7 @@ theorem fgsa_finalityCap [Fintype V]
       u.finality_pair = some ⟨(derive p.E p.cfg W).h_F, (derive p.E p.cfg W).F.root⟩ := by
   obtain ⟨u, hu, _, ho, hf⟩ :=
     KitFG.finalityCap_row p.E p.cfg (capFaulty p c rho) (cap_weight p c rho hL hQ)
-      y W (CapOrigin p c E rho i x) (cap_origins p c E rho hL hv i x W hW) hy hF
+      y W (CapOrigin p c E rho i x) (cap_origin_of_held p c E rho hL hv i x W hW) hy hF
   obtain ⟨z, r, a, hb, hs, hd, _⟩ := ho
   exact ⟨z, r, a, u, hb, hs, hd, hu, hf⟩
 
@@ -207,7 +172,7 @@ theorem fgsa_rCap_before [Fintype V]
   by_contra hn
   obtain ⟨u, _, _, ho, T, b, hh⟩ :=
     KitFG.causalCap_row p.E p.cfg (capFaulty p c rho) (cap_weight p c rho hL hQ)
-      y' W (CapOrigin p c E rho i' x) (cap_origins p c E rho hL hv i' x W hW)
+      y' W (CapOrigin p c E rho i' x) (cap_origin_of_held p c E rho hL hv i' x W hW)
       (Nat.le_of_not_gt hn)
   obtain ⟨z, r, a, hb, hs, hd, k, o, s, hki, hk, hrs⟩ := ho
   have hst := (Gen.V2.index_lt_idxBefore_iff hv.toScheduleWellFormed hk t).mp (hki.trans_le hi)
@@ -279,7 +244,7 @@ theorem fgsa_finalityLag [Fintype V]
   by_contra hn
   obtain ⟨u, _, _, ho, hf⟩ :=
     KitFG.finalityCap_row p.E p.cfg (capFaulty p c rho) (cap_weight p c rho hL hQ)
-      y W (CapOrigin p c E rho i x) (cap_origins p c E rho hL hv i x W hW)
+      y W (CapOrigin p c E rho i x) (cap_origin_of_held p c E rho hL hv i x W hW)
       hy (Nat.le_of_not_gt hn)
   obtain ⟨z, r, a, hb, hs, hd, k, o, s, hki, hk, hrs⟩ := ho
   have hst := (Gen.V2.index_lt_idxBefore_iff hv.toScheduleWellFormed hk
@@ -294,7 +259,7 @@ theorem fgsa_finalityLag [Fintype V]
     exact (Nat.le_of_not_gt hn).trans hheight.le
   obtain ⟨v, _, _, ho, T, b, hh⟩ :=
     KitFG.causalCap_justified_row p.E p.cfg (capFaulty p c rho) (cap_weight p c rho hL hQ)
-      (y - 1) H (CapOrigin p c E rho j z) (cap_origins p c E rho hL hv j z H hH) hjust
+      (y - 1) H (CapOrigin p c E rho j z) (cap_origin_of_held p c E rho hL hv j z H hH) hjust
   obtain ⟨z', r', a', hb', _, hd', hlt⟩ := cap_tick_lt p c E rho hv ho htick
   obtain ⟨j', _, hj'⟩ := hb'
   rw [hy'] at hh
