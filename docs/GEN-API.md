@@ -306,6 +306,15 @@ ctor AvailableChain.Gen.V2.FinalityInterface.mk 848463d1279135ba
 def AvailableChain.Gen.V2.FinalityInterface.finalized 0f75e18dd7551e51
 ```
 
+### `AvailableChainGeneric.Statements.V2.Linked`
+
+```text
+def AvailableChain.Gen.V2.LinkedHolderEqStatement 084f3d8b9097f1e8
+theorem AvailableChain.Gen.V2.LinkedHolderEqStatement_def 64a41f8f324f4332
+def AvailableChain.Gen.V2.LinkedCardLeOfHoldersStatement b3cf9088e09907a4
+theorem AvailableChain.Gen.V2.LinkedCardLeOfHoldersStatement_def be69bde6fe08bb30
+```
+
 ### `AvailableChainGeneric.Statements.V2.Obs`
 
 ```text
