@@ -2,6 +2,7 @@ module
 public import AvailableChainFGSAClaims.Claims.Foundations
 public import AvailableChainFGSAProofs.Proofs.Foundations.Store
 public import AvailableChainFGSAProofs.Proofs.Foundations.Certificates
+public import AvailableChainFGSAProofs.Proofs.Foundations.Reconcile -- shake: keep (L42 run reconcile export)
 
 public section
 
@@ -35,6 +36,14 @@ theorem fgsa_chainCertificatesAt : ChainCertificatesAt p c E rho :=
 
 theorem fgsa_chainCertificatesClaim : ChainCertificatesClaim p :=
   fun c E rho => fgsa_chainCertificatesAt p c E rho
+
+/-- bp.reconcile.v1 at every reachable store, including due lease rows.
+K1 uses reconcile_harmless_origin; its block form is admitBlock_reconcile_harmless. -/
+theorem fgsa_reconcileAt (st : State p.n) (_h : Reachable p st) : ReconcileAt p st :=
+  ⟨reconcile_eq st, reconcile_idem st, reconcile_harmless_origin st⟩
+
+theorem fgsa_reconcileClaim : ReconcileClaim p :=
+  fun st h => fgsa_reconcileAt p st h
 
 end AvailableChain.FGSA.Run
 end

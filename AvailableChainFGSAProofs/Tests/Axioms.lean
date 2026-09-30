@@ -98,3 +98,6 @@ public import AvailableChainFGSAProofs.Proofs.Shared.Reads -- shake: keep (axiom
 #print axioms AvailableChain.FGSA.Run.sourceDiscipline_strat
 #print axioms AvailableChain.FGSA.Run.sourceDiscipline_at
 #print axioms AvailableChain.FGSA.Run.sourceDiscipline_srcFrameAbove
+#print axioms AvailableChain.FGSA.Run.fgsa_rRec
+#print axioms AvailableChain.FGSA.Run.fgsa_reconcileAt
+#print axioms AvailableChain.FGSA.Run.fgsa_reconcileClaim
