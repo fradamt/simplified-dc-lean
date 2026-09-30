@@ -1,12 +1,102 @@
 module
 public import AvailableChainGeneric.Statements.AC.Lease
 public import AvailableChainGeneric.Proofs.Pure.BlockOrder
+public import Mathlib.Data.Finset.Card
 
 public section
 
 namespace AvailableChain.Gen.AC
 
 open AvailableChain AvailableChain.V2 AvailableChain.V2.Engine
+
+/-- A write keeps at most one deadline for each key.
+Source: GridCO/Proofs/Map.lean:1693–1717; step4b-plan.md, S4b-08, Q4 A. -/
+theorem write_unique_keys {n : Nat} (st : GridCO.State n) (b : Block) (g : Nat)
+    (deadline : Time) (hu : UniqueLeaseKeys st) :
+    UniqueLeaseKeys (GridCO.writeObligation st b g deadline) := by
+  intro x hx y hy hkey
+  dsimp only [GridCO.writeObligation] at hx hy
+  simp only [List.mem_append, List.mem_singleton] at hx hy
+  rcases hx with hx | hx
+  · rcases hy with hy | hy
+    · exact hu x (List.mem_filter.mp hx).1 y (List.mem_filter.mp hy).1 hkey
+    · subst y
+      have hneq := (List.mem_filter.mp hx).2
+      have heq : x.1 = b ∧ x.2.1 = g := by
+        simpa only [Prod.mk.injEq] using hkey
+      simp [heq.1, heq.2] at hneq
+  · subst x
+    rcases hy with hy | hy
+    · have hneq := (List.mem_filter.mp hy).2
+      have heq : y.1 = b ∧ y.2.1 = g := by
+        simpa only [Prod.mk.injEq] using hkey.symm
+      simp [heq.1, heq.2] at hneq
+    · subst y
+      rfl
+
+/-- A unique stored row supplies its deadline to a renewal.
+Source: GridCO/Proofs/Protection.lean:37–51; step4b-plan.md, S4b-08, Q4 A. -/
+theorem deadlineOf_eq_of_lease_row {n : Nat} (st : GridCO.State n) (B : Block) (g : Nat)
+    (d : Time) (hu : UniqueLeaseKeys st) (hr : (B, g, d) ∈ st.obligations) :
+    GridCO.deadlineOf st B g = some d := by
+  unfold GridCO.deadlineOf
+  cases hf : st.obligations.find? (fun (target, level, _) => target == B && level == g) with
+  | none =>
+      have := List.find?_eq_none.mp hf (B, g, d) hr
+      simp at this
+  | some row =>
+      have hm := List.mem_of_find?_eq_some hf
+      have hp := List.find?_some hf
+      have hk : (row.1, row.2.1) = (B, g) := by
+        simpa using hp
+      have he := hu row hm (B, g, d) hr hk
+      simp [he]
+
+/-- A write at any key cannot shorten a protected deadline.
+Source: GridCO/Proofs/Protection.lean:55–66; step4b-plan.md, S4b-08, Q4 A. -/
+theorem write_protectsUntil {n : Nat} (st : GridCO.State n) (B C : Block) (g k : Nat)
+    (d limit : Time) (hu : UniqueLeaseKeys st) (h : ProtectsUntil st B g d) :
+    ProtectsUntil (GridCO.writeObligation st C k limit) B g d := by
+  obtain ⟨deadline, hd, hr⟩ := h
+  by_cases hk : (B, g) = (C, k)
+  · have ⟨hB, hg⟩ := Prod.mk.inj hk
+    subst C
+    subst k
+    refine ⟨max deadline limit, le_trans hd (le_max_left _ _), ?_⟩
+    dsimp only [GridCO.writeObligation]
+    simp [deadlineOf_eq_of_lease_row st B g deadline hu hr]
+  · refine ⟨deadline, hd, List.mem_append.mpr (Or.inl (List.mem_filter.mpr ⟨hr, ?_⟩))⟩
+    simpa only [Bool.not_eq_true', Bool.and_eq_false_iff, beq_eq_false_iff_ne,
+      Prod.mk.injEq, not_and_or] using hk
+
+/-- Expiry keeps a row whose protected deadline is still in the future.
+Source: GridCO/Proofs/Protection.lean:25–29; step4b-plan.md, S4b-08, Q4 A. -/
+theorem expire_protectsUntil {n : Nat} (st : GridCO.State n) (B : Block) (g : Nat)
+    (d t : Time) (h : ProtectsUntil st B g d) (ht : t < d) :
+    ProtectsUntil (GridCO.expire st t) B g d := by
+  obtain ⟨deadline, hd, hr⟩ := h
+  exact ⟨deadline, hd, List.mem_filter.mpr ⟨hr, decide_eq_true (lt_of_lt_of_le ht hd)⟩⟩
+
+/-- Release keeps protection when the conflict count is below the level.
+Source: GridCO/Proofs/Protection.lean:31–35; step4b-plan.md, S4b-08, Q4 A. -/
+theorem release_protectsUntil (p : GridCO.Params) {n : Nat} (st : GridCO.State n)
+    (r : Slot) (B : Block) (g : Nat) (d : Time) (h : ProtectsUntil st B g d)
+    (hc : GridCO.releaseCount p st r B < g) :
+    ProtectsUntil (GridCO.release p st r) B g d := by
+  obtain ⟨deadline, hd, hr⟩ := h
+  exact ⟨deadline, hd, List.mem_filter.mpr ⟨hr, decide_eq_true hc⟩⟩
+
+/-- Seats counted against `B` remove its row when they meet its level.
+Source: step4b-plan.md, S4b-08, Q4 A; GridCO/Model/Protocol.lean:396–403.
+The count is read from `st`, before release. -/
+theorem release_of_supporters (p : GridCO.Params) {n : Nat} (st : GridCO.State n)
+    (r : Slot) (B : Block) (g : Nat) (d : Time) (Q : Finset (Fin n))
+    (hg : g ≤ Q.card) (hcount : Q.card ≤ GridCO.releaseCount p st r B) :
+    (B, g, d) ∉ (GridCO.release p st r).obligations := by
+  intro hr
+  have hlt : GridCO.releaseCount p st r B < g :=
+    of_decide_eq_true (List.mem_filter.mp hr).2
+  exact Nat.not_lt_of_ge (le_trans hg hcount) hlt
 
 /-- S4b-01, Q1 A: both live targets are below the same output. -/
 theorem lease_chain_statement : LeaseChainStatement := by

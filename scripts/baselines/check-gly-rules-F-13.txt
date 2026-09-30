@@ -53,6 +53,7 @@ F-13 dup excludes_not_processed AvailableChainGridCO AvailableChainLStar
 F-13 dup excludes_process AvailableChainGridCO AvailableChainLStar
 F-13 dup excludes_stable AvailableChainGridCO AvailableChainLStar AvailableChainSAPC
 F-13 dup execution AvailableChainSAPC AvailableChainWitnesses
+F-13 dup expire_protectsUntil AvailableChainGeneric AvailableChainGridCO
 F-13 dup fastP1_from_engine AvailableChainSA AvailableChainSAPC
 F-13 dup filter_eq_take AvailableChainKit AvailableChainKitV2
 F-13 dup filter_eq_takeWhile AvailableChainKit AvailableChainKitV2
@@ -126,6 +127,7 @@ F-13 dup recovered_from_engine AvailableChainGridCO AvailableChainSA AvailableCh
 F-13 dup recovery_proposal_after_sources AvailableChainGridCO AvailableChainSAPC
 F-13 dup refl AvailableChainGridCO AvailableChainKitFG AvailableChainSAPC
 F-13 dup releaseCount_le_faults_of_emissions AvailableChainGridCO AvailableChainSAPC
+F-13 dup release_protectsUntil AvailableChainGeneric AvailableChainGridCO
 F-13 dup rootInjective_all AvailableChainEngineV2 AvailableChainKit
 F-13 dup root_injective AvailableChainModel AvailableChainSimplexFG
 F-13 dup root_ne_genesis_of_node AvailableChainModel AvailableChainSimplexFG
@@ -170,3 +172,5 @@ F-13 dup trans AvailableChainGridCO AvailableChainKitFG AvailableChainSAPC
 F-13 dup vote_le_time AvailableChainGridCO AvailableChainLStar
 F-13 dup votesAt_subset AvailableChainGridCO AvailableChainLStar
 F-13 dup wellFormed_support_subset AvailableChainGridCO AvailableChainSAPC
+F-13 dup write_protectsUntil AvailableChainGeneric AvailableChainGridCO
+F-13 dup write_unique_keys AvailableChainGeneric AvailableChainGridCO

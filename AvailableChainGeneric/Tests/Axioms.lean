@@ -252,12 +252,21 @@ theorem, in facade order. The library globs build this test module. -/
 -- Statements/AC/Lease.lean
 #print axioms AvailableChain.Gen.AC.LeaseChainStatement_def
 #print axioms AvailableChain.Gen.AC.PendingGateHarmlessStatement_def
+#print axioms AvailableChain.Gen.AC.UniqueLeaseKeys_def
+#print axioms AvailableChain.Gen.AC.LeaseMapChain_def
+#print axioms AvailableChain.Gen.AC.ProtectsUntil_def
 
 -- Proofs/AC/Lease.lean
 #print axioms AvailableChain.Gen.AC.lease_chain_statement
 #print axioms AvailableChain.Gen.AC.pendingGate_harmless_statement
 #print axioms AvailableChain.Gen.AC.lease_chain
 #print axioms AvailableChain.Gen.AC.pendingGate_harmless
+#print axioms AvailableChain.Gen.AC.write_unique_keys
+#print axioms AvailableChain.Gen.AC.deadlineOf_eq_of_lease_row
+#print axioms AvailableChain.Gen.AC.write_protectsUntil
+#print axioms AvailableChain.Gen.AC.expire_protectsUntil
+#print axioms AvailableChain.Gen.AC.release_protectsUntil
+#print axioms AvailableChain.Gen.AC.release_of_supporters
 
 -- Proofs/Pure/Quorum.lean
 #print axioms AvailableChain.Gen.Pure.count_rec

@@ -7,6 +7,36 @@ namespace AvailableChain.Gen.AC
 
 open AvailableChain AvailableChain.V2 AvailableChain.V2.Engine
 
+/-- Each block and level has at most one stored deadline.
+Source: step4b-plan.md, S4b-08, Q4 A; GridCO/Proofs/Map.lean:154–156. -/
+def UniqueLeaseKeys {n : Nat} (st : GridCO.State n) : Prop :=
+  ∀ x ∈ st.obligations, ∀ y ∈ st.obligations, (x.1, x.2.1) = (y.1, y.2.1) → x = y
+
+theorem UniqueLeaseKeys_def {n : Nat} (st : GridCO.State n) : UniqueLeaseKeys st =
+    (∀ x ∈ st.obligations, ∀ y ∈ st.obligations, (x.1, x.2.1) = (y.1, y.2.1) → x = y) := by
+  rw [UniqueLeaseKeys]
+
+/-- All stored lease targets are compatible, including expired targets.
+Source: step4b-plan.md, S4b-08, Q4 A; GridCO/Proofs/Map.lean:818–821. -/
+def LeaseMapChain {n : Nat} (st : GridCO.State n) : Prop :=
+  ∀ K g d, (K, g, d) ∈ st.obligations → ∀ B level expiry,
+    (B, level, expiry) ∈ st.obligations → Block.compatible K B = true
+
+theorem LeaseMapChain_def {n : Nat} (st : GridCO.State n) : LeaseMapChain st =
+    (∀ K g d, (K, g, d) ∈ st.obligations → ∀ B level expiry,
+      (B, level, expiry) ∈ st.obligations → Block.compatible K B = true) := by
+  rw [LeaseMapChain]
+
+/-- A row for this block and level has a deadline at least `d`.
+Source: step4b-plan.md, S4b-08, Q4 A; GridCO/Proofs/Protection.lean:17–18. -/
+def ProtectsUntil {n : Nat} (st : GridCO.State n) (B : Block) (g : Nat) (d : Time) : Prop :=
+  ∃ deadline, d ≤ deadline ∧ (B, g, deadline) ∈ st.obligations
+
+theorem ProtectsUntil_def {n : Nat} (st : GridCO.State n) (B : Block) (g : Nat) (d : Time) :
+    ProtectsUntil st B g d =
+      (∃ deadline, d ≤ deadline ∧ (B, g, deadline) ∈ st.obligations) := by
+  rw [ProtectsUntil]
+
 -- Keep the adopted binder names, including unused proof binders (D01).
 set_option linter.unusedVariables false in
 /-- Live targets at an honest node are compatible.

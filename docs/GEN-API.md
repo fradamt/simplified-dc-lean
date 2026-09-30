@@ -30,6 +30,12 @@ proofs do not affect the hash.
 ### `AvailableChainGeneric.Statements.AC.Lease`
 
 ```text
+def AvailableChain.Gen.AC.UniqueLeaseKeys f579ca9777621413
+theorem AvailableChain.Gen.AC.UniqueLeaseKeys_def ff7e66035b1293cc
+def AvailableChain.Gen.AC.LeaseMapChain de69aa196585741b
+theorem AvailableChain.Gen.AC.LeaseMapChain_def 14d80912a3e24bfa
+def AvailableChain.Gen.AC.ProtectsUntil 10383820b179918c
+theorem AvailableChain.Gen.AC.ProtectsUntil_def f6ded131614158c4
 def AvailableChain.Gen.AC.LeaseChainStatement fc3471acd62e969a
 theorem AvailableChain.Gen.AC.LeaseChainStatement_def bc48f0949fc5a96c
 def AvailableChain.Gen.AC.PendingGateHarmlessStatement 47d9de1d2d4e6bb2
