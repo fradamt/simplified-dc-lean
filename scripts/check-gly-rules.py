@@ -6,13 +6,16 @@ The driver is scripts/check-gly-rules.sh.
 Each rule has its own baseline scripts/baselines/check-gly-rules-<rule>.txt.
 A FAIL rule fails on a finding in a new library (scripts/new-libraries.txt)
 and on a legacy finding that its baseline does not list. A REVIEW rule
-("review list" / "review the output" in GLY §F) lists its findings and
-never fails; its baseline separates the reviewed ones. F-13 (duplicate
-short names) is baselined in new libraries too (step-2 ruling D07).
+("review list" / "review the output" in GLY §F) lists its findings;
+its baseline separates the reviewed ones. Stale F-1 or F-18 allow entries
+always fail. F-13 (duplicate short names) is baselined in new libraries too
+(step-2 ruling D07).
 scripts/gly-rules-allow.txt: `<rule> <declaration>` lines that a rule
 skips (the F-3 E-13 wrapper allow list; empty now).
 scripts/gly-f1-allow.txt: complete F-1 group keys with a nonempty reason
 after `#`. F-1 skips only an exact match of the field set and all names.
+scripts/gly-f18-allow.txt: exact F-18 declaration-and-file keys with a
+nonempty reason after `#`. Both allow files fail on unused entries.
 
 Baseline rewrites (lead ruling, 2026-09-29): `--write-baseline` for F-13, or
 for any rule, is allowed only in a commit whose message names the rule and
@@ -85,6 +88,7 @@ KITFG = {'AvailableChainKitFG'}
 BASE = os.environ.get('GLY_BASE', '7ac5b0c')
 ALLOW = os.path.join(C.SCRIPTS, 'gly-rules-allow.txt')
 F1_ALLOW = os.path.join(C.SCRIPTS, 'gly-f1-allow.txt')
+F18_ALLOW = os.path.join(C.SCRIPTS, 'gly-f18-allow.txt')
 KITFG_DEF = os.path.join(C.BASELINES, 'kitfg-def-modules.txt')
 THM = ('theorem', 'lemma')
 
@@ -108,21 +112,36 @@ def read_allow():
     return out
 
 
-def read_f1_allow():
-    out = set()
-    if os.path.exists(F1_ALLOW):
-        with open(F1_ALLOW, encoding='utf-8') as f:
+def read_exact_allow(path, rule):
+    out = []
+    if os.path.exists(path):
+        with open(path, encoding='utf-8') as f:
             for n, line in enumerate(f, 1):
                 key, sep, reason = line.partition('#')
                 key = key.strip()
                 if not key:
                     continue
-                where = f'{os.path.relpath(F1_ALLOW, C.ROOT)}:{n}'
+                where = f'{os.path.relpath(path, C.ROOT)}:{n}'
                 if not sep or not reason.strip():
-                    raise RuntimeError(f'{where}: F-1 allow entry needs a nonempty reason')
-                if not key.startswith('F-1 ') or ' :: ' not in key:
+                    raise RuntimeError(f'{where}: {rule} allow entry needs a nonempty reason')
+                if rule == 'F-1' and (not key.startswith('F-1 ') or ' :: ' not in key):
                     raise RuntimeError(f'{where}: expected a complete F-1 group key')
-                out.add(key)
+                if rule == 'F-18' and not re.fullmatch(
+                        r"F-18 [\w']+(?:\.[\w']+)+ (?:[\w'-]+/)+[\w'-]+\.lean", key):
+                    raise RuntimeError(f'{where}: expected an exact F-18 declaration-and-file key')
+                out.append((key, where))
+    return out
+
+
+def apply_exact_allow(findings, entries):
+    current = {f.key for f in findings}
+    allowed = {key for key, _ in entries}
+    out = [f for f in findings if f.key not in allowed]
+    for key, where in entries:
+        if key not in current:
+            msg = f'STALE ALLOW {where}: {key}'
+            # A stale allow entry must fail even if a baseline lists its key.
+            out.append(C.Finding(msg, msg, new=True))
     return out
 
 
@@ -192,7 +211,7 @@ def struct_fields(d):
 
 
 def rule_f1(x):
-    allow = read_f1_allow()
+    allow = read_exact_allow(F1_ALLOW, 'F-1')
     groups = defaultdict(list)
     for lf, d in x.all_decls():
         if d.kind in ('structure', 'class'):
@@ -204,12 +223,10 @@ def rule_f1(x):
         if len(members) > 1:
             names = sorted(d.full for _, d in members)
             key = f'{",".join(sorted(fs))} :: {" ".join(names)}'
-            if f'F-1 {key}' in allow:
-                continue
             out.append(F('F-1', key,
                          f'structures with the field set {{{", ".join(sorted(fs))}}}: {", ".join(names)}',
                          new=any(x.new(lf) for lf, _ in members), review=True))
-    return out
+    return apply_exact_allow(out, allow)
 
 
 ROOT_PREMISES = tok(['RootInjectiveBelow', 'ViewRootInj', 'RootInjectiveOn', 'ContentAgree'])
@@ -375,13 +392,14 @@ def rule_f15(x):
 
 
 def rule_f18(x):
+    allow = read_exact_allow(F18_ALLOW, 'F-18')
     out = []
     for lf, d in x.all_decls():
         if d.kind in ('def', 'abbrev', 'structure', 'inductive') and 'window' in d.short.lower() \
                 and not re.search(r'Schedule|Recurrence', lf.module):
-            out.append(F('F-18', f'{lf.module} {d.full}', f'{lf.path}:{d.line}: window definition {d.full}',
+            out.append(F('F-18', f'{d.full} {lf.path}', f'{lf.path}:{d.line}: window definition {d.full}',
                          new=x.new(lf), review=True))
-    return out
+    return apply_exact_allow(out, allow)
 
 
 def rule_f20(x):
@@ -509,7 +527,16 @@ def main():
             print(f'{rule}: ERROR: {e}')
             errors += 1
             continue
-        if a.write_baseline:
+        stale_allow = sum(f.msg.startswith('STALE ALLOW ') for f in findings)
+
+        def report(line):
+            if line.startswith('FAIL NEW-LIBRARY: STALE ALLOW '):
+                line = line.removeprefix('FAIL NEW-LIBRARY: ')
+            if rule in ('F-1', 'F-18') and line.startswith(f'{rule}: '):
+                line += f', {stale_allow} stale allow entries'
+            print(line)
+
+        if a.write_baseline and not stale_allow:
             before = C.read_baseline(name)
             n = C.write_baseline(name, findings, [
                 f'check (i) check-gly-rules, GLY §F rule {rule}: legacy findings.',
@@ -520,9 +547,9 @@ def main():
                 print(f'WARNING {rule}: the rewrite ADDS {len(added)} key(s); name {rule} and the reason '
                       f'in the commit message: ' + ' | '.join(added))
             continue
-        fails += C.evaluate(name, findings, a.list_legacy, title=rule)
+        fails += C.evaluate(name, findings, a.list_legacy, title=rule, out=report)
     if a.write_baseline:
-        return 2 if errors else 0
+        return 2 if errors else (1 if fails else 0)
     print(f'check-gly-rules: {"FAIL" if fails or errors else "PASS"}: {fails} failing findings, '
           f'{errors} rule errors, {len(a.rule or RULES)} rules')
     return 2 if errors else (1 if fails else 0)
