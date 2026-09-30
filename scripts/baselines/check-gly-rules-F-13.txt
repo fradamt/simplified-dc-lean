@@ -57,12 +57,14 @@ F-13 dup fastP1_from_engine AvailableChainSA AvailableChainSAPC
 F-13 dup filter_eq_take AvailableChainKit AvailableChainKitV2
 F-13 dup filter_eq_takeWhile AvailableChainKit AvailableChainKitV2
 F-13 dup filter_false_of_index_ge AvailableChainKit AvailableChainKitV2
+F-13 dup find?_congr_mem AvailableChainFGSA AvailableChainGeneric
 F-13 dup fold_blocks AvailableChainGridCO AvailableChainLStar
-F-13 dup fold_field AvailableChainGridCO AvailableChainSAPC
+F-13 dup fold_field AvailableChainGeneric AvailableChainGridCO AvailableChainSAPC
 F-13 dup fold_keeps_excludes AvailableChainGridCO AvailableChainLStar
 F-13 dup fold_proposals AvailableChainGridCO AvailableChainLStar
 F-13 dup fold_votes_subset AvailableChainGridCO AvailableChainLStar
 F-13 dup foldl_blocks AvailableChainGridCO AvailableChainRegistry
+F-13 dup foldl_select_mem AvailableChainFGSA AvailableChainGeneric
 F-13 dup frozen_blocks_at_proposer AvailableChainGridCO AvailableChainSAPC
 F-13 dup frozen_raw_at_proposer AvailableChainGridCO AvailableChainSAPC
 F-13 dup frozen_support_at_proposer AvailableChainGridCO AvailableChainSAPC

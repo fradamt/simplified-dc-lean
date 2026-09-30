@@ -16,6 +16,7 @@ public import AvailableChainGeneric.Proofs.Pure.FirstBad
 public import AvailableChainGeneric.Proofs.Pure.Schedule
 public import AvailableChainGeneric.Proofs.Pure.BlockOrder
 public import AvailableChainGeneric.Proofs.Pure.Quorum
+public import AvailableChainGeneric.Proofs.Pure.Fold
 public import AvailableChainGeneric.Proofs.V2.Fields
 public import AvailableChainGeneric.Proofs.V2.Reads
 public import AvailableChainGeneric.Proofs.V2.Induction
@@ -256,3 +257,8 @@ theorem, in facade order. The library globs build this test module. -/
 -- Proofs/Pure/Quorum.lean
 #print axioms AvailableChain.Gen.Pure.count_rec
 #print axioms AvailableChain.Gen.Pure.count_clean
+
+-- Proofs/Pure/Fold.lean
+#print axioms AvailableChain.Gen.Pure.fold_field
+#print axioms AvailableChain.Gen.Pure.foldl_select_mem
+#print axioms AvailableChain.Gen.Pure.find?_congr_mem
