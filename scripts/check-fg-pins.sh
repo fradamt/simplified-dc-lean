@@ -57,6 +57,7 @@
 set -euo pipefail
 export LC_ALL=C
 cd "$(dirname "$0")/.."
+source scripts/gate-common.sh
 ETH=/Users/francesco/ethereum
 REG=${FGREG:-docs/FG-COMPOSITION.md}
 # The allowlist of hist pins, one per line: <id> <date YYYY-MM-DD> <reason>.
@@ -98,7 +99,7 @@ resolve() {  # root path pinned-hash -> sha256 of the registered version
     *) return 1 ;;
   esac
 }
-lake build AvailableChainSimplexFG AvailableChainKitFG >/dev/null 2>&1 ||
+gate_build AvailableChainSimplexFG AvailableChainKitFG >/dev/null 2>&1 ||
   { echo "BUILD FAILED"; exit 2; }
 [ -s "$REG" ] || { echo "MISSING OR EMPTY: $REG"; exit 2; }
 tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT

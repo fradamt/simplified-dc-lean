@@ -9,8 +9,12 @@
 # the compiled import data (G13 fold MINOR-2). Source files: `find -L` with
 # `-iname '*.lean'` (symbolic links followed, extension in any case).
 # Run: bash scripts/check-fgsa.sh. Exit 0 when every check passes.
+# JOBS bounds the negative-control pool (default 3 on the Mac, 6 on the NUC; env wins).
+# --no-negative or NEG=0 keeps all positive checks for the merge tier.
 set -euo pipefail
 cd "$(dirname "$0")/.."
+source scripts/gate-common.sh
+gate_options "$@"
 for f in scripts/CheckFGSAAxioms.lean scripts/CheckFGSALease.lean scripts/CheckFGSAExt.lean; do
   [ -f "$f" ] || { echo "MISSING CHECK SCRIPT: $f"; exit 2; }
 done
@@ -118,11 +122,11 @@ check_boundary() {
 }
 
 echo "== lake build --wfail AvailableChainFGSA"
-lake build --wfail AvailableChainFGSA
+gate_build --wfail AvailableChainFGSA
 # The check support library (scripts/AvailableChainCheckSupport/) is not a
 # default target: build it here, so that a clean checkout works.
 echo "== lake build --wfail AvailableChainCheckSupport"
-lake build --wfail AvailableChainCheckSupport
+gate_build --wfail AvailableChainCheckSupport
 echo "== no protocol library imports the check support library"
 ! grep -RlE 'import[[:space:]]+AvailableChainCheckSupport' AvailableChain*/ AvailableChain*.lean || { echo "PROTOCOL LIBRARY IMPORTS AvailableChainCheckSupport"; exit 1; }
 echo "== root imports"
@@ -155,7 +159,7 @@ lake env lean --run scripts/CheckFGSALease.lean
 echo "== ext names of the FG pin table"
 neg=$(mktemp -d "$PWD/.lake/fgsa-neg.XXXXXX")
 trap 'rm -rf "$neg"' EXIT
-lake build --wfail AvailableChainSimplexFG AvailableChainKitFG
+gate_build --wfail AvailableChainSimplexFG AvailableChainKitFG
 nlean=$(perl -CSD -e "$strip_comments" < AvailableChainKitFG/Pins.lean | grep -o '\.leanIn ""' |
   wc -l | tr -d ' ')
 check_ext() {  # EMITTER: its ext records, the lower bound, and CheckFGSAExt.lean
@@ -169,7 +173,10 @@ check_ext() {  # EMITTER: its ext records, the lower bound, and CheckFGSAExt.lea
 }
 check_ext scripts/FGPinIds.lean
 
-echo "== negative controls"
+# Keep each fixture private; only completed logs go to stdout.
+gate_pool_init "$neg/controls"
+if [ "$NEG" = 1 ]; then echo "== negative controls"
+else echo "negative controls: SKIPPED (merge tier)"; fi
 # expect_fail NAME CODE OUT PATTERN...: the check failed with CODE and printed
 # every PATTERN (fixed strings).
 expect_fail() {
@@ -183,16 +190,19 @@ expect_fail() {
   echo "rejected, as expected: $name"
 }
 # A scratch copy of the source tree for the import controls.
-mk_tree() { rm -rf "$neg/tree"; mkdir -p "$neg/tree"; cp -R AvailableChainFGSA AvailableChainFGSA.lean "$neg/tree/"; }
+mk_tree() { mkdir -p "$neg/tree"; cp -R AvailableChainFGSA AvailableChainFGSA.lean "$neg/tree/"; }
 run() { set +e; out=$("$@" 2>&1); code=$?; set -e; }
 
+control_unlisted() {
 mk_tree
 printf 'module\npublic import AvailableChainLStar.Model.Protocol\n' > "$neg/tree/AvailableChainFGSA/Model/NegA.lean"
 echo 'public import AvailableChainFGSA.Model.NegA' >> "$neg/tree/AvailableChainFGSA.lean"
 run check_direct_imports "$neg/tree"
 expect_fail "unlisted library" $code "$out" \
   "IMPORT NOT ALLOWED: AvailableChainFGSA/Model/NegA.lean imports AvailableChainLStar.Model.Protocol"
+}
 
+control_layer() {
 mk_tree
 printf 'module\npublic import AvailableChainKitFG.Correspondence\n' > "$neg/tree/AvailableChainFGSA/Model/NegB.lean"
 printf 'module\npublic import AvailableChainFGSA.Proofs.Carrier\n' > "$neg/tree/AvailableChainFGSA/Statements/NegB.lean"
@@ -200,25 +210,36 @@ run check_direct_imports "$neg/tree"
 expect_fail "wrong-layer import" $code "$out" \
   "IMPORT NOT ALLOWED: AvailableChainFGSA/Model/NegB.lean imports AvailableChainKitFG.Correspondence" \
   "IMPORT NOT ALLOWED: AvailableChainFGSA/Statements/NegB.lean imports AvailableChainFGSA.Proofs.Carrier"
+}
 
+control_import_forms() {
 mk_tree
 printf 'module\npublic import /- dependency -/ AvailableChainFramework.Profile\npublic\n  import\n  AvailableChainSAPC.Model.Choice\n' \
   > "$neg/tree/AvailableChainFGSA/Proofs/NegC.lean"
 run check_direct_imports "$neg/tree"
 expect_fail "import after a comment and a line break" $code "$out" \
   "imports AvailableChainFramework.Profile" "imports AvailableChainSAPC.Model.Choice"
+}
 
+orphan_tree() {
 mk_tree
 printf 'module\n@[expose] public section\ntheorem negOrphan : False := sorry\nend\n' \
   > "$neg/tree/AvailableChainFGSA/Tests/NegOrphan.lean"
 printf 'module\n@[expose] public section\ntheorem negOrphanC : False := sorry\nend\n' \
   > "$neg/tree/AvailableChainFGSA/Tests/NegOrphanC.LEAN"
 echo '/- public import AvailableChainFGSA.Tests.NegOrphan -/' >> "$neg/tree/AvailableChainFGSA.lean"
+}
+
+control_orphan() {
+orphan_tree
 run check_root_imports "$neg/tree"
 expect_fail "orphan modules behind a commented import and with a .LEAN name (root check)" \
   $code "$out" "NOT IMPORTED BY THE ROOT: AvailableChainFGSA.Tests.NegOrphan" \
   "AvailableChainFGSA.Tests.NegOrphanC"
+}
 
+control_closure() {
+orphan_tree
 # The compiled checks: the orphan file (with a sorry) against the build, and a
 # forbidden library in the import closure.
 cat > "$neg/FGSAClosureNeg.lean" <<'LEAN'
@@ -230,7 +251,9 @@ expect_fail "orphan modules and forbidden closure (axiom script)" $code "$out" \
   "NOT IN THE BUILD: AvailableChainFGSA.Tests.NegOrphan " \
   "NOT IN THE BUILD: AvailableChainFGSA.Tests.NegOrphanC " \
   "FORBIDDEN LIBRARY IN THE IMPORT CLOSURE: AvailableChainSAPC"
+}
 
+header_tree() {
 # Header forms and file names that an earlier parser missed (G13 fold MINOR-2;
 # the auditor's files in scripts/fgsa-controls/): a module name with «», a
 # `prelude` line, a .LEAN file, and a linked directory. Each imports L*, which
@@ -243,16 +266,28 @@ mkdir -p "$neg/sub" && cp scripts/fgsa-controls/Sub/X.lean "$neg/sub/"
 ln -s "$neg/sub" "$neg/tree/AvailableChainFGSA/Model/Sub"
 printf 'public import AvailableChainFGSA.Model.%s\n' AdvG AdvP AdvCase Sub.X \
   >> "$neg/tree/AvailableChainFGSA.lean"
+}
+
+control_header_text() {
+header_tree
 run check_direct_imports "$neg/tree"
 expect_fail "header forms and file names (text allowlist)" $code "$out" \
   "UNPARSED IMPORT HEADER: AvailableChainFGSA/Model/AdvG.lean" \
   "UNPARSED IMPORT HEADER: AvailableChainFGSA/Model/AdvP.lean" \
   "IMPORT NOT ALLOWED: AvailableChainFGSA/Model/AdvCase.LEAN imports AvailableChainLStar.Model.Protocol" \
   "IMPORT NOT ALLOWED: AvailableChainFGSA/Model/Sub/X.lean imports AvailableChainLStar.Model.Protocol"
+}
+
+control_boundary() {
+header_tree
 run check_boundary "$neg/tree"
 expect_fail "Q1/Q5 grep in a .LEAN file and a linked directory" $code "$out" \
   "ENGINE REFERENCE in AvailableChainFGSA/Model/AdvCase.LEAN" \
   "ENGINE REFERENCE in AvailableChainFGSA/Model/Sub/X.lean"
+}
+
+control_header_compiled() {
+header_tree
 mkdir -p "$neg/c"
 cp -R .lake/build/lib/lean/AvailableChainFGSA .lake/build/lib/lean/AvailableChainFGSA.* "$neg/c/"
 for m in AdvG:AdvG.lean AdvP:AdvP.lean AdvCase:AdvCase.LEAN Sub/X:Sub/X.lean; do
@@ -265,7 +300,9 @@ expect_fail "header forms and file names (compiled allowlist)" $code "$out" \
   "COMPILED IMPORT NOT ALLOWED: AvailableChainFGSA.Model.AdvP imports AvailableChainLStar.Model.Protocol" \
   "COMPILED IMPORT NOT ALLOWED: AvailableChainFGSA.Model.AdvCase imports AvailableChainLStar.Model.Protocol" \
   "COMPILED IMPORT NOT ALLOWED: AvailableChainFGSA.Model.Sub.X imports AvailableChainLStar.Model.Protocol"
+}
 
+control_lease() {
 # Lease controls: a direct default-instance call; the anchored gate and tick
 # (`gateFrom`, `clockFrom`) at the grid policy (spec sync C1); an alias wrapper
 # with its own policy parameter in another namespace (Astra M1); a generic
@@ -340,7 +377,9 @@ expect_fail "lease controls" $code "$out" \
   "AvailableChain.GridCO.sneakyGate: has a policy parameter" \
   "AvailableChain.GridCO.fixedGate: AvailableChain.GridCO.gate at AvailableChain.GridCO.gridLeasePolicy" \
   "LeaseMk.mkGate: mentions AvailableChain.GridCO.LeasePolicy.mk (reach)"
+}
 
+control_imported_lease() {
 # Imported definitions (G13 fold MINOR-1; the auditor's AdvLib/AdvUse in
 # scripts/fgsa-controls/): a let-bound and a beta-bound default policy, a
 # private wrapper, an irreducible alias of the policy type, and a wrapper
@@ -356,6 +395,9 @@ expect_fail "lease controls in imported definitions" $code "$out" \
   "AdvLib.0.AvailableChain.GridCO.fixedPriv: AvailableChain.GridCO.gate at AvailableChain.GridCO.gridLeasePolicy" \
   "AvailableChain.FGSA.useIrr: AvailableChain.GridCO.genI at cast" \
   "Evil.fixedGate: mentions AvailableChain.GridCO.gridLeasePolicy (reach)"
+}
+
+lease_owner_files() {
 # Generated constants (T7.2 R-A; the owner map of
 # scripts/AvailableChainCheckSupport/GeneratedOwner.lean). NEGATIVE: an
 # imported definition with no policy parameter that fixes the default policy,
@@ -413,13 +455,26 @@ theorem posLeaseSimp (q : GridCO.Params) {n : Nat} {st st' : GridCO.State n}
   simp only [GridCO.excludes, GridCO.votesAt, hv, hn]
 end AvailableChain.FGSA
 LEAN
-for m in LeaseOwnLib LeaseOwnNeg LeaseOwnPos LeaseOwnOnly; do
+}
+
+compile_lease_owner() {
+for m in "$@"; do
   lake env bash -c 'LEAN_PATH="$0:$LEAN_PATH" lean -o "$0/$1.olean" "$0/$1.lean"' "$neg" "$m"
 done
+}
+
+control_lease_owner() {
+lease_owner_files
+compile_lease_owner LeaseOwnLib LeaseOwnNeg
 run lake env bash -c 'LEAN_PATH="$0:$LEAN_PATH" lean --run scripts/CheckFGSALease.lean LeaseOwnNeg' "$neg"
 expect_fail "lease: a policy-fixing definition through its generated equation (owner)" $code "$out" \
   "AvailableChain.GridCO.ownerFixedGate: AvailableChain.GridCO.gate at AvailableChain.GridCO.gridLeasePolicy" \
   "AvailableChain.FGSA.negLeaseOwner: mentions AvailableChain.GridCO.gridLeasePolicy (reach)"
+}
+
+control_lease_owner_only() {
+lease_owner_files
+compile_lease_owner LeaseOwnLib LeaseOwnOnly
 # OWNER PATH ONLY: the generated equation with a policy parameter is skipped
 # (it is not scanned as a constant of the scanned module, so no "has a policy
 # parameter" report), and its owner is inspected and refused. No other report
@@ -430,22 +485,33 @@ expect_fail "lease: a policy-generic owner caught only through its skipped equat
 if [ "$(printf '%s\n' "$out" | grep -cF 'BAD LEASE INSTANCE')" -ne 1 ]; then
   echo "$out"; echo "NEGATIVE CONTROL lease owner path: a report other than the owner's"; exit 1
 fi
+}
+
+positive_lease_owner() {
+lease_owner_files
+compile_lease_owner LeaseOwnPos
 run lake env bash -c 'LEAN_PATH="$0:$LEAN_PATH" lean --run scripts/CheckFGSALease.lean LeaseOwnPos' "$neg"
 if [ "$code" -ne 0 ] || printf '%s\n' "$out" | grep -qF 'BAD LEASE INSTANCE'; then
   echo "$out"; echo "POSITIVE CONTROL lease owner map: split/simp over GridCO.admitVote was refused"; exit 1
 fi
 echo "accepted, as expected: lease: generated equations of Grid CO model definitions (owner)"
-# Ext-name controls: a name that does not exist; a name outside the library (a
-# KitFG constant under AvailableChainFGSA); an unknown library, which fails in
-# the manifest step (step 0) of check-fg-pins.sh, in the FG environment.
+}
+
+control_ext_missing() {
 printf 'ext AvailableChainFGSA AvailableChain.FGSA.noSuchName\nEND ext 1\n' > "$neg/extA"
 run lake env lean --run scripts/CheckFGSAExt.lean "$neg/extA"
 expect_fail "ext name that does not exist" $code "$out" \
   "EXT NAME NOT FOUND: AvailableChain.FGSA.noSuchName"
+}
+
+control_ext_library() {
 printf 'ext AvailableChainFGSA AvailableChain.KitFG.finalLock\nEND ext 1\n' > "$neg/extB"
 run lake env lean --run scripts/CheckFGSAExt.lean "$neg/extB"
 expect_fail "ext name outside its library" $code "$out" \
   "EXT NAME OUTSIDE AvailableChainFGSA: AvailableChain.KitFG.finalLock"
+}
+
+control_ext_unknown() {
 sed 's/^def table : List Pin := pins$/def table : List Pin := pins ++ [{ id := "neg.ctl.v1", sources := [], clauses := [⟨"control", .leanIn "AvailableChainFGSAX" [`AvailableChain.FGSA.gateStep]⟩] }]/' \
   scripts/FGPinIds.lean > "$neg/FGPinIdsC.lean"
 grep -q 'AvailableChainFGSAX' "$neg/FGPinIdsC.lean" ||
@@ -454,6 +520,9 @@ run env FGPINIDS="$neg/FGPinIdsC.lean" bash scripts/check-fg-pins.sh
 expect_fail "unknown ext library (check-fg-pins.sh step 0)" $code "$out" \
   "UNKNOWN EXT LIBRARY: AvailableChainFGSAX (pin neg.ctl.v1, name AvailableChain.FGSA.gateStep)" \
   "EMITTER FAILED"
+}
+
+control_ext_empty() {
 sed 's/^def table : List Pin := pins$/def table : List Pin := []/' scripts/FGPinIds.lean \
   > "$neg/FGPinIdsE.lean"
 grep -q '^def table : List Pin := \[\]$' "$neg/FGPinIdsE.lean" ||
@@ -461,14 +530,24 @@ grep -q '^def table : List Pin := \[\]$' "$neg/FGPinIdsE.lean" ||
 run check_ext "$neg/FGPinIdsE.lean"
 expect_fail "no ext records while Pins.lean has leanIn clauses" $code "$out" \
   "NO EXT RECORDS: $nlean leanIn clauses in Pins.lean"
+}
+
+control_ext_record() {
 printf 'ext AvailableChainFGSA\nEND ext 1\n' > "$neg/extM"
 run lake env lean --run scripts/CheckFGSAExt.lean "$neg/extM"
 expect_fail "malformed ext record" $code "$out" "MALFORMED EXT RECORD: ext AvailableChainFGSA"
+}
+
+control_ext_trailer() {
 printf 'ext AvailableChainFGSA AvailableChain.FGSA.gateStep\nEND ext 2\n' > "$neg/extT"
 run lake env lean --run scripts/CheckFGSAExt.lean "$neg/extT"
 expect_fail "malformed ext trailer" $code "$out" "MALFORMED TRAILER: END ext 2 (1 records)"
-# A bad axiom: an FGSA module with a sorry, compiled into the copy of the FGSA
-# build ($neg/c, made for the compiled allowlist control above).
+}
+
+control_ext_axiom() {
+# A private copy replaces the earlier dependency on the header control.
+mkdir -p "$neg/c"
+cp -R .lake/build/lib/lean/AvailableChainFGSA .lake/build/lib/lean/AvailableChainFGSA.* "$neg/c/"
 printf 'theorem AvailableChain.FGSA.negExtAx : False := sorry\n' > "$neg/NegExtAx.lean"
 lake env bash -c 'LEAN_PATH="$0/c:$LEAN_PATH" lean -o "$0/c/AvailableChainFGSA/NegExtAx.olean" "$0/NegExtAx.lean"' \
   "$neg" >/dev/null 2>&1 || { echo "NEGATIVE CONTROL bad axiom: the module did not compile"; exit 1; }
@@ -476,6 +555,9 @@ printf 'ext AvailableChainFGSA AvailableChain.FGSA.negExtAx\nEND ext 1\n' > "$ne
 run lake env bash -c 'LEAN_PATH="$0/c:$LEAN_PATH" lean --run scripts/CheckFGSAExt.lean --root AvailableChainFGSA.NegExtAx "$0/extX"' "$neg"
 expect_fail "ext name with a bad axiom" $code "$out" \
   "BAD AXIOM: AvailableChain.FGSA.negExtAx uses sorryAx"
+}
+
+control_fg_closure() {
 # The FG import closure with AvailableChainFGSA in it (CheckFGAxioms.lean; the
 # FG-environment control of check-fg.sh uses a stand-in library).
 printf 'import AvailableChainFGSA\n' > "$neg/FGClosureNegFGSA.lean"
@@ -483,4 +565,34 @@ lake env lean -o "$neg/FGClosureNegFGSA.olean" "$neg/FGClosureNegFGSA.lean"
 run lake env bash -c 'LEAN_PATH="$0:$LEAN_PATH" lean --run scripts/CheckFGAxioms.lean --root FGClosureNegFGSA' "$neg"
 expect_fail "AvailableChainFGSA in the FG import closure" $code "$out" \
   "FORBIDDEN LIBRARY IN THE FG IMPORT CLOSURE: AvailableChainFGSA"
+}
+
+if [ "$NEG" = 1 ]; then
+  gate_pool_add control_unlisted
+  gate_pool_add control_layer
+  gate_pool_add control_import_forms
+  gate_pool_add control_orphan
+  gate_pool_add control_closure
+  gate_pool_add control_header_text
+  gate_pool_add control_boundary
+  gate_pool_add control_header_compiled
+  gate_pool_add control_lease
+  gate_pool_add control_imported_lease
+  gate_pool_add control_lease_owner
+  gate_pool_add control_lease_owner_only
+fi
+# Keep the positive controls in their original order in both tiers.
+gate_control_serial positive_lease_owner
+if [ "$NEG" = 1 ]; then
+  gate_pool_add control_ext_missing
+  gate_pool_add control_ext_library
+  # check-fg-pins has a build step. Drain the pool and use its build lock.
+  gate_control_serial control_ext_unknown
+  gate_pool_add control_ext_empty
+  gate_pool_add control_ext_record
+  gate_pool_add control_ext_trailer
+  gate_pool_add control_ext_axiom
+  gate_pool_add control_fg_closure
+fi
+gate_pool_wait
 echo "all FGSA checks pass"

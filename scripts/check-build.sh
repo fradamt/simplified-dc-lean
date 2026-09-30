@@ -13,6 +13,7 @@
 # ran passed; 1: a check failed.
 set -uo pipefail
 cd "$(dirname "$0")/.."
+source scripts/gate-common.sh
 CONE_MODULE=${CONE_MODULE:-AvailableChainGridCO.Proofs.Map}
 RESULTS=(); FAILED=0
 run() {  # run <id> <name> <command...>
@@ -28,7 +29,7 @@ run b check-expose python3 scripts/check-expose.py
 if [ "${SKIP_CONE:-0}" = 1 ]; then skip c rebuild-cone-test "SKIP_CONE=1"
 else run c "rebuild-cone-test $CONE_MODULE" bash scripts/rebuild-cone-test.sh "$CONE_MODULE"; fi
 if [ -f scripts/CheckProofEqns.lean ]; then
-  run d CheckProofEqns bash -c 'lake build AvailableChainCheckSupport && lake env lean --run scripts/CheckProofEqns.lean --baseline scripts/baselines/check-proof-eqns.txt'
+  run d CheckProofEqns bash -c 'source scripts/gate-common.sh; gate_build AvailableChainCheckSupport && lake env lean --run scripts/CheckProofEqns.lean --baseline scripts/baselines/check-proof-eqns.txt'
 else skip d CheckProofEqns "not yet present"; fi
 if [ -f scripts/check-layers.py ]; then run e check-layers python3 scripts/check-layers.py
 else skip e check-layers "not yet present"; fi
@@ -37,7 +38,7 @@ if bash scripts/shake-report.sh; then RESULTS+=("(f) shake-report: REPORT"); els
 echo "=== (g) chain-depth"
 if python3 scripts/chain-depth.py; then RESULTS+=("(g) chain-depth: REPORT"); else RESULTS+=("(g) chain-depth: FAIL (could not run)"); FAILED=1; fi
 run h check-transparency python3 scripts/check-transparency.py
-run i check-gly-rules bash -c 'targets=$(lake env lean --run scripts/CheckGenFirst.lean --libraries) && lake build $targets && bash scripts/check-gly-rules.sh'
+run i check-gly-rules bash -c 'source scripts/gate-common.sh; targets=$(lake env lean --run scripts/CheckGenFirst.lean --libraries) && gate_build $targets && bash scripts/check-gly-rules.sh'
 echo "=== summary"
 printf '%s\n' "${RESULTS[@]}"
 [ $FAILED -eq 0 ] && echo "check-build: PASS" || echo "check-build: FAIL"

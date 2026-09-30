@@ -1,0 +1,142 @@
+#!/usr/bin/env bash
+# Run from the repository root. Freeze gates must use --tier full.
+# Linux runs the three check scripts in parallel. Mac runs them in sequence.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+source scripts/gate-common.sh
+tier=auto; base=
+usage() { echo "usage: bash scripts/gate.sh [--tier merge|full|auto] [--base <ref>] [--jobs N]"; }
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --tier|--base|--jobs)
+      [ $# -ge 2 ] || { usage >&2; exit 2; }
+      case "$1" in --tier) tier=$2 ;; --base) base=$2 ;; --jobs) JOBS=$2 ;; esac
+      shift 2 ;;
+    --help|-h) usage; exit 0 ;;
+    *) usage >&2; exit 2 ;;
+  esac
+done
+case "$tier" in auto|merge|full) ;; *) usage >&2; exit 2 ;; esac
+gate_jobs
+export JOBS
+mkdir -p .lake
+logs=$(mktemp -d "$PWD/.lake/gate-logs.XXXXXX")
+started=$(date +%s)
+failed=0
+
+# Include both sides of renames. Also inspect local edits, since a gate may
+# run before a commit. Use NUL delimiters for names and disable external diffs.
+tier_path() {
+  case "$1" in
+    scripts/*|*allow*.txt|lakefile.toml|lean-toolchain|lake-manifest.json|Statements/*|*/Statements/*)
+      reason="gate input changed: $1"; return 0 ;;
+  esac
+  return 1
+}
+choose_tier() {
+  if [ "$tier" != auto ]; then reason="explicit --tier $tier"; return; fi
+  if [ -z "$base" ]; then base=$(git merge-base main HEAD); fi
+  base=$(git rev-parse --verify "$base^{commit}")
+  git diff --no-ext-diff --no-renames --name-only -z "$base..HEAD" > "$logs/paths"
+  git diff --no-ext-diff --no-renames --name-only -z HEAD >> "$logs/paths"
+  git ls-files --others --exclude-standard -z >> "$logs/paths"
+  tier=full
+  local path
+  while IFS= read -r -d '' path; do
+    if tier_path "$path"; then return; fi
+  done < "$logs/paths"
+  git diff --no-ext-diff --no-textconv --no-renames --unified=0 "$base..HEAD" -- '*.lean' > "$logs/imports.diff"
+  git diff --no-ext-diff --no-textconv --no-renames --unified=0 HEAD -- '*.lean' >> "$logs/imports.diff"
+  if grep -vE '^(\+\+\+|---)' "$logs/imports.diff" |
+      grep -E '^[+-](.*[^[:alnum:]_])?import([^[:alnum:]_]|$)' >/dev/null; then
+    reason="an import line changed"; return
+  fi
+  git ls-files --others --exclude-standard -z -- '*.lean' > "$logs/untracked-lean"
+  while IFS= read -r -d '' path; do
+    if grep -E '(^|[^[:alnum:]_])import([^[:alnum:]_]|$)' "$path" >/dev/null; then
+      reason="an import line was added: $path"; return
+    fi
+  done < "$logs/untracked-lean"
+  if [ ! -f .lake/gate-last-full ]; then reason=".lake/gate-last-full is missing"; return; fi
+  local modified now
+  if [ "$(uname -s)" = Darwin ]; then modified=$(stat -f %m .lake/gate-last-full)
+  else modified=$(stat -c %Y .lake/gate-last-full); fi
+  now=$(date +%s)
+  if [ "$((now-modified))" -ge 86400 ] || [ "$modified" -gt "$now" ]; then
+    reason=".lake/gate-last-full is older than 24 h or has a future date"; return
+  fi
+  tier=merge; reason="no full-tier changes; full PASS is less than 24 h old"
+}
+choose_tier
+echo "tier: $(printf '%s' "$tier" | tr '[:lower:]' '[:upper:]') ($reason)"
+echo "logs: $logs"
+echo "reminder: run bash scripts/check-fg.sh on the Mac (research files required)"
+
+# Do not put the step in an if/|| test: preserve errexit inside its functions.
+step() (
+  set +e
+  name=$1; shift
+  start=$(date +%s)
+  (set -e; "$@") > "$logs/$name.log" 2>&1
+  rc=$?
+  end=$(date +%s)
+  printf '%s %s\n' "$rc" "$((end-start))" > "$logs/$name.result"
+)
+summary() {
+  local name=$1 rc wall
+  read -r rc wall < "$logs/$name.result"
+  echo "$name rc=$rc wall=${wall}s"
+  if [ "$rc" -ne 0 ]; then
+    failed=1
+    cat "$logs/$name.log"
+  fi
+}
+finish() {
+  if [ "$failed" -eq 0 ]; then
+    if [ "$tier" = full ]; then touch .lake/gate-last-full; fi
+    echo "GATE PASS tier=$tier wall=$(($(date +%s)-started))s"
+  else
+    echo "GATE FAIL tier=$tier wall=$(($(date +%s)-started))s"
+  fi
+}
+build_all() {
+  local targets
+  targets=$(lake env lean --run scripts/CheckGenFirst.lean --libraries)
+  [ -n "$targets" ] || { echo "CheckGenFirst returned no build targets"; return 1; }
+  # @ selects every default target of the root package, plus check support
+  # and every module that CheckGenFirst scans (including facade orphans).
+  GATE_NO_BUILD=0 gate_build --wfail @ AvailableChainCheckSupport $targets
+}
+step build build_all
+summary build
+if [ "$failed" -ne 0 ]; then finish; exit 1; fi
+export GATE_NO_BUILD=1
+# A caller's NEG/SKIP_CONE must not weaken the chosen tier or build checks.
+export NEG=1 SKIP_CONE=0
+if [ "$tier" = merge ]; then NEG=0; fi
+checks=(check-build check-fgsa check-fgsa-run)
+# In parallel on both machines; on the Mac the Lean wrapper caps concurrent lean.
+pids=()
+for name in "${checks[@]}"; do step "$name" bash "scripts/$name.sh" & pids+=("$!"); done
+for pid in "${pids[@]}"; do wait "$pid"; done
+for name in "${checks[@]}"; do summary "$name"; done
+step catalog-lock lake env lean --run scripts/CatalogLock.lean --check
+summary catalog-lock
+step v2-manifest lake env lean --run scripts/V2Manifest.lean --check
+summary v2-manifest
+step gen-manifest lake env lean --run scripts/V2Manifest.lean --scope gen --check
+summary gen-manifest
+audit() {
+  local path=$1 out=$2 rc=0 count
+  lake env lean "$path" > "$out" 2>&1 || rc=$?
+  cat "$out"
+  count=$(grep -c sorryAx "$out" || :)
+  echo "sorryAx = $count"
+  [ "$rc" -eq 0 ] && [ "$count" = 0 ]
+}
+for lib in Generic FGSA FGSARun; do
+  step "$lib-axioms" audit "AvailableChain$lib/Tests/Axioms.lean" "$logs/$lib.axioms"
+  summary "$lib-axioms"
+done
+finish
+exit "$failed"
