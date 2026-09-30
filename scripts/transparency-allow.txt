@@ -150,3 +150,7 @@ AvailableChainWitnesses.Accumulation AvailableChain.Witnesses.Accumulation.deliv
 AvailableChainWitnesses.Regimes AvailableChain.Witnesses.Regimes.execution legacy: v4.34.1 port (isDefEq transparency change; reason per use not recorded)
 AvailableChainFGSARun.Proofs.Excludes AvailableChain.FGSA.Run.admitRow_of_rowExcl v4.34.1: rw [ite_eq_left] finds no pattern in the unfolded admitRow without it
 AvailableChainFGSARun.Proofs.Excludes AvailableChain.FGSA.Run.epoch_of_restartFree v4.34.1: rw [tick_st] finds no pattern after Function.update_self without it
+AvailableChainFGSARun.Proofs.ClientTrace AvailableChain.FGSA.Run.fgsa_tick_rows_of_seats dependent fgsa State/Object projections block list and event rewrites at implicit transparency
+AvailableChainFGSARun.Proofs.ClientTrace AvailableChain.FGSA.Run.released_event dependent fgsa State/Object projections block list and event rewrites at implicit transparency
+AvailableChainFGSARun.Proofs.ClientTrace AvailableChain.FGSA.Run.record_succ dependent fgsa State/Object projections block list and event rewrites at implicit transparency
+AvailableChainFGSARun.Proofs.ClientTrace AvailableChain.FGSA.Run.trace_and_record dependent fgsa State/Object projections block list and event rewrites at implicit transparency

@@ -139,7 +139,8 @@ check_direct_imports . || exit 1
 echo "== Q1/Q5 boundary"
 check_boundary . || exit 1
 echo "== axioms, build coverage, import closure"
-lake env lean --run scripts/CheckFGSAAxioms.lean
+lake env lean --run scripts/CheckFGSAAxioms.lean --expect \
+  StoreSetEq admitRow_setEq proposalRows_perm_setEq propose_setEq
 echo "== lease instances"
 lake env lean --run scripts/CheckFGSALease.lean
 # The `leanIn "AvailableChainFGSA"` names of AvailableChainKitFG/Pins.lean get

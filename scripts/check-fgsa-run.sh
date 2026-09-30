@@ -46,7 +46,14 @@ AX_OPTS=(--expect Run.fgsa Run.fgsaFamilies Run.fgsaIso Run.toWireEquiv Run.duti
   Run.fgsaTimely Run.fgsaAcceptanceInv Run.fgsaTrigger Run.fgsa_slot_threshold_iff
   Run.fgsa_round_threshold_iff Run.fgsaTimelyClock Run.fgsaAcceptance Run.fgsaAdmitSound
   Run.fgsaTimelyClock_clockOf Run.fgsaTimelyClock_actTime Run.fgsaTrigger_def Run.fgsa_trigger_of_emit
-  Run.fgsa_trigger_of_accept Run.Tests.fgsa_carried_row_cap_control)
+  Run.fgsa_trigger_of_accept Run.Tests.fgsa_carried_row_cap_control
+  Run.ownRecord_fold_run Run.fgsa_emits_head Run.fgsa_emits_row
+  Run.fgsa_emitsAt_row Run.fgsa_emits_proposal Run.fgsa_tick_asleep
+  Run.fgsa_attest_decode Run.fgsa_carried_row Run.EmitsRow
+  Run.EmittedRowsNoSlash Run.decodeRowObject Run.fgClientEvent
+  Run.fgClientEvents Run.fgsa_tick_rows_of_seats Run.fgsa_client_trace_of_seats
+  Run.fgsa_linked_seats Run.fgsa_ownSeats_bijSeat Run.fgsa_decode_attest_object
+  Run.fgsa_client_trace Run.emittedRowsNoSlash)
 
 # Remove comments (the tokenizer of scripts/check-fgsa.sh): strings, character
 # literals, raw strings (r"...", r#"..."#) and nested block comments. A "--"

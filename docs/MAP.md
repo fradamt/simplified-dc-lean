@@ -1139,6 +1139,7 @@ rows under `scripts/` are paths from the repository root.
 │                                │ FMonotone, MetadataInvariant                   │                    │
 │                                │ StoreBundle, StoreBundleInvariant, f_def       │ E-11, D14; PROVED  │
 │ Proofs/BlockAncestry.lean      │ public Block ancestry lemmas                   │                    │
+│ Proofs/SetEq.lean              │ Pool permutation and set-only proposal reads   │ T7.9 A             │
 │ Proofs/Carrier.lean            │ local carrier: eraseFG slot, root, parent,     │ K5 local           │
 │                                │ ancestry and compatibility                     │                    │
 │ Proofs/Fields.lean             │ write sets of every step                       │                    │
@@ -1245,6 +1246,9 @@ the library glob builds Tests. It adapts the FG-SA store to engine v2.
 │ Proofs/Protocol.lean            │ Adapter, field and decoder facts      │
 │ Proofs/Excludes.lean            │ Exclusion stability and epoch proofs  │
 │ Proofs/Interface.lean           │ Proposal label injectivity            │
+│ Statements/Client.lean          │ Row safety and indexed client inputs  │
+│ Proofs/Emission.lean            │ Emission, decoding and restart fold   │
+│ Proofs/ClientTrace.lean         │ Linked client trace and no slashing   │
 │ Proofs/ClockLaws.lean           │ Base clock laws and restore premises  │
 │ Proofs/Reachable.lean           │ Run store bundle and proposal origins │
 │ Proofs/Hooks.lean               │ HooksSound and child well-formedness  │

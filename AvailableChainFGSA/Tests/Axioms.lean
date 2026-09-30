@@ -10,6 +10,7 @@ public import AvailableChainFGSA.Proofs.StoreInv
 public import AvailableChainFGSA.Proofs.Metadata
 public import AvailableChainFGSA.Proofs.CrossNode
 public import AvailableChainFGSA.Proofs.Head
+public import AvailableChainFGSA.Proofs.SetEq
 
 /-! Kernel dependency audit (Task 13 Step 1): one line for each public theorem of
 Tasks 2 and 7–12. Each prints only `propext`, `Classical.choice`, `Quot.sound`, or
@@ -285,3 +286,9 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 #print axioms AvailableChain.KitFG.transition_perm
 #print axioms AvailableChain.KitFG.transition_eq_of_mem_iff
 #print axioms AvailableChain.KitFG.transition_eq_of_toFinset
+
+-- T7.9 part A
+#print axioms AvailableChain.FGSA.StoreSetEq
+#print axioms AvailableChain.FGSA.admitRow_setEq
+#print axioms AvailableChain.FGSA.proposalRows_perm_setEq
+#print axioms AvailableChain.FGSA.propose_setEq

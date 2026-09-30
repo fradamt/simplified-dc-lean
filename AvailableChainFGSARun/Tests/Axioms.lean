@@ -9,6 +9,9 @@ public import AvailableChainFGSARun.Proofs.Reachable
 public import AvailableChainFGSARun.Proofs.Hooks
 public import AvailableChainFGSARun.Proofs.Acceptance
 public import AvailableChainFGSARun.Tests.Acceptance
+public import AvailableChainFGSARun.Proofs.Emission
+public import AvailableChainFGSARun.Statements.Client
+public import AvailableChainFGSARun.Proofs.ClientTrace
 
 /-! Kernel dependency audit of the FG-SA run library (plan
 `docs/plans/2026-09-29-fgsa-composition-t7-t1.md`, T7.1): one `#print axioms`
@@ -176,3 +179,24 @@ mechanically. -/
 #print axioms AvailableChain.FGSA.Run.fgsa_trigger_of_emit
 #print axioms AvailableChain.FGSA.Run.fgsa_trigger_of_accept
 #print axioms AvailableChain.FGSA.Run.Tests.fgsa_carried_row_cap_control
+-- T7.9 part A
+#print axioms AvailableChain.FGSA.Run.ownRecord_fold_run
+#print axioms AvailableChain.FGSA.Run.fgsa_emits_head
+#print axioms AvailableChain.FGSA.Run.fgsa_emits_row
+#print axioms AvailableChain.FGSA.Run.fgsa_emitsAt_row
+#print axioms AvailableChain.FGSA.Run.fgsa_emits_proposal
+#print axioms AvailableChain.FGSA.Run.fgsa_tick_asleep
+#print axioms AvailableChain.FGSA.Run.fgsa_attest_decode
+#print axioms AvailableChain.FGSA.Run.fgsa_carried_row
+#print axioms AvailableChain.FGSA.Run.EmitsRow
+#print axioms AvailableChain.FGSA.Run.EmittedRowsNoSlash
+#print axioms AvailableChain.FGSA.Run.decodeRowObject
+#print axioms AvailableChain.FGSA.Run.fgClientEvent
+#print axioms AvailableChain.FGSA.Run.fgClientEvents
+#print axioms AvailableChain.FGSA.Run.fgsa_tick_rows_of_seats
+#print axioms AvailableChain.FGSA.Run.fgsa_client_trace_of_seats
+#print axioms AvailableChain.FGSA.Run.fgsa_linked_seats
+#print axioms AvailableChain.FGSA.Run.fgsa_ownSeats_bijSeat
+#print axioms AvailableChain.FGSA.Run.fgsa_decode_attest_object
+#print axioms AvailableChain.FGSA.Run.fgsa_client_trace
+#print axioms AvailableChain.FGSA.Run.emittedRowsNoSlash
