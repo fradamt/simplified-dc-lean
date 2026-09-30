@@ -216,4 +216,5 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.OutputNestingClaim
 
 -- FGSASafetyClaims is audited by the compiled EXPECTED check through the Claims root.
+-- FGSASafetyInterfaces is audited by the same compiled EXPECTED check through the Claims root.
 -- This test does not import the facade (P3 §4.8).

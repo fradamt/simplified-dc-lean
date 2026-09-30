@@ -27,6 +27,7 @@ CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = (
     'AvailableChain.FGSA.Run.FGSASafetyClaims',
+    'AvailableChain.FGSA.Run.FGSASafetyInterfaces',
     'AvailableChain.FGSA.Run.ReconcileAt',
     'AvailableChain.FGSA.Run.OutputNestingAt',
     'AvailableChain.FGSA.Run.OutputNestingClaim',
