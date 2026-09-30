@@ -1,5 +1,7 @@
 module
 public import AvailableChainSimplexFG
+public import AvailableChainKitFG.WeightsBridge
+public import AvailableChainGeneric.Proofs.Pure.Quorum
 public import Mathlib.Tactic
 
 @[expose] public section
@@ -17,40 +19,29 @@ omit [DecidableEq V] in
 /-- [helper] A quorum has a member outside a set of weight below `q`. -/
 theorem honest_in_quorum (E : Electorate V) (faulty : Finset V) {Q : Finset V}
     (hQ : E.IsQuorum Q) (hcap : E.weightOf faulty < E.q) : ∃ i ∈ Q, i ∉ faulty := by
-  by_contra hn
-  push Not at hn
-  have hle : E.weightOf Q ≤ E.weightOf faulty := by
-    unfold Electorate.weightOf
-    exact Finset.sum_le_sum_of_subset hn
-  unfold Electorate.IsQuorum at hQ
-  omega
+  exact AvailableChain.Gen.Pure.quorum_honest E.toWeights faulty
+    ((isQuorum_toWeights_iff E Q).mpr hQ)
+    (by simpa only [toWeights_weightOf, toWeights_q] using hcap)
 
 -- port: DC/DecoupledConsensusProofs/Protocol/ChainState/Evidence.lean:83-92 (quorum_intersection)
 /-- [helper] -/
 theorem quorum_intersection (E : Electorate V) {Q Q' : Finset V}
     (hQ : E.IsQuorum Q) (hQ' : E.IsQuorum Q') :
     2 * E.q ≤ E.totalWeight + E.weightOf (Q ∩ Q') := by
-  have hie : E.weightOf (Q ∪ Q') + E.weightOf (Q ∩ Q') = E.weightOf Q + E.weightOf Q' := by
-    unfold Electorate.weightOf
-    exact Finset.sum_union_inter
-  have hu : E.weightOf (Q ∪ Q') ≤ E.totalWeight := by
-    unfold Electorate.weightOf Electorate.totalWeight
-    exact Finset.sum_le_sum_of_subset (Finset.subset_univ _)
-  unfold Electorate.IsQuorum at hQ hQ'
-  omega
+  simpa only [toWeights_q, toWeights_totalWeight, toWeights_weightOf] using
+    (AvailableChain.Gen.Pure.quorum_intersection E.toWeights
+      ((isQuorum_toWeights_iff E Q).mpr hQ)
+      ((isQuorum_toWeights_iff E Q').mpr hQ'))
 
 /-- [helper] Two quorums meet outside a set of weight below `2q − W`. -/
 theorem honest_in_intersection (E : Electorate V) (faulty : Finset V) {Q Q' : Finset V}
     (hQ : E.IsQuorum Q) (hQ' : E.IsQuorum Q')
     (hcap : E.weightOf faulty + E.totalWeight < 2 * E.q) :
     ∃ i ∈ Q ∩ Q', i ∉ faulty := by
-  have hint := quorum_intersection E hQ hQ'
-  by_contra hn
-  push Not at hn
-  have hle : E.weightOf (Q ∩ Q') ≤ E.weightOf faulty := by
-    unfold Electorate.weightOf
-    exact Finset.sum_le_sum_of_subset hn
-  omega
+  exact AvailableChain.Gen.Pure.quorum_inter_honest E.toWeights (F := faulty)
+    ((isQuorum_toWeights_iff E Q).mpr hQ)
+    ((isQuorum_toWeights_iff E Q').mpr hQ')
+    (by simpa only [toWeights_weightOf, toWeights_totalWeight, toWeights_q] using hcap)
 
 /-! ## Ancestry
 (port: DC/DecoupledConsensusProofs/Objects/Ancestry.lean; the DC `Block` type

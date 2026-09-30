@@ -1,5 +1,7 @@
 module
 public import AvailableChainGeneric.Statements.Pure.Quorum
+public import Mathlib.Algebra.Order.BigOperators.Group.Finset
+import Mathlib.Tactic.Push
 
 public section
 
@@ -7,6 +9,46 @@ public section
 `claude-files/a0/archive/generic-layer-r3.16-4e3cf44c.md:9–32`. -/
 
 namespace AvailableChain.Gen.Pure
+
+variable {V : Type} [DecidableEq V] [Fintype V]
+
+-- Source: AvailableChainKitFG/Ancestry.lean:18–53 (GLY E-5, S4b-06).
+omit [DecidableEq V] in
+/-- A quorum has a member outside a set of weight below `q`. -/
+theorem quorum_honest (E : Weights V) (faulty : Finset V) {Q : Finset V}
+    (hQ : E.IsQuorum Q) (hcap : E.weightOf faulty < E.q) : ∃ i ∈ Q, i ∉ faulty := by
+  by_contra hn
+  push Not at hn
+  have hle : E.weightOf Q ≤ E.weightOf faulty := by
+    simp only [Weights.weightOf_def]
+    exact Finset.sum_le_sum_of_subset hn
+  rw [Weights.IsQuorum_def] at hQ
+  omega
+
+/-- The weights of two quorums give a lower bound for their intersection. -/
+theorem quorum_intersection (E : Weights V) {Q Q' : Finset V}
+    (hQ : E.IsQuorum Q) (hQ' : E.IsQuorum Q') :
+    2 * E.q ≤ E.totalWeight + E.weightOf (Q ∩ Q') := by
+  have hie : E.weightOf (Q ∪ Q') + E.weightOf (Q ∩ Q') = E.weightOf Q + E.weightOf Q' := by
+    simp only [Weights.weightOf_def]
+    exact Finset.sum_union_inter
+  have hu : E.weightOf (Q ∪ Q') ≤ E.totalWeight := by
+    simp only [Weights.weightOf_def, Weights.totalWeight_def]
+    exact Finset.sum_le_sum_of_subset (Finset.subset_univ _)
+  rw [Weights.IsQuorum_def] at hQ hQ'
+  omega
+
+/-- Two quorums meet outside a set of weight below `2q − W`. -/
+theorem quorum_inter_honest (E : Weights V) {Q Q' F : Finset V}
+    (hQ : E.IsQuorum Q) (hQ' : E.IsQuorum Q')
+    (hF : E.weightOf F + E.totalWeight < 2 * E.q) : ∃ i ∈ Q ∩ Q', i ∉ F := by
+  have hint := quorum_intersection E hQ hQ'
+  by_contra hn
+  push Not at hn
+  have hle : E.weightOf (Q ∩ Q') ≤ E.weightOf F := by
+    simp only [Weights.weightOf_def]
+    exact Finset.sum_le_sum_of_subset hn
+  omega
 
 /-- The recovery count bound gives an honest quorum intersection. -/
 theorem count_rec {n a : Nat} (hn : 0 < n) (hf : a ≤ (n - 1) / 3) : FaultX n a := by

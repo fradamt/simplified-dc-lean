@@ -273,6 +273,9 @@ theorem, in facade order. The library globs build this test module. -/
 -- Proofs/Pure/Quorum.lean
 #print axioms AvailableChain.Gen.Pure.count_rec
 #print axioms AvailableChain.Gen.Pure.count_clean
+#print axioms AvailableChain.Gen.Pure.quorum_honest
+#print axioms AvailableChain.Gen.Pure.quorum_intersection
+#print axioms AvailableChain.Gen.Pure.quorum_inter_honest
 
 -- Proofs/Pure/Fold.lean
 #print axioms AvailableChain.Gen.Pure.fold_field

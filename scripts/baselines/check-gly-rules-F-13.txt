@@ -116,6 +116,7 @@ F-13 dup proposal_delivery_current_label AvailableChainGridCO AvailableChainSAPC
 F-13 dup proposal_le_time AvailableChainGridCO AvailableChainLStar
 F-13 dup protection_from_armed_index AvailableChainGridCO AvailableChainSAPC
 F-13 dup protection_from_armed_read AvailableChainGridCO AvailableChainSAPC
+F-13 dup quorum_intersection AvailableChainGeneric AvailableChainKitFG
 F-13 dup readAt_eq_stateBefore AvailableChainGridCO AvailableChainKit AvailableChainKitV2
 F-13 dup read_field_eq_clock AvailableChainGridCO AvailableChainKit
 F-13 dup read_length_mono AvailableChainGridCO AvailableChainKit AvailableChainKitV2
