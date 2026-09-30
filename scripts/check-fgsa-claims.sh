@@ -25,7 +25,21 @@ ROOT = Path.cwd()
 LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainFGSAInhabit')
 CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
-EXPECTED = ()
+EXPECTED = (
+    'AvailableChain.FGSA.Run.cutPred',
+    'AvailableChain.FGSA.Run.afterTicksIdx',
+    'AvailableChain.FGSA.Run.afterTicks',
+    'AvailableChain.FGSA.Run.SuffixIdx',
+    'AvailableChain.FGSA.Run.timeIdx',
+    'AvailableChain.FGSA.Run.preTick',
+    'AvailableChain.FGSA.Run.postClock',
+    'AvailableChain.FGSA.Run.postTick',
+    'AvailableChain.FGSA.Run.afterTicks_eq_stateBefore',
+    'AvailableChain.FGSA.Run.afterTicks_node',
+    'AvailableChain.FGSA.Run.afterTicks_eq_tick_preTick',
+    'AvailableChain.FGSA.Run.preIdx_le_afterTicksIdx',
+    'AvailableChain.FGSA.Run.afterTicksIdx_mono',
+)
 ORDER = ('Recurrence', 'Bounds', 'Reads', 'Counts', 'Regimes', 'Windows',
          'Packages.Safety', 'Packages.Outage', 'Channels', 'Witness',
          'ChannelProps', 'Healed', 'Packages.Finality', 'ComposeStmt', 'Fold',

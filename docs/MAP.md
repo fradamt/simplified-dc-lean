@@ -1278,7 +1278,7 @@ used constants, axioms, lease instances and negative controls.
 
 ## FG-SA claims skeleton (F0.0b)
 
-The three roots contain no declarations. Each library has its own Tests
+The three roots contain only imports. Each library has its own Tests
 target. The roots do not import Tests. `scripts/check-fgsa-claims.sh` checks
 P3 layers, module order, compiled dependencies, leases, equation exports,
 unused imports, and negative controls. No baseline entries were added.
@@ -1288,8 +1288,11 @@ unused imports, and negative controls. No baseline entries were added.
 │ Module                                          │ Purpose                             │
 ├─────────────────────────────────────────────────┼─────────────────────────────────────┤
 │ AvailableChainFGSAClaims.lean                   │ Claims library root                 │
+│ AvailableChainFGSAClaims/Statements/Reads.lean  │ Generic v2 reads and post-gate cut  │
+│ AvailableChainFGSAClaims/Tests/Reads.lean       │ Three-read regression on v2         │
 │ AvailableChainFGSAClaims/Tests/Axioms.lean      │ Claims public-theorem axiom audit   │
 │ AvailableChainFGSAProofs.lean                   │ Proofs library root                 │
+│ AvailableChainFGSAProofs/Proofs/Shared/Reads.lean │ Post-gate cut and index proofs      │
 │ AvailableChainFGSAProofs/Tests/Axioms.lean      │ Proofs public-theorem axiom audit   │
 │ AvailableChainFGSAInhabit.lean                  │ Inhabit library root                │
 │ AvailableChainFGSAInhabit/Tests/Axioms.lean     │ Inhabit public-theorem axiom audit  │
