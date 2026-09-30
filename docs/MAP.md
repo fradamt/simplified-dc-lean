@@ -1349,6 +1349,8 @@ unused imports, and negative controls. No baseline entries were added.
 │ AvailableChainFGSAProofs/Proofs/Shared/Reads.lean │ Cut, gate values and index proofs   │
 │ AvailableChainFGSAProofs/Proofs/Foundations/    │ Source discipline and source frame  │
 │ Sources.lean                                    │ K6; frozen F1.1 and F1.3 inputs     │
+│ AvailableChainFGSAProofs/Proofs/Foundations/Cap │ G17 run cap; positive finality lag  │
+│ .lean                                           │                                     │
 │ AvailableChainFGSAProofs/Proofs/Foundations/Acc │ Accountable count; explicit lock    │
 │ ountable.lean                                   │                                     │
 │ AvailableChainFGSAProofs/Proofs/Foundations/Fin │ Finalized safety from Base and count │

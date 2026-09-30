@@ -41,6 +41,11 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.Recovery₂.faultX',
     'AvailableChain.FGSA.Run.Recovery₂.faultQ',
 
+    'AvailableChain.FGSA.Run.fgsa_rCap',
+    'AvailableChain.FGSA.Run.fgsa_finalityCap',
+    'AvailableChain.FGSA.Run.fgsa_rCap_time',
+    'AvailableChain.FGSA.Run.fgsa_rCap_before',
+    'AvailableChain.FGSA.Run.fgsa_finalityLag',
     'AvailableChain.FGSA.Run.fgsa_leaseOrigins_chain',
     'AvailableChain.FGSA.Run.fgsa_leaseOrigins_ancestorDeadlines',
     'AvailableChain.FGSA.Run.fgsa_leaseOrigins_fastWrites',
