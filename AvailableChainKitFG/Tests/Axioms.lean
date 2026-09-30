@@ -2,6 +2,7 @@ module
 public import AvailableChainKitFG.Accountable
 public import AvailableChainKitFG.CrossingNoFinal
 public import AvailableChainKitFG.Correspondence
+public import AvailableChainKitFG.CausalCap
 
 /-! Kernel dependency audit for the FG chain lemmas without root premises. -/
 
@@ -15,3 +16,8 @@ public import AvailableChainKitFG.Correspondence
 #print axioms AvailableChain.KitFG.slashableWeight_of_finalized_crossing
 #print axioms AvailableChain.KitFG.exists_honest_timeout_of_crossing
 #print axioms AvailableChain.KitFG.frame_facts
+#print axioms AvailableChain.KitFG.causalCap_row
+#print axioms AvailableChain.KitFG.causalCap_justified_row
+#print axioms AvailableChain.KitFG.finalityCap_row
+#print axioms AvailableChain.KitFG.finalityCap_height_row
+#print axioms AvailableChain.KitFG.causalCap
