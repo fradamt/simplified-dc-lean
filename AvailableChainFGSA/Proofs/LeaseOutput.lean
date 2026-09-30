@@ -60,11 +60,10 @@ private theorem storedTargets_rows (p : Params) (rows : List (RowWire p.n))
   | nil => exact hL
   | cons a rows ih => exact ih _ (storedTargets_row p st a hL)
 
-set_option linter.unusedVariables false in
 /-- [Model/Handlers.lean:64–89; Proofs/Reconcile.lean:28,55]
 Deliveries keep the target bound. Reconcile checks each surviving target. -/
 theorem storedTargetsBelowOutput_process (p : Params) (st : State p.n) (o : Wire p.n)
-    (hC : CStoreInv p st) (hL : StoredTargetsBelowOutput p st) :
+    (_hC : CStoreInv p st) (hL : StoredTargetsBelowOutput p st) :
     StoredTargetsBelowOutput p (process p st o) := by
   unfold process
   cases o.decode with
