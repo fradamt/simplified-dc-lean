@@ -263,3 +263,5 @@ mechanically. -/
 #print axioms AvailableChain.FGSA.Run.fgsa_row_receipt
 #print axioms AvailableChain.FGSA.Run.fgsa_proposal_receipt
 #print axioms AvailableChain.FGSA.Run.fgsa_honest_head_receipt
+#print axioms AvailableChain.FGSA.Run.excludesS_honestRow_false
+#print axioms AvailableChain.FGSA.Run.fgsa_honest_row_receipt

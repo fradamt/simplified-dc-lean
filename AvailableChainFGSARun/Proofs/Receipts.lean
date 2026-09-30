@@ -4,6 +4,7 @@ public import AvailableChainFGSARun.Proofs.Readiness
 public import AvailableChainFGSARun.Proofs.Schedule
 public import AvailableChainFGSARun.Statements.Receipts
 public import AvailableChainFGSARun.Proofs.Emission
+public import AvailableChainGeneric.Proofs.V2.Signatures
 
 public section
 
@@ -874,6 +875,98 @@ theorem fgsa_row_receipt (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
       (fgsaAcceptance p c) C (fun k => cstoreInv_stateBefore E rho k w) htime.2.2 j hj
       (hNoRestart.restartFree w j _) (Bool.eq_false_iff.mpr hx)
     exact of_decide_eq_true hprocessed
+
+/-- An honest row in its window is not excluded at the deadline state.
+G12 identifies each pool row of this key with the emitted row. -/
+theorem excludesS_honestRow_false (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (hExecution : V2.ExecutionValid E rho) (dl : Time → Time)
+    (r : Nat) (i : Fin p.n) (body : RowBody) (t : Time) (w : V)
+    (hh : rho.seatOf (.base (.fg r)) i ∈ rho.honest)
+    (hEmit : V2.Run.emits E rho (rho.seatOf (.base (.fg r)) i)
+      (ofRow p ⟨.seat (.fg r) i, body⟩) t)
+    (hwindow : p.round ((V2.Run.stateBeforeTime E rho (dl t) w).st.slot p) ≤ r + p.wF) :
+    excludesS p (V2.Run.stateBeforeTime E rho (dl t) w).st
+      (ofRow p ⟨.seat (.fg r) i, body⟩) = false := by
+  let st := (V2.Run.stateBeforeTime E rho (dl t) w).st
+  let a : RowWire p.n := ⟨.seat (.fg r) i, body⟩
+  change rowExcl p st a r i = false
+  apply Bool.eq_false_iff.mpr
+  intro hx
+  obtain ⟨habsent, hage | hcap⟩ := (rowExcl_iff st a r i).mp hx
+  · exact (not_lt.mpr hwindow) hage
+  · have hzero : rowCount st r i = 0 := by
+      unfold rowCount
+      have hempty : st.rowPool.filter
+          (fun b => b.decode?.map (fun x => (x.1, x.2.1)) == some (r, i)) = [] := by
+        apply List.filter_eq_nil_iff.mpr
+        intro b hb hk
+        obtain ⟨⟨r', i', body'⟩, hd, he⟩ := Option.map_eq_some_iff.mp (beq_iff_eq.mp hk)
+        obtain ⟨rfl, rfl⟩ := Prod.mk.inj he
+        obtain rfl := rowWire_decode.mp hd
+        have hsource := hb
+        change _ ∈ (V2.Run.stateBeforeTime E rho (dl t) w).st.rowPool at hsource
+        rw [← Gen.V2.stateBefore_idxBefore E rho (dl t)
+          hExecution.toScheduleWellFormed] at hsource
+        obtain ⟨j, u, _, hj, _⟩ := rowPool_provenance E rho _ w _ hsource
+        have heq := Gen.V2.honest_unique_per_label (P := fgsa p c) E rho
+          hExecution.nodup hExecution.toUnforgeableSignatures (fgsaHooks p c).handles_carries
+          (.base (.fg r')) i' hh (ofRow p ⟨.seat (.fg r') i', body'⟩) (ofRow p a)
+          rfl rfl (Or.inr ⟨j, w, u, hj⟩) (Or.inl ⟨t, hEmit⟩)
+        exact habsent ((ofRow_injective heq) ▸ hb)
+      rw [hempty]
+      rfl
+    omega
+
+/-- An honest required row is retained at its strict receipt deadline.
+Readiness comes from delivery; processed_stable keeps the accepted row. -/
+theorem fgsa_honest_row_receipt (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (hDelta : E.Δ = p.Δ) (hExecution : V2.ExecutionValid E rho)
+    (hNoRestart : V2.NoRestart rho) (dl : Time → Time) (cut : Time)
+    (r : Nat) (i : Fin p.n) (body : RowBody) (t : Time) (w : V)
+    (hD : Gen.V2.DeliveryWithin E rho dl cut)
+    (hh : rho.seatOf (.base (.fg r)) i ∈ rho.honest)
+    (hEmit : V2.Run.emits E rho (rho.seatOf (.base (.fg r)) i)
+      (ofRow p ⟨.seat (.fg r) i, body⟩) t)
+    (hw : w ∈ rho.honest) (hcut : dl t ≤ cut) (hlt : t < dl t)
+    (hwindow : p.round ((V2.Run.stateBeforeTime E rho (dl t) w).st.slot p) ≤ r + p.wF) :
+    let st := (V2.Run.stateBeforeTime E rho (dl t) w).st
+    (⟨.seat (.fg r) i, body⟩ : RowWire p.n) ∈ st.rowPool := by
+  let o := ofRow p (⟨.seat (.fg r) i, body⟩ : RowWire p.n)
+  let C := fgsaTimelyClock p c
+  have hS := hExecution.toScheduleWellFormed
+  have hT : Gen.V2.Trigger E rho o t := Or.inl ⟨_, hh, hEmit⟩
+  have hNX := excludesS_honestRow_false E rho hExecution dl r i body t w hh hEmit hwindow
+  obtain ⟨k, he, hem⟩ := hEmit
+  have ht : 0 ≤ t ∧ t ≤ rho.horizon := hS.in_horizon _ (List.mem_of_getElem? he)
+  have hemit := (fgsa_emitsAt_row E rho k _ t he r i body).mp hem
+  have hthreshold : C.actTime o = 4 * p.Δ * ((r * p.R : Nat) : Int) := by
+    rw [fgsaTimelyClock_actTime p c o]
+    rfl
+  have hAdm : C.actTime o ≤ Gen.V2.pubFloor E t := by
+    apply Gen.V2.timely_of_emit E rho C o t ht.1
+    · rw [hthreshold]
+      refine ⟨4 * (r * p.R), ?_⟩
+      rw [hDelta]
+      push_cast
+      ring
+    · rw [hthreshold, ← hemit.2.1]
+      exact le_add_of_nonneg_right (mul_nonneg (by decide) (le_of_lt p.deltaPos))
+  have hfloor0 : 0 ≤ Gen.V2.pubFloor E t :=
+    mul_nonneg (Int.ediv_nonneg ht.1 (le_of_lt E.Δ_pos)) (le_of_lt E.Δ_pos)
+  have hfloorpub : V2.PublicTime E (Gen.V2.pubFloor E t) := by
+    refine ⟨(t / E.Δ).toNat, ?_⟩
+    rw [Int.toNat_of_nonneg (Int.ediv_nonneg ht.1 (le_of_lt E.Δ_pos))]
+    rfl
+  obtain ⟨j, hj⟩ := List.mem_iff_getElem?.mp (hS.tick_total w hw _ hfloorpub hfloor0
+    ((Gen.V2.pubFloor_le E t).trans ht.2))
+  have hprocessed := Gen.V2.accepted_by_deadline (P := fgsa p c) E rho dl cut o t w
+    hD hT hw hcut hlt hS ((fgsaHooks p c).excludes_stable E rho hS)
+    (processed_stable E rho hS)
+    (fgsa_hReady_of_not_block (by intro s B raw sup rows h; cases h)
+      (fgsa_hWF_of_delivery hExecution.wire))
+    (fgsaAcceptance p c) C (fun k => cstoreInv_stateBefore E rho k w) hAdm j hj
+    (hNoRestart.restartFree w j _) hNX
+  exact of_decide_eq_true hprocessed
 
 /-- A required compatible proposal is stored at its own receipt deadline.
 This transports its block only; each carried HEAD uses its own trigger. -/
