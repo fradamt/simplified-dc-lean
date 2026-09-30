@@ -1299,6 +1299,8 @@ unused imports, and negative controls. No baseline entries were added.
 │ n                                               │                                     │
 │ AvailableChainFGSAClaims/Statements/Packages/Sa │ Foundation and Clean packages       │
 │ fety.lean                                       │                                     │
+│ AvailableChainFGSAClaims/Statements/Packages/Ou │ Outage point premises               │
+│ tage.lean                                       │                                     │
 │ AvailableChainFGSAProofs/Proofs/Shared/Regimes. │ Counts, delivery and seed proofs    │
 │ lean                                            │                                     │
 │ AvailableChainFGSAClaims/Tests/Regimes.lean     │ Horizon-zero regime smoke values    │

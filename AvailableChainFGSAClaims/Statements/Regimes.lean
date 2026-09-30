@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAClaims.Statements.Counts
 public import AvailableChainGeneric.Statements.V2.Counts
 public import AvailableChainFGSAClaims.Statements.Bounds
 public import AvailableChainFGSARun.Statements.Interface
@@ -60,6 +61,22 @@ structure FinalitySet (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
     (G : Time) (form : FinForm) (g : Nat) : Prop where
   core : Recovery₂ p c E rho G
   recur : form.holds (HonestSlot rho (fgsaInterface p c)) p.R (P p) p.Δ E.t_GST rho.horizon g
+
+/-- Final outage fields for G-F0a. Participation is strict before the cut;
+the sleep witness is in `outWin`. -/
+structure Outage₂ (fast : Bool) (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (T b₀ b₁ : Time) : Prop where
+  pre : HealthyPrefix₂ p c E rho b₀
+  sleepy : ∀ t, 0 ≤ t → t < b₀ →
+    (awakeHonestIn E rho (t - p.η) t ∪ faulty rho).card < 2 * (awakeHonest E rho t).card
+  order : 0 ≤ T ∧ T ≤ b₀ ∧ b₀ ≤ b₁ ∧ b₁ ≤ rho.horizon
+  lag : T + (if fast then 4 * p.Δ else L p - 3 * p.Δ) ≤ b₀
+  budget : b₁ - b₀ ≤ min p.η (L p)
+  fastPart : fast = true → ∀ t, 0 ≤ t → t < b₀ →
+    (p.n + 1) / 2 ≤ (awakeHonest E rho t).card
+
+abbrev OutageSet (fast : Bool) (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (T b₀ b₁ : Time) : Prop := Outage₂ p c fast E rho T b₀ b₁
 
 end AvailableChain.FGSA.Run
 end

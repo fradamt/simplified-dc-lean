@@ -61,5 +61,12 @@ def kernelWin {Pt : Type} (rOf : Pt → Nat) (dl : Nat → Time) : WinSpec p c P
 def trigWin (dl : Time → Time) : WinSpec p c PtT := fun _ rho pt H =>
   H ≤ pt.t ∧ dl pt.t ≤ rho.horizon
 
+/-- An accepted honest proposal with gate at or before T, and a nonempty
+outage interval with an honest node asleep. The regime supplies b₁ ≤ horizon. -/
+def outWin : WinSpec p c PtOut := fun E rho pt H =>
+  (∃ s, H ≤ V2.proposalTime (fgsaInterface p c) s ∧ cleanWinAt p c E rho s pt.T) ∧
+  pt.b₀ < pt.b₁ ∧
+  ∃ v ∈ rho.honest, ∃ t, pt.b₀ ≤ t ∧ t < pt.b₁ ∧ E.awake v t = false
+
 end AvailableChain.FGSA.Run
 end

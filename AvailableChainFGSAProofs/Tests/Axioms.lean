@@ -35,3 +35,7 @@ import AvailableChainFGSAProofs.Proofs.Shared.Reads -- shake: keep (axiom audit 
 #print axioms AvailableChain.FGSA.Run.fgsa_clean_delivery_iff
 #print axioms AvailableChain.FGSA.Run.fgsa_seed_reachable
 #print axioms AvailableChain.FGSA.Run.fgsa_seed_accepted
+
+#print axioms AvailableChain.FGSA.Run.Outage₂.pos
+#print axioms AvailableChain.FGSA.Run.Outage₂.toCleanCut
+#print axioms AvailableChain.FGSA.Run.Outage₂.faultQ

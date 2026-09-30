@@ -118,5 +118,26 @@ theorem fgsa_seed_accepted (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
   subst v
   exact processed_stable E rho hS w o (i + 1) start his hrf ha.2.2
 
+theorem Outage₂.pos {fast : Bool} {T b₀ b₁ : Time}
+    (h : Outage₂ p c fast E rho T b₀ b₁) : 0 < b₀ := by
+  have hT := h.order.1
+  have hlag := h.lag
+  have hd := p.deltaPos
+  have hk : (2 : Time) ≤ p.k := by exact_mod_cast p.kLarge
+  cases fast with
+  | false =>
+    change T + ((4 * (p.k : Time) - 1) * p.Δ - 3 * p.Δ) ≤ b₀ at hlag
+    nlinarith
+  | true =>
+    change T + 4 * p.Δ ≤ b₀ at hlag
+    linarith
+
+theorem Outage₂.toCleanCut {fast : Bool} {T b₀ b₁ : Time}
+    (h : Outage₂ p c fast E rho T b₀ b₁) : CleanCut₂ p c E rho b₀ := h.pre
+
+theorem Outage₂.faultQ {fast : Bool} {T b₀ b₁ : Time}
+    (h : Outage₂ p c fast E rho T b₀ b₁) : FaultQ p.n (faulty rho).card :=
+  h.pre.faultQ_of_pos h.pos
+
 end AvailableChain.FGSA.Run
 end

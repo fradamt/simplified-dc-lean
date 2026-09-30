@@ -1,4 +1,5 @@
 module
+import AvailableChainFGSAClaims.Statements.Packages.Outage -- shake: keep (axiom audit commands)
 import AvailableChainFGSAClaims.Statements.Packages.Safety -- shake: keep (axiom audit commands)
 import AvailableChainFGSAClaims.Statements.Reads -- shake: keep (axiom audit commands)
 
@@ -103,3 +104,8 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.CleanPrem
 #print axioms AvailableChain.FGSA.Run.CleanPrefixPrem
 #print axioms AvailableChain.FGSA.Run.CleanCutPrem
+
+#print axioms AvailableChain.FGSA.Run.Outage₂
+#print axioms AvailableChain.FGSA.Run.OutageSet
+#print axioms AvailableChain.FGSA.Run.outWin
+#print axioms AvailableChain.FGSA.Run.OutagePrem
