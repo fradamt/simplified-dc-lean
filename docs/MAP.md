@@ -1223,7 +1223,7 @@ The T7.W row-fold declarations are now in `AvailableChainKitFG/Certificates.lean
 `transition_eq_of_toFinset`. The shared `AvailableChain.FGSA.liveRoot_stored`
 proof is in `AvailableChainFGSA/Proofs/StoreInv.lean`.
 
-## FG-SA run library (T7.2)
+## FG-SA run library (T7.2–T7.4)
 
 `AvailableChainFGSARun` is a default library with namespace
 `AvailableChain.FGSA.Run`. Its facade imports Model, Statements and Proofs;
@@ -1236,8 +1236,11 @@ the library glob builds Tests. It adapts the FG-SA store to engine v2.
 │ Model/Protocol.lean             │ fgsa protocol, node and wire adapters │
 │ Model/Families.lean             │ Label families and isolation          │
 │ Statements/Excludes.lean        │ Exclusion and epoch predicates        │
+│ Statements/Interface.lean       │ Output interface and store factors    │
 │ Proofs/Protocol.lean            │ Adapter, field and decoder facts      │
 │ Proofs/Excludes.lean            │ Exclusion stability and epoch proofs  │
+│ Proofs/Interface.lean           │ Proposal label injectivity            │
+│ Proofs/ClockLaws.lean           │ Base clock laws and restore premises  │
 │ Tests/Protocol.lean             │ Protocol examples                     │
 │ Tests/Axioms.lean               │ Public theorem axiom audit            │
 └─────────────────────────────────┴───────────────────────────────────────┘

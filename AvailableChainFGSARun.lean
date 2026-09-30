@@ -4,3 +4,6 @@ public import AvailableChainFGSARun.Model.Families
 public import AvailableChainFGSARun.Statements.Excludes
 public import AvailableChainFGSARun.Proofs.Protocol
 public import AvailableChainFGSARun.Proofs.Excludes
+public import AvailableChainFGSARun.Statements.Interface
+public import AvailableChainFGSARun.Proofs.Interface
+public import AvailableChainFGSARun.Proofs.ClockLaws

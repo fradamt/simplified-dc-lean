@@ -1,0 +1,19 @@
+module
+public import AvailableChainFGSARun.Statements.Interface
+
+public section
+
+namespace AvailableChain.FGSA.Run
+
+/-- Distinct slots have distinct proposal duties. -/
+theorem propLabel_injective (p : Params) {In : Type} (c : AppCodec In) :
+    Function.Injective (fgsaInterface p c).propLabel :=
+  (fgsaInterface p c).propLabel_injective
+
+/-- The proposal duty has the SA proposal time. -/
+theorem proposalTime_fgsa (p : Params) {In : Type} (c : AppCodec In) (s : Slot) :
+    V2.proposalTime (fgsaInterface p c) s = SA.proposalTime p.toParams s := rfl
+
+end AvailableChain.FGSA.Run
+
+end

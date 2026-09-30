@@ -3,6 +3,8 @@ public import AvailableChainFGSARun.Model.Protocol
 public import AvailableChainFGSARun.Model.Families
 public import AvailableChainFGSARun.Proofs.Protocol
 public import AvailableChainFGSARun.Proofs.Excludes
+public import AvailableChainFGSARun.Proofs.Interface
+public import AvailableChainFGSARun.Proofs.ClockLaws
 
 /-! Kernel dependency audit of the FG-SA run library (plan
 `docs/plans/2026-09-29-fgsa-composition-t7-t1.md`, T7.1): one `#print axioms`
@@ -10,6 +12,18 @@ line for each public theorem and each E5 value of the library. Each line
 prints only `propext`, `Classical.choice`, `Quot.sound`, or no axiom.
 `scripts/CheckFGSARunAxioms.lean` checks every constant of the library
 mechanically. -/
+
+-- Interface and clock laws (T7.3, T7.4)
+#print axioms AvailableChain.FGSA.Run.fgsaInterface
+#print axioms AvailableChain.FGSA.Run.fgsaOutputs
+#print axioms AvailableChain.FGSA.Run.finalizedOut
+#print axioms AvailableChain.FGSA.Run.proposalTime_fgsa
+#print axioms AvailableChain.FGSA.Run.propLabel_injective
+#print axioms AvailableChain.FGSA.Run.fgsaClock
+#print axioms AvailableChain.FGSA.Run.fgsa_restore_now_eq
+#print axioms AvailableChain.FGSA.Run.fgsa_hrestore_now
+#print axioms AvailableChain.FGSA.Run.fgsa_hrestore
+#print axioms AvailableChain.FGSA.Run.fgsa_hrestore_field
 
 -- Model/Protocol.lean (T7.2)
 #print axioms AvailableChain.FGSA.Run.toWireEquiv
