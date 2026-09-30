@@ -18,6 +18,11 @@ def fgsaClock : V2.Engine.ClockLaws (fgsa p c) where
   process nd o := process_base_now nd.st (toWire p o)
   recordOwn_now _ _ := rfl
 
+/-- The clock projection is the base store clock. -/
+theorem fgsa_clock_now (nd : Node p) : (fgsaClock p c).now nd = nd.st.base.now := by
+  change nd.st.base.now = nd.st.base.now
+  rfl
+
 /-- Restore resets the base clock to zero, for every durable record. -/
 theorem fgsa_restore_now_eq :
     ∀ d, (fgsaClock p c).now ((fgsa p c).restore d) = 0 := by

@@ -1241,11 +1241,15 @@ the library glob builds Tests. It adapts the FG-SA store to engine v2.
 │ Model/Families.lean             │ Label families and isolation          │
 │ Statements/Excludes.lean        │ Exclusion and epoch predicates        │
 │ Statements/Interface.lean       │ Output interface and store factors    │
+│ Statements/Acceptance.lean      │ Timely, invariant and trigger         │
 │ Proofs/Protocol.lean            │ Adapter, field and decoder facts      │
 │ Proofs/Excludes.lean            │ Exclusion stability and epoch proofs  │
 │ Proofs/Interface.lean           │ Proposal label injectivity            │
 │ Proofs/ClockLaws.lean           │ Base clock laws and restore premises  │
 │ Proofs/Reachable.lean           │ Run store bundle and proposal origins │
+│ Proofs/Hooks.lean               │ HooksSound and child well-formedness  │
+│ Proofs/Acceptance.lean          │ Thresholds and receipt law proofs     │
+│ Tests/Acceptance.lean           │ Carried row and clock controls        │
 │ Tests/Protocol.lean             │ Protocol examples                     │
 │ Tests/Axioms.lean               │ Public theorem axiom audit            │
 └─────────────────────────────────┴───────────────────────────────────────┘

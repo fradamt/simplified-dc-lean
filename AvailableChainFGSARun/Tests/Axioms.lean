@@ -6,6 +6,9 @@ public import AvailableChainFGSARun.Proofs.Excludes
 public import AvailableChainFGSARun.Proofs.Interface
 public import AvailableChainFGSARun.Proofs.ClockLaws
 public import AvailableChainFGSARun.Proofs.Reachable
+public import AvailableChainFGSARun.Proofs.Hooks
+public import AvailableChainFGSARun.Proofs.Acceptance
+public import AvailableChainFGSARun.Tests.Acceptance
 
 /-! Kernel dependency audit of the FG-SA run library (plan
 `docs/plans/2026-09-29-fgsa-composition-t7-t1.md`, T7.1): one `#print axioms`
@@ -154,3 +157,22 @@ mechanically. -/
 #print axioms AvailableChain.FGSA.Run.leaseBelowOutput_stateBefore
 #print axioms AvailableChain.FGSA.Run.leaseBelowOutput_honest
 #print axioms AvailableChain.FGSA.Run.stored_proposal_delivered
+-- Hook and receipt laws (T7.7)
+#print axioms AvailableChain.FGSA.Run.fgsa_clock_now
+#print axioms AvailableChain.FGSA.Run.fgsaHooks
+#print axioms AvailableChain.FGSA.Run.handles_wellFormed
+#print axioms AvailableChain.FGSA.Run.fgsaAdmissionTime
+#print axioms AvailableChain.FGSA.Run.fgsaTimely
+#print axioms AvailableChain.FGSA.Run.fgsaAcceptanceInv
+#print axioms AvailableChain.FGSA.Run.fgsaTrigger
+#print axioms AvailableChain.FGSA.Run.fgsa_slot_threshold_iff
+#print axioms AvailableChain.FGSA.Run.fgsa_round_threshold_iff
+#print axioms AvailableChain.FGSA.Run.fgsaTimelyClock
+#print axioms AvailableChain.FGSA.Run.fgsaAcceptance
+#print axioms AvailableChain.FGSA.Run.fgsaAdmitSound
+#print axioms AvailableChain.FGSA.Run.fgsaTimelyClock_clockOf
+#print axioms AvailableChain.FGSA.Run.fgsaTimelyClock_actTime
+#print axioms AvailableChain.FGSA.Run.fgsaTrigger_def
+#print axioms AvailableChain.FGSA.Run.fgsa_trigger_of_emit
+#print axioms AvailableChain.FGSA.Run.fgsa_trigger_of_accept
+#print axioms AvailableChain.FGSA.Run.Tests.fgsa_carried_row_cap_control

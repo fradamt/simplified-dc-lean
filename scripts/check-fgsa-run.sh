@@ -41,7 +41,12 @@ AX_OPTS=(--expect Run.fgsa Run.fgsaFamilies Run.fgsaIso Run.toWireEquiv Run.duti
   Run.storeBundle_final Run.storeBundle_postClock Run.storeBundle_postTick
   Run.inv0_stateBefore Run.cstoreInv_stateBefore Run.metaInv_stateBefore
   Run.nestOK_stateBefore Run.outputNesting_run Run.leaseBelowOutput_stateBefore
-  Run.leaseBelowOutput_honest Run.stored_proposal_delivered)
+  Run.leaseBelowOutput_honest Run.stored_proposal_delivered
+  Run.fgsa_clock_now Run.fgsaHooks Run.handles_wellFormed Run.fgsaAdmissionTime
+  Run.fgsaTimely Run.fgsaAcceptanceInv Run.fgsaTrigger Run.fgsa_slot_threshold_iff
+  Run.fgsa_round_threshold_iff Run.fgsaTimelyClock Run.fgsaAcceptance Run.fgsaAdmitSound
+  Run.fgsaTimelyClock_clockOf Run.fgsaTimelyClock_actTime Run.fgsaTrigger_def Run.fgsa_trigger_of_emit
+  Run.fgsa_trigger_of_accept Run.Tests.fgsa_carried_row_cap_control)
 
 # Remove comments (the tokenizer of scripts/check-fgsa.sh): strings, character
 # literals, raw strings (r"...", r#"..."#) and nested block comments. A "--"
@@ -111,9 +116,9 @@ check_root_imports() {
 # AvailableChainFGSA.Statements.*, AvailableChainModel.Objects.{Identifiers,
 # Time, Blocks, Codec}, AvailableChainModel.Generic.Env, AvailableChainSimplexFG.*,
 # AvailableChainGridCO.Model.{Protocol, Walk}, AvailableChainSA.Model.Protocol,
-# Mathlib.*. Proofs/ and Tests/ also: AvailableChainKitV2.*,
-# AvailableChainFGSA.Proofs.*, AvailableChainKitFG.*, and the T7.5 core
-# AvailableChainGeneric.Proofs.V2.Induction. Tests/ also:
+# Mathlib.*, AvailableChainGeneric.Statements.*. Proofs/ and Tests/ also:
+# AvailableChainGeneric.Proofs.*, AvailableChainKitV2.*,
+# AvailableChainFGSA.Proofs.*, AvailableChainKitFG.*. Tests/ also:
 # AvailableChainFGSA.Tests.Support. Everything else is refused, in particular
 # the v1 engine (AvailableChainModel.Generic.Run), AvailableChainStatements.*,
 # AvailableChainKit.*, AvailableChainGridCO.Proofs.*, AvailableChainFramework.*,
@@ -140,8 +145,8 @@ check_direct_imports() {
             AvailableChainModel.Objects.Blocks|AvailableChainModel.Objects.Codec) continue ;;
             AvailableChainModel.Generic.Env|AvailableChainSimplexFG.*|Mathlib.*) continue ;;
             AvailableChainGridCO.Model.Protocol|AvailableChainGridCO.Model.Walk) continue ;;
-            AvailableChainSA.Model.Protocol) continue ;;
-            AvailableChainKitV2.*|AvailableChainFGSA.Proofs.*|AvailableChainKitFG.*|AvailableChainGeneric.Proofs.V2.Induction)
+            AvailableChainSA.Model.Protocol|AvailableChainGeneric.Statements.*) continue ;;
+            AvailableChainKitV2.*|AvailableChainFGSA.Proofs.*|AvailableChainKitFG.*|AvailableChainGeneric.Proofs.*)
               { [ "$layer" = Proofs ] || [ "$layer" = Tests ]; } && continue ;;
             AvailableChainFGSA.Tests.Support) [ "$layer" = Tests ] && continue ;;
           esac ;;
@@ -709,7 +714,8 @@ if [ "$code" -ne 0 ] || printf '%s\n' "$out" | grep -qF 'BAD LEASE INSTANCE'; th
 fi
 echo "accepted, as expected: lease: generated equations of Grid CO model definitions (owner)"
 # A name in --expect that the scan does not find fails the check (fail closed).
-run lake env lean --run scripts/CheckFGSARunAxioms.lean "${AX_OPTS[@]}" Run.negNotADeclaration
+run lake env lean --run scripts/CheckFGSARunAxioms.lean "${TEST_ROOTS[@]}" \
+  "${AX_OPTS[@]}" Run.negNotADeclaration
 expect_fail "an expected name that is not checked" $code "$out" \
   "NOT CHECKED: Run.negNotADeclaration" "1 expected names not checked"
 echo "all FGSA run checks pass"

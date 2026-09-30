@@ -78,7 +78,7 @@ def under (r m : Name) : Bool := r.isPrefixOf m && m != r
 `scripts/check-fgsa-run.sh`). -/
 def externalOK (m : Name) : Bool :=
   under `AvailableChainEngineV2 m || under `AvailableChainFGSA.Model m ||
-    under `AvailableChainFGSA.Statements m ||
+    under `AvailableChainFGSA.Statements m || under `AvailableChainGeneric.Statements m ||
     [`AvailableChainModel.Objects.Identifiers, `AvailableChainModel.Objects.Time,
       `AvailableChainModel.Objects.Blocks, `AvailableChainModel.Objects.Codec,
       `AvailableChainModel.Generic.Env, `AvailableChainGridCO.Model.Protocol,
@@ -88,8 +88,8 @@ def externalOK (m : Name) : Bool :=
 
 /-- The external modules that only `Proofs/` and `Tests/` may import. -/
 def proofOK (m : Name) : Bool :=
-  under `AvailableChainKitV2 m || under `AvailableChainFGSA.Proofs m || under `AvailableChainKitFG m ||
-    m == `AvailableChainGeneric.Proofs.V2.Induction
+  under `AvailableChainKitV2 m || under `AvailableChainFGSA.Proofs m ||
+    under `AvailableChainKitFG m || under `AvailableChainGeneric.Proofs m
 
 /-- The direct-import allowlist with its layer rules (plan §3.1; the same rules
 as `check_direct_imports` in `scripts/check-fgsa-run.sh`). The layer of
