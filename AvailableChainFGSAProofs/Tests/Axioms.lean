@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Foundations.FinalizedSafety -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Crossing -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Assembly.Foundations -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Store -- shake: keep (axiom audit commands)
@@ -113,3 +114,8 @@ public import AvailableChainFGSAProofs.Proofs.Shared.Reads -- shake: keep (axiom
 #print axioms AvailableChain.FGSA.Run.fgsa_clientSafetyClaim
 #print axioms AvailableChain.FGSA.Run.fgsa_clientSafetyBaseClaim
 #print axioms AvailableChain.FGSA.Run.honest_one_row_per_round
+
+#print axioms AvailableChain.FGSA.Run.fgsa_slashable_faulty_count
+#print axioms AvailableChain.FGSA.Run.fgsa_accountable
+#print axioms AvailableChain.FGSA.Run.fgsa_finalLock_ev
+#print axioms AvailableChain.FGSA.Run.fgsa_finalizedSafety

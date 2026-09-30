@@ -14,3 +14,5 @@ public import AvailableChainFGSAProofs.Proofs.Assembly.Foundations
 public import AvailableChainFGSAProofs.Proofs.Foundations.Sources
 public import AvailableChainFGSAProofs.Proofs.Foundations.Carrier
 public import AvailableChainFGSAProofs.Proofs.Foundations.Crossing
+public import AvailableChainFGSAProofs.Proofs.Foundations.Accountable
+public import AvailableChainFGSAProofs.Proofs.Foundations.FinalizedSafety
