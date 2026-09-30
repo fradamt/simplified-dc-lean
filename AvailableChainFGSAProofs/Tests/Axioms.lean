@@ -4,6 +4,7 @@ public import AvailableChainFGSAProofs.Proofs.Assembly.Foundations -- shake: kee
 public import AvailableChainFGSAProofs.Proofs.Foundations.Store -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Certificates -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Leases -- shake: keep (axiom audit commands)
+public import AvailableChainFGSAProofs.Proofs.Foundations.Client -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Claims -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Sources -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Regimes -- shake: keep (axiom audit commands)
@@ -108,3 +109,7 @@ public import AvailableChainFGSAProofs.Proofs.Shared.Reads -- shake: keep (axiom
 #print axioms AvailableChain.FGSA.Run.fgsa_carrier_geometry
 #print axioms AvailableChain.FGSA.Run.fgsa_finalLock
 #print axioms AvailableChain.FGSA.Run.fgsa_finalLock_erased
+#print axioms AvailableChain.FGSA.Run.fgsa_clientSafeAll
+#print axioms AvailableChain.FGSA.Run.fgsa_clientSafetyClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_clientSafetyBaseClaim
+#print axioms AvailableChain.FGSA.Run.honest_one_row_per_round

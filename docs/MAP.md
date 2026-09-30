@@ -1340,6 +1340,8 @@ unused imports, and negative controls. No baseline entries were added.
 │ ses.lean                                        │                                     │
 │ AvailableChainFGSAProofs/Proofs/Foundations/Rec │ Exact reconcile edits and K1        │
 │ oncile.lean                                     │                                     │
+│ AvailableChainFGSAProofs/Proofs/Foundations/Cli │ Client safety; one row per round    │
+│ ent.lean                                        │                                     │
 │ AvailableChainFGSAProofs/Proofs/Shared/Reads.lean │ Cut, gate values and index proofs   │
 │ AvailableChainFGSAProofs/Proofs/Foundations/    │ Source discipline and source frame  │
 │ Sources.lean                                    │ K6; frozen F1.1 and F1.3 inputs     │

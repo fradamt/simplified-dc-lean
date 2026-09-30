@@ -6,6 +6,8 @@ public import AvailableChainFGSAProofs.Proofs.Foundations.Reconcile -- shake: ke
 
 public import AvailableChainFGSAProofs.Proofs.Foundations.Carrier
 
+public import AvailableChainFGSAProofs.Proofs.Foundations.Client
+
 public section
 
 namespace AvailableChain.FGSA.Run
@@ -55,6 +57,14 @@ theorem fgsa_carrierAt : CarrierAt p c E rho :=
 /-- The frozen all-runs carrier claim. -/
 theorem fgsa_carrierClaim : CarrierClaim p :=
   fun c E rho => fgsa_carrierAt p c E rho
+
+/-- bp.clientSafety.v1, from T7.9 A under Linked. -/
+theorem fgsa_clientSafetyClaim : ClientSafetyClaim p :=
+  fun c E rho hL => fgsa_clientSafeAll p c E rho hL
+
+/-- Family (0), through Base₂.linked. -/
+theorem fgsa_clientSafetyBaseClaim : ClientSafetyBaseClaim p :=
+  fun c E rho _ hb => fgsa_clientSafeAll p c E rho hb.set.linked
 
 end AvailableChain.FGSA.Run
 end
