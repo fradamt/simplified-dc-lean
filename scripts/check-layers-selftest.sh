@@ -224,6 +224,10 @@ with tempfile.TemporaryDirectory(prefix="check-layers-selftest-") as temporary:
             (P + ".Proofs.Assembly.Control", P + ".Proofs.Shared.Claims"),
             (P + ".Tests.Axioms", P + ".Proofs.Shared.Claims"),
             (P, P + ".Proofs.Shared.Claims"),
+            # L50: the Shared Export.
+            (P + ".Proofs.Shared.Export", C + ".Claims.Shared"),
+            (P + ".Proofs.Shared.Export", P + ".Proofs.Shared.Reads"),
+            (P + ".Proofs.Assembly.Control", P + ".Proofs.Shared.Export"),
         ]
         for index, (importer, dep) in enumerate(positives):
             root = temp / f"positive-{index}"
@@ -274,6 +278,18 @@ with tempfile.TemporaryDirectory(prefix="check-layers-selftest-") as temporary:
             (P + ".Proofs.Shared.Other", C + ".Claims.Clean", "SHARED"),
             (P + ".Shared.Claims", C + ".Claims.Clean", "CLAIM-USE"),
             (P + ".Proofs.Shared.Claims", P + ".Proofs.F1.Helper", "SHARED"),
+            # L50 negatives: only Shared/Export imports Claims/Shared; it imports
+            # Shared proofs and Claims/Shared only; only Assembly imports it.
+            (P + ".Proofs.Shared.Reads", C + ".Claims.Shared", "CLAIM-USE"),
+            (P + ".Proofs.Shared.Claims", C + ".Claims.Shared", "CLAIM-USE"),
+            (P + ".Proofs.F1.Control", C + ".Claims.Shared", "CLAIM-USE"),
+            (P + ".Proofs.F1.Control", P + ".Proofs.Shared.Export", "EXPORT-USE"),
+            (P + ".Proofs.F1.Control", P + ".Proofs.Shared.Export", "LANE"),
+            (P + ".Proofs.Shared.Reads", P + ".Proofs.Shared.Export", "EXPORT-USE"),
+            (P, P + ".Proofs.Shared.Export", "EXPORT-USE"),
+            (P + ".Proofs.Shared.Export", P + ".Proofs.F1.Helper", "SHARED"),
+            (P + ".Proofs.Shared.Export", G + ".Proofs.Pure.Quorum", "SHARED"),
+            (P + ".Proofs.Shared.Export", C + ".Claims.F1", "SHARED"),
         ]
         for index, (importer, dep, rule) in enumerate(boundaries):
             root = temp / f"boundary-{index}"
