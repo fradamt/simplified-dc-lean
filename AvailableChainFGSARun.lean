@@ -24,3 +24,4 @@ public import AvailableChainFGSARun.Statements.Receipts
 public import AvailableChainFGSARun.Proofs.Receipts
 public import AvailableChainFGSARun.Statements.Emission
 public import AvailableChainFGSARun.Proofs.EmissionWellFormed
+public import AvailableChainFGSARun.Proofs.ReceiptCoverage

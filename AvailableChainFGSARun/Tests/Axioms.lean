@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSARun.Proofs.ReceiptCoverage
 public import AvailableChainFGSARun.Proofs.EmissionWellFormed
 public import AvailableChainFGSARun.Model.Protocol
 public import AvailableChainFGSARun.Model.Families
@@ -276,3 +277,5 @@ mechanically. -/
 #print axioms AvailableChain.FGSA.Run.fgsa_propose_parent_lt
 #print axioms AvailableChain.FGSA.Run.honest_emit_wellFormed
 #print axioms AvailableChain.FGSA.Run.decode_honest
+
+#print axioms AvailableChain.FGSA.Run.fgsa_receiptCoverage
