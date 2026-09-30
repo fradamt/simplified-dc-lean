@@ -3,7 +3,6 @@ import AvailableChainFGSAClaims.Claims.Foundations -- shake: keep (axiom audit c
 import AvailableChainFGSAClaims.Claims.Shared -- shake: keep (axiom audit commands)
 import AvailableChainFGSAClaims.Claims.Clean -- shake: keep (axiom audit commands)
 import AvailableChainFGSAClaims.Statements.Packages.Outage -- shake: keep (axiom audit commands)
-import AvailableChainFGSAClaims.Statements.ChannelProps -- shake: keep (axiom audit commands)
 import AvailableChainFGSAClaims.Statements.ComposeStmt -- shake: keep (axiom audit commands)
 
 /-! Axiom audit. Add one `#print axioms` for each new public theorem.
@@ -175,3 +174,15 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.CleanHistoryClaim
 #print axioms AvailableChain.FGSA.Run.CleanPrefixTruncationClaim
 #print axioms AvailableChain.FGSA.Run.CleanSafetyClaim
+#print axioms AvailableChain.FGSA.Run.certified
+#print axioms AvailableChain.FGSA.Run.FrameBelow
+#print axioms AvailableChain.FGSA.Run.RStrat
+#print axioms AvailableChain.FGSA.Run.SrcFrameAbove
+#print axioms AvailableChain.FGSA.Run.SrcFrame
+#print axioms AvailableChain.FGSA.Run.SrcFrameAboveStmt
+#print axioms AvailableChain.FGSA.Run.CPPrefix
+#print axioms AvailableChain.FGSA.Run.CPCompat
+#print axioms AvailableChain.FGSA.Run.TimingContract
+#print axioms AvailableChain.FGSA.Run.FGFoundation
+#print axioms AvailableChain.FGSA.Run.certified_def
+#print axioms AvailableChain.FGSA.Run.HonestRowBefore_def

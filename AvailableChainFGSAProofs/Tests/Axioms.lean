@@ -42,6 +42,10 @@ import AvailableChainFGSAProofs.Proofs.Shared.Reads -- shake: keep (axiom audit 
 #print axioms AvailableChain.FGSA.Run.Outage₂.toCleanCut
 #print axioms AvailableChain.FGSA.Run.Outage₂.faultQ
 #print axioms AvailableChain.FGSA.Run.fgSource_eq_jointSource
+#print axioms AvailableChain.FGSA.Run.ancestorClosed_preceq
+#print axioms AvailableChain.FGSA.Run.ancestorClosed_compatible
+#print axioms AvailableChain.FGSA.Run.srcFrame_genesis_preceq
+#print axioms AvailableChain.FGSA.Run.srcFrame_genesis_compatible
 #print axioms AvailableChain.FGSA.Run.propose_head
 #print axioms AvailableChain.FGSA.Run.frameR_congr_fg
 #print axioms AvailableChain.FGSA.Run.domainR_congr_fg

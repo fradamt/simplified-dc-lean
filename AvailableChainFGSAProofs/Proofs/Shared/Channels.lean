@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSAClaims.Statements.Channels
+public import AvailableChainFGSAClaims.Statements.ChannelProps
 import AvailableChainFGSARun.Proofs.Emission
 import AvailableChainFGSARun.Proofs.Hooks
 
@@ -15,6 +15,29 @@ namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
 
 variable (p : Params)
+
+theorem ancestorClosed_preceq (B : FGBlock (Fin p.n)) :
+    AncestorClosed p (fun e => FGBlock.Preceq e B) := by
+  constructor
+  intro X Y hXY hYB
+  exact KitFG.preceq_trans hXY hYB
+
+theorem ancestorClosed_compatible (B : FGBlock (Fin p.n)) :
+    AncestorClosed p (fun e => FGBlock.Preceq e B ∨ FGBlock.Preceq B e) := by
+  constructor
+  intro X Y hXY hY
+  rcases hY with hYB | hBY
+  · exact Or.inl (KitFG.preceq_trans hXY hYB)
+  · exact KitFG.preceq_total_of_common hXY hBY
+
+theorem srcFrame_genesis_preceq (B : FGBlock (Fin p.n)) (c₀ : Nat) :
+    c₀ ≤ hOf p.E p.cfg (.genesis : FGBlock (Fin p.n)) → FGBlock.Preceq .genesis B :=
+  fun _ => KitFG.genesis_preceq B
+
+theorem srcFrame_genesis_compatible (B : FGBlock (Fin p.n)) (c₀ : Nat) :
+    c₀ ≤ hOf p.E p.cfg (.genesis : FGBlock (Fin p.n)) →
+      FGBlock.Preceq .genesis B ∨ FGBlock.Preceq B .genesis :=
+  fun _ => Or.inl (KitFG.genesis_preceq B)
 
 /-- The store selector is the channel's deepest member of X_r ∩ D(Σ.T). -/
 theorem fgSource_eq_jointSource (st : State p.n) :

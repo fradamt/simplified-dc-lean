@@ -18,6 +18,21 @@ open AvailableChain.SimplexFG
 
 variable (p : Params)
 
+/-- P3 App. A.2: bp.sourceDiscipline.v1(b,c), 01 §8.4, 02 §§3.3–3.5.
+C1: path justifications, finalizations, and strictly crossed entries. -/
+def certified (W : FGBlock (Fin p.n)) : Set (FGBlock (Fin p.n)) :=
+  {e | ∃ U, FGBlock.Preceq U W ∧
+    (e = (derive p.E p.cfg U).J ∨ e = (derive p.E p.cfg U).F ∨
+      (e = (derive p.E p.cfg U).T_h ∧
+        (derive p.E p.cfg U).h < (derive p.E p.cfg W).h))}
+
+-- equation export required by BUILD §7.2 B3a
+theorem certified_def (W : FGBlock (Fin p.n)) : certified p W =
+  {e | ∃ U, FGBlock.Preceq U W ∧
+    (e = (derive p.E p.cfg U).J ∨ e = (derive p.E p.cfg U).F ∨
+      (e = (derive p.E p.cfg U).T_h ∧
+        (derive p.E p.cfg U).h < (derive p.E p.cfg W).h))} := rfl
+
 /-- The admitted FG tree (bp.store.v1, 00:516–527). -/
 def treeT (st : State p.n) : Finset (FGBlock (Fin p.n)) := st.fg.TF
 /-- The substrate tree in its stored base-list order. -/
@@ -106,6 +121,9 @@ def HonestRowAt (j : Nat) (y : V) (r : Nat) (a : RowWire p.n) : Prop :=
     ∃ t, rho.events[j]? = some (.tick y t) ∧ ofRow p a ∈ V2.Run.emitsAt E rho j
 def HonestRowBefore (k : Nat) (y : V) (r : Nat) (a : RowWire p.n) : Prop :=
   ∃ j < k, HonestRowAt p c E rho j y r a
+-- equation export required by BUILD §7.2 B3a
+theorem HonestRowBefore_def (k : Nat) (y : V) (r : Nat) (a : RowWire p.n) :
+    HonestRowBefore p c E rho k y r a = (∃ j < k, HonestRowAt p c E rho j y r a) := rfl
 /-- A valid signed row with the specified round and holder. -/
 def RowComplete (x : V) (r : Nat) (a : RowWire p.n) : Prop :=
   a.valid = true ∧ a.round? = some r ∧ RowSigner p c rho a x

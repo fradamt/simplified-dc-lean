@@ -139,5 +139,73 @@ Consumers: F1.5 source frame, then F2–F5 via SrcFrameAboveStmt. -/
 structure AncestorClosed (Φ : FGBlock (Fin p.n) → Prop) : Prop where
   down : ∀ X Y, FGBlock.Preceq X Y → Φ Y → Φ X
 
+/-- P3 App. A.10: bp.cleanFrame.v1, 02 §3; lead FB1.
+Each frame block above the threshold satisfies Φ. -/
+def FrameBelow (Φ : FGBlock (Fin p.n) → Prop) (c₀ : Nat)
+    (R : Controls (Fin p.n)) : Prop :=
+  (c₀ ≤ hOf p.E p.cfg R.F → Φ R.F) ∧
+  (c₀ ≤ hOf p.E p.cfg R.J → Φ R.J) ∧
+  (c₀ ≤ hOf p.E p.cfg R.Z → Φ R.Z)
+
+/-- P3 App. A.2: bp.sourceDiscipline.v1(b,c), 01 §8.4, 02 §§3.3–3.5.
+Each non-genesis certified entry has an earlier honest row at its height. -/
+def RStrat : Prop := ∀ i x W, x ∈ rho.honest →
+  W ∈ (storeAt p c E rho i x).fg.TF →
+  ∀ e ∈ certified p W, e ≠ .genesis →
+    ∃ y r, ∃ a : RowWire p.n, HonestRowBefore p c E rho i y r a ∧
+      namedEntry a.payload.height_pair = some (hOf p.E p.cfg e, e.root)
+
+/-- P3 App. A.10, S3 D09: bp.sourceDiscipline.v1, 01 §8.4.
+T1 names an FG block by its height and root.
+genesis case: P3 r3.5.6 form refutable at index 0; lead G1. -/
+def SrcFrameAbove (Φ : FGBlock (Fin p.n) → Prop) (c₀ : Nat) : Prop :=
+  (c₀ ≤ hOf p.E p.cfg (.genesis : FGBlock (Fin p.n)) → Φ .genesis) →
+  ∀ i x, x ∈ rho.honest →
+    (∀ y r (a : RowWire p.n) (e : FGBlock (Fin p.n)),
+      HonestRowBefore p c E rho i y r a →
+      namedEntry a.payload.height_pair = some (hOf p.E p.cfg e, e.root) →
+      c₀ ≤ hOf p.E p.cfg e → Φ e) →
+    (∀ W ∈ (storeAt p c E rho i x).fg.TF, ∀ e ∈ certified p W,
+      c₀ ≤ hOf p.E p.cfg e → Φ e) ∧ FrameBelow p Φ c₀ (R_at p c E rho i x)
+
+/-- P3 App. A.10, S3 D09: source frame at threshold zero. -/
+abbrev SrcFrame (Φ : FGBlock (Fin p.n) → Prop) : Prop :=
+  SrcFrameAbove p c E rho Φ 0
+
+/-- P3 App. A.10, G30: source frame for each ancestor-closed predicate and threshold.
+Blueprint bp.sourceDiscipline.v1, 01 §8.4. -/
+def SrcFrameAboveStmt : Prop :=
+  ∀ (Φ : FGBlock (Fin p.n) → Prop) (c₀ : Nat),
+    AncestorClosed p Φ → SrcFrameAbove p c E rho Φ c₀
+
+/-- P3 App. A.3: bp.cleanFrame.v1 (00:733–741), 02 §3.
+The EntryBelow premise and prefix conclusion are frozen. -/
+def CPPrefix : Prop := ∀ i x (B : FGBlock (Fin p.n)), x ∈ rho.honest →
+  (∀ y r (a : RowWire p.n) e, HonestRowBefore p c E rho i y r a →
+    namedEntry a.payload.height_pair = some e → EntryBelow p e B) →
+  (∀ W ∈ (storeAt p c E rho i x).fg.TF, ∀ e ∈ certified p W, FGBlock.Preceq e B) ∧
+  (let R := R_at p c E rho i x
+   FGBlock.Preceq R.F B ∧ FGBlock.Preceq R.J B ∧ FGBlock.Preceq R.Z B ∧
+   R.contest = false ∧ R.lo ≤ hOf p.E p.cfg B)
+
+/-- P3 App. A.3: bp.outageCompatibility.v1 (00:850–859), 03 §7.
+Every contest witness extends B (lead-approved universal form). -/
+def CPCompat : Prop := ∀ i x (B : FGBlock (Fin p.n)), x ∈ rho.honest →
+  (∀ y r (a : RowWire p.n) (e : FGBlock (Fin p.n)),
+    HonestRowBefore p c E rho i y r a →
+    namedEntry a.payload.height_pair = some (hOf p.E p.cfg e, e.root) →
+    FGBlock.Preceq e B ∨ FGBlock.Preceq B e) →
+  (∀ W ∈ (storeAt p c E rho i x).fg.TF, ∀ e ∈ certified p W,
+    FGBlock.Preceq e B ∨ FGBlock.Preceq B e) ∧
+  (let st := storeAt p c E rho i x
+   let R := R_at p c E rho i x
+   (FGBlock.Preceq R.F B ∨ FGBlock.Preceq B R.F) ∧
+   (FGBlock.Preceq R.J B ∨ FGBlock.Preceq B R.J) ∧
+   (B ∈ st.fg.TF → FGBlock.Preceq R.F B →
+     FGBlock.Preceq B R.Z ∨ B ∈ domainR p st st.fg.TF) ∧
+   (R.contest = true → FGBlock.Preceq B R.J ∧
+     ∀ W ∈ st.fg.TF, hOf p.E p.cfg W = R.H → ¬ FGBlock.Preceq R.J W →
+       FGBlock.Preceq B W))
+
 end AvailableChain.FGSA.Run
 end

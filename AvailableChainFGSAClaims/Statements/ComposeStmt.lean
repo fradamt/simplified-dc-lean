@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSAClaims.Statements.Reads
+public import AvailableChainFGSAClaims.Statements.ChannelProps
 
 @[expose] public section
 
@@ -19,6 +19,32 @@ def windowIdx (s : Slot) (i : Nat) : Prop :=
    | 0 => True
    | s' + 1 => afterTicksIdx rho (SA.gateTime p.toParams s') ≤ i) ∧
   i < afterTicksIdx rho (SA.gateTime p.toParams s)
+
+variable {rho} [DecidableEq V] (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+
+/-- P3 App. A.1: study §3.1 (229–260), 01 §8.4 (795–801).
+Earlier rows and certificates, bounded labels, atomic reads, and fixed tick FG state. -/
+structure TimingContract : Prop where
+  rowLag : ∀ j k y r a x, HonestRowAt p c E rho j y r a →
+    HandlesRowAt p c E rho k x a → j < k
+  certLag : RStrat p c E rho
+  label : LabelBound p c E rho
+  atomic : ∀ i x, x ∈ rho.honest →
+    FGSA.SACompat (storeAt p c E rho i x) ∧ FGSA.NestOK (storeAt p c E rho i x)
+  tickFG : ∀ x t nd, preTick E rho x t = some nd →
+    ∀ nd', postClock E rho x t = some nd' → nd'.st.fg = nd.st.fg
+
+/-- P3 App. A.10, D09: unconditional FG channels of App. A.2.
+Blueprint bp.store.v1, bp.frame.v1, bp.chainCertificates.v1,
+bp.sourceDiscipline.v1, and bp.reconcile.v1. -/
+structure FGFoundation : Prop where
+  store : RStore p c E rho
+  cumul : RStoreCumul p c E rho
+  mono : RMono p c E rho
+  frame : RFrameExact p c E rho
+  geo : RGeo p c E rho
+  strat : RStrat p c E rho
+  reconcile : RRec p c E rho
 
 end AvailableChain.FGSA.Run
 end
