@@ -1243,6 +1243,7 @@ the library glob builds Tests. It adapts the FG-SA store to engine v2.
 │ Statements/Excludes.lean        │ Exclusion and epoch predicates        │
 │ Statements/Interface.lean       │ Output interface and store factors    │
 │ Statements/Acceptance.lean      │ Timely, invariant and trigger         │
+│ Statements/AC.lean              │ Event-indexed FG-SA AC reads          │
 │ Proofs/Protocol.lean            │ Adapter, field and decoder facts      │
 │ Proofs/Excludes.lean            │ Exclusion stability and epoch proofs  │
 │ Proofs/Interface.lean           │ Proposal label injectivity            │
@@ -1255,6 +1256,7 @@ the library glob builds Tests. It adapts the FG-SA store to engine v2.
 │ Proofs/Acceptance.lean          │ Thresholds and receipt law proofs     │
 │ Tests/Protocol.lean             │ Protocol and acceptance controls      │
 │ Proofs/Schedule.lean            │ Tick order, release and block slots   │
+│ Proofs/AC.lean                  │ AC laws and slot-only gate corollary  │
 │ Tests/Protocol.lean             │ Protocol examples                     │
 │ Tests/Axioms.lean               │ Public theorem axiom audit            │
 └─────────────────────────────────┴───────────────────────────────────────┘

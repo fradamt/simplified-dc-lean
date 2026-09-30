@@ -12,6 +12,7 @@ public import AvailableChainFGSARun.Proofs.Emission
 public import AvailableChainFGSARun.Statements.Client
 public import AvailableChainFGSARun.Proofs.ClientTrace
 public import AvailableChainFGSARun.Proofs.Schedule
+public import AvailableChainFGSARun.Proofs.AC
 
 /-! Kernel dependency audit of the FG-SA run library (plan
 `docs/plans/2026-09-29-fgsa-composition-t7-t1.md`, T7.1): one `#print axioms`
@@ -226,3 +227,13 @@ mechanically. -/
 #print axioms AvailableChain.FGSA.Run.fgsa_gate_saved_result
 #print axioms AvailableChain.FGSA.Run.fgsa_stored_block_origin
 #print axioms AvailableChain.FGSA.Run.fgsa_preTick_eq_timeRead
+
+-- AC instance (T7.15)
+#print axioms AvailableChain.FGSA.Run.fgsaAC
+#print axioms AvailableChain.FGSA.Run.fgsa_clockPre_gateView
+#print axioms AvailableChain.FGSA.Run.fgsaAC_anchor_le_output
+#print axioms AvailableChain.FGSA.Run.fgsaAC_lease_le_output
+#print axioms AvailableChain.FGSA.Run.fgsaAC_gate_write
+#print axioms AvailableChain.FGSA.Run.fgsaAC_output_step
+#print axioms AvailableChain.FGSA.Run.fgsaAC_laws
+#print axioms AvailableChain.FGSA.Run.fgsaAC_slot_gate_reads

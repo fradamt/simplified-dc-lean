@@ -104,11 +104,13 @@ def allowedImport (mod imp : Name) : Bool :=
   | "AvailableChainFGSARun" :: l :: _ :: _ =>
       match l with
       | "Tests" => under lib imp || externalOK imp || proofOK imp ||
+          imp == `AvailableChainGeneric.Statements.AC.Reads ||
           imp == `AvailableChainFGSA.Tests.Support
       | "Model" => run "Model" || externalOK imp
-      | "Statements" => run "Model" || run "Statements" || externalOK imp
+      | "Statements" => run "Model" || run "Statements" || externalOK imp ||
+          imp == `AvailableChainGeneric.Statements.AC.Reads
       | "Proofs" => run "Model" || run "Statements" || run "Proofs" || externalOK imp ||
-          proofOK imp
+          proofOK imp || imp == `AvailableChainGeneric.Statements.AC.Reads
       | _ => false
   | _ => false
 
