@@ -578,19 +578,38 @@ run('lease', ['lake', 'env', 'lean', '--run', str(lease_file), *roots])
 
 # Every production module must be in its root facade's transitive closure.
 # Importing all modules for the audit above cannot mask a missing facade edge.
-for lib in LIBS:
+imports = dict(edges)
+
+
+def closure(starts):
     seen = set()
-    pending = [lib]
-    imports = dict(edges)
+    pending = list(starts)
     while pending:
         m = pending.pop()
         if m in seen:
             continue
         seen.add(m)
         pending.extend(imports.get(m, ()))
-    missing = [m for m in roots if L.under(m, lib) and not L.is_test(m) and m not in seen]
+    return seen
+
+
+# J3 STOP A (lead ruling 2026-09-30): PhasesInternal may be imported only by the
+# F4 tree (the INTERNAL STATEMENT edge rule above), so the Claims facade cannot
+# reach it. It stays in the source and compiled audit roots. Once an F4-tree
+# module exists, it must reach PhasesInternal instead.
+F4_ONLY = {CLAIMS + '.Statements.PhasesInternal'}
+for lib in LIBS:
+    seen = closure([lib])
+    missing = [m for m in roots if L.under(m, lib) and not L.is_test(m) and m not in seen
+               and m not in F4_ONLY]
     if missing:
         raise SystemExit('NOT IMPORTED BY ROOT: ' + ', '.join(missing))
+f4_tree = [m for m in roots if L.proof_path(m)[:1] in (('F4',), ('Finality',))]
+if f4_tree:
+    seen = closure(f4_tree)
+    unreached = sorted(m for m in F4_ONLY if m in roots and m not in seen)
+    if unreached:
+        raise SystemExit('NOT REACHED FROM F4: ' + ', '.join(unreached))
 run('proof-eqns', ['lake', 'env', 'lean', '--run', 'scripts/CheckProofEqns.lean',
                    '--baseline', 'scripts/baselines/check-proof-eqns.txt'])
 run('unused-imports', ['bash', 'scripts/shake-report.sh', '--fail-on-new', *roots])
