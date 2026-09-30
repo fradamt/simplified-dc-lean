@@ -43,22 +43,22 @@ def FinalityCarriage (A : Finset (Row (Fin p.n))) : Prop :=
     a.toRow? = some u ∧ a.auth = .seat (.fg r) u.signer ∧
     ∀ z : V, RowSigner p c rho a z → z ∈ rho.honest → EmitsRow p c E rho z a
 
-/-- Run-free accountable finality. Root injectivity is automatic in FG-SA;
-the explicit scoped _hroot premise is unused and keeps the DC interface visible. -/
+/-- Run-free accountable finality (DC PureAccountableFinalitySafety). DC takes
+root-collision freedom as a premise; in FG-SA it holds for every pair
+(KitFG.rootInjectiveOn_all), so the premise is omitted (GLY F-3). -/
 theorem fgsa_pureAccountable (K W T₁ T₂ : FGBlock (Fin p.n)) (h₁ h₂ : Nat)
-    (_hroot : KitFG.RootInjectiveOn K W)
     (hK : FGFinalizedAt p K T₁ h₁) (hW : FGFinalizedAt p W T₂ h₂) :
     HasSlashableWeightBetween p.E (chainRows K) (chainRows W) ∨
       FGBlock.compatible T₁ T₂ = true :=
   (KitFG.slashableWeight_or_finalized_compatible p.E p.cfg K W).imp id
     (fun h => hK.1 ▸ hW.1 ▸ h)
 
+/-- DC PureFinalityAgreement; no root-injectivity premise, as above. -/
 theorem fgsa_pureAgreement (K W T₁ T₂ : FGBlock (Fin p.n)) (h₁ h₂ : Nat)
-    (hroot : KitFG.RootInjectiveOn K W)
     (hK : FGFinalizedAt p K T₁ h₁) (hW : FGFinalizedAt p W T₂ h₂)
     (hb : ¬ HasSlashableWeightBetween p.E (chainRows K) (chainRows W)) :
     FGBlock.compatible T₁ T₂ = true :=
-  (fgsa_pureAccountable p K W T₁ T₂ h₁ h₂ hroot hK hW).resolve_left hb
+  (fgsa_pureAccountable p K W T₁ T₂ h₁ h₂ hK hW).resolve_left hb
 
 /-- All three DC observation clauses. No honesty behaviour, authenticity,
 fault bound, or schedule assumption occurs in this evidence contract. -/
@@ -97,7 +97,7 @@ private theorem store_accountable (st st' : State p.n)
 KitFG.rootInjectiveOn_all, so there is no extra execution premise. -/
 theorem fgsa_wholeRunAccountable : FGWholeRunAccountable p c E rho where
   chains := fun K W T₁ T₂ h₁ h₂ _ _ hK hW =>
-    fgsa_pureAccountable p K W T₁ T₂ h₁ h₂ (KitFG.rootInjectiveOn_all K W) hK hW
+    fgsa_pureAccountable p K W T₁ T₂ h₁ h₂ hK hW
   eventPrefixes := fun u _ v _ i j => store_accountable p _ _
     (storeBundle_stateBefore E rho i u).cstore (storeBundle_stateBefore E rho j v).cstore
   reads := fun u _ v _ t t' => store_accountable p _ _
@@ -159,7 +159,7 @@ private theorem store_agreement_of_bound (hb : FGSASlashableBound p c E rho)
   · subst W
     rw [← hWF]
     exact Bool.or_eq_true_iff.mpr (Or.inr (KitFG.genesis_preceq _))
-  have hc := fgsa_pureAgreement p K W _ _ _ _ (KitFG.rootInjectiveOn_all K W)
+  have hc := fgsa_pureAgreement p K W _ _ _ _
     ⟨rfl, rfl⟩ ⟨rfl, rfl⟩ (hb K W (hcar K hK hk) (hcar' W hW hw))
   exact hKF ▸ hWF ▸ hc
 
