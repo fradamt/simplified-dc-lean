@@ -4,6 +4,7 @@ public import AvailableChainFGSAProofs.Proofs.Shared.GateReceipt -- shake: keep 
 public import AvailableChainFGSAProofs.Proofs.Shared.ScoreRun -- shake: keep (G25 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.OpeningSource -- shake: keep (F1b.9 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.KeepExact -- shake: keep (F1b.8 axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Assembly.Root -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.GateOutput -- shake: keep (gate output axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Clean.Transfer -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Assembly.Clean -- shake: keep (axiom audit commands)
@@ -41,6 +42,7 @@ public import AvailableChainFGSAProofs.Proofs.Clean.State -- shake: keep (axiom 
 public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (axiom audit commands)
 
 #print axioms AvailableChain.FGSA.Run.afterTicks_eq_stateBefore
+#print axioms AvailableChain.FGSA.Run.fgsaSafetyClaims_of_headReachesLo
 #print axioms AvailableChain.FGSA.Run.afterTicks_node
 #print axioms AvailableChain.FGSA.Run.afterTicks_eq_tick_preTick
 #print axioms AvailableChain.FGSA.Run.preIdx_le_afterTicksIdx
@@ -431,6 +433,8 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 
 #print axioms AvailableChain.FGSA.Run.fgsa_headReachesLo
 #print axioms AvailableChain.FGSA.Run.fgsa_headReachesLoClaim
+#print axioms AvailableChain.FGSA.Run.kept_or_conflict
+#print axioms AvailableChain.FGSA.Run.fgsa_domain_anchorClosed_mono
 #print axioms AvailableChain.FGSA.Run.kept_or_cause
 #print axioms AvailableChain.FGSA.Run.exactHead_of_pivot
 
@@ -526,3 +530,4 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_gateReceipt
 #print axioms AvailableChain.FGSA.Run.fgsa_gateReceipt_clean
 #print axioms AvailableChain.FGSA.Run.fgsa_gateReceipt_recovery
+#print axioms AvailableChain.FGSA.Run.exactHead_of_pivot_ancestry

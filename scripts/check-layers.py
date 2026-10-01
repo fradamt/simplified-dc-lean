@@ -32,6 +32,8 @@ LANE               A proof lane imports only its allowed set SYN:106-114; BUILD:
 SHARED             Shared imports no lane/Export/Assembly    SYN:106-114; BUILD:204-212; L42
 ASSEMBLY           Assembly joins lanes through Exports      SYN:112-114; BUILD:210-212
                    (Shared has an Export too: SYN L50)
+                   Exact Assembly.Root imports facade and    SYN L58
+                   named lower Assembly modules
 CLAIM-USE          Claims/<F> only from matching lane Export SYN:112-114; BUILD:234-236; L42
 LANE-CLAIMS        A lane module other than its Export reaches R-F1 D6 (fgsa-lean
                    no Claims/* or Shared.Claims, directly    2026-09-30); R5-66
@@ -125,6 +127,13 @@ SHARED_CLAIMS = PROOFS + ".Proofs.Shared.Claims"
 # and Claims/Shared only; only Assembly imports it (EXPORT-USE, as for every
 # lane Export).
 SHARED_EXPORT = PROOFS + ".Proofs.Shared.Export"
+# SYN L58: only this exact aggregate-proof home may import the claim facade
+# and these named lower Assembly modules. Global checks still apply.
+ASSEMBLY_ROOT = PROOFS + ".Proofs.Assembly.Root"
+ASSEMBLY_ROOT_IMPORTS = frozenset({CLAIMS + ".FGSAClaims",
+                                  PROOFS + ".Proofs.Assembly.Foundations",
+                                  PROOFS + ".Proofs.Assembly.Shared",
+                                  PROOFS + ".Proofs.Assembly.Clean"})
 NAME_PART = r"(?:«[^»]+»|[^\W\d][\w'!?]*)"
 NAME = re.compile(NAME_PART + r"(?:\." + NAME_PART + r")*")
 Finding = tuple[str, str, str]
@@ -527,6 +536,8 @@ def assembly(ctx: Context, m: Module, dep: str) -> bool:
     parts, target = proof_path(m.name), proof_path(dep)
     if not parts or parts[0] != "Assembly":
         return False
+    if m.name == ASSEMBLY_ROOT:
+        return not (foundation(dep) or dep in ASSEMBLY_ROOT_IMPORTS)
     if target and target[0] not in {"Statements", "Model"}:
         return target[0] != "Shared" and not is_export(dep)
     return not lane_upstream(ctx, dep)

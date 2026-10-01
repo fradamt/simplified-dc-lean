@@ -5,7 +5,8 @@ public import AvailableChainFGSAClaims.Claims.Clean
 
 @[expose] public section
 
-/-! P3 §4.8: the exported safety claims. Only the Claims root imports this module.
+/-! P3 §4.8: the exported safety claims. Only the Claims root and the exact
+Proofs.Assembly.Root import this module (SYN L58).
 The zero and positive Clean lane Props are not exported claims. The receipt
 and suffix-walk rows cite their existing statements in their claim homes. -/
 

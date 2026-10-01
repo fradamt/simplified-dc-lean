@@ -111,7 +111,13 @@ P10. **One cross-lane rule (written once here; S3 §4.2 and BUILD §7.4
     proof modules or `Export`; it takes another lane's result as a premise.
     Two exceptions, and only these: `Proofs/<F>/Export` imports
     `Claims/<F>`; `Proofs/Assembly/<Claim>` imports the Exports and joins
-    lanes.
+    lanes. SYN L58 adds one exact aggregate-proof home:
+    `AvailableChainFGSAProofs.Proofs.Assembly.Root`. It may import the claim
+    facade `AvailableChainFGSAClaims.FGSAClaims`, the named lower modules
+    `Proofs.Assembly.Foundations`, `Proofs.Assembly.Shared` and
+    `Proofs.Assembly.Clean`, and the existing foundation imports. All global
+    checks still apply. Other Assembly modules may import neither Assembly
+    modules nor the claim facade. Library roots remain import lists.
 P11. **Producers before freeze.** A gate freezes a statement only after
     the statements that it consumes exist and after each producer of its
     premises has stated what it needs. A LAW with an instance obligation
@@ -925,4 +931,3 @@ edit 8ef4ed3b. Other inputs: fgsa-lean's OPEN 7 draft with its Astra review
 │ Hash and citation drift in S3/T7/P3/GLY      │ owners         │ next revision      │
 └──────────────────────────────────────────────┴────────────────┴────────────────────┘
 ```
-

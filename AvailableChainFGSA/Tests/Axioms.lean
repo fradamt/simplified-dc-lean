@@ -339,7 +339,6 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 
 #print axioms AvailableChain.FGSA.fgsa_getHead_avoids_unsupported_child
 
-#print axioms AvailableChain.FGSA.fgsa_getHead_covers_of_suffix_transfer
 
 #print axioms AvailableChain.FGSA.fgsa_confirmationFrom_exact_of_dominated_suffix
 
@@ -350,3 +349,5 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 #print axioms AvailableChain.FGSA.fgsa_filtered_anchorClosed
 #print axioms AvailableChain.FGSA.fgsa_headInTree_noEligibleChild
 #print axioms AvailableChain.FGSA.fgsa_headInTree_mem_or_anchor
+
+#print axioms AvailableChain.FGSA.fgsa_headInTree_reanchor_of_pivot

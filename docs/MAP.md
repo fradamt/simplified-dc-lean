@@ -1471,6 +1471,7 @@ unused imports, and negative controls. No baseline entries were added.
 │ AvailableChainFGSAProofs/Proofs/Shared/Export   │ Frozen Shared claim wrappers        │
 │ .lean                                           │ SYN L50 Shared export boundary      │
 │ AvailableChainFGSAProofs/Proofs/Assembly/Shared │ Shared exports for the package root │
+│ AvailableChainFGSAProofs/Proofs/Assembly/Root.lean │ SYN L58 safety aggregate; head premise │
 │ AvailableChainFGSAProofs/Proofs/Assembly/Clean  │ Clean cut and safety claim assembly │
 │ .lean                                           │ SYN L50 assembly boundary           │
 │ AvailableChainFGSAProofs/Proofs/Foundations/    │ Source discipline and source frame  │
@@ -1495,6 +1496,7 @@ unused imports, and negative controls. No baseline entries were added.
 │ AvailableChainFGSAClaims/Statements/Healed.lean │ HEALED via the Gen property kernel  │
 │ AvailableChainFGSAProofs/Proofs/Shared/Healed.lean │ Same-time and later-start proofs    │
 │ AvailableChainFGSAProofs/Tests/Channels.lean    │ Old source obstruction and G1 tests │
+│ AvailableChainFGSAProofs/Tests/KeepExact.lean   │ Pivot ancestry regression tests     │
 │ AvailableChainFGSAProofs/Statements/            │ Clean invariant and step statements │
 │ CleanInvariant.lean                             │                                     │
 │ AvailableChainFGSAProofs/Proofs/Clean/          │ Clean AG review contract            │

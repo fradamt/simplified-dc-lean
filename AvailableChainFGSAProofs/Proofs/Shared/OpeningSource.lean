@@ -12,7 +12,7 @@ variable {p : Params} {In V : Type} {c : AppCodec In} [DecidableEq V]
 
 set_option maxHeartbeats 800000 in
 -- The adapter compares the nested gate, clock, and tick state projections.
-/-- P3 F1b.7, R15; 21 H.17 and 22 FF1: service at the opening gate
+/-- 6c / F1b.9, R15; 21 H.17 and 22 FF1: service at the opening gate
 supplies the action's fresh candidate. DC: RecoveryCapturedActionCarrier.lean:30,
 `actionStoreAt_eq_update_confirmation_confStore`. INTENTIONAL: FG-SA reads
 the scheduled fast-write set with a live lease, with no root fallback
@@ -104,7 +104,8 @@ theorem openingSource_candidate_of_gateService (hs : V2.ScheduleWellFormed E rho
 /-- The domain branch of F1b.8 G31, for an active body above both covered
 roots. DC: no direct FJ duty-domain counterpart. INTENTIONAL: the FJ
 filtered domain and its cause alternatives are from 21 H.13–H.14 / S1c P6.
-The phase caller rules out both causes. This does not identify `Kept`
+The phase caller rules out the conflicting-source cause; the floor witness excludes the split
+cause. This does not identify `Kept`
 with membership: its two covered-root alternatives must also be excluded. -/
 theorem openingSource_domain_of_kept_or_cause
     (i : Nat) (x : V) (X : Finset (FGBlock (Fin p.n))) (D W : FGBlock (Fin p.n))
@@ -117,21 +118,18 @@ theorem openingSource_domain_of_kept_or_cause
     (hnotZ : ¬ FGBlock.Preceq D (R_at p c E rho i x).Z)
     (hnotF : ¬ FGBlock.Preceq D (storeAt p c E rho i x).fg.F)
     (hnoConflict : ∀ C s, SourceBefore p c E rho i C s →
-      hOf p.E p.cfg D ≤ hOf p.E p.cfg C → Block.Compatible (eraseFG D) (eraseFG C))
-    (hnoSplit : ∀ C₁ C₂ s₁ s₂,
-      SourceBefore p c E rho i C₁ s₁ → SourceBefore p c E rho i C₂ s₂ →
-      hOf p.E p.cfg C₁ = hOf p.E p.cfg C₂ → hOf p.E p.cfg D < hOf p.E p.cfg C₁ →
-      (derive p.E p.cfg C₁).T_h.root = (derive p.E p.cfg C₂).T_h.root) :
+      hOf p.E p.cfg D ≤ hOf p.E p.cfg C → Block.Compatible (eraseFG D) (eraseFG C)) :
     D ∈ D_at p c E rho i x X := by
-  have h := kept_or_cause p c E rho i x X D W hD hW hDW hlo hcontrolSource
-  rcases h with hkeep | ⟨C, s, hsrc, hbad, hheight⟩ | ⟨C₁, C₂, s₁, s₂, hs₁, hs₂, he, hh, hbad⟩
+  have h := kept_or_conflict p c E rho i x X D W hD hW hDW hlo hcontrolSource
+  rcases h with hkeep | ⟨C, s, hsrc, hbad, hheight⟩
   · rcases hkeep with hZ | hm | hF
     · exact (hnotZ hZ).elim
     · exact hm
     · exact (hnotF hF).elim
   · exact (hbad (hnoConflict C s hsrc hheight)).elim
-  · exact (hbad (hnoSplit C₁ C₂ s₁ s₂ hs₁ hs₂ he hh)).elim
 
+/-- PRE-REVISION (fg-noround R3/R2/R4): uses the h_c = h_f lock branch; restate after the client
+revision. -/
 private theorem opening_pair (Λ : Record) (h : Height) (T : BlockId)
     (fp : Option FinalityPair)
     (hpermit : Λ.timeout h = true ∨ own_lock Λ h fp = none ∨ own_lock Λ h fp = some T) :
@@ -183,9 +181,14 @@ FG-SA first-opening fast-write selector. INTENTIONAL: the scheduled set
 and lease test are FG-SA-specific (spec 1472–1483). The time premise says
 that r is the first opening at or after q. The local domain premise is
 the retained branch supplied by `kept_or_cause`; the caller must resolve
-its covered-root and cause alternatives. The cap and permission suppliers
-are R15's R2 and R16. Permission includes the timeout branch, so it is
-weaker than requiring an absent or matching lock unconditionally. -/
+its covered-root and cause alternatives. Domain retention is R2 KEEP;
+the cap is the frontier cap (S1c P5 Cap(y−1,·)); permission is R16. Permission includes the
+timeout branch, so it is
+weaker than requiring an absent or matching lock unconditionally.
+GateService at rR is a caller premise. It comes from gate_of_coveringBatch (F1b.7) at the opening,
+in F4 FF1 / F5 H.9-Q, H.17.
+PRE-REVISION (fg-noround R3/R2/R4): uses the h_c = h_f lock branch; restate after the client
+revision. -/
 theorem openingSource_firstOpening (hs : V2.ScheduleWellFormed E rho)
     (i : Nat) (x : V) (q r m : Nat) (D : FGBlock (Fin p.n))
     (ht : rho.events[i]? = some (.tick x (p.actionTime r)))
@@ -255,7 +258,11 @@ theorem openingSource_exact_of_gateService (hs : V2.ScheduleWellFormed E rho)
 counterpart. INTENTIONAL: 21 H.17 / H.9-Q and 22 FF1 use the exact
 opening proposal and its client permission. Equality supplies its height
 and entry without a separate cap premise. The nonempty pair is the actual
-local action body; an emitted wire additionally needs an awake signer. -/
+local action body; emission remains a separate obligation, including the revised send-once guards.
+GateService at rR is a caller premise. It comes from gate_of_coveringBatch (F1b.7) at the opening,
+in F4 FF1 / F5 H.9-Q, H.17.
+PRE-REVISION (fg-noround R3/R2/R4): uses the h_c = h_f lock branch; restate after the client
+revision. -/
 theorem openingSource_firstOpening_exact (hs : V2.ScheduleWellFormed E rho)
     (i : Nat) (x : V) (q r : Nat) (Q : FGBlock (Fin p.n))
     (ht : rho.events[i]? = some (.tick x (p.actionTime r)))

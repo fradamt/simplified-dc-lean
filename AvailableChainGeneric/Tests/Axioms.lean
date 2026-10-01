@@ -590,3 +590,6 @@ theorem, in facade order. The library globs build this test module. -/
 #print axioms AvailableChain.Gen.Pure.periodic_shift
 #print axioms AvailableChain.Gen.Pure.firstHead_after
 #print axioms AvailableChain.Gen.Pure.firstHead_after_bound
+
+#print axioms AvailableChain.Gen.Pure.walk_reanchor_of_best_ancestry
+#print axioms AvailableChain.Gen.Pure.walk_best_ancestry_of_cover

@@ -48,6 +48,7 @@ public import AvailableChainFGSAProofs.Proofs.Shared.KeepExact
 public import AvailableChainFGSAProofs.Proofs.Shared.Healed
 public import AvailableChainFGSAProofs.Proofs.Shared.Compose
 public import AvailableChainFGSAProofs.Proofs.Shared.OpeningSource
+public import AvailableChainFGSAProofs.Proofs.Assembly.Root
 public import AvailableChainFGSAProofs.Proofs.Shared.OpeningAfterGate
 public import AvailableChainFGSAProofs.Proofs.Shared.HeadAfterSettlement
 public import AvailableChainFGSAProofs.Proofs.Healing.AdditiveStageBounds
