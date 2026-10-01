@@ -29,6 +29,7 @@ F = "AvailableChainFGSA"
 R = "AvailableChainFGSARun"
 C = "AvailableChainFGSAClaims"
 P = "AvailableChainFGSAProofs"
+ASSEMBLY_ROOT = P + ".Proofs.Assembly.Root"
 I = "AvailableChainFGSAInhabit"
 X = "AvailableChainRegistry"
 SP = G + ".Statements.Pure"
@@ -228,6 +229,13 @@ with tempfile.TemporaryDirectory(prefix="check-layers-selftest-") as temporary:
             (P + ".Proofs.Shared.Export", C + ".Claims.Shared"),
             (P + ".Proofs.Shared.Export", P + ".Proofs.Shared.Reads"),
             (P + ".Proofs.Assembly.Control", P + ".Proofs.Shared.Export"),
+            # SYN L58: exact root and named lower Assembly imports only.
+            (ASSEMBLY_ROOT, C + ".FGSAClaims"),
+            (ASSEMBLY_ROOT, P + ".Proofs.Assembly.Foundations"),
+            (ASSEMBLY_ROOT, P + ".Proofs.Assembly.Shared"),
+            (ASSEMBLY_ROOT, P + ".Proofs.Assembly.Clean"),
+            (ASSEMBLY_ROOT, "Lean.Elab.Command"),
+            (P, ASSEMBLY_ROOT),
         ]
         for index, (importer, dep) in enumerate(positives):
             root = temp / f"positive-{index}"
@@ -290,6 +298,21 @@ with tempfile.TemporaryDirectory(prefix="check-layers-selftest-") as temporary:
             (P + ".Proofs.Shared.Export", P + ".Proofs.F1.Helper", "SHARED"),
             (P + ".Proofs.Shared.Export", G + ".Proofs.Pure.Quorum", "SHARED"),
             (P + ".Proofs.Shared.Export", C + ".Claims.F1", "SHARED"),
+            # SYN L58: no sibling exception, return edge or broader root set.
+            (P + ".Proofs.Assembly.Control", C + ".FGSAClaims", "ASSEMBLY"),
+            (P + ".Proofs.Assembly.RootExtra", C + ".FGSAClaims", "ASSEMBLY"),
+            (ASSEMBLY_ROOT + ".Extra", C + ".FGSAClaims", "ASSEMBLY"),
+            (P + ".Proofs.Assembly.Control", ASSEMBLY_ROOT, "ASSEMBLY"),
+            (ASSEMBLY_ROOT, C, "ASSEMBLY"),
+            (ASSEMBLY_ROOT, P, "ASSEMBLY"),
+            (ASSEMBLY_ROOT, P + ".Proofs.Foundations.Store", "ASSEMBLY"),
+            (ASSEMBLY_ROOT, P + ".Proofs.Foundations.Export", "ASSEMBLY"),
+            (ASSEMBLY_ROOT, P + ".Proofs.Assembly.Other", "ASSEMBLY"),
+            (ASSEMBLY_ROOT, P + ".Proofs.Assembly.Foundations.Extra", "ASSEMBLY"),
+            (ASSEMBLY_ROOT, P + ".Tests.Axioms", "ASSEMBLY"),
+            (ASSEMBLY_ROOT, I + ".Control", "ASSEMBLY"),
+            (ASSEMBLY_ROOT, C + ".Claims.Clean", "CLAIM-USE"),
+            (ASSEMBLY_ROOT, C + ".Statements.PhasesInternal", "PHASES"),
         ]
         for index, (importer, dep, rule) in enumerate(boundaries):
             root = temp / f"boundary-{index}"

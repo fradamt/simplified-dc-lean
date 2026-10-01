@@ -28,6 +28,7 @@ LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainF
 CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = (
+    'AvailableChain.FGSA.Run.fgsaSafetyClaims_of_headReachesLo',
     'AvailableChain.FGSA.Run.openingSource_eq_of_no_strict_extension',
     'AvailableChain.FGSA.Run.FGFinalizedAt',
     'AvailableChain.FGSA.Run.FinalityRunBlock',
@@ -530,6 +531,9 @@ def direct_ok(m, dep):
         return True
     if m in LIBS:
         return L.under(dep, m) and dep != m and not L.is_test(dep)
+    # SYN L58: one exact Assembly root may import the claim facade.
+    if (m, dep) == (L.ASSEMBLY_ROOT, CLAIMS + '.FGSAClaims'):
+        return True
     if dep in LIBS or dep.endswith('.FGSAClaims'):
         return False
     if dep.startswith(('AvailableChainGridCO.Proofs.', 'AvailableChainKit.',
@@ -684,12 +688,75 @@ controls = (
     ('cross-lane-proof', PROOFS + '.Proofs.Clean.Step', 'public import ' + PROOFS + '.Proofs.Outage.Step\n', 'LANE'),
     ('cross-lane-export', PROOFS + '.Proofs.Clean.Step', 'public import ' + PROOFS + '.Proofs.Outage.Export\n', 'EXPORT-USE'),
     ('shared-lane-proof', PROOFS + '.Proofs.Shared.Reads', 'public import ' + PROOFS + '.Proofs.Clean.Step\n', 'SHARED'),
+    # SYN L58: direct_ok and the layer predicates apply together.
+    ('assembly-control-facade', PROOFS + '.Proofs.Assembly.Control',
+     'public import ' + CLAIMS + '.FGSAClaims\n', 'IMPORT NOT ALLOWED'),
+    ('assembly-root-sibling-facade', PROOFS + '.Proofs.Assembly.RootExtra',
+     'public import ' + CLAIMS + '.FGSAClaims\n', 'IMPORT NOT ALLOWED'),
+    ('assembly-root-child-facade', L.ASSEMBLY_ROOT + '.Extra',
+     'public import ' + CLAIMS + '.FGSAClaims\n', 'IMPORT NOT ALLOWED'),
+    ('assembly-control-root', PROOFS + '.Proofs.Assembly.Control',
+     'public import ' + L.ASSEMBLY_ROOT + '\n', 'ASSEMBLY'),
+    ('assembly-root-claims-root', L.ASSEMBLY_ROOT,
+     'public import ' + CLAIMS + '\n', 'IMPORT NOT ALLOWED'),
+    ('assembly-root-proofs-root', L.ASSEMBLY_ROOT,
+     'public import ' + PROOFS + '\n', 'IMPORT NOT ALLOWED'),
+    ('assembly-root-raw-lane', L.ASSEMBLY_ROOT,
+     'public import ' + PROOFS + '.Proofs.Foundations.Store\n', 'ASSEMBLY'),
+    ('assembly-root-lane-export', L.ASSEMBLY_ROOT,
+     'public import ' + PROOFS + '.Proofs.Foundations.Export\n', 'ASSEMBLY'),
+    ('assembly-root-unnamed-lower', L.ASSEMBLY_ROOT,
+     'public import ' + PROOFS + '.Proofs.Assembly.Other\n', 'ASSEMBLY'),
+    ('assembly-root-lower-child', L.ASSEMBLY_ROOT,
+     'public import ' + PROOFS + '.Proofs.Assembly.Foundations.Extra\n', 'ASSEMBLY'),
+    ('assembly-root-tests', L.ASSEMBLY_ROOT,
+     'public import ' + PROOFS + '.Tests.Axioms\n', 'ASSEMBLY'),
+    ('assembly-root-inhabit', L.ASSEMBLY_ROOT,
+     'public import ' + INHABIT + '.Control\n', 'ASSEMBLY'),
+    ('assembly-root-field-claims', L.ASSEMBLY_ROOT,
+     'public import ' + CLAIMS + '.Claims.Clean\n', 'CLAIM-USE'),
+    ('proofs-root-shared-export', PROOFS,
+     'public import ' + PROOFS + '.Proofs.Shared.Export\n', 'EXPORT-USE'),
+    ('assembly-root-phases-internal', L.ASSEMBLY_ROOT,
+     'public import ' + CLAIMS + '.Statements.PhasesInternal\n', 'INTERNAL STATEMENT'),
 )
 for label, m, body, expected in controls:
     hits = source_findings(m, 'module\n' + body)
     if not any(expected in f for f in hits):
         raise SystemExit(f'STOP: negative control passed: {label}: {hits}')
     print(f'{label}: rc 1, rejected as expected ({expected})', flush=True)
+
+# SYN L58: each allowed edge must pass both direct_ok and every layer rule.
+assembly_positives = (
+    ('assembly-root-facade', L.ASSEMBLY_ROOT, CLAIMS + '.FGSAClaims'),
+    ('assembly-root-foundations', L.ASSEMBLY_ROOT, PROOFS + '.Proofs.Assembly.Foundations'),
+    ('assembly-root-shared', L.ASSEMBLY_ROOT, PROOFS + '.Proofs.Assembly.Shared'),
+    ('assembly-root-clean', L.ASSEMBLY_ROOT, PROOFS + '.Proofs.Assembly.Clean'),
+    ('assembly-root-foundation-import', L.ASSEMBLY_ROOT, 'Lean.Elab.Command'),
+    ('proofs-root-assembly-root', PROOFS, L.ASSEMBLY_ROOT),
+)
+for label, m, dep in assembly_positives:
+    hits = source_findings(m, 'module\npublic import ' + dep + '\n')
+    if hits:
+        raise SystemExit(f'STOP: positive control failed: {label}: {hits}')
+    print(f'{label}: rc 0', flush=True)
+
+# Future F4 coverage stays separate from facade coverage (SYN L58).
+phase_internal = CLAIMS + '.Statements.PhasesInternal'
+finality_control = PROOFS + '.Proofs.Finality.Control'
+coverage_edges = {CLAIMS: (), PROOFS: (finality_control,), INHABIT: (),
+                  phase_internal: (), finality_control: ()}
+try:
+    check_source_coverage(coverage_edges, list(coverage_edges))
+except SystemExit as exc:
+    if not str(exc).startswith('NOT REACHED FROM F4: '):
+        raise
+    print('missing-f4-reach: rc 1, rejected as expected (NOT REACHED FROM F4)', flush=True)
+else:
+    raise SystemExit('STOP: missing F4 reach control passed')
+coverage_edges[finality_control] = (phase_internal,)
+check_source_coverage(coverage_edges, list(coverage_edges))
+print('f4-reach-twin: rc 0', flush=True)
 
 # Positive twin of f2-constant-in-claim: the same Prop over a frozen Claims name passes.
 twin_hits = [f for f in source_findings(CLAIMS + '.Claims.Clean', 'module\npublic section\n'
@@ -718,6 +785,8 @@ run('support', ['lake', 'build', 'AvailableChainCheckSupport'])
 # rejects stale .oleans. Every source module is imported as an audit root;
 # root-facade coverage is checked separately below.
 edges = [(module(p), L.read_header(p.read_text())[0]) for p in files]
+assert CLAIMS + '.FGSAClaims' in dict(edges)[L.ASSEMBLY_ROOT]
+print('compiled import table: SYN L58 Assembly.Root -> FGSAClaims included', flush=True)
 edge_cases = '\n'.join('  | `' + m + ' => [' + ', '.join('`' + d for d in deps) + '].contains imp' for m, deps in edges)
 allowed_import = 'def allowedImport (mod imp : Name) : Bool :=\n  imp == `Init || match mod with\n' + edge_cases + '\n  | _ => false\n\n'
 source = Path('scripts/CheckFGSARunAxioms.lean').read_text()
@@ -801,6 +870,17 @@ for lib in LIBS:
         if p.is_file():
             shutil.copy2(p, neg / p.name)
 
+# A tiny offline Lake package lets the controls use lake env lean and lets
+# shake read their build traces. It has no dependencies or fetch step.
+(neg / 'lean-toolchain').write_text(Path('lean-toolchain').read_text())
+(neg / 'lakefile.toml').write_text('name = "fgsa-controls"\n[[lean_lib]]\nname = "FGSAControl"\nglobs = ["FGSAControl.+"]\n')
+negative_env = dict(os.environ, LEAN_PATH=str(neg) + os.pathsep +
+    run('control-lean-path', ['lake', 'env', 'printenv', 'LEAN_PATH']).strip())
+
+def run_shadow(label, args, *, expect=None):
+    return run(label, ['lake', 'env', 'lean', *args], expect=expect,
+               env=negative_env, cwd=neg)
+
 def write_module(name, text):
     p = neg / (name.replace('.', '/') + '.lean')
     p.parent.mkdir(parents=True, exist_ok=True)
@@ -809,9 +889,8 @@ def write_module(name, text):
 
 def compile_module(name, text):
     p = write_module(name, text)
-    run('compile-' + name.split('.')[-1], ['lake', 'env', 'bash', '-c',
-        'LEAN_PATH="$1:$LEAN_PATH" lean -o "$2" "$3"', 'fgsa-claims', str(neg),
-        str(p.with_suffix('.olean')), str(p)])
+    run_shadow('compile-' + name.split('.')[-1],
+               ['-o', str(p.with_suffix('.olean')), str(p)])
     return p
 
 bad = PROOFS + '.Proofs.Shared.NegUse'
@@ -829,9 +908,8 @@ theorem negGridStatement {n : Nat} (st : AvailableChain.GridCO.State n)
 end AvailableChain.FGSA.Run
 end
 ''')
-run('grid-constant-in-statement', ['lake', 'env', 'bash', '-c',
-    'LEAN_PATH="$1:$LEAN_PATH" lean --run "$2" --root "$3"', 'fgsa-claims', str(neg),
-    str(audit), bad], expect='FORBIDDEN CONSTANT: AvailableChain.FGSA.Run.negGridStatement uses AvailableChain.GridCO.ComparableTargets')
+run_shadow('grid-constant-in-statement', ['--run', str(audit), '--root', bad],
+    expect='FORBIDDEN CONSTANT: AvailableChain.FGSA.Run.negGridStatement uses AvailableChain.GridCO.ComparableTargets')
 # The controls have the same FG-SA namespace and upstream reachability as T7.
 lease_bad = PROOFS + '.Proofs.Shared.NegLease'
 compile_module(lease_bad, '''module
@@ -843,14 +921,18 @@ def negLease (p : AvailableChain.GridCO.Params) (st : AvailableChain.GridCO.Stat
 end AvailableChain.FGSA.Run
 end
 ''')
-run('default-lease', ['lake', 'env', 'bash', '-c',
-    'LEAN_PATH="$1:$LEAN_PATH" lean --run "$2" "$3"', 'fgsa-claims', str(neg),
-    str(lease_file), lease_bad], expect='BAD LEASE INSTANCE')
+run_shadow('default-lease', ['--run', str(lease_file), lease_bad], expect='BAD LEASE INSTANCE')
 
-# A tiny offline Lake package lets shake read its own build traces. It imports
-# only Lean core, has no dependencies and never invokes lake update.
-(neg / 'lean-toolchain').write_text(Path('lean-toolchain').read_text())
-(neg / 'lakefile.toml').write_text('name = "fgsa-controls"\n[[lean_lib]]\nname = "FGSAControl"\nglobs = ["FGSAControl.+"]\n')
+# SYN L58: replace one ordinary Assembly .olean in the scratch copy only.
+# The generated table still contains its validated, unchanged source edges.
+assembly_bad = PROOFS + '.Proofs.Assembly.Foundations'
+assembly_text = Path(assembly_bad.replace('.', '/') + '.lean').read_text()
+compile_module(assembly_bad, assembly_text.replace(
+    'module\n', 'module\npublic import ' + CLAIMS + '.FGSAClaims\n', 1))
+run_shadow('assembly-facade-compiled-import', ['--run', str(audit), '--root', assembly_bad],
+    expect='COMPILED IMPORT NOT ALLOWED: ' + assembly_bad +
+    ' imports ' + CLAIMS + '.FGSAClaims')
+
 write_module('FGSAControl.Statements.Fn', '''module
 @[expose] public section
 def fgsaControlFn : Bool → Nat
@@ -871,10 +953,12 @@ def fgsaControlUnused : Nat := 0
 end
 ''')
 run('control-build', ['lake', 'build', 'FGSAControl'], cwd=neg)
-control_lib = neg / '.lake/build/lib/lean'
-run('simp-without-f-def', ['lake', 'env', 'bash', '-c',
-    'LEAN_PATH="$1:$LEAN_PATH" lean --run scripts/CheckProofEqns.lean --baseline scripts/baselines/check-proof-eqns.txt FGSAControl.Proofs.NegEq',
-    'fgsa-claims', str(control_lib)], expect='EQ EXPORT FGSAControl.Proofs.NegEq')
+# CheckProofEqns reads repository-relative inputs as well as its baseline.
+# This extra module has a unique prefix, so Lake's path order needs no shadow.
+control_env = dict(os.environ, LEAN_PATH=str(neg / '.lake/build/lib/lean'))
+run('simp-without-f-def', ['lake', 'env', 'lean', '--run', 'scripts/CheckProofEqns.lean',
+    '--baseline', 'scripts/baselines/check-proof-eqns.txt', 'FGSAControl.Proofs.NegEq'],
+    env=control_env, expect='EQ EXPORT FGSAControl.Proofs.NegEq')
 # Use the same --fail-on-new baseline comparison as the real D47 scan.
 # shake-report reads its package from cwd only via its cd, so obtain Lake's
 # raw report here, then apply the same removal key and frozen baseline.
