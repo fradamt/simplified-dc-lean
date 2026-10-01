@@ -1322,6 +1322,8 @@ unused imports, and negative controls. No baseline entries were added.
 │ AvailableChainFGSAClaims/Tests/Channels.lean    │ Channel kernel regression controls  │
 │ AvailableChainFGSAProofs/Proofs/Shared/Gate     │ G32 gate service and opening source │
 │ .lean                                           │                                     │
+│ AvailableChainFGSAProofs/Proofs/Shared/         │ Gate-to-action and R15 adapters     │
+│ OpeningSource.lean                              │                                     │
 │ AvailableChainFGSAProofs/Proofs/Shared/Channels │ Channel equations and row ordering  │
 │ .lean                                           │                                     │
 │ AvailableChainFGSAProofs/Proofs/Clean/Closure   │ Inclusive history and source reads  │

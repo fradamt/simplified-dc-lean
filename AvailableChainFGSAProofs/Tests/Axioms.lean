@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.OpeningSource -- shake: keep (F1b.9 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.KeepExact -- shake: keep (F1b.8 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Clean.GateOutput -- shake: keep (gate output axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Clean.Transfer -- shake: keep (axiom audit commands)
@@ -420,3 +421,9 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_headReachesLoClaim
 #print axioms AvailableChain.FGSA.Run.kept_or_cause
 #print axioms AvailableChain.FGSA.Run.exactHead_of_pivot
+
+#print axioms AvailableChain.FGSA.Run.openingSource_candidate_of_gateService
+#print axioms AvailableChain.FGSA.Run.openingSource_domain_of_kept_or_cause
+#print axioms AvailableChain.FGSA.Run.openingSource_firstOpening
+#print axioms AvailableChain.FGSA.Run.openingSource_exact_of_gateService
+#print axioms AvailableChain.FGSA.Run.openingSource_firstOpening_exact

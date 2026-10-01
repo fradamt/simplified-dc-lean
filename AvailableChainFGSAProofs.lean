@@ -43,3 +43,4 @@ public import AvailableChainFGSAProofs.Proofs.Shared.HeadGeometry
 public import AvailableChainFGSAProofs.Proofs.Shared.KeepExact
 public import AvailableChainFGSAProofs.Proofs.Shared.Healed
 public import AvailableChainFGSAProofs.Proofs.Shared.Compose
+public import AvailableChainFGSAProofs.Proofs.Shared.OpeningSource
