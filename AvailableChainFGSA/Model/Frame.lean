@@ -1,6 +1,8 @@
 module
 public import AvailableChainFGSA.Model.Handlers
 public import AvailableChainFGSA.Model.Clock
+public import AvailableChainFGSA.Model.RowCore
+public import AvailableChainKitFG.ClientOnce
 
 @[expose] public section
 
@@ -111,30 +113,15 @@ def chainWireRows {n : Nat} (st : State n) (H : Block) : List (RowWire n) :=
   (st.proposals.filterMap (fun o => match o.decode with
     | some (.block _ b _ _ rows) => if Block.preceq b H then some rows else none
     | _ => none)).flatten
-/-- [spec 550–551, 1261–1263; helper] The rows with a round in `I` of the stored blocks
-of a slot in a round of `I`. -/
-def blockWireRows (p : Params) (st : State p.n) (I : Nat → Bool) : List (RowWire p.n) :=
-  (st.proposals.filterMap (fun o => match o.decode with
-    | some (.block _ b _ _ rows) =>
-        if I (p.round b.slot) then some (rows.filter (fun a => (a.round?.map I).getD false))
-        else none
-    | _ => none)).flatten
+/-- [R7] All rows carried in admitted blocks. -/
+def blockWireRows {n : Nat} (st : State n) : List (RowWire n) := allBlockRows st
 
-/-- [spec 544–556, 1255–1274] `proposal_attestations(Σ, H)`: pool rows and
-stored-block rows of the window `I = [max 0 (r − w_F), r]`, without rows on the
-chain of `H`; per identity and round, every pool row, then distinct block rows
-until there are two. Rows are grouped by their decoded `(round, identity)`, as in
-`admitRow` (G6 O-m6). -/
+/-- [R7] Select held, parent-valid rows absent from the parent chain at the
+current slot. `proposalRowsFor` exposes this same selector above Frame. -/
 def proposalRows (p : Params) (st : State p.n) (H : Block) : List (RowWire p.n) :=
-  let r := p.round (st.slot p)
-  let inI : Nat → Bool := fun r' => decide (r ≤ r' + p.wF) && decide (r' ≤ r)
-  let onChain := chainWireRows st H
-  let A := st.rowPool.filter (fun a => (a.round?.map inI).getD false && !decide (a ∈ onChain))
-  let A' := (blockWireRows p st inI).filter (fun a => !decide (a ∈ onChain) && !decide (a ∈ A))
-  A'.foldl (fun acc a =>
-    let key := fun (x : RowWire p.n) => x.decode?.map (fun y => (y.1, y.2.1))
-    if decide (a ∈ acc) || 2 ≤ (acc.filter (fun x => key x == key a)).length then acc
-    else acc ++ [a]) A
+  proposalRowsCore p chainWireRows
+    (fun st b => pickPair st.fg.TF (fun B => decide (eraseFG B = b)))
+    allBlockRows st (st.slot p) H
 
 /-- [spec 1236–1253; D5, D9] `propose_block` at `t_s`, `s > 0`. It selects the
 head and the signed rows first; then it builds the block with the packed body
@@ -194,13 +181,13 @@ def fgInputs (p : Params) (st : State p.n) : Option (FGBlock (Fin p.n)) × HeadF
     | some Hd => HeadFields.ofBlock p.E p.cfg Hd
     | none => ⟨0, genesisRoot, 0⟩)
 
-/-- [spec 1304–1313, 1391–1399; DQ4, M13] `attest` without emission: the row
-body and the new record (a projection of the client: no `σ.nj`, no
-`Λ.timeouts`). The identity `i` is supplied by the caller (Q1). -/
-def attest (p : Params) (st : State p.n) (Λ : Record) (i : Fin p.n) : RowBody × Record :=
+/-- [R2/R3/R4] The send-once client action. A suppressed row keeps the
+complete durable record. The caller supplies the signing identity. -/
+def attest (p : Params) (st : State p.n) (Λ : RecordOnce) (i : Fin p.n) :
+    Option RowPayload × RecordOnce :=
   let x := fgInputs p st
-  let y := createRow p.E p.cfg Λ i x.1 x.2
-  (RowBody.ofRow y.1, y.2)
+  let y := createRowOnce p.E p.cfg Λ i x.1 x.2
+  (y.1.map (fun a => .vote (RowBody.ofRow a)), y.2)
 
 end AvailableChain.FGSA
 end

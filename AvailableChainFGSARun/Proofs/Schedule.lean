@@ -1,8 +1,8 @@
 module
 public import AvailableChainFGSARun.Proofs.Reachable
 public import AvailableChainFGSA.Proofs.ActView
-public import AvailableChainKitV2.EngineClock
-public import AvailableChainKitV2.Emission
+public import AvailableChainKitV2.DutyEngineClock
+public import AvailableChainKitV2.DutyEmission
 
 public section
 
@@ -17,15 +17,15 @@ variable {V : Type} [DecidableEq V]
 
 omit [DecidableEq V] in
 /-- A node's tick times increase strictly with their indices. -/
-theorem fgsa_tick_time_strict (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hs : V2.ScheduleWellFormed E rho) {i j : Nat} {v : V} {t u : Time}
+theorem fgsa_tick_time_strict (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho) {i j : Nat} {v : V} {t u : Time}
     (hi : rho.events[i]? = some (.tick v t))
     (hj : rho.events[j]? = some (.tick v u)) (hij : i < j) : t < u := by
   obtain ⟨hil, hie⟩ := List.getElem?_eq_some_iff.mp hi
   obtain ⟨hjl, hje⟩ := List.getElem?_eq_some_iff.mp hj
   have hk := (List.pairwise_iff_getElem.mp hs.sorted) i j hil hjl hij
   rw [hie, hje] at hk
-  have htu := V2.Engine.time_le_of_key_le _ _ hk
+  have htu := V2.D.Engine.time_le_of_key_le _ _ hk
   change t ≤ u at htu
   have hne : t ≠ u := by
     intro he
@@ -36,8 +36,8 @@ theorem fgsa_tick_time_strict (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
 
 omit [DecidableEq V] in
 /-- There is one index for each local tick event. -/
-theorem fgsa_tick_unique (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hs : V2.ScheduleWellFormed E rho) {i j : Nat} {v : V} {t : Time}
+theorem fgsa_tick_unique (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho) {i j : Nat} {v : V} {t : Time}
     (hi : rho.events[i]? = some (.tick v t))
     (hj : rho.events[j]? = some (.tick v t)) : i = j := by
   obtain ⟨hil, hie⟩ := List.getElem?_eq_some_iff.mp hi
@@ -46,8 +46,8 @@ theorem fgsa_tick_unique (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
 
 omit [DecidableEq V] in
 /-- An honest node ticks exactly once at each public time in the horizon. -/
-theorem fgsa_tick_total (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hs : V2.ScheduleWellFormed E rho) (hΔ : E.Δ = p.Δ) (v : V)
+theorem fgsa_tick_total (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho) (hΔ : E.Δ = p.Δ) (v : V)
     (hv : v ∈ rho.honest) (k : Nat) (hh : (k : Time) * p.Δ ≤ rho.horizon) :
     ∃! i : Nat, rho.events[i]? = some (.tick v ((k : Time) * p.Δ)) := by
   have hm := hs.tick_total v hv _ ⟨k, by rw [hΔ]⟩
@@ -57,11 +57,11 @@ theorem fgsa_tick_total (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
 
 omit [DecidableEq V] in
 /-- The tick precedes every delivery at that time. -/
-theorem fgsa_tick_before_delivery (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hs : V2.ScheduleWellFormed E rho) {i j : Nat} {v w : V} {t : Time} {o : Obj p}
+theorem fgsa_tick_before_delivery (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho) {i j : Nat} {v w : V} {t : Time} {o : Obj p}
     (hi : rho.events[i]? = some (.tick v t))
     (hj : rho.events[j]? = some (.deliver w o t)) : i < j :=
-  V2.Engine.tick_index_lt_delivery E rho hs hi hj le_rfl
+  V2.D.Engine.tick_index_lt_delivery E rho hs hi hj le_rfl
 
 /-- The clock sets the duty slot, with no schedule or restart premise. -/
 theorem fgsa_postClock_slot (nd : Node p) (t : Time) :
@@ -196,11 +196,11 @@ private theorem fgsa_clock_label_source (st : State p.n) (t : Time) (s : Slot)
 
 /-- A saved label comes from a prior local tick at its gate time.
 The origin statement needs no schedule premise and allows restarts. -/
-theorem fgsa_saved_label_origin (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+theorem fgsa_saved_label_origin (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (i : Nat) (v : V) (s : Slot)
-    (hm : s ∈ (V2.Run.stateBefore E rho i v).st.base.genuine.map Prod.fst) :
+    (hm : s ∈ (V2.D.Run.stateBefore E rho i v).st.base.genuine.map Prod.fst) :
     ∃ j < i, rho.events[j]? = some (.tick v (SA.gateTime p.toParams s)) := by
-  obtain ⟨j, hj, t, he, ht⟩ := V2.Engine.clock_field_origin
+  obtain ⟨j, hj, t, he, ht⟩ := V2.D.Engine.clock_field_origin
     (P := fgsa p c) (fun nd : Node p => nd.st.base.genuine.map Prod.fst) rfl
     (fun nd o => fgsa_process_labels nd.st (toWire p o))
     (fun _ _ _ h => h)
@@ -210,14 +210,14 @@ theorem fgsa_saved_label_origin (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
   exact ⟨j, hj, ht ▸ he⟩
 
 /-- The label is unsaved before its unique scheduled gate tick. -/
-theorem fgsa_gate_fresh (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hs : V2.ScheduleWellFormed E rho) {i : Nat} {v : V} {s : Slot}
+theorem fgsa_gate_fresh (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {v : V} {s : Slot}
     (hi : rho.events[i]? = some (.tick v (SA.gateTime p.toParams s))) :
-    GridCO.savedGenuine (V2.Run.stateBefore E rho i v).st.base s = none := by
+    GridCO.savedGenuine (V2.D.Run.stateBefore E rho i v).st.base s = none := by
   apply Option.map_eq_none_iff.mpr
   apply List.find?_eq_none.mpr
   intro row hrow
-  have hm : row.1 ∈ (V2.Run.stateBefore E rho i v).st.base.genuine.map Prod.fst :=
+  have hm : row.1 ∈ (V2.D.Run.stateBefore E rho i v).st.base.genuine.map Prod.fst :=
     List.mem_map_of_mem hrow
   intro heq
   have he : row.1 = s := beq_iff_eq.mp heq
@@ -228,10 +228,10 @@ theorem fgsa_gate_fresh (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
 
 /-- At the scheduled fresh gate the clock is the anchored SA clock,
 with the cumulative blocks and the fast-write row kept. -/
-theorem fgsa_gate_clock_bridge (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hs : V2.ScheduleWellFormed E rho) {i : Nat} {v : V} {s : Slot}
+theorem fgsa_gate_clock_bridge (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {v : V} {s : Slot}
     (hi : rho.events[i]? = some (.tick v (SA.gateTime p.toParams s))) :
-    let st := (V2.Run.stateBefore E rho i v).st
+    let st := (V2.D.Run.stateBefore E rho i v).st
     FGSA.clock p st (SA.gateTime p.toParams s) = normalizeS { st with
       base := { SA.clockFrom p.toParams (eraseFG st.fg.F) (actView st)
         (SA.gateTime p.toParams s) with blocks := st.base.blocks },
@@ -331,7 +331,7 @@ private theorem fgsa_process_bounds (st : State p.n) (o : Wire p.n)
             exact fgsa_grid_proposal_stamp_le p.toParams.engine st.base _ b _ hv
 
 private theorem fgsa_clock_now_of_reachable (st : State p.n) (hr : Reachable p st)
-    (record : Record) : (fgsaClock p c).now (⟨st, record⟩ : Node p) = st.base.now := by
+    (record : RecordOnce) : (fgsaClock p c).now (⟨st, record⟩ : Node p) = st.base.now := by
   induction hr with
   | init => exact fgsa_restore_now_eq p c record
   | @tick st t hr ih =>
@@ -345,21 +345,21 @@ private theorem fgsa_clock_now_of_reachable (st : State p.n) (hr : Reachable p s
     exact (he.trans ih).trans (process_base_now st o).symm
 
 private theorem fgsa_clock_now_stateBefore (E : Generic.Env V)
-    (rho : V2.Run V (fgsa p c)) (i : Nat) (v : V) :
-    (fgsaClock p c).now (V2.Run.stateBefore E rho i v) =
-      (V2.Run.stateBefore E rho i v).st.base.now := by
+    (rho : V2.D.Run V (fgsa p c)) (i : Nat) (v : V) :
+    (fgsaClock p c).now (V2.D.Run.stateBefore E rho i v) =
+      (V2.D.Run.stateBefore E rho i v).st.base.now := by
   have h := fgsa_clock_now_of_reachable (c := c) _ (reachable_stateBefore E rho i v)
-    (V2.Run.stateBefore E rho i v).record
+    (V2.D.Run.stateBefore E rho i v).record
   exact h
 
 /-- Scheduled stores keep blocks within the store slot and stamps within
 its clock. Restarts restore genesis and an empty vote-stamp list. -/
-theorem fgsa_stateBefore_bounds (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hs : V2.ScheduleWellFormed E rho) (i : Nat) (v : V) :
-    (∀ b ∈ (V2.Run.stateBefore E rho i v).st.base.blocks,
-      b.slot ≤ (V2.Run.stateBefore E rho i v).st.slot p) ∧
-    (∀ row ∈ (V2.Run.stateBefore E rho i v).st.base.voteStamp,
-      row.2 ≤ (V2.Run.stateBefore E rho i v).st.base.now) := by
+theorem fgsa_stateBefore_bounds (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho) (i : Nat) (v : V) :
+    (∀ b ∈ (V2.D.Run.stateBefore E rho i v).st.base.blocks,
+      b.slot ≤ (V2.D.Run.stateBefore E rho i v).st.slot p) ∧
+    (∀ row ∈ (V2.D.Run.stateBefore E rho i v).st.base.voteStamp,
+      row.2 ≤ (V2.D.Run.stateBefore E rho i v).st.base.now) := by
   let Q := fun nd : Node p => Reachable p nd.st ∧
     (∀ b ∈ nd.st.base.blocks, b.slot ≤ nd.st.slot p) ∧
     (∀ row ∈ nd.st.base.voteStamp, row.2 ≤ nd.st.base.now)
@@ -372,7 +372,7 @@ theorem fgsa_stateBefore_bounds (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
     · intro row hr
       change row ∈ ([] : List (GridCO.Wire p.n × Time)) at hr
       exact (List.not_mem_nil hr).elim
-  have h := V2.Engine.stateBefore_invariant (fgsaClock p c) (fgsa_hrestore_now p c)
+  have h := V2.D.Engine.stateBefore_invariant (fgsaClock p c) (fgsa_hrestore_now p c)
     E rho hs Q hinit (fun nd t ht h => ?_) (fun nd o h => ?_)
     (fun _ _ h => h) (fun _ _ => hinit) i v
   · exact h.2
@@ -405,11 +405,11 @@ theorem fgsa_stateBefore_bounds (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
 
 /-- Before a positive-time local tick, the store clock is strictly earlier.
 NoRestart is not needed: restore sets the clock to zero. -/
-theorem fgsa_preTick_now_lt (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hs : V2.ScheduleWellFormed E rho) {i : Nat} {v : V} {t : Time}
+theorem fgsa_preTick_now_lt (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {v : V} {t : Time}
     (hi : rho.events[i]? = some (.tick v t)) (ht : 0 < t) :
-    (V2.Run.stateBefore E rho i v).st.base.now < t := by
-  rcases V2.Engine.stateBefore_now_source (fgsaClock p c) (fgsa_hrestore_now p c)
+    (V2.D.Run.stateBefore E rho i v).st.base.now < t := by
+  rcases V2.D.Engine.stateBefore_now_source (fgsaClock p c) (fgsa_hrestore_now p c)
     E rho i v with hz | ⟨j, hj, he⟩
   · rw [fgsa_clock_now_stateBefore E rho i v] at hz
     exact lt_of_le_of_lt hz ht
@@ -418,10 +418,10 @@ theorem fgsa_preTick_now_lt (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
 
 /-- Every stored vote, including carried votes, has a stamp before release.
 The active view keeps both the votes and their stamps. -/
-theorem fgsa_release_votes_stamped (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hs : V2.ScheduleWellFormed E rho) {i : Nat} {v : V} {r : Slot}
+theorem fgsa_release_votes_stamped (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {v : V} {r : Slot}
     (hi : rho.events[i]? = some (.tick v (SA.releaseTime p.toParams r))) :
-    let st := (V2.Run.stateBefore E rho i v).st
+    let st := (V2.D.Run.stateBefore E rho i v).st
     (∀ o : GridCO.Wire p.n, GridCO.stampVote st.base o < SA.releaseTime p.toParams r) ∧
       (actView st).votes = st.base.votes ∧ (actView st).voteStamp = st.base.voteStamp := by
   intro st
@@ -512,11 +512,11 @@ private theorem fgsa_process_vote_keys (st : State p.n) (o : Wire p.n)
 
 /-- Stored votes and stamps have the same keys, including carried votes.
 No schedule or restart premise is needed. -/
-theorem fgsa_vote_stamp_keys (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+theorem fgsa_vote_stamp_keys (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (i : Nat) (v : V) :
-    (V2.Run.stateBefore E rho i v).st.base.voteStamp.map Prod.fst =
-      (V2.Run.stateBefore E rho i v).st.base.votes := by
-  refine Gen.V2.invariant_triple (P := fgsa p c)
+    (V2.D.Run.stateBefore E rho i v).st.base.voteStamp.map Prod.fst =
+      (V2.D.Run.stateBefore E rho i v).st.base.votes := by
+  refine Gen.V2.Duty.invariant_triple (P := fgsa p c)
     (fun nd : Node p => nd.st.base.voteStamp.map Prod.fst = nd.st.base.votes)
     rfl ?_ ?_ (fun _ _ h => h) (fun _ _ => rfl) E rho i v
   · intro nd t h
@@ -572,10 +572,10 @@ theorem fgsa_release_clockPre (st : State p.n) (r : Slot) :
 
 /-- At the release input, after the time write and expiry, every stored
 vote still has its earlier stamp. This is the view that release reads. -/
-theorem fgsa_release_input_votes_stamped (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hs : V2.ScheduleWellFormed E rho) {i : Nat} {v : V} {r : Slot}
+theorem fgsa_release_input_votes_stamped (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {v : V} {r : Slot}
     (hi : rho.events[i]? = some (.tick v (SA.releaseTime p.toParams r))) :
-    let st := (V2.Run.stateBefore E rho i v).st
+    let st := (V2.D.Run.stateBefore E rho i v).st
     let view := GridCO.expire { actView st with now := SA.releaseTime p.toParams r }
       (SA.releaseTime p.toParams r)
     ∀ o ∈ view.votes, GridCO.stampVote view o < SA.releaseTime p.toParams r := by
@@ -601,10 +601,10 @@ theorem fgsa_release_input_votes_stamped (E : Generic.Env V) (rho : V2.Run V (fg
 
 /-- Stored blocks have smaller slots before the proposal tick and after
 its clock, when `s > 0`. -/
-theorem fgsa_stored_block_slots (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hs : V2.ScheduleWellFormed E rho) {i : Nat} {v : V} {s : Slot}
+theorem fgsa_stored_block_slots (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {v : V} {s : Slot}
     (hi : rho.events[i]? = some (.tick v (SA.proposalTime p.toParams s))) (hs0 : 0 < s) :
-    let nd := V2.Run.stateBefore E rho i v
+    let nd := V2.D.Run.stateBefore E rho i v
     (∀ b ∈ nd.st.base.blocks, b.slot < s) ∧
       (∀ b ∈ ((fgsa p c).clock nd (SA.proposalTime p.toParams s)).st.base.blocks,
         b.slot < s) ∧ (∀ B ∈ nd.st.fg.TF, B.slot < s) ∧
@@ -643,11 +643,11 @@ theorem fgsa_stored_block_slots (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
 
 /-- The raw equivocation pool equals its cutoff-filtered pool at release.
 Thus the implementation count is the specification count on the active view. -/
-theorem fgsa_release_count_bridge (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hs : V2.ScheduleWellFormed E rho) {i : Nat} {v : V} {r : Slot}
+theorem fgsa_release_count_bridge (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {v : V} {r : Slot}
     (hi : rho.events[i]? = some (.tick v (SA.releaseTime p.toParams r))) (B : Block) :
     let view := GridCO.expire
-      { actView (V2.Run.stateBefore E rho i v).st with now := SA.releaseTime p.toParams r }
+      { actView (V2.D.Run.stateBefore E rho i v).st with now := SA.releaseTime p.toParams r }
       (SA.releaseTime p.toParams r)
     let raw := GridCO.votesAt view r
     let cut := raw.filter (fun o => GridCO.stampVote view o < SA.releaseTime p.toParams r)
@@ -690,21 +690,19 @@ theorem fgsa_action_gate_time (r : Nat) : p.actionTime r = SA.gateTime p.toParam
 
 /-- An emitted FG action reads the clock state of its own tick.
 The same clock runs the gate at `d_{rR}` before that action. -/
-theorem fgsa_action_reads_gate (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (nd : Node p) (v : V) (r : Nat) (seat : Fin p.n) (body : RowBody) :
-    (⟨.seat (.base (.fg r)) seat, .row body⟩ : Obj p) ∈
-      (V2.tick E rho nd v (p.actionTime r)).2 ↔
-    E.awake v (p.actionTime r) = true ∧
-      rho.seatOf (.base (.fg r)) seat = v ∧
-      body = (attest p (FGSA.clock p nd.st (SA.gateTime p.toParams (r * p.R)))
-        nd.record ⟨0, p.nPos⟩).1 := by
-  have hmem := V2.Engine.mem_tick_seat_iff (P := fgsa p c) E rho nd v
-    (p.actionTime r) (.base (.fg r)) seat (.row body)
+theorem fgsa_action_reads_gate (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (nd : Node p) (v : V) (r : Nat) (seat : Fin p.n) (body : RowPayload) :
+    (⟨.seat (.base .fg) seat, .row body⟩ : Obj p) ∈
+      (V2.D.tick E rho nd v (p.actionTime r)).2 ↔
+    E.awake v (p.actionTime r) = true ∧ rho.seatOf (.base .fg) seat = v ∧
+      (attest p (FGSA.clock p nd.st (SA.gateTime p.toParams (r * p.R)))
+        nd.record ⟨0, p.nPos⟩).1 = some body := by
+  have hmem := V2.D.Engine.mem_tick_duty_iff (P := fgsa p c) E rho nd v
+    (p.actionTime r) (.fgAction r) rfl (fgsa_dutiesInjectiveAt _) seat (.row body)
   refine hmem.trans ?_
-  change (_ ∧ p.actionTime r = p.actionTime r ∧ _ ∧
-    some (Msg.row (attest p (FGSA.clock p nd.st (p.actionTime r))
-      nd.record ⟨0, p.nPos⟩).1) = some (Msg.row body)) ↔ _
-  simp only [true_and, Option.some.injEq, Msg.row.injEq, eq_comm]
+  change (_ ∧ _ ∧ (attest p (FGSA.clock p nd.st (p.actionTime r))
+      nd.record ⟨0, p.nPos⟩).1.map Msg.row = some (.row body)) ↔ _
+  simp only [Option.map_eq_some_iff, Msg.row.injEq, exists_eq_right]
   rfl
 
 private theorem fgsa_clock_gate_eq (st : State p.n) (s : Slot) :
@@ -724,10 +722,10 @@ private theorem fgsa_clock_gate_eq (st : State p.n) (s : Slot) :
 
 /-- The fresh scheduled gate saves the anchored confirmation of its
 pre-gate active view, including an empty confirmation. -/
-theorem fgsa_gate_saved_result (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hs : V2.ScheduleWellFormed E rho) {i : Nat} {v : V} {s : Slot}
+theorem fgsa_gate_saved_result (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {v : V} {s : Slot}
     (hi : rho.events[i]? = some (.tick v (SA.gateTime p.toParams s))) :
-    let st := (V2.Run.stateBefore E rho i v).st
+    let st := (V2.D.Run.stateBefore E rho i v).st
     GridCO.savedGenuine (FGSA.clock p st (SA.gateTime p.toParams s)).base s =
       some (SA.confirmationFrom p.toParams (eraseFG st.fg.F)
         (actView (clockPre p st (SA.gateTime p.toParams s))) s) := by
@@ -744,12 +742,12 @@ theorem fgsa_gate_saved_result (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
 
 /-- Every stored non-genesis block has a proposal delivered at an earlier
 index in the current local restart epoch. No schedule premise is needed. -/
-theorem fgsa_stored_block_origin (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+theorem fgsa_stored_block_origin (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (i : Nat) (v : V) (b : Block)
-    (hb : b ∈ (V2.Run.stateBefore E rho i v).st.base.blocks) (hg : b ≠ .genesis) :
-    ∃ w, w ∈ (V2.Run.stateBefore E rho i v).st.proposals ∧ Wire.block? w = some b ∧
+    (hb : b ∈ (V2.D.Run.stateBefore E rho i v).st.base.blocks) (hg : b ≠ .genesis) :
+    ∃ w, w ∈ (V2.D.Run.stateBefore E rho i v).st.proposals ∧ Wire.block? w = some b ∧
       ∃ j o t, j < i ∧ rho.events[j]? = some (.deliver v o t) ∧ toWire p o = w ∧
-        V2.restartFree rho v (j + 1) i := by
+        V2.D.restartFree rho v (j + 1) i := by
   obtain ⟨B, hB, he⟩ := ((cstoreInv_stateBefore E rho i v).baseTree b).mp hb
   have hBg : B ≠ .genesis := by
     intro h
@@ -762,11 +760,11 @@ theorem fgsa_stored_block_origin (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
 
 /-- The strict time reader equals the actual pre-tick store only when the
 run has no restarts. All other results in this module allow restarts. -/
-theorem fgsa_preTick_eq_timeRead (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hs : V2.ScheduleWellFormed E rho) (hnr : V2.NoRestart rho)
+theorem fgsa_preTick_eq_timeRead (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.NoRestart rho)
     {i : Nat} {v : V} {t : Time} (hi : rho.events[i]? = some (.tick v t)) :
-    V2.Run.stateBefore E rho i v = V2.Run.stateBeforeTime E rho t v :=
-  V2.Engine.stateBefore_tick_eq_stateBeforeTime hs hnr hi
+    V2.D.Run.stateBefore E rho i v = V2.D.Run.stateBeforeTime E rho t v :=
+  V2.D.Engine.stateBefore_tick_eq_stateBeforeTime hs hnr hi
 
 end AvailableChain.FGSA.Run
 end

@@ -11,7 +11,7 @@ open AvailableChain.SimplexFG
 open Gen.Pure (CompatOn MonoOn)
 
 variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V]
-    {c : AppCodec In} {E : Generic.Env V} {rho : V2.Run V (fgsa p c)}
+    {c : AppCodec In} {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
 
 private def ZeroState (st : FGSA.State p.n) : Prop :=
   st.fg = Store.init ∧ st.base.stableRecord = .genesis ∧
@@ -25,7 +25,7 @@ private theorem zero_gate_pos (s : Slot) : 0 < SA.gateTime p.toParams s := by
 private theorem zero_event_time (h : HealthyPrefix₂ p c E rho 0)
     {i : Nat} {e : V2.Event V (fgsa p c).Object}
     (hi : i < timeIdx rho 0) (he : rho.events[i]? = some e) : e.time = 0 := by
-  have hb := (V2.Engine.index_lt_read_length_iff h.base.valid.toScheduleWellFormed 0 he).mp hi
+  have hb := (V2.D.Engine.index_lt_read_length_iff h.base.valid.toScheduleWellFormed 0 he).mp hi
   have hn := (h.base.valid.in_horizon e (List.mem_of_getElem? he)).1
   exact le_antisymm hb hn
 
@@ -40,7 +40,7 @@ private theorem zero_no_gate (h : HealthyPrefix₂ p c E rho 0)
 
 private theorem zero_state (h : HealthyPrefix₂ p c E rho 0)
     (i : Nat) (hi : i ≤ timeIdx rho 0) (v : V) : ZeroState (storeAt p c E rho i v) := by
-  refine V2.Engine.stateBefore_step_induction E rho
+  refine V2.D.Engine.stateBefore_step_induction E rho
     (fun nd => ZeroState nd.st) (Nat.zero_le i) v ?_ ?_
   · intro k e _ hki he hv hk
     have ht := zero_event_time h (lt_of_lt_of_le hki hi) he
@@ -61,9 +61,9 @@ private theorem zero_state (h : HealthyPrefix₂ p c E rho 0)
         obtain ⟨hf, hs, ho, hg, hw⟩ := clean_noGate_fields (E := E) he hn
         have hnow : (storeAt p c E rho (k + 1) v).base.now = 0 := by
           dsimp only [storeAt]
-          rw [← fgsa_clock_now p c (V2.Run.stateBefore E rho (k + 1) v)]
-          rw [V2.Run.stateBefore_succ E rho he]
-          simp only [V2.World.step, Function.update_self, V2.Engine.ClockLaws.now_tick]
+          rw [← fgsa_clock_now p c (V2.D.Run.stateBefore E rho (k + 1) v)]
+          rw [V2.D.Run.stateBefore_succ E rho he]
+          simp only [V2.D.World.step, Function.update_self, V2.D.Engine.ClockLaws.now_tick]
         exact ⟨hf.trans hk.1, hs.trans hk.2.1,
           List.eq_nil_of_sublist_nil (hk.2.2.1 ▸ ho), hg.trans hk.2.2.2.1,
           hw.trans hk.2.2.2.2.1, le_of_eq hnow⟩
@@ -79,41 +79,28 @@ private theorem zero_state (h : HealthyPrefix₂ p c E rho 0)
           intro ha
           have hb := (blockAccepted_slot_pos ha).2
           have hn := hk.2.2.2.2.2
-          change (4 : Int) * p.Δ ≤ (V2.Run.stateBefore E rho k v).st.base.now at hb
+          change (4 : Int) * p.Δ ≤ (V2.D.Run.stateBefore E rho k v).st.base.now at hb
           have hp : (0 : Int) < 4 * p.Δ := by linarith [p.deltaPos]
           exact (not_le_of_gt hp) (le_trans hb hn)
         obtain ⟨hf, hs, ho, hg, hw⟩ := clean_delivery_fields he href
         have hnow : (storeAt p c E rho (k + 1) v).base.now ≤ 0 := by
           dsimp only [storeAt]
-          rw [← fgsa_clock_now p c (V2.Run.stateBefore E rho (k + 1) v)]
-          rw [V2.Run.stateBefore_succ E rho he]
-          simpa only [V2.World.step, Function.update_self, (fgsaClock p c).process,
-            fgsa_clock_now p c (V2.Run.stateBefore E rho k v)] using
+          rw [← fgsa_clock_now p c (V2.D.Run.stateBefore E rho (k + 1) v)]
+          rw [V2.D.Run.stateBefore_succ E rho he]
+          simpa only [V2.D.World.step, Function.update_self, (fgsaClock p c).process,
+            fgsa_clock_now p c (V2.D.Run.stateBefore E rho k v)] using
             hk.2.2.2.2.2
         exact ⟨hf.trans hk.1, hs.trans hk.2.1, ho.trans hk.2.2.1,
           hg.trans hk.2.2.2.1, hw.trans hk.2.2.2.2.1, hnow⟩
     dsimp only [storeAt] at hnext
-    rw [V2.Run.stateBefore_succ E rho he] at hnext
+    rw [V2.D.Run.stateBefore_succ E rho he] at hnext
     exact hnext
   · exact ⟨rfl, rfl, rfl, rfl, rfl, le_refl 0⟩
 
 omit [Fintype V] in
 private theorem zero_row_tick {j : Nat} {x : V} {r : Nat} {a : RowWire p.n}
     (ha : HonestRowAt p c E rho j x r a) :
-    rho.events[j]? = some (.tick x (p.actionTime r)) := by
-  obtain ⟨_, hr, t, hj, hem⟩ := ha
-  rcases a with ⟨auth, body⟩
-  cases auth with
-  | none => cases hr
-  | proposer s => cases hr
-  | seat label seat =>
-    cases label with
-    | head s => cases hr
-    | fg r' =>
-      have hrr : r' = r := Option.some.inj hr
-      subst r'
-      obtain ⟨_, ht, _, _⟩ := (fgsa_emitsAt_row E rho j x t hj r seat body).mp hem
-      exact ht ▸ hj
+    rho.events[j]? = some (.tick x (p.actionTime r)) := ha.2.1
 
 private theorem zero_history (h : HealthyPrefix₂ p c E rho 0) :
   (∀ x y r s B C, x ∈ rho.honest → y ∈ rho.honest →
@@ -250,8 +237,8 @@ theorem cleanCut_zero_body (h : HealthyPrefix₂ p c E rho 0) :
   (CompatOn (· ∈ rho.honest) (S_at p c E rho) (· ≤ timeIdx rho 0) ∧
   MonoOn (· ∈ rho.honest) (S_at p c E rho) (· ≤ timeIdx rho 0) ∧
   (∀ g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed],
-    CompatOn (· ∈ rho.honest) (fun t x => V2.outputAt E rho g x t) (fun t => 0 ≤ t ∧ t ≤ 0) ∧
-    MonoOn (· ∈ rho.honest) (fun t x => V2.outputAt E rho g x t) (fun t => 0 ≤ t ∧ t ≤ 0)) ∧
+    CompatOn (· ∈ rho.honest) (fun t x => V2.D.outputAt E rho g x t) (fun t => 0 ≤ t ∧ t ≤ 0) ∧
+    MonoOn (· ∈ rho.honest) (fun t x => V2.D.outputAt E rho g x t) (fun t => 0 ≤ t ∧ t ≤ 0)) ∧
   ((∀ x y r s B C, x ∈ rho.honest → y ∈ rho.honest →
     SA.gateTime p.toParams r ≤ 0 → SA.gateTime p.toParams s ≤ 0 →
     gateResult p c E rho x r = some (some B) →
@@ -324,22 +311,22 @@ theorem cleanCut_zero_body (h : HealthyPrefix₂ p c E rho 0) :
   refine ⟨hh, hc, hm, ?_, hh, ?_, ?_⟩
   · have hr (g) (hg : g ∈ [(fgsaInterface p c).stable,
         (fgsaInterface p c).confirmed]) (t : Time) (ht : 0 ≤ t ∧ t ≤ 0) (x : V) :
-        V2.outputAt E rho g x t = .genesis := by
+        V2.D.outputAt E rho g x t = .genesis := by
       have he : t = 0 := le_antisymm ht.2 ht.1
       subst t
       simp only [List.mem_cons, List.not_mem_nil, or_false] at hg
       rcases hg with rfl | rfl <;>
-        change (V2.Run.readAt E rho 0 x).st.base.stableRecord = _ <;>
-        rw [V2.Engine.readAt_eq_stateBefore h.base.valid.toScheduleWellFormed 0] <;>
+        change (V2.D.Run.readAt E rho 0 x).st.base.stableRecord = _ <;>
+        rw [V2.D.Engine.readAt_eq_stateBefore h.base.valid.toScheduleWellFormed 0] <;>
         exact hS _ le_rfl x
     intro g hg
     constructor
     · intro t u x y ht hu _ _
-      change Block.Compatible (V2.outputAt E rho g x t) (V2.outputAt E rho g y u)
+      change Block.Compatible (V2.D.outputAt E rho g x t) (V2.D.outputAt E rho g y u)
       rw [hr g hg t ht x, hr g hg u hu y]
       rfl
     · intro t u x ht hu _ _
-      change Block.Preceq (V2.outputAt E rho g x t) (V2.outputAt E rho g x u)
+      change Block.Preceq (V2.D.outputAt E rho g x t) (V2.D.outputAt E rho g x u)
       rw [hr g hg t ht x, hr g hg u hu x]
       exact Gen.Pure.block_preceq_refl _
   · intro i v hi _

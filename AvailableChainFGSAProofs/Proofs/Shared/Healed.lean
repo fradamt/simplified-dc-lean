@@ -8,7 +8,7 @@ public section
 namespace AvailableChain.FGSA.Run
 
 variable (p : Params) {In : Type} (c : AppCodec In)
-    {V : Type} [DecidableEq V] (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    {V : Type} [DecidableEq V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 omit [DecidableEq V] in
 private theorem healed_start_le {t u : Time} (htu : t ≤ u) :

@@ -14,7 +14,7 @@ namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
 
 variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V]
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 /-- P3 §8.2, I1: facts about completed gate events. -/
 structure CleanHist (i : Nat) : Prop where
@@ -149,7 +149,7 @@ variable [Fintype V]
 and its result is below S after its tick. CleanState.sExtends transports
 this fact to afterTicksIdx for the frozen CleanGateAt export. -/
 def CleanGateOutputStmt (b₀ : Time) : Prop :=
-  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
+  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   ∀ i, i ≤ timeIdx rho b₀ → CleanHist p c E rho i →
     ∀ j v s, j < i → v ∈ rho.honest → IsGateTick p c rho j v s →
@@ -161,7 +161,7 @@ DC counterpart: none; FG-SA-specific statement. -/
 theorem CleanGateOutputStmt_def (b₀ : Time) :
     CleanGateOutputStmt p c E rho b₀ =
       (
-  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
+  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   ∀ i, i ≤ timeIdx rho b₀ → CleanHist p c E rho i →
     ∀ j v s, j < i → v ∈ rho.honest → IsGateTick p c rho j v s →
@@ -172,7 +172,7 @@ theorem CleanGateOutputStmt_def (b₀ : Time) :
 including asleep nodes that emit no row. TSrc supplies the gate origin;
 F2.1 supplies the history-index and label conversion. -/
 def CleanActionSourcesStmt (b₀ : Time) : Prop :=
-  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
+  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   ∀ i, i ≤ timeIdx rho b₀ → CleanHist p c E rho i →
     ∀ j x r C, j < i → x ∈ rho.honest →
@@ -185,7 +185,7 @@ DC counterpart: none; FG-SA-specific statement. -/
 theorem CleanActionSourcesStmt_def (b₀ : Time) :
     CleanActionSourcesStmt p c E rho b₀ =
       (
-  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
+  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   ∀ i, i ≤ timeIdx rho b₀ → CleanHist p c E rho i →
     ∀ j x r C, j < i → x ∈ rho.honest →
@@ -196,7 +196,7 @@ theorem CleanActionSourcesStmt_def (b₀ : Time) :
 /-- F2.2 producer for the F2.7 Clean frame export, bp02 §§3.3–3.4:
 no contest, a labelled root origin, and full-domain retention. -/
 def CleanFrameStmt (b₀ : Time) : Prop :=
-  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
+  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   ∀ i, i ≤ timeIdx rho b₀ → CleanHist p c E rho i →
     ∀ v, v ∈ rho.honest →
@@ -215,7 +215,7 @@ DC counterpart: none; FG-SA-specific frame bundle. -/
 theorem CleanFrameStmt_def (b₀ : Time) :
     CleanFrameStmt p c E rho b₀ =
       (
-  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
+  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   ∀ i, i ≤ timeIdx rho b₀ → CleanHist p c E rho i →
     ∀ v, v ∈ rho.honest →
@@ -233,7 +233,7 @@ theorem CleanFrameStmt_def (b₀ : Time) :
 Gen.Pure.AGRule.holds gives both conclusions at every index once this
 instance is proved. There is no same-index GT premise in the FG step. -/
 def CleanAGStmt (b₀ : Time) : Prop :=
-  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
+  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   Gen.Pure.AGRule (GR p c E rho b₀) (GT p c E rho b₀)
 
@@ -242,14 +242,14 @@ DC counterpart: none; FG-SA-specific statement. -/
 theorem CleanAGStmt_def (b₀ : Time) :
     CleanAGStmt p c E rho b₀ =
       (
-  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
+  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   Gen.Pure.AGRule (GR p c E rho b₀) (GT p c E rho b₀)) := by rfl
 
 /-- State step under a fixed completed history, P3 §§8.2, 8.4.
 The event predicate separates the handlers without a free path or tip. -/
 def CleanStateStep (b₀ : Time) (event : Nat → Prop) : Prop :=
-  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
+  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   ∀ i, i ≤ timeIdx rho b₀ → CleanHist p c E rho i →
     ∀ j, j < i → event j → CleanState p c E rho j → CleanState p c E rho (j + 1)
@@ -257,14 +257,14 @@ def CleanStateStep (b₀ : Time) (event : Nat → Prop) : Prop :=
 /-- L49 first-unfold equation; bp02 §5, P3 §8.4. -/
 theorem CleanStateStep_def (b₀ : Time) (event : Nat → Prop) :
     CleanStateStep p c E rho b₀ event =
-      (CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
+      (CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   ∀ i, i ≤ timeIdx rho b₀ → CleanHist p c E rho i →
     ∀ j, j < i → event j → CleanState p c E rho j → CleanState p c E rho (j + 1)) := by rfl
 
 /-- History step; state facts are available at all earlier indices, P3 §8.4. -/
 def CleanHistStep (b₀ : Time) (event : Nat → Prop) : Prop :=
-  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
+  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   ∀ i, i < timeIdx rho b₀ → event i → CleanHist p c E rho i →
     (∀ k, k ≤ i → CleanState p c E rho k) → CleanHist p c E rho (i + 1)
@@ -272,7 +272,7 @@ def CleanHistStep (b₀ : Time) (event : Nat → Prop) : Prop :=
 /-- L49 first-unfold equation; bp02 §5, P3 §8.4. -/
 theorem CleanHistStep_def (b₀ : Time) (event : Nat → Prop) :
     CleanHistStep p c E rho b₀ event =
-      (CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
+      (CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   ∀ i, i < timeIdx rho b₀ → event i → CleanHist p c E rho i →
     (∀ k, k ≤ i → CleanState p c E rho k) → CleanHist p c E rho (i + 1)) := by rfl
@@ -401,7 +401,7 @@ theorem CleanRestartStep_def (b₀ : Time) :
 /-- P3 §8.4 and bp02 §5.6: an action's new row belongs to the history
 that includes its gate. This is a substep of the same tick, not a new event. -/
 def CleanActionStep (b₀ : Time) : Prop :=
-  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
+  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   ∀ i v r, i < timeIdx rho b₀ →
     rho.events[i]? = some (.tick v (p.actionTime r)) →
@@ -412,7 +412,7 @@ def CleanActionStep (b₀ : Time) : Prop :=
 DC counterpart: none; FG-SA emits action rows in the gate tick. -/
 theorem CleanActionStep_def (b₀ : Time) :
     CleanActionStep p c E rho b₀ =
-      (CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
+      (CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   ∀ i v r, i < timeIdx rho b₀ →
     rho.events[i]? = some (.tick v (p.actionTime r)) →

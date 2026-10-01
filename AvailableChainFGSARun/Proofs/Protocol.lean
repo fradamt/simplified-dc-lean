@@ -1,6 +1,8 @@
 module
 public import AvailableChainFGSA.Proofs.Carrier
 public import AvailableChainFGSARun.Model.Families
+public import AvailableChainKitFG.ClientOnceSafety
+public import AvailableChainGeneric.Proofs.V2.Duty.Signatures
 
 public section
 
@@ -18,10 +20,10 @@ variable {p : Params} {In : Type} {c : AppCodec In}
 /-! ### The two parts of the node state -/
 
 /-- [plan §1a restart decision] A restart restarts the store from `initial`. -/
-theorem restore_st (d : Record) : ((fgsa p c).restore d).st = initial p.n := rfl
+theorem restore_st (d : RecordOnce) : ((fgsa p c).restore d).st = initial p.n := rfl
 
 /-- [plan §1a restart decision] A restart keeps Λ. -/
-theorem restore_rec (d : Record) : ((fgsa p c).restore d).record = d := rfl
+theorem restore_rec (d : RecordOnce) : ((fgsa p c).restore d).record = d := rfl
 
 /-- The clock step keeps Λ. -/
 theorem clock_rec (nd : Node p) (t : Time) : ((fgsa p c).clock nd t).record = nd.record := rfl
@@ -41,32 +43,102 @@ theorem recordOwn_rec (nd : Node p) (o : Obj p) :
 /-! ### The FG action -/
 
 /-- [spec 1304–1313; plan T7.2] The row body and the new record of `attest` do
-not depend on the identity: `createRow` uses the signer only in `Row.signer`,
-`record_row` does not read it, and `RowBody.ofRow` drops it. -/
-theorem attest_signer_irrel (st : State p.n) (Λ : Record) (i j : Fin p.n) :
-    attest p st Λ i = attest p st Λ j := rfl
+not depend on the identity: `createRowOnce` uses the signer only in `Row.signer`,
+`record_row_once` does not read it, and `RowBody.ofRow` drops it. -/
+theorem attest_signer_irrel (st : State p.n) (Λ : RecordOnce) (i j : Fin p.n) :
+    attest p st Λ i = attest p st Λ j := by
+  have h := KitFG.createRowOnce_signer_irrel p.E p.cfg Λ i j
+    (fgInputs p st).1 (fgInputs p st).2
+  apply Prod.ext
+  · have he := congrArg (Option.map (fun k => RowPayload.vote ⟨k.1, k.2⟩)) h.1
+    dsimp only [attest, RowBody.ofRow, Row.onceKey] at he ⊢
+    simp only [Option.map_map, Function.comp_def] at he
+    exact he
+  · exact h.2
 
-/-- [plan T7.2] The payload of an FG label is the `attest` row body. -/
+/-- An FG duty releases zero or one row. -/
 theorem act_fg (nd : Node p) (r : Nat) (x : In) :
-    (fgsa p c).act nd (.base (.fg r)) x = some (.row (attest p nd.st nd.record ⟨0, p.nPos⟩).1) :=
+    (fgsa p c).act nd (.fgAction r) x =
+      (attest p nd.st nd.record ⟨0, p.nPos⟩).1.map Msg.row := rfl
+
+/-- A successful client action writes its complete released content. -/
+theorem attest_some_record (st : State p.n) (Λ : RecordOnce) (i : Fin p.n)
+    (payload : RowPayload) (h : (attest p st Λ i).1 = some payload) :
+    (attest p st Λ i).2 = record_row_once Λ (payload.toRow i) := by
+  obtain ⟨a, ha, hp⟩ := Option.map_eq_some_iff.mp h
+  obtain ⟨_, _, _, _, _, _, _, hr⟩ :=
+    KitFG.createRowOnce_released p.E p.cfg Λ i (fgInputs p st).1 (fgInputs p st).2 ha
+  change (createRowOnce p.E p.cfg Λ i (fgInputs p st).1 (fgInputs p st).2).2 = _
+  rw [hr, ← hp]
   rfl
 
-/-- [spec 681, 1391–1399; plan T7.2] Recording the emitted FG row, with any seat,
-gives the record of `attest`. -/
-theorem recordOwn_attest (nd : Node p) (r : Nat) (i : Fin p.n) :
-    ((fgsa p c).recordOwn nd
-        ⟨.seat (.base (.fg r)) i, .row (attest p nd.st nd.record ⟨0, p.nPos⟩).1⟩).record =
-      (attest p nd.st nd.record ⟨0, p.nPos⟩).2 := rfl
+/-- A successful client action has not sent this content before. -/
+theorem attest_some_fresh (st : State p.n) (Λ : RecordOnce) (i : Fin p.n)
+    (payload : RowPayload) (h : (attest p st Λ i).1 = some payload) :
+    (payload.height_pair, payload.finality_pair) ∉ Λ.sent := by
+  obtain ⟨a, ha, hp⟩ := Option.map_eq_some_iff.mp h
+  have hf := (KitFG.createRowOnce_sent p.E p.cfg Λ i
+    (fgInputs p st).1 (fgInputs p st).2).2 a ha
+  rw [← hp]
+  exact hf.1
+
+/-- A suppressed client action does not write the record. -/
+theorem attest_none_record (st : State p.n) (Λ : RecordOnce) (i : Fin p.n)
+    (h : (attest p st Λ i).1 = none) : (attest p st Λ i).2 = Λ := by
+  exact KitFG.createRowOnce_none p.E p.cfg Λ i (fgInputs p st).1 (fgInputs p st).2
+    (Option.map_eq_none_iff.mp h)
+
+/-- The engine records a successful attest result before release. -/
+theorem recordOwn_attest (nd : Node p) (i : Fin p.n) (payload : RowPayload)
+    (h : (attest p nd.st nd.record ⟨0, p.nPos⟩).1 = some payload) :
+    ((fgsa p c).recordOwn nd ⟨.seat (.base .fg) i, .row payload⟩).record =
+      (attest p nd.st nd.record ⟨0, p.nPos⟩).2 := by
+  rw [attest_some_record _ _ _ _ h]
+  rfl
+
+/-- At one time, distinct due duties have distinct signing labels. -/
+theorem fgsa_dutiesInjectiveAt (t : Time) : V2.D.DutiesInjectiveAt (fgsa p c) t := by
+  have fg_eq (r : Nat) (hr : RunDuty.fgAction r ∈ duties p t) :
+      r = (p.slotOf t - 1) / p.R := by
+    simp only [duties] at hr
+    split_ifs at hr <;> simp_all
+  intro d d' ht ht' hs
+  change RunDuty.signLabel d = RunDuty.signLabel d' at hs
+  have hd := (duties_spec p d t).mpr ht
+  have hd' := (duties_spec p d' t).mpr ht'
+  have hfg : ∀ r q, RunDuty.fgAction r ∈ duties p t →
+      RunDuty.fgAction q ∈ duties p t → r = q :=
+    fun r q hr hq => (fg_eq r hr).trans (fg_eq q hq).symm
+  cases d <;> cases d' <;> dsimp only [RunDuty.signLabel] at hs <;> simp_all
+  all_goals first | rfl | exact congrArg RunDuty.fgAction (hfg _ _ hd hd')
+
+/-- A HEAD label has exactly its scheduled HEAD duty. -/
+theorem fgsa_head_singleDuty (s : Slot) :
+    Gen.V2.Duty.SingleDuty (fgsa p c) (.base (.head s)) := by
+  refine ⟨.headAction s, rfl, ?_⟩
+  intro d hd
+  change RunDuty.signLabel d = _ at hd
+  cases d <;> dsimp only [RunDuty.signLabel] at hd <;> simp_all
+  all_goals rfl
+
+/-- A proposal label has exactly its scheduled proposal duty. -/
+theorem fgsa_prop_singleDuty (s : Slot) :
+    Gen.V2.Duty.SingleDuty (fgsa p c) (.prop s) := by
+  refine ⟨.propAction s, rfl, ?_⟩
+  intro d hd
+  change RunDuty.signLabel d = _ at hd
+  cases d <;> dsimp only [RunDuty.signLabel] at hd <;> simp_all
+  all_goals rfl
 
 /-! ### The proposal -/
 
 /-- [plan T7.2] The payload of a proposal label is the store proposal with the
 application value of the input. -/
 theorem act_prop (nd : Node p) (s : Slot) (x : In) :
-    (fgsa p c).act nd (.prop s) x = (propose p nd.st s).map (withApp (c.app x)) := rfl
+    (fgsa p c).act nd (.propAction s) x = (propose p nd.st s).map (withApp (c.app x)) := rfl
 
 /-- [plan T7.2] There is no proposal at slot `0`. -/
-theorem act_prop_zero (nd : Node p) (x : In) : (fgsa p c).act nd (.prop 0) x = none := rfl
+theorem act_prop_zero (nd : Node p) (x : In) : (fgsa p c).act nd (.propAction 0) x = none := rfl
 
 /-- [plan T7.2; I9] `withApp 0` does not change the I9 `propose` output. So with
 `unitCodec` the honest proposal is the I9 proposal. -/
@@ -95,7 +167,7 @@ theorem rowsOk_withApp (st : State p.n) (s : Slot) (a : Nat) {m : Msg p.n}
 /-! ### Label families and isolation -/
 
 /-- [plan T7.2; 2a Task 3 Step 5] A proposal label has one seat. -/
-theorem singleSeat_prop : V2.SingleSeat (fgsa p c) (fun ℓ => ∃ s, ℓ = .prop s) := by
+theorem singleSeat_prop : V2.D.SingleSeat (fgsa p c) (fun ℓ => ∃ s, ℓ = .prop s) := by
   rintro _ ⟨s, rfl⟩
   rfl
 
@@ -111,9 +183,9 @@ theorem linked_selfVisible (ℓ : RunLabel) (h : (fgsaFamilies p c).linked ℓ) 
 /-- [plan T7.2; 2a `Isolation.base_tick`] The store after a tick is the store
 clock of the store before it: the released objects and the own record do not
 change the store. -/
-theorem tick_st {V : Type} [DecidableEq V] (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+theorem tick_st {V : Type} [DecidableEq V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (nd : Node p) (v : V) (t : Time) :
-    (V2.tick E rho nd v t).1.st = FGSA.clock p nd.st t :=
+    (V2.D.tick E rho nd v t).1.st = FGSA.clock p nd.st t :=
   (fgsaIso p c).base_tick E rho nd v t
 
 /-! ### The adapter -/
@@ -171,8 +243,8 @@ theorem decode_eq_vote {n : Nat} {w : Wire n} {s : Slot} {i : Fin n} {b : Block}
   · rintro ⟨⟩; rfl
 
 /-- The store decoder gives a row only for an FG-seat row wire. -/
-theorem decode_eq_row {n : Nat} {w : Wire n} {r : Nat} {i : Fin n} {body : RowBody} :
-    w.decode = some (.row r i body) ↔ w = ⟨.seat (.fg r) i, .row body⟩ := by
+theorem decode_eq_row {n : Nat} {w : Wire n} {i : Fin n} {body : RowPayload} :
+    w.decode = some (.row i body) ↔ w = ⟨.seat .fg i, .row body⟩ := by
   obtain ⟨a, m⟩ := w
   constructor
   · intro h
@@ -190,8 +262,8 @@ theorem decode_eq_block {n : Nat} {w : Wire n} {s : Slot} {b : Block}
   · rintro ⟨⟩; rfl
 
 /-- A row wire decodes as a row exactly when its auth is an FG seat. -/
-theorem rowWire_decode {n : Nat} {a : RowWire n} {r : Nat} {i : Fin n} {body : RowBody} :
-    a.decode? = some (r, i, body) ↔ a = ⟨.seat (.fg r) i, body⟩ := by
+theorem rowWire_decode {n : Nat} {a : RowWire n} {i : Fin n} {body : RowPayload} :
+    a.decode? = some (i, body) ↔ a = ⟨.seat .fg i, body⟩ := by
   obtain ⟨x, y⟩ := a
   constructor
   · intro h
@@ -199,24 +271,18 @@ theorem rowWire_decode {n : Nat} {a : RowWire n} {r : Nat} {i : Fin n} {body : R
   · rintro ⟨⟩; rfl
 
 /-- [A0 M8] `processed` of a carried row is pool membership. -/
-theorem processedS_ofRow (st : State p.n) {a : RowWire p.n} {r : Nat} {i : Fin p.n}
-    {body : RowBody} (h : a.decode? = some (r, i, body)) :
+theorem processedS_ofRow (st : State p.n) {a : RowWire p.n} {i : Fin p.n}
+    {body : RowPayload} (h : a.decode? = some (i, body)) :
     processedS p st (ofRow p a) = decide (a ∈ st.rowPool) := by
   obtain rfl := rowWire_decode.mp h
   rfl
 
-/-- [A0 M8] `excludes` of a carried row: not in the pool, and old or capped. -/
-theorem excludesS_ofRow (st : State p.n) {a : RowWire p.n} {r : Nat} {i : Fin p.n}
-    {body : RowBody} (h : a.decode? = some (r, i, body)) :
-    excludesS p st (ofRow p a) = rowExcl p st a r i := by
+/-- [R5] A decoded carried row is never excluded. -/
+theorem excludesS_ofRow (st : State p.n) {a : RowWire p.n} {i : Fin p.n}
+    {body : RowPayload} (h : a.decode? = some (i, body)) :
+    excludesS p st (ofRow p a) = false := by
   obtain rfl := rowWire_decode.mp h
   rfl
-
-/-- The row clause as a proposition: not in the pool, and old or capped. -/
-theorem rowExcl_iff (st : State p.n) (a : RowWire p.n) (r : Nat) (i : Fin p.n) :
-    rowExcl p st a r i = true ↔
-      a ∉ st.rowPool ∧ (r + p.wF < p.round (st.slot p) ∨ 2 ≤ rowCount st r i) := by
-  simp [rowExcl]
 
 /-- [A0 M8] A carried row is handled at a delivery exactly when it is the
 delivered object, or it is one of the rows of a delivered proposal that the

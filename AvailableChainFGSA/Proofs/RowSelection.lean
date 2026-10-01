@@ -9,6 +9,10 @@ namespace AvailableChain.FGSA
 
 open AvailableChain.SimplexFG
 
+/-- The active selector is the R7 interface at the store's current slot. -/
+theorem proposalRows_eq_proposalRowsFor (p : Params) (st : State p.n) (H : Block) :
+    proposalRows p st H = proposalRowsFor p st (st.slot p) H := rfl
+
 /-- Every block-row candidate has a stored proposal as its source. -/
 theorem mem_allBlockRows_iff {n : Nat} (st : State n) (a : RowWire n) :
     a ∈ allBlockRows st ↔ ∃ o ∈ st.proposals, ∃ s b raw sup rows,
@@ -31,7 +35,7 @@ theorem mem_allBlockRows_iff {n : Nat} (st : State n) (a : RowWire n) :
 /-- Selection has no result when the stored parent cannot be resolved. -/
 theorem proposalRowsFor_missing (p : Params) (st : State p.n) (s : Slot) (H : Block)
     (h : fgBlockOf st H = none) : proposalRowsFor p st s H = [] := by
-  delta proposalRowsFor
+  delta proposalRowsFor proposalRowsCore
   rw [h]
 
 /-- [R7] Membership is exactly held content, R6 validity, and exact chain absence. -/
@@ -40,7 +44,7 @@ theorem mem_proposalRowsFor_iff (p : Params) (st : State p.n) (s : Slot)
     a ∈ proposalRowsFor p st s H ↔ ∃ P, fgBlockOf st H = some P ∧
       (a ∈ st.rowPool ∨ a ∈ allBlockRows st) ∧
       rowValidFor (parentFoldState p s P) a = true ∧ a ∉ chainWireRows st H := by
-  delta proposalRowsFor
+  delta proposalRowsFor proposalRowsCore
   cases h : fgBlockOf st H <;> dsimp only <;> simp [List.mem_eraseDups]
 
 private theorem eraseDups_sublist {α : Type} [DecidableEq α] (xs : List α) :
@@ -58,7 +62,7 @@ private theorem eraseDups_sublist {α : Type} [DecidableEq α] (xs : List α) :
 /-- The selector returns each full signed row at most once. -/
 theorem proposalRowsFor_nodup (p : Params) (st : State p.n) (s : Slot) (H : Block) :
     (proposalRowsFor p st s H).Nodup := by
-  delta proposalRowsFor
+  delta proposalRowsFor proposalRowsCore
   cases fgBlockOf st H with
   | none => exact List.nodup_nil
   | some P => exact (Gen.AC.vote_pool_eraseDups_nodup _).filter _
@@ -66,7 +70,7 @@ theorem proposalRowsFor_nodup (p : Params) (st : State p.n) (s : Slot) (H : Bloc
 /-- Selected rows retain the order of their first held occurrences. -/
 theorem proposalRowsFor_sublist (p : Params) (st : State p.n) (s : Slot) (H : Block) :
     (proposalRowsFor p st s H).Sublist (st.rowPool ++ allBlockRows st) := by
-  delta proposalRowsFor
+  delta proposalRowsFor proposalRowsCore
   cases fgBlockOf st H with
   | none => exact List.nil_sublist _
   | some P => exact List.filter_sublist.trans (eraseDups_sublist _)

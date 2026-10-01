@@ -15,7 +15,7 @@ DC DecoupledConsensusInternal/Legacy/Definitions/FinalitySafety.lean:83
 The frozen hx and hy binders are unused: reachable stores at any node suffice.
 Local F only extends by fgsa_rMono under NoRestart. -/
 theorem fgsa_finalizedSafety (p : Params) {In V : Type} [DecidableEq V] [Fintype V]
-    (c : AppCodec In) (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     {Pt : Type} {pt : Pt} (hp : FinalizedSafetyPrem p c E rho pt)
     (e e' : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest) :
     FGBlock.compatible (storeAt p c E rho e x).fg.F
@@ -41,26 +41,26 @@ from DecoupledConsensusProofs/Protocol/Handlers/FinalityMonotoneCore.lean:277
 Motivated divergence: FG-SA restore resets F to genesis, so NoRestart is required;
 DC's world events have no restart constructor. No fault or signature premise. -/
 theorem fgsa_finalizedMonotone (p : Params) {In V : Type} [DecidableEq V]
-    (c : AppCodec In) (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : rho.events.Pairwise (fun a b => a.key ≤ b.key))
-    (hnr : V2.NoRestart rho) :
+    (hnr : V2.D.NoRestart rho) :
     ∀ x ∈ rho.honest, ∀ t t' : Time, t ≤ t' →
-      Block.Preceq (finalizedOut (V2.Run.readAt E rho t x))
-        (finalizedOut (V2.Run.readAt E rho t' x)) := by
-  have hr (t : Time) : V2.Run.readAt E rho t = V2.Run.stateBefore E rho
+      Block.Preceq (finalizedOut (V2.D.Run.readAt E rho t x))
+        (finalizedOut (V2.D.Run.readAt E rho t' x)) := by
+  have hr (t : Time) : V2.D.Run.readAt E rho t = V2.D.Run.stateBefore E rho
       (rho.events.filter (fun e => decide (e.time ≤ t))).length := by
     have hf := finality_filter_prefix (q := fun e => decide (e.time ≤ t))
       (fun a b hk hb => decide_eq_true
-        (le_trans (V2.Engine.time_le_of_key_le a b hk) (of_decide_eq_true hb))) rho.events hs
+        (le_trans (V2.D.Engine.time_le_of_key_le a b hk) (of_decide_eq_true hb))) rho.events hs
     have hp : (rho.events.filter (fun e => decide (e.time ≤ t))).IsPrefix rho.events := by
       rw [hf]
       exact List.takeWhile_prefix _
-    exact congrArg (fun es => es.foldl (V2.World.step E rho) V2.World.init)
+    exact congrArg (fun es => es.foldl (V2.D.World.step E rho) V2.D.World.init)
       (List.prefix_iff_eq_take.mp hp)
   intro x hx t t' htt
   rw [hr t, hr t']
   exact eraseFG_preceq
-    (fgsa_rMono p c E rho hnr _ _ x hx (V2.Engine.read_length_mono t t' htt)).1
+    (fgsa_rMono p c E rho hnr _ _ x hx (V2.D.Engine.read_length_mono t t' htt)).1
 
 end AvailableChain.FGSA.Run
 end

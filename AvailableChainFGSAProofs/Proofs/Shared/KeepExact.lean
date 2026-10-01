@@ -19,7 +19,7 @@ A floor witness rules out band exclusion, including the two-source case.
 RExcl/H.13 must prove the band, contested and two-source cause cases outside this lemma (21
 :2599–2627). -/
 theorem kept_or_conflict (p : Params) {In V : Type} [DecidableEq V]
-    (c : AppCodec In) (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (i : Nat) (x : V) (X : Finset (FGBlock (Fin p.n))) (C W : FGBlock (Fin p.n))
     (hC : C ∈ X) (hW : W ∈ X) (hCW : FGBlock.Preceq C W)
     (hlo : (R_at p c E rho i x).lo ≤ hOf p.E p.cfg W)
@@ -74,7 +74,7 @@ A floor witness rules out band exclusion, including the two-source case.
 RExcl/H.13 must prove the band, contested and two-source cause cases outside this lemma (21
 :2599–2627). -/
 theorem kept_or_cause (p : Params) {In V : Type} [DecidableEq V]
-    (c : AppCodec In) (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (i : Nat) (x : V) (X : Finset (FGBlock (Fin p.n))) (C W : FGBlock (Fin p.n))
     (hC : C ∈ X) (hW : W ∈ X) (hCW : FGBlock.Preceq C W)
     (hlo : (R_at p c E rho i x).lo ≤ hOf p.E p.cfg W)

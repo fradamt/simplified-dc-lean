@@ -1,8 +1,8 @@
 module
 public import AvailableChainFGSARun.Proofs.ClockLaws
 public import AvailableChainFGSA.Proofs.Metadata
-public import AvailableChainKitV2.EngineClock
-public import AvailableChainKitV2.Stable
+public import AvailableChainKitV2.DutyEngineClock
+public import AvailableChainKitV2.DutyStable
 
 public section
 
@@ -23,7 +23,7 @@ private theorem processed_mono {st st' : State p.n}
     cases m with
     | vote s i b =>
       simpa only [decide_eq_true_eq] using (fun h => hv h)
-    | row r i body =>
+    | row i body =>
       simpa only [decide_eq_true_eq] using (fun h => hr h)
     | block s b raw sup rows =>
       simp only [decide_eq_true_eq]
@@ -44,16 +44,16 @@ private theorem deps_mono {st st' : State p.n} (hT : st.fg.TF ⊆ st'.fg.TF)
           ((parentFG_spec st (rootInj_all st) _ P).1 hP).2⟩⟩
 
 /-- All FG-SA hooks satisfy the engine laws. -/
-theorem fgsaHooks (p : Params) (c : AppCodec In) : V2.HooksSound (fgsa p c) where
+theorem fgsaHooks (p : Params) (c : AppCodec In) : V2.D.HooksSound (fgsa p c) where
   excludes_inert := excludes_inert c
   excludes_stable E rho hS v o i j hij hrf hx := by
     apply (excludes_stable_epoch E rho v o hij hrf ?_ hx).1
     intro k t _ _ he
-    have hn := V2.Engine.stateBefore_now_le_event (fgsaClock p c)
+    have hn := V2.D.Engine.stateBefore_now_le_event (fgsaClock p c)
       (fgsa_hrestore_now p c) E rho hS he v
-    exact (fgsa_clock_now p c (V2.Run.stateBefore E rho k v)).symm.trans_le hn
+    exact (fgsa_clock_now p c (V2.D.Run.stateBefore E rho k v)).symm.trans_le hn
   processed_stable E rho _ v o i j hij hrf hx := by
-    apply V2.Engine.stateBefore_stable (fun nd => processedS p nd.st o = true)
+    apply V2.D.Engine.stateBefore_stable (fun nd => processedS p nd.st o = true)
       (P := fgsa p c) _ _ (fun _ _ h => h) E rho hij v hrf hx
     · intro nd t h
       change processedS p (FGSA.clock p nd.st t) o = true
@@ -64,7 +64,7 @@ theorem fgsaHooks (p : Params) (c : AppCodec In) : V2.HooksSound (fgsa p c) wher
       exact processed_mono (process_votes_subset nd.st (toWire p w))
         hc.2.2.2.2.2.subset hc.1 o h
   deps_stable E rho _ v o i j hij hrf hx := by
-    apply V2.Engine.stateBefore_stable (fun nd => depsS p nd.st o = true)
+    apply V2.D.Engine.stateBefore_stable (fun nd => depsS p nd.st o = true)
       (P := fgsa p c) _ _ (fun _ _ h => h) E rho hij v hrf hx
     · intro nd t h
       change depsS p (FGSA.clock p nd.st t) o = true
@@ -80,7 +80,7 @@ theorem fgsaHooks (p : Params) (c : AppCodec In) : V2.HooksSound (fgsa p c) wher
       | some m =>
         cases m with
         | vote s i b => exact h.elim
-        | row r i body => exact h.elim
+        | row i body => exact h.elim
         | block s b raw sup rows =>
           have he := decode_eq_block.mp hd
           have hp := congrArg Signed.payload he
@@ -110,7 +110,7 @@ theorem handles_wellFormed (p : Params) (c : AppCodec In) :
     | some m =>
       cases m with
       | vote s i b => exact hh.elim
-      | row r i body => exact hh.elim
+      | row i body => exact hh.elim
       | block s b raw sup rows =>
         obtain ⟨_, hm⟩ := hh
         dsimp only [FGSA.wellFormed] at hw
@@ -132,13 +132,13 @@ theorem handles_wellFormed (p : Params) (c : AppCodec In) :
           cases a with
           | mk auth payload =>
             rcases auth with ⟨(_ | _), i⟩ | s | _
-            · have hf : false = true := (Bool.and_eq_true_iff.mp ha).1
+            · have hf : false = true := ha
               cases hf
             · rw [toWire_ofRow]
-              exact (Bool.and_eq_true_iff.mp ha).1
-            · have hf : false = true := (Bool.and_eq_true_iff.mp ha).1
+              exact ha
+            · have hf : false = true := ha
               cases hf
-            · have hf : false = true := (Bool.and_eq_true_iff.mp ha).1
+            · have hf : false = true := ha
               cases hf
 
 end AvailableChain.FGSA.Run

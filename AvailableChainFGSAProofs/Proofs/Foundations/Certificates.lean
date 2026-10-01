@@ -8,7 +8,7 @@ namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
 
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 /-- Stored-chain geometry from KitFG; these facts hold for every FG block. -/
 theorem fgsa_rGeo : RGeo p c E rho := by

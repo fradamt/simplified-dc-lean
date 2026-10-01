@@ -142,27 +142,27 @@ theorem fgsa_grid_action_gate (p : Params) (r : Nat) :
 /-- fgsa_grid_proposal_duty connects the scalar grid to the lane clock.
 Consumers: F3.pending/outage, F4.FF3/FF4/FF7. -/
 theorem fgsa_grid_proposal_duty (p : Params) (s : Nat) :
-    SlotGrid.t p.Δ s = RunLabel.actTime p (.prop s) := by rfl
+    SlotGrid.t p.Δ s = RunDuty.actTime p (.propAction s) := by rfl
 
 /-- fgsa_grid_head_duty connects the scalar grid to the lane clock.
 Consumers: F3.pending/outage, F4.FF3/FF4/FF7. -/
 theorem fgsa_grid_head_duty (p : Params) (s : Nat) :
-    SlotGrid.v p.Δ s = Label.actTime p (.head s) := by rfl
+    SlotGrid.v p.Δ s = RunDuty.actTime p (.headAction s) := by rfl
 
 /-- fgsa_grid_action_duty connects the scalar grid to the lane clock.
 Consumers: F3.pending/outage, F4.FF3/FF4/FF7. -/
 theorem fgsa_grid_action_duty (p : Params) (r : Nat) :
-    SlotGrid.a p.Δ p.R r = Label.actTime p (.fg r) := by rfl
+    SlotGrid.a p.Δ p.R r = RunDuty.actTime p (.fgAction r) := by rfl
 
 /-- fgsa_grid_run_head_duty connects the scalar grid to the lane clock.
 Consumers: F3.pending/outage, F4.FF3/FF4/FF7. -/
 theorem fgsa_grid_run_head_duty (p : Params) (s : Nat) :
-    SlotGrid.v p.Δ s = RunLabel.actTime p (.base (.head s)) := by rfl
+    SlotGrid.v p.Δ s = RunDuty.actTime p (.headAction s) := by rfl
 
 /-- fgsa_grid_run_action_duty connects the scalar grid to the lane clock.
 Consumers: F3.pending/outage, F4.FF3/FF4/FF7. -/
 theorem fgsa_grid_run_action_duty (p : Params) (r : Nat) :
-    SlotGrid.a p.Δ p.R r = RunLabel.actTime p (.base (.fg r)) := by rfl
+    SlotGrid.a p.Δ p.R r = RunDuty.actTime p (.fgAction r) := by rfl
 
 /-- fgsa_grid_round_period connects the scalar grid to the lane clock.
 Consumers: F3.pending/outage, F4.FF3/FF4/FF7. -/

@@ -10,7 +10,7 @@ open AvailableChain.SimplexFG
 open AvailableChain.Gen.Pure
 
 variable {p : Params} {In V : Type} {c : AppCodec In} [DecidableEq V]
-    {E : Generic.Env V} {rho : V2.Run V (fgsa p c)}
+    {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
 
 /-- Earlier results remain in every larger history. -/
 theorem cleanResults_mono {j i : Nat} (hji : j ≤ i) :

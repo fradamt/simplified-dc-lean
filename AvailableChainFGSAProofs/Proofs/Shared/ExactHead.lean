@@ -81,11 +81,11 @@ live-frame geometry. Admission and terminal geometry are consumer premises.
 The landed G11 geometry supplies the lower E1 branch and the pivot-parent path.
 No lane theorem supplies geometry here; the proposal rows remain opaque. -/
 theorem exactHead_of_proposal_on_run
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hE : V2.ExecutionValid E rho) (hN : V2.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (s : Slot) (hScoreSync : Gen.V2.LabelSync E rho
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
+    (s : Slot) (hScoreSync : Gen.V2.Duty.LabelSync E rho
       (SA.proposalTime p.toParams s - p.Δ) (SA.voteTime p.toParams s))
-    (hSync : Gen.V2.LabelSync E rho
+    (hSync : Gen.V2.Duty.LabelSync E rho
       (SA.proposalTime p.toParams s - p.Δ) (SA.proposalTime p.toParams s))
     {ip ih : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
@@ -93,20 +93,20 @@ theorem exactHead_of_proposal_on_run
     (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
     (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
     (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
-      V2.Run.emitsAt E rho ip)
-    (hadm : b ∈ (V2.Run.stateBefore E rho ih y).st.base.blocks)
+      V2.D.Run.emitsAt E rho ip)
+    (hadm : b ∈ (V2.D.Run.stateBefore E rho ih y).st.base.blocks)
     (D : FGBlock (Fin p.n))
     (hgeom : WalkRunGeometry p
-      (clock p (V2.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s))
-      (clock p (V2.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) s D)
+      (clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s))
+      (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) s D)
     (hterminal : ExactHeadGeometry p
-      (clock p (V2.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) s b) :
-    let dst := clock p (V2.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)
+      (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) s b) :
+    let dst := clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)
     headVote p dst s = b := by
   intro dst
-  let src := clock p (V2.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s)
+  let src := clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s)
   have hmem := hem
-  rw [(V2.Run.step_tick_eq E rho hip).2] at hmem
+  rw [(V2.D.Run.step_tick_eq E rho hip).2] at hmem
   have hp := (fgsa_emits_proposal E rho _ x _ s _).mp hmem
   have hparent := fgsa_walkRun_proposal_parent p src s _ b raw sup rows hp.2.2.2
   have hDP : Block.Preceq (eraseFG D) b.parent := by
@@ -126,32 +126,32 @@ INTENTIONAL: Shared names the FG-SA admission, E1–E5 walk geometry and E6
 terminal obligations. A consumer supplies them at each actual HEAD tick
 (21 H.17:2794–2830; S1b E1–E6:118–134). No exact HEAD is a bundle field. -/
 structure ExactHeadRunGeometry
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (ip : Nat) (x : V) (s : Slot) (D : FGBlock (Fin p.n)) (b : Block) : Prop where
   admitted : ∀ y ∈ rho.honest, ∀ ih,
     rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
-      b ∈ (V2.Run.stateBefore E rho ih y).st.base.blocks
+      b ∈ (V2.D.Run.stateBefore E rho ih y).st.base.blocks
   walk : ∀ y ∈ rho.honest, ∀ ih,
     rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
       WalkRunGeometry p
-        (clock p (V2.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s))
-        (clock p (V2.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) s D
+        (clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s))
+        (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) s D
   terminal : ∀ y ∈ rho.honest, ∀ ih,
     rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
       ExactHeadGeometry p
-        (clock p (V2.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) s b
+        (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) s b
 
 private theorem exactHead_tickIdx
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hsch : V2.ScheduleWellFormed E rho) {i : Nat} {x : V} {t : Time}
-    (hi : rho.events[i]? = some (.tick x t)) : V2.Run.tickIdx? rho x t = some i := by
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hsch : V2.D.ScheduleWellFormed E rho) {i : Nat} {x : V} {t : Time}
+    (hi : rho.events[i]? = some (.tick x t)) : V2.D.Run.tickIdx? rho x t = some i := by
   have hil := (List.getElem?_eq_some_iff.mp hi).1
-  obtain ⟨j, hj⟩ : ∃ j, V2.Run.tickIdx? rho x t = some j := by
-    rw [V2.Run.tickIdx?, ← Option.isSome_iff_exists, List.findIdx?_isSome, List.any_eq_true]
+  obtain ⟨j, hj⟩ : ∃ j, V2.D.Run.tickIdx? rho x t = some j := by
+    rw [V2.D.Run.tickIdx?, ← Option.isSome_iff_exists, List.findIdx?_isSome, List.any_eq_true]
     refine ⟨rho.events[i], List.getElem_mem hil, ?_⟩
     rw [(List.getElem?_eq_some_iff.mp hi).2]
     exact decide_eq_true ⟨rfl, rfl⟩
-  exact (fgsa_tick_unique E rho hsch (V2.Run.tickIdx?_spec hj) hi) ▸ hj
+  exact (fgsa_tick_unique E rho hsch (V2.D.Run.tickIdx?_spec hj) hi) ▸ hj
 
 /-- The HEAD clause of J2 ExactService, before freeze; 21 H.22:3109–3114.
 DC: Goldfish/PreparedV4CanonicalProposalDuty.lean:867–887.
@@ -160,18 +160,18 @@ HEAD horizon. The schedule supplies every honest reader, including a reader
 that emits no HEAD vote. H3 and TExact must supply `ExactHeadRunGeometry`
 from 21 H.17:2794–2830 and S1b E1–E6:118–154. Gate clauses are separate. -/
 theorem exactService_head_of_proposal
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hE : V2.ExecutionValid E rho) (hN : V2.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (s : Slot) (hScoreSync : Gen.V2.LabelSync E rho
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
+    (s : Slot) (hScoreSync : Gen.V2.Duty.LabelSync E rho
       (SA.proposalTime p.toParams s - p.Δ) (SA.voteTime p.toParams s))
-    (hSync : Gen.V2.LabelSync E rho
+    (hSync : Gen.V2.Duty.LabelSync E rho
       (SA.proposalTime p.toParams s - p.Δ) (SA.proposalTime p.toParams s))
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
     (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
     (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
     (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
-      V2.Run.emitsAt E rho ip)
+      V2.D.Run.emitsAt E rho ip)
     (D : FGBlock (Fin p.n)) (hgeom : ExactHeadRunGeometry E rho ip x s D b) :
     SA.voteTime p.toParams s ≤ rho.horizon →
       ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some b := by
@@ -189,7 +189,7 @@ theorem exactService_head_of_proposal
   have ht := exactHead_tickIdx E rho hE.toScheduleWellFormed hih
   change (postClock E rho y (SA.voteTime p.toParams s)).map _ = some b
   rw [postClock_def, preTick_def, ht]
-  change some (headVote p (clock p (V2.Run.stateBefore E rho ih y).st
+  change some (headVote p (clock p (V2.D.Run.stateBefore E rho ih y).st
     (SA.voteTime p.toParams s)) s) = some b
   exact congrArg some he
 

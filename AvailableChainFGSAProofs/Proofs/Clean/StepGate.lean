@@ -3,7 +3,7 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate
 public import AvailableChainFGSAProofs.Proofs.Clean.Transfer
 public import AvailableChainFGSAProofs.Proofs.Shared.SameLabel
 public import AvailableChainFGSAProofs.Proofs.Shared.Count
-public import AvailableChainGeneric.Proofs.V2.Regimes
+public import AvailableChainGeneric.Proofs.V2.Duty.Regimes
 
 public section
 
@@ -16,13 +16,13 @@ open AvailableChain.SimplexFG
 
 variable (p : Params) {In V : Type} (c : AppCodec In)
     [DecidableEq V] [Fintype V]
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 -- The store confirmation fact is called directly. The private batch boundary
 -- is discharged by gate_batch_of_history at the public OSN consumer.
 omit [Fintype V] in
 private theorem ordered_of_confirmation
-    {i : Nat} (hsch : V2.ScheduleWellFormed E rho)
+    {i : Nat} (hsch : V2.D.ScheduleWellFormed E rho)
     (hh : CleanHist p c E rho i) (hs : CleanState p c E rho i)
     (hbatch : ∀ x s, IsGateTick p c rho i x s →
       ∀ r B, (r, B) ∈ cleanResults p c E rho i → r < s →
@@ -46,7 +46,7 @@ private theorem ordered_of_confirmation
         obtain ⟨hil, hie⟩ := List.getElem?_eq_some_iff.mp hi
         have hk := (List.pairwise_iff_getElem.mp hsch.sorted) j i hjl hil hlt
         rw [hje, hie] at hk
-        exact V2.Engine.time_le_of_key_le _ _ hk
+        exact V2.D.Engine.time_le_of_key_le _ _ hk
     change 4 * p.Δ * (s : Int) + 6 * p.Δ ≤
       4 * p.Δ * (r : Int) + 6 * p.Δ at ht
     have hd : (0 : Int) < p.Δ := p.deltaPos
@@ -86,9 +86,9 @@ theorem clean_gate_batch (b₀ : Time) (h : CleanCut₂ p c E rho b₀)
     ∃ H : Finset (Fin p.n),
       (∀ k, k ∈ H ↔ rho.seatOf (.base (.head s)) k ∈ rho.honest ∧
         E.awake (rho.seatOf (.base (.head s)) k) (SA.voteTime p.toParams s) = true) ∧
-      Gen.Pure.Batch H.card (Gen.V2.faulty rho).card := by
+      Gen.Pure.Batch H.card (Gen.V2.Duty.faulty rho).card := by
   classical
-  let A := Gen.V2.awakeHonest E rho (SA.voteTime p.toParams s)
+  let A := Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s)
   let e : Fin p.n ≃ V := Equiv.ofBijective _ (h.base.cstar (.base (.head s)) trivial)
   let H := A.image e.symm
   refine ⟨H, ?_, ?_⟩
@@ -99,18 +99,18 @@ theorem clean_gate_batch (b₀ : Time) (h : CleanCut₂ p c E rho b₀)
       exact ⟨fun ⟨_, hy, he⟩ => he ▸ hy, fun hk => ⟨e k, hk, rfl⟩⟩
     rw [he]
     change rho.seatOf (.base (.head s)) k ∈
-      Gen.V2.awakeHonest E rho (SA.voteTime p.toParams s) ↔ _
-    rw [Gen.V2.awakeHonest_def]
+      Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s) ↔ _
+    rw [Gen.V2.Duty.awakeHonest_def]
     exact Finset.mem_filter
   have htime : SA.gateTime p.toParams s ≤ b₀ :=
-    (V2.Engine.index_lt_read_length_iff h.base.valid.toScheduleWellFormed b₀ ht).mp hi
+    (V2.D.Engine.index_lt_read_length_iff h.base.valid.toScheduleWellFormed b₀ ht).mp hi
   have hv : 0 ≤ SA.voteTime p.toParams s ∧ SA.voteTime p.toParams s < b₀ := by
     change 4 * p.Δ * (s : Int) + 6 * p.Δ ≤ b₀ at htime
     change 0 ≤ 4 * p.Δ * (s : Int) + p.Δ ∧ 4 * p.Δ * (s : Int) + p.Δ < b₀
     have hd : (0 : Int) < p.Δ := p.deltaPos
     have hsn : 0 ≤ (s : Int) := Nat.cast_nonneg s
     constructor <;> nlinarith
-  have hcard : H.card = (Gen.V2.awakeHonest E rho (SA.voteTime p.toParams s)).card :=
+  have hcard : H.card = (Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s)).card :=
     Finset.card_image_of_injective A e.symm.injective
   exact ⟨hcard ▸ h.partBefore _ hv.1 hv.2⟩
 
@@ -135,7 +135,7 @@ omit [Fintype V] in
 DC: Schedule/AdoptionTransport.lean:157; receipt retention analogue.
 INTENTIONAL: clockPre and actView retain the original FG-SA stamps
 (spec/fgsa-protocol.tex:2506–2513), including stamps of inactive blocks. -/
-theorem clean_gate_stamps (hf : FGFoundation p c E rho) (hn : V2.NoRestart rho)
+theorem clean_gate_stamps (hf : FGFoundation p c E rho) (hn : V2.D.NoRestart rho)
     {j i : Nat} {x : V} {s : Slot} (hx : x ∈ rho.honest)
     (hji : j ≤ i) (hi : i ≤ rho.events.length)
     (o : GridCO.Wire p.n) (B : Block)
@@ -148,17 +148,17 @@ theorem clean_gate_stamps (hf : FGFoundation p c E rho) (hn : V2.NoRestart rho)
   intro v
   have hc := hf.cumul hn j i x hx hji hi
   have hv : o ∈ (storeAt p c E rho j x).base.voteStamp.map Prod.fst := by
-    change o ∈ (V2.Run.stateBefore E rho j x).st.base.voteStamp.map Prod.fst
+    change o ∈ (V2.D.Run.stateBefore E rho j x).st.base.voteStamp.map Prod.fst
     rw [fgsa_vote_stamp_keys E rho j x]
     exact ho
   have hb : B ∈ (storeAt p c E rho j x).base.blockStamp.map Prod.fst := by
-    change B ∈ (V2.Run.stateBefore E rho j x).st.base.blockStamp.map Prod.fst
+    change B ∈ (V2.D.Run.stateBefore E rho j x).st.base.blockStamp.map Prod.fst
     rw [(storeBundle_stateBefore E rho j x).«meta».stampKeys]
     exact hB
   have hev := stamp_find_kept hc.2.2.2 o hv
   have heb := stamp_find_kept hc.2.2.1 B hb
   refine ⟨?_, ?_, ?_⟩
-  · change o ∈ (V2.Run.stateBefore E rho i x).st.base.votes
+  · change o ∈ (V2.D.Run.stateBefore E rho i x).st.base.votes
     rw [← fgsa_vote_stamp_keys E rho i x]
     obtain ⟨row, hr, he⟩ := List.mem_map.mp hv
     exact List.mem_map.mpr ⟨row, hc.2.2.2.subset hr, he⟩
@@ -196,22 +196,22 @@ theorem clean_gate_zero (b₀ : Time) (h : CleanCut₂ p c E rho b₀)
   have hx : x ∈ rho.honest := hsch.honest_only _ (List.mem_of_getElem? ht)
   have hil : i ≤ rho.events.length := Nat.le_of_lt (List.getElem?_eq_some_iff.mp ht).1
   have htime : 6 * p.Δ ≤ b₀ := by
-    have hh := (V2.Engine.index_lt_read_length_iff hsch b₀ ht).mp hi
+    have hh := (V2.D.Engine.index_lt_read_length_iff hsch b₀ ht).mp hi
     change 4 * p.Δ * (0 : Int) + 6 * p.Δ ≤ b₀ at hh
     simpa only [mul_zero, zero_add] using hh
   have hd : (0 : Int) < p.Δ := p.deltaPos
   have h2 : (2 : Time) * p.Δ ≤ rho.horizon := by linarith [h.cut.2]
   obtain ⟨j, hj, _⟩ := fgsa_tick_total E rho hsch h.base.delta x hx 2 h2
   change rho.events[j]? = some (.tick x (2 * p.Δ)) at hj
-  have hji : j < i := V2.Engine.eventIndex_lt_of_time_lt hsch hj ht (by
+  have hji : j < i := V2.D.Engine.eventIndex_lt_of_time_lt hsch hj ht (by
     change 2 * p.Δ < 4 * p.Δ * (0 : Int) + 6 * p.Δ
     nlinarith)
   have hjread := fgsa_preTick_eq_timeRead E rho hsch h.base.noRestart hj
-  have hjwindow : (V2.Run.stateBeforeTime E rho (2 * p.Δ) x).st.slot p ≤ 0 + 1 := by
+  have hjwindow : (V2.D.Run.stateBeforeTime E rho (2 * p.Δ) x).st.slot p ≤ 0 + 1 := by
     rw [← hjread]
-    have hn := V2.Engine.stateBefore_now_le_event (fgsaClock p c) (fgsa_hrestore_now p c)
+    have hn := V2.D.Engine.stateBefore_now_le_event (fgsaClock p c) (fgsa_hrestore_now p c)
       E rho hsch hj x
-    rw [fgsa_clock_now p c (V2.Run.stateBefore E rho j x)] at hn
+    rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho j x)] at hn
     have hb := Internal.slotOf_mono (p := p) hn
     have hz : p.slotOf (2 * p.Δ) = 0 := by
       have he := slotOf_offset p 0 (2 * p.Δ) (by omega) (by omega)
@@ -234,7 +234,7 @@ theorem clean_gate_zero (b₀ : Time) (h : CleanCut₂ p c E rho b₀)
     nlinarith
   have hreceipts : ∀ k ∈ H, ∃ t,
       rho.seatOf (.base (.head 0)) k ∈ rho.honest ∧
-      V2.Run.emits E rho (rho.seatOf (.base (.head 0)) k)
+      V2.D.Run.emits E rho (rho.seatOf (.base (.head 0)) k)
         (ofHead p ⟨.seat (.head 0) k, .genesis⟩) t ∧
       baseVote (⟨.seat (.head 0) k, .genesis⟩ : HeadWire p.n) ∈
         (storeAt p c E rho i x).base.votes ∧
@@ -246,12 +246,12 @@ theorem clean_gate_zero (b₀ : Time) (h : CleanCut₂ p c E rho b₀)
     obtain ⟨hkh, hka⟩ := (hH k).mp hk
     have h1 : (1 : Time) * p.Δ ≤ rho.horizon := by linarith [h.cut.2]
     obtain ⟨l, hl, _⟩ := fgsa_tick_total E rho hsch h.base.delta _ hkh 1 h1
-    have hem : V2.Run.emits E rho (rho.seatOf (.base (.head 0)) k)
+    have hem : V2.D.Run.emits E rho (rho.seatOf (.base (.head 0)) k)
         (ofHead p ⟨.seat (.head 0) k, .genesis⟩) p.Δ := by
       have hl' : rho.events[l]? = some (.tick (rho.seatOf (.base (.head 0)) k) p.Δ) := by
         simpa only [Nat.cast_one, one_mul] using hl
       refine ⟨l, hl', ?_⟩
-      rw [(V2.Run.step_tick_eq E rho hl').2]
+      rw [(V2.D.Run.step_tick_eq E rho hl').2]
       apply (fgsa_emits_head E rho _ _ _ 0 k .genesis).mpr
       refine ⟨?_, ?_, rfl, ?_⟩
       · change E.awake _ (4 * p.Δ * (0 : Int) + p.Δ) = true at hka
@@ -262,10 +262,10 @@ theorem clean_gate_zero (b₀ : Time) (h : CleanCut₂ p c E rho b₀)
     have hr := fgsa_honest_head_receipt E rho h.base.delta h.base.valid h.base.noRestart
       h.base.cstar (fun t => t + p.Δ) b₀ 0 k .genesis p.Δ _ x
       (by simpa only [h.base.delta] using
-        Gen.V2.deliveryWithin_of_healthyPrefix b₀ h.healthy)
+        Gen.V2.Duty.deliveryWithin_of_healthyPrefix b₀ h.healthy)
       hkh hem hx (by linarith)
       (lt_add_of_pos_right p.Δ hd) (by
-        change (V2.Run.stateBeforeTime E rho (p.Δ + p.Δ) x).st.slot p ≤ 1
+        change (V2.D.Run.stateBeforeTime E rho (p.Δ + p.Δ) x).st.slot p ≤ 1
         rw [show p.Δ + p.Δ = 2 * p.Δ by ring]
         exact hjwindow)
     have hearly : p.Δ + p.Δ = 2 * p.Δ := by ring
@@ -287,13 +287,13 @@ theorem clean_gate_zero (b₀ : Time) (h : CleanCut₂ p c E rho b₀)
   exact (clean_gate_raw hsch ht).trans (congrArg some hraw)
 
 omit [Fintype V] in
-private theorem gate_source_path (hsch : V2.ScheduleWellFormed E rho)
+private theorem gate_source_path (hsch : V2.D.ScheduleWellFormed E rho)
     {k : Nat} {y : V} {s : Slot} {K : Block}
     (hk : rho.events[k]? = some (.tick y (SA.voteTime p.toParams s)))
     (hK : K ∈ (storeAt p c E rho k y).base.blocks) :
     ∀ b, Block.Preceq b K → b ≠ .genesis →
       ∃ l < k, ∃ t o, blockOf? p o = some b ∧
-        V2.Run.acceptsAt E rho l y o t ∧ 0 ≤ t ∧ t < SA.voteTime p.toParams s := by
+        V2.D.Run.acceptsAt E rho l y o t ∧ 0 ≤ t ∧ t < SA.voteTime p.toParams s := by
   intro b hb hne
   have hc := (storeBundle_stateBefore E rho k y).cstore
   obtain ⟨Kfg, hKfg, he⟩ := (hc.baseTree K).mp hK
@@ -320,9 +320,9 @@ private theorem gate_source_path (hsch : V2.ScheduleWellFormed E rho)
       · omega
 
 omit [Fintype V] in
-private theorem gate_path_coverage (hE : V2.ExecutionValid E rho)
-    (_hn : V2.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (b₀ : Time) (hhealthy : V2.HealthyPrefixDelivery E rho b₀)
+private theorem gate_path_coverage (hE : V2.D.ExecutionValid E rho)
+    (_hn : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
+    (b₀ : Time) (hhealthy : V2.D.HealthyPrefixDelivery E rho b₀)
     (hb₀ : b₀ ≤ rho.horizon) {i k : Nat} {x y : V} {s : Slot} {K : Block}
     (ht : IsGateTick p c rho i x s) (hcut : SA.gateTime p.toParams s ≤ b₀)
     (hy : y ∈ rho.honest)
@@ -333,7 +333,7 @@ private theorem gate_path_coverage (hE : V2.ExecutionValid E rho)
       ReceiptCoveragePremises E rho (fun t => t + p.Δ) b₀
         (SA.earlyTime p.toParams s) 0 x K required paths ∧
       paths K (SA.earlyTime p.toParams s) := by
-  let required := fun o t => ∃ l < k, V2.Run.acceptsAt E rho l y o t ∧
+  let required := fun o t => ∃ l < k, V2.D.Run.acceptsAt E rho l y o t ∧
     ∃ b, blockOf? p o = some b ∧ Block.Preceq b K
   let paths := fun B d => B = K ∧ d = SA.earlyTime p.toParams s
   have hsch := hE.toScheduleWellFormed
@@ -341,9 +341,9 @@ private theorem gate_path_coverage (hE : V2.ExecutionValid E rho)
     change 4 * p.Δ * (s : Int) + 2 * p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
     have hd : (0 : Int) < p.Δ := p.deltaPos
     linarith
-  have hidx : V2.Run.idxBefore rho (SA.earlyTime p.toParams s) ≤ i := by
+  have hidx : V2.D.Run.idxBefore rho (SA.earlyTime p.toParams s) ≤ i := by
     by_contra hh
-    have hlt := (Gen.V2.index_lt_idxBefore_iff hsch ht (SA.earlyTime p.toParams s)).mp
+    have hlt := (Gen.V2.Duty.index_lt_idxBefore_iff hsch ht (SA.earlyTime p.toParams s)).mp
       (Nat.lt_of_not_ge hh)
     exact (not_lt.mpr hD) hlt
   have htime : ∀ o t, required o t → 0 ≤ t ∧ t < SA.voteTime p.toParams s := by
@@ -360,24 +360,18 @@ private theorem gate_path_coverage (hE : V2.ExecutionValid E rho)
     · omega
   refine ⟨required, paths, ?_, rfl, rfl⟩
   refine ⟨?_, ?_, ?_, ?_⟩
-  · simpa only [hDelta] using Gen.V2.deliveryWithin_of_healthyPrefix b₀ hhealthy
+  · simpa only [hDelta] using Gen.V2.Duty.deliveryWithin_of_healthyPrefix b₀ hhealthy
   · intro o t hr
     obtain ⟨l, _, ha, b, hb, _⟩ := hr
     obtain ⟨parent, he, hh⟩ := ha.1
     refine ⟨Or.inr ⟨y, hy, l, ha⟩,
-      handles_wellFormed p c _ parent o hh (hE.wire l y parent t he), ?_, ?_⟩
-    · intro r a B hv
-      have hh : blockOf? p o = none := by
-        change (match (toWire p o).decode with | some (.block _ b _ _ _) => some b | _ => none) = _
-        rw [hv]
-      rw [hh] at hb
-      contradiction
-    · intro r a B hv
-      have hh : blockOf? p o = none := by
-        change (match (toWire p o).decode with | some (.block _ b _ _ _) => some b | _ => none) = _
-        rw [hv]
-      rw [hh] at hb
-      contradiction
+      handles_wellFormed p c _ parent o hh (hE.wire l y parent t he), ?_⟩
+    intro r a B hv
+    have hh : blockOf? p o = none := by
+      change (match (toWire p o).decode with | some (.block _ b _ _ _) => some b | _ => none) = _
+      rw [hv]
+    rw [hh] at hb
+    contradiction
   · intro j _ hj
     exact block_compatible_of_common (block_preceq_refl K) (hF j (hj.trans hidx))
   · refine ⟨fun _ _ hab => add_le_add hab le_rfl, hD.trans hcut, hb₀, Nat.zero_le _, ?_, ?_, ?_⟩
@@ -422,8 +416,8 @@ omit [Fintype V] in
 DC: SafetyRegimes.lean:69–75; successive selection/HEAD order analogue.
 INTENTIONAL: retrospective event reads and every intervening F are explicit
 (spec/fgsa-protocol.tex:2506–2513). Only old Continues is used. -/
-theorem clean_gate_head_prefixes (hsch : V2.ScheduleWellFormed E rho)
-    (hn : V2.NoRestart rho) (hDelta : E.Δ = p.Δ) (hf : FGFoundation p c E rho)
+theorem clean_gate_head_prefixes (hsch : V2.D.ScheduleWellFormed E rho)
+    (hn : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ) (hf : FGFoundation p c E rho)
     {i k : Nat} {x y : V} {s : Slot}
     (ht : IsGateTick p c rho i x (s + 1))
     (hk : rho.events[k]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
@@ -444,14 +438,14 @@ theorem clean_gate_head_prefixes (hsch : V2.ScheduleWellFormed E rho)
     push_cast
     ring
   rw [he] at hj
-  have hji : j < i := V2.Engine.eventIndex_lt_of_time_lt hsch hj ht (by
+  have hji : j < i := V2.D.Engine.eventIndex_lt_of_time_lt hsch hj ht (by
     change 4 * p.Δ * (s : Int) + 6 * p.Δ <
       4 * p.Δ * ((s + 1 : Nat) : Int) + 6 * p.Δ
     push_cast
     nlinarith)
   have hbefore : ∀ j z, IsGateTick p c rho j z s → k < j := by
     intro j z hz
-    exact V2.Engine.eventIndex_lt_of_time_lt hsch hk hz (by
+    exact V2.D.Engine.eventIndex_lt_of_time_lt hsch hk hz (by
       change 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ <
         4 * p.Δ * (s : Int) + 6 * p.Δ
       push_cast
@@ -476,16 +470,16 @@ theorem clean_gate_head_prefixes (hsch : V2.ScheduleWellFormed E rho)
   exact block_preceq_trans (eraseFG_preceq (hf.mono hn l i x hx hl).1) hF
 
 omit [Fintype V] in
-private theorem gate_block_stamp_lt (hsch : V2.ScheduleWellFormed E rho)
-    (hn : V2.NoRestart rho) {j : Nat} {x : V} {t : Time}
+private theorem gate_block_stamp_lt (hsch : V2.D.ScheduleWellFormed E rho)
+    (hn : V2.D.NoRestart rho) {j : Nat} {x : V} {t : Time}
     (hj : rho.events[j]? = some (.tick x t)) (ht : 0 < t)
     (B : Block) (hB : B ∈ (storeAt p c E rho j x).base.blocks) :
     GridCO.stampBlock (storeAt p c E rho j x).base B < t := by
-  have hbm : B ∈ (V2.Run.stateBefore E rho j x).st.base.blockStamp.map Prod.fst := by
+  have hbm : B ∈ (V2.D.Run.stateBefore E rho j x).st.base.blockStamp.map Prod.fst := by
     rw [(storeBundle_stateBefore E rho j x).«meta».stampKeys]
     exact hB
-  change (((V2.Run.stateBefore E rho j x).st.base.blockStamp.find? _).map Prod.snd).getD _ < t
-  cases he : (V2.Run.stateBefore E rho j x).st.base.blockStamp.find? (fun row => row.1 == B) with
+  change (((V2.D.Run.stateBefore E rho j x).st.base.blockStamp.find? _).map Prod.snd).getD _ < t
+  cases he : (V2.D.Run.stateBefore E rho j x).st.base.blockStamp.find? (fun row => row.1 == B) with
   | none =>
     obtain ⟨row, hr, hb⟩ := List.mem_map.mp hbm
     have hno := List.find?_eq_none.mp he row hr
@@ -498,10 +492,10 @@ private theorem gate_block_stamp_lt (hsch : V2.ScheduleWellFormed E rho)
     · rw [hg.2]
       exact ht
     · rw [hs]
-      have hm := V2.Engine.stateBefore_now_mono_noRestart (fgsaClock p c) E rho hsch hn
+      have hm := V2.D.Engine.stateBefore_now_mono_noRestart (fgsaClock p c) E rho hsch hn
         (Nat.le_of_lt hl) x
-      rw [fgsa_clock_now p c (V2.Run.stateBefore E rho l x),
-        fgsa_clock_now p c (V2.Run.stateBefore E rho j x)] at hm
+      rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho l x),
+        fgsa_clock_now p c (V2.D.Run.stateBefore E rho j x)] at hm
       exact hm.trans_lt (fgsa_preTick_now_lt E rho hsch hj ht)
 
 private theorem gate_active_heads (b₀ : Time) (h : CleanCut₂ p c E rho b₀)
@@ -515,7 +509,7 @@ private theorem gate_active_heads (b₀ : Time) (h : CleanCut₂ p c E rho b₀)
       E.awake (rho.seatOf (.base (.head (s + 1))) q) (SA.voteTime p.toParams (s + 1)) = true →
       ∃ K t,
         rho.seatOf (.base (.head (s + 1))) q ∈ rho.honest ∧
-        V2.Run.emits E rho (rho.seatOf (.base (.head (s + 1))) q)
+        V2.D.Run.emits E rho (rho.seatOf (.base (.head (s + 1))) q)
           (ofHead p ⟨.seat (.head (s + 1)) q, K⟩) t ∧
         baseVote (⟨.seat (.head (s + 1)) q, K⟩ : HeadWire p.n) ∈
           (storeAt p c E rho i x).base.votes ∧
@@ -537,7 +531,7 @@ private theorem gate_active_heads (b₀ : Time) (h : CleanCut₂ p c E rho b₀)
   have hx : x ∈ rho.honest := hsch.honest_only _ (List.mem_of_getElem? ht)
   have hil := Nat.le_of_lt (List.getElem?_eq_some_iff.mp ht).1
   have hcut : SA.gateTime p.toParams (s + 1) ≤ b₀ :=
-    (V2.Engine.index_lt_read_length_iff hsch b₀ ht).mp hi
+    (V2.D.Engine.index_lt_read_length_iff hsch b₀ ht).mp hi
   have htimes : SA.voteTime p.toParams (s + 1) + p.Δ = SA.earlyTime p.toParams (s + 1) := by
     change 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ + p.Δ =
       4 * p.Δ * ((s + 1 : Nat) : Int) + 2 * p.Δ
@@ -563,19 +557,19 @@ private theorem gate_active_heads (b₀ : Time) (h : CleanCut₂ p c E rho b₀)
   obtain ⟨j, hj, _⟩ := fgsa_tick_total E rho hsch h.base.delta x hx (4 * (s + 1) + 2)
     (het ▸ (hearly.le.trans (hcut.trans h.cut.2)))
   rw [het] at hj
-  have hji := V2.Engine.eventIndex_lt_of_time_lt hsch hj ht hearly
+  have hji := V2.D.Engine.eventIndex_lt_of_time_lt hsch hj ht hearly
   have hjread := fgsa_preTick_eq_timeRead E rho hsch h.base.noRestart hj
   let K := headAtIdx p c E rho k (s + 1)
-  have hKeq : K = headVote p ((fgsa p c).clock (V2.Run.stateBefore E rho k y)
+  have hKeq : K = headVote p ((fgsa p c).clock (V2.D.Run.stateBefore E rho k y)
       (SA.voteTime p.toParams (s + 1))).st (s + 1) := by
-    have htick : V2.Run.tickIdx? rho y (SA.voteTime p.toParams (s + 1)) = some k := by
+    have htick : V2.D.Run.tickIdx? rho y (SA.voteTime p.toParams (s + 1)) = some k := by
       have hkl := (List.getElem?_eq_some_iff.mp hk).1
-      obtain ⟨l, hl⟩ : ∃ l, V2.Run.tickIdx? rho y (SA.voteTime p.toParams (s + 1)) = some l := by
-        rw [V2.Run.tickIdx?, ← Option.isSome_iff_exists, List.findIdx?_isSome, List.any_eq_true]
+      obtain ⟨l, hl⟩ : ∃ l, V2.D.Run.tickIdx? rho y (SA.voteTime p.toParams (s + 1)) = some l := by
+        rw [V2.D.Run.tickIdx?, ← Option.isSome_iff_exists, List.findIdx?_isSome, List.any_eq_true]
         refine ⟨rho.events[k], List.getElem_mem hkl, ?_⟩
         rw [(List.getElem?_eq_some_iff.mp hk).2]
         exact decide_eq_true ⟨rfl, rfl⟩
-      exact (fgsa_tick_unique E rho hsch (V2.Run.tickIdx?_spec hl) hk) ▸ hl
+      exact (fgsa_tick_unique E rho hsch (V2.D.Run.tickIdx?_spec hl) hk) ▸ hl
     have heK := vHead_eq_headAtIdx p c E rho hsch hk
     rw [vHead_def, postClock_def, preTick_def, htick] at heK
     exact (Option.some.inj heK).symm
@@ -585,22 +579,22 @@ private theorem gate_active_heads (b₀ : Time) (h : CleanCut₂ p c E rho b₀)
     rw [← hKeq] at hm
     change K ∈ (clock p (storeAt p c E rho k y) _).base.blocks at hm
     rwa [(clock_cumulative p _ _).2.1] at hm
-  have hem : V2.Run.emits E rho y (ofHead p ⟨.seat (.head (s + 1)) q, K⟩)
+  have hem : V2.D.Run.emits E rho y (ofHead p ⟨.seat (.head (s + 1)) q, K⟩)
       (SA.voteTime p.toParams (s + 1)) := by
     refine ⟨k, hk, ?_⟩
-    rw [(V2.Run.step_tick_eq E rho hk).2]
+    rw [(V2.D.Run.step_tick_eq E rho hk).2]
     exact (fgsa_emits_head E rho _ y _ (s + 1) q K).mpr ⟨hawake, rfl, rfl, hKeq⟩
   have hprefix := clean_gate_head_prefixes p c E rho hsch h.base.noRestart h.base.delta hf
     ht hk hh hs
   obtain ⟨required, paths, hcov, hp⟩ := gate_path_coverage p c E rho h.base.valid
     h.base.noRestart h.base.delta b₀ h.healthy h.cut.2 ht hcut hy hk hKsource hprefix.2
-  have hidx : V2.Run.idxBefore rho (SA.earlyTime p.toParams (s + 1)) ≤ i := by
+  have hidx : V2.D.Run.idxBefore rho (SA.earlyTime p.toParams (s + 1)) ≤ i := by
     by_contra hn
     exact (not_lt.mpr hearly.le)
-      ((Gen.V2.index_lt_idxBefore_iff hsch ht _).mp (Nat.lt_of_not_ge hn))
-  have hFearly : Block.Preceq (eraseFG (V2.Run.stateBeforeTime E rho
+      ((Gen.V2.Duty.index_lt_idxBefore_iff hsch ht _).mp (Nat.lt_of_not_ge hn))
+  have hFearly : Block.Preceq (eraseFG (V2.D.Run.stateBeforeTime E rho
       (SA.earlyTime p.toParams (s + 1)) x).st.fg.F) K := by
-    rw [← Gen.V2.stateBefore_idxBefore E rho _ hsch]
+    rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hsch]
     exact hprefix.2 _ hidx
   have hpath := fgsa_active_path_of_coverage E rho h.base.valid h.base.noRestart h.base.delta
     (fun t => t + p.Δ) b₀ (SA.earlyTime p.toParams (s + 1)) 0 x K required paths hx hcov hp hFearly
@@ -608,17 +602,17 @@ private theorem gate_active_heads (b₀ : Time) (h : CleanCut₂ p c E rho b₀)
     have hm := (actView_blocks _ K).mp (hpath K (block_preceq_refl K))
     rw [← hjread] at hm
     exact hm.1
-  have hwindow : (V2.Run.stateBeforeTime E rho (SA.earlyTime p.toParams (s + 1)) x).st.slot p ≤
+  have hwindow : (V2.D.Run.stateBeforeTime E rho (SA.earlyTime p.toParams (s + 1)) x).st.slot p ≤
       s + 1 + 1 := by
     rw [← hjread]
-    have hn := V2.Engine.stateBefore_now_le_event (fgsaClock p c) (fgsa_hrestore_now p c)
+    have hn := V2.D.Engine.stateBefore_now_le_event (fgsaClock p c) (fgsa_hrestore_now p c)
       E rho hsch hj x
-    rw [fgsa_clock_now p c (V2.Run.stateBefore E rho j x)] at hn
+    rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho j x)] at hn
     have he := slotOf_offset p (s + 1) (2 * p.Δ) (by omega) (by omega)
     exact ((Internal.slotOf_mono (p := p) hn).trans_eq he).trans (Nat.le_succ _)
   have hr := fgsa_honest_head_receipt E rho h.base.delta h.base.valid h.base.noRestart
     h.base.cstar (fun t => t + p.Δ) b₀ (s + 1) q K (SA.voteTime p.toParams (s + 1)) y x
-    (by simpa only [h.base.delta] using Gen.V2.deliveryWithin_of_healthyPrefix b₀ h.healthy)
+    (by simpa only [h.base.delta] using Gen.V2.Duty.deliveryWithin_of_healthyPrefix b₀ h.healthy)
     hy hem hx (by rw [htimes]; exact hearly.le.trans hcut) (lt_add_of_pos_right _ hd)
     (by rw [htimes]; exact hwindow)
   dsimp only at hr
@@ -633,9 +627,9 @@ private theorem gate_active_heads (b₀ : Time) (h : CleanCut₂ p c E rho b₀)
       block_compatible_of_common (block_preceq_refl K) (hprefix.2 i le_rfl)⟩
   have hslot : K.slot ≤ s + 1 := by
     have hm := (fgsa_stateBefore_bounds E rho hsch k y).1 K hKsource
-    have hn := V2.Engine.stateBefore_now_le_event (fgsaClock p c) (fgsa_hrestore_now p c)
+    have hn := V2.D.Engine.stateBefore_now_le_event (fgsaClock p c) (fgsa_hrestore_now p c)
       E rho hsch hk y
-    rw [fgsa_clock_now p c (V2.Run.stateBefore E rho k y)] at hn
+    rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho k y)] at hn
     exact hm.trans ((Internal.slotOf_mono (p := p) hn).trans_eq
       (slotOf_offset p (s + 1) p.Δ hd.le (by omega)))
   have hpos : 0 < SA.earlyTime p.toParams (s + 1) := by
@@ -660,14 +654,14 @@ theorem clean_gate_same (b₀ : Time) (h : CleanCut₂ p c E rho b₀)
   intro s B C ⟨j, hj, x, hx, hB⟩ ⟨k, hk, y, hy, hC⟩
   have hsch := h.base.valid.toScheduleWellFormed
   have hd : SA.gateTime p.toParams s ≤ b₀ :=
-    (V2.Engine.index_lt_read_length_iff hsch b₀ hx).mp (show j < timeIdx rho b₀ by omega)
+    (V2.D.Engine.index_lt_read_length_iff hsch b₀ hx).mp (show j < timeIdx rho b₀ by omega)
   have hvd : SA.voteTime p.toParams s + E.Δ ≤ SA.gateTime p.toParams s := by
     rw [h.base.delta]
     change 4 * p.Δ * (s : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
     have hp := p.deltaPos
     linarith
   exact fgsa_sameLabel p c E rho h.base.valid h.base.noRestart h.base.delta s
-    (Gen.V2.LabelSync.of_cleanCut E rho b₀ _ _ h.healthy hvd hd h.cut.2)
+    (Gen.V2.Duty.LabelSync.of_cleanCut E rho b₀ _ _ h.healthy hvd hd h.cut.2)
     x y B C (hsch.honest_only _ (List.mem_of_getElem? hx))
     (hsch.honest_only _ (List.mem_of_getElem? hy))
     ((gateResultAt_eq_gateResult p c E rho hsch hx).symm.trans hB)
@@ -700,7 +694,7 @@ DC: NamedConfirmationWalk.lean:38 and Goldfish/Confirmation.lean:494,567.
 INTENTIONAL: the optional F-anchored raw result must pass the anchor test
 (spec/fgsa-protocol.tex:2506–2513). Label zero returns genesis exactly. -/
 theorem clean_gate_nonempty (b₀ : Time) :
-    CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
+    CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
     FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
     ∀ i x s, i < timeIdx rho b₀ → IsGateTick p c rho i x s →
       CleanHist p c E rho i → (∀ k, k ≤ i → CleanState p c E rho k) →
@@ -726,7 +720,7 @@ INTENTIONAL: three event-prefix fields for actual F-anchored optional reads
 (spec/fgsa-protocol.tex:2496–2525; lead Q2). The result adds no Continues field.
 The first conjunct supplies the Ordered premise of clean_transfer_frame. -/
 theorem clean_gate_history_osn (b₀ : Time) :
-  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
+  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   ∀ i, i < timeIdx rho b₀ → CleanGateTick p c rho i → CleanHist p c E rho i →
     (∀ k, k ≤ i → CleanState p c E rho k) →

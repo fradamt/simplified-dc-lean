@@ -15,7 +15,7 @@ open AvailableChain.SimplexFG
 private abbrev channelParams : Params :=
   { Δ := 1, n := 1, k := 2, η := 0, deltaPos := by decide, nPos := by decide,
     kLarge := by decide, etaNonneg := by decide,
-    R := 2, wF := 1, δt := 1, RLarge := by decide, wFPos := by decide }
+    R := 2, δt := 1, RLarge := by decide }
 
 /-- The round-zero candidate has a lease until time seven. -/
 private def channelSourceStore : State 1 :=

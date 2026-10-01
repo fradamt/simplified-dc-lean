@@ -11,7 +11,7 @@ namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
 
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 /-- F1.1 snapshot: T7.5 (via Gen E-10) and the FG-SA active-view library. -/
 theorem fgsa_rStore : RStore p c E rho := by
@@ -32,7 +32,7 @@ theorem fgsa_rStoreCumul : RStoreCumul p c E rho := by
 theorem fgsa_rMono : RMono p c E rho := by
   intro hnr i j x _ hij
   let a := storeAt p c E rho i x
-  apply V2.Engine.stateBefore_stable (P := fgsa p c)
+  apply V2.D.Engine.stateBefore_stable (P := fgsa p c)
     (fun nd => FGBlock.Preceq a.fg.F nd.st.fg.F ∧
       lexKey (a.fg.h_j, a.fg.J) ≤ lexKey (nd.st.fg.h_j, nd.st.fg.J) ∧
       a.fg.h_max ≤ nd.st.fg.h_max)
@@ -92,7 +92,7 @@ theorem fgsa_rFrame : RFrame p c E rho := by
   · intro o hn
     change (match o.decode with
       | some (.vote s k b) => admitHead p st s k b
-      | some (.row _ _ body) => admitRow p st ⟨o.auth, body⟩
+      | some (.row _ body) => admitRow p st ⟨o.auth, body⟩
       | some (.block s b raw sup rows) => admitBlock p st s b raw sup rows
       | none => st).fg = st.fg
     rw [hn]
@@ -111,8 +111,7 @@ theorem fgsa_rFrame : RFrame p c E rho := by
       cases o.decode with
       | none => rfl
       | some a => cases a <;> rfl
-    · intro I
-      apply congrArg List.flatten
+    · apply congrArg List.flatten
       apply congrArg (fun f => List.filterMap f st.proposals)
       funext o
       cases o.decode with
@@ -123,9 +122,9 @@ theorem fgsa_rFrame : RFrame p c E rho := by
       exact ⟨h.2.2.2.2.1, h.2.2.2.2.2, h.2.2.1, h.2.2.2.1⟩
 
 /-- P3 fixed stored-value seed: the predicate retains the same cut i and the
-same stored data at every later cut. Gen.V2.kept_from_seed can consume it. -/
-theorem fgsa_seed_stored (hnr : V2.NoRestart rho) {i j : Nat} (hij : i ≤ j) :
-    Gen.V2.SeedAt E rho j (fun x nd =>
+same stored data at every later cut. Gen.V2.Duty.kept_from_seed can consume it. -/
+theorem fgsa_seed_stored (hnr : V2.D.NoRestart rho) {i j : Nat} (hij : i ≤ j) :
+    Gen.V2.Duty.SeedAt E rho j (fun x nd =>
       let a := storeAt p c E rho i x
       a.fg.TF ⊆ nd.st.fg.TF ∧ a.base.blocks <+: nd.st.base.blocks ∧
       a.base.blockStamp <+: nd.st.base.blockStamp ∧ a.base.voteStamp <+: nd.st.base.voteStamp ∧
@@ -134,8 +133,8 @@ theorem fgsa_seed_stored (hnr : V2.NoRestart rho) {i j : Nat} (hij : i ≤ j) :
   exact fgsa_store_cumulative p c E rho hnr hij x
 
 /-- P3 fixed FG-bound seed, with the reference cut fixed in the predicate. -/
-theorem fgsa_seed_bounds (hnr : V2.NoRestart rho) {i j : Nat} (hij : i ≤ j) :
-    Gen.V2.SeedAt E rho j (fun x nd => x ∈ rho.honest →
+theorem fgsa_seed_bounds (hnr : V2.D.NoRestart rho) {i j : Nat} (hij : i ≤ j) :
+    Gen.V2.Duty.SeedAt E rho j (fun x nd => x ∈ rho.honest →
       let a := storeAt p c E rho i x
       FGBlock.Preceq a.fg.F nd.st.fg.F ∧
       lexKey (a.fg.h_j, a.fg.J) ≤ lexKey (nd.st.fg.h_j, nd.st.fg.J) ∧

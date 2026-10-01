@@ -70,7 +70,7 @@ theorem ancestorDeadlines_process (p : Params) (st : State p.n) (o : Wire p.n)
   | some input =>
     cases input with
     | vote s i b => exact ancestorDeadlines_of_obligations_eq (admitHead_obligations ..) h
-    | row r i body => exact ancestorDeadlines_row p st _ h
+    | row i body => exact ancestorDeadlines_row p st _ h
     | block s b raw support rows =>
       change AncestorDeadlines (admitBlock p st s b raw support rows)
       unfold admitBlock

@@ -9,7 +9,7 @@ open AvailableChain.SimplexFG
 open Gen.Pure (CompatOn MonoOn)
 
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 /-- P3 §8.5 (cleanSafety), bp02 §6: transport the supplied truncation to
 all public reads. DC Generic/Properties:27,41,48 and Generic/Interface:64
@@ -20,14 +20,14 @@ Three-class rule: INTENTIONAL, for this finite-read reason (S3 D43/D61);
 no UNMOTIVATED or UNCLEAR premise difference. No restart, quorum, channel,
 or extra honesty premise is needed by this read transport. -/
 theorem cleanSafety_of_trunc_body
-    (hs : V2.ScheduleWellFormed E rho)
+    (hs : V2.D.ScheduleWellFormed E rho)
     (ht :
   CompatOn (· ∈ rho.honest) (S_at p c E rho) (· ≤ timeIdx rho rho.horizon) ∧
   MonoOn (· ∈ rho.honest) (S_at p c E rho) (· ≤ timeIdx rho rho.horizon) ∧
   (∀ g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed],
-    CompatOn (· ∈ rho.honest) (fun t x => V2.outputAt E rho g x t)
+    CompatOn (· ∈ rho.honest) (fun t x => V2.D.outputAt E rho g x t)
       (fun t => 0 ≤ t ∧ t ≤ rho.horizon) ∧
-    MonoOn (· ∈ rho.honest) (fun t x => V2.outputAt E rho g x t)
+    MonoOn (· ∈ rho.honest) (fun t x => V2.D.outputAt E rho g x t)
       (fun t => 0 ≤ t ∧ t ≤ rho.horizon)) ∧
   ((∀ x y r s B C, x ∈ rho.honest → y ∈ rho.honest →
     SA.gateTime p.toParams r ≤ rho.horizon → SA.gateTime p.toParams s ≤ rho.horizon →
@@ -88,8 +88,8 @@ theorem cleanSafety_of_trunc_body
   CompatOn (· ∈ rho.honest) (S_at p c E rho) (· ≤ rho.events.length) ∧
   MonoOn (· ∈ rho.honest) (S_at p c E rho) (· ≤ rho.events.length) ∧
   (∀ g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed],
-    CompatOn (· ∈ rho.honest) (fun t x => V2.outputAt E rho g x t) (fun _ => True) ∧
-    MonoOn (· ∈ rho.honest) (fun t x => V2.outputAt E rho g x t) (fun _ => True)) := by
+    CompatOn (· ∈ rho.honest) (fun t x => V2.D.outputAt E rho g x t) (fun _ => True) ∧
+    MonoOn (· ∈ rho.honest) (fun t x => V2.D.outputAt E rho g x t) (fun _ => True)) := by
   have hlast : timeIdx rho rho.horizon = rho.events.length := by
     change (rho.events.filter _).length = _
     congr 1
@@ -100,11 +100,11 @@ theorem cleanSafety_of_trunc_body
     List.length_filter_le _ _
   have hread (g) (hg : g ∈ [(fgsaInterface p c).stable,
       (fgsaInterface p c).confirmed]) (t : Time) (x : V) :
-      V2.outputAt E rho g x t = S_at p c E rho (timeIdx rho t) x := by
+      V2.D.outputAt E rho g x t = S_at p c E rho (timeIdx rho t) x := by
     simp only [List.mem_cons, List.not_mem_nil, or_false] at hg
     rcases hg with rfl | rfl <;>
-      change (V2.Run.readAt E rho t x).st.base.stableRecord = _ <;>
-      rw [V2.Engine.readAt_eq_stateBefore hs t] <;> rfl
+      change (V2.D.Run.readAt E rho t x).st.base.stableRecord = _ <;>
+      rw [V2.D.Engine.readAt_eq_stateBefore hs t] <;> rfl
   have hc := ht.1
   have hm := ht.2.1
   rw [hlast] at hc hm
@@ -112,21 +112,21 @@ theorem cleanSafety_of_trunc_body
   intro g hg
   constructor
   · intro t u x y _ _ hx hy
-    change Block.Compatible (V2.outputAt E rho g x t) (V2.outputAt E rho g y u)
+    change Block.Compatible (V2.D.outputAt E rho g x t) (V2.D.outputAt E rho g y u)
     rw [hread g hg t x, hread g hg u y]
     exact hc _ _ _ _ (hbound t) (hbound u) hx hy
   · intro t u x _ _ htu hx
-    change Block.Preceq (V2.outputAt E rho g x t) (V2.outputAt E rho g x u)
+    change Block.Preceq (V2.D.outputAt E rho g x t) (V2.D.outputAt E rho g x u)
     rw [hread g hg t x, hread g hg u x]
     exact hm _ _ _ (hbound t) (hbound u)
-      (V2.Engine.read_length_mono t u htu) hx
+      (V2.D.Engine.read_length_mono t u htu) hx
 
 /-- P3 §8.5, bp02 §6; DC Generic/Properties:27. INTENTIONAL difference:
 S origins use raw gate results and event indices at an inclusive finite cut.
 NoRestart is inherited from Base₂. -/
 theorem clean_sCompatible [Fintype V] {b₀ : Time}
     (h : CleanCut₂ p c E rho b₀)
-    (hq : Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card)
+    (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
     (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho) :
     CompatOn (· ∈ rho.honest) (S_at p c E rho) (· ≤ timeIdx rho b₀) := by
   have hh := clean_invariant p c E rho h hq hf hsrc _ le_rfl
@@ -141,39 +141,39 @@ INTENTIONAL representation difference: both FG-SA getters read S.
 The time domain is the bounded inclusive Clean cut. NoRestart is in Base₂. -/
 theorem clean_outputsAt [Fintype V] {b₀ : Time}
     (h : CleanCut₂ p c E rho b₀)
-    (hq : Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card)
+    (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
     (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho) :
     ∀ g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed],
-      CompatOn (· ∈ rho.honest) (fun t x => V2.outputAt E rho g x t)
+      CompatOn (· ∈ rho.honest) (fun t x => V2.D.outputAt E rho g x t)
         (fun t => 0 ≤ t ∧ t ≤ b₀) ∧
-      MonoOn (· ∈ rho.honest) (fun t x => V2.outputAt E rho g x t)
+      MonoOn (· ∈ rho.honest) (fun t x => V2.D.outputAt E rho g x t)
         (fun t => 0 ≤ t ∧ t ≤ b₀) := by
   have hread (g) (hg : g ∈ [(fgsaInterface p c).stable,
       (fgsaInterface p c).confirmed]) (t : Time) (x : V) :
-      V2.outputAt E rho g x t = S_at p c E rho (timeIdx rho t) x := by
+      V2.D.outputAt E rho g x t = S_at p c E rho (timeIdx rho t) x := by
     simp only [List.mem_cons, List.not_mem_nil, or_false] at hg
     rcases hg with rfl | rfl <;>
-      change (V2.Run.readAt E rho t x).st.base.stableRecord = _ <;>
-      rw [V2.Engine.readAt_eq_stateBefore h.base.valid.toScheduleWellFormed t] <;> rfl
+      change (V2.D.Run.readAt E rho t x).st.base.stableRecord = _ <;>
+      rw [V2.D.Engine.readAt_eq_stateBefore h.base.valid.toScheduleWellFormed t] <;> rfl
   intro g hg
   constructor
   · intro t u x y ht hu hx hy
-    change Block.Compatible (V2.outputAt E rho g x t) (V2.outputAt E rho g y u)
+    change Block.Compatible (V2.D.outputAt E rho g x t) (V2.D.outputAt E rho g y u)
     rw [hread g hg t x, hread g hg u y]
     exact clean_sCompatible p c E rho h hq hf hsrc _ _ _ _
-      (V2.Engine.read_length_mono t b₀ ht.2) (V2.Engine.read_length_mono u b₀ hu.2) hx hy
+      (V2.D.Engine.read_length_mono t b₀ ht.2) (V2.D.Engine.read_length_mono u b₀ hu.2) hx hy
   · intro t u x _ hu htu _
-    change Block.Preceq (V2.outputAt E rho g x t) (V2.outputAt E rho g x u)
+    change Block.Preceq (V2.D.outputAt E rho g x t) (V2.D.outputAt E rho g x u)
     rw [hread g hg t x, hread g hg u x]
     exact sExtends p c E rho h hq hf hsrc x _ _
-      (V2.Engine.read_length_mono t u htu) (V2.Engine.read_length_mono u b₀ hu.2)
+      (V2.D.Engine.read_length_mono t u htu) (V2.D.Engine.read_length_mono u b₀ hu.2)
 
 /-- P3:3331–3335, bp02 §5.5; DC SafetyRegimes:61–75.
 INTENTIONAL difference: raw SA results, whole-result guard, and the cut
 before same-time deliveries. NoRestart is inherited from Base₂. -/
 theorem cleanGateAt_body [Fintype V] {b₀ : Time}
     (h : CleanCut₂ p c E rho b₀)
-    (hq : Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card)
+    (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
     (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho) :
   ∀ l x, SA.gateTime p.toParams l ≤ b₀ → x ∈ rho.honest →
     ∃ B, gateResult p c E rho x l = some (some B) ∧
@@ -189,7 +189,7 @@ theorem cleanGateAt_body [Fintype V] {b₀ : Time}
   obtain ⟨j, hj, _⟩ := fgsa_tick_total E rho hs h.base.delta x hx
     (4 * l + 6) (heq ▸ hl.trans h.cut.2)
   rw [heq] at hj
-  have hjN := (V2.Engine.index_lt_read_length_iff hs b₀ hj).mpr hl
+  have hjN := (V2.D.Engine.index_lt_read_length_iff hs b₀ hj).mpr hl
   have hjI : j + 1 ≤ timeIdx rho b₀ := Nat.succ_le_of_lt hjN
   obtain ⟨B, hB, hp, hBS⟩ := clean_gateOutput_body p c E rho b₀ h hq hf hsrc
     (j + 1) hjI (clean_invariant p c E rho h hq hf hsrc _ hjI)
@@ -197,7 +197,7 @@ theorem cleanGateAt_body [Fintype V] {b₀ : Time}
   have hpub := (gateResultAt_eq_gateResult p c E rho hs hj).symm.trans hB
   have hjcut : j < afterTicksIdx rho (SA.gateTime p.toParams l) := by
     by_contra hn
-    have hfalse := V2.Engine.filter_false_of_index_ge hs
+    have hfalse := V2.D.Engine.filter_false_of_index_ge hs
       (cutPred (P := fgsa p c) (SA.gateTime p.toParams l))
       (fun e f hef hf => decide_eq_true (hef.trans (of_decide_eq_true hf)))
       (Nat.le_of_not_gt hn) hj
@@ -207,7 +207,7 @@ theorem cleanGateAt_body [Fintype V] {b₀ : Time}
         toLex (SA.gateTime p.toParams l, (1 : Nat))) = true := decide_eq_true le_rfl
     exact Bool.noConfusion (ht.symm.trans hfalse)
   have hcutN : afterTicksIdx rho (SA.gateTime p.toParams l) ≤ timeIdx rho b₀ :=
-    (preIdx_le_afterTicksIdx E rho hs _).2.trans (V2.Engine.read_length_mono _ _ hl)
+    (preIdx_le_afterTicksIdx E rho hs _).2.trans (V2.D.Engine.read_length_mono _ _ hl)
   refine ⟨B, hpub, ⟨j, hj, hp⟩,
     Gen.Pure.block_preceq_trans hBS
       (sExtends p c E rho h hq hf hsrc x _ _ (Nat.succ_le_of_lt hjcut) hcutN), ?_⟩
@@ -226,13 +226,13 @@ FG-SA state origins. NoRestart is inherited from CleanCut₂ through Base₂.
 The conclusion is the unfolded frozen body; Claims stays in Export. -/
 theorem cleanTruncAt_body [Fintype V] {b₀ : Time}
     (h : CleanCut₂ p c E rho b₀)
-    (hq : Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card)
+    (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
     (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho) :
   CompatOn (· ∈ rho.honest) (S_at p c E rho) (· ≤ timeIdx rho b₀) ∧
   MonoOn (· ∈ rho.honest) (S_at p c E rho) (· ≤ timeIdx rho b₀) ∧
   (∀ g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed],
-    CompatOn (· ∈ rho.honest) (fun t x => V2.outputAt E rho g x t) (fun t => 0 ≤ t ∧ t ≤ b₀) ∧
-    MonoOn (· ∈ rho.honest) (fun t x => V2.outputAt E rho g x t) (fun t => 0 ≤ t ∧ t ≤ b₀)) ∧
+    CompatOn (· ∈ rho.honest) (fun t x => V2.D.outputAt E rho g x t) (fun t => 0 ≤ t ∧ t ≤ b₀) ∧
+    MonoOn (· ∈ rho.honest) (fun t x => V2.D.outputAt E rho g x t) (fun t => 0 ≤ t ∧ t ≤ b₀)) ∧
   ((∀ x y r s B C, x ∈ rho.honest → y ∈ rho.honest →
     SA.gateTime p.toParams r ≤ b₀ → SA.gateTime p.toParams s ≤ b₀ →
     gateResult p c E rho x r = some (some B) →

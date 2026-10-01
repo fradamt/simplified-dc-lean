@@ -10,7 +10,7 @@ F-28 forbids these theorem declarations in Claims Tests. -/
 namespace AvailableChain.FGSA.Run.Tests.Channels
 open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V]
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 private def oldSrcFrameAbove (Φ : FGBlock (Fin p.n) → Prop) (c₀ : Nat) : Prop :=
   ∀ i x, x ∈ rho.honest →

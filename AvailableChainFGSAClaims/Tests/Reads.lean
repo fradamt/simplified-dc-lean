@@ -8,9 +8,11 @@ public import AvailableChainFGSAClaims.Statements.Reads -- shake: keep (example-
 namespace AvailableChain.FGSA.Run.Tests.Reads
 
 /-- No duties: only the clock and delivery change the numeric state. -/
-abbrev readSpec : V2.ProtocolSpec Unit where
+abbrev readSpec : V2.ProtocolSpecD Unit where
   State := Nat
   Label := Empty
+  Duty := Empty
+  signLabel := fun d => nomatch d
   seats := fun _ => 0
   Payload := Unit
   Durable := Nat
@@ -37,16 +39,16 @@ abbrev readSpec : V2.ProtocolSpec Unit where
 def readEnv : Generic.Env Unit :=
   ⟨1, by decide, 0, le_rfl, fun _ _ => true⟩
 
-def readRun : V2.Run Unit readSpec where
+def readRun : V2.D.Run Unit readSpec where
   honest := {()}
   horizon := 0
   events := [.tick () 0, .deliver () ⟨.none, ()⟩ 0]
   seatOf := fun ℓ => nomatch ℓ
   input := fun _ _ => ()
 
-example : V2.Run.stateBeforeTime readEnv readRun 0 () = 0 := by decide +kernel
+example : V2.D.Run.stateBeforeTime readEnv readRun 0 () = 0 := by decide +kernel
 example : afterTicks readEnv readRun 0 () = 1 := by decide +kernel
-example : V2.Run.readAt readEnv readRun 0 () = 11 := by decide +kernel
+example : V2.D.Run.readAt readEnv readRun 0 () = 11 := by decide +kernel
 
 -- The cut excludes the delivery; the inclusive index includes it.
 example : afterTicksIdx readRun 0 = 1 ∧ timeIdx readRun 0 = 2 := by decide +kernel

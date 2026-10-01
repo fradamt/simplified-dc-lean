@@ -10,11 +10,7 @@ namespace AvailableChain.FGSA
 exclusion. The pool precedes the admitted-block rows. There is no row limit. -/
 def proposalRowsFor (p : Params) (st : State p.n) (s : Slot) (H : Block) :
     List (RowWire p.n) :=
-  match fgBlockOf st H with
-  | none => []
-  | some P =>
-      (st.rowPool ++ allBlockRows st).eraseDups.filter (fun a =>
-        rowValidFor (parentFoldState p s P) a && !decide (a ∈ chainWireRows st H))
+  proposalRowsCore p chainWireRows fgBlockOf allBlockRows st s H
 
 end AvailableChain.FGSA
 end

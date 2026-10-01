@@ -16,7 +16,7 @@ F0.8b adds the AC-output Props and healing input below these declarations. -/
 namespace AvailableChain.FGSA.Run
 
 variable (p : Params) {In : Type} (c : AppCodec In)
-    {V : Type} [DecidableEq V] (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    {V : Type} [DecidableEq V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 /-- Post-gate cut at gate times; inclusive cut otherwise
 (21 H.22:2985–2994; 22 §1:167–176). -/
@@ -42,7 +42,7 @@ def Healed (t : Time) : Prop :=
   Gen.Pure.MonoOn (· ∈ rho.honest) (S_at p c E rho) (HealSuffix p c rho t) ∧
   Gen.Pure.BelowOn (· ∈ rho.honest) (F_at p c E rho) (S_at p c E rho)
     (HealSuffix p c rho t) ∧
-  (∀ s B, t ≤ V2.proposalTime (fgsaInterface p c) s →
+  (∀ s B, t ≤ V2.D.proposalTime (fgsaInterface p c) s →
     SA.gateTime p.toParams s ≤ rho.horizon →
     HonestProposal E rho (fgsaInterface p c) s B →
     Gen.Pure.ServedOn (· ∈ rho.honest)
@@ -142,7 +142,7 @@ structure HealingInput (w : HealingWitness) : Prop where
 Consumers: healing and finality claims. Both links of the chained bound remain. -/
 def HTimeStatement (G : Time) : Prop := p.δt = 2 * p.R →
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)),
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
     HealingSet p c E rho G → E.t_GST + B_H p G ≤ rho.horizon →
     ∃ w, HealingInput p c E rho w ∧
       tstar p w ≤ p.actionTime w.rStar + Γ p G + 4 * p.Δ ∧
@@ -151,9 +151,9 @@ def HTimeStatement (G : Time) : Prop := p.δt = 2 * p.R →
 Consumer: QF2. The horizon and bound are B_best, with a separate witness. -/
 def HTimeBestStatement (G : Time) (g : Nat) : Prop := p.δt = 2 * p.R →
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)),
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
     HealingSet p c E rho G →
-    FinForm.recS.holds (Gen.V2.HonestSlot rho (fgsaInterface p c))
+    FinForm.recS.holds (Gen.V2.Duty.HonestSlot rho (fgsaInterface p c))
       p.R (P p) p.Δ E.t_GST rho.horizon g →
     E.t_GST + B_best p G g ≤ rho.horizon →
     ∃ w, HealingInput p c E rho w ∧ tstar p w < E.t_GST + B_best p G g
@@ -161,9 +161,9 @@ def HTimeBestStatement (G : Time) (g : Nat) : Prop := p.δt = 2 * p.R →
 Consumers: FF5 search companions; the recS wrapper. Domain: 1 ≤ g (00:406). -/
 def HTimeSearchStatement (G : Time) (g : Nat) : Prop := p.δt = 2 * p.R →
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)),
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
     1 ≤ g → HealingSet p c E rho G →
-    Gen.Pure.QualSearch (Gen.V2.HonestSlot rho (fgsaInterface p c))
+    Gen.Pure.QualSearch (Gen.V2.Duty.HonestSlot rho (fgsaInterface p c))
       p.R (P p) p.Δ E.t_GST rho.horizon g →
     E.t_GST + B_best p G g ≤ rho.horizon →
     ∃ w, HealingInput p c E rho w ∧ tstar p w < E.t_GST + B_best p G g

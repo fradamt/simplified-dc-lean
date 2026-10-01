@@ -10,28 +10,22 @@ public section
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} [DecidableEq V]
-    (c : AppCodec In) (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-private theorem action_row_payload {j : Nat} {x : V} {r : Nat} {a : RowWire p.n}
+private theorem action_row_payload (hv : V2.D.ExecutionValid E rho)
+    {j : Nat} {x : V} {r : Nat} {a : RowWire p.n}
     (ha : HonestRowAt p c E rho j x r a) :
     rho.events[j]? = some (.tick x (p.actionTime r)) ∧
-      a.payload = (attest p
-        ((fgsa p c).clock (V2.Run.stateBefore E rho j x) (p.actionTime r)).st
-        (V2.Run.stateBefore E rho j x).record ⟨0, p.nPos⟩).1 := by
-  obtain ⟨hx, hr, t, hj, hem⟩ := ha
+      (attest p
+        ((fgsa p c).clock (V2.D.Run.stateBefore E rho j x) (p.actionTime r)).st
+        (V2.D.Run.stateBefore E rho j x).record ⟨0, p.nPos⟩).1 = some a.payload := by
+  obtain ⟨seat, har⟩ := honestRow_auth p c rho E hv ha
+  obtain ⟨_, hj, hem⟩ := ha
   rcases a with ⟨auth, body⟩
-  cases auth with
-  | none => cases hr
-  | proposer s => cases hr
-  | seat label seat =>
-    cases label with
-    | head s => cases hr
-    | fg r' =>
-      have hrr : r' = r := Option.some.inj hr
-      subst r'
-      obtain ⟨_, ht, _, hb⟩ := (fgsa_emitsAt_row E rho j x t hj r seat body).mp hem
-      subst t
-      exact ⟨hj, hb⟩
+  dsimp only at har
+  subst auth
+  obtain ⟨_, _, _, _, hb⟩ := (fgsa_emitsAt_row E rho j x _ hj seat body).mp hem
+  exact ⟨hj, hb⟩
 
 /-- P3 §§8.4, 8.7; bp02 §5.6. Class B, local action preservation.
 DC counterpart: none exact; Execution/WeakGenesisGSTZeroActionSources.lean
@@ -49,17 +43,16 @@ theorem clean_actionStep [Fintype V] {b₀ : Time} : CleanActionStep p c E rho b
     exact ⟨C, hc, heq, hp, belowLabel_mono_index (Nat.le_succ i) hb⟩
   subst j
   have hs := h.base.valid.toScheduleWellFormed
-  obtain ⟨hj, hb⟩ := action_row_payload p c E rho ha
-  let nd := V2.Run.stateBefore E rho i x
+  obtain ⟨hj, hb⟩ := action_row_payload p c E rho h.base.valid ha
+  let nd := V2.D.Run.stateBefore E rho i x
   let st := ((fgsa p c).clock nd (p.actionTime r)).st
-  have hn : namedEntry (attest p st nd.record ⟨0, p.nPos⟩).1.height_pair = some e := by
-    rw [hb] at he
+  obtain ⟨row, hrow, hbody⟩ := Option.map_eq_some_iff.mp hb
+  obtain ⟨h, root, tm, hp, hroweq, _, _, _⟩ :=
+    KitFG.createRowOnce_released p.E p.cfg nd.record ⟨0, p.nPos⟩
+      (fgInputs p st).1 (fgInputs p st).2 hrow
+  have hn : namedEntry (.vote h root tm) = some e := by
+    rw [← hbody, hroweq] at he
     exact he
-  obtain ⟨h, root, tm, hp⟩ : ∃ h root tm,
-      (attest p st nd.record ⟨0, p.nPos⟩).1.height_pair = .vote h root tm := by
-    cases hh : (attest p st nd.record ⟨0, p.nPos⟩).1.height_pair with
-    | empty => rw [hh] at hn; cases hn
-    | vote h root tm => exact ⟨h, root, tm, rfl⟩
   have hfields := KitFG.height_pair_vote_fields hp
   change Option.map (fun C => ((derive p.E p.cfg C).h, (derive p.E p.cfg C).T_h.root))
     (fgSource p st) = some (h, root) at hfields
@@ -69,7 +62,6 @@ theorem clean_actionStep [Fintype V] {b₀ : Time} : CleanActionStep p c E rho b
     have hpair : ((derive p.E p.cfg C).h, (derive p.E p.cfg C).T_h.root) = (h, root) := by
       exact Option.some.inj (by simpa only [hsrc, Option.map_some] using hfields)
     have heq : e = (hOf p.E p.cfg C, (derive p.E p.cfg C).T_h.root) := by
-      rw [hp] at hn
       exact (Option.some.inj hn).symm.trans hpair.symm
     have hread : actionSourceFG p c E rho x r = some (some C) := by
       rw [actionSourceFG_eq_round p c E rho hs hj]
@@ -88,8 +80,8 @@ theorem clean_actionStep [Fintype V] {b₀ : Time} : CleanActionStep p c E rho b
       rw [(fgsa_action_slot_round (c := c) nd r).2] at hm
       exact List.mem_toFinset.mp hm
     have hst : storeAt p c E rho (i + 1) x = st := by
-      change (V2.Run.stateBefore E rho (i + 1) x).st = st
-      rw [(V2.Run.step_tick_eq E rho hj).1]
+      change (V2.D.Run.stateBefore E rho (i + 1) x).st = st
+      rw [(V2.D.Run.step_tick_eq E rho hj).1]
       exact tick_st (p := p) (c := c) E rho _ _ _
     have ht : IsGateTick p c rho i x (r * p.R) := hj
     rw [← hst] at hfw
@@ -108,7 +100,7 @@ theorem clean_gateStateStep [Fintype V] {b₀ : Time} :
 DC counterpart: Generic/Properties.lean:41, MonotoneFrom. This internal
 form uses all nodes and event indices under a fixed completed history. -/
 theorem sExtends_upTo [Fintype V] {b₀ : Time} {i : Nat}
-    (h : CleanCut₂ p c E rho b₀) (hq : Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card)
+    (h : CleanCut₂ p c E rho b₀) (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
     (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho)
     (hi : i ≤ timeIdx rho b₀) (hh : CleanHist p c E rho i) :
     ∀ v j k, j ≤ k → k ≤ i →

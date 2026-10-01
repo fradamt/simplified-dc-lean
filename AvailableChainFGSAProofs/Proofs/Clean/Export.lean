@@ -10,7 +10,7 @@ public section
 namespace AvailableChain.FGSA.Run
 
 variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V]
-    {c : AppCodec In} {E : Generic.Env V} {rho : V2.Run V (fgsa p c)}
+    {c : AppCodec In} {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
 
 /-- P3 §§4.7, 8.5; bp02 §§5.4–6. Class B. DC counterparts:
 Legacy/Definitions/SafetyRegimes:53–80 and Protocol/Grades/JointHistoryGapsIdx:26,141.
@@ -18,9 +18,9 @@ INTENTIONAL divergence: FG-SA uses raw SA results, exact lease/saved/fast-write
 origins, and a finite inclusive event cut. This wrapper restores the frozen
 Claims conclusion. NoRestart is inherited from CleanCut₂ through Base₂. -/
 theorem cleanHistoryAt (p : Params) {In V : Type} (c : AppCodec In)
-    [DecidableEq V] [Fintype V] (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    [DecidableEq V] [Fintype V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     {b₀ : Time} (h : CleanCut₂ p c E rho b₀)
-    (hq : Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card)
+    (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
     (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho) :
     CleanHistoryAt p c E rho b₀ := by
   exact cleanHistoryAt_body p c E rho h hq hf hsrc
@@ -52,8 +52,8 @@ finite read index is at most the event count at all integer times
 (S3 D43/D61). No restart, quorum, channel, or extra honesty premise is used.
 This Export restores the frozen safety Prop by definitional matching. -/
 theorem cleanSafetyAt_of_trunc (p : Params) {In V : Type} [DecidableEq V]
-    (c : AppCodec In) (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hs : V2.ScheduleWellFormed E rho)
+    (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho)
     (ht : CleanTruncAt p c E rho rho.horizon) : CleanSafetyAt p c E rho := by
   exact cleanSafety_of_trunc_body p c E rho hs ht
 
@@ -72,9 +72,9 @@ INTENTIONAL difference: raw SA results, a whole-result guard, and the cut
 before same-time deliveries. NoRestart is inherited through Base₂.
 This wrapper restores the exact frozen Claims conclusion. -/
 theorem cleanGateAt (p : Params) {In V : Type} (c : AppCodec In)
-    [DecidableEq V] [Fintype V] (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    [DecidableEq V] [Fintype V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     {b₀ : Time} (h : CleanCut₂ p c E rho b₀)
-    (hq : Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card)
+    (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
     (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho) :
     CleanGateAt p c E rho b₀ := by
   exact cleanGateAt_body p c E rho h hq hf hsrc
@@ -84,9 +84,9 @@ INTENTIONAL difference: six finite-cut clauses use raw SA gates and exact
 FG-SA state origins. NoRestart is inherited from CleanCut₂ through Base₂.
 This wrapper restores the exact frozen Claims conclusion. -/
 theorem cleanTruncAt (p : Params) {In V : Type} (c : AppCodec In)
-    [DecidableEq V] [Fintype V] (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    [DecidableEq V] [Fintype V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     {b₀ : Time} (h : CleanCut₂ p c E rho b₀)
-    (hq : Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card)
+    (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
     (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho) :
     CleanTruncAt p c E rho b₀ := by
   exact cleanTruncAt_body p c E rho h hq hf hsrc

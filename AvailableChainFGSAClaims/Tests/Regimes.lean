@@ -13,17 +13,17 @@ namespace AvailableChain.FGSA.Run.Tests.Regimes
 
 -- A concrete FG-SA run. The time-zero tick is required by tick_total.
 private abbrev smokeParams : Params :=
-  ⟨⟨1, 1, 2, 0, by decide, by decide, by decide, by decide⟩, 2, 1, 0, by decide, by decide⟩
+  ⟨⟨1, 1, 2, 0, by decide, by decide, by decide, by decide⟩, 2, 0, by decide⟩
 private abbrev smokeCodec : AppCodec Nat := ⟨id, some, fun _ => rfl⟩
 private abbrev smokeEnv : Generic.Env (Fin 1) := ⟨1, by decide, 0, le_rfl, fun _ _ => true⟩
-private abbrev smokeRun : V2.Run (Fin 1) (fgsa smokeParams smokeCodec) where
+private abbrev smokeRun : V2.D.Run (Fin 1) (fgsa smokeParams smokeCodec) where
   honest := Finset.univ
   horizon := 0
   events := [.tick 0 0]
   seatOf := fun _ _ => 0
   input := fun _ _ => 0
 
-private def smokeSchedule : V2.ScheduleWellFormed smokeEnv smokeRun where
+private def smokeSchedule : V2.D.ScheduleWellFormed smokeEnv smokeRun where
   horizon_nonneg := le_rfl
   sorted := List.pairwise_singleton _ _
   nodup := List.nodup_singleton _
@@ -72,13 +72,13 @@ private def smoke_base : Base₂ smokeParams smokeCodec smokeEnv smokeRun where
   noRestart := by intro i v t; cases i <;> simp
   delta := rfl
 
-private def smokeHealthy : V2.HealthyPrefixDelivery smokeEnv smokeRun 0 where
-  broadcast := by
+private def smokeHealthy : V2.D.HealthyPrefixDelivery smokeEnv smokeRun 0 where
+  broadcast_emitted := by
     rintro v _ o t ⟨i, hi, _⟩ w _ hd _
     have ht : 0 ≤ t := (smokeSchedule.in_horizon _ (List.mem_of_getElem? hi)).1
     change t + 1 ≤ 0 at hd
     exact (not_le_of_gt (lt_add_of_le_of_pos ht (by decide)) hd).elim
-  relay := by
+  relay_accepted := by
     rintro v _ i o t ⟨⟨o', hi, _⟩, _⟩
     exact (smokeNoDelivery i v o' t hi).elim
 
@@ -87,7 +87,7 @@ private def smoke_healthyPrefix : HealthyPrefix₂ smokeParams smokeCodec smokeE
 
 private def smoke_cleanPrefix : CleanPrefix₂ smokeParams smokeCodec smokeEnv smokeRun 0 := by
   refine ⟨smoke_healthyPrefix, ?_⟩
-  rw [Gen.V2.faulty_def, Gen.V2.awakeHonest_def]
+  rw [Gen.V2.Duty.faulty_def, Gen.V2.Duty.awakeHonest_def]
   decide
 
 private def smoke_cleanCut : CleanCut₂ smokeParams smokeCodec smokeEnv smokeRun 0 :=
@@ -98,11 +98,11 @@ private def smoke_clean : Clean₂ smokeParams smokeCodec smokeEnv smokeRun :=
 
 private def smoke_recovery : Recovery₂ smokeParams smokeCodec smokeEnv smokeRun 4 where
   sync := {
-    broadcast := by
+    broadcast_emitted := by
       rintro v _ o t _ w _ hd _
       change max t 0 + 1 ≤ 0 at hd
       exact (not_le_of_gt (lt_add_of_le_of_pos (le_max_right t (0 : Time)) (by decide)) hd).elim
-    relay := by
+    relay_accepted := by
       rintro v _ i o t ⟨⟨o', hi, _⟩, _⟩
       exact (smokeNoDelivery i v o' t hi).elim }
   gap := by
@@ -111,7 +111,7 @@ private def smoke_recovery : Recovery₂ smokeParams smokeCodec smokeEnv smokeRu
     change t + 4 ≤ 0 at hh
     exact (not_le_of_gt (lt_add_of_le_of_pos ht (by decide)) hh).elim
   base := smoke_base
-  fault := by rw [Gen.V2.faulty_def]; decide
+  fault := by rw [Gen.V2.Duty.faulty_def]; decide
   awake := by intros; rfl
   gapPos := le_rfl
 

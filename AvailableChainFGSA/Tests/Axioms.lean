@@ -351,3 +351,13 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 #print axioms AvailableChain.FGSA.fgsa_headInTree_mem_or_anchor
 
 #print axioms AvailableChain.FGSA.fgsa_headInTree_reanchor_of_pivot
+
+-- Migration 06: R6 acceptance and stored validity.
+#print axioms AvailableChain.FGSA.blockAccepted_rowsValid
+#print axioms AvailableChain.FGSA.admitBlock_invalid_rows
+#print axioms AvailableChain.FGSA.fgBlockOf_mono
+#print axioms AvailableChain.FGSA.rowsValidStored_admitBlock
+#print axioms AvailableChain.FGSA.rowsValidStored_process
+#print axioms AvailableChain.FGSA.rowsValidStored_clock
+#print axioms AvailableChain.FGSA.rowsValidStored_reachable
+#print axioms AvailableChain.FGSA.proposalRows_eq_proposalRowsFor

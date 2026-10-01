@@ -10,7 +10,7 @@ open AvailableChain.Gen.Pure
 
 variable (p : Params) {In V : Type} (c : AppCodec In)
     [DecidableEq V] [Fintype V]
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 /-- P3 §§8.2, 8.7; bp02 §5.5 (567–592). Class B: this conditional
 run theorem uses one fixed history and the actual FG-SA gate write.
@@ -20,7 +20,7 @@ result and a whole-result lease guard, unlike DC's SG/live confirmation.
 The fresh genuine slot excludes skip; compatible advance puts the result
 below S, and NestOK makes normalization inert. No history closure is used. -/
 theorem clean_gateOutput_body (b₀ : Time) :
-    CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
+    CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
     FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
     ∀ i, i ≤ timeIdx rho b₀ → CleanHist p c E rho i →
       ∀ j v s, j < i → v ∈ rho.honest → IsGateTick p c rho j v s →

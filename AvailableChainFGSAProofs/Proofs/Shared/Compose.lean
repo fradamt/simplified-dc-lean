@@ -6,7 +6,7 @@ public section
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V]
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 /-- H.11 μ (21:1579–1582), P3 §4.6 L6. The height set is bounded;
 its supremum is attained if nonempty, and μ is at least one and every member. -/
@@ -17,14 +17,14 @@ theorem muOf_spec : BddAbove (oldRowHeights p c E rho) ∧
     (∀ h ∈ oldRowHeights p c E rho, h ≤ muOf p c E rho) ∧
     (∀ n, 1 ≤ n → (∀ h ∈ oldRowHeights p c E rho, h ≤ n) → muOf p c E rho ≤ n) := by
   classical
-  let emitted := (List.range rho.events.length).flatMap (V2.Run.emitsAt E rho)
+  let emitted := (List.range rho.events.length).flatMap (V2.D.Run.emitsAt E rho)
   let ht : Obj p → Nat := fun o => match o.payload with
     | .row a => ((namedEntry a.height_pair).map Prod.fst).getD 0
     | _ => 0
   have hsub : oldRowHeights p c E rho ⊆ ((emitted.map ht).toFinset : Set Nat) := by
     intro h hh
     obtain ⟨j, y, r, a, e, ha, hp, _⟩ := hh
-    obtain ⟨t, hj, he⟩ := ha.2.2
+    obtain ⟨hj, he⟩ := ha.2
     have hlt : j < rho.events.length := by
       by_contra hn
       have hz := List.getElem?_eq_none (l := rho.events) (by omega : rho.events.length ≤ j)
