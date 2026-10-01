@@ -89,6 +89,8 @@ public import AvailableChainGeneric.Proofs.V2.Duty.Reads
 public import AvailableChainGeneric.Proofs.V2.Duty.Receipt
 public import AvailableChainGeneric.Proofs.V2.Duty.Regimes
 
+public import AvailableChainGeneric.Proofs.V2.Duty.DeliveryBy
+
 -- A4 support and honest-origin count contracts and proofs.
 #print axioms AvailableChain.Gen.AC.GoldfishScoreAntitoneStatement_def
 #print axioms AvailableChain.Gen.AC.ConflictingScoreSumLeStatement_def
@@ -734,6 +736,54 @@ theorem, in facade order. The library globs build this test module. -/
 #print axioms AvailableChain.Gen.V2.Duty.LabelFacts.of_cleanCut
 #print axioms AvailableChain.Gen.V2.Duty.LabelFacts.of_recovery
 
+-- Family delivery contracts and proofs.
+#print axioms AvailableChain.Gen.V2.Duty.PartialSynchronyBy
+#print axioms AvailableChain.Gen.V2.Duty.HealthyPrefixDeliveryBy
+#print axioms AvailableChain.Gen.V2.Duty.DeliveryWithinOn
+#print axioms AvailableChain.Gen.V2.Duty.LabelSyncOn_def
+#print axioms AvailableChain.Gen.V2.Duty.LabelFactsOn
+#print axioms AvailableChain.Gen.V2.Duty.PartialSynchronyIffByConstStatement_def
+#print axioms AvailableChain.Gen.V2.Duty.partialSynchrony_iff_by_const_statement
+#print axioms AvailableChain.Gen.V2.Duty.partialSynchrony_iff_by_const
+#print axioms AvailableChain.Gen.V2.Duty.HealthyPrefixIffByConstStatement_def
+#print axioms AvailableChain.Gen.V2.Duty.healthyPrefix_iff_by_const_statement
+#print axioms AvailableChain.Gen.V2.Duty.healthyPrefix_iff_by_const
+#print axioms AvailableChain.Gen.V2.Duty.DeliveryWithinIffOnTrueStatement_def
+#print axioms AvailableChain.Gen.V2.Duty.deliveryWithin_iff_on_true_statement
+#print axioms AvailableChain.Gen.V2.Duty.deliveryWithin_iff_on_true
+#print axioms AvailableChain.Gen.V2.Duty.DeliveryWithinOnMonoStatement_def
+#print axioms AvailableChain.Gen.V2.Duty.DeliveryWithinOn_mono_statement
+#print axioms AvailableChain.Gen.V2.Duty.DeliveryWithinOn.of_subfamily
+#print axioms AvailableChain.Gen.V2.Duty.LabelSyncToOnStatement_def
+#print axioms AvailableChain.Gen.V2.Duty.labelSync_to_on_statement
+#print axioms AvailableChain.Gen.V2.Duty.labelSync_to_on
+#print axioms AvailableChain.Gen.V2.Duty.LabelFactsToOnStatement_def
+#print axioms AvailableChain.Gen.V2.Duty.labelFacts_to_on_statement
+#print axioms AvailableChain.Gen.V2.Duty.labelFacts_to_on
+#print axioms AvailableChain.Gen.V2.Duty.DeliveryWithinOnOfPartialSynchronyByStatement_def
+#print axioms AvailableChain.Gen.V2.Duty.deliveryWithinOn_of_partialSynchronyBy_statement
+#print axioms AvailableChain.Gen.V2.Duty.deliveryWithinOn_of_partialSynchronyBy
+#print axioms AvailableChain.Gen.V2.Duty.DeliveryWithinOnOfHealthyPrefixByStatement_def
+#print axioms AvailableChain.Gen.V2.Duty.deliveryWithinOn_of_healthyPrefixBy_statement
+#print axioms AvailableChain.Gen.V2.Duty.deliveryWithinOn_of_healthyPrefixBy
+#print axioms AvailableChain.Gen.V2.Duty.LabelSyncOnOfCleanCutByStatement_def
+#print axioms AvailableChain.Gen.V2.Duty.LabelSyncOn_of_cleanCutBy_statement
+#print axioms AvailableChain.Gen.V2.Duty.LabelSyncOn.of_cleanCutBy
+#print axioms AvailableChain.Gen.V2.Duty.LabelSyncOnOfRecoveryByStatement_def
+#print axioms AvailableChain.Gen.V2.Duty.LabelSyncOn_of_recoveryBy_statement
+#print axioms AvailableChain.Gen.V2.Duty.LabelSyncOn.of_recoveryBy
+#print axioms AvailableChain.Gen.V2.Duty.LabelFactsOnOfCleanCutByStatement_def
+#print axioms AvailableChain.Gen.V2.Duty.LabelFactsOn_of_cleanCutBy_statement
+#print axioms AvailableChain.Gen.V2.Duty.LabelFactsOn.of_cleanCutBy
+#print axioms AvailableChain.Gen.V2.Duty.LabelFactsOnOfRecoveryByStatement_def
+#print axioms AvailableChain.Gen.V2.Duty.LabelFactsOn_of_recoveryBy_statement
+#print axioms AvailableChain.Gen.V2.Duty.LabelFactsOn.of_recoveryBy
+#print axioms AvailableChain.Gen.V2.Duty.DelayPosOfEnvLeStatement_def
+#print axioms AvailableChain.Gen.V2.Duty.delay_pos_of_env_le_statement
+#print axioms AvailableChain.Gen.V2.Duty.delay_pos_of_env_le
+#print axioms AvailableChain.Gen.V2.Duty.AcceptedByDeadlineOnStatement_def
+#print axioms AvailableChain.Gen.V2.Duty.accepted_by_deadline_on_statement
+#print axioms AvailableChain.Gen.V2.Duty.accepted_by_deadline_on
 -- G11 retained-domain walk transport: each new production declaration.
 #print axioms AvailableChain.Gen.Pure.BestAncestry
 #print axioms AvailableChain.Gen.Pure.BestAncestry_def

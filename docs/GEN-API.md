@@ -915,4 +915,54 @@ def AvailableChain.Gen.AC.Duty.GateOfCoveringBatchStatement be49196b9dc201c3
 theorem AvailableChain.Gen.AC.Duty.GateOfCoveringBatchStatement_def b6b05fa53faa17f7
 def AvailableChain.Gen.AC.Duty.SEqOfExactStatement 334e445ca9a3769f
 theorem AvailableChain.Gen.AC.Duty.SEqOfExactStatement_def fb6435d121703333
+
+### `AvailableChainGeneric.Statements.V2.Duty.DeliveryBy`
+
+```text
+structure AvailableChain.Gen.V2.Duty.PartialSynchronyBy 3e10055faa994eb0
+ctor AvailableChain.Gen.V2.Duty.PartialSynchronyBy.mk fe963cc05a6ad671
+theorem AvailableChain.Gen.V2.Duty.PartialSynchronyBy.broadcast_emitted 3d89fa48b1ae8bc5
+theorem AvailableChain.Gen.V2.Duty.PartialSynchronyBy.relay_accepted 9d7cf6082abc2b2e
+structure AvailableChain.Gen.V2.Duty.HealthyPrefixDeliveryBy 3eb74b7e3a434a6b
+ctor AvailableChain.Gen.V2.Duty.HealthyPrefixDeliveryBy.mk 0559cb1df0c7f66d
+theorem AvailableChain.Gen.V2.Duty.HealthyPrefixDeliveryBy.broadcast_emitted ae4548b30c805c04
+theorem AvailableChain.Gen.V2.Duty.HealthyPrefixDeliveryBy.relay_accepted 8cc1fa735ab0bea0
+structure AvailableChain.Gen.V2.Duty.DeliveryWithinOn 940414b888fc87eb
+ctor AvailableChain.Gen.V2.Duty.DeliveryWithinOn.mk 0b7f78e2db0c0c6a
+theorem AvailableChain.Gen.V2.Duty.DeliveryWithinOn.broadcast 07435b9766ea2c18
+theorem AvailableChain.Gen.V2.Duty.DeliveryWithinOn.relay aa01d287def1521b
+def AvailableChain.Gen.V2.Duty.LabelSyncOn 97a8290f1c9c0ca8
+theorem AvailableChain.Gen.V2.Duty.LabelSyncOn_def 60ace8d963d2bbde
+structure AvailableChain.Gen.V2.Duty.LabelFactsOn 42907319d3c02d56
+ctor AvailableChain.Gen.V2.Duty.LabelFactsOn.mk 8bb47df6dcce4abf
+theorem AvailableChain.Gen.V2.Duty.LabelFactsOn.sync 1ec96d3b9cac3bb1
+theorem AvailableChain.Gen.V2.Duty.LabelFactsOn.batch 201369599b312e05
+def AvailableChain.Gen.V2.Duty.PartialSynchronyIffByConstStatement 1950b49181a26b90
+theorem AvailableChain.Gen.V2.Duty.PartialSynchronyIffByConstStatement_def 480268e715c87cdb
+def AvailableChain.Gen.V2.Duty.HealthyPrefixIffByConstStatement a40fdee10903522b
+theorem AvailableChain.Gen.V2.Duty.HealthyPrefixIffByConstStatement_def db7421b0655c28c6
+def AvailableChain.Gen.V2.Duty.DeliveryWithinIffOnTrueStatement dd46b075b800f876
+theorem AvailableChain.Gen.V2.Duty.DeliveryWithinIffOnTrueStatement_def f418d1993766e511
+def AvailableChain.Gen.V2.Duty.DeliveryWithinOnMonoStatement 4e356de3a8fc9cbc
+theorem AvailableChain.Gen.V2.Duty.DeliveryWithinOnMonoStatement_def 40921f206d006663
+def AvailableChain.Gen.V2.Duty.LabelSyncToOnStatement 6c45347b0db7f18e
+theorem AvailableChain.Gen.V2.Duty.LabelSyncToOnStatement_def 336329f03f719453
+def AvailableChain.Gen.V2.Duty.LabelFactsToOnStatement 0c16090f85c6d333
+theorem AvailableChain.Gen.V2.Duty.LabelFactsToOnStatement_def 849d3beb44fc08e8
+def AvailableChain.Gen.V2.Duty.DeliveryWithinOnOfPartialSynchronyByStatement 7bc24f19e21d8c43
+theorem AvailableChain.Gen.V2.Duty.DeliveryWithinOnOfPartialSynchronyByStatement_def 34762de231b591b0
+def AvailableChain.Gen.V2.Duty.DeliveryWithinOnOfHealthyPrefixByStatement 9e9a4b88a1ba2ed0
+theorem AvailableChain.Gen.V2.Duty.DeliveryWithinOnOfHealthyPrefixByStatement_def e5e2f7c5b2b67d5b
+def AvailableChain.Gen.V2.Duty.LabelSyncOnOfCleanCutByStatement f478053b5f0fa04d
+theorem AvailableChain.Gen.V2.Duty.LabelSyncOnOfCleanCutByStatement_def 2337da4f6563cc36
+def AvailableChain.Gen.V2.Duty.LabelSyncOnOfRecoveryByStatement ceaa4e9d20342176
+theorem AvailableChain.Gen.V2.Duty.LabelSyncOnOfRecoveryByStatement_def 8011cdc88a9afd68
+def AvailableChain.Gen.V2.Duty.LabelFactsOnOfCleanCutByStatement fabbd8b01d236d81
+theorem AvailableChain.Gen.V2.Duty.LabelFactsOnOfCleanCutByStatement_def 8a293e61c7ceaf0c
+def AvailableChain.Gen.V2.Duty.LabelFactsOnOfRecoveryByStatement c70fc3760a5a5e38
+theorem AvailableChain.Gen.V2.Duty.LabelFactsOnOfRecoveryByStatement_def 282a8e98d59730e7
+def AvailableChain.Gen.V2.Duty.DelayPosOfEnvLeStatement 5cfcde88c6c1fb5b
+theorem AvailableChain.Gen.V2.Duty.DelayPosOfEnvLeStatement_def 7ebd35b0cc67512b
+def AvailableChain.Gen.V2.Duty.AcceptedByDeadlineOnStatement 119483f09cd16ed0
+theorem AvailableChain.Gen.V2.Duty.AcceptedByDeadlineOnStatement_def 283553db5c9a5c9c
 ```
