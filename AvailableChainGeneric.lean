@@ -1,4 +1,12 @@
 module
+public import AvailableChainGeneric.Statements.Pure.SlotGrid
+public import AvailableChainGeneric.Proofs.Pure.SlotGrid
+public import AvailableChainGeneric.Statements.Pure.KernelArithmetic
+public import AvailableChainGeneric.Proofs.Pure.KernelArithmetic
+public import AvailableChainGeneric.Statements.Pure.Stages
+public import AvailableChainGeneric.Proofs.Pure.Stages
+public import AvailableChainGeneric.Statements.Pure.ChainSearch
+public import AvailableChainGeneric.Proofs.Pure.ChainSearch
 public import AvailableChainGeneric.Statements.Pure.Quorum
 public import AvailableChainGeneric.Statements.Pure.QuorumInter
 public import AvailableChainGeneric.Statements.Pure.SupportCounts
