@@ -37,3 +37,4 @@ public import AvailableChainFGSA.Proofs.Head.Score
 public import AvailableChainFGSA.Model.Window
 public import AvailableChainFGSA.Statements.WindowHeight
 public import AvailableChainFGSA.Proofs.WindowHeightBridge
+public import AvailableChainFGSA.Proofs.WindowInvariant
