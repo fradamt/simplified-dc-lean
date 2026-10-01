@@ -1322,6 +1322,8 @@ unused imports, and negative controls. No baseline entries were added.
 │ .lean                                           │                                     │
 │ AvailableChainFGSAProofs/Proofs/Shared/Channels │ Channel equations and row ordering  │
 │ .lean                                           │                                     │
+│ AvailableChainFGSAProofs/Proofs/Clean/GateOutput │ Conditional gate result below S    │
+│ .lean                                           │                                     │
 │ AvailableChainFGSAProofs/Proofs/Clean/Action   │ Action step and frozen corollaries │
 │ .lean                                           │                                     │
 │ AvailableChainFGSAProofs/Proofs/Clean/Transfer  │ Pre-freeze path and transfer frame  │

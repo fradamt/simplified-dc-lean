@@ -143,6 +143,18 @@ def CleanGateOutputStmt (b₀ : Time) : Prop :=
       ∃ B, gateResultAt p c E rho j = some (some B) ∧
         gatePassedAt p c E rho j ∧ Block.Preceq B (S_at p c E rho (j + 1) v)
 
+/-- P3 §8.7; bp02 §5.5. Class B first-unfold equation.
+DC counterpart: none; FG-SA-specific statement. -/
+theorem CleanGateOutputStmt_def (b₀ : Time) :
+    CleanGateOutputStmt p c E rho b₀ =
+      (
+  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
+  FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
+  ∀ i, i ≤ timeIdx rho b₀ → CleanHist p c E rho i →
+    ∀ j v s, j < i → v ∈ rho.honest → IsGateTick p c rho j v s →
+      ∃ B, gateResultAt p c E rho j = some (some B) ∧
+        gatePassedAt p c E rho j ∧ Block.Preceq B (S_at p c E rho (j + 1) v)) := by rfl
+
 /-- F2.7 source export, bp02 §5.6: all nonempty action-source reads,
 including asleep nodes that emit no row. TSrc supplies the gate origin;
 F2.1 supplies the history-index and label conversion. -/
@@ -154,6 +166,19 @@ def CleanActionSourcesStmt (b₀ : Time) : Prop :=
       rho.events[j]? = some (.tick x (p.actionTime r)) →
       actionSource p c E rho x r = some (some C) →
       BelowLabel p c E rho i (labelBoundAt p c rho j) C
+
+/-- P3 §8.7; bp02 §5.6. Class B first-unfold equation.
+DC counterpart: none; FG-SA-specific statement. -/
+theorem CleanActionSourcesStmt_def (b₀ : Time) :
+    CleanActionSourcesStmt p c E rho b₀ =
+      (
+  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
+  FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
+  ∀ i, i ≤ timeIdx rho b₀ → CleanHist p c E rho i →
+    ∀ j x r C, j < i → x ∈ rho.honest →
+      rho.events[j]? = some (.tick x (p.actionTime r)) →
+      actionSource p c E rho x r = some (some C) →
+      BelowLabel p c E rho i (labelBoundAt p c rho j) C) := by rfl
 
 /-- F2.2 producer for the F2.7 Clean frame export, bp02 §§3.3–3.4:
 no contest, a labelled root origin, and full-domain retention. -/
