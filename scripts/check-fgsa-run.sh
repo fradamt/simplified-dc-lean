@@ -17,15 +17,18 @@
 # GATE_SLOTS caps shared controls and heavy steps (Mac 3, Linux 4; env wins).
 # JOBS alone does not set machine concurrency.
 # --no-negative or NEG=0 keeps all positive checks for the merge tier.
+# SOURCE_ONLY=1 runs the static checks and exits before compiled checks or controls.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 source scripts/gate-common.sh
-gate_options "$@"
-for f in scripts/CheckFGSARunAxioms.lean scripts/CheckFGSARunLease.lean \
-    scripts/AvailableChainCheckSupport/GeneratedOwner.lean \
-    scripts/fgsa-controls/AdvG.lean scripts/fgsa-controls/AdvLib.lean; do
-  [ -f "$f" ] || { echo "MISSING CHECK SCRIPT: $f"; exit 2; }
-done
+if [ "${SOURCE_ONLY:-0}" != 1 ]; then
+  gate_options "$@"
+  for f in scripts/CheckFGSARunAxioms.lean scripts/CheckFGSARunLease.lean \
+      scripts/AvailableChainCheckSupport/GeneratedOwner.lean \
+      scripts/fgsa-controls/AdvG.lean scripts/fgsa-controls/AdvLib.lean; do
+    [ -f "$f" ] || { echo "MISSING CHECK SCRIPT: $f"; exit 2; }
+  done
+fi
 # The declarations that the axiom script must find and check (fail closed: a
 # scan that misses the library fails). Each task adds its main outputs.
 AX_OPTS=(--expect Run.EmissionRowsValid Run.decode Run.HonestEmissionWellFormed
@@ -281,12 +284,14 @@ check_v2_open() {
   return $bad
 }
 
-echo "== lake build --wfail AvailableChainFGSARun"
-gate_build --wfail AvailableChainFGSARun
-# The check support library (the owner map of generated constants) is not a
-# default target: build it here, so that a clean checkout works.
-echo "== lake build --wfail AvailableChainCheckSupport"
-gate_build --wfail AvailableChainCheckSupport
+if [ "${SOURCE_ONLY:-0}" != 1 ]; then
+  echo "== lake build --wfail AvailableChainFGSARun"
+  gate_build --wfail AvailableChainFGSARun
+  # The check support library (the owner map of generated constants) is not a
+  # default target: build it here, so that a clean checkout works.
+  echo "== lake build --wfail AvailableChainCheckSupport"
+  gate_build --wfail AvailableChainCheckSupport
+fi
 echo "== root imports"
 check_root_imports . || exit 2
 echo "== native evaluation"
@@ -302,6 +307,10 @@ echo "== direct imports"
 check_direct_imports . || exit 1
 echo "== v1/v2 name clash (open AvailableChain.V2)"
 check_v2_open . || exit 1
+if [ "${SOURCE_ONLY:-0}" = 1 ]; then
+  echo "FGSA Run source checks: PASS"
+  exit 0
+fi
 echo "== axioms, build coverage, import closure, used constants"
 # The Tests/ modules are not in the root closure: check them as extra roots.
 TEST_MODS=($(test_modules .))

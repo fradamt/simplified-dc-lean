@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Foundations.Cap
+public import AvailableChainFGSAProofs.Proofs.Shared.GridSchedule
 public import AvailableChainFGSAProofs.Proofs.Shared.Recurrence
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads
 public import AvailableChainFGSAProofs.Proofs.Shared.Regimes
@@ -46,3 +47,7 @@ public import AvailableChainFGSAProofs.Proofs.Shared.KeepExact
 public import AvailableChainFGSAProofs.Proofs.Shared.Healed
 public import AvailableChainFGSAProofs.Proofs.Shared.Compose
 public import AvailableChainFGSAProofs.Proofs.Shared.OpeningSource
+public import AvailableChainFGSAProofs.Proofs.Shared.OpeningAfterGate
+public import AvailableChainFGSAProofs.Proofs.Shared.HeadAfterSettlement
+public import AvailableChainFGSAProofs.Proofs.Healing.AdditiveStageBounds
+public import AvailableChainFGSAProofs.Proofs.Healing.PeriodicStageBounds

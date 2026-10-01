@@ -25,9 +25,14 @@ public import AvailableChainFGSAProofs.Proofs.Shared.Gate -- shake: keep (axiom 
 public import AvailableChainFGSAProofs.Proofs.Foundations.Sources -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Compose -- shake: keep (public aliases or axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Healed -- shake: keep (axiom audit commands)
+public import AvailableChainFGSAProofs.Proofs.Shared.GridSchedule -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Channels -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Recurrence -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads -- shake: keep (axiom audit commands)
+public import AvailableChainFGSAProofs.Proofs.Shared.OpeningAfterGate -- shake: keep (axiom audit commands)
+public import AvailableChainFGSAProofs.Proofs.Shared.HeadAfterSettlement -- shake: keep (axiom audit commands)
+public import AvailableChainFGSAProofs.Proofs.Healing.AdditiveStageBounds -- shake: keep (axiom audit commands)
+public import AvailableChainFGSAProofs.Proofs.Healing.PeriodicStageBounds -- shake: keep (axiom audit commands)
 
 public import AvailableChainFGSAProofs.Proofs.Clean.Chain -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.State -- shake: keep (axiom audit commands)
@@ -454,3 +459,50 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_score_eq_on_run
 #print axioms AvailableChain.FGSA.Run.fgsa_score_eq_on_clean
 #print axioms AvailableChain.FGSA.Run.fgsa_score_eq_on_recovery
+-- Wave D1: every new public definition and theorem.
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_sa_proposalTime
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_engine_proposalTime
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_gridco_proposalTime
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_sa_voteTime
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_engine_voteTime
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_gridco_voteTime
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_sa_releaseTime
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_engine_releaseTime
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_gridco_releaseTime
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_sa_earlyTime
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_engine_earlyTime
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_gridco_earlyTime
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_sa_freezeTime
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_engine_freezeTime
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_gridco_freezeTime
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_sa_gateTime
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_engine_gateTime
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_gridco_gateTime
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_sa_lifetime
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_engine_lifetime
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_gridco_lifetime
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_period
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_lease
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_opening
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_action_time
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_action_gate
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_proposal_duty
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_head_duty
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_action_duty
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_run_head_duty
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_run_action_duty
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_round_period
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_carrier_time2
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_kernel_deadline
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_kernel_before_next_action
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_vote_before_action
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_gate_after_carrier2
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_action_delivery_bounds
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_gate_action_order
+
+-- Wave D2: each compiled scalar bridge.
+#print axioms AvailableChain.FGSA.Run.fgsa_firstOpening_after_gate
+#print axioms AvailableChain.FGSA.Run.fgsa_firstHead_after
+#print axioms AvailableChain.FGSA.Run.fgsa_firstHead_after_bound
+#print axioms AvailableChain.FGSA.Run.fgsa_reset_stage_sum
+#print axioms AvailableChain.FGSA.Run.fgsa_action_time_residue

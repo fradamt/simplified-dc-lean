@@ -1,4 +1,12 @@
 module
+public import AvailableChainGeneric.Statements.Pure.SlotGrid
+public import AvailableChainGeneric.Proofs.Pure.SlotGrid
+public import AvailableChainGeneric.Statements.Pure.KernelArithmetic
+public import AvailableChainGeneric.Proofs.Pure.KernelArithmetic
+public import AvailableChainGeneric.Statements.Pure.Stages
+public import AvailableChainGeneric.Proofs.Pure.Stages
+public import AvailableChainGeneric.Statements.Pure.ChainSearch
+public import AvailableChainGeneric.Proofs.Pure.ChainSearch
 public import AvailableChainGeneric.Statements.Pure.Quorum
 public import AvailableChainGeneric.Statements.Pure.QuorumInter
 public import AvailableChainGeneric.Statements.Pure.SupportCounts
@@ -51,6 +59,16 @@ public import AvailableChainGeneric.Proofs.AC.Transfer
 public import AvailableChainGeneric.Proofs.AC.Votes
 public import AvailableChainGeneric.Proofs.AC.Support
 public import AvailableChainGeneric.Proofs.Pure.HonestCount
+public import AvailableChainGeneric.Statements.Pure.OpeningAfterGate
+public import AvailableChainGeneric.Proofs.Pure.OpeningAfterGate
+public import AvailableChainGeneric.Statements.Pure.StageStops
+public import AvailableChainGeneric.Proofs.Pure.StageStops
+public import AvailableChainGeneric.Statements.Pure.AdditiveStages
+public import AvailableChainGeneric.Proofs.Pure.AdditiveStages
+public import AvailableChainGeneric.Statements.Pure.PeriodicStages
+public import AvailableChainGeneric.Proofs.Pure.PeriodicStages
+public import AvailableChainGeneric.Statements.Pure.HeadAfterSettlement
+public import AvailableChainGeneric.Proofs.Pure.HeadAfterSettlement
 
 /-! Generic library (GLY A): the Pure, V2 and AC layers. The root does not
 import the modules under `Tests/`; the library globs build them. -/
