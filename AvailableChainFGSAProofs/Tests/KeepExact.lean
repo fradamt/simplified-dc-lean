@@ -207,4 +207,97 @@ theorem rootTieAncestryPremiseFails :
 #print axioms rootTieAncestryPremiseFails
 #print axioms AvailableChain.FGSA.Run.exactHead_of_pivot_ancestry
 
+namespace HighStart
+open AvailableChain.SimplexFG
+
+private abbrev params : Params :=
+  { Δ := 1, n := 1, k := 2, η := 0, deltaPos := by decide, nPos := by decide,
+    kLarge := by decide, etaNonneg := by decide,
+    R := 2, wF := 1, δt := 1, RLarge := by decide, wFPos := by decide }
+
+private def c : FGBlock (Fin 1) := .node .genesis 1 0 []
+private def f : FGBlock (Fin 1) := .node c 2 0 []
+private def p : FGBlock (Fin 1) := .node f 3 0 []
+private def q : FGBlock (Fin 1) := .node p 4 0 []
+private def T : Block := .genesis
+private def C : Block := eraseFG c
+private def F : Block := eraseFG f
+private def P : Block := eraseFG p
+private def Q : Block := eraseFG q
+
+-- RD-1 geometry. The raw tree retains the trunk; the target domain removes it.
+private def st : State 1 :=
+  { initial 1 with
+    base := { (initial 1).base with blocks := [T, C, F, P, Q] }
+    fg := { TF := {.genesis, c, f, p, q}, F := f, J := f, h_j := 0, h_max := 1 } }
+
+private def votes : List (GridCO.Wire 1) := [⟨.seat 4 0, .head Q⟩]
+
+private theorem geometry :
+    Block.Prec T C ∧ Block.Prec C F ∧ Block.Prec F P ∧ Block.Prec P Q ∧
+    liveRoot params st = F ∧
+    erasedList st (domainR params st st.fg.TF) = [F, P, Q] ∧
+    (∀ B ∈ [F, P, Q], GridCO.goldfishScore st.base.blocks votes votes B = 1 ∧
+      eligible params st votes votes B = true) := by decide +kernel
+
+private theorem between (X : Block) (hFX : Block.Preceq F X)
+    (hXP : Block.Prec X P) : X = F := by
+  have hne : X ≠ P := by
+    intro he
+    subst X
+    simp [Block.Prec, Block.prec] at hXP
+  have hXF : Block.Preceq X F := by
+    have h := (Bool.and_eq_true_iff.mp hXP).2
+    change (decide (X = P) || Block.preceq X F) = true at h
+    exact (Bool.or_eq_true_iff.mp h).resolve_left (by simpa using hne)
+  exact block_preceq_antisymm hXF hFX
+
+-- The new premise holds although C is absent from the target domain.
+private theorem ancestry :
+    ∀ X, Block.Preceq T X → Block.Preceq (liveRoot params st) X → Block.Prec X P →
+      ∃ B, B.parent? = some X ∧ Block.Preceq B P ∧
+        B ∈ erasedList st (domainR params st st.fg.TF) ∧
+        eligible params st votes votes B = true ∧
+        ∀ D ∈ erasedList st (domainR params st st.fg.TF), D.parent? = some X →
+          eligible params st votes votes D = true →
+          GridCO.goldfishScore st.base.blocks votes votes D ≤
+            GridCO.goldfishScore st.base.blocks votes votes B ∧
+          (GridCO.goldfishScore st.base.blocks votes votes D =
+            GridCO.goldfishScore st.base.blocks votes votes B → D.root ≤ B.root) := by
+  intro X _ hFX hXP
+  have hroot : liveRoot params st = F := geometry.2.2.2.2.1
+  rw [hroot] at hFX
+  obtain rfl := between X hFX hXP
+  refine ⟨P, rfl, block_preceq_refl _, ?_⟩
+  decide +kernel
+
+-- Apply the exact-head theorem itself, with no lower-prefix obligation.
+private theorem exactHead :
+    headInTree params st (erasedList st (domainR params st st.fg.TF)) votes votes = Q := by
+  apply exactHead_of_pivot_ancestry params st st.fg.TF votes votes T P Q
+    (Or.inr (by decide +kernel)) (by decide +kernel) ancestry
+  · right
+    decide +kernel
+  · change ∀ B ∈ [F, P, Q], B.parent? = some Q → eligible params st votes votes B = false
+    decide +kernel
+
+#print axioms geometry
+#print axioms ancestry
+#print axioms exactHead
+
+end HighStart
+
+-- Gen positive case: genesis < P < target, with P as the walk anchor.
+private theorem intermediateAnchorReanchor :
+    let target := Block.node P 2 0
+    Block.Prec .genesis P ∧ Block.Prec P target ∧
+      GridCO.ghost P [P, target] (fun _ => 1) (fun _ => true) =
+        GridCO.ghost target [P, target] (fun _ => 1) (fun _ => true) := by
+  dsimp only
+  refine ⟨by decide, by decide, ?_⟩
+  apply walk_reanchor_of_best_ancestry _ _ _ _ _ (by decide)
+  exact walk_best_ancestry_of_cover _ _ _ _ _ (by decide)
+
+#print axioms intermediateAnchorReanchor
+
 end AvailableChain.FGSA.Run.Tests.KeepExact

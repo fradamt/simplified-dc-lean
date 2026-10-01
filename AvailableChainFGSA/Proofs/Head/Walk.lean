@@ -80,12 +80,12 @@ No source-walk premise or equality of live roots is needed. -/
 theorem fgsa_headInTree_reanchor_of_pivot
     (p : Params) (st : State p.n) (tree : List Block)
     (raw support : List (GridCO.Wire p.n)) (T P : Block)
-    (hstart : Block.Preceq (liveRoot p st) T ∨
+    (hstart : (Block.Preceq (liveRoot p st) T ∧
+      DominatedSuffix (liveRoot p st) T tree
+        (GridCO.goldfishScore st.base.blocks raw support) (eligible p st raw support)) ∨
       (Block.Preceq T (liveRoot p st) ∧ Block.Preceq (liveRoot p st) P))
     (hTP : Block.Preceq T P)
-    (hprefix : DominatedSuffix (liveRoot p st) T tree
-      (GridCO.goldfishScore st.base.blocks raw support) (eligible p st raw support))
-    (hancestry : ∀ X, Block.Preceq T X → Block.Prec X P →
+    (hancestry : ∀ X, Block.Preceq T X → Block.Preceq (liveRoot p st) X → Block.Prec X P →
       ∃ C, C.parent? = some X ∧ Block.Preceq C P ∧ C ∈ tree ∧
         eligible p st raw support C = true ∧
         ∀ D ∈ tree, D.parent? = some X → eligible p st raw support D = true →
@@ -96,38 +96,12 @@ theorem fgsa_headInTree_reanchor_of_pivot
     headInTree p st tree raw support = GridCO.ghost P tree
       (GridCO.goldfishScore st.base.blocks raw support) (eligible p st raw support) := by
   change GridCO.ghost (liveRoot p st) _ _ _ = _
-  rcases hstart with hAT | ⟨hTA, hAP⟩
+  rcases hstart with ⟨hAT, hprefix⟩ | ⟨hTA, hAP⟩
   · rw [walk_reanchor_of_dominated_suffix _ _ _ _ _ hAT hprefix]
-    exact walk_reanchor_of_best_ancestry _ _ _ _ _ hTP hancestry
+    exact walk_reanchor_of_best_ancestry _ _ _ _ _ hTP
+      (fun X hTX => hancestry X hTX (block_preceq_trans hAT hTX))
   · exact walk_reanchor_of_best_ancestry _ _ _ _ _ hAP
-      (fun X hAX => hancestry X (block_preceq_trans hTA hAX))
-
-/-- P3 F1b.4a G11; class (iii), pivot cover. DC:
-ProposalWalkTransportCore.lean:162 `ghost_transport_of_source`; Walk.lean:433.
-INTENTIONAL: replaces the unused equal-live-root interface with S1b E1/E3/E5,
-bp21:2798–2825. The ancestry premise subsumes source persist/reflect/score inputs.
-Both start orders are accepted for each target store. -/
-theorem fgsa_getHead_covers_of_suffix_transfer
-    (p : Params) (st : State p.n)
-    (raw support : List (GridCO.Wire p.n)) (T P : Block)
-    (hstart : Block.Preceq (liveRoot p st) T ∨
-      (Block.Preceq T (liveRoot p st) ∧ Block.Preceq (liveRoot p st) P))
-    (hTP : Block.Preceq T P)
-    (hprefix : DominatedSuffix (liveRoot p st) T (erasedList st (fullTree p st))
-      (GridCO.goldfishScore st.base.blocks raw support) (eligible p st raw support))
-    (hancestry : ∀ X, Block.Preceq T X → Block.Prec X P →
-      ∃ C, C.parent? = some X ∧ Block.Preceq C P ∧
-        C ∈ erasedList st (fullTree p st) ∧ eligible p st raw support C = true ∧
-        ∀ D ∈ erasedList st (fullTree p st), D.parent? = some X →
-          eligible p st raw support D = true →
-          GridCO.goldfishScore st.base.blocks raw support D ≤
-            GridCO.goldfishScore st.base.blocks raw support C ∧
-          (GridCO.goldfishScore st.base.blocks raw support D =
-            GridCO.goldfishScore st.base.blocks raw support C → D.root ≤ C.root)) :
-    Block.Preceq P (getHead p st raw support) := by
-  change Block.Preceq P (headInTree p st _ raw support)
-  rw [fgsa_headInTree_reanchor_of_pivot p st _ raw support T P hstart hTP hprefix hancestry]
-  exact @GridCO.ghost_extends GridCO.slowLeasePolicy P _ _ _
+      (fun X hAX => hancestry X (block_preceq_trans hTA hAX) hAX)
 
 /-- P3 F1b.4a W8:4868–4874; bp02 §4.1. Class (iii), store instance.
 DC: Walk.ghost_reaches:433; GSTZeroPreparedWalk.

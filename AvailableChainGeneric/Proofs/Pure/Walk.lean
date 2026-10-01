@@ -1001,7 +1001,7 @@ theorem ghost_transfer_sfx (anchor target : Block) (sourceTree targetTree : List
 
 
 /-- Class (iii), selected-path composition. DC: Goldfish/Walk.lean:433 `ghost_reaches`.
-INTENTIONAL: S1b E3/E5 and bp21:789,2820–2825 specify the full score/root order.
+INTENTIONAL: GLY G10/G33 (RP01 R1 P5) compose walks through path score/root order.
 Reanchor on the target's ancestry; no strict score gap is required. -/
 theorem walk_reanchor_of_best_ancestry (anchor target : Block) (tree : List Block)
     (score : Block → Nat) (eligible : Block → Bool)
@@ -1046,7 +1046,7 @@ theorem walk_reanchor_of_best_ancestry (anchor target : Block) (tree : List Bloc
 
 /-- Class (iii), selected-path extraction. DC: ProposalWalkTransportCore.lean:162
 `ghost_transport_of_source` extracts source steps. SAME path ingredient, with the
-score/root order made explicit (bp21:789,2820–2825); used by the lower-start corollary. -/
+score/root order made explicit (GLY G11, RP14 R1 core). -/
 theorem walk_best_ancestry_of_cover (anchor target : Block) (tree : List Block)
     (score : Block → Nat) (eligible : Block → Bool)
     (hcover : Block.Preceq target (ghost anchor tree score eligible)) :

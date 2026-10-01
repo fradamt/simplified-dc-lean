@@ -107,10 +107,12 @@ Premise suppliers (S1b `a0-s1b-reuse-21.md`:118–134):
 * `hstart`: E1:122–123, both start orders; H.17:2798–2801.
 * `hTP`: common pivot:119–121, the T-to-A_P path in H.17.
 * `hprefix`: E2:124–125, the honest-supported path below T; H.17:2800–2801.
-* `hancestry`, membership: E3/E5:126–132; H.17:2820–2823.
+* `hancestry`, membership: E3/E5:126–132, K ⪯ X and st_ρ ⪯ X; H.17:2820–2823.
 * `hancestry`, eligibility: E5:131–132; H.17:2821–2823.
 * `hancestry`, score bound and root tie: E4/E5:128–132; bp21:789 and
   H.17:2823–2824 (equal retained scores, eligibility and root tie order).
+  Below a source start above T, no proposer-chosen child exists on [T, source start);
+  the order there comes from the ordinary proposer walk (H.17:2780–2784).
   H.17:2810–2819 excludes old children conflicting with high F_p between T and A_P.
 * `hlast`: E6:133–134; H.17:2824–2825, P = Q or the only eligible child Q.
 * `hstop`: E6:133–134; H.17:2824–2825, Q has no valid child.
@@ -122,12 +124,12 @@ This local result does not produce ExactService or identify a scheduled HEAD rea
 theorem exactHead_of_pivot_ancestry (p : Params) (st : State p.n)
     (Y : Finset (FGBlock (Fin p.n)))
     (raw support : List (GridCO.Wire p.n)) (T P Q : Block)
-    (hstart : Block.Preceq (liveRoot p st) T ∨
+    (hstart : (Block.Preceq (liveRoot p st) T ∧
+      DominatedSuffix (liveRoot p st) T (erasedList st (domainR p st Y))
+        (GridCO.goldfishScore st.base.blocks raw support) (eligible p st raw support)) ∨
       (Block.Preceq T (liveRoot p st) ∧ Block.Preceq (liveRoot p st) P))
     (hTP : Block.Preceq T P)
-    (hprefix : DominatedSuffix (liveRoot p st) T (erasedList st (domainR p st Y))
-      (GridCO.goldfishScore st.base.blocks raw support) (eligible p st raw support))
-    (hancestry : ∀ X, Block.Preceq T X → Block.Prec X P →
+    (hancestry : ∀ X, Block.Preceq T X → Block.Preceq (liveRoot p st) X → Block.Prec X P →
       ∃ C, C.parent? = some X ∧ Block.Preceq C P ∧
         C ∈ erasedList st (domainR p st Y) ∧ eligible p st raw support C = true ∧
         ∀ D ∈ erasedList st (domainR p st Y), D.parent? = some X →
@@ -144,7 +146,7 @@ theorem exactHead_of_pivot_ancestry (p : Params) (st : State p.n)
     (hstop : NoEligibleChild (erasedList st (domainR p st Y)) (eligible p st raw support) Q) :
     headInTree p st (erasedList st (domainR p st Y)) raw support = Q := by
   rw [fgsa_headInTree_reanchor_of_pivot p st _ raw support T P
-    hstart hTP hprefix hancestry]
+    hstart hTP hancestry]
   rcases hlast with rfl | ⟨hm, hp, hel, honly⟩
   · apply walk_exact_of_dominated_suffix _ _ _ _ _ (block_preceq_refl _) _ hstop
     intro C hPC hCP
@@ -218,7 +220,7 @@ theorem exactHead_of_pivot (p : Params) (st st' : State p.n)
   change Block.Preceq P (GridCO.ghost _ _ _ _) at hcover
   rw [hs] at hcover
   have hc := ghost_transfer_sfx _ _ _ _ _ _ _ _ hTP hcover hkeep hreflect hscore
-  exact exactHead_of_pivot_ancestry p st' Y raw' support' T P Q (Or.inl hAT') hTP hprefix'
-    (walk_best_ancestry_of_cover _ _ _ _ _ hc) hlast hstop
+  exact exactHead_of_pivot_ancestry p st' Y raw' support' T P Q (Or.inl ⟨hAT', hprefix'⟩) hTP
+    (fun X hTX _ => walk_best_ancestry_of_cover _ _ _ _ _ hc X hTX) hlast hstop
 
 end AvailableChain.FGSA.Run
