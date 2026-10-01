@@ -5,6 +5,8 @@ public section
 
 namespace AvailableChain.FGSA.Run
 
+variable {ΔF : Time}
+
 open AvailableChain.SimplexFG
 open AvailableChain.Gen.Pure
 
@@ -18,9 +20,11 @@ DC counterpart: Legacy/Definitions/SafetyRegimes.lean:61–75, confirmationField
 and liveAtConfirmation. DIVERGES, INTENTIONAL: FG-SA has an optional raw
 result and a whole-result lease guard, unlike DC's SG/live confirmation.
 The fresh genuine slot excludes skip; compatible advance puts the result
-below S, and NestOK makes normalization inert. No history closure is used. -/
+below S, and NestOK makes normalization inert. No history closure is used.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem clean_gateOutput_body (b₀ : Time) :
-    CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
+    CleanCut₂ p c E rho b₀ ΔF → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
     FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
     ∀ i, i ≤ timeIdx rho b₀ → CleanHist p c E rho i →
       ∀ j v s, j < i → v ∈ rho.honest → IsGateTick p c rho j v s →
@@ -87,9 +91,11 @@ theorem clean_gateOutput_body (b₀ : Time) :
 /-- P3 §8.7 F2.7 S1; bp02 §5.5. The frozen conditional gate-output statement,
 from `clean_gateOutput_body` through the first-unfold equation. DC counterpart:
 none for this FG-SA statement (the gate result is F-anchored and optional;
-spec/fgsa-protocol.tex:2500–2525); INTENTIONAL. -/
-theorem clean_gateOutput (b₀ : Time) : CleanGateOutputStmt p c E rho b₀ := by
-  rw [CleanGateOutputStmt_def]
+spec/fgsa-protocol.tex:2500–2525); INTENTIONAL.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
+theorem clean_gateOutput (b₀ : Time) : CleanGateOutputStmt (ΔF := ΔF) p c E rho b₀ := by
+  rw [CleanGateOutputStmt_def (ΔF := ΔF)]
   exact clean_gateOutput_body p c E rho b₀
 
 end AvailableChain.FGSA.Run

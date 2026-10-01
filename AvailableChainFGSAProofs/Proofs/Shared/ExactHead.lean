@@ -79,13 +79,15 @@ DC: Goldfish/ProposalWalkTransportCore.lean:162 and Walk.lean:433.
 INTENTIONAL: FG-SA supplies actual tick reads, two LabelSync intervals and
 live-frame geometry. Admission and terminal geometry are consumer premises.
 The landed G11 geometry supplies the lower E1 branch and the pivot-parent path.
-No lane theorem supplies geometry here; the proposal rows remain opaque. -/
+No lane theorem supplies geometry here; the proposal rows remain opaque.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem exactHead_of_proposal_on_run
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (s : Slot) (hScoreSync : Gen.V2.Duty.LabelSync E rho
+    (s : Slot) (hScoreSync : Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o)
       (SA.proposalTime p.toParams s - p.Δ) (SA.voteTime p.toParams s))
-    (hSync : Gen.V2.Duty.LabelSync E rho
+    (hSync : Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o)
       (SA.proposalTime p.toParams s - p.Δ) (SA.proposalTime p.toParams s))
     {ip ih : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
@@ -158,13 +160,15 @@ DC: Goldfish/PreparedV4CanonicalProposalDuty.lean:867–887.
 INTENTIONAL: FG-SA uses the option-valued post-clock reader and the finite
 HEAD horizon. The schedule supplies every honest reader, including a reader
 that emits no HEAD vote. H3 and TExact must supply `ExactHeadRunGeometry`
-from 21 H.17:2794–2830 and S1b E1–E6:118–154. Gate clauses are separate. -/
+from 21 H.17:2794–2830 and S1b E1–E6:118–154. Gate clauses are separate.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem exactService_head_of_proposal
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (s : Slot) (hScoreSync : Gen.V2.Duty.LabelSync E rho
+    (s : Slot) (hScoreSync : Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o)
       (SA.proposalTime p.toParams s - p.Δ) (SA.voteTime p.toParams s))
-    (hSync : Gen.V2.Duty.LabelSync E rho
+    (hSync : Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o)
       (SA.proposalTime p.toParams s - p.Δ) (SA.proposalTime p.toParams s))
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))

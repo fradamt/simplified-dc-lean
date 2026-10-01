@@ -3,7 +3,6 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate
 public import AvailableChainFGSAProofs.Proofs.Clean.Transfer
 public import AvailableChainFGSAProofs.Proofs.Shared.SameLabel
 public import AvailableChainFGSAProofs.Proofs.Shared.Count
-public import AvailableChainGeneric.Proofs.V2.Duty.Regimes
 
 public section
 
@@ -12,6 +11,8 @@ Old history supplies the active honest batch; receipt coverage retains its paths
 Ordered, Same, and nonempty are proved first; transfer then supplies Continues. -/
 
 namespace AvailableChain.FGSA.Run
+
+variable {ΔF : Time}
 open AvailableChain.SimplexFG
 
 variable (p : Params) {In V : Type} (c : AppCodec In)
@@ -79,8 +80,10 @@ private theorem ordered_of_confirmation
 
 /-- P3 F2.5a:4900–4945; bp02 §5.4. Class B, label-seat count instance.
 DC: Goldfish/Confirmation.lean:494; same honest participation count.
-The label-seat bijection converts the Clean participation bound to Batch. -/
-theorem clean_gate_batch (b₀ : Time) (h : CleanCut₂ p c E rho b₀)
+The label-seat bijection converts the Clean participation bound to Batch.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
+theorem clean_gate_batch (b₀ : Time) (h : CleanCut₂ p c E rho b₀ ΔF)
     {i : Nat} {x : V} {s : Slot} (hi : i < timeIdx rho b₀)
     (ht : IsGateTick p c rho i x s) :
     ∃ H : Finset (Fin p.n),
@@ -186,8 +189,10 @@ theorem clean_gate_stamps (hf : FGFoundation p c E rho) (hn : V2.D.NoRestart rho
 /-- P3 F2.5a; bp02 §5.4, label zero. Class B, run nonemptiness.
 DC: Goldfish/Confirmation.lean:494,567; genesis majority analogue.
 INTENTIONAL: the F-anchored optional raw result is exactly genesis
-(spec/fgsa-protocol.tex:2506–2513). No successor history is used. -/
-theorem clean_gate_zero (b₀ : Time) (h : CleanCut₂ p c E rho b₀)
+(spec/fgsa-protocol.tex:2506–2513). No successor history is used.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
+theorem clean_gate_zero (b₀ : Time) (h : CleanCut₂ p c E rho b₀ ΔF)
     (hf : FGFoundation p c E rho) {i : Nat} {x : V}
     (hi : i < timeIdx rho b₀) (ht : IsGateTick p c rho i x 0)
     (hs : CleanState p c E rho i) :
@@ -261,8 +266,10 @@ theorem clean_gate_zero (b₀ : Time) (h : CleanCut₂ p c E rho b₀)
       · exact (headVote_zero p _).symm
     have hr := fgsa_honest_head_receipt E rho h.base.delta h.base.valid h.base.noRestart
       h.base.cstar (fun t => t + p.Δ) b₀ 0 k .genesis p.Δ _ x
-      (by simpa only [h.base.delta] using
-        Gen.V2.Duty.deliveryWithin_of_healthyPrefix b₀ h.healthy)
+      (by
+        simpa only [h.base.delta] using
+          Gen.V2.Duty.deliveryWithinOn_of_healthyPrefixBy E rho b₀ h.healthy
+            (fun o => ¬ isRowObject o) E.Δ (fgsaDelay_nonrow E.Δ _))
       hkh hem hx (by linarith)
       (lt_add_of_pos_right p.Δ hd) (by
         change (V2.D.Run.stateBeforeTime E rho (p.Δ + p.Δ) x).st.slot p ≤ 1
@@ -322,7 +329,7 @@ private theorem gate_source_path (hsch : V2.D.ScheduleWellFormed E rho)
 omit [Fintype V] in
 private theorem gate_path_coverage (hE : V2.D.ExecutionValid E rho)
     (_hn : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (b₀ : Time) (hhealthy : V2.D.HealthyPrefixDelivery E rho b₀)
+    (b₀ : Time) (hhealthy : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (fgsaDelay E.Δ ΔF) b₀)
     (hb₀ : b₀ ≤ rho.horizon) {i k : Nat} {x y : V} {s : Slot} {K : Block}
     (ht : IsGateTick p c rho i x s) (hcut : SA.gateTime p.toParams s ≤ b₀)
     (hy : y ∈ rho.honest)
@@ -360,7 +367,8 @@ private theorem gate_path_coverage (hE : V2.D.ExecutionValid E rho)
     · omega
   refine ⟨required, paths, ?_, rfl, rfl⟩
   refine ⟨?_, ?_, ?_, ?_⟩
-  · simpa only [hDelta] using Gen.V2.Duty.deliveryWithin_of_healthyPrefix b₀ hhealthy
+  · simpa only [hDelta] using Gen.V2.Duty.deliveryWithinOn_of_healthyPrefixBy E rho b₀ hhealthy
+          (fun o => ¬ isRowObject o) E.Δ (fgsaDelay_nonrow E.Δ _)
   · intro o t hr
     obtain ⟨l, _, ha, b, hb, _⟩ := hr
     obtain ⟨parent, he, hh⟩ := ha.1
@@ -498,7 +506,7 @@ private theorem gate_block_stamp_lt (hsch : V2.D.ScheduleWellFormed E rho)
         fgsa_clock_now p c (V2.D.Run.stateBefore E rho j x)] at hm
       exact hm.trans_lt (fgsa_preTick_now_lt E rho hsch hj ht)
 
-private theorem gate_active_heads (b₀ : Time) (h : CleanCut₂ p c E rho b₀)
+private theorem gate_active_heads (b₀ : Time) (h : CleanCut₂ p c E rho b₀ ΔF)
     (hf : FGFoundation p c E rho) {i : Nat} {x : V} {s : Slot}
     (hi : i < timeIdx rho b₀) (ht : IsGateTick p c rho i x (s + 1))
     (hh : CleanHist p c E rho i) (hs : CleanState p c E rho i)
@@ -612,7 +620,10 @@ private theorem gate_active_heads (b₀ : Time) (h : CleanCut₂ p c E rho b₀)
     exact ((Internal.slotOf_mono (p := p) hn).trans_eq he).trans (Nat.le_succ _)
   have hr := fgsa_honest_head_receipt E rho h.base.delta h.base.valid h.base.noRestart
     h.base.cstar (fun t => t + p.Δ) b₀ (s + 1) q K (SA.voteTime p.toParams (s + 1)) y x
-    (by simpa only [h.base.delta] using Gen.V2.Duty.deliveryWithin_of_healthyPrefix b₀ h.healthy)
+    (by
+      simpa only [h.base.delta] using
+        Gen.V2.Duty.deliveryWithinOn_of_healthyPrefixBy E rho b₀ h.healthy
+            (fun o => ¬ isRowObject o) E.Δ (fgsaDelay_nonrow E.Δ _))
     hy hem hx (by rw [htimes]; exact hearly.le.trans hcut) (lt_add_of_pos_right _ hd)
     (by rw [htimes]; exact hwindow)
   dsimp only at hr
@@ -646,8 +657,10 @@ private theorem gate_active_heads (b₀ : Time) (h : CleanCut₂ p c E rho b₀)
 /-- P3 F2.5a; bp02 §5.4. Class B, same-label history extension.
 DC: Goldfish/Confirmation.lean:405, eligible_compatible; same compatibility.
 INTENTIONAL: actual optional F-anchored reads (spec/fgsa-protocol.tex:2496–2513).
-This covers old/new and new/new pairs without a successor Continues premise. -/
-theorem clean_gate_same (b₀ : Time) (h : CleanCut₂ p c E rho b₀)
+This covers old/new and new/new pairs without a successor Continues premise.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
+theorem clean_gate_same (b₀ : Time) (h : CleanCut₂ p c E rho b₀ ΔF)
     {i : Nat} (hi : i < timeIdx rho b₀) :
     ∀ s B C, (s, B) ∈ cleanResults p c E rho (i + 1) →
       (s, C) ∈ cleanResults p c E rho (i + 1) → Block.Compatible B C := by
@@ -661,13 +674,14 @@ theorem clean_gate_same (b₀ : Time) (h : CleanCut₂ p c E rho b₀)
     have hp := p.deltaPos
     linarith
   exact fgsa_sameLabel p c E rho h.base.valid h.base.noRestart h.base.delta s
-    (Gen.V2.Duty.LabelSync.of_cleanCut E rho b₀ _ _ h.healthy hvd hd h.cut.2)
+    (Gen.V2.Duty.LabelSyncOn.of_cleanCutBy E rho (fun o => ¬ isRowObject o) b₀ _ _ h.healthy
+    (fgsaDelay_nonrow E.Δ _) hvd hd h.cut.2)
     x y B C (hsch.honest_only _ (List.mem_of_getElem? hx))
     (hsch.honest_only _ (List.mem_of_getElem? hy))
     ((gateResultAt_eq_gateResult p c E rho hsch hx).symm.trans hB)
     ((gateResultAt_eq_gateResult p c E rho hsch hy).symm.trans hC)
 
-private theorem gate_batch_of_history (b₀ : Time) (h : CleanCut₂ p c E rho b₀)
+private theorem gate_batch_of_history (b₀ : Time) (h : CleanCut₂ p c E rho b₀ ΔF)
     (hf : FGFoundation p c E rho) {i : Nat} {x : V} {s : Slot}
     (hi : i < timeIdx rho b₀) (ht : IsGateTick p c rho i x (s + 1))
     (hh : CleanHist p c E rho i) (hs : CleanState p c E rho i)
@@ -692,9 +706,11 @@ private theorem gate_batch_of_history (b₀ : Time) (h : CleanCut₂ p c E rho b
 /-- P3 F2.5a; bp02 §5.4. Class B, new-gate nonemptiness.
 DC: NamedConfirmationWalk.lean:38 and Goldfish/Confirmation.lean:494,567.
 INTENTIONAL: the optional F-anchored raw result must pass the anchor test
-(spec/fgsa-protocol.tex:2506–2513). Label zero returns genesis exactly. -/
+(spec/fgsa-protocol.tex:2506–2513). Label zero returns genesis exactly.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem clean_gate_nonempty (b₀ : Time) :
-    CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
+    CleanCut₂ p c E rho b₀ ΔF → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
     FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
     ∀ i x s, i < timeIdx rho b₀ → IsGateTick p c rho i x s →
       CleanHist p c E rho i → (∀ k, k ≤ i → CleanState p c E rho k) →
@@ -718,9 +734,11 @@ theorem clean_gate_nonempty (b₀ : Time) :
 DC: SafetyRegimes.lean:56–75 and NamedConfirmationWalk.lean:38.
 INTENTIONAL: three event-prefix fields for actual F-anchored optional reads
 (spec/fgsa-protocol.tex:2496–2525; lead Q2). The result adds no Continues field.
-The first conjunct supplies the Ordered premise of clean_transfer_frame. -/
+The first conjunct supplies the Ordered premise of clean_transfer_frame.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem clean_gate_history_osn (b₀ : Time) :
-  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
+  CleanCut₂ p c E rho b₀ ΔF → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   ∀ i, i < timeIdx rho b₀ → CleanGateTick p c rho i → CleanHist p c E rho i →
     (∀ k, k ≤ i → CleanState p c E rho k) →
@@ -753,9 +771,11 @@ DC: GSTZeroPreparedWalk.lean:546, SafetyRegimes.lean:53–80, and
 JointHistoryGapsIdx.lean:26,141. INTENTIONAL divergence: FG-SA has an
 F-anchored optional raw result, leases, and gate-before-action in one tick.
 The event-prefix step proves Ordered before retrospective Continues
-(bp02:553–613); it uses no closed safety theorem or successor state. -/
-theorem clean_gateHistStep (b₀ : Time) : CleanGateHistStep p c E rho b₀ := by
-  rw [CleanGateHistStep_def, CleanHistStep_def]
+(bp02:553–613); it uses no closed safety theorem or successor state.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
+theorem clean_gateHistStep (b₀ : Time) : CleanGateHistStep (ΔF := ΔF) p c E rho b₀ := by
+  rw [CleanGateHistStep_def (ΔF := ΔF), CleanHistStep_def (ΔF := ΔF)]
   intro h hq hf hsrc i hi hgate hh hall
   have hOSN := clean_gate_history_osn p c E rho b₀ h hq hf hsrc i hi hgate hh hall
   refine ⟨hOSN.1, hOSN.2.1, hOSN.2.2, ?_⟩

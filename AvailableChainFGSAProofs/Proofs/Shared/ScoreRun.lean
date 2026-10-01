@@ -274,11 +274,13 @@ DC: Handlers/GoldfishVotePool.lean:755,791 and
 Goldfish/ProposalSnapshotBridge.lean:145, `raw_extra_equiv`.
 INTENTIONAL: relay a frozen FG-SA raw vote into the actual proposal pool,
 with the N1 pair (t_s - Δ, v_s). A deadline equal to t_s is sufficient:
-the receipt is in the strict-before state. No strict local deadline is assumed. -/
+the receipt is in the strict-before state. No strict local deadline is assumed.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem fgsa_scoreRun_frozen_vote_relay
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (s : Slot) (hSync : Gen.V2.Duty.LabelSync E rho
+    (s : Slot) (hSync : Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o)
       (SA.proposalTime p.toParams (s + 1) - p.Δ) (SA.voteTime p.toParams (s + 1)))
     {ip : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (s + 1))))
@@ -372,11 +374,13 @@ private theorem scoreRun_clock_vote_stamp
 DC: Goldfish/ProposalSnapshotBridge.lean:145–146, `raw_extra_equiv`.
 INTENTIONAL: every extra HEAD-merge signature is frozen; the original
 proposal arm is identified by authentication. Receipt gives a vote or
-cap evidence in the actual proposal pool, at the N1 time pair. -/
+cap evidence in the actual proposal pool, at the N1 time pair.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem fgsa_scoreRun_raw_extra
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (s : Slot) (hSync : Gen.V2.Duty.LabelSync E rho
+    (s : Slot) (hSync : Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o)
       (SA.proposalTime p.toParams (s + 1) - p.Δ) (SA.voteTime p.toParams (s + 1)))
     {ip ih : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (s + 1))))
@@ -442,7 +446,8 @@ private theorem scoreRun_block_decode {o : Obj p} {b : Block} (h : blockOf? p o 
 private theorem scoreRun_block_receipt_to_tick
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (dl : Time → Time) (cut : Time) (hD : Gen.V2.Duty.DeliveryWithin E rho dl cut)
+    (dl : Time → Time) (cut : Time) (hD : Gen.V2.Duty.DeliveryWithinOn E rho
+      (fun o => ¬ isRowObject o) dl cut)
     (t : Time) (o : Obj p) (B : Block) (ho : blockOf? p o = some B)
     (hT : Gen.V2.Duty.Trigger E rho o t) (hlt : t < dl t) (hc : dl t ≤ cut)
     {ih : Nat} {y : V} {u : Time} (hy : y ∈ rho.honest)
@@ -502,11 +507,13 @@ DC: Goldfish/ProposalSnapshotBridge.lean:147–151, forward target membership.
 INTENTIONAL: the receiving endpoint floor bounds earlier receipt floors.
 A stored proposal-support head above D is retained at the HEAD read.
 The accepted proposal's raw, support and row lists are bound by
-`scoreRun_block_decode`; the row list is passed unchanged to the receipt. -/
+`scoreRun_block_decode`; the row list is passed unchanged to the receipt.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem fgsa_scoreRun_block_forward
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (s : Slot) (hSync : Gen.V2.Duty.LabelSync E rho
+    (s : Slot) (hSync : Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o)
       (SA.proposalTime p.toParams s - p.Δ) (SA.voteTime p.toParams s))
     {ip ih : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
@@ -561,11 +568,13 @@ private theorem scoreRun_clock_block_stamp
 /-- P3 F1b.4b G25 N1; blueprint 03:305–312.
 DC: Goldfish/ProposalSnapshotBridge.lean:152–155, backward target membership.
 INTENTIONAL: a frozen resolved head above D is active at the proposal read.
-The source endpoint floor supplies compatibility at the earlier receipt. -/
+The source endpoint floor supplies compatibility at the earlier receipt.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem fgsa_scoreRun_block_backward
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (s : Slot) (hSync : Gen.V2.Duty.LabelSync E rho
+    (s : Slot) (hSync : Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o)
       (SA.proposalTime p.toParams (s + 1) - p.Δ) (SA.voteTime p.toParams (s + 1)))
     {ip ih : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (s + 1))))
@@ -636,11 +645,13 @@ private theorem scoreRun_carried_support (p : Params) (st : State p.n)
 /-- P3 F1b.4b G25 N1; blueprint 03:298–304.
 DC: Goldfish/ProposalSnapshotBridge.lean:147–151, `forward`.
 INTENTIONAL: the original declared support is carried literally and its
-head is relayed using the target endpoint floor. This gives incidence above D. -/
+head is relayed using the target endpoint floor. This gives incidence above D.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem fgsa_scoreRun_support_forward
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (s : Slot) (hSync : Gen.V2.Duty.LabelSync E rho
+    (s : Slot) (hSync : Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o)
       (SA.proposalTime p.toParams s - p.Δ) (SA.voteTime p.toParams s))
     {ip ih : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
@@ -693,11 +704,13 @@ theorem fgsa_scoreRun_support_forward
 DC: Goldfish/ProposalSnapshotBridge.lean:152–155, `backward`.
 INTENTIONAL: an original declaration is already source support; a frozen
 support relays both its signature and head. A clean source seat rules out
-the receipt's cap alternative. The source endpoint floor makes the head active. -/
+the receipt's cap alternative. The source endpoint floor makes the head active.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem fgsa_scoreRun_support_backward
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (s : Slot) (hSync : Gen.V2.Duty.LabelSync E rho
+    (s : Slot) (hSync : Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o)
       (SA.proposalTime p.toParams (s + 1) - p.Δ) (SA.voteTime p.toParams (s + 1)))
     {ip ih : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (s + 1))))
@@ -798,11 +811,13 @@ DC: Goldfish/ProposalSnapshotBridge.lean:139–155,210,225.
 INTENTIONAL: FG-SA compares the actual proposal and HEAD pools only above
 D. The two endpoint floor bounds replace any ordering of active floors.
 The admitted honest proposal supplies its original signed metadata;
-LabelSync is used at exactly (t_s - Δ, v_s), with no Batch or LabelFacts. -/
+LabelSync is used at exactly (t_s - Δ, v_s), with no Batch or LabelFacts.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem fgsa_score_eq_on_run
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (s : Slot) (hSync : Gen.V2.Duty.LabelSync E rho
+    (s : Slot) (hSync : Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o)
       (SA.proposalTime p.toParams s - p.Δ) (SA.voteTime p.toParams s))
     {ip ih : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
@@ -870,11 +885,13 @@ theorem fgsa_score_eq_on_run
 DC: Goldfish/ProposalWalkTransportCore.lean:183–187, reflected membership.
 INTENTIONAL: relay an FG-SA frozen block at exactly (t_s - Δ, t_s).
 The endpoint floor gives receipt compatibility. The existing private
-receipt helper binds the proposal row list and passes it unchanged. -/
+receipt helper binds the proposal row list and passes it unchanged.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem fgsa_walkRun_frozen_block
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (s : Slot) (hSync : Gen.V2.Duty.LabelSync E rho
+    (s : Slot) (hSync : Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o)
       (SA.proposalTime p.toParams (s + 1) - p.Δ) (SA.proposalTime p.toParams (s + 1)))
     {ip ih : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (s + 1))))
@@ -1100,11 +1117,13 @@ private theorem walkRun_ancestor_stored (p : Params) (st : State p.n)
 DC: Goldfish/ProposalWalkTransportCore.lean:183–187, target-child reflection.
 INTENTIONAL: split the actual FG-SA voter domain into its frozen arm and
 its authenticated proposal-path arm. Only the frozen arm needs delivery,
-with LabelSync at exactly (t_s - Δ, t_s). -/
+with LabelSync at exactly (t_s - Δ, t_s).
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem fgsa_walkRun_reflected_block
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (s : Slot) (hSync : Gen.V2.Duty.LabelSync E rho
+    (s : Slot) (hSync : Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o)
       (SA.proposalTime p.toParams (s + 1) - p.Δ) (SA.proposalTime p.toParams (s + 1)))
     {ip ih : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (s + 1))))
@@ -1238,13 +1257,15 @@ private theorem walkRun_step_child (tree : List Block) (score : Block → Nat)
 DC: Goldfish/ProposalWalkTransportCore.lean:162–191.
 INTENTIONAL: FG-SA transfers suffix coverage of the proposal parent.
 The two N1 records have the exact G25 and G11 time pairs. Comparison-prefix
-geometry permits different live roots; terminal adoption is a consumer task. -/
+geometry permits different live roots; terminal adoption is a consumer task.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem fgsa_ghost_transfer_sfx_on_run
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (s : Slot) (hScoreSync : Gen.V2.Duty.LabelSync E rho
+    (s : Slot) (hScoreSync : Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o)
       (SA.proposalTime p.toParams s - p.Δ) (SA.voteTime p.toParams s))
-    (hSync : Gen.V2.Duty.LabelSync E rho
+    (hSync : Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o)
       (SA.proposalTime p.toParams s - p.Δ) (SA.proposalTime p.toParams s))
     {ip ih : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))

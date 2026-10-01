@@ -323,3 +323,11 @@ mechanically. -/
 #print axioms AvailableChain.FGSA.Run.fgsa_accepted_rowsValid
 #print axioms AvailableChain.FGSA.Run.fgsa_trigger_rowsValid
 #print axioms AvailableChain.FGSA.Run.fgsa_trigger_invalid_false
+
+#print axioms AvailableChain.FGSA.Run.isRowObject
+#print axioms AvailableChain.FGSA.Run.isRowObject_def
+#print axioms AvailableChain.FGSA.Run.fgsaDelay
+#print axioms AvailableChain.FGSA.Run.fgsaDelay_def
+#print axioms AvailableChain.FGSA.Run.fgsaDelay_row
+#print axioms AvailableChain.FGSA.Run.fgsaDelay_nonrow
+#print axioms AvailableChain.FGSA.Run.fgsaDelay_self
