@@ -10,14 +10,14 @@ open Gen.Pure SimplexFG
 
 /-- P3 D40: the claim-local `a ≤ f` is `a ≤ (p.n - 1) / 3`.
 The sole FaultX producer is Gen.Pure.count_rec. -/
-theorem fgsa_faultX_of_count (p : Params) {a : Nat} (hf : a ≤ (p.n - 1) / 3) :
+theorem fgsa_faultX_count_rec (p : Params) {a : Nat} (hf : a ≤ (p.n - 1) / 3) :
     FaultX p.n a := count_rec p.nPos hf
 
 /-- Recovery quorum membership from count_rec. Gen has no FaultX-to-FaultQ lemma;
 only the projection arithmetic is local. This is not a Clean producer. -/
 theorem fgsa_faultQ_of_count (p : Params) {a : Nat} (hf : a ≤ (p.n - 1) / 3) :
     FaultQ p.n a := by
-  have hx := (fgsa_faultX_of_count p hf).lt
+  have hx := (fgsa_faultX_count_rec p hf).lt
   constructor
   rw [qF_def] at hx ⊢
   omega

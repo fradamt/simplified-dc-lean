@@ -52,12 +52,12 @@ theorem CleanPrefix₂.batchAt {b₀ : Time} (h : CleanPrefix₂ p c E rho b₀)
     Batch (awakeHonest E rho b₀).card (faulty rho).card := ⟨h.partAt⟩
 
 -- P3 §4.4 places regime producers here; F1.9 supplies these two bridges.
-theorem Recovery₂.faultX {G : Time} (h : Recovery₂ p c E rho G) :
+theorem Recovery₂.faultX_count_rec {G : Time} (h : Recovery₂ p c E rho G) :
     FaultX p.n (faulty rho).card := count_rec p.nPos h.fault
 
 theorem Recovery₂.faultQ {G : Time} (h : Recovery₂ p c E rho G) :
     FaultQ p.n (faulty rho).card := by
-  have hx := h.faultX.lt
+  have hx := h.faultX_count_rec.lt
   constructor
   rw [qF_def] at hx ⊢
   omega

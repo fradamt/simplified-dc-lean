@@ -84,11 +84,27 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.fgsa_sourceDisciplineBaseClaim',
     'AvailableChain.FGSA.Run.fgsa_sourceDisciplineClaim',
     'AvailableChain.FGSA.Run.fgsa_srcFrameAboveClaim',
-    'AvailableChain.FGSA.Run.fgsa_faultX_of_count',
+    'AvailableChain.FGSA.Run.fgsa_faultX_count_rec',
     'AvailableChain.FGSA.Run.fgsa_faultQ_of_count',
     'AvailableChain.FGSA.Run.fgsa_target_exact_quorum',
-    'AvailableChain.FGSA.Run.Recovery₂.faultX',
+    'AvailableChain.FGSA.Run.Recovery₂.faultX_count_rec',
     'AvailableChain.FGSA.Run.Recovery₂.faultQ',
+    # F1 lane Foundations public declarations (f1-dfix-full.md:119–137).
+    'AvailableChain.FGSA.Run.fgsa_finalityStoreRows_contains',
+    'AvailableChain.FGSA.Run.FGSASlashableBound_def',
+    'AvailableChain.FGSA.Run.fgsa_eventPrefixAgreement_of_bound',
+    'AvailableChain.FGSA.Run.fgsa_storeSlashableBound_of_base',
+    'AvailableChain.FGSA.Run.carried_rows_carriage',
+    'AvailableChain.FGSA.Run.delivered_runBlock_carriage',
+    'AvailableChain.FGSA.Run.proposalRows_source',
+    'AvailableChain.FGSA.Run.store_wire_origin',
+    'AvailableChain.FGSA.Run.emitted_runBlock_carriage',
+    'AvailableChain.FGSA.Run.fgsa_runBlock_carriage',
+    'AvailableChain.FGSA.Run.fgsa_slashableBound_of_base',
+    'AvailableChain.FGSA.Run.stored_block_wire_delivery',
+    'AvailableChain.FGSA.Run.stored_chain_row_origin_delivery',
+    'AvailableChain.FGSA.Run.fgsa_finalLock_of_bound',
+    'AvailableChain.FGSA.Run.fgsa_finalizedMonotone',
 
     'AvailableChain.FGSA.Run.fgsa_rCap',
     'AvailableChain.FGSA.Run.fgsa_finalityCap',
@@ -864,6 +880,13 @@ if f4_tree:
 run('proof-eqns', ['lake', 'env', 'lean', '--run', 'scripts/CheckProofEqns.lean',
                    '--baseline', 'scripts/baselines/check-proof-eqns.txt'])
 run('unused-imports', ['bash', 'scripts/shake-report.sh', '--fail-on-new', *roots])
+
+# The gate's merge tier sets NEG=0: it skips the compiled negative controls
+# below (about 135 s on the NUC), as the other check scripts do.
+if os.environ.get('NEG', '1') == '0':
+    print('compiled negative controls: SKIPPED (NEG=0)', flush=True)
+    print('all FGSA claims checks pass (NEG=0: no compiled negative controls)', flush=True)
+    raise SystemExit(0)
 
 # Compiled negative controls. They are never added to the real library.
 # Use the real auditor and require its diagnostic, not merely a Lean error.

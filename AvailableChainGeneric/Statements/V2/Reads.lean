@@ -57,6 +57,7 @@ theorem pubFloor_def (E : Generic.Env V) (t : Time) :
   rw [pubFloor]
 
 -- P3:1554–1555.
+/-- DC: Conditions.lean:202,211; INTENTIONAL: Slot 0 has no proposal; GLY r3.19 S106. -/
 def HonestSlot (rho : Run V P) (I : AvailableChain.V2.Interface P) (s : Slot) : Prop :=
   0 < s ∧ AvailableChain.V2.proposerOf rho I s ∈ rho.honest
 

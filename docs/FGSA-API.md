@@ -172,6 +172,7 @@ def AvailableChain.FGSA.Run.blockOf? 237207ab41bcc56a
 ```text
 def AvailableChain.FGSA.Run.fgsaEvidence 9eba3b221236d864
 def AvailableChain.FGSA.Run.fgsaSlashing 565d370043431ab5
+def AvailableChain.FGSA.Run.fgsaSlashing d564d01aac96189c
 ```
 
 ## `AvailableChainFGSAClaims`

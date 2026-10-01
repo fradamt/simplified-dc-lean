@@ -1,6 +1,7 @@
 module
 public import AvailableChainSimplexFG
 public import AvailableChainKitFG.Correspondence
+public import AvailableChainKitFG.LowerFDomainDef
 
 @[expose] public section
 
@@ -799,6 +800,28 @@ example : (fjFrame E4 cfg1 B1 {.genesis, B1, B2, K3}).D =
   (Fmove_atTop E4 cfg1 (m := 3) (F := .genesis) (F' := B1) (by decide) (viewRootInj_all _)
     (by decide +kernel) (by decide) K3 (by decide) (by decide +kernel) (by decide +kernel)
     (by decide +kernel) (by decide +kernel)).2.2.2.2.2.2
+
+/-- Reuse the cut equation and top-J equality from `Fmove_filtered`.
+Reflexivity retains F′; ancestry antisymmetry excludes each strict ancestor.
+DC: none; INTENTIONAL addition: FJ phase-dependent domain; record
+blueprint/21-healing.md:691–694, 2579–2581. -/
+theorem lowerF_domain_identity : LowerFDomainIdentityStatement := by
+  intro V _ _ _ E cfg c F' blocks hFF' hband hroot hext
+  obtain ⟨hcut, hancestor, htop⟩ := Fmove_filtered E cfg c F' blocks hFF' hband hroot hext
+  dsimp only
+  refine ⟨hcut, ?_, htop⟩
+  intro B hB
+  constructor
+  · intro hremoved
+    refine ⟨hancestor B hB hremoved, ?_⟩
+    intro hEq
+    subst B
+    apply hremoved
+    rw [hcut, Finset.mem_filter]
+    exact ⟨hB, preceq_refl F'⟩
+  · rintro ⟨hBF', hne⟩ hnew
+    rw [hcut, Finset.mem_filter] at hnew
+    exact hne (preceq_antisymm hBF' hnew.2)
 
 end AvailableChain.KitFG
 end

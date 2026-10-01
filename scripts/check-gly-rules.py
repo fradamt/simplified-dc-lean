@@ -66,8 +66,8 @@ Rules (GLY §F row → what this script checks):
   F-23 FAIL    a premise of a theorem in Generic, KitFG or
                FGSAProofs …Shared… names CleanCut₂, Outage₂, Recovery₂,
                HealthyPrefix₂, HealingInput, a …Set or a …Contract type.
-  F-24 FAIL    a theorem whose conclusion is FaultX and whose name does not
-               contain count_rec.
+  F-24         retired name rule; F-24 is now the compiled proof-route check
+               (scripts/CheckFaultXRoute.lean, run by check-gly-rules.sh).
   F-25 REVIEW  a Keep/Frame theorem with `∩` in its conclusion.
   F-26 FAIL    HealingInput in FGSAClaims Statements/Phases (PhasesInternal
                exempt).
@@ -580,19 +580,6 @@ def rule_f23(x):
     return out
 
 
-def rule_f24(x):
-    out = []
-    for lf, d in x.all_decls():
-        if d.kind not in THM:
-            continue
-        _, concl = d.premises_and_conclusion()
-        m = re.match(r'[\s(]*([\w.₀-₉]+)', concl)
-        if m and m.group(1).rsplit('.', 1)[-1] == 'FaultX' and 'count_rec' not in d.short:
-            out.append(F('F-24', f'{lf.module} {d.full}', f'{lf.path}:{d.line}: {d.full} concludes FaultX',
-                         new=x.new(lf)))
-    return out
-
-
 def rule_f25(x):
     out = []
     for lf, d in x.all_decls():
@@ -727,7 +714,7 @@ def rule_f31(x):
 RULES = {'F-1': rule_f1, 'F-3': rule_f3, 'F-4': rule_f4, 'F-5': rule_f5, 'F-6': rule_f6,
          'F-7': rule_f7, 'F-10': rule_f10, 'F-12': rule_f12, 'F-13': rule_f13, 'F-14': rule_f14,
          'F-15': rule_f15, 'F-18': rule_f18, 'F-20': rule_f20, 'F-21': rule_f21, 'F-23': rule_f23,
-         'F-24': rule_f24, 'F-25': rule_f25, 'F-26': rule_f26, 'F-28': rule_f28, 'F-30': rule_f30,
+         'F-25': rule_f25, 'F-26': rule_f26, 'F-28': rule_f28, 'F-30': rule_f30,
          'F-31': rule_f31}
 
 

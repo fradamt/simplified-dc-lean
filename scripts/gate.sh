@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Run from the repository root. Freeze gates must use --tier full.
 # The three check scripts run in parallel and share one GATE_SLOTS cap.
-# Defaults: Mac 3, Linux 4; env wins. JOBS is only a per-script pool bound.
+# check-fgsa-claims.sh runs alone after them: its lake calls are not slot-capped
+# (NUC 2026-10-01: 282 s, peak 4.3 GiB; merge tier NEG=0 skips its compiled controls).
+# Defaults: Mac 3, Linux 3 (scripts/gate-common.sh); env wins. JOBS is only a per-script pool bound.
 # Linux requires a user scope with GATE_MEM (default 16G) and no swap; without it the gate refuses to run.
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -143,6 +145,11 @@ build_all() {
   local targets
   targets=$(gate_with_slot lake env lean --run scripts/CheckGenFirst.lean --libraries)
   [ -n "$targets" ] || { echo "CheckGenFirst returned no build targets"; return 1; }
+  # Build the full route-check scope before GATE_NO_BUILD is enabled.
+  local route_targets
+  route_targets=$(gate_with_slot lake env lean --run scripts/CheckFaultXRoute.lean --libraries) || return $?
+  [ -n "$route_targets" ] || { echo "CheckFaultXRoute returned no build targets"; return 1; }
+  targets="$targets $route_targets"
   # @ selects every default target of the root package, plus check support
   # and every module that CheckGenFirst scans (including facade orphans).
   GATE_NO_BUILD=0 gate_build --wfail @ AvailableChainCheckSupport $targets
@@ -168,6 +175,8 @@ step gen-manifest gate_with_slot lake env lean --run scripts/V2Manifest.lean --s
 summary gen-manifest
 step fgsa-manifest gate_with_slot bash scripts/check-fgsa-manifest.sh
 summary fgsa-manifest
+step fgsa-claims gate_with_slot bash scripts/check-fgsa-claims.sh
+summary fgsa-claims
 audit() {
   local path=$1 out=$2 rc=0 count
   gate_with_slot lake env lean "$path" > "$out" 2>&1 || rc=$?

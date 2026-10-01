@@ -76,7 +76,8 @@ def allowedImport (mod imp : Name) : Bool :=
           (`AvailableChainKitFG).isPrefixOf imp
       | "Proofs" => fgsa "Model" || fgsa "Statements" || fgsa "Proofs" || externalOK imp ||
           (`AvailableChainGridCO.Proofs).isPrefixOf imp || (`AvailableChainKitFG).isPrefixOf imp ||
-          imp == `AvailableChainGeneric.Proofs.Pure.Fold
+          -- GEN-FIRST/F-31: FG-SA proofs instantiate Gen proofs (lead ruling 2026-10-01, SYN L56).
+          (`AvailableChainGeneric.Proofs).isPrefixOf imp
       | _ => false
   | _ => false
 

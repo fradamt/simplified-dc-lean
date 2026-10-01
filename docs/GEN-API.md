@@ -523,3 +523,48 @@ theorem AvailableChain.Gen.AC.VoterCountLeOfSeatsSubsetStatement_def 7029677e43a
 def AvailableChain.Gen.Pure.HonestOriginOfCountStatement b90084bf6382c94d
 theorem AvailableChain.Gen.Pure.HonestOriginOfCountStatement_def 7590cf1650656970
 ```
+
+### `AvailableChainGeneric.Statements.AC.LeaseWindow`
+
+```text
+def AvailableChain.Gen.AC.SlowWindowConflictAbsurdStatement 0bf60151901c729a
+theorem AvailableChain.Gen.AC.SlowWindowConflictAbsurdStatement_def c300da53046dea8e
+def AvailableChain.Gen.AC.ExpireByThresholdStatement fd661a182a71632b
+theorem AvailableChain.Gen.AC.ExpireByThresholdStatement_def 3798a2e9c79cf96c
+```
+
+### `AvailableChainGeneric.Statements.Pure.Dominance`
+
+```text
+def AvailableChain.Gen.Pure.MajUniqueChildStatement c2a3c1fcca7f79e9
+theorem AvailableChain.Gen.Pure.MajUniqueChildStatement_def e11d19cd90604607
+```
+
+### `AvailableChainGeneric.Statements.V2.DCRegimes`
+
+```text
+def AvailableChain.Gen.V2.SingleProposerRecurrence 8b54094a6819f6fb
+theorem AvailableChain.Gen.V2.SingleProposerRecurrence_def e68862c9867837c9
+def AvailableChain.Gen.V2.OutageInterval fa178df343dc8583
+theorem AvailableChain.Gen.V2.OutageInterval_def 3e0808ebf805aab3
+```
+
+### `AvailableChainGeneric.Statements.V2.DCProps`
+
+```text
+def AvailableChain.Gen.V2.ConsistentFrom 8292f6c22dd20f4b
+theorem AvailableChain.Gen.V2.ConsistentFrom_def 797ebb7fc55efba1
+def AvailableChain.Gen.V2.AgreeFrom 824a873856bb3790
+theorem AvailableChain.Gen.V2.AgreeFrom_def 78a9a9ab5a3c4181
+def AvailableChain.Gen.V2.MonotoneFrom 94f80f94ab5d3d15
+theorem AvailableChain.Gen.V2.MonotoneFrom_def f2e8d8f8dd279c5f
+structure AvailableChain.Gen.V2.SafeFrom 354557a8b804d905
+ctor AvailableChain.Gen.V2.SafeFrom.mk 3b720032cb646ef1
+theorem AvailableChain.Gen.V2.SafeFrom.agree 3406c889410b79aa
+theorem AvailableChain.Gen.V2.SafeFrom.monotone 8d7f43af5aab7df0
+theorem AvailableChain.Gen.V2.SafeFrom_def e90a07acd5629b93
+def AvailableChain.Gen.V2.InBy da03ae296b98ca77
+theorem AvailableChain.Gen.V2.InBy_def 7e6be42ee55cb800
+def AvailableChain.Gen.V2.PersistsFrom 52d2bc3b2b773572
+theorem AvailableChain.Gen.V2.PersistsFrom_def 757a827fa355d001
+```

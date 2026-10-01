@@ -1,5 +1,6 @@
 module
 public import AvailableChainGeneric.Statements.AC.Lease
+public import AvailableChainGeneric.Statements.AC.LeaseWindow
 public import AvailableChainGeneric.Proofs.Pure.BlockOrder
 public import Mathlib.Data.Finset.Card
 
@@ -172,5 +173,53 @@ theorem pendingGate_harmless (A : ACReads E rho) (laws : ACLaws A)
     (hd : SA.gateTime A.prm s < d) (hB : Block.Preceq B (A.output i x)) :
     Block.Preceq B (A.output (i + 1) x) :=
   pendingGate_harmless_statement A laws i s x he B g d hr hd hB
+
+end AvailableChain.Gen.AC
+
+namespace AvailableChain.Gen.AC
+
+open AvailableChain
+
+/-- A live origin must be inside the saved window; its prefixes are compatible.
+DC: none; INTENTIONAL addition: SA lease windows use release schedules; DC uses SG records;
+record codex/reports/dc-align-full.md:2000; blueprint/21-healing.md:535–540. -/
+theorem slow_window_conflict_absurd_statement : SlowWindowConflictAbsurdStatement := by
+  rw [SlowWindowConflictAbsurdStatement_def]
+  intro leases result releaseTime s k B hmono horigin hwindow hsame lease hlease hlive hconf
+  obtain ⟨w, C, hws, hdeadline, hC, htarget⟩ := horigin lease hlease
+  have hwindowLabel : s + 1 ≤ w + k := by
+    by_contra hn
+    have hold : w + k ≤ s := by omega
+    exact (not_le_of_gt hlive) (le_trans hdeadline (hmono hold))
+  obtain ⟨D, hD, hB⟩ := hwindow w hws hwindowLabel
+  have hCD := hsame w hws hwindowLabel C D hC hD
+  have htargetD := Pure.block_compatible_of_preceq_compatible htarget hCD
+  have hDtarget : Block.Compatible D (Lease.target lease) := by
+    simpa only [Block.Compatible, Block.compatible, Bool.or_comm] using htargetD
+  have hBtarget := Pure.block_compatible_of_preceq_compatible hB hDtarget
+  apply hconf
+  simpa only [Block.Compatible, Block.compatible, Bool.or_comm] using hBtarget
+
+/-- The usable Gen slow-window conflict theorem.
+DC: none; INTENTIONAL addition: SA lease windows use release schedules; DC uses SG records;
+record codex/reports/dc-align-full.md:2000; blueprint/21-healing.md:535–540. -/
+theorem slow_window_conflict_absurd : SlowWindowConflictAbsurdStatement :=
+  slow_window_conflict_absurd_statement
+
+/-- Monotone thresholds put the deadline at or before the expiry time.
+DC: none; INTENTIONAL addition: SA expires lease rows at thresholds; DC uses SG records;
+record codex/reports/dc-align-full.md:2000; blueprint/21-healing.md:535–540. -/
+theorem expire_by_threshold_statement : ExpireByThresholdStatement := by
+  rw [ExpireByThresholdStatement_def]
+  intro n st expiry w c B g d t hmono hwc hdeadline htime hrow
+  have hdt : d ≤ t := le_trans hdeadline (le_trans (hmono hwc) htime)
+  have hlive : t < d := of_decide_eq_true (List.mem_filter.mp hrow).2
+  exact (not_lt_of_ge hdt) hlive
+
+/-- The usable Gen threshold-expiry theorem, including equality.
+DC: none; INTENTIONAL addition: SA expires lease rows at thresholds; DC uses SG records;
+record codex/reports/dc-align-full.md:2000; blueprint/21-healing.md:535–540. -/
+theorem expire_by_threshold : ExpireByThresholdStatement :=
+  expire_by_threshold_statement
 
 end AvailableChain.Gen.AC

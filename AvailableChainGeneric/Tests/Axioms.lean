@@ -1,8 +1,11 @@
 module
+public import AvailableChainGeneric.Proofs.V2.DCRegimes
+public import AvailableChainGeneric.Proofs.V2.DCProps
 public import AvailableChainGeneric.Statements.V2.Slashing
 public import AvailableChainGeneric.Statements.Pure.Quorum
 public import AvailableChainGeneric.Statements.Pure.QuorumInter
 public import AvailableChainGeneric.Statements.Pure.SupportCounts
+public import AvailableChainGeneric.Statements.Pure.Dominance
 public import AvailableChainGeneric.Statements.Pure.FirstBad
 public import AvailableChainGeneric.Statements.Pure.Schedule
 public import AvailableChainGeneric.Statements.Pure.Walk
@@ -440,3 +443,36 @@ theorem, in facade order. The library globs build this test module. -/
 #print axioms AvailableChain.Gen.AC.score_eq_on
 #print axioms AvailableChain.Gen.AC.transfer_statement
 #print axioms AvailableChain.Gen.AC.transfer
+
+-- Statements/AC/LeaseWindow.lean
+#print axioms AvailableChain.Gen.AC.SlowWindowConflictAbsurdStatement_def
+#print axioms AvailableChain.Gen.AC.ExpireByThresholdStatement_def
+
+-- Proofs/AC/Lease.lean (G26)
+#print axioms AvailableChain.Gen.AC.slow_window_conflict_absurd_statement
+#print axioms AvailableChain.Gen.AC.slow_window_conflict_absurd
+#print axioms AvailableChain.Gen.AC.expire_by_threshold_statement
+#print axioms AvailableChain.Gen.AC.expire_by_threshold
+
+-- Statements/Pure/Dominance.lean and Proofs/Pure/Quorum.lean (W9)
+#print axioms AvailableChain.Gen.Pure.MajUniqueChildStatement_def
+#print axioms AvailableChain.Gen.Pure.maj_unique_child_statement
+#print axioms AvailableChain.Gen.Pure.maj_unique_child
+
+-- Statements/V2/DCRegimes.lean and Proofs/V2/DCRegimes.lean (E-12)
+#print axioms AvailableChain.Gen.V2.SingleProposerRecurrence_def
+#print axioms AvailableChain.Gen.V2.OutageInterval_def
+#print axioms AvailableChain.Gen.V2.RecoveryCore.to_dcRecoveryConditions
+#print axioms AvailableChain.Gen.V2.CutCore.to_dcOutageFields
+
+-- Statements/V2/DCProps.lean and Proofs/V2/DCProps.lean (G37)
+#print axioms AvailableChain.Gen.V2.ConsistentFrom_def
+#print axioms AvailableChain.Gen.V2.AgreeFrom_def
+#print axioms AvailableChain.Gen.V2.MonotoneFrom_def
+#print axioms AvailableChain.Gen.V2.SafeFrom_def
+#print axioms AvailableChain.Gen.V2.InBy_def
+#print axioms AvailableChain.Gen.V2.PersistsFrom_def
+#print axioms AvailableChain.Gen.V2.compatOn_iff_agreeFrom
+#print axioms AvailableChain.Gen.V2.monoOn_iff_monotoneFrom
+#print axioms AvailableChain.Gen.V2.compatOn_monoOn_iff_safeFrom
+#print axioms AvailableChain.Gen.V2.persistsFrom_iff_servedOn

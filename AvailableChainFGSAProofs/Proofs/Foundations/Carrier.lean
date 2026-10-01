@@ -23,6 +23,22 @@ theorem fgsa_carrier_geometry {n : Nat} (X Y : FGBlock (Fin n)) :
     (fun A B _ _ he => FGBlock.root_injective he)
     ⟨X, by simp, KitFG.preceq_refl X⟩ ⟨Y, by simp, KitFG.preceq_refl Y⟩ h
 
+/-- DC counterpart: none (row decoding helper).
+A decoded row has the FG seat authentication of its signer. -/
+theorem row_auth_of_toRow {n : Nat} (a : RowWire n) (u : Row (Fin n))
+    (hau : a.toRow? = some u) : ∃ r, a.auth = .seat (.fg r) u.signer := by
+  rcases a with ⟨auth, payload⟩
+  cases auth with
+  | none => cases hau
+  | proposer s => cases hau
+  | seat label i =>
+      cases label with
+      | head s => cases hau
+      | fg r =>
+          have he : (⟨i, payload.height_pair, payload.finality_pair⟩ : Row (Fin n)) = u :=
+            Option.some.inj hau
+          exact ⟨r, by rw [← he]⟩
+
 /-- DC counterpart: none (shared stored-wire delivery step).
 A stored non-genesis block at any node has a proposal delivered before the read. -/
 theorem stored_block_wire_delivery (p : Params) {In V : Type} [DecidableEq V]
@@ -70,19 +86,7 @@ theorem stored_chain_row_origin_delivery (p : Params) {In V : Type} [DecidableEq
         have hur : u ∈ rows := List.mem_toFinset.mp hu
         rw [hr] at hur
         obtain ⟨a, ha, hau⟩ := List.mem_filterMap.mp hur
-        have auth : ∃ r, a.auth = .seat (.fg r) u.signer := by
-          rcases a with ⟨auth, payload⟩
-          cases auth with
-          | none => cases hau
-          | proposer s => cases hau
-          | seat label i =>
-              cases label with
-              | head s => cases hau
-              | fg r =>
-                  have he : (⟨i, payload.height_pair, payload.finality_pair⟩ : Row (Fin p.n)) = u :=
-                    Option.some.inj hau
-                  exact ⟨r, by rw [← he]⟩
-        obtain ⟨r, har⟩ := auth
+        obtain ⟨r, har⟩ := row_auth_of_toRow a u hau
         have hc : (fgsa p c).carries o (ofRow p a) := by
           rw [he]
           exact Or.inr (Or.inr (List.mem_map.mpr ⟨a, ha, rfl⟩))

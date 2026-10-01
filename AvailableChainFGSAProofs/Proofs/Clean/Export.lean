@@ -3,6 +3,7 @@ public import AvailableChainFGSAClaims.Claims.Clean
 public import AvailableChainFGSAProofs.Proofs.Clean.Zero
 public import AvailableChainFGSAProofs.Proofs.Clean.Safety
 public import AvailableChainFGSAProofs.Proofs.Clean.Closure
+public import AvailableChainFGSAProofs.Proofs.Shared.Regimes
 
 public section
 
@@ -89,17 +90,6 @@ theorem cleanTruncAt (p : Params) {In V : Type} (c : AppCodec In)
     (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho) :
     CleanTruncAt p c E rho b₀ := by
   exact cleanTruncAt_body p c E rho h hq hf hsrc
-
-/-- P3 §8.5, bp02 §6; DC Generic/Properties:27,41,48 and Interface:64.
-INTENTIONAL difference: all integer reads have finite prefix indices.
-NoRestart is inherited from Clean₂ through Base₂. -/
-theorem cleanSafety (p : Params) {In V : Type} (c : AppCodec In)
-    [DecidableEq V] [Fintype V] (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (h : Clean₂ p c E rho)
-    (hq : Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card)
-    (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho) :
-    CleanSafetyAt p c E rho := by
-  exact cleanSafety_body p c E rho h hq hf hsrc
 
 /-- P3:5296–5311, L39; DC Legacy/Definitions/SafetyRegimes:53–80 and
 Generic/Conditions:134. INTENTIONAL difference: a positive finite cut
