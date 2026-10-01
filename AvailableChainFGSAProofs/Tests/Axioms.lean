@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.ScoreRun -- shake: keep (G25 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.OpeningSource -- shake: keep (F1b.9 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.KeepExact -- shake: keep (F1b.8 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Clean.GateOutput -- shake: keep (gate output axiom audit)
@@ -436,3 +437,20 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_storeSlashableBound_of_unforgeable
 
 #print axioms AvailableChain.FGSA.Run.fgsa_slashableBound_of_valid
+
+-- F1b.4b round 5: G25 run producer and its proved helpers.
+#print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_proposal_pools
+#print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_stored_proposal_eq
+#print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_metadata_retained
+#print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_carried_raw_subset
+#print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_raw_subset
+#print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_proposalsAt_eq
+#print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_frozen_vote_relay
+#print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_raw_extra
+#print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_block_forward
+#print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_block_backward
+#print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_support_forward
+#print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_support_backward
+#print axioms AvailableChain.FGSA.Run.fgsa_score_eq_on_run
+#print axioms AvailableChain.FGSA.Run.fgsa_score_eq_on_clean
+#print axioms AvailableChain.FGSA.Run.fgsa_score_eq_on_recovery
