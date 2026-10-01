@@ -28,6 +28,20 @@ LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainF
 CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = (
+    # fgsa-f1b8 step 3 (main b83d8f3): unconditional safety and its exact-head chain.
+    'AvailableChain.FGSA.Run.fgsaSafetyClaims',
+    'AvailableChain.FGSA.Run.fgsa_headReachesLoClaim',
+    'AvailableChain.FGSA.Run.exactHead_of_pivot_ancestry',
+    'AvailableChain.FGSA.Run.exactHead_of_pivot',
+    'AvailableChain.FGSA.Run.kept_or_conflict',
+    'AvailableChain.FGSA.Run.kept_or_cause',
+    'AvailableChain.FGSA.Run.fgsa_domain_anchorClosed_mono',
+    'AvailableChain.FGSA.Run.openingSource_firstOpening',
+    'AvailableChain.FGSA.Run.openingSource_firstOpening_exact',
+    'AvailableChain.FGSA.Run.openingSource_exact_of_gateService',
+    'AvailableChain.FGSA.Run.openingSource_candidate_of_gateService',
+    'AvailableChain.FGSA.Run.openingSource_domain_of_kept_or_cause',
+    'AvailableChain.FGSA.Run.fgsa_headReachesLo',
     'AvailableChain.FGSA.Run.fgsaSafetyClaims_of_headReachesLo',
     'AvailableChain.FGSA.Run.openingSource_eq_of_no_strict_extension',
     'AvailableChain.FGSA.Run.FGFinalizedAt',
