@@ -11,8 +11,7 @@ namespace AvailableChain.FGSA.Run
 variable (p : Params)
 
 /-- SYN L58: assemble the safety claims from the lane proofs and the head premise.
-The proof of HeadReachesLoClaim (fgsa_headReachesLoClaim, fgsa-lean F1b.5)
-is not on main yet. The unconditional fgsaSafetyClaims follows when it lands. -/
+The unconditional form is fgsaSafetyClaims below. -/
 theorem fgsaSafetyClaims_of_headReachesLo (h : HeadReachesLoClaim p) :
     FGSASafetyClaims p where
   carrier := fgsa_carrierClaim p
@@ -35,6 +34,11 @@ theorem fgsaSafetyClaims_of_headReachesLo (h : HeadReachesLoClaim p) :
   cleanHistory := fgsa_cleanHistoryClaim p
   cleanPrefixTruncation := fgsa_cleanPrefixTruncationClaim p
   cleanSafety := fgsa_cleanSafetyClaim p
+
+/-- SYN L58: the unconditional safety claims. HeadReachesLoClaim is
+fgsa_headReachesLoClaim (P3 F1b.5, Shared/HeadGeometry). -/
+theorem fgsaSafetyClaims : FGSASafetyClaims p :=
+  fgsaSafetyClaims_of_headReachesLo p (fgsa_headReachesLoClaim p)
 
 end AvailableChain.FGSA.Run
 end
