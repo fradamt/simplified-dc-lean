@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Clean.TransferFrame -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.StepGate -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.Action -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.Frame -- shake: keep (axiom audit commands)
@@ -331,3 +332,9 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_gate_batch_premises
 #print axioms AvailableChain.FGSA.Run.fgsa_active_path_of_coverage
 #print axioms AvailableChain.FGSA.Run.fgsa_gate_zero_of_receipts
+
+#print axioms AvailableChain.FGSA.Run.clean_transfer_source_acceptances
+#print axioms AvailableChain.FGSA.Run.clean_transfer_gate_acceptances
+#print axioms AvailableChain.FGSA.Run.clean_transfer_receipt_path
+#print axioms AvailableChain.FGSA.Run.clean_transfer_prefreeze_path
+#print axioms AvailableChain.FGSA.Run.clean_transfer_frame

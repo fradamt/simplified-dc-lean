@@ -1323,6 +1323,8 @@ unused imports, and negative controls. No baseline entries were added.
 │ .lean                                           │                                     │
 │ AvailableChainFGSAProofs/Proofs/Clean/Action   │ Action step and frozen corollaries │
 │ .lean                                           │                                     │
+│ AvailableChainFGSAProofs/Proofs/Clean/Transfer  │ Pre-freeze path and transfer frame  │
+│ Frame.lean                                      │                                     │
 │ AvailableChainFGSAProofs/Proofs/Clean/Frame    │ Given-state Clean frame core        │
 │ .lean                                           │                                     │
 │ AvailableChainFGSAClaims/Claims/Foundations.lean │ Client safety; frozen K8 citation   │
