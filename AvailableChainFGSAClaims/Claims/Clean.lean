@@ -1,7 +1,6 @@
 module
 public import AvailableChainFGSAClaims.Statements.Packages.Safety
 public import AvailableChainFGSAClaims.Statements.ComposeStmt
-public import AvailableChainGeneric.Statements.Pure.Props
 
 @[expose] public section
 

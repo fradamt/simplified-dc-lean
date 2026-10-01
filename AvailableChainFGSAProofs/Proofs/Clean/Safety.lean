@@ -1,7 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Clean.Closure
 public import AvailableChainFGSAProofs.Proofs.Clean.GateOutput
-public import AvailableChainGeneric.Statements.Pure.Props
 
 public section
 

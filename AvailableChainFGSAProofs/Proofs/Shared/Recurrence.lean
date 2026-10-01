@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAClaims.Statements.Recurrence -- shake: keep (public aliases or axiom audit commands)
 public import AvailableChainFGSAClaims.Statements.Bounds
 public import AvailableChainGeneric.Proofs.Pure.Schedule
 
@@ -80,6 +81,15 @@ theorem fgsa_B_max (p : Params) (G ρbar : Time) :
     linarith
   · rw [max_eq_left h, max_eq_left (by linarith)]
     linarith
+
+/-! GEN-FIRST (F-31): QualSearch.of_recS, .of_recC and .of_lit are already
+proved in Gen.Pure (Schedule.lean:294–332), with exactly hP : 0 < P.
+The exported QualSearch name resolves those producers without duplicate proofs.
+Blueprint 21:2377–2378; 00:297–301. Consumers: H-time and FF5. -/
+
+namespace QualSearch
+export Gen.Pure.QualSearch (of_recS of_recC of_lit)
+end QualSearch
 
 end AvailableChain.FGSA.Run
 

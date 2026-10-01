@@ -1233,6 +1233,8 @@ rows under `scripts/` are paths from the repository root.
 │                                │ ancestry and compatibility                     │                    │
 │ Proofs/Fields.lean             │ write sets of every step                       │                    │
 │ Proofs/Head/Pool.lean          │ Clean support counts; F-anchored confirmation │ P3 F1b.1          │
+│ Proofs/Head/Walk.lean          │ Conditional FG-SA suffix walk instances       │ P3 F1b.4a         │
+│ Proofs/Head/Score.lean         │ Retained-suffix store score equality          │ P3 F1b.4a         │
 │ Proofs/Head/Transfer.lean      │ HEAD coverage from transfer bounds           │ P3 F2.3           │
 │ Proofs/ActView.lean            │ actView laws (items 1–6); SA bridge of the     │ bp.activeView.v1   │
 │                                │ tick (clock_eq_saClock_offGate,                │                    │
@@ -1406,6 +1408,8 @@ unused imports, and negative controls. No baseline entries were added.
 │ AvailableChainFGSAClaims/Tests/Channels.lean    │ Channel kernel regression controls  │
 │ AvailableChainFGSAProofs/Proofs/Shared/Gate     │ G32 gate service and opening source │
 │ .lean                                           │                                     │
+│ AvailableChainFGSAProofs/Proofs/Shared/         │ Gate-to-action and R15 adapters     │
+│ OpeningSource.lean                              │                                     │
 │ AvailableChainFGSAProofs/Proofs/Shared/Channels │ Channel equations and row ordering  │
 │ .lean                                           │                                     │
 │ AvailableChainFGSAProofs/Proofs/Clean/Closure   │ Inclusive history and source reads  │
@@ -1447,6 +1451,11 @@ unused imports, and negative controls. No baseline entries were added.
 │ AvailableChainFGSAProofs/Proofs/Foundations/Cli │ Client safety; one row per round    │
 │ ent.lean                                        │                                     │
 │ AvailableChainFGSAProofs/Proofs/Shared/Reads.lean │ Cut, gate values and index proofs   │
+│ AvailableChainFGSAProofs/Proofs/Shared/HeadCover │ Batch head coverage; keep parameter │
+│ AvailableChainFGSAProofs/Proofs/Shared/         │ Store head floor and anchor geometry │
+│ HeadGeometry.lean                               │                                     │
+│ AvailableChainFGSAProofs/Proofs/Shared/         │ View witness keep; pivot exactness  │
+│ KeepExact.lean                                  │                                     │
 │ AvailableChainFGSAProofs/Proofs/Shared/Count   │ Active receipt and batch count bounds │
 │ AvailableChainFGSAProofs/Proofs/Shared/Relay   │ C5 forward; C6 head-vote backward     │
 │ AvailableChainFGSAProofs/Proofs/Shared/Release │ Active release laws and fault bound │
@@ -1469,7 +1478,19 @@ unused imports, and negative controls. No baseline entries were added.
 │ ountable.lean                                   │                                     │
 │ AvailableChainFGSAProofs/Proofs/Foundations/Fin │ Finalized safety from Base and count │
 │ alizedSafety.lean                               │                                     │
+│ AvailableChainFGSAClaims/Statements/            │ Qualified search: Gen export        │
+│ Recurrence.lean                                 │                                     │
+│ AvailableChainFGSAClaims/Statements/Packages/   │ Finality premise packages, FF6/FF7  │
+│ Finality.lean                                   │                                     │
+│ AvailableChainFGSAClaims/Statements/Packages/   │ Healing and joined-kernel packages  │
+│ Healing.lean                                    │                                     │
+│ AvailableChainFGSAProofs/Proofs/Shared/         │ μ bounds and unique full H0 time    │
+│ Compose.lean                                    │                                     │
+│ AvailableChainFGSAClaims/Statements/Witness.lean │ Common healing witness and tstar    │
+│ AvailableChainFGSAClaims/Statements/Healed.lean │ HEALED via the Gen property kernel  │
+│ AvailableChainFGSAProofs/Proofs/Shared/Healed.lean │ Same-time and later-start proofs    │
 │ AvailableChainFGSAProofs/Tests/Channels.lean    │ Old source obstruction and G1 tests │
+│ AvailableChainFGSAProofs/Tests/KeepExact.lean   │ Pivot ancestry regression tests     │
 │ AvailableChainFGSAProofs/Statements/            │ Clean invariant and step statements │
 │ CleanInvariant.lean                             │                                     │
 │ AvailableChainFGSAProofs/Proofs/Clean/          │ Clean AG review contract            │

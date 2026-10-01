@@ -31,3 +31,5 @@ public import AvailableChainFGSA.Model.RowValidity
 public import AvailableChainFGSA.Model.RowSelection
 public import AvailableChainFGSA.Proofs.RowValidity
 public import AvailableChainFGSA.Proofs.RowSelection
+public import AvailableChainFGSA.Proofs.Head.Walk
+public import AvailableChainFGSA.Proofs.Head.Score
