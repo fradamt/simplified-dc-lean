@@ -146,7 +146,7 @@ variable {n : Nat}
 /-- [helper] The label code is injective. -/
 theorem encLabel_inj : Function.Injective encLabel := by
   intro a b h
-  cases a <;> cases b <;> simp only [encLabel] at h <;>
+  cases a <;> cases b <;> dsimp only [encLabel] at h <;>
     first
     | exact absurd (epair_inj h).1 (by decide)
     | rw [(epair_inj h).2]
