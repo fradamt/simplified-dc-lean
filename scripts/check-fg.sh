@@ -30,7 +30,8 @@ bash scripts/check-fg-syntax.sh
 step "scripts/CheckFGAxioms.lean"
 lake env lean --run scripts/CheckFGAxioms.lean --expect \
   bit_process_iff bit_fold_iff bit_first_inclusion progress_first_inclusion \
-  bit_first_inclusion_persist finality_match_before finality_first_inclusion_persist
+  bit_first_inclusion_persist finality_match_before finality_first_inclusion_persist \
+  height_occurrence_keys finality_occurrence_history
 step "scripts/FGPinIds.lean --check-names"
 lake env lean --run scripts/FGPinIds.lean --check-names
 step "scripts/check-fg-pins.sh"
