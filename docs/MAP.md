@@ -1326,6 +1326,8 @@ unused imports, and negative controls. No baseline entries were added.
 │ .lean                                           │                                     │
 │ AvailableChainFGSAProofs/Proofs/Clean/Transfer  │ Pre-freeze path and transfer frame  │
 │ Frame.lean                                      │                                     │
+│ AvailableChainFGSAProofs/Proofs/Clean/Transfer  │ Private transfer with named C5     │
+│ .lean                                           │                                     │
 │ AvailableChainFGSAProofs/Proofs/Clean/Frame    │ Given-state Clean frame core        │
 │ .lean                                           │                                     │
 │ AvailableChainFGSAClaims/Claims/Foundations.lean │ Client safety; frozen K8 citation   │

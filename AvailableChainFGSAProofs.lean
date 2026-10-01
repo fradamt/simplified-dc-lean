@@ -32,3 +32,4 @@ public import AvailableChainFGSAProofs.Proofs.Assembly.Shared
 public import AvailableChainFGSAProofs.Proofs.Shared.Count
 public import AvailableChainFGSAProofs.Proofs.Clean.TransferFrame
 public import AvailableChainFGSAProofs.Proofs.Shared.Relay
+public import AvailableChainFGSAProofs.Proofs.Clean.Transfer
