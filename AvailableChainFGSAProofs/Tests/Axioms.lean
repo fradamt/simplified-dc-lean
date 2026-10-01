@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.HeadCover -- shake: keep (F1b.4a axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Clean.GateOutput -- shake: keep (gate output axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Clean.Transfer -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Assembly.Clean -- shake: keep (axiom audit commands)
@@ -393,3 +394,5 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_cleanPrefixTruncationClaim
 #print axioms AvailableChain.FGSA.Run.fgsa_cleanSafetyClaim
 #print axioms AvailableChain.FGSA.Run.fgsa_cleanSafety_outputs
+
+#print axioms AvailableChain.FGSA.Run.batch_head_covers

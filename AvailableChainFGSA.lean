@@ -26,3 +26,5 @@ public import AvailableChainFGSA.Tests.RootCollision
 public import AvailableChainFGSA.Proofs.SetEq
 public import AvailableChainFGSA.Proofs.Head.Pool
 public import AvailableChainFGSA.Proofs.Head.Transfer
+public import AvailableChainFGSA.Proofs.Head.Walk
+public import AvailableChainFGSA.Proofs.Head.Score

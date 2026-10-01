@@ -38,3 +38,4 @@ public import AvailableChainFGSAProofs.Proofs.Clean.Transfer
 public import AvailableChainFGSAProofs.Proofs.Clean.Zero
 public import AvailableChainFGSAProofs.Proofs.Clean.Safety
 public import AvailableChainFGSAProofs.Proofs.Assembly.Clean
+public import AvailableChainFGSAProofs.Proofs.Shared.HeadCover
