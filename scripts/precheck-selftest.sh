@@ -171,7 +171,8 @@ expect_rejection guard-lists-drop "$rc" "$scratch/lists-drop.log" "GUARD LIST RE
 expect_rejection guard-lists-policy "$rc" "$scratch/lists-drop.log" "MAIN POLICY FAIL guard-lists main=${source_base:0:7} target=${source_base:0:7}"
 expect_no_build "$target"
 
-printf 'EXPECTED %s selftest removal control\n' "$removed" > "$target/scripts/guard-lists-allow.txt"
+# Append: keep the branch's own approved removal lines.
+printf 'EXPECTED %s selftest removal control\n' "$removed" >> "$target/scripts/guard-lists-allow.txt"
 rc=0
 bash "$policy/scripts/precheck.sh" "$target" > "$scratch/lists-allow.log" 2>&1 || rc=$?
 expect_guard_pass guard-lists-allow "$rc" "$scratch/lists-allow.log"
