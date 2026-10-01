@@ -3,6 +3,7 @@ public import AvailableChainKitFG.Accountable
 public import AvailableChainKitFG.CrossingNoFinal
 public import AvailableChainKitFG.Correspondence
 public import AvailableChainKitFG.CausalCap
+public import AvailableChainKitFG.ViewLockChains
 
 /-! Kernel dependency audit for the FG chain lemmas without root premises. -/
 
@@ -21,3 +22,7 @@ public import AvailableChainKitFG.CausalCap
 #print axioms AvailableChain.KitFG.finalityCap_row
 #print axioms AvailableChain.KitFG.finalityCap_height_row
 #print axioms AvailableChain.KitFG.causalCap
+#print axioms AvailableChain.KitFG.ViewLockOfChainsStatement_def
+#print axioms AvailableChain.KitFG.ViewLockOfHonestChainsStatement_def
+#print axioms AvailableChain.KitFG.viewLock_of_chains
+#print axioms AvailableChain.KitFG.viewLock_of_honest_chains

@@ -1043,6 +1043,27 @@ Step 2 adds the following modules and E-15 facts. Paths are relative to
 `StoreInvDef`, `ViewLock` and `HonestRows` are definition modules with
 `@[expose] public section`; `scripts/baselines/kitfg-def-modules.txt` lists them.
 
+C1 adds the view producer below. The root imports both production modules.
+`ViewLockChainsDef` is also in the definition-module list. The Tests glob
+builds the regression and axiom audit with `AvailableChainKitFG`.
+
+```text
+┌────────────────────────────┬──────────────────────────────────────────────────────────────┐
+│ Module (KitFG/)            │ Role                                                         │
+├────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│ ViewLockChainsDef.lean     │ Closed chain and honest-chain Statements; complete _def      │
+│ ViewLockChains.lean        │ ViewLock from chain agreement or a strict fault weight bound │
+│ Tests/ViewLockChains.lean  │ Both producers; sibling at the strict threshold; one fault   │
+│ Tests/Axioms.lean          │ Kernel dependencies of both equations and producer proofs   │
+└────────────────────────────┴──────────────────────────────────────────────────────────────┘
+```
+
+Both producers use the accepted carrier's `h_F` and the strict comparison
+`θ < hOf E cfg W`. The honest form needs only `noSlash` on the two chains.
+DC: `ChainState/FinalityComparison.lean:50–56`; same strict comparison and
+finalized ancestry. Root collision freedom is a theorem here because roots
+identify content (`Accountable.lean:15–18`; GLY:57–58, intentional).
+
 ```text
 ┌─────────────────────────────┬──────────────────────────────────────────────┬─────────────────────┐
 │ Script                      │ Check                                        │ Exit codes          │
