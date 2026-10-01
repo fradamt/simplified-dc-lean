@@ -548,3 +548,23 @@ theorem AvailableChain.Gen.V2.SingleProposerRecurrence_def e68862c9867837c9
 def AvailableChain.Gen.V2.OutageInterval fa178df343dc8583
 theorem AvailableChain.Gen.V2.OutageInterval_def 3e0808ebf805aab3
 ```
+
+### `AvailableChainGeneric.Statements.V2.DCProps`
+
+```text
+def AvailableChain.Gen.V2.ConsistentFrom 8292f6c22dd20f4b
+theorem AvailableChain.Gen.V2.ConsistentFrom_def 797ebb7fc55efba1
+def AvailableChain.Gen.V2.AgreeFrom 824a873856bb3790
+theorem AvailableChain.Gen.V2.AgreeFrom_def 78a9a9ab5a3c4181
+def AvailableChain.Gen.V2.MonotoneFrom 94f80f94ab5d3d15
+theorem AvailableChain.Gen.V2.MonotoneFrom_def f2e8d8f8dd279c5f
+structure AvailableChain.Gen.V2.SafeFrom 354557a8b804d905
+ctor AvailableChain.Gen.V2.SafeFrom.mk 3b720032cb646ef1
+theorem AvailableChain.Gen.V2.SafeFrom.agree 3406c889410b79aa
+theorem AvailableChain.Gen.V2.SafeFrom.monotone 8d7f43af5aab7df0
+theorem AvailableChain.Gen.V2.SafeFrom_def e90a07acd5629b93
+def AvailableChain.Gen.V2.InBy da03ae296b98ca77
+theorem AvailableChain.Gen.V2.InBy_def 7e6be42ee55cb800
+def AvailableChain.Gen.V2.PersistsFrom 52d2bc3b2b773572
+theorem AvailableChain.Gen.V2.PersistsFrom_def 757a827fa355d001
+```

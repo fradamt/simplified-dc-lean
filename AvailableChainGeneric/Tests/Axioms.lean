@@ -1,5 +1,6 @@
 module
 public import AvailableChainGeneric.Proofs.V2.DCRegimes
+public import AvailableChainGeneric.Proofs.V2.DCProps
 public import AvailableChainGeneric.Statements.V2.Slashing
 public import AvailableChainGeneric.Statements.Pure.Quorum
 public import AvailableChainGeneric.Statements.Pure.QuorumInter
@@ -463,3 +464,15 @@ theorem, in facade order. The library globs build this test module. -/
 #print axioms AvailableChain.Gen.V2.OutageInterval_def
 #print axioms AvailableChain.Gen.V2.RecoveryCore.to_dcRecoveryConditions
 #print axioms AvailableChain.Gen.V2.CutCore.to_dcOutageFields
+
+-- Statements/V2/DCProps.lean and Proofs/V2/DCProps.lean (G37)
+#print axioms AvailableChain.Gen.V2.ConsistentFrom_def
+#print axioms AvailableChain.Gen.V2.AgreeFrom_def
+#print axioms AvailableChain.Gen.V2.MonotoneFrom_def
+#print axioms AvailableChain.Gen.V2.SafeFrom_def
+#print axioms AvailableChain.Gen.V2.InBy_def
+#print axioms AvailableChain.Gen.V2.PersistsFrom_def
+#print axioms AvailableChain.Gen.V2.compatOn_iff_agreeFrom
+#print axioms AvailableChain.Gen.V2.monoOn_iff_monotoneFrom
+#print axioms AvailableChain.Gen.V2.compatOn_monoOn_iff_safeFrom
+#print axioms AvailableChain.Gen.V2.persistsFrom_iff_servedOn

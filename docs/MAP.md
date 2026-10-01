@@ -1498,3 +1498,17 @@ Paths omit `AvailableChainGeneric/` and `.lean`.
 │ Tests/DCRegimes         │ Gap-period instance and outage boundary checks │
 └─────────────────────────┴────────────────────────────────────────────────┘
 ```
+
+## G37 Gen DC property bridges (2026-10-01)
+
+Paths omit `AvailableChainGeneric/` and `.lean`.
+
+```text
+┌───────────────────────┬────────────────────────────────────────────────────┐
+│ Module                │ Contract or proof                                  │
+├───────────────────────┼────────────────────────────────────────────────────┤
+│ Statements/V2/DCProps │ Six DC output-property mirrors and equations       │
+│ Proofs/V2/DCProps     │ Four equivalences with the Gen.Pure properties     │
+│ Tests/DCProps         │ Closed endpoints, empty intervals, and source time │
+└───────────────────────┴────────────────────────────────────────────────────┘
+```
