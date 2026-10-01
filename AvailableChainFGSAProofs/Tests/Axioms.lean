@@ -1,4 +1,9 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.ExactHead -- shake: keep (J2 HEAD axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Shared.ExactService -- shake: keep (ExactService audit)
+public import AvailableChainFGSAProofs.Proofs.Shared.Regimes -- shake: keep (gate regime audit)
+public import AvailableChainFGSAProofs.Proofs.Shared.GateReceipt -- shake: keep (gate receipt audit)
+public import AvailableChainFGSAProofs.Proofs.Shared.ScoreRun -- shake: keep (G25 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.OpeningSource -- shake: keep (F1b.9 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.KeepExact -- shake: keep (F1b.8 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Assembly.Root -- shake: keep (axiom audit commands)
@@ -446,6 +451,23 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_storeSlashableBound_of_unforgeable
 
 #print axioms AvailableChain.FGSA.Run.fgsa_slashableBound_of_valid
+
+-- F1b.4b round 5: G25 run producer and its proved helpers.
+#print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_proposal_pools
+#print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_stored_proposal_eq
+#print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_metadata_retained
+#print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_carried_raw_subset
+#print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_raw_subset
+#print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_proposalsAt_eq
+#print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_frozen_vote_relay
+#print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_raw_extra
+#print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_block_forward
+#print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_block_backward
+#print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_support_forward
+#print axioms AvailableChain.FGSA.Run.fgsa_scoreRun_support_backward
+#print axioms AvailableChain.FGSA.Run.fgsa_score_eq_on_run
+#print axioms AvailableChain.FGSA.Run.fgsa_score_eq_on_clean
+#print axioms AvailableChain.FGSA.Run.fgsa_score_eq_on_recovery
 -- Wave D1: every new public definition and theorem.
 #print axioms AvailableChain.FGSA.Run.fgsa_grid_sa_proposalTime
 #print axioms AvailableChain.FGSA.Run.fgsa_grid_engine_proposalTime
@@ -494,4 +516,43 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_reset_stage_sum
 #print axioms AvailableChain.FGSA.Run.fgsa_action_time_residue
 
+-- F1b.4b G11 run suffix transport and regime wrappers.
+#print axioms AvailableChain.FGSA.Run.fgsa_walkRun_frozen_block
+#print axioms AvailableChain.FGSA.Run.fgsa_walkRun_full_domain
+#print axioms AvailableChain.FGSA.Run.fgsa_walkRun_path_domain
+#print axioms AvailableChain.FGSA.Run.fgsa_walkRun_eligible_iff
+#print axioms AvailableChain.FGSA.Run.fgsa_walkRun_proposal_parent
+#print axioms AvailableChain.FGSA.Run.fgsa_walkRun_current_block_eq
+#print axioms AvailableChain.FGSA.Run.fgsa_walkRun_reflected_block
+#print axioms AvailableChain.FGSA.Run.fgsa_ghost_transfer_sfx_on_run
+#print axioms AvailableChain.FGSA.Run.fgsa_ghost_transfer_sfx_on_clean
+#print axioms AvailableChain.FGSA.Run.fgsa_ghost_transfer_sfx_on_recovery
+#print axioms AvailableChain.FGSA.Run.fgsa_gateReceipt_stamps
+#print axioms AvailableChain.FGSA.Run.fgsa_gateReceipt_block_stamp_lt
+#print axioms AvailableChain.FGSA.Run.fgsa_gateReceipt_block_to_tick
+#print axioms AvailableChain.FGSA.Run.fgsa_gateReceipt
+#print axioms AvailableChain.FGSA.Run.fgsa_gateReceipt_clean
+#print axioms AvailableChain.FGSA.Run.fgsa_gateReceipt_recovery
 #print axioms AvailableChain.FGSA.Run.exactHead_of_pivot_ancestry
+
+-- J2 HEAD clause: G25/G11, guarded ancestry and exact terminal adoption.
+#print axioms AvailableChain.FGSA.Run.fgsa_headVote_best_ancestry_of_cover
+#print axioms AvailableChain.FGSA.Run.ExactHeadGeometry
+#print axioms AvailableChain.FGSA.Run.fgsa_headVote_exact_of_covered_parent
+#print axioms AvailableChain.FGSA.Run.exactHead_of_proposal_on_run
+#print axioms AvailableChain.FGSA.Run.ExactHeadRunGeometry
+#print axioms AvailableChain.FGSA.Run.exactService_head_of_proposal
+#print axioms AvailableChain.FGSA.Run.exactService_head_of_proposal_clean
+#print axioms AvailableChain.FGSA.Run.exactService_head_of_proposal_recovery
+#print axioms AvailableChain.FGSA.Run.ExactServiceGateGeometry
+#print axioms AvailableChain.FGSA.Run.exactService_emitted_head
+#print axioms AvailableChain.FGSA.Run.exactService_gate_receipts_of_head
+#print axioms AvailableChain.FGSA.Run.exactService_gate_raw_of_head
+#print axioms AvailableChain.FGSA.Run.exactService_fastWrite_of_gateService
+#print axioms AvailableChain.FGSA.Run.exactService_opening_of_gateService
+#print axioms AvailableChain.FGSA.Run.exactService_gate_at_of_head
+#print axioms AvailableChain.FGSA.Run.exactService_gate_of_head
+#print axioms AvailableChain.FGSA.Run.exactService_of_head_and_gate
+#print axioms AvailableChain.FGSA.Run.exactService_participation_of_card
+#print axioms AvailableChain.FGSA.Run.exactService_of_head_clean
+#print axioms AvailableChain.FGSA.Run.exactService_of_head_recovery

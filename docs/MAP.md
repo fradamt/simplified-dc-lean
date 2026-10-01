@@ -1412,6 +1412,16 @@ unused imports, and negative controls. No baseline entries were added.
 │ OpeningSource.lean                              │                                     │
 │ AvailableChainFGSAProofs/Proofs/Shared/Channels │ Channel equations and row ordering  │
 │ .lean                                           │                                     │
+│ AvailableChainFGSAProofs/Proofs/Shared/StoreRun │ Cumulative run store metadata       │
+│ .lean                                           │                                     │
+│ AvailableChainFGSAProofs/Proofs/Shared/ScoreRun │ G25 scores; G11 suffix and regimes  │
+│ .lean                                           │                                     │
+│ AvailableChainFGSAProofs/Proofs/Shared/         │ Active HEAD receipts                │
+│ GateReceipt.lean                                │                                     │
+│ AvailableChainFGSAProofs/Proofs/Shared/         │ ExactService HEAD clause            │
+│ ExactHead.lean                                  │                                     │
+│ AvailableChainFGSAProofs/Proofs/Shared/         │ Exact gate service from HEAD reads  │
+│ ExactService.lean                               │                                     │
 │ AvailableChainFGSAProofs/Proofs/Clean/Closure   │ Inclusive history and source reads  │
 │ AvailableChainFGSAProofs/Proofs/Clean/GateOutput │ Conditional gate result below S    │
 │ .lean                                           │                                     │

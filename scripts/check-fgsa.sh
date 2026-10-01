@@ -189,7 +189,9 @@ gate_with_slot lake env lean --run scripts/CheckFGSAAxioms.lean "${TEST_ROOTS[@]
   mem_proposalRowsFor_iff proposalRowsFor_nodup proposalRowsFor_sublist proposalRowsFor_origin \
   proposalRowsFor_valid proposalRowsFor_excludes_chain proposalRowsFor_perm \
   proposalRows_eq_proposalRowsFor blockAccepted_rowsValid admitBlock_invalid_rows fgBlockOf_mono \
-  rowsValidStored_admitBlock rowsValidStored_process rowsValidStored_clock rowsValidStored_reachable
+  rowsValidStored_admitBlock rowsValidStored_process rowsValidStored_clock rowsValidStored_reachable \
+  fgsa_headInTree_reanchor_of_pivot fgsa_score_eq_on_retained_suffix fgsa_getHead_covers_of_dominated_suffix \
+  fgsa_getHead_exact_of_dominated_suffix fgsa_getHead_reanchor_of_dominated_suffix fgsa_getHead_avoids_unsupported_child
 echo "== lease instances"
 gate_with_slot lake env lean --run scripts/CheckFGSALease.lean
 # The `leanIn "AvailableChainFGSA"` names of AvailableChainKitFG/Pins.lean get
