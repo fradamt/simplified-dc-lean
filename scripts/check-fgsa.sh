@@ -158,7 +158,13 @@ if [ "${SOURCE_ONLY:-0}" = 1 ]; then
 fi
 echo "== axioms, build coverage, import closure"
 gate_with_slot lake env lean --run scripts/CheckFGSAAxioms.lean --expect \
-  StoreSetEq admitRow_setEq proposalRows_perm_setEq propose_setEq blockAccepted_slot_pos
+  StoreSetEq admitRow_setEq proposalRows_perm_setEq propose_setEq blockAccepted_slot_pos \
+  parentFoldState_slot rowValidFor_iff rowValidFor_finality_irrel rowsValidForParent_iff \
+  rowsValidForParent_slot_irrel rowsValidForParent_perm rowsValidStored_initial \
+  encRowPayload_inj RowPayload.ofRow_toRow rowValidFor_progress_first row_bit_persist \
+  rowValidFor_fold rowValidFor_finality_persist mem_allBlockRows_iff proposalRowsFor_missing \
+  mem_proposalRowsFor_iff proposalRowsFor_nodup proposalRowsFor_sublist proposalRowsFor_origin \
+  proposalRowsFor_valid proposalRowsFor_excludes_chain proposalRowsFor_perm
 echo "== lease instances"
 gate_with_slot lake env lean --run scripts/CheckFGSALease.lean
 # The `leanIn "AvailableChainFGSA"` names of AvailableChainKitFG/Pins.lean get
