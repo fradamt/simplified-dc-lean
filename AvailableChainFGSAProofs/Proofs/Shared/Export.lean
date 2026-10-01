@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.HeadGeometry
 public import AvailableChainFGSAProofs.Proofs.Shared.Release
 public import AvailableChainFGSAProofs.Proofs.Shared.SameLabel
 public import AvailableChainFGSAClaims.Claims.Shared
@@ -31,6 +32,14 @@ theorem fgsa_releaseClaim (p : Params) : ReleaseClaim p := by
   intro i x s B _ _ hheads
   exact ⟨fgsa_release_bound p c E rho h.set.valid h.set.noRestart
     h.set.cstar h.set.delta i x s B hheads, h.lt⟩
+
+/-- P3 F1b.5, ap.headReachesLo.v6 clauses 1–3; bp02 §7.
+Class (iii), Claims wrapper through the L42 Export boundary.
+DC: Goldfish/Walk.lean:197 `ghost_step_none`, :433 `ghost_reaches`.
+INTENTIONAL: the FJ floor and duty-view witness give the height bound
+(bp02 §7); the internal proof uses only store reachability. -/
+theorem fgsa_headReachesLoClaim (p : Params) : HeadReachesLoClaim p :=
+  fgsa_headReachesLo p
 
 end AvailableChain.FGSA.Run
 end

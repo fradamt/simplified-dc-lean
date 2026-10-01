@@ -39,6 +39,12 @@ public import AvailableChainFGSAProofs.Proofs.Clean.Transfer
 public import AvailableChainFGSAProofs.Proofs.Clean.Zero
 public import AvailableChainFGSAProofs.Proofs.Clean.Safety
 public import AvailableChainFGSAProofs.Proofs.Assembly.Clean
+public import AvailableChainFGSAProofs.Proofs.Shared.HeadCover
+public import AvailableChainFGSAProofs.Proofs.Shared.HeadGeometry
+public import AvailableChainFGSAProofs.Proofs.Shared.KeepExact
+public import AvailableChainFGSAProofs.Proofs.Shared.Healed
+public import AvailableChainFGSAProofs.Proofs.Shared.Compose
+public import AvailableChainFGSAProofs.Proofs.Shared.OpeningSource
 public import AvailableChainFGSAProofs.Proofs.Assembly.Root
 public import AvailableChainFGSAProofs.Proofs.Shared.OpeningAfterGate
 public import AvailableChainFGSAProofs.Proofs.Shared.HeadAfterSettlement

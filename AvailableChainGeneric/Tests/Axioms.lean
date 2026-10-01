@@ -612,6 +612,8 @@ theorem, in facade order. The library globs build this test module. -/
 #print axioms AvailableChain.Gen.Pure.firstHead_after
 #print axioms AvailableChain.Gen.Pure.firstHead_after_bound
 
+#print axioms AvailableChain.Gen.Pure.walk_reanchor_of_best_ancestry
+#print axioms AvailableChain.Gen.Pure.walk_best_ancestry_of_cover
 -- Scalar Batch contracts and the anchored BatchStatement proof.
 #print axioms AvailableChain.Gen.Pure.AnchorPassesStatement
 #print axioms AvailableChain.Gen.Pure.AnchorPassesStatement_def

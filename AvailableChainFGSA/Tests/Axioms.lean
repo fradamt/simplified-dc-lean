@@ -1,4 +1,6 @@
 module
+public import AvailableChainFGSA.Proofs.Head.Score -- shake: keep (F1b.4a axiom audit)
+public import AvailableChainFGSA.Proofs.Head.Walk -- shake: keep (F1b.4a axiom audit)
 public import AvailableChainFGSA.Proofs.Head.Transfer
 public import AvailableChainFGSA.Proofs.Head.Pool
 public import AvailableChainFGSA.Proofs.BlockAncestry
@@ -328,3 +330,24 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 #print axioms AvailableChain.FGSA.fgsa_confirmationFrom_covers_majority
 
 #print axioms AvailableChain.FGSA.fgsa_headVote_covers_of_transfer
+
+#print axioms AvailableChain.FGSA.fgsa_getHead_covers_of_dominated_suffix
+
+#print axioms AvailableChain.FGSA.fgsa_getHead_exact_of_dominated_suffix
+
+#print axioms AvailableChain.FGSA.fgsa_getHead_reanchor_of_dominated_suffix
+
+#print axioms AvailableChain.FGSA.fgsa_getHead_avoids_unsupported_child
+
+
+#print axioms AvailableChain.FGSA.fgsa_confirmationFrom_exact_of_dominated_suffix
+
+#print axioms AvailableChain.FGSA.fgsa_headInTree_covers_of_transfer
+
+#print axioms AvailableChain.FGSA.fgsa_score_eq_on_retained_suffix
+
+#print axioms AvailableChain.FGSA.fgsa_filtered_anchorClosed
+#print axioms AvailableChain.FGSA.fgsa_headInTree_noEligibleChild
+#print axioms AvailableChain.FGSA.fgsa_headInTree_mem_or_anchor
+
+#print axioms AvailableChain.FGSA.fgsa_headInTree_reanchor_of_pivot
