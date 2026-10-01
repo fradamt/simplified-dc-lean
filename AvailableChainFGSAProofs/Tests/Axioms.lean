@@ -45,6 +45,7 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 
 #print axioms AvailableChain.FGSA.Run.afterTicks_eq_stateBefore
 #print axioms AvailableChain.FGSA.Run.fgsaSafetyClaims_of_headReachesLo
+#print axioms AvailableChain.FGSA.Run.fgsaSafetyClaims
 #print axioms AvailableChain.FGSA.Run.afterTicks_node
 #print axioms AvailableChain.FGSA.Run.afterTicks_eq_tick_preTick
 #print axioms AvailableChain.FGSA.Run.preIdx_le_afterTicksIdx

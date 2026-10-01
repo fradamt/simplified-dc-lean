@@ -50,7 +50,8 @@ Rules (GLY §F row → what this script checks):
   F-12 FAIL    the closure of Generic Statements.Pure (not Walk) holds only
                Model.Objects.* and Statements.Pure (not Walk); the closure of
                Statements.V2 also holds Statements.V2 and the closures of
-               EngineV2.{Engine,Conditions,Laws}.* and KitV2.ClockLaws.
+               EngineV2.{Engine,Conditions,Laws}.* and KitV2.{ClockLaws,
+               DutyClockLaws} (DutyClockLaws: no-round migration 02).
   F-13 FAIL    a theorem short name in more than one library (exact allow
                keys or legacy baseline); a `private theorem` in Generic.
   F-14 REVIEW  a theorem outside Generic with a PartialSynchrony or
@@ -366,7 +367,8 @@ def rule_f12(x):
     v2 = [m for m in by_mod if has_prefix(m, [GEN_S_V2])]
     pure_ok = lambda t: has_prefix(t, ['AvailableChainModel.Objects', GEN_S_PURE]) and not has_prefix(t, [GEN_S_WALK])
     roots = [m for m in by_mod if has_prefix(m, ['AvailableChainEngineV2.Engine', 'AvailableChainEngineV2.Conditions',
-                                                 'AvailableChainEngineV2.Laws', 'AvailableChainKitV2.ClockLaws'])]
+                                                 'AvailableChainEngineV2.Laws', 'AvailableChainKitV2.ClockLaws',
+                                                 'AvailableChainKitV2.DutyClockLaws'])]
     v2_allowed = set(roots)
     for r in roots:
         v2_allowed |= C.closure(x.graph, r)

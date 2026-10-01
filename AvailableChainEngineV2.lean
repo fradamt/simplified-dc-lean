@@ -10,6 +10,7 @@ public import AvailableChainEngineV2.Laws.Isolation
 public import AvailableChainEngineV2.Laws.Hooks
 public import AvailableChainEngineV2.Laws.SelfDelivery
 public import AvailableChainEngineV2.Laws.Outputs
+public import AvailableChainEngineV2.Conditions.Duty.Lift
 
 @[expose] public section
 end

@@ -12,7 +12,7 @@ B7-TESTS           A facade imports no Tests module           BUILD:73-75,112
 B7-BODY            A facade contains only its import header   BUILD:73-75
 B7-GLOBS           Library globs: Lib.* (CheckSupport: Lib.+)  BUILD:73-75,171-175
 GLY-SPURE          S/Pure import set; Walk exception          GLY:401-403,463-465
-GLY-SV2            S/V2 set; only KitV2.ClockLaws              GLY:404-408; BUILD:115-116
+GLY-SV2            S/V2 set; only KitV2.{,Duty}ClockLaws       GLY:404-408; BUILD:115-116
 GLY-SAC            S/AC import set                            GLY:409-410
 GLY-PPURE          P/Pure import set; Walk exception          GLY:411,463-465
 GLY-PV2            P/V2 import set                            GLY:412
@@ -112,6 +112,8 @@ CLAIMS = "AvailableChainFGSAClaims"
 PROOFS = "AvailableChainFGSAProofs"
 INHABIT = "AvailableChainFGSAInhabit"
 CLOCK = "AvailableChainKitV2.ClockLaws"
+DUTY_CLOCK = "AvailableChainKitV2.DutyClockLaws"  # no-round migration 02: same shape as CLOCK
+CLOCKS = (CLOCK, DUTY_CLOCK)
 WALK = "AvailableChainGridCO.Model.Walk"
 STORE_FACTS = "AvailableChainGridCO.Proofs.StoreFacts"
 FUTURE_LIBS = {GEN, RUN, CLAIMS, PROOFS, INHABIT, "AvailableChainCheckSupport"}
@@ -325,7 +327,7 @@ def is_statement(ctx: Context, name: str) -> bool:
 
 
 def is_proof(ctx: Context, name: str) -> bool:
-    if name in ctx.facades or is_test(name) or name in ctx.definitions or name == CLOCK:
+    if name in ctx.facades or is_test(name) or name in ctx.definitions or name in CLOCKS:
         return False
     return ("Proofs" in name.split(".")[1:]
             or any_under(name, (KITFG, "AvailableChainKit", "AvailableChainKitV2", PROOFS)))
@@ -344,7 +346,7 @@ def pure_statements(dep: str) -> bool:
 
 
 def v2_base(dep: str) -> bool:
-    return (pure_base(dep) or pure_statements(dep) or under(dep, SV) or dep == CLOCK
+    return (pure_base(dep) or pure_statements(dep) or under(dep, SV) or dep in CLOCKS
             or any_under(dep, tuple("AvailableChainEngineV2." + p for p in ("Engine", "Conditions", "Laws"))))
 
 
