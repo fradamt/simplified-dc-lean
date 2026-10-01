@@ -1465,6 +1465,7 @@ unused imports, and negative controls. No baseline entries were added.
 │ AvailableChainFGSAProofs/Proofs/Shared/Export   │ Frozen Shared claim wrappers        │
 │ .lean                                           │ SYN L50 Shared export boundary      │
 │ AvailableChainFGSAProofs/Proofs/Assembly/Shared │ Shared exports for the package root │
+│ AvailableChainFGSAProofs/Proofs/Assembly/Root.lean │ SYN L58 safety aggregate; head premise │
 │ AvailableChainFGSAProofs/Proofs/Assembly/Clean  │ Clean cut and safety claim assembly │
 │ .lean                                           │ SYN L50 assembly boundary           │
 │ AvailableChainFGSAProofs/Proofs/Foundations/    │ Source discipline and source frame  │
