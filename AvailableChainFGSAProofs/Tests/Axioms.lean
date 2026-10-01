@@ -317,6 +317,7 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.clean_gate_same
 #print axioms AvailableChain.FGSA.Run.clean_gate_nonempty
 #print axioms AvailableChain.FGSA.Run.clean_gate_history_osn
+#print axioms AvailableChain.FGSA.Run.clean_gateHistStep
 #print axioms AvailableChain.FGSA.Run.fgsa_releaseCount_antitone
 #print axioms AvailableChain.FGSA.Run.fgsa_release_store
 #print axioms AvailableChain.FGSA.Run.fgsa_release_bound

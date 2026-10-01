@@ -1,14 +1,15 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Clean.StateGate
+public import AvailableChainFGSAProofs.Proofs.Clean.Transfer
 public import AvailableChainFGSAProofs.Proofs.Shared.SameLabel
 public import AvailableChainFGSAProofs.Proofs.Shared.Count
 public import AvailableChainGeneric.Proofs.V2.Regimes
 
 public section
 
-/-! P3 §8.7 F2.5a; bp02 §§5.4–5.5. Gate history and independent guard.
+/-! P3 §8.7 F2.5a–b; bp02 §§5.4–5.5. Gate history and independent guard.
 Old history supplies the active honest batch; receipt coverage retains its paths.
-Ordered, Same, and nonempty extend the history without a new Continues field. -/
+Ordered, Same, and nonempty are proved first; transfer then supplies Continues. -/
 
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
@@ -789,6 +790,27 @@ theorem clean_gate_history_osn (b₀ : Time) :
     · subst j
       exact clean_gate_nonempty p c E rho b₀ h hq hf hsrc i x s hi ht hh hall
 
+
+/-- P3 §§8.2–8.7 F2.5b; bp02 §§5.4–5.6. Class B, frozen history step.
+DC: GSTZeroPreparedWalk.lean:546, SafetyRegimes.lean:53–80, and
+JointHistoryGapsIdx.lean:26,141. INTENTIONAL divergence: FG-SA has an
+F-anchored optional raw result, leases, and gate-before-action in one tick.
+The event-prefix step proves Ordered before retrospective Continues
+(bp02:553–613); it uses no closed safety theorem or successor state. -/
+theorem clean_gateHistStep (b₀ : Time) : CleanGateHistStep p c E rho b₀ := by
+  rw [CleanGateHistStep_def, CleanHistStep_def]
+  intro h hq hf hsrc i hi hgate hh hall
+  have hOSN := clean_gate_history_osn p c E rho b₀ h hq hf hsrc i hi hgate hh hall
+  refine ⟨hOSN.1, hOSN.2.1, hOSN.2.2, ?_⟩
+  intro j k x y s B hj hkj ht hk hB
+  rcases Nat.lt_or_eq_of_le (Nat.le_of_lt_succ hj) with hji | he
+  · exact hh.continues j k x y s B hji hkj ht hk hB
+  · subst j
+    apply cleanTransfer p c E rho b₀ h hq hf hsrc i k x y s B hi hkj ht hk hh hall hB
+    intro r C hC hrs
+    exact hOSN.1 r s C B
+      (cleanResults_mono (Nat.le_succ i) hC)
+      (cleanResults_mem_succ_iff.mpr (Or.inr ⟨x, ht, hB⟩)) hrs
 
 end AvailableChain.FGSA.Run
 end
