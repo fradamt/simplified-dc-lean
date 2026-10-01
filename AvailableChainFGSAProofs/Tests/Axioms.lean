@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Clean.GateOutput -- shake: keep (gate output axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Clean.Transfer -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Assembly.Clean -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.TransferFrame -- shake: keep (axiom audit commands)
@@ -372,3 +373,5 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.cleanHistoryAt_body
 #print axioms AvailableChain.FGSA.Run.cleanHistoryAt
 #print axioms AvailableChain.FGSA.Run.sExtends
+#print axioms AvailableChain.FGSA.Run.clean_gateOutput_body
+#print axioms AvailableChain.FGSA.Run.clean_gateOutput
