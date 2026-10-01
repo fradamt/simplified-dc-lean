@@ -5,6 +5,8 @@ public import AvailableChainFGSAProofs.Proofs.Clean.GateOutput
 public section
 
 namespace AvailableChain.FGSA.Run
+
+variable {ΔF : Time}
 open AvailableChain.SimplexFG
 open Gen.Pure (CompatOn MonoOn)
 
@@ -123,9 +125,11 @@ theorem cleanSafety_of_trunc_body
 
 /-- P3 §8.5, bp02 §6; DC Generic/Properties:27. INTENTIONAL difference:
 S origins use raw gate results and event indices at an inclusive finite cut.
-NoRestart is inherited from Base₂. -/
+NoRestart is inherited from Base₂.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem clean_sCompatible [Fintype V] {b₀ : Time}
-    (h : CleanCut₂ p c E rho b₀)
+    (h : CleanCut₂ p c E rho b₀ ΔF)
     (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
     (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho) :
     CompatOn (· ∈ rho.honest) (S_at p c E rho) (· ≤ timeIdx rho b₀) := by
@@ -138,9 +142,11 @@ theorem clean_sCompatible [Fintype V] {b₀ : Time}
 
 /-- P3 §8.5, bp02 §6; DC Generic/Properties:27,41 and Generic/Interface:64.
 INTENTIONAL representation difference: both FG-SA getters read S.
-The time domain is the bounded inclusive Clean cut. NoRestart is in Base₂. -/
+The time domain is the bounded inclusive Clean cut. NoRestart is in Base₂.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem clean_outputsAt [Fintype V] {b₀ : Time}
-    (h : CleanCut₂ p c E rho b₀)
+    (h : CleanCut₂ p c E rho b₀ ΔF)
     (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
     (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho) :
     ∀ g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed],
@@ -170,9 +176,11 @@ theorem clean_outputsAt [Fintype V] {b₀ : Time}
 
 /-- P3:3331–3335, bp02 §5.5; DC SafetyRegimes:61–75.
 INTENTIONAL difference: raw SA results, whole-result guard, and the cut
-before same-time deliveries. NoRestart is inherited from Base₂. -/
+before same-time deliveries. NoRestart is inherited from Base₂.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem cleanGateAt_body [Fintype V] {b₀ : Time}
-    (h : CleanCut₂ p c E rho b₀)
+    (h : CleanCut₂ p c E rho b₀ ΔF)
     (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
     (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho) :
   ∀ l x, SA.gateTime p.toParams l ≤ b₀ → x ∈ rho.honest →
@@ -223,9 +231,11 @@ theorem cleanGateAt_body [Fintype V] {b₀ : Time}
 /-- P3 §8.5, bp02 §§5.4–6; DC Legacy/Definitions/SafetyRegimes:53–80.
 INTENTIONAL difference: six finite-cut clauses use raw SA gates and exact
 FG-SA state origins. NoRestart is inherited from CleanCut₂ through Base₂.
-The conclusion is the unfolded frozen body; Claims stays in Export. -/
+The conclusion is the unfolded frozen body; Claims stays in Export.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem cleanTruncAt_body [Fintype V] {b₀ : Time}
-    (h : CleanCut₂ p c E rho b₀)
+    (h : CleanCut₂ p c E rho b₀ ΔF)
     (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
     (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho) :
   CompatOn (· ∈ rho.honest) (S_at p c E rho) (· ≤ timeIdx rho b₀) ∧
@@ -296,8 +306,8 @@ theorem cleanTruncAt_body [Fintype V] {b₀ : Time}
   · intro i j x _ hj hij _
     exact sExtends p c E rho h hq hf hsrc x i j hij hj
   · intro i v hi hv
-    have hframe := cleanFrame p c E rho (b₀ := b₀)
-    rw [CleanFrameStmt_def] at hframe
+    have hframe := cleanFrame (ΔF := ΔF) p c E rho (b₀ := b₀)
+    rw [CleanFrameStmt_def (ΔF := ΔF)] at hframe
     exact hframe h hq hf hsrc i hi
       (clean_invariant p c E rho h hq hf hsrc i hi) v hv
 

@@ -1,7 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Shared.StoreRun
 public import AvailableChainFGSARun.Proofs.Receipts
-public import AvailableChainGeneric.Statements.V2.Duty.Regimes
 
 public section
 
@@ -168,11 +167,14 @@ private theorem gateReceipt_block_decode {o : Obj p} {K : Block}
 /-- Blueprint 02:537–539 and 03:293–304, compatible receipt before a read.
 DC: Handlers/GoldfishVotePool.lean:810, retained resolved block membership.
 INTENTIONAL: the receiving FG-SA floor bounds earlier admission floors.
-Only the opaque proposal row list is passed to the receipt interface. -/
+Only the opaque proposal row list is passed to the receipt interface.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem fgsa_gateReceipt_block_to_tick
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (dl : Time → Time) (cut : Time) (hD : Gen.V2.Duty.DeliveryWithin E rho dl cut)
+    (dl : Time → Time) (cut : Time) (hD : Gen.V2.Duty.DeliveryWithinOn E rho
+      (fun o => ¬ isRowObject o) dl cut)
     (t : Time) (o : Obj p) (K : Block) (ho : blockOf? p o = some K)
     (hT : Gen.V2.Duty.Trigger E rho o t) (hlt : t < dl t) (hc : dl t ≤ cut)
     {j : Nat} {x : V} {u : Time} (hx : x ∈ rho.honest)
@@ -205,12 +207,14 @@ theorem fgsa_gateReceipt_block_to_tick
 DC: Goldfish/Confirmation.lean:434–441, HonestSupport.vote.
 INTENTIONAL: produce resolved honest HEAD receipts in the F-anchored gate view,
 with strict original early stamps and two consumer-supplied prefix bounds.
-The only timing pair is (voteTime s, gateTime s). -/
+The only timing pair is (voteTime s, gateTime s).
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem fgsa_gateReceipt
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
     (hC : V2.D.CStar (fgsaFamilies p c).fresh rho)
-    (s : Slot) (hSync : Gen.V2.Duty.LabelSync E rho
+    (s : Slot) (hSync : Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o)
       (SA.voteTime p.toParams s) (SA.gateTime p.toParams s))
     {i : Nat} {x : V} (ht : IsGateTick p c rho i x s) (B : Block)
     (hgeom : GateReceiptGeometry E rho
@@ -256,7 +260,7 @@ theorem fgsa_gateReceipt
     change ((4 * s + 2 : Nat) : Int) * p.Δ = 4 * p.Δ * (s : Int) + 2 * p.Δ
     push_cast
     ring
-  rw [Gen.V2.Duty.LabelSync_def] at hSync
+  rw [Gen.V2.Duty.LabelSyncOn_def] at hSync
   obtain ⟨dl, cut, hD, _, hlt, hbound, _, hcut, hhorizon⟩ := hSync
   obtain ⟨k, hk, _⟩ := fgsa_tick_total E rho hsch hDelta y hy (4 * s + 1)
     (hvt ▸ (hvote.le.trans (hearly.le.trans hhorizon)))

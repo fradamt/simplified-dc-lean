@@ -565,3 +565,8 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.fgsa_band_eq_of_same_floor
 #print axioms AvailableChain.FGSA.fgsa_eligible_eq_of_band_score
 #print axioms AvailableChain.FGSA.fgsa_eligible_eq_of_no_band_score
+
+#print axioms AvailableChain.FGSA.Run.HealthyPrefix₂.of_legacy
+#print axioms AvailableChain.FGSA.Run.HealthyPrefix₂.legacy_delivery
+#print axioms AvailableChain.FGSA.Run.Recovery₂.of_legacy
+#print axioms AvailableChain.FGSA.Run.Recovery₂.toRecoveryCore

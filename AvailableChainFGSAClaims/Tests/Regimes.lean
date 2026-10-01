@@ -82,8 +82,16 @@ private def smokeHealthy : V2.D.HealthyPrefixDelivery smokeEnv smokeRun 0 where
     rintro v _ i o t ⟨⟨o', hi, _⟩, _⟩
     exact (smokeNoDelivery i v o' t hi).elim
 
+private def smokeDelay : fgsaDelay (p := smokeParams) smokeEnv.Δ smokeEnv.Δ =
+    fun _ => smokeEnv.Δ := by
+  funext o
+  cases o with | mk a m => cases m <;> rfl
+
 private def smoke_healthyPrefix : HealthyPrefix₂ smokeParams smokeCodec smokeEnv smokeRun 0 :=
-  ⟨smoke_base, ⟨le_rfl, le_rfl⟩, smokeHealthy, fun _ ht hb => (not_lt_of_ge ht hb).elim⟩
+  ⟨smoke_base, ⟨le_rfl, le_rfl⟩, (by
+    rw [smokeDelay]
+    exact ⟨smokeHealthy.broadcast_emitted, smokeHealthy.relay_accepted⟩), le_rfl,
+    fun _ ht hb => (not_lt_of_ge ht hb).elim⟩
 
 private def smoke_cleanPrefix : CleanPrefix₂ smokeParams smokeCodec smokeEnv smokeRun 0 := by
   refine ⟨smoke_healthyPrefix, ?_⟩
@@ -97,14 +105,15 @@ private def smoke_clean : Clean₂ smokeParams smokeCodec smokeEnv smokeRun :=
   ⟨smoke_cleanPrefix, rfl⟩
 
 private def smoke_recovery : Recovery₂ smokeParams smokeCodec smokeEnv smokeRun 4 where
-  sync := {
-    broadcast_emitted := by
-      rintro v _ o t _ w _ hd _
+  deltaF := le_rfl
+  sync := by
+    rw [smokeDelay]
+    refine { broadcast_emitted := ?_, relay_accepted := ?_ }
+    · rintro v _ o t _ w _ hd _
       change max t 0 + 1 ≤ 0 at hd
       exact (not_le_of_gt (lt_add_of_le_of_pos (le_max_right t (0 : Time)) (by decide)) hd).elim
-    relay_accepted := by
-      rintro v _ i o t ⟨⟨o', hi, _⟩, _⟩
-      exact (smokeNoDelivery i v o' t hi).elim }
+    · rintro v _ i o t ⟨⟨o', hi, _⟩, _⟩
+      exact (smokeNoDelivery i v o' t hi).elim
   gap := by
     intro t ht hh
     change 0 ≤ t at ht

@@ -10,15 +10,19 @@ public section
 
 namespace AvailableChain.FGSA.Run
 
+variable {ΔF : Time}
+
 variable (p : Params)
 
 /-- P3 §§4.7, 8.5, SYN L39; DC Legacy/Definitions/SafetyRegimes:53–80
 and Generic/Conditions:134. INTENTIONAL difference: FG-SA has a finite
 inclusive cut and strict-before-cut participation. Only a positive cut
 supplies quorum for the two F1 channels. Both branches inherit NoRestart
-from CleanCutPrem.set.base. Assembly makes the single cut split. -/
+from CleanCutPrem.set.base. Assembly makes the single cut split.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem fgsa_cleanCutClaim : CleanCutClaim p := by
-  intro V _ _ In c E rho pt hc
+  intro V _ _ In c E rho ΔF pt hc
   have hnonneg : 0 ≤ pt.b₀ := hc.set.cut.1
   by_cases hz : pt.b₀ = 0
   · cases pt with
@@ -54,11 +58,13 @@ theorem fgsa_cleanSafetyClaim : CleanSafetyClaim p :=
 
 /-- bp02 §6, S3 D43/D61; DC Generic/Properties:27,41,48 and Interface:64.
 INTENTIONAL difference: stable and confirmed both read S at all integer
-times. This projection inherits NoRestart from hc.set.pre.base. -/
+times. This projection inherits NoRestart from hc.set.pre.base.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem fgsa_cleanSafety_outputs
     {V : Type} [DecidableEq V] [Fintype V] {In : Type} {c : AppCodec In}
     {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)} {pt : Unit}
-    (hc : CleanPrem p c E rho pt) :
+    (hc : CleanPrem p c E rho pt ΔF) :
     ∀ g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed],
       Gen.Pure.CompatOn (· ∈ rho.honest)
         (fun t x => V2.D.outputAt E rho g x t) (fun _ => True) ∧

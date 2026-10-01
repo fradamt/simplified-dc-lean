@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSARun.Proofs.Interface
 public import AvailableChainFGSARun.Proofs.Acceptance
 public import AvailableChainFGSARun.Proofs.Readiness
 public import AvailableChainFGSARun.Proofs.Schedule
@@ -6,6 +7,7 @@ public import AvailableChainFGSARun.Statements.Receipts
 public import AvailableChainFGSARun.Proofs.Emission
 public import AvailableChainFGSARun.Proofs.EmissionWellFormed
 public import AvailableChainGeneric.Proofs.V2.Duty.Signatures
+public import AvailableChainGeneric.Proofs.V2.Duty.DeliveryBy
 
 public section
 
@@ -769,12 +771,14 @@ theorem fgsa_head_excluded_before (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
     exact t78_vote_read_stamp E rho hS x D s i B h₂
 
 /-- Both delivery forms retain an in-window HEAD or two strictly stamped cap witnesses.
-The trigger can be an honest emission or acceptance, including a carried HEAD. -/
+The trigger can be an honest emission or acceptance, including a carried HEAD.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem fgsa_head_receipt (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hDelta : E.Δ = p.Δ) (hExecution : V2.D.ExecutionValid E rho)
     (hNoRestart : V2.D.NoRestart rho) (dl : Time → Time) (cut : Time)
     (s : Slot) (i : Fin p.n) (b : Block) (t : Time) (w : V)
-    (hD : Gen.V2.Duty.DeliveryWithin E rho dl cut)
+    (hD : Gen.V2.Duty.DeliveryWithinOn E rho (fun o => ¬ isRowObject o) dl cut)
     (hT : Gen.V2.Duty.Trigger E rho (ofHead p ⟨.seat (.head s) i, b⟩) t)
     (hw : w ∈ rho.honest) (hcut : dl t ≤ cut) (hlt : t < dl t)
     (hwindow : (V2.D.Run.stateBeforeTime E rho (dl t) w).st.slot p ≤ s + 1) :
@@ -824,7 +828,8 @@ theorem fgsa_head_receipt (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
       rfl
     obtain ⟨j, hj⟩ := List.mem_iff_getElem?.mp (hS.tick_total w hw _ hfloorpub hfloor0
       ((Gen.V2.Duty.pubFloor_le E t).trans htime.2.1))
-    have hprocessed := Gen.V2.Duty.accepted_by_deadline E rho dl cut o t w hD hT hw hcut hlt hS
+    have hprocessed := Gen.V2.Duty.accepted_by_deadline_on E rho (fun o => ¬ isRowObject o)
+      dl cut o t w hD (by change ¬ False; exact not_false) hT hw hcut hlt hS
       ((fgsaHooks p c).excludes_stable E rho hS) (processed_stable E rho hS)
       (fgsa_hReady_of_not_block (by intro s' B raw sup rows h; cases h)
         (fgsa_hWF_of_delivery hExecution.wire))
@@ -922,12 +927,14 @@ theorem fgsa_honest_row_receipt (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)
     (Or.inl ⟨_, hh, hEmit⟩) hw hcut hlt
 
 /-- A required compatible proposal is stored at its own receipt deadline.
-This transports its block only; each carried HEAD uses its own trigger. -/
+This transports its block only; each carried HEAD uses its own trigger.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem fgsa_proposal_receipt (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hDelta : E.Δ = p.Δ) (hExecution : V2.D.ExecutionValid E rho)
     (hNoRestart : V2.D.NoRestart rho) (dl : Time → Time) (cut : Time)
     (s : Slot) (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (t : Time) (w : V) (hD : Gen.V2.Duty.DeliveryWithin E rho dl cut)
+    (t : Time) (w : V) (hD : Gen.V2.Duty.DeliveryWithinOn E rho (fun o => ¬ isRowObject o) dl cut)
     (hT : Gen.V2.Duty.Trigger E rho (ofWire p ⟨.proposer s, .proposal b raw sup rows⟩) t)
     (hw : w ∈ rho.honest) (hcut : dl t ≤ cut) (hlt : t < dl t)
     (hCompat : Block.Compatible b (eraseFG (V2.D.Run.stateBeforeTime E rho (dl t) w).st.fg.F)) :
@@ -987,7 +994,8 @@ theorem fgsa_proposal_receipt (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     rw [hd]
     simp only [blockExcluded, activeCompatible, hCompat, Bool.not_true, Bool.false_or]
     exact fgsa_trigger_invalid_false E rho o t s b raw sup rows hT hd _
-  have hp := Gen.V2.Duty.accepted_by_deadline E rho dl cut o t w hD hT hw hcut hlt hS
+  have hp := Gen.V2.Duty.accepted_by_deadline_on E rho (fun o => ¬ isRowObject o)
+      dl cut o t w hD (by change ¬ False; exact not_false) hT hw hcut hlt hS
     ((fgsaHooks p c).excludes_stable E rho hS) (processed_stable E rho hS)
     (fgsa_hReady_of_parentStored hd (fgsa_hWF_of_delivery hExecution.wire) hParent)
     (fgsaAcceptance p c) C (fun k => cstoreInv_stateBefore E rho k w) htime.2.2 j hj
@@ -1000,13 +1008,15 @@ theorem fgsa_proposal_receipt (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   exact ⟨Y, hY, Block.root_injective ((eraseFG_root Y).trans hroot)⟩
 
 /-- An honest HEAD in the receipt window is retained with a strict stamp.
-The HEAD family can satisfy CStar independently of the linked FG family. -/
+The HEAD family can satisfy CStar independently of the linked FG family.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem fgsa_honest_head_receipt (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hDelta : E.Δ = p.Δ) (hExecution : V2.D.ExecutionValid E rho)
     (hNoRestart : V2.D.NoRestart rho)
     (_hCStar : V2.D.CStar (fgsaFamilies p c).fresh rho)
     (dl : Time → Time) (cut : Time) (s : Slot) (i : Fin p.n) (b : Block)
-    (t : Time) (v w : V) (hD : Gen.V2.Duty.DeliveryWithin E rho dl cut)
+    (t : Time) (v w : V) (hD : Gen.V2.Duty.DeliveryWithinOn E rho (fun o => ¬ isRowObject o) dl cut)
     (hv : v ∈ rho.honest)
     (hEmit : V2.D.Run.emits E rho v (ofHead p ⟨.seat (.head s) i, b⟩) t)
     (hw : w ∈ rho.honest) (hcut : dl t ≤ cut) (hlt : t < dl t)
