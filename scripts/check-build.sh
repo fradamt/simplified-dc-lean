@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# The mechanical build checks of BUILD §7.3, (a)–(i), in order:
+# The mechanical build checks of BUILD §7.3, (a)–(j), in order:
 #   (a) check-module-headers.py   (b) check-expose.py
 #   (c) rebuild-cone-test.sh <CONE_MODULE> (default
 #       AvailableChainGridCO.Proofs.Map; a throwaway copy and one Lean build)
@@ -7,6 +7,8 @@
 #   (f) shake-report.sh (REPORT only; never fails the run unless it cannot run)
 #   (g) chain-depth.py (REPORT only) (h) check-transparency.py
 #   (i) check-gly-rules.sh       (includes compiled CheckGenFirst.lean)
+#   (j) self-tests of the checkers: check-layers-selftest.sh and
+#       shake-report-selftest.sh (no Lean; fixtures in temporary directories)
 # (d) and (e) run when their script exists; else "SKIPPED: not yet present".
 # SKIP_CONE=1 skips (c) (it needs a built tree and a Lean build).
 # Every check runs; the summary lists each result. Exit 0: every check that
@@ -42,6 +44,7 @@ echo "=== (g) chain-depth"
 if python3 scripts/chain-depth.py; then RESULTS+=("(g) chain-depth: REPORT"); else RESULTS+=("(g) chain-depth: FAIL (could not run)"); FAILED=1; fi
 run h check-transparency python3 scripts/check-transparency.py
 run i check-gly-rules gate_with_slot bash -c 'source scripts/gate-common.sh; targets=$(lake env lean --run scripts/CheckGenFirst.lean --libraries) && gate_build $targets && bash scripts/check-gly-rules.sh'
+run j checker-self-tests bash -c 'bash scripts/check-layers-selftest.sh && bash scripts/shake-report-selftest.sh'
 echo "=== summary"
 printf '%s\n' "${RESULTS[@]}"
 [ $FAILED -eq 0 ] && echo "check-build: PASS" || echo "check-build: FAIL"
