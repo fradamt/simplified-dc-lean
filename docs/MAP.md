@@ -1414,7 +1414,7 @@ unused imports, and negative controls. No baseline entries were added.
 │ .lean                                           │                                     │
 │ AvailableChainFGSAProofs/Proofs/Shared/StoreRun │ Cumulative run store metadata       │
 │ .lean                                           │                                     │
-│ AvailableChainFGSAProofs/Proofs/Shared/ScoreRun │ G25 run score equality and regimes  │
+│ AvailableChainFGSAProofs/Proofs/Shared/ScoreRun │ G25 scores; G11 suffix and regimes  │
 │ .lean                                           │                                     │
 │ AvailableChainFGSAProofs/Proofs/Clean/Closure   │ Inclusive history and source reads  │
 │ AvailableChainFGSAProofs/Proofs/Clean/GateOutput │ Conditional gate result below S    │

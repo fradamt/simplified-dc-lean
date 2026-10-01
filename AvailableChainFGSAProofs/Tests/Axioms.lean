@@ -506,3 +506,15 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_firstHead_after_bound
 #print axioms AvailableChain.FGSA.Run.fgsa_reset_stage_sum
 #print axioms AvailableChain.FGSA.Run.fgsa_action_time_residue
+
+-- F1b.4b G11 run suffix transport and regime wrappers.
+#print axioms AvailableChain.FGSA.Run.fgsa_walkRun_frozen_block
+#print axioms AvailableChain.FGSA.Run.fgsa_walkRun_full_domain
+#print axioms AvailableChain.FGSA.Run.fgsa_walkRun_path_domain
+#print axioms AvailableChain.FGSA.Run.fgsa_walkRun_eligible_iff
+#print axioms AvailableChain.FGSA.Run.fgsa_walkRun_proposal_parent
+#print axioms AvailableChain.FGSA.Run.fgsa_walkRun_current_block_eq
+#print axioms AvailableChain.FGSA.Run.fgsa_walkRun_reflected_block
+#print axioms AvailableChain.FGSA.Run.fgsa_ghost_transfer_sfx_on_run
+#print axioms AvailableChain.FGSA.Run.fgsa_ghost_transfer_sfx_on_clean
+#print axioms AvailableChain.FGSA.Run.fgsa_ghost_transfer_sfx_on_recovery
