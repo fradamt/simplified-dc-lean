@@ -522,3 +522,340 @@ theorem AvailableChain.V2.Engine.recordOwn_preserve_of_base 32bb8b30a9a25510
 theorem AvailableChain.V2.Engine.stateBefore_step_induction f3b1b9fd91dc85ac
 theorem AvailableChain.V2.Engine.stateBefore_stable cbda5e2adf3c1d8a
 ```
+
+### `AvailableChainEngineV2.Engine.Duty.Lift`
+
+```text
+def AvailableChain.V2.ProtocolSpec.toD 16c3e6e8219141f2
+def AvailableChain.V2.Run.toD a1e5da756c537df7
+def AvailableChain.V2.D.Run.ofD fbc88297aa4409ec
+theorem AvailableChain.V2.D.Run.toD_ofD e7d07f8d93d65421
+theorem AvailableChain.V2.D.Run.ofD_toD 4734e8439df483cb
+theorem AvailableChain.V2.D.dutiesInjectiveAt_toD 34d1686872cfe992
+theorem AvailableChain.V2.D.objSelfVisible_toD ac5e19223b5a4e97
+theorem AvailableChain.V2.D.tick_toD 157609e740bcd9dc
+theorem AvailableChain.V2.D.world_init_toD 1a46899545c6d9d2
+theorem AvailableChain.V2.D.world_step_toD e9710b69b08b1d35
+theorem AvailableChain.V2.D.stateBefore_toD 4291cd42172a44b9
+theorem AvailableChain.V2.D.stateBeforeTime_toD 217f48efb02c5032
+theorem AvailableChain.V2.D.readAt_toD 202845b0b09362e9
+theorem AvailableChain.V2.D.final_toD 750f2f3041e53382
+theorem AvailableChain.V2.D.emitsAt_toD c5cbd8011eb39974
+theorem AvailableChain.V2.D.tickIdx_toD 6ffa63febd7353c0
+theorem AvailableChain.V2.D.emittedAt_toD 133216a53ce217c6
+theorem AvailableChain.V2.D.emits_toD 9eb2635c1eb17e61
+theorem AvailableChain.V2.D.processes_toD ad800ba0bebd0de6
+theorem AvailableChain.V2.D.handlesAt_toD afb4eddbcd8e833b
+theorem AvailableChain.V2.D.acceptsAt_toD a246dc17134f729a
+theorem AvailableChain.V2.D.holder_toD 6ee8ccdcbafd0933
+```
+
+### `AvailableChainEngineV2.Engine.Duty.Run`
+
+```text
+def AvailableChain.V2.D.World aee2e665f8f16de5
+def AvailableChain.V2.D.World.init d98f1f908959e994
+structure AvailableChain.V2.D.Run 334e4973d0e7f363
+ctor AvailableChain.V2.D.Run.mk 79a8b5a590e428df
+def AvailableChain.V2.D.Run.honest 0c7144ea2528b7da
+def AvailableChain.V2.D.Run.horizon 6ef49daea59a6bda
+def AvailableChain.V2.D.Run.events 8c675a79f521a9ed
+def AvailableChain.V2.D.Run.seatOf 455edf6096f945ed
+def AvailableChain.V2.D.Run.input 5ccc8c02da80bfe7
+def AvailableChain.V2.D.Run.ownSeats 6a0b5de4b969977a
+def AvailableChain.V2.D.tick 08b3d867be4fbbf7
+def AvailableChain.V2.D.World.step a0870cb3e90ff30c
+def AvailableChain.V2.D.Run.stateBefore 59ea9481456eed4b
+def AvailableChain.V2.D.Run.stateBeforeTime 8a12dc09f5181b70
+def AvailableChain.V2.D.Run.readAt e5117228e20bf97b
+def AvailableChain.V2.D.Run.final f650e873373a3260
+def AvailableChain.V2.D.Run.emitsAt ebee2f7f38989a89
+def AvailableChain.V2.D.Run.tickIdx? 1149d050c3cad0aa
+def AvailableChain.V2.D.Run.emittedAt 760910343a3f0d32
+def AvailableChain.V2.D.Run.emits 77501c97e138a270
+def AvailableChain.V2.D.Run.processes b2a749b57f278476
+def AvailableChain.V2.D.Run.handlesAt 86414bf8a48e6a67
+def AvailableChain.V2.D.Run.acceptsAt f34aa92642d1fe3a
+def AvailableChain.V2.D.Run.holder 9981834b855ce4a8
+theorem AvailableChain.V2.D.Run.stateBefore_succ 18bb12ac06adec2b
+theorem AvailableChain.V2.D.Run.step_tick_eq 24e812b0313d675a
+theorem AvailableChain.V2.D.tick_decomp 41e3e174d4c45054
+theorem AvailableChain.V2.D.tick_asleep 1dd2eaea3df2ba52
+theorem AvailableChain.V2.D.Run.tickIdx?_spec d53522742368aa65
+theorem AvailableChain.V2.D.Run.emittedAt_eq_emitsAt 105d84f903758020
+theorem AvailableChain.V2.D.Run.mem_emittedAt_iff_emits 3bc4f56865194ebe
+```
+
+### `AvailableChainEngineV2.Engine.Duty.Spec`
+
+```text
+structure AvailableChain.V2.ProtocolSpecD 0b3fc7d950fa5797
+ctor AvailableChain.V2.ProtocolSpecD.mk 12247911796e5abb
+def AvailableChain.V2.ProtocolSpecD.State b1f065d22d7c0ffd
+def AvailableChain.V2.ProtocolSpecD.Label 7701b3e170ef83f9
+def AvailableChain.V2.ProtocolSpecD.Duty 48cc2f91dab5053f
+def AvailableChain.V2.ProtocolSpecD.signLabel d72fa72caa7e17a8
+def AvailableChain.V2.ProtocolSpecD.seats 249bffb3c1298df4
+def AvailableChain.V2.ProtocolSpecD.Payload 630bc02eb07f2c51
+def AvailableChain.V2.ProtocolSpecD.Durable ee65ad31d33d849c
+def AvailableChain.V2.ProtocolSpecD.init fb4973d56b383cd4
+def AvailableChain.V2.ProtocolSpecD.clock 3b83575cc02b1876
+def AvailableChain.V2.ProtocolSpecD.actTime 469141c26bd279ab
+def AvailableChain.V2.ProtocolSpecD.duties 222bed9d5a086f6c
+theorem AvailableChain.V2.ProtocolSpecD.duties_spec e030391cda4a238c
+theorem AvailableChain.V2.ProtocolSpecD.duties_nodup 1f56dc6a804ff933
+def AvailableChain.V2.ProtocolSpecD.act 2db8feba88710b9f
+def AvailableChain.V2.ProtocolSpecD.gossip 5c5fe19e71cf3faa
+def AvailableChain.V2.ProtocolSpecD.process 9983a74c2b501a76
+def AvailableChain.V2.ProtocolSpecD.selfVisible 2458522c9533290a
+def AvailableChain.V2.ProtocolSpecD.recordOwn 7128ac1e268c9ffc
+def AvailableChain.V2.ProtocolSpecD.durable 5ce1f7962ba0448d
+def AvailableChain.V2.ProtocolSpecD.restore 0b2fb7e7753f40b4
+def AvailableChain.V2.ProtocolSpecD.wellFormed 9cb4c05c7ceabf7f
+def AvailableChain.V2.ProtocolSpecD.depsPresent 9c174dc2fa4b24d9
+def AvailableChain.V2.ProtocolSpecD.processed 7756723aa5d63b8f
+def AvailableChain.V2.ProtocolSpecD.excludes 48ff89f62a02c5cd
+def AvailableChain.V2.ProtocolSpecD.handles f0972b1f7ca4758e
+def AvailableChain.V2.ProtocolSpecD.carries fc476687e62b3f90
+def AvailableChain.V2.ProtocolSpecD.Object 4672b3759d46daee
+def AvailableChain.V2.ProtocolSpecD.objSelfVisible 3bb2df72707cd207
+```
+
+### `AvailableChainEngineV2.Conditions.Duty.Committees`
+
+```text
+structure AvailableChain.V2.D.LabelFamilies d5fb11302869f4d1
+ctor AvailableChain.V2.D.LabelFamilies.mk 880221d62741ec57
+def AvailableChain.V2.D.LabelFamilies.ap 9dbfb7f975a4efb3
+def AvailableChain.V2.D.LabelFamilies.fresh 7aa72445110192e2
+def AvailableChain.V2.D.LabelFamilies.linked 6150641d5e762aab
+def AvailableChain.V2.D.CStar d2614f389b8f0423
+def AvailableChain.V2.D.Linked 2d98d27ca2d70a2b
+def AvailableChain.V2.D.SingleSeat efee0c7763a01829
+theorem AvailableChain.V2.D.Linked.toCStar 896816c5d815faf3
+theorem AvailableChain.V2.D.CStar.seats_eq ffc5ffde96979911
+```
+
+### `AvailableChainEngineV2.Conditions.Duty.Delivery`
+
+```text
+structure AvailableChain.V2.D.PartialSynchrony 562154f06bfd5a81
+ctor AvailableChain.V2.D.PartialSynchrony.mk 9c95a605578c9866
+theorem AvailableChain.V2.D.PartialSynchrony.broadcast_emitted 69ab8c729152fa93
+theorem AvailableChain.V2.D.PartialSynchrony.relay_accepted c8f0be2754928322
+structure AvailableChain.V2.D.HealthyPrefixDelivery 34a8e54fc21811db
+ctor AvailableChain.V2.D.HealthyPrefixDelivery.mk b7cfa6cb778ed7fe
+theorem AvailableChain.V2.D.HealthyPrefixDelivery.broadcast_emitted 717a4a6d13ab4cc2
+theorem AvailableChain.V2.D.HealthyPrefixDelivery.relay_accepted 7611ac184656be5a
+```
+
+### `AvailableChainEngineV2.Conditions.Duty.Duties`
+
+```text
+def AvailableChain.V2.D.DutiesInjectiveAt d1be0598c5bc380b
+```
+
+### `AvailableChainEngineV2.Conditions.Duty.Interface`
+
+```text
+structure AvailableChain.V2.D.Interface 1d0ba080789483d8
+ctor AvailableChain.V2.D.Interface.mk 3311c4b9de153174
+def AvailableChain.V2.D.Interface.confirmed 1715fdd410a0d35c
+def AvailableChain.V2.D.Interface.stable 93d11a0c80ee7fa1
+def AvailableChain.V2.D.Interface.block a0d381a91c7d8e82
+def AvailableChain.V2.D.Interface.opening 8ecad9e97676679c
+def AvailableChain.V2.D.Interface.propLabel daa2d629e1292639
+def AvailableChain.V2.D.Interface.propDuty b74095269e2b25e8
+theorem AvailableChain.V2.D.Interface.propDuty_label a2cc26b88c869b53
+theorem AvailableChain.V2.D.Interface.propLabel_single 055c18d54333bd27
+theorem AvailableChain.V2.D.Interface.propLabel_injective 62a29da2681ac9ac
+def AvailableChain.V2.D.proposalTime 0159de25de11d191
+def AvailableChain.V2.D.propSeat 2d2a51b028266201
+def AvailableChain.V2.D.proposerOf ba9cd4845bf94b83
+theorem AvailableChain.V2.D.eq_propSeat b9ef58d99ad76ca6
+theorem AvailableChain.V2.D.holder_propLabel a736d9d7890ba8ce
+def AvailableChain.V2.D.Output fbb74f15a1c1780f
+def AvailableChain.V2.D.outputAt a4c36e19e9aa16a8
+def AvailableChain.V2.D.BlockInRun c9f042c525957db3
+def AvailableChain.V2.D.RootInjective be817fa0bd8bf6c3
+theorem AvailableChain.V2.D.rootInjective_all ca90d362547a2164
+```
+
+### `AvailableChainEngineV2.Conditions.Duty.Lift`
+
+```text
+def AvailableChain.V2.LabelFamilies.toD d61522f59a8928a3
+def AvailableChain.V2.Interface.toD 7c3a5a5428751ff5
+theorem AvailableChain.V2.D.apObject_toD_iff d4851d9aa1e0cc47
+def AvailableChain.V2.Isolation.toD e14787ba60639bee
+def AvailableChain.V2.D.Isolation.ofD 81d8e2e92bc3eb0c
+def AvailableChain.V2.D.Interface.ofD 33bb5f0b2c5a5bac
+theorem AvailableChain.V2.D.interface_toD_iff 5822b10e49d60a99
+theorem AvailableChain.V2.D.isolation_toD_iff 8614ccea8e686107
+theorem AvailableChain.V2.D.cStar_toD_iff be6c3c4e418b694f
+theorem AvailableChain.V2.D.linked_toD_iff db74ac280b869711
+theorem AvailableChain.V2.D.singleSeat_toD_iff 048b2fb99982f071
+theorem AvailableChain.V2.D.noRestart_toD_iff 952c9bb0bd120985
+theorem AvailableChain.V2.D.restartFree_toD_iff c5848bbff976cd01
+theorem AvailableChain.V2.D.proposalTime_toD 97949804aedbf370
+theorem AvailableChain.V2.D.proposerOf_toD b7bf6cf8d89dbc6c
+theorem AvailableChain.V2.D.scheduleWellFormed_toD_iff c9815e97e507997c
+theorem AvailableChain.V2.D.deliveryWellFormed_toD_iff 3dd7e4e0998303f2
+theorem AvailableChain.V2.D.unforgeableSignatures_toD_iff 5cdece89f0969000
+theorem AvailableChain.V2.D.partialSynchrony_toD_iff b94466b75a489afb
+theorem AvailableChain.V2.D.healthyPrefixDelivery_toD_iff 46c211ff4c9d60d5
+theorem AvailableChain.V2.D.emitOk_toD_iff beb27625191d2094
+theorem AvailableChain.V2.D.executionValid_toD_iff 8cee386e30664a7a
+theorem AvailableChain.V2.D.selfDelivery_toD_iff 1af0a06a3c234f4b
+theorem AvailableChain.V2.D.blockInRun_toD_iff 0d5e8796e58bf92c
+theorem AvailableChain.V2.D.rootInjective_toD_iff 4172763c5f6008f4
+theorem AvailableChain.V2.D.outputAt_toD 5940b8b74a528ea9
+theorem AvailableChain.V2.D.holder_of_mem_tick_toD 661dd7a1310e28a7
+theorem AvailableChain.V2.D.outputsFactor_toD_iff 24f8ea3f4fe11703
+theorem AvailableChain.V2.D.hooksSound_toD_iff 2f478e71da887ff1
+```
+
+### `AvailableChainEngineV2.Conditions.Duty.Schedule`
+
+```text
+structure AvailableChain.V2.D.ScheduleWellFormed b90d15cb454511f3
+ctor AvailableChain.V2.D.ScheduleWellFormed.mk 473d7c7e914c0543
+theorem AvailableChain.V2.D.ScheduleWellFormed.horizon_nonneg 5962e520716b7f92
+theorem AvailableChain.V2.D.ScheduleWellFormed.sorted 2941e88b3b8e0e83
+theorem AvailableChain.V2.D.ScheduleWellFormed.nodup 3a1bad1684871892
+theorem AvailableChain.V2.D.ScheduleWellFormed.in_horizon fac776db477b4b06
+theorem AvailableChain.V2.D.ScheduleWellFormed.honest_only db8d98c9e1ca3d2b
+theorem AvailableChain.V2.D.ScheduleWellFormed.tick_public ab24ba38cdb33c4b
+theorem AvailableChain.V2.D.ScheduleWellFormed.tick_total 53d0c34d0eb422df
+def AvailableChain.V2.D.NoRestart 61c81d868e8af761
+def AvailableChain.V2.D.restartFree 2598def124be1266
+structure AvailableChain.V2.D.DeliveryWellFormed 1a816c94344afd36
+ctor AvailableChain.V2.D.DeliveryWellFormed.mk 9a8d836d44cff9e6
+theorem AvailableChain.V2.D.DeliveryWellFormed.wire 2fb56e9f2ffba607
+theorem AvailableChain.V2.D.DeliveryWellFormed.deps dacda2283af44545
+theorem AvailableChain.V2.D.DeliveryWellFormed.fresh a3f18ebbd9c6ae0a
+structure AvailableChain.V2.D.UnforgeableSignatures 1452c33149072bab
+ctor AvailableChain.V2.D.UnforgeableSignatures.mk ac57317d10a79b0d
+theorem AvailableChain.V2.D.UnforgeableSignatures.unforgeable 667ad0ba51575fba
+theorem AvailableChain.V2.D.UnforgeableSignatures.carried 55928e738ae265d4
+structure AvailableChain.V2.D.ExecutionValid 432ec3d6038f2a0f
+theorem AvailableChain.V2.D.ExecutionValid.toDeliveryWellFormed 9987ca9419a815b6
+theorem AvailableChain.V2.D.ExecutionValid.toScheduleWellFormed 46a8c5120a5df421
+theorem AvailableChain.V2.D.ExecutionValid.toUnforgeableSignatures 40163ea5c0215498
+ctor AvailableChain.V2.D.ExecutionValid.mk 95292f15315b961c
+def AvailableChain.V2.D.SelfDelivery 9a7f85b02c0e60d6
+theorem AvailableChain.V2.D.ScheduleWellFormed.mem_emittedAt_iff_emits cceaa82c7bc6a8c3
+theorem AvailableChain.V2.D.restartFree_refl dbf7c26d4fdd11ce
+theorem AvailableChain.V2.D.not_restartFree_succ_iff c73ac265c06bf2d8
+theorem AvailableChain.V2.D.restartFree.mono 54e5488e3550e47c
+theorem AvailableChain.V2.D.restartFree.append 1d178b4a1886c2af
+theorem AvailableChain.V2.D.NoRestart.restartFree 5934146744b22c47
+```
+
+### `AvailableChainEngineV2.Laws.Duty.Hooks`
+
+```text
+structure AvailableChain.V2.D.HooksSound 9ae115d2f7a7d4aa
+ctor AvailableChain.V2.D.HooksSound.mk 60e54108fd3cec77
+theorem AvailableChain.V2.D.HooksSound.excludes_inert 095d325aa652fc22
+theorem AvailableChain.V2.D.HooksSound.excludes_stable 5b5af6b2c46b4343
+theorem AvailableChain.V2.D.HooksSound.processed_stable 59aaf86fd875ae1b
+theorem AvailableChain.V2.D.HooksSound.deps_stable b6027621618ff4d4
+theorem AvailableChain.V2.D.HooksSound.handles_carries d1f8500e7f4d9cdd
+theorem AvailableChain.V2.D.HooksSound.recordOwn_processed 885399400e924b97
+theorem AvailableChain.V2.D.HooksSound.recordOwn_deps 7582b2e8854ce0e0
+theorem AvailableChain.V2.D.HooksSound.recordOwn_excludes ef1581acab8c8f9e
+theorem AvailableChain.V2.D.HooksSound.foldl_recordOwn_processed f161df2e3ee797b8
+theorem AvailableChain.V2.D.HooksSound.foldl_recordOwn_deps a7a1fd171a49f958
+theorem AvailableChain.V2.D.HooksSound.foldl_recordOwn_excludes 34fdb819911fc949
+theorem AvailableChain.V2.D.HooksSound.processed_tick 0eeb8ce5791d75b4
+theorem AvailableChain.V2.D.HooksSound.deps_tick 69ccdaf8daf6316d
+theorem AvailableChain.V2.D.HooksSound.excludes_tick 85bf13c93ec9c24b
+```
+
+### `AvailableChainEngineV2.Laws.Duty.Isolation`
+
+```text
+def AvailableChain.V2.D.LabelFamilies.APObject 952ef7d50926efe9
+theorem AvailableChain.V2.D.LabelFamilies.apObject_seat 659924427114cc2f
+theorem AvailableChain.V2.D.LabelFamilies.apObject_none 00cbb33cfab5268d
+structure AvailableChain.V2.D.Isolation 6adceb8c61fc96da
+ctor AvailableChain.V2.D.Isolation.mk 0483b43ba4f95f45
+def AvailableChain.V2.D.Isolation.Base 3415084d10f42256
+def AvailableChain.V2.D.Isolation.base 0de58c59ae4aea4e
+def AvailableChain.V2.D.Isolation.clockB 7db2d0a98e240d9c
+theorem AvailableChain.V2.D.Isolation.clock_base f05010cc85ee9daa
+def AvailableChain.V2.D.Isolation.processB 392d5183f6806765
+theorem AvailableChain.V2.D.Isolation.process_base 2672ba57dbd51102
+theorem AvailableChain.V2.D.Isolation.recordOwn_base 1cd5a355ba383974
+def AvailableChain.V2.D.Isolation.actB 67ea394a7699935c
+theorem AvailableChain.V2.D.Isolation.act_base 15a57c5f6a9d829b
+def AvailableChain.V2.D.Isolation.gossipB 202dcba7669de56c
+theorem AvailableChain.V2.D.Isolation.gossip_base 4ad5f5e56e9c7885
+def AvailableChain.V2.D.Isolation.depsB 48d218cd61d07932
+def AvailableChain.V2.D.Isolation.processedB a6a8a29e2aed0d49
+def AvailableChain.V2.D.Isolation.excludesB b794dd6f10f750ea
+def AvailableChain.V2.D.Isolation.handlesB 19cbd6f58d2fd585
+theorem AvailableChain.V2.D.Isolation.hooks_base 78f5326284c1c9e6
+theorem AvailableChain.V2.D.Isolation.separation a6fa4415e3d15d1b
+theorem AvailableChain.V2.D.Isolation.foldl_recordOwn_base 853ed7735d0272e0
+theorem AvailableChain.V2.D.Isolation.base_tick eba936c002be9848
+theorem AvailableChain.V2.D.Isolation.hooks_congr 7f968d9ec1ef986a
+theorem AvailableChain.V2.D.Isolation.not_ap_of_selfVisible b18b27c4d46acdec
+```
+
+### `AvailableChainEngineV2.Laws.Duty.Outputs`
+
+```text
+structure AvailableChain.V2.D.OutputsFactor 93a9292a4ed51dea
+ctor AvailableChain.V2.D.OutputsFactor.mk 5736019f125565b1
+def AvailableChain.V2.D.OutputsFactor.confirmedB e0af6e11a1c3bfa7
+theorem AvailableChain.V2.D.OutputsFactor.confirmed_base 92928075575f61b3
+def AvailableChain.V2.D.OutputsFactor.stableB 2a0a32b0a1f38413
+theorem AvailableChain.V2.D.OutputsFactor.stable_base c70418cf7cf21360
+theorem AvailableChain.V2.D.OutputsFactor.confirmed_recordOwn 671ed17b28e70a9f
+theorem AvailableChain.V2.D.OutputsFactor.stable_recordOwn e3795ff3791f2c85
+theorem AvailableChain.V2.D.OutputsFactor.confirmed_tick 7689870b2a3c20a9
+theorem AvailableChain.V2.D.OutputsFactor.stable_tick 97392610a0cd1e45
+```
+
+### `AvailableChainEngineV2.Laws.Duty.SelfDelivery`
+
+```text
+structure AvailableChain.V2.D.EmitOk 209c188f6b43f12d
+ctor AvailableChain.V2.D.EmitOk.mk df36f771195e2d43
+theorem AvailableChain.V2.D.EmitOk.wire b99eb4d8e7cc0f18
+theorem AvailableChain.V2.D.EmitOk.deps 1ee5cbeddc46f32c
+theorem AvailableChain.V2.D.EmitOk.fresh a1d8f3c92f9bec05
+theorem AvailableChain.V2.D.EmitOk.noCarried 38968a9639ac2bfa
+theorem AvailableChain.V2.D.Run.holder_of_mem_tick 1e90643dcf85d046
+theorem AvailableChain.V2.D.World.step_apply_of_node_ne 3acab309912053e1
+theorem AvailableChain.V2.D.Run.stateBefore_eq_of_node_ne 58584a7d1c3512b0
+theorem AvailableChain.V2.D.selfDelivery_admissible 58cad2a4fe63181e
+theorem AvailableChain.V2.D.Run.getElem?_snoc_of_lt bc6002271aa3904c
+theorem AvailableChain.V2.D.Run.tick_snoc 1f05deaae77d0e5f
+theorem AvailableChain.V2.D.Run.stateBefore_snoc_of_le 9be8fe8a3512d3d9
+theorem AvailableChain.V2.D.Run.emitsAt_snoc_of_lt 5dd8cf215b1e4926
+theorem AvailableChain.V2.D.Run.emits_snoc a3e51cdb084443b4
+theorem AvailableChain.V2.D.EmitOk.snoc 1e499dffc35015a0
+theorem AvailableChain.V2.D.ExecutionValid.snoc_selfDelivery 520eb73c990da2c5
+```
+
+### `AvailableChainKitV2.DutyEmission`
+
+```text
+theorem AvailableChain.V2.D.Engine.mem_tick_seat_iff 895b4eda7c1f7cdb
+theorem AvailableChain.V2.D.Engine.mem_tick_duty_iff fbf5706ba4f001c6
+theorem AvailableChain.V2.D.Engine.mem_tick_of_duty 66c630dc358188d8
+theorem AvailableChain.V2.D.Engine.ownSeats_bijSeat ff8cce9b7c60dc44
+theorem AvailableChain.V2.D.Engine.emits_bijSeat 8e11251ebc3968b1
+theorem AvailableChain.V2.D.Engine.mem_tick_seat_toD_iff 19757f871d80f96d
+```
+
+### `AvailableChainKitV2.DutyLinked`
+
+```text
+theorem AvailableChain.V2.D.Engine.linked_singleton_iff 1bc1d4ed1f506ad8
+theorem AvailableChain.V2.D.Engine.seat_family_iff_representative_toD 41133f928dbe4a58
+theorem AvailableChain.V2.D.Engine.seat_equation_toD_of_family 71fd7e817a3975a0
+```

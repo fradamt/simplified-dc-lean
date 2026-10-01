@@ -690,3 +690,25 @@ theorem AvailableChain.Gen.Pure.AnchorPassesStatement_def a9ed45056cd5b46a
 def AvailableChain.Gen.Pure.UnsupportedFailsStatement bf95cef2d4dbc7ae
 theorem AvailableChain.Gen.Pure.UnsupportedFailsStatement_def ce73179934a4832d
 ```
+
+### `AvailableChainGeneric.Statements.V2.Duty.Linked`
+
+```text
+def AvailableChain.Gen.V2.Duty.LinkedSingletonStatement 7a66d63616e38f6e
+theorem AvailableChain.Gen.V2.Duty.LinkedSingletonStatement_def edd932fe1db60b08
+```
+
+### `AvailableChainGeneric.Statements.V2.Duty.Signatures`
+
+```text
+def AvailableChain.Gen.V2.Duty.SingleDuty b7fda1cf039ba6a7
+theorem AvailableChain.Gen.V2.Duty.SingleDuty_def bea8d45f3930dc35
+def AvailableChain.Gen.V2.Duty.EmitOnceUnder 6d594298765da4ac
+theorem AvailableChain.Gen.V2.Duty.EmitOnceUnder_def c3331f6dab8fb598
+def AvailableChain.Gen.V2.Duty.EmittedUniqueSingleDutyStatement cb1fcd35b30c5f24
+def AvailableChain.Gen.V2.Duty.EmitUniqueOfEmitOnceStatement a56722291f9c47fd
+theorem AvailableChain.Gen.V2.Duty.EmittedUniqueSingleDutyStatement_def 6e02fdf39b25fa63
+theorem AvailableChain.Gen.V2.Duty.EmitUniqueOfEmitOnceStatement_def e93d6a158f298c0f
+def AvailableChain.Gen.V2.Duty.HonestUniqueSingleDutyStatement 0015f25e8ba5db64
+theorem AvailableChain.Gen.V2.Duty.HonestUniqueSingleDutyStatement_def a469b07dea7fae63
+```

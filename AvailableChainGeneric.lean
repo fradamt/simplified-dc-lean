@@ -73,5 +73,8 @@ public import AvailableChainGeneric.Statements.Pure.BatchDominance
 public import AvailableChainGeneric.Proofs.Pure.BatchDominance
 public import AvailableChainGeneric.Proofs.AC.Batch
 
+public import AvailableChainGeneric.Proofs.V2.Duty.Signatures
+public import AvailableChainGeneric.Proofs.V2.Duty.Linked
+
 /-! Generic library (GLY A): the Pure, V2 and AC layers. The root does not
 import the modules under `Tests/`; the library globs build them. -/

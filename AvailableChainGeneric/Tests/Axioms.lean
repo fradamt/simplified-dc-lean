@@ -1,4 +1,8 @@
 module
+public import AvailableChainGeneric.Proofs.V2.Duty.Linked
+public import AvailableChainGeneric.Proofs.V2.Duty.Signatures
+public import AvailableChainGeneric.Statements.V2.Duty.Linked
+public import AvailableChainGeneric.Statements.V2.Duty.Signatures
 public import AvailableChainGeneric.Statements.Pure.SlotGrid
 public import AvailableChainGeneric.Proofs.Pure.SlotGrid
 public import AvailableChainGeneric.Statements.Pure.KernelArithmetic
@@ -602,3 +606,18 @@ theorem, in facade order. The library globs build this test module. -/
 #print axioms AvailableChain.Gen.Pure.anchor_passes
 #print axioms AvailableChain.Gen.Pure.unsupported_fails
 #print axioms AvailableChain.Gen.AC.batch_anchored
+-- Duty engine: every new production theorem.
+#print axioms AvailableChain.Gen.V2.Duty.linked_singleton_statement
+#print axioms AvailableChain.Gen.V2.Duty.mem_tick_singleDuty_iff
+#print axioms AvailableChain.Gen.V2.Duty.emitted_unique_singleDuty_statement
+#print axioms AvailableChain.Gen.V2.Duty.emitted_unique_of_singleDuty
+#print axioms AvailableChain.Gen.V2.Duty.emit_unique_of_emitOnce
+#print axioms AvailableChain.Gen.V2.Duty.emit_duty_unique_of_emitOnce
+#print axioms AvailableChain.Gen.V2.Duty.singleDuty_toD
+#print axioms AvailableChain.Gen.V2.Duty.honest_unique_singleDuty_statement
+#print axioms AvailableChain.Gen.V2.Duty.LinkedSingletonStatement_def
+#print axioms AvailableChain.Gen.V2.Duty.SingleDuty_def
+#print axioms AvailableChain.Gen.V2.Duty.EmitOnceUnder_def
+#print axioms AvailableChain.Gen.V2.Duty.EmittedUniqueSingleDutyStatement_def
+#print axioms AvailableChain.Gen.V2.Duty.EmitUniqueOfEmitOnceStatement_def
+#print axioms AvailableChain.Gen.V2.Duty.HonestUniqueSingleDutyStatement_def
