@@ -24,15 +24,28 @@ gly_faultx_route() {
 }
 
 gly_checks() {
-  local rc=0 route_rc=0 selected=0 route=0 arg
-  gly_source_rules "$@" || rc=$?
+  # F-24 is the compiled proof-route check only (the name rule retired after the
+  # route check passed its first gate, 993bfd0). `--rule F-24` selects it; the
+  # source rules then run only if another --rule is also selected.
+  local rc=0 route_rc=0 selected=0 route=0 other=0 skip=0 arg
+  local -a py=()
   for arg in "$@"; do
+    if [ "$skip" = 1 ]; then
+      skip=0
+      if [ "$arg" = F-24 ]; then route=1; py=("${py[@]:0:${#py[@]}-1}"); else other=1; py+=("$arg"); fi
+      continue
+    fi
     case "$arg" in
-      --help|-h) return "$rc" ;;
-      --rule|--rule=*) selected=1 ;;
+      --help|-h) gly_source_rules "$@"; return $? ;;
+      --rule) selected=1; skip=1; py+=("$arg") ;;
+      --rule=F-24) selected=1; route=1 ;;
+      --rule=*) selected=1; other=1; py+=("$arg") ;;
+      *) py+=("$arg") ;;
     esac
-    case "$arg" in F-24|--rule=F-24) route=1 ;; esac
   done
+  if [ "$selected" = 0 ] || [ "$other" = 1 ]; then
+    gly_source_rules "${py[@]+"${py[@]}"}" || rc=$?
+  fi
   if [ "$selected" = 0 ] || [ "$route" = 1 ]; then
     gly_faultx_route || route_rc=$?
   fi
