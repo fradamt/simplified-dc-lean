@@ -265,7 +265,7 @@ private theorem source_quorum_honest [Fintype V]
   refine ⟨k, hk, ?_⟩
   by_contra hn
   apply hf
-  exact Finset.mem_map.mpr ⟨e k, by simpa [Gen.V2.Duty.faulty] using hn, e.symm_apply_apply k⟩
+  exact Finset.mem_map.mpr ⟨e k, by simpa [Gen.V2.Duty.faulty_def] using hn, e.symm_apply_apply k⟩
 
 /-- Every selected progress or target QC has an earlier honest source.
 Finalization uses the target QC of its prior justification. -/
