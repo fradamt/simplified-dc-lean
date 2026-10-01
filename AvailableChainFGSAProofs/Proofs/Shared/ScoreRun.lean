@@ -2,9 +2,7 @@ module
 public import AvailableChainFGSAProofs.Proofs.Shared.StoreRun
 public import AvailableChainFGSA.Proofs.Head.Score
 public import AvailableChainFGSA.Proofs.Head.Walk
-public import AvailableChainFGSAClaims.Statements.Regimes
 public import AvailableChainFGSARun.Proofs.Receipts
-public import AvailableChainGeneric.Proofs.V2.Regimes
 
 public section
 

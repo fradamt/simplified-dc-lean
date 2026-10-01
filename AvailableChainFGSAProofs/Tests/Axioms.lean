@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.ExactService -- shake: keep (ExactService audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.Regimes -- shake: keep (gate regime audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.GateReceipt -- shake: keep (gate receipt audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.ScoreRun -- shake: keep (G25 axiom audit)
@@ -526,3 +527,15 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_gateReceipt
 #print axioms AvailableChain.FGSA.Run.fgsa_gateReceipt_clean
 #print axioms AvailableChain.FGSA.Run.fgsa_gateReceipt_recovery
+#print axioms AvailableChain.FGSA.Run.ExactServiceGateGeometry
+#print axioms AvailableChain.FGSA.Run.exactService_emitted_head
+#print axioms AvailableChain.FGSA.Run.exactService_gate_receipts_of_head
+#print axioms AvailableChain.FGSA.Run.exactService_gate_raw_of_head
+#print axioms AvailableChain.FGSA.Run.exactService_fastWrite_of_gateService
+#print axioms AvailableChain.FGSA.Run.exactService_opening_of_gateService
+#print axioms AvailableChain.FGSA.Run.exactService_gate_at_of_head
+#print axioms AvailableChain.FGSA.Run.exactService_gate_of_head
+#print axioms AvailableChain.FGSA.Run.exactService_of_head_and_gate
+#print axioms AvailableChain.FGSA.Run.exactService_participation_of_card
+#print axioms AvailableChain.FGSA.Run.exactService_of_head_clean
+#print axioms AvailableChain.FGSA.Run.exactService_of_head_recovery
