@@ -44,7 +44,7 @@ theorem fgsa_getHead_exact_of_dominated_suffix
   walk_exact_of_dominated_suffix _ _ _ _ _ hanchor hkeep hstop
 
 /-- P3 F1b.4a W6:4864–4867; bp02 §4.1. Class (iii), store instance.
-DC: ProposalWalkTransportCore.ghost_transport_of_source:162.
+DC: no same-view DC reanchor lemma; nearest: Walk.lean:433.
 INTENTIONAL: P3 W6 fixes one view and moves its anchor along the dominated
 suffix. No cross-view fact follows from this equality. -/
 theorem fgsa_getHead_reanchor_of_dominated_suffix
@@ -142,6 +142,9 @@ theorem fgsa_confirmationFrom_exact_of_dominated_suffix
 DC: Adoption.goldfish_fork_choice_captures_supporter_majority:415 and
 Adoption.goldfish_fork_choice_captures_of_confirmation:441.
 INTENTIONAL: FJ eligibility and liveRoot replace SG controls (P3:4845–4853).
+GridCO goldfishScore counts each equivocator in every subtree
+(GridCO/Model/Protocol.lean:147–149). Thus score majority does not supply
+the rival bound; hdominance is a separate premise.
 This is the common store proof for transfer and batch callers; suffix
 membership is supplied as a parameter (M6). -/
 theorem fgsa_headInTree_covers_of_transfer

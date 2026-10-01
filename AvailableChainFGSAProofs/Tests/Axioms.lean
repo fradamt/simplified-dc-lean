@@ -419,6 +419,8 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 
 #print axioms AvailableChain.FGSA.Run.fgsa_headReachesLo
 #print axioms AvailableChain.FGSA.Run.fgsa_headReachesLoClaim
+#print axioms AvailableChain.FGSA.Run.kept_or_conflict
+#print axioms AvailableChain.FGSA.Run.fgsa_domain_anchorClosed_mono
 #print axioms AvailableChain.FGSA.Run.kept_or_cause
 #print axioms AvailableChain.FGSA.Run.exactHead_of_pivot
 

@@ -15,8 +15,10 @@ is a root-compatibility ingredient, not an FJ retention theorem.
 INTENTIONAL: FJ uses the duty's X and its witness W (F-25).
 Source extraction for an incompatible control is an explicit supplier;
 this lemma does not prove the run-level certificate provenance (21 H.13).
-A floor witness rules out band exclusion, including the two-source case. -/
-theorem kept_or_cause (p : Params) {In V : Type} [DecidableEq V]
+A floor witness rules out band exclusion, including the two-source case.
+RExcl/H.13 must prove the band, contested and two-source cause cases outside this lemma (21
+:2599–2627). -/
+theorem kept_or_conflict (p : Params) {In V : Type} [DecidableEq V]
     (c : AppCodec In) (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
     (i : Nat) (x : V) (X : Finset (FGBlock (Fin p.n))) (C W : FGBlock (Fin p.n))
     (hC : C ∈ X) (hW : W ∈ X) (hCW : FGBlock.Preceq C W)
@@ -25,7 +27,9 @@ theorem kept_or_cause (p : Params) {In V : Type} [DecidableEq V]
       ¬ (FGBlock.Preceq K C ∨ FGBlock.Preceq C K) →
       ∃ C' s, SourceBefore p c E rho i C' s ∧
         FGBlock.Preceq K C' ∧ hOf p.E p.cfg C ≤ hOf p.E p.cfg C') :
-    KeepOrCause p c E rho i x X C := by
+    Kept p c E rho i x X C ∨
+      (∃ C' s, SourceBefore p c E rho i C' s ∧
+        ¬ Block.Compatible (eraseFG C) (eraseFG C') ∧ hOf p.E p.cfg C ≤ hOf p.E p.cfg C') := by
   have cause (K : FGBlock (Fin p.n))
       (hK : K ∈ [(storeAt p c E rho i x).fg.F, (R_at p c E rho i x).Z])
       (hbad : ¬ (FGBlock.Preceq K C ∨ FGBlock.Preceq C K)) :
@@ -57,8 +61,43 @@ theorem kept_or_cause (p : Params) {In V : Type} [DecidableEq V]
             ⟨hC, hFC, hZC, W, hW, hCW, hlo⟩
         · exact Or.inl hCZ
       · exact Or.inr (Or.inr hCF)
-    · exact Or.inr (Or.inl (cause _ (by simp) hZ))
-  · exact Or.inr (Or.inl (cause _ (by simp) hF))
+    · exact Or.inr (cause _ (by simp) hZ)
+  · exact Or.inr (cause _ (by simp) hF)
+
+/-- P3 F1b.8, G31; 21 H.13–H.14; GLY F-25. Class (iii), composition.
+DC: FGRootWitness.lean:548 `fgRoot_compatible_of_bootstrap_and_recentActions_at_read`
+is a root-compatibility ingredient, not an FJ retention theorem.
+INTENTIONAL: FJ uses the duty's X and its witness W (F-25).
+Source extraction for an incompatible control is an explicit supplier;
+this lemma does not prove the run-level certificate provenance (21 H.13).
+A floor witness rules out band exclusion, including the two-source case.
+RExcl/H.13 must prove the band, contested and two-source cause cases outside this lemma (21
+:2599–2627). -/
+theorem kept_or_cause (p : Params) {In V : Type} [DecidableEq V]
+    (c : AppCodec In) (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (i : Nat) (x : V) (X : Finset (FGBlock (Fin p.n))) (C W : FGBlock (Fin p.n))
+    (hC : C ∈ X) (hW : W ∈ X) (hCW : FGBlock.Preceq C W)
+    (hlo : (R_at p c E rho i x).lo ≤ hOf p.E p.cfg W)
+    (hcontrolSource : ∀ K ∈ [(storeAt p c E rho i x).fg.F, (R_at p c E rho i x).Z],
+      ¬ (FGBlock.Preceq K C ∨ FGBlock.Preceq C K) →
+      ∃ C' s, SourceBefore p c E rho i C' s ∧
+        FGBlock.Preceq K C' ∧ hOf p.E p.cfg C ≤ hOf p.E p.cfg C') :
+    KeepOrCause p c E rho i x X C := by
+  rcases kept_or_conflict p c E rho i x X C W hC hW hCW hlo hcontrolSource with hk | hc
+  · exact Or.inl hk
+  · exact Or.inr (Or.inl hc)
+
+/-- F1b.5a closure at a later pivot in the same FG-SA duty domain.
+DC: Goldfish/Walk.lean:433 `ghost_reaches` uses a path in its tree.
+INTENTIONAL: this local corollary moves FJ filtered closure from A to T
+for F1b.8 (21 H.17); it adds no generic walk declaration. -/
+theorem fgsa_domain_anchorClosed_mono (p : Params) (st : State p.n)
+    (X : Finset (FGBlock (Fin p.n))) (A T : Block)
+    (hAT : Block.Preceq A T)
+    (hclosed : Gen.Pure.AnchorClosed A (erasedList st (domainR p st X))) :
+    Gen.Pure.AnchorClosed T (erasedList st (domainR p st X)) := by
+  intro B hB hTB C hTC hCB
+  exact hclosed B hB (block_preceq_trans hAT hTB) C (block_preceq_trans hAT hTC) hCB
 
 /-- P3 F1b.8, G33; 21 H.17:2778–2825 and H.22 head clause.
 Class (iii), conditional walk composition. DC:
@@ -67,7 +106,8 @@ Goldfish/Walk.lean:433 `ghost_reaches`.
 INTENTIONAL: common pivot T replaces equality of the live roots, which
 may change (21 H.17). Each local prefix and the transferred suffix have
 explicit keep suppliers (P3 M6). Terminality at Q is required, as in G10.
-Closure above T is supplied by F1b.5a. The caller supplies source coverage
+Closure above T follows from F1b.5a and `fgsa_domain_anchorClosed_mono` when the live root
+precedes T. The caller supplies source coverage
 of P; the final step is either P = Q
 or the unique eligible child Q of P (21 H.17:2820–2825). This does not produce ExactService
 or identify a scheduled HEAD read. X and Y may be different duty views. -/
