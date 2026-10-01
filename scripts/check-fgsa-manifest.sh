@@ -164,3 +164,17 @@ path.write_text("".join(lines))
 PY
 rehash
 expect_fail C10 "FROZEN REMOVED ${entry}RemovedControl"
+
+# C11–C13 (backlog C22): an optional fourth allow field expect=<hash> pins the change.
+# The frozen copy gets a changed hash; the current entry keeps its base hash.
+cur_hash=$(awk -v e="$entry" '$2 == e { print $3; exit }' "$tmp/base.md")
+[ -n "$cur_hash" ] || { echo "CONTROL SETUP FAIL: no current hash" >&2; exit 1; }
+reset_copies
+edit_entry "$frozen" hash
+rehash
+printf '%s\tcontrol change\tG-F0a control C11\texpect=%s\n' "$entry" "$cur_hash" > "$allow"
+expect_pass C11 "frozen entries present and unchanged"
+printf '%s\tcontrol change\tG-F0a control C12\texpect=0000000000000000\n' "$entry" > "$allow"
+expect_fail C12 "ALLOW EXPECT $entry: expected 0000000000000000, got $cur_hash"
+printf '%s\tcontrol change\tG-F0a control C13\tpin=%s\n' "$entry" "$cur_hash" > "$allow"
+expect_fail C13 "INVALID ALLOW line 1: fourth field must be expect=<hash> or expect=removed"
