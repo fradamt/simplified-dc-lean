@@ -1,9 +1,7 @@
 module
-public import AvailableChainGeneric.Proofs.Pure.SlotGrid
 public import AvailableChainGeneric.Proofs.Pure.KernelArithmetic
 public import AvailableChainFGSARun.Model.Protocol
 public import AvailableChainFGSAClaims.Statements.Bounds
-import Mathlib.Tactic.Ring
 
 public section
 

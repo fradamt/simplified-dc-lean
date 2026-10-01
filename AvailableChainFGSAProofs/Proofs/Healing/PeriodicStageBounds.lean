@@ -1,9 +1,5 @@
 module
-public import AvailableChainGeneric.Proofs.Pure.PeriodicStages
 public import AvailableChainFGSAProofs.Proofs.Shared.GridSchedule
-public import Mathlib.Data.Int.DivMod
-import Mathlib.Tactic.Linarith
-import Mathlib.Tactic.Ring
 
 public section
 

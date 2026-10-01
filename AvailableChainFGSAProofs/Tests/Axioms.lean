@@ -20,14 +20,14 @@ public import AvailableChainFGSAProofs.Proofs.Foundations.Certificates -- shake:
 public import AvailableChainFGSAProofs.Proofs.Foundations.Client -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Gate -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Sources -- shake: keep (axiom audit commands)
-public import AvailableChainFGSAProofs.Proofs.Shared.GridSchedule
+public import AvailableChainFGSAProofs.Proofs.Shared.GridSchedule -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Channels -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Recurrence -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads -- shake: keep (axiom audit commands)
-public import AvailableChainFGSAProofs.Proofs.Shared.OpeningAfterGate
-public import AvailableChainFGSAProofs.Proofs.Shared.HeadAfterSettlement
-public import AvailableChainFGSAProofs.Proofs.Healing.AdditiveStageBounds
-public import AvailableChainFGSAProofs.Proofs.Healing.PeriodicStageBounds
+public import AvailableChainFGSAProofs.Proofs.Shared.OpeningAfterGate -- shake: keep (axiom audit commands)
+public import AvailableChainFGSAProofs.Proofs.Shared.HeadAfterSettlement -- shake: keep (axiom audit commands)
+public import AvailableChainFGSAProofs.Proofs.Healing.AdditiveStageBounds -- shake: keep (axiom audit commands)
+public import AvailableChainFGSAProofs.Proofs.Healing.PeriodicStageBounds -- shake: keep (axiom audit commands)
 
 public import AvailableChainFGSAProofs.Proofs.Clean.Chain -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.State -- shake: keep (axiom audit commands)

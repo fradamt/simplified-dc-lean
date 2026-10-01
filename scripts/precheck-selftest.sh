@@ -106,9 +106,10 @@ expect_no_build "$dag"
 )
 echo 'ancestor-base rc=0'
 
-# Commit 2: use main sources so unrelated branch findings cannot mask F-28.
+# Commit 2: use HEAD sources. Do not use the local main ref: it is stale on the
+# NUC. The gate runs the precheck on HEAD first, so its findings cannot mask F-28.
 # The policy checkout has this script set; its target has a permissive guard.
-source_base=$(git merge-base main HEAD)
+source_base=$head
 policy=$scratch/policy
 target=$scratch/target
 mkdir "$policy" "$target"

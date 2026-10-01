@@ -1,6 +1,4 @@
 module
-public import AvailableChainGeneric.Proofs.Pure.AdditiveStages
-public import AvailableChainFGSAProofs.Proofs.Shared.GridSchedule
 public import AvailableChainFGSAClaims.Statements.Bounds
 
 public section
