@@ -1,6 +1,6 @@
 module
 public import AvailableChainGeneric.Statements.Pure.Stages
-import Mathlib.Data.List.Perm.Subperm
+public import Mathlib.Data.List.Perm.Subperm
 
 public section
 
