@@ -3,6 +3,7 @@ public import AvailableChainFGSAProofs.Proofs.Clean.TransferFrame -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.Clean.StepGate -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.Action -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.Frame -- shake: keep (axiom audit commands)
+public import AvailableChainFGSAProofs.Proofs.Shared.Relay -- shake: keep (relay axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.Count -- shake: keep (F1b.1 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Assembly.Shared -- shake: keep (F1b.3 export axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.Release -- shake: keep (F1b.3 axiom audit)
@@ -338,3 +339,13 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.clean_transfer_receipt_path
 #print axioms AvailableChain.FGSA.Run.clean_transfer_prefreeze_path
 #print axioms AvailableChain.FGSA.Run.clean_transfer_frame
+#print axioms AvailableChain.FGSA.Run.fgsa_cleanSupport_backward_relay
+
+#print axioms AvailableChain.FGSA.Run.fgsa_cleanSupport_seat_clean_late
+#print axioms AvailableChain.FGSA.Run.fgsa_headSupport_subset_headVotes
+#print axioms AvailableChain.FGSA.Run.fgsa_headVotes_provenance
+#print axioms AvailableChain.FGSA.Run.fgsa_vote_accepted_before_head_read
+#print axioms AvailableChain.FGSA.Run.fgsa_headVotes_backward_relay
+
+#print axioms AvailableChain.FGSA.Run.fgsa_cleanSupport_vote_forward
+#print axioms AvailableChain.FGSA.Run.fgsa_voteSupports_of_path
