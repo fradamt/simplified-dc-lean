@@ -185,6 +185,19 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   honest-row premises. Each uses `@[expose] public section`.
 - KitFG `Certificates` adds E-15 row-step commutativity and idempotence,
   fold permutation and duplicate removal, and transition equality by row set.
+- KitFG FG-fold consumption (pure SimplexFG facts, 2026-10-01): `FinalityConsume`
+  (finality write from quorum coverage), `HeightConsume` (target/progress
+  advance), `NoEarlyMixed` (early crossing is justified; first height edge;
+  plateau J), `RowHistory` (row-occurrence history). FG-SA uses them on the
+  window fold only through the height bridge; the finality lemmas stay
+  SimplexFG facts.
+- KitFG window core (height bridge, blueprint 01 §3.1a): definition modules
+  `HeightCoreDef` (FGHeight projection without finality fields, HeightRowsEq
+  selector condition, deriveWithSelector on the same block geometry,
+  HeightStepBridge, HeightFoldRefinement) and `HeightLawsDef` (FGHeightLaws);
+  proofs `HeightFold`, `HeightBridge`, `HeightLaws`, `HeightConsumeTransfer`,
+  `HeightHistoryTransfer`. FG-SA supplies the window instance
+  (`HeightFoldRefinement` for its raw window fold); KitFG never imports FGSA.
 - FGSA E-11 adds `LeaseBelowOutputStore` in `Statements/Invariants` and
   `StoreBundle` with `StoreBundleInvariant` in `Statements/Store`. The bundle
   has cstore, meta, nest and lease fields; the E-11 statements are PROVED.

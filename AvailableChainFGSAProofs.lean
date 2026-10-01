@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.RetainedWalkStore
 public import AvailableChainFGSAProofs.Proofs.Foundations.Cap
 public import AvailableChainFGSAProofs.Proofs.Shared.GridSchedule
 public import AvailableChainFGSAProofs.Proofs.Shared.Recurrence

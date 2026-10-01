@@ -39,5 +39,8 @@ public import AvailableChainKitFG.HeightFold
 public import AvailableChainKitFG.HeightBridge
 public import AvailableChainKitFG.HeightLaws
 
+public import AvailableChainKitFG.HeightConsumeTransfer
+public import AvailableChainKitFG.HeightHistoryTransfer
+
 @[expose] public section
 end
