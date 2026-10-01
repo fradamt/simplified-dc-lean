@@ -1,7 +1,6 @@
 module
 public import AvailableChainFGSARun.Proofs.Receipts
 public import AvailableChainFGSAClaims.Statements.Reads
-public import AvailableChainGeneric.Statements.V2.Duty.Regimes
 
 public section
 
@@ -231,7 +230,8 @@ private theorem sl_read_window (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 private theorem sl_relay (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (s : Slot) (hSync : Gen.V2.Duty.LabelSync E rho (SA.voteTime p.toParams s)
+    (s : Slot) (hSync : Gen.V2.Duty.LabelSyncOn E rho
+      (fun o => ¬ isRowObject o) (SA.voteTime p.toParams s)
       (SA.gateTime p.toParams s))
     {ix iy : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (hiy : rho.events[iy]? = some (.tick y (SA.gateTime p.toParams s)))
@@ -309,11 +309,14 @@ at one synchronized label are compatible. Class (ii), T7.8 receipt instance
 and Gen A2/A3 count assembly. DC: Protocol/ForkChoice/Goldfish/Confirmation.lean:405
 `eligible_compatible`. INTENTIONAL: use the optional F-anchored active-view
 result (spec/fgsa-protocol.tex:2496–2513), with label-local synchronization.
-No participation or honest-majority premise is needed for compatibility. -/
+No participation or honest-majority premise is needed for compatibility.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem fgsa_sameLabel (p : Params) {In V : Type} [DecidableEq V]
     (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (s : Slot) (hSync : Gen.V2.Duty.LabelSync E rho (SA.voteTime p.toParams s)
+    (s : Slot) (hSync : Gen.V2.Duty.LabelSyncOn E rho
+      (fun o => ¬ isRowObject o) (SA.voteTime p.toParams s)
       (SA.gateTime p.toParams s)) :
     ∀ x y B C, x ∈ rho.honest → y ∈ rho.honest →
       gateResult p c E rho x s = some (some B) →

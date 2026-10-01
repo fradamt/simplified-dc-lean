@@ -14,6 +14,8 @@ public section
 retrospective next-slot read. Each vertex uses its own acceptance trigger. -/
 
 namespace AvailableChain.FGSA.Run
+
+variable {ΔF : Time}
 open AvailableChain.SimplexFG
 
 variable (p : Params) {In V : Type} (c : AppCodec In)
@@ -247,7 +249,7 @@ private theorem transfer_frame_at_vote
 
 private theorem transfer_coverage
     (hE : V2.D.ExecutionValid E rho) (hDelta : E.Δ = p.Δ)
-    (b₀ : Time) (hhealthy : V2.D.HealthyPrefixDelivery E rho b₀)
+    (b₀ : Time) (hhealthy : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho (fgsaDelay E.Δ ΔF) b₀)
     (hb₀ : b₀ ≤ rho.horizon) {i : Nat} {x y : V} {s : Slot} {B : Block}
     (hx : x ∈ rho.honest) (hcut : SA.freezeTime p.toParams s ≤ b₀)
     (hpath : ∀ b, Block.Preceq b B → b ≠ .genesis →
@@ -264,7 +266,8 @@ private theorem transfer_coverage
     ∃ l < i, V2.D.Run.acceptsAt E rho l x o t ∧
       ∃ b, blockOf? p o = some b ∧ Block.Preceq b B
   refine ⟨required, ?_, ?_, ?_, ?_⟩
-  · simpa only [hDelta] using Gen.V2.Duty.deliveryWithin_of_healthyPrefix b₀ hhealthy
+  · simpa only [hDelta] using Gen.V2.Duty.deliveryWithinOn_of_healthyPrefixBy E rho b₀ hhealthy
+          (fun o => ¬ isRowObject o) E.Δ (fgsaDelay_nonrow E.Δ _)
   · intro o t hr
     obtain ⟨_, _, l, _, ha, b, hb, _⟩ := hr
     obtain ⟨parent, he, hh⟩ := ha.1
@@ -322,9 +325,11 @@ private theorem transfer_raw_lift (hsch : V2.D.ScheduleWellFormed E rho)
 DC: GSTZeroPreparedWalk.lean:546; AdoptionTransport.lean:442, receipt transport.
 INTENTIONAL: FG-SA uses the strict freeze read, per-proposal accepted relay,
 and the old-source F prefix (spec/fgsa-protocol.tex:2506–2513). The F-covered
-K8 branch is handled by `fgsa_active_path_of_coverage`. -/
+K8 branch is handled by `fgsa_active_path_of_coverage`.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem clean_transfer_receipt_path [Fintype V] (b₀ : Time)
-    (h : CleanCut₂ p c E rho b₀)
+    (h : CleanCut₂ p c E rho b₀ ΔF)
     (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho)
     {i k : Nat} {x y : V} {s : Slot} {B : Block}
     (hi : i < timeIdx rho b₀) (hki : k < i)
@@ -378,9 +383,11 @@ theorem clean_transfer_receipt_path [Fintype V] (b₀ : Time)
 DC: GSTZeroPreparedWalk.lean:546; AdoptionTransport.lean:442, receipt transport.
 INTENTIONAL: FG-SA transports the clean supporter's head K, not just B,
 using each proposal's acceptance and strict freeze read
-(spec/fgsa-protocol.tex:2506–2513). The old-source frame gives F ⪯ B ⪯ K. -/
+(spec/fgsa-protocol.tex:2506–2513). The old-source frame gives F ⪯ B ⪯ K.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem clean_transfer_receipt_path_of_head [Fintype V] (b₀ : Time)
-    (h : CleanCut₂ p c E rho b₀)
+    (h : CleanCut₂ p c E rho b₀ ΔF)
     (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho)
     {i k : Nat} {x y : V} {s : Slot} {B K : Block} {o : GridCO.Wire p.n}
     (hi : i < timeIdx rho b₀) (hki : k < i)
@@ -515,9 +522,11 @@ private theorem transfer_stamp_kept {α : Type} [BEq α] [LawfulBEq α]
 DC: GSTZeroPreparedWalk.lean:546; WeakGenesisGSTZeroActionSources.lean:25.
 INTENTIONAL: this is the FG-SA stamped path at the actual next-slot clocked
 read, not a prepared SG walk (spec/fgsa-protocol.tex:2496–2525; design R4/R5).
-The original freeze stamps survive both cumulative storage and the full clock. -/
+The original freeze stamps survive both cumulative storage and the full clock.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem clean_transfer_prefreeze_path [Fintype V] (b₀ : Time) :
-  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
+  CleanCut₂ p c E rho b₀ ΔF → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   ∀ i k x y s B, i < timeIdx rho b₀ → k < i →
     IsGateTick p c rho i x s →
@@ -590,9 +599,11 @@ DC: GSTZeroPreparedWalk.lean:546; WeakGenesisGSTZeroActionSources.lean:25.
 INTENTIONAL: FG-SA needs the supporter's whole stamped FG path at the
 actual next-slot clocked read, as the C5 relay hpath premise requires
 (spec/fgsa-protocol.tex:2496–2525,2506–2513). The lift is existential so
-that the consumer can select it; eraseFG injectivity identifies any other lift. -/
+that the consumer can select it; eraseFG injectivity identifies any other lift.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem clean_transfer_prefreeze_path_of_head [Fintype V] (b₀ : Time) :
-  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
+  CleanCut₂ p c E rho b₀ ΔF → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   ∀ i k x y s B K (o : GridCO.Wire p.n), i < timeIdx rho b₀ → k < i →
     IsGateTick p c rho i x s →
@@ -711,9 +722,11 @@ DC: GSTZeroPreparedWalk.lean:513,546; WeakGenesisGSTZeroActionSources.lean:106.
 INTENTIONAL: the exact Q6 retrospective FG-SA frame includes the FJ band,
 contest, live lease root, and a witness in the actual voter set
 (spec/fgsa-protocol.tex:2496–2525,2557–2571; design Appendix A and R4/R5).
-The local height witness is Bfg itself. Ordered is an explicit input. -/
+The local height witness is Bfg itself. Ordered is an explicit input.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem clean_transfer_frame [Fintype V] (b₀ : Time) :
-  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
+  CleanCut₂ p c E rho b₀ ΔF → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   ∀ i k x y s B, i < timeIdx rho b₀ → k < i →
     IsGateTick p c rho i x s →

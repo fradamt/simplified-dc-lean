@@ -75,14 +75,17 @@ def FullVoteService (st : State p.n) (s : Slot) : Prop :=
         | none => false))
 /-- T-VOTE (01:150–157), P3 A.7 OD18, D67.
 Consumers: FF1, F6, F8, FL-T7. Sync begins at the batch's vote time,
-not at the later proposal/action. This is a composition service. -/
+not at the later proposal/action. This is a composition service.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 def TVote : Prop :=
   (∀ v st, Gen.V2.Duty.HonestSlot rho (fgsaInterface p c) v →
-    Gen.V2.Duty.LabelSync E rho (SA.voteTime p.toParams (v - 1))
+    Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o) (SA.voteTime p.toParams (v - 1))
       (SA.proposalTime p.toParams v) →
     proposalStateAt p c E rho v = some st → FullVoteService p c E rho st (v - 1)) ∧
   (∀ r x nd, x ∈ rho.honest →
-    Gen.V2.Duty.LabelSync E rho (SA.voteTime p.toParams (r * p.R + 1)) (p.actionTime r) →
+    Gen.V2.Duty.LabelSyncOn E rho
+      (fun o => ¬ isRowObject o) (SA.voteTime p.toParams (r * p.R + 1)) (p.actionTime r) →
     postClock E rho x (p.actionTime r) = some nd →
     FullVoteService p c E rho nd.st (r * p.R + 1)) ∧
   (∀ y s (a : HeadWire p.n), y ∈ rho.honest →

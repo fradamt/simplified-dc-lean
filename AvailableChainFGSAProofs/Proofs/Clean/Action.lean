@@ -8,6 +8,8 @@ public section
 
 /-! P3 §§8.4, 8.7; bp02 §5.6. Independent action substep. -/
 namespace AvailableChain.FGSA.Run
+
+variable {ΔF : Time}
 open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} [DecidableEq V]
     (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -30,9 +32,11 @@ private theorem action_row_payload (hv : V2.D.ExecutionValid E rho)
 /-- P3 §§8.4, 8.7; bp02 §5.6. Class B, local action preservation.
 DC counterpart: none exact; Execution/WeakGenesisGSTZeroActionSources.lean
 has action-source order facts. FG-SA emits a row after the gate in one tick.
-The proof uses the given prior state and completed history directly. -/
-theorem clean_actionStep [Fintype V] {b₀ : Time} : CleanActionStep p c E rho b₀ := by
-  rw [CleanActionStep_def]
+The proof uses the given prior state and completed history directly.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
+theorem clean_actionStep [Fintype V] {b₀ : Time} : CleanActionStep (ΔF := ΔF) p c E rho b₀ := by
+  rw [CleanActionStep_def (ΔF := ΔF)]
   intro h _ _ _ i _ _ _ _ hh hstate
   rw [CleanRowSources_def]
   intro j x r a e hj ha he
@@ -91,16 +95,20 @@ theorem clean_actionStep [Fintype V] {b₀ : Time} : CleanActionStep p c E rho b
       belowLabel_of_preceq hCG (belowLabel_of_gateResultAt hk hkt hG (Nat.le_refl _))⟩
 
 /-- P3 §8.4; bp02 §§5.5–5.6. Class B, frozen gate state step.
-DC counterpart: none; the FG-SA gate and action share one tick. -/
+DC counterpart: none; the FG-SA gate and action share one tick.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem clean_gateStateStep [Fintype V] {b₀ : Time} :
-    CleanGateStateStep p c E rho b₀ :=
+    CleanGateStateStep (ΔF := ΔF) p c E rho b₀ :=
   clean_gateStateStep_of_action (clean_actionStep p c E rho)
 
 /-- P3 §8.2, §8.7 and S2 (5142–5165); bp02 §5.5. Class B.
 DC counterpart: Generic/Properties.lean:41, MonotoneFrom. This internal
-form uses all nodes and event indices under a fixed completed history. -/
+form uses all nodes and event indices under a fixed completed history.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem sExtends_upTo [Fintype V] {b₀ : Time} {i : Nat}
-    (h : CleanCut₂ p c E rho b₀) (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+    (h : CleanCut₂ p c E rho b₀ ΔF) (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
     (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho)
     (hi : i ≤ timeIdx rho b₀) (hh : CleanHist p c E rho i) :
     ∀ v j k, j ≤ k → k ≤ i →
@@ -110,9 +118,11 @@ theorem sExtends_upTo [Fintype V] {b₀ : Time} {i : Nat}
 /-- P3 §8.7 F2.2/F2.6; bp02 §§3.3–3.4, §5.6. Class B, frozen frame.
 DC counterparts: ChainState/FGRootWitness.lean:327,493 and
 ChainState/Chain.lean:414,447,460,475. The FG-SA contest/domain bundle
-has no exact DC counterpart; the given-state core documents its geometry. -/
-theorem cleanFrame [Fintype V] {b₀ : Time} : CleanFrameStmt p c E rho b₀ := by
-  rw [CleanFrameStmt_def]
+has no exact DC counterpart; the given-state core documents its geometry.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
+theorem cleanFrame [Fintype V] {b₀ : Time} : CleanFrameStmt (ΔF := ΔF) p c E rho b₀ := by
+  rw [CleanFrameStmt_def (ΔF := ΔF)]
   intro h hq hf hsrc i hi hh
   exact cleanFrame_of_state p c E rho b₀ h hq hf hsrc i hi hh
     (cleanState_of_hist h hq hf hsrc (clean_actionStep p c E rho) hi hh)

@@ -559,3 +559,8 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.exactService_participation_of_card
 #print axioms AvailableChain.FGSA.Run.exactService_of_head_clean
 #print axioms AvailableChain.FGSA.Run.exactService_of_head_recovery
+
+#print axioms AvailableChain.FGSA.Run.HealthyPrefix₂.of_legacy
+#print axioms AvailableChain.FGSA.Run.HealthyPrefix₂.legacy_delivery
+#print axioms AvailableChain.FGSA.Run.Recovery₂.of_legacy
+#print axioms AvailableChain.FGSA.Run.Recovery₂.toRecoveryCore
