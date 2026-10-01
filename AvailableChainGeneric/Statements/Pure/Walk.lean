@@ -266,3 +266,71 @@ theorem GhostTransferSfxStatement_def : GhostTransferSfxStatement =
   rw [GhostTransferSfxStatement]
 
 end AvailableChain.Gen.Pure
+
+namespace AvailableChain.Gen.Pure
+
+open AvailableChain
+
+/-- Class (iii). DC: DecoupledConsensusProofs/Protocol/ForkChoice/Goldfish/Walk.lean:433.
+INTENTIONAL: name the full score/root order of the selected path steps. -/
+def BestAncestry (anchor target : Block) (tree : List Block)
+    (score : Block → Nat) (eligible : Block → Bool) : Prop :=
+  ∀ X, Block.Preceq anchor X → Block.Prec X target →
+    ∃ C, C.parent? = some X ∧ Block.Preceq C target ∧
+      C ∈ tree ∧ eligible C = true ∧
+      ∀ B ∈ tree, B.parent? = some X → eligible B = true →
+        score B ≤ score C ∧ (score B = score C → B.root ≤ C.root)
+
+/-- Class (iii). DC: DecoupledConsensusProofs/Protocol/ForkChoice/Goldfish/Walk.lean:433.
+INTENTIONAL: the defining equation for the selected score/root path order. -/
+theorem BestAncestry_def (anchor target : Block) (tree : List Block)
+    (score : Block → Nat) (eligible : Block → Bool) :
+    BestAncestry anchor target tree score eligible =
+      (∀ X, Block.Preceq anchor X → Block.Prec X target →
+        ∃ C, C.parent? = some X ∧ Block.Preceq C target ∧
+          C ∈ tree ∧ eligible C = true ∧
+          ∀ B ∈ tree, B.parent? = some X → eligible B = true →
+            score B ≤ score C ∧ (score B = score C → B.root ≤ C.root)) := rfl
+
+/-- Class (iii).
+DC: DecoupledConsensusProofs/Protocol/ForkChoice/Goldfish/ProposalWalkTransportCore.lean:162,259;
+DecoupledConsensusProofs/Protocol/ForkChoice/Goldfish/Walk.lean:433.
+INTENTIONAL: state per-reader retained transport with atomic premises and source coverage.
+Use the existing list fuel and score/root order. -/
+def WalkCoversOfRetainedTransportStatement : Prop :=
+  ∀ (sourceAnchor targetAnchor cut parent : Block)
+    (sourceTree targetTree : List Block)
+    (sourceScore targetScore : Block → Nat)
+    (sourceEligible targetEligible : Block → Bool),
+    Block.Preceq parent (GridCO.ghost sourceAnchor sourceTree sourceScore sourceEligible) →
+    Block.Preceq sourceAnchor cut →
+    Block.Preceq targetAnchor cut →
+    Block.Preceq cut parent →
+    BestAncestry targetAnchor cut targetTree targetScore targetEligible →
+    SuffixPersists cut parent sourceTree targetTree sourceScore sourceEligible targetEligible →
+    SuffixReflects cut parent sourceTree targetTree sourceEligible targetEligible →
+    SuffixScoresAgree cut parent targetTree sourceScore targetScore targetEligible →
+    Block.Preceq parent (GridCO.ghost targetAnchor targetTree targetScore targetEligible)
+
+/-- Class (iii).
+DC: DecoupledConsensusProofs/Protocol/ForkChoice/Goldfish/ProposalWalkTransportCore.lean:162,259;
+DecoupledConsensusProofs/Protocol/ForkChoice/Goldfish/Walk.lean:433.
+INTENTIONAL: the defining equation for the Generic retained-transport statement. -/
+theorem WalkCoversOfRetainedTransportStatement_def :
+    WalkCoversOfRetainedTransportStatement =
+      (∀ (sourceAnchor targetAnchor cut parent : Block)
+        (sourceTree targetTree : List Block)
+        (sourceScore targetScore : Block → Nat)
+        (sourceEligible targetEligible : Block → Bool),
+        Block.Preceq parent (GridCO.ghost sourceAnchor sourceTree sourceScore sourceEligible) →
+        Block.Preceq sourceAnchor cut →
+        Block.Preceq targetAnchor cut →
+        Block.Preceq cut parent →
+        BestAncestry targetAnchor cut targetTree targetScore targetEligible →
+        SuffixPersists cut parent sourceTree targetTree sourceScore sourceEligible targetEligible →
+        SuffixReflects cut parent sourceTree targetTree sourceEligible targetEligible →
+        SuffixScoresAgree cut parent targetTree sourceScore targetScore targetEligible →
+        Block.Preceq parent
+          (GridCO.ghost targetAnchor targetTree targetScore targetEligible)) := rfl
+
+end AvailableChain.Gen.Pure
