@@ -2,7 +2,6 @@ module
 public import AvailableChainFGSARun.Proofs.Receipts
 public import AvailableChainFGSAClaims.Statements.Reads
 public import AvailableChainGeneric.Proofs.AC.Votes
-public import AvailableChainGeneric.Proofs.Pure.SupportCounts
 public import AvailableChainGeneric.Statements.V2.Regimes
 
 public section
