@@ -9,3 +9,4 @@ LowerFDomainDef
 RowBitsDef
 RecordHighDef
 ClientOnce
+RecordHighOnceDef

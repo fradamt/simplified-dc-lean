@@ -9,6 +9,7 @@ public import AvailableChainKitFG.TwoChanges
 public import AvailableChainKitFG.RowBits
 public import AvailableChainKitFG.RecordHigh
 public import AvailableChainKitFG.ClientOnceSafety
+public import AvailableChainKitFG.RecordHighOnce
 
 /-! Kernel dependency audit for the FG chain lemmas without root premises. -/
 
@@ -78,3 +79,8 @@ public import AvailableChainKitFG.ClientOnceSafety
 #print axioms AvailableChain.KitFG.covers_createRowOnce
 #print axioms AvailableChain.KitFG.createRowOnce_noSelfSlash
 #print axioms AvailableChain.SimplexFG.createRowOnce_def
+
+-- The send-once high guard reuses the old row-count argument.
+#print axioms AvailableChain.KitFG.RecordHighOnceStatement_def
+#print axioms AvailableChain.KitFG.recordHigh_optional_finality
+#print axioms AvailableChain.KitFG.recordHighOnce
