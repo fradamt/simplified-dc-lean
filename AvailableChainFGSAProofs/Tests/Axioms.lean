@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.ExactHead -- shake: keep (J2 HEAD axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.Regimes -- shake: keep (gate regime audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.GateReceipt -- shake: keep (gate receipt audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.ScoreRun -- shake: keep (G25 axiom audit)
@@ -531,3 +532,13 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_gateReceipt_clean
 #print axioms AvailableChain.FGSA.Run.fgsa_gateReceipt_recovery
 #print axioms AvailableChain.FGSA.Run.exactHead_of_pivot_ancestry
+
+-- J2 HEAD clause: G25/G11, guarded ancestry and exact terminal adoption.
+#print axioms AvailableChain.FGSA.Run.fgsa_headVote_best_ancestry_of_cover
+#print axioms AvailableChain.FGSA.Run.ExactHeadGeometry
+#print axioms AvailableChain.FGSA.Run.fgsa_headVote_exact_of_covered_parent
+#print axioms AvailableChain.FGSA.Run.exactHead_of_proposal_on_run
+#print axioms AvailableChain.FGSA.Run.ExactHeadRunGeometry
+#print axioms AvailableChain.FGSA.Run.exactService_head_of_proposal
+#print axioms AvailableChain.FGSA.Run.exactService_head_of_proposal_clean
+#print axioms AvailableChain.FGSA.Run.exactService_head_of_proposal_recovery

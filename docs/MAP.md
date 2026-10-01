@@ -1418,6 +1418,8 @@ unused imports, and negative controls. No baseline entries were added.
 │ .lean                                           │                                     │
 │ AvailableChainFGSAProofs/Proofs/Shared/         │ Active HEAD receipts                │
 │ GateReceipt.lean                                │                                     │
+│ AvailableChainFGSAProofs/Proofs/Shared/         │ ExactService HEAD clause            │
+│ ExactHead.lean                                  │                                     │
 │ AvailableChainFGSAProofs/Proofs/Clean/Closure   │ Inclusive history and source reads  │
 │ AvailableChainFGSAProofs/Proofs/Clean/GateOutput │ Conditional gate result below S    │
 │ .lean                                           │                                     │
