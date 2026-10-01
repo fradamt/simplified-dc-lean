@@ -1367,6 +1367,7 @@ unused imports, and negative controls. No baseline entries were added.
 │ AvailableChainFGSAProofs/Proofs/Shared/Export   │ Frozen Shared claim wrappers        │
 │ .lean                                           │ SYN L50 Shared export boundary      │
 │ AvailableChainFGSAProofs/Proofs/Assembly/Shared │ Shared exports for the package root │
+│ AvailableChainFGSAProofs/Proofs/Assembly/Clean  │ Clean exports for the package root  │
 │ .lean                                           │ SYN L50 assembly boundary           │
 │ AvailableChainFGSAProofs/Proofs/Foundations/    │ Source discipline and source frame  │
 │ Sources.lean                                    │ K6; frozen F1.1 and F1.3 inputs     │
@@ -1391,6 +1392,13 @@ unused imports, and negative controls. No baseline entries were added.
 │ StateGate.lean                                  │                                     │
 │ AvailableChainFGSAProofs/Proofs/Clean/          │ Gate Ordered, Same, nonempty; guard │
 │ StepGate.lean                                   │                                     │
+│ AvailableChainFGSAProofs/Proofs/Clean/          │ Zero-cut history and truncation     │
+│ Zero.lean                                       │                                     │
+│ AvailableChainFGSAProofs/Proofs/Clean/          │ All-time read transport             │
+│ Safety.lean                                     │                                     │
+│ AvailableChainFGSAProofs/Proofs/Clean/          │ Frozen zero-cut and safety exports  │
+│ Export.lean                                     │                                     │
+│ AvailableChainFGSAProofs/Tests/Zero.lean        │ Nonempty time-zero schedule checks  │
 │ AvailableChainFGSAProofs/Tests/Axioms.lean      │ Proofs public-theorem axiom audit   │
 │ AvailableChainFGSAInhabit.lean                  │ Inhabit library root                │
 │ AvailableChainFGSAInhabit/Tests/Axioms.lean     │ Inhabit public-theorem axiom audit  │
