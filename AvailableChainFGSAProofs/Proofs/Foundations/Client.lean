@@ -3,7 +3,6 @@ public import AvailableChainFGSAProofs.Proofs.Shared.Channels
 public import AvailableChainFGSAClaims.Statements.Regimes
 public import AvailableChainFGSARun.Proofs.ClientTrace
 public import AvailableChainFGSARun.Proofs.EmissionWellFormed
-public import AvailableChainGeneric.Proofs.V2.Duty.Signatures
 
 public section
 

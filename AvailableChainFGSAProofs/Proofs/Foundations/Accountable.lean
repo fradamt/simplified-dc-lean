@@ -1,7 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Foundations.Carrier
 public import AvailableChainFGSAProofs.Proofs.Foundations.Client
-public import AvailableChainGeneric.Proofs.V2.Duty.Linked
 public import AvailableChainFGSARun.Proofs.Receipts
 
 public section

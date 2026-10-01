@@ -1,5 +1,4 @@
 module
-public import AvailableChainFGSA.Proofs.Head
 public import AvailableChainFGSA.Proofs.Head.Pool
 public import AvailableChainFGSAProofs.Proofs.Clean.StateGate
 public import AvailableChainFGSAProofs.Proofs.Shared.Count

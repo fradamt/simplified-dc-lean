@@ -1,9 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Shared.StoreRun
-public import AvailableChainFGSA.Proofs.Head
 public import AvailableChainFGSARun.Proofs.Receipts
 public import AvailableChainGeneric.Statements.V2.Duty.Regimes
-public import AvailableChainGeneric.Proofs.Pure.BlockOrder
 
 public section
 

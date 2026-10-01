@@ -1,6 +1,5 @@
 module
 public import AvailableChainFGSARun.Proofs.Receipts
-public import AvailableChainGeneric.Proofs.AC.Votes
 public import AvailableChainGeneric.Statements.V2.Duty.Regimes
 
 public section

@@ -1,7 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Foundations.Carrier
 public import AvailableChainFGSARun.Proofs.Reachable
-public import AvailableChainGeneric.Proofs.V2.Duty.Linked
 public import AvailableChainGeneric.Statements.V2.Duty.Counts
 public import AvailableChainKitFG.CausalCap
 public import AvailableChainKitFG.Provenance
