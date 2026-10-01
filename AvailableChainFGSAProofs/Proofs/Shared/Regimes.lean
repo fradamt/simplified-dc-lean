@@ -1,4 +1,6 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.GateReceipt
+public import AvailableChainGeneric.Proofs.V2.Regimes
 public import AvailableChainFGSAClaims.Statements.Regimes
 public import AvailableChainFGSA.Statements.Invariants
 public import AvailableChainFGSARun.Proofs.Receipts
@@ -152,6 +154,86 @@ theorem Outage₂.toCleanCut {fast : Bool} {T b₀ b₁ : Time}
 theorem Outage₂.faultQ {fast : Bool} {T b₀ b₁ : Time}
     (h : Outage₂ p c fast E rho T b₀ b₁) : FaultQ p.n (faulty rho).card :=
   h.pre.faultQ_of_pos h.pos
+
+open AvailableChain.SimplexFG
+
+/-- Blueprint 02:537–539; P3 erratum 13, Clean wrapper.
+DC: Generic/Conditions.lean:134–156 and Goldfish/Confirmation.lean:434–441.
+INTENTIONAL: healthy-prefix delivery supplies the vote-to-gate LabelSync;
+geometry stays an explicit consumer obligation. -/
+theorem fgsa_gateReceipt_clean
+    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (b₀ : Time) (h : CleanCut₂ p c E rho b₀)
+    (s : Slot) (hcut : SA.gateTime p.toParams s ≤ b₀)
+    {i : Nat} {x : V} (ht : IsGateTick p c rho i x s) (B : Block)
+    (hgeom : GateReceiptGeometry E rho
+      (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)) s B) :
+    ∀ q : Fin p.n, rho.seatOf (.base (.head s)) q ∈ rho.honest →
+      E.awake (rho.seatOf (.base (.head s)) q) (SA.voteTime p.toParams s) = true →
+      ∃ K t,
+        rho.seatOf (.base (.head s)) q ∈ rho.honest ∧
+        V2.Run.emits E rho (rho.seatOf (.base (.head s)) q)
+          (ofHead p ⟨.seat (.head s) q, K⟩) t ∧
+        baseVote (⟨.seat (.head s) q, K⟩ : HeadWire p.n) ∈
+          (storeAt p c E rho i x).base.votes ∧
+        K ∈ (actView (clockPre p (storeAt p c E rho i x)
+          (SA.gateTime p.toParams s))).blocks ∧
+        K.slot ≤ s ∧
+        GridCO.stampVote (actView (clockPre p (storeAt p c E rho i x)
+          (SA.gateTime p.toParams s)))
+          (baseVote (⟨.seat (.head s) q, K⟩ : HeadWire p.n)) <
+            GridCO.earlyTime p.toParams.engine s ∧
+        GridCO.stampBlock (actView (clockPre p (storeAt p c E rho i x)
+          (SA.gateTime p.toParams s))) K < GridCO.earlyTime p.toParams.engine s ∧
+        Block.Preceq (eraseFG (clockPre p (storeAt p c E rho i x)
+          (SA.gateTime p.toParams s)).fg.F) K ∧ Block.Preceq B K := by
+  have hvd : SA.voteTime p.toParams s + E.Δ ≤ SA.gateTime p.toParams s := by
+    rw [h.base.delta]
+    change 4 * p.Δ * (s : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
+    linarith [p.deltaPos]
+  have hsync := Gen.V2.LabelSync.of_cleanCut E rho b₀ _ _ h.healthy hvd hcut h.cut.2
+  exact fgsa_gateReceipt E rho h.base.valid h.base.noRestart h.base.delta h.base.cstar
+    s hsync ht B hgeom
+
+/-- Blueprint 21 H.22:3100–3120; P3 erratum 13, Recovery wrapper.
+DC: Generic/Conditions.lean:110–132 and Goldfish/Confirmation.lean:434–441.
+INTENTIONAL: post-GST delivery supplies the vote-to-gate LabelSync.
+GST ≤ voteTime s suffices; no earlier synchrony pair is used. -/
+theorem fgsa_gateReceipt_recovery
+    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (G : Time) (h : Recovery₂ p c E rho G)
+    (s : Slot) (hGST : E.t_GST ≤ SA.voteTime p.toParams s)
+    {i : Nat} {x : V} (ht : IsGateTick p c rho i x s) (B : Block)
+    (hgeom : GateReceiptGeometry E rho
+      (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)) s B) :
+    ∀ q : Fin p.n, rho.seatOf (.base (.head s)) q ∈ rho.honest →
+      E.awake (rho.seatOf (.base (.head s)) q) (SA.voteTime p.toParams s) = true →
+      ∃ K t,
+        rho.seatOf (.base (.head s)) q ∈ rho.honest ∧
+        V2.Run.emits E rho (rho.seatOf (.base (.head s)) q)
+          (ofHead p ⟨.seat (.head s) q, K⟩) t ∧
+        baseVote (⟨.seat (.head s) q, K⟩ : HeadWire p.n) ∈
+          (storeAt p c E rho i x).base.votes ∧
+        K ∈ (actView (clockPre p (storeAt p c E rho i x)
+          (SA.gateTime p.toParams s))).blocks ∧
+        K.slot ≤ s ∧
+        GridCO.stampVote (actView (clockPre p (storeAt p c E rho i x)
+          (SA.gateTime p.toParams s)))
+          (baseVote (⟨.seat (.head s) q, K⟩ : HeadWire p.n)) <
+            GridCO.earlyTime p.toParams.engine s ∧
+        GridCO.stampBlock (actView (clockPre p (storeAt p c E rho i x)
+          (SA.gateTime p.toParams s))) K < GridCO.earlyTime p.toParams.engine s ∧
+        Block.Preceq (eraseFG (clockPre p (storeAt p c E rho i x)
+          (SA.gateTime p.toParams s)).fg.F) K ∧ Block.Preceq B K := by
+  have hvd : SA.voteTime p.toParams s + E.Δ ≤ SA.gateTime p.toParams s := by
+    rw [h.base.delta]
+    change 4 * p.Δ * (s : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
+    linarith [p.deltaPos]
+  have hhorizon : SA.gateTime p.toParams s ≤ rho.horizon :=
+    (h.base.valid.in_horizon _ (List.mem_of_getElem? ht)).2
+  have hsync := Gen.V2.LabelSync.of_recovery E rho _ _ h.sync hGST hvd hhorizon
+  exact fgsa_gateReceipt E rho h.base.valid h.base.noRestart h.base.delta h.base.cstar
+    s hsync ht B hgeom
 
 end AvailableChain.FGSA.Run
 end
