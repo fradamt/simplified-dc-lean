@@ -62,11 +62,28 @@ imports_of() { perl -CSD -e "$strip_comments" < "$1" | perl -CSD -e "$header_imp
 # The FGSA source files under base directory $1, relative to it.
 source_files() { (cd "$1" && find -L AvailableChainFGSA -iname '*.lean' | sort); }
 
-# Root imports under base directory $1: every source file is a root import.
+# Root imports under base directory $1: every source file outside Tests/ is a root import.
+# Tests/ modules need no root import (backlog C23, lead 2026-10-01): the library
+# glob `AvailableChainFGSA.*` builds every module. A new root import of a test fails
+# check-layers B7-TESTS; the older test imports of the root stay (baseline).
+check_lib_glob() {
+  local lakefile=$1
+  python3 - "$lakefile" <<'PY' || { echo "MISSING GLOB: AvailableChainFGSA needs globs = [\"AvailableChainFGSA.*\"] (tests are built only by the glob)"; return 1; }
+import sys, tomllib
+libs = tomllib.load(open(sys.argv[1], "rb")).get("lean_lib", [])
+lib = [l for l in libs if l.get("name") == "AvailableChainFGSA"]
+sys.exit(0 if len(lib) == 1 and lib[0].get("globs") == ["AvailableChainFGSA.*"] else 1)
+PY
+}
+test_modules() {
+  source_files "$1" | grep -i '^AvailableChainFGSA/Tests/' |
+    sed -E 's/\.[lL][eE][aA][nN]$//; s|/|.|g' || true
+}
 check_root_imports() {
   local base=$1 missing
   missing=$(comm -23 \
-    <(source_files "$base" | sed -E 's/\.[lL][eE][aA][nN]$//; s|/|.|g' | sort) \
+    <(source_files "$base" | grep -iv '^AvailableChainFGSA/Tests/' |
+        sed -E 's/\.[lL][eE][aA][nN]$//; s|/|.|g' | sort) \
     <(imports_of "$base/AvailableChainFGSA.lean" | sort))
   [ -z "$missing" ] || { echo "NOT IMPORTED BY THE ROOT: $missing"; return 1; }
   if imports_of "$base/AvailableChainFGSA.lean" | grep -qx '!UNPARSED'; then
@@ -139,6 +156,8 @@ echo "== no protocol library imports the check support library"
 ! grep -RlE 'import[[:space:]]+AvailableChainCheckSupport' AvailableChain*/ AvailableChain*.lean || { echo "PROTOCOL LIBRARY IMPORTS AvailableChainCheckSupport"; exit 1; }
 echo "== root imports"
 check_root_imports . || exit 2
+echo "== library glob (tests are built by the glob)"
+check_lib_glob lakefile.toml || exit 2
 echo "== native evaluation"
 status=0
 for f in $(source_files .) AvailableChainFGSA.lean; do
@@ -157,7 +176,10 @@ if [ "${SOURCE_ONLY:-0}" = 1 ]; then
   exit 0
 fi
 echo "== axioms, build coverage, import closure"
-gate_with_slot lake env lean --run scripts/CheckFGSAAxioms.lean --expect \
+# Tests/ modules need no root import (C23): check them as extra roots.
+TEST_ROOTS=()
+for m in $(test_modules .); do TEST_ROOTS+=(--root "$m"); done
+gate_with_slot lake env lean --run scripts/CheckFGSAAxioms.lean "${TEST_ROOTS[@]}" --expect \
   StoreSetEq admitRow_setEq proposalRows_perm_setEq propose_setEq blockAccepted_slot_pos \
   parentFoldState_slot rowValidFor_iff rowValidFor_finality_irrel rowsValidForParent_iff \
   rowsValidForParent_slot_irrel rowsValidForParent_perm rowsValidStored_initial \
@@ -248,19 +270,27 @@ expect_fail "import after a comment and a line break" $code "$out" \
 
 orphan_tree() {
 mk_tree
+# Tests/ needs no root import (C23), so the orphans live in Model/.
 printf 'module\n@[expose] public section\ntheorem negOrphan : False := sorry\nend\n' \
-  > "$neg/tree/AvailableChainFGSA/Tests/NegOrphan.lean"
+  > "$neg/tree/AvailableChainFGSA/Model/NegOrphan.lean"
 printf 'module\n@[expose] public section\ntheorem negOrphanC : False := sorry\nend\n' \
-  > "$neg/tree/AvailableChainFGSA/Tests/NegOrphanC.LEAN"
-echo '/- public import AvailableChainFGSA.Tests.NegOrphan -/' >> "$neg/tree/AvailableChainFGSA.lean"
+  > "$neg/tree/AvailableChainFGSA/Model/NegOrphanC.LEAN"
+echo '/- public import AvailableChainFGSA.Model.NegOrphan -/' >> "$neg/tree/AvailableChainFGSA.lean"
 }
 
 control_orphan() {
 orphan_tree
 run check_root_imports "$neg/tree"
 expect_fail "orphan modules behind a commented import and with a .LEAN name (root check)" \
-  $code "$out" "NOT IMPORTED BY THE ROOT: AvailableChainFGSA.Tests.NegOrphan" \
-  "AvailableChainFGSA.Tests.NegOrphanC"
+  $code "$out" "NOT IMPORTED BY THE ROOT: AvailableChainFGSA.Model.NegOrphan" \
+  "AvailableChainFGSA.Model.NegOrphanC"
+}
+
+control_glob() {
+# C23: without the library glob a test module (no root import) escapes the build.
+sed '/^globs = \["AvailableChainFGSA\.\*"\]$/d' lakefile.toml > "$neg/lakefile-noglob.toml"
+run check_lib_glob "$neg/lakefile-noglob.toml"
+expect_fail "library glob removed (tests escape the build)" $code "$out" "MISSING GLOB: AvailableChainFGSA"
 }
 
 control_closure() {
@@ -273,8 +303,8 @@ LEAN
 lake env lean -o "$neg/FGSAClosureNeg.olean" "$neg/FGSAClosureNeg.lean"
 run lake env bash -c 'LEAN_PATH="$0:$LEAN_PATH" lean --run scripts/CheckFGSAAxioms.lean --root FGSAClosureNeg --files "$0/tree/AvailableChainFGSA"' "$neg"
 expect_fail "orphan modules and forbidden closure (axiom script)" $code "$out" \
-  "NOT IN THE BUILD: AvailableChainFGSA.Tests.NegOrphan " \
-  "NOT IN THE BUILD: AvailableChainFGSA.Tests.NegOrphanC " \
+  "NOT IN THE BUILD: AvailableChainFGSA.Model.NegOrphan " \
+  "NOT IN THE BUILD: AvailableChainFGSA.Model.NegOrphanC " \
   "FORBIDDEN LIBRARY IN THE IMPORT CLOSURE: AvailableChainSAPC"
 }
 
@@ -602,6 +632,7 @@ if [ "$NEG" = 1 ]; then
   gate_pool_add control_layer
   gate_pool_add control_import_forms
   gate_pool_add control_orphan
+  gate_pool_add control_glob
   gate_pool_add control_closure
   gate_pool_add control_header_text
   gate_pool_add control_boundary
