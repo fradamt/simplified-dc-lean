@@ -79,7 +79,8 @@ check_root_imports() {
 # AvailableChainGridCO.Model.Protocol, AvailableChainSA.Model.Protocol,
 # AvailableChainSimplexFG.*, Mathlib.*; AvailableChainGridCO.Proofs.* only in
 # Proofs/; AvailableChainKitFG.* only in Statements/ and Proofs/;
-# AvailableChainGeneric.Proofs.Pure.Fold only in Proofs/ (F-13 switch).
+# AvailableChainGeneric.Proofs.* only in Proofs/ (GEN-FIRST/F-31: FG-SA proofs instantiate
+# the Gen proofs; lead ruling 2026-10-01, SYN L56; was Proofs.Pure.Fold only, the F-13 switch).
 check_direct_imports() {
   local base=$1 bad=0 f rel layer m
   for f in $(source_files "$base") AvailableChainFGSA.lean; do
@@ -93,7 +94,7 @@ check_direct_imports() {
         Statements:AvailableChainFGSA.Model.*|Statements:AvailableChainFGSA.Statements.*) continue ;;
         Proofs:AvailableChainFGSA.Model.*|Proofs:AvailableChainFGSA.Statements.*) continue ;;
         Proofs:AvailableChainFGSA.Proofs.*) continue ;;
-        Proofs:AvailableChainGeneric.Proofs.Pure.Fold) continue ;;
+        Proofs:AvailableChainGeneric.Proofs.*) continue ;;
         root:*) ;;
         Model:*|Statements:*|Proofs:*|Tests:*)
           case "$m" in
@@ -213,10 +214,12 @@ control_layer() {
 mk_tree
 printf 'module\npublic import AvailableChainKitFG.Correspondence\n' > "$neg/tree/AvailableChainFGSA/Model/NegB.lean"
 printf 'module\npublic import AvailableChainFGSA.Proofs.Carrier\n' > "$neg/tree/AvailableChainFGSA/Statements/NegB.lean"
+printf 'module\npublic import AvailableChainGeneric.Proofs.Pure.Walk\n' > "$neg/tree/AvailableChainFGSA/Statements/NegB2.lean"
 run check_direct_imports "$neg/tree"
 expect_fail "wrong-layer import" $code "$out" \
   "IMPORT NOT ALLOWED: AvailableChainFGSA/Model/NegB.lean imports AvailableChainKitFG.Correspondence" \
-  "IMPORT NOT ALLOWED: AvailableChainFGSA/Statements/NegB.lean imports AvailableChainFGSA.Proofs.Carrier"
+  "IMPORT NOT ALLOWED: AvailableChainFGSA/Statements/NegB.lean imports AvailableChainFGSA.Proofs.Carrier" \
+  "IMPORT NOT ALLOWED: AvailableChainFGSA/Statements/NegB2.lean imports AvailableChainGeneric.Proofs.Pure.Walk"
 }
 
 control_import_forms() {
