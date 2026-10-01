@@ -111,6 +111,7 @@ check_direct_imports() {
       case "$layer:$m" in
         root:AvailableChainFGSA.*|Tests:AvailableChainFGSA.*) continue ;;
         Model:AvailableChainFGSA.Model.*) continue ;;
+        Model:AvailableChainKitFG.ClientOnce) continue ;;
         Statements:AvailableChainFGSA.Model.*|Statements:AvailableChainFGSA.Statements.*) continue ;;
         Proofs:AvailableChainFGSA.Model.*|Proofs:AvailableChainFGSA.Statements.*) continue ;;
         Proofs:AvailableChainFGSA.Proofs.*) continue ;;
