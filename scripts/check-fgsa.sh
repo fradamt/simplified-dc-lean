@@ -293,6 +293,28 @@ run check_lib_glob "$neg/lakefile-noglob.toml"
 expect_fail "library glob removed (tests escape the build)" $code "$out" "MISSING GLOB: AvailableChainFGSA"
 }
 
+# C23 (lead 2026-10-01): a broken Tests/ module that the root does not import must
+# fail the build step (`lake build AvailableChainFGSA` builds the glob). The module
+# is in the REAL tree for the control only, so the control holds the gate build
+# lock for its whole life and always removes the file and its build outputs.
+control_glob_build() {
+local m=NegBuildC23 f=AvailableChainFGSA/Tests/NegBuildC23.lean
+[ ! -e "$f" ] || { echo "CONTROL SETUP FAIL: $f exists"; exit 1; }
+local body='trap "rm -f $0; find .lake/build -path \"*AvailableChainFGSA/Tests/$1.*\" -delete 2>/dev/null; true" EXIT
+printf "module\n\npublic section\n\ntheorem negBuildC23 : False := rfl\n" > "$0"
+lake build AvailableChainFGSA'
+if command -v flock >/dev/null 2>&1; then
+  run flock .lake/gate-build.lock bash -c "$body" "$f" "$m"
+else
+  while ! mkdir .lake/gate-build.lock.d 2>/dev/null; do sleep 1; done
+  run bash -c "$body" "$f" "$m"
+  rmdir .lake/gate-build.lock.d
+fi
+[ ! -e "$f" ] || { rm -f "$f"; echo "CONTROL CLEANUP FAIL: $f was left behind"; exit 1; }
+expect_fail "broken unimported test module fails the library build" $code "$out" \
+  "AvailableChainFGSA.Tests.NegBuildC23"
+}
+
 control_closure() {
 orphan_tree
 # The compiled checks: the orphan file (with a sorry) against the build, and a
@@ -649,6 +671,8 @@ if [ "$NEG" = 1 ]; then
   gate_pool_add control_ext_library
   # check-fg-pins has a build step. Drain the pool and use its build lock.
   gate_control_serial control_ext_unknown
+  # The build control edits the real tree: run it alone, under the build lock.
+  gate_control_serial control_glob_build
   gate_pool_add control_ext_empty
   gate_pool_add control_ext_record
   gate_pool_add control_ext_trailer
