@@ -34,3 +34,6 @@ public import AvailableChainFGSA.Proofs.RowValidity
 public import AvailableChainFGSA.Proofs.RowSelection
 public import AvailableChainFGSA.Proofs.Head.Walk
 public import AvailableChainFGSA.Proofs.Head.Score
+public import AvailableChainFGSA.Model.Window
+public import AvailableChainFGSA.Statements.WindowHeight
+public import AvailableChainFGSA.Proofs.WindowHeightBridge
