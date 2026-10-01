@@ -1,7 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Clean.Closure
 public import AvailableChainFGSAProofs.Proofs.Clean.GateOutput
-public import AvailableChainFGSAProofs.Proofs.Shared.Regimes
 public import AvailableChainGeneric.Statements.Pure.Props
 
 public section
@@ -302,22 +301,6 @@ theorem cleanTruncAt_body [Fintype V] {b₀ : Time}
     rw [CleanFrameStmt_def] at hframe
     exact hframe h hq hf hsrc i hi
       (clean_invariant p c E rho h hq hf hsrc i hi) v hv
-
-/-- P3 §8.5, bp02 §6; DC Generic/Properties:27,41,48 and Interface:64.
-INTENTIONAL difference: all integer reads use finite event-prefix indices,
-so reads before zero and after the horizon are covered without continuation.
-NoRestart is inherited from Clean₂.pre.base. The conclusion is unfolded. -/
-theorem cleanSafety_body [Fintype V]
-    (h : Clean₂ p c E rho)
-    (hq : Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card)
-    (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho) :
-  CompatOn (· ∈ rho.honest) (S_at p c E rho) (· ≤ rho.events.length) ∧
-  MonoOn (· ∈ rho.honest) (S_at p c E rho) (· ≤ rho.events.length) ∧
-  (∀ g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed],
-    CompatOn (· ∈ rho.honest) (fun t x => V2.outputAt E rho g x t) (fun _ => True) ∧
-    MonoOn (· ∈ rho.honest) (fun t x => V2.outputAt E rho g x t) (fun _ => True)) := by
-  exact cleanSafety_of_trunc_body p c E rho h.pre.base.valid.toScheduleWellFormed
-    (cleanTruncAt_body p c E rho h.pre.toCleanCut hq hf hsrc)
 
 end AvailableChain.FGSA.Run
 end

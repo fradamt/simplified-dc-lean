@@ -36,7 +36,7 @@ structure FGSASafetyClaims (p : FGSA.Params) : Prop where
 
 /-- The complete safety interface aggregate (L48, IF1), frozen whole at G-F0a (R5-64). -/
 structure FGSASafetyInterfaces (p : FGSA.Params) : Prop where
-  -- consumer: F2 positive Clean, Assembly/CleanCut; producer: F1.1–F1.5 (P3 :7820–7836)
+  -- consumer: F2 positive Clean, Assembly/Clean; producer: F1.1–F1.5 (P3 :7820–7836)
   -- strat is filled by the same RStrat producer as timingContract.certLag.
   fgFoundation : FGFoundationClaim p
   -- consumer: F2/F3/F4/F5 lane proofs, Assembly/<Claim>; producer: F1.5 (P3 :7858–7870)

@@ -46,7 +46,8 @@ private theorem relay_clean_mem (p : Params) (v : GridCO.State p.n) (s : Slot)
   simpa only [hs, Bool.true_and, bne_iff_ne, not_not] using hn
 
 /-- P3 §4.4.3 C5/C6; bp02 §4.2, G24 item 3. Class (iii), pool instance.
-DC: Goldfish/Adoption.lean:53–67,257. Same late-pool seat cleanliness;
+DC b241081: Goldfish/Confirmation.lean:95 Numerator (`filtered`). SAME:
+the early pool excludes each seat with a second vote in the late pool;
 the proof uses the late filter, not reverse equivocation monotonicity. -/
 theorem fgsa_cleanSupport_seat_clean_late (p : Params) (v : GridCO.State p.n)
     (s : Slot) (o : GridCO.Wire p.n)
@@ -162,78 +163,6 @@ private theorem relay_read_window (E : Generic.Env V) (rho : V2.Run V (fgsa p c)
     exact (fgsa_postClock_slot (c := c) (V2.Run.stateBefore E rho i x) _).2.symm.trans
       (fgsa_gate_slot (c := c) _ s)
   exact hs.trans_eq he
-
-/-- P3 F2.3 (C5/C6), §4.4.3; blueprint 02 §4.2 backward receipt.
-Class (ii), FG-SA run receipt instance. DC: Schedule/AdoptionTransport.lean:346
-`gfVote_delivery_settled_at_confStore`; Handlers/GoldfishVotePool.lean:791
-`block_carried_beforeCutoff_or_equivocates`. Same vote-or-cap conclusion.
-INTENTIONAL specialization: U is the other reader's cleanSupport, not the
-merged next-vote raw pool of blueprint 02 §4.2. Its early stamp supplies the
-relay deadline. The clean pool uses its actual read time; the late pool uses the gate cutoff.
-Both stores include clockPre then actView.
-This supplies Gen.AC.transfer.hbackward for that U; it does not supply
-hforward, block-path coverage, or transport of every source late vote. -/
-theorem fgsa_cleanSupport_backward_relay (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hE : V2.ExecutionValid E rho) (hN : V2.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (s : Slot) (hSync : Gen.V2.LabelSync E rho (SA.voteTime p.toParams s)
-      (SA.gateTime p.toParams s))
-    (readTime : Time) {ix iy : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
-    (_hix : rho.events[ix]? = some (.tick x readTime))
-    (hiy : rho.events[iy]? = some (.tick y (SA.gateTime p.toParams s)))
-    (o : GridCO.Wire p.n)
-    (ho : o ∈ GridCO.cleanSupport p.toParams.engine
-      (actView (clockPre p (V2.Run.stateBefore E rho ix x).st readTime)) s)
-    (k : Fin p.n) (hk : GridCO.headSeat? o = some k) :
-    let late := GridCO.lateVotes p.toParams.engine
-      (actView (clockPre p (V2.Run.stateBefore E rho iy y).st (SA.gateTime p.toParams s))) s
-    o ∈ late ∨ GridCO.equivocates late k = true := by
-  dsimp only
-  have hc := relay_clean_mem p _ s o ho
-  obtain ⟨B, rfl⟩ := relay_vote_shape o s k hc.2.1 hk
-  have hmem : (⟨.seat s k, .head B⟩ : GridCO.Wire p.n) ∈
-      (V2.Run.stateBefore E rho ix x).st.base.votes := by
-    have hm := hc.1
-    change _ ∈ (clockPre p _ _).base.votes at hm
-    rwa [(Internal.clockPre_vn _ _).1] at hm
-  have ht := hc.2.2.1
-  rw [relay_read_stamp E rho ix x readTime _ hmem] at ht
-  have hpub : V2.PublicTime E (SA.earlyTime p.toParams s) := by
-    refine ⟨4 * s + 2, ?_⟩
-    rw [hDelta]
-    change 4 * p.Δ * (s : Int) + 2 * p.Δ = _
-    push_cast
-    ring
-  have hz : 0 ≤ SA.earlyTime p.toParams s := by
-    change 0 ≤ 4 * p.Δ * (s : Int) + 2 * p.Δ
-    have hd := p.deltaPos
-    positivity
-  obtain ⟨j, _, t, ha, ht⟩ := fgsa_vote_accepted_before E rho hE.toScheduleWellFormed hN
-    ix x s k B _ hpub hz hmem ht
-  obtain ⟨dl, cut, hD, _, hlt, hb, _, hcut, _⟩ := hSync
-  have hd : dl t ≤ SA.gateTime p.toParams s := by
-    have hb := hb t
-    rw [hDelta] at hb
-    change t < 4 * p.Δ * (s : Int) + 2 * p.Δ at ht
-    change dl t ≤ max t (4 * p.Δ * (s : Int) + p.Δ) + p.Δ at hb
-    change dl t ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
-    have hp := p.deltaPos
-    have hh : max t (4 * p.Δ * (s : Int) + p.Δ) ≤
-        4 * p.Δ * (s : Int) + 2 * p.Δ := max_le (le_of_lt ht) (by linarith)
-    linarith
-  have hr := fgsa_head_receipt E rho hDelta hE hN dl cut s k B t y hD
-    (Or.inr ⟨x, hx, j, ha⟩) hy (hd.trans hcut) (hlt t)
-    (relay_read_window E rho hE.toScheduleWellFormed hN hiy (dl t) hd)
-  have hkeep : (V2.Run.stateBeforeTime E rho (dl t) y).st.base.votes ⊆
-      (V2.Run.stateBefore E rho iy y).st.base.votes := by
-    rw [fgsa_preTick_eq_timeRead E rho hE.toScheduleWellFormed hN hiy,
-      ← Gen.V2.stateBefore_idxBefore E rho (dl t) hE.toScheduleWellFormed,
-      ← Gen.V2.stateBefore_idxBefore E rho _ hE.toScheduleWellFormed]
-    exact relay_votes_mono E rho hN y (relay_idx_mono rho hd)
-  rcases hr with hr | ⟨u, hu, v, hv, hne, hlu, hlv, hku, hkv, _, _⟩
-  · exact Or.inl (relay_gate_late E rho hE.toScheduleWellFormed hiy _ (hkeep hr.1) rfl)
-  · exact Or.inr ((cap_pair _ k).mpr ⟨u,
-      relay_gate_late E rho hE.toScheduleWellFormed hiy u (hkeep hu) hlu, v,
-      relay_gate_late E rho hE.toScheduleWellFormed hiy v (hkeep hv) hlv, hne, hku, hkv⟩)
 
 private theorem relay_proposals_process (st : State p.n) (o : Obj p)
     (h : ∀ w ∈ st.proposals, FGSA.wellFormed p w = true)

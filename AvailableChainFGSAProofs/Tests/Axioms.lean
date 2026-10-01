@@ -261,6 +261,13 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.clean_gate_sOrigin
 #print axioms AvailableChain.FGSA.Run.clean_gate_fastWrite
 
+#print axioms AvailableChain.FGSA.Run.GT_def
+#print axioms AvailableChain.FGSA.Run.GR_def
+#print axioms AvailableChain.FGSA.Run.CleanGateOutputStmt_def
+#print axioms AvailableChain.FGSA.Run.CleanActionSourcesStmt_def
+#print axioms AvailableChain.FGSA.Run.CleanAGStmt_def
+#print axioms AvailableChain.FGSA.Run.CleanRestartStep_def
+
 #print axioms AvailableChain.FGSA.Run.CleanRowSources_def
 #print axioms AvailableChain.FGSA.Run.CleanCertSources_def
 #print axioms AvailableChain.FGSA.Run.CleanStateStep_def
@@ -309,7 +316,6 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.sExtends_upTo
 #print axioms AvailableChain.FGSA.Run.cleanFrame
 
-#print axioms AvailableChain.FGSA.Run.clean_gate_passed_of_ordered
 #print axioms AvailableChain.FGSA.Run.clean_gate_batch
 #print axioms AvailableChain.FGSA.Run.clean_gate_stamps
 #print axioms AvailableChain.FGSA.Run.clean_gate_zero
@@ -329,7 +335,6 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_sameLabelClaim
 #print axioms AvailableChain.FGSA.Run.fgsa_honest_head_eq_of_stored
 #print axioms AvailableChain.FGSA.Run.fgsa_active_support_of_receipt
-#print axioms AvailableChain.FGSA.Run.fgsa_covered_honest_head_receipt
 #print axioms AvailableChain.FGSA.Run.fgsa_stored_honest_head_awake
 #print axioms AvailableChain.FGSA.Run.fgsa_late_rest_bound
 #print axioms AvailableChain.FGSA.Run.fgsa_gate_batch_premises
@@ -341,7 +346,6 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.clean_transfer_receipt_path
 #print axioms AvailableChain.FGSA.Run.clean_transfer_prefreeze_path
 #print axioms AvailableChain.FGSA.Run.clean_transfer_frame
-#print axioms AvailableChain.FGSA.Run.fgsa_cleanSupport_backward_relay
 
 #print axioms AvailableChain.FGSA.Run.fgsa_cleanSupport_seat_clean_late
 #print axioms AvailableChain.FGSA.Run.fgsa_headSupport_subset_headVotes
@@ -369,6 +373,8 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.clean_actionSources_body
 #print axioms AvailableChain.FGSA.Run.clean_actionSources
 #print axioms AvailableChain.FGSA.Run.clean_invariant
+#print axioms AvailableChain.FGSA.Run.clean_agRule
+#print axioms AvailableChain.FGSA.Run.clean_restartStep
 #print axioms AvailableChain.FGSA.Run.cleanHistoryAt_body
 #print axioms AvailableChain.FGSA.Run.cleanHistoryAt
 #print axioms AvailableChain.FGSA.Run.sExtends
@@ -380,10 +386,8 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.clean_outputsAt
 #print axioms AvailableChain.FGSA.Run.cleanGateAt_body
 #print axioms AvailableChain.FGSA.Run.cleanTruncAt_body
-#print axioms AvailableChain.FGSA.Run.cleanSafety_body
 #print axioms AvailableChain.FGSA.Run.cleanGateAt
 #print axioms AvailableChain.FGSA.Run.cleanTruncAt
-#print axioms AvailableChain.FGSA.Run.cleanSafety
 #print axioms AvailableChain.FGSA.Run.cleanCutPos_export
 #print axioms AvailableChain.FGSA.Run.cleanSafety_of_cut
 

@@ -1329,7 +1329,7 @@ unused imports, and negative controls. No baseline entries were added.
 │ .lean                                           │                                     │
 │ AvailableChainFGSAProofs/Proofs/Clean/Transfer  │ Pre-freeze path and transfer frame  │
 │ Frame.lean                                      │                                     │
-│ AvailableChainFGSAProofs/Proofs/Clean/Transfer  │ Private transfer with named C5     │
+│ AvailableChainFGSAProofs/Proofs/Clean/Transfer  │ Public transfer with named C5      │
 │ .lean                                           │                                     │
 │ AvailableChainFGSAProofs/Proofs/Clean/Frame    │ Given-state Clean frame core        │
 │ .lean                                           │                                     │
@@ -1362,7 +1362,7 @@ unused imports, and negative controls. No baseline entries were added.
 │ ent.lean                                        │                                     │
 │ AvailableChainFGSAProofs/Proofs/Shared/Reads.lean │ Cut, gate values and index proofs   │
 │ AvailableChainFGSAProofs/Proofs/Shared/Count   │ Active receipt and batch count bounds │
-│ AvailableChainFGSAProofs/Proofs/Shared/Relay   │ Cross-reader clean-to-late vote relay │
+│ AvailableChainFGSAProofs/Proofs/Shared/Relay   │ C5 forward; C6 head-vote backward     │
 │ AvailableChainFGSAProofs/Proofs/Shared/Release │ Active release laws and fault bound │
 │ .lean                                           │                                     │
 │ AvailableChainFGSAProofs/Proofs/Shared/SameLabel │ Same-label raw gate compatibility   │

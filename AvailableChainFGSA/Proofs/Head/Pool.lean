@@ -53,7 +53,8 @@ private theorem pool_same_seat (a b : GridCO.Wire n) (s : Slot) (i : Fin n)
   simp only [beq_self_eq_true, Bool.and_self]
 
 /-- P3 F1b.1, blueprint 02 §2.1. Class (iii), store instance.
-DC: Goldfish/Adoption.lean:257; INTENTIONAL resolved clean pool (02:116). -/
+DC b241081: Goldfish/Confirmation.lean:95 Numerator (`filtered`). SAME:
+the early pool excludes each seat with a second vote in the late pool. -/
 theorem fgsa_cleanSupport_no_equivocation (p : Params) (v : GridCO.State p.n)
     (s : Slot) (i : Fin p.n) :
     GridCO.equivocates (GridCO.cleanSupport p.toParams.engine v s) i = false := by

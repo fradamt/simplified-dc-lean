@@ -167,6 +167,13 @@ theorem AvailableChain.FGSA.Run.ReceiptCoverageStatement_def 414eecaab2d0bcbb
 def AvailableChain.FGSA.Run.blockOf? 237207ab41bcc56a
 ```
 
+### `AvailableChainFGSARun.Statements.Slashing`
+
+```text
+def AvailableChain.FGSA.Run.fgsaEvidence 9eba3b221236d864
+def AvailableChain.FGSA.Run.fgsaSlashing 565d370043431ab5
+```
+
 ## `AvailableChainFGSAClaims`
 
 ### `AvailableChainFGSAClaims.Claims.Clean`
@@ -592,12 +599,4 @@ def AvailableChain.FGSA.Run.formWinAt 4b4823f46a0a376c
 def AvailableChain.FGSA.Run.kernelWin eeceff4632e80ceb
 def AvailableChain.FGSA.Run.trigWin 4ebab3ed21cf57cc
 def AvailableChain.FGSA.Run.outWin 4ecaf12f1dd1e83a
-```
-
-
-### `AvailableChainFGSARun.Statements.Slashing`
-
-```text
-def AvailableChain.FGSA.Run.fgsaEvidence 9eba3b221236d864
-def AvailableChain.FGSA.Run.fgsaSlashing 565d370043431ab5
 ```

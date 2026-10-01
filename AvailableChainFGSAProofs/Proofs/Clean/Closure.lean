@@ -151,6 +151,31 @@ theorem clean_invariant [Fintype V] {b₀ : Time}
         rw [hs]
         exact he
 
+/-- P3 §8.7, bp02 §5.7. DC: Legacy/Definitions/SafetyRegimes.lean:53–80.
+INTENTIONAL difference: FG-SA uses an event-index AG rule at a finite cut.
+The completed history and state prove both conclusions (CleanAGStmt). -/
+theorem clean_agRule [Fintype V] (b₀ : Time) : CleanAGStmt p c E rho b₀ := by
+  rw [CleanAGStmt_def]
+  intro h hq hf hsrc
+  refine ⟨?_, ?_⟩
+  · intro i _
+    rw [GR_def]
+    intro hi
+    have hs := cleanState_of_hist h hq hf hsrc (clean_actionStep p c E rho) hi
+      (clean_invariant p c E rho h hq hf hsrc i hi)
+    exact ⟨hs.sources.2, hs.fOrigin⟩
+  · intro i _ _
+    rw [GT_def]
+    intro hi
+    exact clean_invariant p c E rho h hq hf hsrc (i + 1) (Nat.succ_le_of_lt hi)
+
+/-- P3 §8.4. DC: Legacy/Definitions/SafetyRegimes.lean:53–80.
+INTENTIONAL difference: FG-SA has restart events; Base₂.noRestart excludes them. -/
+theorem clean_restartStep [Fintype V] (b₀ : Time) : CleanRestartStep p c E rho b₀ := by
+  rw [CleanRestartStep_def]
+  intro h j v t _ he
+  exact h.base.noRestart j v t he
+
 private theorem closure_gate_index [Fintype V] {b₀ : Time}
     (h : CleanCut₂ p c E rho b₀) {x : V} (hx : x ∈ rho.honest)
     {s : Slot} (ht : SA.gateTime p.toParams s ≤ b₀) :
