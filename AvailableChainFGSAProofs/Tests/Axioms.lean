@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.RetainedWalkStore -- shake: keep (store adapter audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.ExactHead -- shake: keep (J2 HEAD axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.ExactService -- shake: keep (ExactService audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.Regimes -- shake: keep (gate regime audit)
@@ -556,3 +557,8 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.exactService_participation_of_card
 #print axioms AvailableChain.FGSA.Run.exactService_of_head_clean
 #print axioms AvailableChain.FGSA.Run.exactService_of_head_recovery
+#print axioms AvailableChain.FGSA.fgsa_ordinary_parent_of_live_prefix
+#print axioms AvailableChain.FGSA.fgsa_ordinary_parent_of_live_cover
+#print axioms AvailableChain.FGSA.fgsa_band_eq_of_same_floor
+#print axioms AvailableChain.FGSA.fgsa_eligible_eq_of_band_score
+#print axioms AvailableChain.FGSA.fgsa_eligible_eq_of_no_band_score
