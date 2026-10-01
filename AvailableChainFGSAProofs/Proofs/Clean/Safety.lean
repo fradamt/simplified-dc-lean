@@ -2,7 +2,6 @@ module
 public import AvailableChainFGSAProofs.Proofs.Clean.Closure
 public import AvailableChainFGSAProofs.Proofs.Clean.GateOutput
 public import AvailableChainFGSAProofs.Proofs.Shared.Regimes
-public import AvailableChainGeneric.Statements.Pure.Props
 
 public section
 

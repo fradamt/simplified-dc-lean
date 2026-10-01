@@ -346,3 +346,7 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 #print axioms AvailableChain.FGSA.fgsa_headInTree_covers_of_transfer
 
 #print axioms AvailableChain.FGSA.fgsa_score_eq_on_retained_suffix
+
+#print axioms AvailableChain.FGSA.fgsa_filtered_anchorClosed
+#print axioms AvailableChain.FGSA.fgsa_headInTree_noEligibleChild
+#print axioms AvailableChain.FGSA.fgsa_headInTree_mem_or_anchor

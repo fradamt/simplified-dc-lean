@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Shared.HeadCover -- shake: keep (F1b.4a axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Shared.KeepExact -- shake: keep (F1b.8 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Clean.GateOutput -- shake: keep (gate output axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Clean.Transfer -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Assembly.Clean -- shake: keep (axiom audit commands)
@@ -23,8 +23,6 @@ public import AvailableChainFGSAProofs.Proofs.Shared.Gate -- shake: keep (axiom 
 public import AvailableChainFGSAProofs.Proofs.Foundations.Sources -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Compose -- shake: keep (public aliases or axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Healed -- shake: keep (axiom audit commands)
-public import AvailableChainFGSAProofs.Proofs.Shared.Claims -- shake: keep (axiom audit commands)
-public import AvailableChainFGSAProofs.Proofs.Shared.Regimes -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Channels -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Recurrence -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads -- shake: keep (axiom audit commands)
@@ -417,3 +415,8 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #check AvailableChain.FGSA.Run.QualSearch.of_recS
 #check AvailableChain.FGSA.Run.QualSearch.of_recC
 #check AvailableChain.FGSA.Run.QualSearch.of_lit
+
+#print axioms AvailableChain.FGSA.Run.fgsa_headReachesLo
+#print axioms AvailableChain.FGSA.Run.fgsa_headReachesLoClaim
+#print axioms AvailableChain.FGSA.Run.kept_or_cause
+#print axioms AvailableChain.FGSA.Run.exactHead_of_pivot

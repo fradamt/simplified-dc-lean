@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSA.Model.Frame
+public import AvailableChainFGSA.Proofs.StoreInv
 public import AvailableChainGeneric.Proofs.AC.Support
 public import AvailableChainGeneric.Proofs.Pure.Walk
 
@@ -187,5 +187,95 @@ theorem fgsa_headInTree_covers_of_transfer
       rw [block_compatible_comm]
       exact Bool.eq_false_iff.mpr (block_incompatible_of_preceq hn hcb)
     exact lt_of_lt_of_le (hdominance D hd) hm
+
+private theorem geometry_lift_prefix {n : Nat} (B : FGBlock (Fin n)) (a : Block)
+    (ha : Block.Preceq a (eraseFG B)) :
+    ∃ A, FGBlock.Preceq A B ∧ eraseFG A = a := by
+  induction B with
+  | genesis =>
+      have he : a = .genesis := by simpa [eraseFG, Block.Preceq, Block.preceq] using ha
+      exact ⟨.genesis, KitFG.preceq_refl _, he.symm⟩
+  | node P s r rs ih =>
+      change (decide (a = eraseFG (.node P s r rs)) || Block.preceq a (eraseFG P)) = true at ha
+      rcases Bool.or_eq_true_iff.mp ha with he | hp
+      · exact ⟨.node P s r rs, KitFG.preceq_refl _, (of_decide_eq_true he).symm⟩
+      · obtain ⟨A, hA, he⟩ := ih hp
+        exact ⟨A, KitFG.preceq_trans hA (KitFG.preceq_parent_node _ _ _ _), he⟩
+
+private theorem geometry_Z_liveRoot (p : Params) (st : State p.n) :
+    Block.Preceq (eraseFG (controls p st).Z) (liveRoot p st) := by
+  unfold liveRoot
+  dsimp only
+  rcases Gen.Pure.foldl_select_mem (fun (best b : Block) => best.depth < b.depth ||
+      (best.depth == b.depth && best.root < b.root)) _ _ with he | hm
+  · rw [he]
+    exact block_preceq_refl _
+  · obtain ⟨row, -, hr⟩ := List.mem_filterMap.1 hm
+    split at hr
+    · next hc =>
+      obtain ⟨B, hB, he⟩ := of_decide_eq_true (Bool.and_eq_true_iff.mp hc).2
+      rw [← Option.some.inj hr, ← he]
+      exact eraseFG_preceq ((KitFG.mem_filteredFrom p.E p.cfg _ _ B).mp hB).2.2.1
+    · cases hr
+
+/-- P3 F1b.5; bp02 §7. Class (iii), store walk instance.
+DC: Goldfish/Records.lean:207 `ghost_walk_mem`. SAME conclusion after
+instantiating the FG-SA anchor, score and eligibility; lists use eraseDups. -/
+theorem fgsa_headInTree_mem_or_anchor (p : Params) (st : State p.n)
+    (tree : List Block) (raw support : List (GridCO.Wire p.n)) :
+    headInTree p st tree raw support = liveRoot p st ∨
+      headInTree p st tree raw support ∈ tree := by
+  rcases @GridCO.ghostWalk_mem GridCO.slowLeasePolicy tree.eraseDups
+    (GridCO.goldfishScore st.base.blocks raw support) (eligible p st raw support)
+    tree.eraseDups.length (liveRoot p st) with he | hm
+  · exact Or.inl he
+  · exact Or.inr (List.mem_eraseDups.mp hm)
+
+/-- P3 F1b.5a; bp02 §7. Class (iii), filtered store geometry.
+DC: Goldfish/Walk.lean:433 `ghost_reaches` uses a path in its tree.
+INTENTIONAL: FJ filtering retains the segment above the live anchor,
+with the same witness in X (SYN §3; bp02 §7); it need not retain the trunk. -/
+theorem fgsa_filtered_anchorClosed (p : Params) (st : State p.n)
+    (hi : CStoreInv p st) (X : Finset (FGBlock (Fin p.n)))
+    (hsub : X ⊆ st.fg.TF)
+    (hclosed : ∀ B ∈ X, ∀ A, FGBlock.Preceq A B → A ∈ X) :
+    AnchorClosed (liveRoot p st) (erasedList st (filteredFrom p.E p.cfg (controls p st) X)) := by
+  intro b hb _ a haa hab
+  obtain ⟨_, hb⟩ := List.mem_filter.mp hb
+  obtain ⟨B, hB, rfl⟩ := of_decide_eq_true hb
+  obtain ⟨hBX, hFB, hZB, W, hWX, hBW, hlo⟩ :=
+    (KitFG.mem_filteredFrom p.E p.cfg _ _ B).mp hB
+  obtain ⟨A, hAB, rfl⟩ := geometry_lift_prefix B a hab
+  have hZA : FGBlock.Preceq (controls p st).Z A :=
+    preceq_of_eraseFG_preceq (viewRootInj_TF p st hi)
+      ⟨B, hsub hBX, hZB⟩ ⟨B, hsub hBX, hAB⟩
+      (block_preceq_trans (geometry_Z_liveRoot p st) haa)
+  have hFZ : FGBlock.Preceq (controls p st).F (controls p st).Z := by
+    unfold Controls.Z
+    split
+    · exact hi.fg.FJ
+    · exact KitFG.preceq_refl _
+  have hAX := hclosed B hBX A hAB
+  apply List.mem_filter.mpr
+  refine ⟨(hi.baseTree _).mpr ⟨A, hsub hAX, rfl⟩, ?_⟩
+  apply decide_eq_true
+  exact ⟨A, (KitFG.mem_filteredFrom p.E p.cfg _ _ A).mpr
+    ⟨hAX, KitFG.preceq_trans hFZ hZA, hZA, W, hWX,
+      KitFG.preceq_trans hAB hBW, hlo⟩, rfl⟩
+
+/-- P3 F1b.5; bp02 §7. Class (iii), Gen walk instance.
+DC: Goldfish/Walk.lean:197 `ghost_step_none`, :433 `ghost_reaches`.
+INTENTIONAL: the FJ filtered closure supplies the finite-walk terminal
+condition (F1b.5a; SYN §3), for any ancestor-closed duty view X. -/
+theorem fgsa_headInTree_noEligibleChild (p : Params) (st : State p.n)
+    (hi : CStoreInv p st) (X : Finset (FGBlock (Fin p.n)))
+    (hsub : X ⊆ st.fg.TF)
+    (hclosed : ∀ B ∈ X, ∀ A, FGBlock.Preceq A B → A ∈ X)
+    (raw support : List (GridCO.Wire p.n)) :
+    let tree := erasedList st (filteredFrom p.E p.cfg (controls p st) X)
+    ∀ B ∈ tree, B.parent? = some (headInTree p st tree raw support) →
+      eligible p st raw support B = false := by
+  exact walk_noEligibleChild_of_anchorClosed _ _ _ _
+    (fgsa_filtered_anchorClosed p st hi X hsub hclosed)
 
 end AvailableChain.FGSA

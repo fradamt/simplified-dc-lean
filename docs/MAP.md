@@ -1364,6 +1364,10 @@ unused imports, and negative controls. No baseline entries were added.
 │ ent.lean                                        │                                     │
 │ AvailableChainFGSAProofs/Proofs/Shared/Reads.lean │ Cut, gate values and index proofs   │
 │ AvailableChainFGSAProofs/Proofs/Shared/HeadCover │ Batch head coverage; keep parameter │
+│ AvailableChainFGSAProofs/Proofs/Shared/         │ Store head floor and anchor geometry │
+│ HeadGeometry.lean                               │                                     │
+│ AvailableChainFGSAProofs/Proofs/Shared/         │ View witness keep; pivot exactness  │
+│ KeepExact.lean                                  │                                     │
 │ AvailableChainFGSAProofs/Proofs/Shared/Count   │ Active receipt and batch count bounds │
 │ AvailableChainFGSAProofs/Proofs/Shared/Relay   │ Cross-reader clean-to-late vote relay │
 │ AvailableChainFGSAProofs/Proofs/Shared/Release │ Active release laws and fault bound │
