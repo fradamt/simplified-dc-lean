@@ -1,5 +1,8 @@
 module
 public import AvailableChainGeneric.Statements.Pure.Quorum
+public import AvailableChainGeneric.Statements.Pure.QuorumInter
+public import AvailableChainGeneric.Statements.Pure.Dominance
+public import AvailableChainGeneric.Proofs.Pure.SupportCounts
 public import Mathlib.Algebra.Order.BigOperators.Group.Finset
 import Mathlib.Tactic.Push
 
@@ -92,5 +95,61 @@ theorem count_clean {n a h : Nat} (hah : a < h) (hhn : h ≤ n - a) : FaultQ n a
     _ = 2 * (a + a + 1) + 2 := by
       simp [Nat.mul_succ, Nat.succ_mul, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
     _ ≤ 2 * n + 2 := Nat.add_le_add_right (Nat.mul_le_mul_left _ hsum) _
+
+end AvailableChain.Gen.Pure
+
+namespace AvailableChain.Gen.Pure
+
+/-- The closed unit-seat statement follows from the weighted intersection result.
+DC: Generic/Conditions.lean:180 BelowOneThird; INTENTIONAL: unit-seat two-quorum bound;
+record gly319/generic-layer.md:1297 (GLY r3.19 S044). -/
+theorem faultX_inter_honest_statement : FaultXInterHonestStatement := by
+  rw [FaultXInterHonestStatement_def]
+  intro n a Q Q' F hX hF hQ hQ'
+  let E : Weights (Fin n) := ⟨fun _ => 1, by intro i; decide⟩
+  have hweight (S : Finset (Fin n)) : E.weightOf S = S.card := by
+    simp [Weights.weightOf_def, E]
+  have htotal : E.totalWeight = n := by
+    simp [Weights.totalWeight_def, E]
+  have hq : E.q = qF n := by
+    rw [Weights.q_def, htotal, qF_def]
+  apply quorum_inter_honest E
+  · rwa [Weights.IsQuorum_def, hq, hweight]
+  · rwa [Weights.IsQuorum_def, hq, hweight]
+  · rw [hweight, htotal, hq]
+    have := hX.lt
+    omega
+
+/-- Two unit-seat quorums have an honest member in their intersection.
+DC: Generic/Conditions.lean:180 BelowOneThird; INTENTIONAL: unit-seat two-quorum bound;
+record gly319/generic-layer.md:1297 (GLY r3.19 S044). -/
+theorem FaultX.inter_honest {n a : Nat} {Q Q' F : Finset (Fin n)}
+    (hX : FaultX n a) (hF : F.card ≤ a)
+    (hQ : qF n ≤ Q.card) (hQ' : qF n ≤ Q'.card) :
+    ∃ v ∈ Q ∩ Q', v ∉ F :=
+  faultX_inter_honest_statement hX hF hQ hQ'
+
+end AvailableChain.Gen.Pure
+
+namespace AvailableChain.Gen.Pure
+
+/-- Two eligible children have a common supporter, so disjoint support forces equality.
+DC: Goldfish/Confirmation.lean:405, 419–423; INTENTIONAL (lead ruling 2026-10-01): the count step of
+eligible_compatible. -/
+theorem maj_unique_child_statement : MajUniqueChildStatement := by
+  rw [MajUniqueChildStatement_def]
+  intro n children support denominator hsub hdis C hC D hD hmajC hmajD
+  by_contra hne
+  have hunion : support C ∪ support D ⊆ denominator :=
+    Finset.union_subset (hsub C hC) (hsub D hD)
+  obtain ⟨i, hi⟩ := two_majorities_intersect hunion hunion hmajC hmajD
+  exact Finset.disjoint_left.mp (hdis C hC D hD hne)
+    (Finset.mem_inter.mp hi).1 (Finset.mem_inter.mp hi).2
+
+/-- At most one child has a strict majority of disjoint counted support sets.
+DC: Goldfish/Confirmation.lean:405, 419–423; INTENTIONAL (lead ruling 2026-10-01): the count step of
+eligible_compatible. -/
+theorem maj_unique_child : MajUniqueChildStatement :=
+  maj_unique_child_statement
 
 end AvailableChain.Gen.Pure

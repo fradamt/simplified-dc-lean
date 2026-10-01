@@ -70,8 +70,11 @@ gate_slot_acquire() {
 # The subshell owns one slot until the entire command or function exits.
 # Do not use this function in an if/|| test when the command needs set -e.
 gate_with_slot() (
+  # Nested check drivers share the caller's slot, including with GATE_SLOTS=1.
+  if [ "${GATE_SLOT_HELD:-0}" = 1 ]; then "$@"; exit $?; fi
   gate_slots_init || exit $?
   gate_slot_acquire || exit $?
+  export GATE_SLOT_HELD=1
   "$@"
 )
 

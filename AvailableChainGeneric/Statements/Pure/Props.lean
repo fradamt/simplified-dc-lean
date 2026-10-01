@@ -18,7 +18,8 @@ open AvailableChain
 variable {V ι : Type} [Preorder ι] (N : V → Prop)
 
 /-- Outputs of nodes in N are compatible at any two reads in A.
-Source: S3a:1837–1839; P3:2660. Consumers: CleanSafety and Healed. -/
+Source: S3a:1837–1839; P3:2660. Consumers: CleanSafety and Healed.
+DC: Properties.lean:35; same: Honest nodes; selected times; GLY r3.19 S035. -/
 def CompatOn (out : ι → V → Block) (A : ι → Prop) : Prop :=
   ∀ i j x y, A i → A j → N x → N y → Block.Compatible (out i x) (out j y)
 
@@ -42,7 +43,8 @@ theorem CompatAt_def (out : ι → V → Block) (A : ι → Prop) :
   rw [CompatAt]
 
 /-- Each node's output extends between ordered reads in A.
-Source: S3a:1843–1844; P3:2661. Consumers: CleanSafety, Healed and SA. -/
+Source: S3a:1843–1844; P3:2661. Consumers: CleanSafety, Healed and SA.
+DC: Properties.lean:41; same: Honest nodes; selected times; GLY r3.19 S037. -/
 def MonoOn (out : ι → V → Block) (A : ι → Prop) : Prop :=
   ∀ i j x, A i → A j → i ≤ j → N x → Block.Preceq (out i x) (out j x)
 
@@ -53,7 +55,8 @@ theorem MonoOn_def (out : ι → V → Block) (A : ι → Prop) :
   rw [MonoOn]
 
 /-- The lower output is a prefix of the upper output at each read in A.
-Source: S3a:1845–1847; P3:2662. Consumer: Healed's F ⪯ S clause. -/
+Source: S3a:1845–1847; P3:2662. Consumer: Healed's F ⪯ S clause.
+DC: Properties.lean:75; same: N = univ; A = univ; GLY r3.19 S038. -/
 def BelowOn (lo hi : ι → V → Block) (A : ι → Prop) : Prop :=
   ∀ i x, A i → N x → Block.Preceq (lo i x) (hi i x)
 
@@ -65,7 +68,8 @@ theorem BelowOn_def (lo hi : ι → V → Block) (A : ι → Prop) :
   rw [BelowOn]
 
 /-- B is a prefix of every output of nodes in N at reads in A.
-Source: S3a:1848–1850; P3:2663. Consumers: inclusion, P1 and Healed. -/
+Source: S3a:1848–1850; P3:2663. Consumers: inclusion, P1 and Healed.
+DC: Properties.lean:86; same: Honest nodes; selected time; GLY r3.19 S039. -/
 def ServedOn (out : ι → V → Block) (B : Block) (A : ι → Prop) : Prop :=
   ∀ i x, A i → N x → Block.Preceq B (out i x)
 

@@ -462,3 +462,109 @@ def AvailableChain.Gen.V2.SlashingInterface.slashes e464437d9cc362da
 def AvailableChain.Gen.V2.HonestNeverSlashed cb7d6d1806cfe47c
 theorem AvailableChain.Gen.V2.HonestNeverSlashed_def a06df42e8668cf32
 ```
+
+### `AvailableChainGeneric.Statements.AC.Votes`
+
+```text
+def AvailableChain.Gen.AC.voteSupports a505536f79025d49
+theorem AvailableChain.Gen.AC.voteSupports_def fbeb911519ac5daa
+def AvailableChain.Gen.AC.poolSupports 03597e7e42083241
+theorem AvailableChain.Gen.AC.poolSupports_def 0e3741e4847fd349
+def AvailableChain.Gen.AC.plainSupporters bb457f8923e27222
+theorem AvailableChain.Gen.AC.plainSupporters_def b06c151456abbe93
+def AvailableChain.Gen.AC.TransferBounds 97f0347e35d97f16
+theorem AvailableChain.Gen.AC.TransferBounds_def bd506dc92b7c135c
+def AvailableChain.Gen.AC.TransferStatement 998560a5e56c286a
+theorem AvailableChain.Gen.AC.TransferStatement_def 9ec4bd661e6f64e8
+def AvailableChain.Gen.AC.BatchBounds 66706533377eff22
+theorem AvailableChain.Gen.AC.BatchBounds_def afae6f825fcfbeb8
+def AvailableChain.Gen.AC.BatchCountsStatement 5ca999a37650b98a
+theorem AvailableChain.Gen.AC.BatchCountsStatement_def 0cd4477e06dabc30
+def AvailableChain.Gen.AC.TransferN2Statement e2835c94ad4a9f70
+theorem AvailableChain.Gen.AC.TransferN2Statement_def 0a75145b33fb9ab6
+def AvailableChain.Gen.AC.ScoreEqOnStatement d54234e3c4437ea9
+theorem AvailableChain.Gen.AC.ScoreEqOnStatement_def 25895f1df739d585
+def AvailableChain.Gen.AC.CapVoteStatement b3d2b00a2dbc17ce
+theorem AvailableChain.Gen.AC.CapVoteStatement_def 62a98693cb5705aa
+def AvailableChain.Gen.AC.CapPairStatement 4509997bea2e6d5a
+theorem AvailableChain.Gen.AC.CapPairStatement_def 2a79f83cee317a4a
+def AvailableChain.Gen.AC.BatchStatement a43eace6488382e3
+theorem AvailableChain.Gen.AC.BatchStatement_def d9c839bb3c6a24f1
+```
+
+### `AvailableChainGeneric.Statements.Pure.QuorumInter`
+
+```text
+def AvailableChain.Gen.Pure.FaultXInterHonestStatement 70a213ef2f525312
+theorem AvailableChain.Gen.Pure.FaultXInterHonestStatement_def a9d4c80022e7c64c
+```
+
+### `AvailableChainGeneric.Statements.Pure.SupportCounts`
+
+```text
+def AvailableChain.Gen.Pure.TwoMajoritiesIntersectStatement b13b774ed3285246
+theorem AvailableChain.Gen.Pure.TwoMajoritiesIntersectStatement_def 000afeafe2351fbc
+```
+
+### `AvailableChainGeneric.Statements.AC.Support`
+
+```text
+def AvailableChain.Gen.AC.GoldfishScoreAntitoneStatement 2a644bd0f046ed36
+theorem AvailableChain.Gen.AC.GoldfishScoreAntitoneStatement_def 1fa3f58fdc73fcc6
+def AvailableChain.Gen.AC.ConflictingScoreSumLeStatement e1f28e1d341992b7
+theorem AvailableChain.Gen.AC.ConflictingScoreSumLeStatement_def 95bfcc57ccfdf0d5
+def AvailableChain.Gen.AC.VoterCountLeOfSeatsSubsetStatement fc03228e36af1195
+theorem AvailableChain.Gen.AC.VoterCountLeOfSeatsSubsetStatement_def 7029677e43acf1a8
+```
+
+### `AvailableChainGeneric.Statements.Pure.HonestCount`
+
+```text
+def AvailableChain.Gen.Pure.HonestOriginOfCountStatement b90084bf6382c94d
+theorem AvailableChain.Gen.Pure.HonestOriginOfCountStatement_def 7590cf1650656970
+```
+
+### `AvailableChainGeneric.Statements.AC.LeaseWindow`
+
+```text
+def AvailableChain.Gen.AC.SlowWindowConflictAbsurdStatement 0bf60151901c729a
+theorem AvailableChain.Gen.AC.SlowWindowConflictAbsurdStatement_def c300da53046dea8e
+def AvailableChain.Gen.AC.ExpireByThresholdStatement fd661a182a71632b
+theorem AvailableChain.Gen.AC.ExpireByThresholdStatement_def 3798a2e9c79cf96c
+```
+
+### `AvailableChainGeneric.Statements.Pure.Dominance`
+
+```text
+def AvailableChain.Gen.Pure.MajUniqueChildStatement c2a3c1fcca7f79e9
+theorem AvailableChain.Gen.Pure.MajUniqueChildStatement_def e11d19cd90604607
+```
+
+### `AvailableChainGeneric.Statements.V2.DCRegimes`
+
+```text
+def AvailableChain.Gen.V2.SingleProposerRecurrence 8b54094a6819f6fb
+theorem AvailableChain.Gen.V2.SingleProposerRecurrence_def e68862c9867837c9
+def AvailableChain.Gen.V2.OutageInterval fa178df343dc8583
+theorem AvailableChain.Gen.V2.OutageInterval_def 3e0808ebf805aab3
+```
+
+### `AvailableChainGeneric.Statements.V2.DCProps`
+
+```text
+def AvailableChain.Gen.V2.ConsistentFrom 8292f6c22dd20f4b
+theorem AvailableChain.Gen.V2.ConsistentFrom_def 797ebb7fc55efba1
+def AvailableChain.Gen.V2.AgreeFrom 824a873856bb3790
+theorem AvailableChain.Gen.V2.AgreeFrom_def 78a9a9ab5a3c4181
+def AvailableChain.Gen.V2.MonotoneFrom 94f80f94ab5d3d15
+theorem AvailableChain.Gen.V2.MonotoneFrom_def f2e8d8f8dd279c5f
+structure AvailableChain.Gen.V2.SafeFrom 354557a8b804d905
+ctor AvailableChain.Gen.V2.SafeFrom.mk 3b720032cb646ef1
+theorem AvailableChain.Gen.V2.SafeFrom.agree 3406c889410b79aa
+theorem AvailableChain.Gen.V2.SafeFrom.monotone 8d7f43af5aab7df0
+theorem AvailableChain.Gen.V2.SafeFrom_def e90a07acd5629b93
+def AvailableChain.Gen.V2.InBy da03ae296b98ca77
+theorem AvailableChain.Gen.V2.InBy_def 7e6be42ee55cb800
+def AvailableChain.Gen.V2.PersistsFrom 52d2bc3b2b773572
+theorem AvailableChain.Gen.V2.PersistsFrom_def 757a827fa355d001
+```

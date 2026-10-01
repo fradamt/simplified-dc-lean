@@ -3,6 +3,10 @@ public import AvailableChainKitFG.Accountable
 public import AvailableChainKitFG.CrossingNoFinal
 public import AvailableChainKitFG.Correspondence
 public import AvailableChainKitFG.CausalCap
+public import AvailableChainKitFG.ViewLockChains
+public import AvailableChainKitFG.TwoChanges
+public import AvailableChainKitFG.RowBits
+public import AvailableChainKitFG.RecordHigh
 
 /-! Kernel dependency audit for the FG chain lemmas without root premises. -/
 
@@ -21,3 +25,22 @@ public import AvailableChainKitFG.CausalCap
 #print axioms AvailableChain.KitFG.finalityCap_row
 #print axioms AvailableChain.KitFG.finalityCap_height_row
 #print axioms AvailableChain.KitFG.causalCap
+#print axioms AvailableChain.KitFG.ViewLockOfChainsStatement_def
+#print axioms AvailableChain.KitFG.ViewLockOfHonestChainsStatement_def
+#print axioms AvailableChain.KitFG.viewLock_of_chains
+#print axioms AvailableChain.KitFG.viewLock_of_honest_chains
+#print axioms AvailableChain.KitFG.LowerFDomainIdentityStatement_def
+#print axioms AvailableChain.KitFG.lowerF_domain_identity
+#print axioms AvailableChain.KitFG.chainBits_def
+#print axioms AvailableChain.KitFG.sameBitState_def
+#print axioms AvailableChain.KitFG.rowMatchesBit_def
+#print axioms AvailableChain.KitFG.BitPersistStatement_def
+#print axioms AvailableChain.KitFG.BitFromRowStatement_def
+#print axioms AvailableChain.KitFG.bit_fold_covered
+#print axioms AvailableChain.KitFG.bit_persist
+#print axioms AvailableChain.KitFG.bit_from_row
+#print axioms AvailableChain.KitFG.HighRecord_def
+#print axioms AvailableChain.KitFG.RecordHighStatement_def
+#print axioms AvailableChain.KitFG.NoHighContestStatement_def
+#print axioms AvailableChain.KitFG.recordHigh
+#print axioms AvailableChain.KitFG.noHighContest

@@ -6,12 +6,19 @@ public import AvailableChainKitFG.ClientSafety
 public import AvailableChainKitFG.Correspondence
 public import AvailableChainKitFG.StoreInvDef
 public import AvailableChainKitFG.ViewLock
+public import AvailableChainKitFG.ViewLockChainsDef
+public import AvailableChainKitFG.ViewLockChains
+public import AvailableChainKitFG.RowBitsDef
+public import AvailableChainKitFG.RowBits
+public import AvailableChainKitFG.RecordHighDef
+public import AvailableChainKitFG.RecordHigh
 public import AvailableChainKitFG.HonestRows
 public import AvailableChainKitFG.Provenance
 public import AvailableChainKitFG.CausalCap
 public import AvailableChainKitFG.CrossingNoFinal
 public import AvailableChainKitFG.InBandLock
 public import AvailableChainKitFG.TwoChanges
+public import AvailableChainKitFG.LowerFDomainDef
 public import AvailableChainKitFG.Pins
 public import AvailableChainKitFG.WeightsBridge
 

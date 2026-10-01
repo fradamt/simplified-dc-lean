@@ -4,3 +4,7 @@
 StoreInvDef
 ViewLock
 HonestRows
+ViewLockChainsDef
+LowerFDomainDef
+RowBitsDef
+RecordHighDef

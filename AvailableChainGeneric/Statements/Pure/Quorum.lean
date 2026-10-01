@@ -19,15 +19,18 @@ def qF (n : Nat) : Nat := (2 * n + 2) / 3
 
 theorem qF_def (n : Nat) : qF n = (2 * n + 2) / 3 := by rw [qF]
 
-/-- `a < q_F n`: one `q_F` set has an honest member (GLY C.1). -/
+/-- `a < q_F n`: one `q_F` set has an honest member (GLY C.1).
+DC: Conditions.lean:180; INTENTIONAL: Keep the weaker FaultQ; GLY r3.19 S043. -/
 structure FaultQ (n a : Nat) : Prop where
   lt : a < qF n
 
-/-- `a + n < 2 q_F n`: two `q_F` sets meet in an honest member (GLY C.1). -/
+/-- `a + n < 2 q_F n`: two `q_F` sets meet in an honest member (GLY C.1).
+DC: Conditions.lean:180; Conditions.lean:105; INTENTIONAL: Fault counts separate; GLY r3.19 S044. -/
 structure FaultX (n a : Nat) : Prop where
   lt : a + n < 2 * qF n
 
-/-- `m < h`: an honest batch beats the rest (GLY C.1). -/
+/-- `m < h`: an honest batch beats the rest (GLY C.1).
+DC: Conditions.lean:169; INTENTIONAL: Point count; producer window; GLY r3.19 S045. -/
 structure Batch (h m : Nat) : Prop where
   lt : m < h
 
