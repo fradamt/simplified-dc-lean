@@ -1107,6 +1107,28 @@ The chain contracts have no unified DC counterpart; they are derived carrier
 lemmas (G20), with witnesses at `MatchingProgress.lean:147` and
 `FinalityCertificates.lean:133`. Receipt remains in G13.
 
+C3 adds G22 high record preservation and the view no-contest bound. The root
+imports both modules. `RecordHighDef` is in the definition-module list. The
+Tests glob builds the regression tests and the axiom audit.
+
+```text
+┌────────────────────────────┬──────────────────────────────────────────────────────────────┐
+│ Module (KitFG/)            │ Role                                                         │
+├────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│ RecordHighDef.lean         │ Inclusive HighRecord; closed Statements and complete _def    │
+│ RecordHigh.lean            │ One record write; contest bound from honest quorum members   │
+│ Tests/RecordHigh.lean      │ Inclusive cut, locks, low timeout, fallback and contest      │
+│ Tests/Axioms.lean          │ Kernel dependencies of the record equations and proofs       │
+└────────────────────────────┴──────────────────────────────────────────────────────────────┘
+```
+
+H.13 uses `h0 = μ+1` and gives `H ≤ μ+1`, equivalent to no contest with
+`j > μ`. FF2 uses `h0 = M+1` and gives exactly FF2-C's `H ≤ M+1`.
+DC: `ValidatorClient/W4FKChainFinalityRows.lean:115–129` consumes the guard.
+INTENTIONAL: H1 and record induction supply it (`blueprint/22-finality.md:770–773`).
+The contest bound has no DC counterpart. INTENTIONAL addition: FJ replaces
+the NJ case (`blueprint/21-healing.md:2579–2581`).
+
 ```text
 ┌─────────────────────────────┬──────────────────────────────────────────────┬─────────────────────┐
 │ Script                      │ Check                                        │ Exit codes          │

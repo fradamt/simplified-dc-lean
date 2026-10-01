@@ -7,3 +7,4 @@ HonestRows
 ViewLockChainsDef
 LowerFDomainDef
 RowBitsDef
+RecordHighDef

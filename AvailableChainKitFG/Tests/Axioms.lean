@@ -6,6 +6,7 @@ public import AvailableChainKitFG.CausalCap
 public import AvailableChainKitFG.ViewLockChains
 public import AvailableChainKitFG.TwoChanges
 public import AvailableChainKitFG.RowBits
+public import AvailableChainKitFG.RecordHigh
 
 /-! Kernel dependency audit for the FG chain lemmas without root premises. -/
 
@@ -38,3 +39,8 @@ public import AvailableChainKitFG.RowBits
 #print axioms AvailableChain.KitFG.bit_fold_covered
 #print axioms AvailableChain.KitFG.bit_persist
 #print axioms AvailableChain.KitFG.bit_from_row
+#print axioms AvailableChain.KitFG.HighRecord_def
+#print axioms AvailableChain.KitFG.RecordHighStatement_def
+#print axioms AvailableChain.KitFG.NoHighContestStatement_def
+#print axioms AvailableChain.KitFG.recordHigh
+#print axioms AvailableChain.KitFG.noHighContest
