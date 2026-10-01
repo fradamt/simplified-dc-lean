@@ -14,6 +14,7 @@ public import AvailableChainKitFG.CausalCap
 public import AvailableChainKitFG.CrossingNoFinal
 public import AvailableChainKitFG.InBandLock
 public import AvailableChainKitFG.TwoChanges
+public import AvailableChainKitFG.LowerFDomainDef
 public import AvailableChainKitFG.Pins
 public import AvailableChainKitFG.WeightsBridge
 

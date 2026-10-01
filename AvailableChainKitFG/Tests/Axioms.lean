@@ -4,6 +4,7 @@ public import AvailableChainKitFG.CrossingNoFinal
 public import AvailableChainKitFG.Correspondence
 public import AvailableChainKitFG.CausalCap
 public import AvailableChainKitFG.ViewLockChains
+public import AvailableChainKitFG.TwoChanges
 
 /-! Kernel dependency audit for the FG chain lemmas without root premises. -/
 
@@ -26,3 +27,5 @@ public import AvailableChainKitFG.ViewLockChains
 #print axioms AvailableChain.KitFG.ViewLockOfHonestChainsStatement_def
 #print axioms AvailableChain.KitFG.viewLock_of_chains
 #print axioms AvailableChain.KitFG.viewLock_of_honest_chains
+#print axioms AvailableChain.KitFG.LowerFDomainIdentityStatement_def
+#print axioms AvailableChain.KitFG.lowerF_domain_identity

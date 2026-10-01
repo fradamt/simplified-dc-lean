@@ -5,3 +5,4 @@ StoreInvDef
 ViewLock
 HonestRows
 ViewLockChainsDef
+LowerFDomainDef

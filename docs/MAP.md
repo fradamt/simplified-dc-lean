@@ -1064,6 +1064,25 @@ DC: `ChainState/FinalityComparison.lean:50–56`; same strict comparison and
 finalized ancestry. Root collision freedom is a theorem here because roots
 identify content (`Accountable.lean:15–18`; GLY:57–58, intentional).
 
+C4 adds the exact lower-F removal set. The root imports the Def module and
+`TwoChanges`; the Tests glob builds the regression and axiom audit.
+
+```text
+┌────────────────────────────┬──────────────────────────────────────────────────────────────┐
+│ Module (KitFG/)            │ Role                                                         │
+├────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│ LowerFDomainDef.lean       │ Closed LowerFDomainIdentityStatement and complete _def       │
+│ TwoChanges.lean            │ lowerF_domain_identity; reuses Fmove_filtered                │
+│ Tests/LowerFDomain.lean    │ Strict-ancestor removal; F′ retained; top-J domain equality  │
+│ Tests/Axioms.lean          │ Kernel dependencies of the equation and the removal proof    │
+└────────────────────────────┴──────────────────────────────────────────────────────────────┘
+```
+
+`LowerFDomainDef` is in the definition-module list. The proof uses
+`preceq_refl` and `preceq_antisymm` to make the removal criterion exact.
+DC: none; INTENTIONAL addition: FJ phase-dependent domain; record
+`blueprint/21-healing.md:691–694, 2579–2581`.
+
 ```text
 ┌─────────────────────────────┬──────────────────────────────────────────────┬─────────────────────┐
 │ Script                      │ Check                                        │ Exit codes          │
