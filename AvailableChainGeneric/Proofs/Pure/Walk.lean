@@ -999,6 +999,68 @@ theorem ghost_transfer_sfx (anchor target : Block) (sourceTree targetTree : List
   ghost_transfer_sfx_statement anchor target sourceTree targetTree sourceScore targetScore
     sourceEligible targetEligible ha hcover hkeep hreflect hscore
 
+
+/-- Class (iii), selected-path composition. DC: Goldfish/Walk.lean:433 `ghost_reaches`.
+INTENTIONAL: S1b E3/E5 and bp21:789,2820–2825 specify the full score/root order.
+Reanchor on the target's ancestry; no strict score gap is required. -/
+theorem walk_reanchor_of_best_ancestry (anchor target : Block) (tree : List Block)
+    (score : Block → Nat) (eligible : Block → Bool)
+    (ha : Block.Preceq anchor target)
+    (hancestry : ∀ X, Block.Preceq anchor X → Block.Prec X target →
+      ∃ C, C.parent? = some X ∧ Block.Preceq C target ∧ C ∈ tree ∧
+        eligible C = true ∧ ∀ D ∈ tree, D.parent? = some X → eligible D = true →
+          score D ≤ score C ∧ (score D = score C → D.root ≤ C.root)) :
+    ghost anchor tree score eligible = ghost target tree score eligible := by
+  have hpath : ∀ C, Block.Prec anchor C → Block.Preceq C target → C ∈ tree := by
+    intro C hAC hCT
+    obtain ⟨hne, hAC'⟩ := (walk_aux_prec_iff _ _).mp hAC
+    cases C with
+    | genesis => exact (hne (of_decide_eq_true hAC')).elim
+    | node X s id =>
+        have hAX : Block.Preceq anchor X := by
+          change (decide (anchor = Block.node X s id) || Block.preceq anchor X) = true at hAC'
+          exact (Bool.or_eq_true_iff.mp hAC').resolve_left (by simpa using hne)
+        have hXT : Block.Prec X target := by
+          apply (walk_aux_prec_iff _ _).mpr
+          refine ⟨?_, block_preceq_trans (walk_aux_parent_prefix X (.node X s id) rfl) hCT⟩
+          intro he
+          have hd := prefix_depth (.node X s id) target hCT
+          rw [← he] at hd
+          change X.depth + 1 ≤ X.depth at hd
+          omega
+        obtain ⟨D, hp, hDT, hm, _, _⟩ := hancestry X hAX hXT
+        exact walk_aux_same_child_of_common D (.node X s id) target hp hDT hCT ▸ hm
+  have hc : Block.Preceq target (ghost anchor tree score eligible) := by
+    apply walk_aux_walk_covers_steps tree.eraseDups score eligible anchor target ?_
+      tree.eraseDups.length anchor (block_preceq_refl _) ha
+      (walk_aux_suffix_depth_le_fuel anchor target tree ha hpath)
+    intro X hAX hXT
+    obtain ⟨C, hp, hCT, hm, hel, hbest⟩ := hancestry X hAX hXT
+    refine ⟨C, ?_, hCT⟩
+    rw [walk_aux_ghostStep_eraseDups]
+    exact walk_aux_ghostStep_of_best tree score eligible X C hm hp hel hbest
+  exact walk_aux_ghostWalk_reanchor_terminal tree.eraseDups score eligible tree.eraseDups.length
+    tree.eraseDups.length anchor target ha hc
+    (walk_aux_ghost_terminal anchor tree score eligible)
+    (walk_aux_ghost_terminal target tree score eligible)
+
+/-- Class (iii), selected-path extraction. DC: ProposalWalkTransportCore.lean:162
+`ghost_transport_of_source` extracts source steps. SAME path ingredient, with the
+score/root order made explicit (bp21:789,2820–2825); used by the lower-start corollary. -/
+theorem walk_best_ancestry_of_cover (anchor target : Block) (tree : List Block)
+    (score : Block → Nat) (eligible : Block → Bool)
+    (hcover : Block.Preceq target (ghost anchor tree score eligible)) :
+    ∀ X, Block.Preceq anchor X → Block.Prec X target →
+      ∃ C, C.parent? = some X ∧ Block.Preceq C target ∧ C ∈ tree ∧
+        eligible C = true ∧ ∀ D ∈ tree, D.parent? = some X → eligible D = true →
+          score D ≤ score C ∧ (score D = score C → D.root ≤ C.root) := by
+  intro X hAX hXT
+  obtain ⟨C, hs, hCT⟩ := walk_aux_ghost_step_towards_prefix tree score eligible
+    anchor target X hcover hAX hXT
+  rw [walk_aux_ghostStep_eraseDups] at hs
+  obtain ⟨hm, hp, hel⟩ := walk_aux_ghostStep_child tree score eligible X C hs
+  exact ⟨C, hp, hCT, hm, hel, walk_aux_ghostStep_best tree score eligible X C hs⟩
+
 end
 
 end AvailableChain.Gen.Pure

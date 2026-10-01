@@ -99,18 +99,92 @@ theorem fgsa_domain_anchorClosed_mono (p : Params) (st : State p.n)
   intro B hB hTB C hTC hCB
   exact hclosed B hB (block_preceq_trans hAT hTB) C (block_preceq_trans hAT hTC) hCB
 
-/-- P3 F1b.8, G33; 21 H.17:2778–2825 and H.22 head clause.
-Class (iii), conditional walk composition. DC:
-ProposalWalkTransportCore.lean:162 `ghost_transport_of_source` and
-Goldfish/Walk.lean:433 `ghost_reaches`.
-INTENTIONAL: common pivot T replaces equality of the live roots, which
-may change (21 H.17). Each local prefix and the transferred suffix have
-explicit keep suppliers (P3 M6). Terminality at Q is required, as in G10.
-Closure above T follows from F1b.5a and `fgsa_domain_anchorClosed_mono` when the live root
-precedes T. The caller supplies source coverage
-of P; the final step is either P = Q
-or the unique eligible child Q of P (21 H.17:2820–2825). This does not produce ExactService
-or identify a scheduled HEAD read. X and Y may be different duty views. -/
+/-- P3 F1b.8, G33; class (iii), conditional pivot composition.
+DC: ProposalWalkTransportCore.lean:162 `ghost_transport_of_source` and
+Goldfish/Walk.lean:433 `ghost_reaches`. INTENTIONAL: FJ uses a common pivot,
+not equal live roots (21 H.17:2798–2825). This theorem applies to each target read.
+Premise suppliers (S1b `a0-s1b-reuse-21.md`:118–134):
+* `hstart`: E1:122–123, both start orders; H.17:2798–2801.
+* `hTP`: common pivot:119–121, the T-to-A_P path in H.17.
+* `hprefix`: E2:124–125, the honest-supported path below T; H.17:2800–2801.
+* `hancestry`, membership: E3/E5:126–132; H.17:2820–2823.
+* `hancestry`, eligibility: E5:131–132; H.17:2821–2823.
+* `hancestry`, score bound and root tie: E4/E5:128–132; bp21:789 and
+  H.17:2823–2824 (equal retained scores, eligibility and root tie order).
+  H.17:2810–2819 excludes old children conflicting with high F_p between T and A_P.
+* `hlast`: E6:133–134; H.17:2824–2825, P = Q or the only eligible child Q.
+* `hstop`: E6:133–134; H.17:2824–2825, Q has no valid child.
+The ancestry premise subsumes source coverage, persistence, reflection and score
+agreement. Thus source-store parameters and their E1/E2 premises are not needed here;
+apply `hstart` separately to each compared store. Closure is also not needed once
+`hlast` and `hstop` are supplied. The old two-store form is `exactHead_of_pivot`.
+This local result does not produce ExactService or identify a scheduled HEAD read. -/
+theorem exactHead_of_pivot_ancestry (p : Params) (st : State p.n)
+    (Y : Finset (FGBlock (Fin p.n)))
+    (raw support : List (GridCO.Wire p.n)) (T P Q : Block)
+    (hstart : Block.Preceq (liveRoot p st) T ∨
+      (Block.Preceq T (liveRoot p st) ∧ Block.Preceq (liveRoot p st) P))
+    (hTP : Block.Preceq T P)
+    (hprefix : DominatedSuffix (liveRoot p st) T (erasedList st (domainR p st Y))
+      (GridCO.goldfishScore st.base.blocks raw support) (eligible p st raw support))
+    (hancestry : ∀ X, Block.Preceq T X → Block.Prec X P →
+      ∃ C, C.parent? = some X ∧ Block.Preceq C P ∧
+        C ∈ erasedList st (domainR p st Y) ∧ eligible p st raw support C = true ∧
+        ∀ D ∈ erasedList st (domainR p st Y), D.parent? = some X →
+          eligible p st raw support D = true →
+          GridCO.goldfishScore st.base.blocks raw support D ≤
+            GridCO.goldfishScore st.base.blocks raw support C ∧
+          (GridCO.goldfishScore st.base.blocks raw support D =
+            GridCO.goldfishScore st.base.blocks raw support C → D.root ≤ C.root))
+    (hlast : P = Q ∨
+      (Q ∈ erasedList st (domainR p st Y) ∧ Q.parent? = some P ∧
+        eligible p st raw support Q = true ∧
+        ∀ C ∈ erasedList st (domainR p st Y), C.parent? = some P →
+          eligible p st raw support C = true → C = Q))
+    (hstop : NoEligibleChild (erasedList st (domainR p st Y)) (eligible p st raw support) Q) :
+    headInTree p st (erasedList st (domainR p st Y)) raw support = Q := by
+  rw [fgsa_headInTree_reanchor_of_pivot p st _ raw support T P
+    hstart hTP hprefix hancestry]
+  rcases hlast with rfl | ⟨hm, hp, hel, honly⟩
+  · apply walk_exact_of_dominated_suffix _ _ _ _ _ (block_preceq_refl _) _ hstop
+    intro C hPC hCP
+    have he := block_preceq_antisymm (Bool.and_eq_true_iff.mp hPC).2 hCP
+    subst C
+    change ((!decide (P = P)) && Block.preceq P P) = true at hPC
+    simp only [decide_true, Bool.not_true, Bool.false_and] at hPC
+    cases hPC
+  · have hPQ : Block.Preceq P Q := by
+      cases Q with
+      | genesis => cases hp
+      | node R s r =>
+          have he : R = P := Option.some.inj hp
+          subst R
+          exact Bool.or_eq_true_iff.mpr (Or.inr (block_preceq_refl _))
+    apply walk_exact_of_dominated_suffix _ _ _ _ _ hPQ _ hstop
+    intro C hPC hCQ
+    have hC : C = Q := by
+      cases Q with
+      | genesis => cases hp
+      | node R s r =>
+          have he : R = P := Option.some.inj hp
+          subst R
+          rcases Bool.or_eq_true_iff.mp hCQ with he | hCP
+          · exact of_decide_eq_true he
+          · have he := block_preceq_antisymm (Bool.and_eq_true_iff.mp hPC).2 hCP
+            subst C
+            change ((!decide (P = P)) && Block.preceq P P) = true at hPC
+            simp only [decide_true, Bool.not_true, Bool.false_and] at hPC
+            cases hPC
+    subst C
+    refine ⟨hm, hel, ?_⟩
+    intro D hD hpD helD hne
+    exact (hne (honly D hD (hpD.trans hp) helD)).elim
+
+/-- Lower-start corollary, with its original statement.
+DC: ProposalWalkTransportCore.lean:162 and Goldfish/Walk.lean:433.
+INTENTIONAL: S1b E1's lower branch and the original G11 suppliers derive the
+ancestry premise of `exactHead_of_pivot_ancestry` (21 H.17:2820–2825).
+`hclosed` is retained for source compatibility; the generalized proof does not need it. -/
 theorem exactHead_of_pivot (p : Params) (st st' : State p.n)
     (X Y : Finset (FGBlock (Fin p.n)))
     (raw support raw' support' : List (GridCO.Wire p.n)) (T P Q : Block)
@@ -139,78 +213,12 @@ theorem exactHead_of_pivot (p : Params) (st st' : State p.n)
     (hclosed : AnchorClosed T (erasedList st' (domainR p st' Y)))
     (hstop : NoEligibleChild (erasedList st' (domainR p st' Y)) (eligible p st' raw' support') Q) :
     headInTree p st' (erasedList st' (domainR p st' Y)) raw' support' = Q := by
+  have _hclosed := hclosed
   have hs := walk_reanchor_of_dominated_suffix _ _ _ _ _ hAT hprefix
-  have ht := walk_reanchor_of_dominated_suffix _ _ _ _ _ hAT' hprefix'
   change Block.Preceq P (GridCO.ghost _ _ _ _) at hcover
   rw [hs] at hcover
   have hc := ghost_transfer_sfx _ _ _ _ _ _ _ _ hTP hcover hkeep hreflect hscore
-  let tree := erasedList st' (domainR p st' Y)
-  let score := GridCO.goldfishScore st'.base.blocks raw' support'
-  let elig := eligible p st' raw' support'
-  let H := GridCO.ghost T tree score elig
-  have parent_prefix {B C : Block} (hp : C.parent? = some B) : Block.Preceq B C := by
-    cases C with
-    | genesis => cases hp
-    | node A s r =>
-      have he : A = B := Option.some.inj hp
-      subst A
-      change (decide _ || Block.preceq B B) = true
-      exact Bool.or_eq_true_iff.mpr (Or.inr (block_preceq_refl _))
-  have hPQ : Block.Preceq P Q := by
-    rcases hlast with he | ⟨_, hp, _, _⟩
-    · rw [he]; exact block_preceq_refl _
-    · exact parent_prefix hp
-  have hTQ := block_preceq_trans hTP hPQ
-  have hQH : Block.Preceq Q H := by
-    rcases hlast with he | ⟨hQ, hpQ, helQ, honly⟩
-    · exact he ▸ hc
-    · have hne : H ≠ P := by
-        intro he
-        have hn := walk_noEligibleChild_of_anchorClosed T tree score elig hclosed Q hQ
-          (by change Q.parent? = some H; rw [he]; exact hpQ)
-        change eligible p st' raw' support' Q = false at hn
-        rw [helQ] at hn
-        cases hn
-      obtain ⟨C, hpC, hCH⟩ := path_child P H hc (Ne.symm hne)
-      have hH : H ∈ tree := by
-        rcases fgsa_headInTree_mem_or_anchor p st' tree raw' support' with he | hm
-        · have he' : H = liveRoot p st' := ht.symm.trans he
-          exact (hne (he'.trans (block_preceq_antisymm
-            (block_preceq_trans hAT' hTP) (he' ▸ hc)))).elim
-        · change GridCO.ghost _ _ _ _ ∈ tree at hm
-          rw [ht] at hm
-          exact hm
-      have hC := hclosed H hH (block_preceq_trans hTP hc) C
-        (block_preceq_trans hTP (parent_prefix hpC)) hCH
-      have helC : elig C = true := by
-        cases he : elig C with
-        | false => exact (walk_avoids_unsupported_child T P C tree score elig hTP hpC he hCH).elim
-        | true => rfl
-      exact honly C hC hpC helC ▸ hCH
-  change GridCO.ghost _ _ _ _ = Q
-  rw [ht]
-  change H = Q
-  by_contra hne
-  obtain ⟨C, hp, hCH⟩ := path_child Q H hQH (Ne.symm hne)
-  have hQC : Block.Preceq Q C := by
-    cases C with
-    | genesis => cases hp
-    | node P s r =>
-      have he : P = Q := Option.some.inj hp
-      subst P
-      change (decide _ || Block.preceq Q Q) = true
-      exact Bool.or_eq_true_iff.mpr (Or.inr (block_preceq_refl _))
-  have hH : H ∈ tree := by
-    rcases fgsa_headInTree_mem_or_anchor p st' tree raw' support' with he | hm
-    · have he' : H = liveRoot p st' := ht.symm.trans he
-      exact (hne (he'.trans (block_preceq_antisymm
-        (block_preceq_trans hAT' hTQ) (he' ▸ hQH)))).elim
-    · change GridCO.ghost _ _ _ _ ∈ tree at hm
-      rw [ht] at hm
-      exact hm
-  have hC := hclosed H hH (block_preceq_trans hTQ hQH) C
-    (block_preceq_trans hTQ hQC) hCH
-  exact walk_avoids_unsupported_child T Q C tree score elig hTQ hp
-    (hstop C hC hp) hCH
+  exact exactHead_of_pivot_ancestry p st' Y raw' support' T P Q (Or.inl hAT') hTP hprefix'
+    (walk_best_ancestry_of_cover _ _ _ _ _ hc) hlast hstop
 
 end AvailableChain.FGSA.Run

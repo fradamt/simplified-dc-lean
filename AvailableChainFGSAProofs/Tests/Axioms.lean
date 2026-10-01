@@ -490,3 +490,5 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_firstHead_after_bound
 #print axioms AvailableChain.FGSA.Run.fgsa_reset_stage_sum
 #print axioms AvailableChain.FGSA.Run.fgsa_action_time_residue
+
+#print axioms AvailableChain.FGSA.Run.exactHead_of_pivot_ancestry

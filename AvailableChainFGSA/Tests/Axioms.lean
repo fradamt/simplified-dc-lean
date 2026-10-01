@@ -350,3 +350,5 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 #print axioms AvailableChain.FGSA.fgsa_filtered_anchorClosed
 #print axioms AvailableChain.FGSA.fgsa_headInTree_noEligibleChild
 #print axioms AvailableChain.FGSA.fgsa_headInTree_mem_or_anchor
+
+#print axioms AvailableChain.FGSA.fgsa_headInTree_reanchor_of_pivot

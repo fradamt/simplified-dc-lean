@@ -72,31 +72,62 @@ theorem fgsa_getHead_avoids_unsupported_child
   simp only [hfloor, decide_false, Nat.not_lt.mpr hscore, Bool.false_or,
     beq_eq_false_iff_ne.mpr hslot]
 
-/-- P3 F1b.4a G11:4882–4889; bp02 §4.3. Class (iii), store instance.
-DC: ProposalWalkTransportCore.ghost_transport_of_source:162.
-INTENTIONAL: G11 preserves a prefix using candidate-local scores and
-suffix persistence, not an exact terminal head (GLY G11). The common
-live root is explicit; the keep supplier remains a parameter (M6). -/
+/-- Class (iii), pivot composition. DC: Goldfish/Walk.lean:433 `ghost_reaches`.
+INTENTIONAL: S1b E1 permits either start order; E2 supplies the prefix below T.
+E3/E5 supply target ancestry, with E4 score/root order (bp21:789,2798–2825).
+The target read is arbitrary, so E1 is required separately for each compared read.
+No source-walk premise or equality of live roots is needed. -/
+theorem fgsa_headInTree_reanchor_of_pivot
+    (p : Params) (st : State p.n) (tree : List Block)
+    (raw support : List (GridCO.Wire p.n)) (T P : Block)
+    (hstart : Block.Preceq (liveRoot p st) T ∨
+      (Block.Preceq T (liveRoot p st) ∧ Block.Preceq (liveRoot p st) P))
+    (hTP : Block.Preceq T P)
+    (hprefix : DominatedSuffix (liveRoot p st) T tree
+      (GridCO.goldfishScore st.base.blocks raw support) (eligible p st raw support))
+    (hancestry : ∀ X, Block.Preceq T X → Block.Prec X P →
+      ∃ C, C.parent? = some X ∧ Block.Preceq C P ∧ C ∈ tree ∧
+        eligible p st raw support C = true ∧
+        ∀ D ∈ tree, D.parent? = some X → eligible p st raw support D = true →
+          GridCO.goldfishScore st.base.blocks raw support D ≤
+            GridCO.goldfishScore st.base.blocks raw support C ∧
+          (GridCO.goldfishScore st.base.blocks raw support D =
+            GridCO.goldfishScore st.base.blocks raw support C → D.root ≤ C.root)) :
+    headInTree p st tree raw support = GridCO.ghost P tree
+      (GridCO.goldfishScore st.base.blocks raw support) (eligible p st raw support) := by
+  change GridCO.ghost (liveRoot p st) _ _ _ = _
+  rcases hstart with hAT | ⟨hTA, hAP⟩
+  · rw [walk_reanchor_of_dominated_suffix _ _ _ _ _ hAT hprefix]
+    exact walk_reanchor_of_best_ancestry _ _ _ _ _ hTP hancestry
+  · exact walk_reanchor_of_best_ancestry _ _ _ _ _ hAP
+      (fun X hAX => hancestry X (block_preceq_trans hTA hAX))
+
+/-- P3 F1b.4a G11; class (iii), pivot cover. DC:
+ProposalWalkTransportCore.lean:162 `ghost_transport_of_source`; Walk.lean:433.
+INTENTIONAL: replaces the unused equal-live-root interface with S1b E1/E3/E5,
+bp21:2798–2825. The ancestry premise subsumes source persist/reflect/score inputs.
+Both start orders are accepted for each target store. -/
 theorem fgsa_getHead_covers_of_suffix_transfer
-    (p : Params) (st st' : State p.n)
-    (raw support raw' support' : List (GridCO.Wire p.n)) (B : Block)
-    (hroot : liveRoot p st' = liveRoot p st)
-    (hanchor : Block.Preceq (liveRoot p st) B)
-    (hcover : Block.Preceq B (getHead p st raw support))
-    (hkeep : SuffixPersists (liveRoot p st) B
-      (erasedList st (fullTree p st)) (erasedList st' (fullTree p st'))
-      (GridCO.goldfishScore st.base.blocks raw support)
-      (eligible p st raw support) (eligible p st' raw' support'))
-    (hreflect : SuffixReflects (liveRoot p st) B
-      (erasedList st (fullTree p st)) (erasedList st' (fullTree p st'))
-      (eligible p st raw support) (eligible p st' raw' support'))
-    (hscore : SuffixScoresAgree (liveRoot p st) B (erasedList st' (fullTree p st'))
-      (GridCO.goldfishScore st.base.blocks raw support)
-      (GridCO.goldfishScore st'.base.blocks raw' support') (eligible p st' raw' support')) :
-    Block.Preceq B (getHead p st' raw' support') := by
-  change Block.Preceq B (GridCO.ghost (liveRoot p st') _ _ _)
-  rw [hroot]
-  exact ghost_transfer_sfx _ _ _ _ _ _ _ _ hanchor hcover hkeep hreflect hscore
+    (p : Params) (st : State p.n)
+    (raw support : List (GridCO.Wire p.n)) (T P : Block)
+    (hstart : Block.Preceq (liveRoot p st) T ∨
+      (Block.Preceq T (liveRoot p st) ∧ Block.Preceq (liveRoot p st) P))
+    (hTP : Block.Preceq T P)
+    (hprefix : DominatedSuffix (liveRoot p st) T (erasedList st (fullTree p st))
+      (GridCO.goldfishScore st.base.blocks raw support) (eligible p st raw support))
+    (hancestry : ∀ X, Block.Preceq T X → Block.Prec X P →
+      ∃ C, C.parent? = some X ∧ Block.Preceq C P ∧
+        C ∈ erasedList st (fullTree p st) ∧ eligible p st raw support C = true ∧
+        ∀ D ∈ erasedList st (fullTree p st), D.parent? = some X →
+          eligible p st raw support D = true →
+          GridCO.goldfishScore st.base.blocks raw support D ≤
+            GridCO.goldfishScore st.base.blocks raw support C ∧
+          (GridCO.goldfishScore st.base.blocks raw support D =
+            GridCO.goldfishScore st.base.blocks raw support C → D.root ≤ C.root)) :
+    Block.Preceq P (getHead p st raw support) := by
+  change Block.Preceq P (headInTree p st _ raw support)
+  rw [fgsa_headInTree_reanchor_of_pivot p st _ raw support T P hstart hTP hprefix hancestry]
+  exact @GridCO.ghost_extends GridCO.slowLeasePolicy P _ _ _
 
 /-- P3 F1b.4a W8:4868–4874; bp02 §4.1. Class (iii), store instance.
 DC: Walk.ghost_reaches:433; GSTZeroPreparedWalk.
