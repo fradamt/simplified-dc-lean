@@ -895,5 +895,71 @@ theorem fgsa_voteSupports_of_path (E : Generic.Env V) (rho : V2.Run V (fgsa p c)
   exact Bool.and_eq_true_iff.mpr ⟨Bool.and_eq_true_iff.mpr
     ⟨decide_eq_true hstored, hslot⟩, hBK⟩
 
+/-- P3 §4.4.3 C5; bp02 §4.2, K9 then K8 forward support transport.
+Class (ii), FG-SA run instance. DC: Schedule/AdoptionTransport.lean:346,
+`gfVote_delivery_settled_at_confStore`, vote-or-cap settlement counterpart.
+INTENTIONAL: the current actView needs an explicit target frame bound.
+Clean supplies hframe by erasing clean_transfer_frame's F ⪯ Bfg conjunct
+with eraseFG Bfg = B, at k = iy and exactly st = dst (post-clock q_s).
+Path receipt form (b) supplies cumulative membership and strict head stamps. -/
+theorem fgsa_cleanSupport_forward_relay (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (hE : V2.ExecutionValid E rho) (hN : V2.NoRestart rho) (hDelta : E.Δ = p.Δ)
+    (s : Slot) (hSync : Gen.V2.LabelSync E rho (SA.voteTime p.toParams s)
+      (SA.gateTime p.toParams s))
+    {ix iy : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (hix : rho.events[ix]? = some (.tick x (SA.gateTime p.toParams s)))
+    (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
+    (o : GridCO.Wire p.n)
+    (ho : o ∈ GridCO.cleanSupport p.toParams.engine
+      (actView (clockPre p (V2.Run.stateBefore E rho ix x).st (SA.gateTime p.toParams s))) s)
+    (seat : Fin p.n) (hk : GridCO.headSeat? o = some seat)
+    (K : FGBlock (Fin p.n)) (hK : GridCO.headTarget? o = some (eraseFG K))
+    (B : Block) (hBK : Block.Preceq B (eraseFG K))
+    (hpath : ∀ A, FGBlock.Preceq A K →
+      A ∈ (((fgsa p c).clock (V2.Run.stateBefore E rho iy y)
+        (SA.voteTime p.toParams (s + 1))).st).fg.TF ∧
+      GridCO.stampBlock (((fgsa p c).clock (V2.Run.stateBefore E rho iy y)
+        (SA.voteTime p.toParams (s + 1))).st).base (eraseFG A) < SA.freezeTime p.toParams s)
+    (hframe : Block.Preceq
+      (eraseFG (((fgsa p c).clock (V2.Run.stateBefore E rho iy y)
+        (SA.voteTime p.toParams (s + 1))).st).fg.F) B) :
+    let dst := ((fgsa p c).clock (V2.Run.stateBefore E rho iy y)
+      (SA.voteTime p.toParams (s + 1))).st
+    (o ∈ FGSA.headSupport p dst (s + 1) ∧ Gen.AC.voteSupports dst.base.blocks B o = true) ∨
+      GridCO.equivocates (FGSA.headVotes p dst (s + 1)) seat = true := by
+  intro dst
+  rcases fgsa_cleanSupport_vote_forward E rho hE hN hDelta s hSync hx hy hix hiy
+    o ho seat hk with ⟨hm, ht⟩ | he
+  · have hs : Gen.AC.voteSupports dst.base.blocks B o = true :=
+      fgsa_voteSupports_of_path E rho s ix iy x y o ho K hK B hBK hpath
+    have hparts := hs
+    rw [Gen.AC.voteSupports_def, hK] at hparts
+    obtain ⟨hknown, hslot⟩ := Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp hparts).1
+    have hactive : eraseFG K ∈ (actView dst).blocks := by
+      apply (actView_blocks dst _).mpr
+      exact ⟨of_decide_eq_true hknown,
+        Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl _)
+          (Gen.Pure.block_preceq_trans hframe hBK)⟩
+    refine Or.inl ⟨?_, hs⟩
+    change o ∈ List.eraseDups (_ ++ _)
+    rw [List.mem_eraseDups, List.mem_append]
+    left
+    apply List.mem_filter.mpr
+    refine ⟨List.mem_filter.mpr ⟨hm, ?_⟩, ?_⟩
+    · simpa only [Nat.add_sub_cancel, (relay_clean_mem p _ s o ho).2.1]
+        using beq_self_eq_true (some s)
+    · unfold GridCO.resolvedBefore
+      rw [hK]
+      apply Bool.and_eq_true_iff.mpr
+      refine ⟨Bool.and_eq_true_iff.mpr ⟨Bool.and_eq_true_iff.mpr ⟨?_, hslot⟩, ?_⟩, ?_⟩
+      · exact decide_eq_true hactive
+      · change decide (GridCO.stampVote dst.base o < SA.freezeTime p.toParams (s + 1 - 1)) = true
+        simpa only [Nat.add_sub_cancel] using decide_eq_true ht
+      · change decide (GridCO.stampBlock dst.base (eraseFG K) <
+          SA.freezeTime p.toParams (s + 1 - 1)) = true
+        simpa only [Nat.add_sub_cancel] using
+          decide_eq_true (hpath K (KitFG.preceq_refl K)).2
+  · exact Or.inr he
+
 end AvailableChain.FGSA.Run
 end
