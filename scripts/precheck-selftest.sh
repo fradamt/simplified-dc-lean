@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Source-only negative controls. All source changes and Git refs are temporary.
+# Source-only controls. All source changes and Git refs are temporary.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 repo=$PWD
@@ -45,6 +45,17 @@ expect_no_build() {
     echo "SELFTEST FAIL: build or full-pass stamp after rejection" >&2
     exit 1
   fi
+}
+expect_guard_pass() {
+  local label=$1 rc=$2 log=$3
+  if [ "$rc" -ne 0 ] || ! grep -qF 'guard lists: superset OK' "$log" ||
+      ! grep -qF 'guard list merge: target data and main code OK' "$log" ||
+      ! grep -qF 'MAIN POLICY PASS' "$log"; then
+    cat "$log"
+    echo "SELFTEST FAIL: $label rc=$rc; expected guard lists and merge to pass" >&2
+    exit 1
+  fi
+  echo "$label rc=$rc (superset and merged target lists pass)"
 }
 
 # Commit 1: copy the current source tree and add a forbidden Statements import.
@@ -119,11 +130,48 @@ init_snapshot "$policy" "$source_base"
 git archive "$source_base" | tar -xf - -C "$target"
 init_snapshot "$target" "$source_base"
 cat "$repo/scripts/precheck-fixtures/claims-theorem.txt" >> "$target/AvailableChainFGSAClaims/Tests/Axioms.lean"
-printf '#!/usr/bin/env bash\nexit 0\n' > "$target/scripts/check-fgsa-claims.sh"
+control=$repo/scripts/precheck-fixtures/guard-lists-control.py
+python3 "$control" permissive "$target/scripts/check-fgsa-claims.sh" "$policy/scripts/check-fgsa-claims.sh"
 rc=0
 bash "$policy/scripts/precheck.sh" "$target" > "$scratch/policy.log" 2>&1 || rc=$?
 expect_rejection main-policy-f28 "$rc" "$scratch/policy.log" 'F-28: AvailableChainFGSAClaims.Tests.Axioms precheckForbiddenClaim'
 expect_rejection main-policy-guard "$rc" "$scratch/policy.log" "MAIN POLICY FAIL check-fgsa-claims main=${source_base:0:7} target=${source_base:0:7}"
+expect_no_build "$target"
+
+# Keep the list controls fast. Inspect the merged checker instead of scanning
+# the source tree, and repeat the gate's history check with the copied allow data.
+cat >> "$policy/scripts/gate-common.sh" <<'SH'
+gate_precheck() {
+  gate_precheck_step guard-lists python3 scripts/guard-lists.py superset \
+    --main-rev "$1" --target scripts/check-fgsa-claims.sh \
+    --allow scripts/guard-lists-allow.txt || return $?
+  python3 scripts/precheck-fixtures/guard-lists-control.py verify \
+    scripts/check-fgsa-claims.sh "$GUARD_LISTS_TARGET" "$GUARD_LISTS_MAIN" || return $?
+  echo 'PRECHECK PASS; build not started'
+}
+SH
+export GUARD_LISTS_TARGET="$target/scripts/check-fgsa-claims.sh"
+export GUARD_LISTS_MAIN="$policy/scripts/check-fgsa-claims.sh"
+python3 "$control" extra "$GUARD_LISTS_TARGET" "$GUARD_LISTS_MAIN"
+rc=0
+bash "$policy/scripts/precheck.sh" "$target" > "$scratch/lists-extra.log" 2>&1 || rc=$?
+expect_guard_pass guard-lists-extra "$rc" "$scratch/lists-extra.log"
+expect_no_build "$target"
+
+removed=$(python3 "$control" drop "$GUARD_LISTS_TARGET" "$GUARD_LISTS_MAIN")
+rc=0
+(
+  bash "$policy/scripts/precheck.sh" "$target" || exit $?
+  touch "$target/build-started"
+) > "$scratch/lists-drop.log" 2>&1 || rc=$?
+expect_rejection guard-lists-drop "$rc" "$scratch/lists-drop.log" "GUARD LIST REMOVED: EXPECTED $removed"
+expect_rejection guard-lists-policy "$rc" "$scratch/lists-drop.log" "MAIN POLICY FAIL guard-lists main=${source_base:0:7} target=${source_base:0:7}"
+expect_no_build "$target"
+
+printf 'EXPECTED %s selftest removal control\n' "$removed" > "$target/scripts/guard-lists-allow.txt"
+rc=0
+bash "$policy/scripts/precheck.sh" "$target" > "$scratch/lists-allow.log" 2>&1 || rc=$?
+expect_guard_pass guard-lists-allow "$rc" "$scratch/lists-allow.log"
 expect_no_build "$target"
 if [ -e "$PRECHECK_TOOL_SENTINEL" ]; then
   echo 'SELFTEST FAIL: Lean or Lake was called' >&2

@@ -33,6 +33,9 @@ gate_precheck() (
   if [ -n "$base" ]; then
     gate_precheck_step base gate_check_base "$base" || exit $?
     gate_precheck_step diff-check git diff --check "$base..HEAD" || exit $?
+    gate_precheck_step guard-lists python3 scripts/guard-lists.py superset \
+      --main-rev "$base" --target scripts/check-fgsa-claims.sh \
+      --allow scripts/guard-lists-allow.txt || exit $?
   fi
   gate_precheck_step check-layers python3 scripts/check-layers.py || exit $?
   gate_precheck_step check-module-headers python3 scripts/check-module-headers.py || exit $?
