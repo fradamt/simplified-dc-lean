@@ -39,5 +39,9 @@ public import AvailableChainKitFG.HeightFold
 public import AvailableChainKitFG.HeightBridge
 public import AvailableChainKitFG.HeightLaws
 
+public import AvailableChainKitFG.CertificateCoreDef
+public import AvailableChainKitFG.CertificateSelectionDef
+public import AvailableChainKitFG.StoreSafetyDef
+
 @[expose] public section
 end

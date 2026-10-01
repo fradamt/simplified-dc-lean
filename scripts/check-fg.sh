@@ -29,6 +29,8 @@ step "scripts/check-fg-syntax.sh"
 bash scripts/check-fg-syntax.sh
 step "scripts/CheckFGAxioms.lean"
 lake env lean --run scripts/CheckFGAxioms.lean --expect \
+  finalityOf_def simplexFinalityView_def StrictPrefix_def TargetQCAt_def \
+  JustificationBirth_def FinalityQCAfter_def NoSlashOutside_def acceptedThreshold_def \
   heightOf_def simplexHeightView_def HeightBridge_def HeightRowsEq_def \
   HeightSelector_def selectHeightRows_def HeightStepBridge_def deriveWithSelector_def \
   heightSelector_id heightSelector_selectHeightRows process_row_height_congr \
