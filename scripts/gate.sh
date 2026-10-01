@@ -23,6 +23,18 @@ while [ $# -gt 0 ]; do
   esac
 done
 case "$tier" in auto|merge|full) ;; *) usage >&2; exit 2 ;; esac
+# Auto tier selection needs a base. Explicit tiers and critical-path mode
+# use a base when the caller supplies one.
+if [ -z "$base" ] && [ "$tier" = auto ] && [ "$critical_path" = 0 ]; then
+  base=$(git merge-base main HEAD) || {
+    echo "PRECHECK FAIL base; build not started" >&2
+    exit 2
+  }
+fi
+# Refuse a bad base before the Linux memory-scope probe as well.
+if [ -n "$base" ]; then
+  gate_precheck_step base gate_check_base "$base" || exit $?
+fi
 gate_jobs
 export JOBS
 
@@ -45,6 +57,8 @@ if [ "$(uname -s)" = Linux ]; then
     memory_limit="$memory_limit, swap=0"
   fi
 fi
+# FIRST gate step: no build, slot directory, logs or full-pass stamp yet.
+gate_precheck "$base" || exit $?
 # BUILD §7.7: the critical-path measurement is separate from the tiers (freeze gates and
 # weekly). It runs in the same memory scope; the caller holds the NUC lock.
 if [ "$critical_path" = 1 ]; then
@@ -70,7 +84,6 @@ tier_path() {
 }
 choose_tier() {
   if [ "$tier" != auto ]; then reason="explicit --tier $tier"; return; fi
-  if [ -z "$base" ]; then base=$(git merge-base main HEAD); fi
   base=$(git rev-parse --verify "$base^{commit}")
   git diff --no-ext-diff --no-renames --name-only -z "$base..HEAD" > "$logs/paths"
   git diff --no-ext-diff --no-renames --name-only -z HEAD >> "$logs/paths"

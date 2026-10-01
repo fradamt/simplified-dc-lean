@@ -1,6 +1,55 @@
 #!/usr/bin/env bash
 # Shared gate functions. Bash 3.2 is sufficient. Source from the repo root.
 
+# Source checks run in order, before any build or gate log directory.
+# Use explicit returns: callers may test the function with if or ||.
+gate_check_base() {
+  local base=$1 head resolved
+  head=$(git rev-parse --verify HEAD) || return $?
+  if ! resolved=$(git rev-parse --verify "$base^{commit}" 2>/dev/null); then
+    echo "BASE REFUSED: HEAD ${head:0:7} does not descend from base ${base:0:7}" >&2
+    return 2
+  fi
+  if ! git merge-base --is-ancestor "$resolved" HEAD; then
+    echo "BASE REFUSED: HEAD ${head:0:7} does not descend from base ${resolved:0:7}" >&2
+    return 1
+  fi
+}
+
+gate_precheck_step() {
+  local name=$1 rc
+  shift
+  echo "== precheck $name"
+  "$@" || {
+    rc=$?
+    echo "PRECHECK FAIL $name; build not started" >&2
+    return "$rc"
+  }
+}
+
+gate_precheck() (
+  local base=${1:-} rule
+  export SOURCE_ONLY=1 PYTHONDONTWRITEBYTECODE=1
+  if [ -n "$base" ]; then
+    gate_precheck_step base gate_check_base "$base" || exit $?
+    gate_precheck_step diff-check git diff --check "$base..HEAD" || exit $?
+  fi
+  gate_precheck_step check-layers python3 scripts/check-layers.py || exit $?
+  gate_precheck_step check-module-headers python3 scripts/check-module-headers.py || exit $?
+  gate_precheck_step check-expose python3 scripts/check-expose.py || exit $?
+  gate_precheck_step check-transparency python3 scripts/check-transparency.py || exit $?
+  # The default Python rule set includes compiled F-31. Select only source rules.
+  local -a gly_rules=()
+  for rule in F-1 F-3 F-4 F-5 F-6 F-7 F-10 F-12 F-13 F-14 F-15 F-18 F-20 F-21 F-23 F-25 F-26 F-28 F-30; do
+    gly_rules+=(--rule "$rule")
+  done
+  gate_precheck_step check-gly-rules python3 scripts/check-gly-rules.py "${gly_rules[@]}" || exit $?
+  gate_precheck_step check-fgsa bash scripts/check-fgsa.sh || exit $?
+  gate_precheck_step check-fgsa-run bash scripts/check-fgsa-run.sh || exit $?
+  gate_precheck_step check-fgsa-claims bash scripts/check-fgsa-claims.sh || exit $?
+  echo "PRECHECK PASS; build not started"
+)
+
 gate_jobs() {
   # JOBS is a per-script pool bound: default 3 on Mac, 6 on Linux; env wins.
   # It is not machine concurrency. GATE_SLOTS caps all shared heavy steps.

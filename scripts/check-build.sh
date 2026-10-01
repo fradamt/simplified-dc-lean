@@ -44,7 +44,7 @@ echo "=== (g) chain-depth"
 if python3 scripts/chain-depth.py; then RESULTS+=("(g) chain-depth: REPORT"); else RESULTS+=("(g) chain-depth: FAIL (could not run)"); FAILED=1; fi
 run h check-transparency python3 scripts/check-transparency.py
 run i check-gly-rules gate_with_slot bash -c 'source scripts/gate-common.sh; targets=$(lake env lean --run scripts/CheckGenFirst.lean --libraries) && gate_build $targets && bash scripts/check-gly-rules.sh'
-run j checker-self-tests bash -c 'bash scripts/check-layers-selftest.sh && bash scripts/shake-report-selftest.sh'
+run j checker-self-tests bash -c 'bash scripts/check-layers-selftest.sh && bash scripts/shake-report-selftest.sh && bash scripts/precheck-selftest.sh'
 echo "=== summary"
 printf '%s\n' "${RESULTS[@]}"
 [ $FAILED -eq 0 ] && echo "check-build: PASS" || echo "check-build: FAIL"

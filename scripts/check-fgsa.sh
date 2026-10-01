@@ -13,13 +13,16 @@
 # GATE_SLOTS caps shared controls and heavy steps (Mac 3, Linux 4; env wins).
 # JOBS alone does not set machine concurrency.
 # --no-negative or NEG=0 keeps all positive checks for the merge tier.
+# SOURCE_ONLY=1 runs the static checks and exits before compiled checks or controls.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 source scripts/gate-common.sh
-gate_options "$@"
-for f in scripts/CheckFGSAAxioms.lean scripts/CheckFGSALease.lean scripts/CheckFGSAExt.lean; do
-  [ -f "$f" ] || { echo "MISSING CHECK SCRIPT: $f"; exit 2; }
-done
+if [ "${SOURCE_ONLY:-0}" != 1 ]; then
+  gate_options "$@"
+  for f in scripts/CheckFGSAAxioms.lean scripts/CheckFGSALease.lean scripts/CheckFGSAExt.lean; do
+    [ -f "$f" ] || { echo "MISSING CHECK SCRIPT: $f"; exit 2; }
+  done
+fi
 
 # Remove comments with a small tokenizer that knows strings, character
 # literals, raw strings (r"...", r#"..."#) and nested block comments. A "--"
@@ -124,12 +127,14 @@ check_boundary() {
   return $bad
 }
 
-echo "== lake build --wfail AvailableChainFGSA"
-gate_build --wfail AvailableChainFGSA
-# The check support library (scripts/AvailableChainCheckSupport/) is not a
-# default target: build it here, so that a clean checkout works.
-echo "== lake build --wfail AvailableChainCheckSupport"
-gate_build --wfail AvailableChainCheckSupport
+if [ "${SOURCE_ONLY:-0}" != 1 ]; then
+  echo "== lake build --wfail AvailableChainFGSA"
+  gate_build --wfail AvailableChainFGSA
+  # The check support library (scripts/AvailableChainCheckSupport/) is not a
+  # default target: build it here, so that a clean checkout works.
+  echo "== lake build --wfail AvailableChainCheckSupport"
+  gate_build --wfail AvailableChainCheckSupport
+fi
 echo "== no protocol library imports the check support library"
 ! grep -RlE 'import[[:space:]]+AvailableChainCheckSupport' AvailableChain*/ AvailableChain*.lean || { echo "PROTOCOL LIBRARY IMPORTS AvailableChainCheckSupport"; exit 1; }
 echo "== root imports"
@@ -147,6 +152,10 @@ echo "== direct imports"
 check_direct_imports . || exit 1
 echo "== Q1/Q5 boundary"
 check_boundary . || exit 1
+if [ "${SOURCE_ONLY:-0}" = 1 ]; then
+  echo "FGSA source checks: PASS"
+  exit 0
+fi
 echo "== axioms, build coverage, import closure"
 gate_with_slot lake env lean --run scripts/CheckFGSAAxioms.lean --expect \
   StoreSetEq admitRow_setEq proposalRows_perm_setEq propose_setEq blockAccepted_slot_pos
