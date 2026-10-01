@@ -1370,7 +1370,7 @@ unused imports, and negative controls. No baseline entries were added.
 │ AvailableChainFGSAProofs/Proofs/Shared/Export   │ Frozen Shared claim wrappers        │
 │ .lean                                           │ SYN L50 Shared export boundary      │
 │ AvailableChainFGSAProofs/Proofs/Assembly/Shared │ Shared exports for the package root │
-│ AvailableChainFGSAProofs/Proofs/Assembly/Clean  │ Clean exports for the package root  │
+│ AvailableChainFGSAProofs/Proofs/Assembly/Clean  │ Clean cut and safety claim assembly │
 │ .lean                                           │ SYN L50 assembly boundary           │
 │ AvailableChainFGSAProofs/Proofs/Foundations/    │ Source discipline and source frame  │
 │ Sources.lean                                    │ K6; frozen F1.1 and F1.3 inputs     │

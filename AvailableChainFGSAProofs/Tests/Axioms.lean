@@ -10,7 +10,6 @@ public import AvailableChainFGSAProofs.Proofs.Shared.Relay -- shake: keep (relay
 public import AvailableChainFGSAProofs.Proofs.Shared.Count -- shake: keep (F1b.1 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Assembly.Shared -- shake: keep (F1b.3 export axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.Release -- shake: keep (F1b.3 axiom audit)
-public import AvailableChainFGSAProofs.Proofs.Shared.Claims -- shake: keep (claim implication axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Counts -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Cap -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Foundations.FinalizedSafety -- shake: keep (axiom audit commands)
@@ -21,7 +20,6 @@ public import AvailableChainFGSAProofs.Proofs.Foundations.Certificates -- shake:
 public import AvailableChainFGSAProofs.Proofs.Foundations.Client -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Gate -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Sources -- shake: keep (axiom audit commands)
-public import AvailableChainFGSAProofs.Proofs.Shared.Regimes -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Channels -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Recurrence -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads -- shake: keep (axiom audit commands)
@@ -388,3 +386,10 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.cleanSafety
 #print axioms AvailableChain.FGSA.Run.cleanCutPos_export
 #print axioms AvailableChain.FGSA.Run.cleanSafety_of_cut
+
+-- F2.8: channel-free Clean claim assembly.
+#print axioms AvailableChain.FGSA.Run.fgsa_cleanCutClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_cleanHistoryClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_cleanPrefixTruncationClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_cleanSafetyClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_cleanSafety_outputs
