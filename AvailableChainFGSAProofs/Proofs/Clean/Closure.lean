@@ -100,6 +100,16 @@ theorem clean_actionSources_body [Fintype V] (b₀ : Time) :
   exact belowLabel_of_preceq hBG
     (belowLabel_of_gateResultAt (Nat.lt_of_lt_of_le hk hj1) hkt hG le_rfl)
 
+
+/-- P3 §8.7 F2.6 (lead Q2: before cleanHistoryAt); bp02 §5.6. The frozen
+all-source-read statement, from `clean_actionSources_body` through the
+first-unfold equation. DC counterpart: Protocol/Grades/JointHistoryGapsIdx.lean
+:26,141 (conditional same-index action sources); INTENTIONAL difference: FG-SA
+reads include asleep nodes that emit no row (bp02 §5.6). -/
+theorem clean_actionSources [Fintype V] (b₀ : Time) : CleanActionSourcesStmt p c E rho b₀ := by
+  rw [CleanActionSourcesStmt_def]
+  exact clean_actionSources_body p c E rho b₀
+
 /-- P3 §8.5:5282–5288, bp02 §5.7. Class B. DC counterparts:
 Legacy/Definitions/SafetyRegimes:53–80 and Protocol/Grades/JointHistoryGapsIdx:26,141.
 INTENTIONAL divergence: raw optional SA results and a finite inclusive cut.

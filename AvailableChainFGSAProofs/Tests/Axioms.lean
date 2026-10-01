@@ -369,6 +369,7 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 
 -- F2.6: bounded closure, all source reads, and the public history wrapper.
 #print axioms AvailableChain.FGSA.Run.clean_actionSources_body
+#print axioms AvailableChain.FGSA.Run.clean_actionSources
 #print axioms AvailableChain.FGSA.Run.clean_invariant
 #print axioms AvailableChain.FGSA.Run.cleanHistoryAt_body
 #print axioms AvailableChain.FGSA.Run.cleanHistoryAt
