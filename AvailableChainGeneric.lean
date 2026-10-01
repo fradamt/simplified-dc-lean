@@ -31,6 +31,8 @@ public import AvailableChainGeneric.Statements.AC.Lease
 public import AvailableChainGeneric.Statements.AC.LeaseWindow
 public import AvailableChainGeneric.Statements.AC.History
 public import AvailableChainGeneric.Statements.AC.Transfer
+public import AvailableChainGeneric.Statements.AC.Duty.Reads
+public import AvailableChainGeneric.Statements.AC.Duty.Transfer
 public import AvailableChainGeneric.Statements.AC.Votes
 public import AvailableChainGeneric.Statements.AC.Support
 public import AvailableChainGeneric.Statements.Pure.HonestCount
@@ -56,6 +58,7 @@ public import AvailableChainGeneric.Proofs.AC.Output
 public import AvailableChainGeneric.Proofs.AC.Lease
 public import AvailableChainGeneric.Proofs.AC.History
 public import AvailableChainGeneric.Proofs.AC.Transfer
+public import AvailableChainGeneric.Proofs.AC.Duty.Transfer
 public import AvailableChainGeneric.Proofs.AC.Votes
 public import AvailableChainGeneric.Proofs.AC.Support
 public import AvailableChainGeneric.Proofs.Pure.HonestCount
@@ -78,12 +81,14 @@ public import AvailableChainGeneric.Proofs.V2.Duty.Linked
 public import AvailableChainGeneric.Statements.V2.Duty.Counts
 public import AvailableChainGeneric.Statements.V2.Duty.Reads
 public import AvailableChainGeneric.Statements.V2.Duty.Receipt
+public import AvailableChainGeneric.Statements.V2.Duty.DeliveryBy
 public import AvailableChainGeneric.Statements.V2.Duty.Regimes
 public import AvailableChainGeneric.Statements.V2.Duty.Interface
 public import AvailableChainGeneric.Statements.V2.Duty.Slashing
 public import AvailableChainGeneric.Statements.V2.Duty.LinkedHolders
 public import AvailableChainGeneric.Proofs.V2.Duty.Reads
 public import AvailableChainGeneric.Proofs.V2.Duty.Receipt
+public import AvailableChainGeneric.Proofs.V2.Duty.DeliveryBy
 public import AvailableChainGeneric.Proofs.V2.Duty.Regimes
 public import AvailableChainGeneric.Proofs.V2.Duty.Fields
 public import AvailableChainGeneric.Proofs.V2.Duty.Induction
