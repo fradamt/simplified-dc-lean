@@ -145,6 +145,11 @@ build_all() {
   local targets
   targets=$(gate_with_slot lake env lean --run scripts/CheckGenFirst.lean --libraries)
   [ -n "$targets" ] || { echo "CheckGenFirst returned no build targets"; return 1; }
+  # Build the full route-check scope before GATE_NO_BUILD is enabled.
+  local route_targets
+  route_targets=$(gate_with_slot lake env lean --run scripts/CheckFaultXRoute.lean --libraries) || return $?
+  [ -n "$route_targets" ] || { echo "CheckFaultXRoute returned no build targets"; return 1; }
+  targets="$targets $route_targets"
   # @ selects every default target of the root package, plus check support
   # and every module that CheckGenFirst scans (including facade orphans).
   GATE_NO_BUILD=0 gate_build --wfail @ AvailableChainCheckSupport $targets
