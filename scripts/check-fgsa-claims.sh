@@ -28,6 +28,33 @@ LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainF
 CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = (
+    # fgsa-f1b4b producer line (main 73d0ea7): ScoreRun, GateReceipt, ExactService, ExactHead, regime wrappers.
+    'AvailableChain.FGSA.Run.ScoreRunGeometry',
+    'AvailableChain.FGSA.Run.fgsa_score_eq_on_run',
+    'AvailableChain.FGSA.Run.WalkRunGeometry',
+    'AvailableChain.FGSA.Run.fgsa_ghost_transfer_sfx_on_run',
+    'AvailableChain.FGSA.Run.GateReceiptGeometry',
+    'AvailableChain.FGSA.Run.fgsa_gateReceipt',
+    'AvailableChain.FGSA.Run.ExactServiceGateGeometry',
+    'AvailableChain.FGSA.Run.exactService_gate_of_head',
+    'AvailableChain.FGSA.Run.exactService_of_head_and_gate',
+    'AvailableChain.FGSA.Run.exactService_participation_of_card',
+    'AvailableChain.FGSA.Run.ExactHeadGeometry',
+    'AvailableChain.FGSA.Run.ExactHeadRunGeometry',
+    'AvailableChain.FGSA.Run.fgsa_headVote_best_ancestry_of_cover',
+    'AvailableChain.FGSA.Run.fgsa_headVote_exact_of_covered_parent',
+    'AvailableChain.FGSA.Run.exactHead_of_proposal_on_run',
+    'AvailableChain.FGSA.Run.exactService_head_of_proposal',
+    'AvailableChain.FGSA.Run.fgsa_score_eq_on_clean',
+    'AvailableChain.FGSA.Run.fgsa_score_eq_on_recovery',
+    'AvailableChain.FGSA.Run.fgsa_ghost_transfer_sfx_on_clean',
+    'AvailableChain.FGSA.Run.fgsa_ghost_transfer_sfx_on_recovery',
+    'AvailableChain.FGSA.Run.fgsa_gateReceipt_clean',
+    'AvailableChain.FGSA.Run.fgsa_gateReceipt_recovery',
+    'AvailableChain.FGSA.Run.exactService_of_head_clean',
+    'AvailableChain.FGSA.Run.exactService_of_head_recovery',
+    'AvailableChain.FGSA.Run.exactService_head_of_proposal_clean',
+    'AvailableChain.FGSA.Run.exactService_head_of_proposal_recovery',
     # fgsa-f1b8 step 3 (main b83d8f3): unconditional safety and its exact-head chain.
     'AvailableChain.FGSA.Run.fgsaSafetyClaims',
     'AvailableChain.FGSA.Run.fgsa_headReachesLoClaim',
