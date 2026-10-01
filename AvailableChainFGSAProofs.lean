@@ -31,3 +31,6 @@ public import AvailableChainFGSAProofs.Proofs.Shared.SameLabel
 public import AvailableChainFGSAProofs.Proofs.Assembly.Shared
 public import AvailableChainFGSAProofs.Proofs.Shared.Count
 public import AvailableChainFGSAProofs.Proofs.Clean.TransferFrame
+public import AvailableChainFGSAProofs.Proofs.Clean.Zero
+public import AvailableChainFGSAProofs.Proofs.Clean.Safety
+public import AvailableChainFGSAProofs.Proofs.Assembly.Clean
