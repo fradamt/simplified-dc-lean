@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSARun.Statements.Slashing
+public import AvailableChainFGSARun.Proofs.Slashing
 public import AvailableChainFGSARun.Model.Protocol
 public import AvailableChainFGSARun.Model.Families
 public import AvailableChainFGSARun.Statements.Excludes
