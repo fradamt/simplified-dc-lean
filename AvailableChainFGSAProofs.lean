@@ -39,3 +39,5 @@ public import AvailableChainFGSAProofs.Proofs.Clean.Zero
 public import AvailableChainFGSAProofs.Proofs.Clean.Safety
 public import AvailableChainFGSAProofs.Proofs.Assembly.Clean
 public import AvailableChainFGSAProofs.Proofs.Shared.HeadCover
+public import AvailableChainFGSAProofs.Proofs.Shared.Healed
+public import AvailableChainFGSAProofs.Proofs.Shared.Compose

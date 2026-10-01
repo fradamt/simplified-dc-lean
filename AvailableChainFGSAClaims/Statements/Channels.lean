@@ -150,5 +150,30 @@ theorem HonestRowAt_def (j : Nat) (y : V) (r : Nat) (a : RowWire p.n) :
       ∃ t, rho.events[j]? = some (.tick y t) ∧ ofRow p a ∈ V2.Run.emitsAt E rho j) := by
   rw [HonestRowAt]
 
+
+/-- T-ROWS (21 H.22:3072–3080; P3 A.6). Consumers: TRowsSelect and TRowsSync. -/
+def rowHeld (st : FGSA.State p.n) (a : RowWire p.n) : Prop :=
+  a ∈ st.rowPool ∨ a ∈ FGSA.blockWireRows p st (fun _ => true)
+/-- Proposal read at t_s, after the clock (01:95–101). Consumer: T-ROWS. -/
+def proposalStateAt (s : Slot) : Option (FGSA.State p.n) :=
+  (postClock E rho (V2.proposerOf rho (fgsaInterface p c) s)
+    (V2.proposalTime (fgsaInterface p c) s)).map (·.st)
+/-- Exact signed row at the proposal read (21:3072–3076). Consumer: TRowsSelect. -/
+def heldAtProposal (s : Slot) (a : RowWire p.n) : Prop :=
+  ∃ st, proposalStateAt p c E rho s = some st ∧ rowHeld p st a
+/-- Exact signed row on the parent's chain (21:3072–3084). Consumer: T-ROWS. -/
+def onParentChain (s : Slot) (Q : Block) (a : RowWire p.n) : Prop :=
+  ∃ st, proposalStateAt p c E rho s = some st ∧ a ∈ FGSA.chainWireRows st Q.parent
+/-- Strict receipt cut (01:101–106; 21:3076–3080). Consumer: TRowsSync. -/
+def HeldBefore (x : V) (a : RowWire p.n) (d : Time) : Prop :=
+  Gen.V2.HoldsBefore E rho (fun nd => rowHeld p nd.st a) d x
+/-- Retained round window (01:95–96). Consumer: TRowsSelect. -/
+def InRowWindow (s : Slot) (r : Nat) : Prop :=
+  r ≤ p.round s ∧ p.round s ≤ r + p.wF
+/-- Label-s HEAD on the post-clock state at v_s (01:150–157).
+Consumers: H2.A, H2′, H3, H5 and H6. -/
+def headAtLabel (x : V) (s : Slot) : Option Block :=
+  (postClock E rho x (SA.voteTime p.toParams s)).map (fun nd => FGSA.headVote p nd.st s)
+
 end AvailableChain.FGSA.Run
 end

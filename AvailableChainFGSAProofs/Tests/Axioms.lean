@@ -21,6 +21,10 @@ public import AvailableChainFGSAProofs.Proofs.Foundations.Certificates -- shake:
 public import AvailableChainFGSAProofs.Proofs.Foundations.Client -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Gate -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Sources -- shake: keep (axiom audit commands)
+public import AvailableChainFGSAProofs.Proofs.Shared.Compose -- shake: keep (public aliases or axiom audit commands)
+public import AvailableChainFGSAProofs.Proofs.Shared.Healed -- shake: keep (axiom audit commands)
+public import AvailableChainFGSAProofs.Proofs.Shared.Claims -- shake: keep (axiom audit commands)
+public import AvailableChainFGSAProofs.Proofs.Shared.Regimes -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Channels -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Recurrence -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads -- shake: keep (axiom audit commands)
@@ -396,3 +400,20 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_cleanSafety_outputs
 
 #print axioms AvailableChain.FGSA.Run.batch_head_covers
+#print axioms AvailableChain.FGSA.Run.healed_same_time
+#print axioms AvailableChain.FGSA.Run.healed_mono_start
+
+-- F0.8b: new public declarations.
+#print axioms AvailableChain.FGSA.Run.muOf_spec
+#print axioms AvailableChain.FGSA.Run.H0.time_unique
+#print axioms AvailableChain.FGSA.Run.H0.tstar_eq
+#print axioms AvailableChain.Gen.Pure.QualSearch.of_recS
+#print axioms AvailableChain.Gen.Pure.QualSearch.of_recC
+#print axioms AvailableChain.Gen.Pure.QualSearch.of_lit
+
+#print axioms AvailableChain.FGSA.Run.HealAC.tsMono
+#print axioms AvailableChain.FGSA.Run.HealAC.tExact
+
+#check AvailableChain.FGSA.Run.QualSearch.of_recS
+#check AvailableChain.FGSA.Run.QualSearch.of_recC
+#check AvailableChain.FGSA.Run.QualSearch.of_lit

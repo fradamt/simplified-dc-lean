@@ -7,3 +7,7 @@ public import AvailableChainFGSAClaims.Statements.Channels
 public import AvailableChainFGSAClaims.Statements.ChannelProps
 public import AvailableChainFGSAClaims.Statements.ComposeStmt
 public import AvailableChainFGSAClaims.FGSAClaims
+public import AvailableChainFGSAClaims.Statements.Healed
+public import AvailableChainFGSAClaims.Statements.Recurrence
+public import AvailableChainFGSAClaims.Statements.Packages.Finality
+public import AvailableChainFGSAClaims.Statements.Packages.Healing

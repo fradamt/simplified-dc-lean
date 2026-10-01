@@ -1385,6 +1385,17 @@ unused imports, and negative controls. No baseline entries were added.
 │ ountable.lean                                   │                                     │
 │ AvailableChainFGSAProofs/Proofs/Foundations/Fin │ Finalized safety from Base and count │
 │ alizedSafety.lean                               │                                     │
+│ AvailableChainFGSAClaims/Statements/            │ Qualified search: Gen export        │
+│ Recurrence.lean                                 │                                     │
+│ AvailableChainFGSAClaims/Statements/Packages/   │ Finality premise packages, FF6/FF7  │
+│ Finality.lean                                   │                                     │
+│ AvailableChainFGSAClaims/Statements/Packages/   │ Healing and joined-kernel packages  │
+│ Healing.lean                                    │                                     │
+│ AvailableChainFGSAProofs/Proofs/Shared/         │ μ bounds and unique full H0 time    │
+│ Compose.lean                                    │                                     │
+│ AvailableChainFGSAClaims/Statements/Witness.lean │ Common healing witness and tstar    │
+│ AvailableChainFGSAClaims/Statements/Healed.lean │ HEALED via the Gen property kernel  │
+│ AvailableChainFGSAProofs/Proofs/Shared/Healed.lean │ Same-time and later-start proofs    │
 │ AvailableChainFGSAProofs/Tests/Channels.lean    │ Old source obstruction and G1 tests │
 │ AvailableChainFGSAProofs/Statements/            │ Clean invariant and step statements │
 │ CleanInvariant.lean                             │                                     │
