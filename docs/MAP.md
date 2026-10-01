@@ -1420,6 +1420,8 @@ unused imports, and negative controls. No baseline entries were added.
 │ GateReceipt.lean                                │                                     │
 │ AvailableChainFGSAProofs/Proofs/Shared/         │ ExactService HEAD clause            │
 │ ExactHead.lean                                  │                                     │
+│ AvailableChainFGSAProofs/Proofs/Shared/         │ Exact gate service from HEAD reads  │
+│ ExactService.lean                               │                                     │
 │ AvailableChainFGSAProofs/Proofs/Clean/Closure   │ Inclusive history and source reads  │
 │ AvailableChainFGSAProofs/Proofs/Clean/GateOutput │ Conditional gate result below S    │
 │ .lean                                           │                                     │

@@ -11,6 +11,7 @@ public import AvailableChainFGSAProofs.Proofs.Foundations.Store
 public import AvailableChainFGSAProofs.Proofs.Shared.StoreRun
 public import AvailableChainFGSAProofs.Proofs.Shared.ScoreRun
 public import AvailableChainFGSAProofs.Proofs.Shared.GateReceipt
+public import AvailableChainFGSAProofs.Proofs.Shared.ExactService
 public import AvailableChainFGSAProofs.Proofs.Foundations.Certificates
 public import AvailableChainFGSAProofs.Proofs.Foundations.Leases
 public import AvailableChainFGSAProofs.Proofs.Foundations.Reconcile

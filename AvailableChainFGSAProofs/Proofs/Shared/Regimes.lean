@@ -1,6 +1,6 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Shared.GateReceipt
 public import AvailableChainFGSAProofs.Proofs.Shared.ExactHead
+public import AvailableChainFGSAProofs.Proofs.Shared.ExactService
 public import AvailableChainGeneric.Proofs.V2.Regimes
 public import AvailableChainFGSAClaims.Statements.Regimes
 public import AvailableChainFGSARun.Proofs.Receipts
@@ -441,6 +441,82 @@ theorem exactService_head_of_proposal_recovery
   have hwalk := Gen.V2.LabelSync.of_recovery E rho _ _ h.sync hGST hpt (htv.trans hhorizon)
   exact exactService_head_of_proposal E rho h.base.valid h.base.noRestart h.base.delta s
     hscore hwalk hx hip hseat b raw sup rows hem D hgeom hhorizon
+
+/-- P3 A.9 and blueprint 21 H.22 H3, conditional Clean exact service.
+DC: Generic/Conditions.lean:134–156; UserConfirmationRecovery.lean:235.
+INTENTIONAL: healthy-prefix delivery supplies LabelSync. Clean participation
+alone need not reach the fast threshold, so that count stays explicit. -/
+theorem exactService_of_head_clean
+    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (b₀ : Time) (h : CleanCut₂ p c E rho b₀)
+    (v : Slot) (Q : Block) (hne : Q ≠ .genesis)
+    (hcut : SA.gateTime p.toParams v ≤ b₀)
+    (hhead : SA.voteTime p.toParams v ≤ rho.horizon →
+      ∀ x ∈ rho.honest, headAtLabel p c E rho x v = some Q)
+    (hfast : SA.releaseThreshold p.toParams ≤ (awakeHonest E rho (SA.voteTime p.toParams v)).card)
+    (hgeometry : ∀ i x, x ∈ rho.honest → IsGateTick p c rho i x v →
+      ExactServiceGateGeometry E rho i x v Q) : ExactService p c E rho v Q := by
+  have hvd : SA.voteTime p.toParams v + E.Δ ≤ SA.gateTime p.toParams v := by
+    rw [h.base.delta]
+    change 4 * p.Δ * (v : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * (v : Int) + 6 * p.Δ
+    linarith [p.deltaPos]
+  have hvpos : 0 ≤ SA.voteTime p.toParams v := by
+    change 0 ≤ 4 * p.Δ * (v : Int) + p.Δ
+    have hd := p.deltaPos
+    positivity
+  have hvcut : SA.voteTime p.toParams v < b₀ := by
+    have hd : 0 < E.Δ := h.base.delta.symm ▸ p.deltaPos
+    linarith
+  apply exactService_of_head_and_gate E rho h.base.valid h.base.noRestart h.base.delta
+    h.base.cstar v Q hne hhead
+    (fun _ => Gen.V2.LabelSync.of_cleanCut E rho b₀ _ _ h.healthy hvd hcut h.cut.2)
+    _ hgeometry
+  intro _
+  exact exactService_participation_of_card E rho h.base.cstar v
+    ⟨h.partBefore _ hvpos hvcut⟩ hfast
+
+/-- P3 A.9 and blueprint 21 H.22 H3, conditional Recovery exact service.
+DC: Generic/Conditions.lean:110–132; UserConfirmationRecovery.lean:235.
+INTENTIONAL: post-GST waking and the one-third fault bound supply the SA
+fast count. Cardinality uses only the fresh HEAD-seat bijection. -/
+theorem exactService_of_head_recovery
+    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (G : Time) (h : Recovery₂ p c E rho G)
+    (v : Slot) (Q : Block) (hne : Q ≠ .genesis)
+    (hGST : E.t_GST ≤ SA.voteTime p.toParams v)
+    (hhead : SA.voteTime p.toParams v ≤ rho.horizon →
+      ∀ x ∈ rho.honest, headAtLabel p c E rho x v = some Q)
+    (hgeometry : ∀ i x, x ∈ rho.honest → IsGateTick p c rho i x v →
+      ExactServiceGateGeometry E rho i x v Q) : ExactService p c E rho v Q := by
+  have hvd : SA.voteTime p.toParams v + E.Δ ≤ SA.gateTime p.toParams v := by
+    rw [h.base.delta]
+    change 4 * p.Δ * (v : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * (v : Int) + 6 * p.Δ
+    linarith [p.deltaPos]
+  apply exactService_of_head_and_gate E rho h.base.valid h.base.noRestart h.base.delta
+    h.base.cstar v Q hne hhead
+    (fun hh => Gen.V2.LabelSync.of_recovery E rho _ _ h.sync hGST hvd hh) _ hgeometry
+  intro hh
+  have hvhor : SA.voteTime p.toParams v ≤ rho.horizon := by
+    have hd : 0 < E.Δ := h.base.delta.symm ▸ p.deltaPos
+    linarith
+  have hawake : awakeHonest E rho (SA.voteTime p.toParams v) = rho.honest := by
+    rw [awakeHonest_def]
+    exact Finset.filter_eq_self.mpr (fun x hx => h.awake x hx _ hGST hvhor)
+  have hn : Fintype.card V = p.n :=
+    (V2.CStar.seats_eq (ℓ := .base (.head v)) h.base.cstar trivial).symm
+  have hcard : (faulty rho).card + rho.honest.card = p.n := by
+    rw [faulty_def, Finset.card_sdiff_of_subset (Finset.subset_univ _), Finset.card_univ, hn]
+    have hc := Finset.card_le_univ rho.honest
+    rw [hn] at hc
+    omega
+  have hf := h.fault
+  have hp := p.nPos
+  apply exactService_participation_of_card E rho h.base.cstar v
+  · rw [hawake]
+    exact ⟨by omega⟩
+  · rw [hawake]
+    change (p.n + 1) / 2 ≤ rho.honest.card
+    omega
 
 end AvailableChain.FGSA.Run
 end
