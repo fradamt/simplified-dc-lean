@@ -2,6 +2,7 @@ module
 public import AvailableChainFGSAClaims.Claims.Clean
 public import AvailableChainFGSAProofs.Proofs.Clean.Zero
 public import AvailableChainFGSAProofs.Proofs.Clean.Safety
+public import AvailableChainFGSAProofs.Proofs.Clean.Closure
 
 public section
 
@@ -9,6 +10,19 @@ namespace AvailableChain.FGSA.Run
 
 variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V]
     {c : AppCodec In} {E : Generic.Env V} {rho : V2.Run V (fgsa p c)}
+
+/-- P3 §§4.7, 8.5; bp02 §§5.4–6. Class B. DC counterparts:
+Legacy/Definitions/SafetyRegimes:53–80 and Protocol/Grades/JointHistoryGapsIdx:26,141.
+INTENTIONAL divergence: FG-SA uses raw SA results, exact lease/saved/fast-write
+origins, and a finite inclusive event cut. This wrapper restores the frozen
+Claims conclusion. NoRestart is inherited from CleanCut₂ through Base₂. -/
+theorem cleanHistoryAt (p : Params) {In V : Type} (c : AppCodec In)
+    [DecidableEq V] [Fintype V] (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    {b₀ : Time} (h : CleanCut₂ p c E rho b₀)
+    (hq : Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card)
+    (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho) :
+    CleanHistoryAt p c E rho b₀ := by
+  exact cleanHistoryAt_body p c E rho h hq hf hsrc
 
 /-- P3 §8.5:5320–5346, bp02 initialization and §6, SYN L39.
 DC Legacy/Definitions/SafetyRegimes:53–80 and Generic/Conditions:134:

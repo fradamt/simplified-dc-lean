@@ -365,3 +365,10 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.cleanTruncAt_zero
 #print axioms AvailableChain.FGSA.Run.cleanSafetyAt_of_trunc
 #print axioms AvailableChain.FGSA.Run.cleanCutZero_export
+
+-- F2.6: bounded closure, all source reads, and the public history wrapper.
+#print axioms AvailableChain.FGSA.Run.clean_actionSources_body
+#print axioms AvailableChain.FGSA.Run.clean_invariant
+#print axioms AvailableChain.FGSA.Run.cleanHistoryAt_body
+#print axioms AvailableChain.FGSA.Run.cleanHistoryAt
+#print axioms AvailableChain.FGSA.Run.sExtends
