@@ -299,6 +299,10 @@ def AvailableChain.Gen.Pure.WalkNoEligibleChildOfAnchorClosedStatement 594efa695
 theorem AvailableChain.Gen.Pure.WalkNoEligibleChildOfAnchorClosedStatement_def f44105eff0f46eb7
 def AvailableChain.Gen.Pure.GhostTransferSfxStatement 86e56762231deccc
 theorem AvailableChain.Gen.Pure.GhostTransferSfxStatement_def 8318f9c64d8c9652
+def AvailableChain.Gen.Pure.BestAncestry f85c0b55cba8beed
+theorem AvailableChain.Gen.Pure.BestAncestry_def 052b2208fd600434
+def AvailableChain.Gen.Pure.WalkCoversOfRetainedTransportStatement 3385b4377a3077f7
+theorem AvailableChain.Gen.Pure.WalkCoversOfRetainedTransportStatement_def f2834ebaab4d115e
 ```
 
 ### `AvailableChainGeneric.Statements.V2.Counts`

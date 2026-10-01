@@ -732,3 +732,14 @@ theorem, in facade order. The library globs build this test module. -/
 #print axioms AvailableChain.Gen.V2.Duty.LabelSync.of_recovery
 #print axioms AvailableChain.Gen.V2.Duty.LabelFacts.of_cleanCut
 #print axioms AvailableChain.Gen.V2.Duty.LabelFacts.of_recovery
+
+-- G11 retained-domain walk transport: each new production declaration.
+#print axioms AvailableChain.Gen.Pure.BestAncestry
+#print axioms AvailableChain.Gen.Pure.BestAncestry_def
+#print axioms AvailableChain.Gen.Pure.WalkCoversOfRetainedTransportStatement
+#print axioms AvailableChain.Gen.Pure.WalkCoversOfRetainedTransportStatement_def
+#print axioms AvailableChain.Gen.Pure.walk_covers_of_retained_transport
+#print axioms AvailableChain.Gen.Pure.walk_covers_of_retained_transport_statement
+#print axioms AvailableChain.Gen.Pure.bestAncestry_restrict
+#print axioms AvailableChain.Gen.Pure.bestAncestry_concat
+#print axioms AvailableChain.Gen.Pure.bestAncestry_of_dominatedSuffix

@@ -1064,3 +1064,119 @@ theorem walk_best_ancestry_of_cover (anchor target : Block) (tree : List Block)
 end
 
 end AvailableChain.Gen.Pure
+
+namespace AvailableChain.Gen.Pure
+
+open AvailableChain GridCO
+
+public section
+
+/-- Class (iii). DC: additive (no DC counterpart); reason: split the named
+best-order path at a common ancestor for retained-domain callers. -/
+theorem bestAncestry_restrict (a b c : Block) (tree : List Block)
+    (score : Block → Nat) (eligible : Block → Bool)
+    (h : BestAncestry a c tree score eligible)
+    (hab : Block.Preceq a b) (hbc : Block.Preceq b c) :
+    BestAncestry a b tree score eligible ∧ BestAncestry b c tree score eligible := by
+  constructor
+  · intro X hAX hXB
+    obtain ⟨hne, hXb⟩ := (walk_aux_prec_iff X b).mp hXB
+    have hXC : Block.Prec X c := (walk_aux_prec_iff X c).mpr ⟨by
+      intro he
+      subst X
+      exact hne (block_preceq_antisymm hXb hbc), block_preceq_trans hXb hbc⟩
+    obtain ⟨C, hp, hCc, hm, hel, hbest⟩ := h X hAX hXC
+    exact ⟨C, hp, walk_aux_child_prefix_of_common X C b c hp hXB hCc hbc,
+      hm, hel, hbest⟩
+  · intro X hBX hXC
+    exact h X (block_preceq_trans hab hBX) hXC
+
+/-- Class (iii). DC: additive (no DC counterpart); reason: join two named
+best-order paths without a strict score gap. -/
+theorem bestAncestry_concat (a b c : Block) (tree : List Block)
+    (score : Block → Nat) (eligible : Block → Bool)
+    (hab : BestAncestry a b tree score eligible)
+    (hbc : BestAncestry b c tree score eligible)
+    (_hAB : Block.Preceq a b) (hBC : Block.Preceq b c) :
+    BestAncestry a c tree score eligible := by
+  intro X hAX hXC
+  by_cases hBX : Block.Preceq b X
+  · exact hbc X hBX hXC
+  · have hXc := ((walk_aux_prec_iff X c).mp hXC).2
+    have hXb := (block_preceq_total_of_common hXc hBC).resolve_right hBX
+    have hXB : Block.Prec X b := (walk_aux_prec_iff X b).mpr ⟨by
+      intro he
+      subst X
+      exact hBX (block_preceq_refl b), hXb⟩
+    obtain ⟨C, hp, hCb, hm, hel, hbest⟩ := hab X hAX hXB
+    exact ⟨C, hp, block_preceq_trans hCb hBC, hm, hel, hbest⟩
+
+/-- Class (iii). DC: additive (no DC counterpart); reason: adapt strict
+suffix dominance to the named score/root path order. -/
+theorem bestAncestry_of_dominatedSuffix (anchor target : Block) (tree : List Block)
+    (score : Block → Nat) (eligible : Block → Bool)
+    (hdom : DominatedSuffix anchor target tree score eligible) :
+    BestAncestry anchor target tree score eligible := by
+  intro X hAX hXT
+  obtain ⟨hne, hXt⟩ := (walk_aux_prec_iff X target).mp hXT
+  obtain ⟨C, hp, hCT⟩ := path_child X target hXt hne
+  have hAC : Block.Prec anchor C := (walk_aux_prec_iff anchor C).mpr ⟨by
+    intro he
+    have hd := walk_aux_child_depth X C hp
+    have hle := prefix_depth anchor X hAX
+    rw [he] at hle
+    omega, block_preceq_trans hAX (walk_aux_parent_prefix X C hp)⟩
+  obtain ⟨hm, hel, hbest⟩ := hdom C hAC hCT
+  refine ⟨C, hp, hCT, hm, hel, ?_⟩
+  intro B hB hpar hE
+  by_cases he : B = C
+  · subst B
+    exact ⟨Nat.le_refl _, fun _ => Nat.le_refl _⟩
+  · have hlt := hbest B hB (hpar.trans hp.symm) hE he
+    exact ⟨Nat.le_of_lt hlt, fun heq => (Nat.ne_of_lt hlt heq).elim⟩
+
+/-- Class (iii).
+DC: DecoupledConsensusProofs/Protocol/ForkChoice/Goldfish/ProposalWalkTransportCore.lean:162,259;
+DecoupledConsensusProofs/Protocol/ForkChoice/Goldfish/Walk.lean:433.
+INTENTIONAL: compose the two best-order prefixes with retained suffix transport.
+The per-reader splice gives G11 coverage with the existing list fuel. -/
+theorem walk_covers_of_retained_transport
+    (sourceAnchor targetAnchor cut parent : Block)
+    (sourceTree targetTree : List Block)
+    (sourceScore targetScore : Block → Nat)
+    (sourceEligible targetEligible : Block → Bool)
+    (hsource : Block.Preceq parent (ghost sourceAnchor sourceTree sourceScore sourceEligible))
+    (source_cut : Block.Preceq sourceAnchor cut)
+    (target_cut : Block.Preceq targetAnchor cut)
+    (cut_parent : Block.Preceq cut parent)
+    (target_prefix : BestAncestry targetAnchor cut targetTree targetScore targetEligible)
+    (persists : SuffixPersists cut parent sourceTree targetTree
+      sourceScore sourceEligible targetEligible)
+    (reflects : SuffixReflects cut parent sourceTree targetTree sourceEligible targetEligible)
+    (scores : SuffixScoresAgree cut parent targetTree sourceScore targetScore targetEligible) :
+    Block.Preceq parent (ghost targetAnchor targetTree targetScore targetEligible) := by
+  have hcut := block_preceq_trans cut_parent hsource
+  have hsource_splice := walk_reanchor_of_best_ancestry sourceAnchor cut
+    sourceTree sourceScore sourceEligible source_cut
+    (walk_best_ancestry_of_cover sourceAnchor cut sourceTree sourceScore sourceEligible hcut)
+  have hsource_cut : Block.Preceq parent (ghost cut sourceTree sourceScore sourceEligible) := by
+    rw [← hsource_splice]
+    exact hsource
+  have htarget_splice := walk_reanchor_of_best_ancestry targetAnchor cut
+    targetTree targetScore targetEligible target_cut target_prefix
+  rw [htarget_splice]
+  exact ghost_transfer_sfx cut parent sourceTree targetTree sourceScore targetScore
+    sourceEligible targetEligible cut_parent hsource_cut persists reflects scores
+
+/-- Class (iii).
+DC: DecoupledConsensusProofs/Protocol/ForkChoice/Goldfish/ProposalWalkTransportCore.lean:162,259;
+DecoupledConsensusProofs/Protocol/ForkChoice/Goldfish/Walk.lean:433.
+INTENTIONAL: prove the universal Generic statement for per-reader G11 coverage. -/
+theorem walk_covers_of_retained_transport_statement :
+    WalkCoversOfRetainedTransportStatement := by
+  rw [WalkCoversOfRetainedTransportStatement_def]
+  exact walk_covers_of_retained_transport
+
+end
+
+end AvailableChain.Gen.Pure
