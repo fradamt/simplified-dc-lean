@@ -69,6 +69,9 @@ public import AvailableChainGeneric.Statements.Pure.PeriodicStages
 public import AvailableChainGeneric.Proofs.Pure.PeriodicStages
 public import AvailableChainGeneric.Statements.Pure.HeadAfterSettlement
 public import AvailableChainGeneric.Proofs.Pure.HeadAfterSettlement
+public import AvailableChainGeneric.Statements.Pure.BatchDominance
+public import AvailableChainGeneric.Proofs.Pure.BatchDominance
+public import AvailableChainGeneric.Proofs.AC.Batch
 
 /-! Generic library (GLY A): the Pure, V2 and AC layers. The root does not
 import the modules under `Tests/`; the library globs build them. -/

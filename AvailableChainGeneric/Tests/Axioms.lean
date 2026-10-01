@@ -66,6 +66,9 @@ public import AvailableChainGeneric.Statements.Pure.PeriodicStages
 public import AvailableChainGeneric.Proofs.Pure.PeriodicStages
 public import AvailableChainGeneric.Statements.Pure.HeadAfterSettlement
 public import AvailableChainGeneric.Proofs.Pure.HeadAfterSettlement
+public import AvailableChainGeneric.Statements.Pure.BatchDominance
+public import AvailableChainGeneric.Proofs.Pure.BatchDominance
+public import AvailableChainGeneric.Proofs.AC.Batch
 
 -- A4 support and honest-origin count contracts and proofs.
 #print axioms AvailableChain.Gen.AC.GoldfishScoreAntitoneStatement_def
@@ -590,3 +593,12 @@ theorem, in facade order. The library globs build this test module. -/
 #print axioms AvailableChain.Gen.Pure.periodic_shift
 #print axioms AvailableChain.Gen.Pure.firstHead_after
 #print axioms AvailableChain.Gen.Pure.firstHead_after_bound
+
+-- Scalar Batch contracts and the anchored BatchStatement proof.
+#print axioms AvailableChain.Gen.Pure.AnchorPassesStatement
+#print axioms AvailableChain.Gen.Pure.AnchorPassesStatement_def
+#print axioms AvailableChain.Gen.Pure.UnsupportedFailsStatement
+#print axioms AvailableChain.Gen.Pure.UnsupportedFailsStatement_def
+#print axioms AvailableChain.Gen.Pure.anchor_passes
+#print axioms AvailableChain.Gen.Pure.unsupported_fails
+#print axioms AvailableChain.Gen.AC.batch_anchored

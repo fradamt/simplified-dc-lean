@@ -681,3 +681,12 @@ theorem AvailableChain.Gen.Pure.PeriodicShiftStatement_def e4c664f33169ce54
 def AvailableChain.Gen.Pure.StageOrStopStatement 76fcaf283fdddd19
 theorem AvailableChain.Gen.Pure.StageOrStopStatement_def 0e72e073136c9507
 ```
+
+### `AvailableChainGeneric.Statements.Pure.BatchDominance`
+
+```text
+def AvailableChain.Gen.Pure.AnchorPassesStatement ec51b5d1110f4b85
+theorem AvailableChain.Gen.Pure.AnchorPassesStatement_def a9ed45056cd5b46a
+def AvailableChain.Gen.Pure.UnsupportedFailsStatement bf95cef2d4dbc7ae
+theorem AvailableChain.Gen.Pure.UnsupportedFailsStatement_def ce73179934a4832d
+```
