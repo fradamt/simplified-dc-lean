@@ -95,39 +95,45 @@ def CleanSafetyAt : Prop :=
     CompatOn (· ∈ rho.honest) (fun t x => V2.D.outputAt E rho g x t) (fun _ => True) ∧
     MonoOn (· ∈ rho.honest) (fun t x => V2.D.outputAt E rho g x t) (fun _ => True))
 
-/-- Blueprint cut form. Assembly of its two lanes is deferred. -/
+/-- Blueprint cut form. Assembly of its two lanes is deferred.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 def CleanCutClaim : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : PtB₀),
-    CleanCutPrem p c E rho pt → CleanHistoryAt p c E rho pt.b₀ ∧ CleanTruncAt p c E rho pt.b₀
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {ΔF : Time} (pt : PtB₀),
+    CleanCutPrem p c E rho pt ΔF → CleanHistoryAt p c E rho pt.b₀ ∧ CleanTruncAt p c E rho pt.b₀
 
-/-- F2 zero lane. There is no channel or quorum premise. -/
+/-- F2 zero lane. There is no channel or quorum premise.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 def CleanCutZeroClaim : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
-    CleanCutPrem p c E rho ⟨0⟩ → CleanHistoryAt p c E rho 0 ∧ CleanTruncAt p c E rho 0
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {ΔF : Time},
+    CleanCutPrem p c E rho ⟨0⟩ ΔF → CleanHistoryAt p c E rho 0 ∧ CleanTruncAt p c E rho 0
 
 def CleanHistoryClaim : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : PtB₀),
-    CleanPrefixPrem p c E rho pt → CleanHistoryAt p c E rho pt.b₀
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {ΔF : Time} (pt : PtB₀),
+    CleanPrefixPrem p c E rho pt ΔF → CleanHistoryAt p c E rho pt.b₀
 
 def CleanPrefixTruncationClaim : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : PtB₀),
-    CleanPrefixPrem p c E rho pt → CleanTruncAt p c E rho pt.b₀
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {ΔF : Time} (pt : PtB₀),
+    CleanPrefixPrem p c E rho pt ΔF → CleanTruncAt p c E rho pt.b₀
 
 def CleanSafetyClaim : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit),
-    CleanPrem p c E rho pt → CleanSafetyAt p c E rho
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {ΔF : Time} (pt : Unit),
+    CleanPrem p c E rho pt ΔF → CleanSafetyAt p c E rho
 
 /-- P3 §4.7, L39: the positive F2 lane has both F1 channels as premises.
-This lane Prop is not a field of FGSASafetyClaims. -/
+This lane Prop is not a field of FGSASafetyClaims.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 def CleanCutPosClaim : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : PtB₀),
-    CleanCutPrem p c E rho pt → 0 < pt.b₀ →
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {ΔF : Time} (pt : PtB₀),
+    CleanCutPrem p c E rho pt ΔF → 0 < pt.b₀ →
     FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
     CleanHistoryAt p c E rho pt.b₀ ∧ CleanTruncAt p c E rho pt.b₀
 

@@ -10,6 +10,8 @@ public section
 
 namespace AvailableChain.FGSA.Run
 
+variable {ΔF : Time}
+
 open AvailableChain.SimplexFG
 
 variable {p : Params} {In V : Type} {c : AppCodec In} [DecidableEq V]
@@ -192,8 +194,10 @@ theorem clean_noGate_fields {j : Nat} {v : V} {t : Time}
 
 variable [Fintype V]
 
-/-- These state fields hold at every index, independently of Clean history. -/
-theorem cleanState_index_facts {b₀ : Time} (h : CleanCut₂ p c E rho b₀)
+/-- These state fields hold at every index, independently of Clean history.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
+theorem cleanState_index_facts {b₀ : Time} (h : CleanCut₂ p c E rho b₀ ΔF)
     (hf : FGFoundation p c E rho) (i : Nat) :
     (∀ v, v ∈ rho.honest → FGSA.NestOK (storeAt p c E rho i v)) ∧
     (∀ v, v ∈ rho.honest → FGSA.CStoreInv p (storeAt p c E rho i v)) ∧
@@ -409,11 +413,13 @@ private theorem clean_saved_of_member {st : State p.n} (hs : CStoreInv p st)
 
 /-- bp02 §5.3 steps 3–6: CleanState supplies all three K1 premises.
 Every obligation row is included, even if its deadline is due. DC's clean
-stable-record proof has no FG-SA reconcile handler or obligation rows. -/
+stable-record proof has no FG-SA reconcile handler or obligation rows.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem clean_block_reconcile_state {b₀ : Time} {i j : Nat} {v : V} {o} {t : Time}
     {s : Slot} {B : Block} {raw support : List (HeadWire p.n)}
     {rows : List (RowWire p.n)} {P : FGBlock (Fin p.n)}
-    (h : CleanCut₂ p c E rho b₀) (hf : FGFoundation p c E rho)
+    (h : CleanCut₂ p c E rho b₀ ΔF) (hf : FGFoundation p c E rho)
     (hsrc : SrcFrameAboveStmt p c E rho)
     (hji : j < i) (hh : CleanHist p c E rho i) (hs : CleanState p c E rho j)
     (he : rho.events[j]? = some (.deliver v o t))
@@ -458,7 +464,7 @@ theorem clean_block_reconcile_state {b₀ : Time} {i j : Nat} {v : V} {o} {t : T
 
 
 private theorem clean_state_unchanged {b₀ : Time} {j : Nat}
-    (h : CleanCut₂ p c E rho b₀) (hf : FGFoundation p c E rho)
+    (h : CleanCut₂ p c E rho b₀ ΔF) (hf : FGFoundation p c E rho)
     (hsrc : SrcFrameAboveStmt p c E rho) (hs : CleanState p c E rho j)
     (hr : CleanRowSources p c E rho (j + 1))
     (hn : ∀ v s, ¬ IsGateTick p c rho j v s)
@@ -514,9 +520,11 @@ private theorem clean_state_unchanged {b₀ : Time} {j : Nat}
       · exact Gen.Pure.block_preceq_refl _
 
 /-- bp02 §5.2: ordinary delivery preserves the full state at every node.
-DC GSTZeroSafety is a whole-run result; this is an FG-SA event substep. -/
-theorem clean_deliveryStateStep {b₀ : Time} : CleanDeliveryStateStep p c E rho b₀ := by
-  rw [CleanDeliveryStateStep_def, CleanStateStep_def]
+DC GSTZeroSafety is a whole-run result; this is an FG-SA event substep.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
+theorem clean_deliveryStateStep {b₀ : Time} : CleanDeliveryStateStep (ΔF := ΔF) p c E rho b₀ := by
+  rw [CleanDeliveryStateStep_def (ΔF := ΔF), CleanStateStep_def (ΔF := ΔF)]
   intro h _ hf hsrc i _ _ j _ he hs
   rw [CleanOrdinaryDelivery_def] at he
   obtain ⟨v, o, t, he, href⟩ := he
@@ -537,9 +545,11 @@ theorem clean_deliveryStateStep {b₀ : Time} : CleanDeliveryStateStep p c E rho
     exact ⟨rfl, rfl, List.Sublist.refl _, rfl, rfl⟩
 
 /-- bp02 §5.2: a non-gate tick preserves the full state at every node.
-DC GSTZeroSafety has no separate FG-SA clock-handler predicate. -/
-theorem clean_noGateStateStep {b₀ : Time} : CleanNoGateStateStep p c E rho b₀ := by
-  rw [CleanNoGateStateStep_def, CleanStateStep_def]
+DC GSTZeroSafety has no separate FG-SA clock-handler predicate.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
+theorem clean_noGateStateStep {b₀ : Time} : CleanNoGateStateStep (ΔF := ΔF) p c E rho b₀ := by
+  rw [CleanNoGateStateStep_def (ΔF := ΔF), CleanStateStep_def (ΔF := ΔF)]
   intro h _ hf hsrc i _ _ j _ he hs
   rw [CleanNoGateTick_def] at he
   obtain ⟨v, t, he, hn⟩ := he
@@ -565,9 +575,11 @@ theorem clean_noGateStateStep {b₀ : Time} : CleanNoGateStateStep p c E rho b�
 
 /-- bp02 §5.3: admission, certificate origins, and harmless reconcile
 preserve every CleanState field at every node. DC clean stable safety has
-no FG-SA admission/reconcile event predicate. -/
-theorem clean_blockStateStep {b₀ : Time} : CleanBlockStateStep p c E rho b₀ := by
-  rw [CleanBlockStateStep_def, CleanStateStep_def]
+no FG-SA admission/reconcile event predicate.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
+theorem clean_blockStateStep {b₀ : Time} : CleanBlockStateStep (ΔF := ΔF) p c E rho b₀ := by
+  rw [CleanBlockStateStep_def (ΔF := ΔF), CleanStateStep_def (ΔF := ΔF)]
   intro h _ hf hsrc i _ hh j hji he hs
   rw [CleanBlockDelivery_def] at he
   obtain ⟨v, o, t, s, B, raw, support, rows, P, he, hd, hP, ha⟩ := he
@@ -657,9 +669,11 @@ theorem clean_blockStateStep {b₀ : Time} : CleanBlockStateStep p c E rho b₀ 
 
 /-- bp02 §§5.5–5.6: the gate state closes once the action supplies its
 row sources. This is not the frozen CleanGateStateStep Prop: the action
-substep remains separate as required by S3. DC has no FG-SA action rows. -/
+substep remains separate as required by S3. DC has no FG-SA action rows.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem clean_gate_state_of_rows {b₀ : Time} {i j : Nat} {v : V} {s : Slot}
-    (h : CleanCut₂ p c E rho b₀) (hf : FGFoundation p c E rho)
+    (h : CleanCut₂ p c E rho b₀ ΔF) (hf : FGFoundation p c E rho)
     (hsrc : SrcFrameAboveStmt p c E rho) (hji : j < i)
     (hh : CleanHist p c E rho i) (hs : CleanState p c E rho j)
     (ht : IsGateTick p c rho j v s) (hr : CleanRowSources p c E rho (j + 1)) :
@@ -677,35 +691,43 @@ theorem clean_gate_state_of_rows {b₀ : Time} {i j : Nat} {v : V} {s : Slot}
   · exact (delivery_noGate he v s ht).elim
 
 /-- bp02 §5.2: the delivery case of the prefix history induction.
-DC GSTZeroSafety is a whole-run safety result; this is its FG-SA event substep. -/
-theorem clean_deliveryHistStep {b₀ : Time} : CleanDeliveryHistStep p c E rho b₀ := by
-  rw [CleanDeliveryHistStep_def, CleanHistStep_def]
+DC GSTZeroSafety is a whole-run safety result; this is its FG-SA event substep.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
+theorem clean_deliveryHistStep {b₀ : Time} : CleanDeliveryHistStep (ΔF := ΔF) p c E rho b₀ := by
+  rw [CleanDeliveryHistStep_def (ΔF := ΔF), CleanHistStep_def (ΔF := ΔF)]
   intro _ _ _ _ i _ he hh _
   rw [CleanOrdinaryDelivery_def] at he
   obtain ⟨v, o, t, he, _⟩ := he
   exact cleanHist_step_delivery he hh
 
 /-- bp02 §5.3: block admission changes no completed gate history.
-DC GSTZeroSafety has no separate FG-SA block-handler predicate. -/
-theorem clean_blockHistStep {b₀ : Time} : CleanBlockHistStep p c E rho b₀ := by
-  rw [CleanBlockHistStep_def, CleanHistStep_def]
+DC GSTZeroSafety has no separate FG-SA block-handler predicate.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
+theorem clean_blockHistStep {b₀ : Time} : CleanBlockHistStep (ΔF := ΔF) p c E rho b₀ := by
+  rw [CleanBlockHistStep_def (ΔF := ΔF), CleanHistStep_def (ΔF := ΔF)]
   intro _ _ _ _ i _ he hh _
   rw [CleanBlockDelivery_def] at he
   obtain ⟨v, o, t, _, _, _, _, _, _, he, _⟩ := he
   exact cleanHist_step_delivery he hh
 
 /-- bp02 §5.2: a tick without a gate changes no completed history.
-DC GSTZeroSafety has no separate FG-SA clock-handler predicate. -/
-theorem clean_noGateHistStep {b₀ : Time} : CleanNoGateHistStep p c E rho b₀ := by
-  rw [CleanNoGateHistStep_def, CleanHistStep_def]
+DC GSTZeroSafety has no separate FG-SA clock-handler predicate.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
+theorem clean_noGateHistStep {b₀ : Time} : CleanNoGateHistStep (ΔF := ΔF) p c E rho b₀ := by
+  rw [CleanNoGateHistStep_def (ΔF := ΔF), CleanHistStep_def (ΔF := ΔF)]
   intro _ _ _ _ i _ he hh _
   rw [CleanNoGateTick_def] at he
   obtain ⟨v, t, he, hn⟩ := he
   exact cleanHist_step_noGateTick he hn hh
 
 /-- bp02 §5.2: the initial state has no sources or saved gate writes.
-DC GSTZeroSafety uses a genesis execution; this is the FG-SA initial state. -/
-theorem cleanState_zero {b₀ : Time} (h : CleanCut₂ p c E rho b₀)
+DC GSTZeroSafety uses a genesis execution; this is the FG-SA initial state.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
+theorem cleanState_zero {b₀ : Time} (h : CleanCut₂ p c E rho b₀ ΔF)
     (hf : FGFoundation p c E rho) : CleanState p c E rho 0 := by
   obtain ⟨hnest, hstore, hframe, hclient⟩ := cleanState_index_facts h hf 0
   refine ⟨⟨?_, ?_⟩, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_,
@@ -751,11 +773,14 @@ theorem cleanState_zero {b₀ : Time} (h : CleanCut₂ p c E rho b₀)
 
 /-- P3 §§8.2, 8.4, 8.7; bp02 §§5.5–5.6; lead R2(b).
 DC counterpart: none; FG-SA's action shares the gate tick. The action
-premise supplies successor row sources from the given prior state. -/
+premise supplies successor row sources from the given prior state.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem clean_gateStateStep_of_action {b₀ : Time}
-    (hact : CleanActionStep p c E rho b₀) : CleanGateStateStep p c E rho b₀ := by
-  rw [CleanActionStep_def] at hact
-  rw [CleanGateStateStep_def, CleanStateStep_def]
+    (hact : CleanActionStep (ΔF := ΔF) p c E rho b₀) :
+    CleanGateStateStep (ΔF := ΔF) p c E rho b₀ := by
+  rw [CleanActionStep_def (ΔF := ΔF)] at hact
+  rw [CleanGateStateStep_def (ΔF := ΔF), CleanStateStep_def (ΔF := ΔF)]
   intro h hq hf hsrc i hi hh j hji ht hs
   rw [CleanGateTick_def] at ht
   obtain ⟨v, s, ht⟩ := ht
@@ -770,20 +795,22 @@ theorem clean_gateStateStep_of_action {b₀ : Time}
 DC counterpart: none for this fixed-history state predicate. DC's
 Protocol/ChainState/Chain.lean carries the chain-order bundle; FG-SA
 instead derives the full state over event indices from a fixed history
-and the separate action step. -/
+and the separate action step.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem cleanState_of_hist {b₀ : Time} {i : Nat}
-    (h : CleanCut₂ p c E rho b₀) (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+    (h : CleanCut₂ p c E rho b₀ ΔF) (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
     (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho)
-    (hact : CleanActionStep p c E rho b₀)
+    (hact : CleanActionStep (ΔF := ΔF) p c E rho b₀)
     (hi : i ≤ timeIdx rho b₀) (hh : CleanHist p c E rho i) : CleanState p c E rho i := by
-  have hd := clean_deliveryStateStep (p := p) (c := c) (E := E) (rho := rho) (b₀ := b₀)
-  have hb := clean_blockStateStep (p := p) (c := c) (E := E) (rho := rho) (b₀ := b₀)
-  have hn := clean_noGateStateStep (p := p) (c := c) (E := E) (rho := rho) (b₀ := b₀)
+  have hd := clean_deliveryStateStep (ΔF := ΔF) (p := p) (c := c) (E := E) (rho := rho) (b₀ := b₀)
+  have hb := clean_blockStateStep (ΔF := ΔF) (p := p) (c := c) (E := E) (rho := rho) (b₀ := b₀)
+  have hn := clean_noGateStateStep (ΔF := ΔF) (p := p) (c := c) (E := E) (rho := rho) (b₀ := b₀)
   have hg := clean_gateStateStep_of_action hact
-  rw [CleanDeliveryStateStep_def, CleanStateStep_def] at hd
-  rw [CleanBlockStateStep_def, CleanStateStep_def] at hb
-  rw [CleanNoGateStateStep_def, CleanStateStep_def] at hn
-  rw [CleanGateStateStep_def, CleanStateStep_def] at hg
+  rw [CleanDeliveryStateStep_def (ΔF := ΔF), CleanStateStep_def (ΔF := ΔF)] at hd
+  rw [CleanBlockStateStep_def (ΔF := ΔF), CleanStateStep_def (ΔF := ΔF)] at hb
+  rw [CleanNoGateStateStep_def (ΔF := ΔF), CleanStateStep_def (ΔF := ΔF)] at hn
+  rw [CleanGateStateStep_def (ΔF := ΔF), CleanStateStep_def (ΔF := ΔF)] at hg
   have hall : ∀ j, j ≤ i → CleanState p c E rho j := by
     intro j
     induction j with
@@ -836,11 +863,13 @@ theorem cleanState_of_hist {b₀ : Time} {i : Nat}
 /-- P3 §8.2, §8.7; bp02 §5.5; lead R2(b), S2.
 DC counterpart: Generic/Properties.lean MonotoneFrom. This event-index
 form uses a fixed CleanHist and an explicit action step, which F2.6
-discharges before the whole-run monotonicity result. -/
+discharges before the whole-run monotonicity result.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem sExtends_upTo_of_action {b₀ : Time} {i : Nat}
-    (h : CleanCut₂ p c E rho b₀) (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+    (h : CleanCut₂ p c E rho b₀ ΔF) (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
     (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho)
-    (hact : CleanActionStep p c E rho b₀)
+    (hact : CleanActionStep (ΔF := ΔF) p c E rho b₀)
     (hi : i ≤ timeIdx rho b₀) (hh : CleanHist p c E rho i) :
     ∀ v j k, j ≤ k → k ≤ i →
       Block.Preceq (S_at p c E rho j v) (S_at p c E rho k v) :=

@@ -2,11 +2,12 @@ module
 public import AvailableChainFGSAProofs.Proofs.Clean.TransferFrame
 public import AvailableChainFGSAProofs.Proofs.Shared.Relay
 public import AvailableChainFGSA.Proofs.Head.Transfer
-public import AvailableChainGeneric.Proofs.V2.Duty.Regimes
 
 public section
 
 namespace AvailableChain.FGSA.Run
+
+variable {ΔF : Time}
 open AvailableChain.SimplexFG
 
 variable (p : Params) {In V : Type} (c : AppCodec In)
@@ -18,9 +19,11 @@ set_option linter.unusedVariables false in
 DC: Goldfish/Adoption.lean:53–67,158–170; AdoptionTransport.lean:346.
 INTENTIONAL: the actual F-anchored optional gate result supplies the majority
 (spec:2506–2513). The named forward hypothesis is private, as required by the
-F2.3 split ruling; like G24 and DC it covers only source supporters of B. -/
+F2.3 split ruling; like G24 and DC it covers only source supporters of B.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 private theorem clean_transfer_counts_of_forward (b₀ : Time) :
-  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
+  CleanCut₂ p c E rho b₀ ΔF → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   ∀ i k x y s B, i < timeIdx rho b₀ → k < i →
     IsGateTick p c rho i x s →
@@ -52,7 +55,9 @@ private theorem clean_transfer_counts_of_forward (b₀ : Time) :
     change 4 * p.Δ * (s : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
     have hd := p.deltaPos
     linarith
-  have hsync := Gen.V2.Duty.LabelSync.of_cleanCut E rho b₀ _ _ h.healthy hvd hcut h.cut.2
+  have hsync := Gen.V2.Duty.LabelSyncOn.of_cleanCutBy E rho
+      (fun o => ¬ isRowObject o) b₀ _ _ h.healthy
+    (fgsaDelay_nonrow E.Δ _) hvd hcut h.cut.2
   have hraw := Option.some.inj ((clean_gate_raw hsch ht).symm.trans hB)
   have hmajority : GridCO.voterCount L < 2 * GridCO.goldfishScore src.blocks P P B := by
     change (if _ then some _ else none) = some B at hraw
@@ -76,9 +81,11 @@ Class B. DC: AdoptionTransport.lean:346 and Goldfish/Adoption.lean:441–461.
 INTENTIONAL: FG-SA uses an F-anchored optional result, a lease liveRoot and
 an FJ voter domain (spec:2506–2525,2557–2565). Current Ordered is explicit
 (review-00-02:234–236). The split ruling keeps the named C5 premise private;
-this conditional lemma does not export the later public cleanTransfer. -/
+this conditional lemma does not export the later public cleanTransfer.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 private theorem cleanTransfer_of_forward (b₀ : Time) :
-  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
+  CleanCut₂ p c E rho b₀ ΔF → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   ∀ i k x y s B, i < timeIdx rho b₀ → k < i →
     IsGateTick p c rho i x s →
@@ -132,9 +139,11 @@ set_option linter.unusedVariables false in
 /-- P3 F2.3:5496–5503; bp02 §4.2 C5, G24 item 4. Class B.
 DC: Goldfish/Adoption.lean:53–62; AdoptionTransport.lean:346.
 INTENTIONAL: the FG-SA head path and current-F frame come from the clean
-history at the source gate, with strict freeze stamps at the target read. -/
+history at the source gate, with strict freeze stamps at the target read.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 private theorem clean_transfer_forward (b₀ : Time) :
-  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
+  CleanCut₂ p c E rho b₀ ΔF → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   ∀ i k x y s B, i < timeIdx rho b₀ → k < i →
     IsGateTick p c rho i x s →
@@ -165,7 +174,9 @@ private theorem clean_transfer_forward (b₀ : Time) :
     change 4 * p.Δ * (s : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
     have hd := p.deltaPos
     linarith
-  have hsync := Gen.V2.Duty.LabelSync.of_cleanCut E rho b₀ _ _ h.healthy hvd hcut h.cut.2
+  have hsync := Gen.V2.Duty.LabelSyncOn.of_cleanCutBy E rho
+      (fun o => ¬ isRowObject o) b₀ _ _ h.healthy
+    (fgsaDelay_nonrow E.Δ _) hvd hcut h.cut.2
   rw [Gen.AC.voteSupports_def] at hsupp
   cases hhead : GridCO.headTarget? o with
   | none => simp only [hhead, Bool.false_eq_true] at hsupp
@@ -187,9 +198,11 @@ DC: AdoptionTransport.lean:346; Goldfish/Adoption.lean:53–67,415–461.
 INTENTIONAL: the F-anchored optional result replaces SG grades and the lease
 sets liveRoot (spec:2500–2525); the FJ voter domain restricts the walked tree
 (spec:2557–2571). Current Ordered stays explicit because the consumer supplies
-OSN (review-00-02:234–236; lead Q2). No UNMOTIVATED or UNCLEAR divergence. -/
+OSN (review-00-02:234–236; lead Q2). No UNMOTIVATED or UNCLEAR divergence.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem cleanTransfer (b₀ : Time) :
-  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
+  CleanCut₂ p c E rho b₀ ΔF → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   ∀ i k x y s B, i < timeIdx rho b₀ → k < i →
     IsGateTick p c rho i x s →

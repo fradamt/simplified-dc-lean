@@ -1,6 +1,5 @@
 module
 public import AvailableChainFGSARun.Proofs.Receipts
-public import AvailableChainGeneric.Statements.V2.Duty.Regimes
 
 public section
 
@@ -567,7 +566,8 @@ theorem fgsa_vote_accepted_before_head_read (E : Generic.Env V) (rho : V2.D.Run 
 
 private theorem relay_head_witness (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (s : Slot) (hSync : Gen.V2.Duty.LabelSync E rho (SA.voteTime p.toParams s)
+    (s : Slot) (hSync : Gen.V2.Duty.LabelSyncOn E rho
+      (fun o => ¬ isRowObject o) (SA.voteTime p.toParams s)
       (SA.gateTime p.toParams s))
     {ix iy : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (hix : rho.events[ix]? = some (.tick x (SA.gateTime p.toParams s)))
@@ -615,10 +615,13 @@ Class (ii), FG-SA run receipt instance. DC: Handlers/GoldfishVotePool.lean:755,7
 Schedule/AdoptionTransport.lean:346. Same vote-or-cap transport into the source
 late pool. U is the full post-clock HEAD raw merge at the actual q_s tick;
 L is the source gate clockPre/actView pool at d_s. Each stored witness has
-an acceptance t < q_s and LabelSync deadline dl(t) < q_s + Δ = d_s. -/
+an acceptance t < q_s and LabelSync deadline dl(t) < q_s + Δ = d_s.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem fgsa_headVotes_backward_relay (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (s : Slot) (hSync : Gen.V2.Duty.LabelSync E rho (SA.voteTime p.toParams s)
+    (s : Slot) (hSync : Gen.V2.Duty.LabelSyncOn E rho
+      (fun o => ¬ isRowObject o) (SA.voteTime p.toParams s)
       (SA.gateTime p.toParams s))
     {ix iy : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (hix : rho.events[ix]? = some (.tick x (SA.gateTime p.toParams s)))
@@ -689,10 +692,13 @@ private theorem relay_frozen_raw (st : State p.n) (s : Slot) (o : GridCO.Wire p.
 DC: Schedule/AdoptionTransport.lean:309, settled-before-freeze raw arm.
 The source gate's early stamp gives dl(t) < z_s. NoRestart keeps the vote
 and its stamp, or both cap witnesses, through the actual post-clock q_s read.
-This is vote settlement only; active HEAD support also needs the path. -/
+This is vote settlement only; active HEAD support also needs the path.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem fgsa_cleanSupport_vote_forward (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (s : Slot) (hSync : Gen.V2.Duty.LabelSync E rho (SA.voteTime p.toParams s)
+    (s : Slot) (hSync : Gen.V2.Duty.LabelSyncOn E rho
+      (fun o => ¬ isRowObject o) (SA.voteTime p.toParams s)
       (SA.gateTime p.toParams s))
     {ix iy : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (_hix : rho.events[ix]? = some (.tick x (SA.gateTime p.toParams s)))
@@ -829,10 +835,13 @@ Class (ii), FG-SA run instance. DC: Schedule/AdoptionTransport.lean:346,
 INTENTIONAL: the current actView needs an explicit target frame bound.
 Clean supplies hframe by erasing clean_transfer_frame's F ⪯ Bfg conjunct
 with eraseFG Bfg = B, at k = iy and exactly st = dst (post-clock q_s).
-Path receipt form (b) supplies cumulative membership and strict head stamps. -/
+Path receipt form (b) supplies cumulative membership and strict head stamps.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem fgsa_cleanSupport_forward_relay (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (s : Slot) (hSync : Gen.V2.Duty.LabelSync E rho (SA.voteTime p.toParams s)
+    (s : Slot) (hSync : Gen.V2.Duty.LabelSyncOn E rho
+      (fun o => ¬ isRowObject o) (SA.voteTime p.toParams s)
       (SA.gateTime p.toParams s))
     {ix iy : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (hix : rho.events[ix]? = some (.tick x (SA.gateTime p.toParams s)))

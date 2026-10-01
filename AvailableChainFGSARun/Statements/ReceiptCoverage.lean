@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSARun.Statements.AC
-public import AvailableChainGeneric.Statements.V2.Duty.Receipt
+public import AvailableChainGeneric.Statements.V2.Duty.DeliveryBy
 
 @[expose] public section
 
@@ -21,12 +21,14 @@ read; the handler bounds give the current/previous-slot HEAD vote window.
 Proposals use the trigger's admission threshold (T7.8).
 
 There is no store premise. `ExecutionValid`, stated separately below,
-supplies the checked wire and dependency conditions of base receipt. -/
+supplies the checked wire and dependency conditions of base receipt.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 structure ReceiptCoveragePremises {p : Params} {In V : Type} [DecidableEq V]
     {c : AppCodec In} (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (dl : Time → Time) (cut D : Time) (first : Nat) (x : V) (B : Block)
     (required : Obj p → Time → Prop) (paths : Block → Time → Prop) : Prop where
-  within : Gen.V2.Duty.DeliveryWithin E rho dl cut
+  within : Gen.V2.Duty.DeliveryWithinOn E rho (fun o => ¬ isRowObject o) dl cut
   slotWindow : ∀ o t, required o t →
     Gen.V2.Duty.Trigger E rho o t ∧ (fgsa p c).wellFormed o = true ∧
     (∀ s a K, (toWire p o).decode = some (.vote s a K) →

@@ -474,6 +474,10 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.CleanPrefix₂.batchAt',
     'AvailableChain.FGSA.Run.Recovery₂.batch',
     'AvailableChain.FGSA.Run.fgsa_clean_delivery_iff',
+    'AvailableChain.FGSA.Run.HealthyPrefix₂.of_legacy',
+    'AvailableChain.FGSA.Run.HealthyPrefix₂.legacy_delivery',
+    'AvailableChain.FGSA.Run.Recovery₂.of_legacy',
+    'AvailableChain.FGSA.Run.Recovery₂.toRecoveryCore',
     'AvailableChain.FGSA.Run.fgsa_seed_reachable',
     'AvailableChain.FGSA.Run.fgsa_seed_accepted',
 

@@ -6,6 +6,8 @@ public section
 
 /-! P3 §§8.2–8.7; bp02 §§5.4–6. Closure at the inclusive event cut. -/
 namespace AvailableChain.FGSA.Run
+
+variable {ΔF : Time}
 open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -50,9 +52,11 @@ private theorem closure_label_mono (hs : V2.D.ScheduleWellFormed E rho)
 Execution/WeakGenesisGSTZeroActionSources:106; INTENTIONAL divergence.
 FG-SA reads its source after the same-tick fast write, even without an
 emitted row. The supplied history bounds every relative state call.
-NoRestart is inherited from CleanCut₂ through Base₂. -/
+NoRestart is inherited from CleanCut₂ through Base₂.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem clean_actionSources_body [Fintype V] (b₀ : Time) :
-  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
+  CleanCut₂ p c E rho b₀ ΔF → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   ∀ i, i ≤ timeIdx rho b₀ → CleanHist p c E rho i →
     ∀ j x r C, j < i → x ∈ rho.honest →
@@ -105,18 +109,23 @@ theorem clean_actionSources_body [Fintype V] (b₀ : Time) :
 all-source-read statement, from `clean_actionSources_body` through the
 first-unfold equation. DC counterpart: Protocol/Grades/JointHistoryGapsIdx.lean
 :26,141 (conditional same-index action sources); INTENTIONAL difference: FG-SA
-reads include asleep nodes that emit no row (bp02 §5.6). -/
-theorem clean_actionSources [Fintype V] (b₀ : Time) : CleanActionSourcesStmt p c E rho b₀ := by
-  rw [CleanActionSourcesStmt_def]
+reads include asleep nodes that emit no row (bp02 §5.6).
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
+theorem clean_actionSources [Fintype V] (b₀ : Time) :
+    CleanActionSourcesStmt (ΔF := ΔF) p c E rho b₀ := by
+  rw [CleanActionSourcesStmt_def (ΔF := ΔF)]
   exact clean_actionSources_body p c E rho b₀
 
 /-- P3 §8.5:5282–5288, bp02 §5.7. Class B. DC counterparts:
 Legacy/Definitions/SafetyRegimes:53–80 and Protocol/Grades/JointHistoryGapsIdx:26,141.
 INTENTIONAL divergence: raw optional SA results and a finite inclusive cut.
 Nat induction uses only history and states at indices at most the current
-index. NoRestart is inherited from CleanCut₂ through Base₂. -/
+index. NoRestart is inherited from CleanCut₂ through Base₂.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem clean_invariant [Fintype V] {b₀ : Time}
-    (h : CleanCut₂ p c E rho b₀) (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+    (h : CleanCut₂ p c E rho b₀ ΔF) (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
     (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho) :
     ∀ i, i ≤ timeIdx rho b₀ → CleanHist p c E rho i := by
   intro i
@@ -142,8 +151,8 @@ theorem clean_invariant [Fintype V] {b₀ : Time}
       | false => exact cleanHist_step_noGateTick he ht hh
       | true =>
         obtain ⟨s, hs⟩ := (isGateTime_iff p t).mp ht
-        have hg := clean_gateHistStep p c E rho b₀
-        rw [CleanGateHistStep_def, CleanHistStep_def] at hg
+        have hg := clean_gateHistStep (ΔF := ΔF) p c E rho b₀
+        rw [CleanGateHistStep_def (ΔF := ΔF), CleanHistStep_def (ΔF := ΔF)] at hg
         apply hg h hq hf hsrc i hi ?_ hh hall
         rw [CleanGateTick_def]
         refine ⟨v, s, ?_⟩
@@ -153,9 +162,11 @@ theorem clean_invariant [Fintype V] {b₀ : Time}
 
 /-- P3 §8.7, bp02 §5.7. DC: Legacy/Definitions/SafetyRegimes.lean:53–80.
 INTENTIONAL difference: FG-SA uses an event-index AG rule at a finite cut.
-The completed history and state prove both conclusions (CleanAGStmt). -/
-theorem clean_agRule [Fintype V] (b₀ : Time) : CleanAGStmt p c E rho b₀ := by
-  rw [CleanAGStmt_def]
+The completed history and state prove both conclusions (CleanAGStmt).
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
+theorem clean_agRule [Fintype V] (b₀ : Time) : CleanAGStmt (ΔF := ΔF) p c E rho b₀ := by
+  rw [CleanAGStmt_def (ΔF := ΔF)]
   intro h hq hf hsrc
   refine ⟨?_, ?_⟩
   · intro i _
@@ -170,14 +181,16 @@ theorem clean_agRule [Fintype V] (b₀ : Time) : CleanAGStmt p c E rho b₀ := b
     exact clean_invariant p c E rho h hq hf hsrc (i + 1) (Nat.succ_le_of_lt hi)
 
 /-- P3 §8.4. DC: Legacy/Definitions/SafetyRegimes.lean:53–80.
-INTENTIONAL difference: FG-SA has restart events; Base₂.noRestart excludes them. -/
-theorem clean_restartStep [Fintype V] (b₀ : Time) : CleanRestartStep p c E rho b₀ := by
-  rw [CleanRestartStep_def]
+INTENTIONAL difference: FG-SA has restart events; Base₂.noRestart excludes them.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
+theorem clean_restartStep [Fintype V] (b₀ : Time) : CleanRestartStep (ΔF := ΔF) p c E rho b₀ := by
+  rw [CleanRestartStep_def (ΔF := ΔF)]
   intro h j v t _ he
   exact h.base.noRestart j v t he
 
 private theorem closure_gate_index [Fintype V] {b₀ : Time}
-    (h : CleanCut₂ p c E rho b₀) {x : V} (hx : x ∈ rho.honest)
+    (h : CleanCut₂ p c E rho b₀ ΔF) {x : V} (hx : x ∈ rho.honest)
     {s : Slot} (ht : SA.gateTime p.toParams s ≤ b₀) :
     ∃ j, j < timeIdx rho b₀ ∧ IsGateTick p c rho j x s := by
   have heq : ((4 * s + 6 : Nat) : Time) * p.Δ = SA.gateTime p.toParams s := by
@@ -199,9 +212,11 @@ Legacy/Definitions/SafetyRegimes:53–80 and Protocol/Grades/JointHistoryGapsIdx
 INTENTIONAL divergence: the seven clauses use raw SA results, exact
 lease/saved/fast-write origins, and the finite inclusive event cut.
 This is the unfolded public history body; only Export imports Claims.
-NoRestart is inherited from CleanCut₂ through Base₂. -/
+NoRestart is inherited from CleanCut₂ through Base₂.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem cleanHistoryAt_body [Fintype V] {b₀ : Time}
-    (h : CleanCut₂ p c E rho b₀) (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+    (h : CleanCut₂ p c E rho b₀ ΔF) (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
     (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho) :
   (∀ x y r s B C, x ∈ rho.honest → y ∈ rho.honest →
     SA.gateTime p.toParams r ≤ b₀ → SA.gateTime p.toParams s ≤ b₀ →
@@ -331,9 +346,11 @@ theorem cleanHistoryAt_body [Fintype V] {b₀ : Time}
 /-- P3 §8.2:5146–5153, bp02 §6. Class B. DC counterpart:
 Generic/Properties:41 MonotoneFrom. INTENTIONAL divergence: all nodes and
 event indices at the inclusive cut. No supplied history is needed.
-NoRestart is inherited from CleanCut₂ through Base₂. -/
+NoRestart is inherited from CleanCut₂ through Base₂.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem sExtends [Fintype V] {b₀ : Time}
-    (h : CleanCut₂ p c E rho b₀) (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+    (h : CleanCut₂ p c E rho b₀ ΔF) (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
     (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho) :
     ∀ v j k, j ≤ k → k ≤ timeIdx rho b₀ →
       Block.Preceq (S_at p c E rho j v) (S_at p c E rho k v) :=

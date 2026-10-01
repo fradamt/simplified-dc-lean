@@ -48,14 +48,17 @@ theorem exactService_emitted_head (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
 /-- P3 erratum 13 and blueprint 02:531–541, 21 H.22 H3.
 DC: Goldfish/Confirmation.lean:434–441, HonestSupport.vote.
 INTENTIONAL: exact HEAD reads specialize the Shared active receipts to Q;
-the consumer supplies GateReceiptGeometry at the actual gate read. -/
+the consumer supplies GateReceiptGeometry at the actual gate read.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem exactService_gate_receipts_of_head
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
     (hC : V2.D.CStar (fgsaFamilies p c).fresh rho)
     (s : Slot) (Q : Block)
     (hhead : ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some Q)
-    (hSync : Gen.V2.Duty.LabelSync E rho (SA.voteTime p.toParams s) (SA.gateTime p.toParams s))
+    (hSync : Gen.V2.Duty.LabelSyncOn E rho
+      (fun o => ¬ isRowObject o) (SA.voteTime p.toParams s) (SA.gateTime p.toParams s))
     {i : Nat} {x : V} (ht : IsGateTick p c rho i x s)
     (hgeom : GateReceiptGeometry E rho
       (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)) s Q)
@@ -84,14 +87,17 @@ theorem exactService_gate_receipts_of_head
 DC: Goldfish/Confirmation.lean:494,508,567, honest support and exclusion.
 INTENTIONAL: FG-SA uses the active F anchor and a late-vote denominator.
 The SA participation count and GateReceiptGeometry are explicit inputs.
-No slot equality for Q or FG row premise is needed. -/
+No slot equality for Q or FG row premise is needed.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem exactService_gate_raw_of_head [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
     (hC : V2.D.CStar (fgsaFamilies p c).fresh rho)
     (s : Slot) (Q : Block)
     (hhead : ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some Q)
-    (hSync : Gen.V2.Duty.LabelSync E rho (SA.voteTime p.toParams s) (SA.gateTime p.toParams s))
+    (hSync : Gen.V2.Duty.LabelSyncOn E rho
+      (fun o => ¬ isRowObject o) (SA.voteTime p.toParams s) (SA.gateTime p.toParams s))
     {i : Nat} {x : V} (ht : IsGateTick p c rho i x s)
     (hgeom : GateReceiptGeometry E rho
       (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)) s Q)
@@ -300,14 +306,17 @@ DC: Goldfish/Confirmation.lean:494,508,567; UserConfirmationRecovery.lean:235;
 RecoveryCapturedActionCarrier.lean:30. INTENTIONAL: FG-SA combines the
 optional raw result, whole-result guard, saved fast write, stable output,
 and erased opening read. Geometry and the fast participation count remain
-consumer premises; the proof does not obtain them from a lane. -/
+consumer premises; the proof does not obtain them from a lane.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem exactService_gate_at_of_head [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
     (hC : V2.D.CStar (fgsaFamilies p c).fresh rho)
     (s : Slot) (Q : Block) (hne : Q ≠ .genesis)
     (hhead : ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some Q)
-    (hSync : Gen.V2.Duty.LabelSync E rho (SA.voteTime p.toParams s) (SA.gateTime p.toParams s))
+    (hSync : Gen.V2.Duty.LabelSyncOn E rho
+      (fun o => ¬ isRowObject o) (SA.voteTime p.toParams s) (SA.gateTime p.toParams s))
     {i : Nat} {x : V} (hx : x ∈ rho.honest) (ht : IsGateTick p c rho i x s)
     (hgeom : ExactServiceGateGeometry E rho i x s Q)
     (H : Finset (Fin p.n))
@@ -388,7 +397,9 @@ theorem exactService_gate_at_of_head [Fintype V]
 DC: UserConfirmationRecovery.lean:235 and Goldfish/Confirmation.lean:494,508,567.
 INTENTIONAL: J2 has separate finite HEAD and gate horizons. The caller supplies
 SA participation, gate geometry, and vote-to-gate synchrony only when the gate
-is in the horizon. Q is non-genesis because the fast set excludes genesis. -/
+is in the horizon. Q is non-genesis because the fast set excludes genesis.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem exactService_gate_of_head [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
@@ -397,7 +408,8 @@ theorem exactService_gate_of_head [Fintype V]
     (hhead : SA.voteTime p.toParams v ≤ rho.horizon →
       ∀ x ∈ rho.honest, headAtLabel p c E rho x v = some Q)
     (hSync : SA.gateTime p.toParams v ≤ rho.horizon →
-      Gen.V2.Duty.LabelSync E rho (SA.voteTime p.toParams v) (SA.gateTime p.toParams v))
+      Gen.V2.Duty.LabelSyncOn E rho
+      (fun o => ¬ isRowObject o) (SA.voteTime p.toParams v) (SA.gateTime p.toParams v))
     (hparticipation : SA.gateTime p.toParams v ≤ rho.horizon →
       ∃ H : Finset (Fin p.n),
         (∀ q, q ∈ H ↔ rho.seatOf (.base (.head v)) q ∈ rho.honest ∧
@@ -431,7 +443,9 @@ theorem exactService_gate_of_head [Fintype V]
 /-- P3 A.9; blueprint 21 H.22 H3, composition with the supplied HEAD clause.
 DC: UserConfirmationRecovery.lean:235 and Goldfish/Confirmation.lean:434–441.
 INTENTIONAL: this is the complete J2 conjunction with its two horizons;
-the HEAD producer remains a separate input. The gate premises are unchanged. -/
+the HEAD producer remains a separate input. The gate premises are unchanged.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
 theorem exactService_of_head_and_gate [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
@@ -440,7 +454,8 @@ theorem exactService_of_head_and_gate [Fintype V]
     (hhead : SA.voteTime p.toParams v ≤ rho.horizon →
       ∀ x ∈ rho.honest, headAtLabel p c E rho x v = some Q)
     (hSync : SA.gateTime p.toParams v ≤ rho.horizon →
-      Gen.V2.Duty.LabelSync E rho (SA.voteTime p.toParams v) (SA.gateTime p.toParams v))
+      Gen.V2.Duty.LabelSyncOn E rho
+      (fun o => ¬ isRowObject o) (SA.voteTime p.toParams v) (SA.gateTime p.toParams v))
     (hparticipation : SA.gateTime p.toParams v ≤ rho.horizon →
       ∃ H : Finset (Fin p.n),
         (∀ q, q ∈ H ↔ rho.seatOf (.base (.head v)) q ∈ rho.honest ∧

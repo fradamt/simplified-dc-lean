@@ -7,6 +7,8 @@ public import AvailableChainGeneric.Statements.Pure.Props
 public section
 
 namespace AvailableChain.FGSA.Run
+
+variable {ΔF : Time}
 open AvailableChain.SimplexFG
 open Gen.Pure (CompatOn MonoOn)
 
@@ -22,14 +24,14 @@ private theorem zero_gate_pos (s : Slot) : 0 < SA.gateTime p.toParams s := by
   have hn : (0 : Int) ≤ s := Int.natCast_nonneg s
   nlinarith [p.deltaPos]
 
-private theorem zero_event_time (h : HealthyPrefix₂ p c E rho 0)
+private theorem zero_event_time (h : HealthyPrefix₂ p c E rho 0 ΔF)
     {i : Nat} {e : V2.Event V (fgsa p c).Object}
     (hi : i < timeIdx rho 0) (he : rho.events[i]? = some e) : e.time = 0 := by
   have hb := (V2.D.Engine.index_lt_read_length_iff h.base.valid.toScheduleWellFormed 0 he).mp hi
   have hn := (h.base.valid.in_horizon e (List.mem_of_getElem? he)).1
   exact le_antisymm hb hn
 
-private theorem zero_no_gate (h : HealthyPrefix₂ p c E rho 0)
+private theorem zero_no_gate (h : HealthyPrefix₂ p c E rho 0 ΔF)
     {i : Nat} (hi : i < timeIdx rho 0) (x : V) (s : Slot) :
     ¬ IsGateTick p c rho i x s := by
   intro he
@@ -38,7 +40,7 @@ private theorem zero_no_gate (h : HealthyPrefix₂ p c E rho 0)
   change SA.gateTime p.toParams s = 0 at ht
   exact (ne_of_gt hp) ht
 
-private theorem zero_state (h : HealthyPrefix₂ p c E rho 0)
+private theorem zero_state (h : HealthyPrefix₂ p c E rho 0 ΔF)
     (i : Nat) (hi : i ≤ timeIdx rho 0) (v : V) : ZeroState (storeAt p c E rho i v) := by
   refine V2.D.Engine.stateBefore_step_induction E rho
     (fun nd => ZeroState nd.st) (Nat.zero_le i) v ?_ ?_
@@ -102,7 +104,7 @@ private theorem zero_row_tick {j : Nat} {x : V} {r : Nat} {a : RowWire p.n}
     (ha : HonestRowAt p c E rho j x r a) :
     rho.events[j]? = some (.tick x (p.actionTime r)) := ha.2.1
 
-private theorem zero_history (h : HealthyPrefix₂ p c E rho 0) :
+private theorem zero_history (h : HealthyPrefix₂ p c E rho 0 ΔF) :
   (∀ x y r s B C, x ∈ rho.honest → y ∈ rho.honest →
     SA.gateTime p.toParams r ≤ 0 → SA.gateTime p.toParams s ≤ 0 →
     gateResult p c E rho x r = some (some B) →
@@ -191,8 +193,10 @@ participation permits false FaultQ at zero. Admission requires 4Δ ≤ now;
 gates and actions require at least 6Δ. The time-zero event prefix can be
 nonempty, but its FG tree and all Clean origins stay initial. No F1 channel
 or extra honesty premise is used. There is no UNMOTIVATED or UNCLEAR change.
-NoRestart is inherited from the supplied healthy prefix. -/
-theorem cleanCut_zero_body (h : HealthyPrefix₂ p c E rho 0) :
+NoRestart is inherited from the supplied healthy prefix.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
+theorem cleanCut_zero_body (h : HealthyPrefix₂ p c E rho 0 ΔF) :
   ((∀ x y r s B C, x ∈ rho.honest → y ∈ rho.honest →
     SA.gateTime p.toParams r ≤ 0 → SA.gateTime p.toParams s ≤ 0 →
     gateResult p c E rho x r = some (some B) →
