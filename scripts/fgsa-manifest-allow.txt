@@ -1,1 +1,3 @@
 # One entry per line: <name><TAB><reason><TAB><plan revision>. Full-line # comments are allowed.
+AvailableChain.FGSA.Run.B_Q	no-round option 1 (user 2026-10-01), spec de183d7d; QF2 (2g+2)P, skip (g+4)P; B_Q = B_best(g)+(2g+2)P+9Δ; def 6e9abf0385ddcebc -> 03d57db41f3d4d59; re-freeze audit	G-F0a S1 per-name exception (lead 2026-10-01)
+AvailableChain.FGSA.Run.B_skip	no-round option 1 (user 2026-10-01), spec de183d7d; QF2 (2g+2)P, skip (g+4)P; B_skip = B_H+(g+4)P+9Δ; def a94bc91c55caea91 -> cf80db72b1e2cf8e; re-freeze audit	G-F0a S1 per-name exception (lead 2026-10-01)
