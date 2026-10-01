@@ -105,7 +105,7 @@ theorem storedTargetsBelowOutput_process (p : Params) (st : State p.n) (o : Wire
       rw [admitHead_obligations] at hℓ
       rw [admitHead_base_stable]
       exact hL ℓ hℓ
-    | row r i body => exact storedTargets_row p st _ hL
+    | row i body => exact storedTargets_row p st _ hL
     | block s b raw support rows =>
       change StoredTargetsBelowOutput p (admitBlock p st s b raw support rows)
       unfold admitBlock

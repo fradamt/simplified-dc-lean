@@ -111,6 +111,7 @@ check_direct_imports() {
       case "$layer:$m" in
         root:AvailableChainFGSA.*|Tests:AvailableChainFGSA.*) continue ;;
         Model:AvailableChainFGSA.Model.*) continue ;;
+        Model:AvailableChainKitFG.ClientOnce) continue ;;
         Statements:AvailableChainFGSA.Model.*|Statements:AvailableChainFGSA.Statements.*) continue ;;
         Proofs:AvailableChainFGSA.Model.*|Proofs:AvailableChainFGSA.Statements.*) continue ;;
         Proofs:AvailableChainFGSA.Proofs.*) continue ;;
@@ -186,7 +187,9 @@ gate_with_slot lake env lean --run scripts/CheckFGSAAxioms.lean "${TEST_ROOTS[@]
   encRowPayload_inj RowPayload.ofRow_toRow rowValidFor_progress_first row_bit_persist \
   rowValidFor_fold rowValidFor_finality_persist mem_allBlockRows_iff proposalRowsFor_missing \
   mem_proposalRowsFor_iff proposalRowsFor_nodup proposalRowsFor_sublist proposalRowsFor_origin \
-  proposalRowsFor_valid proposalRowsFor_excludes_chain proposalRowsFor_perm
+  proposalRowsFor_valid proposalRowsFor_excludes_chain proposalRowsFor_perm \
+  proposalRows_eq_proposalRowsFor blockAccepted_rowsValid admitBlock_invalid_rows fgBlockOf_mono \
+  rowsValidStored_admitBlock rowsValidStored_process rowsValidStored_clock rowsValidStored_reachable
 echo "== lease instances"
 gate_with_slot lake env lean --run scripts/CheckFGSALease.lean
 # The `leanIn "AvailableChainFGSA"` names of AvailableChainKitFG/Pins.lean get

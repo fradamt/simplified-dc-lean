@@ -1,7 +1,7 @@
 module
 public import AvailableChainFGSARun.Proofs.Excludes
-public import AvailableChainKitV2.ClockLaws
-public import AvailableChainGeneric.Statements.V2.Reads
+public import AvailableChainKitV2.DutyClockLaws
+public import AvailableChainGeneric.Statements.V2.Duty.Reads
 
 public section
 
@@ -14,7 +14,7 @@ open AvailableChain.SimplexFG
 variable (p : Params) {In : Type} (c : AppCodec In)
 
 /-- The run clock is the store's base clock. -/
-def fgsaClock : V2.Engine.ClockLaws (fgsa p c) where
+def fgsaClock : V2.D.Engine.ClockLaws (fgsa p c) where
   now nd := nd.st.base.now
   init := rfl
   clock nd t := (clock_vn nd.st t).2
@@ -28,8 +28,8 @@ theorem fgsa_clock_now (nd : Node p) : (fgsaClock p c).now nd = nd.st.base.now :
 
 /-- [P3 r3.5.6 F0.2] An ancestor of F stays an ancestor through each local step. -/
 theorem fgsa_monoAlong_preceq_F (X : FGBlock (Fin p.n)) :
-    Gen.V2.MonoAlong (P := fgsa p c) (fun nd => FGBlock.Preceq X nd.st.fg.F) := by
-  rw [Gen.V2.MonoAlong_def]
+    Gen.V2.Duty.MonoAlong (P := fgsa p c) (fun nd => FGBlock.Preceq X nd.st.fg.F) := by
+  rw [Gen.V2.Duty.MonoAlong_def]
   refine ⟨?_, ?_, ?_⟩
   · intro nd t h
     change FGBlock.Preceq X (clock p nd.st t).fg.F

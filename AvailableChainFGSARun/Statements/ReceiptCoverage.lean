@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSARun.Statements.AC
-public import AvailableChainGeneric.Statements.V2.Receipt
+public import AvailableChainGeneric.Statements.V2.Duty.Receipt
 
 @[expose] public section
 
@@ -17,35 +17,29 @@ its own trigger; receipt of its containing proposal is not that trigger.
 The transport index range is `first .. idxBefore rho D`, including the final
 read. Slot windows concern only the required objects and their receipt
 intervals. The endpoint bound prevents old-label exclusion at the receipt
-read; the handler bounds give the current/previous-slot vote window and the
-row window. Proposals use the trigger's admission threshold (T7.8).
+read; the handler bounds give the current/previous-slot HEAD vote window.
+Proposals use the trigger's admission threshold (T7.8).
 
 There is no store premise. `ExecutionValid`, stated separately below,
 supplies the checked wire and dependency conditions of base receipt. -/
 structure ReceiptCoveragePremises {p : Params} {In V : Type} [DecidableEq V]
-    {c : AppCodec In} (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    {c : AppCodec In} (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (dl : Time → Time) (cut D : Time) (first : Nat) (x : V) (B : Block)
     (required : Obj p → Time → Prop) (paths : Block → Time → Prop) : Prop where
-  within : Gen.V2.DeliveryWithin E rho dl cut
+  within : Gen.V2.Duty.DeliveryWithin E rho dl cut
   slotWindow : ∀ o t, required o t →
-    Gen.V2.Trigger E rho o t ∧ (fgsa p c).wellFormed o = true ∧
+    Gen.V2.Duty.Trigger E rho o t ∧ (fgsa p c).wellFormed o = true ∧
     (∀ s a K, (toWire p o).decode = some (.vote s a K) →
-      ((V2.Run.stateBeforeTime E rho (dl t) x).st.slot p ≤ s + 1) ∧
-      ∀ i t', first ≤ i → i < V2.Run.idxBefore rho (dl t) → t ≤ t' →
-        V2.Run.handlesAt E rho i x o t' →
-        s ≤ (V2.Run.stateBefore E rho i x).st.slot p ∧
-          (V2.Run.stateBefore E rho i x).st.slot p ≤ s + 1) ∧
-    (∀ r a body, (toWire p o).decode = some (.row r a body) →
-      (p.round ((V2.Run.stateBeforeTime E rho (dl t) x).st.slot p) ≤ r + p.wF) ∧
-      ∀ i t', first ≤ i → i < V2.Run.idxBefore rho (dl t) → t ≤ t' →
-        V2.Run.handlesAt E rho i x o t' →
-        r ≤ p.round ((V2.Run.stateBefore E rho i x).st.slot p) ∧
-          p.round ((V2.Run.stateBefore E rho i x).st.slot p) ≤ r + p.wF)
-  compat : ∀ i, first ≤ i → i ≤ V2.Run.idxBefore rho D →
-    Block.Compatible B (eraseFG (V2.Run.stateBefore E rho i x).st.fg.F)
+      ((V2.D.Run.stateBeforeTime E rho (dl t) x).st.slot p ≤ s + 1) ∧
+      ∀ i t', first ≤ i → i < V2.D.Run.idxBefore rho (dl t) → t ≤ t' →
+        V2.D.Run.handlesAt E rho i x o t' →
+        s ≤ (V2.D.Run.stateBefore E rho i x).st.slot p ∧
+          (V2.D.Run.stateBefore E rho i x).st.slot p ≤ s + 1)
+  compat : ∀ i, first ≤ i → i ≤ V2.D.Run.idxBefore rho D →
+    Block.Compatible B (eraseFG (V2.D.Run.stateBefore E rho i x).st.fg.F)
   deadline : Monotone dl ∧ D ≤ cut ∧ cut ≤ rho.horizon ∧
-    first ≤ V2.Run.idxBefore rho D ∧
-    (∀ o t, required o t → first ≤ V2.Run.idxBefore rho t ∧
+    first ≤ V2.D.Run.idxBefore rho D ∧
+    (∀ o t, required o t → first ≤ V2.D.Run.idxBefore rho t ∧
       0 ≤ t ∧ t < dl t ∧ dl t ≤ D) ∧
     (∀ K d, paths K d → Block.Preceq B K ∧ d ≤ D ∧
       ∀ b, Block.Preceq b K → b ≠ .genesis →
@@ -74,9 +68,9 @@ Readiness check for T7.12 (no extra premise):
 * Proposal decoded as `.block s b raw sup rows`: use
   `fgsa_hReady_of_parentStored` with `hWF` and EXACTLY
 
-  `hParent : ∀ i t', i < V2.Run.idxBefore rho (dl t) →
-    V2.Run.handlesAt E rho i w o t' →
-    (parentFG (V2.Run.stateBefore E rho i w).st b).isSome = true`.
+  `hParent : ∀ i t', i < V2.D.Run.idxBefore rho (dl t) →
+    V2.D.Run.handlesAt E rho i w o t' →
+    (parentFG (V2.D.Run.stateBefore E rho i w).st b).isSome = true`.
 
   T7.12 derives this from the checked dependencies of base receipt:
   a proposal cannot be a carried child in `handlesS` (children are only
@@ -91,12 +85,12 @@ Readiness check for T7.12 (no extra premise):
 generic clock with the instance clock. No bound `dl t ≤ t + p.Δ` is used. -/
 def ReceiptCoverageStatement : Prop :=
   ∀ {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (dl : Time → Time) (cut D : Time) (first : Nat) (x : V) (B : Block)
     (required : Obj p → Time → Prop) (paths : Block → Time → Prop),
-    E.Δ = p.Δ → V2.ExecutionValid E rho → V2.NoRestart rho → x ∈ rho.honest →
+    E.Δ = p.Δ → V2.D.ExecutionValid E rho → V2.D.NoRestart rho → x ∈ rho.honest →
     ReceiptCoveragePremises E rho dl cut D first x B required paths →
-    let st := (V2.Run.stateBeforeTime E rho D x).st
+    let st := (V2.D.Run.stateBeforeTime E rho D x).st
     ((Block.Preceq B (eraseFG st.fg.F) ∧
       Block.Preceq B st.base.stableRecord ∧
       (∀ s, 0 < s → Block.Preceq B (headVote p st s)) ∧
@@ -106,9 +100,9 @@ def ReceiptCoverageStatement : Prop :=
      (Block.Preceq (eraseFG st.fg.F) B ∧
       (∀ o t s b raw sup rows, required o t →
         (toWire p o).decode = some (.block s b raw sup rows) →
-        ∃ Y ∈ (V2.Run.stateBeforeTime E rho (dl t) x).st.fg.TF, eraseFG Y = b) ∧
+        ∃ Y ∈ (V2.D.Run.stateBeforeTime E rho (dl t) x).st.fg.TF, eraseFG Y = b) ∧
       (∀ K d, paths K d → ∀ b, Block.Preceq b K →
-        ∃ Y ∈ (V2.Run.stateBeforeTime E rho d x).st.fg.TF, eraseFG Y = b))) ∧
+        ∃ Y ∈ (V2.D.Run.stateBeforeTime E rho d x).st.fg.TF, eraseFG Y = b))) ∧
     (∀ o t s a K, required o t → (toWire p o).decode = some (.vote s a K) →
       let v := baseVote (⟨.seat (.head s) a, K⟩ : HeadWire p.n)
       (v ∈ st.base.votes ∧ GridCO.stampVote st.base v < dl t) ∨
@@ -120,12 +114,12 @@ def ReceiptCoverageStatement : Prop :=
 theorem ReceiptCoverageStatement_def :
     ReceiptCoverageStatement =
       (∀ {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
-        (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+        (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
         (dl : Time → Time) (cut D : Time) (first : Nat) (x : V) (B : Block)
         (required : Obj p → Time → Prop) (paths : Block → Time → Prop),
-        E.Δ = p.Δ → V2.ExecutionValid E rho → V2.NoRestart rho → x ∈ rho.honest →
+        E.Δ = p.Δ → V2.D.ExecutionValid E rho → V2.D.NoRestart rho → x ∈ rho.honest →
         ReceiptCoveragePremises E rho dl cut D first x B required paths →
-        let st := (V2.Run.stateBeforeTime E rho D x).st
+        let st := (V2.D.Run.stateBeforeTime E rho D x).st
         ((Block.Preceq B (eraseFG st.fg.F) ∧
           Block.Preceq B st.base.stableRecord ∧
           (∀ s, 0 < s → Block.Preceq B (headVote p st s)) ∧
@@ -135,9 +129,9 @@ theorem ReceiptCoverageStatement_def :
          (Block.Preceq (eraseFG st.fg.F) B ∧
           (∀ o t s b raw sup rows, required o t →
             (toWire p o).decode = some (.block s b raw sup rows) →
-            ∃ Y ∈ (V2.Run.stateBeforeTime E rho (dl t) x).st.fg.TF, eraseFG Y = b) ∧
+            ∃ Y ∈ (V2.D.Run.stateBeforeTime E rho (dl t) x).st.fg.TF, eraseFG Y = b) ∧
           (∀ K d, paths K d → ∀ b, Block.Preceq b K →
-            ∃ Y ∈ (V2.Run.stateBeforeTime E rho d x).st.fg.TF, eraseFG Y = b))) ∧
+            ∃ Y ∈ (V2.D.Run.stateBeforeTime E rho d x).st.fg.TF, eraseFG Y = b))) ∧
         (∀ o t s a K, required o t → (toWire p o).decode = some (.vote s a K) →
           let v := baseVote (⟨.seat (.head s) a, K⟩ : HeadWire p.n)
           (v ∈ st.base.votes ∧ GridCO.stampVote st.base v < dl t) ∨

@@ -16,7 +16,7 @@ theorem ancestorDeadlines_recordOwn (nd : Node p) (o : Obj p)
   exact h
 
 /-- [helper] Restore gives the initial store by `restore_st`. -/
-theorem ancestorDeadlines_restore (d : SimplexFG.Record) :
+theorem ancestorDeadlines_restore (d : SimplexFG.RecordOnce) :
     AncestorDeadlines (((fgsa p c).restore d).st) := by
   rw [restore_st]
   exact ancestorDeadlines_init p.n

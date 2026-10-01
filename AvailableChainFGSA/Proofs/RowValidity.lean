@@ -28,7 +28,7 @@ theorem rowValidFor_iff {n : Nat} (σ : ChainState (Fin n)) (a : RowWire n) :
 /-- Changing the finality pair cannot change the R6 result. -/
 theorem rowValidFor_finality_irrel {n : Nat} (σ : ChainState (Fin n))
     (auth : Auth Label n) (hp : NamedHeightPair) (fp gp : Option FinalityPair) :
-    rowValidFor σ ⟨auth, ⟨hp, fp⟩⟩ = rowValidFor σ ⟨auth, ⟨hp, gp⟩⟩ := by
+    rowValidFor σ ⟨auth, .vote ⟨hp, fp⟩⟩ = rowValidFor σ ⟨auth, .vote ⟨hp, gp⟩⟩ := by
   cases auth with
   | seat l i => cases l <;> rfl
   | proposer | none => rfl
@@ -57,12 +57,6 @@ theorem rowsValidForParent_perm (p : Params) (P : FGBlock (Fin p.n)) (s : Slot)
 theorem rowsValidStored_initial (p : Params) : RowsValidStored p (initial p.n) := by
   intro o ho
   exact (List.not_mem_nil ho).elim
-
-/-- The payload sum preserves the full vote body. -/
-theorem encRowPayload_inj : Function.Injective encRowPayload := by
-  rintro ⟨a⟩ ⟨b⟩ h
-  have hab := encRowBody_inj (epair_inj h).2
-  exact congrArg RowPayload.vote hab
 
 /-- Converting a vote and restoring its body is exact. -/
 theorem RowPayload.ofRow_toRow {V : Type} (a : RowPayload) (i : V) :

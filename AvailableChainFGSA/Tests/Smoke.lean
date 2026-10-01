@@ -10,17 +10,17 @@ namespace AvailableChain.FGSA.Tests
 
 open AvailableChain.SimplexFG hiding B1 B2 B3 B1' B1a B1b childA X Y stF
 
-/-- The test parameters: Δ = 1, n = 4, k = 2, R = 2, w_F = 1, δ_t = 1.
+/-- The test parameters: Δ = 1, n = 4, k = 2, R = 2, δ_t = 1.
 `pT.cfg` is the FG module's `cfg1` and `pT.E` is its `E4`.
 `pT.n` reduces to `4`, so `State 4` and `State pT.n` are one type. -/
 abbrev pT : Params :=
   { Δ := 1, n := 4, k := 2, η := 11, deltaPos := by decide, nPos := by decide,
     kLarge := by decide, etaNonneg := by decide,
-    R := 2, wF := 1, δt := 1, RLarge := by decide, wFPos := by decide }
+    R := 2, δt := 1, RLarge := by decide }
 
-/-- A signed FG row of round `r` by identity `i`. -/
-def rw (r : Nat) (i : Fin 4) (a : Row (Fin 4)) : RowWire 4 :=
-  ⟨.seat (.fg r) i, RowBody.ofRow a⟩
+/-- A signed row by identity `i`; the legacy round input has no effect. -/
+def rw (_r : Nat) (i : Fin 4) (a : Row (Fin 4)) : RowWire 4 :=
+  ⟨.seat .fg i,  .vote (RowBody.ofRow a)⟩
 
 /-! ### Packed fixtures (D9)
 
@@ -34,9 +34,9 @@ parents, slots and decoded rows of the FG module's blocks of the same name
 FG module's own blocks are hidden. Every block has application value `0`,
 except `B1b` (value `1`, so that it differs from `B1a`) and `X` (value `2 ^ 4096`). -/
 
-/-- The signed rows of round `r` for the FG rows `rs`. -/
-def signRows (r : Nat) (rs : List (Row (Fin 4))) : List (RowWire 4) :=
-  rs.map (fun a => ⟨.seat (.fg r) a.signer, RowBody.ofRow a⟩)
+/-- Fixed-FG signatures for the rows `rs`; the legacy round input has no effect. -/
+def signRows (_r : Nat) (rs : List (Row (Fin 4))) : List (RowWire 4) :=
+  rs.map (fun a => ⟨.seat .fg a.signer,  .vote (RowBody.ofRow a)⟩)
 /-- The packed FG block: parent `P`, slot `s`, application value `app`,
 signed rows `rw`. -/
 def pk (P : FGBlock (Fin 4)) (s : Slot) (app : Nat) (rw : List (RowWire 4)) :
@@ -79,38 +79,37 @@ example : eraseFG B1 = pb .genesis 1 0 (signRows 0 [rowT 0, rowT 1, rowT 2]) ∧
 rows, and the application values decode. -/
 example : B1.rows = [rowT 0, rowT 1, rowT 2] ∧ B1b.rows = B1.rows ∧ B1 ≠ B1b ∧
     appOf (eraseFG B1).body = 0 ∧ appOf (eraseFG B1b).body = 1 := by decide +kernel
-example : (rw 0 2 (rowT 2)).decode? = some (0, 2, RowBody.ofRow (rowT 2)) := by decide
+example : (rw 0 2 (rowT 2)).decode? = some (2, .vote (RowBody.ofRow (rowT 2))) := by decide
 example : (rw 0 2 (rowT 2)).toRow? = some (rowT 2) := by decide
-example : (rw 0 2 (rowT 2)).round? = some 0 := by decide
 /-- `a_r = d_{rR}` (spec 217–220): with R = 2, `a_1 = d_2 = 4·2 + 6 = 14`. -/
 example : pT.actionTime 1 = 14 := by decide
-example : (Label.fg 1).actTime pT = 14 ∧ (Label.head 3).actTime pT = 13 := by decide
 /-- At `a_1 = 14` the store slot is `rR + 1 = 3`, still round 1 (spec 1306, 1317). -/
 example : pT.slotOf 14 = 3 ∧ pT.round 3 = 1 := by decide
 /-- The base form of a carried vote: a HEAD seat of slot `s` is a seat of base
 label `s`; an FG seat is not a base signature. -/
 example : baseHead (n := 4) ⟨.seat (.head 3) 1, .genesis⟩ = ⟨.seat 3 1, .genesis⟩ ∧
-    baseHead (n := 4) ⟨.seat (.fg 3) 1, .genesis⟩ = ⟨.none, .genesis⟩ := by decide
-/-- One row check (M12; spec 234–237): height 0 fails; height 1 and the empty
-pair pass; a row with a HEAD signature fails. -/
+    baseHead (n := 4) ⟨.seat .fg 1, .genesis⟩ = ⟨.none, .genesis⟩ := by decide
+/-- One row check (M12; spec 234–237): height 0 fails; height 1 passes and the empty
+pair fails; a row with a HEAD signature fails. -/
 example : (RowBody.mk (.vote 0 genesisRoot false) none).valid = false ∧
     (RowBody.mk (.vote 1 genesisRoot false) none).valid = true ∧
-    (RowBody.mk .empty none).valid = true ∧
-    RowWire.valid (n := 4) ⟨.seat (.head 0) 2, RowBody.mk .empty none⟩ = false := by decide
-example : Wire.decode (n := 4) ⟨.seat (.fg 1) 2, .row (RowBody.ofRow (rowT 2))⟩ =
-    some (.row 1 2 (RowBody.ofRow (rowT 2))) ∧
-    Wire.decode (n := 4) ⟨.seat (.head 1) 2, .row (RowBody.ofRow (rowT 2))⟩ = none := by decide
+    (RowBody.mk .empty none).valid = false ∧
+    RowWire.valid (n := 4) ⟨.seat (.head 0) 2, .vote (RowBody.mk .empty none)⟩ = false := by decide
+example : Wire.decode (n := 4) ⟨.seat .fg 2, .row (.vote (RowBody.ofRow (rowT 2)))⟩ =
+    some (.row 2 (.vote (RowBody.ofRow (rowT 2)))) ∧
+    Wire.decode (n := 4) ⟨.seat (.head 1) 2, .row (.vote (RowBody.ofRow (rowT 2)))⟩ = none := by
+  decide
 
 /-- G1: the positive row checks. An FG row at height 1 passes; an FG row at
 height 0 fails. -/
 example : (rw 0 2 (rowT 2)).valid = true ∧
-    RowWire.valid (n := 4) ⟨.seat (.fg 0) 2, RowBody.mk (.vote 0 genesisRoot false) none⟩ =
+    RowWire.valid (n := 4) ⟨.seat .fg 2, .vote (RowBody.mk (.vote 0 genesisRoot false) none)⟩ =
       false := by decide
 
 /-- A carried HEAD vote of slot 3 by seat 1 for `B1`, and an FG signature on a
 HEAD payload. -/
 def hv : HeadWire 4 := ⟨.seat (.head 3) 1, eraseFG B1⟩
-def hf : HeadWire 4 := ⟨.seat (.fg 3) 1, eraseFG B1⟩
+def hf : HeadWire 4 := ⟨.seat .fg 1, eraseFG B1⟩
 
 /-- G1: the decoders of a vote and a proposal; a wrong auth gives `none`. -/
 example : hv.decode? = some (3, 1, eraseFG B1) ∧ hf.decode? = none := by decide +kernel
@@ -120,7 +119,7 @@ example : Wire.decode (n := 4) ⟨.seat (.head 3) 1, .head (eraseFG B1)⟩ =
       some (.block 2 (eraseFG B1) [hv] [hv] [rw 0 2 (rowT 2)]) ∧
     Wire.decode (n := 4) ⟨.proposer 2, .head (eraseFG B1)⟩ = none ∧
     Wire.decode (n := 4) ⟨.seat (.head 2) 1, .proposal (eraseFG B1) [] [] []⟩ = none ∧
-    Wire.decode (n := 4) ⟨.seat (.fg 1) 2, .head (eraseFG B1)⟩ = none := by decide +kernel
+    Wire.decode (n := 4) ⟨.seat .fg 2, .head (eraseFG B1)⟩ = none := by decide +kernel
 /-- G1: `Wire.block?` gives the block of a proposal and `none` for a vote. -/
 example : Wire.block? (n := 4) ⟨.proposer 2, .proposal (eraseFG B1) [] [] []⟩ =
       some (eraseFG B1) ∧
@@ -196,8 +195,8 @@ example : (onView (fun v => { v with goldfishRecord := v.blocks.getLastD .genesi
 
 /-! Task 4: handlers. -/
 
-def rowsOf (r : Nat) (B : FGBlock (Fin 4)) : List (RowWire 4) :=
-  B.rows.map (fun a => ⟨.seat (.fg r) a.signer, RowBody.ofRow a⟩)
+def rowsOf (_r : Nat) (B : FGBlock (Fin 4)) : List (RowWire 4) :=
+  B.rows.map (fun a => ⟨.seat .fg a.signer,  .vote (RowBody.ofRow a)⟩)
 def wProp (B : FGBlock (Fin 4)) (r : Nat) (raw : List (HeadWire 4) := []) : Wire 4 :=
   ⟨.proposer B.slot, .proposal (eraseFG B) raw [] (rowsOf r B)⟩
 /-- Now = 12: slot 3, round 1. -/
@@ -225,7 +224,7 @@ example : stA.base.stableRecord = b1 := by decide +kernel
 /-- Review Focus 2 (audit N1). A label-2 vote and a fresh round-1 row: separate
 calls admit both at stA (slot 3, round 1). -/
 def v2 : HeadWire 4 := ⟨.seat (.head 2) 0, eraseFG B2⟩
-def rF : RowWire 4 := ⟨.seat (.fg 1) 3, ⟨.vote 1 ⟨77⟩ true, none⟩⟩
+def rF : RowWire 4 := ⟨.seat .fg 3, .vote ⟨.vote 1 ⟨77⟩ true, none⟩⟩
 example : (process pT stA ⟨v2.auth, .head v2.payload⟩).base.votes ≠ stA.base.votes ∧
     (admitRow pT stA rF).rowPool = stA.rowPool ++ [rF] := by decide +kernel
 /-- A checked slot-3 block on genesis conflicts with F = B1. It carries `v2` and
@@ -243,16 +242,16 @@ example : (process pT stA wX).base.blocks = stA.base.blocks ∧
 example : (process pT stA (wProp B2 1)).base.blocks = stA.base.blocks ∧
     (process pT stA (wProp B2 1)).proposals = stA.proposals ∧
     (process pT stA (wProp B2 1)).rowPool = stA.rowPool := by decide +kernel
-/-- A row from the block's future (spec 815–817): a slot-1 block (round 0) with a
-round-1 row fails the input check and is refused by the handler. -/
+/-- The old round input is absent from the wire. This parent-valid row passes
+the input check and the block handler. -/
 def wFut : Wire 4 :=
   ⟨.proposer 1, .proposal (pb .genesis 1 98 [rw 1 2 (rowT 2)]) [] [] [rw 1 2 (rowT 2)]⟩
 example : rowsOk (pb .genesis 1 98 [rw 1 2 (rowT 2)]) [rw 1 2 (rowT 2)] = true ∧
-    wellFormed pT wFut = false ∧ (process pT st0 wFut).fg.TF = st0.fg.TF := by decide +kernel
+    wellFormed pT wFut = true ∧ wFut ∈ (process pT st0 wFut).proposals := by decide +kernel
 /-- Review Focus 9 (M12): the same height-0 row fails alone and in a block; the
 height-1 row passes in both forms. -/
-def r0 : RowWire 4 := ⟨.seat (.fg 1) 2, ⟨.vote 0 genesisRoot false, none⟩⟩
-def r1 : RowWire 4 := ⟨.seat (.fg 1) 2, ⟨.vote 1 genesisRoot false, none⟩⟩
+def r0 : RowWire 4 := ⟨.seat .fg 2, .vote ⟨.vote 0 genesisRoot false, none⟩⟩
+def r1 : RowWire 4 := ⟨.seat .fg 2, .vote ⟨.vote 1 genesisRoot false, none⟩⟩
 example : wellFormed pT ⟨r0.auth, .row r0.payload⟩ = false ∧
     rowsOk (pb .genesis 3 97 [r0]) [r0] = true ∧
     wellFormed pT ⟨.proposer 3, .proposal (pb .genesis 3 97 [r0]) [] [] [r0]⟩ = false ∧
@@ -288,11 +287,12 @@ example : wellFormed pT wDup = true ∧ wDup ∉ stA.proposals ∧
     (process pT stA wDup).fg.TF = stA.fg.TF ∧
     (process pT stA wDup).proposals = stA.proposals ∧
     (process pT stA wDup).base.votes = stA.base.votes := by decide +kernel
-/-- The row pool admits at most two distinct rows per identity and round
-(spec 433–439, 852–855), and only rows in the window (spec 848–851). -/
-def rA (h : Nat) : RowWire 4 := ⟨.seat (.fg 1) 0, ⟨.vote h genesisRoot false, none⟩⟩
-example : ([rA 1, rA 2, rA 3].foldl (admitRow pT) st0).rowPool = [rA 1, rA 2] := by decide
-example : (admitRow pT st0 ⟨.seat (.fg 2) 0, ⟨.empty, none⟩⟩).rowPool = [] := by decide
+/-- Full-wire admission has no per-seat cap and removes exact duplicates. -/
+def rA (h : Nat) : RowWire 4 := ⟨.seat .fg 0, .vote ⟨.vote h genesisRoot false, none⟩⟩
+example : ([rA 1, rA 2, rA 3].foldl (admitRow pT) st0).rowPool = [rA 1, rA 2, rA 3] := by decide
+example : wellFormed pT ⟨.seat .fg 0, .row (.vote ⟨.empty, none⟩)⟩ = false := by decide
+example : ([rA 1, rA 2, rA 3, rA 1].foldl (admitRow pT) st0).rowPool =
+    [rA 1, rA 2, rA 3] := by decide
 
 /-- G4 coverage: temporary refusals (spec 806–807). A block whose parent is not
 stored, and a block from a future slot (`4 > Σ.s = 3`), change nothing. -/
@@ -468,12 +468,10 @@ the gate of label 1 (no label-1 votes: an empty result). -/
 example : ((clock pT stS 11).base.frozen.map Prod.fst) = [2] ∧
     ((clock pT stS 10).base.early.map Prod.fst) = [2] := by decide +kernel
 
-/-- G4: the lower bound of the row window (spec 848–851). At now = 16 the slot
-is 4 and the round is 2; with w_F = 1 the window is [1, 2]. A round-0 row is
-refused; a round-1 row (the bound) is admitted. -/
-example : (admitRow pT (atTime {} 16) ⟨.seat (.fg 0) 0, ⟨.empty, none⟩⟩).rowPool = [] ∧
-    (admitRow pT (atTime {} 16) ⟨.seat (.fg 1) 0, ⟨.empty, none⟩⟩).rowPool =
-      [⟨.seat (.fg 1) 0, ⟨.empty, none⟩⟩] := by decide
+/-- [R5] Admission has no clock window. The same valid content enters at
+an early time and at a later time. -/
+example : (admitRow pT (atTime {} 0) (rA 1)).rowPool = [rA 1] ∧
+    (admitRow pT (atTime {} 4000) (rA 1)).rowPool = [rA 1] := by decide
 /-- G4: a vote of a label above Σ.s = 3 is refused (spec 834–835); a label-3 vote
 is admitted. -/
 example : (process pT st0 ⟨.seat (.head 4) 0, .head b1⟩).base.votes = st0.base.votes ∧
@@ -487,7 +485,7 @@ fastWrite[2] is empty, so C_fg is none and the height pair is empty; there is
 no fallback to S, the root, a slow lease or an older set (spec 669–677). -/
 def stC0 : State pT.n := clock pT stA 14
 example : fastWriteAt stC0 2 = some [] ∧ (fgInputs pT stC0).1 = none ∧
-    (attest pT stC0 Record.initial 0).1.height_pair = .empty := by decide +kernel
+    (attest pT stC0 RecordOnce.initial 0).1 = none := by decide +kernel
 /-- With a live fast write on B2 (set by hand), C_fg = B2 (the deepest member
 of fastWrite[2] in the full filtered tree with a lease after a_1). -/
 def stC1 : State pT.n :=
@@ -539,15 +537,10 @@ def stX : State pT.n :=
 example : stX.fg.F = B1 ∧ xB ∈ stX.base.blocks ∧ xB ∉ (actView stX).blocks ∧
     baseVote vX ∈ headVotes pT stX 3 := by decide +kernel
 
-/-- (c) spec 544–556, 1255–1274: `proposal_attestations` for H = b2 at slot 3
-(round 1, w_F = 1, I = {0, 1}). The pool holds the rows of B1, B2, B3 and two
-round-1 rows `q 1`, `q 2` of identity 3. A new slot-3 block `Y` on b2 carries a
-third identity-3 row `q 3` (the block `yB3` packs this row list); the pool
-refuses it (two rows already). By hand: the
-rows of B1 and B2 are on the chain of b2 and are dropped; the pool rows B3, `q 1`,
-`q 2` stay in pool order; the block row `q 3` is dropped because identity 3
-already has two pool rows in round 1. -/
-def q (h : Nat) : RowWire 4 := ⟨.seat (.fg 1) 3, ⟨.vote h genesisRoot false, none⟩⟩
+/-- [R7] Three distinct fixed-seat rows are valid for B2. All are held and
+selected when they are absent from the parent chain. -/
+def q (h : Nat) : RowWire 4 :=
+  ⟨.seat .fg 3, .vote ⟨.vote 3 B2.root false, some ⟨h - 1, genesisRoot⟩⟩⟩
 def yB3 : Block := pb (eraseFG B2) 3 95 [q 3]
 /-- `stA` with the pool rows `q 1`, `q 2`. -/
 def stAq : State pT.n := [q 1, q 2].foldl (admitRow pT) stA
@@ -557,8 +550,8 @@ theorem stP_eq : stP = admitWith pT stAq 3 yB3 [] [] [q 3] B2 (pk B2 3 95 [q 3])
   process_eq_admitWith pT stAq 3 yB3 [] [] [q 3] B2 _ (by decide +kernel) (by decide +kernel)
 /-- Fallback (plan Global Constraints, R1): plain `decide` and the `Bool` form
 both reach the elaborator's recursion limit on `stP`; the kernel check works. -/
-example : yB3 ∈ stP.base.blocks ∧ q 3 ∉ stP.rowPool ∧
-    proposalRows pT stP (eraseFG B2) = rowsOf 1 B3 ++ [q 1, q 2] := by
+example : yB3 ∈ stP.base.blocks ∧ q 3 ∈ stP.rowPool ∧
+    proposalRows pT stP (eraseFG B2) = rowsOf 1 B3 ++ [q 1, q 2, q 3] := by
   rw [stP_eq]; decide +kernel
 
 /-- G6 coverage: `live_root` (spec 648–655, 1086–1098). In `stA` (Z = F = B1,
@@ -586,9 +579,8 @@ example : fgHead pT stA = eraseFG B3 ∧
 the source is B2 and the finality head is b3. σ[B3] has h_j = h_F = 2, so there
 is no finality pair; with the initial record the height pair is the target
 vote `(σ[B2].h, σ[B2].T_h.root) = (3, …)`. -/
-example : (attest pT stC1 Record.initial 0).1.finality_pair = none ∧
-    (attest pT stC1 Record.initial 0).1.height_pair =
-      .vote 3 (derive pT.E pT.cfg B2).T_h.root false := by decide +kernel
+example : (attest pT stC1 RecordOnce.initial 0).1 =
+    some (.vote ⟨.vote 3 (derive pT.E pT.cfg B2).T_h.root false, none⟩) := by decide +kernel
 
 /-- G5: the evaluate-once guard skips the lease and S writes (spec 756). After a
 successful gate of label 2 on `stS` (leases on b1, b2; S = b2), clear the leases
@@ -681,42 +673,31 @@ def stXs : State pT.n :=
 example : stXs.fg.F = B1 ∧ xB ∉ (actView stXs).blocks ∧ b1' ∉ (actView stXs).blocks ∧
     b1' ∈ stXs.base.blocks ∧ headSupport pT stXs 3 = [baseVote vX] := by decide +kernel
 
-/-- (Block rows, spec 544–556) `stA` plus the pool rows `q 1`, `q 2` (identity 3,
-round 1). The slot-3 block `yB` on b2 carries `q 1` (it packs this row list, so
-it is not `yB3`); the slot-3 block `zB` on b1
-(off the chain of b2) carries `q 3` (the pool refuses it: two rows already) and
-the round-0 row `r0z` of identity 3 (the pool admits it). -/
-def r0z : RowWire 4 := rw 0 3 (rowT 3)
+/-- [R7] Two sibling proposals carry distinct parent-valid rows. All rows
+enter the pool; exact parent-chain exclusion removes only prior contents. -/
+def r0z : RowWire 4 := rw 0 3 (rowAt 3 B2.root true 3)
 def yB : Block := pb (eraseFG B2) 3 95 [q 1]
-def zB : Block := pb b1 3 94 [q 3, r0z]
+def zB : Block := pb (eraseFG B2) 3 94 [q 3, r0z]
 def stB : State pT.n :=
   [⟨.proposer 3, .proposal yB [] [] [q 1]⟩, ⟨.proposer 3, .proposal zB [] [] [q 3, r0z]⟩].foldl
     (process pT) stAq
 /-- [test helper] `stB` with its FG blocks explicit (`process_eq_admitWith`). -/
 theorem stB_eq : stB = admitWith pT (admitWith pT stAq 3 yB [] [] [q 1] B2 (pk B2 3 95 [q 1]))
-    3 zB [] [] [q 3, r0z] B1 (pk B1 3 94 [q 3, r0z]) := by
+    3 zB [] [] [q 3, r0z] B2 (pk B2 3 94 [q 3, r0z]) := by
   unfold stB
   rw [List.foldl_cons, List.foldl_cons, List.foldl_nil,
     process_eq_admitWith pT stAq 3 yB [] [] [q 1] B2 (pk B2 3 95 [q 1]) (by decide +kernel)
       (by decide +kernel)]
-  exact process_eq_admitWith pT _ 3 zB [] [] [q 3, r0z] B1 _ (by decide +kernel)
+  exact process_eq_admitWith pT _ 3 zB [] [] [q 3, r0z] B2 _ (by decide +kernel)
     (by decide +kernel)
-example : yB ∈ stB.base.blocks ∧ zB ∈ stB.base.blocks ∧ q 3 ∉ stB.rowPool ∧
+example : yB ∈ stB.base.blocks ∧ zB ∈ stB.base.blocks ∧ q 3 ∈ stB.rowPool ∧
     r0z ∈ stB.rowPool := by
   rw [stB_eq]; decide +kernel
-/-- (Block-row inclusion) At now 12 (round 1, I = {0, 1}), H = yB. By hand: the
-rows of B1, B2 and `q 1` are on the chain of yB and drop. The pool arm gives the
-rows of B3, `q 2`, `r0z`. The block arm adds `q 3` from `zB`: identity 3 has one
-row (`q 2`) of round 1 left, so `q 3` fits. Without the block arm, `q 3` is
-missing. -/
-example : proposalRows pT stB yB = rowsOf 1 B3 ++ [q 2, r0z, q 3] := by
+/-- [R7] Exact removal keeps the other contents in their first-held order. -/
+example : proposalRows pT stB yB = rowsOf 1 B3 ++ [q 2, q 3, r0z] := by
   rw [stB_eq]; decide +kernel
-/-- (An off-chain stored row outside the window) At now 16 (round 2, I = {1, 2}).
-By hand: the pool arm drops `r0z` (round 0). `zB` is of slot 3 (round 1 ∈ I), so
-the block arm reads it, but it keeps only its rows of a round in I: `q 3`, not
-`r0z`. Without the pool window or the row filter of the block arm, `r0z` is
-included. -/
-example : proposalRows pT (atTime stB 16) yB = rowsOf 1 B3 ++ [q 2, q 3] := by
+/-- [R7] A later clock does not expire any selected row. -/
+example : proposalRows pT (atTime stB 16) yB = rowsOf 1 B3 ++ [q 2, q 3, r0z] := by
   rw [stB_eq]; decide +kernel
 
 /-! G6 fold (Astra N3, Opus O-m1): no fallback in `C_fg`; `deepest`; the FJ
@@ -766,22 +747,20 @@ the cache they would be (2, B1a.root, 1). -/
 example : fgHead pT stK = eraseFG Y ∧ stK.fg.J = B1a ∧ stK.fg.h_j = 2 ∧
     (fgInputs pT stK).2 = ⟨1, genesisRoot, 0⟩ := by
   rw [stK_eq]; decide +kernel
-/-- (A finality pair with no source, spec 1334–1345, 1379–1387) In `stK` no fast
-set exists, so C_fg = none and the height pair is empty. h_F = 0 < h_j = 1 and
-the record is initial, so the finality pair `(1, genesis)` is emitted, and the
-record locks height 1 on genesis; no target is written. -/
+/-- [R2/R3] With no height source, no row is emitted and no finality lock
+is written. There is no finality-only vote. -/
 example : (fgInputs pT stK).1 = none ∧
-    (attest pT stK Record.initial 0).1 = ⟨.empty, some ⟨1, genesisRoot⟩⟩ ∧
-    (attest pT stK Record.initial 0).2.lock 1 = some genesisRoot ∧
-    (attest pT stK Record.initial 0).2.target 1 = none := by
+    (attest pT stK RecordOnce.initial 0).1 = none ∧
+    (attest pT stK RecordOnce.initial 0).2.lock 1 = none ∧
+    (attest pT stK RecordOnce.initial 0).2.target 1 = none := by
   rw [stK_eq]; decide +kernel
 /-- (The returned record, spec 1391–1399) In `stC1` the height pair is the target
 vote at height 3 and there is no finality pair: the record gets `target[3]`, no
 timeout at 3, and no lock at 2. -/
-example : (attest pT stC1 Record.initial 0).2.target 3 =
+example : (attest pT stC1 RecordOnce.initial 0).2.target 3 =
       some (derive pT.E pT.cfg B2).T_h.root ∧
-    (attest pT stC1 Record.initial 0).2.timeout 3 = false ∧
-    (attest pT stC1 Record.initial 0).2.lock 2 = none := by decide +kernel
+    (attest pT stC1 RecordOnce.initial 0).2.timeout 3 = false ∧
+    (attest pT stC1 RecordOnce.initial 0).2.lock 2 = none := by decide +kernel
 
 /-! G13 (Astra N3; r195 N3): an ACTIVE stored target that only the FJ filter
 excludes. The tests above use `B1'`, which conflicts with F, so the active
@@ -811,10 +790,10 @@ isolate selection from the old admission rule. -/
 namespace M05
 
 /-- Three distinct contents signed by the same seat with the same old label. -/
-def a0 : RowWire 4 := ⟨.seat (.fg 0) 0, ⟨.vote 1 genesisRoot false, none⟩⟩
-def a1 : RowWire 4 := ⟨.seat (.fg 0) 0, ⟨.vote 1 genesisRoot true, none⟩⟩
+def a0 : RowWire 4 := ⟨.seat .fg 0, .vote ⟨.vote 1 genesisRoot false, none⟩⟩
+def a1 : RowWire 4 := ⟨.seat .fg 0, .vote ⟨.vote 1 genesisRoot true, none⟩⟩
 def a2 : RowWire 4 :=
-  ⟨.seat (.fg 0) 0, ⟨.vote 1 genesisRoot false, some ⟨0, genesisRoot⟩⟩⟩
+  ⟨.seat .fg 0, .vote ⟨.vote 1 genesisRoot false, some ⟨0, genesisRoot⟩⟩⟩
 /-- One on-chain row and a sibling's row. Both carriers stay at height 1. -/
 def C : FGBlock (Fin 4) := pk .genesis 1 31 [a0]
 def D : FGBlock (Fin 4) := pk .genesis 2 32 [a2]
@@ -826,15 +805,15 @@ def held : State 4 :=
 
 /-- Plan: mismatched height refusal. -/
 theorem wrong_height : rowValidFor (parentFoldState pT 3 .genesis)
-    ⟨.seat (.fg 0) 0, ⟨.vote 2 genesisRoot false, none⟩⟩ = false := by decide
+    ⟨.seat .fg 0, .vote ⟨.vote 2 genesisRoot false, none⟩⟩ = false := by decide
 
 /-- Plan: mismatched target refusal. -/
 theorem wrong_target : rowValidFor (parentFoldState pT 3 .genesis)
-    ⟨.seat (.fg 0) 0, ⟨.vote 1 C.root false, none⟩⟩ = false := by decide +kernel
+    ⟨.seat .fg 0, .vote ⟨.vote 1 C.root false, none⟩⟩ = false := by decide +kernel
 
 /-- Plan R6: empty height and incorrect auth cannot pass. -/
 theorem empty_and_auth : rowValidFor (parentFoldState pT 3 .genesis)
-    ⟨.seat (.fg 0) 0, ⟨.empty, none⟩⟩ = false ∧
+    ⟨.seat .fg 0, .vote ⟨.empty, none⟩⟩ = false ∧
     rowValidFor (parentFoldState pT 3 .genesis)
       ⟨.seat (.head 0) 0, a0.payload⟩ = false := by decide
 
@@ -858,7 +837,7 @@ theorem common_parent :
 passes R6 and sets progress, but it sets no finality bit. -/
 theorem foreign_finality :
     rowValidFor (parentFoldState pT 3 .genesis)
-      ⟨.seat (.fg 0) 0, ⟨.vote 1 genesisRoot false, some ⟨0, C.root⟩⟩⟩ = true ∧
+      ⟨.seat .fg 0, .vote ⟨.vote 1 genesisRoot false, some ⟨0, C.root⟩⟩⟩ = true ∧
     (process_row (parentFoldState pT 3 .genesis)
       ⟨0, .vote 1 genesisRoot false, some ⟨0, C.root⟩⟩).finalize = ∅ ∧
     (process_row (parentFoldState pT 3 .genesis)
@@ -910,12 +889,12 @@ theorem ordered_roots :
 
 /-- Plan: the payload has total accessors and a tagged, injective codec. -/
 theorem payload_accessors :
-    (RowPayload.vote a2.payload).height_pair = a2.payload.height_pair ∧
-    (RowPayload.vote a2.payload).finality_pair = a2.payload.finality_pair ∧
-    (RowPayload.vote a2.payload).valid = a2.payload.valid ∧
-    (RowPayload.vote a2.payload).toRow (0 : Fin 4) =
+    a2.payload.height_pair = a2.payload.height_pair ∧
+    a2.payload.finality_pair = a2.payload.finality_pair ∧
+    a2.payload.valid = a2.payload.valid ∧
+    a2.payload.toRow (0 : Fin 4) =
       ⟨0, a2.payload.height_pair, a2.payload.finality_pair⟩ ∧
-    encRowPayload (.vote a0.payload) ≠ encRowPayload (.vote a2.payload) := by decide
+    encRowPayload a0.payload ≠ encRowPayload a2.payload := by decide
 
 /-- Plan: bits persist while the height and entry stay fixed. -/
 theorem progress_persists : 0 ∈ (derive pT.E pT.cfg (.node C 3 0 [])).progress := by
@@ -944,12 +923,12 @@ theorem timeout_bits :
 This uses the R3/R6 specialization with a later matching finality pair. -/
 theorem finality_persists :
     let a : RowWire 4 :=
-      ⟨.seat (.fg 0) 0, ⟨.vote 2 B1.root false, some ⟨1, genesisRoot⟩⟩⟩
+      ⟨.seat .fg 0, .vote ⟨.vote 2 B1.root false, some ⟨1, genesisRoot⟩⟩⟩
     let C' := pk B1 2 0 [a]
     0 ∈ (derive pT.E pT.cfg (.node C' 3 0 [])).finalize := by
   dsimp only
   let a : RowWire 4 :=
-    ⟨.seat (.fg 0) 0, ⟨.vote 2 B1.root false, some ⟨1, genesisRoot⟩⟩⟩
+    ⟨.seat .fg 0, .vote ⟨.vote 2 B1.root false, some ⟨1, genesisRoot⟩⟩⟩
   apply rowValidFor_finality_persist pT B1 _ 2 0 [a] a
     ⟨0, .vote 2 B1.root false, some ⟨1, genesisRoot⟩⟩
   · simp

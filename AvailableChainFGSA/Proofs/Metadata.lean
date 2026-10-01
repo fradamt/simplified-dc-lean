@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSA.Proofs.StoreInv
+public import AvailableChainFGSA.Proofs.RowValidity
 
 @[expose] public section
 
@@ -244,7 +245,7 @@ theorem process_cumulative (p : Params) (st : State p.n) (o : Wire p.n) :
 /-! ### The metadata invariant -/
 
 theorem metaInv_init (p : Params) : MetaInv p (initial p.n) := by
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
   · intro o ho; simp [initial] at ho
   · intro B hB hg
     simp only [initial, Store.init, Finset.mem_singleton] at hB
@@ -254,7 +255,6 @@ theorem metaInv_init (p : Params) : MetaInv p (initial p.n) := by
   · simp [initial, GridCO.initial]
   · intro a ha; simp [initial] at ha
   · simp [initial]
-  · intro r i; simp [initial]
   · intro o ho; simp [initial] at ho
 
 /-- [helper] `Wire.block?` of a proposal wire. -/
@@ -267,47 +267,27 @@ theorem block?_proposal {n : Nat} (s : Slot) (b : Block) (raw sup : List (HeadWi
 theorem metaInv_admitRow (p : Params) (st : State p.n) (m : MetaInv p st) (a : RowWire p.n) :
     MetaInv p (admitRow p st a) := by
   unfold admitRow
-  split
-  · next r i body hd =>
-    dsimp only
-    split
-    · exact m
-    · next hcond =>
-      simp only [Bool.or_eq_true, decide_eq_true_eq, not_or, not_le] at hcond
-      obtain ⟨⟨⟨-, -⟩, hnot⟩, hlt⟩ := hcond
-      have hkey : a.decode?.map (fun x => (x.1, x.2.1)) = some (r, i) := by rw [hd]; rfl
-      refine ⟨m.wireTree, m.treeWire, m.proposalsNodup, m.stampKeys, m.blocksNodup, ?_, ?_, ?_,
-        m.noGenesisWire⟩
-      · intro c hc
-        rw [List.mem_append, List.mem_singleton] at hc
-        rcases hc with hc | rfl
-        · exact m.poolDecodes c hc
-        · rw [hd]; rfl
-      · rw [List.nodup_append]
-        refine ⟨m.poolNodup, List.nodup_singleton _, ?_⟩
-        intro x hx y hy
-        rw [List.mem_singleton] at hy
-        subst hy
-        rintro rfl
-        exact hnot (List.mem_filter.2 ⟨hx, by rw [hkey]; simp⟩)
-      · intro r' i'
-        rw [List.filter_append]
-        by_cases he : (r', i') = (r, i)
-        · rw [he, List.length_append]
-          have h1 := List.length_filter_le
-            (fun c : RowWire p.n => c.decode?.map (fun x => (x.1, x.2.1)) == some (r, i)) [a]
-          simp only [List.length_singleton] at h1
-          omega
-        · have h0 : List.filter
-              (fun c : RowWire p.n => c.decode?.map (fun x => (x.1, x.2.1)) == some (r', i')) [a] =
-              [] := by
-            simp only [List.filter_cons, List.filter_nil, hkey]
-            rw [ite_eq_right]
-            simp only [beq_iff_eq, Option.some.injEq]
-            exact fun h' => he h'.symm
-          rw [h0, List.append_nil]
-          exact m.poolCap r' i'
-  · exact m
+  cases hd : a.decode? with
+  | none => exact m
+  | some val =>
+      dsimp only
+      split
+      · exact m
+      · next hnot =>
+        refine ⟨m.wireTree, m.treeWire, m.proposalsNodup, m.stampKeys, m.blocksNodup,
+          ?_, ?_, m.noGenesisWire⟩
+        · intro c hc
+          rw [List.mem_append, List.mem_singleton] at hc
+          rcases hc with hc | rfl
+          · exact m.poolDecodes c hc
+          · rw [hd]; rfl
+        · rw [List.nodup_append]
+          refine ⟨m.poolNodup, List.nodup_singleton _, ?_⟩
+          intro x hx y hy
+          rw [List.mem_singleton] at hy
+          subst hy
+          rintro rfl
+          exact hnot hx
 
 /-- [helper] A row fold keeps the metadata invariant. -/
 theorem metaInv_foldl_admitRow (p : Params) (rows : List (RowWire p.n)) (X : State p.n)
@@ -329,11 +309,13 @@ theorem wire_block_mem (p : Params) (st : State p.n) (h : CStoreInv p st) (m : M
 theorem accepted_rows_decode {p : Params} {st : State p.n} {s : Slot} {b : Block}
     {P : FGBlock (Fin p.n)} {rows : List (RowWire p.n)}
     (hacc : blockAccepted p st s b P rows = true) : ∀ a ∈ rows, (RowWire.decode? a).isSome := by
-  simp only [blockAccepted, Bool.and_eq_true, List.all_eq_true] at hacc
+  have hv : rowsValidForParent p P b.slot rows = true := by
+    simp only [blockAccepted, Bool.and_eq_true] at hacc
+    exact hacc.1.2
   intro a ha
-  have := hacc.1.2 a ha
+  obtain ⟨b, hb, _⟩ := (rowValidFor_iff _ a).mp ((rowsValidForParent_iff p P _ rows).mp hv a ha)
   cases hd : a.decode? with
-  | none => rw [hd] at this; exact absurd this (by simp)
+  | none => simp [RowWire.toRow?, hd] at hb
   | some x => rfl
 
 /-- [helper] The state before the row fold of an accepted block keeps the
@@ -351,7 +333,7 @@ theorem metaInv_accepted (p : Params) (st : State p.n) (h : CStoreInv p st) (m :
     MetaInv p X := by
   have hwb : ∀ {o : Wire p.n}, o ∈ st.proposals → ∀ {c : Block}, Wire.block? o = some c →
       c ∈ st.base.blocks := fun ho _ hc => wire_block_mem p st h m ho hc
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
   · intro o ho
     rw [hX1, List.mem_append, List.mem_singleton] at ho
     rcases ho with ho | rfl
@@ -399,7 +381,6 @@ theorem metaInv_accepted (p : Params) (st : State p.n) (h : CStoreInv p st) (m :
     exact hb hx
   · rw [hX6]; exact m.poolDecodes
   · rw [hX6]; exact m.poolNodup
-  · rw [hX6]; exact m.poolCap
   · intro o ho
     rw [hX1, List.mem_append, List.mem_singleton] at ho
     rcases ho with ho | rfl
@@ -414,7 +395,7 @@ theorem metaInv_process (p : Params) (st : State p.n) (h : CStoreInv p st) (m : 
   · rename_i s i b _
     have hv := admitVote_stamps p.toParams.engine st.base ⟨.seat s i, .head b⟩
     refine ⟨m.wireTree, m.treeWire, m.proposalsNodup, ?_, ?_, m.poolDecodes, m.poolNodup,
-      m.poolCap, m.noGenesisWire⟩
+      m.noGenesisWire⟩
     · change (GridCO.admitVote _ _ _).blockStamp.map Prod.fst = (GridCO.admitVote _ _ _).blocks
       rw [hv.1, hv.2.1]; exact m.stampKeys
     · change (GridCO.admitVote _ _ _).blocks.Nodup
@@ -448,7 +429,7 @@ theorem metaInv_process (p : Params) (st : State p.n) (h : CStoreInv p st) (m : 
 theorem metaInv_clock (p : Params) (st : State p.n) (m : MetaInv p st) (t : Time) :
     MetaInv p (clock p st t) := by
   obtain ⟨c1, c2, c3, -, c5, c6⟩ := clock_cumulative p st t
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
   · rw [c5, c1]; exact m.wireTree
   · rw [c5, c1]; exact m.treeWire
   · rw [c5]; exact m.proposalsNodup
@@ -456,7 +437,6 @@ theorem metaInv_clock (p : Params) (st : State p.n) (m : MetaInv p st) (t : Time
   · rw [c2]; exact m.blocksNodup
   · rw [c6]; exact m.poolDecodes
   · rw [c6]; exact m.poolNodup
-  · rw [c6]; exact m.poolCap
   · rw [c5]; exact m.noGenesisWire
 
 /-- [bp bp.store.v1; K4 metadata] -/
@@ -466,6 +446,73 @@ theorem metadataInvariant (p : Params) : MetadataInvariant p := by
   | init => exact metaInv_init p
   | tick t _ ih => exact metaInv_clock p _ ih t
   | deliver o hst' ih => exact metaInv_process p _ (storeInvariant p _ hst') ih o
+
+/-- A held parent lookup persists in a cumulative store. Its exact content
+cannot change, because the stored FG representation is unique. -/
+theorem fgBlockOf_mono (p : Params) {st st' : State p.n}
+    (h : CStoreInv p st) (h' : CStoreInv p st') (hsub : st.fg.TF ⊆ st'.fg.TF)
+    {b : Block} {P : FGBlock (Fin p.n)} (hP : fgBlockOf st b = some P) :
+    fgBlockOf st' b = some P := by
+  obtain ⟨hm, he⟩ := (fgBlockOf_spec p st h b P).mp hP
+  exact (fgBlockOf_spec p st' h' b P).mpr ⟨hsub hm, he⟩
+
+/-- [R6] A block admission preserves the separate stored-row obligation. -/
+theorem rowsValidStored_admitBlock (p : Params) (st : State p.n)
+    (h : CStoreInv p st) (hv : RowsValidStored p st) (s : Slot) (b : Block)
+    (raw support : List (HeadWire p.n)) (rows : List (RowWire p.n)) :
+    RowsValidStored p (admitBlock p st s b raw support rows) := by
+  cases hP : parentFG st b with
+  | none =>
+      rw [admitBlock_refused p st s b raw support rows (Or.inl hP)]
+      exact hv
+  | some P =>
+      cases ha : blockAccepted p st s b P rows with
+      | false =>
+          rw [admitBlock_refused p st s b raw support rows (Or.inr ⟨P, hP, ha⟩)]
+          exact hv
+      | true =>
+          have hn := cstoreInv_admitBlock p st h s b raw support rows
+          have hsub : st.fg.TF ⊆ (admitBlock p st s b raw support rows).fg.TF :=
+            (process_cumulative p st ⟨.proposer s, .proposal b raw support rows⟩).1
+          have hprops : (admitBlock p st s b raw support rows).proposals =
+              st.proposals ++ [⟨.proposer s, .proposal b raw support rows⟩] := by
+            obtain ⟨pool, heq, _⟩ := admitBlock_accepted_eq p st s b raw support P rows hP ha
+            rw [heq]
+            exact (accepted_st2 p st h s b raw support P rows hP ha).1
+          intro o ho t c raw' support' rows' hd
+          rw [hprops, List.mem_append, List.mem_singleton] at ho
+          rcases ho with ho | rfl
+          · obtain ⟨Q, hQ, hvQ⟩ := hv o ho t c raw' support' rows' hd
+            exact ⟨Q, fgBlockOf_mono p h hn hsub hQ, hvQ⟩
+          · simp only [Wire.decode, Option.some.injEq, Input.block.injEq] at hd
+            obtain ⟨rfl, rfl, rfl, rfl, rfl⟩ := hd
+            obtain ⟨hm, he⟩ := (parentFG_spec st h.rootInj b P).mp hP
+            exact ⟨P, (fgBlockOf_spec p _ hn b.parent P).mpr ⟨hsub hm, he⟩,
+              blockAccepted_rowsValid ha⟩
+
+/-- [R6] A delivery preserves validity of every stored proposal's rows. -/
+theorem rowsValidStored_process (p : Params) (st : State p.n)
+    (h : CStoreInv p st) (hv : RowsValidStored p st) (o : Wire p.n) :
+    RowsValidStored p (process p st o) := by
+  unfold process
+  split
+  · exact hv
+  · rcases admitRow_eq p st ⟨o.auth, _⟩ with he | he <;> rw [he] <;> exact hv
+  · exact rowsValidStored_admitBlock p st h hv _ _ _ _ _
+  · exact hv
+
+/-- [R6] Clock changes cannot change stored parent content or carried rows. -/
+theorem rowsValidStored_clock (p : Params) (st : State p.n)
+    (hv : RowsValidStored p st) (t : Time) : RowsValidStored p (clock p st t) := by
+  simpa only [RowsValidStored, fgBlockOf, clock_proposals, clock_fg] using hv
+
+/-- [R6] Every reachable store satisfies the separate stored-row obligation. -/
+theorem rowsValidStored_reachable (p : Params) {st : State p.n} (hr : Reachable p st) :
+    RowsValidStored p st := by
+  induction hr with
+  | init => exact rowsValidStored_initial p
+  | tick t _ ih => exact rowsValidStored_clock p _ ih t
+  | deliver o hr ih => exact rowsValidStored_process p _ (storeInvariant p _ hr) ih o
 
 /-- [helper] The one stored wire of a stored non-genesis FG block, with its rows. -/
 theorem stored_wire_of_block (p : Params) (st : State p.n) (h : CStoreInv p st)

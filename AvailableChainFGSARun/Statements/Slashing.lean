@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSARun.Statements.Interface
-public import AvailableChainGeneric.Statements.V2.Slashing
+public import AvailableChainGeneric.Statements.V2.Duty.Slashing
 public import AvailableChainSimplexFG.Evidence
 
 @[expose] public section
@@ -20,37 +20,17 @@ DC carries `CombinedAttestation` values; FG-SA carries FG rows only. -/
 def fgsaEvidence {p : Params} (nd : Node p) : Finset (SimplexFG.Row (Fin p.n)) :=
   nd.st.fg.TF.biUnion SimplexFG.chainRows
 
-/-- DC `DecoupledConsensusStatements/Instantiation.lean:76–80`: two inclusive
-time reads, at any nodes, hold slashable evidence for a seat index `i`, and `v`
-holds seat `i` in every FG round.
-V2 `readAt` needs `E` because the run does not contain its environment;
-DC reads capture their environment through `S`. The two nodes need not be
-honest, and the nodes and times can be equal.
-
-Class INTENTIONAL (lead F-H ruling, TS `codex/reports/dc-align-full.md:135–141`,
-and lead ruling 2026-10-01). DC attributes a row to its signer. An FG row
-carries the seat index, not the round (FGSA `Model/Objects.lean:94–97`), and
-the holder of a seat can depend on the round. The holder is attributed only
-when it is round-independent. So no validator is attributed evidence for a
-seat that it does not hold. Under `Linked` one bijection `e` holds every FG
-round (`fgsa_linked_seats`), and the attribution is DC's at `e.symm v`
-(`fgsaSlashing_slashes_iff_of_seats`). Without `Linked`, decoded rows cannot
-name a round, so a round-varying holder is not attributed.
-
-Alternative (not taken; reopen it for a claim without `Linked`): read the
-signed rows (`RowWire`, auth `.seat (.fg r) i`) of the admitted proposals in
-`nd.st.proposals` and attribute each row to `holder rho a.auth`. This needs a
-lemma that their decoded rows are this evidence set. SimplexFG `on_block`
-(`Store.lean:70–73`) and FG-SA `blockAccepted` (`Handlers.lean:38–45`) test
-the same four conditions, but that lemma is not proved. -/
+/-- Slashable evidence belongs to the validator that holds its fixed FG
+seat. The evidence domain is the rows on stored block chains. `Linked`
+supplies a bijection when a theorem needs to express the seat as `e.symm v`. -/
 def fgsaSlashing (p : Params) {In : Type} (c : AppCodec In)
-    (E : Generic.Env (Fin p.n)) : Gen.V2.SlashingInterface (V := Fin p.n) (fgsa p c) where
+    (E : Generic.Env (Fin p.n)) : Gen.V2.Duty.SlashingInterface (V := Fin p.n) (fgsa p c) where
   toInterface := fgsaInterface p c
   finalized := finalizedOut
   slashes rho v := ∃ (u u' : Fin p.n) (t t' : Time) (i : Fin p.n),
     SimplexFG.SlashableBetween
-      (fgsaEvidence (V2.Run.readAt E rho t u))
-      (fgsaEvidence (V2.Run.readAt E rho t' u')) i ∧
-    ∀ r, rho.seatOf (.base (.fg r)) i = v
+      (fgsaEvidence (V2.D.Run.readAt E rho t u))
+      (fgsaEvidence (V2.D.Run.readAt E rho t' u')) i ∧
+    rho.seatOf (.base .fg) i = v
 
 end AvailableChain.FGSA.Run

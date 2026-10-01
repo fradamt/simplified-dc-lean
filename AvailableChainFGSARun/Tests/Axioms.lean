@@ -84,7 +84,6 @@ mechanically. -/
 #print axioms AvailableChain.FGSA.Run.rowWire_decode
 #print axioms AvailableChain.FGSA.Run.processedS_ofRow
 #print axioms AvailableChain.FGSA.Run.excludesS_ofRow
-#print axioms AvailableChain.FGSA.Run.rowExcl_iff
 #print axioms AvailableChain.FGSA.Run.handlesS_ofRow_iff
 
 -- Proofs/Excludes.lean (T7.2, `excludes_inert`)
@@ -111,7 +110,6 @@ mechanically. -/
 #print axioms AvailableChain.FGSA.Run.excludesS_of_block
 #print axioms AvailableChain.FGSA.Run.excludesS_of_none
 #print axioms AvailableChain.FGSA.Run.row_wire_roundtrip
-#print axioms AvailableChain.FGSA.Run.admitRow_of_rowExcl
 #print axioms AvailableChain.FGSA.Run.admitBlock_of_blockExcluded
 #print axioms AvailableChain.FGSA.Run.excludesS_inert
 #print axioms AvailableChain.FGSA.Run.excludes_inert
@@ -120,11 +118,6 @@ mechanically. -/
 #print axioms AvailableChain.FGSA.Run.Internal.ite_reconcile
 #print axioms AvailableChain.FGSA.Run.process_base_now
 #print axioms AvailableChain.FGSA.Run.process_keeps_grid
-#print axioms AvailableChain.FGSA.Run.rowExcl_congr
-#print axioms AvailableChain.FGSA.Run.rowExcl_of_congr
-#print axioms AvailableChain.FGSA.Run.admitRow_keeps
-#print axioms AvailableChain.FGSA.Run.foldl_admitRow_keeps
-#print axioms AvailableChain.FGSA.Run.process_keeps_row
 #print axioms AvailableChain.FGSA.Run.process_keeps_block
 #print axioms AvailableChain.FGSA.Run.excludesS_process
 #print axioms AvailableChain.FGSA.Run.Internal.foldl_vn
@@ -313,3 +306,20 @@ mechanically. -/
 -- Proofs/Slashing.lean
 #print axioms AvailableChain.FGSA.Run.fgsaSlashing_slashes_iff_of_seats
 #print axioms AvailableChain.FGSA.Run.fgsaSlashing_slashes_iff_of_linked
+
+-- Migration 06: duty uniqueness, durable emission, and R6.
+#print axioms AvailableChain.FGSA.Run.fgsa_dutiesInjectiveAt
+#print axioms AvailableChain.FGSA.Run.fgsa_head_singleDuty
+#print axioms AvailableChain.FGSA.Run.fgsa_prop_singleDuty
+#print axioms AvailableChain.FGSA.Run.fgsa_emitOnceUnder
+#print axioms AvailableChain.FGSA.Run.attest_some_record
+#print axioms AvailableChain.FGSA.Run.attest_none_record
+#print axioms AvailableChain.FGSA.Run.attest_some_fresh
+#print axioms AvailableChain.FGSA.Run.invalidForParent_mono
+#print axioms AvailableChain.FGSA.Run.invalidForParent_clock
+#print axioms AvailableChain.FGSA.Run.admitBlock_of_invalidForParent
+#print axioms AvailableChain.FGSA.Run.invalidForParent_no_carried
+#print axioms AvailableChain.FGSA.Run.propose_rowsValid
+#print axioms AvailableChain.FGSA.Run.fgsa_accepted_rowsValid
+#print axioms AvailableChain.FGSA.Run.fgsa_trigger_rowsValid
+#print axioms AvailableChain.FGSA.Run.fgsa_trigger_invalid_false

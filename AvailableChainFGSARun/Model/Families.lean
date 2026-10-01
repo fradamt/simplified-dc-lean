@@ -1,5 +1,5 @@
 module
-public import AvailableChainEngineV2.Laws.Isolation
+public import AvailableChainEngineV2.Laws.Duty.Isolation
 public import AvailableChainFGSARun.Model.Protocol
 
 @[expose] public section
@@ -15,19 +15,19 @@ variable (p : Params) {In : Type} (c : AppCodec In)
 
 /-- [FRAMEWORK E2, E5; 2a Task 3 Step 5; DC N9] The FG-SA label families (the 2a
 reference assignment): the AP labels are the HEAD and the proposal labels; the
-designated fresh family is the HEAD labels; the linked family is the FG
-labels. A proposal label has one seat, so it is not fresh (`CStar` needs
+designated fresh family is the HEAD labels; the linked family is exactly the fixed FG
+label. A proposal label has one seat, so it is not fresh (`CStar` needs
 `seats ℓ = |V|`); it is `SingleSeat`. -/
-def fgsaFamilies : V2.LabelFamilies (fgsa p c) where
+def fgsaFamilies : V2.D.LabelFamilies (fgsa p c) where
   ap
     | .base (.head _) => True
-    | .base (.fg _) => False
+    | .base .fg => False
     | .prop _ => True
   fresh
     | .base (.head _) => True
     | _ => False
   linked
-    | .base (.fg _) => True
+    | .base .fg => True
     | _ => False
 
 /-- [FRAMEWORK E5 (:294–319); plan T7.2] The isolation value. The base is the
@@ -43,7 +43,7 @@ store, which E5 allows).
 restriction applies to the AP labels and to the designated fresh family, not
 to every `CStar` family. So the FG labels, which are `Linked`, may be
 self-visible (Opus m16, closed). -/
-def fgsaIso : V2.Isolation (fgsa p c) (fgsaFamilies p c) where
+def fgsaIso : V2.D.Isolation (fgsa p c) (fgsaFamilies p c) where
   Base := State p.n
   base := Node.st
   clockB := FGSA.clock p
@@ -52,13 +52,11 @@ def fgsaIso : V2.Isolation (fgsa p c) (fgsaFamilies p c) where
   process_base _ _ := rfl
   recordOwn_base _ _ := rfl
   actB := actS p c
-  act_base st ℓ x h := by
-    cases ℓ with
-    | base ℓ =>
-        cases ℓ with
-        | head s => rfl
-        | fg r => exact h.elim
-    | prop s => rfl
+  act_base st d x h := by
+    cases d with
+    | headAction s => rfl
+    | fgAction r => exact h.elim
+    | propAction s => rfl
   gossipB _ _ := []
   gossip_base _ _ := rfl
   depsB := depsS p

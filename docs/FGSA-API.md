@@ -1,5 +1,7 @@
 # FG-SA API manifest
 
+> Migration 06, Part 1: Model and Run sections are regenerated. Claims sections await Part 2; the full manifest cannot load until Claims compile. See `m06-full.md`.
+
 _Baseline for G-F0a (D15, lead ruling DC 2026-09-30)._
 
 This file lists every public declaration under the Statements prefixes of
@@ -42,10 +44,10 @@ structure projection is a separate `field` entry beside the structure entry.
 ### `AvailableChainFGSA.Statements.Invariants`
 
 ```text
-inductive AvailableChain.FGSA.Reachable 551052dced3030c7
-ctor AvailableChain.FGSA.Reachable.init 90146c8b7940c5e9
-ctor AvailableChain.FGSA.Reachable.tick ad591eec5853eeb2
-ctor AvailableChain.FGSA.Reachable.deliver c9a48f1cdaf298ec
+inductive AvailableChain.FGSA.Reachable 714cca319d21438b
+ctor AvailableChain.FGSA.Reachable.init bf1f83e0424a3f81
+ctor AvailableChain.FGSA.Reachable.tick cfbe0e960e9980ba
+ctor AvailableChain.FGSA.Reachable.deliver 0d5ba56521e2c53c
 def AvailableChain.FGSA.NestOK 130e2646fb4577ff
 def AvailableChain.FGSA.SACompat f338d5747785cc54
 def AvailableChain.FGSA.LeaseBelowOutputStore 0c24caa058c09550
@@ -63,35 +65,34 @@ field AvailableChain.FGSA.CStoreInv.fastDom 0928b8d813132a96
 field AvailableChain.FGSA.CStoreInv.genuineKeys 6ec409b9bb2270df
 field AvailableChain.FGSA.CStoreInv.leaseKeys 139f30251a1ecc71
 def AvailableChain.FGSA.Inv0 c1b4da1db5894d5b
-structure AvailableChain.FGSA.MetaInv 47b4504e54402bb8
-ctor AvailableChain.FGSA.MetaInv.mk 3a006ab9945dea3d
-field AvailableChain.FGSA.MetaInv.wireTree 6a7caf56a3178f9e
-field AvailableChain.FGSA.MetaInv.treeWire 6e621d5717aff5a4
-field AvailableChain.FGSA.MetaInv.proposalsNodup a8881ca5289cdf64
-field AvailableChain.FGSA.MetaInv.stampKeys d8cb266fb0f2a890
-field AvailableChain.FGSA.MetaInv.blocksNodup 7fcdd3cc73ea039f
-field AvailableChain.FGSA.MetaInv.poolDecodes 8b78fbd1ef713804
-field AvailableChain.FGSA.MetaInv.poolNodup 0f6159c9553c718c
-field AvailableChain.FGSA.MetaInv.poolCap 3f3bab3852bb0908
-field AvailableChain.FGSA.MetaInv.noGenesisWire 9e26f031d5f1b8ce
+structure AvailableChain.FGSA.MetaInv 1b4fbaa6d9735884
+ctor AvailableChain.FGSA.MetaInv.mk e6c31b66606bc64e
+field AvailableChain.FGSA.MetaInv.wireTree c0da483971744edb
+field AvailableChain.FGSA.MetaInv.treeWire 2afb5f800eadd408
+field AvailableChain.FGSA.MetaInv.proposalsNodup 5e7eb4ecd7272044
+field AvailableChain.FGSA.MetaInv.stampKeys 9c018709bb2edbac
+field AvailableChain.FGSA.MetaInv.blocksNodup 0f696455c493a663
+field AvailableChain.FGSA.MetaInv.poolDecodes b3ae42636cd66eb4
+field AvailableChain.FGSA.MetaInv.poolNodup 951044634854696c
+field AvailableChain.FGSA.MetaInv.noGenesisWire 3d5faa31609512be
 def AvailableChain.FGSA.ContentAgree 9f1216009903713b
 ```
 
 ### `AvailableChainFGSA.Statements.Store`
 
 ```text
-def AvailableChain.FGSA.OutputNestingStored c23fc5e78ebae681
-def AvailableChain.FGSA.StoreInvariant 026fc456bd252bf3
-structure AvailableChain.FGSA.StoreBundle 39bba6f0449fabed
-ctor AvailableChain.FGSA.StoreBundle.mk 388f03d0d8c0153e
-field AvailableChain.FGSA.StoreBundle.cstore ff4be3db65bcffb9
-field AvailableChain.FGSA.StoreBundle.meta 2d8549f2f1445db7
-field AvailableChain.FGSA.StoreBundle.nest d8ac747570bb5e6c
-field AvailableChain.FGSA.StoreBundle.lease ffb1f85f36f5636d
-def AvailableChain.FGSA.StoreBundleInvariant 8ef4f06bb69a1750
-theorem AvailableChain.FGSA.StoreBundleInvariant_def 500ba4f0a1e364a4
-def AvailableChain.FGSA.FMonotone d88c5d37bee7874a
-def AvailableChain.FGSA.MetadataInvariant a9c25d5970c6ec6a
+def AvailableChain.FGSA.OutputNestingStored fc8b44e7de347a4d
+def AvailableChain.FGSA.StoreInvariant 0e45d2cf5f139e27
+structure AvailableChain.FGSA.StoreBundle 3ed7e1a89ee9734d
+ctor AvailableChain.FGSA.StoreBundle.mk b4e59e34b0cd6606
+field AvailableChain.FGSA.StoreBundle.cstore d1bd9e027de5c439
+field AvailableChain.FGSA.StoreBundle.meta 86acdee99beaac27
+field AvailableChain.FGSA.StoreBundle.nest f148a72dd3aeac58
+field AvailableChain.FGSA.StoreBundle.lease 94fc9c3eeef6ae05
+def AvailableChain.FGSA.StoreBundleInvariant f36a89c0824f2bbc
+theorem AvailableChain.FGSA.StoreBundleInvariant_def 17a9a027e220d898
+def AvailableChain.FGSA.FMonotone 997812adaed071f2
+def AvailableChain.FGSA.MetadataInvariant 1a43f749c669202e
 ```
 
 ## `AvailableChainFGSARun`
@@ -99,79 +100,79 @@ def AvailableChain.FGSA.MetadataInvariant a9c25d5970c6ec6a
 ### `AvailableChainFGSARun.Statements.AC`
 
 ```text
-def AvailableChain.FGSA.Run.fgsaAC a24636d781e6a379
+def AvailableChain.FGSA.Run.fgsaAC 3dd5cfbf39f77c59
 ```
 
 ### `AvailableChainFGSARun.Statements.Acceptance`
 
 ```text
-def AvailableChain.FGSA.Run.fgsaAdmissionTime 5a24d5a7aeb94175
-def AvailableChain.FGSA.Run.fgsaTimely fcf504746459e1fa
+def AvailableChain.FGSA.Run.fgsaAdmissionTime 125ef115ff9f9458
+def AvailableChain.FGSA.Run.fgsaTimely cc013efc3ef4b7c4
 def AvailableChain.FGSA.Run.fgsaAcceptanceInv bfb9c63bb709ea85
-def AvailableChain.FGSA.Run.fgsaTrigger 444e05cfb77d1de4
+def AvailableChain.FGSA.Run.fgsaTrigger 4c563adf00e16df0
 ```
 
 ### `AvailableChainFGSARun.Statements.Client`
 
 ```text
-def AvailableChain.FGSA.Run.EmitsRow c63f711563e5793b
-def AvailableChain.FGSA.Run.EmittedRowsNoSlash a3163750992050bc
-def AvailableChain.FGSA.Run.decodeRowObject 9be96723480d8b10
-def AvailableChain.FGSA.Run.fgClientEvent 493661c0e29d1bf9
-def AvailableChain.FGSA.Run.fgClientEvents e9aba1b9b06ce593
+def AvailableChain.FGSA.Run.EmitsRow c231d91fabf02ff2
+def AvailableChain.FGSA.Run.EmittedRowsNoSlash 5fad5b120530a728
+def AvailableChain.FGSA.Run.decodeRowObject edb41e1a5863faa8
+def AvailableChain.FGSA.Run.fgClientEvent 23fd92aa64c3b34d
+def AvailableChain.FGSA.Run.fgClientEvents 4636395814a705f7
 ```
 
 ### `AvailableChainFGSARun.Statements.Emission`
 
 ```text
-def AvailableChain.FGSA.Run.EmissionRowsValid afc79bdc5378f587
+def AvailableChain.FGSA.Run.EmissionRowsValid 28980a41f78a6dd3
 def AvailableChain.FGSA.Run.decode c06272443aaec6cb
-def AvailableChain.FGSA.Run.HonestEmissionWellFormed 3e7d37efcbe07bed
-def AvailableChain.FGSA.Run.HonestProposalDecodes 427726e6a20714a6
+def AvailableChain.FGSA.Run.HonestEmissionWellFormed c10e2089994e17c0
+def AvailableChain.FGSA.Run.HonestProposalDecodes 3d0ba57961b5f05c
 ```
 
 ### `AvailableChainFGSARun.Statements.Excludes`
 
 ```text
-inductive AvailableChain.FGSA.Run.EpochStep 7abf4af6e699de0d
-ctor AvailableChain.FGSA.Run.EpochStep.deliver d1ab595395e70913
-ctor AvailableChain.FGSA.Run.EpochStep.clock 453a830ba19d8c73
-def AvailableChain.FGSA.Run.Epoch e3eb270a65a419c3
-def AvailableChain.FGSA.Run.excludesFixed bd11d81ffefde495
+inductive AvailableChain.FGSA.Run.EpochStep ac8e6ccad8c70539
+ctor AvailableChain.FGSA.Run.EpochStep.deliver 44dc247048dd0bdf
+ctor AvailableChain.FGSA.Run.EpochStep.clock 88575ec15646fdc3
+def AvailableChain.FGSA.Run.Epoch c5d95b2bb576d0df
+def AvailableChain.FGSA.Run.excludesFixed 99f1d66534b5de44
 ```
 
 ### `AvailableChainFGSARun.Statements.Interface`
 
 ```text
-def AvailableChain.FGSA.Run.fgsaInterface bd86aa5f5df805cb
-def AvailableChain.FGSA.Run.fgsaOutputs 2a91d07c031d4c8b
+def AvailableChain.FGSA.Run.fgsaInterface 592ec9e38803db69
+def AvailableChain.FGSA.Run.fgsaOutputs 05ade1602887227f
 def AvailableChain.FGSA.Run.finalizedOut eb13de3f9e21b2a8
 ```
 
 ### `AvailableChainFGSARun.Statements.ReceiptCoverage`
 
 ```text
-structure AvailableChain.FGSA.Run.ReceiptCoveragePremises d6634e19f5c18c0c
-ctor AvailableChain.FGSA.Run.ReceiptCoveragePremises.mk 1950337ea93bc2c1
-field AvailableChain.FGSA.Run.ReceiptCoveragePremises.within aff49a1af66fc149
-field AvailableChain.FGSA.Run.ReceiptCoveragePremises.slotWindow d9a73e72784c38dd
-field AvailableChain.FGSA.Run.ReceiptCoveragePremises.compat 926fb680a277fe9c
-field AvailableChain.FGSA.Run.ReceiptCoveragePremises.deadline 025e7df9c49cdf66
-def AvailableChain.FGSA.Run.ReceiptCoverageStatement cc234e43f161b161
-theorem AvailableChain.FGSA.Run.ReceiptCoverageStatement_def 414eecaab2d0bcbb
+structure AvailableChain.FGSA.Run.ReceiptCoveragePremises 659b12fe9de22825
+ctor AvailableChain.FGSA.Run.ReceiptCoveragePremises.mk 96e7238be0fde851
+field AvailableChain.FGSA.Run.ReceiptCoveragePremises.within 4485ca6aab7c531f
+field AvailableChain.FGSA.Run.ReceiptCoveragePremises.slotWindow 3aee28382b5c7444
+field AvailableChain.FGSA.Run.ReceiptCoveragePremises.compat 3101562d352f4a5a
+field AvailableChain.FGSA.Run.ReceiptCoveragePremises.deadline 1e4eeb4f350adddd
+def AvailableChain.FGSA.Run.ReceiptCoverageStatement 6d58fcadd2083b4c
+theorem AvailableChain.FGSA.Run.ReceiptCoverageStatement_def e1989d3236c04221
 ```
 
 ### `AvailableChainFGSARun.Statements.Receipts`
 
 ```text
-def AvailableChain.FGSA.Run.blockOf? 237207ab41bcc56a
+def AvailableChain.FGSA.Run.blockOf? d87770b19fcbcf65
 ```
 
 ### `AvailableChainFGSARun.Statements.Slashing`
 
 ```text
 def AvailableChain.FGSA.Run.fgsaEvidence 9eba3b221236d864
-def AvailableChain.FGSA.Run.fgsaSlashing d564d01aac96189c
+def AvailableChain.FGSA.Run.fgsaSlashing 96af9fb016428e91
 ```
 
 ## `AvailableChainFGSAClaims`

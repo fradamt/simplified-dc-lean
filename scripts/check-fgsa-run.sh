@@ -42,7 +42,11 @@ AX_OPTS=(--expect Run.EmissionRowsValid Run.decode Run.HonestEmissionWellFormed
   Run.epoch_of_restartFree Run.excludes_stable_epoch Run.excludesFixed_stable_epoch
   Run.restore_st Run.restore_rec Run.clock_rec Run.process_rec Run.recordOwn_st
   Run.process_base_now Run.clock_vn Run.process_votes_subset Run.excludesS_process
-  Run.rowCount Run.rowExcl Run.rowExcl_iff Run.Epoch.weaken Run.decode_eq_vote
+  Run.fgsa_dutiesInjectiveAt Run.fgsa_emitOnceUnder
+  Run.fgsa_head_singleDuty Run.fgsa_prop_singleDuty Run.invalidForParent_mono
+  Run.invalidForParent_clock Run.admitBlock_of_invalidForParent Run.invalidForParent_no_carried
+  Run.propose_rowsValid Run.fgsa_accepted_rowsValid Run.fgsa_trigger_rowsValid
+  Run.fgsa_trigger_invalid_false Run.Epoch.weaken Run.decode_eq_vote
   Run.decode_eq_block Run.rowWire_decode
   Run.fgsaInterface Run.fgsaOutputs Run.finalizedOut Run.proposalTime_fgsa
   Run.propLabel_injective Run.fgsaClock Run.fgsa_monoAlong_preceq_F

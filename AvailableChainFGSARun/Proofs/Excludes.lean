@@ -4,7 +4,7 @@ public import AvailableChainFGSA.Proofs.Reconcile
 public import AvailableChainFGSA.Proofs.Metadata
 public import AvailableChainFGSARun.Statements.Excludes
 public import AvailableChainFGSARun.Proofs.Protocol
-public import AvailableChainEngineV2.Conditions.Schedule
+public import AvailableChainEngineV2.Conditions.Duty.Schedule
 
 public section
 
@@ -14,7 +14,7 @@ public section
 
 * One state (`excludesS_inert`, `excludes_inert`): at EVERY store state, the
   delivery of an excluded object does not change the state. This is the
-  one-state field of the frozen `V2.HooksSound`.
+  one-state field of the frozen `V2.D.HooksSound`.
 * One epoch (`excludes_inert_epoch`): an exclusion holds, and its delivery
   is a no-op, at every later state of the same restart epoch with a clock
   that does not go back (`Epoch p true`). The clock-free exclusions
@@ -23,7 +23,7 @@ public section
 * Runs (`excludes_stable_epoch`): on a restart-free interval of a run whose
   ticks of the node do not move its store clock back, the exclusion is kept
   and the delivery is a no-op. This is the stability field of
-  `V2.HooksSound` with the clock premise explicit.
+  `V2.D.HooksSound` with the clock premise explicit.
 
 The Grid CO vote facts are proved here from the model: T7 imports no Grid CO
 proof module (plan §3.1). They and the other general-purpose helpers (clock
@@ -227,15 +227,15 @@ theorem excludesS_of_vote (st : State p.n) {o : Obj p} {s : Slot} {i : Fin p.n} 
     excludesS p st o = GridCO.excludes p.toParams.engine st.base ⟨.seat s i, .head b⟩ := by
   unfold excludesS; rw [hd]; rfl
 
-theorem excludesS_of_row (st : State p.n) {o : Obj p} {r : Nat} {i : Fin p.n} {body : RowBody}
-    (hd : (toWire p o).decode = some (.row r i body)) :
-    excludesS p st o = rowExcl p st ⟨.seat (.fg r) i, body⟩ r i := by
+theorem excludesS_of_row (st : State p.n) {o : Obj p} {i : Fin p.n} {body : RowPayload}
+    (hd : (toWire p o).decode = some (.row i body)) :
+    excludesS p st o = false := by
   unfold excludesS; rw [hd]
 
 theorem excludesS_of_block (st : State p.n) {o : Obj p} {s : Slot} {b : Block}
     {raw sup : List (HeadWire p.n)} {rows : List (RowWire p.n)}
     (hd : (toWire p o).decode = some (.block s b raw sup rows)) :
-    excludesS p st o = blockExcluded st b := by
+    excludesS p st o = (blockExcluded st b || invalidForParent p st b rows) := by
   unfold excludesS; rw [hd]
 
 theorem excludesS_of_none (st : State p.n) {o : Obj p} (hd : (toWire p o).decode = none) :
@@ -246,27 +246,10 @@ theorem excludesS_of_none (st : State p.n) {o : Obj p} (hd : (toWire p o).decode
 
 /-- (ii) The decode round trip of a row: the row wire that `excludesS` rebuilds
 from the decode is the row wire that `FGSA.process` gives to `admitRow`. -/
-theorem row_wire_roundtrip {o : Obj p} {r : Nat} {i : Fin p.n} {body : RowBody}
-    (hd : (toWire p o).decode = some (.row r i body)) :
-    (⟨(toWire p o).auth, body⟩ : RowWire p.n) = ⟨.seat (.fg r) i, body⟩ := by
+theorem row_wire_roundtrip {o : Obj p} {i : Fin p.n} {body : RowPayload}
+    (hd : (toWire p o).decode = some (.row i body)) :
+    (⟨(toWire p o).auth, body⟩ : RowWire p.n) = ⟨.seat .fg i, body⟩ := by
   rw [decode_eq_row.mp hd]
-
-/-- An excluded row is refused: `admitRow` returns the state. -/
-theorem admitRow_of_rowExcl (st : State p.n) {r : Nat} {i : Fin p.n} {body : RowBody}
-    (h : rowExcl p st ⟨.seat (.fg r) i, body⟩ r i = true) :
-    admitRow p st ⟨.seat (.fg r) i, body⟩ = st := by
-  -- v4.34.1: without it `rw [ite_eq_left]` finds no pattern in the unfolded `admitRow`.
-  set_option backward.isDefEq.respectTransparency false in
-  unfold rowExcl at h
-  unfold admitRow
-  simp only [RowWire.decode?]
-  rw [ite_eq_left]
-  simp only [Bool.and_eq_true, Bool.not_eq_true', decide_eq_false_iff_not, Bool.or_eq_true,
-    decide_eq_true_eq] at h
-  simp only [Bool.or_eq_true, decide_eq_true_eq]
-  rcases h.2 with h2 | h2
-  · exact Or.inl (Or.inl (Or.inl h2))
-  · exact Or.inr h2
 
 /-- (iii) A proposal whose block is not compatible with F is refused:
 `admitBlock` returns the state. If the FG parent is not stored, `admitBlock`
@@ -292,6 +275,44 @@ theorem admitBlock_of_blockExcluded (st : State p.n) (s : Slot) (b : Block)
       rw [block_compatible_comm]; exact block_compatible_of_preceq hpre
     simp [blockExcluded, activeCompatible, hc] at h
 
+/-- [R6] Invalidity is permanent when the store keeps the exact parent. -/
+theorem invalidForParent_mono (st st' : State p.n) (hsub : st.fg.TF ⊆ st'.fg.TF)
+    (b : Block) (rows : List (RowWire p.n)) (h : invalidForParent p st b rows = true) :
+    invalidForParent p st' b rows = true := by
+  cases hP : parentFG st b with
+  | none => simp [invalidForParent, hP] at h
+  | some P =>
+      obtain ⟨hm, he⟩ := (parentFG_spec st (rootInj_all st) b P).mp hP
+      have hP' := (parentFG_spec st' (rootInj_all st') b P).mpr ⟨hsub hm, he⟩
+      simpa only [invalidForParent, hP, hP'] using h
+
+/-- [R6] A clock cannot change the parent lookup or its derived state. -/
+theorem invalidForParent_clock (st : State p.n) (t : Time) (b : Block)
+    (rows : List (RowWire p.n)) :
+    invalidForParent p (FGSA.clock p st t) b rows = invalidForParent p st b rows := by
+  simp only [invalidForParent, parentFG, clock_fg]
+
+/-- [R6] Invalidity causes refusal without writes. -/
+theorem admitBlock_of_invalidForParent (st : State p.n) (s : Slot) (b : Block)
+    (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
+    (h : invalidForParent p st b rows = true) :
+    admitBlock p st s b raw sup rows = st := by
+  cases hP : parentFG st b with
+  | none => simp [invalidForParent, hP] at h
+  | some P =>
+      have hv : rowsValidForParent p P b.slot rows = false := by
+        simpa only [invalidForParent, hP, Bool.not_eq_true'] using h
+      exact admitBlock_invalid_rows p st s b raw sup rows P hP hv
+
+/-- [R6] A refused invalid proposal cannot call a carried object's handler. -/
+theorem invalidForParent_no_carried (st : State p.n) (s : Slot) (b : Block)
+    (rows : List (RowWire p.n))
+    (h : invalidForParent p st b rows = true) :
+    ¬ ∃ P, parentFG st b = some P ∧ blockAccepted p st s b P rows = true := by
+  rintro ⟨P, hP, ha⟩
+  have hv := blockAccepted_rowsValid ha
+  simp [invalidForParent, hP, hv] at h
+
 /-- The delivery of an excluded object does not change the store, at every
 store state. -/
 theorem excludesS_inert (st : State p.n) (o : Obj p) (h : excludesS p st o = true) :
@@ -302,16 +323,17 @@ theorem excludesS_inert (st : State p.n) (o : Obj p) (h : excludesS p st o = tru
     rw [excludesS_of_vote st hd] at h
     unfold admitHead
     rw [grid_admitVote_of_excludes _ _ h]
-  · rename_i r i body hd
-    rw [excludesS_of_row st hd] at h
-    rw [row_wire_roundtrip hd]
-    exact admitRow_of_rowExcl st h
+  · rename_i i body hd
+    simp only [excludesS_of_row st hd, Bool.false_eq_true] at h
   · rename_i s b raw sup rows hd
     rw [excludesS_of_block st hd] at h
-    exact admitBlock_of_blockExcluded st s b raw sup rows h
+    simp only [Bool.or_eq_true] at h
+    rcases h with h | h
+    · exact admitBlock_of_blockExcluded st s b raw sup rows h
+    · exact admitBlock_of_invalidForParent st s b raw sup rows h
   · rfl
 
-/-- [HooksSound `excludes_inert`] The one-state field of `V2.HooksSound` for
+/-- [HooksSound `excludes_inert`] The one-state field of `V2.D.HooksSound` for
 `fgsa p c`: at EVERY state, the delivery of an excluded object does not change
 the state. No run, schedule or restart premise. -/
 theorem excludes_inert {In : Type} (c : AppCodec In) :
@@ -328,7 +350,7 @@ namespace Internal
 theorem admitRow_base (st : State p.n) (a : RowWire p.n) : (admitRow p st a).base = st.base := by
   unfold admitRow
   split
-  · dsimp only; split <;> rfl
+  · split <;> rfl
   · rfl
 
 theorem foldl_admitRow_base (rows : List (RowWire p.n)) (st : State p.n) :
@@ -385,69 +407,6 @@ theorem process_keeps_grid (st : State p.n) (w : Wire p.n) (v : GridCO.Wire p.n)
       · exact h
   · exact h
 
-/-- `rowExcl` reads only the row pool and the store clock. -/
-theorem rowExcl_congr {st st' : State p.n} (hp : st'.rowPool = st.rowPool)
-    (hn : st'.base.now = st.base.now) (a : RowWire p.n) (r : Nat) (i : Fin p.n) :
-    rowExcl p st' a r i = rowExcl p st a r i := by
-  unfold rowExcl rowCount State.slot
-  rw [hp, hn]
-
-theorem rowExcl_of_congr {st st' : State p.n} {a : RowWire p.n} {r : Nat} {i : Fin p.n}
-    (h : rowExcl p st a r i = true) (hp : st'.rowPool = st.rowPool)
-    (hn : st'.base.now = st.base.now) : rowExcl p st' a r i = true :=
-  (rowExcl_congr hp hn a r i).trans h
-
-/-- A row call keeps a row exclusion: an excluded row is refused, and another
-row only makes the pool longer. -/
-theorem admitRow_keeps (st : State p.n) (a' : RowWire p.n) {r : Nat} {i : Fin p.n}
-    {body : RowBody} (h : rowExcl p st ⟨.seat (.fg r) i, body⟩ r i = true) :
-    rowExcl p (admitRow p st a') ⟨.seat (.fg r) i, body⟩ r i = true := by
-  by_cases ha : a' = ⟨.seat (.fg r) i, body⟩
-  · subst ha; rw [admitRow_of_rowExcl st h]; exact h
-  unfold admitRow
-  split
-  · dsimp only
-    split
-    · exact h
-    · unfold rowExcl rowCount at h ⊢
-      simp only [State.slot, Bool.and_eq_true, Bool.not_eq_true', decide_eq_false_iff_not,
-        Bool.or_eq_true, decide_eq_true_eq] at h ⊢
-      refine ⟨?_, ?_⟩
-      · simp only [List.mem_append, List.mem_singleton, not_or]
-        exact ⟨h.1, fun e => ha e.symm⟩
-      · rcases h.2 with h2 | h2
-        · exact Or.inl h2
-        · right
-          rw [List.filter_append, List.length_append]
-          omega
-  · exact h
-
-theorem foldl_admitRow_keeps (rows : List (RowWire p.n)) (st : State p.n) {r : Nat}
-    {i : Fin p.n} {body : RowBody} (h : rowExcl p st ⟨.seat (.fg r) i, body⟩ r i = true) :
-    rowExcl p (rows.foldl (admitRow p) st) ⟨.seat (.fg r) i, body⟩ r i = true := by
-  induction rows generalizing st with
-  | nil => exact h
-  | cons a rows ih => exact ih _ (admitRow_keeps st a h)
-
-/-- A delivery keeps a row exclusion. -/
-theorem process_keeps_row (st : State p.n) (w : Wire p.n) {r : Nat} {i : Fin p.n}
-    {body : RowBody} (h : rowExcl p st ⟨.seat (.fg r) i, body⟩ r i = true) :
-    rowExcl p (FGSA.process p st w) ⟨.seat (.fg r) i, body⟩ r i = true := by
-  unfold FGSA.process
-  split
-  · refine rowExcl_of_congr h rfl ?_
-    exact grid_admitVote_now _ _
-  · exact admitRow_keeps st _ h
-  · unfold admitBlock
-    split
-    · exact h
-    · split_ifs
-      · apply foldl_admitRow_keeps
-        refine rowExcl_of_congr h (ite_reconcile _ _).2.2 ?_
-        exact (ite_reconcile _ _).2.1.trans (grid_admitProposal_now _ _ _ _)
-      · exact h
-  · exact h
-
 /-- A delivery keeps a block exclusion: F moves only to a descendant. -/
 theorem process_keeps_block (st : State p.n) (w : Wire p.n) (b : Block)
     (h : blockExcluded st b = true) : blockExcluded (FGSA.process p st w) b = true :=
@@ -462,10 +421,12 @@ theorem excludesS_process (st : State p.n) (w : Wire p.n) (o : Obj p)
       cases x with
       | vote s i b =>
           rw [excludesS_of_vote _ hd] at h ⊢; exact process_keeps_grid st w _ h
-      | row r i body =>
-          rw [excludesS_of_row _ hd] at h ⊢; exact process_keeps_row st w h
+      | row i body =>
+          simp only [excludesS_of_row _ hd, Bool.false_eq_true] at h
       | block s b raw sup rows =>
-          rw [excludesS_of_block _ hd] at h ⊢; exact process_keeps_block st w b h
+          rw [excludesS_of_block _ hd, Bool.or_eq_true] at h ⊢
+          exact h.imp (process_keeps_block st w b)
+            (invalidForParent_mono st _ (process_cumulative p st w).1 b rows)
 
 namespace Internal
 
@@ -558,16 +519,10 @@ theorem excludesS_clock (st : State p.n) (t : Time) (ht : st.base.now ≤ t) (o 
           rw [hv, hn, hva]
           refine ⟨h.1, h.2.imp (fun hl => lt_of_lt_of_le hl ?_) id⟩
           exact slotOf_mono (p := p) ht
-      | row r i body =>
-          rw [excludesS_of_row _ hd] at h ⊢
-          unfold rowExcl rowCount State.slot at h ⊢
-          rw [clock_rowPool, hn]
-          simp only [Bool.and_eq_true, Bool.or_eq_true, decide_eq_true_eq] at h ⊢
-          refine ⟨h.1, h.2.imp (fun hl => lt_of_lt_of_le hl ?_) id⟩
-          exact Nat.div_le_div_right (slotOf_mono (p := p) ht)
+      | row i body => simp only [excludesS_of_row _ hd, Bool.false_eq_true] at h
       | block s b raw sup rows =>
           rw [excludesS_of_block _ hd] at h ⊢
-          simpa only [blockExcluded, activeCompatible, clock_F_eq] using h
+          simpa only [blockExcluded, activeCompatible, clock_F_eq, invalidForParent_clock] using h
 
 /-! ### Clock-free exclusions -/
 
@@ -577,17 +532,15 @@ theorem excludesFixed_of_vote (st : State p.n) {o : Obj p} {s : Slot} {i : Fin p
       GridCO.equivocates (GridCO.votesAt st.base s) i) := by
   unfold excludesFixed; rw [hd]; rfl
 
-theorem excludesFixed_of_row (st : State p.n) {o : Obj p} {r : Nat} {i : Fin p.n}
-    {body : RowBody} (hd : (toWire p o).decode = some (.row r i body)) :
-    excludesFixed p st o =
-      (!decide ((⟨.seat (.fg r) i, body⟩ : RowWire p.n) ∈ st.rowPool) &&
-        decide (2 ≤ rowCount st r i)) := by
+theorem excludesFixed_of_row (st : State p.n) {o : Obj p} {i : Fin p.n}
+    {body : RowPayload} (hd : (toWire p o).decode = some (.row i body)) :
+    excludesFixed p st o = false := by
   unfold excludesFixed; rw [hd]
 
 theorem excludesFixed_of_block (st : State p.n) {o : Obj p} {s : Slot} {b : Block}
     {raw sup : List (HeadWire p.n)} {rows : List (RowWire p.n)}
     (hd : (toWire p o).decode = some (.block s b raw sup rows)) :
-    excludesFixed p st o = blockExcluded st b := by
+    excludesFixed p st o = (blockExcluded st b || invalidForParent p st b rows) := by
   unfold excludesFixed; rw [hd]
 
 theorem excludesFixed_of_none (st : State p.n) {o : Obj p} (hd : (toWire p o).decode = none) :
@@ -605,11 +558,7 @@ theorem excludesFixed_excludesS (st : State p.n) (o : Obj p) (h : excludesFixed 
           rw [excludesFixed_of_vote _ hd] at h; rw [excludesS_of_vote _ hd]
           simp only [Bool.and_eq_true, Bool.not_eq_true', decide_eq_false_iff_not] at h
           exact (grid_excludes_head_iff st.base s i b).mpr ⟨h.1, Or.inr h.2⟩
-      | row r i body =>
-          rw [excludesFixed_of_row _ hd] at h; rw [excludesS_of_row _ hd]
-          unfold rowExcl
-          simp only [Bool.and_eq_true, Bool.or_eq_true] at h ⊢
-          exact ⟨h.1, Or.inr h.2⟩
+      | row i body => simp only [excludesFixed_of_row _ hd, Bool.false_eq_true] at h
       | block s b raw sup rows =>
           rw [excludesFixed_of_block _ hd] at h; rw [excludesS_of_block _ hd]; exact h
 
@@ -627,24 +576,18 @@ theorem excludesFixed_process (st : State p.n) (w : Wire p.n) (o : Obj p)
           simp only [Bool.and_eq_true, Bool.not_eq_true', decide_eq_false_iff_not] at h ⊢
           exact ⟨hx.1, grid_equivocates_mono _ _ i
             (grid_votesAt_subset _ _ s (process_votes_subset st w)) h.2⟩
-      | row r i body =>
-          rw [excludesFixed_of_row _ hd] at h ⊢
-          rw [excludesS_of_row _ hd] at hx
-          unfold rowExcl rowCount at hx
-          unfold rowCount at h ⊢
-          simp only [Bool.and_eq_true, Bool.or_eq_true, decide_eq_true_eq] at h hx ⊢
-          refine ⟨hx.1, le_trans h.2 ?_⟩
-          exact ((process_cumulative p st w).2.2.2.2.2.filter _).length_le
+      | row i body => simp only [excludesFixed_of_row _ hd, Bool.false_eq_true] at h
       | block s b raw sup rows =>
-          rw [excludesFixed_of_block _ hd] at h ⊢; exact process_keeps_block st w b h
+          rw [excludesFixed_of_block _ hd, Bool.or_eq_true] at h ⊢
+          exact h.imp (process_keeps_block st w b)
+            (invalidForParent_mono st _ (process_cumulative p st w).1 b rows)
 
 /-- A tick, at any time, keeps a clock-free exclusion: it keeps the votes, the
 row pool and F. -/
 theorem excludesFixed_clock (st : State p.n) (t : Time) (o : Obj p) :
     excludesFixed p (FGSA.clock p st t) o = excludesFixed p st o := by
-  unfold excludesFixed rowCount
-  rw [(clock_vn st t).1, clock_rowPool]
-  simp only [GridCO.votesAt, (clock_vn st t).1, blockExcluded, activeCompatible, clock_F_eq]
+  simp only [excludesFixed, GridCO.votesAt, (clock_vn st t).1,
+    blockExcluded, activeCompatible, clock_F_eq, invalidForParent_clock]
 
 /-! ### One epoch -/
 
@@ -665,7 +608,7 @@ theorem excludes_inert_epoch {st st' : State p.n} (hE : Epoch p true st st') {o 
   exact ⟨hx, excludesS_inert st' o hx⟩
 
 /-- [`excludes_inert`, clock-free form] The clock-free exclusions (a proposal
-not compatible with F, an equivocating HEAD, a capped row) hold, and their
+that conflicts with F or fails R6, or an equivocating HEAD) hold, and their
 delivery is a no-op, at every later state of the epoch, with any ticks: only
 the old-label exclusions need a clock that does not go back. -/
 theorem excludesFixed_inert_epoch {mono : Bool} {st st' : State p.n} (hE : Epoch p mono st st')
@@ -701,11 +644,11 @@ variable {In : Type} {c : AppCodec In} {V : Type} [DecidableEq V]
 interval must not move its store clock back. A tick changes the store by
 `FGSA.clock` (`tick_st`), a delivery by `FGSA.process`, and an event of another
 node does not change it. -/
-theorem epoch_of_restartFree (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) (v : V)
-    (mono : Bool) {i j : Nat} (hij : i ≤ j) (hrf : V2.restartFree rho v i j)
+theorem epoch_of_restartFree (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (v : V)
+    (mono : Bool) {i j : Nat} (hij : i ≤ j) (hrf : V2.D.restartFree rho v i j)
     (hmono : mono = true → ∀ k t, i ≤ k → k < j → rho.events[k]? = some (.tick v t) →
-      (V2.Run.stateBefore E rho k v).st.base.now ≤ t) :
-    Epoch p mono (V2.Run.stateBefore E rho i v).st (V2.Run.stateBefore E rho j v).st := by
+      (V2.D.Run.stateBefore E rho k v).st.base.now ≤ t) :
+    Epoch p mono (V2.D.Run.stateBefore E rho i v).st (V2.D.Run.stateBefore E rho j v).st := by
   -- v4.34.1: without it `rw [tick_st]` finds no pattern after `Function.update_self`.
   set_option backward.isDefEq.respectTransparency false in
   induction j, hij using Nat.le_induction with
@@ -716,52 +659,52 @@ theorem epoch_of_restartFree (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) (v 
       cases he : rho.events[j]? with
       | none =>
           have hl : rho.events.length ≤ j := List.getElem?_eq_none_iff.mp he
-          have hs : V2.Run.stateBefore E rho (j + 1) = V2.Run.stateBefore E rho j := by
-            unfold V2.Run.stateBefore
+          have hs : V2.D.Run.stateBefore E rho (j + 1) = V2.D.Run.stateBefore E rho j := by
+            unfold V2.D.Run.stateBefore
             rw [List.take_of_length_le (by omega), List.take_of_length_le hl]
           rw [hs]; exact ih'
       | some e =>
-          rw [V2.Run.stateBefore_succ E rho he]
+          rw [V2.D.Run.stateBefore_succ E rho he]
           cases e with
           | restart w t =>
               by_cases hw : w = v
               · subst hw; exact absurd he (hrf j t hij (by omega))
-              · simp only [V2.World.step, Function.update_of_ne (Ne.symm hw)]; exact ih'
+              · simp only [V2.D.World.step, Function.update_of_ne (Ne.symm hw)]; exact ih'
           | tick w t =>
               by_cases hw : w = v
               · subst hw
-                simp only [V2.World.step, Function.update_self]
+                simp only [V2.D.World.step, Function.update_self]
                 rw [tick_st]
                 exact ih'.tail (EpochStep.clock _ t (fun hm => hmono hm j t hij (by omega) he))
-              · simp only [V2.World.step, Function.update_of_ne (Ne.symm hw)]; exact ih'
+              · simp only [V2.D.World.step, Function.update_of_ne (Ne.symm hw)]; exact ih'
           | deliver w o t =>
               by_cases hw : w = v
               · subst hw
-                simp only [V2.World.step, Function.update_self]
+                simp only [V2.D.World.step, Function.update_self]
                 exact ih'.tail (EpochStep.deliver _ (toWire p o))
-              · simp only [V2.World.step, Function.update_of_ne (Ne.symm hw)]; exact ih'
+              · simp only [V2.D.World.step, Function.update_of_ne (Ne.symm hw)]; exact ih'
 
 /-- [HooksSound `excludes_stable`, with the clock premise explicit] On a
 restart-free interval of a run whose ticks of `v` do not move the store clock of
 `v` back, an exclusion is kept, and the delivery of the excluded object is a
 no-op, at the end of the interval. -/
-theorem excludes_stable_epoch (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) (v : V)
-    (o : (fgsa p c).Object) {i j : Nat} (hij : i ≤ j) (hrf : V2.restartFree rho v i j)
+theorem excludes_stable_epoch (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (v : V)
+    (o : (fgsa p c).Object) {i j : Nat} (hij : i ≤ j) (hrf : V2.D.restartFree rho v i j)
     (hmono : ∀ k t, i ≤ k → k < j → rho.events[k]? = some (.tick v t) →
-      (V2.Run.stateBefore E rho k v).st.base.now ≤ t)
-    (h : (fgsa p c).excludes (V2.Run.stateBefore E rho i v) o = true) :
-    (fgsa p c).excludes (V2.Run.stateBefore E rho j v) o = true ∧
-      (fgsa p c).process (V2.Run.stateBefore E rho j v) o = V2.Run.stateBefore E rho j v := by
+      (V2.D.Run.stateBefore E rho k v).st.base.now ≤ t)
+    (h : (fgsa p c).excludes (V2.D.Run.stateBefore E rho i v) o = true) :
+    (fgsa p c).excludes (V2.D.Run.stateBefore E rho j v) o = true ∧
+      (fgsa p c).process (V2.D.Run.stateBefore E rho j v) o = V2.D.Run.stateBefore E rho j v := by
   have h' := excludes_inert_epoch (epoch_of_restartFree E rho v true hij hrf (fun _ => hmono)) h
   exact ⟨h'.1, excludes_inert c _ o h'.1⟩
 
 /-- The clock-free exclusions are kept on every restart-free interval of every
 run, with no clock premise. -/
-theorem excludesFixed_stable_epoch (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) (v : V)
-    (o : (fgsa p c).Object) {i j : Nat} (hij : i ≤ j) (hrf : V2.restartFree rho v i j)
-    (h : excludesFixed p (V2.Run.stateBefore E rho i v).st o = true) :
-    excludesFixed p (V2.Run.stateBefore E rho j v).st o = true ∧
-      (fgsa p c).process (V2.Run.stateBefore E rho j v) o = V2.Run.stateBefore E rho j v := by
+theorem excludesFixed_stable_epoch (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (v : V)
+    (o : (fgsa p c).Object) {i j : Nat} (hij : i ≤ j) (hrf : V2.D.restartFree rho v i j)
+    (h : excludesFixed p (V2.D.Run.stateBefore E rho i v).st o = true) :
+    excludesFixed p (V2.D.Run.stateBefore E rho j v).st o = true ∧
+      (fgsa p c).process (V2.D.Run.stateBefore E rho j v) o = V2.D.Run.stateBefore E rho j v := by
   have h' := excludesFixed_inert_epoch
     (epoch_of_restartFree E rho v false hij hrf (fun hm => absurd hm (by simp))) h
   exact ⟨h'.1, excludes_inert c _ o (excludesFixed_excludesS _ o h'.1)⟩
