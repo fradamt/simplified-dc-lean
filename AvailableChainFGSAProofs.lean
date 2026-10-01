@@ -8,6 +8,10 @@ public import AvailableChainFGSAProofs.Proofs.Shared.Channels
 public import AvailableChainFGSAProofs.Proofs.Shared.Claims
 public import AvailableChainFGSAProofs.Proofs.Clean.Interface
 public import AvailableChainFGSAProofs.Proofs.Foundations.Store
+public import AvailableChainFGSAProofs.Proofs.Shared.StoreRun
+public import AvailableChainFGSAProofs.Proofs.Shared.ScoreRun
+public import AvailableChainFGSAProofs.Proofs.Shared.GateReceipt
+public import AvailableChainFGSAProofs.Proofs.Shared.ExactService
 public import AvailableChainFGSAProofs.Proofs.Foundations.Certificates
 public import AvailableChainFGSAProofs.Proofs.Foundations.Leases
 public import AvailableChainFGSAProofs.Proofs.Foundations.Reconcile
@@ -42,6 +46,7 @@ public import AvailableChainFGSAProofs.Proofs.Assembly.Clean
 public import AvailableChainFGSAProofs.Proofs.Shared.HeadCover
 public import AvailableChainFGSAProofs.Proofs.Shared.HeadGeometry
 public import AvailableChainFGSAProofs.Proofs.Shared.KeepExact
+public import AvailableChainFGSAProofs.Proofs.Shared.ExactHead
 public import AvailableChainFGSAProofs.Proofs.Shared.Healed
 public import AvailableChainFGSAProofs.Proofs.Shared.Compose
 public import AvailableChainFGSAProofs.Proofs.Shared.OpeningSource
