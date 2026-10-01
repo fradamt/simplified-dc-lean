@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Run this checkout's source policy against a tracked copy of a worktree.
-# Sources, lakefile and guard list data come from the target; checker code is ours.
+# Sources, lakefile and policy data come from the target; checker code is ours.
 # The temporary Git index uses the target HEAD. No worktree or build is created.
 set -euo pipefail
 if [ $# -ne 1 ]; then
@@ -57,6 +57,43 @@ if [ -f "$target_root/scripts/check-fgsa-claims.sh" ]; then
   fi
 fi
 
+# Keep the target's allow lists and baselines; report changes for review.
+# Missing target files retain the policy copy from main.
+check=policy-data
+python3 - "$main_root" "$target_root" "$tree" "$scratch/policy-additions" <<'PY'
+from difflib import SequenceMatcher
+from pathlib import Path
+import shutil
+import sys
+
+main, target, tree, count_file = map(Path, sys.argv[1:])
+additions = 0
+files = sorted([*target.glob('scripts/*-allow.txt'),
+                *target.glob('scripts/baselines/*.txt')])
+for source in files:
+    if not source.is_file():
+        continue
+    relative = source.relative_to(target)
+    reference = main / relative
+    before = reference.read_text().splitlines() if reference.is_file() else []
+    after = source.read_text().splitlines()
+    removed = 0
+    for tag, i, j, k, l in SequenceMatcher(None, before, after, autojunk=False).get_opcodes():
+        if tag in ('replace', 'delete'):
+            removed += j - i
+        if tag in ('replace', 'insert'):
+            for line in after[k:l]:
+                print(f'POLICY DATA REVIEW: +{relative}: {line}')
+                additions += 1
+    if removed:
+        print(f'POLICY DATA: -{removed} {relative}')
+    destination = tree / relative
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(source, destination)
+count_file.write_text(str(additions))
+PY
+policy_additions=$(cat "$scratch/policy-additions")
+
 # GLY F-7/F-10 read Git history. Use read-only object stores with a private
 # index and refs, instead of adding a worktree to either checkout.
 check=git-snapshot
@@ -80,4 +117,8 @@ if [ "$rc" -ne 0 ]; then
   check=${check:-precheck}
   exit "$rc"
 fi
-echo "MAIN POLICY PASS main=${main_head:0:7} target=${target_head:0:7}"
+if [ "$policy_additions" -gt 0 ]; then
+  echo "MAIN POLICY PASS (with $policy_additions policy-data additions for review)"
+else
+  echo "MAIN POLICY PASS main=${main_head:0:7} target=${target_head:0:7}"
+fi

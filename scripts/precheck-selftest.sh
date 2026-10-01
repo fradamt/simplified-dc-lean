@@ -173,6 +173,73 @@ rc=0
 bash "$policy/scripts/precheck.sh" "$target" > "$scratch/lists-allow.log" 2>&1 || rc=$?
 expect_guard_pass guard-lists-allow "$rc" "$scratch/lists-allow.log"
 expect_no_build "$target"
+
+# Use the real expose checker for policy data, without another full scan.
+cp "$policy/scripts/check-fgsa-claims.sh" "$target/scripts/check-fgsa-claims.sh"
+cp "$policy/scripts/guard-lists-allow.txt" "$target/scripts/guard-lists-allow.txt"
+export POLICY_DATA_TARGET="$target"
+cat >> "$policy/scripts/gate-common.sh" <<'SH'
+gate_precheck() {
+  cmp scripts/baselines/check-expose.txt "$POLICY_DATA_TARGET/scripts/baselines/check-expose.txt" || return $?
+  gate_precheck_step check-expose python3 scripts/check-expose.py || return $?
+  echo 'PRECHECK PASS; build not started'
+}
+SH
+# Target checker code must not replace main's checker.
+printf 'raise SystemExit(99)\n' > "$target/scripts/check-expose.py"
+source_path=AvailableChainGeneric/Proofs/Pure/Walk.lean
+printf '\n@[expose] def precheckPolicyAllow : Nat := 0\n' >> "$target/$source_path"
+rc=0
+bash "$policy/scripts/precheck.sh" "$target" > "$scratch/data-no-allow.log" 2>&1 || rc=$?
+expect_rejection policy-data-no-allow "$rc" "$scratch/data-no-allow.log" 'precheckPolicyAllow (not in scripts/expose-allow.txt)'
+expect_no_build "$target"
+
+expect_policy_pass() {
+  local label=$1 rc=$2 log=$3 pattern=$4 summary=$5
+  if [ "$rc" -ne 0 ] || ! grep -qxF "$pattern" "$log" || [ "$(tail -n 1 "$log")" != "$summary" ]; then
+    cat "$log"
+    echo "SELFTEST FAIL: $label rc=$rc; expected $pattern and $summary" >&2
+    exit 1
+  fi
+  echo "$label rc=$rc"
+  echo "$pattern"
+  expect_no_build "$target"
+}
+allow_line="$source_path precheckPolicyAllow"
+printf '%s\n' "$allow_line" >> "$target/scripts/expose-allow.txt"
+rc=0
+bash "$policy/scripts/precheck.sh" "$target" > "$scratch/data-allow.log" 2>&1 || rc=$?
+expect_policy_pass policy-data-allow "$rc" "$scratch/data-allow.log" \
+  "POLICY DATA REVIEW: +scripts/expose-allow.txt: $allow_line" \
+  'MAIN POLICY PASS (with 1 policy-data additions for review)'
+
+# Remove a resolved finding and exactly one baseline entry.
+git show "$head:$source_path" > "$target/$source_path"
+cp "$policy/scripts/expose-allow.txt" "$target/scripts/expose-allow.txt"
+python3 - "$target" <<'PY'
+from pathlib import Path
+import sys
+root = Path(sys.argv[1])
+source = root / 'AvailableChainSAPC/Proofs/Archive.lean'
+text = source.read_text()
+assert text.count('@[expose] public section') == 1
+source.write_text(text.replace('@[expose] public section', 'public section'))
+baseline = root / 'scripts/baselines/check-expose.txt'
+text = baseline.read_text()
+entry = 'expose-section AvailableChainSAPC/Proofs/Archive.lean\n'
+assert text.count(entry) == 1
+baseline.write_text(text.replace(entry, ''))
+PY
+rc=0
+bash "$policy/scripts/precheck.sh" "$target" > "$scratch/data-baseline.log" 2>&1 || rc=$?
+expect_policy_pass policy-data-baseline "$rc" "$scratch/data-baseline.log" \
+  'POLICY DATA: -1 scripts/baselines/check-expose.txt' \
+  "MAIN POLICY PASS main=${head:0:7} target=${head:0:7}"
+if grep -qF 'POLICY DATA REVIEW:' "$scratch/data-baseline.log"; then
+  cat "$scratch/data-baseline.log"
+  echo 'SELFTEST FAIL: baseline removal reported additions' >&2
+  exit 1
+fi
 if [ -e "$PRECHECK_TOOL_SENTINEL" ]; then
   echo 'SELFTEST FAIL: Lean or Lake was called' >&2
   exit 1
