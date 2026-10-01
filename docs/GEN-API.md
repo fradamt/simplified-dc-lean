@@ -915,6 +915,7 @@ def AvailableChain.Gen.AC.Duty.GateOfCoveringBatchStatement be49196b9dc201c3
 theorem AvailableChain.Gen.AC.Duty.GateOfCoveringBatchStatement_def b6b05fa53faa17f7
 def AvailableChain.Gen.AC.Duty.SEqOfExactStatement 334e445ca9a3769f
 theorem AvailableChain.Gen.AC.Duty.SEqOfExactStatement_def fb6435d121703333
+```
 
 ### `AvailableChainGeneric.Statements.V2.Duty.DeliveryBy`
 
