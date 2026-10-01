@@ -1412,6 +1412,8 @@ unused imports, and negative controls. No baseline entries were added.
 │ OpeningSource.lean                              │                                     │
 │ AvailableChainFGSAProofs/Proofs/Shared/Channels │ Channel equations and row ordering  │
 │ .lean                                           │                                     │
+│ AvailableChainFGSAProofs/Proofs/Shared/StoreRun │ Cumulative run store metadata       │
+│ .lean                                           │                                     │
 │ AvailableChainFGSAProofs/Proofs/Clean/Closure   │ Inclusive history and source reads  │
 │ AvailableChainFGSAProofs/Proofs/Clean/GateOutput │ Conditional gate result below S    │
 │ .lean                                           │                                     │
