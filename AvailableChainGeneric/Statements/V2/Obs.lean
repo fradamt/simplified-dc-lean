@@ -22,7 +22,8 @@ output. Consumer: the time instance of the property kernel for SA
 (GLY:1541–1546), with `N := O.honest` and `out := O.out`.
 Use one record per output. This keeps the output type independent of the
 engine state. The other fields support the inclusion and liveness reads
-of I-4. An adapter must supply the observations and prove its read laws. -/
+of I-4. An adapter must supply the observations and prove its read laws.
+DC: Interface.lean:64–67; same: Require out = readAt; GLY r3.19 S102. -/
 structure Obs (V : Type) where
   honest : Set V
   horizon : Time

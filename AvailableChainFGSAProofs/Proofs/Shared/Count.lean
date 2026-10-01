@@ -129,36 +129,6 @@ theorem fgsa_active_support_of_receipt (E : Generic.Env V)
   simp only [hK, hslot, decide_true, Bool.true_and]
   exact hBK
 
-/-- P3 F1b.1, K8 (blueprint 00:700–713, 01:858–930). Class (ii),
-receipt/authenticity instance. DC: AdoptionTransport:157; same honest receipt
-conclusion, with FG-SA's explicit path and F-compatibility inputs.
-The K8 cap alternative is impossible for an emitted honest HEAD. -/
-theorem fgsa_covered_honest_head_receipt (E : Generic.Env V)
-    (rho : V2.Run V (fgsa p c)) (hE : V2.ExecutionValid E rho)
-    (hN : V2.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (dl : Time → Time) (cut D : Time) (first : Nat) (x : V) (B : Block)
-    (required : Obj p → Time → Prop) (paths : Block → Time → Prop)
-    (hx : x ∈ rho.honest)
-    (hcov : ReceiptCoveragePremises E rho dl cut D first x B required paths)
-    (s : Slot) (k : Fin p.n) (K : Block) (t : Time)
-    (hh : rho.seatOf (.base (.head s)) k ∈ rho.honest)
-    (he : V2.Run.emits E rho (rho.seatOf (.base (.head s)) k)
-      (ofHead p ⟨.seat (.head s) k, K⟩) t)
-    (hr : required (ofHead p ⟨.seat (.head s) k, K⟩) t) :
-    let st := (V2.Run.stateBeforeTime E rho D x).st
-    let o := baseVote (⟨.seat (.head s) k, K⟩ : HeadWire p.n)
-    o ∈ st.base.votes ∧ GridCO.stampVote st.base o < dl t := by
-  have hc := (fgsa_receiptCoverage E rho dl cut D first x B required paths
-    hDelta hE hN hx hcov).2 _ t s k K hr (by rw [toWire_ofHead]; rfl)
-  rcases hc with h | ⟨u, hu, v, hv, hne, hlu, hlv, hku, hkv, _, _⟩
-  · exact h
-  · rw [← Gen.V2.stateBefore_idxBefore E rho D hE.toScheduleWellFormed] at hu hv
-    have huEq := fgsa_honest_head_eq_of_stored E rho hE
-      (V2.Run.idxBefore rho D) x s k K t hh he u hu hlu hku
-    have hvEq := fgsa_honest_head_eq_of_stored E rho hE
-      (V2.Run.idxBefore rho D) x s k K t hh he v hv hlv hkv
-    exact (hne (huEq.trans hvEq.symm)).elim
-
 /-- P3 F1b.1, K8 and blueprint 02 §5.4:531–541. Class (ii), active path
 instance. DC: no exact counterpart for active F filtering. INTENTIONAL: compatibility
 through every intervening F (the K8 `compat` field, P3:4921–4929).

@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Run from the repository root. Freeze gates must use --tier full.
 # The three check scripts run in parallel and share one GATE_SLOTS cap.
-# Defaults: Mac 3, Linux 4; env wins. JOBS is only a per-script pool bound.
+# check-fgsa-claims.sh runs alone after them: its lake calls are not slot-capped
+# (NUC 2026-10-01: 282 s, peak 4.3 GiB; merge tier NEG=0 skips its compiled controls).
+# Defaults: Mac 3, Linux 3 (scripts/gate-common.sh); env wins. JOBS is only a per-script pool bound.
 # Linux requires a user scope with GATE_MEM (default 16G) and no swap; without it the gate refuses to run.
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -21,6 +23,18 @@ while [ $# -gt 0 ]; do
   esac
 done
 case "$tier" in auto|merge|full) ;; *) usage >&2; exit 2 ;; esac
+# Auto tier selection needs a base. Explicit tiers and critical-path mode
+# use a base when the caller supplies one.
+if [ -z "$base" ] && [ "$tier" = auto ] && [ "$critical_path" = 0 ]; then
+  base=$(git merge-base main HEAD) || {
+    echo "PRECHECK FAIL base; build not started" >&2
+    exit 2
+  }
+fi
+# Refuse a bad base before the Linux memory-scope probe as well.
+if [ -n "$base" ]; then
+  gate_precheck_step base gate_check_base "$base" || exit $?
+fi
 gate_jobs
 export JOBS
 
@@ -43,6 +57,8 @@ if [ "$(uname -s)" = Linux ]; then
     memory_limit="$memory_limit, swap=0"
   fi
 fi
+# FIRST gate step: no build, slot directory, logs or full-pass stamp yet.
+gate_precheck "$base" || exit $?
 # BUILD §7.7: the critical-path measurement is separate from the tiers (freeze gates and
 # weekly). It runs in the same memory scope; the caller holds the NUC lock.
 if [ "$critical_path" = 1 ]; then
@@ -68,7 +84,6 @@ tier_path() {
 }
 choose_tier() {
   if [ "$tier" != auto ]; then reason="explicit --tier $tier"; return; fi
-  if [ -z "$base" ]; then base=$(git merge-base main HEAD); fi
   base=$(git rev-parse --verify "$base^{commit}")
   git diff --no-ext-diff --no-renames --name-only -z "$base..HEAD" > "$logs/paths"
   git diff --no-ext-diff --no-renames --name-only -z HEAD >> "$logs/paths"
@@ -143,6 +158,11 @@ build_all() {
   local targets
   targets=$(gate_with_slot lake env lean --run scripts/CheckGenFirst.lean --libraries)
   [ -n "$targets" ] || { echo "CheckGenFirst returned no build targets"; return 1; }
+  # Build the full route-check scope before GATE_NO_BUILD is enabled.
+  local route_targets
+  route_targets=$(gate_with_slot lake env lean --run scripts/CheckFaultXRoute.lean --libraries) || return $?
+  [ -n "$route_targets" ] || { echo "CheckFaultXRoute returned no build targets"; return 1; }
+  targets="$targets $route_targets"
   # @ selects every default target of the root package, plus check support
   # and every module that CheckGenFirst scans (including facade orphans).
   GATE_NO_BUILD=0 gate_build --wfail @ AvailableChainCheckSupport $targets
@@ -168,6 +188,8 @@ step gen-manifest gate_with_slot lake env lean --run scripts/V2Manifest.lean --s
 summary gen-manifest
 step fgsa-manifest gate_with_slot bash scripts/check-fgsa-manifest.sh
 summary fgsa-manifest
+step fgsa-claims gate_with_slot bash scripts/check-fgsa-claims.sh
+summary fgsa-claims
 audit() {
   local path=$1 out=$2 rc=0 count
   gate_with_slot lake env lean "$path" > "$out" 2>&1 || rc=$?

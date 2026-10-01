@@ -28,6 +28,7 @@ theorem faulty_def [Fintype V] (rho : Run V P) :
   rw [faulty]
 
 -- P3:1541.
+/-- DC: Conditions.lean:158; same: Same honest filter; Bool to Prop; GLY r3.19 S098. -/
 def awakeHonest (E : Generic.Env V) (rho : Run V P) (t : Time) : Finset V :=
   rho.honest.filter (E.awake · t)
 

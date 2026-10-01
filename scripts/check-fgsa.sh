@@ -13,13 +13,16 @@
 # GATE_SLOTS caps shared controls and heavy steps (Mac 3, Linux 4; env wins).
 # JOBS alone does not set machine concurrency.
 # --no-negative or NEG=0 keeps all positive checks for the merge tier.
+# SOURCE_ONLY=1 runs the static checks and exits before compiled checks or controls.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 source scripts/gate-common.sh
-gate_options "$@"
-for f in scripts/CheckFGSAAxioms.lean scripts/CheckFGSALease.lean scripts/CheckFGSAExt.lean; do
-  [ -f "$f" ] || { echo "MISSING CHECK SCRIPT: $f"; exit 2; }
-done
+if [ "${SOURCE_ONLY:-0}" != 1 ]; then
+  gate_options "$@"
+  for f in scripts/CheckFGSAAxioms.lean scripts/CheckFGSALease.lean scripts/CheckFGSAExt.lean; do
+    [ -f "$f" ] || { echo "MISSING CHECK SCRIPT: $f"; exit 2; }
+  done
+fi
 
 # Remove comments with a small tokenizer that knows strings, character
 # literals, raw strings (r"...", r#"..."#) and nested block comments. A "--"
@@ -79,7 +82,8 @@ check_root_imports() {
 # AvailableChainGridCO.Model.Protocol, AvailableChainSA.Model.Protocol,
 # AvailableChainSimplexFG.*, Mathlib.*; AvailableChainGridCO.Proofs.* only in
 # Proofs/; AvailableChainKitFG.* only in Statements/ and Proofs/;
-# AvailableChainGeneric.Proofs.Pure.Fold only in Proofs/ (F-13 switch).
+# AvailableChainGeneric.Proofs.* only in Proofs/ (GEN-FIRST/F-31: FG-SA proofs instantiate
+# the Gen proofs; lead ruling 2026-10-01, SYN L56; was Proofs.Pure.Fold only, the F-13 switch).
 check_direct_imports() {
   local base=$1 bad=0 f rel layer m
   for f in $(source_files "$base") AvailableChainFGSA.lean; do
@@ -93,7 +97,7 @@ check_direct_imports() {
         Statements:AvailableChainFGSA.Model.*|Statements:AvailableChainFGSA.Statements.*) continue ;;
         Proofs:AvailableChainFGSA.Model.*|Proofs:AvailableChainFGSA.Statements.*) continue ;;
         Proofs:AvailableChainFGSA.Proofs.*) continue ;;
-        Proofs:AvailableChainGeneric.Proofs.Pure.Fold) continue ;;
+        Proofs:AvailableChainGeneric.Proofs.*) continue ;;
         root:*) ;;
         Model:*|Statements:*|Proofs:*|Tests:*)
           case "$m" in
@@ -123,12 +127,14 @@ check_boundary() {
   return $bad
 }
 
-echo "== lake build --wfail AvailableChainFGSA"
-gate_build --wfail AvailableChainFGSA
-# The check support library (scripts/AvailableChainCheckSupport/) is not a
-# default target: build it here, so that a clean checkout works.
-echo "== lake build --wfail AvailableChainCheckSupport"
-gate_build --wfail AvailableChainCheckSupport
+if [ "${SOURCE_ONLY:-0}" != 1 ]; then
+  echo "== lake build --wfail AvailableChainFGSA"
+  gate_build --wfail AvailableChainFGSA
+  # The check support library (scripts/AvailableChainCheckSupport/) is not a
+  # default target: build it here, so that a clean checkout works.
+  echo "== lake build --wfail AvailableChainCheckSupport"
+  gate_build --wfail AvailableChainCheckSupport
+fi
 echo "== no protocol library imports the check support library"
 ! grep -RlE 'import[[:space:]]+AvailableChainCheckSupport' AvailableChain*/ AvailableChain*.lean || { echo "PROTOCOL LIBRARY IMPORTS AvailableChainCheckSupport"; exit 1; }
 echo "== root imports"
@@ -146,6 +152,10 @@ echo "== direct imports"
 check_direct_imports . || exit 1
 echo "== Q1/Q5 boundary"
 check_boundary . || exit 1
+if [ "${SOURCE_ONLY:-0}" = 1 ]; then
+  echo "FGSA source checks: PASS"
+  exit 0
+fi
 echo "== axioms, build coverage, import closure"
 gate_with_slot lake env lean --run scripts/CheckFGSAAxioms.lean --expect \
   StoreSetEq admitRow_setEq proposalRows_perm_setEq propose_setEq blockAccepted_slot_pos
@@ -213,10 +223,12 @@ control_layer() {
 mk_tree
 printf 'module\npublic import AvailableChainKitFG.Correspondence\n' > "$neg/tree/AvailableChainFGSA/Model/NegB.lean"
 printf 'module\npublic import AvailableChainFGSA.Proofs.Carrier\n' > "$neg/tree/AvailableChainFGSA/Statements/NegB.lean"
+printf 'module\npublic import AvailableChainGeneric.Proofs.Pure.Walk\n' > "$neg/tree/AvailableChainFGSA/Statements/NegB2.lean"
 run check_direct_imports "$neg/tree"
 expect_fail "wrong-layer import" $code "$out" \
   "IMPORT NOT ALLOWED: AvailableChainFGSA/Model/NegB.lean imports AvailableChainKitFG.Correspondence" \
-  "IMPORT NOT ALLOWED: AvailableChainFGSA/Statements/NegB.lean imports AvailableChainFGSA.Proofs.Carrier"
+  "IMPORT NOT ALLOWED: AvailableChainFGSA/Statements/NegB.lean imports AvailableChainFGSA.Proofs.Carrier" \
+  "IMPORT NOT ALLOWED: AvailableChainFGSA/Statements/NegB2.lean imports AvailableChainGeneric.Proofs.Pure.Walk"
 }
 
 control_import_forms() {

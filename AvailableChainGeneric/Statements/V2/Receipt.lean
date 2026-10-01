@@ -17,6 +17,7 @@ namespace AvailableChain.Gen.V2
 variable {V : Type} [DecidableEq V] {In : Type} {P : ProtocolSpec In}
 
 -- GLY:1123–1125.
+/-- DC: Conditions.lean:114,122; same: Same emission or acceptance; GLY r3.19 S112. -/
 def Trigger (E : Generic.Env V) (rho : Run V P) (o : P.Object) (t : Time) : Prop :=
   (∃ v ∈ rho.honest, Run.emits E rho v o t) ∨
   (∃ v ∈ rho.honest, ∃ i, Run.acceptsAt E rho i v o t)
@@ -29,6 +30,7 @@ theorem Trigger_def (E : Generic.Env V) (rho : Run V P) (o : P.Object) (t : Time
   rw [Trigger]
 
 -- GLY:1127–1138.
+/-- DC: Conditions.lean:110,134; INTENTIONAL: One record for both regimes; GLY r3.19 S113. -/
 structure DeliveryWithin (E : Generic.Env V) (rho : Run V P)
     (dl : Time → Time) (cut : Time) : Prop where
   broadcast : ∀ v ∈ rho.honest, ∀ o t, Run.emits E rho v o t → ∀ w ∈ rho.honest,

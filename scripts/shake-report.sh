@@ -13,7 +13,9 @@
 # signal), and each suggested addition as `add <path> <import>`. The removals
 # are compared with scripts/baselines/shake-report.txt; a removal that the
 # baseline does not list is marked NEW, except a B1 downgrade (a `public import`
-# removal paired with an `add` of the same plain import), which B1 forbids.
+# removal paired with an `add` of the same plain import), which B1 forbids,
+# and except a KEPT removal: its import line carries a `-- shake: keep (<reason>)`
+# note (a use that shake cannot see: `#print axioms`, `example`, policy).
 #
 # Usage: bash scripts/shake-report.sh [--fail-on-new] [--write-baseline] [<Module>...]
 #   <Module>...       check these modules only (default: every library module)
@@ -23,6 +25,8 @@
 # Exit 0: report written (findings do not fail); 1: --fail-on-new and a NEW
 # removal; 2: usage error, --fix, or lake shake failed.
 # The full report: .lake/shake-report.txt (override with SHAKE_REPORT).
+# SHAKE_RAW=<file>: parse this saved `lake shake` output and do not run lake
+# (self-test: scripts/shake-report-selftest.sh).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 FAIL_ON_NEW=0; WRITE=0; MODS=()
@@ -55,8 +59,8 @@ REPORT=${SHAKE_REPORT:-.lake/shake-report.txt}
 ERR=$(mktemp "${TMPDIR:-/tmp}/shake-err.XXXXXX"); RAW=$(mktemp "${TMPDIR:-/tmp}/shake-out.XXXXXX")
 trap 'rm -f "$ERR" "$RAW"' EXIT
 set +e
-lake shake "${MODS[@]}" > "$RAW" 2> "$ERR"
-RC=$?
+if [ -n "${SHAKE_RAW:-}" ]; then cp "$SHAKE_RAW" "$RAW"; RC=0
+else lake shake "${MODS[@]}" > "$RAW" 2> "$ERR"; RC=$?; fi
 set -e
 # lake shake exits 1 when it suggests a change; an `error:` line is a failure.
 if [ $RC -ne 0 ] && grep -q '^error:' "$ERR"; then
@@ -101,14 +105,28 @@ def downgrade(l):
     _, p, imp = l.split(' ', 2)
     return imp.startswith('public import ') and (p, imp[len('public '):]) in adds
 downgrades = [l for l in removes if downgrade(l)]
-new = [l for l in removes if not base[l] and not downgrade(l)]
+# `remove <path> <import>` is KEPT if a line of <path> is that import with a
+# `-- shake: keep` comment (lead-framework ruling for fgsa-lean J3 STOP B).
+keep_re = re.compile(r'--\s*shake:\s*keep\b')
+kept_lines = {}
+def kept(l):
+    _, p, imp = l.split(' ', 2)
+    if p not in kept_lines:
+        try:
+            src = open(os.path.join(C.ROOT, p), encoding='utf-8').read().splitlines()
+        except OSError:
+            src = []
+        kept_lines[p] = {' '.join(x.split('--', 1)[0].split()) for x in src if keep_re.search(x)}
+    return ' '.join(imp.split()) in kept_lines[p]
+keeps = [l for l in removes if kept(l) and not downgrade(l)]
+new = [l for l in removes if not base[l] and not downgrade(l) and not kept(l)]
 stale = [l for l in base if l not in set(removes)] if full else []
 for l in new:
     print('NEW ' + l)
 files = len({l.split()[1] for l in lines if l.split()[0] in ('remove', 'add')})
 print(f'shake-report: REPORT: {nmods} modules checked; {files} files with suggestions; '
-      f'{len(removes)} removals ({len(new)} NEW, {len(downgrades)} B1 downgrades, '
-      f'{len(removes) - len(new) - len(downgrades)} other in baseline), '
+      f'{len(removes)} removals ({len(new)} NEW, {len(downgrades)} B1 downgrades, {len(keeps)} kept, '
+      f'{len(removes) - len(new) - len(downgrades) - len(keeps)} other in baseline), '
       f'{len(lines) - len(removes)} additions/other; {len(stale)} baseline removals no longer suggested; '
       f'full report: {report}')
 sys.exit(1 if (fail_on_new and new) else 0)

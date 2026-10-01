@@ -1,6 +1,8 @@
 module
 public import AvailableChainGeneric.Statements.Pure.Quorum
 public import AvailableChainGeneric.Statements.Pure.QuorumInter
+public import AvailableChainGeneric.Statements.Pure.Dominance
+public import AvailableChainGeneric.Proofs.Pure.SupportCounts
 public import Mathlib.Algebra.Order.BigOperators.Group.Finset
 import Mathlib.Tactic.Push
 
@@ -126,5 +128,28 @@ theorem FaultX.inter_honest {n a : Nat} {Q Q' F : Finset (Fin n)}
     (hQ : qF n ≤ Q.card) (hQ' : qF n ≤ Q'.card) :
     ∃ v ∈ Q ∩ Q', v ∉ F :=
   faultX_inter_honest_statement hX hF hQ hQ'
+
+end AvailableChain.Gen.Pure
+
+namespace AvailableChain.Gen.Pure
+
+/-- Two eligible children have a common supporter, so disjoint support forces equality.
+DC: Goldfish/Confirmation.lean:405, 419–423; INTENTIONAL (lead ruling 2026-10-01): the count step of
+eligible_compatible. -/
+theorem maj_unique_child_statement : MajUniqueChildStatement := by
+  rw [MajUniqueChildStatement_def]
+  intro n children support denominator hsub hdis C hC D hD hmajC hmajD
+  by_contra hne
+  have hunion : support C ∪ support D ⊆ denominator :=
+    Finset.union_subset (hsub C hC) (hsub D hD)
+  obtain ⟨i, hi⟩ := two_majorities_intersect hunion hunion hmajC hmajD
+  exact Finset.disjoint_left.mp (hdis C hC D hD hne)
+    (Finset.mem_inter.mp hi).1 (Finset.mem_inter.mp hi).2
+
+/-- At most one child has a strict majority of disjoint counted support sets.
+DC: Goldfish/Confirmation.lean:405, 419–423; INTENTIONAL (lead ruling 2026-10-01): the count step of
+eligible_compatible. -/
+theorem maj_unique_child : MajUniqueChildStatement :=
+  maj_unique_child_statement
 
 end AvailableChain.Gen.Pure

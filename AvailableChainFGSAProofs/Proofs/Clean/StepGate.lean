@@ -18,42 +18,6 @@ variable (p : Params) {In V : Type} (c : AppCodec In)
     [DecidableEq V] [Fintype V]
     (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
 
-/-- P3 §8.7 F2.5a, bp02 §5.5. Class B (FG-SA run instance).
-DC: NamedConfirmationWalk.lean:38 and JointHistoryGapsIdx.lean:26.
-INTENTIONAL divergence: DC has no lease veto; the SA whole-result guard
-uses old local lease origins (spec/fgsa-protocol.tex:2506–2525).
-The supplied Ordered clause suffices before new Continues is available. -/
-theorem clean_gate_passed_of_ordered (b₀ : Time) :
-    CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
-    FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
-    ∀ i x s B, i < timeIdx rho b₀ → IsGateTick p c rho i x s →
-      CleanHist p c E rho i → (∀ k, k ≤ i → CleanState p c E rho k) →
-      gateResultAt p c E rho i = some (some B) →
-      (∀ r C, (r, C) ∈ cleanResults p c E rho i → r < s → Block.Preceq C B) →
-      gatePassedAt p c E rho i := by
-  intro b _ _ _ i x s B _ ht _ hall hB hord
-  have hsch := b.base.valid.toScheduleWellFormed
-  refine ⟨x, s, ht, ?_, B, ?_, ?_⟩
-  · change ((clockPre p (storeAt p c E rho i x) _).base.genuine.find? _).map _ = none
-    rw [clockPre_genuine]
-    exact fgsa_gate_fresh E rho hsch ht
-  · exact Option.some.inj ((clean_gate_raw hsch ht).symm.trans hB)
-  · apply List.any_eq_false.mpr
-    intro row hr
-    have hold : row ∈ (storeAt p c E rho i x).base.obligations :=
-      (clockPre_obligations_sublist p _ _).subset hr
-    obtain ⟨k, hk, r, C, hkt, _, hC, hrow⟩ := (hall i le_rfl).leases x row hold
-    have htime := fgsa_tick_time_strict E rho hsch hkt ht hk
-    have hrs : r < s := by
-      change 4 * p.Δ * (r : Int) + 6 * p.Δ <
-        4 * p.Δ * (s : Int) + 6 * p.Δ at htime
-      have hd : (0 : Int) < p.Δ := p.deltaPos
-      exact_mod_cast (show (r : Int) < (s : Int) by nlinarith)
-    have hCB := hord r C ⟨k, hk, x, hkt, hC⟩ hrs
-    have hc := block_compatible_of_common (block_preceq_trans hrow hCB)
-      (block_preceq_refl B)
-    simpa only [Block.Compatible, Bool.not_eq_true', Bool.not_eq_false] using hc
-
 -- The store confirmation fact is called directly. The private batch boundary
 -- is discharged by gate_batch_of_history at the public OSN consumer.
 omit [Fintype V] in
@@ -111,7 +75,6 @@ private theorem ordered_of_confirmation
       exact he ▸ hBD
     · exact (Nat.not_lt_of_ge (hlabels le_rfl ht hu) hsr).elim
 
-#print axioms ordered_of_confirmation
 
 
 /-- P3 F2.5a:4900–4945; bp02 §5.4. Class B, label-seat count instance.

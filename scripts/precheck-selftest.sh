@@ -1,0 +1,180 @@
+#!/usr/bin/env bash
+# Source-only controls. All source changes and Git refs are temporary.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+repo=$PWD
+head=$(git rev-parse --verify HEAD)
+objects=$(cd "$(git rev-parse --git-path objects)" && pwd -P)
+scratch=$(mktemp -d "${TMPDIR:-/tmp}/precheck-selftest.XXXXXX")
+trap 'rm -rf "$scratch"' EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
+# Any accidental Lake/Lean command must fail and leave evidence.
+mkdir "$scratch/bin"
+cat > "$scratch/bin/lake" <<'SH'
+#!/usr/bin/env bash
+echo "UNEXPECTED LEAN/LAKE CALL: $0" >&2
+touch "$PRECHECK_TOOL_SENTINEL"
+exit 97
+SH
+cp "$scratch/bin/lake" "$scratch/bin/lean"
+chmod +x "$scratch/bin/lake" "$scratch/bin/lean"
+export PATH="$scratch/bin:$PATH" PRECHECK_TOOL_SENTINEL="$scratch/tool-called"
+export PYTHONDONTWRITEBYTECODE=1
+
+init_snapshot() {
+  local tree=$1 commit=$2
+  git init -q "$tree"
+  printf '%s\n' "$objects" > "$tree/.git/objects/info/alternates"
+  git -C "$tree" read-tree "$commit"
+  git -C "$tree" update-ref HEAD "$commit"
+}
+expect_rejection() {
+  local label=$1 rc=$2 log=$3 pattern=$4
+  if [ "$rc" -eq 0 ] || [ "$rc" -ge 128 ] || ! grep -qF "$pattern" "$log"; then
+    cat "$log"
+    echo "SELFTEST FAIL: $label rc=$rc; expected $pattern" >&2
+    exit 1
+  fi
+  echo "rejected, as expected: $label rc=$rc"
+}
+expect_no_build() {
+  local tree=$1
+  if [ -e "$tree/build-started" ] || [ -e "$tree/.lake/gate-last-full" ]; then
+    echo "SELFTEST FAIL: build or full-pass stamp after rejection" >&2
+    exit 1
+  fi
+}
+expect_guard_pass() {
+  local label=$1 rc=$2 log=$3
+  if [ "$rc" -ne 0 ] || ! grep -qF 'guard lists: superset OK' "$log" ||
+      ! grep -qF 'guard list merge: target data and main code OK' "$log" ||
+      ! grep -qF 'MAIN POLICY PASS' "$log"; then
+    cat "$log"
+    echo "SELFTEST FAIL: $label rc=$rc; expected guard lists and merge to pass" >&2
+    exit 1
+  fi
+  echo "$label rc=$rc (superset and merged target lists pass)"
+}
+
+# Commit 1: copy the current source tree and add a forbidden Statements import.
+bad=$scratch/forbidden
+mkdir "$bad"
+git ls-files -z |
+  rsync -a --from0 --files-from=- --exclude=/.git --exclude=/.lake "$repo/" "$bad/"
+rsync -a --exclude=__pycache__ --exclude='*.pyc' "$repo/scripts/" "$bad/scripts/"
+init_snapshot "$bad" "$head"
+python3 - "$bad" "$repo/scripts/precheck-fixtures/forbidden-import.txt" <<'PY'
+from pathlib import Path
+import sys
+root = Path(sys.argv[1])
+path = root / 'AvailableChainFGSA/Statements/Store.lean'
+text = path.read_text()
+assert 'module\n' in text
+path.write_text(text.replace('module\n', 'module\n' + Path(sys.argv[2]).read_text(), 1))
+PY
+rc=0
+(
+  set -e
+  cd "$bad"
+  source scripts/gate-common.sh
+  build_all() { touch build-started; }
+  gate_precheck "$head" || exit $?
+  build_all
+  mkdir -p .lake
+  touch .lake/gate-last-full
+) > "$scratch/forbidden.log" 2>&1 || rc=$?
+expect_rejection forbidden-import "$rc" "$scratch/forbidden.log" 'PRECHECK FAIL check-layers; build not started'
+expect_rejection forbidden-import-rule "$rc" "$scratch/forbidden.log" 'AvailableChainGeneric.Proofs.Pure.Walk'
+expect_no_build "$bad"
+
+# Commit 1: unrelated commits cannot pass the base check. No source scan is needed.
+dag=$scratch/dag
+git init -q "$dag"
+empty=$(git -C "$dag" mktree </dev/null)
+left=$(printf 'left\n' | git -C "$dag" -c user.name=Precheck -c user.email=precheck@example.invalid commit-tree "$empty")
+right=$(printf 'right\n' | git -C "$dag" -c user.name=Precheck -c user.email=precheck@example.invalid commit-tree "$empty")
+git -C "$dag" update-ref HEAD "$left"
+rc=0
+(
+  set -e
+  cd "$dag"
+  source "$repo/scripts/gate-common.sh"
+  build_all() { touch build-started; }
+  gate_precheck "$right" || exit $?
+  build_all
+  mkdir -p .lake
+  touch .lake/gate-last-full
+) > "$scratch/base.log" 2>&1 || rc=$?
+expect_rejection non-descendant-base "$rc" "$scratch/base.log" "BASE REFUSED: HEAD ${left:0:7} does not descend from base ${right:0:7}"
+expect_rejection base-precheck "$rc" "$scratch/base.log" 'PRECHECK FAIL base; build not started'
+expect_no_build "$dag"
+(
+  cd "$dag"
+  source "$repo/scripts/gate-common.sh"
+  gate_check_base "$left"
+)
+echo 'ancestor-base rc=0'
+
+# Commit 2: use HEAD sources. Do not use the local main ref: it is stale on the
+# NUC. The gate runs the precheck on HEAD first, so its findings cannot mask F-28.
+# The policy checkout has this script set; its target has a permissive guard.
+source_base=$head
+policy=$scratch/policy
+target=$scratch/target
+mkdir "$policy" "$target"
+git archive "$source_base" | tar -xf - -C "$policy"
+rsync -a --exclude=__pycache__ --exclude='*.pyc' "$repo/scripts/" "$policy/scripts/"
+init_snapshot "$policy" "$source_base"
+git archive "$source_base" | tar -xf - -C "$target"
+init_snapshot "$target" "$source_base"
+cat "$repo/scripts/precheck-fixtures/claims-theorem.txt" >> "$target/AvailableChainFGSAClaims/Tests/Axioms.lean"
+control=$repo/scripts/precheck-fixtures/guard-lists-control.py
+python3 "$control" permissive "$target/scripts/check-fgsa-claims.sh" "$policy/scripts/check-fgsa-claims.sh"
+rc=0
+bash "$policy/scripts/precheck.sh" "$target" > "$scratch/policy.log" 2>&1 || rc=$?
+expect_rejection main-policy-f28 "$rc" "$scratch/policy.log" 'F-28: AvailableChainFGSAClaims.Tests.Axioms precheckForbiddenClaim'
+expect_rejection main-policy-guard "$rc" "$scratch/policy.log" "MAIN POLICY FAIL check-fgsa-claims main=${source_base:0:7} target=${source_base:0:7}"
+expect_no_build "$target"
+
+# Keep the list controls fast. Inspect the merged checker instead of scanning
+# the source tree, and repeat the gate's history check with the copied allow data.
+cat >> "$policy/scripts/gate-common.sh" <<'SH'
+gate_precheck() {
+  gate_precheck_step guard-lists python3 scripts/guard-lists.py superset \
+    --main-rev "$1" --target scripts/check-fgsa-claims.sh \
+    --allow scripts/guard-lists-allow.txt || return $?
+  python3 scripts/precheck-fixtures/guard-lists-control.py verify \
+    scripts/check-fgsa-claims.sh "$GUARD_LISTS_TARGET" "$GUARD_LISTS_MAIN" || return $?
+  echo 'PRECHECK PASS; build not started'
+}
+SH
+export GUARD_LISTS_TARGET="$target/scripts/check-fgsa-claims.sh"
+export GUARD_LISTS_MAIN="$policy/scripts/check-fgsa-claims.sh"
+python3 "$control" extra "$GUARD_LISTS_TARGET" "$GUARD_LISTS_MAIN"
+rc=0
+bash "$policy/scripts/precheck.sh" "$target" > "$scratch/lists-extra.log" 2>&1 || rc=$?
+expect_guard_pass guard-lists-extra "$rc" "$scratch/lists-extra.log"
+expect_no_build "$target"
+
+removed=$(python3 "$control" drop "$GUARD_LISTS_TARGET" "$GUARD_LISTS_MAIN")
+rc=0
+(
+  bash "$policy/scripts/precheck.sh" "$target" || exit $?
+  touch "$target/build-started"
+) > "$scratch/lists-drop.log" 2>&1 || rc=$?
+expect_rejection guard-lists-drop "$rc" "$scratch/lists-drop.log" "GUARD LIST REMOVED: EXPECTED $removed"
+expect_rejection guard-lists-policy "$rc" "$scratch/lists-drop.log" "MAIN POLICY FAIL guard-lists main=${source_base:0:7} target=${source_base:0:7}"
+expect_no_build "$target"
+
+printf 'EXPECTED %s selftest removal control\n' "$removed" > "$target/scripts/guard-lists-allow.txt"
+rc=0
+bash "$policy/scripts/precheck.sh" "$target" > "$scratch/lists-allow.log" 2>&1 || rc=$?
+expect_guard_pass guard-lists-allow "$rc" "$scratch/lists-allow.log"
+expect_no_build "$target"
+if [ -e "$PRECHECK_TOOL_SENTINEL" ]; then
+  echo 'SELFTEST FAIL: Lean or Lake was called' >&2
+  exit 1
+fi
+echo 'precheck-selftest: PASS (no build, Lean, Lake or full-pass stamp)'
