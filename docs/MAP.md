@@ -1044,6 +1044,92 @@ Step 2 adds the following modules and E-15 facts. Paths are relative to
 `StoreInvDef`, `ViewLock` and `HonestRows` are definition modules with
 `@[expose] public section`; `scripts/baselines/kitfg-def-modules.txt` lists them.
 
+C1 adds the view producer below. The root imports both production modules.
+`ViewLockChainsDef` is also in the definition-module list. The Tests glob
+builds the regression and axiom audit with `AvailableChainKitFG`.
+
+```text
+┌────────────────────────────┬──────────────────────────────────────────────────────────────┐
+│ Module (KitFG/)            │ Role                                                         │
+├────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│ ViewLockChainsDef.lean     │ Closed chain and honest-chain Statements; complete _def      │
+│ ViewLockChains.lean        │ ViewLock from chain agreement or a strict fault weight bound │
+│ Tests/ViewLockChains.lean  │ Both producers; sibling at the strict threshold; one fault   │
+│ Tests/Axioms.lean          │ Kernel dependencies of both equations and producer proofs   │
+└────────────────────────────┴──────────────────────────────────────────────────────────────┘
+```
+
+Both producers use the accepted carrier's `h_F` and the strict comparison
+`θ < hOf E cfg W`. The honest form needs only `noSlash` on the two chains.
+DC: `ChainState/FinalityComparison.lean:50–56`; same strict comparison and
+finalized ancestry. Root collision freedom is a theorem here because roots
+identify content (`Accountable.lean:15–18`; GLY:57–58, intentional).
+
+C4 adds the exact lower-F removal set. The root imports the Def module and
+`TwoChanges`; the Tests glob builds the regression and axiom audit.
+
+```text
+┌────────────────────────────┬──────────────────────────────────────────────────────────────┐
+│ Module (KitFG/)            │ Role                                                         │
+├────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│ LowerFDomainDef.lean       │ Closed LowerFDomainIdentityStatement and complete _def       │
+│ TwoChanges.lean            │ lowerF_domain_identity; reuses Fmove_filtered                │
+│ Tests/LowerFDomain.lean    │ Strict-ancestor removal; F′ retained; top-J domain equality  │
+│ Tests/Axioms.lean          │ Kernel dependencies of the equation and the removal proof    │
+└────────────────────────────┴──────────────────────────────────────────────────────────────┘
+```
+
+`LowerFDomainDef` is in the definition-module list. The proof uses
+`preceq_refl` and `preceq_antisymm` to make the removal criterion exact.
+DC: none; INTENTIONAL addition: FJ phase-dependent domain; record
+`blueprint/21-healing.md:691–694, 2579–2581`.
+
+C2 adds G20 chain bit persistence and forward row occurrence. The root imports
+both modules. `RowBitsDef` is in the definition-module list. The Tests glob
+builds the regression tests and the axiom audit.
+
+```text
+┌────────────────────────────┬──────────────────────────────────────────────────────────────┐
+│ Module (KitFG/)            │ Role                                                         │
+├────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│ RowBitsDef.lean            │ Three bit kinds, keys, matching, closed Statements and _def  │
+│ RowBits.lean               │ Forward fold coverage; chain persistence; row-to-bit proof  │
+│ Tests/RowBits.lean         │ All kinds; timeout progress; finality consumption and resets │
+│ Tests/Axioms.lean          │ Kernel dependencies of the equations and bit proofs         │
+└────────────────────────────┴──────────────────────────────────────────────────────────────┘
+```
+
+Equal endpoint keys exclude resets because height and justification height
+cannot decrease. A justification write strictly raises `h_j`; finality
+consumption keeps `finalize`. No reverse claim identifies a row from a bit.
+`bit_fold_covered` supplies the target-fold coverage used by the Counts lane.
+DC: `ChainState/Chain.lean:125,136,149`, same carrier step adapters.
+The chain contracts have no unified DC counterpart; they are derived carrier
+lemmas (G20), with witnesses at `MatchingProgress.lean:147` and
+`FinalityCertificates.lean:133`. Receipt remains in G13.
+
+C3 adds G22 high record preservation and the view no-contest bound. The root
+imports both modules. `RecordHighDef` is in the definition-module list. The
+Tests glob builds the regression tests and the axiom audit.
+
+```text
+┌────────────────────────────┬──────────────────────────────────────────────────────────────┐
+│ Module (KitFG/)            │ Role                                                         │
+├────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│ RecordHighDef.lean         │ Inclusive HighRecord; closed Statements and complete _def    │
+│ RecordHigh.lean            │ One record write; contest bound from honest quorum members   │
+│ Tests/RecordHigh.lean      │ Inclusive cut, locks, low timeout, fallback and contest      │
+│ Tests/Axioms.lean          │ Kernel dependencies of the record equations and proofs       │
+└────────────────────────────┴──────────────────────────────────────────────────────────────┘
+```
+
+H.13 uses `h0 = μ+1` and gives `H ≤ μ+1`, equivalent to no contest with
+`j > μ`. FF2 uses `h0 = M+1` and gives exactly FF2-C's `H ≤ M+1`.
+DC: `ValidatorClient/W4FKChainFinalityRows.lean:115–129` consumes the guard.
+INTENTIONAL: H1 and record induction supply it (`blueprint/22-finality.md:770–773`).
+The contest bound has no DC counterpart. INTENTIONAL addition: FJ replaces
+the NJ case (`blueprint/21-healing.md:2579–2581`).
+
 ```text
 ┌─────────────────────────────┬──────────────────────────────────────────────┬─────────────────────┐
 │ Script                      │ Check                                        │ Exit codes          │
@@ -1464,4 +1550,90 @@ Paths omit `AvailableChainGeneric/` and `.lean`.
 │ Proofs/Pure/HonestCount     │ honest_origin_of_count                      │
 │ Tests/Support               │ Concrete finite-set honest-origin count     │
 └─────────────────────────────┴─────────────────────────────────────────────┘
+```
+
+## A3 unit-seat count modules
+
+Paths omit `AvailableChainGeneric/` and `.lean`.
+
+```text
+┌───────────────────────────────┬───────────────────────────────────────┐
+│ Module                        │ Role                                  │
+├───────────────────────────────┼───────────────────────────────────────┤
+│ Statements/Pure/QuorumInter   │ Unit-seat honest quorum intersection  │
+│ Statements/Pure/SupportCounts │ Two-majority intersection count       │
+│ Proofs/Pure/SupportCounts     │ Finite-seat majority count proofs     │
+└───────────────────────────────┴───────────────────────────────────────┘
+```
+
+## A4 Gen support and honest-origin count
+
+Paths omit `AvailableChainGeneric/` and `.lean`.
+
+```text
+┌─────────────────────────────┬─────────────────────────────────────────────┐
+│ Module                      │ Role                                        │
+├─────────────────────────────┼─────────────────────────────────────────────┤
+│ Statements/AC/Support       │ Score ancestry, conflict and seat contracts │
+│ Proofs/AC/Support           │ Score antitone and conflicting score bounds │
+│ Statements/Pure/HonestCount │ HonestOriginOfCountStatement                │
+│ Proofs/Pure/HonestCount     │ honest_origin_of_count                      │
+│ Tests/Support               │ Concrete finite-set honest-origin count     │
+└─────────────────────────────┴─────────────────────────────────────────────┘
+```
+
+## B2 Gen lease windows (G26)
+
+Paths omit `AvailableChainGeneric/` and `.lean`.
+
+```text
+┌───────────────────────────┬───────────────────────────────────────────────────────┐
+│ Module                    │ Role                                                  │
+├───────────────────────────┼───────────────────────────────────────────────────────┤
+│ Statements/AC/LeaseWindow │ Slow-window conflict and threshold expiry contracts   │
+│ Proofs/AC/Lease           │ Slow-window contradiction and threshold expiry proofs │
+│ Tests/LeaseWindow         │ Gen live-row adapter and boundary checks              │
+└───────────────────────────┴───────────────────────────────────────────────────────┘
+```
+
+## G02 dominance count core (W9, 2026-10-01)
+
+Paths omit `AvailableChainGeneric/` and `.lean`.
+
+```text
+┌───────────────────────────┬──────────────────────────────────────────────┐
+│ Module                    │ Contract or proof                            │
+├───────────────────────────┼──────────────────────────────────────────────┤
+│ Statements/Pure/Dominance │ MajUniqueChildStatement and its equation     │
+│ Proofs/Pure/Quorum        │ maj_unique_child_statement; maj_unique_child │
+│ Tests/Dominance           │ Two sibling blocks; one eligible child       │
+└───────────────────────────┴──────────────────────────────────────────────┘
+```
+
+## E-12 DC regime bridges (2026-10-01)
+
+Paths omit `AvailableChainGeneric/` and `.lean`.
+
+```text
+┌─────────────────────────┬────────────────────────────────────────────────┐
+│ Module                  │ Contract or proof                              │
+├─────────────────────────┼────────────────────────────────────────────────┤
+│ Statements/V2/DCRegimes │ DC recurrence and outage interval field types  │
+│ Proofs/V2/DCRegimes     │ RecoveryCore and CutCore bridges to DC fields  │
+│ Tests/DCRegimes         │ Gap-period instance and outage boundary checks │
+└─────────────────────────┴────────────────────────────────────────────────┘
+```
+
+## G37 Gen DC property bridges (2026-10-01)
+
+Paths omit `AvailableChainGeneric/` and `.lean`.
+
+```text
+┌───────────────────────┬────────────────────────────────────────────────────┐
+│ Module                │ Contract or proof                                  │
+├───────────────────────┼────────────────────────────────────────────────────┤
+│ Statements/V2/DCProps │ Six DC output-property mirrors and equations       │
+│ Proofs/V2/DCProps     │ Four equivalences with the Gen.Pure properties     │
+│ Tests/DCProps         │ Closed endpoints, empty intervals, and source time │
+└───────────────────────┴────────────────────────────────────────────────────┘
 ```

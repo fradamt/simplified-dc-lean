@@ -161,10 +161,10 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_srcFrameAboveClaim
 
 #print axioms AvailableChain.FGSA.Run.fgsa_fgFoundationClaim
-#print axioms AvailableChain.FGSA.Run.fgsa_faultX_of_count
+#print axioms AvailableChain.FGSA.Run.fgsa_faultX_count_rec
 #print axioms AvailableChain.FGSA.Run.fgsa_faultQ_of_count
 #print axioms AvailableChain.FGSA.Run.fgsa_target_exact_quorum
-#print axioms AvailableChain.FGSA.Run.Recovery₂.faultX
+#print axioms AvailableChain.FGSA.Run.Recovery₂.faultX_count_rec
 #print axioms AvailableChain.FGSA.Run.Recovery₂.faultQ
 #print axioms AvailableChain.FGSA.Run.fgsa_rCap
 #print axioms AvailableChain.FGSA.Run.fgsa_finalityCap
@@ -397,3 +397,9 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_cleanPrefixTruncationClaim
 #print axioms AvailableChain.FGSA.Run.fgsa_cleanSafetyClaim
 #print axioms AvailableChain.FGSA.Run.fgsa_cleanSafety_outputs
+
+#print axioms AvailableChain.FGSA.Run.row_auth_of_toRow
+
+#print axioms AvailableChain.FGSA.Run.fgsa_storeSlashableBound_of_unforgeable
+
+#print axioms AvailableChain.FGSA.Run.fgsa_slashableBound_of_valid

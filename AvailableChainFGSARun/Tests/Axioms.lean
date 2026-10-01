@@ -17,6 +17,7 @@ public import AvailableChainFGSARun.Proofs.Acceptance
 public import AvailableChainFGSARun.Proofs.Emission
 public import AvailableChainFGSARun.Statements.Client
 public import AvailableChainFGSARun.Proofs.ClientTrace
+public import AvailableChainFGSARun.Proofs.Slashing
 public import AvailableChainFGSARun.Proofs.Schedule
 public import AvailableChainFGSARun.Proofs.AC
 public import AvailableChainFGSARun.Proofs.Receipts
@@ -308,3 +309,7 @@ mechanically. -/
 -- Statements/Slashing.lean
 #print axioms AvailableChain.FGSA.Run.fgsaEvidence
 #print axioms AvailableChain.FGSA.Run.fgsaSlashing
+
+-- Proofs/Slashing.lean
+#print axioms AvailableChain.FGSA.Run.fgsaSlashing_slashes_iff_of_seats
+#print axioms AvailableChain.FGSA.Run.fgsaSlashing_slashes_iff_of_linked

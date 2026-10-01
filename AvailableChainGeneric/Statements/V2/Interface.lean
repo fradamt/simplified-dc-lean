@@ -19,7 +19,8 @@ open AvailableChain AvailableChain.V2 AvailableChain.V2.Engine
 GLY:1694 requires the extension for the 2b catalog. The getter's carrier
 is Block: P3 `fgsa-f0-f2-plan-r3.5-2a9a5877.md`:1197 identifies F as the
 erased finalized block. Consumers: finalized-output properties in F0
-and the later catalog. No finality law is part of this read structure. -/
+and the later catalog. No finality law is part of this read structure.
+DC: Interface.lean:29; same: Same getter; additive field; GLY r3.19 S099. -/
 structure FinalityInterface {In : Type} (P : ProtocolSpec In) extends Interface P where
   finalized : P.State → Block
 
