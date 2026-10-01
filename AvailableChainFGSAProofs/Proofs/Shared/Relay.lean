@@ -712,5 +712,188 @@ theorem fgsa_headVotes_backward_relay (E : Generic.Env V) (rho : V2.Run V (fgsa 
       · exact Or.inr he
     · exact Or.inr he
 
+private theorem relay_stamp_prefix (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (hN : V2.NoRestart rho) (x : V) {i j : Nat} (hij : i ≤ j) :
+    (V2.Run.stateBefore E rho i x).st.base.voteStamp <+:
+      (V2.Run.stateBefore E rho j x).st.base.voteStamp := by
+  apply V2.Engine.stateBefore_stable (P := fgsa p c)
+    (fun nd => (V2.Run.stateBefore E rho i x).st.base.voteStamp <+: nd.st.base.voteStamp)
+    ?_ ?_ (fun _ _ h => h) E rho hij x (hN.restartFree x i j) (List.prefix_refl _)
+  · intro nd t h
+    change _ <+: (clock p nd.st t).base.voteStamp
+    rwa [(clock_cumulative p nd.st t).2.2.2.1]
+  · intro nd o h
+    exact h.trans (process_cumulative p nd.st (toWire p o)).2.2.2.1
+
+private theorem relay_stamp_of_prefix (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (i : Nat) (x : V) (v : GridCO.State p.n) (o : GridCO.Wire p.n)
+    (hm : o ∈ (V2.Run.stateBefore E rho i x).st.base.votes)
+    (hp : (V2.Run.stateBefore E rho i x).st.base.voteStamp <+: v.voteStamp) :
+    GridCO.stampVote v o = GridCO.stampVote (V2.Run.stateBefore E rho i x).st.base o := by
+  rw [← fgsa_vote_stamp_keys E rho i x] at hm
+  obtain ⟨⟨w, t⟩, ht, he⟩ := List.mem_map.mp hm
+  dsimp only at he
+  subst w
+  obtain ⟨tail, htail⟩ := hp
+  unfold GridCO.stampVote
+  rw [← htail, List.find?_append]
+  cases hf : (V2.Run.stateBefore E rho i x).st.base.voteStamp.find?
+      (fun row => row.1 == o) with
+  | none =>
+    have hn := List.find?_eq_none.mp hf (o, t) ht
+    simp only [beq_self_eq_true] at hn
+    contradiction
+  | some row => rfl
+
+private theorem relay_frozen_raw (st : State p.n) (s : Slot) (o : GridCO.Wire p.n)
+    (hm : o ∈ st.base.votes) (hl : GridCO.headLabel? o = some s)
+    (ht : GridCO.stampVote st.base o < SA.freezeTime p.toParams s) :
+    o ∈ headVotes p st (s + 1) := by
+  change o ∈ List.eraseDups (_ ++ _)
+  rw [List.mem_eraseDups, List.mem_append]
+  left
+  apply List.mem_filter.mpr
+  refine ⟨List.mem_filter.mpr ⟨hm, ?_⟩, ?_⟩
+  · simpa only [Nat.add_sub_cancel, hl] using beq_self_eq_true (some s)
+  · simpa only [Nat.add_sub_cancel] using decide_eq_true ht
+
+/-- P3 §4.4.3 C5; bp02 §4.2 forward receipt. Class (ii), run receipt instance.
+DC: Schedule/AdoptionTransport.lean:309, settled-before-freeze raw arm.
+The source gate's early stamp gives dl(t) < z_s. NoRestart keeps the vote
+and its stamp, or both cap witnesses, through the actual post-clock q_s read.
+This is vote settlement only; active HEAD support also needs the path. -/
+theorem fgsa_cleanSupport_vote_forward (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (hE : V2.ExecutionValid E rho) (hN : V2.NoRestart rho) (hDelta : E.Δ = p.Δ)
+    (s : Slot) (hSync : Gen.V2.LabelSync E rho (SA.voteTime p.toParams s)
+      (SA.gateTime p.toParams s))
+    {ix iy : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (_hix : rho.events[ix]? = some (.tick x (SA.gateTime p.toParams s)))
+    (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
+    (o : GridCO.Wire p.n)
+    (ho : o ∈ GridCO.cleanSupport p.toParams.engine
+      (actView (clockPre p (V2.Run.stateBefore E rho ix x).st (SA.gateTime p.toParams s))) s)
+    (seat : Fin p.n) (hk : GridCO.headSeat? o = some seat) :
+    let dst := ((fgsa p c).clock (V2.Run.stateBefore E rho iy y)
+      (SA.voteTime p.toParams (s + 1))).st
+    (o ∈ dst.base.votes ∧ GridCO.stampVote dst.base o < SA.freezeTime p.toParams s) ∨
+      GridCO.equivocates (headVotes p dst (s + 1)) seat = true := by
+  intro dst
+  have hc := relay_clean_mem p _ s o ho
+  obtain ⟨K, rfl⟩ := relay_vote_shape o s seat hc.2.1 hk
+  have hmem : (⟨.seat s seat, .head K⟩ : GridCO.Wire p.n) ∈
+      (V2.Run.stateBefore E rho ix x).st.base.votes := by
+    have hm := hc.1
+    change _ ∈ (clockPre p _ _).base.votes at hm
+    rwa [(Internal.clockPre_vn _ _).1] at hm
+  have ht := hc.2.2.1
+  rw [relay_read_stamp E rho ix x (SA.gateTime p.toParams s) _ hmem] at ht
+  have hpub : V2.PublicTime E (SA.earlyTime p.toParams s) := by
+    refine ⟨4 * s + 2, ?_⟩
+    rw [hDelta]
+    change 4 * p.Δ * (s : Int) + 2 * p.Δ = _
+    push_cast
+    ring
+  have hz : 0 ≤ SA.earlyTime p.toParams s := by
+    change 0 ≤ 4 * p.Δ * (s : Int) + 2 * p.Δ
+    have hd := p.deltaPos
+    positivity
+  obtain ⟨j, _, t, ha, ht⟩ := fgsa_vote_accepted_before E rho hE.toScheduleWellFormed hN
+    ix x s seat K _ hpub hz hmem ht
+  obtain ⟨dl, cut, hD, _, hlt, hb, _, hcut, _⟩ := hSync
+  have hd : dl t < SA.freezeTime p.toParams s := by
+    have hb := hb t
+    rw [hDelta] at hb
+    change t < 4 * p.Δ * (s : Int) + 2 * p.Δ at ht
+    change dl t ≤ max t (4 * p.Δ * (s : Int) + p.Δ) + p.Δ at hb
+    change dl t < 4 * p.Δ * (s : Int) + 3 * p.Δ
+    have hp := p.deltaPos
+    have hh : max t (4 * p.Δ * (s : Int) + p.Δ) <
+        4 * p.Δ * (s : Int) + 2 * p.Δ := max_lt ht (by linarith)
+    linarith
+  have hzq : SA.freezeTime p.toParams s < SA.voteTime p.toParams (s + 1) := by
+    change 4 * p.Δ * (s : Int) + 3 * p.Δ < 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
+    push_cast
+    have hp := p.deltaPos
+    linarith
+  have hqd : SA.voteTime p.toParams (s + 1) ≤ SA.gateTime p.toParams s := by
+    change 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
+    push_cast
+    have hp := p.deltaPos
+    linarith
+  have hdq := le_of_lt (hd.trans hzq)
+  have hwindow : (V2.Run.stateBeforeTime E rho (dl t) y).st.slot p ≤ s + 1 := by
+    have hm := V2.Engine.stateBefore_now_mono_noRestart (fgsaClock p c) E rho
+      hE.toScheduleWellFormed hN (relay_idx_mono rho hdq) y
+    rw [fgsa_clock_now p c (V2.Run.stateBefore E rho (V2.Run.idxBefore rho (dl t)) y),
+      fgsa_clock_now p c (V2.Run.stateBefore E rho
+        (V2.Run.idxBefore rho (SA.voteTime p.toParams (s + 1))) y),
+      Gen.V2.stateBefore_idxBefore E rho _ hE.toScheduleWellFormed,
+      Gen.V2.stateBefore_idxBefore E rho _ hE.toScheduleWellFormed,
+      ← fgsa_preTick_eq_timeRead E rho hE.toScheduleWellFormed hN hiy] at hm
+    have hb := V2.Engine.stateBefore_now_le_event (fgsaClock p c) (fgsa_hrestore_now p c)
+      E rho hE.toScheduleWellFormed hiy y
+    rw [fgsa_clock_now p c (V2.Run.stateBefore E rho iy y)] at hb
+    have he : p.slotOf (SA.voteTime p.toParams (s + 1)) = s + 1 :=
+      (fgsa_postClock_slot (c := c) (V2.Run.stateBefore E rho iy y) _).2.symm.trans
+        (fgsa_vote_slot (c := c) _ (s + 1))
+    exact (Internal.slotOf_mono (p := p) (hm.trans hb)).trans_eq he
+  have hr := fgsa_head_receipt E rho hDelta hE hN dl cut s seat K t y hD
+    (Or.inr ⟨x, hx, j, ha⟩) hy (hdq.trans (hqd.trans hcut)) (hlt t) hwindow
+  have hkeep : (V2.Run.stateBeforeTime E rho (dl t) y).st.base.votes ⊆ dst.base.votes ∧
+      (V2.Run.stateBeforeTime E rho (dl t) y).st.base.voteStamp <+: dst.base.voteStamp := by
+    change _ ⊆ (clock p _ _).base.votes ∧ _ <+: (clock p _ _).base.voteStamp
+    rw [(clock_vn _ _).1, (clock_cumulative p _ _).2.2.2.1,
+      fgsa_preTick_eq_timeRead E rho hE.toScheduleWellFormed hN hiy,
+      ← Gen.V2.stateBefore_idxBefore E rho (dl t) hE.toScheduleWellFormed,
+      ← Gen.V2.stateBefore_idxBefore E rho _ hE.toScheduleWellFormed]
+    exact ⟨relay_votes_mono E rho hN y (relay_idx_mono rho hdq),
+      relay_stamp_prefix E rho hN y (relay_idx_mono rho hdq)⟩
+  have hs (v : GridCO.Wire p.n)
+      (hm : v ∈ (V2.Run.stateBeforeTime E rho (dl t) y).st.base.votes)
+      (ht : GridCO.stampVote (V2.Run.stateBeforeTime E rho (dl t) y).st.base v < dl t) :
+      GridCO.stampVote dst.base v < SA.freezeTime p.toParams s := by
+    have hp := hkeep.2
+    rw [← Gen.V2.stateBefore_idxBefore E rho (dl t) hE.toScheduleWellFormed] at hm hp ht
+    rw [relay_stamp_of_prefix E rho _ y dst.base v hm hp]
+    exact ht.trans hd
+  rcases hr with ⟨hm, ht⟩ | ⟨u, hu, v, hv, hn, hlu, hlv, hku, hkv, htu, htv⟩
+  · exact Or.inl ⟨hkeep.1 hm, hs _ hm ht⟩
+  · exact Or.inr ((cap_pair _ seat).mpr ⟨u,
+      relay_frozen_raw dst s u (hkeep.1 hu) hlu (hs u hu htu), v,
+      relay_frozen_raw dst s v (hkeep.1 hv) hlv (hs v hv htv), hn, hku, hkv⟩)
+
+/-- P3 §4.4.3 C5; bp02 §4.2 forward support incidence. Class (ii), run instance.
+DC: Handlers/GoldfishVotePool.lean:810, ancestor membership; generic support
+uses the cumulative block tree. INTENTIONAL: path receipt form (b) is explicit
+at the post-clock q_s read. It supplies membership without an active-view claim. -/
+theorem fgsa_voteSupports_of_path (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (s : Slot) (ix iy : Nat) (x y : V) (o : GridCO.Wire p.n)
+    (ho : o ∈ GridCO.cleanSupport p.toParams.engine
+      (actView (clockPre p (V2.Run.stateBefore E rho ix x).st (SA.gateTime p.toParams s))) s)
+    (K : FGBlock (Fin p.n)) (hK : GridCO.headTarget? o = some (eraseFG K))
+    (B : Block) (hBK : Block.Preceq B (eraseFG K))
+    (hpath : ∀ A, FGBlock.Preceq A K →
+      A ∈ (((fgsa p c).clock (V2.Run.stateBefore E rho iy y)
+        (SA.voteTime p.toParams (s + 1))).st).fg.TF ∧
+      GridCO.stampBlock (((fgsa p c).clock (V2.Run.stateBefore E rho iy y)
+        (SA.voteTime p.toParams (s + 1))).st).base (eraseFG A) < SA.freezeTime p.toParams s) :
+    let dst := ((fgsa p c).clock (V2.Run.stateBefore E rho iy y)
+      (SA.voteTime p.toParams (s + 1))).st
+    Gen.AC.voteSupports dst.base.blocks B o = true := by
+  intro dst
+  have hmem := (hpath K (KitFG.preceq_refl K)).1
+  have hInv : CStoreInv p dst :=
+    cstoreInv_clock p _ (cstoreInv_stateBefore E rho iy y) _
+  have hstored := (hInv.baseTree (eraseFG K)).mpr ⟨K, hmem, rfl⟩
+  have hr := (List.mem_filter.mp (List.mem_filter.mp ho).1).2
+  change GridCO.resolvedBefore _ o _ = true at hr
+  unfold GridCO.resolvedBefore at hr
+  rw [hK] at hr
+  have hslot := (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp
+    (Bool.and_eq_true_iff.mp hr).1).1).2
+  rw [Gen.AC.voteSupports_def, hK]
+  exact Bool.and_eq_true_iff.mpr ⟨Bool.and_eq_true_iff.mpr
+    ⟨decide_eq_true hstored, hslot⟩, hBK⟩
+
 end AvailableChain.FGSA.Run
 end
