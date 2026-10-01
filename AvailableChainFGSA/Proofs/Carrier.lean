@@ -146,10 +146,11 @@ variable {n : Nat}
 /-- [helper] The label code is injective. -/
 theorem encLabel_inj : Function.Injective encLabel := by
   intro a b h
-  cases a <;> cases b <;> simp only [encLabel] at h <;>
+  cases a <;> cases b <;> dsimp only [encLabel] at h <;>
     first
     | exact absurd (epair_inj h).1 (by decide)
     | rw [(epair_inj h).2]
+    | rfl
 
 /-- [helper] The auth code is injective. -/
 theorem encAuth_inj : Function.Injective (encAuth (n := n)) := by
@@ -173,14 +174,20 @@ theorem encRowBody_inj : Function.Injective encRowBody := by
   cases encOption_inj encFinalityPair_inj hf
   rfl
 
-/-- [helper] The signed-row code is injective: it keeps the auth (round and
+/-- The payload sum preserves the full vote body. -/
+theorem encRowPayload_inj : Function.Injective encRowPayload := by
+  rintro ⟨a⟩ ⟨b⟩ h
+  have hab := encRowBody_inj (epair_inj h).2
+  exact congrArg RowPayload.vote hab
+
+/-- [helper] The signed-row code is injective: it keeps the auth (fixed label and
 seat included) and the body. -/
 theorem encRowWire_inj : Function.Injective (encRowWire (n := n)) := by
   intro a b h
   obtain ⟨ha, hb⟩ := epair_inj h
   cases a; cases b
   cases encAuth_inj ha
-  cases encRowBody_inj hb
+  cases encRowPayload_inj hb
   rfl
 
 /-- [D9] The application value of a packed body. -/

@@ -127,14 +127,10 @@ example : appOf bW.body = 0 ∧ rowsOk bW [ra] = false ∧
     (process pT stT ⟨.proposer 1, .proposal bW [] [] [ra]⟩).proposals = stT.proposals := by
   decide +kernel
 
-/-- Two signed row lists with the same decoded rows and different rounds give
-different bodies and different roots: the round is in the block identity. -/
-example : ([rw 0 0 (rowT 0)].filterMap RowWire.toRow?) =
-      [rw 1 0 (rowT 0)].filterMap RowWire.toRow? ∧
-    (pb .genesis 1 0 [rw 0 0 (rowT 0)]).root ≠ (pb .genesis 1 0 [rw 1 0 (rowT 0)]).root := by
-  refine ⟨by decide, fun h => ?_⟩
-  have hb := (Block.node.inj (Block.root_injective h)).2.2
-  exact absurd (packBody_inj hb).2 (by decide)
+/-- The action round is absent from signed content and packed roots. -/
+example : rw 0 0 (rowT 0) = rw 1 0 (rowT 0) ∧
+    (pb .genesis 1 0 [rw 0 0 (rowT 0)]).root = (pb .genesis 1 0 [rw 1 0 (rowT 0)]).root := by
+  exact ⟨rfl, rfl⟩
 
 end AvailableChain.FGSA.Tests.RootCollision
 end

@@ -12,26 +12,26 @@ namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
 
 variable (p : Params) {In V : Type} [DecidableEq V]
-    (c : AppCodec In) (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 private theorem source_tick_read (x : V) (r : Nat) (C : FGBlock (Fin p.n))
     (hc : actionSourceFG p c E rho x r = some (some C)) :
     ∃ i, rho.events[i]? = some (.tick x (p.actionTime r)) ∧
-      let st := ((fgsa p c).clock (V2.Run.stateBefore E rho i x) (p.actionTime r)).st
+      let st := ((fgsa p c).clock (V2.D.Run.stateBefore E rho i x) (p.actionTime r)).st
       fgSource p st = some C ∧
       postClock E rho x (p.actionTime r) =
-        some ((fgsa p c).clock (V2.Run.stateBefore E rho i x) (p.actionTime r)) := by
+        some ((fgsa p c).clock (V2.D.Run.stateBefore E rho i x) (p.actionTime r)) := by
   rw [actionSourceFG_def, postClock_def, preTick_def] at hc
-  cases hi : V2.Run.tickIdx? rho x (p.actionTime r) with
+  cases hi : V2.D.Run.tickIdx? rho x (p.actionTime r) with
   | none => simp only [hi, Option.map_none] at hc; contradiction
   | some i =>
     simp only [hi, Option.map_some, Option.some.injEq] at hc
-    refine ⟨i, V2.Run.tickIdx?_spec hi, hc, ?_⟩
+    refine ⟨i, V2.D.Run.tickIdx?_spec hi, hc, ?_⟩
     rw [postClock_def, preTick_def, hi]
     rfl
 
 /-- The action's candidates have a passed gate origin (F1.3 supplies lease origins). -/
-theorem sourceDiscipline_tSrc (hs : V2.ScheduleWellFormed E rho) : TSrc p c E rho := by
+theorem sourceDiscipline_tSrc (hs : V2.D.ScheduleWellFormed E rho) : TSrc p c E rho := by
   intro x r C hx hc
   change Option.map (Option.map eraseFG) (actionSourceFG p c E rho x r) = _ at hc
   cases hf : actionSourceFG p c E rho x r with
@@ -45,10 +45,10 @@ theorem sourceDiscipline_tSrc (hs : V2.ScheduleWellFormed E rho) : TSrc p c E rh
       have he : eraseFG B = C := by simpa only [hf, Option.map_some, Option.some.injEq] using hc
       subst C
       obtain ⟨i, hi, hsrc, hread⟩ := source_tick_read p c E rho x r B hf
-      let st := ((fgsa p c).clock (V2.Run.stateBefore E rho i x) (p.actionTime r)).st
+      let st := ((fgsa p c).clock (V2.D.Run.stateBefore E rho i x) (p.actionTime r)).st
       have hst : storeAt p c E rho (i + 1) x = st := by
-        change (V2.Run.stateBefore E rho (i + 1) x).st = st
-        rw [(V2.Run.step_tick_eq E rho hi).1]
+        change (V2.D.Run.stateBefore E rho (i + 1) x).st = st
+        rw [(V2.D.Run.step_tick_eq E rho hi).1]
         exact tick_st (p := p) (c := c) E rho _ _ _
       have horig := fgsa_leaseOrigins_fastWrites p c E rho hs (i + 1) x
       rw [hst] at horig
@@ -79,35 +79,53 @@ theorem sourceDiscipline_tSrc (hs : V2.ScheduleWellFormed E rho) : TSrc p c E rh
 private theorem source_row_action {j : Nat} {x : V} {r : Nat} {a : RowWire p.n}
     (ha : HonestRowAt p c E rho j x r a) :
     rho.events[j]? = some (.tick x (p.actionTime r)) ∧
-      a.payload = (attest p
-        ((fgsa p c).clock (V2.Run.stateBefore E rho j x) (p.actionTime r)).st
-        (V2.Run.stateBefore E rho j x).record ⟨0, p.nPos⟩).1 := by
-  obtain ⟨hx, hr, t, hj, hem⟩ := ha
-  rcases a with ⟨auth, body⟩
-  cases auth with
-  | none => cases hr
-  | proposer s => cases hr
-  | seat label seat =>
-    cases label with
-    | head s => cases hr
-    | fg r' =>
-      have hrr : r' = r := Option.some.inj hr
-      subst r'
-      obtain ⟨_, ht, _, hb⟩ := (fgsa_emitsAt_row E rho j x t hj r seat body).mp hem
-      subst t
-      exact ⟨hj, hb⟩
+      (attest p
+        ((fgsa p c).clock (V2.D.Run.stateBefore E rho j x) (p.actionTime r)).st
+        (V2.D.Run.stateBefore E rho j x).record ⟨0, p.nPos⟩).1 = some a.payload := by
+  obtain ⟨_, hj, hem⟩ := ha
+  refine ⟨hj, ?_⟩
+  rw [(V2.D.Run.step_tick_eq E rho hj).2] at hem
+  change ofRow p a ∈ (if E.awake x (p.actionTime r) then
+    (duties p (p.actionTime r)).flatMap (fun d =>
+      (rho.ownSeats (RunDuty.signLabel d) x).filterMap (fun i =>
+        (act p c ((fgsa p c).clock (V2.D.Run.stateBefore E rho j x) (p.actionTime r))
+          d (rho.input x (p.actionTime r))).map
+            (fun m => (⟨.seat (RunDuty.signLabel d) i, m⟩ : Obj p)))) ++
+      ([] : List (Obj p)) else []) at hem
+  split at hem
+  · rw [List.append_nil] at hem
+    obtain ⟨d, _, hem⟩ := List.mem_flatMap.mp hem
+    obtain ⟨i, _, hm⟩ := List.mem_filterMap.mp hem
+    obtain ⟨m, hm, ho⟩ := Option.map_eq_some_iff.mp hm
+    have hp : m = .row a.payload := congrArg V2.Signed.payload ho
+    subst m
+    cases d with
+    | headAction s => cases hm
+    | fgAction r' =>
+      change (attest p _ _ _).1.map Msg.row = some (.row a.payload) at hm
+      obtain ⟨payload, hb, he⟩ := Option.map_eq_some_iff.mp hm
+      have heq : payload = a.payload := Msg.row.inj he
+      subst payload
+      dsimp only [fgsa] at hb ⊢
+      exact hb
+    | propAction s =>
+      change (propose p _ s).map (withApp _) = some (.row a.payload) at hm
+      obtain ⟨m, hm, he⟩ := Option.map_eq_some_iff.mp hm
+      obtain ⟨_, _, _, _, heq, _, _⟩ := rowsOk_withApp _ _ _ (by rw [hm]; exact congrArg some he)
+      cases heq
+  · exact (List.not_mem_nil hem).elim
 
 /-- Earlier row emissions bound their source gate labels. -/
-theorem sourceDiscipline_labelBound (hs : V2.ScheduleWellFormed E rho) :
+theorem sourceDiscipline_labelBound (hs : V2.D.ScheduleWellFormed E rho) :
     LabelBound p c E rho := by
   intro i x y r a t hx hi ha
   obtain ⟨j, hji, hrow⟩ := ha
-  have hj := (source_row_action p c E rho hrow).1
+  have hj := hrow.2.1
   obtain ⟨hil, hie⟩ := List.getElem?_eq_some_iff.mp hi
   obtain ⟨hjl, hje⟩ := List.getElem?_eq_some_iff.mp hj
   have hk := (List.pairwise_iff_getElem.mp hs.sorted) j i hjl hil hji
   rw [hie, hje] at hk
-  have ht : p.actionTime r ≤ t := V2.Engine.time_le_of_key_le _ _ hk
+  have ht : p.actionTime r ≤ t := V2.D.Engine.time_le_of_key_le _ _ hk
   have hd : (0 : Int) < p.Δ := p.deltaPos
   have htime : (4 : Int) * p.Δ * (r * p.R : Nat) + 6 * p.Δ ≤ t := ht
   refine ⟨?_, ?_, ?_⟩
@@ -133,7 +151,8 @@ theorem sourceDiscipline_labelBound (hs : V2.ScheduleWellFormed E rho) :
       omega
 
 /-- A nonempty emitted name comes from the actual FG action source. -/
-theorem sourceDiscipline_emittedName (hs : V2.ScheduleWellFormed E rho) {j : Nat} {x : V} {r : Nat}
+theorem sourceDiscipline_emittedName (hs : V2.D.ScheduleWellFormed E rho)
+    {j : Nat} {x : V} {r : Nat}
     {a : RowWire p.n} {e : Height × BlockId}
     (ha : HonestRowAt p c E rho j x r a)
     (he : namedEntry a.payload.height_pair = some e) :
@@ -144,16 +163,15 @@ theorem sourceDiscipline_emittedName (hs : V2.ScheduleWellFormed E rho) {j : Nat
       Block.Preceq (eraseFG C) G ∧ fastAt p c E rho x (r * p.R) (eraseFG C) := by
   have hx := ha.1
   obtain ⟨hj, hb⟩ := source_row_action p c E rho ha
-  let nd := V2.Run.stateBefore E rho j x
+  let nd := V2.D.Run.stateBefore E rho j x
   let st := ((fgsa p c).clock nd (p.actionTime r)).st
-  have hn : namedEntry (attest p st nd.record ⟨0, p.nPos⟩).1.height_pair = some e := by
-    rw [hb] at he
+  obtain ⟨row, hrow, hbody⟩ := Option.map_eq_some_iff.mp hb
+  obtain ⟨h, root, tm, hp, hroweq, _, _, _⟩ :=
+    KitFG.createRowOnce_released p.E p.cfg nd.record ⟨0, p.nPos⟩
+      (fgInputs p st).1 (fgInputs p st).2 hrow
+  have hn : namedEntry (.vote h root tm) = some e := by
+    rw [← hbody, hroweq] at he
     exact he
-  obtain ⟨h, root, tm, hp⟩ : ∃ h root tm,
-      (attest p st nd.record ⟨0, p.nPos⟩).1.height_pair = .vote h root tm := by
-    cases hh : (attest p st nd.record ⟨0, p.nPos⟩).1.height_pair with
-    | empty => rw [hh] at hn; cases hn
-    | vote h root tm => exact ⟨h, root, tm, rfl⟩
   have hfields := KitFG.height_pair_vote_fields hp
   change Option.map (fun C => ((derive p.E p.cfg C).h, (derive p.E p.cfg C).T_h.root))
     (fgSource p st) = some (h, root) at hfields
@@ -163,7 +181,6 @@ theorem sourceDiscipline_emittedName (hs : V2.ScheduleWellFormed E rho) {j : Nat
     have hpair : ((derive p.E p.cfg C).h, (derive p.E p.cfg C).T_h.root) = (h, root) := by
       exact Option.some.inj (by simpa only [hsrc, Option.map_some] using hfields)
     have heq : e = (hOf p.E p.cfg C, (derive p.E p.cfg C).T_h.root) := by
-      rw [hp] at hn
       exact (Option.some.inj hn).symm.trans hpair.symm
     have hread : actionSourceFG p c E rho x r = some (some C) := by
       rw [actionSourceFG_eq_round p c E rho hs hj]
@@ -181,9 +198,9 @@ theorem sourceDiscipline_emittedName (hs : V2.ScheduleWellFormed E rho) {j : Nat
     exact ⟨C, G, hread, heq, KitFG.entry_preceq p.E p.cfg C, hG,
       hbelow _ hCX, hfast _ hCX⟩
 
-private theorem source_stored_row (hv : V2.ExecutionValid E rho)
+private theorem source_stored_row (hv : V2.D.ExecutionValid E rho)
     (e : Fin p.n ≃ V)
-    (he : ∀ r j, rho.seatOf (.base (.fg r)) j = e j)
+    (he : ∀ j, rho.seatOf (.base .fg) j = e j)
     (hS : RStore p c E rho) {i : Nat} {x : V} {B : FGBlock (Fin p.n)}
     {a : Row (Fin p.n)} (hx : x ∈ rho.honest)
     (hB : B ∈ (storeAt p c E rho i x).fg.TF) (ha : a ∈ B.rows)
@@ -214,31 +231,32 @@ private theorem source_stored_row (hv : V2.ExecutionValid E rho)
   | seat label seat =>
     cases label with
     | head s => cases hdecode
-    | fg r =>
+    | fg =>
       have haeq : (⟨seat, body.height_pair, body.finality_pair⟩ : Row (Fin p.n)) = a :=
         Option.some.inj hdecode
       subst a
-      have hholder : V2.Run.holder rho (ofRow p ⟨.seat (.fg r) seat, body⟩).auth =
-          some (e seat) := congrArg some (he r seat)
+      have hholder : V2.D.Run.holder rho (ofRow p ⟨.seat .fg seat, body⟩).auth =
+          some (e seat) := congrArg some (he seat)
       obtain ⟨t', htt, j, hj, hem⟩ :=
         hv.carried x o t ⟨k, hk⟩ _ hcarry (e seat) hh hholder
-      have hjk := V2.Engine.tick_index_lt_delivery E rho hv.toScheduleWellFormed hj hk htt
-      exact ⟨r, ⟨.seat (.fg r) seat, body⟩,
-        ⟨j, Nat.lt_trans hjk hki, hh, rfl, t', hj, hem⟩, rfl, rfl,
+      have hjk := V2.D.Engine.tick_index_lt_delivery E rho hv.toScheduleWellFormed hj hk htt
+      obtain ⟨_, _, r, hrt, _⟩ := (fgsa_emitsAt_row E rho j _ t' hj seat body).mp hem
+      exact ⟨r, ⟨.seat .fg seat, body⟩,
+        ⟨j, Nat.lt_trans hjk hki, hh, hrt ▸ hj, hem⟩, rfl, rfl,
         s, raw, sup, rows, hw, hwire⟩
 
 private theorem source_quorum_honest [Fintype V]
-    (e : Fin p.n ≃ V) (hq : Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card)
+    (e : Fin p.n ≃ V) (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
     {Q : Finset (Fin p.n)} (hQ : p.E.IsQuorum Q) :
     ∃ k ∈ Q, e k ∈ rho.honest := by
   classical
-  let F := (Gen.V2.faulty rho).map e.symm.toEmbedding
+  let F := (Gen.V2.Duty.faulty rho).map e.symm.toEmbedding
   have hcap : p.E.toWeights.weightOf F < p.E.toWeights.q := by
     have hqeq : p.E.toWeights.q = Gen.Pure.qF p.n := KitFG.unit_toWeights_q p.n
     rw [hqeq]
-    have hcard : p.E.toWeights.weightOf F = (Gen.V2.faulty rho).card := by
+    have hcard : p.E.toWeights.weightOf F = (Gen.V2.Duty.faulty rho).card := by
       rw [KitFG.toWeights_weightOf]
-      change (∑ _ ∈ F, (1 : Nat)) = (Gen.V2.faulty rho).card
+      change (∑ _ ∈ F, (1 : Nat)) = (Gen.V2.Duty.faulty rho).card
       simp only [Finset.sum_const, smul_eq_mul, mul_one, Finset.card_map, F]
     rw [hcard]
     exact hq.lt
@@ -247,7 +265,7 @@ private theorem source_quorum_honest [Fintype V]
   refine ⟨k, hk, ?_⟩
   by_contra hn
   apply hf
-  exact Finset.mem_map.mpr ⟨e k, by simpa [Gen.V2.faulty] using hn, e.symm_apply_apply k⟩
+  exact Finset.mem_map.mpr ⟨e k, by simpa [Gen.V2.Duty.faulty_def] using hn, e.symm_apply_apply k⟩
 
 /-- Every selected progress or target QC has an earlier honest source.
 Finalization uses the target QC of its prior justification. -/

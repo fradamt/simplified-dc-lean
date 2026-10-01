@@ -40,8 +40,8 @@ changes, and tell the other sessions._
 ├───────────────────────────────┬──────────────────────────────────────┤
 │ AC = plain SA                 │ FG = DC finality gadget              │
 │ votes, leases, fast/slow      │ rows, chain states σ, F, J, h_max,   │
-│ lock, genuine results,        │ finality acceptance, Λ record        │
-│ available output              │                                      │
+│ lock, genuine results,        │ window W of ≤ K_W justifications,    │
+│ available output              │ finality acceptance, Λ record        │
 ├───────────────────────────────┴──────────────────────────────────────┤
 │ Composition: joint selection functions                               │
 │ live_root · HEAD eligibility · C_fg · proposer head · finality head  │
@@ -76,19 +76,36 @@ changes, and tell the other sessions._
   composition theorem: it uses the healing witness, source/carrier facts,
   H2′, the HEAD clause of H2.A, H3/H4, the composition services
   T-START/T-SMONO/T-EXACT/T-VOTE/T-WALK, T-ROWS with matching-state bit
-  persistence, and FG/substrate facts; Q0 (in QF2/QF4) also uses H5/H6.
+  persistence, and FG/substrate facts. The frozen finality claim set is
+  the recurrence route only: FF5–FF7 from `HEALING_INPUT` through the
+  FGoodE_W/Tail_W kernels. QF2/QF4 (Qual/Skip routes, Rec_sT/Rec_skipT,
+  B_Q/B_skip) are open extensions outside the freeze (user, 2026-10-01).
   Healing supplies one common witness tuple (r_G, u₀, M, r*, s*, C*)
   through H.22, and μ = μ(run, GST) as a function of the run, not a
   witness field; H-time supplies the GST bound.
 - Lean consequence: v2 `Isolation` cannot express the channels
   (`fgsaIso` puts the whole FG store in base), so F0 adds channel files
   in the FG-SA claims library (`Channels`, `ChannelProps`, `Compose`).
-- Transport: FG rows travel packed in the block body (I9 `packBody`,
-  `rowsOk` in `wellFormed`); the block root commits to them.
+- Transport: two delivery families (user, 2026-10-01). Blocks, HEAD/SA
+  votes and their relays use Δ; gossiped FG rows and their relays use
+  Δ_F ≥ Δ; a row carried in a block arrives with the block (Δ). Rows
+  travel packed in the block body (I9 `packBody`, `rowsOk` in
+  `wellFormed`); the block root commits to them. Carriage uses the carrier
+  offset κ. In Lean, Δ_F is a regime parameter bound by the family-indexed
+  delivery premise (`PartialSynchronyBy`), not an `Env` field.
+- FG-SA finality is an FG-SA-specific WINDOW fold over the unchanged
+  SimplexFG fold (user, 2026-10-01): FG-SA no longer uses SimplexFG's
+  latest-only finality fold. The window keeps ≤ K_W justifications
+  (K_W ≥ 2); target/progress steps are unchanged, and a height bridge
+  (blueprint 01 §3.1a) transfers height facts between the two folds.
 - Design rules (user): stay close to DC and justify every divergence;
-  latest certificate only; outputs nest by construction; FG never vetoes
+  a bounded window of ≤ K_W justifications (K_W ≥ 2), not the latest
+  certificate only; outputs nest by construction; FG never vetoes
   blocks; timeliness only on sending.
-- Authority: `spec/fgsa-protocol.tex` (adopted c1ea1db0, 2026-09-29;
+- Authority (window + Δ_F, final 2026-10-01; SHA-256 prefixes):
+  `spec/fgsa-protocol.tex` 59bb0dda; blueprint 00 e4a145dc, 01 7a160200
+  (§3.1 window invariants, §3.1a height bridge), 21 eaef7cfe, 22 8b7eaffe,
+  23 7332c7a0. Previous authority: `spec/fgsa-protocol.tex` (adopted c1ea1db0, 2026-09-29;
   replaces 4e85ff34 with two changes: the pre-GST delivery clause of the
   partial-synchrony premise (OD6, as v2 `PartialSynchrony`) and the
   healing-interface names aligned with the blueprint;
@@ -289,6 +306,13 @@ Engine v2 decisions (design §2), one line each:
 │    │ anchor + pruning optional claim      │                          │
 └────┴──────────────────────────────────────┴──────────────────────────┘
 ```
+
+Window migration (stages, `tip-stability/codex/reports/window-migration.md`
+§1): 0 close the current no-round migration (06/07, Δ_F delivery) → 1 add
+the window core (additive; SimplexFG unchanged; height bridge) → 2 prove
+the interfaces (height transfers, provenance, window store invariants) →
+3 switch FG-SA to the window fold once → 4 finish 07-F and re-freeze →
+5 prove liveness on the window API.
 
 ## 6. Decisions that shape the architecture
 

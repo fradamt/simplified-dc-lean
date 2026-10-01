@@ -65,7 +65,7 @@ private theorem fgsa_block_reconcile_edits (st : State p.n) (h : CStoreInv p st)
             exact ⟨rfl, rfl, rfl, rfl⟩
 
 variable {In V : Type} [DecidableEq V] (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 /-- bp.reconcile.v1 on runs. T7.5 supplies the reachable store through Gen E-10;
 F1.1 supplies CStoreInv. Admission preserves the pre-reconcile AC fields.
@@ -73,14 +73,14 @@ Gen AC.Reconcile describes the output clause; here all four edits are exact. -/
 theorem fgsa_rRec : RRec p c E rho := by
   intro i x hx hmove
   obtain ⟨⟨o, t, he⟩, hF⟩ := hmove
-  have hn : V2.Run.stateBefore E rho (i + 1) x =
-      (fgsa p c).process (V2.Run.stateBefore E rho i x) o := by
-    rw [V2.Run.stateBefore_succ E rho he]
-    simp only [V2.World.step, Function.update_self]
+  have hn : V2.D.Run.stateBefore E rho (i + 1) x =
+      (fgsa p c).process (V2.D.Run.stateBefore E rho i x) o := by
+    rw [V2.D.Run.stateBefore_succ E rho he]
+    simp only [V2.D.World.step, Function.update_self]
   have hs : storeAt p c E rho (i + 1) x =
       FGSA.process p (storeAt p c E rho i x) (toWire p o) := congrArg Node.st hn
-  have hr : (V2.Run.stateBefore E rho (i + 1) x).record =
-      (V2.Run.stateBefore E rho i x).record := by
+  have hr : (V2.D.Run.stateBefore E rho (i + 1) x).record =
+      (V2.D.Run.stateBefore E rho i x).record := by
     rw [hn]
     rfl
   change (storeAt p c E rho i x).fg.F ≠ (storeAt p c E rho (i + 1) x).fg.F at hF
@@ -119,13 +119,13 @@ theorem fgsa_rRec : RRec p c E rho := by
               exact (hF rfl).elim
           | proposal b raw support rows => exact (hF rfl).elim
           | row body => exact (hF rfl).elim
-      | fg r =>
+      | fg =>
           cases msg with
           | head b => exact (hF rfl).elim
           | proposal b raw support rows => exact (hF rfl).elim
           | row body =>
               change (storeAt p c E rho i x).fg.F ≠
-                (admitRow p _ ⟨.seat (.fg r) k, body⟩).fg.F at hF
+                (admitRow p _ ⟨.seat .fg k, body⟩).fg.F at hF
               rcases admitRow_eq p (storeAt p c E rho i x) _ with he | he <;>
                 rw [he] at hF <;> exact (hF rfl).elim
 

@@ -45,28 +45,28 @@ structure FGSASafetyInterfaces (p : FGSA.Params) : Prop where
   -- consumer: Clean (F2), inclusion/proposal/suffix/gate;
   -- producer: F2.2 (Shared/Channels) (P3 :7311–7330)
   cpPrefix : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) (pt : Unit),
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit),
     SourceDisciplinePrem p c E rho pt → CPPrefix p c E rho
   -- consumer: P1 (F3); producer: F2.2 (Shared/Channels) (P3 :7331–7341)
   cpCompat : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) (pt : Unit),
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit),
     SourceDisciplinePrem p c E rho pt → CPCompat p c E rho
   -- consumer: 02 §5.4, 03 §8, 21 H.11, 22 kernel; producer: F1.5 (a) (P3 :7423–7438)
   -- Same Prop as SourceDisciplineBaseAt's first conjunct.
   tSrc : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) (pt : Unit),
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit),
     BasePrem p c E rho pt → TSrc p c E rho
   -- consumer: TimingContract.label, BelowLabel; producer: F1.5 (d) (P3 :7439–7444)
   -- Same Prop as SourceDisciplineBaseAt's second conjunct.
   labelBound : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) (pt : Unit),
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit),
     BasePrem p c E rho pt → LabelBound p c E rho
   -- consumer: every AG instance; producer: F1 (F1.5 (b–d) + the T7.5/clock facts
   -- for atomic/tickFG) (P3 :7203–7229; IF1)
   -- certLag and fgFoundation.strat are the same Prop RStrat;
   -- both are filled by the ONE RStrat producer lemma (F1.5); no second proof.
   timingContract : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) (pt : Unit),
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit),
     SourceDisciplinePrem p c E rho pt → TimingContract p c E rho
 
 end AvailableChain.FGSA.Run

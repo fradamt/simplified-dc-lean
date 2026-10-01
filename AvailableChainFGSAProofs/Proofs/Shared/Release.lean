@@ -1,7 +1,7 @@
 module
 public import AvailableChainFGSARun.Proofs.Receipts
 public import AvailableChainFGSAClaims.Statements.Reads
-public import AvailableChainGeneric.Statements.V2.Counts
+public import AvailableChainGeneric.Statements.V2.Duty.Counts
 
 public section
 
@@ -94,20 +94,20 @@ finite-set injection. DC counterpart: none; INTENTIONAL, SA adds release
 (spec/fgsa-protocol.tex:2514–2515; blueprint 02 §2, 21 H.1).
 The local compatibility premise keeps the emitted HEAD label. -/
 theorem fgsa_release_bound (p : Params) {In V : Type} [DecidableEq V] [Fintype V]
-    (c : AppCodec In) (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hE : V2.ExecutionValid E rho) (hN : V2.NoRestart rho)
-    (hC : V2.CStar (fgsaFamilies p c).fresh rho) (hDelta : E.Δ = p.Δ)
+    (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho)
+    (hC : V2.D.CStar (fgsaFamilies p c).fresh rho) (hDelta : E.Δ = p.Δ)
     (i : Nat) (x : V) (s : Slot) (B : Block)
-    (hheads : ∀ y ∈ rho.honest, ∀ o t, V2.Run.emits E rho y o t →
+    (hheads : ∀ y ∈ rho.honest, ∀ o t, V2.D.Run.emits E rho y o t →
       ∀ k C, o.auth = .seat (.base (.head s)) k → o.payload = .head C →
         Block.Compatible C B) :
     GridCO.releaseCount p.toParams.engine (actView (storeAt p c E rho i x)) s B ≤
-      (Gen.V2.faulty rho).card := by
+      (Gen.V2.Duty.faulty rho).card := by
   rw [release_card]
   apply Finset.card_le_card_of_injOn (rho.seatOf (.base (.head s)))
   · intro k hk
-    change rho.seatOf (.base (.head s)) k ∈ Gen.V2.faulty rho
-    rw [Gen.V2.faulty_def]
+    change rho.seatOf (.base (.head s)) k ∈ Gen.V2.Duty.faulty rho
+    rw [Gen.V2.Duty.faulty_def]
     apply Finset.mem_sdiff.mpr
     refine ⟨Finset.mem_univ _, ?_⟩
     intro hhonest
@@ -149,9 +149,9 @@ theorem fgsa_release_bound (p : Params) {In V : Type} [DecidableEq V] [Fintype V
           hE.toScheduleWellFormed hN i x s k C (SA.releaseTime p.toParams s)
           hpub hzero hstored hv
         obtain ⟨parent, hd, hh⟩ := ha.1
-        have hholder : V2.Run.holder rho (ofHead p ⟨.seat (.head s) k, C⟩).auth =
+        have hholder : V2.D.Run.holder rho (ofHead p ⟨.seat (.head s) k, C⟩).auth =
             some (rho.seatOf (.base (.head s)) k) := rfl
-        have hem : ∃ u, u ≤ t ∧ V2.Run.emits E rho (rho.seatOf (.base (.head s)) k)
+        have hem : ∃ u, u ≤ t ∧ V2.D.Run.emits E rho (rho.seatOf (.base (.head s)) k)
             (ofHead p ⟨.seat (.head s) k, C⟩) u := by
           rcases (fgsaHooks p c).handles_carries _ parent _ hh with hp | hc
           · subst parent

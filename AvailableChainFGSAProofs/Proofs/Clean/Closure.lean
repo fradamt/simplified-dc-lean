@@ -8,7 +8,7 @@ public section
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V]
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 omit [DecidableEq V] in
 private theorem closure_gate_label {j : Nat} {x : V} {s : Slot}
@@ -20,7 +20,7 @@ private theorem closure_gate_label {j : Nat} {x : V} {s : Slot}
   rw [add_sub_cancel_right, Int.mul_ediv_cancel_left _ hd, Int.toNat_natCast]
 
 omit [DecidableEq V] in
-private theorem closure_label_mono (hs : V2.ScheduleWellFormed E rho)
+private theorem closure_label_mono (hs : V2.D.ScheduleWellFormed E rho)
     {j i : Nat} (hji : j ≤ i) : labelBoundAt p c rho j ≤ labelBoundAt p c rho i := by
   rcases Nat.lt_or_eq_of_le hji with hji | rfl
   · have ht : (match rho.events[j]? with | some e => e.time | none => rho.horizon) ≤
@@ -38,7 +38,7 @@ private theorem closure_label_mono (hs : V2.ScheduleWellFormed E rho)
           obtain ⟨hil, hie⟩ := List.getElem?_eq_some_iff.mp hi
           have hk := (List.pairwise_iff_getElem.mp hs.sorted) j i hjl hil hji
           rw [hje, hie] at hk
-          exact V2.Engine.time_le_of_key_le _ _ hk
+          exact V2.D.Engine.time_le_of_key_le _ _ hk
     have hd : (0 : Int) < 4 * p.Δ := by have := p.deltaPos; positivity
     have hb := Int.toNat_le_toNat (Int.ediv_le_ediv hd (sub_le_sub_right ht (6 * p.Δ)))
     dsimp only [labelBoundAt]
@@ -52,7 +52,7 @@ FG-SA reads its source after the same-tick fast write, even without an
 emitted row. The supplied history bounds every relative state call.
 NoRestart is inherited from CleanCut₂ through Base₂. -/
 theorem clean_actionSources_body [Fintype V] (b₀ : Time) :
-  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
+  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   ∀ i, i ≤ timeIdx rho b₀ → CleanHist p c E rho i →
     ∀ j x r C, j < i → x ∈ rho.honest →
@@ -64,7 +64,7 @@ theorem clean_actionSources_body [Fintype V] (b₀ : Time) :
   have hj1 : j + 1 ≤ i := Nat.succ_le_of_lt hj
   have hstate := cleanState_of_hist h hq hf hsrc (clean_actionStep p c E rho)
     (hj1.trans hi) (cleanHist_restrict hj1 hh)
-  let st := ((fgsa p c).clock (V2.Run.stateBefore E rho j x) (p.actionTime r)).st
+  let st := ((fgsa p c).clock (V2.D.Run.stateBefore E rho j x) (p.actionTime r)).st
   have hfg : ∃ B, actionSourceFG p c E rho x r = some (some B) ∧ eraseFG B = C := by
     dsimp only [actionSource] at hread
     change (actionSourceFG p c E rho x r).map (Option.map eraseFG) = some (some C) at hread
@@ -80,7 +80,7 @@ theorem clean_actionSources_body [Fintype V] (b₀ : Time) :
   have hsource : fgSource p st = some B := by
     rw [actionSourceFG_eq_round p c E rho hs ht] at hB
     change deepest _ = some B
-    rw [(fgsa_action_slot_round (c := c) (V2.Run.stateBefore E rho j x) r).2]
+    rw [(fgsa_action_slot_round (c := c) (V2.D.Run.stateBefore E rho j x) r).2]
     exact Option.some.inj hB
   have hmem : eraseFG B ∈ sourceCandidates p st := by
     rw [fgSource_eq_jointSource] at hsource
@@ -88,11 +88,11 @@ theorem clean_actionSources_body [Fintype V] (b₀ : Time) :
   have hfw : eraseFG B ∈ (fastWriteAt st (r * p.R)).getD [] := by
     rw [sourceCandidates_def] at hmem
     have hm := (Finset.mem_filter.mp hmem).1
-    rw [(fgsa_action_slot_round (c := c) (V2.Run.stateBefore E rho j x) r).2] at hm
+    rw [(fgsa_action_slot_round (c := c) (V2.D.Run.stateBefore E rho j x) r).2] at hm
     exact List.mem_toFinset.mp hm
   have hst : storeAt p c E rho (j + 1) x = st := by
-    change (V2.Run.stateBefore E rho (j + 1) x).st = st
-    rw [(V2.Run.step_tick_eq E rho ht).1]
+    change (V2.D.Run.stateBefore E rho (j + 1) x).st = st
+    rw [(V2.D.Run.step_tick_eq E rho ht).1]
     exact tick_st (p := p) (c := c) E rho _ _ _
   rw [← hst] at hfw
   obtain ⟨k, hk, hkt, _, G, hG, hBG, _⟩ := hstate.fastWrite x (r * p.R) _ hfw
@@ -116,7 +116,7 @@ INTENTIONAL divergence: raw optional SA results and a finite inclusive cut.
 Nat induction uses only history and states at indices at most the current
 index. NoRestart is inherited from CleanCut₂ through Base₂. -/
 theorem clean_invariant [Fintype V] {b₀ : Time}
-    (h : CleanCut₂ p c E rho b₀) (hq : Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card)
+    (h : CleanCut₂ p c E rho b₀) (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
     (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho) :
     ∀ i, i ≤ timeIdx rho b₀ → CleanHist p c E rho i := by
   intro i
@@ -187,25 +187,12 @@ private theorem closure_gate_index [Fintype V] {b₀ : Time}
   obtain ⟨j, hj, _⟩ := fgsa_tick_total E rho h.base.valid.toScheduleWellFormed
     h.base.delta x hx (4 * s + 6) (heq ▸ ht.trans h.cut.2)
   rw [heq] at hj
-  exact ⟨j, (V2.Engine.index_lt_read_length_iff h.base.valid.toScheduleWellFormed b₀ hj).mpr ht, hj⟩
+  exact ⟨j, (V2.D.Engine.index_lt_read_length_iff
+    h.base.valid.toScheduleWellFormed b₀ hj).mpr ht, hj⟩
 
 private theorem closure_row_tick {j : Nat} {x : V} {r : Nat} {a : RowWire p.n}
     (ha : HonestRowAt p c E rho j x r a) :
-    rho.events[j]? = some (.tick x (p.actionTime r)) := by
-  obtain ⟨_, hr, t, hj, hem⟩ := ha
-  rcases a with ⟨auth, body⟩
-  cases auth with
-  | none => cases hr
-  | proposer s => cases hr
-  | seat label seat =>
-    cases label with
-    | head s => cases hr
-    | fg r' =>
-      have hrr : r' = r := Option.some.inj hr
-      subst r'
-      obtain ⟨_, ht, _, _⟩ := (fgsa_emitsAt_row E rho j x t hj r seat body).mp hem
-      subst t
-      exact hj
+    rho.events[j]? = some (.tick x (p.actionTime r)) := ha.2.1
 
 /-- P3 §§4.7, 8.5; bp02 §§5.4–6. Class B. DC counterparts:
 Legacy/Definitions/SafetyRegimes:53–80 and Protocol/Grades/JointHistoryGapsIdx:26,141.
@@ -214,7 +201,7 @@ lease/saved/fast-write origins, and the finite inclusive event cut.
 This is the unfolded public history body; only Export imports Claims.
 NoRestart is inherited from CleanCut₂ through Base₂. -/
 theorem cleanHistoryAt_body [Fintype V] {b₀ : Time}
-    (h : CleanCut₂ p c E rho b₀) (hq : Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card)
+    (h : CleanCut₂ p c E rho b₀) (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
     (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho) :
   (∀ x y r s B C, x ∈ rho.honest → y ∈ rho.honest →
     SA.gateTime p.toParams r ≤ b₀ → SA.gateTime p.toParams s ≤ b₀ →
@@ -296,7 +283,7 @@ theorem cleanHistoryAt_body [Fintype V] {b₀ : Time}
     obtain ⟨k, hk, _⟩ := fgsa_tick_total E rho hs h.base.delta y hy
       (4 * (s + 1) + 1) (heq ▸ htime.le.trans (hcut.trans h.cut.2))
     rw [heq] at hk
-    have hkj := V2.Engine.eventIndex_lt_of_time_lt hs hk hjt htime
+    have hkj := V2.D.Engine.eventIndex_lt_of_time_lt hs hk hjt htime
     rw [← gateResultAt_eq_gateResult p c E rho hs hjt] at hB
     rw [vHead_eq_headAtIdx p c E rho hs hk] at hH
     cases Option.some.inj hH
@@ -346,7 +333,7 @@ Generic/Properties:41 MonotoneFrom. INTENTIONAL divergence: all nodes and
 event indices at the inclusive cut. No supplied history is needed.
 NoRestart is inherited from CleanCut₂ through Base₂. -/
 theorem sExtends [Fintype V] {b₀ : Time}
-    (h : CleanCut₂ p c E rho b₀) (hq : Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card)
+    (h : CleanCut₂ p c E rho b₀) (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
     (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho) :
     ∀ v j k, j ≤ k → k ≤ timeIdx rho b₀ →
       Block.Preceq (S_at p c E rho j v) (S_at p c E rho k v) :=

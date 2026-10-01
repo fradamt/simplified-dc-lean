@@ -95,5 +95,7 @@ public import AvailableChainGeneric.Proofs.V2.Duty.Induction
 public import AvailableChainGeneric.Proofs.V2.Duty.BaseTransport
 public import AvailableChainGeneric.Proofs.V2.Duty.LinkedHolders
 
+public import AvailableChainGeneric.Statements.AC.Duty.Reads
+
 /-! Generic library (GLY A): the Pure, V2 and AC layers. The root does not
 import the modules under `Tests/`; the library globs build them. -/

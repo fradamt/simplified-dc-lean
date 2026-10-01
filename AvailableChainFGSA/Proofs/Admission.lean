@@ -111,7 +111,7 @@ theorem toRow_forall₂ {n : Nat} (rows : List (RowWire n))
   | cons a rows ih =>
       have ha := h a List.mem_cons_self
       obtain ⟨x, hx⟩ := Option.isSome_iff_exists.1 ha
-      have hr : a.toRow? = some ⟨x.2.1, x.2.2.height_pair, x.2.2.finality_pair⟩ := by
+      have hr : a.toRow? = some (x.2.toRow x.1) := by
         simp [RowWire.toRow?, hx]
       rw [List.filterMap_cons, hr]
       exact List.Forall₂.cons hr (ih (fun c hc => h c (List.mem_cons_of_mem a hc)))
@@ -125,25 +125,27 @@ theorem blockAccepted_of_wellFormed (p : Params) (st : State p.n) (s : Slot) (b 
     (hwf : wellFormed p ⟨.proposer s, .proposal b raw support rows⟩ = true) :
     blockAccepted p st s b P rows =
       (decide (b.slot ≤ st.slot p) && !decide (∃ Y ∈ st.fg.TF, Y.root = b.root) &&
-        FGBlock.preceq st.fg.F (fgBlock P b rows)) := by
+        FGBlock.preceq st.fg.F (fgBlock P b rows) && rowsValidForParent p P b.slot rows) := by
   simp only [wellFormed, Wire.decode, Bool.and_eq_true] at hwf
-  obtain ⟨⟨⟨⟨⟨⟨hg, hs⟩, hps⟩, -⟩, -⟩, hrows⟩, hok⟩ := hwf
-  have hrows' : (rows.all (fun a => match a.decode? with
-      | some (r, _, _) => decide (r ≤ p.round b.slot)
-      | none => false)) = true := by
-    rw [List.all_eq_true] at hrows ⊢
-    intro a ha
-    have := hrows a ha
-    simp only [Bool.and_eq_true] at this
-    exact this.2
-  unfold blockAccepted
-  rw [hg, hs, hps]
-  have key : ∀ A B C R K : Bool, R = true → K = true →
-      (true && A && B && C && true && true && R && K) = (A && B && C) := by
-    intro A B C R K hR hK
-    subst hR hK
-    simp only [Bool.true_and, Bool.and_true]
-  exact key _ _ _ _ _ hrows' hok
+  obtain ⟨⟨⟨⟨⟨⟨hg, hs⟩, hps⟩, -⟩, -⟩, -⟩, hok⟩ := hwf
+  simp only [blockAccepted, hg, hs, hps, hok, Bool.true_and, Bool.and_true]
+
+/-- [R6] Acceptance checks all rows against the parent's pre-fold state. -/
+theorem blockAccepted_rowsValid {p : Params} {st : State p.n} {s : Slot} {b : Block}
+    {P : FGBlock (Fin p.n)} {rows : List (RowWire p.n)}
+    (hacc : blockAccepted p st s b P rows = true) :
+    rowsValidForParent p P b.slot rows = true := by
+  simp only [blockAccepted, Bool.and_eq_true] at hacc
+  exact hacc.1.2
+
+/-- [R6] Invalid carried rows cause refusal before any write or child handler. -/
+theorem admitBlock_invalid_rows (p : Params) (st : State p.n) (s : Slot) (b : Block)
+    (raw support : List (HeadWire p.n)) (rows : List (RowWire p.n))
+    (P : FGBlock (Fin p.n)) (hP : parentFG st b = some P)
+    (hv : rowsValidForParent p P b.slot rows = false) :
+    admitBlock p st s b raw support rows = st :=
+  admitBlock_refused p st s b raw support rows
+    (Or.inr ⟨P, hP, by simp [blockAccepted, hv]⟩)
 
 /-- [DQ2; Opus m4] Under a root premise on the base list and `b`, the root test
 and the block test agree (the T7 form uses `RootInjective`). -/
@@ -533,7 +535,8 @@ theorem admitBlock_sufficient (p : Params) (st : State p.n) (h : CStoreInv p st)
     (hwf : wellFormed p ⟨.proposer s, .proposal b raw support rows⟩ = true)
     (hpar : b.parent ∈ st.base.blocks) (hslot : b.slot ≤ st.slot p)
     (hfresh : ∀ c ∈ st.base.blocks, c.root ≠ b.root)
-    (hF : Block.Preceq (eraseFG st.fg.F) b) :
+    (hF : Block.Preceq (eraseFG st.fg.F) b)
+    (hvalid : ∀ P, parentFG st b = some P → rowsValidForParent p P b.slot rows = true) :
     b ∈ (process p st ⟨.proposer s, .proposal b raw support rows⟩).base.blocks ∧
       ∃ P, parentFG st b = some P ∧
         fgBlock P b rows ∈ (process p st ⟨.proposer s, .proposal b raw support rows⟩).fg.TF := by
@@ -570,7 +573,7 @@ theorem admitBlock_sufficient (p : Params) (st : State p.n) (h : CStoreInv p st)
   have hacc : blockAccepted p st s b P rows = true := by
     rw [blockAccepted_of_wellFormed p st s b raw support rows P hwf]
     simp only [Bool.and_eq_true, decide_eq_true_eq, Bool.not_eq_true', decide_eq_false_iff_not]
-    exact ⟨⟨hslot, hfr⟩, hFB⟩
+    exact ⟨⟨⟨hslot, hfr⟩, hFB⟩, hvalid P hP⟩
   obtain ⟨pool, heq, -⟩ := admitBlock_accepted_eq p st s b raw support P rows hP hacc
   have hproc : process p st ⟨.proposer s, .proposal b raw support rows⟩ =
       admitBlock p st s b raw support rows := rfl
@@ -591,12 +594,13 @@ theorem admitBlock_sufficient_absent (p : Params) (st : State p.n) (h : CStoreIn
     (hwf : wellFormed p ⟨.proposer s, .proposal b raw support rows⟩ = true)
     (hpar : b.parent ∈ st.base.blocks) (hslot : b.slot ≤ st.slot p)
     (habs : b ∉ st.base.blocks) (hinj : ∀ c ∈ st.base.blocks, c.root = b.root → c = b)
-    (hF : Block.Preceq (eraseFG st.fg.F) b) :
+    (hF : Block.Preceq (eraseFG st.fg.F) b)
+    (hvalid : ∀ P, parentFG st b = some P → rowsValidForParent p P b.slot rows = true) :
     b ∈ (process p st ⟨.proposer s, .proposal b raw support rows⟩).base.blocks ∧
       ∃ P, parentFG st b = some P ∧
         fgBlock P b rows ∈ (process p st ⟨.proposer s, .proposal b raw support rows⟩).fg.TF :=
   admitBlock_sufficient p st h s b raw support rows hwf hpar hslot
-    (fun c hc hr => habs (hinj c hc hr ▸ hc)) hF
+    (fun c hc hr => habs (hinj c hc hr ▸ hc)) hF hvalid
 
 end AvailableChain.FGSA
 end

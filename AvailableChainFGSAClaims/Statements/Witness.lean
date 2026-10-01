@@ -39,7 +39,7 @@ def tstar (p : Params) (w : HealingWitness) : Time := SA.gateTime p.toParams w.u
 
 open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V]
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 /-- H.11 (21:1579–1582), L6: heights of NONEMPTY signed honest rows
 whose source vote precedes GST. Consumers: muOf, H0Reset, H.13. -/
@@ -54,7 +54,7 @@ def high (w : HealingWitness) (C : FGBlock (Fin p.n)) : Prop :=
 /-- Inclusive honest frontier (21 H.11:1574–1576).
 Consumers: H0Reset and the canonical reset read. -/
 def honestFrontier (t : Time) : Nat :=
-  rho.honest.sup (fun x => (V2.Run.readAt E rho t x).st.fg.h_max)
+  rho.honest.sup (fun x => (V2.D.Run.readAt E rho t x).st.fg.h_max)
 /-- An emitted nonempty honest height row (21 H.11:1584–1587).
 Consumers: H0Reset and reset uniqueness. -/
 def HeightRow (r h : Nat) : Prop := ∃ j y, ∃ (a : RowWire p.n) (e : BlockId),

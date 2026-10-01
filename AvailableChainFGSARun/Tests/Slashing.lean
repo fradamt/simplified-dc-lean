@@ -14,13 +14,13 @@ example (p : Params) {In : Type} (c : AppCodec In) :
 
 -- A row held only in the pool is not stored-chain evidence.
 example (p : Params) (a : RowWire p.n) :
-    fgsaEvidence (⟨{ initial p.n with rowPool := [a] }, Record.initial⟩ : Node p) = ∅ := by
+    fgsaEvidence (⟨{ initial p.n with rowPool := [a] }, RecordOnce.initial⟩ : Node p) = ∅ := by
   simp [fgsaEvidence, initial, Store.init, chainRows]
 
 -- A stored chain includes its parent's rows, even when its tip has no row.
 example (p : Params) (a : Row (Fin p.n)) :
     fgsaEvidence (⟨{ initial p.n with fg := { Store.init with
-      TF := {.node (.node .genesis 1 0 [a]) 2 0 []} } }, Record.initial⟩ : Node p) = {a} := by
+      TF := {.node (.node .genesis 1 0 [a]) 2 0 []} } }, RecordOnce.initial⟩ : Node p) = {a} := by
   simp [fgsaEvidence, chainRows]
 
 end AvailableChain.FGSA.Run.Tests

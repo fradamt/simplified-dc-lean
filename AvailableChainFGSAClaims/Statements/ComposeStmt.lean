@@ -6,12 +6,12 @@ public import AvailableChainFGSAClaims.Statements.Healed
 
 /-! P3 App. A.1/A.10, F0.8a. The generic composition rules stay in Gen:
 Gen.Pure.AGRule.holds, Gen.Pure.firstFailure_holds, Gen.Pure.WindowRule.holds
-(Proofs/Pure/FirstBad). Gen.Pure.RetroAt and Gen.V2.Pending supply the
+(Proofs/Pure/FirstBad). Gen.Pure.RetroAt and Gen.V2.Duty.Pending supply the
 retrospective and deadline predicates. No F2 invariant enters this module. -/
 
 namespace AvailableChain.FGSA.Run
 
-variable (p : Params) {In V : Type} (c : AppCodec In) (rho : V2.Run V (fgsa p c))
+variable (p : Params) {In V : Type} (c : AppCodec In) (rho : V2.D.Run V (fgsa p c))
 
 /-- Study §5.4 (895–903): event indices between consecutive post-gate cuts.
 Slot zero starts at index zero. Consumers: F5, H.14–H.17, with Gen.Pure.WindowRule. -/
@@ -21,7 +21,7 @@ def windowIdx (s : Slot) (i : Nat) : Prop :=
    | s' + 1 => afterTicksIdx rho (SA.gateTime p.toParams s') ≤ i) ∧
   i < afterTicksIdx rho (SA.gateTime p.toParams s)
 
-variable {rho} [DecidableEq V] (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+variable {rho} [DecidableEq V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 /-- P3 App. A.1: study §3.1 (229–260), 01 §8.4 (795–801).
 Earlier rows and certificates, bounded labels, atomic reads, and fixed tick FG state. -/
@@ -53,7 +53,7 @@ open Gen.Pure
 
 /-- T-START (01:137–140,166–182; 22 I5:538–581), P3 A.7.
 Consumers: FF1, F6, F8, FL-T7. Both clauses hold at every event index. -/
-def TStart : Prop := Gen.AC.LeaseBelowOutput (fgsaAC E rho) ∧
+def TStart : Prop := Gen.AC.Duty.LeaseBelowOutput (fgsaAC E rho) ∧
   ∀ i x, x ∈ rho.honest →
     let st := storeAt p c E rho i x
     FGSA.liveRoot p st = eraseFG (FGSA.controls p st).Z ∨
@@ -65,7 +65,7 @@ def TStart : Prop := Gen.AC.LeaseBelowOutput (fgsaAC E rho) ∧
 Admission resolves a held vote; finality coverage is the alternate case. -/
 def FullVoteService (st : State p.n) (s : Slot) : Prop :=
   ∀ y (a : HeadWire p.n), y ∈ rho.honest →
-    V2.Run.emits E rho y (ofHead p a) (SA.voteTime p.toParams s) →
+    V2.D.Run.emits E rho y (ofHead p a) (SA.voteTime p.toParams s) →
     GridCO.headLabel? (baseVote a) = some s →
     baseVote a ∈ GridCO.votesAt st.base s ∧
     (a.payload ∈ (FGSA.actView st).blocks → a.payload.slot ≤ s →
@@ -77,16 +77,16 @@ def FullVoteService (st : State p.n) (s : Slot) : Prop :=
 Consumers: FF1, F6, F8, FL-T7. Sync begins at the batch's vote time,
 not at the later proposal/action. This is a composition service. -/
 def TVote : Prop :=
-  (∀ v st, Gen.V2.HonestSlot rho (fgsaInterface p c) v →
-    Gen.V2.LabelSync E rho (SA.voteTime p.toParams (v - 1))
+  (∀ v st, Gen.V2.Duty.HonestSlot rho (fgsaInterface p c) v →
+    Gen.V2.Duty.LabelSync E rho (SA.voteTime p.toParams (v - 1))
       (SA.proposalTime p.toParams v) →
     proposalStateAt p c E rho v = some st → FullVoteService p c E rho st (v - 1)) ∧
   (∀ r x nd, x ∈ rho.honest →
-    Gen.V2.LabelSync E rho (SA.voteTime p.toParams (r * p.R + 1)) (p.actionTime r) →
+    Gen.V2.Duty.LabelSync E rho (SA.voteTime p.toParams (r * p.R + 1)) (p.actionTime r) →
     postClock E rho x (p.actionTime r) = some nd →
     FullVoteService p c E rho nd.st (r * p.R + 1)) ∧
   (∀ y s (a : HeadWire p.n), y ∈ rho.honest →
-    V2.Run.emits E rho y (ofHead p a) (SA.voteTime p.toParams s) →
+    V2.D.Run.emits E rho y (ofHead p a) (SA.voteTime p.toParams s) →
     ∃ nd, postClock E rho y (SA.voteTime p.toParams s) = some nd ∧ a.payload ∈ nd.st.base.blocks)
 
 /-- Honest resolving seats of a read (01:158–164,184–199), P3 A.7.
@@ -145,7 +145,7 @@ def B'_reset (G : Time) : Time :=
 A consumer of Q* must use ResetArrivalFullStatement. -/
 def ResetArrivalStatement (G : Time) : Prop := p.δt = 2 * p.R →
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)),
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
     HealingSet p c E rho G → E.t_GST + B'_reset p G ≤ rho.horizon →
     ∃ w, H0Reset p c E rho w ∧ p.actionTime w.rStar < E.t_GST + B'_reset p G
 /-- Full companion: H.11 reset plus H.18 (21:2868–2876;3174–3176),
@@ -153,7 +153,7 @@ P3 A.10 with lead ruling 2026-09-30. Consumers: full H0, HealingInput,
 tstarOf and joined kernel. Only the horizon adds Γ + 4Δ; reset time does not. -/
 def ResetArrivalFullStatement (G : Time) : Prop := p.δt = 2 * p.R →
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)),
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
     HealingSet p c E rho G → E.t_GST + B'_reset p G + Γ p G + 4 * p.Δ ≤ rho.horizon →
     ∃ w, H0 p c E rho w ∧ p.actionTime w.rStar < E.t_GST + B'_reset p G
 
@@ -174,10 +174,10 @@ structure KernelPt where
 /-- Kernel premise split (22 §1:41–63; 00:1122–1123), P3 A.10.
 Consumer: KernelFromContract. The disjunction is one run premise. -/
 structure KernelPrem [Fintype V] (G : Time) (E : Generic.Env V)
-    (rho : V2.Run V (fgsa p c)) (pt : KernelPt) : Prop where
+    (rho : V2.D.Run V (fgsa p c)) (pt : KernelPt) : Prop where
   set : Recovery₂ p c E rho G
-  window : (FGood (Gen.V2.HonestSlot rho (fgsaInterface p c)) p.R pt.r ∧ G ≤ P p) ∨
-    FGood4 (Gen.V2.HonestSlot rho (fgsaInterface p c)) p.R pt.r
+  window : (FGood (Gen.V2.Duty.HonestSlot rho (fgsaInterface p c)) p.R pt.r ∧ G ≤ P p) ∨
+    FGood4 (Gen.V2.Duty.HonestSlot rho (fgsaInterface p c)) p.R pt.r
   start : tstar p pt.w ≤ ↑pt.r * P p
   hhor : ↑(pt.r + 2) * P p + 9 * p.Δ ≤ rho.horizon
   input : HealingInput p c E rho pt.w
@@ -186,13 +186,13 @@ structure KernelPrem [Fintype V] (G : Time) (E : Generic.Env V)
 Consumer: split-to-joined composition. The delay ratio is a parameter premise. -/
 def KernelFromContract : Prop := p.δt = 2 * p.R →
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) (G : Time) (pt : KernelPt),
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (G : Time) (pt : KernelPt),
     KernelPrem p c G E rho pt → KernelConclusion p c E rho pt.r
 /-- AC side (01:126–129), P3 A.10. Consumer: kernel_of_split (F0.6b).
 Recovery supplies participation and receipt; services are not HealingInput fields. -/
 def KernelACSide : Prop := p.δt = 2 * p.R →
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) (G : Time) (w : HealingWitness),
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (G : Time) (w : HealingWitness),
     Recovery₂ p c E rho G → HealingInput p c E rho w → CoreServices p c E rho w
 /-- Joined kernel start (21 H.18:2868–2876), P3 A.10 D44.
 Consumer: KernelJoinedPrem. The time comes from full H0. -/

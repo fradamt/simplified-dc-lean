@@ -1,5 +1,4 @@
 module
-public import AvailableChainFGSA.Proofs.Head
 public import AvailableChainFGSA.Proofs.Head.Pool
 public import AvailableChainFGSAProofs.Proofs.Clean.StateGate
 public import AvailableChainFGSAProofs.Proofs.Shared.Count
@@ -18,7 +17,7 @@ namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
 
 variable (p : Params) {In V : Type} (c : AppCodec In)
-    [DecidableEq V] (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    [DecidableEq V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 private theorem transfer_decode {o : Obj p} {b : Block}
     (h : blockOf? p o = some b) :
@@ -38,7 +37,7 @@ INTENTIONAL: FG-SA uses each proposal's stored stamp and acceptance, not
 an honest supporting seat (spec/fgsa-protocol.tex:2506–2513).
 Ancestor closure is applied just after K's early acceptance. -/
 theorem clean_transfer_source_acceptances
-    (hsch : V2.ScheduleWellFormed E rho) (hDelta : E.Δ = p.Δ)
+    (hsch : V2.D.ScheduleWellFormed E rho) (hDelta : E.Δ = p.Δ)
     {i : Nat} {x : V} {s : Slot} {K B : Block}
     (hK : K ∈ (storeAt p c E rho i x).base.blocks)
     (hstamp : GridCO.stampBlock (storeAt p c E rho i x).base K <
@@ -47,7 +46,7 @@ theorem clean_transfer_source_acceptances
     ∀ b, Block.Preceq b B → b ≠ .genesis →
       ∃ l < i, ∃ t o u raw sup rows,
         (toWire p o).decode = some (.block u b raw sup rows) ∧
-        V2.Run.acceptsAt E rho l x o t ∧ 0 ≤ t ∧ t < SA.earlyTime p.toParams s := by
+        V2.D.Run.acceptsAt E rho l x o t ∧ 0 ≤ t ∧ t < SA.earlyTime p.toParams s := by
   intro b hb hne
   have hbK := block_preceq_trans hb hBK
   have hKg : K ≠ .genesis := by
@@ -68,7 +67,7 @@ theorem clean_transfer_source_acceptances
     fgsa_block_accepted_before E rho hsch i x K _ hKg hpub hz hK hstamp
   obtain ⟨u, raw, sup, rows, hdec⟩ := transfer_decode p ho
   have hpost := ha.2.2
-  change processedS p (V2.Run.stateBefore E rho (j + 1) x).st o = true at hpost
+  change processedS p (V2.D.Run.stateBefore E rho (j + 1) x).st o = true at hpost
   dsimp only [processedS] at hpost
   rw [hdec] at hpost
   obtain ⟨Kfg, hKfg, hroot⟩ := of_decide_eq_true hpost
@@ -144,20 +143,20 @@ DC: Protocol/Schedule/AdoptionTransport.lean:509, confirmation acceptance window
 INTENTIONAL: the F-anchored raw result supplies an early resolved supporter;
 its seat and proposer need not be honest (spec/fgsa-protocol.tex:2506–2513). -/
 theorem clean_transfer_gate_acceptances
-    (hsch : V2.ScheduleWellFormed E rho) (hDelta : E.Δ = p.Δ)
+    (hsch : V2.D.ScheduleWellFormed E rho) (hDelta : E.Δ = p.Δ)
     {i : Nat} {x : V} {s : Slot} {B : Block}
     (ht : IsGateTick p c rho i x s)
     (hB : gateResultAt p c E rho i = some (some B)) :
     ∀ b, Block.Preceq b B → b ≠ .genesis →
       ∃ l < i, ∃ t o u raw sup rows,
         (toWire p o).decode = some (.block u b raw sup rows) ∧
-        V2.Run.acceptsAt E rho l x o t ∧ 0 ≤ t ∧ t < SA.earlyTime p.toParams s := by
+        V2.D.Run.acceptsAt E rho l x o t ∧ 0 ≤ t ∧ t < SA.earlyTime p.toParams s := by
   have hraw := Option.some.inj ((clean_gate_raw hsch ht).symm.trans hB)
   obtain ⟨o, K, _, _, hK, hBK, hstamp⟩ := transfer_early_support p _ s _ B hraw
   have hmem := ((actView_blocks _ K).mp hK).1
   rw [(clockPre_fields p _ _).2.1] at hmem
   have hkeys : K ∈ (storeAt p c E rho i x).base.blockStamp.map Prod.fst := by
-    change K ∈ (V2.Run.stateBefore E rho i x).st.base.blockStamp.map Prod.fst
+    change K ∈ (V2.D.Run.stateBefore E rho i x).st.base.blockStamp.map Prod.fst
     rw [(storeBundle_stateBefore E rho i x).«meta».stampKeys]
     exact hmem
   have heq : GridCO.stampBlock
@@ -183,23 +182,10 @@ private theorem transfer_lift {A B : FGBlock (Fin p.n)}
 
 private theorem transfer_row_tick {j : Nat} {x : V} {r : Nat} {a : RowWire p.n}
     (ha : HonestRowAt p c E rho j x r a) :
-    rho.events[j]? = some (.tick x (p.actionTime r)) := by
-  obtain ⟨_, hr, t, hj, hem⟩ := ha
-  rcases a with ⟨auth, body⟩
-  cases auth with
-  | none => cases hr
-  | proposer s => cases hr
-  | seat label seat =>
-    cases label with
-    | head s => cases hr
-    | fg r' =>
-      have hrr : r' = r := Option.some.inj hr
-      subst r'
-      obtain ⟨_, ht, _, _⟩ := (fgsa_emitsAt_row E rho j x t hj r seat body).mp hem
-      exact ht ▸ hj
+    rho.events[j]? = some (.tick x (p.actionTime r)) := ha.2.1
 
 private theorem transfer_frame_at_vote
-    (hsch : V2.ScheduleWellFormed E rho)
+    (hsch : V2.D.ScheduleWellFormed E rho)
     (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho)
     {i k : Nat} {y : V} {s : Slot} {Bfg : FGBlock (Fin p.n)}
     (hki : k < i)
@@ -244,7 +230,7 @@ private theorem transfer_frame_at_vote
     obtain ⟨hkl, hke⟩ := List.getElem?_eq_some_iff.mp hk
     have hkey := (List.pairwise_iff_getElem.mp hsch.sorted) j k hjl hkl hj
     rw [hje, hke] at hkey
-    have ht := V2.Engine.time_le_of_key_le _ _ hkey
+    have ht := V2.D.Engine.time_le_of_key_le _ _ hkey
     have hrs : r * p.R < s := by
       change 4 * p.Δ * ((r * p.R : Nat) : Int) + 6 * p.Δ ≤
         4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ at ht
@@ -260,42 +246,36 @@ private theorem transfer_frame_at_vote
     exact KitFG.preceq_trans (heC ▸ hpre) (transfer_lift p hCB)
 
 private theorem transfer_coverage
-    (hE : V2.ExecutionValid E rho) (hDelta : E.Δ = p.Δ)
-    (b₀ : Time) (hhealthy : V2.HealthyPrefixDelivery E rho b₀)
+    (hE : V2.D.ExecutionValid E rho) (hDelta : E.Δ = p.Δ)
+    (b₀ : Time) (hhealthy : V2.D.HealthyPrefixDelivery E rho b₀)
     (hb₀ : b₀ ≤ rho.horizon) {i : Nat} {x y : V} {s : Slot} {B : Block}
     (hx : x ∈ rho.honest) (hcut : SA.freezeTime p.toParams s ≤ b₀)
     (hpath : ∀ b, Block.Preceq b B → b ≠ .genesis →
       ∃ l < i, ∃ t o u raw sup rows,
         (toWire p o).decode = some (.block u b raw sup rows) ∧
-        V2.Run.acceptsAt E rho l x o t ∧ 0 ≤ t ∧ t < SA.earlyTime p.toParams s)
-    (hF : ∀ j, j ≤ V2.Run.idxBefore rho (SA.freezeTime p.toParams s) →
+        V2.D.Run.acceptsAt E rho l x o t ∧ 0 ≤ t ∧ t < SA.earlyTime p.toParams s)
+    (hF : ∀ j, j ≤ V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s) →
       Block.Preceq (F_at p c E rho j y) B) :
     ∃ required,
       ReceiptCoveragePremises E rho (fun t => t + p.Δ) b₀
         (SA.freezeTime p.toParams s) 0 y B required
         (fun L d => L = B ∧ d = SA.freezeTime p.toParams s) := by
   let required := fun o t => 0 ≤ t ∧ t < SA.earlyTime p.toParams s ∧
-    ∃ l < i, V2.Run.acceptsAt E rho l x o t ∧
+    ∃ l < i, V2.D.Run.acceptsAt E rho l x o t ∧
       ∃ b, blockOf? p o = some b ∧ Block.Preceq b B
   refine ⟨required, ?_, ?_, ?_, ?_⟩
-  · simpa only [hDelta] using Gen.V2.deliveryWithin_of_healthyPrefix b₀ hhealthy
+  · simpa only [hDelta] using Gen.V2.Duty.deliveryWithin_of_healthyPrefix b₀ hhealthy
   · intro o t hr
     obtain ⟨_, _, l, _, ha, b, hb, _⟩ := hr
     obtain ⟨parent, he, hh⟩ := ha.1
     refine ⟨Or.inr ⟨x, hx, l, ha⟩,
-      handles_wellFormed p c _ parent o hh (hE.wire l x parent t he), ?_, ?_⟩
-    · intro r a K hv
-      have hn : blockOf? p o = none := by
-        change (match (toWire p o).decode with | some (.block _ b _ _ _) => some b | _ => none) = _
-        rw [hv]
-      rw [hn] at hb
-      contradiction
-    · intro r a body hv
-      have hn : blockOf? p o = none := by
-        change (match (toWire p o).decode with | some (.block _ b _ _ _) => some b | _ => none) = _
-        rw [hv]
-      rw [hn] at hb
-      contradiction
+      handles_wellFormed p c _ parent o hh (hE.wire l x parent t he), ?_⟩
+    intro r a K hv
+    have hn : blockOf? p o = none := by
+      change (match (toWire p o).decode with | some (.block _ b _ _ _) => some b | _ => none) = _
+      rw [hv]
+    rw [hn] at hb
+    contradiction
   · intro j _ hj
     exact block_compatible_of_common (block_preceq_refl B) (hF j hj)
   · refine ⟨fun _ _ hab => add_le_add hab le_rfl, hcut, hb₀, Nat.zero_le _, ?_, ?_, ?_⟩
@@ -326,7 +306,7 @@ private theorem transfer_coverage
       subst b'
       exact ⟨B, SA.freezeTime p.toParams s, ⟨rfl, rfl⟩, hBK⟩
 
-private theorem transfer_raw_lift (hsch : V2.ScheduleWellFormed E rho)
+private theorem transfer_raw_lift (hsch : V2.D.ScheduleWellFormed E rho)
     {i : Nat} {x : V} {s : Slot} {B : Block}
     (ht : IsGateTick p c rho i x s)
     (hB : gateResultAt p c E rho i = some (some B)) :
@@ -354,30 +334,30 @@ theorem clean_transfer_receipt_path [Fintype V] (b₀ : Time)
     (hB : gateResultAt p c E rho i = some (some B))
     (hord : ∀ r C, (r, C) ∈ cleanResults p c E rho i → r < s → Block.Preceq C B) :
     ∀ b, Block.Preceq b B →
-      b ∈ (actView (V2.Run.stateBeforeTime E rho (SA.freezeTime p.toParams s) y).st).blocks := by
+      b ∈ (actView (V2.D.Run.stateBeforeTime E rho (SA.freezeTime p.toParams s) y).st).blocks := by
   have hsch := h.base.valid.toScheduleWellFormed
   have hx := hsch.honest_only _ (List.mem_of_getElem? ht)
   have hy := hsch.honest_only _ (List.mem_of_getElem? hk)
   obtain ⟨Bfg, he⟩ := transfer_raw_lift p c E rho hsch ht hB
   have hframe := transfer_frame_at_vote p c E rho hsch hf hsrc (Bfg := Bfg) hki hk hs
     (by simpa only [he] using hord)
-  have hidx : V2.Run.idxBefore rho (SA.freezeTime p.toParams s) ≤ k := by
+  have hidx : V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s) ≤ k := by
     by_contra hn
-    have htime := (Gen.V2.index_lt_idxBefore_iff hsch hk (SA.freezeTime p.toParams s)).mp
+    have htime := (Gen.V2.Duty.index_lt_idxBefore_iff hsch hk (SA.freezeTime p.toParams s)).mp
       (Nat.lt_of_not_ge hn)
     change 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ <
       4 * p.Δ * (s : Int) + 3 * p.Δ at htime
     push_cast at htime
     have hd := p.deltaPos
     nlinarith
-  have hF : ∀ j, j ≤ V2.Run.idxBefore rho (SA.freezeTime p.toParams s) →
+  have hF : ∀ j, j ≤ V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s) →
       Block.Preceq (F_at p c E rho j y) B := by
     intro j hj
     rw [← he]
     exact eraseFG_preceq (KitFG.preceq_trans
       (hf.mono h.base.noRestart j k y hy (hj.trans hidx)).1 hframe.1)
   have hcut : SA.freezeTime p.toParams s ≤ b₀ := by
-    have htime := (V2.Engine.index_lt_read_length_iff hsch b₀ ht).mp hi
+    have htime := (V2.D.Engine.index_lt_read_length_iff hsch b₀ ht).mp hi
     change 4 * p.Δ * (s : Int) + 6 * p.Δ ≤ b₀ at htime
     change 4 * p.Δ * (s : Int) + 3 * p.Δ ≤ b₀
     have hd := p.deltaPos
@@ -389,9 +369,9 @@ theorem clean_transfer_receipt_path [Fintype V] (b₀ : Time)
     (fun t => t + p.Δ) b₀ (SA.freezeTime p.toParams s) 0 y B required
     (fun L d => L = B ∧ d = SA.freezeTime p.toParams s) hy hcov ⟨rfl, rfl⟩
   have hh := hF _ le_rfl
-  change Block.Preceq (eraseFG (V2.Run.stateBefore E rho
-    (V2.Run.idxBefore rho (SA.freezeTime p.toParams s)) y).st.fg.F) B at hh
-  rw [Gen.V2.stateBefore_idxBefore E rho _ hsch] at hh
+  change Block.Preceq (eraseFG (V2.D.Run.stateBefore E rho
+    (V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s)) y).st.fg.F) B at hh
+  rw [Gen.V2.Duty.stateBefore_idxBefore E rho _ hsch] at hh
   exact hh
 
 /-- P3 F2.2, T7.8/T7.12a/K8; bp02 §3.5 step 5 and §4.2. Class B.
@@ -413,30 +393,30 @@ theorem clean_transfer_receipt_path_of_head [Fintype V] (b₀ : Time)
       (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))) s)
     (hK : GridCO.headTarget? o = some K) (hBK : Block.Preceq B K) :
     ∀ b, Block.Preceq b K →
-      b ∈ (actView (V2.Run.stateBeforeTime E rho (SA.freezeTime p.toParams s) y).st).blocks := by
+      b ∈ (actView (V2.D.Run.stateBeforeTime E rho (SA.freezeTime p.toParams s) y).st).blocks := by
   have hsch := h.base.valid.toScheduleWellFormed
   have hx := hsch.honest_only _ (List.mem_of_getElem? ht)
   have hy := hsch.honest_only _ (List.mem_of_getElem? hk)
   obtain ⟨Bfg, he⟩ := transfer_raw_lift p c E rho hsch ht hB
   have hframe := transfer_frame_at_vote p c E rho hsch hf hsrc (Bfg := Bfg) hki hk hs
     (by simpa only [he] using hord)
-  have hidx : V2.Run.idxBefore rho (SA.freezeTime p.toParams s) ≤ k := by
+  have hidx : V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s) ≤ k := by
     by_contra hn
-    have htime := (Gen.V2.index_lt_idxBefore_iff hsch hk (SA.freezeTime p.toParams s)).mp
+    have htime := (Gen.V2.Duty.index_lt_idxBefore_iff hsch hk (SA.freezeTime p.toParams s)).mp
       (Nat.lt_of_not_ge hn)
     change 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ <
       4 * p.Δ * (s : Int) + 3 * p.Δ at htime
     push_cast at htime
     have hd := p.deltaPos
     nlinarith
-  have hF : ∀ j, j ≤ V2.Run.idxBefore rho (SA.freezeTime p.toParams s) →
+  have hF : ∀ j, j ≤ V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s) →
       Block.Preceq (F_at p c E rho j y) B := by
     intro j hj
     rw [← he]
     exact eraseFG_preceq (KitFG.preceq_trans
       (hf.mono h.base.noRestart j k y hy (hj.trans hidx)).1 hframe.1)
   have hcut : SA.freezeTime p.toParams s ≤ b₀ := by
-    have htime := (V2.Engine.index_lt_read_length_iff hsch b₀ ht).mp hi
+    have htime := (V2.D.Engine.index_lt_read_length_iff hsch b₀ ht).mp hi
     change 4 * p.Δ * (s : Int) + 6 * p.Δ ≤ b₀ at htime
     change 4 * p.Δ * (s : Int) + 3 * p.Δ ≤ b₀
     have hd := p.deltaPos
@@ -454,7 +434,7 @@ theorem clean_transfer_receipt_path_of_head [Fintype V] (b₀ : Time)
   have hmem := ((actView_blocks _ K).mp hKm).1
   rw [(clockPre_fields p _ _).2.1] at hmem
   have hkeys : K ∈ (storeAt p c E rho i x).base.blockStamp.map Prod.fst := by
-    change K ∈ (V2.Run.stateBefore E rho i x).st.base.blockStamp.map Prod.fst
+    change K ∈ (V2.D.Run.stateBefore E rho i x).st.base.blockStamp.map Prod.fst
     rw [(storeBundle_stateBefore E rho i x).«meta».stampKeys]
     exact hmem
   have heq : GridCO.stampBlock
@@ -480,23 +460,24 @@ theorem clean_transfer_receipt_path_of_head [Fintype V] (b₀ : Time)
     (fun t => t + p.Δ) b₀ (SA.freezeTime p.toParams s) 0 y K required
     (fun L d => L = K ∧ d = SA.freezeTime p.toParams s) hy hcov ⟨rfl, rfl⟩
   have hh := block_preceq_trans (hF _ le_rfl) hBK
-  change Block.Preceq (eraseFG (V2.Run.stateBefore E rho
-    (V2.Run.idxBefore rho (SA.freezeTime p.toParams s)) y).st.fg.F) K at hh
-  rw [Gen.V2.stateBefore_idxBefore E rho _ hsch] at hh
+  change Block.Preceq (eraseFG (V2.D.Run.stateBefore E rho
+    (V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s)) y).st.fg.F) K at hh
+  rw [Gen.V2.Duty.stateBefore_idxBefore E rho _ hsch] at hh
   exact hh
 
-private theorem transfer_read_stamp (hsch : V2.ScheduleWellFormed E rho)
+private theorem transfer_read_stamp (hsch : V2.D.ScheduleWellFormed E rho)
     (y : V) (D : Time) (hD : 0 < D) (b : Block)
-    (hb : b ∈ (V2.Run.stateBeforeTime E rho D y).st.base.blocks) :
-    GridCO.stampBlock (V2.Run.stateBeforeTime E rho D y).st.base b < D := by
-  rw [← Gen.V2.stateBefore_idxBefore E rho D hsch] at hb ⊢
+    (hb : b ∈ (V2.D.Run.stateBeforeTime E rho D y).st.base.blocks) :
+    GridCO.stampBlock (V2.D.Run.stateBeforeTime E rho D y).st.base b < D := by
+  rw [← Gen.V2.Duty.stateBefore_idxBefore E rho D hsch] at hb ⊢
   have hkeys : b ∈
-      (V2.Run.stateBefore E rho (V2.Run.idxBefore rho D) y).st.base.blockStamp.map Prod.fst := by
-    rw [(storeBundle_stateBefore E rho (V2.Run.idxBefore rho D) y).«meta».stampKeys]
+      ((V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho D) y).st.base.blockStamp.map
+        Prod.fst) := by
+    rw [(storeBundle_stateBefore E rho (V2.D.Run.idxBefore rho D) y).«meta».stampKeys]
     exact hb
-  change (((V2.Run.stateBefore E rho (V2.Run.idxBefore rho D) y).st.base.blockStamp.find? _).map
+  change (((V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho D) y).st.base.blockStamp.find? _).map
     Prod.snd).getD _ < D
-  cases he : (V2.Run.stateBefore E rho (V2.Run.idxBefore rho D) y).st.base.blockStamp.find?
+  cases he : (V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho D) y).st.base.blockStamp.find?
       (fun row => row.1 == b) with
   | none =>
     obtain ⟨row, hr, hh⟩ := List.mem_map.mp hkeys
@@ -509,10 +490,10 @@ private theorem transfer_read_stamp (hsch : V2.ScheduleWellFormed E rho)
       hg | ⟨l, hl, t, o, _, ha, hs⟩
     · rw [hg.2]; exact hD
     · obtain ⟨parent, hd, _⟩ := ha.1
-      have ht := (Gen.V2.index_lt_idxBefore_iff hsch hd D).mp hl
-      have hc := V2.Engine.stateBefore_now_le_event (fgsaClock p c)
+      have ht := (Gen.V2.Duty.index_lt_idxBefore_iff hsch hd D).mp hl
+      have hc := V2.D.Engine.stateBefore_now_le_event (fgsaClock p c)
         (fgsa_hrestore_now p c) E rho hsch hd y
-      rw [fgsa_clock_now p c (V2.Run.stateBefore E rho l y)] at hc
+      rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho l y)] at hc
       rw [hs]
       exact hc.trans_lt ht
 
@@ -536,7 +517,7 @@ INTENTIONAL: this is the FG-SA stamped path at the actual next-slot clocked
 read, not a prepared SG walk (spec/fgsa-protocol.tex:2496–2525; design R4/R5).
 The original freeze stamps survive both cumulative storage and the full clock. -/
 theorem clean_transfer_prefreeze_path [Fintype V] (b₀ : Time) :
-  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
+  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   ∀ i k x y s B, i < timeIdx rho b₀ → k < i →
     IsGateTick p c rho i x s →
@@ -544,7 +525,7 @@ theorem clean_transfer_prefreeze_path [Fintype V] (b₀ : Time) :
     CleanHist p c E rho i → (∀ j, j ≤ i → CleanState p c E rho j) →
     gateResultAt p c E rho i = some (some B) →
     (∀ r C, (r, C) ∈ cleanResults p c E rho i → r < s → Block.Preceq C B) →
-    let st := ((fgsa p c).clock (V2.Run.stateBefore E rho k y)
+    let st := ((fgsa p c).clock (V2.D.Run.stateBefore E rho k y)
       (SA.voteTime p.toParams (s + 1))).st
     ∃ Bfg : FGBlock (Fin p.n), eraseFG Bfg = B ∧
       ∀ A : FGBlock (Fin p.n), FGBlock.Preceq A Bfg →
@@ -556,10 +537,10 @@ theorem clean_transfer_prefreeze_path [Fintype V] (b₀ : Time) :
   have hpath := clean_transfer_receipt_path p c E rho b₀ h hf hsrc hi hki ht hk
     (hall i le_rfl) hB hord
   let D := SA.freezeTime p.toParams s
-  let j := V2.Run.idxBefore rho D
+  let j := V2.D.Run.idxBefore rho D
   have hjk : j ≤ k := by
     by_contra hn
-    have htime := (Gen.V2.index_lt_idxBefore_iff hsch hk D).mp (Nat.lt_of_not_ge hn)
+    have htime := (Gen.V2.Duty.index_lt_idxBefore_iff hsch hk D).mp (Nat.lt_of_not_ge hn)
     change 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ <
       4 * p.Δ * (s : Int) + 3 * p.Δ at htime
     push_cast at htime
@@ -567,9 +548,9 @@ theorem clean_transfer_prefreeze_path [Fintype V] (b₀ : Time) :
     nlinarith
   have hklen : k ≤ rho.events.length := Nat.le_of_lt (List.getElem?_eq_some_iff.mp hk).1
   have hc := hf.cumul h.base.noRestart j k y hy hjk hklen
-  have hread : storeAt p c E rho j y = (V2.Run.stateBeforeTime E rho D y).st := by
-    change (V2.Run.stateBefore E rho (V2.Run.idxBefore rho D) y).st = _
-    rw [Gen.V2.stateBefore_idxBefore E rho D hsch]
+  have hread : storeAt p c E rho j y = (V2.D.Run.stateBeforeTime E rho D y).st := by
+    change (V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho D) y).st = _
+    rw [Gen.V2.Duty.stateBefore_idxBefore E rho D hsch]
   have hBmem := ((actView_blocks _ B).mp (hpath B (block_preceq_refl B))).1
   obtain ⟨Bfg, hBfg, he⟩ := ((storeBundle_stateBeforeTime E rho D y).cstore.baseTree B).mp hBmem
   refine ⟨Bfg, he, ?_⟩
@@ -584,7 +565,7 @@ theorem clean_transfer_prefreeze_path [Fintype V] (b₀ : Time) :
     positivity) (eraseFG A) hAb
   rw [← hread] at hAm hAb hAstamp
   have hkeys : eraseFG A ∈ (storeAt p c E rho j y).base.blockStamp.map Prod.fst := by
-    change eraseFG A ∈ (V2.Run.stateBefore E rho j y).st.base.blockStamp.map Prod.fst
+    change eraseFG A ∈ (V2.D.Run.stateBefore E rho j y).st.base.blockStamp.map Prod.fst
     rw [(storeBundle_stateBefore E rho j y).«meta».stampKeys]
     exact hAb
   constructor
@@ -611,7 +592,7 @@ actual next-slot clocked read, as the C5 relay hpath premise requires
 (spec/fgsa-protocol.tex:2496–2525,2506–2513). The lift is existential so
 that the consumer can select it; eraseFG injectivity identifies any other lift. -/
 theorem clean_transfer_prefreeze_path_of_head [Fintype V] (b₀ : Time) :
-  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
+  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   ∀ i k x y s B K (o : GridCO.Wire p.n), i < timeIdx rho b₀ → k < i →
     IsGateTick p c rho i x s →
@@ -622,7 +603,7 @@ theorem clean_transfer_prefreeze_path_of_head [Fintype V] (b₀ : Time) :
     o ∈ GridCO.cleanSupport p.toParams.engine
       (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))) s →
     GridCO.headTarget? o = some K → Block.Preceq B K →
-    let st := ((fgsa p c).clock (V2.Run.stateBefore E rho k y)
+    let st := ((fgsa p c).clock (V2.D.Run.stateBefore E rho k y)
       (SA.voteTime p.toParams (s + 1))).st
     ∃ Kfg : FGBlock (Fin p.n), eraseFG Kfg = K ∧
       ∀ A : FGBlock (Fin p.n), FGBlock.Preceq A Kfg →
@@ -634,10 +615,10 @@ theorem clean_transfer_prefreeze_path_of_head [Fintype V] (b₀ : Time) :
   have hpath := clean_transfer_receipt_path_of_head p c E rho b₀ h hf hsrc hi hki ht hk
     (hall i le_rfl) hB hord ho hK hBK
   let D := SA.freezeTime p.toParams s
-  let j := V2.Run.idxBefore rho D
+  let j := V2.D.Run.idxBefore rho D
   have hjk : j ≤ k := by
     by_contra hn
-    have htime := (Gen.V2.index_lt_idxBefore_iff hsch hk D).mp (Nat.lt_of_not_ge hn)
+    have htime := (Gen.V2.Duty.index_lt_idxBefore_iff hsch hk D).mp (Nat.lt_of_not_ge hn)
     change 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ <
       4 * p.Δ * (s : Int) + 3 * p.Δ at htime
     push_cast at htime
@@ -645,9 +626,9 @@ theorem clean_transfer_prefreeze_path_of_head [Fintype V] (b₀ : Time) :
     nlinarith
   have hklen : k ≤ rho.events.length := Nat.le_of_lt (List.getElem?_eq_some_iff.mp hk).1
   have hc := hf.cumul h.base.noRestart j k y hy hjk hklen
-  have hread : storeAt p c E rho j y = (V2.Run.stateBeforeTime E rho D y).st := by
-    change (V2.Run.stateBefore E rho (V2.Run.idxBefore rho D) y).st = _
-    rw [Gen.V2.stateBefore_idxBefore E rho D hsch]
+  have hread : storeAt p c E rho j y = (V2.D.Run.stateBeforeTime E rho D y).st := by
+    change (V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho D) y).st = _
+    rw [Gen.V2.Duty.stateBefore_idxBefore E rho D hsch]
   have hKmem := ((actView_blocks _ K).mp (hpath K (block_preceq_refl K))).1
   obtain ⟨Kfg, hKfg, he⟩ := ((storeBundle_stateBeforeTime E rho D y).cstore.baseTree K).mp hKmem
   refine ⟨Kfg, he, ?_⟩
@@ -662,7 +643,7 @@ theorem clean_transfer_prefreeze_path_of_head [Fintype V] (b₀ : Time) :
     positivity) (eraseFG A) hAb
   rw [← hread] at hAm hAb hAstamp
   have hkeys : eraseFG A ∈ (storeAt p c E rho j y).base.blockStamp.map Prod.fst := by
-    change eraseFG A ∈ (V2.Run.stateBefore E rho j y).st.base.blockStamp.map Prod.fst
+    change eraseFG A ∈ (V2.D.Run.stateBefore E rho j y).st.base.blockStamp.map Prod.fst
     rw [(storeBundle_stateBefore E rho j y).«meta».stampKeys]
     exact hAb
   constructor
@@ -732,7 +713,7 @@ contest, live lease root, and a witness in the actual voter set
 (spec/fgsa-protocol.tex:2496–2525,2557–2571; design Appendix A and R4/R5).
 The local height witness is Bfg itself. Ordered is an explicit input. -/
 theorem clean_transfer_frame [Fintype V] (b₀ : Time) :
-  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
+  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   ∀ i k x y s B, i < timeIdx rho b₀ → k < i →
     IsGateTick p c rho i x s →
@@ -740,7 +721,7 @@ theorem clean_transfer_frame [Fintype V] (b₀ : Time) :
     CleanHist p c E rho i → (∀ j, j ≤ i → CleanState p c E rho j) →
     gateResultAt p c E rho i = some (some B) →
     (∀ r C, (r, C) ∈ cleanResults p c E rho i → r < s → Block.Preceq C B) →
-    let st := ((fgsa p c).clock (V2.Run.stateBefore E rho k y)
+    let st := ((fgsa p c).clock (V2.D.Run.stateBefore E rho k y)
       (SA.voteTime p.toParams (s + 1))).st
     ∃ Bfg : FGBlock (Fin p.n), eraseFG Bfg = B ∧
       FGBlock.Preceq st.fg.F Bfg ∧ FGBlock.Preceq (FGSA.controls p st).Z Bfg ∧

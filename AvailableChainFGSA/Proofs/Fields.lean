@@ -48,8 +48,7 @@ theorem admitRow_eq (p : Params) (st : State p.n) (a : RowWire p.n) :
     admitRow p st a = st ∨ admitRow p st a = { st with rowPool := st.rowPool ++ [a] } := by
   unfold admitRow
   split
-  · dsimp only
-    split
+  · split
     · exact Or.inl rfl
     · exact Or.inr rfl
   · exact Or.inl rfl

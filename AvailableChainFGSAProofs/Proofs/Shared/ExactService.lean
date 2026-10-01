@@ -12,31 +12,31 @@ open Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-private theorem exactService_tickIdx (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hs : V2.ScheduleWellFormed E rho) {i : Nat} {x : V} {t : Time}
+private theorem exactService_tickIdx (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {x : V} {t : Time}
     (hi : rho.events[i]? = some (.tick x t)) :
-    V2.Run.tickIdx? rho x t = some i := by
+    V2.D.Run.tickIdx? rho x t = some i := by
   have hil := (List.getElem?_eq_some_iff.mp hi).1
-  obtain ⟨j, hj⟩ : ∃ j, V2.Run.tickIdx? rho x t = some j := by
-    rw [V2.Run.tickIdx?, ← Option.isSome_iff_exists, List.findIdx?_isSome, List.any_eq_true]
+  obtain ⟨j, hj⟩ : ∃ j, V2.D.Run.tickIdx? rho x t = some j := by
+    rw [V2.D.Run.tickIdx?, ← Option.isSome_iff_exists, List.findIdx?_isSome, List.any_eq_true]
     refine ⟨rho.events[i], List.getElem_mem hil, ?_⟩
     rw [(List.getElem?_eq_some_iff.mp hi).2]
     simp
-  exact (fgsa_tick_unique E rho hs (V2.Run.tickIdx?_spec hj) hi) ▸ hj
+  exact (fgsa_tick_unique E rho hs (V2.D.Run.tickIdx?_spec hj) hi) ▸ hj
 
 /-- Blueprint 21 H.22, H3: the emitted HEAD is the scheduled HEAD read.
 DC: Handlers/GoldfishVotePool.lean:320, unique honest vote at a label.
 INTENTIONAL: FG-SA identifies its post-clock read with the actual signed
 HEAD. This uses the SA HEAD label and does not use an FG row round. -/
-theorem exactService_emitted_head (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hs : V2.ScheduleWellFormed E rho) (s : Slot) (Q : Block)
+theorem exactService_emitted_head (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho) (s : Slot) (Q : Block)
     (hhead : ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some Q)
     (q : Fin p.n) (hy : rho.seatOf (.base (.head s)) q ∈ rho.honest)
     (K : Block) (t : Time)
-    (he : V2.Run.emits E rho (rho.seatOf (.base (.head s)) q)
+    (he : V2.D.Run.emits E rho (rho.seatOf (.base (.head s)) q)
       (ofHead p ⟨.seat (.head s) q, K⟩) t) : K = Q := by
   obtain ⟨j, hj, hem⟩ := he
-  rw [(V2.Run.step_tick_eq E rho hj).2] at hem
+  rw [(V2.D.Run.step_tick_eq E rho hj).2] at hem
   obtain ⟨_, ht, _, hK⟩ := (fgsa_emits_head E rho _ _ _ s q K).mp hem
   subst t
   have hr := hhead _ hy
@@ -50,18 +50,18 @@ DC: Goldfish/Confirmation.lean:434–441, HonestSupport.vote.
 INTENTIONAL: exact HEAD reads specialize the Shared active receipts to Q;
 the consumer supplies GateReceiptGeometry at the actual gate read. -/
 theorem exactService_gate_receipts_of_head
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hE : V2.ExecutionValid E rho) (hN : V2.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (hC : V2.CStar (fgsaFamilies p c).fresh rho)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
+    (hC : V2.D.CStar (fgsaFamilies p c).fresh rho)
     (s : Slot) (Q : Block)
     (hhead : ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some Q)
-    (hSync : Gen.V2.LabelSync E rho (SA.voteTime p.toParams s) (SA.gateTime p.toParams s))
+    (hSync : Gen.V2.Duty.LabelSync E rho (SA.voteTime p.toParams s) (SA.gateTime p.toParams s))
     {i : Nat} {x : V} (ht : IsGateTick p c rho i x s)
     (hgeom : GateReceiptGeometry E rho
       (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)) s Q)
     (q : Fin p.n) (hy : rho.seatOf (.base (.head s)) q ∈ rho.honest)
     (hawake : E.awake (rho.seatOf (.base (.head s)) q) (SA.voteTime p.toParams s) = true) :
-    ∃ t, V2.Run.emits E rho (rho.seatOf (.base (.head s)) q)
+    ∃ t, V2.D.Run.emits E rho (rho.seatOf (.base (.head s)) q)
       (ofHead p ⟨.seat (.head s) q, Q⟩) t ∧
       baseVote (⟨.seat (.head s) q, Q⟩ : HeadWire p.n) ∈
         (storeAt p c E rho i x).base.votes ∧
@@ -86,19 +86,19 @@ INTENTIONAL: FG-SA uses the active F anchor and a late-vote denominator.
 The SA participation count and GateReceiptGeometry are explicit inputs.
 No slot equality for Q or FG row premise is needed. -/
 theorem exactService_gate_raw_of_head [Fintype V]
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hE : V2.ExecutionValid E rho) (hN : V2.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (hC : V2.CStar (fgsaFamilies p c).fresh rho)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
+    (hC : V2.D.CStar (fgsaFamilies p c).fresh rho)
     (s : Slot) (Q : Block)
     (hhead : ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some Q)
-    (hSync : Gen.V2.LabelSync E rho (SA.voteTime p.toParams s) (SA.gateTime p.toParams s))
+    (hSync : Gen.V2.Duty.LabelSync E rho (SA.voteTime p.toParams s) (SA.gateTime p.toParams s))
     {i : Nat} {x : V} (ht : IsGateTick p c rho i x s)
     (hgeom : GateReceiptGeometry E rho
       (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)) s Q)
     (H : Finset (Fin p.n))
     (hH : ∀ q, q ∈ H ↔ rho.seatOf (.base (.head s)) q ∈ rho.honest ∧
       E.awake (rho.seatOf (.base (.head s)) q) (SA.voteTime p.toParams s) = true)
-    (hbatch : Gen.Pure.Batch H.card (Gen.V2.faulty rho).card) :
+    (hbatch : Gen.Pure.Batch H.card (Gen.V2.Duty.faulty rho).card) :
     let pre := clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)
     let v := actView pre
     SA.confirmationFrom p.toParams (eraseFG pre.fg.F) v s = some Q ∧
@@ -122,7 +122,7 @@ theorem exactService_gate_raw_of_head [Fintype V]
       ((hH q).mp hq).1 he hv hQ hslot hvs hbs (block_preceq_refl Q)
   have hc := Gen.AC.batch_counts v.blocks (GridCO.lateVotes p.toParams.engine v s)
     (GridCO.cleanSupport p.toParams.engine v s) (GridCO.cleanSupport p.toParams.engine v s)
-    H H.card (Gen.V2.faulty rho).card Q
+    H H.card (Gen.V2.Duty.faulty rho).card Q
     (fun _ ho => fgsa_early_subset_late p v s (List.mem_filter.mp ho).1)
     (fun _ ho => ho) rfl (fun q _ => fgsa_cleanSupport_no_equivocation p v s q)
     hsupp (fgsa_late_rest_bound E rho hC hE i x s H
@@ -178,13 +178,13 @@ DC: Grades/RecoveryCapturedActionCarrier.lean:30, the action store after confirm
 INTENTIONAL: FG-SA saves a fast-write list at each SA gate label. This
 adapter exposes that saved list, including at labels with no action. -/
 theorem exactService_fastWrite_of_gateService
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hs : V2.ScheduleWellFormed E rho) (i : Nat) (x : V) (s : Slot) (Q : Block)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho) (i : Nat) (x : V) (s : Slot) (Q : Block)
     (ht : IsGateTick p c rho i x s)
-    (hservice : Gen.AC.GateService (fgsaAC E rho) i s x Q) :
-    Q ∈ (fastWriteAt (((fgsa p c).clock (V2.Run.stateBefore E rho i x)
+    (hservice : Gen.AC.Duty.GateService (fgsaAC E rho) i s x Q) :
+    Q ∈ (fastWriteAt (((fgsa p c).clock (V2.D.Run.stateBefore E rho i x)
       (SA.gateTime p.toParams s)).st) s).getD [] := by
-  let nd := V2.Run.stateBefore E rho i x
+  let nd := V2.D.Run.stateBefore E rho i x
   let st := ((fgsa p c).clock nd (SA.gateTime p.toParams s)).st
   have hf := fgsa_gate_fresh E rho hs ht
   have hinv := (storeBundle_postClock E rho i x (SA.gateTime p.toParams s)).cstore
@@ -227,7 +227,7 @@ INTENTIONAL: the FG-SA consumer supplies the active receipt floor, lease
 compatibility, the old-output bound, and a retained opening representative.
 The selector maximum follows from the exact post-gate output and live leases;
 it is not an extra premise. No FG row or lane theorem supplies these fields. -/
-structure ExactServiceGateGeometry (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+structure ExactServiceGateGeometry (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (i : Nat) (x : V) (s : Slot) (Q : Block) : Prop
     extends GateReceiptGeometry E rho
       (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)) s Q where
@@ -235,7 +235,7 @@ structure ExactServiceGateGeometry (E : Generic.Env V) (rho : V2.Run V (fgsa p c
     Block.Compatible (Gen.AC.Lease.target lease) Q
   old_output : Block.Preceq Q ((fgsaAC E rho).output i x) → (fgsaAC E rho).output i x = Q
   opening_domain : ∀ r, s = r * p.R →
-    let st := ((fgsa p c).clock (V2.Run.stateBefore E rho i x) (p.actionTime r)).st
+    let st := ((fgsa p c).clock (V2.D.Run.stateBefore E rho i x) (p.actionTime r)).st
     ∃ D, eraseFG D = Q ∧ D ∈ domainR p st (treeT p st)
 
 /-- Blueprint 21 H.17, H.22 H3: exact output bounds every live candidate.
@@ -244,23 +244,23 @@ INTENTIONAL: FG-SA selects the deepest retained fresh candidate. A retained
 representative and exact output suffice for its erased value; no separate
 selector maximum or FG row premise is required. -/
 theorem exactService_opening_of_gateService
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hs : V2.ScheduleWellFormed E rho) (i : Nat) (x : V) (r : Nat) (Q : Block)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho) (i : Nat) (x : V) (r : Nat) (Q : Block)
     (ht : rho.events[i]? = some (.tick x (p.actionTime r)))
-    (hservice : Gen.AC.GateService (fgsaAC E rho) i (r * p.R) x Q)
+    (hservice : Gen.AC.Duty.GateService (fgsaAC E rho) i (r * p.R) x Q)
     (hout : (fgsaAC E rho).output (i + 1) x = Q)
     (hdom : ∃ D, eraseFG D = Q ∧
-      D ∈ domainR p (((fgsa p c).clock (V2.Run.stateBefore E rho i x) (p.actionTime r)).st)
-        (treeT p (((fgsa p c).clock (V2.Run.stateBefore E rho i x) (p.actionTime r)).st))) :
+      D ∈ domainR p (((fgsa p c).clock (V2.D.Run.stateBefore E rho i x) (p.actionTime r)).st)
+        (treeT p (((fgsa p c).clock (V2.D.Run.stateBefore E rho i x) (p.actionTime r)).st))) :
     actionSource p c E rho x r = some (some Q) := by
-  let nd := V2.Run.stateBefore E rho i x
+  let nd := V2.D.Run.stateBefore E rho i x
   let st := ((fgsa p c).clock nd (p.actionTime r)).st
-  have hpost : (V2.Run.stateBefore E rho (i + 1) x).st = st := by
-    rw [V2.Run.stateBefore_succ E rho ht]
-    simp only [V2.World.step, Function.update_self]
+  have hpost : (V2.D.Run.stateBefore E rho (i + 1) x).st = st := by
+    rw [V2.D.Run.stateBefore_succ E rho ht]
+    simp only [V2.D.World.step, Function.update_self]
     exact tick_st (c := c) E rho nd x (p.actionTime r)
   have hS : st.base.stableRecord = Q := by
-    change (V2.Run.stateBefore E rho (i + 1) x).st.base.stableRecord = Q at hout
+    change (V2.D.Run.stateBefore E rho (i + 1) x).st.base.stableRecord = Q at hout
     rwa [hpost] at hout
   obtain ⟨D, hD, hkept⟩ := hdom
   have hserved : eraseFG D ∈ sourceCandidates p st := by
@@ -302,18 +302,18 @@ optional raw result, whole-result guard, saved fast write, stable output,
 and erased opening read. Geometry and the fast participation count remain
 consumer premises; the proof does not obtain them from a lane. -/
 theorem exactService_gate_at_of_head [Fintype V]
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hE : V2.ExecutionValid E rho) (hN : V2.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (hC : V2.CStar (fgsaFamilies p c).fresh rho)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
+    (hC : V2.D.CStar (fgsaFamilies p c).fresh rho)
     (s : Slot) (Q : Block) (hne : Q ≠ .genesis)
     (hhead : ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some Q)
-    (hSync : Gen.V2.LabelSync E rho (SA.voteTime p.toParams s) (SA.gateTime p.toParams s))
+    (hSync : Gen.V2.Duty.LabelSync E rho (SA.voteTime p.toParams s) (SA.gateTime p.toParams s))
     {i : Nat} {x : V} (hx : x ∈ rho.honest) (ht : IsGateTick p c rho i x s)
     (hgeom : ExactServiceGateGeometry E rho i x s Q)
     (H : Finset (Fin p.n))
     (hH : ∀ q, q ∈ H ↔ rho.seatOf (.base (.head s)) q ∈ rho.honest ∧
       E.awake (rho.seatOf (.base (.head s)) q) (SA.voteTime p.toParams s) = true)
-    (hbatch : Gen.Pure.Batch H.card (Gen.V2.faulty rho).card)
+    (hbatch : Gen.Pure.Batch H.card (Gen.V2.Duty.faulty rho).card)
     (hfast : SA.releaseThreshold p.toParams ≤ H.card) :
     gateResult p c E rho x s = some (some Q) ∧
     (∃ j, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j) ∧
@@ -370,15 +370,15 @@ theorem exactService_gate_at_of_head [Fintype V]
       have hlw : lease ∈ w.obligations := (congrArg GridCO.State.obligations hv) ▸ hl
       have hg : Block.compatible lease.1 Q = true := hgeom.guard lease hlw
       simp only [hg, Bool.not_true, Bool.false_eq_true, not_false_eq_true]
-  · refine ⟨(fgsa p c).clock (V2.Run.stateBefore E rho i x) (SA.gateTime p.toParams s), ?_,
+  · refine ⟨(fgsa p c).clock (V2.D.Run.stateBefore E rho i x) (SA.gateTime p.toParams s), ?_,
       exactService_fastWrite_of_gateService E rho hs i x s Q ht hservice⟩
     rw [postClock_def, preTick_def, hidx]
     rfl
   · rw [afterTicks_node E rho hs ht]
-    change (V2.tick E rho (V2.Run.stateBefore E rho i x) x
+    change (V2.D.tick E rho (V2.D.Run.stateBefore E rho i x) x
       (SA.gateTime p.toParams s)).1.st.base.stableRecord = Q
-    change (V2.Run.stateBefore E rho (i + 1) x).st.base.stableRecord = Q at hout
-    rwa [(V2.Run.step_tick_eq E rho ht).1] at hout
+    change (V2.D.Run.stateBefore E rho (i + 1) x).st.base.stableRecord = Q at hout
+    rwa [(V2.D.Run.step_tick_eq E rho ht).1] at hout
   · intro r he
     subst s
     exact exactService_opening_of_gateService E rho hs i x r Q ht hservice hout
@@ -390,19 +390,19 @@ INTENTIONAL: J2 has separate finite HEAD and gate horizons. The caller supplies
 SA participation, gate geometry, and vote-to-gate synchrony only when the gate
 is in the horizon. Q is non-genesis because the fast set excludes genesis. -/
 theorem exactService_gate_of_head [Fintype V]
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hE : V2.ExecutionValid E rho) (hN : V2.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (hC : V2.CStar (fgsaFamilies p c).fresh rho)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
+    (hC : V2.D.CStar (fgsaFamilies p c).fresh rho)
     (v : Slot) (Q : Block) (hne : Q ≠ .genesis)
     (hhead : SA.voteTime p.toParams v ≤ rho.horizon →
       ∀ x ∈ rho.honest, headAtLabel p c E rho x v = some Q)
     (hSync : SA.gateTime p.toParams v ≤ rho.horizon →
-      Gen.V2.LabelSync E rho (SA.voteTime p.toParams v) (SA.gateTime p.toParams v))
+      Gen.V2.Duty.LabelSync E rho (SA.voteTime p.toParams v) (SA.gateTime p.toParams v))
     (hparticipation : SA.gateTime p.toParams v ≤ rho.horizon →
       ∃ H : Finset (Fin p.n),
         (∀ q, q ∈ H ↔ rho.seatOf (.base (.head v)) q ∈ rho.honest ∧
           E.awake (rho.seatOf (.base (.head v)) q) (SA.voteTime p.toParams v) = true) ∧
-        Gen.Pure.Batch H.card (Gen.V2.faulty rho).card ∧
+        Gen.Pure.Batch H.card (Gen.V2.Duty.faulty rho).card ∧
         SA.releaseThreshold p.toParams ≤ H.card)
     (hgeometry : ∀ i x, x ∈ rho.honest → IsGateTick p c rho i x v →
       ExactServiceGateGeometry E rho i x v Q) :
@@ -433,19 +433,19 @@ DC: UserConfirmationRecovery.lean:235 and Goldfish/Confirmation.lean:434–441.
 INTENTIONAL: this is the complete J2 conjunction with its two horizons;
 the HEAD producer remains a separate input. The gate premises are unchanged. -/
 theorem exactService_of_head_and_gate [Fintype V]
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hE : V2.ExecutionValid E rho) (hN : V2.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (hC : V2.CStar (fgsaFamilies p c).fresh rho)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
+    (hC : V2.D.CStar (fgsaFamilies p c).fresh rho)
     (v : Slot) (Q : Block) (hne : Q ≠ .genesis)
     (hhead : SA.voteTime p.toParams v ≤ rho.horizon →
       ∀ x ∈ rho.honest, headAtLabel p c E rho x v = some Q)
     (hSync : SA.gateTime p.toParams v ≤ rho.horizon →
-      Gen.V2.LabelSync E rho (SA.voteTime p.toParams v) (SA.gateTime p.toParams v))
+      Gen.V2.Duty.LabelSync E rho (SA.voteTime p.toParams v) (SA.gateTime p.toParams v))
     (hparticipation : SA.gateTime p.toParams v ≤ rho.horizon →
       ∃ H : Finset (Fin p.n),
         (∀ q, q ∈ H ↔ rho.seatOf (.base (.head v)) q ∈ rho.honest ∧
           E.awake (rho.seatOf (.base (.head v)) q) (SA.voteTime p.toParams v) = true) ∧
-        Gen.Pure.Batch H.card (Gen.V2.faulty rho).card ∧
+        Gen.Pure.Batch H.card (Gen.V2.Duty.faulty rho).card ∧
         SA.releaseThreshold p.toParams ≤ H.card)
     (hgeometry : ∀ i x, x ∈ rho.honest → IsGateTick p c rho i x v →
       ExactServiceGateGeometry E rho i x v Q) :
@@ -458,16 +458,16 @@ DC: Goldfish/Confirmation.lean:434–441, honest committee membership.
 INTENTIONAL: the FG-SA fresh HEAD seat map is a bijection. This transfers
 awake-honest cardinality without any linked FG seat or FG round. -/
 theorem exactService_participation_of_card [Fintype V]
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hC : V2.CStar (fgsaFamilies p c).fresh rho) (v : Slot)
-    (hbatch : Gen.Pure.Batch (Gen.V2.awakeHonest E rho (SA.voteTime p.toParams v)).card
-      (Gen.V2.faulty rho).card)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hC : V2.D.CStar (fgsaFamilies p c).fresh rho) (v : Slot)
+    (hbatch : Gen.Pure.Batch (Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams v)).card
+      (Gen.V2.Duty.faulty rho).card)
     (hfast : SA.releaseThreshold p.toParams ≤
-      (Gen.V2.awakeHonest E rho (SA.voteTime p.toParams v)).card) :
+      (Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams v)).card) :
     ∃ H : Finset (Fin p.n),
       (∀ q, q ∈ H ↔ rho.seatOf (.base (.head v)) q ∈ rho.honest ∧
         E.awake (rho.seatOf (.base (.head v)) q) (SA.voteTime p.toParams v) = true) ∧
-      Gen.Pure.Batch H.card (Gen.V2.faulty rho).card ∧
+      Gen.Pure.Batch H.card (Gen.V2.Duty.faulty rho).card ∧
       SA.releaseThreshold p.toParams ≤ H.card := by
   classical
   let H := Finset.univ.filter (fun q : Fin p.n =>
@@ -479,9 +479,9 @@ theorem exactService_participation_of_card [Fintype V]
   have hbij : Function.Bijective (fun q : Fin p.n => rho.seatOf (.base (.head v)) q) :=
     hC (.base (.head v)) trivial
   have himage : H.image (rho.seatOf (.base (.head v))) =
-      Gen.V2.awakeHonest E rho (SA.voteTime p.toParams v) := by
+      Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams v) := by
     ext y
-    rw [Gen.V2.awakeHonest_def, Finset.mem_filter]
+    rw [Gen.V2.Duty.awakeHonest_def, Finset.mem_filter]
     constructor
     · intro hy
       obtain ⟨q, hq, rfl⟩ := Finset.mem_image.mp hy
@@ -489,7 +489,7 @@ theorem exactService_participation_of_card [Fintype V]
     · intro hy
       obtain ⟨q, rfl⟩ := hbij.2 y
       exact Finset.mem_image.mpr ⟨q, (hH q).mpr hy, rfl⟩
-  have hc : H.card = (Gen.V2.awakeHonest E rho (SA.voteTime p.toParams v)).card := by
+  have hc : H.card = (Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams v)).card := by
     exact (Finset.card_image_of_injective H hbij.1).symm.trans (congrArg Finset.card himage)
   exact ⟨H, hH, hc ▸ hbatch, hc ▸ hfast⟩
 

@@ -12,17 +12,17 @@ namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
 
 variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V]
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 /-- bp.carrier.v1 (00:493–501, especially 496), 01 §2: admitted-view root injectivity.
 Consumers: all lanes and KitFG frame lemmas. Producer: F1.1 via `viewRootInj_TF`.
 The claim has no Base premise; the existing run root premise is local here.
-Derived content roots discharge it via `V2.rootInjective_all`. -/
-def RCarrierView : Prop := V2.RootInjective E (fgsaInterface p c) rho →
+Derived content roots discharge it via `V2.D.rootInjective_all`. -/
+def RCarrierView : Prop := V2.D.RootInjective E (fgsaInterface p c) rho →
   ∀ i x, x ∈ rho.honest → ViewRootInj (storeAt p c E rho i x).fg.TF
 
 theorem RCarrierView_def : RCarrierView p c E rho =
-  (V2.RootInjective E (fgsaInterface p c) rho →
+  (V2.D.RootInjective E (fgsaInterface p c) rho →
   ∀ i x, x ∈ rho.honest → ViewRootInj (storeAt p c E rho i x).fg.TF) := by
   rw [RCarrierView]
 
@@ -94,7 +94,7 @@ theorem RActive_def : RActive p c E rho =
 /-- bp.store.v1 (00:517–518): cumulative T and unchanged old stamps.
 Consumers: all lanes, 02 §5.2, 21 H.12. Producer: F1.1 via
 `process_cumulative` and `clock_cumulative`. Restarts reset the store. -/
-def RStoreCumul : Prop := V2.NoRestart rho → ∀ i j x, x ∈ rho.honest →
+def RStoreCumul : Prop := V2.D.NoRestart rho → ∀ i j x, x ∈ rho.honest →
   i ≤ j → j ≤ rho.events.length →
   let st := storeAt p c E rho i x
   let st' := storeAt p c E rho j x
@@ -103,7 +103,7 @@ def RStoreCumul : Prop := V2.NoRestart rho → ∀ i j x, x ∈ rho.honest →
 
 -- equation export required by BUILD §7.2 B3a
 theorem RStoreCumul_def :
-    RStoreCumul p c E rho = (V2.NoRestart rho → ∀ i j x, x ∈ rho.honest →
+    RStoreCumul p c E rho = (V2.D.NoRestart rho → ∀ i j x, x ∈ rho.honest →
   i ≤ j → j ≤ rho.events.length →
   let st := storeAt p c E rho i x
   let st' := storeAt p c E rho j x
@@ -113,7 +113,7 @@ theorem RStoreCumul_def :
 /-- bp.store.v1 (00:516–527), last sentence: F, the lex pair, and H increase.
 Consumers: 02 §5.3, 03 F′ cases, 22 FF2. Producer: F1.1 via `fMonotone`,
 `process_pair_mono`, and `process_hmax_mono`. -/
-def RMono : Prop := V2.NoRestart rho → ∀ i j x, x ∈ rho.honest → i ≤ j →
+def RMono : Prop := V2.D.NoRestart rho → ∀ i j x, x ∈ rho.honest → i ≤ j →
   let st := storeAt p c E rho i x
   let st' := storeAt p c E rho j x
   FGBlock.Preceq st.fg.F st'.fg.F ∧
@@ -122,7 +122,7 @@ def RMono : Prop := V2.NoRestart rho → ∀ i j x, x ∈ rho.honest → i ≤ j
 
 -- equation export required by BUILD §7.2 B3a
 theorem RMono_def :
-    RMono p c E rho = (V2.NoRestart rho → ∀ i j x, x ∈ rho.honest → i ≤ j →
+    RMono p c E rho = (V2.D.NoRestart rho → ∀ i j x, x ∈ rho.honest → i ≤ j →
   let st := storeAt p c E rho i x
   let st' := storeAt p c E rho j x
   FGBlock.Preceq st.fg.F st'.fg.F ∧
@@ -172,10 +172,8 @@ def RFrame : Prop := ∀ i x, x ∈ rho.honest →
     (∀ H, chainWireRows st H = (st.proposals.filterMap (fun o => match o.decode with
       | some (.block _ b _ _ rows) => if Block.preceq b H then some rows else none
       | _ => none)).flatten) ∧
-    (∀ I, blockWireRows p st I = (st.proposals.filterMap (fun o => match o.decode with
-      | some (.block _ b _ _ rows) =>
-          if I (p.round b.slot) then some (rows.filter (fun a => (a.round?.map I).getD false))
-          else none
+    (blockWireRows st = (st.proposals.filterMap (fun o => match o.decode with
+      | some (.block _ _ _ _ rows) => some rows
       | _ => none)).flatten) ∧
     (∀ s, voterBlocks p st s = st.fg.TF.filter (fun B =>
       decide (GridCO.stampBlock st.base (eraseFG B) < SA.freezeTime p.toParams (s - 1)) ||
@@ -193,18 +191,13 @@ def RFrame : Prop := ∀ i x, x ∈ rho.honest →
           | some h => GridCO.blockKnown st.base h && decide (h.slot ≤ s - 1)
           | none => false))).eraseDups) ∧
     (∀ H, proposalRows p st H =
-      let r := p.round (st.slot p)
-      let inI : Nat → Bool := fun r' => decide (r ≤ r' + p.wF) && decide (r' ≤ r)
-      let onChain := chainWireRows st H
-      let A := st.rowPool.filter (fun a =>
-        (a.round?.map inI).getD false && !decide (a ∈ onChain))
-      let A' := (blockWireRows p st inI).filter (fun a =>
-        !decide (a ∈ onChain) && !decide (a ∈ A))
-      A'.foldl (fun acc a =>
-        let key := fun (x : RowWire p.n) => x.decode?.map (fun y => (y.1, y.2.1))
-        if decide (a ∈ acc) || 2 ≤ (acc.filter (fun x => key x == key a)).length then acc
-        else acc ++ [a]) A) ∧
-    (V2.NoRestart rho → ∀ j, i ≤ j → j ≤ rho.events.length →
+      match fgBlockOf st H with
+      | none => []
+      | some P =>
+          (st.rowPool ++ blockWireRows st).eraseDups.filter (fun a =>
+            rowValidFor (parentFoldState p (st.slot p) P) a &&
+              !decide (a ∈ chainWireRows st H))) ∧
+    (V2.D.NoRestart rho → ∀ j, i ≤ j → j ≤ rho.events.length →
       let st' := storeAt p c E rho j x
       st.proposals <+: st'.proposals ∧ st.rowPool <+: st'.rowPool ∧
       st.base.blockStamp <+: st'.base.blockStamp ∧ st.base.voteStamp <+: st'.base.voteStamp))
@@ -233,10 +226,8 @@ theorem RFrame_def : RFrame p c E rho =
     (∀ H, chainWireRows st H = (st.proposals.filterMap (fun o => match o.decode with
       | some (.block _ b _ _ rows) => if Block.preceq b H then some rows else none
       | _ => none)).flatten) ∧
-    (∀ I, blockWireRows p st I = (st.proposals.filterMap (fun o => match o.decode with
-      | some (.block _ b _ _ rows) =>
-          if I (p.round b.slot) then some (rows.filter (fun a => (a.round?.map I).getD false))
-          else none
+    (blockWireRows st = (st.proposals.filterMap (fun o => match o.decode with
+      | some (.block _ _ _ _ rows) => some rows
       | _ => none)).flatten) ∧
     (∀ s, voterBlocks p st s = st.fg.TF.filter (fun B =>
       decide (GridCO.stampBlock st.base (eraseFG B) < SA.freezeTime p.toParams (s - 1)) ||
@@ -254,18 +245,13 @@ theorem RFrame_def : RFrame p c E rho =
           | some h => GridCO.blockKnown st.base h && decide (h.slot ≤ s - 1)
           | none => false))).eraseDups) ∧
     (∀ H, proposalRows p st H =
-      let r := p.round (st.slot p)
-      let inI : Nat → Bool := fun r' => decide (r ≤ r' + p.wF) && decide (r' ≤ r)
-      let onChain := chainWireRows st H
-      let A := st.rowPool.filter (fun a =>
-        (a.round?.map inI).getD false && !decide (a ∈ onChain))
-      let A' := (blockWireRows p st inI).filter (fun a =>
-        !decide (a ∈ onChain) && !decide (a ∈ A))
-      A'.foldl (fun acc a =>
-        let key := fun (x : RowWire p.n) => x.decode?.map (fun y => (y.1, y.2.1))
-        if decide (a ∈ acc) || 2 ≤ (acc.filter (fun x => key x == key a)).length then acc
-        else acc ++ [a]) A) ∧
-    (V2.NoRestart rho → ∀ j, i ≤ j → j ≤ rho.events.length →
+      match fgBlockOf st H with
+      | none => []
+      | some P =>
+          (st.rowPool ++ blockWireRows st).eraseDups.filter (fun a =>
+            rowValidFor (parentFoldState p (st.slot p) P) a &&
+              !decide (a ∈ chainWireRows st H))) ∧
+    (V2.D.NoRestart rho → ∀ j, i ≤ j → j ≤ rho.events.length →
       let st' := storeAt p c E rho j x
       st.proposals <+: st'.proposals ∧ st.rowPool <+: st'.rowPool ∧
       st.base.blockStamp <+: st'.base.blockStamp ∧ st.base.voteStamp <+: st'.base.voteStamp))) := by
@@ -360,7 +346,7 @@ def RRec : Prop := ∀ i x, x ∈ rho.honest → FAdvanceAt p c E rho i x →
   st'.base.stableRecord =
     (if Block.preceq (eraseFG st'.fg.F) st.base.stableRecord then st.base.stableRecord
      else eraseFG st'.fg.F) ∧
-  (V2.Run.stateBefore E rho (i + 1) x).record = (V2.Run.stateBefore E rho i x).record ∧
+  (V2.D.Run.stateBefore E rho (i + 1) x).record = (V2.D.Run.stateBefore E rho i x).record ∧
   (∀ u : State p.n, FGSA.reconcile u = { u with
     base := { u.base with
       obligations := u.base.obligations.filter (fun row => FGSA.activeCompatible u row.1)
@@ -382,7 +368,7 @@ theorem RRec_def :
   st'.base.stableRecord =
     (if Block.preceq (eraseFG st'.fg.F) st.base.stableRecord then st.base.stableRecord
      else eraseFG st'.fg.F) ∧
-  (V2.Run.stateBefore E rho (i + 1) x).record = (V2.Run.stateBefore E rho i x).record ∧
+  (V2.D.Run.stateBefore E rho (i + 1) x).record = (V2.D.Run.stateBefore E rho i x).record ∧
   (∀ u : State p.n, FGSA.reconcile u = { u with
     base := { u.base with
       obligations := u.base.obligations.filter (fun row => FGSA.activeCompatible u row.1)
@@ -716,7 +702,7 @@ def TCarrier (w : HealingWitness) : Prop := ∀ x r K v Q,
 Consumers: 22 F1–F5, F9, FF3–FF4, FL-W, FL-RF, FL-D. Exact signed rows. -/
 def TRowsSelect : Prop := ∀ s Q rows j y r (a : RowWire p.n),
   HonestCarrier p c E rho s Q rows → HonestRowAt p c E rho j y r a →
-  InRowWindow p s r → heldAtProposal p c E rho s a →
+  ValidForParent p c E rho s Q a → heldAtProposal p c E rho s a →
   a ∈ rows ∨ onParentChain p c E rho s Q a
 /-- T-ROWS synchronous service (21:3076–3080; 01:101–106), P3 A.6.
 Consumers: 22 F1–F5, F9, FF3–FF4, FL-W, FL-RF, FL-D.
@@ -808,14 +794,14 @@ def TDel : Prop := ∀ y r K, y ∈ rho.honest →
   actionSourceFG p c E rho y r = some (some K) →
   E.t_GST ≤ SA.voteTime p.toParams (r * p.R) →
   SA.freezeTime p.toParams (r * p.R) ≤ rho.horizon →
-  ∀ x ∈ rho.honest, Gen.V2.HoldsBefore E rho (fun nd =>
+  ∀ x ∈ rho.honest, Gen.V2.Duty.HoldsBefore E rho (fun nd =>
     (∀ B, FGBlock.Preceq B K → B ∈ nd.st.fg.TF) ∨ FGBlock.Preceq K nd.st.fg.F)
       (SA.freezeTime p.toParams (r * p.R)) x
 /-- T-DEL reset (21 H.12:2456–2463; H.14), P3 A.8. Consumer: H.14.
 Only this T-delivery clause takes H0. Reset-only facts suffice, but P3 retains full H0. -/
 def TDelReset (w : HealingWitness) : Prop := H0 p c E rho w →
   SA.releaseTime p.toParams w.sStar ≤ rho.horizon →
-  ∀ x ∈ rho.honest, Gen.V2.HoldsBefore E rho (fun nd =>
+  ∀ x ∈ rho.honest, Gen.V2.Duty.HoldsBefore E rho (fun nd =>
     ∃ C ∈ nd.st.fg.TF, eraseFG C = w.CStar)
       (SA.releaseTime p.toParams w.sStar) x
 /-- T-GEOM (21 H.6:749–756; H.7:918–1012; H.9(b):1148–1252), P3 A.8.
@@ -881,9 +867,9 @@ def TPerm : Prop := ∀ u v m J contested s B,
 /-- The gap predicate, not a regime (21 §2:274–282), P3 A.8.
 Consumer: repair bounds. Recovery₂.gap supplies it. -/
 def ProposalGap (G : Time) : Prop := ∀ t, E.t_GST ≤ t → t + G ≤ rho.horizon →
-  ∃ s, t < V2.proposalTime (fgsaInterface p c) s ∧
-    V2.proposalTime (fgsaInterface p c) s ≤ t + G ∧
-    Gen.V2.HonestSlot rho (fgsaInterface p c) s
+  ∃ s, t < V2.D.proposalTime (fgsaInterface p c) s ∧
+    V2.D.proposalTime (fgsaInterface p c) s ≤ t + G ∧
+    Gen.V2.Duty.HonestSlot rho (fgsaInterface p c) s
 /-- Later-proposal service after a repair threshold (21 H.6:749–756), P3 A.8.
 Consumer: TRepair. -/
 def RepairAfter (l : Slot) (v : Time) : Prop := ∀ s Q,

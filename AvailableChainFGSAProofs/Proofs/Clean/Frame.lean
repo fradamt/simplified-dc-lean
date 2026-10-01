@@ -12,7 +12,7 @@ namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
 
 variable (p : Params) {In V : Type} (c : AppCodec In)
-    [DecidableEq V] [Fintype V] (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    [DecidableEq V] [Fintype V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 /-- P3 §8.7 F2.2; bp02 §§3.1–3.4. Class B, given-state Clean frame core.
 DC counterparts: ChainState/FGRootWitness.lean:327,493 (root origins) and
@@ -21,7 +21,7 @@ contest/domain bundle. The differences are intentional: the FJ band prevents
 root descent (TS/spec/fgsa-protocol.tex:2557–2571), and the given state avoids
 the action/state cycle (TS/log.md:1622,1653; lead Q4, 2026-10-01). -/
 theorem cleanFrame_of_state (b₀ : Time) :
-  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
+  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   ∀ i, i ≤ timeIdx rho b₀ → CleanHist p c E rho i → CleanState p c E rho i →
   ∀ v, v ∈ rho.honest →

@@ -11,7 +11,7 @@ open AvailableChain.SimplexFG
 open AvailableChain.Gen.Pure
 
 variable {p : Params} {In V : Type} {c : AppCodec In} [DecidableEq V]
-    {E : Generic.Env V} {rho : V2.Run V (fgsa p c)}
+    {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
 
 private theorem clean_gate_label (s : Slot) :
     ((SA.gateTime p.toParams s - 6 * p.Δ) / (4 * p.Δ)).toNat = s := by
@@ -22,7 +22,7 @@ private theorem clean_gate_label (s : Slot) :
 
 /-- The event result is the raw result of its pre-gate store. -/
 theorem clean_gate_raw {j : Nat} {v : V} {s : Slot}
-    (hsch : V2.ScheduleWellFormed E rho) (ht : IsGateTick p c rho j v s) :
+    (hsch : V2.D.ScheduleWellFormed E rho) (ht : IsGateTick p c rho j v s) :
     gateResultAt p c E rho j = some (SA.confirmationFrom p.toParams
       (eraseFG (clockPre p (storeAt p c E rho j v) (SA.gateTime p.toParams s)).fg.F)
       (actView (clockPre p (storeAt p c E rho j v) (SA.gateTime p.toParams s))) s) := by
@@ -35,10 +35,10 @@ theorem clean_gate_store {j : Nat} {v : V} {s : Slot}
     (ht : IsGateTick p c rho j v s) :
     storeAt p c E rho (j + 1) v =
       gateStep p (clockPre p (storeAt p c E rho j v) (SA.gateTime p.toParams s)) s := by
-  change (V2.Run.stateBefore E rho (j + 1) v).st = _
-  rw [V2.Run.stateBefore_succ E rho ht]
-  simp only [V2.World.step, Function.update_self]
-  rw [tick_st (c := c) E rho (V2.Run.stateBefore E rho j v) v (SA.gateTime p.toParams s)]
+  change (V2.D.Run.stateBefore E rho (j + 1) v).st = _
+  rw [V2.D.Run.stateBefore_succ E rho ht]
+  simp only [V2.D.World.step, Function.update_self]
+  rw [tick_st (c := c) E rho (V2.D.Run.stateBefore E rho j v) v (SA.gateTime p.toParams s)]
   change (if isGateTime p (SA.gateTime p.toParams s) then
     gateStep p (clockPre p (storeAt p c E rho j v) (SA.gateTime p.toParams s))
       ((SA.gateTime p.toParams s - 6 * p.Δ) / (4 * p.Δ)).toNat else _) = _
@@ -64,7 +64,7 @@ theorem clean_state_gate_guard {i j : Nat} {v : V} {s : Slot} {C : Block}
 
 /-- A scheduled gate under the fixed history passes the whole-result guard. -/
 theorem clean_gate_passed {i j : Nat} {v : V} {s : Slot}
-    (hsch : V2.ScheduleWellFormed E rho) (hji : j < i)
+    (hsch : V2.D.ScheduleWellFormed E rho) (hji : j < i)
     (hh : CleanHist p c E rho i) (hs : CleanState p c E rho j)
     (ht : IsGateTick p c rho j v s) : gatePassedAt p c E rho j := by
   obtain ⟨C, hC, _⟩ := hh.nonempty j v s hji ht
@@ -76,7 +76,7 @@ theorem clean_gate_passed {i j : Nat} {v : V} {s : Slot}
 
 /-- A fresh gate saves its event result and appends the exact fast-write row. -/
 theorem clean_gate_writes {j : Nat} {v : V} {s : Slot}
-    (hsch : V2.ScheduleWellFormed E rho) (ht : IsGateTick p c rho j v s) :
+    (hsch : V2.D.ScheduleWellFormed E rho) (ht : IsGateTick p c rho j v s) :
     GridCO.savedGenuine (storeAt p c E rho (j + 1) v).base s = gateResultAt p c E rho j ∧
     (∀ r, r ≠ s → GridCO.savedGenuine (storeAt p c E rho (j + 1) v).base r =
       GridCO.savedGenuine (storeAt p c E rho j v).base r) ∧
@@ -100,7 +100,7 @@ theorem clean_gate_writes {j : Nat} {v : V} {s : Slot}
 
 /-- A new lease target is old or is a prefix of this gate's result. -/
 theorem clean_gate_lease_targets {j : Nat} {v : V} {s : Slot} {C : Block}
-    (hsch : V2.ScheduleWellFormed E rho) (ht : IsGateTick p c rho j v s)
+    (hsch : V2.D.ScheduleWellFormed E rho) (ht : IsGateTick p c rho j v s)
     (hC : gateResultAt p c E rho j = some (some C))
     (row : Block × Nat × Time)
     (hr : row ∈ (storeAt p c E rho (j + 1) v).base.obligations) :
@@ -131,7 +131,7 @@ theorem clean_gate_lease_targets {j : Nat} {v : V} {s : Slot} {C : Block}
 
 /-- Every member of the newly appended fast-write row is below the event result. -/
 theorem clean_gate_fast_prefix {j : Nat} {v : V} {s : Slot} {C X : Block}
-    (hsch : V2.ScheduleWellFormed E rho) (ht : IsGateTick p c rho j v s)
+    (hsch : V2.D.ScheduleWellFormed E rho) (ht : IsGateTick p c rho j v s)
     (hC : gateResultAt p c E rho j = some (some C))
     (hX : X ∈ fastSet p (eraseFG (storeAt p c E rho j v).fg.F)
       (actView (clockPre p (storeAt p c E rho j v) (SA.gateTime p.toParams s))) s) :
@@ -142,10 +142,10 @@ theorem clean_gate_fast_prefix {j : Nat} {v : V} {s : Slot} {C X : Block}
   have hBC := Option.some.inj (hB.symm.trans hc)
   exact hBC ▸ hXB
 
-private theorem clean_F_mono (hnr : V2.NoRestart rho) {j k : Nat} (hjk : j ≤ k) (v : V) :
+private theorem clean_F_mono (hnr : V2.D.NoRestart rho) {j k : Nat} (hjk : j ≤ k) (v : V) :
     Block.Preceq (F_at p c E rho j v) (F_at p c E rho k v) := by
   apply eraseFG_preceq
-  apply V2.Engine.stateBefore_stable (P := fgsa p c)
+  apply V2.D.Engine.stateBefore_stable (P := fgsa p c)
     (fun nd => FGBlock.Preceq (storeAt p c E rho j v).fg.F nd.st.fg.F)
     ?_ ?_ (fun _ _ h => h) E rho hjk v (hnr.restartFree v j k) (KitFG.preceq_refl _)
   · intro nd t h
@@ -157,7 +157,7 @@ private theorem clean_F_mono (hnr : V2.NoRestart rho) {j k : Nat} (hjk : j ≤ k
 
 /-- The old output is compatible with the current result under the fixed history. -/
 theorem clean_gate_output_compatible {i j : Nat} {v : V} {s : Slot} {C : Block}
-    (hnr : V2.NoRestart rho) (hji : j < i)
+    (hnr : V2.D.NoRestart rho) (hji : j < i)
     (hh : CleanHist p c E rho i) (hs : CleanState p c E rho j)
     (ht : IsGateTick p c rho j v s)
     (hC : gateResultAt p c E rho j = some (some C)) :
@@ -174,7 +174,7 @@ theorem clean_gate_output_compatible {i j : Nat} {v : V} {s : Slot} {C : Block}
         (belowLabel_mono_index (Nat.le_of_lt hji) (hs.fOrigin v).1)) hc
 
 private theorem clean_gate_output_step {i j : Nat} {v : V} {s : Slot}
-    (hsch : V2.ScheduleWellFormed E rho) (hnr : V2.NoRestart rho) (hji : j < i)
+    (hsch : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.NoRestart rho) (hji : j < i)
     (hh : CleanHist p c E rho i) (hs : CleanState p c E rho j)
     (ht : IsGateTick p c rho j v s) :
     Block.Preceq (S_at p c E rho j v) (S_at p c E rho (j + 1) v) ∧
@@ -229,7 +229,7 @@ private theorem clean_gate_output_step {i j : Nat} {v : V} {s : Slot}
 
 /-- The gate advances S under the fixed completed history; normalization is inert. -/
 theorem clean_gate_sExtends {i j : Nat} {v : V} {s : Slot}
-    (hsch : V2.ScheduleWellFormed E rho) (hnr : V2.NoRestart rho) (hji : j < i)
+    (hsch : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.NoRestart rho) (hji : j < i)
     (hh : CleanHist p c E rho i) (hs : CleanState p c E rho j)
     (ht : IsGateTick p c rho j v s) :
     Block.Preceq (S_at p c E rho j v) (S_at p c E rho (j + 1) v) :=
@@ -237,7 +237,7 @@ theorem clean_gate_sExtends {i j : Nat} {v : V} {s : Slot}
 
 /-- The gate keeps the old output origin or supplies this gate's exact event value. -/
 theorem clean_gate_sOrigin {i j : Nat} {v : V} {s : Slot}
-    (hsch : V2.ScheduleWellFormed E rho) (hnr : V2.NoRestart rho) (hji : j < i)
+    (hsch : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.NoRestart rho) (hji : j < i)
     (hh : CleanHist p c E rho i) (hs : CleanState p c E rho j)
     (ht : IsGateTick p c rho j v s) :
     S_at p c E rho (j + 1) v = .genesis ∨
@@ -254,7 +254,7 @@ theorem clean_gate_sOrigin {i j : Nat} {v : V} {s : Slot}
 
 /-- All lease rows after the gate retain a passed event origin, including due rows. -/
 theorem clean_gate_leases {i j : Nat} {v : V} {s : Slot}
-    (hsch : V2.ScheduleWellFormed E rho) (hji : j < i)
+    (hsch : V2.D.ScheduleWellFormed E rho) (hji : j < i)
     (hh : CleanHist p c E rho i) (hs : CleanState p c E rho j)
     (ht : IsGateTick p c rho j v s) :
     ∀ row ∈ (storeAt p c E rho (j + 1) v).base.obligations,
@@ -269,7 +269,7 @@ theorem clean_gate_leases {i j : Nat} {v : V} {s : Slot}
 
 /-- A gate preserves all older saved event values of this node. -/
 theorem clean_gate_saved {j : Nat} {v : V} {s : Slot}
-    (hsch : V2.ScheduleWellFormed E rho) (hs : CleanState p c E rho j)
+    (hsch : V2.D.ScheduleWellFormed E rho) (hs : CleanState p c E rho j)
     (ht : IsGateTick p c rho j v s) :
     ∀ k r C, k < j + 1 → IsGateTick p c rho k v r →
       gateResultAt p c E rho k = some (some C) →
@@ -294,7 +294,7 @@ theorem clean_gate_saved {j : Nat} {v : V} {s : Slot}
 
 /-- Every nonempty saved value after a gate has its exact event origin. -/
 theorem clean_gate_savedOnly {j : Nat} {v : V} {s : Slot}
-    (hsch : V2.ScheduleWellFormed E rho) (hs : CleanState p c E rho j)
+    (hsch : V2.D.ScheduleWellFormed E rho) (hs : CleanState p c E rho j)
     (ht : IsGateTick p c rho j v s) :
     ∀ r C, GridCO.savedGenuine (storeAt p c E rho (j + 1) v).base r = some (some C) →
       ∃ k < j + 1, IsGateTick p c rho k v r ∧ gateResultAt p c E rho k = some (some C) := by
@@ -308,20 +308,20 @@ theorem clean_gate_savedOnly {j : Nat} {v : V} {s : Slot}
 
 /-- A member of the new fast-write row satisfies the event's fast test. -/
 theorem clean_gate_fastAt {j : Nat} {v : V} {s : Slot} {X : Block}
-    (hsch : V2.ScheduleWellFormed E rho) (ht : IsGateTick p c rho j v s)
+    (hsch : V2.D.ScheduleWellFormed E rho) (ht : IsGateTick p c rho j v s)
     (hX : X ∈ fastSet p (eraseFG (storeAt p c E rho j v).fg.F)
       (actView (clockPre p (storeAt p c E rho j v) (SA.gateTime p.toParams s))) s) :
     fastAt p c E rho v s X := by
   let pre := clockPre p (storeAt p c E rho j v) (SA.gateTime p.toParams s)
   refine ⟨pre, ?_, ?_⟩
-  · have hidx : V2.Run.tickIdx? rho v (SA.gateTime p.toParams s) = some j := by
+  · have hidx : V2.D.Run.tickIdx? rho v (SA.gateTime p.toParams s) = some j := by
       have hj := (List.getElem?_eq_some_iff.mp ht).1
-      obtain ⟨k, hk⟩ : ∃ k, V2.Run.tickIdx? rho v (SA.gateTime p.toParams s) = some k := by
-        rw [V2.Run.tickIdx?, ← Option.isSome_iff_exists, List.findIdx?_isSome, List.any_eq_true]
+      obtain ⟨k, hk⟩ : ∃ k, V2.D.Run.tickIdx? rho v (SA.gateTime p.toParams s) = some k := by
+        rw [V2.D.Run.tickIdx?, ← Option.isSome_iff_exists, List.findIdx?_isSome, List.any_eq_true]
         refine ⟨rho.events[j], List.getElem_mem hj, ?_⟩
         rw [(List.getElem?_eq_some_iff.mp ht).2]
         simp
-      exact (fgsa_tick_unique E rho hsch (V2.Run.tickIdx?_spec hk) ht) ▸ hk
+      exact (fgsa_tick_unique E rho hsch (V2.D.Run.tickIdx?_spec hk) ht) ▸ hk
     rw [gateIn_def, preTick_def, hidx]
     rfl
   · change X ∈ (match SA.confirmationFrom p.toParams
@@ -352,7 +352,7 @@ theorem clean_gate_fastAt {j : Nat} {v : V} {s : Slot} {X : Block}
 
 /-- A fast-write lookup after the gate has its exact passed event origin. -/
 theorem clean_gate_fastWrite {i j : Nat} {v : V} {s : Slot}
-    (hsch : V2.ScheduleWellFormed E rho) (hji : j < i)
+    (hsch : V2.D.ScheduleWellFormed E rho) (hji : j < i)
     (hh : CleanHist p c E rho i) (hs : CleanState p c E rho j)
     (ht : IsGateTick p c rho j v s) :
     ∀ r X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho (j + 1) v) r).getD [] →
@@ -389,16 +389,16 @@ theorem clean_gate_fastWrite {i j : Nat} {v : V} {s : Slot}
 private theorem clean_gate_other_store {j : Nat} {v w : V} {s : Slot}
     (ht : IsGateTick p c rho j v s) (hw : w ≠ v) :
     storeAt p c E rho (j + 1) w = storeAt p c E rho j w := by
-  change (V2.Run.stateBefore E rho (j + 1) w).st = _
-  rw [V2.Run.stateBefore_succ E rho ht]
-  simp only [V2.World.step, Function.update_of_ne hw]
+  change (V2.D.Run.stateBefore E rho (j + 1) w).st = _
+  rw [V2.D.Run.stateBefore_succ E rho ht]
+  simp only [V2.D.World.step, Function.update_of_ne hw]
   rfl
 
 /-- bp02 §5.5: the gate preserves the SA fields at every node.
 DC MonotoneFrom restricts to honest reads; here other nodes keep their state
 because the event updates one node. The FG source and frame fields are separate. -/
 theorem clean_gate_fields_all {i j : Nat} {v : V} {s : Slot}
-    (hsch : V2.ScheduleWellFormed E rho) (hnr : V2.NoRestart rho) (hji : j < i)
+    (hsch : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.NoRestart rho) (hji : j < i)
     (hh : CleanHist p c E rho i) (hs : CleanState p c E rho j)
     (ht : IsGateTick p c rho j v s) :
     (∀ w row, row ∈ (storeAt p c E rho (j + 1) w).base.obligations →

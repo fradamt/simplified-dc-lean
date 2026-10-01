@@ -10,14 +10,14 @@ open AvailableChain.SimplexFG
 
 /-- bp.sameLabel.v1: two honest raw results at one label are compatible. -/
 def SameLabelAt (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) (s : Slot) : Prop :=
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (s : Slot) : Prop :=
   ∀ x y B C, x ∈ rho.honest → y ∈ rho.honest →
     gateResult p c E rho x s = some (some B) →
     gateResult p c E rho y s = some (some C) → Block.Compatible B C
 
 def SameLabelClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) (pt : PtS),
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : PtS),
     SameLabelPrem p c E rho pt → SameLabelAt p c E rho pt.s
 
 /-- ap.headReachesLo.v6, pure clauses 1–3 (02 §7).
@@ -64,20 +64,20 @@ def ReleaseStoreClaim (p : Params) : Prop := ∀ st, ReleaseStoreAt p st
 /-- bp.release.v1(a–c): the store laws and the run fault bound.
 The local vote premise refers to actual emissions and keeps the HEAD label. -/
 def ReleaseAt (p : Params) {In V : Type} [DecidableEq V] [Fintype V]
-    (c : AppCodec In) (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) : Prop :=
+    (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) : Prop :=
   ReleaseStoreClaim p ∧
   ∀ i x s B, i ≤ rho.events.length → x ∈ rho.honest →
-    (∀ y ∈ rho.honest, ∀ o t, V2.Run.emits E rho y o t →
+    (∀ y ∈ rho.honest, ∀ o t, V2.D.Run.emits E rho y o t →
       ∀ k C, o.auth = .seat (.base (.head s)) k → o.payload = .head C →
         Block.Compatible C B) →
     GridCO.releaseCount p.toParams.engine (FGSA.actView (storeAt p c E rho i x)) s B ≤
-      (Gen.V2.faulty rho).card ∧
-    (Gen.V2.faulty rho).card < SA.releaseThreshold p.toParams
+      (Gen.V2.Duty.faulty rho).card ∧
+    (Gen.V2.Duty.faulty rho).card < SA.releaseThreshold p.toParams
 
 /-- bp.release.v1, R5-65. The threshold producer is not a premise or conclusion. -/
 def ReleaseClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) (pt : Unit),
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit),
     ReleasePrem p c E rho pt → ReleaseAt p c E rho
 
 end AvailableChain.FGSA.Run

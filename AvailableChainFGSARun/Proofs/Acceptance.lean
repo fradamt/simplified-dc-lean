@@ -29,7 +29,7 @@ theorem fgsa_round_threshold_iff (p : Params) (t : Time) (ht : 0 ≤ t) (r : Nat
 
 /-- The threshold clock for the generic receipt laws. -/
 def fgsaTimelyClock (p : Params) (c : AppCodec In) :
-    Gen.V2.TimelyClock (fgsa p c) (fgsaTimely p) where
+    Gen.V2.Duty.TimelyClock (fgsa p c) (fgsaTimely p) where
   actTime := fgsaAdmissionTime p
   clockOf nd := nd.st.base.now
   timely_iff _ _ := Iff.rfl
@@ -52,17 +52,6 @@ private theorem t77_vote_timely {nd : Node p} {o : Obj p} {s : Slot} {i : Fin p.
     rw [ho] at ht
     exact ht
   exact (fgsa_slot_threshold_iff p _ ((t77_time_nonneg p o).trans ht) s).2 ht'
-
-private theorem t77_row_timely {nd : Node p} {o : Obj p} {r : Nat} {i : Fin p.n} {body : RowBody}
-    (hd : (toWire p o).decode = some (.row r i body)) (ht : fgsaTimely p nd o) :
-    r ≤ p.round (nd.st.slot p) := by
-  have ho : o = ofWire p ⟨.seat (.fg r) i, .row body⟩ := by
-    apply toWire_injective
-    simpa using decode_eq_row.mp hd
-  have ht' : 4 * p.Δ * ((r * p.R : Nat) : Int) ≤ nd.st.base.now := by
-    rw [ho] at ht
-    exact ht
-  exact (fgsa_round_threshold_iff p _ ((t77_time_nonneg p o).trans ht) r).2 ht'
 
 private theorem t77_block_timely {nd : Node p} {o : Obj p} {s : Slot} {b : Block}
     {raw sup : List (HeadWire p.n)} {rows : List (RowWire p.n)}
@@ -105,31 +94,16 @@ private theorem t77_grid_partition (st : GridCO.State p.n) (s : Slot) (i : Fin p
         { st with votes := st.votes ++ [w], voteStamp := st.voteStamp ++ [(w, st.now)] }).votes
       simp [hold, Nat.not_lt.mpr ht, hm, heq]
 
-private theorem t77_row_partition (st : State p.n) (r : Nat) (i : Fin p.n) (body : RowBody)
-    (ht : r ≤ p.round (st.slot p)) :
-    let a : RowWire p.n := ⟨.seat (.fg r) i, body⟩
-    a ∈ (admitRow p st a).rowPool ∨ rowExcl p (admitRow p st a) a r i = true := by
-  intro a
-  by_cases hm : a ∈ st.rowPool
-  · left
-    rcases admitRow_eq p st a with he | he <;> rw [he]
-    · exact hm
-    · exact List.mem_append_left _ hm
-  · by_cases hx : rowExcl p st a r i = true
-    · right
-      exact admitRow_keeps st a hx
-    · have h := (rowExcl_iff st a r i).not.mp hx
-      have hold : ¬ r + p.wF < p.round (st.slot p) := fun he => h ⟨hm, Or.inl he⟩
-      have hcap : ¬ 2 ≤ rowCount st r i := fun he => h ⟨hm, Or.inr he⟩
-      have hmine : a ∉ st.rowPool.filter
-          (fun c => c.decode?.map (fun x => (x.1, x.2.1)) == some (r, i)) :=
-        fun ha => hm (List.mem_filter.mp ha).1
-      left
-      unfold rowCount at hcap
-      dsimp only [admitRow]
-      rw [show a.decode? = some (r, i, body) from rfl]
-      dsimp only
-      simp [hold, Nat.not_lt.mpr ht, hmine, hcap]
+private theorem t77_row_partition (st : State p.n) (i : Fin p.n) (body : RowPayload) :
+    let a : RowWire p.n := ⟨.seat .fg i, body⟩
+    a ∈ (admitRow p st a).rowPool := by
+  dsimp only
+  change (⟨.seat .fg i, body⟩ : RowWire p.n) ∈
+    (if (⟨.seat .fg i, body⟩ : RowWire p.n) ∈ st.rowPool then st
+      else { st with rowPool := st.rowPool ++ [⟨.seat .fg i, body⟩] }).rowPool
+  by_cases hm : (⟨.seat .fg i, body⟩ : RowWire p.n) ∈ st.rowPool
+  · simpa only [ite_eq_left hm] using hm
+  · simp [hm]
 
 private theorem t77_grid_settled_fold (raw : List (GridCO.HeadWire p.n))
     (st : GridCO.State p.n) (w : GridCO.Wire p.n)
@@ -162,34 +136,25 @@ private theorem t77_head_fold_partition (raw : List (HeadWire p.n))
       exact ht
 
 private theorem t77_row_settled_fold (rows : List (RowWire p.n)) (st : State p.n)
-    (r : Nat) (i : Fin p.n) (body : RowBody)
-    (h : (⟨.seat (.fg r) i, body⟩ : RowWire p.n) ∈ st.rowPool ∨
-      rowExcl p st ⟨.seat (.fg r) i, body⟩ r i = true) :
-    (⟨.seat (.fg r) i, body⟩ : RowWire p.n) ∈ (rows.foldl (admitRow p) st).rowPool ∨
-      rowExcl p (rows.foldl (admitRow p) st) ⟨.seat (.fg r) i, body⟩ r i = true := by
-  rcases h with h | h
-  · obtain ⟨pool, he, hp⟩ := foldl_admitRow_eq p rows st
-    left
-    rw [he]
-    exact hp.subset h
-  · exact Or.inr (foldl_admitRow_keeps rows st h)
+    (i : Fin p.n) (body : RowPayload)
+    (h : (⟨.seat .fg i, body⟩ : RowWire p.n) ∈ st.rowPool) :
+    (⟨.seat .fg i, body⟩ : RowWire p.n) ∈ (rows.foldl (admitRow p) st).rowPool := by
+  obtain ⟨pool, he, hp⟩ := foldl_admitRow_eq p rows st
+  rw [he]
+  exact hp.subset h
 
 private theorem t77_row_fold_partition (rows : List (RowWire p.n)) (st : State p.n)
-    (r : Nat) (i : Fin p.n) (body : RowBody)
-    (hm : (⟨.seat (.fg r) i, body⟩ : RowWire p.n) ∈ rows)
-    (ht : r ≤ p.round (st.slot p)) :
-    (⟨.seat (.fg r) i, body⟩ : RowWire p.n) ∈ (rows.foldl (admitRow p) st).rowPool ∨
-      rowExcl p (rows.foldl (admitRow p) st) ⟨.seat (.fg r) i, body⟩ r i = true := by
+    (i : Fin p.n) (body : RowPayload)
+    (hm : (⟨.seat .fg i, body⟩ : RowWire p.n) ∈ rows) :
+    (⟨.seat .fg i, body⟩ : RowWire p.n) ∈ (rows.foldl (admitRow p) st).rowPool := by
   induction rows generalizing st with
   | nil => simp at hm
   | cons a rows ih =>
-    simp only [List.mem_cons] at hm
     simp only [List.foldl_cons]
-    rcases hm with he | hm
+    rcases List.mem_cons.mp hm with he | hm
     · subst a
-      exact t77_row_settled_fold rows _ r i body (t77_row_partition st r i body ht)
-    · apply ih _ hm
-      simpa only [State.slot, Internal.admitRow_base] using ht
+      exact t77_row_settled_fold rows _ i body (t77_row_partition st i body)
+    · exact ih _ hm
 
 private theorem t77_self_accepts (nd : Node p) (o : Obj p) (hInv : CStoreInv p nd.st)
     (hw : FGSA.wellFormed p (toWire p o) = true) (hd : depsS p nd.st o = true)
@@ -210,13 +175,13 @@ private theorem t77_self_accepts (nd : Node p) (o : Obj p) (hInv : CStoreInv p n
       rw [he]
       change decide (_ ∈ _) = true ∨ _ = true
       exact ha.imp decide_eq_true id
-    | row r i body =>
-      have ht' := t77_row_timely he ht
-      have ha := t77_row_partition nd.st r i body ht'
+    | row i body =>
+      have ha := t77_row_partition nd.st i body
       have hw' := decode_eq_row.mp he
-      dsimp only [FGSA.process, processedS, excludesS]
+      left
+      dsimp only [FGSA.process, processedS]
       rw [he, hw']
-      exact ha.imp decide_eq_true id
+      exact decide_eq_true ha
     | block s b raw sup rows =>
       have hw' := decode_eq_block.mp he
       have wf : FGSA.wellFormed p ⟨.proposer s, .proposal b raw sup rows⟩ = true := hw' ▸ hw
@@ -234,50 +199,65 @@ private theorem t77_self_accepts (nd : Node p) (o : Obj p) (hInv : CStoreInv p n
         exact hd
       obtain ⟨P, hP⟩ := Option.isSome_iff_exists.mp hdep
       have hPe := ((parentFG_spec nd.st hInv.rootInj b P).1 hP).2
-      by_cases hm : ∃ Y ∈ nd.st.fg.TF, Y.root = b.root
-      · left
-        obtain ⟨Y, hY, hr⟩ := hm
-        dsimp only [processedS]
-        rw [he]
-        simp only [decide_eq_true_eq]
-        exact ⟨Y, (process_cumulative p nd.st (toWire p o)).1 hY, hr⟩
-      · by_cases hc : Block.Compatible (eraseFG nd.st.fg.F) b
-        · change _ = true at hc
-          simp only [Block.compatible, Bool.or_eq_true] at hc
-          rcases hc with hc | hc
-          · have hpar : b.parent ∈ nd.st.base.blocks :=
-              (hInv.baseTree _).2 ⟨P, ((parentFG_spec nd.st hInv.rootInj b P).1 hP).1, hPe⟩
-            have hfresh : ∀ c ∈ nd.st.base.blocks, c.root ≠ b.root := by
-              intro c hC hr
-              obtain ⟨Y, hY, rfl⟩ := (hInv.baseTree c).1 hC
-              exact hm ⟨Y, hY, (eraseFG_root Y).symm.trans hr⟩
-            obtain ⟨_, Q, hQ, hmem⟩ := admitBlock_sufficient p nd.st hInv s b raw sup rows
-              wf hpar hslot hfresh hc
-            left
-            dsimp only [processedS]
-            rw [he]
-            simp only [decide_eq_true_eq]
-            rw [hw']
-            refine ⟨fgBlock Q b rows, hmem, ?_⟩
-            exact fgBlock_root Q b rows
-              (by intro hg
-                  have hb := (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp
-                    (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp
-                      (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp wf).1).1).1).1).1).1
-                  exact (bne_iff_ne.mp hb) hg)
-              ((parentFG_spec nd.st hInv.rootInj b Q).1 hQ).2
-              (Bool.and_eq_true_iff.mp wf).2
-          · obtain ⟨Y, hY, heY, _⟩ := eraseFG_ancestor_preceq hInv.fg.closed hInv.fg.Fmem hc
-            exact (hm ⟨Y, hY, by rw [← eraseFG_root, heY]⟩).elim
-        · right
-          apply excludesS_process nd.st (toWire p o) o
-          rw [excludesS_of_block nd.st he]
-          simpa [blockExcluded, activeCompatible, Block.Compatible,
-            Block.compatible, Bool.or_comm] using hc
+      by_cases hv : rowsValidForParent p P b.slot rows = true
+      · by_cases hm : ∃ Y ∈ nd.st.fg.TF, Y.root = b.root
+        · left
+          obtain ⟨Y, hY, hr⟩ := hm
+          dsimp only [processedS]
+          rw [he]
+          simp only [decide_eq_true_eq]
+          exact ⟨Y, (process_cumulative p nd.st (toWire p o)).1 hY, hr⟩
+        · by_cases hc : Block.Compatible (eraseFG nd.st.fg.F) b
+          · change _ = true at hc
+            simp only [Block.compatible, Bool.or_eq_true] at hc
+            rcases hc with hc | hc
+            · have hpar : b.parent ∈ nd.st.base.blocks :=
+                (hInv.baseTree _).2 ⟨P, ((parentFG_spec nd.st hInv.rootInj b P).1 hP).1, hPe⟩
+              have hfresh : ∀ c ∈ nd.st.base.blocks, c.root ≠ b.root := by
+                intro c hC hr
+                obtain ⟨Y, hY, rfl⟩ := (hInv.baseTree c).1 hC
+                exact hm ⟨Y, hY, (eraseFG_root Y).symm.trans hr⟩
+              obtain ⟨_, Q, hQ, hmem⟩ := admitBlock_sufficient p nd.st hInv s b raw sup rows
+                wf hpar hslot hfresh hc (fun Q hQ => by
+                  have heq := Option.some.inj (hQ.symm.trans hP)
+                  subst Q
+                  exact hv)
+              left
+              dsimp only [processedS]
+              rw [he]
+              simp only [decide_eq_true_eq]
+              rw [hw']
+              refine ⟨fgBlock Q b rows, hmem, ?_⟩
+              exact fgBlock_root Q b rows
+                (by intro hg
+                    have hb := (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp
+                      (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp
+                        (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp wf).1).1).1).1).1).1
+                    exact (bne_iff_ne.mp hb) hg)
+                ((parentFG_spec nd.st hInv.rootInj b Q).1 hQ).2
+                (Bool.and_eq_true_iff.mp wf).2
+            · obtain ⟨Y, hY, heY, _⟩ := eraseFG_ancestor_preceq hInv.fg.closed hInv.fg.Fmem hc
+              exact (hm ⟨Y, hY, by rw [← eraseFG_root, heY]⟩).elim
+          · right
+            apply excludesS_process nd.st (toWire p o) o
+            rw [excludesS_of_block nd.st he]
+            have hb : blockExcluded nd.st b = true := by
+              simpa [blockExcluded, activeCompatible, Block.Compatible,
+                Block.compatible, Bool.or_comm] using hc
+            simp [hb]
+      · right
+        apply excludesS_process nd.st (toWire p o) o
+        rw [excludesS_of_block nd.st he]
+        rw [Bool.or_eq_true]
+        right
+        change (match parentFG nd.st b with
+          | none => false | some P => !rowsValidForParent p P b.slot rows) = true
+        simp only [hP, Bool.not_eq_true', Bool.eq_false_iff]
+        exact hv
 
 /-- Every timely, ready handled object is processed or excluded after delivery. -/
 theorem fgsaAcceptance (p : Params) (c : AppCodec In) :
-    Gen.V2.AcceptanceLaw (fgsa p c) (fgsaTimely p) (fgsaAcceptanceInv p) where
+    Gen.V2.Duty.AcceptanceLaw (fgsa p c) (fgsaTimely p) (fgsaAcceptanceInv p) where
   accepts nd o' o hInv hh hw hd ht := by
     change CStoreInv p nd.st at hInv
     change handlesS p nd.st o' o at hh
@@ -294,7 +274,7 @@ theorem fgsaAcceptance (p : Params) (c : AppCodec In) :
       | some m =>
         cases m with
         | vote s i b => exact hh.elim
-        | row r i body => exact hh.elim
+        | row i body => exact hh.elim
         | block s b raw sup rows =>
           obtain ⟨⟨P, hP, hacc⟩, hm⟩ := hh
           let st1 : State p.n := { nd.st with
@@ -356,15 +336,10 @@ theorem fgsaAcceptance (p : Params) (c : AppCodec In) :
             · (dsimp only [FGSA.wellFormed] at hw;
                 rw [toWire_ofRow] at hw;
                 contradiction)
-            · rename_i r
-              have hdt : (toWire p (ofRow p ⟨.seat (.fg r) i, body⟩)).decode =
-                  some (.row r i body) := by rw [toWire_ofRow]; rfl
-              have ht' := t77_row_timely hdt ht
-              have ht2 : r ≤ p.round (st2.slot p) := by
-                simpa only [State.slot, hn] using ht'
-              dsimp only [processedS, excludesS]
+            · left
+              dsimp only [processedS]
               rw [toWire_ofRow]
-              exact (t77_row_fold_partition rows st2 r i body hmem ht2).imp decide_eq_true id
+              exact decide_eq_true (t77_row_fold_partition rows st2 i body hmem)
             · (dsimp only [FGSA.wellFormed] at hw;
                 rw [toWire_ofRow] at hw;
                 contradiction)
@@ -428,7 +403,7 @@ private theorem t77_future_head_process (st : State p.n) (r : Slot) (i : Fin p.n
   | some m =>
     cases m with
     | vote s j B => exact t77_grid_future_absent st.base r i b _ hf hm
-    | row s j B => rwa [Internal.admitRow_base]
+    | row j B => rwa [Internal.admitRow_base]
     | block s B raw sup rows =>
       dsimp only [admitBlock]
       cases hP : parentFG st B with
@@ -445,65 +420,9 @@ private theorem t77_future_head_process (st : State p.n) (r : Slot) (i : Fin p.n
           exact t77_grid_future_proposal st.base r i b _ _ _ hf hm
         · exact hm
 
-private theorem t77_row_future_absent (st : State p.n) (r : Nat) (i : Fin p.n)
-    (body : RowBody) (a : RowWire p.n) (hf : p.round (st.slot p) < r)
-    (hm : (⟨.seat (.fg r) i, body⟩ : RowWire p.n) ∉ st.rowPool) :
-    (⟨.seat (.fg r) i, body⟩ : RowWire p.n) ∉ (admitRow p st a).rowPool := by
-  by_cases ha : a = ⟨.seat (.fg r) i, body⟩
-  · subst a
-    dsimp only [admitRow]
-    rw [show RowWire.decode? (⟨.seat (.fg r) i, body⟩ : RowWire p.n) = some (r, i, body) from rfl]
-    dsimp only
-    simp [hf, hm]
-  · rcases admitRow_eq p st a with he | he
-    · rwa [he]
-    · rw [he]
-      simp only [List.mem_append, List.mem_singleton, not_or]
-      exact ⟨hm, fun he => ha he.symm⟩
-
-private theorem t77_row_future_fold (rows : List (RowWire p.n)) (st : State p.n)
-    (r : Nat) (i : Fin p.n) (body : RowBody) (hf : p.round (st.slot p) < r)
-    (hm : (⟨.seat (.fg r) i, body⟩ : RowWire p.n) ∉ st.rowPool) :
-    (⟨.seat (.fg r) i, body⟩ : RowWire p.n) ∉ (rows.foldl (admitRow p) st).rowPool := by
-  induction rows generalizing st with
-  | nil => exact hm
-  | cons a rows ih =>
-    apply ih _ _ (t77_row_future_absent st r i body a hf hm)
-    simpa only [State.slot, Internal.admitRow_base] using hf
-
-private theorem t77_future_row_process (st : State p.n) (r : Nat) (i : Fin p.n)
-    (body : RowBody) (o : Wire p.n) (hf : p.round (st.slot p) < r)
-    (hm : (⟨.seat (.fg r) i, body⟩ : RowWire p.n) ∉ st.rowPool) :
-    (⟨.seat (.fg r) i, body⟩ : RowWire p.n) ∉ (FGSA.process p st o).rowPool := by
-  dsimp only [FGSA.process]
-  cases hd : o.decode with
-  | none => exact hm
-  | some m =>
-    cases m with
-    | vote s j B => exact hm
-    | row s j B => exact t77_row_future_absent st r i body _ hf hm
-    | block s B raw sup rows =>
-      dsimp only [admitBlock]
-      cases hP : parentFG st B with
-      | none => exact hm
-      | some P =>
-        let st1 : State p.n := { st with
-          base := GridCO.admitProposal p.toParams.engine st.base (baseProposal s B raw sup) B
-            (raw.map baseHead)
-          fg := on_block p.E p.cfg st.fg (fgBlock P B rows)
-          proposals := st.proposals ++ [⟨.proposer s, .proposal B raw sup rows⟩] }
-        dsimp only
-        split
-        · apply t77_row_future_fold
-          · dsimp only [State.slot]
-            rw [(Internal.ite_reconcile st1 st).2.1, Internal.grid_admitProposal_now]
-            exact hf
-          · rwa [(Internal.ite_reconcile st1 st).2.2]
-        · exact hm
-
 /-- A newly processed handled object has reached its admission threshold. -/
 theorem fgsaAdmitSound (p : Params) (c : AppCodec In) :
-    Gen.V2.AdmitSound (fgsa p c) (fgsaTimelyClock p c) where
+    Gen.V2.Duty.AdmitSound (fgsa p c) (fgsaTimelyClock p c) where
   timely nd o' o hn hpre hpost hh := by
     change 0 ≤ nd.st.base.now at hn
     change processedS p nd.st o = false at hpre
@@ -531,20 +450,12 @@ theorem fgsaAdmitSound (p : Params) (c : AppCodec In) :
           exact hm (decide_eq_false_iff_not.mp hpre) (of_decide_eq_true hpost)
         rw [ho]
         exact (fgsa_slot_threshold_iff p _ hn s).1 hs
-      | row r i body =>
-        have ho : o = ofWire p ⟨.seat (.fg r) i, .row body⟩ := by
+      | row i body =>
+        have ho : o = ofWire p ⟨.seat .fg i, .row body⟩ := by
           apply toWire_injective
           simpa using decode_eq_row.mp he
-        have hr : r ≤ p.round (nd.st.slot p) := by
-          by_contra hr
-          have hf : p.round (nd.st.slot p) < r := Nat.lt_of_not_ge hr
-          have hm := t77_future_row_process nd.st r i body (toWire p o') hf
-          dsimp only [processedS] at hpre hpost
-          rw [he] at hpre hpost
-          simp only [decide_eq_false_iff_not, decide_eq_true_eq] at hpre hpost
-          exact hm hpre hpost
         rw [ho]
-        exact (fgsa_round_threshold_iff p _ hn r).1 hr
+        exact hn
       | block s b raw sup rows =>
         have heq : o' = o := by
           rcases hh with hh | hh
@@ -555,7 +466,7 @@ theorem fgsaAdmitSound (p : Params) (c : AppCodec In) :
             | some m =>
               cases m with
               | vote s i b => exact hh.elim
-              | row r i body => exact hh.elim
+              | row i body => exact hh.elim
               | block s b raw sup rows =>
                 rcases hh.2 with hm | hm
                 · obtain ⟨h, _, rfl⟩ := List.mem_map.mp hm
@@ -605,21 +516,21 @@ theorem fgsaTimelyClock_actTime (p : Params) (c : AppCodec In) (o : Obj p) :
 
 /-- The FG-SA trigger is the generic honest emission or acceptance trigger. -/
 theorem fgsaTrigger_def (p : Params) (c : AppCodec In) {V : Type} [DecidableEq V]
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) (o : Obj p) (t : Time) :
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (o : Obj p) (t : Time) :
     fgsaTrigger p c E rho o t ↔
-      (∃ v ∈ rho.honest, V2.Run.emits E rho v o t) ∨
-      (∃ v ∈ rho.honest, ∃ i, V2.Run.acceptsAt E rho i v o t) := Iff.rfl
+      (∃ v ∈ rho.honest, V2.D.Run.emits E rho v o t) ∨
+      (∃ v ∈ rho.honest, ∃ i, V2.D.Run.acceptsAt E rho i v o t) := Iff.rfl
 
 /-- An honest emission produces an FG-SA trigger. -/
 theorem fgsa_trigger_of_emit (p : Params) (c : AppCodec In) {V : Type} [DecidableEq V]
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) {v : V} {o : Obj p} {t : Time}
-    (hv : v ∈ rho.honest) (he : V2.Run.emits E rho v o t) :
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {v : V} {o : Obj p} {t : Time}
+    (hv : v ∈ rho.honest) (he : V2.D.Run.emits E rho v o t) :
     fgsaTrigger p c E rho o t := Or.inl ⟨v, hv, he⟩
 
 /-- An honest acceptance produces an FG-SA trigger. -/
 theorem fgsa_trigger_of_accept (p : Params) (c : AppCodec In) {V : Type} [DecidableEq V]
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) {v : V} {o : Obj p} {t : Time} {i : Nat}
-    (hv : v ∈ rho.honest) (ha : V2.Run.acceptsAt E rho i v o t) :
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {v : V} {o : Obj p} {t : Time} {i : Nat}
+    (hv : v ∈ rho.honest) (ha : V2.D.Run.acceptsAt E rho i v o t) :
     fgsaTrigger p c E rho o t := Or.inr ⟨v, hv, i, ha⟩
 
 end AvailableChain.FGSA.Run

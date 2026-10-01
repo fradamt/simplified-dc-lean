@@ -1,3 +1,5 @@
 # Guard list removal exceptions. Owner: lean-framework.
 # Format: <LIST> <entry> <reason...>; LIST is EXPECTED or ORDER.
 # Renames need the lead's OK. Keep one exception per line.
+EXPECTED AvailableChain.FGSA.Run.honest_one_row_per_round fg-noround/06: replace unconditional emission by action uniqueness and successful attest emission; migration plan 06
+EXPECTED AvailableChain.FGSA.Run.InRowWindow fg-noround/06: forced by Params.wF removal; text = 07 draft

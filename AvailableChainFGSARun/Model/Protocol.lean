@@ -1,7 +1,7 @@
 module
 public import Mathlib.Logic.Equiv.Defs
 public import Mathlib.Tactic.Ring
-public import AvailableChainEngineV2.Engine.Spec
+public import AvailableChainEngineV2.Engine.Duty.Spec
 public import AvailableChainFGSA.Model.Handlers
 public import AvailableChainFGSA.Model.Clock
 public import AvailableChainFGSA.Model.Frame
@@ -22,7 +22,7 @@ only duty that reads Λ, and `recordOwn` is the only step that writes it.
 
 v1 `Auth` and `Signed` (namespace `AvailableChain`) and v2 `Auth` and `Signed`
 (namespace `AvailableChain.V2`) clash, so this file writes the v2 names as
-`V2.…` and does not open `AvailableChain.V2`. -/
+`V2.D.…` and does not open `AvailableChain.V2`. -/
 
 namespace AvailableChain.FGSA.Run
 
@@ -43,9 +43,8 @@ def unitCodec : AppCodec Unit where
   unapp _ := some ()
   unapp_app _ := rfl
 
-/-- [spec 197–220; FRAMEWORK E1; plan T7.2] The v2 duty labels: a store label
-(the HEAD of a slot or the FG action of a round) or the proposal duty of a
-slot. A proposal duty is a label with one seat. -/
+/-- Signing labels: a HEAD label for each slot, one fixed FG label, and
+one proposal label for each slot. Duties are separate scheduled actions. -/
 inductive RunLabel where
   | base (ℓ : Label)
   | prop (s : Slot)
@@ -59,19 +58,32 @@ def seats (p : Params) : RunLabel → Nat
   | .base _ => p.n
   | .prop _ => 1
 
-/-- [spec 197–220] The act time: `v_s` for a HEAD, `a_r` for an FG action,
-`t_s` for a proposal. -/
-def actTime (p : Params) : RunLabel → Time
-  | .base ℓ => Label.actTime p ℓ
-  | .prop s => SA.proposalTime p.toParams s
-
 /-- [spec 681; FRAMEWORK E5; plan T7.2] Only an FG label is self-visible: the
 node records its own FG row in Λ at its tick. -/
 def selfVisible : RunLabel → Bool
-  | .base (.fg _) => true
+  | .base .fg => true
   | _ => false
 
 end RunLabel
+
+/-- Scheduled actions. FG actions share one signing label. -/
+inductive RunDuty where
+  | headAction (s : Slot)
+  | fgAction (r : Nat)
+  | propAction (s : Slot)
+  deriving DecidableEq, Repr
+
+/-- The signing identity of an action. -/
+def RunDuty.signLabel : RunDuty → RunLabel
+  | .headAction s => .base (.head s)
+  | .fgAction _ => .base .fg
+  | .propAction s => .prop s
+
+/-- The scheduled time of an action. -/
+def RunDuty.actTime (p : Params) : RunDuty → Time
+  | .headAction s => SA.voteTime p.toParams s
+  | .fgAction r => p.actionTime r
+  | .propAction s => SA.proposalTime p.toParams s
 
 /-- [plan §3.1; DQ4] The node state: the store (Λ-free, the E5 base) and the
 client record Λ. -/
@@ -79,7 +91,7 @@ structure Node (p : Params) where
   st : State p.n
   /-- Λ. The plan calls this field `rec`; Lean reserves `Node.rec` for the
   recursor of the structure. -/
-  record : Record
+  record : RecordOnce
 
 /-- [plan §3.1] The v2 wire objects of FG-SA. -/
 abbrev Obj (p : Params) : Type := V2.Signed RunLabel (RunLabel.seats p) (Msg p.n)
@@ -142,12 +154,12 @@ proposal time is `t`, the HEAD of the slot whose vote time is `t`, and the FG
 action of the round whose action time is `t`. The three candidates come from
 the slot of `t` (the action time of round `r` is in slot `rR + 1`), and each
 one is due only if its act time is `t`. -/
-def duties (p : Params) (t : Time) : List RunLabel :=
+def duties (p : Params) (t : Time) : List RunDuty :=
   let s := p.slotOf t
   let r := (s - 1) / p.R
-  (if SA.proposalTime p.toParams s = t then [.prop s] else []) ++
-    (if SA.voteTime p.toParams s = t then [.base (.head s)] else []) ++
-    (if p.actionTime r = t then [.base (.fg r)] else [])
+  (if SA.proposalTime p.toParams s = t then [.propAction s] else []) ++
+    (if SA.voteTime p.toParams s = t then [.headAction s] else []) ++
+    (if p.actionTime r = t then [.fgAction r] else [])
 
 /-- The slot of a time in slot `s` at offset `k`, `0 ≤ k < 4Δ`, is `s`. -/
 theorem slotOf_offset (p : Params) (s : Slot) (k : Int) (hk0 : 0 ≤ k)
@@ -157,8 +169,8 @@ theorem slotOf_offset (p : Params) (s : Slot) (k : Int) (hk0 : 0 ≤ k)
   rw [add_comm, Int.add_mul_ediv_left _ _ hΔ, Int.ediv_eq_zero_of_lt hk0 hk, zero_add,
     Int.toNat_natCast]
 
-theorem duties_spec (p : Params) (ℓ : RunLabel) (t : Time) :
-    ℓ ∈ duties p t ↔ RunLabel.actTime p ℓ = t := by
+theorem duties_spec (p : Params) (ℓ : RunDuty) (t : Time) :
+    ℓ ∈ duties p t ↔ RunDuty.actTime p ℓ = t := by
   have hΔ : (0 : Int) < p.Δ := p.deltaPos
   have hR : 0 < p.R := by have := p.RLarge; omega
   simp only [duties, List.mem_append]
@@ -176,7 +188,7 @@ theorem duties_spec (p : Params) (ℓ : RunLabel) (t : Time) :
       · simp at h
   · intro h
     cases ℓ with
-    | prop s =>
+    | propAction s =>
         have h' : SA.proposalTime p.toParams s = t := h
         have ht : t = 4 * p.Δ * s + 0 := by
           rw [← h']; simp [SA.proposalTime, GridCO.proposalTime, SA.Params.engine]
@@ -184,33 +196,31 @@ theorem duties_spec (p : Params) (ℓ : RunLabel) (t : Time) :
         left; left
         rw [hs, ite_eq_left h']
         exact List.mem_singleton_self _
-    | base ℓ =>
-        cases ℓ with
-        | head s =>
-            have h' : SA.voteTime p.toParams s = t := h
-            have ht : t = 4 * p.Δ * s + p.Δ := by
-              rw [← h']; simp [SA.voteTime, GridCO.voteTime, GridCO.proposalTime,
-                SA.Params.engine]
-            have hs : p.slotOf t = s := by
-              rw [ht]; exact slotOf_offset p s p.Δ (by omega) (by omega)
-            left; right
-            rw [hs, ite_eq_left h']
-            exact List.mem_singleton_self _
-        | fg r =>
-            have h' : p.actionTime r = t := h
-            have ht : t = 4 * p.Δ * ((r * p.R + 1 : Nat) : Int) + 2 * p.Δ := by
-              rw [← h']
-              simp only [Params.actionTime, SA.gateTime, GridCO.gateTime, GridCO.proposalTime,
-                SA.Params.engine]
-              push_cast
-              ring
-            have hs : p.slotOf t = r * p.R + 1 := by
-              rw [ht]; exact slotOf_offset p _ (2 * p.Δ) (by omega) (by omega)
-            have hr : (p.slotOf t - 1) / p.R = r := by
-              rw [hs, Nat.add_sub_cancel, Nat.mul_div_cancel _ hR]
-            right
-            rw [hr, ite_eq_left h']
-            exact List.mem_singleton_self _
+    | headAction s =>
+        have h' : SA.voteTime p.toParams s = t := h
+        have ht : t = 4 * p.Δ * s + p.Δ := by
+          rw [← h']; simp [SA.voteTime, GridCO.voteTime, GridCO.proposalTime,
+            SA.Params.engine]
+        have hs : p.slotOf t = s := by
+          rw [ht]; exact slotOf_offset p s p.Δ (by omega) (by omega)
+        left; right
+        rw [hs, ite_eq_left h']
+        exact List.mem_singleton_self _
+    | fgAction r =>
+        have h' : p.actionTime r = t := h
+        have ht : t = 4 * p.Δ * ((r * p.R + 1 : Nat) : Int) + 2 * p.Δ := by
+          rw [← h']
+          simp only [Params.actionTime, SA.gateTime, GridCO.gateTime, GridCO.proposalTime,
+            SA.Params.engine]
+          push_cast
+          ring
+        have hs : p.slotOf t = r * p.R + 1 := by
+          rw [ht]; exact slotOf_offset p _ (2 * p.Δ) (by omega) (by omega)
+        have hr : (p.slotOf t - 1) / p.R = r := by
+          rw [hs, Nat.add_sub_cancel, Nat.mul_div_cancel _ hR]
+        right
+        rw [hr, ite_eq_left h']
+        exact List.mem_singleton_self _
 
 theorem duties_nodup (p : Params) (t : Time) : (duties p t).Nodup := by
   simp only [duties]
@@ -231,28 +241,28 @@ def withApp {n : Nat} (a : Nat) : Msg n → Msg n
 AP labels): the HEAD vote at `v_s` and the proposal at `t_s`, with the input in
 the body. It reads only the store. There is no base payload for an FG label. -/
 def actS (p : Params) {In : Type} (c : AppCodec In) (st : State p.n) :
-    RunLabel → In → Option (Msg p.n)
-  | .base (.head s), _ => some (.head (headVote p st s))
-  | .base (.fg _), _ => none
-  | .prop s, x => (propose p st s).map (withApp (c.app x))
+    RunDuty → In → Option (Msg p.n)
+  | .headAction s, _ => some (.head (headVote p st s))
+  | .fgAction _, _ => none
+  | .propAction s, x => (propose p st s).map (withApp (c.app x))
 
 /-- [spec 1304–1313, 1391–1399; plan T7.2] The payload of a duty: `actS` on the
 base labels, and the `attest` row body on an FG label. `attest` reads Λ; its
 identity argument does not change the body (`attest_signer_irrel`), so seat
 `0` is used. `act` returns `none` for `.prop 0` (`propose`). -/
 def act (p : Params) {In : Type} (c : AppCodec In) (nd : Node p) :
-    RunLabel → In → Option (Msg p.n)
-  | .base (.fg _), _ => some (.row (attest p nd.st nd.record ⟨0, p.nPos⟩).1)
+    RunDuty → In → Option (Msg p.n)
+  | .fgAction _, _ => (attest p nd.st nd.record ⟨0, p.nPos⟩).1.map Msg.row
   | ℓ, x => actS p c nd.st ℓ x
 
 /-- [spec 681, 1391–1399; Opus m11] The own-record step: an FG row signed with
 seat `i` records the row `⟨i, height pair, finality pair⟩` in Λ
-(`record_row`, which does not read the signer); any other object leaves Λ
+(`record_row_once`, which does not read the signer); any other object leaves Λ
 unchanged. -/
-def recordRow? (p : Params) (Λ : Record) (o : Obj p) : Record :=
+def recordRow? (p : Params) (Λ : RecordOnce) (o : Obj p) : RecordOnce :=
   match o with
-  | ⟨.seat (.base (.fg _)) i, .row body⟩ =>
-      record_row Λ (⟨i, body.height_pair, body.finality_pair⟩ : Row (Fin p.n))
+  | ⟨.seat (.base .fg) i, .row body⟩ =>
+      record_row_once Λ (body.toRow i)
   | _ => Λ
 
 /-! ### Hooks on the store
@@ -275,34 +285,27 @@ HEAD if its base vote is in the vote pool; a row if it is in the row pool
 def processedS (p : Params) (st : State p.n) (o : Obj p) : Bool :=
   match (toWire p o).decode with
   | some (.vote s i b) => decide (baseVote (⟨.seat (.head s) i, b⟩ : HeadWire p.n) ∈ st.base.votes)
-  | some (.row r i body) => decide ((⟨.seat (.fg r) i, body⟩ : RowWire p.n) ∈ st.rowPool)
+  | some (.row i body) => decide ((⟨.seat .fg i, body⟩ : RowWire p.n) ∈ st.rowPool)
   | some (.block _ b _ _ _) => decide (∃ Y ∈ st.fg.TF, Y.root = b.root)
   | none => false
 
-/-- The rows of seat `i` and round `r` in the row pool (the identity and
-round of each pool row come from its decoder). -/
-def rowCount {n : Nat} (st : State n) (r : Nat) (i : Fin n) : Nat :=
-  (st.rowPool.filter (fun c => c.decode?.map (fun x => (x.1, x.2.1)) == some (r, i))).length
+/-- [R6] Permanent invalidity once the immutable parent is held. An absent
+parent is a missing dependency, not an invalidity result. -/
+def invalidForParent (p : Params) (st : State p.n) (b : Block)
+    (rows : List (RowWire p.n)) : Bool :=
+  match parentFG st b with
+  | none => false
+  | some P => !rowsValidForParent p P b.slot rows
 
-/-- [spec 360–366, 831–857] The row clause of `excludesS` at the signed row `a`
-of round `r` and seat `i`: `a` is not in the pool, and it is old
-(`r + w_F < round now`) or its seat has two rows of round `r` in the pool. -/
-def rowExcl (p : Params) (st : State p.n) (a : RowWire p.n) (r : Nat) (i : Fin p.n) : Bool :=
-  !decide (a ∈ st.rowPool) &&
-    (decide (r + p.wF < p.round (st.slot p)) || decide (2 ≤ rowCount st r i))
-
-/-- [spec 360–366, 831–857; DQ9; I9 D2; plan T7.2] Excluded for good: a proposal
-whose block is not compatible with F (`blockExcluded`); a HEAD that the Grid CO
-vote pool excludes (an old label or an equivocation, not stored); a row that
-is not in the pool and is old (`r + w_F < round now`) or whose seat already
-has two rows of round `r` in the pool. A future row (`round now < r`) is a
-temporary refusal, not an exclusion. There is no root clause. -/
+/-- Permanent exclusions: a proposal conflicts with finality or fails R6
+against a held parent; a HEAD is excluded by the base vote pool. Decoded rows
+are never excluded. An absent parent remains a dependency condition. -/
 def excludesS (p : Params) (st : State p.n) (o : Obj p) : Bool :=
   match (toWire p o).decode with
   | some (.vote s i b) =>
       GridCO.excludes p.toParams.engine st.base (baseVote (⟨.seat (.head s) i, b⟩ : HeadWire p.n))
-  | some (.row r i body) => rowExcl p st ⟨.seat (.fg r) i, body⟩ r i
-  | some (.block _ b _ _ _) => blockExcluded st b
+  | some (.row _ _) => false
+  | some (.block _ b _ _ rows) => blockExcluded st b || invalidForParent p st b rows
   | none => false
 
 /-- [spec 804–829; plan T7.2] Handler calls: the delivered object itself; for a
@@ -329,7 +332,7 @@ def carriesS (p : Params) (o o' : Obj p) : Prop :=
 /-- [plan T7.2; FRAMEWORK E1, E2, E5, E6] FG-SA on engine v2, with the
 application codec `c`.
 
-* State: the store and Λ (`Node`). A restart keeps Λ (`Durable := Record`, the
+* State: the store and Λ (`Node`). A restart keeps Λ (`Durable := RecordOnce`, the
   slashing-protection database; user decision, plan §1a) and restarts the
   store from `initial`, so the base after a restore does not depend on the
   kept data (E5 restore law).
@@ -338,15 +341,17 @@ application codec `c`.
 * `act`: HEAD and proposal from the store (`actS`), FG row from `attest`.
 * The hooks are the store hooks (`depsS`, `processedS`, `excludesS`,
   `handlesS`) at `nd.st`. -/
-def fgsa (p : Params) {In : Type} (c : AppCodec In) : V2.ProtocolSpec In where
+def fgsa (p : Params) {In : Type} (c : AppCodec In) : V2.ProtocolSpecD In where
   State := Node p
   Label := RunLabel
+  Duty := RunDuty
+  signLabel := RunDuty.signLabel
   seats := RunLabel.seats p
   Payload := Msg p.n
-  Durable := Record
-  init := ⟨initial p.n, Record.initial⟩
+  Durable := RecordOnce
+  init := ⟨initial p.n, RecordOnce.initial⟩
   clock nd t := { nd with st := FGSA.clock p nd.st t }
-  actTime := RunLabel.actTime p
+  actTime := RunDuty.actTime p
   duties := duties p
   duties_spec := duties_spec p
   duties_nodup := duties_nodup p
@@ -368,6 +373,10 @@ def fgsa (p : Params) {In : Type} (c : AppCodec In) : V2.ProtocolSpec In where
 projection does not unfold at instance transparency). -/
 instance (p : Params) {In : Type} (c : AppCodec In) : DecidableEq (fgsa p c).Label :=
   inferInstanceAs (DecidableEq RunLabel)
+
+/-- Duties have decidable equality. -/
+instance (p : Params) {In : Type} (c : AppCodec In) : DecidableEq (fgsa p c).Duty :=
+  inferInstanceAs (DecidableEq RunDuty)
 
 /-- Payloads of `fgsa` have decidable equality (the instance of `Msg`). -/
 instance (p : Params) {In : Type} (c : AppCodec In) : DecidableEq (fgsa p c).Payload :=

@@ -9,7 +9,7 @@ open AvailableChain.SimplexFG
 open Gen.Pure (CompatOn MonoOn)
 
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 /-- bp.cleanHistory.v1, P3 §4.7 and 00:767–775. The clauses use public
 event reads and BelowLabel; no F2 invariant occurs in this statement.
@@ -72,8 +72,8 @@ def CleanTruncAt (b₀ : Time) : Prop :=
   CompatOn (· ∈ rho.honest) (S_at p c E rho) (· ≤ timeIdx rho b₀) ∧
   MonoOn (· ∈ rho.honest) (S_at p c E rho) (· ≤ timeIdx rho b₀) ∧
   (∀ g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed],
-    CompatOn (· ∈ rho.honest) (fun t x => V2.outputAt E rho g x t) (fun t => 0 ≤ t ∧ t ≤ b₀) ∧
-    MonoOn (· ∈ rho.honest) (fun t x => V2.outputAt E rho g x t) (fun t => 0 ≤ t ∧ t ≤ b₀)) ∧
+    CompatOn (· ∈ rho.honest) (fun t x => V2.D.outputAt E rho g x t) (fun t => 0 ≤ t ∧ t ≤ b₀) ∧
+    MonoOn (· ∈ rho.honest) (fun t x => V2.D.outputAt E rho g x t) (fun t => 0 ≤ t ∧ t ≤ b₀)) ∧
   CleanHistoryAt p c E rho b₀ ∧
   (∀ i v, i ≤ timeIdx rho b₀ → v ∈ rho.honest →
     let st := storeAt p c E rho i v
@@ -92,41 +92,41 @@ def CleanSafetyAt : Prop :=
   CompatOn (· ∈ rho.honest) (S_at p c E rho) (· ≤ rho.events.length) ∧
   MonoOn (· ∈ rho.honest) (S_at p c E rho) (· ≤ rho.events.length) ∧
   (∀ g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed],
-    CompatOn (· ∈ rho.honest) (fun t x => V2.outputAt E rho g x t) (fun _ => True) ∧
-    MonoOn (· ∈ rho.honest) (fun t x => V2.outputAt E rho g x t) (fun _ => True))
+    CompatOn (· ∈ rho.honest) (fun t x => V2.D.outputAt E rho g x t) (fun _ => True) ∧
+    MonoOn (· ∈ rho.honest) (fun t x => V2.D.outputAt E rho g x t) (fun _ => True))
 
 /-- Blueprint cut form. Assembly of its two lanes is deferred. -/
 def CleanCutClaim : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) (pt : PtB₀),
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : PtB₀),
     CleanCutPrem p c E rho pt → CleanHistoryAt p c E rho pt.b₀ ∧ CleanTruncAt p c E rho pt.b₀
 
 /-- F2 zero lane. There is no channel or quorum premise. -/
 def CleanCutZeroClaim : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)),
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
     CleanCutPrem p c E rho ⟨0⟩ → CleanHistoryAt p c E rho 0 ∧ CleanTruncAt p c E rho 0
 
 def CleanHistoryClaim : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) (pt : PtB₀),
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : PtB₀),
     CleanPrefixPrem p c E rho pt → CleanHistoryAt p c E rho pt.b₀
 
 def CleanPrefixTruncationClaim : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) (pt : PtB₀),
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : PtB₀),
     CleanPrefixPrem p c E rho pt → CleanTruncAt p c E rho pt.b₀
 
 def CleanSafetyClaim : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) (pt : Unit),
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit),
     CleanPrem p c E rho pt → CleanSafetyAt p c E rho
 
 /-- P3 §4.7, L39: the positive F2 lane has both F1 channels as premises.
 This lane Prop is not a field of FGSASafetyClaims. -/
 def CleanCutPosClaim : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) (pt : PtB₀),
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : PtB₀),
     CleanCutPrem p c E rho pt → 0 < pt.b₀ →
     FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
     CleanHistoryAt p c E rho pt.b₀ ∧ CleanTruncAt p c E rho pt.b₀

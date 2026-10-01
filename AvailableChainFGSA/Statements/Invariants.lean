@@ -88,12 +88,8 @@ its signed rows (`rowsOk`, D9: the full stored content), whose rows all decode,
 and whose FG block is in Σ.T, with the SAME ordered rows (`filterMap toRow?`).
 `treeWire`: every non-genesis block of Σ.T has exactly one stored wire.
 `stampKeys`: the block stamps are keyed by the base list, once each.
-`pool*`: the row pool holds decoded rows, no duplicate, at most two per
-identity and round (used by `proposalRows`). `noGenesisWire`: no stored wire
-carries genesis (G12 m1; with `treeWire` it gives `contentAgree_self`). The
-grouping key of `proposalRows` is never `none` on any store, because its
-`round?` filter (`Model/Frame.lean`, `proposalRows` and `blockWireRows`) drops
-every row that does not decode (G6 item 9; G12 m2). -/
+`pool*`: the row pool holds decoded rows without duplicates. `noGenesisWire`: no stored wire
+carries genesis (G12 m1; with `treeWire` it gives `contentAgree_self`). -/
 structure MetaInv (p : Params) (st : State p.n) : Prop where
   wireTree : ∀ o ∈ st.proposals, ∃ s b raw sup rows,
     o = ⟨.proposer s, .proposal b raw sup rows⟩ ∧ rowsOk b rows = true ∧
@@ -106,14 +102,12 @@ structure MetaInv (p : Params) (st : State p.n) : Prop where
   blocksNodup : st.base.blocks.Nodup
   poolDecodes : ∀ a ∈ st.rowPool, (RowWire.decode? a).isSome
   poolNodup : st.rowPool.Nodup
-  poolCap : ∀ r i, (st.rowPool.filter (fun a =>
-    a.decode?.map (fun x => (x.1, x.2.1)) == some (r, i))).length ≤ 2
   noGenesisWire : ∀ o ∈ st.proposals, Wire.block? o ≠ some .genesis
 
 /-- [bp bp.carrier.v1; K5 cross-node; DQ3(b), which REVERSES comp D4; audit M2;
 narrowed at G12] The content premise on two stores: stored proposal wires whose
 blocks have equal roots have the same erased block (with its parent chain) and
-the same ordered signed rows (with their rounds). The carried votes and the
+the same ordered signed rows. The carried votes and the
 support list are free: no cross-node proof reads them. With derived roots and
 the content check `rowsOk` it is a theorem for any two stores with the metadata
 invariant (`contentAgree`, `Proofs/CrossNode.lean`); no run premise is needed. -/

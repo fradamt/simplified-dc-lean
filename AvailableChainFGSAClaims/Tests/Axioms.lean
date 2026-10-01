@@ -298,7 +298,8 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.heldAtProposal
 #print axioms AvailableChain.FGSA.Run.onParentChain
 #print axioms AvailableChain.FGSA.Run.HeldBefore
-#print axioms AvailableChain.FGSA.Run.InRowWindow
+#print axioms AvailableChain.FGSA.Run.ValidForParent
+#print axioms AvailableChain.FGSA.Run.ValidForParent_def
 #print axioms AvailableChain.FGSA.Run.headAtLabel
 #print axioms AvailableChain.FGSA.Run.RXing
 #print axioms AvailableChain.FGSA.Run.RCap

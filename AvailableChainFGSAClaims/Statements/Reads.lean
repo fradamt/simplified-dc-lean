@@ -1,5 +1,5 @@
 module
-public import AvailableChainGeneric.Statements.V2.Reads -- shake: keep (Claims import policy)
+public import AvailableChainGeneric.Statements.V2.Duty.Reads -- shake: keep (Claims import policy)
 public import AvailableChainFGSARun.Model.Protocol
 
 @[expose] public section
@@ -8,52 +8,52 @@ public import AvailableChainFGSARun.Model.Protocol
 
 namespace AvailableChain.FGSA.Run
 
-variable {V : Type} {In : Type} {P : V2.ProtocolSpec In}
+variable {V : Type} {In : Type} {P : V2.ProtocolSpecD In}
 
 /-- Include earlier events and the restarts and ticks at `t`, before deliveries. -/
 def cutPred (t : Time) (e : V2.Event V P.Object) : Bool :=
   decide (e.key ≤ toLex (t, 1))
 
 /-- The event index after all ticks at `t`. -/
-def afterTicksIdx (rho : V2.Run V P) (t : Time) : Nat :=
+def afterTicksIdx (rho : V2.D.Run V P) (t : Time) : Nat :=
   (rho.events.filter (cutPred t)).length
 
 /-- Event states in the suffix that starts at the post-gate cut. -/
-def SuffixIdx (rho : V2.Run V P) (t : Time) (i : Nat) : Prop :=
+def SuffixIdx (rho : V2.D.Run V P) (t : Time) (i : Nat) : Prop :=
   afterTicksIdx rho t ≤ i ∧ i ≤ rho.events.length
 
 /-- The inclusive event index at `t`. -/
-def timeIdx (rho : V2.Run V P) (t : Time) : Nat :=
+def timeIdx (rho : V2.D.Run V P) (t : Time) : Nat :=
   (rho.events.filter (fun e => decide (e.time ≤ t))).length
 
 variable [DecidableEq V]
 
 /-- The world after all ticks at `t`, before its deliveries. -/
-def afterTicks (E : Generic.Env V) (rho : V2.Run V P) (t : Time) : V2.World V P :=
-  (rho.events.filter (cutPred t)).foldl (V2.World.step E rho) V2.World.init
+def afterTicks (E : Generic.Env V) (rho : V2.D.Run V P) (t : Time) : V2.D.World V P :=
+  (rho.events.filter (cutPred t)).foldl (V2.D.World.step E rho) V2.D.World.init
 
 /-- The local state before the node's tick, if that tick exists. -/
-def preTick (E : Generic.Env V) (rho : V2.Run V P) (v : V) (t : Time) : Option P.State :=
-  (V2.Run.tickIdx? rho v t).map (fun i => V2.Run.stateBefore E rho i v)
+def preTick (E : Generic.Env V) (rho : V2.D.Run V P) (v : V) (t : Time) : Option P.State :=
+  (V2.D.Run.tickIdx? rho v t).map (fun i => V2.D.Run.stateBefore E rho i v)
 
 -- equation export required by BUILD §7.2 B3a
-theorem preTick_def (E : Generic.Env V) (rho : V2.Run V P) (v : V) (t : Time) :
+theorem preTick_def (E : Generic.Env V) (rho : V2.D.Run V P) (v : V) (t : Time) :
     preTick E rho v t =
-      (V2.Run.tickIdx? rho v t).map (fun i => V2.Run.stateBefore E rho i v) := by
+      (V2.D.Run.tickIdx? rho v t).map (fun i => V2.D.Run.stateBefore E rho i v) := by
   rw [preTick]
 
 /-- The local state after the clock, before the own record. -/
-def postClock (E : Generic.Env V) (rho : V2.Run V P) (v : V) (t : Time) : Option P.State :=
+def postClock (E : Generic.Env V) (rho : V2.D.Run V P) (v : V) (t : Time) : Option P.State :=
   (preTick E rho v t).map (fun nd => P.clock nd t)
 
 -- equation export required by BUILD §7.2 B3a
-theorem postClock_def (E : Generic.Env V) (rho : V2.Run V P) (v : V) (t : Time) :
+theorem postClock_def (E : Generic.Env V) (rho : V2.D.Run V P) (v : V) (t : Time) :
     postClock E rho v t = (preTick E rho v t).map (fun nd => P.clock nd t) := by
   rw [postClock]
 
 /-- The local state after the node's complete tick, if that tick exists. -/
-def postTick (E : Generic.Env V) (rho : V2.Run V P) (v : V) (t : Time) : Option P.State :=
-  (V2.Run.tickIdx? rho v t).map (fun i => V2.Run.stateBefore E rho (i + 1) v)
+def postTick (E : Generic.Env V) (rho : V2.D.Run V P) (v : V) (t : Time) : Option P.State :=
+  (V2.D.Run.tickIdx? rho v t).map (fun i => V2.D.Run.stateBefore E rho (i + 1) v)
 
 end AvailableChain.FGSA.Run
 
@@ -63,11 +63,11 @@ namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
 
 variable (p : Params) {In : Type} (c : AppCodec In)
-    {V : Type} [DecidableEq V] (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    {V : Type} [DecidableEq V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 /-- The store before event `i`. -/
 def storeAt (i : Nat) (x : V) : FGSA.State p.n :=
-  (V2.Run.stateBefore E rho i x).st
+  (V2.D.Run.stateBefore E rho i x).st
 
 def S_at (i : Nat) (x : V) : Block := (storeAt p c E rho i x).base.stableRecord
 def F_at (i : Nat) (x : V) : Block := eraseFG (storeAt p c E rho i x).fg.F
@@ -117,7 +117,7 @@ def gateResultAt (j : Nat) : Option (Option Block) :=
   match rho.events[j]? with
   | some (.tick x t) =>
       if isGateTime p t then
-        let st := FGSA.clockPre p (V2.Run.stateBefore E rho j x).st t
+        let st := FGSA.clockPre p (V2.D.Run.stateBefore E rho j x).st t
         some (SA.confirmationFrom p.toParams (eraseFG st.fg.F) (FGSA.actView st)
           ((t - 6 * p.Δ) / (4 * p.Δ)).toNat)
       else none
@@ -139,7 +139,7 @@ def fastAt (x : V) (s : Slot) (B : Block) : Prop :=
 /-- The HEAD computation on the post-clock state of event `k`. -/
 def headAtIdx (k : Nat) (s : Slot) : Block :=
   match rho.events[k]? with
-  | some (.tick y t) => FGSA.headVote p ((fgsa p c).clock (V2.Run.stateBefore E rho k y) t).st s
+  | some (.tick y t) => FGSA.headVote p ((fgsa p c).clock (V2.D.Run.stateBefore E rho k y) t).st s
   | _ => .genesis
 
 /-- The deterministic HEAD read at the next vote time, also for asleep nodes. -/
@@ -178,11 +178,11 @@ def DeliveredAt (j : Nat) (o : (fgsa p c).Object) : Prop :=
 
 /-- Direct and carried handler calls for the signed row, through `ofRow`. -/
 def HandlesRowAt (k : Nat) (x : V) (a : RowWire p.n) : Prop :=
-  ∃ t, V2.Run.handlesAt E rho k x (ofRow p a) t
+  ∃ t, V2.D.Run.handlesAt E rho k x (ofRow p a) t
 
 /-- Finalization in the strict-before state; the definition also permits restarts. -/
 def AcceptsFinalBefore (x : V) (X : FGBlock (Fin p.n)) (d : Time) : Prop :=
-  Gen.V2.HoldsBefore E rho (fun nd => FGBlock.Preceq X nd.st.fg.F) d x
+  Gen.V2.Duty.HoldsBefore E rho (fun nd => FGBlock.Preceq X nd.st.fg.F) d x
 
 /-- Labelled raw results of gate ticks before index `i` (P3 §8.2). -/
 def cleanResults (i : Nat) : Set (Slot × Block) :=

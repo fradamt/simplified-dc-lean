@@ -10,14 +10,12 @@ namespace AvailableChain.FGSA
 open AvailableChain.Generic AvailableChain.SimplexFG
 
 /-- [spec 265–335] FG-SA parameters: the SA parameters (`Δ`, `n`, `k`, `η`), the
-round length `R ≥ 2`, the row window `w_F ≥ 1` and the timeout delay `δ_t ≥ 0`
+round length `R ≥ 2` and the timeout delay `δ_t ≥ 0`
 (`δ_t = 0` is allowed; no statement may need `δ_t > 0`). -/
 structure Params extends SA.Params where
   R : Nat
-  wF : Nat
   δt : Nat
   RLarge : 2 ≤ R
-  wFPos : 1 ≤ wF
 
 namespace Params
 /-- [spec 154–158] Unit weights on the fixed identities `V = Fin n`. -/
@@ -33,21 +31,14 @@ def slotOf (p : Params) (t : Time) : Slot := (t / (4 * p.Δ)).toNat
 end Params
 
 /-- [spec 197–220; comp §4.2; model representation of the duty labels] Duty labels: the HEAD of
-slot `s` and the FG action of round `r`. -/
+slot `s` and the fixed FG identity. -/
 inductive Label where
   | head (s : Slot)
-  | fg (r : Nat)
+  | fg
   deriving DecidableEq, Repr
 
-/-- [spec 197–220] The act time of a label: `v_s` for a HEAD, `a_r` for an FG
-action. The two families never share a time. -/
-def Label.actTime (p : Params) : Label → Time
-  | .head s => SA.voteTime p.toParams s
-  | .fg r => p.actionTime r
-
-/-- [spec 230–237] An FG row without its identity and round: the height pair and
-the finality pair. The identity is the seat index and the round is the label of
-the row's signature (M4). -/
+/-- [spec 230–237] An FG row without its identity: the height pair and
+the finality pair. The identity is the seat index of the fixed FG signature. -/
 structure RowBody where
   height_pair : NamedHeightPair
   finality_pair : Option FinalityPair
@@ -57,19 +48,39 @@ structure RowBody where
 row: the row without its signer. -/
 def RowBody.ofRow {V : Type} (a : Row V) : RowBody := ⟨a.height_pair, a.finality_pair⟩
 
-/-- [spec 230–237, 505–518; M12] The one row-body check, for a row alone and
-for each row that a block carries: the height pair is empty or a vote at height
-`h ≥ 1`. `T ≠ ⊥` and `T_f ≠ ⊥` hold by the types (`BlockId`; the empty
-finality pair is `none`). The spec gives no height bound on the finality pair. -/
+/-- [R2/R3] A row needs a positive height. A present finality pair must
+have a smaller height. An empty height pair is not a valid sent row. -/
 def RowBody.valid (a : RowBody) : Bool :=
   match a.height_pair with
-  | .empty => true
-  | .vote h _ _ => decide (1 ≤ h)
+  | .empty => false
+  | .vote h _ _ => decide (1 ≤ h) &&
+      (a.finality_pair.map (fun fp => decide (fp.height < h))).getD true
+
+/-- [R3] The signed row payload. Finality rides on a vote at a greater height. -/
+inductive RowPayload where
+  | vote (body : RowBody)
+  deriving DecidableEq, Repr
+
+/-- The height pair of the vote payload. -/
+def RowPayload.height_pair : RowPayload → NamedHeightPair
+  | .vote body => body.height_pair
+
+/-- The finality pair of the vote payload. -/
+def RowPayload.finality_pair : RowPayload → Option FinalityPair
+  | .vote body => body.finality_pair
+
+/-- The input check for the vote payload. -/
+def RowPayload.valid : RowPayload → Bool
+  | .vote body => body.valid
+
+/-- Decode the payload with the supplied signing identity. -/
+def RowPayload.toRow {V : Type} (a : RowPayload) (i : V) : Row V :=
+  ⟨i, a.height_pair, a.finality_pair⟩
 
 /-- [spec 225–228] A signed Goldfish vote, as a block carries it. -/
 abbrev HeadWire (n : Nat) := Signed Label n Block
-/-- [spec 230–237] A signed FG row. Its auth is `.seat (.fg r) i`. -/
-abbrev RowWire (n : Nat) := Signed Label n RowBody
+/-- [spec 230–237] A signed FG row. Its auth is `.seat .fg i`. -/
+abbrev RowWire (n : Nat) := Signed Label n RowPayload
 
 namespace HeadWire
 variable {n : Nat}
@@ -83,20 +94,17 @@ end HeadWire
 
 namespace RowWire
 variable {n : Nat}
-/-- [spec 230–237, 512–513; J1; M4] The one auth decoder of a row: the round `r` (the label), the
-identity `i` (the seat index) and the body. -/
-def decode? (a : RowWire n) : Option (Nat × Fin n × RowBody) :=
+/-- [R1/R9] Decode the fixed FG seat and the full payload. -/
+def decode? (a : RowWire n) : Option (Fin n × RowPayload) :=
   match a.auth with
-  | .seat (.fg r) i => some (r, i, a.payload)
+  | .seat .fg i => some (i, a.payload)
   | _ => none
-/-- [spec 230–231; J1] The round of a row: the label of its fg signature. -/
-def round? (a : RowWire n) : Option Nat := a.decode?.map (·.1)
 /-- [spec 230–237; M4] The FG row: the signer is the seat index of the fg-label
 signature. The round is not a field of the FG row. -/
 def toRow? (a : RowWire n) : Option (Row (Fin n)) :=
-  a.decode?.map (fun x => ⟨x.2.1, x.2.2.height_pair, x.2.2.finality_pair⟩)
+  a.decode?.map (fun x => x.2.toRow x.1)
 /-- [spec 505–518; M12] The row input check: an FG signature and a valid body. -/
-def valid (a : RowWire n) : Bool := (a.decode?.map (fun x => x.2.2.valid)).getD false
+def valid (a : RowWire n) : Bool := (a.decode?.map (fun x => x.2.valid)).getD false
 end RowWire
 
 /-- [spec 225–263; comp §4.2] The payloads. A proposal carries the erased block,
@@ -105,7 +113,7 @@ the previous-slot votes, the declared support subset and its own signed rows
 inductive Msg (n : Nat) where
   | head (target : Block)
   | proposal (b : Block) (view supportView : List (HeadWire n)) (rows : List (RowWire n))
-  | row (body : RowBody)
+  | row (body : RowPayload)
   deriving DecidableEq, Repr
 
 /-- [spec 225–263; comp §4.2] A wire object: an auth and a payload. -/
@@ -115,7 +123,7 @@ abbrev Wire (n : Nat) := Signed Label n (Msg n)
 wire. -/
 inductive Input (n : Nat) where
   | vote (s : Slot) (i : Fin n) (target : Block)
-  | row (r : Nat) (i : Fin n) (body : RowBody)
+  | row (i : Fin n) (body : RowPayload)
   | block (s : Slot) (b : Block) (raw support : List (HeadWire n)) (rows : List (RowWire n))
   deriving DecidableEq, Repr
 
@@ -126,7 +134,7 @@ scope of a native re-typing (Q1 boundary). -/
 def Wire.decode {n : Nat} (o : Wire n) : Option (Input n) :=
   match o.auth, o.payload with
   | .seat (.head s) i, .head b => some (.vote s i b)
-  | .seat (.fg r) i, .row body => some (.row r i body)
+  | .seat .fg i, .row body => some (.row i body)
   | .proposer s, .proposal b raw sup rows => some (.block s b raw sup rows)
   | _, _ => none
 
@@ -147,7 +155,7 @@ def eraseFG {V : Type} [RowCodec V] : FGBlock V → Block
 /-! ### Signed content in the base body (D9)
 
 A proposal carries a base block and its signed rows. The base body packs an
-application value and the ORDERED signed rows, with their rounds, so the rows
+application value and the ORDERED signed rows, so the rows
 are part of the block identity. The FG view of the block reads the same
 content: its body is the inner packed value and its rows are the decoded rows.
 Every code is built from `epair` and `encList` (`Objects/Codec.lean`); a sum
@@ -156,7 +164,7 @@ is a pair of a constructor tag and its fields. -/
 /-- The label code: tag `0` for a HEAD label, tag `1` for an FG label. -/
 def encLabel : Label → Nat
   | .head s => epair 0 s
-  | .fg r => epair 1 r
+  | .fg => epair 1 0
 
 /-- The auth code: tag `0` for a seat (label and index), tag `1` for a
 proposer (slot), tag `2` for no auth. -/
@@ -169,9 +177,13 @@ def encAuth {n : Nat} : Auth Label n → Nat
 def encRowBody (a : RowBody) : Nat :=
   epair (encHeightPair a.height_pair) (encOption encFinalityPair a.finality_pair)
 
-/-- The signed-row code: the complete auth (label, round and seat) and the
+/-- The vote tag and its complete body code. -/
+def encRowPayload : RowPayload → Nat
+  | .vote body => epair 0 (encRowBody body)
+
+/-- The signed-row code: the complete auth (fixed label and seat) and the
 body. -/
-def encRowWire {n : Nat} (a : RowWire n) : Nat := epair (encAuth a.auth) (encRowBody a.payload)
+def encRowWire {n : Nat} (a : RowWire n) : Nat := epair (encAuth a.auth) (encRowPayload a.payload)
 
 /-- The inner packed value: the application value and the ordered signed rows. -/
 def packInner {n : Nat} (app : Nat) (rw : List (RowWire n)) : Nat :=

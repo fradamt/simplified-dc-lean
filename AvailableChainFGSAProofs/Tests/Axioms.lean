@@ -145,7 +145,10 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_clientSafeAll
 #print axioms AvailableChain.FGSA.Run.fgsa_clientSafetyClaim
 #print axioms AvailableChain.FGSA.Run.fgsa_clientSafetyBaseClaim
-#print axioms AvailableChain.FGSA.Run.honest_one_row_per_round
+#print axioms AvailableChain.FGSA.Run.honest_at_most_one_row_per_action
+#print axioms AvailableChain.FGSA.Run.honest_row_of_attest_some
+#print axioms AvailableChain.FGSA.Run.honest_emit_unique
+#print axioms AvailableChain.FGSA.Run.honestRow_auth
 
 #print axioms AvailableChain.FGSA.Run.fgsa_slashable_faulty_count
 #print axioms AvailableChain.FGSA.Run.fgsa_accountable

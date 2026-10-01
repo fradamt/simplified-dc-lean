@@ -25,11 +25,11 @@ theorem cleanPrefixTruncation_of_cut (h : CleanCutClaim p) : CleanPrefixTruncati
 
 theorem cleanSafety_outputs (h : CleanSafetyClaim p)
     {V : Type} [DecidableEq V] [Fintype V] {In : Type} {c : AppCodec In}
-    {E : Generic.Env V} {rho : V2.Run V (fgsa p c)} {pt : Unit}
+    {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)} {pt : Unit}
     (hc : CleanPrem p c E rho pt) :
     ∀ g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed],
-      CompatOn (· ∈ rho.honest) (fun t x => V2.outputAt E rho g x t) (fun _ => True) ∧
-      MonoOn (· ∈ rho.honest) (fun t x => V2.outputAt E rho g x t) (fun _ => True) :=
+      CompatOn (· ∈ rho.honest) (fun t x => V2.D.outputAt E rho g x t) (fun _ => True) ∧
+      MonoOn (· ∈ rho.honest) (fun t x => V2.D.outputAt E rho g x t) (fun _ => True) :=
   (h c E rho pt hc).2.2
 
 end AvailableChain.FGSA.Run

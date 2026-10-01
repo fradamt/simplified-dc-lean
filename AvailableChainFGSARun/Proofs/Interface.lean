@@ -12,7 +12,7 @@ theorem propLabel_injective (p : Params) {In : Type} (c : AppCodec In) :
 
 /-- The proposal duty has the SA proposal time. -/
 theorem proposalTime_fgsa (p : Params) {In : Type} (c : AppCodec In) (s : Slot) :
-    V2.proposalTime (fgsaInterface p c) s = SA.proposalTime p.toParams s := rfl
+    V2.D.proposalTime (fgsaInterface p c) s = SA.proposalTime p.toParams s := rfl
 
 end AvailableChain.FGSA.Run
 
