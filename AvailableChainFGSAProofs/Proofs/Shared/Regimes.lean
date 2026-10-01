@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Shared.GateReceipt
+public import AvailableChainFGSAProofs.Proofs.Shared.ScoreRun
 public import AvailableChainGeneric.Proofs.V2.Regimes
 public import AvailableChainFGSAClaims.Statements.Regimes
 public import AvailableChainFGSA.Statements.Invariants
@@ -234,6 +235,84 @@ theorem fgsa_gateReceipt_recovery
   have hsync := Gen.V2.LabelSync.of_recovery E rho _ _ h.sync hGST hvd hhorizon
   exact fgsa_gateReceipt E rho h.base.valid h.base.noRestart h.base.delta h.base.cstar
     s hsync ht B hgeom
+
+/-- P3 N1:2518–2525; blueprint 03:256–317.
+DC: Goldfish/ProposalSnapshotBridge.lean:210,225; Conditions.lean:134.
+INTENTIONAL: the Clean wrapper uses the healthy prefix through v_s and
+Gen LabelSync at (t_s - Δ, v_s); geometry remains a separate consumer input. -/
+theorem fgsa_score_eq_on_clean
+    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (b₀ : Time) (h : CleanCut₂ p c E rho b₀)
+    (s : Slot) (hcut : SA.voteTime p.toParams s ≤ b₀)
+    {ip ih : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)))
+    (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
+    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+      V2.Run.emitsAt E rho ip)
+    (hadm : b ∈ (V2.Run.stateBefore E rho ih y).st.base.blocks)
+    (D : Block)
+    (hgeom : ScoreRunGeometry
+      (clock p (V2.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s))
+      (clock p (V2.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) D) :
+    let src := clock p (V2.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s)
+    let dst := clock p (V2.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)
+    let U := proposerVotes src s
+    let U' := headVotes p dst s
+    (GridCO.seats p.n U).toFinset = (GridCO.seats p.n U').toFinset ∧
+    (∀ i, GridCO.equivocates U i = GridCO.equivocates U' i) ∧
+    GridCO.voterCount U = GridCO.voterCount U' ∧
+    (∀ X, Block.Preceq D X →
+      GridCO.goldfishScore src.base.blocks U (proposerSupport src s) X =
+        GridCO.goldfishScore dst.base.blocks U' (headSupport p dst s) X) := by
+  have hvd : SA.proposalTime p.toParams s - p.Δ + E.Δ ≤ SA.voteTime p.toParams s := by
+    rw [h.base.delta]
+    change 4 * p.Δ * (s : Int) - p.Δ + p.Δ ≤ 4 * p.Δ * (s : Int) + p.Δ
+    linarith [p.deltaPos]
+  have hsync := Gen.V2.LabelSync.of_cleanCut E rho b₀ _ _ h.healthy hvd hcut h.cut.2
+  exact fgsa_score_eq_on_run E rho h.base.valid h.base.noRestart h.base.delta s hsync
+    hx hy hip hih hseat b raw sup rows hem hadm D hgeom
+
+/-- P3 N1:2518–2525 and O25 §7; blueprint 03:256–317.
+DC: Goldfish/ProposalSnapshotBridge.lean:210,225; Conditions.lean:110.
+INTENTIONAL: Recovery requires GST ≤ t_s - Δ, not merely GST ≤ v_s.
+The actual HEAD tick supplies the horizon bound for Gen LabelSync. -/
+theorem fgsa_score_eq_on_recovery
+    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (G : Time) (h : Recovery₂ p c E rho G)
+    (s : Slot) (hGST : E.t_GST ≤ SA.proposalTime p.toParams s - p.Δ)
+    {ip ih : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)))
+    (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
+    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+      V2.Run.emitsAt E rho ip)
+    (hadm : b ∈ (V2.Run.stateBefore E rho ih y).st.base.blocks)
+    (D : Block)
+    (hgeom : ScoreRunGeometry
+      (clock p (V2.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s))
+      (clock p (V2.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) D) :
+    let src := clock p (V2.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s)
+    let dst := clock p (V2.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)
+    let U := proposerVotes src s
+    let U' := headVotes p dst s
+    (GridCO.seats p.n U).toFinset = (GridCO.seats p.n U').toFinset ∧
+    (∀ i, GridCO.equivocates U i = GridCO.equivocates U' i) ∧
+    GridCO.voterCount U = GridCO.voterCount U' ∧
+    (∀ X, Block.Preceq D X →
+      GridCO.goldfishScore src.base.blocks U (proposerSupport src s) X =
+        GridCO.goldfishScore dst.base.blocks U' (headSupport p dst s) X) := by
+  have hvd : SA.proposalTime p.toParams s - p.Δ + E.Δ ≤ SA.voteTime p.toParams s := by
+    rw [h.base.delta]
+    change 4 * p.Δ * (s : Int) - p.Δ + p.Δ ≤ 4 * p.Δ * (s : Int) + p.Δ
+    linarith [p.deltaPos]
+  have hhorizon : SA.voteTime p.toParams s ≤ rho.horizon :=
+    (h.base.valid.in_horizon _ (List.mem_of_getElem? hih)).2
+  have hsync := Gen.V2.LabelSync.of_recovery E rho _ _ h.sync hGST hvd hhorizon
+  exact fgsa_score_eq_on_run E rho h.base.valid h.base.noRestart h.base.delta s hsync
+    hx hy hip hih hseat b raw sup rows hem hadm D hgeom
 
 end AvailableChain.FGSA.Run
 end
