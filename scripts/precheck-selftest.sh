@@ -128,6 +128,9 @@ git archive "$source_base" | tar -xf - -C "$policy"
 rsync -a --exclude=__pycache__ --exclude='*.pyc' "$repo/scripts/" "$policy/scripts/"
 init_snapshot "$policy" "$source_base"
 git archive "$source_base" | tar -xf - -C "$target"
+# Same script set as the policy copy: on an uncommitted tree, HEAD's scripts lack
+# the working allow lines that the working EXPECTED lists need (06, 2026-10-01).
+rsync -a --exclude=__pycache__ --exclude='*.pyc' "$repo/scripts/" "$target/scripts/"
 init_snapshot "$target" "$source_base"
 cat "$repo/scripts/precheck-fixtures/claims-theorem.txt" >> "$target/AvailableChainFGSAClaims/Tests/Axioms.lean"
 control=$repo/scripts/precheck-fixtures/guard-lists-control.py
