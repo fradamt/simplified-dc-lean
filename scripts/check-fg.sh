@@ -29,6 +29,14 @@ step "scripts/check-fg-syntax.sh"
 bash scripts/check-fg-syntax.sh
 step "scripts/CheckFGAxioms.lean"
 lake env lean --run scripts/CheckFGAxioms.lean --expect \
+  heightOf_def simplexHeightView_def HeightBridge_def HeightRowsEq_def \
+  HeightSelector_def selectHeightRows_def HeightStepBridge_def deriveWithSelector_def \
+  heightSelector_id heightSelector_selectHeightRows process_row_height_congr \
+  foldRows_height_eq_of_rowsEq process_height_events_height_congr \
+  transition_height_eq_of_rowsEq deriveWithSelector_id deriveWithSelector_height \
+  simplexHeightRefinement heightBridge_of_refinement heightStepBridge_selector \
+  heightBridge_selector heightBridge_fields heightBridge_selector_fields \
+  simplexHeightLaws heightLaws_of_bridge \
   bit_process_iff bit_fold_iff bit_first_inclusion progress_first_inclusion \
   transition_finality_of_cover derive_finality_of_cover \
   bit_first_inclusion_persist finality_match_before finality_first_inclusion_persist
