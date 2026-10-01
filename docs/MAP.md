@@ -1448,3 +1448,17 @@ Paths omit `AvailableChainGeneric/` and `.lean`.
 │ Tests/LeaseWindow         │ Gen live-row adapter and boundary checks              │
 └───────────────────────────┴───────────────────────────────────────────────────────┘
 ```
+
+## G02 dominance count core (W9, 2026-10-01)
+
+Paths omit `AvailableChainGeneric/` and `.lean`.
+
+```text
+┌───────────────────────────┬──────────────────────────────────────────────┐
+│ Module                    │ Contract or proof                            │
+├───────────────────────────┼──────────────────────────────────────────────┤
+│ Statements/Pure/Dominance │ MajUniqueChildStatement and its equation     │
+│ Proofs/Pure/Quorum        │ maj_unique_child_statement; maj_unique_child │
+│ Tests/Dominance           │ Two sibling blocks; one eligible child       │
+└───────────────────────────┴──────────────────────────────────────────────┘
+```

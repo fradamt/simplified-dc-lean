@@ -3,6 +3,7 @@ public import AvailableChainGeneric.Statements.V2.Slashing
 public import AvailableChainGeneric.Statements.Pure.Quorum
 public import AvailableChainGeneric.Statements.Pure.QuorumInter
 public import AvailableChainGeneric.Statements.Pure.SupportCounts
+public import AvailableChainGeneric.Statements.Pure.Dominance
 public import AvailableChainGeneric.Statements.Pure.FirstBad
 public import AvailableChainGeneric.Statements.Pure.Schedule
 public import AvailableChainGeneric.Statements.Pure.Walk
@@ -450,3 +451,8 @@ theorem, in facade order. The library globs build this test module. -/
 #print axioms AvailableChain.Gen.AC.slow_window_conflict_absurd
 #print axioms AvailableChain.Gen.AC.expire_by_threshold_statement
 #print axioms AvailableChain.Gen.AC.expire_by_threshold
+
+-- Statements/Pure/Dominance.lean and Proofs/Pure/Quorum.lean (W9)
+#print axioms AvailableChain.Gen.Pure.MajUniqueChildStatement_def
+#print axioms AvailableChain.Gen.Pure.maj_unique_child_statement
+#print axioms AvailableChain.Gen.Pure.maj_unique_child

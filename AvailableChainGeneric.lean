@@ -2,6 +2,7 @@ module
 public import AvailableChainGeneric.Statements.Pure.Quorum
 public import AvailableChainGeneric.Statements.Pure.QuorumInter
 public import AvailableChainGeneric.Statements.Pure.SupportCounts
+public import AvailableChainGeneric.Statements.Pure.Dominance
 public import AvailableChainGeneric.Statements.Pure.FirstBad
 public import AvailableChainGeneric.Statements.Pure.Schedule
 public import AvailableChainGeneric.Statements.Pure.Walk

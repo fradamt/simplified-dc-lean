@@ -532,3 +532,10 @@ theorem AvailableChain.Gen.AC.SlowWindowConflictAbsurdStatement_def c300da53046d
 def AvailableChain.Gen.AC.ExpireByThresholdStatement fd661a182a71632b
 theorem AvailableChain.Gen.AC.ExpireByThresholdStatement_def 3798a2e9c79cf96c
 ```
+
+### `AvailableChainGeneric.Statements.Pure.Dominance`
+
+```text
+def AvailableChain.Gen.Pure.MajUniqueChildStatement c2a3c1fcca7f79e9
+theorem AvailableChain.Gen.Pure.MajUniqueChildStatement_def e11d19cd90604607
+```
