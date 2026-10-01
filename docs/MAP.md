@@ -1083,6 +1083,30 @@ C4 adds the exact lower-F removal set. The root imports the Def module and
 DC: none; INTENTIONAL addition: FJ phase-dependent domain; record
 `blueprint/21-healing.md:691–694, 2579–2581`.
 
+C2 adds G20 chain bit persistence and forward row occurrence. The root imports
+both modules. `RowBitsDef` is in the definition-module list. The Tests glob
+builds the regression tests and the axiom audit.
+
+```text
+┌────────────────────────────┬──────────────────────────────────────────────────────────────┐
+│ Module (KitFG/)            │ Role                                                         │
+├────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│ RowBitsDef.lean            │ Three bit kinds, keys, matching, closed Statements and _def  │
+│ RowBits.lean               │ Forward fold coverage; chain persistence; row-to-bit proof  │
+│ Tests/RowBits.lean         │ All kinds; timeout progress; finality consumption and resets │
+│ Tests/Axioms.lean          │ Kernel dependencies of the equations and bit proofs         │
+└────────────────────────────┴──────────────────────────────────────────────────────────────┘
+```
+
+Equal endpoint keys exclude resets because height and justification height
+cannot decrease. A justification write strictly raises `h_j`; finality
+consumption keeps `finalize`. No reverse claim identifies a row from a bit.
+`bit_fold_covered` supplies the target-fold coverage used by the Counts lane.
+DC: `ChainState/Chain.lean:125,136,149`, same carrier step adapters.
+The chain contracts have no unified DC counterpart; they are derived carrier
+lemmas (G20), with witnesses at `MatchingProgress.lean:147` and
+`FinalityCertificates.lean:133`. Receipt remains in G13.
+
 ```text
 ┌─────────────────────────────┬──────────────────────────────────────────────┬─────────────────────┐
 │ Script                      │ Check                                        │ Exit codes          │

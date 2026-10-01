@@ -5,6 +5,7 @@ public import AvailableChainKitFG.Correspondence
 public import AvailableChainKitFG.CausalCap
 public import AvailableChainKitFG.ViewLockChains
 public import AvailableChainKitFG.TwoChanges
+public import AvailableChainKitFG.RowBits
 
 /-! Kernel dependency audit for the FG chain lemmas without root premises. -/
 
@@ -29,3 +30,11 @@ public import AvailableChainKitFG.TwoChanges
 #print axioms AvailableChain.KitFG.viewLock_of_honest_chains
 #print axioms AvailableChain.KitFG.LowerFDomainIdentityStatement_def
 #print axioms AvailableChain.KitFG.lowerF_domain_identity
+#print axioms AvailableChain.KitFG.chainBits_def
+#print axioms AvailableChain.KitFG.sameBitState_def
+#print axioms AvailableChain.KitFG.rowMatchesBit_def
+#print axioms AvailableChain.KitFG.BitPersistStatement_def
+#print axioms AvailableChain.KitFG.BitFromRowStatement_def
+#print axioms AvailableChain.KitFG.bit_fold_covered
+#print axioms AvailableChain.KitFG.bit_persist
+#print axioms AvailableChain.KitFG.bit_from_row
