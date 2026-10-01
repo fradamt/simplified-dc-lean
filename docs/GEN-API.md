@@ -681,3 +681,160 @@ theorem AvailableChain.Gen.Pure.PeriodicShiftStatement_def e4c664f33169ce54
 def AvailableChain.Gen.Pure.StageOrStopStatement 76fcaf283fdddd19
 theorem AvailableChain.Gen.Pure.StageOrStopStatement_def 0e72e073136c9507
 ```
+
+### `AvailableChainGeneric.Statements.Pure.BatchDominance`
+
+```text
+def AvailableChain.Gen.Pure.AnchorPassesStatement ec51b5d1110f4b85
+theorem AvailableChain.Gen.Pure.AnchorPassesStatement_def a9ed45056cd5b46a
+def AvailableChain.Gen.Pure.UnsupportedFailsStatement bf95cef2d4dbc7ae
+theorem AvailableChain.Gen.Pure.UnsupportedFailsStatement_def ce73179934a4832d
+```
+
+### `AvailableChainGeneric.Statements.V2.Duty.Linked`
+
+```text
+def AvailableChain.Gen.V2.Duty.LinkedSingletonStatement 7a66d63616e38f6e
+theorem AvailableChain.Gen.V2.Duty.LinkedSingletonStatement_def edd932fe1db60b08
+```
+
+### `AvailableChainGeneric.Statements.V2.Duty.Signatures`
+
+```text
+def AvailableChain.Gen.V2.Duty.SingleDuty b7fda1cf039ba6a7
+theorem AvailableChain.Gen.V2.Duty.SingleDuty_def bea8d45f3930dc35
+def AvailableChain.Gen.V2.Duty.EmitOnceUnder 6d594298765da4ac
+theorem AvailableChain.Gen.V2.Duty.EmitOnceUnder_def c3331f6dab8fb598
+def AvailableChain.Gen.V2.Duty.EmittedUniqueSingleDutyStatement cb1fcd35b30c5f24
+def AvailableChain.Gen.V2.Duty.EmitUniqueOfEmitOnceStatement a56722291f9c47fd
+theorem AvailableChain.Gen.V2.Duty.EmittedUniqueSingleDutyStatement_def 6e02fdf39b25fa63
+theorem AvailableChain.Gen.V2.Duty.EmitUniqueOfEmitOnceStatement_def e93d6a158f298c0f
+def AvailableChain.Gen.V2.Duty.HonestUniqueSingleDutyStatement 0015f25e8ba5db64
+theorem AvailableChain.Gen.V2.Duty.HonestUniqueSingleDutyStatement_def a469b07dea7fae63
+```
+
+### `AvailableChainGeneric.Statements.V2.Duty.Counts`
+
+```text
+def AvailableChain.Gen.V2.Duty.faulty 96d155c121398e6f
+theorem AvailableChain.Gen.V2.Duty.faulty_def 18039f964ed57d6b
+def AvailableChain.Gen.V2.Duty.awakeHonest ed629a46bfa5c649
+theorem AvailableChain.Gen.V2.Duty.awakeHonest_def 17993f86511829fa
+```
+
+### `AvailableChainGeneric.Statements.V2.Duty.Interface`
+
+```text
+structure AvailableChain.Gen.V2.Duty.FinalityInterface 4e22b8b344b74142
+def AvailableChain.Gen.V2.Duty.FinalityInterface.toInterface ab2ad3cb09e901f0
+ctor AvailableChain.Gen.V2.Duty.FinalityInterface.mk 341569a5c2f73bb2
+def AvailableChain.Gen.V2.Duty.FinalityInterface.finalized a3f402d051ef335a
+```
+
+### `AvailableChainGeneric.Statements.V2.Duty.LinkedHolders`
+
+```text
+def AvailableChain.Gen.V2.Duty.LinkedHolderEqStatement 20810c5aeefc278d
+theorem AvailableChain.Gen.V2.Duty.LinkedHolderEqStatement_def 075f6dd5a1d3260c
+def AvailableChain.Gen.V2.Duty.LinkedCardLeOfHoldersStatement 171155983d688132
+theorem AvailableChain.Gen.V2.Duty.LinkedCardLeOfHoldersStatement_def b48cb2a179b12916
+```
+
+### `AvailableChainGeneric.Statements.V2.Duty.Reads`
+
+```text
+def AvailableChain.V2.D.Run.idxBefore 0171afe8870c6009
+theorem AvailableChain.V2.D.Run.idxBefore_def 1a5a9aa48e61272b
+def AvailableChain.V2.D.Run.nthIdx? d6e71563c1d4964c
+theorem AvailableChain.V2.D.Run.nthIdx?_def ca0ebb9ec7bfa1eb
+def AvailableChain.Gen.V2.Duty.pubFloor 6447af84257e3668
+theorem AvailableChain.Gen.V2.Duty.pubFloor_def 116dd2802c1f4fe4
+def AvailableChain.Gen.V2.Duty.HonestSlot 29fdb849eea4789d
+theorem AvailableChain.Gen.V2.Duty.HonestSlot_def 54c4c580d53f4763
+def AvailableChain.Gen.V2.Duty.HoldsBefore f9a7212def9e9f42
+theorem AvailableChain.Gen.V2.Duty.HoldsBefore_def 169bb4b908a5edd4
+def AvailableChain.Gen.V2.Duty.MonoAlong dd2e37a6669201ba
+theorem AvailableChain.Gen.V2.Duty.MonoAlong_def 0e14dca63f455297
+def AvailableChain.Gen.V2.Duty.Pending 710029f7dfd9ec2f
+theorem AvailableChain.Gen.V2.Duty.Pending_def fa072067f219d7f5
+def AvailableChain.Gen.V2.Duty.StateBeforeIdxBeforeStatement 09ea058a301bc5a0
+theorem AvailableChain.Gen.V2.Duty.StateBeforeIdxBeforeStatement_def 65d33a8aa802cb10
+def AvailableChain.Gen.V2.Duty.HoldsBeforeIffExistsIdxStatement e1992af2f65494df
+theorem AvailableChain.Gen.V2.Duty.HoldsBeforeIffExistsIdxStatement_def 27ef10f4aaa86e09
+```
+
+### `AvailableChainGeneric.Statements.V2.Duty.Receipt`
+
+```text
+def AvailableChain.Gen.V2.Duty.Trigger d0db54eb307cacc8
+theorem AvailableChain.Gen.V2.Duty.Trigger_def 266f17135f2e3259
+structure AvailableChain.Gen.V2.Duty.DeliveryWithin 6e134a47971a720c
+ctor AvailableChain.Gen.V2.Duty.DeliveryWithin.mk cda581110d1e2951
+theorem AvailableChain.Gen.V2.Duty.DeliveryWithin.broadcast 50bc2935928ddd4c
+theorem AvailableChain.Gen.V2.Duty.DeliveryWithin.relay 513578083198059e
+structure AvailableChain.Gen.V2.Duty.TimelyClock 39d3a2c87e5e6dbd
+ctor AvailableChain.Gen.V2.Duty.TimelyClock.mk 7c8b523bf9d91fc1
+def AvailableChain.Gen.V2.Duty.TimelyClock.actTime d92b791b6fe56f77
+def AvailableChain.Gen.V2.Duty.TimelyClock.clockOf 3e2224f77ebdee04
+theorem AvailableChain.Gen.V2.Duty.TimelyClock.timely_iff a3edd99375d877b7
+def AvailableChain.Gen.V2.Duty.TimelyClock.clock cd4352d0f60fc03d
+theorem AvailableChain.Gen.V2.Duty.TimelyClock.clockOf_eq 00fcb70020ed0949
+structure AvailableChain.Gen.V2.Duty.AcceptanceLaw 6c7eaa2a48d44244
+ctor AvailableChain.Gen.V2.Duty.AcceptanceLaw.mk d689e60ffe7406ba
+theorem AvailableChain.Gen.V2.Duty.AcceptanceLaw.accepts 628e2b0c12ffb3b4
+structure AvailableChain.Gen.V2.Duty.AdmitSound 7a2f4909068fa479
+ctor AvailableChain.Gen.V2.Duty.AdmitSound.mk 49174b94800eb964
+theorem AvailableChain.Gen.V2.Duty.AdmitSound.timely 4ffe4dc89e0ee9c7
+def AvailableChain.Gen.V2.Duty.TimelyOfClockStatement 904acc5d4305e9e2
+theorem AvailableChain.Gen.V2.Duty.TimelyOfClockStatement_def ed1fea2dba2f419b
+def AvailableChain.Gen.V2.Duty.TimelyOfEmitStatement 1272283a23c718f3
+theorem AvailableChain.Gen.V2.Duty.TimelyOfEmitStatement_def 650ccd3a357175cf
+def AvailableChain.Gen.V2.Duty.TimelyOfRelayStatement 0822d6aaccd283a5
+theorem AvailableChain.Gen.V2.Duty.TimelyOfRelayStatement_def c71e803668caee45
+def AvailableChain.Gen.V2.Duty.AcceptedByDeadlineStatement 3f49ad27ccd8a0e6
+theorem AvailableChain.Gen.V2.Duty.AcceptedByDeadlineStatement_def 77cb15b04b12d4b4
+def AvailableChain.Gen.V2.Duty.FirstAcceptOfProcessedStatement 4bd4f124a60de5a2
+theorem AvailableChain.Gen.V2.Duty.FirstAcceptOfProcessedStatement_def 3847c6cb30703883
+```
+
+### `AvailableChainGeneric.Statements.V2.Duty.Regimes`
+
+```text
+def AvailableChain.Gen.V2.Duty.LabelSync 4a2d3df62caea6df
+theorem AvailableChain.Gen.V2.Duty.LabelSync_def de4d8d7f7b671252
+structure AvailableChain.Gen.V2.Duty.LabelFacts 16ef33d5c79acc69
+ctor AvailableChain.Gen.V2.Duty.LabelFacts.mk 19b215272871a9c8
+theorem AvailableChain.Gen.V2.Duty.LabelFacts.sync 23a6e497c21cba74
+theorem AvailableChain.Gen.V2.Duty.LabelFacts.batch 5b7b1ee3f0a2df43
+structure AvailableChain.Gen.V2.Duty.BaseCore a3793dbb36498554
+ctor AvailableChain.Gen.V2.Duty.BaseCore.mk bc7695a54df26ea3
+theorem AvailableChain.Gen.V2.Duty.BaseCore.valid 74437c65222ae628
+theorem AvailableChain.Gen.V2.Duty.BaseCore.noRestart d4ba08873aeb0b46
+structure AvailableChain.Gen.V2.Duty.HealthyCore 576b943f8bc27be7
+ctor AvailableChain.Gen.V2.Duty.HealthyCore.mk 8de6bb2ab5a62e76
+theorem AvailableChain.Gen.V2.Duty.HealthyCore.healthy 8505b6dc8f981ff5
+structure AvailableChain.Gen.V2.Duty.CutCore b95693c556191e0a
+theorem AvailableChain.Gen.V2.Duty.CutCore.toHealthyCore c1621eb12214e572
+ctor AvailableChain.Gen.V2.Duty.CutCore.mk 06ec35a745ce006b
+theorem AvailableChain.Gen.V2.Duty.CutCore.cut d0cb6a8d07a8ce93
+structure AvailableChain.Gen.V2.Duty.OutageCore ad970265475f5567
+ctor AvailableChain.Gen.V2.Duty.OutageCore.mk 00bed2b2e8fafe28
+theorem AvailableChain.Gen.V2.Duty.OutageCore.order 160fa5f46a7d1ab2
+structure AvailableChain.Gen.V2.Duty.RecoveryCore e2d22634e68dc292
+ctor AvailableChain.Gen.V2.Duty.RecoveryCore.mk 34f1bb3c97478a93
+theorem AvailableChain.Gen.V2.Duty.RecoveryCore.sync db61156d7ed16772
+theorem AvailableChain.Gen.V2.Duty.RecoveryCore.gap 2b1163959368cf54
+def AvailableChain.Gen.V2.Duty.SeedAt 2682ff099dbc9b29
+theorem AvailableChain.Gen.V2.Duty.SeedAt_def fb87a372566a5971
+```
+
+### `AvailableChainGeneric.Statements.V2.Duty.Slashing`
+
+```text
+structure AvailableChain.Gen.V2.Duty.SlashingInterface 0da323b6925658c1
+def AvailableChain.Gen.V2.Duty.SlashingInterface.toFinalityInterface 2c6d030558622884
+ctor AvailableChain.Gen.V2.Duty.SlashingInterface.mk 3f731882449ddf08
+def AvailableChain.Gen.V2.Duty.SlashingInterface.slashes 271674c5cc2fa491
+def AvailableChain.Gen.V2.Duty.HonestNeverSlashed b9b28b7e4a7eef19
+theorem AvailableChain.Gen.V2.Duty.HonestNeverSlashed_def 6733fb0d1ab3ea67
+```
