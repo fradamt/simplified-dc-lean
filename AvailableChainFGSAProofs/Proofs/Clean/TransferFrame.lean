@@ -394,6 +394,97 @@ theorem clean_transfer_receipt_path [Fintype V] (b₀ : Time)
   rw [Gen.V2.stateBefore_idxBefore E rho _ hsch] at hh
   exact hh
 
+/-- P3 F2.2, T7.8/T7.12a/K8; bp02 §3.5 step 5 and §4.2. Class B.
+DC: GSTZeroPreparedWalk.lean:546; AdoptionTransport.lean:442, receipt transport.
+INTENTIONAL: FG-SA transports the clean supporter's head K, not just B,
+using each proposal's acceptance and strict freeze read
+(spec/fgsa-protocol.tex:2506–2513). The old-source frame gives F ⪯ B ⪯ K. -/
+theorem clean_transfer_receipt_path_of_head [Fintype V] (b₀ : Time)
+    (h : CleanCut₂ p c E rho b₀)
+    (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho)
+    {i k : Nat} {x y : V} {s : Slot} {B K : Block} {o : GridCO.Wire p.n}
+    (hi : i < timeIdx rho b₀) (hki : k < i)
+    (ht : IsGateTick p c rho i x s)
+    (hk : rho.events[k]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
+    (hs : CleanState p c E rho i)
+    (hB : gateResultAt p c E rho i = some (some B))
+    (hord : ∀ r C, (r, C) ∈ cleanResults p c E rho i → r < s → Block.Preceq C B)
+    (ho : o ∈ GridCO.cleanSupport p.toParams.engine
+      (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))) s)
+    (hK : GridCO.headTarget? o = some K) (hBK : Block.Preceq B K) :
+    ∀ b, Block.Preceq b K →
+      b ∈ (actView (V2.Run.stateBeforeTime E rho (SA.freezeTime p.toParams s) y).st).blocks := by
+  have hsch := h.base.valid.toScheduleWellFormed
+  have hx := hsch.honest_only _ (List.mem_of_getElem? ht)
+  have hy := hsch.honest_only _ (List.mem_of_getElem? hk)
+  obtain ⟨Bfg, he⟩ := transfer_raw_lift p c E rho hsch ht hB
+  have hframe := transfer_frame_at_vote p c E rho hsch hf hsrc (Bfg := Bfg) hki hk hs
+    (by simpa only [he] using hord)
+  have hidx : V2.Run.idxBefore rho (SA.freezeTime p.toParams s) ≤ k := by
+    by_contra hn
+    have htime := (Gen.V2.index_lt_idxBefore_iff hsch hk (SA.freezeTime p.toParams s)).mp
+      (Nat.lt_of_not_ge hn)
+    change 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ <
+      4 * p.Δ * (s : Int) + 3 * p.Δ at htime
+    push_cast at htime
+    have hd := p.deltaPos
+    nlinarith
+  have hF : ∀ j, j ≤ V2.Run.idxBefore rho (SA.freezeTime p.toParams s) →
+      Block.Preceq (F_at p c E rho j y) B := by
+    intro j hj
+    rw [← he]
+    exact eraseFG_preceq (KitFG.preceq_trans
+      (hf.mono h.base.noRestart j k y hy (hj.trans hidx)).1 hframe.1)
+  have hcut : SA.freezeTime p.toParams s ≤ b₀ := by
+    have htime := (V2.Engine.index_lt_read_length_iff hsch b₀ ht).mp hi
+    change 4 * p.Δ * (s : Int) + 6 * p.Δ ≤ b₀ at htime
+    change 4 * p.Δ * (s : Int) + 3 * p.Δ ≤ b₀
+    have hd := p.deltaPos
+    linarith
+  have hres := (List.mem_filter.mp (List.mem_filter.mp ho).1).2
+  change GridCO.resolvedBefore _ o _ = true at hres
+  dsimp only [GridCO.resolvedBefore] at hres
+  rw [hK] at hres
+  have hknown := (Bool.and_eq_true_iff.mp
+    (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp hres).1).1).1
+  change decide (K ∈ (actView (clockPre p (storeAt p c E rho i x)
+    (SA.gateTime p.toParams s))).blocks) = true at hknown
+  have hKm := of_decide_eq_true hknown
+  have hstamp := of_decide_eq_true (Bool.and_eq_true_iff.mp hres).2
+  have hmem := ((actView_blocks _ K).mp hKm).1
+  rw [(clockPre_fields p _ _).2.1] at hmem
+  have hkeys : K ∈ (storeAt p c E rho i x).base.blockStamp.map Prod.fst := by
+    change K ∈ (V2.Run.stateBefore E rho i x).st.base.blockStamp.map Prod.fst
+    rw [(storeBundle_stateBefore E rho i x).«meta».stampKeys]
+    exact hmem
+  have heq : GridCO.stampBlock
+      (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))) K =
+      GridCO.stampBlock (storeAt p c E rho i x).base K := by
+    change (((clockPre p _ _).base.blockStamp.find? _).map Prod.snd).getD _ = _
+    rw [(clockPre_stamps p _ _).1]
+    unfold GridCO.stampBlock
+    cases he : (storeAt p c E rho i x).base.blockStamp.find? (fun row => row.1 == K) with
+    | none =>
+      obtain ⟨row, hr, hh⟩ := List.mem_map.mp hkeys
+      have hn := List.find?_eq_none.mp he row hr
+      rw [hh, beq_self_eq_true] at hn
+      contradiction
+    | some row => rfl
+  rw [heq] at hstamp
+  have haccept := clean_transfer_source_acceptances p c E rho hsch h.base.delta
+    hmem hstamp (block_preceq_refl K)
+  obtain ⟨required, hcov⟩ := transfer_coverage p c E rho h.base.valid h.base.delta
+    b₀ h.healthy h.cut.2 hx hcut
+    haccept (fun j hj => block_preceq_trans (hF j hj) hBK)
+  apply fgsa_active_path_of_coverage E rho h.base.valid h.base.noRestart h.base.delta
+    (fun t => t + p.Δ) b₀ (SA.freezeTime p.toParams s) 0 y K required
+    (fun L d => L = K ∧ d = SA.freezeTime p.toParams s) hy hcov ⟨rfl, rfl⟩
+  have hh := block_preceq_trans (hF _ le_rfl) hBK
+  change Block.Preceq (eraseFG (V2.Run.stateBefore E rho
+    (V2.Run.idxBefore rho (SA.freezeTime p.toParams s)) y).st.fg.F) K at hh
+  rw [Gen.V2.stateBefore_idxBefore E rho _ hsch] at hh
+  exact hh
+
 private theorem transfer_read_stamp (hsch : V2.ScheduleWellFormed E rho)
     (y : V) (D : Time) (hD : 0 < D) (b : Block)
     (hb : b ∈ (V2.Run.stateBeforeTime E rho D y).st.base.blocks) :
@@ -485,6 +576,84 @@ theorem clean_transfer_prefreeze_path [Fintype V] (b₀ : Time) :
   intro A hA
   have hAm := KitFG.ancestor_closed_of_parent_closed _
     (storeBundle_stateBeforeTime E rho D y).cstore.fg.closed Bfg hBfg A hA
+  have hAb := ((storeBundle_stateBeforeTime E rho D y).cstore.baseTree (eraseFG A)).mpr
+    ⟨A, hAm, rfl⟩
+  have hAstamp := transfer_read_stamp p c E rho hsch y D (by
+    change 0 < 4 * p.Δ * (s : Int) + 3 * p.Δ
+    have hd := p.deltaPos
+    positivity) (eraseFG A) hAb
+  rw [← hread] at hAm hAb hAstamp
+  have hkeys : eraseFG A ∈ (storeAt p c E rho j y).base.blockStamp.map Prod.fst := by
+    change eraseFG A ∈ (V2.Run.stateBefore E rho j y).st.base.blockStamp.map Prod.fst
+    rw [(storeBundle_stateBefore E rho j y).«meta».stampKeys]
+    exact hAb
+  constructor
+  · change A ∈ (FGSA.clock p (storeAt p c E rho k y) _).fg.TF
+    rw [(clock_cumulative p _ _).1]
+    exact hc.1 hAm
+  · have heq := transfer_stamp_kept hc.2.2.1 (eraseFG A) hkeys
+    change (((FGSA.clock p (storeAt p c E rho k y) _).base.blockStamp.find? _).map
+      Prod.snd).getD _ < D
+    rw [(clock_cumulative p _ _).2.2.1, heq]
+    unfold GridCO.stampBlock at hAstamp
+    cases hfind : (storeAt p c E rho j y).base.blockStamp.find? (fun row => row.1 == eraseFG A) with
+    | none =>
+      obtain ⟨row, hr, hh⟩ := List.mem_map.mp hkeys
+      have hn := List.find?_eq_none.mp hfind row hr
+      rw [hh, beq_self_eq_true] at hn
+      contradiction
+    | some row => simpa only [hfind, Option.map_some, Option.getD_some] using hAstamp
+
+/-- P3 F2.2, T7.8/T7.12a and C5; bp02 §3.5 step 5 and §4.2. Class B.
+DC: GSTZeroPreparedWalk.lean:546; WeakGenesisGSTZeroActionSources.lean:25.
+INTENTIONAL: FG-SA needs the supporter's whole stamped FG path at the
+actual next-slot clocked read, as the C5 relay hpath premise requires
+(spec/fgsa-protocol.tex:2496–2525,2506–2513). The lift is existential so
+that the consumer can select it; eraseFG injectivity identifies any other lift. -/
+theorem clean_transfer_prefreeze_path_of_head [Fintype V] (b₀ : Time) :
+  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
+  FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
+  ∀ i k x y s B K (o : GridCO.Wire p.n), i < timeIdx rho b₀ → k < i →
+    IsGateTick p c rho i x s →
+    rho.events[k]? = some (.tick y (SA.voteTime p.toParams (s + 1))) →
+    CleanHist p c E rho i → (∀ j, j ≤ i → CleanState p c E rho j) →
+    gateResultAt p c E rho i = some (some B) →
+    (∀ r C, (r, C) ∈ cleanResults p c E rho i → r < s → Block.Preceq C B) →
+    o ∈ GridCO.cleanSupport p.toParams.engine
+      (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))) s →
+    GridCO.headTarget? o = some K → Block.Preceq B K →
+    let st := ((fgsa p c).clock (V2.Run.stateBefore E rho k y)
+      (SA.voteTime p.toParams (s + 1))).st
+    ∃ Kfg : FGBlock (Fin p.n), eraseFG Kfg = K ∧
+      ∀ A : FGBlock (Fin p.n), FGBlock.Preceq A Kfg →
+        A ∈ st.fg.TF ∧
+        GridCO.stampBlock st.base (eraseFG A) < SA.freezeTime p.toParams s := by
+  intro h _ hf hsrc i k x y s B K o hi hki ht hk _ hall hB hord ho hK hBK st
+  have hsch := h.base.valid.toScheduleWellFormed
+  have hy := hsch.honest_only _ (List.mem_of_getElem? hk)
+  have hpath := clean_transfer_receipt_path_of_head p c E rho b₀ h hf hsrc hi hki ht hk
+    (hall i le_rfl) hB hord ho hK hBK
+  let D := SA.freezeTime p.toParams s
+  let j := V2.Run.idxBefore rho D
+  have hjk : j ≤ k := by
+    by_contra hn
+    have htime := (Gen.V2.index_lt_idxBefore_iff hsch hk D).mp (Nat.lt_of_not_ge hn)
+    change 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ <
+      4 * p.Δ * (s : Int) + 3 * p.Δ at htime
+    push_cast at htime
+    have hd := p.deltaPos
+    nlinarith
+  have hklen : k ≤ rho.events.length := Nat.le_of_lt (List.getElem?_eq_some_iff.mp hk).1
+  have hc := hf.cumul h.base.noRestart j k y hy hjk hklen
+  have hread : storeAt p c E rho j y = (V2.Run.stateBeforeTime E rho D y).st := by
+    change (V2.Run.stateBefore E rho (V2.Run.idxBefore rho D) y).st = _
+    rw [Gen.V2.stateBefore_idxBefore E rho D hsch]
+  have hKmem := ((actView_blocks _ K).mp (hpath K (block_preceq_refl K))).1
+  obtain ⟨Kfg, hKfg, he⟩ := ((storeBundle_stateBeforeTime E rho D y).cstore.baseTree K).mp hKmem
+  refine ⟨Kfg, he, ?_⟩
+  intro A hA
+  have hAm := KitFG.ancestor_closed_of_parent_closed _
+    (storeBundle_stateBeforeTime E rho D y).cstore.fg.closed Kfg hKfg A hA
   have hAb := ((storeBundle_stateBeforeTime E rho D y).cstore.baseTree (eraseFG A)).mpr
     ⟨A, hAm, rfl⟩
   have hAstamp := transfer_read_stamp p c E rho hsch y D (by
