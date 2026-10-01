@@ -22,6 +22,8 @@ public import AvailableChainKitFG.TwoChanges
 public import AvailableChainKitFG.LowerFDomainDef
 public import AvailableChainKitFG.Pins
 public import AvailableChainKitFG.WeightsBridge
+public import AvailableChainKitFG.ClientOnce
+public import AvailableChainKitFG.ClientOnceSafety
 
 @[expose] public section
 end
