@@ -37,7 +37,9 @@ the current entries against code first. If the frozen copy exists, verify
 its SHA-256, then require every frozen entry to keep its kind and hash.
 New entries pass. A changed or removed entry needs an allow line with three
 non-empty tab-separated fields: name, reason, plan revision. Lines that start
-with `#` are comments. An allow name absent from the frozen copy fails.
+with `#` are comments. An allow name absent from the frozen copy fails. An
+optional fourth field `expect=<hash>` (or `expect=removed`) pins the permitted
+change: the current entry must have exactly that hash (or be absent).
 `scripts/fgsa-freeze.sh` writes the current doc, copies it to the frozen doc,
 and records the frozen SHA-256 as one line. Do this at the freeze commit.
 
@@ -414,18 +416,27 @@ def fgsaManifest (env : Environment)
       out := out ++ "```\n\n"
   return out
 
-/-- Full-line comments are allowed. Each data line has three non-empty fields. -/
-def parseAllow (text : String) : Except String (Std.HashSet Name) := do
-  let mut out : Std.HashSet Name := {}
+/-- Full-line comments are allowed. Each data line has three non-empty fields and an
+optional fourth field `expect=<hash>` or `expect=removed`; the map holds that value. -/
+def parseAllow (text : String) : Except String (Std.HashMap Name (Option String)) := do
+  let mut out : Std.HashMap Name (Option String) := {}
   for (line, i) in (text.splitOn "\n").zipIdx do
     let l := line.trimAscii.toString
     if l.isEmpty || l.startsWith "#" then continue
     let fields := (line.splitOn "\t").map (·.trimAscii.toString)
-    unless fields.length == 3 do throw s!"INVALID ALLOW line {i + 1}: expected three tab-separated fields"
+    unless fields.length == 3 || fields.length == 4 do
+      throw s!"INVALID ALLOW line {i + 1}: expected three or four tab-separated fields"
     if fields.any String.isEmpty then throw s!"INVALID ALLOW line {i + 1}: empty field"
+    let mut expect? : Option String := none
+    if fields.length == 4 then
+      let parts := fields[3]!.splitOn "="
+      let value := "=".intercalate (parts.drop 1)
+      unless parts.head? == some "expect" && !value.isEmpty do
+        throw s!"INVALID ALLOW line {i + 1}: fourth field must be expect=<hash> or expect=removed"
+      expect? := some value
     let n := fields[0]!.toName
     if out.contains n then throw s!"DUPLICATE ALLOW {n}"
-    out := out.insert n
+    out := out.insert n expect?
   return out
 
 /-- Hash the exact frozen file bytes on macOS and Linux. -/
@@ -451,7 +462,7 @@ def checkFrozen (current : Array (Name × Array Line))
       match parseAllow (← IO.FS.readFile allow) with
       | .ok x => pure x
       | .error e => return #[e]
-    else pure ({} : Std.HashSet Name)
+    else pure ({} : Std.HashMap Name (Option String))
   let mut now : Std.HashMap Name Line := {}
   for (_, ls) in current do
     for l in ls do now := now.insert l.name l
@@ -462,13 +473,25 @@ def checkFrozen (current : Array (Name × Array Line))
       if names.contains l.name then fails := fails.push s!"FROZEN DUPLICATE ENTRY {l.name}"
       names := names.insert l.name
       if l.hash?.isNone then fails := fails.push s!"FROZEN NO HASH {l.name}"
-      if allowed.contains l.name then continue
+      match allowed[l.name]? with
+      | some none => continue
+      | some (some e) =>
+        match now[l.name]? with
+        | none =>
+          unless e == "removed" do fails := fails.push s!"ALLOW EXPECT {l.name}: expected {e}, entry removed"
+        | some n =>
+          if e == "removed" then
+            fails := fails.push s!"ALLOW EXPECT {l.name}: expected removed, entry present"
+          else if n.hash? != some e then
+            fails := fails.push s!"ALLOW EXPECT {l.name}: expected {e}, got {n.hash?.getD ""}"
+        continue
+      | none => pure ()
       match now[l.name]? with
       | none => fails := fails.push s!"FROZEN REMOVED {l.name}"
       | some n =>
         if n.kind != l.kind || n.hash? != l.hash? then
           fails := fails.push s!"FROZEN CHANGED {l.name}: {l.kind} {l.hash?.getD ""} -> {n.kind} {n.hash?.getD ""}"
-  for n in allowed.toArray.qsort Name.lt do
+  for n in (allowed.toList.map (·.1)).toArray.qsort Name.lt do
     unless names.contains n do fails := fails.push s!"STALE ALLOW {n}: no frozen entry"
   return fails
 

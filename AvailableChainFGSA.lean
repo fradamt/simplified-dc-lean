@@ -26,5 +26,10 @@ public import AvailableChainFGSA.Tests.RootCollision
 public import AvailableChainFGSA.Proofs.SetEq
 public import AvailableChainFGSA.Proofs.Head.Pool
 public import AvailableChainFGSA.Proofs.Head.Transfer
+public import AvailableChainFGSA.Model.RowStore
+public import AvailableChainFGSA.Model.RowValidity
+public import AvailableChainFGSA.Model.RowSelection
+public import AvailableChainFGSA.Proofs.RowValidity
+public import AvailableChainFGSA.Proofs.RowSelection
 public import AvailableChainFGSA.Proofs.Head.Walk
 public import AvailableChainFGSA.Proofs.Head.Score

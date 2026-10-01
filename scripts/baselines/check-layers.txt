@@ -35,7 +35,6 @@ B7-BODY AvailableChainSAPC <body:@>
 B7-BODY AvailableChainSimplexFG <body:@>
 B7-BODY AvailableChainStatements <body:@>
 B7-BODY AvailableChainWitnesses <body:@>
-B7-GLOBS AvailableChainFGSA <globs:AvailableChainFGSA.*>
 B7-GLOBS AvailableChainFramework <globs:AvailableChainFramework.*>
 B7-GLOBS AvailableChainGridCO <globs:AvailableChainGridCO.*>
 B7-GLOBS AvailableChainKit <globs:AvailableChainKit.*>

@@ -2,6 +2,7 @@ module
 public import AvailableChainFGSA.Model.Handlers
 public import AvailableChainFGSA.Model.Frame
 public import AvailableChainFGSA.Tests.Support
+public import AvailableChainFGSA.Proofs.RowSelection
 
 @[expose] public section
 
@@ -803,6 +804,167 @@ place of the full filtered tree, the live root is `eraseFG X` and C_fg = X (a sc
 check of that wrong rule gives these values). -/
 example : liveRoot pT stL = .genesis ∧ (fgInputs pT stL).1 = none := by
   unfold stL; rw [stK_eq]; decide +kernel
+
+/-! Migration 05: R6/R7 helpers before activation. These small hand-set stores
+isolate selection from the old admission rule. -/
+
+namespace M05
+
+/-- Three distinct contents signed by the same seat with the same old label. -/
+def a0 : RowWire 4 := ⟨.seat (.fg 0) 0, ⟨.vote 1 genesisRoot false, none⟩⟩
+def a1 : RowWire 4 := ⟨.seat (.fg 0) 0, ⟨.vote 1 genesisRoot true, none⟩⟩
+def a2 : RowWire 4 :=
+  ⟨.seat (.fg 0) 0, ⟨.vote 1 genesisRoot false, some ⟨0, genesisRoot⟩⟩⟩
+/-- One on-chain row and a sibling's row. Both carriers stay at height 1. -/
+def C : FGBlock (Fin 4) := pk .genesis 1 31 [a0]
+def D : FGBlock (Fin 4) := pk .genesis 2 32 [a2]
+def held : State 4 :=
+  { fg := { Store.init with TF := {.genesis, C, D} }
+    proposals := [⟨.proposer 1, .proposal (eraseFG C) [] [] [a0]⟩,
+      ⟨.proposer 2, .proposal (eraseFG D) [] [] [a2]⟩]
+    rowPool := [a0, a1, a0] }
+
+/-- Plan: mismatched height refusal. -/
+theorem wrong_height : rowValidFor (parentFoldState pT 3 .genesis)
+    ⟨.seat (.fg 0) 0, ⟨.vote 2 genesisRoot false, none⟩⟩ = false := by decide
+
+/-- Plan: mismatched target refusal. -/
+theorem wrong_target : rowValidFor (parentFoldState pT 3 .genesis)
+    ⟨.seat (.fg 0) 0, ⟨.vote 1 C.root false, none⟩⟩ = false := by decide +kernel
+
+/-- Plan R6: empty height and incorrect auth cannot pass. -/
+theorem empty_and_auth : rowValidFor (parentFoldState pT 3 .genesis)
+    ⟨.seat (.fg 0) 0, ⟨.empty, none⟩⟩ = false ∧
+    rowValidFor (parentFoldState pT 3 .genesis)
+      ⟨.seat (.head 0) 0, a0.payload⟩ = false := by decide
+
+/-- Plan: reset the slot before the fold. It changes timeout maturity. -/
+theorem slot_before_fold : (parentFoldState pT 1 .genesis).s = 1 ∧
+    (process_height_events pT.E pT.cfg
+      (([rowX 0, rowX 1, rowX 2]).foldl process_row
+        (parentFoldState pT 1 .genesis))).h = 2 ∧
+    (process_height_events pT.E pT.cfg
+      (([rowX 0, rowX 1, rowX 2]).foldl process_row
+        (derive pT.E pT.cfg .genesis))).h = 1 := by decide
+
+/-- Plan: one pre-fold parent state. A quorum changes the child's height only
+when the height events run, after all three rows pass R6. -/
+theorem common_parent :
+    rowsValidForParent pT .genesis 1 (signRows 0 [rowT 0, rowT 1, rowT 2]) = true ∧
+    (derive pT.E pT.cfg (pk .genesis 1 0 (signRows 0 [rowT 0, rowT 1, rowT 2]))).h = 2 := by
+  decide +kernel
+
+/-- Plan: no finality-state match requirement. The foreign finality target
+passes R6 and sets progress, but it sets no finality bit. -/
+theorem foreign_finality :
+    rowValidFor (parentFoldState pT 3 .genesis)
+      ⟨.seat (.fg 0) 0, ⟨.vote 1 genesisRoot false, some ⟨0, C.root⟩⟩⟩ = true ∧
+    (process_row (parentFoldState pT 3 .genesis)
+      ⟨0, .vote 1 genesisRoot false, some ⟨0, C.root⟩⟩).finalize = ∅ ∧
+    (process_row (parentFoldState pT 3 .genesis)
+      ⟨0, .vote 1 genesisRoot false, some ⟨0, C.root⟩⟩).progress = {0} := by
+  decide +kernel
+
+/-- Plan: full-content dedup, stable order, and more than two rows per seat.
+The third row comes only from an admitted block. -/
+theorem three_same_seat : proposalRowsFor pT held 100 .genesis = [a0, a1, a2] := by
+  decide +kernel
+
+/-- Plan: exact-row exclusion keeps the other two contents from that seat. -/
+theorem exact_removal : proposalRowsFor pT held 100 (eraseFG C) = [a1, a2] := by
+  decide +kernel
+
+/-- Plan: old held rows have no expiry, including rows from old blocks. -/
+theorem old_held : proposalRowsFor pT (atTime held 4000) 1000 .genesis = [a0, a1, a2] := by
+  decide +kernel
+
+/-- Plan R7: an absent parent yields no rows. -/
+theorem absent_parent : proposalRowsFor pT held 3 (pb .genesis 4 33 []) = [] := by
+  decide +kernel
+
+/-- Plan: permutation law. Pool order changes selector order, not membership. -/
+theorem reordered_pool :
+    proposalRowsFor pT { held with rowPool := [a1, a0, a0] } 100 .genesis = [a1, a0, a2] ∧
+    (proposalRowsFor pT held 100 .genesis).Perm
+      (proposalRowsFor pT { held with rowPool := [a1, a0, a0] } 100 .genesis) := by
+  constructor
+  · decide +kernel
+  · exact proposalRowsFor_perm pT (st := held) (st' := { held with rowPool := [a1, a0, a0] })
+      rfl (List.Perm.swap _ _ _) (List.Perm.refl _) _ _
+
+/-- Plan: packed-content laws. The selected signed list is the carried list. -/
+theorem packed_content : rowsOk
+    (pb .genesis 100 9 (proposalRowsFor pT held 100 .genesis))
+    (proposalRowsFor pT held 100 .genesis) = true :=
+  rowsOk_node_packBody _ _ _ _
+
+/-- Plan: roots retain the ordered signed contents. A permutation need not
+keep the block root; erasure does keep it. -/
+theorem ordered_roots :
+    (pk .genesis 100 9 [a0, a1, a2]).root ≠ (pk .genesis 100 9 [a1, a0, a2]).root ∧
+    (eraseFG (pk .genesis 100 9 [a0, a1, a2])).root =
+      (pk .genesis 100 9 [a0, a1, a2]).root := by
+  constructor
+  · decide +kernel
+  · exact eraseFG_root _
+
+/-- Plan: the payload has total accessors and a tagged, injective codec. -/
+theorem payload_accessors :
+    (RowPayload.vote a2.payload).height_pair = a2.payload.height_pair ∧
+    (RowPayload.vote a2.payload).finality_pair = a2.payload.finality_pair ∧
+    (RowPayload.vote a2.payload).valid = a2.payload.valid ∧
+    (RowPayload.vote a2.payload).toRow (0 : Fin 4) =
+      ⟨0, a2.payload.height_pair, a2.payload.finality_pair⟩ ∧
+    encRowPayload (.vote a0.payload) ≠ encRowPayload (.vote a2.payload) := by decide
+
+/-- Plan: bits persist while the height and entry stay fixed. -/
+theorem progress_persists : 0 ∈ (derive pT.E pT.cfg (.node C 3 0 [])).progress := by
+  decide +kernel
+
+/-- Plan: the additive stored-row obligation holds for this R6-valid fixture. -/
+theorem valid_stored : RowsValidStored pT held := by
+  intro o ho s b raw sup rows hd
+  change o ∈ [⟨.proposer 1, .proposal (eraseFG C) [] [] [a0]⟩,
+    ⟨.proposer 2, .proposal (eraseFG D) [] [] [a2]⟩] at ho
+  simp only [List.mem_cons, List.not_mem_nil, or_false] at ho
+  rcases ho with rfl | rfl
+  all_goals
+    simp only [Wire.decode, Option.some.injEq, Input.block.injEq] at hd
+    obtain ⟨rfl, rfl, rfl, rfl, rfl⟩ := hd
+    exact ⟨.genesis, by decide +kernel, by decide +kernel⟩
+
+/-- Plan: all three bits retain their own tests. A timeout sets progress and
+a matching finality bit, but it does not set target participation. -/
+theorem timeout_bits :
+    let σ : ChainState (Fin 4) := { ChainState.initial with h := 3, h_j := 2, h_F := 1 }
+    let b := process_row σ ⟨0, .vote 3 genesisRoot true, some ⟨2, genesisRoot⟩⟩
+    b.target_participation = ∅ ∧ b.progress = {0} ∧ b.finalize = {0} := by decide
+
+/-- Plan: finality persists after a valid first inclusion below the row height.
+This uses the R3/R6 specialization with a later matching finality pair. -/
+theorem finality_persists :
+    let a : RowWire 4 :=
+      ⟨.seat (.fg 0) 0, ⟨.vote 2 B1.root false, some ⟨1, genesisRoot⟩⟩⟩
+    let C' := pk B1 2 0 [a]
+    0 ∈ (derive pT.E pT.cfg (.node C' 3 0 [])).finalize := by
+  dsimp only
+  let a : RowWire 4 :=
+    ⟨.seat (.fg 0) 0, ⟨.vote 2 B1.root false, some ⟨1, genesisRoot⟩⟩⟩
+  apply rowValidFor_finality_persist pT B1 _ 2 0 [a] a
+    ⟨0, .vote 2 B1.root false, some ⟨1, genesisRoot⟩⟩
+  · simp
+  · rfl
+  · decide +kernel
+  · intro h T χ fp hp hf
+    cases hp
+    cases hf
+    decide
+  · exact KitFG.preceq_parent_node _ _ _ _
+  · rfl
+  · simp only [KitFG.rowMatchesBit_def]
+    decide +kernel
+
+end M05
 
 end AvailableChain.FGSA.Tests
 end

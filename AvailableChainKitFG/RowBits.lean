@@ -199,5 +199,139 @@ theorem bit_from_row : BitFromRowStatement := by
     (Or.inr ⟨a, ha, rfl, hm'⟩)
   cases kind <;> exact hc
 
+omit [Fintype V] in
+/-- [R6/R7] The first row step has an exact bit test, for all three bit sets.
+A finality bit still needs its own match. -/
+theorem bit_process_iff (kind : ChainBit) (σ : ChainState V) (a : Row V) (i : V) :
+    i ∈ chainBits kind (process_row σ a) ↔
+      i ∈ chainBits kind σ ∨ a.signer = i ∧ rowMatchesBit kind σ a := by
+  cases kind <;> simp only [chainBits_def, rowMatchesBit_def]
+  all_goals
+    first | rw [process_row_target] | rw [process_row_progress] | rw [process_row_finalize]
+    split_ifs <;> simp_all only [Finset.mem_insert, Bool.and_eq_true, decide_eq_true_eq] <;> aesop
+
+omit [Fintype V] in
+/-- [R6/R7] Every bit after the fold was present before it or came from a
+matching row. Every row uses the same state keys. -/
+theorem bit_fold_iff (kind : ChainBit) (rows : List (Row V))
+    (σ : ChainState V) (i : V) :
+    i ∈ chainBits kind (rows.foldl process_row σ) ↔
+      i ∈ chainBits kind σ ∨
+        ∃ a ∈ rows, a.signer = i ∧ rowMatchesBit kind σ a := by
+  induction rows generalizing σ with
+  | nil => simp
+  | cons a rows ih =>
+      simp only [List.foldl_cons, ih, bit_process_iff, row_matches_process, List.mem_cons]
+      aesop
+
+omit [Fintype V] in
+/-- [R6/R7] First inclusion supplies a matching bit before height events. -/
+theorem bit_first_inclusion (kind : ChainBit) (σ : ChainState V)
+    (rows : List (Row V)) (a : Row V) (ha : a ∈ rows)
+    (hm : rowMatchesBit kind σ a) :
+    a.signer ∈ chainBits kind (rows.foldl process_row σ) :=
+  (bit_fold_iff kind rows σ a.signer).2 (Or.inr ⟨a, ha, rfl, hm⟩)
+
+omit [Fintype V] in
+/-- [R6/R7] A row at the current height supplies progress at first inclusion. -/
+theorem progress_first_inclusion (σ : ChainState V) (rows : List (Row V))
+    (a : Row V) (ha : a ∈ rows)
+    (hm : a.height_pair.matchesEntry σ.h σ.T_h.root = true) :
+    a.signer ∈ (rows.foldl process_row σ).progress :=
+  bit_first_inclusion .progress σ rows a ha hm
+
+/-- [R6/R7] A first matching inclusion remains sufficient while its key stays
+fixed. Height events keep their existing order and reset rules. -/
+theorem bit_first_inclusion_persist (E : Electorate V) (cfg : FGConfig)
+    (kind : ChainBit) (P W : FGBlock V) (s : Slot) (x : Nat)
+    (rows : List (Row V)) (a : Row V) (ha : a ∈ rows)
+    (hCW : FGBlock.Preceq (.node P s x rows) W)
+    (hm : rowMatchesBit kind { derive E cfg P with s := s } a)
+    (hk : sameBitState kind (derive E cfg P) (derive E cfg W)) :
+    a.signer ∈ chainBits kind (derive E cfg W) := by
+  apply bit_from_row E cfg kind P W s x rows a ha hCW _ hk
+  cases kind <;> exact hm
+
+private theorem low_justification_stable (E : Electorate V) (cfg : FGConfig)
+    {B W : FGBlock V} (hBW : FGBlock.Preceq B W)
+    (hlow : (derive E cfg W).h_j < (derive E cfg B).h) :
+    (derive E cfg W).J = (derive E cfg B).J ∧
+      (derive E cfg W).h_j = (derive E cfg B).h_j := by
+  induction W with
+  | genesis =>
+      obtain rfl := preceq_genesis.mp hBW
+      exact ⟨rfl, rfl⟩
+  | node P s x rows ih =>
+      by_cases heq : B = .node P s x rows
+      · subst B
+        exact ⟨rfl, rfl⟩
+      have hBP := preceq_parent_of_preceq_node hBW heq
+      obtain ⟨_, hh, _, hJ, hj, _, _⟩ := foldRows_fields (derive E cfg P) (.node P s x rows) rows
+      rcases justification_pair_cases E cfg
+          (foldRows (derive E cfg P) (.node P s x rows) rows) with h | h
+      · have hJ' : (derive E cfg (.node P s x rows)).J = (derive E cfg P).J := by
+          rw [derive_node, h.1, hJ]
+        have hj' : (derive E cfg (.node P s x rows)).h_j = (derive E cfg P).h_j := by
+          rw [derive_node, h.2, hj]
+        obtain ⟨hJB, hjB⟩ := ih hBP (hj' ▸ hlow)
+        exact ⟨hJ'.trans hJB, hj'.trans hjB⟩
+      · have hj' : (derive E cfg (.node P s x rows)).h_j = (derive E cfg P).h := by
+          rw [derive_node, h.2.1, hh]
+        have hm := h_mono E cfg hBP
+        rw [hj'] at hlow
+        exact False.elim (Nat.not_lt_of_ge hm hlow)
+
+private theorem finalized_height_mono (E : Electorate V) (cfg : FGConfig)
+    {B W : FGBlock V} (hBW : FGBlock.Preceq B W) :
+    (derive E cfg B).h_F ≤ (derive E cfg W).h_F := by
+  induction W with
+  | genesis =>
+      obtain rfl := preceq_genesis.mp hBW
+      exact le_refl _
+  | node P s x rows ih =>
+      by_cases heq : B = .node P s x rows
+      · subst B
+        exact le_refl _
+      have hBP := preceq_parent_of_preceq_node hBW heq
+      apply (ih hBP).trans
+      obtain ⟨_, _, _, _, hj, _, hf⟩ := foldRows_fields (derive E cfg P) (.node P s x rows) rows
+      rw [derive_node]
+      rcases finality_pair_cases E cfg
+          (foldRows (derive E cfg P) (.node P s x rows) rows) with h | h
+      · rw [h.2, hf]
+      · rw [h.2.1, hj]
+        exact (chainOrder_derive E cfg P).heights_ordered
+
+/-- [R3/R6/R7] A finality pair below the first inclusion height cannot gain a
+new match later. If it matches later, its key was already the same and its
+finality guard already held at the earlier state. -/
+theorem finality_match_before (E : Electorate V) (cfg : FGConfig)
+    {P W : FGBlock V} (hPW : FGBlock.Preceq P W) (a : Row V) (fp : FinalityPair)
+    (hfp : a.finality_pair = some fp) (hbelow : fp.height < (derive E cfg P).h)
+    (hm : rowMatchesBit .finality (derive E cfg W) a) :
+    sameBitState .finality (derive E cfg P) (derive E cfg W) ∧
+      rowMatchesBit .finality (derive E cfg P) a := by
+  obtain ⟨hguard, hpair⟩ := hm
+  have heq := Option.some.inj (hfp.symm.trans hpair)
+  have hh : fp.height = (derive E cfg W).h_j := congrArg FinalityPair.height heq
+  obtain ⟨hJ, hj⟩ := low_justification_stable E cfg hPW (hh ▸ hbelow)
+  refine ⟨⟨hj.symm, congrArg FGBlock.root hJ.symm⟩, ?_, ?_⟩
+  · rw [← hj]
+    exact Nat.lt_of_le_of_lt (finalized_height_mono E cfg hPW) hguard
+  · simpa only [hJ, hj] using hpair
+
+/-- [R3/R6/R7] A carried row already supplies every later matching finality
+bit. The strict height premise is needed; R6 alone is insufficient. -/
+theorem finality_first_inclusion_persist (E : Electorate V) (cfg : FGConfig)
+    (P W : FGBlock V) (s : Slot) (x : Nat) (rows : List (Row V)) (a : Row V)
+    (ha : a ∈ rows) (hCW : FGBlock.Preceq (.node P s x rows) W)
+    (fp : FinalityPair) (hfp : a.finality_pair = some fp)
+    (hbelow : fp.height < (derive E cfg P).h)
+    (hm : rowMatchesBit .finality (derive E cfg W) a) :
+    a.signer ∈ (derive E cfg W).finalize := by
+  have hPW := preceq_trans (preceq_parent_node P s x rows) hCW
+  obtain ⟨hk, hmP⟩ := finality_match_before E cfg hPW a fp hfp hbelow hm
+  exact bit_from_row E cfg .finality P W s x rows a ha hCW hmP hk
+
 end AvailableChain.KitFG
 end

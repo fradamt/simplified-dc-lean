@@ -24,6 +24,8 @@ public import AvailableChainKitFG.Pins
 public import AvailableChainKitFG.WeightsBridge
 public import AvailableChainKitFG.ClientOnce
 public import AvailableChainKitFG.ClientOnceSafety
+public import AvailableChainKitFG.RecordHighOnceDef
+public import AvailableChainKitFG.RecordHighOnce
 
 @[expose] public section
 end
