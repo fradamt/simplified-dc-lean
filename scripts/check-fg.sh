@@ -46,6 +46,15 @@ lake env lean --run scripts/CheckFGAxioms.lean --expect \
   derive_target_of_cover derive_progress_of_cover \
   no_mixed_cross_before_maturity first_height_crossing_edge \
   crossing_honest_matching_row justification_eq_on_plateau \
+  transition_target_of_cover_of_bridge \
+  transition_progress_of_cover_of_bridge \
+  derive_target_of_cover_of_bridge \
+  derive_progress_of_cover_of_bridge \
+  no_mixed_cross_before_maturity_of_bridge \
+  first_height_crossing_edge_of_bridge \
+  crossing_honest_matching_row_of_bridge \
+  justification_eq_on_plateau_of_bridge \
+  height_occurrence_keys_of_bridge \
   height_occurrence_keys finality_occurrence_history
 step "scripts/FGPinIds.lean --check-names"
 lake env lean --run scripts/FGPinIds.lean --check-names
