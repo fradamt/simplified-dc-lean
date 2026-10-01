@@ -66,5 +66,59 @@ theorem cleanCutZero_export (p : Params) : CleanCutZeroClaim p := by
   intro V _ _ In c E rho h
   exact ⟨cleanHistoryAt_zero h.set, cleanTruncAt_zero h.set⟩
 
+/-- P3:3331–3335, bp02 §5.5; DC Legacy/Definitions/SafetyRegimes:61–75.
+INTENTIONAL difference: raw SA results, a whole-result guard, and the cut
+before same-time deliveries. NoRestart is inherited through Base₂.
+This wrapper restores the exact frozen Claims conclusion. -/
+theorem cleanGateAt (p : Params) {In V : Type} (c : AppCodec In)
+    [DecidableEq V] [Fintype V] (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    {b₀ : Time} (h : CleanCut₂ p c E rho b₀)
+    (hq : Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card)
+    (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho) :
+    CleanGateAt p c E rho b₀ := by
+  exact cleanGateAt_body p c E rho h hq hf hsrc
+
+/-- P3 §8.5, bp02 §§5.4–6; DC Legacy/Definitions/SafetyRegimes:53–80.
+INTENTIONAL difference: six finite-cut clauses use raw SA gates and exact
+FG-SA state origins. NoRestart is inherited from CleanCut₂ through Base₂.
+This wrapper restores the exact frozen Claims conclusion. -/
+theorem cleanTruncAt (p : Params) {In V : Type} (c : AppCodec In)
+    [DecidableEq V] [Fintype V] (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    {b₀ : Time} (h : CleanCut₂ p c E rho b₀)
+    (hq : Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card)
+    (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho) :
+    CleanTruncAt p c E rho b₀ := by
+  exact cleanTruncAt_body p c E rho h hq hf hsrc
+
+/-- P3 §8.5, bp02 §6; DC Generic/Properties:27,41,48 and Interface:64.
+INTENTIONAL difference: all integer reads have finite prefix indices.
+NoRestart is inherited from Clean₂ through Base₂. -/
+theorem cleanSafety (p : Params) {In V : Type} (c : AppCodec In)
+    [DecidableEq V] [Fintype V] (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (h : Clean₂ p c E rho)
+    (hq : Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card)
+    (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho) :
+    CleanSafetyAt p c E rho := by
+  exact cleanSafety_body p c E rho h hq hf hsrc
+
+/-- P3:5296–5311, L39; DC Legacy/Definitions/SafetyRegimes:53–80 and
+Generic/Conditions:134. INTENTIONAL difference: a positive finite cut
+supplies quorum from strict-before-cut participation and takes both F1
+channels. NoRestart is inherited from Base₂. Assembly owns the cut split. -/
+theorem cleanCutPos_export (p : Params) : CleanCutPosClaim p := by
+  intro V _ _ In c E rho pt hc hb hf hsrc
+  have hq := hc.set.faultQ_of_pos hb
+  exact ⟨cleanHistoryAt p c E rho hc.set hq hf hsrc,
+    cleanTruncAt p c E rho hc.set hq hf hsrc⟩
+
+/-- P3 §8.5, bp02 §6; DC Generic/Properties:27,41,48 and Interface:64.
+INTENTIONAL difference: a cut claim gives safety at every integer read,
+since each read index is at most the event count. This implication has no
+F1 channel premise or cut split. Clean run results inherit NoRestart via Base₂. -/
+theorem cleanSafety_of_cut (p : Params) (hcut : CleanCutClaim p) : CleanSafetyClaim p := by
+  intro V _ _ In c E rho _ h
+  exact cleanSafetyAt_of_trunc p c E rho h.set.pre.base.valid.toScheduleWellFormed
+    (hcut c E rho ⟨rho.horizon⟩ ⟨h.set.pre.toCleanCut⟩).2
+
 end AvailableChain.FGSA.Run
 end

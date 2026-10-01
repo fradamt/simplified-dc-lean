@@ -376,3 +376,15 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.sExtends
 #print axioms AvailableChain.FGSA.Run.clean_gateOutput_body
 #print axioms AvailableChain.FGSA.Run.clean_gateOutput
+
+-- F2.7: bounded Clean results and lane exports.
+#print axioms AvailableChain.FGSA.Run.clean_sCompatible
+#print axioms AvailableChain.FGSA.Run.clean_outputsAt
+#print axioms AvailableChain.FGSA.Run.cleanGateAt_body
+#print axioms AvailableChain.FGSA.Run.cleanTruncAt_body
+#print axioms AvailableChain.FGSA.Run.cleanSafety_body
+#print axioms AvailableChain.FGSA.Run.cleanGateAt
+#print axioms AvailableChain.FGSA.Run.cleanTruncAt
+#print axioms AvailableChain.FGSA.Run.cleanSafety
+#print axioms AvailableChain.FGSA.Run.cleanCutPos_export
+#print axioms AvailableChain.FGSA.Run.cleanSafety_of_cut

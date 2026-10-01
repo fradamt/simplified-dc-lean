@@ -1397,9 +1397,9 @@ unused imports, and negative controls. No baseline entries were added.
 │ StepGate.lean                                   │                                     │
 │ AvailableChainFGSAProofs/Proofs/Clean/          │ Zero-cut history and truncation     │
 │ Zero.lean                                       │                                     │
-│ AvailableChainFGSAProofs/Proofs/Clean/          │ All-time read transport             │
+│ AvailableChainFGSAProofs/Proofs/Clean/          │ Bounded Clean and whole-run safety  │
 │ Safety.lean                                     │                                     │
-│ AvailableChainFGSAProofs/Proofs/Clean/          │ Frozen zero-cut and safety exports  │
+│ AvailableChainFGSAProofs/Proofs/Clean/          │ Frozen Clean results and cut lanes  │
 │ Export.lean                                     │                                     │
 │ AvailableChainFGSAProofs/Tests/Zero.lean        │ Nonempty time-zero schedule checks  │
 │ AvailableChainFGSAProofs/Tests/Axioms.lean      │ Proofs public-theorem axiom audit   │
