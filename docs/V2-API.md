@@ -859,3 +859,79 @@ theorem AvailableChain.V2.D.Engine.linked_singleton_iff 1bc1d4ed1f506ad8
 theorem AvailableChain.V2.D.Engine.seat_family_iff_representative_toD 41133f928dbe4a58
 theorem AvailableChain.V2.D.Engine.seat_equation_toD_of_family 71fd7e817a3975a0
 ```
+
+### `AvailableChainKitV2.DutyClockLaws`
+
+```text
+structure AvailableChain.V2.D.Engine.ClockLaws da7625d0531294f9
+ctor AvailableChain.V2.D.Engine.ClockLaws.mk a59ce200e3441c55
+def AvailableChain.V2.D.Engine.ClockLaws.now 8e2344910c52841e
+theorem AvailableChain.V2.D.Engine.ClockLaws.init 2c2088fee6c5a366
+theorem AvailableChain.V2.D.Engine.ClockLaws.clock 6b91b32c96dd0e82
+theorem AvailableChain.V2.D.Engine.ClockLaws.process 5e798afc5f517de5
+theorem AvailableChain.V2.D.Engine.ClockLaws.recordOwn_now ca4ffdb214ba7fc0
+theorem AvailableChain.V2.D.Engine.ClockLaws.now_foldl_recordOwn 4d5387560b0522ec
+theorem AvailableChain.V2.D.Engine.ClockLaws.now_tick e7a56d81a0698f79
+```
+
+### `AvailableChainKitV2.DutyEngineClock`
+
+```text
+theorem AvailableChain.V2.D.Engine.stateBefore_now_source c556b3f9270ce80b
+theorem AvailableChain.V2.D.Engine.stateBefore_now_source_noRestart 8188969742b87617
+theorem AvailableChain.V2.D.Engine.stateBefore_now_le_event 757c29148b6d8dfd
+theorem AvailableChain.V2.D.Engine.stateBefore_now_le_event_noRestart 21ee6c9c426ec1c6
+theorem AvailableChain.V2.D.Engine.stateBefore_now_mono d96c8dbcb0ab144f
+theorem AvailableChain.V2.D.Engine.stateBefore_now_mono_noRestart 222cb09d8eda0171
+theorem AvailableChain.V2.D.Engine.delivery_now_ge_public 3895dc5ba9e2acd8
+theorem AvailableChain.V2.D.Engine.stateBefore_invariant 49347bd5e864b50c
+theorem AvailableChain.V2.D.Engine.stateBefore_invariant_noRestart e14bbf6f3ae27ac4
+theorem AvailableChain.V2.D.Engine.stateBefore_stable_clock a0b180e2ecb15b44
+theorem AvailableChain.V2.D.Engine.stateBefore_stable_clock_restore 04533de1d30dc850
+theorem AvailableChain.V2.D.Engine.stateBefore_stable_clock_noRestart 254a33070ace0644
+theorem AvailableChain.V2.D.Engine.clock_field_origin 0cabaf9537c0dfa6
+theorem AvailableChain.V2.D.Engine.clock_field_origin_noRestart f1e8577e8ded84c5
+theorem AvailableChain.V2.D.Engine.clock_field_origin_of_subset 637db826493dbec0
+theorem AvailableChain.V2.D.Engine.stateBefore_field_prefix 23183fffebc81698
+theorem AvailableChain.V2.D.Engine.stateBefore_field_prefix_restore aded7526377edc5e
+```
+
+### `AvailableChainKitV2.DutyExecution`
+
+```text
+theorem AvailableChain.V2.D.Engine.eventIndex_lt_of_time_lt 69f02cb9b89ad8c3
+theorem AvailableChain.V2.D.Engine.time_le_of_key_le fe723cf18e365497
+theorem AvailableChain.V2.D.Engine.filter_eq_take e57398f104757534
+theorem AvailableChain.V2.D.Engine.filter_false_of_index_ge 5645bac824454bad
+theorem AvailableChain.V2.D.Engine.index_lt_read_length_iff 71ee49562801ab10
+theorem AvailableChain.V2.D.Engine.read_length_mono 437a4ac054322858
+theorem AvailableChain.V2.D.Engine.tick_index_lt_delivery 01b9e8e5bf9d1a70
+theorem AvailableChain.V2.D.Engine.readAt_eq_stateBefore cc225b2ecbbd7d32
+theorem AvailableChain.V2.D.Engine.stateBefore_other_node 695952512d88999d
+theorem AvailableChain.V2.D.Engine.stateBefore_tick_eq_stateBeforeTime e6356bea44258b6e
+```
+
+### `AvailableChainKitV2.DutyRecord`
+
+```text
+def AvailableChain.V2.D.Engine.ownReleasedAt 5d93fcd9116932a1
+def AvailableChain.V2.D.Engine.ownReleased 8e95a495b218f7df
+theorem AvailableChain.V2.D.Engine.ownReleasedAt_def 446ea4db917debf9
+theorem AvailableChain.V2.D.Engine.ownReleased_def c3a755ca388d2266
+theorem AvailableChain.V2.D.Engine.ownReleased_self fc8f525878bdcd3e
+theorem AvailableChain.V2.D.Engine.ownReleased_succ dbb5de8b607d64fb
+theorem AvailableChain.V2.D.Engine.ownRecord_fold_interval bdedbac7de227b1b
+theorem AvailableChain.V2.D.Engine.ownRecord_fold 4c18d9267d374c45
+theorem AvailableChain.V2.D.Engine.ownRecord_fold_interval_restart ebb485d92d680fcd
+theorem AvailableChain.V2.D.Engine.ownRecord_fold_restore 9b736ddd6b040914
+```
+
+### `AvailableChainKitV2.DutyStable`
+
+```text
+theorem AvailableChain.V2.D.Engine.foldl_recordOwn_preserve 3dd40ab089116b78
+theorem AvailableChain.V2.D.Engine.tick_preserve 79780cb52f307185
+theorem AvailableChain.V2.D.Engine.recordOwn_preserve_of_base 8b0c114ce5e936a6
+theorem AvailableChain.V2.D.Engine.stateBefore_step_induction 0f5f32435b17620c
+theorem AvailableChain.V2.D.Engine.stateBefore_stable 74359fd20ef2eec6
+```
