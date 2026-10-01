@@ -1,7 +1,7 @@
 module
 public import AvailableChainFGSARun.Proofs.AC
 public import AvailableChainFGSARun.Proofs.Schedule
-public import AvailableChainGeneric.Proofs.AC.Transfer
+public import AvailableChainGeneric.Proofs.AC.Duty.Transfer
 public import AvailableChainGeneric.Proofs.Pure.BlockOrder
 public import AvailableChainFGSAProofs.Proofs.Shared.Channels
 
@@ -30,13 +30,13 @@ theorem fgsa_gate_of_coveringBatch (hs : V2.D.ScheduleWellFormed E rho)
     (hsupport : SA.releaseThreshold p.toParams ≤
       SA.prefixSupport p.toParams ((fgsaAC E rho).gateView i x s) s D)
     (hlevel : SA.releaseThreshold p.toParams ∈ (fgsaAC E rho).gateLevels i x s D) :
-    Gen.AC.GateService (fgsaAC E rho) i s x D := by
+    Gen.AC.Duty.GateService (fgsaAC E rho) i s x D := by
   have hf : (fgsaAC E rho).saved i x s = none := fgsa_gate_fresh E rho hs ht
   rcases (fgsaAC_gate_write E rho i s x ht).effects with hskip | hrun
   · obtain ⟨⟨result, hr⟩, _⟩ := hskip
     rw [hf] at hr
     cases hr
-  · exact Gen.AC.gate_of_coveringBatch (fgsaAC E rho) i s x D
+  · exact Gen.AC.Duty.gate_of_coveringBatch (fgsaAC E rho) i s x D
       (fun C hC hg => (hrun.accept C hC hg).2) hcover hguard hne hmem hsupport hlevel
 
 /-- G32 exact service. The old output has no strict extension of X. -/
@@ -57,7 +57,7 @@ theorem fgsa_S_eq_of_exact (hs : V2.D.ScheduleWellFormed E rho)
   · obtain ⟨⟨result, hr⟩, _⟩ := hskip
     rw [hf] at hr
     cases hr
-  · exact Gen.AC.S_eq_of_exact (fgsaAC E rho) i s x X
+  · exact Gen.AC.Duty.S_eq_of_exact (fgsaAC E rho) i s x X
       (fun hr hg => (hrun.accept X hr hg).1) hraw hguard hold hanchor
       (fgsaAC_lease_le_output E rho (i + 1) x hx)
 

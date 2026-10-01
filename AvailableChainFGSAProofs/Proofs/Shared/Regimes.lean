@@ -13,14 +13,14 @@ public section
 namespace AvailableChain.FGSA.Run
 
 open Gen.Pure
-open Gen.V2 (faulty faulty_def awakeHonest awakeHonest_def SeedAt SeedAt_def)
+open Gen.V2.Duty (faulty faulty_def awakeHonest awakeHonest_def SeedAt SeedAt_def)
 variable {p : Params} {In V : Type} {c : AppCodec In} [DecidableEq V] [Fintype V]
 variable {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
 
 omit [DecidableEq V] in
 theorem card_eq_n_of_linked (hL : V2.D.Linked (fgsaFamilies p c).linked rho) :
     Fintype.card V = p.n :=
-  (V2.D.CStar.seats_eq (ℓ := .base (.fg 0)) hL.toCStar trivial).symm
+  (V2.D.CStar.seats_eq (ℓ := .base .fg) hL.toCStar trivial).symm
 
 private theorem fgsa_honest_card (hL : V2.D.Linked (fgsaFamilies p c).linked rho) :
     rho.honest.card = p.n - (faulty rho).card := by
@@ -99,18 +99,18 @@ theorem fgsa_clean_delivery_iff (hS : V2.D.ScheduleWellFormed E rho) (hG : E.t_G
     constructor
     · intro v hv o t he w hw
       rw [emitTime v o t he]
-      exact h.broadcast v hv o t he w hw
+      exact h.broadcast_emitted v hv o t he w hw
     · intro v hv i o t ha w hw
       rw [acceptTime i v o t ha]
-      exact h.relay v hv i o t ha w hw
+      exact h.relay_accepted v hv i o t ha w hw
   · intro h
     constructor
     · intro v hv o t he w hw
-      have hb := h.broadcast v hv o t he w hw
+      have hb := h.broadcast_emitted v hv o t he w hw
       rw [emitTime v o t he] at hb
       exact hb
     · intro v hv i o t ha w hw
-      have hr := h.relay v hv i o t ha w hw
+      have hr := h.relay_accepted v hv i o t ha w hw
       rw [acceptTime i v o t ha] at hr
       exact hr
 

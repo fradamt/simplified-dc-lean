@@ -181,7 +181,7 @@ theorem exactService_fastWrite_of_gateService
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) (i : Nat) (x : V) (s : Slot) (Q : Block)
     (ht : IsGateTick p c rho i x s)
-    (hservice : Gen.AC.GateService (fgsaAC E rho) i s x Q) :
+    (hservice : Gen.AC.Duty.GateService (fgsaAC E rho) i s x Q) :
     Q ∈ (fastWriteAt (((fgsa p c).clock (V2.D.Run.stateBefore E rho i x)
       (SA.gateTime p.toParams s)).st) s).getD [] := by
   let nd := V2.D.Run.stateBefore E rho i x
@@ -247,7 +247,7 @@ theorem exactService_opening_of_gateService
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) (i : Nat) (x : V) (r : Nat) (Q : Block)
     (ht : rho.events[i]? = some (.tick x (p.actionTime r)))
-    (hservice : Gen.AC.GateService (fgsaAC E rho) i (r * p.R) x Q)
+    (hservice : Gen.AC.Duty.GateService (fgsaAC E rho) i (r * p.R) x Q)
     (hout : (fgsaAC E rho).output (i + 1) x = Q)
     (hdom : ∃ D, eraseFG D = Q ∧
       D ∈ domainR p (((fgsa p c).clock (V2.D.Run.stateBefore E rho i x) (p.actionTime r)).st)

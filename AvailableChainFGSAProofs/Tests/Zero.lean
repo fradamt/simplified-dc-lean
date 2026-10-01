@@ -79,12 +79,12 @@ private theorem base0 : Base₂ p4 unitCodec env0 rho0 where
   delta := rfl
 
 private theorem healthy0 : V2.D.HealthyPrefixDelivery env0 rho0 0 where
-  broadcast := by
+  broadcast_emitted := by
     rintro v _ o t ⟨i, hi, _⟩ w _ hd _
     have ht : 0 ≤ t := (schedule0.in_horizon _ (List.mem_of_getElem? hi)).1
     change t + 1 ≤ 0 at hd
     exact (not_le_of_gt (lt_add_of_le_of_pos ht (by decide)) hd).elim
-  relay := by
+  relay_accepted := by
     rintro v _ i o t ⟨⟨o', hi, _⟩, _⟩
     exact (noDelivery0 i v o' t hi).elim
 
