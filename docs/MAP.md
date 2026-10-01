@@ -1416,6 +1416,8 @@ unused imports, and negative controls. No baseline entries were added.
 │ .lean                                           │                                     │
 │ AvailableChainFGSAProofs/Proofs/Shared/ScoreRun │ G25 scores; G11 suffix and regimes  │
 │ .lean                                           │                                     │
+│ AvailableChainFGSAProofs/Proofs/Shared/         │ Active HEAD receipts                │
+│ GateReceipt.lean                                │                                     │
 │ AvailableChainFGSAProofs/Proofs/Clean/Closure   │ Inclusive history and source reads  │
 │ AvailableChainFGSAProofs/Proofs/Clean/GateOutput │ Conditional gate result below S    │
 │ .lean                                           │                                     │

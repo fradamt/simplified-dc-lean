@@ -1,4 +1,6 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.Regimes -- shake: keep (gate regime audit)
+public import AvailableChainFGSAProofs.Proofs.Shared.GateReceipt -- shake: keep (gate receipt audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.ScoreRun -- shake: keep (G25 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.OpeningSource -- shake: keep (F1b.9 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.KeepExact -- shake: keep (F1b.8 axiom audit)
@@ -518,3 +520,9 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_ghost_transfer_sfx_on_run
 #print axioms AvailableChain.FGSA.Run.fgsa_ghost_transfer_sfx_on_clean
 #print axioms AvailableChain.FGSA.Run.fgsa_ghost_transfer_sfx_on_recovery
+#print axioms AvailableChain.FGSA.Run.fgsa_gateReceipt_stamps
+#print axioms AvailableChain.FGSA.Run.fgsa_gateReceipt_block_stamp_lt
+#print axioms AvailableChain.FGSA.Run.fgsa_gateReceipt_block_to_tick
+#print axioms AvailableChain.FGSA.Run.fgsa_gateReceipt
+#print axioms AvailableChain.FGSA.Run.fgsa_gateReceipt_clean
+#print axioms AvailableChain.FGSA.Run.fgsa_gateReceipt_recovery
