@@ -55,6 +55,7 @@ public import AvailableChainGeneric.Proofs.AC.Output
 public import AvailableChainGeneric.Proofs.AC.Lease
 public import AvailableChainGeneric.Proofs.AC.History
 public import AvailableChainGeneric.Proofs.AC.Transfer
+public import AvailableChainGeneric.Proofs.AC.Duty.Transfer
 public import AvailableChainGeneric.Proofs.AC.Votes
 public import AvailableChainGeneric.Statements.AC.Support
 public import AvailableChainGeneric.Statements.Pure.HonestCount
@@ -743,3 +744,7 @@ theorem, in facade order. The library globs build this test module. -/
 #print axioms AvailableChain.Gen.Pure.bestAncestry_restrict
 #print axioms AvailableChain.Gen.Pure.bestAncestry_concat
 #print axioms AvailableChain.Gen.Pure.bestAncestry_of_dominatedSuffix
+#print axioms AvailableChain.Gen.AC.Duty.gate_of_coveringBatch_statement
+#print axioms AvailableChain.Gen.AC.Duty.S_eq_of_exact_statement
+#print axioms AvailableChain.Gen.AC.Duty.gate_of_coveringBatch
+#print axioms AvailableChain.Gen.AC.Duty.S_eq_of_exact

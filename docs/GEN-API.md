@@ -842,3 +842,77 @@ def AvailableChain.Gen.V2.Duty.SlashingInterface.slashes 271674c5cc2fa491
 def AvailableChain.Gen.V2.Duty.HonestNeverSlashed b9b28b7e4a7eef19
 theorem AvailableChain.Gen.V2.Duty.HonestNeverSlashed_def 6733fb0d1ab3ea67
 ```
+
+### `AvailableChainGeneric.Statements.AC.Duty.Reads`
+
+```text
+structure AvailableChain.Gen.AC.Duty.ACReads d10cd3537841566e
+ctor AvailableChain.Gen.AC.Duty.ACReads.mk e5d4d63e1795afaa
+def AvailableChain.Gen.AC.Duty.ACReads.I bf6da0c4820b50de
+def AvailableChain.Gen.AC.Duty.ACReads.prm da0609b8481cd748
+def AvailableChain.Gen.AC.Duty.ACReads.output 210109a3bdb01234
+def AvailableChain.Gen.AC.Duty.ACReads.anchor 01f7a57dc6e53b38
+def AvailableChain.Gen.AC.Duty.ACReads.head 7bfb0c6ab51eecfa
+def AvailableChain.Gen.AC.Duty.ACReads.parent 546992b1444e5dc9
+def AvailableChain.Gen.AC.Duty.ACReads.raw e1b1ae10d4d1d2dd
+def AvailableChain.Gen.AC.Duty.ACReads.leases d947746719bab60e
+def AvailableChain.Gen.AC.Duty.ACReads.fast f6abf11c31f06bc8
+def AvailableChain.Gen.AC.Duty.ACReads.now ce536a63cc3c4858
+def AvailableChain.Gen.AC.Duty.ACReads.activeView 72c82c3a3cde7ab2
+def AvailableChain.Gen.AC.Duty.ACReads.admissionLevels 43cb187006b2075d
+def AvailableChain.Gen.AC.Duty.LeaseBelowOutput 2f55b2c529f7a4a8
+theorem AvailableChain.Gen.AC.Duty.LeaseBelowOutput_def 07c0a2605fc6e820
+def AvailableChain.Gen.AC.Duty.ACReads.saved 45892d65f1c2118b
+theorem AvailableChain.Gen.AC.Duty.ACReads.saved_def 0f5bb60e5d3071cb
+def AvailableChain.Gen.AC.Duty.ACReads.gateView 74aa1e4f8b6d9a58
+theorem AvailableChain.Gen.AC.Duty.ACReads.gateView_def f7573a948861b31d
+def AvailableChain.Gen.AC.Duty.ACReads.gateLevels 65fc83f3b1e02f98
+theorem AvailableChain.Gen.AC.Duty.ACReads.gateLevels_def b82190eade2673ff
+def AvailableChain.Gen.AC.Duty.ACReads.gatePrefixes 002de0e5c9dbd288
+theorem AvailableChain.Gen.AC.Duty.ACReads.gatePrefixes_def 4790f80bbf1d7387
+def AvailableChain.Gen.AC.Duty.ACReads.gateLeases f76aa223656302a0
+theorem AvailableChain.Gen.AC.Duty.ACReads.gateLeases_def fc49ef25d3ebb609
+def AvailableChain.Gen.AC.Duty.ACReads.gateFast 4a08b0e0e3029f52
+theorem AvailableChain.Gen.AC.Duty.ACReads.gateFast_def 1556918e7cc3fbe7
+def AvailableChain.Gen.AC.Duty.GateWrite 6a164e7216cb2164
+theorem AvailableChain.Gen.AC.Duty.GateWrite_def e4cde10dbbe02dee
+def AvailableChain.Gen.AC.Duty.Reconcile 4654dadf3c715da0
+theorem AvailableChain.Gen.AC.Duty.Reconcile_def 64773d9e8bf989fb
+structure AvailableChain.Gen.AC.Duty.GateRunSpec decde427f6c1e310
+ctor AvailableChain.Gen.AC.Duty.GateRunSpec.mk 1d671b4853162d1c
+theorem AvailableChain.Gen.AC.Duty.GateRunSpec.empty 3a45c2e46f21795a
+theorem AvailableChain.Gen.AC.Duty.GateRunSpec.veto b13691d7e90e7010
+theorem AvailableChain.Gen.AC.Duty.GateRunSpec.accept 243fd36285e137e7
+structure AvailableChain.Gen.AC.Duty.GateWriteAtSpec 4dbcc35af135ec30
+ctor AvailableChain.Gen.AC.Duty.GateWriteAtSpec.mk 951b6839e7232264
+theorem AvailableChain.Gen.AC.Duty.GateWriteAtSpec.view_output 06bed9ea9c46d43a
+theorem AvailableChain.Gen.AC.Duty.GateWriteAtSpec.view_leases f1d6f938436e67bf
+theorem AvailableChain.Gen.AC.Duty.GateWriteAtSpec.view_now ec9433ebebdd13a6
+theorem AvailableChain.Gen.AC.Duty.GateWriteAtSpec.anchor_eq 002659d9b20594b9
+theorem AvailableChain.Gen.AC.Duty.GateWriteAtSpec.raw_eq 0953edf8299ee8a3
+theorem AvailableChain.Gen.AC.Duty.GateWriteAtSpec.saved_other cc2b978c277447d6
+theorem AvailableChain.Gen.AC.Duty.GateWriteAtSpec.saved a0d42a538fbb9a34
+theorem AvailableChain.Gen.AC.Duty.GateWriteAtSpec.fresh 37012e482a281ee5
+theorem AvailableChain.Gen.AC.Duty.GateWriteAtSpec.effects 854205e10a9627e4
+def AvailableChain.Gen.AC.Duty.GateWriteSpec 1795b85b6559bfbf
+theorem AvailableChain.Gen.AC.Duty.GateWriteSpec_def 4add4d9cbd2b1689
+structure AvailableChain.Gen.AC.Duty.ACLaws a84a020c40b4e655
+ctor AvailableChain.Gen.AC.Duty.ACLaws.mk d0ea4fae9f3dd0f5
+theorem AvailableChain.Gen.AC.Duty.ACLaws.anchor_le_output d907efa85b79ab7c
+theorem AvailableChain.Gen.AC.Duty.ACLaws.lease_le_output 47c3f0fd72f16a40
+theorem AvailableChain.Gen.AC.Duty.ACLaws.output_step 0374fec2dc3465bb
+theorem AvailableChain.Gen.AC.Duty.ACLaws.gate_write 8bc8aa98da8a6afb
+def AvailableChain.Gen.AC.Duty.GateWriteOfScheduleWellFormedStatement d9a34458dfc82bc5
+theorem AvailableChain.Gen.AC.Duty.GateWriteOfScheduleWellFormedStatement_def 8c221a63788b69c4
+```
+
+### `AvailableChainGeneric.Statements.AC.Duty.Transfer`
+
+```text
+def AvailableChain.Gen.AC.Duty.GateService bd0d26835b0d56aa
+theorem AvailableChain.Gen.AC.Duty.GateService_def f3a84a752cd21e27
+def AvailableChain.Gen.AC.Duty.GateOfCoveringBatchStatement be49196b9dc201c3
+theorem AvailableChain.Gen.AC.Duty.GateOfCoveringBatchStatement_def b6b05fa53faa17f7
+def AvailableChain.Gen.AC.Duty.SEqOfExactStatement 334e445ca9a3769f
+theorem AvailableChain.Gen.AC.Duty.SEqOfExactStatement_def fb6435d121703333
+```

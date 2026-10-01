@@ -31,6 +31,8 @@ public import AvailableChainGeneric.Statements.AC.Lease
 public import AvailableChainGeneric.Statements.AC.LeaseWindow
 public import AvailableChainGeneric.Statements.AC.History
 public import AvailableChainGeneric.Statements.AC.Transfer
+public import AvailableChainGeneric.Statements.AC.Duty.Reads
+public import AvailableChainGeneric.Statements.AC.Duty.Transfer
 public import AvailableChainGeneric.Statements.AC.Votes
 public import AvailableChainGeneric.Statements.AC.Support
 public import AvailableChainGeneric.Statements.Pure.HonestCount
@@ -56,6 +58,7 @@ public import AvailableChainGeneric.Proofs.AC.Output
 public import AvailableChainGeneric.Proofs.AC.Lease
 public import AvailableChainGeneric.Proofs.AC.History
 public import AvailableChainGeneric.Proofs.AC.Transfer
+public import AvailableChainGeneric.Proofs.AC.Duty.Transfer
 public import AvailableChainGeneric.Proofs.AC.Votes
 public import AvailableChainGeneric.Proofs.AC.Support
 public import AvailableChainGeneric.Proofs.Pure.HonestCount
