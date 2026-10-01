@@ -46,7 +46,7 @@ theorem false_vacuous (dl : Time → Time) (cut : Time) :
 theorem family_mono {Q Q' : P.Object → Prop} {dl : Time → Time} {cut : Time}
     (h : DeliveryWithinOn E rho Q dl cut) (hQ : ∀ o, Q' o → Q o) :
     DeliveryWithinOn E rho Q' dl cut :=
-  DeliveryWithinOn.restrict E rho h hQ
+  DeliveryWithinOn.of_subfamily E rho h hQ
 
 theorem sync_bridge (Q : P.Object → Prop) (vt dt : Time) (h : LabelSync E rho vt dt) :
     LabelSyncOn E rho Q vt dt := labelSync_to_on E rho Q vt dt h

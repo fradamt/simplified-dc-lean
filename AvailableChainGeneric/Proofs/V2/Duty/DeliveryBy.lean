@@ -58,7 +58,7 @@ theorem DeliveryWithinOn_mono_statement : DeliveryWithinOnMonoStatement := by
     fun v hv i o ho t => h.relay v hv i o (hQ o ho) t⟩
 
 set_option linter.unusedVariables false in
-theorem DeliveryWithinOn.restrict :
+theorem DeliveryWithinOn.of_subfamily :
   ∀ {V : Type} [DecidableEq V] {In : Type} {P : ProtocolSpecD In}
     (E : Generic.Env V) (rho : D.Run V P),
   ∀ {Q Q' : P.Object → Prop} {dl : Time → Time} {cut : Time},
@@ -69,7 +69,7 @@ theorem DeliveryWithinOn.restrict :
 theorem labelSync_to_on_statement : LabelSyncToOnStatement := by
   intro V _ In P E rho Q vt dt h
   rcases h with ⟨dl, cut, hD, hrest⟩
-  exact ⟨dl, cut, DeliveryWithinOn.restrict E rho
+  exact ⟨dl, cut, DeliveryWithinOn.of_subfamily E rho
     ((deliveryWithin_iff_on_true E rho dl cut).1 hD) (fun _ _ => trivial), hrest⟩
 
 set_option linter.unusedVariables false in

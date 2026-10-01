@@ -752,7 +752,7 @@ theorem, in facade order. The library globs build this test module. -/
 #print axioms AvailableChain.Gen.V2.Duty.deliveryWithin_iff_on_true
 #print axioms AvailableChain.Gen.V2.Duty.DeliveryWithinOnMonoStatement_def
 #print axioms AvailableChain.Gen.V2.Duty.DeliveryWithinOn_mono_statement
-#print axioms AvailableChain.Gen.V2.Duty.DeliveryWithinOn.restrict
+#print axioms AvailableChain.Gen.V2.Duty.DeliveryWithinOn.of_subfamily
 #print axioms AvailableChain.Gen.V2.Duty.LabelSyncToOnStatement_def
 #print axioms AvailableChain.Gen.V2.Duty.labelSync_to_on_statement
 #print axioms AvailableChain.Gen.V2.Duty.labelSync_to_on
