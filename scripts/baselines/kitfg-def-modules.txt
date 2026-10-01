@@ -10,3 +10,5 @@ RowBitsDef
 RecordHighDef
 ClientOnce
 RecordHighOnceDef
+HeightCoreDef
+HeightLawsDef
