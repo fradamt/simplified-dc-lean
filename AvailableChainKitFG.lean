@@ -44,6 +44,9 @@ public import AvailableChainKitFG.HeightHistoryTransfer
 public import AvailableChainKitFG.CertificateCoreDef
 public import AvailableChainKitFG.CertificateSelectionDef
 public import AvailableChainKitFG.StoreSafetyDef
+public import AvailableChainKitFG.CertificateSimplexDef
+public import AvailableChainKitFG.CertificateSimplex
+public import AvailableChainKitFG.AccountableCore
 
 @[expose] public section
 end

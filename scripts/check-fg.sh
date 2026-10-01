@@ -55,7 +55,35 @@ lake env lean --run scripts/CheckFGAxioms.lean --expect \
   crossing_honest_matching_row_of_bridge \
   justification_eq_on_plateau_of_bridge \
   height_occurrence_keys_of_bridge \
-  height_occurrence_keys finality_occurrence_history
+  height_occurrence_keys finality_occurrence_history \
+  simplexPending_def simplexSelectionView_def simplex_finalized_mono \
+  simplex_justification_birth_interval simplex_prefinal_entry_origin \
+  simplex_finality_origin simplexCertificateLaws simplexSelectionLaws simplexChainCertificate \
+  finalized_preceq_chain_of_certificate \
+  finalized_below_height_of_certificate \
+  finality_certificate_of_certificate \
+  justification_certificate_rows_of_certificate \
+  slashableWeight_or_justified_eq_of_certificate \
+  uniqueJust_chains_of_certificate \
+  e1Weight_or_finalized_preceq_of_certificate \
+  finalLock_e1_of_certificate \
+  slashableWeight_or_finalized_preceq_of_certificate \
+  finalLock_of_certificate \
+  e1Weight_or_finalized_compatible_of_le_of_certificate \
+  accountable_oriented_of_certificate \
+  slashableWeight_or_finalized_compatible_of_certificate \
+  accountable_of_certificate \
+  justification_certificate_rows_simplex_certificate \
+  slashableWeight_or_justified_eq_simplex_certificate \
+  uniqueJust_chains_simplex_certificate \
+  e1Weight_or_finalized_preceq_simplex_certificate \
+  finalLock_e1_simplex_certificate \
+  slashableWeight_or_finalized_preceq_simplex_certificate \
+  finalLock_simplex_certificate \
+  e1Weight_or_finalized_compatible_of_le_simplex_certificate \
+  accountable_oriented_simplex_certificate \
+  slashableWeight_or_finalized_compatible_simplex_certificate \
+  accountable_simplex_certificate
 step "scripts/FGPinIds.lean --check-names"
 lake env lean --run scripts/FGPinIds.lean --check-names
 step "scripts/check-fg-pins.sh"
