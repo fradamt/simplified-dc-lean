@@ -56,6 +56,16 @@ public import AvailableChainGeneric.Statements.AC.Support
 public import AvailableChainGeneric.Statements.Pure.HonestCount
 public import AvailableChainGeneric.Proofs.AC.Support
 public import AvailableChainGeneric.Proofs.Pure.HonestCount
+public import AvailableChainGeneric.Statements.Pure.OpeningAfterGate
+public import AvailableChainGeneric.Proofs.Pure.OpeningAfterGate
+public import AvailableChainGeneric.Statements.Pure.StageStops
+public import AvailableChainGeneric.Proofs.Pure.StageStops
+public import AvailableChainGeneric.Statements.Pure.AdditiveStages
+public import AvailableChainGeneric.Proofs.Pure.AdditiveStages
+public import AvailableChainGeneric.Statements.Pure.PeriodicStages
+public import AvailableChainGeneric.Proofs.Pure.PeriodicStages
+public import AvailableChainGeneric.Statements.Pure.HeadAfterSettlement
+public import AvailableChainGeneric.Proofs.Pure.HeadAfterSettlement
 
 -- A4 support and honest-origin count contracts and proofs.
 #print axioms AvailableChain.Gen.AC.GoldfishScoreAntitoneStatement_def
@@ -557,3 +567,26 @@ theorem, in facade order. The library globs build this test module. -/
 #print axioms AvailableChain.Gen.Pure.chain_search
 #print axioms AvailableChain.Gen.Pure.chain_search_of_antitone_guard
 #print axioms AvailableChain.Gen.Pure.chain_search_qf4
+
+-- Wave D2: every new public definition and theorem.
+#print axioms AvailableChain.Gen.Pure.FirstOpeningAfterGateStatement
+#print axioms AvailableChain.Gen.Pure.FirstOpeningAfterGateStatement_def
+#print axioms AvailableChain.Gen.Pure.StageOrStopStatement
+#print axioms AvailableChain.Gen.Pure.StageOrStopStatement_def
+#print axioms AvailableChain.Gen.Pure.ComposeStagesAddStatement
+#print axioms AvailableChain.Gen.Pure.ComposeStagesAddStatement_def
+#print axioms AvailableChain.Gen.Pure.OrderedStagesAddBoundStatement
+#print axioms AvailableChain.Gen.Pure.OrderedStagesAddBoundStatement_def
+#print axioms AvailableChain.Gen.Pure.PeriodicShiftStatement
+#print axioms AvailableChain.Gen.Pure.PeriodicShiftStatement_def
+#print axioms AvailableChain.Gen.Pure.FirstHeadAfterStatement
+#print axioms AvailableChain.Gen.Pure.FirstHeadAfterStatement_def
+#print axioms AvailableChain.Gen.Pure.FirstHeadAfterBoundStatement
+#print axioms AvailableChain.Gen.Pure.FirstHeadAfterBoundStatement_def
+#print axioms AvailableChain.Gen.Pure.firstOpening_after_gate
+#print axioms AvailableChain.Gen.Pure.stage_or_stop
+#print axioms AvailableChain.Gen.Pure.compose_stages_add
+#print axioms AvailableChain.Gen.Pure.compose_stages_add_bound
+#print axioms AvailableChain.Gen.Pure.periodic_shift
+#print axioms AvailableChain.Gen.Pure.firstHead_after
+#print axioms AvailableChain.Gen.Pure.firstHead_after_bound

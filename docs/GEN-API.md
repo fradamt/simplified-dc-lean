@@ -642,3 +642,42 @@ def AvailableChain.Gen.Pure.ProductOrderedStageFoldStatement b4138089e7b45b6f
 theorem AvailableChain.Gen.Pure.ProductOrderedStageFoldStatement_def ee18132438625dfa
 ```
 
+
+### `AvailableChainGeneric.Statements.Pure.AdditiveStages`
+
+```text
+def AvailableChain.Gen.Pure.ComposeStagesAddStatement 9c1a51577d38680c
+theorem AvailableChain.Gen.Pure.ComposeStagesAddStatement_def 58889a91c2e5817c
+def AvailableChain.Gen.Pure.OrderedStagesAddBoundStatement e316921ca948ebf8
+theorem AvailableChain.Gen.Pure.OrderedStagesAddBoundStatement_def bfb52ab06fc8d12c
+```
+
+### `AvailableChainGeneric.Statements.Pure.HeadAfterSettlement`
+
+```text
+def AvailableChain.Gen.Pure.FirstHeadAfterStatement b2e3a704037d1e09
+theorem AvailableChain.Gen.Pure.FirstHeadAfterStatement_def bdfc5bab9b356a0d
+def AvailableChain.Gen.Pure.FirstHeadAfterBoundStatement 87dcbd505791b4c5
+theorem AvailableChain.Gen.Pure.FirstHeadAfterBoundStatement_def 49a94a460d37e180
+```
+
+### `AvailableChainGeneric.Statements.Pure.OpeningAfterGate`
+
+```text
+def AvailableChain.Gen.Pure.FirstOpeningAfterGateStatement e54d3f77916f9072
+theorem AvailableChain.Gen.Pure.FirstOpeningAfterGateStatement_def 826adcbec5d6c494
+```
+
+### `AvailableChainGeneric.Statements.Pure.PeriodicStages`
+
+```text
+def AvailableChain.Gen.Pure.PeriodicShiftStatement 666bd911ad40142b
+theorem AvailableChain.Gen.Pure.PeriodicShiftStatement_def e4c664f33169ce54
+```
+
+### `AvailableChainGeneric.Statements.Pure.StageStops`
+
+```text
+def AvailableChain.Gen.Pure.StageOrStopStatement 76fcaf283fdddd19
+theorem AvailableChain.Gen.Pure.StageOrStopStatement_def 0e72e073136c9507
+```

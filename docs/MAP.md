@@ -1637,3 +1637,30 @@ Paths omit `AvailableChainGeneric/` and `.lean`.
 │ Tests/DCProps         │ Closed endpoints, empty intervals, and source time │
 └───────────────────────┴────────────────────────────────────────────────────┘
 ```
+
+## Gen wave D2 (2026-10-01)
+
+`Gen/` means `AvailableChainGeneric/`. `FGSA/` means
+`AvailableChainFGSAProofs/Proofs/`. Paths omit `.lean`.
+
+```text
+┌─────────────────────────────────────────┬──────────────────────────────────────────────┐
+│ Module                                  │ Contract or proof                            │
+├─────────────────────────────────────────┼──────────────────────────────────────────────┤
+│ Gen/Statements/Pure/OpeningAfterGate    │ Inclusive gate-grid delay                    │
+│ Gen/Proofs/Pure/OpeningAfterGate        │ Inclusive gate-grid delay                    │
+│ Gen/Statements/Pure/StageStops          │ Three tagged stops or terminal stage         │
+│ Gen/Proofs/Pure/StageStops              │ Three tagged stops or terminal stage         │
+│ Gen/Statements/Pure/AdditiveStages      │ Full sum and ordered additive bound          │
+│ Gen/Proofs/Pure/AdditiveStages          │ Full sum and ordered additive bound          │
+│ Gen/Statements/Pure/PeriodicStages      │ Elapsed fold at an Int residue               │
+│ Gen/Proofs/Pure/PeriodicStages          │ Elapsed fold at an Int residue               │
+│ Gen/Statements/Pure/HeadAfterSettlement │ Settlement ceiling and upper-cut bound       │
+│ Gen/Proofs/Pure/HeadAfterSettlement     │ Settlement ceiling and upper-cut bound       │
+│ FGSA/Shared/OpeningAfterGate            │ Action and gate bound bridge                 │
+│ FGSA/Shared/HeadAfterSettlement         │ Vote and proposal ceiling bridges            │
+│ FGSA/Healing/AdditiveStageBounds        │ Existing reset-budget sum bridge             │
+│ FGSA/Healing/PeriodicStageBounds        │ Canonical action-time residue bridge         │
+│ Gen/Tests/WaveD2                        │ Zero, equality, skip, tag and negative cases │
+└─────────────────────────────────────────┴──────────────────────────────────────────────┘
+```

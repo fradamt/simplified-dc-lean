@@ -39,3 +39,7 @@ public import AvailableChainFGSAProofs.Proofs.Clean.Transfer
 public import AvailableChainFGSAProofs.Proofs.Clean.Zero
 public import AvailableChainFGSAProofs.Proofs.Clean.Safety
 public import AvailableChainFGSAProofs.Proofs.Assembly.Clean
+public import AvailableChainFGSAProofs.Proofs.Shared.OpeningAfterGate
+public import AvailableChainFGSAProofs.Proofs.Shared.HeadAfterSettlement
+public import AvailableChainFGSAProofs.Proofs.Healing.AdditiveStageBounds
+public import AvailableChainFGSAProofs.Proofs.Healing.PeriodicStageBounds

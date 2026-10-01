@@ -59,6 +59,16 @@ public import AvailableChainGeneric.Proofs.AC.Transfer
 public import AvailableChainGeneric.Proofs.AC.Votes
 public import AvailableChainGeneric.Proofs.AC.Support
 public import AvailableChainGeneric.Proofs.Pure.HonestCount
+public import AvailableChainGeneric.Statements.Pure.OpeningAfterGate
+public import AvailableChainGeneric.Proofs.Pure.OpeningAfterGate
+public import AvailableChainGeneric.Statements.Pure.StageStops
+public import AvailableChainGeneric.Proofs.Pure.StageStops
+public import AvailableChainGeneric.Statements.Pure.AdditiveStages
+public import AvailableChainGeneric.Proofs.Pure.AdditiveStages
+public import AvailableChainGeneric.Statements.Pure.PeriodicStages
+public import AvailableChainGeneric.Proofs.Pure.PeriodicStages
+public import AvailableChainGeneric.Statements.Pure.HeadAfterSettlement
+public import AvailableChainGeneric.Proofs.Pure.HeadAfterSettlement
 
 /-! Generic library (GLY A): the Pure, V2 and AC layers. The root does not
 import the modules under `Tests/`; the library globs build them. -/

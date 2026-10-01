@@ -24,6 +24,10 @@ public import AvailableChainFGSAProofs.Proofs.Shared.GridSchedule
 public import AvailableChainFGSAProofs.Proofs.Shared.Channels -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Recurrence -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads -- shake: keep (axiom audit commands)
+public import AvailableChainFGSAProofs.Proofs.Shared.OpeningAfterGate
+public import AvailableChainFGSAProofs.Proofs.Shared.HeadAfterSettlement
+public import AvailableChainFGSAProofs.Proofs.Healing.AdditiveStageBounds
+public import AvailableChainFGSAProofs.Proofs.Healing.PeriodicStageBounds
 
 public import AvailableChainFGSAProofs.Proofs.Clean.Chain -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.State -- shake: keep (axiom audit commands)
@@ -444,3 +448,10 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_grid_gate_after_carrier2
 #print axioms AvailableChain.FGSA.Run.fgsa_grid_action_delivery_bounds
 #print axioms AvailableChain.FGSA.Run.fgsa_grid_gate_action_order
+
+-- Wave D2: each compiled scalar bridge.
+#print axioms AvailableChain.FGSA.Run.fgsa_firstOpening_after_gate
+#print axioms AvailableChain.FGSA.Run.fgsa_firstHead_after
+#print axioms AvailableChain.FGSA.Run.fgsa_firstHead_after_bound
+#print axioms AvailableChain.FGSA.Run.fgsa_reset_stage_sum
+#print axioms AvailableChain.FGSA.Run.fgsa_action_time_residue
