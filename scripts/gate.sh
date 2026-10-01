@@ -3,7 +3,7 @@
 # The three check scripts run in parallel and share one GATE_SLOTS cap.
 # check-fgsa-claims.sh runs alone after them: its lake calls are not slot-capped
 # (NUC 2026-10-01: 282 s, peak 4.3 GiB; merge tier NEG=0 skips its compiled controls).
-# Defaults: Mac 3, Linux 4; env wins. JOBS is only a per-script pool bound.
+# Defaults: Mac 3, Linux 3 (scripts/gate-common.sh); env wins. JOBS is only a per-script pool bound.
 # Linux requires a user scope with GATE_MEM (default 16G) and no swap; without it the gate refuses to run.
 set -euo pipefail
 cd "$(dirname "$0")/.."
