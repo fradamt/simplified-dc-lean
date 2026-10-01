@@ -8,6 +8,7 @@ public import AvailableChainKitFG.ViewLockChains
 public import AvailableChainKitFG.TwoChanges
 public import AvailableChainKitFG.RowBits
 public import AvailableChainKitFG.RecordHigh
+public import AvailableChainKitFG.ClientOnceSafety
 
 /-! Kernel dependency audit for the FG chain lemmas without root premises. -/
 
@@ -50,3 +51,30 @@ public import AvailableChainKitFG.RecordHigh
 #print axioms AvailableChain.KitFG.NoHighContestStatement_def
 #print axioms AvailableChain.KitFG.recordHigh
 #print axioms AvailableChain.KitFG.noHighContest
+
+-- Send-once client: pure content, record safety, and restart laws.
+#print axioms AvailableChain.KitFG.onceSignedContent_eq_iff
+#print axioms AvailableChain.KitFG.onceKey_eq_iff_signedContent_eq
+#print axioms AvailableChain.KitFG.record_row_without_finality
+#print axioms AvailableChain.KitFG.record_row_optional_finality
+#print axioms AvailableChain.KitFG.createRowOnce_released
+#print axioms AvailableChain.KitFG.createRowOnce_none
+#print axioms AvailableChain.KitFG.createRowOnce_safe
+#print axioms AvailableChain.KitFG.createRowOnce_valid
+#print axioms AvailableChain.KitFG.createRowOnce_sent
+#print axioms AvailableChain.KitFG.createRowOnce_sameHeight
+#print axioms AvailableChain.KitFG.clientRunOnce_covers
+#print axioms AvailableChain.KitFG.clientRunOnce_noSlash
+#print axioms AvailableChain.KitFG.clientRunOnce_fresh
+#print axioms AvailableChain.KitFG.clientRunOnce_keys_nodup
+#print axioms AvailableChain.KitFG.clientRecordOnce_sent
+#print axioms AvailableChain.KitFG.clientRecordOnce_append
+#print axioms AvailableChain.KitFG.clientRunOnce_append
+#print axioms AvailableChain.KitFG.record_row_once_signer_irrel
+#print axioms AvailableChain.KitFG.createRowOnce_signer_irrel
+#print axioms AvailableChain.KitFG.clientRunOnce_signedContent_nodup
+#print axioms AvailableChain.KitFG.recordInv_createRowOnce
+#print axioms AvailableChain.KitFG.recordExtends_createRowOnce
+#print axioms AvailableChain.KitFG.covers_createRowOnce
+#print axioms AvailableChain.KitFG.createRowOnce_noSelfSlash
+#print axioms AvailableChain.SimplexFG.createRowOnce_def
