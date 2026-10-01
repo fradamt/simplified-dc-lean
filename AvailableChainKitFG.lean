@@ -28,6 +28,7 @@ public import AvailableChainKitFG.RecordHighOnceDef
 public import AvailableChainKitFG.RecordHighOnce
 public import AvailableChainKitFG.RowHistory
 public import AvailableChainKitFG.HeightConsume
+public import AvailableChainKitFG.NoEarlyMixed
 
 @[expose] public section
 end

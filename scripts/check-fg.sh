@@ -33,7 +33,10 @@ lake env lean --run scripts/CheckFGAxioms.lean --expect \
   derive_target_of_cover derive_progress_of_cover \
   bit_process_iff bit_fold_iff bit_first_inclusion progress_first_inclusion \
   bit_first_inclusion_persist finality_match_before finality_first_inclusion_persist \
-  height_occurrence_keys finality_occurrence_history
+  height_occurrence_keys finality_occurrence_history \
+  no_mixed_cross_before_maturity first_height_crossing_edge \
+  crossing_honest_matching_row justification_eq_on_plateau \
+  bit_first_inclusion_persist finality_match_before finality_first_inclusion_persist
 step "scripts/FGPinIds.lean --check-names"
 lake env lean --run scripts/FGPinIds.lean --check-names
 step "scripts/check-fg-pins.sh"
