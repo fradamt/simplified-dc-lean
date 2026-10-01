@@ -102,11 +102,11 @@ theorem fgsa_attest_decode (st : State p.n) (Λ : RecordOnce) (j : Fin p.n)
 /-- An own-record write retains every previous sent content. -/
 theorem recordRow_sent_subset (Λ : RecordOnce) (o : Obj p) :
     Λ.sent ⊆ (recordRow? p Λ o).sent := by
-  unfold recordRow?
-  split
-  · intro key hk
-    exact List.mem_cons_of_mem _ hk
-  · exact List.Subset.refl _
+  obtain ⟨auth, payload⟩ := o
+  rcases auth with ⟨((_ | _) | _), _⟩ | _ <;> cases payload
+  all_goals first
+    | exact List.Subset.refl _
+    | exact fun _ hk => List.mem_cons_of_mem _ hk
 
 /-- A sequence of own-record writes retains previous sent content. -/
 theorem recordRow_fold_sent_subset (ls : List (Obj p)) (Λ : RecordOnce) :

@@ -504,7 +504,8 @@ theorem rowsValidStored_process (p : Params) (st : State p.n)
 /-- [R6] Clock changes cannot change stored parent content or carried rows. -/
 theorem rowsValidStored_clock (p : Params) (st : State p.n)
     (hv : RowsValidStored p st) (t : Time) : RowsValidStored p (clock p st t) := by
-  simpa only [RowsValidStored, fgBlockOf, clock_proposals, clock_fg] using hv
+  dsimp only [RowsValidStored, fgBlockOf] at hv ⊢
+  simpa only [clock_proposals, clock_fg] using hv
 
 /-- [R6] Every reachable store satisfies the separate stored-row obligation. -/
 theorem rowsValidStored_reachable (p : Params) {st : State p.n} (hr : Reachable p st) :

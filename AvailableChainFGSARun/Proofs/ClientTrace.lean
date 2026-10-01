@@ -103,8 +103,9 @@ private theorem client_append (j : Fin p.n)
 private theorem client_singleton (j : Fin p.n) (Λ : RecordOnce)
     (x : Option (FGBlock (Fin p.n)) × HeadFields) :
     clientRunOnce p.E p.cfg j Λ [x] = (createRowOnce p.E p.cfg Λ j x.1 x.2).1.toList := by
-  simp only [clientRunOnce]
-  cases (createRowOnce p.E p.cfg Λ j x.1 x.2).1 <;> rfl
+  rcases x with ⟨src, hd⟩
+  dsimp only [clientRunOnce]
+  cases (createRowOnce p.E p.cfg Λ j src hd).1 <;> rfl
 
 private theorem client_step (st : State p.n) (Λ : RecordOnce) (j : Fin p.n) :
     let rows := (attest p st Λ ⟨0, p.nPos⟩).1.toList.map
@@ -115,21 +116,19 @@ private theorem client_step (st : State p.n) (Λ : RecordOnce) (j : Fin p.n) :
       (createRowOnce p.E p.cfg Λ j (fgInputs p st).1 (fgInputs p st).2).1.toList := by
   dsimp only
   rw [attest_signer_irrel st Λ ⟨0, p.nPos⟩ j]
+  dsimp only [attest]
   cases ha : (createRowOnce p.E p.cfg Λ j (fgInputs p st).1 (fgInputs p st).2).1 with
   | none =>
       have hr := KitFG.createRowOnce_none p.E p.cfg Λ j (fgInputs p st).1 (fgInputs p st).2 ha
-      simp only [attest, ha, hr, Option.map_none, Option.toList_none, List.map_nil,
+      simp only [hr, Option.map_none, Option.toList_none, List.map_nil,
         List.foldl_nil, List.filterMap_nil, and_self]
   | some a =>
       obtain ⟨_, _, _, _, he, _, _, hr⟩ :=
         KitFG.createRowOnce_released p.E p.cfg Λ j (fgInputs p st).1 (fgInputs p st).2 ha
       subst a
-      simp only [attest, ha, hr, Option.map_some, Option.toList_some, List.map_cons,
-        List.map_nil, List.foldl_cons, List.foldl_nil, List.filterMap_cons,
-        List.filterMap_nil, recordRow?, ofRow, ofWire, ofAuth, decodeRowObject,
-        toWire, toAuth, RowWire.toRow?, RowWire.decode?, RowBody.ofRow, RowPayload.toRow,
-        RowPayload.height_pair, RowPayload.finality_pair]
-      exact ⟨rfl, trivial⟩
+      simp only [hr, Option.map_some, Option.toList_some, List.map_cons,
+        List.map_nil, List.foldl_cons, List.foldl_nil]
+      exact ⟨rfl, rfl⟩
 
 private theorem record_succ (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (v : V) (k : Nat) :
@@ -186,7 +185,13 @@ private theorem trace_and_record (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c
       List.filterMap_append, released_event E rho e he, hxs,
       List.foldl_append, client_append, ← ih.1, ih.2]
     cases hx : fgClientEvent p c E rho v k with
-    | none => simp [clientRunOnce]
+    | none =>
+      simp only [Option.toList_none, List.flatMap_nil, List.map_nil, List.foldl_nil,
+        List.filterMap_nil, List.append_nil]
+      have hnil : clientRunOnce p.E p.cfg (e.symm v)
+          (V2.D.Run.stateBefore E rho k v).record [] = [] := rfl
+      rw [hnil, List.append_nil]
+      exact ⟨trivial, rfl⟩
     | some ev =>
       have hi := event_input E rho v k ev hx
       simp only [Option.toList_some, List.flatMap_cons, List.flatMap_nil, List.append_nil,

@@ -280,17 +280,31 @@ theorem invalidForParent_mono (st st' : State p.n) (hsub : st.fg.TF ⊆ st'.fg.T
     (b : Block) (rows : List (RowWire p.n)) (h : invalidForParent p st b rows = true) :
     invalidForParent p st' b rows = true := by
   cases hP : parentFG st b with
-  | none => simp [invalidForParent, hP] at h
+  | none =>
+      change (match parentFG st b with
+        | none => false | some P => !rowsValidForParent p P b.slot rows) = true at h
+      simp only [hP, Bool.false_eq_true] at h
   | some P =>
       obtain ⟨hm, he⟩ := (parentFG_spec st (rootInj_all st) b P).mp hP
       have hP' := (parentFG_spec st' (rootInj_all st') b P).mpr ⟨hsub hm, he⟩
-      simpa only [invalidForParent, hP, hP'] using h
+      change (match parentFG st b with
+        | none => false | some P => !rowsValidForParent p P b.slot rows) = true at h
+      change (match parentFG st' b with
+        | none => false | some P => !rowsValidForParent p P b.slot rows) = true
+      simpa only [hP, hP'] using h
 
 /-- [R6] A clock cannot change the parent lookup or its derived state. -/
 theorem invalidForParent_clock (st : State p.n) (t : Time) (b : Block)
     (rows : List (RowWire p.n)) :
     invalidForParent p (FGSA.clock p st t) b rows = invalidForParent p st b rows := by
-  simp only [invalidForParent, parentFG, clock_fg]
+  have hP : parentFG (FGSA.clock p st t) b = parentFG st b := by
+    change pickPair (FGSA.clock p st t).fg.TF _ = pickPair st.fg.TF _
+    rw [clock_fg]
+  change (match parentFG (FGSA.clock p st t) b with
+    | none => false | some P => !rowsValidForParent p P b.slot rows) =
+    (match parentFG st b with
+    | none => false | some P => !rowsValidForParent p P b.slot rows)
+  rw [hP]
 
 /-- [R6] Invalidity causes refusal without writes. -/
 theorem admitBlock_of_invalidForParent (st : State p.n) (s : Slot) (b : Block)
@@ -298,10 +312,15 @@ theorem admitBlock_of_invalidForParent (st : State p.n) (s : Slot) (b : Block)
     (h : invalidForParent p st b rows = true) :
     admitBlock p st s b raw sup rows = st := by
   cases hP : parentFG st b with
-  | none => simp [invalidForParent, hP] at h
+  | none =>
+      change (match parentFG st b with
+        | none => false | some P => !rowsValidForParent p P b.slot rows) = true at h
+      simp only [hP, Bool.false_eq_true] at h
   | some P =>
       have hv : rowsValidForParent p P b.slot rows = false := by
-        simpa only [invalidForParent, hP, Bool.not_eq_true'] using h
+        change (match parentFG st b with
+          | none => false | some P => !rowsValidForParent p P b.slot rows) = true at h
+        simpa only [hP, Bool.not_eq_true'] using h
       exact admitBlock_invalid_rows p st s b raw sup rows P hP hv
 
 /-- [R6] A refused invalid proposal cannot call a carried object's handler. -/
@@ -311,7 +330,9 @@ theorem invalidForParent_no_carried (st : State p.n) (s : Slot) (b : Block)
     ¬ ∃ P, parentFG st b = some P ∧ blockAccepted p st s b P rows = true := by
   rintro ⟨P, hP, ha⟩
   have hv := blockAccepted_rowsValid ha
-  simp [invalidForParent, hP, hv] at h
+  change (match parentFG st b with
+    | none => false | some P => !rowsValidForParent p P b.slot rows) = true at h
+  simp only [hP, hv, Bool.not_true, Bool.false_eq_true] at h
 
 /-- The delivery of an excluded object does not change the store, at every
 store state. -/
@@ -530,22 +551,22 @@ theorem excludesFixed_of_vote (st : State p.n) {o : Obj p} {s : Slot} {i : Fin p
     (hd : (toWire p o).decode = some (.vote s i b)) :
     excludesFixed p st o = (!decide ((⟨.seat s i, .head b⟩ : GridCO.Wire p.n) ∈ st.base.votes) &&
       GridCO.equivocates (GridCO.votesAt st.base s) i) := by
-  unfold excludesFixed; rw [hd]; rfl
+  dsimp only [excludesFixed]; rw [hd]; rfl
 
 theorem excludesFixed_of_row (st : State p.n) {o : Obj p} {i : Fin p.n}
     {body : RowPayload} (hd : (toWire p o).decode = some (.row i body)) :
     excludesFixed p st o = false := by
-  unfold excludesFixed; rw [hd]
+  dsimp only [excludesFixed]; rw [hd]
 
 theorem excludesFixed_of_block (st : State p.n) {o : Obj p} {s : Slot} {b : Block}
     {raw sup : List (HeadWire p.n)} {rows : List (RowWire p.n)}
     (hd : (toWire p o).decode = some (.block s b raw sup rows)) :
     excludesFixed p st o = (blockExcluded st b || invalidForParent p st b rows) := by
-  unfold excludesFixed; rw [hd]
+  dsimp only [excludesFixed]; rw [hd]
 
 theorem excludesFixed_of_none (st : State p.n) {o : Obj p} (hd : (toWire p o).decode = none) :
     excludesFixed p st o = false := by
-  unfold excludesFixed; rw [hd]
+  dsimp only [excludesFixed]; rw [hd]
 
 /-- A clock-free exclusion is an exclusion. -/
 theorem excludesFixed_excludesS (st : State p.n) (o : Obj p) (h : excludesFixed p st o = true) :
@@ -586,7 +607,8 @@ theorem excludesFixed_process (st : State p.n) (w : Wire p.n) (o : Obj p)
 row pool and F. -/
 theorem excludesFixed_clock (st : State p.n) (t : Time) (o : Obj p) :
     excludesFixed p (FGSA.clock p st t) o = excludesFixed p st o := by
-  simp only [excludesFixed, GridCO.votesAt, (clock_vn st t).1,
+  dsimp only [excludesFixed]
+  simp only [GridCO.votesAt, (clock_vn st t).1,
     blockExcluded, activeCompatible, clock_F_eq, invalidForParent_clock]
 
 /-! ### One epoch -/

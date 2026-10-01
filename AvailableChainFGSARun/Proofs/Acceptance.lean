@@ -98,9 +98,12 @@ private theorem t77_row_partition (st : State p.n) (i : Fin p.n) (body : RowPayl
     let a : RowWire p.n := ⟨.seat .fg i, body⟩
     a ∈ (admitRow p st a).rowPool := by
   dsimp only
+  change (⟨.seat .fg i, body⟩ : RowWire p.n) ∈
+    (if (⟨.seat .fg i, body⟩ : RowWire p.n) ∈ st.rowPool then st
+      else { st with rowPool := st.rowPool ++ [⟨.seat .fg i, body⟩] }).rowPool
   by_cases hm : (⟨.seat .fg i, body⟩ : RowWire p.n) ∈ st.rowPool
-  · simpa only [admitRow, RowWire.decode?, ite_eq_left hm] using hm
-  · simp [admitRow, RowWire.decode?, hm]
+  · simpa only [ite_eq_left hm] using hm
+  · simp [hm]
 
 private theorem t77_grid_settled_fold (raw : List (GridCO.HeadWire p.n))
     (st : GridCO.State p.n) (w : GridCO.Wire p.n)
@@ -245,7 +248,12 @@ private theorem t77_self_accepts (nd : Node p) (o : Obj p) (hInv : CStoreInv p n
       · right
         apply excludesS_process nd.st (toWire p o) o
         rw [excludesS_of_block nd.st he]
-        simp [invalidForParent, hP, hv]
+        rw [Bool.or_eq_true]
+        right
+        change (match parentFG nd.st b with
+          | none => false | some P => !rowsValidForParent p P b.slot rows) = true
+        simp only [hP, Bool.not_eq_true', Bool.eq_false_iff]
+        exact hv
 
 /-- Every timely, ready handled object is processed or excluded after delivery. -/
 theorem fgsaAcceptance (p : Params) (c : AppCodec In) :

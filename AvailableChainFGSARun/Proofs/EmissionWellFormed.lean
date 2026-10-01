@@ -166,11 +166,13 @@ private theorem emission_attest_valid (st : State p.n) (Λ : RecordOnce) (j : Fi
   change (derive p.E p.cfg C).h = h at heh
   have hpos : 1 ≤ h := heh ▸ KitFG.one_le_h p.E p.cfg C
   rw [← hp, he]
+  change (decide (1 ≤ h) &&
+    ((finality_pair Λ.toRecord (fgInputs p st).2).filter (fun fp => decide (fp.height < h))
+      |>.map (fun fp => decide (fp.height < h))).getD true) = true
   cases hfp : finality_pair Λ.toRecord (fgInputs p st).2 with
-  | none => simp [RowPayload.valid, RowBody.ofRow, RowBody.valid, hpos, Option.filter]
+  | none => simp [hpos, Option.filter]
   | some fp =>
-      by_cases hlt : fp.height < h <;>
-        simp [RowPayload.valid, RowBody.ofRow, RowBody.valid, hpos, Option.filter, hlt]
+      by_cases hlt : fp.height < h <;> simp [hpos, Option.filter, hlt]
 
 private theorem emission_proposal_rows (st : State p.n) (H : Block)
     (hv : EmissionRowsValid st) : ∀ a ∈ proposalRows p st H, a.valid = true := by
@@ -273,7 +275,8 @@ theorem propose_rowsValid (st : State p.n) (hInv : CStoreInv p st) (s : Slot) (a
   unfold propose at hm
   split at hm
   · simp at hm
-  · simp only [Option.map_some, withApp, Option.some.injEq, Msg.proposal.injEq] at hm
+  · dsimp only [Option.map, withApp] at hm
+    simp only [Option.some.injEq, Msg.proposal.injEq] at hm
     obtain ⟨rfl, rfl, rfl, rfl⟩ := hm
     let H := getHead p st (proposerVotes st s) (proposerSupport st s)
     obtain ⟨P, hP, he⟩ := (hInv.baseTree H).mp (getHead_stored p st hInv _ _)

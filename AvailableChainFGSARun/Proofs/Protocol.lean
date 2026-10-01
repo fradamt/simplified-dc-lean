@@ -51,7 +51,9 @@ theorem attest_signer_irrel (st : State p.n) (Λ : RecordOnce) (i j : Fin p.n) :
     (fgInputs p st).1 (fgInputs p st).2
   apply Prod.ext
   · have he := congrArg (Option.map (fun k => RowPayload.vote ⟨k.1, k.2⟩)) h.1
-    simpa only [attest, Option.map_map, Function.comp_def, Row.onceKey, RowBody.ofRow] using he
+    dsimp only [attest, RowBody.ofRow, Row.onceKey] at he ⊢
+    simp only [Option.map_map, Function.comp_def] at he
+    exact he
   · exact h.2
 
 /-- An FG duty releases zero or one row. -/
@@ -107,7 +109,7 @@ theorem fgsa_dutiesInjectiveAt (t : Time) : V2.D.DutiesInjectiveAt (fgsa p c) t 
   have hfg : ∀ r q, RunDuty.fgAction r ∈ duties p t →
       RunDuty.fgAction q ∈ duties p t → r = q :=
     fun r q hr hq => (fg_eq r hr).trans (fg_eq q hq).symm
-  cases d <;> cases d' <;> simp_all [RunDuty.signLabel]
+  cases d <;> cases d' <;> dsimp only [RunDuty.signLabel] at hs <;> simp_all
   all_goals first | rfl | exact congrArg RunDuty.fgAction (hfg _ _ hd hd')
 
 /-- A HEAD label has exactly its scheduled HEAD duty. -/
@@ -115,14 +117,18 @@ theorem fgsa_head_singleDuty (s : Slot) :
     Gen.V2.Duty.SingleDuty (fgsa p c) (.base (.head s)) := by
   refine ⟨.headAction s, rfl, ?_⟩
   intro d hd
-  cases d <;> simp_all [fgsa, RunDuty.signLabel]
+  change RunDuty.signLabel d = _ at hd
+  cases d <;> dsimp only [RunDuty.signLabel] at hd <;> simp_all
+  all_goals rfl
 
 /-- A proposal label has exactly its scheduled proposal duty. -/
 theorem fgsa_prop_singleDuty (s : Slot) :
     Gen.V2.Duty.SingleDuty (fgsa p c) (.prop s) := by
   refine ⟨.propAction s, rfl, ?_⟩
   intro d hd
-  cases d <;> simp_all [fgsa, RunDuty.signLabel]
+  change RunDuty.signLabel d = _ at hd
+  cases d <;> dsimp only [RunDuty.signLabel] at hd <;> simp_all
+  all_goals rfl
 
 /-! ### The proposal -/
 

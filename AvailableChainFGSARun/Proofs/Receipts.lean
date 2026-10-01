@@ -38,8 +38,9 @@ theorem fgsa_clockOf_nonneg (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
       change v = x at hx
       subst v
       simpa only [V2.D.World.step, Function.update_self, (fgsaClock p c).process] using hj
-  · simpa only [V2.D.Run.stateBefore, List.take_zero, List.foldl_nil,
-      V2.D.World.init, (fgsaClock p c).init] using (le_refl (0 : Time))
+  · simp only [V2.D.Run.stateBefore, List.take_zero, List.foldl_nil]
+    dsimp only [V2.D.World.init]
+    simpa only [(fgsaClock p c).init] using (le_refl (0 : Time))
 
 /-- A processed object stays processed on each restart-free interval. -/
 theorem processed_stable (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -522,7 +523,7 @@ theorem fgsa_accepted_rowsValid (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)
     ∃ P, parentFG (V2.D.Run.stateBefore E rho j x).st b = some P ∧
       rowsValidForParent p P b.slot rows = true := by
   obtain ⟨parent, he, hh⟩ := ha.1
-  have hp := t78_proposal_direct _ parent o b (by simp only [blockOf?, hd]) hh
+  have hp := t78_proposal_direct _ parent o b (by dsimp only [blockOf?]; rw [hd]) hh
   subst parent
   have hpost := ha.2.2
   rw [V2.D.Run.stateBefore_succ E rho he] at hpost
@@ -579,11 +580,13 @@ theorem fgsa_trigger_invalid_false (E : Generic.Env V) (rho : V2.D.Run V (fgsa p
     (rows : List (RowWire p.n)) (hT : Gen.V2.Duty.Trigger E rho o t)
     (hd : (toWire p o).decode = some (.block s b raw sup rows)) (st : State p.n) :
     invalidForParent p st b rows = false := by
+  change (match parentFG st b with
+    | none => false | some P => !rowsValidForParent p P b.slot rows) = false
   cases hP : parentFG st b with
-  | none => simp only [invalidForParent, hP]
+  | none => rfl
   | some P =>
-      simp only [invalidForParent, hP,
-        fgsa_trigger_rowsValid E rho o t s b raw sup rows hT hd st P hP, Bool.not_true]
+      change (!rowsValidForParent p P b.slot rows) = false
+      rw [fgsa_trigger_rowsValid E rho o t s b raw sup rows hT hd st P hP, Bool.not_true]
 
 private theorem t78_block_accept_clock_pos (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hS : V2.D.ScheduleWellFormed E rho) (j : Nat) (x : V) (o : Obj p) (t : Time)
