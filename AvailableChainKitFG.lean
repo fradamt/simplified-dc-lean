@@ -31,5 +31,13 @@ public import AvailableChainKitFG.HeightConsume
 public import AvailableChainKitFG.NoEarlyMixed
 public import AvailableChainKitFG.FinalityConsume
 
+public import AvailableChainKitFG.HeightCoreDef
+public import AvailableChainKitFG.HeightLawsDef
+
+public import AvailableChainKitFG.HeightFold
+
+public import AvailableChainKitFG.HeightBridge
+public import AvailableChainKitFG.HeightLaws
+
 @[expose] public section
 end
