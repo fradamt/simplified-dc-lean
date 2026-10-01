@@ -349,3 +349,6 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 
 #print axioms AvailableChain.FGSA.Run.fgsa_cleanSupport_vote_forward
 #print axioms AvailableChain.FGSA.Run.fgsa_voteSupports_of_path
+
+#print axioms AvailableChain.FGSA.Run.clean_transfer_receipt_path_of_head
+#print axioms AvailableChain.FGSA.Run.clean_transfer_prefreeze_path_of_head
