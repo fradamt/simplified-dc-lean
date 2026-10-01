@@ -16,10 +16,10 @@ namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
 
 variable {p : Params} {In V : Type} {c : AppCodec In} [DecidableEq V]
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 /-- G32 covering service, with the atomic count and walk premises of Gen. -/
-theorem fgsa_gate_of_coveringBatch (hs : V2.ScheduleWellFormed E rho)
+theorem fgsa_gate_of_coveringBatch (hs : V2.D.ScheduleWellFormed E rho)
     (i : Nat) (s : Slot) (x : V) (D : Block)
     (ht : rho.events[i]? = some (.tick x (SA.gateTime p.toParams s)))
     (hcover : ∃ C, (fgsaAC E rho).raw i s x = some C ∧ Block.Preceq D C)
@@ -40,7 +40,7 @@ theorem fgsa_gate_of_coveringBatch (hs : V2.ScheduleWellFormed E rho)
       (fun C hC hg => (hrun.accept C hC hg).2) hcover hguard hne hmem hsupport hlevel
 
 /-- G32 exact service. The old output has no strict extension of X. -/
-theorem fgsa_S_eq_of_exact (hs : V2.ScheduleWellFormed E rho)
+theorem fgsa_S_eq_of_exact (hs : V2.D.ScheduleWellFormed E rho)
     (i : Nat) (s : Slot) (x : V) (X : Block) (hx : x ∈ rho.honest)
     (ht : rho.events[i]? = some (.tick x (SA.gateTime p.toParams s)))
     (hraw : (fgsaAC E rho).raw i s x = some X)
@@ -66,7 +66,7 @@ of S1b R15 and S1c P5. `sourceCandidates` requires the selected fast-write
 label and a live lease. Retention in the full filtered domain is separate. -/
 theorem openingSource_extends_served (i : Nat) (x : V) (r : Nat)
     (D : FGBlock (Fin p.n)) :
-    let st := ((fgsa p c).clock (V2.Run.stateBefore E rho i x) (p.actionTime r)).st
+    let st := ((fgsa p c).clock (V2.D.Run.stateBefore E rho i x) (p.actionTime r)).st
     D ∈ domainR p st (treeT p st) →
     eraseFG D ∈ sourceCandidates p st →
     ∃ C, FGSA.fgSource p st = some C ∧ FGBlock.Preceq D C := by
@@ -114,7 +114,7 @@ theorem openingSource_extends_served (i : Nat) (x : V) (r : Nat)
 The temporal first-opening composition is a separate consumer result. -/
 theorem openingSource_eq_of_no_strict_extension (i : Nat) (x : V) (r : Nat)
     (D : FGBlock (Fin p.n)) :
-    let st := ((fgsa p c).clock (V2.Run.stateBefore E rho i x) (p.actionTime r)).st
+    let st := ((fgsa p c).clock (V2.D.Run.stateBefore E rho i x) (p.actionTime r)).st
     D ∈ domainR p st (treeT p st) →
     eraseFG D ∈ sourceCandidates p st →
     (∀ C, C ∈ domainR p st (treeT p st) → eraseFG C ∈ sourceCandidates p st →

@@ -1,13 +1,13 @@
 module
 public import AvailableChainFGSAClaims.Statements.ChannelProps
-public import AvailableChainFGSARun.Proofs.Emission
+public import AvailableChainFGSARun.Proofs.EmissionWellFormed
 public import AvailableChainFGSARun.Proofs.Hooks
 public import AvailableChainKitFG.FrameChannels
 
 public section
 
-/-! Channel equations for P3 F0.8a. Gen.V2.linked_holder_eq and
-Gen.V2.linked_card_le_of_holders supply identity transport (Q5, S4b-14).
+/-! Channel equations for P3 F0.8a. Gen.V2.Duty.linked_holder_eq and
+Gen.V2.Duty.linked_card_le_of_holders supply identity transport (Q5, S4b-14).
 T7 provides `processed_stable`, `fgsa_proposal_receipt`, `fgsa_head_receipt`,
 `EmitsRow`, `EmittedRowsNoSlash`, `decodeRowObject`, `honest_emit_wellFormed`,
 `contentAgree_run`, and `fgsa_receiptCoverage`; this file does not restate them. -/
@@ -82,7 +82,7 @@ theorem eligible_lo_live (st : State p.n) (raw sup : List (GridCO.Wire p.n)) (B 
        B.slot == st.slot p) := rfl
 
 /-- All five joint selections and the finality triple ignore the own record Λ. -/
-theorem jointSelections_record_irrel (st : State p.n) (Λ Λ' : Record)
+theorem jointSelections_record_irrel (st : State p.n) (Λ Λ' : RecordOnce)
     (s : Slot) (raw sup : List (GridCO.Wire p.n)) (B : Block) :
     let nd : Node p := ⟨st, Λ⟩
     let nd' : Node p := ⟨st, Λ'⟩
@@ -92,7 +92,7 @@ theorem jointSelections_record_irrel (st : State p.n) (Λ Λ' : Record)
       proposerHead p nd'.st s, FGSA.fgHead p nd'.st, (FGSA.fgInputs p nd'.st).2) := rfl
 
 variable {In V : Type} (c : AppCodec In) [DecidableEq V]
-    (rho : V2.Run V (fgsa p c))
+    (rho : V2.D.Run V (fgsa p c))
 
 /-- The pre-tick and post-clock reads have the same FG frame.
 The gate can still change the AC candidates. -/
@@ -107,56 +107,77 @@ theorem frame_postClock (E : Generic.Env V) (x : V) (t : Time) (nd nd' : Node p)
 omit [DecidableEq V] in
 /-- A holder alone is insufficient: the authentication must be an FG seat. -/
 theorem rowSigner_iff_holder (a : RowWire p.n) (x : V) : RowSigner p c rho a x ↔
-    (∃ r i, a.auth = .seat (.fg r) i) ∧ V2.Run.holder rho (ofRow p a).auth = some x := by
+    (∃ i, a.auth = .seat .fg i) ∧ V2.D.Run.holder rho (ofRow p a).auth = some x := by
   rw [RowSigner_def]
   constructor
-  · rintro ⟨r, i, ha, hx⟩
-    refine ⟨⟨r, i, ha⟩, ?_⟩
-    change V2.Run.holder rho (ofAuth p a.auth) = some x
+  · rintro ⟨i, ha, hx⟩
+    refine ⟨⟨i, ha⟩, ?_⟩
+    change V2.D.Run.holder rho (ofAuth p a.auth) = some x
     rw [ha]
     exact congrArg some hx
-  · rintro ⟨⟨r, i, ha⟩, hx⟩
-    refine ⟨r, i, ha, ?_⟩
-    change V2.Run.holder rho (ofAuth p a.auth) = some x at hx
+  · rintro ⟨⟨i, ha⟩, hx⟩
+    refine ⟨i, ha, ?_⟩
+    change V2.D.Run.holder rho (ofAuth p a.auth) = some x at hx
     rw [ha] at hx
     exact Option.some.inj hx
 
-/-- An honest signed row is released before its direct or carried handler call.
-The time inequality can be non-strict; tick-before-delivery makes the index strict. -/
-theorem emit_lt_handles (E : Generic.Env V) (h : V2.ExecutionValid E rho)
-    {j k : Nat} {y x : V} {r : Nat} {a : RowWire p.n}
-    (he : HonestRowAt p c E rho j y r a) (hh : HandlesRowAt p c E rho k x a) : j < k := by
-  rw [HonestRowAt_def] at he
-  obtain ⟨hy, hr, t, hj, hem⟩ := he
-  obtain ⟨u, envelope, hk, hhandle⟩ := hh
+/-- Every honest row has fixed FG authentication. -/
+theorem honestRow_auth (E : Generic.Env V) (h : V2.D.ExecutionValid E rho)
+    {j : Nat} {y : V} {r : Nat} {a : RowWire p.n}
+    (he : HonestRowAt p c E rho j y r a) : ∃ i, a.auth = .seat .fg i := by
+  obtain ⟨hy, hj, hem⟩ := he
+  have hawake : E.awake y (p.actionTime r) = true := by
+    by_contra hn
+    have hf : E.awake y (p.actionTime r) = false := Bool.eq_false_iff.mpr hn
+    rw [(V2.D.Run.step_tick_eq E rho hj).2,
+      (fgsa_tick_asleep (p := p) (c := c) E rho (V2.D.Run.stateBefore E rho j y) y _ hf).1] at hem
+    exact List.not_mem_nil hem
+  have hv := honest_emit_wellFormed E rho h.toDeliveryWellFormed
+    h.toScheduleWellFormed j y _ hj hy hawake (ofRow p a) hem
+  change FGSA.wellFormed p (toWire p (ofRow p a)) = true at hv
+  rw [toWire_ofRow] at hv
   rcases a with ⟨auth, body⟩
   cases auth with
-  | none => cases hr
-  | proposer s => cases hr
-  | seat label seat =>
-    cases label with
-    | head s => cases hr
-    | fg r' =>
-      have hrow := (fgsa_emitsAt_row E rho j y t hj r' seat body).mp hem
-      have hholder : V2.Run.holder rho (ofRow p ⟨.seat (.fg r') seat, body⟩).auth = some y :=
-        congrArg some hrow.2.2.1
-      have horigin : ∃ u', u' ≤ u ∧
-          V2.Run.emits E rho y (ofRow p ⟨.seat (.fg r') seat, body⟩) u' := by
-        rcases (fgsaHooks p c).handles_carries _ envelope _ hhandle with heq | hc
-        · subst envelope
-          exact h.unforgeable x _ u ⟨k, hk⟩ y hy hholder
-        · exact h.carried x envelope u ⟨k, hk⟩ _ hc y hy hholder
-      obtain ⟨u', hle, j', hj', hem'⟩ := horigin
-      have hrow' := (fgsa_emitsAt_row E rho j' y u' hj' r' seat body).mp hem'
-      have htu : t ≤ u := hrow.2.1 ▸ (hrow'.2.1.symm ▸ hle)
-      exact V2.Engine.tick_index_lt_delivery E rho h.toScheduleWellFormed hj hk htu
+  | none => cases hv
+  | proposer s => cases hv
+  | seat l i => cases l with
+    | head s => cases hv
+    | fg => exact ⟨i, rfl⟩
+
+/-- An honest signed row is released before its direct or carried handler call.
+The time inequality can be non-strict; tick-before-delivery makes the index strict. -/
+theorem emit_lt_handles (E : Generic.Env V) (h : V2.D.ExecutionValid E rho)
+    {j k : Nat} {y x : V} {r : Nat} {a : RowWire p.n}
+    (he : HonestRowAt p c E rho j y r a) (hh : HandlesRowAt p c E rho k x a) : j < k := by
+  obtain ⟨seat, ha⟩ := honestRow_auth p c rho E h he
+  obtain ⟨hy, hj, hem⟩ := he
+  obtain ⟨u, envelope, hk, hhandle⟩ := hh
+  rcases a with ⟨auth, body⟩
+  dsimp only at ha
+  subst auth
+  have hrow := (fgsa_emitsAt_row E rho j y _ hj seat body).mp hem
+  have hholder : V2.D.Run.holder rho (ofRow p ⟨.seat .fg seat, body⟩).auth = some y :=
+    congrArg some hrow.2.1
+  have horigin : ∃ u', u' ≤ u ∧
+      V2.D.Run.emits E rho y (ofRow p ⟨.seat .fg seat, body⟩) u' := by
+    rcases (fgsaHooks p c).handles_carries _ envelope _ hhandle with heq | hc
+    · subst envelope
+      exact h.unforgeable x _ u ⟨k, hk⟩ y hy hholder
+    · exact h.carried x envelope u ⟨k, hk⟩ _ hc y hy hholder
+  obtain ⟨u', hle, j', hj', hem'⟩ := horigin
+  have hjj' := fgsa_emitOnceUnder E rho h seat (hrow.2.1.symm ▸ hy)
+    (.row body) j j' (p.actionTime r) u'
+    (hrow.2.1.symm ▸ hj) (hrow.2.1.symm ▸ hj') hem hem'
+  subst j'
+  have htime := (V2.Event.tick.inj (Option.some.inj (hj.symm.trans hj'))).2
+  exact V2.D.Engine.tick_index_lt_delivery E rho h.toScheduleWellFormed hj hk (htime ▸ hle)
 
 /-- P3 §8.7 F2.2; bp02 §§3.1–3.5. Class B channel assembly.
 DC counterparts: ChainState/FGRootWitness.lean:327,493 and
 Execution/WeakGenesisGSTZeroActionSources.lean:106. The all-entry FJ bundle
 and G1 differ intentionally (TS/spec/fgsa-protocol.tex:2557–2571;
 TS/log.md:1475). No source existence or Clean premise is used. -/
-theorem cpPrefix_of_srcFrame (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+theorem cpPrefix_of_srcFrame (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
     (hsrc : SrcFrameAboveStmt p c E rho) : CPPrefix p c E rho := by
   intro i x B hx hrows
@@ -191,7 +212,7 @@ theorem cpPrefix_of_srcFrame (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
 DC counterpart: ChainState/FGRootWitness.lean:548 concludes root
 compatibility only. Retention and EVERY contest witness are intentional FJ
 extensions (TS/spec/fgsa-protocol.tex:2557–2571; TS/log.md:1475). G1 is explicit. -/
-theorem cpCompat_of_srcFrame (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+theorem cpCompat_of_srcFrame (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
     (hsrc : SrcFrameAboveStmt p c E rho) : CPCompat p c E rho := by
   intro i x B hx hrows

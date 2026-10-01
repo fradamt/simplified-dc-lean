@@ -85,7 +85,7 @@ theorem FAdvance_def (st st' : State p.n) :
     FAdvance p st st' = (st.fg.F ≠ st'.fg.F) := by rw [FAdvance]
 
 variable {In V : Type} (c : AppCodec In) [DecidableEq V]
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 def R_at (i : Nat) (x : V) : Controls (Fin p.n) := frameR p (storeAt p c E rho i x)
 def D_at (i : Nat) (x : V) (X : Finset (FGBlock (Fin p.n))) :
@@ -98,8 +98,8 @@ def candidatesAt (x : V) (r : Nat) : Option (Finset Block) :=
   (postClock E rho x (p.actionTime r)).map (fun nd => sourceCandidates p nd.st)
 /-- The proposer's post-clock head at t_s. -/
 def proposalHeadAt (s : Slot) : Option Block :=
-  (postClock E rho (V2.proposerOf rho (fgsaInterface p c) s)
-    (V2.proposalTime (fgsaInterface p c) s)).map (fun nd => proposerHead p nd.st s)
+  (postClock E rho (V2.D.proposerOf rho (fgsaInterface p c) s)
+    (V2.D.proposalTime (fgsaInterface p c) s)).map (fun nd => proposerHead p nd.st s)
 def actionHead (x : V) (r : Nat) : Option Block :=
   (postClock E rho x (p.actionTime r)).map (fun nd => FGSA.fgHead p nd.st)
 def actionTriple (x : V) (r : Nat) : Option HeadFields :=
@@ -114,24 +114,24 @@ def EntryBelow (e : Height × BlockId) (B : FGBlock (Fin p.n)) : Prop :=
   ∃ X, FGBlock.Preceq X B ∧ (hOf p.E p.cfg X, X.root) = e
 /-- The FG seat of the signed row a belongs to x (S3c §2.7, M13). -/
 def RowSigner (a : RowWire p.n) (x : V) : Prop :=
-  ∃ r i, a.auth = .seat (.fg r) i ∧ rho.seatOf (RunLabel.base (.fg r)) i = x
-/-- Honest y emitted the signed round-r row a at event j. -/
+  ∃ i, a.auth = .seat .fg i ∧ rho.seatOf (RunLabel.base .fg) i = x
+/-- Honest y emitted the signed row a at action r and event j. -/
 def HonestRowAt (j : Nat) (y : V) (r : Nat) (a : RowWire p.n) : Prop :=
-  y ∈ rho.honest ∧ a.round? = some r ∧
-    ∃ t, rho.events[j]? = some (.tick y t) ∧ ofRow p a ∈ V2.Run.emitsAt E rho j
+  y ∈ rho.honest ∧ rho.events[j]? = some (.tick y (p.actionTime r)) ∧
+    ofRow p a ∈ V2.D.Run.emitsAt E rho j
 def HonestRowBefore (k : Nat) (y : V) (r : Nat) (a : RowWire p.n) : Prop :=
   ∃ j < k, HonestRowAt p c E rho j y r a
 -- equation export required by BUILD §7.2 B3a
 theorem HonestRowBefore_def (k : Nat) (y : V) (r : Nat) (a : RowWire p.n) :
     HonestRowBefore p c E rho k y r a = (∃ j < k, HonestRowAt p c E rho j y r a) := rfl
-/-- A valid signed row with the specified round and holder. -/
-def RowComplete (x : V) (r : Nat) (a : RowWire p.n) : Prop :=
-  a.valid = true ∧ a.round? = some r ∧ RowSigner p c rho a x
+/-- A valid signed row with the specified holder. -/
+def RowComplete (x : V) (a : RowWire p.n) : Prop :=
+  a.valid = true ∧ RowSigner p c rho a x
 /-- The honest proposal and the exact signed rows of its emitted wire. -/
 def HonestCarrier (s : Slot) (Q : Block) (rows : List (RowWire p.n)) : Prop :=
   HonestProposal E rho (fgsaInterface p c) s Q ∧
-    ∃ o raw sup, V2.Run.emits E rho (V2.proposerOf rho (fgsaInterface p c) s) o
-        (V2.proposalTime (fgsaInterface p c) s) ∧ o.payload = .proposal Q raw sup rows
+    ∃ o raw sup, V2.D.Run.emits E rho (V2.D.proposerOf rho (fgsaInterface p c) s) o
+        (V2.D.proposalTime (fgsaInterface p c) s) ∧ o.payload = .proposal Q raw sup rows
 /-- The one held-block domain for later finality channels (S3 D25). -/
 def HeldAt (i : Nat) (x : V) (W : FGBlock (Fin p.n)) : Prop :=
   x ∈ rho.honest ∧ W ∈ (storeAt p c E rho i x).fg.TF
@@ -142,22 +142,22 @@ def BlockInRunBefore (i : Nat) (W : FGBlock (Fin p.n)) : Prop :=
 -- equation export required by BUILD §7.2 B3a
 omit [DecidableEq V] in
 theorem RowSigner_def (a : RowWire p.n) (x : V) : RowSigner p c rho a x =
-    (∃ r i, a.auth = .seat (.fg r) i ∧ rho.seatOf (RunLabel.base (.fg r)) i = x) := by
+    (∃ i, a.auth = .seat .fg i ∧ rho.seatOf (RunLabel.base .fg) i = x) := by
   rw [RowSigner]
 -- equation export required by BUILD §7.2 B3a
 theorem HonestRowAt_def (j : Nat) (y : V) (r : Nat) (a : RowWire p.n) :
-    HonestRowAt p c E rho j y r a = (y ∈ rho.honest ∧ a.round? = some r ∧
-      ∃ t, rho.events[j]? = some (.tick y t) ∧ ofRow p a ∈ V2.Run.emitsAt E rho j) := by
+    HonestRowAt p c E rho j y r a = (y ∈ rho.honest ∧
+      rho.events[j]? = some (.tick y (p.actionTime r)) ∧ ofRow p a ∈ V2.D.Run.emitsAt E rho j) := by
   rw [HonestRowAt]
 
 
 /-- T-ROWS (21 H.22:3072–3080; P3 A.6). Consumers: TRowsSelect and TRowsSync. -/
 def rowHeld (st : FGSA.State p.n) (a : RowWire p.n) : Prop :=
-  a ∈ st.rowPool ∨ a ∈ FGSA.blockWireRows p st (fun _ => true)
+  a ∈ st.rowPool ∨ a ∈ FGSA.blockWireRows st
 /-- Proposal read at t_s, after the clock (01:95–101). Consumer: T-ROWS. -/
 def proposalStateAt (s : Slot) : Option (FGSA.State p.n) :=
-  (postClock E rho (V2.proposerOf rho (fgsaInterface p c) s)
-    (V2.proposalTime (fgsaInterface p c) s)).map (·.st)
+  (postClock E rho (V2.D.proposerOf rho (fgsaInterface p c) s)
+    (V2.D.proposalTime (fgsaInterface p c) s)).map (·.st)
 /-- Exact signed row at the proposal read (21:3072–3076). Consumer: TRowsSelect. -/
 def heldAtProposal (s : Slot) (a : RowWire p.n) : Prop :=
   ∃ st, proposalStateAt p c E rho s = some st ∧ rowHeld p st a
@@ -166,10 +166,19 @@ def onParentChain (s : Slot) (Q : Block) (a : RowWire p.n) : Prop :=
   ∃ st, proposalStateAt p c E rho s = some st ∧ a ∈ FGSA.chainWireRows st Q.parent
 /-- Strict receipt cut (01:101–106; 21:3076–3080). Consumer: TRowsSync. -/
 def HeldBefore (x : V) (a : RowWire p.n) (d : Time) : Prop :=
-  Gen.V2.HoldsBefore E rho (fun nd => rowHeld p nd.st a) d x
-/-- Retained round window (01:95–96). Consumer: TRowsSelect. -/
-def InRowWindow (s : Slot) (r : Nat) : Prop :=
-  r ≤ p.round s ∧ p.round s ≤ r + p.wF
+  Gen.V2.Duty.HoldsBefore E rho (fun nd => rowHeld p nd.st a) d x
+/-- R6 checks the row against the proposal parent's state at slot s. -/
+def ValidForParent (s : Slot) (Q : Block) (a : RowWire p.n) : Prop :=
+  ∃ st H, proposalStateAt p c E rho s = some st ∧
+    FGSA.fgBlockOf st Q.parent = some H ∧
+    FGSA.rowValidFor (FGSA.parentFoldState p s H) a = true
+
+-- equation export required by BUILD §7.2 B3a
+theorem ValidForParent_def (s : Slot) (Q : Block) (a : RowWire p.n) :
+    ValidForParent p c E rho s Q a =
+      (∃ st H, proposalStateAt p c E rho s = some st ∧
+    FGSA.fgBlockOf st Q.parent = some H ∧
+    FGSA.rowValidFor (FGSA.parentFoldState p s H) a = true) := rfl
 /-- Label-s HEAD on the post-clock state at v_s (01:150–157).
 Consumers: H2.A, H2′, H3, H5 and H6. -/
 def headAtLabel (x : V) (s : Slot) : Option Block :=

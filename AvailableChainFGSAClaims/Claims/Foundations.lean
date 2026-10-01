@@ -10,19 +10,19 @@ namespace AvailableChain.FGSA.Run
 
 /-- FS20 conclusion of bp.clientSafety.v1. T7.9 A is pairwise and order-free. -/
 def ClientSafeAll (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) : Prop :=
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) : Prop :=
   ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x
 
 /-- A8: Linked is the only premise. Restarts are permitted (T7.9 A, route R1). -/
 def ClientSafetyClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)),
-    V2.Linked (fgsaFamilies p c).linked rho → ClientSafeAll p c E rho
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+    V2.D.Linked (fgsaFamilies p c).linked rho → ClientSafeAll p c E rho
 
 /-- S3 X5: the family-(0) package form of client safety. -/
 def ClientSafetyBaseClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) (pt : Unit),
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit),
     BasePrem p c E rho pt → ClientSafeAll p c E rho
 
 /- bp.receiptCoverage.v1 cites AvailableChain.FGSA.Run.ReceiptCoverageStatement
@@ -33,27 +33,27 @@ premises remain unchanged. There is no second K8 statement here. -/
 /-- P3 App. A.10: all seven F1 foundation channels. BaseSet and FaultQ are in the package. -/
 def FGFoundationClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) (pt : Unit),
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit),
     SourceDisciplinePrem p c E rho pt → FGFoundation p c E rho
 
 /-- P3 App. A.10, G30: the source frame at every threshold.
 BaseSet and FaultQ are in the package. -/
 def SrcFrameAboveClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) (pt : Unit),
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit),
     SourceDisciplinePrem p c E rho pt → SrcFrameAboveStmt p c E rho
 
 
 open AvailableChain.SimplexFG
 
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 /-- The FG carrier of emitted or delivered proposals, including ancestors. -/
 def RunFGBlock (X : FGBlock (Fin p.n)) : Prop :=
   ∃ o b raw sup rows,
     o.payload = Msg.proposal b raw sup rows ∧
-    ((∃ x t, V2.Run.emits E rho x o t) ∨
+    ((∃ x t, V2.D.Run.emits E rho x o t) ∨
       (∃ x t, V2.Event.deliver x o t ∈ rho.events)) ∧
     Block.Preceq (eraseFG X) b
 
@@ -71,7 +71,7 @@ Each temporal channel retains its NoRestart premise. -/
 def StoreAt : Prop :=
   (∀ i x, i ≤ rho.events.length → x ∈ rho.honest →
     CStoreInv p (storeAt p c E rho i x)) ∧
-  (V2.ScheduleWellFormed E rho → RStoreCumul p c E rho ∧ RMono p c E rho)
+  (V2.D.ScheduleWellFormed E rho → RStoreCumul p c E rho ∧ RMono p c E rho)
 
 /-- bp.activeView.v1: the active tree and its unchanged vote/stamp data. -/
 def ActiveViewAt : Prop := RStore p c E rho ∧ RActive p c E rho
@@ -110,7 +110,7 @@ def SourceDisciplineAt : Prop :=
 /-- bp.carrier.v1; all runs. -/
 def CarrierClaim : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)),
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
     CarrierAt p c E rho
 
 /-- bp.chainCertificates.v1 (00:503–514): geometry and certificates.
@@ -122,26 +122,26 @@ def ChainCertificatesAt : Prop := RGeo p c E rho ∧ RCert p c E rho
 /-- bp.chainCertificates.v1; all runs. -/
 def ChainCertificatesClaim : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)),
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
     ChainCertificatesAt p c E rho
 
 /-- bp.store.v1; all runs, with local temporal premises. -/
 def StoreClaim : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)),
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
     StoreAt p c E rho
 
 /-- bp.activeView.v1; all runs. -/
 def ActiveViewClaim : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)),
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
     ActiveViewAt p c E rho
 
 /-- bp.leaseOrigins.v1; scheduled runs. -/
 def LeaseOriginsClaim : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)),
-    V2.ScheduleWellFormed E rho → LeaseOriginsAt p c E rho
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+    V2.D.ScheduleWellFormed E rho → LeaseOriginsAt p c E rho
 
 /-- bp.reconcile.v1: exact edits, fixed-F idempotence and K1.
 The K1 lease premise includes due rows and has no fastWrite premise. -/
@@ -174,7 +174,7 @@ def OutputNestingAt : Prop := ∀ i x, i ≤ rho.events.length → x ∈ rho.hon
 
 def OutputNestingClaim : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)),
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
     OutputNestingAt p c E rho
 
 /-- bp.frame.v1 (00:581–587), 01 §4.3: exact controls, projection and metadata.
@@ -184,19 +184,19 @@ def FrameAt : Prop := RFrameExact p c E rho ∧ RFrame p c E rho
 /-- bp.frame.v1; all runs. -/
 def FrameClaim : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)),
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
     FrameAt p c E rho
 
 /-- bp.sourceDiscipline.v1(a,d); no FaultQ premise. -/
 def SourceDisciplineBaseClaim : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) (pt : Unit),
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit),
     BasePrem p c E rho pt → SourceDisciplineBaseAt p c E rho
 
 /-- bp.sourceDiscipline.v1(a–d); BaseSet and FaultQ. -/
 def SourceDisciplineClaim : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) (pt : Unit),
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit),
     SourceDisciplinePrem p c E rho pt → SourceDisciplineAt p c E rho
 
 

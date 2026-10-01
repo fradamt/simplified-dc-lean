@@ -213,7 +213,7 @@ open AvailableChain.SimplexFG
 private abbrev params : Params :=
   { Δ := 1, n := 1, k := 2, η := 0, deltaPos := by decide, nPos := by decide,
     kLarge := by decide, etaNonneg := by decide,
-    R := 2, wF := 1, δt := 1, RLarge := by decide, wFPos := by decide }
+    R := 2, δt := 1, RLarge := by decide }
 
 private def c : FGBlock (Fin 1) := .node .genesis 1 0 []
 private def f : FGBlock (Fin 1) := .node c 2 0 []

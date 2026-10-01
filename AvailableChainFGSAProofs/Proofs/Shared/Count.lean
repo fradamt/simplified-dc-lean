@@ -2,7 +2,7 @@ module
 public import AvailableChainFGSA.Proofs.Head.Pool
 public import AvailableChainFGSARun.Proofs.ReceiptCoverage
 public import AvailableChainFGSAClaims.Statements.Reads
-public import AvailableChainGeneric.Statements.V2.Counts
+public import AvailableChainGeneric.Statements.V2.Duty.Counts
 
 public section
 
@@ -30,24 +30,24 @@ private theorem count_head_keys (o : GridCO.Wire p.n) (s : Slot) (k : Fin p.n)
 /-- P3 F1b.1, blueprint 02 §2.1. Class (ii), receipt/authenticity instance.
 DC: Protocol/Handlers/GoldfishVotePool.lean:320 (unique honest vote per label).
 Same uniqueness conclusion; FG-SA also permits carried HEAD receipts. -/
-theorem fgsa_honest_head_eq_of_stored (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hE : V2.ExecutionValid E rho) (i : Nat) (x : V) (s : Slot) (k : Fin p.n)
+theorem fgsa_honest_head_eq_of_stored (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (i : Nat) (x : V) (s : Slot) (k : Fin p.n)
     (K : Block) (t : Time) (hh : rho.seatOf (.base (.head s)) k ∈ rho.honest)
-    (he : V2.Run.emits E rho (rho.seatOf (.base (.head s)) k)
+    (he : V2.D.Run.emits E rho (rho.seatOf (.base (.head s)) k)
       (ofHead p ⟨.seat (.head s) k, K⟩) t)
     (o : GridCO.Wire p.n) (ho : o ∈ (storeAt p c E rho i x).base.votes)
     (hl : GridCO.headLabel? o = some s) (hk : GridCO.headSeat? o = some k) :
     o = baseVote (⟨.seat (.head s) k, K⟩ : HeadWire p.n) := by
   obtain ⟨C, rfl⟩ := count_head_keys o s k hl hk
-  change _ ∈ (V2.Run.stateBefore E rho i x).st.base.votes at ho
+  change _ ∈ (V2.D.Run.stateBefore E rho i x).st.base.votes at ho
   rw [← fgsa_vote_stamp_keys E rho i x] at ho
   obtain ⟨⟨v, stamp⟩, hv, hvEq⟩ := List.mem_map.mp ho
   dsimp only at hvEq
   subst v
   obtain ⟨j, _, u, ha, _⟩ := fgsa_vote_stamp_source E rho i x s k C stamp hv
-  have heq := Gen.V2.honest_unique_per_label (P := fgsa p c) E rho
+  have heq := Gen.V2.Duty.honest_unique_singleDuty_statement (P := fgsa p c) E rho
     hE.nodup hE.toUnforgeableSignatures (fgsaHooks p c).handles_carries
-    (.base (.head s)) k hh (ofHead p ⟨.seat (.head s) k, C⟩)
+    (.base (.head s)) (fgsa_head_singleDuty s) k hh (ofHead p ⟨.seat (.head s) k, C⟩)
     (ofHead p ⟨.seat (.head s) k, K⟩) rfl rfl
     (Or.inr ⟨j, x, u, ha.1⟩) (Or.inl ⟨t, he⟩)
   have hCK : C = K := congrArg (fun o : Obj p => o.payload) heq |> Msg.head.inj
@@ -59,10 +59,10 @@ DC: Goldfish/Confirmation:494,508. INTENTIONAL: resolved support is restricted
 by the current F; the receipt must retain its target (P3:4921–4929).
 The read is the actual pre-gate store, including clockPre. -/
 theorem fgsa_active_support_of_receipt (E : Generic.Env V)
-    (rho : V2.Run V (fgsa p c)) (hE : V2.ExecutionValid E rho)
+    (rho : V2.D.Run V (fgsa p c)) (hE : V2.D.ExecutionValid E rho)
     (i : Nat) (x : V) (s : Slot) (k : Fin p.n) (K B : Block) (t : Time)
     (hh : rho.seatOf (.base (.head s)) k ∈ rho.honest)
-    (he : V2.Run.emits E rho (rho.seatOf (.base (.head s)) k)
+    (he : V2.D.Run.emits E rho (rho.seatOf (.base (.head s)) k)
       (ofHead p ⟨.seat (.head s) k, K⟩) t)
     (hv : baseVote (⟨.seat (.head s) k, K⟩ : HeadWire p.n) ∈
       (storeAt p c E rho i x).base.votes)
@@ -134,16 +134,16 @@ instance. DC: no exact counterpart for active F filtering. INTENTIONAL: compatib
 through every intervening F (the K8 `compat` field, P3:4921–4929).
 A received path whose head extends the final F stays in the active view. -/
 theorem fgsa_active_path_of_coverage (E : Generic.Env V)
-    (rho : V2.Run V (fgsa p c)) (hE : V2.ExecutionValid E rho)
-    (hN : V2.NoRestart rho) (hDelta : E.Δ = p.Δ)
+    (rho : V2.D.Run V (fgsa p c)) (hE : V2.D.ExecutionValid E rho)
+    (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
     (dl : Time → Time) (cut D : Time) (first : Nat) (x : V) (K : Block)
     (required : Obj p → Time → Prop) (paths : Block → Time → Prop)
     (hx : x ∈ rho.honest)
     (hcov : ReceiptCoveragePremises E rho dl cut D first x K required paths)
     (hpath : paths K D)
-    (hFK : Block.Preceq (eraseFG (V2.Run.stateBeforeTime E rho D x).st.fg.F) K) :
-    ∀ X, Block.Preceq X K → X ∈ (actView (V2.Run.stateBeforeTime E rho D x).st).blocks := by
-  let st := (V2.Run.stateBeforeTime E rho D x).st
+    (hFK : Block.Preceq (eraseFG (V2.D.Run.stateBeforeTime E rho D x).st.fg.F) K) :
+    ∀ X, Block.Preceq X K → X ∈ (actView (V2.D.Run.stateBeforeTime E rho D x).st).blocks := by
+  let st := (V2.D.Run.stateBeforeTime E rho D x).st
   have hc := (fgsa_receiptCoverage E rho dl cut D first x K required paths
     hDelta hE hN hx hcov).1
   have hb := (storeBundle_stateBeforeTime E rho D x).cstore
@@ -163,28 +163,28 @@ theorem fgsa_active_path_of_coverage (E : Generic.Env V)
 DC: Goldfish/Confirmation:494,508; same honest participation bound.
 Authenticity retains the HEAD label and exact vote duty time. -/
 theorem fgsa_stored_honest_head_awake (E : Generic.Env V)
-    (rho : V2.Run V (fgsa p c)) (hE : V2.ExecutionValid E rho)
+    (rho : V2.D.Run V (fgsa p c)) (hE : V2.D.ExecutionValid E rho)
     (i : Nat) (x : V) (s : Slot) (k : Fin p.n) (o : GridCO.Wire p.n)
     (ho : o ∈ (storeAt p c E rho i x).base.votes)
     (hl : GridCO.headLabel? o = some s) (hk : GridCO.headSeat? o = some k)
     (hh : rho.seatOf (.base (.head s)) k ∈ rho.honest) :
     E.awake (rho.seatOf (.base (.head s)) k) (SA.voteTime p.toParams s) = true := by
   obtain ⟨K, rfl⟩ := count_head_keys o s k hl hk
-  change _ ∈ (V2.Run.stateBefore E rho i x).st.base.votes at ho
+  change _ ∈ (V2.D.Run.stateBefore E rho i x).st.base.votes at ho
   rw [← fgsa_vote_stamp_keys E rho i x] at ho
   obtain ⟨⟨v, stamp⟩, hv, hvEq⟩ := List.mem_map.mp ho
   dsimp only at hvEq
   subst v
   obtain ⟨j, _, u, ha, _⟩ := fgsa_vote_stamp_source E rho i x s k K stamp hv
   obtain ⟨parent, hd, hhandles⟩ := ha.1
-  have horigin : ∃ t, t ≤ u ∧ V2.Run.emits E rho (rho.seatOf (.base (.head s)) k)
+  have horigin : ∃ t, t ≤ u ∧ V2.D.Run.emits E rho (rho.seatOf (.base (.head s)) k)
       (ofHead p ⟨.seat (.head s) k, K⟩) t := by
     rcases (fgsaHooks p c).handles_carries _ parent _ hhandles with hp | hc
     · subst parent
       exact hE.unforgeable x _ u ⟨j, hd⟩ _ hh rfl
     · exact hE.carried x parent u ⟨j, hd⟩ _ hc _ hh rfl
   obtain ⟨t, _, j', ht, he⟩ := horigin
-  rw [(V2.Run.step_tick_eq E rho ht).2] at he
+  rw [(V2.D.Run.step_tick_eq E rho ht).2] at he
   have hem := (fgsa_emits_head E rho _ _ t s k K).mp he
   rw [hem.2.1]
   exact hem.1
@@ -194,19 +194,19 @@ DC: Goldfish/Confirmation:494,508; same honest/rest partition. The selected
 batch contains all honest holders awake at the vote duty.
 Stored-vote authenticity supplies this timing fact with the original label. -/
 theorem fgsa_late_rest_bound [Fintype V] (E : Generic.Env V)
-    (rho : V2.Run V (fgsa p c))
-    (hC : V2.CStar (fgsaFamilies p c).fresh rho)
-    (hE : V2.ExecutionValid E rho) (i : Nat) (x : V) (s : Slot) (H : Finset (Fin p.n))
+    (rho : V2.D.Run V (fgsa p c))
+    (hC : V2.D.CStar (fgsaFamilies p c).fresh rho)
+    (hE : V2.D.ExecutionValid E rho) (i : Nat) (x : V) (s : Slot) (H : Finset (Fin p.n))
     (hH : ∀ k, rho.seatOf (.base (.head s)) k ∈ rho.honest →
       E.awake (rho.seatOf (.base (.head s)) k) (SA.voteTime p.toParams s) = true → k ∈ H) :
     let v := actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))
     ((GridCO.seats p.n (GridCO.lateVotes p.toParams.engine v s)).toFinset \ H).card ≤
-      (Gen.V2.faulty rho).card := by
+      (Gen.V2.Duty.faulty rho).card := by
   intro v
   apply Finset.card_le_card_of_injOn (rho.seatOf (.base (.head s)))
   · intro k hk
     obtain ⟨hl, hn⟩ := Finset.mem_sdiff.mp hk
-    rw [Gen.V2.faulty_def]
+    rw [Gen.V2.Duty.faulty_def]
     refine Finset.mem_sdiff.mpr ⟨Finset.mem_univ _, ?_⟩
     intro hh
     apply hn (hH k hh ?_)
@@ -228,15 +228,15 @@ including the F anchor, and only the stored suffix (P3:4900–4945).
 This is the count boundary over the actual pre-gate store. Receipt resolution
 and head-history facts are explicit; they are not assumed count conclusions. -/
 theorem fgsa_gate_batch_premises [Fintype V] (E : Generic.Env V)
-    (rho : V2.Run V (fgsa p c)) (hE : V2.ExecutionValid E rho)
-    (hC : V2.CStar (fgsaFamilies p c).fresh rho)
+    (rho : V2.D.Run V (fgsa p c)) (hE : V2.D.ExecutionValid E rho)
+    (hC : V2.D.CStar (fgsaFamilies p c).fresh rho)
     (i : Nat) (x : V) (s : Slot) (B : Block) (H : Finset (Fin p.n))
-    (hbatch : Gen.Pure.Batch H.card (Gen.V2.faulty rho).card)
+    (hbatch : Gen.Pure.Batch H.card (Gen.V2.Duty.faulty rho).card)
     (hH : ∀ k, rho.seatOf (.base (.head s)) k ∈ rho.honest →
       E.awake (rho.seatOf (.base (.head s)) k) (SA.voteTime p.toParams s) = true → k ∈ H)
     (hheads : ∀ k ∈ H, ∃ K t,
       rho.seatOf (.base (.head s)) k ∈ rho.honest ∧
-      V2.Run.emits E rho (rho.seatOf (.base (.head s)) k)
+      V2.D.Run.emits E rho (rho.seatOf (.base (.head s)) k)
         (ofHead p ⟨.seat (.head s) k, K⟩) t ∧
       baseVote (⟨.seat (.head s) k, K⟩ : HeadWire p.n) ∈
         (storeAt p c E rho i x).base.votes ∧
@@ -274,7 +274,7 @@ theorem fgsa_gate_batch_premises [Fintype V] (E : Generic.Env V)
         2 * SA.prefixSupport p.toParams v s X := by
     have hc := Gen.AC.batch_counts v.blocks (GridCO.lateVotes p.toParams.engine v s)
       (GridCO.cleanSupport p.toParams.engine v s) (GridCO.cleanSupport p.toParams.engine v s)
-      H H.card (Gen.V2.faulty rho).card X
+      H H.card (Gen.V2.Duty.faulty rho).card X
       (fun _ ho => fgsa_early_subset_late p v s (List.mem_filter.mp ho).1)
       (fun _ ho => ho) rfl (fun k _ => fgsa_cleanSupport_no_equivocation p v s k)
       (hsupp X hX) hrest hbatch
@@ -294,16 +294,16 @@ INTENTIONAL: the optional F-anchored result must pass the anchor test.
 Honest genesis receipts give a strict majority and exclude every non-genesis
 result at this actual pre-gate store. Receipt stamps remain explicit inputs. -/
 theorem fgsa_gate_zero_of_receipts [Fintype V] (E : Generic.Env V)
-    (rho : V2.Run V (fgsa p c)) (hE : V2.ExecutionValid E rho)
-    (hC : V2.CStar (fgsaFamilies p c).fresh rho)
+    (rho : V2.D.Run V (fgsa p c)) (hE : V2.D.ExecutionValid E rho)
+    (hC : V2.D.CStar (fgsaFamilies p c).fresh rho)
     (i : Nat) (x : V) (H : Finset (Fin p.n))
-    (hbatch : Gen.Pure.Batch H.card (Gen.V2.faulty rho).card)
+    (hbatch : Gen.Pure.Batch H.card (Gen.V2.Duty.faulty rho).card)
     (hH : ∀ k, rho.seatOf (.base (.head 0)) k ∈ rho.honest →
       E.awake (rho.seatOf (.base (.head 0)) k) (SA.voteTime p.toParams 0) = true → k ∈ H)
     (hF : eraseFG (storeAt p c E rho i x).fg.F = .genesis)
     (hreceipts : ∀ k ∈ H, ∃ t,
       rho.seatOf (.base (.head 0)) k ∈ rho.honest ∧
-      V2.Run.emits E rho (rho.seatOf (.base (.head 0)) k)
+      V2.D.Run.emits E rho (rho.seatOf (.base (.head 0)) k)
         (ofHead p ⟨.seat (.head 0) k, .genesis⟩) t ∧
       baseVote (⟨.seat (.head 0) k, .genesis⟩ : HeadWire p.n) ∈
         (storeAt p c E rho i x).base.votes ∧
@@ -332,7 +332,7 @@ theorem fgsa_gate_zero_of_receipts [Fintype V] (E : Generic.Env V)
       hg (Nat.le_refl 0) hvs hgen (Gen.Pure.block_preceq_refl _)
   have hc := Gen.AC.batch_counts v.blocks (GridCO.lateVotes p.toParams.engine v 0)
     (GridCO.cleanSupport p.toParams.engine v 0) (GridCO.cleanSupport p.toParams.engine v 0)
-    H H.card (Gen.V2.faulty rho).card .genesis
+    H H.card (Gen.V2.Duty.faulty rho).card .genesis
     (fun _ ho => fgsa_early_subset_late p v 0 (List.mem_filter.mp ho).1)
     (fun _ ho => ho) rfl (fun k _ => fgsa_cleanSupport_no_equivocation p v 0 k)
     hsupp (fgsa_late_rest_bound E rho hC hE i x 0 H hH) hbatch

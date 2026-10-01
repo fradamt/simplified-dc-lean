@@ -8,7 +8,7 @@ namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
 
 variable {p : Params} {In V : Type} {c : AppCodec In} [DecidableEq V]
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 set_option maxHeartbeats 800000 in
 -- The adapter compares the nested gate, clock, and tick state projections.
@@ -18,12 +18,12 @@ supplies the action's fresh candidate. DC: RecoveryCapturedActionCarrier.lean:30
 the scheduled fast-write set with a live lease, with no root fallback
 (spec 1472–1483). The gate and action share one clock step, so no restart,
 reconcile, or release step occurs between them. No new run premise is used. -/
-theorem openingSource_candidate_of_gateService (hs : V2.ScheduleWellFormed E rho)
+theorem openingSource_candidate_of_gateService (hs : V2.D.ScheduleWellFormed E rho)
     (i : Nat) (x : V) (r : Nat) (D : Block)
     (ht : rho.events[i]? = some (.tick x (p.actionTime r)))
     (hservice : Gen.AC.GateService (fgsaAC E rho) i (r * p.R) x D) :
     D ∈ sourceCandidates p (((fgsa p c).clock
-      (V2.Run.stateBefore E rho i x) (p.actionTime r)).st) := by
+      (V2.D.Run.stateBefore E rho i x) (p.actionTime r)).st) := by
   have hlive : p.actionTime r < SA.gateTime p.toParams (r * p.R) + SA.lifetime p.toParams := by
     have hp : 0 < SA.lifetime p.toParams := by
       change 0 < (4 * (p.k : Time) - 1) * p.Δ
@@ -32,17 +32,17 @@ theorem openingSource_candidate_of_gateService (hs : V2.ScheduleWellFormed E rho
       exact mul_pos hpos p.deltaPos
     change SA.gateTime p.toParams (r * p.R) < _
     exact lt_add_of_pos_right _ hp
-  let nd : Node p := V2.Run.stateBefore E rho i x
+  let nd : Node p := V2.D.Run.stateBefore E rho i x
   let st := ((fgsa p c).clock nd (p.actionTime r)).st
   have hf := fgsa_gate_fresh E rho hs ht
   have hinv := (storeBundle_postClock E rho i x (p.actionTime r)).cstore
   obtain ⟨C, _, _, _, hfast, d, hd, hlease⟩ := hservice
-  have hpost : (V2.Run.stateBefore E rho (i + 1) x).st = st := by
-    rw [V2.Run.stateBefore_succ E rho ht]
-    simp only [V2.World.step, Function.update_self]
+  have hpost : (V2.D.Run.stateBefore E rho (i + 1) x).st = st := by
+    rw [V2.D.Run.stateBefore_succ E rho ht]
+    simp only [V2.D.World.step, Function.update_self]
     exact tick_st (c := c) E rho nd x (p.actionTime r)
   change (D, SA.releaseThreshold p.toParams, d) ∈
-    (V2.Run.stateBefore E rho (i + 1) x).st.base.obligations at hlease
+    (V2.D.Run.stateBefore E rho (i + 1) x).st.base.obligations at hlease
   rw [hpost] at hlease
   have hfastEq : st.fastWrite =
       nd.st.fastWrite ++ [(r * p.R, (fgsaAC E rho).fast i (r * p.R) x)] := by
@@ -189,12 +189,12 @@ GateService at rR is a caller premise. It comes from gate_of_coveringBatch (F1b.
 in F4 FF1 / F5 H.9-Q, H.17.
 PRE-REVISION (fg-noround R3/R2/R4): uses the h_c = h_f lock branch; restate after the client
 revision. -/
-theorem openingSource_firstOpening (hs : V2.ScheduleWellFormed E rho)
+theorem openingSource_firstOpening (hs : V2.D.ScheduleWellFormed E rho)
     (i : Nat) (x : V) (q r m : Nat) (D : FGBlock (Fin p.n))
     (ht : rho.events[i]? = some (.tick x (p.actionTime r)))
     (hle : q ≤ r * p.R) (hfirst : ∀ r', q ≤ r' * p.R → r ≤ r')
     (hservice : Gen.AC.GateService (fgsaAC E rho) i (r * p.R) x (eraseFG D)) :
-    let nd : Node p := V2.Run.stateBefore E rho i x
+    let nd : Node p := V2.D.Run.stateBefore E rho i x
     let st := ((fgsa p c).clock nd (p.actionTime r)).st
     D ∈ domainR p st (treeT p st) →
     m ≤ hOf p.E p.cfg D + 1 →
@@ -241,11 +241,11 @@ theorem openingSource_firstOpening (hs : V2.ScheduleWellFormed E rho)
 counterpart for the FG-SA deepest fresh selector. INTENTIONAL: the
 no-strict-extension supplier is precisely the selector condition from
 22 FF1:858–862; this lemma composes it with the scheduled gate adapter. -/
-theorem openingSource_exact_of_gateService (hs : V2.ScheduleWellFormed E rho)
+theorem openingSource_exact_of_gateService (hs : V2.D.ScheduleWellFormed E rho)
     (i : Nat) (x : V) (r : Nat) (Q : FGBlock (Fin p.n))
     (ht : rho.events[i]? = some (.tick x (p.actionTime r)))
     (hservice : Gen.AC.GateService (fgsaAC E rho) i (r * p.R) x (eraseFG Q)) :
-    let st := ((fgsa p c).clock (V2.Run.stateBefore E rho i x) (p.actionTime r)).st
+    let st := ((fgsa p c).clock (V2.D.Run.stateBefore E rho i x) (p.actionTime r)).st
     Q ∈ domainR p st (treeT p st) →
     (∀ C, C ∈ domainR p st (treeT p st) → eraseFG C ∈ sourceCandidates p st →
       FGBlock.Preceq Q C → C = Q) →
@@ -263,12 +263,12 @@ GateService at rR is a caller premise. It comes from gate_of_coveringBatch (F1b.
 in F4 FF1 / F5 H.9-Q, H.17.
 PRE-REVISION (fg-noround R3/R2/R4): uses the h_c = h_f lock branch; restate after the client
 revision. -/
-theorem openingSource_firstOpening_exact (hs : V2.ScheduleWellFormed E rho)
+theorem openingSource_firstOpening_exact (hs : V2.D.ScheduleWellFormed E rho)
     (i : Nat) (x : V) (q r : Nat) (Q : FGBlock (Fin p.n))
     (ht : rho.events[i]? = some (.tick x (p.actionTime r)))
     (hle : q ≤ r * p.R) (hfirst : ∀ r', q ≤ r' * p.R → r ≤ r')
     (hservice : Gen.AC.GateService (fgsaAC E rho) i (r * p.R) x (eraseFG Q)) :
-    let nd : Node p := V2.Run.stateBefore E rho i x
+    let nd : Node p := V2.D.Run.stateBefore E rho i x
     let st := ((fgsa p c).clock nd (p.actionTime r)).st
     Q ∈ domainR p st (treeT p st) →
     (∀ C, C ∈ domainR p st (treeT p st) → eraseFG C ∈ sourceCandidates p st →

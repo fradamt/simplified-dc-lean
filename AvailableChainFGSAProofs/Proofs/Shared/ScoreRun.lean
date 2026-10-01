@@ -86,14 +86,14 @@ DC: Goldfish/ProposalSnapshotBridge.lean:144, `raw_subset`.
 INTENTIONAL: authenticate the complete stored FG-SA proposal before using
 its carried metadata. The row list is passed as an opaque value. -/
 theorem fgsa_scoreRun_stored_proposal_eq
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hE : V2.ExecutionValid E rho) (i : Nat) (x : V) (s : Slot)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (i : Nat) (x : V) (s : Slot)
     (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
     (hw : (⟨.proposer s, .proposal b raw sup rows⟩ : Wire p.n) ∈
-      (V2.Run.stateBefore E rho i x).st.proposals)
+      (V2.D.Run.stateBefore E rho i x).st.proposals)
     (hh : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ ∈ rho.honest)
     (o : Obj p) (ha : o.auth = .seat (.prop s) ⟨0, Nat.one_pos⟩)
-    (he : ∃ t, V2.Run.emits E rho (rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩) o t) :
+    (he : ∃ t, V2.D.Run.emits E rho (rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩) o t) :
     (⟨.proposer s, .proposal b raw sup rows⟩ : Wire p.n) = toWire p o := by
   obtain ⟨j, u, t, -, hd, hu, -, -⟩ := stored_proposal_delivered E rho i x _ hw
   have hua : u.auth = .seat (.prop s) ⟨0, Nat.one_pos⟩ := by
@@ -102,9 +102,9 @@ theorem fgsa_scoreRun_stored_proposal_eq
       rw [toWire_ofWire, hu]
     rw [hu']
     rfl
-  have heq := Gen.V2.honest_unique_per_label E rho hE.nodup
+  have heq := Gen.V2.Duty.honest_unique_singleDuty_statement E rho hE.nodup
     hE.toUnforgeableSignatures (fgsaHooks p c).handles_carries
-    (.prop s) ⟨0, Nat.one_pos⟩ hh u o hua ha
+    (.prop s) (fgsa_prop_singleDuty s) ⟨0, Nat.one_pos⟩ hh u o hua ha
     (Or.inr ⟨j, x, t, u, hd, Or.inl rfl⟩) (Or.inl he)
   exact hu.symm.trans (congrArg (toWire p) heq)
 
@@ -113,11 +113,11 @@ DC: Goldfish/ProposalSnapshotBridge.lean:144, `raw_subset`.
 INTENTIONAL: the admitted proposal metadata persists to the actual
 post-clock HEAD read, even if an individual carried vote was refused. -/
 theorem fgsa_scoreRun_metadata_retained
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hN : V2.NoRestart rho) {i j : Nat} (hij : i ≤ j) (x : V)
-    (w : Wire p.n) (hw : w ∈ (V2.Run.stateBefore E rho i x).st.proposals)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hN : V2.D.NoRestart rho) {i j : Nat} (hij : i ≤ j) (x : V)
+    (w : Wire p.n) (hw : w ∈ (V2.D.Run.stateBefore E rho i x).st.proposals)
     (s : Slot) :
-    w ∈ (FGSA.clock p (V2.Run.stateBefore E rho j x).st
+    w ∈ (FGSA.clock p (V2.D.Run.stateBefore E rho j x).st
       (SA.voteTime p.toParams s)).proposals := by
   rw [clock_proposals]
   exact (fgsa_store_cumulative p c E rho hN hij x).2.2.2.2.1.subset hw
@@ -150,30 +150,30 @@ INTENTIONAL: authenticate an admitted slot-s proposal against the actual
 proposal tick, retain its metadata, and project its original raw pool.
 All proposal row lists are opaque. No delivery premise is needed for this arm. -/
 theorem fgsa_scoreRun_raw_subset
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hE : V2.ExecutionValid E rho) (hN : V2.NoRestart rho)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho)
     (s : Slot) {ip ia ih : Nat} {x y : V}
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
     (hx : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
     (hh : x ∈ rho.honest) (horder : ia ≤ ih)
     (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
     (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
-      V2.Run.emitsAt E rho ip)
+      V2.D.Run.emitsAt E rho ip)
     (b' : Block) (raw' sup' : List (HeadWire p.n)) (rows' : List (RowWire p.n))
     (hadm : (⟨.proposer s, .proposal b' raw' sup' rows'⟩ : Wire p.n) ∈
-      (V2.Run.stateBefore E rho ia y).st.proposals) :
-    proposerVotes (FGSA.clock p (V2.Run.stateBefore E rho ip x).st
+      (V2.D.Run.stateBefore E rho ia y).st.proposals) :
+    proposerVotes (FGSA.clock p (V2.D.Run.stateBefore E rho ip x).st
       (SA.proposalTime p.toParams s)) s ⊆
-    headVotes p (FGSA.clock p (V2.Run.stateBefore E rho ih y).st
+    headVotes p (FGSA.clock p (V2.D.Run.stateBefore E rho ih y).st
       (SA.voteTime p.toParams s)) s := by
   have hmem := hem
-  rw [(V2.Run.step_tick_eq E rho hip).2] at hmem
+  rw [(V2.D.Run.step_tick_eq E rho hip).2] at hmem
   have hp := (fgsa_emits_proposal E rho _ x _ s _).mp hmem
   have pools := fgsa_scoreRun_proposal_pools p _ s _ b raw sup rows hp.2.2.2
   have heq := fgsa_scoreRun_stored_proposal_eq E rho hE ia y s b' raw' sup' rows'
     hadm (hx ▸ hh) _ rfl ⟨_, by rw [hx]; exact ⟨ip, hip, hem⟩⟩
   have hw : (⟨.proposer s, .proposal b raw sup rows⟩ : Wire p.n) ∈
-      (V2.Run.stateBefore E rho ia y).st.proposals := by
+      (V2.D.Run.stateBefore E rho ia y).st.proposals := by
     rw [heq] at hadm
     exact hadm
   have hkeep := fgsa_scoreRun_metadata_retained E rho hN horder y _ hw s
@@ -183,11 +183,11 @@ theorem fgsa_scoreRun_raw_subset
   rw [pools.2.1] at ho
   exact beq_iff_eq.mp (List.mem_filter.mp ho).2
 
-private theorem scoreRun_stored_label (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hE : V2.ExecutionValid E rho) (i : Nat) (x : V) (s : Slot)
+private theorem scoreRun_stored_label (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (i : Nat) (x : V) (s : Slot)
     (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
     (hw : (⟨.proposer s, .proposal b raw sup rows⟩ : Wire p.n) ∈
-      (V2.Run.stateBefore E rho i x).st.proposals) : s = b.slot := by
+      (V2.D.Run.stateBefore E rho i x).st.proposals) : s = b.slot := by
   obtain ⟨j, u, t, -, hd, hu, -, -⟩ := stored_proposal_delivered E rho i x _ hw
   have hf := hE.wire j x u t hd
   change FGSA.wellFormed p (toWire p u) = true at hf
@@ -201,13 +201,13 @@ DC: Goldfish/ProposalSnapshotBridge.lean:115–124, `carried_raw_subset_voter_vi
 INTENTIONAL: authentication identifies every admitted slot-s metadata pair
 with the actual signed proposal. The opaque row lists are never inspected. -/
 theorem fgsa_scoreRun_proposalsAt_eq
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hE : V2.ExecutionValid E rho) (i : Nat) (x : V) (s : Slot)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (i : Nat) (x : V) (s : Slot)
     (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
     (hh : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ ∈ rho.honest)
-    (he : ∃ t, V2.Run.emits E rho (rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩)
+    (he : ∃ t, V2.D.Run.emits E rho (rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩)
       ⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ t) :
-    ∀ q ∈ proposalsAt (V2.Run.stateBefore E rho i x).st s, q = (raw, sup) := by
+    ∀ q ∈ proposalsAt (V2.D.Run.stateBefore E rho i x).st s, q = (raw, sup) := by
   intro q hq
   obtain ⟨w, hw, hd⟩ := List.mem_filterMap.mp hq
   obtain ⟨r, B, R, Q, A, rfl, -⟩ := (metaInv_stateBefore E rho i x).wireTree w hw
@@ -225,20 +225,20 @@ theorem fgsa_scoreRun_proposalsAt_eq
   · cases hd
 
 omit [DecidableEq V] in
-private theorem scoreRun_idx_mono (rho : V2.Run V (fgsa p c)) :
-    Monotone (V2.Run.idxBefore rho) := by
+private theorem scoreRun_idx_mono (rho : V2.D.Run V (fgsa p c)) :
+    Monotone (V2.D.Run.idxBefore rho) := by
   intro a b hab
-  rw [V2.Run.idxBefore_def, V2.Run.idxBefore_def]
+  rw [V2.D.Run.idxBefore_def, V2.D.Run.idxBefore_def]
   rw [← List.countP_eq_length_filter, ← List.countP_eq_length_filter]
   exact List.countP_mono_left (fun e _ he => decide_eq_true
     (lt_of_lt_of_le (of_decide_eq_true he) hab))
 
-private theorem scoreRun_votes_mono (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hN : V2.NoRestart rho) (x : V) {i j : Nat} (hij : i ≤ j) :
-    (V2.Run.stateBefore E rho i x).st.base.votes ⊆
-      (V2.Run.stateBefore E rho j x).st.base.votes := by
-  apply V2.Engine.stateBefore_stable (P := fgsa p c)
-    (fun nd => (V2.Run.stateBefore E rho i x).st.base.votes ⊆ nd.st.base.votes)
+private theorem scoreRun_votes_mono (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hN : V2.D.NoRestart rho) (x : V) {i j : Nat} (hij : i ≤ j) :
+    (V2.D.Run.stateBefore E rho i x).st.base.votes ⊆
+      (V2.D.Run.stateBefore E rho j x).st.base.votes := by
+  apply V2.D.Engine.stateBefore_stable (P := fgsa p c)
+    (fun nd => (V2.D.Run.stateBefore E rho i x).st.base.votes ⊆ nd.st.base.votes)
     ?_ ?_ (fun _ _ h => h) E rho hij x (hN.restartFree x i j) (List.Subset.refl _)
   · intro nd t h
     change _ ⊆ (clock p nd.st t).base.votes
@@ -246,26 +246,26 @@ private theorem scoreRun_votes_mono (E : Generic.Env V) (rho : V2.Run V (fgsa p 
   · intro nd o h
     exact List.Subset.trans h (process_votes_subset nd.st (toWire p o))
 
-private theorem scoreRun_proposal_window (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hS : V2.ScheduleWellFormed E rho) (hN : V2.NoRestart rho)
+private theorem scoreRun_proposal_window (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hS : V2.D.ScheduleWellFormed E rho) (hN : V2.D.NoRestart rho)
     {i : Nat} {x : V} {s : Slot}
     (hi : rho.events[i]? = some (.tick x (SA.proposalTime p.toParams s)))
     (d : Time) (hd : d ≤ SA.proposalTime p.toParams s) :
-    (V2.Run.stateBeforeTime E rho d x).st.slot p ≤ s := by
-  have hm := V2.Engine.stateBefore_now_mono_noRestart (fgsaClock p c) E rho hS hN
+    (V2.D.Run.stateBeforeTime E rho d x).st.slot p ≤ s := by
+  have hm := V2.D.Engine.stateBefore_now_mono_noRestart (fgsaClock p c) E rho hS hN
     (scoreRun_idx_mono rho hd) x
-  rw [fgsa_clock_now p c (V2.Run.stateBefore E rho (V2.Run.idxBefore rho d) x),
-    fgsa_clock_now p c (V2.Run.stateBefore E rho
-      (V2.Run.idxBefore rho (SA.proposalTime p.toParams s)) x)] at hm
-  rw [Gen.V2.stateBefore_idxBefore E rho d hS,
-    Gen.V2.stateBefore_idxBefore E rho _ hS,
+  rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho d) x),
+    fgsa_clock_now p c (V2.D.Run.stateBefore E rho
+      (V2.D.Run.idxBefore rho (SA.proposalTime p.toParams s)) x)] at hm
+  rw [Gen.V2.Duty.stateBefore_idxBefore E rho d hS,
+    Gen.V2.Duty.stateBefore_idxBefore E rho _ hS,
     ← fgsa_preTick_eq_timeRead E rho hS hN hi] at hm
-  have hb := V2.Engine.stateBefore_now_le_event (fgsaClock p c) (fgsa_hrestore_now p c)
+  have hb := V2.D.Engine.stateBefore_now_le_event (fgsaClock p c) (fgsa_hrestore_now p c)
     E rho hS hi x
-  rw [fgsa_clock_now p c (V2.Run.stateBefore E rho i x)] at hb
+  rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho i x)] at hb
   have hs := Internal.slotOf_mono (p := p) (hm.trans hb)
   have he : p.slotOf (SA.proposalTime p.toParams s) = s :=
-    (fgsa_postClock_slot (c := c) (V2.Run.stateBefore E rho i x) _).2.symm.trans
+    (fgsa_postClock_slot (c := c) (V2.D.Run.stateBefore E rho i x) _).2.symm.trans
       (fgsa_proposal_slot (c := c) _ s)
   exact hs.trans_eq he
 
@@ -276,18 +276,18 @@ INTENTIONAL: relay a frozen FG-SA raw vote into the actual proposal pool,
 with the N1 pair (t_s - Δ, v_s). A deadline equal to t_s is sufficient:
 the receipt is in the strict-before state. No strict local deadline is assumed. -/
 theorem fgsa_scoreRun_frozen_vote_relay
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hE : V2.ExecutionValid E rho) (hN : V2.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (s : Slot) (hSync : Gen.V2.LabelSync E rho
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
+    (s : Slot) (hSync : Gen.V2.Duty.LabelSync E rho
       (SA.proposalTime p.toParams (s + 1) - p.Δ) (SA.voteTime p.toParams (s + 1)))
     {ip : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (s + 1))))
     (k : Nat) (seat : Fin p.n) (B : Block)
     (hm : (⟨.seat s seat, .head B⟩ : GridCO.Wire p.n) ∈
-      (V2.Run.stateBefore E rho k y).st.base.votes)
-    (ht : GridCO.stampVote (V2.Run.stateBefore E rho k y).st.base
+      (V2.D.Run.stateBefore E rho k y).st.base.votes)
+    (ht : GridCO.stampVote (V2.D.Run.stateBefore E rho k y).st.base
       ⟨.seat s seat, .head B⟩ < SA.freezeTime p.toParams s) :
-    let U := proposerVotes (FGSA.clock p (V2.Run.stateBefore E rho ip x).st
+    let U := proposerVotes (FGSA.clock p (V2.D.Run.stateBefore E rho ip x).st
       (SA.proposalTime p.toParams (s + 1))) (s + 1)
     (⟨.seat s seat, .head B⟩ : GridCO.Wire p.n) ∈ U ∨ GridCO.equivocates U seat = true := by
   intro U
@@ -318,14 +318,14 @@ theorem fgsa_scoreRun_frozen_vote_relay
   have hr := fgsa_head_receipt E rho hDelta hE hN dl cut s seat B t x hD
     (Or.inr ⟨y, hy, j, ha⟩) hx (hd.trans (hpv.trans hcut)) (hlt t)
     (scoreRun_proposal_window E rho hE.toScheduleWellFormed hN hip (dl t) hd)
-  have hkeep : (V2.Run.stateBeforeTime E rho (dl t) x).st.base.votes ⊆
-      (V2.Run.stateBefore E rho ip x).st.base.votes := by
+  have hkeep : (V2.D.Run.stateBeforeTime E rho (dl t) x).st.base.votes ⊆
+      (V2.D.Run.stateBefore E rho ip x).st.base.votes := by
     rw [fgsa_preTick_eq_timeRead E rho hE.toScheduleWellFormed hN hip,
-      ← Gen.V2.stateBefore_idxBefore E rho (dl t) hE.toScheduleWellFormed,
-      ← Gen.V2.stateBefore_idxBefore E rho _ hE.toScheduleWellFormed]
+      ← Gen.V2.Duty.stateBefore_idxBefore E rho (dl t) hE.toScheduleWellFormed,
+      ← Gen.V2.Duty.stateBefore_idxBefore E rho _ hE.toScheduleWellFormed]
     exact scoreRun_votes_mono E rho hN x (scoreRun_idx_mono rho hd)
   have hin (o : GridCO.Wire p.n)
-      (ho : o ∈ (V2.Run.stateBeforeTime E rho (dl t) x).st.base.votes)
+      (ho : o ∈ (V2.D.Run.stateBeforeTime E rho (dl t) x).st.base.votes)
       (hl : GridCO.headLabel? o = some s) : o ∈ U := by
     apply List.mem_filter.mpr
     refine ⟨?_, ?_⟩
@@ -349,18 +349,18 @@ private theorem scoreRun_vote_shape (o : GridCO.Wire p.n) (s : Slot) (i : Fin p.
   exact ⟨B, rfl⟩
 
 private theorem scoreRun_clock_vote_stamp
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) (k : Nat) (y : V)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (k : Nat) (y : V)
     (t : Time) (o : GridCO.Wire p.n)
-    (hm : o ∈ (V2.Run.stateBefore E rho k y).st.base.votes) :
-    GridCO.stampVote (clock p (V2.Run.stateBefore E rho k y).st t).base o =
-      GridCO.stampVote (V2.Run.stateBefore E rho k y).st.base o := by
+    (hm : o ∈ (V2.D.Run.stateBefore E rho k y).st.base.votes) :
+    GridCO.stampVote (clock p (V2.D.Run.stateBefore E rho k y).st t).base o =
+      GridCO.stampVote (V2.D.Run.stateBefore E rho k y).st.base o := by
   rw [← fgsa_vote_stamp_keys E rho k y] at hm
   obtain ⟨⟨v, u⟩, hv, he⟩ := List.mem_map.mp hm
   dsimp only at he
   subst v
   unfold GridCO.stampVote
   rw [(clock_cumulative p _ _).2.2.2.1]
-  cases hf : (V2.Run.stateBefore E rho k y).st.base.voteStamp.find?
+  cases hf : (V2.D.Run.stateBefore E rho k y).st.base.voteStamp.find?
       (fun row => row.1 == o) with
   | none =>
     have hn := List.find?_eq_none.mp hf (o, u) hv
@@ -374,24 +374,24 @@ INTENTIONAL: every extra HEAD-merge signature is frozen; the original
 proposal arm is identified by authentication. Receipt gives a vote or
 cap evidence in the actual proposal pool, at the N1 time pair. -/
 theorem fgsa_scoreRun_raw_extra
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hE : V2.ExecutionValid E rho) (hN : V2.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (s : Slot) (hSync : Gen.V2.LabelSync E rho
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
+    (s : Slot) (hSync : Gen.V2.Duty.LabelSync E rho
       (SA.proposalTime p.toParams (s + 1) - p.Δ) (SA.voteTime p.toParams (s + 1)))
     {ip ih : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (s + 1))))
     (hseat : rho.seatOf (.prop (s + 1)) ⟨0, Nat.one_pos⟩ = x)
     (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
     (hem : (⟨.seat (.prop (s + 1)) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
-      V2.Run.emitsAt E rho ip) :
-    let src := clock p (V2.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams (s + 1))
-    let dst := clock p (V2.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams (s + 1))
+      V2.D.Run.emitsAt E rho ip) :
+    let src := clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams (s + 1))
+    let dst := clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams (s + 1))
     ∀ o ∈ headVotes p dst (s + 1), ∀ seat, GridCO.headSeat? o = some seat →
       o ∉ proposerVotes src (s + 1) →
       GridCO.equivocates (proposerVotes src (s + 1)) seat = true := by
   intro src dst o ho seat hk hn
   have hmem := hem
-  rw [(V2.Run.step_tick_eq E rho hip).2] at hmem
+  rw [(V2.D.Run.step_tick_eq E rho hip).2] at hmem
   have hp := (fgsa_emits_proposal E rho _ x _ (s + 1) _).mp hmem
   have pools := fgsa_scoreRun_proposal_pools p _ (s + 1) _ b raw sup rows hp.2.2.2
   have hpairs : ∀ q ∈ proposalsAt dst (s + 1), q = (raw, sup) := by
@@ -407,10 +407,10 @@ theorem fgsa_scoreRun_raw_extra
     obtain ⟨hm, hl⟩ := List.mem_filter.mp hm
     have hl' : GridCO.headLabel? o = some s := by
       simpa only [Nat.add_sub_cancel, beq_iff_eq] using hl
-    have hm' : o ∈ (V2.Run.stateBefore E rho ih y).st.base.votes := by
+    have hm' : o ∈ (V2.D.Run.stateBefore E rho ih y).st.base.votes := by
       change o ∈ (clock p _ _).base.votes at hm
       rwa [(clock_vn _ _).1] at hm
-    have ht' : GridCO.stampVote (V2.Run.stateBefore E rho ih y).st.base o <
+    have ht' : GridCO.stampVote (V2.D.Run.stateBefore E rho ih y).st.base o <
         SA.freezeTime p.toParams s := by
       have ht' := of_decide_eq_true ht
       change GridCO.stampVote (clock p _ _).base o < _ at ht'
@@ -440,54 +440,54 @@ private theorem scoreRun_block_decode {o : Obj p} {b : Block} (h : blockOf? p o 
   exact decode_eq_block.mp hd
 
 private theorem scoreRun_block_receipt_to_tick
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hE : V2.ExecutionValid E rho) (hN : V2.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (dl : Time → Time) (cut : Time) (hD : Gen.V2.DeliveryWithin E rho dl cut)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
+    (dl : Time → Time) (cut : Time) (hD : Gen.V2.Duty.DeliveryWithin E rho dl cut)
     (t : Time) (o : Obj p) (B : Block) (ho : blockOf? p o = some B)
-    (hT : Gen.V2.Trigger E rho o t) (hlt : t < dl t) (hc : dl t ≤ cut)
+    (hT : Gen.V2.Duty.Trigger E rho o t) (hlt : t < dl t) (hc : dl t ≤ cut)
     {ih : Nat} {y : V} {u : Time} (hy : y ∈ rho.honest)
     (hih : rho.events[ih]? = some (.tick y u)) (hd : dl t ≤ u)
-    (hF : Block.Preceq (eraseFG (clock p (V2.Run.stateBefore E rho ih y).st u).fg.F) B) :
-    B ∈ (clock p (V2.Run.stateBefore E rho ih y).st u).base.blocks := by
-  let a := V2.Run.idxBefore rho (dl t)
-  let z := V2.Run.idxBefore rho u
+    (hF : Block.Preceq (eraseFG (clock p (V2.D.Run.stateBefore E rho ih y).st u).fg.F) B) :
+    B ∈ (clock p (V2.D.Run.stateBefore E rho ih y).st u).base.blocks := by
+  let a := V2.D.Run.idxBefore rho (dl t)
+  let z := V2.D.Run.idxBefore rho u
   have haz : a ≤ z := scoreRun_idx_mono rho hd
-  have hFmono : FGBlock.Preceq (V2.Run.stateBefore E rho a y).st.fg.F
-      (V2.Run.stateBefore E rho z y).st.fg.F := by
-    have h := fgsa_monoAlong_preceq_F p c (V2.Run.stateBefore E rho a y).st.fg.F
-    rw [Gen.V2.MonoAlong_def] at h
-    exact V2.Engine.stateBefore_stable _ h.1 h.2.1 h.2.2 E rho haz y
+  have hFmono : FGBlock.Preceq (V2.D.Run.stateBefore E rho a y).st.fg.F
+      (V2.D.Run.stateBefore E rho z y).st.fg.F := by
+    have h := fgsa_monoAlong_preceq_F p c (V2.D.Run.stateBefore E rho a y).st.fg.F
+    rw [Gen.V2.Duty.MonoAlong_def] at h
+    exact V2.D.Engine.stateBefore_stable _ h.1 h.2.1 h.2.2 E rho haz y
       (hN.restartFree y a z) (KitFG.preceq_refl _)
   have hF' := hF
   rw [clock_F_eq, fgsa_preTick_eq_timeRead E rho hE.toScheduleWellFormed hN hih,
-    ← Gen.V2.stateBefore_idxBefore E rho u hE.toScheduleWellFormed] at hF'
+    ← Gen.V2.Duty.stateBefore_idxBefore E rho u hE.toScheduleWellFormed] at hF'
   have hcompat : Block.Compatible B
-      (eraseFG (V2.Run.stateBeforeTime E rho (dl t) y).st.fg.F) := by
-    rw [← Gen.V2.stateBefore_idxBefore E rho (dl t) hE.toScheduleWellFormed]
+      (eraseFG (V2.D.Run.stateBeforeTime E rho (dl t) y).st.fg.F) := by
+    rw [← Gen.V2.Duty.stateBefore_idxBefore E rho (dl t) hE.toScheduleWellFormed]
     exact Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl B)
       (Gen.Pure.block_preceq_trans (eraseFG_preceq hFmono) hF')
   obtain ⟨s, raw, sup, rows, rfl⟩ := scoreRun_block_decode ho
   obtain ⟨Y, hY, he⟩ := fgsa_proposal_receipt E rho hDelta hE hN dl cut
     s B raw sup rows t y hD hT hy hc hlt hcompat
   have hkeep := (fgsa_store_cumulative p c E rho hN haz y).1
-  change (V2.Run.stateBefore E rho (V2.Run.idxBefore rho (dl t)) y).st.fg.TF ⊆
-    (V2.Run.stateBefore E rho (V2.Run.idxBefore rho u) y).st.fg.TF at hkeep
-  rw [Gen.V2.stateBefore_idxBefore E rho (dl t) hE.toScheduleWellFormed,
-    Gen.V2.stateBefore_idxBefore E rho u hE.toScheduleWellFormed,
+  change (V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho (dl t)) y).st.fg.TF ⊆
+    (V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho u) y).st.fg.TF at hkeep
+  rw [Gen.V2.Duty.stateBefore_idxBefore E rho (dl t) hE.toScheduleWellFormed,
+    Gen.V2.Duty.stateBefore_idxBefore E rho u hE.toScheduleWellFormed,
     ← fgsa_preTick_eq_timeRead E rho hE.toScheduleWellFormed hN hih] at hkeep
   rw [clock_base_blocks]
   exact ((cstoreInv_stateBefore E rho ih y).baseTree B).mpr ⟨Y, hkeep hY, he⟩
 
 private theorem scoreRun_block_before_tick
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hE : V2.ExecutionValid E rho) (hN : V2.NoRestart rho)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho)
     {i : Nat} {x : V} {u : Time} (hi : rho.events[i]? = some (.tick x u))
     (B : Block) (hgen : B ≠ .genesis)
-    (hm : B ∈ (V2.Run.stateBefore E rho i x).st.base.blocks) :
-    ∃ j t o, blockOf? p o = some B ∧ V2.Run.acceptsAt E rho j x o t ∧ t < u := by
+    (hm : B ∈ (V2.D.Run.stateBefore E rho i x).st.base.blocks) :
+    ∃ j t o, blockOf? p o = some B ∧ V2.D.Run.acceptsAt E rho j x o t ∧ t < u := by
   rw [fgsa_preTick_eq_timeRead E rho hE.toScheduleWellFormed hN hi,
-    ← Gen.V2.stateBefore_idxBefore E rho u hE.toScheduleWellFormed] at hm
-  rw [← (metaInv_stateBefore E rho (V2.Run.idxBefore rho u) x).stampKeys] at hm
+    ← Gen.V2.Duty.stateBefore_idxBefore E rho u hE.toScheduleWellFormed] at hm
+  rw [← (metaInv_stateBefore E rho (V2.D.Run.idxBefore rho u) x).stampKeys] at hm
   obtain ⟨⟨b, stamp⟩, hm, he⟩ := List.mem_map.mp hm
   dsimp only at he
   subst b
@@ -495,7 +495,7 @@ private theorem scoreRun_block_before_tick
   · exact (hgen hg.1).elim
   · obtain ⟨parent, hd, -⟩ := ha.1
     exact ⟨j, t, o, ho, ha,
-      (Gen.V2.index_lt_idxBefore_iff hE.toScheduleWellFormed hd u).mp hj⟩
+      (Gen.V2.Duty.index_lt_idxBefore_iff hE.toScheduleWellFormed hd u).mp hj⟩
 
 /-- P3 F1b.4b G25 N1; blueprint 03:293–304.
 DC: Goldfish/ProposalSnapshotBridge.lean:147–151, forward target membership.
@@ -504,21 +504,21 @@ A stored proposal-support head above D is retained at the HEAD read.
 The accepted proposal's raw, support and row lists are bound by
 `scoreRun_block_decode`; the row list is passed unchanged to the receipt. -/
 theorem fgsa_scoreRun_block_forward
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hE : V2.ExecutionValid E rho) (hN : V2.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (s : Slot) (hSync : Gen.V2.LabelSync E rho
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
+    (s : Slot) (hSync : Gen.V2.Duty.LabelSync E rho
       (SA.proposalTime p.toParams s - p.Δ) (SA.voteTime p.toParams s))
     {ip ih : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
     (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)))
     (D B : Block)
     (hgeom : ScoreRunGeometry
-      (clock p (V2.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s))
-      (clock p (V2.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) D)
+      (clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s))
+      (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) D)
     (hDB : Block.Preceq D B)
-    (hm : B ∈ (clock p (V2.Run.stateBefore E rho ip x).st
+    (hm : B ∈ (clock p (V2.D.Run.stateBefore E rho ip x).st
       (SA.proposalTime p.toParams s)).base.blocks) :
-    B ∈ (clock p (V2.Run.stateBefore E rho ih y).st
+    B ∈ (clock p (V2.D.Run.stateBefore E rho ih y).st
       (SA.voteTime p.toParams s)).base.blocks := by
   rw [clock_base_blocks] at hm
   by_cases hg : B = .genesis
@@ -540,17 +540,17 @@ theorem fgsa_scoreRun_block_forward
     (Gen.Pure.block_preceq_trans hgeom.target_floor hDB)
 
 private theorem scoreRun_clock_block_stamp
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c)) (k : Nat) (y : V)
-    (t : Time) (B : Block) (hm : B ∈ (V2.Run.stateBefore E rho k y).st.base.blocks) :
-    GridCO.stampBlock (clock p (V2.Run.stateBefore E rho k y).st t).base B =
-      GridCO.stampBlock (V2.Run.stateBefore E rho k y).st.base B := by
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (k : Nat) (y : V)
+    (t : Time) (B : Block) (hm : B ∈ (V2.D.Run.stateBefore E rho k y).st.base.blocks) :
+    GridCO.stampBlock (clock p (V2.D.Run.stateBefore E rho k y).st t).base B =
+      GridCO.stampBlock (V2.D.Run.stateBefore E rho k y).st.base B := by
   rw [← (metaInv_stateBefore E rho k y).stampKeys] at hm
   obtain ⟨⟨b, u⟩, hv, he⟩ := List.mem_map.mp hm
   dsimp only at he
   subst b
   unfold GridCO.stampBlock
   rw [(clock_cumulative p _ _).2.2.1]
-  cases hf : (V2.Run.stateBefore E rho k y).st.base.blockStamp.find?
+  cases hf : (V2.D.Run.stateBefore E rho k y).st.base.blockStamp.find?
       (fun row => row.1 == B) with
   | none =>
     have hn := List.find?_eq_none.mp hf (B, u) hv
@@ -563,21 +563,21 @@ DC: Goldfish/ProposalSnapshotBridge.lean:152–155, backward target membership.
 INTENTIONAL: a frozen resolved head above D is active at the proposal read.
 The source endpoint floor supplies compatibility at the earlier receipt. -/
 theorem fgsa_scoreRun_block_backward
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hE : V2.ExecutionValid E rho) (hN : V2.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (s : Slot) (hSync : Gen.V2.LabelSync E rho
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
+    (s : Slot) (hSync : Gen.V2.Duty.LabelSync E rho
       (SA.proposalTime p.toParams (s + 1) - p.Δ) (SA.voteTime p.toParams (s + 1)))
     {ip ih : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (s + 1))))
     (D B : Block)
     (hgeom : ScoreRunGeometry
-      (clock p (V2.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams (s + 1)))
-      (clock p (V2.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams (s + 1))) D)
+      (clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams (s + 1)))
+      (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams (s + 1))) D)
     (hDB : Block.Preceq D B)
-    (hm : B ∈ (V2.Run.stateBefore E rho ih y).st.base.blocks)
-    (ht : GridCO.stampBlock (V2.Run.stateBefore E rho ih y).st.base B <
+    (hm : B ∈ (V2.D.Run.stateBefore E rho ih y).st.base.blocks)
+    (ht : GridCO.stampBlock (V2.D.Run.stateBefore E rho ih y).st.base B <
       SA.freezeTime p.toParams s) :
-    B ∈ (actView (clock p (V2.Run.stateBefore E rho ip x).st
+    B ∈ (actView (clock p (V2.D.Run.stateBefore E rho ip x).st
       (SA.proposalTime p.toParams (s + 1)))).blocks := by
   have hFB := Gen.Pure.block_preceq_trans hgeom.source_floor hDB
   apply (actView_blocks _ B).mpr
@@ -638,24 +638,24 @@ DC: Goldfish/ProposalSnapshotBridge.lean:147–151, `forward`.
 INTENTIONAL: the original declared support is carried literally and its
 head is relayed using the target endpoint floor. This gives incidence above D. -/
 theorem fgsa_scoreRun_support_forward
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hE : V2.ExecutionValid E rho) (hN : V2.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (s : Slot) (hSync : Gen.V2.LabelSync E rho
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
+    (s : Slot) (hSync : Gen.V2.Duty.LabelSync E rho
       (SA.proposalTime p.toParams s - p.Δ) (SA.voteTime p.toParams s))
     {ip ih : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
     (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)))
     (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
     (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
-      V2.Run.emitsAt E rho ip)
+      V2.D.Run.emitsAt E rho ip)
     (hadm : (⟨.proposer s, .proposal b raw sup rows⟩ : Wire p.n) ∈
-      (V2.Run.stateBefore E rho ih y).st.proposals)
+      (V2.D.Run.stateBefore E rho ih y).st.proposals)
     (D : Block)
     (hgeom : ScoreRunGeometry
-      (clock p (V2.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s))
-      (clock p (V2.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) D) :
-    let src := clock p (V2.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s)
-    let dst := clock p (V2.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)
+      (clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s))
+      (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) D) :
+    let src := clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s)
+    let dst := clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)
     ∀ X, Block.Preceq D X → ∀ i,
       Gen.AC.poolSupports src.base.blocks (proposerSupport src s) i X = true →
       Gen.AC.poolSupports dst.base.blocks (headSupport p dst s) i X = true := by
@@ -677,7 +677,7 @@ theorem fgsa_scoreRun_support_forward
     have hKdst := fgsa_scoreRun_block_forward E rho hE hN hDelta s hSync hx hy hip hih
       D K hgeom (Gen.Pure.block_preceq_trans hDX hXK) hm
     have hmem := hem
-    rw [(V2.Run.step_tick_eq E rho hip).2] at hmem
+    rw [(V2.D.Run.step_tick_eq E rho hip).2] at hmem
     have hp := (fgsa_emits_proposal E rho _ x _ s _).mp hmem
     have pools := fgsa_scoreRun_proposal_pools p _ s _ b raw sup rows hp.2.2.2
     have hadm' := fgsa_scoreRun_metadata_retained E rho hN (Nat.le_refl ih) y _ hadm s
@@ -695,29 +695,29 @@ INTENTIONAL: an original declaration is already source support; a frozen
 support relays both its signature and head. A clean source seat rules out
 the receipt's cap alternative. The source endpoint floor makes the head active. -/
 theorem fgsa_scoreRun_support_backward
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hE : V2.ExecutionValid E rho) (hN : V2.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (s : Slot) (hSync : Gen.V2.LabelSync E rho
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
+    (s : Slot) (hSync : Gen.V2.Duty.LabelSync E rho
       (SA.proposalTime p.toParams (s + 1) - p.Δ) (SA.voteTime p.toParams (s + 1)))
     {ip ih : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (s + 1))))
     (hseat : rho.seatOf (.prop (s + 1)) ⟨0, Nat.one_pos⟩ = x)
     (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
     (hem : (⟨.seat (.prop (s + 1)) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
-      V2.Run.emitsAt E rho ip)
+      V2.D.Run.emitsAt E rho ip)
     (D : Block)
     (hgeom : ScoreRunGeometry
-      (clock p (V2.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams (s + 1)))
-      (clock p (V2.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams (s + 1))) D) :
-    let src := clock p (V2.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams (s + 1))
-    let dst := clock p (V2.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams (s + 1))
+      (clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams (s + 1)))
+      (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams (s + 1))) D) :
+    let src := clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams (s + 1))
+    let dst := clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams (s + 1))
     ∀ X, Block.Preceq D X → ∀ i, GridCO.equivocates (proposerVotes src (s + 1)) i = false →
       Gen.AC.poolSupports dst.base.blocks (headSupport p dst (s + 1)) i X = true →
       Gen.AC.poolSupports src.base.blocks (proposerSupport src (s + 1)) i X = true := by
   intro src dst X hDX i hclean hs
   obtain ⟨o, ho, hi, hv⟩ := (Gen.AC.vote_pool_support_witness _ _ _ _).mp hs
   have hmem := hem
-  rw [(V2.Run.step_tick_eq E rho hip).2] at hmem
+  rw [(V2.D.Run.step_tick_eq E rho hip).2] at hmem
   have hp := (fgsa_emits_proposal E rho _ x _ (s + 1) _).mp hmem
   have pools := fgsa_scoreRun_proposal_pools p _ (s + 1) _ b raw sup rows hp.2.2.2
   have hpairs : ∀ q ∈ proposalsAt dst (s + 1), q = (raw, sup) := by
@@ -756,7 +756,7 @@ theorem fgsa_scoreRun_support_backward
       obtain ⟨hm, hl⟩ := List.mem_filter.mp hm
       have hl' : GridCO.headLabel? o = some s := by
         simpa only [Nat.add_sub_cancel, beq_iff_eq] using hl
-      have hm' : o ∈ (V2.Run.stateBefore E rho ih y).st.base.votes := by
+      have hm' : o ∈ (V2.D.Run.stateBefore E rho ih y).st.base.votes := by
         change o ∈ (clock p _ _).base.votes at hm
         rwa [(clock_vn _ _).1] at hm
       change GridCO.resolvedBefore (actView dst) o _ = true at hr
@@ -765,7 +765,7 @@ theorem fgsa_scoreRun_support_backward
       simp only [GridCO.blockKnown, Bool.and_eq_true, decide_eq_true_eq,
         Option.getD_some, Nat.add_sub_cancel] at hr
       obtain ⟨⟨⟨hactive, hslot⟩, hvstamp⟩, hbstamp⟩ := hr
-      have hKpre : K ∈ (V2.Run.stateBefore E rho ih y).st.base.blocks := by
+      have hKpre : K ∈ (V2.D.Run.stateBefore E rho ih y).st.base.blocks := by
         have h := ((actView_blocks dst K).mp hactive).1
         change K ∈ (clock p _ _).base.blocks at h
         rwa [clock_base_blocks] at h
@@ -800,9 +800,9 @@ D. The two endpoint floor bounds replace any ordering of active floors.
 The admitted honest proposal supplies its original signed metadata;
 LabelSync is used at exactly (t_s - Δ, v_s), with no Batch or LabelFacts. -/
 theorem fgsa_score_eq_on_run
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hE : V2.ExecutionValid E rho) (hN : V2.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (s : Slot) (hSync : Gen.V2.LabelSync E rho
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
+    (s : Slot) (hSync : Gen.V2.Duty.LabelSync E rho
       (SA.proposalTime p.toParams s - p.Δ) (SA.voteTime p.toParams s))
     {ip ih : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
@@ -810,14 +810,14 @@ theorem fgsa_score_eq_on_run
     (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
     (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
     (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
-      V2.Run.emitsAt E rho ip)
-    (hadm : b ∈ (V2.Run.stateBefore E rho ih y).st.base.blocks)
+      V2.D.Run.emitsAt E rho ip)
+    (hadm : b ∈ (V2.D.Run.stateBefore E rho ih y).st.base.blocks)
     (D : Block)
     (hgeom : ScoreRunGeometry
-      (clock p (V2.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s))
-      (clock p (V2.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) D) :
-    let src := clock p (V2.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s)
-    let dst := clock p (V2.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)
+      (clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s))
+      (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) D) :
+    let src := clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s)
+    let dst := clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)
     let U := proposerVotes src s
     let U' := headVotes p dst s
     (GridCO.seats p.n U).toFinset = (GridCO.seats p.n U').toFinset ∧
@@ -828,7 +828,7 @@ theorem fgsa_score_eq_on_run
         GridCO.goldfishScore dst.base.blocks U' (headSupport p dst s) X) := by
   intro src dst U U'
   have hmem := hem
-  rw [(V2.Run.step_tick_eq E rho hip).2] at hmem
+  rw [(V2.D.Run.step_tick_eq E rho hip).2] at hmem
   have hp := (fgsa_emits_proposal E rho _ x _ s _).mp hmem
   have pools := fgsa_scoreRun_proposal_pools p _ s _ b raw sup rows hp.2.2.2
   cases s with
@@ -853,7 +853,7 @@ theorem fgsa_score_eq_on_run
       (hseat ▸ hx) _ rfl ⟨_, by rw [hseat]; exact ⟨ip, hip, hem⟩⟩
     rw [heq] at hw
     have hadm' : (⟨.proposer (s + 1), .proposal b raw sup rows⟩ : Wire p.n) ∈
-        (V2.Run.stateBefore E rho ih y).st.proposals := hw
+        (V2.D.Run.stateBefore E rho ih y).st.proposals := hw
     apply fgsa_score_eq_on_retained_suffix p src dst D U (proposerSupport src (s + 1))
       U' (headSupport p dst (s + 1))
     · exact fgsa_scoreRun_raw_subset E rho hE hN (s + 1) hip hseat hx
@@ -872,21 +872,21 @@ INTENTIONAL: relay an FG-SA frozen block at exactly (t_s - Δ, t_s).
 The endpoint floor gives receipt compatibility. The existing private
 receipt helper binds the proposal row list and passes it unchanged. -/
 theorem fgsa_walkRun_frozen_block
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hE : V2.ExecutionValid E rho) (hN : V2.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (s : Slot) (hSync : Gen.V2.LabelSync E rho
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
+    (s : Slot) (hSync : Gen.V2.Duty.LabelSync E rho
       (SA.proposalTime p.toParams (s + 1) - p.Δ) (SA.proposalTime p.toParams (s + 1)))
     {ip ih : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (s + 1))))
     (D B : Block)
     (hgeom : ScoreRunGeometry
-      (clock p (V2.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams (s + 1)))
-      (clock p (V2.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams (s + 1))) D)
+      (clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams (s + 1)))
+      (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams (s + 1))) D)
     (hDB : Block.Preceq D B)
-    (hm : B ∈ (V2.Run.stateBefore E rho ih y).st.base.blocks)
-    (ht : GridCO.stampBlock (V2.Run.stateBefore E rho ih y).st.base B <
+    (hm : B ∈ (V2.D.Run.stateBefore E rho ih y).st.base.blocks)
+    (ht : GridCO.stampBlock (V2.D.Run.stateBefore E rho ih y).st.base B <
       SA.freezeTime p.toParams s) :
-    B ∈ (actView (clock p (V2.Run.stateBefore E rho ip x).st
+    B ∈ (actView (clock p (V2.D.Run.stateBefore E rho ip x).st
       (SA.proposalTime p.toParams (s + 1)))).blocks := by
   have hFB := Gen.Pure.block_preceq_trans hgeom.source_floor hDB
   apply (actView_blocks _ B).mpr
@@ -1026,15 +1026,15 @@ INTENTIONAL: authenticate every stored current-slot path witness against
 the actual honest emission. The accepted row list is bound as A and is
 passed unchanged to the existing authentication lemma. -/
 theorem fgsa_walkRun_current_block_eq
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hE : V2.ExecutionValid E rho) (s : Slot) (hs : 0 < s)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (s : Slot) (hs : 0 < s)
     {ip ih : Nat} {x y : V} (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
     (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
     (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
     (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
-      V2.Run.emitsAt E rho ip)
-    (B : Block) (hB : B ∈ (V2.Run.stateBefore E rho ih y).st.base.blocks)
+      V2.D.Run.emitsAt E rho ip)
+    (B : Block) (hB : B ∈ (V2.D.Run.stateBefore E rho ih y).st.base.blocks)
     (hslot : B.slot = s) : B = b := by
   have hg : B ≠ .genesis := by
     intro he
@@ -1102,37 +1102,37 @@ INTENTIONAL: split the actual FG-SA voter domain into its frozen arm and
 its authenticated proposal-path arm. Only the frozen arm needs delivery,
 with LabelSync at exactly (t_s - Δ, t_s). -/
 theorem fgsa_walkRun_reflected_block
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hE : V2.ExecutionValid E rho) (hN : V2.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (s : Slot) (hSync : Gen.V2.LabelSync E rho
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
+    (s : Slot) (hSync : Gen.V2.Duty.LabelSync E rho
       (SA.proposalTime p.toParams (s + 1) - p.Δ) (SA.proposalTime p.toParams (s + 1)))
     {ip ih : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (s + 1))))
     (hseat : rho.seatOf (.prop (s + 1)) ⟨0, Nat.one_pos⟩ = x)
     (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
     (hem : (⟨.seat (.prop (s + 1)) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
-      V2.Run.emitsAt E rho ip)
+      V2.D.Run.emitsAt E rho ip)
     (D X C : Block)
     (hgeom : ScoreRunGeometry
-      (clock p (V2.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams (s + 1)))
-      (clock p (V2.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams (s + 1))) D)
+      (clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams (s + 1)))
+      (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams (s + 1))) D)
     (hDX : Block.Preceq D X) (hXQ : Block.Prec X b.parent)
     (hp : C.parent? = some X)
     (hm : C ∈ erasedList
-      (clock p (V2.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams (s + 1)))
+      (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams (s + 1)))
       (storeFrame p.E p.cfg
-        (clock p (V2.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams (s + 1))).fg
+        (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams (s + 1))).fg
         (voterBlocks p
-          (clock p (V2.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams (s + 1)))
+          (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams (s + 1)))
           (s + 1)))) :
-    C ∈ (clock p (V2.Run.stateBefore E rho ip x).st
+    C ∈ (clock p (V2.D.Run.stateBefore E rho ip x).st
       (SA.proposalTime p.toParams (s + 1))).base.blocks := by
-  let src := clock p (V2.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams (s + 1))
-  let dst := clock p (V2.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams (s + 1))
+  let src := clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams (s + 1))
+  let dst := clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams (s + 1))
   have hs : CStoreInv p src := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ip x) _
   have ht : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ih y) _
   have hCbase : C ∈ dst.base.blocks := (List.mem_filter.mp hm).1
-  have hCpre : C ∈ (V2.Run.stateBefore E rho ih y).st.base.blocks := by
+  have hCpre : C ∈ (V2.D.Run.stateBefore E rho ih y).st.base.blocks := by
     change C ∈ (clock p _ _).base.blocks at hCbase
     rwa [clock_base_blocks] at hCbase
   obtain ⟨A, hA, heA⟩ := of_decide_eq_true (List.mem_filter.mp hm).2
@@ -1142,21 +1142,21 @@ theorem fgsa_walkRun_reflected_block
     rw [heA] at hf
     change GridCO.stampBlock (clock p _ _).base C < _ at hf
     rw [scoreRun_clock_block_stamp E rho ih y _ C hCpre] at hf
-    have hf' : GridCO.stampBlock (V2.Run.stateBefore E rho ih y).st.base C <
+    have hf' : GridCO.stampBlock (V2.D.Run.stateBefore E rho ih y).st.base C <
         SA.freezeTime p.toParams s := by simpa only [Nat.add_sub_cancel] using hf
     have hb := fgsa_walkRun_frozen_block E rho hE hN hDelta s hSync hx hy hip D C hgeom
       (Gen.Pure.block_preceq_trans hDX (walkRun_parent_prefix hp)) hCpre hf'
     exact ((actView_blocks src C).mp hb).1
   · obtain ⟨P, hP, hslot, hAP⟩ := of_decide_eq_true hc
     have hPbase : eraseFG P ∈ dst.base.blocks := (ht.baseTree _).mpr ⟨P, hP, rfl⟩
-    have hPpre : eraseFG P ∈ (V2.Run.stateBefore E rho ih y).st.base.blocks := by
+    have hPpre : eraseFG P ∈ (V2.D.Run.stateBefore E rho ih y).st.base.blocks := by
       change eraseFG P ∈ (clock p _ _).base.blocks at hPbase
       rwa [clock_base_blocks] at hPbase
     have heP := fgsa_walkRun_current_block_eq E rho hE (s + 1) (Nat.succ_pos s) hx hip
       hseat b raw sup rows hem (eraseFG P) hPpre ((eraseFG_slot P).trans hslot)
     have hCb : Block.Preceq C b := by simpa only [heA, heP] using eraseFG_preceq hAP
     have hmem := hem
-    rw [(V2.Run.step_tick_eq E rho hip).2] at hmem
+    rw [(V2.D.Run.step_tick_eq E rho hip).2] at hmem
     have hem' := (fgsa_emits_proposal E rho _ x _ (s + 1) _).mp hmem
     have hparent := fgsa_walkRun_proposal_parent p src (s + 1) _ b raw sup rows hem'.2.2.2
     have hne : X ≠ b.parent := by
@@ -1240,11 +1240,11 @@ INTENTIONAL: FG-SA transfers suffix coverage of the proposal parent.
 The two N1 records have the exact G25 and G11 time pairs. Comparison-prefix
 geometry permits different live roots; terminal adoption is a consumer task. -/
 theorem fgsa_ghost_transfer_sfx_on_run
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hE : V2.ExecutionValid E rho) (hN : V2.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (s : Slot) (hScoreSync : Gen.V2.LabelSync E rho
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
+    (s : Slot) (hScoreSync : Gen.V2.Duty.LabelSync E rho
       (SA.proposalTime p.toParams s - p.Δ) (SA.voteTime p.toParams s))
-    (hSync : Gen.V2.LabelSync E rho
+    (hSync : Gen.V2.Duty.LabelSync E rho
       (SA.proposalTime p.toParams s - p.Δ) (SA.proposalTime p.toParams s))
     {ip ih : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
@@ -1252,18 +1252,18 @@ theorem fgsa_ghost_transfer_sfx_on_run
     (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
     (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
     (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
-      V2.Run.emitsAt E rho ip)
-    (hadm : b ∈ (V2.Run.stateBefore E rho ih y).st.base.blocks)
+      V2.D.Run.emitsAt E rho ip)
+    (hadm : b ∈ (V2.D.Run.stateBefore E rho ih y).st.base.blocks)
     (D : FGBlock (Fin p.n))
     (hgeom : WalkRunGeometry p
-      (clock p (V2.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s))
-      (clock p (V2.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) s D) :
-    let dst := clock p (V2.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)
+      (clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s))
+      (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) s D) :
+    let dst := clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)
     Block.Preceq b.parent (headVote p dst s) := by
   intro dst
-  let src := clock p (V2.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s)
+  let src := clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s)
   have hmem := hem
-  rw [(V2.Run.step_tick_eq E rho hip).2] at hmem
+  rw [(V2.D.Run.step_tick_eq E rho hip).2] at hmem
   have hp := (fgsa_emits_proposal E rho _ x _ s _).mp hmem
   have hparent := fgsa_walkRun_proposal_parent p src s _ b raw sup rows hp.2.2.2
   have pools := fgsa_scoreRun_proposal_pools p src s _ b raw sup rows hp.2.2.2

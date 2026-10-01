@@ -1,7 +1,7 @@
 module
 public import AvailableChainFGSAClaims.Statements.Reads
 public import AvailableChainFGSA.Proofs.Metadata
-public import AvailableChainKitV2.Stable
+public import AvailableChainKitV2.DutyStable
 
 public section
 
@@ -9,18 +9,18 @@ namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
 
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 /-- Fixed store data persist through a restart-free interval. The KitV2 core
 uses the E-16 own-record fold; FG-SA clock/process supply all six fields. -/
-theorem fgsa_store_cumulative (hnr : V2.NoRestart rho) {i j : Nat} (hij : i ≤ j) (x : V) :
+theorem fgsa_store_cumulative (hnr : V2.D.NoRestart rho) {i j : Nat} (hij : i ≤ j) (x : V) :
     let a := storeAt p c E rho i x
     let b := storeAt p c E rho j x
     a.fg.TF ⊆ b.fg.TF ∧ a.base.blocks <+: b.base.blocks ∧
     a.base.blockStamp <+: b.base.blockStamp ∧ a.base.voteStamp <+: b.base.voteStamp ∧
     a.proposals <+: b.proposals ∧ a.rowPool <+: b.rowPool := by
   let a := storeAt p c E rho i x
-  apply V2.Engine.stateBefore_stable (P := fgsa p c)
+  apply V2.D.Engine.stateBefore_stable (P := fgsa p c)
     (fun nd => a.fg.TF ⊆ nd.st.fg.TF ∧ a.base.blocks <+: nd.st.base.blocks ∧
       a.base.blockStamp <+: nd.st.base.blockStamp ∧ a.base.voteStamp <+: nd.st.base.voteStamp ∧
       a.proposals <+: nd.st.proposals ∧ a.rowPool <+: nd.st.rowPool)

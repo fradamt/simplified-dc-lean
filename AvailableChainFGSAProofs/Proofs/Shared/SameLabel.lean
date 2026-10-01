@@ -2,7 +2,7 @@ module
 public import AvailableChainFGSARun.Proofs.Receipts
 public import AvailableChainFGSAClaims.Statements.Reads
 public import AvailableChainGeneric.Proofs.AC.Votes
-public import AvailableChainGeneric.Statements.V2.Regimes
+public import AvailableChainGeneric.Statements.V2.Duty.Regimes
 
 public section
 
@@ -139,19 +139,19 @@ private theorem sl_result_majority (p : Params) (v : GridCO.State p.n) (s : Slot
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
 omit [DecidableEq V] in
-private theorem sl_idx_mono (rho : V2.Run V (fgsa p c)) : Monotone (V2.Run.idxBefore rho) := by
+private theorem sl_idx_mono (rho : V2.D.Run V (fgsa p c)) : Monotone (V2.D.Run.idxBefore rho) := by
   intro a b hab
-  rw [V2.Run.idxBefore_def, V2.Run.idxBefore_def]
+  rw [V2.D.Run.idxBefore_def, V2.D.Run.idxBefore_def]
   rw [← List.countP_eq_length_filter, ← List.countP_eq_length_filter]
   exact List.countP_mono_left (fun e _ he => decide_eq_true
     (lt_of_lt_of_le (of_decide_eq_true he) hab))
 
-private theorem sl_votes_mono (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hN : V2.NoRestart rho) (x : V) {i j : Nat} (hij : i ≤ j) :
-    (V2.Run.stateBefore E rho i x).st.base.votes ⊆
-      (V2.Run.stateBefore E rho j x).st.base.votes := by
-  apply V2.Engine.stateBefore_stable (P := fgsa p c)
-    (fun nd => (V2.Run.stateBefore E rho i x).st.base.votes ⊆ nd.st.base.votes)
+private theorem sl_votes_mono (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hN : V2.D.NoRestart rho) (x : V) {i j : Nat} (hij : i ≤ j) :
+    (V2.D.Run.stateBefore E rho i x).st.base.votes ⊆
+      (V2.D.Run.stateBefore E rho j x).st.base.votes := by
+  apply V2.D.Engine.stateBefore_stable (P := fgsa p c)
+    (fun nd => (V2.D.Run.stateBefore E rho i x).st.base.votes ⊆ nd.st.base.votes)
     ?_ ?_ (fun _ _ h => h) E rho hij x (hN.restartFree x i j) (List.Subset.refl _)
   · intro nd t h
     change _ ⊆ (clock p nd.st t).base.votes
@@ -159,12 +159,12 @@ private theorem sl_votes_mono (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
   · intro nd o h
     exact List.Subset.trans h (process_votes_subset nd.st (toWire p o))
 
-private theorem sl_gate_stamp (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+private theorem sl_gate_stamp (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (i : Nat) (x : V) (s : Slot) (o : GridCO.Wire p.n)
-    (hm : o ∈ (V2.Run.stateBefore E rho i x).st.base.votes) :
-    GridCO.stampVote (actView (clockPre p (V2.Run.stateBefore E rho i x).st
+    (hm : o ∈ (V2.D.Run.stateBefore E rho i x).st.base.votes) :
+    GridCO.stampVote (actView (clockPre p (V2.D.Run.stateBefore E rho i x).st
       (SA.gateTime p.toParams s))) o =
-      GridCO.stampVote (V2.Run.stateBefore E rho i x).st.base o := by
+      GridCO.stampVote (V2.D.Run.stateBefore E rho i x).st.base o := by
   have hk := fgsa_vote_stamp_keys E rho i x
   rw [← hk] at hm
   obtain ⟨⟨v, t⟩, hv, he⟩ := List.mem_map.mp hm
@@ -173,7 +173,7 @@ private theorem sl_gate_stamp (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
   change (((clockPre p _ _).base.voteStamp.find? _).map Prod.snd).getD _ = _
   rw [(clockPre_stamps p _ _).2]
   unfold GridCO.stampVote
-  cases hf : (V2.Run.stateBefore E rho i x).st.base.voteStamp.find?
+  cases hf : (V2.D.Run.stateBefore E rho i x).st.base.voteStamp.find?
       (fun row => row.1 == o) with
   | none =>
     have hn := List.find?_eq_none.mp hf (o, t) hv
@@ -181,13 +181,13 @@ private theorem sl_gate_stamp (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
     contradiction
   | some row => rfl
 
-private theorem sl_gate_late (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hS : V2.ScheduleWellFormed E rho) {i : Nat} {x : V} {s : Slot}
+private theorem sl_gate_late (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hS : V2.D.ScheduleWellFormed E rho) {i : Nat} {x : V} {s : Slot}
     (hi : rho.events[i]? = some (.tick x (SA.gateTime p.toParams s)))
-    (o : GridCO.Wire p.n) (hm : o ∈ (V2.Run.stateBefore E rho i x).st.base.votes)
+    (o : GridCO.Wire p.n) (hm : o ∈ (V2.D.Run.stateBefore E rho i x).st.base.votes)
     (hl : GridCO.headLabel? o = some s) :
     o ∈ GridCO.lateVotes p.toParams.engine
-      (actView (clockPre p (V2.Run.stateBefore E rho i x).st (SA.gateTime p.toParams s))) s := by
+      (actView (clockPre p (V2.D.Run.stateBefore E rho i x).st (SA.gateTime p.toParams s))) s := by
   apply List.mem_filter.mpr
   refine ⟨?_, decide_eq_true ?_⟩
   · apply List.mem_filter.mpr
@@ -202,52 +202,52 @@ private theorem sl_gate_late (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
     have hn := fgsa_preTick_now_lt E rho hS hi hpos
     have hb := (fgsa_stateBefore_bounds E rho hS i x).2
     unfold GridCO.stampVote
-    cases hf : (V2.Run.stateBefore E rho i x).st.base.voteStamp.find?
+    cases hf : (V2.D.Run.stateBefore E rho i x).st.base.voteStamp.find?
         (fun row => row.1 == o) with
     | none => exact hn
     | some row => exact lt_of_le_of_lt (hb row (List.mem_of_find?_eq_some hf)) hn
 
-private theorem sl_read_window (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hS : V2.ScheduleWellFormed E rho) (hN : V2.NoRestart rho)
+private theorem sl_read_window (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hS : V2.D.ScheduleWellFormed E rho) (hN : V2.D.NoRestart rho)
     {i : Nat} {x : V} {s : Slot}
     (hi : rho.events[i]? = some (.tick x (SA.gateTime p.toParams s)))
     (d : Time) (hd : d ≤ SA.gateTime p.toParams s) :
-    (V2.Run.stateBeforeTime E rho d x).st.slot p ≤ s + 1 := by
-  have hm := V2.Engine.stateBefore_now_mono_noRestart (fgsaClock p c) E rho hS hN
+    (V2.D.Run.stateBeforeTime E rho d x).st.slot p ≤ s + 1 := by
+  have hm := V2.D.Engine.stateBefore_now_mono_noRestart (fgsaClock p c) E rho hS hN
     (sl_idx_mono rho hd) x
-  rw [fgsa_clock_now p c (V2.Run.stateBefore E rho (V2.Run.idxBefore rho d) x),
-    fgsa_clock_now p c (V2.Run.stateBefore E rho
-      (V2.Run.idxBefore rho (SA.gateTime p.toParams s)) x)] at hm
-  rw [Gen.V2.stateBefore_idxBefore E rho d hS,
-    Gen.V2.stateBefore_idxBefore E rho _ hS,
+  rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho d) x),
+    fgsa_clock_now p c (V2.D.Run.stateBefore E rho
+      (V2.D.Run.idxBefore rho (SA.gateTime p.toParams s)) x)] at hm
+  rw [Gen.V2.Duty.stateBefore_idxBefore E rho d hS,
+    Gen.V2.Duty.stateBefore_idxBefore E rho _ hS,
     ← fgsa_preTick_eq_timeRead E rho hS hN hi] at hm
-  have hb := V2.Engine.stateBefore_now_le_event (fgsaClock p c) (fgsa_hrestore_now p c)
+  have hb := V2.D.Engine.stateBefore_now_le_event (fgsaClock p c) (fgsa_hrestore_now p c)
     E rho hS hi x
-  rw [fgsa_clock_now p c (V2.Run.stateBefore E rho i x)] at hb
+  rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho i x)] at hb
   have hs := Internal.slotOf_mono (p := p) (hm.trans hb)
   have he : p.slotOf (SA.gateTime p.toParams s) = s + 1 := by
-    exact (fgsa_postClock_slot (c := c) (V2.Run.stateBefore E rho i x) _).2.symm.trans
+    exact (fgsa_postClock_slot (c := c) (V2.D.Run.stateBefore E rho i x) _).2.symm.trans
       (fgsa_gate_slot (c := c) _ s)
   exact hs.trans_eq he
 
-private theorem sl_relay (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hE : V2.ExecutionValid E rho) (hN : V2.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (s : Slot) (hSync : Gen.V2.LabelSync E rho (SA.voteTime p.toParams s)
+private theorem sl_relay (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
+    (s : Slot) (hSync : Gen.V2.Duty.LabelSync E rho (SA.voteTime p.toParams s)
       (SA.gateTime p.toParams s))
     {ix iy : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (hiy : rho.events[iy]? = some (.tick y (SA.gateTime p.toParams s)))
     (o : GridCO.Wire p.n)
     (ho : o ∈ GridCO.cleanSupport p.toParams.engine
-      (actView (clockPre p (V2.Run.stateBefore E rho ix x).st (SA.gateTime p.toParams s))) s)
+      (actView (clockPre p (V2.D.Run.stateBefore E rho ix x).st (SA.gateTime p.toParams s))) s)
     (k : Fin p.n) (hk : GridCO.headSeat? o = some k) :
     let late := GridCO.lateVotes p.toParams.engine
-      (actView (clockPre p (V2.Run.stateBefore E rho iy y).st (SA.gateTime p.toParams s))) s
+      (actView (clockPre p (V2.D.Run.stateBefore E rho iy y).st (SA.gateTime p.toParams s))) s
     o ∈ late ∨ GridCO.equivocates late k = true := by
   dsimp only
   have hc := sl_clean_mem p _ s o ho
   obtain ⟨B, rfl⟩ := sl_vote_shape o s k hc.2.1 hk
   have hmem : (⟨.seat s k, .head B⟩ : GridCO.Wire p.n) ∈
-      (V2.Run.stateBefore E rho ix x).st.base.votes := by
+      (V2.D.Run.stateBefore E rho ix x).st.base.votes := by
     have hm := hc.1
     change _ ∈ (clockPre p _ _).base.votes at hm
     rwa [(Internal.clockPre_vn _ _).1] at hm
@@ -279,11 +279,11 @@ private theorem sl_relay (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
   have hr := fgsa_head_receipt E rho hDelta hE hN dl cut s k B t y hD
     (Or.inr ⟨x, hx, j, ha⟩) hy (hd.trans hcut) (hlt t)
     (sl_read_window E rho hE.toScheduleWellFormed hN hiy (dl t) hd)
-  have hkeep : (V2.Run.stateBeforeTime E rho (dl t) y).st.base.votes ⊆
-      (V2.Run.stateBefore E rho iy y).st.base.votes := by
+  have hkeep : (V2.D.Run.stateBeforeTime E rho (dl t) y).st.base.votes ⊆
+      (V2.D.Run.stateBefore E rho iy y).st.base.votes := by
     rw [fgsa_preTick_eq_timeRead E rho hE.toScheduleWellFormed hN hiy,
-      ← Gen.V2.stateBefore_idxBefore E rho (dl t) hE.toScheduleWellFormed,
-      ← Gen.V2.stateBefore_idxBefore E rho _ hE.toScheduleWellFormed]
+      ← Gen.V2.Duty.stateBefore_idxBefore E rho (dl t) hE.toScheduleWellFormed,
+      ← Gen.V2.Duty.stateBefore_idxBefore E rho _ hE.toScheduleWellFormed]
     exact sl_votes_mono E rho hN y (sl_idx_mono rho hd)
   rcases hr with hr | ⟨u, hu, v, hv, hne, hlu, hlv, hku, hkv, _, _⟩
   · exact Or.inl (sl_gate_late E rho hE.toScheduleWellFormed hiy _ (hkeep hr.1) rfl)
@@ -291,19 +291,19 @@ private theorem sl_relay (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
       sl_gate_late E rho hE.toScheduleWellFormed hiy u (hkeep hu) hlu, v,
       sl_gate_late E rho hE.toScheduleWellFormed hiy v (hkeep hv) hlv, hne, hku, hkv⟩)
 
-private theorem sl_gate_input (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+private theorem sl_gate_input (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (x : V) (s : Slot) (B : Block) (h : gateResult p c E rho x s = some (some B)) :
     ∃ i, rho.events[i]? = some (.tick x (SA.gateTime p.toParams s)) ∧
       SA.confirmationFrom p.toParams
-        (eraseFG (clockPre p (V2.Run.stateBefore E rho i x).st (SA.gateTime p.toParams s)).fg.F)
-        (actView (clockPre p (V2.Run.stateBefore E rho i x).st
+        (eraseFG (clockPre p (V2.D.Run.stateBefore E rho i x).st (SA.gateTime p.toParams s)).fg.F)
+        (actView (clockPre p (V2.D.Run.stateBefore E rho i x).st
           (SA.gateTime p.toParams s))) s = some B := by
   rw [gateResult_def, gateIn_def, preTick_def] at h
-  cases hi : V2.Run.tickIdx? rho x (SA.gateTime p.toParams s) with
+  cases hi : V2.D.Run.tickIdx? rho x (SA.gateTime p.toParams s) with
   | none => simp only [hi, Option.map_none] at h; contradiction
   | some i =>
     simp only [hi, Option.map_some, Option.some.injEq] at h
-    exact ⟨i, V2.Run.tickIdx?_spec hi, h⟩
+    exact ⟨i, V2.D.Run.tickIdx?_spec hi, h⟩
 
 /-- P3 F1b.2, blueprint 02 §2.2 and 21 IF.6: two honest raw gate results
 at one synchronized label are compatible. Class (ii), T7.8 receipt instance
@@ -312,9 +312,9 @@ and Gen A2/A3 count assembly. DC: Protocol/ForkChoice/Goldfish/Confirmation.lean
 result (spec/fgsa-protocol.tex:2496–2513), with label-local synchronization.
 No participation or honest-majority premise is needed for compatibility. -/
 theorem fgsa_sameLabel (p : Params) {In V : Type} [DecidableEq V]
-    (c : AppCodec In) (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
-    (hE : V2.ExecutionValid E rho) (hN : V2.NoRestart rho) (hDelta : E.Δ = p.Δ)
-    (s : Slot) (hSync : Gen.V2.LabelSync E rho (SA.voteTime p.toParams s)
+    (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
+    (s : Slot) (hSync : Gen.V2.Duty.LabelSync E rho (SA.voteTime p.toParams s)
       (SA.gateTime p.toParams s)) :
     ∀ x y B C, x ∈ rho.honest → y ∈ rho.honest →
       gateResult p c E rho x s = some (some B) →
@@ -322,8 +322,8 @@ theorem fgsa_sameLabel (p : Params) {In V : Type} [DecidableEq V]
   intro x y B C hx hy hB hC
   obtain ⟨ix, hix, hB⟩ := sl_gate_input E rho x s B hB
   obtain ⟨iy, hiy, hC⟩ := sl_gate_input E rho y s C hC
-  let vx := actView (clockPre p (V2.Run.stateBefore E rho ix x).st (SA.gateTime p.toParams s))
-  let vy := actView (clockPre p (V2.Run.stateBefore E rho iy y).st (SA.gateTime p.toParams s))
+  let vx := actView (clockPre p (V2.D.Run.stateBefore E rho ix x).st (SA.gateTime p.toParams s))
+  let vy := actView (clockPre p (V2.D.Run.stateBefore E rho iy y).st (SA.gateTime p.toParams s))
   let Lx := (GridCO.seats p.n (GridCO.lateVotes p.toParams.engine vx s)).toFinset
   let Ly := (GridCO.seats p.n (GridCO.lateVotes p.toParams.engine vy s)).toFinset
   have own (v : GridCO.State p.n) (D : Block) : sl_support p v s D ⊆
@@ -333,10 +333,10 @@ theorem fgsa_sameLabel (p : Params) {In V : Type} [DecidableEq V]
     exact (vote_pool_mem_seats _ k).mpr ⟨o, sl_clean_late p v s ho, hko⟩
   have cross {ia ib : Nat} {a b : V} (ha : a ∈ rho.honest) (hb : b ∈ rho.honest)
       (hib : rho.events[ib]? = some (.tick b (SA.gateTime p.toParams s))) (D : Block) :
-      sl_support p (actView (clockPre p (V2.Run.stateBefore E rho ia a).st
+      sl_support p (actView (clockPre p (V2.D.Run.stateBefore E rho ia a).st
         (SA.gateTime p.toParams s))) s D ⊆
       (GridCO.seats p.n (GridCO.lateVotes p.toParams.engine
-        (actView (clockPre p (V2.Run.stateBefore E rho ib b).st
+        (actView (clockPre p (V2.D.Run.stateBefore E rho ib b).st
           (SA.gateTime p.toParams s))) s)).toFinset := by
     intro k hk
     obtain ⟨o, ho, hko, _⟩ := (sl_support_mem p _ s D k).mp hk

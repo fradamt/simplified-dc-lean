@@ -57,13 +57,13 @@ INTENTIONAL difference: stable and confirmed both read S at all integer
 times. This projection inherits NoRestart from hc.set.pre.base. -/
 theorem fgsa_cleanSafety_outputs
     {V : Type} [DecidableEq V] [Fintype V] {In : Type} {c : AppCodec In}
-    {E : Generic.Env V} {rho : V2.Run V (fgsa p c)} {pt : Unit}
+    {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)} {pt : Unit}
     (hc : CleanPrem p c E rho pt) :
     ∀ g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed],
       Gen.Pure.CompatOn (· ∈ rho.honest)
-        (fun t x => V2.outputAt E rho g x t) (fun _ => True) ∧
+        (fun t x => V2.D.outputAt E rho g x t) (fun _ => True) ∧
       Gen.Pure.MonoOn (· ∈ rho.honest)
-        (fun t x => V2.outputAt E rho g x t) (fun _ => True) :=
+        (fun t x => V2.D.outputAt E rho g x t) (fun _ => True) :=
   cleanSafety_outputs (fgsa_cleanSafetyClaim p) hc
 
 end AvailableChain.FGSA.Run

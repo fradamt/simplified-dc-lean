@@ -11,9 +11,9 @@ namespace AvailableChain.FGSA.Run.Tests.Zero
 private abbrev p4 : Params :=
   { Δ := 1, n := 4, k := 2, η := 11, deltaPos := by decide, nPos := by decide,
     kLarge := by decide, etaNonneg := by decide,
-    R := 2, wF := 1, δt := 1, RLarge := by decide, wFPos := by decide }
+    R := 2, δt := 1, RLarge := by decide }
 
-private abbrev rho0 : V2.Run (Fin 4) (fgsa p4 unitCodec) where
+private abbrev rho0 : V2.D.Run (Fin 4) (fgsa p4 unitCodec) where
   honest := {0}
   horizon := 0
   events := [.tick 0 0]
@@ -25,7 +25,7 @@ private abbrev rho0 : V2.Run (Fin 4) (fgsa p4 unitCodec) where
 private abbrev env0 : Generic.Env (Fin 4) :=
   ⟨1, by decide, 0, le_rfl, fun _ _ => true⟩
 
-private theorem schedule0 : V2.ScheduleWellFormed env0 rho0 where
+private theorem schedule0 : V2.D.ScheduleWellFormed env0 rho0 where
   horizon_nonneg := le_rfl
   sorted := List.pairwise_singleton _ _
   nodup := List.nodup_singleton _
@@ -78,7 +78,7 @@ private theorem base0 : Base₂ p4 unitCodec env0 rho0 where
   noRestart := by intro i v t; cases i <;> simp
   delta := rfl
 
-private theorem healthy0 : V2.HealthyPrefixDelivery env0 rho0 0 where
+private theorem healthy0 : V2.D.HealthyPrefixDelivery env0 rho0 0 where
   broadcast := by
     rintro v _ o t ⟨i, hi, _⟩ w _ hd _
     have ht : 0 ≤ t := (schedule0.in_horizon _ (List.mem_of_getElem? hi)).1
@@ -92,10 +92,10 @@ private theorem prefix0 : HealthyPrefix₂ p4 unitCodec env0 rho0 0 :=
   ⟨base0, ⟨le_rfl, le_rfl⟩, healthy0, fun _ ht hb => (not_lt_of_ge ht hb).elim⟩
 
 -- Three faulty nodes and a required tick of the one honest node.
-example : (Gen.V2.faulty rho0).card = 3 := by decide +kernel
-example : ¬ Gen.Pure.FaultQ p4.n (Gen.V2.faulty rho0).card := by
+example : (Gen.V2.Duty.faulty rho0).card = 3 := by decide +kernel
+example : ¬ Gen.Pure.FaultQ p4.n (Gen.V2.Duty.faulty rho0).card := by
   intro h
-  have hn : ¬ (Gen.V2.faulty rho0).card < Gen.Pure.qF p4.n := by decide +kernel
+  have hn : ¬ (Gen.V2.Duty.faulty rho0).card < Gen.Pure.qF p4.n := by decide +kernel
   exact hn h.lt
 example : timeIdx rho0 0 = 1 := by decide +kernel
 example : timeIdx rho0 (-1) = 0 ∧ timeIdx rho0 (rho0.horizon + 1) = 1 := by decide +kernel
@@ -113,7 +113,7 @@ example (E : Generic.Env (Fin 4)) (h : HealthyPrefix₂ p4 unitCodec E rho0 0) :
     CleanHistoryAt p4 unitCodec E rho0 0 ∧ CleanTruncAt p4 unitCodec E rho0 0 :=
   ⟨cleanHistoryAt_zero h, cleanTruncAt_zero h⟩
 
-example (E : Generic.Env (Fin 4)) (hs : V2.ScheduleWellFormed E rho0)
+example (E : Generic.Env (Fin 4)) (hs : V2.D.ScheduleWellFormed E rho0)
     (ht : CleanTruncAt p4 unitCodec E rho0 rho0.horizon) :
     CleanSafetyAt p4 unitCodec E rho0 := cleanSafetyAt_of_trunc p4 unitCodec E rho0 hs ht
 

@@ -1,7 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Foundations.Carrier
 public import AvailableChainFGSAProofs.Proofs.Foundations.Client
-public import AvailableChainGeneric.Proofs.V2.Linked
+public import AvailableChainGeneric.Proofs.V2.Duty.Linked
 public import AvailableChainFGSARun.Proofs.Receipts
 
 public section
@@ -10,7 +10,7 @@ namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
 
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 /-- A finalized certificate names both the target and its certificate height, as in DC. -/
 def FGFinalizedAt (K T : FGBlock (Fin p.n)) (h : Nat) : Prop :=
@@ -21,7 +21,7 @@ without a Claims import. It includes emitted and delivered run proposals. -/
 def FinalityRunBlock (X : FGBlock (Fin p.n)) : Prop :=
   ∃ o b raw sup rows,
     o.payload = Msg.proposal b raw sup rows ∧
-    ((∃ x t, V2.Run.emits E rho x o t) ∨
+    ((∃ x t, V2.D.Run.emits E rho x o t) ∨
       (∃ x t, V2.Event.deliver x o t ∈ rho.events)) ∧
     Block.Preceq (eraseFG X) b
 
@@ -39,8 +39,8 @@ theorem fgsa_finalityStoreRows_contains (st : State p.n) (K : FGBlock (Fin p.n))
 
 /-- Honest carriage is separate from weight-level evidence. -/
 def FinalityCarriage (A : Finset (Row (Fin p.n))) : Prop :=
-  ∀ u ∈ A, ∃ (a : RowWire p.n) (r : Nat),
-    a.toRow? = some u ∧ a.auth = .seat (.fg r) u.signer ∧
+  ∀ u ∈ A, ∃ (a : RowWire p.n) (_r : Nat),
+    a.toRow? = some u ∧ a.auth = .seat .fg u.signer ∧
     ∀ z : V, RowSigner p c rho a z → z ∈ rho.honest → EmitsRow p c E rho z a
 
 /-- Run-free accountable finality: same as DC PureAccountableFinalitySafety (no run premise).
@@ -73,10 +73,10 @@ structure FGWholeRunAccountable : Prop where
       (finalityStoreRows p (storeAt p c E rho j v)) ∨
       FGBlock.compatible (storeAt p c E rho i u).fg.F (storeAt p c E rho j v).fg.F = true
   reads : ∀ u ∈ rho.honest, ∀ v ∈ rho.honest, ∀ t t',
-    HasSlashableWeightBetween p.E (finalityStoreRows p (V2.Run.readAt E rho t u).st)
-      (finalityStoreRows p (V2.Run.readAt E rho t' v).st) ∨
-      FGBlock.compatible (V2.Run.readAt E rho t u).st.fg.F
-        (V2.Run.readAt E rho t' v).st.fg.F = true
+    HasSlashableWeightBetween p.E (finalityStoreRows p (V2.D.Run.readAt E rho t u).st)
+      (finalityStoreRows p (V2.D.Run.readAt E rho t' v).st) ∨
+      FGBlock.compatible (V2.D.Run.readAt E rho t u).st.fg.F
+        (V2.D.Run.readAt E rho t' v).st.fg.F = true
 
 private theorem store_accountable (st st' : State p.n)
     (hs : CStoreInv p st) (hs' : CStoreInv p st') :
@@ -128,15 +128,15 @@ private theorem stored_finality_delivery (i : Nat) (x : V) (K : FGBlock (Fin p.n
   rfl
 
 private theorem read_finality_runBlock (t : Time) (x : V) (K : FGBlock (Fin p.n))
-    (hK : K ∈ (V2.Run.readAt E rho t x).st.fg.TF) (hne : K ≠ .genesis) :
+    (hK : K ∈ (V2.D.Run.readAt E rho t x).st.fg.TF) (hne : K ≠ .genesis) :
     FinalityRunBlock p c E rho K := by
   let rho' := { rho with events := rho.events.filter (fun e => decide (e.time ≤ t)) }
-  have hs : V2.World.step E rho' = V2.World.step E rho := by
+  have hs : V2.D.World.step E rho' = V2.D.World.step E rho := by
     funext w e
     cases e <;> rfl
-  have hst : storeAt p c E rho' rho'.events.length x = (V2.Run.readAt E rho t x).st := by
+  have hst : storeAt p c E rho' rho'.events.length x = (V2.D.Run.readAt E rho t x).st := by
     change ((rho'.events.take rho'.events.length).foldl
-      (V2.World.step E rho') V2.World.init x).st = _
+      (V2.D.World.step E rho') V2.D.World.init x).st = _
     rw [List.take_length, hs]
     rfl
   obtain ⟨o, raw, sup, rows, y, s, ho, hd⟩ :=
@@ -189,8 +189,8 @@ theorem fgsa_wholeRunAgreement (hb : FGSASlashableBound p c E rho) :
       FGFinalizedAt p K T₁ h₁ → FGFinalizedAt p W T₂ h₂ →
       FGBlock.compatible T₁ T₂ = true) ∧
     (∀ u ∈ rho.honest, ∀ v ∈ rho.honest, ∀ t t',
-      FGBlock.compatible (V2.Run.readAt E rho t u).st.fg.F
-        (V2.Run.readAt E rho t' v).st.fg.F = true) := by
+      FGBlock.compatible (V2.D.Run.readAt E rho t u).st.fg.F
+        (V2.D.Run.readAt E rho t' v).st.fg.F = true) := by
   have ha := fgsa_wholeRunAccountable p c E rho
   refine ⟨fun K W T₁ T₂ h₁ h₂ hK hW hf hg =>
     (ha.chains K W T₁ T₂ h₁ h₂ hK hW hf hg).resolve_left (hb K W hK hW), ?_⟩
@@ -202,45 +202,43 @@ theorem fgsa_wholeRunAgreement (hb : FGSASlashableBound p c E rho) :
 /-- Slashable identities on two held chains give distinct faulty holders.
 Linked transports row identities before any fault bound is used. -/
 private theorem slashable_pool_count [Fintype V]
-    (hL : V2.Linked (fgsaFamilies p c).linked rho)
+    (hL : V2.D.Linked (fgsaFamilies p c).linked rho)
     (hC : ∀ z ∈ rho.honest, EmittedRowsNoSlash p c E rho z)
     (A B : Finset (Row (Fin p.n)))
     (hA : FinalityCarriage p c E rho A) (hB : FinalityCarriage p c E rho B)
     (hev : HasSlashableWeightBetween p.E A B) :
-    2 * Gen.Pure.qF p.n - p.n ≤ (Gen.V2.faulty rho).card := by
+    2 * Gen.Pure.qF p.n - p.n ≤ (Gen.V2.Duty.faulty rho).card := by
   classical
   obtain ⟨S, hw, hs⟩ := hev
-  have hcard := Gen.V2.linked_card_le_of_holders hL (S.image Fin.val)
-    (Gen.V2.faulty rho) (by
-      intro k hk
-      obtain ⟨i, hi, rfl⟩ := Finset.mem_image.mp hk
+  have hsub : S.image (rho.seatOf (.base .fg)) ⊆ Gen.V2.Duty.faulty rho := by
+      intro z hz
+      obtain ⟨i, hi, rfl⟩ := Finset.mem_image.mp hz
       obtain ⟨u, hu, v, hv, hui, hvi, huv⟩ := hs i hi
-      obtain ⟨a, r, hau, har, hea⟩ := hA u hu
-      obtain ⟨b, s, hbv, hbs, heb⟩ := hB v hv
-      let z := rho.seatOf (.base (.fg r)) u.signer
-      have heq : rho.seatOf (.base (.fg s)) v.signer = z :=
-        Gen.V2.linked_holder_eq hL (ℓ := .base (.fg s)) (ℓ' := .base (.fg r))
-          (by trivial) (by trivial) v.signer u.signer
-          (congrArg Fin.val (hvi.trans hui.symm))
+      obtain ⟨a, _, hau, har, hea⟩ := hA u hu
+      obtain ⟨b, _, hbv, hbs, heb⟩ := hB v hv
+      let z := rho.seatOf (.base .fg) u.signer
+      have heq : rho.seatOf (.base .fg) v.signer = z :=
+        congrArg (rho.seatOf (.base .fg)) (hvi.trans hui.symm)
       have ha : RowSigner p c rho a z := (rowSigner_iff_holder p c rho a z).mpr
-        ⟨⟨r, u.signer, har⟩, by
-          change V2.Run.holder rho (ofAuth p a.auth) = some z
+        ⟨⟨u.signer, har⟩, by
+          change V2.D.Run.holder rho (ofAuth p a.auth) = some z
           rw [har]
           rfl⟩
       have hb : RowSigner p c rho b z := (rowSigner_iff_holder p c rho b z).mpr
-        ⟨⟨s, v.signer, hbs⟩, by
-          change V2.Run.holder rho (ofAuth p b.auth) = some z
+        ⟨⟨v.signer, hbs⟩, by
+          change V2.D.Run.holder rho (ofAuth p b.auth) = some z
           rw [hbs]
           exact congrArg some heq⟩
       have hz : z ∉ rho.honest := by
         intro hzh
         exact hC z hzh a b (hea z ha hzh) (heb z hb hzh) u v hau hbv huv
-      refine ⟨.base (.fg r), by trivial, u.signer, congrArg Fin.val hui, ?_⟩
-      rw [Gen.V2.faulty_def]
-      exact Finset.mem_sdiff.mpr ⟨Finset.mem_univ z, hz⟩)
-  have hcS : (S.image Fin.val).card = S.card :=
-    Finset.card_image_of_injective S Fin.val_injective
-  rw [hcS] at hcard
+      rw [← hui]
+      rw [Gen.V2.Duty.faulty_def]
+      exact Finset.mem_sdiff.mpr ⟨Finset.mem_univ z, hz⟩
+  have hinj : Function.Injective (fun i : Fin p.n => rho.seatOf (.base .fg) i) :=
+    (hL.toCStar (.base .fg) trivial).1
+  have hcard : S.card ≤ (Gen.V2.Duty.faulty rho).card :=
+    (Finset.card_image_of_injective S hinj).symm.trans_le (Finset.card_le_card hsub)
   have htotal : p.E.totalWeight = p.n := by
     change (∑ _i : Fin p.n, (1 : Nat)) = p.n
     simp
@@ -255,7 +253,7 @@ private theorem slashable_pool_count [Fintype V]
   omega
 
 /-- The stored-tree union inherits honest carriage from each held chain. -/
-private theorem store_carriage (hU : V2.UnforgeableSignatures E rho)
+private theorem store_carriage (hU : V2.D.UnforgeableSignatures E rho)
     (i : Nat) (x : V) (hx : x ∈ rho.honest) :
     FinalityCarriage p c E rho (finalityStoreRows p (storeAt p c E rho i x)) := by
   intro u hu
@@ -264,12 +262,12 @@ private theorem store_carriage (hU : V2.UnforgeableSignatures E rho)
 
 /-- Fault-count attribution is separate from the evidence theorem. -/
 theorem fgsa_slashable_faulty_count [Fintype V]
-    (hL : V2.Linked (fgsaFamilies p c).linked rho)
-    (hU : V2.UnforgeableSignatures E rho)
+    (hL : V2.D.Linked (fgsaFamilies p c).linked rho)
+    (hU : V2.D.UnforgeableSignatures E rho)
     (e e' : Nat) (x y : V) (K W : FGBlock (Fin p.n))
     (hK : HeldAt p c E rho e x K) (hW : HeldAt p c E rho e' y W)
     (hev : HasSlashableWeightBetween p.E (chainRows K) (chainRows W)) :
-    2 * Gen.Pure.qF p.n - p.n ≤ (Gen.V2.faulty rho).card :=
+    2 * Gen.Pure.qF p.n - p.n ≤ (Gen.V2.Duty.faulty rho).card :=
   slashable_pool_count p c E rho hL (fgsa_clientSafeAll p c E rho hL) _ _
     (held_chain_row_origin p c E rho hU e x K hK)
     (held_chain_row_origin p c E rho hU e' y W hW) hev
@@ -285,9 +283,9 @@ theorem fgsa_eventPrefixAgreement (e e' : Nat) (x y : V)
 
 /-- Faults exclude store evidence only after identity transport and client safety. -/
 theorem fgsa_storeSlashableBound_of_faults [Fintype V]
-    (hL : V2.Linked (fgsaFamilies p c).linked rho)
-    (hU : V2.UnforgeableSignatures E rho)
-    (hX : Gen.Pure.FaultX p.n (Gen.V2.faulty rho).card)
+    (hL : V2.D.Linked (fgsaFamilies p c).linked rho)
+    (hU : V2.D.UnforgeableSignatures E rho)
+    (hX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
     (hC : ∀ z ∈ rho.honest, EmittedRowsNoSlash p c E rho z)
     (e e' : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest) :
     ¬ HasSlashableWeightBetween p.E (finalityStoreRows p (storeAt p c E rho e x))
@@ -306,8 +304,8 @@ DC rows use validator identities directly. hC is the expanded ClientSafeAll Prop
 which avoids a Claims import under X5.
 fgsa_runBlock_carriage supplies hcar from ExecutionValid, as in DC. -/
 theorem fgsa_slashableBound_of_faults [Fintype V]
-    (hL : V2.Linked (fgsaFamilies p c).linked rho)
-    (hbot : (Gen.V2.faulty rho).card ≤ (p.n - 1) / 3)
+    (hL : V2.D.Linked (fgsaFamilies p c).linked rho)
+    (hbot : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
     (hC : ∀ z ∈ rho.honest, EmittedRowsNoSlash p c E rho z)
     (hcar : ∀ K, FinalityRunBlock p c E rho K → FinalityCarriage p c E rho (chainRows K)) :
     FGSASlashableBound p c E rho := by
@@ -320,9 +318,9 @@ theorem fgsa_slashableBound_of_faults [Fintype V]
 Linked and unforgeability supply client safety and stored-row carriage.
 The fault bound excludes store evidence without the remaining BaseSet fields. -/
 theorem fgsa_storeSlashableBound_of_unforgeable [Fintype V]
-    (hL : V2.Linked (fgsaFamilies p c).linked rho)
-    (hU : V2.UnforgeableSignatures E rho)
-    (hbot : (Gen.V2.faulty rho).card ≤ (p.n - 1) / 3)
+    (hL : V2.D.Linked (fgsaFamilies p c).linked rho)
+    (hU : V2.D.UnforgeableSignatures E rho)
+    (hbot : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
     (e e' : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest) :
     ¬ HasSlashableWeightBetween p.E (finalityStoreRows p (storeAt p c E rho e x))
       (finalityStoreRows p (storeAt p c E rho e' y)) :=
@@ -333,7 +331,7 @@ theorem fgsa_storeSlashableBound_of_unforgeable [Fintype V]
 The fault bridge keeps hC; this adapter supplies it from BaseSet.linked.
 BaseSet retains noRestart, delta and cstar; these fields are unused here. -/
 theorem fgsa_storeSlashableBound_of_base [Fintype V] (hb : BaseSet p c E rho)
-    (hbot : (Gen.V2.faulty rho).card ≤ (p.n - 1) / 3)
+    (hbot : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
     (e e' : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest) :
     ¬ HasSlashableWeightBetween p.E (finalityStoreRows p (storeAt p c E rho e x))
       (finalityStoreRows p (storeAt p c E rho e' y)) :=
@@ -342,12 +340,12 @@ theorem fgsa_storeSlashableBound_of_base [Fintype V] (hb : BaseSet p c E rho)
 
 /-- Validator attribution for two honest store observations. -/
 theorem fgsa_accountable [Fintype V]
-    (hL : V2.Linked (fgsaFamilies p c).linked rho)
-    (hU : V2.UnforgeableSignatures E rho)
+    (hL : V2.D.Linked (fgsaFamilies p c).linked rho)
+    (hU : V2.D.UnforgeableSignatures E rho)
     (e e' : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest) :
     FGBlock.compatible (storeAt p c E rho e x).fg.F
       (storeAt p c E rho e' y).fg.F = true ∨
-    2 * Gen.Pure.qF p.n - p.n ≤ (Gen.V2.faulty rho).card := by
+    2 * Gen.Pure.qF p.n - p.n ≤ (Gen.V2.Duty.faulty rho).card := by
   rcases (fgsa_wholeRunAccountable p c E rho).eventPrefixes x hx y hy e e' with hev | hc
   · exact Or.inr (slashable_pool_count p c E rho hL (fgsa_clientSafeAll p c E rho hL) _ _
       (store_carriage p c E rho hU e x hx) (store_carriage p c E rho hU e' y hy) hev)
@@ -375,8 +373,8 @@ theorem fgsa_finalLock_ev [Fintype V]
 
 /-- The former finalLock_ev count conclusion, now a separate attribution corollary. -/
 theorem fgsa_finalLock_faulty_count [Fintype V]
-    (hL : V2.Linked (fgsaFamilies p c).linked rho)
-    (hU : V2.UnforgeableSignatures E rho)
+    (hL : V2.D.Linked (fgsaFamilies p c).linked rho)
+    (hU : V2.D.UnforgeableSignatures E rho)
     (e e' : Nat) (x y : V) (hx : x ∈ rho.honest)
     (K W : FGBlock (Fin p.n))
     (hK : K ∈ (storeAt p c E rho e x).fg.TF)
@@ -384,7 +382,7 @@ theorem fgsa_finalLock_faulty_count [Fintype V]
     (hW : HeldAt p c E rho e' y W)
     (hh : (derive p.E p.cfg K).h_F < (derive p.E p.cfg W).h) :
     FGBlock.Preceq (storeAt p c E rho e x).fg.F W ∨
-      2 * Gen.Pure.qF p.n - p.n ≤ (Gen.V2.faulty rho).card :=
+      2 * Gen.Pure.qF p.n - p.n ≤ (Gen.V2.Duty.faulty rho).card :=
   (fgsa_finalLock_ev p c E rho e e' x y hx K W hK hKF hW hh).imp id
     (fgsa_slashable_faulty_count p c E rho hL hU e e' x y K W ⟨hx, hK⟩ hW)
 
@@ -394,25 +392,25 @@ theorem fgsa_accountable_base [Fintype V] (hb : BaseSet p c E rho)
     (e e' : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest) :
     FGBlock.compatible (storeAt p c E rho e x).fg.F
       (storeAt p c E rho e' y).fg.F = true ∨
-      2 * Gen.Pure.qF p.n - p.n ≤ (Gen.V2.faulty rho).card :=
+      2 * Gen.Pure.qF p.n - p.n ≤ (Gen.V2.Duty.faulty rho).card :=
   fgsa_accountable p c E rho hb.linked (fgsa_unforgeable_of_base p c E rho hb) e e' x y hx hy
 
 /-- DC counterpart: none (processed-proposal row helper).
 The decoded rows of a processed proposal carry honest emissions. -/
-theorem carried_rows_carriage (hU : V2.UnforgeableSignatures E rho)
-    (v : V) (o : Obj p) (t : Time) (hp : V2.Run.processes rho v o t)
+theorem carried_rows_carriage (hU : V2.D.UnforgeableSignatures E rho)
+    (v : V) (o : Obj p) (t : Time) (hp : V2.D.Run.processes rho v o t)
     (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
     (ho : o.payload = Msg.proposal b raw sup rows) :
     FinalityCarriage p c E rho (rows.filterMap RowWire.toRow?).toFinset := by
   intro u hu
   obtain ⟨a, ha, hau⟩ := List.mem_filterMap.mp (List.mem_toFinset.mp hu)
-  obtain ⟨r, har⟩ := row_auth_of_toRow a u hau
+  have har := row_auth_of_toRow a u hau
   have hc : (fgsa p c).carries o (ofRow p a) := by
     change carriesS p o (ofRow p a)
     unfold carriesS
     rw [ho]
     exact Or.inr (Or.inr (List.mem_map.mpr ⟨a, ha, rfl⟩))
-  refine ⟨a, r, hau, har, ?_⟩
+  refine ⟨a, 0, hau, har, ?_⟩
   intro z hz hzh
   obtain ⟨t', _, k, hk, hem⟩ := fgsa_carried_row E rho hU v z o t hp a hc hzh
     ((rowSigner_iff_holder p c rho a z).mp hz).2
@@ -424,7 +422,7 @@ carriage for every FG block whose erasure is an ancestor of a delivered
 proposal block. This is the FG-SA analogue of DC
 DecoupledConsensusProofs/Protocol/Handlers/StoreBridge.lean:376
 `carriedByHonest_of_runBlock` (AdmissibleCore). -/
-theorem delivered_runBlock_carriage (hv : V2.ExecutionValid E rho)
+theorem delivered_runBlock_carriage (hv : V2.D.ExecutionValid E rho)
     (i : Nat) (v : V) (o : Obj p) (t : Time)
     (hd : rho.events[i]? = some (.deliver v o t))
     (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
@@ -433,12 +431,12 @@ theorem delivered_runBlock_carriage (hv : V2.ExecutionValid E rho)
     FinalityCarriage p c E rho (chainRows K) := by
   have hvh : v ∈ rho.honest := hv.honest_only _ (List.mem_of_getElem? hd)
   have hwf : FGSA.wellFormed p (toWire p o) = true := hv.wire i v o t hd
-  have hdep : depsS p (V2.Run.stateBefore E rho i v).st o = true := hv.deps i v o t hd
+  have hdep : depsS p (V2.D.Run.stateBefore E rho i v).st o = true := hv.deps i v o t hd
   have hw : toWire p o = ⟨toAuth p o.auth, .proposal b raw sup rows⟩ := by
     change (⟨toAuth p o.auth, o.payload⟩ : Wire p.n) = _
     rw [ho]
   change (match (toWire p o).decode with
-    | some (.block _ b _ _ _) => (parentFG (V2.Run.stateBefore E rho i v).st b).isSome
+    | some (.block _ b _ _ _) => (parentFG (V2.D.Run.stateBefore E rho i v).st b).isSome
     | _ => true) = true at hdep
   rw [hw] at hwf hdep
   generalize toAuth p o.auth = au at hwf hdep
@@ -455,7 +453,7 @@ theorem delivered_runBlock_carriage (hv : V2.ExecutionValid E rho)
       subst b
       cases hg
     have hrok : rowsOk b rows = true := (Bool.and_eq_true_iff.mp hwf).2
-    change (parentFG (V2.Run.stateBefore E rho i v).st b).isSome = true at hdep
+    change (parentFG (V2.D.Run.stateBefore E rho i v).st b).isSome = true at hdep
     obtain ⟨P, hP⟩ := Option.isSome_iff_exists.mp hdep
     obtain ⟨hPT, hPe⟩ := pickPair_some_spec _ _ hP
     have hPe : eraseFG P = b.parent := of_decide_eq_true hPe
@@ -490,62 +488,20 @@ theorem proposalRows_source (st : State p.n) (H : Block) :
     ∀ a ∈ proposalRows p st H, a ∈ st.rowPool ∨
       ∃ w ∈ st.proposals, ∃ s b raw sup rows,
         w.decode = some (.block s b raw sup rows) ∧ a ∈ rows := by
-  let r := p.round (st.slot p)
-  let inI := fun r' => decide (r ≤ r' + p.wF) && decide (r' ≤ r)
-  let good := fun a : RowWire p.n => a ∈ st.rowPool ∨
-      ∃ w ∈ st.proposals, ∃ s b raw sup rows,
-        w.decode = some (.block s b raw sup rows) ∧ a ∈ rows
-  have blocks : ∀ a ∈ blockWireRows p st inI, good a := by
-    intro a ha
-    obtain ⟨xs, hx, ha⟩ := List.mem_flatten.mp ha
-    obtain ⟨w, hw, he⟩ := List.mem_filterMap.mp hx
-    change (match w.decode with
-      | some (.block _ b _ _ rows) => if inI (p.round b.slot) then
-          some (rows.filter (fun a => (a.round?.map inI).getD false)) else none
-      | _ => none) = some xs at he
-    cases hd : w.decode with
-    | none => rw [hd] at he; cases he
-    | some m =>
-      cases m with
-      | vote s j b => rw [hd] at he; cases he
-      | row r j body => rw [hd] at he; cases he
-      | block s b raw sup rows =>
-        rw [hd] at he
-        dsimp only at he
-        split at he
-        · cases he
-          exact Or.inr ⟨w, hw, s, b, raw, sup, rows, hd, (List.mem_filter.mp ha).1⟩
-        · cases he
-  let A := st.rowPool.filter (fun a => (a.round?.map inI).getD false &&
-    !decide (a ∈ chainWireRows st H))
-  have hA : ∀ a ∈ A, good a := fun a ha => Or.inl (List.mem_filter.mp ha).1
-  change ∀ a ∈ (List.filter (fun a => !decide (a ∈ chainWireRows st H) && !decide (a ∈ A))
-    (blockWireRows p st inI)).foldl (fun acc a =>
-      if decide (a ∈ acc) || 2 ≤ (acc.filter (fun x =>
-        x.decode?.map (fun y => (y.1, y.2.1)) == a.decode?.map (fun y => (y.1, y.2.1)))).length
-      then acc else acc ++ [a]) A, good a
-  apply List.foldlRecOn (motive := fun xs => ∀ a ∈ xs, good a) _ _ hA
-  intro acc hacc a ha
-  split
-  · exact hacc
-  · intro a' hm
-    rcases List.mem_append.mp hm with hm | hm
-    · exact hacc a' hm
-    · have he := List.mem_singleton.mp hm
-      subst a'
-      exact blocks a (List.mem_filter.mp ha).1
+  intro a ha
+  exact proposalRowsFor_origin p st (st.slot p) H a ha
 
 /-- DC counterpart: none (stored row origin helper).
 A pool row or a stored proposal row of any node has honest-holder origin. -/
-theorem store_wire_origin (hU : V2.UnforgeableSignatures E rho) (i : Nat) (x : V)
+theorem store_wire_origin (hU : V2.D.UnforgeableSignatures E rho) (i : Nat) (x : V)
     (a : RowWire p.n)
-    (ha : a ∈ (V2.Run.stateBefore E rho i x).st.rowPool ∨
-      ∃ w ∈ (V2.Run.stateBefore E rho i x).st.proposals, ∃ s b raw sup rows,
+    (ha : a ∈ (V2.D.Run.stateBefore E rho i x).st.rowPool ∨
+      ∃ w ∈ (V2.D.Run.stateBefore E rho i x).st.proposals, ∃ s b raw sup rows,
         w.decode = some (.block s b raw sup rows) ∧ a ∈ rows) :
     ∀ z : V, RowSigner p c rho a z → z ∈ rho.honest → EmitsRow p c E rho z a := by
   intro z hz hzh
   have hh := ((rowSigner_iff_holder p c rho a z).mp hz).2
-  have carried (o : Obj p) (t : Time) (hp : V2.Run.processes rho x o t)
+  have carried (o : Obj p) (t : Time) (hp : V2.D.Run.processes rho x o t)
       (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
       (ho : o.payload = Msg.proposal b raw sup rows) (har : a ∈ rows) :
       EmitsRow p c E rho z a := by
@@ -558,7 +514,7 @@ theorem store_wire_origin (hU : V2.UnforgeableSignatures E rho) (i : Nat) (x : V
     exact ⟨k, t', hk, hem⟩
   rcases ha with hm | ⟨w, hw, s, b, raw, sup, rows, hd, har⟩
   · obtain ⟨j, t, _, ⟨o', hd, hhs⟩, _⟩ := rowPool_provenance E rho i x a hm
-    change handlesS p (V2.Run.stateBefore E rho j x).st o' (ofRow p a) at hhs
+    change handlesS p (V2.D.Run.stateBefore E rho j x).st o' (ofRow p a) at hhs
     unfold handlesS at hhs
     rcases hhs with he | hb
     · subst he
@@ -569,7 +525,7 @@ theorem store_wire_origin (hU : V2.UnforgeableSignatures E rho) (i : Nat) (x : V
       | some m =>
         cases m with
         | vote s i b => rw [hdec] at hb; exact hb.elim
-        | row r i body => rw [hdec] at hb; exact hb.elim
+        | row i body => rw [hdec] at hb; exact hb.elim
         | block s b raw sup rows =>
           rw [hdec] at hb
           have hw := decode_eq_block.mp hdec
@@ -595,15 +551,15 @@ theorem store_wire_origin (hU : V2.UnforgeableSignatures E rho) (i : Nat) (x : V
 stored parent and rows from the pool or from stored proposal wires.
 DC DecoupledConsensusProofs/Protocol/Handlers/StoreBridge.lean:376
 (carriedByHonest_of_runBlock), emitted case. -/
-theorem emitted_runBlock_carriage (hv : V2.ExecutionValid E rho)
-    (x : V) (o : Obj p) (t : Time) (hem : V2.Run.emits E rho x o t)
+theorem emitted_runBlock_carriage (hv : V2.D.ExecutionValid E rho)
+    (x : V) (o : Obj p) (t : Time) (hem : V2.D.Run.emits E rho x o t)
     (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
     (ho : o.payload = Msg.proposal b raw sup rows)
     (K : FGBlock (Fin p.n)) (hK : Block.Preceq (eraseFG K) b) :
     FinalityCarriage p c E rho (chainRows K) := by
   obtain ⟨i, hi, ho'⟩ := hem
   have hxh : x ∈ rho.honest := hv.honest_only _ (List.mem_of_getElem? hi)
-  rw [(V2.Run.step_tick_eq E rho hi).2] at ho'
+  rw [(V2.D.Run.step_tick_eq E rho hi).2] at ho'
   obtain ⟨auth, m⟩ := o
   change m = _ at ho
   subst ho
@@ -611,9 +567,9 @@ theorem emitted_runBlock_carriage (hv : V2.ExecutionValid E rho)
   | none =>
     exfalso
     change (⟨.none, _⟩ : Obj p) ∈ (if E.awake x t then
-      (duties p t).flatMap (fun l => (rho.ownSeats l x).filterMap (fun j =>
-        ((fgsa p c).act ((fgsa p c).clock (V2.Run.stateBefore E rho i x) t) l
-          (rho.input x t)).map (fun m => ⟨.seat l j, m⟩))) ++ [] else []) at ho'
+      (duties p t).flatMap (fun l => (rho.ownSeats (RunDuty.signLabel l) x).filterMap (fun j =>
+        ((fgsa p c).act ((fgsa p c).clock (V2.D.Run.stateBefore E rho i x) t) l
+          (rho.input x t)).map (fun m => ⟨.seat (RunDuty.signLabel l) j, m⟩))) ++ [] else []) at ho'
     split at ho'
     · rw [List.append_nil] at ho'
       obtain ⟨l, _, hm⟩ := List.mem_flatMap.mp ho'
@@ -622,19 +578,21 @@ theorem emitted_runBlock_carriage (hv : V2.ExecutionValid E rho)
       cases he
     · exact List.not_mem_nil ho'
   | seat l j =>
-    have ha := (V2.Engine.mem_tick_seat_iff E rho _ x t l j _).mp ho'
-    cases l with
-    | base l =>
-      cases l with
-      | head s => have := Option.some.inj ha.2.2.2; cases this
-      | fg r => have := Option.some.inj ha.2.2.2; cases this
-    | prop s =>
-      have ht : SA.proposalTime p.toParams s = t := ha.2.1
+    obtain ⟨_, _, d, hl, ht, ha⟩ :=
+      (V2.D.Engine.mem_tick_seat_iff E rho _ x t l j _).mp ho'
+    cases d with
+    | headAction s => cases ha
+    | fgAction r =>
+      change (attest p _ _ _).1.map Msg.row = some (.proposal b raw sup rows) at ha
+      obtain ⟨body, _, he⟩ := Option.map_eq_some_iff.mp ha
+      cases he
+    | propAction s =>
+      change SA.proposalTime p.toParams s = t at ht
       subst ht
-      let st := FGSA.clock p (V2.Run.stateBefore E rho i x).st (SA.proposalTime p.toParams s)
+      let st := FGSA.clock p (V2.D.Run.stateBefore E rho i x).st (SA.proposalTime p.toParams s)
       have hm : (propose p st s).map
           (withApp (c.app (rho.input x (SA.proposalTime p.toParams s)))) =
-          some (.proposal b raw sup rows) := ha.2.2.2
+          some (.proposal b raw sup rows) := ha
       have hs0 : s ≠ 0 := by
         intro h0
         subst h0
@@ -657,9 +615,9 @@ theorem emitted_runBlock_carriage (hv : V2.ExecutionValid E rho)
       have hH : H ∈ st.base.blocks := getHead_stored p st hbundle.cstore _ _
       obtain ⟨P, hPT, hPe⟩ := (hbundle.cstore.baseTree H).mp hH
       have hPT' : P ∈ (storeAt p c E rho i x).fg.TF := by
-        have := clock_fg p (V2.Run.stateBefore E rho i x).st (SA.proposalTime p.toParams s)
+        have := clock_fg p (V2.D.Run.stateBefore E rho i x).st (SA.proposalTime p.toParams s)
         change P ∈ st.fg.TF at hPT
-        change P ∈ (V2.Run.stateBefore E rho i x).st.fg.TF
+        change P ∈ (V2.D.Run.stateBefore E rho i x).st.fg.TF
         rw [← this]
         exact hPT
       have hcarP : FinalityCarriage p c E rho (chainRows P) :=
@@ -667,8 +625,8 @@ theorem emitted_runBlock_carriage (hv : V2.ExecutionValid E rho)
       have hcarTop : FinalityCarriage p c E rho (R.filterMap RowWire.toRow?).toFinset := by
         intro u hu
         obtain ⟨w, hwR, hwu⟩ := List.mem_filterMap.mp (List.mem_toFinset.mp hu)
-        obtain ⟨r, hwr⟩ := row_auth_of_toRow w u hwu
-        refine ⟨w, r, hwu, hwr, ?_⟩
+        have hwr := row_auth_of_toRow w u hwu
+        refine ⟨w, 0, hwu, hwr, ?_⟩
         apply store_wire_origin p c E rho hv.toUnforgeableSignatures i x w
         rcases proposalRows_source p st H w hwR with hpool | hprop
         · left
@@ -703,7 +661,7 @@ theorem emitted_runBlock_carriage (hv : V2.ExecutionValid E rho)
 /-- ALL-RUN carriage: the premise `hcar` of `fgsa_slashableBound_of_faults`
 follows from ExecutionValid, as DC `carriedByHonest_of_runBlock` follows from
 AdmissibleCore (DecoupledConsensusProofs/Protocol/Handlers/StoreBridge.lean:376). -/
-theorem fgsa_runBlock_carriage (hv : V2.ExecutionValid E rho) :
+theorem fgsa_runBlock_carriage (hv : V2.D.ExecutionValid E rho) :
     ∀ K, FinalityRunBlock p c E rho K → FinalityCarriage p c E rho (chainRows K) := by
   rintro K ⟨o, b, raw, sup, rows, ho, (⟨x, t, hem⟩ | ⟨x, t, hd⟩), hK⟩
   · exact emitted_runBlock_carriage p c E rho hv x o t hem b raw sup rows ho K hK
@@ -716,8 +674,8 @@ AlignedRoundLemmas.lean:284 and StoreBridge.lean:376.
 ExecutionValid supplies all-run carriage; Linked supplies client safety.
 INTENTIONAL: Linked transports rotating seats to holders (SYN L41). -/
 theorem fgsa_slashableBound_of_valid [Fintype V]
-    (hL : V2.Linked (fgsaFamilies p c).linked rho) (hv : V2.ExecutionValid E rho)
-    (hbot : (Gen.V2.faulty rho).card ≤ (p.n - 1) / 3) :
+    (hL : V2.D.Linked (fgsaFamilies p c).linked rho) (hv : V2.D.ExecutionValid E rho)
+    (hbot : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3) :
     FGSASlashableBound p c E rho :=
   fgsa_slashableBound_of_faults p c E rho hL hbot
     (fgsa_clientSafeAll p c E rho hL) (fgsa_runBlock_carriage p c E rho hv)
@@ -729,7 +687,7 @@ AlignedRoundLemmas.lean:284 and StoreBridge.lean:376.
 INTENTIONAL: Linked transports rotating seats to holders (SYN L41).
 BaseSet retains noRestart, delta and cstar; these fields are unused here. -/
 theorem fgsa_slashableBound_of_base [Fintype V] (hb : BaseSet p c E rho)
-    (hbot : (Gen.V2.faulty rho).card ≤ (p.n - 1) / 3) :
+    (hbot : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3) :
     FGSASlashableBound p c E rho :=
   fgsa_slashableBound_of_valid p c E rho hb.linked hb.valid hbot
 

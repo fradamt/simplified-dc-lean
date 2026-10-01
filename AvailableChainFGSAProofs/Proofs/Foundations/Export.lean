@@ -19,7 +19,7 @@ namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
 
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 /-- bp.store.v1, with its frozen local schedule premise.
 The frozen read-length premise is unused: stateBefore is reachable at every index.
@@ -80,7 +80,7 @@ theorem fgsa_clientSafetyBaseClaim : ClientSafetyBaseClaim p :=
 /-- All four clauses of the frozen lease-origin statement.
 The frozen read-length premise is unused: the producers cover every index.
 The frozen node-honesty premise is unused: the producers cover every node. -/
-theorem fgsa_leaseOriginsAt (hs : V2.ScheduleWellFormed E rho) :
+theorem fgsa_leaseOriginsAt (hs : V2.D.ScheduleWellFormed E rho) :
     LeaseOriginsAt p c E rho :=
   fun i x _ _ => ⟨fgsa_leaseOrigins_origins p c E rho i x,
     fgsa_leaseOrigins_chain p c E rho i x,

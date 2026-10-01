@@ -7,7 +7,7 @@ namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
 
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.Run V (fgsa p c))
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 /-- DC `finalized_preceq_of_height_lt` shape: the agreement form of R-XING
 over run blocks under the all-run bound.
@@ -29,9 +29,9 @@ for EVERY such carrier; one F can have carriers of different `h_F` (genesis at
 can be outside the active view. Identity transport precedes `FaultX`.
 The retained _hee binder is unused: the proof compares any two event prefixes. -/
 theorem fgsa_finalLock [Fintype V]
-    (hL : V2.Linked (fgsaFamilies p c).linked rho)
-    (hX : Gen.Pure.FaultX p.n (Gen.V2.faulty rho).card)
-    (hU : V2.UnforgeableSignatures E rho)
+    (hL : V2.D.Linked (fgsaFamilies p c).linked rho)
+    (hX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
+    (hU : V2.D.UnforgeableSignatures E rho)
     (x : V) (hx : x ∈ rho.honest) (e e' : Nat) (_hee : e ≤ e')
     (K : FGBlock (Fin p.n)) (hKe : K ∈ (storeAt p c E rho e x).fg.TF)
     (hKF : (derive p.E p.cfg K).F = (storeAt p c E rho e x).fg.F)
@@ -46,9 +46,9 @@ theorem fgsa_finalLock [Fintype V]
 
 /-- Erasure of strict R-XING to the base block order. -/
 theorem fgsa_finalLock_erased [Fintype V]
-    (hL : V2.Linked (fgsaFamilies p c).linked rho)
-    (hX : Gen.Pure.FaultX p.n (Gen.V2.faulty rho).card)
-    (hU : V2.UnforgeableSignatures E rho)
+    (hL : V2.D.Linked (fgsaFamilies p c).linked rho)
+    (hX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
+    (hU : V2.D.UnforgeableSignatures E rho)
     (x : V) (hx : x ∈ rho.honest) (e e' : Nat) (hee : e ≤ e')
     (K : FGBlock (Fin p.n)) (hKe : K ∈ (storeAt p c E rho e x).fg.TF)
     (hKF : (derive p.E p.cfg K).F = (storeAt p c E rho e x).fg.F)
