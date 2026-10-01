@@ -1462,3 +1462,17 @@ Paths omit `AvailableChainGeneric/` and `.lean`.
 │ Tests/Dominance           │ Two sibling blocks; one eligible child       │
 └───────────────────────────┴──────────────────────────────────────────────┘
 ```
+
+## E-12 DC regime bridges (2026-10-01)
+
+Paths omit `AvailableChainGeneric/` and `.lean`.
+
+```text
+┌─────────────────────────┬────────────────────────────────────────────────┐
+│ Module                  │ Contract or proof                              │
+├─────────────────────────┼────────────────────────────────────────────────┤
+│ Statements/V2/DCRegimes │ DC recurrence and outage interval field types  │
+│ Proofs/V2/DCRegimes     │ RecoveryCore and CutCore bridges to DC fields  │
+│ Tests/DCRegimes         │ Gap-period instance and outage boundary checks │
+└─────────────────────────┴────────────────────────────────────────────────┘
+```

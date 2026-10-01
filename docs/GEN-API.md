@@ -539,3 +539,12 @@ theorem AvailableChain.Gen.AC.ExpireByThresholdStatement_def 3798a2e9c79cf96c
 def AvailableChain.Gen.Pure.MajUniqueChildStatement c2a3c1fcca7f79e9
 theorem AvailableChain.Gen.Pure.MajUniqueChildStatement_def e11d19cd90604607
 ```
+
+### `AvailableChainGeneric.Statements.V2.DCRegimes`
+
+```text
+def AvailableChain.Gen.V2.SingleProposerRecurrence 8b54094a6819f6fb
+theorem AvailableChain.Gen.V2.SingleProposerRecurrence_def e68862c9867837c9
+def AvailableChain.Gen.V2.OutageInterval fa178df343dc8583
+theorem AvailableChain.Gen.V2.OutageInterval_def 3e0808ebf805aab3
+```

@@ -14,6 +14,7 @@ public import AvailableChainGeneric.Statements.V2.Interface
 public import AvailableChainGeneric.Statements.V2.Slashing
 public import AvailableChainGeneric.Statements.V2.Receipt
 public import AvailableChainGeneric.Statements.V2.Regimes
+public import AvailableChainGeneric.Statements.V2.DCRegimes
 public import AvailableChainGeneric.Statements.V2.Linked
 public import AvailableChainGeneric.Statements.V2.Signatures
 public import AvailableChainGeneric.Statements.AC.Reads
@@ -38,6 +39,7 @@ public import AvailableChainGeneric.Proofs.V2.Induction
 public import AvailableChainGeneric.Proofs.V2.BaseTransport
 public import AvailableChainGeneric.Proofs.V2.Receipt
 public import AvailableChainGeneric.Proofs.V2.Regimes
+public import AvailableChainGeneric.Proofs.V2.DCRegimes
 public import AvailableChainGeneric.Proofs.V2.Linked
 public import AvailableChainGeneric.Proofs.V2.Signatures
 public import AvailableChainGeneric.Proofs.AC.Output

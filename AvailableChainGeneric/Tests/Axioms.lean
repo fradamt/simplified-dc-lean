@@ -1,4 +1,5 @@
 module
+public import AvailableChainGeneric.Proofs.V2.DCRegimes
 public import AvailableChainGeneric.Statements.V2.Slashing
 public import AvailableChainGeneric.Statements.Pure.Quorum
 public import AvailableChainGeneric.Statements.Pure.QuorumInter
@@ -456,3 +457,9 @@ theorem, in facade order. The library globs build this test module. -/
 #print axioms AvailableChain.Gen.Pure.MajUniqueChildStatement_def
 #print axioms AvailableChain.Gen.Pure.maj_unique_child_statement
 #print axioms AvailableChain.Gen.Pure.maj_unique_child
+
+-- Statements/V2/DCRegimes.lean and Proofs/V2/DCRegimes.lean (E-12)
+#print axioms AvailableChain.Gen.V2.SingleProposerRecurrence_def
+#print axioms AvailableChain.Gen.V2.OutageInterval_def
+#print axioms AvailableChain.Gen.V2.RecoveryCore.to_dcRecoveryConditions
+#print axioms AvailableChain.Gen.V2.CutCore.to_dcOutageFields
