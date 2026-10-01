@@ -6,9 +6,6 @@ public import AvailableChainGeneric.Proofs.V2.Regimes
 
 public section
 
--- The F2.3 split ruling permits only private declarations in this module.
-set_option linter.privateModule false
-
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
 
@@ -21,7 +18,7 @@ set_option linter.unusedVariables false in
 DC: Goldfish/Adoption.lean:53–67,158–170; AdoptionTransport.lean:346.
 INTENTIONAL: the actual F-anchored optional gate result supplies the majority
 (spec:2506–2513). The named forward hypothesis is private, as required by the
-F2.3 split ruling; unlike DC it covers all P, not only supporters of B. -/
+F2.3 split ruling; like G24 and DC it covers only source supporters of B. -/
 private theorem clean_transfer_counts_of_forward (b₀ : Time) :
   CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
@@ -40,6 +37,7 @@ private theorem clean_transfer_counts_of_forward (b₀ : Time) :
     let U := FGSA.headVotes p dst (s + 1)
     let Vsup := FGSA.headSupport p dst (s + 1)
     ∀ (hC5 : ∀ o ∈ P, ∀ seat, GridCO.headSeat? o = some seat →
+      Gen.AC.voteSupports src.blocks B o = true →
       (o ∈ Vsup ∧ Gen.AC.voteSupports dst.base.blocks B o = true) ∨
         GridCO.equivocates U seat = true),
     Gen.AC.TransferBounds (Gen.AC.plainSupporters src.blocks P P B)
@@ -66,7 +64,7 @@ private theorem clean_transfer_counts_of_forward (b₀ : Time) :
   exact Gen.AC.transfer src.blocks dst.base.blocks P L U Vsup B
     (fun _ ho => fgsa_early_subset_late p src s (List.mem_filter.mp ho).1)
     (fgsa_cleanSupport_seat_clean_late p src s)
-    (fun o ho seat hs _ => hC5 o ho seat hs)
+    hC5
     (fgsa_headVotes_backward_relay E rho h.base.valid h.base.noRestart h.base.delta
       s hsync hx hy ht hk)
     (fgsa_headSupport_subset_headVotes E rho h.base.valid k y s) hmajority
@@ -97,6 +95,7 @@ private theorem cleanTransfer_of_forward (b₀ : Time) :
     let U := FGSA.headVotes p dst (s + 1)
     let Vsup := FGSA.headSupport p dst (s + 1)
     ∀ (hC5 : ∀ o ∈ P, ∀ seat, GridCO.headSeat? o = some seat →
+      Gen.AC.voteSupports src.blocks B o = true →
       (o ∈ Vsup ∧ Gen.AC.voteSupports dst.base.blocks B o = true) ∨
         GridCO.equivocates U seat = true),
     Block.Preceq B (headAtIdx p c E rho k (s + 1)) := by
@@ -128,5 +127,81 @@ private theorem cleanTransfer_of_forward (b₀ : Time) :
     delta headAtIdx
     rw [hk]
   exact hread ▸ hhead
+
+set_option linter.unusedVariables false in
+/-- P3 F2.3:5496–5503; bp02 §4.2 C5, G24 item 4. Class B.
+DC: Goldfish/Adoption.lean:53–62; AdoptionTransport.lean:346.
+INTENTIONAL: the FG-SA head path and current-F frame come from the clean
+history at the source gate, with strict freeze stamps at the target read. -/
+private theorem clean_transfer_forward (b₀ : Time) :
+  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
+  FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
+  ∀ i k x y s B, i < timeIdx rho b₀ → k < i →
+    IsGateTick p c rho i x s →
+    rho.events[k]? = some (.tick y (SA.voteTime p.toParams (s + 1))) →
+    CleanHist p c E rho i → (∀ j, j ≤ i → CleanState p c E rho j) →
+    gateResultAt p c E rho i = some (some B) →
+    (∀ r C, (r, C) ∈ cleanResults p c E rho i → r < s → Block.Preceq C B) →
+    let src := FGSA.actView (FGSA.clockPre p (storeAt p c E rho i x)
+      (SA.gateTime p.toParams s))
+    let dst := ((fgsa p c).clock (V2.Run.stateBefore E rho k y)
+      (SA.voteTime p.toParams (s + 1))).st
+    let P := GridCO.cleanSupport p.toParams.engine src s
+    let L := GridCO.lateVotes p.toParams.engine src s
+    let U := FGSA.headVotes p dst (s + 1)
+    let Vsup := FGSA.headSupport p dst (s + 1)
+    ∀ o ∈ P, ∀ seat, GridCO.headSeat? o = some seat →
+      Gen.AC.voteSupports src.blocks B o = true →
+      (o ∈ Vsup ∧ Gen.AC.voteSupports dst.base.blocks B o = true) ∨
+        GridCO.equivocates U seat = true := by
+  intro h hq hf hsrc i k x y s B hi hki ht hk hh hall hB hord src dst P L U Vsup
+    o ho seat hs hsupp
+  have hsch := h.base.valid.toScheduleWellFormed
+  have hx := hsch.honest_only _ (List.mem_of_getElem? ht)
+  have hy := hsch.honest_only _ (List.mem_of_getElem? hk)
+  have hcut := (V2.Engine.index_lt_read_length_iff hsch b₀ ht).mp hi
+  have hvd : SA.voteTime p.toParams s + E.Δ ≤ SA.gateTime p.toParams s := by
+    rw [h.base.delta]
+    change 4 * p.Δ * (s : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
+    have hd := p.deltaPos
+    linarith
+  have hsync := Gen.V2.LabelSync.of_cleanCut E rho b₀ _ _ h.healthy hvd hcut h.cut.2
+  rw [Gen.AC.voteSupports_def] at hsupp
+  cases hhead : GridCO.headTarget? o with
+  | none => simp only [hhead, Bool.false_eq_true] at hsupp
+  | some K =>
+    rw [hhead] at hsupp
+    have hBK : Block.Preceq B K := (Bool.and_eq_true_iff.mp hsupp).2
+    obtain ⟨Kfg, he, hpath⟩ := clean_transfer_prefreeze_path_of_head p c E rho b₀ h hq hf hsrc
+      i k x y s B K o hi hki ht hk hh hall hB hord ho hhead hBK
+    obtain ⟨Bfg', he', hF, _⟩ := clean_transfer_frame p c E rho b₀ h hq hf hsrc
+      i k x y s B hi hki ht hk hh hall hB hord
+    exact fgsa_cleanSupport_forward_relay E rho h.base.valid h.base.noRestart h.base.delta
+      s hsync (ix := i) (iy := k) hx hy ht hk o ho seat hs Kfg (he ▸ hhead) B
+      (he ▸ hBK) hpath (he' ▸ eraseFG_preceq hF)
+
+/-- Blueprint claim bp.cleanTransfer.v1 (00:756–765):
+internal lane theorem, public statement candidate for a later freeze.
+P3 F2.3:5496–5503; bp02 §4.2. Class B, FG-SA run instance.
+DC: AdoptionTransport.lean:346; Goldfish/Adoption.lean:53–67,415–461.
+INTENTIONAL: the F-anchored optional result replaces SG grades and the lease
+sets liveRoot (spec:2500–2525); the FJ voter domain restricts the walked tree
+(spec:2557–2571). Current Ordered stays explicit because the consumer supplies
+OSN (review-00-02:234–236; lead Q2). No UNMOTIVATED or UNCLEAR divergence. -/
+theorem cleanTransfer (b₀ : Time) :
+  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
+  FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
+  ∀ i k x y s B, i < timeIdx rho b₀ → k < i →
+    IsGateTick p c rho i x s →
+    rho.events[k]? = some (.tick y (SA.voteTime p.toParams (s + 1))) →
+    CleanHist p c E rho i → (∀ j, j ≤ i → CleanState p c E rho j) →
+    gateResultAt p c E rho i = some (some B) →
+    (∀ r C, (r, C) ∈ cleanResults p c E rho i → r < s → Block.Preceq C B) →
+    Block.Preceq B (headAtIdx p c E rho k (s + 1)) := by
+  intro h hq hf hsrc i k x y s B hi hki ht hk hh hall hB hord
+  exact cleanTransfer_of_forward p c E rho b₀ h hq hf hsrc
+    i k x y s B hi hki ht hk hh hall hB hord
+    (clean_transfer_forward p c E rho b₀ h hq hf hsrc
+      i k x y s B hi hki ht hk hh hall hB hord)
 
 end AvailableChain.FGSA.Run
