@@ -127,8 +127,22 @@ structure FGPart (i : Nat) : Prop where
 def GT (b₀ : Time) (j : Nat) : Prop :=
   j < timeIdx rho b₀ → CleanHist p c E rho (j + 1)
 
+/-- P3 §8.7; first-unfold equation (`:= by rfl`, add-only).
+DC counterpart: none; FG-SA-specific statement. -/
+theorem GT_def (b₀ : Time) (j : Nat) :
+    GT p c E rho b₀ j =
+      (
+  j < timeIdx rho b₀ → CleanHist p c E rho (j + 1)) := by rfl
+
 def GR (b₀ : Time) (i : Nat) : Prop :=
   i ≤ timeIdx rho b₀ → FGPart p c E rho i
+
+/-- P3 §8.7; first-unfold equation (`:= by rfl`, add-only).
+DC counterpart: none; FG-SA-specific statement. -/
+theorem GR_def (b₀ : Time) (i : Nat) :
+    GR p c E rho b₀ i =
+      (
+  i ≤ timeIdx rho b₀ → FGPart p c E rho i) := by rfl
 
 variable [Fintype V]
 
@@ -223,6 +237,15 @@ def CleanAGStmt (b₀ : Time) : Prop :=
   CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   Gen.Pure.AGRule (GR p c E rho b₀) (GT p c E rho b₀)
+
+/-- P3 §8.7; first-unfold equation (`:= by rfl`, add-only).
+DC counterpart: none; FG-SA-specific statement. -/
+theorem CleanAGStmt_def (b₀ : Time) :
+    CleanAGStmt p c E rho b₀ =
+      (
+  CleanCut₂ p c E rho b₀ → Gen.Pure.FaultQ p.n (Gen.V2.faulty rho).card →
+  FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
+  Gen.Pure.AGRule (GR p c E rho b₀) (GT p c E rho b₀)) := by rfl
 
 /-- State step under a fixed completed history, P3 §§8.2, 8.4.
 The event predicate separates the handlers without a free path or tip. -/
@@ -367,6 +390,14 @@ theorem CleanGateHistStep_def (b₀ : Time) :
 def CleanRestartStep (b₀ : Time) : Prop :=
   CleanCut₂ p c E rho b₀ → ∀ j v t, j < timeIdx rho b₀ →
     rho.events[j]? = some (.restart v t) → False
+
+/-- P3 §8.7; first-unfold equation (`:= by rfl`, add-only).
+DC counterpart: none; FG-SA-specific statement. -/
+theorem CleanRestartStep_def (b₀ : Time) :
+    CleanRestartStep p c E rho b₀ =
+      (
+  CleanCut₂ p c E rho b₀ → ∀ j v t, j < timeIdx rho b₀ →
+    rho.events[j]? = some (.restart v t) → False) := by rfl
 
 /-- P3 §8.4 and bp02 §5.6: an action's new row belongs to the history
 that includes its gate. This is a substep of the same tick, not a new event. -/
