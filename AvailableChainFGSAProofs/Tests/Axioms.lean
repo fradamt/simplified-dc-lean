@@ -159,6 +159,7 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_carrier_geometry
 #print axioms AvailableChain.FGSA.Run.fgsa_finalLock
 #print axioms AvailableChain.FGSA.Run.fgsa_finalLock_erased
+#print axioms AvailableChain.FGSA.Run.fgsa_rXing
 #print axioms AvailableChain.FGSA.Run.fgsa_clientSafeAll
 #print axioms AvailableChain.FGSA.Run.readAt_chain_row_origin
 #print axioms AvailableChain.FGSA.Run.fgsa_honestNeverSlashed
@@ -206,6 +207,8 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.Recovery₂.faultX_count_rec
 #print axioms AvailableChain.FGSA.Run.Recovery₂.faultQ
 #print axioms AvailableChain.FGSA.Run.fgsa_rCap
+#print axioms AvailableChain.FGSA.Run.fgsa_rCap_heightView
+#print axioms AvailableChain.FGSA.Run.fgsa_rCap_channel
 #print axioms AvailableChain.FGSA.Run.fgsa_finalityCap
 #print axioms AvailableChain.FGSA.Run.fgsa_rCap_time
 #print axioms AvailableChain.FGSA.Run.fgsa_rCap_before

@@ -62,5 +62,19 @@ theorem fgsa_finalLock_erased [Fintype V]
   eraseFG_preceq
     (fgsa_finalLock p c E rho hL hX hU x hx e e' hee K hKe hKF y W hW hheight)
 
+/-- R-XING with exactly the premises of `fgsa_finalLock`.
+The certificate laws give the crossing evidence directly on the active height view. -/
+theorem fgsa_rXing [Fintype V]
+    (hL : V2.D.Linked (fgsaFamilies p c).linked rho)
+    (hX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
+    (hU : V2.D.UnforgeableSignatures E rho) : RXing p c E rho := by
+  intro i i' x y K W hx hii hK hKF hW hh
+  rcases KitFG.slashableWeight_or_finalized_preceq_of_certificate
+    p.E (heightView p) (finalityView p) (fgCertificateLaws p) K W hh with hev | h
+  · have hc := fgsa_slashable_faulty_count p c E rho hL hU i i' x y K W ⟨hx, hK⟩ hW hev
+    have ht := hX.lt
+    omega
+  · exact hKF ▸ h
+
 end AvailableChain.FGSA.Run
 end

@@ -28,6 +28,10 @@ LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainF
 CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = (
+    # S5 F-EXPORT: Foundations producers and the active-height cap adapter.
+    'AvailableChain.FGSA.Run.fgsa_rXing',
+    'AvailableChain.FGSA.Run.fgsa_rCap_heightView',
+    'AvailableChain.FGSA.Run.fgsa_rCap_channel',
     # W1-PORT: concrete window-model source and continuation; --expect additions.
     'AvailableChain.FGSA.Run.Tests.WeakContinuationWitness.params',
     'AvailableChain.FGSA.Run.Tests.WeakContinuationWitness.Validator',
