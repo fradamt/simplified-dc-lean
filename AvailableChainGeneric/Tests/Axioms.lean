@@ -1,4 +1,6 @@
 module
+public import AvailableChainGeneric.Statements.Pure.ScheduleW -- shake: keep (S4.1 axiom audit)
+public import AvailableChainGeneric.Proofs.Pure.ScheduleW -- shake: keep (S4.1 axiom audit)
 public import AvailableChainGeneric.Proofs.V2.Duty.Linked
 public import AvailableChainGeneric.Proofs.V2.Duty.Signatures
 public import AvailableChainGeneric.Statements.V2.Duty.Linked
@@ -798,3 +800,31 @@ theorem, in facade order. The library globs build this test module. -/
 #print axioms AvailableChain.Gen.AC.Duty.S_eq_of_exact_statement
 #print axioms AvailableChain.Gen.AC.Duty.gate_of_coveringBatch
 #print axioms AvailableChain.Gen.AC.Duty.S_eq_of_exact
+
+#print axioms AvailableChain.Gen.Pure.FGoodE_W
+#print axioms AvailableChain.Gen.Pure.FGood4_W
+#print axioms AvailableChain.Gen.Pure.Tail_W
+#print axioms AvailableChain.Gen.Pure.RecFE_W
+#print axioms AvailableChain.Gen.Pure.RecF4_W
+#print axioms AvailableChain.Gen.Pure.FGoodE_W_def
+#print axioms AvailableChain.Gen.Pure.FGood4_W_def
+#print axioms AvailableChain.Gen.Pure.Tail_W_def
+#print axioms AvailableChain.Gen.Pure.RecFE_W_def
+#print axioms AvailableChain.Gen.Pure.RecF4_W_def
+#print axioms AvailableChain.Gen.Pure.schedule_round_alignment
+#print axioms AvailableChain.Gen.Pure.schedule_alignment_gst
+#print axioms AvailableChain.Gen.Pure.schedule_window_round_lt
+#print axioms AvailableChain.Gen.Pure.schedule_finality_window_pos
+#print axioms AvailableChain.Gen.Pure.schedule_fgood_window_le_skip
+#print axioms AvailableChain.Gen.Pure.schedule_best_window_le_healing
+#print axioms AvailableChain.Gen.Pure.schedule_trigger_deadline_lt
+#print axioms AvailableChain.Gen.Pure.schedule_finality_window_pos_tail
+#print axioms AvailableChain.Gen.Pure.fgood4_W_implies_fgoodE_W
+#print axioms AvailableChain.Gen.Pure.recF4_W_implies_recFE_W
+#print axioms AvailableChain.Gen.Pure.fgoodE_W_two
+#print axioms AvailableChain.Gen.Pure.fgood4_W_two
+#print axioms AvailableChain.Gen.Pure.tail_W_two
+#print axioms AvailableChain.Gen.Pure.recFE_W_eight_delta
+#print axioms AvailableChain.Gen.Pure.recFE_W_guard_lt
+#print axioms AvailableChain.Gen.Pure.recFE_W_extract
+#print axioms AvailableChain.Gen.Pure.recFE_W_receipt_lt

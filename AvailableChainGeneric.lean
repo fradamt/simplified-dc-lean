@@ -1,4 +1,6 @@
 module
+public import AvailableChainGeneric.Statements.Pure.ScheduleW
+public import AvailableChainGeneric.Proofs.Pure.ScheduleW
 public import AvailableChainGeneric.Statements.Pure.SlotGrid
 public import AvailableChainGeneric.Proofs.Pure.SlotGrid
 public import AvailableChainGeneric.Statements.Pure.KernelArithmetic

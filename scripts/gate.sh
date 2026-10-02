@@ -130,6 +130,10 @@ step() (
   end=$(date +%s)
   printf '%s %s\n' "$rc" "$((end-start))" > "$logs/$name.result"
 )
+# Fail-fast: stop after the first failing sequential step.
+stop_if_failed() {
+  if [ "$failed" -ne 0 ]; then echo "fail-fast: later steps skipped"; finish; exit 1; fi
+}
 summary() {
   local name=$1 rc wall
   read -r rc wall < "$logs/$name.result"
@@ -176,20 +180,29 @@ export NEG=1 SKIP_CONE=0
 if [ "$tier" = merge ]; then NEG=0; fi
 checks=(check-build check-fgsa check-fgsa-run)
 # Shared slots cap controls and heavy steps across all three scripts.
-pids=()
-for name in "${checks[@]}"; do step "$name" bash "scripts/$name.sh" & pids+=("$!"); done
-for pid in "${pids[@]}"; do wait "$pid"; done
+# Fail-fast: the first failing check stops the other two (their own process groups).
+run_check() { step "$1" bash "scripts/$1.sh"; }
+if ! gate_parallel_failfast run_check "$logs" "${checks[@]}"; then
+  summary "$GATE_FF_FAILED"
+  echo "fail-fast: $GATE_FF_FAILED failed; stopped:${GATE_FF_KILLED:- none}; later steps skipped"
+  finish; exit 1
+fi
 for name in "${checks[@]}"; do summary "$name"; done
 step catalog-lock gate_with_slot lake env lean --run scripts/CatalogLock.lean --check
 summary catalog-lock
+stop_if_failed
 step v2-manifest gate_with_slot lake env lean --run scripts/V2Manifest.lean --check
 summary v2-manifest
+stop_if_failed
 step gen-manifest gate_with_slot lake env lean --run scripts/V2Manifest.lean --scope gen --check
 summary gen-manifest
+stop_if_failed
 step fgsa-manifest gate_with_slot bash scripts/check-fgsa-manifest.sh
 summary fgsa-manifest
+stop_if_failed
 step fgsa-claims gate_with_slot bash scripts/check-fgsa-claims.sh
 summary fgsa-claims
+stop_if_failed
 audit() {
   local path=$1 out=$2 rc=0 count
   gate_with_slot lake env lean "$path" > "$out" 2>&1 || rc=$?
@@ -201,6 +214,7 @@ audit() {
 for lib in Generic FGSA FGSARun; do
   step "$lib-axioms" audit "AvailableChain$lib/Tests/Axioms.lean" "$logs/$lib.axioms"
   summary "$lib-axioms"
+  stop_if_failed
 done
 finish
 exit "$failed"

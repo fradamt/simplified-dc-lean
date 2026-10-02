@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAClaims.Statements.BoundsW -- shake: keep (S4.1 axiom audit)
 public import AvailableChainFGSAClaims.Statements.Phases -- shake: keep (07-H audit)
 public import AvailableChainFGSAClaims.Claims.Healing -- shake: keep (07-H audit)
 public import AvailableChainFGSAClaims.Statements.Packages.Finality -- shake: keep (public aliases or axiom audit commands)
@@ -416,3 +417,43 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.ProposalWalk
 #print axioms AvailableChain.FGSA.Run.finHeight
 #print axioms AvailableChain.FGSA.Run.FreshPrem
+
+#print axioms AvailableChain.FGSA.Run.kappaF
+#print axioms AvailableChain.FGSA.Run.betaF
+#print axioms AvailableChain.FGSA.Run.epsF
+#print axioms AvailableChain.FGSA.Run.carrierTimeW
+#print axioms AvailableChain.FGSA.Run.kernelDeadlineW
+#print axioms AvailableChain.FGSA.Run.W_W
+#print axioms AvailableChain.FGSA.Run.E_gF
+#print axioms AvailableChain.FGSA.Run.E_jF
+#print axioms AvailableChain.FGSA.Run.B_cF
+#print axioms AvailableChain.FGSA.Run.D_cF
+#print axioms AvailableChain.FGSA.Run.B_resetF
+#print axioms AvailableChain.FGSA.Run.BF
+#print axioms AvailableChain.FGSA.Run.B_H2F
+#print axioms AvailableChain.FGSA.Run.B_H1F
+#print axioms AvailableChain.FGSA.Run.B_HF
+#print axioms AvailableChain.FGSA.Run.B'_resetF
+#print axioms AvailableChain.FGSA.Run.B_bestF
+#print axioms AvailableChain.FGSA.Run.ActionDeliveryBoundsW
+#print axioms AvailableChain.FGSA.Run.KernelBeforeNextActionW
+#print axioms AvailableChain.FGSA.Run.LivenessBoundW
+#print axioms AvailableChain.FGSA.Run.kappaF_def
+#print axioms AvailableChain.FGSA.Run.betaF_def
+#print axioms AvailableChain.FGSA.Run.epsF_def
+#print axioms AvailableChain.FGSA.Run.carrierTimeW_def
+#print axioms AvailableChain.FGSA.Run.kernelDeadlineW_def
+#print axioms AvailableChain.FGSA.Run.W_W_def
+#print axioms AvailableChain.FGSA.Run.E_gF_def
+#print axioms AvailableChain.FGSA.Run.E_jF_def
+#print axioms AvailableChain.FGSA.Run.B_cF_def
+#print axioms AvailableChain.FGSA.Run.D_cF_def
+#print axioms AvailableChain.FGSA.Run.B_resetF_def
+#print axioms AvailableChain.FGSA.Run.BF_def
+#print axioms AvailableChain.FGSA.Run.B_H2F_def
+#print axioms AvailableChain.FGSA.Run.B_H1F_def
+#print axioms AvailableChain.FGSA.Run.B_HF_def
+#print axioms AvailableChain.FGSA.Run.B'_resetF_def
+#print axioms AvailableChain.FGSA.Run.B_bestF_def
+#print axioms AvailableChain.FGSA.Run.ActionDeliveryBoundsW_def
+#print axioms AvailableChain.FGSA.Run.KernelBeforeNextActionW_def
