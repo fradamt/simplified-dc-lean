@@ -109,8 +109,9 @@ lake env lean --run scripts/CheckFGAxioms.lean --expect \
   simplexStoreInvariant \
   simplexStoreSafety \
   frontierView_def lexMaxView_def filteredFromView_def storeControlsView_def storeFrameView_def \
+  fjControlsView_def fjFrameView_def \
   hOf_of_bridge frontier_of_bridge lexMax_of_bridge filteredFrom_of_bridge \
-  storeControls_of_bridge storeFrame_of_bridge
+  storeControls_of_bridge storeFrame_of_bridge fjControls_of_bridge fjFrame_of_bridge
 step "scripts/FGPinIds.lean --check-names"
 lake env lean --run scripts/FGPinIds.lean --check-names
 step "scripts/check-fg-pins.sh"

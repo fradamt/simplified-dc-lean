@@ -70,5 +70,30 @@ theorem storeFrameView_def (v : FGHeightView V) (st : Store V)
     storeFrameView v st blocks =
       filteredFromView v (storeControlsView v st) blocks := rfl
 
+/-- The FJ controls use the view forms of the frontier, the lex selector and the
+height test. -/
+def fjControlsView (v : FGHeightView V) (F : FGBlock V) (Vw : View V) : Controls V :=
+  let H := frontierView v Vw
+  let p := lexMaxView v F Vw
+  ⟨F, H, p.1, p.2, decide (H = p.1 + 1) &&
+    decide (∃ W ∈ Vw, (v W).h = H ∧ ¬ FGBlock.Preceq p.2 W)⟩
+
+theorem fjControlsView_def (v : FGHeightView V) (F : FGBlock V) (Vw : View V) :
+    fjControlsView v F Vw =
+  (let H := frontierView v Vw
+   let p := lexMaxView v F Vw
+   ⟨F, H, p.1, p.2, decide (H = p.1 + 1) &&
+     decide (∃ W ∈ Vw, (v W).h = H ∧ ¬ FGBlock.Preceq p.2 W)⟩) := rfl
+
+/-- The FJ frame uses the view forms of the controls and the filter. -/
+def fjFrameView (v : FGHeightView V) (F : FGBlock V) (Vw : View V) : Frame V :=
+  let c := fjControlsView v F Vw
+  ⟨c.F, c.H, c.j, c.J, c.Z, c.lo, filteredFromView v c Vw, c.contest⟩
+
+theorem fjFrameView_def (v : FGHeightView V) (F : FGBlock V) (Vw : View V) :
+    fjFrameView v F Vw =
+  (let c := fjControlsView v F Vw
+   ⟨c.F, c.H, c.j, c.J, c.Z, c.lo, filteredFromView v c Vw, c.contest⟩) := rfl
+
 end AvailableChain.KitFG
 end

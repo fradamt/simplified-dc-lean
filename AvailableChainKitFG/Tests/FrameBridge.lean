@@ -58,6 +58,15 @@ example (E : Electorate V) (cfg : FGConfig) (st : Store V)
     (blocks : Finset (FGBlock V)) :
     storeFrame E cfg st blocks = storeFrameView (simplexHeightView E cfg) st blocks := rfl
 
+example (E : Electorate V) (cfg : FGConfig) (F : FGBlock V) (Vw : View V) :
+    fjControls E cfg F Vw = fjControlsView (simplexHeightView E cfg) F Vw := rfl
+
+example (E : Electorate V) (cfg : FGConfig) (F : FGBlock V) (Vw : View V) :
+    fjFrame E cfg F Vw = fjFrameView (simplexHeightView E cfg) F Vw := rfl
+
+example : fjFrame E4 cfg1 stC.F stC.TF = fjFrameView frameBridgeSelectedView stC.F stC.TF :=
+  fjFrame_of_bridge E4 cfg1 _ frameBridge_selected_bridge stC.F stC.TF
+
 #print axioms frontierView_def
 #print axioms lexMaxView_def
 #print axioms filteredFromView_def
@@ -69,6 +78,10 @@ example (E : Electorate V) (cfg : FGConfig) (st : Store V)
 #print axioms filteredFrom_of_bridge
 #print axioms storeControls_of_bridge
 #print axioms storeFrame_of_bridge
+#print axioms fjControlsView_def
+#print axioms fjFrameView_def
+#print axioms fjControls_of_bridge
+#print axioms fjFrame_of_bridge
 #print axioms frameBridge_selected_bridge
 
 end AvailableChain.KitFG.Tests.FrameBridge

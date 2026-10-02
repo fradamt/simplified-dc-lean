@@ -73,5 +73,26 @@ theorem storeFrame_of_bridge (E : Electorate V) (cfg : FGConfig)
   exact show filteredFrom E cfg (storeControls E cfg st) blocks = _ from by
     rw [storeControls_of_bridge E cfg v hb, filteredFrom_of_bridge E cfg v hb]
 
+/-- The FJ controls are unchanged under the height bridge. -/
+theorem fjControls_of_bridge (E : Electorate V) (cfg : FGConfig)
+    (v : FGHeightView V) (hb : HeightBridge E cfg v) (F : FGBlock V) (Vw : View V) :
+    fjControls E cfg F Vw = fjControlsView v F Vw := by
+  rw [fjControlsView_def]
+  exact show (let H := frontier E cfg Vw
+    let p := lexMax E cfg F Vw
+    (⟨F, H, p.1, p.2, decide (H = p.1 + 1) &&
+      decide (∃ W ∈ Vw, hOf E cfg W = H ∧ ¬ FGBlock.Preceq p.2 W)⟩ : Controls V)) = _ from by
+        simp only [frontier_of_bridge E cfg v hb, lexMax_of_bridge E cfg v hb,
+          hOf_of_bridge E cfg v hb]
+
+/-- The FJ frame is unchanged under the height bridge. -/
+theorem fjFrame_of_bridge (E : Electorate V) (cfg : FGConfig)
+    (v : FGHeightView V) (hb : HeightBridge E cfg v) (F : FGBlock V) (Vw : View V) :
+    fjFrame E cfg F Vw = fjFrameView v F Vw := by
+  rw [fjFrameView_def]
+  exact show (let c := fjControls E cfg F Vw
+    (⟨c.F, c.H, c.j, c.J, c.Z, c.lo, filteredFrom E cfg c Vw, c.contest⟩ : Frame V)) = _ from by
+      simp only [fjControls_of_bridge E cfg v hb, filteredFrom_of_bridge E cfg v hb]
+
 end AvailableChain.KitFG
 end
