@@ -9,12 +9,14 @@ open AvailableChain.SimplexFG
 open Gen.Pure
 open RetainedWalk
 
-/-- Blueprint 21:747–758, 798–814, 2847–2867; spec 1350–1360.
+/-- Blueprint 21 H.5:891–902, H.6:942–958, H.17:2986–3006
+(design 747–758,798–814,2847–2867); spec 1350–1360.
 Class (iii). DC: INTENTIONAL; the FG-SA stored-parent band is a separate arm. -/
 def retainedBand (p : Params) (st : State p.n) (C : Block) : Prop :=
   ∃ P ∈ st.fg.TF, eraseFG P = C.parent ∧ (heightView p P).h < (controls p st).lo
 
-/-- Blueprint 21:747–758, 798–814, 2847–2867; spec 1290–1297, 1350–1360.
+/-- Blueprint 21 H.5:891–902, H.6:942–958, H.17:2986–3006
+(design 747–758,798–814,2847–2867); spec 1290–1297, 1350–1360.
 Class (iii). DC: INTENTIONAL; D3-1 removes caller-supplied source F/Z bounds.
 The witness is stored at the source or strictly frozen at the target. -/
 def ReflectedDomainWitness (p : Params) (src dst : State p.n)
@@ -24,7 +26,8 @@ def ReflectedDomainWitness (p : Params) (src dst : State p.n)
     (W ∈ src.fg.TF ∨ (W ∈ dst.fg.TF ∧
       GridCO.stampBlock dst.base (eraseFG W) < SA.freezeTime p.toParams (s - 1)))
 
-/-- Blueprint 21:747–758, 798–814, 2847–2867; spec 1350–1360.
+/-- Blueprint 21 H.5:891–902, H.6:942–958, H.17:2986–3006
+(design 747–758,798–814,2847–2867); spec 1350–1360.
 Class (iii). DC: INTENTIONAL; equation for this module's band predicate. -/
 theorem retainedBand_def (p : Params) (st : State p.n) (C : Block) :
     retainedBand p st C = (∃ P ∈ st.fg.TF,
@@ -32,7 +35,8 @@ theorem retainedBand_def (p : Params) (st : State p.n) (C : Block) :
   apply propext
   constructor <;> exact fun h => h
 
-/-- Blueprint 21:747–758, 798–814, 2847–2867; spec 1290–1297.
+/-- Blueprint 21 H.5:891–902, H.6:942–958, H.17:2986–3006
+(design 747–758,798–814,2847–2867); spec 1290–1297.
 Class (iii). DC: INTENTIONAL; equation for this module's witness predicate. -/
 theorem ReflectedDomainWitness_def (p : Params) (src dst : State p.n) (s : Slot) (C : Block) :
     ReflectedDomainWitness p src dst s C =
@@ -43,7 +47,8 @@ theorem ReflectedDomainWitness_def (p : Params) (src dst : State p.n) (s : Slot)
   apply propext
   constructor <;> exact fun h => h
 
-/-- Blueprint 21:747–758, 798–814, 2847–2867; spec 1290–1297, 1330–1360.
+/-- Blueprint 21 H.5:891–902, H.6:942–958, H.17:2986–3006
+(design 747–758,798–814,2847–2867); spec 1290–1297, 1330–1360.
 Class (iii). DC: INTENTIONAL; actual starts, internal witnesses and band data.
 D2-1 permits the parent or the proposal as the target height witness. -/
 structure RetainedReadPremises (p : Params) (src dst : State p.n)
@@ -65,7 +70,7 @@ structure RetainedReadPremises (p : Params) (src dst : State p.n)
     C ∈ S p src → C ∈ T p dst s → C.parent? = some X → C.slot < s →
     (retainedBand p src C ↔ retainedBand p dst C)
 
-/-- Blueprint 21:798–809, 2832–2845; spec 1290–1297.
+/-- Blueprint 21 H.6:942–953, H.17:2971–2984 (design 798–809,2832–2845); spec 1290–1297.
 Class (iii). DC: INTENTIONAL; converse S3 gives a witness in the same view.
 No store invariant is needed. -/
 theorem fgsa_domain_witness_of_mem (p : Params) (st : State p.n)
@@ -79,7 +84,7 @@ theorem fgsa_domain_witness_of_mem (p : Params) (st : State p.n)
     (KitFG.mem_filteredFromView (heightView p) (controls p st) Vw B).mp hB
   exact ⟨B, hv, he, hf, hz, hw⟩
 
-/-- Blueprint 03:371–373; 21:798–814; spec 1290–1297.
+/-- Blueprint 03:371–373; 21 H.6:942–958 (design 798–814); spec 1290–1297.
 Class (iii). DC: INTENTIONAL; view-form full-domain SR adapter. -/
 theorem fgsa_walkRun_full_domain_view (p : Params) (st : State p.n)
     (h : CStoreInv p st) (D : FGBlock (Fin p.n)) (C : Block)
@@ -92,7 +97,7 @@ theorem fgsa_walkRun_full_domain_view (p : Params) (st : State p.n)
     (by simpa only [KitFG.hOf_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
         using hlo) hC hDC
 
-/-- Blueprint 03:350–354, 364–366; 21:798–809; spec 1290–1297.
+/-- Blueprint 03:350–354, 364–366; 21 H.6:942–953 (design 798–809); spec 1290–1297.
 Class (iii). DC: INTENTIONAL; view-form path-domain SR adapter. -/
 theorem fgsa_walkRun_path_domain_view (p : Params) (st : State p.n)
     (h : CStoreInv p st) (s : Slot) (D : FGBlock (Fin p.n)) (C P : Block)
@@ -108,7 +113,7 @@ theorem fgsa_walkRun_path_domain_view (p : Params) (st : State p.n)
     (by simpa only [KitFG.hOf_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
         using hlo) hP hs hDC hCP
 
-/-- Blueprint 03:356–360, 373; 21:747–758; spec 1350–1360.
+/-- Blueprint 03:356–360, 373; 21 H.5:891–902 (design 747–758); spec 1350–1360.
 Class (iii). DC: INTENTIONAL; view-form majority-only SR adapter. -/
 theorem fgsa_walkRun_eligible_iff_view (p : Params) (st : State p.n)
     (raw sup : List (GridCO.Wire p.n)) (D : FGBlock (Fin p.n)) (C : Block)
@@ -120,7 +125,8 @@ theorem fgsa_walkRun_eligible_iff_view (p : Params) (st : State p.n)
     (by simpa only [KitFG.hOf_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
         using hlo) hparent hs
 
-/-- Blueprint 21:747–758, 798–814, 2847–2867; spec 1350–1360.
+/-- Blueprint 21 H.5:891–902, H.6:942–958, H.17:2986–3006
+(design 747–758,798–814,2847–2867); spec 1350–1360.
 Class (iii). DC: INTENTIONAL; all three eligibility arms in view form. -/
 theorem fgsa_eligible_eq_of_retainedBand_score
     (p : Params) (src dst : State p.n)
@@ -137,7 +143,7 @@ theorem fgsa_eligible_eq_of_retainedBand_score
   dsimp only [retainedBand] at hb
   simp only [hb, hcount, hscore, hslot]
 
-/-- Blueprint 21:783–795, 2847–2867; spec 616–633, 1290–1297.
+/-- Blueprint 21 H.6:927–939, H.17:2986–3006 (design 783–795,2847–2867); spec 616–633, 1290–1297.
 Class (iii). DC: INTENTIONAL; D3-1 derives the source admission floor from FJ. -/
 private theorem reflect_F_Z (p : Params) (st : State p.n) (h : CStoreInv p st) :
     FGBlock.Preceq st.fg.F (controls p st).Z := by
@@ -146,14 +152,15 @@ private theorem reflect_F_Z (p : Params) (st : State p.n) (h : CStoreInv p st) :
   · exact h.fg.FJ
   · exact KitFG.preceq_refl _
 
-/-- Blueprint 21:747–758, 798–814, 2847–2867; spec 1290–1297.
+/-- Blueprint 21 H.5:891–902, H.6:942–958, H.17:2986–3006
+(design 747–758,798–814,2847–2867); spec 1290–1297.
 Class (iii). DC: INTENTIONAL; lift the immutable erased ancestry. -/
 private theorem reflect_lift {n : Nat} {A B : FGBlock (Fin n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
   preceq_of_eraseFG_preceq (Vw := {A, B}) (KitFG.viewRootInj_all _)
     ⟨A, by simp, KitFG.preceq_refl _⟩ ⟨B, by simp, KitFG.preceq_refl _⟩ h
 
-/-- Blueprint 21:747–758, 798–814; spec 1290–1297.
+/-- Blueprint 21 H.5:891–902, H.6:942–958 (design 747–758,798–814); spec 1290–1297.
 Class (iii). DC: INTENTIONAL; parent ancestry for a retained FG-SA candidate. -/
 private theorem reflect_parent {C X : Block} (hp : C.parent? = some X) :
     Block.Preceq X C := by
@@ -166,7 +173,8 @@ private theorem reflect_parent {C X : Block} (hp : C.parent? = some X) :
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- Blueprint 21:747–758, 798–814, 2847–2867; spec 1290–1297.
+/-- Blueprint 21 H.5:891–902, H.6:942–958, H.17:2986–3006
+(design 747–758,798–814,2847–2867); spec 1290–1297.
 Class (iii). DC: INTENTIONAL; the actual clock preserves stored receipt stamps. -/
 private theorem reflect_clock_stamp (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (k : Nat) (y : V) (t : Time) (B : Block)

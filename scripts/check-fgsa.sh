@@ -19,7 +19,8 @@ cd "$(dirname "$0")/.."
 source scripts/gate-common.sh
 if [ "${SOURCE_ONLY:-0}" != 1 ]; then
   gate_options "$@"
-  for f in scripts/CheckFGSAAxioms.lean scripts/CheckFGSALease.lean scripts/CheckFGSAExt.lean; do
+  for f in scripts/CheckFGSAAxioms.lean scripts/CheckFGSALease.lean scripts/CheckFGSAExt.lean \
+      scripts/CheckFGSAOldReads.lean scripts/baselines/fgsa-old-reads.txt; do
     [ -f "$f" ] || { echo "MISSING CHECK SCRIPT: $f"; exit 2; }
   done
 fi
@@ -182,10 +183,10 @@ TEST_ROOTS=()
 for m in $(test_modules .); do TEST_ROOTS+=(--root "$m"); done
 gate_with_slot lake env lean --run scripts/CheckFGSAAxioms.lean "${TEST_ROOTS[@]}" --expect \
   StoreSetEq admitRow_setEq proposalRows_perm_setEq propose_setEq blockAccepted_slot_pos \
-  parentFoldState_slot rowValidFor_iff rowValidFor_finality_irrel rowsValidForParent_iff \
+  parentFoldState_slot rowsValidForParent_iff \
   rowsValidForParent_slot_irrel rowsValidForParent_perm rowsValidStored_initial \
-  encRowPayload_inj RowPayload.ofRow_toRow rowValidFor_progress_first row_bit_persist \
-  rowValidFor_fold rowValidFor_finality_persist mem_allBlockRows_iff proposalRowsFor_missing \
+  encRowPayload_inj RowPayload.ofRow_toRow row_bit_persist \
+  mem_allBlockRows_iff proposalRowsFor_missing \
   mem_proposalRowsFor_iff proposalRowsFor_nodup proposalRowsFor_sublist proposalRowsFor_origin \
   proposalRowsFor_valid proposalRowsFor_excludes_chain proposalRowsFor_perm \
   proposalRows_eq_proposalRowsFor blockAccepted_rowsValid admitBlock_invalid_rows fgBlockOf_mono \
@@ -212,21 +213,22 @@ gate_with_slot lake env lean --run scripts/CheckFGSAAxioms.lean "${TEST_ROOTS[@]
   Window.window_latest_pair_kept \
   Window.window_evicted_has_K_newer \
   Window.window_entry_history \
+  Window.window_bit_add_of_row Window.window_bits_accumulate \
+  Window.window_finalize_of_accumulated_quorum Window.window_target_appended_newest \
+  Window.window_retained_of_few_newer Window.window_retained_along \
   Window.windowSelectionLaws Window.windowCertificateLaws Window.windowChainCertificate \
   Window.acceptViable_eq \
   Window.update_finality_h_max_eq \
   Window.update_finality_J_eq \
   Window.update_finality_h_j_eq \
   Window.on_block_TF_eq \
-  heightView_bridge \
+  heightView_bridge fgsa_Z_preceq_liveRoot \
   heightView_eq_simplex \
-  finalityView_eq_simplex \
   finalityView_def \
   fgCertificateLaws \
   fgJustificationLaws \
-  fgStoreInvariant_on_block \
   fgStoreSafety \
-  fgInputs_headFields \
+  fgInputs_headFields attest_source_heightView \
   emitted_finality_pair_of_headFields \
   Window.windowStoreSafety \
   Window.windowStoreInvariant_init \
@@ -264,6 +266,19 @@ gate_with_slot lake env lean --run scripts/CheckFGSAAxioms.lean "${TEST_ROOTS[@]
   Window.window_update_finality_F_cases
 echo "== lease instances"
 gate_with_slot lake env lean --run scripts/CheckFGSALease.lean
+# Old-read audit (fg5-rulings STOP 6, ruling 7): no old SimplexFG store fold, old
+# row validity or finality read of the old derive in the active FG-SA path except
+# the `allow` lines, and no height-only read of the old derive except the `height`
+# lines (ruling 7 named exceptions) of scripts/baselines/fgsa-old-reads.txt (DATA).
+# The full tier also runs the in-process negative controls (planted direct, KitFG-
+# lemma, `(derive …).F` and height-only reads; dropped and extra data lines).
+echo "== old-read audit"
+gate_build --wfail AvailableChainFGSAClaims AvailableChainFGSAProofs AvailableChainFGSARun
+if [ "$NEG" = 1 ]; then
+  gate_with_slot lake env lean --run scripts/CheckFGSAOldReads.lean --controls
+else
+  gate_with_slot lake env lean --run scripts/CheckFGSAOldReads.lean
+fi
 # The `leanIn "AvailableChainFGSA"` names of AvailableChainKitFG/Pins.lean get
 # the checks of a `.lean` name (existence, the library of the declaring module,
 # the three standard axioms) in this environment; see scripts/CheckFGSAExt.lean.

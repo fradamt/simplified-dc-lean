@@ -153,7 +153,7 @@ def RFrame : Prop := ∀ i x, x ∈ rho.honest →
   let st := storeAt p c E rho i x
   (∀ s b raw support P rows, parentFG st b = some P →
     blockAccepted p st s b P rows = true →
-    (admitBlock p st s b raw support rows).fg = on_block p.E p.cfg st.fg (fgBlock P b rows)) ∧
+    (admitBlock p st s b raw support rows).fg = Window.on_block p p.K_W st.fg (fgBlock P b rows)) ∧
   ((∀ f : GridCO.State p.n → GridCO.State p.n, (onView f st).fg = st.fg) ∧
     (∀ s k b, (admitHead p st s k b).fg = st.fg) ∧
     (∀ a, (admitRow p st a).fg = st.fg) ∧
@@ -195,7 +195,7 @@ def RFrame : Prop := ∀ i x, x ∈ rho.honest →
       | none => []
       | some P =>
           (st.rowPool ++ blockWireRows st).eraseDups.filter (fun a =>
-            rowValidFor (parentFoldState p (st.slot p) P) a &&
+            Window.rowValidW (parentFoldState p (st.slot p) P) a &&
               !decide (a ∈ chainWireRows st H))) ∧
     (V2.D.NoRestart rho → ∀ j, i ≤ j → j ≤ rho.events.length →
       let st' := storeAt p c E rho j x
@@ -207,7 +207,7 @@ theorem RFrame_def : RFrame p c E rho =
   let st := storeAt p c E rho i x
   (∀ s b raw support P rows, parentFG st b = some P →
     blockAccepted p st s b P rows = true →
-    (admitBlock p st s b raw support rows).fg = on_block p.E p.cfg st.fg (fgBlock P b rows)) ∧
+    (admitBlock p st s b raw support rows).fg = Window.on_block p p.K_W st.fg (fgBlock P b rows)) ∧
   ((∀ f : GridCO.State p.n → GridCO.State p.n, (onView f st).fg = st.fg) ∧
     (∀ s k b, (admitHead p st s k b).fg = st.fg) ∧
     (∀ a, (admitRow p st a).fg = st.fg) ∧
@@ -249,7 +249,7 @@ theorem RFrame_def : RFrame p c E rho =
       | none => []
       | some P =>
           (st.rowPool ++ blockWireRows st).eraseDups.filter (fun a =>
-            rowValidFor (parentFoldState p (st.slot p) P) a &&
+            Window.rowValidW (parentFoldState p (st.slot p) P) a &&
               !decide (a ∈ chainWireRows st H))) ∧
     (V2.D.NoRestart rho → ∀ j, i ≤ j → j ≤ rho.events.length →
       let st' := storeAt p c E rho j x
@@ -298,15 +298,15 @@ def RCert : Prop := ∀ i x W, x ∈ rho.honest → W ∈ (storeAt p c E rho i x
     ∃ Q : Finset (Fin p.n), p.E.IsQuorum Q ∧ ∀ k ∈ Q, ∃ carrier a,
       FGBlock.Preceq carrier W ∧ a ∈ carrier.rows ∧ a.signer = k ∧
       a.height_pair = .vote (derive p.E p.cfg W).h_j (derive p.E p.cfg W).J.root false) ∧
-  ((derive p.E p.cfg W).h_F ≠ 0 →
-    ∃ F : FGBlock (Fin p.n), FGBlock.Preceq F W ∧ F = (derive p.E p.cfg W).F ∧
+  ((finalityView p W).h_F ≠ 0 →
+    ∃ F : FGBlock (Fin p.n), FGBlock.Preceq F W ∧ F = (finalityView p W).F ∧
       ∃ Q : Finset (Fin p.n), p.E.IsQuorum Q ∧
         ∀ k ∈ Q, ∃ carrier : FGBlock (Fin p.n), ∃ a : Row (Fin p.n),
           FGBlock.Preceq carrier W ∧ a ∈ carrier.rows ∧ a.signer = k ∧
-          a.finality_pair = some ⟨(derive p.E p.cfg W).h_F, F.root⟩) ∧
-  ((derive p.E p.cfg W).h_F ≠ 0 →
-    ∃ C, FGBlock.Preceq C W ∧ (derive p.E p.cfg C).J = (derive p.E p.cfg W).F ∧
-      (derive p.E p.cfg C).h_j = (derive p.E p.cfg W).h_F)
+          a.finality_pair = some ⟨(finalityView p W).h_F, F.root⟩) ∧
+  ((finalityView p W).h_F ≠ 0 →
+    ∃ C, FGBlock.Preceq C W ∧ (derive p.E p.cfg C).J = (finalityView p W).F ∧
+      (derive p.E p.cfg C).h_j = (finalityView p W).h_F)
 
 theorem RCert_def : RCert p c E rho =
   (∀ i x W, x ∈ rho.honest → W ∈ (storeAt p c E rho i x).fg.TF →
@@ -320,15 +320,15 @@ theorem RCert_def : RCert p c E rho =
     ∃ Q : Finset (Fin p.n), p.E.IsQuorum Q ∧ ∀ k ∈ Q, ∃ carrier a,
       FGBlock.Preceq carrier W ∧ a ∈ carrier.rows ∧ a.signer = k ∧
       a.height_pair = .vote (derive p.E p.cfg W).h_j (derive p.E p.cfg W).J.root false) ∧
-  ((derive p.E p.cfg W).h_F ≠ 0 →
-    ∃ F : FGBlock (Fin p.n), FGBlock.Preceq F W ∧ F = (derive p.E p.cfg W).F ∧
+  ((finalityView p W).h_F ≠ 0 →
+    ∃ F : FGBlock (Fin p.n), FGBlock.Preceq F W ∧ F = (finalityView p W).F ∧
       ∃ Q : Finset (Fin p.n), p.E.IsQuorum Q ∧
         ∀ k ∈ Q, ∃ carrier : FGBlock (Fin p.n), ∃ a : Row (Fin p.n),
           FGBlock.Preceq carrier W ∧ a ∈ carrier.rows ∧ a.signer = k ∧
-          a.finality_pair = some ⟨(derive p.E p.cfg W).h_F, F.root⟩) ∧
-  ((derive p.E p.cfg W).h_F ≠ 0 →
-    ∃ C, FGBlock.Preceq C W ∧ (derive p.E p.cfg C).J = (derive p.E p.cfg W).F ∧
-      (derive p.E p.cfg C).h_j = (derive p.E p.cfg W).h_F)) := by
+          a.finality_pair = some ⟨(finalityView p W).h_F, F.root⟩) ∧
+  ((finalityView p W).h_F ≠ 0 →
+    ∃ C, FGBlock.Preceq C W ∧ (derive p.E p.cfg C).J = (finalityView p W).F ∧
+      (derive p.E p.cfg C).h_j = (finalityView p W).h_F)) := by
   rw [RCert]
 
 /-- bp.reconcile.v1 (00:559–567), 01 §6: the exact AC edits at an F move.
@@ -519,9 +519,9 @@ def RQCOrigin : Prop := ∀ i x W, x ∈ rho.honest → W ∈ (storeAt p c E rho
       (rows k).2.signer = k ∧
       (rows k).2.height_pair = .vote (derive p.E p.cfg W).h_j (derive p.E p.cfg W).J.root false) →
     ∃ k ∈ Q, origin (rows k).1 (rows k).2) ∧
-  ((derive p.E p.cfg W).F ≠ .genesis →
-    ∃ C, FGBlock.Preceq C W ∧ (derive p.E p.cfg C).J = (derive p.E p.cfg W).F ∧
-      (derive p.E p.cfg C).h_j = (derive p.E p.cfg W).h_F ∧
+  ((finalityView p W).F ≠ .genesis →
+    ∃ C, FGBlock.Preceq C W ∧ (derive p.E p.cfg C).J = (finalityView p W).F ∧
+      (derive p.E p.cfg C).h_j = (finalityView p W).h_F ∧
       ∃ (Q : Finset (Fin p.n)) (rows : Fin p.n → FGBlock (Fin p.n) × Row (Fin p.n)),
         p.E.IsQuorum Q ∧
         (∀ k ∈ Q, FGBlock.Preceq (rows k).1 C ∧ (rows k).2 ∈ (rows k).1.rows ∧
@@ -555,9 +555,9 @@ theorem RQCOrigin_def : RQCOrigin p c E rho =
       (rows k).2.signer = k ∧
       (rows k).2.height_pair = .vote (derive p.E p.cfg W).h_j (derive p.E p.cfg W).J.root false) →
     ∃ k ∈ Q, origin (rows k).1 (rows k).2) ∧
-  ((derive p.E p.cfg W).F ≠ .genesis →
-    ∃ C, FGBlock.Preceq C W ∧ (derive p.E p.cfg C).J = (derive p.E p.cfg W).F ∧
-      (derive p.E p.cfg C).h_j = (derive p.E p.cfg W).h_F ∧
+  ((finalityView p W).F ≠ .genesis →
+    ∃ C, FGBlock.Preceq C W ∧ (derive p.E p.cfg C).J = (finalityView p W).F ∧
+      (derive p.E p.cfg C).h_j = (finalityView p W).h_F ∧
       ∃ (Q : Finset (Fin p.n)) (rows : Fin p.n → FGBlock (Fin p.n) × Row (Fin p.n)),
         p.E.IsQuorum Q ∧
         (∀ k ∈ Q, FGBlock.Preceq (rows k).1 C ∧ (rows k).2 ∈ (rows k).1.rows ∧
@@ -672,8 +672,8 @@ quantify every accepted carrier of the current F and use its certificate h_F.
 The claim producer supplies FaultX; there is no height function on F. -/
 def RXing : Prop := ∀ i i' x y K W, x ∈ rho.honest → i ≤ i' →
   K ∈ (storeAt p c E rho i x).fg.TF →
-  (derive p.E p.cfg K).F = (storeAt p c E rho i x).fg.F →
-  HeldAt p c E rho i' y W → (derive p.E p.cfg K).h_F < hOf p.E p.cfg W →
+  (finalityView p K).F = (storeAt p c E rho i x).fg.F →
+  HeldAt p c E rho i' y W → (finalityView p K).h_F < hOf p.E p.cfg W →
   FGBlock.Preceq (storeAt p c E rho i x).fg.F W
 
 /-- R-CAP (01:219–233), P3 A.4. Consumers: 21 H.11–H.15; 22 FF1-A.

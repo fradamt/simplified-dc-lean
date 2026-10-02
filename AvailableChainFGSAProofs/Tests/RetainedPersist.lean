@@ -9,28 +9,28 @@ open AvailableChain.SimplexFG
 open Gen.Pure
 open RetainedWalk
 
-/-- Blueprint 21:747–758, 798–814; spec 1290–1297. Class (iii).
+/-- Blueprint 21 H.5:891–902, H.6:942–958 (design 747–758,798–814); spec 1290–1297. Class (iii).
 DC: INTENTIONAL; finite parameters for the witness tests. -/
 private abbrev params : Params :=
   { Δ := 1, n := 1, k := 2, η := 0, deltaPos := by decide, nPos := by decide,
     kLarge := by decide, etaNonneg := by decide,
     R := 2, δt := 1, RLarge := by decide }
 
-/-- Blueprint 21:798–814; spec 1290–1297. Class (iii).
+/-- Blueprint 21 H.6:942–958 (design 798–814); spec 1290–1297. Class (iii).
 DC: INTENTIONAL; retained cut and live lease target. -/
 private def cutFG : FGBlock (Fin 1) := .node .genesis 1 0 []
-/-- Blueprint 21:798–814; spec 1290–1297. Class (iii).
+/-- Blueprint 21 H.6:942–958 (design 798–814); spec 1290–1297. Class (iii).
 DC: INTENTIONAL; parent strictly above the retained cut. -/
 private def parentFG : FGBlock (Fin 1) := .node cutFG 2 0 []
-/-- Blueprint 21:798–814; spec 1290–1297. Class (iii).
+/-- Blueprint 21 H.6:942–958 (design 798–814); spec 1290–1297. Class (iii).
 DC: INTENTIONAL; old child at the inclusive endpoint. -/
 private def oldFG : FGBlock (Fin 1) := .node parentFG 3 0 []
 
-/-- Blueprint 21:2869–2872; spec 1286–1293. Class (iii).
+/-- Blueprint 21 H.17:3008–3011 (design 2869–2872); spec 1286–1293. Class (iii).
 DC: INTENTIONAL; the admitted current proposal shares A with the old child. -/
 private def proposalFG : FGBlock (Fin 1) := .node parentFG 4 0 []
 
-/-- Blueprint 21:783–814; spec 1086–1098, 1290–1297. Class (iii).
+/-- Blueprint 21 H.6:927–958 (design 783–814); spec 1373–1385, 1290–1297. Class (iii).
 DC: INTENTIONAL; a source with a live lease above its root. -/
 private def source : State 1 :=
   { initial 1 with
@@ -48,7 +48,7 @@ private def source : State 1 :=
       h_j := 0
       h_max := 1 } }
 
-/-- Blueprint 21:798–814; spec 1290–1297. Class (iii).
+/-- Blueprint 21 H.6:942–958 (design 798–814); spec 1290–1297. Class (iii).
 DC: INTENTIONAL; the frozen old child is absent from the source fixture. -/
 private def target : State 1 :=
   { source with
@@ -58,7 +58,7 @@ private def target : State 1 :=
       blockStamp := source.base.blockStamp ++ [(eraseFG oldFG, 0), (eraseFG proposalFG, 16)] }
     fg := { source.fg with TF := {.genesis, cutFG, parentFG, oldFG, proposalFG} } }
 
-/-- Blueprint 21:798–809; spec 1290–1297. Class (iii).
+/-- Blueprint 21 H.6:942–953 (design 798–809); spec 1290–1297. Class (iii).
 DC: INTENTIONAL; use the height-law bridge without reducing the active view. -/
 private theorem fixture_height (st : State 1) (hmax : st.fg.h_max = 1)
     (W : FGBlock (Fin 1)) : (controls params st).lo ≤ (heightView params W).h := by
@@ -72,7 +72,7 @@ private theorem fixture_height (st : State 1) (hmax : st.fg.h_max = 1)
     (heightView params) (heightView_bridge params) W).1]
   exact KitFG.one_le_h params.E params.cfg W
 
-/-- Blueprint 21:783–814; spec 616–633. Class (iii).
+/-- Blueprint 21 H.6:927–958 (design 783–814); spec 616–633. Class (iii).
 DC: INTENTIONAL; both branches select the common genesis F/J, without height reduction. -/
 private theorem fixture_root (st : State 1) (hF : st.fg.F = .genesis)
     (hJ : st.fg.J = .genesis) : (controls params st).Z = .genesis := by
@@ -81,7 +81,7 @@ private theorem fixture_root (st : State 1) (hF : st.fg.F = .genesis)
   rw [hF, hJ]
   split <;> rfl
 
-/-- Blueprint 21:798–814; spec 1290–1297. Class (iii).
+/-- Blueprint 21 H.6:942–958 (design 798–814); spec 1290–1297. Class (iii).
 DC: INTENTIONAL; concrete full-domain membership from the internal witness. -/
 private theorem fixture_full_mem (st : State 1) (hF : st.fg.F = .genesis)
     (hJ : st.fg.J = .genesis) (hmax : st.fg.h_max = 1)
@@ -94,7 +94,8 @@ private theorem fixture_full_mem (st : State 1) (hF : st.fg.F = .genesis)
   · rw [fixture_root st hF hJ]
     exact KitFG.genesis_preceq B
 
-/-- Blueprint 21:798–809, 2869–2872; spec 1286–1293. Class (iii).
+/-- Blueprint 21 H.6:942–953, H.17:3008–3011
+(design 798–809,2869–2872); spec 1286–1293. Class (iii).
 DC: INTENTIONAL; finite erasure correspondence without computing heightView. -/
 private theorem target_base (C : Block) :
     C ∈ target.base.blocks ↔ ∃ B ∈ target.fg.TF, eraseFG B = C := by
@@ -108,7 +109,8 @@ private theorem target_base (C : Block) :
   · rintro ⟨B, hB, rfl⟩
     rcases hB with rfl | rfl | rfl | rfl | rfl <;> simp [eraseFG]
 
-/-- Blueprint 21:798–809, 2869–2872; spec 1286–1293. Class (iii).
+/-- Blueprint 21 H.6:942–953, H.17:3008–3011
+(design 798–809,2869–2872); spec 1286–1293. Class (iii).
 DC: INTENTIONAL; the admitted finite path is parent closed. -/
 private theorem target_parent_mem : ∀ B ∈ target.fg.TF, B.parent ∈ target.fg.TF := by
   intro B hB
@@ -116,14 +118,15 @@ private theorem target_parent_mem : ∀ B ∈ target.fg.TF, B.parent ∈ target.
     simpa only [target, source, Finset.mem_insert, Finset.mem_singleton] using hB
   rcases hb with rfl | rfl | rfl | rfl | rfl <;> decide +kernel
 
-/-- Blueprint 21:783–809; spec 1086–1098. Class (iii).
+/-- Blueprint 21 H.6:927–953 (design 783–809); spec 1373–1385. Class (iii).
 DC: INTENTIONAL; the target has no leases, so its live start is Z. -/
 private theorem target_start : ay params target = .genesis := by
   unfold ay liveRoot
   rw [fixture_root target rfl rfl]
   rfl
 
-/-- Blueprint 21:798–809, 2869–2872; spec 1286–1293. Class (iii).
+/-- Blueprint 21 H.6:942–953, H.17:3008–3011
+(design 798–809,2869–2872); spec 1286–1293. Class (iii).
 DC: INTENTIONAL; source A is the first permitted witness choice. -/
 private theorem parent_witness :
     ∃ W : FGBlock (Fin 1),
@@ -132,7 +135,8 @@ private theorem parent_witness :
       (controls params target).lo ≤ (heightView params W).h :=
   ⟨parentFG, Or.inl ⟨by decide +kernel, rfl⟩, fixture_height target rfl parentFG⟩
 
-/-- Blueprint 21 H.6:791–809, H.17:2869–2872; spec 1286–1293. Class (iii).
+/-- Blueprint 21 H.6:935–953, H.17:3008–3011
+(design 791–809,2869–2872); spec 1286–1293. Class (iii).
 DC: INTENTIONAL; E.proposal_mem instance with source A, absent new b at source. -/
 private theorem proposal_mem_source_parent :
     eraseFG proposalFG ∈ T params target 4 ∧ proposalFG ∉ source.fg.TF := by
@@ -140,7 +144,8 @@ private theorem proposal_mem_source_parent :
     ?_ 4 (eraseFG proposalFG) (by decide +kernel) rfl ?_ parent_witness, by decide +kernel⟩
   all_goals rw [target_start]; exact block_genesis_preceq _
 
-/-- Blueprint 21 H.6:791–809, H.17:2869–2872; spec 1286–1293. Class (iii).
+/-- Blueprint 21 H.6:935–953, H.17:3008–3011
+(design 791–809,2869–2872); spec 1286–1293. Class (iii).
 DC: INTENTIONAL; E.proposal_mem instance with admitted target b itself. -/
 private theorem proposal_mem_target_proposal : eraseFG proposalFG ∈ T params target 4 := by
   apply fgsa_retained_proposal_mem params source target target_base target_parent_mem
@@ -148,7 +153,7 @@ private theorem proposal_mem_target_proposal : eraseFG proposalFG ∈ T params t
     ⟨proposalFG, Or.inr ⟨by decide +kernel, rfl⟩, fixture_height target rfl proposalFG⟩
   all_goals rw [target_start]; exact block_genesis_preceq _
 
-/-- Blueprint 21:798–814; spec 1350–1360. Class (iii).
+/-- Blueprint 21 H.6:942–958 (design 798–814); spec 1350–1360. Class (iii).
 DC: INTENTIONAL; source candidates have a majority at both reads. -/
 private theorem fixture_eligibility (C : Block) (hm : C ∈ source.base.blocks) :
     es params source 4 C = true ∧ et params target 4 C = true := by
@@ -162,7 +167,8 @@ private theorem fixture_eligibility (C : Block) (hm : C ∈ source.base.blocks) 
   rw [fgsa_eligible_eq, fgsa_eligible_eq]
   simp only [majority.1, majority.2, decide_true, Bool.or_true, Bool.true_or, and_self]
 
-/-- Blueprint 21:798–809, 2832–2845; spec 1286–1293,1330–1360. Class (iii).
+/-- Blueprint 21 H.6:942–953, H.17:2971–2984
+(design 798–809,2832–2845); spec 1286–1293,1330–1360. Class (iii).
 DC: INTENTIONAL; a W.persists instance uses path S3 and eligibility. -/
 private theorem persists_instance :
     SuffixPersists (eraseFG cutFG) (eraseFG parentFG) (S params source) (T params target 4)
@@ -178,7 +184,7 @@ private theorem persists_instance :
     have he := fixture_eligibility C (List.mem_filter.mp hm).1
     exact he.1.trans he.2.symm
 
-/-- Blueprint 21:798–814; spec 1286–1293,1330–1360. Class (iii).
+/-- Blueprint 21 H.6:942–958 (design 798–814); spec 1286–1293,1330–1360. Class (iii).
 DC: INTENTIONAL; the persistence antecedent holds for a real selected edge. -/
 private theorem selected_edge :
     Block.Prec (eraseFG cutFG) (eraseFG parentFG) ∧
@@ -212,13 +218,13 @@ private theorem selected_edge :
   rw [hchildren]
   rfl
 
-/-- Blueprint 21:798–814; spec 1286–1293,1330–1360. Class (iii).
+/-- Blueprint 21 H.6:942–958 (design 798–814); spec 1286–1293,1330–1360. Class (iii).
 DC: INTENTIONAL; apply W.persists on Kc < A, rather than an empty interval. -/
 private theorem persisted_selected_child :
     eraseFG parentFG ∈ T params target 4 ∧ et params target 4 (eraseFG parentFG) = true :=
   persists_instance _ _ (block_preceq_refl _) selected_edge.1 selected_edge.2 (block_preceq_refl _)
 
-/-- Blueprint 21:798–814; spec 1286–1293. Class (iii).
+/-- Blueprint 21 H.6:942–958 (design 798–814); spec 1286–1293. Class (iii).
 DC: INTENTIONAL; an old child exists at A in the actual target domain. -/
 private theorem old_endpoint :
     (eraseFG oldFG).parent? = some (eraseFG parentFG) ∧ (eraseFG oldFG).slot < 4 ∧
@@ -231,7 +237,8 @@ private theorem old_endpoint :
   rw [fixture_root target rfl rfl]
   exact KitFG.genesis_preceq _
 
-/-- Blueprint 21:783–795, 2818–2825; spec 1086–1098. Class (iii).
+/-- Blueprint 21 H.6:927–939, H.17:2957–2964
+(design 783–795,2818–2825); spec 1373–1385. Class (iii).
 DC: INTENTIONAL; the actual source start differs from its FG root. -/
 private theorem source_start_above_root :
     RetainedWalk.ap params source ≠ RetainedWalk.z params source := by

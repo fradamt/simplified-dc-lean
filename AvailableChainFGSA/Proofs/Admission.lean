@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSA.Proofs.Reconcile
+public import AvailableChainFGSA.Proofs.WindowStore
 
 @[expose] public section
 
@@ -216,13 +217,13 @@ theorem accepted_base_facts (p : Params) (st : State p.n) (h : Inv0 p st) {s : S
 theorem fg_on_block_accepts (p : Params) (st : State p.n) (s : Slot)
     (b : Block) (P : FGBlock (Fin p.n)) (rows : List (RowWire p.n))
     (hP : parentFG st b = some P) (hacc : blockAccepted p st s b P rows = true) :
-    on_block p.E p.cfg st.fg (fgBlock P b rows) =
-      update_finality p.E p.cfg { st.fg with TF := insert (fgBlock P b rows) st.fg.TF }
+    Window.on_block p p.K_W st.fg (fgBlock P b rows) =
+      Window.update_finality p p.K_W { st.fg with TF := insert (fgBlock P b rows) st.fg.TF }
         (fgBlock P b rows) := by
   obtain ⟨hPT, hPe⟩ := pickPair_some_spec _ _ hP
   simp only [decide_eq_true_eq] at hPe
   obtain ⟨hg, -, hfr, hF, hps, -⟩ := blockAccepted_facts hacc
-  apply KitFG.on_block_of_accepted
+  apply Window.window_on_block_of_accepted
   simp only [not_or, Bool.not_eq_false, not_le]
   refine ⟨fgBlock_notMem st P b rows hg hPe (blockAccepted_rowsOk hacc) hfr, fun hn => hn hPT,
     hF, ?_⟩
@@ -357,7 +358,7 @@ theorem admitBlock_accepted_eq (p : Params) (st : State p.n) (s : Slot)
     let st1 : State p.n := { st with
       base := GridCO.admitProposal p.toParams.engine st.base (baseProposal s b raw support) b
         (raw.map baseHead)
-      fg := on_block p.E p.cfg st.fg (fgBlock P b rows)
+      fg := Window.on_block p p.K_W st.fg (fgBlock P b rows)
       proposals := st.proposals ++ [⟨.proposer s, .proposal b raw support rows⟩] }
     let st2 := if st1.fg.F = st.fg.F then st1 else reconcile st1
     ∃ pool, admitBlock p st s b raw support rows = { st2 with rowPool := pool } ∧
@@ -455,7 +456,7 @@ theorem actView_admitBlock_sameF (p : Params) (st : State p.n) (h : CStoreInv p 
     have hac : activeCompatible { st with
         base := GridCO.admitProposal p.toParams.engine st.base (baseProposal s b raw support) b
           (raw.map baseHead)
-        fg := on_block p.E p.cfg st.fg (fgBlock P b rows)
+        fg := Window.on_block p p.K_W st.fg (fgBlock P b rows)
         proposals := st.proposals ++ [⟨.proposer s, .proposal b raw support rows⟩] } =
         activeCompatible st := by
       funext c
@@ -504,8 +505,8 @@ theorem actView_admitBlock_movedF (p : Params) (st : State p.n) (h : CStoreInv p
     rw [ite_eq_left hc] at hF
     exact absurd hc hF
   · next hc =>
-    have hmono : FGBlock.Preceq st.fg.F (on_block p.E p.cfg st.fg (fgBlock P b rows)).F :=
-      KitFG.on_block_F_mono p.E p.cfg st.fg (fgBlock P b rows)
+    have hmono : FGBlock.Preceq st.fg.F (Window.on_block p p.K_W st.fg (fgBlock P b rows)).F :=
+      Window.window_on_block_F_mono p p.K_W st.fg (fgBlock P b rows)
     rw [reconcile_fg, hV]
     rw [reconcile_eq]
     unfold actView
@@ -514,7 +515,8 @@ theorem actView_admitBlock_movedF (p : Params) (st : State p.n) (h : CStoreInv p
     congr 2
     apply List.filter_congr
     intro c _
-    cases hok : Block.compatible c (eraseFG (on_block p.E p.cfg st.fg (fgBlock P b rows)).F) with
+    cases hok : Block.compatible c
+        (eraseFG (Window.on_block p p.K_W st.fg (fgBlock P b rows)).F) with
     | false => simp
     | true =>
         have hc0 : Block.compatible c (eraseFG st.fg.F) = true := by
@@ -581,9 +583,9 @@ theorem admitBlock_sufficient (p : Params) (st : State p.n) (h : CStoreInv p st)
   refine ⟨?_, P, hP, ?_⟩ <;> rw [hproc, heq] <;> dsimp only <;> split
   · rw [hbl]; exact List.mem_append_right _ (List.mem_singleton_self b)
   · rw [(reconcile_frame _).2.2.2.1, hbl]; exact List.mem_append_right _ (List.mem_singleton_self b)
-  · rw [fg_on_block_accepts p st s b P rows hP hacc, KitFG.update_finality_TF]
+  · rw [fg_on_block_accepts p st s b P rows hP hacc, Window.window_update_finality_TF]
     exact Finset.mem_insert_self _ _
-  · rw [reconcile_fg, fg_on_block_accepts p st s b P rows hP hacc, KitFG.update_finality_TF]
+  · rw [reconcile_fg, fg_on_block_accepts p st s b P rows hP hacc, Window.window_update_finality_TF]
     exact Finset.mem_insert_self _ _
 
 /-- [bp bp.receiptCoverage.v1 §10.1; K8; DQ2; G10 m2] `admitBlock_sufficient` with

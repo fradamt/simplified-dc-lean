@@ -10,7 +10,7 @@ open AvailableChain.SimplexFG
 open Gen.Pure
 open RetainedWalk
 
-/-- Blueprint 21:798–809, 2832–2845; spec 1286–1293.
+/-- Blueprint 21 H.6:942–953, H.17:2971–2984 (design 798–809,2832–2845); spec 1286–1293.
 Class (iii). DC: INTENTIONAL; bridge the two FJ domain interfaces through
 heightView_bridge, without reducing the active height view. -/
 theorem fgsa_domainR_eq_storeFrameView (p : Params) (st : State p.n)
@@ -21,7 +21,7 @@ theorem fgsa_domainR_eq_storeFrameView (p : Params) (st : State p.n)
   rw [KitFG.storeFrameView_def, controls_eq,
     KitFG.storeControls_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
 
-/-- Blueprint 21:798–809, 2832–2845; spec 1286–1293.
+/-- Blueprint 21 H.6:942–953, H.17:2971–2984 (design 798–809,2832–2845); spec 1286–1293.
 Class (iii). DC: INTENTIONAL; S3 with a witness inside the target view.
 The base premise is supplied by CStoreInv.baseTree. -/
 theorem fgsa_walk_domain_of_witness_view (p : Params) (st : State p.n)
@@ -36,7 +36,7 @@ theorem fgsa_walk_domain_of_witness_view (p : Params) (st : State p.n)
     (KitFG.mem_filteredFromView (heightView p) (controls p st) Vw C).mpr
       ⟨hC, hF, hZ, W, hW, hCW, hlo⟩, rfl⟩⟩
 
-/-- Blueprint 21:783–809, 2832–2845; spec 616–633, 1286–1293.
+/-- Blueprint 21 H.6:927–953, H.17:2971–2984 (design 783–809,2832–2845); spec 616–633, 1286–1293.
 Class (iii). DC: INTENTIONAL; FG5b FJ supplies the source floor at Z. -/
 private theorem persist_F_Z (p : Params) (st : State p.n) (h : CStoreInv p st) :
     FGBlock.Preceq st.fg.F (controls p st).Z := by
@@ -45,7 +45,7 @@ private theorem persist_F_Z (p : Params) (st : State p.n) (h : CStoreInv p st) :
   · exact h.fg.FJ
   · exact KitFG.preceq_refl _
 
-/-- Blueprint 21:783–809, 2847–2867; spec 1286–1293, 1520–1523.
+/-- Blueprint 21 H.6:927–953, H.17:2986–3006 (design 783–809,2847–2867); spec 1286–1293, 1520–1523.
 Class (iii). DC: INTENTIONAL; named hA supplier, review F3 route (ii).
 Source F/Z and target F/liveRoot extend through the retained cut to A. -/
 theorem fgsa_score_geometry_of_retained_cuts (p : Params) (src dst : State p.n)
@@ -57,22 +57,23 @@ theorem fgsa_score_geometry_of_retained_cuts (p : Params) (src dst : State p.n)
     block_preceq_trans (F_preceq_liveRoot p dst ht)
       (block_preceq_trans h.target_cut h.cut_parent)⟩
 
-/-- Blueprint 21:798–809, 2869–2872; spec 1286–1293.
+/-- Blueprint 21 H.6:942–953, H.17:3008–3011 (design 798–809,2869–2872); spec 1286–1293.
 Class (iii). DC: INTENTIONAL; immutable erased ancestry lifts to FG ancestry. -/
 private theorem persist_lift {n : Nat} {A B : FGBlock (Fin n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
   preceq_of_eraseFG_preceq (Vw := {A, B}) (KitFG.viewRootInj_all _)
     ⟨A, by simp, KitFG.preceq_refl _⟩ ⟨B, by simp, KitFG.preceq_refl _⟩ h
 
-/-- Blueprint 21:798–809, 2869–2872; spec 1286–1293.
+/-- Blueprint 21 H.6:942–953, H.17:3008–3011 (design 798–809,2869–2872); spec 1286–1293.
 Class (iii). DC: INTENTIONAL; every block extends its parent. -/
 private theorem persist_parent (b : Block) : Block.Preceq b.parent b := by
   cases b with
   | genesis => exact block_preceq_refl _
   | node P s r => exact Bool.or_eq_true_iff.mpr (Or.inr (block_preceq_refl _))
 
-/-- Blueprint 21 H.6:791–809, Q:1385–1399,2107–2117, J:1937–1979,
-H.17:2869–2872; spec 1286–1293. Class (iii). DC: INTENTIONAL;
+/-- Blueprint 21 H.6:935–953, HG.1:1518–1532, HG.8:2249–2259, HG.8:2079–2121, H.17:3008–3011
+(design 791–809,1385–1399,2107–2117,1937–1979,2869–2872);
+spec 1286–1293. Class (iii). DC: INTENTIONAL;
 D2-1 permits source A or admitted target b as the height witness. Receipt
 and closure put the path and b in the same duty view; S3 then filters it. -/
 theorem fgsa_retained_path_mem (p : Params) (src dst : State p.n)
@@ -110,7 +111,7 @@ theorem fgsa_retained_path_mem (p : Params) (src dst : State p.n)
     (persist_lift (heA ▸ block_preceq_trans hfloor hstart))
     (persist_lift (heA ▸ block_preceq_trans (fgsa_Z_preceq_liveRoot p dst) hstart)) hAB hlo
 
-/-- Blueprint 21 H.6:791–809, H.17:2869–2872; spec 1286–1293.
+/-- Blueprint 21 H.6:935–953, H.17:3008–3011 (design 791–809,2869–2872); spec 1286–1293.
 Class (iii). DC: INTENTIONAL; exact E.proposal_mem after receipt, with
 source A or admitted b as the witness. No source storage of new b is needed. -/
 theorem fgsa_retained_proposal_mem (p : Params) (src dst : State p.n)
@@ -125,7 +126,7 @@ theorem fgsa_retained_proposal_mem (p : Params) (src dst : State p.n)
   fgsa_retained_path_mem p src dst hbase hclosed hfloor s b b hadm hslot
     (block_preceq_trans hparent (persist_parent b)) (block_preceq_refl _) hw
 
-/-- Blueprint 21:798–814, 2847–2867; spec 1330–1360.
+/-- Blueprint 21 H.6:942–958, H.17:2986–3006 (design 798–814,2847–2867); spec 1330–1360.
 Class (iii). DC: INTENTIONAL; store composition of S3 and full eligibility.
 Only selected children inside the retained interval are compared. -/
 theorem fgsa_retained_persists_of_path
@@ -137,50 +138,15 @@ theorem fgsa_retained_persists_of_path
       es p src s C = et p dst s C) :
     SuffixPersists Kc A (S p src) (T p dst s) (ss src s) (es p src s) (et p dst s) := by
   intro X C hK hX hstep hCA
-  have hchild : C ∈ S p src ∧ C.parent? = some X ∧ es p src s C = true := by
-    let children := (S p src).filter (fun B => B.parent? == some X && es p src s B)
-    let select : Option Block → Block → Option Block := fun best B =>
-      match best with
-      | none => some B
-      | some old =>
-        if ss src s old < ss src s B || (ss src s old == ss src s B && old.root < B.root)
-        then some B else best
-    have hm : ∀ B, children.foldl select none = some B → B ∈ children := by
-      apply List.foldlRecOn (motive := fun best => ∀ B, best = some B → B ∈ children)
-      · intro B hb
-        cases hb
-      · intro best ih B hB C he
-        cases best with
-        | none => exact (Option.some.inj he) ▸ hB
-        | some old =>
-          dsimp only [select] at he
-          split at he
-          · exact (Option.some.inj he) ▸ hB
-          · exact ih C he
-    change (match children.foldl select none with
-      | none => none
-      | some B => if children.any (fun D => D != B && ss src s D == ss src s B && D.root == B.root)
-          then none else some B) = some C at hstep
-    cases hb : children.foldl select none with
-    | none => rw [hb] at hstep; cases hstep
-    | some B =>
-      rw [hb] at hstep
-      change (if children.any (fun D => D != B && ss src s D == ss src s B && D.root == B.root)
-        then none else some B) = some C at hstep
-      split at hstep
-      · cases hstep
-      · cases Option.some.inj hstep
-        obtain ⟨ht, he⟩ := List.mem_filter.mp (hm C hb)
-        obtain ⟨hp, hel⟩ := Bool.and_eq_true_iff.mp he
-        exact ⟨ht, by simpa using hp, hel⟩
-  obtain ⟨hm, hp, he⟩ := hchild
+  obtain ⟨hm, hp, he⟩ := GridCO.ghostStep_child _ _ _ _ _ hstep
   have ht := hpath X C hK hX hp hCA
   exact ⟨ht, (hel X C hK hX hp hm ht).symm.trans he⟩
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- Blueprint 21 H.6:791–809, Q:1385–1399,2107–2117, J:1937–1979,
-H.17:2869–2872; spec 1276–1302. Class (iii). DC: INTENTIONAL; S8
+/-- Blueprint 21 H.6:935–953, HG.1:1518–1532, HG.8:2249–2259, HG.8:2079–2121, H.17:3008–3011
+(design 791–809,1385–1399,2107–2117,1937–1979,2869–2872);
+spec 1555–1581. Class (iii). DC: INTENTIONAL; S8
 composes the existing R6-aware trigger-to-tick receipt and S3. The chain
 uses fgsa_trigger_rowsValid and invalidForParent exclusion inside receipt. -/
 theorem fgsa_retained_proposal_mem_on_run
@@ -226,7 +192,7 @@ theorem fgsa_retained_proposal_mem_on_run
     (F_preceq_liveRoot p dst ht) s b ?_ hslot h.target_parent h.parent_height⟩
   simpa only [dst, clock_base_blocks] using hadm'
 
-/-- Blueprint 21 H.6:798–809, H.17:2832–2867; spec 1286–1293,1330–1360.
+/-- Blueprint 21 H.6:942–953, H.17:2971–3006 (design 798–809,2832–2867); spec 1286–1293,1330–1360.
 Class (iii). DC: INTENTIONAL; exact W.persists. Target receipt and its
 internal path witness give membership. Candidate-local G25 and the band
 adapter then preserve all three eligibility arms. -/
@@ -291,7 +257,7 @@ theorem fgsa_retained_path_persists_on_run
       ((fgsa_proposal_slot (c := c) _ (s + 1)).trans
         (fgsa_vote_slot (c := c) _ (s + 1)).symm)
 
-/-- Blueprint 21:798–814, 2847–2872; spec 1276–1302,1330–1360.
+/-- Blueprint 21 H.6:942–958, H.17:2986–3011 (design 798–814,2847–2872); spec 1555–1581,1330–1360.
 Class (iii). DC: INTENTIONAL; job-5 strict-path assembly. The landed Gen
 API takes atomic fields, so this constructs RetainedWalkRunGeometry and
 returns the endpoint fields already supplied by jobs 5a/5b for job 6. -/

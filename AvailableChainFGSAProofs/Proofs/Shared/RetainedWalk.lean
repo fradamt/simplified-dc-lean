@@ -94,26 +94,6 @@ structure RetainedEndpointGeometry (p : Params) (src dst : State p.n)
   no_future : ∀ C ∈ T p dst s, C.slot ≤ s
   child_slot : ∀ C ∈ T p dst s, C.parent? = some b → b.slot < C.slot
 
-/-- Blueprint 21:783–795, 2818–2825; spec 648–655, 1086–1098.
-Class (iii). DC: INTENTIONAL; DC has no FJ live-root selector.
-This public adapter repeats the local S1 proof with view-form membership. -/
-theorem fgsa_Z_preceq_liveRoot (p : Params) (st : State p.n) :
-    Block.Preceq (eraseFG (controls p st).Z) (liveRoot p st) := by
-  unfold liveRoot
-  dsimp only
-  rcases foldl_select_mem (fun (best b : Block) => best.depth < b.depth ||
-      (best.depth == b.depth && best.root < b.root)) _ _ with he | hm
-  · rw [he]
-    exact block_preceq_refl _
-  · obtain ⟨entry, -, hr⟩ := List.mem_filterMap.1 hm
-    split at hr
-    · next hc =>
-      obtain ⟨B, hB, he⟩ := of_decide_eq_true (Bool.and_eq_true_iff.mp hc).2
-      rw [← Option.some.inj hr, ← he]
-      exact eraseFG_preceq
-        ((KitFG.mem_filteredFromView (heightView p) (controls p st) st.fg.TF B).mp hB).2.2.1
-    · cases hr
-
 /-- Blueprint 21:728–740, 787–806, 2822–2845; spec 1063–1107.
 Class (iii). DC: INTENTIONAL; ProposalWalkTransportCore.lean:259.
 Every retained edge has membership and eligibility in the target view.
@@ -160,7 +140,7 @@ theorem fgsa_walk_domain_of_witness (p : Params) (st : State p.n)
   apply decide_eq_true
   refine ⟨C, ?_, rfl⟩
   rw [domainR_def, frameR_def,
-    KitFG.filteredFrom_of_bridge p.E p.cfg (heightView p) (fun _ => rfl)]
+    KitFG.filteredFrom_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
   exact (KitFG.mem_filteredFromView (heightView p) (controls p st) V C).2
     ⟨hC, hF, hZ, W, hW, hCW, hlo⟩
 

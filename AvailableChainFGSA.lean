@@ -49,6 +49,7 @@ public import AvailableChainFGSA.Model.WindowStore
 public import AvailableChainFGSA.Proofs.WindowStore
 public import AvailableChainFGSA.Proofs.WindowProvenance
 public import AvailableChainFGSA.Proofs.WindowHistory
+public import AvailableChainFGSA.Proofs.WindowLiveness
 public import AvailableChainFGSA.Proofs.WindowSelection
 public import AvailableChainFGSA.Proofs.WindowReaders
 public import AvailableChainFGSA.Proofs.WindowValidity
