@@ -48,7 +48,8 @@ theorem fgsa_pureAccountable (K W T₁ T₂ : FGBlock (Fin p.n)) (h₁ h₂ : Na
     (hK : FGFinalizedAt p K T₁ h₁) (hW : FGFinalizedAt p W T₂ h₂) :
     HasSlashableWeightBetween p.E (chainRows K) (chainRows W) ∨
       FGBlock.compatible T₁ T₂ = true :=
-  (KitFG.slashableWeight_or_finalized_compatible p.E p.cfg K W).imp id
+  (KitFG.slashableWeight_or_finalized_compatible_of_certificate
+    p.E (heightView p) (finalityView p) (fgCertificateLaws p) K W).imp id
     (fun h => hK.1 ▸ hW.1 ▸ h)
 
 /-- Same as DC PureFinalityAgreement (no run premise).
@@ -83,7 +84,8 @@ private theorem store_accountable (st st' : State p.n)
       FGBlock.compatible st.fg.F st'.fg.F = true := by
   obtain ⟨K, hK, hKF⟩ := hs.fg.Fcar
   obtain ⟨W, hW, hWF⟩ := hs'.fg.Fcar
-  rcases KitFG.slashableWeight_or_finalized_compatible p.E p.cfg K W with hev | hc
+  rcases KitFG.slashableWeight_or_finalized_compatible_of_certificate
+    p.E (heightView p) (finalityView p) (fgCertificateLaws p) K W with hev | hc
   · obtain ⟨S, hw, he⟩ := hev
     refine Or.inl ⟨S, hw, ?_⟩
     intro i hi
@@ -367,7 +369,8 @@ theorem fgsa_finalLock_ev [Fintype V]
     (hh : (derive p.E p.cfg K).h_F < (derive p.E p.cfg W).h) :
     FGBlock.Preceq (storeAt p c E rho e x).fg.F W ∨
     HasSlashableWeightBetween p.E (chainRows K) (chainRows W) :=
-  (KitFG.slashableWeight_or_finalized_preceq p.E p.cfg K W hh).symm.imp
+  (KitFG.slashableWeight_or_finalized_preceq_of_certificate
+    p.E (heightView p) (finalityView p) (fgCertificateLaws p) K W hh).symm.imp
     (fun h => hKF ▸ h) id
 
 /-- The former finalLock_ev count conclusion, now a separate attribution corollary. -/

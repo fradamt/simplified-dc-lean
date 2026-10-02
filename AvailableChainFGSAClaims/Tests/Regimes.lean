@@ -13,7 +13,7 @@ namespace AvailableChain.FGSA.Run.Tests.Regimes
 
 -- A concrete FG-SA run. The time-zero tick is required by tick_total.
 private abbrev smokeParams : Params :=
-  ⟨⟨1, 1, 2, 0, by decide, by decide, by decide, by decide⟩, 2, 0, by decide⟩
+  ⟨⟨1, 1, 2, 0, by decide, by decide, by decide, by decide⟩, 2, 0, by decide, 2, by decide⟩
 private abbrev smokeCodec : AppCodec Nat := ⟨id, some, fun _ => rfl⟩
 private abbrev smokeEnv : Generic.Env (Fin 1) := ⟨1, by decide, 0, le_rfl, fun _ _ => true⟩
 private abbrev smokeRun : V2.D.Run (Fin 1) (fgsa smokeParams smokeCodec) where

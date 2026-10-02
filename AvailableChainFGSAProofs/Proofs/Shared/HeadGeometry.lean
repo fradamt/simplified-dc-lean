@@ -39,7 +39,8 @@ theorem fgsa_headReachesLo (p : Params) (st : State p.n)
       exact of_decide_eq_true (List.mem_filter.mp hb).2
     · rintro ⟨B, hB, rfl⟩
       exact List.mem_filter.mpr ⟨(hi.baseTree _).mpr
-        ⟨B, hsub ((KitFG.mem_filteredFrom p.E p.cfg _ _ B).mp hB).1, rfl⟩,
+        ⟨B, hsub ((KitFG.mem_filteredFrom_of_bridge
+          p.E p.cfg (heightView p) (heightView_bridge p) _ _ B).mp hB).1, rfl⟩,
         decide_eq_true ⟨B, hB, rfl⟩⟩
   have hterminal := fgsa_headInTree_noEligibleChild p st hi X hsub hclosed raw support
   refine ⟨?_, ?_, ?_⟩
@@ -60,7 +61,8 @@ theorem fgsa_headReachesLo (p : Params) (st : State p.n)
     by_contra hn
     have hlow : hOf p.E p.cfg B < (controls p st).lo := Nat.lt_of_not_ge hn
     obtain ⟨hBX, hFB, hZB, W, hWX, hBW, hlo⟩ :=
-      (KitFG.mem_filteredFrom p.E p.cfg _ _ B).mp hB
+      (KitFG.mem_filteredFrom_of_bridge p.E p.cfg (heightView p) (heightView_bridge p) _ _ B).mp hB
+    change (heightView p B).h < (controls p st).lo at hlow
     have hne : B ≠ W := by intro h; subst W; simp only [Height] at *; omega
     obtain ⟨C, hp, hng, hCW⟩ := KitFG.child_toward hBW hne
     have hBC : FGBlock.Preceq B C := by
@@ -70,7 +72,8 @@ theorem fgsa_headReachesLo (p : Params) (st : State p.n)
         change P = B at hp
         subst P
         exact KitFG.preceq_parent_node _ _ _ _
-    have hC : C ∈ D := (KitFG.mem_filteredFrom p.E p.cfg _ _ C).mpr
+    have hC : C ∈ D := (KitFG.mem_filteredFrom_of_bridge
+      p.E p.cfg (heightView p) (heightView_bridge p) _ _ C).mpr
       ⟨hclosed W hWX C hCW, KitFG.preceq_trans hFB hBC,
         KitFG.preceq_trans hZB hBC, W, hWX, hCW, hlo⟩
     have hparent : (eraseFG C).parent? = some H := by
@@ -84,7 +87,7 @@ theorem fgsa_headReachesLo (p : Params) (st : State p.n)
       have hf : ∃ P ∈ st.fg.TF, eraseFG P = (eraseFG C).parent ∧
           hOf p.E p.cfg P < (controls p st).lo :=
         ⟨B, hsub hBX, by rw [eraseFG_parent, hp], hlow⟩
-      change (decide _ || _ || _) = true
+      rw [fgsa_eligible_eq]
       simp only [hf, decide_true, Bool.true_or]
     have ht := hterminal (eraseFG C) ((hmem _).mpr ⟨C, hC, rfl⟩) hparent
     rw [hel] at ht

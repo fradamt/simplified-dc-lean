@@ -225,13 +225,50 @@ gate_with_slot lake env lean --run scripts/CheckFGSAAxioms.lean "${TEST_ROOTS[@]
   Window.update_finality_J_eq \
   Window.update_finality_h_j_eq \
   Window.on_block_TF_eq \
-  Window.windowStoreInv_init \
-  Window.windowStoreInv_accept \
+  heightView_bridge \
+  heightView_eq_simplex \
+  finalityView_eq_simplex \
+  finalityView_def \
+  fgCertificateLaws \
+  fgJustificationLaws \
+  fgStoreInvariant_on_block \
+  fgStoreSafety \
+  fgInputs_headFields \
+  emitted_finality_pair_of_headFields \
+  Window.windowStoreSafety \
+  Window.windowStoreInvariant_init \
+  Window.windowStoreInvariant_accept \
   Window.window_on_block_of_refused \
   Window.window_on_block_of_accepted \
   Window.window_on_block_F_mono \
-  Window.windowStoreInv_on_block \
-  Window.window_on_block_TF_subset
+  Window.windowStoreInvariant_on_block \
+  Window.window_on_block_TF_subset \
+  Window.projectHeight_def \
+  Window.parentState_def \
+  Window.headFields_def \
+  heightView_def \
+  controls_eq \
+  fullTree_eq \
+  fgsa_eligible_eq \
+  headVote_eq \
+  Window.window_hOf_eq \
+  Window.window_frontier_eq \
+  Window.window_lexMax_eq \
+  Window.window_filteredFrom_eq \
+  Window.window_storeControls_eq \
+  Window.window_storeFrame_eq \
+  Window.window_fjControls_eq \
+  Window.window_fjFrame_eq \
+  Window.headFields_eq_certificateHeadFields \
+  Window.rowValidW_iff \
+  Window.rowValidW_decodes \
+  Window.rowValidW_slot_irrel \
+  Window.rowValidW_fold \
+  Window.heightMatch_progress_first \
+  Window.window_update_finality_TF \
+  Window.window_update_finality_h_max \
+  Window.window_update_finality_pair \
+  Window.window_update_finality_F_cases
 echo "== lease instances"
 gate_with_slot lake env lean --run scripts/CheckFGSALease.lean
 # Old-read audit (fg5-rulings STOP 6, ruling 7): no old SimplexFG store fold, old

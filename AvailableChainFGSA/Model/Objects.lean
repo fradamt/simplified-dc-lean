@@ -10,12 +10,16 @@ namespace AvailableChain.FGSA
 open AvailableChain.Generic AvailableChain.SimplexFG
 
 /-- [spec 265–335] FG-SA parameters: the SA parameters (`Δ`, `n`, `k`, `η`), the
-round length `R ≥ 2` and the timeout delay `δ_t ≥ 0`
+round length `R ≥ 2`, window capacity `K_W ≥ 2`, and timeout delay `δ_t ≥ 0`
 (`δ_t = 0` is allowed; no statement may need `δ_t > 0`). -/
 structure Params extends SA.Params where
   R : Nat
   δt : Nat
   RLarge : 2 ≤ R
+  /-- The protocol window parameter (spec: `K_W ≥ 2`, user decision 2026-10-01).
+  The default is not a fixed protocol value. -/
+  K_W : Nat := 2
+  kWLarge : 2 ≤ K_W := by decide
 
 namespace Params
 /-- [spec 154–158] Unit weights on the fixed identities `V = Fin n`. -/

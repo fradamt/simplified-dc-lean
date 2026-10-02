@@ -1,9 +1,11 @@
 module
+public import AvailableChainFGSA.Proofs.EmissionFields
+public import AvailableChainKitFG.ProvenanceCore
+public import AvailableChainKitFG.CausalCapCore
 public import AvailableChainFGSAProofs.Proofs.Foundations.Carrier
 public import AvailableChainFGSARun.Proofs.Reachable
 public import AvailableChainGeneric.Statements.V2.Duty.Counts
 public import AvailableChainKitFG.CausalCap
-public import AvailableChainKitFG.Provenance
 public import AvailableChainGeneric.Proofs.V2.Duty.Reads
 
 public section
@@ -121,7 +123,9 @@ theorem fgsa_finalityCap [Fintype V]
       RowWire.toRow? a = some u ∧ u ∈ chainRows W ∧
       u.finality_pair = some ⟨(derive p.E p.cfg W).h_F, (derive p.E p.cfg W).F.root⟩ := by
   obtain ⟨u, hu, _, ho, hf⟩ :=
-    KitFG.finalityCap_row p.E p.cfg (capFaulty p c rho) (cap_weight p c rho hL hQ)
+    KitFG.finalityCap_row_of_certificate
+      p.E (heightView p) (finalityView p) (fgCertificateLaws p)
+      (capFaulty p c rho) (cap_weight p c rho hL hQ)
       y W (CapOrigin p c E rho i x) (cap_origin_of_held p c E rho hL hv i x W hW) hy hF
   obtain ⟨z, r, a, hb, hs, hd, _⟩ := ho
   exact ⟨z, r, a, u, hb, hs, hd, hu, hf⟩
@@ -198,6 +202,7 @@ private theorem cap_finality_head {j r : Nat} {z : V} {a : RowWire p.n}
     hdecode.symm.trans hd
   obtain ⟨h, T, timeout, _, hu, _, _, _⟩ :=
     KitFG.createRowOnce_released p.E p.cfg Λ seat (fgInputs p st).1 (fgInputs p st).2 hue
+  have hfp := hf
   have hfinal : finality_pair Λ.toRecord (fgInputs p st).2 = some fp := by
     rw [hu] at hf
     exact (Option.filter_eq_some_iff.mp hf).1
@@ -216,13 +221,9 @@ private theorem cap_finality_head {j r : Nat} {z : V} {a : RowWire p.n}
       rw [ite_eq_right (fun h => Nat.lt_irrefl 0 h.1)] at hfinal
       cases hfinal
   | some H =>
-      have hh : (fgInputs p st).2 = HeadFields.ofBlock p.E p.cfg H := by
-        change (match fgBlockOf st (fgHead p st) with
-          | some H => HeadFields.ofBlock p.E p.cfg H | none => ⟨0, genesisRoot, 0⟩) = _
-        rw [hhead]
-      rw [hh] at hfinal
-      have hp := KitFG.provenance_finalityRow p.E p.cfg Λ.toRecord seat
-        (fgInputs p st).1 H fp hfinal
+      have hemit := emitted_finality_pair_of_headFields p st Λ seat u fp H hhead hue hfp
+      have hp := KitFG.provenance_finalityRow_of_heightLaws p.E
+        (heightView p) (finalityView p) (fgCertificateLaws p).height Λ.toRecord H fp hemit
       have hmem := ((fgBlockOf_spec p st hst (fgHead p st) H).mp hhead).1
       change H ∈ (FGSA.clock p _ t).fg.TF at hmem
       rw [FGSA.clock_fg] at hmem
@@ -244,7 +245,9 @@ theorem fgsa_finalityLag [Fintype V]
     (derive p.E p.cfg W).h_F < y := by
   by_contra hn
   obtain ⟨u, _, _, ho, hf⟩ :=
-    KitFG.finalityCap_row p.E p.cfg (capFaulty p c rho) (cap_weight p c rho hL hQ)
+    KitFG.finalityCap_row_of_certificate
+      p.E (heightView p) (finalityView p) (fgCertificateLaws p)
+      (capFaulty p c rho) (cap_weight p c rho hL hQ)
       y W (CapOrigin p c E rho i x) (cap_origin_of_held p c E rho hL hv i x W hW)
       hy (Nat.le_of_not_gt hn)
   obtain ⟨z, r, a, hb, hs, hd, k, o, s, hki, hk, hrs⟩ := ho

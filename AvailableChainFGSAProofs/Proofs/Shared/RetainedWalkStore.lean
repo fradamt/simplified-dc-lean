@@ -1,6 +1,7 @@
 module
+public import AvailableChainKitFG.FrameGeometry
 public import AvailableChainFGSA.Model.Frame
-public import AvailableChainKitFG.Correspondence
+public import AvailableChainFGSA.Proofs.FrameViews
 public import AvailableChainGeneric.Proofs.Pure.Walk
 public import AvailableChainGeneric.Proofs.Pure.Fold
 
@@ -44,7 +45,8 @@ private theorem retained_store_root_live (p : Params) (st : State p.n) :
     · next hc =>
       obtain ⟨B, hB, he⟩ := of_decide_eq_true (Bool.and_eq_true_iff.mp hc).2
       rw [← Option.some.inj hr, ← he]
-      exact lift ((KitFG.mem_filteredFrom p.E p.cfg _ _ B).mp hB).2.2.1
+      exact lift ((KitFG.mem_filteredFrom_of_bridge
+        p.E p.cfg (heightView p) (heightView_bridge p) _ _ B).mp hB).2.2.1
     · cases hr
 
 /-- Blueprint 21:783–795, 878–883, 1401–1427, 1998–2019, 2119–2148,
@@ -141,10 +143,7 @@ theorem fgsa_eligible_eq_of_band_score
       GridCO.goldfishScore dst.base.blocks raw' sup' C)
     (hslot : src.slot p = dst.slot p) :
     eligible p src raw sup C = eligible p dst raw' sup' C := by
-  change (decide _ || decide (GridCO.voterCount raw <
-      2 * GridCO.goldfishScore src.base.blocks raw sup C) || (C.slot == src.slot p)) =
-    (decide _ || decide (GridCO.voterCount raw' <
-      2 * GridCO.goldfishScore dst.base.blocks raw' sup' C) || (C.slot == dst.slot p))
+  rw [fgsa_eligible_eq, fgsa_eligible_eq]
   simp only [propext hband, hcount, hscore, hslot]
 
 /-- Blueprint 21:1422–1425, 1937–1939, 2112–2116, 2836–2845;
