@@ -832,3 +832,8 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.receipt_cap
 #print axioms AvailableChain.FGSA.Run.receipt_receiver_finalityLag
 #print axioms AvailableChain.FGSA.Run.receipt_jPath_of_cached_anchor
+#print axioms AvailableChain.FGSA.Run.receipt_finCmp_of_block
+#print axioms AvailableChain.FGSA.Run.receipt_ready_of_delivery
+#print axioms AvailableChain.FGSA.Run.receipt_delivery
+#print axioms AvailableChain.FGSA.Run.receipt_jPath
+#print axioms AvailableChain.FGSA.Run.receipt_acceptPrem_W
