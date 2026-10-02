@@ -178,31 +178,44 @@ export GATE_NO_BUILD=1
 # A caller's NEG/SKIP_CONE must not weaken the chosen tier or build checks.
 export NEG=1 SKIP_CONE=0
 if [ "$tier" = merge ]; then NEG=0; fi
-checks=(check-build check-fgsa check-fgsa-run)
-# Shared slots cap controls and heavy steps across all three scripts.
-# Fail-fast: the first failing check stops the other two (their own process groups).
-run_check() { step "$1" bash "scripts/$1.sh"; }
-if ! gate_parallel_failfast run_check "$logs" "${checks[@]}"; then
-  summary "$GATE_FF_FAILED"
-  echo "fail-fast: $GATE_FF_FAILED failed; stopped:${GATE_FF_KILLED:- none}; later steps skipped"
-  finish; exit 1
+# Every check step by name. Heavy steps share the gate slots (GATE_SLOTS cap).
+run_check() {
+  case "$1" in
+    check-build|check-fgsa|check-fgsa-run) step "$1" bash "scripts/$1.sh" ;;
+    catalog-lock) step "$1" gate_with_slot lake env lean --run scripts/CatalogLock.lean --check ;;
+    v2-manifest) step "$1" gate_with_slot lake env lean --run scripts/V2Manifest.lean --check ;;
+    gen-manifest) step "$1" gate_with_slot lake env lean --run scripts/V2Manifest.lean --scope gen --check ;;
+    fgsa-manifest) step "$1" gate_with_slot bash scripts/check-fgsa-manifest.sh ;;
+    fgsa-claims) step "$1" gate_with_slot bash scripts/check-fgsa-claims.sh ;;
+    *) echo "unknown gate step: $1" >&2; return 2 ;;
+  esac
+}
+# Fail-fast group: the first failing step stops the others (their own process groups).
+run_group() {
+  if ! gate_parallel_failfast run_check "$logs" "$@"; then
+    summary "$GATE_FF_FAILED"
+    echo "fail-fast: $GATE_FF_FAILED failed; stopped:${GATE_FF_KILLED:- none}; later steps skipped"
+    finish; exit 1
+  fi
+  local name
+  for name in "$@"; do summary "$name"; done
+}
+tail_steps=(catalog-lock v2-manifest gen-manifest fgsa-manifest fgsa-claims)
+if [ "$tier" = merge ]; then
+  # Merge tier (NEG=0): no step writes the real tree, so the tail joins the
+  # parallel group. The longest step goes first. Full tier: the controls write
+  # the real tree (check-fgsa NegBuildC23, then lake build), and fgsa-claims
+  # copies the built roots, so the tail stays sequential there.
+  run_group fgsa-claims fgsa-manifest check-build check-fgsa check-fgsa-run \
+    catalog-lock v2-manifest gen-manifest
+else
+  run_group check-build check-fgsa check-fgsa-run
+  for name in "${tail_steps[@]}"; do
+    run_check "$name"
+    summary "$name"
+    stop_if_failed
+  done
 fi
-for name in "${checks[@]}"; do summary "$name"; done
-step catalog-lock gate_with_slot lake env lean --run scripts/CatalogLock.lean --check
-summary catalog-lock
-stop_if_failed
-step v2-manifest gate_with_slot lake env lean --run scripts/V2Manifest.lean --check
-summary v2-manifest
-stop_if_failed
-step gen-manifest gate_with_slot lake env lean --run scripts/V2Manifest.lean --scope gen --check
-summary gen-manifest
-stop_if_failed
-step fgsa-manifest gate_with_slot bash scripts/check-fgsa-manifest.sh
-summary fgsa-manifest
-stop_if_failed
-step fgsa-claims gate_with_slot bash scripts/check-fgsa-claims.sh
-summary fgsa-claims
-stop_if_failed
 audit() {
   local path=$1 out=$2 rc=0 count
   gate_with_slot lake env lean "$path" > "$out" 2>&1 || rc=$?
