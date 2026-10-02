@@ -117,7 +117,7 @@ def TWalk : Prop := ∀ i x s raw support Q seats m,
     (∀ a ∈ seats, ∀ o ∈ support, GridCO.headSeat? o = some a →
       ∀ H, GridCO.headTarget? o = some H → ¬ Block.Preceq B H) →
     B.slot = st.slot p ∨ ∃ A ∈ st.fg.TF,
-      eraseFG A = B.parent ∧ hOf p.E p.cfg A < (FGSA.controls p st).lo)
+      eraseFG A = B.parent ∧ (heightView p A).h < (FGSA.controls p st).lo)
 
 /-- The three composition services (01 §1.2), P3 A.7/A.10 D10.
 Consumer: kernel. H3 and H4 remain projections of HealAC, not fields here. -/
@@ -185,7 +185,7 @@ def KernelConclusion (r : Nat) : Prop := ∀ A,
   ∃ Afg : FGBlock (Fin p.n), eraseFG Afg = A ∧
     (∀ x ∈ rho.honest, Afg ∈ (storeAt p c E rho rho.events.length x).fg.TF) ∧
     ∃ U : FGBlock (Fin p.n), FGBlock.Preceq Afg U ∧ Afg ≠ U ∧
-      hOf p.E p.cfg U = hOf p.E p.cfg Afg + 1 ∧
+      (heightView p U).h = (heightView p Afg).h + 1 ∧
       ∀ x ∈ rho.honest, AcceptsFinalBefore p c E rho x U (↑(r + 2) * P p + 9 * p.Δ)
 /-- Kernel point (00:1119–1134; 22 §1), P3 A.10 D12. Consumer: KernelPrem. -/
 structure KernelPt where
@@ -260,7 +260,7 @@ def AttemptPhaseAt (i m : Nat) (kind : PhaseKind) : Prop :=
 Consumer: the served flag of AttemptValid. -/
 def ServedFrontier (m : Nat) (t : Time) : Prop := ∃ s Q Qfg,
   HonestProposal E rho (fgsaInterface p c) s Q ∧ eraseFG Qfg = Q ∧
-  hOf p.E p.cfg Qfg = m ∧ SA.gateTime p.toParams s ≤ t ∧ ExactService p c E rho s Q
+  (heightView p Qfg).h = m ∧ SA.gateTime p.toParams s ≤ t ∧ ExactService p c E rho s Q
 /-- Attempt validity (21 H.10:1263–1279; H.11:1572–1595; HG.1:1333–1350),
 P3 A.10 D44. Consumers: progress-attempt contract and HealingAttemptPrem.
 start is the event index; its resulting prefix is start+1. The inclusive-cut
@@ -315,7 +315,7 @@ def SettledPhaseFrame (st : State p.n) (m : Nat)
          (finalityView p K).h_F < R.lo) ∧
        ((contested = false ∧ R.j + 2 ≤ m) ∨
          (contested = true ∧ R.j + 1 = m))) ∧
-  (∃ W ∈ st.fg.TF, hOf p.E p.cfg W = m ∧ FGBlock.Preceq R.Z W)
+  (∃ W ∈ st.fg.TF, (heightView p W).h = m ∧ FGBlock.Preceq R.Z W)
 
 /-- Definitional equation for `SettledPhaseFrame`.
 Settled-frame alternatives (21 H.7:1012–1045; P3 A.4:7495–7500).
@@ -338,7 +338,7 @@ theorem SettledPhaseFrame_def (st : State p.n) (m : Nat)
          (finalityView p K).h_F < R.lo) ∧
        ((contested = false ∧ R.j + 2 ≤ m) ∨
          (contested = true ∧ R.j + 1 = m))) ∧
-  (∃ W ∈ st.fg.TF, hOf p.E p.cfg W = m ∧ FGBlock.Preceq R.Z W)) := by rfl
+  (∃ W ∈ st.fg.TF, (heightView p W).h = m ∧ FGBlock.Preceq R.Z W)) := by rfl
 
 /-- Pre-reset phase contract (21 H.3:581–618, H.7–H.8:918–1045,
 HG.1:1358–1363; 00:938–948,980–985; P3 A.4:7487–7511).
@@ -364,7 +364,7 @@ def RPhase : Prop :=
   (∀ i ev x W m, rho.events[i]? = some ev → x ∈ rho.honest →
     E.t_GST ≤ ev.time → 2 ≤ m → frontierAtIdx p c E rho (i + 1) = m →
     W ∉ (storeAt p c E rho i x).fg.TF →
-    W ∈ (storeAt p c E rho (i + 1) x).fg.TF → hOf p.E p.cfg W = m →
+    W ∈ (storeAt p c E rho (i + 1) x).fg.TF → (heightView p W).h = m →
     (ev.time + p.Δ ≤ rho.horizon → ∀ y ∈ rho.honest,
       ∃ j, i < j ∧ j ≤ rho.events.length ∧
         (∀ l e, l < j → rho.events[l]? = some e → e.time < ev.time + p.Δ) ∧
@@ -392,7 +392,7 @@ def RPhase : Prop :=
   (∀ i x m (X : Finset (FGBlock (Fin p.n))) B, x ∈ rho.honest →
     i ≤ rho.events.length → 2 ≤ m → (R_at p c E rho i x).H = m →
     X ⊆ (storeAt p c E rho i x).fg.TF → B ∈ X →
-    (∀ A, FGBlock.Preceq A B → A ∈ X) → hOf p.E p.cfg B = m →
+    (∀ A, FGBlock.Preceq A B → A ∈ X) → (heightView p B).h = m →
     FGBlock.Preceq (R_at p c E rho i x).Z B ∧ B ∈ D_at p c E rho i x X)
 
 /-- Definitional equation for `RPhase`.
@@ -421,7 +421,7 @@ theorem RPhase_def :
   (∀ i ev x W m, rho.events[i]? = some ev → x ∈ rho.honest →
     E.t_GST ≤ ev.time → 2 ≤ m → frontierAtIdx p c E rho (i + 1) = m →
     W ∉ (storeAt p c E rho i x).fg.TF →
-    W ∈ (storeAt p c E rho (i + 1) x).fg.TF → hOf p.E p.cfg W = m →
+    W ∈ (storeAt p c E rho (i + 1) x).fg.TF → (heightView p W).h = m →
     (ev.time + p.Δ ≤ rho.horizon → ∀ y ∈ rho.honest,
       ∃ j, i < j ∧ j ≤ rho.events.length ∧
         (∀ l e, l < j → rho.events[l]? = some e → e.time < ev.time + p.Δ) ∧
@@ -449,7 +449,7 @@ theorem RPhase_def :
   (∀ i x m (X : Finset (FGBlock (Fin p.n))) B, x ∈ rho.honest →
     i ≤ rho.events.length → 2 ≤ m → (R_at p c E rho i x).H = m →
     X ⊆ (storeAt p c E rho i x).fg.TF → B ∈ X →
-    (∀ A, FGBlock.Preceq A B → A ∈ X) → hOf p.E p.cfg B = m →
+    (∀ A, FGBlock.Preceq A B → A ∈ X) → (heightView p B).h = m →
     FGBlock.Preceq (R_at p c E rho i x).Z B ∧ B ∈ D_at p c E rho i x X)) := by rfl
 
 /-- DC: INTENTIONAL FG healing source adapters; action provenance stays explicit. -/

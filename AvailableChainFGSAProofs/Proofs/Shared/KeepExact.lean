@@ -30,6 +30,8 @@ theorem kept_or_conflict (p : Params) {In V : Type} [DecidableEq V]
     Kept p c E rho i x X C ∨
       (∃ C' s, SourceBefore p c E rho i C' s ∧
         ¬ Block.Compatible (eraseFG C) (eraseFG C') ∧ hOf p.E p.cfg C ≤ hOf p.E p.cfg C') := by
+  delta Kept D_at
+  simp only [domainR_def]
   have cause (K : FGBlock (Fin p.n))
       (hK : K ∈ [(storeAt p c E rho i x).fg.F, (R_at p c E rho i x).Z])
       (hbad : ¬ (FGBlock.Preceq K C ∨ FGBlock.Preceq C K)) :
@@ -58,8 +60,7 @@ theorem kept_or_conflict (p : Params) {In V : Type} [DecidableEq V]
       · rcases hZ with hZC | hCZ
         · apply Or.inr ∘ Or.inl
           rw [KitFG.hOf_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)] at hlo
-          exact (KitFG.mem_filteredFrom_of_bridge
-            p.E p.cfg (heightView p) (heightView_bridge p) _ _ C).mpr
+          exact (KitFG.mem_filteredFromView (heightView p) _ _ C).mpr
             ⟨hC, hFC, hZC, W, hW, hCW, hlo⟩
         · exact Or.inl hCZ
       · exact Or.inr (Or.inr hCF)
@@ -87,7 +88,9 @@ theorem kept_or_cause (p : Params) {In V : Type} [DecidableEq V]
     KeepOrCause p c E rho i x X C := by
   rcases kept_or_conflict p c E rho i x X C W hC hW hCW hlo hcontrolSource with hk | hc
   · exact Or.inl hk
-  · exact Or.inr (Or.inl hc)
+  · apply Or.inr ∘ Or.inl
+    simpa only [KitFG.hOf_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
+      using hc
 
 /-- F1b.5a closure at a later pivot in the same FG-SA duty domain.
 DC: Goldfish/Walk.lean:433 `ghost_reaches` uses a path in its tree.

@@ -360,6 +360,8 @@ theorem BatchPrem.batch_of_valid {p : Params} {V : Type} [DecidableEq V] [Fintyp
 DC: SAME height coverage; INTENTIONAL cutoff q and pre-GST row transport. -/
 theorem fgsa_batchCoverage (ΔF : Time) (kind : RowKind) : BatchCoverage p ΔF kind := by
   intro V _ _ In c E rho q y U X hb hheight
+  rw [← KitFG.hOf_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)] at hheight
+  dsimp only [hOf] at hheight
   obtain ⟨rows, hc, hXrows⟩ := hb.carrier
   obtain ⟨S, hS, hquorum, hvalid⟩ := hb.valid
   refine ⟨S, hquorum, ?_⟩
@@ -406,7 +408,9 @@ theorem fgsa_batchCoverage (ΔF : Time) (kind : RowKind) : BatchCoverage p ΔF k
       | node P s body rs => exact KitFG.preceq_trans (KitFG.preceq_parent_node P s body rs) hWP
     have hlow := KitFG.h_mono p.E p.cfg hUW
     have hhigh := KitFG.h_mono p.E p.cfg hpar
-    have hentry := hb.entry
+    have hentry : (heightView p U).h = y ∧ (heightView p U).T_h = U := hb.entry
+    simp only [heightView_eq_simplex p,
+      KitFG.simplexHeightView_def, KitFG.heightOf_def] at hentry
     have hh : (derive p.E p.cfg W.parent).h = y := by
       rw [hentry.1] at hlow
       rw [hheight] at hhigh
@@ -439,7 +443,6 @@ theorem fgsa_batchCoverage (ΔF : Time) (kind : RowKind) : BatchCoverage p ΔF k
             using hsames
         have ht := row_bit_persist p true P X.parent s body rs b hbW hWP hm hk
         change b.signer ∈ (heightView p X.parent).target_participation at ht
-        rw [heightView_bridge p X.parent] at ht
         exact hrow.1 ▸ ht
       | progress =>
         have hm : b.height_pair.matchesEntry
@@ -454,7 +457,6 @@ theorem fgsa_batchCoverage (ΔF : Time) (kind : RowKind) : BatchCoverage p ΔF k
             using hsames
         have ht := row_bit_persist p false P X.parent s body rs b hbW hWP hm hk
         change b.signer ∈ (heightView p X.parent).progress at ht
-        rw [heightView_bridge p X.parent] at ht
         exact hrow.1 ▸ ht
 
 end AvailableChain.FGSA.Run
