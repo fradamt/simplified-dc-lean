@@ -734,6 +734,8 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.fgsa_carrierClaim',
     'AvailableChain.FGSA.Run.held_chain_row_origin',
     'AvailableChain.FGSA.Run.fgsa_clientSafeAll',
+    'AvailableChain.FGSA.Run.readAt_chain_row_origin',
+    'AvailableChain.FGSA.Run.fgsa_honestNeverSlashed',
     'AvailableChain.FGSA.Run.fgsa_clientSafetyClaim',
     'AvailableChain.FGSA.Run.fgsa_clientSafetyBaseClaim',
     'AvailableChain.FGSA.Run.honest_at_most_one_row_per_action',

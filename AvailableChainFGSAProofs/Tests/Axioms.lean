@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Foundations.HonestNeverSlashed -- shake: keep (HNS audit)
 public import AvailableChainFGSAProofs.Proofs.Foundations.FinalityApi -- shake: keep (S4.5b axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersL2 -- shake: keep (consumer audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersQ -- shake: keep (consumer audit)
@@ -159,6 +160,8 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_finalLock
 #print axioms AvailableChain.FGSA.Run.fgsa_finalLock_erased
 #print axioms AvailableChain.FGSA.Run.fgsa_clientSafeAll
+#print axioms AvailableChain.FGSA.Run.readAt_chain_row_origin
+#print axioms AvailableChain.FGSA.Run.fgsa_honestNeverSlashed
 #print axioms AvailableChain.FGSA.Run.fgsa_clientSafetyClaim
 #print axioms AvailableChain.FGSA.Run.fgsa_clientSafetyBaseClaim
 #print axioms AvailableChain.FGSA.Run.honest_at_most_one_row_per_action
