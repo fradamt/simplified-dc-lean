@@ -210,7 +210,8 @@ def AvailableGrowthGSTClaim (p : Params) : Prop :=
 /-- DC confirmedLive/stableLive under LiveSleepyRegime (Generic/Claims.lean:68–71;
 Generic/Regimes.lean:106–111): SAME shape; INTENTIONAL: the awake-proposer condition.
 Clean case from time 0 (Clean₂, GST = 0). CONTRACT: stage 5 proves it from CleanInclusion and the
-recurrence (DC liveFrom_of_includedFrom route). -/
+recurrence (DC liveFrom_of_includedFrom route).
+The trigger is at or after 0 (DC LiveFrom t₀ ≤ t; ruling B32). -/
 def CleanGrowthClaim (p : Params) : Prop :=
   ∀ (G ΔF : Time)
     {V : Type} [DecidableEq V] [Fintype V] {In : Type}
@@ -219,7 +220,7 @@ def CleanGrowthClaim (p : Params) : Prop :=
     CleanSet p c E rho ΔF →
     AwakeProposerRecurrenceFrom p c E rho 0 G →
     4 * p.Δ ≤ G →
-    t + G + 6 * p.Δ ≤ rho.horizon →
+    0 ≤ t → t + G + 6 * p.Δ ≤ rho.horizon →
     AvailableGrowthConcl p c E rho t (t + G + 6 * p.Δ)
 
 end AvailableChain.FGSA.Run
