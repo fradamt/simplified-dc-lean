@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.BoundsW -- shake: keep (S4.1 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedWalkStore -- shake: keep (store adapter audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.ExactHead -- shake: keep (J2 HEAD axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.ExactService -- shake: keep (ExactService audit)
@@ -587,3 +588,23 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_rowsValidStored_atProposal
 #print axioms AvailableChain.FGSA.Run.BatchPrem.batch_of_valid
 #print axioms AvailableChain.FGSA.Run.fgsa_batchCoverage
+
+#print axioms AvailableChain.FGSA.Run.kappaF_ceiling
+#print axioms AvailableChain.FGSA.Run.kappaF_ge_two
+#print axioms AvailableChain.FGSA.Run.kappaF_eq_two_iff
+#print axioms AvailableChain.FGSA.Run.betaF_bounds
+#print axioms AvailableChain.FGSA.Run.betaF_le_period
+#print axioms AvailableChain.FGSA.Run.epsF_nonneg
+#print axioms AvailableChain.FGSA.Run.epsF_bounds
+#print axioms AvailableChain.FGSA.Run.actionTime_periodW
+#print axioms AvailableChain.FGSA.Run.action_delivery_boundsW
+#print axioms AvailableChain.FGSA.Run.kernel_before_next_actionW
+#print axioms AvailableChain.FGSA.Run.E_gF_eq
+#print axioms AvailableChain.FGSA.Run.B_cF_eq
+#print axioms AvailableChain.FGSA.Run.E_jF_bounds
+#print axioms AvailableChain.FGSA.Run.BF_bounds
+#print axioms AvailableChain.FGSA.Run.B_HF_bounds
+#print axioms AvailableChain.FGSA.Run.B_bestF_le_healing
+#print axioms AvailableChain.FGSA.Run.BF_max
+#print axioms AvailableChain.FGSA.Run.resetF_healing_eq
+#print axioms AvailableChain.FGSA.Run.B_HF_numeric_351
