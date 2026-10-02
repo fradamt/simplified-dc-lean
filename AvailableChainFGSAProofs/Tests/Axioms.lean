@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Finality.Receipt -- shake: keep (K-RECEIPT audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Rows -- shake: keep (K-ROWS audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Carry -- shake: keep (K-CARRY audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Batch -- shake: keep (K-BATCH audit)
@@ -823,3 +824,11 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fresh_unanimous_rows
 #print axioms AvailableChain.FGSA.Run.actual_anchor_cap
 #print axioms AvailableChain.FGSA.Run.actual_anchor_retained_or_covered
+
+-- K-RECEIPT: proved fields and the conditional cached-anchor guard.
+#print axioms AvailableChain.FGSA.Run.receipt_kernel_fields
+#print axioms AvailableChain.FGSA.Run.receipt_finalized_of_carriage
+#print axioms AvailableChain.FGSA.Run.receipt_finCmp
+#print axioms AvailableChain.FGSA.Run.receipt_cap
+#print axioms AvailableChain.FGSA.Run.receipt_receiver_finalityLag
+#print axioms AvailableChain.FGSA.Run.receipt_jPath_of_cached_anchor

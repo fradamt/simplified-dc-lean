@@ -28,6 +28,13 @@ LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainF
 CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = (
+    # K-RECEIPT: --expect DATA only; field lemmas, not a complete receipt producer.
+    'AvailableChain.FGSA.Run.receipt_kernel_fields',
+    'AvailableChain.FGSA.Run.receipt_finalized_of_carriage',
+    'AvailableChain.FGSA.Run.receipt_finCmp',
+    'AvailableChain.FGSA.Run.receipt_cap',
+    'AvailableChain.FGSA.Run.receipt_receiver_finalityLag',
+    'AvailableChain.FGSA.Run.receipt_jPath_of_cached_anchor',
     # K-ROWS: --expect DATA only.
     'AvailableChain.FGSA.Run.pending_action_head',
     'AvailableChain.FGSA.Run.finality_action_source',
