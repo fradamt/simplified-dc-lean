@@ -86,13 +86,6 @@ abbrev HealingSet (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (G : Time)
     (ΔF : Time) : Prop :=
   Recovery₂ p c E rho G ΔF
 
-/-- DC: INTENTIONAL family delivery binds ΔF in the recovery core.
-This historical FinForm regime stays until S4.6. Active W contracts use FinalitySet_W. -/
-structure FinalitySet (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (G : Time) (ΔF : Time) (form : FinForm) (g : Nat) : Prop where
-  core : Recovery₂ p c E rho G ΔF
-  recur : form.holds (HonestSlot rho (fgsaInterface p c)) p.R (P p) p.Δ E.t_GST rho.horizon g
-
 /-- Final outage fields for G-F0a. Participation is strict before the cut;
 the sleep witness is in `outWin`. -/
 structure Outage₂ (fast : Bool) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))

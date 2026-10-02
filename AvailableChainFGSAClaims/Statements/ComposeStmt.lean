@@ -139,10 +139,6 @@ structure AttemptKey where
   task : AttemptTask
   served : Bool
 
-/-- H.11 reset bound (21:1588–1595), P3 A.10. Consumers: both arrival statements. -/
-def B'_reset (G : Time) : Time :=
-  if p.k ≤ 2 * p.R + 1 then min (B_reset p G (ρΓ p G)) (B_reset p G (ρ₁ p G))
-  else B_reset p G (ρΓ p G)
 /-- Reset arrival, exactly H.11 (21:1572–1595), P3 A.10 with lead ruling
 2026-09-30. Consumers: H.12–H.17. The reset bound uses the common ΔF.
 DC: INTENTIONAL row-delay bound; H0Reset and SA clocks stay unchanged.
@@ -206,7 +202,7 @@ structure KernelPrem [Fintype V] (G : Time) (E : Generic.Env V)
     FGood4 (Gen.V2.Duty.HonestSlot rho (fgsaInterface p c)) p.R pt.r
   start : tstar p pt.w ≤ ↑pt.r * P p
   hhor : ↑(pt.r + 2) * P p + 9 * p.Δ ≤ rho.horizon
-  input : HealingInput p c E rho pt.w
+  input : HealingInput p c E rho pt.w E.Δ
   services : CoreServices p c E rho pt.w
 /-- Kernel from contract (00:1119–1134; 22 §1:41–63), P3 A.10.
 Consumer: split-to-joined composition. The delay ratio is a parameter premise. -/
@@ -219,7 +215,7 @@ Recovery supplies participation and receipt; services are not HealingInput field
 def KernelACSide : Prop := p.δt = 2 * p.R →
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (G : Time) (w : HealingWitness),
-    Recovery₂ p c E rho G → HealingInput p c E rho w → CoreServices p c E rho w
+    Recovery₂ p c E rho G → HealingInput p c E rho w E.Δ → CoreServices p c E rho w
 /-- Joined kernel start (21 H.18:2868–2876), P3 A.10 D44.
 No consumer. This historical observation does not supply HealingInput.
 KernelJoinedPrem binds the common input witness and its start time directly. -/
