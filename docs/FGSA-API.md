@@ -119,6 +119,15 @@ def AvailableChain.FGSA.Window.EntryOriginAt f98f289712a35478
 theorem AvailableChain.FGSA.Window.EntryOriginAt_def 4335bcdc22894f7a
 ```
 
+### `AvailableChainFGSA.Statements.WindowEntries`
+
+```text
+def AvailableChain.FGSA.Window.RetainedW 741c6c599dd2e060
+theorem AvailableChain.FGSA.Window.RetainedW_def edacd5fd4f100831
+def AvailableChain.FGSA.Window.CoveredW 00a2635f2a6702f9
+theorem AvailableChain.FGSA.Window.CoveredW_def 8f010b7f3cd42345
+```
+
 ### `AvailableChainFGSA.Statements.WindowHeight`
 
 ```text
@@ -381,6 +390,12 @@ def AvailableChain.FGSA.Run.KernelBeforeNextActionW 4b349af3e0c9f776
 structure AvailableChain.FGSA.Run.LivenessBoundW add6843622665972
 ctor AvailableChain.FGSA.Run.LivenessBoundW.mk f3f84757bb6d5cb4
 field AvailableChain.FGSA.Run.LivenessBoundW.kappa_le_R de51cf339cd35edf
+def AvailableChain.FGSA.Run.FE_W a0c2f0e811b5b21a
+def AvailableChain.FGSA.Run.F4_W 420d214e499c6aae
+def AvailableChain.FGSA.Run.FGoodE_Wp d5de884b95205234
+def AvailableChain.FGSA.Run.FGood4_Wp 4b7ff8450f774337
+def AvailableChain.FGSA.Run.Tail_Wp e568443262ba9390
+def AvailableChain.FGSA.Run.B_FW 191aeaa5a607d5a9
 theorem AvailableChain.FGSA.Run.kappaF_def fef901c039d62410
 theorem AvailableChain.FGSA.Run.betaF_def 166167f826d5cb48
 theorem AvailableChain.FGSA.Run.epsF_def 4438023ec2765319
@@ -400,6 +415,12 @@ theorem AvailableChain.FGSA.Run.B'_resetF_def ffd7344c460472e6
 theorem AvailableChain.FGSA.Run.B_bestF_def a56741daed1285e5
 theorem AvailableChain.FGSA.Run.ActionDeliveryBoundsW_def 9afe336447a0417c
 theorem AvailableChain.FGSA.Run.KernelBeforeNextActionW_def f86f12fe200a6474
+theorem AvailableChain.FGSA.Run.FE_W_def 426a7f82308dc80c
+theorem AvailableChain.FGSA.Run.F4_W_def b4bb5b3dda93721a
+theorem AvailableChain.FGSA.Run.FGoodE_Wp_def 1939eb5083c4b78b
+theorem AvailableChain.FGSA.Run.FGood4_Wp_def ed2611e4dfaad59f
+theorem AvailableChain.FGSA.Run.Tail_Wp_def f39b312bcb078ed3
+theorem AvailableChain.FGSA.Run.B_FW_def 6ff7a073be682df8
 ```
 
 ### `AvailableChainFGSAClaims.Statements.ChannelProps`

@@ -609,3 +609,15 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.BF_max
 #print axioms AvailableChain.FGSA.Run.resetF_healing_eq
 #print axioms AvailableChain.FGSA.Run.B_HF_numeric_351
+
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_carrier_timeW
+#print axioms AvailableChain.FGSA.Run.fgsa_grid_kernel_deadlineW
+#print axioms AvailableChain.FGSA.Run.F4_W_implies_FE_W
+#print axioms AvailableChain.FGSA.Run.betaF_eq_eight_delta
+#print axioms AvailableChain.FGSA.Run.epsF_eq_zero
+#print axioms AvailableChain.FGSA.Run.carrierTimeW_eq_carrierTime2
+#print axioms AvailableChain.FGSA.Run.kernelDeadlineW_eq_kernelDeadline
+#print axioms AvailableChain.FGSA.Run.W_W_eq_W_F
+#print axioms AvailableChain.FGSA.Run.B_HF_eq_B_H
+#print axioms AvailableChain.FGSA.Run.B_HF_numeric_295
+#print axioms AvailableChain.FGSA.Run.B_HF_numeric_343
