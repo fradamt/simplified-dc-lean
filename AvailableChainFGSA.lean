@@ -38,3 +38,7 @@ public import AvailableChainFGSA.Model.Window
 public import AvailableChainFGSA.Statements.WindowHeight
 public import AvailableChainFGSA.Proofs.WindowHeightBridge
 public import AvailableChainFGSA.Proofs.WindowInvariant
+public import AvailableChainFGSA.Statements.WindowCertificate
+public import AvailableChainFGSA.Proofs.WindowCertificates
+public import AvailableChainFGSA.Model.WindowStore
+public import AvailableChainFGSA.Proofs.WindowStore
