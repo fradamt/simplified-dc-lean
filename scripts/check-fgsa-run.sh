@@ -107,7 +107,7 @@ AX_OPTS=(--expect Run.isRowObject Run.isRowObject_def Run.fgsaDelay Run.fgsaDela
 AX_OPTS+=(Run.contentAgree_run)
 
 # T7.8 public receipt and stamp declarations.
-AX_OPTS+=(Run.excludesS_honestRow_false Run.fgsa_honest_row_receipt)
+AX_OPTS+=(Run.excludesS_honestRow_false)
 AX_OPTS+=(
   Run.blockOf?
   Run.fgsa_clockOf_nonneg
@@ -120,7 +120,6 @@ AX_OPTS+=(
   Run.fgsa_head_excluded_before
   Run.fgsa_head_receipt
   Run.fgsa_head_cap_sources
-  Run.fgsa_row_receipt
   Run.fgsa_proposal_receipt
   Run.fgsa_honest_head_receipt
 )

@@ -90,8 +90,8 @@ structure FinalitySet (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 /-- Final outage fields for G-F0a. Participation is strict before the cut;
 the sleep witness is in `outWin`. -/
 structure Outage₂ (fast : Bool) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (T b₀ b₁ : Time) : Prop where
-  pre : HealthyPrefix₂ p c E rho b₀
+    (T b₀ b₁ : Time) (ΔF : Time := E.Δ) : Prop where
+  pre : HealthyPrefix₂ p c E rho b₀ ΔF
   sleepy : ∀ t, 0 ≤ t → t < b₀ →
     (awakeHonestIn E rho (t - p.η) t ∪ faulty rho).card < 2 * (awakeHonest E rho t).card
   order : 0 ≤ T ∧ T ≤ b₀ ∧ b₀ ≤ b₁ ∧ b₁ ≤ rho.horizon
@@ -101,7 +101,7 @@ structure Outage₂ (fast : Bool) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
     (p.n + 1) / 2 ≤ (awakeHonest E rho t).card
 
 abbrev OutageSet (fast : Bool) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (T b₀ b₁ : Time) : Prop := Outage₂ p c fast E rho T b₀ b₁
+    (T b₀ b₁ : Time) (ΔF : Time := E.Δ) : Prop := Outage₂ p c fast E rho T b₀ b₁ ΔF
 
 end AvailableChain.FGSA.Run
 end
