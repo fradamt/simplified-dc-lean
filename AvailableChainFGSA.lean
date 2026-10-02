@@ -44,12 +44,14 @@ public import AvailableChainFGSA.Statements.WindowHeight
 public import AvailableChainFGSA.Proofs.WindowHeightBridge
 public import AvailableChainFGSA.Proofs.WindowInvariant
 public import AvailableChainFGSA.Statements.WindowCertificate
+public import AvailableChainFGSA.Statements.WindowEntries
 public import AvailableChainFGSA.Proofs.WindowCertificates
 public import AvailableChainFGSA.Model.WindowStore
 public import AvailableChainFGSA.Proofs.WindowStore
 public import AvailableChainFGSA.Proofs.WindowProvenance
 public import AvailableChainFGSA.Proofs.WindowHistory
 public import AvailableChainFGSA.Proofs.WindowLiveness
+public import AvailableChainFGSA.Proofs.WindowRetention
 public import AvailableChainFGSA.Proofs.WindowSelection
 public import AvailableChainFGSA.Proofs.WindowReaders
 public import AvailableChainFGSA.Proofs.WindowValidity
