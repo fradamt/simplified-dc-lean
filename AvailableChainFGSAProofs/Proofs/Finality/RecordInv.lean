@@ -4,6 +4,7 @@ public import AvailableChainFGSARun.Proofs.ClientTrace
 public import AvailableChainFGSARun.Proofs.Schedule
 public import AvailableChainKitFG.ProvenanceCore
 public import AvailableChainFGSA.Proofs.EmissionFields
+public import AvailableChainFGSAClaims.Statements.ComposeStmt
 
 public section
 
@@ -365,6 +366,7 @@ private theorem recordInv_all (w : HealingWitness)
 
 /-- Paper 22:841–879 (FF2): all actual writes preserve the high-entry guards.
 DC: INTENTIONAL: H1 and QC origin replace a fixed-root window premise.
+Old records rest on THigh .1 over all rounds, not on H0.
 The prefix starts at the initial durable record and includes pre-GST writes. -/
 theorem high_entry_record_invariant (w : HealingWitness)
     (hh : THigh p c E rho w) (hqc : RQCOrigin p c E rho)
@@ -883,5 +885,477 @@ theorem high_target_quorum_covered [Fintype V] (G ΔF : Time)
     · exact ⟨⟨.seat .fg i, .vote ⟨.empty, none⟩⟩, fun h => (hi h).elim⟩
   choose rows hrows using hseat
   exact ⟨rows, hrows⟩
+
+/-- Paper 22:841–879: FF2 selects a high target with the actual head's own lock.
+DC: Protocol/ValidatorClient.lean:216–229; the head target QC fixes its lock. -/
+theorem high_action_target_choice (w : HealingWitness)
+    (hh : THigh p c E rho w) (hqc : RQCOrigin p c E rho)
+    (hnames : ∀ j x r a e, HonestRowAt p c E rho j x r a →
+      namedEntry a.payload.height_pair = some e →
+      ∃ C, actionSourceFG p c E rho x r = some (some C) ∧
+        e = ((heightView p C).h, (heightView p C).T_h.root))
+    (z : V) (r : Nat) (C : FGBlock (Fin p.n)) (hz : z ∈ rho.honest)
+    (hsource : actionSourceFG p c E rho z r = some (some C)) (hhigh : high p w C)
+    (i : Nat) (x : V) (t : Time) (hx : x ∈ rho.honest) :
+    let Λ := (V2.D.Run.stateBefore E rho i x).record
+    let st := FGSA.clock p (V2.D.Run.stateBefore E rho i x).st t
+    height_pair Λ.toRecord (some ((heightView p C).h, (heightView p C).T_h.root))
+      (finality_pair Λ.toRecord (FGSA.fgInputs p st).2) =
+      .vote (heightView p C).h (heightView p C).T_h.root false := by
+  have hentry := recordInv_entry_source p c E rho w hh z r C hz hsource hhigh
+  obtain ⟨ht, hn, hl, _⟩ := recordInv_all p c E rho w hh hqc hnames i x hx
+    (heightView p C).h hhigh
+  apply high_record_target_choice
+  · simpa only [hentry] using ht
+  · exact hn
+  · simpa only [hentry] using hl
+  · intro fp hf hfy
+    have hr := recordInv_finality_source p c E rho w hh hqc i x t
+      (V2.D.Run.stateBefore E rho i x).record.toRecord fp hx hf (hfy ▸ hhigh)
+    simpa only [hfy, hentry] using hr
+
+/-- Paper 22:841–879,1256–1263: the K-ROWS record guards at the actual action read.
+DC: INTENTIONAL: the round cut becomes a prefix cut by strict tick time;
+clock_rec transports all seven fields to the postClock record. -/
+theorem high_record_guards_and_fresh_at_action (w : HealingWitness)
+    (hh : THigh p c E rho w) (hqc : RQCOrigin p c E rho)
+    (hnames : ∀ j x r a e, HonestRowAt p c E rho j x r a →
+      namedEntry a.payload.height_pair = some e →
+      ∃ C, actionSourceFG p c E rho x r = some (some C) ∧
+        e = ((heightView p C).h, (heightView p C).T_h.root))
+    (hs : V2.D.ScheduleWellFormed E rho)
+    (z : V) (r : Nat) (C : FGBlock (Fin p.n)) (hz : z ∈ rho.honest)
+    (hsource : actionSourceFG p c E rho z r = some (some C))
+    (y : Nat) (hheight : (heightView p C).h = y) (hy : w.M + 1 ≤ y)
+    (q : Nat) (x : V) (hx : x ∈ rho.honest)
+    (hbefore : ∀ j r a h, r < q → HonestRowAt p c E rho j x r a →
+      rowHeight a = some h → h < y + 1) :
+    ∀ nd, postClock E rho x (p.actionTime q) = some nd →
+      (nd.record.target y = none ∨ nd.record.target y = some (heightView p C).T_h.root) ∧
+      nd.record.timeout y = false ∧
+      (nd.record.lock y = none ∨ nd.record.lock y = some (heightView p C).T_h.root) ∧
+      nd.record.target (y + 1) = none ∧ nd.record.timeout (y + 1) = false ∧
+      nd.record.lock (y + 1) = none ∧
+      ∀ b ∈ nd.record.sent, ∀ T timeout, b.1 ≠ .vote (y + 1) T timeout := by
+  intro nd hnd
+  rw [postClock_def, preTick_def] at hnd
+  cases hi : V2.D.Run.tickIdx? rho x (p.actionTime q) with
+  | none => simp only [hi, Option.map_none] at hnd; contradiction
+  | some i =>
+    simp only [hi, Option.map_some, Option.some.injEq] at hnd
+    have hj := V2.D.Run.tickIdx?_spec hi
+    have hr : (V2.D.Run.stateBefore E rho i x).record = nd.record :=
+      (clock_rec (c := c) (V2.D.Run.stateBefore E rho i x) (p.actionTime q)).symm.trans
+        (congrArg Node.record hnd)
+    have hg := high_record_guards_and_fresh p c E rho w hh hqc hnames z r C hz hsource
+      y hheight hy i x hx (by
+        intro j r a h hji ha hah
+        have ht := fgsa_tick_time_strict E rho hs ha.2.1 hj hji
+        have hrq : r < q := by
+          by_contra hn
+          have hmul : ((q * p.R : Nat) : Time) ≤ ((r * p.R : Nat) : Time) := by
+            exact_mod_cast Nat.mul_le_mul_right p.R (show q ≤ r by omega)
+          change 4 * p.Δ * ((r * p.R : Nat) : Time) + 6 * p.Δ <
+            4 * p.Δ * ((q * p.R : Nat) : Time) + 6 * p.Δ at ht
+          have := p.deltaPos
+          nlinarith
+        exact hbefore j r a h hrq ha hah)
+    change (let Λ := (V2.D.Run.stateBefore E rho i x).record; _) at hg
+    simpa only [hr] using hg
+
+private theorem recordInv_honest_pair (w : HealingWitness)
+    (hh : THigh p c E rho w) (hqc : RQCOrigin p c E rho)
+    (hnames : ∀ j x r a e, HonestRowAt p c E rho j x r a →
+      namedEntry a.payload.height_pair = some e →
+      ∃ C, actionSourceFG p c E rho x r = some (some C) ∧
+        e = ((heightView p C).h, (heightView p C).T_h.root))
+    (j : Nat) (x : V) (r : Nat) (wire : RowWire p.n) (a : Row (Fin p.n))
+    (ha : HonestRowAt p c E rho j x r wire) (hd : wire.toRow? = some a)
+    (y : Nat) (T : BlockId) (hn : namedEntry a.height_pair = some (y, T))
+    (hy : w.M + 1 ≤ y) :
+    a.height_pair = .vote y (recordInv_entry p c E rho y) false := by
+  cases hp : a.height_pair with
+  | empty => rw [hp] at hn; cases hn
+  | vote g U timeout =>
+    rw [hp] at hn
+    change some (g, U) = some (y, T) at hn
+    have he : (g, U) = (y, T) := Option.some.inj hn
+    cases he
+    rcases wire with ⟨auth, body⟩
+    cases auth with
+    | none => cases hd
+    | proposer s => cases hd
+    | seat label seat =>
+      cases label with
+      | head s => cases hd
+      | fg =>
+        have he := Option.some.inj hd
+        have hb : body.height_pair = .vote y T timeout :=
+          (congrArg Row.height_pair he).trans hp
+        obtain ⟨_, _, _, _, hsend⟩ :=
+          (fgsa_emitsAt_row E rho j x (p.actionTime r) ha.2.1 seat body).mp ha.2.2
+        have hnwire : namedEntry body.height_pair = some (y, T) := by rw [hb]; rfl
+        obtain ⟨C, hs, hc⟩ := hnames j x r _ _ ha hnwire
+        obtain ⟨hroot, htimeout⟩ := recordInv_released_pair p c E rho w hh hqc j x r
+          seat body ha.1 hsend (recordInv_all p c E rho w hh hqc hnames j x ha.1)
+          y T timeout hb hy ⟨C, hs, (congrArg Prod.fst hc).symm,
+            (congrArg Prod.snd hc).symm⟩
+        rw [hroot, htimeout]
+
+private theorem recordInv_qc_source (w : HealingWitness) (hh : THigh p c E rho w)
+    (i : Nat) (z : V) (r : Nat) (wire : RowWire p.n) (a : Row (Fin p.n))
+    (C : FGBlock (Fin p.n)) (y : Nat) (T : BlockId)
+    (hb : HonestRowBefore p c E rho i z r wire)
+    (hs : actionSourceFG p c E rho z r = some (some C))
+    (hn : namedEntry a.height_pair = some ((heightView p C).h, (heightView p C).T_h.root))
+    (hp : namedEntry a.height_pair = some (y, T)) (hy : w.M + 1 ≤ y) :
+    z ∈ rho.honest ∧ high p w C ∧ (heightView p C).h = y ∧
+      T = (heightView p C).T_h.root ∧ T = recordInv_entry p c E rho y := by
+  obtain ⟨j, _, ha⟩ := hb
+  have he := Option.some.inj (hn.symm.trans hp)
+  have hc : (heightView p C).h = y := congrArg Prod.fst he
+  have ht : T = (heightView p C).T_h.root := (congrArg Prod.snd he).symm
+  have hhigh : high p w C := by change w.M + 1 ≤ _; rw [hc]; exact hy
+  have hentry := recordInv_entry_source p c E rho w hh z r C ha.1 hs hhigh
+  rw [hc] at hentry
+  exact ⟨ha.1, hhigh, hc, ht, ht.trans hentry.symm⟩
+
+private theorem recordInv_quorum_honest [Fintype V]
+    (hL : V2.D.Linked (fgsaFamilies p c).linked rho)
+    (hf : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+    (Q : Finset (Fin p.n)) (hQ : p.E.IsQuorum Q) :
+    ∃ k ∈ Q, rho.seatOf (.base .fg) k ∈ rho.honest := by
+  classical
+  obtain ⟨e, he⟩ := fgsa_linked_seats rho hL
+  have he' : ∀ j : Fin p.n, rho.seatOf (.base .fg) j = e j := he
+  let F := (Gen.V2.Duty.faulty rho).map e.symm.toEmbedding
+  have hcap : p.E.toWeights.weightOf F < p.E.toWeights.q := by
+    have hq : p.E.toWeights.q = Gen.Pure.qF p.n := KitFG.unit_toWeights_q p.n
+    rw [hq]
+    have hc : p.E.toWeights.weightOf F = (Gen.V2.Duty.faulty rho).card := by
+      rw [KitFG.toWeights_weightOf]
+      change (∑ _ ∈ F, (1 : Nat)) = _
+      simp only [Finset.sum_const, smul_eq_mul, mul_one, Finset.card_map, F]
+    rw [hc]
+    exact hf.lt
+  obtain ⟨k, hk, hn⟩ := Gen.Pure.quorum_honest p.E.toWeights F
+    ((KitFG.isQuorum_toWeights_iff p.E Q).mpr hQ) hcap
+  refine ⟨k, hk, ?_⟩
+  rw [he']
+  by_contra hh
+  apply hn
+  exact Finset.mem_map.mpr ⟨e k, by simpa [Gen.V2.Duty.faulty_def] using hh,
+    e.symm_apply_apply k⟩
+
+private theorem recordInv_decoded_height (wire : RowWire p.n) (a : Row (Fin p.n))
+    (hd : wire.toRow? = some a) : wire.payload.height_pair = a.height_pair := by
+  rcases wire with ⟨auth, body⟩
+  cases auth with
+  | none => cases hd
+  | proposer s => cases hd
+  | seat label seat =>
+    cases label with
+    | head s => cases hd
+    | fg => exact congrArg Row.height_pair (Option.some.inj hd)
+
+private theorem recordInv_honest_finality (w : HealingWitness)
+    (hh : THigh p c E rho w) (hqc : RQCOrigin p c E rho)
+    (j : Nat) (x : V) (r : Nat) (wire : RowWire p.n) (a : Row (Fin p.n))
+    (ha : HonestRowAt p c E rho j x r wire) (hd : wire.toRow? = some a)
+    (fp : FinalityPair) (hf : a.finality_pair = some fp) (hy : w.M + 1 ≤ fp.height) :
+    fp.target = recordInv_entry p c E rho fp.height := by
+  rcases wire with ⟨auth, body⟩
+  cases auth with
+  | none => cases hd
+  | proposer s => cases hd
+  | seat label seat =>
+    cases label with
+    | head s => cases hd
+    | fg =>
+      have hbody : body.finality_pair = some fp :=
+        (congrArg Row.finality_pair (Option.some.inj hd)).trans hf
+      obtain ⟨_, _, _, _, hsend⟩ :=
+        (fgsa_emitsAt_row E rho j x (p.actionTime r) ha.2.1 seat body).mp ha.2.2
+      exact recordInv_released_finality p c E rho w hh hqc j x r seat body ha.1
+        hsend fp hbody hy
+
+/-- Paper 22:876–879: every high target, progress, or finality QC in cumulative TF has one identity.
+DC: INTENTIONAL: honest row origins include delayed disclosures and pre-GST writes.
+There is no carrier-height guard; matchesEntry permits either timeout bit. -/
+theorem ff2_stored_high_qc_identity [Fintype V] (w : HealingWitness)
+    (hh : THigh p c E rho w) (hqc : RQCOrigin p c E rho)
+    (hnames : ∀ j x r a e, HonestRowAt p c E rho j x r a →
+      namedEntry a.payload.height_pair = some e →
+      ∃ C, actionSourceFG p c E rho x r = some (some C) ∧
+        e = ((heightView p C).h, (heightView p C).T_h.root))
+    (hL : V2.D.Linked (fgsaFamilies p c).linked rho)
+    (hf : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+    (hOrigin : ∀ i x W, HeldAt p c E rho i x W → ∀ a ∈ chainRows W,
+      ∃ (wire : RowWire p.n) (r : Nat), wire.toRow? = some a ∧
+        wire.auth = .seat .fg a.signer ∧
+        ∀ z, RowSigner p c rho wire z → z ∈ rho.honest →
+          HonestRowBefore p c E rho i z r wire) :
+    ∃ entry : Nat → BlockId,
+      (∀ z r C, z ∈ rho.honest →
+        actionSourceFG p c E rho z r = some (some C) → high p w C →
+        entry (heightView p C).h = (heightView p C).T_h.root) ∧
+      ∀ i x W, HeldAt p c E rho i x W →
+        (∀ y T (Q : Finset (Fin p.n)),
+          w.M + 1 ≤ y → p.E.IsQuorum Q →
+          (∀ k ∈ Q, ∃ a ∈ chainRows W, a.signer = k ∧
+            a.height_pair.matchesEntry y T = true) →
+          T = entry y ∧ ∃ z r C, z ∈ rho.honest ∧
+            actionSourceFG p c E rho z r = some (some C) ∧ high p w C ∧
+            (heightView p C).h = y ∧ T = (heightView p C).T_h.root ∧
+            ∃ k ∈ Q, ∃ a ∈ chainRows W, a.signer = k ∧
+              a.height_pair = .vote y (entry y) false) ∧
+        (∀ fp (Q : Finset (Fin p.n)), w.M + 1 ≤ fp.height → p.E.IsQuorum Q →
+          (∀ k ∈ Q, ∃ a ∈ chainRows W, a.signer = k ∧ a.finality_pair = some fp) →
+          fp.target = entry fp.height) := by
+  classical
+  refine ⟨recordInv_entry p c E rho, recordInv_entry_source p c E rho w hh, ?_⟩
+  intro i x W hW
+  refine ⟨?_, ?_⟩
+  · intro y T Q hy hQ hrows
+    obtain ⟨k, hk, hz⟩ := recordInv_quorum_honest p c rho hL hf Q hQ
+    obtain ⟨a, ha, hs, hm⟩ := hrows k hk
+    obtain ⟨wire, r, hd, hauth, ho⟩ := hOrigin i x W hW a ha
+    have hsign : RowSigner p c rho wire (rho.seatOf (.base .fg) k) := by
+      rw [RowSigner_def]
+      exact ⟨k, by rw [hauth, hs], rfl⟩
+    obtain ⟨j, hji, hem⟩ := ho _ hsign hz
+    have hn : namedEntry a.height_pair = some (y, T) := by
+      cases hp : a.height_pair with
+      | empty => rw [hp] at hm; cases hm
+      | vote g U timeout =>
+        rw [hp] at hm
+        have he : g = y ∧ U = T := of_decide_eq_true hm
+        rw [he.1, he.2]; rfl
+    have hnwire : namedEntry wire.payload.height_pair = some (y, T) := by
+      rw [recordInv_decoded_height p wire a hd]; exact hn
+    obtain ⟨C, hsource, hc⟩ := hnames j _ r wire _ hem hnwire
+    obtain ⟨hz', hhigh, hhC, ht, he⟩ := recordInv_qc_source p c E rho w hh i _ r wire
+      a C y T ⟨j, hji, hem⟩ hsource (by rw [hn, hc]) hn hy
+    exact ⟨he, _, r, C, hz', hsource, hhigh, hhC, ht, k, hk, a, ha, hs,
+      recordInv_honest_pair p c E rho w hh hqc hnames j _ r wire a hem hd y T hn hy⟩
+  · intro fp Q hy hQ hrows
+    obtain ⟨k, hk, hz⟩ := recordInv_quorum_honest p c rho hL hf Q hQ
+    obtain ⟨a, ha, hs, hfp⟩ := hrows k hk
+    obtain ⟨wire, r, hd, hauth, ho⟩ := hOrigin i x W hW a ha
+    have hsign : RowSigner p c rho wire (rho.seatOf (.base .fg) k) := by
+      rw [RowSigner_def]
+      exact ⟨k, by rw [hauth, hs], rfl⟩
+    obtain ⟨j, _, hem⟩ := ho _ hsign hz
+    exact recordInv_honest_finality p c E rho w hh hqc j _ r wire a hem hd fp hfp hy
+
+/-- Paper 22:876–879: selected high progress, target, and finality QCs have one identity.
+DC: INTENTIONAL: the earlier target QC supplies the finality identity.
+All prefixes and all cumulative TF blocks are included; the record induction
+also makes the selected honest progress witness a target. -/
+theorem ff2_high_qc_identity (w : HealingWitness)
+    (hh : THigh p c E rho w) (hqc : RQCOrigin p c E rho)
+    (hnames : ∀ j x r a e, HonestRowAt p c E rho j x r a →
+      namedEntry a.payload.height_pair = some e →
+      ∃ C, actionSourceFG p c E rho x r = some (some C) ∧
+        e = ((heightView p C).h, (heightView p C).T_h.root)) :
+    ∃ entry : Nat → BlockId,
+      (∀ z r C, z ∈ rho.honest →
+        actionSourceFG p c E rho z r = some (some C) → high p w C →
+        entry (heightView p C).h = (heightView p C).T_h.root) ∧
+      ∀ i x W, x ∈ rho.honest → W ∈ (storeAt p c E rho i x).fg.TF →
+        (∀ y X (Q : Finset (Fin p.n))
+            (rows : Fin p.n → FGBlock (Fin p.n) × Row (Fin p.n)),
+          w.M + 1 ≤ y → y < (heightView p W).h →
+          FGBlock.Preceq X W → (heightView p X).h = y → p.E.IsQuorum Q →
+          (∀ k ∈ Q, FGBlock.Preceq (rows k).1 W ∧ (rows k).2 ∈ (rows k).1.rows ∧
+            (rows k).2.signer = k ∧
+            (rows k).2.height_pair.matchesEntry y X.root = true) →
+          X.root = entry y ∧ ∃ z r C, z ∈ rho.honest ∧
+            actionSourceFG p c E rho z r = some (some C) ∧ high p w C ∧
+            (heightView p C).h = y ∧ X.root = (heightView p C).T_h.root ∧
+            ∃ k ∈ Q, (rows k).2.height_pair = .vote y (entry y) false) ∧
+        (w.M + 1 ≤ (heightView p W).h_j →
+          (heightView p W).J.root = entry (heightView p W).h_j ∧
+          ∃ z r C, z ∈ rho.honest ∧
+            actionSourceFG p c E rho z r = some (some C) ∧ high p w C ∧
+            (heightView p C).h = (heightView p W).h_j ∧
+            (heightView p W).J.root = (heightView p C).T_h.root) ∧
+        (w.M + 1 ≤ (finalityView p W).h_F →
+          (finalityView p W).F.root = entry (finalityView p W).h_F ∧
+          ∃ z r C, z ∈ rho.honest ∧
+            actionSourceFG p c E rho z r = some (some C) ∧ high p w C ∧
+            (heightView p C).h = (finalityView p W).h_F ∧
+            (finalityView p W).F.root = (heightView p C).T_h.root) := by
+  classical
+  refine ⟨recordInv_entry p c E rho, recordInv_entry_source p c E rho w hh, ?_⟩
+  intro i x W hx hW
+  have ho := hqc
+  rw [RQCOrigin_def] at ho
+  have hoW := ho i x W hx hW
+  refine ⟨?_, ?_, ?_⟩
+  · intro y X Q rows hy hlt hX hheight hQ hrows
+    obtain ⟨k, hk, z, r, wire, hb, hd, _, C, G, hs, hn, _⟩ :=
+      hoW.1 y X Q rows (by simp only [Height] at *; omega) hlt hX hheight hQ hrows
+    have hp : namedEntry (rows k).2.height_pair = some (y, X.root) := by
+      cases he : (rows k).2.height_pair with
+      | empty => have hm := (hrows k hk).2.2.2; rw [he] at hm; cases hm
+      | vote g U timeout =>
+        have hm := (hrows k hk).2.2.2
+        rw [he] at hm
+        have hgu : g = y ∧ U = X.root := of_decide_eq_true hm
+        rw [hgu.1, hgu.2]; rfl
+    obtain ⟨hz, hc, hhC, ht, he⟩ := recordInv_qc_source p c E rho w hh i z r wire
+      (rows k).2 C y X.root hb hs hn hp hy
+    obtain ⟨j, _, ha⟩ := hb
+    exact ⟨he, z, r, C, hz, hs, hc, hhC, ht, k, hk,
+      recordInv_honest_pair p c E rho w hh hqc hnames j z r wire (rows k).2 ha hd
+        y X.root hp hy⟩
+  · intro hy
+    have hnz : (heightView p W).h_j ≠ 0 := by simp only [Height] at *; omega
+    obtain ⟨Q, hQ, hw⟩ := (fgCertificateLaws p).height.justification_certificate W hnz
+    have hw' : ∀ k, ∃ B a, k ∈ Q → FGBlock.Preceq B W ∧ a ∈ B.rows ∧
+        a.signer = k ∧
+        a.height_pair = .vote (heightView p W).h_j (heightView p W).J.root false := by
+      intro k
+      by_cases hk : k ∈ Q
+      · obtain ⟨B, a, ha⟩ := hw k hk
+        exact ⟨B, a, fun _ => ha⟩
+      · exact ⟨.genesis, ⟨k, .empty, none⟩, fun h => (hk h).elim⟩
+    choose B a ha using hw'
+    obtain ⟨k, hk, z, r, wire, hb, _, _, C, G, hs, hn, _⟩ :=
+      hoW.2.1 Q (fun k => (B k, a k)) hnz hQ ha
+    have hp : namedEntry (a k).height_pair =
+        some ((heightView p W).h_j, (heightView p W).J.root) := by
+      rw [(ha k hk).2.2.2]; rfl
+    obtain ⟨hz, hc, hhC, ht, he⟩ := recordInv_qc_source p c E rho w hh i z r wire
+      (a k) C _ _ hb hs hn hp hy
+    exact ⟨he, z, r, C, hz, hs, hc, hhC, ht⟩
+  · intro hy
+    obtain ⟨B, hBW, hBJ, hj⟩ := KitFG.provenance_finality_of_certificate p.E
+      (heightView p) (finalityView p) (fgCertificateLaws p) W (by simp only [Height] at *; omega)
+    have hB := KitFG.ancestor_closed_of_parent_closed _
+      (cstoreInv_stateBefore E rho i x).fg.closed W hW B hBW
+    have hnz : (heightView p B).h_j ≠ 0 := by rw [hj]; simp only [Height] at *; omega
+    obtain ⟨Q, hQ, hw⟩ := (fgCertificateLaws p).height.justification_certificate B hnz
+    have hw' : ∀ k, ∃ D a, k ∈ Q → FGBlock.Preceq D B ∧ a ∈ D.rows ∧
+        a.signer = k ∧
+        a.height_pair = .vote (heightView p B).h_j (heightView p B).J.root false := by
+      intro k
+      by_cases hk : k ∈ Q
+      · obtain ⟨D, a, ha⟩ := hw k hk
+        exact ⟨D, a, fun _ => ha⟩
+      · exact ⟨.genesis, ⟨k, .empty, none⟩, fun h => (hk h).elim⟩
+    choose D a ha using hw'
+    obtain ⟨k, hk, z, r, wire, hb, _, _, C, G, hs, hn, _⟩ :=
+      (ho i x B hx hB).2.1 Q (fun k => (D k, a k)) hnz hQ ha
+    have hp : namedEntry (a k).height_pair =
+        some ((finalityView p W).h_F, (finalityView p W).F.root) := by
+      rw [(ha k hk).2.2.2, hj, hBJ]; rfl
+    obtain ⟨hz, hc, hhC, ht, he⟩ := recordInv_qc_source p c E rho w hh i z r wire
+      (a k) C _ _ hb hs hn hp hy
+    exact ⟨he, z, r, C, hz, hs, hc, hhC, ht⟩
+
+
+/-- Paper 22:876–879,917–921: a high contest is impossible at every honest prefix.
+DC: INTENTIONAL: QC identity covers every stored contest witness, including
+blocks disclosed late in cumulative TF. -/
+theorem ff2_no_high_contest (w : HealingWitness)
+    (hh : THigh p c E rho w) (hqc : RQCOrigin p c E rho)
+    (hnames : ∀ j x r a e, HonestRowAt p c E rho j x r a →
+      namedEntry a.payload.height_pair = some e →
+      ∃ C, actionSourceFG p c E rho x r = some (some C) ∧
+        e = ((heightView p C).h, (heightView p C).T_h.root)) :
+    ∀ i x, i ≤ rho.events.length → x ∈ rho.honest →
+      let R := FGSA.controls p (storeAt p c E rho i x)
+      R.contest = true → R.H ≤ w.M + 1 := by
+  classical
+  obtain ⟨entry, _, hidentity⟩ := ff2_high_qc_identity p c E rho w hh hqc hnames
+  intro i x _hi hx
+  let st := storeAt p c E rho i x
+  change (FGSA.controls p st).contest = true → (FGSA.controls p st).H ≤ w.M + 1
+  unfold FGSA.controls
+  rw [KitFG.storeControlsView_def]
+  intro ht
+  change (decide (st.fg.h_max = st.fg.h_j + 1) &&
+    decide (∃ W ∈ st.fg.TF, (heightView p W).h = st.fg.h_max ∧
+      ¬ FGBlock.Preceq st.fg.J W)) = true at ht
+  rw [Bool.and_eq_true, decide_eq_true_eq, decide_eq_true_eq] at ht
+  obtain ⟨htop, W, hW, hw, hbad⟩ := ht
+  change st.fg.h_max ≤ w.M + 1
+  by_contra hlarge
+  have hjhigh : w.M + 1 ≤ st.fg.h_j := by simp only [Height] at *; omega
+  have hI : KitFG.FGStoreInvariant (heightView p) (finalityView p) st.fg :=
+    (cstoreInv_stateBefore E rho i x).fg
+  obtain ⟨K, hK, _, hjK, hJK⟩ := hI.pair.1
+  have hJroot : st.fg.J.root = entry st.fg.h_j := by
+    rw [hJK, hjK]
+    exact ((hidentity i x K hx hK).2.1 (hjK ▸ hjhigh)).1
+  have allWitnesses : ∀ D ∈ st.fg.TF, (heightView p D).h = st.fg.h_max →
+      FGBlock.Preceq st.fg.J D := by
+    intro D hD hd
+    obtain ⟨X, hXD, hXheight, Q, hQ, hwit⟩ :=
+      (fgCertificateLaws p).height.height_crossing D st.fg.h_j
+        (by simp only [Height] at *; omega)
+        (by rw [hd, htop]; exact Nat.lt_succ_self _)
+    have hwit' : ∀ k, ∃ B a, k ∈ Q → FGBlock.Preceq B D ∧ a ∈ B.rows ∧
+        a.signer = k ∧ a.height_pair.matchesEntry st.fg.h_j X.root = true := by
+      intro k
+      by_cases hk : k ∈ Q
+      · obtain ⟨B, a, ha⟩ := hwit k hk
+        exact ⟨B, a, fun _ => ha⟩
+      · exact ⟨.genesis, ⟨k, .empty, none⟩, fun h => (hk h).elim⟩
+    choose B a ha using hwit'
+    have hXroot := ((hidentity i x D hx hD).1 st.fg.h_j X Q
+      (fun k => (B k, a k)) hjhigh
+      (by rw [hd, htop]; exact Nat.lt_succ_self _) hXD hXheight hQ ha).1
+    have he : st.fg.J = X := FGBlock.root_injective (hJroot.trans hXroot.symm)
+    exact he ▸ hXD
+  exact hbad (allWitnesses W hW hw)
+
+/-- Paper 22:841–879: the three high record guards used by K-MID and K-ROWS.
+DC: INTENTIONAL: this predicate only names the proved record fields. -/
+abbrev HighRecordGuard_W {n : Nat} (Λ : RecordOnce) (y : Nat) (U : FGBlock (Fin n)) : Prop :=
+  (Λ.target y = none ∨ Λ.target y = some U.root) ∧ Λ.timeout y = false ∧
+    (Λ.lock y = none ∨ Λ.lock y = some U.root)
+
+/-- Paper 22:841–879: the equation for the high record guard.
+DC: INTENTIONAL: the three durable record fields. -/
+theorem HighRecordGuard_W_def {n : Nat} (Λ : RecordOnce) (y : Nat) (U : FGBlock (Fin n)) :
+    HighRecordGuard_W Λ y U =
+      ((Λ.target y = none ∨ Λ.target y = some U.root) ∧ Λ.timeout y = false ∧
+        (Λ.lock y = none ∨ Λ.lock y = some U.root)) := rfl
+
+/-- Paper 22:841–879: FF2 through the K-ROWS plan's common telescope, without A or m.
+DC: INTENTIONAL: the thin adapter uses H1 over all rounds and QC origin. -/
+theorem ff2_high_record_guards [Fintype V] (G ΔF : Time) (pt : KernelPt)
+    (_hδ : p.δt = 2 * p.R) (hK : KernelPrem_W p c G ΔF E rho pt)
+    (_hFG : FGFoundation p c E rho) (_hCert : RCert p c E rho)
+    (hQC : RQCOrigin p c E rho) (_hXing : RXing p c E rho)
+    (_hTiming : TimingContract p c E rho)
+    (hNames : ∀ j x r a, HonestRowAt p c E rho j x r a →
+      ∃ e C H, namedEntry a.payload.height_pair = some e ∧
+        actionSourceFG p c E rho x r = some (some C) ∧
+        e = ((heightView p C).h, (heightView p C).T_h.root) ∧
+        FGBlock.Preceq (heightView p C).T_h C ∧
+        gateResult p c E rho x (r * p.R) = some (some H) ∧
+        Block.Preceq (eraseFG C) H ∧ fastAt p c E rho x (r * p.R) (eraseFG C)) :
+    ∀ a r C, a ∈ rho.honest → actionSourceFG p c E rho a r = some (some C) →
+      high p pt.w C → ∀ i x, i ≤ rho.events.length → x ∈ rho.honest →
+        HighRecordGuard_W (V2.D.Run.stateBefore E rho i x).record
+          (heightView p C).h (heightView p C).T_h := by
+  have hnames : ∀ j x r a e, HonestRowAt p c E rho j x r a →
+      namedEntry a.payload.height_pair = some e →
+      ∃ C, actionSourceFG p c E rho x r = some (some C) ∧
+        e = ((heightView p C).h, (heightView p C).T_h.root) := by
+    intro j x r a e ha he
+    obtain ⟨e', C, H, he', hs, hc, _⟩ := hNames j x r a ha
+    have heq := Option.some.inj (he.symm.trans he')
+    exact ⟨C, hs, heq.trans hc⟩
+  intro a r C ha hs hc i x _hi hx
+  rw [HighRecordGuard_W_def]
+  have hentry := recordInv_entry_source p c E rho pt.w hK.input.t.h1 a r C ha hs hc
+  obtain ⟨ht, hn, hl, _⟩ := recordInv_all p c E rho pt.w hK.input.t.h1 hQC hnames
+    i x hx (heightView p C).h hc
+  simpa only [hentry] using And.intro ht (And.intro hn hl)
 
 end AvailableChain.FGSA.Run

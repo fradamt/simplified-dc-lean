@@ -39,6 +39,15 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.high_target_first_row',
     'AvailableChain.FGSA.Run.high_target_honest_quorum',
     'AvailableChain.FGSA.Run.high_target_quorum_covered',
+    # FF2-INV r2: --expect DATA only.
+    'AvailableChain.FGSA.Run.high_action_target_choice',
+    'AvailableChain.FGSA.Run.high_record_guards_and_fresh_at_action',
+    'AvailableChain.FGSA.Run.ff2_stored_high_qc_identity',
+    'AvailableChain.FGSA.Run.ff2_high_qc_identity',
+    'AvailableChain.FGSA.Run.ff2_no_high_contest',
+    'AvailableChain.FGSA.Run.HighRecordGuard_W',
+    'AvailableChain.FGSA.Run.HighRecordGuard_W_def',
+    'AvailableChain.FGSA.Run.ff2_high_record_guards',
     # C-CORE: --expect DATA only.
     'AvailableChain.FGSA.Run.fgsa_tStart',
     'AvailableChain.FGSA.Run.fgsa_tWalk',
