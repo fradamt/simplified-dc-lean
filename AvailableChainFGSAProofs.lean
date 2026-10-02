@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Finality.Height
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersL2
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersQ
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersH6S

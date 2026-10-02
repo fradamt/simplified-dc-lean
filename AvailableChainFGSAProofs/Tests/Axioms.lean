@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Finality.Height -- shake: keep (K-HEIGHT audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.Claims -- shake: keep (S4.6b axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Foundations.HonestNeverSlashed -- shake: keep (HNS audit)
 public import AvailableChainFGSAProofs.Proofs.Foundations.FinalityApi -- shake: keep (S4.5b axiom audit)
@@ -777,3 +778,7 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.FGSAClaims.availableGST
 #print axioms AvailableChain.FGSA.Run.FGSAClaims.availableGrowthGST
 #print axioms AvailableChain.FGSA.Run.fgsa_availableGST
+#print axioms AvailableChain.FGSA.Run.fgsa_foldTrichotomy_target
+#print axioms AvailableChain.FGSA.Run.fgsa_foldTrichotomy_progress
+#print axioms AvailableChain.FGSA.Run.fgsa_noMixedMaturity
+#print axioms AvailableChain.FGSA.Run.fgsa_justifyAt
