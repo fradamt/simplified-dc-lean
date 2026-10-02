@@ -182,6 +182,7 @@ echo "== axioms, build coverage, import closure"
 TEST_ROOTS=()
 for m in $(test_modules .); do TEST_ROOTS+=(--root "$m"); done
 gate_with_slot lake env lean --run scripts/CheckFGSAAxioms.lean "${TEST_ROOTS[@]}" --expect \
+  Window.EntryBitW Window.EntryBitW_def Window.entry_bit_insertW Window.entry_bit_persistW Window.entry_bit_occurrenceW Window.entry_historyW Window.terminal_retained_scalarW Window.terminal_retained_birthsW Window.terminal_retained_or_coveredW Window.terminalRetentionW stored_r6wW stored_chain_r6wW \
   StoreSetEq admitRow_setEq proposalRows_perm_setEq propose_setEq blockAccepted_slot_pos \
   parentFoldState_slot rowsValidForParent_iff \
   rowsValidForParent_slot_irrel rowsValidForParent_perm rowsValidStored_initial \

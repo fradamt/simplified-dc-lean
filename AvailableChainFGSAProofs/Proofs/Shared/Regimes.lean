@@ -1,7 +1,6 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Shared.ExactHead
+public import AvailableChainFGSAProofs.Proofs.Shared.RetainedEndpoint
 public import AvailableChainFGSAProofs.Proofs.Shared.ExactService
-public import AvailableChainFGSAClaims.Statements.Regimes
 public import AvailableChainFGSARun.Proofs.Receipts
 
 /-! F-23 exception (L47): each theorem here takes at most one regime record, Set or Contract
@@ -522,6 +521,91 @@ theorem exactService_head_of_proposal_recovery
     (fgsaDelay_nonrow E.Δ _) hGST hpt (htv.trans hhorizon)
   exact exactService_head_of_proposal E rho h.base.valid h.base.noRestart h.base.delta s
     hscore hwalk hx hip hseat b raw sup rows hem D hgeom hhorizon
+
+/-- J2 HEAD clause on a Clean prefix; 21 H.22:3100–3120, S1b E1–E6.
+DC: Goldfish/PreparedV4CanonicalProposalDuty.lean:867–887; Conditions.lean:134.
+INTENTIONAL: the Clean record supplies both G25/G11 synchronization intervals.
+Class (iii). The Shared supplier constructs walk and endpoint geometry
+from the same per-reader elementary premises. Gate service stays separate.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
+theorem exactService_head_of_retained_proposal_clean
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (b₀ : Time) (h : CleanCut₂ p c E rho b₀ ΔF)
+    (s : Slot) (hcut : SA.voteTime p.toParams s ≤ b₀)
+    {ip : Nat} {x : V} (hx : x ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
+    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+      V2.D.Run.emitsAt E rho ip)
+    (D : FGBlock (Fin p.n))
+    (hreads : ∀ y ∈ rho.honest, ∀ ih,
+      rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
+      ∃ Kc, RetainedReadPremises p
+        (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D b Kc) :
+    SA.voteTime p.toParams s ≤ rho.horizon →
+      ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some b := by
+  have hpt : SA.proposalTime p.toParams s - p.Δ + E.Δ ≤ SA.proposalTime p.toParams s := by
+    rw [h.base.delta]
+    exact le_of_eq (sub_add_cancel _ _)
+  have htv : SA.proposalTime p.toParams s ≤ SA.voteTime p.toParams s := by
+    change 4 * p.Δ * (s : Int) ≤ 4 * p.Δ * (s : Int) + p.Δ
+    linarith [p.deltaPos]
+  have hscore := Gen.V2.Duty.LabelSyncOn.of_cleanCutBy E rho
+      (fun o => ¬ isRowObject o) b₀ _ _ h.healthy
+    (fgsaDelay_nonrow E.Δ _)
+    (hpt.trans htv) hcut h.cut.2
+  have hwalk := Gen.V2.Duty.LabelSyncOn.of_cleanCutBy E rho
+      (fun o => ¬ isRowObject o) b₀ _ _ h.healthy
+    (fgsaDelay_nonrow E.Δ _)
+    hpt (htv.trans hcut) h.cut.2
+  have hgeom := fgsa_retainedExactHead_geometry_on_run E rho h.base.valid h.base.noRestart
+    h.base.delta s hwalk hscore hx hip hseat b raw sup rows hem D hreads
+  exact exactService_head_of_retained_proposal E rho h.base.valid h.base.delta s
+    hip b raw sup rows hem D hgeom
+
+/-- J2 HEAD clause in Recovery; 21 H.22:3100–3120, S1b E1–E6.
+DC: Goldfish/PreparedV4CanonicalProposalDuty.lean:867–887; Conditions.lean:110.
+INTENTIONAL: GST precedes t_s - Δ, and the HEAD horizon supplies both
+G25/G11 synchronization intervals. Class (iii). The Shared supplier
+constructs geometry from per-reader premises. Gate service stays separate.
+DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
+non-row traffic keeps Δ. -/
+theorem exactService_head_of_retained_proposal_recovery
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (G : Time) (h : Recovery₂ p c E rho G ΔF)
+    (s : Slot) (hGST : E.t_GST ≤ SA.proposalTime p.toParams s - p.Δ)
+    {ip : Nat} {x : V} (hx : x ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
+    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+      V2.D.Run.emitsAt E rho ip)
+    (D : FGBlock (Fin p.n))
+    (hreads : ∀ y ∈ rho.honest, ∀ ih,
+      rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
+      ∃ Kc, RetainedReadPremises p
+        (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D b Kc) :
+    SA.voteTime p.toParams s ≤ rho.horizon →
+      ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some b := by
+  intro hhorizon
+  have hpt : SA.proposalTime p.toParams s - p.Δ + E.Δ ≤ SA.proposalTime p.toParams s := by
+    rw [h.base.delta]
+    exact le_of_eq (sub_add_cancel _ _)
+  have htv : SA.proposalTime p.toParams s ≤ SA.voteTime p.toParams s := by
+    change 4 * p.Δ * (s : Int) ≤ 4 * p.Δ * (s : Int) + p.Δ
+    linarith [p.deltaPos]
+  have hscore := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _ h.sync
+    (fgsaDelay_nonrow E.Δ _) hGST (hpt.trans htv) hhorizon
+  have hwalk := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _ h.sync
+    (fgsaDelay_nonrow E.Δ _) hGST hpt (htv.trans hhorizon)
+  have hgeom := fgsa_retainedExactHead_geometry_on_run E rho h.base.valid h.base.noRestart
+    h.base.delta s hwalk hscore hx hip hseat b raw sup rows hem D hreads
+  exact exactService_head_of_retained_proposal E rho h.base.valid h.base.delta s
+    hip b raw sup rows hem D hgeom hhorizon
 
 /-- P3 A.9 and blueprint 21 H.22 H3, conditional Clean exact service.
 DC: Generic/Conditions.lean:134–156; UserConfirmationRecovery.lean:235.

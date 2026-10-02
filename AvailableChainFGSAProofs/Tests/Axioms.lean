@@ -1,5 +1,14 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.RetainedEndpoint -- shake: keep (endpoint audit)
+public import AvailableChainFGSAProofs.Proofs.Shared.RetainedPersist -- shake: keep (persistence audit)
+public import AvailableChainFGSAProofs.Proofs.Shared.RetainedReflect -- shake: keep (reflection audit)
+public import AvailableChainFGSAProofs.Proofs.Shared.RetainedScores -- shake: keep (candidate score audit)
+public import AvailableChainFGSAProofs.Proofs.Shared.RetainedWalk -- shake: keep (retained geometry audit)
+public import AvailableChainFGSAProofs.Proofs.Foundations.OpeningCoveredLower -- shake: keep (J7 lower gate audit)
+public import AvailableChainFGSAProofs.Proofs.Foundations.OpeningCovered -- shake: keep (J7 SO-COV audit)
+public import AvailableChainFGSAProofs.Proofs.Foundations.RowPermission -- shake: keep (J7 audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.BoundsW -- shake: keep (S4.1 axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Shared.WindowTerminal -- shake: keep (S4.2b axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedWalkStore -- shake: keep (store adapter audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.ExactHead -- shake: keep (J2 HEAD axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.ExactService -- shake: keep (ExactService audit)
@@ -589,6 +598,36 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.BatchPrem.batch_of_valid
 #print axioms AvailableChain.FGSA.Run.fgsa_batchCoverage
 
+#print axioms AvailableChain.FGSA.Run.RetainedWalkRunGeometry
+#print axioms AvailableChain.FGSA.Run.RetainedEndpointGeometry
+#print axioms AvailableChain.FGSA.Run.fgsa_retained_prefix_of_trunk_or_support
+#print axioms AvailableChain.FGSA.Run.fgsa_walk_domain_of_witness
+#print axioms AvailableChain.FGSA.Run.fgsa_eligible_eq_of_same_floor
+#print axioms AvailableChain.FGSA.Run.fgsa_eligible_eq_of_parent_height
+#print axioms AvailableChain.FGSA.Run.fgsa_score_geometry_of_domains
+#print axioms AvailableChain.FGSA.Run.fgsa_score_eq_on_candidates_on_run
+#print axioms AvailableChain.FGSA.Run.fgsa_retained_scores_of_candidates
+#print axioms AvailableChain.FGSA.Run.retainedBand
+#print axioms AvailableChain.FGSA.Run.ReflectedDomainWitness
+#print axioms AvailableChain.FGSA.Run.RetainedReadPremises
+#print axioms AvailableChain.FGSA.Run.fgsa_domain_witness_of_mem
+#print axioms AvailableChain.FGSA.Run.fgsa_walkRun_full_domain_view
+#print axioms AvailableChain.FGSA.Run.fgsa_walkRun_path_domain_view
+#print axioms AvailableChain.FGSA.Run.fgsa_walkRun_eligible_iff_view
+#print axioms AvailableChain.FGSA.Run.fgsa_eligible_eq_of_retainedBand_score
+#print axioms AvailableChain.FGSA.Run.fgsa_walkRun_reflected_old_child
+#print axioms AvailableChain.FGSA.Run.fgsa_retained_old_child_reflects_on_run
+#print axioms AvailableChain.FGSA.Run.retainedBand_def
+#print axioms AvailableChain.FGSA.Run.ReflectedDomainWitness_def
+#print axioms AvailableChain.FGSA.Run.fgsa_domainR_eq_storeFrameView
+#print axioms AvailableChain.FGSA.Run.fgsa_walk_domain_of_witness_view
+#print axioms AvailableChain.FGSA.Run.fgsa_score_geometry_of_retained_cuts
+#print axioms AvailableChain.FGSA.Run.fgsa_retained_path_mem
+#print axioms AvailableChain.FGSA.Run.fgsa_retained_proposal_mem
+#print axioms AvailableChain.FGSA.Run.fgsa_retained_persists_of_path
+#print axioms AvailableChain.FGSA.Run.fgsa_retained_proposal_mem_on_run
+#print axioms AvailableChain.FGSA.Run.fgsa_retained_path_persists_on_run
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedWalk_geometry_on_run
 #print axioms AvailableChain.FGSA.Run.domainR_eq_storeFrame
 #print axioms AvailableChain.FGSA.Run.kappaF_ceiling
 #print axioms AvailableChain.FGSA.Run.kappaF_ge_two
@@ -609,7 +648,14 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.BF_max
 #print axioms AvailableChain.FGSA.Run.resetF_healing_eq
 #print axioms AvailableChain.FGSA.Run.B_HF_numeric_351
+#print axioms AvailableChain.FGSA.Run.rowPermission_own_lock
+#print axioms AvailableChain.FGSA.Run.rowPermission_pair
+#print axioms AvailableChain.FGSA.Run.rowPermission_covered
+#print axioms AvailableChain.FGSA.Run.rowPermission_at
+#print axioms AvailableChain.FGSA.Run.openingCovered_frontier_gate
+#print axioms AvailableChain.FGSA.Run.openingCovered_lower_gate
 
+#print axioms AvailableChain.FGSA.Run.fgsa_terminalRetentionW
 #print axioms AvailableChain.FGSA.Run.fgsa_grid_carrier_timeW
 #print axioms AvailableChain.FGSA.Run.fgsa_grid_kernel_deadlineW
 #print axioms AvailableChain.FGSA.Run.F4_W_implies_FE_W
@@ -622,6 +668,17 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.B_HF_numeric_295
 #print axioms AvailableChain.FGSA.Run.B_HF_numeric_343
 
+#print axioms AvailableChain.FGSA.Run.fgsa_headRead_block_slots
+#print axioms AvailableChain.FGSA.Run.fgsa_headRead_child_slot
+#print axioms AvailableChain.FGSA.Run.fgsa_exactHeadGeometry_of_retained_endpoint
+#print axioms AvailableChain.FGSA.Run.fgsa_headVote_covers_parent_of_retained_geometry
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedEndpoint_geometry_on_run
+#print axioms AvailableChain.FGSA.Run.RetainedExactHeadRunGeometry
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedExactHead_geometry_on_run
+#print axioms AvailableChain.FGSA.Run.fgsa_retained_source_stop
+#print axioms AvailableChain.FGSA.Run.exactService_head_of_retained_proposal
+#print axioms AvailableChain.FGSA.Run.exactService_head_of_retained_proposal_clean
+#print axioms AvailableChain.FGSA.Run.exactService_head_of_retained_proposal_recovery
 -- S4.3: W contracts, equations, constructors, fields, and pure adapters.
 #print axioms AvailableChain.FGSA.Run.pendingFold_consume_W
 #print axioms AvailableChain.FGSA.Run.covered_parent_W

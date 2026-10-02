@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSARun.Proofs.WindowExclusion
 public import AvailableChainFGSARun.Statements.Slashing
 public import AvailableChainFGSARun.Proofs.AncestorDeadlines
 public import AvailableChainFGSARun.Proofs.ReceiptCoverage
@@ -329,3 +330,9 @@ mechanically. -/
 #print axioms AvailableChain.FGSA.Run.fgsaDelay_row
 #print axioms AvailableChain.FGSA.Run.fgsaDelay_nonrow
 #print axioms AvailableChain.FGSA.Run.fgsaDelay_self
+
+-- S4.2b: entry history, terminal retention, and checked admission transfer.
+#print axioms AvailableChain.FGSA.Run.stored_rows_r3W
+#print axioms AvailableChain.FGSA.Run.stored_chain_rowsValidW
+#print axioms AvailableChain.FGSA.Run.exact_row_exclusion_checkedW
+#print axioms AvailableChain.FGSA.Run.exact_row_exclusionW

@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAClaims.Claims.Finality -- shake: keep (S4.3b axiom audit)
+public import AvailableChainFGSAClaims.Claims.WeakContinuation -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAClaims.Statements.BoundsW -- shake: keep (S4.1 axiom audit)
 public import AvailableChainFGSAClaims.Statements.Phases -- shake: keep (07-H audit)
 public import AvailableChainFGSAClaims.Claims.Healing -- shake: keep (07-H audit)
@@ -459,6 +460,13 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.ActionDeliveryBoundsW_def
 #print axioms AvailableChain.FGSA.Run.KernelBeforeNextActionW_def
 
+#print axioms AvailableChain.FGSA.Run.StrongRecoverySearchPrefix₂
+#print axioms AvailableChain.FGSA.Run.AgreesThrough₂
+#print axioms AvailableChain.FGSA.Run.CleanContinuation₂
+#print axioms AvailableChain.FGSA.Run.BoundedHealingCut₂
+#print axioms AvailableChain.FGSA.Run.SSafeFromCut₂
+#print axioms AvailableChain.FGSA.Run.BoundedSafetyRecovery₂
+#print axioms AvailableChain.FGSA.Run.WeakContinuationClaim
 -- S4.4a: row-delay liveness binding and actual-event finite horizon.
 #print axioms AvailableChain.FGSA.Run.HealingPrem.bound
 #print axioms AvailableChain.FGSA.Run.KernelJoinedPrem.bound
@@ -476,6 +484,9 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.Tail_Wp_def
 #print axioms AvailableChain.FGSA.Run.B_FW_def
 
+-- S4.2b: terminal retention contract.
+#print axioms AvailableChain.FGSA.Run.TerminalRetention_W
+#print axioms AvailableChain.FGSA.Run.TerminalRetention_W_def
 -- S4.3: W contracts, equations, constructors, fields, and pure adapters.
 #print axioms AvailableChain.FGSA.Run.FinalityCoveredByChild_W
 #print axioms AvailableChain.FGSA.Run.FinRowNames

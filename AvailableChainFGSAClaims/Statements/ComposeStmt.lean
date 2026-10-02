@@ -144,38 +144,44 @@ def B'_reset (G : Time) : Time :=
   if p.k ≤ 2 * p.R + 1 then min (B_reset p G (ρΓ p G)) (B_reset p G (ρ₁ p G))
   else B_reset p G (ρΓ p G)
 /-- Reset arrival, exactly H.11 (21:1572–1595), P3 A.10 with lead ruling
-2026-09-30. Consumers: H.12–H.17. The reset horizon is unchanged.
+2026-09-30. Consumers: H.12–H.17. The reset bound uses the common ΔF.
+DC: INTENTIONAL row-delay bound; H0Reset and SA clocks stay unchanged.
 A consumer of Q* must use ResetArrivalFullStatement. -/
-def ResetArrivalStatement (G : Time) : Prop := p.δt = 2 * p.R →
+def ResetArrivalStatement (G ΔF : Time) : Prop := p.δt = 2 * p.R →
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
-    HealingSet p c E rho G → E.t_GST + B'_reset p G ≤ rho.horizon →
-    ∃ w, H0Reset p c E rho w ∧ p.actionTime w.rStar < E.t_GST + B'_reset p G
+    HealingSet p c E rho G ΔF → LivenessBoundW p ΔF →
+    E.t_GST + B'_resetF p ΔF G ≤ rho.horizon →
+    ∃ w, H0Reset p c E rho w ∧ p.actionTime w.rStar < E.t_GST + B'_resetF p ΔF G
 
-theorem ResetArrivalStatement_def (G : Time) :
-    ResetArrivalStatement p G =
+theorem ResetArrivalStatement_def (G ΔF : Time) :
+    ResetArrivalStatement p G ΔF =
   (p.δt = 2 * p.R →
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
-    HealingSet p c E rho G → E.t_GST + B'_reset p G ≤ rho.horizon →
-    ∃ w, H0Reset p c E rho w ∧ p.actionTime w.rStar < E.t_GST + B'_reset p G) := by rfl
+    HealingSet p c E rho G ΔF → LivenessBoundW p ΔF →
+    E.t_GST + B'_resetF p ΔF G ≤ rho.horizon →
+    ∃ w, H0Reset p c E rho w ∧ p.actionTime w.rStar < E.t_GST + B'_resetF p ΔF G) := by rfl
 
 /-- Full companion: H.11 reset plus H.18 (21:2868–2876;3174–3176),
 P3 A.10 with lead ruling 2026-09-30. Consumers: full H0, HealingInput,
-tstarOf and joined kernel. Only the horizon adds Γ + 4Δ; reset time does not. -/
-def ResetArrivalFullStatement (G : Time) : Prop := p.δt = 2 * p.R →
+tstarOf and joined kernel. Only the horizon adds Γ + 4Δ; reset time does not.
+DC: INTENTIONAL row-delay bound; the block and gate tail stays Δ-based. -/
+def ResetArrivalFullStatement (G ΔF : Time) : Prop := p.δt = 2 * p.R →
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
-    HealingSet p c E rho G → E.t_GST + B'_reset p G + Γ p G + 4 * p.Δ ≤ rho.horizon →
-    ∃ w, H0 p c E rho w ∧ p.actionTime w.rStar < E.t_GST + B'_reset p G
+    HealingSet p c E rho G ΔF → LivenessBoundW p ΔF →
+    E.t_GST + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
+    ∃ w, H0 p c E rho w ∧ p.actionTime w.rStar < E.t_GST + B'_resetF p ΔF G
 
-theorem ResetArrivalFullStatement_def (G : Time) :
-    ResetArrivalFullStatement p G =
+theorem ResetArrivalFullStatement_def (G ΔF : Time) :
+    ResetArrivalFullStatement p G ΔF =
   (p.δt = 2 * p.R →
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
-    HealingSet p c E rho G → E.t_GST + B'_reset p G + Γ p G + 4 * p.Δ ≤ rho.horizon →
-    ∃ w, H0 p c E rho w ∧ p.actionTime w.rStar < E.t_GST + B'_reset p G) := by rfl
+    HealingSet p c E rho G ΔF → LivenessBoundW p ΔF →
+    E.t_GST + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
+    ∃ w, H0 p c E rho w ∧ p.actionTime w.rStar < E.t_GST + B'_resetF p ΔF G) := by rfl
 
 /-- bp.finalityKernel.v1 conclusion (00:1124–1128), P3 A.10.
 Consumer: kernel and finality claims. Afg is concluded, not assumed held.
@@ -562,21 +568,22 @@ structure HealRContract (w : HealingWitness) : Prop where
   FG-SA adds post-reset source provenance and event order. -/
   fprov : RFProv p c E rho w
 
-/-- DC: INTENTIONAL finite-horizon attempt budget from actual emission actions. -/
-def ProgressAttemptStatement (G : Time) : Prop :=
+/-- DC: INTENTIONAL explicit row-delay regime with its κ bound.
+The H.10 budget and its horizon after the actual start event stay unchanged. -/
+def ProgressAttemptStatement (G ΔF : Time) : Prop :=
   p.δt = 2 * p.R →
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
-    HealingSet p c E rho G → ∀ k ev, AttemptValid p c E rho k →
+    HealingSet p c E rho G ΔF → LivenessBoundW p ΔF → ∀ k ev, AttemptValid p c E rho k →
     rho.events[k.start]? = some ev → ev.time + attemptBudget p G k ≤ rho.horizon →
     AttemptEndsBy p c E rho k (attemptBudget p G k)
 
-theorem ProgressAttemptStatement_def (G : Time) :
-    ProgressAttemptStatement p G =
+theorem ProgressAttemptStatement_def (G ΔF : Time) :
+    ProgressAttemptStatement p G ΔF =
   (p.δt = 2 * p.R →
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
-    HealingSet p c E rho G → ∀ k ev, AttemptValid p c E rho k →
+    HealingSet p c E rho G ΔF → LivenessBoundW p ΔF → ∀ k ev, AttemptValid p c E rho k →
     rho.events[k.start]? = some ev → ev.time + attemptBudget p G k ≤ rho.horizon →
     AttemptEndsBy p c E rho k (attemptBudget p G k)) := by rfl
 

@@ -1,0 +1,317 @@
+module
+public import AvailableChainFGSAProofs.Proofs.Shared.RetainedPersist
+public import AvailableChainFGSAProofs.Proofs.Shared.ExactHead
+
+public section
+
+namespace AvailableChain.FGSA.Run
+
+open AvailableChain.SimplexFG
+open Gen.Pure
+open RetainedWalk
+
+variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
+
+/-- Blueprint 21 H.6:956–958, H.17:3006–3012 (design 812–814,2865–2872);
+spec 992–1017, 1555–1581. Class (iii). DC: INTENTIONAL; the scheduled HEAD clock
+preserves stored blocks and bounds their slots by the current label. -/
+theorem fgsa_headRead_block_slots (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {v : V} {s : Slot}
+    (hi : rho.events[i]? = some (.tick v (SA.voteTime p.toParams s))) :
+    ∀ C ∈ (clock p (rho.stateBefore E i v).st (SA.voteTime p.toParams s)).base.blocks,
+      C.slot ≤ s := by
+  intro C hm
+  rw [clock_base_blocks] at hm
+  have hn := fgsa_preTick_now_lt E rho hs hi (by
+    change 0 < 4 * p.Δ * (s : Int) + p.Δ
+    have hd := p.deltaPos
+    have hs := Int.natCast_nonneg s
+    positivity)
+  have hslot := Internal.slotOf_mono (p := p) (le_of_lt hn)
+  have ht : p.slotOf (SA.voteTime p.toParams s) = s := by
+    simpa only [(fgsa_postClock_slot (c := c) (rho.stateBefore E i v) _).2] using
+      fgsa_vote_slot (c := c) (rho.stateBefore E i v) s
+  exact ((fgsa_stateBefore_bounds E rho hs i v).1 C hm).trans (ht ▸ hslot)
+
+/-- Blueprint 03:367–373; 21 H.17:3006–3012 (design 2865–2872);
+spec 1387–1401, 1555–1581. Class (iii). DC: INTENTIONAL; accepted proposal validity
+supplies strict parent-slot growth. Row metadata passes through unchanged. -/
+theorem fgsa_headRead_child_slot (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (i : Nat) (v : V) (s : Slot) (B C : Block)
+    (hm : C ∈ (clock p (rho.stateBefore E i v).st (SA.voteTime p.toParams s)).base.blocks)
+    (hp : C.parent? = some B) : B.slot < C.slot := by
+  rw [clock_base_blocks] at hm
+  have hg : C ≠ .genesis := by rintro rfl; cases hp
+  obtain ⟨w, hw, hb, j, o, t, -, hd, ho, -⟩ := fgsa_stored_block_origin E rho i v C hm hg
+  obtain ⟨r, Q, raw, sup, rows, rfl, -⟩ := (metaInv_stateBefore E rho i v).wireTree w hw
+  have hQ : Q = C := Option.some.inj hb
+  subst Q
+  have hf := hE.wire j v o t hd
+  change FGSA.wellFormed p (toWire p o) = true at hf
+  rw [ho] at hf
+  have hlt : C.parent.slot < C.slot := of_decide_eq_true
+    (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp
+      (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp hf).1).1).1).1).2
+  have hpar : C.parent = B := by
+    cases C with
+    | genesis => cases hp
+    | node P t r => exact Option.some.inj hp
+  simpa only [hpar] using hlt
+
+/-- Blueprint 21 H.6:956–958, H.17:3006–3012 (design 812–814,2865–2872);
+spec 1387–1401, 1555–1581. Class (iii). DC: INTENTIONAL; old children reflect to the
+terminal source, current children equal b, and future children are absent. -/
+theorem fgsa_exactHeadGeometry_of_retained_endpoint
+    (p : Params) (src dst : State p.n) (s : Slot) (b : Block)
+    (hsourceStop : NoEligibleChild (S p src) (es p src s) b.parent)
+    (h : RetainedEndpointGeometry p src dst s b) : ExactHeadGeometry p dst s b := by
+  have hel : et p dst s b = true := by
+    unfold et eligible
+    rw [h.proposal_slot, h.target_slot]
+    simp only [beq_self_eq_true, Bool.or_true]
+  constructor
+  · rw [fgsa_domainR_eq_storeFrameView]
+    refine ⟨h.proposal_mem, h.proposal_parent, hel, ?_⟩
+    intro C hm hp he
+    rcases Nat.lt_or_eq_of_le (h.no_future C hm) with hold | hcurrent
+    · obtain ⟨hs, he'⟩ := h.old_reflects C hm hp hold he
+      have hn := hsourceStop C hs hp
+      simp only [he', Bool.true_eq_false] at hn
+    · exact h.current_unique C hm hcurrent
+  · rw [fgsa_domainR_eq_storeFrameView]
+    intro C hm hp
+    have hlt := h.child_slot C hm hp
+    have hle := h.no_future C hm
+    rw [h.proposal_slot] at hlt
+    exact (Nat.not_lt_of_ge hle hlt).elim
+
+-- Local unfolding steps for two model definitions; stated by `rfl` here so that this
+-- module exports no equation lemma of a definition it does not own (B3a).
+private theorem erasedList_unfold {n : Nat} (st : State n) (X : Finset (FGBlock (Fin n))) :
+    erasedList st X = st.base.blocks.filter (fun b => decide (∃ B ∈ X, eraseFG B = b)) := rfl
+
+private theorem headInTree_unfold (st : State p.n) (tree : List Block)
+    (raw support : List (GridCO.Wire p.n)) :
+    headInTree p st tree raw support =
+      GridCO.ghost (liveRoot p st) tree (GridCO.goldfishScore st.base.blocks raw support)
+        (eligible p st raw support) := rfl
+
+/-- Blueprint 21 H.6:947–958, H.17:2987–3012 (design 798–814,2847–2872);
+spec 1387–1401, 1555–1581. Class (iii). DC: INTENTIONAL;
+ProposalWalkTransportCore.lean:162,259 supplies retained walk transport.
+Use the named view bridge at the actual HEAD domain. -/
+theorem fgsa_headVote_covers_parent_of_retained_geometry
+    (p : Params) (src dst : State p.n) (s : Slot) (hs : s ≠ 0)
+    (D : FGBlock (Fin p.n)) (b Kc : Block)
+    (hparent : getHead p src (proposerVotes src s) (proposerSupport src s) = b.parent)
+    (h : RetainedWalkRunGeometry p src dst s D b Kc) :
+    Block.Preceq b.parent (headVote p dst s) := by
+  have hp := (fgsa_ordinary_parent_of_live_prefix p src
+    (proposerVotes src s) (proposerSupport src s) b.parent hparent
+    (by simpa only [BestAncestry_def, S, fullTree_eq, erasedList_unfold, z, ap, ss, es]
+      using h.ordinary_prefix)).2
+  have hsource : Block.Preceq b.parent (GridCO.ghost (z p src) (S p src)
+      (ss src s) (es p src s)) := by
+    simpa only [S, fullTree_eq, erasedList_unfold, z, ss, es, hp] using block_preceq_refl b.parent
+  have hc := walk_covers_of_retained_transport (z p src) (ay p dst) Kc b.parent
+    (S p src) (T p dst s) (ss src s) (ts p dst s) (es p src s) (et p dst s)
+    hsource h.source_cut h.target_cut h.cut_parent h.target_prefix h.persists h.reflects h.scores
+  rw [headVote_eq, ite_eq_right hs]
+  simpa only [domainR_eq_storeFrame, headInTree_unfold, ay, ts, et] using
+    (show Block.Preceq b.parent
+      (GridCO.ghost (ay p dst) (erasedList dst (domainR p dst (voterBlocks p dst s)))
+        (ts p dst s) (et p dst s)) by
+      rw [fgsa_domainR_eq_storeFrameView]
+      exact hc)
+
+/-- Blueprint 21 H.6:956–958, H.17:3006–3012 (design 812–814,2865–2872);
+spec 1387–1401, 1555–1581. Class (iii). DC: INTENTIONAL; complete the endpoint fields
+from actual emission, current-slot uniqueness and accepted block bounds. -/
+theorem fgsa_retainedEndpoint_geometry_on_run
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (s : Slot)
+    {ip ih : Nat} {x y : V} (hx : x ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)))
+    (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
+    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+      rho.emitsAt E ip)
+    (hmem : b ∈ T p (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s)
+    (hold : ∀ C ∈ T p (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s,
+      C.parent? = some b.parent → C.slot < s →
+      et p (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s C = true →
+      C ∈ S p (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s)) ∧
+      es p (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s)) s C = true) :
+    RetainedEndpointGeometry p
+      (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+      (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s b := by
+  have hm := hem
+  rw [(V2.D.Run.step_tick_eq E rho hip).2] at hm
+  have hp := (fgsa_emits_proposal E rho _ x _ s _).mp hm
+  have hparent := fgsa_walkRun_proposal_parent p _ s _ b raw sup rows hp.2.2.2
+  refine ⟨hold, hmem, hparent.2.2 ▸ hparent.2.1,
+    (fgsa_scoreRun_proposal_pools p _ s _ b raw sup rows hp.2.2.2).1,
+    fgsa_vote_slot (c := c) _ s, ?_, ?_, ?_⟩
+  · intro C hm hs
+    apply fgsa_walkRun_current_block_eq E rho hE s hparent.1 hx hip hseat b raw sup rows hem C
+    · simpa only [clock_base_blocks] using (List.mem_filter.mp hm).1
+    · exact hs
+  · intro C hm
+    exact fgsa_headRead_block_slots E rho hE.toScheduleWellFormed hih C (List.mem_filter.mp hm).1
+  · intro C hm hp
+    exact fgsa_headRead_child_slot E rho hE ih y s b C (List.mem_filter.mp hm).1 hp
+
+/-- Blueprint 21 H.6:927–958, H.17:2957–3012 (design 783–814,2818–2872);
+spec 1387–1401, 1555–1581. Class (iii). DC: INTENTIONAL; per-reader retained geometry
+for the scheduled HEAD clause. Admission is at the actual pre-clock tick. -/
+structure RetainedExactHeadRunGeometry
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (ip : Nat) (x : V) (s : Slot) (D : FGBlock (Fin p.n)) (b : Block) : Prop where
+  admitted : ∀ y ∈ rho.honest, ∀ ih,
+    rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
+      b ∈ (rho.stateBefore E ih y).st.base.blocks
+  walk : ∀ y ∈ rho.honest, ∀ ih,
+    rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
+      ∃ Kc, RetainedWalkRunGeometry p
+        (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D b Kc
+  endpoint : ∀ y ∈ rho.honest, ∀ ih,
+    rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
+      RetainedEndpointGeometry p
+        (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s b
+
+/-- Blueprint 21 H.6:927–958, H.17:2957–3012 (design 783–814,2818–2872);
+spec 1387–1401, 1555–1581. Class (iii). DC: INTENTIONAL; S1–S8 produce all fields
+from per-reader premises. E.proposal_mem supplies pre-clock admission, so
+reflection has no outstanding admission premise at this packaging point. -/
+theorem fgsa_retainedExactHead_geometry_on_run
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
+    (s : Slot)
+    (hWalkSync : Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o)
+      (SA.proposalTime p.toParams s - p.Δ) (SA.proposalTime p.toParams s))
+    (hScoreSync : Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o)
+      (SA.proposalTime p.toParams s - p.Δ) (SA.voteTime p.toParams s))
+    {ip : Nat} {x : V} (hx : x ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
+    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+      rho.emitsAt E ip)
+    (D : FGBlock (Fin p.n))
+    (hreads : ∀ y ∈ rho.honest, ∀ ih,
+      rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
+      ∃ Kc, RetainedReadPremises p
+        (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D b Kc) :
+    RetainedExactHeadRunGeometry E rho ip x s D b := by
+  have hm := hem
+  rw [(V2.D.Run.step_tick_eq E rho hip).2] at hm
+  have hp := (fgsa_emits_proposal E rho _ x _ s _).mp hm
+  have hs := (fgsa_walkRun_proposal_parent p _ s _ b raw sup rows hp.2.2.2).1
+  obtain ⟨r, rfl⟩ := Nat.exists_eq_succ_of_ne_zero (Nat.ne_of_gt hs)
+  have supply : ∀ y ∈ rho.honest, ∀ ih,
+      rho.events[ih]? = some (.tick y (SA.voteTime p.toParams (r + 1))) →
+      ∃ Kc, RetainedWalkRunGeometry p
+        (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (r + 1)))
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (r + 1))) (r + 1) D b Kc ∧
+      RetainedEndpointGeometry p
+        (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (r + 1)))
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (r + 1))) (r + 1) b := by
+    intro y hy ih hih
+    obtain ⟨Kc, hr⟩ := hreads y hy ih hih
+    obtain ⟨hw, hm, ho⟩ := fgsa_retainedWalk_geometry_on_run E rho hE hN hDelta r
+      hWalkSync hScoreSync hx hy hip hih hseat b raw sup rows hem D Kc hr
+    exact ⟨Kc, hw, fgsa_retainedEndpoint_geometry_on_run E rho hE (r + 1)
+      hx hip hih hseat b raw sup rows hem hm ho⟩
+  constructor
+  · intro y hy ih hih
+    obtain ⟨Kc, hw, he⟩ := supply y hy ih hih
+    simpa only [clock_base_blocks] using (List.mem_filter.mp he.proposal_mem).1
+  · intro y hy ih hih
+    obtain ⟨Kc, hw, he⟩ := supply y hy ih hih
+    exact ⟨Kc, hw⟩
+  · intro y hy ih hih
+    obtain ⟨Kc, hw, he⟩ := supply y hy ih hih
+    exact he
+
+/-- Blueprint 03:341–373; 21 H.6:956–958 (design 812–814); spec 1387–1394.
+Class (iii). DC: INTENTIONAL; the full proposer tree is ancestor closed
+above its actual anchor, so its finite walk has no eligible child. -/
+theorem fgsa_retained_source_stop (p : Params) (src : State p.n) (s : Slot)
+    (h : CStoreInv p src) (b : Block)
+    (hp : getHead p src (proposerVotes src s) (proposerSupport src s) = b.parent) :
+    NoEligibleChild (S p src) (es p src s) b.parent := by
+  have ht := fgsa_headInTree_noEligibleChild p src h src.fg.TF (fun _ hm => hm)
+    (KitFG.ancestor_closed_of_parent_closed _ h.fg.closed)
+    (proposerVotes src s) (proposerSupport src s)
+  have he : fullTree p src = filteredFrom p.E p.cfg (controls p src) src.fg.TF := by
+    rw [fullTree_eq, storeFrame, controls_eq]
+  rw [← he] at ht
+  rw [← hp]
+  exact ht
+
+/-- Blueprint 00:126–142; 21 H.22:3109–3114. Class (iii).
+DC: INTENTIONAL; the unique scheduled tick identifies the option reader. -/
+private theorem retainedHead_tickIdx
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hsch : V2.D.ScheduleWellFormed E rho) {i : Nat} {x : V} {t : Time}
+    (hi : rho.events[i]? = some (.tick x t)) : V2.D.Run.tickIdx? rho x t = some i := by
+  have hil := (List.getElem?_eq_some_iff.mp hi).1
+  obtain ⟨j, hj⟩ : ∃ j, V2.D.Run.tickIdx? rho x t = some j := by
+    rw [V2.D.Run.tickIdx?, ← Option.isSome_iff_exists, List.findIdx?_isSome, List.any_eq_true]
+    refine ⟨rho.events[i], List.getElem_mem hil, ?_⟩
+    rw [(List.getElem?_eq_some_iff.mp hi).2]
+    exact decide_eq_true ⟨rfl, rfl⟩
+  exact (fgsa_tick_unique E rho hsch (V2.D.Run.tickIdx?_spec hj) hi) ▸ hj
+
+/-- Blueprint 00:126–142; 21 H.6:956–958, H.17:3006–3012,
+H.22:3109–3114 (design 812–814,2865–2872). Class (iii).
+DC: INTENTIONAL; scheduled honest readers include sleeping readers.
+Apply EH:57 at the local pivot ay. Timing and admission are already
+resolved by the geometry supplier; gate service remains separate. -/
+theorem exactService_head_of_retained_proposal
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (hDelta : E.Δ = p.Δ)
+    (s : Slot)
+    {ip : Nat} {x : V}
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+      V2.D.Run.emitsAt E rho ip)
+    (D : FGBlock (Fin p.n)) (hgeom : RetainedExactHeadRunGeometry E rho ip x s D b) :
+    SA.voteTime p.toParams s ≤ rho.horizon →
+      ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some b := by
+  intro hhorizon y hy
+  let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s)
+  have hm := hem
+  rw [(V2.D.Run.step_tick_eq E rho hip).2] at hm
+  have hp := (fgsa_emits_proposal E rho _ x _ s _).mp hm
+  have hparent := fgsa_walkRun_proposal_parent p src s _ b raw sup rows hp.2.2.2
+  have hstop := fgsa_retained_source_stop p src s
+    (cstoreInv_clock p _ (cstoreInv_stateBefore E rho ip x) _) b hparent.2.2.symm
+  have hvt : ((4 * s + 1 : Nat) : Time) * p.Δ = SA.voteTime p.toParams s := by
+    change ((4 * s + 1 : Nat) : Int) * p.Δ = 4 * p.Δ * (s : Int) + p.Δ
+    push_cast
+    ring
+  obtain ⟨ih, hih, _⟩ := fgsa_tick_total E rho hE.toScheduleWellFormed hDelta y hy
+    (4 * s + 1) (hvt ▸ hhorizon)
+  rw [hvt] at hih
+  let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)
+  obtain ⟨Kc, hw⟩ := hgeom.walk y hy ih hih
+  have hc := fgsa_headVote_covers_parent_of_retained_geometry p src dst s
+    (Nat.ne_of_gt hparent.1) D b Kc hparent.2.2.symm hw
+  have he := fgsa_exactHeadGeometry_of_retained_endpoint p src dst s b hstop
+    (hgeom.endpoint y hy ih hih)
+  have hexact := fgsa_headVote_exact_of_covered_parent p dst s (Nat.ne_of_gt hparent.1)
+    (ay p dst) b (Or.inr ⟨block_preceq_refl _, hw.target_parent⟩) hw.target_parent hc he
+  have ht := retainedHead_tickIdx E rho hE.toScheduleWellFormed hih
+  change (postClock E rho y (SA.voteTime p.toParams s)).map _ = some b
+  rw [postClock_def, preTick_def, ht]
+  change some (headVote p dst s) = some b
+  exact congrArg some hexact
+
+end AvailableChain.FGSA.Run
+end

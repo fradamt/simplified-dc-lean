@@ -80,10 +80,10 @@ abbrev CleanPrefixSet (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (b₀ : Time) (ΔF : Time := E.Δ) : Prop :=
   CleanPrefix₂ p c E rho b₀ ΔF
 /-- DC: INTENTIONAL family delivery with an explicit row bound.
-The default keeps ComposeStmt and the deferred best/search forms compatible.
+Every caller supplies the row delay explicitly.
 HealingPrem carries LivenessBoundW for the active healing claims. -/
 abbrev HealingSet (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (G : Time)
-    (ΔF : Time := E.Δ) : Prop :=
+    (ΔF : Time) : Prop :=
   Recovery₂ p c E rho G ΔF
 
 /-- DC: INTENTIONAL family delivery binds ΔF in the recovery core.

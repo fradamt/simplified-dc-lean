@@ -1,4 +1,7 @@
 module
+public import AvailableChainFGSA.Proofs.WindowOccurrences
+public import AvailableChainFGSA.Proofs.WindowTerminal
+public import AvailableChainFGSA.Proofs.WindowAdmissionInvariant
 public import AvailableChainFGSA.Proofs.WindowRetention
 public import AvailableChainFGSA.Statements.WindowEntries
 public import AvailableChainFGSA.Proofs.EmissionFields
@@ -495,3 +498,17 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 
 #print axioms AvailableChain.FGSA.fgsa_Z_preceq_liveRoot
 #print axioms AvailableChain.FGSA.attest_source_heightView
+
+-- S4.2b: entry history, terminal retention, and checked admission transfer.
+#print axioms AvailableChain.FGSA.Window.EntryBitW
+#print axioms AvailableChain.FGSA.Window.EntryBitW_def
+#print axioms AvailableChain.FGSA.Window.entry_bit_insertW
+#print axioms AvailableChain.FGSA.Window.entry_bit_persistW
+#print axioms AvailableChain.FGSA.Window.entry_bit_occurrenceW
+#print axioms AvailableChain.FGSA.Window.entry_historyW
+#print axioms AvailableChain.FGSA.Window.terminal_retained_scalarW
+#print axioms AvailableChain.FGSA.Window.terminal_retained_birthsW
+#print axioms AvailableChain.FGSA.Window.terminal_retained_or_coveredW
+#print axioms AvailableChain.FGSA.stored_r6wW
+#print axioms AvailableChain.FGSA.stored_chain_r6wW
+#print axioms AvailableChain.FGSA.Window.terminalRetentionW
