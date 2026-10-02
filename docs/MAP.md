@@ -1500,6 +1500,12 @@ unused imports, and negative controls. No baseline entries were added.
 │ Compose.lean                                    │                                     │
 │ AvailableChainFGSAClaims/Statements/Witness.lean │ Common healing witness and tstar    │
 │ AvailableChainFGSAClaims/Statements/Healed.lean │ HEALED via the Gen property kernel  │
+│ AvailableChainFGSAClaims/Statements/WeakContinu │ Bounded weak-continuation statement │
+│ ation.lean                                      │                                     │
+│ AvailableChainFGSAClaims/Claims/WeakContinuatio │ Universal safety-only claim         │
+│ n.lean                                          │                                     │
+│ AvailableChainFGSAClaims/Tests/WeakContinuation │ Self-continuation and cut controls  │
+│ .lean                                           │                                     │
 │ AvailableChainFGSAProofs/Proofs/Shared/Healed.lean │ Same-time and later-start proofs    │
 │ AvailableChainFGSAProofs/Tests/Channels.lean    │ Old source obstruction and G1 tests │
 │ AvailableChainFGSAProofs/Tests/KeepExact.lean   │ Pivot ancestry regression tests     │

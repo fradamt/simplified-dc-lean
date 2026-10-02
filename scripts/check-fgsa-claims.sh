@@ -123,6 +123,13 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.covered_parent_W',
     'AvailableChain.FGSA.Run.finalityBatch_covered_W',
     'AvailableChain.FGSA.Run.finalizePending_of_acceptBefore_W',
+    'AvailableChain.FGSA.Run.StrongRecoverySearchPrefix₂',
+    'AvailableChain.FGSA.Run.AgreesThrough₂',
+    'AvailableChain.FGSA.Run.CleanContinuation₂',
+    'AvailableChain.FGSA.Run.BoundedHealingCut₂',
+    'AvailableChain.FGSA.Run.SSafeFromCut₂',
+    'AvailableChain.FGSA.Run.BoundedSafetyRecovery₂',
+    'AvailableChain.FGSA.Run.WeakContinuationClaim',
     # S4.4a: row-delay liveness binding and actual-event finite horizon.
     'AvailableChain.FGSA.Run.HealingPrem.bound',
     'AvailableChain.FGSA.Run.KernelJoinedPrem.bound',
@@ -899,7 +906,7 @@ EXPECTED = (
 )
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
          'Packages.Safety', 'Packages.Outage', 'Channels', 'Witness',
-         'ChannelProps', 'Healed', 'Packages.Finality', 'ComposeStmt', 'Fold',
+         'ChannelProps', 'Healed', 'WeakContinuation', 'Packages.Finality', 'ComposeStmt', 'Fold',
          'Phases', 'PhasesInternal', 'Packages.Healing')
 if not SOURCE_ONLY:
     work = Path(tempfile.mkdtemp(prefix='fgsa-claims-check.', dir=ROOT / '.lake'))
