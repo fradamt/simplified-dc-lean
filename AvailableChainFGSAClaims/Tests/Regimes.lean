@@ -125,7 +125,7 @@ private def smoke_recovery : Recovery₂ smokeParams smokeCodec smokeEnv smokeRu
   gapPos := le_rfl
 
 private def smoke_finality :
-    FinalitySet smokeParams smokeCodec smokeEnv smokeRun 4 .recC 3 smokeEnv.Δ := by
+    FinalitySet smokeParams smokeCodec smokeEnv smokeRun 4 smokeEnv.Δ .recC 3 := by
   refine ⟨smoke_recovery, ?_⟩
   change Gen.Pure.RecPatAt _ 2 Gen.Pure.FinForm.recC.pat 8 1 0 0 3 3
   refine ⟨le_rfl, ?_⟩
