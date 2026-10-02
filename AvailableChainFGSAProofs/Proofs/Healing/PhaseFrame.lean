@@ -105,7 +105,7 @@ DC: INTENTIONAL the frame includes a W certificate below its floor.
 This local form does not require a settlement time or a height-two bootstrap. -/
 theorem healing_phase_frame (crossing : RXing p c E rho)
     {i : Nat} {x : V} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
-    (hx : x ∈ rho.honest) (hm : 2 ≤ m)
+    (hx : x ∈ rho.honest) (hm : 1 ≤ m)
     (hH : (R_at p c E rho i x).H = m)
     (hc : (R_at p c E rho i x).contest = contested)
     (hr : match J with
