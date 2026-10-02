@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAClaims.Claims.WeakContinuation -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAClaims.Statements.BoundsW -- shake: keep (S4.1 axiom audit)
 public import AvailableChainFGSAClaims.Statements.Phases -- shake: keep (07-H audit)
 public import AvailableChainFGSAClaims.Claims.Healing -- shake: keep (07-H audit)
@@ -458,6 +459,13 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.ActionDeliveryBoundsW_def
 #print axioms AvailableChain.FGSA.Run.KernelBeforeNextActionW_def
 
+#print axioms AvailableChain.FGSA.Run.StrongRecoverySearchPrefix₂
+#print axioms AvailableChain.FGSA.Run.AgreesThrough₂
+#print axioms AvailableChain.FGSA.Run.CleanContinuation₂
+#print axioms AvailableChain.FGSA.Run.BoundedHealingCut₂
+#print axioms AvailableChain.FGSA.Run.SSafeFromCut₂
+#print axioms AvailableChain.FGSA.Run.BoundedSafetyRecovery₂
+#print axioms AvailableChain.FGSA.Run.WeakContinuationClaim
 -- S4.4a: row-delay liveness binding and actual-event finite horizon.
 #print axioms AvailableChain.FGSA.Run.HealingPrem.bound
 #print axioms AvailableChain.FGSA.Run.KernelJoinedPrem.bound
@@ -474,3 +482,95 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.FGood4_Wp_def
 #print axioms AvailableChain.FGSA.Run.Tail_Wp_def
 #print axioms AvailableChain.FGSA.Run.B_FW_def
+
+-- S4.3: W contracts, equations, constructors, fields, and pure adapters.
+#print axioms AvailableChain.FGSA.Run.FinalityCoveredByChild_W
+#print axioms AvailableChain.FGSA.Run.FinRowNames
+#print axioms AvailableChain.FGSA.Run.FinalityNames
+#print axioms AvailableChain.FGSA.Run.FinalityBatchPrem_W
+#print axioms AvailableChain.FGSA.Run.FinalityBatchPrem_W.mk
+#print axioms AvailableChain.FGSA.Run.FinalityBatchPrem_W.base
+#print axioms AvailableChain.FGSA.Run.FinalityBatchPrem_W.faultQ
+#print axioms AvailableChain.FGSA.Run.FinalityBatchPrem_W.deltaF
+#print axioms AvailableChain.FGSA.Run.FinalityBatchPrem_W.rowsReceipt
+#print axioms AvailableChain.FGSA.Run.FinalityBatchPrem_W.carrier
+#print axioms AvailableChain.FGSA.Run.FinalityBatchPrem_W.after
+#print axioms AvailableChain.FGSA.Run.FinalityBatchPrem_W.horizon
+#print axioms AvailableChain.FGSA.Run.FinalityBatchPrem_W.parent
+#print axioms AvailableChain.FGSA.Run.FinalityBatchPrem_W.birth
+#print axioms AvailableChain.FGSA.Run.FinalityBatchPrem_W.retainedOrCovered
+#print axioms AvailableChain.FGSA.Run.FinalityBatchPrem_W.batch
+#print axioms AvailableChain.FGSA.Run.FinalityBatchCoverage_W
+#print axioms AvailableChain.FGSA.Run.PendingFold_W
+#print axioms AvailableChain.FGSA.Run.PendingFold_W.mk
+#print axioms AvailableChain.FGSA.Run.PendingFold_W.child
+#print axioms AvailableChain.FGSA.Run.PendingFold_W.cover
+#print axioms AvailableChain.FGSA.Run.FinalityCoveredByChild_W_def
+#print axioms AvailableChain.FGSA.Run.FinRowNames_def
+#print axioms AvailableChain.FGSA.Run.FinalityNames_def
+#print axioms AvailableChain.FGSA.Run.FinalityBatchCoverage_W_def
+#print axioms AvailableChain.FGSA.Run.FreshFinalityRows_W
+#print axioms AvailableChain.FGSA.Run.TerminalCarriagePrem_W
+#print axioms AvailableChain.FGSA.Run.TerminalCarriagePrem_W.mk
+#print axioms AvailableChain.FGSA.Run.TerminalCarriagePrem_W.base
+#print axioms AvailableChain.FGSA.Run.TerminalCarriagePrem_W.faultQ
+#print axioms AvailableChain.FGSA.Run.TerminalCarriagePrem_W.deltaF
+#print axioms AvailableChain.FGSA.Run.TerminalCarriagePrem_W.carrier
+#print axioms AvailableChain.FGSA.Run.TerminalCarriagePrem_W.parent
+#print axioms AvailableChain.FGSA.Run.TerminalCarriagePrem_W.path
+#print axioms AvailableChain.FGSA.Run.TerminalCarriagePrem_W.freshHeight
+#print axioms AvailableChain.FGSA.Run.TerminalCarriagePrem_W.retainedOrCovered
+#print axioms AvailableChain.FGSA.Run.TerminalCarriagePrem_W.horizon
+#print axioms AvailableChain.FGSA.Run.TerminalCarriagePrem_W.seats
+#print axioms AvailableChain.FGSA.Run.TerminalCarriagePrem_W.rows
+#print axioms AvailableChain.FGSA.Run.TerminalCarriagePrem_W.fresh
+#print axioms AvailableChain.FGSA.Run.TerminalCarriagePrem_W.heightEntry
+#print axioms AvailableChain.FGSA.Run.TerminalCarriagePrem_W.receipt
+#print axioms AvailableChain.FGSA.Run.TerminalCarriage_W
+#print axioms AvailableChain.FGSA.Run.FreshFinalityRows_W_def
+#print axioms AvailableChain.FGSA.Run.TerminalCarriage_W_def
+#print axioms AvailableChain.FGSA.Run.JustifyAt
+#print axioms AvailableChain.FGSA.Run.JustifyFresh_W
+#print axioms AvailableChain.FGSA.Run.Ready_W
+#print axioms AvailableChain.FGSA.Run.receiptInsert_W
+#print axioms AvailableChain.FGSA.Run.ReceiptWitness_W
+#print axioms AvailableChain.FGSA.Run.ReceiptWitness_W.mk
+#print axioms AvailableChain.FGSA.Run.ReceiptWitness_W.index
+#print axioms AvailableChain.FGSA.Run.ReceiptWitness_W.time
+#print axioms AvailableChain.FGSA.Run.BlockDelivery_W
+#print axioms AvailableChain.FGSA.Run.BlockDelivery_W.mk
+#print axioms AvailableChain.FGSA.Run.BlockDelivery_W.selected
+#print axioms AvailableChain.FGSA.Run.BlockDelivery_W.witness
+#print axioms AvailableChain.FGSA.Run.AcceptGuards_W
+#print axioms AvailableChain.FGSA.Run.AcceptGuards_W.mk
+#print axioms AvailableChain.FGSA.Run.AcceptGuards_W.finCmp
+#print axioms AvailableChain.FGSA.Run.AcceptGuards_W.jPath
+#print axioms AvailableChain.FGSA.Run.AcceptGuards_W.cap
+#print axioms AvailableChain.FGSA.Run.AcceptPrem_W
+#print axioms AvailableChain.FGSA.Run.AcceptPrem_W.mk
+#print axioms AvailableChain.FGSA.Run.AcceptPrem_W.base
+#print axioms AvailableChain.FGSA.Run.AcceptPrem_W.faultBound
+#print axioms AvailableChain.FGSA.Run.AcceptPrem_W.finalized
+#print axioms AvailableChain.FGSA.Run.AcceptPrem_W.deliver
+#print axioms AvailableChain.FGSA.Run.AcceptPrem_W.guards
+#print axioms AvailableChain.FGSA.Run.AcceptPrem_W.horizon
+#print axioms AvailableChain.FGSA.Run.AcceptBefore_W
+#print axioms AvailableChain.FGSA.Run.FinalizePrem_W
+#print axioms AvailableChain.FGSA.Run.FinalizePrem_W.mk
+#print axioms AvailableChain.FGSA.Run.FinalizePrem_W.fold
+#print axioms AvailableChain.FGSA.Run.FinalizePrem_W.base
+#print axioms AvailableChain.FGSA.Run.FinalizePrem_W.faultBound
+#print axioms AvailableChain.FGSA.Run.FinalizePrem_W.deliver
+#print axioms AvailableChain.FGSA.Run.FinalizePrem_W.guards
+#print axioms AvailableChain.FGSA.Run.FinalizePrem_W.horizon
+#print axioms AvailableChain.FGSA.Run.FinalizePending_W
+#print axioms AvailableChain.FGSA.Run.JustifyAt_def
+#print axioms AvailableChain.FGSA.Run.JustifyFresh_W_def
+#print axioms AvailableChain.FGSA.Run.Ready_W_def
+#print axioms AvailableChain.FGSA.Run.receiptInsert_W_def
+#print axioms AvailableChain.FGSA.Run.AcceptBefore_W_def
+#print axioms AvailableChain.FGSA.Run.FinalizePending_W_def
+#print axioms AvailableChain.FGSA.Run.JustifiedCross_def
+#print axioms AvailableChain.FGSA.Run.MixedCross_def
+#print axioms AvailableChain.FGSA.Run.foldTrichotomy_def
+#print axioms AvailableChain.FGSA.Run.StoredProgressConsume_def
