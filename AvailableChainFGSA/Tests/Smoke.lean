@@ -804,23 +804,23 @@ def held : State 4 :=
     rowPool := [a0, a1, a0] }
 
 /-- Plan: mismatched height refusal. -/
-theorem wrong_height : rowValidFor (parentFoldState pT 3 .genesis)
+theorem wrong_height : Window.rowValidW (parentFoldState pT 3 .genesis)
     ⟨.seat .fg 0, .vote ⟨.vote 2 genesisRoot false, none⟩⟩ = false := by decide
 
 /-- Plan: mismatched target refusal. -/
-theorem wrong_target : rowValidFor (parentFoldState pT 3 .genesis)
+theorem wrong_target : Window.rowValidW (parentFoldState pT 3 .genesis)
     ⟨.seat .fg 0, .vote ⟨.vote 1 C.root false, none⟩⟩ = false := by decide +kernel
 
 /-- Plan R6: empty height and incorrect auth cannot pass. -/
-theorem empty_and_auth : rowValidFor (parentFoldState pT 3 .genesis)
+theorem empty_and_auth : Window.rowValidW (parentFoldState pT 3 .genesis)
     ⟨.seat .fg 0, .vote ⟨.empty, none⟩⟩ = false ∧
-    rowValidFor (parentFoldState pT 3 .genesis)
+    Window.rowValidW (parentFoldState pT 3 .genesis)
       ⟨.seat (.head 0) 0, a0.payload⟩ = false := by decide
 
 /-- Plan: reset the slot before the fold. It changes timeout maturity. -/
 theorem slot_before_fold : (parentFoldState pT 1 .genesis).s = 1 ∧
-    (process_height_events pT.E pT.cfg
-      (([rowX 0, rowX 1, rowX 2]).foldl process_row
+    (Window.process_height_events pT.E pT.cfg pT.K_W
+      (([rowX 0, rowX 1, rowX 2]).foldl Window.process_row
         (parentFoldState pT 1 .genesis))).h = 2 ∧
     (process_height_events pT.E pT.cfg
       (([rowX 0, rowX 1, rowX 2]).foldl process_row
@@ -836,11 +836,11 @@ theorem common_parent :
 /-- Plan: no finality-state match requirement. The foreign finality target
 passes R6 and sets progress, but it sets no finality bit. -/
 theorem foreign_finality :
-    rowValidFor (parentFoldState pT 3 .genesis)
+    Window.rowValidW (parentFoldState pT 3 .genesis)
       ⟨.seat .fg 0, .vote ⟨.vote 1 genesisRoot false, some ⟨0, C.root⟩⟩⟩ = true ∧
-    (process_row (parentFoldState pT 3 .genesis)
-      ⟨0, .vote 1 genesisRoot false, some ⟨0, C.root⟩⟩).finalize = ∅ ∧
-    (process_row (parentFoldState pT 3 .genesis)
+    (Window.process_row (parentFoldState pT 3 .genesis)
+      ⟨0, .vote 1 genesisRoot false, some ⟨0, C.root⟩⟩).W = [] ∧
+    (Window.process_row (parentFoldState pT 3 .genesis)
       ⟨0, .vote 1 genesisRoot false, some ⟨0, C.root⟩⟩).progress = {0} := by
   decide +kernel
 
@@ -926,22 +926,7 @@ theorem finality_persists :
       ⟨.seat .fg 0, .vote ⟨.vote 2 B1.root false, some ⟨1, genesisRoot⟩⟩⟩
     let C' := pk B1 2 0 [a]
     0 ∈ (derive pT.E pT.cfg (.node C' 3 0 [])).finalize := by
-  dsimp only
-  let a : RowWire 4 :=
-    ⟨.seat .fg 0, .vote ⟨.vote 2 B1.root false, some ⟨1, genesisRoot⟩⟩⟩
-  apply rowValidFor_finality_persist pT B1 _ 2 0 [a] a
-    ⟨0, .vote 2 B1.root false, some ⟨1, genesisRoot⟩⟩
-  · simp
-  · rfl
-  · decide +kernel
-  · intro h T χ fp hp hf
-    cases hp
-    cases hf
-    decide
-  · exact KitFG.preceq_parent_node _ _ _ _
-  · rfl
-  · simp only [KitFG.rowMatchesBit_def]
-    decide +kernel
+  decide +kernel
 
 end M05
 

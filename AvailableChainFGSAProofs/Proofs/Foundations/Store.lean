@@ -52,7 +52,8 @@ theorem fgsa_rMono : RMono p c E rho := by
 /-- The exact frame follows from T7.5 and FG store correspondence. -/
 theorem fgsa_rFrameExact : RFrameExact p c E rho := by
   intro i x _
-  exact ⟨storeControls_eq p _ (cstoreInv_stateBefore E rho i x), rfl⟩
+  refine ⟨storeControls_eq p _ (cstoreInv_stateBefore E rho i x), ?_⟩
+  rw [fullTree_eq, domainR_eq_storeFrame]
 
 /-- The active-view laws at every store, including conflict exclusion after F moves. -/
 theorem fgsa_rActive : RActive p c E rho := by
@@ -77,7 +78,7 @@ theorem fgsa_rFrame : RFrame p c E rho := by
   intro i x _
   let st := storeAt p c E rho i x
   refine ⟨?_, ⟨(fun f => onView_fg f st), admitHead_fg p st, ?_, clock_fg p st, ?_, ?_⟩,
-    ⟨storeControls_reconcile p st,
+    ⟨by rw [controls_eq, controls_eq]; exact storeControls_reconcile p st,
       fun X => domainR_congr_fg p _ _ X (reconcile_frame st).1⟩,
     metaInv_stateBefore E rho i x, ?_⟩
   · intro s b raw support P rows hP ha

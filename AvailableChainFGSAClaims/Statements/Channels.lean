@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAClaims.Statements.Reads
+public import AvailableChainFGSA.Statements.FinalityView
 public import AvailableChainFGSAClaims.Statements.Counts
 public import AvailableChainFGSARun.Statements.Interface
 
@@ -22,14 +23,14 @@ variable (p : Params)
 C1: path justifications, finalizations, and strictly crossed entries. -/
 def certified (W : FGBlock (Fin p.n)) : Set (FGBlock (Fin p.n)) :=
   {e | ∃ U, FGBlock.Preceq U W ∧
-    (e = (derive p.E p.cfg U).J ∨ e = (derive p.E p.cfg U).F ∨
+    (e = (derive p.E p.cfg U).J ∨ e = (finalityView p U).F ∨
       (e = (derive p.E p.cfg U).T_h ∧
         (derive p.E p.cfg U).h < (derive p.E p.cfg W).h))}
 
 -- equation export required by BUILD §7.2 B3a
 theorem certified_def (W : FGBlock (Fin p.n)) : certified p W =
   {e | ∃ U, FGBlock.Preceq U W ∧
-    (e = (derive p.E p.cfg U).J ∨ e = (derive p.E p.cfg U).F ∨
+    (e = (derive p.E p.cfg U).J ∨ e = (finalityView p U).F ∨
       (e = (derive p.E p.cfg U).T_h ∧
         (derive p.E p.cfg U).h < (derive p.E p.cfg W).h))} := rfl
 
@@ -171,14 +172,14 @@ def HeldBefore (x : V) (a : RowWire p.n) (d : Time) : Prop :=
 def ValidForParent (s : Slot) (Q : Block) (a : RowWire p.n) : Prop :=
   ∃ st H, proposalStateAt p c E rho s = some st ∧
     FGSA.fgBlockOf st Q.parent = some H ∧
-    FGSA.rowValidFor (FGSA.parentFoldState p s H) a = true
+    FGSA.Window.rowValidW (FGSA.parentFoldState p s H) a = true
 
 -- equation export required by BUILD §7.2 B3a
 theorem ValidForParent_def (s : Slot) (Q : Block) (a : RowWire p.n) :
     ValidForParent p c E rho s Q a =
       (∃ st H, proposalStateAt p c E rho s = some st ∧
     FGSA.fgBlockOf st Q.parent = some H ∧
-    FGSA.rowValidFor (FGSA.parentFoldState p s H) a = true) := rfl
+    FGSA.Window.rowValidW (FGSA.parentFoldState p s H) a = true) := rfl
 /-- The height pair matches the current target of the proposal parent.
 DC: SAME height entry; INTENTIONAL explicit consumer premise for the fold switch. -/
 def HeightMatch (s : Slot) (Q : Block) (a : RowWire p.n) : Prop :=

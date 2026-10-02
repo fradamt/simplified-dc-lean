@@ -26,7 +26,7 @@ theorem fgsa_headVote_covers_of_transfer
       GridCO.goldfishScore st.base.blocks
         (headVotes p st (s + 1)) (headSupport p st (s + 1)) B) :
     Block.Preceq B (headVote p st (s + 1)) := by
-  change Block.Preceq B (if s + 1 = 0 then _ else _)
+  rw [headVote_eq]
   rw [ite_eq_right (Nat.succ_ne_zero s)]
   exact fgsa_headInTree_covers_of_transfer p st _ _ _ B
     hanchor hpath hmajority hdominance

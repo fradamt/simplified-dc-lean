@@ -443,3 +443,7 @@ and only the instance swap is atomic.
   1aa6885; `docs/PHASE2A-REPORT.md`);
   fgsa-composition-t7-t1 (r11 adopted, 2ec3003; in
   `~/worktrees/available-chain-fgsa-plan`).
+
+FG5c stage 3: the FG-SA model runs the window fold. Admission uses R6W on one
+window parent state. The client reads window head finality. The height bridge
+keeps the shared source projection and the deferred height-only Claims readers equal.

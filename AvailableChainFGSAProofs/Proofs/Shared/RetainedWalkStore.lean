@@ -1,9 +1,7 @@
 module
-public import AvailableChainKitFG.FrameGeometry
 public import AvailableChainFGSA.Model.Frame
 public import AvailableChainFGSA.Proofs.FrameViews
 public import AvailableChainGeneric.Proofs.Pure.Walk
-public import AvailableChainGeneric.Proofs.Pure.Fold
 
 public section
 
@@ -17,37 +15,8 @@ Class (iii). DC: INTENTIONAL; DC has no FJ live-root selector.
 Local proof of `geometry_Z_liveRoot` in FGSA/Proofs/Head/Walk.lean:213,
 from the Frame definition and KitFG store facts. -/
 private theorem retained_store_root_live (p : Params) (st : State p.n) :
-    Block.Preceq (eraseFG (controls p st).Z) (liveRoot p st) := by
-  have lift {A B : FGBlock (Fin p.n)} (h : FGBlock.Preceq A B) :
-      Block.Preceq (eraseFG A) (eraseFG B) := by
-    induction B with
-    | genesis =>
-        rw [KitFG.preceq_genesis] at h
-        subst h
-        exact block_preceq_refl _
-    | node P s v data ih =>
-        change (decide (A = .node P s v data) || FGBlock.preceq A P) = true at h
-        rcases Bool.or_eq_true_iff.mp h with he | h
-        · have he' := of_decide_eq_true he
-          subst A
-          exact block_preceq_refl _
-        · change (decide (eraseFG A = eraseFG (.node P s v data)) ||
-            Block.preceq (eraseFG A) (eraseFG P)) = true
-          exact Bool.or_eq_true_iff.mpr (Or.inr (ih h))
-  unfold liveRoot
-  dsimp only
-  rcases foldl_select_mem (fun (best b : Block) => best.depth < b.depth ||
-      (best.depth == b.depth && best.root < b.root)) _ _ with he | hm
-  · rw [he]
-    exact block_preceq_refl _
-  · obtain ⟨entry, -, hr⟩ := List.mem_filterMap.1 hm
-    split at hr
-    · next hc =>
-      obtain ⟨B, hB, he⟩ := of_decide_eq_true (Bool.and_eq_true_iff.mp hc).2
-      rw [← Option.some.inj hr, ← he]
-      exact lift ((KitFG.mem_filteredFrom_of_bridge
-        p.E p.cfg (heightView p) (heightView_bridge p) _ _ B).mp hB).2.2.1
-    · cases hr
+    Block.Preceq (eraseFG (controls p st).Z) (liveRoot p st) :=
+  fgsa_Z_preceq_liveRoot p st
 
 /-- Blueprint 21:783–795, 878–883, 1401–1427, 1998–2019, 2119–2148,
 2818–2825; spec 1109–1114. Class (iii).
@@ -77,7 +46,12 @@ theorem fgsa_ordinary_parent_of_live_prefix
       GridCO.ghost z S ss es = A := by
   have he := walk_reanchor_of_best_ancestry _ _ _ _ _
     (retained_store_root_live p src) hprefix
-  exact ⟨he, he.trans hparent⟩
+  change GridCO.ghost _ _ _ _ = _ at hparent
+  simp only [fullTree_eq p src] at hparent
+  refine ⟨?_, he.trans hparent⟩
+  dsimp only [getHead, headInTree, erasedList]
+  rw [fullTree_eq]
+  exact he
 
 /-- Blueprint 21:783–795, 2818–2825; spec 1109–1114. Class (iii).
 DC: INTENTIONAL; ProposalWalkTransportCore.lean:162 extracts source steps.

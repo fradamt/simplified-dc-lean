@@ -43,7 +43,7 @@ theorem mem_proposalRowsFor_iff (p : Params) (st : State p.n) (s : Slot)
     (H : Block) (a : RowWire p.n) :
     a ∈ proposalRowsFor p st s H ↔ ∃ P, fgBlockOf st H = some P ∧
       (a ∈ st.rowPool ∨ a ∈ allBlockRows st) ∧
-      rowValidFor (parentFoldState p s P) a = true ∧ a ∉ chainWireRows st H := by
+      Window.rowValidW (parentFoldState p s P) a = true ∧ a ∉ chainWireRows st H := by
   delta proposalRowsFor proposalRowsCore
   cases h : fgBlockOf st H <;> dsimp only <;> simp [List.mem_eraseDups]
 

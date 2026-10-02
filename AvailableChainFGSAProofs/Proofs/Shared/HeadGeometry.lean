@@ -61,8 +61,11 @@ theorem fgsa_headReachesLo (p : Params) (st : State p.n)
     by_contra hn
     have hlow : hOf p.E p.cfg B < (controls p st).lo := Nat.lt_of_not_ge hn
     obtain ⟨hBX, hFB, hZB, W, hWX, hBW, hlo⟩ :=
-      (KitFG.mem_filteredFrom_of_bridge p.E p.cfg (heightView p) (heightView_bridge p) _ _ B).mp hB
-    change (heightView p B).h < (controls p st).lo at hlow
+      (KitFG.mem_filteredFrom_of_bridge
+          p.E p.cfg (heightView p) (heightView_bridge p) _ _ B).mp hB
+    have hlowH : (heightView p B).h < (controls p st).lo := by
+      simpa only [heightView_eq_simplex, KitFG.simplexHeightView_def, KitFG.heightOf_def, hOf]
+        using hlow
     have hne : B ≠ W := by intro h; subst W; simp only [Height] at *; omega
     obtain ⟨C, hp, hng, hCW⟩ := KitFG.child_toward hBW hne
     have hBC : FGBlock.Preceq B C := by
@@ -73,7 +76,7 @@ theorem fgsa_headReachesLo (p : Params) (st : State p.n)
         subst P
         exact KitFG.preceq_parent_node _ _ _ _
     have hC : C ∈ D := (KitFG.mem_filteredFrom_of_bridge
-      p.E p.cfg (heightView p) (heightView_bridge p) _ _ C).mpr
+          p.E p.cfg (heightView p) (heightView_bridge p) _ _ C).mpr
       ⟨hclosed W hWX C hCW, KitFG.preceq_trans hFB hBC,
         KitFG.preceq_trans hZB hBC, W, hWX, hCW, hlo⟩
     have hparent : (eraseFG C).parent? = some H := by

@@ -212,21 +212,8 @@ private theorem geometry_lift_prefix {n : Nat} (B : FGBlock (Fin n)) (a : Block)
         exact ⟨A, KitFG.preceq_trans hA (KitFG.preceq_parent_node _ _ _ _), he⟩
 
 private theorem geometry_Z_liveRoot (p : Params) (st : State p.n) :
-    Block.Preceq (eraseFG (controls p st).Z) (liveRoot p st) := by
-  unfold liveRoot
-  dsimp only
-  rcases Gen.Pure.foldl_select_mem (fun (best b : Block) => best.depth < b.depth ||
-      (best.depth == b.depth && best.root < b.root)) _ _ with he | hm
-  · rw [he]
-    exact block_preceq_refl _
-  · obtain ⟨row, -, hr⟩ := List.mem_filterMap.1 hm
-    split at hr
-    · next hc =>
-      obtain ⟨B, hB, he⟩ := of_decide_eq_true (Bool.and_eq_true_iff.mp hc).2
-      rw [← Option.some.inj hr, ← he]
-      exact eraseFG_preceq ((KitFG.mem_filteredFrom_of_bridge
-        p.E p.cfg (heightView p) (heightView_bridge p) _ _ B).mp hB).2.2.1
-    · cases hr
+    Block.Preceq (eraseFG (controls p st).Z) (liveRoot p st) :=
+  fgsa_Z_preceq_liveRoot p st
 
 /-- P3 F1b.5; bp02 §7. Class (iii), store walk instance.
 DC: Goldfish/Records.lean:207 `ghost_walk_mem`. SAME conclusion after

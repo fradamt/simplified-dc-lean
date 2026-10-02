@@ -88,16 +88,16 @@ private theorem emission_rows_process (st : State p.n) (o : Obj p)
         | none => st
         | some P => if blockAccepted p st s b P rows then
           rows.foldl (admitRow p)
-            (if (on_block p.E p.cfg st.fg (fgBlock P b rows)).F = st.fg.F then
+            (if (Window.on_block p p.K_W st.fg (fgBlock P b rows)).F = st.fg.F then
               { st with
                 base := (GridCO.admitProposal p.toParams.engine st.base
                   (baseProposal s b raw sup) b (raw.map baseHead)),
-                fg := on_block p.E p.cfg st.fg (fgBlock P b rows),
+                fg := Window.on_block p p.K_W st.fg (fgBlock P b rows),
                 proposals := st.proposals ++ [⟨.proposer s, .proposal b raw sup rows⟩] }
             else reconcile { st with
                 base := (GridCO.admitProposal p.toParams.engine st.base
                   (baseProposal s b raw sup) b (raw.map baseHead)),
-                fg := on_block p.E p.cfg st.fg (fgBlock P b rows),
+                fg := Window.on_block p p.K_W st.fg (fgBlock P b rows),
                 proposals := st.proposals ++ [⟨.proposer s, .proposal b raw sup rows⟩] })
           else st)
       cases hp : parentFG st b with
@@ -110,7 +110,7 @@ private theorem emission_rows_process (st : State p.n) (o : Obj p)
               { st with
                 base := (GridCO.admitProposal p.toParams.engine st.base
                   (baseProposal s b raw sup) b (raw.map baseHead)),
-                fg := on_block p.E p.cfg st.fg (fgBlock P b rows),
+                fg := Window.on_block p p.K_W st.fg (fgBlock P b rows),
                 proposals := st.proposals ++ [⟨.proposer s, .proposal b raw sup rows⟩] } := by
             refine ⟨h.1, ?_⟩
             intro w hw s' b' raw' sup' rows' hd'

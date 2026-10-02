@@ -143,7 +143,7 @@ theorem cstoreInv_accepted_pre (p : Params) (st : State p.n) (h : CStoreInv p st
     let st1 : State p.n := { st with
       base := GridCO.admitProposal p.toParams.engine st.base (baseProposal s b raw support) b
         (raw.map baseHead)
-      fg := on_block p.E p.cfg st.fg (fgBlock P b rows)
+      fg := Window.on_block p p.K_W st.fg (fgBlock P b rows)
       proposals := st.proposals ++ [⟨.proposer s, .proposal b raw support rows⟩] }
     KitFG.FGStoreInvariant (heightView p) (finalityView p) st1.fg ∧
       (∀ X ∈ st1.fg.TF, ∀ Y ∈ st1.fg.TF, X.root = Y.root → X = Y) ∧
@@ -158,10 +158,10 @@ theorem cstoreInv_accepted_pre (p : Params) (st : State p.n) (h : CStoreInv p st
   obtain ⟨hbl, -, -, hob, hgen, hstab, -⟩ :=
     base_admitProposal_accepts p st h0 s b raw support P rows hP hacc
   have hTF : st1.fg.TF = insert (fgBlock P b rows) st.fg.TF := by
-    change (on_block p.E p.cfg st.fg (fgBlock P b rows)).TF = _
-    rw [fg_on_block_accepts p st s b P rows hP hacc, KitFG.update_finality_TF]
+    change (Window.on_block p p.K_W st.fg (fgBlock P b rows)).TF = _
+    rw [fg_on_block_accepts p st s b P rows hP hacc, Window.window_update_finality_TF]
   have hok := blockAccepted_rowsOk hacc
-  refine ⟨?_, ?_, ?_, hob, hgen, hstab, rfl, ?_, KitFG.on_block_F_mono p.E p.cfg st.fg _⟩
+  refine ⟨?_, ?_, ?_, hob, hgen, hstab, rfl, ?_, Window.window_on_block_F_mono p p.K_W st.fg _⟩
   · exact (fgStoreSafety p).invariant _ ((fgStoreSafety p).step_good st.fg _ h.fg)
   · exact rootInj_all st1
   · intro c
@@ -221,7 +221,7 @@ theorem cstoreInv_admitBlock (p : Params) (st : State p.n) (h : CStoreInv p st) 
                   { st with
                     base := GridCO.admitProposal p.toParams.engine st.base
                       (baseProposal s b raw support) b (raw.map baseHead)
-                    fg := on_block p.E p.cfg st.fg (fgBlock P b rows)
+                    fg := Window.on_block p p.K_W st.fg (fgBlock P b rows)
                     proposals := st.proposals ++ [⟨.proposer s, .proposal b raw support rows⟩] }
                  exact this, ?_, ?_, ?_, ?_, ?_⟩
             · rw [reconcile_stable, (reconcile_frame _).2.2.2.1]
@@ -538,7 +538,7 @@ theorem storeInvariant (p : Params) : StoreInvariant p := by
 
 /-- [bp bp.frame.v1] The FG projection stutters or takes one FG `on_block` step. -/
 theorem fg_step_cases (p : Params) (st : State p.n) (o : Wire p.n) :
-    (process p st o).fg = st.fg ∨ ∃ B, (process p st o).fg = on_block p.E p.cfg st.fg B := by
+    (process p st o).fg = st.fg ∨ ∃ B, (process p st o).fg = Window.on_block p p.K_W st.fg B := by
   unfold process
   split
   · exact Or.inl rfl
@@ -570,7 +570,7 @@ theorem fMonotone (p : Params) : FMonotone p := by
   refine ⟨fun o => ?_, fun t => by rw [clock_fg]⟩
   rcases fg_step_cases p st o with he | ⟨B, he⟩ <;> rw [he]
   · exact KitFG.preceq_refl _
-  · exact KitFG.on_block_F_mono p.E p.cfg st.fg B
+  · exact Window.window_on_block_F_mono p p.K_W st.fg B
 
 /-- [bp bp.store.v1; K4; G11 m1] A delivery moves F only to a descendant. -/
 theorem process_F_mono (p : Params) (st : State p.n) (o : Wire p.n) :
@@ -587,8 +587,8 @@ theorem process_hmax_mono (p : Params) (st : State p.n) (o : Wire p.n) :
   rcases fg_step_cases p st o with he | ⟨B, he⟩ <;> rw [he]
   by_cases hc : B ∈ st.fg.TF ∨ B.parent ∉ st.fg.TF ∨ FGBlock.preceq st.fg.F B = false ∨
       B.slot ≤ B.parent.slot
-  · rw [KitFG.on_block_of_refused p.E p.cfg st.fg B hc]
-  · rw [KitFG.on_block_of_accepted p.E p.cfg st.fg B hc, KitFG.update_finality_h_max]
+  · rw [Window.window_on_block_of_refused p p.K_W st.fg B hc]
+  · rw [Window.window_on_block_of_accepted p p.K_W st.fg B hc, Window.window_update_finality_h_max]
     exact le_max_left _ _
 
 /-- [bp bp.frame.v1] The lex pair `(h_j, J)` never decreases. -/
@@ -597,9 +597,9 @@ theorem process_pair_mono (p : Params) (st : State p.n) (o : Wire p.n) :
   rcases fg_step_cases p st o with he | ⟨B, he⟩ <;> rw [he]
   by_cases hc : B ∈ st.fg.TF ∨ B.parent ∉ st.fg.TF ∨ FGBlock.preceq st.fg.F B = false ∨
       B.slot ≤ B.parent.slot
-  · rw [KitFG.on_block_of_refused p.E p.cfg st.fg B hc]
-  · rw [KitFG.on_block_of_accepted p.E p.cfg st.fg B hc]
-    have hp := KitFG.update_finality_pair p.E p.cfg { st.fg with TF := insert B st.fg.TF } B
+  · rw [Window.window_on_block_of_refused p p.K_W st.fg B hc]
+  · rw [Window.window_on_block_of_accepted p p.K_W st.fg B hc]
+    have hp := Window.window_update_finality_pair p p.K_W { st.fg with TF := insert B st.fg.TF } B
     split at hp
     · next hcond =>
       rw [hp]
@@ -651,7 +651,7 @@ theorem admitBlock_reconcile_harmless (p : Params) (st : State p.n) (h : CStoreI
     cstoreInv_accepted_pre p st h s b raw support P rows hP hacc
   rw [heq] at hL hG hS ⊢
   dsimp only at hL hG hS hob hgen hstab hmono ⊢
-  by_cases hc : (on_block p.E p.cfg st.fg (fgBlock P b rows)).F = st.fg.F
+  by_cases hc : (Window.on_block p p.K_W st.fg (fgBlock P b rows)).F = st.fg.F
   · rw [ite_eq_left hc]
     exact ⟨hob, hgen, rfl, by rw [hstab]; exact block_preceq_refl _⟩
   · rw [ite_eq_right hc] at hL hG hS ⊢
@@ -660,7 +660,7 @@ theorem admitBlock_reconcile_harmless (p : Params) (st : State p.n) (h : CStoreI
       { st with
         base := GridCO.admitProposal p.toParams.engine st.base (baseProposal s b raw support) b
           (raw.map baseHead)
-        fg := on_block p.E p.cfg st.fg (fgBlock P b rows)
+        fg := Window.on_block p p.K_W st.fg (fgBlock P b rows)
         proposals := st.proposals ++ [⟨.proposer s, .proposal b raw support rows⟩] }
       (eraseFG st.fg.F)
       (fastOrigin_congr (st := st) _ rfl hgen h.fastOrigin) (eraseFG_preceq hmono)
