@@ -56,6 +56,8 @@ public import AvailableChainKitFG.StoreSafety
 public import AvailableChainKitFG.StoreSafetySimplex
 public import AvailableChainKitFG.FrameBridgeDef
 public import AvailableChainKitFG.FrameBridge
+public import AvailableChainKitFG.FrameGeometry
+public import AvailableChainKitFG.CausalCapCore
 
 @[expose] public section
 end
