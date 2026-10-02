@@ -97,6 +97,7 @@ allow AvailableChain.FGSA.finalityView_def # pre-J4 baseline 2026-10-02 (Availab
 allow AvailableChain.FGSA.finalityView_eq_simplex # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.StoreLaws)
 allow AvailableChain.FGSA.mem_proposalRowsFor_iff # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.RowSelection)
 allow AvailableChain.FGSA.metaInv_process # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.Metadata)
+allow AvailableChain.FGSA.parentFoldState # old-finality copy (struct update); J4 replaces it by Window.parentState
 allow AvailableChain.FGSA.process_cumulative # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.Metadata)
 allow AvailableChain.FGSA.process_hmax_mono # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.StoreInv)
 allow AvailableChain.FGSA.process_nest # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.Nesting)
@@ -240,4 +241,3 @@ height AvailableChain.FGSA.heightView # pre-J4 baseline 2026-10-02 (AvailableCha
 height AvailableChain.FGSA.heightView_bridge # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.FrameViews)
 height AvailableChain.FGSA.heightView_def # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Model.WindowViews)
 height AvailableChain.FGSA.heightView_eq_simplex # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.StoreLaws)
-height AvailableChain.FGSA.parentFoldState # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Model.RowCore)
