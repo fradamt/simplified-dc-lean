@@ -1,6 +1,6 @@
 module
-public import AvailableChainFGSAClaims.Statements.Packages.Finality
 public import AvailableChainFGSAClaims.Statements.Packages.Healing
+public import AvailableChainFGSAClaims.Statements.Packages.FinalityGST
 
 @[expose] public section
 
@@ -148,6 +148,43 @@ def AboveFrontierRecF4Claim_W : Prop :=
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : PtT),
     AboveFrontierPrem_W p c G ΔF .recF4 g w E rho pt →
     AboveFrontierConcl_W p c E rho pt.t (pt.t + 2 * W_W p ΔF g)
+
+/-- Blueprint 22:1371–1380. DC: INTENTIONAL GST form; no healing output as premise;
+DC finalized (Generic/Claims.lean:39–44). The conclusion returns the common input witness. -/
+def FinalityLivenessGSTClaim_W (form : FinFormW) : Prop :=
+  ∀ (G ΔF : Time) (g : Nat) (_hδ : p.δt = 2 * p.R)
+    {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+    (c : AppCodec In) (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (pt : PtT),
+    FinalityLivenessGSTPrem_W p c G ΔF form g E rho pt →
+    ∃ w, HealingInput p c E rho w ΔF ∧
+      FinalityLivenessConcl_W p c E rho pt.t
+        (pt.t + W_W p ΔF g)
+
+/-- Blueprint 22:1421–1430. DC: INTENTIONAL GST form; no healing output as premise;
+DC finalized (Generic/Claims.lean:39–44). The conclusion returns the common input witness. -/
+def ProposalFinalGSTClaim_W (form : FinFormW) : Prop :=
+  ∀ (G ΔF : Time) (g : Nat) (_hδ : p.δt = 2 * p.R)
+    {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+    (c : AppCodec In) (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (pt : PtSX),
+    ProposalFinalGSTPrem_W p c G ΔF form g E rho pt →
+    ∃ w, HealingInput p c E rho w ΔF ∧
+      ProposalFinalConcl_W p c E rho pt.X
+        (V2.D.proposalTime (fgsaInterface p c) pt.s +
+          W_W p ΔF g)
+
+/-- Blueprint 22:1434–1451. DC: INTENTIONAL GST form; no healing output as premise;
+DC finalized (Generic/Claims.lean:39–44). The conclusion returns the common input witness. -/
+def AboveFrontierGSTClaim_W (form : FinFormW) : Prop :=
+  ∀ (G ΔF : Time) (g : Nat) (_hδ : p.δt = 2 * p.R)
+    {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+    (c : AppCodec In) (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (pt : PtT),
+    AboveFrontierGSTPrem_W p c G ΔF form g E rho pt →
+    ∃ w, HealingInput p c E rho w ΔF ∧
+      AboveFrontierConcl_W p c E rho pt.t
+        (pt.t + 2 * W_W p ΔF g)
 
 end AvailableChain.FGSA.Run
 end

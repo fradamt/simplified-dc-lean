@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAClaims.Claims.Healing
+public import AvailableChainFGSAClaims.Claims.Finality
 public import AvailableChainFGSAProofs.Proofs.Shared.Healed
 public import AvailableChainFGSAClaims.Claims.Foundations
 public import AvailableChainFGSAClaims.Claims.Clean
@@ -46,6 +47,98 @@ theorem uniformHealing_of_hTimeConcl (p : Params) {In V : Type} [DecidableEq V]
     Healed p c E rho (E.t_GST + B_HF p ΔF G) := by
   obtain ⟨w, input, start, bound⟩ := h
   exact healed_mono_start p c E rho (start.trans bound.le) input.healed
+
+private theorem fgsa_gst_window_nonneg (p : Params) (ΔF : Time) (g : Nat) :
+    0 ≤ W_W p ΔF g := by
+  have hΔ : 0 ≤ p.Δ := p.deltaPos.le
+  rw [W_W_def, betaF_def]
+  change 0 ≤ ((g : Time) + 2) * (4 * (p.R : Time) * p.Δ) +
+    4 * (kappaF p ΔF : Time) * p.Δ + p.Δ
+  positivity
+
+/-- Blueprint 22:1371–1380. DC: INTENTIONAL GST form; no healing output as premise;
+DC finalized (Generic/Claims.lean:39–44). H-time and the local claim supply the result. -/
+theorem fgsa_finalityLivenessGST_recFE (hH : HTimeClaim p)
+    (hL : FinalityLivenessRecFEClaim_W p) : FinalityLivenessGSTClaim_W p .recFE := by
+  intro G ΔF g hδ V _ _ In c E rho pt h
+  have hW := fgsa_gst_window_nonneg p ΔF g
+  have hhor : E.t_GST + B_HF p ΔF G ≤ rho.horizon :=
+    h.late.trans ((le_add_of_nonneg_right hW).trans h.hhor)
+  obtain ⟨w, input, start, bound⟩ := hH G ΔF hδ c E rho ()
+    ⟨⟨h.set.core, h.set.bound⟩, hhor⟩
+  refine ⟨w, input, hL G ΔF g w hδ c E rho pt ?_⟩
+  exact ⟨h.set, input, start.trans (bound.le.trans h.late), h.hhor⟩
+
+/-- Blueprint 22:1371–1380. DC: INTENTIONAL GST form; no healing output as premise;
+DC finalized (Generic/Claims.lean:39–44). H-time and the local claim supply the result. -/
+theorem fgsa_finalityLivenessGST_recF4 (hH : HTimeClaim p)
+    (hL : FinalityLivenessRecF4Claim_W p) : FinalityLivenessGSTClaim_W p .recF4 := by
+  intro G ΔF g hδ V _ _ In c E rho pt h
+  have hW := fgsa_gst_window_nonneg p ΔF g
+  have hhor : E.t_GST + B_HF p ΔF G ≤ rho.horizon :=
+    h.late.trans ((le_add_of_nonneg_right hW).trans h.hhor)
+  obtain ⟨w, input, start, bound⟩ := hH G ΔF hδ c E rho ()
+    ⟨⟨h.set.core, h.set.bound⟩, hhor⟩
+  refine ⟨w, input, hL G ΔF g w hδ c E rho pt ?_⟩
+  exact ⟨h.set, input, start.trans (bound.le.trans h.late), h.hhor⟩
+
+/-- Blueprint 22:1421–1430. DC: INTENTIONAL GST form; no healing output as premise;
+DC finalized (Generic/Claims.lean:39–44). H-time and the local claim supply the result. -/
+theorem fgsa_proposalFinalGST_recFE (hH : HTimeClaim p)
+    (hL : ProposalFinalRecFEClaim_W p) : ProposalFinalGSTClaim_W p .recFE := by
+  intro G ΔF g hδ V _ _ In c E rho pt h
+  have hW := fgsa_gst_window_nonneg p ΔF g
+  have hhor : E.t_GST + B_HF p ΔF G ≤ rho.horizon :=
+    h.late.trans ((le_add_of_nonneg_right hW).trans h.hhor)
+  obtain ⟨w, input, start, bound⟩ := hH G ΔF hδ c E rho ()
+    ⟨⟨h.set.core, h.set.bound⟩, hhor⟩
+  refine ⟨w, input, hL G ΔF g w hδ c E rho pt ?_⟩
+  exact ⟨h.set, input, h.prop, start.trans (bound.le.trans h.late), h.hhor⟩
+
+/-- Blueprint 22:1421–1430. DC: INTENTIONAL GST form; no healing output as premise;
+DC finalized (Generic/Claims.lean:39–44). H-time and the local claim supply the result. -/
+theorem fgsa_proposalFinalGST_recF4 (hH : HTimeClaim p)
+    (hL : ProposalFinalRecF4Claim_W p) : ProposalFinalGSTClaim_W p .recF4 := by
+  intro G ΔF g hδ V _ _ In c E rho pt h
+  have hW := fgsa_gst_window_nonneg p ΔF g
+  have hhor : E.t_GST + B_HF p ΔF G ≤ rho.horizon :=
+    h.late.trans ((le_add_of_nonneg_right hW).trans h.hhor)
+  obtain ⟨w, input, start, bound⟩ := hH G ΔF hδ c E rho ()
+    ⟨⟨h.set.core, h.set.bound⟩, hhor⟩
+  refine ⟨w, input, hL G ΔF g w hδ c E rho pt ?_⟩
+  exact ⟨h.set, input, h.prop, start.trans (bound.le.trans h.late), h.hhor⟩
+
+/-- Blueprint 22:1434–1451. DC: INTENTIONAL GST form; no healing output as premise;
+DC finalized (Generic/Claims.lean:39–44). H-time and the local claim supply the result. -/
+theorem fgsa_aboveFrontierGST_recFE (hH : HTimeClaim p)
+    (hL : AboveFrontierRecFEClaim_W p) : AboveFrontierGSTClaim_W p .recFE := by
+  intro G ΔF g hδ V _ _ In c E rho pt h
+  have hW := fgsa_gst_window_nonneg p ΔF g
+  have hhor : E.t_GST + B_HF p ΔF G ≤ rho.horizon :=
+    h.late.trans ((le_add_of_nonneg_right (mul_nonneg (by decide) hW)).trans h.hhor)
+  obtain ⟨w, input, start, bound⟩ := hH G ΔF hδ c E rho ()
+    ⟨⟨h.set.core, h.set.bound⟩, hhor⟩
+  refine ⟨w, input, hL G ΔF g w hδ c E rho pt ?_⟩
+  have hsecond : pt.t + W_W p ΔF g + W_W p ΔF g ≤ rho.horizon := by
+    simpa only [two_mul, ← add_assoc] using h.hhor
+  exact ⟨h.set, input, start.trans (bound.le.trans h.late),
+    (le_add_of_nonneg_right hW).trans hsecond, hsecond⟩
+
+/-- Blueprint 22:1434–1451. DC: INTENTIONAL GST form; no healing output as premise;
+DC finalized (Generic/Claims.lean:39–44). H-time and the local claim supply the result. -/
+theorem fgsa_aboveFrontierGST_recF4 (hH : HTimeClaim p)
+    (hL : AboveFrontierRecF4Claim_W p) : AboveFrontierGSTClaim_W p .recF4 := by
+  intro G ΔF g hδ V _ _ In c E rho pt h
+  have hW := fgsa_gst_window_nonneg p ΔF g
+  have hhor : E.t_GST + B_HF p ΔF G ≤ rho.horizon :=
+    h.late.trans ((le_add_of_nonneg_right (mul_nonneg (by decide) hW)).trans h.hhor)
+  obtain ⟨w, input, start, bound⟩ := hH G ΔF hδ c E rho ()
+    ⟨⟨h.set.core, h.set.bound⟩, hhor⟩
+  refine ⟨w, input, hL G ΔF g w hδ c E rho pt ?_⟩
+  have hsecond : pt.t + W_W p ΔF g + W_W p ΔF g ≤ rho.horizon := by
+    simpa only [two_mul, ← add_assoc] using h.hhor
+  exact ⟨h.set, input, start.trans (bound.le.trans h.late),
+    (le_add_of_nonneg_right hW).trans hsecond, hsecond⟩
 
 end AvailableChain.FGSA.Run
 end

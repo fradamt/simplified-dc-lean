@@ -733,3 +733,24 @@ by
 #print axioms AvailableChain.FGSA.Run.OutageCompatClaim
 #print axioms AvailableChain.FGSA.Run.FastP1Claim
 #print axioms AvailableChain.FGSA.Run.SlowP1Claim
+
+-- S4.6b GST finality forms.
+#print axioms AvailableChain.FGSA.Run.FinalityLivenessGSTPrem_W
+#print axioms AvailableChain.FGSA.Run.FinalityLivenessGSTPrem_W.mk
+#print axioms AvailableChain.FGSA.Run.FinalityLivenessGSTPrem_W.set
+#print axioms AvailableChain.FGSA.Run.FinalityLivenessGSTPrem_W.late
+#print axioms AvailableChain.FGSA.Run.FinalityLivenessGSTPrem_W.hhor
+#print axioms AvailableChain.FGSA.Run.FinalityLivenessGSTClaim_W
+#print axioms AvailableChain.FGSA.Run.ProposalFinalGSTPrem_W
+#print axioms AvailableChain.FGSA.Run.ProposalFinalGSTPrem_W.mk
+#print axioms AvailableChain.FGSA.Run.ProposalFinalGSTPrem_W.set
+#print axioms AvailableChain.FGSA.Run.ProposalFinalGSTPrem_W.prop
+#print axioms AvailableChain.FGSA.Run.ProposalFinalGSTPrem_W.late
+#print axioms AvailableChain.FGSA.Run.ProposalFinalGSTPrem_W.hhor
+#print axioms AvailableChain.FGSA.Run.ProposalFinalGSTClaim_W
+#print axioms AvailableChain.FGSA.Run.AboveFrontierGSTPrem_W
+#print axioms AvailableChain.FGSA.Run.AboveFrontierGSTPrem_W.mk
+#print axioms AvailableChain.FGSA.Run.AboveFrontierGSTPrem_W.set
+#print axioms AvailableChain.FGSA.Run.AboveFrontierGSTPrem_W.late
+#print axioms AvailableChain.FGSA.Run.AboveFrontierGSTPrem_W.hhor
+#print axioms AvailableChain.FGSA.Run.AboveFrontierGSTClaim_W

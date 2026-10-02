@@ -28,6 +28,32 @@ LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainF
 CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = (
+    # S4.6b GST forms: --expect DATA only.
+    'AvailableChain.FGSA.Run.FinalityLivenessGSTPrem_W',
+    'AvailableChain.FGSA.Run.FinalityLivenessGSTPrem_W.mk',
+    'AvailableChain.FGSA.Run.FinalityLivenessGSTPrem_W.set',
+    'AvailableChain.FGSA.Run.FinalityLivenessGSTPrem_W.late',
+    'AvailableChain.FGSA.Run.FinalityLivenessGSTPrem_W.hhor',
+    'AvailableChain.FGSA.Run.FinalityLivenessGSTClaim_W',
+    'AvailableChain.FGSA.Run.ProposalFinalGSTPrem_W',
+    'AvailableChain.FGSA.Run.ProposalFinalGSTPrem_W.mk',
+    'AvailableChain.FGSA.Run.ProposalFinalGSTPrem_W.set',
+    'AvailableChain.FGSA.Run.ProposalFinalGSTPrem_W.prop',
+    'AvailableChain.FGSA.Run.ProposalFinalGSTPrem_W.late',
+    'AvailableChain.FGSA.Run.ProposalFinalGSTPrem_W.hhor',
+    'AvailableChain.FGSA.Run.ProposalFinalGSTClaim_W',
+    'AvailableChain.FGSA.Run.AboveFrontierGSTPrem_W',
+    'AvailableChain.FGSA.Run.AboveFrontierGSTPrem_W.mk',
+    'AvailableChain.FGSA.Run.AboveFrontierGSTPrem_W.set',
+    'AvailableChain.FGSA.Run.AboveFrontierGSTPrem_W.late',
+    'AvailableChain.FGSA.Run.AboveFrontierGSTPrem_W.hhor',
+    'AvailableChain.FGSA.Run.AboveFrontierGSTClaim_W',
+    'AvailableChain.FGSA.Run.fgsa_finalityLivenessGST_recFE',
+    'AvailableChain.FGSA.Run.fgsa_finalityLivenessGST_recF4',
+    'AvailableChain.FGSA.Run.fgsa_proposalFinalGST_recFE',
+    'AvailableChain.FGSA.Run.fgsa_proposalFinalGST_recF4',
+    'AvailableChain.FGSA.Run.fgsa_aboveFrontierGST_recFE',
+    'AvailableChain.FGSA.Run.fgsa_aboveFrontierGST_recF4',
     # S4.5b restore: --expect DATA only.
     'AvailableChain.FGSA.Run.FGFinalizedAt_def',
     'AvailableChain.FGSA.Run.FinalityRunBlock_def',
@@ -1126,7 +1152,7 @@ EXPECTED = (
 )
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
          'Packages.Safety', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',
-         'ChannelProps', 'FinalityApi', 'Healed', 'WeakContinuation', 'Packages.Finality',
+         'ChannelProps', 'FinalityApi', 'Healed', 'WeakContinuation', 'Packages.Finality', 'Packages.FinalityGST',
          'ComposeStmt', 'Fold',
          'Phases', 'PhasesInternal', 'Packages.Healing')
 if not SOURCE_ONLY:

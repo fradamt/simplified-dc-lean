@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.Claims -- shake: keep (S4.6b axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Foundations.FinalityApi -- shake: keep (S4.5b axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersL2 -- shake: keep (consumer audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersQ -- shake: keep (consumer audit)
@@ -720,3 +721,11 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_retainedReads_L2
 #print axioms AvailableChain.FGSA.Run.uniformHealing_of_hTimeConcl
 #print axioms AvailableChain.FGSA.Run.fgsa_tickIdx_of_event
+
+-- S4.6b GST finality forms.
+#print axioms AvailableChain.FGSA.Run.fgsa_finalityLivenessGST_recFE
+#print axioms AvailableChain.FGSA.Run.fgsa_finalityLivenessGST_recF4
+#print axioms AvailableChain.FGSA.Run.fgsa_proposalFinalGST_recFE
+#print axioms AvailableChain.FGSA.Run.fgsa_proposalFinalGST_recF4
+#print axioms AvailableChain.FGSA.Run.fgsa_aboveFrontierGST_recFE
+#print axioms AvailableChain.FGSA.Run.fgsa_aboveFrontierGST_recF4

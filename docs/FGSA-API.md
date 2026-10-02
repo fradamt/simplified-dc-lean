@@ -255,6 +255,9 @@ def AvailableChain.FGSA.Run.ProposalFinalRecFEClaim_W 8e1defc080ff8b69
 def AvailableChain.FGSA.Run.ProposalFinalRecF4Claim_W 52eabff641ff95e4
 def AvailableChain.FGSA.Run.AboveFrontierRecFEClaim_W 2fd789227508f890
 def AvailableChain.FGSA.Run.AboveFrontierRecF4Claim_W 9a15bc59bde68c58
+def AvailableChain.FGSA.Run.FinalityLivenessGSTClaim_W 0d9c260ad6a41384
+def AvailableChain.FGSA.Run.ProposalFinalGSTClaim_W 32e1354cfd663e67
+def AvailableChain.FGSA.Run.AboveFrontierGSTClaim_W 9ef669176bce0011
 ```
 
 ### `AvailableChainFGSAClaims.Claims.FinalitySafety`
@@ -969,6 +972,27 @@ field AvailableChain.FGSA.Run.AboveFrontierPrem_W.input e3e883e8014d441c
 field AvailableChain.FGSA.Run.AboveFrontierPrem_W.start 7571a448b34a616b
 field AvailableChain.FGSA.Run.AboveFrontierPrem_W.firstHorizon 8830399af353af14
 field AvailableChain.FGSA.Run.AboveFrontierPrem_W.hhor 83c360531d641d5a
+```
+
+### `AvailableChainFGSAClaims.Statements.Packages.FinalityGST`
+
+```text
+structure AvailableChain.FGSA.Run.FinalityLivenessGSTPrem_W da55b17362dc6aaa
+ctor AvailableChain.FGSA.Run.FinalityLivenessGSTPrem_W.mk 57d7d5e620b6c388
+field AvailableChain.FGSA.Run.FinalityLivenessGSTPrem_W.set aad454d1707d28ea
+field AvailableChain.FGSA.Run.FinalityLivenessGSTPrem_W.late 32d72a99cb7b2e34
+field AvailableChain.FGSA.Run.FinalityLivenessGSTPrem_W.hhor 818152f3bab92df1
+structure AvailableChain.FGSA.Run.ProposalFinalGSTPrem_W ad0de17b7c6b9518
+ctor AvailableChain.FGSA.Run.ProposalFinalGSTPrem_W.mk ac4de60862bd0d0f
+field AvailableChain.FGSA.Run.ProposalFinalGSTPrem_W.set 801c423efc7b5e1e
+field AvailableChain.FGSA.Run.ProposalFinalGSTPrem_W.prop 5e7a52bc9df89a16
+field AvailableChain.FGSA.Run.ProposalFinalGSTPrem_W.late c2be209c1578f363
+field AvailableChain.FGSA.Run.ProposalFinalGSTPrem_W.hhor 9675956340887cd8
+structure AvailableChain.FGSA.Run.AboveFrontierGSTPrem_W a9a0e6ca30bb4c70
+ctor AvailableChain.FGSA.Run.AboveFrontierGSTPrem_W.mk a21a6dc3c20f79e4
+field AvailableChain.FGSA.Run.AboveFrontierGSTPrem_W.set 57e1caea73ffc785
+field AvailableChain.FGSA.Run.AboveFrontierGSTPrem_W.late 126828bfdb0909c2
+field AvailableChain.FGSA.Run.AboveFrontierGSTPrem_W.hhor d594d1743483b24c
 ```
 
 ### `AvailableChainFGSAClaims.Statements.Packages.Healing`
