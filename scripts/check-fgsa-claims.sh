@@ -28,6 +28,18 @@ LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainF
 CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = (
+    'AvailableChain.FGSA.Run.retainedBand_def',
+    'AvailableChain.FGSA.Run.ReflectedDomainWitness_def',
+    'AvailableChain.FGSA.Run.retainedBand',
+    'AvailableChain.FGSA.Run.ReflectedDomainWitness',
+    'AvailableChain.FGSA.Run.RetainedReadPremises',
+    'AvailableChain.FGSA.Run.fgsa_domain_witness_of_mem',
+    'AvailableChain.FGSA.Run.fgsa_walkRun_full_domain_view',
+    'AvailableChain.FGSA.Run.fgsa_walkRun_path_domain_view',
+    'AvailableChain.FGSA.Run.fgsa_walkRun_eligible_iff_view',
+    'AvailableChain.FGSA.Run.fgsa_eligible_eq_of_retainedBand_score',
+    'AvailableChain.FGSA.Run.fgsa_walkRun_reflected_old_child',
+    'AvailableChain.FGSA.Run.fgsa_retained_old_child_reflects_on_run',
     'AvailableChain.FGSA.Run.fgsa_eligible_eq_of_same_floor',
     'AvailableChain.FGSA.Run.fgsa_eligible_eq_of_parent_height',
     'AvailableChain.FGSA.Run.fgsa_score_geometry_of_domains',
