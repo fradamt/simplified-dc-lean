@@ -265,8 +265,11 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.HealAC
 #print axioms AvailableChain.FGSA.Run.HealingInput
 #print axioms AvailableChain.FGSA.Run.HTimeStatement
+#print axioms AvailableChain.FGSA.Run.HTimeStatement_def
 #print axioms AvailableChain.FGSA.Run.HTimeBestStatement
+#print axioms AvailableChain.FGSA.Run.HTimeBestStatement_def
 #print axioms AvailableChain.FGSA.Run.HTimeSearchStatement
+#print axioms AvailableChain.FGSA.Run.HTimeSearchStatement_def
 #print axioms AvailableChain.FGSA.Run.TStart
 #print axioms AvailableChain.FGSA.Run.FullVoteService
 #print axioms AvailableChain.FGSA.Run.TVote
@@ -278,7 +281,9 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.AttemptKey
 #print axioms AvailableChain.FGSA.Run.B'_reset
 #print axioms AvailableChain.FGSA.Run.ResetArrivalStatement
+#print axioms AvailableChain.FGSA.Run.ResetArrivalStatement_def
 #print axioms AvailableChain.FGSA.Run.ResetArrivalFullStatement
+#print axioms AvailableChain.FGSA.Run.ResetArrivalFullStatement_def
 #print axioms AvailableChain.FGSA.Run.KernelConclusion
 #print axioms AvailableChain.FGSA.Run.KernelPt
 #print axioms AvailableChain.FGSA.Run.KernelPrem
@@ -327,7 +332,6 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.ProposalGap
 #print axioms AvailableChain.FGSA.Run.RepairAfter
 #print axioms AvailableChain.FGSA.Run.TRepair
-#print axioms AvailableChain.FGSA.Run.OpeningExtends
 #print axioms AvailableChain.FGSA.Run.OpeningEntry
 #print axioms AvailableChain.FGSA.Run.TCommon
 #print axioms AvailableChain.FGSA.Run.TFrontier
@@ -374,6 +378,7 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.RPhase_def
 #print axioms AvailableChain.FGSA.Run.HealRContract
 #print axioms AvailableChain.FGSA.Run.ProgressAttemptStatement
+#print axioms AvailableChain.FGSA.Run.ProgressAttemptStatement_def
 #print axioms AvailableChain.FGSA.Run.HealingInputPrem
 #print axioms AvailableChain.FGSA.Run.RenewedPromotionPrem
 #print axioms AvailableChain.FGSA.Run.RowPermissionAt
