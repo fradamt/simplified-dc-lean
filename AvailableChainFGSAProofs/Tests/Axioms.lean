@@ -857,3 +857,13 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 -- K-ACCEPT: selected W receipt acceptance and its pending-finality adapter.
 #print axioms AvailableChain.FGSA.Run.fgsa_acceptBefore_W
 #print axioms AvailableChain.FGSA.Run.fgsa_finalizePending_W
+
+-- FF2-INV r2: high QC identity and action record adapters.
+#print axioms AvailableChain.FGSA.Run.high_action_target_choice
+#print axioms AvailableChain.FGSA.Run.high_record_guards_and_fresh_at_action
+#print axioms AvailableChain.FGSA.Run.ff2_stored_high_qc_identity
+#print axioms AvailableChain.FGSA.Run.ff2_high_qc_identity
+#print axioms AvailableChain.FGSA.Run.ff2_no_high_contest
+#print axioms AvailableChain.FGSA.Run.HighRecordGuard_W
+#print axioms AvailableChain.FGSA.Run.HighRecordGuard_W_def
+#print axioms AvailableChain.FGSA.Run.ff2_high_record_guards
