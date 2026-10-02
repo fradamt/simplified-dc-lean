@@ -23,16 +23,16 @@ variable (p : Params)
 C1: path justifications, finalizations, and strictly crossed entries. -/
 def certified (W : FGBlock (Fin p.n)) : Set (FGBlock (Fin p.n)) :=
   {e | ∃ U, FGBlock.Preceq U W ∧
-    (e = (derive p.E p.cfg U).J ∨ e = (finalityView p U).F ∨
-      (e = (derive p.E p.cfg U).T_h ∧
-        (derive p.E p.cfg U).h < (derive p.E p.cfg W).h))}
+    (e = (heightView p U).J ∨ e = (finalityView p U).F ∨
+      (e = (heightView p U).T_h ∧
+        (heightView p U).h < (heightView p W).h))}
 
 -- equation export required by BUILD §7.2 B3a
 theorem certified_def (W : FGBlock (Fin p.n)) : certified p W =
   {e | ∃ U, FGBlock.Preceq U W ∧
-    (e = (derive p.E p.cfg U).J ∨ e = (finalityView p U).F ∨
-      (e = (derive p.E p.cfg U).T_h ∧
-        (derive p.E p.cfg U).h < (derive p.E p.cfg W).h))} := rfl
+    (e = (heightView p U).J ∨ e = (finalityView p U).F ∨
+      (e = (heightView p U).T_h ∧
+        (heightView p U).h < (heightView p W).h))} := rfl
 
 /-- The admitted FG tree (bp.store.v1, 00:516–527). -/
 def treeT (st : State p.n) : Finset (FGBlock (Fin p.n)) := st.fg.TF
@@ -42,7 +42,7 @@ def treeErased (st : State p.n) : List Block := st.base.blocks
 def frameR (st : State p.n) : Controls (Fin p.n) := FGSA.controls p st
 /-- D(X) uses the controls of the current store, also for a smaller X. -/
 def domainR (st : State p.n) (X : Finset (FGBlock (Fin p.n))) :
-    Finset (FGBlock (Fin p.n)) := filteredFrom p.E p.cfg (frameR p st) X
+    Finset (FGBlock (Fin p.n)) := KitFG.filteredFromView (heightView p) (frameR p st) X
 /-- The FG output before erasure. -/
 def finR (st : State p.n) : FGBlock (Fin p.n) := st.fg.F
 /-- A strict change of the finalized block. -/
@@ -74,7 +74,7 @@ theorem sourceCandidates_def (st : State p.n) : sourceCandidates p st =
       (leaseOf st B).any (fun d => decide (st.base.now < d))) := by rw [sourceCandidates]
 -- equation export required by BUILD §7.2 B3a
 theorem domainR_def (st : State p.n) (X : Finset (FGBlock (Fin p.n))) :
-    domainR p st X = filteredFrom p.E p.cfg (frameR p st) X := by rw [domainR]
+    domainR p st X = KitFG.filteredFromView (heightView p) (frameR p st) X := by rw [domainR]
 -- equation export required by BUILD §7.2 B3a
 theorem treeT_def (st : State p.n) : treeT p st = st.fg.TF := by rw [treeT]
 -- equation export required by BUILD §7.2 B3a
@@ -112,7 +112,7 @@ def namedEntry : NamedHeightPair → Option (Height × BlockId)
   | .vote h e _ => some (h, e)
 /-- The named height and root are those of an ancestor of B. -/
 def EntryBelow (e : Height × BlockId) (B : FGBlock (Fin p.n)) : Prop :=
-  ∃ X, FGBlock.Preceq X B ∧ (hOf p.E p.cfg X, X.root) = e
+  ∃ X, FGBlock.Preceq X B ∧ ((heightView p X).h, X.root) = e
 /-- The FG seat of the signed row a belongs to x (S3c §2.7, M13). -/
 def RowSigner (a : RowWire p.n) (x : V) : Prop :=
   ∃ i, a.auth = .seat .fg i ∧ rho.seatOf (RunLabel.base .fg) i = x

@@ -23,53 +23,55 @@ def RowPermissionAt {In V : Type} [DecidableEq V] (c : AppCodec In)
       namedEntry a.payload.height_pair = some (hOf p.E p.cfg C, (derive p.E p.cfg C).T_h.root)
 
 /-- RowPermissionClaim: chapter-21 service.
-DC: INTENTIONAL FG source and action adapter; SAME stated horizon. -/
+DC: INTENTIONAL family delivery uses ΔF; SA clocks stay unchanged. -/
 def RowPermissionClaim : Prop :=
-  ∀ (G : Time) (_hδ : p.δt = 2 * p.R)
+  ∀ (G ΔF : Time) (_hδ : p.δt = 2 * p.R)
     {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit),
-    HealingPrem p c G E rho pt → RowPermissionAt p c E rho
+    HealingPrem p c G ΔF E rho pt → RowPermissionAt p c E rho
 
 /-- HealingInputClaim: chapter-21 service.
-DC: INTENTIONAL FG source and action adapter; SAME stated horizon. -/
+DC: INTENTIONAL family delivery uses ΔF; SA clocks stay unchanged. -/
 def HealingInputClaim : Prop :=
-  ∀ (G : Time) (_hδ : p.δt = 2 * p.R)
+  ∀ (G ΔF : Time) (_hδ : p.δt = 2 * p.R)
     {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : PtW),
-    HealingInputPrem p c G E rho pt → HealingInput p c E rho pt.w
+    HealingInputPrem p c G ΔF E rho pt → HealingInput p c E rho pt.w ΔF
 
 /-- HTimeConcl: chapter-21 service.
-DC: INTENTIONAL FG source and action adapter; SAME stated horizon. -/
+DC: INTENTIONAL family delivery uses ΔF; SA clocks stay unchanged. -/
 def HTimeConcl {In V : Type} [DecidableEq V] (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (G : Time) : Prop :=
-  ∃ w, HealingInput p c E rho w ∧
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (G ΔF : Time) : Prop :=
+  ∃ w, HealingInput p c E rho w ΔF ∧
     tstar p w ≤ p.actionTime w.rStar + Γ p G + 4 * p.Δ ∧
-    p.actionTime w.rStar + Γ p G + 4 * p.Δ < E.t_GST + B_H p G
+    p.actionTime w.rStar + Γ p G + 4 * p.Δ < E.t_GST + B_HF p ΔF G
 
 /-- HTimeClaim: chapter-21 service.
-DC: INTENTIONAL FG source and action adapter; SAME stated horizon. -/
+DC: INTENTIONAL family delivery uses ΔF; SA clocks stay unchanged. -/
 def HTimeClaim : Prop :=
-  ∀ (G : Time) (_hδ : p.δt = 2 * p.R)
+  ∀ (G ΔF : Time) (_hδ : p.δt = 2 * p.R)
     {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit),
-    HealingTimePrem p c G E rho pt → HTimeConcl p c E rho G
+    HealingTimePrem p c G ΔF E rho pt → HTimeConcl p c E rho G ΔF
 
 /-- ResetArrivalConcl: chapter-21 service.
-DC: INTENTIONAL FG source and action adapter; SAME stated horizon. -/
+DC: INTENTIONAL family delivery uses ΔF; SA clocks stay unchanged. -/
 def ResetArrivalConcl {In V : Type} [DecidableEq V] (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (G : Time) : Prop :=
-  ∃ w, H0Reset p c E rho w ∧ p.actionTime w.rStar < E.t_GST + B'_reset p G
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (G ΔF : Time) : Prop :=
+  ∃ w, H0Reset p c E rho w ∧ p.actionTime w.rStar < E.t_GST + B'_resetF p ΔF G
 
 /-- ResetArrivalClaim: chapter-21 service.
-DC: INTENTIONAL FG source and action adapter; SAME stated horizon. -/
+DC: INTENTIONAL family delivery uses ΔF; SA clocks stay unchanged. -/
 def ResetArrivalClaim : Prop :=
-  ∀ (G : Time) (_hδ : p.δt = 2 * p.R)
+  ∀ (G ΔF : Time) (_hδ : p.δt = 2 * p.R)
     {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit),
-    ResetArrivalPrem p c G E rho pt → ResetArrivalConcl p c E rho G
+    ResetArrivalPrem p c G ΔF E rho pt → ResetArrivalConcl p c E rho G ΔF
 
 /-- RenewedPromotionConcl: chapter-21 service.
-DC: INTENTIONAL FG source and action adapter; SAME stated horizon. -/
+H.9(b), blueprint 21:1356–1425: keep coverage from the fixed action r
+and the proposal, block-acceptance, and gate deadlines.
+DC: INTENTIONAL family delivery uses ΔF; SA clocks stay unchanged. -/
 def RenewedPromotionConcl {In V : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (G : Time) (r : Nat) : Prop :=
   ∀ u m J contested l q Q height,
@@ -93,12 +95,12 @@ def RenewedPromotionConcl {In V : Type} [DecidableEq V] [Fintype V] (c : AppCode
         SA.gateTime p.toParams s ≤ p.actionTime r + 2 * P p + Γ p G - 4 * p.Δ))
 
 /-- RenewedPromotionClaim: chapter-21 service.
-DC: INTENTIONAL FG source and action adapter; SAME stated horizon. -/
+DC: INTENTIONAL family delivery uses ΔF; SA clocks stay unchanged. -/
 def RenewedPromotionClaim : Prop :=
-  ∀ (G : Time) (_hδ : p.δt = 2 * p.R)
+  ∀ (G ΔF : Time) (_hδ : p.δt = 2 * p.R)
     {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : PtR),
-    RenewedPromotionPrem p c G E rho pt → RenewedPromotionConcl p c E rho G pt.r
+    RenewedPromotionPrem p c G ΔF E rho pt → RenewedPromotionConcl p c E rho G pt.r
 
 end AvailableChain.FGSA.Run
 end

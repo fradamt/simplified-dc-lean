@@ -206,7 +206,9 @@ theorem cleanState_index_facts {b₀ : Time} (h : CleanCut₂ p c E rho b₀ ΔF
     (∀ v, v ∈ rho.honest → EmittedRowsNoSlash p c E rho v) := by
   exact ⟨fun v _ => nestOK_stateBefore E rho i v,
     fun v hv => (hf.store i v hv).1,
-    fun v hv => (hf.frame i v hv).1,
+    fun v hv => by
+      simpa only [KitFG.fjControls_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
+        using (hf.frame i v hv).1,
     emittedRowsNoSlash E rho h.base.linked⟩
 
 
@@ -238,6 +240,7 @@ theorem clean_certSources_of_rows {i : Nat} (hf : FGFoundation p c E rho)
   rw [CleanCertSources_def]
   intro x W e hx hW he hne
   obtain ⟨y, r, a, ⟨j, hj, ha⟩, hn⟩ := hf.strat i x W hx hW e he hne
+  rw [← KitFG.hOf_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)] at hn
   obtain ⟨C, hc, heq, hpre, hb⟩ := hr j y r a _ hj ha hn
   have heC : e = (derive p.E p.cfg C).T_h :=
     FGBlock.root_injective (congrArg Prod.snd heq)

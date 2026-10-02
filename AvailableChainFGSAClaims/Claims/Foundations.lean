@@ -99,8 +99,8 @@ def SourceDisciplineBaseAt : Prop :=
   (∀ j x r a, HonestRowAt p c E rho j x r a →
     ∃ e C G, namedEntry a.payload.height_pair = some e ∧
       actionSourceFG p c E rho x r = some (some C) ∧
-      e = (hOf p.E p.cfg C, (derive p.E p.cfg C).T_h.root) ∧
-      FGBlock.Preceq (derive p.E p.cfg C).T_h C ∧
+      e = ((heightView p C).h, (heightView p C).T_h.root) ∧
+      FGBlock.Preceq (heightView p C).T_h C ∧
       gateResult p c E rho x (r * p.R) = some (some G) ∧
       Block.Preceq (eraseFG C) G ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
 /-- bp.sourceDiscipline.v1(a–d), including target/progress and finality origins. -/

@@ -3,149 +3,103 @@
 # height <declaration> # <reason>: a height-only read of the old derive (ruling 7 named exceptions; J6 removes).
 # old <constant> # <reason>: one more old constant (tightening only).
 # An unlisted read fails; a stale, duplicate or misplaced line fails.
-allow AvailableChain.FGSA.Window.acceptViable_eq # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.WindowStore); FG5c: explicit fixed-input bridge only; active model uses W
-allow AvailableChain.FGSA.Window.on_block_TF_eq # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.WindowStore); FG5c: explicit fixed-input bridge only; active model uses W
-allow AvailableChain.FGSA.Window.update_finality_J_eq # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.WindowStore); FG5c: explicit fixed-input bridge only; active model uses W
-allow AvailableChain.FGSA.Window.update_finality_h_j_eq # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.WindowStore); FG5c: explicit fixed-input bridge only; active model uses W
-allow AvailableChain.FGSA.Window.update_finality_h_max_eq # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.WindowStore); FG5c: explicit fixed-input bridge only; active model uses W
-allow AvailableChain.FGSA.Window.window_update_pair_eq # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.WindowStore; private); FG5c: explicit fixed-input bridge only; active model uses W
-height AvailableChain.FGSA.Run.BatchCoverage # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.Fold); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.CPCompat # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.ChannelProps); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.CPCompat_def # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.ChannelProps); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.CPPrefix # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.ChannelProps); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.CPPrefix_def # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.ChannelProps); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.CleanCertSources # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Statements.CleanInvariant); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.CleanCertSources_def # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Statements.CleanInvariant); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.CleanRowSources # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Statements.CleanInvariant); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.CleanRowSources_def # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Statements.CleanInvariant); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.EntryAt # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.Fold); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.EntryBelow # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.Channels); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.FirstCross # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.Fold); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.FrameBelow # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.ChannelProps); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.FrameBelow_def # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.ChannelProps); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.H0.mk # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.Witness); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.H0Reset.casesOn # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.Witness); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.H0Reset.fresh # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.Witness); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.H0Reset.mk # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.Witness); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.H0Reset.rec # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.Witness); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.H0Reset.recOn # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.Witness); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.HeadReachesLoAt # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Claims.Shared); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.JustifiedCross # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.Fold); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.KeepOrCause # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.ChannelProps); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.KernelConclusion # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.ComposeStmt); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.MixedCross # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.Fold); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.OpeningCovered # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.ChannelProps); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.OpeningEntry # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.ChannelProps); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.ProposalWalk # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.Fold); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.RCap # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.ChannelProps); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.RCert # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.ChannelProps); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.RCert_def # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.ChannelProps); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.RGeo # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.ChannelProps); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.RGeo_def # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.ChannelProps); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.RKeep # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.ChannelProps); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.RPhase # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.ComposeStmt); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.RPhase_def # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.ComposeStmt); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.RQCOrigin # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.ChannelProps); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.RQCOrigin_def # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.ChannelProps); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.RStrat # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.ChannelProps); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.RStrat_def # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.ChannelProps); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.RXing # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.ChannelProps); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.RenewedPromotionConcl # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Claims.Healing); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.RowPermissionAt # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Claims.Healing); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.SeatCovers # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.Fold); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.ServedFrontier # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.ComposeStmt); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.SettledPhaseFrame # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.ComposeStmt); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.SettledPhaseFrame_def # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.ComposeStmt); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.SourceDisciplineBaseAt # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Claims.Foundations); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.SrcFrameAbove # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.ChannelProps); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.SrcFrameAbove_def # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.ChannelProps); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.StoredProgressConsume # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.Fold); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.TChain # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.ChannelProps); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.TChain_def # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.ChannelProps); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.TCommon # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.ChannelProps); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.TFrontier # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.ChannelProps); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.TGeom # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.ChannelProps); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.TWalk # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.ComposeStmt); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.WalkRunGeometry.casesOn # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.ScoreRun); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.WalkRunGeometry.mk # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.ScoreRun); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.WalkRunGeometry.rec # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.ScoreRun); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.WalkRunGeometry.recOn # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.ScoreRun); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.WalkRunGeometry.source_lo # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.ScoreRun); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.WalkRunGeometry.target_lo # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.ScoreRun); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.attest_none_record # pre-J4 baseline 2026-10-02 (AvailableChainFGSARun.Proofs.Protocol); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.attest_signer_irrel # pre-J4 baseline 2026-10-02 (AvailableChainFGSARun.Proofs.Protocol); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.attest_some_fresh # pre-J4 baseline 2026-10-02 (AvailableChainFGSARun.Proofs.Protocol); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.attest_some_record # pre-J4 baseline 2026-10-02 (AvailableChainFGSARun.Proofs.Protocol); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.cap_finality_head # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Cap); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.certified # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.Channels); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.certified_def # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.Channels); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.cleanCut_zero_body # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Clean.Zero); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.cleanFrame_of_state # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Clean.Frame); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.cleanHistoryAt_body # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Clean.Closure); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.cleanState_zero # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Clean.State); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.cleanTransfer_of_forward # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Clean.Transfer); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.clean_actionStep # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Clean.Action); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.clean_certSources_of_rows # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Clean.State); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.clean_frame_from_rows # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Clean.State); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.clean_rows_step # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Clean.State); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.clean_transfer_forward # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Clean.Transfer); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.clean_transfer_frame # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Clean.TransferFrame); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.clean_transfer_receipt_path # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Clean.TransferFrame); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.clean_transfer_receipt_path_of_head # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Clean.TransferFrame); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.client_append # pre-J4 baseline 2026-10-02 (AvailableChainFGSARun.Proofs.ClientTrace); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.client_singleton # pre-J4 baseline 2026-10-02 (AvailableChainFGSARun.Proofs.ClientTrace); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.client_step # pre-J4 baseline 2026-10-02 (AvailableChainFGSARun.Proofs.ClientTrace); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.cpCompat_of_srcFrame # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.Channels); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.cpPrefix_of_srcFrame # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.Channels); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.eligible_lo_live # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.Channels); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.emission_attest_valid # pre-J4 baseline 2026-10-02 (AvailableChainFGSARun.Proofs.EmissionWellFormed); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.fgsa_attest_decode # pre-J4 baseline 2026-10-02 (AvailableChainFGSARun.Proofs.Emission); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.fgsa_batchCoverage # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.RowService); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.fgsa_client_trace_of_seats # pre-J4 baseline 2026-10-02 (AvailableChainFGSARun.Proofs.ClientTrace); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.fgsa_decode_attest_object # pre-J4 baseline 2026-10-02 (AvailableChainFGSARun.Proofs.ClientTrace); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.fgsa_finalLock # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Crossing); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.fgsa_finalLock_erased # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Crossing); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.fgsa_finalLock_ev # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Accountable); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.fgsa_finalLock_faulty_count # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Accountable); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.fgsa_finalLock_of_bound # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Crossing); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.fgsa_finalityLag # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Cap); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.fgsa_headReachesLo # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.HeadGeometry); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.fgsa_rCap # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Cap); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.fgsa_rCap_before # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Cap); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.fgsa_rCap_time # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Cap); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.fgsa_rCert # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Certificates); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.fgsa_rGeo # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Certificates); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.fgsa_target_exact_quorum # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Counts); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.fgsa_walkRun_eligible_iff # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.ScoreRun); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.fgsa_walkRun_full_domain # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.ScoreRun); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.fgsa_walkRun_path_domain # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.ScoreRun); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.foldTrichotomy # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.Fold); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.high # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.Witness); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.kept_or_cause # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.KeepExact); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.kept_or_conflict # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.KeepExact); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.openingSource_domain_of_kept_or_cause # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.OpeningSource); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.openingSource_firstOpening # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.OpeningSource); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.openingSource_firstOpening_exact # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.OpeningSource); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.sourceDiscipline_base # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Export); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.sourceDiscipline_emittedName # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Sources); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.sourceDiscipline_emittedNonempty # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Sources); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.sourceDiscipline_qcOrigin # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Sources); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.sourceDiscipline_srcFrameAbove # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Sources); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.sourceDiscipline_strat # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Sources); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.srcFrame_genesis_compatible # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.Channels); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.srcFrame_genesis_preceq # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.Channels); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.trace_and_record # pre-J4 baseline 2026-10-02 (AvailableChainFGSARun.Proofs.ClientTrace); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Run.transfer_frame_at_vote # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Clean.TransferFrame); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Window.justificationBirth_window_iff_simplex # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.WindowCertificates); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Window.windowCertificateLaws # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.WindowSelection); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Window.windowHeightBridge # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.WindowHeightBridge); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Window.window_J_eq # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.WindowStore); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Window.window_height_eq # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.WindowStore); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Window.window_hj_eq # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.WindowStore); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.Window.window_pair_iff # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.WindowStore); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.attest # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Model.Frame); FG5c: shared-client source-height projection, equal through H
-height AvailableChain.FGSA.fgsa_band_eq_of_same_floor # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.RetainedWalkStore); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.fgsa_eligible_eq_of_band_score # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.RetainedWalkStore); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.fgsa_eligible_eq_of_no_band_score # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.RetainedWalkStore); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.fgsa_getHead_avoids_unsupported_child # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.Head.Walk); FG5c: height/frame bridge or ruled height-only statement; no old finality read
-height AvailableChain.FGSA.row_bit_persist # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.RowValidity); FG5c: height/frame bridge or ruled height-only statement; no old finality read
+allow AvailableChain.FGSA.Window.acceptViable_eq # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.WindowStore)
+allow AvailableChain.FGSA.Window.on_block_TF_eq # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.WindowStore)
+allow AvailableChain.FGSA.Window.update_finality_J_eq # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.WindowStore)
+allow AvailableChain.FGSA.Window.update_finality_h_j_eq # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.WindowStore)
+allow AvailableChain.FGSA.Window.update_finality_h_max_eq # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.WindowStore)
+allow AvailableChain.FGSA.Window.window_update_pair_eq # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.WindowStore; private)
+height AvailableChain.FGSA.Run.CleanCertSources # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Statements.CleanInvariant)
+height AvailableChain.FGSA.Run.CleanCertSources_def # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Statements.CleanInvariant)
+height AvailableChain.FGSA.Run.CleanRowSources # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Statements.CleanInvariant)
+height AvailableChain.FGSA.Run.CleanRowSources_def # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Statements.CleanInvariant)
+height AvailableChain.FGSA.Run.RenewedPromotionConcl # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Claims.Healing)
+height AvailableChain.FGSA.Run.RowPermissionAt # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Claims.Healing)
+height AvailableChain.FGSA.Run.WalkRunGeometry.casesOn # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.ScoreRun)
+height AvailableChain.FGSA.Run.WalkRunGeometry.mk # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.ScoreRun)
+height AvailableChain.FGSA.Run.WalkRunGeometry.rec # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.ScoreRun)
+height AvailableChain.FGSA.Run.WalkRunGeometry.recOn # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.ScoreRun)
+height AvailableChain.FGSA.Run.WalkRunGeometry.source_lo # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.ScoreRun)
+height AvailableChain.FGSA.Run.WalkRunGeometry.target_lo # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.ScoreRun)
+height AvailableChain.FGSA.Run.attest_none_record # pre-J4 baseline 2026-10-02 (AvailableChainFGSARun.Proofs.Protocol)
+height AvailableChain.FGSA.Run.attest_signer_irrel # pre-J4 baseline 2026-10-02 (AvailableChainFGSARun.Proofs.Protocol)
+height AvailableChain.FGSA.Run.attest_some_fresh # pre-J4 baseline 2026-10-02 (AvailableChainFGSARun.Proofs.Protocol)
+height AvailableChain.FGSA.Run.attest_some_record # pre-J4 baseline 2026-10-02 (AvailableChainFGSARun.Proofs.Protocol)
+height AvailableChain.FGSA.Run.cap_finality_head # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Cap)
+height AvailableChain.FGSA.Run.cleanCut_zero_body # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Clean.Zero)
+height AvailableChain.FGSA.Run.cleanFrame_of_state # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Clean.Frame)
+height AvailableChain.FGSA.Run.cleanHistoryAt_body # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Clean.Closure)
+height AvailableChain.FGSA.Run.cleanState_zero # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Clean.State)
+height AvailableChain.FGSA.Run.cleanTransfer_of_forward # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Clean.Transfer)
+height AvailableChain.FGSA.Run.clean_actionStep # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Clean.Action)
+height AvailableChain.FGSA.Run.clean_certSources_of_rows # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Clean.State)
+height AvailableChain.FGSA.Run.clean_frame_from_rows # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Clean.State)
+height AvailableChain.FGSA.Run.clean_rows_step # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Clean.State)
+height AvailableChain.FGSA.Run.clean_transfer_forward # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Clean.Transfer)
+height AvailableChain.FGSA.Run.clean_transfer_frame # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Clean.TransferFrame)
+height AvailableChain.FGSA.Run.clean_transfer_receipt_path # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Clean.TransferFrame)
+height AvailableChain.FGSA.Run.clean_transfer_receipt_path_of_head # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Clean.TransferFrame)
+height AvailableChain.FGSA.Run.client_append # pre-J4 baseline 2026-10-02 (AvailableChainFGSARun.Proofs.ClientTrace)
+height AvailableChain.FGSA.Run.client_singleton # pre-J4 baseline 2026-10-02 (AvailableChainFGSARun.Proofs.ClientTrace)
+height AvailableChain.FGSA.Run.client_step # pre-J4 baseline 2026-10-02 (AvailableChainFGSARun.Proofs.ClientTrace)
+height AvailableChain.FGSA.Run.cpCompat_of_srcFrame # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.Channels)
+height AvailableChain.FGSA.Run.cpPrefix_of_srcFrame # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.Channels)
+height AvailableChain.FGSA.Run.eligible_lo_live # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.Channels)
+height AvailableChain.FGSA.Run.emission_attest_valid # pre-J4 baseline 2026-10-02 (AvailableChainFGSARun.Proofs.EmissionWellFormed)
+height AvailableChain.FGSA.Run.fgsa_attest_decode # pre-J4 baseline 2026-10-02 (AvailableChainFGSARun.Proofs.Emission)
+height AvailableChain.FGSA.Run.fgsa_batchCoverage # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.RowService)
+height AvailableChain.FGSA.Run.fgsa_client_trace_of_seats # pre-J4 baseline 2026-10-02 (AvailableChainFGSARun.Proofs.ClientTrace)
+height AvailableChain.FGSA.Run.fgsa_decode_attest_object # pre-J4 baseline 2026-10-02 (AvailableChainFGSARun.Proofs.ClientTrace)
+height AvailableChain.FGSA.Run.fgsa_finalLock # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Crossing)
+height AvailableChain.FGSA.Run.fgsa_finalLock_erased # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Crossing)
+height AvailableChain.FGSA.Run.fgsa_finalLock_ev # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Accountable)
+height AvailableChain.FGSA.Run.fgsa_finalLock_faulty_count # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Accountable)
+height AvailableChain.FGSA.Run.fgsa_finalLock_of_bound # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Crossing)
+height AvailableChain.FGSA.Run.fgsa_finalityLag # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Cap)
+height AvailableChain.FGSA.Run.fgsa_headReachesLo # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.HeadGeometry)
+height AvailableChain.FGSA.Run.fgsa_headReachesLoClaim # bridge: old fgsa_headReachesLo → HeadReachesLoAt (view form) via filteredFrom_of_bridge/hOf_of_bridge; heights only
+height AvailableChain.FGSA.Run.fgsa_rCap # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Cap)
+height AvailableChain.FGSA.Run.fgsa_rCap_before # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Cap)
+height AvailableChain.FGSA.Run.fgsa_rCap_time # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Cap)
+height AvailableChain.FGSA.Run.fgsa_rCert # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Certificates)
+height AvailableChain.FGSA.Run.fgsa_rGeo # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Certificates)
+height AvailableChain.FGSA.Run.fgsa_target_exact_quorum # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Counts)
+height AvailableChain.FGSA.Run.fgsa_walkRun_eligible_iff # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.ScoreRun)
+height AvailableChain.FGSA.Run.fgsa_walkRun_full_domain # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.ScoreRun)
+height AvailableChain.FGSA.Run.fgsa_walkRun_path_domain # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.ScoreRun)
+height AvailableChain.FGSA.Run.kept_or_cause # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.KeepExact)
+height AvailableChain.FGSA.Run.kept_or_conflict # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.KeepExact)
+height AvailableChain.FGSA.Run.openingSource_domain_of_kept_or_cause # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.OpeningSource)
+height AvailableChain.FGSA.Run.openingSource_firstOpening # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.OpeningSource)
+height AvailableChain.FGSA.Run.openingSource_firstOpening_exact # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.OpeningSource)
+height AvailableChain.FGSA.Run.sourceDiscipline_base # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Export)
+height AvailableChain.FGSA.Run.sourceDiscipline_emittedName # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Sources)
+height AvailableChain.FGSA.Run.sourceDiscipline_emittedNonempty # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Sources)
+height AvailableChain.FGSA.Run.sourceDiscipline_qcOrigin # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Sources)
+height AvailableChain.FGSA.Run.sourceDiscipline_srcFrameAbove # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Sources)
+height AvailableChain.FGSA.Run.sourceDiscipline_strat # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Sources)
+height AvailableChain.FGSA.Run.srcFrame_genesis_compatible # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.Channels)
+height AvailableChain.FGSA.Run.srcFrame_genesis_preceq # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.Channels)
+height AvailableChain.FGSA.Run.trace_and_record # pre-J4 baseline 2026-10-02 (AvailableChainFGSARun.Proofs.ClientTrace)
+height AvailableChain.FGSA.Run.transfer_frame_at_vote # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Clean.TransferFrame)
+height AvailableChain.FGSA.Window.justificationBirth_window_iff_simplex # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.WindowCertificates)
+height AvailableChain.FGSA.Window.windowCertificateLaws # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.WindowSelection)
+height AvailableChain.FGSA.Window.windowHeightBridge # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.WindowHeightBridge)
+height AvailableChain.FGSA.Window.windowStoreInvariant_accept # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.WindowStore)
+height AvailableChain.FGSA.Window.window_J_eq # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.WindowStore)
+height AvailableChain.FGSA.Window.window_hOf_eq # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.WindowReaders)
+height AvailableChain.FGSA.Window.window_height_eq # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.WindowStore)
+height AvailableChain.FGSA.Window.window_hj_eq # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.WindowStore)
+height AvailableChain.FGSA.Window.window_lexMax_eq # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.WindowReaders)
+height AvailableChain.FGSA.Window.window_pair_iff # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.WindowStore)
+height AvailableChain.FGSA.attest # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Model.Frame)
+height AvailableChain.FGSA.attest_source_heightView # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.EmissionFields)
+height AvailableChain.FGSA.emitted_finality_pair_of_headFields # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.EmissionFields)
+height AvailableChain.FGSA.fgsa_band_eq_of_same_floor # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.RetainedWalkStore)
+height AvailableChain.FGSA.fgsa_eligible_eq # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.FrameViews)
+height AvailableChain.FGSA.fgsa_eligible_eq_of_band_score # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.RetainedWalkStore)
+height AvailableChain.FGSA.fgsa_eligible_eq_of_no_band_score # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.RetainedWalkStore)
+height AvailableChain.FGSA.fgsa_getHead_avoids_unsupported_child # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.Head.Walk)
+height AvailableChain.FGSA.heightView_bridge # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.FrameViews)
+height AvailableChain.FGSA.heightView_eq_simplex # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.StoreLaws)
+height AvailableChain.FGSA.row_bit_persist # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.RowValidity)

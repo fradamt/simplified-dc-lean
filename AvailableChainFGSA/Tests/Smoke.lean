@@ -833,15 +833,25 @@ theorem common_parent :
     (derive pT.E pT.cfg (pk .genesis 1 0 (signRows 0 [rowT 0, rowT 1, rowT 2]))).h = 2 := by
   decide +kernel
 
-/-- Plan: no finality-state match requirement. The foreign finality target
-passes R6 and sets progress, but it sets no finality bit. -/
+/-- Three height-1 target rows: the parent window holds the entry (1, genesis). -/
+def qW (i : Fin 4) : RowWire 4 := ⟨.seat .fg i, .vote ⟨.vote 1 genesisRoot false, none⟩⟩
+/-- A parent whose window is not empty (J5 Opus N3). -/
+def winParent : FGBlock (Fin 4) := pk .genesis 1 41 [qW 0, qW 1, qW 2]
+
+/-- Plan: no finality-state match requirement. On a parent with a non-empty
+window, a foreign finality pair (entry height 1, another root) passes R6W and
+sets progress, but it sets no finality bit: the window is unchanged. -/
 theorem foreign_finality :
-    Window.rowValidW (parentFoldState pT 3 .genesis)
-      ⟨.seat .fg 0, .vote ⟨.vote 1 genesisRoot false, some ⟨0, C.root⟩⟩⟩ = true ∧
-    (Window.process_row (parentFoldState pT 3 .genesis)
-      ⟨0, .vote 1 genesisRoot false, some ⟨0, C.root⟩⟩).W = [] ∧
-    (Window.process_row (parentFoldState pT 3 .genesis)
-      ⟨0, .vote 1 genesisRoot false, some ⟨0, C.root⟩⟩).progress = {0} := by
+    (parentFoldState pT 3 winParent).W ≠ [] ∧
+    Window.rowValidW (parentFoldState pT 3 winParent)
+      ⟨.seat .fg 3, .vote ⟨.vote 2 (parentFoldState pT 3 winParent).T_h.root false,
+        some ⟨1, C.root⟩⟩⟩ = true ∧
+    (Window.process_row (parentFoldState pT 3 winParent)
+      ⟨3, .vote 2 (parentFoldState pT 3 winParent).T_h.root false, some ⟨1, C.root⟩⟩).W =
+      (parentFoldState pT 3 winParent).W ∧
+    3 ∈ (Window.process_row (parentFoldState pT 3 winParent)
+      ⟨3, .vote 2 (parentFoldState pT 3 winParent).T_h.root false,
+        some ⟨1, C.root⟩⟩).progress := by
   decide +kernel
 
 /-- Plan: full-content dedup, stable order, and more than two rows per seat.

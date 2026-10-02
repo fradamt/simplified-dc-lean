@@ -466,3 +466,19 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.SSafeFromCut₂
 #print axioms AvailableChain.FGSA.Run.BoundedSafetyRecovery₂
 #print axioms AvailableChain.FGSA.Run.WeakContinuationClaim
+-- S4.4a: row-delay liveness binding and actual-event finite horizon.
+#print axioms AvailableChain.FGSA.Run.HealingPrem.bound
+#print axioms AvailableChain.FGSA.Run.KernelJoinedPrem.bound
+#print axioms AvailableChain.FGSA.Run.HealingAttemptPrem.hhor
+#print axioms AvailableChain.FGSA.Run.FE_W
+#print axioms AvailableChain.FGSA.Run.F4_W
+#print axioms AvailableChain.FGSA.Run.FGoodE_Wp
+#print axioms AvailableChain.FGSA.Run.FGood4_Wp
+#print axioms AvailableChain.FGSA.Run.Tail_Wp
+#print axioms AvailableChain.FGSA.Run.B_FW
+#print axioms AvailableChain.FGSA.Run.FE_W_def
+#print axioms AvailableChain.FGSA.Run.F4_W_def
+#print axioms AvailableChain.FGSA.Run.FGoodE_Wp_def
+#print axioms AvailableChain.FGSA.Run.FGood4_Wp_def
+#print axioms AvailableChain.FGSA.Run.Tail_Wp_def
+#print axioms AvailableChain.FGSA.Run.B_FW_def

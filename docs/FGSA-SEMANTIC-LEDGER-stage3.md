@@ -2,8 +2,8 @@
 
 Authority: FG5 lead rulings 1, 2, 4, 6, and 7 (2026-10-02), plan section 3.5,
 and spec fgsa-protocol.tex at 59bb0dda. This candidate implements the approved
-window fold and R6W. The full build and local proof guards pass. Landing remains
-blocked by the audit data gate and the real-main precheck; this is not a landing approval.
+window fold and R6W. The full build and local proof guards pass. Reviewed by J5
+(Astra + Opus, 2026-10-02: LAND WITH FIXES; lead ruling in fg5-rulings.md).
 
 1. **Reachable and epochs.** `admitBlock` now uses `Window.on_block p p.K_W`.
    The concrete protocol, epochs, and run claims therefore describe W execution.
@@ -50,4 +50,43 @@ Ruling 7 defers the height-only Claims text to J6. Unchanged manifest hashes
 do not establish unchanged meaning: controls and store readers can hide a
 changed public definition from the generated/private dependency hash.
 
+
+## Named Claims whose meaning changes only through a model body (J5 X2)
+
+Their source text is unchanged; their meaning moves with W. Route in brackets.
+
+- Through `fgInputs` (client head fields now read W, including W h_F): `actionTriple`,
+  `fgClientEvent`, `fgClientEvents`, `EmittedRowsNoSlash`, `ClientSafeAll` /
+  `ClientSafetyClaim`.
+- Through `rowsValidForParent` / `ValidForParent` (now R6W): `excludesFixed`,
+  `invalidForParent`, `TRowsSelect`, `TRowsSync`, `BatchPrem.valid`. `TRowsSelect`
+  and `TRowsSync` now oblige the proposer to carry useful STALE rows as well
+  (spec :798–812); both are proved (`RowService.lean:224`, `:297`).
+- Through the store F (now the W F): `F_at`, `FAdvanceAt`, `AcceptsFinalBefore`,
+  `finalizedOut`.
+- `RXing`: a composition premise (`ComposeStmt.lean:459`) with no producer; it
+  now speaks about the W h_F.
+- `J_mem` and `store_accountable` read finality only through `finalityView`. This
+  is safe after J4 only because `finalityView` then reads W (lead condition for the
+  J4 landing; the old-read audit lists `finalityView`, not these two).
+- Through W reachability, W stores and W outputs (Claims families, Astra J5
+  table): `StoreAt` / `StoreClaim`, `ActiveViewAt` / `ActiveViewClaim` (W accepted
+  F), `ChainCertificatesAt` / `ChainCertificatesClaim` (RCert supplies W f),
+  `SourceDisciplineAt` / `SourceDisciplineClaim` (W run, RQCOrigin, certified),
+  `ReconcileClaim`, `OutputNestingAt` / `OutputNestingClaim`, `FrameAt` /
+  `FrameClaim` (W update and R6W channels), `CleanHistoryAt` and its claim
+  wrappers, `CleanTruncAt` / `CleanPrefixTruncationClaim`, `CleanSafetyAt` /
+  `CleanSafetyClaim`, `SameLabelAt` / `SameLabelClaim`, `HeadReachesLoClaim`,
+  `ReleaseAt` / `ReleaseClaim`.
+- Bridge-equal readers, no per-block meaning change: `HeightMatch` (through
+  `parentFoldState`), and `frameR`, `domainR`, `jointSource`, `proposerHead`,
+  `FrameAt`, `HeadReachesLoAt` (through `controls`); the ruling-7 height readers
+  (`RGeo`, `SourceDisciplineBaseAt`, `EntryBelow`, Fold / Witness / ComposeStmt
+  heights) until J6.
+- `certified`: its F arm is a subset of its J arm before and after J4 (the W F is
+  `(derive C).J` for some C ⪯ W, by `window_final_birth`), so the set content does
+  not change (J5 Opus N1; RCert conjunct 4 states the same fact).
+
 "the unproven regime Props (FinalitySet, Recurrence, Regimes) now nominally describe W runs with old bounds: not re-validated until stage 4"
+
+J6 / FG5d: height-only readers now read heightView; bridge-equal; no meaning change
