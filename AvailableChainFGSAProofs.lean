@@ -6,6 +6,10 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FramePaths
 public import AvailableChainFGSAProofs.Proofs.Healing.FrameZero
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseSettle
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseBoot
+public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposal
+public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalHistory
+public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalReceipts
+public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalRetained
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseRelay
 public import AvailableChainFGSAProofs.Proofs.Healing.Phase
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseFrame

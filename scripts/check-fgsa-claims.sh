@@ -41,6 +41,18 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.healing_carried_path',
     'AvailableChain.FGSA.Run.healing_full_witness_all',
     'AvailableChain.FGSA.Run.healing_witness_relay_phase',
+    # S5 I-EXACT r2: G1 producer and E1/E2 theorems; --expect additions only.
+    'AvailableChain.FGSA.Run.inclusion_retained_reads',
+    'AvailableChain.FGSA.Run.inclusion_exact_compat',
+    'AvailableChain.FGSA.Run.inclusion_exact_receipt',
+    'AvailableChain.FGSA.Run.inclusion_exact_head',
+    # S5 I-EXACT: --expect additions only; G1 remains open.
+    'AvailableChain.FGSA.Run.inclusion_acceptance_of_stored',
+    'AvailableChain.FGSA.Run.inclusion_receipt_of_compatible',
+    'AvailableChain.FGSA.Run.inclusion_proposal_receipt',
+    'AvailableChain.FGSA.Run.inclusion_head_read',
+    'AvailableChain.FGSA.Run.inclusion_sleep_silence',
+    'AvailableChain.FGSA.Run.inclusion_comparison_prefix',
     # S4.6c: --expect DATA only.
     'AvailableChain.FGSA.Run.fgsa_availableGST',
     'AvailableChain.FGSA.Run.AvailableFromConcl',
