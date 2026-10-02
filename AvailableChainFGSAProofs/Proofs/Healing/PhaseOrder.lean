@@ -32,7 +32,7 @@ theorem healing_phase_top_persist (mono : RMono p c E rho) (hnr : V2.D.NoRestart
 
 /-- Blueprint 21:1105–1113, 1193–1209; plan S20, H-PHASE/P1.
 DC: SAME two equal-height entries on one path are equal. -/
-private theorem phase_entries_eq {C D W : FGBlock (Fin p.n)}
+theorem healing_phase_entries_eq {C D W : FGBlock (Fin p.n)}
     (hh : (heightView p C).h_j = (heightView p D).h_j)
     (hn : (heightView p C).h_j ≠ 0)
     (hC : FGBlock.Preceq (heightView p C).J W)
@@ -92,7 +92,7 @@ theorem healing_phase_contest_persist (mono : RMono p c E rho)
     intro hDC
     apply hJ
     rw [hJC, hJD]
-    apply phase_entries_eq p (W := C)
+    apply healing_phase_entries_eq p (W := C)
     · (simp only [Height] at *; omega)
     · (simp only [Height] at *; omega)
     · exact KitFG.preceq_trans ((fgCertificateLaws p).height.justified_preceq_entry C)

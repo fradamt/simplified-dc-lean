@@ -1,4 +1,6 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Healing.PhaseSettle
+public import AvailableChainFGSAProofs.Proofs.Healing.PhaseBoot
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseRelay
 public import AvailableChainFGSAProofs.Proofs.Healing.Phase
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseFrame
