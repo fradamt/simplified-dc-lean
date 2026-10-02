@@ -64,7 +64,10 @@ def EventPrefixAgreementClaim : Prop :=
 /-- F-API, dc-align-full.md:123–129;
 DC L/FinalitySafety.lean:117 (internal; no direct public field); class: INTENTIONAL.
 Linked maps fixed FG seats to holders. Authentic row carriage covers all run blocks;
-unit weights give the count bound. -/
+unit weights give the count bound. The carriage premise is main's action-indexed form
+(FinalityRowCarriage, ChannelProps: HonestRowAt at p.actionTime r), stronger in form than d35's
+EmitsRow at any tick; the two are equal on valid runs, and main proves this form from
+ExecutionValid (fgsa_finalityRowCarriage, Accountable). -/
 def FaultCountSlashableBoundClaim : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
@@ -98,7 +101,7 @@ def HonestNeverSlashedClaim (p : Params) : Prop :=
     V2.D.Linked (fgsaFamilies p c).linked rho →
     Gen.V2.Duty.HonestNeverSlashed (fgsaSlashing p c E) rho
 
-/-- bp.finalizedSafety.v1 (00:683–687; P3 §4.7).
+/-- bp.finalizedSafety.v2 (00:830–840; P3 §4.7).
 DC: Generic/Claims.lean:61,65 finalizedMonotone/finalizedSafe.
 INTENTIONAL: event-index reads include intermediate states in one time batch. -/
 def FinalizedSafetyConcl (p : Params) {V : Type} [DecidableEq V] {In : Type}
@@ -106,7 +109,7 @@ def FinalizedSafetyConcl (p : Params) {V : Type} [DecidableEq V] {In : Type}
   CompatOn (· ∈ rho.honest) (F_at p c E rho) (· ≤ rho.events.length) ∧
   MonoOn (· ∈ rho.honest) (F_at p c E rho) (· ≤ rho.events.length)
 
-/-- bp.finalizedSafety.v1 (00:683–687; P3 §4.7).
+/-- bp.finalizedSafety.v2 (00:830–840; P3 §4.7).
 DC: Claims.lean:61,65 Consensus.finalizedMonotone/finalizedSafe.
 INTENTIONAL: the FG-SA BaseSet and a ≤ f are the run-level premises;
 no recovery, proposer honesty, recurrence, or delay-ratio premise is added. -/
@@ -116,7 +119,7 @@ def FinalizedSafetyClaim (p : Params) : Prop :=
     FinalizedSafetyPrem p c E rho pt →
     FinalizedSafetyConcl p c E rho
 
-/-- fg.finalLock.v2 (00:643–650; P3 App. A.4; adopted carrier read in RXing).
+/-- fg.finalLock.v3 (00:785–793; P3 App. A.4; adopted carrier read in RXing).
 DC: DecoupledConsensusProofs/Protocol/ChainState/FinalityComparison.lean:50
 NamedFinalizationBridge.finalized_preceq_of_height_lt.
 INTENTIONAL: this is the fault-bounded, held-block channel over each accepted
