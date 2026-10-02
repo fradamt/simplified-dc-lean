@@ -236,6 +236,27 @@ def AvailableChain.FGSA.Run.CleanSafetyClaim 477f3eff00cdded6
 def AvailableChain.FGSA.Run.CleanCutPosClaim 015b49ef453a1611
 ```
 
+### `AvailableChainFGSAClaims.Claims.Finality`
+
+```text
+def AvailableChain.FGSA.Run.FinalityKernelClaim_W d081d39a7462a3f5
+def AvailableChain.FGSA.Run.KernelACSideClaim_W 8a7008307605da66
+def AvailableChain.FGSA.Run.FinalityKernelJoinedClaim_W 2343b43cde126f37
+def AvailableChain.FGSA.Run.TailKernelClaim_W a5b443012d2ba6c2
+def AvailableChain.FGSA.Run.FinalityLivenessConcl_W 22f5a830093afa51
+def AvailableChain.FGSA.Run.FirstFinalityConcl_W 3865a10e13684c4d
+def AvailableChain.FGSA.Run.ProposalFinalConcl_W 9a902f0db9dc8800
+def AvailableChain.FGSA.Run.AboveFrontierConcl_W abf30553d06dacbc
+def AvailableChain.FGSA.Run.FirstFinalityRecFEClaim_W 8cad1746e405fdf3
+def AvailableChain.FGSA.Run.FirstFinalityRecF4Claim_W 0853c075e0982150
+def AvailableChain.FGSA.Run.FinalityLivenessRecFEClaim_W 1d727c737b46c077
+def AvailableChain.FGSA.Run.FinalityLivenessRecF4Claim_W 90bb52bbcf245b70
+def AvailableChain.FGSA.Run.ProposalFinalRecFEClaim_W 8e1defc080ff8b69
+def AvailableChain.FGSA.Run.ProposalFinalRecF4Claim_W 52eabff641ff95e4
+def AvailableChain.FGSA.Run.AboveFrontierRecFEClaim_W 2fd789227508f890
+def AvailableChain.FGSA.Run.AboveFrontierRecF4Claim_W 9a15bc59bde68c58
+```
+
 ### `AvailableChainFGSAClaims.Claims.Foundations`
 
 ```text
@@ -636,6 +657,36 @@ field AvailableChain.FGSA.Run.KernelPrem.services 5af87d1daee9d812
 def AvailableChain.FGSA.Run.KernelFromContract 9882420edc358d4c
 def AvailableChain.FGSA.Run.KernelACSide 7af4c6b6c5219d43
 def AvailableChain.FGSA.Run.kernelStart 57c052413c823243
+def AvailableChain.FGSA.Run.OpeningCarrier_W ed5f9fb4af32ffee
+theorem AvailableChain.FGSA.Run.OpeningCarrier_W_def 21c2a35ed4981fbc
+def AvailableChain.FGSA.Run.KernelConclusion_W 6f4d2c5c9443466e
+theorem AvailableChain.FGSA.Run.KernelConclusion_W_def 5507599ca8fce50a
+structure AvailableChain.FGSA.Run.KernelPrem_W 11fb5fc2e7ea1c3b
+ctor AvailableChain.FGSA.Run.KernelPrem_W.mk 19263ff76db494c2
+field AvailableChain.FGSA.Run.KernelPrem_W.set d66810be65dd0c3f
+field AvailableChain.FGSA.Run.KernelPrem_W.bound b878e3cc7b64d16d
+field AvailableChain.FGSA.Run.KernelPrem_W.window 61b0f5344f825afc
+field AvailableChain.FGSA.Run.KernelPrem_W.start fa602bc39ed92ff0
+field AvailableChain.FGSA.Run.KernelPrem_W.hhor 3808f6b95d17e303
+field AvailableChain.FGSA.Run.KernelPrem_W.input d52c10b41f647263
+field AvailableChain.FGSA.Run.KernelPrem_W.services e4f096b2a6c9b903
+structure AvailableChain.FGSA.Run.TailKernelPt b330d4900d1ca7d6
+ctor AvailableChain.FGSA.Run.TailKernelPt.mk 41cdd6cb6261ae64
+field AvailableChain.FGSA.Run.TailKernelPt.w b55caf984a16e648
+field AvailableChain.FGSA.Run.TailKernelPt.r 4006ca4b73b3c4a7
+field AvailableChain.FGSA.Run.TailKernelPt.carrier 62ca7b0096b16566
+field AvailableChain.FGSA.Run.TailKernelPt.U 5b648aaa4a87357a
+structure AvailableChain.FGSA.Run.TailKernelPrem_W 2e31f38d9123ee01
+ctor AvailableChain.FGSA.Run.TailKernelPrem_W.mk 0b8f8a201286ce8d
+field AvailableChain.FGSA.Run.TailKernelPrem_W.set 687802f86e1293f7
+field AvailableChain.FGSA.Run.TailKernelPrem_W.bound 7ee56efd49ced04f
+field AvailableChain.FGSA.Run.TailKernelPrem_W.input 655f0ef23ed0b784
+field AvailableChain.FGSA.Run.TailKernelPrem_W.start 0118dd6483944514
+field AvailableChain.FGSA.Run.TailKernelPrem_W.window c914316853c2367d
+field AvailableChain.FGSA.Run.TailKernelPrem_W.carrier 0024ea7ed8a2b43c
+field AvailableChain.FGSA.Run.TailKernelPrem_W.high dc3c60d6536a6619
+field AvailableChain.FGSA.Run.TailKernelPrem_W.cover 2b2708f2cfe02890
+field AvailableChain.FGSA.Run.TailKernelPrem_W.hhor 13ff2957410b6b5b
 structure AvailableChain.FGSA.Run.HealTContract e43a0178b0f71ee8
 ctor AvailableChain.FGSA.Run.HealTContract.mk 64355a73223fdda7
 field AvailableChain.FGSA.Run.HealTContract.del 2a12479cec44792e
@@ -828,6 +879,42 @@ structure AvailableChain.FGSA.Run.SkipFinalityPrem 60773dfb2927e166
 ctor AvailableChain.FGSA.Run.SkipFinalityPrem.mk bb80f8cbc569c4e2
 field AvailableChain.FGSA.Run.SkipFinalityPrem.set 30285a8798b0af2c
 field AvailableChain.FGSA.Run.SkipFinalityPrem.hhor ea8dd9b5acaf83ca
+inductive AvailableChain.FGSA.Run.FinFormW e65aa35faec5d780
+ctor AvailableChain.FGSA.Run.FinFormW.recFE f5bdcad089b74a37
+ctor AvailableChain.FGSA.Run.FinFormW.recF4 9740b2983363dec5
+def AvailableChain.FGSA.Run.FinFormW.holdsW 4649365580aa48ae
+theorem AvailableChain.FGSA.Run.FinFormW.holdsW_def 0c25c65a15eb1f5b
+structure AvailableChain.FGSA.Run.FinalitySet_W cff695b9fdd4941a
+ctor AvailableChain.FGSA.Run.FinalitySet_W.mk 05471c9984ccaf86
+field AvailableChain.FGSA.Run.FinalitySet_W.core 9f5c9c320f8a965f
+field AvailableChain.FGSA.Run.FinalitySet_W.bound 6f69105824c289ec
+field AvailableChain.FGSA.Run.FinalitySet_W.recur 151db2b30ff928a4
+def AvailableChain.FGSA.Run.finalityWindow_W 257edaf1d0233a74
+theorem AvailableChain.FGSA.Run.finalityWindow_W_def 7713675ab497d5a2
+structure AvailableChain.FGSA.Run.FirstFinalityPrem_W 58bc70e47e0d7ea4
+ctor AvailableChain.FGSA.Run.FirstFinalityPrem_W.mk 64ccb058d76c521b
+field AvailableChain.FGSA.Run.FirstFinalityPrem_W.set 12de54007bd5ba5d
+field AvailableChain.FGSA.Run.FirstFinalityPrem_W.hhor 6ee12b995424207e
+structure AvailableChain.FGSA.Run.FinalityLivenessPrem_W d40fc3a3822ea4d8
+ctor AvailableChain.FGSA.Run.FinalityLivenessPrem_W.mk bfbca5590bb8bfc3
+field AvailableChain.FGSA.Run.FinalityLivenessPrem_W.set 2f716637d36afa11
+field AvailableChain.FGSA.Run.FinalityLivenessPrem_W.input b3e8624528ec9b1e
+field AvailableChain.FGSA.Run.FinalityLivenessPrem_W.start 1940849e67201ee3
+field AvailableChain.FGSA.Run.FinalityLivenessPrem_W.hhor 53fd68d76bce44f2
+structure AvailableChain.FGSA.Run.ProposalFinalPrem_W 036f2d2f8a35c82b
+ctor AvailableChain.FGSA.Run.ProposalFinalPrem_W.mk ecd7df302139a7f6
+field AvailableChain.FGSA.Run.ProposalFinalPrem_W.set 56cb6c3c9c6c4793
+field AvailableChain.FGSA.Run.ProposalFinalPrem_W.input 597d0e4bb9096b38
+field AvailableChain.FGSA.Run.ProposalFinalPrem_W.prop d257b0f277f18012
+field AvailableChain.FGSA.Run.ProposalFinalPrem_W.start 1d40576b795cb055
+field AvailableChain.FGSA.Run.ProposalFinalPrem_W.hhor 3111926aeccd64e4
+structure AvailableChain.FGSA.Run.AboveFrontierPrem_W 1bf3466439be998a
+ctor AvailableChain.FGSA.Run.AboveFrontierPrem_W.mk f121b134ec2ab69f
+field AvailableChain.FGSA.Run.AboveFrontierPrem_W.set 9c9778ecc3d1c414
+field AvailableChain.FGSA.Run.AboveFrontierPrem_W.input e3e883e8014d441c
+field AvailableChain.FGSA.Run.AboveFrontierPrem_W.start 7571a448b34a616b
+field AvailableChain.FGSA.Run.AboveFrontierPrem_W.firstHorizon 8830399af353af14
+field AvailableChain.FGSA.Run.AboveFrontierPrem_W.hhor 83c360531d641d5a
 ```
 
 ### `AvailableChainFGSAClaims.Statements.Packages.Healing`
@@ -869,10 +956,10 @@ field AvailableChain.FGSA.Run.ResetArrivalFullPrem.toHealingPrem 4f3adcffe0797f5
 ctor AvailableChain.FGSA.Run.ResetArrivalFullPrem.mk b1142c8b00ca3c69
 field AvailableChain.FGSA.Run.ResetArrivalFullPrem.hhor 8ca075681a2c9c12
 structure AvailableChain.FGSA.Run.KernelJoinedPrem 4e55d876ea0a1791
-ctor AvailableChain.FGSA.Run.KernelJoinedPrem.mk 3c997493134ab287
+ctor AvailableChain.FGSA.Run.KernelJoinedPrem.mk 2334f536313f8d0f
 field AvailableChain.FGSA.Run.KernelJoinedPrem.set 8d6568f769d7ee54
 field AvailableChain.FGSA.Run.KernelJoinedPrem.bound 8e80a7916d9c307d
-field AvailableChain.FGSA.Run.KernelJoinedPrem.window 2d3e2bd74d9eddb7
+field AvailableChain.FGSA.Run.KernelJoinedPrem.window f36ef5c9e25c6289
 field AvailableChain.FGSA.Run.KernelJoinedPrem.start d3a0ff144151edf6
 field AvailableChain.FGSA.Run.KernelJoinedPrem.hhor ac33bdf2d2b15553
 structure AvailableChain.FGSA.Run.HealingAttemptPrem df1c6c9004e2d8e5

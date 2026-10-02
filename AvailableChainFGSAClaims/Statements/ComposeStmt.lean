@@ -221,9 +221,98 @@ def KernelACSide : Prop := p.δt = 2 * p.R →
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (G : Time) (w : HealingWitness),
     Recovery₂ p c E rho G → HealingInput p c E rho w → CoreServices p c E rho w
 /-- Joined kernel start (21 H.18:2868–2876), P3 A.10 D44.
-Consumer: KernelJoinedPrem. The time comes from full H0. -/
+No consumer. This historical observation does not supply HealingInput.
+KernelJoinedPrem binds the common input witness and its start time directly. -/
 def kernelStart (r : Nat) : Prop := ∃ t, tstarOf p c E rho = some t ∧ t ≤ ↑r * P p
 
+
+/-- Blueprint 22:1171–1180. DC: INTENTIONAL actual opening carrier.
+The emitted wire, proposer read, parent and decoded rows identify one FG block. -/
+def OpeningCarrier_W (s : Slot) (A : Block) (Afg : FGBlock (Fin p.n)) : Prop :=
+  ∃ o raw support rows st P,
+    V2.D.Run.emits E rho (V2.D.proposerOf rho (fgsaInterface p c) s) o
+      (V2.D.proposalTime (fgsaInterface p c) s) ∧
+    (toWire p o).decode = some (.block s A raw support rows) ∧
+    proposalStateAt p c E rho s = some st ∧ FGSA.parentFG st A = some P ∧
+    FGSA.fgBlock P A rows = Afg
+
+theorem OpeningCarrier_W_def (s : Slot) (A : Block) (Afg : FGBlock (Fin p.n)) :
+    OpeningCarrier_W p c E rho s A Afg =
+  (∃ o raw support rows st P,
+    V2.D.Run.emits E rho (V2.D.proposerOf rho (fgsaInterface p c) s) o
+      (V2.D.proposalTime (fgsaInterface p c) s) ∧
+    (toWire p o).decode = some (.block s A raw support rows) ∧
+    proposalStateAt p c E rho s = some st ∧ FGSA.parentFG st A = some P ∧
+    FGSA.fgBlock P A rows = Afg) := rfl
+
+/-- Blueprint 22:1171–1180, F1–F9. DC: INTENTIONAL W coverage and strict receipt.
+The opening carrier is concluded and is held by all honest nodes. -/
+def KernelConclusion_W (ΔF : Time) (r : Nat) : Prop := ∀ A,
+  HonestProposal E rho (fgsaInterface p c) (r * p.R) A →
+  ∃ Afg : FGBlock (Fin p.n), eraseFG Afg = A ∧
+    OpeningCarrier_W p c E rho (r * p.R) A Afg ∧
+    (∀ x ∈ rho.honest, Afg ∈ (storeAt p c E rho rho.events.length x).fg.TF) ∧
+    ∃ U : FGBlock (Fin p.n), FGBlock.Preceq Afg U ∧ Afg ≠ U ∧
+      (heightView p U).h = (heightView p Afg).h + 1 ∧
+      ∀ x ∈ rho.honest,
+        AcceptsFinalBefore p c E rho x U (kernelDeadlineW p ΔF (r + 2))
+
+theorem KernelConclusion_W_def (ΔF : Time) (r : Nat) :
+    KernelConclusion_W p c E rho ΔF r =
+  (∀ A,
+  HonestProposal E rho (fgsaInterface p c) (r * p.R) A →
+  ∃ Afg : FGBlock (Fin p.n), eraseFG Afg = A ∧
+    OpeningCarrier_W p c E rho (r * p.R) A Afg ∧
+    (∀ x ∈ rho.honest, Afg ∈ (storeAt p c E rho rho.events.length x).fg.TF) ∧
+    ∃ U : FGBlock (Fin p.n), FGBlock.Preceq Afg U ∧ Afg ≠ U ∧
+      (heightView p U).h = (heightView p Afg).h + 1 ∧
+      ∀ x ∈ rho.honest,
+        AcceptsFinalBefore p c E rho x U (kernelDeadlineW p ΔF (r + 2))) := rfl
+
+/-- Blueprint 22:1173, plan item 18. DC: INTENTIONAL split W kernel.
+The same witness supplies input, services and start. Params supplies K_W ≥ 2.
+The explicit FGoodE_W carrier replaces the internal kernelPat interface. -/
+structure KernelPrem_W [Fintype V] (G ΔF : Time) (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (pt : KernelPt) : Prop where
+  set : Recovery₂ p c E rho G ΔF
+  bound : LivenessBoundW p ΔF
+  window : FGoodE_W (Gen.V2.Duty.HonestSlot rho (fgsaInterface p c))
+    p.R (kappaF p ΔF) pt.r
+  start : tstar p pt.w ≤ ↑pt.r * P p
+  hhor : kernelDeadlineW p ΔF (pt.r + 2) ≤ rho.horizon
+  input : HealingInput p c E rho pt.w ΔF
+  services : CoreServices p c E rho pt.w
+
+/-- Blueprint 22:1985–2009. DC: INTENTIONAL local Tail witness.
+This is a retained local kernel. It has no QF recurrence package. -/
+structure TailKernelPt (p : Params) where
+  w : HealingWitness
+  r : Nat
+  carrier : Slot
+  U : FGBlock (Fin p.n)
+
+/-- Blueprint 22:1985–2009, 22:1811; ruling m6. DC: INTENTIONAL local Tail contract.
+Recovery₂ is the standing kernel regime.
+The opening height ≥ M+1 follows from HealingInput; it is not a premise.
+Params supplies capacity ≥ 2. Coverage starts at the selected honest carrier. -/
+structure TailKernelPrem_W [Fintype V] (G ΔF : Time) (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (pt : TailKernelPt p) : Prop where
+  set : Recovery₂ p c E rho G ΔF
+  bound : LivenessBoundW p ΔF
+  input : HealingInput p c E rho pt.w ΔF
+  start : tstar p pt.w ≤ ↑pt.r * P p
+  window : Tail_W (Gen.V2.Duty.HonestSlot rho (fgsaInterface p c))
+    p.R (kappaF p ΔF) pt.r
+  carrier : pt.r * p.R + kappaF p ΔF ≤ pt.carrier ∧
+    pt.carrier ≤ (pt.r + 1) * p.R ∧
+    Gen.V2.Duty.HonestSlot rho (fgsaInterface p c) pt.carrier
+  high : high p pt.w pt.U
+  cover : ∀ s X, pt.carrier ≤ s →
+    HonestProposal E rho (fgsaInterface p c) s (eraseFG X) →
+    OpeningCarrier_W p c E rho s (eraseFG X) X →
+    FGBlock.Preceq pt.U (heightView p X).J ∨
+      FGBlock.Preceq pt.U (finalityView p X).F
+  hhor : kernelDeadlineW p ΔF (pt.r + 1) ≤ rho.horizon
 
 /-- T-side healing contract (21 H.3–H.18), P3 A.10.
 Consumer: F5 composition. Only reset delivery has an H0 premise. -/

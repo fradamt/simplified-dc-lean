@@ -15,5 +15,6 @@ public import AvailableChainFGSAClaims.Statements.Packages.Healing
 public import AvailableChainFGSAClaims.Statements.Fold
 public import AvailableChainFGSAClaims.Statements.Phases
 public import AvailableChainFGSAClaims.Claims.Healing
+public import AvailableChainFGSAClaims.Claims.Finality
 public import AvailableChainFGSAClaims.Statements.WeakContinuation
 public import AvailableChainFGSAClaims.Claims.WeakContinuation
