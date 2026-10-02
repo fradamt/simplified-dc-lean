@@ -83,6 +83,33 @@ lake env lean --run scripts/CheckFGAxioms.lean --expect \
   e1Weight_or_finalized_compatible_of_le_simplex_certificate \
   accountable_oriented_simplex_certificate \
   slashableWeight_or_finalized_compatible_simplex_certificate \
+  exists_crossing_quorum_ne_justified_of_certificate \
+  crossing_other_entry_of_certificate \
+  e1Weight_of_finalityQC_not_preceq_of_certificate \
+  crossingNoFinal_QC_of_certificate \
+  slashableWeight_of_finalized_crossing_of_certificate \
+  crossingNoFinal_of_certificate \
+  exists_honest_timeout_of_crossing_of_certificate \
+  crossingNeedsTimeout_of_certificate \
+  exists_crossing_quorum_ne_justified_simplex_certificate \
+  crossing_other_entry_simplex_certificate \
+  e1Weight_of_finalityQC_not_preceq_simplex_certificate \
+  crossingNoFinal_QC_simplex_certificate \
+  slashableWeight_of_finalized_crossing_simplex_certificate \
+  crossingNoFinal_simplex_certificate \
+  exists_honest_timeout_of_crossing_simplex_certificate \
+  crossingNeedsTimeout_simplex_certificate \
+  crossing_maturity_of_heightBridge \
+  certificateHeadFields \
+  certificateHeadFields_def \
+  provenance_entry_of_certificate \
+  provenance_finalityRow_of_certificate \
+  provenance_finalityQC_of_certificate \
+  provenance_finality_of_certificate \
+  provenance_entry_simplex_certificate \
+  provenance_finalityRow_simplex_certificate \
+  provenance_finalityQC_simplex_certificate \
+  provenance_finality_simplex_certificate \
   accountable_simplex_certificate
 step "scripts/FGPinIds.lean --check-names"
 lake env lean --run scripts/FGPinIds.lean --check-names
