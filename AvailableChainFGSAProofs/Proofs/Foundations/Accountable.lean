@@ -692,5 +692,22 @@ theorem fgsa_slashableBound_of_base [Fintype V] (hb : BaseSet p c E rho)
 
 
 
+/-- Raw carriage records an emission action under the honest-holder implication.
+DC: SAME authenticated origin; INTENTIONAL action-indexed fixed FG wire. -/
+theorem fgsa_finalityRowCarriage (hv : V2.D.ExecutionValid E rho)
+    (X : FGBlock (Fin p.n)) (hX : FinalityRunBlock p c E rho X) :
+    FinalityRowCarriage p c E rho (chainRows X) := by
+  intro u hu
+  obtain ⟨a, _unused, hd, ha, horigin⟩ := fgsa_runBlock_carriage p c E rho hv X hX u hu
+  refine ⟨a, hd, ha, ?_⟩
+  intro z hz hzh
+  obtain ⟨j, t, hj, hem⟩ := horigin z hz hzh
+  obtain ⟨auth, body⟩ := a
+  dsimp only at ha
+  subst auth
+  obtain ⟨_, _, r, ht, _⟩ := (fgsa_emitsAt_row E rho j z t hj u.signer body).mp hem
+  exact ⟨j, r, hzh, ht ▸ hj, hem⟩
+
+
 end AvailableChain.FGSA.Run
 end

@@ -92,17 +92,17 @@ def LeaseOriginsAt : Prop := ∀ i x, i ≤ rho.events.length → x ∈ rho.hone
       ∃ B, gateResultAt p c E rho j = some (some B) ∧
         Block.Preceq X B ∧ fastAt p c E rho x s X)
 
-/-- bp.sourceDiscipline.v1(a,d): actual sources, emitted names and label bounds. -/
+/-- bp.sourceDiscipline.v1(a,d): actual sources, emitted names and label bounds.
+DC: INTENTIONAL optional sends; every emitted row has a nonempty source pair. -/
 def SourceDisciplineBaseAt : Prop :=
   TSrc p c E rho ∧ LabelBound p c E rho ∧
-  (∀ j x r a e, HonestRowAt p c E rho j x r a →
-    namedEntry a.payload.height_pair = some e →
-    ∃ C G, actionSourceFG p c E rho x r = some (some C) ∧
+  (∀ j x r a, HonestRowAt p c E rho j x r a →
+    ∃ e C G, namedEntry a.payload.height_pair = some e ∧
+      actionSourceFG p c E rho x r = some (some C) ∧
       e = (hOf p.E p.cfg C, (derive p.E p.cfg C).T_h.root) ∧
       FGBlock.Preceq (derive p.E p.cfg C).T_h C ∧
       gateResult p c E rho x (r * p.R) = some (some G) ∧
       Block.Preceq (eraseFG C) G ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
-
 /-- bp.sourceDiscipline.v1(a–d), including target/progress and finality origins. -/
 def SourceDisciplineAt : Prop :=
   SourceDisciplineBaseAt p c E rho ∧ RStrat p c E rho ∧ RQCOrigin p c E rho
@@ -198,6 +198,24 @@ def SourceDisciplineClaim : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit),
     SourceDisciplinePrem p c E rho pt → SourceDisciplineAt p c E rho
+
+/-- Row service with the four base premises and the bound on ΔF.
+DC: INTENTIONAL FG transport adapter; SAME execution and no-restart premises. -/
+def RowServiceBaseClaim (ΔF : Time) : Prop :=
+  ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+    E.Δ = p.Δ → V2.D.ExecutionValid E rho → V2.D.NoRestart rho →
+    Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF) → E.Δ ≤ ΔF →
+    TRows p c E rho ΔF
+
+
+/-- RowServiceClaim: chapter-21 service.
+DC: INTENTIONAL FG source and action adapter; SAME stated horizon. -/
+def RowServiceClaim (ΔF : Time) : Prop :=
+  ∀ (G : Time) (_hδ : p.δt = 2 * p.R)
+    {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (_pt : Unit),
+    Recovery₂ p c E rho G ΔF → TRows p c E rho ΔF
 
 
 end AvailableChain.FGSA.Run

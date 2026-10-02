@@ -279,5 +279,191 @@ def AttemptEndsBy (k : AttemptKey) (budget : Time) : Prop := ∃ ev,
       (k.task = .firstRow ∧ ∃ y r a e, HonestRowAt p c E rho j y r a ∧
         namedEntry a.payload.height_pair = some (k.frontier, e)))
 
+/-- Settled-frame alternatives (21 H.7:1012–1045; P3 A.4:7495–7500).
+DC: SeedCommonRootComplement.lean:36,48 and FixedHeightRootCore.lean:162
+(partial). INTENTIONAL: FG-SA adds the contest case and its floor m.
+The lead ruling (dc-align-j2:172–178) requires an accepted certificate K;
+FG certificate height is not a function of the finalized block. The existential
+supplies one usable K; RXing applies to every qualifying K. Consumers pass K
+and its height to RXing. This is stronger than the PhaseInterval read predicate. -/
+def SettledPhaseFrame (st : State p.n) (m : Nat)
+    (J : Option (FGBlock (Fin p.n))) (contested : Bool) : Prop :=
+  let R := FGSA.controls p st
+  R.H = m ∧ R.contest = contested ∧ R.lo = (if contested then m else m - 1) ∧
+  (match J with
+   | some B => R.rootIsJ = true ∧ R.J = B ∧ R.Z = B ∧
+       R.j + 1 = m ∧ contested = false ∧ FGBlock.Preceq st.fg.F B
+   | none => R.rootIsJ = false ∧ R.Z = st.fg.F ∧
+       (∃ K ∈ st.fg.TF, (derive p.E p.cfg K).F = st.fg.F ∧
+         (derive p.E p.cfg K).h_F < R.lo) ∧
+       ((contested = false ∧ R.j + 2 ≤ m) ∨
+         (contested = true ∧ R.j + 1 = m))) ∧
+  (∃ W ∈ st.fg.TF, hOf p.E p.cfg W = m ∧ FGBlock.Preceq R.Z W)
+
+/-- Definitional equation for `SettledPhaseFrame`.
+Settled-frame alternatives (21 H.7:1012–1045; P3 A.4:7495–7500).
+DC: SeedCommonRootComplement.lean:36,48 and FixedHeightRootCore.lean:162
+(partial). INTENTIONAL: FG-SA adds the contest case and its floor m.
+The lead ruling (dc-align-j2:172–178) requires an accepted certificate K;
+FG certificate height is not a function of the finalized block. The existential
+supplies one usable K; RXing applies to every qualifying K. Consumers pass K
+and its height to RXing. This is stronger than the PhaseInterval read predicate. -/
+theorem SettledPhaseFrame_def (st : State p.n) (m : Nat)
+    (J : Option (FGBlock (Fin p.n))) (contested : Bool) :
+    SettledPhaseFrame p st m J contested =
+  (  let R := FGSA.controls p st
+  R.H = m ∧ R.contest = contested ∧ R.lo = (if contested then m else m - 1) ∧
+  (match J with
+   | some B => R.rootIsJ = true ∧ R.J = B ∧ R.Z = B ∧
+       R.j + 1 = m ∧ contested = false ∧ FGBlock.Preceq st.fg.F B
+   | none => R.rootIsJ = false ∧ R.Z = st.fg.F ∧
+       (∃ K ∈ st.fg.TF, (derive p.E p.cfg K).F = st.fg.F ∧
+         (derive p.E p.cfg K).h_F < R.lo) ∧
+       ((contested = false ∧ R.j + 2 ≤ m) ∨
+         (contested = true ∧ R.j + 1 = m))) ∧
+  (∃ W ∈ st.fg.TF, hOf p.E p.cfg W = m ∧ FGBlock.Preceq R.Z W)) := by rfl
+
+/-- Pre-reset phase contract (21 H.3:581–618, H.7–H.8:918–1045,
+HG.1:1358–1363; 00:938–948,980–985; P3 A.4:7487–7511).
+DC: SeedCommonRootComplement.lean:36,48; SeedBoundaryConeLead.lean:82;
+FixedHeightRootCore.lean:162 (partial). INTENTIONAL: FG-SA has gap, top J,
+and contest phases, with live controls and a frozen HEAD witness view.
+The five clauses give phase order, evidence spread and HEAD inclusion,
+settlement after an effective event, the additional settled-frame contract,
+and frontier membership only for B and its path in the supplied view X. Strict receipt
+uses event prefixes whose events all precede the deadline. A frontier rise
+ends the evidence task. Lower F moves do not change the two evidence bits.
+The settled clause is an extra contract, not a consequence of PhaseInterval
+alone. Its accepted K is passed to RXing (dc-align-j2:172–178).
+Claim form: HealingSet with a ≤ f; no reset witness. No QualSearch is used. -/
+def RPhase : Prop :=
+  (∀ a b m, a ≤ b → b ≤ rho.events.length → 2 ≤ m →
+    (∀ i, a ≤ i → i ≤ b → frontierAtIdx p c E rho i = m) →
+    (∀ i j, a ≤ i → i ≤ j → j ≤ b →
+      (TopEvidence p c E rho i m → TopEvidence p c E rho j m) ∧
+      (ContestEvidence p c E rho i m → ContestEvidence p c E rho j m)) ∧
+    (∀ i, a ≤ i → i ≤ b →
+      ContestEvidence p c E rho i m → TopEvidence p c E rho i m)) ∧
+  (∀ i ev x W m, rho.events[i]? = some ev → x ∈ rho.honest →
+    E.t_GST ≤ ev.time → 2 ≤ m → frontierAtIdx p c E rho (i + 1) = m →
+    W ∉ (storeAt p c E rho i x).fg.TF →
+    W ∈ (storeAt p c E rho (i + 1) x).fg.TF → hOf p.E p.cfg W = m →
+    (ev.time + p.Δ ≤ rho.horizon → ∀ y ∈ rho.honest,
+      ∃ j, i < j ∧ j ≤ rho.events.length ∧
+        (∀ l e, l < j → rho.events[l]? = some e → e.time < ev.time + p.Δ) ∧
+        (W ∈ (storeAt p c E rho j y).fg.TF ∨ m < frontierAtIdx p c E rho j)) ∧
+    (∀ y s nd, y ∈ rho.honest → ev.time + 3 * p.Δ ≤ SA.voteTime p.toParams s →
+      SA.voteTime p.toParams s ≤ rho.horizon →
+      postClock E rho y (SA.voteTime p.toParams s) = some nd →
+      (∃ j, i < j ∧ j ≤ timeIdx rho (SA.voteTime p.toParams s) ∧
+        m < frontierAtIdx p c E rho j) ∨ W ∈ FGSA.voterBlocks p nd.st s)) ∧
+  (∀ i ev v m kind, rho.events[i]? = some ev → EffectiveEvent p c E rho i →
+    E.t_GST ≤ ev.time → ev.time + 3 * p.Δ ≤ v → v ≤ rho.horizon → 2 ≤ m →
+    frontierAtIdx p c E rho (i + 1) = m → AttemptPhaseAt p c E rho (i + 1) m kind →
+    (∀ j, i < j → j < timeIdx rho v → ¬ EffectiveEvent p c E rho j) →
+    ∃ J,
+      let root := match kind with | .topJ => some J | _ => none
+      let contested := match kind with | .contest => true | _ => false
+      PhaseInterval p c E rho (ev.time + 3 * p.Δ) v m root contested ∧
+      (∀ y s nd, y ∈ rho.honest → ev.time + 3 * p.Δ ≤ SA.voteTime p.toParams s →
+        SA.voteTime p.toParams s ≤ v →
+        postClock E rho y (SA.voteTime p.toParams s) = some nd →
+        SettledPhaseFrame p nd.st m root contested)) ∧
+  (∀ u v m J contested, E.t_GST ≤ u → PhaseInterval p c E rho u v m J contested →
+    ∀ i x, timeIdx rho u ≤ i → i ≤ timeIdx rho v → x ∈ rho.honest →
+      SettledPhaseFrame p (storeAt p c E rho i x) m J contested) ∧
+  (∀ i x m (X : Finset (FGBlock (Fin p.n))) B, x ∈ rho.honest →
+    i ≤ rho.events.length → 2 ≤ m → (R_at p c E rho i x).H = m →
+    X ⊆ (storeAt p c E rho i x).fg.TF → B ∈ X →
+    (∀ A, FGBlock.Preceq A B → A ∈ X) → hOf p.E p.cfg B = m →
+    FGBlock.Preceq (R_at p c E rho i x).Z B ∧ B ∈ D_at p c E rho i x X)
+
+/-- Definitional equation for `RPhase`.
+Pre-reset phase contract (21 H.3:581–618, H.7–H.8:918–1045,
+HG.1:1358–1363; 00:938–948,980–985; P3 A.4:7487–7511).
+DC: SeedCommonRootComplement.lean:36,48; SeedBoundaryConeLead.lean:82;
+FixedHeightRootCore.lean:162 (partial). INTENTIONAL: FG-SA has gap, top J,
+and contest phases, with live controls and a frozen HEAD witness view.
+The five clauses give phase order, evidence spread and HEAD inclusion,
+settlement after an effective event, the additional settled-frame contract,
+and frontier membership only for B and its path in the supplied view X. Strict receipt
+uses event prefixes whose events all precede the deadline. A frontier rise
+ends the evidence task. Lower F moves do not change the two evidence bits.
+The settled clause is an extra contract, not a consequence of PhaseInterval
+alone. Its accepted K is passed to RXing (dc-align-j2:172–178).
+Claim form: HealingSet with a ≤ f; no reset witness. No QualSearch is used. -/
+theorem RPhase_def :
+    RPhase p c E rho =
+  (  (∀ a b m, a ≤ b → b ≤ rho.events.length → 2 ≤ m →
+    (∀ i, a ≤ i → i ≤ b → frontierAtIdx p c E rho i = m) →
+    (∀ i j, a ≤ i → i ≤ j → j ≤ b →
+      (TopEvidence p c E rho i m → TopEvidence p c E rho j m) ∧
+      (ContestEvidence p c E rho i m → ContestEvidence p c E rho j m)) ∧
+    (∀ i, a ≤ i → i ≤ b →
+      ContestEvidence p c E rho i m → TopEvidence p c E rho i m)) ∧
+  (∀ i ev x W m, rho.events[i]? = some ev → x ∈ rho.honest →
+    E.t_GST ≤ ev.time → 2 ≤ m → frontierAtIdx p c E rho (i + 1) = m →
+    W ∉ (storeAt p c E rho i x).fg.TF →
+    W ∈ (storeAt p c E rho (i + 1) x).fg.TF → hOf p.E p.cfg W = m →
+    (ev.time + p.Δ ≤ rho.horizon → ∀ y ∈ rho.honest,
+      ∃ j, i < j ∧ j ≤ rho.events.length ∧
+        (∀ l e, l < j → rho.events[l]? = some e → e.time < ev.time + p.Δ) ∧
+        (W ∈ (storeAt p c E rho j y).fg.TF ∨ m < frontierAtIdx p c E rho j)) ∧
+    (∀ y s nd, y ∈ rho.honest → ev.time + 3 * p.Δ ≤ SA.voteTime p.toParams s →
+      SA.voteTime p.toParams s ≤ rho.horizon →
+      postClock E rho y (SA.voteTime p.toParams s) = some nd →
+      (∃ j, i < j ∧ j ≤ timeIdx rho (SA.voteTime p.toParams s) ∧
+        m < frontierAtIdx p c E rho j) ∨ W ∈ FGSA.voterBlocks p nd.st s)) ∧
+  (∀ i ev v m kind, rho.events[i]? = some ev → EffectiveEvent p c E rho i →
+    E.t_GST ≤ ev.time → ev.time + 3 * p.Δ ≤ v → v ≤ rho.horizon → 2 ≤ m →
+    frontierAtIdx p c E rho (i + 1) = m → AttemptPhaseAt p c E rho (i + 1) m kind →
+    (∀ j, i < j → j < timeIdx rho v → ¬ EffectiveEvent p c E rho j) →
+    ∃ J,
+      let root := match kind with | .topJ => some J | _ => none
+      let contested := match kind with | .contest => true | _ => false
+      PhaseInterval p c E rho (ev.time + 3 * p.Δ) v m root contested ∧
+      (∀ y s nd, y ∈ rho.honest → ev.time + 3 * p.Δ ≤ SA.voteTime p.toParams s →
+        SA.voteTime p.toParams s ≤ v →
+        postClock E rho y (SA.voteTime p.toParams s) = some nd →
+        SettledPhaseFrame p nd.st m root contested)) ∧
+  (∀ u v m J contested, E.t_GST ≤ u → PhaseInterval p c E rho u v m J contested →
+    ∀ i x, timeIdx rho u ≤ i → i ≤ timeIdx rho v → x ∈ rho.honest →
+      SettledPhaseFrame p (storeAt p c E rho i x) m J contested) ∧
+  (∀ i x m (X : Finset (FGBlock (Fin p.n))) B, x ∈ rho.honest →
+    i ≤ rho.events.length → 2 ≤ m → (R_at p c E rho i x).H = m →
+    X ⊆ (storeAt p c E rho i x).fg.TF → B ∈ X →
+    (∀ A, FGBlock.Preceq A B → A ∈ X) → hOf p.E p.cfg B = m →
+    FGBlock.Preceq (R_at p c E rho i x).Z B ∧ B ∈ D_at p c E rho i x X)) := by rfl
+
+/-- DC: INTENTIONAL FG healing source adapters; action provenance stays explicit. -/
+structure HealRContract (w : HealingWitness) : Prop where
+  /-- P3:7996; DC FixedHeightRootAdmission:289–310. INTENTIONAL: held carriers
+  supply the certificate height; the phase supplies one such carrier. -/
+  xing : RXing p c E rho
+  /-- P3:7997; DC FinalityCertificates:266 (partial). INTENTIONAL: the FG-SA
+  contract retains causal honest-row carriage in the held block. -/
+  cap : RCap p c E rho
+  /-- P3:7998; DC SeedCommonRootComplement:36,48 (partial). INTENTIONAL:
+  the three FG-SA phases are pre-reset facts and have no witness parameter. -/
+  phase : RPhase p c E rho
+  /-- P3:7999; DC FixedHeightRootCore:396 (partial). INTENTIONAL: FG-SA
+  descent uses the supplied view and earlier source causes. -/
+  excl : RExcl p c E rho
+  /-- P3:8000; DC HeightRegimeFrame.lean:120 (partial). INTENTIONAL: FG-SA retention
+  is tied to the reset witness and full or HEAD view. -/
+  keep : RKeep p c E rho w
+  /-- P3:8001; DC Main:173 StoreFinalizationOnChain (partial). INTENTIONAL:
+  FG-SA adds post-reset source provenance and event order. -/
+  fprov : RFProv p c E rho w
+
+/-- DC: INTENTIONAL finite-horizon attempt budget from actual emission actions. -/
+def ProgressAttemptStatement (G : Time) : Prop :=
+  p.δt = 2 * p.R →
+  ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+    HealingSet p c E rho G → ∀ k ev, AttemptValid p c E rho k →
+    rho.events[k.start]? = some ev → ev.time + attemptBudget p G k ≤ rho.horizon →
+    AttemptEndsBy p c E rho k (attemptBudget p G k)
+
 end AvailableChain.FGSA.Run
 end

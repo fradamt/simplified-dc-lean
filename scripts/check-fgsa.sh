@@ -192,7 +192,11 @@ gate_with_slot lake env lean --run scripts/CheckFGSAAxioms.lean "${TEST_ROOTS[@]
   rowsValidStored_admitBlock rowsValidStored_process rowsValidStored_clock rowsValidStored_reachable \
   fgsa_headInTree_reanchor_of_pivot fgsa_score_eq_on_retained_suffix fgsa_getHead_covers_of_dominated_suffix \
   fgsa_getHead_exact_of_dominated_suffix fgsa_getHead_reanchor_of_dominated_suffix fgsa_getHead_avoids_unsupported_child \
-  Window.heightRefinement Window.windowHeightBridge Window.windowHeightLaws
+  Window.heightRefinement Window.windowHeightBridge Window.windowHeightLaws \
+  Window.window_ordered Window.window_bounds Window.window_capacity \
+  Window.window_post_not_ready Window.window_F_preceq_J Window.window_hF_le_hj \
+  Window.window_finalized_zero Window.window_hF_mono Window.window_F_mono \
+  Window.window_bit_retained Window.window_no_reentry Window.window_finality_of_cover
 echo "== lease instances"
 gate_with_slot lake env lean --run scripts/CheckFGSALease.lean
 # The `leanIn "AvailableChainFGSA"` names of AvailableChainKitFG/Pins.lean get

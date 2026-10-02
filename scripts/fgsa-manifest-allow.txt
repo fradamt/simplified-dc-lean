@@ -76,7 +76,7 @@ AvailableChain.FGSA.Run.CarrierAt	fg-noround/06: Duty run and fixed-FG emission 
 AvailableChain.FGSA.Run.StoreAt	fg-noround/06: Duty run and fixed-FG emission or receipt semantics	migration plan 06	expect=d0b8c3d0a8540f68
 AvailableChain.FGSA.Run.ActiveViewAt	fg-noround/06: Duty run and fixed-FG emission or receipt semantics	migration plan 06	expect=7d22435be27bbef5
 AvailableChain.FGSA.Run.LeaseOriginsAt	fg-noround/06: Duty run and fixed-FG emission or receipt semantics	migration plan 06	expect=d05e3cbcbfab2948
-AvailableChain.FGSA.Run.SourceDisciplineBaseAt	fg-noround/06: Duty run and fixed-FG emission or receipt semantics	migration plan 06	expect=585e8b747e994190
+AvailableChain.FGSA.Run.SourceDisciplineBaseAt	fg-noround/07: each actual send has a nonempty height pair and an action source	migration 07-H frozen r3 (2026-10-02)	expect=c5d33b7f07efef62
 AvailableChain.FGSA.Run.SourceDisciplineAt	fg-noround/06: Duty run and fixed-FG emission or receipt semantics	migration plan 06	expect=b6e50f3f52e2a867
 AvailableChain.FGSA.Run.CarrierClaim	fg-noround/06: Duty run and fixed-FG emission or receipt semantics	migration plan 06	expect=102e148c4ec71bd3
 AvailableChain.FGSA.Run.ChainCertificatesAt	fg-noround/06: Duty run and fixed-FG emission or receipt semantics	migration plan 06	expect=173b2bca0ac3e27e

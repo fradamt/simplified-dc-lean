@@ -129,5 +129,27 @@ example : projectHeight (transition params 2 staleState block3 [stale, current])
 example : latestQfin ready = {0, 1, 2} ∧
     latestQfin (process_height_events params.E params.cfg 3 ready) = ∅ := by decide
 
+/-- W1: finality runs before target append and capacity eviction. -/
+def readyAtCapacity : State (Fin 4) :=
+  { staleState with
+    target_participation := {0, 1, 2}
+    W := [⟨1, .genesis, {0, 1, 2}⟩, ⟨2, block1, ∅⟩] }
+
+example : (process_height_events params.E params.cfg 2 readyAtCapacity).h_F = 1 ∧
+    (process_height_events params.E params.cfg 2 readyAtCapacity).W =
+      [⟨2, block1, ∅⟩, ⟨3, block2, ∅⟩] := by decide
+
+/-- W2: the row fold completes a quorum that this same block finalizes. -/
+def almostReady : State (Fin 4) :=
+  { staleState with W := [⟨1, .genesis, {0, 1}⟩, ⟨2, block1, ∅⟩] }
+
+example : (transition params 2 almostReady block3
+    [⟨2, .empty, some ⟨1, genesisRoot⟩⟩]).h_F = 1 ∧
+    (transition params 2 almostReady block3
+    [⟨2, .empty, some ⟨1, genesisRoot⟩⟩]).W = [⟨2, block1, ∅⟩] := by decide
+
+/-- W2: a finality-only row for an evicted entry has no effect. -/
+example : process_row justified3 ⟨0, .empty, some ⟨1, genesisRoot⟩⟩ = justified3 := by decide
+
 end AvailableChain.FGSA.Window.Tests
 end
