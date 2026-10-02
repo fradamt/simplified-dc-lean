@@ -133,14 +133,14 @@ theorem RMono_def :
 Consumers: 02 §4.1, 22 F6/F8/FL-T7, 21 H.17. Producer: F1.1 via `storeControls_eq`. -/
 def RFrameExact : Prop := ∀ i x, x ∈ rho.honest →
   let st := storeAt p c E rho i x
-  FGSA.controls p st = SimplexFG.fjControls p.E p.cfg st.fg.F st.fg.TF ∧
+  FGSA.controls p st = KitFG.fjControlsView (heightView p) st.fg.F st.fg.TF ∧
   FGSA.fullTree p st = domainR p st st.fg.TF
 
 -- equation export required by BUILD §7.2 B3a
 theorem RFrameExact_def :
     RFrameExact p c E rho = (∀ i x, x ∈ rho.honest →
   let st := storeAt p c E rho i x
-  FGSA.controls p st = SimplexFG.fjControls p.E p.cfg st.fg.F st.fg.TF ∧
+  FGSA.controls p st = KitFG.fjControlsView (heightView p) st.fg.F st.fg.TF ∧
   FGSA.fullTree p st = domainR p st st.fg.TF) := rfl
 
 /-- bp.frame.v1 (00:581–587), 01 §4.3 (435–458): the FG projection and metadata.
@@ -261,26 +261,26 @@ theorem RFrame_def : RFrame p c E rho =
 Consumers: 02 §3.1, 21 H.9(a), 22 I2. Producer: F1.1 from KitFG
 `h_mono`, `derive_node_height_cases`, `entry_same_height`, `entry_eq_on_plateau`. -/
 def RGeo : Prop := ∀ i x W, x ∈ rho.honest → W ∈ (storeAt p c E rho i x).fg.TF →
-  hOf p.E p.cfg (.genesis : FGBlock (Fin p.n)) = 1 ∧
-  (∀ A B, FGBlock.Preceq A B → FGBlock.Preceq B W → hOf p.E p.cfg A ≤ hOf p.E p.cfg B) ∧
-  (∀ B, FGBlock.Preceq B W → hOf p.E p.cfg B ≤ hOf p.E p.cfg B.parent + 1) ∧
+  (heightView p (.genesis : FGBlock (Fin p.n))).h = 1 ∧
+  (∀ A B, FGBlock.Preceq A B → FGBlock.Preceq B W → (heightView p A).h ≤ (heightView p B).h) ∧
+  (∀ B, FGBlock.Preceq B W → (heightView p B).h ≤ (heightView p B.parent).h + 1) ∧
   (∀ B, FGBlock.Preceq B W →
-    FGBlock.Preceq (derive p.E p.cfg B).T_h B ∧
-    hOf p.E p.cfg (derive p.E p.cfg B).T_h = hOf p.E p.cfg B) ∧
+    FGBlock.Preceq (heightView p B).T_h B ∧
+    (heightView p (heightView p B).T_h).h = (heightView p B).h) ∧
   (∀ A B, FGBlock.Preceq A B → FGBlock.Preceq B W →
-    hOf p.E p.cfg A = hOf p.E p.cfg B → (derive p.E p.cfg A).T_h = (derive p.E p.cfg B).T_h)
+    (heightView p A).h = (heightView p B).h → (heightView p A).T_h = (heightView p B).T_h)
 
 -- equation export required by BUILD §7.2 B3a
 theorem RGeo_def :
     RGeo p c E rho = (∀ i x W, x ∈ rho.honest → W ∈ (storeAt p c E rho i x).fg.TF →
-  hOf p.E p.cfg (.genesis : FGBlock (Fin p.n)) = 1 ∧
-  (∀ A B, FGBlock.Preceq A B → FGBlock.Preceq B W → hOf p.E p.cfg A ≤ hOf p.E p.cfg B) ∧
-  (∀ B, FGBlock.Preceq B W → hOf p.E p.cfg B ≤ hOf p.E p.cfg B.parent + 1) ∧
+  (heightView p (.genesis : FGBlock (Fin p.n))).h = 1 ∧
+  (∀ A B, FGBlock.Preceq A B → FGBlock.Preceq B W → (heightView p A).h ≤ (heightView p B).h) ∧
+  (∀ B, FGBlock.Preceq B W → (heightView p B).h ≤ (heightView p B.parent).h + 1) ∧
   (∀ B, FGBlock.Preceq B W →
-    FGBlock.Preceq (derive p.E p.cfg B).T_h B ∧
-    hOf p.E p.cfg (derive p.E p.cfg B).T_h = hOf p.E p.cfg B) ∧
+    FGBlock.Preceq (heightView p B).T_h B ∧
+    (heightView p (heightView p B).T_h).h = (heightView p B).h) ∧
   (∀ A B, FGBlock.Preceq A B → FGBlock.Preceq B W →
-    hOf p.E p.cfg A = hOf p.E p.cfg B → (derive p.E p.cfg A).T_h = (derive p.E p.cfg B).T_h)) := rfl
+    (heightView p A).h = (heightView p B).h → (heightView p A).T_h = (heightView p B).T_h)) := rfl
 
 /-- bp.chainCertificates.v1 (00:503–514), 01 §3: stored-block certificates.
 Consumers: P3:3259–3261, 02 §3.1, 21 H.9(a), 22 I2.
@@ -288,16 +288,16 @@ Producer: F1.1 via KitFG `height_crossing`, `justification_certificate`,
 `finality_certificate`, and `provenance_finality`; `J_is_entry` identifies
 its justified entry. No run premise is needed. -/
 def RCert : Prop := ∀ i x W, x ∈ rho.honest → W ∈ (storeAt p c E rho i x).fg.TF →
-  (∀ m, 1 ≤ m → m < (derive p.E p.cfg W).h →
-    ∃ X : FGBlock (Fin p.n), FGBlock.Preceq X W ∧ (derive p.E p.cfg X).h = m ∧
+  (∀ m, 1 ≤ m → m < (heightView p W).h →
+    ∃ X : FGBlock (Fin p.n), FGBlock.Preceq X W ∧ (heightView p X).h = m ∧
       ∃ Q : Finset (Fin p.n), p.E.IsQuorum Q ∧
         ∀ k ∈ Q, ∃ carrier : FGBlock (Fin p.n), ∃ a : Row (Fin p.n),
           FGBlock.Preceq carrier W ∧ a ∈ carrier.rows ∧ a.signer = k ∧
           a.height_pair.matchesEntry m X.root = true) ∧
-  ((derive p.E p.cfg W).h_j ≠ 0 →
+  ((heightView p W).h_j ≠ 0 →
     ∃ Q : Finset (Fin p.n), p.E.IsQuorum Q ∧ ∀ k ∈ Q, ∃ carrier a,
       FGBlock.Preceq carrier W ∧ a ∈ carrier.rows ∧ a.signer = k ∧
-      a.height_pair = .vote (derive p.E p.cfg W).h_j (derive p.E p.cfg W).J.root false) ∧
+      a.height_pair = .vote (heightView p W).h_j (heightView p W).J.root false) ∧
   ((finalityView p W).h_F ≠ 0 →
     ∃ F : FGBlock (Fin p.n), FGBlock.Preceq F W ∧ F = (finalityView p W).F ∧
       ∃ Q : Finset (Fin p.n), p.E.IsQuorum Q ∧
@@ -305,21 +305,21 @@ def RCert : Prop := ∀ i x W, x ∈ rho.honest → W ∈ (storeAt p c E rho i x
           FGBlock.Preceq carrier W ∧ a ∈ carrier.rows ∧ a.signer = k ∧
           a.finality_pair = some ⟨(finalityView p W).h_F, F.root⟩) ∧
   ((finalityView p W).h_F ≠ 0 →
-    ∃ C, FGBlock.Preceq C W ∧ (derive p.E p.cfg C).J = (finalityView p W).F ∧
-      (derive p.E p.cfg C).h_j = (finalityView p W).h_F)
+    ∃ C, FGBlock.Preceq C W ∧ (heightView p C).J = (finalityView p W).F ∧
+      (heightView p C).h_j = (finalityView p W).h_F)
 
 theorem RCert_def : RCert p c E rho =
   (∀ i x W, x ∈ rho.honest → W ∈ (storeAt p c E rho i x).fg.TF →
-  (∀ m, 1 ≤ m → m < (derive p.E p.cfg W).h →
-    ∃ X : FGBlock (Fin p.n), FGBlock.Preceq X W ∧ (derive p.E p.cfg X).h = m ∧
+  (∀ m, 1 ≤ m → m < (heightView p W).h →
+    ∃ X : FGBlock (Fin p.n), FGBlock.Preceq X W ∧ (heightView p X).h = m ∧
       ∃ Q : Finset (Fin p.n), p.E.IsQuorum Q ∧
         ∀ k ∈ Q, ∃ carrier : FGBlock (Fin p.n), ∃ a : Row (Fin p.n),
           FGBlock.Preceq carrier W ∧ a ∈ carrier.rows ∧ a.signer = k ∧
           a.height_pair.matchesEntry m X.root = true) ∧
-  ((derive p.E p.cfg W).h_j ≠ 0 →
+  ((heightView p W).h_j ≠ 0 →
     ∃ Q : Finset (Fin p.n), p.E.IsQuorum Q ∧ ∀ k ∈ Q, ∃ carrier a,
       FGBlock.Preceq carrier W ∧ a ∈ carrier.rows ∧ a.signer = k ∧
-      a.height_pair = .vote (derive p.E p.cfg W).h_j (derive p.E p.cfg W).J.root false) ∧
+      a.height_pair = .vote (heightView p W).h_j (heightView p W).J.root false) ∧
   ((finalityView p W).h_F ≠ 0 →
     ∃ F : FGBlock (Fin p.n), FGBlock.Preceq F W ∧ F = (finalityView p W).F ∧
       ∃ Q : Finset (Fin p.n), p.E.IsQuorum Q ∧
@@ -327,8 +327,8 @@ theorem RCert_def : RCert p c E rho =
           FGBlock.Preceq carrier W ∧ a ∈ carrier.rows ∧ a.signer = k ∧
           a.finality_pair = some ⟨(finalityView p W).h_F, F.root⟩) ∧
   ((finalityView p W).h_F ≠ 0 →
-    ∃ C, FGBlock.Preceq C W ∧ (derive p.E p.cfg C).J = (finalityView p W).F ∧
-      (derive p.E p.cfg C).h_j = (finalityView p W).h_F)) := by
+    ∃ C, FGBlock.Preceq C W ∧ (heightView p C).J = (finalityView p W).F ∧
+      (heightView p C).h_j = (finalityView p W).h_F)) := by
   rw [RCert]
 
 /-- bp.reconcile.v1 (00:559–567), 01 §6: the exact AC edits at an F move.
@@ -428,7 +428,7 @@ def TChain (b₀ : Time) : Prop :=
   (∀ i x r a e t, HonestRowAt p c E rho i x r a →
     rho.events[i]? = some (.tick x t) → t ≤ b₀ → namedEntry a.payload.height_pair = some e →
     ∃ s B X, SA.gateTime p.toParams s ≤ b₀ ∧ gateResult p c E rho x s = some (some B) ∧
-      (hOf p.E p.cfg X, X.root) = e ∧ Block.Preceq (eraseFG X) B)
+      ((heightView p X).h, X.root) = e ∧ Block.Preceq (eraseFG X) B)
 
 -- equation export required by BUILD §7.2 B3a
 theorem TChain_def (b₀ : Time) :
@@ -439,7 +439,7 @@ theorem TChain_def (b₀ : Time) :
   (∀ i x r a e t, HonestRowAt p c E rho i x r a →
     rho.events[i]? = some (.tick x t) → t ≤ b₀ → namedEntry a.payload.height_pair = some e →
     ∃ s B X, SA.gateTime p.toParams s ≤ b₀ ∧ gateResult p c E rho x s = some (some B) ∧
-      (hOf p.E p.cfg X, X.root) = e ∧ Block.Preceq (eraseFG X) B)) := rfl
+      ((heightView p X).h, X.root) = e ∧ Block.Preceq (eraseFG X) B)) := rfl
 
 /-- 03 §8.3 (702–726): after arming at d_j, honest sources are compatible
 with protected B. Consumers: no lane assumes this; F3 proves it. -/
@@ -462,16 +462,16 @@ structure AncestorClosed (Φ : FGBlock (Fin p.n) → Prop) : Prop where
 Each frame block above the threshold satisfies Φ. -/
 def FrameBelow (Φ : FGBlock (Fin p.n) → Prop) (c₀ : Nat)
     (R : Controls (Fin p.n)) : Prop :=
-  (c₀ ≤ hOf p.E p.cfg R.F → Φ R.F) ∧
-  (c₀ ≤ hOf p.E p.cfg R.J → Φ R.J) ∧
-  (c₀ ≤ hOf p.E p.cfg R.Z → Φ R.Z)
+  (c₀ ≤ (heightView p R.F).h → Φ R.F) ∧
+  (c₀ ≤ (heightView p R.J).h → Φ R.J) ∧
+  (c₀ ≤ (heightView p R.Z).h → Φ R.Z)
 
 -- equation export required by BUILD §7.2 B3a
 theorem FrameBelow_def (Φ : FGBlock (Fin p.n) → Prop) (c₀ : Nat)
     (R : Controls (Fin p.n)) :
-    FrameBelow p Φ c₀ R = ((c₀ ≤ hOf p.E p.cfg R.F → Φ R.F) ∧
-  (c₀ ≤ hOf p.E p.cfg R.J → Φ R.J) ∧
-  (c₀ ≤ hOf p.E p.cfg R.Z → Φ R.Z)) := rfl
+    FrameBelow p Φ c₀ R = ((c₀ ≤ (heightView p R.F).h → Φ R.F) ∧
+  (c₀ ≤ (heightView p R.J).h → Φ R.J) ∧
+  (c₀ ≤ (heightView p R.Z).h → Φ R.Z)) := rfl
 
 /-- P3 App. A.2: bp.sourceDiscipline.v1(b,c), 01 §8.4, 02 §§3.3–3.5.
 Each non-genesis certified entry has an earlier honest row at its height. -/
@@ -479,7 +479,7 @@ def RStrat : Prop := ∀ i x W, x ∈ rho.honest →
   W ∈ (storeAt p c E rho i x).fg.TF →
   ∀ e ∈ certified p W, e ≠ .genesis →
     ∃ y r, ∃ a : RowWire p.n, HonestRowBefore p c E rho i y r a ∧
-      namedEntry a.payload.height_pair = some (hOf p.E p.cfg e, e.root)
+      namedEntry a.payload.height_pair = some ((heightView p e).h, e.root)
 
 -- equation export required by BUILD §7.2 B3a
 theorem RStrat_def :
@@ -487,7 +487,7 @@ theorem RStrat_def :
   W ∈ (storeAt p c E rho i x).fg.TF →
   ∀ e ∈ certified p W, e ≠ .genesis →
     ∃ y r, ∃ a : RowWire p.n, HonestRowBefore p c E rho i y r a ∧
-      namedEntry a.payload.height_pair = some (hOf p.E p.cfg e, e.root)) := rfl
+      namedEntry a.payload.height_pair = some ((heightView p e).h, e.root)) := rfl
 
 /-- bp.sourceDiscipline.v1 (00:689–697, especially 691–695), 01 §8.4 (788–793).
 Consumers: F2–F5 through SourceDisciplineAt. Producer: F1.5 via certificate-row
@@ -503,31 +503,31 @@ def RQCOrigin : Prop := ∀ i x W, x ∈ rho.honest → W ∈ (storeAt p c E rho
         (⟨.proposer s, .proposal (eraseFG carrier) raw sup rows⟩ : Wire p.n) ∈
           (storeAt p c E rho i x).proposals ∧ wire ∈ rows) ∧
       ∃ C G, actionSourceFG p c E rho y r = some (some C) ∧
-        namedEntry a.height_pair = some (hOf p.E p.cfg C, (derive p.E p.cfg C).T_h.root) ∧
-        FGBlock.Preceq (derive p.E p.cfg C).T_h C ∧
+        namedEntry a.height_pair = some ((heightView p C).h, (heightView p C).T_h.root) ∧
+        FGBlock.Preceq (heightView p C).T_h C ∧
         gateResult p c E rho y (r * p.R) = some (some G) ∧
         Block.Preceq (eraseFG C) G ∧ fastAt p c E rho y (r * p.R) (eraseFG C)
   (∀ m X (Q : Finset (Fin p.n)) (rows : Fin p.n → FGBlock (Fin p.n) × Row (Fin p.n)),
-    1 ≤ m → m < (derive p.E p.cfg W).h →
-    FGBlock.Preceq X W → (derive p.E p.cfg X).h = m → p.E.IsQuorum Q →
+    1 ≤ m → m < (heightView p W).h →
+    FGBlock.Preceq X W → (heightView p X).h = m → p.E.IsQuorum Q →
     (∀ k ∈ Q, FGBlock.Preceq (rows k).1 W ∧ (rows k).2 ∈ (rows k).1.rows ∧
       (rows k).2.signer = k ∧ (rows k).2.height_pair.matchesEntry m X.root = true) →
     ∃ k ∈ Q, origin (rows k).1 (rows k).2) ∧
   (∀ (Q : Finset (Fin p.n)) (rows : Fin p.n → FGBlock (Fin p.n) × Row (Fin p.n)),
-    (derive p.E p.cfg W).h_j ≠ 0 → p.E.IsQuorum Q →
+    (heightView p W).h_j ≠ 0 → p.E.IsQuorum Q →
     (∀ k ∈ Q, FGBlock.Preceq (rows k).1 W ∧ (rows k).2 ∈ (rows k).1.rows ∧
       (rows k).2.signer = k ∧
-      (rows k).2.height_pair = .vote (derive p.E p.cfg W).h_j (derive p.E p.cfg W).J.root false) →
+      (rows k).2.height_pair = .vote (heightView p W).h_j (heightView p W).J.root false) →
     ∃ k ∈ Q, origin (rows k).1 (rows k).2) ∧
   ((finalityView p W).F ≠ .genesis →
-    ∃ C, FGBlock.Preceq C W ∧ (derive p.E p.cfg C).J = (finalityView p W).F ∧
-      (derive p.E p.cfg C).h_j = (finalityView p W).h_F ∧
+    ∃ C, FGBlock.Preceq C W ∧ (heightView p C).J = (finalityView p W).F ∧
+      (heightView p C).h_j = (finalityView p W).h_F ∧
       ∃ (Q : Finset (Fin p.n)) (rows : Fin p.n → FGBlock (Fin p.n) × Row (Fin p.n)),
         p.E.IsQuorum Q ∧
         (∀ k ∈ Q, FGBlock.Preceq (rows k).1 C ∧ (rows k).2 ∈ (rows k).1.rows ∧
           (rows k).2.signer = k ∧
           (rows k).2.height_pair =
-            .vote (derive p.E p.cfg C).h_j (derive p.E p.cfg C).J.root false) ∧
+            .vote (heightView p C).h_j (heightView p C).J.root false) ∧
         ∃ k ∈ Q, origin (rows k).1 (rows k).2)
 
 theorem RQCOrigin_def : RQCOrigin p c E rho =
@@ -539,31 +539,31 @@ theorem RQCOrigin_def : RQCOrigin p c E rho =
         (⟨.proposer s, .proposal (eraseFG carrier) raw sup rows⟩ : Wire p.n) ∈
           (storeAt p c E rho i x).proposals ∧ wire ∈ rows) ∧
       ∃ C G, actionSourceFG p c E rho y r = some (some C) ∧
-        namedEntry a.height_pair = some (hOf p.E p.cfg C, (derive p.E p.cfg C).T_h.root) ∧
-        FGBlock.Preceq (derive p.E p.cfg C).T_h C ∧
+        namedEntry a.height_pair = some ((heightView p C).h, (heightView p C).T_h.root) ∧
+        FGBlock.Preceq (heightView p C).T_h C ∧
         gateResult p c E rho y (r * p.R) = some (some G) ∧
         Block.Preceq (eraseFG C) G ∧ fastAt p c E rho y (r * p.R) (eraseFG C)
   (∀ m X (Q : Finset (Fin p.n)) (rows : Fin p.n → FGBlock (Fin p.n) × Row (Fin p.n)),
-    1 ≤ m → m < (derive p.E p.cfg W).h →
-    FGBlock.Preceq X W → (derive p.E p.cfg X).h = m → p.E.IsQuorum Q →
+    1 ≤ m → m < (heightView p W).h →
+    FGBlock.Preceq X W → (heightView p X).h = m → p.E.IsQuorum Q →
     (∀ k ∈ Q, FGBlock.Preceq (rows k).1 W ∧ (rows k).2 ∈ (rows k).1.rows ∧
       (rows k).2.signer = k ∧ (rows k).2.height_pair.matchesEntry m X.root = true) →
     ∃ k ∈ Q, origin (rows k).1 (rows k).2) ∧
   (∀ (Q : Finset (Fin p.n)) (rows : Fin p.n → FGBlock (Fin p.n) × Row (Fin p.n)),
-    (derive p.E p.cfg W).h_j ≠ 0 → p.E.IsQuorum Q →
+    (heightView p W).h_j ≠ 0 → p.E.IsQuorum Q →
     (∀ k ∈ Q, FGBlock.Preceq (rows k).1 W ∧ (rows k).2 ∈ (rows k).1.rows ∧
       (rows k).2.signer = k ∧
-      (rows k).2.height_pair = .vote (derive p.E p.cfg W).h_j (derive p.E p.cfg W).J.root false) →
+      (rows k).2.height_pair = .vote (heightView p W).h_j (heightView p W).J.root false) →
     ∃ k ∈ Q, origin (rows k).1 (rows k).2) ∧
   ((finalityView p W).F ≠ .genesis →
-    ∃ C, FGBlock.Preceq C W ∧ (derive p.E p.cfg C).J = (finalityView p W).F ∧
-      (derive p.E p.cfg C).h_j = (finalityView p W).h_F ∧
+    ∃ C, FGBlock.Preceq C W ∧ (heightView p C).J = (finalityView p W).F ∧
+      (heightView p C).h_j = (finalityView p W).h_F ∧
       ∃ (Q : Finset (Fin p.n)) (rows : Fin p.n → FGBlock (Fin p.n) × Row (Fin p.n)),
         p.E.IsQuorum Q ∧
         (∀ k ∈ Q, FGBlock.Preceq (rows k).1 C ∧ (rows k).2 ∈ (rows k).1.rows ∧
           (rows k).2.signer = k ∧
           (rows k).2.height_pair =
-            .vote (derive p.E p.cfg C).h_j (derive p.E p.cfg C).J.root false) ∧
+            .vote (heightView p C).h_j (heightView p C).J.root false) ∧
         ∃ k ∈ Q, origin (rows k).1 (rows k).2)) := by
   rw [RQCOrigin]
 
@@ -571,26 +571,26 @@ theorem RQCOrigin_def : RQCOrigin p c E rho =
 T1 names an FG block by its height and root.
 genesis case: P3 r3.5.6 form refutable at index 0; lead G1. -/
 def SrcFrameAbove (Φ : FGBlock (Fin p.n) → Prop) (c₀ : Nat) : Prop :=
-  (c₀ ≤ hOf p.E p.cfg (.genesis : FGBlock (Fin p.n)) → Φ .genesis) →
+  (c₀ ≤ (heightView p (.genesis : FGBlock (Fin p.n))).h → Φ .genesis) →
   ∀ i x, x ∈ rho.honest →
     (∀ y r (a : RowWire p.n) (e : FGBlock (Fin p.n)),
       HonestRowBefore p c E rho i y r a →
-      namedEntry a.payload.height_pair = some (hOf p.E p.cfg e, e.root) →
-      c₀ ≤ hOf p.E p.cfg e → Φ e) →
+      namedEntry a.payload.height_pair = some ((heightView p e).h, e.root) →
+      c₀ ≤ (heightView p e).h → Φ e) →
     (∀ W ∈ (storeAt p c E rho i x).fg.TF, ∀ e ∈ certified p W,
-      c₀ ≤ hOf p.E p.cfg e → Φ e) ∧ FrameBelow p Φ c₀ (R_at p c E rho i x)
+      c₀ ≤ (heightView p e).h → Φ e) ∧ FrameBelow p Φ c₀ (R_at p c E rho i x)
 
 -- equation export required by BUILD §7.2 B3a
 theorem SrcFrameAbove_def (Φ : FGBlock (Fin p.n) → Prop) (c₀ : Nat) :
     SrcFrameAbove p c E rho Φ c₀ =
-      ((c₀ ≤ hOf p.E p.cfg (.genesis : FGBlock (Fin p.n)) → Φ .genesis) →
+      ((c₀ ≤ (heightView p (.genesis : FGBlock (Fin p.n))).h → Φ .genesis) →
   ∀ i x, x ∈ rho.honest →
     (∀ y r (a : RowWire p.n) (e : FGBlock (Fin p.n)),
       HonestRowBefore p c E rho i y r a →
-      namedEntry a.payload.height_pair = some (hOf p.E p.cfg e, e.root) →
-      c₀ ≤ hOf p.E p.cfg e → Φ e) →
+      namedEntry a.payload.height_pair = some ((heightView p e).h, e.root) →
+      c₀ ≤ (heightView p e).h → Φ e) →
     (∀ W ∈ (storeAt p c E rho i x).fg.TF, ∀ e ∈ certified p W,
-      c₀ ≤ hOf p.E p.cfg e → Φ e) ∧ FrameBelow p Φ c₀ (R_at p c E rho i x)) := rfl
+      c₀ ≤ (heightView p e).h → Φ e) ∧ FrameBelow p Φ c₀ (R_at p c E rho i x)) := rfl
 
 /-- P3 App. A.10, S3 D09: source frame at threshold zero. -/
 abbrev SrcFrame (Φ : FGBlock (Fin p.n) → Prop) : Prop :=
@@ -615,7 +615,7 @@ def CPPrefix : Prop := ∀ i x (B : FGBlock (Fin p.n)), x ∈ rho.honest →
   (∀ W ∈ (storeAt p c E rho i x).fg.TF, ∀ e ∈ certified p W, FGBlock.Preceq e B) ∧
   (let R := R_at p c E rho i x
    FGBlock.Preceq R.F B ∧ FGBlock.Preceq R.J B ∧ FGBlock.Preceq R.Z B ∧
-   R.contest = false ∧ R.lo ≤ hOf p.E p.cfg B)
+   R.contest = false ∧ R.lo ≤ (heightView p B).h)
 
 -- equation export required by BUILD §7.2 B3a
 theorem CPPrefix_def :
@@ -625,14 +625,14 @@ theorem CPPrefix_def :
   (∀ W ∈ (storeAt p c E rho i x).fg.TF, ∀ e ∈ certified p W, FGBlock.Preceq e B) ∧
   (let R := R_at p c E rho i x
    FGBlock.Preceq R.F B ∧ FGBlock.Preceq R.J B ∧ FGBlock.Preceq R.Z B ∧
-   R.contest = false ∧ R.lo ≤ hOf p.E p.cfg B)) := rfl
+   R.contest = false ∧ R.lo ≤ (heightView p B).h)) := rfl
 
 /-- P3 App. A.3: bp.outageCompatibility.v1 (00:850–859), 03 §7.
 Every contest witness extends B (lead-approved universal form). -/
 def CPCompat : Prop := ∀ i x (B : FGBlock (Fin p.n)), x ∈ rho.honest →
   (∀ y r (a : RowWire p.n) (e : FGBlock (Fin p.n)),
     HonestRowBefore p c E rho i y r a →
-    namedEntry a.payload.height_pair = some (hOf p.E p.cfg e, e.root) →
+    namedEntry a.payload.height_pair = some ((heightView p e).h, e.root) →
     FGBlock.Preceq e B ∨ FGBlock.Preceq B e) →
   (∀ W ∈ (storeAt p c E rho i x).fg.TF, ∀ e ∈ certified p W,
     FGBlock.Preceq e B ∨ FGBlock.Preceq B e) ∧
@@ -643,7 +643,7 @@ def CPCompat : Prop := ∀ i x (B : FGBlock (Fin p.n)), x ∈ rho.honest →
    (B ∈ st.fg.TF → FGBlock.Preceq R.F B →
      FGBlock.Preceq B R.Z ∨ B ∈ domainR p st st.fg.TF) ∧
    (R.contest = true → FGBlock.Preceq B R.J ∧
-     ∀ W ∈ st.fg.TF, hOf p.E p.cfg W = R.H → ¬ FGBlock.Preceq R.J W →
+     ∀ W ∈ st.fg.TF, (heightView p W).h = R.H → ¬ FGBlock.Preceq R.J W →
        FGBlock.Preceq B W))
 
 -- equation export required by BUILD §7.2 B3a
@@ -651,7 +651,7 @@ theorem CPCompat_def :
     CPCompat p c E rho = (∀ i x (B : FGBlock (Fin p.n)), x ∈ rho.honest →
   (∀ y r (a : RowWire p.n) (e : FGBlock (Fin p.n)),
     HonestRowBefore p c E rho i y r a →
-    namedEntry a.payload.height_pair = some (hOf p.E p.cfg e, e.root) →
+    namedEntry a.payload.height_pair = some ((heightView p e).h, e.root) →
     FGBlock.Preceq e B ∨ FGBlock.Preceq B e) →
   (∀ W ∈ (storeAt p c E rho i x).fg.TF, ∀ e ∈ certified p W,
     FGBlock.Preceq e B ∨ FGBlock.Preceq B e) ∧
@@ -662,7 +662,7 @@ theorem CPCompat_def :
    (B ∈ st.fg.TF → FGBlock.Preceq R.F B →
      FGBlock.Preceq B R.Z ∨ B ∈ domainR p st st.fg.TF) ∧
    (R.contest = true → FGBlock.Preceq B R.J ∧
-     ∀ W ∈ st.fg.TF, hOf p.E p.cfg W = R.H → ¬ FGBlock.Preceq R.J W →
+     ∀ W ∈ st.fg.TF, (heightView p W).h = R.H → ¬ FGBlock.Preceq R.J W →
        FGBlock.Preceq B W))) := rfl
 
 
@@ -673,12 +673,12 @@ The claim producer supplies FaultX; there is no height function on F. -/
 def RXing : Prop := ∀ i i' x y K W, x ∈ rho.honest → i ≤ i' →
   K ∈ (storeAt p c E rho i x).fg.TF →
   (finalityView p K).F = (storeAt p c E rho i x).fg.F →
-  HeldAt p c E rho i' y W → (finalityView p K).h_F < hOf p.E p.cfg W →
+  HeldAt p c E rho i' y W → (finalityView p K).h_F < (heightView p W).h →
   FGBlock.Preceq (storeAt p c E rho i x).fg.F W
 
 /-- R-CAP (01:219–233), P3 A.4. Consumers: 21 H.11–H.15; 22 FF1-A.
 The producer requires FaultQ. This is causal row carriage, not finality lag. -/
-def RCap : Prop := ∀ y i x W, HeldAt p c E rho i x W → y + 2 ≤ hOf p.E p.cfg W →
+def RCap : Prop := ∀ y i x W, HeldAt p c E rho i x W → y + 2 ≤ (heightView p W).h →
   ∃ j z r, ∃ (a : RowWire p.n) (e : BlockId), j < i ∧
     HonestRowAt p c E rho j z r a ∧
     namedEntry a.payload.height_pair = some (y + 1, e) ∧
@@ -756,10 +756,10 @@ def KeepOrCause (i : Nat) (x : V) (X : Finset (FGBlock (Fin p.n)))
     (C : FGBlock (Fin p.n)) : Prop :=
   Kept p c E rho i x X C ∨
   (∃ C' s, SourceBefore p c E rho i C' s ∧
-    ¬ Block.Compatible (eraseFG C) (eraseFG C') ∧ hOf p.E p.cfg C ≤ hOf p.E p.cfg C') ∨
+    ¬ Block.Compatible (eraseFG C) (eraseFG C') ∧ (heightView p C).h ≤ (heightView p C').h) ∨
   (∃ C₁ C₂ s₁ s₂, SourceBefore p c E rho i C₁ s₁ ∧ SourceBefore p c E rho i C₂ s₂ ∧
-    hOf p.E p.cfg C₁ = hOf p.E p.cfg C₂ ∧ hOf p.E p.cfg C < hOf p.E p.cfg C₁ ∧
-    (derive p.E p.cfg C₁).T_h.root ≠ (derive p.E p.cfg C₂).T_h.root)
+    (heightView p C₁).h = (heightView p C₂).h ∧ (heightView p C).h < (heightView p C₁).h ∧
+    (heightView p C₁).T_h.root ≠ (heightView p C₂).T_h.root)
 /-- fj.descent.v2 (00:950–960; 21 H.13:2487,2585), P3 A.3.
 Consumer: H.13. The view holds every earlier honest source unless F covers it. -/
 def RExcl : Prop := ∀ i x (X : Finset (FGBlock (Fin p.n))) C,
@@ -787,7 +787,7 @@ def RKeep (w : HealingWitness) : Prop := ∀ i x (X : Finset (FGBlock (Fin p.n))
   R.lo ≤ max (w.M + 1) (st.fg.h_max - 1) ∧
   (∀ B ∈ [R.Z, st.fg.F], FGBlock.Preceq B C ∨
     ∃ K s, SourceBefore p c E rho i K s ∧ high p w K ∧ FGBlock.Preceq B K) ∧
-  (∃ B ∈ X, hOf p.E p.cfg B = max (w.M + 1) (st.fg.h_max - 1)) ∧
+  (∃ B ∈ X, (heightView p B).h = max (w.M + 1) (st.fg.h_max - 1)) ∧
   (∀ B, (∀ A, FGBlock.Preceq A B → A ∈ X) → Block.Compatible (eraseFG B) w.CStar →
     (∀ K s, SourceBefore p c E rho i K s → high p w K →
       Block.Compatible (eraseFG B) (eraseFG K)) → Kept p c E rho i x X B)
@@ -827,7 +827,7 @@ Consumers: H.7, H.9(b), HG.3. No reset witness. -/
 def TGeom : Prop :=
   (∀ s Q st, HonestProposal E rho (fgsaInterface p c) s Q →
     proposalStateAt p c E rho s = some st → (FGSA.fullTree p st).Nonempty →
-    ∃ B ∈ FGSA.fullTree p st, eraseFG B = Q.parent ∧ (frameR p st).lo ≤ hOf p.E p.cfg B) ∧
+    ∃ B ∈ FGSA.fullTree p st, eraseFG B = Q.parent ∧ (frameR p st).lo ≤ (heightView p B).h) ∧
   (∀ x r C, x ∈ rho.honest → actionSourceFG p c E rho x r = some (some C) → C.slot ≤ r * p.R)
 
 /-- Exact gate service (21 H.22:3109–3114), P3 A.9.
@@ -925,13 +925,13 @@ def OpeningCovered (r : Nat) (Q : Block) : Prop := ∀ x ∈ rho.honest,
     Block.Preceq Q (eraseFG K) ∧ rSent ≤ r ∧
     HonestRowAt p c E rho j x rSent a ∧
     namedEntry a.payload.height_pair =
-      some (hOf p.E p.cfg K, (derive p.E p.cfg K).T_h.root)
+      some ((heightView p K).h, (heightView p K).T_h.root)
 
 /-- One state-height entry at an opening (21 H.9:1140–1144), P3 A.8.
 Consumer: TCommon. Bodies at one state height can differ. -/
 def OpeningEntry (r m : Nat) : Prop := ∃ e, ∀ x K, x ∈ rho.honest →
   actionSourceFG p c E rho x r = some (some K) →
-  hOf p.E p.cfg K = m ∧ (derive p.E p.cfg K).T_h.root = e
+  (heightView p K).h = m ∧ (heightView p K).T_h.root = e
 /-- T-COMMON, bp.commonEntry.v1 (00:1001–1010; 21 H.9:1100–1144),
 P3 A.8. Consumers: H.9 and HG.2. The second opening has its own phase premise.
 SO-COV. DC: INTENTIONAL earlier-or-current source coverage. -/
@@ -946,10 +946,10 @@ def TCommon : Prop := ∀ u m J contested q Q Qfg r,
   (∀ x y K K', x ∈ rho.honest → y ∈ rho.honest →
     actionSourceFG p c E rho x r = some (some K) →
     actionSourceFG p c E rho y r = some (some K') → Block.Compatible (eraseFG K) (eraseFG K')) ∧
-  (hOf p.E p.cfg Qfg = m → OpeningEntry p c E rho r m) ∧
-  (hOf p.E p.cfg Qfg = m - 1 → OpeningEntry p c E rho r (m - 1) ∨
+  ((heightView p Qfg).h = m → OpeningEntry p c E rho r m) ∧
+  ((heightView p Qfg).h = m - 1 → OpeningEntry p c E rho r (m - 1) ∨
     ((∃ x K, x ∈ rho.honest ∧ actionSourceFG p c E rho x r = some (some K) ∧
-        hOf p.E p.cfg K = m) ∧
+        (heightView p K).h = m) ∧
       (PhaseInterval p c E rho u (p.actionTime (r + 1)) m J contested →
         OpeningEntry p c E rho (r + 1) m)))
 /-- T-FRONTIER (21 HG.1:1333–1350), P3 A.8. Consumers: HG.1–HG.5.
@@ -957,7 +957,7 @@ The initial proposal is served in its phase. Subsequent service stops at frontie
 SO-COV. DC: INTENTIONAL earlier-or-current source coverage. -/
 def TFrontier : Prop := ∀ u v m J contested q Q Qfg,
   E.t_GST ≤ u → HonestProposal E rho (fgsaInterface p c) q Q → eraseFG Qfg = Q →
-  hOf p.E p.cfg Qfg = m → ExactService p c E rho q Q →
+  (heightView p Qfg).h = m → ExactService p c E rho q Q →
   u ≤ SA.proposalTime p.toParams q →
   PhaseInterval p c E rho u (SA.gateTime p.toParams q) m J contested →
   SA.gateTime p.toParams q ≤ v → v ≤ rho.horizon →
@@ -967,7 +967,7 @@ def TFrontier : Prop := ∀ u v m J contested q Q Qfg,
   (∀ r, q ≤ r * p.R → p.actionTime r ≤ v →
     OpeningCovered p c E rho r Q ∧ OpeningEntry p c E rho r m ∧
     (∀ x K, x ∈ rho.honest → actionSourceFG p c E rho x r = some (some K) →
-      (derive p.E p.cfg K).T_h = (derive p.E p.cfg Qfg).T_h) ∧
+      (heightView p K).T_h = (heightView p Qfg).T_h) ∧
     ((∀ r', q ≤ r' * p.R → r ≤ r') →
       p.actionTime r - SA.gateTime p.toParams q ≤ P p - 4 * p.Δ))
 

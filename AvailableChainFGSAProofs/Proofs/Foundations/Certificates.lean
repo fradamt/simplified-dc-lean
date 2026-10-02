@@ -13,6 +13,7 @@ variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
 
 /-- Stored-chain geometry from KitFG; these facts hold for every FG block. -/
 theorem fgsa_rGeo : RGeo p c E rho := by
+  simp only [RGeo_def, heightView_eq_simplex p, KitFG.simplexHeightView_def, KitFG.heightOf_def]
   intro i x W _ _
   refine ⟨rfl, fun _ _ h _ => KitFG.h_mono p.E p.cfg h, ?_,
     fun B _ => ⟨KitFG.entry_preceq p.E p.cfg B, KitFG.entry_same_height p.E p.cfg B⟩,
@@ -27,6 +28,7 @@ theorem fgsa_rGeo : RGeo p c E rho := by
 
 /-- L49 certificate clauses, using the designated KitFG producers directly. -/
 theorem fgsa_rCert : RCert p c E rho := by
+  simp only [RCert_def, heightView_eq_simplex p, KitFG.simplexHeightView_def, KitFG.heightOf_def]
   intro i x W _ _
   refine ⟨KitFG.height_crossing p.E p.cfg W, ?_, ?_, ?_⟩
   · simpa only [heightView_eq_simplex, KitFG.simplexHeightView_def, KitFG.heightOf_def] using

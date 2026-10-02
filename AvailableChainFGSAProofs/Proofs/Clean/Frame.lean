@@ -56,6 +56,8 @@ theorem cleanFrame_of_state (b₀ : Time) :
     exact hc
   have hcert := hs.sources.2
   rw [CleanCertSources_def] at hcert
+  simp only [certified_def, heightView_eq_simplex p,
+    KitFG.simplexHeightView_def, KitFG.heightOf_def] at hcert
   have hn : (FGSA.controls p st).contest = false := by
     apply KitFG.storeFrameView_noContest_of_crossed_of_inv
       p.E (heightView p) (fgCertificateLaws p).height (finalityView p) st.fg hinv
@@ -95,8 +97,8 @@ theorem cleanFrame_of_state (b₀ : Time) :
   · rcases hcp.2.2.2.1 hB hFB with hBZ | hD
     · exact Or.inl (eraseFG_preceq hBZ)
     · right; right
-      have hd := (KitFG.mem_filteredFrom_of_bridge
-        p.E p.cfg (heightView p) (heightView_bridge p) (FGSA.controls p st) st.fg.TF B).1 hD
+      have hd := (KitFG.mem_filteredFromView
+        (heightView p) (FGSA.controls p st) st.fg.TF B).1 hD
       refine ⟨?_, hd.2.2.1, ?_⟩
       · change FGBlock.Preceq st.fg.F
           (if (FGSA.controls p st).rootIsJ then st.fg.J else st.fg.F)

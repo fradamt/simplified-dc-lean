@@ -332,7 +332,10 @@ theorem cleanHistoryAt_body [Fintype V] {b₀ : Time}
     rw [CleanRowSources_def] at hr
     obtain ⟨C, hC, heq, hp, hb⟩ := hr j x r a e hj ha he
     refine ⟨C, hC, ?_, ?_⟩
-    · refine ⟨(derive p.E p.cfg C).T_h, hp, ?_⟩
+    · delta EntryBelow
+      simp only [heightView_eq_simplex p,
+        KitFG.simplexHeightView_def, KitFG.heightOf_def]
+      refine ⟨(derive p.E p.cfg C).T_h, hp, ?_⟩
       rw [heq]
       exact Prod.ext (KitFG.entry_same_height p.E p.cfg C) rfl
     · rw [closure_gate_label p c rho (show IsGateTick p c rho j x (r * p.R) from
