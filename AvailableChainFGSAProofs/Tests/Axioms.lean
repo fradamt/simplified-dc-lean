@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Finality.Carry -- shake: keep (K-CARRY audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Batch -- shake: keep (K-BATCH audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.Claims -- shake: keep (S4.6b axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.Phase -- shake: keep (H-PHASE audit)
@@ -64,6 +65,9 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PeriodicStageBounds -- sha
 public import AvailableChainFGSAProofs.Proofs.Clean.Chain -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.State -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (axiom audit commands)
+
+#print axioms AvailableChain.FGSA.Run.terminalCarriage_general_W
+#print axioms AvailableChain.FGSA.Run.terminalCarriage_W_of_tRowsSelect
 
 #print axioms AvailableChain.FGSA.Run.finalityRow_bit_or_carried_W
 #print axioms AvailableChain.FGSA.Run.finalityBatchCoverage_W_of_tRowsSelect
