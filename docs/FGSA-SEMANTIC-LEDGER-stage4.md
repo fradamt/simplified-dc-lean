@@ -3944,3 +3944,10 @@ same conclusions; every affected statement stays true at m = 1 (frontier-1 frame
 PhaseInterval, AttemptValid, RPhase, RPhase_def; none is frozen at G-F0a (no allow line).
 M2 (docstring only): TRowsSelect / TRowsSync: INTENTIONAL exact-row service (full inclusion, Model/Frame.lean
 proposalRows); the blueprint's optional effect-preserving selection (22:323, 22:695; 01:83–86) is not modeled.
+
+B25 (pre-freeze, lead ruling B25; s5-plan-amendments.md §G): PhaseInterval lower cut `timeIdx rho u ≤ i` →
+`V2.D.Run.idxBefore rho u ≤ i`. STRONGER read (the interval now also covers the states before the events at u), so
+a HEAD at v_s = u, which reads stateBefore its tick, is inside the settled interval (bp 754–755, 824, 1151–1162).
+TFrontier's h_max cap keeps timeIdx. Consumers use PhaseInterval as a premise; proof fallout fixed with
+idxBefore ≤ timeIdx (PhaseFrame, OpeningCovered, OpeningCoveredLower). Hash moves: PhaseInterval only; not frozen at
+G-F0a (no allow line).

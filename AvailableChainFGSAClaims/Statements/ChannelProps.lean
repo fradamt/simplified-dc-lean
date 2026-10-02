@@ -862,10 +862,12 @@ def ExactService (v : Slot) (Q : Block) : Prop :=
 H.8:967–975), P3 A.8. Consumers: TPerm, TRepair, TCommon, TFrontier.
 The common root is J in a top-J phase. In an F-root phase each local F may move.
 This read does not assert a certificate height for F. Frontier m ≥ 1 (H.10 at m = 1,
-21:1467–1468, 2570–2571; ruling B21). -/
+21:1467–1468, 2570–2571; ruling B21). The lower cut is idxBefore u, so the interval includes the
+states read before events at u: a HEAD at v_s = u reads stateBefore its tick (bp 754–755, 824,
+1151–1162; ruling B25). -/
 def PhaseInterval (u v : Time) (m : Nat) (J : Option (FGBlock (Fin p.n)))
     (contested : Bool) : Prop := u ≤ v ∧ v ≤ rho.horizon ∧ 1 ≤ m ∧
-  ∀ i x, timeIdx rho u ≤ i → i ≤ timeIdx rho v → x ∈ rho.honest →
+  ∀ i x, V2.D.Run.idxBefore rho u ≤ i → i ≤ timeIdx rho v → x ∈ rho.honest →
     let R := R_at p c E rho i x
     R.H = m ∧ R.contest = contested ∧
       (match J with | some B => R.rootIsJ = true ∧ R.J = B | none => R.rootIsJ = false)
