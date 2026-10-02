@@ -1,7 +1,7 @@
 # FG-SA G-F0b freeze record (W model)
 
 Candidate content: fgsa-s46e (S4.6 + S4.6b + S4.6c + TDel / review fixes + S4.7 pre-freeze round), reviewed at
-845d13e; the S4.7 fix round adds 0848d69 and this record (037ea95); B21 and B25 follow. The S4.8 freeze commit
+845d13e; the S4.7 fix round adds 0848d69 and this record (037ea95); B21, B25, B31 and B32 follow. The S4.8 freeze commit
 replaces docs/FGSA-API-frozen.md with docs/FGSA-API.md at that head (scripts/fgsa-freeze.sh), resets
 scripts/fgsa-manifest-allow.txt to its header line, and checks the new freeze with
 `NEG=0 bash scripts/check-fgsa-manifest.sh`.
@@ -59,8 +59,33 @@ deliveries at u). TPerm (`u ≤ voteTime s`) and TRepair branch 2 then had no bl
 is `V2.D.Run.idxBefore rho u ≤ i`. Nothing else changes; TFrontier's h_max cap keeps timeIdx. No G-F0a frozen name
 moves.
 
+## Post-review statement change (ruling B31)
+
+lean-framework's H-SUPPORT writer found a counterexample to TPerm through Transfers S3, and an Opus check found the
+same end-of-run defect in two more clauses: a range that starts at afterTicksIdx / HealSuffix of a cut c is
+{events.length} when c is past the interval end or the horizon, so the clause asserted coverage of the final state
+although the gate at c never ran (the blueprint speaks only of outputs after that gate). Lead ruling B31
+(s5-plan-amendments.md §I) adds guards only: Transfers S3 `SA.gateTime s + 4Δ ≤ v` (21:717); H2A output
+`p.actionTime r + 4Δ ≤ rho.horizon` (21:3289–3291); H5RawTransfer output `SA.gateTime j + 4Δ ≤ rho.horizon`
+(21:3321); and RFProv takes `H0 p c E rho w` as its first premise, as TDelReset does. No G-F0a frozen name moves.
+
+## Post-review statement change (ruling B32)
+
+Centaur's FREEZE-HORIZON audit (365 definitions screened) confirmed the four B31 items and found two more. Lead
+ruling B32 (s5-plan-amendments.md §J): RKeep takes `H0 p c E rho w` as its first premise, as TDelReset (with an
+arbitrary witness its conclusion `w.M + 1 ≤ st.fg.h_max` is false on a real run); CleanGrowthClaim takes `0 ≤ t`
+before its horizon bound, because Time = Int and a negative trigger gives a deadline before 0 (DC LiveFrom has
+`t₀ ≤ t`, Generic/Properties.lean:105). AvailableGrowthConcl is unchanged. No G-F0a frozen name moves.
+
 ## Gates
 
 - aaeb71c and 037ea95: FULL gates stopped before completion (superseded by later pre-freeze heads; lead).
-- f7eafbe (B21 head): FULL gate (record in the S4.8 commit message).
-- Final head (+ main + B25): FULL gate (record in the S4.8 commit message).
+- f7eafbe (B21 head): FULL gate stopped at fgsa-manifest (superseded by B25; lead).
+- 572da1a (f7eafbe + main eacee7b + B25): FULL gate PASS on the NUC (gate wall 3290 s) and fg(mac) PASS. Landed:
+  main = 572da1a. The B31 and B32 changes followed, so this head is not the freeze head.
+- 46b8f58 (final head = 572da1a + B31 + B32): FULL gate PASS on the NUC (gate wall 3256 s; build, check-build,
+  check-fgsa, check-fgsa-run, catalog-lock, manifests, fgsa-manifest, fgsa-claims, axioms) and fg(mac) PASS (313 s).
+  Landed: main = 46b8f58.
+- S4.8 freeze commit: docs/FGSA-API-frozen.md = docs/FGSA-API.md at 46b8f58 (1127 entries, 45 modules; the trailing
+  blank line that `scripts/fgsa-freeze.sh` copies is removed and the SHA-256 is recomputed);
+  scripts/fgsa-manifest-allow.txt reset to its header line; `NEG=0 bash scripts/check-fgsa-manifest.sh` PASS.
