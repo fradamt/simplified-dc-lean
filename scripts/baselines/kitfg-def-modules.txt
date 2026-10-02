@@ -18,3 +18,4 @@ StoreSafetyDef
 CertificateSimplexDef
 ProvenanceCoreDef
 FrameBridgeDef
+JustificationLawsDef
