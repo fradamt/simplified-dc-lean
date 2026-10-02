@@ -1,5 +1,6 @@
 module
-public import AvailableChainKitFG.CrossingCore
+public import AvailableChainKitFG.CrossingSimplex
+public import AvailableChainKitFG.SelectionCore
 
 public section
 
@@ -19,7 +20,7 @@ theorem crossing_birth_key_test (E : Electorate V)
       ∀ i ∈ Q, ∃ b ∈ chainRows W, b.signer = i ∧
         b.height_pair.matchesEntry j Y.root = true := by
   obtain ⟨_, _, _, hhj, hJ, _, _⟩ := hb
-  have h := exists_crossing_quorum_ne_justified_of_certificate E H f hc.laws C W
+  have h := exists_crossing_quorum_ne_justified_of_heightLaws E H hc.laws.height C W
     (hhj ▸ hj) (hhj ▸ hW) (hJ ▸ hnot)
   simpa only [hhj, hJ] using h
 
@@ -68,9 +69,9 @@ set_option maxRecDepth 2048 in
 private theorem crossing_pruned_without_own_quorum_test :
     let before : List (FGCertEntry (Fin 4)) := [⟨1, .genesis, ∅⟩, ⟨2, B1, {0, 1, 2}⟩]
     let f := simplexFinalityView E4 cfg1 cxFinalTwo
-    (before.filter (fun e => decide (f.h_F < e.j))).length = 0 ∧
+    (pruneCertEntries f.h_F before).length = 0 ∧
       FGBlock.Preceq .genesis f.F ∧ 1 ≤ f.h_F ∧ ¬ E4.IsQuorum ∅ := by
-  refine ⟨by decide, genesis_preceq _, by decide, ?_⟩
+  refine ⟨by simp only [pruneCertEntries_def]; decide, genesis_preceq _, by decide, ?_⟩
   change ¬ (3 ≤ 0)
   decide
 
@@ -90,9 +91,11 @@ private theorem crossing_pruned_no_finality_certificate_test (C : FGBlock (Fin 4
 private theorem crossing_eviction_no_coverage_test :
     let e : FGCertEntry (Fin 4) := ⟨2, B1, ∅⟩
     let f := simplexFinalityView E4 cfg1 cxTargetTwo
-    let afterPrune := [e].filter (fun d => decide (f.h_F < d.j))
+    let afterPrune := pruneCertEntries f.h_F [e]
     afterPrune.length = 1 ∧ (afterPrune.drop 1).length = 0 ∧
-      ¬ FGBlock.Preceq e.X f.F ∧ ¬ e.j ≤ f.h_F := by decide
+      ¬ FGBlock.Preceq e.X f.F ∧ ¬ e.j ≤ f.h_F := by
+  simp only [pruneCertEntries_def]
+  decide
 
 -- The bridge supplies maturity while the finality projection stays arbitrary.
 example (E : Electorate V) (cfg : FGConfig) (H : FGHeightView V)
@@ -104,28 +107,98 @@ example (E : Electorate V) (cfg : FGConfig) (H : FGHeightView V)
       (H P).T_h.slot + cfg.timeoutDelay ≤ s :=
   crossing_maturity_of_heightBridge E cfg H hb P s x rs hup
 
+-- Instance check: exists_crossing_quorum_ne_justified_simplex_certificate.
+example
+    (E : Electorate V) (cfg : FGConfig) (B W : FGBlock V)
+    (hJ : (derive E cfg B).h_j ≠ 0)
+    (hW : (derive E cfg B).h_j < (derive E cfg W).h)
+    (hnot : ¬ FGBlock.Preceq (derive E cfg B).J W) :
+    ∃ X : FGBlock V, X.root ≠ (derive E cfg B).J.root ∧ ∃ Q : Finset V, E.IsQuorum Q ∧
+      ∀ i ∈ Q, ∃ b ∈ chainRows W, b.signer = i ∧
+        b.height_pair.matchesEntry (derive E cfg B).h_j X.root = true :=
+  exists_crossing_quorum_ne_justified_of_heightLaws E _ (simplexHeightLaws E cfg)
+    B W hJ hW hnot
+
+-- Instance check: e1Weight_of_finalityQC_not_preceq_simplex_certificate.
+example
+    (E : Electorate V) (cfg : FGConfig) (B W : FGBlock V)
+    (hJ : (derive E cfg B).h_j ≠ 0)
+    (hW : (derive E cfg B).h_j < (derive E cfg W).h)
+    (hnot : ¬ FGBlock.Preceq (derive E cfg B).J W)
+    (A : Finset (Row V)) (Q : Finset V) (hQ : E.IsQuorum Q)
+    (hfin : ∀ i ∈ Q, ∃ a ∈ A, a.signer = i ∧
+      a.finality_pair = some ⟨(derive E cfg B).h_j, (derive E cfg B).J.root⟩) :
+    HasE1WeightBetween E A (chainRows W) :=
+  e1Weight_of_finalityQC_not_preceq_of_heightLaws E _ (simplexHeightLaws E cfg)
+    B W hJ hW hnot A Q hQ hfin
+
+-- Instance check: slashableWeight_of_finalized_crossing_simplex_certificate.
+example
+    (E : Electorate V) (cfg : FGConfig)
+    (B W D : FGBlock V)
+    (hJ : (derive E cfg B).h_j ≠ 0)
+    (hW : (derive E cfg B).h_j < (derive E cfg W).h)
+    (hnot : ¬ FGBlock.Preceq (derive E cfg B).J W)
+    (hfin : (derive E cfg D).F = (derive E cfg B).J)
+    (hfinH : (derive E cfg D).h_F = (derive E cfg B).h_j) :
+    HasSlashableWeightBetween E (chainRows W) (chainRows D) :=
+  slashableWeight_of_finalized_crossing_of_certificate E _ _ (simplexCertificateLaws E cfg)
+    B W D hJ hW hnot hfin hfinH
+
+-- Instance check: exists_honest_timeout_of_crossing_simplex_certificate.
+example
+    (E : Electorate V) (cfg : FGConfig) (faulty : Finset V)
+    (B W : FGBlock V)
+    (hcap : E.weightOf faulty + E.totalWeight < 2 * E.q)
+    (hJ : (derive E cfg B).h_j ≠ 0)
+    (hW : (derive E cfg B).h_j < (derive E cfg W).h)
+    (hnot : ¬ FGBlock.Preceq (derive E cfg B).J W)
+    (hhonest : ∀ a ∈ chainRows B, ∀ b ∈ chainRows W, a.signer ∉ faulty → ¬ Slashable a b) :
+    ∃ i, i ∉ faulty ∧ ∃ X : BlockId, X ≠ (derive E cfg B).J.root ∧
+      (∃ a ∈ chainRows B, a.signer = i ∧
+        a.height_pair = .vote (derive E cfg B).h_j (derive E cfg B).J.root false) ∧
+      (∃ b ∈ chainRows W, b.signer = i ∧ b.height_pair = .vote (derive E cfg B).h_j X true) :=
+  exists_honest_timeout_of_crossing_of_heightLaws E _ (simplexHeightLaws E cfg)
+    faulty B W hcap hJ hW hnot hhonest
+
+private def cxForkOne : FGBlock (Fin 4) :=
+  .node .genesis 1 1 [⟨0, .vote 1 genesisRoot false, none⟩,
+    ⟨1, .vote 1 genesisRoot false, none⟩, ⟨2, .vote 1 genesisRoot false, none⟩]
+
+private def cxForkTwo : FGBlock (Fin 4) :=
+  .node cxForkOne 2 0 [⟨0, .vote 2 cxForkOne.root false, none⟩,
+    ⟨1, .vote 2 cxForkOne.root false, none⟩, ⟨2, .vote 2 cxForkOne.root false, none⟩]
+
+-- All three crossing premises hold on this fork at the same time.
+set_option maxRecDepth 4096 in
+private theorem crossing_fork_premises_test :
+    (simplexHeightView E4 cfg1 cxTargetTwo).h_j ≠ 0 ∧
+      (simplexHeightView E4 cfg1 cxTargetTwo).h_j <
+        (simplexHeightView E4 cfg1 cxForkTwo).h ∧
+      ¬ FGBlock.Preceq (simplexHeightView E4 cfg1 cxTargetTwo).J cxForkTwo := by decide
+
+private theorem crossing_fork_quorum_test :
+    ∃ X : FGBlock (Fin 4), X.root ≠ (simplexHeightView E4 cfg1 cxTargetTwo).J.root ∧
+      ∃ Q : Finset (Fin 4), E4.IsQuorum Q ∧ ∀ i ∈ Q, ∃ b ∈ chainRows cxForkTwo,
+        b.signer = i ∧ b.height_pair.matchesEntry
+          (simplexHeightView E4 cfg1 cxTargetTwo).h_j X.root = true :=
+  exists_crossing_quorum_ne_justified_of_heightLaws E4 _ (simplexHeightLaws E4 cfg1)
+    cxTargetTwo cxForkTwo crossing_fork_premises_test.1 crossing_fork_premises_test.2.1
+    crossing_fork_premises_test.2.2
+
+#print axioms crossing_fork_premises_test
+#print axioms crossing_fork_quorum_test
+#print axioms slashableWeight_of_finalized_pair_crossing
 #print axioms crossing_birth_key_test
 #print axioms crossing_selected_before_test
 #print axioms crossing_pruned_without_own_quorum_test
 #print axioms crossing_pruned_no_finality_certificate_test
 #print axioms crossing_eviction_no_coverage_test
 
-#print axioms exists_crossing_quorum_ne_justified_of_certificate
-#print axioms crossing_other_entry_of_certificate
-#print axioms e1Weight_of_finalityQC_not_preceq_of_certificate
-#print axioms crossingNoFinal_QC_of_certificate
+#print axioms exists_crossing_quorum_ne_justified_of_heightLaws
+#print axioms e1Weight_of_finalityQC_not_preceq_of_heightLaws
 #print axioms slashableWeight_of_finalized_crossing_of_certificate
-#print axioms crossingNoFinal_of_certificate
-#print axioms exists_honest_timeout_of_crossing_of_certificate
-#print axioms crossingNeedsTimeout_of_certificate
-#print axioms exists_crossing_quorum_ne_justified_simplex_certificate
-#print axioms crossing_other_entry_simplex_certificate
-#print axioms e1Weight_of_finalityQC_not_preceq_simplex_certificate
-#print axioms crossingNoFinal_QC_simplex_certificate
-#print axioms slashableWeight_of_finalized_crossing_simplex_certificate
-#print axioms crossingNoFinal_simplex_certificate
-#print axioms exists_honest_timeout_of_crossing_simplex_certificate
-#print axioms crossingNeedsTimeout_simplex_certificate
+#print axioms exists_honest_timeout_of_crossing_of_heightLaws
 #print axioms crossing_maturity_of_heightBridge
 
 end AvailableChain.KitFG.Tests.CrossingCore
