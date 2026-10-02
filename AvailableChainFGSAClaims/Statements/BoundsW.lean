@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAClaims.Statements.Bounds
+public import AvailableChainGeneric.Statements.Pure.ScheduleW
 
 @[expose] public section
 
@@ -75,6 +76,26 @@ def KernelBeforeNextActionW (p : Params) (ΔF : Time) (r : Nat) : Prop :=
 /-- The round bound for liveness. Delivery packages carry the row-delay lower bound. -/
 structure LivenessBoundW (p : Params) (ΔF : Time) : Prop where
   kappa_le_R : kappaF p ΔF ≤ p.R
+
+/-- Blueprint 22:211–227. The row delay fixes both κ and β. -/
+def FE_W (p : Params) (ΔF : Time) (H : Slot → Prop) (GST horizon : Time) (g : Nat) : Prop :=
+  Gen.Pure.RecFE_W H p.R (kappaF p ΔF) (P p) p.Δ (betaF p ΔF) GST horizon g
+
+def F4_W (p : Params) (ΔF : Time) (H : Slot → Prop) (GST horizon : Time) (g : Nat) : Prop :=
+  Gen.Pure.RecF4_W H p.R (kappaF p ΔF) (P p) p.Δ (betaF p ΔF) GST horizon g
+
+def FGoodE_Wp (p : Params) (ΔF : Time) (H : Slot → Prop) (r : Nat) : Prop :=
+  Gen.Pure.FGoodE_W H p.R (kappaF p ΔF) r
+
+def FGood4_Wp (p : Params) (ΔF : Time) (H : Slot → Prop) (r : Nat) : Prop :=
+  Gen.Pure.FGood4_W H p.R (kappaF p ΔF) r
+
+def Tail_Wp (p : Params) (ΔF : Time) (H : Slot → Prop) (r : Nat) : Prop :=
+  Gen.Pure.Tail_W H p.R (kappaF p ΔF) r
+
+/-- Blueprint 22:1384. The healing bound plus the W search window. -/
+def B_FW (p : Params) (ΔF G : Time) (g : Nat) : Time :=
+  B_HF p ΔF G + W_W p ΔF g
 
 theorem kappaF_def (p : Params) (ΔF : Time) :
     kappaF p ΔF =
@@ -158,5 +179,25 @@ theorem ActionDeliveryBoundsW_def (p : Params) (ΔF : Time) (r : Nat) :
 theorem KernelBeforeNextActionW_def (p : Params) (ΔF : Time) (r : Nat) :
     KernelBeforeNextActionW p ΔF r =
       (kernelDeadlineW p ΔF r < p.actionTime (r + 1)) := by rfl
+
+theorem FE_W_def (p : Params) (ΔF : Time) (H : Slot → Prop) (GST horizon : Time) (g : Nat) :
+    FE_W p ΔF H GST horizon g =
+      Gen.Pure.RecFE_W H p.R (kappaF p ΔF) (P p) p.Δ (betaF p ΔF) GST horizon g := by rfl
+
+theorem F4_W_def (p : Params) (ΔF : Time) (H : Slot → Prop) (GST horizon : Time) (g : Nat) :
+    F4_W p ΔF H GST horizon g =
+      Gen.Pure.RecF4_W H p.R (kappaF p ΔF) (P p) p.Δ (betaF p ΔF) GST horizon g := by rfl
+
+theorem FGoodE_Wp_def (p : Params) (ΔF : Time) (H : Slot → Prop) (r : Nat) :
+    FGoodE_Wp p ΔF H r = Gen.Pure.FGoodE_W H p.R (kappaF p ΔF) r := by rfl
+
+theorem FGood4_Wp_def (p : Params) (ΔF : Time) (H : Slot → Prop) (r : Nat) :
+    FGood4_Wp p ΔF H r = Gen.Pure.FGood4_W H p.R (kappaF p ΔF) r := by rfl
+
+theorem Tail_Wp_def (p : Params) (ΔF : Time) (H : Slot → Prop) (r : Nat) :
+    Tail_Wp p ΔF H r = Gen.Pure.Tail_W H p.R (kappaF p ΔF) r := by rfl
+
+theorem B_FW_def (p : Params) (ΔF G : Time) (g : Nat) :
+    B_FW p ΔF G g = B_HF p ΔF G + W_W p ΔF g := by rfl
 
 end AvailableChain.FGSA.Run
