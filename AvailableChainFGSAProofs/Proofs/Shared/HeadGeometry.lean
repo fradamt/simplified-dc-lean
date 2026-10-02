@@ -84,7 +84,7 @@ theorem fgsa_headReachesLo (p : Params) (st : State p.n)
       have hf : ∃ P ∈ st.fg.TF, eraseFG P = (eraseFG C).parent ∧
           hOf p.E p.cfg P < (controls p st).lo :=
         ⟨B, hsub hBX, by rw [eraseFG_parent, hp], hlow⟩
-      change (decide _ || _ || _) = true
+      rw [fgsa_eligible_eq]
       simp only [hf, decide_true, Bool.true_or]
     have ht := hterminal (eraseFG C) ((hmem _).mpr ⟨C, hC, rfl⟩) hparent
     rw [hel] at ht

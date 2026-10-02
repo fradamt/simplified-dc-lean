@@ -130,7 +130,7 @@ set_option maxRecDepth 10000
 open AvailableChain AvailableChain.SimplexFG
 namespace AvailableChain.FGSA.Run.Tests.Delay
 private abbrev p : FGSA.Params :=
-  ⟨⟨1, 1, 2, 0, by decide, by decide, by decide, by decide⟩, 2, 0, by decide⟩
+  ⟨⟨1, 1, 2, 0, by decide, by decide, by decide, by decide⟩, 2, 0, by decide, 2, by decide⟩
 private abbrev E : Generic.Env (Fin 1) := ⟨1, by decide, 0, le_rfl, fun _ _ => true⟩
 private abbrev mkRun (es : List (V2.Event (Fin 1) (fgsa p unitCodec).Object)) :
     V2.D.Run (Fin 1) (fgsa p unitCodec) where

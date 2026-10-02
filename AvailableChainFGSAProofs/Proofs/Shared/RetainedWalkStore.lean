@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSA.Model.Frame
+public import AvailableChainFGSA.Proofs.FrameViews
 public import AvailableChainKitFG.Correspondence
 public import AvailableChainGeneric.Proofs.Pure.Walk
 public import AvailableChainGeneric.Proofs.Pure.Fold
@@ -141,10 +142,7 @@ theorem fgsa_eligible_eq_of_band_score
       GridCO.goldfishScore dst.base.blocks raw' sup' C)
     (hslot : src.slot p = dst.slot p) :
     eligible p src raw sup C = eligible p dst raw' sup' C := by
-  change (decide _ || decide (GridCO.voterCount raw <
-      2 * GridCO.goldfishScore src.base.blocks raw sup C) || (C.slot == src.slot p)) =
-    (decide _ || decide (GridCO.voterCount raw' <
-      2 * GridCO.goldfishScore dst.base.blocks raw' sup' C) || (C.slot == dst.slot p))
+  rw [fgsa_eligible_eq, fgsa_eligible_eq]
   simp only [propext hband, hcount, hscore, hslot]
 
 /-- Blueprint 21:1422–1425, 1937–1939, 2112–2116, 2836–2845;

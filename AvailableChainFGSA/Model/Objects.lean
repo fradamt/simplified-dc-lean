@@ -16,6 +16,10 @@ structure Params extends SA.Params where
   R : Nat
   δt : Nat
   RLarge : 2 ≤ R
+  /-- The protocol window parameter (spec: `K_W ≥ 2`, user decision 2026-10-01).
+  The default is not a fixed protocol value. -/
+  K_W : Nat := 2
+  kWLarge : 2 ≤ K_W := by decide
 
 namespace Params
 /-- [spec 154–158] Unit weights on the fixed identities `V = Fin n`. -/

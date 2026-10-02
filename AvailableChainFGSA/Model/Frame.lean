@@ -2,6 +2,7 @@ module
 public import AvailableChainFGSA.Model.Handlers
 public import AvailableChainFGSA.Model.Clock
 public import AvailableChainFGSA.Model.RowCore
+public import AvailableChainFGSA.Model.WindowViews
 public import AvailableChainKitFG.ClientOnce
 
 @[expose] public section
@@ -11,10 +12,11 @@ namespace AvailableChain.FGSA
 open AvailableChain.Generic AvailableChain.SimplexFG
 
 /-- [spec 616–633] The live frame: the FG module's store controls. -/
-def controls (p : Params) (st : State p.n) : Controls (Fin p.n) := storeControls p.E p.cfg st.fg
+def controls (p : Params) (st : State p.n) : Controls (Fin p.n) :=
+  KitFG.storeControlsView (heightView p) st.fg
 /-- [spec 1033–1037] `get_filtered_block_tree(Σ)`. -/
 def fullTree (p : Params) (st : State p.n) : Finset (FGBlock (Fin p.n)) :=
-  storeFrame p.E p.cfg st.fg st.fg.TF
+  KitFG.storeFrameView (heightView p) st.fg st.fg.TF
 /-- [spec 1025–1037; model representation of a block set as the erased base list]
 The erasure of an FG block set, in the order of the base list. -/
 def erasedList {n : Nat} (st : State n) (X : Finset (FGBlock (Fin n))) : List Block :=
@@ -34,7 +36,7 @@ def liveRoot (p : Params) (st : State p.n) : Block :=
 height is below `lo`, or a strict majority, or the store's current slot. -/
 def eligible (p : Params) (st : State p.n) (raw support : List (GridCO.Wire p.n)) (b : Block) :
     Bool :=
-  decide (∃ P ∈ st.fg.TF, eraseFG P = b.parent ∧ hOf p.E p.cfg P < (controls p st).lo) ||
+  decide (∃ P ∈ st.fg.TF, eraseFG P = b.parent ∧ (heightView p P).h < (controls p st).lo) ||
     decide (GridCO.voterCount raw < 2 * GridCO.goldfishScore st.base.blocks raw support b) ||
     b.slot == st.slot p
 
@@ -93,7 +95,7 @@ this agrees with the spec only when `s = st.slot p`; the caller (T7) must
 guarantee it. -/
 def headVote (p : Params) (st : State p.n) (s : Slot) : Block :=
   if s = 0 then .genesis else
-    headInTree p st (erasedList st (storeFrame p.E p.cfg st.fg (voterBlocks p st s)))
+    headInTree p st (erasedList st (KitFG.storeFrameView (heightView p) st.fg (voterBlocks p st s)))
       (headVotes p st s) (headSupport p st s)
 
 /-- [spec 1240–1243] The proposer's votes: every slot-`(s−1)` pool vote; the

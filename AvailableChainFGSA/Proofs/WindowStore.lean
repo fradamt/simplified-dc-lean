@@ -44,21 +44,24 @@ theorem acceptViable_eq (hK : 2 ≤ K) (st : SimplexFG.Store (Fin p.n)) :
     acceptViable p K st = SimplexFG.acceptViable p.E p.cfg st := by
   simp only [acceptViable_def, SimplexFG.acceptViable, window_height_eq p K hK, ← hOf_eq]
 
-private theorem window_update_finality_TF
+/-- A finality update keeps the supplied tree. -/
+theorem window_update_finality_TF
     (st : SimplexFG.Store (Fin p.n)) (B : FGBlock (Fin p.n)) :
     (update_finality p K st B).TF = st.TF := by
   rw [update_finality_def]
   dsimp only
   split_ifs <;> rfl
 
-private theorem window_update_finality_h_max
+/-- A finality update takes the maximum of the stored and derived heights. -/
+theorem window_update_finality_h_max
     (st : SimplexFG.Store (Fin p.n)) (B : FGBlock (Fin p.n)) :
     (update_finality p K st B).h_max = max st.h_max ((derive p K B).h) := by
   rw [update_finality_def]
   dsimp only
   split_ifs <;> rfl
 
-private theorem window_update_finality_pair
+/-- A finality update selects the compatible greater justification pair. -/
+theorem window_update_finality_pair
     (st : SimplexFG.Store (Fin p.n)) (B : FGBlock (Fin p.n)) :
     ((update_finality p K st B).h_j, (update_finality p K st B).J) =
       if FGBlock.Preceq st.F (derive p K B).J ∧
@@ -79,7 +82,8 @@ private theorem window_update_finality_pair
     rw [ite_eq_right hc, ite_eq_right hb]
     split_ifs <;> rfl
 
-private theorem window_update_finality_F_cases
+/-- A finality update keeps F or accepts a stored compatible derived finalization. -/
+theorem window_update_finality_F_cases
     (st : SimplexFG.Store (Fin p.n)) (B : FGBlock (Fin p.n)) :
     (update_finality p K st B).F = st.F ∨
       (FGBlock.Preceq st.F (derive p K B).F ∧ (derive p K B).F ∈ st.TF ∧

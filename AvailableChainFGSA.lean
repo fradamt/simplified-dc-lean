@@ -4,6 +4,7 @@ public import AvailableChainFGSA.Model.Store
 public import AvailableChainFGSA.Model.Clock
 public import AvailableChainFGSA.Model.Handlers
 public import AvailableChainFGSA.Model.Frame
+public import AvailableChainFGSA.Proofs.FrameViews
 public import AvailableChainFGSA.Proofs.BlockAncestry
 public import AvailableChainFGSA.Proofs.Carrier
 public import AvailableChainFGSA.Statements.Invariants
@@ -35,6 +36,7 @@ public import AvailableChainFGSA.Proofs.RowSelection
 public import AvailableChainFGSA.Proofs.Head.Walk
 public import AvailableChainFGSA.Proofs.Head.Score
 public import AvailableChainFGSA.Model.Window
+public import AvailableChainFGSA.Model.WindowViews
 public import AvailableChainFGSA.Statements.WindowHeight
 public import AvailableChainFGSA.Proofs.WindowHeightBridge
 public import AvailableChainFGSA.Proofs.WindowInvariant
@@ -45,3 +47,5 @@ public import AvailableChainFGSA.Proofs.WindowStore
 public import AvailableChainFGSA.Proofs.WindowProvenance
 public import AvailableChainFGSA.Proofs.WindowHistory
 public import AvailableChainFGSA.Proofs.WindowSelection
+public import AvailableChainFGSA.Proofs.WindowReaders
+public import AvailableChainFGSA.Proofs.WindowValidity

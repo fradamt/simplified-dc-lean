@@ -111,7 +111,7 @@ check_direct_imports() {
       case "$layer:$m" in
         root:AvailableChainFGSA.*|Tests:AvailableChainFGSA.*) continue ;;
         Model:AvailableChainFGSA.Model.*) continue ;;
-        Model:AvailableChainKitFG.ClientOnce) continue ;;
+        Model:AvailableChainKitFG.ClientOnce|Model:AvailableChainKitFG.FrameBridgeDef) continue ;;
         Statements:AvailableChainFGSA.Model.*|Statements:AvailableChainFGSA.Statements.*) continue ;;
         Proofs:AvailableChainFGSA.Model.*|Proofs:AvailableChainFGSA.Statements.*) continue ;;
         Proofs:AvailableChainFGSA.Proofs.*) continue ;;
@@ -224,7 +224,33 @@ gate_with_slot lake env lean --run scripts/CheckFGSAAxioms.lean "${TEST_ROOTS[@]
   Window.window_on_block_of_accepted \
   Window.window_on_block_F_mono \
   Window.windowStoreInv_on_block \
-  Window.window_on_block_TF_subset
+  Window.window_on_block_TF_subset \
+  Window.projectHeight_def \
+  Window.parentState_def \
+  Window.headFields_def \
+  heightView_def \
+  controls_eq \
+  fullTree_eq \
+  fgsa_eligible_eq \
+  headVote_eq \
+  Window.window_hOf_eq \
+  Window.window_frontier_eq \
+  Window.window_lexMax_eq \
+  Window.window_filteredFrom_eq \
+  Window.window_storeControls_eq \
+  Window.window_storeFrame_eq \
+  Window.window_fjControls_eq \
+  Window.window_fjFrame_eq \
+  Window.headFields_eq_certificateHeadFields \
+  Window.rowValidW_iff \
+  Window.rowValidW_decodes \
+  Window.rowValidW_slot_irrel \
+  Window.rowValidW_fold \
+  Window.heightMatch_progress_first \
+  Window.window_update_finality_TF \
+  Window.window_update_finality_h_max \
+  Window.window_update_finality_pair \
+  Window.window_update_finality_F_cases
 echo "== lease instances"
 gate_with_slot lake env lean --run scripts/CheckFGSALease.lean
 # The `leanIn "AvailableChainFGSA"` names of AvailableChainKitFG/Pins.lean get

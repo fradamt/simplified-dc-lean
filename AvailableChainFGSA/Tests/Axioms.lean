@@ -23,6 +23,10 @@ public import AvailableChainFGSA.Proofs.CrossNode
 public import AvailableChainFGSA.Proofs.Head
 public import AvailableChainFGSA.Proofs.SetEq
 public import AvailableChainFGSA.Proofs.LeaseOutput
+public import AvailableChainFGSA.Model.WindowViews
+public import AvailableChainFGSA.Proofs.FrameViews
+public import AvailableChainFGSA.Proofs.WindowReaders
+public import AvailableChainFGSA.Proofs.WindowValidity
 
 /-! Kernel dependency audit (Task 13 Step 1): one line for each public theorem of
 Tasks 2 and 7–12. Each prints only `propext`, `Classical.choice`, `Quot.sound`, or
@@ -429,3 +433,30 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 #print axioms AvailableChain.FGSA.Window.windowSelectionLaws
 #print axioms AvailableChain.FGSA.Window.windowCertificateLaws
 #print axioms AvailableChain.FGSA.Window.windowChainCertificate
+
+#print axioms AvailableChain.FGSA.Window.projectHeight_def
+#print axioms AvailableChain.FGSA.Window.parentState_def
+#print axioms AvailableChain.FGSA.Window.headFields_def
+#print axioms AvailableChain.FGSA.heightView_def
+#print axioms AvailableChain.FGSA.controls_eq
+#print axioms AvailableChain.FGSA.fullTree_eq
+#print axioms AvailableChain.FGSA.fgsa_eligible_eq
+#print axioms AvailableChain.FGSA.headVote_eq
+#print axioms AvailableChain.FGSA.Window.window_hOf_eq
+#print axioms AvailableChain.FGSA.Window.window_frontier_eq
+#print axioms AvailableChain.FGSA.Window.window_lexMax_eq
+#print axioms AvailableChain.FGSA.Window.window_filteredFrom_eq
+#print axioms AvailableChain.FGSA.Window.window_storeControls_eq
+#print axioms AvailableChain.FGSA.Window.window_storeFrame_eq
+#print axioms AvailableChain.FGSA.Window.window_fjControls_eq
+#print axioms AvailableChain.FGSA.Window.window_fjFrame_eq
+#print axioms AvailableChain.FGSA.Window.headFields_eq_certificateHeadFields
+#print axioms AvailableChain.FGSA.Window.rowValidW_iff
+#print axioms AvailableChain.FGSA.Window.rowValidW_decodes
+#print axioms AvailableChain.FGSA.Window.rowValidW_slot_irrel
+#print axioms AvailableChain.FGSA.Window.rowValidW_fold
+#print axioms AvailableChain.FGSA.Window.heightMatch_progress_first
+#print axioms AvailableChain.FGSA.Window.window_update_finality_TF
+#print axioms AvailableChain.FGSA.Window.window_update_finality_h_max
+#print axioms AvailableChain.FGSA.Window.window_update_finality_pair
+#print axioms AvailableChain.FGSA.Window.window_update_finality_F_cases

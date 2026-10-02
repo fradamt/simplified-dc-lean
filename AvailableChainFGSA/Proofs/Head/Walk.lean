@@ -68,7 +68,7 @@ theorem fgsa_getHead_avoids_unsupported_child
     (hscore : 2 * GridCO.goldfishScore st.base.blocks raw support C ≤ GridCO.voterCount raw)
     (hslot : C.slot ≠ st.slot p) : ¬ Block.Preceq C (getHead p st raw support) := by
   apply walk_avoids_unsupported_child _ B _ _ _ _ hanchor hparent
-  change (decide _ || decide _ || _) = false
+  rw [fgsa_eligible_eq]
   simp only [hfloor, decide_false, Nat.not_lt.mpr hscore, Bool.false_or,
     beq_eq_false_iff_ne.mpr hslot]
 

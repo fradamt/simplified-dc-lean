@@ -1015,7 +1015,7 @@ theorem fgsa_walkRun_eligible_iff (p : Params) (st : State p.n)
     rintro ⟨P, -, he, hp⟩
     have hDP := walkRun_lift_prefix (he ▸ hparent)
     exact (Nat.not_lt_of_ge (hlo.trans (KitFG.h_mono p.E p.cfg hDP))) hp
-  change (decide _ || decide _ || _) = true ↔ _
+  rw [fgsa_eligible_eq]
   simp only [hf, decide_false, Bool.false_or, beq_eq_false_iff_ne.mpr hs,
     Bool.or_false, decide_eq_true_eq]
 
@@ -1367,7 +1367,8 @@ theorem fgsa_ghost_transfer_sfx_on_run
     intro X C hDX _ _ hpC _
     exact (hscores C (Gen.Pure.block_preceq_trans hDX (walkRun_parent_prefix hpC))).symm
   have hresult := Gen.Pure.ghost_transfer_sfx _ _ _ _ _ _ _ _ hDQ hcover hkeep hreflect hsfx
-  change Block.Preceq b.parent (if s = 0 then .genesis else headInTree p dst _ _ _)
+  change Block.Preceq b.parent (headVote p dst s)
+  rw [headVote_eq]
   rw [ite_eq_right (Nat.ne_of_gt hparent.1)]
   change Block.Preceq b.parent (GridCO.ghost _ _ _ _)
   rw [htRe]
