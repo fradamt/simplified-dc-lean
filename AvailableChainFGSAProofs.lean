@@ -9,6 +9,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PhaseRelay
 public import AvailableChainFGSAProofs.Proofs.Healing.Phase
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseFrame
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseOrder
+public import AvailableChainFGSAProofs.Proofs.Finality.Accept
 public import AvailableChainFGSAProofs.Proofs.Healing.Base
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersL2
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersQ

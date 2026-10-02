@@ -5,6 +5,7 @@ public import AvailableChainFGSAProofs.Proofs.Finality.Height -- shake: keep (K-
 public import AvailableChainFGSAProofs.Proofs.Finality.Rows -- shake: keep (K-ROWS audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Carry -- shake: keep (K-CARRY audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Batch -- shake: keep (K-BATCH audit)
+public import AvailableChainFGSAProofs.Proofs.Finality.Accept -- shake: keep (K-ACCEPT axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.Claims -- shake: keep (S4.6b axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.Phase -- shake: keep (H-PHASE audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseRelay -- shake: keep (H-PHASE audit)
@@ -841,3 +842,6 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fresh_unanimous_rows
 #print axioms AvailableChain.FGSA.Run.actual_anchor_cap
 #print axioms AvailableChain.FGSA.Run.actual_anchor_retained_or_covered
+-- K-ACCEPT: selected W receipt acceptance and its pending-finality adapter.
+#print axioms AvailableChain.FGSA.Run.fgsa_acceptBefore_W
+#print axioms AvailableChain.FGSA.Run.fgsa_finalizePending_W
