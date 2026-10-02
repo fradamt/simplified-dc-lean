@@ -36,6 +36,23 @@ example : ∃ d ∈ (derive retentionParams 2 retentionSecond).W,
     (by decide +kernel) ⟨1, .genesis, ∅⟩ (by decide +kernel)
     (by decide +kernel) (by decide +kernel)
 
+/-- Direct use of the birth-count theorem covers the only newer birth. -/
+example : ∃ d ∈ (derive retentionParams 2 retentionSecond).W,
+    d.j = 1 ∧ d.X = .genesis ∧ (∅ : Finset (Fin 4)) ⊆ d.Q := by
+  apply window_retained_of_few_births retentionParams 2 (by decide)
+    retentionFirst retentionSecond (by decide +kernel) ⟨1, .genesis, ∅⟩
+    (by decide +kernel) (by decide +kernel) {retentionSecond} (by decide +kernel)
+  intro C j X hCP hj hb
+  by_cases hC : C = retentionSecond
+  · exact Finset.mem_singleton.mpr hC
+  · have hCA : FGBlock.Preceq C retentionFirst := preceq_parent_of_preceq_node hCP hC
+    have hm := window_hj_mono retentionParams 2 (by decide) C retentionFirst hCA
+    have hcj : (derive retentionParams 2 C).h_j = j := hb.2.2.2.1
+    rw [hcj] at hm
+    have first : (derive retentionParams 2 retentionFirst).h_j = 1 := by decide +kernel
+    rw [first] at hm
+    exact (Nat.not_lt_of_ge hm hj).elim
+
 /-- The birth-count corollary uses the one real child after the fresh key. -/
 example : ∃ d ∈ (derive retentionParams 2 retentionSecond).W,
     d.j = 1 ∧ d.X = .genesis ∧ (∅ : Finset (Fin 4)) ⊆ d.Q := by
@@ -83,6 +100,93 @@ example : heightMatch (derive retentionParams 2 retentionSecond) retentionCurren
     (derive retentionParams 2 retentionMixed).W =
       [⟨1, .genesis, {1, 0}⟩, ⟨2, retentionFirst, ∅⟩] := by decide +kernel
 
+private theorem retentionMixed_rowsValid : ∀ P s x rs,
+    FGBlock.Preceq (.node P s x rs) retentionMixed → ∀ a ∈ rs,
+      (RowBody.ofRow a).valid = true ∧ r6w (derive retentionParams 2 P) a = true := by
+  intro P s x rs hC a ha
+  simp only [retentionMixed, retentionSecond, retentionFirst, FGBlock.Preceq,
+    FGBlock.preceq, Bool.or_eq_true, decide_eq_true_eq] at hC
+  rcases hC with hC | hC | hC | hC
+  · cases hC
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at ha
+    rcases ha with rfl | rfl <;> decide +kernel
+  · cases hC
+    have all : ∀ a ∈ retentionTargets 2 retentionFirst,
+        (RowBody.ofRow a).valid = true ∧ r6w (derive retentionParams 2 retentionFirst) a = true :=
+      by decide +kernel
+    exact all a ha
+  · cases hC
+    have all : ∀ a ∈ retentionTargets 1 .genesis,
+        (RowBody.ofRow a).valid = true ∧ r6w (derive retentionParams 2 .genesis) a = true :=
+      by decide +kernel
+    exact all a ha
+  · cases hC
+
+def retentionProtected : FGBlock (Fin 4) := .node retentionMixed 4 0 []
+
+private theorem retentionProtected_rowsValid : ∀ P s x rs,
+    FGBlock.Preceq (.node P s x rs) retentionProtected → ∀ a ∈ rs,
+      (RowBody.ofRow a).valid = true ∧ r6w (derive retentionParams 2 P) a = true := by
+  intro P s x rs hC a ha
+  by_cases eq : FGBlock.node P s x rs = retentionProtected
+  · have rows : rs = [] := congrArg FGBlock.rows eq
+    exact (List.not_mem_nil (rows ▸ ha)).elim
+  · exact retentionMixed_rowsValid P s x rs (preceq_parent_of_preceq_node hC eq) a ha
+
+/-- Exact rows from both R6W arms keep their bits in a later child.
+Every carried row satisfies the R3 + R6W premise. -/
+example : retentionCurrent.signer ∈ (⟨1, .genesis, {1, 0}⟩ : Entry (Fin 4)).Q ∧
+    retentionStale.signer ∈ (⟨1, .genesis, {1, 0}⟩ : Entry (Fin 4)).Q := by
+  constructor
+  · exact window_exact_row_no_missing_effect retentionParams 2 (by decide) retentionProtected
+      1 .genesis ⟨1, .genesis, {1, 0}⟩ (by decide +kernel) rfl rfl
+      retentionProtected_rowsValid retentionSecond 3 1 [retentionCurrent, retentionStale]
+      (preceq_parent_node _ _ _ _) retentionCurrent (by decide +kernel) (by decide +kernel)
+  · exact window_exact_row_no_missing_effect retentionParams 2 (by decide) retentionProtected
+      1 .genesis ⟨1, .genesis, {1, 0}⟩ (by decide +kernel) rfl rfl
+      retentionProtected_rowsValid retentionSecond 3 1 [retentionCurrent, retentionStale]
+      (preceq_parent_node _ _ _ _) retentionStale (by decide +kernel) (by decide +kernel)
+
+/-- The scalar theorem preserves a nonempty bit set across a child. -/
+example : ∃ d ∈ (derive retentionParams 2 retentionProtected).W,
+    d.j = 1 ∧ d.X = .genesis ∧ ({1, 0} : Finset (Fin 4)) ⊆ d.Q :=
+  window_retained_of_scalar retentionParams 2 (by decide) retentionMixed retentionProtected
+    (preceq_parent_node _ _ _ _) ⟨1, .genesis, {1, 0}⟩ (by decide +kernel)
+    (by decide +kernel) (by decide +kernel)
+
+def retentionLastBit : Row (Fin 4) :=
+  ⟨2, .vote 3 retentionSecond.root false, some ⟨1, genesisRoot⟩⟩
+def retentionConsume : FGBlock (Fin 4) := .node retentionMixed 4 0 [retentionLastBit]
+
+/-- K = 2 protects the older entry across one newer justification.
+Identity 2 completes its finality quorum in the child and consumes it. -/
+example : (derive retentionParams 2 retentionMixed).W =
+      [⟨1, .genesis, {1, 0}⟩, ⟨2, retentionFirst, ∅⟩] ∧
+    (RowBody.ofRow retentionLastBit).valid = true ∧
+    r6w (derive retentionParams 2 retentionMixed) retentionLastBit = true ∧
+    (certificateFolded retentionParams 2 retentionConsume).W =
+      [⟨1, .genesis, {2, 1, 0}⟩, ⟨2, retentionFirst, ∅⟩] ∧
+    (derive retentionParams 2 retentionConsume).h_F = 1 ∧
+    (derive retentionParams 2 retentionConsume).F = .genesis ∧
+    (derive retentionParams 2 retentionConsume).W = [⟨2, retentionFirst, ∅⟩] := by decide +kernel
+
+/-- Retained-or-covered needs no finality-height premise in either case. -/
+example : (∃ d ∈ (derive retentionParams 2 retentionProtected).W,
+      d.j = 1 ∧ d.X = .genesis ∧ ({1, 0} : Finset (Fin 4)) ⊆ d.Q) ∨
+    (1 ≤ (derive retentionParams 2 retentionProtected).h_F ∧
+      FGBlock.Preceq (.genesis : FGBlock (Fin 4))
+        (derive retentionParams 2 retentionProtected).F) :=
+  window_retained_or_covered retentionParams 2 (by decide) retentionMixed retentionProtected
+    (preceq_parent_node _ _ _ _) ⟨1, .genesis, {1, 0}⟩ (by decide +kernel) (by decide +kernel)
+
+example : (∃ d ∈ (derive retentionParams 2 retentionConsume).W,
+      d.j = 1 ∧ d.X = .genesis ∧ ({1, 0} : Finset (Fin 4)) ⊆ d.Q) ∨
+    (1 ≤ (derive retentionParams 2 retentionConsume).h_F ∧
+      FGBlock.Preceq (.genesis : FGBlock (Fin 4))
+        (derive retentionParams 2 retentionConsume).F) :=
+  window_retained_or_covered retentionParams 2 (by decide) retentionMixed retentionConsume
+    (preceq_parent_node _ _ _ _) ⟨1, .genesis, {1, 0}⟩ (by decide +kernel) (by decide +kernel)
+
 def retentionReadyRows : List (Row (Fin 4)) :=
   [⟨0, .vote 4 retentionThird.root false, some ⟨1, genesisRoot⟩⟩,
    ⟨1, .vote 4 retentionThird.root false, some ⟨1, genesisRoot⟩⟩,
@@ -93,7 +197,9 @@ def retentionReadyRows : List (Row (Fin 4)) :=
 def retentionReady : FGBlock (Fin 4) := .node retentionThird 4 0 retentionReadyRows
 
 /-- With K = 3, entries 1 and 3 are ready. Entry 2 has no finality QC,
-but the selected descendant covers it. The new height-4 entry starts empty. -/
+but the selected descendant covers it. No row names the new height-4 entry.
+The separate test below checks no replay. Its row fails R3: a row that passes
+R3 and R6W cannot name an entry born at or after its carrier. -/
 example : (certificateFolded retentionParams 3 retentionReady).W =
       [⟨1, .genesis, {2, 1, 0}⟩, ⟨2, retentionFirst, ∅⟩,
        ⟨3, retentionSecond, {2, 1, 0}⟩] ∧
@@ -108,8 +214,7 @@ def retentionBirthRows : List (Row (Fin 4)) :=
   retentionTargets 1 .genesis ++ [retentionPremature]
 def retentionBirth : FGBlock (Fin 4) := .node .genesis 1 0 retentionBirthRows
 
-/-- STOP 4: rowValidW omits R3. All rows pass it on the parent state,
-but the exact row carried at birth has no bit in the retained new entry. -/
+/-- R3 is necessary: R6W alone admits a row whose entry is born after the row fold. -/
 example : (∀ a ∈ retentionBirthRows, rowValidW (derive retentionParams 2 .genesis)
       ⟨.seat .fg a.signer, .vote (RowBody.ofRow a)⟩ = true) ∧
     retentionPremature ∈ retentionBirth.rows ∧

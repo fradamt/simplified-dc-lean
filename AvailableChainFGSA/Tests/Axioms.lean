@@ -438,6 +438,8 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 -- Proofs/WindowRetention.lean
 #print axioms AvailableChain.FGSA.Window.window_hj_mono
 #print axioms AvailableChain.FGSA.Window.window_retained_of_scalar
+#print axioms AvailableChain.FGSA.Window.window_retained_or_covered
+#print axioms AvailableChain.FGSA.Window.window_exact_row_no_missing_effect
 #print axioms AvailableChain.FGSA.Window.window_retained_of_few_births
 #print axioms AvailableChain.FGSA.Window.window_retained_fresh_one_newer
 
