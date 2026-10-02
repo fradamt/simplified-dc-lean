@@ -126,6 +126,8 @@ def AvailableChain.FGSA.Window.RetainedW 741c6c599dd2e060
 theorem AvailableChain.FGSA.Window.RetainedW_def edacd5fd4f100831
 def AvailableChain.FGSA.Window.CoveredW 00a2635f2a6702f9
 theorem AvailableChain.FGSA.Window.CoveredW_def 8f010b7f3cd42345
+def AvailableChain.FGSA.Window.EntryBitW 2478fa53ede5093b
+theorem AvailableChain.FGSA.Window.EntryBitW_def 974b6508f7ad308e
 ```
 
 ### `AvailableChainFGSA.Statements.WindowHeight`
@@ -1185,6 +1187,8 @@ def AvailableChain.FGSA.Run.formWinAt 07cc07bc002a3e6d
 def AvailableChain.FGSA.Run.kernelWin 51122369d4f1c1da
 def AvailableChain.FGSA.Run.trigWin ab54cfb8428d58d1
 def AvailableChain.FGSA.Run.outWin 4792c9bb24947a74
+def AvailableChain.FGSA.Run.TerminalRetention_W 73d91aadf365f6f7
+theorem AvailableChain.FGSA.Run.TerminalRetention_W_def a1680847de9b3824
 ```
 
 ### `AvailableChainFGSAClaims.Statements.Witness`

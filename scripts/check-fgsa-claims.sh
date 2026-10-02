@@ -69,6 +69,17 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.RetainedEndpointGeometry',
     'AvailableChain.FGSA.Run.fgsa_retained_prefix_of_trunk_or_support',
     'AvailableChain.FGSA.Run.fgsa_walk_domain_of_witness',
+    # J7 W row permission and SO-COV producers.
+    'AvailableChain.FGSA.Run.openingCovered_frontier_gate',
+    'AvailableChain.FGSA.Run.openingCovered_lower_gate',
+    'AvailableChain.FGSA.Run.rowPermission_own_lock',
+    'AvailableChain.FGSA.Run.rowPermission_pair',
+    'AvailableChain.FGSA.Run.rowPermission_covered',
+    'AvailableChain.FGSA.Run.rowPermission_at',
+
+    # S4.2b: terminal retention contract (F8-W).
+    'AvailableChain.FGSA.Run.TerminalRetention_W',
+    'AvailableChain.FGSA.Run.TerminalRetention_W_def',
     # S4.3 W surface: --expect DATA only.
     'AvailableChain.FGSA.Run.FinalityCoveredByChild_W',
     'AvailableChain.FGSA.Run.FinRowNames',
@@ -187,6 +198,8 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.FGood4_Wp_def',
     'AvailableChain.FGSA.Run.Tail_Wp_def',
     'AvailableChain.FGSA.Run.B_FW_def',
+    # S4.2b: the named terminal-retention contract is proved.
+    'AvailableChain.FGSA.Run.fgsa_terminalRetentionW',
     'AvailableChain.FGSA.Run.fgsa_grid_carrier_timeW',
     'AvailableChain.FGSA.Run.fgsa_grid_kernel_deadlineW',
     'AvailableChain.FGSA.Run.F4_W_implies_FE_W',

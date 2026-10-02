@@ -29,5 +29,15 @@ theorem CoveredW_def (p : Params) (B : FGBlock (Fin p.n)) (j : Height)
     CoveredW p B j U =
       (j ≤ (derive p p.K_W B).h_F ∧ FGBlock.Preceq U (derive p p.K_W B).F) := rfl
 
+/-- An identity bit in the retained entry with the exact key `(j, U)`. -/
+def EntryBitW (p : Params) (B : FGBlock (Fin p.n)) (j : Height)
+    (U : FGBlock (Fin p.n)) (i : Fin p.n) : Prop :=
+  ∃ e ∈ (derive p p.K_W B).W, e.j = j ∧ e.X = U ∧ i ∈ e.Q
+
+theorem EntryBitW_def (p : Params) (B : FGBlock (Fin p.n)) (j : Height)
+    (U : FGBlock (Fin p.n)) (i : Fin p.n) :
+    EntryBitW p B j U i =
+      (∃ e ∈ (derive p p.K_W B).W, e.j = j ∧ e.X = U ∧ i ∈ e.Q) := rfl
+
 end AvailableChain.FGSA.Window
 end

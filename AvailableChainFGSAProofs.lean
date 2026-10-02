@@ -5,6 +5,7 @@ public import AvailableChainFGSAProofs.Proofs.Shared.RetainedReflect
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedScores
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedWalk
 public import AvailableChainFGSAProofs.Proofs.Shared.BoundsW
+public import AvailableChainFGSAProofs.Proofs.Shared.WindowTerminal
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedWalkStore
 public import AvailableChainFGSAProofs.Proofs.Foundations.Cap
 public import AvailableChainFGSAProofs.Proofs.Shared.GridSchedule
@@ -62,3 +63,6 @@ public import AvailableChainFGSAProofs.Proofs.Shared.OpeningAfterGate
 public import AvailableChainFGSAProofs.Proofs.Shared.HeadAfterSettlement
 public import AvailableChainFGSAProofs.Proofs.Healing.AdditiveStageBounds
 public import AvailableChainFGSAProofs.Proofs.Healing.PeriodicStageBounds
+public import AvailableChainFGSAProofs.Proofs.Foundations.RowPermission
+public import AvailableChainFGSAProofs.Proofs.Foundations.OpeningCovered
+public import AvailableChainFGSAProofs.Proofs.Foundations.OpeningCoveredLower

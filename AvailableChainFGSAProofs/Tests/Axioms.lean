@@ -4,7 +4,11 @@ public import AvailableChainFGSAProofs.Proofs.Shared.RetainedPersist -- shake: k
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedReflect -- shake: keep (reflection audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedScores -- shake: keep (candidate score audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedWalk -- shake: keep (retained geometry audit)
+public import AvailableChainFGSAProofs.Proofs.Foundations.OpeningCoveredLower -- shake: keep (J7 lower gate audit)
+public import AvailableChainFGSAProofs.Proofs.Foundations.OpeningCovered -- shake: keep (J7 SO-COV audit)
+public import AvailableChainFGSAProofs.Proofs.Foundations.RowPermission -- shake: keep (J7 audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.BoundsW -- shake: keep (S4.1 axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Shared.WindowTerminal -- shake: keep (S4.2b axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedWalkStore -- shake: keep (store adapter audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.ExactHead -- shake: keep (J2 HEAD axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.ExactService -- shake: keep (ExactService audit)
@@ -644,7 +648,14 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.BF_max
 #print axioms AvailableChain.FGSA.Run.resetF_healing_eq
 #print axioms AvailableChain.FGSA.Run.B_HF_numeric_351
+#print axioms AvailableChain.FGSA.Run.rowPermission_own_lock
+#print axioms AvailableChain.FGSA.Run.rowPermission_pair
+#print axioms AvailableChain.FGSA.Run.rowPermission_covered
+#print axioms AvailableChain.FGSA.Run.rowPermission_at
+#print axioms AvailableChain.FGSA.Run.openingCovered_frontier_gate
+#print axioms AvailableChain.FGSA.Run.openingCovered_lower_gate
 
+#print axioms AvailableChain.FGSA.Run.fgsa_terminalRetentionW
 #print axioms AvailableChain.FGSA.Run.fgsa_grid_carrier_timeW
 #print axioms AvailableChain.FGSA.Run.fgsa_grid_kernel_deadlineW
 #print axioms AvailableChain.FGSA.Run.F4_W_implies_FE_W
