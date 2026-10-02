@@ -54,7 +54,8 @@ structure Clean₂ (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   pre : CleanPrefix₂ p c E rho rho.horizon ΔF
   gst : E.t_GST = 0
 
-/-- Recovery has neither a delta-ratio premise nor a recurrence field.
+/-- Recovery has no delta-ratio premise. `gap` has the shape of DC SingleProposerRecurrence
+from GST, over windows that end within the horizon; it has the role of DC RecoveryRegime.recurrence.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 structure Recovery₂ (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (G : Time)
@@ -86,12 +87,19 @@ abbrev HealingSet (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (G : Time)
     (ΔF : Time) : Prop :=
   Recovery₂ p c E rho G ΔF
 
-/-- DC: INTENTIONAL family delivery binds ΔF in the recovery core.
-This historical FinForm regime stays until S4.6. Active W contracts use FinalitySet_W. -/
-structure FinalitySet (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (G : Time) (ΔF : Time) (form : FinForm) (g : Nat) : Prop where
-  core : Recovery₂ p c E rho G ΔF
-  recur : form.holds (HonestSlot rho (fgsaInterface p c)) p.R (P p) p.Δ E.t_GST rho.horizon g
+/-- Awake proposer recurrence from t₀: every window (t, t + G] with t₀ ≤ t that ends within
+the horizon holds an honest slot whose proposer is awake at its proposal time.
+DC b241081 Generic/Regimes.lean:106–111 SingleProposerRecurrence: SAME role; INTENTIONAL: the
+awake condition (FG-SA suppresses the duties of sleeping nodes). Consumers: CleanGrowthClaim and
+the weak-continuation liveness companion. -/
+def AwakeProposerRecurrenceFrom (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (t₀ G : Time) : Prop :=
+  ∀ t, t₀ ≤ t → t + G ≤ rho.horizon →
+    ∃ s, t < V2.D.proposalTime (fgsaInterface p c) s ∧
+      V2.D.proposalTime (fgsaInterface p c) s ≤ t + G ∧
+      HonestSlot rho (fgsaInterface p c) s ∧
+      E.awake (V2.D.proposerOf rho (fgsaInterface p c) s)
+        (V2.D.proposalTime (fgsaInterface p c) s) = true
 
 /-- Final outage fields for G-F0a. Participation is strict before the cut;
 the sleep witness is in `outWin`. -/

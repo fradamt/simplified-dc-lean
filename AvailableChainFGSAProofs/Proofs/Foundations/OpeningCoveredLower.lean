@@ -61,7 +61,11 @@ theorem openingCovered_lower_gate (G ΔF : Time) (h : HealingPrem p c G ΔF E rh
     have hih : i ≤ timeIdx rho (p.actionTime r) :=
       Nat.le_of_lt ((V2.D.Engine.index_lt_read_length_iff
         h.set.base.valid.toScheduleWellFormed (p.actionTime r) ht).mpr le_rfl)
-    have hlocal := hphase.2.2.2 i x hil hih hx
+    have hil' : V2.D.Run.idxBefore rho u ≤ i := le_trans (by
+      rw [V2.D.Run.idxBefore_def]
+      exact (List.monotone_filter_right _
+        (fun e h => decide_eq_true (le_of_lt (of_decide_eq_true h)))).length_le) hil
+    have hlocal := hphase.2.2.2 i x hil' hih hx
     have hH := hlocal.1
     have hH' : (FGSA.controls p nd.st).H = m := by
       change (FGSA.clock p _ _).fg.h_max = m

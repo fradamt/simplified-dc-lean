@@ -124,27 +124,12 @@ private def smoke_recovery : Recovery₂ smokeParams smokeCodec smokeEnv smokeRu
   awake := by intros; rfl
   gapPos := le_rfl
 
-private def smoke_finality :
-    FinalitySet smokeParams smokeCodec smokeEnv smokeRun 4 smokeEnv.Δ .recC 3 := by
-  refine ⟨smoke_recovery, ?_⟩
-  change Gen.Pure.RecPatAt _ 2 Gen.Pure.FinForm.recC.pat 8 1 0 0 3 3
-  refine ⟨le_rfl, ?_⟩
-  intro t ht hh
-  have htail : Gen.Pure.FinForm.recC.pat.tailEnd 1 = 9 := rfl
-  rw [Gen.Pure.windowEndAt_def, htail] at hh
-  change max (0 : Time) 1 ≤ t at ht
-  have ht0 : (0 : Time) ≤ t := (le_max_left 0 1).trans ht
-  have hp : (0 : Time) < t + (3 : Time) * 8 + 9 :=
-    add_pos_of_nonneg_of_pos (add_nonneg ht0 (by decide)) (by decide)
-  exact (not_le_of_gt hp hh).elim
-
 #print axioms smoke_base
 #print axioms smoke_healthyPrefix
 #print axioms smoke_cleanPrefix
 #print axioms smoke_cleanCut
 #print axioms smoke_clean
 #print axioms smoke_recovery
-#print axioms smoke_finality
 
 end AvailableChain.FGSA.Run.Tests.Regimes
 end

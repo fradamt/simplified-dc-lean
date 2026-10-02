@@ -1379,7 +1379,7 @@ unused imports, and negative controls. No baseline entries were added.
 │ Module                                          │ Purpose                             │
 ├─────────────────────────────────────────────────┼─────────────────────────────────────┤
 │ AvailableChainFGSAClaims.lean                   │ Claims library root                 │
-│ AvailableChainFGSAClaims/FGSAClaims.lean          │ Exported safety-claim aggregate     │
+│ AvailableChainFGSAClaims/FGSAClaims.lean          │ G-F0a safety and G-F0b W outputs    │
 │ AvailableChainFGSAClaims/Statements/Bounds.lean │ FG-SA bound terms                   │
 │ AvailableChainFGSAClaims/Tests/Recurrence.lean  │ Astra B1 positive controls          │
 │ AvailableChainFGSAProofs/Proofs/Shared/Recurren │ FG-SA implications and bound proofs │
@@ -1492,14 +1492,14 @@ unused imports, and negative controls. No baseline entries were added.
 │ alizedSafety.lean                               │                                     │
 │ AvailableChainFGSAClaims/Statements/            │ Qualified search: Gen export        │
 │ Recurrence.lean                                 │                                     │
-│ AvailableChainFGSAClaims/Statements/Packages/   │ Finality premise packages, FF6/FF7  │
+│ AvailableChainFGSAClaims/Statements/Packages/   │ W finality premise packages         │
 │ Finality.lean                                   │                                     │
 │ AvailableChainFGSAClaims/Statements/Packages/   │ Healing and joined-kernel packages  │
 │ Healing.lean                                    │                                     │
 │ AvailableChainFGSAProofs/Proofs/Shared/         │ μ bounds and unique full H0 time    │
 │ Compose.lean                                    │                                     │
 │ AvailableChainFGSAClaims/Statements/Witness.lean │ Common healing witness and tstar    │
-│ AvailableChainFGSAClaims/Statements/Healed.lean │ HEALED via the Gen property kernel  │
+│ AvailableChainFGSAClaims/Statements/Healed.lean │ HEALED and explicit row-delay input │
 │ AvailableChainFGSAClaims/Statements/WeakContinu │ Bounded weak-continuation statement │
 │ ation.lean                                      │                                     │
 │ AvailableChainFGSAClaims/Claims/WeakContinuatio │ Universal safety-only claim         │

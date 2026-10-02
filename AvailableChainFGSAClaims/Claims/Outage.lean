@@ -1,8 +1,7 @@
 module
+public import AvailableChainFGSAClaims.Statements.Packages.Healing
 public import AvailableChainFGSAClaims.Statements.Packages.Outage
 public import AvailableChainFGSAClaims.Statements.Packages.Inclusion
-public import AvailableChainFGSAClaims.Statements.Reads
-public import AvailableChainGeneric.Statements.Pure.Props
 
 @[expose] public section
 
@@ -152,6 +151,76 @@ def SlowP1Claim : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : PtOut) (ΔF : Time),
     OutagePrem p c false E rho pt ΔF → OutageCompatAt p c E rho pt
+
+/-- Blueprint 21 H.22; DC available/stableIncludedFast: INTENTIONAL.
+Healed event safety and persistent public inclusion after the recovery bound. -/
+def AvailableFromConcl (t₀ : Time) : Prop :=
+  Healed p c E rho t₀ ∧
+  ∀ pt : PtSP,
+    t₀ ≤ V2.D.proposalTime (fgsaInterface p c) pt.s →
+    HonestProposal E rho (fgsaInterface p c) pt.s pt.P →
+    SA.gateTime p.toParams pt.s ≤ rho.horizon →
+    InclusionAt p c E rho pt
+
+/-- DC confirmedLive/stableLive: SAME joint strict-prefix growth conclusion.
+The actual proposal and both output reads share one deadline. -/
+def AvailableGrowthConcl (t d : Time) : Prop :=
+  ∃ s B,
+    t < V2.D.proposalTime (fgsaInterface p c) s ∧
+    HonestProposal E rho (fgsaInterface p c) s B ∧
+    ∀ g ∈ [(fgsaInterface p c).stable,
+           (fgsaInterface p c).confirmed],
+      (∀ x ∈ rho.honest,
+        Block.Prec (V2.D.outputAt E rho g x t) B) ∧
+      (∀ x ∈ rho.honest,
+        Block.Preceq B (V2.D.outputAt E rho g x d))
+
+/-- Blueprint 21 H.20–H.22; DC available/stableIncludedFast: INTENTIONAL GST output.
+Recovery is a premise; the healing witness is an output. Scope: the premise is continued
+Recovery₂ (awake and `gap` up to the horizon); DC `available` uses SleepyRegime + RecoveredBy
+(recurrence only in the bounded recovery prefix). The weaker scope is the weak-continuation
+companion's. -/
+def AvailableGSTClaim (p : Params) : Prop :=
+  ∀ (G ΔF : Time) (_hδ : p.δt = 2 * p.R)
+    {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+    (c : AppCodec In) (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)),
+    HealingTimePrem p c G ΔF E rho () →
+    ∃ w, HealingInput p c E rho w ΔF ∧ tstar p w < E.t_GST + B_HF p ΔF G ∧
+      AvailableFromConcl p c E rho
+        (E.t_GST + B_HF p ΔF G)
+
+/-- DC confirmedLive/stableLive: INTENTIONAL recovery contract.
+CONTRACT: stage 5 must supply the proposal-existence and causal-slot bridges. Scope: the
+premise is continued Recovery₂ (awake and `gap` up to the horizon); DC uses SleepyRegime +
+RecoveredBy (recurrence only in the bounded recovery prefix). The weaker scope is the
+weak-continuation companion's. -/
+def AvailableGrowthGSTClaim (p : Params) : Prop :=
+  ∀ (G ΔF : Time) (_hδ : p.δt = 2 * p.R)
+    {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+    (c : AppCodec In) (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (t : Time),
+    HealingTimePrem p c G ΔF E rho () →
+    E.t_GST + B_HF p ΔF G ≤ t →
+    t + G + 6 * p.Δ ≤ rho.horizon →
+    ∃ w, HealingInput p c E rho w ΔF ∧ tstar p w < E.t_GST + B_HF p ΔF G ∧
+      AvailableGrowthConcl p c E rho t
+        (t + G + 6 * p.Δ)
+
+/-- DC confirmedLive/stableLive under LiveSleepyRegime (Generic/Claims.lean:68–71;
+Generic/Regimes.lean:106–111): SAME shape; INTENTIONAL: the awake-proposer condition.
+Clean case from time 0 (Clean₂, GST = 0). CONTRACT: stage 5 proves it from CleanInclusion and the
+recurrence (DC liveFrom_of_includedFrom route). -/
+def CleanGrowthClaim (p : Params) : Prop :=
+  ∀ (G ΔF : Time)
+    {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+    (c : AppCodec In) (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (t : Time),
+    CleanSet p c E rho ΔF →
+    AwakeProposerRecurrenceFrom p c E rho 0 G →
+    4 * p.Δ ≤ G →
+    t + G + 6 * p.Δ ≤ rho.horizon →
+    AvailableGrowthConcl p c E rho t (t + G + 6 * p.Δ)
 
 end AvailableChain.FGSA.Run
 end

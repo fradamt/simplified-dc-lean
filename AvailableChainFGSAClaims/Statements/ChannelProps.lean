@@ -442,7 +442,8 @@ theorem TChain_def (b₀ : Time) :
       ((heightView p X).h, X.root) = e ∧ Block.Preceq (eraseFG X) B)) := rfl
 
 /-- 03 §8.3 (702–726): after arming at d_j, honest sources are compatible
-with protected B. Consumers: no lane assumes this; F3 proves it. -/
+with protected B. Vocabulary: no claim asserts or consumes this predicate;
+a bounded form (actionTime r < b₁) stays private to stage-5 O-INDUCT. -/
 def TCompat (B : Block) (j : Slot) : Prop := ∀ x r C, x ∈ rho.honest →
   SA.gateTime p.toParams j ≤ p.actionTime r → actionSource p c E rho x r = some (some C) →
   Block.Compatible C B
@@ -699,13 +700,23 @@ def TCarrier (w : HealingWitness) : Prop := ∀ x r K v Q,
   HonestProposal E rho (fgsaInterface p c) v Q → r * p.R + 2 ≤ v →
   Block.Preceq (eraseFG K) Q.parent
 /-- T-ROWS selector (21:3072–3076; 01:83–86,95–101), P3 A.6.
-Consumers: 22 F1–F5, F9, FF3–FF4, FL-W, FL-RF, FL-D. Exact signed rows. -/
+Consumers: 22 F1–F5, F9, FF3–FF4, FL-W, FL-RF, FL-D. Exact signed rows.
+INTENTIONAL: exact-row service. The modeled proposer carries every valid held
+non-ancestor row (full inclusion, Model/Frame.lean proposalRows), so the exact-row
+disjunction is the modeled policy. The blueprint also permits an optional
+effect-preserving selection (22:323, 22:695; 01:83–86); that selection is not
+modeled, and paper T-ROWS must not be used to inhabit this stronger exact-row contract. -/
 def TRowsSelect : Prop := ∀ s Q rows j y r (a : RowWire p.n),
   HonestCarrier p c E rho s Q rows → HonestRowAt p c E rho j y r a →
   ValidForParent p c E rho s Q a → heldAtProposal p c E rho s a →
   a ∈ rows ∨ onParentChain p c E rho s Q a
 /-- T-ROWS post-GST receipt and parent-valid carriage, including sleepers.
-DC: SAME strict receipt; INTENTIONAL independent row delay and R6 selection. -/
+DC: SAME strict receipt; INTENTIONAL independent row delay and R6 selection.
+INTENTIONAL: exact-row service. The modeled proposer carries every valid held
+non-ancestor row (full inclusion, Model/Frame.lean proposalRows), so the exact-row
+disjunction is the modeled policy. The blueprint also permits an optional
+effect-preserving selection (22:323, 22:695; 01:83–86); that selection is not
+modeled, and paper T-ROWS must not be used to inhabit this stronger exact-row contract. -/
 def TRowsSync (ΔF : Time) : Prop := ∀ j y r (a : RowWire p.n),
   HonestRowAt p c E rho j y r a → E.t_GST ≤ p.actionTime r →
   (p.actionTime r + ΔF ≤ rho.horizon →
@@ -807,13 +818,16 @@ def RFProv (w : HealingWitness) : Prop := ∀ i x,
       Block.Preceq (J_at p c E rho i x) (eraseFG K))
 
 /-- T-DEL (21 H.12:2456–2463), P3 A.8. Consumers: H.12 and H.14.
-Pre-reset: no witness. Strict receipt includes the path through cumulative storage. -/
+Pre-reset: no witness. Strict receipt includes the path through cumulative storage.
+As IF.5 (21:548; statement 21:550–557), the receipt is stated only for a prefix compatible
+with the receiver's F. -/
 def TDel : Prop := ∀ y r K, y ∈ rho.honest →
   actionSourceFG p c E rho y r = some (some K) →
   E.t_GST ≤ SA.voteTime p.toParams (r * p.R) →
   SA.freezeTime p.toParams (r * p.R) ≤ rho.horizon →
   ∀ x ∈ rho.honest, Gen.V2.Duty.HoldsBefore E rho (fun nd =>
-    (∀ B, FGBlock.Preceq B K → B ∈ nd.st.fg.TF) ∨ FGBlock.Preceq K nd.st.fg.F)
+    Block.Compatible (eraseFG K) (eraseFG nd.st.fg.F) →
+      (∀ B, FGBlock.Preceq B K → B ∈ nd.st.fg.TF) ∨ FGBlock.Preceq K nd.st.fg.F)
       (SA.freezeTime p.toParams (r * p.R)) x
 /-- T-DEL reset (21 H.12:2456–2463; H.14), P3 A.8. Consumer: H.14.
 Only this T-delivery clause takes H0. Reset-only facts suffice, but P3 retains full H0. -/
@@ -847,10 +861,13 @@ def ExactService (v : Slot) (Q : Block) : Prop :=
 /-- A settled fixed phase on an inclusive interval (21 H.7:1003–1012;
 H.8:967–975), P3 A.8. Consumers: TPerm, TRepair, TCommon, TFrontier.
 The common root is J in a top-J phase. In an F-root phase each local F may move.
-This read does not assert a certificate height for F. -/
+This read does not assert a certificate height for F. Frontier m ≥ 1 (H.10 at m = 1,
+21:1467–1468, 2570–2571; ruling B21). The lower cut is idxBefore u, so the interval includes the
+states read before events at u: a HEAD at v_s = u reads stateBefore its tick (bp 754–755, 824,
+1151–1162; ruling B25). -/
 def PhaseInterval (u v : Time) (m : Nat) (J : Option (FGBlock (Fin p.n)))
-    (contested : Bool) : Prop := u ≤ v ∧ v ≤ rho.horizon ∧ 2 ≤ m ∧
-  ∀ i x, timeIdx rho u ≤ i → i ≤ timeIdx rho v → x ∈ rho.honest →
+    (contested : Bool) : Prop := u ≤ v ∧ v ≤ rho.horizon ∧ 1 ≤ m ∧
+  ∀ i x, V2.D.Run.idxBefore rho u ≤ i → i ≤ timeIdx rho v → x ∈ rho.honest →
     let R := R_at p c E rho i x
     R.H = m ∧ R.contest = contested ∧
       (match J with | some B => R.rootIsJ = true ∧ R.J = B | none => R.rootIsJ = false)

@@ -2,6 +2,7 @@ module
 public import AvailableChainFGSAProofs.Proofs.Healing.FramePaths -- shake: keep (H-FRAME audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.FrameZero -- shake: keep (zero-label audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.FrameRelay -- shake: keep (witness relay audit)
+public import AvailableChainFGSAProofs.Proofs.Shared.Claims -- shake: keep (S4.6b axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.Phase -- shake: keep (H-PHASE audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseRelay -- shake: keep (H-PHASE audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseSettle -- shake: keep (H-PHASE r2 audit)
@@ -167,6 +168,7 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_carrier_geometry
 #print axioms AvailableChain.FGSA.Run.fgsa_finalLock
 #print axioms AvailableChain.FGSA.Run.fgsa_finalLock_erased
+#print axioms AvailableChain.FGSA.Run.fgsa_rXing
 #print axioms AvailableChain.FGSA.Run.fgsa_clientSafeAll
 #print axioms AvailableChain.FGSA.Run.readAt_chain_row_origin
 #print axioms AvailableChain.FGSA.Run.fgsa_honestNeverSlashed
@@ -214,6 +216,8 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.Recovery₂.faultX_count_rec
 #print axioms AvailableChain.FGSA.Run.Recovery₂.faultQ
 #print axioms AvailableChain.FGSA.Run.fgsa_rCap
+#print axioms AvailableChain.FGSA.Run.fgsa_rCap_heightView
+#print axioms AvailableChain.FGSA.Run.fgsa_rCap_channel
 #print axioms AvailableChain.FGSA.Run.fgsa_finalityCap
 #print axioms AvailableChain.FGSA.Run.fgsa_rCap_time
 #print axioms AvailableChain.FGSA.Run.fgsa_rCap_before
@@ -732,6 +736,59 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.uniformHealing_of_hTimeConcl
 #print axioms AvailableChain.FGSA.Run.fgsa_tickIdx_of_event
 
+-- S4.6b GST finality forms.
+#print axioms AvailableChain.FGSA.Run.fgsa_finalityLivenessGST_recFE
+#print axioms AvailableChain.FGSA.Run.fgsa_finalityLivenessGST_recF4
+#print axioms AvailableChain.FGSA.Run.fgsa_proposalFinalGST_recFE
+#print axioms AvailableChain.FGSA.Run.fgsa_proposalFinalGST_recF4
+#print axioms AvailableChain.FGSA.Run.fgsa_aboveFrontierGST_recFE
+#print axioms AvailableChain.FGSA.Run.fgsa_aboveFrontierGST_recF4
+#print axioms AvailableChain.FGSA.Run.FGSAFinalityClaims
+#print axioms AvailableChain.FGSA.Run.FGSAFinalityClaims.mk
+#print axioms AvailableChain.FGSA.Run.FGSAFinalityClaims.accountable
+#print axioms AvailableChain.FGSA.Run.FGSAFinalityClaims.agreement
+#print axioms AvailableChain.FGSA.Run.FGSAFinalityClaims.runAccountable
+#print axioms AvailableChain.FGSA.Run.FGSAFinalityClaims.runAgreement
+#print axioms AvailableChain.FGSA.Run.FGSAFinalityClaims.eventPrefixAgreement
+#print axioms AvailableChain.FGSA.Run.FGSAFinalityClaims.faultCountSlashableBound
+#print axioms AvailableChain.FGSA.Run.FGSAFinalityClaims.finalizedMonotone
+#print axioms AvailableChain.FGSA.Run.FGSAFinalityClaims.honestNeverSlashed
+#print axioms AvailableChain.FGSA.Run.FGSAClaims
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.mk
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.toFGSASafetyClaims
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.finality
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.finalizedSafety
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.finalLock
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.outageCompat
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.fastP1
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.slowP1
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.exactProposal
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.cleanInclusionPostGate
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.cleanInclusion
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.firstFinalityRecFE
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.firstFinalityRecF4
+
+#print axioms AvailableChain.FGSA.Run.fgsa_apiHonestNeverSlashedClaim_body
+#print axioms AvailableChain.FGSA.Run.fgsa_pureAccountableClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_pureAgreementClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_wholeRunAccountableClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_wholeRunAgreementClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_eventPrefixAgreementClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_faultCountSlashableBoundClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_finalizedMonotonicityClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_honestNeverSlashedClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_finalizedSafetyClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_finalLockClaim
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.finalityLivenessGSTRecFE
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.finalityLivenessGSTRecF4
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.proposalFinalGSTRecFE
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.proposalFinalGSTRecF4
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.aboveFrontierGSTRecFE
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.aboveFrontierGSTRecF4
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.availableGST
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.availableGrowthGST
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.cleanGrowth
+#print axioms AvailableChain.FGSA.Run.fgsa_availableGST
 -- H-BASE: all four completed items; HB3 is skipped.
 #print axioms AvailableChain.FGSA.Run.healing_rXing
 #print axioms AvailableChain.FGSA.Run.healing_rCap
@@ -759,6 +816,7 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 -- H-PHASE r2: settlement, RPhase, and height-one bootstrap facts.
 #print axioms AvailableChain.FGSA.Run.healing_phase_idx_le_time
 #print axioms AvailableChain.FGSA.Run.healing_phase_lt_timeIdx
+#print axioms AvailableChain.FGSA.Run.healing_phase_idxBefore_mono
 #print axioms AvailableChain.FGSA.Run.healing_frontier_mono
 #print axioms AvailableChain.FGSA.Run.healing_phase_held_receipt
 #print axioms AvailableChain.FGSA.Run.healing_phase_entries_eq
@@ -766,7 +824,6 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.healing_phase_top_node
 #print axioms AvailableChain.FGSA.Run.healing_settle_event
 #print axioms AvailableChain.FGSA.Run.healing_rPhase
-#print axioms AvailableChain.FGSA.Run.healing_phase_height_one
 #print axioms AvailableChain.FGSA.Run.healing_phase_first_rise
 #print axioms AvailableChain.FGSA.Run.healing_attemptValid_of_event
 #print axioms AvailableChain.FGSA.Run.healing_proposal_full_witness

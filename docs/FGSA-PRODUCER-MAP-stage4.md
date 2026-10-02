@@ -295,8 +295,8 @@ Declaration rows: 870.
 │ TChain                                            │ AvailableChainFGSAClaims/Statements/ChannelProps.lean:423  │ CONTRACT (statement only) │ R9    │ Existing safety producers use no ΔF/κ/recurrence/timeout   │
 │                                                   │                                                            │                           │       │ premise. Check each exact interface at S4.7.               │
 │ TChain_def                                        │ AvailableChainFGSAClaims/Statements/ChannelProps.lean:434  │ PROVED adapter            │ R9    │ Equation only; no proof of the contract.                   │
-│ TCompat                                           │ AvailableChainFGSAClaims/Statements/ChannelProps.lean:446  │ CONTRACT (statement only) │ R9    │ Existing safety producers use no ΔF/κ/recurrence/timeout   │
-│                                                   │                                                            │                           │       │ premise. Check each exact interface at S4.7.               │
+│ TCompat                                           │ AvailableChainFGSAClaims/Statements/ChannelProps.lean:446  │ VOCABULARY                │ R9    │ No claim asserts or consumes this predicate; a bounded     │
+│                                                   │                                                            │ (no claim asserts it)     │       │ form (actionTime r < b₁) stays private to stage-5 O-INDUCT.│
 │ TCompat_def                                       │ AvailableChainFGSAClaims/Statements/ChannelProps.lean:451  │ PROVED adapter            │ R9    │ Equation only; no proof of the contract.                   │
 │ AncestorClosed                                    │ AvailableChainFGSAClaims/Statements/ChannelProps.lean:458  │ CONTRACT (statement only) │ R9    │ Existing safety producers use no ΔF/κ/recurrence/timeout   │
 │                                                   │                                                            │                           │       │ premise. Check each exact interface at S4.7.               │
@@ -364,8 +364,9 @@ Declaration rows: 870.
 │                                                   │                                                            │                           │       │ fixed-action coverage; H.10 uses actual-start budget.      │
 │ RFProv                                            │ AvailableChainFGSAClaims/Statements/ChannelProps.lean:797  │ CONTRACT (statement only) │ R11   │ Stage 5: complete healing contracts; H.9(b) keeps          │
 │                                                   │                                                            │                           │       │ fixed-action coverage; H.10 uses actual-start budget.      │
-│ TDel                                              │ AvailableChainFGSAClaims/Statements/ChannelProps.lean:811  │ CONTRACT (statement only) │ R11   │ Stage 5: complete healing contracts; H.9(b) keeps          │
+│ TDel                                              │ AvailableChainFGSAClaims/Statements/ChannelProps.lean:814  │ CONTRACT (statement only) │ R11   │ Stage 5: complete healing contracts; H.9(b) keeps          │
 │                                                   │                                                            │                           │       │ fixed-action coverage; H.10 uses actual-start budget.      │
+│                                                   │                                                            │                           │       │ S4.6c: IF.5 antecedent (21:548–557): compatible prefix.    │
 │ TDelReset                                         │ AvailableChainFGSAClaims/Statements/ChannelProps.lean:820  │ CONTRACT (statement only) │ R11   │ Stage 5: complete healing contracts; H.9(b) keeps          │
 │                                                   │                                                            │                           │       │ fixed-action coverage; H.10 uses actual-start budget.      │
 │ TGeom                                             │ AvailableChainFGSAClaims/Statements/ChannelProps.lean:827  │ CONTRACT (statement only) │ R11   │ Stage 5: complete healing contracts; H.9(b) keeps          │
@@ -570,7 +571,7 @@ Declaration rows: 870.
 │ ResetArrivalFullStatement                         │ AvailableChainFGSAClaims/Statements/ComposeStmt.lean:170   │ CONTRACT (statement only) │ R11   │ Stage 5: complete healing contracts; H.9(b) keeps          │
 │                                                   │                                                            │                           │       │ fixed-action coverage; H.10 uses actual-start budget.      │
 │ ResetArrivalFullStatement_def                     │ AvailableChainFGSAClaims/Statements/ComposeStmt.lean:177   │ PROVED adapter            │ R11   │ Equation only; no proof of the contract.                   │
-│ KernelConclusion                                  │ AvailableChainFGSAClaims/Statements/ComposeStmt.lean:189   │ DROP candidate (S4.6)     │ R7    │ S4.6 owns removal and fixture checks. No deletion in S4.5. │
+│ KernelConclusion                                  │ AvailableChainFGSAClaims/Statements/ComposeStmt.lean:189   │ REMOVED (S4.6c A2)        │ R7    │ Withdrawn kernel law (22:1182–1186).                       │
 │ KernelPt                                          │ AvailableChainFGSAClaims/Statements/ComposeStmt.lean:197   │ CONTRACT (statement only) │ R7    │ Stage 5: full forward/Tail kernel and CoreServices from    │
 │                                                   │                                                            │                           │       │ the same HealingInput witness.                             │
 │ KernelPt.mk                                       │ AvailableChainFGSAClaims/Statements/ComposeStmt.lean:197   │ CONTRACT (statement only) │ R7    │ Stage 5: full forward/Tail kernel and CoreServices from    │
@@ -579,16 +580,16 @@ Declaration rows: 870.
 │                                                   │                                                            │                           │       │ the same HealingInput witness.                             │
 │ KernelPt.r                                        │ AvailableChainFGSAClaims/Statements/ComposeStmt.lean:199   │ CONTRACT (statement only) │ R7    │ Stage 5: full forward/Tail kernel and CoreServices from    │
 │                                                   │                                                            │                           │       │ the same HealingInput witness.                             │
-│ KernelPrem                                        │ AvailableChainFGSAClaims/Statements/ComposeStmt.lean:202   │ DROP candidate (S4.6)     │ R7    │ S4.6 owns removal and fixture checks. No deletion in S4.5. │
-│ KernelPrem.mk                                     │ AvailableChainFGSAClaims/Statements/ComposeStmt.lean:202   │ DROP candidate (S4.6)     │ R7    │ S4.6 owns removal and fixture checks. No deletion in S4.5. │
-│ KernelPrem.set                                    │ AvailableChainFGSAClaims/Statements/ComposeStmt.lean:204   │ DROP candidate (S4.6)     │ R7    │ S4.6 owns removal and fixture checks. No deletion in S4.5. │
-│ KernelPrem.window                                 │ AvailableChainFGSAClaims/Statements/ComposeStmt.lean:205   │ DROP candidate (S4.6)     │ R7    │ S4.6 owns removal and fixture checks. No deletion in S4.5. │
-│ KernelPrem.start                                  │ AvailableChainFGSAClaims/Statements/ComposeStmt.lean:207   │ DROP candidate (S4.6)     │ R7    │ S4.6 owns removal and fixture checks. No deletion in S4.5. │
-│ KernelPrem.hhor                                   │ AvailableChainFGSAClaims/Statements/ComposeStmt.lean:208   │ DROP candidate (S4.6)     │ R7    │ S4.6 owns removal and fixture checks. No deletion in S4.5. │
-│ KernelPrem.input                                  │ AvailableChainFGSAClaims/Statements/ComposeStmt.lean:209   │ DROP candidate (S4.6)     │ R7    │ S4.6 owns removal and fixture checks. No deletion in S4.5. │
-│ KernelPrem.services                               │ AvailableChainFGSAClaims/Statements/ComposeStmt.lean:210   │ DROP candidate (S4.6)     │ R7    │ S4.6 owns removal and fixture checks. No deletion in S4.5. │
-│ KernelFromContract                                │ AvailableChainFGSAClaims/Statements/ComposeStmt.lean:213   │ DROP candidate (S4.6)     │ R7    │ S4.6 owns removal and fixture checks. No deletion in S4.5. │
-│ KernelACSide                                      │ AvailableChainFGSAClaims/Statements/ComposeStmt.lean:219   │ DROP candidate (S4.6)     │ R7    │ S4.6 owns removal and fixture checks. No deletion in S4.5. │
+│ KernelPrem                                        │ AvailableChainFGSAClaims/Statements/ComposeStmt.lean:202   │ REMOVED (S4.6c A2)        │ R7    │ Withdrawn kernel law (22:1182–1186).                       │
+│ KernelPrem.mk                                     │ AvailableChainFGSAClaims/Statements/ComposeStmt.lean:202   │ REMOVED (S4.6c A2)        │ R7    │ Withdrawn kernel law (22:1182–1186).                       │
+│ KernelPrem.set                                    │ AvailableChainFGSAClaims/Statements/ComposeStmt.lean:204   │ REMOVED (S4.6c A2)        │ R7    │ Withdrawn kernel law (22:1182–1186).                       │
+│ KernelPrem.window                                 │ AvailableChainFGSAClaims/Statements/ComposeStmt.lean:205   │ REMOVED (S4.6c A2)        │ R7    │ Withdrawn kernel law (22:1182–1186).                       │
+│ KernelPrem.start                                  │ AvailableChainFGSAClaims/Statements/ComposeStmt.lean:207   │ REMOVED (S4.6c A2)        │ R7    │ Withdrawn kernel law (22:1182–1186).                       │
+│ KernelPrem.hhor                                   │ AvailableChainFGSAClaims/Statements/ComposeStmt.lean:208   │ REMOVED (S4.6c A2)        │ R7    │ Withdrawn kernel law (22:1182–1186).                       │
+│ KernelPrem.input                                  │ AvailableChainFGSAClaims/Statements/ComposeStmt.lean:209   │ REMOVED (S4.6c A2)        │ R7    │ Withdrawn kernel law (22:1182–1186).                       │
+│ KernelPrem.services                               │ AvailableChainFGSAClaims/Statements/ComposeStmt.lean:210   │ REMOVED (S4.6c A2)        │ R7    │ Withdrawn kernel law (22:1182–1186).                       │
+│ KernelFromContract                                │ AvailableChainFGSAClaims/Statements/ComposeStmt.lean:213   │ REMOVED (S4.6c A2)        │ R7    │ Withdrawn kernel law (22:1182–1186).                       │
+│ KernelACSide                                      │ AvailableChainFGSAClaims/Statements/ComposeStmt.lean:219   │ REMOVED (S4.6c A2)        │ R7    │ Withdrawn kernel law (22:1182–1186).                       │
 │ kernelStart                                       │ AvailableChainFGSAClaims/Statements/ComposeStmt.lean:226   │ DROP candidate (S4.6)     │ R7    │ S4.6 owns removal and fixture checks. No deletion in S4.5. │
 │ OpeningCarrier_W                                  │ AvailableChainFGSAClaims/Statements/ComposeStmt.lean:231   │ CONTRACT (statement only) │ R7    │ Stage 5: full forward/Tail kernel and CoreServices from    │
 │                                                   │                                                            │                           │       │ the same HealingInput witness.                             │
@@ -929,10 +930,10 @@ Declaration rows: 870.
 │ HTimeStatement                                    │ AvailableChainFGSAClaims/Statements/Healed.lean:148        │ CONTRACT (statement only) │ R11   │ Stage 5: complete healing contracts; H.9(b) keeps          │
 │                                                   │                                                            │                           │       │ fixed-action coverage; H.10 uses actual-start budget.      │
 │ HTimeStatement_def                                │ AvailableChainFGSAClaims/Statements/Healed.lean:157        │ PROVED adapter            │ R11   │ Equation only; no proof of the contract.                   │
-│ HTimeBestStatement                                │ AvailableChainFGSAClaims/Statements/Healed.lean:172        │ DEFERRED (decision 5)     │ R11   │ Post-freeze qualified-search companion; no stage-4 port.   │
-│ HTimeBestStatement_def                            │ AvailableChainFGSAClaims/Statements/Healed.lean:182        │ DEFERRED (decision 5)     │ R11   │ Post-freeze qualified-search companion; no stage-4 port.   │
-│ HTimeSearchStatement                              │ AvailableChainFGSAClaims/Statements/Healed.lean:197        │ DEFERRED (decision 5)     │ R11   │ Post-freeze qualified-search companion; no stage-4 port.   │
-│ HTimeSearchStatement_def                          │ AvailableChainFGSAClaims/Statements/Healed.lean:207        │ DEFERRED (decision 5)     │ R11   │ Post-freeze qualified-search companion; no stage-4 port.   │
+│ HTimeBestStatement                                │ AvailableChainFGSAClaims/Statements/Healed.lean:172        │ REMOVED (S4.6c A6)        │ R11   │ Post-freeze qualified-search companion; no stage-4 port.   │
+│ HTimeBestStatement_def                            │ AvailableChainFGSAClaims/Statements/Healed.lean:182        │ REMOVED (S4.6c A6)        │ R11   │ Post-freeze qualified-search companion; no stage-4 port.   │
+│ HTimeSearchStatement                              │ AvailableChainFGSAClaims/Statements/Healed.lean:197        │ REMOVED (S4.6c A6)        │ R11   │ Post-freeze qualified-search companion; no stage-4 port.   │
+│ HTimeSearchStatement_def                          │ AvailableChainFGSAClaims/Statements/Healed.lean:207        │ REMOVED (S4.6c A6)        │ R11   │ Post-freeze qualified-search companion; no stage-4 port.   │
 │ finalityWindow                                    │ AvailableChainFGSAClaims/Statements/Packages/Finality.lean │ DROP candidate (S4.6)     │ R8    │ S4.6 owns removal and fixture checks. No deletion in S4.5. │
 │                                                   │ :13                                                        │                           │       │                                                            │
 │ FirstFinalityPrem                                 │ AvailableChainFGSAClaims/Statements/Packages/Finality.lean │ DROP candidate (S4.6)     │ R8    │ S4.6 owns removal and fixture checks. No deletion in S4.5. │
@@ -1446,7 +1447,7 @@ Declaration rows: 870.
 │                                                   │                                                            │                           │       │ and existing exact source equation.                        │
 │ gapWin                                            │ AvailableChainFGSAClaims/Statements/Windows.lean:49        │ CONTRACT (statement only) │ R13   │ No per-block meaning change. Stage 5 uses the actual W run │
 │                                                   │                                                            │                           │       │ and existing exact source equation.                        │
-│ formWin                                           │ AvailableChainFGSAClaims/Statements/Windows.lean:52        │ CONTRACT (statement only) │ R13   │ No per-block meaning change. Stage 5 uses the actual W run │
+│ formWin                                           │ AvailableChainFGSAClaims/Statements/Windows.lean:52        │ REMOVED (S4.6c A8)        │ R13   │ No per-block meaning change. Stage 5 uses the actual W run │
 │                                                   │                                                            │                           │       │ and existing exact source equation.                        │
 │ formWinAt                                         │ AvailableChainFGSAClaims/Statements/Windows.lean:57        │ CONTRACT (statement only) │ R13   │ No per-block meaning change. Stage 5 uses the actual W run │
 │                                                   │                                                            │                           │       │ and existing exact source equation.                        │
@@ -1898,20 +1899,20 @@ codex/reports/d35bac1-coverage.md. S4.7 reviews the new public entries.
 ┌───────────┬────────────────────────────────────────────────────────────┬────────────────────────────────────────────────────────────┐
 │ Group     │ Names / family                                             │ Decision and owner                                         │
 ├───────────┼────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┤
-│ G1        │ FGSAFinalityClaims; PureAccountableClaim,                  │ RESTORE on W, S4.5b; include all eight fields as a         │
-│           │ PureAgreementClaim, WholeRunAccountableClaim,              │ sub-structure.                                             │
+│ G1        │ FGSAFinalityClaims; PureAccountableClaim,                  │ RESTORED (S4.5b); all eight PROVED in P/Foundations/Export │
+│           │ PureAgreementClaim, WholeRunAccountableClaim,              │ (fgsa_<claim> constants, S4.6c A4).                        │
 │           │ WholeRunAgreementClaim, EventPrefixAgreementClaim,         │                                                            │
 │           │ FaultCountSlashableBound, FinalizedMonotonicity,           │                                                            │
 │           │ HonestNeverSlashedClaim                                    │                                                            │
 │ G1 F-API  │ FinalityFinalizedAt, FinalityBlock, finalityRows,          │ RESTORE on W, S4.5b; selected carrier observation remains  │
 │           │ FinalitySlashableBound, FinalityExecution,                 │ exact.                                                     │
 │           │ WholeRunAccountable, WholeRunAgreement                     │                                                            │
-│ G2        │ FinalizedSafetyConcl / FinalizedSafetyClaim;               │ RESTORE on W, S4.5b; FinalizedSafetyPrem exists. No        │
-│           │ FinalLockClaim                                             │ synchrony premise.                                         │
-│ G3        │ OutageCompatClaim, FastP1Claim, SlowP1Claim                │ RESTORE on W, S4.5b; OutagePrem exists; actual outage      │
-│           │                                                            │ output claims.                                             │
-│ G4        │ CleanInclusionClaim, CleanInclusionPostGateClaim,          │ RESTORE on W, S4.5b; port related conclusion vocabulary    │
-│           │ ExactProposalClaim; CleanInclusionPrem, ExactProposalPrem  │ and package fields.                                        │
+│ G2        │ FinalizedSafetyConcl / FinalizedSafetyClaim;               │ RESTORED (S4.5b); both PROVED in P/Foundations/Export.     │
+│           │ FinalLockClaim                                             │ No synchrony premise.                                      │
+│ G3        │ OutageCompatClaim, FastP1Claim, SlowP1Claim                │ RESTORED (S4.5b); stage-5 CONTRACTS; OutagePrem exists.    │
+│           │                                                            │                                                            │
+│ G4        │ CleanInclusionClaim, CleanInclusionPostGateClaim,          │ RESTORED (S4.5b); stage-5 CONTRACTS; premise witnesses     │
+│           │ ExactProposalClaim; CleanInclusionPrem, ExactProposalPrem  │ at C/Tests/FinalitySafety.lean:243,246.                    │
 │ G5        │ ScoreSuffix / ScoreSuffixAlgebra families                  │ INTERNAL SUPPORT; aggregate field only if a G4 consumer    │
 │           │                                                            │ needs it.                                                  │
 │ Companion │ UniformHealingSearchClaim; HTimeBest / HTimeSearch and     │ DEFERRED decision 5; Companion/HealedBest outside fgsa     │
@@ -1919,4 +1920,29 @@ codex/reports/d35bac1-coverage.md. S4.7 reviews the new public entries.
 │ Bundle    │ FGSAClaims and FGSAInterfaces                              │ S4.6 integrates S4.5b output and the W packages; no facade │
 │           │                                                            │ edit in S4.5.                                              │
 └───────────┴────────────────────────────────────────────────────────────┴────────────────────────────────────────────────────────────┘
+```
+
+## S4.6c additions (G-F0b candidate; fgsa-lean, review F3)
+
+```text
+┌───────────────────────────────────────────────────┬────────────────────────────────────────────────────────────┬───────────────────────────┬───────┬────────────────────────────────────────────────────────────┐
+│ Name                                              │ Location                                                   │ Status                    │ Lane  │ Note                                                       │
+├───────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┼───────────────────────────┼───────┼────────────────────────────────────────────────────────────┤
+│ AvailableFromConcl                                │ AvailableChainFGSAClaims/Claims/Outage.lean:157            │ SUPPORT (conclusion)      │ R11   │ A10: Healed at T_H + InclusionAt for later proposals.      │
+│ AvailableGrowthConcl                              │ AvailableChainFGSAClaims/Claims/Outage.lean:167            │ SUPPORT (conclusion)      │ R11   │ A10: DC LiveFrom shape for stable and confirmed outputs.   │
+│ AvailableGSTClaim                                 │ AvailableChainFGSAClaims/Claims/Outage.lean:183            │ PROVED from HTimeClaim    │ R11   │ Conditional on HTimeClaim (a contract); DC available.      │
+│ AvailableGrowthGSTClaim                           │ AvailableChainFGSAClaims/Claims/Outage.lean:198            │ CONTRACT (statement only) │ R11   │ Stage 5: proposal-existence and causal-slot bridges.       │
+│ fgsa_availableGST                                 │ AvailableChainFGSAProofs/Proofs/Shared/Claims.lean:148     │ PROVED composition        │ R11   │ HTimeClaim → AvailableGSTClaim (healed gate service).      │
+│ FGSAClaims.finalityLivenessGSTRecFE               │ AvailableChainFGSAClaims/FGSAClaims.lean:102               │ AGGREGATE FIELD           │ R11   │ S4.6c A1/A10: G-F0b output field.                          │
+│ FGSAClaims.finalityLivenessGSTRecF4               │ AvailableChainFGSAClaims/FGSAClaims.lean:103               │ AGGREGATE FIELD           │ R11   │ S4.6c A1/A10: G-F0b output field.                          │
+│ FGSAClaims.proposalFinalGSTRecFE                  │ AvailableChainFGSAClaims/FGSAClaims.lean:104               │ AGGREGATE FIELD           │ R11   │ S4.6c A1/A10: G-F0b output field.                          │
+│ FGSAClaims.proposalFinalGSTRecF4                  │ AvailableChainFGSAClaims/FGSAClaims.lean:105               │ AGGREGATE FIELD           │ R11   │ S4.6c A1/A10: G-F0b output field.                          │
+│ FGSAClaims.aboveFrontierGSTRecFE                  │ AvailableChainFGSAClaims/FGSAClaims.lean:106               │ AGGREGATE FIELD           │ R11   │ S4.6c A1/A10: G-F0b output field.                          │
+│ FGSAClaims.aboveFrontierGSTRecF4                  │ AvailableChainFGSAClaims/FGSAClaims.lean:107               │ AGGREGATE FIELD           │ R11   │ S4.6c A1/A10: G-F0b output field.                          │
+│ FGSAClaims.availableGST                           │ AvailableChainFGSAClaims/FGSAClaims.lean:108               │ AGGREGATE FIELD           │ R11   │ S4.6c A1/A10: G-F0b output field.                          │
+│ FGSAClaims.availableGrowthGST                     │ AvailableChainFGSAClaims/FGSAClaims.lean:109               │ AGGREGATE FIELD           │ R11   │ S4.6c A1/A10: G-F0b output field.                          │
+│ AwakeProposerRecurrenceFrom                       │ AvailableChainFGSAClaims/Statements/Regimes.lean:95        │ SUPPORT (premise)         │ R11   │ S4.7 P1: DC SingleProposerRecurrence role + awake.         │
+│ CleanGrowthClaim                                  │ AvailableChainFGSAClaims/Claims/Outage.lean:214            │ CONTRACT (statement only) │ R11   │ Stage 5: CleanInclusion + recurrence (DC liveFrom).        │
+│ FGSAClaims.cleanGrowth                            │ AvailableChainFGSAClaims/FGSAClaims.lean:110               │ AGGREGATE FIELD           │ Bundle│ S4.7 P1: DC confirmedLive/stableLive (sleepy, t₀=0).       │
+└───────────────────────────────────────────────────┴────────────────────────────────────────────────────────────┴───────────────────────────┴───────┴────────────────────────────────────────────────────────────┘
 ```

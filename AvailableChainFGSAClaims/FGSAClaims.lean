@@ -2,11 +2,16 @@ module
 public import AvailableChainFGSAClaims.Claims.Foundations
 public import AvailableChainFGSAClaims.Claims.Shared
 public import AvailableChainFGSAClaims.Claims.Clean
+public import AvailableChainFGSAClaims.Claims.Outage
+public import AvailableChainFGSAClaims.Claims.Finality
 
 @[expose] public section
 
 /-! P3 §4.8: the exported safety claims. Only the Claims root and the exact
 Proofs.Assembly.Root import this module (SYN L58).
+G-F0b: FGSAClaims and FGSAFinalityClaims collect the exported claims (G-F0a safety, finality
+safety, Clean and GST outputs; DC Consensus shape). Healing, H-time, local kernel and local
+FF5–FF7 forms stay Claims-module interfaces.
 The zero and positive Clean lane Props are not exported claims. The receipt
 and suffix-walk rows cite their existing statements in their claim homes. -/
 
@@ -68,6 +73,41 @@ structure FGSASafetyInterfaces (p : FGSA.Params) : Prop where
   timingContract : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit),
     SourceDisciplinePrem p c E rho pt → TimingContract p c E rho
+
+/-- The finality safety output claims for G-F0b. -/
+structure FGSAFinalityClaims (p : FGSA.Params) : Prop where
+  accountable : PureAccountableClaim p
+  agreement : PureAgreementClaim p
+  runAccountable : WholeRunAccountableClaim p
+  runAgreement : WholeRunAgreementClaim p
+  eventPrefixAgreement : EventPrefixAgreementClaim p
+  faultCountSlashableBound : FaultCountSlashableBoundClaim p
+  finalizedMonotone : FinalizedMonotonicityClaim p
+  honestNeverSlashed : HonestNeverSlashedClaim p
+
+/-- The G-F0b output contract. Recovery is a premise; healing witnesses are outputs.
+The local healing and finality lane interfaces stay in their Claims modules. -/
+structure FGSAClaims (p : FGSA.Params) : Prop extends FGSASafetyClaims p where
+  finality : FGSAFinalityClaims p
+  finalizedSafety : FinalizedSafetyClaim p
+  finalLock : FinalLockClaim p
+  outageCompat : OutageCompatClaim p
+  fastP1 : FastP1Claim p
+  slowP1 : SlowP1Claim p
+  exactProposal : ExactProposalClaim p
+  cleanInclusionPostGate : CleanInclusionPostGateClaim p
+  cleanInclusion : CleanInclusionClaim p
+  firstFinalityRecFE : FirstFinalityRecFEClaim_W p
+  firstFinalityRecF4 : FirstFinalityRecF4Claim_W p
+  finalityLivenessGSTRecFE : FinalityLivenessGSTClaim_W p .recFE
+  finalityLivenessGSTRecF4 : FinalityLivenessGSTClaim_W p .recF4
+  proposalFinalGSTRecFE : ProposalFinalGSTClaim_W p .recFE
+  proposalFinalGSTRecF4 : ProposalFinalGSTClaim_W p .recF4
+  aboveFrontierGSTRecFE : AboveFrontierGSTClaim_W p .recFE
+  aboveFrontierGSTRecF4 : AboveFrontierGSTClaim_W p .recF4
+  availableGST : AvailableGSTClaim p
+  availableGrowthGST : AvailableGrowthGSTClaim p
+  cleanGrowth : CleanGrowthClaim p
 
 end AvailableChain.FGSA.Run
 end
