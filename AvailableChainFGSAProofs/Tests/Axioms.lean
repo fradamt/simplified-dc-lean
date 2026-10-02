@@ -1,5 +1,9 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Foundations.FinalityApi -- shake: keep (S4.5b axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersL2 -- shake: keep (consumer audit)
+public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersQ -- shake: keep (consumer audit)
+public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersH6S -- shake: keep (consumer audit)
+public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumers -- shake: keep (consumer audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedEndpoint -- shake: keep (endpoint audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedPersist -- shake: keep (persistence audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedReflect -- shake: keep (reflection audit)
@@ -702,3 +706,17 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_apiWholeRunAgreementClaim_body
 #print axioms AvailableChain.FGSA.Run.fgsa_apiEventPrefixAgreementClaim_body
 #print axioms AvailableChain.FGSA.Run.fgsa_apiFaultCountSlashableBoundClaim_body
+#print axioms AvailableChain.FGSA.Run.RetainedPriorSupport
+#print axioms AvailableChain.FGSA.Run.RetainedH6Frame
+#print axioms AvailableChain.FGSA.Run.RetainedH6Input
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedReads_H6
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedReads_H6S
+#print axioms AvailableChain.FGSA.Run.RetainedTargetScores
+#print axioms AvailableChain.FGSA.Run.RetainedConeInput
+#print axioms AvailableChain.FGSA.Run.RetainedL2Input
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedReads_H17
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedReads_L4R
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedReads_HG1
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedReads_L2
+#print axioms AvailableChain.FGSA.Run.uniformHealing_of_hTimeConcl
+#print axioms AvailableChain.FGSA.Run.fgsa_tickIdx_of_event

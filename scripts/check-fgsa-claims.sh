@@ -92,6 +92,18 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.FastP1Claim',
     'AvailableChain.FGSA.Run.SlowP1Claim',
 
+    'AvailableChain.FGSA.Run.RetainedTargetScores',
+    'AvailableChain.FGSA.Run.RetainedConeInput',
+    'AvailableChain.FGSA.Run.RetainedL2Input',
+    'AvailableChain.FGSA.Run.fgsa_retainedReads_H17',
+    'AvailableChain.FGSA.Run.fgsa_retainedReads_L4R',
+    'AvailableChain.FGSA.Run.fgsa_retainedReads_HG1',
+    'AvailableChain.FGSA.Run.fgsa_retainedReads_L2',
+    'AvailableChain.FGSA.Run.RetainedPriorSupport',
+    'AvailableChain.FGSA.Run.RetainedH6Frame',
+    'AvailableChain.FGSA.Run.RetainedH6Input',
+    'AvailableChain.FGSA.Run.fgsa_retainedReads_H6',
+    'AvailableChain.FGSA.Run.fgsa_retainedReads_H6S',
     # S4.3b W kernels and FF5–FF7: --expect DATA only.
     'AvailableChain.FGSA.Run.KernelJoinedPrem.window',
     'AvailableChain.FGSA.Run.FinFormW',
@@ -351,6 +363,9 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.B_FW_def',
     # S4.2b: the named terminal-retention contract is proved.
     'AvailableChain.FGSA.Run.fgsa_terminalRetentionW',
+    # S4.5: UniformHealing corollary (B9) and the shared HEAD tick index (B8).
+    'AvailableChain.FGSA.Run.uniformHealing_of_hTimeConcl',
+    'AvailableChain.FGSA.Run.fgsa_tickIdx_of_event',
     'AvailableChain.FGSA.Run.fgsa_grid_carrier_timeW',
     'AvailableChain.FGSA.Run.fgsa_grid_kernel_deadlineW',
     'AvailableChain.FGSA.Run.F4_W_implies_FE_W',

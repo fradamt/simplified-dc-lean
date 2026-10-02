@@ -1120,9 +1120,9 @@ ctor AvailableChain.FGSA.Run.ReceiptWitness_W.mk 1c433d7a0bb74541
 field AvailableChain.FGSA.Run.ReceiptWitness_W.index d94469eb94339260
 field AvailableChain.FGSA.Run.ReceiptWitness_W.time 4a999c5986ac6c0a
 structure AvailableChain.FGSA.Run.BlockDelivery_W 7aa410a6b3bb0bc1
-ctor AvailableChain.FGSA.Run.BlockDelivery_W.mk 38cdb8d876d6a4fb
+ctor AvailableChain.FGSA.Run.BlockDelivery_W.mk 075391f24ecb7321
 field AvailableChain.FGSA.Run.BlockDelivery_W.selected b704a0d093f456c4
-field AvailableChain.FGSA.Run.BlockDelivery_W.witness 9cf508781cc59454
+field AvailableChain.FGSA.Run.BlockDelivery_W.witness fde510a9c0ecee22
 structure AvailableChain.FGSA.Run.AcceptGuards_W 9c9d71d303f2a646
 ctor AvailableChain.FGSA.Run.AcceptGuards_W.mk 6c5ce7f06d5425fe
 field AvailableChain.FGSA.Run.AcceptGuards_W.finCmp 4642b91b782dde61
@@ -1343,8 +1343,8 @@ def AvailableChain.FGSA.Run.formWinAt 07cc07bc002a3e6d
 def AvailableChain.FGSA.Run.kernelWin 51122369d4f1c1da
 def AvailableChain.FGSA.Run.trigWin ab54cfb8428d58d1
 def AvailableChain.FGSA.Run.outWin 4792c9bb24947a74
-def AvailableChain.FGSA.Run.TerminalRetention_W 73d91aadf365f6f7
-theorem AvailableChain.FGSA.Run.TerminalRetention_W_def a1680847de9b3824
+def AvailableChain.FGSA.Run.TerminalRetention_W 200fe47773b3c650
+theorem AvailableChain.FGSA.Run.TerminalRetention_W_def f7ad656ec260442f
 ```
 
 ### `AvailableChainFGSAClaims.Statements.Witness`

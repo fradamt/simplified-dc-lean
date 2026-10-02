@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumers
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedEndpoint
 
 set_option linter.privateModule false
@@ -274,5 +275,165 @@ private theorem scheduled_instance
   exact exactService_head_of_retained_proposal E rho hE hDelta s hip b raw sup rows hem D
     (fgsa_retainedExactHead_geometry_on_run E rho hE hN hDelta s hWalkSync hScoreSync
       hx hip hseat b raw sup rows hem D hreads)
+
+/-- Blueprint 21 H.6:937–942. Class (iii).
+DC: INTENTIONAL; identify the finite source's actual live start. -/
+private theorem consumer_source_start : ap params source = eraseFG cutFG := by
+  have hm := fixture_full_mem source rfl rfl rfl cutFG (by decide +kernel)
+  have ht : decide (∃ B ∈ fullTree params source, eraseFG B = eraseFG cutFG) = true :=
+    decide_eq_true ⟨cutFG, hm, rfl⟩
+  change liveRoot params source = eraseFG cutFG
+  unfold liveRoot
+  rw [fixture_root source rfl rfl]
+  change ([ (eraseFG cutFG, (0 : Time), (100 : Time)) ].filterMap
+    (fun row => if source.base.now < row.2.2 &&
+      decide (∃ B ∈ fullTree params source, eraseFG B = row.1) then some row.1 else none)).foldl
+      (fun best b => if best.depth < b.depth || (best.depth == b.depth && best.root < b.root)
+        then b else best) .genesis = eraseFG cutFG
+  simp only [List.filterMap_cons, List.filterMap_nil, ht]
+  decide +kernel
+
+/-- Blueprint 21 H.6:937–942. Class (iii).
+DC: INTENTIONAL; prior honest support gives the real source prefix. -/
+private theorem consumer_source_prefix :
+    BestAncestry (z params source) (ap params source)
+      (S params source) (ss source 4) (es params source 4) := by
+  rw [BestAncestry_def, consumer_source_start]
+  intro X _ hprec
+  have hne : X ≠ eraseFG cutFG := by
+    intro he
+    have hn := (Bool.and_eq_true_iff.mp hprec).1
+    simp only [he, decide_true, Bool.not_true, Bool.false_eq_true] at hn
+  have hle := (Bool.and_eq_true_iff.mp hprec).2
+  change (decide (X = eraseFG cutFG) || decide (X = .genesis)) = true at hle
+  have hX : X = .genesis := of_decide_eq_true
+    ((Bool.or_eq_true_iff.mp hle).resolve_left (by simpa only [decide_eq_true_eq] using hne))
+  subst X
+  refine ⟨eraseFG cutFG, rfl, block_preceq_refl _, ?_, ?_, ?_⟩
+  · exact List.mem_filter.mpr ⟨by decide +kernel, decide_eq_true
+      ⟨cutFG, fixture_full_mem source rfl rfl rfl cutFG (by decide +kernel), rfl⟩⟩
+  · have hm : GridCO.voterCount (proposerVotes source 4) < 2 * ss source 4 (eraseFG cutFG) :=
+      by decide +kernel
+    unfold es eligible
+    change (_ || decide (GridCO.voterCount (proposerVotes source 4) <
+      2 * ss source 4 (eraseFG cutFG)) || _) = true
+    simp only [hm, decide_true, Bool.or_true, Bool.true_or]
+  · intro B hB hp _
+    have hmem : B = .genesis ∨ B = eraseFG cutFG ∨ B = eraseFG parentFG := by
+      simpa only [source, List.mem_cons, List.not_mem_nil, or_false] using (List.mem_filter.mp hB).1
+    rcases hmem with rfl | rfl | rfl
+    · cases hp
+    · exact ⟨le_refl _, fun _ => le_refl _⟩
+    · have hn : (eraseFG parentFG).parent? ≠ some Block.genesis := by decide +kernel
+      exact (hn hp).elim
+
+/-- Blueprint 21 H.6:937–963; design job 7 K7. Class (iii).
+DC: INTENTIONAL; a finite instance of all ten fields with the ordinary-root pivot.
+The source has a strict live lease, the cut is strictly below A, and the target
+has a real frozen old child. These stores are not claimed to be reachable runs. -/
+private theorem consumer_H6_instance :
+    RetainedReadPremises params source target 4 (controls params source).Z
+      (eraseFG proposalFG) (z params source) := by
+  have hz : z params source = .genesis := congrArg eraseFG (fixture_root source rfl rfl)
+  have hcut : Block.Preceq (z params source) (eraseFG proposalFG).parent := by
+    rw [hz]
+    exact block_genesis_preceq _
+  have hparent : Block.Preceq (ay params target) (eraseFG proposalFG).parent := by
+    rw [target_start]
+    exact block_genesis_preceq _
+  refine ⟨hcut, consumer_source_prefix, hparent, block_preceq_refl _, ?_, hcut,
+    ?_, parent_witness, ?_, ?_⟩
+  · rw [hz, target_start]
+    exact block_preceq_refl _
+  · rw [BestAncestry_def, hz, target_start]
+    intro X hX hprec
+    have he := block_preceq_antisymm hX (Bool.and_eq_true_iff.mp hprec).2
+    have hn := (Bool.and_eq_true_iff.mp hprec).1
+    simp only [he, decide_true, Bool.not_true, Bool.false_eq_true] at hn
+  · intro X C _ _ hm hp hold _
+    have hmem : C = .genesis ∨ C = eraseFG cutFG ∨ C = eraseFG parentFG ∨
+        C = eraseFG oldFG ∨ C = eraseFG proposalFG := by
+      simpa only [target, source, List.mem_append, List.mem_cons, List.not_mem_nil,
+        or_false, or_assoc] using (List.mem_filter.mp hm).1
+    rw [ReflectedDomainWitness_def]
+    rcases hmem with rfl | rfl | rfl | rfl | rfl
+    · cases hp
+    · exact ⟨cutFG, cutFG, by decide +kernel, rfl, KitFG.preceq_refl _,
+        fixture_height source rfl _, Or.inl (by decide +kernel)⟩
+    · exact ⟨parentFG, parentFG, by decide +kernel, rfl, KitFG.preceq_refl _,
+        fixture_height source rfl _, Or.inl (by decide +kernel)⟩
+    · exact ⟨oldFG, oldFG, by decide +kernel, rfl, KitFG.preceq_refl _,
+        fixture_height source rfl _, Or.inr ⟨by decide +kernel, by decide +kernel⟩⟩
+    · exact (Nat.lt_irrefl 4 hold).elim
+  · intro X C _ _ _ _ _ _
+    rw [retainedBand_def, retainedBand_def]
+    constructor
+    · rintro ⟨P, _, _, hh⟩
+      exact (Nat.not_lt_of_ge (fixture_height source rfl P) hh).elim
+    · rintro ⟨P, _, _, hh⟩
+      exact (Nat.not_lt_of_ge (fixture_height target rfl P) hh).elim
+
+/-- Blueprint 21 H.5:884–886. Class (iii).
+DC: INTENTIONAL; a genesis justification cannot have a conflicting carrier. -/
+private theorem consumer_floor_zero (st : State 1) (hJ : st.fg.J = .genesis)
+    (hmax : st.fg.h_max = 1) : (controls params st).lo = 0 := by
+  have hn : ¬ ∃ W ∈ st.fg.TF, (heightView params W).h = st.fg.h_max ∧
+      ¬ FGBlock.Preceq st.fg.J W := by
+    rintro ⟨W, _, _, hnot⟩
+    exact hnot (hJ.symm ▸ KitFG.genesis_preceq W)
+  rw [hmax] at hn
+  unfold controls Controls.lo
+  rw [KitFG.storeControlsView_def]
+  simp only [hn, decide_false, Bool.and_false, Bool.false_eq_true, ite_false, hmax]
+
+/-- Blueprint 21 H.6:932–944. Class (iii).
+DC: INTENTIONAL; a concrete clean preceding vote gives the prior-support input. -/
+private theorem consumer_prior_instance :
+    RetainedPriorSupport params source 4 (ap params source) := by
+  rw [consumer_source_start]
+  refine ⟨?_, ⟨parentFG, by decide +kernel, by decide +kernel,
+    fixture_height source rfl _⟩, ?_, ?_⟩
+  · change Block.Compatible (eraseFG (controls params source).Z) (eraseFG cutFG)
+    rw [fixture_root source rfl rfl]
+    exact Bool.or_eq_true_iff.mpr (Or.inl (block_genesis_preceq _))
+  · decide +kernel
+  · intro B hconflict
+    have hs : proposerSupport source 4 = proposerVotes source 4 := by decide +kernel
+    have hclean : ∀ i, GridCO.equivocates (proposerVotes source 4) i = false := by
+      intro i
+      have hi : i = (0 : Fin 1) := Fin.eq_zero i
+      subst i
+      decide +kernel
+    have hh := Gen.AC.conflicting_score_sum_le source.base.blocks
+      (proposerVotes source 4) (eraseFG cutFG) B hclean hconflict
+    have hc : GridCO.goldfishScore source.base.blocks (proposerVotes source 4)
+        (proposerVotes source 4) (eraseFG cutFG) = 1 := by decide +kernel
+    have hn : GridCO.voterCount (proposerVotes source 4) = 1 := by decide +kernel
+    change GridCO.goldfishScore _ _ (proposerSupport source 4) B <
+      GridCO.goldfishScore _ _ (proposerSupport source 4) (eraseFG cutFG)
+    rw [hs, hc]
+    rw [hc, hn] at hh
+    omega
+
+/-- Blueprint 21 H.3, H.5, H.6; design job 7 K7. Class (iii).
+DC: INTENTIONAL; the same finite stores inhabit the lane inputs and all ten outputs.
+There is no reachable execution or positive-height certificate in this fixture. -/
+private theorem consumer_H6_inputs : RetainedH6Input params source target 4 := by
+  have hz : z params source = .genesis := congrArg eraseFG (fixture_root source rfl rfl)
+  have hnot : ¬ Block.Prec (ay params target) (z params source) := by
+    rw [target_start, hz]
+    decide +kernel
+  refine ⟨⟨?_, ?_, fun h => (hnot h).elim, fun h => (hnot h).elim⟩,
+    Or.inr consumer_prior_instance, Or.inl ?_⟩
+  · rw [consumer_floor_zero source rfl rfl, consumer_floor_zero target rfl rfl]
+  · refine ⟨parentFG, by decide +kernel, ?_, fixture_height source rfl _⟩
+    rw [consumer_source_start]
+    decide +kernel
+  · rw [target_start, hz]
+    exact block_preceq_refl _
+
+#print axioms consumer_H6_inputs
+
+#print axioms consumer_H6_instance
 
 end AvailableChain.FGSA.Run.Tests.RetainedEndpoint

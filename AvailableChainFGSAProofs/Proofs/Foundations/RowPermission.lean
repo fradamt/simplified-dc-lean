@@ -583,7 +583,7 @@ theorem rowPermission_covered [Fintype V]
       refine ⟨j, rSent, ⟨.seat .fg seat, body⟩, hr, ⟨hx, hj, hem⟩, ?_⟩
       exact (congrArg (fun b => namedEntry b.1) he).trans hn
 
-/-- The exact RowPermissionAt body under HealingPrem. No client permission
+/-- RowPermissionAt in heightView form under HealingPrem. No client permission
 premise is added. The phase is needed only for its horizon bound; the live
 in-band theorem gives the stronger local result. Blueprint 21 H.7 / H.9,
 IF.3(b), SO-COV. DC: INTENTIONAL live W execution and send-once coverage.
@@ -596,12 +596,16 @@ theorem rowPermission_at [Fintype V] (G ΔF : Time) (pt : Unit)
       postClock E rho x (p.actionTime r) = some nd →
       actionSourceFG p c E rho x r = some (some C) →
       C ∈ FGSA.fullTree p nd.st →
-      (FGSA.controls p nd.st).lo ≤ hOf p.E p.cfg C → hOf p.E p.cfg C ≤ m →
+      (FGSA.controls p nd.st).lo ≤ (heightView p C).h → (heightView p C).h ≤ m →
       ∃ j rSent a, rSent ≤ r ∧ HonestRowAt p c E rho j x rSent a ∧
         namedEntry a.payload.height_pair =
-          some (hOf p.E p.cfg C, (derive p.E p.cfg C).T_h.root) := by
+          some ((heightView p C).h, (heightView p C).T_h.root) := by
   intro u v m J contested r x C nd hGST hphase hu hv hx hnd hsrc hC hlo _
-  exact rowPermission_covered E rho h.set.base h.set.fault x hx r nd hnd C hsrc hC hlo
+  have old := rowPermission_covered E rho h.set.base h.set.fault x hx r nd hnd C hsrc hC
+    (by simpa only [heightView_eq_simplex p, KitFG.simplexHeightView_def,
+      KitFG.heightOf_def, hOf] using hlo)
     (h.set.awake x hx _ (hGST.trans hu) (hv.trans hphase.2.1))
+  simpa only [heightView_eq_simplex p, KitFG.simplexHeightView_def,
+    KitFG.heightOf_def, hOf] using old
 
 end AvailableChain.FGSA.Run

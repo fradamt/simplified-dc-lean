@@ -1,4 +1,8 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersL2
+public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersQ
+public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersH6S
+public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumers
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedEndpoint
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedPersist
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedReflect
