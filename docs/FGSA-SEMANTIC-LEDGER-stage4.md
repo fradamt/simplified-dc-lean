@@ -3951,3 +3951,10 @@ a HEAD at v_s = u, which reads stateBefore its tick, is inside the settled inter
 TFrontier's h_max cap keeps timeIdx. Consumers use PhaseInterval as a premise; proof fallout fixed with
 idxBefore ≤ timeIdx (PhaseFrame, OpeningCovered, OpeningCoveredLower). Hash moves: PhaseInterval only; not frozen at
 G-F0a (no allow line).
+
+B31 (pre-freeze, lead ruling B31; s5-plan-amendments.md §I): end-of-run guards. A range that starts at
+afterTicksIdx / HealSuffix of a cut past the interval end or the horizon is {events.length}, so the clause asserted
+the FINAL state although the gate at the cut never ran. Guards: Transfers S3 `gate s + 4Δ ≤ v` (21:717; repairs TPerm,
+TFrontier); H2A output `actionTime r + 4Δ ≤ horizon` (21:3289–3291); H5RawTransfer output `gate j + 4Δ ≤ horizon`
+(21:3321). RFProv takes `H0 p c E rho w` first, as TDelReset (w is otherwise arbitrary). WEAKER statements. Hash moves:
+Transfers, RFProv, H2A, H5RawTransfer, HealRContract (+ ctor, fields); none frozen at G-F0a (no allow line).

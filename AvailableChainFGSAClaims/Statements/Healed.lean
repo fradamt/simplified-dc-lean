@@ -55,12 +55,14 @@ open AvailableChain.SimplexFG
 open Gen.Pure
 
 /-- H2.A [joint] (21:3096–3102), P3 A.9.
-HEAD consumers: F8, Q0, QF4 S2. Output consumers: healing and finality composition. -/
+HEAD consumers: F8, Q0, QF4 S2. Output consumers: healing and finality composition.
+The output clause needs its cut within the horizon (ruling B31; 21:3289–3291). -/
 def H2A (w : HealingWitness) : Prop := ∀ y r K, y ∈ rho.honest →
   actionSourceFG p c E rho y r = some (some K) → high p w K →
   (∀ x i H, x ∈ rho.honest → r * p.R + 1 ≤ i →
     headAtLabel p c E rho x i = some H → Block.Preceq (eraseFG K) H) ∧
-  (∀ i x, x ∈ rho.honest → HealSuffix p c rho (p.actionTime r + 4 * p.Δ) i →
+  (∀ i x, x ∈ rho.honest → p.actionTime r + 4 * p.Δ ≤ rho.horizon →
+    HealSuffix p c rho (p.actionTime r + 4 * p.Δ) i →
     Block.Preceq (eraseFG K) (S_at p c E rho i x))
 /-- H2′ [joint] (21:3104–3107), P3 A.9.
 Consumers: F6, F8, QF2 Q1, QF4 S1/S2 and Q0, FL-T7. -/
@@ -82,7 +84,8 @@ def H4 (w : HealingWitness) : Prop :=
   (∀ i x y, HealSuffix p c rho (tstar p w) i → x ∈ rho.honest → y ∈ rho.honest →
     Block.Preceq (F_at p c E rho i x) (S_at p c E rho i y))
 /-- H5 (21:3125–3132), P3 A.9. Consumer: Q0 in QF2 and QF4.
-No fast threshold or passed-guard premise is imposed on the raw result. -/
+No fast threshold or passed-guard premise is imposed on the raw result.
+The output clause needs its cut within the horizon (ruling B31; 21:3321). -/
 def H5RawTransfer (w : HealingWitness) : Prop := ∀ y j C,
   y ∈ rho.honest → w.sStar ≤ j → gateResult p c E rho y j = some (some C) →
   (∀ x nd, x ∈ rho.honest → postClock E rho x (SA.releaseTime p.toParams j) = some nd →
@@ -90,7 +93,7 @@ def H5RawTransfer (w : HealingWitness) : Prop := ∀ y j C,
   (∀ x i H, x ∈ rho.honest → j + 1 ≤ i → headAtLabel p c E rho x i = some H →
     Block.Preceq C H) ∧
   (∀ v Q, j + 2 ≤ v → HonestProposal E rho (fgsaInterface p c) v Q → Block.Preceq C Q.parent) ∧
-  (∀ i x, x ∈ rho.honest →
+  (∀ i x, x ∈ rho.honest → SA.gateTime p.toParams j + 4 * p.Δ ≤ rho.horizon →
     HealSuffix p c rho (SA.gateTime p.toParams j + 4 * p.Δ) i → Block.Preceq C (S_at p c E rho i x))
 /-- H6 (21:3134–3141), P3 A.9. Consumer: Q0 in QF2 and QF4.
 A unanimous synchronous batch gives a raw result, guard, fast write and lease. -/

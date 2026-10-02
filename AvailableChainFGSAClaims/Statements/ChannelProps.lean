@@ -804,8 +804,9 @@ def RKeep (w : HealingWitness) : Prop := ∀ i x (X : Finset (FGBlock (Fin p.n))
       Block.Compatible (eraseFG B) (eraseFG K)) → Kept p c E rho i x X B)
 
 /-- R-FPROV (21 H.17:2764; H.18:2867), P3 A.3.
-Consumers: H.15, H.17–H.19. Event order is explicit; times need not be strict. -/
-def RFProv (w : HealingWitness) : Prop := ∀ i x,
+Consumers: H.15, H.17–H.19. Event order is explicit; times need not be strict.
+H0 is a premise, as in TDelReset; without it w is arbitrary (ruling B31). -/
+def RFProv (w : HealingWitness) : Prop := H0 p c E rho w → ∀ i x,
   x ∈ rho.honest → afterTicksIdx rho (p.actionTime w.rStar) ≤ i →
   let t := (storeAt p c E rho i x).base.now
   (Block.Preceq (F_at p c E rho i x) w.CStar ∨
@@ -873,13 +874,15 @@ def PhaseInterval (u v : Time) (m : Nat) (J : Option (FGBlock (Fin p.n)))
       (match J with | some B => R.rootIsJ = true ∧ R.J = B | none => R.rootIsJ = false)
 
 /-- S1–S3 of H.2 (21:521–580), P3 A.8. Consumers: permanence and frontier service.
-All HEAD, parent and output clauses stop at the interval's end. -/
+All HEAD, parent and output clauses stop at the interval's end. S3 applies only when its
+gate cut is within the interval (ruling B31; 21:717). -/
 def Transfers (s : Slot) (B : Block) (v : Time) : Prop :=
   (∀ x i H, x ∈ rho.honest → s + 1 ≤ i → SA.voteTime p.toParams i ≤ v →
     headAtLabel p c E rho x i = some H → Block.Preceq B H) ∧
   (∀ i Q, s + 2 ≤ i → SA.proposalTime p.toParams i ≤ v →
     HonestProposal E rho (fgsaInterface p c) i Q → Block.Preceq B Q.parent) ∧
-  (∀ i x, x ∈ rho.honest → afterTicksIdx rho (SA.gateTime p.toParams s + 4 * p.Δ) ≤ i →
+  (∀ i x, x ∈ rho.honest → SA.gateTime p.toParams s + 4 * p.Δ ≤ v →
+    afterTicksIdx rho (SA.gateTime p.toParams s + 4 * p.Δ) ≤ i →
     i ≤ timeIdx rho v → Block.Preceq B (S_at p c E rho i x))
 /-- Successful fast or synchronous-window slow body (21 H.4:628–650;
 H.4-S:650–680), P3 A.8. Consumer: TPerm. -/
