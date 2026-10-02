@@ -47,6 +47,13 @@ public import AvailableChainKitFG.StoreSafetyDef
 public import AvailableChainKitFG.CertificateSimplexDef
 public import AvailableChainKitFG.CertificateSimplex
 public import AvailableChainKitFG.AccountableCore
+public import AvailableChainKitFG.CrossingCore
+public import AvailableChainKitFG.ProvenanceCoreDef
+public import AvailableChainKitFG.ProvenanceCore
+
+public import AvailableChainKitFG.SelectionCore
+public import AvailableChainKitFG.StoreSafety
+public import AvailableChainKitFG.StoreSafetySimplex
 
 @[expose] public section
 end
