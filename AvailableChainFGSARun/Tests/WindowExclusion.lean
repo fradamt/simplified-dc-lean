@@ -63,19 +63,26 @@ example : (fgsa p unitCodec).wellFormed (object 1 first firstRows) = true ∧
     first ∈ (V2.D.Run.stateBefore env run 4 ()).st.fg.TF ∧
     second.rows = [row] := by decide +kernel
 
-/-- The model invariant supplies R6W for the admitted second block. -/
-example : Window.r6w (Window.derive p p.K_W first) row = true := by
-  exact stored_r6wW p (reachable_stateBefore env run 4 ()) first 2
+/-- The model invariant supplies R6W for EVERY decoded row of the admitted second
+block, read at its parent. -/
+example : ∀ a ∈ secondRows.filterMap RowWire.toRow?,
+    Window.r6w (Window.derive p p.K_W first) a = true := fun a ha =>
+  stored_r6wW p (reachable_stateBefore env run 4 ()) first 2
     (packInner 0 secondRows) (secondRows.filterMap RowWire.toRow?)
-    (by decide +kernel) row (by decide +kernel)
+    (by decide +kernel) a ha
 
-/-- The B1 transfer discharges both ancestor-row conditions. The exact
-second-block occurrence has set the older retained entry's bit. -/
-example : row.signer ∈ (⟨1, .genesis, {3}⟩ : Window.Entry (Fin 4)).Q := by
-  exact exact_row_exclusion_checkedW env run checked 4 () second (by decide +kernel)
-    1 .genesis ⟨1, .genesis, {3}⟩ (by decide +kernel) rfl rfl first 2
+/-- The B1 transfer discharges both ancestor-row conditions. The fold retains the
+key (1, genesis) at the stored second block; its bits are NOT written here: the
+theorem shows that the exact second-block occurrence has set the signer's bit. -/
+example : ∃ d ∈ (Window.derive p p.K_W second).W,
+    d.j = 1 ∧ d.X = .genesis ∧ row.signer ∈ d.Q := by
+  obtain ⟨d, hd, hj, hX⟩ :
+      ∃ d ∈ (Window.derive p p.K_W second).W, d.j = 1 ∧ d.X = .genesis := by
+    decide +kernel
+  exact ⟨d, hd, hj, hX, exact_row_exclusion_checkedW env run checked 4 () second
+    (by decide +kernel) 1 .genesis d hd hj hX first 2
     (packInner 0 secondRows) (secondRows.filterMap RowWire.toRow?)
-    (preceq_refl _) row (by decide +kernel) (by decide +kernel)
+    (preceq_refl _) row (by decide +kernel) (by decide +kernel)⟩
 
 end AvailableChain.FGSA.Run.ExclusionTests
 end

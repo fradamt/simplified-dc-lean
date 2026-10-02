@@ -38,10 +38,11 @@ theorem entry_bit_persistW (p : Params) (A B : FGBlock (Fin p.n))
 /-- An occurrence strictly after a retained anchor contributes its bit when
 the exact key is still retained at the endpoint. -/
 theorem entry_bit_occurrenceW (p : Params) (A B C : FGBlock (Fin p.n))
-    (hAC : FGBlock.Preceq A C) (hAB : StrictPrefix A B) (hBC : FGBlock.Preceq B C)
+    (hAB : StrictPrefix A B) (hBC : FGBlock.Preceq B C)
     (j : Height) (U : FGBlock (Fin p.n)) (ha : RetainedW p A j U)
     (hc : RetainedW p C j U) (a : Row (Fin p.n)) (hr : a ∈ B.rows)
     (matchRow : a.finality_pair = some ⟨j, U.root⟩) : EntryBitW p C j U a.signer := by
+  have hAC : FGBlock.Preceq A C := preceq_trans (StrictPrefix_def A B ▸ hAB).1 hBC
   obtain ⟨e, he, hej, heX⟩ := ha
   obtain ⟨d, hd, hdj, hdX⟩ := hc
   exact ⟨d, hd, hdj, hdX, (window_bits_accumulate p p.K_W p.kWLarge

@@ -289,7 +289,7 @@ example : heightMatch (parentState retentionParams 2 retentionSecond 3)
 
 example : EntryBitW retentionParams retentionProtected 1 .genesis retentionStale.signer :=
   entry_bit_occurrenceW retentionParams retentionFirst retentionMixed retentionProtected
-    (by decide +kernel) (by rw [StrictPrefix_def]; decide +kernel)
+    (by rw [StrictPrefix_def]; decide +kernel)
     (by decide +kernel) 1 .genesis
     (by decide +kernel) (by decide +kernel) retentionStale
     (by decide +kernel) (by decide +kernel)
