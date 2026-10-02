@@ -108,7 +108,7 @@ def H6GateService (w : HealingWitness) : Prop := ∀ j D,
 
 /-- T-stream part (21:3057–3084), P3 A.6. Consumers: 22 FF1–FF4 and kernel.
 DC: INTENTIONAL bound row delay; SAME block and HEAD services. -/
-structure HealT (w : HealingWitness) (ΔF : Time := E.Δ) : Prop where
+structure HealT (w : HealingWitness) (ΔF : Time) : Prop where
   h1 : THigh p c E rho w
   h2 : TCarrier p c E rho w
   rows : TRows p c E rho ΔF
@@ -135,8 +135,8 @@ Spec map (8ef4ed3b): 2044 → healed; 2055 → wit; 2065 → t.h1;
 2128–2132 → F1 foundations; 2134–2138 → the H-time statements below.
 Full wit uses ResetArrivalFullStatement (H.18 horizon), not reset-only arrival.
 DC: INTENTIONAL family delivery uses ΔF; SA clocks stay unchanged.
-The default remains for the old ComposeStmt kernel declarations until S4.3b. -/
-structure HealingInput (w : HealingWitness) (ΔF : Time := E.Δ) : Prop where
+Every caller supplies the row delay explicitly. -/
+structure HealingInput (w : HealingWitness) (ΔF : Time) : Prop where
   healed : Healed p c E rho (tstar p w)
   wit : H0 p c E rho w
   t : HealT p c E rho w ΔF

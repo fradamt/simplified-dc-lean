@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Shared.Claims -- shake: keep (S4.6b axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Foundations.HonestNeverSlashed -- shake: keep (HNS audit)
 public import AvailableChainFGSAProofs.Proofs.Foundations.FinalityApi -- shake: keep (S4.5b axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersL2 -- shake: keep (consumer audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersQ -- shake: keep (consumer audit)
@@ -160,6 +161,8 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_finalLock
 #print axioms AvailableChain.FGSA.Run.fgsa_finalLock_erased
 #print axioms AvailableChain.FGSA.Run.fgsa_clientSafeAll
+#print axioms AvailableChain.FGSA.Run.readAt_chain_row_origin
+#print axioms AvailableChain.FGSA.Run.fgsa_honestNeverSlashed
 #print axioms AvailableChain.FGSA.Run.fgsa_clientSafetyClaim
 #print axioms AvailableChain.FGSA.Run.fgsa_clientSafetyBaseClaim
 #print axioms AvailableChain.FGSA.Run.honest_at_most_one_row_per_action
@@ -729,3 +732,27 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_proposalFinalGST_recF4
 #print axioms AvailableChain.FGSA.Run.fgsa_aboveFrontierGST_recFE
 #print axioms AvailableChain.FGSA.Run.fgsa_aboveFrontierGST_recF4
+#print axioms AvailableChain.FGSA.Run.FGSAFinalityClaims
+#print axioms AvailableChain.FGSA.Run.FGSAFinalityClaims.mk
+#print axioms AvailableChain.FGSA.Run.FGSAFinalityClaims.accountable
+#print axioms AvailableChain.FGSA.Run.FGSAFinalityClaims.agreement
+#print axioms AvailableChain.FGSA.Run.FGSAFinalityClaims.runAccountable
+#print axioms AvailableChain.FGSA.Run.FGSAFinalityClaims.runAgreement
+#print axioms AvailableChain.FGSA.Run.FGSAFinalityClaims.eventPrefixAgreement
+#print axioms AvailableChain.FGSA.Run.FGSAFinalityClaims.faultCountSlashableBound
+#print axioms AvailableChain.FGSA.Run.FGSAFinalityClaims.finalizedMonotone
+#print axioms AvailableChain.FGSA.Run.FGSAFinalityClaims.honestNeverSlashed
+#print axioms AvailableChain.FGSA.Run.FGSAClaims
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.mk
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.toFGSASafetyClaims
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.finality
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.finalizedSafety
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.finalLock
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.outageCompat
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.fastP1
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.slowP1
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.exactProposal
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.cleanInclusionPostGate
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.cleanInclusion
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.firstFinalityRecFE
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.firstFinalityRecF4

@@ -92,7 +92,6 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.CleanCutSet
 #print axioms AvailableChain.FGSA.Run.CleanPrefixSet
 #print axioms AvailableChain.FGSA.Run.HealingSet
-#print axioms AvailableChain.FGSA.Run.FinalitySet
 #print axioms AvailableChain.FGSA.Run.WinSpec
 #print axioms AvailableChain.FGSA.Run.PtB₀
 #print axioms AvailableChain.FGSA.Run.PtT
@@ -286,7 +285,6 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.PhaseKind
 #print axioms AvailableChain.FGSA.Run.AttemptTask
 #print axioms AvailableChain.FGSA.Run.AttemptKey
-#print axioms AvailableChain.FGSA.Run.B'_reset
 #print axioms AvailableChain.FGSA.Run.ResetArrivalStatement
 #print axioms AvailableChain.FGSA.Run.ResetArrivalStatement_def
 #print axioms AvailableChain.FGSA.Run.ResetArrivalFullStatement
@@ -350,13 +348,6 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.H0Reset
 #print axioms AvailableChain.FGSA.Run.H0
 #print axioms AvailableChain.FGSA.Run.tstarOf
-#print axioms AvailableChain.FGSA.Run.finalityWindow
-#print axioms AvailableChain.FGSA.Run.FirstFinalityPrem
-#print axioms AvailableChain.FGSA.Run.FinalityLivenessPrem
-#print axioms AvailableChain.FGSA.Run.ProposalFinalPrem
-#print axioms AvailableChain.FGSA.Run.AboveFrontierPrem
-#print axioms AvailableChain.FGSA.Run.QualifiedFinalityPrem
-#print axioms AvailableChain.FGSA.Run.SkipFinalityPrem
 #print axioms AvailableChain.FGSA.Run.PtU
 #print axioms AvailableChain.FGSA.Run.PtW
 #print axioms AvailableChain.FGSA.Run.PtM
@@ -419,8 +410,6 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.NoMixedPreBatchParent
 #print axioms AvailableChain.FGSA.Run.BatchPrem
 #print axioms AvailableChain.FGSA.Run.BatchCoverage
-#print axioms AvailableChain.FGSA.Run.FirstCross
-#print axioms AvailableChain.FGSA.Run.ProposalWalk
 #print axioms AvailableChain.FGSA.Run.finHeight
 #print axioms AvailableChain.FGSA.Run.FreshPrem
 

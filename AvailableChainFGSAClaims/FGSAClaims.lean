@@ -2,6 +2,9 @@ module
 public import AvailableChainFGSAClaims.Claims.Foundations
 public import AvailableChainFGSAClaims.Claims.Shared
 public import AvailableChainFGSAClaims.Claims.Clean
+public import AvailableChainFGSAClaims.Claims.FinalitySafety
+public import AvailableChainFGSAClaims.Claims.Outage
+public import AvailableChainFGSAClaims.Claims.Finality
 
 @[expose] public section
 
@@ -68,6 +71,32 @@ structure FGSASafetyInterfaces (p : FGSA.Params) : Prop where
   timingContract : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit),
     SourceDisciplinePrem p c E rho pt → TimingContract p c E rho
+
+/-- The finality safety output claims for G-F0b. -/
+structure FGSAFinalityClaims (p : FGSA.Params) : Prop where
+  accountable : PureAccountableClaim p
+  agreement : PureAgreementClaim p
+  runAccountable : WholeRunAccountableClaim p
+  runAgreement : WholeRunAgreementClaim p
+  eventPrefixAgreement : EventPrefixAgreementClaim p
+  faultCountSlashableBound : FaultCountSlashableBoundClaim p
+  finalizedMonotone : FinalizedMonotonicityClaim p
+  honestNeverSlashed : HonestNeverSlashedClaim p
+
+/-- The G-F0b output contract. Recovery is a premise; healing witnesses are outputs.
+The local healing and finality lane interfaces stay in their Claims modules. -/
+structure FGSAClaims (p : FGSA.Params) : Prop extends FGSASafetyClaims p where
+  finality : FGSAFinalityClaims p
+  finalizedSafety : FinalizedSafetyClaim p
+  finalLock : FinalLockClaim p
+  outageCompat : OutageCompatClaim p
+  fastP1 : FastP1Claim p
+  slowP1 : SlowP1Claim p
+  exactProposal : ExactProposalClaim p
+  cleanInclusionPostGate : CleanInclusionPostGateClaim p
+  cleanInclusion : CleanInclusionClaim p
+  firstFinalityRecFE : FirstFinalityRecFEClaim_W p
+  firstFinalityRecF4 : FirstFinalityRecF4Claim_W p
 
 end AvailableChain.FGSA.Run
 end
