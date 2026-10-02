@@ -28,6 +28,9 @@ LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainF
 CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = (
+    # K-BATCH: --expect DATA only.
+    'AvailableChain.FGSA.Run.finalityRow_bit_or_carried_W',
+    'AvailableChain.FGSA.Run.finalityBatchCoverage_W_of_tRowsSelect',
     # S4.6c: --expect DATA only.
     'AvailableChain.FGSA.Run.fgsa_availableGST',
     'AvailableChain.FGSA.Run.AvailableFromConcl',
