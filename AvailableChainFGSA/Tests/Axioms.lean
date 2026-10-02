@@ -415,6 +415,8 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 #print axioms AvailableChain.FGSA.Window.window_headFields_latest
 
 -- Proofs/WindowHistory.lean
+#print axioms AvailableChain.FGSA.Window.window_final_birth
+#print axioms AvailableChain.FGSA.Window.window_le_hF_covered
 #print axioms AvailableChain.FGSA.Window.window_absent_le_hF_covered
 #print axioms AvailableChain.FGSA.Window.window_evicted_above_hF
 #print axioms AvailableChain.FGSA.Window.window_retained_bits_mono

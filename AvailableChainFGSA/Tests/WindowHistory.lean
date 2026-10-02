@@ -81,6 +81,29 @@ example : (derive params 2 laterCover).h_F = 3 ∧
     FGBlock.Preceq (.genesis : FGBlock (Fin 4)) (derive params 2 laterCover).F ∧
     (derive params 2 laterCover).W = [] := by decide +kernel
 
+/-- `window_entry_history` puts the first key in the EVICTED case at `evict3`. -/
+example : (¬ ∃ d ∈ (derive params 2 evict3).W, d.j = 1 ∧ d.X = .genesis) ∧
+    (derive params 2 evict3).h_F < 1 := by
+  rcases window_entry_history params 2 (by decide) derived2 evict3 (by decide +kernel)
+      ⟨1, .genesis, ∅⟩ (by decide +kernel) with
+    ⟨d, hd, hj, hX, -⟩ | ⟨-, hle, -⟩ | ⟨hgone, -, hlt, -⟩
+  · exact absurd ⟨d, hd, hj, hX⟩
+      (by decide +kernel : ¬ ∃ d ∈ (derive params 2 evict3).W, d.j = 1 ∧ d.X = .genesis)
+  · exact absurd hle (by decide +kernel : ¬ (1 ≤ (derive params 2 evict3).h_F))
+  · exact ⟨hgone, hlt⟩
+
+/-- The same key is in the COVERED case at `laterCover`. -/
+example : (¬ ∃ d ∈ (derive params 2 laterCover).W, d.j = 1 ∧ d.X = .genesis) ∧
+    1 ≤ (derive params 2 laterCover).h_F ∧
+    FGBlock.Preceq (.genesis : FGBlock (Fin 4)) (derive params 2 laterCover).F := by
+  rcases window_entry_history params 2 (by decide) derived2 laterCover (by decide +kernel)
+      ⟨1, .genesis, ∅⟩ (by decide +kernel) with
+    ⟨d, hd, hj, hX, -⟩ | ⟨hgone, hle, hcov⟩ | ⟨-, -, hlt, -⟩
+  · exact absurd ⟨d, hd, hj, hX⟩
+      (by decide +kernel : ¬ ∃ d ∈ (derive params 2 laterCover).W, d.j = 1 ∧ d.X = .genesis)
+  · exact ⟨hgone, hle, hcov⟩
+  · exact absurd hlt (by decide +kernel : ¬ ((derive params 2 laterCover).h_F < 1))
+
 def olderReady : FGBlock (Fin 4) := .node bits2 5 0 [oldVote 2]
 
 /-- A ready older entry exists in the prefinality fold. The latest-pair

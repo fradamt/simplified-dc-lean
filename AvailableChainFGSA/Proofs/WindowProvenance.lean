@@ -79,8 +79,9 @@ theorem window_exists_honest_timeout_of_crossing (p : Params) (K : Nat) (hK : 2 
     (windowHeightLaws p K hK)
     faulty B W hcap hJ hW hnot hhonest
 
-/-- Honest votes name only the latest pair; an older retained entry gains bits
-only from stale-arm rows emitted earlier (R6W StaleUseful). The head read is
+/-- An honest row names the latest pair of its signer's head at emission. On the
+including chain, that pair can be an older retained entry. Such an entry gains bits
+from any admitted row with that exact pair, through either R6W arm. The head read is
 independent of the retained entries. Emission also checks the client record. -/
 theorem window_headFields_latest (p : Params) (K : Nat)
     (Hd : FGBlock (Fin p.n)) (Λ : Record) :

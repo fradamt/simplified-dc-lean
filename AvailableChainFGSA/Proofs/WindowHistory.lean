@@ -114,7 +114,7 @@ private theorem events_finality (p : Params) (K : Nat) (w : State (Fin p.n)) :
 
 /-- Every nonzero finalized pair was born on this chain, including pairs
 whose older entries have already left the window. -/
-private theorem final_birth (p : Params) (K : Nat) (hK : 2 ≤ K)
+theorem window_final_birth (p : Params) (K : Nat) (hK : 2 ≤ K)
     (B : FGBlock (Fin p.n)) (hnz : (derive p K B).h_F ≠ 0) :
     ∃ C, FGBlock.Preceq C B ∧ JustificationBirth p.E (certificateHeight p K)
       C (derive p K B).h_F (derive p K B).F := by
@@ -180,19 +180,27 @@ private theorem birth_order (p : Params) (K : Nat) (hK : 2 ≤ K)
     rw [ht]
     exact preceq_refl _
 
-/-- [bp §3.1; bp 22 I7] Every old key below finality is covered, even if
+/-- [bp §3.1; bp 22 I7] Every old key at or below finality is covered, even if
 capacity removed it earlier. Birth order supplies the ancestry claim. -/
+theorem window_le_hF_covered (p : Params) (K : Nat) (hK : 2 ≤ K)
+    (A B : FGBlock (Fin p.n)) (hAB : FGBlock.Preceq A B)
+    (e : Entry (Fin p.n)) (he : e ∈ (derive p K A).W)
+    (hle : e.j ≤ (derive p K B).h_F) : FGBlock.Preceq e.X (derive p K B).F := by
+  have hb := window_bounds p K hK A e he
+  have hnz : (derive p K B).h_F ≠ 0 := Nat.ne_of_gt ((Nat.zero_lt_of_lt hb.1).trans_le hle)
+  obtain ⟨C, hc, hbirth, _⟩ := window_entry_origin p K hK A e he
+  obtain ⟨D, hd, hfinal⟩ := window_final_birth p K hK B hnz
+  exact birth_order p K hK (preceq_trans hc hAB) hd hbirth hfinal hle
+
+/-- [bp §3.1; bp 22 I7] The absent-key form of `window_le_hF_covered`. Absence is
+not used; the form matches the COVERED case of `window_entry_history`. -/
 theorem window_absent_le_hF_covered (p : Params) (K : Nat) (hK : 2 ≤ K)
     (A B : FGBlock (Fin p.n)) (hAB : FGBlock.Preceq A B)
     (e : Entry (Fin p.n)) (he : e ∈ (derive p K A).W)
     (gone : ¬ ∃ d ∈ (derive p K B).W, d.j = e.j ∧ d.X = e.X)
     (hle : e.j ≤ (derive p K B).h_F) : FGBlock.Preceq e.X (derive p K B).F := by
-  have hb := window_bounds p K hK A e he
-  have hnz : (derive p K B).h_F ≠ 0 := Nat.ne_of_gt ((Nat.zero_lt_of_lt hb.1).trans_le hle)
-  obtain ⟨C, hc, hbirth, _⟩ := window_entry_origin p K hK A e he
-  obtain ⟨D, hd, hfinal⟩ := final_birth p K hK B hnz
   have _absent := gone
-  exact birth_order p K hK (preceq_trans hc hAB) hd hbirth hfinal hle
+  exact window_le_hF_covered p K hK A B hAB e he hle
 
 /-- At B an absent key that is not covered is strictly above finality.
 This does not assert that it stays uncovered at later blocks. -/

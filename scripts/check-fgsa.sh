@@ -205,6 +205,7 @@ gate_with_slot lake env lean --run scripts/CheckFGSAAxioms.lean "${TEST_ROOTS[@]
   Window.window_exists_crossing_quorum_ne_justified \
   Window.window_exists_honest_timeout_of_crossing \
   Window.window_headFields_latest \
+  Window.window_final_birth Window.window_le_hF_covered \
   Window.window_absent_le_hF_covered \
   Window.window_evicted_above_hF \
   Window.window_retained_bits_mono \
