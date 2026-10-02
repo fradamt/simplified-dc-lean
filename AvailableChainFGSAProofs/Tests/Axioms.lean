@@ -1,4 +1,6 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposal -- shake: keep (I-EXACT axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalHistory -- shake: keep (I-EXACT history audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.Claims -- shake: keep (S4.6b axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.Phase -- shake: keep (H-PHASE audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseRelay -- shake: keep (H-PHASE audit)
@@ -807,3 +809,10 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.healing_phase_block_receipt
 #print axioms AvailableChain.FGSA.Run.healing_evidence_spread
 #print axioms AvailableChain.FGSA.Run.healing_phase_rows_spread
+
+#print axioms AvailableChain.FGSA.Run.inclusion_acceptance_of_stored
+#print axioms AvailableChain.FGSA.Run.inclusion_receipt_of_compatible
+#print axioms AvailableChain.FGSA.Run.inclusion_proposal_receipt
+#print axioms AvailableChain.FGSA.Run.inclusion_head_read
+#print axioms AvailableChain.FGSA.Run.inclusion_sleep_silence
+#print axioms AvailableChain.FGSA.Run.inclusion_comparison_prefix
