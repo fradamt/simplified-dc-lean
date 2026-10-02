@@ -28,6 +28,18 @@ LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainF
 CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = (
+    'AvailableChain.FGSA.Run.RetainedTargetScores',
+    'AvailableChain.FGSA.Run.RetainedConeInput',
+    'AvailableChain.FGSA.Run.RetainedL2Input',
+    'AvailableChain.FGSA.Run.fgsa_retainedReads_H17',
+    'AvailableChain.FGSA.Run.fgsa_retainedReads_L4R',
+    'AvailableChain.FGSA.Run.fgsa_retainedReads_HG1',
+    'AvailableChain.FGSA.Run.fgsa_retainedReads_L2',
+    'AvailableChain.FGSA.Run.RetainedPriorSupport',
+    'AvailableChain.FGSA.Run.RetainedH6Frame',
+    'AvailableChain.FGSA.Run.RetainedH6Input',
+    'AvailableChain.FGSA.Run.fgsa_retainedReads_H6',
+    'AvailableChain.FGSA.Run.fgsa_retainedReads_H6S',
     'AvailableChain.FGSA.Run.fgsa_headRead_block_slots',
     'AvailableChain.FGSA.Run.fgsa_headRead_child_slot',
     'AvailableChain.FGSA.Run.fgsa_exactHeadGeometry_of_retained_endpoint',
