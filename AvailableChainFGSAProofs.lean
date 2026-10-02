@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.RetainedEndpoint
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedPersist
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedReflect
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedScores

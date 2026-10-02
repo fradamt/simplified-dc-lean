@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.RetainedEndpoint -- shake: keep (endpoint audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedPersist -- shake: keep (persistence audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedReflect -- shake: keep (reflection audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedScores -- shake: keep (candidate score audit)
@@ -655,3 +656,15 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.B_HF_eq_B_H
 #print axioms AvailableChain.FGSA.Run.B_HF_numeric_295
 #print axioms AvailableChain.FGSA.Run.B_HF_numeric_343
+
+#print axioms AvailableChain.FGSA.Run.fgsa_headRead_block_slots
+#print axioms AvailableChain.FGSA.Run.fgsa_headRead_child_slot
+#print axioms AvailableChain.FGSA.Run.fgsa_exactHeadGeometry_of_retained_endpoint
+#print axioms AvailableChain.FGSA.Run.fgsa_headVote_covers_parent_of_retained_geometry
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedEndpoint_geometry_on_run
+#print axioms AvailableChain.FGSA.Run.RetainedExactHeadRunGeometry
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedExactHead_geometry_on_run
+#print axioms AvailableChain.FGSA.Run.fgsa_retained_source_stop
+#print axioms AvailableChain.FGSA.Run.exactService_head_of_retained_proposal
+#print axioms AvailableChain.FGSA.Run.exactService_head_of_retained_proposal_clean
+#print axioms AvailableChain.FGSA.Run.exactService_head_of_retained_proposal_recovery
