@@ -756,3 +756,24 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.FGSAClaims.cleanInclusion
 #print axioms AvailableChain.FGSA.Run.FGSAClaims.firstFinalityRecFE
 #print axioms AvailableChain.FGSA.Run.FGSAClaims.firstFinalityRecF4
+
+#print axioms AvailableChain.FGSA.Run.fgsa_apiHonestNeverSlashedClaim_body
+#print axioms AvailableChain.FGSA.Run.fgsa_pureAccountableClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_pureAgreementClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_wholeRunAccountableClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_wholeRunAgreementClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_eventPrefixAgreementClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_faultCountSlashableBoundClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_finalizedMonotonicityClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_honestNeverSlashedClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_finalizedSafetyClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_finalLockClaim
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.finalityLivenessGSTRecFE
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.finalityLivenessGSTRecF4
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.proposalFinalGSTRecFE
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.proposalFinalGSTRecF4
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.aboveFrontierGSTRecFE
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.aboveFrontierGSTRecF4
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.availableGST
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.availableGrowthGST
+#print axioms AvailableChain.FGSA.Run.fgsa_availableGST

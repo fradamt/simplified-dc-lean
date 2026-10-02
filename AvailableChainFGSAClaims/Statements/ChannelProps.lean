@@ -442,7 +442,8 @@ theorem TChain_def (b₀ : Time) :
       ((heightView p X).h, X.root) = e ∧ Block.Preceq (eraseFG X) B)) := rfl
 
 /-- 03 §8.3 (702–726): after arming at d_j, honest sources are compatible
-with protected B. Consumers: no lane assumes this; F3 proves it. -/
+with protected B. Vocabulary: no claim asserts or consumes this predicate;
+a bounded form (actionTime r < b₁) stays private to stage-5 O-INDUCT. -/
 def TCompat (B : Block) (j : Slot) : Prop := ∀ x r C, x ∈ rho.honest →
   SA.gateTime p.toParams j ≤ p.actionTime r → actionSource p c E rho x r = some (some C) →
   Block.Compatible C B

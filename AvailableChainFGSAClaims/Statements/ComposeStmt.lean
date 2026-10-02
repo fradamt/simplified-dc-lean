@@ -179,43 +179,11 @@ theorem ResetArrivalFullStatement_def (G ΔF : Time) :
     E.t_GST + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
     ∃ w, H0 p c E rho w ∧ p.actionTime w.rStar < E.t_GST + B'_resetF p ΔF G) := by rfl
 
-/-- bp.finalityKernel.v1 conclusion (00:1124–1128), P3 A.10.
-Consumer: kernel and finality claims. Afg is concluded, not assumed held.
-Acceptance is strictly before the deadline. -/
-def KernelConclusion (r : Nat) : Prop := ∀ A,
-  HonestProposal E rho (fgsaInterface p c) (r * p.R) A →
-  ∃ Afg : FGBlock (Fin p.n), eraseFG Afg = A ∧
-    (∀ x ∈ rho.honest, Afg ∈ (storeAt p c E rho rho.events.length x).fg.TF) ∧
-    ∃ U : FGBlock (Fin p.n), FGBlock.Preceq Afg U ∧ Afg ≠ U ∧
-      (heightView p U).h = (heightView p Afg).h + 1 ∧
-      ∀ x ∈ rho.honest, AcceptsFinalBefore p c E rho x U (↑(r + 2) * P p + 9 * p.Δ)
-/-- Kernel point (00:1119–1134; 22 §1), P3 A.10 D12. Consumer: KernelPrem. -/
+/-- Kernel point (00:1119–1134; 22 §1), P3 A.10 D12.
+Consumers: FinalityKernelClaim_W and KernelPrem_W. -/
 structure KernelPt where
   w : HealingWitness
   r : Nat
-/-- Kernel premise split (22 §1:41–63; 00:1122–1123), P3 A.10.
-Consumer: KernelFromContract. The disjunction is one run premise. -/
-structure KernelPrem [Fintype V] (G : Time) (E : Generic.Env V)
-    (rho : V2.D.Run V (fgsa p c)) (pt : KernelPt) : Prop where
-  set : Recovery₂ p c E rho G
-  window : (FGood (Gen.V2.Duty.HonestSlot rho (fgsaInterface p c)) p.R pt.r ∧ G ≤ P p) ∨
-    FGood4 (Gen.V2.Duty.HonestSlot rho (fgsaInterface p c)) p.R pt.r
-  start : tstar p pt.w ≤ ↑pt.r * P p
-  hhor : ↑(pt.r + 2) * P p + 9 * p.Δ ≤ rho.horizon
-  input : HealingInput p c E rho pt.w E.Δ
-  services : CoreServices p c E rho pt.w
-/-- Kernel from contract (00:1119–1134; 22 §1:41–63), P3 A.10.
-Consumer: split-to-joined composition. The delay ratio is a parameter premise. -/
-def KernelFromContract : Prop := p.δt = 2 * p.R →
-  ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (G : Time) (pt : KernelPt),
-    KernelPrem p c G E rho pt → KernelConclusion p c E rho pt.r
-/-- AC side (01:126–129), P3 A.10. Consumer: kernel_of_split (F0.6b).
-Recovery supplies participation and receipt; services are not HealingInput fields. -/
-def KernelACSide : Prop := p.δt = 2 * p.R →
-  ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (G : Time) (w : HealingWitness),
-    Recovery₂ p c E rho G → HealingInput p c E rho w E.Δ → CoreServices p c E rho w
 /-- Joined kernel start (21 H.18:2868–2876), P3 A.10 D44.
 No consumer. This historical observation does not supply HealingInput.
 KernelJoinedPrem binds the common input witness and its start time directly. -/

@@ -59,9 +59,10 @@ def FinalityLivenessConcl_W {In V : Type} [DecidableEq V] (c : AppCodec In)
 
 /-- Blueprint 22:1382–1384. DC: INTENTIONAL GST composition with an output healing witness. -/
 def FirstFinalityConcl_W {In V : Type} [DecidableEq V] (c : AppCodec In)
-    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (ΔF : Time)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (ΔF : Time) (G : Time)
     (deadline : Time) : Prop :=
-  ∃ w, HealingInput p c E rho w ΔF ∧ FinalityLivenessConcl_W p c E rho (tstar p w) deadline
+  ∃ w, HealingInput p c E rho w ΔF ∧ tstar p w < E.t_GST + B_HF p ΔF G ∧
+    FinalityLivenessConcl_W p c E rho (tstar p w) deadline
 
 /-- Blueprint 22:1421–1430. DC: INTENTIONAL specified proposal prefix coverage. -/
 def ProposalFinalConcl_W {In V : Type} [DecidableEq V] (c : AppCodec In)
@@ -82,7 +83,7 @@ def FirstFinalityRecFEClaim_W : Prop :=
     {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit),
     FirstFinalityPrem_W p c G ΔF .recFE g E rho pt →
-    FirstFinalityConcl_W p c E rho ΔF (E.t_GST + B_HF p ΔF G + W_W p ΔF g)
+    FirstFinalityConcl_W p c E rho ΔF G (E.t_GST + B_HF p ΔF G + W_W p ΔF g)
 
 /-- Blueprint 22:1382–1384. DC: INTENTIONAL FirstFinality W contract; full finite horizon.
 The conclusion supplies a HealingInput witness from H-time. -/
@@ -91,7 +92,7 @@ def FirstFinalityRecF4Claim_W : Prop :=
     {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit),
     FirstFinalityPrem_W p c G ΔF .recF4 g E rho pt →
-    FirstFinalityConcl_W p c E rho ΔF (E.t_GST + B_HF p ΔF G + W_W p ΔF g)
+    FirstFinalityConcl_W p c E rho ΔF G (E.t_GST + B_HF p ΔF G + W_W p ΔF g)
 
 /-- Blueprint 22:1371–1380. DC: INTENTIONAL FinalityLiveness W contract; full finite horizon.
 The package supplies one common HealingInput witness. -/
@@ -157,7 +158,7 @@ def FinalityLivenessGSTClaim_W (form : FinFormW) : Prop :=
     (c : AppCodec In) (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) (pt : PtT),
     FinalityLivenessGSTPrem_W p c G ΔF form g E rho pt →
-    ∃ w, HealingInput p c E rho w ΔF ∧
+    ∃ w, HealingInput p c E rho w ΔF ∧ tstar p w < E.t_GST + B_HF p ΔF G ∧
       FinalityLivenessConcl_W p c E rho pt.t
         (pt.t + W_W p ΔF g)
 
@@ -169,7 +170,7 @@ def ProposalFinalGSTClaim_W (form : FinFormW) : Prop :=
     (c : AppCodec In) (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) (pt : PtSX),
     ProposalFinalGSTPrem_W p c G ΔF form g E rho pt →
-    ∃ w, HealingInput p c E rho w ΔF ∧
+    ∃ w, HealingInput p c E rho w ΔF ∧ tstar p w < E.t_GST + B_HF p ΔF G ∧
       ProposalFinalConcl_W p c E rho pt.X
         (V2.D.proposalTime (fgsaInterface p c) pt.s +
           W_W p ΔF g)
@@ -182,7 +183,7 @@ def AboveFrontierGSTClaim_W (form : FinFormW) : Prop :=
     (c : AppCodec In) (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) (pt : PtT),
     AboveFrontierGSTPrem_W p c G ΔF form g E rho pt →
-    ∃ w, HealingInput p c E rho w ΔF ∧
+    ∃ w, HealingInput p c E rho w ΔF ∧ tstar p w < E.t_GST + B_HF p ΔF G ∧
       AboveFrontierConcl_W p c E rho pt.t
         (pt.t + 2 * W_W p ΔF g)
 

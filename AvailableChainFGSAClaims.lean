@@ -20,6 +20,6 @@ public import AvailableChainFGSAClaims.Statements.WeakContinuation
 public import AvailableChainFGSAClaims.Claims.WeakContinuation
 public import AvailableChainFGSAClaims.Statements.FinalityApi
 public import AvailableChainFGSAClaims.Statements.Packages.Inclusion
-public import AvailableChainFGSAClaims.Claims.FinalitySafety
+public import AvailableChainFGSAClaims.Claims.Foundations
 public import AvailableChainFGSAClaims.Claims.Outage
 public import AvailableChainFGSAClaims.Statements.Packages.FinalityGST

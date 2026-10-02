@@ -3933,3 +3933,5 @@ G11 items kept for a separate scope: forbidden GridCO ghostStep proof substituti
 helper API and 5a consumer imports, persist_lift/persist_parent copies,
 RetainedExactHeadRunGeometry.admitted, and the named wellFormed parent-slot projection.
 F7's extra public producer names are valid; no deletion is authorized here.
+
+Q4: DC constants : C.Valid vs FG-SA Params: INTENTIONAL: FG-SA puts structural validity in Params and recovery-specific restrictions in claim premises; no equivalence of the constant systems is asserted (post-recovery-outputs.md §4).

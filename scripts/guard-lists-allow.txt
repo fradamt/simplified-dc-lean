@@ -12,3 +12,15 @@ EXPECTED AvailableChain.FGSA.Run.QualifiedFinalityPrem S4.6: old FinForm finalit
 EXPECTED AvailableChain.FGSA.Run.SkipFinalityPrem S4.6: old FinForm finality package dropped; W recurrence replaces it
 EXPECTED AvailableChain.FGSA.Run.FinalitySet S4.6: replaced by FinalitySet_W (W recurrence)
 EXPECTED AvailableChain.FGSA.Run.B'_reset S4.4b N4: unused reset bound removed; B'_resetF stays
+EXPECTED AvailableChain.FGSA.Run.HTimeBestStatement deferred to post-freeze companion (user 2026-10-02); text at a3b05c4868cfbde7f6789c71ee9e2c1908db447a
+EXPECTED AvailableChain.FGSA.Run.HTimeBestStatement_def deferred to post-freeze companion (user 2026-10-02); text at a3b05c4868cfbde7f6789c71ee9e2c1908db447a
+EXPECTED AvailableChain.FGSA.Run.HTimeSearchStatement deferred to post-freeze companion (user 2026-10-02); text at a3b05c4868cfbde7f6789c71ee9e2c1908db447a
+EXPECTED AvailableChain.FGSA.Run.HTimeSearchStatement_def deferred to post-freeze companion (user 2026-10-02); text at a3b05c4868cfbde7f6789c71ee9e2c1908db447a
+EXPECTED AvailableChain.FGSA.Run.KernelConclusion S4.6c A2: withdrawn kernel law
+EXPECTED AvailableChain.FGSA.Run.KernelPrem S4.6c A2: withdrawn kernel law
+EXPECTED AvailableChain.FGSA.Run.KernelFromContract S4.6c A2: withdrawn kernel law
+EXPECTED AvailableChain.FGSA.Run.KernelACSide S4.6c A2: withdrawn kernel law
+EXPECTED AvailableChain.FGSA.Run.B_Q S4.6 review F2: unused; plan §1.6 DROP
+EXPECTED AvailableChain.FGSA.Run.B_skip S4.6 review F2: unused; plan §1.6 DROP
+EXPECTED AvailableChain.FGSA.Run.γ S4.6 review F2: unused
+EXPECTED AvailableChain.FGSA.Run.formWin S4.6 review F2: unused

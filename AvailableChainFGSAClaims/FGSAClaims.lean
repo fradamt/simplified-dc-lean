@@ -2,7 +2,6 @@ module
 public import AvailableChainFGSAClaims.Claims.Foundations
 public import AvailableChainFGSAClaims.Claims.Shared
 public import AvailableChainFGSAClaims.Claims.Clean
-public import AvailableChainFGSAClaims.Claims.FinalitySafety
 public import AvailableChainFGSAClaims.Claims.Outage
 public import AvailableChainFGSAClaims.Claims.Finality
 
@@ -10,6 +9,8 @@ public import AvailableChainFGSAClaims.Claims.Finality
 
 /-! P3 §4.8: the exported safety claims. Only the Claims root and the exact
 Proofs.Assembly.Root import this module (SYN L58).
+G-F0b: FGSAClaims and FGSAFinalityClaims collect OUTPUT claims only (DC Consensus shape).
+Healing, H-time, and local kernel / FF5–FF7 claims stay Claims-module interfaces.
 The zero and positive Clean lane Props are not exported claims. The receipt
 and suffix-walk rows cite their existing statements in their claim homes. -/
 
@@ -97,6 +98,14 @@ structure FGSAClaims (p : FGSA.Params) : Prop extends FGSASafetyClaims p where
   cleanInclusion : CleanInclusionClaim p
   firstFinalityRecFE : FirstFinalityRecFEClaim_W p
   firstFinalityRecF4 : FirstFinalityRecF4Claim_W p
+  finalityLivenessGSTRecFE : FinalityLivenessGSTClaim_W p .recFE
+  finalityLivenessGSTRecF4 : FinalityLivenessGSTClaim_W p .recF4
+  proposalFinalGSTRecFE : ProposalFinalGSTClaim_W p .recFE
+  proposalFinalGSTRecF4 : ProposalFinalGSTClaim_W p .recF4
+  aboveFrontierGSTRecFE : AboveFrontierGSTClaim_W p .recFE
+  aboveFrontierGSTRecF4 : AboveFrontierGSTClaim_W p .recF4
+  availableGST : AvailableGSTClaim p
+  availableGrowthGST : AvailableGrowthGSTClaim p
 
 end AvailableChain.FGSA.Run
 end
