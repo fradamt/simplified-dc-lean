@@ -179,6 +179,22 @@ theorem ValidForParent_def (s : Slot) (Q : Block) (a : RowWire p.n) :
       (∃ st H, proposalStateAt p c E rho s = some st ∧
     FGSA.fgBlockOf st Q.parent = some H ∧
     FGSA.rowValidFor (FGSA.parentFoldState p s H) a = true) := rfl
+/-- The height pair matches the current target of the proposal parent.
+DC: SAME height entry; INTENTIONAL explicit consumer premise for the fold switch. -/
+def HeightMatch (s : Slot) (Q : Block) (a : RowWire p.n) : Prop :=
+  ∃ st H, proposalStateAt p c E rho s = some st ∧
+    FGSA.fgBlockOf st Q.parent = some H ∧
+    namedEntry a.payload.height_pair =
+      some ((FGSA.parentFoldState p s H).h, (FGSA.parentFoldState p s H).T_h.root)
+
+/-- DC: SAME defining equation for the height-entry premise. -/
+theorem HeightMatch_def (s : Slot) (Q : Block) (a : RowWire p.n) :
+    HeightMatch p c E rho s Q a =
+      (∃ st H, proposalStateAt p c E rho s = some st ∧
+        FGSA.fgBlockOf st Q.parent = some H ∧
+        namedEntry a.payload.height_pair =
+          some ((FGSA.parentFoldState p s H).h, (FGSA.parentFoldState p s H).T_h.root)) := rfl
+
 /-- Label-s HEAD on the post-clock state at v_s (01:150–157).
 Consumers: H2.A, H2′, H3, H5 and H6. -/
 def headAtLabel (x : V) (s : Slot) : Option Block :=

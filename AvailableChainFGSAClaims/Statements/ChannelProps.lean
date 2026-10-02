@@ -704,21 +704,39 @@ def TRowsSelect : Prop := ∀ s Q rows j y r (a : RowWire p.n),
   HonestCarrier p c E rho s Q rows → HonestRowAt p c E rho j y r a →
   ValidForParent p c E rho s Q a → heldAtProposal p c E rho s a →
   a ∈ rows ∨ onParentChain p c E rho s Q a
-/-- T-ROWS synchronous service (21:3076–3080; 01:101–106), P3 A.6.
-Consumers: 22 F1–F5, F9, FF3–FF4, FL-W, FL-RF, FL-D.
-Only receipt needs a horizon guard; carriage ranges over actual proposals. -/
-def TRowsSync : Prop := ∀ j y r (a : RowWire p.n),
+/-- T-ROWS post-GST receipt and parent-valid carriage, including sleepers.
+DC: SAME strict receipt; INTENTIONAL independent row delay and R6 selection. -/
+def TRowsSync (ΔF : Time) : Prop := ∀ j y r (a : RowWire p.n),
   HonestRowAt p c E rho j y r a → E.t_GST ≤ p.actionTime r →
-  (p.actionTime r + p.Δ ≤ rho.horizon →
-    ∀ x ∈ rho.honest, HeldBefore p c E rho x a (p.actionTime r + p.Δ)) ∧
+  (p.actionTime r + ΔF ≤ rho.horizon →
+    ∀ x ∈ rho.honest, HeldBefore p c E rho x a (p.actionTime r + ΔF)) ∧
   (∀ s Q rows, HonestCarrier p c E rho s Q rows →
-    (p.round s = r ∨ p.round s = r + 1) →
-    p.actionTime r + 2 * p.Δ ≤ SA.proposalTime p.toParams s →
+    ValidForParent p c E rho s Q a →
+    p.actionTime r + ΔF ≤ SA.proposalTime p.toParams s →
     a ∈ rows ∨ onParentChain p c E rho s Q a)
-/-- T-ROWS (21 H.22:3072–3084), P3 A.6. Consumers: HealT and 22 I6. -/
-structure TRows : Prop where
+
+/-- T-ROWS all-emissions receipt, including pre-GST sends and sleepers.
+DC: SAME strict max deadline and full horizon; INTENTIONAL row delay ΔF. -/
+def TRowsReceipt (ΔF : Time) : Prop := ∀ j y r (a : RowWire p.n),
+  HonestRowAt p c E rho j y r a →
+  max (p.actionTime r) E.t_GST + ΔF ≤ rho.horizon →
+  ∀ x ∈ rho.honest,
+    HeldBefore p c E rho x a (max (p.actionTime r) E.t_GST + ΔF)
+
+/-- DC: SAME defining equation of strict receipt. -/
+theorem TRowsReceipt_def (ΔF : Time) :
+    TRowsReceipt p c E rho ΔF =
+      (∀ j y r (a : RowWire p.n), HonestRowAt p c E rho j y r a →
+        max (p.actionTime r) E.t_GST + ΔF ≤ rho.horizon →
+        ∀ x ∈ rho.honest,
+          HeldBefore p c E rho x a (max (p.actionTime r) E.t_GST + ΔF)) := rfl
+
+/-- T-ROWS (21 H.22:3072–3084), P3 A.6. Consumers: HealT and height coverage.
+DC: SAME transport clauses; INTENTIONAL held-row/R6 interface and row delay. -/
+structure TRows (ΔF : Time) : Prop where
   select : TRowsSelect p c E rho
-  sync : TRowsSync p c E rho
+  sync : TRowsSync p c E rho ΔF
+  receipt : TRowsReceipt p c E rho ΔF
 
 /-- Source of an earlier emitted height row (21 H.13:2487–2585), P3 A.3.
 Consumers: RExcl, RKeep, RFProv. Includes a selected source with an empty signed pair. -/
@@ -899,19 +917,29 @@ def TRepair : Prop := ∀ G u v m J contested,
       HonestProposal E rho (fgsaInterface p c) s Q ∧ ExactService p c E rho s Q))
 
 /-- Nonempty sources and signed rows at an opening (21 H.9:1131–1144), P3 A.8.
-Consumer: common-entry and frontier service. -/
-def OpeningExtends (r : Nat) (Q : Block) : Prop := ∀ x ∈ rho.honest,
-  ∃ K nd j a, postClock E rho x (p.actionTime r) = some nd ∧
+Consumer: common-entry and frontier service.
+SO-COV earlier-or-current coverage. DC: INTENTIONAL send-once source coverage. -/
+def OpeningCovered (r : Nat) (Q : Block) : Prop := ∀ x ∈ rho.honest,
+  ∃ K nd j rSent a, postClock E rho x (p.actionTime r) = some nd ∧
     actionSourceFG p c E rho x r = some (some K) ∧ K ∈ FGSA.fullTree p nd.st ∧
-    Block.Preceq Q (eraseFG K) ∧ HonestRowAt p c E rho j x r a ∧
-    namedEntry a.payload.height_pair = some (hOf p.E p.cfg K, (derive p.E p.cfg K).T_h.root)
+    Block.Preceq Q (eraseFG K) ∧ rSent ≤ r ∧
+    HonestRowAt p c E rho j x rSent a ∧
+    namedEntry a.payload.height_pair =
+      some (hOf p.E p.cfg K, (derive p.E p.cfg K).T_h.root)
+
+/-- SO-COV coverage; retained public name for opening ancestry consumers.
+DC: INTENTIONAL send-once coverage; SAME source ancestry. -/
+def OpeningExtends (r : Nat) (Q : Block) : Prop :=
+  OpeningCovered p c E rho r Q
+
 /-- One state-height entry at an opening (21 H.9:1140–1144), P3 A.8.
 Consumer: TCommon. Bodies at one state height can differ. -/
 def OpeningEntry (r m : Nat) : Prop := ∃ e, ∀ x K, x ∈ rho.honest →
   actionSourceFG p c E rho x r = some (some K) →
   hOf p.E p.cfg K = m ∧ (derive p.E p.cfg K).T_h.root = e
 /-- T-COMMON, bp.commonEntry.v1 (00:1001–1010; 21 H.9:1100–1144),
-P3 A.8. Consumers: H.9 and HG.2. The second opening has its own phase premise. -/
+P3 A.8. Consumers: H.9 and HG.2. The second opening has its own phase premise.
+SO-COV. DC: INTENTIONAL earlier-or-current source coverage. -/
 def TCommon : Prop := ∀ u m J contested q Q Qfg r,
   E.t_GST ≤ u → HonestProposal E rho (fgsaInterface p c) q Q → eraseFG Qfg = Q →
   ExactService p c E rho q Q → u ≤ SA.proposalTime p.toParams q → q ≤ r * p.R →
@@ -919,7 +947,7 @@ def TCommon : Prop := ∀ u m J contested q Q Qfg r,
   PhaseInterval p c E rho u (p.actionTime r) m J contested →
   0 ≤ p.actionTime r - SA.gateTime p.toParams q ∧
   p.actionTime r - SA.gateTime p.toParams q ≤ P p - 4 * p.Δ ∧
-  OpeningExtends p c E rho r Q ∧
+  OpeningCovered p c E rho r Q ∧
   (∀ x y K K', x ∈ rho.honest → y ∈ rho.honest →
     actionSourceFG p c E rho x r = some (some K) →
     actionSourceFG p c E rho y r = some (some K') → Block.Compatible (eraseFG K) (eraseFG K')) ∧
@@ -930,7 +958,8 @@ def TCommon : Prop := ∀ u m J contested q Q Qfg r,
       (PhaseInterval p c E rho u (p.actionTime (r + 1)) m J contested →
         OpeningEntry p c E rho (r + 1) m)))
 /-- T-FRONTIER (21 HG.1:1333–1350), P3 A.8. Consumers: HG.1–HG.5.
-The initial proposal is served in its phase. Subsequent service stops at frontier rise. -/
+The initial proposal is served in its phase. Subsequent service stops at frontier rise.
+SO-COV. DC: INTENTIONAL earlier-or-current source coverage. -/
 def TFrontier : Prop := ∀ u v m J contested q Q Qfg,
   E.t_GST ≤ u → HonestProposal E rho (fgsaInterface p c) q Q → eraseFG Qfg = Q →
   hOf p.E p.cfg Qfg = m → ExactService p c E rho q Q →
@@ -941,11 +970,27 @@ def TFrontier : Prop := ∀ u v m J contested q Q Qfg,
     (storeAt p c E rho i x).fg.h_max ≤ m) →
   Transfers p c E rho q Q v ∧ RepairAfter p c E rho q v ∧
   (∀ r, q ≤ r * p.R → p.actionTime r ≤ v →
-    OpeningExtends p c E rho r Q ∧ OpeningEntry p c E rho r m ∧
+    OpeningCovered p c E rho r Q ∧ OpeningEntry p c E rho r m ∧
     (∀ x K, x ∈ rho.honest → actionSourceFG p c E rho x r = some (some K) →
       (derive p.E p.cfg K).T_h = (derive p.E p.cfg Qfg).T_h) ∧
     ((∀ r', q ≤ r' * p.R → r ≤ r') →
       p.actionTime r - SA.gateTime p.toParams q ≤ P p - 4 * p.Δ))
+
+/-- Raw wire origin under the honest-holder implication.
+DC: SAME honest origin; INTENTIONAL fixed FG seat and emission action. -/
+def FinalityRowCarriage (A : Finset (Row (Fin p.n))) : Prop :=
+  ∀ u ∈ A, ∃ a : RowWire p.n,
+    a.toRow? = some u ∧ a.auth = .seat .fg u.signer ∧
+    ∀ z : V, RowSigner p c rho a z → z ∈ rho.honest →
+      ∃ j r, HonestRowAt p c E rho j z r a
+
+/-- DC: SAME equation for raw wire origin. -/
+theorem FinalityRowCarriage_def (A : Finset (Row (Fin p.n))) :
+    FinalityRowCarriage p c E rho A =
+      (∀ u ∈ A, ∃ a : RowWire p.n,
+        a.toRow? = some u ∧ a.auth = .seat .fg u.signer ∧
+        ∀ z : V, RowSigner p c rho a z → z ∈ rho.honest →
+          ∃ j r, HonestRowAt p c E rho j z r a) := by rfl
 
 end AvailableChain.FGSA.Run
 end

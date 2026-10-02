@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSA.Proofs.WindowInvariant
 public import AvailableChainFGSA.Proofs.WindowHeightBridge
 public import AvailableChainFGSA.Proofs.Head.Score -- shake: keep (F1b.4a axiom audit)
 public import AvailableChainFGSA.Proofs.Head.Walk -- shake: keep (F1b.4a axiom audit)
@@ -367,3 +368,17 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 #print axioms AvailableChain.FGSA.Window.heightRefinement
 #print axioms AvailableChain.FGSA.Window.windowHeightBridge
 #print axioms AvailableChain.FGSA.Window.windowHeightLaws
+
+-- Proofs/WindowInvariant.lean
+#print axioms AvailableChain.FGSA.Window.window_ordered
+#print axioms AvailableChain.FGSA.Window.window_bounds
+#print axioms AvailableChain.FGSA.Window.window_capacity
+#print axioms AvailableChain.FGSA.Window.window_post_not_ready
+#print axioms AvailableChain.FGSA.Window.window_F_preceq_J
+#print axioms AvailableChain.FGSA.Window.window_hF_le_hj
+#print axioms AvailableChain.FGSA.Window.window_finalized_zero
+#print axioms AvailableChain.FGSA.Window.window_hF_mono
+#print axioms AvailableChain.FGSA.Window.window_F_mono
+#print axioms AvailableChain.FGSA.Window.window_bit_retained
+#print axioms AvailableChain.FGSA.Window.window_no_reentry
+#print axioms AvailableChain.FGSA.Window.window_finality_of_cover

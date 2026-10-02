@@ -32,7 +32,7 @@ structure State (V : Type) where
 
 variable {V : Type}
 
-/-- [spec 594–617] Genesis state, with an empty window. -/
+/-- [spec 722–728] Genesis state, with an empty window. -/
 def initial : State V :=
   { L := .genesis, s := 0, h := 1, T_h := .genesis
     target_participation := ∅, progress := ∅, W := []
@@ -44,7 +44,7 @@ theorem initial_def :
      target_participation := ∅, progress := ∅, W := [],
      J := .genesis, h_j := 0, F := .genesis, h_F := 0 }) := rfl
 
-/-- [spec 1202–1218] Independent finality and height effects. Every matching
+/-- [spec 1201–1216] Independent finality and height effects. Every matching
 entry gets the bit; uniqueness of matching entries is a separate invariant. -/
 def process_row [DecidableEq V] [RowCodec V] (σ : State V) (a : Row V) : State V :=
   let afterFinality := { σ with W := σ.W.map (fun e =>
@@ -128,7 +128,7 @@ theorem finalizeWindow_def [Fintype V] (E : Electorate V) (σ : State V) :
     | some e => { σ with F := e.X, h_F := e.j }
   { σ' with W := σ'.W.filter (fun e => decide (σ'.h_F < e.j)) }) := rfl
 
-/-- [spec 1228] Unit quorum on target identities, via the electorate. -/
+/-- [spec 1226] Unit quorum on target identities, via the electorate. -/
 def targetQuorum [Fintype V] (E : Electorate V) (σ : State V) : Bool :=
   decide (E.q ≤ E.weightOf σ.target_participation)
 
@@ -136,7 +136,7 @@ theorem targetQuorum_def [Fintype V] (E : Electorate V) (σ : State V) :
     targetQuorum E σ =
   (decide (E.q ≤ E.weightOf σ.target_participation)) := rfl
 
-/-- [spec 1237–1240] The SimplexFG progress guard; target has priority. -/
+/-- [spec 1235–1236] The SimplexFG progress guard; target has priority. -/
 def progReady [Fintype V] (E : Electorate V) (cfg : FGConfig) (σ : State V) : Bool :=
   targetQuorum E σ ||
     (decide (σ.T_h.slot + cfg.timeoutDelay ≤ σ.s) &&

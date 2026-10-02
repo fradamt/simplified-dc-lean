@@ -13,6 +13,8 @@ public import AvailableChainFGSAProofs.Proofs.Foundations.Sources
 public import AvailableChainFGSAProofs.Proofs.Foundations.Timing -- shake: keep (timing interface exports)
 
 
+public import AvailableChainFGSAProofs.Proofs.Foundations.RowService
+
 public section
 
 namespace AvailableChain.FGSA.Run
@@ -98,7 +100,10 @@ theorem sourceDiscipline_base {Pt : Type} {pt : Pt}
   have hs := hb.set.valid.toScheduleWellFormed
   exact ⟨sourceDiscipline_tSrc p c E rho hs,
     sourceDiscipline_labelBound p c E rho hs,
-    fun _ _ _ _ _ ha he => sourceDiscipline_emittedName p c E rho hs ha he⟩
+    fun _ _ _ _ ha => by
+      obtain ⟨e, he⟩ := sourceDiscipline_emittedNonempty p c E rho ha
+      obtain ⟨C, G, h⟩ := sourceDiscipline_emittedName p c E rho hs ha he
+      exact ⟨e, C, G, he, h⟩⟩
 
 /-- The source-discipline conclusion, with the frozen F1.1 and F1.3 inputs. -/
 theorem sourceDiscipline_at [Fintype V] {Pt : Type} {pt : Pt}
@@ -138,6 +143,19 @@ theorem fgsa_outputNestingAt : OutputNestingAt p c E rho :=
 
 theorem fgsa_outputNestingClaim : OutputNestingClaim p :=
   fun c E rho => fgsa_outputNestingAt p c E rho
+
+
+/-- The row-service base claim keeps execution, no restart, and synchrony explicit.
+DC: INTENTIONAL FG service adapter. -/
+theorem fgsa_rowServiceBaseClaim (ΔF : Time) : RowServiceBaseClaim p ΔF := by
+  intro V _ _ In c E rho hΔ hv hnr hsync hΔF
+  exact fgsa_tRows p c E rho ΔF hΔ hv hnr hsync hΔF
+
+/-- The family regime binds the row delay used by the service.
+DC: INTENTIONAL FG service package; SAME execution and no-restart premises. -/
+theorem fgsa_rowServiceClaim (ΔF : Time) : RowServiceClaim p ΔF := by
+  intro G _hδ V _ _ In c E rho _pt h
+  exact fgsa_tRows p c E rho ΔF h.base.delta h.base.valid h.base.noRestart h.sync h.deltaF
 
 
 end AvailableChain.FGSA.Run

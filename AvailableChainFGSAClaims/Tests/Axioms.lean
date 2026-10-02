@@ -1,4 +1,6 @@
 module
+public import AvailableChainFGSAClaims.Statements.Phases -- shake: keep (07-H audit)
+public import AvailableChainFGSAClaims.Claims.Healing -- shake: keep (07-H audit)
 public import AvailableChainFGSAClaims.Statements.Packages.Finality -- shake: keep (public aliases or axiom audit commands)
 public import AvailableChainFGSAClaims.Statements.Packages.Healing -- shake: keep (public aliases or axiom audit commands)
 public import AvailableChainFGSAClaims.Claims.Foundations -- shake: keep (axiom audit commands)
@@ -356,3 +358,56 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.ResetArrivalFullPrem
 #print axioms AvailableChain.FGSA.Run.KernelJoinedPrem
 #print axioms AvailableChain.FGSA.Run.HealingAttemptPrem
+
+-- fg-noround/07-H additions.
+#print axioms AvailableChain.FGSA.Run.RowServiceBaseClaim
+#print axioms AvailableChain.FGSA.Run.TRowsReceipt
+#print axioms AvailableChain.FGSA.Run.TRowsReceipt_def
+#print axioms AvailableChain.FGSA.Run.OpeningCovered
+#print axioms AvailableChain.FGSA.Run.FinalityRowCarriage
+#print axioms AvailableChain.FGSA.Run.FinalityRowCarriage_def
+#print axioms AvailableChain.FGSA.Run.HeightMatch
+#print axioms AvailableChain.FGSA.Run.HeightMatch_def
+#print axioms AvailableChain.FGSA.Run.SettledPhaseFrame
+#print axioms AvailableChain.FGSA.Run.SettledPhaseFrame_def
+#print axioms AvailableChain.FGSA.Run.RPhase
+#print axioms AvailableChain.FGSA.Run.RPhase_def
+#print axioms AvailableChain.FGSA.Run.HealRContract
+#print axioms AvailableChain.FGSA.Run.ProgressAttemptStatement
+#print axioms AvailableChain.FGSA.Run.HealingInputPrem
+#print axioms AvailableChain.FGSA.Run.RenewedPromotionPrem
+#print axioms AvailableChain.FGSA.Run.RowPermissionAt
+#print axioms AvailableChain.FGSA.Run.RowPermissionClaim
+#print axioms AvailableChain.FGSA.Run.RowServiceClaim
+#print axioms AvailableChain.FGSA.Run.HealingInputClaim
+#print axioms AvailableChain.FGSA.Run.HTimeConcl
+#print axioms AvailableChain.FGSA.Run.HTimeClaim
+#print axioms AvailableChain.FGSA.Run.ResetArrivalConcl
+#print axioms AvailableChain.FGSA.Run.ResetArrivalClaim
+#print axioms AvailableChain.FGSA.Run.RenewedPromotionConcl
+#print axioms AvailableChain.FGSA.Run.RenewedPromotionClaim
+#print axioms AvailableChain.FGSA.Run.RowKind
+#print axioms AvailableChain.FGSA.Run.RowNames
+#print axioms AvailableChain.FGSA.Run.SlotChain
+#print axioms AvailableChain.FGSA.Run.EntryAt
+#print axioms AvailableChain.FGSA.Run.JustifiedCross
+#print axioms AvailableChain.FGSA.Run.MixedCross
+#print axioms AvailableChain.FGSA.Run.NoMixedOnPath
+#print axioms AvailableChain.FGSA.Run.SeatCovers
+#print axioms AvailableChain.FGSA.Run.CoveredByChild
+#print axioms AvailableChain.FGSA.Run.foldTrichotomy
+#print axioms AvailableChain.FGSA.Run.StoredProgressConsume
+#print axioms AvailableChain.FGSA.Run.NoMixedMaturity
+#print axioms AvailableChain.FGSA.Run.NamesEntry
+#print axioms AvailableChain.FGSA.Run.rowHeight
+#print axioms AvailableChain.FGSA.Run.eventTime
+#print axioms AvailableChain.FGSA.Run.honestSeats
+#print axioms AvailableChain.FGSA.Run.ChainRowsBefore
+#print axioms AvailableChain.FGSA.Run.PreBatchPrem
+#print axioms AvailableChain.FGSA.Run.NoMixedPreBatchParent
+#print axioms AvailableChain.FGSA.Run.BatchPrem
+#print axioms AvailableChain.FGSA.Run.BatchCoverage
+#print axioms AvailableChain.FGSA.Run.FirstCross
+#print axioms AvailableChain.FGSA.Run.ProposalWalk
+#print axioms AvailableChain.FGSA.Run.finHeight
+#print axioms AvailableChain.FGSA.Run.FreshPrem

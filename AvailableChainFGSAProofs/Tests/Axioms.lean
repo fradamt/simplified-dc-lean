@@ -570,3 +570,19 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.HealthyPrefix₂.legacy_delivery
 #print axioms AvailableChain.FGSA.Run.Recovery₂.of_legacy
 #print axioms AvailableChain.FGSA.Run.Recovery₂.toRecoveryCore
+
+-- fg-noround/07-H additions.
+#print axioms AvailableChain.FGSA.Run.fgsa_finalityRowCarriage
+#print axioms AvailableChain.FGSA.Run.sourceDiscipline_emittedNonempty
+#print axioms AvailableChain.FGSA.Run.fgsa_rowBitPersist
+#print axioms AvailableChain.FGSA.Run.fgsa_rowService_receipt
+#print axioms AvailableChain.FGSA.Run.validForParent_heightMatch
+#print axioms AvailableChain.FGSA.Run.fgsa_tRowsSelect
+#print axioms AvailableChain.FGSA.Run.fgsa_rowsReceipt_carriage
+#print axioms AvailableChain.FGSA.Run.fgsa_tRowsReceipt
+#print axioms AvailableChain.FGSA.Run.fgsa_tRowsSync
+#print axioms AvailableChain.FGSA.Run.fgsa_tRows
+#print axioms AvailableChain.FGSA.Run.fgsa_rowServiceBaseClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_rowServiceClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_rowsValidStored_atProposal
+#print axioms AvailableChain.FGSA.Run.fgsa_batchCoverage

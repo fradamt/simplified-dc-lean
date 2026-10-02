@@ -11,3 +11,6 @@ public import AvailableChainFGSAClaims.Statements.Healed
 public import AvailableChainFGSAClaims.Statements.Recurrence
 public import AvailableChainFGSAClaims.Statements.Packages.Finality
 public import AvailableChainFGSAClaims.Statements.Packages.Healing
+public import AvailableChainFGSAClaims.Statements.Fold
+public import AvailableChainFGSAClaims.Statements.Phases
+public import AvailableChainFGSAClaims.Claims.Healing
