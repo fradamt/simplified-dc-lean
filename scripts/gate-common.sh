@@ -122,13 +122,14 @@ gate_slot_acquire() {
 # Fail-fast parallel steps (gate policy 2026-10-02). Start `runner <name>` for each
 # name as a background job in its OWN process group (set -m). Poll for exits (Bash
 # 3.2: no wait -n). The runner writes "<rc> <wall>" to <resultdir>/<name>.result.
-# At the first nonzero rc (or a missing result), send TERM, then KILL after
-# GATE_FF_GRACE seconds (default 5), to every other running step's process group
-# only, never to the caller's group; then return 1 with GATE_FF_FAILED=<name> and
+# At the first nonzero rc (or a missing result), send TERM to every other running
+# step's process group, wait up to GATE_FF_GRACE seconds (default 30) for them to
+# exit (EXIT traps clean up control files), then KILL the groups still alive.
+# The caller's own group is never signalled. Then return 1 with GATE_FF_FAILED=<name> and
 # GATE_FF_KILLED=" <name>..." set. Return 0 when every step passes.
 gate_parallel_failfast() {
   local runner=$1 resultdir=$2; shift 2
-  local names=("$@") pids=() state=() i j rc wall alive grace=${GATE_FF_GRACE:-5}
+  local names=("$@") pids=() state=() i j rc wall alive grace=${GATE_FF_GRACE:-30}
   GATE_FF_FAILED= GATE_FF_KILLED=
   set -m
   for i in "${!names[@]}"; do "$runner" "${names[$i]}" & pids[$i]=$!; state[$i]=run; done
@@ -149,7 +150,19 @@ gate_parallel_failfast() {
         kill -TERM -- "-${pids[$j]}" 2>/dev/null || :
         GATE_FF_KILLED="$GATE_FF_KILLED ${names[$j]}"
       done
-      sleep "$grace"
+      # Wait up to the grace for the TERM traps (control cleanups) to finish;
+      # KILL only a group that is still alive after it.
+      local waited=0 live
+      while [ "$waited" -lt "$grace" ]; do
+        live=0
+        for j in "${!names[@]}"; do
+          [ "${state[$j]}" = run ] || continue
+          # Test the whole process group: a leader can die while a child lives on.
+          if kill -0 -- "-${pids[$j]}" 2>/dev/null; then live=1; else wait "${pids[$j]}" 2>/dev/null || :; state[$j]=stopped; fi
+        done
+        [ "$live" = 1 ] || break
+        sleep 1; waited=$((waited+1))
+      done
       for j in "${!names[@]}"; do
         [ "${state[$j]}" = run ] || continue
         kill -KILL -- "-${pids[$j]}" 2>/dev/null || :
