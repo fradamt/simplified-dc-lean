@@ -42,3 +42,4 @@ public import AvailableChainFGSA.Statements.WindowCertificate
 public import AvailableChainFGSA.Proofs.WindowCertificates
 public import AvailableChainFGSA.Model.WindowStore
 public import AvailableChainFGSA.Proofs.WindowStore
+public import AvailableChainFGSA.Proofs.WindowSelection

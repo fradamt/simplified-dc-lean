@@ -199,6 +199,7 @@ gate_with_slot lake env lean --run scripts/CheckFGSAAxioms.lean "${TEST_ROOTS[@]
   Window.window_bit_retained Window.window_no_reentry Window.window_finality_of_cover \
   Window.justificationBirth_window_iff_simplex Window.window_entry_origin \
   Window.window_prefinal_entry_origin \
+  Window.windowSelectionLaws Window.windowCertificateLaws Window.windowChainCertificate \
   Window.acceptViable_eq \
   Window.update_finality_h_max_eq \
   Window.update_finality_J_eq \

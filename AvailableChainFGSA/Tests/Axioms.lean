@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSA.Proofs.WindowSelection
 public import AvailableChainFGSA.Proofs.WindowCertificates
 public import AvailableChainFGSA.Proofs.WindowStore
 public import AvailableChainFGSA.Proofs.WindowInvariant
@@ -403,3 +404,8 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 #print axioms AvailableChain.FGSA.Window.window_on_block_F_mono
 #print axioms AvailableChain.FGSA.Window.windowStoreInv_on_block
 #print axioms AvailableChain.FGSA.Window.window_on_block_TF_subset
+
+-- Proofs/WindowSelection.lean
+#print axioms AvailableChain.FGSA.Window.windowSelectionLaws
+#print axioms AvailableChain.FGSA.Window.windowCertificateLaws
+#print axioms AvailableChain.FGSA.Window.windowChainCertificate
