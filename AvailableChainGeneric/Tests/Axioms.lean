@@ -828,3 +828,8 @@ theorem, in facade order. The library globs build this test module. -/
 #print axioms AvailableChain.Gen.Pure.recFE_W_guard_lt
 #print axioms AvailableChain.Gen.Pure.recFE_W_extract
 #print axioms AvailableChain.Gen.Pure.recFE_W_receipt_lt
+
+#print axioms AvailableChain.Gen.Pure.fgood4_W_two_iff
+#print axioms AvailableChain.Gen.Pure.fgoodE_W_full_round_iff
+#print axioms AvailableChain.Gen.Pure.recF4_W_two_iff
+#print axioms AvailableChain.Gen.Pure.recF4_W_two_iff_holds
