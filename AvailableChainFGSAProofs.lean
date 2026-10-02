@@ -1,4 +1,10 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Finality.CoreServices
+public import AvailableChainFGSAProofs.Proofs.Finality.Height
+public import AvailableChainFGSAProofs.Proofs.Finality.History
+public import AvailableChainFGSAProofs.Proofs.Finality.Rows
+public import AvailableChainFGSAProofs.Proofs.Finality.Carry
+public import AvailableChainFGSAProofs.Proofs.Finality.Batch
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseRelay
 public import AvailableChainFGSAProofs.Proofs.Healing.Phase
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseFrame

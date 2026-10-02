@@ -28,6 +28,35 @@ LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainF
 CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = (
+    # C-CORE: --expect DATA only.
+    'AvailableChain.FGSA.Run.fgsa_tStart',
+    'AvailableChain.FGSA.Run.fgsa_tWalk',
+    'AvailableChain.FGSA.Run.fgsa_tVote',
+    'AvailableChain.FGSA.Run.fgsa_coreServices',
+    # K-HISTORY: run-level history bodies; --expect DATA only.
+    'AvailableChain.FGSA.Run.noMixedPreBatchParent',
+    'AvailableChain.FGSA.Run.justifyFresh_W',
+    'AvailableChain.FGSA.Run.raw_causal_cap_before',
+    'AvailableChain.FGSA.Run.raw_causal_cap_at_tick',
+    'AvailableChain.FGSA.Run.raw_causal_cap_through_action',
+    # K-HEIGHT: height adapters; --expect DATA only.
+    'AvailableChain.FGSA.Run.fgsa_foldTrichotomy_target',
+    'AvailableChain.FGSA.Run.fgsa_foldTrichotomy_progress',
+    'AvailableChain.FGSA.Run.fgsa_storedProgressConsume',
+    'AvailableChain.FGSA.Run.fgsa_noMixedMaturity',
+    'AvailableChain.FGSA.Run.fgsa_justifyAt',
+    # K-ROWS: --expect DATA only.
+    'AvailableChain.FGSA.Run.pending_action_head',
+    'AvailableChain.FGSA.Run.finality_action_source',
+    'AvailableChain.FGSA.Run.fresh_unanimous_rows',
+    'AvailableChain.FGSA.Run.actual_anchor_cap',
+    'AvailableChain.FGSA.Run.actual_anchor_retained_or_covered',
+    # K-CARRY: --expect DATA only.
+    'AvailableChain.FGSA.Run.terminalCarriage_general_W',
+    'AvailableChain.FGSA.Run.terminalCarriage_W_of_tRowsSelect',
+    # K-BATCH: --expect DATA only.
+    'AvailableChain.FGSA.Run.finalityRow_bit_or_carried_W',
+    'AvailableChain.FGSA.Run.finalityBatchCoverage_W_of_tRowsSelect',
     # S4.6c: --expect DATA only.
     'AvailableChain.FGSA.Run.fgsa_availableGST',
     'AvailableChain.FGSA.Run.AvailableFromConcl',
