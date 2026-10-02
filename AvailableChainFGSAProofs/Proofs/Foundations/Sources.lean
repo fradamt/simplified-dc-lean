@@ -150,6 +150,18 @@ theorem sourceDiscipline_labelBound (hs : V2.D.ScheduleWellFormed E rho) :
       have : (r * p.R : Nat) + 1 < (s : Int) := by nlinarith
       omega
 
+/-- Every actual send has a nonempty height pair; a refused action has no row.
+DC: INTENTIONAL optional send-once emission; SAME source height pair. -/
+theorem sourceDiscipline_emittedNonempty {j : Nat} {x : V} {r : Nat} {a : RowWire p.n}
+    (ha : HonestRowAt p c E rho j x r a) :
+    ∃ e, namedEntry a.payload.height_pair = some e := by
+  obtain ⟨_hj, hb⟩ := source_row_action p c E rho ha
+  obtain ⟨row, hrow, hbody⟩ := Option.map_eq_some_iff.mp hb
+  obtain ⟨h, root, tm, _hp, hroweq, _, _, _⟩ :=
+    KitFG.createRowOnce_released p.E p.cfg _ ⟨0, p.nPos⟩ _ _ hrow
+  rw [← hbody, hroweq]
+  exact ⟨(h, root), rfl⟩
+
 /-- A nonempty emitted name comes from the actual FG action source. -/
 theorem sourceDiscipline_emittedName (hs : V2.D.ScheduleWellFormed E rho)
     {j : Nat} {x : V} {r : Nat}

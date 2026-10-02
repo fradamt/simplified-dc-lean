@@ -72,5 +72,17 @@ structure HealingAttemptPrem (G : Time)
     extends HealingPrem p c G E rho pt where
   valid : AttemptValid p c E rho pt.k
 
+/-- DC: INTENTIONAL FG healing package with its finite horizon. -/
+structure HealingInputPrem (G : Time)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : PtW) : Prop
+    extends HealingWitnessPrem p c G E rho pt where
+  hhor : tstar p pt.w ≤ rho.horizon
+
+/-- DC: INTENTIONAL FG healing package with its finite horizon. -/
+structure RenewedPromotionPrem (G : Time)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : PtR) : Prop
+    extends HealingPrem p c G E rho pt where
+  hhor : p.actionTime pt.r + 2 * P p + Γ p G - 4 * p.Δ ≤ rho.horizon
+
 end AvailableChain.FGSA.Run
 end

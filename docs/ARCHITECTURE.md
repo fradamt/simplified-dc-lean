@@ -204,6 +204,11 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
 - `AvailableChainFGSA/Proofs/LeaseOutput` proves the E-11 stored-target invariant.
 - `AvailableChainFGSA/Proofs/StoreBundle` proves E-11 by bundle induction
   (`storeBundleInvariant`).
+- 07-H adds Claims `Fold` for height batches, raw action-history inputs in
+  `Phases`, and `Claims/Healing` adapters. `Foundations/RowService` proves
+  strict all-emissions receipt at ΔF, parent-valid selection, and height
+  coverage on the current fold. `HeightMatch` is explicit at height consumers.
+  `TRowsSelect` remains the R7 validity selector. Finality-bit ports wait for 07-F.
 - `AvailableChainFGSARun` (T7.2) holds the v2 protocol, label families,
   isolation, wire adapters, and exclusion proofs, with separate Tests.
 

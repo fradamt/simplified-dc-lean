@@ -105,11 +105,12 @@ def H6GateService (w : HealingWitness) : Prop := ∀ j D,
       D ∈ (fastWriteAt nd.st j).getD [] ∧ leaseOf nd.st D = some d ∧
       SA.gateTime p.toParams j + L p ≤ d ∧ SA.gateTime p.toParams j < d)
 
-/-- T-stream part (21:3057–3084), P3 A.6. Consumers: 22 FF1–FF4 and kernel. -/
-structure HealT (w : HealingWitness) : Prop where
+/-- T-stream part (21:3057–3084), P3 A.6. Consumers: 22 FF1–FF4 and kernel.
+DC: INTENTIONAL bound row delay; SAME block and HEAD services. -/
+structure HealT (w : HealingWitness) (ΔF : Time := E.Δ) : Prop where
   h1 : THigh p c E rho w
   h2 : TCarrier p c E rho w
-  rows : TRows p c E rho
+  rows : TRows p c E rho ΔF
 /-- AC-output part (21:3086–3141), P3 A.9. Consumers: composition and Q0. -/
 structure HealAC (w : HealingWitness) : Prop where
   /-- H2.A [joint]: F8, Q0, QF4 S2 (21:3096–3102). -/
@@ -131,11 +132,12 @@ Spec map (8ef4ed3b): 2044 → healed; 2055 → wit; 2065 → t.h1;
 2072 → t.h2; 2076 → t.rows; 2090 → ac.h2A; 2095 → ac.h2';
 2099 → ac.h3; 2104 → ac.h4; 2109 → ac.h5; 2118 → ac.h6;
 2128–2132 → F1 foundations; 2134–2138 → the H-time statements below.
-Full wit uses ResetArrivalFullStatement (H.18 horizon), not reset-only arrival. -/
+Full wit uses ResetArrivalFullStatement (H.18 horizon), not reset-only arrival.
+DC: INTENTIONAL row service at the existing E.Δ regime binding. -/
 structure HealingInput (w : HealingWitness) : Prop where
   healed : Healed p c E rho (tstar p w)
   wit : H0 p c E rho w
-  t : HealT p c E rho w
+  t : HealT p c E rho w E.Δ
   ac : HealAC p c E rho w
 
 /-- H-time (21:3152–3170; 22:334–352), P3 §4.6/A.9.
