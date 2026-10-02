@@ -71,7 +71,8 @@ def allowedImport (mod imp : Name) : Bool :=
       match l with
       | "Tests" => ((`AvailableChainFGSA).isPrefixOf imp && imp != `AvailableChainFGSA) ||
           externalOK imp
-      | "Model" => fgsa "Model" || externalOK imp || imp == `AvailableChainKitFG.ClientOnce
+      | "Model" => fgsa "Model" || externalOK imp || imp == `AvailableChainKitFG.ClientOnce ||
+          imp == `AvailableChainKitFG.FrameBridgeDef
       | "Statements" => fgsa "Model" || fgsa "Statements" || externalOK imp ||
           (`AvailableChainKitFG).isPrefixOf imp
       | "Proofs" => fgsa "Model" || fgsa "Statements" || fgsa "Proofs" || externalOK imp ||
