@@ -215,6 +215,8 @@ gate_with_slot lake env lean --run scripts/CheckFGSAAxioms.lean "${TEST_ROOTS[@]
   Window.window_bit_add_of_row Window.window_bits_accumulate \
   Window.window_finalize_of_accumulated_quorum Window.window_target_appended_newest \
   Window.window_retained_of_few_newer Window.window_retained_along \
+  Window.window_hj_mono Window.window_retained_of_scalar \
+  Window.window_retained_of_few_births Window.window_retained_fresh_one_newer \
   Window.windowSelectionLaws Window.windowCertificateLaws Window.windowChainCertificate \
   Window.acceptViable_eq \
   Window.update_finality_h_max_eq \

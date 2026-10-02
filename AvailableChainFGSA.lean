@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSA.Proofs.WindowRetention
 public import AvailableChainFGSA.Model.Objects
 public import AvailableChainFGSA.Model.Store
 public import AvailableChainFGSA.Model.Clock
