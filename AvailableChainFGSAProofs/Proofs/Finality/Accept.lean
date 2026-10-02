@@ -232,7 +232,8 @@ theorem fgsa_acceptBefore_W : AcceptBefore_W p := by
     exact ht
 
 /-- DC-CS/W4FKChainFinalityWrite.lean:177 followed by acceptance at :43.
-INTENTIONAL: the existing adapter uses the same selected receipt and strict deadline. -/
+INTENTIONAL: the existing adapter uses the same selected receipt and strict deadline.
+Conditional on FinalizePrem_W.deliver; not a deadline result. -/
 theorem fgsa_finalizePending_W (ΔF : Time) : FinalizePending_W p ΔF :=
   finalizePending_of_acceptBefore_W p ΔF (fgsa_acceptBefore_W p)
 
