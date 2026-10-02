@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSARun.Proofs.WindowExclusion
 public import AvailableChainFGSARun.Proofs.Interface
 public import AvailableChainFGSARun.Proofs.Acceptance
 public import AvailableChainFGSARun.Proofs.Readiness

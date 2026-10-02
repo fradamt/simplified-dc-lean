@@ -470,3 +470,7 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.FGood4_Wp_def
 #print axioms AvailableChain.FGSA.Run.Tail_Wp_def
 #print axioms AvailableChain.FGSA.Run.B_FW_def
+
+-- S4.2b: terminal retention contract.
+#print axioms AvailableChain.FGSA.Run.TerminalRetention_W
+#print axioms AvailableChain.FGSA.Run.TerminalRetention_W_def
