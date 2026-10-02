@@ -186,11 +186,11 @@ private theorem source_start_above_root :
   simp only [List.filterMap_cons, List.filterMap_nil, ht]
   decide +kernel
 
-/-- Blueprint 21 H.6:947–958 (design 798–814); spec 1276–1302. Class (iii).
+/-- Blueprint 21 H.6:947–958 (design 798–814); spec 1387–1401, 1555–1581. Class (iii).
 DC: INTENTIONAL; the retained interval is nonempty. -/
 private theorem strict_cut : Block.Prec (eraseFG cutFG) (eraseFG parentFG) := by decide +kernel
 
-/-- Blueprint 21 H.6:956–958 (design 812–814); spec 1276–1302. Class (iii).
+/-- Blueprint 21 H.6:956–958 (design 812–814); spec 1387–1401, 1555–1581. Class (iii).
 DC: INTENTIONAL; the old rival is in the target domain but is not eligible.
 The band arm is excluded through the height bridge, without height reduction. -/
 private theorem old_ineligible : et params target 4 (eraseFG oldFG) = false := by
@@ -202,7 +202,7 @@ private theorem old_ineligible : et params target 4 (eraseFG oldFG) = false := b
   simp only [hband, decide_false, Bool.false_or]
   decide +kernel
 
-/-- Blueprint 21 H.6:956–958 (design 812–814); spec 1276–1302. Class (iii).
+/-- Blueprint 21 H.6:956–958 (design 812–814); spec 1387–1401, 1555–1581. Class (iii).
 DC: INTENTIONAL; all eight endpoint fields for the concrete finite stores. -/
 private theorem endpoint_instance :
     RetainedEndpointGeometry params source target 4 (eraseFG proposalFG) := by
@@ -232,7 +232,7 @@ private theorem endpoint_instance :
     rcases members C hm with rfl | rfl | rfl | rfl | rfl
     all_goals exfalso; revert hp; decide +kernel
 
-/-- Blueprint 21 H.6:956–958 (design 812–814); spec 1276–1302. Class (iii).
+/-- Blueprint 21 H.6:956–958 (design 812–814); spec 1387–1401, 1555–1581. Class (iii).
 DC: INTENTIONAL; apply S7 to a terminal source with a real old target child. -/
 private theorem exact_geometry_instance :
     ExactHeadGeometry params target 4 (eraseFG proposalFG) := by

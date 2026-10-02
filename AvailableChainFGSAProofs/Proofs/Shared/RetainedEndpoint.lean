@@ -13,7 +13,7 @@ open RetainedWalk
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
 /-- Blueprint 21 H.6:956–958, H.17:3006–3012 (design 812–814,2865–2872);
-spec 1276–1302. Class (iii). DC: INTENTIONAL; the scheduled HEAD clock
+spec 992–1017, 1555–1581. Class (iii). DC: INTENTIONAL; the scheduled HEAD clock
 preserves stored blocks and bounds their slots by the current label. -/
 theorem fgsa_headRead_block_slots (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {v : V} {s : Slot}
@@ -34,7 +34,7 @@ theorem fgsa_headRead_block_slots (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
   exact ((fgsa_stateBefore_bounds E rho hs i v).1 C hm).trans (ht ▸ hslot)
 
 /-- Blueprint 03:367–373; 21 H.17:3006–3012 (design 2865–2872);
-spec 1276–1302. Class (iii). DC: INTENTIONAL; accepted proposal validity
+spec 1387–1401, 1555–1581. Class (iii). DC: INTENTIONAL; accepted proposal validity
 supplies strict parent-slot growth. Row metadata passes through unchanged. -/
 theorem fgsa_headRead_child_slot (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) (i : Nat) (v : V) (s : Slot) (B C : Block)
@@ -59,7 +59,7 @@ theorem fgsa_headRead_child_slot (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c
   simpa only [hpar] using hlt
 
 /-- Blueprint 21 H.6:956–958, H.17:3006–3012 (design 812–814,2865–2872);
-spec 1276–1302. Class (iii). DC: INTENTIONAL; old children reflect to the
+spec 1387–1401, 1555–1581. Class (iii). DC: INTENTIONAL; old children reflect to the
 terminal source, current children equal b, and future children are absent. -/
 theorem fgsa_exactHeadGeometry_of_retained_endpoint
     (p : Params) (src dst : State p.n) (s : Slot) (b : Block)
@@ -86,7 +86,7 @@ theorem fgsa_exactHeadGeometry_of_retained_endpoint
     exact (Nat.not_lt_of_ge hle hlt).elim
 
 /-- Blueprint 21 H.6:947–958, H.17:2987–3012 (design 798–814,2847–2872);
-spec 1276–1302. Class (iii). DC: INTENTIONAL;
+spec 1387–1401, 1555–1581. Class (iii). DC: INTENTIONAL;
 ProposalWalkTransportCore.lean:162,259 supplies retained walk transport.
 Use the named view bridge at the actual HEAD domain. -/
 theorem fgsa_headVote_covers_parent_of_retained_geometry
@@ -114,7 +114,7 @@ theorem fgsa_headVote_covers_parent_of_retained_geometry
       exact hc)
 
 /-- Blueprint 21 H.6:956–958, H.17:3006–3012 (design 812–814,2865–2872);
-spec 1276–1302. Class (iii). DC: INTENTIONAL; complete the endpoint fields
+spec 1387–1401, 1555–1581. Class (iii). DC: INTENTIONAL; complete the endpoint fields
 from actual emission, current-slot uniqueness and accepted block bounds. -/
 theorem fgsa_retainedEndpoint_geometry_on_run
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -152,7 +152,7 @@ theorem fgsa_retainedEndpoint_geometry_on_run
     exact fgsa_headRead_child_slot E rho hE ih y s b C (List.mem_filter.mp hm).1 hp
 
 /-- Blueprint 21 H.6:927–958, H.17:2957–3012 (design 783–814,2818–2872);
-spec 1276–1302. Class (iii). DC: INTENTIONAL; per-reader retained geometry
+spec 1387–1401, 1555–1581. Class (iii). DC: INTENTIONAL; per-reader retained geometry
 for the scheduled HEAD clause. Admission is at the actual pre-clock tick. -/
 structure RetainedExactHeadRunGeometry
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -172,7 +172,7 @@ structure RetainedExactHeadRunGeometry
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s b
 
 /-- Blueprint 21 H.6:927–958, H.17:2957–3012 (design 783–814,2818–2872);
-spec 1276–1302. Class (iii). DC: INTENTIONAL; S1–S8 produce all fields
+spec 1387–1401, 1555–1581. Class (iii). DC: INTENTIONAL; S1–S8 produce all fields
 from per-reader premises. E.proposal_mem supplies pre-clock admission, so
 reflection has no outstanding admission premise at this packaging point. -/
 theorem fgsa_retainedExactHead_geometry_on_run
@@ -226,7 +226,7 @@ theorem fgsa_retainedExactHead_geometry_on_run
     obtain ⟨Kc, hw, he⟩ := supply y hy ih hih
     exact he
 
-/-- Blueprint 03:341–373; 21 H.6:956–958 (design 812–814); spec 1109–1114.
+/-- Blueprint 03:341–373; 21 H.6:956–958 (design 812–814); spec 1387–1394.
 Class (iii). DC: INTENTIONAL; the full proposer tree is ancestor closed
 above its actual anchor, so its finite walk has no eligible child. -/
 theorem fgsa_retained_source_stop (p : Params) (src : State p.n) (s : Slot)
