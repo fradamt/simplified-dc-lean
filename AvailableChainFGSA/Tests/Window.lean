@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSA.Proofs.WindowHeightBridge
+public import AvailableChainFGSA.Proofs.WindowCertificates
 
 @[expose] public section
 
@@ -150,6 +150,60 @@ example : (transition params 2 almostReady block3
 
 /-- W2: a finality-only row for an evicted entry has no effect. -/
 example : process_row justified3 ⟨0, .empty, some ⟨1, genesisRoot⟩⟩ = justified3 := by decide
+
+
+/-- FG1b: these target rows also name the entry born after their fold. -/
+def originBirth : FGBlock (Fin 4) := .node .genesis 1 0
+  [⟨0, .vote 1 genesisRoot false, some ⟨1, genesisRoot⟩⟩,
+   ⟨1, .vote 1 genesisRoot false, some ⟨1, genesisRoot⟩⟩,
+   ⟨2, .vote 1 genesisRoot false, some ⟨1, genesisRoot⟩⟩]
+
+def originLater : FGBlock (Fin 4) := .node originBirth 2 0
+  [⟨3, .empty, some ⟨1, genesisRoot⟩⟩]
+
+/-- Birth-block rows are not applied to the appended entry. -/
+example : (derive params 2 originBirth).W = [⟨1, .genesis, ∅⟩] ∧
+    (certificateFolded params 2 originBirth).W = [] := by decide
+
+/-- The retained entry has its non-strict origin in this very block. -/
+example : EntryOriginAt params 2 originBirth ⟨1, .genesis, ∅⟩ :=
+  window_entry_origin params 2 (by decide) originBirth _ (by decide)
+
+private theorem originBirth_birth :
+    KitFG.JustificationBirth params.E (certificateHeight params 2)
+      originBirth 1 .genesis := by
+  obtain ⟨C, hc, hb, _⟩ :=
+    window_entry_origin params 2 (by decide) originBirth ⟨1, .genesis, ∅⟩ (by decide)
+  have heq : C = originBirth := by
+    by_contra hne
+    exact hb.1 (KitFG.preceq_genesis.mp (KitFG.preceq_parent_of_preceq_node hc hne))
+  simpa only [heq] using hb
+
+/-- No earlier birth can replace this block's birth witness. -/
+example : ¬ ∃ C, KitFG.StrictPrefix C originBirth ∧
+    KitFG.JustificationBirth params.E (certificateHeight params 2) C 1 .genesis := by
+  rintro ⟨C, hc, hb⟩
+  exact hb.1 (KitFG.preceq_genesis.mp (KitFG.preceq_parent_of_preceq_node hc.1 hc.2))
+
+/-- Only the later signer is counted; the three birth-block rows stay excluded. -/
+example : (derive params 2 originLater).W = [⟨1, .genesis, {3}⟩] ∧
+    (certificateFolded params 2 originLater).W = [⟨1, .genesis, {3}⟩] := by decide
+
+/-- The older retained entry has the original birth as a strict ancestor. -/
+example : KitFG.StrictPrefix originBirth originLater ∧
+    KitFG.JustificationBirth params.E (certificateHeight params 2) originBirth 1 .genesis ∧
+    EntryOriginAt params 2 originLater ⟨1, .genesis, {3}⟩ := by
+  refine ⟨⟨KitFG.preceq_parent_node _ _ _ _, by decide⟩, originBirth_birth, ?_⟩
+  exact window_entry_origin params 2 (by decide) originLater _ (by decide)
+
+/-- Prefinality exposes a strictly earlier birth and the exact carried pair. -/
+example : ∃ C, KitFG.StrictPrefix C originLater ∧
+    KitFG.JustificationBirth params.E (certificateHeight params 2) C 1 .genesis ∧
+    ∀ i ∈ ({3} : Finset (Fin 4)), ∃ carrier a,
+      KitFG.StrictPrefix C carrier ∧ FGBlock.Preceq carrier originLater ∧
+      a ∈ carrier.rows ∧ a.signer = i ∧ a.finality_pair = some ⟨1, genesisRoot⟩ :=
+  window_prefinal_entry_origin params 2 (by decide) originLater
+    ⟨1, .genesis, {3}⟩ (by decide)
 
 end AvailableChain.FGSA.Window.Tests
 end

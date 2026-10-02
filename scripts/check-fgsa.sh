@@ -196,7 +196,9 @@ gate_with_slot lake env lean --run scripts/CheckFGSAAxioms.lean "${TEST_ROOTS[@]
   Window.window_ordered Window.window_bounds Window.window_capacity \
   Window.window_post_not_ready Window.window_F_preceq_J Window.window_hF_le_hj \
   Window.window_finalized_zero Window.window_hF_mono Window.window_F_mono \
-  Window.window_bit_retained Window.window_no_reentry Window.window_finality_of_cover
+  Window.window_bit_retained Window.window_no_reentry Window.window_finality_of_cover \
+  Window.justificationBirth_window_iff_simplex Window.window_entry_origin \
+  Window.window_prefinal_entry_origin
 echo "== lease instances"
 gate_with_slot lake env lean --run scripts/CheckFGSALease.lean
 # The `leanIn "AvailableChainFGSA"` names of AvailableChainKitFG/Pins.lean get

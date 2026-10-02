@@ -93,6 +93,25 @@ def AvailableChain.FGSA.FMonotone 997812adaed071f2
 def AvailableChain.FGSA.MetadataInvariant 1a43f749c669202e
 ```
 
+### `AvailableChainFGSA.Statements.WindowCertificate`
+
+```text
+def AvailableChain.FGSA.Window.projectFinality ba05ae418852b5ca
+theorem AvailableChain.FGSA.Window.projectFinality_def 73cc801dfe20c6b2
+def AvailableChain.FGSA.Window.projectCertEntry e041d7ad22bd1ba7
+theorem AvailableChain.FGSA.Window.projectCertEntry_def 25fe0f85797c49a3
+def AvailableChain.FGSA.Window.certificateHeight 2bd4da292d2d6222
+theorem AvailableChain.FGSA.Window.certificateHeight_def f2bba24fbbb2bbfc
+def AvailableChain.FGSA.Window.certificateFinality 887aba06a0ba72ca
+theorem AvailableChain.FGSA.Window.certificateFinality_def 135966bdf1bb604c
+def AvailableChain.FGSA.Window.certificateFolded 889244aacc68bd78
+theorem AvailableChain.FGSA.Window.certificateFolded_def 4bbee960c0339cd6
+def AvailableChain.FGSA.Window.certificateSelection 597e28d5dc1d531a
+theorem AvailableChain.FGSA.Window.certificateSelection_def a44a4ea81205f60e
+def AvailableChain.FGSA.Window.EntryOriginAt 1f60aee4cca77eb2
+theorem AvailableChain.FGSA.Window.EntryOriginAt_def be6c0c6b1bd29ca4
+```
+
 ### `AvailableChainFGSA.Statements.WindowHeight`
 
 ```text
