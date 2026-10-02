@@ -3958,3 +3958,10 @@ the FINAL state although the gate at the cut never ran. Guards: Transfers S3 `ga
 TFrontier); H2A output `actionTime r + 4Δ ≤ horizon` (21:3289–3291); H5RawTransfer output `gate j + 4Δ ≤ horizon`
 (21:3321). RFProv takes `H0 p c E rho w` first, as TDelReset (w is otherwise arbitrary). WEAKER statements. Hash moves:
 Transfers, RFProv, H2A, H5RawTransfer, HealRContract (+ ctor, fields); none frozen at G-F0a (no allow line).
+
+B32 (pre-freeze, lead ruling B32; s5-plan-amendments.md §J; Centaur FREEZE-HORIZON audit, 365 defs): RKeep takes
+`H0 p c E rho w` first, as TDelReset (with an arbitrary w the conclusion `w.M + 1 ≤ st.fg.h_max` is false; latent,
+HealRContract.keep). CleanGrowthClaim takes `0 ≤ t` before the horizon bound (Time = Int: a negative trigger gives a
+deadline before 0 and a false AvailableGrowthConcl; EXPOSED via FGSAClaims.cleanGrowth; DC LiveFrom t₀ ≤ t,
+Generic/Properties.lean:105). AvailableGrowthConcl is unchanged. WEAKER statements. Hash moves: RKeep,
+CleanGrowthClaim; none frozen at G-F0a (no allow line).

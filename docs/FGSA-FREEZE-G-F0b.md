@@ -1,7 +1,7 @@
 # FG-SA G-F0b freeze record (W model)
 
 Candidate content: fgsa-s46e (S4.6 + S4.6b + S4.6c + TDel / review fixes + S4.7 pre-freeze round), reviewed at
-845d13e; the S4.7 fix round adds 0848d69 and this record (037ea95); B21, B25 and B31 follow. The S4.8 freeze commit
+845d13e; the S4.7 fix round adds 0848d69 and this record (037ea95); B21, B25, B31 and B32 follow. The S4.8 freeze commit
 replaces docs/FGSA-API-frozen.md with docs/FGSA-API.md at that head (scripts/fgsa-freeze.sh), resets
 scripts/fgsa-manifest-allow.txt to its header line, and checks the new freeze with
 `NEG=0 bash scripts/check-fgsa-manifest.sh`.
@@ -68,6 +68,14 @@ although the gate at c never ran (the blueprint speaks only of outputs after tha
 (s5-plan-amendments.md §I) adds guards only: Transfers S3 `SA.gateTime s + 4Δ ≤ v` (21:717); H2A output
 `p.actionTime r + 4Δ ≤ rho.horizon` (21:3289–3291); H5RawTransfer output `SA.gateTime j + 4Δ ≤ rho.horizon`
 (21:3321); and RFProv takes `H0 p c E rho w` as its first premise, as TDelReset does. No G-F0a frozen name moves.
+
+## Post-review statement change (ruling B32)
+
+Centaur's FREEZE-HORIZON audit (365 definitions screened) confirmed the four B31 items and found two more. Lead
+ruling B32 (s5-plan-amendments.md §J): RKeep takes `H0 p c E rho w` as its first premise, as TDelReset (with an
+arbitrary witness its conclusion `w.M + 1 ≤ st.fg.h_max` is false on a real run); CleanGrowthClaim takes `0 ≤ t`
+before its horizon bound, because Time = Int and a negative trigger gives a deadline before 0 (DC LiveFrom has
+`t₀ ≤ t`, Generic/Properties.lean:105). AvailableGrowthConcl is unchanged. No G-F0a frozen name moves.
 
 ## Gates
 

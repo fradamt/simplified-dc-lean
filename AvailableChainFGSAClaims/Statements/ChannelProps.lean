@@ -782,8 +782,10 @@ def RExcl : Prop := ∀ i x (X : Finset (FGBlock (Fin p.n))) C,
   KeepOrCause p c E rho i x X C
 
 /-- bp.postResetKeep.v1 (00:1055–1064; 21 H.14:2633–2651), P3 A.3.
-Consumers: H.12, H.14–H.17. The claim supplies H0; X is HEAD or full view. -/
-def RKeep (w : HealingWitness) : Prop := ∀ i x (X : Finset (FGBlock (Fin p.n))) C,
+Consumers: H.12, H.14–H.17. H0 is a premise, as in TDelReset (ruling B32);
+X is HEAD or full view. -/
+def RKeep (w : HealingWitness) : Prop := H0 p c E rho w →
+  ∀ i x (X : Finset (FGBlock (Fin p.n))) C,
   x ∈ rho.honest → X ⊆ (storeAt p c E rho i x).fg.TF →
   (∃ t, rho.events[i]? = some (.tick x t) ∧ SA.releaseTime p.toParams w.sStar ≤ t) →
   C ∈ X → eraseFG C = w.CStar →
