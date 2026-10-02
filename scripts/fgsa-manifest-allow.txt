@@ -204,9 +204,9 @@ AvailableChain.FGSA.Run.FGFoundation.strat	fg-noround/06: Duty run and fixed-FG 
 AvailableChain.FGSA.Run.FGFoundation.reconcile	fg-noround/06: Duty run and fixed-FG emission or receipt semantics	migration plan 06	expect=74c229cf6bc7ea49
 AvailableChain.FGSA.Run.awakeHonestIn	fg-noround/06: Duty run and fixed-FG emission or receipt semantics	migration plan 06	expect=54415ad59f9cd90a
 AvailableChain.FGSA.Run.HonestProposal	fg-noround/06: Duty run and fixed-FG emission or receipt semantics	migration plan 06	expect=ae9f4b671ef57b39
-AvailableChain.FGSA.Run.OutagePrem	Δ_F: delivery law per object; safety applies to row-delay runs	fg-deltaF	expect=bee8dc91f85b3cc0
-AvailableChain.FGSA.Run.OutagePrem.mk	Δ_F: delivery law per object; safety applies to row-delay runs	fg-deltaF	expect=dc95fa742c23f678
-AvailableChain.FGSA.Run.OutagePrem.set	Δ_F: delivery law per object; safety applies to row-delay runs	fg-deltaF	expect=a9a089e537e2054f
+AvailableChain.FGSA.Run.OutagePrem	Δ_F: delivery law per object; safety applies to row-delay runs; A4 ach-review: ΔF argument (default E.Δ) + E.Δ ≤ ΔF on .pre; strict generalization, default = old meaning	fg-deltaF	expect=4adad84970dc54cd
+AvailableChain.FGSA.Run.OutagePrem.mk	Δ_F: delivery law per object; safety applies to row-delay runs; A4 ach-review: ΔF argument (default E.Δ) + E.Δ ≤ ΔF on .pre; strict generalization, default = old meaning	fg-deltaF	expect=491ab8429be3f1b1
+AvailableChain.FGSA.Run.OutagePrem.set	Δ_F: delivery law per object; safety applies to row-delay runs; A4 ach-review: ΔF argument (default E.Δ) + E.Δ ≤ ΔF on .pre; strict generalization, default = old meaning	fg-deltaF	expect=b0bf7b29f48620a6
 AvailableChain.FGSA.Run.BasePrem	fg-noround/06: Duty run and fixed-FG emission or receipt semantics	migration plan 06	expect=bc4960f75e7d868f
 AvailableChain.FGSA.Run.BasePrem.mk	fg-noround/06: Duty run and fixed-FG emission or receipt semantics	migration plan 06	expect=eba6ef2bf73d81e5
 AvailableChain.FGSA.Run.BasePrem.set	fg-noround/06: Duty run and fixed-FG emission or receipt semantics	migration plan 06	expect=e3dd43184e01b229
@@ -307,15 +307,15 @@ AvailableChain.FGSA.Run.FinalitySet	Δ_F: delivery law per object; safety applie
 AvailableChain.FGSA.Run.FinalitySet.mk	Δ_F: delivery law per object; safety applies to row-delay runs	fg-deltaF	expect=3a7f20e9e5221de0
 AvailableChain.FGSA.Run.FinalitySet.core	Δ_F: delivery law per object; safety applies to row-delay runs	fg-deltaF	expect=1e28d3a0a7d3f84f
 AvailableChain.FGSA.Run.FinalitySet.recur	Δ_F: delivery law per object; safety applies to row-delay runs	fg-deltaF	expect=28b117544cd3fee1
-AvailableChain.FGSA.Run.Outage₂	Δ_F: delivery law per object; safety applies to row-delay runs	fg-deltaF	expect=ef233e57fb4ccc30
-AvailableChain.FGSA.Run.Outage₂.mk	Δ_F: delivery law per object; safety applies to row-delay runs	fg-deltaF	expect=ee68dde976f635d1
-AvailableChain.FGSA.Run.Outage₂.pre	Δ_F: delivery law per object; safety applies to row-delay runs	fg-deltaF	expect=beda5b2c8d5a56ab
-AvailableChain.FGSA.Run.Outage₂.sleepy	Δ_F: delivery law per object; safety applies to row-delay runs	fg-deltaF	expect=943b2b5f65f92fc5
-AvailableChain.FGSA.Run.Outage₂.order	Δ_F: delivery law per object; safety applies to row-delay runs	fg-deltaF	expect=591298dd21162e75
-AvailableChain.FGSA.Run.Outage₂.lag	Δ_F: delivery law per object; safety applies to row-delay runs	fg-deltaF	expect=cc6303b13d9eacdb
-AvailableChain.FGSA.Run.Outage₂.budget	Δ_F: delivery law per object; safety applies to row-delay runs	fg-deltaF	expect=fb56bdf9a42f51f8
-AvailableChain.FGSA.Run.Outage₂.fastPart	Δ_F: delivery law per object; safety applies to row-delay runs	fg-deltaF	expect=9ad740b0da221f87
-AvailableChain.FGSA.Run.OutageSet	Δ_F: delivery law per object; safety applies to row-delay runs	fg-deltaF	expect=4065570d39aa6f2b
+AvailableChain.FGSA.Run.Outage₂	Δ_F: delivery law per object; safety applies to row-delay runs; A4 ach-review: ΔF argument (default E.Δ) + E.Δ ≤ ΔF on .pre; strict generalization, default = old meaning	fg-deltaF	expect=c4ae1407491eac25
+AvailableChain.FGSA.Run.Outage₂.mk	Δ_F: delivery law per object; safety applies to row-delay runs; A4 ach-review: ΔF argument (default E.Δ) + E.Δ ≤ ΔF on .pre; strict generalization, default = old meaning	fg-deltaF	expect=5d8a01bada34ecdf
+AvailableChain.FGSA.Run.Outage₂.pre	Δ_F: delivery law per object; safety applies to row-delay runs; A4 ach-review: ΔF argument (default E.Δ) + E.Δ ≤ ΔF on .pre; strict generalization, default = old meaning	fg-deltaF	expect=a3f785620cb1ea12
+AvailableChain.FGSA.Run.Outage₂.sleepy	Δ_F: delivery law per object; safety applies to row-delay runs; A4 ach-review: ΔF argument (default E.Δ) + E.Δ ≤ ΔF on .pre; strict generalization, default = old meaning	fg-deltaF	expect=66dc51f577fa7eaa
+AvailableChain.FGSA.Run.Outage₂.order	Δ_F: delivery law per object; safety applies to row-delay runs; A4 ach-review: ΔF argument (default E.Δ) + E.Δ ≤ ΔF on .pre; strict generalization, default = old meaning	fg-deltaF	expect=6ace19d083624b3c
+AvailableChain.FGSA.Run.Outage₂.lag	Δ_F: delivery law per object; safety applies to row-delay runs; A4 ach-review: ΔF argument (default E.Δ) + E.Δ ≤ ΔF on .pre; strict generalization, default = old meaning	fg-deltaF	expect=5b575303e7bcd8a8
+AvailableChain.FGSA.Run.Outage₂.budget	Δ_F: delivery law per object; safety applies to row-delay runs; A4 ach-review: ΔF argument (default E.Δ) + E.Δ ≤ ΔF on .pre; strict generalization, default = old meaning	fg-deltaF	expect=0d07791c8d36919e
+AvailableChain.FGSA.Run.Outage₂.fastPart	Δ_F: delivery law per object; safety applies to row-delay runs; A4 ach-review: ΔF argument (default E.Δ) + E.Δ ≤ ΔF on .pre; strict generalization, default = old meaning	fg-deltaF	expect=017dae319280d333
+AvailableChain.FGSA.Run.OutageSet	Δ_F: delivery law per object; safety applies to row-delay runs; A4 ach-review: ΔF argument (default E.Δ) + E.Δ ≤ ΔF on .pre; strict generalization, default = old meaning	fg-deltaF	expect=028d9b82c1f40f7b
 AvailableChain.FGSA.Run.WinSpec	fg-noround/06: Duty run and fixed-FG emission or receipt semantics	migration plan 06	expect=56c3ae6aa5615737
 AvailableChain.FGSA.Run.cleanWinAt	fg-noround/06: Duty run and fixed-FG emission or receipt semantics	migration plan 06	expect=1fcf90dff1946f42
 AvailableChain.FGSA.Run.cleanWin	fg-noround/06: Duty run and fixed-FG emission or receipt semantics	migration plan 06	expect=706b69ecccf3ef9a
