@@ -6,7 +6,7 @@ public section
 
 namespace AvailableChain.FGSA.Run
 
-/-- Blueprint 01:126–129, plan item 18; lead ruling B30. DC: INTENTIONAL: AC service contract.
+/-- Blueprint 01:126–129, plan item 18; lead ruling B30. DC: INTENTIONAL AC service contract.
 The Finality lane Export restores the frozen Claims conclusion from the composition
 services; Recovery supplies Base₂. The other inputs are not used. -/
 theorem fgsa_kernelACSide_W (p : Params) : KernelACSideClaim_W p := by

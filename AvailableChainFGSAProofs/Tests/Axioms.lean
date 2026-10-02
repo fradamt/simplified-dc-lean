@@ -38,6 +38,7 @@ public import AvailableChainFGSAProofs.Proofs.Assembly.Root -- shake: keep (axio
 public import AvailableChainFGSAProofs.Proofs.Clean.GateOutput -- shake: keep (gate output axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Clean.Transfer -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Assembly.Clean -- shake: keep (axiom audit commands)
+public import AvailableChainFGSAProofs.Proofs.Assembly.Finality -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.TransferFrame -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.StepGate -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.Action -- shake: keep (axiom audit commands)
@@ -830,6 +831,7 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_tWalk
 #print axioms AvailableChain.FGSA.Run.fgsa_tVote
 #print axioms AvailableChain.FGSA.Run.fgsa_coreServices
+#print axioms AvailableChain.FGSA.Run.fgsa_kernelACSide_W
 -- K-HISTORY: raw origin is supplied by Assembly.
 #print axioms AvailableChain.FGSA.Run.noMixedPreBatchParent
 #print axioms AvailableChain.FGSA.Run.justifyFresh_W
