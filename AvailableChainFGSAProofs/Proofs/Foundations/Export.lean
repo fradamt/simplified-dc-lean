@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Foundations.FinalityApi
 public import AvailableChainFGSAClaims.Claims.Foundations
 public import AvailableChainFGSAProofs.Proofs.Foundations.Store
 public import AvailableChainFGSAProofs.Proofs.Foundations.Certificates
@@ -14,6 +15,8 @@ public import AvailableChainFGSAProofs.Proofs.Foundations.Timing -- shake: keep 
 
 
 public import AvailableChainFGSAProofs.Proofs.Foundations.RowService
+public import AvailableChainFGSAProofs.Proofs.Foundations.Crossing -- shake: keep (R-XING export)
+public import AvailableChainFGSAProofs.Proofs.Foundations.Cap -- shake: keep (R-CAP export)
 
 public section
 
@@ -159,6 +162,46 @@ theorem fgsa_rowServiceClaim (ΔF : Time) : RowServiceClaim p ΔF := by
   intro G _hδ V _ _ In c E rho _pt h
   exact fgsa_tRows p c E rho ΔF h.base.delta h.base.valid h.base.noRestart h.sync h.deltaF
 
+
+/-- Finality output claim from its Foundations body; no additional premise. -/
+theorem fgsa_pureAccountableClaim : PureAccountableClaim p :=
+  fgsa_apiPureAccountableClaim_body p
+
+/-- Finality output claim from its Foundations body; no additional premise. -/
+theorem fgsa_pureAgreementClaim : PureAgreementClaim p :=
+  fgsa_apiPureAgreementClaim_body p
+
+/-- Finality output claim from its Foundations body; no additional premise. -/
+theorem fgsa_wholeRunAccountableClaim : WholeRunAccountableClaim p :=
+  fgsa_apiWholeRunAccountableClaim_body p
+
+/-- Finality output claim from its Foundations body; no additional premise. -/
+theorem fgsa_wholeRunAgreementClaim : WholeRunAgreementClaim p :=
+  fgsa_apiWholeRunAgreementClaim_body p
+
+/-- Finality output claim from its Foundations body; no additional premise. -/
+theorem fgsa_eventPrefixAgreementClaim : EventPrefixAgreementClaim p :=
+  fgsa_apiEventPrefixAgreementClaim_body p
+
+/-- Finality output claim from its Foundations body; no additional premise. -/
+theorem fgsa_faultCountSlashableBoundClaim : FaultCountSlashableBoundClaim p :=
+  fgsa_apiFaultCountSlashableBoundClaim_body p
+
+/-- Finality output claim from its Foundations body; no additional premise. -/
+theorem fgsa_finalizedMonotonicityClaim : FinalizedMonotonicityClaim p :=
+  fgsa_apiFinalizedMonotonicityClaim_body p
+
+/-- Finality output claim from its Foundations body; no additional premise. -/
+theorem fgsa_honestNeverSlashedClaim : HonestNeverSlashedClaim p :=
+  fgsa_apiHonestNeverSlashedClaim_body p
+
+/-- Finality output claim from its Foundations body; no additional premise. -/
+theorem fgsa_finalizedSafetyClaim : FinalizedSafetyClaim p :=
+  fgsa_apiFinalizedSafetyClaim_body p
+
+/-- Finality output claim from its Foundations body; no additional premise. -/
+theorem fgsa_finalLockClaim : FinalLockClaim p :=
+  fgsa_apiFinalLockClaim_body p
 
 end AvailableChain.FGSA.Run
 end

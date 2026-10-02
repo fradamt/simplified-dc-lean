@@ -49,10 +49,6 @@ def cleanLabelWin {Pt : Type} (sOf : Pt → Slot) : WinSpec p c Pt := fun E rho 
 def gapWin {Pt : Type} (G : Time) : WinSpec p c Pt := fun E rho _ H =>
   ∃ t, max E.t_GST H ≤ t ∧ t + G ≤ rho.horizon
 
-def formWin {Pt : Type} (form : FinForm) (g : Nat) : WinSpec p c Pt := fun E rho _ H =>
-  ∃ q : Nat, 1 ≤ q ∧ E.t_GST ≤ (q : Time) * P p ∧ H ≤ (q : Time) * P p ∧
-    windowEndA form p.R (P p) p.Δ q g ≤ rho.horizon
-
 /-- The time-start recurrence window; it is not the discrete recurrence converse. -/
 def formWinAt {Pt : Type} (g : Nat) : WinSpec p c Pt := fun E rho _ H =>
   ∃ t, max E.t_GST 1 ≤ t ∧ H ≤ t ∧ windowEndAtA p.R (P p) p.Δ t g ≤ rho.horizon

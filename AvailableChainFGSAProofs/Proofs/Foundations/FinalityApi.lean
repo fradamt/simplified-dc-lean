@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Foundations.HonestNeverSlashed
 public import AvailableChainFGSAProofs.Proofs.Foundations.FinalizedSafety
 public import AvailableChainFGSAProofs.Proofs.Foundations.Crossing
 public import AvailableChainGeneric.Statements.Pure.Props
@@ -150,6 +151,16 @@ theorem fgsa_apiFinalLockClaim_body :
   apply fgsa_finalLock p c E rho hp.set.linked (Gen.Pure.count_rec p.nPos hp.fault)
     hp.set.valid.toUnforgeableSignatures x hx i j hij K hK hKF y W hW
   simpa only [heightView_eq_simplex, KitFG.simplexHeightView_def, KitFG.heightOf_def, hOf] using hh
+
+/-- DC honestNeverSlashed: SAME conclusion and signature premise;
+INTENTIONAL fixed-seat Linked premise. The base theorem supplies this body. -/
+theorem fgsa_apiHonestNeverSlashedClaim_body :
+    ∀ {In : Type} (c : AppCodec In) (E : Generic.Env (Fin p.n))
+      (rho : V2.D.Run (Fin p.n) (fgsa p c)),
+      V2.D.UnforgeableSignatures E rho →
+      V2.D.Linked (fgsaFamilies p c).linked rho →
+      Gen.V2.Duty.HonestNeverSlashed (fgsaSlashing p c E) rho :=
+  fun c E rho hU hL => fgsa_honestNeverSlashed p c E rho hU hL
 
 end AvailableChain.FGSA.Run
 end

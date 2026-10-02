@@ -222,9 +222,11 @@ The FF7 second horizon at C/Tests/FinalityW:126 is a projection only.
 LocalHealing, PhaseWitness and UniversalLeases remain internal stage-5 witness
 plans. No frozen standalone claim or new premise is introduced for them.
 
-S4.5b follow-up: G1–G4 contracts and restored packages are absent now. Add a
-witness-plan row when each W statement is restored. S4.5b and then W1/stage 5
-own positive-horizon witnesses for CleanInclusionPrem and ExactProposalPrem.
-S4.6 removes the old non-W FinForm packages and moves best/search healing to
-Companion/HealedBest. Their old shapes are not W witness requirements.
+S4.5b follow-up (refreshed at the G-F0b freeze, S4.7 Astra F6): G1–G4 are restored on W.
+G4 premises have positive witnesses: C/Tests/FinalitySafety.lean:205 (a one-node Clean₂
+execution, Δ=1, ΔF=3, horizon 17), :243 (CleanInclusionPrem) and :246 (ExactProposalPrem).
+HonestNeverSlashedClaim has a producer: fgsa_honestNeverSlashedClaim
+(P/Foundations/Export.lean, from fgsa_honestNeverSlashed). The six G3/G4 output claims stay
+stage-5 contracts. S4.6 removed the old non-W FinForm packages; S4.6c removed the deferred
+best/search statements (post-freeze companion). Their old shapes are not W witness requirements.
 Authority: f07w-rulings:107–108; d35bac1-coverage.md.

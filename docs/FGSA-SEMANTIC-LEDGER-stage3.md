@@ -90,3 +90,5 @@ Their source text is unchanged; their meaning moves with W. Route in brackets.
 "the unproven regime Props (FinalitySet, Recurrence, Regimes) now nominally describe W runs with old bounds: not re-validated until stage 4"
 
 J6 / FG5d: height-only readers now read heightView; bridge-equal; no meaning change
+
+S4.6: G-F0b W surface integrated; dropped exports removed; no meaning change of kept claims

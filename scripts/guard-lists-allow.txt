@@ -1,7 +1,26 @@
 # Guard list removal exceptions. Owner: lean-framework.
 # Format: <LIST> <entry> <reason...>; LIST is EXPECTED or ORDER.
 # Renames need the lead's OK. Keep one exception per line.
-EXPECTED AvailableChain.FGSA.Run.honest_one_row_per_round fg-noround/06: replace unconditional emission by action uniqueness and successful attest emission; migration plan 06
-EXPECTED AvailableChain.FGSA.Run.InRowWindow fg-noround/06: forced by Params.wF removal; text = 07 draft
-EXPECTED AvailableChain.FGSA.Run.OpeningExtends achfix A7 (ach-review Opus N7, lead ruling): unused alias of OpeningCovered removed
-EXPECTED AvailableChain.FGSA.Run.validForParent_heightMatch FG5c ruling 4 and plan A9: replace false R6W implication with validForParent_currentHeightMatch
+EXPECTED AvailableChain.FGSA.Run.FirstCross S4.3 r1 ruling: dropped; W forms replace them
+EXPECTED AvailableChain.FGSA.Run.ProposalWalk S4.3 r1 ruling: dropped; W forms replace them
+EXPECTED AvailableChain.FGSA.Run.finalityWindow S4.6: old FinForm finality package dropped; W recurrence replaces it
+EXPECTED AvailableChain.FGSA.Run.FirstFinalityPrem S4.6: old FinForm finality package dropped; W recurrence replaces it
+EXPECTED AvailableChain.FGSA.Run.FinalityLivenessPrem S4.6: old FinForm finality package dropped; W recurrence replaces it
+EXPECTED AvailableChain.FGSA.Run.ProposalFinalPrem S4.6: old FinForm finality package dropped; W recurrence replaces it
+EXPECTED AvailableChain.FGSA.Run.AboveFrontierPrem S4.6: old FinForm finality package dropped; W recurrence replaces it
+EXPECTED AvailableChain.FGSA.Run.QualifiedFinalityPrem S4.6: old FinForm finality package dropped; W recurrence replaces it
+EXPECTED AvailableChain.FGSA.Run.SkipFinalityPrem S4.6: old FinForm finality package dropped; W recurrence replaces it
+EXPECTED AvailableChain.FGSA.Run.FinalitySet S4.6: replaced by FinalitySet_W (W recurrence)
+EXPECTED AvailableChain.FGSA.Run.B'_reset S4.4b N4: unused reset bound removed; B'_resetF stays
+EXPECTED AvailableChain.FGSA.Run.HTimeBestStatement deferred to post-freeze companion (user 2026-10-02); text at a3b05c4868cfbde7f6789c71ee9e2c1908db447a
+EXPECTED AvailableChain.FGSA.Run.HTimeBestStatement_def deferred to post-freeze companion (user 2026-10-02); text at a3b05c4868cfbde7f6789c71ee9e2c1908db447a
+EXPECTED AvailableChain.FGSA.Run.HTimeSearchStatement deferred to post-freeze companion (user 2026-10-02); text at a3b05c4868cfbde7f6789c71ee9e2c1908db447a
+EXPECTED AvailableChain.FGSA.Run.HTimeSearchStatement_def deferred to post-freeze companion (user 2026-10-02); text at a3b05c4868cfbde7f6789c71ee9e2c1908db447a
+EXPECTED AvailableChain.FGSA.Run.KernelConclusion S4.6c A2: withdrawn kernel law
+EXPECTED AvailableChain.FGSA.Run.KernelPrem S4.6c A2: withdrawn kernel law
+EXPECTED AvailableChain.FGSA.Run.KernelFromContract S4.6c A2: withdrawn kernel law
+EXPECTED AvailableChain.FGSA.Run.KernelACSide S4.6c A2: withdrawn kernel law
+EXPECTED AvailableChain.FGSA.Run.B_Q S4.6 review F2: unused; plan §1.6 DROP
+EXPECTED AvailableChain.FGSA.Run.B_skip S4.6 review F2: unused; plan §1.6 DROP
+EXPECTED AvailableChain.FGSA.Run.γ S4.6 review F2: unused
+EXPECTED AvailableChain.FGSA.Run.formWin S4.6 review F2: unused

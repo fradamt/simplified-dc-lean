@@ -1,5 +1,7 @@
 module
 public import AvailableChainKitFG.HeightCoreDef
+public import AvailableChainKitFG.HeightLawsDef
+public import AvailableChainKitFG.JustificationLawsDef
 public import AvailableChainKitFG.NoEarlyMixed
 public import AvailableChainKitFG.RowHistory
 
@@ -95,6 +97,46 @@ theorem height_occurrence_keys_of_bridge
   have heq : ∀ B, v B = heightOf (derive E cfg B) := hb
   simp only [heq, heightOf_def] at heightMatch entry endpoint ⊢
   exact height_occurrence_keys E cfg occ path heightMatch name entry endpoint
+
+/-- A one-step crossing from an entry at height y writes this entry or keeps a lower
+justification. -/
+theorem cross_cases_of_laws
+    {E : Electorate V} {v : FGHeightView V}
+    (laws : FGHeightLaws E v) (jlaws : FGJustificationLaws v)
+    {U W : FGBlock V} {y : Height}
+    (hU : (v U).h = y ∧ (v U).T_h = U)
+    (hUW : FGBlock.Preceq U W.parent)
+    (hP : (v W.parent).h = y) (hW : (v W).h = y + 1) :
+    ((v W.parent).h = y ∧ (v W).h = y + 1 ∧ (v W).J = U ∧ (v W).h_j = y) ∨
+    ((v W.parent).h = y ∧ (v W).h = y + 1 ∧ (v W).h_j < y) := by
+  have hj := laws.justified_below_height W
+  rw [hW] at hj
+  by_cases heq : (v W).h_j = y
+  · left
+    have hy : y ≠ 0 := by
+      have := laws.one_le_h U
+      rw [hU.1] at this
+      simp only [Height] at *
+      omega
+    have hJh := jlaws.J_height W (heq ▸ hy)
+    rw [heq] at hJh
+    have hJW := preceq_trans (laws.justified_preceq_entry W) (laws.entry_preceq W)
+    have hPW : FGBlock.Preceq W.parent W := by
+      cases W with
+      | genesis => exact preceq_refl _
+      | node P s x rs => exact preceq_parent_node P s x rs
+    have hUW' := preceq_trans hUW hPW
+    have hJ : (v W).J = U := by
+      rcases preceq_total_of_common hJW hUW' with hJU | hUJ
+      · have ht := laws.entry_plateau hJU (hJh.trans hU.1.symm)
+        rw [jlaws.J_entry W, hU.2] at ht
+        exact ht
+      · have ht := laws.entry_plateau hUJ (hU.1.trans hJh.symm)
+        rw [hU.2, jlaws.J_entry W] at ht
+        exact ht.symm
+    exact ⟨hP, hW, hJ, heq⟩
+  · right
+    exact ⟨hP, hW, by simp only [Height] at *; omega⟩
 
 end AvailableChain.KitFG
 end

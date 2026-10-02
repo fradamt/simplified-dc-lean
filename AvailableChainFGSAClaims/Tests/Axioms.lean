@@ -1,7 +1,6 @@
 module
 public import AvailableChainFGSAClaims.Statements.FinalityApi -- shake: keep (S4.5b axiom audit)
 public import AvailableChainFGSAClaims.Statements.Packages.Inclusion -- shake: keep (S4.5b axiom audit)
-public import AvailableChainFGSAClaims.Claims.FinalitySafety -- shake: keep (S4.5b axiom audit)
 public import AvailableChainFGSAClaims.Claims.Outage -- shake: keep (S4.5b axiom audit)
 public import AvailableChainFGSAClaims.Claims.Finality -- shake: keep (S4.3b axiom audit)
 public import AvailableChainFGSAClaims.Claims.WeakContinuation -- shake: keep (axiom audit commands)
@@ -37,9 +36,6 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.B_F
 #print axioms AvailableChain.FGSA.Run.B_heal
 #print axioms AvailableChain.FGSA.Run.B_best
-#print axioms AvailableChain.FGSA.Run.B_Q
-#print axioms AvailableChain.FGSA.Run.B_skip
-#print axioms AvailableChain.FGSA.Run.γ
 #print axioms AvailableChain.FGSA.Run.carrierTime2
 #print axioms AvailableChain.FGSA.Run.kernelDeadline
 #print axioms AvailableChain.FGSA.Run.ActionDeliveryBounds
@@ -92,7 +88,6 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.CleanCutSet
 #print axioms AvailableChain.FGSA.Run.CleanPrefixSet
 #print axioms AvailableChain.FGSA.Run.HealingSet
-#print axioms AvailableChain.FGSA.Run.FinalitySet
 #print axioms AvailableChain.FGSA.Run.WinSpec
 #print axioms AvailableChain.FGSA.Run.PtB₀
 #print axioms AvailableChain.FGSA.Run.PtT
@@ -102,7 +97,6 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.cleanPrefixWin
 #print axioms AvailableChain.FGSA.Run.cleanLabelWin
 #print axioms AvailableChain.FGSA.Run.gapWin
-#print axioms AvailableChain.FGSA.Run.formWin
 #print axioms AvailableChain.FGSA.Run.formWinAt
 #print axioms AvailableChain.FGSA.Run.kernelWin
 #print axioms AvailableChain.FGSA.Run.trigWin
@@ -273,10 +267,6 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.HealingInput
 #print axioms AvailableChain.FGSA.Run.HTimeStatement
 #print axioms AvailableChain.FGSA.Run.HTimeStatement_def
-#print axioms AvailableChain.FGSA.Run.HTimeBestStatement
-#print axioms AvailableChain.FGSA.Run.HTimeBestStatement_def
-#print axioms AvailableChain.FGSA.Run.HTimeSearchStatement
-#print axioms AvailableChain.FGSA.Run.HTimeSearchStatement_def
 #print axioms AvailableChain.FGSA.Run.TStart
 #print axioms AvailableChain.FGSA.Run.FullVoteService
 #print axioms AvailableChain.FGSA.Run.TVote
@@ -286,16 +276,11 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.PhaseKind
 #print axioms AvailableChain.FGSA.Run.AttemptTask
 #print axioms AvailableChain.FGSA.Run.AttemptKey
-#print axioms AvailableChain.FGSA.Run.B'_reset
 #print axioms AvailableChain.FGSA.Run.ResetArrivalStatement
 #print axioms AvailableChain.FGSA.Run.ResetArrivalStatement_def
 #print axioms AvailableChain.FGSA.Run.ResetArrivalFullStatement
 #print axioms AvailableChain.FGSA.Run.ResetArrivalFullStatement_def
-#print axioms AvailableChain.FGSA.Run.KernelConclusion
 #print axioms AvailableChain.FGSA.Run.KernelPt
-#print axioms AvailableChain.FGSA.Run.KernelPrem
-#print axioms AvailableChain.FGSA.Run.KernelFromContract
-#print axioms AvailableChain.FGSA.Run.KernelACSide
 #print axioms AvailableChain.FGSA.Run.kernelStart
 #print axioms AvailableChain.FGSA.Run.HealTContract
 #print axioms AvailableChain.FGSA.Run.frontierAtIdx
@@ -350,13 +335,6 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.H0Reset
 #print axioms AvailableChain.FGSA.Run.H0
 #print axioms AvailableChain.FGSA.Run.tstarOf
-#print axioms AvailableChain.FGSA.Run.finalityWindow
-#print axioms AvailableChain.FGSA.Run.FirstFinalityPrem
-#print axioms AvailableChain.FGSA.Run.FinalityLivenessPrem
-#print axioms AvailableChain.FGSA.Run.ProposalFinalPrem
-#print axioms AvailableChain.FGSA.Run.AboveFrontierPrem
-#print axioms AvailableChain.FGSA.Run.QualifiedFinalityPrem
-#print axioms AvailableChain.FGSA.Run.SkipFinalityPrem
 #print axioms AvailableChain.FGSA.Run.PtU
 #print axioms AvailableChain.FGSA.Run.PtW
 #print axioms AvailableChain.FGSA.Run.PtM
@@ -419,8 +397,6 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.NoMixedPreBatchParent
 #print axioms AvailableChain.FGSA.Run.BatchPrem
 #print axioms AvailableChain.FGSA.Run.BatchCoverage
-#print axioms AvailableChain.FGSA.Run.FirstCross
-#print axioms AvailableChain.FGSA.Run.ProposalWalk
 #print axioms AvailableChain.FGSA.Run.finHeight
 #print axioms AvailableChain.FGSA.Run.FreshPrem
 
@@ -733,3 +709,31 @@ by
 #print axioms AvailableChain.FGSA.Run.OutageCompatClaim
 #print axioms AvailableChain.FGSA.Run.FastP1Claim
 #print axioms AvailableChain.FGSA.Run.SlowP1Claim
+
+-- S4.6b GST finality forms.
+#print axioms AvailableChain.FGSA.Run.FinalityLivenessGSTPrem_W
+#print axioms AvailableChain.FGSA.Run.FinalityLivenessGSTPrem_W.mk
+#print axioms AvailableChain.FGSA.Run.FinalityLivenessGSTPrem_W.set
+#print axioms AvailableChain.FGSA.Run.FinalityLivenessGSTPrem_W.late
+#print axioms AvailableChain.FGSA.Run.FinalityLivenessGSTPrem_W.hhor
+#print axioms AvailableChain.FGSA.Run.FinalityLivenessGSTClaim_W
+#print axioms AvailableChain.FGSA.Run.ProposalFinalGSTPrem_W
+#print axioms AvailableChain.FGSA.Run.ProposalFinalGSTPrem_W.mk
+#print axioms AvailableChain.FGSA.Run.ProposalFinalGSTPrem_W.set
+#print axioms AvailableChain.FGSA.Run.ProposalFinalGSTPrem_W.prop
+#print axioms AvailableChain.FGSA.Run.ProposalFinalGSTPrem_W.late
+#print axioms AvailableChain.FGSA.Run.ProposalFinalGSTPrem_W.hhor
+#print axioms AvailableChain.FGSA.Run.ProposalFinalGSTClaim_W
+#print axioms AvailableChain.FGSA.Run.AboveFrontierGSTPrem_W
+#print axioms AvailableChain.FGSA.Run.AboveFrontierGSTPrem_W.mk
+#print axioms AvailableChain.FGSA.Run.AboveFrontierGSTPrem_W.set
+#print axioms AvailableChain.FGSA.Run.AboveFrontierGSTPrem_W.late
+#print axioms AvailableChain.FGSA.Run.AboveFrontierGSTPrem_W.hhor
+#print axioms AvailableChain.FGSA.Run.AboveFrontierGSTClaim_W
+
+#print axioms AvailableChain.FGSA.Run.AvailableFromConcl
+#print axioms AvailableChain.FGSA.Run.AvailableGrowthConcl
+#print axioms AvailableChain.FGSA.Run.AvailableGSTClaim
+#print axioms AvailableChain.FGSA.Run.AvailableGrowthGSTClaim
+#print axioms AvailableChain.FGSA.Run.AwakeProposerRecurrenceFrom
+#print axioms AvailableChain.FGSA.Run.CleanGrowthClaim

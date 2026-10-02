@@ -80,13 +80,10 @@ example [Fintype V] (hp : FinalizedSafetyPrem p c E rho ())
 example {i m : Nat} (hm : 2 ≤ m) (hf : frontierAtIdx p c E rho i = m) :
     HealingPhaseWitness p c E rho i m := healing_phaseWitness p c E rho hm hf
 
--- Genesis is a real height-one frontier. It cannot enter AttemptValid directly.
+-- Genesis is a real height-one frontier. Since ruling B21, AttemptValid admits frontier 1
+-- (H.10 at m = 1, 21:1467–1468, 2570–2571).
 example (hne : rho.honest.Nonempty) : frontierAtIdx p c E rho 0 = 1 :=
   healing_phase_initial_frontier p c E rho hne
-
-example {k : AttemptKey} (hk : k.frontier = 1) : ¬ AttemptValid p c E rho k := by
-  rintro ⟨ev, _, _, _, _, hm, _⟩
-  omega
 
 -- Receipt at the exact deadline is excluded from the strict prefix used by P2.
 example (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {x : V} {o : Obj p} {d : Time}

@@ -228,30 +228,6 @@ def BatchCoverage (p : Params) (ΔF : Time) (k : RowKind) : Prop :=
     BatchPrem p c E rho ΔF k q y U X →
     (heightView p X.parent).h = y → CoveredByChild p k X U y
 
-/-- FINAL 22:1115–1118,1916–1918. No DC helper: the first child above
-height y on D's path. Model height is `SimplexFG.hOf`.
-DC: INTENTIONAL: height coverage or its explicit action-history input. -/
-def FirstCross (p : Params) (D : FGBlock (Fin p.n)) (y : Nat)
-    (C : FGBlock (Fin p.n)) : Prop :=
-  FGBlock.Preceq D C.parent ∧ (heightView p C.parent).h = y ∧ (heightView p C).h = y + 1
-
-/-- FINAL 22:1119–1129,1695–1699,1909–1920. No exact DC counterpart.
-The coverage and unsupported-child clauses of `TWalk` at one proposal read.
-The model calls are `proposerVotes`, `proposerSupport`, `getHead`, and
-`liveRoot` (Model/Frame.lean:21,46,98–107). This is a local service premise,
-not a global healing or recovery contract.
-DC: INTENTIONAL: height coverage or its explicit action-history input. -/
-def ProposalWalk (p : Params) (S : State p.n) (s : Slot)
-    (D : FGBlock (Fin p.n)) (seats : Finset (Fin p.n)) : Prop :=
-  let support := FGSA.proposerSupport S s
-  let H := FGSA.getHead p S (FGSA.proposerVotes S s) support
-  Block.Preceq (eraseFG D) H ∧
-  (∀ B, Block.Prec (FGSA.liveRoot p S) B → Block.Preceq B H →
-    (∀ a ∈ seats, ∀ o ∈ support, GridCO.headSeat? o = some a →
-      ∀ Hd, GridCO.headTarget? o = some Hd → ¬ Block.Preceq B Hd) →
-    B.slot = S.slot p ∨ ∃ A ∈ S.fg.TF,
-      eraseFG A = B.parent ∧ (heightView p A).h < (FGSA.controls p S).lo)
-
 /-- DC: SAME defining equation through the W height view. -/
 theorem JustifiedCross_def (p : FGSA.Params) (W U : FGBlock (Fin p.n)) (y : Nat) :
     JustifiedCross p W U y =

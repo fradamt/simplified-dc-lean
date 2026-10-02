@@ -1,5 +1,5 @@
 module
-public import AvailableChainGeneric.Statements.Pure.Schedule
+public import AvailableChainGeneric.Statements.Pure.Schedule -- shake: keep (Tests.Recurrence positive controls)
 public import AvailableChainFGSA.Model.Objects
 
 @[expose] public section
@@ -33,15 +33,6 @@ def B_F (p : Params) (G : Time) (g : Nat) : Time := B_H p G + W_F p g
 def B_heal (p : Params) (G : Time) (g : Nat) : Time :=
   6 * ρ p G + (23 + 13 * (g : Time)) * P p + G + 64 * p.Δ
 def B_best (p : Params) (G : Time) (g : Nat) : Time := min (B_heal p G g) (B_H p G)
-def B_Q (p : Params) (G : Time) (g : Nat) : Time :=
-  B_best p G g + (2 * (g : Time) + 1) * P p + 9 * p.Δ
-def B_skip (p : Params) (G : Time) (g : Nat) : Time :=
-  B_H p G + (2 * (g : Time) + 4) * P p + 9 * p.Δ
-def γ (f : Gen.Pure.FinForm) (g : Nat) : Nat :=
-  match f with
-  | .strongW => g + 1
-  | _ => g
-
 def carrierTime2 (p : Params) (r : Nat) : Time := (r : Time) * P p + 8 * p.Δ
 def kernelDeadline (p : Params) (r : Nat) : Time := (r : Time) * P p + 9 * p.Δ
 
