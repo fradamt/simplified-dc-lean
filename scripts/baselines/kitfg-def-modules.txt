@@ -17,3 +17,4 @@ CertificateSelectionDef
 StoreSafetyDef
 CertificateSimplexDef
 ProvenanceCoreDef
+FrameBridgeDef

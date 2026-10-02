@@ -81,7 +81,8 @@ example (E : Electorate V) (H : FGHeightView V) (f : FGFinalityView V)
     (B : FGBlock V) (X : FGBlock V) (j : Height)
     (he : (⟨j, X, ∅⟩ : FGCertEntry V) ∈ r.before B) (hle : j ≤ (f B).h_F) :
     FGBlock.Preceq X (f B).F :=
-  selection_pruned_covered E H f r hs B _ he hle
+  (FGSelectionLaws.of_core E H f r hs.initial hs.ordered hs.bounds hs.entry_origin
+    hs.none_iff hs.greatest hs.write hs.prune).pruned_covered B _ he hle
 
 #print axioms selection_simplex_core_constructor_test
 #print axioms selection_simplex_constructor_test
@@ -94,7 +95,6 @@ example (E : Electorate V) (H : FGHeightView V) (f : FGFinalityView V)
 #print axioms certEntry_preceq_of_le
 #print axioms FGSelectionLaws.of_core
 #print axioms FGSelectionLaws.prune_eq
-#print axioms selection_pruned_covered
 #print axioms selection_chosen_spec
 #print axioms selection_ready_covered
 #print axioms selection_chosen_removed

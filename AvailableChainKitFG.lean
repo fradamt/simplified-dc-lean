@@ -54,6 +54,8 @@ public import AvailableChainKitFG.ProvenanceCore
 public import AvailableChainKitFG.SelectionCore
 public import AvailableChainKitFG.StoreSafety
 public import AvailableChainKitFG.StoreSafetySimplex
+public import AvailableChainKitFG.FrameBridgeDef
+public import AvailableChainKitFG.FrameBridge
 
 @[expose] public section
 end

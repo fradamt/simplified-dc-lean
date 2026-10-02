@@ -97,13 +97,6 @@ theorem FGSelectionLaws.prune_eq (B : FGBlock V) :
     r.afterPrune B = pruneCertEntries (f B).h_F (r.before B) :=
   hs.prune B
 
-/-- Derive coverage with the core constructor, without its coverage field. -/
-theorem selection_pruned_covered (B : FGBlock V) (e : FGCertEntry V)
-    (he : e ∈ r.before B) (hle : e.j ≤ (f B).h_F) :
-    FGBlock.Preceq e.X (f B).F :=
-  (FGSelectionLaws.of_core E H f r hs.initial hs.ordered hs.bounds hs.entry_origin
-    hs.none_iff hs.greatest hs.write hs.prune).pruned_covered B e he hle
-
 /-- Selection writes the chosen pair and strictly raises the certificate height. -/
 theorem selection_chosen_spec (B : FGBlock V) (e : FGCertEntry V)
     (he : r.chosen B = some e) :
@@ -127,7 +120,7 @@ theorem selection_ready_covered (B : FGBlock V) (e : FGCertEntry V)
       have hle := (hs.greatest B d hc).2.2 e he hq
       have hw := (selection_chosen_spec E H f r hs B d hc).2.2.2
       have hj : e.j ≤ (f B).h_F := by simpa only [hw] using hle
-      exact ⟨hj, selection_pruned_covered E H f r hs B e he hj⟩
+      exact ⟨hj, hs.pruned_covered B e he hj⟩
 
 /-- The selected QC is read before pruning removes its entry. -/
 theorem selection_chosen_removed (B : FGBlock V) (e : FGCertEntry V)
@@ -150,7 +143,7 @@ theorem selection_removed_covered (B : FGBlock V) (e : FGCertEntry V)
   have hle : e.j ≤ (f B).h_F := by
     by_contra hn
     exact hremoved ((selection_retained_iff E H f r hs B e).mpr ⟨he, Nat.lt_of_not_ge hn⟩)
-  exact ⟨hle, selection_pruned_covered E H f r hs B e he hle⟩
+  exact ⟨hle, hs.pruned_covered B e he hle⟩
 
 /-- Selection preserves the zero anchor until a positive entry is selected. -/
 theorem selection_finalized_zero (hinit : f .genesis = ⟨.genesis, 0⟩)
