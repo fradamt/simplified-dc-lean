@@ -786,6 +786,7 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_availableGST
 #print axioms AvailableChain.FGSA.Run.fgsa_foldTrichotomy_target
 #print axioms AvailableChain.FGSA.Run.fgsa_foldTrichotomy_progress
+#print axioms AvailableChain.FGSA.Run.fgsa_storedProgressConsume
 #print axioms AvailableChain.FGSA.Run.fgsa_noMixedMaturity
 #print axioms AvailableChain.FGSA.Run.fgsa_justifyAt
 -- H-BASE: all four completed items; HB3 is skipped.

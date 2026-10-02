@@ -31,6 +31,7 @@ EXPECTED = (
     # K-HEIGHT: height adapters; --expect DATA only.
     'AvailableChain.FGSA.Run.fgsa_foldTrichotomy_target',
     'AvailableChain.FGSA.Run.fgsa_foldTrichotomy_progress',
+    'AvailableChain.FGSA.Run.fgsa_storedProgressConsume',
     'AvailableChain.FGSA.Run.fgsa_noMixedMaturity',
     'AvailableChain.FGSA.Run.fgsa_justifyAt',
     # S4.6c: --expect DATA only.

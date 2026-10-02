@@ -69,37 +69,9 @@ private theorem kheight_progress (p : Params) {U X : FGBlock (Fin p.n)} {y : Nat
 private theorem kheight_cross_cases (p : Params) {U W : FGBlock (Fin p.n)} {y : Nat}
     (hU : EntryAt p U y) (hUW : FGBlock.Preceq U W.parent)
     (hP : (heightView p W.parent).h = y) (hW : (heightView p W).h = y + 1) :
-    JustifiedCross p W U y ∨ MixedCross p W y := by
-  have laws := kheight_laws p
-  have hj := laws.justified_below_height W
-  rw [hW] at hj
-  by_cases heq : (heightView p W).h_j = y
-  · left
-    have hy : y ≠ 0 := by
-      have := laws.one_le_h U
-      rw [hU.1] at this
-      simp only [Height] at *
-      omega
-    have jlaws := FGJustificationLaws.of_bridge (heightView_bridge p)
-    have hJh := jlaws.J_height W (heq ▸ hy)
-    rw [heq] at hJh
-    have hJW := preceq_trans (laws.justified_preceq_entry W) (laws.entry_preceq W)
-    have hPW : FGBlock.Preceq W.parent W := by
-      cases W with
-      | genesis => exact preceq_refl _
-      | node P s x rs => exact preceq_parent_node P s x rs
-    have hUW' := preceq_trans hUW hPW
-    have hJ : (heightView p W).J = U := by
-      rcases preceq_total_of_common hJW hUW' with hJU | hUJ
-      · have ht := laws.entry_plateau hJU (hJh.trans hU.1.symm)
-        rw [jlaws.J_entry W, hU.2] at ht
-        exact ht
-      · have ht := laws.entry_plateau hUJ (hU.1.trans hJh.symm)
-        rw [hU.2, jlaws.J_entry W] at ht
-        exact ht.symm
-    exact ⟨hP, hW, hJ, heq⟩
-  · right
-    exact ⟨hP, hW, by simp only [Height] at *; omega⟩
+    JustifiedCross p W U y ∨ MixedCross p W y :=
+  cross_cases_of_laws (kheight_laws p) (FGJustificationLaws.of_bridge (heightView_bridge p))
+    hU hUW hP hW
 
 /-- FINAL 22:710–737,1213–1223. The first target edge supplies the trichotomy.
 DC: W4FKChainJustification.lean:185; FG-SA also names a mixed ancestor. -/
@@ -145,6 +117,67 @@ theorem fgsa_foldTrichotomy_progress (p : Params) : foldTrichotomy p .progress :
       omega
   · intro hk
     cases hk
+
+/-- A matching carrier row persists at a later point of the same height. -/
+private theorem kheight_progress_row (p : Params) {B P : FGBlock (Fin p.n)}
+    {a : Row (Fin p.n)} (ha : a ∈ B.rows) (hBP : FGBlock.Preceq B P)
+    (hh : (heightView p B.parent).h = (heightView p P).h)
+    (hm : a.height_pair.matchesEntry (heightView p B.parent).h
+      (heightView p B.parent).T_h.root = true) : a.signer ∈ (heightView p P).progress := by
+  cases B with
+  | genesis => exact (List.not_mem_nil ha).elim
+  | node D s x rs =>
+      exact progress_from_row_of_bridge p.E p.cfg (heightView p) (heightView_bridge p) ha hBP hm hh
+
+/-- FINAL 21:1397–1407,22:710–737. Equal-height paths keep stored progress coverage.
+DC: ProgressQuorumCore.lean:39; KitFG row-bit persistence supplies the path transfer. -/
+theorem fgsa_storedProgressConsume (p : Params) : StoredProgressConsume p := by
+  rw [StoredProgressConsume_def]
+  intro y U B X hU hUB hBX hc hP hm
+  have laws := kheight_laws p
+  have hBP : FGBlock.Preceq B.parent X.parent := by
+    have hb : FGBlock.Preceq B.parent B := by
+      cases B with
+      | genesis => exact preceq_refl _
+      | node D s x rs => exact preceq_parent_node D s x rs
+    exact preceq_trans hb hBX
+  have hlo := laws.h_mono hUB
+  have hhi := laws.h_mono hBP
+  have hB : (heightView p B.parent).h = y := by
+    rw [hU.1] at hlo
+    rw [hP] at hhi
+    simp only [Height] at *
+    omega
+  have hT := kheight_entry p hU hUB hB
+  obtain ⟨S, hS, hc⟩ := hc
+  have hbits : ∀ i ∈ S, i ∈ (heightView p X.parent).progress := by
+    intro i hi
+    rcases hc i hi with hb | ⟨a, ha, hs, timeout, hp⟩
+    · exact progress_persist_of_bridge p.E p.cfg (heightView p) (heightView_bridge p) hBP
+        (hB.trans hP.symm) hb
+    · rw [← hs]
+      exact kheight_progress_row p ha hBX (hB.trans hP.symm) (by
+        rw [hp]
+        change decide (y = (heightView p B.parent).h ∧
+          U.root = (heightView p B.parent).T_h.root) = true
+        simp only [hB, hT, and_self, decide_true, eq_self])
+  have hX : X ≠ .genesis := by
+    intro heq
+    subst X
+    have hSe : S = ∅ := Finset.eq_empty_iff_forall_notMem.mpr (by
+      intro i hi
+      obtain ⟨W, a, hW, ha, _, _⟩ := laws.progress_origin .genesis i (hbits i hi)
+      obtain rfl := preceq_genesis.mp hW
+      exact List.not_mem_nil ha)
+    subst S
+    have hq : p.E.q = Gen.Pure.qF p.n :=
+      (toWeights_q p.E).symm.trans (unit_toWeights_q p.n)
+    rw [hq, Gen.Pure.qF_def] at hS
+    simp only [Electorate.weightOf, Finset.sum_empty] at hS
+    have hn := p.nPos
+    omega
+  exact kheight_progress p hX hU (preceq_trans hUB hBP) hP
+    ⟨S, hS, fun i hi => Or.inl (hbits i hi)⟩ hm
 
 /-- Increasing slots give a slot bound on every ancestor. -/
 private theorem kheight_slot_le (p : Params) {W X : FGBlock (Fin p.n)}
