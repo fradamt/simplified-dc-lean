@@ -107,6 +107,7 @@ structure FGSAClaims (p : FGSA.Params) : Prop extends FGSASafetyClaims p where
   aboveFrontierGSTRecF4 : AboveFrontierGSTClaim_W p .recF4
   availableGST : AvailableGSTClaim p
   availableGrowthGST : AvailableGrowthGSTClaim p
+  cleanGrowth : CleanGrowthClaim p
 
 end AvailableChain.FGSA.Run
 end

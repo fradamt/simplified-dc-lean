@@ -42,6 +42,10 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.FGSAClaims.aboveFrontierGSTRecF4',
     'AvailableChain.FGSA.Run.FGSAClaims.availableGST',
     'AvailableChain.FGSA.Run.FGSAClaims.availableGrowthGST',
+    # S4.7 Opus P1: clean growth (DC confirmedLive/stableLive under LiveSleepyRegime).
+    'AvailableChain.FGSA.Run.AwakeProposerRecurrenceFrom',
+    'AvailableChain.FGSA.Run.CleanGrowthClaim',
+    'AvailableChain.FGSA.Run.FGSAClaims.cleanGrowth',
     'AvailableChain.FGSA.Run.fgsa_apiHonestNeverSlashedClaim_body',
     'AvailableChain.FGSA.Run.fgsa_pureAccountableClaim',
     'AvailableChain.FGSA.Run.fgsa_pureAgreementClaim',

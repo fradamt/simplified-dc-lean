@@ -735,3 +735,5 @@ by
 #print axioms AvailableChain.FGSA.Run.AvailableGrowthConcl
 #print axioms AvailableChain.FGSA.Run.AvailableGSTClaim
 #print axioms AvailableChain.FGSA.Run.AvailableGrowthGSTClaim
+#print axioms AvailableChain.FGSA.Run.AwakeProposerRecurrenceFrom
+#print axioms AvailableChain.FGSA.Run.CleanGrowthClaim

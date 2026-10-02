@@ -364,7 +364,7 @@ Declaration rows: 870.
 │                                                   │                                                            │                           │       │ fixed-action coverage; H.10 uses actual-start budget.      │
 │ RFProv                                            │ AvailableChainFGSAClaims/Statements/ChannelProps.lean:797  │ CONTRACT (statement only) │ R11   │ Stage 5: complete healing contracts; H.9(b) keeps          │
 │                                                   │                                                            │                           │       │ fixed-action coverage; H.10 uses actual-start budget.      │
-│ TDel                                              │ AvailableChainFGSAClaims/Statements/ChannelProps.lean:811  │ CONTRACT (statement only) │ R11   │ Stage 5: complete healing contracts; H.9(b) keeps          │
+│ TDel                                              │ AvailableChainFGSAClaims/Statements/ChannelProps.lean:814  │ CONTRACT (statement only) │ R11   │ Stage 5: complete healing contracts; H.9(b) keeps          │
 │                                                   │                                                            │                           │       │ fixed-action coverage; H.10 uses actual-start budget.      │
 │                                                   │                                                            │                           │       │ S4.6c: IF.5 antecedent (21:548–557): compatible prefix.    │
 │ TDelReset                                         │ AvailableChainFGSAClaims/Statements/ChannelProps.lean:820  │ CONTRACT (statement only) │ R11   │ Stage 5: complete healing contracts; H.9(b) keeps          │
@@ -1930,7 +1930,7 @@ codex/reports/d35bac1-coverage.md. S4.7 reviews the new public entries.
 ├───────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┼───────────────────────────┼───────┼────────────────────────────────────────────────────────────┤
 │ AvailableFromConcl                                │ AvailableChainFGSAClaims/Claims/Outage.lean:157            │ SUPPORT (conclusion)      │ R11   │ A10: Healed at T_H + InclusionAt for later proposals.      │
 │ AvailableGrowthConcl                              │ AvailableChainFGSAClaims/Claims/Outage.lean:167            │ SUPPORT (conclusion)      │ R11   │ A10: DC LiveFrom shape for stable and confirmed outputs.   │
-│ AvailableGSTClaim                                 │ AvailableChainFGSAClaims/Claims/Outage.lean:183            │ PROVED (fgsa_availableGST)│ R11   │ From HTimeClaim only; DC available/stableIncludedFast.     │
+│ AvailableGSTClaim                                 │ AvailableChainFGSAClaims/Claims/Outage.lean:183            │ PROVED from HTimeClaim    │ R11   │ Conditional on HTimeClaim (a contract); DC available.      │
 │ AvailableGrowthGSTClaim                           │ AvailableChainFGSAClaims/Claims/Outage.lean:198            │ CONTRACT (statement only) │ R11   │ Stage 5: proposal-existence and causal-slot bridges.       │
 │ fgsa_availableGST                                 │ AvailableChainFGSAProofs/Proofs/Shared/Claims.lean:148     │ PROVED composition        │ R11   │ HTimeClaim → AvailableGSTClaim (healed gate service).      │
 │ FGSAClaims.finalityLivenessGSTRecFE               │ AvailableChainFGSAClaims/FGSAClaims.lean:102               │ AGGREGATE FIELD           │ R11   │ S4.6c A1/A10: G-F0b output field.                          │
@@ -1941,5 +1941,8 @@ codex/reports/d35bac1-coverage.md. S4.7 reviews the new public entries.
 │ FGSAClaims.aboveFrontierGSTRecF4                  │ AvailableChainFGSAClaims/FGSAClaims.lean:107               │ AGGREGATE FIELD           │ R11   │ S4.6c A1/A10: G-F0b output field.                          │
 │ FGSAClaims.availableGST                           │ AvailableChainFGSAClaims/FGSAClaims.lean:108               │ AGGREGATE FIELD           │ R11   │ S4.6c A1/A10: G-F0b output field.                          │
 │ FGSAClaims.availableGrowthGST                     │ AvailableChainFGSAClaims/FGSAClaims.lean:109               │ AGGREGATE FIELD           │ R11   │ S4.6c A1/A10: G-F0b output field.                          │
+│ AwakeProposerRecurrenceFrom                       │ AvailableChainFGSAClaims/Statements/Regimes.lean:95        │ SUPPORT (premise)         │ R11   │ S4.7 P1: DC SingleProposerRecurrence role + awake.         │
+│ CleanGrowthClaim                                  │ AvailableChainFGSAClaims/Claims/Outage.lean:214            │ CONTRACT (statement only) │ R11   │ Stage 5: CleanInclusion + recurrence (DC liveFrom).        │
+│ FGSAClaims.cleanGrowth                            │ AvailableChainFGSAClaims/FGSAClaims.lean:110               │ AGGREGATE FIELD           │ Bundle│ S4.7 P1: DC confirmedLive/stableLive (sleepy, t₀=0).       │
 └───────────────────────────────────────────────────┴────────────────────────────────────────────────────────────┴───────────────────────────┴───────┴────────────────────────────────────────────────────────────┘
 ```

@@ -87,6 +87,20 @@ abbrev HealingSet (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (G : Time)
     (ΔF : Time) : Prop :=
   Recovery₂ p c E rho G ΔF
 
+/-- Awake proposer recurrence from t₀: every window (t, t + G] with t₀ ≤ t that ends within
+the horizon holds an honest slot whose proposer is awake at its proposal time.
+DC b241081 Generic/Regimes.lean:106–111 SingleProposerRecurrence: SAME role; INTENTIONAL: the
+awake condition (FG-SA suppresses the duties of sleeping nodes). Consumers: CleanGrowthClaim and
+the weak-continuation liveness companion. -/
+def AwakeProposerRecurrenceFrom (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (t₀ G : Time) : Prop :=
+  ∀ t, t₀ ≤ t → t + G ≤ rho.horizon →
+    ∃ s, t < V2.D.proposalTime (fgsaInterface p c) s ∧
+      V2.D.proposalTime (fgsaInterface p c) s ≤ t + G ∧
+      HonestSlot rho (fgsaInterface p c) s ∧
+      E.awake (V2.D.proposerOf rho (fgsaInterface p c) s)
+        (V2.D.proposalTime (fgsaInterface p c) s) = true
+
 /-- Final outage fields for G-F0a. Participation is strict before the cut;
 the sleep witness is in `outWin`. -/
 structure Outage₂ (fast : Bool) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))

@@ -306,7 +306,8 @@ def FinalizedMonotonicityClaim : Prop :=
 `Linked` is INTENTIONAL: FG rows are signed by fixed seat; the holder map
 supplies DC's validator identity (F-H, `dc-align-full.md:135–141`).
 The conclusion is SAME as DC. No sorted, honest_only, horizon, fault bound,
-regime or restart premise is required. -/
+regime or restart premise is required. INTENTIONAL: validators are fixed to V = Fin p.n,
+because fgsaSlashing names validators by their fixed FG seat; the other claims quantify over V. -/
 def HonestNeverSlashedClaim (p : Params) : Prop :=
   ∀ {In : Type} (c : AppCodec In) (E : Generic.Env (Fin p.n))
     (rho : V2.D.Run (Fin p.n) (fgsa p c)),

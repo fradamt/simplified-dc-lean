@@ -339,6 +339,7 @@ def AvailableChain.FGSA.Run.AvailableFromConcl 9ae879d33eb30b54
 def AvailableChain.FGSA.Run.AvailableGrowthConcl 2b050e224aaead83
 def AvailableChain.FGSA.Run.AvailableGSTClaim d62ed92834157a3c
 def AvailableChain.FGSA.Run.AvailableGrowthGSTClaim 6dd1e1356af1e024
+def AvailableChain.FGSA.Run.CleanGrowthClaim aa91f6886f365ebb
 ```
 
 ### `AvailableChainFGSAClaims.Claims.Shared`
@@ -406,7 +407,7 @@ field AvailableChain.FGSA.Run.FGSAFinalityClaims.finalizedMonotone de243b029c6a8
 field AvailableChain.FGSA.Run.FGSAFinalityClaims.honestNeverSlashed 46ebc39e22b4559f
 structure AvailableChain.FGSA.Run.FGSAClaims ed767df9cd2f9bb8
 field AvailableChain.FGSA.Run.FGSAClaims.toFGSASafetyClaims 7dcccd1d8f8fa845
-ctor AvailableChain.FGSA.Run.FGSAClaims.mk 7dcbdb1607cb2dd7
+ctor AvailableChain.FGSA.Run.FGSAClaims.mk cf31270b944931f3
 field AvailableChain.FGSA.Run.FGSAClaims.finality 556a3ea80b476941
 field AvailableChain.FGSA.Run.FGSAClaims.finalizedSafety 01c0b054de1ff758
 field AvailableChain.FGSA.Run.FGSAClaims.finalLock 9061028f34e0e091
@@ -426,6 +427,7 @@ field AvailableChain.FGSA.Run.FGSAClaims.aboveFrontierGSTRecFE 9ec77815141c10c4
 field AvailableChain.FGSA.Run.FGSAClaims.aboveFrontierGSTRecF4 e8731bce870cdc58
 field AvailableChain.FGSA.Run.FGSAClaims.availableGST 6e7e68c4ae24e1b2
 field AvailableChain.FGSA.Run.FGSAClaims.availableGrowthGST 631b4ac7cce7df56
+field AvailableChain.FGSA.Run.FGSAClaims.cleanGrowth e9f51e9173701ed5
 ```
 
 ### `AvailableChainFGSAClaims.Statements.Bounds`
@@ -1265,6 +1267,7 @@ def AvailableChain.FGSA.Run.CleanSet dd65e099952bf12c
 def AvailableChain.FGSA.Run.CleanCutSet ad817ec49f1956a7
 def AvailableChain.FGSA.Run.CleanPrefixSet 05bee7f55ecfe8d2
 def AvailableChain.FGSA.Run.HealingSet 185c977500a213f1
+def AvailableChain.FGSA.Run.AwakeProposerRecurrenceFrom 6c6bbcba21c92ad1
 structure AvailableChain.FGSA.Run.Outage₂ 13cd99cf71c5d597
 ctor AvailableChain.FGSA.Run.Outage₂.mk 9c2b7d706b009545
 field AvailableChain.FGSA.Run.Outage₂.pre c737a9e99e9560a8
