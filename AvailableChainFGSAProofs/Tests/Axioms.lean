@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Finality.History -- shake: keep (K-HISTORY audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Height -- shake: keep (K-HEIGHT audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.Claims -- shake: keep (S4.6b axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.Phase -- shake: keep (H-PHASE audit)
@@ -813,3 +814,10 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.healing_phase_block_receipt
 #print axioms AvailableChain.FGSA.Run.healing_evidence_spread
 #print axioms AvailableChain.FGSA.Run.healing_phase_rows_spread
+
+-- K-HISTORY: raw origin is supplied by Assembly.
+#print axioms AvailableChain.FGSA.Run.noMixedPreBatchParent
+#print axioms AvailableChain.FGSA.Run.justifyFresh_W
+#print axioms AvailableChain.FGSA.Run.raw_causal_cap_before
+#print axioms AvailableChain.FGSA.Run.raw_causal_cap_at_tick
+#print axioms AvailableChain.FGSA.Run.raw_causal_cap_through_action

@@ -28,6 +28,12 @@ LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainF
 CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = (
+    # K-HISTORY: run-level history bodies; --expect DATA only.
+    'AvailableChain.FGSA.Run.noMixedPreBatchParent',
+    'AvailableChain.FGSA.Run.justifyFresh_W',
+    'AvailableChain.FGSA.Run.raw_causal_cap_before',
+    'AvailableChain.FGSA.Run.raw_causal_cap_at_tick',
+    'AvailableChain.FGSA.Run.raw_causal_cap_through_action',
     # K-HEIGHT: height adapters; --expect DATA only.
     'AvailableChain.FGSA.Run.fgsa_foldTrichotomy_target',
     'AvailableChain.FGSA.Run.fgsa_foldTrichotomy_progress',
