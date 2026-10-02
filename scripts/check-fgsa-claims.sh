@@ -28,6 +28,9 @@ LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainF
 CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = (
+    # S4.2b: terminal retention contract (F8-W).
+    'AvailableChain.FGSA.Run.TerminalRetention_W',
+    'AvailableChain.FGSA.Run.TerminalRetention_W_def',
     # S4.3 W surface: --expect DATA only.
     'AvailableChain.FGSA.Run.FinalityCoveredByChild_W',
     'AvailableChain.FGSA.Run.FinRowNames',
@@ -146,6 +149,8 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.FGood4_Wp_def',
     'AvailableChain.FGSA.Run.Tail_Wp_def',
     'AvailableChain.FGSA.Run.B_FW_def',
+    # S4.2b: the named terminal-retention contract is proved.
+    'AvailableChain.FGSA.Run.fgsa_terminalRetentionW',
     'AvailableChain.FGSA.Run.fgsa_grid_carrier_timeW',
     'AvailableChain.FGSA.Run.fgsa_grid_kernel_deadlineW',
     'AvailableChain.FGSA.Run.F4_W_implies_FE_W',

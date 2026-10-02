@@ -31,7 +31,8 @@ if [ "${SOURCE_ONLY:-0}" != 1 ]; then
 fi
 # The declarations that the axiom script must find and check (fail closed: a
 # scan that misses the library fails). Each task adds its main outputs.
-AX_OPTS=(--expect Run.isRowObject Run.isRowObject_def Run.fgsaDelay Run.fgsaDelay_def
+AX_OPTS=(--expect Run.stored_rows_r3W Run.stored_chain_rowsValidW Run.exact_row_exclusion_checkedW Run.exact_row_exclusionW
+  Run.isRowObject Run.isRowObject_def Run.fgsaDelay Run.fgsaDelay_def
   Run.fgsaDelay_row Run.fgsaDelay_nonrow Run.fgsaDelay_self Run.EmissionRowsValid Run.decode Run.HonestEmissionWellFormed
   Run.HonestProposalDecodes Run.fgsa_emissionRowsValid Run.fgsa_propose_parent_lt
   Run.honest_emit_wellFormed Run.decode_honest Run.fgsa Run.fgsaFamilies Run.fgsaIso Run.toWireEquiv Run.duties_spec
