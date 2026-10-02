@@ -219,12 +219,32 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   hOf_of_bridge. They read only height fields. SimplexFG is unchanged. Readers
   of the finality fields (on_block, update_finality) are not covered; FG5
   replaces them with the window store.
+- KitFG frame geometry (LF8, FG5 job J1, 2026-10-02): `FrameGeometry` states the
+  frame facts that FG-SA took from `StoreInv` over `FGStoreInvariant H f` in
+  view form (controls = FJ controls, full frame, crossed-prefix height,
+  no-contest, contest, retention), by the structural route (J carrier from
+  `pair`, `hmax`, `gen`), plus `mem_filteredFromView`.
+  `JustificationLawsDef` adds `FGJustificationLaws H` (J entry, J height,
+  J zero), with `FGJustificationLaws.of_bridge` for every bridged view.
+  `CausalCapCore.finalityCap_row_of_certificate` is the finality-cap row over
+  `FGCertificateLaws`.
 - FGSA E-11 adds `LeaseBelowOutputStore` in `Statements/Invariants` and
   `StoreBundle` with `StoreBundleInvariant` in `Statements/Store`. The bundle
   has cstore, meta, nest and lease fields; the E-11 statements are PROVED.
 - `AvailableChainFGSA/Proofs/LeaseOutput` proves the E-11 stored-target invariant.
 - `AvailableChainFGSA/Proofs/StoreBundle` proves E-11 by bundle induction
   (`storeBundleInvariant`).
+- FG-SA window (stages 1–2, on main; additive until the switch J4):
+  `Model/Window` (window state with ≤ K_W retained justifications, the raw
+  fold `transition p K`, `derive p K`, R6W row validity), `Model/WindowStore`
+  (window store and viable tree); `Statements/WindowHeight` and
+  `Statements/WindowCertificate` (projections, pre-finality state);
+  `Proofs/WindowHeightBridge` (windowHeightBridge, window height laws),
+  `WindowInvariant` (structural window invariants), `WindowSelection` and
+  `WindowCertificates` (the KitFG certificate and selection records),
+  `WindowProvenance` (provenance forms), `WindowHistory`, `WindowStore`
+  (store invariant over the window views). The model still reads the
+  SimplexFG fold until J4.
 - 07-H adds Claims `Fold` for height batches, raw action-history inputs in
   `Phases`, and `Claims/Healing` adapters. `Foundations/RowService` proves
   strict all-emissions receipt at ΔF, parent-valid selection, and height
@@ -352,6 +372,29 @@ the window core (additive; SimplexFG unchanged; height bridge) → 2 prove
 the interfaces (height transfers, provenance, window store invariants) →
 3 switch FG-SA to the window fold once → 4 finish 07-F and re-freeze →
 5 prove liveness on the window API.
+
+Stage 3 is split (lead rulings, `tip-stability/codex/reports/fg5-rulings.md`
+with its addendum): readers and invariants are ported green BEFORE the switch,
+and only the instance swap is atomic.
+
+```text
+┌────┬────────────────┬──────────────────────────────────────────────────────┐
+│ Job│ Owner          │ Scope                                                │
+├────┼────────────────┼──────────────────────────────────────────────────────┤
+│ J0 │ both           │ land w3 (FG4 + FG2), LF5 fixes + LF6 + LF7, achfix   │
+│ J1 │ lean-framework │ LF8: frame geometry over FGStoreInvariant,           │
+│    │                │ FGJustificationLaws, generic finality-cap row        │
+│ J2 │ fgsa-lean      │ FG5a: Params.K_W (2 ≤ K_W); Model/WindowViews; view- │
+│    │                │ form readers, bridge-equal; no meaning change        │
+│ J3 │ fgsa-lean      │ FG5b: store invariants → FGStoreInvariant (views     │
+│    │                │ still simplex); WindowStoreInv removed               │
+│ J4 │ fgsa-lean      │ FG5c, ATOMIC: views and updaters → window fold, R6W  │
+│    │                │ admission, window head fields; instance proofs       │
+│ J5 │ lead           │ review of J4 (two models)                            │
+│ J6 │ fgsa-lean      │ FG5d: height-only Claims readers → H (cosmetic)      │
+│ J7 │ fgsa-lean      │ IF.3(b) producer on the window (SO-COV)              │
+└────┴────────────────┴──────────────────────────────────────────────────────┘
+```
 
 ## 6. Decisions that shape the architecture
 
