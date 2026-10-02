@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Foundations.FinalityApi -- shake: keep (S4.5b axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedEndpoint -- shake: keep (endpoint audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedPersist -- shake: keep (persistence audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedReflect -- shake: keep (reflection audit)
@@ -684,3 +685,8 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.covered_parent_W
 #print axioms AvailableChain.FGSA.Run.finalityBatch_covered_W
 #print axioms AvailableChain.FGSA.Run.finalizePending_of_acceptBefore_W
+
+-- S4.5b: each new public contract, support equation, field, and adapter.
+#print axioms AvailableChain.FGSA.Run.fgsa_apiFinalizedMonotonicityClaim_body
+#print axioms AvailableChain.FGSA.Run.fgsa_apiFinalizedSafetyClaim_body
+#print axioms AvailableChain.FGSA.Run.fgsa_apiFinalLockClaim_body

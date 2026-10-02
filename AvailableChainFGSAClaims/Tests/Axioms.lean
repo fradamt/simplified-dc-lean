@@ -1,4 +1,8 @@
 module
+public import AvailableChainFGSAClaims.Statements.FinalityApi -- shake: keep (S4.5b axiom audit)
+public import AvailableChainFGSAClaims.Statements.Packages.Inclusion -- shake: keep (S4.5b axiom audit)
+public import AvailableChainFGSAClaims.Claims.FinalitySafety -- shake: keep (S4.5b axiom audit)
+public import AvailableChainFGSAClaims.Claims.Outage -- shake: keep (S4.5b axiom audit)
 public import AvailableChainFGSAClaims.Claims.Finality -- shake: keep (S4.3b axiom audit)
 public import AvailableChainFGSAClaims.Claims.WeakContinuation -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAClaims.Statements.BoundsW -- shake: keep (S4.1 axiom audit)
@@ -678,3 +682,54 @@ by
   exact split G ΔF hδ c E rho ⟨w, pt.r⟩
     ⟨prem.set, prem.bound, prem.window, start, prem.hhor, input,
       ac G ΔF hδ c E rho w prem.set prem.bound input⟩
+
+-- S4.5b: each new public contract, support equation, field, and adapter.
+#print axioms AvailableChain.FGSA.Run.FinalityFinalizedAt
+#print axioms AvailableChain.FGSA.Run.FinalityFinalizedAt_def
+#print axioms AvailableChain.FGSA.Run.FinalityBlock
+#print axioms AvailableChain.FGSA.Run.FinalityBlock_def
+#print axioms AvailableChain.FGSA.Run.finalityRows
+#print axioms AvailableChain.FGSA.Run.finalityRows_def
+#print axioms AvailableChain.FGSA.Run.FinalitySlashableBound
+#print axioms AvailableChain.FGSA.Run.FinalitySlashableBound_def
+#print axioms AvailableChain.FGSA.Run.FinalityExecution
+#print axioms AvailableChain.FGSA.Run.FinalityExecution_def
+#print axioms AvailableChain.FGSA.Run.WholeRunAccountable
+#print axioms AvailableChain.FGSA.Run.WholeRunAccountable_def
+#print axioms AvailableChain.FGSA.Run.WholeRunAgreement
+#print axioms AvailableChain.FGSA.Run.WholeRunAgreement_def
+#print axioms AvailableChain.FGSA.Run.CleanInclusionPrem
+#print axioms AvailableChain.FGSA.Run.CleanInclusionPrem.mk
+#print axioms AvailableChain.FGSA.Run.CleanInclusionPrem.set
+#print axioms AvailableChain.FGSA.Run.CleanInclusionPrem.prop
+#print axioms AvailableChain.FGSA.Run.CleanInclusionPrem.hhor
+#print axioms AvailableChain.FGSA.Run.ExactProposalPrem
+#print axioms AvailableChain.FGSA.Run.ExactProposalPrem.mk
+#print axioms AvailableChain.FGSA.Run.ExactProposalPrem.set
+#print axioms AvailableChain.FGSA.Run.ExactProposalPrem.prop
+#print axioms AvailableChain.FGSA.Run.ExactProposalPrem.hhor
+#print axioms AvailableChain.FGSA.Run.PureAccountableClaim
+#print axioms AvailableChain.FGSA.Run.PureAgreementClaim
+#print axioms AvailableChain.FGSA.Run.WholeRunAccountableClaim
+#print axioms AvailableChain.FGSA.Run.WholeRunAgreementClaim
+#print axioms AvailableChain.FGSA.Run.EventPrefixAgreementClaim
+#print axioms AvailableChain.FGSA.Run.FaultCountSlashableBoundClaim
+#print axioms AvailableChain.FGSA.Run.FinalizedMonotonicityClaim
+#print axioms AvailableChain.FGSA.Run.HonestNeverSlashedClaim
+#print axioms AvailableChain.FGSA.Run.FinalizedSafetyConcl
+#print axioms AvailableChain.FGSA.Run.FinalizedSafetyClaim
+#print axioms AvailableChain.FGSA.Run.FinalLockClaim
+#print axioms AvailableChain.FGSA.Run.ExactProposalAt
+#print axioms AvailableChain.FGSA.Run.ExactProposalClaim
+#print axioms AvailableChain.FGSA.Run.InclusionPostGateAt
+#print axioms AvailableChain.FGSA.Run.InclusionAt
+#print axioms AvailableChain.FGSA.Run.CleanInclusionPostGateClaim
+#print axioms AvailableChain.FGSA.Run.CleanInclusionClaim
+#print axioms AvailableChain.FGSA.Run.DutiesExtendOn
+#print axioms AvailableChain.FGSA.Run.FCompatBefore
+#print axioms AvailableChain.FGSA.Run.P1Concl
+#print axioms AvailableChain.FGSA.Run.LeaseOrFFrom
+#print axioms AvailableChain.FGSA.Run.OutageCompatAt
+#print axioms AvailableChain.FGSA.Run.OutageCompatClaim
+#print axioms AvailableChain.FGSA.Run.FastP1Claim
+#print axioms AvailableChain.FGSA.Run.SlowP1Claim
