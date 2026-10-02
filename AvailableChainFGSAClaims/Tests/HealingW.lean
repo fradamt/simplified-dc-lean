@@ -111,6 +111,39 @@ example : HealingPrem smokeParams smokeCodec 4 6 smokeEnv smokeRun () :=
 example : HealingPrem smokeParams smokeCodec 4 smokeEnv.Δ smokeEnv smokeRun () :=
   ⟨healingSet smokeEnv.Δ (by decide), ⟨by decide⟩⟩
 
+-- Apply a reset contract at ΔF = 6 > 2Δ to a package with the same delay.
+-- This checks the statement interface. It does not prove the reset contract.
+example {V In : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa smokeParams c))
+    (h : ResetArrivalStatement smokeParams 4 6)
+    (prem : ResetArrivalPrem smokeParams c 4 6 E rho ()) :
+    ∃ w, H0Reset smokeParams c E rho w ∧
+      smokeParams.actionTime w.rStar < E.t_GST + B'_resetF smokeParams 6 4 :=
+  h (by decide) c E rho prem.set prem.bound prem.hhor
+
+example {V In : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa smokeParams c))
+    (h : ResetArrivalFullStatement smokeParams 4 6)
+    (prem : ResetArrivalFullPrem smokeParams c 4 6 E rho ()) :
+    ∃ w, H0 smokeParams c E rho w ∧
+      smokeParams.actionTime w.rStar < E.t_GST + B'_resetF smokeParams 6 4 :=
+  h (by decide) c E rho prem.set prem.bound prem.hhor
+
+-- The attempt contract consumes the horizon after the actual start event.
+example {V In : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa smokeParams c)) (pt : PtK)
+    (h : ProgressAttemptStatement smokeParams 4 6)
+    (prem : HealingAttemptPrem smokeParams c 4 6 E rho pt) :
+    AttemptEndsBy smokeParams c E rho pt.k (attemptBudget smokeParams 4 pt.k) := by
+  obtain ⟨ev, he, hhor⟩ := prem.hhor
+  exact h (by decide) c E rho prem.set prem.bound pt.k ev prem.valid he hhor
+
+-- Blueprint 21:1850–1863, third numeric point: Δ = 1, R = 3, k = 2.
+private abbrev numericParams : Params :=
+  ⟨⟨1, 1, 2, 0, by decide, by decide, by decide, by decide⟩, 3, 6, by decide, 2, by decide⟩
+example : kappaF numericParams 6 = 3 ∧ E_jF numericParams 6 8 25 = 52 ∧
+    B'_resetF numericParams 6 8 = 339 := by decide
+
 #print axioms healingSet
 
 end AvailableChain.FGSA.Run.Tests.HealingW

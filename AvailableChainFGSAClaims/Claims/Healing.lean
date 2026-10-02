@@ -18,9 +18,9 @@ def RowPermissionAt {In V : Type} [DecidableEq V] (c : AppCodec In)
     postClock E rho x (p.actionTime r) = some nd →
     actionSourceFG p c E rho x r = some (some C) →
     C ∈ FGSA.fullTree p nd.st →
-    (FGSA.controls p nd.st).lo ≤ hOf p.E p.cfg C → hOf p.E p.cfg C ≤ m →
+    (FGSA.controls p nd.st).lo ≤ (heightView p C).h → (heightView p C).h ≤ m →
     ∃ j rSent a, rSent ≤ r ∧ HonestRowAt p c E rho j x rSent a ∧
-      namedEntry a.payload.height_pair = some (hOf p.E p.cfg C, (derive p.E p.cfg C).T_h.root)
+      namedEntry a.payload.height_pair = some ((heightView p C).h, (heightView p C).T_h.root)
 
 /-- RowPermissionClaim: chapter-21 service.
 DC: INTENTIONAL family delivery uses ΔF; SA clocks stay unchanged. -/
@@ -87,7 +87,7 @@ def RenewedPromotionConcl {In V : Type} [DecidableEq V] [Fintype V] (c : AppCode
     (∃ s X, HonestProposal E rho (fgsaInterface p c) s (eraseFG X) ∧ X.slot = s ∧
       ↑r * P p + 2 * P p ≤ SA.proposalTime p.toParams s ∧
       SA.proposalTime p.toParams s ≤ p.actionTime r + 2 * P p + Γ p G - 10 * p.Δ ∧
-      height + 1 ≤ hOf p.E p.cfg X ∧
+      height + 1 ≤ (heightView p X).h ∧
       (∃ y, y ∈ rho.honest ∧ Gen.V2.Duty.HoldsBefore E rho
         (fun nd => X ∈ nd.st.fg.TF) (SA.proposalTime p.toParams s + p.Δ) y) ∧
       (PhaseInterval p c E rho u (SA.gateTime p.toParams s) m J contested →

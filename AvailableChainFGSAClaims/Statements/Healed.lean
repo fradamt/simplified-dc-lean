@@ -135,7 +135,7 @@ Spec map (8ef4ed3b): 2044 → healed; 2055 → wit; 2065 → t.h1;
 2128–2132 → F1 foundations; 2134–2138 → the H-time statements below.
 Full wit uses ResetArrivalFullStatement (H.18 horizon), not reset-only arrival.
 DC: INTENTIONAL family delivery uses ΔF; SA clocks stay unchanged.
-The default keeps ComposeStmt and the deferred best/search forms compatible. -/
+The default remains for the old ComposeStmt kernel declarations until S4.3b. -/
 structure HealingInput (w : HealingWitness) (ΔF : Time := E.Δ) : Prop where
   healed : Healed p c E rho (tstar p w)
   wit : H0 p c E rho w
@@ -168,48 +168,52 @@ theorem HTimeStatement_def (G ΔF : Time) :
 /-- Best H-time (21:3166–3169; 00:1101–1103), P3 §4.6 D11.
 Standalone healing claim; no finality consumer; equal-delay form; the ΔF port
 comes with the post-re-freeze companion. The horizon and bound are B_best. -/
+-- deferred route (user decision 5); post-freeze companion
 def HTimeBestStatement (G : Time) (g : Nat) : Prop := p.δt = 2 * p.R →
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
-    HealingSet p c E rho G →
+    HealingSet p c E rho G E.Δ →
     FinForm.recS.holds (Gen.V2.Duty.HonestSlot rho (fgsaInterface p c))
       p.R (P p) p.Δ E.t_GST rho.horizon g →
     E.t_GST + B_best p G g ≤ rho.horizon →
-    ∃ w, HealingInput p c E rho w ∧ tstar p w < E.t_GST + B_best p G g
+    ∃ w, HealingInput p c E rho w E.Δ ∧ tstar p w < E.t_GST + B_best p G g
 
+-- deferred route (user decision 5); post-freeze companion
 theorem HTimeBestStatement_def (G : Time) (g : Nat) :
     HTimeBestStatement p G g =
   (p.δt = 2 * p.R →
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
-    HealingSet p c E rho G →
+    HealingSet p c E rho G E.Δ →
     FinForm.recS.holds (Gen.V2.Duty.HonestSlot rho (fgsaInterface p c))
       p.R (P p) p.Δ E.t_GST rho.horizon g →
     E.t_GST + B_best p G g ≤ rho.horizon →
-    ∃ w, HealingInput p c E rho w ∧ tstar p w < E.t_GST + B_best p G g) := by rfl
+    ∃ w, HealingInput p c E rho w E.Δ ∧ tstar p w < E.t_GST + B_best p G g) := by rfl
 
 /-- Qualified-search H-time (21:2377–2378,3166–3169), P3 §4.6 D50.
 Standalone healing claim; no finality consumer; equal-delay form; the ΔF port
 comes with the post-re-freeze companion. Domain: 1 ≤ g (00:406). -/
+-- deferred route (user decision 5); post-freeze companion
 def HTimeSearchStatement (G : Time) (g : Nat) : Prop := p.δt = 2 * p.R →
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
-    1 ≤ g → HealingSet p c E rho G →
+    1 ≤ g → HealingSet p c E rho G E.Δ →
     Gen.Pure.QualSearch (Gen.V2.Duty.HonestSlot rho (fgsaInterface p c))
       p.R (P p) p.Δ E.t_GST rho.horizon g →
     E.t_GST + B_best p G g ≤ rho.horizon →
-    ∃ w, HealingInput p c E rho w ∧ tstar p w < E.t_GST + B_best p G g
+    ∃ w, HealingInput p c E rho w E.Δ ∧ tstar p w < E.t_GST + B_best p G g
 
+-- deferred route (user decision 5); post-freeze companion
 theorem HTimeSearchStatement_def (G : Time) (g : Nat) :
     HTimeSearchStatement p G g =
   (p.δt = 2 * p.R →
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
-    1 ≤ g → HealingSet p c E rho G →
+    1 ≤ g → HealingSet p c E rho G E.Δ →
     Gen.Pure.QualSearch (Gen.V2.Duty.HonestSlot rho (fgsaInterface p c))
       p.R (P p) p.Δ E.t_GST rho.horizon g →
     E.t_GST + B_best p G g ≤ rho.horizon →
-    ∃ w, HealingInput p c E rho w ∧ tstar p w < E.t_GST + B_best p G g) := by rfl
+    ∃ w, HealingInput p c E rho w E.Δ ∧ tstar p w < E.t_GST + B_best p G g) := by rfl
 
 end AvailableChain.FGSA.Run
 end
