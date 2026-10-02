@@ -967,3 +967,18 @@ theorem AvailableChain.Gen.V2.Duty.DelayPosOfEnvLeStatement_def 7ebd35b0cc67512b
 def AvailableChain.Gen.V2.Duty.AcceptedByDeadlineOnStatement 119483f09cd16ed0
 theorem AvailableChain.Gen.V2.Duty.AcceptedByDeadlineOnStatement_def 283553db5c9a5c9c
 ```
+
+### `AvailableChainGeneric.Statements.Pure.ScheduleW`
+
+```text
+def AvailableChain.Gen.Pure.FGoodE_W 946d42dc0d429221
+def AvailableChain.Gen.Pure.FGood4_W 1ef3352f8d3ac553
+def AvailableChain.Gen.Pure.Tail_W 465d382d8d464598
+def AvailableChain.Gen.Pure.RecFE_W 59753ef608590d35
+def AvailableChain.Gen.Pure.RecF4_W cd6dfa1e50f82ddc
+theorem AvailableChain.Gen.Pure.FGoodE_W_def 2a2c2636afc05e23
+theorem AvailableChain.Gen.Pure.FGood4_W_def 051460080fb2578c
+theorem AvailableChain.Gen.Pure.Tail_W_def 419f192c1597c63b
+theorem AvailableChain.Gen.Pure.RecFE_W_def 2eabc865ad99a661
+theorem AvailableChain.Gen.Pure.RecF4_W_def 84800d1158cba1c3
+```
