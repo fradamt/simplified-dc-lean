@@ -88,3 +88,5 @@ Their source text is unchanged; their meaning moves with W. Route in brackets.
   not change (J5 Opus N1; RCert conjunct 4 states the same fact).
 
 "the unproven regime Props (FinalitySet, Recurrence, Regimes) now nominally describe W runs with old bounds: not re-validated until stage 4"
+
+J6 / FG5d: height-only readers now read heightView; bridge-equal; no meaning change

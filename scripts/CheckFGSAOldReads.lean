@@ -31,8 +31,12 @@ Read classes of an active declaration (its type and value):
 - HEIGHT: it names `SimplexFG.derive` (directly, or through a constant outside
   the active path whose type or definition value names it), and it is not OLD
   or FINALITY.
-Limit: a read through a local name (`σ` with a premise `σ = derive …`) is a
-height read here, not a finality read.
+Also FINALITY (J5 Opus review N7): a finality projector passed as an argument
+(`congrArg ChainState.F h`), a beta-redex `(fun σ => σ.F) (derive …)`, a
+`ChainState` case split or compiled matcher on derive whose branch uses a finality
+field, and a finality read of a local `ChainState` (`σ` with `σ = derive …`) in a
+term that names derive. Limit: a matcher on a LOCAL `ChainState` is not matched
+(the matcher extension is not loaded, so the discriminant type is unknown).
 Auxiliary constants (`foo.proof_1`, `foo.match_1`, `foo.eq_1`, …) count for
 their declaration `foo`; a private name counts under its user name.
 
@@ -53,8 +57,8 @@ Run: `lake env lean --run scripts/CheckFGSAOldReads.lean [--data F] [--write]
 current reads (it keeps the reason of a kept line) and exits 0. `--controls`
 also runs the negative controls in the same environment: planted reads (a
 direct old constant, an old constant through a KitFG lemma, a
-`(SimplexFG.derive …).F` projection, a height-only derive read) must each fail
-as unlisted, and a dropped and an extra data line must be detected.
+`(SimplexFG.derive …).F` projection, a height-only derive read, and the N7 forms:
+congrArg, beta-redex, casesOn, matcher, local name) must each fail as unlisted, and a dropped and an extra data line must be detected.
 Exit codes: 0 pass; 1 an unlisted read, a stale, duplicate or misplaced line,
 or a control that is not detected; 2 a usage, data or setup error. -/
 
@@ -96,6 +100,13 @@ def isAuxComp (s : String) : Bool :=
     ["proof_", "match_", "eq_", "eqn_", "spec_"].any fun p =>
       s.startsWith p && s.length > p.length && (s.drop p.length).all Char.isDigit
 
+/-- A compiled `match` auxiliary (`foo.match_1`). The matcher extension is not loaded
+here, so the name decides. -/
+def isMatcherName (n : Name) : Bool :=
+  match n with
+  | .str _ s => s.startsWith "match_" && (s.drop 6).all Char.isDigit && s.length > 6
+  | _ => false
+
 partial def declKey (n : Name) : Name :=
   let n := (privateToUserName? n).getD n
   match n with
@@ -116,6 +127,10 @@ finality functions. -/
 structure FinCtx where
   idx : List Nat
   fns : NameSet
+  /-- The number of `ChainState` fields (the binders of a `casesOn` minor premise). -/
+  nf : Nat := 0
+  /-- The finality functions with a `ChainState` argument (projectors as values). -/
+  stateFns : NameSet := {}
 
 /-- `e` projects a finality field of a `ChainState`, or applies a finality function. -/
 def projectsFinality (fc : FinCtx) (e : Expr) : Bool :=
@@ -125,15 +140,91 @@ def projectsFinality (fc : FinCtx) (e : Expr) : Bool :=
     | .const c _ => fc.fns.contains c
     | _ => false).isSome
 
-/-- `e` has a finality read of the old derive. -/
-def finalityOfDerive (fc : FinCtx) (e : Expr) : Bool :=
-  mentionsDerive e && (e.find? fun s =>
+/-- A local: a bound or free variable (the `σ` of `σ = derive …`). -/
+def isLocal (e : Expr) : Bool := e.consumeMData.isBVar || e.consumeMData.isFVar
+
+def isStateTy (t : Expr) : Bool := t.consumeMData.getAppFn.isConstOf stateName
+
+/-- A projection function of a finality field (`ChainState.F`, `.h_F`, `.finalize`). -/
+def isFinalityProjFn (n : Name) : Bool :=
+  finalityFields.any fun x => n == stateName ++ Name.mkSimple x
+
+/-- `e` reads a finality field of a local `ChainState`: `σ.F` or `ChainState.F σ`. -/
+def readsLocalFinality (fc : FinCtx) (e : Expr) : Bool :=
+  (e.find? fun s =>
     match s with
-    | .proj S i x => S == stateName && fc.idx.contains i && mentionsDerive x
-    | .app .. =>
-        let f := s.getAppFn
-        f.isConst && fc.fns.contains f.constName! && s.getAppArgs.any mentionsDerive
+    | .proj S i x => S == stateName && fc.idx.contains i && isLocal x
+    | .app .. => s.getAppFn.isConst && isFinalityProjFn s.getAppFn.constName! &&
+        s.getAppArgs.any isLocal
     | _ => false).isSome
+
+/-- A lambda over a `ChainState` whose body reads a finality field of a local
+(`fun σ => σ.F`). -/
+def isStateLam (fc : FinCtx) (e : Expr) : Bool :=
+  match e.consumeMData with
+  | .lam _ ty b _ => isStateTy ty && readsLocalFinality fc b
+  | _ => false
+
+/-- A finality projector used as a value: a finality projection function, a finality
+function with a `ChainState` argument, or a lambda `fun σ => σ.F`. -/
+def isFinalityProjector (fc : FinCtx) (e : Expr) : Bool :=
+  match e.consumeMData with
+  | .const c _ => isFinalityProjFn c || fc.stateFns.contains c
+  | f => isStateLam fc f
+
+def isDeriveApp (e : Expr) : Bool := e.consumeMData.getAppFn.isConstOf deriveName
+
+def stripLams : Nat → Expr → Option Expr
+  | 0, e => some e
+  | k + 1, .lam _ _ b _ => stripLams k b
+  | k + 1, .mdata _ b => stripLams (k + 1) b
+  | _, _ => none
+
+/-- A `ChainState` recursor (`casesOn`, `rec`, `recOn`) with a major premise that is a
+derive application or a local, and a minor premise that uses a finality field binder. -/
+def casesReadsFinality (fc : FinCtx) (f : Expr) (args : Array Expr) : Bool :=
+  f.isConst && [`casesOn, `rec, `recOn].any (fun r => f.constName! == stateName ++ r) &&
+    args.any (fun a => isDeriveApp a || isLocal a) &&
+    args.any fun a => match stripLams fc.nf a with
+      | some body => fc.idx.any fun i => body.hasLooseBVar (fc.nf - 1 - i)
+      | none => false
+
+/-- `e` has a finality read of the old derive. Besides `(derive …).F` and a finality
+function applied to a derive argument, it catches (J5 Opus review N7): (a) a finality
+projector in argument position of an application with a derive argument
+(`congrArg ChainState.F h`); (b) a beta-redex `(fun σ => σ.F) (derive …)`; (c) a
+`ChainState` case split on derive or on a local whose minor premise uses a finality
+field, and a compiled matcher with a derive discriminant; (d) a finality read of a local
+`ChainState` in a term that names derive (`∀ σ, σ = derive … → … σ.F`, also in the type
+of an external theorem). A W-state local projects `Window.State`, not `ChainState`, so
+(d) does not match it. -/
+def finalityRule (fc : FinCtx) (s : Expr) : Option String :=
+  match s with
+  | .proj S i x =>
+      if S == stateName && fc.idx.contains i then
+        if mentionsDerive x then some "projection" else if isLocal x then some "local name"
+        else none
+      else none
+  | .app .. =>
+      let f := s.getAppFn
+      let args := s.getAppArgs
+      let derArg := args.any mentionsDerive
+      if f.isConst && fc.fns.contains f.constName! && derArg then some "finality function"
+      else if f.isConst && isFinalityProjFn f.constName! && args.any isLocal then
+        some "local name"
+      else if derArg && args.any (isFinalityProjector fc) then some "projector argument"
+      else if derArg && isStateLam fc f then some "beta-redex"
+      else if casesReadsFinality fc f args then some "case split"
+      else if f.isConst && isMatcherName f.constName! && args.any isDeriveApp then some "matcher"
+      else none
+  | _ => none
+
+/-- The rule of the first finality read of the old derive in `e`, if any. -/
+def finalityOfDeriveWhy (fc : FinCtx) (e : Expr) : Option String :=
+  if mentionsDerive e then (e.find? (finalityRule fc · |>.isSome)).bind (finalityRule fc)
+  else none
+
+def finalityOfDerive (fc : FinCtx) (e : Expr) : Bool := (finalityOfDeriveWhy fc e).isSome
 
 inductive Cls where
   | major | height
@@ -149,7 +240,8 @@ def readsOf (env : Environment) (active : NameSet) (old : NameSet) (fc : FinCtx)
   let es := exprsOf ci true
   let mut major := #[]
   let mut height := #[]
-  if es.any (finalityOfDerive fc) then major := major.push "finality of SimplexFG.derive"
+  if let some w := es.findSome? (finalityOfDeriveWhy fc) then
+    major := major.push s!"finality of SimplexFG.derive ({w})"
   else if es.any mentionsDerive then height := height.push s!"{deriveName}"
   let mut seen : NameSet := {}
   for e in es do
@@ -164,8 +256,8 @@ def readsOf (env : Environment) (active : NameSet) (old : NameSet) (fc : FinCtx)
           let hits := ces.foldl (fun a e => a ++ e.getUsedConstants.filter old.contains) #[]
           if let some h := hits[0]? then
             major := major.push s!"{h} (via {c})"
-          else if ces.any (finalityOfDerive fc) then
-            major := major.push s!"finality of SimplexFG.derive (via {c})"
+          else if let some w := ces.findSome? (finalityOfDeriveWhy fc) then
+            major := major.push s!"finality of SimplexFG.derive ({w}; via {c})"
           else if ces.any mentionsDerive then
             height := height.push s!"{deriveName} (via {c})"
   if !major.isEmpty then return some ⟨.major, major⟩
@@ -217,7 +309,7 @@ def compare (reads : Std.HashMap Name Read) (allow height : Array Name) :
       | none => stale := stale.push s!"STALE {sect} LINE (no old read now; remove it): {k}"
       | some r =>
           unless r.cls == cls do
-            stale := stale.push s!"MISPLACED {sect} LINE (move it to the other section): {k}"
+            stale := stale.push s!"MISPLACED {sect} LINE (move it to the other section): {k} reads {r.why.toList}"
   return (unlisted, stale)
 
 def header : String :=
@@ -245,7 +337,7 @@ def finalityFns (env : Environment) (idx : List Nat) : NameSet := Id.run do
     changed := false
     for (n, v) in defs do
       if fns.contains n then continue
-      if projectsFinality ⟨idx, fns⟩ v then
+      if projectsFinality { idx, fns } v then
         fns := fns.insert n
         changed := true
   return fns
@@ -296,7 +388,18 @@ def main (args : List String) : IO UInt32 := do
   unless idx.length == finalityFields.length do
     IO.println s!"SETUP ERROR: {stateName} lacks a finality field {finalityFields}"
     return 2
-  let fc : FinCtx := ⟨idx, finalityFns env idx⟩
+  let fns := finalityFns env idx
+  let stateFns := fns.toList.foldl (fun acc c => match env.find? c with
+    | some ci => if (ci.type.getForallBinderNames.length > 0) &&
+        (Id.run do
+          let mut t := ci.type
+          let mut hit := false
+          while t.isForall do
+            if isStateTy t.bindingDomain! then hit := true
+            t := t.bindingBody!
+          return hit) then acc.insert c else acc
+    | none => acc) {}
+  let fc : FinCtx := ⟨idx, fns, fields.length, stateFns⟩
   if listFns then
     for n in fc.fns.toList.toArray.qsort (fun a b => a.toString < b.toString) do
       let m := match env.getModuleIdxFor? n with
@@ -358,6 +461,9 @@ def main (args : List String) : IO UInt32 := do
           value := v
           hints := .opaque
           safety := .safe }
+    let some mName := env.constants.toList.findSome? (fun (n, _) =>
+        if isMatcherName n && (`AvailableChain).isPrefixOf n then some n else none) | do
+      IO.println "CONTROL SETUP FAIL: no matcher exists"; return 2
     let der := mkApp (mkConst deriveName) (mkConst `Nat)
     let fIdx := idx.head!
     let planted : List (ConstantInfo × Cls) :=
@@ -366,7 +472,29 @@ def main (args : List String) : IO UInt32 := do
         (mk `OldReadControl.finalityProj (.proj stateName fIdx der), .major),
         (mk `OldReadControl.finalityFn
           (mkApp2 (mkConst (stateName ++ `F)) (mkConst `Nat) der), .major),
-        (mk `OldReadControl.heightOnly der, .height)]
+        (mk `OldReadControl.heightOnly der, .height),
+        -- J5 Opus review N7 (a): a finality projector in argument position.
+        (mk `OldReadControl.congrArgF
+          (mkAppN (mkConst `congrArg [1, 1]) #[mkConst stateName, mkConst `Nat, der, der,
+            mkConst (stateName ++ `F), mkConst `rfl]), .major),
+        -- N7 (b): a beta-redex `(fun σ => σ.F) (derive …)`.
+        (mk `OldReadControl.betaRedex
+          (mkApp (.lam `σ (mkConst stateName) (.proj stateName fIdx (.bvar 0)) .default) der),
+          .major),
+        -- N7 (c): `ChainState.casesOn (derive …)` with a minor premise that uses `F`.
+        (mk `OldReadControl.casesOnF
+          (mkAppN (mkConst (stateName ++ `casesOn) [1]) #[mkConst `Nat, der,
+            (List.range fields.length).foldl (fun b _ => .lam `x (mkConst `Nat) b .default)
+              (.bvar (fields.length - 1 - fIdx))]), .major),
+        -- N7 (c): a matcher with a `derive …` discriminant.
+        (mk `OldReadControl.matcher
+          (mkAppN (mkConst mName) #[mkConst `Nat, der]), .major),
+        -- N7 (d): a local name, `∀ σ, σ = derive … → … σ.F`.
+        (mk `OldReadControl.localName
+          (.forallE `σ (mkConst stateName)
+            (.forallE `h (mkApp3 (mkConst `Eq [1]) (mkConst stateName) (.bvar 0) der)
+              (mkApp3 (mkConst `Eq [1]) (mkConst `Nat) (.proj stateName fIdx (.bvar 1))
+                (.proj stateName fIdx (.bvar 1))) .default) .default), .major)]
     let mut withPlanted := reads
     for (ci, cls) in planted do
       match readsOf env active old fc ci with

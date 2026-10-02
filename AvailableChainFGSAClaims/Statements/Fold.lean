@@ -33,21 +33,21 @@ def SlotChain {n : Nat} (X : FGBlock (Fin n)) : Prop :=
 Same height/T_h entry fields, packaged for the FINAL ancestor-path contract.
 DC: SAME: height coverage or its explicit action-history input. -/
 def EntryAt (p : FGSA.Params) (U : FGBlock (Fin p.n)) (y : Nat) : Prop :=
-  (derive p.E p.cfg U).h = y ∧ (derive p.E p.cfg U).T_h = U
+  (heightView p U).h = y ∧ (heightView p U).T_h = U
 
 /-- FINAL 22:1060–1070. DC-CS/W4FKChainJustification.lean:185.
 Same J/h_j write, with explicit parent/child heights as FINAL F5 requires.
 DC: INTENTIONAL: FG-SA height coverage has explicit chain-history inputs. -/
 def JustifiedCross (p : FGSA.Params) (W U : FGBlock (Fin p.n)) (y : Nat) : Prop :=
-  (derive p.E p.cfg W.parent).h = y ∧ (derive p.E p.cfg W).h = y + 1 ∧
-  (derive p.E p.cfg W).J = U ∧ (derive p.E p.cfg W).h_j = y
+  (heightView p W.parent).h = y ∧ (heightView p W).h = y + 1 ∧
+  (heightView p W).J = U ∧ (heightView p W).h_j = y
 
 /-- FINAL 22:1056–1070. DC-CS/ProgressQuorumCore.lean:39.
 FG-SA distinguishes the non-justifying branch by h_j<y (ChainState.lean:145).
 DC: INTENTIONAL: FG-SA height coverage has explicit chain-history inputs. -/
 def MixedCross (p : FGSA.Params) (W : FGBlock (Fin p.n)) (y : Nat) : Prop :=
-  (derive p.E p.cfg W.parent).h = y ∧ (derive p.E p.cfg W).h = y + 1 ∧
-  (derive p.E p.cfg W).h_j < y
+  (heightView p W.parent).h = y ∧ (heightView p W).h = y + 1 ∧
+  (heightView p W).h_j < y
 
 /-- FINAL 22:1056–1070,1762–1780. No exact DC counterpart.
 FINAL F5 excludes mixed ancestor crossings; FG-SA has no DC nj latch.
@@ -61,8 +61,8 @@ DC: INTENTIONAL: FG-SA height coverage has explicit chain-history inputs. -/
 def SeatCovers (p : FGSA.Params) (k : RowKind) (X U : FGBlock (Fin p.n))
     (y : Nat) (i : Fin p.n) : Prop :=
   (match k with
-   | .target   => i ∈ (derive p.E p.cfg X.parent).target_participation
-   | .progress => i ∈ (derive p.E p.cfg X.parent).progress) ∨
+   | .target   => i ∈ (heightView p X.parent).target_participation
+   | .progress => i ∈ (heightView p X.parent).progress) ∨
   ∃ row ∈ X.rows, RowNames p k row i y U
 
 /-- FINAL 22:583–635. DC-CS/W4FKChainJustification.lean:122.
@@ -78,9 +78,9 @@ DC: INTENTIONAL: FG-SA height coverage has explicit chain-history inputs. -/
 def foldTrichotomy (p : FGSA.Params) (k : RowKind) : Prop :=
   ∀ (y : Nat) (U X : FGBlock (Fin p.n)), X ≠ .genesis → EntryAt p U y →
     FGBlock.Preceq U X.parent →
-    ((derive p.E p.cfg X.parent).h = y → CoveredByChild p k X U y) →
+    ((heightView p X.parent).h = y → CoveredByChild p k X U y) →
     (k = .progress → U.slot + p.δt ≤ X.slot) →
-    y + 1 ≤ (derive p.E p.cfg X).h ∧
+    y + 1 ≤ (heightView p X).h ∧
     (k = .target → (∃ W, FGBlock.Preceq W X ∧ JustifiedCross p W U y) ∨
                    (∃ W, FGBlock.Preceq W X.parent ∧ MixedCross p W y))
 
@@ -91,8 +91,8 @@ DC: INTENTIONAL: height coverage or its explicit action-history input. -/
 def StoredProgressConsume (p : FGSA.Params) : Prop :=
   ∀ (y : Nat) (U B X : FGBlock (Fin p.n)), EntryAt p U y → FGBlock.Preceq U B.parent →
     FGBlock.Preceq B X.parent → CoveredByChild p .progress B U y →
-    (derive p.E p.cfg X.parent).h = y → U.slot + p.δt ≤ X.slot →
-    (derive p.E p.cfg X).h = y + 1
+    (heightView p X.parent).h = y → U.slot + p.δt ≤ X.slot →
+    (heightView p X).h = y + 1
 
 /-- FINAL 22:1056–1059,940–944,1523,1624–1626. DC-CS/CarrierTimeoutGate.lean:121.
 DC derives a pre-maturity gate from round/delay bounds. FINAL F4 takes
@@ -223,14 +223,14 @@ def BatchCoverage (p : Params) (ΔF : Time) (k : RowKind) : Prop :=
     (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (q y : Nat) (U X : FGBlock (Fin p.n)),
     BatchPrem p c E rho ΔF k q y U X →
-    (derive p.E p.cfg X.parent).h = y → CoveredByChild p k X U y
+    (heightView p X.parent).h = y → CoveredByChild p k X U y
 
 /-- FINAL 22:1115–1118,1916–1918. No DC helper: the first child above
 height y on D's path. Model height is `SimplexFG.hOf`.
 DC: INTENTIONAL: height coverage or its explicit action-history input. -/
 def FirstCross (p : Params) (D : FGBlock (Fin p.n)) (y : Nat)
     (C : FGBlock (Fin p.n)) : Prop :=
-  FGBlock.Preceq D C.parent ∧ hOf p.E p.cfg C.parent = y ∧ hOf p.E p.cfg C = y + 1
+  FGBlock.Preceq D C.parent ∧ (heightView p C.parent).h = y ∧ (heightView p C).h = y + 1
 
 /-- FINAL 22:1119–1129,1695–1699,1909–1920. No exact DC counterpart.
 The coverage and unsupported-child clauses of `TWalk` at one proposal read.
@@ -247,7 +247,7 @@ def ProposalWalk (p : Params) (S : State p.n) (s : Slot)
     (∀ a ∈ seats, ∀ o ∈ support, GridCO.headSeat? o = some a →
       ∀ Hd, GridCO.headTarget? o = some Hd → ¬ Block.Preceq B Hd) →
     B.slot = S.slot p ∨ ∃ A ∈ S.fg.TF,
-      eraseFG A = B.parent ∧ hOf p.E p.cfg A < (FGSA.controls p S).lo)
+      eraseFG A = B.parent ∧ (heightView p A).h < (FGSA.controls p S).lo)
 
 end AvailableChain.FGSA.Run
 end

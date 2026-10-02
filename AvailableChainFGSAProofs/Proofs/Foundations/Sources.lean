@@ -285,12 +285,13 @@ theorem sourceDiscipline_qcOrigin [Fintype V] {Pt : Type} {pt : Pt}
     (hb : SourceDisciplinePrem p c E rho pt)
     (hS : RStore p c E rho) :
     RQCOrigin p c E rho := by
+  simp only [RQCOrigin_def, heightView_eq_simplex p,
+    KitFG.simplexHeightView_def, KitFG.heightOf_def]
   have hlaws := fgCertificateLaws p
   rw [heightView_eq_simplex p] at hlaws
   classical
   obtain ⟨e, he⟩ := fgsa_linked_seats rho hb.set.linked
   intro i x W hx hW
-  dsimp only
   have origin (Q : Finset (Fin p.n))
       (rows : Fin p.n → FGBlock (Fin p.n) × Row (Fin p.n))
       (hQ : p.E.IsQuorum Q)
@@ -394,6 +395,8 @@ private theorem source_named_quorum [Fintype V] {Pt : Type} {pt : Pt}
 theorem sourceDiscipline_strat [Fintype V] {Pt : Type} {pt : Pt}
     (hb : SourceDisciplinePrem p c E rho pt)
     (hS : RStore p c E rho) : RStrat p c E rho := by
+  simp only [RStrat_def, certified_def, heightView_eq_simplex p,
+    KitFG.simplexHeightView_def, KitFG.heightOf_def]
   have hlaws := fgCertificateLaws p
   rw [heightView_eq_simplex p] at hlaws
   intro i x W hx hW e he hne
@@ -459,7 +462,6 @@ theorem sourceDiscipline_strat [Fintype V] {Pt : Type} {pt : Pt}
       · exact (KitFG.entry_eq_on_plateau p.E p.cfg hXU hXh).symm.trans hXentry
     refine ⟨y, r, wire, ⟨j, hj, hem⟩, ?_⟩
     rw [hTX]
-    change namedEntry wire.payload.height_pair = some ((derive p.E p.cfg X).h, X.root)
     rw [hXh]
     exact hname
 
@@ -475,10 +477,13 @@ theorem sourceDiscipline_srcFrameAbove [Fintype V] {Pt : Type} {pt : Pt}
       ∀ e ∈ certified p W, c₀ ≤ hOf p.E p.cfg e → Φ e := by
     intro W hW e he hheight
     by_cases hgen : e = .genesis
-    · subst e; exact hg hheight
+    · subst e; apply hg
+      rwa [KitFG.hOf_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)] at hheight
     · obtain ⟨y, r, a, ha, hname⟩ := hstrat i x W hx hW e he hgen
-      exact hrows y r a e ha hname hheight
-  refine ⟨hcert, ?_⟩
+      apply hrows y r a e ha hname
+      rwa [KitFG.hOf_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)] at hheight
+  refine ⟨(by simpa only
+    [KitFG.hOf_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)] using hcert), ?_⟩
   let st := storeAt p c E rho i x
   have hinv := (hS i x hx).1.fg
   obtain ⟨K, hK, hKF⟩ := hinv.Fcar
@@ -492,9 +497,13 @@ theorem sourceDiscipline_srcFrameAbove [Fintype V] {Pt : Type} {pt : Pt}
   have hj : c₀ ≤ hOf p.E p.cfg st.fg.J → Φ st.fg.J := by
     intro hh
     apply hcert D hD st.fg.J
-    · exact ⟨D, KitFG.preceq_refl D, Or.inl hJ⟩
+    · simp only [certified_def, heightView_eq_simplex p,
+        KitFG.simplexHeightView_def, KitFG.heightOf_def]
+      exact ⟨D, KitFG.preceq_refl D, Or.inl hJ⟩
     · exact hh
   change FrameBelow p Φ c₀ (controls p st)
+  simp only [FrameBelow_def, heightView_eq_simplex p,
+    KitFG.simplexHeightView_def, KitFG.heightOf_def]
   rw [controls_eq]
   refine ⟨hF, hj, ?_⟩
   change c₀ ≤ hOf p.E p.cfg (if (storeControls p.E p.cfg st.fg).rootIsJ then

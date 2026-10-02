@@ -16,10 +16,9 @@ heightView_bridge, without reducing the active height view. -/
 theorem fgsa_domainR_eq_storeFrameView (p : Params) (st : State p.n)
     (Vw : Finset (FGBlock (Fin p.n))) :
     domainR p st Vw = KitFG.storeFrameView (heightView p) st.fg Vw := by
-  rw [domainR_def, frameR_def,
-    KitFG.filteredFrom_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
-  rw [KitFG.storeFrameView_def, controls_eq,
-    KitFG.storeControls_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
+  -- `controls` is `storeControlsView (heightView p)` by its definition; heightView stays folded.
+  rw [domainR_def, frameR_def, KitFG.storeFrameView_def]
+  rfl
 
 /-- Blueprint 21 H.6:942–953, H.17:2971–2984 (design 798–809,2832–2845); spec 1286–1293.
 Class (iii). DC: INTENTIONAL; S3 with a witness inside the target view.
