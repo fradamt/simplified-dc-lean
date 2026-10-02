@@ -668,3 +668,8 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.exactService_head_of_retained_proposal
 #print axioms AvailableChain.FGSA.Run.exactService_head_of_retained_proposal_clean
 #print axioms AvailableChain.FGSA.Run.exactService_head_of_retained_proposal_recovery
+-- S4.3: W contracts, equations, constructors, fields, and pure adapters.
+#print axioms AvailableChain.FGSA.Run.pendingFold_consume_W
+#print axioms AvailableChain.FGSA.Run.covered_parent_W
+#print axioms AvailableChain.FGSA.Run.finalityBatch_covered_W
+#print axioms AvailableChain.FGSA.Run.finalizePending_of_acceptBefore_W

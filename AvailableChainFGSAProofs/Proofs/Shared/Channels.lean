@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSAClaims.Statements.ChannelProps
+public import AvailableChainFGSAClaims.Statements.Phases
 public import AvailableChainFGSARun.Proofs.EmissionWellFormed
 public import AvailableChainFGSARun.Proofs.Hooks
 
@@ -281,6 +281,54 @@ theorem cpCompat_of_srcFrame (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     exact KitFG.storeFrameView_contest_of_compatible_of_inv
       p.E (KitFG.simplexHeightView p.E p.cfg) hcert (finalityView p) st.fg hinv
         hjust B hJ hcross
+
+
+/-- Plan item 4. DC: INTENTIONAL exact retained entry, then prefix coverage.
+This is the pure window_finality_of_cover adapter; genesis is excluded. -/
+theorem pendingFold_consume_W (p : Params) (y : Nat) (U X : FGBlock (Fin p.n))
+    (h : PendingFold_W p y U X) :
+    FGBlock.Preceq U (Window.derive p p.K_W X).F ∧
+      y ≤ (Window.derive p p.K_W X).h_F := by
+  rcases h with ⟨child, e, he, hj, hX, Q, hQ, cover⟩
+  cases X with
+  | genesis => exact (child rfl).elim
+  | node P s body rows =>
+      have hc : ∀ i ∈ Q, i ∈ e.Q ∨ ∃ row ∈ rows,
+          row.signer = i ∧ row.finality_pair = some ⟨e.j, e.X.root⟩ := by
+        simpa only [FinRowNames_def, hj, hX, FGBlock.rows] using cover
+      simpa only [hj, hX] using
+        Window.window_finality_of_cover p p.K_W p.kWLarge P s body rows e he Q hQ hc
+
+/-- DC: INTENTIONAL separate prior coverage, extended by W monotonicity. -/
+theorem covered_parent_W (p : Params) (y : Nat) (U X : FGBlock (Fin p.n))
+    (h : Window.CoveredW p X.parent y U) : Window.CoveredW p X y U := by
+  have path : FGBlock.Preceq X.parent X := by
+    cases X with
+    | genesis => exact KitFG.preceq_refl _
+    | node P s body rows => exact KitFG.preceq_parent_node P s body rows
+  exact ⟨h.1.trans (Window.window_hF_mono p p.K_W p.kWLarge _ _ path),
+    KitFG.preceq_trans h.2 (Window.window_F_mono p p.K_W p.kWLarge _ _ path)⟩
+
+/-- Plan item 3 optional corollary. DC: INTENTIONAL prior coverage or a ready key.
+The complex batch producer remains a contract supplied as hbatch. -/
+theorem finalityBatch_covered_W (p : Params) (ΔF : Time)
+    (hbatch : FinalityBatchCoverage_W p ΔF) {In V : Type} [DecidableEq V] [Fintype V]
+    (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (q y : Nat) (U X : FGBlock (Fin p.n)) (child : X ≠ .genesis)
+    (h : FinalityBatchPrem_W p c E rho ΔF q y U X) : Window.CoveredW p X y U := by
+  rcases hbatch c E rho q y U X h with prior | ready
+  · exact covered_parent_W p y U X prior
+  · have hc := pendingFold_consume_W p y U X ⟨child, ready⟩
+    exact ⟨hc.2, hc.1⟩
+
+/-- Plan item 5. DC: INTENTIONAL strict β+Δ acceptance with the same receipt.
+AcceptBefore_W is the stage-5 contract, not a proved acceptance LAW. -/
+theorem finalizePending_of_acceptBefore_W (p : Params) (ΔF : Time)
+    (haccept : AcceptBefore_W p) : FinalizePending_W p ΔF := by
+  intro V _ _ In c E rho q y U X _slot h
+  exact haccept c E rho X U _ _
+    ⟨h.base, h.faultBound, (pendingFold_consume_W p y U X h.fold).1,
+      h.deliver, h.guards, h.horizon⟩
 
 end AvailableChain.FGSA.Run
 end
