@@ -867,64 +867,11 @@ theorem fgsa_head_cap_sources (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   · obtain ⟨o, he, -⟩ := ha₂.1
     exact (Gen.V2.Duty.index_lt_idxBefore_iff hS he D).1 hj₂
 
-/-- Every required row is retained at its strict receipt deadline. There
-is no row window and no alternative count witness. -/
-theorem fgsa_row_receipt (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (_hDelta : E.Δ = p.Δ) (hExecution : V2.D.ExecutionValid E rho)
-    (hNoRestart : V2.D.NoRestart rho) (dl : Time → Time) (cut : Time)
-    (i : Fin p.n) (body : RowPayload) (t : Time) (w : V)
-    (hD : Gen.V2.Duty.DeliveryWithin E rho dl cut)
-    (hT : Gen.V2.Duty.Trigger E rho (ofRow p ⟨.seat .fg i, body⟩) t)
-    (hw : w ∈ rho.honest) (hcut : dl t ≤ cut) (hlt : t < dl t) :
-    (⟨.seat .fg i, body⟩ : RowWire p.n) ∈
-      (V2.D.Run.stateBeforeTime E rho (dl t) w).st.rowPool := by
-  let o := ofRow p (⟨.seat .fg i, body⟩ : RowWire p.n)
-  let C := fgsaTimelyClock p c
-  have hS := hExecution.toScheduleWellFormed
-  have htime : 0 ≤ t ∧ t ≤ rho.horizon := by
-    rcases hT with ⟨v, _, k, he, _⟩ | ⟨v, _, k, ha⟩
-    · exact hS.in_horizon _ (List.mem_of_getElem? he)
-    · obtain ⟨parent, he, _⟩ := ha.1
-      exact hS.in_horizon _ (List.mem_of_getElem? he)
-  have hfloor0 : 0 ≤ Gen.V2.Duty.pubFloor E t :=
-    mul_nonneg (Int.ediv_nonneg htime.1 (le_of_lt E.Δ_pos)) (le_of_lt E.Δ_pos)
-  have hAdm : C.actTime o ≤ Gen.V2.Duty.pubFloor E t := by
-    rw [fgsaTimelyClock_actTime p c o]
-    exact hfloor0
-  have hfloorpub : V2.PublicTime E (Gen.V2.Duty.pubFloor E t) := by
-    refine ⟨(t / E.Δ).toNat, ?_⟩
-    rw [Int.toNat_of_nonneg (Int.ediv_nonneg htime.1 (le_of_lt E.Δ_pos))]
-    rfl
-  obtain ⟨j, hj⟩ := List.mem_iff_getElem?.mp (hS.tick_total w hw _ hfloorpub hfloor0
-    ((Gen.V2.Duty.pubFloor_le E t).trans htime.2))
-  have hprocessed := Gen.V2.Duty.accepted_by_deadline E rho dl cut o t w hD hT hw hcut hlt hS
-    ((fgsaHooks p c).excludes_stable E rho hS) (processed_stable E rho hS)
-    (fgsa_hReady_of_not_block (by intro s B raw sup rows h; cases h)
-      (fgsa_hWF_of_delivery hExecution.wire))
-    (fgsaAcceptance p c) C (fun k => cstoreInv_stateBefore E rho k w) hAdm j hj
-    (hNoRestart.restartFree w j _) rfl
-  exact of_decide_eq_true hprocessed
-
 /-- Every decoded fixed-FG row has a false exclusion result. -/
 theorem excludesS_honestRow_false (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (dl : Time → Time) (i : Fin p.n) (body : RowPayload) (t : Time) (w : V) :
     excludesS p (V2.D.Run.stateBeforeTime E rho (dl t) w).st
       (ofRow p ⟨.seat .fg i, body⟩) = false := rfl
-
-/-- An honest required row is retained at its strict receipt deadline. -/
-theorem fgsa_honest_row_receipt (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hDelta : E.Δ = p.Δ) (hExecution : V2.D.ExecutionValid E rho)
-    (hNoRestart : V2.D.NoRestart rho) (dl : Time → Time) (cut : Time)
-    (i : Fin p.n) (body : RowPayload) (t : Time) (w : V)
-    (hD : Gen.V2.Duty.DeliveryWithin E rho dl cut)
-    (hh : rho.seatOf (.base .fg) i ∈ rho.honest)
-    (hEmit : V2.D.Run.emits E rho (rho.seatOf (.base .fg) i)
-      (ofRow p ⟨.seat .fg i, body⟩) t)
-    (hw : w ∈ rho.honest) (hcut : dl t ≤ cut) (hlt : t < dl t) :
-    (⟨.seat .fg i, body⟩ : RowWire p.n) ∈
-      (V2.D.Run.stateBeforeTime E rho (dl t) w).st.rowPool :=
-  fgsa_row_receipt E rho hDelta hExecution hNoRestart dl cut i body t w hD
-    (Or.inl ⟨_, hh, hEmit⟩) hw hcut hlt
 
 /-- A required compatible proposal is stored at its own receipt deadline.
 This transports its block only; each carried HEAD uses its own trigger.

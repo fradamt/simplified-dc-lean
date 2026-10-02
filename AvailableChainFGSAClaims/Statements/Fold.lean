@@ -177,7 +177,8 @@ def NoMixedPreBatchParent (p : Params) : Prop :=
     (q y : Nat) (U X : FGBlock (Fin p.n)),
     PreBatchPrem p c E rho q y U X → NoMixedOnPath p X y
 
-/-- SO-COV height batch with one complete valid witness per fixed seat.
+/-- SO-COV height batch with one complete valid witness per quorum seat.
+The binding is producer-side; TRowsReceipt, TRowsSync, TRows, HealT and fgsaDelay are exempt.
 DC: INTENTIONAL earlier-or-current send-once origins; SAME height coverage. -/
 structure BatchPrem (p : Params) {V : Type} [DecidableEq V] [Fintype V] {In : Type}
     (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -186,13 +187,8 @@ structure BatchPrem (p : Params) {V : Type} [DecidableEq V] [Fintype V] {In : Ty
   base : BaseSet p c E rho
   /-- FINAL 22:593–598: honest-row quorum witness. -/
   faultQ : FaultQ p.n (faulty rho).card
-  /-- FINAL 22:623–625: the batch covers a quorum. -/
-  quorum : p.E.q ≤ p.E.weightOf (honestSeats p c rho)
-  /-- SO-COV (22:800–823,980–985,1100–1109): actual rows by cutoff q. -/
-  batch : ∀ i ∈ honestSeats p c rho, ∃ j r a t,
-    r ≤ q ∧ HonestRowAt p c E rho j (rho.seatOf (.base .fg) i) r a ∧
-    a.auth = .seat .fg i ∧ NamesEntry p k a y U ∧
-    eventTime rho j = some t ∧ t = p.actionTime r
+  /-- Producer-side row-delay binding. -/
+  deltaF : E.Δ ≤ ΔF
   /-- All-emissions receipt includes rows sent before GST. -/
   rowsReceipt : TRowsReceipt p c E rho ΔF
   /-- Receipt is before the proposal and within the finite run horizon. -/
@@ -204,8 +200,9 @@ structure BatchPrem (p : Params) {V : Type} [DecidableEq V] [Fintype V] {In : Ty
     X.rows = rows.filterMap RowWire.toRow?
   /-- The carrier follows cutoff q; this is not a row age limit. -/
   after : q * p.R + 2 ≤ X.slot
-  /-- One complete matching actual witness per seat is R6-valid for the parent. -/
-  valid : ∀ i ∈ honestSeats p c rho, ∃ j r a t,
+  /-- A quorum of honest seats has complete matching R6-valid witnesses. -/
+  valid : ∃ S : Finset (Fin p.n), S ⊆ honestSeats p c rho ∧
+    p.E.q ≤ p.E.weightOf S ∧ ∀ i ∈ S, ∃ j r a t,
     r ≤ q ∧ HonestRowAt p c E rho j (rho.seatOf (.base .fg) i) r a ∧
     a.auth = .seat .fg i ∧ NamesEntry p k a y U ∧
     eventTime rho j = some t ∧ t = p.actionTime r ∧
