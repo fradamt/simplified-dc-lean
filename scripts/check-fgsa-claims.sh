@@ -31,6 +31,8 @@ EXPECTED = (
     # C-CORE: --expect DATA only.
     'AvailableChain.FGSA.Run.fgsa_tStart',
     'AvailableChain.FGSA.Run.fgsa_tWalk',
+    'AvailableChain.FGSA.Run.fgsa_tVote',
+    'AvailableChain.FGSA.Run.fgsa_coreServices',
     # S4.6c: --expect DATA only.
     'AvailableChain.FGSA.Run.fgsa_availableGST',
     'AvailableChain.FGSA.Run.AvailableFromConcl',

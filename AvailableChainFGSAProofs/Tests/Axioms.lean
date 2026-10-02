@@ -808,3 +808,5 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 
 #print axioms AvailableChain.FGSA.Run.fgsa_tStart
 #print axioms AvailableChain.FGSA.Run.fgsa_tWalk
+#print axioms AvailableChain.FGSA.Run.fgsa_tVote
+#print axioms AvailableChain.FGSA.Run.fgsa_coreServices
