@@ -5,6 +5,9 @@ public import AvailableChainFGSA.Model.Clock
 public import AvailableChainFGSA.Model.Handlers
 public import AvailableChainFGSA.Model.Frame
 public import AvailableChainFGSA.Proofs.FrameViews
+public import AvailableChainFGSA.Statements.FinalityView
+public import AvailableChainFGSA.Proofs.StoreLaws
+public import AvailableChainFGSA.Proofs.EmissionFields
 public import AvailableChainFGSA.Proofs.BlockAncestry
 public import AvailableChainFGSA.Proofs.Carrier
 public import AvailableChainFGSA.Statements.Invariants

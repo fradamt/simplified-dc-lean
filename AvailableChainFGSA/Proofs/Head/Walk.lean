@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSA.Proofs.StoreLaws
 public import AvailableChainFGSA.Proofs.StoreInv
 public import AvailableChainGeneric.Proofs.AC.Support
 public import AvailableChainGeneric.Proofs.Pure.Walk
@@ -223,7 +224,8 @@ private theorem geometry_Z_liveRoot (p : Params) (st : State p.n) :
     · next hc =>
       obtain ⟨B, hB, he⟩ := of_decide_eq_true (Bool.and_eq_true_iff.mp hc).2
       rw [← Option.some.inj hr, ← he]
-      exact eraseFG_preceq ((KitFG.mem_filteredFrom p.E p.cfg _ _ B).mp hB).2.2.1
+      exact eraseFG_preceq ((KitFG.mem_filteredFrom_of_bridge
+        p.E p.cfg (heightView p) (heightView_bridge p) _ _ B).mp hB).2.2.1
     · cases hr
 
 /-- P3 F1b.5; bp02 §7. Class (iii), store walk instance.
@@ -252,7 +254,7 @@ theorem fgsa_filtered_anchorClosed (p : Params) (st : State p.n)
   obtain ⟨_, hb⟩ := List.mem_filter.mp hb
   obtain ⟨B, hB, rfl⟩ := of_decide_eq_true hb
   obtain ⟨hBX, hFB, hZB, W, hWX, hBW, hlo⟩ :=
-    (KitFG.mem_filteredFrom p.E p.cfg _ _ B).mp hB
+    (KitFG.mem_filteredFrom_of_bridge p.E p.cfg (heightView p) (heightView_bridge p) _ _ B).mp hB
   obtain ⟨A, hAB, rfl⟩ := geometry_lift_prefix B a hab
   have hZA : FGBlock.Preceq (controls p st).Z A :=
     preceq_of_eraseFG_preceq (viewRootInj_TF p st hi)
@@ -267,7 +269,8 @@ theorem fgsa_filtered_anchorClosed (p : Params) (st : State p.n)
   apply List.mem_filter.mpr
   refine ⟨(hi.baseTree _).mpr ⟨A, hsub hAX, rfl⟩, ?_⟩
   apply decide_eq_true
-  exact ⟨A, (KitFG.mem_filteredFrom p.E p.cfg _ _ A).mpr
+  exact ⟨A, (KitFG.mem_filteredFrom_of_bridge
+    p.E p.cfg (heightView p) (heightView_bridge p) _ _ A).mpr
     ⟨hAX, KitFG.preceq_trans hFZ hZA, hZA, W, hWX,
       KitFG.preceq_trans hAB hBW, hlo⟩, rfl⟩
 

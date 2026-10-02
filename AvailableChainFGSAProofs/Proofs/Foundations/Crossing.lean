@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSA.Proofs.StoreLaws
 public import AvailableChainFGSAProofs.Proofs.Foundations.Accountable
 
 public section
@@ -17,7 +18,8 @@ theorem fgsa_finalLock_of_bound (hb : FGSASlashableBound p c E rho) (K W : FGBlo
     (hK : FinalityRunBlock p c E rho K) (hW : FinalityRunBlock p c E rho W)
     (hh : (derive p.E p.cfg K).h_F < (derive p.E p.cfg W).h) :
     FGBlock.Preceq (derive p.E p.cfg K).F W :=
-  (KitFG.slashableWeight_or_finalized_preceq p.E p.cfg K W hh).resolve_left
+  (KitFG.slashableWeight_or_finalized_preceq_of_certificate
+    p.E (heightView p) (finalityView p) (fgCertificateLaws p) K W hh).resolve_left
     ((FGSASlashableBound_def p c E rho).mp hb K W hK hW)
 
 

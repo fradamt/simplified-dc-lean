@@ -330,8 +330,8 @@ AvailableChain.FGSA.Run.outWin	fg-noround/06: Duty run and fixed-FG emission or 
 AvailableChain.FGSA.LeaseBelowOutputStore	FG5a: appended Params.K_W and kWLarge change generated Params dependencies, bridge-equal, no meaning change	FG5a J2 frozen r2	expect=5c59d0a0978e86ea
 AvailableChain.FGSA.LeaseBelowOutputStore_def	FG5a: appended Params.K_W and kWLarge change generated Params dependencies, bridge-equal, no meaning change	FG5a J2 frozen r2	expect=124f6f13f65f43ca
 AvailableChain.FGSA.CStoreInv	FG5a: appended Params.K_W and kWLarge change generated Params dependencies, bridge-equal, no meaning change	FG5a J2 frozen r2	expect=cfaaddc60f50053e
-AvailableChain.FGSA.CStoreInv.mk	FG5a: appended Params.K_W and kWLarge change generated Params dependencies, bridge-equal, no meaning change	FG5a J2 frozen r2	expect=d47db62098792d6c
-AvailableChain.FGSA.CStoreInv.fg	FG5a: appended Params.K_W and kWLarge change generated Params dependencies, bridge-equal, no meaning change	FG5a J2 frozen r2	expect=778b60163f5544bb
+AvailableChain.FGSA.CStoreInv.mk	FG5a: appended Params.K_W and kWLarge change generated Params dependencies, bridge-equal, no meaning change; FG5b: generic store invariant over model views	FG5a J2 frozen r2	expect=103c888a74af1ccf
+AvailableChain.FGSA.CStoreInv.fg	FG5a: appended Params.K_W and kWLarge change generated Params dependencies, bridge-equal, no meaning change; FG5b: generic store invariant over model views	FG5a J2 frozen r2	expect=ee14b3f42239ac94
 AvailableChain.FGSA.CStoreInv.rootInj	FG5a: appended Params.K_W and kWLarge change generated Params dependencies, bridge-equal, no meaning change	FG5a J2 frozen r2	expect=ad7310f7e9365d90
 AvailableChain.FGSA.CStoreInv.baseTree	FG5a: appended Params.K_W and kWLarge change generated Params dependencies, bridge-equal, no meaning change	FG5a J2 frozen r2	expect=1cb9132de30017ae
 AvailableChain.FGSA.CStoreInv.saCompat	FG5a: appended Params.K_W and kWLarge change generated Params dependencies, bridge-equal, no meaning change	FG5a J2 frozen r2	expect=c01c9441e95dd6e0
@@ -340,7 +340,7 @@ AvailableChain.FGSA.CStoreInv.fastOrigin	FG5a: appended Params.K_W and kWLarge c
 AvailableChain.FGSA.CStoreInv.fastDom	FG5a: appended Params.K_W and kWLarge change generated Params dependencies, bridge-equal, no meaning change	FG5a J2 frozen r2	expect=0f0610a099eaf80c
 AvailableChain.FGSA.CStoreInv.genuineKeys	FG5a: appended Params.K_W and kWLarge change generated Params dependencies, bridge-equal, no meaning change	FG5a J2 frozen r2	expect=4698263b4de130a9
 AvailableChain.FGSA.CStoreInv.leaseKeys	FG5a: appended Params.K_W and kWLarge change generated Params dependencies, bridge-equal, no meaning change	FG5a J2 frozen r2	expect=1ae5b95d75b2488b
-AvailableChain.FGSA.Inv0	FG5a: appended Params.K_W and kWLarge change generated Params dependencies, bridge-equal, no meaning change	FG5a J2 frozen r2	expect=e6aadabb87da3f15
+AvailableChain.FGSA.Inv0	FG5a: appended Params.K_W and kWLarge change generated Params dependencies, bridge-equal, no meaning change; FG5b: generic store invariant over model views	FG5a J2 frozen r2	expect=f6eec569284a068f
 AvailableChain.FGSA.Run.fgsaAcceptanceInv	FG5a: appended Params.K_W and kWLarge change generated Params dependencies, bridge-equal, no meaning change	FG5a J2 frozen r2	expect=e569330571972857
 AvailableChain.FGSA.Run.finalizedOut	FG5a: appended Params.K_W and kWLarge change generated Params dependencies, bridge-equal, no meaning change	FG5a J2 frozen r2	expect=55643171cdfdcd96
 AvailableChain.FGSA.Run.ReconcileAt	FG5a: appended Params.K_W and kWLarge change generated Params dependencies, bridge-equal, no meaning change	FG5a J2 frozen r2	expect=0b854ac1559f9330

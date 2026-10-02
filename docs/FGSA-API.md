@@ -39,6 +39,13 @@ structure projection is a separate `field` entry beside the structure entry.
 
 ## `AvailableChainFGSA`
 
+### `AvailableChainFGSA.Statements.FinalityView`
+
+```text
+def AvailableChain.FGSA.finalityView b5f9198670a43d0c
+theorem AvailableChain.FGSA.finalityView_def d8b336019bd1a196
+```
+
 ### `AvailableChainFGSA.Statements.Invariants`
 
 ```text
@@ -52,8 +59,8 @@ def AvailableChain.FGSA.LeaseBelowOutputStore 5c59d0a0978e86ea
 theorem AvailableChain.FGSA.LeaseBelowOutputStore_def 124f6f13f65f43ca
 def AvailableChain.FGSA.FastOrigin 55103ff0d11f32d6
 structure AvailableChain.FGSA.CStoreInv cfaaddc60f50053e
-ctor AvailableChain.FGSA.CStoreInv.mk d47db62098792d6c
-field AvailableChain.FGSA.CStoreInv.fg 778b60163f5544bb
+ctor AvailableChain.FGSA.CStoreInv.mk 103c888a74af1ccf
+field AvailableChain.FGSA.CStoreInv.fg ee14b3f42239ac94
 field AvailableChain.FGSA.CStoreInv.rootInj ad7310f7e9365d90
 field AvailableChain.FGSA.CStoreInv.baseTree 1cb9132de30017ae
 field AvailableChain.FGSA.CStoreInv.saCompat c01c9441e95dd6e0
@@ -62,7 +69,7 @@ field AvailableChain.FGSA.CStoreInv.fastOrigin bd41d8c26aa50f1f
 field AvailableChain.FGSA.CStoreInv.fastDom 0f0610a099eaf80c
 field AvailableChain.FGSA.CStoreInv.genuineKeys 4698263b4de130a9
 field AvailableChain.FGSA.CStoreInv.leaseKeys 1ae5b95d75b2488b
-def AvailableChain.FGSA.Inv0 e6aadabb87da3f15
+def AvailableChain.FGSA.Inv0 f6eec569284a068f
 structure AvailableChain.FGSA.MetaInv e1df297b65033e12
 ctor AvailableChain.FGSA.MetaInv.mk 0754e39317729dd0
 field AvailableChain.FGSA.MetaInv.wireTree df1a58ad31546e11

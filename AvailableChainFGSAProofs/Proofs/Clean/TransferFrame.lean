@@ -4,7 +4,6 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate
 public import AvailableChainFGSAProofs.Proofs.Shared.Count
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads
 public import AvailableChainFGSARun.Proofs.Receipts
-public import AvailableChainKitFG.FrameChannels
 public import AvailableChainFGSAProofs.Statements.CleanInvariant
 public import Mathlib.CategoryTheory.Category.Basic
 
@@ -217,10 +216,13 @@ private theorem transfer_frame_at_vote
         FGBlock.Preceq (derive p.E p.cfg U).T_h Bfg := by
       intro W hW U hU hlt
       exact hc W hW _ ⟨U, hU, Or.inr (Or.inr ⟨rfl, hlt⟩)⟩
-    have hn := KitFG.storeFrame_noContest_of_crossed p.E p.cfg st.fg hinv (by
+    have hn := KitFG.storeFrameView_noContest_of_crossed_of_inv
+      p.E (heightView p) (fgCertificateLaws p).height (finalityView p) st.fg hinv
+        (fgJustificationLaws p) (by
       intro W hW U hU hlt
       exact KitFG.preceq_total_of_common hJ (hcross W hW U hU hlt))
-    have hlo := KitFG.storeFrame_height_of_crossed_prefix p.E p.cfg st.fg hinv Bfg hn hcross
+    have hlo := KitFG.storeFrameView_height_of_crossed_prefix_of_inv
+      p.E (heightView p) (fgCertificateLaws p).height (finalityView p) st.fg hinv Bfg hn hcross
     exact ⟨hF, hZ, hn, hlo⟩
   · intro z r a e ha he _
     obtain ⟨j, hj, hrow⟩ := ha
@@ -711,7 +713,8 @@ private theorem transfer_live_bounds (st : State p.n) (B : Block)
     · rename_i hguard
       have he := Option.some.inj hrow
       obtain ⟨X, hX, heX⟩ := of_decide_eq_true (Bool.and_eq_true_iff.mp hguard).2
-      have hXZ := ((KitFG.mem_filteredFrom p.E p.cfg (FGSA.controls p st) st.fg.TF X).mp hX).2.2.1
+      have hXZ := ((KitFG.mem_filteredFrom_of_bridge
+        p.E p.cfg (heightView p) (heightView_bridge p) (FGSA.controls p st) st.fg.TF X).mp hX).2.2.1
       refine ⟨?_, he ▸ hlease row hr⟩
       rw [← he, ← heX]
       exact eraseFG_preceq hXZ
@@ -790,7 +793,8 @@ theorem clean_transfer_frame [Fintype V] (b₀ : Time) :
     (SA.voteTime p.toParams (s + 1))
   have hFA := transfer_lift p (block_preceq_trans (F_preceq_liveRoot p st hcstore) hroot)
   rw [domainR_def, frameR_def]
-  exact (KitFG.mem_filteredFrom p.E p.cfg (FGSA.controls p st) _ A).mpr
+  exact (KitFG.mem_filteredFrom_of_bridge
+    p.E p.cfg (heightView p) (heightView_bridge p) (FGSA.controls p st) _ A).mpr
     ⟨hv A hA, hFA, hZA, Bfg, hv Bfg (KitFG.preceq_refl Bfg), hA, hlo⟩
 
 end AvailableChain.FGSA.Run

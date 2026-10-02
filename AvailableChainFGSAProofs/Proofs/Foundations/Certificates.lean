@@ -1,6 +1,7 @@
 module
+public import AvailableChainFGSA.Proofs.StoreLaws
+public import AvailableChainKitFG.ProvenanceCore
 public import AvailableChainFGSAClaims.Statements.ChannelProps
-public import AvailableChainKitFG.Provenance
 
 public section
 
@@ -28,9 +29,11 @@ theorem fgsa_rGeo : RGeo p c E rho := by
 theorem fgsa_rCert : RCert p c E rho := by
   intro i x W _ _
   exact ⟨KitFG.height_crossing p.E p.cfg W,
-    KitFG.justification_certificate p.E p.cfg W,
-    KitFG.finality_certificate p.E p.cfg W,
-    KitFG.provenance_finality p.E p.cfg W⟩
+    (fgCertificateLaws p).height.justification_certificate W,
+    KitFG.finality_certificate_of_certificate
+      p.E (heightView p) (finalityView p) (fgCertificateLaws p) W,
+    KitFG.provenance_finality_of_certificate
+      p.E (heightView p) (finalityView p) (fgCertificateLaws p) W⟩
 
 end AvailableChain.FGSA.Run
 end

@@ -2,7 +2,6 @@ module
 public import AvailableChainFGSAClaims.Statements.ChannelProps
 public import AvailableChainFGSARun.Proofs.EmissionWellFormed
 public import AvailableChainFGSARun.Proofs.Hooks
-public import AvailableChainKitFG.FrameChannels
 
 public section
 
@@ -198,12 +197,15 @@ theorem cpPrefix_of_srcFrame (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
       hOf p.E p.cfg U < hOf p.E p.cfg W → FGBlock.Preceq (derive p.E p.cfg U).T_h B := by
     intro W hW U hU hlt
     exact hc W hW _ ⟨U, hU, Or.inr (Or.inr ⟨rfl, hlt⟩)⟩
-  have hn := KitFG.storeFrame_noContest_of_crossed p.E p.cfg st.fg hinv (by
+  have hn := KitFG.storeFrameView_noContest_of_crossed_of_inv
+      p.E (heightView p) (fgCertificateLaws p).height (finalityView p) st.fg hinv
+        (fgJustificationLaws p) (by
     intro W hW U hU hlt
     exact KitFG.preceq_total_of_common hJ (hcross W hW U hU hlt))
-  have hlo := KitFG.storeFrame_height_of_crossed_prefix p.E p.cfg st.fg hinv B hn hcross
+  have hlo := KitFG.storeFrameView_height_of_crossed_prefix_of_inv
+      p.E (heightView p) (fgCertificateLaws p).height (finalityView p) st.fg hinv B hn hcross
   have hcontrols : R_at p c E rho i x = storeControls p.E p.cfg st.fg :=
-    (hframe i x hx).1.trans (KitFG.storeControls_eq_fjControls p.E p.cfg st.fg hinv).symm
+    (hframe i x hx).1.trans (storeControls_eq p st (hstore i x hx).1).symm
   refine ⟨hc, hF, hJ, hZ, ?_, ?_⟩
   · rw [hcontrols]; exact hn
   · rw [hcontrols]; exact hlo
@@ -233,13 +235,17 @@ theorem cpCompat_of_srcFrame (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     exact hc W hW _ ⟨U, hU, Or.inr (Or.inr ⟨rfl, hlt⟩)⟩
   refine ⟨hc, hF, hJ, ?_, ?_⟩
   · intro hB hFB
-    have hr := KitFG.storeFrame_retention_of_compatible p.E p.cfg st.fg hinv B hB hFB hJ hcross
+    have hr := KitFG.storeFrameView_retention_of_compatible_of_inv
+      p.E (heightView p) (fgCertificateLaws p).height (finalityView p) st.fg hinv
+        (fgJustificationLaws p) B hB hFB hJ hcross
     rcases hr with hr | hr
     · exact Or.inl hr
     · right
       rw [← (hframe i x hx).2]
       exact hr
-  · exact KitFG.storeFrame_contest_of_compatible p.E p.cfg st.fg hinv B hJ hcross
+  · exact KitFG.storeFrameView_contest_of_compatible_of_inv
+      p.E (heightView p) (fgCertificateLaws p).height (finalityView p) st.fg hinv
+        (fgJustificationLaws p) B hJ hcross
 
 end AvailableChain.FGSA.Run
 end

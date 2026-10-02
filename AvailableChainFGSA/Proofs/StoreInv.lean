@@ -1,6 +1,7 @@
 module
 public import AvailableChainGridCO.Proofs.StoreFacts
 public import AvailableChainFGSA.Statements.Store
+public import AvailableChainFGSA.Proofs.StoreLaws
 public import AvailableChainFGSA.Proofs.Admission
 public import AvailableChainFGSA.Proofs.Nesting
 public import AvailableChainGeneric.Proofs.Pure.Fold
@@ -23,24 +24,19 @@ theorem viewRootInj_TF (p : Params) (st : State p.n) (h : CStoreInv p st) :
 
 /-- [bp bp.frame.v1; K4] The live frame is the FJ_FRAME of Σ.T. -/
 theorem storeControls_eq (p : Params) (st : State p.n) (h : CStoreInv p st) :
-    controls p st = fjControls p.E p.cfg st.fg.F st.fg.TF :=
-  KitFG.storeControls_eq_fjControls p.E p.cfg st.fg h.fg
+    controls p st = fjControls p.E p.cfg st.fg.F st.fg.TF := by
+  rw [KitFG.fjControls_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
+  exact KitFG.storeControlsView_eq_fjControlsView_of_inv
+    (heightView p) (finalityView p) st.fg h.fg
 
 /-- [bp bp.store.v1; K4] The live J is in Σ.T (the clause "F, J ∈ T"; `Fmem` of
-`KitFG.StoreInv` gives F). -/
+`KitFG.FGStoreInvariant` gives F). -/
 theorem J_mem (p : Params) (st : State p.n) (h : CStoreInv p st) : st.fg.J ∈ st.fg.TF := by
-  have hpair := h.fg.pair
-  by_cases hne : ∃ K ∈ st.fg.TF, FGBlock.Preceq st.fg.F (derive p.E p.cfg K).J
-  · obtain ⟨K, hK, -, heq, -⟩ :=
-      KitFG.lexMax_spec p.E p.cfg st.fg.F st.fg.TF (viewRootInj_TF p st h) hne
-    rw [heq, Prod.mk.injEq] at hpair
-    rw [hpair.2]
-    exact KitFG.ancestor_closed_of_parent_closed _ h.fg.closed K hK _
-      (KitFG.derive_anchors_preceq p.E p.cfg K).2
-  · rw [KitFG.lexMax_of_none p.E p.cfg st.fg.F st.fg.TF (fun W hW hc => hne ⟨W, hW, hc⟩),
-      Prod.mk.injEq] at hpair
-    rw [hpair.2]
-    exact h.fg.gen
+  obtain ⟨K, hK, _, _, hJ⟩ := h.fg.pair.1
+  rw [hJ]
+  exact KitFG.ancestor_closed_of_parent_closed _ h.fg.closed K hK _
+    (KitFG.preceq_trans ((fgCertificateLaws p).height.justified_preceq_entry K)
+      ((fgCertificateLaws p).height.entry_preceq K))
 
 /-- [helper] The FG root `Z` of the live controls is in Σ.T. -/
 theorem Z_mem (p : Params) (st : State p.n) (h : CStoreInv p st) :
@@ -122,7 +118,7 @@ theorem rootInj_all {n : Nat} (st : State n) :
 
 /-- [bp bp.store.v1] -/
 theorem cstoreInv_init (p : Params) : CStoreInv p (initial p.n) := by
-  refine ⟨KitFG.storeInv_init p.E p.cfg, rootInj_all _, ?_, ⟨?_, ?_, ?_⟩, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨(fgStoreSafety p).initial_good, rootInj_all _, ?_, ⟨?_, ?_, ?_⟩, ?_, ?_, ?_, ?_, ?_⟩
   · intro b
     simp only [initial, GridCO.initial, Store.init, List.mem_singleton, Finset.mem_singleton,
       exists_eq_left, eraseFG]
@@ -149,7 +145,7 @@ theorem cstoreInv_accepted_pre (p : Params) (st : State p.n) (h : CStoreInv p st
         (raw.map baseHead)
       fg := on_block p.E p.cfg st.fg (fgBlock P b rows)
       proposals := st.proposals ++ [⟨.proposer s, .proposal b raw support rows⟩] }
-    KitFG.StoreInv p.E p.cfg st1.fg ∧
+    KitFG.FGStoreInvariant (heightView p) (finalityView p) st1.fg ∧
       (∀ X ∈ st1.fg.TF, ∀ Y ∈ st1.fg.TF, X.root = Y.root → X = Y) ∧
       (∀ c, c ∈ st1.base.blocks ↔ ∃ B ∈ st1.fg.TF, eraseFG B = c) ∧
       st1.base.obligations = st.base.obligations ∧ st1.base.genuine = st.base.genuine ∧
@@ -165,19 +161,8 @@ theorem cstoreInv_accepted_pre (p : Params) (st : State p.n) (h : CStoreInv p st
     change (on_block p.E p.cfg st.fg (fgBlock P b rows)).TF = _
     rw [fg_on_block_accepts p st s b P rows hP hacc, KitFG.update_finality_TF]
   have hok := blockAccepted_rowsOk hacc
-  have hri : ∀ X ∈ insert (fgBlock P b rows) st.fg.TF, ∀ Y ∈ insert (fgBlock P b rows) st.fg.TF,
-      X.root = Y.root → X = Y :=
-    fun _ _ _ _ hr => FGBlock.root_injective hr
-  have hcl : ∀ B ∈ insert (fgBlock P b rows) st.fg.TF,
-      B.parent ∈ insert (fgBlock P b rows) st.fg.TF := by
-    intro B hB
-    rw [Finset.mem_insert] at hB ⊢
-    rcases hB with rfl | hB
-    · exact Or.inr (by rw [fgBlock_parent]; exact hPT)
-    · exact Or.inr (h.fg.closed B hB)
   refine ⟨?_, ?_, ?_, hob, hgen, hstab, rfl, ?_, KitFG.on_block_F_mono p.E p.cfg st.fg _⟩
-  · exact KitFG.storeInv_on_block p.E p.cfg st.fg _ h.fg
-      (fun _ => viewRootInj_of_rootInj hcl hri)
+  · exact (fgStoreSafety p).invariant _ ((fgStoreSafety p).step_good st.fg _ h.fg)
   · exact rootInj_all st1
   · intro c
     change c ∈ (GridCO.admitProposal p.toParams.engine st.base (baseProposal s b raw support) b
