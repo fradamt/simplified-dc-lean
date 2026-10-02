@@ -1,6 +1,7 @@
 module
 -- shake: keep-all (F0.5 imports must remain unchanged in this append-only job)
 public import AvailableChainFGSAClaims.Statements.Regimes
+public import AvailableChainFGSAClaims.Statements.BoundsW
 public import AvailableChainFGSAClaims.Statements.ChannelProps
 public import AvailableChainFGSAClaims.Statements.Reads
 public import AvailableChainFGSAClaims.Statements.Witness -- shake: keep (F0.8b append point)
@@ -133,35 +134,40 @@ Spec map (8ef4ed3b): 2044 → healed; 2055 → wit; 2065 → t.h1;
 2099 → ac.h3; 2104 → ac.h4; 2109 → ac.h5; 2118 → ac.h6;
 2128–2132 → F1 foundations; 2134–2138 → the H-time statements below.
 Full wit uses ResetArrivalFullStatement (H.18 horizon), not reset-only arrival.
-DC: INTENTIONAL row service at the existing E.Δ regime binding. -/
-structure HealingInput (w : HealingWitness) : Prop where
+DC: INTENTIONAL family delivery uses ΔF; SA clocks stay unchanged.
+The default keeps ComposeStmt and the deferred best/search forms compatible. -/
+structure HealingInput (w : HealingWitness) (ΔF : Time := E.Δ) : Prop where
   healed : Healed p c E rho (tstar p w)
   wit : H0 p c E rho w
-  t : HealT p c E rho w E.Δ
+  t : HealT p c E rho w ΔF
   ac : HealAC p c E rho w
 
 /-- H-time (21:3152–3170; 22:334–352), P3 §4.6/A.9.
-Consumers: healing and finality claims. Both links of the chained bound remain. -/
-def HTimeStatement (G : Time) : Prop := p.δt = 2 * p.R →
+Consumers: healing and finality claims. Both links of the chained bound remain.
+DC: INTENTIONAL family delivery uses ΔF; SA clocks stay unchanged. -/
+def HTimeStatement (G ΔF : Time) : Prop := p.δt = 2 * p.R →
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
-    HealingSet p c E rho G → E.t_GST + B_H p G ≤ rho.horizon →
-    ∃ w, HealingInput p c E rho w ∧
+    HealingSet p c E rho G ΔF → LivenessBoundW p ΔF →
+    E.t_GST + B_HF p ΔF G ≤ rho.horizon →
+    ∃ w, HealingInput p c E rho w ΔF ∧
       tstar p w ≤ p.actionTime w.rStar + Γ p G + 4 * p.Δ ∧
-      p.actionTime w.rStar + Γ p G + 4 * p.Δ < E.t_GST + B_H p G
+      p.actionTime w.rStar + Γ p G + 4 * p.Δ < E.t_GST + B_HF p ΔF G
 
-theorem HTimeStatement_def (G : Time) :
-    HTimeStatement p G =
+theorem HTimeStatement_def (G ΔF : Time) :
+    HTimeStatement p G ΔF =
   (p.δt = 2 * p.R →
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
-    HealingSet p c E rho G → E.t_GST + B_H p G ≤ rho.horizon →
-    ∃ w, HealingInput p c E rho w ∧
+    HealingSet p c E rho G ΔF → LivenessBoundW p ΔF →
+    E.t_GST + B_HF p ΔF G ≤ rho.horizon →
+    ∃ w, HealingInput p c E rho w ΔF ∧
       tstar p w ≤ p.actionTime w.rStar + Γ p G + 4 * p.Δ ∧
-      p.actionTime w.rStar + Γ p G + 4 * p.Δ < E.t_GST + B_H p G) := by rfl
+      p.actionTime w.rStar + Γ p G + 4 * p.Δ < E.t_GST + B_HF p ΔF G) := by rfl
 
 /-- Best H-time (21:3166–3169; 00:1101–1103), P3 §4.6 D11.
-Consumer: QF2. The horizon and bound are B_best, with a separate witness. -/
+Standalone healing claim; no finality consumer; equal-delay form; the ΔF port
+comes with the post-re-freeze companion. The horizon and bound are B_best. -/
 def HTimeBestStatement (G : Time) (g : Nat) : Prop := p.δt = 2 * p.R →
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
@@ -183,7 +189,8 @@ theorem HTimeBestStatement_def (G : Time) (g : Nat) :
     ∃ w, HealingInput p c E rho w ∧ tstar p w < E.t_GST + B_best p G g) := by rfl
 
 /-- Qualified-search H-time (21:2377–2378,3166–3169), P3 §4.6 D50.
-Consumers: FF5 search companions; the recS wrapper. Domain: 1 ≤ g (00:406). -/
+Standalone healing claim; no finality consumer; equal-delay form; the ΔF port
+comes with the post-re-freeze companion. Domain: 1 ≤ g (00:406). -/
 def HTimeSearchStatement (G : Time) (g : Nat) : Prop := p.δt = 2 * p.R →
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),

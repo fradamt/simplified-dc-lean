@@ -28,6 +28,10 @@ LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainF
 CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = (
+    # S4.4a: row-delay liveness binding and actual-event finite horizon.
+    'AvailableChain.FGSA.Run.HealingPrem.bound',
+    'AvailableChain.FGSA.Run.KernelJoinedPrem.bound',
+    'AvailableChain.FGSA.Run.HealingAttemptPrem.hhor',
     # S4.1 W bounds: definitions, equations, and pure arithmetic.
     'AvailableChain.FGSA.Run.kappaF',
     'AvailableChain.FGSA.Run.betaF',
