@@ -1,7 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedEndpoint
 public import AvailableChainFGSAProofs.Proofs.Shared.ExactService
-public import AvailableChainFGSAClaims.Statements.Regimes
 public import AvailableChainFGSARun.Proofs.Receipts
 
 /-! F-23 exception (L47): each theorem here takes at most one regime record, Set or Contract
