@@ -212,6 +212,7 @@ gate_with_slot lake env lean --run scripts/CheckFGSAAxioms.lean "${TEST_ROOTS[@]
   Window.window_latest_pair_kept \
   Window.window_evicted_has_K_newer \
   Window.window_entry_history \
+  Window.windowSelectionLaws Window.windowCertificateLaws Window.windowChainCertificate \
   Window.acceptViable_eq \
   Window.update_finality_h_max_eq \
   Window.update_finality_J_eq \

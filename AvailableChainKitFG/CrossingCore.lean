@@ -10,7 +10,7 @@ open AvailableChain.SimplexFG
 
 variable {V : Type} [DecidableEq V] [Fintype V] [RowCodec V]
 
-/-- Shared certificate form of `exists_crossing_quorum_ne_justified`. -/
+/-- Height-law form of `exists_crossing_quorum_ne_justified`. -/
 theorem exists_crossing_quorum_ne_justified_of_heightLaws (E : Electorate V)
     (H : FGHeightView V) (hH : FGHeightLaws E H) (B W : FGBlock V)
     (hJ : (H B).h_j ≠ 0)
@@ -27,7 +27,7 @@ theorem exists_crossing_quorum_ne_justified_of_heightLaws (E : Electorate V)
   · obtain ⟨carrier, b, hc, hb, hbi, hm⟩ := hw i hi
     exact ⟨b, mem_chainRows_of_carrier hc hb, hbi, hm⟩
 
-/-- Shared certificate form of `e1Weight_of_finalityQC_not_preceq`. -/
+/-- Height-law form of `e1Weight_of_finalityQC_not_preceq`. -/
 theorem e1Weight_of_finalityQC_not_preceq_of_heightLaws (E : Electorate V)
     (H : FGHeightView V) (hH : FGHeightLaws E H) (B W : FGBlock V)
     (hJ : (H B).h_j ≠ 0)
@@ -61,12 +61,12 @@ theorem slashableWeight_of_finalized_crossing_of_certificate (E : Electorate V)
   refine hasSlashableWeightBetween_of_hasE1WeightBetween_swap
     (e1Weight_of_finalityQC_not_preceq_of_heightLaws E H hc.height B W hJ hW hnot
       (chainRows D) Q hQ fun i hi => ?_)
-  obtain ⟨carrier, a, hc, ha, hai, hap⟩ := hw i hi
+  obtain ⟨carrier, a, hcarrier, ha, hai, hap⟩ := hw i hi
   rw [hfinH, hfin] at hap
-  exact ⟨a, mem_chainRows_of_carrier hc ha, hai, hap⟩
+  exact ⟨a, mem_chainRows_of_carrier hcarrier ha, hai, hap⟩
 
 /-- I4 uses the finalized pair directly, without a latest-justification block. -/
-theorem slashableWeight_of_finalized_pair_crossing (E : Electorate V)
+theorem slashableWeight_of_finalized_pair_crossing_of_certificate (E : Electorate V)
     (H : FGHeightView V) (f : FGFinalityView V) (hc : FGCertificateLaws E H f)
     (D W : FGBlock V) (hnz : (f D).h_F ≠ 0)
     (hW : (f D).h_F < (H W).h) (hnot : ¬ FGBlock.Preceq (f D).F W) :
@@ -77,7 +77,7 @@ theorem slashableWeight_of_finalized_pair_crossing (E : Electorate V)
   exact slashableWeight_of_finalized_crossing_of_certificate E H f hc C W D
     (hj ▸ hnz) (hj ▸ hW) (hJ ▸ hnot) hJ.symm hj.symm
 
-/-- Shared certificate form of `exists_honest_timeout_of_crossing`. -/
+/-- Height-law form of `exists_honest_timeout_of_crossing`. -/
 theorem exists_honest_timeout_of_crossing_of_heightLaws (E : Electorate V)
     (H : FGHeightView V) (hH : FGHeightLaws E H) (faulty : Finset V)
     (B W : FGBlock V)

@@ -49,14 +49,6 @@ theorem justification_certificate_rows_of_heightLaws (E : Electorate V)
   obtain ⟨carrier, a, hc, ha, hai, hpa⟩ := hw i hi
   exact ⟨a, mem_chainRows_of_carrier hc ha, hai, hpa⟩
 
-/-- Shared record form of `justification_certificate_rows`. -/
-theorem justification_certificate_rows_of_certificate (E : Electorate V)
-    (H : FGHeightView V) (f : FGFinalityView V) (hc : FGCertificateLaws E H f) (D : FGBlock V)
-    (hnz : (H D).h_j ≠ 0) :
-    ∃ Q : Finset V, E.IsQuorum Q ∧ ∀ i ∈ Q, ∃ a ∈ chainRows D, a.signer = i ∧
-      a.height_pair = .vote (H D).h_j (H D).J.root false :=
-  justification_certificate_rows_of_heightLaws E H hc.height D hnz
-
 /-- Shared record form of `slashableWeight_or_justified_eq`. -/
 theorem slashableWeight_or_justified_eq_of_certificate (E : Electorate V)
     (H : FGHeightView V) (f : FGFinalityView V) (hc : FGCertificateLaws E H f) (B₁ B₂ : FGBlock V)
@@ -69,8 +61,10 @@ theorem slashableWeight_or_justified_eq_of_certificate (E : Electorate V)
       hc.justified_zero B₂ (hh.symm.trans hz)]
   · by_cases hr : (H B₁).J.root = (H B₂).J.root
     · exact Or.inr (FGBlock.root_injective hr)
-    · obtain ⟨Q₁, hQ₁, hw₁⟩ := justification_certificate_rows_of_certificate E H f hc B₁ hz
-      obtain ⟨Q₂, hQ₂, hw₂⟩ := justification_certificate_rows_of_certificate E H f hc B₂ (hh ▸ hz)
+    · obtain ⟨Q₁, hQ₁, hw₁⟩ :=
+        justification_certificate_rows_of_heightLaws E H hc.height B₁ hz
+      obtain ⟨Q₂, hQ₂, hw₂⟩ :=
+        justification_certificate_rows_of_heightLaws E H hc.height B₂ (hh ▸ hz)
       rw [← hh] at hw₂
       exact Or.inl (uniqueJust_slashable E hr hQ₁ hQ₂ hw₁ hw₂)
 

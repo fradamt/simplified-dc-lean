@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSA.Proofs.WindowProvenance
 public import AvailableChainFGSA.Proofs.WindowHistory
+public import AvailableChainFGSA.Proofs.WindowSelection
 public import AvailableChainFGSA.Proofs.WindowCertificates
 public import AvailableChainFGSA.Proofs.WindowStore
 public import AvailableChainFGSA.Proofs.WindowInvariant
@@ -423,3 +424,8 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 #print axioms AvailableChain.FGSA.Window.window_latest_pair_kept
 #print axioms AvailableChain.FGSA.Window.window_evicted_has_K_newer
 #print axioms AvailableChain.FGSA.Window.window_entry_history
+
+-- Proofs/WindowSelection.lean
+#print axioms AvailableChain.FGSA.Window.windowSelectionLaws
+#print axioms AvailableChain.FGSA.Window.windowCertificateLaws
+#print axioms AvailableChain.FGSA.Window.windowChainCertificate

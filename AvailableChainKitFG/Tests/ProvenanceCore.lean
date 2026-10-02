@@ -1,5 +1,6 @@
 module
-public import AvailableChainKitFG.ProvenanceSimplex
+public import AvailableChainKitFG.ProvenanceCore
+public import AvailableChainKitFG.CertificateSimplex -- shake: keep (instance checks in examples)
 
 public section
 
@@ -68,7 +69,7 @@ example : (1 : Height) = (simplexHeightView E4 cfg1 .genesis).h ∧
   provenance_entry_of_heightLaws E4 _ (simplexHeightLaws E4 cfg1)
     Record.initial .genesis none 1 genesisRoot false (by decide)
 
--- Instance check: provenance_entry_simplex_certificate.
+-- Instance check: provenance_entry_of_heightLaws.
 example (E : Electorate V) (cfg : FGConfig)
     (Λ : Record) (C : FGBlock V) (fp : Option FinalityPair)
     (h : Height) (T : BlockId) (t : Bool)
@@ -78,7 +79,7 @@ example (E : Electorate V) (cfg : FGConfig)
       FGBlock.Preceq (derive E cfg C).T_h C :=
   provenance_entry_of_heightLaws E _ (simplexHeightLaws E cfg) Λ C fp h T t hemit
 
--- Instance check: provenance_finalityRow_simplex_certificate.
+-- Instance check: provenance_finalityRow_of_heightLaws.
 example (E : Electorate V) (cfg : FGConfig)
     (Λ : Record) (Hd : FGBlock V) (p : FinalityPair)
     (hemit : finality_pair Λ (HeadFields.ofBlock E cfg Hd) = some p) :
@@ -88,7 +89,7 @@ example (E : Electorate V) (cfg : FGConfig)
   provenance_finalityRow_of_heightLaws E _ (simplexFinalityView E cfg) (simplexHeightLaws E cfg)
     Λ Hd p hemit
 
--- Instance check: provenance_finalityQC_simplex_certificate.
+-- Instance check: provenance_finalityQC_of_heightLaws.
 example (E : Electorate V) (cfg : FGConfig)
     (faulty : Finset V) (hcap : E.weightOf faulty < E.q)
     (rows : Finset (Row V)) (Q : Finset V) (hQ : E.IsQuorum Q) (p : FinalityPair)
@@ -100,7 +101,7 @@ example (E : Electorate V) (cfg : FGConfig)
   provenance_finalityQC_of_heightLaws E _ (simplexFinalityView E cfg) (simplexHeightLaws E cfg)
     faulty hcap rows Q hQ p hrows hemit
 
--- Instance check: provenance_finality_simplex_certificate.
+-- Instance check: provenance_finality_of_certificate.
 example (E : Electorate V) (cfg : FGConfig)
     (D : FGBlock V) (hnz : (derive E cfg D).h_F ≠ 0) :
     ∃ C, FGBlock.Preceq C D ∧ (derive E cfg C).J = (derive E cfg D).F ∧

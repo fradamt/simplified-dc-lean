@@ -10,15 +10,6 @@ open AvailableChain.SimplexFG
 
 variable {V : Type} [DecidableEq V] [Fintype V] [RowCodec V]
 
-/-- Remove entries at or below the finalized height, before capacity eviction. -/
-abbrev pruneCertEntries (h : Height) (entries : List (FGCertEntry V)) : List (FGCertEntry V) :=
-  entries.filter (fun e => decide (h < e.j))
-
-omit [DecidableEq V] [Fintype V] [RowCodec V] in
-/-- The pruning equation belongs to the module that defines the operation. -/
-theorem pruneCertEntries_def (h : Height) (entries : List (FGCertEntry V)) :
-    pruneCertEntries h entries = entries.filter (fun e => decide (h < e.j)) := rfl
-
 omit [DecidableEq V] [Fintype V] [RowCodec V] in
 /-- Membership in the library pruning operation. -/
 theorem mem_pruneCertEntries (h : Height) (entries : List (FGCertEntry V)) (e : FGCertEntry V) :
@@ -44,31 +35,74 @@ theorem certEntry_preceq_of_le (entries : List (FGCertEntry V))
         · exact ((Nat.not_lt_of_ge hle) (hhead e heTail).1).elim
         · exact ih htail heTail hdTail
 
+/-- Build selection laws and derive coverage from the supplied core fields. -/
+theorem FGSelectionLaws.of_core (E : Electorate V)
+    (H : FGHeightView V) (f : FGFinalityView V) (r : FGSelectionView V)
+    (initial : r.before .genesis = [] ∧ r.chosen .genesis = none ∧
+      r.afterPrune .genesis = [])
+    (ordered : ∀ B, (r.before B).Pairwise
+      (fun e d => e.j < d.j ∧ FGBlock.Preceq e.X d.X))
+    (bounds : ∀ B e, e ∈ r.before B →
+      (f B.parent).h_F < e.j ∧ e.j ≤ (H B.parent).h_j ∧
+      FGBlock.Preceq (f B.parent).F e.X ∧ FGBlock.Preceq e.X (H B.parent).J)
+    (entry_origin : ∀ B e, e ∈ r.before B → ∃ C,
+      StrictPrefix C B ∧ JustificationBirth E H C e.j e.X ∧
+      ∀ i ∈ e.Q, ∃ carrier a, StrictPrefix C carrier ∧ FGBlock.Preceq carrier B ∧
+        a ∈ carrier.rows ∧ a.signer = i ∧ a.finality_pair = some ⟨e.j, e.X.root⟩)
+    (none_iff : ∀ B, r.chosen B = none ↔ ∀ e ∈ r.before B, ¬ E.IsQuorum e.Q)
+    (greatest : ∀ B e, r.chosen B = some e →
+      e ∈ r.before B ∧ E.IsQuorum e.Q ∧
+      ∀ d ∈ r.before B, E.IsQuorum d.Q → d.j ≤ e.j)
+    (write : ∀ B, B ≠ .genesis → f B =
+      match r.chosen B with
+      | none => f B.parent
+      | some e => ⟨e.X, e.j⟩)
+    (prune : ∀ B, r.afterPrune B =
+      (r.before B).filter (fun e => decide ((f B).h_F < e.j))) :
+    FGSelectionLaws E H f r where
+  initial := initial
+  ordered := ordered
+  bounds := bounds
+  entry_origin := entry_origin
+  none_iff := none_iff
+  greatest := greatest
+  write := write
+  prune := prune
+  pruned_covered := by
+    intro B e he hle
+    have hB : B ≠ .genesis := by
+      intro h
+      subst B
+      rw [initial.1] at he
+      exact List.not_mem_nil he
+    have hw := write B hB
+    cases hc : r.chosen B with
+    | none =>
+        rw [hc] at hw
+        have hb := (bounds B e he).1
+        rw [hw] at hle
+        exact ((Nat.not_lt_of_ge hle) hb).elim
+    | some d =>
+        rw [hc] at hw
+        rw [hw] at hle ⊢
+        exact certEntry_preceq_of_le _ (ordered B) e d he (greatest B d hc).1 hle
+
 variable (E : Electorate V) (H : FGHeightView V) (f : FGFinalityView V)
     (r : FGSelectionView V) (hs : FGSelectionLaws E H f r)
 
 include hs
 
-/-- Derive coverage from order and selection, without reading `pruned_covered`. -/
+/-- Link the selection pruning field to the library operation. -/
+theorem FGSelectionLaws.prune_eq (B : FGBlock V) :
+    r.afterPrune B = pruneCertEntries (f B).h_F (r.before B) :=
+  hs.prune B
+
+/-- Derive coverage with the core constructor, without its coverage field. -/
 theorem selection_pruned_covered (B : FGBlock V) (e : FGCertEntry V)
     (he : e ∈ r.before B) (hle : e.j ≤ (f B).h_F) :
-    FGBlock.Preceq e.X (f B).F := by
-  have hB : B ≠ .genesis := by
-    intro h
-    subst B
-    rw [hs.initial.1] at he
-    exact List.not_mem_nil he
-  have hw := hs.write B hB
-  cases hc : r.chosen B with
-  | none =>
-      rw [hc] at hw
-      have hb := (hs.bounds B e he).1
-      rw [hw] at hle
-      exact ((Nat.not_lt_of_ge hle) hb).elim
-  | some d =>
-      rw [hc] at hw
-      rw [hw] at hle ⊢
-      exact certEntry_preceq_of_le _ (hs.ordered B) e d he (hs.greatest B d hc).1 hle
+    FGBlock.Preceq e.X (f B).F :=
+  (FGSelectionLaws.of_core E H f r hs.initial hs.ordered hs.bounds hs.entry_origin
+    hs.none_iff hs.greatest hs.write hs.prune).pruned_covered B e he hle
 
 /-- Selection writes the chosen pair and strictly raises the certificate height. -/
 theorem selection_chosen_spec (B : FGBlock V) (e : FGCertEntry V)
@@ -106,7 +140,7 @@ theorem selection_chosen_removed (B : FGBlock V) (e : FGCertEntry V)
 /-- An entry is retained exactly while it is above finality. -/
 theorem selection_retained_iff (B : FGBlock V) (e : FGCertEntry V) :
     e ∈ r.afterPrune B ↔ e ∈ r.before B ∧ (f B).h_F < e.j := by
-  rw [hs.prune B]
+  rw [FGSelectionLaws.prune_eq E H f r hs B]
   exact mem_pruneCertEntries _ _ _
 
 /-- Every removed pre-finality entry is covered. Eviction is outside this statement. -/
