@@ -1899,20 +1899,20 @@ codex/reports/d35bac1-coverage.md. S4.7 reviews the new public entries.
 ┌───────────┬────────────────────────────────────────────────────────────┬────────────────────────────────────────────────────────────┐
 │ Group     │ Names / family                                             │ Decision and owner                                         │
 ├───────────┼────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┤
-│ G1        │ FGSAFinalityClaims; PureAccountableClaim,                  │ RESTORE on W, S4.5b; include all eight fields as a         │
-│           │ PureAgreementClaim, WholeRunAccountableClaim,              │ sub-structure.                                             │
+│ G1        │ FGSAFinalityClaims; PureAccountableClaim,                  │ RESTORED (S4.5b); all eight PROVED in P/Foundations/Export │
+│           │ PureAgreementClaim, WholeRunAccountableClaim,              │ (fgsa_<claim> constants, S4.6c A4).                        │
 │           │ WholeRunAgreementClaim, EventPrefixAgreementClaim,         │                                                            │
 │           │ FaultCountSlashableBound, FinalizedMonotonicity,           │                                                            │
 │           │ HonestNeverSlashedClaim                                    │                                                            │
 │ G1 F-API  │ FinalityFinalizedAt, FinalityBlock, finalityRows,          │ RESTORE on W, S4.5b; selected carrier observation remains  │
 │           │ FinalitySlashableBound, FinalityExecution,                 │ exact.                                                     │
 │           │ WholeRunAccountable, WholeRunAgreement                     │                                                            │
-│ G2        │ FinalizedSafetyConcl / FinalizedSafetyClaim;               │ RESTORE on W, S4.5b; FinalizedSafetyPrem exists. No        │
-│           │ FinalLockClaim                                             │ synchrony premise.                                         │
-│ G3        │ OutageCompatClaim, FastP1Claim, SlowP1Claim                │ RESTORE on W, S4.5b; OutagePrem exists; actual outage      │
-│           │                                                            │ output claims.                                             │
-│ G4        │ CleanInclusionClaim, CleanInclusionPostGateClaim,          │ RESTORE on W, S4.5b; port related conclusion vocabulary    │
-│           │ ExactProposalClaim; CleanInclusionPrem, ExactProposalPrem  │ and package fields.                                        │
+│ G2        │ FinalizedSafetyConcl / FinalizedSafetyClaim;               │ RESTORED (S4.5b); both PROVED in P/Foundations/Export.     │
+│           │ FinalLockClaim                                             │ No synchrony premise.                                      │
+│ G3        │ OutageCompatClaim, FastP1Claim, SlowP1Claim                │ RESTORED (S4.5b); stage-5 CONTRACTS; OutagePrem exists.    │
+│           │                                                            │                                                            │
+│ G4        │ CleanInclusionClaim, CleanInclusionPostGateClaim,          │ RESTORED (S4.5b); stage-5 CONTRACTS; premise witnesses     │
+│           │ ExactProposalClaim; CleanInclusionPrem, ExactProposalPrem  │ at C/Tests/FinalitySafety.lean:243,246.                    │
 │ G5        │ ScoreSuffix / ScoreSuffixAlgebra families                  │ INTERNAL SUPPORT; aggregate field only if a G4 consumer    │
 │           │                                                            │ needs it.                                                  │
 │ Companion │ UniformHealingSearchClaim; HTimeBest / HTimeSearch and     │ DEFERRED decision 5; Companion/HealedBest outside fgsa     │
