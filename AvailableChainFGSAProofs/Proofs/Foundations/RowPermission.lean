@@ -206,7 +206,7 @@ private theorem rowPermission_record_carrier
     (hnr : V2.D.NoRestart rho) (i : Nat) (x : V) (h : Height) (T : BlockId)
     (hl : (V2.D.Run.stateBefore E rho i x).record.lock h = some T) :
     ∃ K ∈ (storeAt p c E rho i x).fg.TF,
-      (derive p.E p.cfg K).h_j = h ∧ (derive p.E p.cfg K).J.root = T := by
+      (heightView p K).h_j = h ∧ (heightView p K).J.root = T := by
   rw [ownRecord_fold_run] at hl
   rcases rowPermission_fold_lock _ RecordOnce.initial h T hl with hinit | ⟨seat, body, hm, hf⟩
   · cases hinit
@@ -224,7 +224,6 @@ private theorem rowPermission_record_carrier
   have hfinal := (Option.filter_eq_some_iff.mp hfp.symm).1
   obtain ⟨K, hK, hk, ht⟩ := rowPermission_head_carrier st
     (cstoreInv_clock p _ (cstoreInv_stateBefore E rho j x) _) Λ.toRecord ⟨h, T⟩ hfinal
-  rw [heightView_bridge p K] at hk ht
   change K ∈ (FGSA.clock p _ _).fg.TF at hK
   rw [FGSA.clock_fg] at hK
   exact ⟨K, (fgsa_store_cumulative p c E rho hnr hji.le x).1 hK, hk, ht⟩
@@ -239,12 +238,12 @@ theorem rowPermission_own_lock [Fintype V]
     (hb : Base₂ p c E rho) (hf : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
     (x : V) (hx : x ∈ rho.honest) (t : Time) (nd : Node p)
     (hnd : postClock E rho x t = some nd) (C : FGBlock (Fin p.n))
-    (hC : C ∈ FGSA.fullTree p nd.st) (hband : (FGSA.controls p nd.st).lo ≤ hOf p.E p.cfg C) :
-    own_lock nd.record.toRecord (hOf p.E p.cfg C)
+    (hC : C ∈ FGSA.fullTree p nd.st) (hband : (FGSA.controls p nd.st).lo ≤ (heightView p C).h) :
+    own_lock nd.record.toRecord ((heightView p C).h)
         (finality_pair nd.record.toRecord (fgInputs p nd.st).2) = none ∨
-      own_lock nd.record.toRecord (hOf p.E p.cfg C)
+      own_lock nd.record.toRecord ((heightView p C).h)
         (finality_pair nd.record.toRecord (fgInputs p nd.st).2) =
-          some (derive p.E p.cfg C).T_h.root := by
+          some (heightView p C).T_h.root := by
   rw [postClock_def, preTick_def] at hnd
   cases hi : V2.D.Run.tickIdx? rho x t with
   | none => simp only [hi, Option.map_none] at hnd; contradiction
@@ -254,10 +253,10 @@ theorem rowPermission_own_lock [Fintype V]
     subst nd
     let st := FGSA.clock p (V2.D.Run.stateBefore E rho i x).st t
     let Λ := (V2.D.Run.stateBefore E rho i x).record
-    change own_lock Λ.toRecord (hOf p.E p.cfg C)
+    change own_lock Λ.toRecord ((heightView p C).h)
         (finality_pair Λ.toRecord (fgInputs p st).2) = none ∨
-      own_lock Λ.toRecord (hOf p.E p.cfg C) (finality_pair Λ.toRecord (fgInputs p st).2) =
-        some (derive p.E p.cfg C).T_h.root
+      own_lock Λ.toRecord ((heightView p C).h) (finality_pair Λ.toRecord (fgInputs p st).2) =
+        some (heightView p C).T_h.root
     have hst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho i x) t
     have hno : ∀ A ∈ st.fg.TF, ∀ B ∈ st.fg.TF,
         ¬ HasSlashableWeightBetween p.E (chainRows A) (chainRows B) := by
@@ -270,14 +269,14 @@ theorem rowPermission_own_lock [Fintype V]
       have hlt := (fgsa_faultX_count_rec p hf).lt
       omega
     have hmatch : ∀ T,
-        own_lock Λ.toRecord (hOf p.E p.cfg C)
+        own_lock Λ.toRecord ((heightView p C).h)
           (finality_pair Λ.toRecord (fgInputs p st).2) = some T →
-        T = (derive p.E p.cfg C).T_h.root := by
+        T = (heightView p C).T_h.root := by
       intro T hl
-      have hcarr : ∃ K ∈ st.fg.TF, (derive p.E p.cfg K).h_j = hOf p.E p.cfg C ∧
-          (derive p.E p.cfg K).J.root = T := by
-        have old (hl : Λ.lock (hOf p.E p.cfg C) = some T) :=
-          rowPermission_record_carrier E rho hb.noRestart i x (hOf p.E p.cfg C) T hl
+      have hcarr : ∃ K ∈ st.fg.TF, (heightView p K).h_j = (heightView p C).h ∧
+          (heightView p K).J.root = T := by
+        have old (hl : Λ.lock ((heightView p C).h) = some T) :=
+          rowPermission_record_carrier E rho hb.noRestart i x ((heightView p C).h) T hl
         cases hp : finality_pair Λ.toRecord (fgInputs p st).2 with
         | none =>
           obtain ⟨K, hK, hk, ht⟩ := old (by simpa only [own_lock, hp] using hl)
@@ -286,11 +285,10 @@ theorem rowPermission_own_lock [Fintype V]
               rw [FGSA.clock_fg]
               exact hK, hk, ht⟩
         | some fp =>
-          by_cases hh : fp.height = hOf p.E p.cfg C
+          by_cases hh : fp.height = (heightView p C).h
           · have ht : fp.target = T := by simpa only [own_lock, hp, hh, ite_true,
               Option.some.injEq] using hl
             obtain ⟨K, hK, hk, hT⟩ := rowPermission_head_carrier st hst Λ.toRecord fp hp
-            rw [heightView_bridge p K] at hk hT
             exact ⟨K, hK, hk.trans hh, hT.trans ht⟩
           · obtain ⟨K, hK, hk, ht⟩ := old (by simpa only [own_lock, hp, hh, ite_false] using hl)
             exact ⟨K, by
@@ -298,12 +296,9 @@ theorem rowPermission_own_lock [Fintype V]
               rw [FGSA.clock_fg]
               exact hK, hk, ht⟩
       obtain ⟨K, hK, hk, ht⟩ := hcarr
-      have hentry := rowPermission_carrier_entry st hst C K hC
-        (by rwa [← KitFG.hOf_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]) hK
-        (by rw [heightView_bridge p K, heightView_bridge p C]; exact hk) hno
-      rw [heightView_bridge p C, heightView_bridge p K] at hentry
+      have hentry := rowPermission_carrier_entry st hst C K hC hband hK hk hno
       exact ht.symm.trans (congrArg FGBlock.root hentry).symm
-    cases hl : own_lock Λ.toRecord (hOf p.E p.cfg C)
+    cases hl : own_lock Λ.toRecord ((heightView p C).h)
         (finality_pair Λ.toRecord (fgInputs p st).2) with
     | none => exact Or.inl rfl
     | some T => exact Or.inr (congrArg some (hmatch T hl))
@@ -340,11 +335,11 @@ theorem rowPermission_pair [Fintype V]
     (x : V) (hx : x ∈ rho.honest) (r : Nat) (nd : Node p)
     (hnd : postClock E rho x (p.actionTime r) = some nd) (C : FGBlock (Fin p.n))
     (hsource : actionSourceFG p c E rho x r = some (some C))
-    (hC : C ∈ FGSA.fullTree p nd.st) (hband : (FGSA.controls p nd.st).lo ≤ hOf p.E p.cfg C) :
+    (hC : C ∈ FGSA.fullTree p nd.st) (hband : (FGSA.controls p nd.st).lo ≤ (heightView p C).h) :
     namedEntry (height_pair nd.record.toRecord
-      ((FGSA.fgSource p nd.st).map (fun C => (hOf p.E p.cfg C, (derive p.E p.cfg C).T_h.root)))
+      ((FGSA.fgSource p nd.st).map (fun C => ((heightView p C).h, (heightView p C).T_h.root)))
       (finality_pair nd.record.toRecord (fgInputs p nd.st).2)) =
-        some (hOf p.E p.cfg C, (derive p.E p.cfg C).T_h.root) := by
+        some ((heightView p C).h, (heightView p C).T_h.root) := by
   have hl := rowPermission_own_lock E rho hb hf x hx _ nd hnd C hC hband
   rw [actionSourceFG_def, hnd] at hsource
   have hc : FGSA.fgSource p nd.st = some C := Option.some.inj hsource
@@ -432,20 +427,20 @@ private theorem rowPermission_record_history
   exact ⟨fun ht => (hc.2.2 a ha).1 h T (ht ▸ hh),
     fun ht => (hc.2.2 a ha).2.1 h T (ht ▸ hh)⟩
 
-private theorem rowPermission_once_coverage (Λ : RecordOnce) (seat : Fin p.n)
-    (src : Option (FGBlock (Fin p.n))) (hd : HeadFields) (h : Height) (T : BlockId)
+private theorem rowPermission_once_coverage (st : State p.n) (Λ : RecordOnce)
+    (seat : Fin p.n) (h : Height) (T : BlockId)
     (hInv : KitFG.RecordInv Λ.toRecord)
     (hHist : ∀ g U timeout fp, (.vote g U timeout, fp) ∈ Λ.sent →
       (timeout = false → Λ.target g = some U) ∧ (timeout = true → Λ.timeout g = true))
     (hp : namedEntry (height_pair Λ.toRecord
-      (src.map (fun C => ((derive p.E p.cfg C).h, (derive p.E p.cfg C).T_h.root)))
-      (finality_pair Λ.toRecord hd)) = some (h, T)) :
-    (∃ a, (createRowOnce p.E p.cfg Λ seat src hd).1 = some a ∧
-      namedEntry a.height_pair = some (h, T)) ∨
+      ((fgInputs p st).1.map (fun C => ((heightView p C).h, (heightView p C).T_h.root)))
+      (finality_pair Λ.toRecord (fgInputs p st).2)) = some (h, T)) :
+    (∃ body, (attest p st Λ seat).1 = some body ∧
+      namedEntry body.height_pair = some (h, T)) ∨
     ∃ b ∈ Λ.sent, namedEntry b.1 = some (h, T) := by
   cases hpair : height_pair Λ.toRecord
-      (src.map (fun C => ((derive p.E p.cfg C).h, (derive p.E p.cfg C).T_h.root)))
-      (finality_pair Λ.toRecord hd) with
+      ((fgInputs p st).1.map (fun C => ((heightView p C).h, (heightView p C).T_h.root)))
+      (finality_pair Λ.toRecord (fgInputs p st).2) with
   | empty => rw [hpair] at hp; cases hp
   | vote g U timeout =>
     rw [hpair] at hp
@@ -486,17 +481,31 @@ private theorem rowPermission_once_coverage (Λ : RecordOnce) (seat : Fin p.n)
         subst W
         exact ⟨(.vote g U oldTimeout, fp), hm, rfl⟩
     · let a : Row (Fin p.n) := ⟨seat, .vote g U timeout,
-        (finality_pair Λ.toRecord hd).filter (fun fp => decide (fp.height < g))⟩
+        (finality_pair Λ.toRecord (fgInputs p st).2).filter (fun fp => decide (fp.height < g))⟩
       by_cases hm : a.onceKey ∈ Λ.sent
       · exact Or.inr ⟨a.onceKey, hm, rfl⟩
       · left
-        refine ⟨a, ?_, rfl⟩
-        rw [createRowOnce_def]
-        dsimp only
-        rw [hpair]
-        simp only [hs, Bool.false_eq_true, ite_false]
-        change (if a.onceKey ∈ Λ.sent then (none, Λ) else (some a, record_row_once Λ a)).1 = some a
-        rw [ite_eq_right hm]
+        refine ⟨RowPayload.vote (RowBody.ofRow a), ?_, rfl⟩
+        have ha : (createRowOnce p.E p.cfg Λ seat (fgInputs p st).1
+            (fgInputs p st).2).1 = some a := by
+          rw [createRowOnce_def]
+          dsimp only
+          have hsrc : (fgInputs p st).1.map
+              (fun C => ((derive p.E p.cfg C).h, (derive p.E p.cfg C).T_h.root)) =
+              (fgInputs p st).1.map
+                (fun C => ((heightView p C).h, (heightView p C).T_h.root)) := by
+            congr 1
+            funext C
+            rw [heightView_bridge p C]
+            rfl
+          rw [hsrc, hpair]
+          simp only [hs, Bool.false_eq_true, ite_false]
+          change (if a.onceKey ∈ Λ.sent then (none, Λ) else
+            (some a, record_row_once Λ a)).1 = some a
+          rw [ite_eq_right hm]
+        change Option.map (fun a => RowPayload.vote (RowBody.ofRow a))
+          (createRowOnce p.E p.cfg Λ seat (fgInputs p st).1 (fgInputs p st).2).1 = _
+        rw [ha]; rfl
 
 private theorem rowPermission_sent_origin (ls : List (Obj p)) (Λ : RecordOnce)
     (b : NamedHeightPair × Option FinalityPair)
@@ -536,11 +545,11 @@ theorem rowPermission_covered [Fintype V]
     (x : V) (hx : x ∈ rho.honest) (r : Nat) (nd : Node p)
     (hnd : postClock E rho x (p.actionTime r) = some nd) (C : FGBlock (Fin p.n))
     (hsource : actionSourceFG p c E rho x r = some (some C))
-    (hC : C ∈ FGSA.fullTree p nd.st) (hband : (FGSA.controls p nd.st).lo ≤ hOf p.E p.cfg C)
+    (hC : C ∈ FGSA.fullTree p nd.st) (hband : (FGSA.controls p nd.st).lo ≤ (heightView p C).h)
     (hawake : E.awake x (p.actionTime r) = true) :
     ∃ j rSent a, rSent ≤ r ∧ HonestRowAt p c E rho j x rSent a ∧
       namedEntry a.payload.height_pair =
-          some (hOf p.E p.cfg C, (derive p.E p.cfg C).T_h.root) := by
+          some ((heightView p C).h, (heightView p C).T_h.root) := by
   have hp := rowPermission_pair E rho hb hf x hx r nd hnd C hsource hC hband
   rw [postClock_def, preTick_def] at hnd
   cases hi : V2.D.Run.tickIdx? rho x (p.actionTime r) with
@@ -553,15 +562,10 @@ theorem rowPermission_covered [Fintype V]
     let st := FGSA.clock p (V2.D.Run.stateBefore E rho i x).st (p.actionTime r)
     let Λ := (V2.D.Run.stateBefore E rho i x).record
     have hist := rowPermission_record_history E rho hb.linked i x
-    have cov := rowPermission_once_coverage Λ ⟨0, p.nPos⟩ (fgInputs p st).1
-      (fgInputs p st).2 (hOf p.E p.cfg C) (derive p.E p.cfg C).T_h.root hist.1 hist.2
-    rcases cov hp with ⟨a, ha, hn⟩ | ⟨b, hbSent, hn⟩
-    · let body := RowPayload.vote (RowBody.ofRow a)
-      have hattest : (attest p st Λ ⟨0, p.nPos⟩).1 = some body := by
-        change Option.map (fun a => RowPayload.vote (RowBody.ofRow a))
-          (createRowOnce p.E p.cfg Λ ⟨0, p.nPos⟩ (fgInputs p st).1 (fgInputs p st).2).1 = _
-        rw [ha]; rfl
-      obtain ⟨seat, hs⟩ := (hb.linked.toCStar (.base .fg) trivial).2 x
+    have cov := rowPermission_once_coverage st Λ ⟨0, p.nPos⟩
+      (heightView p C).h (heightView p C).T_h.root hist.1 hist.2
+    rcases cov hp with ⟨body, hattest, hn⟩ | ⟨b, hbSent, hn⟩
+    · obtain ⟨seat, hs⟩ := (hb.linked.toCStar (.base .fg) trivial).2 x
       let wire : RowWire p.n := ⟨.seat .fg seat, body⟩
       refine ⟨i, r, wire, le_rfl, ⟨hx, ht, ?_⟩, hn⟩
       exact (fgsa_emitsAt_row E rho i x _ ht seat body).mpr ⟨hawake, hs, r, rfl, hattest⟩
@@ -601,11 +605,7 @@ theorem rowPermission_at [Fintype V] (G ΔF : Time) (pt : Unit)
         namedEntry a.payload.height_pair =
           some ((heightView p C).h, (heightView p C).T_h.root) := by
   intro u v m J contested r x C nd hGST hphase hu hv hx hnd hsrc hC hlo _
-  have old := rowPermission_covered E rho h.set.base h.set.fault x hx r nd hnd C hsrc hC
-    (by simpa only [heightView_eq_simplex p, KitFG.simplexHeightView_def,
-      KitFG.heightOf_def, hOf] using hlo)
+  exact rowPermission_covered E rho h.set.base h.set.fault x hx r nd hnd C hsrc hC hlo
     (h.set.awake x hx _ (hGST.trans hu) (hv.trans hphase.2.1))
-  simpa only [heightView_eq_simplex p, KitFG.simplexHeightView_def,
-    KitFG.heightOf_def, hOf] using old
 
 end AvailableChain.FGSA.Run
