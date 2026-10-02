@@ -42,12 +42,16 @@ theorem fgsa_eligible_eq_of_parent_height
       GridCO.goldfishScore dst.base.blocks raw' sup' C)
     (hslot : src.slot p = dst.slot p) :
     eligible p src raw sup C = eligible p dst raw' sup' C := by
-  apply fgsa_eligible_eq_of_no_band_score p src dst raw sup raw' sup' C
-    ?_ ?_ hcount hscore hslot
-  · rintro ⟨P, hm, he, hh⟩
+  have hs : ¬ ∃ P ∈ src.fg.TF, eraseFG P = C.parent ∧
+      (heightView p P).h < (controls p src).lo := by
+    rintro ⟨P, hm, he, hh⟩
     exact Nat.not_lt_of_ge (hsrc P hm he) hh
-  · rintro ⟨P, hm, he, hh⟩
+  have hd : ¬ ∃ P ∈ dst.fg.TF, eraseFG P = C.parent ∧
+      (heightView p P).h < (controls p dst).lo := by
+    rintro ⟨P, hm, he, hh⟩
     exact Nat.not_lt_of_ge (hdst P hm he) hh
+  unfold eligible
+  simp only [hs, hd, hcount, hscore, hslot]
 
 /-- Blueprint 21 H.5:886–914, H.17:2987–3009; spec 1290–1297,1520–1523.
 Class (iii). DC: INTENTIONAL; each common candidate supplies its own two
