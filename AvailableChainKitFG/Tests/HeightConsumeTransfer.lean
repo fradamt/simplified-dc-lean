@@ -40,6 +40,9 @@ theorem heightConsumeTransfer_target_priority :
     .genesis 1 0 [rowT 0, rowT 1, rowT 2] {0, 1, 2}
     (by unfold Electorate.IsQuorum; decide +kernel) (by decide +kernel)
 
+def consumeCarrier : FGBlock (Fin 4) := .node .genesis 1 0 [rowX 0, rowX 1, rowX 2]
+def consumeTail : FGBlock (Fin 4) := .node consumeCarrier 2 0 []
+
 def consumeParent : FGBlock (Fin 4) := .node .genesis 0 0 [rowT 0, rowT 1]
 def consumeTargetChild : FGBlock (Fin 4) := .node consumeParent 1 0 [rowT 2]
 def consumeProgressChild : FGBlock (Fin 4) := .node consumeParent 5 0 [rowX 2]
@@ -100,6 +103,20 @@ theorem heightConsumeTransfer_zero_delay :
       (by decide +kernel) (by decide +kernel)
   · decide +kernel
 
+-- Equal heights keep a carrier progress bit in a later block.
+theorem heightConsumeTransfer_progress_persist :
+    (consumeView ⟨5⟩ consumeCarrier).progress ⊆ (consumeView ⟨5⟩ consumeTail).progress := by
+  exact progress_persist_of_bridge E4 ⟨5⟩ _ (heightConsumeTransfer_view_bridge _)
+    (preceq_parent_node consumeCarrier 2 0 []) (by decide +kernel)
+
+-- A matching timeout row keeps its signer bit through the later block.
+theorem heightConsumeTransfer_progress_from_row :
+    (1 : Fin 4) ∈ (consumeView ⟨5⟩ consumeTail).progress := by
+  exact progress_from_row_of_bridge E4 ⟨5⟩ _ (heightConsumeTransfer_view_bridge _)
+    (P := .genesis) (rs := [rowX 0, rowX 1, rowX 2]) (a := rowX 1)
+    (by decide +kernel) (preceq_parent_node consumeCarrier 2 0 [])
+    (by decide +kernel) (by decide +kernel)
+
 #print axioms transition_target_of_cover_of_bridge
 #print axioms transition_progress_of_cover_of_bridge
 #print axioms derive_target_of_cover_of_bridge
@@ -112,6 +129,10 @@ theorem heightConsumeTransfer_zero_delay :
 #print axioms heightConsumeTransfer_step_target
 #print axioms heightConsumeTransfer_step_progress
 #print axioms heightConsumeTransfer_zero_delay
+#print axioms progress_persist_of_bridge
+#print axioms progress_from_row_of_bridge
+#print axioms heightConsumeTransfer_progress_persist
+#print axioms heightConsumeTransfer_progress_from_row
 
 end AvailableChain.KitFG.Tests.HeightConsumeTransfer
 end

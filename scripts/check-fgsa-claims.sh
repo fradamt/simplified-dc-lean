@@ -33,6 +33,18 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.fgsa_tWalk',
     'AvailableChain.FGSA.Run.fgsa_tVote',
     'AvailableChain.FGSA.Run.fgsa_coreServices',
+    # K-HISTORY: run-level history bodies; --expect DATA only.
+    'AvailableChain.FGSA.Run.noMixedPreBatchParent',
+    'AvailableChain.FGSA.Run.justifyFresh_W',
+    'AvailableChain.FGSA.Run.raw_causal_cap_before',
+    'AvailableChain.FGSA.Run.raw_causal_cap_at_tick',
+    'AvailableChain.FGSA.Run.raw_causal_cap_through_action',
+    # K-HEIGHT: height adapters; --expect DATA only.
+    'AvailableChain.FGSA.Run.fgsa_foldTrichotomy_target',
+    'AvailableChain.FGSA.Run.fgsa_foldTrichotomy_progress',
+    'AvailableChain.FGSA.Run.fgsa_storedProgressConsume',
+    'AvailableChain.FGSA.Run.fgsa_noMixedMaturity',
+    'AvailableChain.FGSA.Run.fgsa_justifyAt',
     # S4.6c: --expect DATA only.
     'AvailableChain.FGSA.Run.fgsa_availableGST',
     'AvailableChain.FGSA.Run.AvailableFromConcl',
@@ -112,6 +124,10 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.FGSAClaims.cleanInclusion',
     'AvailableChain.FGSA.Run.FGSAClaims.firstFinalityRecFE',
     'AvailableChain.FGSA.Run.FGSAClaims.firstFinalityRecF4',
+    # S5 F-EXPORT: Foundations producers and the active-height cap adapter.
+    'AvailableChain.FGSA.Run.fgsa_rXing',
+    'AvailableChain.FGSA.Run.fgsa_rCap_heightView',
+    'AvailableChain.FGSA.Run.fgsa_rCap_channel',
     # H-PHASE: --expect additions only.
     'AvailableChain.FGSA.Run.healing_phaseWitness',
     'AvailableChain.FGSA.Run.healing_phase_initial_frontier',

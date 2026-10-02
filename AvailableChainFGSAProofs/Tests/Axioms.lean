@@ -1,5 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Finality.CoreServices -- shake: keep (C-CORE audit)
+public import AvailableChainFGSAProofs.Proofs.Finality.History -- shake: keep (K-HISTORY audit)
+public import AvailableChainFGSAProofs.Proofs.Finality.Height -- shake: keep (K-HEIGHT audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.Claims -- shake: keep (S4.6b axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.Phase -- shake: keep (H-PHASE audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseRelay -- shake: keep (H-PHASE audit)
@@ -164,6 +166,7 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_carrier_geometry
 #print axioms AvailableChain.FGSA.Run.fgsa_finalLock
 #print axioms AvailableChain.FGSA.Run.fgsa_finalLock_erased
+#print axioms AvailableChain.FGSA.Run.fgsa_rXing
 #print axioms AvailableChain.FGSA.Run.fgsa_clientSafeAll
 #print axioms AvailableChain.FGSA.Run.readAt_chain_row_origin
 #print axioms AvailableChain.FGSA.Run.fgsa_honestNeverSlashed
@@ -211,6 +214,8 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.Recovery₂.faultX_count_rec
 #print axioms AvailableChain.FGSA.Run.Recovery₂.faultQ
 #print axioms AvailableChain.FGSA.Run.fgsa_rCap
+#print axioms AvailableChain.FGSA.Run.fgsa_rCap_heightView
+#print axioms AvailableChain.FGSA.Run.fgsa_rCap_channel
 #print axioms AvailableChain.FGSA.Run.fgsa_finalityCap
 #print axioms AvailableChain.FGSA.Run.fgsa_rCap_time
 #print axioms AvailableChain.FGSA.Run.fgsa_rCap_before
@@ -782,6 +787,11 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.FGSAClaims.availableGrowthGST
 #print axioms AvailableChain.FGSA.Run.FGSAClaims.cleanGrowth
 #print axioms AvailableChain.FGSA.Run.fgsa_availableGST
+#print axioms AvailableChain.FGSA.Run.fgsa_foldTrichotomy_target
+#print axioms AvailableChain.FGSA.Run.fgsa_foldTrichotomy_progress
+#print axioms AvailableChain.FGSA.Run.fgsa_storedProgressConsume
+#print axioms AvailableChain.FGSA.Run.fgsa_noMixedMaturity
+#print axioms AvailableChain.FGSA.Run.fgsa_justifyAt
 -- H-BASE: all four completed items; HB3 is skipped.
 #print axioms AvailableChain.FGSA.Run.healing_rXing
 #print axioms AvailableChain.FGSA.Run.healing_rCap
@@ -810,3 +820,9 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_tWalk
 #print axioms AvailableChain.FGSA.Run.fgsa_tVote
 #print axioms AvailableChain.FGSA.Run.fgsa_coreServices
+-- K-HISTORY: raw origin is supplied by Assembly.
+#print axioms AvailableChain.FGSA.Run.noMixedPreBatchParent
+#print axioms AvailableChain.FGSA.Run.justifyFresh_W
+#print axioms AvailableChain.FGSA.Run.raw_causal_cap_before
+#print axioms AvailableChain.FGSA.Run.raw_causal_cap_at_tick
+#print axioms AvailableChain.FGSA.Run.raw_causal_cap_through_action

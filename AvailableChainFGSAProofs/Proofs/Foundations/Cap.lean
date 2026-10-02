@@ -73,6 +73,36 @@ private theorem cap_origin_of_held
       rw [har]; rfl⟩
   exact ⟨z, r, a, (he z hsign hz).1, hsign, ha, k, o, t, hki, hk, (he z hsign hz).2⟩
 
+/-- R-CAP row witnesses with the active height view.
+The height laws supply the same quorum and row-origin proof as `fgsa_rCap`.
+The existing old-height wrapper below contains the height transport. -/
+theorem fgsa_rCap_heightView [Fintype V]
+    (hL : V2.D.Linked (fgsaFamilies p c).linked rho) (hv : V2.D.ExecutionValid E rho)
+    (hQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+    (y i : Nat) (x : V) (W : FGBlock (Fin p.n))
+    (hW : HeldAt p c E rho i x W) (hheight : y + 2 ≤ (heightView p W).h) :
+    ∃ (z : V) (r : Nat) (a : RowWire p.n) (u : Row (Fin p.n))
+      (T : BlockId) (timeout : Bool),
+      HonestRowBefore p c E rho i z r a ∧ RowSigner p c rho a z ∧
+      a.toRow? = some u ∧ u ∈ chainRows W ∧ u.height_pair = .vote (y + 1) T timeout := by
+  obtain ⟨X, _, _, Q, hquorum, hw⟩ :=
+    (fgCertificateLaws p).height.height_crossing W (y + 1)
+      (by unfold Height at *; omega) (by unfold Height at *; omega)
+  obtain ⟨seat, hseat, hfaulty⟩ :=
+    KitFG.honest_in_quorum p.E (capFaulty p c rho) hquorum (cap_weight p c rho hL hQ)
+  obtain ⟨carrier, u, hcarrier, hu, hsigner, hmatch⟩ := hw seat hseat
+  have huW : u ∈ chainRows W := KitFG.mem_chainRows_of_carrier hcarrier hu
+  have huHonest : u.signer ∉ capFaulty p c rho := hsigner ▸ hfaulty
+  obtain ⟨z, r, a, hb, hs, hd, _⟩ :=
+    cap_origin_of_held p c E rho hL hv i x W hW u huW huHonest
+  cases hp : u.height_pair with
+  | empty => simp [hp, NamedHeightPair.matchesEntry] at hmatch
+  | vote k T timeout =>
+    have hk : k = y + 1 := by
+      simp only [hp, NamedHeightPair.matchesEntry, decide_eq_true_eq] at hmatch
+      exact hmatch.1
+    exact ⟨z, r, a, u, T, timeout, hb, hs, hd, huW, by rw [hp, hk]⟩
+
 /-- R-CAP, P3 App. A.4: an instance of G17 on the held-block domain.
 The authentic height row was released at an index strictly below the read. -/
 theorem fgsa_rCap [Fintype V]
@@ -85,11 +115,82 @@ theorem fgsa_rCap [Fintype V]
       HonestRowBefore p c E rho i' z r a ∧ RowSigner p c rho a z ∧
       RowWire.toRow? a = some u ∧ u ∈ chainRows W ∧
       u.height_pair = .vote (y' + 1) T timeout := by
-  obtain ⟨u, hu, _, ho, T, timeout, hh⟩ :=
-    KitFG.causalCap_row p.E p.cfg (capFaulty p c rho) (cap_weight p c rho hL hQ)
-      y' W (CapOrigin p c E rho i' x) (cap_origin_of_held p c E rho hL hv i' x W hW) hheight
-  obtain ⟨z, r, a, hb, hs, hd, _⟩ := ho
-  exact ⟨z, r, a, u, T, timeout, hb, hs, hd, hu, hh⟩
+  apply fgsa_rCap_heightView p c E rho hL hv hQ y' i' x W hW
+  simpa only [heightView_eq_simplex, KitFG.simplexHeightView_def, KitFG.heightOf_def] using hheight
+
+/-- R-CAP with exactly the run premises of `fgsa_rCap`.
+The decoded honest row is the same signed wire in the held block's chain. -/
+theorem fgsa_rCap_channel [Fintype V]
+    (hL : V2.D.Linked (fgsaFamilies p c).linked rho) (hv : V2.D.ExecutionValid E rho)
+    (hQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card) : RCap p c E rho := by
+  intro y i x W hW hh
+  obtain ⟨z, r, a, u, T, timeout, hb, _hs, hd, hu, hp⟩ :=
+    fgsa_rCap_heightView p c E rho hL hv hQ y i x W hW hh
+  obtain ⟨j, hji, hj⟩ := hb
+  have encode (b : RowWire p.n) (v : Row (Fin p.n)) (hv : b.toRow? = some v) :
+      b = ⟨.seat .fg v.signer, .vote ⟨v.height_pair, v.finality_pair⟩⟩ := by
+    rcases b with ⟨auth, ⟨⟨bh, bf⟩⟩⟩
+    cases auth with
+    | none => cases hv
+    | proposer s => cases hv
+    | seat label k =>
+      cases label with
+      | head s => cases hv
+      | fg =>
+        have he : (⟨k, bh, bf⟩ : Row (Fin p.n)) = v := Option.some.inj hv
+        subst v
+        rfl
+  have ha := encode a u hd
+  refine ⟨j, z, r, a, T, hji, hj, ?_, ?_⟩
+  · rw [ha]
+    change namedEntry u.height_pair = some (y + 1, T)
+    rw [hp]
+    rfl
+  · let st := storeAt p c E rho i x
+    have hs := storeBundle_stateBefore E rho i x
+    have hmem : W ∈ st.fg.TF := hW.2
+    clear hW hh
+    induction W with
+    | genesis => exact (Finset.notMem_empty u hu).elim
+    | node P s body rows ih =>
+      change u ∈ rows.toFinset ∪ chainRows P at hu
+      rcases Finset.mem_union.mp hu with hu | hu
+      · obtain ⟨slot, raw, sup, wires, hw, hr⟩ :=
+          stored_wire_of_block p st hs.cstore hs.«meta» hmem (by intro h; cases h)
+        change rows = wires.filterMap RowWire.toRow? at hr
+        have hur : u ∈ rows := List.mem_toFinset.mp hu
+        rw [hr] at hur
+        obtain ⟨b, hbw, hbu⟩ := List.mem_filterMap.mp hur
+        have he : b = a := (encode b u hbu).trans ha.symm
+        subst b
+        apply List.mem_flatten.mpr
+        refine ⟨wires, List.mem_filterMap.mpr ⟨_, hw, ?_⟩, hbw⟩
+        have hrefl : Block.preceq (eraseFG (.node P s body rows))
+            (eraseFG (.node P s body rows)) = true := Gen.Pure.block_preceq_refl _
+        simp only [Wire.decode, hrefl, ↓reduceIte]
+      · have hpar := ih hu (hs.cstore.fg.closed _ hmem)
+        obtain ⟨wires, hw, haw⟩ := List.mem_flatten.mp hpar
+        obtain ⟨b, hb, hdec⟩ := List.mem_filterMap.mp hw
+        apply List.mem_flatten.mpr
+        refine ⟨wires, List.mem_filterMap.mpr ⟨b, hb, ?_⟩, haw⟩
+        cases hbd : b.decode with
+        | none => rw [hbd] at hdec; cases hdec
+        | some msg =>
+          cases msg with
+          | vote s k B => rw [hbd] at hdec; cases hdec
+          | row k payload => rw [hbd] at hdec; cases hdec
+          | block slot B raw sup ws =>
+            simp only [hbd] at hdec ⊢
+            split at hdec
+            · rename_i hpre
+              have hparent : FGBlock.Preceq P (.node P s body rows) := by
+                change (decide (P = .node P s body rows) || FGBlock.preceq P P) = true
+                rw [KitFG.preceq_refl P, Bool.or_true]
+              have hle : B.preceq (eraseFG (.node P s body rows)) = true :=
+                Gen.Pure.block_preceq_trans hpre (eraseFG_preceq hparent)
+              rw [hle, ite_eq_left (rfl : true = true)]
+              exact hdec
+            · cases hdec
 
 /-- A positive certificate on a held chain contains an authentic honest
 finality row. This also applies when the finalized checkpoint is genesis:

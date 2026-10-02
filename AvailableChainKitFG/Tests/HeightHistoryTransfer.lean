@@ -2,6 +2,8 @@ module
 public import AvailableChainKitFG.HeightHistoryTransfer
 public import AvailableChainKitFG.HeightConsumeTransfer
 public import AvailableChainKitFG.HeightFold
+public import AvailableChainKitFG.HeightLaws
+public import AvailableChainKitFG.FrameGeometry
 
 public section
 
@@ -112,6 +114,18 @@ theorem heightHistoryTransfer_stale_not_witness :
   change 1 = 2 at hh
   exact (by decide +kernel : (1 : Height) ≠ 2) hh
 
+-- The generic cross cases hold at a concrete first crossing from genesis.
+theorem heightHistoryTransfer_cross_cases :
+    ((historyView ⟨5⟩ B1.parent).h = 1 ∧ (historyView ⟨5⟩ B1).h = 2 ∧
+      (historyView ⟨5⟩ B1).J = .genesis ∧ (historyView ⟨5⟩ B1).h_j = 1) ∨
+    ((historyView ⟨5⟩ B1.parent).h = 1 ∧ (historyView ⟨5⟩ B1).h = 2 ∧
+      (historyView ⟨5⟩ B1).h_j < 1) := by
+  exact cross_cases_of_laws
+    (heightLaws_of_bridge E4 ⟨5⟩ _ (heightHistoryTransfer_view_bridge _))
+    (FGJustificationLaws.of_bridge (heightHistoryTransfer_view_bridge _))
+    (U := .genesis) (y := 1) (by decide +kernel) (genesis_preceq _)
+    (by decide +kernel) (by decide +kernel)
+
 #print axioms no_mixed_cross_before_maturity_of_bridge
 #print axioms first_height_crossing_edge_of_bridge
 #print axioms crossing_honest_matching_row_of_bridge
@@ -125,6 +139,8 @@ theorem heightHistoryTransfer_stale_not_witness :
 #print axioms heightHistoryTransfer_plateau
 #print axioms heightHistoryTransfer_occurrence
 #print axioms heightHistoryTransfer_stale_not_witness
+#print axioms cross_cases_of_laws
+#print axioms heightHistoryTransfer_cross_cases
 
 end AvailableChain.KitFG.Tests.HeightHistoryTransfer
 end

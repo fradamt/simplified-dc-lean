@@ -183,7 +183,11 @@ theorem healing_settled_frame (crossing : RXing p c E rho)
     (i : Nat) (x : V) (hui : timeIdx rho u ≤ i) (hiv : i ≤ timeIdx rho v)
     (hx : x ∈ rho.honest) :
     SettledPhaseFrame p (storeAt p c E rho i x) m J contested := by
-  obtain ⟨hH, hc, hr⟩ := hp.2.2.2 i x hui hiv hx
+  have hui' : V2.D.Run.idxBefore rho u ≤ i := le_trans (by
+    rw [V2.D.Run.idxBefore_def]
+    exact (List.monotone_filter_right _
+      (fun e h => decide_eq_true (le_of_lt (of_decide_eq_true h)))).length_le) hui
+  obtain ⟨hH, hc, hr⟩ := hp.2.2.2 i x hui' hiv hx
   exact healing_phase_frame p c E rho crossing hx hp.2.2.1 hH hc hr
 
 end AvailableChain.FGSA.Run

@@ -1,7 +1,7 @@
 # FG-SA G-F0b freeze record (W model)
 
 Candidate content: fgsa-s46e (S4.6 + S4.6b + S4.6c + TDel / review fixes + S4.7 pre-freeze round), reviewed at
-845d13e; the S4.7 fix round adds 0848d69 and this record (037ea95); B21 follows. The S4.8 freeze commit
+845d13e; the S4.7 fix round adds 0848d69 and this record (037ea95); B21 and B25 follow. The S4.8 freeze commit
 replaces docs/FGSA-API-frozen.md with docs/FGSA-API.md at that head (scripts/fgsa-freeze.sh), resets
 scripts/fgsa-manifest-allow.txt to its header line, and checks the new freeze with
 `NEG=0 bash scripts/check-fgsa-manifest.sh`.
@@ -50,7 +50,17 @@ contract route. Lead ruling B21 (evidence TS/codex/reports/m1-check-opus-full.md
 weaker; each statement stays true at m = 1 (the frontier-1 frame is top J with J = genesis; 21:286, 1236). The gap
 frame keeps R.j + 2 ≤ m (21:1191–1203). No G-F0a frozen name moves.
 
+## Post-review statement change (ruling B25)
+
+An Opus check of Centaur's H-FRAME plan found that PhaseInterval's lower cut `timeIdx rho u ≤ i` lies after all
+events at u, but a HEAD at v_s = u reads stateBefore its tick, at an index before timeIdx u (ticks come before
+deliveries at u). TPerm (`u ≤ voteTime s`) and TRepair branch 2 then had no blueprint route at equality (bp 754–755,
+824, 1151–1162: "settled at u" includes HEADs at v_s = u). Lead ruling B25 (s5-plan-amendments.md §G): the lower cut
+is `V2.D.Run.idxBefore rho u ≤ i`. Nothing else changes; TFrontier's h_max cap keeps timeIdx. No G-F0a frozen name
+moves.
+
 ## Gates
 
 - aaeb71c and 037ea95: FULL gates stopped before completion (superseded by later pre-freeze heads; lead).
-- Final head (this record + S4.7 fixes + B21): FULL gate (record in the S4.8 commit message).
+- f7eafbe (B21 head): FULL gate (record in the S4.8 commit message).
+- Final head (+ main + B25): FULL gate (record in the S4.8 commit message).
