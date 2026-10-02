@@ -83,6 +83,36 @@ private theorem cint_concrete_fault_lock :
   exact ⟨by decide +kernel, by decide +kernel,
     certificate_integration_accountable_test E4 cfg1 B2 B3, hlock⟩
 
+-- A new target row makes the later carrier's row history different.
+def cintLockChild : FGBlock (Fin 4) :=
+  .node B3 4 0 [rowAt 4 B3.root false 0]
+
+-- D remains B3. W strictly extends D and has an additional row.
+private theorem cint_concrete_extended_fault_lock :
+    StrictPrefix B3 cintLockChild ∧ chainRows B3 ≠ chainRows cintLockChild ∧
+      (simplexHeightView E4 cfg1 cintLockChild).h = 4 ∧
+      FGBlock.Preceq stF.F cintLockChild := by
+  have hs := cint_store E4 cfg1
+  have h1 := hs.step_good Store.init B1 hs.initial_good
+  have h2 := hs.step_good (on_block E4 cfg1 Store.init B1) B2 h1
+  have hi : StoreInv E4 cfg1 stF := by
+    simpa only [stF, List.foldl_cons, List.foldl_nil] using
+      hs.step_good (on_block E4 cfg1 (on_block E4 cfg1 Store.init B1) B2) B3 h2
+  have hcap : E4.weightOf ({3} : Finset (Fin 4)) + E4.totalWeight < 2 * E4.q := by
+    decide
+  have hh : acceptedThreshold stF.F (simplexFinalityView E4 cfg1 B3).h_F <
+      (simplexHeightView E4 cfg1 cintLockChild).h := by
+    decide +kernel
+  have hno : NoSlashOutside ({3} : Finset (Fin 4))
+      (chainRows B3) (chainRows cintLockChild) := by
+    rw [NoSlashOutside_def]
+    decide +kernel
+  have hlock := certificate_integration_accepted_lock_test E4 cfg1 stF hi B3
+    cintLockChild {3} (by decide +kernel) (by decide +kernel) hh hcap hno
+  refine ⟨?_, by decide +kernel, by decide +kernel, hlock⟩
+  rw [StrictPrefix_def]
+  decide +kernel
+
 -- The public rewrite connects the certificate fields to the client adapter.
 example (E : Electorate V) (cfg : FGConfig) (Hd : FGBlock V) :
     certificateHeadFields (simplexHeightView E cfg) (simplexFinalityView E cfg) Hd =
@@ -95,6 +125,7 @@ example (E : Electorate V) (cfg : FGConfig) (Hd : FGBlock V) :
 #print axioms cint_store
 #print axioms certificate_integration_accepted_lock_test
 #print axioms cint_concrete_fault_lock
+#print axioms cint_concrete_extended_fault_lock
 #print axioms simplex_certificateHeadFields_eq
 
 end AvailableChain.KitFG.Tests.CertificateIntegration

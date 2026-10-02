@@ -204,14 +204,20 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   their quorum; greatest-ready selection read from the pre-finality list;
   pruned lower entries covered by X ⪯ F with no own QC; eviction gives no
   coverage; pruneCertEntries), `StoreSafetyDef` (F-lock with explicit fault /
-  no-slash premises) and `ProvenanceCoreDef`. Shared cores, with no SimplexFG
-  instance in their import closure: `AccountableCore`, `CrossingCore`,
+  no-slash premises) and `ProvenanceCoreDef`. Shared cores, with no
+  `CertificateSimplex` in their import closure: `AccountableCore`, `CrossingCore`,
   `ProvenanceCore` (forms that need only the height laws take FGHeightLaws),
   `SelectionCore` (FGSelectionLaws.of_core, FGCertificateLaws.of_selection),
   `StoreSafety`. SimplexFG adapters: `CertificateSimplexDef`,
   `CertificateSimplex`, `StoreSafetySimplex`. Existing KitFG proofs stay
   unchanged; the cores are added companions. FG-SA proves the window instance
   (FG2) and calls the cores.
+- KitFG frame bridge (for the FG5 switch, 2026-10-02): `FrameBridgeDef` states
+  the SimplexFG height readers over a height view v (frontierView, lexMaxView,
+  filteredFromView, storeControlsView, storeFrameView); `FrameBridge` proves
+  each SimplexFG reader equal to its view form under `HeightBridge E cfg v`
+  (hOf_of_bridge and five more). SimplexFG is unchanged; the FG-SA model reads
+  window heights and uses one bridge rewrite per reader.
 - FGSA E-11 adds `LeaseBelowOutputStore` in `Statements/Invariants` and
   `StoreBundle` with `StoreBundleInvariant` in `Statements/Store`. The bundle
   has cstore, meta, nest and lease fields; the E-11 statements are PROVED.

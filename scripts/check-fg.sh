@@ -107,7 +107,10 @@ lake env lean --run scripts/CheckFGAxioms.lean --expect \
   FGStoreSafety.accepted_lock_fault \
   simplex_certificateHeadFields_eq \
   simplexStoreInvariant \
-  simplexStoreSafety
+  simplexStoreSafety \
+  frontierView_def lexMaxView_def filteredFromView_def storeControlsView_def storeFrameView_def \
+  hOf_of_bridge frontier_of_bridge lexMax_of_bridge filteredFrom_of_bridge \
+  storeControls_of_bridge storeFrame_of_bridge
 step "scripts/FGPinIds.lean --check-names"
 lake env lean --run scripts/FGPinIds.lean --check-names
 step "scripts/check-fg-pins.sh"
