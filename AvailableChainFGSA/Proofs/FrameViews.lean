@@ -1,6 +1,10 @@
 module
 public import AvailableChainFGSA.Model.Frame
 public import AvailableChainKitFG.FrameBridge
+public import AvailableChainKitFG.FrameGeometry
+public import AvailableChainFGSA.Proofs.Carrier
+public import AvailableChainGeneric.Proofs.Pure.Fold
+public import AvailableChainFGSA.Proofs.WindowHeightBridge
 
 public section
 
@@ -8,9 +12,9 @@ namespace AvailableChain.FGSA
 
 open AvailableChain.SimplexFG AvailableChain.KitFG
 
-/-- One bridge supplies all active height readers. J4 replaces this proof. -/
+/-- One bridge supplies all active height readers. -/
 theorem heightView_bridge (p : Params) : HeightBridge p.E p.cfg (heightView p) :=
-  fun _ => rfl
+  Window.windowHeightBridge p p.K_W p.kWLarge
 
 /-- The active controls equal the old store controls through LF7. -/
 theorem controls_eq (p : Params) (st : State p.n) :
@@ -41,6 +45,24 @@ theorem headVote_eq (p : Params) (st : State p.n) (s : Slot) :
           (headVotes p st s) (headSupport p st s)) := by
   unfold headVote
   rw [← storeFrame_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
+
+/-- The live-root selector returns a descendant of the active root. -/
+theorem fgsa_Z_preceq_liveRoot (p : Params) (st : State p.n) :
+    Block.Preceq (eraseFG (controls p st).Z) (liveRoot p st) := by
+  unfold liveRoot
+  dsimp only
+  rcases Gen.Pure.foldl_select_mem (fun (best b : Block) => best.depth < b.depth ||
+      (best.depth == b.depth && best.root < b.root)) _ _ with he | hm
+  · rw [he]
+    exact block_preceq_refl _
+  · obtain ⟨entry, -, hr⟩ := List.mem_filterMap.1 hm
+    split at hr
+    · next hc =>
+      obtain ⟨B, hB, he⟩ := of_decide_eq_true (Bool.and_eq_true_iff.mp hc).2
+      rw [← Option.some.inj hr, ← he]
+      exact eraseFG_preceq
+        ((KitFG.mem_filteredFromView (heightView p) (controls p st) st.fg.TF B).mp hB).2.2.1
+    · cases hr
 
 end AvailableChain.FGSA
 end

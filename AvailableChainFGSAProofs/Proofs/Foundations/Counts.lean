@@ -1,6 +1,7 @@
 module
+public import AvailableChainFGSA.Proofs.StoreLaws
+public import AvailableChainKitFG.HeightConsumeTransfer
 public import AvailableChainFGSA.Model.Objects
-public import AvailableChainKitFG.Certificates
 
 public section
 
@@ -60,34 +61,25 @@ theorem fgsa_target_exact_quorum (p : Params) {a : Nat}
     (derive p.E p.cfg (.node B s x rows)).J = (derive p.E p.cfg B).T_h ∧
     (derive p.E p.cfg (.node B s x rows)).h_j = (derive p.E p.cfg B).h ∧
     (derive p.E p.cfg (.node B s x rows)).h = (derive p.E p.cfg B).h + 1 := by
-  let σ := KitFG.foldRows (derive p.E p.cfg B) (.node B s x rows) rows
-  have hsub : H ⊆ σ.target_participation := by
-    intro i hi
-    exact fgsa_target_fold_covered p rows
-      { derive p.E p.cfg B with s := (FGBlock.node B s x rows).slot } i (hcov i hi)
-  have hcard := Finset.card_le_card hsub
   have hq : p.E.q = qF p.n :=
     (KitFG.toWeights_q p.E).symm.trans (KitFG.unit_toWeights_q p.n)
-  have hw : p.E.weightOf σ.target_participation = σ.target_participation.card := by
-    change (∑ _i ∈ σ.target_participation, (1 : Nat)) = σ.target_participation.card
+  have hw : p.E.weightOf H = H.card := by
+    change (∑ _i ∈ H, (1 : Nat)) = H.card
     simp only [Finset.sum_const, Nat.nsmul_eq_mul, mul_one]
-  have hn := p.nPos
   have hbound : qF p.n ≤ p.n - a := by
+    have hn := p.nPos
     rw [qF_def]
     omega
-  have htarget : (KitFG.afterFin p.E σ).targetQuorum p.E = true := by
-    change decide (p.E.q ≤ p.E.weightOf (KitFG.afterFin p.E σ).target_participation) = true
-    rw [KitFG.afterFin_target_participation, hq, hw]
-    exact decide_eq_true (hbound.trans (hH.trans hcard))
-  have fields := KitFG.foldRows_fields (derive p.E p.cfg B) (.node B s x rows) rows
-  rw [KitFG.derive_node]
-  change (process_height_events p.E p.cfg σ).J = _ ∧
-    (process_height_events p.E p.cfg σ).h_j = _ ∧
-    (process_height_events p.E p.cfg σ).h = _
-  rw [KitFG.process_height_events_eq, ite_eq_left htarget]
-  exact ⟨(KitFG.afterFin_T_h p.E σ).trans fields.2.2.1,
-    (KitFG.afterFin_h p.E σ).trans fields.2.1,
-    congrArg (· + 1) ((KitFG.afterFin_h p.E σ).trans fields.2.1)⟩
+  have hquorum : p.E.IsQuorum H := by
+    change p.E.q ≤ p.E.weightOf H
+    rw [hq, hw]
+    exact hbound.trans hH
+  have hc := KitFG.derive_target_of_cover_of_bridge p.E p.cfg
+    (heightView p) (heightView_bridge p) B s x rows H hquorum
+    (by simpa only [heightView_eq_simplex, KitFG.simplexHeightView_def, KitFG.heightOf_def]
+      using hcov)
+  simpa only [heightView_eq_simplex, KitFG.simplexHeightView_def, KitFG.heightOf_def]
+    using And.intro hc.2.1 (And.intro hc.2.2 hc.1)
 
 end AvailableChain.FGSA.Run
 end

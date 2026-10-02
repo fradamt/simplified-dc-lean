@@ -216,14 +216,22 @@ private theorem transfer_frame_at_vote
         FGBlock.Preceq (derive p.E p.cfg U).T_h Bfg := by
       intro W hW U hU hlt
       exact hc W hW _ ⟨U, hU, Or.inr (Or.inr ⟨rfl, hlt⟩)⟩
+    have hcrossH : ∀ W ∈ st.fg.TF, ∀ U, FGBlock.Preceq U W →
+        (heightView p U).h < (heightView p W).h →
+        FGBlock.Preceq (heightView p U).T_h Bfg := by
+      simpa only [heightView_eq_simplex, KitFG.simplexHeightView_def, KitFG.heightOf_def, hOf]
+        using hcross
     have hn := KitFG.storeFrameView_noContest_of_crossed_of_inv
       p.E (heightView p) (fgCertificateLaws p).height (finalityView p) st.fg hinv
         (fgJustificationLaws p) (by
       intro W hW U hU hlt
-      exact KitFG.preceq_total_of_common hJ (hcross W hW U hU hlt))
+      exact KitFG.preceq_total_of_common hJ (hcrossH W hW U hU hlt))
     have hlo := KitFG.storeFrameView_height_of_crossed_prefix_of_inv
-      p.E (heightView p) (fgCertificateLaws p).height (finalityView p) st.fg hinv Bfg hn hcross
-    exact ⟨hF, hZ, hn, hlo⟩
+      p.E (heightView p) (fgCertificateLaws p).height (finalityView p) st.fg hinv Bfg hn hcrossH
+    refine ⟨hF, hZ, hn, ?_⟩
+    change (controls p st).lo ≤ hOf p.E p.cfg Bfg
+    rw [KitFG.hOf_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
+    exact hlo
   · intro z r a e ha he _
     obtain ⟨j, hj, hrow⟩ := ha
     obtain ⟨C, _, heq, hpre, hC⟩ := hrows j z r a _ (hj.trans hki) hrow he
@@ -713,8 +721,8 @@ private theorem transfer_live_bounds (st : State p.n) (B : Block)
     · rename_i hguard
       have he := Option.some.inj hrow
       obtain ⟨X, hX, heX⟩ := of_decide_eq_true (Bool.and_eq_true_iff.mp hguard).2
-      have hXZ := ((KitFG.mem_filteredFrom_of_bridge
-        p.E p.cfg (heightView p) (heightView_bridge p) (FGSA.controls p st) st.fg.TF X).mp hX).2.2.1
+      have hXZ := ((KitFG.mem_filteredFromView
+        (heightView p) (FGSA.controls p st) st.fg.TF X).mp hX).2.2.1
       refine ⟨?_, he ▸ hlease row hr⟩
       rw [← he, ← heX]
       exact eraseFG_preceq hXZ
@@ -758,7 +766,7 @@ theorem clean_transfer_frame [Fintype V] (b₀ : Time) :
     (hall i le_rfl) (by simpa only [he] using hord)
   have hfg : st.fg = (storeAt p c E rho k y).fg := clock_fg p _ _
   have hcontrols : FGSA.controls p st = FGSA.controls p (storeAt p c E rho k y) :=
-    congrArg (storeControls p.E p.cfg) hfg
+    congrArg (KitFG.storeControlsView (heightView p)) hfg
   have hF : FGBlock.Preceq st.fg.F Bfg := by rw [hfg]; exact hframe.1
   have hZ : FGBlock.Preceq (FGSA.controls p st).Z Bfg := by rw [hcontrols]; exact hframe.2.1
   have hn : (FGSA.controls p st).contest = false := by rw [hcontrols]; exact hframe.2.2.1
@@ -793,6 +801,7 @@ theorem clean_transfer_frame [Fintype V] (b₀ : Time) :
     (SA.voteTime p.toParams (s + 1))
   have hFA := transfer_lift p (block_preceq_trans (F_preceq_liveRoot p st hcstore) hroot)
   rw [domainR_def, frameR_def]
+  rw [KitFG.hOf_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)] at hlo
   exact (KitFG.mem_filteredFrom_of_bridge
     p.E p.cfg (heightView p) (heightView_bridge p) (FGSA.controls p st) _ A).mpr
     ⟨hv A hA, hFA, hZA, Bfg, hv Bfg (KitFG.preceq_refl Bfg), hA, hlo⟩

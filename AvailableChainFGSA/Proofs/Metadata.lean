@@ -123,7 +123,7 @@ theorem accepted_st2 (p : Params) (st : State p.n) (h : CStoreInv p st) (s : Slo
     let st1 : State p.n := { st with
       base := GridCO.admitProposal p.toParams.engine st.base (baseProposal s b raw support) b
         (raw.map baseHead)
-      fg := on_block p.E p.cfg st.fg (fgBlock P b rows)
+      fg := Window.on_block p p.K_W st.fg (fgBlock P b rows)
       proposals := st.proposals ++ [⟨.proposer s, .proposal b raw support rows⟩] }
     let st2 := if st1.fg.F = st.fg.F then st1 else reconcile st1
     st2.proposals = st.proposals ++ [⟨.proposer s, .proposal b raw support rows⟩] ∧
@@ -143,11 +143,11 @@ theorem accepted_st2 (p : Params) (st : State p.n) (h : CStoreInv p st) (s : Slo
         blocks := st.base.blocks ++ [b]
         blockStamp := st.base.blockStamp ++ [(b, st.base.now)]
         proposals := st.base.proposals ++ [baseProposal s b raw support] }).2
-  have hTF : (on_block p.E p.cfg st.fg (fgBlock P b rows)).TF =
+  have hTF : (Window.on_block p p.K_W st.fg (fgBlock P b rows)).TF =
       insert (fgBlock P b rows) st.fg.TF := by
-    rw [fg_on_block_accepts p st s b P rows hP hacc, KitFG.update_finality_TF]
+    rw [fg_on_block_accepts p st s b P rows hP hacc, Window.window_update_finality_TF]
   dsimp only
-  by_cases hc : (on_block p.E p.cfg st.fg (fgBlock P b rows)).F = st.fg.F
+  by_cases hc : (Window.on_block p p.K_W st.fg (fgBlock P b rows)).F = st.fg.F
   · rw [ite_eq_left hc]
     exact ⟨rfl, hTF, hbl, hbs, hvs, rfl⟩
   · rw [ite_eq_right hc]
@@ -155,7 +155,7 @@ theorem accepted_st2 (p : Params) (st : State p.n) (h : CStoreInv p st) (s : Slo
       { st with
         base := GridCO.admitProposal p.toParams.engine st.base (baseProposal s b raw support) b
           (raw.map baseHead)
-        fg := on_block p.E p.cfg st.fg (fgBlock P b rows)
+        fg := Window.on_block p p.K_W st.fg (fgBlock P b rows)
         proposals := st.proposals ++ [⟨.proposer s, .proposal b raw support rows⟩] }
     rw [h1, h2, h3, h4, h5, h7]
     exact ⟨rfl, hTF, hbl, hbs, hvs, rfl⟩
@@ -225,9 +225,9 @@ theorem process_cumulative (p : Params) (st : State p.n) (o : Wire p.n) :
             rw [heq]
             obtain ⟨b1, b2, b3⟩ := admitProposal_prefix p.toParams.engine st.base
               (baseProposal s b raw support) b (raw.map baseHead)
-            have hsub := KitFG.on_block_TF_subset p.E p.cfg st.fg (fgBlock P b rows)
+            have hsub := Window.window_on_block_TF_subset p p.K_W st.fg (fgBlock P b rows)
             dsimp only at hpre ⊢
-            by_cases hc : (on_block p.E p.cfg st.fg (fgBlock P b rows)).F = st.fg.F
+            by_cases hc : (Window.on_block p p.K_W st.fg (fgBlock P b rows)).F = st.fg.F
             · rw [ite_eq_left hc] at hpre ⊢
               exact ⟨hsub, b1, b2, b3, List.prefix_append _ _, hpre⟩
             · rw [ite_eq_right hc] at hpre ⊢
@@ -235,7 +235,7 @@ theorem process_cumulative (p : Params) (st : State p.n) (o : Wire p.n) :
                 { st with
                   base := GridCO.admitProposal p.toParams.engine st.base
                     (baseProposal s b raw support) b (raw.map baseHead)
-                  fg := on_block p.E p.cfg st.fg (fgBlock P b rows)
+                  fg := Window.on_block p p.K_W st.fg (fgBlock P b rows)
                   proposals := st.proposals ++ [⟨.proposer s, .proposal b raw support rows⟩] }
               rw [h3] at hpre
               refine ⟨by rw [h1]; exact hsub, by rw [h4]; exact b1, by rw [h5]; exact b2,
@@ -313,7 +313,8 @@ theorem accepted_rows_decode {p : Params} {st : State p.n} {s : Slot} {b : Block
     simp only [blockAccepted, Bool.and_eq_true] at hacc
     exact hacc.1.2
   intro a ha
-  obtain ⟨b, hb, _⟩ := (rowValidFor_iff _ a).mp ((rowsValidForParent_iff p P _ rows).mp hv a ha)
+  obtain ⟨b, hb⟩ := Window.rowValidW_decodes _ a
+    ((rowsValidForParent_iff p P _ rows).mp hv a ha)
   cases hd : a.decode? with
   | none => simp [RowWire.toRow?, hd] at hb
   | some x => rfl

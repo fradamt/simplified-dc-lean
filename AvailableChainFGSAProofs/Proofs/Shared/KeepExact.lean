@@ -57,6 +57,7 @@ theorem kept_or_conflict (p : Params) {In V : Type} [DecidableEq V]
       rcases hF with hFC | hCF
       · rcases hZ with hZC | hCZ
         · apply Or.inr ∘ Or.inl
+          rw [KitFG.hOf_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)] at hlo
           exact (KitFG.mem_filteredFrom_of_bridge
             p.E p.cfg (heightView p) (heightView_bridge p) _ _ C).mpr
             ⟨hC, hFC, hZC, W, hW, hCW, hlo⟩

@@ -1,5 +1,5 @@
 module
--- shake: keep-all (F0.5 imports must remain unchanged in this append-only job)
+-- shake: keep-all (F0.5 imports kept; S4.4a adds BoundsW for LivenessBoundW and B_HF)
 public import AvailableChainFGSAClaims.Statements.Regimes
 public import AvailableChainFGSAClaims.Statements.BoundsW
 public import AvailableChainFGSAClaims.Statements.ChannelProps

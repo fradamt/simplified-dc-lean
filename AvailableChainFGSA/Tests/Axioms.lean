@@ -473,12 +473,13 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 
 #print axioms AvailableChain.FGSA.heightView_bridge
 #print axioms AvailableChain.FGSA.heightView_eq_simplex
-#print axioms AvailableChain.FGSA.finalityView_eq_simplex
 #print axioms AvailableChain.FGSA.finalityView_def
 #print axioms AvailableChain.FGSA.fgCertificateLaws
 #print axioms AvailableChain.FGSA.fgJustificationLaws
-#print axioms AvailableChain.FGSA.fgStoreInvariant_on_block
 #print axioms AvailableChain.FGSA.fgStoreSafety
 #print axioms AvailableChain.FGSA.fgInputs_headFields
 #print axioms AvailableChain.FGSA.emitted_finality_pair_of_headFields
 #print axioms AvailableChain.FGSA.Window.windowStoreSafety
+
+#print axioms AvailableChain.FGSA.fgsa_Z_preceq_liveRoot
+#print axioms AvailableChain.FGSA.attest_source_heightView

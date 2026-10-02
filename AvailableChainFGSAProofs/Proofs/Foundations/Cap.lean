@@ -105,7 +105,7 @@ example (p : Params) {In V : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
     (hL : V2.D.Linked (fgsaFamilies p c).linked rho) (hv : V2.D.ExecutionValid E rho)
     (hQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
     (i : Nat) (x : V) (W : FGBlock (Fin p.n)) (hW : HeldAt p c E rho i x W)
-    (hgen : (derive p.E p.cfg W).F = .genesis) (hcert : (derive p.E p.cfg W).h_F = 1) :
+    (hgen : (finalityView p W).F = .genesis) (hcert : (finalityView p W).h_F = 1) :
     ∃ z r a u, HonestRowBefore p c E rho i z r a ∧ RowSigner p c rho a z ∧
       RowWire.toRow? a = some u ∧ u ∈ chainRows W ∧
       u.finality_pair = some ⟨1, genesisRoot⟩ := by
@@ -118,10 +118,10 @@ theorem fgsa_finalityCap [Fintype V]
     (hL : V2.D.Linked (fgsaFamilies p c).linked rho) (hv : V2.D.ExecutionValid E rho)
     (hQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
     (y i : Nat) (hy : 0 < y) (x : V) (W : FGBlock (Fin p.n))
-    (hW : HeldAt p c E rho i x W) (hF : y ≤ (derive p.E p.cfg W).h_F) :
+    (hW : HeldAt p c E rho i x W) (hF : y ≤ (finalityView p W).h_F) :
     ∃ z r a u, HonestRowBefore p c E rho i z r a ∧ RowSigner p c rho a z ∧
       RowWire.toRow? a = some u ∧ u ∈ chainRows W ∧
-      u.finality_pair = some ⟨(derive p.E p.cfg W).h_F, (derive p.E p.cfg W).F.root⟩ := by
+      u.finality_pair = some ⟨(finalityView p W).h_F, (finalityView p W).F.root⟩ := by
   obtain ⟨u, hu, _, ho, hf⟩ :=
     KitFG.finalityCap_row_of_certificate
       p.E (heightView p) (finalityView p) (fgCertificateLaws p)
@@ -211,7 +211,7 @@ private theorem cap_finality_head {j r : Nat} {z : V} {a : RowWire p.n}
   | none =>
       have hh : (fgInputs p st).2 = ⟨0, genesisRoot, 0⟩ := by
         change (match fgBlockOf st (fgHead p st) with
-          | some H => HeadFields.ofBlock p.E p.cfg H | none => ⟨0, genesisRoot, 0⟩) = _
+          | some H => Window.headFields p p.K_W H | none => ⟨0, genesisRoot, 0⟩) = _
         rw [hhead]
       rw [hh] at hfinal
       change (if (0 : Nat) < 0 ∧
@@ -227,7 +227,8 @@ private theorem cap_finality_head {j r : Nat} {z : V} {a : RowWire p.n}
       have hmem := ((fgBlockOf_spec p st hst (fgHead p st) H).mp hhead).1
       change H ∈ (FGSA.clock p _ t).fg.TF at hmem
       rw [FGSA.clock_fg] at hmem
-      exact ⟨H, ⟨hz, hmem⟩, hp.1, hj⟩
+      refine ⟨H, ⟨hz, hmem⟩, ?_, hj⟩
+      simpa only [heightView_eq_simplex, KitFG.simplexHeightView_def, KitFG.heightOf_def] using hp.1
 
 /-- S1 G17 #19, with the lead's positive-height correction. The held read
 has a prefix before `a_(q+1)`. The absence premise concerns all honest
@@ -242,7 +243,7 @@ theorem fgsa_finalityLag [Fintype V]
     (hnone : ∀ j z r a u T timeout, HonestRowAt p c E rho j z r a →
       RowWire.toRow? a = some u → u.height_pair = .vote y T timeout →
       ¬ p.actionTime r < p.actionTime q) :
-    (derive p.E p.cfg W).h_F < y := by
+    (finalityView p W).h_F < y := by
   by_contra hn
   obtain ⟨u, _, _, ho, hf⟩ :=
     KitFG.finalityCap_row_of_certificate
@@ -258,7 +259,7 @@ theorem fgsa_finalityLag [Fintype V]
   obtain ⟨H, hH, hheight, htick⟩ := cap_finality_head p c E rho hj hs hd _ hf
   have hy' : y - 1 + 1 = y := by omega
   have hjust : y - 1 + 1 ≤ (derive p.E p.cfg H).h_j := by
-    change (derive p.E p.cfg W).h_F = _ at hheight
+    change (finalityView p W).h_F = _ at hheight
     rw [hy']
     exact (Nat.le_of_not_gt hn).trans hheight.le
   obtain ⟨v, _, _, ho, T, b, hh⟩ :=

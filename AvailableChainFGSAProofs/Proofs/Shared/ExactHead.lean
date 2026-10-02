@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.Channels
 public import AvailableChainFGSAProofs.Proofs.Shared.ScoreRun
 public import AvailableChainFGSAProofs.Proofs.Shared.KeepExact
 
@@ -28,10 +29,11 @@ theorem fgsa_headVote_best_ancestry_of_cover (p : Params) (st : State p.n)
           (GridCO.goldfishScore st.base.blocks (headVotes p st s) (headSupport p st s) D =
             GridCO.goldfishScore st.base.blocks (headVotes p st s) (headSupport p st s) C →
               D.root ≤ C.root) := by
-  change Block.Preceq P (if s = 0 then .genesis else headInTree p st _ _ _) at hcover
+  rw [headVote_eq] at hcover
   rw [ite_eq_right hs] at hcover
   intro X _ hAX hXP
-  exact walk_best_ancestry_of_cover _ _ _ _ _ hcover X hAX hXP
+  simpa only [domainR_eq_storeFrame] using
+    walk_best_ancestry_of_cover _ _ _ _ _ hcover X hAX hXP
 
 /-- Terminal consumer obligations; S1b E6:133–134, 21 H.17:2824–2825.
 DC: Goldfish/Walk.lean:433, final step and stop in `ghost_reaches`.
@@ -66,9 +68,10 @@ theorem fgsa_headVote_exact_of_covered_parent (p : Params) (st : State p.n)
     (hcover : Block.Preceq b.parent (headVote p st s))
     (hgeom : ExactHeadGeometry p st s b) : headVote p st s = b := by
   have hancestry := fgsa_headVote_best_ancestry_of_cover p st s hs T b.parent hcover
-  change (if s = 0 then .genesis else headInTree p st _ _ _) = b
+  rw [headVote_eq]
   rw [ite_eq_right hs]
-  exact exactHead_of_pivot_ancestry p st (voterBlocks p st s)
+  simpa only [domainR_eq_storeFrame] using
+    exactHead_of_pivot_ancestry p st (voterBlocks p st s)
     (headVotes p st s) (headSupport p st s) T b.parent b hstart hTP
     hancestry (Or.inr hgeom.last) hgeom.stop
 
@@ -119,7 +122,8 @@ theorem exactHead_of_proposal_on_run
   have hcover := fgsa_ghost_transfer_sfx_on_run E rho hE hN hDelta s hScoreSync hSync
     hx hy hip hih hseat b raw sup rows hem hadm D hgeom
   exact fgsa_headVote_exact_of_covered_parent p dst s (Nat.ne_of_gt hparent.1)
-    (eraseFG D) b (Or.inl ⟨hgeom.target_anchor, hgeom.target_prefix⟩)
+    (eraseFG D) b (Or.inl ⟨hgeom.target_anchor, by
+      simpa only [domainR_eq_storeFrame] using hgeom.target_prefix⟩)
     hDP hcover hterminal
 
 /-- Per-reader obligations for the HEAD clause of J2; 21 H.22:3100–3120.

@@ -280,7 +280,7 @@ theorem fgsaAcceptance (p : Params) (c : AppCodec In) :
           let st1 : State p.n := { nd.st with
             base := GridCO.admitProposal p.toParams.engine nd.st.base (baseProposal s b raw sup) b
               (raw.map baseHead)
-            fg := on_block p.E p.cfg nd.st.fg (fgBlock P b rows)
+            fg := Window.on_block p p.K_W nd.st.fg (fgBlock P b rows)
             proposals := nd.st.proposals ++ [⟨.proposer s, .proposal b raw sup rows⟩] }
           let st2 := if st1.fg.F = nd.st.fg.F then st1 else reconcile st1
           have hp : FGSA.process p nd.st (toWire p o') = rows.foldl (admitRow p) st2 := by
@@ -412,7 +412,7 @@ private theorem t77_future_head_process (st : State p.n) (r : Slot) (i : Fin p.n
         let st1 : State p.n := { st with
           base := GridCO.admitProposal p.toParams.engine st.base (baseProposal s B raw sup) B
             (raw.map baseHead)
-          fg := on_block p.E p.cfg st.fg (fgBlock P B rows)
+          fg := Window.on_block p p.K_W st.fg (fgBlock P B rows)
           proposals := st.proposals ++ [⟨.proposer s, .proposal B raw sup rows⟩] }
         dsimp only
         split

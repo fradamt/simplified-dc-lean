@@ -16,10 +16,12 @@ DC DecoupledConsensusProofs/Protocol/ChainState/FinalityComparison.lean:50.
 INTENTIONAL: FG-SA content roots are injective, so no hroot premise is needed. -/
 theorem fgsa_finalLock_of_bound (hb : FGSASlashableBound p c E rho) (K W : FGBlock (Fin p.n))
     (hK : FinalityRunBlock p c E rho K) (hW : FinalityRunBlock p c E rho W)
-    (hh : (derive p.E p.cfg K).h_F < (derive p.E p.cfg W).h) :
-    FGBlock.Preceq (derive p.E p.cfg K).F W :=
+    (hh : (finalityView p K).h_F < (derive p.E p.cfg W).h) :
+    FGBlock.Preceq (finalityView p K).F W :=
   (KitFG.slashableWeight_or_finalized_preceq_of_certificate
-    p.E (heightView p) (finalityView p) (fgCertificateLaws p) K W hh).resolve_left
+    p.E (heightView p) (finalityView p) (fgCertificateLaws p) K W
+      (by simpa only [heightView_eq_simplex, KitFG.simplexHeightView_def,
+        KitFG.heightOf_def] using hh)).resolve_left
     ((FGSASlashableBound_def p c E rho).mp hb K W hK hW)
 
 
@@ -36,9 +38,9 @@ theorem fgsa_finalLock [Fintype V]
     (hU : V2.D.UnforgeableSignatures E rho)
     (x : V) (hx : x ∈ rho.honest) (e e' : Nat) (_hee : e ≤ e')
     (K : FGBlock (Fin p.n)) (hKe : K ∈ (storeAt p c E rho e x).fg.TF)
-    (hKF : (derive p.E p.cfg K).F = (storeAt p c E rho e x).fg.F)
+    (hKF : (finalityView p K).F = (storeAt p c E rho e x).fg.F)
     (y : V) (W : FGBlock (Fin p.n)) (hW : HeldAt p c E rho e' y W)
-    (hheight : (derive p.E p.cfg K).h_F < hOf p.E p.cfg W) :
+    (hheight : (finalityView p K).h_F < hOf p.E p.cfg W) :
     FGBlock.Preceq (storeAt p c E rho e x).fg.F W := by
   rcases fgsa_finalLock_ev p c E rho e e' x y hx K W hKe hKF hW hheight with h | hev
   · exact h
@@ -53,9 +55,9 @@ theorem fgsa_finalLock_erased [Fintype V]
     (hU : V2.D.UnforgeableSignatures E rho)
     (x : V) (hx : x ∈ rho.honest) (e e' : Nat) (hee : e ≤ e')
     (K : FGBlock (Fin p.n)) (hKe : K ∈ (storeAt p c E rho e x).fg.TF)
-    (hKF : (derive p.E p.cfg K).F = (storeAt p c E rho e x).fg.F)
+    (hKF : (finalityView p K).F = (storeAt p c E rho e x).fg.F)
     (y : V) (W : FGBlock (Fin p.n)) (hW : HeldAt p c E rho e' y W)
-    (hheight : (derive p.E p.cfg K).h_F < hOf p.E p.cfg W) :
+    (hheight : (finalityView p K).h_F < hOf p.E p.cfg W) :
     Block.Preceq (eraseFG (storeAt p c E rho e x).fg.F) (eraseFG W) :=
   eraseFG_preceq
     (fgsa_finalLock p c E rho hL hX hU x hx e e' hee K hKe hKF y W hW hheight)

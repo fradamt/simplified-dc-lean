@@ -1,5 +1,5 @@
 module
-public import AvailableChainKitFG.ProvenanceCore
+public import AvailableChainFGSA.Proofs.WindowHistory
 public import AvailableChainFGSAProofs.Proofs.Foundations.Leases
 public import AvailableChainFGSAClaims.Statements.Packages.Safety
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads
@@ -285,6 +285,8 @@ theorem sourceDiscipline_qcOrigin [Fintype V] {Pt : Type} {pt : Pt}
     (hb : SourceDisciplinePrem p c E rho pt)
     (hS : RStore p c E rho) :
     RQCOrigin p c E rho := by
+  have hlaws := fgCertificateLaws p
+  rw [heightView_eq_simplex p] at hlaws
   classical
   obtain ⟨e, he⟩ := fgsa_linked_seats rho hb.set.linked
   intro i x W hx hW
@@ -338,11 +340,18 @@ theorem sourceDiscipline_qcOrigin [Fintype V] {Pt : Type} {pt : Pt}
     obtain ⟨hc, ha, hs, hp⟩ := hr k hk
     exact ⟨hc, ha, hs, by rw [hp]; exact NamedHeightPair.noConfusion⟩
   · intro hF
-    have hnz : (derive p.E p.cfg W).h_F ≠ 0 :=
+    have hnz : (finalityView p W).h_F ≠ 0 :=
       fun h => hF ((fgCertificateLaws p).finalized_zero W h)
-    obtain ⟨C, hCW, hCJ, hCh⟩ := KitFG.provenance_finality_of_certificate
-      p.E (heightView p) (finalityView p) (fgCertificateLaws p) W hnz
-    obtain ⟨Q, hQ, hr⟩ := (fgCertificateLaws p).height.justification_certificate C
+    obtain ⟨C, hCW, hbirth⟩ := Window.window_final_birth p p.K_W p.kWLarge W hnz
+    have hCJ : (derive p.E p.cfg C).J = (finalityView p W).F := by
+      have hh := hbirth.2.2.2.2.1
+      change (heightView p C).J = (finalityView p W).F at hh
+      simpa only [heightView_eq_simplex, KitFG.simplexHeightView_def, KitFG.heightOf_def] using hh
+    have hCh : (derive p.E p.cfg C).h_j = (finalityView p W).h_F := by
+      have hh := hbirth.2.2.2.1
+      change (heightView p C).h_j = (finalityView p W).h_F at hh
+      simpa only [heightView_eq_simplex, KitFG.simplexHeightView_def, KitFG.heightOf_def] using hh
+    obtain ⟨Q, hQ, hr⟩ := hlaws.height.justification_certificate C
       (fun h => hnz (hCh.symm.trans h))
     choose carrier a hc ha hs hp using fun k hk => hr k hk
     let rows : Fin p.n → FGBlock (Fin p.n) × Row (Fin p.n) :=
@@ -385,6 +394,8 @@ private theorem source_named_quorum [Fintype V] {Pt : Type} {pt : Pt}
 theorem sourceDiscipline_strat [Fintype V] {Pt : Type} {pt : Pt}
     (hb : SourceDisciplinePrem p c E rho pt)
     (hS : RStore p c E rho) : RStrat p c E rho := by
+  have hlaws := fgCertificateLaws p
+  rw [heightView_eq_simplex p] at hlaws
   intro i x W hx hW e he hne
   obtain ⟨U, hUW, hentry⟩ := he
   have just (D : FGBlock (Fin p.n)) (hDW : FGBlock.Preceq D W)
@@ -393,8 +404,8 @@ theorem sourceDiscipline_strat [Fintype V] {Pt : Type} {pt : Pt}
         namedEntry wire.payload.height_pair =
           some (hOf p.E p.cfg (derive p.E p.cfg D).J, (derive p.E p.cfg D).J.root) := by
     have hnz : (derive p.E p.cfg D).h_j ≠ 0 :=
-      fun h => hne ((fgCertificateLaws p).justified_zero D h)
-    obtain ⟨Q, hQ, hr⟩ := (fgCertificateLaws p).height.justification_certificate D hnz
+      fun h => hne (hlaws.justified_zero D h)
+    obtain ⟨Q, hQ, hr⟩ := hlaws.height.justification_certificate D hnz
     have hh := KitFG.entry_height p.E p.cfg D hnz
     apply source_named_quorum p c E rho hb hS hx hW _ _ Q hQ
     intro k hk
@@ -408,11 +419,13 @@ theorem sourceDiscipline_strat [Fintype V] {Pt : Type} {pt : Pt}
   · subst e
     exact just U hUW hne
   · subst e
-    have hnz : (derive p.E p.cfg U).h_F ≠ 0 :=
+    have hnz : (finalityView p U).h_F ≠ 0 :=
       fun h => hne ((fgCertificateLaws p).finalized_zero U h)
-    obtain ⟨D, hDU, hDJ, _⟩ := KitFG.provenance_finality_of_certificate
-      p.E (heightView p) (finalityView p) (fgCertificateLaws p) U hnz
-    change (derive p.E p.cfg D).J = (derive p.E p.cfg U).F at hDJ
+    obtain ⟨D, hDU, hbirth⟩ := Window.window_final_birth p p.K_W p.kWLarge U hnz
+    have hDJ : (derive p.E p.cfg D).J = (finalityView p U).F := by
+      have hh := hbirth.2.2.2.2.1
+      change (heightView p D).J = (finalityView p U).F at hh
+      simpa only [heightView_eq_simplex, KitFG.simplexHeightView_def, KitFG.heightOf_def] using hh
     rw [← hDJ] at hne ⊢
     exact just D (KitFG.preceq_trans hDU hUW) hne
   · subst e
@@ -475,12 +488,14 @@ theorem sourceDiscipline_srcFrameAbove [Fintype V] {Pt : Type} {pt : Pt}
     · exact ⟨K, KitFG.preceq_refl K, Or.inr (Or.inl hKF.symm)⟩
     · exact hh
   obtain ⟨D, hD, _, _, hJ⟩ := hinv.pair.1
+  simp only [heightView_eq_simplex, KitFG.simplexHeightView_def, KitFG.heightOf_def] at hJ
   have hj : c₀ ≤ hOf p.E p.cfg st.fg.J → Φ st.fg.J := by
     intro hh
     apply hcert D hD st.fg.J
     · exact ⟨D, KitFG.preceq_refl D, Or.inl hJ⟩
     · exact hh
-  change FrameBelow p Φ c₀ (storeControls p.E p.cfg st.fg)
+  change FrameBelow p Φ c₀ (controls p st)
+  rw [controls_eq]
   refine ⟨hF, hj, ?_⟩
   change c₀ ≤ hOf p.E p.cfg (if (storeControls p.E p.cfg st.fg).rootIsJ then
       st.fg.J else st.fg.F) → Φ (if (storeControls p.E p.cfg st.fg).rootIsJ then

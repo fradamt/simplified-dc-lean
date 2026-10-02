@@ -2,7 +2,6 @@ module
 public import AvailableChainFGSA.Proofs.StoreLaws
 public import AvailableChainFGSAProofs.Proofs.Clean.Chain
 public import AvailableChainFGSAProofs.Proofs.Shared.Channels
-public import AvailableChainFGSA.Proofs.Carrier
 
 public section
 
@@ -62,6 +61,7 @@ theorem cleanFrame_of_state (b₀ : Time) :
       p.E (heightView p) (fgCertificateLaws p).height (finalityView p) st.fg hinv
         (fgJustificationLaws p)
     intro W hW U hU hlt
+    simp only [heightView_eq_simplex, KitFG.simplexHeightView_def, KitFG.heightOf_def] at hlt ⊢
     let e := (derive p.E p.cfg U).T_h
     by_cases hg : e = .genesis
     · right
