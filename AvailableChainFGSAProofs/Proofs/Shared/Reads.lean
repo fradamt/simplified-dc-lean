@@ -126,7 +126,9 @@ open AvailableChain.SimplexFG
 variable (p : Params) {In : Type} (c : AppCodec In)
     {V : Type} [DecidableEq V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-private theorem fgsa_read_tickIdx (hs : V2.D.ScheduleWellFormed E rho)
+/-- A scheduled tick event has the same index as the tick reader.
+DC: SAME event-index uniqueness; shared by the HEAD and exact-service proofs. -/
+theorem fgsa_tickIdx_of_event (hs : V2.D.ScheduleWellFormed E rho)
     {i : Nat} {x : V} {t : Time} (hi : rho.events[i]? = some (.tick x t)) :
     V2.D.Run.tickIdx? rho x t = some i := by
   have hil := (List.getElem?_eq_some_iff.mp hi).1
@@ -146,7 +148,7 @@ theorem gateResult_eq_saved (hs : V2.D.ScheduleWellFormed E rho)
       GridCO.savedGenuine
         (((fgsa p c).clock (V2.D.Run.stateBefore E rho i x)
           (SA.gateTime p.toParams s)).st.base) s := by
-  have ht := fgsa_read_tickIdx p c E rho hs hi
+  have ht := fgsa_tickIdx_of_event p c E rho hs hi
   rw [gateResult_def, gateIn_def, preTick_def, ht]
   dsimp only [Option.map_some]
   rw [clockPre_fg]
@@ -182,7 +184,7 @@ theorem isGateTime_iff (p : Params) (t : Time) :
 theorem gateResultAt_eq_gateResult (hs : V2.D.ScheduleWellFormed E rho)
     {j : Nat} {x : V} {s : Slot} (hj : IsGateTick p c rho j x s) :
     gateResultAt p c E rho j = gateResult p c E rho x s := by
-  have ht := fgsa_read_tickIdx p c E rho hs hj
+  have ht := fgsa_tickIdx_of_event p c E rho hs hj
   have hg := (isGateTime_iff p (SA.gateTime p.toParams s)).mpr ⟨s, rfl⟩
   -- Reduce the index match without exporting its equation lemmas.
   change (match rho.events[j]? with
@@ -203,7 +205,7 @@ theorem vHead_eq_headAtIdx (hs : V2.D.ScheduleWellFormed E rho)
     {k : Nat} {y : V} {s : Slot}
     (hk : rho.events[k]? = some (.tick y (SA.voteTime p.toParams (s + 1)))) :
     vHead p c E rho y s = some (headAtIdx p c E rho k (s + 1)) := by
-  have ht := fgsa_read_tickIdx p c E rho hs hk
+  have ht := fgsa_tickIdx_of_event p c E rho hs hk
   rw [vHead_def, postClock_def, preTick_def, ht]
   change _ = some (match rho.events[k]? with
     | some (.tick x t) => FGSA.headVote p ((fgsa p c).clock
@@ -224,7 +226,7 @@ theorem actionSourceFG_eq_round (hs : V2.D.ScheduleWellFormed E rho)
           | some d => decide (st.base.now < d)
           | none => false))) := by
   intro st
-  have ht := fgsa_read_tickIdx p c E rho hs hi
+  have ht := fgsa_tickIdx_of_event p c E rho hs hi
   rw [actionSourceFG_def, postClock_def, preTick_def, ht]
   change some (deepest ((fullTree p st).filter (fun B =>
     decide (eraseFG B ∈ (fastWriteAt st (p.round (st.slot p) * p.R)).getD []) &&

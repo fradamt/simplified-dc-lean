@@ -116,13 +116,9 @@ theorem fgsa_headVote_covers_parent_of_retained_geometry
   have hc := walk_covers_of_retained_transport (z p src) (ay p dst) Kc b.parent
     (S p src) (T p dst s) (ss src s) (ts p dst s) (es p src s) (et p dst s)
     hsource h.source_cut h.target_cut h.cut_parent h.target_prefix h.persists h.reflects h.scores
-  rw [headVote_eq, ite_eq_right hs]
-  simpa only [domainR_eq_storeFrame, headInTree_unfold, ay, ts, et] using
-    (show Block.Preceq b.parent
-      (GridCO.ghost (ay p dst) (erasedList dst (domainR p dst (voterBlocks p dst s)))
-        (ts p dst s) (et p dst s)) by
-      rw [fgsa_domainR_eq_storeFrameView]
-      exact hc)
+  unfold headVote
+  rw [ite_eq_right hs]
+  simpa only [fgsa_domainR_eq_storeFrameView, headInTree_unfold, ay, ts, et] using hc
 
 /-- Blueprint 21 H.6:956–958, H.17:3006–3012 (design 812–814,2865–2872);
 spec 1387–1401, 1555–1581. Class (iii). DC: INTENTIONAL; complete the endpoint fields
@@ -253,20 +249,6 @@ theorem fgsa_retained_source_stop (p : Params) (src : State p.n) (s : Slot)
   rw [← hp]
   exact ht
 
-/-- Blueprint 00:126–142; 21 H.22:3109–3114. Class (iii).
-DC: INTENTIONAL; the unique scheduled tick identifies the option reader. -/
-private theorem retainedHead_tickIdx
-    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hsch : V2.D.ScheduleWellFormed E rho) {i : Nat} {x : V} {t : Time}
-    (hi : rho.events[i]? = some (.tick x t)) : V2.D.Run.tickIdx? rho x t = some i := by
-  have hil := (List.getElem?_eq_some_iff.mp hi).1
-  obtain ⟨j, hj⟩ : ∃ j, V2.D.Run.tickIdx? rho x t = some j := by
-    rw [V2.D.Run.tickIdx?, ← Option.isSome_iff_exists, List.findIdx?_isSome, List.any_eq_true]
-    refine ⟨rho.events[i], List.getElem_mem hil, ?_⟩
-    rw [(List.getElem?_eq_some_iff.mp hi).2]
-    exact decide_eq_true ⟨rfl, rfl⟩
-  exact (fgsa_tick_unique E rho hsch (V2.D.Run.tickIdx?_spec hj) hi) ▸ hj
-
 /-- Blueprint 00:126–142; 21 H.6:956–958, H.17:3006–3012,
 H.22:3109–3114 (design 812–814,2865–2872). Class (iii).
 DC: INTENTIONAL; scheduled honest readers include sleeping readers.
@@ -307,7 +289,7 @@ theorem exactService_head_of_retained_proposal
     (hgeom.endpoint y hy ih hih)
   have hexact := fgsa_headVote_exact_of_covered_parent p dst s (Nat.ne_of_gt hparent.1)
     (ay p dst) b (Or.inr ⟨block_preceq_refl _, hw.target_parent⟩) hw.target_parent hc he
-  have ht := retainedHead_tickIdx E rho hE.toScheduleWellFormed hih
+  have ht := fgsa_tickIdx_of_event p c E rho hE.toScheduleWellFormed hih
   change (postClock E rho y (SA.voteTime p.toParams s)).map _ = some b
   rw [postClock_def, preTick_def, ht]
   change some (headVote p dst s) = some b

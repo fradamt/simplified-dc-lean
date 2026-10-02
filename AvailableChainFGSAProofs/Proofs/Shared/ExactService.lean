@@ -12,18 +12,6 @@ open Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-private theorem exactService_tickIdx (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {x : V} {t : Time}
-    (hi : rho.events[i]? = some (.tick x t)) :
-    V2.D.Run.tickIdx? rho x t = some i := by
-  have hil := (List.getElem?_eq_some_iff.mp hi).1
-  obtain ⟨j, hj⟩ : ∃ j, V2.D.Run.tickIdx? rho x t = some j := by
-    rw [V2.D.Run.tickIdx?, ← Option.isSome_iff_exists, List.findIdx?_isSome, List.any_eq_true]
-    refine ⟨rho.events[i], List.getElem_mem hil, ?_⟩
-    rw [(List.getElem?_eq_some_iff.mp hi).2]
-    simp
-  exact (fgsa_tick_unique E rho hs (V2.D.Run.tickIdx?_spec hj) hi) ▸ hj
-
 /-- Blueprint 21 H.22, H3: the emitted HEAD is the scheduled HEAD read.
 DC: Handlers/GoldfishVotePool.lean:320, unique honest vote at a label.
 INTENTIONAL: FG-SA identifies its post-clock read with the actual signed
@@ -42,7 +30,7 @@ theorem exactService_emitted_head (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
   have hr := hhead _ hy
   change (postClock E rho _ (SA.voteTime p.toParams s)).map
     (fun nd => headVote p nd.st s) = some Q at hr
-  rw [postClock_def, preTick_def, exactService_tickIdx E rho hs hj] at hr
+  rw [postClock_def, preTick_def, fgsa_tickIdx_of_event p c E rho hs hj] at hr
   exact hK.trans (Option.some.inj hr)
 
 /-- P3 erratum 13 and blueprint 02:531–541, 21 H.22 H3.
@@ -296,7 +284,7 @@ theorem exactService_opening_of_gateService
   have heq := block_preceq_antisymm hbelow habove
   change ((postClock E rho x (p.actionTime r)).map (fun nd => FGSA.fgSource p nd.st)).map
     (Option.map eraseFG) = some (some Q)
-  rw [postClock_def, preTick_def, exactService_tickIdx E rho hs ht]
+  rw [postClock_def, preTick_def, fgsa_tickIdx_of_event p c E rho hs ht]
   change some ((FGSA.fgSource p st).map eraseFG) = some (some Q)
   rw [hC]
   exact congrArg (fun B => some (some B)) heq
@@ -366,7 +354,7 @@ theorem exactService_gate_at_of_head [Fintype V]
     simpa only [clockPre_fg] using hanchor
   have hout := (fgsa_S_eq_of_exact E rho hs i s x Q hx ht hraw
     hgeom.guard hgeom.old_output hanchor').1
-  have hidx := exactService_tickIdx E rho hs ht
+  have hidx := fgsa_tickIdx_of_event p c E rho hs ht
   refine ⟨?_, ⟨i, ht, ?_⟩, ?_, ?_, ?_⟩
   · rw [gateResult_def, gateIn_def, preTick_def, hidx]
     exact congrArg some hr

@@ -99,8 +99,7 @@ structure BlockDelivery_W (W K : FGBlock (Fin p.n)) (a₀ d : Time) where
     let w := selected x hx
     eventTime rho w.index = some w.time ∧ w.time < d ∧
     (FGBlock.Preceq K (storeAt p c E rho (w.index + 1) x).fg.F ∨
-      (a₀ ≤ w.time ∧ Ready_W p c E rho w.index x W w.time ∧
-        W ∈ (receiptInsert_W p c E rho w.index x W).TF))
+      (a₀ ≤ w.time ∧ Ready_W p c E rho w.index x W w.time))
 
 /-- FINAL 22:995–1010,1156–1161. DC acceptance uses viability and a J path;
 FG-SA restricts all guards to the same selected handler (FINAL 22:1001–1010). -/

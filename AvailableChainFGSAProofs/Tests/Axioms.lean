@@ -684,3 +684,6 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.covered_parent_W
 #print axioms AvailableChain.FGSA.Run.finalityBatch_covered_W
 #print axioms AvailableChain.FGSA.Run.finalizePending_of_acceptBefore_W
+
+#print axioms AvailableChain.FGSA.Run.uniformHealing_of_hTimeConcl
+#print axioms AvailableChain.FGSA.Run.fgsa_tickIdx_of_event

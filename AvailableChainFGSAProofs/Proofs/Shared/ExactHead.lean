@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.Reads
 public import AvailableChainFGSAProofs.Proofs.Shared.Channels
 public import AvailableChainFGSAProofs.Proofs.Shared.ScoreRun
 public import AvailableChainFGSAProofs.Proofs.Shared.KeepExact
@@ -147,18 +148,6 @@ structure ExactHeadRunGeometry
       ExactHeadGeometry p
         (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) s b
 
-private theorem exactHead_tickIdx
-    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hsch : V2.D.ScheduleWellFormed E rho) {i : Nat} {x : V} {t : Time}
-    (hi : rho.events[i]? = some (.tick x t)) : V2.D.Run.tickIdx? rho x t = some i := by
-  have hil := (List.getElem?_eq_some_iff.mp hi).1
-  obtain ⟨j, hj⟩ : ∃ j, V2.D.Run.tickIdx? rho x t = some j := by
-    rw [V2.D.Run.tickIdx?, ← Option.isSome_iff_exists, List.findIdx?_isSome, List.any_eq_true]
-    refine ⟨rho.events[i], List.getElem_mem hil, ?_⟩
-    rw [(List.getElem?_eq_some_iff.mp hi).2]
-    exact decide_eq_true ⟨rfl, rfl⟩
-  exact (fgsa_tick_unique E rho hsch (V2.D.Run.tickIdx?_spec hj) hi) ▸ hj
-
 /-- The HEAD clause of J2 ExactService, before freeze; 21 H.22:3109–3114.
 DC: Goldfish/PreparedV4CanonicalProposalDuty.lean:867–887.
 INTENTIONAL: FG-SA uses the option-valued post-clock reader and the finite
@@ -194,7 +183,7 @@ theorem exactService_head_of_proposal
   have he := exactHead_of_proposal_on_run E rho hE hN hDelta s hScoreSync hSync
     hx hy hip hih hseat b raw sup rows hem (hgeom.admitted y hy ih hih) D
     (hgeom.walk y hy ih hih) (hgeom.terminal y hy ih hih)
-  have ht := exactHead_tickIdx E rho hE.toScheduleWellFormed hih
+  have ht := fgsa_tickIdx_of_event p c E rho hE.toScheduleWellFormed hih
   change (postClock E rho y (SA.voteTime p.toParams s)).map _ = some b
   rw [postClock_def, preTick_def, ht]
   change some (headVote p (clock p (V2.D.Run.stateBefore E rho ih y).st
