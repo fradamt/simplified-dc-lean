@@ -123,9 +123,17 @@ height AvailableChain.FGSA.Run.foldTrichotomy # pre-J4 baseline 2026-10-02 (Avai
 height AvailableChain.FGSA.Run.high # pre-J4 baseline 2026-10-02 (AvailableChainFGSAClaims.Statements.Witness)
 height AvailableChain.FGSA.Run.kept_or_cause # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.KeepExact)
 height AvailableChain.FGSA.Run.kept_or_conflict # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.KeepExact)
+height AvailableChain.FGSA.Run.openingCovered_frontier_gate # height-only, through the shared client (hOf/createRowOnce); bridge-equal
 height AvailableChain.FGSA.Run.openingSource_domain_of_kept_or_cause # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.OpeningSource)
 height AvailableChain.FGSA.Run.openingSource_firstOpening # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.OpeningSource)
 height AvailableChain.FGSA.Run.openingSource_firstOpening_exact # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.OpeningSource)
+height AvailableChain.FGSA.Run.rowPermission_at # height-only, through the shared client (hOf/createRowOnce); bridge-equal
+height AvailableChain.FGSA.Run.rowPermission_client_record # height-only, through the shared client (hOf/createRowOnce); bridge-equal
+height AvailableChain.FGSA.Run.rowPermission_covered # height-only, through the shared client (hOf/createRowOnce); bridge-equal
+height AvailableChain.FGSA.Run.rowPermission_once_coverage # height-only, through the shared client (hOf/createRowOnce); bridge-equal
+height AvailableChain.FGSA.Run.rowPermission_own_lock # height-only, through the shared client (hOf/createRowOnce); bridge-equal
+height AvailableChain.FGSA.Run.rowPermission_pair # height-only, through the shared client (hOf/createRowOnce); bridge-equal
+height AvailableChain.FGSA.Run.rowPermission_record_carrier # height-only, through the shared client (hOf/createRowOnce); bridge-equal
 height AvailableChain.FGSA.Run.sourceDiscipline_base # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Export)
 height AvailableChain.FGSA.Run.sourceDiscipline_emittedName # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Sources)
 height AvailableChain.FGSA.Run.sourceDiscipline_emittedNonempty # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Sources)

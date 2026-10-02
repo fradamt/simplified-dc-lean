@@ -28,6 +28,13 @@ LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainF
 CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = (
+    # J7 W row permission and SO-COV producers.
+    'AvailableChain.FGSA.Run.openingCovered_frontier_gate',
+    'AvailableChain.FGSA.Run.rowPermission_own_lock',
+    'AvailableChain.FGSA.Run.rowPermission_pair',
+    'AvailableChain.FGSA.Run.rowPermission_covered',
+    'AvailableChain.FGSA.Run.rowPermission_at',
+
     # S4.1 W bounds: definitions, equations, and pure arithmetic.
     'AvailableChain.FGSA.Run.kappaF',
     'AvailableChain.FGSA.Run.betaF',
