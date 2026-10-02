@@ -243,8 +243,16 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   `WindowInvariant` (structural window invariants), `WindowSelection` and
   `WindowCertificates` (the KitFG certificate and selection records),
   `WindowProvenance` (provenance forms), `WindowHistory`, `WindowStore`
-  (store invariant over the window views). The model still reads the
-  SimplexFG fold until J4.
+  (store invariant over the window views), `Statements/WindowEntries`
+  (`RetainedW`, `CoveredW`: the window key (j, U)), `WindowLiveness` and
+  `WindowRetention` (pure stage-4 bit, retention and exact-row facts).
+  Since J4 (2308c42): the model runs the window fold. `heightView` =
+  projectHeight of `Window.derive p p.K_W`; `finalityView` = certificate
+  finality; `admitBlock` checks every row with R6W (`rowValidW`) against one
+  pre-fold `Window.parentState`; the client reads window head finality. The
+  height bridge keeps the shared source projection and the height-only Claims
+  readers equal until J6. `scripts/CheckFGSAOldReads.lean` audits that no
+  active declaration reads the old fold's finality.
 - 07-H adds Claims `Fold` for height batches, raw action-history inputs in
   `Phases`, and `Claims/Healing` adapters. `Foundations/RowService` proves
   strict all-emissions receipt at ΔF, parent-valid selection, and height
@@ -389,7 +397,8 @@ and only the instance swap is atomic.
 │ J3 │ fgsa-lean      │ FG5b: store invariants → FGStoreInvariant (views     │
 │    │                │ still simplex); WindowStoreInv removed               │
 │ J4 │ fgsa-lean      │ FG5c, ATOMIC: views and updaters → window fold, R6W  │
-│    │                │ admission, window head fields; instance proofs       │
+│    │                │ admission, window head fields; instance proofs.      │
+│    │                │ DONE 2308c42 (J0–J3 and J5 also done)                │
 │ J5 │ lead           │ review of J4 (two models)                            │
 │ J6 │ fgsa-lean      │ FG5d: height-only Claims readers → H (cosmetic)      │
 │ J7 │ fgsa-lean      │ IF.3(b) producer on the window (SO-COV)              │
@@ -444,6 +453,3 @@ and only the instance swap is atomic.
   fgsa-composition-t7-t1 (r11 adopted, 2ec3003; in
   `~/worktrees/available-chain-fgsa-plan`).
 
-FG5c stage 3: the FG-SA model runs the window fold. Admission uses R6W on one
-window parent state. The client reads window head finality. The height bridge
-keeps the shared source projection and the deferred height-only Claims readers equal.
