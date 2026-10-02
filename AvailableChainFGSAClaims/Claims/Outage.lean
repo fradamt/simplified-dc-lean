@@ -176,19 +176,25 @@ def AvailableGrowthConcl (t d : Time) : Prop :=
         Block.Preceq B (V2.D.outputAt E rho g x d))
 
 /-- Blueprint 21 H.20–H.22; DC available/stableIncludedFast: INTENTIONAL GST output.
-Recovery is a premise; the healing witness is an output. -/
+Recovery is a premise; the healing witness is an output. Scope: the premise is continued
+Recovery₂ (awake and `gap` up to the horizon); DC `available` uses SleepyRegime + RecoveredBy
+(recurrence only in the bounded recovery prefix). The weaker scope is the weak-continuation
+companion's. -/
 def AvailableGSTClaim (p : Params) : Prop :=
   ∀ (G ΔF : Time) (_hδ : p.δt = 2 * p.R)
     {V : Type} [DecidableEq V] [Fintype V] {In : Type}
     (c : AppCodec In) (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)),
     HealingTimePrem p c G ΔF E rho () →
-    ∃ w, HealingInput p c E rho w ΔF ∧
+    ∃ w, HealingInput p c E rho w ΔF ∧ tstar p w < E.t_GST + B_HF p ΔF G ∧
       AvailableFromConcl p c E rho
         (E.t_GST + B_HF p ΔF G)
 
 /-- DC confirmedLive/stableLive: INTENTIONAL recovery contract.
-CONTRACT: stage 5 must supply the proposal-existence and causal-slot bridges. -/
+CONTRACT: stage 5 must supply the proposal-existence and causal-slot bridges. Scope: the
+premise is continued Recovery₂ (awake and `gap` up to the horizon); DC uses SleepyRegime +
+RecoveredBy (recurrence only in the bounded recovery prefix). The weaker scope is the
+weak-continuation companion's. -/
 def AvailableGrowthGSTClaim (p : Params) : Prop :=
   ∀ (G ΔF : Time) (_hδ : p.δt = 2 * p.R)
     {V : Type} [DecidableEq V] [Fintype V] {In : Type}
@@ -197,7 +203,7 @@ def AvailableGrowthGSTClaim (p : Params) : Prop :=
     HealingTimePrem p c G ΔF E rho () →
     E.t_GST + B_HF p ΔF G ≤ t →
     t + G + 6 * p.Δ ≤ rho.horizon →
-    ∃ w, HealingInput p c E rho w ΔF ∧
+    ∃ w, HealingInput p c E rho w ΔF ∧ tstar p w < E.t_GST + B_HF p ΔF G ∧
       AvailableGrowthConcl p c E rho t
         (t + G + 6 * p.Δ)
 

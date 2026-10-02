@@ -808,13 +808,16 @@ def RFProv (w : HealingWitness) : Prop := ∀ i x,
       Block.Preceq (J_at p c E rho i x) (eraseFG K))
 
 /-- T-DEL (21 H.12:2456–2463), P3 A.8. Consumers: H.12 and H.14.
-Pre-reset: no witness. Strict receipt includes the path through cumulative storage. -/
+Pre-reset: no witness. Strict receipt includes the path through cumulative storage.
+As IF.5 (21:548; statement 21:550–557), the receipt is stated only for a prefix compatible
+with the receiver's F. -/
 def TDel : Prop := ∀ y r K, y ∈ rho.honest →
   actionSourceFG p c E rho y r = some (some K) →
   E.t_GST ≤ SA.voteTime p.toParams (r * p.R) →
   SA.freezeTime p.toParams (r * p.R) ≤ rho.horizon →
   ∀ x ∈ rho.honest, Gen.V2.Duty.HoldsBefore E rho (fun nd =>
-    (∀ B, FGBlock.Preceq B K → B ∈ nd.st.fg.TF) ∨ FGBlock.Preceq K nd.st.fg.F)
+    Block.Compatible (eraseFG K) (eraseFG nd.st.fg.F) →
+      (∀ B, FGBlock.Preceq B K → B ∈ nd.st.fg.TF) ∨ FGBlock.Preceq K nd.st.fg.F)
       (SA.freezeTime p.toParams (r * p.R)) x
 /-- T-DEL reset (21 H.12:2456–2463; H.14), P3 A.8. Consumer: H.14.
 Only this T-delivery clause takes H0. Reset-only facts suffice, but P3 retains full H0. -/

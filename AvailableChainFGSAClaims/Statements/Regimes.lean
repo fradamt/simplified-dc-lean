@@ -54,7 +54,8 @@ structure Clean₂ (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   pre : CleanPrefix₂ p c E rho rho.horizon ΔF
   gst : E.t_GST = 0
 
-/-- Recovery has neither a delta-ratio premise nor a recurrence field.
+/-- Recovery has no delta-ratio premise. `gap` has the shape of DC SingleProposerRecurrence
+from GST, over windows that end within the horizon; it has the role of DC RecoveryRegime.recurrence.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 structure Recovery₂ (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (G : Time)

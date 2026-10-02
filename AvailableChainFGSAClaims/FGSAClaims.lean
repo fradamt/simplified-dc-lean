@@ -9,8 +9,9 @@ public import AvailableChainFGSAClaims.Claims.Finality
 
 /-! P3 §4.8: the exported safety claims. Only the Claims root and the exact
 Proofs.Assembly.Root import this module (SYN L58).
-G-F0b: FGSAClaims and FGSAFinalityClaims collect OUTPUT claims only (DC Consensus shape).
-Healing, H-time, and local kernel / FF5–FF7 claims stay Claims-module interfaces.
+G-F0b: FGSAClaims and FGSAFinalityClaims collect the exported claims (G-F0a safety, finality
+safety, Clean and GST outputs; DC Consensus shape). Healing, H-time, local kernel and local
+FF5–FF7 forms stay Claims-module interfaces.
 The zero and positive Clean lane Props are not exported claims. The receipt
 and suffix-walk rows cite their existing statements in their claim homes. -/
 

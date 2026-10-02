@@ -366,6 +366,7 @@ Declaration rows: 870.
 │                                                   │                                                            │                           │       │ fixed-action coverage; H.10 uses actual-start budget.      │
 │ TDel                                              │ AvailableChainFGSAClaims/Statements/ChannelProps.lean:811  │ CONTRACT (statement only) │ R11   │ Stage 5: complete healing contracts; H.9(b) keeps          │
 │                                                   │                                                            │                           │       │ fixed-action coverage; H.10 uses actual-start budget.      │
+│                                                   │                                                            │                           │       │ S4.6c: IF.5 antecedent (21:548–557): compatible prefix.    │
 │ TDelReset                                         │ AvailableChainFGSAClaims/Statements/ChannelProps.lean:820  │ CONTRACT (statement only) │ R11   │ Stage 5: complete healing contracts; H.9(b) keeps          │
 │                                                   │                                                            │                           │       │ fixed-action coverage; H.10 uses actual-start budget.      │
 │ TGeom                                             │ AvailableChainFGSAClaims/Statements/ChannelProps.lean:827  │ CONTRACT (statement only) │ R11   │ Stage 5: complete healing contracts; H.9(b) keeps          │
@@ -929,10 +930,10 @@ Declaration rows: 870.
 │ HTimeStatement                                    │ AvailableChainFGSAClaims/Statements/Healed.lean:148        │ CONTRACT (statement only) │ R11   │ Stage 5: complete healing contracts; H.9(b) keeps          │
 │                                                   │                                                            │                           │       │ fixed-action coverage; H.10 uses actual-start budget.      │
 │ HTimeStatement_def                                │ AvailableChainFGSAClaims/Statements/Healed.lean:157        │ PROVED adapter            │ R11   │ Equation only; no proof of the contract.                   │
-│ HTimeBestStatement                                │ AvailableChainFGSAClaims/Statements/Healed.lean:172        │ DEFERRED (decision 5)     │ R11   │ Post-freeze qualified-search companion; no stage-4 port.   │
-│ HTimeBestStatement_def                            │ AvailableChainFGSAClaims/Statements/Healed.lean:182        │ DEFERRED (decision 5)     │ R11   │ Post-freeze qualified-search companion; no stage-4 port.   │
-│ HTimeSearchStatement                              │ AvailableChainFGSAClaims/Statements/Healed.lean:197        │ DEFERRED (decision 5)     │ R11   │ Post-freeze qualified-search companion; no stage-4 port.   │
-│ HTimeSearchStatement_def                          │ AvailableChainFGSAClaims/Statements/Healed.lean:207        │ DEFERRED (decision 5)     │ R11   │ Post-freeze qualified-search companion; no stage-4 port.   │
+│ HTimeBestStatement                                │ AvailableChainFGSAClaims/Statements/Healed.lean:172        │ REMOVED (S4.6c A6)        │ R11   │ Post-freeze qualified-search companion; no stage-4 port.   │
+│ HTimeBestStatement_def                            │ AvailableChainFGSAClaims/Statements/Healed.lean:182        │ REMOVED (S4.6c A6)        │ R11   │ Post-freeze qualified-search companion; no stage-4 port.   │
+│ HTimeSearchStatement                              │ AvailableChainFGSAClaims/Statements/Healed.lean:197        │ REMOVED (S4.6c A6)        │ R11   │ Post-freeze qualified-search companion; no stage-4 port.   │
+│ HTimeSearchStatement_def                          │ AvailableChainFGSAClaims/Statements/Healed.lean:207        │ REMOVED (S4.6c A6)        │ R11   │ Post-freeze qualified-search companion; no stage-4 port.   │
 │ finalityWindow                                    │ AvailableChainFGSAClaims/Statements/Packages/Finality.lean │ DROP candidate (S4.6)     │ R8    │ S4.6 owns removal and fixture checks. No deletion in S4.5. │
 │                                                   │ :13                                                        │                           │       │                                                            │
 │ FirstFinalityPrem                                 │ AvailableChainFGSAClaims/Statements/Packages/Finality.lean │ DROP candidate (S4.6)     │ R8    │ S4.6 owns removal and fixture checks. No deletion in S4.5. │
@@ -1446,7 +1447,7 @@ Declaration rows: 870.
 │                                                   │                                                            │                           │       │ and existing exact source equation.                        │
 │ gapWin                                            │ AvailableChainFGSAClaims/Statements/Windows.lean:49        │ CONTRACT (statement only) │ R13   │ No per-block meaning change. Stage 5 uses the actual W run │
 │                                                   │                                                            │                           │       │ and existing exact source equation.                        │
-│ formWin                                           │ AvailableChainFGSAClaims/Statements/Windows.lean:52        │ CONTRACT (statement only) │ R13   │ No per-block meaning change. Stage 5 uses the actual W run │
+│ formWin                                           │ AvailableChainFGSAClaims/Statements/Windows.lean:52        │ REMOVED (S4.6c A8)        │ R13   │ No per-block meaning change. Stage 5 uses the actual W run │
 │                                                   │                                                            │                           │       │ and existing exact source equation.                        │
 │ formWinAt                                         │ AvailableChainFGSAClaims/Statements/Windows.lean:57        │ CONTRACT (statement only) │ R13   │ No per-block meaning change. Stage 5 uses the actual W run │
 │                                                   │                                                            │                           │       │ and existing exact source equation.                        │
@@ -1919,4 +1920,26 @@ codex/reports/d35bac1-coverage.md. S4.7 reviews the new public entries.
 │ Bundle    │ FGSAClaims and FGSAInterfaces                              │ S4.6 integrates S4.5b output and the W packages; no facade │
 │           │                                                            │ edit in S4.5.                                              │
 └───────────┴────────────────────────────────────────────────────────────┴────────────────────────────────────────────────────────────┘
+```
+
+## S4.6c additions (G-F0b candidate; fgsa-lean, review F3)
+
+```text
+┌───────────────────────────────────────────────────┬────────────────────────────────────────────────────────────┬───────────────────────────┬───────┬────────────────────────────────────────────────────────────┐
+│ Name                                              │ Location                                                   │ Status                    │ Lane  │ Note                                                       │
+├───────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┼───────────────────────────┼───────┼────────────────────────────────────────────────────────────┤
+│ AvailableFromConcl                                │ AvailableChainFGSAClaims/Claims/Outage.lean:157            │ SUPPORT (conclusion)      │ R11   │ A10: Healed at T_H + InclusionAt for later proposals.      │
+│ AvailableGrowthConcl                              │ AvailableChainFGSAClaims/Claims/Outage.lean:167            │ SUPPORT (conclusion)      │ R11   │ A10: DC LiveFrom shape for stable and confirmed outputs.   │
+│ AvailableGSTClaim                                 │ AvailableChainFGSAClaims/Claims/Outage.lean:183            │ PROVED (fgsa_availableGST)│ R11   │ From HTimeClaim only; DC available/stableIncludedFast.     │
+│ AvailableGrowthGSTClaim                           │ AvailableChainFGSAClaims/Claims/Outage.lean:198            │ CONTRACT (statement only) │ R11   │ Stage 5: proposal-existence and causal-slot bridges.       │
+│ fgsa_availableGST                                 │ AvailableChainFGSAProofs/Proofs/Shared/Claims.lean:148     │ PROVED composition        │ R11   │ HTimeClaim → AvailableGSTClaim (healed gate service).      │
+│ FGSAClaims.finalityLivenessGSTRecFE               │ AvailableChainFGSAClaims/FGSAClaims.lean:102               │ AGGREGATE FIELD           │ R11   │ S4.6c A1/A10: G-F0b output field.                          │
+│ FGSAClaims.finalityLivenessGSTRecF4               │ AvailableChainFGSAClaims/FGSAClaims.lean:103               │ AGGREGATE FIELD           │ R11   │ S4.6c A1/A10: G-F0b output field.                          │
+│ FGSAClaims.proposalFinalGSTRecFE                  │ AvailableChainFGSAClaims/FGSAClaims.lean:104               │ AGGREGATE FIELD           │ R11   │ S4.6c A1/A10: G-F0b output field.                          │
+│ FGSAClaims.proposalFinalGSTRecF4                  │ AvailableChainFGSAClaims/FGSAClaims.lean:105               │ AGGREGATE FIELD           │ R11   │ S4.6c A1/A10: G-F0b output field.                          │
+│ FGSAClaims.aboveFrontierGSTRecFE                  │ AvailableChainFGSAClaims/FGSAClaims.lean:106               │ AGGREGATE FIELD           │ R11   │ S4.6c A1/A10: G-F0b output field.                          │
+│ FGSAClaims.aboveFrontierGSTRecF4                  │ AvailableChainFGSAClaims/FGSAClaims.lean:107               │ AGGREGATE FIELD           │ R11   │ S4.6c A1/A10: G-F0b output field.                          │
+│ FGSAClaims.availableGST                           │ AvailableChainFGSAClaims/FGSAClaims.lean:108               │ AGGREGATE FIELD           │ R11   │ S4.6c A1/A10: G-F0b output field.                          │
+│ FGSAClaims.availableGrowthGST                     │ AvailableChainFGSAClaims/FGSAClaims.lean:109               │ AGGREGATE FIELD           │ R11   │ S4.6c A1/A10: G-F0b output field.                          │
+└───────────────────────────────────────────────────┴────────────────────────────────────────────────────────────┴───────────────────────────┴───────┴────────────────────────────────────────────────────────────┘
 ```

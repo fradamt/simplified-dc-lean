@@ -149,8 +149,8 @@ theorem fgsa_availableGST (hH : HTimeClaim p) : AvailableGSTClaim p := by
   intro G ΔF hδ V _ _ In c E rho hp
   have ht := hH G ΔF hδ c E rho () hp
   have healed := uniformHealing_of_hTimeConcl p c E rho G ΔF ht
-  obtain ⟨w, input, _, _⟩ := ht
-  refine ⟨w, input, healed, ?_⟩
+  obtain ⟨w, input, hstar, hbound⟩ := ht
+  refine ⟨w, input, hstar.trans_lt hbound, healed, ?_⟩
   intro pt hstart hprop hhor
   have hs := hp.set.base.valid.toScheduleWellFormed
   have hgate : E.t_GST + B_HF p ΔF G < SA.gateTime p.toParams pt.s := by
