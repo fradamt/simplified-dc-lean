@@ -87,9 +87,9 @@ abbrev HealingSet (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (G : Time)
   Recovery₂ p c E rho G ΔF
 
 /-- DC: INTENTIONAL family delivery binds ΔF in the recovery core.
-The recurrence field keeps its existing form until S4.3. -/
+The recurrence field keeps its existing form until S4.3b. -/
 structure FinalitySet (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (G : Time) (form : FinForm) (g : Nat) (ΔF : Time) : Prop where
+    (G : Time) (ΔF : Time) (form : FinForm) (g : Nat) : Prop where
   core : Recovery₂ p c E rho G ΔF
   recur : form.holds (HonestSlot rho (fgsaInterface p c)) p.R (P p) p.Δ E.t_GST rho.horizon g
 

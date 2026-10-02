@@ -277,7 +277,9 @@ structure TerminalCarriagePrem_W (ΔF : Time) (q y : Nat)
   seats : Finset (Fin p.n)
   rows : Fin p.n → RowWire p.n
   fresh : FreshFinalityRows_W p c E rho q y U seats rows
-  /-- The F7 producer supplies the common height entry of the fresh rows at A. -/
+  /-- The F6/F7 producers supply the common height entry of the fresh rows at A.
+  Paper: 22:1250–1254 (a continuation cannot cross d+2, so the entry is fixed below X_D)
+  and 22:1276–1277 ("the same high entry"). -/
   heightEntry : ∀ i ∈ seats,
     namedEntry (rows i).payload.height_pair = some (y + 1, (heightView p A).T_h.root)
   receipt : ∀ i ∈ seats,
