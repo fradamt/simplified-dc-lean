@@ -86,6 +86,11 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_continuation_proposal_receipts',
     'AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_source_row_receipt',
     'AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_continuation_row_receipt',
+    # H-BASE: --expect additions only.
+    'AvailableChain.FGSA.Run.healing_rXing',
+    'AvailableChain.FGSA.Run.healing_rCap',
+    'AvailableChain.FGSA.Run.healing_phase_receipt',
+    'AvailableChain.FGSA.Run.healing_source_time',
     # W1-PORT: concrete window-model source and continuation; --expect additions.
     'AvailableChain.FGSA.Run.Tests.WeakContinuationWitness.params',
     'AvailableChain.FGSA.Run.Tests.WeakContinuationWitness.Validator',

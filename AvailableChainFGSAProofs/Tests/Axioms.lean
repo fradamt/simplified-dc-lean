@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Healing.Base -- shake: keep (H-BASE audit)
 public import AvailableChainFGSAProofs.Proofs.Foundations.HonestNeverSlashed -- shake: keep (HNS audit)
 public import AvailableChainFGSAProofs.Proofs.Foundations.FinalityApi -- shake: keep (S4.5b axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersL2 -- shake: keep (consumer audit)
@@ -723,3 +724,9 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_retainedReads_L2
 #print axioms AvailableChain.FGSA.Run.uniformHealing_of_hTimeConcl
 #print axioms AvailableChain.FGSA.Run.fgsa_tickIdx_of_event
+
+-- H-BASE: all four completed items; HB3 is skipped.
+#print axioms AvailableChain.FGSA.Run.healing_rXing
+#print axioms AvailableChain.FGSA.Run.healing_rCap
+#print axioms AvailableChain.FGSA.Run.healing_phase_receipt
+#print axioms AvailableChain.FGSA.Run.healing_source_time
