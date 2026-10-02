@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSA.Proofs.WindowRetention
+public import AvailableChainFGSA.Statements.WindowEntries
 public import AvailableChainFGSA.Proofs.EmissionFields
 public import AvailableChainFGSA.Proofs.WindowProvenance
 public import AvailableChainFGSA.Proofs.WindowHistory
@@ -447,6 +448,8 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 #print axioms AvailableChain.FGSA.Window.window_exact_row_no_missing_effect
 #print axioms AvailableChain.FGSA.Window.window_retained_of_few_births
 #print axioms AvailableChain.FGSA.Window.window_retained_fresh_one_newer
+#print axioms AvailableChain.FGSA.Window.RetainedW_def
+#print axioms AvailableChain.FGSA.Window.CoveredW_def
 
 -- Proofs/WindowSelection.lean
 #print axioms AvailableChain.FGSA.Window.windowSelectionLaws
