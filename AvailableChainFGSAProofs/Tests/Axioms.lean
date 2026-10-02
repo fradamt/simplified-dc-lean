@@ -915,3 +915,4 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.healing_slow_proposals
 #print axioms AvailableChain.FGSA.Run.healing_slow_output
 #print axioms AvailableChain.FGSA.Run.healing_phase_transfers
+#print axioms AvailableChain.FGSA.Run.healing_tPerm

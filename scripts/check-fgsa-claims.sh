@@ -72,6 +72,7 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.healing_slow_proposals',
     'AvailableChain.FGSA.Run.healing_slow_output',
     'AvailableChain.FGSA.Run.healing_phase_transfers',
+    'AvailableChain.FGSA.Run.healing_tPerm',
     # S4.6c: --expect DATA only.
     'AvailableChain.FGSA.Run.fgsa_availableGST',
     'AvailableChain.FGSA.Run.AvailableFromConcl',
