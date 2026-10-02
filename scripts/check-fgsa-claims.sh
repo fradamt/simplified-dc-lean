@@ -45,6 +45,18 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.fgsa_storedProgressConsume',
     'AvailableChain.FGSA.Run.fgsa_noMixedMaturity',
     'AvailableChain.FGSA.Run.fgsa_justifyAt',
+    # K-ROWS: --expect DATA only.
+    'AvailableChain.FGSA.Run.pending_action_head',
+    'AvailableChain.FGSA.Run.finality_action_source',
+    'AvailableChain.FGSA.Run.fresh_unanimous_rows',
+    'AvailableChain.FGSA.Run.actual_anchor_cap',
+    'AvailableChain.FGSA.Run.actual_anchor_retained_or_covered',
+    # K-CARRY: --expect DATA only.
+    'AvailableChain.FGSA.Run.terminalCarriage_general_W',
+    'AvailableChain.FGSA.Run.terminalCarriage_W_of_tRowsSelect',
+    # K-BATCH: --expect DATA only.
+    'AvailableChain.FGSA.Run.finalityRow_bit_or_carried_W',
+    'AvailableChain.FGSA.Run.finalityBatchCoverage_W_of_tRowsSelect',
     # S4.6c: --expect DATA only.
     'AvailableChain.FGSA.Run.fgsa_availableGST',
     'AvailableChain.FGSA.Run.AvailableFromConcl',
