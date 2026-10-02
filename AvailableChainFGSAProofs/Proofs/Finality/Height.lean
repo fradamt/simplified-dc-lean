@@ -173,7 +173,8 @@ theorem fgsa_storedProgressConsume (p : Params) : StoredProgressConsume p := by
     have hq : p.E.q = Gen.Pure.qF p.n :=
       (toWeights_q p.E).symm.trans (unit_toWeights_q p.n)
     rw [hq, Gen.Pure.qF_def] at hS
-    simp only [Electorate.weightOf, Finset.sum_empty] at hS
+    have h0 : p.E.weightOf ∅ = 0 := Finset.sum_empty
+    rw [h0] at hS
     have hn := p.nPos
     omega
   exact kheight_progress p hX hU (preceq_trans hUB hBP) hP
