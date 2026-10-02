@@ -3,49 +3,60 @@ open Lean
 
 /-! FG-SA old-read audit (fg5-rulings STOP 6 and ruling 7, lead 2026-10-02).
 
-The stage-3 switch (J4) moves FG-SA from the old SimplexFG store fold to the
-window fold. After J4 no old `on_block`, `update_finality`, `acceptViable`,
-`HeadFields.ofBlock` or `rowValidFor` may stay in the ACTIVE FG-SA path. The
-window fold has declarations with the same short names (`Window.on_block`, …),
-so a text search cannot tell an old read from a new one. This audit reads the
-COMPILED constants and matches full names.
+The stage-3 switch (J4) moves FG-SA from the old SimplexFG fold to the window
+fold. After J4 no old `on_block`, `update_finality`, `acceptViable`,
+`HeadFields.ofBlock` or `rowValidFor`, and no FINALITY read of the old
+`SimplexFG.derive`, may stay in the ACTIVE FG-SA path. The window fold has
+declarations with the same short names (`Window.on_block`, …), so a text search
+cannot tell an old read from a new one. This audit reads the COMPILED constants
+and matches full names.
 
 Active path: every module of the source directories `AvailableChainFGSA`,
 `AvailableChainFGSAClaims`, `AvailableChainFGSAProofs` and
 `AvailableChainFGSARun` (and their root files), except modules under a `Tests`
 directory.
 
-A declaration of the active path READS OLD when its type or value names
-- an old constant (directly), or
-- a constant outside the active path whose type, or whose value if it is a
-  definition, names an old constant (for example a KitFG lemma about the old
-  `on_block`).
+Read classes of an active declaration (its type and value):
+- OLD: it names an old constant (the five STOP-6 names below, plus every
+  `old <name>` data line), or it names a constant outside the active path whose
+  type, or whose value if it is a definition, names one.
+- FINALITY: it contains a finality read of the old derive, or it names a
+  constant outside the active path whose type or definition value contains
+  one. A finality read of the old derive is a term `(SimplexFG.derive …).F`
+  (also `.h_F`, `.finalize`, as a projection or a projection function), or an
+  application of a FINALITY FUNCTION to an argument that names
+  `SimplexFG.derive`. A finality function is a definition of the AvailableChain
+  libraries whose value projects `F`, `h_F` or `finalize` of a `ChainState`, or
+  applies another finality function (closed under that rule).
+- HEIGHT: it names `SimplexFG.derive` (directly, or through a constant outside
+  the active path whose type or definition value names it), and it is not OLD
+  or FINALITY.
+Limit: a read through a local name (`σ` with a premise `σ = derive …`) is a
+height read here, not a finality read.
 Auxiliary constants (`foo.proof_1`, `foo.match_1`, `foo.eq_1`, …) count for
 their declaration `foo`; a private name counts under its user name.
 
-Old constants: the five names of STOP 6 below (a name that the tree no longer
-has cannot be read and is reported as absent), plus every `old <name>` line of
-the data file (that name must exist). Data lines can add old names; only this
-script can remove one.
-
 Data file (default `scripts/baselines/fgsa-old-reads.txt`), one entry per line:
-  `allow <declaration> # <reason>`   an old read that may stay for now;
-  `old <constant> # <reason>`        one more old constant;
+  `allow <declaration> # <reason>`   an OLD or FINALITY read that may stay for now;
+  `height <declaration> # <reason>`  a HEIGHT-only read (ruling 7 named exceptions);
+  `old <constant> # <reason>`        one more old constant (tightening only);
 blank lines and lines that start with `#` are comments. Every entry needs a
 reason after ` # `.
 
-Result: every reading declaration must have an `allow` line, and every `allow`
-line must name a reading declaration (a stale line fails, so the list only
-shrinks with the code).
+Result: every OLD or FINALITY reader needs an `allow` line, every HEIGHT reader
+a `height` line; a line for a declaration with no read of its class (stale), a
+duplicate line, or a line in the wrong section fails. So the data only shrinks
+with the code (J4: allow lines; J6: height lines).
 
 Run: `lake env lean --run scripts/CheckFGSAOldReads.lean [--data F] [--write]
-[--controls]`. `--write` rewrites the `allow` lines from the current reads
-(it keeps the reason of a kept line) and exits 0. `--controls` also runs the
-negative controls in the same environment: a planted direct old read, a planted
-read through an external lemma about the old fold, a dropped `allow` line, and
-an extra `allow` line must each be detected.
-Exit codes: 0 pass; 1 an unlisted read, a stale or duplicate line, or a
-control that is not detected; 2 a usage, data or setup error. -/
+[--controls]`. `--write` rewrites the `allow` and `height` lines from the
+current reads (it keeps the reason of a kept line) and exits 0. `--controls`
+also runs the negative controls in the same environment: planted reads (a
+direct old constant, an old constant through a KitFG lemma, a
+`(SimplexFG.derive …).F` projection, a height-only derive read) must each fail
+as unlisted, and a dropped and an extra data line must be detected.
+Exit codes: 0 pass; 1 an unlisted read, a stale, duplicate or misplaced line,
+or a control that is not detected; 2 a usage, data or setup error. -/
 
 def libs : List String :=
   ["AvailableChainFGSA", "AvailableChainFGSAClaims", "AvailableChainFGSAProofs",
@@ -56,6 +67,10 @@ def floorOld : List Name :=
   [`AvailableChain.SimplexFG.on_block, `AvailableChain.SimplexFG.update_finality,
     `AvailableChain.SimplexFG.acceptViable, `AvailableChain.SimplexFG.HeadFields.ofBlock,
     `AvailableChain.FGSA.rowValidFor]
+
+def deriveName : Name := `AvailableChain.SimplexFG.derive
+def stateName : Name := `AvailableChain.SimplexFG.ChainState
+def finalityFields : List String := ["F", "h_F", "finalize"]
 
 /-- An external lemma about the old fold, for the indirect negative control. -/
 def indirectFixture : Name := `AvailableChain.KitFG.on_block_F_mono
@@ -88,28 +103,78 @@ partial def declKey (n : Name) : Name :=
   | .num p _ => if p.isAnonymous then n else declKey p
   | .anonymous => n
 
-def namesIn (ci : ConstantInfo) (withValue : Bool) : Array Name :=
-  match (if withValue then ci.value? else none) with
-  | some v => ci.type.getUsedConstants ++ v.getUsedConstants
-  | none => ci.type.getUsedConstants
+/-- The type, and the value when `withValue` (theorem values included). -/
+def exprsOf (ci : ConstantInfo) (withValue : Bool) : Array Expr :=
+  match (if withValue then ci.value? (allowOpaque := true) else none) with
+  | some v => #[ci.type, v]
+  | none => #[ci.type]
 
-/-- The old reads of one active constant, as printable reasons. -/
-def readsOf (env : Environment) (active : NameSet) (old : NameSet) (ci : ConstantInfo) :
-    Array String := Id.run do
-  let mut out := #[]
-  for c in namesIn ci true do
-    if old.contains c then
-      out := out.push s!"{c}"
-    else if !active.contains c then
-      if let some ce := env.find? c then
-        let isDef := ce matches .defnInfo _
-        let hits := (namesIn ce isDef).filter old.contains
-        unless hits.isEmpty do
-          out := out.push s!"{hits.toList.head!} (via {c})"
-  return out
+def mentionsDerive (e : Expr) : Bool := (e.find? (·.isConstOf deriveName)).isSome
+
+/-- The finality context: the projection functions, the field indices, and the
+finality functions. -/
+structure FinCtx where
+  idx : List Nat
+  fns : NameSet
+
+/-- `e` projects a finality field of a `ChainState`, or applies a finality function. -/
+def projectsFinality (fc : FinCtx) (e : Expr) : Bool :=
+  (e.find? fun s =>
+    match s with
+    | .proj S i _ => S == stateName && fc.idx.contains i
+    | .const c _ => fc.fns.contains c
+    | _ => false).isSome
+
+/-- `e` has a finality read of the old derive. -/
+def finalityOfDerive (fc : FinCtx) (e : Expr) : Bool :=
+  mentionsDerive e && (e.find? fun s =>
+    match s with
+    | .proj S i x => S == stateName && fc.idx.contains i && mentionsDerive x
+    | .app .. =>
+        let f := s.getAppFn
+        f.isConst && fc.fns.contains f.constName! && s.getAppArgs.any mentionsDerive
+    | _ => false).isSome
+
+inductive Cls where
+  | major | height
+  deriving BEq, Inhabited
+
+structure Read where
+  cls : Cls
+  why : Array String
+
+/-- The old reads of one active constant. -/
+def readsOf (env : Environment) (active : NameSet) (old : NameSet) (fc : FinCtx)
+    (ci : ConstantInfo) : Option Read := Id.run do
+  let es := exprsOf ci true
+  let mut major := #[]
+  let mut height := #[]
+  if es.any (finalityOfDerive fc) then major := major.push "finality of SimplexFG.derive"
+  else if es.any mentionsDerive then height := height.push s!"{deriveName}"
+  let mut seen : NameSet := {}
+  for e in es do
+    for c in e.getUsedConstants do
+      if seen.contains c then continue
+      seen := seen.insert c
+      if old.contains c then
+        major := major.push s!"{c}"
+      else if !active.contains c && c != deriveName then
+        if let some ce := env.find? c then
+          let ces := exprsOf ce (ce matches .defnInfo _)
+          let hits := ces.foldl (fun a e => a ++ e.getUsedConstants.filter old.contains) #[]
+          if let some h := hits[0]? then
+            major := major.push s!"{h} (via {c})"
+          else if ces.any (finalityOfDerive fc) then
+            major := major.push s!"finality of SimplexFG.derive (via {c})"
+          else if ces.any mentionsDerive then
+            height := height.push s!"{deriveName} (via {c})"
+  if !major.isEmpty then return some ⟨.major, major⟩
+  if !height.isEmpty then return some ⟨.height, height⟩
+  return none
 
 structure Data where
   allow : Array (Name × String) := #[]
+  height : Array (Name × String) := #[]
   old : Array (Name × String) := #[]
   bad : Array String := #[]
 
@@ -122,50 +187,83 @@ def parseData (text : String) : Data := Id.run do
       | b :: r :: rs => (b.trimAscii.toString, (" # ".intercalate (r :: rs)).trimAscii.toString)
       | _ => (line, "")
     let ws := (body.splitOn " ").filter (· ≠ "")
+    if reason.isEmpty then d := { d with bad := d.bad.push s!"no reason: {line}" }
     match ws with
-    | ["allow", n] =>
-        if reason.isEmpty then d := { d with bad := d.bad.push s!"no reason: {line}" }
-        d := { d with allow := d.allow.push (n.toName, reason) }
-    | ["old", n] =>
-        if reason.isEmpty then d := { d with bad := d.bad.push s!"no reason: {line}" }
-        d := { d with old := d.old.push (n.toName, reason) }
+    | ["allow", n] => d := { d with allow := d.allow.push (n.toName, reason) }
+    | ["height", n] => d := { d with height := d.height.push (n.toName, reason) }
+    | ["old", n] => d := { d with old := d.old.push (n.toName, reason) }
     | _ => d := { d with bad := d.bad.push s!"bad line: {line}" }
   return d
 
-/-- Unlisted reads and stale or duplicate allow lines. -/
-def compare (reads : Std.HashMap Name (Array String)) (allow : Array Name) :
+/-- Unlisted reads, and stale, duplicate or misplaced lines. -/
+def compare (reads : Std.HashMap Name Read) (allow height : Array Name) :
     Array String × Array String := Id.run do
   let mut unlisted := #[]
-  for (k, why) in reads.toArray.qsort (fun a b => a.1.toString < b.1.toString) do
-    unless allow.contains k do
-      unlisted := unlisted.push s!"OLD READ NOT LISTED: {k} reads {why.toList}"
+  for (k, r) in reads.toArray.qsort (fun a b => a.1.toString < b.1.toString) do
+    match r.cls with
+    | .major =>
+        unless allow.contains k do
+          unlisted := unlisted.push s!"OLD READ NOT LISTED (allow): {k} reads {r.why.toList}"
+    | .height =>
+        unless height.contains k do
+          unlisted := unlisted.push s!"OLD READ NOT LISTED (height): {k} reads {r.why.toList}"
   let mut stale := #[]
   let mut seen : NameSet := {}
-  for k in allow do
-    if seen.contains k then stale := stale.push s!"DUPLICATE ALLOW LINE: {k}"
-    seen := seen.insert k
-    unless reads.contains k do
-      stale := stale.push s!"STALE ALLOW LINE (no old read now; remove it): {k}"
+  for (sect, ks, cls) in [("allow", allow, Cls.major), ("height", height, Cls.height)] do
+    for k in ks do
+      if seen.contains k then stale := stale.push s!"DUPLICATE LINE: {k}"
+      seen := seen.insert k
+      match reads[k]? with
+      | none => stale := stale.push s!"STALE {sect} LINE (no old read now; remove it): {k}"
+      | some r =>
+          unless r.cls == cls do
+            stale := stale.push s!"MISPLACED {sect} LINE (move it to the other section): {k}"
   return (unlisted, stale)
 
 def header : String :=
   "# FG-SA old-read audit data (scripts/CheckFGSAOldReads.lean; fg5-rulings STOP 6, ruling 7).\n\
-   # allow <declaration> # <reason>: an old read that may stay for now. J4 and J6 remove lines.\n\
+   # allow <declaration> # <reason>: an old-constant or old-derive FINALITY read that may stay for now (J4 removes).\n\
+   # height <declaration> # <reason>: a height-only read of the old derive (ruling 7 named exceptions; J6 removes).\n\
    # old <constant> # <reason>: one more old constant (tightening only).\n\
-   # A new old read in the active FG-SA path fails; a stale allow line fails.\n"
+   # An unlisted read fails; a stale, duplicate or misplaced line fails.\n"
+
+/-- The finality functions: a fixpoint over the definitions of the AvailableChain libraries.
+A definition that BUILDS a `ChainState` (its type ends in `ChainState`: the fold steps,
+`transition`, `derive`) is never a finality function: it writes the fields, it does not
+read them out, and the fold is matched at its application sites instead. -/
+def finalityFns (env : Environment) (idx : List Nat) : NameSet := Id.run do
+  let mut fns : NameSet :=
+    finalityFields.foldl (fun s f => s.insert (stateName ++ Name.mkSimple f)) {}
+  let buildsState (t : Expr) : Bool := t.getForallBody.getAppFn.isConstOf stateName
+  let defs := env.constants.toList.filterMap fun (n, ci) =>
+    match ci with
+    | .defnInfo d =>
+        if (`AvailableChain).isPrefixOf n && !buildsState d.type then some (n, d.value) else none
+    | _ => none
+  let mut changed := true
+  while changed do
+    changed := false
+    for (n, v) in defs do
+      if fns.contains n then continue
+      if projectsFinality ⟨idx, fns⟩ v then
+        fns := fns.insert n
+        changed := true
+  return fns
 
 def main (args : List String) : IO UInt32 := do
   let usage := "USAGE: lake env lean --run scripts/CheckFGSAOldReads.lean \
-    [--data F] [--write] [--controls]"
+    [--data F] [--write] [--controls] [--list-fns]"
   let mut rest := args
   let mut path : System.FilePath := "scripts/baselines/fgsa-old-reads.txt"
   let mut write := false
   let mut controls := false
+  let mut listFns := false
   while !rest.isEmpty do
     match rest with
     | "--data" :: f :: r => path := f; rest := r
     | "--write" :: r => write := true; rest := r
     | "--controls" :: r => controls := true; rest := r
+    | "--list-fns" :: r => listFns := true; rest := r
     | _ => IO.eprintln usage; return 2
   let data := parseData (← IO.FS.readFile path)
   unless data.bad.isEmpty do
@@ -188,35 +286,62 @@ def main (args : List String) : IO UInt32 := do
       IO.println s!"DATA ERROR: old constant {n} does not exist"
       return 2
     old := old.insert n
+  unless env.contains deriveName do
+    IO.println s!"SETUP ERROR: {deriveName} does not exist"
+    return 2
+  unless isStructure env stateName do
+    IO.println s!"SETUP ERROR: {stateName} is not a structure"; return 2
+  let fields := (getStructureFields env stateName).toList
+  let idx := finalityFields.filterMap fun f => fields.findIdx? (· == Name.mkSimple f)
+  unless idx.length == finalityFields.length do
+    IO.println s!"SETUP ERROR: {stateName} lacks a finality field {finalityFields}"
+    return 2
+  let fc : FinCtx := ⟨idx, finalityFns env idx⟩
+  if listFns then
+    for n in fc.fns.toList.toArray.qsort (fun a b => a.toString < b.toString) do
+      let m := match env.getModuleIdxFor? n with
+        | some i => s!"{env.header.moduleNames[i.toNat]!}" | none => "?"
+      IO.println s!"finality function {n} ({m})"
+    return 0
   let cs := env.constants.toList.filter (fun (n, _) => isActive n)
   if cs.isEmpty then
     IO.eprintln "NO ACTIVE CONSTANTS FOUND"
     return 2
   let active : NameSet := cs.foldl (fun s (n, _) => s.insert n) {}
-  let mut reads : Std.HashMap Name (Array String) := {}
+  let mut reads : Std.HashMap Name Read := {}
   let mut home : Std.HashMap Name Name := {}
   for (_, ci) in cs do
-    let why := readsOf env active old ci
-    unless why.isEmpty do
+    if let some r := readsOf env active old fc ci then
       let k := declKey ci.name
-      reads := reads.insert k ((reads.getD k #[]) ++ why)
-      if let some idx := env.getModuleIdxFor? ci.name then
-        home := home.insert k env.header.moduleNames[idx.toNat]!
+      let r := match reads[k]? with
+        | some r0 => ⟨if r0.cls == .major || r.cls == .major then .major else .height,
+            r0.why ++ r.why⟩
+        | none => r
+      reads := reads.insert k r
+      if let some i := env.getModuleIdxFor? ci.name then
+        home := home.insert k env.header.moduleNames[i.toNat]!
   let allow := data.allow.map (·.1)
-  IO.println s!"scanned {cs.length} constants of {mods.size} active modules; \
-    {old.size} old constants; {reads.size} reading declarations; {allow.size} allow lines"
+  let height := data.height.map (·.1)
+  let nMajor := (reads.toArray.filter (·.2.cls == .major)).size
+  IO.println s!"scanned {cs.length} constants of {mods.size} active modules; {old.size} old \
+    constants; {fc.fns.size} finality functions; {nMajor} old/finality readers, \
+    {reads.size - nMajor} height-only readers; {allow.size} allow and {height.size} height lines"
   if write then
-    let keep : Std.HashMap Name String := data.allow.foldl (fun m (n, r) => m.insert n r) {}
-    let modOf (k : Name) : String := s!"{home.getD k .anonymous}"
+    let keep : Std.HashMap Name String :=
+      (data.allow ++ data.height).foldl (fun m (n, r) => m.insert n r) {}
     let mut out := header
     for (n, r) in data.old do out := out ++ s!"old {n} # {r}\n"
-    for k in (reads.toArray.map (·.1)).qsort (fun a b => a.toString < b.toString) do
-      let r := keep.getD k s!"pre-J4 baseline 2026-10-02 ({modOf k})"
-      out := out ++ s!"allow {k} # {r}\n"
+    let ks := (reads.toArray.map (·.1)).qsort (fun a b => a.toString < b.toString)
+    for (sect, cls) in [("allow", Cls.major), ("height", Cls.height)] do
+      for k in ks do
+        let some r := reads[k]? | continue
+        unless r.cls == cls do continue
+        let rsn := keep.getD k s!"pre-J4 baseline 2026-10-02 ({home.getD k .anonymous})"
+        out := out ++ s!"{sect} {k} # {rsn}\n"
     IO.FS.writeFile path out
     IO.println s!"wrote {path}"
     return 0
-  let (unlisted, stale) := compare reads allow
+  let (unlisted, stale) := compare reads allow height
   for s in unlisted ++ stale do IO.println s
   let mut failed := !(unlisted.isEmpty && stale.isEmpty)
   if controls then
@@ -225,40 +350,53 @@ def main (args : List String) : IO UInt32 := do
     unless env.contains indirectFixture do
       IO.println s!"CONTROL SETUP FAIL: {indirectFixture} does not exist"
       return 2
-    let mk (n v : Name) : ConstantInfo :=
+    let mk (n : Name) (v : Expr) : ConstantInfo :=
       ConstantInfo.defnInfo
         { name := n
           levelParams := []
           type := mkConst `Nat
-          value := mkConst v
+          value := v
           hints := .opaque
           safety := .safe }
-    let direct := mk `OldReadControl.direct o
-    let viaLemma := mk `OldReadControl.indirect indirectFixture
-    let mut planted := reads
-    for ci in [direct, viaLemma] do
-      let why := readsOf env active old ci
-      planted := planted.insert ci.name why
-      if why.isEmpty then
-        IO.println s!"NEGATIVE CONTROL NOT DETECTED: {ci.name} is not an old read"
-        failed := true
-    let (u, _) := compare planted allow
-    for n in [direct.name, viaLemma.name] do
-      if u.any (·.startsWith s!"OLD READ NOT LISTED: {n} ") then
-        IO.println s!"control planted {n}: detected"
+    let der := mkApp (mkConst deriveName) (mkConst `Nat)
+    let fIdx := idx.head!
+    let planted : List (ConstantInfo × Cls) :=
+      [(mk `OldReadControl.direct (mkConst o), .major),
+        (mk `OldReadControl.indirect (mkConst indirectFixture), .major),
+        (mk `OldReadControl.finalityProj (.proj stateName fIdx der), .major),
+        (mk `OldReadControl.finalityFn
+          (mkApp2 (mkConst (stateName ++ `F)) (mkConst `Nat) der), .major),
+        (mk `OldReadControl.heightOnly der, .height)]
+    let mut withPlanted := reads
+    for (ci, cls) in planted do
+      match readsOf env active old fc ci with
+      | some r =>
+          withPlanted := withPlanted.insert ci.name r
+          unless r.cls == cls do
+            IO.println s!"NEGATIVE CONTROL WRONG CLASS: {ci.name}"
+            failed := true
+      | none =>
+          IO.println s!"NEGATIVE CONTROL NOT DETECTED: {ci.name} is not an old read"
+          failed := true
+    let (u, _) := compare withPlanted allow height
+    for (ci, _) in planted do
+      if u.any (fun s => (s.splitOn s!": {ci.name} reads").length > 1) then
+        IO.println s!"control planted {ci.name}: detected"
       else
-        IO.println s!"NEGATIVE CONTROL NOT DETECTED: planted {n}"
+        IO.println s!"NEGATIVE CONTROL NOT DETECTED: planted {ci.name}"
         failed := true
-    if let some first := allow[0]? then
-      let (u, _) := compare reads (allow.erase first)
-      if u.any (·.startsWith s!"OLD READ NOT LISTED: {first} ") then
-        IO.println s!"control dropped allow line {first}: detected"
+    for (sect, ks) in [("allow", allow), ("height", height)] do
+      if let some first := ks[0]? then
+        let (u, _) := if sect == "allow" then compare reads (allow.erase first) height
+          else compare reads allow (height.erase first)
+        if u.any (fun s => (s.splitOn s!": {first} reads").length > 1) then
+          IO.println s!"control dropped {sect} line {first}: detected"
+        else
+          IO.println s!"NEGATIVE CONTROL NOT DETECTED: dropped {sect} line {first}"
+          failed := true
       else
-        IO.println s!"NEGATIVE CONTROL NOT DETECTED: dropped allow line {first}"
-        failed := true
-    else
-      IO.println "control dropped allow line: skipped (no allow lines)"
-    let (_, st) := compare reads (allow.push `OldReadControl.stale)
+        IO.println s!"control dropped {sect} line: skipped (no {sect} lines)"
+    let (_, st) := compare reads (allow.push `OldReadControl.stale) height
     if st.any (·.endsWith "OldReadControl.stale") then
       IO.println "control stale allow line: detected"
     else

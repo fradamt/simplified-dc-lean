@@ -228,11 +228,12 @@ gate_with_slot lake env lean --run scripts/CheckFGSAAxioms.lean "${TEST_ROOTS[@]
   Window.window_on_block_TF_subset
 echo "== lease instances"
 gate_with_slot lake env lean --run scripts/CheckFGSALease.lean
-# Old-read audit (fg5-rulings STOP 6, ruling 7): no old SimplexFG store fold or old
-# row validity in the active FG-SA path except the named allow lines of
-# scripts/baselines/fgsa-old-reads.txt (DATA). The full tier also runs its
-# in-process negative controls (a planted direct read, a planted read through a
-# KitFG lemma, a dropped and an extra allow line).
+# Old-read audit (fg5-rulings STOP 6, ruling 7): no old SimplexFG store fold, old
+# row validity or finality read of the old derive in the active FG-SA path except
+# the `allow` lines, and no height-only read of the old derive except the `height`
+# lines (ruling 7 named exceptions) of scripts/baselines/fgsa-old-reads.txt (DATA).
+# The full tier also runs the in-process negative controls (planted direct, KitFG-
+# lemma, `(derive …).F` and height-only reads; dropped and extra data lines).
 echo "== old-read audit"
 gate_build --wfail AvailableChainFGSAClaims AvailableChainFGSAProofs AvailableChainFGSARun
 if [ "$NEG" = 1 ]; then
