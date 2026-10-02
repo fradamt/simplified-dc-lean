@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.RetainedScores -- shake: keep (candidate score audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedWalk -- shake: keep (retained geometry audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedWalkStore -- shake: keep (store adapter audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.ExactHead -- shake: keep (J2 HEAD axiom audit)
@@ -593,3 +594,8 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_Z_preceq_liveRoot
 #print axioms AvailableChain.FGSA.Run.fgsa_retained_prefix_of_trunk_or_support
 #print axioms AvailableChain.FGSA.Run.fgsa_walk_domain_of_witness
+#print axioms AvailableChain.FGSA.Run.fgsa_eligible_eq_of_same_floor
+#print axioms AvailableChain.FGSA.Run.fgsa_eligible_eq_of_parent_height
+#print axioms AvailableChain.FGSA.Run.fgsa_score_geometry_of_domains
+#print axioms AvailableChain.FGSA.Run.fgsa_score_eq_on_candidates_on_run
+#print axioms AvailableChain.FGSA.Run.fgsa_retained_scores_of_candidates
