@@ -199,6 +199,20 @@ gate_with_slot lake env lean --run scripts/CheckFGSAAxioms.lean "${TEST_ROOTS[@]
   Window.window_bit_retained Window.window_no_reentry Window.window_finality_of_cover \
   Window.justificationBirth_window_iff_simplex Window.window_entry_origin \
   Window.window_prefinal_entry_origin \
+  Window.window_provenance_entry \
+  Window.window_provenance_finalityRow \
+  Window.window_provenance_finalityQC \
+  Window.window_exists_crossing_quorum_ne_justified \
+  Window.window_exists_honest_timeout_of_crossing \
+  Window.window_headFields_latest \
+  Window.window_final_birth Window.window_le_hF_covered \
+  Window.window_absent_le_hF_covered \
+  Window.window_evicted_above_hF \
+  Window.window_retained_bits_mono \
+  Window.window_latest_pair_kept \
+  Window.window_evicted_has_K_newer \
+  Window.window_entry_history \
+  Window.windowSelectionLaws Window.windowCertificateLaws Window.windowChainCertificate \
   Window.acceptViable_eq \
   Window.update_finality_h_max_eq \
   Window.update_finality_J_eq \
