@@ -119,6 +119,50 @@ gate_slot_acquire() {
   done
 }
 
+# Fail-fast parallel steps (gate policy 2026-10-02). Start `runner <name>` for each
+# name as a background job in its OWN process group (set -m). Poll for exits (Bash
+# 3.2: no wait -n). The runner writes "<rc> <wall>" to <resultdir>/<name>.result.
+# At the first nonzero rc (or a missing result), send TERM, then KILL after
+# GATE_FF_GRACE seconds (default 5), to every other running step's process group
+# only, never to the caller's group; then return 1 with GATE_FF_FAILED=<name> and
+# GATE_FF_KILLED=" <name>..." set. Return 0 when every step passes.
+gate_parallel_failfast() {
+  local runner=$1 resultdir=$2; shift 2
+  local names=("$@") pids=() state=() i j rc wall alive grace=${GATE_FF_GRACE:-5}
+  GATE_FF_FAILED= GATE_FF_KILLED=
+  set -m
+  for i in "${!names[@]}"; do "$runner" "${names[$i]}" & pids[$i]=$!; state[$i]=run; done
+  set +m
+  alive=${#names[@]}
+  while [ "$alive" -gt 0 ]; do
+    for i in "${!names[@]}"; do
+      [ "${state[$i]}" = run ] || continue
+      kill -0 "${pids[$i]}" 2>/dev/null && continue
+      wait "${pids[$i]}" 2>/dev/null || :
+      state[$i]=done; alive=$((alive-1))
+      rc=99
+      if [ -f "$resultdir/${names[$i]}.result" ]; then read -r rc wall < "$resultdir/${names[$i]}.result"; fi
+      [ "$rc" = 0 ] && continue
+      GATE_FF_FAILED=${names[$i]}
+      for j in "${!names[@]}"; do
+        [ "${state[$j]}" = run ] || continue
+        kill -TERM -- "-${pids[$j]}" 2>/dev/null || :
+        GATE_FF_KILLED="$GATE_FF_KILLED ${names[$j]}"
+      done
+      sleep "$grace"
+      for j in "${!names[@]}"; do
+        [ "${state[$j]}" = run ] || continue
+        kill -KILL -- "-${pids[$j]}" 2>/dev/null || :
+        wait "${pids[$j]}" 2>/dev/null || :
+        state[$j]=killed
+      done
+      return 1
+    done
+    if [ "$alive" -gt 0 ]; then sleep 1; fi
+  done
+  return 0
+}
+
 # The subshell owns one slot until the entire command or function exits.
 # Do not use this function in an if/|| test when the command needs set -e.
 gate_with_slot() (
