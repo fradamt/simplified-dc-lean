@@ -82,6 +82,7 @@ height AvailableChain.FGSA.Run.openingSource_firstOpening_exact # pre-J4 baselin
 height AvailableChain.FGSA.Run.rowPermission_client_record # height-only, through the shared client (hOf/createRowOnce); bridge-equal
 height AvailableChain.FGSA.Run.rowPermission_once_coverage # height-only, through the shared client (hOf/createRowOnce); bridge-equal
 height AvailableChain.FGSA.Run.rowPermission_record_carrier # height-only, through the shared client (hOf/createRowOnce); bridge-equal
+height AvailableChain.FGSA.Run.rows_release # height-only, through the shared client (hOf/createRowOnce); bridge-equal
 height AvailableChain.FGSA.Run.sourceDiscipline_base # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Export)
 height AvailableChain.FGSA.Run.sourceDiscipline_emittedName # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Sources)
 height AvailableChain.FGSA.Run.sourceDiscipline_emittedNonempty # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Sources)

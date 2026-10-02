@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Finality.Rows -- shake: keep (K-ROWS audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Carry -- shake: keep (K-CARRY audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Batch -- shake: keep (K-BATCH audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.Claims -- shake: keep (S4.6b axiom audit)
@@ -815,3 +816,10 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.healing_phase_block_receipt
 #print axioms AvailableChain.FGSA.Run.healing_evidence_spread
 #print axioms AvailableChain.FGSA.Run.healing_phase_rows_spread
+
+-- K-ROWS: full walk, source cases, fresh rows, and actual-anchor retention.
+#print axioms AvailableChain.FGSA.Run.pending_action_head
+#print axioms AvailableChain.FGSA.Run.finality_action_source
+#print axioms AvailableChain.FGSA.Run.fresh_unanimous_rows
+#print axioms AvailableChain.FGSA.Run.actual_anchor_cap
+#print axioms AvailableChain.FGSA.Run.actual_anchor_retained_or_covered
