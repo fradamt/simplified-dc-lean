@@ -2,6 +2,7 @@ module
 public import AvailableChainKitFG.FrameBridge
 public import AvailableChainKitFG.StoreSafetyDef
 public import AvailableChainKitFG.Correspondence
+public import AvailableChainKitFG.JustificationLawsDef
 
 public section
 
@@ -108,6 +109,151 @@ theorem storeFrameView_height_of_crossed_prefix_of_inv
   have hm := hH.h_mono (hc W hW U hU (by simp only [Height] at *; omega))
   rw [hH.entry_same_height, hu] at hm
   exact hm
+
+/-- The height bridge supplies the three laws for the justified entry. -/
+theorem FGJustificationLaws.of_bridge {E : Electorate V} {cfg : FGConfig}
+    {v : FGHeightView V} (hb : HeightBridge E cfg v) : FGJustificationLaws v := by
+  have heq : v = simplexHeightView E cfg := funext hb
+  rw [heq]
+  exact ⟨J_is_entry E cfg, entry_height E cfg, justified_zero_is_genesis E cfg⟩
+
+/-- A contest has a crossed entry that is incompatible with the stored J. -/
+private theorem frameGeometry_contest_crossing_of_inv
+    (E : Electorate V) (H : FGHeightView V) (hH : FGHeightLaws E H)
+    (f : FGFinalityView V) (st : Store V) (hI : FGStoreInvariant H f st)
+    (hJ : FGJustificationLaws H) (htop : st.h_max = st.h_j + 1)
+    (W : FGBlock V) (hW : (H W).h = st.h_max) (hn : ¬ FGBlock.Preceq st.J W) :
+    ∃ U, FGBlock.Preceq U W ∧ (H U).h < (H W).h ∧
+      ¬ (FGBlock.Preceq st.J (H U).T_h ∨ FGBlock.Preceq (H U).T_h st.J) := by
+  obtain ⟨K, _, _, hj, hJK⟩ := hI.pair.1
+  have hnz : st.h_j ≠ 0 := by
+    intro hz
+    exact hn (hJK ▸ hJ.J_zero K (hj.symm.trans hz) ▸ genesis_preceq W)
+  obtain ⟨U, hU, hh, _⟩ := hH.height_crossing W st.h_j
+    (Nat.one_le_iff_ne_zero.mpr hnz)
+    (by rw [hW, htop]; exact Nat.lt_succ_self _)
+  refine ⟨U, hU, by rw [hh, hW, htop]; exact Nat.lt_succ_self _, ?_⟩
+  intro hc
+  have hJW : FGBlock.Preceq (H U).T_h W := preceq_trans (hH.entry_preceq U) hU
+  have hhJ : (H st.J).h = (H U).h := by
+    rw [hJK, hJ.J_height K (fun hz => hnz (hj.trans hz))]
+    exact hj.symm.trans hh.symm
+  have heJ : (H st.J).T_h = st.J := hJK ▸ hJ.J_entry K
+  rcases hc with hc | hc
+  · exact hn (preceq_trans hc hJW)
+  · have he : (H U).T_h = st.J := by
+      have hp := hH.entry_plateau hc ((hH.entry_same_height U).trans hhJ.symm)
+      rw [hH.entry_idem, heJ] at hp
+      exact hp
+    exact hn (he ▸ hJW)
+
+/-- Compatible crossed entries exclude a contest in the view frame. -/
+theorem storeFrameView_noContest_of_crossed_of_inv
+    (E : Electorate V) (H : FGHeightView V) (hH : FGHeightLaws E H)
+    (f : FGFinalityView V) (st : Store V) (hI : FGStoreInvariant H f st)
+    (hJ : FGJustificationLaws H)
+    (hc : ∀ W ∈ st.TF, ∀ U, FGBlock.Preceq U W → (H U).h < (H W).h →
+      FGBlock.Preceq st.J (H U).T_h ∨ FGBlock.Preceq (H U).T_h st.J) :
+    (storeControlsView H st).contest = false := by
+  apply Bool.eq_false_iff.mpr
+  intro ht
+  change (decide (st.h_max = st.h_j + 1) && decide _) = true at ht
+  rw [Bool.and_eq_true, decide_eq_true_eq, decide_eq_true_eq] at ht
+  obtain ⟨htop, W, hW, hh, hn⟩ := ht
+  obtain ⟨U, hU, hlt, hbad⟩ :=
+    frameGeometry_contest_crossing_of_inv E H hH f st hI hJ htop W hh hn
+  exact hbad (hc W hW U hU hlt)
+
+/-- A block compatible with J and crossed entries precedes every contest witness. -/
+theorem storeFrameView_contest_of_compatible_of_inv
+    (E : Electorate V) (H : FGHeightView V) (hH : FGHeightLaws E H)
+    (f : FGFinalityView V) (st : Store V) (hI : FGStoreInvariant H f st)
+    (hJ : FGJustificationLaws H) (B : FGBlock V)
+    (hJB : FGBlock.Preceq st.J B ∨ FGBlock.Preceq B st.J)
+    (hc : ∀ W ∈ st.TF, ∀ U, FGBlock.Preceq U W → (H U).h < (H W).h →
+      FGBlock.Preceq (H U).T_h B ∨ FGBlock.Preceq B (H U).T_h)
+    (ht : (storeControlsView H st).contest = true) :
+    FGBlock.Preceq B st.J ∧ ∀ W ∈ st.TF, (H W).h = st.h_max →
+      ¬ FGBlock.Preceq st.J W → FGBlock.Preceq B W := by
+  have ht' := ht
+  change (decide (st.h_max = st.h_j + 1) && decide _) = true at ht'
+  rw [Bool.and_eq_true, decide_eq_true_eq, decide_eq_true_eq] at ht'
+  obtain ⟨htop, W₀, hW₀, hh₀, hn₀⟩ := ht'
+  have step : ∀ W ∈ st.TF, (H W).h = st.h_max → ¬ FGBlock.Preceq st.J W →
+      FGBlock.Preceq B st.J ∧ FGBlock.Preceq B W := by
+    intro W hW hh hn
+    obtain ⟨U, hU, hlt, hbad⟩ :=
+      frameGeometry_contest_crossing_of_inv E H hH f st hI hJ htop W hh hn
+    have hBW : FGBlock.Preceq B (H U).T_h := by
+      rcases hc W hW U hU hlt with hu | hu
+      · rcases hJB with hj | hj
+        · exact (hbad (preceq_total_of_common hj hu)).elim
+        · exact (hbad (Or.inr (preceq_trans hu hj))).elim
+      · exact hu
+    have hBJ : FGBlock.Preceq B st.J := by
+      rcases hJB with hj | hj
+      · exact (hbad (Or.inl (preceq_trans hj hBW))).elim
+      · exact hj
+    exact ⟨hBJ, preceq_trans hBW (preceq_trans (hH.entry_preceq U) hU)⟩
+  exact ⟨(step W₀ hW₀ hh₀ hn₀).1, fun W hW hh hn => (step W hW hh hn).2⟩
+
+/-- Compatibility retains a stored block above F unless the frame anchor covers it. -/
+theorem storeFrameView_retention_of_compatible_of_inv
+    (E : Electorate V) (H : FGHeightView V) (hH : FGHeightLaws E H)
+    (f : FGFinalityView V) (st : Store V) (hI : FGStoreInvariant H f st)
+    (hJ : FGJustificationLaws H) (B : FGBlock V)
+    (hB : B ∈ st.TF) (hFB : FGBlock.Preceq st.F B)
+    (hJB : FGBlock.Preceq st.J B ∨ FGBlock.Preceq B st.J)
+    (hc : ∀ W ∈ st.TF, ∀ U, FGBlock.Preceq U W → (H U).h < (H W).h →
+      FGBlock.Preceq (H U).T_h B ∨ FGBlock.Preceq B (H U).T_h) :
+    FGBlock.Preceq B (storeControlsView H st).Z ∨
+      B ∈ filteredFromView H (storeControlsView H st) st.TF := by
+  let c := storeControlsView H st
+  by_cases hBZ : FGBlock.Preceq B c.Z
+  · exact Or.inl hBZ
+  right
+  have hZB : FGBlock.Preceq c.Z B := by
+    change FGBlock.Preceq (if c.rootIsJ then st.J else st.F) B
+    cases hr : c.rootIsJ
+    · exact hFB
+    · rcases hJB with hj | hj
+      · exact hj
+      · exact (hBZ (by
+          change FGBlock.Preceq B (if c.rootIsJ then st.J else st.F)
+          rw [hr]; exact hj)).elim
+  apply (mem_filteredFromView H c st.TF B).2
+  refine ⟨hB, hFB, hZB, ?_⟩
+  cases ht : c.contest with
+  | true =>
+    have hx := storeFrameView_contest_of_compatible_of_inv E H hH f st hI hJ B hJB hc ht
+    have ht' := ht
+    change (decide (st.h_max = st.h_j + 1) && decide _) = true at ht'
+    rw [Bool.and_eq_true, decide_eq_true_eq, decide_eq_true_eq] at ht'
+    obtain ⟨_, W, hW, hh, hn⟩ := ht'
+    exact ⟨W, hW, hx.2 W hW hh hn, hh ▸ Controls.lo_le_H c⟩
+  | false =>
+    have hlo : c.lo = st.h_max - 1 := by
+      change (if c.contest then _ else _) = _
+      rw [ht]
+      rfl
+    by_cases hsmall : st.h_max ≤ 1
+    · exact ⟨B, hB, preceq_refl B, by rw [hlo]; simp only [Height] at *; omega⟩
+    obtain ⟨W, hW, hsup⟩ :=
+      Finset.exists_mem_eq_sup st.TF ⟨_, hI.gen⟩ (fun W => (H W).h)
+    have hw : (H W).h = st.h_max := by
+      have hm := hI.hmax
+      rw [hsup] at hm
+      simp only [Height] at *
+      omega
+    obtain ⟨U, hU, hu, _⟩ := hH.height_crossing W (st.h_max - 1)
+      (by simp only [Height] at *; omega) (by simp only [Height] at *; omega)
+    rcases hc W hW U hU (by simp only [Height] at *; omega) with heB | hBe
+    · refine ⟨B, hB, preceq_refl B, ?_⟩
+      have hm := hH.h_mono heB
+      rw [hH.entry_same_height] at hm
+      exact hlo.trans hu.symm ▸ hm
+    · exact ⟨W, hW, preceq_trans hBe (preceq_trans (hH.entry_preceq U) hU),
+        by rw [hlo, hw]; simp only [Height] at *; omega⟩
 
 end AvailableChain.KitFG
 end

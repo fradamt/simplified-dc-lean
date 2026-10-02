@@ -114,7 +114,10 @@ lake env lean --run scripts/CheckFGAxioms.lean --expect \
   storeControls_of_bridge storeFrame_of_bridge fjControls_of_bridge fjFrame_of_bridge \
   mem_filteredFromView mem_filteredFrom_of_bridge \
   storeControlsView_eq_fjControlsView_of_inv storeFrameView_full_of_inv \
-  storeFrameView_height_of_crossed_prefix_of_inv finalityCap_row_of_certificate
+  storeFrameView_height_of_crossed_prefix_of_inv finalityCap_row_of_certificate \
+  FGJustificationLaws.of_bridge \
+  storeFrameView_noContest_of_crossed_of_inv storeFrameView_contest_of_compatible_of_inv \
+  storeFrameView_retention_of_compatible_of_inv
 step "scripts/FGPinIds.lean --check-names"
 lake env lean --run scripts/FGPinIds.lean --check-names
 step "scripts/check-fg-pins.sh"

@@ -118,6 +118,95 @@ theorem frameGeometry_missing_J_height :
     frameGeometry_bad_height_laws, .node .genesis 1 0 [], ?_⟩
   decide +kernel
 
+-- The bridge supplies the new record without a certificate-law premise.
+example (E : Electorate V) (cfg : FGConfig) :
+    FGJustificationLaws (simplexHeightView E cfg) :=
+  FGJustificationLaws.of_bridge (fun _ => rfl)
+
+example (E : Electorate V) (cfg : FGConfig) (st : Store V) (hi : StoreInv E cfg st)
+    (hc : ∀ W ∈ st.TF, ∀ U, FGBlock.Preceq U W → hOf E cfg U < hOf E cfg W →
+      FGBlock.Preceq st.J (derive E cfg U).T_h ∨
+        FGBlock.Preceq (derive E cfg U).T_h st.J) :
+    (storeControls E cfg st).contest = false :=
+  storeFrameView_noContest_of_crossed_of_inv E _ (simplexHeightLaws E cfg) _ st
+    (simplexStoreInvariant E cfg st hi) (FGJustificationLaws.of_bridge (fun _ => rfl)) hc
+
+example (E : Electorate V) (cfg : FGConfig) (st : Store V) (hi : StoreInv E cfg st)
+    (B : FGBlock V) (hJB : FGBlock.Preceq st.J B ∨ FGBlock.Preceq B st.J)
+    (hc : ∀ W ∈ st.TF, ∀ U, FGBlock.Preceq U W → hOf E cfg U < hOf E cfg W →
+      FGBlock.Preceq (derive E cfg U).T_h B ∨ FGBlock.Preceq B (derive E cfg U).T_h)
+    (ht : (storeControls E cfg st).contest = true) :
+    FGBlock.Preceq B st.J ∧ ∀ W ∈ st.TF, hOf E cfg W = st.h_max →
+      ¬ FGBlock.Preceq st.J W → FGBlock.Preceq B W :=
+  storeFrameView_contest_of_compatible_of_inv E _ (simplexHeightLaws E cfg) _ st
+    (simplexStoreInvariant E cfg st hi) (FGJustificationLaws.of_bridge (fun _ => rfl))
+    B hJB hc ht
+
+example (E : Electorate V) (cfg : FGConfig) (st : Store V) (hi : StoreInv E cfg st)
+    (B : FGBlock V) (hB : B ∈ st.TF) (hFB : FGBlock.Preceq st.F B)
+    (hJB : FGBlock.Preceq st.J B ∨ FGBlock.Preceq B st.J)
+    (hc : ∀ W ∈ st.TF, ∀ U, FGBlock.Preceq U W → hOf E cfg U < hOf E cfg W →
+      FGBlock.Preceq (derive E cfg U).T_h B ∨ FGBlock.Preceq B (derive E cfg U).T_h) :
+    FGBlock.Preceq B (storeControls E cfg st).Z ∨
+      B ∈ filteredFrom E cfg (storeControls E cfg st) st.TF := by
+  rw [storeControls_of_bridge E cfg (simplexHeightView E cfg) (fun _ => rfl),
+    filteredFrom_of_bridge E cfg (simplexHeightView E cfg) (fun _ => rfl)]
+  exact storeFrameView_retention_of_compatible_of_inv E _ (simplexHeightLaws E cfg) _ st
+    (simplexStoreInvariant E cfg st hi) (FGJustificationLaws.of_bridge (fun _ => rfl))
+    B hB hFB hJB hc
+
+example : (storeControlsView (simplexHeightView E4 cfg1) frameGeometryStore).contest = false := by
+  apply storeFrameView_noContest_of_crossed_of_inv E4 _ (simplexHeightLaws E4 cfg1) _ _
+    frameGeometry_store_inv (FGJustificationLaws.of_bridge (fun _ => rfl))
+  intro W _ U _ _
+  have hJ : frameGeometryStore.J = .genesis := by decide
+  exact Or.inl (hJ ▸ genesis_preceq _)
+
+private theorem frameGeometry_contested_store_inv :
+    FGStoreInvariant (simplexHeightView E4 cfg1) (simplexFinalityView E4 cfg1) stC := by
+  apply simplexStoreInvariant E4 cfg1
+  have step : ∀ st B, StoreInv E4 cfg1 st → StoreInv E4 cfg1 (on_block E4 cfg1 st B) :=
+    fun st B hi => storeInv_on_block E4 cfg1 st B hi (fun _ => viewRootInj_all _)
+  have h1 := step Store.init B1a (storeInv_init E4 cfg1)
+  have h2 := step _ childA h1
+  have h3 := step _ B1b h2
+  have h4 := step _ Y h3
+  have h5 := step _ X h4
+  simpa only [stC, List.foldl_cons, List.foldl_nil] using h5
+
+example : (storeControlsView (simplexHeightView E4 cfg1) stC).contest = true ∧
+    FGBlock.Preceq (.genesis : FGBlock (Fin 4)) stC.J ∧
+      ∀ W ∈ stC.TF, (simplexHeightView E4 cfg1 W).h = stC.h_max →
+        ¬ FGBlock.Preceq stC.J W → FGBlock.Preceq .genesis W := by
+  refine ⟨by decide +kernel, ?_⟩
+  apply storeFrameView_contest_of_compatible_of_inv E4 _ (simplexHeightLaws E4 cfg1) _ _
+    frameGeometry_contested_store_inv (FGJustificationLaws.of_bridge (fun _ => rfl)) .genesis
+    (Or.inr (genesis_preceq _)) _ (by decide +kernel)
+  intro W _ U _ _
+  exact Or.inr (genesis_preceq _)
+
+example : B1 ∈ filteredFromView (simplexHeightView E4 cfg1)
+    (storeControlsView (simplexHeightView E4 cfg1) frameGeometryStore) frameGeometryStore.TF := by
+  have hret := storeFrameView_retention_of_compatible_of_inv E4 _ (simplexHeightLaws E4 cfg1)
+    _ _ frameGeometry_store_inv (FGJustificationLaws.of_bridge (fun _ => rfl)) B1
+    (by decide) (by decide) (by decide) (by
+      intro W hWmem U hU _
+      have htree : frameGeometryStore.TF = {.genesis, B1} := by decide
+      have hW : W = .genesis ∨ W = B1 := by
+        simpa only [htree, Finset.mem_insert, Finset.mem_singleton] using hWmem
+      rcases hW with rfl | rfl
+      · have he := preceq_genesis.mp hU
+        subst U
+        exact Or.inl (genesis_preceq _)
+      · exact Or.inl (preceq_trans ((simplexHeightLaws E4 cfg1).entry_preceq U) hU))
+  exact hret.resolve_left (by decide)
+
+#print axioms FGJustificationLaws.of_bridge
+#print axioms storeFrameView_noContest_of_crossed_of_inv
+#print axioms storeFrameView_contest_of_compatible_of_inv
+#print axioms storeFrameView_retention_of_compatible_of_inv
+#print axioms frameGeometry_contested_store_inv
+
 #print axioms mem_filteredFromView
 #print axioms mem_filteredFrom_of_bridge
 #print axioms storeControlsView_eq_fjControlsView_of_inv
