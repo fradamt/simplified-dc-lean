@@ -87,7 +87,7 @@ DC: INTENTIONAL membership uses the supplied view and the live controls.
 This proves the fifth frozen RPhase clause; its path premise is not needed. -/
 theorem healing_frontier_mem (crossing : RXing p c E rho)
     (i : Nat) (x : V) (m : Nat) (X : Finset (FGBlock (Fin p.n))) (B : FGBlock (Fin p.n))
-    (hx : x ∈ rho.honest) (_hi : i ≤ rho.events.length) (_hm : 2 ≤ m)
+    (hx : x ∈ rho.honest) (_hi : i ≤ rho.events.length) (_hm : 1 ≤ m)
     (hH : (R_at p c E rho i x).H = m) (hX : X ⊆ (storeAt p c E rho i x).fg.TF)
     (hB : B ∈ X) (_hpath : ∀ A, FGBlock.Preceq A B → A ∈ X)
     (hh : (heightView p B).h = m) :

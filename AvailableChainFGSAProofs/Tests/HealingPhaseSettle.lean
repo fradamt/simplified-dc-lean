@@ -23,21 +23,20 @@ Tests/HealingPhase.lean.
 * P6: `healing_rPhase`, the exact `RPhase`, with no new premise.
 * Bootstrap (B21). Private m = 1 lemmas in PhaseBoot: `boot_height_one`
   (H = 1, j = 0, J = genesis, no contest, rootIsJ, lo = 0), `boot_phase_one`
-  (the m = 1 PhaseInterval body with root `some genesis`), and
-  `boot_not_effective_one` (clause 3 is vacuous at m = 1). They become public
-  after the B21 statement edit. Public: `healing_phase_first_rise` locates the
-  first rise to height two; `healing_attemptValid_of_event` starts a raise
-  attempt from an effective event after GST.
+  (the m = 1 PhaseInterval with root `some genesis`, from the strict cut), and
+  `boot_not_effective_one` (clause 3 is vacuous at m = 1). Public:
+  `healing_phase_first_rise` locates the first rise to height two;
+  `healing_attemptValid_of_event` starts a raise attempt from an effective
+  event after GST.
 
-Uses of the bound 2 ≤ m (not only binders), for the B21 merge:
-* r1 `healing_phase_contest_persist` (PhaseOrder): h_j ≠ 0 for the entry
-  plateau; `healing_phase_order` passes it on. At m = 1 no contest exists.
-* r2 `healing_phase_top_node`: h_j(C) ≠ 0 for the entry plateau.
-* r2 `settle_finish`: only for the `2 ≤ m` conjunct of PhaseInterval.
-* r2 `healing_attemptValid_of_event`: only for the `2 ≤ k.frontier` conjunct.
-* r1 `healing_phaseWitness` binds 2 ≤ m; its proof needs only 1 ≤ m.
-* r1 `healing_evidence_spread`, `healing_frontier_mem`, `healing_phase_frame`:
-  the bound is not used.
+Merge onto the freeze line (B21 1 ≤ m, B25 strict lower cut):
+* `healing_phase_entries_eq` has no h_j ≠ 0 premise: at h_j = 0 both J are
+  genesis. Thus `healing_phase_contest_persist` and `healing_phase_top_node`
+  have no bound on m, and RPhase clause 1 holds at m = 1.
+* `healing_settle_event` and `healing_rPhase` take 1 ≤ m. The settled
+  controls hold from the strict cut at ev.time + Δ, which is at or before
+  the strict cut at ev.time + 3Δ.
+* No remaining proof uses 2 ≤ m.
 
 Foundation inputs are hypotheses: RMono from `fgsa_rMono`, RXing from
 `fgsa_apiFinalLockClaim_body`. The other inputs are ExecutionValid,
@@ -75,7 +74,7 @@ example (hne : rho.honest.Nonempty) {n : Nat} (hn : 2 ≤ frontierAtIdx p c E rh
   obtain ⟨i, hin, _, h2, heff⟩ := healing_phase_first_rise p c E rho hne hn
   have hev : rho.events[i]? = some rho.events[i] := List.getElem?_eq_getElem (by omega)
   obtain ⟨k, -, -, -, hk⟩ :=
-    healing_attemptValid_of_event p c E rho hev (hgst i _ hev) heff h2
+    healing_attemptValid_of_event p c E rho hev (hgst i _ hev) heff (by omega)
   exact ⟨k, hk⟩
 
 end AvailableChain.FGSA.Run.Tests.HealingPhaseSettle

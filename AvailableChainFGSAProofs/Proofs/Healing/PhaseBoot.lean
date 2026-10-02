@@ -21,7 +21,7 @@ private theorem boot_one_le_hmax (i : Nat) (x : V) :
 
 /-- Blueprint 21:1236–1237, 1467–1468; plan S20, H-PHASE r2/Q3 (B21).
 DC: INTENTIONAL at frontier one each live frame is the genesis top-J frame,
-with lo = 0. No contest is possible. Private until the B21 statement edit. -/
+with lo = 0. No contest is possible. -/
 private theorem boot_height_one {i : Nat} {x : V} (hx : x ∈ rho.honest)
     (hfront : frontierAtIdx p c E rho i = 1) :
     (R_at p c E rho i x).H = 1 ∧ (R_at p c E rho i x).j = 0 ∧
@@ -56,15 +56,13 @@ private theorem boot_height_one {i : Nat} {x : V} (hx : x ∈ rho.honest)
     rfl
 
 /-- Blueprint 21:1236–1237, 1467–1468; plan S20, H-PHASE r2/Q3 (B21).
-DC: INTENTIONAL the m = 1 instance of the PhaseInterval body, with root
-`some genesis` and no contest. It holds on every range at frontier one.
-Private until the B21 statement edit relaxes 2 ≤ m to 1 ≤ m. -/
+DC: INTENTIONAL the m = 1 PhaseInterval, with root `some genesis` and no
+contest, from the strict cut at u (B21, B25). It holds on every range at
+frontier one. -/
 private theorem boot_phase_one {u v : Time} (huv : u ≤ v) (hv : v ≤ rho.horizon)
-    (hfront : ∀ i, timeIdx rho u ≤ i → i ≤ timeIdx rho v → frontierAtIdx p c E rho i = 1) :
-    u ≤ v ∧ v ≤ rho.horizon ∧ 1 ≤ 1 ∧
-      ∀ i x, timeIdx rho u ≤ i → i ≤ timeIdx rho v → x ∈ rho.honest →
-        let R := R_at p c E rho i x
-        R.H = 1 ∧ R.contest = false ∧ (R.rootIsJ = true ∧ R.J = .genesis) := by
+    (hfront : ∀ i, V2.D.Run.idxBefore rho u ≤ i → i ≤ timeIdx rho v →
+      frontierAtIdx p c E rho i = 1) :
+    PhaseInterval p c E rho u v 1 (some .genesis) false := by
   refine ⟨huv, hv, le_rfl, ?_⟩
   intro i x hui hiv hx
   obtain ⟨hH, _, hJ, hc, hr, _⟩ := boot_height_one p c E rho hx (hfront i hui hiv)
@@ -72,7 +70,7 @@ private theorem boot_phase_one {u v : Time} (huv : u ≤ v) (hv : v ≤ rho.hori
 
 /-- Blueprint 21:1003–1012, 1467–1468; plan S20, H-PHASE r2/Q3 (B21).
 DC: INTENTIONAL no event is effective with resulting frontier one, so the
-settlement clause is vacuous at m = 1. Private until the B21 statement edit. -/
+settlement clause is vacuous at m = 1. -/
 private theorem boot_not_effective_one (hnr : V2.D.NoRestart rho) {i : Nat}
     (hf : frontierAtIdx p c E rho (i + 1) = 1) : ¬ EffectiveEvent p c E rho i := by
   have hne : rho.honest.Nonempty := by
@@ -126,11 +124,11 @@ theorem healing_phase_first_rise (hne : rho.honest.Nonempty) {n : Nat}
   exact ⟨i, hjn, hi1, hj, Or.inl (by rw [hi1]; exact hj)⟩
 
 /-- Blueprint 21:1263–1279; plan S20, H-PHASE r2/Q3 (B3).
-DC: INTENTIONAL an effective event after GST at frontier at least two starts a
-raise attempt. The phase and served flag are read from the actual run. -/
+DC: INTENTIONAL an effective event after GST starts a raise attempt at its
+resulting frontier (B21: 1 ≤ m). The phase and served flag are read from the actual run. -/
 theorem healing_attemptValid_of_event {i : Nat} {ev : V2.Event V (Obj p)}
     (hi : rho.events[i]? = some ev) (hgst : E.t_GST ≤ ev.time)
-    (heff : EffectiveEvent p c E rho i) (hm : 2 ≤ frontierAtIdx p c E rho (i + 1)) :
+    (heff : EffectiveEvent p c E rho i) (hm : 1 ≤ frontierAtIdx p c E rho (i + 1)) :
     ∃ k : AttemptKey, k.start = i ∧ k.frontier = frontierAtIdx p c E rho (i + 1) ∧
       k.task = .raise ∧ AttemptValid p c E rho k := by
   classical

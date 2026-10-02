@@ -813,6 +813,7 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 -- H-PHASE r2: settlement, RPhase, and height-one bootstrap facts.
 #print axioms AvailableChain.FGSA.Run.healing_phase_idx_le_time
 #print axioms AvailableChain.FGSA.Run.healing_phase_lt_timeIdx
+#print axioms AvailableChain.FGSA.Run.healing_phase_idxBefore_mono
 #print axioms AvailableChain.FGSA.Run.healing_frontier_mono
 #print axioms AvailableChain.FGSA.Run.healing_phase_held_receipt
 #print axioms AvailableChain.FGSA.Run.healing_phase_entries_eq

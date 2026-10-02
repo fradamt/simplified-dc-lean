@@ -132,6 +132,7 @@ EXPECTED = (
     # H-PHASE r2: --expect additions only.
     'AvailableChain.FGSA.Run.healing_phase_idx_le_time',
     'AvailableChain.FGSA.Run.healing_phase_lt_timeIdx',
+    'AvailableChain.FGSA.Run.healing_phase_idxBefore_mono',
     'AvailableChain.FGSA.Run.healing_frontier_mono',
     'AvailableChain.FGSA.Run.healing_phase_held_receipt',
     'AvailableChain.FGSA.Run.healing_phase_entries_eq',

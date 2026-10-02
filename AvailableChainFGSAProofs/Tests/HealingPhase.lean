@@ -17,21 +17,8 @@ H-PHASE coverage (plan S20, 2026-10-02):
 * P7: `HealingPhaseWitness` and `healing_phaseWitness`. The record contains
   actual held carriers for frontier, top-J, and contest evidence.
 
-P3 remains open. Under the exact event, GST, horizon, phase, and no-later-event
-hypotheses of RPhase clause 3 (ComposeStmt:472–483), produce one J and both
-`PhaseInterval (ev.time + 3 * p.Δ) v m root contested` and the HEAD frames.
-The unresolved step is common top-J identity and common live controls across
-all receivers throughout that interval, including carriers accepted before GST.
-For held C and D with equal positive top justification height, the needed
-identity is `(heightView p C).J = (heightView p D).J`. The local phase-order
-proof does not supply it: it permits the cached J to change at the same height.
-No new hypothesis for this step was added. P6 is omitted until P3 is proved.
-
-Bootstrap remains open. `healing_phase_initial_frontier` proves that the
-initial frontier is one for a nonempty honest set. The missing producer must
-give actual height-one ExactService and the first effective frontier rise,
-then construct the height-at-least-two AttemptValid input. No M >= 2 premise
-or height-one AttemptValid witness is asserted here.
+P3 and P6 are proved in r2: see Tests/HealingPhaseSettle.lean. The m = 1
+bootstrap (B21) is also there.
 
 Foundation inputs cross the lane boundary as hypotheses. RMono comes from
 `fgsa_rMono`; RXing comes from `fgsa_apiFinalLockClaim_body`; TRowsReceipt
@@ -40,7 +27,7 @@ The Healing modules import no Foundations proof. They use neither HB1 nor TDel.
 P1 also takes NoRestart. P2 takes ExecutionValid, NoRestart, E.Δ = p.Δ, and
 PartialSynchronyBy with fgsaDelay. The row companion takes ScheduleWellFormed,
 NoRestart, TRowsReceipt, GST/horizon bounds, and actual emissions by its cut.
-P4 and P5 take RXing and their frozen clause antecedents. P7 takes m >= 2 and
+P4 and P5 take RXing and their frozen clause antecedents. P7 takes 1 <= m and
 the actual frontier equality. The initial-frontier lemma takes honest.Nonempty.
 
 All 17 public theorems are in Tests/Axioms. Each print reports exactly
@@ -58,7 +45,7 @@ variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
 
 -- The first clause has the frozen quantifiers and uses the existing RMono producer.
 example (hnr : V2.D.NoRestart rho) (a b m : Nat)
-    (hab : a ≤ b) (hb : b ≤ rho.events.length) (hm : 2 ≤ m)
+    (hab : a ≤ b) (hb : b ≤ rho.events.length) (hm : 1 ≤ m)
     (hfixed : ∀ i, a ≤ i → i ≤ b → frontierAtIdx p c E rho i = m) :
     (∀ i j, a ≤ i → i ≤ j → j ≤ b →
       (TopEvidence p c E rho i m → TopEvidence p c E rho j m) ∧
@@ -77,7 +64,7 @@ example [Fintype V] (hp : FinalizedSafetyPrem p c E rho ())
     u v m J contested hgst hphase i x hui hiv hx
 
 -- The witness producer has no phase or service premise.
-example {i m : Nat} (hm : 2 ≤ m) (hf : frontierAtIdx p c E rho i = m) :
+example {i m : Nat} (hm : 1 ≤ m) (hf : frontierAtIdx p c E rho i = m) :
     HealingPhaseWitness p c E rho i m := healing_phaseWitness p c E rho hm hf
 
 -- Genesis is a real height-one frontier. Since ruling B21, AttemptValid admits frontier 1

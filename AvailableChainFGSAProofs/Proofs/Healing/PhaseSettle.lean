@@ -44,9 +44,10 @@ theorem healing_phase_window (hnr : V2.D.NoRestart rho) {i m : Nat} {v : Time}
 
 /-- Blueprint 21:1105–1113, 1193–1209; plan S20, H-PHASE r2/P3.
 DC: INTENTIONAL a held top carrier fixes the local top J below the frontier cap.
-Assembly supplies RXing. A J on the carrier path is the carrier's J. -/
+Assembly supplies RXing. A J on the carrier path is the carrier's J.
+At m = 1 both J are genesis (B21). -/
 theorem healing_phase_top_node (crossing : RXing p c E rho) {k m : Nat} {y : V}
-    {C : FGBlock (Fin p.n)} (hy : y ∈ rho.honest) (hm : 2 ≤ m)
+    {C : FGBlock (Fin p.n)} (hy : y ∈ rho.honest)
     (hC : C ∈ (storeAt p c E rho k y).fg.TF) (hh : (heightView p C).h = m)
     (hj : (heightView p C).h_j + 1 = m) (hcap : frontierAtIdx p c E rho k ≤ m) :
     (storeAt p c E rho k y).fg.h_max = m ∧ (storeAt p c E rho k y).fg.h_j + 1 = m ∧
@@ -79,7 +80,6 @@ theorem healing_phase_top_node (crossing : RXing p c E rho) {k m : Nat} {y : V}
   rw [hJD]
   apply healing_phase_entries_eq p (W := C)
   · (simp only [Height] at *; omega)
-  · (simp only [Height] at *; omega)
   · exact hJD ▸ hJ
   · exact hJC
 
@@ -94,11 +94,12 @@ private theorem settle_frame_fg {st st' : State p.n} (h : st.fg = st'.fg)
 
 /-- Blueprint 21:1003–1012, 1155–1163; plan S20, H-PHASE r2/P3.
 DC: INTENTIONAL common live controls from Δ after the event give the interval
-from 3Δ and every frozen HEAD frame. Assembly supplies RXing. -/
+from the strict cut at 3Δ (B25) and every frozen HEAD frame.
+Assembly supplies RXing. -/
 private theorem settle_finish (crossing : RXing p c E rho)
     (hvalid : V2.D.ExecutionValid E rho) {ev : V2.Event V (Obj p)}
     {v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
-    (hu : ev.time + 3 * p.Δ ≤ v) (hv : v ≤ rho.horizon) (hm : 2 ≤ m)
+    (hu : ev.time + 3 * p.Δ ≤ v) (hv : v ≤ rho.horizon) (hm : 1 ≤ m)
     (hcore : ∀ k y, V2.D.Run.idxBefore rho (ev.time + p.Δ) ≤ k → k ≤ timeIdx rho v →
       y ∈ rho.honest →
       (R_at p c E rho k y).H = m ∧ (R_at p c E rho k y).contest = contested ∧
@@ -117,7 +118,7 @@ private theorem settle_finish (crossing : RXing p c E rho)
     omega
   refine ⟨⟨by simp only [Time] at *; omega, hv, hm, ?_⟩, ?_⟩
   · intro k x hk hkv hx
-    exact hcore k x ((healing_phase_idx_le_time p c rho hd3).trans hk) hkv hx
+    exact hcore k x ((healing_phase_idxBefore_mono p c rho hd3).trans hk) hkv hx
   · intro y s nd hy hvote hvs hpost
     rw [postClock_def, preTick_def] at hpost
     cases hk : V2.D.Run.tickIdx? rho y (SA.voteTime p.toParams s) with
@@ -151,7 +152,7 @@ theorem healing_settle_event (crossing : RXing p c E rho)
     (hdelta : E.Δ = p.Δ) {ΔF : Time}
     (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF)) :
     ∀ i ev v m kind, rho.events[i]? = some ev → EffectiveEvent p c E rho i →
-      E.t_GST ≤ ev.time → ev.time + 3 * p.Δ ≤ v → v ≤ rho.horizon → 2 ≤ m →
+      E.t_GST ≤ ev.time → ev.time + 3 * p.Δ ≤ v → v ≤ rho.horizon → 1 ≤ m →
       frontierAtIdx p c E rho (i + 1) = m → AttemptPhaseAt p c E rho (i + 1) m kind →
       (∀ j, i < j → j < timeIdx rho v → ¬ EffectiveEvent p c E rho j) →
       ∃ J,
@@ -223,7 +224,7 @@ theorem healing_settle_event (crossing : RXing p c E rho)
     refine ⟨(heightView p C).J, settle_finish p c E rho crossing hvalid hu hv hm ?_⟩
     intro k y hk hkv hy
     have hCk := relay hC hh hk hy
-    obtain ⟨hmax, htop, hJ⟩ := healing_phase_top_node p c E rho crossing hy hm hCk hh hj
+    obtain ⟨hmax, htop, hJ⟩ := healing_phase_top_node p c E rho crossing hy hCk hh hj
       (hcap k hk hkv).le
     have hc : (R_at p c E rho k y).contest = false := by
       cases he : (R_at p c E rho k y).contest with
@@ -250,7 +251,7 @@ theorem healing_settle_event (crossing : RXing p c E rho)
     intro k y hk hkv hy
     have hCk := relay hC hhC hk hy
     have hWk := relay hW hhW hk hy
-    obtain ⟨hmax, htop, hJ⟩ := healing_phase_top_node p c E rho crossing hy hm hCk hhC hj
+    obtain ⟨hmax, htop, hJ⟩ := healing_phase_top_node p c E rho crossing hy hCk hhC hj
       (hcap k hk hkv).le
     have hc : (R_at p c E rho k y).contest = true := by
       change (decide ((storeAt p c E rho k y).fg.h_max =

@@ -218,7 +218,7 @@ theorem healing_evidence_spread (crossing : RXing p c E rho)
     (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
     (i : Nat) (ev : V2.Event V (Obj p)) (x : V) (W : FGBlock (Fin p.n)) (m : Nat)
     (hi : rho.events[i]? = some ev) (hx : x ∈ rho.honest) (hgst : E.t_GST ≤ ev.time)
-    (_hm : 2 ≤ m) (_hfront : frontierAtIdx p c E rho (i + 1) = m)
+    (_hm : 1 ≤ m) (_hfront : frontierAtIdx p c E rho (i + 1) = m)
     (hbefore : W ∉ (storeAt p c E rho i x).fg.TF)
     (hafter : W ∈ (storeAt p c E rho (i + 1) x).fg.TF) (hh : (heightView p W).h = m) :
     (ev.time + p.Δ ≤ rho.horizon → ∀ y ∈ rho.honest,
@@ -281,7 +281,7 @@ theorem healing_phase_rows_spread (ΔF : Time)
 omit [DecidableEq V] in
 /-- Blueprint 21:1142–1171; plan S20, H-PHASE r2/P3.
 DC: SAME a later strict cut contains every earlier strict receipt. -/
-private theorem phase_idxBefore_mono {d d' : Time} (hdd : d ≤ d') :
+theorem healing_phase_idxBefore_mono {d d' : Time} (hdd : d ≤ d') :
     V2.D.Run.idxBefore rho d ≤ V2.D.Run.idxBefore rho d' := by
   change (rho.events.filter (fun e => decide (e.time < d))).length ≤
     (rho.events.filter (fun e => decide (e.time < d'))).length
@@ -360,7 +360,7 @@ theorem healing_phase_held_receipt (crossing : RXing p c E rho)
     exact decode_eq_block.mp hdec
   have hdl : max t E.t_GST + p.Δ ≤ ev.time + p.Δ := Int.add_le_add_right (max_le htl hgst) _
   let j' := V2.D.Run.idxBefore rho (max t E.t_GST + p.Δ)
-  have hj' : j' ≤ j := phase_idxBefore_mono p c rho hdl
+  have hj' : j' ≤ j := healing_phase_idxBefore_mono p c rho hdl
   obtain ⟨K, hK, hKF⟩ := (storeBundle_stateBefore E rho j' y).cstore.fg.Fcar
   have hfj := (healing_phase_finality_le p c E rho hK hKF).trans_lt
     (healing_phase_justified_lt p c E rho j' y)
