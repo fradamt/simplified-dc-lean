@@ -1,4 +1,6 @@
 module
+public import AvailableChainFGSA.Proofs.WindowCertificates
+public import AvailableChainFGSA.Proofs.WindowStore
 public import AvailableChainFGSA.Proofs.WindowInvariant
 public import AvailableChainFGSA.Proofs.WindowHeightBridge
 public import AvailableChainFGSA.Proofs.Head.Score -- shake: keep (F1b.4a axiom audit)
@@ -382,3 +384,22 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 #print axioms AvailableChain.FGSA.Window.window_bit_retained
 #print axioms AvailableChain.FGSA.Window.window_no_reentry
 #print axioms AvailableChain.FGSA.Window.window_finality_of_cover
+
+-- Proofs/WindowCertificates.lean
+#print axioms AvailableChain.FGSA.Window.justificationBirth_window_iff_simplex
+#print axioms AvailableChain.FGSA.Window.window_entry_origin
+#print axioms AvailableChain.FGSA.Window.window_prefinal_entry_origin
+
+-- Proofs/WindowStore.lean
+#print axioms AvailableChain.FGSA.Window.acceptViable_eq
+#print axioms AvailableChain.FGSA.Window.update_finality_h_max_eq
+#print axioms AvailableChain.FGSA.Window.update_finality_J_eq
+#print axioms AvailableChain.FGSA.Window.update_finality_h_j_eq
+#print axioms AvailableChain.FGSA.Window.on_block_TF_eq
+#print axioms AvailableChain.FGSA.Window.windowStoreInv_init
+#print axioms AvailableChain.FGSA.Window.windowStoreInv_accept
+#print axioms AvailableChain.FGSA.Window.window_on_block_of_refused
+#print axioms AvailableChain.FGSA.Window.window_on_block_of_accepted
+#print axioms AvailableChain.FGSA.Window.window_on_block_F_mono
+#print axioms AvailableChain.FGSA.Window.windowStoreInv_on_block
+#print axioms AvailableChain.FGSA.Window.window_on_block_TF_subset
