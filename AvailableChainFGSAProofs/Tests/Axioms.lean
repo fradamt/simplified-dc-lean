@@ -2,6 +2,7 @@ module
 public import AvailableChainFGSAProofs.Proofs.Healing.Phase -- shake: keep (H-PHASE audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseRelay -- shake: keep (H-PHASE audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.Base -- shake: keep (H-BASE audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.Descent -- shake: keep (H-DESCENT audit)
 public import AvailableChainFGSAProofs.Proofs.Foundations.HonestNeverSlashed -- shake: keep (HNS audit)
 public import AvailableChainFGSAProofs.Proofs.Foundations.FinalityApi -- shake: keep (S4.5b axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersL2 -- shake: keep (consumer audit)
@@ -750,3 +751,15 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.healing_phase_block_receipt
 #print axioms AvailableChain.FGSA.Run.healing_evidence_spread
 #print axioms AvailableChain.FGSA.Run.healing_phase_rows_spread
+
+-- H-DESCENT: D1–D5.
+#print axioms AvailableChain.FGSA.Run.healing_source_gate
+#print axioms AvailableChain.FGSA.Run.healing_source_read
+#print axioms AvailableChain.FGSA.Run.healing_descent
+#print axioms AvailableChain.FGSA.Run.healing_entry_pair_incompatible
+#print axioms AvailableChain.FGSA.Run.healing_descent_pair
+#print axioms AvailableChain.FGSA.Run.healing_high_pair_compat
+#print axioms AvailableChain.FGSA.Run.healing_high_source_first_failure
+#print axioms AvailableChain.FGSA.Run.healing_finality_source
+#print axioms AvailableChain.FGSA.Run.healing_justified_source
+#print axioms AvailableChain.FGSA.Run.healing_rExcl
