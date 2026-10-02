@@ -588,8 +588,8 @@ premise is added. The phase is needed only for its horizon bound; the live
 in-band theorem gives the stronger local result. Blueprint 21 H.7 / H.9,
 IF.3(b), SO-COV. DC: INTENTIONAL live W execution and send-once coverage.
 The body is stated here without a Claims import, as required by L42. -/
-theorem rowPermission_at [Fintype V] (G : Time) (pt : Unit)
-    (h : HealingPrem p c G E rho pt) :
+theorem rowPermission_at [Fintype V] (G ΔF : Time) (pt : Unit)
+    (h : HealingPrem p c G ΔF E rho pt) :
     ∀ u v m J contested r x C nd,
       E.t_GST ≤ u → PhaseInterval p c E rho u v m J contested →
       u ≤ p.actionTime r → p.actionTime r ≤ v → x ∈ rho.honest →

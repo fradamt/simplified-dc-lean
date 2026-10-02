@@ -13,7 +13,7 @@ and IF.3(b) plus send-once history supplies a complete matching row.
 These are the lower-height and uncontested branches of TCommon at q = rR.
 DC: INTENTIONAL W source and exact-service contract; no fresh emission
 or caller-supplied client permission is assumed. -/
-theorem openingCovered_lower_gate (G : Time) (h : HealingPrem p c G E rho ())
+theorem openingCovered_lower_gate (G ΔF : Time) (h : HealingPrem p c G ΔF E rho ())
     (u : Time) (m : Nat) (J : Option (FGBlock (Fin p.n)))
     (r : Nat) (Q : Block) (Qfg : FGBlock (Fin p.n))
     (hGST : E.t_GST ≤ u) (hQ : eraseFG Qfg = Q)
@@ -79,5 +79,9 @@ theorem openingCovered_lower_gate (G : Time) (h : HealingPrem p c G E rho ())
       exact le_rfl
     obtain ⟨j, rSent, a, hr, ha, hn⟩ := rowPermission_covered E rho h.set.base h.set.fault
       x hx r nd hnd Qfg hread hd hlo (h.set.awake x hx _ (hGST.trans hut.le) hphase.2.1)
+    -- J6 states the pair in the heightView form; transport through the height bridge.
+    obtain ⟨-, hT, -, -⟩ :=
+      KitFG.heightBridge_fields p.E p.cfg (heightView p) (heightView_bridge p) Qfg
+    rw [KitFG.hOf_of_bridge p.E p.cfg (heightView p) (heightView_bridge p), ← hT] at hn
     exact ⟨Qfg, nd, j, rSent, a, hnd, hread, hd, hQ ▸ Gen.Pure.block_preceq_refl _, hr, ha, hn⟩
 end AvailableChain.FGSA.Run

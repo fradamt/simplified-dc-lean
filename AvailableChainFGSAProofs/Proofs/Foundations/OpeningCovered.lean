@@ -15,7 +15,7 @@ No client permission or fresh-emission premise is used.
 DC: INTENTIONAL, fixedRootWindowRows_of_source has a fixed-root source;
 this proof uses the actual W source and the existing exact-service contract.
 The height premise is bridge-equal to the consumer's hOf premise. -/
-theorem openingCovered_frontier_gate (G : Time) (h : HealingPrem p c G E rho ())
+theorem openingCovered_frontier_gate (G ΔF : Time) (h : HealingPrem p c G ΔF E rho ())
     (u : Time) (m : Nat) (J : Option (FGBlock (Fin p.n))) (contested : Bool)
     (r : Nat) (Q : Block) (Qfg : FGBlock (Fin p.n))
     (hGST : E.t_GST ≤ u) (hQ : eraseFG Qfg = Q)
@@ -73,5 +73,9 @@ theorem openingCovered_frontier_gate (G : Time) (h : HealingPrem p c G E rho ())
       exact (KitFG.Controls.lo_le_H _).trans_eq hH'
     obtain ⟨j, rSent, a, hr, ha, hn⟩ := rowPermission_covered E rho h.set.base h.set.fault
       x hx r nd hnd Qfg hread hd hlo (h.set.awake x hx _ (hGST.trans hut.le) hphase.2.1)
+    -- J6 states the pair in the heightView form; transport through the height bridge.
+    obtain ⟨-, hT, -, -⟩ :=
+      KitFG.heightBridge_fields p.E p.cfg (heightView p) (heightView_bridge p) Qfg
+    rw [KitFG.hOf_of_bridge p.E p.cfg (heightView p) (heightView_bridge p), ← hT] at hn
     exact ⟨Qfg, nd, j, rSent, a, hnd, hread, hd, hQ ▸ Gen.Pure.block_preceq_refl _, hr, ha, hn⟩
 end AvailableChain.FGSA.Run
