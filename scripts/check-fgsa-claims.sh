@@ -28,6 +28,15 @@ LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainF
 CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = (
+    'AvailableChain.FGSA.Run.fgsa_domainR_eq_storeFrameView',
+    'AvailableChain.FGSA.Run.fgsa_walk_domain_of_witness_view',
+    'AvailableChain.FGSA.Run.fgsa_score_geometry_of_retained_cuts',
+    'AvailableChain.FGSA.Run.fgsa_retained_path_mem',
+    'AvailableChain.FGSA.Run.fgsa_retained_proposal_mem',
+    'AvailableChain.FGSA.Run.fgsa_retained_persists_of_path',
+    'AvailableChain.FGSA.Run.fgsa_retained_proposal_mem_on_run',
+    'AvailableChain.FGSA.Run.fgsa_retained_path_persists_on_run',
+    'AvailableChain.FGSA.Run.fgsa_retainedWalk_geometry_on_run',
     'AvailableChain.FGSA.Run.retainedBand_def',
     'AvailableChain.FGSA.Run.ReflectedDomainWitness_def',
     'AvailableChain.FGSA.Run.retainedBand',

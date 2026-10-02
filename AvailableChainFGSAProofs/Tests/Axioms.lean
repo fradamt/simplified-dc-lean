@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.RetainedPersist -- shake: keep (persistence audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedReflect -- shake: keep (reflection audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedScores -- shake: keep (candidate score audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedWalk -- shake: keep (retained geometry audit)
@@ -613,3 +614,12 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_retained_old_child_reflects_on_run
 #print axioms AvailableChain.FGSA.Run.retainedBand_def
 #print axioms AvailableChain.FGSA.Run.ReflectedDomainWitness_def
+#print axioms AvailableChain.FGSA.Run.fgsa_domainR_eq_storeFrameView
+#print axioms AvailableChain.FGSA.Run.fgsa_walk_domain_of_witness_view
+#print axioms AvailableChain.FGSA.Run.fgsa_score_geometry_of_retained_cuts
+#print axioms AvailableChain.FGSA.Run.fgsa_retained_path_mem
+#print axioms AvailableChain.FGSA.Run.fgsa_retained_proposal_mem
+#print axioms AvailableChain.FGSA.Run.fgsa_retained_persists_of_path
+#print axioms AvailableChain.FGSA.Run.fgsa_retained_proposal_mem_on_run
+#print axioms AvailableChain.FGSA.Run.fgsa_retained_path_persists_on_run
+#print axioms AvailableChain.FGSA.Run.fgsa_retainedWalk_geometry_on_run
