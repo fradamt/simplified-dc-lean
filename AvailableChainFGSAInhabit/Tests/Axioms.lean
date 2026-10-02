@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAInhabit.WitnessPositive -- shake: keep (axioms)
 public import AvailableChainFGSAInhabit.WeakContinuationW1 -- shake: keep (axioms)
 
 /-! Axiom audit of every public W1 port declaration. -/
@@ -313,3 +314,63 @@ namespace AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
 #print axioms w1_cleanContinuation
 
 end AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
+
+/-! Axiom audit of the bounded positive execution facts. -/
+
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positivePrefix
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.firstHead
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.firstProposal
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_head_tick
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_head_output
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_head_receive_zero
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_head_receive_one
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_head_receive_two
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_head_receive_three
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_proposal_tick
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_proposal_output
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_proposal_receive_zero
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_proposal_receive_one
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_proposal_receive_two
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_proposal_receive_three
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_proposal_accepted
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.firstRow
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_row_tick
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_row_output
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_row_receive
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_row_admitted
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_six_zero
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_six_one
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_six_two
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_six_three
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_head_length
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_proposal_length
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_accept_length
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_row_length
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_source_prefix
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_get_extend
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_source_get
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_continuation_get
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_source_state
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_continuation_state
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_source_output
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_continuation_output
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_source_head
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_continuation_head
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_source_proposal
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_continuation_proposal
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_source_accepted
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_continuation_accepted
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_source_row
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_continuation_row
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_source_pool
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_continuation_pool
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_signer_honest
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_early_row_time
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_no_earlier_row
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_source_first_row
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_source_head_receipts
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_continuation_head_receipts
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_source_proposal_receipts
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_continuation_proposal_receipts
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_source_row_receipt
+#print axioms AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_continuation_row_receipt
