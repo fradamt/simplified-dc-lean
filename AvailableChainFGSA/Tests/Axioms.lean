@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSA.Proofs.WindowHeightBridge
 public import AvailableChainFGSA.Proofs.Head.Score -- shake: keep (F1b.4a axiom audit)
 public import AvailableChainFGSA.Proofs.Head.Walk -- shake: keep (F1b.4a axiom audit)
 public import AvailableChainFGSA.Proofs.Head.Transfer
@@ -361,3 +362,8 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 #print axioms AvailableChain.FGSA.rowsValidStored_clock
 #print axioms AvailableChain.FGSA.rowsValidStored_reachable
 #print axioms AvailableChain.FGSA.proposalRows_eq_proposalRowsFor
+
+-- Proofs/WindowHeightBridge.lean
+#print axioms AvailableChain.FGSA.Window.heightRefinement
+#print axioms AvailableChain.FGSA.Window.windowHeightBridge
+#print axioms AvailableChain.FGSA.Window.windowHeightLaws
