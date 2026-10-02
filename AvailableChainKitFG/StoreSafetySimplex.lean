@@ -1,6 +1,6 @@
 module
 public import AvailableChainKitFG.StoreSafety
-public import AvailableChainKitFG.AccountableSimplex
+public import AvailableChainKitFG.CertificateSimplex
 public import AvailableChainKitFG.Correspondence
 
 public section

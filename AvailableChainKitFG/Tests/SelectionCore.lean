@@ -10,16 +10,34 @@ open AvailableChain.SimplexFG
 
 variable {V : Type} [DecidableEq V] [Fintype V] [RowCodec V]
 
+-- Build the instance without supplying its coverage field.
+theorem selection_simplex_core_constructor_test (E : Electorate V) (cfg : FGConfig) :
+    FGSelectionLaws E (simplexHeightView E cfg) (simplexFinalityView E cfg)
+      (simplexSelectionView E cfg) :=
+  FGSelectionLaws.of_core E _ _ _
+    (simplexSelectionLaws E cfg).initial (simplexSelectionLaws E cfg).ordered
+    (simplexSelectionLaws E cfg).bounds (simplexSelectionLaws E cfg).entry_origin
+    (simplexSelectionLaws E cfg).none_iff (simplexSelectionLaws E cfg).greatest
+    (simplexSelectionLaws E cfg).write (simplexSelectionLaws E cfg).prune
+
 -- The generic constructor works on the existing instance, with explicit bounds.
 theorem selection_simplex_constructor_test (E : Electorate V) (cfg : FGConfig) :
     FGCertificateLaws E (simplexHeightView E cfg) (simplexFinalityView E cfg) :=
-  FGCertificateLaws.of_selection E _ _ _ (simplexSelectionLaws E cfg)
+  FGCertificateLaws.of_selection E _ _ _ (selection_simplex_core_constructor_test E cfg)
     (simplexHeightLaws E cfg) rfl (justified_zero_is_genesis E cfg)
     (derive_F_preceq_J E cfg) (heights_ordered E cfg)
 
 private def scFinalOne : FGBlock (Fin 4) :=
   .node B1 2 0 [⟨0, .empty, some ⟨1, genesisRoot⟩⟩,
     ⟨1, .empty, some ⟨1, genesisRoot⟩⟩, ⟨2, .empty, some ⟨1, genesisRoot⟩⟩]
+
+-- Read the instance's pruning result through the named library equation.
+private theorem selection_simplex_afterPrune_test :
+    ((simplexSelectionView E4 cfg1).afterPrune scFinalOne).length = 0 := by
+  rw [FGSelectionLaws.prune_eq E4 _ _ _
+    (selection_simplex_core_constructor_test E4 cfg1) scFinalOne]
+  simp only [pruneCertEntries_def]
+  decide
 
 -- Use the generic historical induction after the selected entry has been pruned.
 private theorem selection_historical_origin_test :
@@ -57,7 +75,7 @@ private theorem selection_eviction_no_coverage_test :
   simp only [pruneCertEntries_def]
   decide
 
--- The raw order lemma supplies coverage while an instance constructs its laws.
+-- The core constructor supplies coverage from the other selection fields.
 example (E : Electorate V) (H : FGHeightView V) (f : FGFinalityView V)
     (r : FGSelectionView V) (hs : FGSelectionLaws E H f r)
     (B : FGBlock V) (X : FGBlock V) (j : Height)
@@ -65,13 +83,17 @@ example (E : Electorate V) (H : FGHeightView V) (f : FGFinalityView V)
     FGBlock.Preceq X (f B).F :=
   selection_pruned_covered E H f r hs B _ he hle
 
+#print axioms selection_simplex_core_constructor_test
 #print axioms selection_simplex_constructor_test
+#print axioms selection_simplex_afterPrune_test
 #print axioms selection_historical_origin_test
 #print axioms selection_pruned_without_qc_test
 #print axioms selection_eviction_no_coverage_test
 #print axioms pruneCertEntries_def
 #print axioms mem_pruneCertEntries
 #print axioms certEntry_preceq_of_le
+#print axioms FGSelectionLaws.of_core
+#print axioms FGSelectionLaws.prune_eq
 #print axioms selection_pruned_covered
 #print axioms selection_chosen_spec
 #print axioms selection_ready_covered

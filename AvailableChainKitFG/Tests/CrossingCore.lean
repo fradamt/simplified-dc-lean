@@ -1,6 +1,7 @@
 module
-public import AvailableChainKitFG.CrossingSimplex
-public import AvailableChainKitFG.SelectionCore
+public import AvailableChainKitFG.CrossingCore
+public import AvailableChainKitFG.CertificateSimplex -- shake: keep (instance checks in examples)
+public import AvailableChainKitFG.SelectionCore -- shake: keep (private pruning tests)
 
 public section
 
@@ -107,7 +108,7 @@ example (E : Electorate V) (cfg : FGConfig) (H : FGHeightView V)
       (H P).T_h.slot + cfg.timeoutDelay ≤ s :=
   crossing_maturity_of_heightBridge E cfg H hb P s x rs hup
 
--- Instance check: exists_crossing_quorum_ne_justified_simplex_certificate.
+-- Instance check: exists_crossing_quorum_ne_justified_of_heightLaws.
 example
     (E : Electorate V) (cfg : FGConfig) (B W : FGBlock V)
     (hJ : (derive E cfg B).h_j ≠ 0)
@@ -119,7 +120,7 @@ example
   exists_crossing_quorum_ne_justified_of_heightLaws E _ (simplexHeightLaws E cfg)
     B W hJ hW hnot
 
--- Instance check: e1Weight_of_finalityQC_not_preceq_simplex_certificate.
+-- Instance check: e1Weight_of_finalityQC_not_preceq_of_heightLaws.
 example
     (E : Electorate V) (cfg : FGConfig) (B W : FGBlock V)
     (hJ : (derive E cfg B).h_j ≠ 0)
@@ -132,7 +133,7 @@ example
   e1Weight_of_finalityQC_not_preceq_of_heightLaws E _ (simplexHeightLaws E cfg)
     B W hJ hW hnot A Q hQ hfin
 
--- Instance check: slashableWeight_of_finalized_crossing_simplex_certificate.
+-- Instance check: slashableWeight_of_finalized_crossing_of_certificate.
 example
     (E : Electorate V) (cfg : FGConfig)
     (B W D : FGBlock V)
@@ -145,7 +146,7 @@ example
   slashableWeight_of_finalized_crossing_of_certificate E _ _ (simplexCertificateLaws E cfg)
     B W D hJ hW hnot hfin hfinH
 
--- Instance check: exists_honest_timeout_of_crossing_simplex_certificate.
+-- Instance check: exists_honest_timeout_of_crossing_of_heightLaws.
 example
     (E : Electorate V) (cfg : FGConfig) (faulty : Finset V)
     (B W : FGBlock V)
@@ -188,7 +189,7 @@ private theorem crossing_fork_quorum_test :
 
 #print axioms crossing_fork_premises_test
 #print axioms crossing_fork_quorum_test
-#print axioms slashableWeight_of_finalized_pair_crossing
+#print axioms slashableWeight_of_finalized_pair_crossing_of_certificate
 #print axioms crossing_birth_key_test
 #print axioms crossing_selected_before_test
 #print axioms crossing_pruned_without_own_quorum_test
