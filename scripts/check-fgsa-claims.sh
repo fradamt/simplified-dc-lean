@@ -28,6 +28,13 @@ LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainF
 CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = (
+    'AvailableChain.FGSA.Run.StrongRecoverySearchPrefix₂',
+    'AvailableChain.FGSA.Run.AgreesThrough₂',
+    'AvailableChain.FGSA.Run.CleanContinuation₂',
+    'AvailableChain.FGSA.Run.BoundedHealingCut₂',
+    'AvailableChain.FGSA.Run.SSafeFromCut₂',
+    'AvailableChain.FGSA.Run.BoundedSafetyRecovery₂',
+    'AvailableChain.FGSA.Run.WeakContinuationClaim',
     # S4.1 W bounds: definitions, equations, and pure arithmetic.
     'AvailableChain.FGSA.Run.kappaF',
     'AvailableChain.FGSA.Run.betaF',
@@ -777,7 +784,7 @@ EXPECTED = (
 )
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
          'Packages.Safety', 'Packages.Outage', 'Channels', 'Witness',
-         'ChannelProps', 'Healed', 'Packages.Finality', 'ComposeStmt', 'Fold',
+         'ChannelProps', 'Healed', 'WeakContinuation', 'Packages.Finality', 'ComposeStmt', 'Fold',
          'Phases', 'PhasesInternal', 'Packages.Healing')
 if not SOURCE_ONLY:
     work = Path(tempfile.mkdtemp(prefix='fgsa-claims-check.', dir=ROOT / '.lake'))

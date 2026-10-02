@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAClaims.Claims.WeakContinuation -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAClaims.Statements.BoundsW -- shake: keep (S4.1 axiom audit)
 public import AvailableChainFGSAClaims.Statements.Phases -- shake: keep (07-H audit)
 public import AvailableChainFGSAClaims.Claims.Healing -- shake: keep (07-H audit)
@@ -457,3 +458,11 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.B_bestF_def
 #print axioms AvailableChain.FGSA.Run.ActionDeliveryBoundsW_def
 #print axioms AvailableChain.FGSA.Run.KernelBeforeNextActionW_def
+
+#print axioms AvailableChain.FGSA.Run.StrongRecoverySearchPrefix₂
+#print axioms AvailableChain.FGSA.Run.AgreesThrough₂
+#print axioms AvailableChain.FGSA.Run.CleanContinuation₂
+#print axioms AvailableChain.FGSA.Run.BoundedHealingCut₂
+#print axioms AvailableChain.FGSA.Run.SSafeFromCut₂
+#print axioms AvailableChain.FGSA.Run.BoundedSafetyRecovery₂
+#print axioms AvailableChain.FGSA.Run.WeakContinuationClaim
