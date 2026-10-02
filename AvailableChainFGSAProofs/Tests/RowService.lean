@@ -48,7 +48,9 @@ example (st : State p.n) (s : Slot) (H : Block) (a : RowWire p.n)
 example [Fintype V] (ΔF : Time) (k : RowKind) (q y : Nat) (U X : FGBlock (Fin p.n))
     (hb : BatchPrem p c E rho ΔF k q y U X)
     (hh : (derive p.E p.cfg X.parent).h = y) : CoveredByChild p k X U y :=
-  fgsa_batchCoverage p ΔF k c E rho q y U X hb hh
+  fgsa_batchCoverage p ΔF k c E rho q y U X hb (by
+    simpa only [heightView_eq_simplex p, KitFG.simplexHeightView_def, KitFG.heightOf_def]
+      using hh)
 
 end AvailableChain.FGSA.Run.Tests.RowService
 end

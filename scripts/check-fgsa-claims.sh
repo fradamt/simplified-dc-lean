@@ -69,6 +69,10 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.RetainedEndpointGeometry',
     'AvailableChain.FGSA.Run.fgsa_retained_prefix_of_trunk_or_support',
     'AvailableChain.FGSA.Run.fgsa_walk_domain_of_witness',
+    # S4.4a: row-delay liveness binding and actual-event finite horizon.
+    'AvailableChain.FGSA.Run.HealingPrem.bound',
+    'AvailableChain.FGSA.Run.KernelJoinedPrem.bound',
+    'AvailableChain.FGSA.Run.HealingAttemptPrem.hhor',
     'AvailableChain.FGSA.Run.FE_W',
     'AvailableChain.FGSA.Run.F4_W',
     'AvailableChain.FGSA.Run.FGoodE_Wp',

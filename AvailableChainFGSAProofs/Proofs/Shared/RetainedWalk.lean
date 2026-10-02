@@ -1,8 +1,6 @@
 module
 public import AvailableChainGeneric.Statements.Pure.Walk
-public import AvailableChainGeneric.Proofs.Pure.Fold
 public import AvailableChainFGSAProofs.Proofs.Shared.Channels -- shake: keep (domainR API through the permitted Shared path)
-public import AvailableChainFGSA.Proofs.Carrier
 public import AvailableChainKitFG.FrameGeometry
 
 public section
@@ -139,8 +137,7 @@ theorem fgsa_walk_domain_of_witness (p : Params) (st : State p.n)
   refine ⟨hbase C (hV hC), ?_⟩
   apply decide_eq_true
   refine ⟨C, ?_, rfl⟩
-  rw [domainR_def, frameR_def,
-    KitFG.filteredFrom_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
+  rw [domainR_def, frameR_def]
   exact (KitFG.mem_filteredFromView (heightView p) (controls p st) V C).2
     ⟨hC, hF, hZ, W, hW, hCW, hlo⟩
 
