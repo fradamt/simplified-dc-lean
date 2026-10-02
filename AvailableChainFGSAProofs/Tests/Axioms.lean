@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Shared.Claims -- shake: keep (S4.6b axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.Base -- shake: keep (H-BASE audit)
 public import AvailableChainFGSAProofs.Proofs.Foundations.HonestNeverSlashed -- shake: keep (HNS audit)
 public import AvailableChainFGSAProofs.Proofs.Foundations.FinalityApi -- shake: keep (S4.5b axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersL2 -- shake: keep (consumer audit)
@@ -777,3 +778,8 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.FGSAClaims.availableGST
 #print axioms AvailableChain.FGSA.Run.FGSAClaims.availableGrowthGST
 #print axioms AvailableChain.FGSA.Run.fgsa_availableGST
+-- H-BASE: all four completed items; HB3 is skipped.
+#print axioms AvailableChain.FGSA.Run.healing_rXing
+#print axioms AvailableChain.FGSA.Run.healing_rCap
+#print axioms AvailableChain.FGSA.Run.healing_phase_receipt
+#print axioms AvailableChain.FGSA.Run.healing_source_time
