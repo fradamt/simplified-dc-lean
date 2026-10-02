@@ -28,6 +28,17 @@ LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainF
 CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = (
+    # FF2-INV: --expect DATA only.
+    'AvailableChain.FGSA.Run.high_source_entry_eq',
+    'AvailableChain.FGSA.Run.high_record_target_choice',
+    'AvailableChain.FGSA.Run.high_entry_record_invariant',
+    'AvailableChain.FGSA.Run.high_record_fresh_at_cut',
+    'AvailableChain.FGSA.Run.high_record_reset_fresh',
+    'AvailableChain.FGSA.Run.high_record_guards_and_fresh',
+    'AvailableChain.FGSA.Run.high_target_row_covered',
+    'AvailableChain.FGSA.Run.high_target_first_row',
+    'AvailableChain.FGSA.Run.high_target_honest_quorum',
+    'AvailableChain.FGSA.Run.high_target_quorum_covered',
     # C-CORE: --expect DATA only.
     'AvailableChain.FGSA.Run.fgsa_tStart',
     'AvailableChain.FGSA.Run.fgsa_tWalk',
