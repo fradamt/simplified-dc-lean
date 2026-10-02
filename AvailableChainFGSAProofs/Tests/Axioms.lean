@@ -6,6 +6,7 @@ public import AvailableChainFGSAProofs.Proofs.Finality.Rows -- shake: keep (K-RO
 public import AvailableChainFGSAProofs.Proofs.Finality.Carry -- shake: keep (K-CARRY audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Batch -- shake: keep (K-BATCH audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Accept -- shake: keep (K-ACCEPT axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Finality.RecordInv -- shake: keep (FF2-INV audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.Claims -- shake: keep (S4.6b axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.Phase -- shake: keep (H-PHASE audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseRelay -- shake: keep (H-PHASE audit)
@@ -71,6 +72,17 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PeriodicStageBounds -- sha
 public import AvailableChainFGSAProofs.Proofs.Clean.Chain -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.State -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (axiom audit commands)
+
+#print axioms AvailableChain.FGSA.Run.high_source_entry_eq
+#print axioms AvailableChain.FGSA.Run.high_record_target_choice
+#print axioms AvailableChain.FGSA.Run.high_entry_record_invariant
+#print axioms AvailableChain.FGSA.Run.high_record_fresh_at_cut
+#print axioms AvailableChain.FGSA.Run.high_record_reset_fresh
+#print axioms AvailableChain.FGSA.Run.high_record_guards_and_fresh
+#print axioms AvailableChain.FGSA.Run.high_target_row_covered
+#print axioms AvailableChain.FGSA.Run.high_target_first_row
+#print axioms AvailableChain.FGSA.Run.high_target_honest_quorum
+#print axioms AvailableChain.FGSA.Run.high_target_quorum_covered
 
 #print axioms AvailableChain.FGSA.Run.terminalCarriage_general_W
 #print axioms AvailableChain.FGSA.Run.terminalCarriage_W_of_tRowsSelect
