@@ -2,6 +2,7 @@ module
 public import AvailableChainFGSAProofs.Proofs.Finality.CoreServices -- shake: keep (C-CORE audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.History -- shake: keep (K-HISTORY audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Height -- shake: keep (K-HEIGHT audit)
+public import AvailableChainFGSAProofs.Proofs.Finality.Receipt -- shake: keep (K-RECEIPT audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Rows -- shake: keep (K-ROWS audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Carry -- shake: keep (K-CARRY audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Batch -- shake: keep (K-BATCH audit)
@@ -867,3 +868,16 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.HighRecordGuard_W
 #print axioms AvailableChain.FGSA.Run.HighRecordGuard_W_def
 #print axioms AvailableChain.FGSA.Run.ff2_high_record_guards
+
+-- K-RECEIPT: proved fields and the conditional cached-anchor guard.
+#print axioms AvailableChain.FGSA.Run.receipt_kernel_fields
+#print axioms AvailableChain.FGSA.Run.receipt_finalized_of_carriage
+#print axioms AvailableChain.FGSA.Run.receipt_finCmp
+#print axioms AvailableChain.FGSA.Run.receipt_cap
+#print axioms AvailableChain.FGSA.Run.receipt_receiver_finalityLag
+#print axioms AvailableChain.FGSA.Run.receipt_jPath_of_cached_anchor
+#print axioms AvailableChain.FGSA.Run.receipt_finCmp_of_block
+#print axioms AvailableChain.FGSA.Run.receipt_ready_of_delivery
+#print axioms AvailableChain.FGSA.Run.receipt_delivery
+#print axioms AvailableChain.FGSA.Run.receipt_jPath
+#print axioms AvailableChain.FGSA.Run.receipt_acceptPrem_W

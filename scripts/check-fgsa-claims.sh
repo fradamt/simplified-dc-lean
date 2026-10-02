@@ -65,6 +65,18 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.fgsa_storedProgressConsume',
     'AvailableChain.FGSA.Run.fgsa_noMixedMaturity',
     'AvailableChain.FGSA.Run.fgsa_justifyAt',
+    # K-RECEIPT: --expect DATA only; fields and the terminal receipt producer.
+    'AvailableChain.FGSA.Run.receipt_kernel_fields',
+    'AvailableChain.FGSA.Run.receipt_finalized_of_carriage',
+    'AvailableChain.FGSA.Run.receipt_finCmp',
+    'AvailableChain.FGSA.Run.receipt_cap',
+    'AvailableChain.FGSA.Run.receipt_receiver_finalityLag',
+    'AvailableChain.FGSA.Run.receipt_jPath_of_cached_anchor',
+    'AvailableChain.FGSA.Run.receipt_finCmp_of_block',
+    'AvailableChain.FGSA.Run.receipt_ready_of_delivery',
+    'AvailableChain.FGSA.Run.receipt_delivery',
+    'AvailableChain.FGSA.Run.receipt_jPath',
+    'AvailableChain.FGSA.Run.receipt_acceptPrem_W',
     # K-ROWS: --expect DATA only.
     'AvailableChain.FGSA.Run.pending_action_head',
     'AvailableChain.FGSA.Run.finality_action_source',
