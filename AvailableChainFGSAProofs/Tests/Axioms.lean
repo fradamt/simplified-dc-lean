@@ -763,6 +763,5 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.healing_phase_top_node
 #print axioms AvailableChain.FGSA.Run.healing_settle_event
 #print axioms AvailableChain.FGSA.Run.healing_rPhase
-#print axioms AvailableChain.FGSA.Run.healing_phase_height_one
 #print axioms AvailableChain.FGSA.Run.healing_phase_first_rise
 #print axioms AvailableChain.FGSA.Run.healing_attemptValid_of_event

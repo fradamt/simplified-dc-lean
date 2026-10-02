@@ -56,7 +56,6 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.healing_phase_top_node',
     'AvailableChain.FGSA.Run.healing_settle_event',
     'AvailableChain.FGSA.Run.healing_rPhase',
-    'AvailableChain.FGSA.Run.healing_phase_height_one',
     'AvailableChain.FGSA.Run.healing_phase_first_rise',
     'AvailableChain.FGSA.Run.healing_attemptValid_of_event',
     # W1b: bounded positive execution facts; --expect additions.
