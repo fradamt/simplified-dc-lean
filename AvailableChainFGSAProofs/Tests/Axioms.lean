@@ -1,4 +1,7 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Healing.FramePaths -- shake: keep (H-FRAME audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.FrameZero -- shake: keep (zero-label audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.FrameRelay -- shake: keep (witness relay audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.Phase -- shake: keep (H-PHASE audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseRelay -- shake: keep (H-PHASE audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseSettle -- shake: keep (H-PHASE r2 audit)
@@ -766,3 +769,15 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.healing_phase_height_one
 #print axioms AvailableChain.FGSA.Run.healing_phase_first_rise
 #print axioms AvailableChain.FGSA.Run.healing_attemptValid_of_event
+#print axioms AvailableChain.FGSA.Run.healing_proposal_full_witness
+#print axioms AvailableChain.FGSA.Run.healing_full_witness
+#print axioms AvailableChain.FGSA.Run.healing_held_block_receipt
+#print axioms AvailableChain.FGSA.Run.healing_witness_relay
+#print axioms AvailableChain.FGSA.Run.healing_proposer_floor
+#print axioms AvailableChain.FGSA.Run.healing_source_slot
+#print axioms AvailableChain.FGSA.Run.healing_tGeom
+#print axioms AvailableChain.FGSA.Run.healing_retained_path
+#print axioms AvailableChain.FGSA.Run.healing_frozen_path
+#print axioms AvailableChain.FGSA.Run.healing_carried_path
+#print axioms AvailableChain.FGSA.Run.healing_full_witness_all
+#print axioms AvailableChain.FGSA.Run.healing_witness_relay_phase

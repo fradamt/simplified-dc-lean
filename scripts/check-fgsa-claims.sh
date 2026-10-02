@@ -28,6 +28,19 @@ LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainF
 CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = (
+    # H-FRAME: --expect additions only.
+    'AvailableChain.FGSA.Run.healing_proposal_full_witness',
+    'AvailableChain.FGSA.Run.healing_full_witness',
+    'AvailableChain.FGSA.Run.healing_held_block_receipt',
+    'AvailableChain.FGSA.Run.healing_witness_relay',
+    'AvailableChain.FGSA.Run.healing_proposer_floor',
+    'AvailableChain.FGSA.Run.healing_source_slot',
+    'AvailableChain.FGSA.Run.healing_tGeom',
+    'AvailableChain.FGSA.Run.healing_retained_path',
+    'AvailableChain.FGSA.Run.healing_frozen_path',
+    'AvailableChain.FGSA.Run.healing_carried_path',
+    'AvailableChain.FGSA.Run.healing_full_witness_all',
+    'AvailableChain.FGSA.Run.healing_witness_relay_phase',
     # H-PHASE: --expect additions only.
     'AvailableChain.FGSA.Run.healing_phaseWitness',
     'AvailableChain.FGSA.Run.healing_phase_initial_frontier',
