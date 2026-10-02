@@ -3936,3 +3936,11 @@ RetainedExactHeadRunGeometry.admitted, and the named wellFormed parent-slot proj
 F7's extra public producer names are valid; no deletion is authorized here.
 
 Q4: DC constants : C.Valid vs FG-SA Params: INTENTIONAL: FG-SA puts structural validity in Params and recovery-specific restrictions in claim premises; no equivalence of the constant systems is asserted (post-recovery-outputs.md §4).
+
+B21 (pre-freeze, lead ruling B21; evidence TS/codex/reports/m1-check-opus-full.md): PhaseInterval, AttemptValid,
+RPhase and RPhase_def: frontier bound 2 ≤ m → 1 ≤ m (AttemptValid: 2 ≤ k.frontier → 1 ≤ k.frontier). WEAKER premise,
+same conclusions; every affected statement stays true at m = 1 (frontier-1 frame = top J with J = genesis, lo = 0;
+21:286, 1236; H.10 at m = 1: 21:1467–1468, 2570–2571). The gap frame keeps R.j + 2 ≤ m (21:1191–1203). Hashes move:
+PhaseInterval, AttemptValid, RPhase, RPhase_def; none is frozen at G-F0a (no allow line).
+M2 (docstring only): TRowsSelect / TRowsSync: INTENTIONAL exact-row service (full inclusion, Model/Frame.lean
+proposalRows); the blueprint's optional effect-preserving selection (22:323, 22:695; 01:83–86) is not modeled.

@@ -323,7 +323,8 @@ def ServedFrontier (m : Nat) (t : Time) : Prop := ∃ s Q Qfg,
 /-- Attempt validity (21 H.10:1263–1279; H.11:1572–1595; HG.1:1333–1350),
 P3 A.10 D44. Consumers: progress-attempt contract and HealingAttemptPrem.
 start is the event index; its resulting prefix is start+1. The inclusive-cut
-alternative requires that exact resulting prefix. No budget horizon is hidden here. -/
+alternative requires that exact resulting prefix. No budget horizon is hidden here.
+The frontier may be 1: H.10 runs attempts at m = 1 (21:1467–1468, 2570–2571; ruling B21). -/
 def AttemptValid (k : AttemptKey) : Prop := ∃ ev,
   rho.events[k.start]? = some ev ∧ E.t_GST ≤ ev.time ∧
   (EffectiveEvent p c E rho k.start ∨
@@ -331,7 +332,7 @@ def AttemptValid (k : AttemptKey) : Prop := ∃ ev,
       (∀ r, E.t_GST ≤ p.actionTime r → rG ≤ r) ∧
       ev.time = p.actionTime (rG + 2) ∧
       timeIdx rho (p.actionTime (rG + 2)) = k.start + 1) ∧
-  k.frontier = frontierAtIdx p c E rho (k.start + 1) ∧ 2 ≤ k.frontier ∧
+  k.frontier = frontierAtIdx p c E rho (k.start + 1) ∧ 1 ≤ k.frontier ∧
   AttemptPhaseAt p c E rho (k.start + 1) k.frontier k.phase ∧
   (k.served = true ↔ ServedFrontier p c E rho k.frontier ev.time) ∧
   (k.task = .firstRow → ∀ j y r a h e, j ≤ k.start → HonestRowAt p c E rho j y r a →
@@ -411,9 +412,11 @@ uses event prefixes whose events all precede the deadline. A frontier rise
 ends the evidence task. Lower F moves do not change the two evidence bits.
 The settled clause is an extra contract, not a consequence of PhaseInterval
 alone. Its accepted K is passed to RXing (dc-align-j2:172–178).
-Claim form: HealingSet with a ≤ f; no reset witness. No QualSearch is used. -/
+Claim form: HealingSet with a ≤ f; no reset witness. No QualSearch is used.
+Frontier m ≥ 1: at m = 1 the frame is top J with J = genesis (21:286, 1236; H.10 at m = 1,
+21:1467–1468, 2570–2571; ruling B21). The gap frame keeps R.j + 2 ≤ m (21:1191–1203). -/
 def RPhase : Prop :=
-  (∀ a b m, a ≤ b → b ≤ rho.events.length → 2 ≤ m →
+  (∀ a b m, a ≤ b → b ≤ rho.events.length → 1 ≤ m →
     (∀ i, a ≤ i → i ≤ b → frontierAtIdx p c E rho i = m) →
     (∀ i j, a ≤ i → i ≤ j → j ≤ b →
       (TopEvidence p c E rho i m → TopEvidence p c E rho j m) ∧
@@ -421,7 +424,7 @@ def RPhase : Prop :=
     (∀ i, a ≤ i → i ≤ b →
       ContestEvidence p c E rho i m → TopEvidence p c E rho i m)) ∧
   (∀ i ev x W m, rho.events[i]? = some ev → x ∈ rho.honest →
-    E.t_GST ≤ ev.time → 2 ≤ m → frontierAtIdx p c E rho (i + 1) = m →
+    E.t_GST ≤ ev.time → 1 ≤ m → frontierAtIdx p c E rho (i + 1) = m →
     W ∉ (storeAt p c E rho i x).fg.TF →
     W ∈ (storeAt p c E rho (i + 1) x).fg.TF → (heightView p W).h = m →
     (ev.time + p.Δ ≤ rho.horizon → ∀ y ∈ rho.honest,
@@ -434,7 +437,7 @@ def RPhase : Prop :=
       (∃ j, i < j ∧ j ≤ timeIdx rho (SA.voteTime p.toParams s) ∧
         m < frontierAtIdx p c E rho j) ∨ W ∈ FGSA.voterBlocks p nd.st s)) ∧
   (∀ i ev v m kind, rho.events[i]? = some ev → EffectiveEvent p c E rho i →
-    E.t_GST ≤ ev.time → ev.time + 3 * p.Δ ≤ v → v ≤ rho.horizon → 2 ≤ m →
+    E.t_GST ≤ ev.time → ev.time + 3 * p.Δ ≤ v → v ≤ rho.horizon → 1 ≤ m →
     frontierAtIdx p c E rho (i + 1) = m → AttemptPhaseAt p c E rho (i + 1) m kind →
     (∀ j, i < j → j < timeIdx rho v → ¬ EffectiveEvent p c E rho j) →
     ∃ J,
@@ -449,7 +452,7 @@ def RPhase : Prop :=
     ∀ i x, timeIdx rho u ≤ i → i ≤ timeIdx rho v → x ∈ rho.honest →
       SettledPhaseFrame p (storeAt p c E rho i x) m J contested) ∧
   (∀ i x m (X : Finset (FGBlock (Fin p.n))) B, x ∈ rho.honest →
-    i ≤ rho.events.length → 2 ≤ m → (R_at p c E rho i x).H = m →
+    i ≤ rho.events.length → 1 ≤ m → (R_at p c E rho i x).H = m →
     X ⊆ (storeAt p c E rho i x).fg.TF → B ∈ X →
     (∀ A, FGBlock.Preceq A B → A ∈ X) → (heightView p B).h = m →
     FGBlock.Preceq (R_at p c E rho i x).Z B ∧ B ∈ D_at p c E rho i x X)
@@ -470,7 +473,7 @@ alone. Its accepted K is passed to RXing (dc-align-j2:172–178).
 Claim form: HealingSet with a ≤ f; no reset witness. No QualSearch is used. -/
 theorem RPhase_def :
     RPhase p c E rho =
-  (  (∀ a b m, a ≤ b → b ≤ rho.events.length → 2 ≤ m →
+  (  (∀ a b m, a ≤ b → b ≤ rho.events.length → 1 ≤ m →
     (∀ i, a ≤ i → i ≤ b → frontierAtIdx p c E rho i = m) →
     (∀ i j, a ≤ i → i ≤ j → j ≤ b →
       (TopEvidence p c E rho i m → TopEvidence p c E rho j m) ∧
@@ -478,7 +481,7 @@ theorem RPhase_def :
     (∀ i, a ≤ i → i ≤ b →
       ContestEvidence p c E rho i m → TopEvidence p c E rho i m)) ∧
   (∀ i ev x W m, rho.events[i]? = some ev → x ∈ rho.honest →
-    E.t_GST ≤ ev.time → 2 ≤ m → frontierAtIdx p c E rho (i + 1) = m →
+    E.t_GST ≤ ev.time → 1 ≤ m → frontierAtIdx p c E rho (i + 1) = m →
     W ∉ (storeAt p c E rho i x).fg.TF →
     W ∈ (storeAt p c E rho (i + 1) x).fg.TF → (heightView p W).h = m →
     (ev.time + p.Δ ≤ rho.horizon → ∀ y ∈ rho.honest,
@@ -491,7 +494,7 @@ theorem RPhase_def :
       (∃ j, i < j ∧ j ≤ timeIdx rho (SA.voteTime p.toParams s) ∧
         m < frontierAtIdx p c E rho j) ∨ W ∈ FGSA.voterBlocks p nd.st s)) ∧
   (∀ i ev v m kind, rho.events[i]? = some ev → EffectiveEvent p c E rho i →
-    E.t_GST ≤ ev.time → ev.time + 3 * p.Δ ≤ v → v ≤ rho.horizon → 2 ≤ m →
+    E.t_GST ≤ ev.time → ev.time + 3 * p.Δ ≤ v → v ≤ rho.horizon → 1 ≤ m →
     frontierAtIdx p c E rho (i + 1) = m → AttemptPhaseAt p c E rho (i + 1) m kind →
     (∀ j, i < j → j < timeIdx rho v → ¬ EffectiveEvent p c E rho j) →
     ∃ J,
@@ -506,7 +509,7 @@ theorem RPhase_def :
     ∀ i x, timeIdx rho u ≤ i → i ≤ timeIdx rho v → x ∈ rho.honest →
       SettledPhaseFrame p (storeAt p c E rho i x) m J contested) ∧
   (∀ i x m (X : Finset (FGBlock (Fin p.n))) B, x ∈ rho.honest →
-    i ≤ rho.events.length → 2 ≤ m → (R_at p c E rho i x).H = m →
+    i ≤ rho.events.length → 1 ≤ m → (R_at p c E rho i x).H = m →
     X ⊆ (storeAt p c E rho i x).fg.TF → B ∈ X →
     (∀ A, FGBlock.Preceq A B → A ∈ X) → (heightView p B).h = m →
     FGBlock.Preceq (R_at p c E rho i x).Z B ∧ B ∈ D_at p c E rho i x X)) := by rfl

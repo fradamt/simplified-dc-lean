@@ -700,13 +700,23 @@ def TCarrier (w : HealingWitness) : Prop := ∀ x r K v Q,
   HonestProposal E rho (fgsaInterface p c) v Q → r * p.R + 2 ≤ v →
   Block.Preceq (eraseFG K) Q.parent
 /-- T-ROWS selector (21:3072–3076; 01:83–86,95–101), P3 A.6.
-Consumers: 22 F1–F5, F9, FF3–FF4, FL-W, FL-RF, FL-D. Exact signed rows. -/
+Consumers: 22 F1–F5, F9, FF3–FF4, FL-W, FL-RF, FL-D. Exact signed rows.
+INTENTIONAL: exact-row service. The modeled proposer carries every valid held
+non-ancestor row (full inclusion, Model/Frame.lean proposalRows), so the exact-row
+disjunction is the modeled policy. The blueprint also permits an optional
+effect-preserving selection (22:323, 22:695; 01:83–86); that selection is not
+modeled, and paper T-ROWS must not be used to inhabit this stronger exact-row contract. -/
 def TRowsSelect : Prop := ∀ s Q rows j y r (a : RowWire p.n),
   HonestCarrier p c E rho s Q rows → HonestRowAt p c E rho j y r a →
   ValidForParent p c E rho s Q a → heldAtProposal p c E rho s a →
   a ∈ rows ∨ onParentChain p c E rho s Q a
 /-- T-ROWS post-GST receipt and parent-valid carriage, including sleepers.
-DC: SAME strict receipt; INTENTIONAL independent row delay and R6 selection. -/
+DC: SAME strict receipt; INTENTIONAL independent row delay and R6 selection.
+INTENTIONAL: exact-row service. The modeled proposer carries every valid held
+non-ancestor row (full inclusion, Model/Frame.lean proposalRows), so the exact-row
+disjunction is the modeled policy. The blueprint also permits an optional
+effect-preserving selection (22:323, 22:695; 01:83–86); that selection is not
+modeled, and paper T-ROWS must not be used to inhabit this stronger exact-row contract. -/
 def TRowsSync (ΔF : Time) : Prop := ∀ j y r (a : RowWire p.n),
   HonestRowAt p c E rho j y r a → E.t_GST ≤ p.actionTime r →
   (p.actionTime r + ΔF ≤ rho.horizon →
@@ -851,9 +861,10 @@ def ExactService (v : Slot) (Q : Block) : Prop :=
 /-- A settled fixed phase on an inclusive interval (21 H.7:1003–1012;
 H.8:967–975), P3 A.8. Consumers: TPerm, TRepair, TCommon, TFrontier.
 The common root is J in a top-J phase. In an F-root phase each local F may move.
-This read does not assert a certificate height for F. -/
+This read does not assert a certificate height for F. Frontier m ≥ 1 (H.10 at m = 1,
+21:1467–1468, 2570–2571; ruling B21). -/
 def PhaseInterval (u v : Time) (m : Nat) (J : Option (FGBlock (Fin p.n)))
-    (contested : Bool) : Prop := u ≤ v ∧ v ≤ rho.horizon ∧ 2 ≤ m ∧
+    (contested : Bool) : Prop := u ≤ v ∧ v ≤ rho.horizon ∧ 1 ≤ m ∧
   ∀ i x, timeIdx rho u ≤ i → i ≤ timeIdx rho v → x ∈ rho.honest →
     let R := R_at p c E rho i x
     R.H = m ∧ R.contest = contested ∧
