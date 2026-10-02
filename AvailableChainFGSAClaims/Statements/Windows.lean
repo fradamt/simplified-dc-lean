@@ -71,27 +71,23 @@ def outWin : WinSpec p c PtOut := fun E rho pt H =>
   ∃ v ∈ rho.honest, ∃ t, pt.b₀ ≤ t ∧ t < pt.b₁ ∧ E.awake v t = false
 
 /-- [bp 22:1265–1272; plan item 12] F8-W retention, separate from carriage.
-A is the final-action anchor. The causal producer supplies h(P) ≤ d + 3
-when the terminal carrier precedes the next action. The latest protected key
+A is the final-action anchor. The causal producer supplies the cap h(P) ≤ d + 3
+from the actual action and terminal carrier. The latest protected key
 is (d + 1, U). K_W ≥ 2 excludes eviction; finality can already cover the key.
 This contract does not claim that the causal producer or carriage is proved. -/
 def TerminalRetention_W (p : Params) : Prop :=
-  ∀ (A P : FGBlock (Fin p.n)) (d : Nat) (U : FGBlock (Fin p.n))
-    (q : Nat) (terminal : Time),
+  ∀ (A P : FGBlock (Fin p.n)) (d : Nat) (U : FGBlock (Fin p.n)),
     FGBlock.Preceq A P → RetainedW p A (d + 1) U →
     ((heightView p A).h_j, (heightView p A).J) = (d + 1, U) →
-    terminal < p.actionTime (q + 1) →
-    (terminal < p.actionTime (q + 1) → (heightView p P).h ≤ d + 3) →
+    (heightView p P).h ≤ d + 3 →
     RetainedW p P (d + 1) U ∨ CoveredW p P (d + 1) U
 
 theorem TerminalRetention_W_def (p : Params) :
     TerminalRetention_W p =
-      (∀ (A P : FGBlock (Fin p.n)) (d : Nat) (U : FGBlock (Fin p.n))
-        (q : Nat) (terminal : Time),
+      (∀ (A P : FGBlock (Fin p.n)) (d : Nat) (U : FGBlock (Fin p.n)),
         FGBlock.Preceq A P → RetainedW p A (d + 1) U →
         ((heightView p A).h_j, (heightView p A).J) = (d + 1, U) →
-        terminal < p.actionTime (q + 1) →
-        (terminal < p.actionTime (q + 1) → (heightView p P).h ≤ d + 3) →
+        (heightView p P).h ≤ d + 3 →
         RetainedW p P (d + 1) U ∨ CoveredW p P (d + 1) U) := rfl
 
 end AvailableChain.FGSA.Run

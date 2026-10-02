@@ -299,6 +299,9 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.B_FW_def',
     # S4.2b: the named terminal-retention contract is proved.
     'AvailableChain.FGSA.Run.fgsa_terminalRetentionW',
+    # S4.5: UniformHealing corollary (B9) and the shared HEAD tick index (B8).
+    'AvailableChain.FGSA.Run.uniformHealing_of_hTimeConcl',
+    'AvailableChain.FGSA.Run.fgsa_tickIdx_of_event',
     'AvailableChain.FGSA.Run.fgsa_grid_carrier_timeW',
     'AvailableChain.FGSA.Run.fgsa_grid_kernel_deadlineW',
     'AvailableChain.FGSA.Run.F4_W_implies_FE_W',

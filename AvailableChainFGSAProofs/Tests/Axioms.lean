@@ -701,3 +701,5 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_retainedReads_L4R
 #print axioms AvailableChain.FGSA.Run.fgsa_retainedReads_HG1
 #print axioms AvailableChain.FGSA.Run.fgsa_retainedReads_L2
+#print axioms AvailableChain.FGSA.Run.uniformHealing_of_hTimeConcl
+#print axioms AvailableChain.FGSA.Run.fgsa_tickIdx_of_event
