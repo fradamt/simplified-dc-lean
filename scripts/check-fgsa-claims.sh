@@ -28,6 +28,11 @@ LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainF
 CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = (
+    'AvailableChain.FGSA.Run.RetainedWalkRunGeometry',
+    'AvailableChain.FGSA.Run.RetainedEndpointGeometry',
+    'AvailableChain.FGSA.Run.fgsa_Z_preceq_liveRoot',
+    'AvailableChain.FGSA.Run.fgsa_retained_prefix_of_trunk_or_support',
+    'AvailableChain.FGSA.Run.fgsa_walk_domain_of_witness',
     # fgsa-f1b4b producer line (main 73d0ea7): ScoreRun, GateReceipt, ExactService, ExactHead, regime wrappers.
     'AvailableChain.FGSA.Run.ScoreRunGeometry',
     'AvailableChain.FGSA.Run.fgsa_score_eq_on_run',

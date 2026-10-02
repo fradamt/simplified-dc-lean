@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.RetainedWalk -- shake: keep (retained geometry audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedWalkStore -- shake: keep (store adapter audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.ExactHead -- shake: keep (J2 HEAD axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.ExactService -- shake: keep (ExactService audit)
@@ -586,3 +587,9 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_rowServiceClaim
 #print axioms AvailableChain.FGSA.Run.fgsa_rowsValidStored_atProposal
 #print axioms AvailableChain.FGSA.Run.fgsa_batchCoverage
+
+#print axioms AvailableChain.FGSA.Run.RetainedWalkRunGeometry
+#print axioms AvailableChain.FGSA.Run.RetainedEndpointGeometry
+#print axioms AvailableChain.FGSA.Run.fgsa_Z_preceq_liveRoot
+#print axioms AvailableChain.FGSA.Run.fgsa_retained_prefix_of_trunk_or_support
+#print axioms AvailableChain.FGSA.Run.fgsa_walk_domain_of_witness
