@@ -138,7 +138,43 @@ theorem fgsa_retained_persists_of_path
       es p src s C = et p dst s C) :
     SuffixPersists Kc A (S p src) (T p dst s) (ss src s) (es p src s) (et p dst s) := by
   intro X C hK hX hstep hCA
-  obtain ⟨hm, hp, he⟩ := GridCO.ghostStep_child _ _ _ _ _ hstep
+  have hchild : C ∈ S p src ∧ C.parent? = some X ∧ es p src s C = true := by
+    let children := (S p src).filter (fun B => B.parent? == some X && es p src s B)
+    let select : Option Block → Block → Option Block := fun best B =>
+      match best with
+      | none => some B
+      | some old =>
+        if ss src s old < ss src s B || (ss src s old == ss src s B && old.root < B.root)
+        then some B else best
+    have hm : ∀ B, children.foldl select none = some B → B ∈ children := by
+      apply List.foldlRecOn (motive := fun best => ∀ B, best = some B → B ∈ children)
+      · intro B hb
+        cases hb
+      · intro best ih B hB C he
+        cases best with
+        | none => exact (Option.some.inj he) ▸ hB
+        | some old =>
+          dsimp only [select] at he
+          split at he
+          · exact (Option.some.inj he) ▸ hB
+          · exact ih C he
+    change (match children.foldl select none with
+      | none => none
+      | some B => if children.any (fun D => D != B && ss src s D == ss src s B && D.root == B.root)
+          then none else some B) = some C at hstep
+    cases hb : children.foldl select none with
+    | none => rw [hb] at hstep; cases hstep
+    | some B =>
+      rw [hb] at hstep
+      change (if children.any (fun D => D != B && ss src s D == ss src s B && D.root == B.root)
+        then none else some B) = some C at hstep
+      split at hstep
+      · cases hstep
+      · cases Option.some.inj hstep
+        obtain ⟨ht, he⟩ := List.mem_filter.mp (hm C hb)
+        obtain ⟨hp, hel⟩ := Bool.and_eq_true_iff.mp he
+        exact ⟨ht, by simpa using hp, hel⟩
+  obtain ⟨hm, hp, he⟩ := hchild
   have ht := hpath X C hK hX hp hCA
   exact ⟨ht, (hel X C hK hX hp hm ht).symm.trans he⟩
 
