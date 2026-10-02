@@ -87,17 +87,17 @@ example : ∃ nd : Node p1,
     (Gen.V2.Duty.faulty rho0).card ≤ (p1.n - 1) / 3 ∧
     (0 : Fin 1) ∈ rho0.honest ∧ postClock env0 rho0 0 0 = some nd ∧
     FGBlock.genesis ∈ FGSA.fullTree p1 nd.st ∧
-    (FGSA.controls p1 nd.st).lo ≤ hOf p1.E p1.cfg FGBlock.genesis := by
+    (FGSA.controls p1 nd.st).lo ≤ (heightView p1 FGBlock.genesis).h := by
   refine ⟨(fgsa p1 unitCodec).clock (V2.D.Run.stateBefore env0 rho0 0 0) 0,
     base0, fault0, by decide, rfl, ?_, ?_⟩ <;> decide +kernel
 
 example :
     let nd := (fgsa p1 unitCodec).clock (V2.D.Run.stateBefore env0 rho0 0 0) 0
-    own_lock nd.record.toRecord (hOf p1.E p1.cfg FGBlock.genesis)
+    own_lock nd.record.toRecord ((heightView p1 FGBlock.genesis).h)
         (finality_pair nd.record.toRecord (fgInputs p1 nd.st).2) = none ∨
-      own_lock nd.record.toRecord (hOf p1.E p1.cfg FGBlock.genesis)
+      own_lock nd.record.toRecord ((heightView p1 FGBlock.genesis).h)
         (finality_pair nd.record.toRecord (fgInputs p1 nd.st).2) =
-          some (derive p1.E p1.cfg FGBlock.genesis).T_h.root :=
+          some (heightView p1 FGBlock.genesis).T_h.root :=
   rowPermission_own_lock env0 rho0 base0 fault0 0 (by decide) 0 _ rfl .genesis
     (by decide +kernel) (by decide +kernel)
 

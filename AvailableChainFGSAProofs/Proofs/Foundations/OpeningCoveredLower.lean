@@ -67,8 +67,8 @@ theorem openingCovered_lower_gate (G ΔF : Time) (h : HealingPrem p c G ΔF E rh
       change (FGSA.clock p _ _).fg.h_max = m
       rw [FGSA.clock_fg]
       exact hH
-    have hlo : (FGSA.controls p nd.st).lo ≤ hOf p.E p.cfg Qfg := by
-      rw [KitFG.hOf_of_bridge p.E p.cfg (heightView p) (heightView_bridge p), hh]
+    have hlo : (FGSA.controls p nd.st).lo ≤ (heightView p Qfg).h := by
+      rw [hh]
       have hcontest : (FGSA.controls p nd.st).contest = false := by
         change (FGSA.controls p (FGSA.clock p _ _)).contest = false
         rw [FGSA.controls_eq, FGSA.clock_fg]
@@ -79,9 +79,5 @@ theorem openingCovered_lower_gate (G ΔF : Time) (h : HealingPrem p c G ΔF E rh
       exact le_rfl
     obtain ⟨j, rSent, a, hr, ha, hn⟩ := rowPermission_covered E rho h.set.base h.set.fault
       x hx r nd hnd Qfg hread hd hlo (h.set.awake x hx _ (hGST.trans hut.le) hphase.2.1)
-    -- J6 states the pair in the heightView form; transport through the height bridge.
-    obtain ⟨-, hT, -, -⟩ :=
-      KitFG.heightBridge_fields p.E p.cfg (heightView p) (heightView_bridge p) Qfg
-    rw [KitFG.hOf_of_bridge p.E p.cfg (heightView p) (heightView_bridge p), ← hT] at hn
     exact ⟨Qfg, nd, j, rSent, a, hnd, hread, hd, hQ ▸ Gen.Pure.block_preceq_refl _, hr, ha, hn⟩
 end AvailableChain.FGSA.Run
