@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Foundations.OpeningCoveredLower -- shake: keep (J7 lower gate audit)
 public import AvailableChainFGSAProofs.Proofs.Foundations.OpeningCovered -- shake: keep (J7 SO-COV audit)
 public import AvailableChainFGSAProofs.Proofs.Foundations.RowPermission -- shake: keep (J7 audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.BoundsW -- shake: keep (S4.1 axiom audit)
@@ -616,3 +617,4 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.rowPermission_covered
 #print axioms AvailableChain.FGSA.Run.rowPermission_at
 #print axioms AvailableChain.FGSA.Run.openingCovered_frontier_gate
+#print axioms AvailableChain.FGSA.Run.openingCovered_lower_gate

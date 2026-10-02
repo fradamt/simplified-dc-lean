@@ -59,3 +59,4 @@ public import AvailableChainFGSAProofs.Proofs.Healing.AdditiveStageBounds
 public import AvailableChainFGSAProofs.Proofs.Healing.PeriodicStageBounds
 public import AvailableChainFGSAProofs.Proofs.Foundations.RowPermission
 public import AvailableChainFGSAProofs.Proofs.Foundations.OpeningCovered
+public import AvailableChainFGSAProofs.Proofs.Foundations.OpeningCoveredLower
