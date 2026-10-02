@@ -1,5 +1,7 @@
 module
 public import AvailableChainFGSA.Proofs.WindowRetention
+public import AvailableChainFGSA.Proofs.WindowOccurrences
+public import AvailableChainFGSA.Proofs.WindowTerminal
 
 @[expose] public section
 
@@ -222,6 +224,109 @@ example : (∀ a ∈ retentionBirthRows, rowValidW (derive retentionParams 2 .ge
     (derive retentionParams 2 retentionBirth).W = [⟨1, .genesis, ∅⟩] ∧
     retentionPremature.signer ∉ (∅ : Finset (Fin 4)) ∧
     (RowBody.ofRow retentionPremature).valid = false := by decide +kernel
+
+private instance retainedDecidable (p : Params) (B U : FGBlock (Fin p.n)) (j : Height) :
+    Decidable (RetainedW p B j U) := by
+  rw [RetainedW_def]
+  infer_instance
+
+private instance coveredDecidable (p : Params) (B U : FGBlock (Fin p.n)) (j : Height) :
+    Decidable (CoveredW p B j U) := by
+  rw [CoveredW_def]
+  infer_instance
+
+private instance bitDecidable (p : Params) (B U : FGBlock (Fin p.n))
+    (j : Height) (i : Fin p.n) : Decidable (EntryBitW p B j U i) := by
+  rw [EntryBitW_def]
+  infer_instance
+
+set_option maxRecDepth 8192
+set_option exponentiation.threshold 8192
+
+/-- The model scalar wrapper retains the older key with K = 2 and one newer birth. -/
+example : RetainedW retentionParams retentionSecond 1 .genesis :=
+  terminal_retained_scalarW retentionParams retentionFirst retentionSecond
+    (by decide +kernel) 1 .genesis (by decide +kernel)
+    (by decide +kernel) (by decide +kernel)
+
+/-- The model birth-count wrapper uses the only newer birth. -/
+example : RetainedW retentionParams retentionSecond 1 .genesis := by
+  apply terminal_retained_birthsW retentionParams retentionFirst retentionSecond
+    (by decide +kernel) 1 .genesis (by decide +kernel) (by decide +kernel)
+    {retentionSecond} (by decide +kernel)
+  intro C j X hCP hj hb
+  by_cases eq : C = retentionSecond
+  · exact Finset.mem_singleton.mpr eq
+  · have hCA := preceq_parent_of_preceq_node hCP eq
+    have hm := window_hj_mono retentionParams 2 (by decide) C retentionFirst hCA
+    have hcj : (derive retentionParams 2 C).h_j = j := hb.2.2.2.1
+    rw [hcj] at hm
+    have first : (derive retentionParams 2 retentionFirst).h_j = 1 := by decide +kernel
+    rw [first] at hm
+    exact (Nat.not_lt_of_ge hm hj).elim
+
+/-- Capacity eviction gives neither a retained key nor coverage. -/
+example : ¬ RetainedW retentionParams retentionThird 1 .genesis ∧
+    ¬ CoveredW retentionParams retentionThird 1 .genesis := by decide +kernel
+
+/-- The same evicted key is covered at the later endpoint and stays absent. -/
+example : ¬ RetainedW retentionParams retentionLater 1 .genesis ∧
+    CoveredW retentionParams retentionLater 1 .genesis := by decide +kernel
+
+/-- An exact row through each R6W arm inserts the older entry's bit. -/
+example : heightMatch (parentState retentionParams 2 retentionSecond 3)
+      retentionCurrent = true ∧
+    staleUseful (parentState retentionParams 2 retentionSecond 3) retentionStale = true ∧
+    EntryBitW retentionParams retentionMixed 1 .genesis retentionCurrent.signer ∧
+    EntryBitW retentionParams retentionMixed 1 .genesis retentionStale.signer := by
+  refine ⟨by decide +kernel, by decide +kernel, ?_, ?_⟩
+  · exact entry_bit_insertW retentionParams retentionSecond 3 1
+      [retentionCurrent, retentionStale] 1 .genesis (by decide +kernel)
+      (by decide +kernel) retentionCurrent (by decide +kernel) (by decide +kernel)
+  · exact entry_bit_insertW retentionParams retentionSecond 3 1
+      [retentionCurrent, retentionStale] 1 .genesis (by decide +kernel)
+      (by decide +kernel) retentionStale (by decide +kernel) (by decide +kernel)
+
+example : EntryBitW retentionParams retentionProtected 1 .genesis retentionStale.signer :=
+  entry_bit_occurrenceW retentionParams retentionFirst retentionMixed retentionProtected
+    (by rw [StrictPrefix_def]; decide +kernel)
+    (by decide +kernel) 1 .genesis
+    (by decide +kernel) (by decide +kernel) retentionStale
+    (by decide +kernel) (by decide +kernel)
+
+example : EntryBitW retentionParams retentionProtected 1 .genesis retentionCurrent.signer :=
+  entry_bit_persistW retentionParams retentionMixed retentionProtected
+    (by decide +kernel) 1 .genesis retentionCurrent.signer
+    (by decide +kernel) (by decide +kernel)
+
+/-- The full history wrapper supplies the actual eviction step with K entries. -/
+example : ∃ P s x rs, FGBlock.Preceq retentionFirst P ∧
+    FGBlock.Preceq (.node P s x rs) retentionThird ∧
+    RetainedW retentionParams P 1 .genesis ∧
+    ¬ RetainedW retentionParams (.node P s x rs) 1 .genesis ∧
+    (derive retentionParams 2 (.node P s x rs)).W.length = 2 := by
+  rcases entry_historyW retentionParams retentionFirst retentionThird
+      (by decide +kernel) 1 .genesis (by decide +kernel) with retained | covered | evicted
+  · exact (show ¬ RetainedW retentionParams retentionThird 1 .genesis
+      by decide +kernel) retained |>.elim
+  · exact (show ¬ CoveredW retentionParams retentionThird 1 .genesis
+      by decide +kernel) covered.2 |>.elim
+  · obtain ⟨_, _, _, P, s, x, rs, hAP, hPB, hp, gone, full, _⟩ := evicted
+    exact ⟨P, s, x, rs, hAP, hPB, hp, gone, full⟩
+
+/-- The F8-W cap preserves the key after one newer justification. -/
+example : RetainedW retentionParams retentionSecond 1 .genesis ∨
+    CoveredW retentionParams retentionSecond 1 .genesis :=
+  terminalRetentionW retentionParams retentionFirst retentionSecond 0 .genesis 0 8
+    (by decide +kernel) (by decide +kernel) (by decide +kernel) (by decide +kernel)
+    (fun _ => by decide +kernel)
+
+/-- Finality deletion discharges the coverage branch of the same F8-W contract. -/
+example : RetainedW retentionParams retentionConsume 1 .genesis ∨
+    CoveredW retentionParams retentionConsume 1 .genesis :=
+  terminalRetentionW retentionParams retentionFirst retentionConsume 0 .genesis 1 0
+    (by decide +kernel) (by decide +kernel) (by decide +kernel) (by decide +kernel)
+    (fun _ => by decide +kernel)
 
 end AvailableChain.FGSA.Window.RetentionTests
 end

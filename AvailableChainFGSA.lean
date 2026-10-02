@@ -52,6 +52,9 @@ public import AvailableChainFGSA.Proofs.WindowProvenance
 public import AvailableChainFGSA.Proofs.WindowHistory
 public import AvailableChainFGSA.Proofs.WindowLiveness
 public import AvailableChainFGSA.Proofs.WindowRetention
+public import AvailableChainFGSA.Proofs.WindowOccurrences
+public import AvailableChainFGSA.Proofs.WindowTerminal
+public import AvailableChainFGSA.Proofs.WindowAdmissionInvariant
 public import AvailableChainFGSA.Proofs.WindowSelection
 public import AvailableChainFGSA.Proofs.WindowReaders
 public import AvailableChainFGSA.Proofs.WindowValidity

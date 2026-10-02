@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Shared.BoundsW
+public import AvailableChainFGSAProofs.Proofs.Shared.WindowTerminal
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedWalkStore
 public import AvailableChainFGSAProofs.Proofs.Foundations.Cap
 public import AvailableChainFGSAProofs.Proofs.Shared.GridSchedule

@@ -3,6 +3,7 @@ public import AvailableChainFGSAProofs.Proofs.Foundations.OpeningCoveredLower --
 public import AvailableChainFGSAProofs.Proofs.Foundations.OpeningCovered -- shake: keep (J7 SO-COV audit)
 public import AvailableChainFGSAProofs.Proofs.Foundations.RowPermission -- shake: keep (J7 audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.BoundsW -- shake: keep (S4.1 axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Shared.WindowTerminal -- shake: keep (S4.2b axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedWalkStore -- shake: keep (store adapter audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.ExactHead -- shake: keep (J2 HEAD axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.ExactService -- shake: keep (ExactService audit)
@@ -619,6 +620,7 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.openingCovered_frontier_gate
 #print axioms AvailableChain.FGSA.Run.openingCovered_lower_gate
 
+#print axioms AvailableChain.FGSA.Run.fgsa_terminalRetentionW
 #print axioms AvailableChain.FGSA.Run.fgsa_grid_carrier_timeW
 #print axioms AvailableChain.FGSA.Run.fgsa_grid_kernel_deadlineW
 #print axioms AvailableChain.FGSA.Run.F4_W_implies_FE_W

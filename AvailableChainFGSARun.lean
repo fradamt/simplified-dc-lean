@@ -23,6 +23,7 @@ public import AvailableChainFGSARun.Statements.AC
 public import AvailableChainFGSARun.Statements.ReceiptCoverage
 public import AvailableChainFGSARun.Proofs.AC
 public import AvailableChainFGSARun.Statements.Receipts
+public import AvailableChainFGSARun.Proofs.WindowExclusion
 public import AvailableChainFGSARun.Proofs.Receipts
 public import AvailableChainFGSARun.Statements.Emission
 public import AvailableChainFGSARun.Proofs.EmissionWellFormed
