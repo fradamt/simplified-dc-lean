@@ -376,6 +376,12 @@ def AvailableChain.FGSA.Run.KernelBeforeNextActionW 942140b9a60b1fb4
 structure AvailableChain.FGSA.Run.LivenessBoundW 78e1ed50c8fa00ec
 ctor AvailableChain.FGSA.Run.LivenessBoundW.mk 68f8b39d66b47ade
 field AvailableChain.FGSA.Run.LivenessBoundW.kappa_le_R 8cf11b27f9f15a15
+def AvailableChain.FGSA.Run.FE_W 3d045b69a6c296d4
+def AvailableChain.FGSA.Run.F4_W 7ab2a99db55f8168
+def AvailableChain.FGSA.Run.FGoodE_Wp 9af20a5498965f42
+def AvailableChain.FGSA.Run.FGood4_Wp 7e2b8380a83502a5
+def AvailableChain.FGSA.Run.Tail_Wp 7bee0ac61f38e1ae
+def AvailableChain.FGSA.Run.B_FW 8dbf9c9365de6197
 theorem AvailableChain.FGSA.Run.kappaF_def 3c0bff1d3dc565aa
 theorem AvailableChain.FGSA.Run.betaF_def 84c974826a81a23a
 theorem AvailableChain.FGSA.Run.epsF_def dc5b483f64e11f5f
@@ -395,6 +401,12 @@ theorem AvailableChain.FGSA.Run.B'_resetF_def 5b4233754e4a8764
 theorem AvailableChain.FGSA.Run.B_bestF_def 02bb625918c327eb
 theorem AvailableChain.FGSA.Run.ActionDeliveryBoundsW_def 3371def2b2057db2
 theorem AvailableChain.FGSA.Run.KernelBeforeNextActionW_def ff13cf19ea6ce282
+theorem AvailableChain.FGSA.Run.FE_W_def 7039ff4378a221d6
+theorem AvailableChain.FGSA.Run.F4_W_def b9fc44b8f3bcaba8
+theorem AvailableChain.FGSA.Run.FGoodE_Wp_def 4eb533de5bd628fd
+theorem AvailableChain.FGSA.Run.FGood4_Wp_def e7c57d44df9a61b1
+theorem AvailableChain.FGSA.Run.Tail_Wp_def 50ecb64229b81ae5
+theorem AvailableChain.FGSA.Run.B_FW_def 6742fd421c26e0de
 ```
 
 ### `AvailableChainFGSAClaims.Statements.ChannelProps`

@@ -1,5 +1,6 @@
 module
 public import AvailableChainGeneric.Statements.Pure.ScheduleW
+public import AvailableChainGeneric.Proofs.Pure.Schedule
 public import Mathlib.Data.Nat.Find -- shake: keep (Nat.find in the alignment proof)
 import Mathlib.Tactic.Linarith -- shake: keep (nlinarith in the proofs)
 import Mathlib.Tactic.Positivity -- shake: keep (positivity in the window proofs)
@@ -103,6 +104,51 @@ theorem fgood4_W_two (H : Slot → Prop) (R r : Nat) :
       (∃ c : Slot, (r + 1) * R + 2 ≤ c ∧ c ≤ (r + 2) * R ∧ H c) := by
   rw [FGood4_W_def, fgoodE_W_two, FGood4_def]
   tauto
+
+/-- At κ = 2, the fourth honest slot supplies the early carrier. -/
+theorem fgood4_W_two_iff (H : Slot → Prop) (R r : Nat) (hR : 2 ≤ R) :
+    FGood4_W H R 2 r ↔ FGood4 H R r := by
+  rw [fgood4_W_two]
+  constructor
+  · exact And.left
+  · intro h
+    refine ⟨h, (r + 1) * R + 2, le_rfl, ?_, h.2⟩
+    have heq : (r + 2) * R = (r + 1) * R + R := by ring
+    rw [heq]
+    exact Nat.add_le_add_left hR _
+
+/-- At κ = R, the carrier interval has one slot, the next round opening. -/
+theorem fgoodE_W_full_round_iff (H : Slot → Prop) (R r : Nat) :
+    FGoodE_W H R R r ↔ FGood4_W H R R r := by
+  rw [FGood4_W_def]
+  constructor
+  · intro h
+    obtain ⟨c, hlo, hhi, hc⟩ := h.2.2.1
+    have hend : (r + 2) * R = (r + 1) * R + R := by ring
+    rw [hend] at hhi
+    have heq : c = (r + 1) * R + R := le_antisymm hhi hlo
+    exact ⟨h, heq ▸ hc⟩
+  · exact And.left
+
+/-- Both guards end at the last pattern slot plus Δ. -/
+theorem recF4_W_two_iff (H : Slot → Prop) (R : Nat) (P Δ GST horizon : Time)
+    (g : Nat) (hR : 2 ≤ R) :
+    RecF4_W H R 2 P Δ (8 * Δ) GST horizon g ↔ RecF4 H R P Δ GST horizon g := by
+  have hguard (q : Nat) :
+      windowEnd R P Δ FinForm.recF4.pat q g =
+        ((q : Time) + g + 1) * P + 8 * Δ + Δ := by
+    have hw := wE_recF4 R P Δ q g
+    rw [windowEndA_def, FinForm.len_def] at hw
+    rw [hw]
+    ring
+  simp only [RecF4_W_def, RecF4_def, hguard, fgood4_W_two_iff H R _ hR]
+
+theorem recF4_W_two_iff_holds (H : Slot → Prop) (R : Nat) (P Δ GST horizon : Time)
+    (g : Nat) (hR : 2 ≤ R) :
+    RecF4_W H R 2 P Δ (8 * Δ) GST horizon g ↔
+      FinForm.recF4.holds H R P Δ GST horizon g :=
+  (recF4_W_two_iff H R P Δ GST horizon g hR).trans
+    (holds_iff_recF4 H R P Δ g GST horizon).symm
 
 /-- The right side is the Tail form at D; D is not imported. -/
 theorem tail_W_two (H : Slot → Prop) (R r : Nat) :
