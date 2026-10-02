@@ -97,13 +97,15 @@ theorem fgsa_leaseOriginsClaim : LeaseOriginsClaim p :=
 theorem sourceDiscipline_base {Pt : Type} {pt : Pt}
     (hb : BasePrem p c E rho pt) :
     SourceDisciplineBaseAt p c E rho := by
+  delta SourceDisciplineBaseAt
   have hs := hb.set.valid.toScheduleWellFormed
-  exact ⟨sourceDiscipline_tSrc p c E rho hs,
-    sourceDiscipline_labelBound p c E rho hs,
-    fun _ _ _ _ ha => by
-      obtain ⟨e, he⟩ := sourceDiscipline_emittedNonempty p c E rho ha
-      obtain ⟨C, G, h⟩ := sourceDiscipline_emittedName p c E rho hs ha he
-      exact ⟨e, C, G, he, h⟩⟩
+  refine ⟨sourceDiscipline_tSrc p c E rho hs,
+    sourceDiscipline_labelBound p c E rho hs, ?_⟩
+  simp only [heightView_eq_simplex p, KitFG.simplexHeightView_def, KitFG.heightOf_def]
+  intro _ _ _ _ ha
+  obtain ⟨e, he⟩ := sourceDiscipline_emittedNonempty p c E rho ha
+  obtain ⟨C, G, h⟩ := sourceDiscipline_emittedName p c E rho hs ha he
+  exact ⟨e, C, G, he, h⟩
 
 /-- The source-discipline conclusion, with the frozen F1.1 and F1.3 inputs. -/
 theorem sourceDiscipline_at [Fintype V] {Pt : Type} {pt : Pt}

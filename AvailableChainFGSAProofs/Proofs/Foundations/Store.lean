@@ -51,6 +51,8 @@ theorem fgsa_rMono : RMono p c E rho := by
 
 /-- The exact frame follows from T7.5 and FG store correspondence. -/
 theorem fgsa_rFrameExact : RFrameExact p c E rho := by
+  simp only [RFrameExact_def,
+    ← KitFG.fjControls_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
   intro i x _
   refine ⟨storeControls_eq p _ (cstoreInv_stateBefore E rho i x), ?_⟩
   rw [fullTree_eq, domainR_eq_storeFrame]

@@ -50,7 +50,7 @@ def oldRowHeights : Set Nat := {h | ∃ j y r, ∃ (a : RowWire p.n) (e : BlockI
 noncomputable def muOf : Nat := max 1 (sSup (oldRowHeights p c E rho))
 /-- H.22 (21:3002–3004), P3 A.6. Consumers: H1, H2, H2.A, F9 and HP. -/
 def high (w : HealingWitness) (C : FGBlock (Fin p.n)) : Prop :=
-  w.M + 1 ≤ hOf p.E p.cfg C
+  w.M + 1 ≤ (heightView p C).h
 /-- Inclusive honest frontier (21 H.11:1574–1576).
 Consumers: H0Reset and the canonical reset read. -/
 def honestFrontier (t : Time) : Nat :=
@@ -79,9 +79,9 @@ structure H0Reset (w : HealingWitness) : Prop where
   label : w.sStar = w.rStar * p.R
   fresh : ∃ j y, ∃ (a : RowWire p.n) (C : FGBlock (Fin p.n)),
     HonestRowAt p c E rho j y w.rStar a ∧
-    namedEntry a.payload.height_pair = some (w.M + 1, (derive p.E p.cfg C).T_h.root) ∧
+    namedEntry a.payload.height_pair = some (w.M + 1, (heightView p C).T_h.root) ∧
     actionSourceFG p c E rho y w.rStar = some (some C) ∧
-    eraseFG C = w.CStar ∧ hOf p.E p.cfg C = w.M + 1
+    eraseFG C = w.CStar ∧ (heightView p C).h = w.M + 1
   synchronous : E.t_GST ≤ SA.voteTime p.toParams w.sStar
 
 /-- Full H0 (21 H.22:3044–3055): H.11 reset plus H.18 proposal

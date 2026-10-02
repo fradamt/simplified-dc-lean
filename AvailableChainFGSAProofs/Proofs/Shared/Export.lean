@@ -38,8 +38,11 @@ Class (iii), Claims wrapper through the L42 Export boundary.
 DC: Goldfish/Walk.lean:197 `ghost_step_none`, :433 `ghost_reaches`.
 INTENTIONAL: the FJ floor and duty-view witness give the height bound
 (bp02 §7); the internal proof uses only store reachability. -/
-theorem fgsa_headReachesLoClaim (p : Params) : HeadReachesLoClaim p :=
-  fgsa_headReachesLo p
+theorem fgsa_headReachesLoClaim (p : Params) : HeadReachesLoClaim p := by
+  delta HeadReachesLoClaim HeadReachesLoAt
+  simpa only [KitFG.filteredFrom_of_bridge p.E p.cfg (heightView p) (heightView_bridge p),
+    KitFG.hOf_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)] using
+    fgsa_headReachesLo p
 
 end AvailableChain.FGSA.Run
 end
