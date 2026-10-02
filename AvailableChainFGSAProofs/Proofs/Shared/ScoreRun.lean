@@ -959,8 +959,9 @@ theorem fgsa_walkRun_full_domain (p : Params) (st : State p.n)
   have hZB := KitFG.preceq_trans hZ hDB
   have hheight : (controls p st).lo ≤ hOf p.E p.cfg B :=
     hlo.trans (KitFG.h_mono p.E p.cfg hDB)
+  rw [KitFG.hOf_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)] at hheight
   have hm : B ∈ fullTree p st :=
-    (KitFG.mem_filteredFrom_of_bridge p.E p.cfg (heightView p) (heightView_bridge p) _ _ B).mpr
+    (KitFG.mem_filteredFromView (heightView p) _ _ B).mpr
       ⟨hB, hFB, hZB, B, hB, KitFG.preceq_refl B, hheight⟩
   exact List.mem_filter.mpr ⟨(h.baseTree _).mpr ⟨B, hB, rfl⟩,
     decide_eq_true ⟨B, hm, rfl⟩⟩
@@ -993,8 +994,10 @@ theorem fgsa_walkRun_path_domain (p : Params) (st : State p.n)
     walkRun_lift_prefix (Gen.Pure.block_preceq_trans hF (heA ▸ hDC))
   have hheight : (controls p st).lo ≤ hOf p.E p.cfg B :=
     hlo.trans (KitFG.h_mono p.E p.cfg (KitFG.preceq_trans hDA hAB))
-  have hm : A ∈ storeFrame p.E p.cfg st.fg (voterBlocks p st s) :=
-    (KitFG.mem_filteredFrom_of_bridge p.E p.cfg (heightView p) (heightView_bridge p) _ _ A).mpr
+  rw [KitFG.hOf_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)] at hheight
+  have hm : A ∈ storeFrame p.E p.cfg st.fg (voterBlocks p st s) := by
+    rw [KitFG.storeFrame_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
+    exact (KitFG.mem_filteredFromView (heightView p) _ _ A).mpr
       ⟨ha, hFA, KitFG.preceq_trans hZ hDA, B, hb, hAB, hheight⟩
   exact List.mem_filter.mpr ⟨(h.baseTree C).mpr ⟨A, hA, heA⟩,
     decide_eq_true ⟨A, hm, heA⟩⟩

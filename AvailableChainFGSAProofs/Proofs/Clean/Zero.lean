@@ -336,7 +336,7 @@ theorem cleanCut_zero_body (h : HealthyPrefix₂ p c E rho 0 ΔF) :
   · intro i v hi _
     have hf := (zero_state h i hi v).1
     have hctl : (FGSA.controls p (storeAt p c E rho i v)).contest = false := by
-      change (storeControls p.E p.cfg (storeAt p c E rho i v).fg).contest = false
+      rw [controls_eq]
       rw [hf]
       change (decide ((1 : Nat) = 0 + 1) && decide
         (∃ W ∈ ({FGBlock.genesis} : Finset (FGBlock (Fin p.n))),
@@ -349,7 +349,7 @@ theorem cleanCut_zero_body (h : HealthyPrefix₂ p c E rho 0 ΔF) :
         exact hn (KitFG.preceq_refl _)
       rw [decide_eq_false hn, Bool.and_false]
     have hz : (FGSA.controls p (storeAt p c E rho i v)).Z = .genesis := by
-      change (storeControls p.E p.cfg (storeAt p c E rho i v).fg).Z = _
+      rw [controls_eq]
       rw [hf]
       change (if _ then FGBlock.genesis else FGBlock.genesis) = _
       exact ite_self _

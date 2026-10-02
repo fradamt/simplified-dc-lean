@@ -37,7 +37,7 @@ private theorem fgsa_block_reconcile_edits (st : State p.n) (h : CStoreInv p st)
           let st1 : State p.n := { st with
             base := GridCO.admitProposal p.toParams.engine st.base (baseProposal s b raw support) b
               (raw.map baseHead)
-            fg := on_block p.E p.cfg st.fg (fgBlock P b rows)
+            fg := Window.on_block p p.K_W st.fg (fgBlock P b rows)
             proposals := st.proposals ++ [⟨.proposer s, .proposal b raw support rows⟩] }
           change admitBlock p st s b raw support rows =
             { (if st1.fg.F = st.fg.F then st1 else reconcile st1) with rowPool := pool } at he

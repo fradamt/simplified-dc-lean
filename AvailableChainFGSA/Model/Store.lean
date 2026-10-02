@@ -15,7 +15,7 @@ also has five model-only caches that no FG-SA duty or output reads: `frozen`,
 `fg` holds `Σ.T` with rows and the FG caches `F, J, h_j, hmax`. `proposals`
 holds the admitted proposal wires with their signed rows (for the HEAD merge and
 row inclusion; MetaInv, Task 12). `rowPool` is `Σ.attestations`. `fastWrite` is
-`Σ.fastWrite`. `σ[B]` is `derive p.E p.cfg B`, not a field. Λ is not a field
+`Σ.fastWrite`. `σ[B]` is `Window.derive p p.K_W B`, not a field. Λ is not a field
 (DQ4). -/
 structure State (n : Nat) where
   base : GridCO.State n := GridCO.initial n

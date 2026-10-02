@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSA.Proofs.StoreLaws
 public import AvailableChainKitFG.ClientOnceSafety
+public import AvailableChainKitFG.ProvenanceCoreDef
 
 public section
 
@@ -8,14 +9,23 @@ namespace AvailableChain.FGSA
 
 open AvailableChain.SimplexFG AvailableChain.KitFG
 
-/-- The active head supplies the certificate head fields. J4 replaces this proof. -/
+/-- The active head supplies the window certificate head fields. -/
 theorem fgInputs_headFields (p : Params) (st : State p.n) (Hd : FGBlock (Fin p.n))
     (hhead : fgBlockOf st (fgHead p st) = some Hd) :
     (fgInputs p st).2 = certificateHeadFields (heightView p) (finalityView p) Hd := by
-  rw [heightView_eq_simplex, finalityView_eq_simplex, simplex_certificateHeadFields_eq]
   change (match fgBlockOf st (fgHead p st) with
-    | some H => HeadFields.ofBlock p.E p.cfg H | none => ⟨0, genesisRoot, 0⟩) = _
+    | some H => Window.headFields p p.K_W H | none => ⟨0, genesisRoot, 0⟩) = _
   rw [hhead]
+  rfl
+
+/-- The source fields read by the shared client equal the active height projection. -/
+theorem attest_source_heightView (p : Params) (source : Option (FGBlock (Fin p.n))) :
+    source.map (fun C => ((derive p.E p.cfg C).h, (derive p.E p.cfg C).T_h.root)) =
+      source.map (fun C => ((heightView p C).h, (heightView p C).T_h.root)) := by
+  congr 1
+  funext C
+  rw [heightView_bridge p C]
+  rfl
 
 /-- A released nonempty finality pair passed the head-field guard and the finality filter. -/
 theorem emitted_finality_pair_of_headFields (p : Params) (st : State p.n)

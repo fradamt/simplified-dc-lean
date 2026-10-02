@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.Channels
 public import AvailableChainFGSAProofs.Proofs.Clean.TransferFrame
 public import AvailableChainFGSAProofs.Proofs.Shared.Relay
 public import AvailableChainFGSA.Proofs.Head.Transfer
@@ -127,7 +128,8 @@ private theorem cleanTransfer_of_forward (b₀ : Time) :
     obtain ⟨A, hA, heA, hAB⟩ := eraseFG_ancestor_preceq hinv.fg.closed hstored (he ▸ hCB)
     apply List.mem_filter.mpr
     refine ⟨(hinv.baseTree C).mpr ⟨A, hA, heA⟩, decide_eq_true ⟨A, ?_, heA⟩⟩
-    exact hdom A (heA ▸ hr'.2) hAB (by simpa only [heA] using Ne.symm hr'.1)
+    simpa only [domainR_eq_storeFrame] using
+      hdom A (heA ▸ hr'.2) hAB (by simpa only [heA] using Ne.symm hr'.1)
   have hhead := fgsa_headVote_covers_of_transfer p dst s B
     (Bool.or_eq_true_iff.mpr (Or.inl hroot)) hpath hc.2.2.2.2.2.1 hc.2.2.2.2.2.2
   have hread : headAtIdx p c E rho k (s + 1) = headVote p dst (s + 1) := by

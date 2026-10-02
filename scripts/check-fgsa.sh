@@ -183,10 +183,10 @@ TEST_ROOTS=()
 for m in $(test_modules .); do TEST_ROOTS+=(--root "$m"); done
 gate_with_slot lake env lean --run scripts/CheckFGSAAxioms.lean "${TEST_ROOTS[@]}" --expect \
   StoreSetEq admitRow_setEq proposalRows_perm_setEq propose_setEq blockAccepted_slot_pos \
-  parentFoldState_slot rowValidFor_iff rowValidFor_finality_irrel rowsValidForParent_iff \
+  parentFoldState_slot rowsValidForParent_iff \
   rowsValidForParent_slot_irrel rowsValidForParent_perm rowsValidStored_initial \
-  encRowPayload_inj RowPayload.ofRow_toRow rowValidFor_progress_first row_bit_persist \
-  rowValidFor_fold rowValidFor_finality_persist mem_allBlockRows_iff proposalRowsFor_missing \
+  encRowPayload_inj RowPayload.ofRow_toRow row_bit_persist \
+  mem_allBlockRows_iff proposalRowsFor_missing \
   mem_proposalRowsFor_iff proposalRowsFor_nodup proposalRowsFor_sublist proposalRowsFor_origin \
   proposalRowsFor_valid proposalRowsFor_excludes_chain proposalRowsFor_perm \
   proposalRows_eq_proposalRowsFor blockAccepted_rowsValid admitBlock_invalid_rows fgBlockOf_mono \
@@ -226,15 +226,13 @@ gate_with_slot lake env lean --run scripts/CheckFGSAAxioms.lean "${TEST_ROOTS[@]
   Window.update_finality_J_eq \
   Window.update_finality_h_j_eq \
   Window.on_block_TF_eq \
-  heightView_bridge \
+  heightView_bridge fgsa_Z_preceq_liveRoot \
   heightView_eq_simplex \
-  finalityView_eq_simplex \
   finalityView_def \
   fgCertificateLaws \
   fgJustificationLaws \
-  fgStoreInvariant_on_block \
   fgStoreSafety \
-  fgInputs_headFields \
+  fgInputs_headFields attest_source_heightView \
   emitted_finality_pair_of_headFields \
   Window.windowStoreSafety \
   Window.windowStoreInvariant_init \
