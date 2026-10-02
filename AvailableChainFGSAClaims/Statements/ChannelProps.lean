@@ -739,7 +739,7 @@ structure TRows (ΔF : Time) : Prop where
   receipt : TRowsReceipt p c E rho ΔF
 
 /-- Source of an earlier emitted height row (21 H.13:2487–2585), P3 A.3.
-Consumers: RExcl, RKeep, RFProv. Includes a selected source with an empty signed pair. -/
+Consumers: RExcl, RKeep, RFProv. Only sources whose actions emitted a nonempty height pair. -/
 def SourceBefore (i : Nat) (C : FGBlock (Fin p.n)) (s : Slot) : Prop :=
   ∃ j y r, ∃ (a : RowWire p.n), j < i ∧ HonestRowAt p c E rho j y r a ∧
     actionSourceFG p c E rho y r = some (some C) ∧
@@ -926,11 +926,6 @@ def OpeningCovered (r : Nat) (Q : Block) : Prop := ∀ x ∈ rho.honest,
     HonestRowAt p c E rho j x rSent a ∧
     namedEntry a.payload.height_pair =
       some (hOf p.E p.cfg K, (derive p.E p.cfg K).T_h.root)
-
-/-- SO-COV coverage; retained public name for opening ancestry consumers.
-DC: INTENTIONAL send-once coverage; SAME source ancestry. -/
-def OpeningExtends (r : Nat) (Q : Block) : Prop :=
-  OpeningCovered p c E rho r Q
 
 /-- One state-height entry at an opening (21 H.9:1140–1144), P3 A.8.
 Consumer: TCommon. Bodies at one state height can differ. -/

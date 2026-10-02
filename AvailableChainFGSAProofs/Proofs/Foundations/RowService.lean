@@ -322,14 +322,27 @@ theorem fgsa_rowsValidStored_atProposal (hv : V2.D.ExecutionValid E rho)
   subst st
   exact rowsValidStored_reachable p (reachable_postClock E rho i _ _)
 
+/-- The complete valid witnesses imply the raw batch witnesses. -/
+theorem BatchPrem.batch_of_valid {p : Params} {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+    {c : AppCodec In} {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
+    {ΔF : Time} {k : RowKind} {q y : Nat} {U X : FGBlock (Fin p.n)}
+    (h : BatchPrem p c E rho ΔF k q y U X) :
+    ∃ S : Finset (Fin p.n), S ⊆ honestSeats p c rho ∧ p.E.q ≤ p.E.weightOf S ∧
+      ∀ i ∈ S, ∃ j r a t, r ≤ q ∧
+        HonestRowAt p c E rho j (rho.seatOf (.base .fg) i) r a ∧
+        a.auth = .seat .fg i ∧ NamesEntry p k a y U ∧
+        eventTime rho j = some t ∧ t = p.actionTime r := by
+  rcases h.valid with ⟨S, hs, hq, hv⟩; exact ⟨S, hs, hq, by grind⟩
+
 /-- SO-COV chooses the same complete witness for validity, match, and receipt.
 DC: SAME height coverage; INTENTIONAL cutoff q and pre-GST row transport. -/
 theorem fgsa_batchCoverage (ΔF : Time) (kind : RowKind) : BatchCoverage p ΔF kind := by
   intro V _ _ In c E rho q y U X hb hheight
   obtain ⟨rows, hc, hXrows⟩ := hb.carrier
-  refine ⟨honestSeats p c rho, hb.quorum, ?_⟩
+  obtain ⟨S, hS, hquorum, hvalid⟩ := hb.valid
+  refine ⟨S, hquorum, ?_⟩
   intro i hi
-  obtain ⟨j, r, a, t, hr, ha, hauth, hname, _ht, _htime, hvalid, hmatch⟩ := hb.valid i hi
+  obtain ⟨j, r, a, t, hr, ha, hauth, hname, _ht, _htime, hvalid, hmatch⟩ := hvalid i hi
   have htime : p.actionTime r ≤ p.actionTime q := by
     change 4 * p.Δ * ((r * p.R : Nat) : Int) + 6 * p.Δ ≤
       4 * p.Δ * ((q * p.R : Nat) : Int) + 6 * p.Δ
@@ -364,7 +377,7 @@ theorem fgsa_batchCoverage (ΔF : Time) (kind : RowKind) : BatchCoverage p ΔF k
     have hmeta : MetaInv p st := he ▸ (storeBundle_postClock E rho idx _ _).meta
     rw [eraseFG_parent] at hchain
     obtain ⟨W, hWP, hbW⟩ := rowService_chain_occurrence p st hmeta X.parent a b hdecode hchain
-    have hUW := hb.above i hi W hWP ⟨b, hbW, hrow⟩
+    have hUW := hb.above i (hS hi) W hWP ⟨b, hbW, hrow⟩
     have hpar : FGBlock.Preceq W.parent X.parent := by
       cases W with
       | genesis => exact hWP

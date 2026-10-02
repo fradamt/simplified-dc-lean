@@ -151,6 +151,15 @@ def ResetArrivalStatement (G : Time) : Prop := p.δt = 2 * p.R →
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
     HealingSet p c E rho G → E.t_GST + B'_reset p G ≤ rho.horizon →
     ∃ w, H0Reset p c E rho w ∧ p.actionTime w.rStar < E.t_GST + B'_reset p G
+
+theorem ResetArrivalStatement_def (G : Time) :
+    ResetArrivalStatement p G =
+  (p.δt = 2 * p.R →
+  ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+    HealingSet p c E rho G → E.t_GST + B'_reset p G ≤ rho.horizon →
+    ∃ w, H0Reset p c E rho w ∧ p.actionTime w.rStar < E.t_GST + B'_reset p G) := by rfl
+
 /-- Full companion: H.11 reset plus H.18 (21:2868–2876;3174–3176),
 P3 A.10 with lead ruling 2026-09-30. Consumers: full H0, HealingInput,
 tstarOf and joined kernel. Only the horizon adds Γ + 4Δ; reset time does not. -/
@@ -159,6 +168,14 @@ def ResetArrivalFullStatement (G : Time) : Prop := p.δt = 2 * p.R →
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
     HealingSet p c E rho G → E.t_GST + B'_reset p G + Γ p G + 4 * p.Δ ≤ rho.horizon →
     ∃ w, H0 p c E rho w ∧ p.actionTime w.rStar < E.t_GST + B'_reset p G
+
+theorem ResetArrivalFullStatement_def (G : Time) :
+    ResetArrivalFullStatement p G =
+  (p.δt = 2 * p.R →
+  ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+    HealingSet p c E rho G → E.t_GST + B'_reset p G + Γ p G + 4 * p.Δ ≤ rho.horizon →
+    ∃ w, H0 p c E rho w ∧ p.actionTime w.rStar < E.t_GST + B'_reset p G) := by rfl
 
 /-- bp.finalityKernel.v1 conclusion (00:1124–1128), P3 A.10.
 Consumer: kernel and finality claims. Afg is concluded, not assumed held.
@@ -464,6 +481,15 @@ def ProgressAttemptStatement (G : Time) : Prop :=
     HealingSet p c E rho G → ∀ k ev, AttemptValid p c E rho k →
     rho.events[k.start]? = some ev → ev.time + attemptBudget p G k ≤ rho.horizon →
     AttemptEndsBy p c E rho k (attemptBudget p G k)
+
+theorem ProgressAttemptStatement_def (G : Time) :
+    ProgressAttemptStatement p G =
+  (p.δt = 2 * p.R →
+  ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+    HealingSet p c E rho G → ∀ k ev, AttemptValid p c E rho k →
+    rho.events[k.start]? = some ev → ev.time + attemptBudget p G k ≤ rho.horizon →
+    AttemptEndsBy p c E rho k (attemptBudget p G k)) := by rfl
 
 end AvailableChain.FGSA.Run
 end
