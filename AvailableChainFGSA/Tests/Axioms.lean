@@ -2,6 +2,7 @@ module
 public import AvailableChainFGSA.Proofs.EmissionFields
 public import AvailableChainFGSA.Proofs.WindowProvenance
 public import AvailableChainFGSA.Proofs.WindowHistory
+public import AvailableChainFGSA.Proofs.WindowLiveness
 public import AvailableChainFGSA.Proofs.WindowSelection
 public import AvailableChainFGSA.Proofs.WindowCertificates
 public import AvailableChainFGSA.Proofs.WindowStore
@@ -429,6 +430,14 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 #print axioms AvailableChain.FGSA.Window.window_latest_pair_kept
 #print axioms AvailableChain.FGSA.Window.window_evicted_has_K_newer
 #print axioms AvailableChain.FGSA.Window.window_entry_history
+
+-- Proofs/WindowLiveness.lean
+#print axioms AvailableChain.FGSA.Window.window_bit_add_of_row
+#print axioms AvailableChain.FGSA.Window.window_bits_accumulate
+#print axioms AvailableChain.FGSA.Window.window_finalize_of_accumulated_quorum
+#print axioms AvailableChain.FGSA.Window.window_target_appended_newest
+#print axioms AvailableChain.FGSA.Window.window_retained_of_few_newer
+#print axioms AvailableChain.FGSA.Window.window_retained_along
 
 -- Proofs/WindowSelection.lean
 #print axioms AvailableChain.FGSA.Window.windowSelectionLaws
