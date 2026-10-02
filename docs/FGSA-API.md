@@ -93,6 +93,13 @@ def AvailableChain.FGSA.FMonotone 997812adaed071f2
 def AvailableChain.FGSA.MetadataInvariant 1a43f749c669202e
 ```
 
+### `AvailableChainFGSA.Statements.WindowHeight`
+
+```text
+def AvailableChain.FGSA.Window.projectHeight d465358b1b5b1c3f
+theorem AvailableChain.FGSA.Window.projectHeight_def 27c7c57450a8487c
+```
+
 ## `AvailableChainFGSARun`
 
 ### `AvailableChainFGSARun.Statements.AC`
