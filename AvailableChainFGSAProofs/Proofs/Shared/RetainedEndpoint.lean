@@ -85,6 +85,17 @@ theorem fgsa_exactHeadGeometry_of_retained_endpoint
     rw [h.proposal_slot] at hlt
     exact (Nat.not_lt_of_ge hle hlt).elim
 
+-- Local unfolding steps for two model definitions; stated by `rfl` here so that this
+-- module exports no equation lemma of a definition it does not own (B3a).
+private theorem erasedList_unfold {n : Nat} (st : State n) (X : Finset (FGBlock (Fin n))) :
+    erasedList st X = st.base.blocks.filter (fun b => decide (∃ B ∈ X, eraseFG B = b)) := rfl
+
+private theorem headInTree_unfold (st : State p.n) (tree : List Block)
+    (raw support : List (GridCO.Wire p.n)) :
+    headInTree p st tree raw support =
+      GridCO.ghost (liveRoot p st) tree (GridCO.goldfishScore st.base.blocks raw support)
+        (eligible p st raw support) := rfl
+
 /-- Blueprint 21 H.6:947–958, H.17:2987–3012 (design 798–814,2847–2872);
 spec 1387–1401, 1555–1581. Class (iii). DC: INTENTIONAL;
 ProposalWalkTransportCore.lean:162,259 supplies retained walk transport.
@@ -97,16 +108,16 @@ theorem fgsa_headVote_covers_parent_of_retained_geometry
     Block.Preceq b.parent (headVote p dst s) := by
   have hp := (fgsa_ordinary_parent_of_live_prefix p src
     (proposerVotes src s) (proposerSupport src s) b.parent hparent
-    (by simpa only [BestAncestry_def, S, fullTree_eq, erasedList, z, ap, ss, es]
+    (by simpa only [BestAncestry_def, S, fullTree_eq, erasedList_unfold, z, ap, ss, es]
       using h.ordinary_prefix)).2
   have hsource : Block.Preceq b.parent (GridCO.ghost (z p src) (S p src)
       (ss src s) (es p src s)) := by
-    simpa only [S, fullTree_eq, erasedList, z, ss, es, hp] using block_preceq_refl b.parent
+    simpa only [S, fullTree_eq, erasedList_unfold, z, ss, es, hp] using block_preceq_refl b.parent
   have hc := walk_covers_of_retained_transport (z p src) (ay p dst) Kc b.parent
     (S p src) (T p dst s) (ss src s) (ts p dst s) (es p src s) (et p dst s)
     hsource h.source_cut h.target_cut h.cut_parent h.target_prefix h.persists h.reflects h.scores
   rw [headVote_eq, ite_eq_right hs]
-  simpa only [domainR_eq_storeFrame, headInTree, ay, ts, et] using
+  simpa only [domainR_eq_storeFrame, headInTree_unfold, ay, ts, et] using
     (show Block.Preceq b.parent
       (GridCO.ghost (ay p dst) (erasedList dst (domainR p dst (voterBlocks p dst s)))
         (ts p dst s) (et p dst s)) by
