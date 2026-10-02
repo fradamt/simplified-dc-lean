@@ -1,6 +1,8 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposal -- shake: keep (I-EXACT axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalHistory -- shake: keep (I-EXACT history audit)
+public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalReceipts -- shake: keep (I-EXACT r2 receipt audit)
+public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalRetained -- shake: keep (I-EXACT r2 G1 audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.Claims -- shake: keep (S4.6b axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.Phase -- shake: keep (H-PHASE audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseRelay -- shake: keep (H-PHASE audit)
@@ -816,3 +818,28 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.inclusion_head_read
 #print axioms AvailableChain.FGSA.Run.inclusion_sleep_silence
 #print axioms AvailableChain.FGSA.Run.inclusion_comparison_prefix
+#print axioms AvailableChain.FGSA.Run.inclusion_stampVote_of_prefix
+#print axioms AvailableChain.FGSA.Run.inclusion_stampBlock_of_prefix
+#print axioms AvailableChain.FGSA.Run.inclusion_stamps_kept
+#print axioms AvailableChain.FGSA.Run.inclusion_head_receipt_early
+#print axioms AvailableChain.FGSA.Run.inclusion_no_equivocation
+#print axioms AvailableChain.FGSA.Run.inclusion_head_seats
+#print axioms AvailableChain.FGSA.Run.inclusion_rest_bound
+#print axioms AvailableChain.FGSA.Run.inclusion_proposer_prior
+#print axioms AvailableChain.FGSA.Run.inclusion_reader_scores
+#print axioms AvailableChain.FGSA.Run.inclusion_clock_offGate
+#print axioms AvailableChain.FGSA.Run.inclusion_time_le_of_tick
+#print axioms AvailableChain.FGSA.Run.inclusion_tick_le_timeIdx
+#print axioms AvailableChain.FGSA.Run.inclusion_idxBefore_le_timeIdx
+#print axioms AvailableChain.FGSA.Run.inclusion_results_before
+#print axioms AvailableChain.FGSA.Run.inclusion_belowLabel_before
+#print axioms AvailableChain.FGSA.Run.inclusion_comparison_lift
+#print axioms AvailableChain.FGSA.Run.inclusion_entries_below
+#print axioms AvailableChain.FGSA.Run.inclusion_frame_below
+#print axioms AvailableChain.FGSA.Run.inclusion_liveRoot_le
+#print axioms AvailableChain.FGSA.Run.inclusion_head_extends
+#print axioms AvailableChain.FGSA.Run.inclusion_retained_reads
+#print axioms AvailableChain.FGSA.Run.inclusion_proposal_emission
+#print axioms AvailableChain.FGSA.Run.inclusion_exact_compat
+#print axioms AvailableChain.FGSA.Run.inclusion_exact_receipt
+#print axioms AvailableChain.FGSA.Run.inclusion_exact_head

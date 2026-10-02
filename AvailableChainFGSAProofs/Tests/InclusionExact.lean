@@ -2,6 +2,7 @@ module
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposal
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalHistory -- shake: keep (axioms)
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedReflect -- shake: keep (X=Q example)
+public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalRetained
 
 set_option linter.privateModule false
 set_option maxRecDepth 10000
@@ -214,5 +215,106 @@ example {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 #print axioms inclusion_head_read
 #print axioms inclusion_sleep_silence
 #print axioms inclusion_comparison_prefix
+
+/-! ### r2: G1 producer, E1 compatibility, E2 -/
+
+-- Slot 1: no gate result exists before v_1, so the comparison prefix is genesis.
+/-- Blueprint 03:354–416; spec 2548–2551; plan I-EXACT r2, R3.
+Class (iii). DC: INTENTIONAL.
+The test run has no genuine comparison result before the slot-1 vote. -/
+private theorem slot1_no_result {r : Slot} {B : Block}
+    (h : (r, B) ∈ cleanResults params unitCodec env run
+      (V2.D.Run.idxBefore run (SA.voteTime params.toParams 1))) : False := by
+  have := (inclusion_results_before iexact_schedule 1 (fun j hj e he =>
+    ((Gen.V2.Duty.index_lt_idxBefore_iff iexact_schedule he _).mp hj).le) h).2
+  simp only [Slot] at this
+  omega
+
+example : ∀ D, BelowLabel params unitCodec env run
+    (V2.D.Run.idxBefore run (SA.voteTime params.toParams 1)) (1 - 2) D → D = .genesis := by
+  rintro D (h | ⟨r, B, hB, _, _⟩)
+  · exact h
+  · exact (slot1_no_result hB).elim
+
+-- In every run, a comparison result read at v_s has label at most s − 2.
+example (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho) (s r : Slot) (B : Block)
+    (h : (r, B) ∈ cleanResults p c E rho (V2.D.Run.idxBefore rho (SA.voteTime p.toParams s))) :
+    r + 2 ≤ s :=
+  (inclusion_results_before hs s (fun _ hj _ he =>
+    ((Gen.V2.Duty.index_lt_idxBefore_iff hs he _).mp hj).le) h).2
+
+-- The HEAD and proposal ticks are off the gate times: the tick is the pre-gate tick.
+example (st : State params.n) :
+    clock params st (SA.voteTime params.toParams 1) =
+      clockPre params st (SA.voteTime params.toParams 1) := by
+  apply inclusion_clock_offGate
+  intro r h
+  change 4 * 1 * (r : Int) + 6 * 1 = 4 * 1 * ((1 : Nat) : Int) + 1 at h
+  omega
+example (st : State params.n) :
+    clock params st (SA.proposalTime params.toParams 1) =
+      clockPre params st (SA.proposalTime params.toParams 1) := by
+  apply inclusion_clock_offGate
+  intro r h
+  change 4 * 1 * (r : Int) + 6 * 1 = 4 * 1 * ((1 : Nat) : Int) at h
+  omega
+
+-- Without leases the live root is the FG root, so the root bound suffices.
+example (p : Params) (st : State p.n) (D : Block)
+    (hz : Block.Preceq (eraseFG (controls p st).Z) D) (h0 : st.base.obligations = []) :
+    Block.Preceq (liveRoot p st) D :=
+  inclusion_liveRoot_le p st D hz (by simp [h0])
+
+-- One vote per seat is not a cap.
+example : GridCO.equivocates
+    [baseVote (⟨.seat (.head 0) (0 : Fin 2), .genesis⟩ : HeadWire 2)] 0 = false :=
+  inclusion_no_equivocation _ 0 _ (fun _ ho _ => List.mem_singleton.mp ho)
+
+-- O-CLOSE shape: the ExactProposalPrem fields and the field-level Clean binders give E1, E2 and E3
+-- inline, for every honest reader (asleep or awake).
+example {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In}
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (ΔF : Time) (pt : PtSP)
+    (hset : CleanSet p c E rho ΔF) (hprop : HonestProposal E rho (fgsaInterface p c) pt.s pt.P)
+    (hhor : SA.voteTime p.toParams pt.s ≤ rho.horizon)
+    (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+    (hsrc : SrcFrameAboveStmt p c E rho)
+    (hordered : ∀ x y r s B C, x ∈ rho.honest → y ∈ rho.honest →
+      SA.gateTime p.toParams r ≤ rho.horizon → SA.gateTime p.toParams s ≤ rho.horizon →
+      gateResult p c E rho x r = some (some B) →
+      gateResult p c E rho y s = some (some C) →
+      (r < s → Block.Preceq B C) ∧ (r = s → Block.Compatible B C))
+    (hnonempty : ∀ j x s, j < timeIdx rho rho.horizon → x ∈ rho.honest →
+      IsGateTick p c rho j x s →
+      ∃ B, gateResultAt p c E rho j = some (some B) ∧ (s = 0 → B = .genesis))
+    (htransfer : ∀ x y s B H, x ∈ rho.honest → y ∈ rho.honest →
+      SA.gateTime p.toParams s ≤ rho.horizon → gateResult p c E rho x s = some (some B) →
+      vHead p c E rho y s = some H → Block.Preceq B H)
+    (hleases : ∀ i v, i ≤ timeIdx rho rho.horizon → v ∈ rho.honest →
+      ∀ row ∈ (storeAt p c E rho i v).base.obligations,
+        BelowLabel p c E rho i (labelBoundAt p c rho i) row.1)
+    (hrows : ∀ i j x r (a : RowWire p.n) e, i ≤ timeIdx rho rho.horizon → j < i →
+      HonestRowAt p c E rho j x r a → namedEntry a.payload.height_pair = some e →
+      ∃ C, actionSourceFG p c E rho x r = some (some C) ∧ EntryBelow p e C ∧
+        BelowLabel p c E rho i (labelBoundAt p c rho j) (eraseFG C)) :
+    (∀ x ∈ rho.honest, ∃ o i t, (fgsaInterface p c).block o.payload = some pt.P ∧
+      t < SA.voteTime p.toParams pt.s ∧ V2.D.Run.acceptsAt E rho i x o t) ∧
+    (∀ x ∈ rho.honest, FGSA.headVote p ((fgsa p c).clock
+      (V2.D.Run.stateBeforeTime E rho (SA.voteTime p.toParams pt.s) x)
+      (SA.voteTime p.toParams pt.s)).st pt.s = pt.P) ∧
+    (∀ x ∈ rho.honest, E.awake x (SA.voteTime p.toParams pt.s) = false →
+      ∀ o, ¬ V2.D.Run.emits E rho x o (SA.voteTime p.toParams pt.s)) :=
+  ⟨inclusion_exact_receipt E rho ΔF hset hstore hframe hsrc hordered hnonempty
+      htransfer hleases hrows pt hprop hhor,
+    inclusion_exact_head E rho ΔF hset hstore hframe hsrc hordered hnonempty
+      htransfer hleases hrows pt hprop hhor,
+    inclusion_sleep_silence E rho pt.s⟩
+
+#print axioms slot1_no_result
+#print axioms inclusion_retained_reads
+#print axioms inclusion_exact_compat
+#print axioms inclusion_exact_receipt
+#print axioms inclusion_exact_head
 
 end AvailableChain.FGSA.Run.Tests.InclusionExact
