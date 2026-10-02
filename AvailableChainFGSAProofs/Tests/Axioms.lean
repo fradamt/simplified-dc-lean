@@ -1,4 +1,6 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Healing.Phase -- shake: keep (H-PHASE audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PhaseRelay -- shake: keep (H-PHASE audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.Base -- shake: keep (H-BASE audit)
 public import AvailableChainFGSAProofs.Proofs.Foundations.HonestNeverSlashed -- shake: keep (HNS audit)
 public import AvailableChainFGSAProofs.Proofs.Foundations.FinalityApi -- shake: keep (S4.5b axiom audit)
@@ -733,3 +735,21 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.healing_rCap
 #print axioms AvailableChain.FGSA.Run.healing_phase_receipt
 #print axioms AvailableChain.FGSA.Run.healing_source_time
+
+#print axioms AvailableChain.FGSA.Run.healing_phaseWitness
+#print axioms AvailableChain.FGSA.Run.healing_phase_initial_frontier
+#print axioms AvailableChain.FGSA.Run.healing_phase_height_le
+#print axioms AvailableChain.FGSA.Run.healing_phase_justified_lt
+#print axioms AvailableChain.FGSA.Run.healing_phase_finality_le
+#print axioms AvailableChain.FGSA.Run.healing_phase_frontier_witness
+#print axioms AvailableChain.FGSA.Run.healing_phase_frontier_root
+#print axioms AvailableChain.FGSA.Run.healing_frontier_mem
+#print axioms AvailableChain.FGSA.Run.healing_phase_frame
+#print axioms AvailableChain.FGSA.Run.healing_settled_frame
+#print axioms AvailableChain.FGSA.Run.healing_phase_local_le_frontier
+#print axioms AvailableChain.FGSA.Run.healing_phase_top_persist
+#print axioms AvailableChain.FGSA.Run.healing_phase_contest_persist
+#print axioms AvailableChain.FGSA.Run.healing_phase_order
+#print axioms AvailableChain.FGSA.Run.healing_phase_block_receipt
+#print axioms AvailableChain.FGSA.Run.healing_evidence_spread
+#print axioms AvailableChain.FGSA.Run.healing_phase_rows_spread
