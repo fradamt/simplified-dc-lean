@@ -198,6 +198,27 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   proofs `HeightFold`, `HeightBridge`, `HeightLaws`, `HeightConsumeTransfer`,
   `HeightHistoryTransfer`. FG-SA supplies the window instance
   (`HeightFoldRefinement` for its raw window fold); KitFG never imports FGSA.
+- KitFG window certificate (migration stage 2, 2026-10-02): definition modules
+  `CertificateCoreDef` (FGFinality projection, TargetQCAt, JustificationBirth,
+  FGCertificateLaws), `CertificateSelectionDef` (entries keyed by (j, X) with
+  their quorum; greatest-ready selection read from the pre-finality list;
+  pruned lower entries covered by X ⪯ F with no own QC; eviction gives no
+  coverage; pruneCertEntries), `StoreSafetyDef` (F-lock with explicit fault /
+  no-slash premises) and `ProvenanceCoreDef`. Shared cores, with no
+  `CertificateSimplex` in their import closure: `AccountableCore`, `CrossingCore`,
+  `ProvenanceCore` (forms that need only the height laws take FGHeightLaws),
+  `SelectionCore` (FGSelectionLaws.of_core, FGCertificateLaws.of_selection),
+  `StoreSafety`. SimplexFG adapters: `CertificateSimplexDef`,
+  `CertificateSimplex`, `StoreSafetySimplex`. Existing KitFG proofs stay
+  unchanged; the cores are added companions. FG-SA proves the window instance
+  (FG2) and calls the cores.
+- KitFG frame bridge (for the FG5 switch, 2026-10-02): `FrameBridgeDef` states
+  these SimplexFG readers over a height view v: frontier, lexMax, filteredFrom,
+  storeControls, storeFrame, fjControls and fjFrame (`…View`); `FrameBridge`
+  proves each equal to its view form under `HeightBridge E cfg v`, plus
+  hOf_of_bridge. They read only height fields. SimplexFG is unchanged. Readers
+  of the finality fields (on_block, update_finality) are not covered; FG5
+  replaces them with the window store.
 - FGSA E-11 adds `LeaseBelowOutputStore` in `Statements/Invariants` and
   `StoreBundle` with `StoreBundleInvariant` in `Statements/Store`. The bundle
   has cstore, meta, nest and lease fields; the E-11 statements are PROVED.

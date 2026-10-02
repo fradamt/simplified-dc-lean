@@ -2,6 +2,7 @@ module
 public import AvailableChainKitFG.StoreSafety
 public import AvailableChainKitFG.CertificateSimplex
 public import AvailableChainKitFG.Correspondence
+public import AvailableChainKitFG.ProvenanceCoreDef
 
 public section
 
@@ -10,6 +11,12 @@ namespace AvailableChain.KitFG
 open AvailableChain.SimplexFG
 
 variable {V : Type} [DecidableEq V] [Fintype V] [RowCodec V]
+
+/-- The certificate views give the same head fields as the block adapter. -/
+theorem simplex_certificateHeadFields_eq (E : Electorate V) (cfg : FGConfig)
+    (Hd : FGBlock V) :
+    certificateHeadFields (simplexHeightView E cfg) (simplexFinalityView E cfg) Hd =
+      HeadFields.ofBlock E cfg Hd := rfl
 
 /-- Project the existing SimplexFG store invariant into the shared structure. -/
 theorem simplexStoreInvariant (E : Electorate V) (cfg : FGConfig) (st : Store V)
