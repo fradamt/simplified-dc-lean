@@ -80,5 +80,12 @@ before its horizon bound, because Time = Int and a negative trigger gives a dead
 ## Gates
 
 - aaeb71c and 037ea95: FULL gates stopped before completion (superseded by later pre-freeze heads; lead).
-- f7eafbe (B21 head): FULL gate (record in the S4.8 commit message).
-- Final head (+ main + B25): FULL gate (record in the S4.8 commit message).
+- f7eafbe (B21 head): FULL gate stopped at fgsa-manifest (superseded by B25; lead).
+- 572da1a (f7eafbe + main eacee7b + B25): FULL gate PASS on the NUC (gate wall 3290 s) and fg(mac) PASS. Landed:
+  main = 572da1a. The B31 and B32 changes followed, so this head is not the freeze head.
+- 46b8f58 (final head = 572da1a + B31 + B32): FULL gate PASS on the NUC (gate wall 3256 s; build, check-build,
+  check-fgsa, check-fgsa-run, catalog-lock, manifests, fgsa-manifest, fgsa-claims, axioms) and fg(mac) PASS (313 s).
+  Landed: main = 46b8f58.
+- S4.8 freeze commit: docs/FGSA-API-frozen.md = docs/FGSA-API.md at 46b8f58 (1127 entries, 45 modules; the trailing
+  blank line that `scripts/fgsa-freeze.sh` copies is removed and the SHA-256 is recomputed);
+  scripts/fgsa-manifest-allow.txt reset to its header line; `NEG=0 bash scripts/check-fgsa-manifest.sh` PASS.
