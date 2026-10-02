@@ -46,6 +46,9 @@ example :
     let bad := wire 3 second (some ⟨1, genesisRoot⟩)
     let future := wire 5 third
     let wrong := wire 4 first (some ⟨2, first.root⟩)
+    rowsValidForParent p third 4 [bad] = false ∧
+    rowsValidForParent p third 4 [future] = false ∧
+    rowsValidForParent p third 4 [wrong] = false ∧
     blockAccepted p before 4 (eraseFG (packed third 4 [bad])) third [bad] = false ∧
     blockAccepted p before 4 (eraseFG (packed third 4 [future])) third [future] = false ∧
     blockAccepted p before 4 (eraseFG (packed third 4 [wrong])) third [wrong] = false := by
