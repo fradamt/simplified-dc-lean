@@ -180,7 +180,7 @@ finality head. The fallback fields are unreachable under CStoreInv (Task 11,
 `fgHead_stored`, `fgBlockOf_spec`). -/
 def fgInputs (p : Params) (st : State p.n) : Option (FGBlock (Fin p.n)) × HeadFields :=
   (fgSource p st, match fgBlockOf st (fgHead p st) with
-    | some Hd => HeadFields.ofBlock p.E p.cfg Hd
+    | some Hd => Window.headFields p p.K_W Hd
     | none => ⟨0, genesisRoot, 0⟩)
 
 /-- [R2/R3/R4] The send-once client action. A suppressed row keeps the

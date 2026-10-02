@@ -577,7 +577,7 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.sourceDiscipline_emittedNonempty
 #print axioms AvailableChain.FGSA.Run.fgsa_rowBitPersist
 #print axioms AvailableChain.FGSA.Run.fgsa_rowService_receipt
-#print axioms AvailableChain.FGSA.Run.validForParent_heightMatch
+#print axioms AvailableChain.FGSA.Run.validForParent_currentHeightMatch
 #print axioms AvailableChain.FGSA.Run.fgsa_tRowsSelect
 #print axioms AvailableChain.FGSA.Run.fgsa_rowsReceipt_carriage
 #print axioms AvailableChain.FGSA.Run.fgsa_tRowsReceipt
@@ -589,6 +589,7 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.BatchPrem.batch_of_valid
 #print axioms AvailableChain.FGSA.Run.fgsa_batchCoverage
 
+#print axioms AvailableChain.FGSA.Run.domainR_eq_storeFrame
 #print axioms AvailableChain.FGSA.Run.kappaF_ceiling
 #print axioms AvailableChain.FGSA.Run.kappaF_ge_two
 #print axioms AvailableChain.FGSA.Run.kappaF_eq_two_iff

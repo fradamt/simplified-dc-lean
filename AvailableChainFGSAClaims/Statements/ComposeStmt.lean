@@ -311,8 +311,8 @@ def SettledPhaseFrame (st : State p.n) (m : Nat)
    | some B => R.rootIsJ = true ∧ R.J = B ∧ R.Z = B ∧
        R.j + 1 = m ∧ contested = false ∧ FGBlock.Preceq st.fg.F B
    | none => R.rootIsJ = false ∧ R.Z = st.fg.F ∧
-       (∃ K ∈ st.fg.TF, (derive p.E p.cfg K).F = st.fg.F ∧
-         (derive p.E p.cfg K).h_F < R.lo) ∧
+       (∃ K ∈ st.fg.TF, (finalityView p K).F = st.fg.F ∧
+         (finalityView p K).h_F < R.lo) ∧
        ((contested = false ∧ R.j + 2 ≤ m) ∨
          (contested = true ∧ R.j + 1 = m))) ∧
   (∃ W ∈ st.fg.TF, hOf p.E p.cfg W = m ∧ FGBlock.Preceq R.Z W)
@@ -334,8 +334,8 @@ theorem SettledPhaseFrame_def (st : State p.n) (m : Nat)
    | some B => R.rootIsJ = true ∧ R.J = B ∧ R.Z = B ∧
        R.j + 1 = m ∧ contested = false ∧ FGBlock.Preceq st.fg.F B
    | none => R.rootIsJ = false ∧ R.Z = st.fg.F ∧
-       (∃ K ∈ st.fg.TF, (derive p.E p.cfg K).F = st.fg.F ∧
-         (derive p.E p.cfg K).h_F < R.lo) ∧
+       (∃ K ∈ st.fg.TF, (finalityView p K).F = st.fg.F ∧
+         (finalityView p K).h_F < R.lo) ∧
        ((contested = false ∧ R.j + 2 ≤ m) ∨
          (contested = true ∧ R.j + 1 = m))) ∧
   (∃ W ∈ st.fg.TF, hOf p.E p.cfg W = m ∧ FGBlock.Preceq R.Z W)) := by rfl

@@ -13,7 +13,7 @@ variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
 
 /-- A finalized certificate names both the target and its certificate height, as in DC. -/
 def FGFinalizedAt (K T : FGBlock (Fin p.n)) (h : Nat) : Prop :=
-  (derive p.E p.cfg K).F = T ∧ (derive p.E p.cfg K).h_F = h
+  (finalityView p K).F = T ∧ (finalityView p K).h_F = h
 
 /-- The same proposal/ancestor carrier as the frozen RunFGBlock, stated here
 without a Claims import. It includes emitted and delivered run proposals. -/
@@ -364,13 +364,15 @@ theorem fgsa_finalLock_ev [Fintype V]
     (e e' : Nat) (x y : V) (hx : x ∈ rho.honest)
     (K W : FGBlock (Fin p.n))
     (hK : K ∈ (storeAt p c E rho e x).fg.TF)
-    (hKF : (derive p.E p.cfg K).F = (storeAt p c E rho e x).fg.F)
+    (hKF : (finalityView p K).F = (storeAt p c E rho e x).fg.F)
     (hW : HeldAt p c E rho e' y W)
-    (hh : (derive p.E p.cfg K).h_F < (derive p.E p.cfg W).h) :
+    (hh : (finalityView p K).h_F < (derive p.E p.cfg W).h) :
     FGBlock.Preceq (storeAt p c E rho e x).fg.F W ∨
     HasSlashableWeightBetween p.E (chainRows K) (chainRows W) :=
   (KitFG.slashableWeight_or_finalized_preceq_of_certificate
-    p.E (heightView p) (finalityView p) (fgCertificateLaws p) K W hh).symm.imp
+    p.E (heightView p) (finalityView p) (fgCertificateLaws p) K W
+      (by simpa only [heightView_eq_simplex, KitFG.simplexHeightView_def,
+        KitFG.heightOf_def] using hh)).symm.imp
     (fun h => hKF ▸ h) id
 
 /-- The former finalLock_ev count conclusion, now a separate attribution corollary. -/
@@ -380,9 +382,9 @@ theorem fgsa_finalLock_faulty_count [Fintype V]
     (e e' : Nat) (x y : V) (hx : x ∈ rho.honest)
     (K W : FGBlock (Fin p.n))
     (hK : K ∈ (storeAt p c E rho e x).fg.TF)
-    (hKF : (derive p.E p.cfg K).F = (storeAt p c E rho e x).fg.F)
+    (hKF : (finalityView p K).F = (storeAt p c E rho e x).fg.F)
     (hW : HeldAt p c E rho e' y W)
-    (hh : (derive p.E p.cfg K).h_F < (derive p.E p.cfg W).h) :
+    (hh : (finalityView p K).h_F < (derive p.E p.cfg W).h) :
     FGBlock.Preceq (storeAt p c E rho e x).fg.F W ∨
       2 * Gen.Pure.qF p.n - p.n ≤ (Gen.V2.Duty.faulty rho).card :=
   (fgsa_finalLock_ev p c E rho e e' x y hx K W hK hKF hW hh).imp id

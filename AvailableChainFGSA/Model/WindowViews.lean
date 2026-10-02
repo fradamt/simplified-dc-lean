@@ -36,13 +36,12 @@ theorem headFields_def (p : Params) (K : Nat) (Hd : FGBlock (Fin p.n)) :
 
 end Window
 
-/-- The active height view still uses the old fold in FG5a.
-J4 changes its body to `Window.projectHeight (Window.derive p p.K_W B)`. -/
+/-- The active height view reads the window fold. -/
 def heightView (p : Params) (B : FGBlock (Fin p.n)) : FGHeight (Fin p.n) :=
-  heightOf (SimplexFG.derive p.E p.cfg B)
+  Window.projectHeight (Window.derive p p.K_W B)
 
 theorem heightView_def (p : Params) (B : FGBlock (Fin p.n)) :
-    heightView p B = heightOf (SimplexFG.derive p.E p.cfg B) := rfl
+    heightView p B = Window.projectHeight (Window.derive p p.K_W B) := rfl
 
 end AvailableChain.FGSA
 end

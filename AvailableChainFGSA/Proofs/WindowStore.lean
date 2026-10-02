@@ -192,7 +192,7 @@ theorem windowStoreInvariant_accept (hK : 2 ≤ K)
   have hpairJ : ((update_finality p K { st with TF := insert B st.TF } B).h_j,
       (update_finality p K { st with TF := insert B st.TF } B).J) =
       lexMax p.E p.cfg st.F (insert B st.TF) := by
-    rw [window_update_pair_eq p K hK, KitFG.update_finality_pair,
+    rw [window_update_finality_pair, window_hj_eq p K hK, window_J_eq p K hK,
       lexMax_insert p.E p.cfg st.F st.TF B (viewRootInj_all _) hne, ← hp]
   have hFJ : FGBlock.Preceq st.F
       (update_finality p K { st with TF := insert B st.TF } B).J := by
@@ -227,8 +227,9 @@ theorem windowStoreInvariant_accept (hK : 2 ≤ K)
     simpa only [hTF, projectHeight_def, window_height_eq p K hK, SimplexFG.frontier, ← hOf_eq] using
       (show (update_finality p K { st with TF := insert B st.TF } B).h_max =
         frontier p.E p.cfg (insert B st.TF) by
-          rw [update_finality_h_max_eq p K hK, KitFG.update_finality_h_max,
-            frontier_insert, ← hm])
+          rw [window_update_finality_h_max, window_height_eq p K hK,
+            frontier_insert, ← hm]
+          rfl)
   · have hnew : ∃ C ∈ (update_finality p K { st with TF := insert B st.TF } B).TF,
         FGBlock.Preceq (update_finality p K { st with TF := insert B st.TF } B).F
           (SimplexFG.derive p.E p.cfg C).J := by

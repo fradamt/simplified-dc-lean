@@ -4,7 +4,6 @@ public import AvailableChainFGSAProofs.Proofs.Shared.Channels
 public import AvailableChainFGSAProofs.Proofs.Shared.StoreRun
 public import AvailableChainFGSARun.Proofs.Receipts
 public import AvailableChainFGSA.Model.RowValidity
-public import AvailableChainKitFG.RowBitsDef
 public import AvailableChainFGSAClaims.Statements.Fold
 
 public section
@@ -26,18 +25,18 @@ theorem fgsa_rowBitPersist (target : Bool) (i : Nat) (x : V)
     (rows : List (Row (Fin p.n))) (a : Row (Fin p.n))
     (_held : HeldAt p c E rho i x (.node parent s body rows))
     (ha : a ∈ rows) (hCB : FGBlock.Preceq (.node parent s body rows) B)
-    (hm : KitFG.rowMatchesBit (if target then KitFG.ChainBit.target else .progress)
-      (derive p.E p.cfg parent) a)
-    (hPB : KitFG.sameBitState (if target then KitFG.ChainBit.target else .progress)
-      (derive p.E p.cfg parent) (derive p.E p.cfg B))
+    (hm : if target then a.height_pair = .vote (heightView p parent).h
+      (heightView p parent).T_h.root false else
+      a.height_pair.matchesEntry (heightView p parent).h (heightView p parent).T_h.root = true)
+    (hPB : (heightView p parent).h = (heightView p B).h ∧
+      (heightView p parent).T_h.root = (heightView p B).T_h.root)
     (hBW : FGBlock.Preceq B W)
-    (hstate : KitFG.sameBitState (if target then KitFG.ChainBit.target else .progress)
-      (derive p.E p.cfg B) (derive p.E p.cfg W)) :
-    a.signer ∈ KitFG.chainBits (if target then KitFG.ChainBit.target else .progress)
-      (derive p.E p.cfg W) :=
-  KitFG.bit_persist p.E p.cfg (if target then KitFG.ChainBit.target else .progress) B W hBW hstate
-    (KitFG.bit_from_row p.E p.cfg (if target then KitFG.ChainBit.target else .progress)
-      parent B s body rows a ha hCB hm hPB)
+    (hstate : (heightView p B).h = (heightView p W).h ∧
+      (heightView p B).T_h.root = (heightView p W).T_h.root) :
+    a.signer ∈ (if target then (heightView p W).target_participation
+      else (heightView p W).progress) :=
+  row_bit_persist p target parent W s body rows a ha (KitFG.preceq_trans hCB hBW) hm
+    ⟨hPB.1.trans hstate.1, hPB.2.trans hstate.2⟩
 
 private theorem rowService_receipt_on (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (_hDelta : E.Δ = p.Δ) (hExecution : V2.D.ExecutionValid E rho)
@@ -178,13 +177,16 @@ private theorem rowService_carrier_read {s : Slot} {Q : Block} {rows : List (Row
         cases he
         rfl
 
-/-- R6 implies the explicit height match on the current fold.
-DC: SAME height entry. This implication is specific to the current fold. -/
-theorem validForParent_heightMatch {s : Slot} {Q : Block} {a : RowWire p.n}
-    (hv : ValidForParent p c E rho s Q a) : HeightMatch p c E rho s Q a := by
-  obtain ⟨st, H, hs, hH, hv⟩ := hv
-  refine ⟨st, H, hs, hH, ?_⟩
-  obtain ⟨b, hb, timeout, hp⟩ := (rowValidFor_iff _ a).mp hv
+/-- R6W and a row height at least the parent height imply current-height matching.
+The stale arm contradicts the height bound. -/
+theorem validForParent_currentHeightMatch {s : Slot} {Q : Block} {a : RowWire p.n}
+    (st : State p.n) (H : FGBlock (Fin p.n))
+    (hs : proposalStateAt p c E rho s = some st)
+    (hH : fgBlockOf st Q.parent = some H)
+    (hv : Window.rowValidW (parentFoldState p s H) a = true)
+    (h : Nat) (T : BlockId) (hn : namedEntry a.payload.height_pair = some (h, T))
+    (hh : (parentFoldState p s H).h ≤ h) : HeightMatch p c E rho s Q a := by
+  obtain ⟨b, hb, hm⟩ := (Window.rowValidW_iff _ a).mp hv
   have he : b.height_pair = a.payload.height_pair := by
     cases a with
     | mk auth body =>
@@ -194,8 +196,28 @@ theorem validForParent_heightMatch {s : Slot} {Q : Block} {a : RowWire p.n}
       | seat l i => cases l with
         | head s => cases hb
         | fg => cases hb; rfl
-  rw [← he, hp]
-  rfl
+  refine ⟨st, H, hs, hH, ?_⟩
+  rw [← he] at hn ⊢
+  cases hp : b.height_pair with
+  | empty => rw [hp] at hn; cases hn
+  | vote k U timeout =>
+      rw [hp] at hn
+      have hname : k = h ∧ U = T := Prod.mk.inj (Option.some.inj hn)
+      rcases hm with hm | hm
+      · have keys : k = (parentFoldState p s H).h ∧
+            U = (parentFoldState p s H).T_h.root := by
+          simpa [Window.heightMatch_def, hp, NamedHeightPair.matchesEntry] using hm
+        exact congrArg some (Prod.ext keys.1 keys.2)
+      · cases hf : b.finality_pair with
+        | none => simp [Window.staleUseful_def, hp, hf] at hm
+        | some fp =>
+            have hlt : k < (parentFoldState p s H).h := by
+              have hbounds : (fp.height < k ∧ k < (parentFoldState p s H).h) ∧
+                  Window.windowMatch (parentFoldState p s H) b = true := by
+                simpa only [Window.staleUseful_def, hp, hf, Bool.and_eq_true,
+                  decide_eq_true_eq] using hm
+              exact hbounds.1.2
+            exact (Nat.not_lt_of_ge hh (hname.1 ▸ hlt)).elim
 
 /-- Exact signed-row selection from the pool or stored blocks, with R6.
 DC: INTENTIONAL FG-SA transport adapter; no quorum or row-count premise. -/
@@ -403,20 +425,37 @@ theorem fgsa_batchCoverage (ΔF : Time) (kind : RowKind) : BatchCoverage p ΔF k
     | node P s body rs =>
       change (derive p.E p.cfg P).h = y at hh
       change (derive p.E p.cfg P).T_h = U at hT
+      change (derive p.E p.cfg P).h = (derive p.E p.cfg X.parent).h ∧
+        (derive p.E p.cfg P).T_h.root = (derive p.E p.cfg X.parent).T_h.root at hsames
       cases kind with
       | target =>
-        apply KitFG.bit_from_row p.E p.cfg .target P X.parent s body rs b hbW hWP
-        · change b.height_pair = .vote _ _ false
+        have hm : b.height_pair = .vote (heightView p P).h (heightView p P).T_h.root false := by
+          simp only [heightView_eq_simplex, KitFG.simplexHeightView_def, KitFG.heightOf_def]
           rw [hh, hT]
           exact hrow.2
-        · exact hsames
+        have hk : (heightView p P).h = (heightView p X.parent).h ∧
+            (heightView p P).T_h.root = (heightView p X.parent).T_h.root := by
+          simpa only [heightView_eq_simplex, KitFG.simplexHeightView_def, KitFG.heightOf_def]
+            using hsames
+        have ht := row_bit_persist p true P X.parent s body rs b hbW hWP hm hk
+        change b.signer ∈ (heightView p X.parent).target_participation at ht
+        rw [heightView_bridge p X.parent] at ht
+        exact hrow.1 ▸ ht
       | progress =>
-        apply KitFG.bit_from_row p.E p.cfg .progress P X.parent s body rs b hbW hWP
-        · obtain ⟨timeout, hn⟩ := hrow.2
-          change b.height_pair.matchesEntry _ _ = true
+        have hm : b.height_pair.matchesEntry
+            (heightView p P).h (heightView p P).T_h.root = true := by
+          simp only [heightView_eq_simplex, KitFG.simplexHeightView_def, KitFG.heightOf_def]
+          obtain ⟨timeout, hn⟩ := hrow.2
           rw [hh, hT, hn]
           cases timeout <;> simp [NamedHeightPair.matchesEntry]
-        · exact hsames
+        have hk : (heightView p P).h = (heightView p X.parent).h ∧
+            (heightView p P).T_h.root = (heightView p X.parent).T_h.root := by
+          simpa only [heightView_eq_simplex, KitFG.simplexHeightView_def, KitFG.heightOf_def]
+            using hsames
+        have ht := row_bit_persist p false P X.parent s body rs b hbW hWP hm hk
+        change b.signer ∈ (heightView p X.parent).progress at ht
+        rw [heightView_bridge p X.parent] at ht
+        exact hrow.1 ▸ ht
 
 end AvailableChain.FGSA.Run
 end

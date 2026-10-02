@@ -4,3 +4,4 @@
 EXPECTED AvailableChain.FGSA.Run.honest_one_row_per_round fg-noround/06: replace unconditional emission by action uniqueness and successful attest emission; migration plan 06
 EXPECTED AvailableChain.FGSA.Run.InRowWindow fg-noround/06: forced by Params.wF removal; text = 07 draft
 EXPECTED AvailableChain.FGSA.Run.OpeningExtends achfix A7 (ach-review Opus N7, lead ruling): unused alias of OpeningCovered removed
+EXPECTED AvailableChain.FGSA.Run.validForParent_heightMatch FG5c ruling 4 and plan A9: replace false R6W implication with validForParent_currentHeightMatch

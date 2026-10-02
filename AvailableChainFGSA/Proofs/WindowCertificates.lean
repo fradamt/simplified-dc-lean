@@ -1,7 +1,6 @@
 module
 public import AvailableChainFGSA.Statements.WindowCertificate
 public import AvailableChainFGSA.Proofs.WindowInvariant
-public import AvailableChainKitFG.CertificateSimplex
 
 public section
 
@@ -40,31 +39,25 @@ private theorem birth_at_target (p : Params) (K : Nat) (hK : 2 ≤ K)
   let B := FGBlock.node P s x rs
   change (derive p K B).h_j = (derive p K P).h at hj
   change (derive p K B).J = (derive p K P).T_h at hJ
-  have hb := windowHeightBridge p K hK B
-  have hjb := congrArg FGHeight.h_j hb
-  have hJb := congrArg FGHeight.J hb
-  change (derive p K B).h_j = (SimplexFG.derive p.E p.cfg B).h_j at hjb
-  change (derive p K B).J = (SimplexFG.derive p.E p.cfg B).J at hJb
   have hg := windowHeightLaws p K hK
-  have hnz : (SimplexFG.derive p.E p.cfg B).h_j ≠ 0 := by
-    rw [← hjb, hj]
+  have hlt := hg.justified_below_height B
+  change (derive p K B).h_j < (derive p K B).h at hlt
+  have hh : (derive p K B).h = (derive p K P).h + 1 := by
+    rcases hg.node_cases P s x rs with hn | hn
+    · have he := hn.1
+      change (derive p K B).h = (derive p K P).h at he
+      rw [hj, he] at hlt
+      exact (Nat.lt_irrefl _ hlt).elim
+    · exact hn.1
+  refine ⟨(by intro h; cases h), rfl, rfl, hj, hJ, hh, ?_⟩
+  have hnz : (certificateHeight p K B).h_j ≠ 0 := by
+    change (derive p K B).h_j ≠ 0
+    rw [hj]
     exact Nat.ne_of_gt (hg.one_le_h P)
-  obtain ⟨C, hCB, hbirth, _⟩ := simplex_justification_birth_interval p.E p.cfg B hnz
-  have hw := (justificationBirth_window_iff_simplex p K hK C _ _).mpr hbirth
-  rw [← hjb, ← hJb] at hw
-  have hC : C = B := by
-    by_contra hne
-    have hCP := preceq_parent_of_preceq_node hCB hne
-    have hm := hg.h_mono hCP
-    have hlt := hg.justified_below_height C
-    have hcj := hw.2.2.2.1
-    change (derive p K C).h_j = (derive p K B).h_j at hcj
-    change (derive p K C).h ≤ (derive p K P).h at hm
-    change (derive p K C).h_j < (derive p K C).h at hlt
-    rw [hj] at hcj
-    exact (Nat.not_lt_of_ge hm) (hcj ▸ hlt)
-  subst C
-  simpa only [hj, hJ] using hw
+  have hq := hg.justification_certificate B hnz
+  change TargetQCAt p.E B (derive p K B).h_j (derive p K B).J at hq
+  rw [hj, hJ] at hq
+  exact hq
 
 /-- The row fold changes only bits of existing entries. Each new bit names
 an exact finality pair from a row in this fold. -/

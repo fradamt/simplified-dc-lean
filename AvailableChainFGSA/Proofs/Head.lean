@@ -82,8 +82,7 @@ theorem F_preceq_liveRoot (p : Params) (st : State p.n) (h : CStoreInv p st) :
       simp only [Bool.and_eq_true, decide_eq_true_eq] at hc
       obtain ⟨B, hB, hBe⟩ := hc.2
       rw [← Option.some.inj hrow, ← hBe]
-      exact eraseFG_preceq ((KitFG.mem_filteredFrom_of_bridge
-        p.E p.cfg (heightView p) (heightView_bridge p) _ _ B).1 hB).2.1
+      exact eraseFG_preceq ((KitFG.mem_filteredFromView (heightView p) _ _ B).1 hB).2.1
     · exact absurd hrow (by simp)
 
 /-- [spec 1074–1107; T7.W (W2)] The walk result extends F, for every tree, score

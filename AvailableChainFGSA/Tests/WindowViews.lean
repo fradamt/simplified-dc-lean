@@ -18,8 +18,8 @@ private abbrev params : Params :=
 private def block : FGBlock (Fin 1) :=
   .node .genesis 1 0 [⟨0, .vote 1 genesisRoot false, none⟩]
 
-example : heightView params block =
-    KitFG.heightOf (SimplexFG.derive params.E params.cfg block) := rfl
+example : Window.projectHeight (Window.derive params 2 block) =
+    KitFG.heightOf (SimplexFG.derive params.E params.cfg block) := by rfl
 
 example : headFields params 2 block = ⟨1, genesisRoot, 0⟩ := by decide +kernel
 

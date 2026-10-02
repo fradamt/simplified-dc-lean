@@ -28,12 +28,15 @@ theorem fgsa_rGeo : RGeo p c E rho := by
 /-- L49 certificate clauses, using the designated KitFG producers directly. -/
 theorem fgsa_rCert : RCert p c E rho := by
   intro i x W _ _
-  exact ⟨KitFG.height_crossing p.E p.cfg W,
-    (fgCertificateLaws p).height.justification_certificate W,
+  refine ⟨KitFG.height_crossing p.E p.cfg W, ?_, ?_, ?_⟩
+  · simpa only [heightView_eq_simplex, KitFG.simplexHeightView_def, KitFG.heightOf_def] using
+    (fgCertificateLaws p).height.justification_certificate W
+  · exact
     KitFG.finality_certificate_of_certificate
-      p.E (heightView p) (finalityView p) (fgCertificateLaws p) W,
+      p.E (heightView p) (finalityView p) (fgCertificateLaws p) W
+  · simpa only [heightView_eq_simplex, KitFG.simplexHeightView_def, KitFG.heightOf_def] using
     KitFG.provenance_finality_of_certificate
-      p.E (heightView p) (finalityView p) (fgCertificateLaws p) W⟩
+      p.E (heightView p) (finalityView p) (fgCertificateLaws p) W
 
 end AvailableChain.FGSA.Run
 end

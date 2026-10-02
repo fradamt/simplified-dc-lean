@@ -62,7 +62,9 @@ theorem fgsa_headReachesLo (p : Params) (st : State p.n)
     have hlow : hOf p.E p.cfg B < (controls p st).lo := Nat.lt_of_not_ge hn
     obtain ⟨hBX, hFB, hZB, W, hWX, hBW, hlo⟩ :=
       (KitFG.mem_filteredFrom_of_bridge p.E p.cfg (heightView p) (heightView_bridge p) _ _ B).mp hB
-    change (heightView p B).h < (controls p st).lo at hlow
+    have hlowH : (heightView p B).h < (controls p st).lo := by
+      simpa only [heightView_eq_simplex, KitFG.simplexHeightView_def, KitFG.heightOf_def, hOf]
+        using hlow
     have hne : B ≠ W := by intro h; subst W; simp only [Height] at *; omega
     obtain ⟨C, hp, hng, hCW⟩ := KitFG.child_toward hBW hne
     have hBC : FGBlock.Preceq B C := by
