@@ -66,8 +66,8 @@ structure KernelJoinedPrem (G ΔF : Time)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : PtR) : Prop where
   set : Recovery₂ p c E rho G ΔF
   bound : LivenessBoundW p ΔF
-  window : (FGood (Gen.V2.Duty.HonestSlot rho (fgsaInterface p c)) p.R pt.r ∧ G ≤ P p) ∨
-    FGood4 (Gen.V2.Duty.HonestSlot rho (fgsaInterface p c)) p.R pt.r
+  window : FGoodE_W (Gen.V2.Duty.HonestSlot rho (fgsaInterface p c))
+    p.R (kappaF p ΔF) pt.r
   start : ∃ w, HealingInput p c E rho w ΔF ∧ tstar p w ≤ ↑pt.r * P p
   hhor : kernelDeadlineW p ΔF (pt.r + 2) ≤ rho.horizon
 

@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAClaims.Claims.Finality -- shake: keep (S4.3b axiom audit)
 public import AvailableChainFGSAClaims.Statements.BoundsW -- shake: keep (S4.1 axiom audit)
 public import AvailableChainFGSAClaims.Statements.Phases -- shake: keep (07-H audit)
 public import AvailableChainFGSAClaims.Claims.Healing -- shake: keep (07-H audit)
@@ -566,3 +567,105 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.MixedCross_def
 #print axioms AvailableChain.FGSA.Run.foldTrichotomy_def
 #print axioms AvailableChain.FGSA.Run.StoredProgressConsume_def
+
+-- S4.3b: W kernels and FF5–FF7 public surface.
+#print axioms AvailableChain.FGSA.Run.KernelJoinedPrem.window
+#print axioms AvailableChain.FGSA.Run.FinFormW
+#print axioms AvailableChain.FGSA.Run.FinFormW.recFE
+#print axioms AvailableChain.FGSA.Run.FinFormW.recF4
+#print axioms AvailableChain.FGSA.Run.FinFormW.rec
+#print axioms AvailableChain.FGSA.Run.FinFormW.recOn
+#print axioms AvailableChain.FGSA.Run.FinFormW.casesOn
+#print axioms AvailableChain.FGSA.Run.FinFormW.holdsW
+#print axioms AvailableChain.FGSA.Run.FinFormW.holdsW_def
+#print axioms AvailableChain.FGSA.Run.FinalitySet_W
+#print axioms AvailableChain.FGSA.Run.FinalitySet_W.mk
+#print axioms AvailableChain.FGSA.Run.FinalitySet_W.core
+#print axioms AvailableChain.FGSA.Run.FinalitySet_W.bound
+#print axioms AvailableChain.FGSA.Run.FinalitySet_W.recur
+#print axioms AvailableChain.FGSA.Run.OpeningCarrier_W
+#print axioms AvailableChain.FGSA.Run.OpeningCarrier_W_def
+#print axioms AvailableChain.FGSA.Run.KernelConclusion_W
+#print axioms AvailableChain.FGSA.Run.KernelConclusion_W_def
+#print axioms AvailableChain.FGSA.Run.KernelPrem_W
+#print axioms AvailableChain.FGSA.Run.KernelPrem_W.mk
+#print axioms AvailableChain.FGSA.Run.KernelPrem_W.set
+#print axioms AvailableChain.FGSA.Run.KernelPrem_W.bound
+#print axioms AvailableChain.FGSA.Run.KernelPrem_W.window
+#print axioms AvailableChain.FGSA.Run.KernelPrem_W.start
+#print axioms AvailableChain.FGSA.Run.KernelPrem_W.hhor
+#print axioms AvailableChain.FGSA.Run.KernelPrem_W.input
+#print axioms AvailableChain.FGSA.Run.KernelPrem_W.services
+#print axioms AvailableChain.FGSA.Run.TailKernelPt
+#print axioms AvailableChain.FGSA.Run.TailKernelPt.mk
+#print axioms AvailableChain.FGSA.Run.TailKernelPt.w
+#print axioms AvailableChain.FGSA.Run.TailKernelPt.r
+#print axioms AvailableChain.FGSA.Run.TailKernelPt.carrier
+#print axioms AvailableChain.FGSA.Run.TailKernelPt.U
+#print axioms AvailableChain.FGSA.Run.TailKernelPrem_W
+#print axioms AvailableChain.FGSA.Run.TailKernelPrem_W.mk
+#print axioms AvailableChain.FGSA.Run.TailKernelPrem_W.set
+#print axioms AvailableChain.FGSA.Run.TailKernelPrem_W.bound
+#print axioms AvailableChain.FGSA.Run.TailKernelPrem_W.input
+#print axioms AvailableChain.FGSA.Run.TailKernelPrem_W.start
+#print axioms AvailableChain.FGSA.Run.TailKernelPrem_W.window
+#print axioms AvailableChain.FGSA.Run.TailKernelPrem_W.carrier
+#print axioms AvailableChain.FGSA.Run.TailKernelPrem_W.high
+#print axioms AvailableChain.FGSA.Run.TailKernelPrem_W.cover
+#print axioms AvailableChain.FGSA.Run.TailKernelPrem_W.hhor
+#print axioms AvailableChain.FGSA.Run.finalityWindow_W
+#print axioms AvailableChain.FGSA.Run.finalityWindow_W_def
+#print axioms AvailableChain.FGSA.Run.FirstFinalityPrem_W
+#print axioms AvailableChain.FGSA.Run.FirstFinalityPrem_W.mk
+#print axioms AvailableChain.FGSA.Run.FirstFinalityPrem_W.set
+#print axioms AvailableChain.FGSA.Run.FirstFinalityPrem_W.input
+#print axioms AvailableChain.FGSA.Run.FirstFinalityPrem_W.start
+#print axioms AvailableChain.FGSA.Run.FirstFinalityPrem_W.hhor
+#print axioms AvailableChain.FGSA.Run.FinalityLivenessPrem_W
+#print axioms AvailableChain.FGSA.Run.FinalityLivenessPrem_W.mk
+#print axioms AvailableChain.FGSA.Run.FinalityLivenessPrem_W.set
+#print axioms AvailableChain.FGSA.Run.FinalityLivenessPrem_W.input
+#print axioms AvailableChain.FGSA.Run.FinalityLivenessPrem_W.start
+#print axioms AvailableChain.FGSA.Run.FinalityLivenessPrem_W.hhor
+#print axioms AvailableChain.FGSA.Run.ProposalFinalPrem_W
+#print axioms AvailableChain.FGSA.Run.ProposalFinalPrem_W.mk
+#print axioms AvailableChain.FGSA.Run.ProposalFinalPrem_W.set
+#print axioms AvailableChain.FGSA.Run.ProposalFinalPrem_W.input
+#print axioms AvailableChain.FGSA.Run.ProposalFinalPrem_W.prop
+#print axioms AvailableChain.FGSA.Run.ProposalFinalPrem_W.start
+#print axioms AvailableChain.FGSA.Run.ProposalFinalPrem_W.hhor
+#print axioms AvailableChain.FGSA.Run.AboveFrontierPrem_W
+#print axioms AvailableChain.FGSA.Run.AboveFrontierPrem_W.mk
+#print axioms AvailableChain.FGSA.Run.AboveFrontierPrem_W.set
+#print axioms AvailableChain.FGSA.Run.AboveFrontierPrem_W.input
+#print axioms AvailableChain.FGSA.Run.AboveFrontierPrem_W.start
+#print axioms AvailableChain.FGSA.Run.AboveFrontierPrem_W.firstHorizon
+#print axioms AvailableChain.FGSA.Run.AboveFrontierPrem_W.hhor
+#print axioms AvailableChain.FGSA.Run.FinalityKernelClaim_W
+#print axioms AvailableChain.FGSA.Run.KernelACSideClaim_W
+#print axioms AvailableChain.FGSA.Run.FinalityKernelJoinedClaim_W
+#print axioms AvailableChain.FGSA.Run.TailKernelClaim_W
+#print axioms AvailableChain.FGSA.Run.FinalityLivenessConcl_W
+#print axioms AvailableChain.FGSA.Run.FirstFinalityConcl_W
+#print axioms AvailableChain.FGSA.Run.ProposalFinalConcl_W
+#print axioms AvailableChain.FGSA.Run.AboveFrontierConcl_W
+#print axioms AvailableChain.FGSA.Run.FirstFinalityRecFEClaim_W
+#print axioms AvailableChain.FGSA.Run.FirstFinalityRecF4Claim_W
+#print axioms AvailableChain.FGSA.Run.FinalityLivenessRecFEClaim_W
+#print axioms AvailableChain.FGSA.Run.FinalityLivenessRecF4Claim_W
+#print axioms AvailableChain.FGSA.Run.ProposalFinalRecFEClaim_W
+#print axioms AvailableChain.FGSA.Run.ProposalFinalRecF4Claim_W
+#print axioms AvailableChain.FGSA.Run.AboveFrontierRecFEClaim_W
+#print axioms AvailableChain.FGSA.Run.AboveFrontierRecF4Claim_W
+
+-- Check the small adapter through the Claims import permitted in this audit.
+example (p : AvailableChain.FGSA.Params)
+    (split : AvailableChain.FGSA.Run.FinalityKernelClaim_W p)
+    (ac : AvailableChain.FGSA.Run.KernelACSideClaim_W p) :
+    AvailableChain.FGSA.Run.FinalityKernelJoinedClaim_W p :=
+by
+  intro G ΔF hδ V _ _ In c E rho pt prem
+  obtain ⟨w, input, start⟩ := prem.start
+  exact split G ΔF hδ c E rho ⟨w, pt.r⟩
+    ⟨prem.set, prem.bound, prem.window, start, prem.hhor, input,
+      ac G ΔF hδ c E rho w prem.set prem.bound input⟩
