@@ -128,8 +128,6 @@ theorem openingSource_domain_of_kept_or_cause
     · exact (hnotF hF).elim
   · exact (hbad (hnoConflict C s hsrc hheight)).elim
 
-/-- PRE-REVISION (fg-noround R3/R2/R4): uses the h_c = h_f lock branch; restate after the client
-revision. -/
 private theorem opening_pair (Λ : Record) (h : Height) (T : BlockId)
     (fp : Option FinalityPair)
     (hpermit : Λ.timeout h = true ∨ own_lock Λ h fp = none ∨ own_lock Λ h fp = some T) :
@@ -188,9 +186,7 @@ weaker than requiring an absent or matching lock unconditionally.
 GateService at rR is a caller premise. It comes from gate_of_coveringBatch (F1b.7) at the opening,
 in F4 FF1 / F5 H.9-Q, H.17.
 06 send-once: the last conjunct is the client's computed height pair; createRowOnce may still
-suppress the row, so no emission is claimed (permission ≠ emission).
-PRE-REVISION (fg-noround R3/R2/R4): uses the h_c = h_f lock branch; restate after the client
-revision. -/
+suppress the row, so no emission is claimed (permission ≠ emission). -/
 theorem openingSource_firstOpening (hs : V2.D.ScheduleWellFormed E rho)
     (i : Nat) (x : V) (q r m : Nat) (D : FGBlock (Fin p.n))
     (ht : rho.events[i]? = some (.tick x (p.actionTime r)))
@@ -265,9 +261,7 @@ local action body; emission remains a separate obligation, including the revised
 GateService at rR is a caller premise. It comes from gate_of_coveringBatch (F1b.7) at the opening,
 in F4 FF1 / F5 H.9-Q, H.17.
 06 send-once: the last conjunct is the client's computed height pair; createRowOnce may still
-suppress the row, so no emission is claimed (permission ≠ emission).
-PRE-REVISION (fg-noround R3/R2/R4): uses the h_c = h_f lock branch; restate after the client
-revision. -/
+suppress the row, so no emission is claimed (permission ≠ emission). -/
 theorem openingSource_firstOpening_exact (hs : V2.D.ScheduleWellFormed E rho)
     (i : Nat) (x : V) (q r : Nat) (Q : FGBlock (Fin p.n))
     (ht : rho.events[i]? = some (.tick x (p.actionTime r)))
