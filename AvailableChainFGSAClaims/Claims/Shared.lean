@@ -24,12 +24,12 @@ def SameLabelClaim (p : Params) : Prop :=
 The controls and anchor are those of the full store, also for a smaller X. -/
 def HeadReachesLoAt (p : Params) (st : State p.n)
     (X : Finset (FGBlock (Fin p.n))) (raw support : List (GridCO.Wire p.n)) : Prop :=
-  let D := filteredFrom p.E p.cfg (FGSA.controls p st) X
+  let D := KitFG.filteredFromView (heightView p) (FGSA.controls p st) X
   let A := FGSA.liveRoot p st
   let H := FGSA.headInTree p st (FGSA.erasedList st D) raw support
   ((∃ B ∈ D, eraseFG B = A) ∨
       (∃ B ∈ D, (eraseFG B).parent? = some A ∧ FGSA.eligible p st raw support (eraseFG B) = true) →
-    ∃ B ∈ D, eraseFG B = H ∧ (FGSA.controls p st).lo ≤ hOf p.E p.cfg B) ∧
+    ∃ B ∈ D, eraseFG B = H ∧ (FGSA.controls p st).lo ≤ (heightView p B).h) ∧
   ((¬ ∃ B ∈ D, eraseFG B = A) →
     (∀ B ∈ D, (eraseFG B).parent? = some A → FGSA.eligible p st raw support (eraseFG B) = false) →
     H = A) ∧

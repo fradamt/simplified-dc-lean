@@ -215,7 +215,10 @@ private theorem transfer_frame_at_vote
         hOf p.E p.cfg U < hOf p.E p.cfg W →
         FGBlock.Preceq (derive p.E p.cfg U).T_h Bfg := by
       intro W hW U hU hlt
-      exact hc W hW _ ⟨U, hU, Or.inr (Or.inr ⟨rfl, hlt⟩)⟩
+      apply hc W hW
+      simp only [certified_def, heightView_eq_simplex p,
+        KitFG.simplexHeightView_def, KitFG.heightOf_def]
+      exact ⟨U, hU, Or.inr (Or.inr ⟨rfl, hlt⟩)⟩
     have hcrossH : ∀ W ∈ st.fg.TF, ∀ U, FGBlock.Preceq U W →
         (heightView p U).h < (heightView p W).h →
         FGBlock.Preceq (heightView p U).T_h Bfg := by
@@ -802,8 +805,7 @@ theorem clean_transfer_frame [Fintype V] (b₀ : Time) :
   have hFA := transfer_lift p (block_preceq_trans (F_preceq_liveRoot p st hcstore) hroot)
   rw [domainR_def, frameR_def]
   rw [KitFG.hOf_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)] at hlo
-  exact (KitFG.mem_filteredFrom_of_bridge
-    p.E p.cfg (heightView p) (heightView_bridge p) (FGSA.controls p st) _ A).mpr
+  exact (KitFG.mem_filteredFromView (heightView p) (FGSA.controls p st) _ A).mpr
     ⟨hv A hA, hFA, hZA, Bfg, hv Bfg (KitFG.preceq_refl Bfg), hA, hlo⟩
 
 end AvailableChain.FGSA.Run

@@ -66,9 +66,15 @@ example : (derive livenessParams 2 livenessFirst).J ≠ (derive livenessParams 2
       (by rw [StrictPrefix_def]; decide +kernel) (by decide +kernel)
       (livenessVote 0) (by decide +kernel) rfl
 
-/-- Item 3: rows in three blocks supply the quorum, across a change to J. -/
-example : FGBlock.Preceq (.genesis : FGBlock (Fin 4)) (derive livenessParams 2 livenessFinish).F ∧
+/-- Item 3 (m9): the parent has only two bits. C itself carries the missing
+signer and completes the quorum, across a change to J. -/
+example : (⟨1, .genesis, {1, 0}⟩ : Entry (Fin 4)) ∈
+      (derive livenessParams 2 livenessSecond).W ∧
+    (2 : Fin 4) ∉ ({1, 0} : Finset (Fin 4)) ∧
+    livenessVote 2 ∈ livenessFinish.rows ∧
+    FGBlock.Preceq (.genesis : FGBlock (Fin 4)) (derive livenessParams 2 livenessFinish).F ∧
     1 ≤ (derive livenessParams 2 livenessFinish).h_F := by
+  refine ⟨by decide +kernel, by decide +kernel, by decide +kernel, ?_⟩
   apply window_finalize_of_accumulated_quorum livenessParams 2 (by decide)
     livenessFirst livenessSecond (by decide +kernel) 4 0 livenessFinalRows
     ⟨1, .genesis, ∅⟩ ⟨1, .genesis, {1, 0}⟩ (by decide +kernel) (by decide +kernel)
