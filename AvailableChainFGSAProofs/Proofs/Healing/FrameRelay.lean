@@ -145,7 +145,7 @@ theorem healing_witness_relay (mono : RMono p c E rho) (crossing : RXing p c E r
 /-- Blueprint 21:749–783, 1148–1252; plan S30, H-FRAME/F2; owner B25/B26.
 DC: INTENTIONAL the phase must include the strict receipt deadline.
 The receiver frames come from healing_settled_frame. The lower-cut bridge is
-kept in one place for B25's pending strict PhaseInterval cut. -/
+kept in one place; it uses B25's strict PhaseInterval cut (idxBefore u). -/
 theorem healing_witness_relay_phase (mono : RMono p c E rho) (crossing : RXing p c E rho)
     (hvalid : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho)
     (hdelta : E.Δ = p.Δ) {ΔF : Time}
