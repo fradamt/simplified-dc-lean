@@ -1,5 +1,5 @@
 module
-public import AvailableChainKitFG.AccountableCore
+public import AvailableChainKitFG.AccountableSimplex
 
 public section
 
@@ -15,7 +15,7 @@ theorem accountable_certificate_bundle_test (E : Electorate V)
     (hc : FGChainCertificate E H f r) (B₁ B₂ : FGBlock V) :
     HasSlashableWeightBetween E (chainRows B₁) (chainRows B₂) ∨
       FGBlock.compatible (f B₁).F (f B₂).F = true :=
-  accountable_of_certificate E H f hc.laws B₁ B₂
+  slashableWeight_or_finalized_compatible_of_certificate E H f hc.laws B₁ B₂
 
 -- The safety argument needs no selection, retention, capacity, or timing premise.
 example (E : Electorate V) (H : FGHeightView V) (f : FGFinalityView V)
@@ -55,43 +55,79 @@ example (E : Electorate V) (cfg : FGConfig) (B W : FGBlock V)
     (hh : (derive E cfg B).h_F < (derive E cfg W).h) :
     HasSlashableWeightBetween E (chainRows B) (chainRows W) ∨
       FGBlock.Preceq (derive E cfg B).F W :=
-  finalLock_simplex_certificate E cfg B W hh
+  slashableWeight_or_finalized_preceq_of_certificate E _ _ (simplexCertificateLaws E cfg) B W hh
 
 example (E : Electorate V) (cfg : FGConfig) (B₁ B₂ : FGBlock V) :
     HasSlashableWeightBetween E (chainRows B₁) (chainRows B₂) ∨
       FGBlock.compatible (derive E cfg B₁).F (derive E cfg B₂).F = true :=
-  accountable_simplex_certificate E cfg B₁ B₂
+  slashableWeight_or_finalized_compatible_of_certificate E _ _ (simplexCertificateLaws E cfg) B₁ B₂
 
 -- Both certificate keys for genesis reach the shared records.
 example : (simplexFinalityView E4 cfg1 .genesis).h_F = 0 ∧
     (simplexHeightView E4 cfg1 B1).h_j = 1 := by decide
 
+-- Instance check: justification_certificate_rows_simplex_certificate.
+example
+    (E : Electorate V) (cfg : FGConfig) (D : FGBlock V)
+    (hnz : (derive E cfg D).h_j ≠ 0) :
+    ∃ Q : Finset V, E.IsQuorum Q ∧ ∀ i ∈ Q, ∃ a ∈ chainRows D, a.signer = i ∧
+      a.height_pair = .vote (derive E cfg D).h_j (derive E cfg D).J.root false :=
+  justification_certificate_rows_of_certificate E _ _ (simplexCertificateLaws E cfg) D hnz
+
+-- Instance check: slashableWeight_or_justified_eq_simplex_certificate.
+example
+    (E : Electorate V) (cfg : FGConfig) (B₁ B₂ : FGBlock V)
+    (hh : (derive E cfg B₁).h_j = (derive E cfg B₂).h_j) :
+    HasSlashableWeightBetween E (chainRows B₁) (chainRows B₂) ∨
+      (derive E cfg B₁).J = (derive E cfg B₂).J :=
+  slashableWeight_or_justified_eq_of_certificate E _ _ (simplexCertificateLaws E cfg) B₁ B₂ hh
+
+-- Instance check: e1Weight_or_finalized_preceq_simplex_certificate.
+example
+    (E : Electorate V) (cfg : FGConfig) (B W : FGBlock V)
+    (hh : (derive E cfg B).h_F < (derive E cfg W).h) :
+    HasE1WeightBetween E (chainRows B) (chainRows W) ∨
+      FGBlock.Preceq (derive E cfg B).F W :=
+  e1Weight_or_finalized_preceq_of_certificate E _ _ (simplexCertificateLaws E cfg) B W hh
+
+-- Instance check: slashableWeight_or_finalized_preceq_simplex_certificate.
+example
+    (E : Electorate V) (cfg : FGConfig) (B W : FGBlock V)
+    (hh : (derive E cfg B).h_F < (derive E cfg W).h) :
+    HasSlashableWeightBetween E (chainRows B) (chainRows W) ∨
+      FGBlock.Preceq (derive E cfg B).F W :=
+  slashableWeight_or_finalized_preceq_of_certificate E _ _ (simplexCertificateLaws E cfg) B W hh
+
+-- Instance check: e1Weight_or_finalized_compatible_of_le_simplex_certificate.
+example
+    (E : Electorate V) (cfg : FGConfig)
+    (B₁ B₂ : FGBlock V)
+    (hle : (derive E cfg B₁).h_F ≤ (derive E cfg B₂).h_F) :
+    HasE1WeightBetween E (chainRows B₁) (chainRows B₂) ∨
+      FGBlock.compatible (derive E cfg B₁).F (derive E cfg B₂).F = true :=
+  e1Weight_or_finalized_compatible_of_le_of_certificate E _ _
+    (simplexCertificateLaws E cfg) B₁ B₂ hle
+
+-- Instance check: slashableWeight_or_finalized_compatible_simplex_certificate.
+example
+    (E : Electorate V) (cfg : FGConfig)
+    (B₁ B₂ : FGBlock V) :
+    HasSlashableWeightBetween E (chainRows B₁) (chainRows B₂) ∨
+      FGBlock.compatible (derive E cfg B₁).F (derive E cfg B₂).F = true :=
+  slashableWeight_or_finalized_compatible_of_certificate E _ _
+    (simplexCertificateLaws E cfg) B₁ B₂
+
 #print axioms accountable_certificate_bundle_test
 #print axioms finalized_preceq_chain_of_certificate
 #print axioms finalized_below_height_of_certificate
 #print axioms finality_certificate_of_certificate
+#print axioms justification_certificate_rows_of_heightLaws
 #print axioms justification_certificate_rows_of_certificate
 #print axioms slashableWeight_or_justified_eq_of_certificate
-#print axioms uniqueJust_chains_of_certificate
 #print axioms e1Weight_or_finalized_preceq_of_certificate
-#print axioms finalLock_e1_of_certificate
 #print axioms slashableWeight_or_finalized_preceq_of_certificate
-#print axioms finalLock_of_certificate
 #print axioms e1Weight_or_finalized_compatible_of_le_of_certificate
-#print axioms accountable_oriented_of_certificate
 #print axioms slashableWeight_or_finalized_compatible_of_certificate
-#print axioms accountable_of_certificate
-#print axioms justification_certificate_rows_simplex_certificate
-#print axioms slashableWeight_or_justified_eq_simplex_certificate
-#print axioms uniqueJust_chains_simplex_certificate
-#print axioms e1Weight_or_finalized_preceq_simplex_certificate
-#print axioms finalLock_e1_simplex_certificate
-#print axioms slashableWeight_or_finalized_preceq_simplex_certificate
-#print axioms finalLock_simplex_certificate
-#print axioms e1Weight_or_finalized_compatible_of_le_simplex_certificate
-#print axioms accountable_oriented_simplex_certificate
-#print axioms slashableWeight_or_finalized_compatible_simplex_certificate
-#print axioms accountable_simplex_certificate
 
 end AvailableChain.KitFG.Tests.AccountableCore
 end

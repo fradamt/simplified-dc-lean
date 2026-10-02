@@ -64,26 +64,49 @@ lake env lean --run scripts/CheckFGAxioms.lean --expect \
   finality_certificate_of_certificate \
   justification_certificate_rows_of_certificate \
   slashableWeight_or_justified_eq_of_certificate \
-  uniqueJust_chains_of_certificate \
   e1Weight_or_finalized_preceq_of_certificate \
-  finalLock_e1_of_certificate \
   slashableWeight_or_finalized_preceq_of_certificate \
-  finalLock_of_certificate \
   e1Weight_or_finalized_compatible_of_le_of_certificate \
-  accountable_oriented_of_certificate \
   slashableWeight_or_finalized_compatible_of_certificate \
-  accountable_of_certificate \
-  justification_certificate_rows_simplex_certificate \
-  slashableWeight_or_justified_eq_simplex_certificate \
-  uniqueJust_chains_simplex_certificate \
-  e1Weight_or_finalized_preceq_simplex_certificate \
-  finalLock_e1_simplex_certificate \
-  slashableWeight_or_finalized_preceq_simplex_certificate \
-  finalLock_simplex_certificate \
-  e1Weight_or_finalized_compatible_of_le_simplex_certificate \
-  accountable_oriented_simplex_certificate \
-  slashableWeight_or_finalized_compatible_simplex_certificate \
-  accountable_simplex_certificate
+  exists_crossing_quorum_ne_justified_of_heightLaws \
+  e1Weight_of_finalityQC_not_preceq_of_heightLaws \
+  slashableWeight_of_finalized_crossing_of_certificate \
+  exists_honest_timeout_of_crossing_of_heightLaws \
+  crossing_maturity_of_heightBridge \
+  certificateHeadFields \
+  certificateHeadFields_def \
+  provenance_entry_of_heightLaws \
+  provenance_finalityRow_of_heightLaws \
+  provenance_finalityQC_of_heightLaws \
+  provenance_finality_of_certificate \
+  justification_certificate_rows_of_heightLaws \
+  slashableWeight_of_finalized_pair_crossing \
+  pruneCertEntries pruneCertEntries_def \
+  mem_pruneCertEntries \
+  certEntry_preceq_of_le \
+  selection_pruned_covered \
+  selection_chosen_spec \
+  selection_ready_covered \
+  selection_chosen_removed \
+  selection_retained_iff \
+  selection_removed_covered \
+  selection_finalized_zero \
+  selection_finalized_mono \
+  selection_finality_origin \
+  of_selection \
+  no_slashableWeight_of_fault_bound \
+  finalized_preceq_of_no_evidence \
+  finalized_preceq_of_fault_bound \
+  finalized_compatible_of_fault_bound \
+  viewLock_of_certificate \
+  viewLock_of_fault_certificate \
+  accepted_lock_of_no_evidence \
+  accepted_lock_of_fault_bound \
+  of_certificate \
+  accepted_lock_no_evidence \
+  accepted_lock_fault \
+  simplexStoreInvariant \
+  simplexStoreSafety
 step "scripts/FGPinIds.lean --check-names"
 lake env lean --run scripts/FGPinIds.lean --check-names
 step "scripts/check-fg-pins.sh"

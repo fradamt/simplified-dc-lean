@@ -16,3 +16,4 @@ CertificateCoreDef
 CertificateSelectionDef
 StoreSafetyDef
 CertificateSimplexDef
+ProvenanceCoreDef
