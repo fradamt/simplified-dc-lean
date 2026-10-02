@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Finality.Accept
 public import AvailableChainFGSAProofs.Proofs.Healing.Base
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersL2
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersQ

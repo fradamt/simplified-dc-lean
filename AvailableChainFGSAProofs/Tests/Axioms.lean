@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Finality.Accept -- shake: keep (K-ACCEPT axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.Claims -- shake: keep (S4.6b axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.Base -- shake: keep (H-BASE audit)
 public import AvailableChainFGSAProofs.Proofs.Foundations.HonestNeverSlashed -- shake: keep (HNS audit)
@@ -783,3 +784,7 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.healing_rCap
 #print axioms AvailableChain.FGSA.Run.healing_phase_receipt
 #print axioms AvailableChain.FGSA.Run.healing_source_time
+
+-- K-ACCEPT: selected W receipt acceptance and its pending-finality adapter.
+#print axioms AvailableChain.FGSA.Run.fgsa_acceptBefore_W
+#print axioms AvailableChain.FGSA.Run.fgsa_finalizePending_W
