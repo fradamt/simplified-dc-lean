@@ -19,7 +19,8 @@ cd "$(dirname "$0")/.."
 source scripts/gate-common.sh
 if [ "${SOURCE_ONLY:-0}" != 1 ]; then
   gate_options "$@"
-  for f in scripts/CheckFGSAAxioms.lean scripts/CheckFGSALease.lean scripts/CheckFGSAExt.lean; do
+  for f in scripts/CheckFGSAAxioms.lean scripts/CheckFGSALease.lean scripts/CheckFGSAExt.lean \
+      scripts/CheckFGSAOldReads.lean scripts/baselines/fgsa-old-reads.txt; do
     [ -f "$f" ] || { echo "MISSING CHECK SCRIPT: $f"; exit 2; }
   done
 fi
@@ -267,6 +268,19 @@ gate_with_slot lake env lean --run scripts/CheckFGSAAxioms.lean "${TEST_ROOTS[@]
   Window.window_update_finality_F_cases
 echo "== lease instances"
 gate_with_slot lake env lean --run scripts/CheckFGSALease.lean
+# Old-read audit (fg5-rulings STOP 6, ruling 7): no old SimplexFG store fold, old
+# row validity or finality read of the old derive in the active FG-SA path except
+# the `allow` lines, and no height-only read of the old derive except the `height`
+# lines (ruling 7 named exceptions) of scripts/baselines/fgsa-old-reads.txt (DATA).
+# The full tier also runs the in-process negative controls (planted direct, KitFG-
+# lemma, `(derive …).F` and height-only reads; dropped and extra data lines).
+echo "== old-read audit"
+gate_build --wfail AvailableChainFGSAClaims AvailableChainFGSAProofs AvailableChainFGSARun
+if [ "$NEG" = 1 ]; then
+  gate_with_slot lake env lean --run scripts/CheckFGSAOldReads.lean --controls
+else
+  gate_with_slot lake env lean --run scripts/CheckFGSAOldReads.lean
+fi
 # The `leanIn "AvailableChainFGSA"` names of AvailableChainKitFG/Pins.lean get
 # the checks of a `.lean` name (existence, the library of the declaring module,
 # the three standard axioms) in this environment; see scripts/CheckFGSAExt.lean.
