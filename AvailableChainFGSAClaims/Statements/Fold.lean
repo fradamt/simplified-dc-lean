@@ -1,6 +1,8 @@
 module
 public import AvailableChainFGSAClaims.Statements.ChannelProps
 public import AvailableChainFGSAClaims.Statements.Regimes
+public import AvailableChainFGSAClaims.Statements.BoundsW
+public import AvailableChainFGSA.Statements.WindowEntries
 
 @[expose] public section
 
@@ -8,6 +10,7 @@ namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
 open Gen.Pure
 open Gen.V2.Duty (faulty)
+open Window (RetainedW CoveredW)
 
 /-- FINAL 22:612–635. No exact DC counterpart.
 DC separates target and progress; P3:3952–3956 requires one discriminator.
@@ -248,6 +251,125 @@ def ProposalWalk (p : Params) (S : State p.n) (s : Slot)
       ∀ Hd, GridCO.headTarget? o = some Hd → ¬ Block.Preceq B Hd) →
     B.slot = S.slot p ∨ ∃ A ∈ S.fg.TF,
       eraseFG A = B.parent ∧ (heightView p A).h < (FGSA.controls p S).lo)
+
+/-- DC: SAME defining equation through the W height view. -/
+theorem JustifiedCross_def (p : FGSA.Params) (W U : FGBlock (Fin p.n)) (y : Nat) :
+    JustifiedCross p W U y =
+      ((heightView p W.parent).h = y ∧ (heightView p W).h = y + 1 ∧
+  (heightView p W).J = U ∧ (heightView p W).h_j = y) := rfl
+
+/-- DC: SAME defining equation through the W height view. -/
+theorem MixedCross_def (p : FGSA.Params) (W : FGBlock (Fin p.n)) (y : Nat) :
+    MixedCross p W y =
+      ((heightView p W.parent).h = y ∧ (heightView p W).h = y + 1 ∧
+  (heightView p W).h_j < y) := rfl
+
+/-- DC: SAME defining equation through the W height view. -/
+theorem foldTrichotomy_def (p : FGSA.Params) (k : RowKind) :
+    foldTrichotomy p k =
+      (∀ (y : Nat) (U X : FGBlock (Fin p.n)), X ≠ .genesis → EntryAt p U y →
+    FGBlock.Preceq U X.parent →
+    ((heightView p X.parent).h = y → CoveredByChild p k X U y) →
+    (k = .progress → U.slot + p.δt ≤ X.slot) →
+    y + 1 ≤ (heightView p X).h ∧
+    (k = .target → (∃ W, FGBlock.Preceq W X ∧ JustifiedCross p W U y) ∨
+                   (∃ W, FGBlock.Preceq W X.parent ∧ MixedCross p W y))) := rfl
+
+/-- DC: SAME defining equation through the W height view. -/
+theorem StoredProgressConsume_def (p : FGSA.Params) :
+    StoredProgressConsume p =
+      (∀ (y : Nat) (U B X : FGBlock (Fin p.n)), EntryAt p U y → FGBlock.Preceq U B.parent →
+    FGBlock.Preceq B X.parent → CoveredByChild p .progress B U y →
+    (heightView p X.parent).h = y → U.slot + p.δt ≤ X.slot →
+    (heightView p X).h = y + 1) := rfl
+
+/-- DC: SAME exact signer and finality payload; INTENTIONAL fixed FG wire. -/
+def FinRowNames (p : Params) (row : Row (Fin p.n)) (i : Fin p.n)
+    (y : Nat) (U : FGBlock (Fin p.n)) : Prop :=
+  row.signer = i ∧ row.finality_pair = some ⟨y, U.root⟩
+
+/-- Plan item 1; blueprint 22 I6–I7. DC: INTENTIONAL exact retained key.
+Parent bits and exact child rows cover a quorum before finality selection. -/
+def FinalityCoveredByChild_W (p : Params) (X U : FGBlock (Fin p.n)) (y : Nat) : Prop :=
+  ∃ e ∈ (Window.derive p p.K_W X.parent).W, e.j = y ∧ e.X = U ∧
+    ∃ Q : Finset (Fin p.n), p.E.IsQuorum Q ∧ ∀ i ∈ Q,
+      i ∈ e.Q ∨ ∃ row ∈ X.rows,
+        FinRowNames p row i y U
+
+/-- DC: SAME finality payload test on the complete signed row. -/
+def FinalityNames (p : Params) (a : RowWire p.n) (y : Nat)
+    (U : FGBlock (Fin p.n)) : Prop :=
+  a.payload.finality_pair = some ⟨y, U.root⟩
+
+variable (p : Params) {In V : Type} [DecidableEq V] [Fintype V]
+    (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+
+/-- Plan item 2, ruling m5. DC: INTENTIONAL exact-action quorum and W history.
+This is a local producer input, with complete actual emissions. -/
+structure FinalityBatchPrem_W (ΔF : Time) (q y : Nat) (U X : FGBlock (Fin p.n)) : Prop where
+  base : BaseSet p c E rho
+  faultQ : FaultQ p.n (faulty rho).card
+  deltaF : E.Δ ≤ ΔF
+  rowsReceipt : TRowsReceipt p c E rho ΔF
+  carrier : ∃ rows, HonestCarrier p c E rho X.slot (eraseFG X) rows ∧
+    X.rows = rows.filterMap RowWire.toRow?
+  after : q * p.R + kappaF p ΔF ≤ X.slot
+  horizon : max (p.actionTime q) E.t_GST + ΔF ≤ SA.proposalTime p.toParams X.slot ∧
+    SA.proposalTime p.toParams X.slot ≤ rho.horizon
+  parent : ∃ st, proposalStateAt p c E rho X.slot = some st ∧
+    FGSA.fgBlockOf st (eraseFG X).parent = some X.parent
+  birth : ∃ B, FGBlock.Preceq B X.parent ∧
+    KitFG.JustificationBirth p.E (Window.certificateHeight p p.K_W) B y U
+  retainedOrCovered : RetainedW p X.parent y U ∨ CoveredW p X.parent y U
+  batch : ∃ S : Finset (Fin p.n), S ⊆ honestSeats p c rho ∧ p.E.IsQuorum S ∧
+    ∀ i ∈ S, ∃ j a,
+      HonestRowAt p c E rho j (rho.seatOf (.base .fg) i) q a ∧
+      RowComplete p c rho (rho.seatOf (.base .fg) i) a ∧
+      a.auth = .seat .fg i ∧ FinalityNames p a y U ∧
+      HeldBefore p c E rho (V2.D.proposerOf rho (fgsaInterface p c) X.slot) a
+        (max (p.actionTime q) E.t_GST + ΔF) ∧
+      heldAtProposal p c E rho X.slot a ∧
+      (RetainedW p X.parent y U →
+        Window.rowValidW (FGSA.parentFoldState p X.slot X.parent) a = true ∧
+        ValidForParent p c E rho X.slot (eraseFG X) a)
+
+/-- Plan item 3. DC: INTENTIONAL separate prior coverage and retained bitmap.
+Contract only. Stage 5 supplies R7 and exact-row history. -/
+def FinalityBatchCoverage_W (p : Params) (ΔF : Time) : Prop :=
+  ∀ {In V : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (q y : Nat)
+    (U X : FGBlock (Fin p.n)), FinalityBatchPrem_W p c E rho ΔF q y U X →
+      CoveredW p X.parent y U ∨ FinalityCoveredByChild_W p X U y
+
+/-- Plan item 4. DC: INTENTIONAL prefix consumption, with a real child. -/
+structure PendingFold_W (p : Params) (y : Nat) (U X : FGBlock (Fin p.n)) : Prop where
+  child : X ≠ .genesis
+  cover : FinalityCoveredByChild_W p X U y
+
+/-- DC: SAME defining equation for the exact entry bitmap. -/
+theorem FinalityCoveredByChild_W_def (p : Params) (X U : FGBlock (Fin p.n)) (y : Nat) :
+    FinalityCoveredByChild_W p X U y =
+      (∃ e ∈ (Window.derive p p.K_W X.parent).W, e.j = y ∧ e.X = U ∧
+        ∃ Q : Finset (Fin p.n), p.E.IsQuorum Q ∧ ∀ i ∈ Q,
+          i ∈ e.Q ∨ ∃ row ∈ X.rows, FinRowNames p row i y U) := rfl
+
+/-- DC: SAME exact decoded row equation. -/
+theorem FinRowNames_def (p : Params) (row : Row (Fin p.n)) (i : Fin p.n)
+    (y : Nat) (U : FGBlock (Fin p.n)) :
+    FinRowNames p row i y U =
+      (row.signer = i ∧ row.finality_pair = some ⟨y, U.root⟩) := rfl
+
+/-- DC: SAME exact signed row equation. -/
+theorem FinalityNames_def (p : Params) (a : RowWire p.n) (y : Nat) (U : FGBlock (Fin p.n)) :
+    FinalityNames p a y U = (a.payload.finality_pair = some ⟨y, U.root⟩) := rfl
+
+/-- DC: SAME equation for the statement-only batch contract. -/
+theorem FinalityBatchCoverage_W_def (p : Params) (ΔF : Time) :
+    FinalityBatchCoverage_W p ΔF =
+      (∀ {In V : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
+        (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (q y : Nat)
+        (U X : FGBlock (Fin p.n)), FinalityBatchPrem_W p c E rho ΔF q y U X →
+          CoveredW p X.parent y U ∨ FinalityCoveredByChild_W p X U y) := rfl
 
 end AvailableChain.FGSA.Run
 end
