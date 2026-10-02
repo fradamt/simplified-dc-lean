@@ -4,7 +4,6 @@
 set -uo pipefail
 source scripts/gate-common.sh
 work=$(mktemp -d "${TMPDIR:-/tmp}/gate-ff.XXXXXX"); trap 'rm -rf "$work"' EXIT
-tag="gateff$$"
 stub() (  # <name>: behaviour from the name prefix; writes "<rc> <wall>" like gate.sh step
   set +e
   case "$1" in
@@ -12,6 +11,8 @@ stub() (  # <name>: behaviour from the name prefix; writes "<rc> <wall>" like ga
     slow*) sleep 30 & echo $! > "$work/$1.child"; wait; rc=0 ;;
     fail*) sleep 2; rc=3 ;;
     nores*) sleep 2; exit 0 ;;   # exits with no result file
+    tidy*) trap 'sleep 1; echo cleaned > "$work/$1.clean"; exit 143' TERM; sleep 30 & wait; rc=0 ;;
+    stub*) ( trap '' TERM; exec sh -c 'echo $$ > "$0"; trap "" TERM; while :; do sleep 1; done' "$work/$1.pid" ) ;;   # a child that ignores TERM
   esac
   printf '%s %s\n' "$rc" 0 > "$work/$1.result"
 )
@@ -41,5 +42,16 @@ check "caller survives" 'kill -0 $$'
 rm -f "$work"/*.result
 if gate_parallel_failfast stub "$work" nores1 ok1; then r=0; else r=1; fi
 check "missing result is a failure" '[ "$r" = 1 ] && [ "$GATE_FF_FAILED" = nores1 ]'
+
+# 4. a step with a TERM cleanup trap finishes it (no KILL inside the grace);
+#    a step that ignores TERM is KILLed after the grace
+rm -f "$work"/*.result "$work"/*.clean
+t0=$(date +%s)
+if gate_parallel_failfast stub "$work" tidyA stubborn fail1; then r=0; else r=1; fi
+t1=$(date +%s)
+check "failure with trap steps returns 1" '[ "$r" = 1 ] && [ "$GATE_FF_FAILED" = fail1 ]'
+check "TERM cleanup trap ran" '[ -f "$work/tidyA.clean" ]'
+check "TERM-ignoring step killed after the grace" '[ $((t1-t0)) -ge 3 ] && [ $((t1-t0)) -lt 15 ]'
+check "TERM-ignoring child gone" '! kill -0 "$(cat "$work/stubborn.pid")" 2>/dev/null'
 
 if [ "$fails" = 0 ]; then echo "gate-failfast-selftest: PASS"; else echo "gate-failfast-selftest: FAIL ($fails)"; exit 1; fi
