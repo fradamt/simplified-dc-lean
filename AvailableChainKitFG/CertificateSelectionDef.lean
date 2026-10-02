@@ -15,6 +15,15 @@ structure FGCertEntry (V : Type) where
   X : FGBlock V
   Q : Finset V
 
+/-- Remove entries at or below the finalized height, before capacity eviction. -/
+abbrev pruneCertEntries (h : Height) (entries : List (FGCertEntry V)) : List (FGCertEntry V) :=
+  entries.filter (fun e => decide (h < e.j))
+
+omit [DecidableEq V] [Fintype V] [RowCodec V] in
+/-- The pruning equation belongs to the module that defines the operation. -/
+theorem pruneCertEntries_def (h : Height) (entries : List (FGCertEntry V)) :
+    pruneCertEntries h entries = entries.filter (fun e => decide (h < e.j)) := rfl
+
 /-- `before` follows the row fold. `afterPrune` precedes target append and
 capacity eviction. An eviction does not give finality coverage. -/
 structure FGSelectionView (V : Type) where

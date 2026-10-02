@@ -1,5 +1,6 @@
 module
-public import AvailableChainKitFG.AccountableSimplex
+public import AvailableChainKitFG.AccountableCore
+public import AvailableChainKitFG.CertificateSimplex -- shake: keep (instance checks in examples)
 
 public section
 
@@ -66,15 +67,15 @@ example (E : Electorate V) (cfg : FGConfig) (B₁ B₂ : FGBlock V) :
 example : (simplexFinalityView E4 cfg1 .genesis).h_F = 0 ∧
     (simplexHeightView E4 cfg1 B1).h_j = 1 := by decide
 
--- Instance check: justification_certificate_rows_simplex_certificate.
+-- Instance check: justification_certificate_rows_of_heightLaws.
 example
     (E : Electorate V) (cfg : FGConfig) (D : FGBlock V)
     (hnz : (derive E cfg D).h_j ≠ 0) :
     ∃ Q : Finset V, E.IsQuorum Q ∧ ∀ i ∈ Q, ∃ a ∈ chainRows D, a.signer = i ∧
       a.height_pair = .vote (derive E cfg D).h_j (derive E cfg D).J.root false :=
-  justification_certificate_rows_of_certificate E _ _ (simplexCertificateLaws E cfg) D hnz
+  justification_certificate_rows_of_heightLaws E _ (simplexCertificateLaws E cfg).height D hnz
 
--- Instance check: slashableWeight_or_justified_eq_simplex_certificate.
+-- Instance check: slashableWeight_or_justified_eq_of_certificate.
 example
     (E : Electorate V) (cfg : FGConfig) (B₁ B₂ : FGBlock V)
     (hh : (derive E cfg B₁).h_j = (derive E cfg B₂).h_j) :
@@ -82,7 +83,7 @@ example
       (derive E cfg B₁).J = (derive E cfg B₂).J :=
   slashableWeight_or_justified_eq_of_certificate E _ _ (simplexCertificateLaws E cfg) B₁ B₂ hh
 
--- Instance check: e1Weight_or_finalized_preceq_simplex_certificate.
+-- Instance check: e1Weight_or_finalized_preceq_of_certificate.
 example
     (E : Electorate V) (cfg : FGConfig) (B W : FGBlock V)
     (hh : (derive E cfg B).h_F < (derive E cfg W).h) :
@@ -90,7 +91,7 @@ example
       FGBlock.Preceq (derive E cfg B).F W :=
   e1Weight_or_finalized_preceq_of_certificate E _ _ (simplexCertificateLaws E cfg) B W hh
 
--- Instance check: slashableWeight_or_finalized_preceq_simplex_certificate.
+-- Instance check: slashableWeight_or_finalized_preceq_of_certificate.
 example
     (E : Electorate V) (cfg : FGConfig) (B W : FGBlock V)
     (hh : (derive E cfg B).h_F < (derive E cfg W).h) :
@@ -98,7 +99,7 @@ example
       FGBlock.Preceq (derive E cfg B).F W :=
   slashableWeight_or_finalized_preceq_of_certificate E _ _ (simplexCertificateLaws E cfg) B W hh
 
--- Instance check: e1Weight_or_finalized_compatible_of_le_simplex_certificate.
+-- Instance check: e1Weight_or_finalized_compatible_of_le_of_certificate.
 example
     (E : Electorate V) (cfg : FGConfig)
     (B₁ B₂ : FGBlock V)
@@ -108,7 +109,7 @@ example
   e1Weight_or_finalized_compatible_of_le_of_certificate E _ _
     (simplexCertificateLaws E cfg) B₁ B₂ hle
 
--- Instance check: slashableWeight_or_finalized_compatible_simplex_certificate.
+-- Instance check: slashableWeight_or_finalized_compatible_of_certificate.
 example
     (E : Electorate V) (cfg : FGConfig)
     (B₁ B₂ : FGBlock V) :
@@ -122,7 +123,6 @@ example
 #print axioms finalized_below_height_of_certificate
 #print axioms finality_certificate_of_certificate
 #print axioms justification_certificate_rows_of_heightLaws
-#print axioms justification_certificate_rows_of_certificate
 #print axioms slashableWeight_or_justified_eq_of_certificate
 #print axioms e1Weight_or_finalized_preceq_of_certificate
 #print axioms slashableWeight_or_finalized_preceq_of_certificate

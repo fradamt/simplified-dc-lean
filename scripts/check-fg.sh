@@ -62,7 +62,6 @@ lake env lean --run scripts/CheckFGAxioms.lean --expect \
   finalized_preceq_chain_of_certificate \
   finalized_below_height_of_certificate \
   finality_certificate_of_certificate \
-  justification_certificate_rows_of_certificate \
   slashableWeight_or_justified_eq_of_certificate \
   e1Weight_or_finalized_preceq_of_certificate \
   slashableWeight_or_finalized_preceq_of_certificate \
@@ -80,11 +79,12 @@ lake env lean --run scripts/CheckFGAxioms.lean --expect \
   provenance_finalityQC_of_heightLaws \
   provenance_finality_of_certificate \
   justification_certificate_rows_of_heightLaws \
-  slashableWeight_of_finalized_pair_crossing \
+  slashableWeight_of_finalized_pair_crossing_of_certificate \
   pruneCertEntries pruneCertEntries_def \
   mem_pruneCertEntries \
   certEntry_preceq_of_le \
-  selection_pruned_covered \
+  FGSelectionLaws.of_core \
+  FGSelectionLaws.prune_eq \
   selection_chosen_spec \
   selection_ready_covered \
   selection_chosen_removed \
@@ -93,7 +93,7 @@ lake env lean --run scripts/CheckFGAxioms.lean --expect \
   selection_finalized_zero \
   selection_finalized_mono \
   selection_finality_origin \
-  of_selection \
+  FGCertificateLaws.of_selection \
   no_slashableWeight_of_fault_bound \
   finalized_preceq_of_no_evidence \
   finalized_preceq_of_fault_bound \
@@ -102,11 +102,16 @@ lake env lean --run scripts/CheckFGAxioms.lean --expect \
   viewLock_of_fault_certificate \
   accepted_lock_of_no_evidence \
   accepted_lock_of_fault_bound \
-  of_certificate \
-  accepted_lock_no_evidence \
-  accepted_lock_fault \
+  FGStoreSafety.of_certificate \
+  FGStoreSafety.accepted_lock_no_evidence \
+  FGStoreSafety.accepted_lock_fault \
+  simplex_certificateHeadFields_eq \
   simplexStoreInvariant \
-  simplexStoreSafety
+  simplexStoreSafety \
+  frontierView_def lexMaxView_def filteredFromView_def storeControlsView_def storeFrameView_def \
+  fjControlsView_def fjFrameView_def \
+  hOf_of_bridge frontier_of_bridge lexMax_of_bridge filteredFrom_of_bridge \
+  storeControls_of_bridge storeFrame_of_bridge fjControls_of_bridge fjFrame_of_bridge
 step "scripts/FGPinIds.lean --check-names"
 lake env lean --run scripts/FGPinIds.lean --check-names
 step "scripts/check-fg-pins.sh"

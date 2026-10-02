@@ -1,7 +1,6 @@
 module
 public import AvailableChainKitFG.StoreSafetyDef
 public import AvailableChainKitFG.AccountableCore
-public import AvailableChainKitFG.Correspondence
 
 public section
 
