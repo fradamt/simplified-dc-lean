@@ -45,7 +45,7 @@ def TailKernelClaim_W : Prop :=
     ∀ x ∈ rho.honest,
       AcceptsFinalBefore p c E rho x pt.U (kernelDeadlineW p ΔF (pt.r + 1))
 
-/-- Blueprint 22:1371–1384. DC: INTENTIONAL strict extension and carrier certificate height.
+/-- Blueprint 22:1371–1380. DC: INTENTIONAL strict extension and carrier certificate height.
 Compare each accepted carrier K of the current F with H(U), not with H(F). -/
 def FinalityLivenessConcl_W {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (t deadline : Time) : Prop :=
@@ -57,11 +57,11 @@ def FinalityLivenessConcl_W {In V : Type} [DecidableEq V] (c : AppCodec In)
       (finalityView p K).h_F < (heightView p U).h) ∧
     ∀ x ∈ rho.honest, AcceptsFinalBefore p c E rho x U deadline
 
-/-- Blueprint 22:1382–1384. DC: INTENTIONAL GST composition at the supplied input witness. -/
+/-- Blueprint 22:1382–1384. DC: INTENTIONAL GST composition with an output healing witness. -/
 def FirstFinalityConcl_W {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (ΔF : Time)
-    (w : HealingWitness) (deadline : Time) : Prop :=
-  HealingInput p c E rho w ΔF ∧ FinalityLivenessConcl_W p c E rho (tstar p w) deadline
+    (deadline : Time) : Prop :=
+  ∃ w, HealingInput p c E rho w ΔF ∧ FinalityLivenessConcl_W p c E rho (tstar p w) deadline
 
 /-- Blueprint 22:1421–1430. DC: INTENTIONAL specified proposal prefix coverage. -/
 def ProposalFinalConcl_W {In V : Type} [DecidableEq V] (c : AppCodec In)
@@ -75,25 +75,25 @@ def AboveFrontierConcl_W {In V : Type} [DecidableEq V] (c : AppCodec In)
   ∃ U : FGBlock (Fin p.n), honestFrontier p c E rho t < (heightView p U).h ∧
     ∀ x ∈ rho.honest, AcceptsFinalBefore p c E rho x U deadline
 
-/-- Blueprint 22:1371–1451. DC: INTENTIONAL FirstFinality W contract; full finite horizon.
-The package supplies one common HealingInput witness. -/
+/-- Blueprint 22:1382–1384. DC: INTENTIONAL FirstFinality W contract; full finite horizon.
+The conclusion supplies a HealingInput witness from H-time. -/
 def FirstFinalityRecFEClaim_W : Prop :=
-  ∀ (G ΔF : Time) (g : Nat) (w : HealingWitness) (_hδ : p.δt = 2 * p.R)
+  ∀ (G ΔF : Time) (g : Nat) (_hδ : p.δt = 2 * p.R)
     {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit),
-    FirstFinalityPrem_W p c G ΔF .recFE g w E rho pt →
-    FirstFinalityConcl_W p c E rho ΔF w (E.t_GST + B_HF p ΔF G + W_W p ΔF g)
+    FirstFinalityPrem_W p c G ΔF .recFE g E rho pt →
+    FirstFinalityConcl_W p c E rho ΔF (E.t_GST + B_HF p ΔF G + W_W p ΔF g)
 
-/-- Blueprint 22:1371–1451. DC: INTENTIONAL FirstFinality W contract; full finite horizon.
-The package supplies one common HealingInput witness. -/
+/-- Blueprint 22:1382–1384. DC: INTENTIONAL FirstFinality W contract; full finite horizon.
+The conclusion supplies a HealingInput witness from H-time. -/
 def FirstFinalityRecF4Claim_W : Prop :=
-  ∀ (G ΔF : Time) (g : Nat) (w : HealingWitness) (_hδ : p.δt = 2 * p.R)
+  ∀ (G ΔF : Time) (g : Nat) (_hδ : p.δt = 2 * p.R)
     {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit),
-    FirstFinalityPrem_W p c G ΔF .recF4 g w E rho pt →
-    FirstFinalityConcl_W p c E rho ΔF w (E.t_GST + B_HF p ΔF G + W_W p ΔF g)
+    FirstFinalityPrem_W p c G ΔF .recF4 g E rho pt →
+    FirstFinalityConcl_W p c E rho ΔF (E.t_GST + B_HF p ΔF G + W_W p ΔF g)
 
-/-- Blueprint 22:1371–1451. DC: INTENTIONAL FinalityLiveness W contract; full finite horizon.
+/-- Blueprint 22:1371–1380. DC: INTENTIONAL FinalityLiveness W contract; full finite horizon.
 The package supplies one common HealingInput witness. -/
 def FinalityLivenessRecFEClaim_W : Prop :=
   ∀ (G ΔF : Time) (g : Nat) (w : HealingWitness) (_hδ : p.δt = 2 * p.R)
@@ -102,7 +102,7 @@ def FinalityLivenessRecFEClaim_W : Prop :=
     FinalityLivenessPrem_W p c G ΔF .recFE g w E rho pt →
     FinalityLivenessConcl_W p c E rho pt.t (pt.t + W_W p ΔF g)
 
-/-- Blueprint 22:1371–1451. DC: INTENTIONAL FinalityLiveness W contract; full finite horizon.
+/-- Blueprint 22:1371–1380. DC: INTENTIONAL FinalityLiveness W contract; full finite horizon.
 The package supplies one common HealingInput witness. -/
 def FinalityLivenessRecF4Claim_W : Prop :=
   ∀ (G ΔF : Time) (g : Nat) (w : HealingWitness) (_hδ : p.δt = 2 * p.R)
@@ -111,7 +111,7 @@ def FinalityLivenessRecF4Claim_W : Prop :=
     FinalityLivenessPrem_W p c G ΔF .recF4 g w E rho pt →
     FinalityLivenessConcl_W p c E rho pt.t (pt.t + W_W p ΔF g)
 
-/-- Blueprint 22:1371–1451. DC: INTENTIONAL ProposalFinal W contract; full finite horizon.
+/-- Blueprint 22:1421–1430. DC: INTENTIONAL ProposalFinal W contract; full finite horizon.
 The package supplies one common HealingInput witness. -/
 def ProposalFinalRecFEClaim_W : Prop :=
   ∀ (G ΔF : Time) (g : Nat) (w : HealingWitness) (_hδ : p.δt = 2 * p.R)
@@ -121,7 +121,7 @@ def ProposalFinalRecFEClaim_W : Prop :=
     ProposalFinalConcl_W p c E rho pt.X
       (V2.D.proposalTime (fgsaInterface p c) pt.s + W_W p ΔF g)
 
-/-- Blueprint 22:1371–1451. DC: INTENTIONAL ProposalFinal W contract; full finite horizon.
+/-- Blueprint 22:1421–1430. DC: INTENTIONAL ProposalFinal W contract; full finite horizon.
 The package supplies one common HealingInput witness. -/
 def ProposalFinalRecF4Claim_W : Prop :=
   ∀ (G ΔF : Time) (g : Nat) (w : HealingWitness) (_hδ : p.δt = 2 * p.R)
@@ -131,7 +131,7 @@ def ProposalFinalRecF4Claim_W : Prop :=
     ProposalFinalConcl_W p c E rho pt.X
       (V2.D.proposalTime (fgsaInterface p c) pt.s + W_W p ΔF g)
 
-/-- Blueprint 22:1371–1451. DC: INTENTIONAL AboveFrontier W contract; full finite horizon.
+/-- Blueprint 22:1434–1451. DC: INTENTIONAL AboveFrontier W contract; full finite horizon.
 The package supplies one common HealingInput witness. -/
 def AboveFrontierRecFEClaim_W : Prop :=
   ∀ (G ΔF : Time) (g : Nat) (w : HealingWitness) (_hδ : p.δt = 2 * p.R)
@@ -140,7 +140,7 @@ def AboveFrontierRecFEClaim_W : Prop :=
     AboveFrontierPrem_W p c G ΔF .recFE g w E rho pt →
     AboveFrontierConcl_W p c E rho pt.t (pt.t + 2 * W_W p ΔF g)
 
-/-- Blueprint 22:1371–1451. DC: INTENTIONAL AboveFrontier W contract; full finite horizon.
+/-- Blueprint 22:1434–1451. DC: INTENTIONAL AboveFrontier W contract; full finite horizon.
 The package supplies one common HealingInput witness. -/
 def AboveFrontierRecF4Claim_W : Prop :=
   ∀ (G ΔF : Time) (g : Nat) (w : HealingWitness) (_hδ : p.δt = 2 * p.R)

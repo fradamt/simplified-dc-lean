@@ -285,7 +285,8 @@ structure TailKernelPt (p : Params) where
   carrier : Slot
   U : FGBlock (Fin p.n)
 
-/-- Blueprint 22:1985–2009; ruling m6. DC: INTENTIONAL local Tail contract.
+/-- Blueprint 22:1985–2009, 22:1811; ruling m6. DC: INTENTIONAL local Tail contract.
+Recovery₂ is the standing kernel regime.
 The opening height ≥ M+1 follows from HealingInput; it is not a premise.
 Params supplies capacity ≥ 2. Coverage starts at the selected honest carrier. -/
 structure TailKernelPrem_W [Fintype V] (G ΔF : Time) (E : Generic.Env V)
@@ -299,7 +300,7 @@ structure TailKernelPrem_W [Fintype V] (G ΔF : Time) (E : Generic.Env V)
   carrier : pt.r * p.R + kappaF p ΔF ≤ pt.carrier ∧
     pt.carrier ≤ (pt.r + 1) * p.R ∧
     Gen.V2.Duty.HonestSlot rho (fgsaInterface p c) pt.carrier
-  high : pt.w.M + 1 ≤ (heightView p pt.U).h
+  high : high p pt.w pt.U
   cover : ∀ s X, pt.carrier ≤ s →
     HonestProposal E rho (fgsaInterface p c) s (eraseFG X) →
     OpeningCarrier_W p c E rho s (eraseFG X) X →

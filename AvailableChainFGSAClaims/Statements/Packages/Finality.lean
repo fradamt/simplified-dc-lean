@@ -87,17 +87,14 @@ def finalityWindow_W (ΔF : Time) (_form : FinFormW) (g : Nat) : Time := W_W p �
 theorem finalityWindow_W_def (ΔF : Time) (form : FinFormW) (g : Nat) :
     finalityWindow_W p ΔF form g = W_W p ΔF g := rfl
 
-/-- FF5 GST composition (22:1382–1384). DC: INTENTIONAL supplied H-time witness.
+/-- FF5 GST composition (22:1382–1384). DC: INTENTIONAL H-time composition.
 HTime supplies input and start. This package does not use best/search healing. -/
 structure FirstFinalityPrem_W (G ΔF : Time) (form : FinFormW) (g : Nat)
-    (w : HealingWitness) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (_pt : Unit) : Prop where
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (_pt : Unit) : Prop where
   set : FinalitySet_W p c E rho G ΔF form g
-  input : HealingInput p c E rho w ΔF
-  start : tstar p w < E.t_GST + B_HF p ΔF G
   hhor : E.t_GST + B_HF p ΔF G + W_W p ΔF g ≤ rho.horizon
 
-/-- Local FF5 (22:1371–1401). DC: INTENTIONAL common input and receipt horizon.
+/-- Local FF5 (22:1371–1380). DC: INTENTIONAL common input and receipt horizon.
 The trigger is at or after t*, with no GST healing-bound restriction. -/
 structure FinalityLivenessPrem_W (G ΔF : Time) (form : FinFormW) (g : Nat)
     (w : HealingWitness) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))

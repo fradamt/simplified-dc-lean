@@ -618,8 +618,6 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.FirstFinalityPrem_W
 #print axioms AvailableChain.FGSA.Run.FirstFinalityPrem_W.mk
 #print axioms AvailableChain.FGSA.Run.FirstFinalityPrem_W.set
-#print axioms AvailableChain.FGSA.Run.FirstFinalityPrem_W.input
-#print axioms AvailableChain.FGSA.Run.FirstFinalityPrem_W.start
 #print axioms AvailableChain.FGSA.Run.FirstFinalityPrem_W.hhor
 #print axioms AvailableChain.FGSA.Run.FinalityLivenessPrem_W
 #print axioms AvailableChain.FGSA.Run.FinalityLivenessPrem_W.mk

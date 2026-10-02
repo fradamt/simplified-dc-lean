@@ -78,8 +78,6 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.FirstFinalityPrem_W',
     'AvailableChain.FGSA.Run.FirstFinalityPrem_W.mk',
     'AvailableChain.FGSA.Run.FirstFinalityPrem_W.set',
-    'AvailableChain.FGSA.Run.FirstFinalityPrem_W.input',
-    'AvailableChain.FGSA.Run.FirstFinalityPrem_W.start',
     'AvailableChain.FGSA.Run.FirstFinalityPrem_W.hhor',
     'AvailableChain.FGSA.Run.FinalityLivenessPrem_W',
     'AvailableChain.FGSA.Run.FinalityLivenessPrem_W.mk',

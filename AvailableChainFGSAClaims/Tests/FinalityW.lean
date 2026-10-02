@@ -108,12 +108,9 @@ example (form : FinFormW) (w : HealingWitness) (X : Block)
     le_trans start (by change (50 : Time) ≤ 52; decide),
     by change (52 : Time) + 49 ≤ 512; decide⟩
 
-example (form : FinFormW) (w : HealingWitness)
-    (recovery : Recovery₂ params codec env run 4 6)
-    (input : HealingInput params codec env run w 6)
-    (start : tstar params w < env.t_GST + B_HF params 6 4) :
-    FirstFinalityPrem_W params codec 4 6 form 1 w env run () :=
-  ⟨finiteSet form recovery, input, start, by decide⟩
+example (form : FinFormW) (recovery : Recovery₂ params codec env run 4 6) :
+    FirstFinalityPrem_W params codec 4 6 form 1 env run () :=
+  ⟨finiteSet form recovery, by decide⟩
 
 example (w : HealingWitness) (recovery : Recovery₂ params codec env run 4 6)
     (input : HealingInput params codec env run w 6) (start : tstar params w ≤ 50) :
