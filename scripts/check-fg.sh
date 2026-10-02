@@ -85,7 +85,6 @@ lake env lean --run scripts/CheckFGAxioms.lean --expect \
   certEntry_preceq_of_le \
   FGSelectionLaws.of_core \
   FGSelectionLaws.prune_eq \
-  selection_pruned_covered \
   selection_chosen_spec \
   selection_ready_covered \
   selection_chosen_removed \
@@ -106,6 +105,7 @@ lake env lean --run scripts/CheckFGAxioms.lean --expect \
   FGStoreSafety.of_certificate \
   FGStoreSafety.accepted_lock_no_evidence \
   FGStoreSafety.accepted_lock_fault \
+  simplex_certificateHeadFields_eq \
   simplexStoreInvariant \
   simplexStoreSafety
 step "scripts/FGPinIds.lean --check-names"

@@ -198,6 +198,20 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   proofs `HeightFold`, `HeightBridge`, `HeightLaws`, `HeightConsumeTransfer`,
   `HeightHistoryTransfer`. FG-SA supplies the window instance
   (`HeightFoldRefinement` for its raw window fold); KitFG never imports FGSA.
+- KitFG window certificate (migration stage 2, 2026-10-02): definition modules
+  `CertificateCoreDef` (FGFinality projection, TargetQCAt, JustificationBirth,
+  FGCertificateLaws), `CertificateSelectionDef` (entries keyed by (j, X) with
+  their quorum; greatest-ready selection read from the pre-finality list;
+  pruned lower entries covered by X ⪯ F with no own QC; eviction gives no
+  coverage; pruneCertEntries), `StoreSafetyDef` (F-lock with explicit fault /
+  no-slash premises) and `ProvenanceCoreDef`. Shared cores, with no SimplexFG
+  instance in their import closure: `AccountableCore`, `CrossingCore`,
+  `ProvenanceCore` (forms that need only the height laws take FGHeightLaws),
+  `SelectionCore` (FGSelectionLaws.of_core, FGCertificateLaws.of_selection),
+  `StoreSafety`. SimplexFG adapters: `CertificateSimplexDef`,
+  `CertificateSimplex`, `StoreSafetySimplex`. Existing KitFG proofs stay
+  unchanged; the cores are added companions. FG-SA proves the window instance
+  (FG2) and calls the cores.
 - FGSA E-11 adds `LeaseBelowOutputStore` in `Statements/Invariants` and
   `StoreBundle` with `StoreBundleInvariant` in `Statements/Store`. The bundle
   has cstore, meta, nest and lease fields; the E-11 statements are PROVED.
