@@ -27,22 +27,22 @@ structure WindowStoreInv (p : Params) (K : Nat) (st : SimplexFG.Store (Fin p.n))
 
 variable (p : Params) (K : Nat)
 
-private theorem height_eq (hK : 2 ≤ K) (B : FGBlock (Fin p.n)) :
+private theorem window_height_eq (hK : 2 ≤ K) (B : FGBlock (Fin p.n)) :
     (derive p K B).h = (SimplexFG.derive p.E p.cfg B).h :=
   congrArg FGHeight.h (windowHeightBridge p K hK B)
 
-private theorem J_eq (hK : 2 ≤ K) (B : FGBlock (Fin p.n)) :
+private theorem window_J_eq (hK : 2 ≤ K) (B : FGBlock (Fin p.n)) :
     (derive p K B).J = (SimplexFG.derive p.E p.cfg B).J :=
   congrArg FGHeight.J (windowHeightBridge p K hK B)
 
-private theorem hj_eq (hK : 2 ≤ K) (B : FGBlock (Fin p.n)) :
+private theorem window_hj_eq (hK : 2 ≤ K) (B : FGBlock (Fin p.n)) :
     (derive p K B).h_j = (SimplexFG.derive p.E p.cfg B).h_j :=
   congrArg FGHeight.h_j (windowHeightBridge p K hK B)
 
 /-- The acceptance filter agrees because it reads only height. -/
 theorem acceptViable_eq (hK : 2 ≤ K) (st : SimplexFG.Store (Fin p.n)) :
     acceptViable p K st = SimplexFG.acceptViable p.E p.cfg st := by
-  simp only [acceptViable_def, SimplexFG.acceptViable, height_eq p K hK, ← hOf_eq]
+  simp only [acceptViable_def, SimplexFG.acceptViable, window_height_eq p K hK, ← hOf_eq]
 
 private theorem window_update_finality_TF
     (st : SimplexFG.Store (Fin p.n)) (B : FGBlock (Fin p.n)) :
@@ -110,26 +110,27 @@ private theorem window_update_finality_F_mono
 theorem update_finality_h_max_eq (hK : 2 ≤ K)
     (st : SimplexFG.Store (Fin p.n)) (B : FGBlock (Fin p.n)) :
     (update_finality p K st B).h_max = (SimplexFG.update_finality p.E p.cfg st B).h_max := by
-  rw [window_update_finality_h_max, KitFG.update_finality_h_max, height_eq p K hK, hOf]
+  rw [window_update_finality_h_max, KitFG.update_finality_h_max, window_height_eq p K hK, hOf]
 
-private theorem update_pair_eq (hK : 2 ≤ K)
+private theorem window_update_pair_eq (hK : 2 ≤ K)
     (st : SimplexFG.Store (Fin p.n)) (B : FGBlock (Fin p.n)) :
     ((update_finality p K st B).h_j, (update_finality p K st B).J) =
       ((SimplexFG.update_finality p.E p.cfg st B).h_j,
         (SimplexFG.update_finality p.E p.cfg st B).J) := by
-  rw [window_update_finality_pair, KitFG.update_finality_pair, J_eq p K hK, hj_eq p K hK]
+  rw [window_update_finality_pair, KitFG.update_finality_pair, window_J_eq p K hK,
+    window_hj_eq p K hK]
 
 /-- One update from the same input has the same selected justification. -/
 theorem update_finality_J_eq (hK : 2 ≤ K)
     (st : SimplexFG.Store (Fin p.n)) (B : FGBlock (Fin p.n)) :
     (update_finality p K st B).J = (SimplexFG.update_finality p.E p.cfg st B).J :=
-  congrArg Prod.snd (update_pair_eq p K hK st B)
+  congrArg Prod.snd (window_update_pair_eq p K hK st B)
 
 /-- One update from the same input has the same justification height. -/
 theorem update_finality_h_j_eq (hK : 2 ≤ K)
     (st : SimplexFG.Store (Fin p.n)) (B : FGBlock (Fin p.n)) :
     (update_finality p K st B).h_j = (SimplexFG.update_finality p.E p.cfg st B).h_j :=
-  congrArg Prod.fst (update_pair_eq p K hK st B)
+  congrArg Prod.fst (window_update_pair_eq p K hK st B)
 
 /-- The refusal tests and tree insertion agree for one step. -/
 theorem on_block_TF_eq
@@ -141,7 +142,7 @@ theorem on_block_TF_eq
   · rw [on_block_def, ite_eq_right hc, KitFG.on_block_of_accepted p.E p.cfg st B hc,
       window_update_finality_TF, KitFG.update_finality_TF]
 
-private theorem pair_iff (hK : 2 ≤ K) (st : SimplexFG.Store (Fin p.n))
+private theorem window_pair_iff (hK : 2 ≤ K) (st : SimplexFG.Store (Fin p.n))
     (hne : ∃ C ∈ st.TF, FGBlock.Preceq st.F (SimplexFG.derive p.E p.cfg C).J) :
     ((∃ C ∈ st.TF, FGBlock.Preceq st.F (projectHeight (derive p K C)).J ∧
       st.h_j = (projectHeight (derive p K C)).h_j ∧
@@ -149,7 +150,7 @@ private theorem pair_iff (hK : 2 ≤ K) (st : SimplexFG.Store (Fin p.n))
     (∀ B ∈ st.TF, FGBlock.Preceq st.F (projectHeight (derive p K B)).J →
       lexKey ((projectHeight (derive p K B)).h_j, (projectHeight (derive p K B)).J) ≤
         lexKey (st.h_j, st.J))) ↔ (st.h_j, st.J) = lexMax p.E p.cfg st.F st.TF := by
-  simp only [projectHeight_def, J_eq p K hK, hj_eq p K hK]
+  simp only [projectHeight_def, window_J_eq p K hK, window_hj_eq p K hK]
   constructor
   · rintro ⟨⟨C, hC, hFC, hh, hJ⟩, hm⟩
     rw [lexMax_eq_of_greatest p.E p.cfg st.F st.TF (viewRootInj_all _) C hC hFC]
@@ -190,13 +191,13 @@ theorem windowStoreInv_accept (hK : 2 ≤ K)
   obtain ⟨D, hD, hDF⟩ := h.Fcar
   have hne : ∃ C ∈ st.TF, FGBlock.Preceq st.F (SimplexFG.derive p.E p.cfg C).J := by
     refine ⟨D, hD, ?_⟩
-    rw [← J_eq p K hK, ← hDF]
+    rw [← window_J_eq p K hK, ← hDF]
     exact window_F_preceq_J p K hK D
-  have hp := (pair_iff p K hK st hne).mp h.pair
+  have hp := (window_pair_iff p K hK st hne).mp h.pair
   have hpairJ : ((update_finality p K { st with TF := insert B st.TF } B).h_j,
       (update_finality p K { st with TF := insert B st.TF } B).J) =
       lexMax p.E p.cfg st.F (insert B st.TF) := by
-    rw [update_pair_eq p K hK, KitFG.update_finality_pair,
+    rw [window_update_pair_eq p K hK, KitFG.update_finality_pair,
       lexMax_insert p.E p.cfg st.F st.TF B (viewRootInj_all _) hne, ← hp]
   have hFJ : FGBlock.Preceq st.F
       (update_finality p K { st with TF := insert B st.TF } B).J := by
@@ -226,8 +227,9 @@ theorem windowStoreInv_accept (hK : 2 ≤ K)
     · rw [hF]
       exact hmem
   · have hm : st.h_max = frontier p.E p.cfg st.TF := by
-      simpa only [projectHeight_def, height_eq p K hK, SimplexFG.frontier, ← hOf_eq] using h.hmax
-    simpa only [hTF, projectHeight_def, height_eq p K hK, SimplexFG.frontier, ← hOf_eq] using
+      simpa only [projectHeight_def, window_height_eq p K hK, SimplexFG.frontier, ← hOf_eq]
+        using h.hmax
+    simpa only [hTF, projectHeight_def, window_height_eq p K hK, SimplexFG.frontier, ← hOf_eq] using
       (show (update_finality p K { st with TF := insert B st.TF } B).h_max =
         frontier p.E p.cfg (insert B st.TF) by
           rw [update_finality_h_max_eq p K hK, KitFG.update_finality_h_max,
@@ -245,7 +247,7 @@ theorem windowStoreInv_accept (hK : 2 ≤ K)
         exact hFJ
       · rw [hF]
         exact hJ
-    apply (pair_iff p K hK _ hnew).mpr
+    apply (window_pair_iff p K hK _ hnew).mpr
     rw [hTF]
     rcases window_update_finality_F_cases p K { st with TF := insert B st.TF } B with
       hF | ⟨hadv, _, hJ, hF⟩

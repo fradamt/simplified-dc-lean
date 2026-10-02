@@ -19,9 +19,12 @@ private def targets (h : Height) (X : FGBlock (Fin 4)) : List (Row (Fin 4)) :=
 private def first : FGBlock (Fin 4) := .node .genesis 1 0 (targets 1 .genesis)
 private def second : FGBlock (Fin 4) := .node first 2 0 (targets 2 first)
 private def third : FGBlock (Fin 4) := .node second 3 0 (targets 3 second)
-private def olderFinality : FGBlock (Fin 4) := .node third 4 0
-  [⟨0, .empty, some ⟨2, first.root⟩⟩, ⟨1, .empty, some ⟨2, first.root⟩⟩,
-   ⟨2, .empty, some ⟨2, first.root⟩⟩]
+/-- Stale-arm rows: a past height pair `(3, second)` and the retained finality pair `(2, first)`. -/
+private def olderRows : List (Row (Fin 4)) :=
+  [⟨0, .vote 3 second.root false, some ⟨2, first.root⟩⟩,
+   ⟨1, .vote 3 second.root false, some ⟨2, first.root⟩⟩,
+   ⟨2, .vote 3 second.root false, some ⟨2, first.root⟩⟩]
+private def olderFinality : FGBlock (Fin 4) := .node third 4 0 olderRows
 
 private def before : SimplexFG.Store (Fin 4) :=
   [first, second, third].foldl (on_block params 2) SimplexFG.Store.init
@@ -35,6 +38,9 @@ example : params.E.q = 3 ∧ ∀ i, params.E.weight i = 1 := by decide
 example : (derive params 2 third).W = [⟨2, first, ∅⟩, ⟨3, second, ∅⟩] ∧
     before.F = .genesis ∧ before.J = second ∧
     FGBlock.Preceq first before.J ∧ first ≠ before.J := by decide +kernel
+
+/-- Every row of `olderFinality` passes R6-window against its parent post-state (stale arm). -/
+example : ∀ a ∈ olderRows, r6w (derive params 2 third) a = true := by decide +kernel
 
 /-- A reachable store accepts the older entry; the old store step keeps genesis. -/
 example : (on_block params 2 before olderFinality).F = first ∧

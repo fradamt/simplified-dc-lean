@@ -7,7 +7,8 @@ namespace AvailableChain.FGSA.Window
 
 open AvailableChain.SimplexFG hiding derive acceptViable update_finality on_block
 
-/-- Acceptance uses the window height view and the live store caches. -/
+/-- [spec 1295–1301] `viable_tree`: acceptance uses the window height view and the live store
+caches. -/
 def acceptViable (p : Params) (K : Nat) (st : SimplexFG.Store (Fin p.n)) :
     Finset (FGBlock (Fin p.n)) :=
   st.TF.filter (fun B => FGBlock.preceq st.F B &&
@@ -18,7 +19,8 @@ theorem acceptViable_def (p : Params) (K : Nat) (st : SimplexFG.Store (Fin p.n))
   st.TF.filter (fun B => FGBlock.preceq st.F B &&
     decide (∃ W ∈ st.TF, FGBlock.Preceq B W ∧ st.h_max - 1 ≤ (derive p K W).h)) := rfl
 
-/-- Update height, then the justification pair, then accepted window finality. -/
+/-- [spec 1135–1148] `update_finality`: update height, then the justification pair, then accepted
+window finality. -/
 def update_finality (p : Params) (K : Nat)
     (st : SimplexFG.Store (Fin p.n)) (B : FGBlock (Fin p.n)) :
     SimplexFG.Store (Fin p.n) :=
@@ -41,7 +43,10 @@ theorem update_finality_def (p : Params) (K : Nat)
       decide (σ.F ∈ acceptViable p K st)
     then { st with F := σ.F } else st := rfl
 
-/-- Apply the SimplexFG refusals before insertion and window finality acceptance. -/
+/-- [spec 1087–1113] `on_block`: apply the SimplexFG refusals before insertion and window finality
+acceptance. Admission, not this function, applies three further spec refusals: the slot bound
+`B.slot > Σ.s` (:1089), the slot-`B.slot` proposer signature (:1092–1095), and R6-window on the
+parent post-state (:1098–1100). -/
 def on_block (p : Params) (K : Nat)
     (st : SimplexFG.Store (Fin p.n)) (B : FGBlock (Fin p.n)) :
     SimplexFG.Store (Fin p.n) :=
