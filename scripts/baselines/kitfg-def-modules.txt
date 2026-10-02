@@ -12,3 +12,7 @@ ClientOnce
 RecordHighOnceDef
 HeightCoreDef
 HeightLawsDef
+CertificateCoreDef
+CertificateSelectionDef
+StoreSafetyDef
+CertificateSimplexDef
