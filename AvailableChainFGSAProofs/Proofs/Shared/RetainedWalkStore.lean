@@ -1,7 +1,7 @@
 module
+public import AvailableChainKitFG.FrameGeometry
 public import AvailableChainFGSA.Model.Frame
 public import AvailableChainFGSA.Proofs.FrameViews
-public import AvailableChainKitFG.Correspondence
 public import AvailableChainGeneric.Proofs.Pure.Walk
 public import AvailableChainGeneric.Proofs.Pure.Fold
 
@@ -45,7 +45,8 @@ private theorem retained_store_root_live (p : Params) (st : State p.n) :
     · next hc =>
       obtain ⟨B, hB, he⟩ := of_decide_eq_true (Bool.and_eq_true_iff.mp hc).2
       rw [← Option.some.inj hr, ← he]
-      exact lift ((KitFG.mem_filteredFrom p.E p.cfg _ _ B).mp hB).2.2.1
+      exact lift ((KitFG.mem_filteredFrom_of_bridge
+        p.E p.cfg (heightView p) (heightView_bridge p) _ _ B).mp hB).2.2.1
     · cases hr
 
 /-- Blueprint 21:783–795, 878–883, 1401–1427, 1998–2019, 2119–2148,

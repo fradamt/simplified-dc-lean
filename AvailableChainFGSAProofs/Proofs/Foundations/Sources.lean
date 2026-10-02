@@ -1,9 +1,9 @@
 module
+public import AvailableChainKitFG.ProvenanceCore
 public import AvailableChainFGSAProofs.Proofs.Foundations.Leases
 public import AvailableChainFGSAClaims.Statements.Packages.Safety
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads
 public import AvailableChainFGSAProofs.Proofs.Shared.Channels
-public import AvailableChainKitFG.Provenance
 public import AvailableChainFGSARun.Proofs.ClientTrace
 
 public section
@@ -339,9 +339,10 @@ theorem sourceDiscipline_qcOrigin [Fintype V] {Pt : Type} {pt : Pt}
     exact ⟨hc, ha, hs, by rw [hp]; exact NamedHeightPair.noConfusion⟩
   · intro hF
     have hnz : (derive p.E p.cfg W).h_F ≠ 0 :=
-      fun h => hF (KitFG.finalized_zero_is_genesis p.E p.cfg W h)
-    obtain ⟨C, hCW, hCJ, hCh⟩ := KitFG.provenance_finality p.E p.cfg W hnz
-    obtain ⟨Q, hQ, hr⟩ := KitFG.justification_certificate p.E p.cfg C
+      fun h => hF ((fgCertificateLaws p).finalized_zero W h)
+    obtain ⟨C, hCW, hCJ, hCh⟩ := KitFG.provenance_finality_of_certificate
+      p.E (heightView p) (finalityView p) (fgCertificateLaws p) W hnz
+    obtain ⟨Q, hQ, hr⟩ := (fgCertificateLaws p).height.justification_certificate C
       (fun h => hnz (hCh.symm.trans h))
     choose carrier a hc ha hs hp using fun k hk => hr k hk
     let rows : Fin p.n → FGBlock (Fin p.n) × Row (Fin p.n) :=
@@ -392,8 +393,8 @@ theorem sourceDiscipline_strat [Fintype V] {Pt : Type} {pt : Pt}
         namedEntry wire.payload.height_pair =
           some (hOf p.E p.cfg (derive p.E p.cfg D).J, (derive p.E p.cfg D).J.root) := by
     have hnz : (derive p.E p.cfg D).h_j ≠ 0 :=
-      fun h => hne (KitFG.justified_zero_is_genesis p.E p.cfg D h)
-    obtain ⟨Q, hQ, hr⟩ := KitFG.justification_certificate p.E p.cfg D hnz
+      fun h => hne ((fgCertificateLaws p).justified_zero D h)
+    obtain ⟨Q, hQ, hr⟩ := (fgCertificateLaws p).height.justification_certificate D hnz
     have hh := KitFG.entry_height p.E p.cfg D hnz
     apply source_named_quorum p c E rho hb hS hx hW _ _ Q hQ
     intro k hk
@@ -402,13 +403,16 @@ theorem sourceDiscipline_strat [Fintype V] {Pt : Type} {pt : Pt}
     rw [hp]
     change some (_, _) = some (_, _)
     rw [show hOf p.E p.cfg (derive p.E p.cfg D).J = _ from hh]
+    rfl
   rcases hentry with hJ | hF | ⟨hT, hlt⟩
   · subst e
     exact just U hUW hne
   · subst e
     have hnz : (derive p.E p.cfg U).h_F ≠ 0 :=
-      fun h => hne (KitFG.finalized_zero_is_genesis p.E p.cfg U h)
-    obtain ⟨D, hDU, hDJ, _⟩ := KitFG.provenance_finality p.E p.cfg U hnz
+      fun h => hne ((fgCertificateLaws p).finalized_zero U h)
+    obtain ⟨D, hDU, hDJ, _⟩ := KitFG.provenance_finality_of_certificate
+      p.E (heightView p) (finalityView p) (fgCertificateLaws p) U hnz
+    change (derive p.E p.cfg D).J = (derive p.E p.cfg U).F at hDJ
     rw [← hDJ] at hne ⊢
     exact just D (KitFG.preceq_trans hDU hUW) hne
   · subst e
@@ -470,12 +474,7 @@ theorem sourceDiscipline_srcFrameAbove [Fintype V] {Pt : Type} {pt : Pt}
     apply hcert K hK st.fg.F
     · exact ⟨K, KitFG.preceq_refl K, Or.inr (Or.inl hKF.symm)⟩
     · exact hh
-  have hFK : FGBlock.Preceq st.fg.F (derive p.E p.cfg K).J := by
-    rw [← hKF]
-    exact (KitFG.chainOrder_derive p.E p.cfg K).finalized_preceq_justified
-  obtain ⟨D, hD, _, hpair, _⟩ := KitFG.lexMax_spec p.E p.cfg st.fg.F st.fg.TF
-    (fun X Y _ _ hroot => FGBlock.root_injective hroot) ⟨K, hK, hFK⟩
-  have hJ : st.fg.J = (derive p.E p.cfg D).J := congrArg Prod.snd (hinv.pair.trans hpair)
+  obtain ⟨D, hD, _, _, hJ⟩ := hinv.pair.1
   have hj : c₀ ≤ hOf p.E p.cfg st.fg.J → Φ st.fg.J := by
     intro hh
     apply hcert D hD st.fg.J

@@ -2,6 +2,8 @@ module
 public import AvailableChainFGSA.Model.WindowStore
 public import AvailableChainFGSA.Proofs.WindowInvariant
 public import AvailableChainKitFG.Correspondence
+public import AvailableChainKitFG.StoreSafety
+public import AvailableChainFGSA.Proofs.WindowSelection
 
 public section
 
@@ -9,21 +11,6 @@ namespace AvailableChain.FGSA.Window
 
 open AvailableChain.SimplexFG hiding derive acceptViable update_finality on_block
 open AvailableChain.KitFG
-
-/-- The structural store invariant over the window height and finality views. -/
-structure WindowStoreInv (p : Params) (K : Nat) (st : SimplexFG.Store (Fin p.n)) : Prop where
-  closed : ∀ B ∈ st.TF, B.parent ∈ st.TF
-  gen : FGBlock.genesis ∈ st.TF
-  Fmem : st.F ∈ st.TF
-  hmax : st.h_max = st.TF.sup (fun B => (projectHeight (derive p K B)).h) ⊔ 1
-  pair : (∃ C ∈ st.TF, FGBlock.Preceq st.F (projectHeight (derive p K C)).J ∧
-      st.h_j = (projectHeight (derive p K C)).h_j ∧
-      st.J = (projectHeight (derive p K C)).J) ∧
-    (∀ B ∈ st.TF, FGBlock.Preceq st.F (projectHeight (derive p K B)).J →
-      lexKey ((projectHeight (derive p K B)).h_j, (projectHeight (derive p K B)).J) ≤
-        lexKey (st.h_j, st.J))
-  FJ : FGBlock.Preceq st.F st.J
-  Fcar : ∃ D ∈ st.TF, (derive p K D).F = st.F
 
 variable (p : Params) (K : Nat)
 
@@ -167,7 +154,9 @@ private theorem window_pair_iff (hK : 2 ≤ K) (st : SimplexFG.Store (Fin p.n))
       fun B hB hFB => hpair ▸ hm B hB hFB⟩
 
 /-- Genesis satisfies every window store field. -/
-theorem windowStoreInv_init : WindowStoreInv p K SimplexFG.Store.init := by
+theorem windowStoreInvariant_init :
+    FGStoreInvariant (fun B => projectHeight (derive p K B)) (certificateFinality p K)
+      SimplexFG.Store.init := by
   refine ⟨?_, Finset.mem_singleton_self _, Finset.mem_singleton_self _, ?_, ?_,
     preceq_refl _, .genesis, Finset.mem_singleton_self _, rfl⟩
   · intro B hB
@@ -186,10 +175,12 @@ theorem windowStoreInv_init : WindowStoreInv p K SimplexFG.Store.init := by
       exact le_refl _
 
 /-- Insertion and the three cache steps preserve the structural invariant. -/
-theorem windowStoreInv_accept (hK : 2 ≤ K)
+theorem windowStoreInvariant_accept (hK : 2 ≤ K)
     (st : SimplexFG.Store (Fin p.n)) (B : FGBlock (Fin p.n))
-    (h : WindowStoreInv p K st) (hpar : B.parent ∈ st.TF) :
-    WindowStoreInv p K (update_finality p K { st with TF := insert B st.TF } B) := by
+    (h : FGStoreInvariant (fun B => projectHeight (derive p K B))
+      (certificateFinality p K) st) (hpar : B.parent ∈ st.TF) :
+    FGStoreInvariant (fun B => projectHeight (derive p K B)) (certificateFinality p K)
+      (update_finality p K { st with TF := insert B st.TF } B) := by
   have hTF := window_update_finality_TF p K { st with TF := insert B st.TF } B
   have hsub : st.TF ⊆ insert B st.TF := Finset.subset_insert B st.TF
   obtain ⟨D, hD, hDF⟩ := h.Fcar
@@ -299,9 +290,12 @@ theorem window_on_block_F_mono
   · rw [window_on_block_of_accepted p K st B hc]
     exact window_update_finality_F_mono p K { st with TF := insert B st.TF } B
 
-theorem windowStoreInv_on_block (hK : 2 ≤ K)
-    (st : SimplexFG.Store (Fin p.n)) (B : FGBlock (Fin p.n)) (h : WindowStoreInv p K st) :
-    WindowStoreInv p K (on_block p K st B) := by
+theorem windowStoreInvariant_on_block (hK : 2 ≤ K)
+    (st : SimplexFG.Store (Fin p.n)) (B : FGBlock (Fin p.n))
+    (h : FGStoreInvariant (fun B => projectHeight (derive p K B))
+      (certificateFinality p K) st) :
+    FGStoreInvariant (fun B => projectHeight (derive p K B)) (certificateFinality p K)
+      (on_block p K st B) := by
   by_cases hc : B ∈ st.TF ∨ B.parent ∉ st.TF ∨ FGBlock.preceq st.F B = false ∨
       B.slot ≤ B.parent.slot
   · rw [window_on_block_of_refused p K st B hc]
@@ -309,7 +303,7 @@ theorem windowStoreInv_on_block (hK : 2 ≤ K)
   · rw [window_on_block_of_accepted p K st B hc]
     simp only [not_or, not_not, Bool.not_eq_false] at hc
     obtain ⟨-, hpar, -, -⟩ := hc
-    exact windowStoreInv_accept p K hK st B h hpar
+    exact windowStoreInvariant_accept p K hK st B h hpar
 
 theorem window_on_block_TF_subset
     (st : SimplexFG.Store (Fin p.n)) (B : FGBlock (Fin p.n)) :
@@ -319,6 +313,21 @@ theorem window_on_block_TF_subset
   · rw [window_on_block_of_refused p K st B hc]
   · rw [window_on_block_of_accepted p K st B hc, window_update_finality_TF]
     exact Finset.subset_insert B st.TF
+
+/-- Window store safety uses its structural invariant as the good-state predicate. -/
+theorem windowStoreSafety (hK : 2 ≤ K) :
+    FGStoreSafety p.E (fun B => projectHeight (derive p K B)) (certificateFinality p K)
+      (id : SimplexFG.Store (Fin p.n) → SimplexFG.Store (Fin p.n))
+      (fun _ B => (projectHeight (derive p K B), certificateFinality p K B))
+      SimplexFG.Store.init (on_block p K)
+      (FGStoreInvariant (fun B => projectHeight (derive p K B)) (certificateFinality p K)) :=
+  FGStoreSafety.of_certificate p.E _ _ (windowCertificateLaws p K hK)
+    id _ SimplexFG.Store.init (on_block p K)
+    (FGStoreInvariant (fun B => projectHeight (derive p K B)) (certificateFinality p K))
+    (windowStoreInvariant_init p K) (fun _ hi => hi)
+    (windowStoreInvariant_on_block p K hK)
+    (fun st B _ => window_on_block_TF_subset p K st B)
+    (fun st B _ => window_on_block_F_mono p K st B) (fun _ _ _ _ => rfl)
 
 end AvailableChain.FGSA.Window
 end

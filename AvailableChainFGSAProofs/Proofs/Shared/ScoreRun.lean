@@ -960,7 +960,7 @@ theorem fgsa_walkRun_full_domain (p : Params) (st : State p.n)
   have hheight : (controls p st).lo ≤ hOf p.E p.cfg B :=
     hlo.trans (KitFG.h_mono p.E p.cfg hDB)
   have hm : B ∈ fullTree p st :=
-    (KitFG.mem_filteredFrom p.E p.cfg _ _ B).mpr
+    (KitFG.mem_filteredFrom_of_bridge p.E p.cfg (heightView p) (heightView_bridge p) _ _ B).mpr
       ⟨hB, hFB, hZB, B, hB, KitFG.preceq_refl B, hheight⟩
   exact List.mem_filter.mpr ⟨(h.baseTree _).mpr ⟨B, hB, rfl⟩,
     decide_eq_true ⟨B, hm, rfl⟩⟩
@@ -994,7 +994,7 @@ theorem fgsa_walkRun_path_domain (p : Params) (st : State p.n)
   have hheight : (controls p st).lo ≤ hOf p.E p.cfg B :=
     hlo.trans (KitFG.h_mono p.E p.cfg (KitFG.preceq_trans hDA hAB))
   have hm : A ∈ storeFrame p.E p.cfg st.fg (voterBlocks p st s) :=
-    (KitFG.mem_filteredFrom p.E p.cfg _ _ A).mpr
+    (KitFG.mem_filteredFrom_of_bridge p.E p.cfg (heightView p) (heightView_bridge p) _ _ A).mpr
       ⟨ha, hFA, KitFG.preceq_trans hZ hDA, B, hb, hAB, hheight⟩
   exact List.mem_filter.mpr ⟨(h.baseTree C).mpr ⟨A, hA, heA⟩,
     decide_eq_true ⟨A, hm, heA⟩⟩
@@ -1155,7 +1155,8 @@ theorem fgsa_walkRun_reflected_block
     change C ∈ (clock p _ _).base.blocks at hCbase
     rwa [clock_base_blocks] at hCbase
   obtain ⟨A, hA, heA⟩ := of_decide_eq_true (List.mem_filter.mp hm).2
-  have hAv := ((KitFG.mem_filteredFrom p.E p.cfg _ _ A).mp hA).1
+  have hAv := ((KitFG.mem_filteredFrom_of_bridge
+    p.E p.cfg (heightView p) (heightView_bridge p) _ _ A).mp hA).1
   rcases Bool.or_eq_true_iff.mp (Finset.mem_filter.mp hAv).2 with hf | hc
   · have hf := of_decide_eq_true hf
     rw [heA] at hf

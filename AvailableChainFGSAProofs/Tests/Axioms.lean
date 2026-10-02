@@ -587,6 +587,7 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_rowServiceBaseClaim
 #print axioms AvailableChain.FGSA.Run.fgsa_rowServiceClaim
 #print axioms AvailableChain.FGSA.Run.fgsa_rowsValidStored_atProposal
+#print axioms AvailableChain.FGSA.Run.BatchPrem.batch_of_valid
 #print axioms AvailableChain.FGSA.Run.fgsa_batchCoverage
 
 #print axioms AvailableChain.FGSA.Run.RetainedWalkRunGeometry

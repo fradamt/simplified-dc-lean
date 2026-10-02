@@ -10,7 +10,7 @@ namespace AvailableChain.FGSA
 open AvailableChain.Generic AvailableChain.SimplexFG
 
 /-- [spec 265–335] FG-SA parameters: the SA parameters (`Δ`, `n`, `k`, `η`), the
-round length `R ≥ 2` and the timeout delay `δ_t ≥ 0`
+round length `R ≥ 2`, window capacity `K_W ≥ 2`, and timeout delay `δ_t ≥ 0`
 (`δ_t = 0` is allowed; no statement may need `δ_t > 0`). -/
 structure Params extends SA.Params where
   R : Nat

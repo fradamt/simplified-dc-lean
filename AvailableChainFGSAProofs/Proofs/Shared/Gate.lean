@@ -92,7 +92,8 @@ theorem openingSource_extends_served (i : Nat) (x : V) (r : Nat)
     intro B hB
     have hd := (Finset.mem_filter.mp hB).1
     rw [domainR_def, treeT_def] at hd
-    exact ((KitFG.mem_filteredFrom p.E p.cfg _ _ B).mp hd).1
+    exact ((KitFG.mem_filteredFrom_of_bridge
+      p.E p.cfg (heightView p) (heightView_bridge p) _ _ B).mp hd).1
   have hinv : CStoreInv p st := hbundle.cstore
   obtain ⟨C, hC, hmem, hmax⟩ := deepest_spec p st hinv candidates hsub ⟨D, hD⟩
   refine ⟨C, ?_, ?_⟩

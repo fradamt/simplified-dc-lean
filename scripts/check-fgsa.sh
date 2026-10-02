@@ -218,12 +218,23 @@ gate_with_slot lake env lean --run scripts/CheckFGSAAxioms.lean "${TEST_ROOTS[@]
   Window.update_finality_J_eq \
   Window.update_finality_h_j_eq \
   Window.on_block_TF_eq \
-  Window.windowStoreInv_init \
-  Window.windowStoreInv_accept \
+  heightView_bridge \
+  heightView_eq_simplex \
+  finalityView_eq_simplex \
+  finalityView_def \
+  fgCertificateLaws \
+  fgJustificationLaws \
+  fgStoreInvariant_on_block \
+  fgStoreSafety \
+  fgInputs_headFields \
+  emitted_finality_pair_of_headFields \
+  Window.windowStoreSafety \
+  Window.windowStoreInvariant_init \
+  Window.windowStoreInvariant_accept \
   Window.window_on_block_of_refused \
   Window.window_on_block_of_accepted \
   Window.window_on_block_F_mono \
-  Window.windowStoreInv_on_block \
+  Window.windowStoreInvariant_on_block \
   Window.window_on_block_TF_subset \
   Window.projectHeight_def \
   Window.parentState_def \

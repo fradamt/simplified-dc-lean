@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSA.Model.Frame
-public import AvailableChainKitFG.StoreInvDef
+public import AvailableChainKitFG.StoreSafetyDef
+public import AvailableChainFGSA.Statements.FinalityView
 
 @[expose] public section
 
@@ -64,7 +65,7 @@ derived roots); the field stays (D6). `genuineKeys`, `leaseKeys`: one saved resu
 and one lease row per target, at the SA level (audit M4; used by `fastWriteAt`,
 `leaseOf`). -/
 structure CStoreInv (p : Params) (st : State p.n) : Prop where
-  fg : KitFG.StoreInv p.E p.cfg st.fg
+  fg : KitFG.FGStoreInvariant (heightView p) (finalityView p) st.fg
   rootInj : ∀ X ∈ st.fg.TF, ∀ Y ∈ st.fg.TF, X.root = Y.root → X = Y
   baseTree : ∀ b, b ∈ st.base.blocks ↔ ∃ B ∈ st.fg.TF, eraseFG B = b
   saCompat : SACompat st
@@ -79,7 +80,8 @@ structure CStoreInv (p : Params) (st : State p.n) : Prop where
 /-- [helper] The first three fields of `CStoreInv`: the FG invariant, root
 injectivity of Σ.T, and the base list as Σ.T erased (Task 10). -/
 def Inv0 (p : Params) (st : State p.n) : Prop :=
-  KitFG.StoreInv p.E p.cfg st.fg ∧ (∀ X ∈ st.fg.TF, ∀ Y ∈ st.fg.TF, X.root = Y.root → X = Y) ∧
+  KitFG.FGStoreInvariant (heightView p) (finalityView p) st.fg ∧
+    (∀ X ∈ st.fg.TF, ∀ Y ∈ st.fg.TF, X.root = Y.root → X = Y) ∧
     (∀ b, b ∈ st.base.blocks ↔ ∃ B ∈ st.fg.TF, eraseFG B = b)
 
 /-- [bp bp.store.v1, bp.frame.v1; K4 metadata; audit M4] The local metadata
