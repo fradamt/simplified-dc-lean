@@ -79,12 +79,18 @@ abbrev CleanCutSet (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 abbrev CleanPrefixSet (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (b₀ : Time) (ΔF : Time := E.Δ) : Prop :=
   CleanPrefix₂ p c E rho b₀ ΔF
-abbrev HealingSet (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (G : Time) : Prop :=
-  Recovery₂ p c E rho G
+/-- DC: INTENTIONAL family delivery with an explicit row bound.
+The default keeps ComposeStmt and the deferred best/search forms compatible.
+HealingPrem carries LivenessBoundW for the active healing claims. -/
+abbrev HealingSet (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (G : Time)
+    (ΔF : Time := E.Δ) : Prop :=
+  Recovery₂ p c E rho G ΔF
 
+/-- DC: INTENTIONAL family delivery binds ΔF in the recovery core.
+The recurrence field keeps its existing form until S4.3. -/
 structure FinalitySet (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (G : Time) (form : FinForm) (g : Nat) : Prop where
-  core : Recovery₂ p c E rho G
+    (G : Time) (form : FinForm) (g : Nat) (ΔF : Time) : Prop where
+  core : Recovery₂ p c E rho G ΔF
   recur : form.holds (HonestSlot rho (fgsaInterface p c)) p.R (P p) p.Δ E.t_GST rho.horizon g
 
 /-- Final outage fields for G-F0a. Participation is strict before the cut;

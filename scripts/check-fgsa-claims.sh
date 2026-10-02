@@ -123,6 +123,10 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.covered_parent_W',
     'AvailableChain.FGSA.Run.finalityBatch_covered_W',
     'AvailableChain.FGSA.Run.finalizePending_of_acceptBefore_W',
+    # S4.4a: row-delay liveness binding and actual-event finite horizon.
+    'AvailableChain.FGSA.Run.HealingPrem.bound',
+    'AvailableChain.FGSA.Run.KernelJoinedPrem.bound',
+    'AvailableChain.FGSA.Run.HealingAttemptPrem.hhor',
     'AvailableChain.FGSA.Run.FE_W',
     'AvailableChain.FGSA.Run.F4_W',
     'AvailableChain.FGSA.Run.FGoodE_Wp',
