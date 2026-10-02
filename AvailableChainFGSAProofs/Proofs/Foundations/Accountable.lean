@@ -15,6 +15,11 @@ variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
 def FGFinalizedAt (K T : FGBlock (Fin p.n)) (h : Nat) : Prop :=
   (finalityView p K).F = T ∧ (finalityView p K).h_F = h
 
+/-- DC PureAccountableFinalitySafety: INTENTIONAL selected W certificate equation. -/
+theorem FGFinalizedAt_def (K T : FGBlock (Fin p.n)) (h : Nat) :
+    FGFinalizedAt p K T h =
+      ((finalityView p K).F = T ∧ (finalityView p K).h_F = h) := by rfl
+
 /-- The same proposal/ancestor carrier as the frozen RunFGBlock, stated here
 without a Claims import. It includes emitted and delivered run proposals. -/
 def FinalityRunBlock (X : FGBlock (Fin p.n)) : Prop :=
@@ -24,9 +29,21 @@ def FinalityRunBlock (X : FGBlock (Fin p.n)) : Prop :=
       (∃ x t, V2.Event.deliver x o t ∈ rho.events)) ∧
     Block.Preceq (eraseFG X) b
 
+/-- DC WholeRunFinalitySafety: SAME proposal and ancestor carrier equation. -/
+theorem FinalityRunBlock_def (X : FGBlock (Fin p.n)) : FinalityRunBlock p c E rho X =
+    (∃ o b raw sup rows,
+      o.payload = Msg.proposal b raw sup rows ∧
+      ((∃ x t, V2.D.Run.emits E rho x o t) ∨
+        (∃ x t, V2.Event.deliver x o t ∈ rho.events)) ∧
+      Block.Preceq (eraseFG X) b) := by rfl
+
 /-- DC store_attestations: the union of all stored chain rows. -/
 def finalityStoreRows (st : State p.n) : Finset (Row (Fin p.n)) :=
   st.fg.TF.biUnion chainRows
+
+/-- DC store_attestations: SAME union of stored chain rows equation. -/
+theorem finalityStoreRows_def (st : State p.n) :
+    finalityStoreRows p st = st.fg.TF.biUnion chainRows := by rfl
 
 /-- DC DecoupledConsensusModel/Protocol/Evidence.lean:67 (store_attestations):
 the evidence pool contains every raw row on every held chain, including ancestor
@@ -41,6 +58,12 @@ def FinalityCarriage (A : Finset (Row (Fin p.n))) : Prop :=
   ∀ u ∈ A, ∃ (a : RowWire p.n) (_r : Nat),
     a.toRow? = some u ∧ a.auth = .seat .fg u.signer ∧
     ∀ z : V, RowSigner p c rho a z → z ∈ rho.honest → EmitsRow p c E rho z a
+
+/-- DC row origin: INTENTIONAL fixed FG seat and actual emission equation. -/
+theorem FinalityCarriage_def (A : Finset (Row (Fin p.n))) : FinalityCarriage p c E rho A =
+    (∀ u ∈ A, ∃ (a : RowWire p.n) (_r : Nat),
+      a.toRow? = some u ∧ a.auth = .seat .fg u.signer ∧
+      ∀ z : V, RowSigner p c rho a z → z ∈ rho.honest → EmitsRow p c E rho z a) := by rfl
 
 /-- Run-free accountable finality: same as DC PureAccountableFinalitySafety (no run premise).
 KitFG.rootInjectiveOn_all makes omission of the root premise sound (GLY F-3). -/

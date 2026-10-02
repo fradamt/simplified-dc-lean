@@ -690,3 +690,15 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_apiFinalizedMonotonicityClaim_body
 #print axioms AvailableChain.FGSA.Run.fgsa_apiFinalizedSafetyClaim_body
 #print axioms AvailableChain.FGSA.Run.fgsa_apiFinalLockClaim_body
+
+-- S4.5b r2: owner equations and the six G1 adapter bodies.
+#print axioms AvailableChain.FGSA.Run.FGFinalizedAt_def
+#print axioms AvailableChain.FGSA.Run.FinalityRunBlock_def
+#print axioms AvailableChain.FGSA.Run.finalityStoreRows_def
+#print axioms AvailableChain.FGSA.Run.FinalityCarriage_def
+#print axioms AvailableChain.FGSA.Run.fgsa_apiPureAccountableClaim_body
+#print axioms AvailableChain.FGSA.Run.fgsa_apiPureAgreementClaim_body
+#print axioms AvailableChain.FGSA.Run.fgsa_apiWholeRunAccountableClaim_body
+#print axioms AvailableChain.FGSA.Run.fgsa_apiWholeRunAgreementClaim_body
+#print axioms AvailableChain.FGSA.Run.fgsa_apiEventPrefixAgreementClaim_body
+#print axioms AvailableChain.FGSA.Run.fgsa_apiFaultCountSlashableBoundClaim_body
