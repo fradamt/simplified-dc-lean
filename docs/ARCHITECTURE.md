@@ -299,6 +299,17 @@ Engine v2 decisions (design §2), one line each:
 - Toolchain v4.34.1, Mathlib d13f23b7; never `lake update`; never a new `lean_exe`
   (scripts run with `lake env lean --run`). The Mac has 3 Lean slots
   (check `pgrep -fl lean` first); FCR builds run on the NUC.
+- Landing check-fg skip (lead ruling 2026-10-03): `scripts/check-fg.sh` runs
+  on the Mac only (its pin check hashes archived research files). A merge-tier
+  landing may skip it when `python3 scripts/fg-closure.py --changed <main>
+  <head>` exits 0: the diff touches no file of the FG closure at either
+  revision. The closure is: every file that the lakefile globs of the targets
+  check-fg builds match (AvailableChainKitFG.* includes its Tests), their
+  in-repo import closure and that of the Lean scripts check-fg runs;
+  check-fg.sh, its helpers and the files they name; lakefile, toolchain,
+  manifest. The closure is recomputed at each landing, any script error means
+  "run check-fg", and each skip logs its line. `--selftest` runs the negative
+  controls. FULL-tier gates and the daily full main run always run check-fg.
 - Lock: `scripts/CatalogLock.lean` hashes the dependency closure of every
   declaration in the locked modules (framework, statements, catalog; not
   the protocol libraries). A change needs an expected-name list,
