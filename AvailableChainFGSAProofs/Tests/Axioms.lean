@@ -9,6 +9,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.Promotion -- shake: keep (
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionCarrier -- shake: keep (H-PROMOTE carrier axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionRows -- shake: keep (H-PROMOTE same-row axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionRenewed -- shake: keep (r3 axiom checks)
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionTerminal -- shake: keep (terminal axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionAge -- shake: keep (HG.2 axiom check)
 public import AvailableChainFGSAProofs.Proofs.Healing.FramePaths -- shake: keep (H-FRAME audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.FrameZero -- shake: keep (zero-label audit)
@@ -1691,3 +1692,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchBudget -- sh
 #print axioms AvailableChain.FGSA.Run.frontierSearch_terminal_opening_cost
 #print axioms AvailableChain.FGSA.Run.frontierSearch_terminal_horizon_gap8
 #print axioms AvailableChain.FGSA.Run.frontierSearch_terminal_horizon_gap12
+#print axioms AvailableChain.FGSA.Run.healing_renewedPromotion_terminal
+#print axioms AvailableChain.FGSA.Run.healing_attempt_raise_contest
+#print axioms AvailableChain.FGSA.Run.healing_attempt_raise_other
+#print axioms AvailableChain.FGSA.Run.healing_progressAttempt

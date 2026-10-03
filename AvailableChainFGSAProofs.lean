@@ -218,3 +218,4 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchAge
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchGap
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTop
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchBudget
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionTerminal

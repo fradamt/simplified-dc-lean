@@ -426,7 +426,67 @@ example {k : AttemptKey} {ev : V2.Event V (Obj p)}
   healing_attempt_firstRow_other E rho hrec mono crossing qc writes rowCoverage hδ hbound
     rowsReceipt progressCoverage hfold faultQ honestQuorum hvalid hstart hhor htask hphase
 
+-- Apply the complete raise / contest row at either AttemptValid start arm.
+example {k : AttemptKey} {ev : V2.Event V (Obj p)}
+    (hvalid : AttemptValid p c E rho k) (hstart : rho.events[k.start]? = some ev)
+    (hhor : ev.time + attemptBudget p G k ≤ rho.horizon)
+    (htask : k.task = .raise) (hphase : k.phase = .contest) :
+    AttemptEndsBy p c E rho k (attemptBudget p G k) :=
+  healing_attempt_raise_contest E rho hrec mono crossing qc writes rowCoverage hδ hbound
+    rowsReceipt progressCoverage hfold faultQ honestQuorum hvalid hstart hhor htask hphase
+
+-- Apply the complete raise / gap or topJ row at either start arm.
+example {k : AttemptKey} {ev : V2.Event V (Obj p)}
+    (hvalid : AttemptValid p c E rho k) (hstart : rho.events[k.start]? = some ev)
+    (hhor : ev.time + attemptBudget p G k ≤ rho.horizon)
+    (htask : k.task = .raise) (hphase : k.phase ≠ .contest) :
+    AttemptEndsBy p c E rho k (attemptBudget p G k) :=
+  healing_attempt_raise_other E rho hrec mono crossing qc writes rowCoverage hδ hbound
+    rowsReceipt progressCoverage hfold faultQ honestQuorum hvalid hstart hhor htask hphase
+
+-- Apply the lane assembly without a row-result premise.
+example {k : AttemptKey} {ev : V2.Event V (Obj p)}
+    (hvalid : AttemptValid p c E rho k) (hstart : rho.events[k.start]? = some ev)
+    (hhor : ev.time + attemptBudget p G k ≤ rho.horizon) :
+    AttemptEndsBy p c E rho k (attemptBudget p G k) :=
+  healing_progressAttempt E rho hrec mono crossing qc writes rowCoverage hδ hbound
+    rowsReceipt progressCoverage hfold faultQ honestQuorum hvalid hstart hhor
+
 end CompleteRows
+
+-- Both required gaps are aligned for every parameter record.
+example (p : Params) : 4 * p.Δ ∣ 8 * p.Δ ∧ Γ p (8 * p.Δ) = 8 * p.Δ := by
+  have hd : 4 * p.Δ ∣ 8 * p.Δ := ⟨2, by ring⟩
+  exact ⟨hd, Int.mul_ediv_cancel' hd⟩
+
+example (p : Params) : 4 * p.Δ ∣ 12 * p.Δ ∧ Γ p (12 * p.Δ) = 12 * p.Δ := by
+  have hd : 4 * p.Δ ∣ 12 * p.Δ := ⟨3, by ring⟩
+  exact ⟨hd, Int.mul_ediv_cancel' hd⟩
+
+-- Check all four frozen budgets at G = 8Δ and G = 12Δ.
+example (k : AttemptKey) (htask : k.task = .raise) (hphase : k.phase = .contest) :
+    attemptBudget attemptParams 8 k = 64 ∧ attemptBudget attemptParams 12 k = 72 := by
+  rw [healing_attempt_raise_contest_budget attemptParams 8 k htask hphase,
+    healing_attempt_raise_contest_budget attemptParams 12 k htask hphase]
+  decide
+
+example (k : AttemptKey) (htask : k.task = .raise) (hphase : k.phase ≠ .contest) :
+    attemptBudget attemptParams 8 k = 100 ∧ attemptBudget attemptParams 12 k = 112 := by
+  rw [healing_attempt_raise_other_budget attemptParams 8 k htask hphase,
+    healing_attempt_raise_other_budget attemptParams 12 k htask hphase]
+  decide
+
+example (k : AttemptKey) (htask : k.task = .firstRow) (hphase : k.phase = .contest) :
+    attemptBudget attemptParams 8 k = 41 ∧ attemptBudget attemptParams 12 k = 45 := by
+  rw [healing_attempt_firstRow_contest_budget attemptParams 8 k htask hphase,
+    healing_attempt_firstRow_contest_budget attemptParams 12 k htask hphase]
+  decide
+
+example (k : AttemptKey) (htask : k.task = .firstRow) (hphase : k.phase ≠ .contest) :
+    attemptBudget attemptParams 8 k = 77 ∧ attemptBudget attemptParams 12 k = 85 := by
+  rw [healing_attempt_firstRow_other_budget attemptParams 8 k htask hphase,
+    healing_attempt_firstRow_other_budget attemptParams 12 k htask hphase]
+  decide
 
 end AvailableChain.FGSA.Run.Tests.HealingAttempt
 end

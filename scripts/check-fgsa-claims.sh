@@ -2152,6 +2152,10 @@ EXPECTED = (
     # S5 H-ATTEMPT-3: --expect ADDITIONS only.
     'AvailableChain.FGSA.Run.healing_attempt_firstRow_contest',
     'AvailableChain.FGSA.Run.healing_attempt_firstRow_other',
+    'AvailableChain.FGSA.Run.healing_renewedPromotion_terminal',
+    'AvailableChain.FGSA.Run.healing_attempt_raise_contest',
+    'AvailableChain.FGSA.Run.healing_attempt_raise_other',
+    'AvailableChain.FGSA.Run.healing_progressAttempt',
 
     # S5 RS-0: --expect ADDITIONS only.
     'AvailableChain.FGSA.Run.reset_period_lower',
