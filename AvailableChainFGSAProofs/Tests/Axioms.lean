@@ -24,6 +24,9 @@ public import AvailableChainFGSAProofs.Proofs.Healing.SupportSlow -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportTransfer -- shake: keep (H-SUPPORT audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportWrite -- shake: keep (H-SUPPORT audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6 -- shake: keep (H-REPAIR audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSeed -- shake: keep (HG.1 seed audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierService -- shake: keep (HG.1 service audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierServiceCover -- shake: keep (HG.1 cover audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6S -- shake: keep (H-REPAIR audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairGate -- shake: keep (H-REPAIR audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.Repair -- shake: keep (H-REPAIR audit)
@@ -1511,3 +1514,25 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.healing_rise_one_accept
 #print axioms AvailableChain.FGSA.Run.healing_rise_one_rise
 #print axioms AvailableChain.FGSA.Run.healing_rise_one_of_receipt
+
+-- S5 HG.1: frozen seed and q+1 lease cover.
+#print axioms AvailableChain.FGSA.Run.tfSeed_two_from_tRepair
+#print axioms AvailableChain.FGSA.Run.tfSeed_one_from_tRepair
+#print axioms AvailableChain.FGSA.Run.tfSeed_later
+#print axioms AvailableChain.FGSA.Run.tfSeed_qSucc_lease_cover
+
+#print axioms AvailableChain.FGSA.Run.frontier_seed_qSucc_input
+#print axioms AvailableChain.FGSA.Run.frontier_seed_qSucc_head
+
+#print axioms AvailableChain.FGSA.Run.frontierSeedQualification_iff
+#print axioms AvailableChain.FGSA.Run.frontier_proposals_cover
+#print axioms AvailableChain.FGSA.Run.frontier_output_cover
+#print axioms AvailableChain.FGSA.Run.frontier_gate_guard_of_receipts
+#print axioms AvailableChain.FGSA.Run.frontier_gate_geometry
+#print axioms AvailableChain.FGSA.Run.frontier_gate_guard_of_cover
+#print axioms AvailableChain.FGSA.Run.frontier_opening_gateService_of_cover
+#print axioms AvailableChain.FGSA.Run.frontier_exactService_of_heads
+#print axioms AvailableChain.FGSA.Run.frontier_seed_qSucc_exactService
+#print axioms AvailableChain.FGSA.Run.frontier_later_head
+#print axioms AvailableChain.FGSA.Run.frontier_later_exactService
+#print axioms AvailableChain.FGSA.Run.frontier_service_core

@@ -28,6 +28,25 @@ LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainF
 CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = (
+    # S5 HG.1: --expect ADDITIONS only.
+    'AvailableChain.FGSA.Run.frontierSeedQualification_iff',
+    'AvailableChain.FGSA.Run.frontier_proposals_cover',
+    'AvailableChain.FGSA.Run.frontier_output_cover',
+    'AvailableChain.FGSA.Run.frontier_gate_guard_of_receipts',
+    'AvailableChain.FGSA.Run.frontier_gate_geometry',
+    'AvailableChain.FGSA.Run.frontier_gate_guard_of_cover',
+    'AvailableChain.FGSA.Run.frontier_opening_gateService_of_cover',
+    'AvailableChain.FGSA.Run.frontier_exactService_of_heads',
+    'AvailableChain.FGSA.Run.frontier_seed_qSucc_exactService',
+    'AvailableChain.FGSA.Run.frontier_later_head',
+    'AvailableChain.FGSA.Run.frontier_later_exactService',
+    'AvailableChain.FGSA.Run.frontier_service_core',
+    'AvailableChain.FGSA.Run.frontier_seed_qSucc_input',
+    'AvailableChain.FGSA.Run.frontier_seed_qSucc_head',
+    'AvailableChain.FGSA.Run.tfSeed_two_from_tRepair',
+    'AvailableChain.FGSA.Run.tfSeed_one_from_tRepair',
+    'AvailableChain.FGSA.Run.tfSeed_later',
+    'AvailableChain.FGSA.Run.tfSeed_qSucc_lease_cover',
     # O-EXPORT-3: --expect ADDITIONS only.
     'AvailableChain.FGSA.Run.outage_outageCompatClaim_of',
     'AvailableChain.FGSA.Run.outage_fastP1Claim_of',

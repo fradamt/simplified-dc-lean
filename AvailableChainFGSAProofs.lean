@@ -28,6 +28,9 @@ public import AvailableChainFGSAProofs.Proofs.Healing.SupportTransfer
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportWrite
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6S
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSeed
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierService
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierServiceCover
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairGate
 public import AvailableChainFGSAProofs.Proofs.Healing.Repair
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportFrame
