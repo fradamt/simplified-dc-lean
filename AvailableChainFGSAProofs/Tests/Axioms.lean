@@ -2052,3 +2052,16 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchFull -- shak
 #print axioms AvailableChain.FGSA.Run.postReset_cStar_below_proposal
 #print axioms AvailableChain.FGSA.Run.postReset_h2Prime_first
 #print axioms AvailableChain.FGSA.Run.postReset_h2Prime_reset
+
+-- J5-A-3: raw moving leases and the exact raw successor.
+#print axioms AvailableChain.FGSA.Run.postReset_raw_moving_lease_compat
+#print axioms AvailableChain.FGSA.Run.postReset_raw_heads_succ_above
+#print axioms AvailableChain.FGSA.Run.postReset_raw_proposals_succ_above
+#print axioms AvailableChain.FGSA.Run.postReset_raw_finality_compatible_above
+#print axioms AvailableChain.FGSA.Run.postReset_raw_gate_lease_compat
+#print axioms AvailableChain.FGSA.Run.postReset_raw_outputs_succ_above
+#print axioms AvailableChain.FGSA.Run.postReset_raw_heads_succ
+#print axioms AvailableChain.FGSA.Run.postReset_raw_proposals_succ
+#print axioms AvailableChain.FGSA.Run.postReset_raw_outputs_succ
+#print axioms AvailableChain.FGSA.Run.postReset_rawTransfer_succ
+#print axioms AvailableChain.FGSA.Run.postReset_resetLease_succ'

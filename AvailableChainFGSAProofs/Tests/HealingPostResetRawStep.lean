@@ -194,6 +194,27 @@ example {w : HealingWitness} (h0r : H0Reset p c E rho w) {i k : Nat}
   postReset_raw_release_compatible p c E rho hrec emittedNonempty emittedName writes
     h0r hinv hresetNext hleaseNext hy hj hk hres hki hx hnd row hrow hlive
 
+
+-- R5-moving-raw, conditional package: an actual raw result and a concrete moving lease.
+example {w : HealingWitness} (h0r : H0Reset p c E rho w) {i : Nat}
+    (hinv : PostResetInv p c E rho w i)
+    (hresetNext : PostResetResetLeaseCompatible p c E rho w (i + 1))
+    {ix : Nat} {x : V} {s : Slot} {C : Block} (hx : x ∈ rho.honest)
+    (hlabel : w.sStar ≤ s) (hix : IsGateTick p c rho ix x s) (hxi : ix ≤ i)
+    (hres : gateResultAt p c E rho ix = some (some C))
+    {l : Slot} (hsl : s + 1 ≤ l)
+    (hbatch : ∀ z ∈ rho.honest, ∀ H, headAtLabel p c E rho z l = some H →
+      Block.Preceq C H)
+    {iy : Nat} {y : V} {t : Time} (hy : y ∈ rho.honest)
+    (hiy : rho.events[iy]? = some (.tick y t)) (hyi : iy ≤ i)
+    (hafter : SA.freezeTime p.toParams l < t)
+    (hupper : t ≤ SA.voteTime p.toParams (l + 1))
+    {row : Block × Nat × Time}
+    (hrow : row ∈ (FGSA.clock p (storeAt p c E rho iy y) t).base.obligations) :
+    Block.Compatible row.1 C :=
+  postReset_raw_moving_lease_compat p c E rho hrec emittedNonempty emittedName writes h0r
+    hinv hresetNext hx hlabel hix hxi hres hsl hbatch hy hiy hyi hafter hupper row hrow
+
 end Release
 
 -- A3 domain and parent, conditional package: a concrete honest proposal consumes both wrappers.
@@ -325,5 +346,19 @@ example {i : Nat} (hinv : PostResetInv p c E rho w i)
 example (cap : RCap p c E rho) (source : TSrc p c E rho) :
     ∀ i, PostResetResetLeaseStep p c E rho w i :=
   postReset_resetLease_succ_all p c E rho hrec emittedNonempty emittedName xing h0r cap source
+
+
+-- R4-all-cuts, conditional package: consume the exact joint successor, including terminal cuts.
+example {i : Nat}
+    (hprev : PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatibleP p c E rho w i ∧
+      PostResetOpeningDomainP p c E rho w i)
+    (hresetNext : PostResetResetLeaseCompatibleP p c E rho w (i + 1))
+    (hleaseNext : PostResetLeaseSafe p c E rho w (i + 1))
+    (hfprovNext : PostResetFProv p c E rho w (i + 1)) :
+    PostResetRawTransfer p c E rho w (i + 1) := by
+  have hstep := postReset_rawTransfer_succ p c E rho hrec emittedNonempty emittedName writes
+    mono xing origin h0r i
+  rw [PostResetRawStep_def] at hstep
+  exact hstep hprev hresetNext hleaseNext hfprovNext
 
 end AvailableChain.FGSA.Run.Tests.HealingPostResetRawStep

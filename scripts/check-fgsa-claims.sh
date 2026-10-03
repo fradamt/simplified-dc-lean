@@ -2501,6 +2501,18 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.postReset_cStar_below_proposal',
     'AvailableChain.FGSA.Run.postReset_h2Prime_first',
     'AvailableChain.FGSA.Run.postReset_h2Prime_reset',
+    # J5-A-3: --expect DATA additions only.
+    'AvailableChain.FGSA.Run.postReset_raw_moving_lease_compat',
+    'AvailableChain.FGSA.Run.postReset_raw_heads_succ_above',
+    'AvailableChain.FGSA.Run.postReset_raw_proposals_succ_above',
+    'AvailableChain.FGSA.Run.postReset_raw_finality_compatible_above',
+    'AvailableChain.FGSA.Run.postReset_raw_gate_lease_compat',
+    'AvailableChain.FGSA.Run.postReset_raw_outputs_succ_above',
+    'AvailableChain.FGSA.Run.postReset_raw_heads_succ',
+    'AvailableChain.FGSA.Run.postReset_raw_proposals_succ',
+    'AvailableChain.FGSA.Run.postReset_raw_outputs_succ',
+    'AvailableChain.FGSA.Run.postReset_rawTransfer_succ',
+    "AvailableChain.FGSA.Run.postReset_resetLease_succ'",
 )
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
          'Packages.Safety', 'OutputReads', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',

@@ -1060,6 +1060,101 @@ theorem postReset_raw_release_compatible {w : HealingWitness} (h0r : H0Reset p c
     z j (headAtIdx p c E rho kh j) hz (Nat.succ_le_of_lt hsj) hread (raw_head_read p c E rho hs hkh)
   exact Gen.Pure.block_compatible_of_common hBHead hCH
 
+
+/-- Blueprint 21 H.16:2933–2944, H.2:736–746; plan J5-A-3 R5;
+B1/B13/B17/B18. DC: SAME lease guard for an actual raw result.
+The reader is after the reset release. Strict extensions of CStar and
+C share an honest HEAD in the complete preceding batch. -/
+theorem postReset_raw_moving_lease_compat {w : HealingWitness}
+    (h0r : H0Reset p c E rho w) {i : Nat} (hinv : PostResetInv p c E rho w i)
+    (hresetNext : PostResetResetLeaseCompatible p c E rho w (i + 1))
+    {ix : Nat} {x : V} {s : Slot} {C : Block} (hx : x ∈ rho.honest)
+    (hlabel : w.sStar ≤ s) (hix : IsGateTick p c rho ix x s) (hxi : ix ≤ i)
+    (hres : gateResultAt p c E rho ix = some (some C))
+    {l : Slot} (hsl : s + 1 ≤ l)
+    (hbatch : ∀ z ∈ rho.honest, ∀ H, headAtLabel p c E rho z l = some H →
+      Block.Preceq C H)
+    {iy : Nat} {y : V} {t : Time} (hy : y ∈ rho.honest)
+    (hiy : rho.events[iy]? = some (.tick y t)) (hyi : iy ≤ i)
+    (hafter : SA.freezeTime p.toParams l < t)
+    (hupper : t ≤ SA.voteTime p.toParams (l + 1)) :
+    ∀ row ∈ (FGSA.clock p (storeAt p c E rho iy y) t).base.obligations,
+      Block.Compatible row.1 C := by
+  have hs := hrec.base.valid.toScheduleWellFormed
+  have hrelease : SA.releaseTime p.toParams w.sStar < t := by
+    have h : (w.sStar : Int) + 1 ≤ l := by exact_mod_cast ((Nat.succ_le_succ hlabel).trans hsl)
+    change 4 * p.Δ * (w.sStar : Int) + 5 * p.Δ < t
+    change 4 * p.Δ * (l : Int) + 3 * p.Δ < t at hafter
+    nlinarith [p.deltaPos]
+  have hreleaseCut : afterTicksIdx rho (SA.releaseTime p.toParams w.sStar) ≤ iy :=
+    (preIdx_le_afterTicksIdx E rho hs _).2.trans (raw_timeIdx_le p c E rho hs hiy hrelease)
+  have hread : timeIdx rho (SA.voteTime p.toParams l) ≤ i := by
+    apply (raw_timeIdx_le p c E rho hs hiy ?_).trans hyi
+    change 4 * p.Δ * (l : Int) + p.Δ < t
+    change 4 * p.Δ * (l : Int) + 3 * p.Δ < t at hafter
+    linarith [p.deltaPos]
+  have hnongate : ∀ q : Slot, t ≠ SA.gateTime p.toParams q := by
+    intro q he
+    rw [he] at hafter hupper
+    change 4 * p.Δ * (l : Int) + 3 * p.Δ <
+      4 * p.Δ * (q : Int) + 6 * p.Δ at hafter
+    change 4 * p.Δ * (q : Int) + 6 * p.Δ ≤
+      4 * p.Δ * ((l + 1 : Nat) : Int) + p.Δ at hupper
+    push_cast at hupper
+    have hq : (q : Int) ≤ l := by nlinarith [p.deltaPos]
+    have hl : (l : Int) ≤ q := by
+      by_contra hn
+      have h : (q : Int) + 1 ≤ l := by omega
+      nlinarith [p.deltaPos]
+    nlinarith [p.deltaPos]
+  have hnow : (storeAt p c E rho iy y).base.now ≤ t := by
+    have h := V2.D.Engine.stateBefore_now_le_event_noRestart (fgsaClock p c) E rho hs
+      hrec.base.noRestart hiy y
+    rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho iy y)] at h
+    exact h
+  have hresetC := postReset_raw_reset_compatible p c E rho hrec emittedNonempty emittedName
+    h0r hinv hx hlabel hix hres hxi
+  have hvote : SA.voteTime p.toParams l ≤ t := by
+    change 4 * p.Δ * (l : Int) + p.Δ ≤ t
+    change 4 * p.Δ * (l : Int) + 3 * p.Δ < t at hafter
+    linarith [p.deltaPos]
+  obtain ⟨ih, hih⟩ := healing_support_vote_tick E rho hs hrec.base.delta hy l
+    (hvote.trans (hs.in_horizon _ (List.mem_of_getElem? hiy)).2)
+  have hhead := raw_head_read p c E rho hs hih
+  have hCH := hbatch y hy _ hhead
+  rw [PostResetResetLeaseCompatible_def] at hresetNext
+  have hsafe := hinv.lease_safe
+  rw [PostResetLeaseSafe_def] at hsafe
+  intro row hr
+  have hpre : row ∈ (clockPre p (storeAt p c E rho iy y) t).base.obligations := by
+    change row ∈ (if isGateTime p t then
+      gateStep p (clockPre p (storeAt p c E rho iy y) t) ((t - 6 * p.Δ) / (4 * p.Δ)).toNat
+      else clockPre p (storeAt p c E rho iy y) t).base.obligations at hr
+    rw [show isGateTime p t = false from Bool.eq_false_iff.mpr (fun hg => by
+      obtain ⟨q, hq⟩ := (isGateTime_iff p t).mp hg
+      exact hnongate q hq.symm)] at hr
+    exact hr
+  have hrow := (clockPre_obligations_sublist p _ t).subset hpre
+  have hlive := hnow.trans_lt (healing_clockPre_live _ t row hpre)
+  have hreset := hresetNext iy (Nat.lt_succ_of_le hyi) y hy hreleaseCut row hrow hlive
+  by_cases hbelow : Block.Preceq row.1 w.CStar
+  · exact Gen.Pure.block_compatible_of_preceq_compatible hbelow hresetC
+  have habove := (Bool.or_eq_true_iff.mp hreset).resolve_left hbelow
+  have hne : row.1 ≠ w.CStar := fun he => hbelow (he ▸ Gen.Pure.block_preceq_refl w.CStar)
+  obtain ⟨kw, hkw, q, D, hwrite, hpass, hD, -, hkey, -, -, -⟩ := writes iy y row hrow
+  obtain ⟨hmem, hng, hBD, -, -⟩ := healing_support_key_cases p hkey
+  have htime := fgsa_tick_time_strict E rho hs hwrite hiy hkw
+  have hql : q + 1 ≤ l := by
+    have ht := htime.trans_le hupper
+    change 4 * p.Δ * (q : Int) + 6 * p.Δ <
+      4 * p.Δ * ((l + 1 : Nat) : Int) + p.Δ at ht
+    push_cast at ht
+    have h : (q : Int) < l := by nlinarith [p.deltaPos]
+    exact_mod_cast h
+  have hTH := (hsafe kw (hkw.trans_le hyi) y q row.1 row.2.1 D hy hwrite hpass hD
+    habove hne hmem hng hBD (raw_key_admission p hkey)).2.1 y l _ hy hql hread hhead
+  exact Gen.Pure.block_compatible_of_common hTH hCH
+
 end RawRelease
 
 omit [DecidableEq V] in
