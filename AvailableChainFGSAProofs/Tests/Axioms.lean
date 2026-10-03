@@ -154,6 +154,9 @@ public import AvailableChainFGSAProofs.Proofs.Healing.ResetCut -- shake: keep (R
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLease -- shake: keep (J4 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep -- shake: keep (J3 audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostReset -- shake: keep (J9 axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLeaseStep -- shake: keep (J4-A audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetHigh -- shake: keep (THigh audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw -- shake: keep (J5 axiom audit)
 
 #print axioms AvailableChain.FGSA.Run.kmid_honestSeats_mem
 #print axioms AvailableChain.FGSA.Run.kmid_honest_quorum
@@ -708,6 +711,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostReset -- shake: keep (
 #print axioms AvailableChain.FGSA.Run.HealthyPrefix₂.of_legacy
 #print axioms AvailableChain.FGSA.Run.HealthyPrefix₂.legacy_delivery
 #print axioms AvailableChain.FGSA.Run.Recovery₂.of_legacy
+#print axioms AvailableChain.FGSA.Run.Recovery₂.gamma_eq
 #print axioms AvailableChain.FGSA.Run.Recovery₂.toRecoveryCore
 
 -- fg-noround/07-H additions.
@@ -1675,3 +1679,19 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostReset -- shake: keep (
 #print axioms AvailableChain.FGSA.Run.healing_healT_of
 #print axioms AvailableChain.FGSA.Run.healing_healAC_of
 #print axioms AvailableChain.FGSA.Run.healing_healingInput_of
+-- J4-A: arbitrary-prefix first transfer and reset-cut synchrony.
+#print axioms AvailableChain.FGSA.Run.healing_first_transfer_written
+#print axioms AvailableChain.FGSA.Run.postReset_written_sync
+-- THigh: compatibility-only keep and selected-source label/reset facts.
+#print axioms AvailableChain.FGSA.Run.postReset_descent_kept_of_compat
+#print axioms AvailableChain.FGSA.Run.postReset_general_kept_of_compat
+#print axioms AvailableChain.FGSA.Run.postReset_rKeep_body_of_compat
+#print axioms AvailableChain.FGSA.Run.postReset_rKeep_body_reset
+#print axioms AvailableChain.FGSA.Run.postReset_selected_label_above
+#print axioms AvailableChain.FGSA.Run.postReset_selected_label
+#print axioms AvailableChain.FGSA.Run.SelectedBefore
+#print axioms AvailableChain.FGSA.Run.SelectedBefore_def
+#print axioms AvailableChain.FGSA.Run.selectedBefore_of_sourceBefore
+#print axioms AvailableChain.FGSA.Run.postReset_selected_reset_compatible
+-- J5-RAW: the reset-only all-cut H5 projection.
+#print axioms AvailableChain.FGSA.Run.postReset_h5RawTransfer_body

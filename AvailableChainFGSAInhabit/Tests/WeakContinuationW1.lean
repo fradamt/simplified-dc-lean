@@ -87,6 +87,7 @@ open AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
 #check cstar
 #check linked
 #check gap_positive
+#check gap_aligned
 #check source_gap
 #check boundary_duties
 #check delivery_fold_mem
