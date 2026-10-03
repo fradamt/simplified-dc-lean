@@ -91,5 +91,15 @@ example (p : Params) (G ΔF : Time)
     ResetArrivalStatement p G ΔF :=
   healing_resetArrival p G ΔF hsearch
 
+-- HG5-BRIDGE: the frozen reset-arrival statement holds with no named input.
+example (p : Params) (G ΔF : Time) : ResetArrivalStatement p G ΔF :=
+  healing_resetArrivalStatement p G ΔF
+
+-- HG5-BRIDGE: HG.5 holds on every healing run.
+example (p : Params) {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hset : HealingSet p c E rho G ΔF) : FrontierSearchStatement p c E rho G ΔF :=
+  healing_frontierSearch_of_set p c E rho hset
+
 end AvailableChain.FGSA.Run.Tests.HealingReset
 end

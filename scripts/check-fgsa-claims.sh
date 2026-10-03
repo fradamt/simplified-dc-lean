@@ -2261,6 +2261,8 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.healing_resetWitness',
     'AvailableChain.FGSA.Run.healing_reset_emittedName',
     'AvailableChain.FGSA.Run.healing_resetArrival',
+    'AvailableChain.FGSA.Run.healing_frontierSearch_of_set',
+    'AvailableChain.FGSA.Run.healing_resetArrivalStatement',
 
     # J3-KEEP: --expect DATA only.
     'AvailableChain.FGSA.Run.postReset_general_kept',

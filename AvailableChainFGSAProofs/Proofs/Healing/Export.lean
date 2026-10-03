@@ -4,6 +4,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.Reset -- shake: keep (H.11
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionRenewed
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportPerm -- shake: keep (TPerm supplier boundary)
 public import AvailableChainFGSAProofs.Proofs.Healing.Attempt -- shake: keep (H.10 supplier)
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchFull -- shake: keep (HG.5 supplier)
 
 public section
 
