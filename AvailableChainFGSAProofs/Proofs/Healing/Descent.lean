@@ -414,12 +414,15 @@ DC: INTENTIONAL global event-index measure, not the source label.
 `Lost B s k`: the source B of label s is lost at event k. Before the first
 loss, all earlier sources of height at least c₀ are pairwise compatible:
 same labels by IF.6 (`same`), different labels by the supporter of the later
-source (`support`), whose HEAD is an earlier loss of the earlier source. -/
+source (`support`), whose HEAD is an earlier loss of the earlier source.
+`support` reads only an earlier source B with a row before i and height at
+least c₀ (D2 blocker B1): the loss of an arbitrary block is not constructible. -/
 theorem healing_high_pair_compat (c₀ : Nat) (Lost : FGBlock (Fin p.n) → Slot → Nat → Prop)
     (same : ∀ i K K' s, SourceBefore p c E rho i K s → SourceBefore p c E rho i K' s →
       c₀ ≤ (heightView p K).h → c₀ ≤ (heightView p K').h →
       Block.Compatible (eraseFG K) (eraseFG K'))
     (support : ∀ i K s B sB, SourceBefore p c E rho i K s → c₀ ≤ (heightView p K).h →
+      SourceBefore p c E rho i B sB → c₀ ≤ (heightView p B).h →
       sB < s → ¬ Block.Compatible (eraseFG B) (eraseFG K) → ∃ k < i, Lost B sB k)
     {i : Nat} (noLoss : ∀ k < i, ∀ B sB, ¬ Lost B sB k)
     {K K' : FGBlock (Fin p.n)} {s s' : Slot}
@@ -428,11 +431,11 @@ theorem healing_high_pair_compat (c₀ : Nat) (Lost : FGBlock (Fin p.n) → Slot
     Block.Compatible (eraseFG K) (eraseFG K') := by
   by_contra hn
   rcases lt_trichotomy s s' with hlt | rfl | hgt
-  · obtain ⟨k, hk, hL⟩ := support i K' s' K s hK' hc' hlt hn
+  · obtain ⟨k, hk, hL⟩ := support i K' s' K s hK' hc' hK hc hlt hn
     exact noLoss k hk K s hL
   · exact hn (same i K K' s hK hK' hc hc')
   · obtain ⟨k, hk, hL⟩ :=
-      support i K s K' s' hK hc hgt (fun h => hn (desc_compat_symm h))
+      support i K s K' s' hK hc hK' hc' hgt (fun h => hn (desc_compat_symm h))
     exact noLoss k hk K' s' hL
 
 /-- Blueprint 21:2677–2741, 2767–2813 (fj.descent.v3); plan S25,
@@ -448,6 +451,7 @@ theorem healing_high_source_first_failure (c₀ : Nat)
       c₀ ≤ (heightView p K).h → c₀ ≤ (heightView p K').h →
       Block.Compatible (eraseFG K) (eraseFG K'))
     (support : ∀ i K s B sB, SourceBefore p c E rho i K s → c₀ ≤ (heightView p K).h →
+      SourceBefore p c E rho i B sB → c₀ ≤ (heightView p B).h →
       sB < s → ¬ Block.Compatible (eraseFG B) (eraseFG K) → ∃ k < i, Lost B sB k)
     (cause : ∀ k K s, (∀ k' < k, ∀ B sB, ¬ Lost B sB k') → Lost K s k →
       ∃ K₁ K₂ s₁ s₂, SourceBefore p c E rho k K₁ s₁ ∧ SourceBefore p c E rho k K₂ s₂ ∧
