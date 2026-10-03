@@ -28,6 +28,25 @@ LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainF
 CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = (
+    # S5 M5: --expect ADDITIONS only.
+    'AvailableChain.FGSA.Run.healing_rise_one_rows_received',
+    'AvailableChain.FGSA.Run.RiseOneBy',
+    'AvailableChain.FGSA.Run.boot_height_one',
+    'AvailableChain.FGSA.Run.boot_phase_one',
+    'AvailableChain.FGSA.Run.boot_not_effective_one',
+    'AvailableChain.FGSA.Run.healing_rise_one_of_frontier',
+    'AvailableChain.FGSA.Run.healing_rise_one_frontier',
+    'AvailableChain.FGSA.Run.healing_rise_one_phase',
+    'AvailableChain.FGSA.Run.healing_rise_one_split',
+    'AvailableChain.FGSA.Run.healing_rise_one_entry',
+    'AvailableChain.FGSA.Run.healing_rise_one_gate_copy',
+    'AvailableChain.FGSA.Run.healing_rise_one_height',
+    'AvailableChain.FGSA.Run.healing_rise_one_grid',
+    'AvailableChain.FGSA.Run.healing_rise_one_repair',
+    'AvailableChain.FGSA.Run.healing_rise_one_repair_synchronous',
+    'AvailableChain.FGSA.Run.healing_rise_one_first_opening',
+    'AvailableChain.FGSA.Run.healing_rise_one_later_opening',
+    'AvailableChain.FGSA.Run.healing_rise_one_repair_opening',
     # post-freeze additive _def batch 2: --expect DATA only.
     'AvailableChain.FGSA.Run.finHeight_def',
     'AvailableChain.FGSA.Run.HealSuffix_def',

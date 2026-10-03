@@ -20,6 +20,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6S -- shake: keep (
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairGate -- shake: keep (H-REPAIR audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.Repair -- shake: keep (H-REPAIR audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceOne -- shake: keep (H-GATE audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.RiseOneRepair -- shake: keep (M5 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposal -- shake: keep (I-EXACT axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalHistory -- shake: keep (I-EXACT history audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalReceipts -- shake: keep (I-EXACT r2 receipt audit)
@@ -1223,3 +1224,22 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_healed_output_mono
 #print axioms AvailableChain.FGSA.Run.clean_growth_body
 #print axioms AvailableChain.FGSA.Run.fgsa_availableGrowthGST
+
+-- S5 M5: bounded stopped phase, repair gate, height one and H-GATE opening.
+#print axioms AvailableChain.FGSA.Run.boot_height_one
+#print axioms AvailableChain.FGSA.Run.boot_phase_one
+#print axioms AvailableChain.FGSA.Run.boot_not_effective_one
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_of_frontier
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_frontier
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_phase
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_split
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_entry
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_gate_copy
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_height
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_grid
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_repair
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_repair_synchronous
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_first_opening
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_later_opening
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_repair_opening
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_rows_received
