@@ -592,5 +592,53 @@ theorem healing_healed {w : HealingWitness} (start : PostResetStart p c E rho w)
     rw [(h3 s B hp hs).2 hgate x hx |>.2.2.2.1]
     exact block_preceq_refl B
 
+/-- Blueprint 21 H.11:1572–1595, H.22:3229–3241; plan J7 B (lead review nit 1).
+DC: SAME first reset row: rG, u₀, M and r* are unique, so two reset witnesses agree on r*. -/
+theorem healing_reset_rStar_unique {w w' : HealingWitness}
+    (h : H0Reset p c E rho w) (h' : H0Reset p c E rho w') : w.rStar = w'.rStar := by
+  have hrG : w.rG = w'.rG :=
+    le_antisymm (h.rG_first _ h'.rG_after) (h'.rG_first _ h.rG_after)
+  have hu : w.u₀ = w'.u₀ := by rw [h.cut, h'.cut, hrG]
+  have hM : w.M = w'.M := by rw [h.frontier, h'.frontier, hu]
+  have hrow : HeightRow p c E rho w'.rStar (w.M + 1) := by rw [hM]; exact h'.reset_row
+  have hrow' : HeightRow p c E rho w.rStar (w'.M + 1) := by rw [← hM]; exact h.reset_row
+  exact le_antisymm (h.reset_first _ hrow) (h'.reset_first _ hrow')
+
+/-- Blueprint 21 H.18:3097–3100; plan J7 B, ∀-w form (lead review nit 1).
+DC: SAME deadline for every full witness: by proposal_first its slot u is at most
+the first proposal that healing_firstProposal builds from the same reset data. -/
+theorem healing_tstar_le_of_h0 [Fintype V] {G ΔF : Time}
+    (hrec : Recovery₂ p c E rho G ΔF) {w : HealingWitness} (h0 : H0 p c E rho w)
+    (hhor : p.actionTime w.rStar + Γ p G + 4 * p.Δ ≤ rho.horizon) :
+    tstar p w ≤ p.actionTime w.rStar + Γ p G + 4 * p.Δ := by
+  obtain ⟨u, Q, start, htime⟩ := healing_firstProposal p c E rho hrec h0.toH0Reset hhor
+  have hle : w.u ≤ u := h0.proposal_first u Q start.proposal_lower start.proposal
+  have hcast : (w.u : Int) ≤ u := by exact_mod_cast hle
+  have hd := p.deltaPos
+  change 4 * p.Δ * (w.u : Int) + 6 * p.Δ ≤ _
+  change 4 * p.Δ * (u : Int) + 6 * p.Δ ≤ _ at htime
+  nlinarith
+
+/-- Blueprint 21 H.11, H.18:3097–3100; plan J7 B; producer of J10's named `timeBound`
+(the second conjunct of HealingInputOfH0Statement). Named input: ResetArrivalStatement
+(producer: J8 H-RESET). DC: SAME a_(r*) < GST + B'_reset^F for the unique reset row. -/
+theorem healing_timeBound_of_resetArrival (G ΔF : Time)
+    (hReset : ResetArrivalStatement p G ΔF) :
+    p.δt = 2 * p.R →
+    ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+      (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      HealingSet p c E rho G ΔF → LivenessBoundW p ΔF →
+      E.t_GST + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
+      ∀ w, H0 p c E rho w → tstar p w ≤ p.actionTime w.rStar + Γ p G + 4 * p.Δ := by
+  intro hδ V _ _ In c E rho hset hbound hhor w h0
+  have hd := p.deltaPos
+  have hΓ : Γ p G = G := hset.gamma_eq
+  have hG := hset.gapPos
+  obtain ⟨w₀, h0r, hlt⟩ := hReset hδ c E rho hset hbound (by linarith)
+  have hr : w.rStar = w₀.rStar := healing_reset_rStar_unique p c E rho h0.toH0Reset h0r
+  apply healing_tstar_le_of_h0 p c E rho hset h0
+  rw [hr]
+  linarith
+
 end AvailableChain.FGSA.Run
 end

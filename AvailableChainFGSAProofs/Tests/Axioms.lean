@@ -1762,5 +1762,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetHealed -- shake: 
 #print axioms AvailableChain.FGSA.Run.healing_h4_crossBelow
 #print axioms AvailableChain.FGSA.Run.healing_healed_proposal_lower
 #print axioms AvailableChain.FGSA.Run.healing_healed
+#print axioms AvailableChain.FGSA.Run.healing_reset_rStar_unique
+#print axioms AvailableChain.FGSA.Run.healing_tstar_le_of_h0
+#print axioms AvailableChain.FGSA.Run.healing_timeBound_of_resetArrival
 #print axioms AvailableChain.FGSA.Run.healing_h4_rawCompatible
 #print axioms AvailableChain.FGSA.Run.healing_h4

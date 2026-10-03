@@ -118,5 +118,22 @@ example :
       arithmeticParams.actionTime 3 + Γ arithmeticParams 4 + 4 * arithmeticParams.Δ := by
   decide
 
+/-- Blueprint 21:3097–3100; plan J7 B, ∀-w form. DC: SAME J10 timeBound field shape.
+Named ResetArrivalStatement producer: J8 H-RESET. -/
+example (G ΔF : Time) (hReset : ResetArrivalStatement p G ΔF) :
+    p.δt = 2 * p.R →
+    ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+      (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      HealingSet p c E rho G ΔF → LivenessBoundW p ΔF →
+      E.t_GST + B'_resetF p ΔF G + Γ p G + 4 * p.Δ ≤ rho.horizon →
+      ∀ w, H0 p c E rho w → tstar p w ≤ p.actionTime w.rStar + Γ p G + 4 * p.Δ :=
+  healing_timeBound_of_resetArrival p G ΔF hReset
+
+/-- Blueprint 21:3097–3100; plan J7 B. DC: SAME every full witness meets the deadline. -/
+example [Fintype V] {G ΔF : Time} (rec : Recovery₂ p c E rho G ΔF) {w : HealingWitness}
+    (h0 : H0 p c E rho w) (horizon : p.actionTime w.rStar + Γ p G + 4 * p.Δ ≤ rho.horizon) :
+    tstar p w ≤ p.actionTime w.rStar + Γ p G + 4 * p.Δ :=
+  healing_tstar_le_of_h0 p c E rho rec h0 horizon
+
 end AvailableChain.FGSA.Run.Tests.HealingPostResetHealed
 end

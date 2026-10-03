@@ -2262,6 +2262,9 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.healing_h4_crossBelow',
     'AvailableChain.FGSA.Run.healing_healed_proposal_lower',
     'AvailableChain.FGSA.Run.healing_healed',
+    'AvailableChain.FGSA.Run.healing_reset_rStar_unique',
+    'AvailableChain.FGSA.Run.healing_tstar_le_of_h0',
+    'AvailableChain.FGSA.Run.healing_timeBound_of_resetArrival',
     'AvailableChain.FGSA.Run.healing_h4_rawCompatible',
     'AvailableChain.FGSA.Run.healing_h4',
 )
