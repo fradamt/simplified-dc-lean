@@ -1,15 +1,27 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Healing.FramePaths -- shake: keep (H-FRAME audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.FrameZero -- shake: keep (zero-label audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.FrameRelay -- shake: keep (witness relay audit)
+public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposal -- shake: keep (I-EXACT axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalHistory -- shake: keep (I-EXACT history audit)
+public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalReceipts -- shake: keep (I-EXACT r2 receipt audit)
+public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalRetained -- shake: keep (I-EXACT r2 G1 audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.CoreServices -- shake: keep (C-CORE audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.History -- shake: keep (K-HISTORY audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Height -- shake: keep (K-HEIGHT audit)
+public import AvailableChainFGSAProofs.Proofs.Finality.Receipt -- shake: keep (K-RECEIPT audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Rows -- shake: keep (K-ROWS audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Carry -- shake: keep (K-CARRY audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Batch -- shake: keep (K-BATCH audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Accept -- shake: keep (K-ACCEPT axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Finality.RecordInv -- shake: keep (FF2-INV audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.Claims -- shake: keep (S4.6b axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.Phase -- shake: keep (H-PHASE audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseRelay -- shake: keep (H-PHASE audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PhaseSettle -- shake: keep (H-PHASE r2 audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PhaseBoot -- shake: keep (H-PHASE r2 audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.Base -- shake: keep (H-BASE audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.Descent -- shake: keep (H-DESCENT audit)
 public import AvailableChainFGSAProofs.Proofs.Foundations.HonestNeverSlashed -- shake: keep (HNS audit)
 public import AvailableChainFGSAProofs.Proofs.Foundations.FinalityApi -- shake: keep (S4.5b axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersL2 -- shake: keep (consumer audit)
@@ -38,6 +50,7 @@ public import AvailableChainFGSAProofs.Proofs.Assembly.Root -- shake: keep (axio
 public import AvailableChainFGSAProofs.Proofs.Clean.GateOutput -- shake: keep (gate output axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Clean.Transfer -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Assembly.Clean -- shake: keep (axiom audit commands)
+public import AvailableChainFGSAProofs.Proofs.Assembly.Finality -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.TransferFrame -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.StepGate -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.Action -- shake: keep (axiom audit commands)
@@ -70,6 +83,17 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PeriodicStageBounds -- sha
 public import AvailableChainFGSAProofs.Proofs.Clean.Chain -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.State -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (axiom audit commands)
+
+#print axioms AvailableChain.FGSA.Run.high_source_entry_eq
+#print axioms AvailableChain.FGSA.Run.high_record_target_choice
+#print axioms AvailableChain.FGSA.Run.high_entry_record_invariant
+#print axioms AvailableChain.FGSA.Run.high_record_fresh_at_cut
+#print axioms AvailableChain.FGSA.Run.high_record_reset_fresh
+#print axioms AvailableChain.FGSA.Run.high_record_guards_and_fresh
+#print axioms AvailableChain.FGSA.Run.high_target_row_covered
+#print axioms AvailableChain.FGSA.Run.high_target_first_row
+#print axioms AvailableChain.FGSA.Run.high_target_honest_quorum
+#print axioms AvailableChain.FGSA.Run.high_target_quorum_covered
 
 #print axioms AvailableChain.FGSA.Run.terminalCarriage_general_W
 #print axioms AvailableChain.FGSA.Run.terminalCarriage_W_of_tRowsSelect
@@ -826,10 +850,78 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.healing_evidence_spread
 #print axioms AvailableChain.FGSA.Run.healing_phase_rows_spread
 
+-- H-PHASE r2: settlement, RPhase, and height-one bootstrap facts.
+#print axioms AvailableChain.FGSA.Run.healing_phase_idx_le_time
+#print axioms AvailableChain.FGSA.Run.healing_phase_lt_timeIdx
+#print axioms AvailableChain.FGSA.Run.healing_phase_idxBefore_mono
+#print axioms AvailableChain.FGSA.Run.healing_frontier_mono
+#print axioms AvailableChain.FGSA.Run.healing_phase_held_receipt
+#print axioms AvailableChain.FGSA.Run.healing_phase_entries_eq
+#print axioms AvailableChain.FGSA.Run.healing_phase_window
+#print axioms AvailableChain.FGSA.Run.healing_phase_top_node
+#print axioms AvailableChain.FGSA.Run.healing_settle_event
+#print axioms AvailableChain.FGSA.Run.healing_rPhase
+#print axioms AvailableChain.FGSA.Run.healing_phase_first_rise
+#print axioms AvailableChain.FGSA.Run.healing_attemptValid_of_event
+#print axioms AvailableChain.FGSA.Run.healing_proposal_full_witness
+#print axioms AvailableChain.FGSA.Run.healing_full_witness
+#print axioms AvailableChain.FGSA.Run.healing_held_block_receipt
+#print axioms AvailableChain.FGSA.Run.healing_witness_relay
+#print axioms AvailableChain.FGSA.Run.healing_proposer_floor
+#print axioms AvailableChain.FGSA.Run.healing_source_slot
+#print axioms AvailableChain.FGSA.Run.healing_tGeom
+#print axioms AvailableChain.FGSA.Run.healing_retained_path
+#print axioms AvailableChain.FGSA.Run.healing_frozen_path
+#print axioms AvailableChain.FGSA.Run.healing_carried_path
+#print axioms AvailableChain.FGSA.Run.healing_full_witness_all
+#print axioms AvailableChain.FGSA.Run.healing_witness_relay_phase
+-- H-DESCENT: D1–D5.
+#print axioms AvailableChain.FGSA.Run.healing_source_gate
+#print axioms AvailableChain.FGSA.Run.healing_source_read
+#print axioms AvailableChain.FGSA.Run.healing_descent
+#print axioms AvailableChain.FGSA.Run.healing_entry_pair_incompatible
+#print axioms AvailableChain.FGSA.Run.healing_descent_pair
+#print axioms AvailableChain.FGSA.Run.healing_high_pair_compat
+#print axioms AvailableChain.FGSA.Run.healing_high_source_first_failure
+#print axioms AvailableChain.FGSA.Run.healing_finality_source
+#print axioms AvailableChain.FGSA.Run.healing_justified_source
+#print axioms AvailableChain.FGSA.Run.healing_rExcl
+#print axioms AvailableChain.FGSA.Run.inclusion_acceptance_of_stored
+#print axioms AvailableChain.FGSA.Run.inclusion_receipt_of_compatible
+#print axioms AvailableChain.FGSA.Run.inclusion_proposal_receipt
+#print axioms AvailableChain.FGSA.Run.inclusion_head_read
+#print axioms AvailableChain.FGSA.Run.inclusion_sleep_silence
+#print axioms AvailableChain.FGSA.Run.inclusion_comparison_prefix
+#print axioms AvailableChain.FGSA.Run.inclusion_stampVote_of_prefix
+#print axioms AvailableChain.FGSA.Run.inclusion_stampBlock_of_prefix
+#print axioms AvailableChain.FGSA.Run.inclusion_stamps_kept
+#print axioms AvailableChain.FGSA.Run.inclusion_head_receipt_early
+#print axioms AvailableChain.FGSA.Run.inclusion_no_equivocation
+#print axioms AvailableChain.FGSA.Run.inclusion_head_seats
+#print axioms AvailableChain.FGSA.Run.inclusion_rest_bound
+#print axioms AvailableChain.FGSA.Run.inclusion_proposer_prior
+#print axioms AvailableChain.FGSA.Run.inclusion_reader_scores
+#print axioms AvailableChain.FGSA.Run.inclusion_clock_offGate
+#print axioms AvailableChain.FGSA.Run.inclusion_time_le_of_tick
+#print axioms AvailableChain.FGSA.Run.inclusion_tick_le_timeIdx
+#print axioms AvailableChain.FGSA.Run.inclusion_idxBefore_le_timeIdx
+#print axioms AvailableChain.FGSA.Run.inclusion_results_before
+#print axioms AvailableChain.FGSA.Run.inclusion_belowLabel_before
+#print axioms AvailableChain.FGSA.Run.inclusion_comparison_lift
+#print axioms AvailableChain.FGSA.Run.inclusion_entries_below
+#print axioms AvailableChain.FGSA.Run.inclusion_frame_below
+#print axioms AvailableChain.FGSA.Run.inclusion_liveRoot_le
+#print axioms AvailableChain.FGSA.Run.inclusion_head_extends
+#print axioms AvailableChain.FGSA.Run.inclusion_retained_reads
+#print axioms AvailableChain.FGSA.Run.inclusion_proposal_emission
+#print axioms AvailableChain.FGSA.Run.inclusion_exact_compat
+#print axioms AvailableChain.FGSA.Run.inclusion_exact_receipt
+#print axioms AvailableChain.FGSA.Run.inclusion_exact_head
 #print axioms AvailableChain.FGSA.Run.fgsa_tStart
 #print axioms AvailableChain.FGSA.Run.fgsa_tWalk
 #print axioms AvailableChain.FGSA.Run.fgsa_tVote
 #print axioms AvailableChain.FGSA.Run.fgsa_coreServices
+#print axioms AvailableChain.FGSA.Run.fgsa_kernelACSide_W
 -- K-HISTORY: raw origin is supplied by Assembly.
 #print axioms AvailableChain.FGSA.Run.noMixedPreBatchParent
 #print axioms AvailableChain.FGSA.Run.justifyFresh_W
@@ -845,3 +937,26 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 -- K-ACCEPT: selected W receipt acceptance and its pending-finality adapter.
 #print axioms AvailableChain.FGSA.Run.fgsa_acceptBefore_W
 #print axioms AvailableChain.FGSA.Run.fgsa_finalizePending_W
+
+-- FF2-INV r2: high QC identity and action record adapters.
+#print axioms AvailableChain.FGSA.Run.high_action_target_choice
+#print axioms AvailableChain.FGSA.Run.high_record_guards_and_fresh_at_action
+#print axioms AvailableChain.FGSA.Run.ff2_stored_high_qc_identity
+#print axioms AvailableChain.FGSA.Run.ff2_high_qc_identity
+#print axioms AvailableChain.FGSA.Run.ff2_no_high_contest
+#print axioms AvailableChain.FGSA.Run.HighRecordGuard_W
+#print axioms AvailableChain.FGSA.Run.HighRecordGuard_W_def
+#print axioms AvailableChain.FGSA.Run.ff2_high_record_guards
+
+-- K-RECEIPT: proved fields and the conditional cached-anchor guard.
+#print axioms AvailableChain.FGSA.Run.receipt_kernel_fields
+#print axioms AvailableChain.FGSA.Run.receipt_finalized_of_carriage
+#print axioms AvailableChain.FGSA.Run.receipt_finCmp
+#print axioms AvailableChain.FGSA.Run.receipt_cap
+#print axioms AvailableChain.FGSA.Run.receipt_receiver_finalityLag
+#print axioms AvailableChain.FGSA.Run.receipt_jPath_of_cached_anchor
+#print axioms AvailableChain.FGSA.Run.receipt_finCmp_of_block
+#print axioms AvailableChain.FGSA.Run.receipt_ready_of_delivery
+#print axioms AvailableChain.FGSA.Run.receipt_delivery
+#print axioms AvailableChain.FGSA.Run.receipt_jPath
+#print axioms AvailableChain.FGSA.Run.receipt_acceptPrem_W

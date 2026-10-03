@@ -31,14 +31,16 @@ theorem healing_phase_top_persist (mono : RMono p c E rho) (hnr : V2.D.NoRestart
   (simp only [Height] at *; omega)
 
 /-- Blueprint 21:1105–1113, 1193–1209; plan S20, H-PHASE/P1.
-DC: SAME two equal-height entries on one path are equal. -/
-private theorem phase_entries_eq {C D W : FGBlock (Fin p.n)}
+DC: SAME two equal-height entries on one path are equal.
+At justified height zero both entries are genesis (B21, m = 1). -/
+theorem healing_phase_entries_eq {C D W : FGBlock (Fin p.n)}
     (hh : (heightView p C).h_j = (heightView p D).h_j)
-    (hn : (heightView p C).h_j ≠ 0)
     (hC : FGBlock.Preceq (heightView p C).J W)
     (hD : FGBlock.Preceq (heightView p D).J W) :
     (heightView p C).J = (heightView p D).J := by
   have hc := fgJustificationLaws p
+  by_cases hn : (heightView p C).h_j = 0
+  · rw [hc.J_zero C hn, hc.J_zero D (hh ▸ hn)]
   have he : (heightView p (heightView p C).J).h = (heightView p (heightView p D).J).h := by
     rw [hc.J_height C hn, hc.J_height D (hh ▸ hn), hh]
   rcases KitFG.preceq_total_of_common hC hD with h | h
@@ -52,7 +54,7 @@ DC: INTENTIONAL a contest uses cumulative live evidence.
 If the cached J changes, its old carrier supplies the off-J witness. -/
 theorem healing_phase_contest_persist (mono : RMono p c E rho)
     (hnr : V2.D.NoRestart rho) {i j m : Nat} {x : V}
-    (hx : x ∈ rho.honest) (hij : i ≤ j) (hm : 2 ≤ m)
+    (hx : x ∈ rho.honest) (hij : i ≤ j)
     (hcap : frontierAtIdx p c E rho j = m)
     (hH : (R_at p c E rho i x).H = m)
     (hcontest : (R_at p c E rho i x).contest = true) :
@@ -92,8 +94,7 @@ theorem healing_phase_contest_persist (mono : RMono p c E rho)
     intro hDC
     apply hJ
     rw [hJC, hJD]
-    apply phase_entries_eq p (W := C)
-    · (simp only [Height] at *; omega)
+    apply healing_phase_entries_eq p (W := C)
     · (simp only [Height] at *; omega)
     · exact KitFG.preceq_trans ((fgCertificateLaws p).height.justified_preceq_entry C)
         ((fgCertificateLaws p).height.entry_preceq C)
@@ -103,7 +104,7 @@ theorem healing_phase_contest_persist (mono : RMono p c E rho)
 DC: INTENTIONAL gap, top J, contest are the live cumulative phase bits.
 This is the first frozen RPhase clause. Assembly supplies RMono. -/
 theorem healing_phase_order (mono : RMono p c E rho) (hnr : V2.D.NoRestart rho)
-    (a b m : Nat) (_hab : a ≤ b) (_hb : b ≤ rho.events.length) (hm : 2 ≤ m)
+    (a b m : Nat) (_hab : a ≤ b) (_hb : b ≤ rho.events.length) (_hm : 1 ≤ m)
     (hfixed : ∀ i, a ≤ i → i ≤ b → frontierAtIdx p c E rho i = m) :
     (∀ i j, a ≤ i → i ≤ j → j ≤ b →
       (TopEvidence p c E rho i m → TopEvidence p c E rho j m) ∧
@@ -116,7 +117,7 @@ theorem healing_phase_order (mono : RMono p c E rho) (hnr : V2.D.NoRestart rho)
     · rintro ⟨x, hx, ht⟩
       exact ⟨x, hx, (healing_phase_top_persist p c E rho mono hnr hx hij hcap ht).1⟩
     · rintro ⟨x, hx, hH, hc⟩
-      exact ⟨x, hx, healing_phase_contest_persist p c E rho mono hnr hx hij hm hcap hH hc⟩
+      exact ⟨x, hx, healing_phase_contest_persist p c E rho mono hnr hx hij hcap hH hc⟩
   · rintro i _ _ ⟨x, hx, hH, hc⟩
     have ht : (storeAt p c E rho i x).fg.h_max = (storeAt p c E rho i x).fg.h_j + 1 :=
       of_decide_eq_true (Bool.and_eq_true_iff.mp hc).1

@@ -26,7 +26,7 @@ structure HealingPhaseWitness (i m : Nat) : Prop where
 /-- Blueprint 21:1105–1113, 1153–1171; plan S20, H-PHASE/P7.
 DC: INTENTIONAL the producer extracts accepted carriers from live caches.
 No phase contract, service fact, or reset witness is an input. -/
-theorem healing_phaseWitness {i m : Nat} (hm : 2 ≤ m)
+theorem healing_phaseWitness {i m : Nat} (hm : 1 ≤ m)
     (hfront : frontierAtIdx p c E rho i = m) : HealingPhaseWitness p c E rho i m := by
   have hne : rho.honest.Nonempty := by
     by_contra hn

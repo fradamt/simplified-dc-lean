@@ -69,7 +69,7 @@ private theorem phase_new_accept (hnr : V2.D.NoRestart rho)
 omit [DecidableEq V] in
 /-- Blueprint 21:1142–1171; plan S20, H-PHASE/P2.
 DC: SAME an inclusive time cut contains every strict earlier receipt. -/
-private theorem phase_idx_le_time {d t : Time} (hdt : d ≤ t) :
+theorem healing_phase_idx_le_time {d t : Time} (hdt : d ≤ t) :
     V2.D.Run.idxBefore rho d ≤ timeIdx rho t := by
   change (rho.events.filter (fun e => decide (e.time < d))).length ≤
     (rho.events.filter (fun e => decide (e.time ≤ t))).length
@@ -218,7 +218,7 @@ theorem healing_evidence_spread (crossing : RXing p c E rho)
     (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
     (i : Nat) (ev : V2.Event V (Obj p)) (x : V) (W : FGBlock (Fin p.n)) (m : Nat)
     (hi : rho.events[i]? = some ev) (hx : x ∈ rho.honest) (hgst : E.t_GST ≤ ev.time)
-    (_hm : 2 ≤ m) (_hfront : frontierAtIdx p c E rho (i + 1) = m)
+    (_hm : 1 ≤ m) (_hfront : frontierAtIdx p c E rho (i + 1) = m)
     (hbefore : W ∉ (storeAt p c E rho i x).fg.TF)
     (hafter : W ∈ (storeAt p c E rho (i + 1) x).fg.TF) (hh : (heightView p W).h = m) :
     (ev.time + p.Δ ≤ rho.horizon → ∀ y ∈ rho.honest,
@@ -261,7 +261,7 @@ theorem healing_evidence_spread (crossing : RXing p c E rho)
         push_cast at htime
         simp only [Time] at *
         linarith
-    · exact Or.inl ⟨_, hij, phase_idx_le_time p c rho hdt, hrise⟩
+    · exact Or.inl ⟨_, hij, healing_phase_idx_le_time p c rho hdt, hrise⟩
 
 /-- Blueprint 21:1125–1132; plan S20, H-PHASE/P2, using H-BASE/HB4.
 DC: INTENTIONAL standalone phase rows use the independent ΔF deadline.
@@ -276,6 +276,121 @@ theorem healing_phase_rows_spread (ΔF : Time)
   intro x hx a ha
   obtain ⟨j, y, r, hrow, ht⟩ := hsent a ha
   exact healing_phase_receipt p c E rho ΔF hs hnr receipt hrow ht hgst hhor hx
+
+
+omit [DecidableEq V] in
+/-- Blueprint 21:1142–1171; plan S20, H-PHASE r2/P3.
+DC: SAME a later strict cut contains every earlier strict receipt. -/
+theorem healing_phase_idxBefore_mono {d d' : Time} (hdd : d ≤ d') :
+    V2.D.Run.idxBefore rho d ≤ V2.D.Run.idxBefore rho d' := by
+  change (rho.events.filter (fun e => decide (e.time < d))).length ≤
+    (rho.events.filter (fun e => decide (e.time < d'))).length
+  rw [← List.countP_eq_length_filter, ← List.countP_eq_length_filter]
+  exact List.countP_mono_left (fun e _ he =>
+    decide_eq_true ((of_decide_eq_true he).trans_le hdd))
+
+omit [DecidableEq V] in
+/-- Blueprint 21:1155–1163; plan S20, H-PHASE r2/P3.
+DC: SAME an event at or before t lies before the inclusive cut at t. -/
+theorem healing_phase_lt_timeIdx (hs : V2.D.ScheduleWellFormed E rho)
+    {k : Nat} {e : V2.Event V (Obj p)} (hk : rho.events[k]? = some e) {t : Time}
+    (ht : e.time ≤ t) : k < timeIdx rho t := by
+  have hlt := (Gen.V2.Duty.index_lt_idxBefore_iff hs hk (t + 1)).mpr (Int.lt_add_one_iff.mpr ht)
+  refine hlt.trans_le ?_
+  change (rho.events.filter (fun e => decide (e.time < t + 1))).length ≤
+    (rho.events.filter (fun e => decide (e.time ≤ t))).length
+  rw [← List.countP_eq_length_filter, ← List.countP_eq_length_filter]
+  exact List.countP_mono_left (fun e _ he =>
+    decide_eq_true (Int.lt_add_one_iff.mp (of_decide_eq_true he)))
+
+/-- Blueprint 21:1193–1209; plan S20, H-PHASE r2/P3. DC: SAME cumulative cache bound. -/
+private theorem phase_hmax_mono (hnr : V2.D.NoRestart rho) {i j : Nat} (hij : i ≤ j) (x : V) :
+    (storeAt p c E rho i x).fg.h_max ≤ (storeAt p c E rho j x).fg.h_max := by
+  have hi : KitFG.FGStoreInvariant (heightView p) (finalityView p)
+      (storeAt p c E rho i x).fg := (storeBundle_stateBefore E rho i x).cstore.fg
+  have hj : KitFG.FGStoreInvariant (heightView p) (finalityView p)
+      (storeAt p c E rho j x).fg := (storeBundle_stateBefore E rho j x).cstore.fg
+  rw [hi.hmax, hj.hmax]
+  exact sup_le_sup_right (Finset.sup_mono (fgsa_store_cumulative p c E rho hnr hij x).1) 1
+
+/-- Blueprint 21:1193–1209; plan S20, H-PHASE r2/P3.
+DC: SAME the global frontier does not fall in a restart-free run. -/
+theorem healing_frontier_mono (hnr : V2.D.NoRestart rho) {i j : Nat} (hij : i ≤ j) :
+    frontierAtIdx p c E rho i ≤ frontierAtIdx p c E rho j :=
+  Finset.sup_mono_fun (fun x _ => phase_hmax_mono p c E rho hnr hij x)
+
+/-- Blueprint 21:1142–1171; plan S20, H-PHASE r2/P3.
+DC: INTENTIONAL a held carrier is relayed by max(t, GST) + Δ.
+The carrier can be accepted before GST. Assembly supplies RXing.
+The frontier cap at the deadline gives the receiver's F compatibility. -/
+theorem healing_phase_held_receipt (crossing : RXing p c E rho)
+    (hvalid : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho)
+    (hdelta : E.Δ = p.Δ) {ΔF : Time}
+    (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+    {i : Nat} {ev : V2.Event V (Obj p)} {x : V} {W : FGBlock (Fin p.n)}
+    (hi : rho.events[i]? = some ev) (hx : x ∈ rho.honest) (hgst : E.t_GST ≤ ev.time)
+    (hW : W ∈ (storeAt p c E rho (i + 1) x).fg.TF) (hhor : ev.time + p.Δ ≤ rho.horizon)
+    (hcap : frontierAtIdx p c E rho (V2.D.Run.idxBefore rho (ev.time + p.Δ)) ≤
+      (heightView p W).h)
+    {y : V} (hy : y ∈ rho.honest) :
+    W ∈ (storeAt p c E rho (V2.D.Run.idxBefore rho (ev.time + p.Δ)) y).fg.TF := by
+  let j := V2.D.Run.idxBefore rho (ev.time + p.Δ)
+  have hs := hvalid.toScheduleWellFormed
+  by_cases hgen : W = .genesis
+  · exact hgen ▸ (storeBundle_stateBefore E rho j y).cstore.fg.gen
+  have hbase := (storeBundle_stateBefore E rho (i + 1) x).cstore.baseTree (eraseFG W)
+  have hm := hbase.mpr ⟨W, hW, rfl⟩
+  rw [← (metaInv_stateBefore E rho (i + 1) x).stampKeys] at hm
+  obtain ⟨⟨b, stamp⟩, hm, he⟩ := List.mem_map.mp hm
+  dsimp only at he
+  subst b
+  rcases fgsa_block_stamp_source E rho (i + 1) x (eraseFG W) stamp hm with
+    hg | ⟨l, hl, t, o, hb, ha, _⟩
+  · exact (hgen (eraseFG_eq_genesis.mp hg.1)).elim
+  obtain ⟨o', hd, _⟩ := ha.1
+  have htl : t ≤ ev.time := by
+    have hil : l < V2.D.Run.idxBefore rho (ev.time + 1) :=
+      lt_of_le_of_lt (Nat.lt_succ_iff.mp hl)
+        ((Gen.V2.Duty.index_lt_idxBefore_iff hs hi _).mpr (Int.lt_add_one_iff.mpr le_rfl))
+    exact Int.lt_add_one_iff.mp ((Gen.V2.Duty.index_lt_idxBefore_iff hs hd _).mp hil)
+  obtain ⟨s, raw, sup, rows, hdec⟩ := phase_block_decode p hb
+  have ho : o = ofWire p ⟨.proposer s, .proposal (eraseFG W) raw sup rows⟩ := by
+    apply toWire_injective
+    rw [toWire_ofWire]
+    exact decode_eq_block.mp hdec
+  have hdl : max t E.t_GST + p.Δ ≤ ev.time + p.Δ := Int.add_le_add_right (max_le htl hgst) _
+  let j' := V2.D.Run.idxBefore rho (max t E.t_GST + p.Δ)
+  have hj' : j' ≤ j := healing_phase_idxBefore_mono p c rho hdl
+  obtain ⟨K, hK, hKF⟩ := (storeBundle_stateBefore E rho j' y).cstore.fg.Fcar
+  have hfj := (healing_phase_finality_le p c E rho hK hKF).trans_lt
+    (healing_phase_justified_lt p c E rho j' y)
+  have hmax := ((phase_hmax_mono p c E rho hnr hj' y).trans
+    (healing_phase_local_le_frontier p c E rho (i := j) hy)).trans hcap
+  have hxW : HeldAt p c E rho (max j' (i + 1)) x W :=
+    ⟨hx, (fgsa_store_cumulative p c E rho hnr (le_max_right j' (i + 1)) x).1 hW⟩
+  have hFW := crossing j' (max j' (i + 1)) y x K W hy (le_max_left _ _) hK hKF hxW
+    (by simp only [Height] at *; omega)
+  have hcompat : Block.Compatible (eraseFG W)
+      (eraseFG (V2.D.Run.stateBeforeTime E rho (max t E.t_GST + p.Δ) y).st.fg.F) := by
+    rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs]
+    exact Bool.or_eq_true_iff.mpr (Or.inr (eraseFG_preceq hFW))
+  have delay (o : Obj p) (hn : ¬ isRowObject o) : fgsaDelay E.Δ ΔF o = p.Δ := by
+    cases he : o.payload <;> simp only [fgsaDelay_def, he, hdelta]
+    exact (hn (by change (match o.payload with | .row _ => True | _ => False)
+                  rw [he]; trivial)).elim
+  have hD := Gen.V2.Duty.deliveryWithinOn_of_partialSynchronyBy E rho hsync
+    (fun o => ¬ isRowObject o) p.Δ delay
+  have hT : Gen.V2.Duty.Trigger E rho
+      (ofWire p ⟨.proposer s, .proposal (eraseFG W) raw sup rows⟩) t :=
+    Or.inr ⟨x, hx, l, ho ▸ ha⟩
+  have hlt : t < max t E.t_GST + p.Δ :=
+    lt_add_of_le_of_pos (le_max_left _ _) p.deltaPos
+  obtain ⟨Y, hY, he⟩ := fgsa_proposal_receipt E rho hdelta hvalid hnr
+    (fun t => max t E.t_GST + p.Δ) rho.horizon s (eraseFG W) raw sup rows t y
+    hD hT hy (hdl.trans hhor) hlt hcompat
+  have heq : Y = W := eraseFG_injective he
+  rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs, heq] at hY
+  exact (fgsa_store_cumulative p c E rho hnr hj' y).1 hY
 
 end AvailableChain.FGSA.Run
 end
