@@ -176,6 +176,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.AttemptSettle -- shake: ke
 public import AvailableChainFGSAProofs.Proofs.Healing.AttemptRows -- shake: keep (complete first rows)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetHealed -- shake: keep (J7 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Assembly.ProgressAttempt -- shake: keep
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRawStep -- shake: keep (J5-A-2 audit)
 
 #print axioms AvailableChain.FGSA.Run.kmid_honestSeats_mem
 #print axioms AvailableChain.FGSA.Run.kmid_honest_quorum
@@ -1870,3 +1871,13 @@ public import AvailableChainFGSAProofs.Proofs.Assembly.ProgressAttempt -- shake:
 #print axioms AvailableChain.FGSA.Run.postReset_source_gate_result
 #print axioms AvailableChain.FGSA.Run.postReset_tCarrier_reset
 #print axioms AvailableChain.FGSA.Run.postReset_h2A_reset
+
+-- J5-A-2: first HEAD, source cut, moving domain, and reset-lease adapter.
+#print axioms AvailableChain.FGSA.Run.postReset_raw_first_head_above
+#print axioms AvailableChain.FGSA.Run.postReset_raw_first_head
+#print axioms AvailableChain.FGSA.Run.postReset_raw_first_head_label
+#print axioms AvailableChain.FGSA.Run.postReset_raw_heads_at_gate_cut
+#print axioms AvailableChain.FGSA.Run.postReset_raw_moving_domain
+#print axioms AvailableChain.FGSA.Run.postReset_resetLease_succ_all
+
+#print axioms AvailableChain.FGSA.Run.postReset_raw_at_gate_cut

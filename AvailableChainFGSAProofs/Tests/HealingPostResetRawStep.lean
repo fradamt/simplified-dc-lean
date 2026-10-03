@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw -- shake: keep (J5A fixtures)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRawStep -- shake: keep (J5-A-2 fixtures)
 
 set_option linter.privateModule false
 
@@ -271,3 +272,58 @@ example [Fintype V] {G ΔF : Time}
 
 end AvailableChain.FGSA.Run.Tests.HealingPostResetRawStep
 end
+
+namespace AvailableChain.FGSA.Run.Tests.HealingPostResetRawStep
+open AvailableChain.SimplexFG
+
+variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V]
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+
+variable [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
+      HonestRowAt p c E rho j x r a → ∃ e, namedEntry a.payload.height_pair = some e)
+    (emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
+      HonestRowAt p c E rho j x r a → namedEntry a.payload.height_pair = some e →
+      ∃ C G, actionSourceFG p c E rho x r = some (some C) ∧
+        e.1 = (heightView p C).h ∧
+        gateResult p c E rho x (r * p.R) = some (some G) ∧
+        Block.Preceq (eraseFG C) G ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
+    (writes : ∀ i x (row : Block × Nat × Time),
+      row ∈ (storeAt p c E rho i x).base.obligations →
+      ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
+        gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
+        row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
+        row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
+        ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
+          let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          GridCO.savedGenuine pre.base w = none →
+          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+            (actView pre) w C)
+    (mono : RMono p c E rho) (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
+    {w : HealingWitness} (h0r : H0Reset p c E rho w)
+
+
+-- R1-above, conditional package: an actual raw result strictly above CStar.
+example {i : Nat} (hinv : PostResetInv p c E rho w i)
+    (hresetNext : PostResetResetLeaseCompatibleP p c E rho w (i + 1))
+    (hleaseNext : PostResetLeaseSafe p c E rho w (i + 1))
+    {ix : Nat} {x : V} {s : Slot} {C : Block} (hx : x ∈ rho.honest)
+    (hlabel : w.sStar ≤ s) (hix : IsGateTick p c rho ix x s) (hxi : ix ≤ i)
+    (hres : gateResultAt p c E rho ix = some (some C))
+    (_hCB : Block.Preceq w.CStar C) (_hne : C ≠ w.CStar)
+    {iy : Nat} {y : V} (hy : y ∈ rho.honest)
+    (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1)))) :
+    Block.Preceq C (headAtIdx p c E rho iy (s + 1)) :=
+  postReset_raw_first_head p c E rho hrec emittedNonempty emittedName writes mono xing
+    origin h0r hinv hresetNext hleaseNext hx hlabel hix hxi hres hy hiy
+
+-- C2-all, conditional package: the joint induction consumes the exact named step.
+example (cap : RCap p c E rho) (source : TSrc p c E rho) :
+    ∀ i, PostResetResetLeaseStep p c E rho w i :=
+  postReset_resetLease_succ_all p c E rho hrec emittedNonempty emittedName xing h0r cap source
+
+end AvailableChain.FGSA.Run.Tests.HealingPostResetRawStep
