@@ -195,8 +195,8 @@ opening and witness, the terminal carrier at (r+1)R+κ, its finalization of U, a
 two-height receipt adapter at the final action r+1. The finalized arm propagates F(Q);
 the pending arm carries the witness key by complete fresh rows.
 Open inputs: `hbatch` (the action walk batch, K-ROWS) and `hmixed` (the mixed arm of
-ktail_pending_rows: an honest action head has already finalized the witness key while the
-key is below e). All other inputs are named Foundations facts.
+ktail_pending_rows; proved by `ktail_hmixed_of_relay` in TailMixed, see
+`tail_kernel_W_of_relay`). All other inputs are named Foundations facts.
 DC: INTENTIONAL: W Tail kernel; Assembly supplies the named inputs. -/
 theorem tail_kernel_W_of (G ΔF : Time) (pt : TailKernelPt p)
     (hT : TailKernelPrem_W p c G ΔF E rho pt)

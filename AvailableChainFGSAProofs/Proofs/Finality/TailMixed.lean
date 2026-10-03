@@ -587,7 +587,8 @@ at action r+1 is held by the terminal proposer at its read. The block relay need
 receiver's store finality below H: its carrier has finality below e+1 = ht(H) before the
 next action, so R-XING puts the store finality below H.
 DC: INTENTIONAL: DC pins one action head; W relays the head to the terminal proposer.
-Assembly supplies RMono (Fn/Store fgsa_rMono) and RXing (Fn/Crossing fgsa_rXing). -/
+Assembly supplies RMono (Proofs/Foundations/Store fgsa_rMono) and RXing
+(Proofs/Foundations/Crossing fgsa_rXing). -/
 theorem ktail_head_delivered {G ΔF : Time} {pt : TailKernelPt p}
     (hT : TailKernelPrem_W p c G ΔF E rho pt) (ow : TailOpeningWitness_W p c E rho ΔF pt)
     (hnames : ∀ j x r a e, HonestRowAt p c E rho j x r a →
@@ -856,8 +857,9 @@ theorem ktail_hmixed_of_relay {G ΔF : Time} {pt : TailKernelPt p}
       Xb hX hXslot (hXslot ▸ hcarrier) st (hXslot ▸ hst) hlook hrc hmix)
 
 /-- Paper 22:1985–2009 (FT-Tail-W). `tail_kernel_W_of` with the mixed arm proved: the only
-open input is `hbatch` (K-ROWS). New named inputs: RMono (Fn/Store fgsa_rMono) and RXing
-(Fn/Crossing fgsa_rXing); all other inputs are those of `tail_kernel_W_of`.
+open input is `hbatch` (K-ROWS). New named inputs: RMono (Proofs/Foundations/Store
+fgsa_rMono) and RXing (Proofs/Foundations/Crossing fgsa_rXing); all other inputs are those of
+`tail_kernel_W_of`.
 DC: INTENTIONAL: W Tail kernel; Assembly supplies the named inputs. -/
 theorem tail_kernel_W_of_relay (G ΔF : Time) (pt : TailKernelPt p)
     (hT : TailKernelPrem_W p c G ΔF E rho pt)
