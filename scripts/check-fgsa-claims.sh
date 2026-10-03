@@ -2205,6 +2205,14 @@ EXPECTED = (
     # J4-A-LEASE: --expect DATA only.
     'AvailableChain.FGSA.Run.healing_first_transfer_written',
     'AvailableChain.FGSA.Run.postReset_written_sync',
+    # J4-A2-LEASE: --expect DATA only.
+    'AvailableChain.FGSA.Run.postReset_written_source_compatible',
+    'AvailableChain.FGSA.Run.postReset_written_domain',
+    'AvailableChain.FGSA.Run.postReset_written_first_head',
+    'AvailableChain.FGSA.Run.postReset_written_first_head_label',
+    'AvailableChain.FGSA.Run.postReset_written_heads_at_write_cut',
+    'AvailableChain.FGSA.Run.postReset_written_later_result',
+    'AvailableChain.FGSA.Run.postReset_leaseSafe_results_succ',
 )
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
          'Packages.Safety', 'OutputReads', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',

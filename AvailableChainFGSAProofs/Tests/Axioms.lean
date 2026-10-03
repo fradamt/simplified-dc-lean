@@ -1686,3 +1686,14 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw -- shake: kee
 #print axioms AvailableChain.FGSA.Run.postReset_selected_reset_compatible
 -- J5-RAW: the reset-only all-cut H5 projection.
 #print axioms AvailableChain.FGSA.Run.postReset_h5RawTransfer_body
+
+-- J4-A2: frozen written-prefix domain, first HEAD and new-write S1.
+#print axioms AvailableChain.FGSA.Run.postReset_written_source_compatible
+#print axioms AvailableChain.FGSA.Run.postReset_written_domain
+#print axioms AvailableChain.FGSA.Run.postReset_written_first_head
+#print axioms AvailableChain.FGSA.Run.postReset_written_first_head_label
+#print axioms AvailableChain.FGSA.Run.postReset_written_heads_at_write_cut
+
+-- J4-A2: later-result boundary and its complete successor clause.
+#print axioms AvailableChain.FGSA.Run.postReset_written_later_result
+#print axioms AvailableChain.FGSA.Run.postReset_leaseSafe_results_succ
