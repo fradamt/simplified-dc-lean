@@ -1134,6 +1134,9 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 
 -- K-FWD: the forward W finality kernel.
 #print axioms AvailableChain.FGSA.Run.finality_kernel_W_of
+#print axioms AvailableChain.FGSA.Run.finality_kernel_joined_W_of
+#print axioms AvailableChain.FGSA.Run.fgsa_finalityKernelJoined_W_of
+#print axioms AvailableChain.FGSA.Run.fgsa_finalityKernelJoined_W
 -- S5 GROWTH: causal, emission, order, clean body and conditional GST proof.
 #print axioms AvailableChain.FGSA.Run.fgsa_timeIdx_now_le
 #print axioms AvailableChain.FGSA.Run.fgsa_output_noFuture_of_slot
