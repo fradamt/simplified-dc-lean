@@ -150,6 +150,15 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.BlockInRunBefore
 #print axioms AvailableChain.FGSA.Run.RowSigner_def
 #print axioms AvailableChain.FGSA.Run.HonestRowAt_def
+#print axioms AvailableChain.FGSA.Run.RowComplete_def
+#print axioms AvailableChain.FGSA.Run.HonestCarrier_def
+#print axioms AvailableChain.FGSA.Run.HeldAt_def
+#print axioms AvailableChain.FGSA.Run.namedEntry_def
+#print axioms AvailableChain.FGSA.Run.rowHeight_def
+#print axioms AvailableChain.FGSA.Run.eventTime_def
+#print axioms AvailableChain.FGSA.Run.honestSeats_def
+#print axioms AvailableChain.FGSA.Run.muOf_def
+#print axioms AvailableChain.FGSA.Run.high_def
 #print axioms AvailableChain.FGSA.Run.RStore
 #print axioms AvailableChain.FGSA.Run.RStoreCumul
 #print axioms AvailableChain.FGSA.Run.RMono
@@ -372,6 +381,10 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.HealingInputClaim
 #print axioms AvailableChain.FGSA.Run.HTimeConcl
 #print axioms AvailableChain.FGSA.Run.HTimeClaim
+#print axioms AvailableChain.FGSA.Run.HTimeBestConcl
+#print axioms AvailableChain.FGSA.Run.HTimeBestConcl_def
+#print axioms AvailableChain.FGSA.Run.HTimeBestClaim
+#print axioms AvailableChain.FGSA.Run.HTimeSearchClaim
 #print axioms AvailableChain.FGSA.Run.ResetArrivalConcl
 #print axioms AvailableChain.FGSA.Run.ResetArrivalClaim
 #print axioms AvailableChain.FGSA.Run.RenewedPromotionConcl
@@ -743,3 +756,64 @@ by
 #print axioms AvailableChain.FGSA.Run.tstar_def
 #print axioms AvailableChain.FGSA.Run.S_at_def
 #print axioms AvailableChain.FGSA.Run.outputS_def
+
+namespace AvailableChain.FGSA.Run.Tests.HealedBest
+
+variable (p : Params) {In V : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (G ΔF : Time) (g : Nat)
+
+-- Apply only the stated premises. These tests do not prove the claims.
+example (h : HTimeBestClaim p) (hδ : p.δt = 2 * p.R)
+    (hs : HealingSet p c E rho G ΔF) (hb : LivenessBoundW p ΔF)
+    (hr : Gen.Pure.FinForm.recS.holds (Gen.V2.Duty.HonestSlot rho (fgsaInterface p c))
+      p.R (P p) p.Δ E.t_GST rho.horizon g)
+    (hh : E.t_GST + B_bestF p ΔF G g ≤ rho.horizon) :
+    HTimeBestConcl p c E rho G ΔF g :=
+  h G ΔF g hδ c E rho hs hb hr hh
+
+example (h : HTimeSearchClaim p) (hδ : p.δt = 2 * p.R) (hg : 1 ≤ g)
+    (hs : HealingSet p c E rho G ΔF) (hb : LivenessBoundW p ΔF)
+    (hq : Gen.Pure.QualSearch (Gen.V2.Duty.HonestSlot rho (fgsaInterface p c))
+      p.R (P p) p.Δ E.t_GST rho.horizon g)
+    (hh : E.t_GST + B_bestF p ΔF G g ≤ rho.horizon) :
+    HTimeBestConcl p c E rho G ΔF g :=
+  h G ΔF g hδ c E rho hg hs hb hq hh
+
+end AvailableChain.FGSA.Run.Tests.HealedBest
+-- B33 WC-LIVE additive statements and test controls.
+#print axioms AvailableChain.FGSA.Run.ServedFromGateAt
+#print axioms AvailableChain.FGSA.Run.ServedFromGateAt_def
+#print axioms AvailableChain.FGSA.Run.JointGrowthAt
+#print axioms AvailableChain.FGSA.Run.JointGrowthAt_def
+#print axioms AvailableChain.FGSA.Run.WeakContinuationLiveAt₂
+#print axioms AvailableChain.FGSA.Run.WeakContinuationLiveAt₂.mk
+#print axioms AvailableChain.FGSA.Run.WeakContinuationLiveAt₂.safety
+#print axioms AvailableChain.FGSA.Run.WeakContinuationLiveAt₂.inclusion
+#print axioms AvailableChain.FGSA.Run.WeakContinuationLiveAt₂.growth
+#print axioms AvailableChain.FGSA.Run.BoundedSafetyLivenessRecovery₂
+#print axioms AvailableChain.FGSA.Run.BoundedSafetyLivenessRecovery₂_def
+#print axioms AvailableChain.FGSA.Run.WeakContinuationLiveClaim
+
+public section
+
+namespace AvailableChain.FGSA.Run.Tests.WeakContinuationLive
+
+variable {p : Params} {In V : Type} {c : AppCodec In} [DecidableEq V] [Fintype V]
+
+-- Claims imports are permitted in this audit module. Check the neutral bodies.
+example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : PtSP) :
+    ServedFromGateAt p c E rho pt = InclusionAt p c E rho pt := rfl
+
+example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (t d : Time) :
+    JointGrowthAt p c E rho t d = AvailableGrowthConcl p c E rho t d := rfl
+
+-- Intended universal claim projection; this does not prove the live claim.
+example (G : Time) : WeakContinuationLiveClaim p G → WeakContinuationClaim p G := by
+  intro h V _ _ In c ΔF hδ E source hs
+  obtain ⟨u, Q, iStar, cut, live⟩ := h c ΔF hδ E source hs
+  refine ⟨u, Q, iStar, cut, ?_⟩
+  intro E' rho continuation
+  exact (live E' rho continuation).safety (cut.beforeEnd.le.trans continuation.covered)
+
+end AvailableChain.FGSA.Run.Tests.WeakContinuationLive
+end

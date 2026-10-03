@@ -105,5 +105,11 @@ noncomputable def tstarOf : Option Time := by
   classical
   exact if h : ∃ w, H0 p c E rho w then some (tstar p (Classical.choose h)) else none
 
+-- equation export required by BUILD §7.2 B3a (post-freeze additive _def batch)
+theorem muOf_def : muOf p c E rho = max 1 (sSup (oldRowHeights p c E rho)) := rfl
+-- equation export required by BUILD §7.2 B3a (post-freeze additive _def batch)
+theorem high_def (w : HealingWitness) (C : FGBlock (Fin p.n)) :
+    high p w C = (w.M + 1 ≤ (heightView p C).h) := rfl
+
 end AvailableChain.FGSA.Run
 end

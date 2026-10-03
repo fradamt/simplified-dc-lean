@@ -136,6 +136,23 @@ noncomputable def honestSeats (p : Params) {V : Type} [DecidableEq V] {In : Type
     classical
     exact Finset.univ.filter (fun i => rho.seatOf (.base .fg) i ∈ rho.honest)
 
+-- equation export required by BUILD §7.2 B3a (post-freeze additive _def batch)
+theorem rowHeight_def {n : Nat} (a : RowWire n) :
+    rowHeight a = match a.payload.height_pair with
+      | .empty => none
+      | .vote h _ _ => some h := rfl
+
+-- equation export required by BUILD §7.2 B3a (post-freeze additive _def batch)
+theorem eventTime_def {V In : Type} {P : V2.ProtocolSpecD In} (rho : V2.D.Run V P)
+    (i : Nat) : eventTime rho i = rho.events[i]?.map V2.Event.time := rfl
+
+-- equation export required by BUILD §7.2 B3a (post-freeze additive _def batch)
+theorem honestSeats_def (p : Params) {V : Type} [DecidableEq V] {In : Type}
+    (c : AppCodec In) (rho : V2.D.Run V (fgsa p c)) :
+    honestSeats p c rho = (by
+      classical
+      exact Finset.univ.filter (fun i => rho.seatOf (.base .fg) i ∈ rho.honest)) := rfl
+
 /-- FINAL 22:954–956,1068–1069. Raw occurrences only; no selected wire.
 DC-CS/ProposalBridge.lean:324 uses admission before a cut. FG-SA defers
 wire provenance to F1.6 `held_chain_row_origin` (lead ruling 2026-09-30).

@@ -126,6 +126,24 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.kernel_middle_early_justification',
     'AvailableChain.FGSA.Run.kernel_middle_source_cap',
     'AvailableChain.FGSA.Run.kmid_source_held_at_tick',
+    # HBEST STATEMENT: companion --expect DATA additions only.
+    'AvailableChain.FGSA.Run.HTimeBestConcl',
+    'AvailableChain.FGSA.Run.HTimeBestConcl_def',
+    'AvailableChain.FGSA.Run.HTimeBestClaim',
+    'AvailableChain.FGSA.Run.HTimeSearchClaim',
+    # B33 WC-LIVE additive: --expect DATA additions only.
+    'AvailableChain.FGSA.Run.ServedFromGateAt',
+    'AvailableChain.FGSA.Run.ServedFromGateAt_def',
+    'AvailableChain.FGSA.Run.JointGrowthAt',
+    'AvailableChain.FGSA.Run.JointGrowthAt_def',
+    'AvailableChain.FGSA.Run.WeakContinuationLiveAt₂',
+    'AvailableChain.FGSA.Run.WeakContinuationLiveAt₂.mk',
+    'AvailableChain.FGSA.Run.WeakContinuationLiveAt₂.safety',
+    'AvailableChain.FGSA.Run.WeakContinuationLiveAt₂.inclusion',
+    'AvailableChain.FGSA.Run.WeakContinuationLiveAt₂.growth',
+    'AvailableChain.FGSA.Run.BoundedSafetyLivenessRecovery₂',
+    'AvailableChain.FGSA.Run.BoundedSafetyLivenessRecovery₂_def',
+    'AvailableChain.FGSA.Run.WeakContinuationLiveClaim',
     # C-CORE: --expect DATA only.
     'AvailableChain.FGSA.Run.fgsa_tStart',
     'AvailableChain.FGSA.Run.fgsa_tWalk',
@@ -1551,6 +1569,16 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.BlockInRunBefore',
     'AvailableChain.FGSA.Run.RowSigner_def',
     'AvailableChain.FGSA.Run.HonestRowAt_def',
+    # post-freeze additive _def batch: --expect DATA only.
+    'AvailableChain.FGSA.Run.RowComplete_def',
+    'AvailableChain.FGSA.Run.HonestCarrier_def',
+    'AvailableChain.FGSA.Run.HeldAt_def',
+    'AvailableChain.FGSA.Run.namedEntry_def',
+    'AvailableChain.FGSA.Run.rowHeight_def',
+    'AvailableChain.FGSA.Run.eventTime_def',
+    'AvailableChain.FGSA.Run.honestSeats_def',
+    'AvailableChain.FGSA.Run.muOf_def',
+    'AvailableChain.FGSA.Run.high_def',
     'AvailableChain.FGSA.Run.RStore',
     'AvailableChain.FGSA.Run.RStoreCumul',
     'AvailableChain.FGSA.Run.RMono',
@@ -1743,8 +1771,8 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.fgsa_batchCoverage',
 )
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
-         'Packages.Safety', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',
-         'ChannelProps', 'FinalityApi', 'Healed', 'WeakContinuation', 'Packages.Finality', 'Packages.FinalityGST',
+         'Packages.Safety', 'OutputReads', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',
+         'ChannelProps', 'FinalityApi', 'Healed', 'HealedBest', 'WeakContinuation', 'WeakContinuationLive', 'Packages.Finality', 'Packages.FinalityGST',
          'ComposeStmt', 'Fold',
          'Phases', 'PhasesInternal', 'Packages.Healing')
 if not SOURCE_ONLY:
