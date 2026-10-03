@@ -11,6 +11,22 @@ open AvailableChain.SimplexFG AvailableChain.KitFG
 variable (p : Params) {In V : Type} [DecidableEq V] [Fintype V]
     (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
+/-- Paper 00:1119–1134, 22:1171–1305; plan §4: build the W kernel premise.
+DC-CS/W4FKChainSecondCheckpoint.lean:43: INTENTIONAL same-witness join.
+One witness supplies the input, start and core services. -/
+theorem finality_kernel_prem_W_of_joined (G ΔF : Time) (pt : PtR)
+    (h : KernelJoinedPrem p c G ΔF E rho pt) :
+    ∃ w : HealingWitness, KernelPrem_W p c G ΔF E rho ⟨w, pt.r⟩ := by
+  obtain ⟨w, input, start⟩ := h.start
+  exact ⟨w, {
+    set := h.set
+    bound := h.bound
+    window := h.window
+    start := start
+    hhor := h.hhor
+    input := input
+    services := fgsa_coreServices E rho h.set.base w }⟩
+
 /-- Paper 00:1119–1134, 22:1171–1305; plan §4: join the W kernel.
 DC-CS/W4FKChainSecondCheckpoint.lean:43: INTENTIONAL W retention and receipt.
 One witness supplies the input, start and services; the round is unchanged. -/
@@ -46,17 +62,8 @@ theorem finality_kernel_joined_W_of (G ΔF : Time) (hδ : p.δt = 2 * p.R) (pt :
         RowWire.toRow? a = some row → row.height_pair = .vote h T timeout →
         p.actionTime r < cut → h < b + 1) → (heightView p W).h < b + 2) :
     KernelConclusion_W p c E rho ΔF pt.r := by
-  obtain ⟨w, input, start⟩ := h.start
-  let kpt : KernelPt := ⟨w, pt.r⟩
-  have hK : KernelPrem_W p c G ΔF E rho kpt := {
-    set := h.set
-    bound := h.bound
-    window := h.window
-    start := start
-    hhor := h.hhor
-    input := input
-    services := fgsa_coreServices E rho h.set.base w }
-  exact finality_kernel_W_of p c E rho G ΔF hδ kpt hK
+  obtain ⟨w, hK⟩ := finality_kernel_prem_W_of_joined p c E rho G ΔF pt h
+  exact finality_kernel_W_of p c E rho G ΔF hδ ⟨w, pt.r⟩ hK
     hsel horigin hBatch hQC hXing hI3 hStrat hEmittedSource hcapBefore
 
 end AvailableChain.FGSA.Run

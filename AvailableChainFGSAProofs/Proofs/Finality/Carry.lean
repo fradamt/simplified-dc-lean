@@ -31,10 +31,6 @@ private theorem carry_payload_pairs (p : Params) (a : RowWire p.n) (i : Fin p.n)
   cases a.payload
   exact ⟨rfl, rfl⟩
 
-private theorem carry_rowHeight {n : Nat} (a : RowWire n) :
-    rowHeight a = (match a.payload.height_pair with
-      | .empty => none | .vote h _ _ => some h) := rowHeight_def a
-
 /-- Paper 22:1265–1289: a retained certificate below the source height gives
 the stale R6W arm after the parent crosses that source height.
 DC: INTENTIONAL W retention; the certificate and source heights differ,
@@ -59,7 +55,7 @@ private theorem carry_staleUseful (p : Params) (P U : FGBlock (Fin p.n)) (s : Sl
     simp only [hej, heX, hpair, decide_true]
   refine ⟨row, carry_decode p a i hauth, ?_, hpair⟩
   rw [Window.staleUseful_def, hpair, hpairs.1]
-  rw [carry_rowHeight] at hheight
+  rw [rowHeight_def] at hheight
   cases hh : a.payload.height_pair with
   | empty => rw [hh] at hheight; cases hheight
   | vote k T timeout =>

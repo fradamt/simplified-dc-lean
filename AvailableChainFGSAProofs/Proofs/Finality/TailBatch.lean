@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Finality.ActionTime
 public import AvailableChainFGSAProofs.Proofs.Finality.TailMixed
 public import AvailableChainFGSAProofs.Proofs.Shared.HeadAdmit
 
@@ -25,32 +26,8 @@ theorem ktail_action_walk_batch {G ΔF : Time} {pt : TailKernelPt p}
   classical
   intro x hx nd hnd
   obtain ⟨_, _, _, _, hs2, hGST, _⟩ := ktail_bounds hT
-  have hvGST : E.t_GST ≤ SA.voteTime p.toParams ((pt.r + 1) * p.R + 1) := by
-    refine hGST.trans ?_
-    have hle := kmid_slot_scale_le p (show pt.r * p.R ≤ (pt.r + 1) * p.R + 1 by
-      exact (Nat.mul_le_mul_right p.R (Nat.le_succ pt.r)).trans (Nat.le_succ _))
-    have hd := p.deltaPos
-    change 4 * p.Δ * ((pt.r * p.R : Nat) : Time) ≤
-      4 * p.Δ * (((pt.r + 1) * p.R + 1 : Nat) : Time) + p.Δ
-    linarith
-  have hearly : SA.earlyTime p.toParams ((pt.r + 1) * p.R + 1) =
-      p.actionTime (pt.r + 1) := by
-    change 4 * p.Δ * (((pt.r + 1) * p.R + 1 : Nat) : Int) + 2 * p.Δ =
-      4 * p.Δ * (((pt.r + 1) * p.R : Nat) : Int) + 6 * p.Δ
-    push_cast
-    ring
-  have hvte : SA.voteTime p.toParams ((pt.r + 1) * p.R + 1) + E.Δ ≤
-      SA.earlyTime p.toParams ((pt.r + 1) * p.R + 1) := by
-    rw [hT.set.base.delta]
-    change 4 * p.Δ * (((pt.r + 1) * p.R + 1 : Nat) : Int) + p.Δ + p.Δ ≤
-      4 * p.Δ * (((pt.r + 1) * p.R + 1 : Nat) : Int) + 2 * p.Δ
-    linarith
-  have heh : SA.earlyTime p.toParams ((pt.r + 1) * p.R + 1) ≤ rho.horizon :=
-    hearly ▸ ow.actionInRun
-  have hvthor : SA.voteTime p.toParams ((pt.r + 1) * p.R + 1) ≤ rho.horizon := by
-    have := hT.set.base.delta
-    have := p.deltaPos
-    linarith
+  obtain ⟨hvGST, hvte, heh, hvthor⟩ := finality_action_time_bounds p pt.r (pt.r + 1)
+    (by omega) E.t_GST E.Δ rho.horizon hGST hT.set.base.delta ow.actionInRun
   have hsync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _
     hT.set.sync (fgsaDelay_nonrow E.Δ _) hvGST hvte heh
   have hcover : ∀ y H, y ∈ rho.honest →
