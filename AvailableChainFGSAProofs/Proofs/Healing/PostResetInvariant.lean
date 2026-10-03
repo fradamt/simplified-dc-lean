@@ -162,8 +162,8 @@ def PostResetFProv (w : HealingWitness) (i : Nat) : Prop :=
       SA.gateTime p.toParams s ≤ t ∧
       Block.Preceq (J_at p c E rho j x) (eraseFG K))
 
-/-- Blueprint 21 H.16:2739–2763, H.22:3125–3132; plan J5 and carrier
-raw_transfer; B1/B17. PROVISIONAL (J5 may refine).
+/-- Blueprint 21 H.16:2924–2945, H5:3318–3325; plan J5 and carrier
+raw_transfer; B1/B13/B17/B18. DC: SAME raw-result transfer clauses.
 All four frozen H5RawTransfer clauses. The source gate is an event before i;
 each reader is also in the prefix, with complete inclusive time cuts for
 postClock, HEAD and proposal reads. The output horizon guard is unchanged.

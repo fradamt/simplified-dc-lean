@@ -152,6 +152,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat -- shake: 
 
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetCut -- shake: keep (RS-0 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep -- shake: keep (J3 audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw -- shake: keep (J5 axiom audit)
 
 #print axioms AvailableChain.FGSA.Run.kmid_honestSeats_mem
 #print axioms AvailableChain.FGSA.Run.kmid_honest_quorum
@@ -1660,3 +1661,6 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep -- shake: ke
 
 #print axioms AvailableChain.FGSA.Run.postReset_receiver_compatible
 #print axioms AvailableChain.FGSA.Run.postReset_tDel
+
+-- J5-RAW: the reset-only all-cut H5 projection.
+#print axioms AvailableChain.FGSA.Run.postReset_h5RawTransfer_body
