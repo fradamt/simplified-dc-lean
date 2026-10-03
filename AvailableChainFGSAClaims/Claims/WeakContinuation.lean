@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSAClaims.Statements.WeakContinuation
+public import AvailableChainFGSAClaims.Statements.WeakContinuationLive
 
 @[expose] public section
 
@@ -13,6 +13,16 @@ It states safety only; it does not replace HealingInput or finality liveness. -/
 def WeakContinuationClaim (p : Params) (G : Time) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In) (ΔF : Time),
     BoundedSafetyRecovery₂ p (V := V) c G ΔF
+
+/-- bp.weakContinuationAvailable.v2; blueprint 23:103–192,242–264.
+DC Legacy/Liveness.lean:29–71: SAME universal recovery/continuation role.
+INTENTIONAL: one joint gate gives safety, actual-proposal service, and
+growth conditional on each awake-proposer recurrence gap (B33).
+The validator and input types, codec, and explicit row delay are universal. -/
+def WeakContinuationLiveClaim (p : Params) (G : Time) : Prop :=
+  ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+    (c : AppCodec In) (ΔF : Time),
+    BoundedSafetyLivenessRecovery₂ p (V := V) c G ΔF
 
 end AvailableChain.FGSA.Run
 end

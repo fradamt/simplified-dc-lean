@@ -737,3 +737,41 @@ by
 #print axioms AvailableChain.FGSA.Run.AvailableGrowthGSTClaim
 #print axioms AvailableChain.FGSA.Run.AwakeProposerRecurrenceFrom
 #print axioms AvailableChain.FGSA.Run.CleanGrowthClaim
+
+-- B33 WC-LIVE additive statements and test controls.
+#print axioms AvailableChain.FGSA.Run.ServedFromGateAt
+#print axioms AvailableChain.FGSA.Run.ServedFromGateAt_def
+#print axioms AvailableChain.FGSA.Run.JointGrowthAt
+#print axioms AvailableChain.FGSA.Run.JointGrowthAt_def
+#print axioms AvailableChain.FGSA.Run.WeakContinuationLiveAt₂
+#print axioms AvailableChain.FGSA.Run.WeakContinuationLiveAt₂.mk
+#print axioms AvailableChain.FGSA.Run.WeakContinuationLiveAt₂.safety
+#print axioms AvailableChain.FGSA.Run.WeakContinuationLiveAt₂.inclusion
+#print axioms AvailableChain.FGSA.Run.WeakContinuationLiveAt₂.growth
+#print axioms AvailableChain.FGSA.Run.BoundedSafetyLivenessRecovery₂
+#print axioms AvailableChain.FGSA.Run.BoundedSafetyLivenessRecovery₂_def
+#print axioms AvailableChain.FGSA.Run.WeakContinuationLiveClaim
+
+public section
+
+namespace AvailableChain.FGSA.Run.Tests.WeakContinuationLive
+
+variable {p : Params} {In V : Type} {c : AppCodec In} [DecidableEq V] [Fintype V]
+
+-- Claims imports are permitted in this audit module. Check the neutral bodies.
+example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : PtSP) :
+    ServedFromGateAt p c E rho pt = InclusionAt p c E rho pt := rfl
+
+example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (t d : Time) :
+    JointGrowthAt p c E rho t d = AvailableGrowthConcl p c E rho t d := rfl
+
+-- Intended universal claim projection; this does not prove the live claim.
+example (G : Time) : WeakContinuationLiveClaim p G → WeakContinuationClaim p G := by
+  intro h V _ _ In c ΔF hδ E source hs
+  obtain ⟨u, Q, iStar, cut, live⟩ := h c ΔF hδ E source hs
+  refine ⟨u, Q, iStar, cut, ?_⟩
+  intro E' rho continuation
+  exact (live E' rho continuation).safety (cut.beforeEnd.le.trans continuation.covered)
+
+end AvailableChain.FGSA.Run.Tests.WeakContinuationLive
+end
