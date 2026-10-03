@@ -36,22 +36,30 @@ theorem PostResetStart.toH0 {w : HealingWitness}
     after_gst := start.after_gst
     source_prefix := hsp }
 
-/-- Blueprint 21 H.12:2652–2666; plan J1 and "Induction design"; B1/B15/B17.
-Read q_(s*) at idxBefore(releaseTime s*): storeAt is the strict pre-time
-state on a well-formed schedule. Thus this read precedes every release
-tick at q_(s*) and does not include the later reset action at d_(s*).
-The horizon guard is the one in frozen TDelReset. H0Reset is a future
-producer's input, not a field here. C* witnesses itself in the full domain;
-Kept records the same read with the existing kept-path predicate. -/
+/-- Blueprint 21 H.12:2652–2666 ("at q_(s*) … it keeps C* at that first transfer"); plan J1 and
+"Induction design"; B1/B15/B17/B18. Stated at EACH honest node's OWN release tick j at q_(s*),
+with that duty's own view X (as in RKeep), not at a pre-time cut with the full TF: the consumer
+is the base case of PostResetProtectedKept at such a tick, and Kept / D_at depend on the state
+at j and on X. First conjunct: the node holds C* in TF(j). Second: for every covered view X ⊆
+TF(j) that holds C* and every high source (RKeep's three source guards), C* has height M + 1,
+R.H = M + 1, R.lo ≤ h(C*), C* ∈ D_at and C* is kept — exactly protected_kept's kept clause for B
+= C* at the first release tick. The horizon guard is the one in frozen TDelReset. H0Reset is the
+future producer's input (J1), not a field here. -/
 def ResetTransferCore (w : HealingWitness) : Prop :=
   SA.releaseTime p.toParams w.sStar ≤ rho.horizon →
-  let j := V2.D.Run.idxBefore rho (SA.releaseTime p.toParams w.sStar)
-  ∀ x ∈ rho.honest, ∃ C ∈ (storeAt p c E rho j x).fg.TF,
-    eraseFG C = w.CStar ∧ (heightView p C).h = w.M + 1 ∧
-    (R_at p c E rho j x).H = w.M + 1 ∧
+  ∀ j x, x ∈ rho.honest →
+  rho.events[j]? = some (.tick x (SA.releaseTime p.toParams w.sStar)) →
+  (∃ C ∈ (storeAt p c E rho j x).fg.TF, eraseFG C = w.CStar) ∧
+  ∀ (X : Finset (FGBlock (Fin p.n))) C,
+  X ⊆ (storeAt p c E rho j x).fg.TF → C ∈ X → eraseFG C = w.CStar →
+  (∀ K s, SourceBefore p c E rho j K s → high p w K → K ∈ X) →
+  (∀ K s, SourceBefore p c E rho j K s → high p w K →
+    Block.Compatible (eraseFG K) w.CStar) →
+  (∀ K K' s s', SourceBefore p c E rho j K s → SourceBefore p c E rho j K' s' →
+    high p w K → high p w K' → Block.Compatible (eraseFG K) (eraseFG K')) →
+  (heightView p C).h = w.M + 1 ∧ (R_at p c E rho j x).H = w.M + 1 ∧
     (R_at p c E rho j x).lo ≤ (heightView p C).h ∧
-    C ∈ D_at p c E rho j x (storeAt p c E rho j x).fg.TF ∧
-    Kept p c E rho j x (storeAt p c E rho j x).fg.TF C
+    C ∈ D_at p c E rho j x X ∧ Kept p c E rho j x X C
 
 /-- Blueprint 21 H.14:2633–2651; plan "Induction design"; B1/B17/B18.
 C* and its prefixes have label s*. Other bodies are actual post-reset
@@ -67,7 +75,12 @@ def ProtectedBody (w : HealingWitness) (B : FGBlock (Fin p.n)) (s : Slot) : Prop
 Prefix restriction of frozen RKeep geometry, without its public H0 premise.
 Each tick j is before i. X is that duty's own covered view. The final
 kept-path clause is restricted to ProtectedBody; its path and compatibility
-guards are the frozen guards. This definition does not consume RKeep. -/
+guards are the frozen guards. This definition does not consume RKeep.
+OPEN OBLIGATION (lean-framework design review, 2026-10-03): frozen RKeep's last
+clause quantifies over EVERY B that is prefix-closed in X and compatible with C*
+and all high sources, not only ProtectedBody B. So frozen RKeep is NOT a projection
+of this field. J3 must prove the general clause from the invariant, or show that
+the guards force ProtectedBody B. -/
 def PostResetProtectedKept (w : HealingWitness) (i : Nat) : Prop :=
   ∀ j, j < i → ∀ x (X : Finset (FGBlock (Fin p.n))) C,
   x ∈ rho.honest → X ⊆ (storeAt p c E rho j x).fg.TF →
