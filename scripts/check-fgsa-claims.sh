@@ -114,6 +114,11 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.inclusion_exact_compat',
     'AvailableChain.FGSA.Run.inclusion_exact_receipt',
     'AvailableChain.FGSA.Run.inclusion_exact_head',
+    # S5 O-ARM: --expect additions only.
+    'AvailableChain.FGSA.Run.ArmingData_def',
+    'AvailableChain.FGSA.Run.fast_arming',
+    'AvailableChain.FGSA.Run.slow_arming',
+    'AvailableChain.FGSA.Run.pending_gate_lease_or_F',
     # S5 I-EXACT: --expect additions only; G1 remains open.
     'AvailableChain.FGSA.Run.inclusion_acceptance_of_stored',
     'AvailableChain.FGSA.Run.inclusion_receipt_of_compatible',

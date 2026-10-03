@@ -23,6 +23,8 @@ public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposal -- shake: kee
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalHistory -- shake: keep (I-EXACT history audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalReceipts -- shake: keep (I-EXACT r2 receipt audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalRetained -- shake: keep (I-EXACT r2 G1 audit)
+public import AvailableChainFGSAProofs.Proofs.Outage.ArmingGate -- shake: keep (O-ARM audit)
+public import AvailableChainFGSAProofs.Proofs.Outage.ArmingMain -- shake: keep (O-ARM audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.InclusionGateBody -- shake: keep (I-GATE/I-READ axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.CoreServices -- shake: keep (C-CORE audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.History -- shake: keep (K-HISTORY audit)
@@ -1054,6 +1056,13 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.inclusion_exact_compat
 #print axioms AvailableChain.FGSA.Run.inclusion_exact_receipt
 #print axioms AvailableChain.FGSA.Run.inclusion_exact_head
+-- O-ARM: arming certificate, fast and slow arming, pending gate.
+#print axioms AvailableChain.FGSA.Run.ArmingData_def
+#print axioms AvailableChain.FGSA.Run.arming_cert
+#print axioms AvailableChain.FGSA.Run.fast_arming
+#print axioms AvailableChain.FGSA.Run.slow_arming
+#print axioms AvailableChain.FGSA.Run.arming_gate_core
+#print axioms AvailableChain.FGSA.Run.pending_gate_lease_or_F
 #print axioms AvailableChain.FGSA.Run.fgsa_tStart
 #print axioms AvailableChain.FGSA.Run.fgsa_tWalk
 #print axioms AvailableChain.FGSA.Run.fgsa_tVote
