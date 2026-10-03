@@ -24,30 +24,14 @@ variable (horigin : ∀ (i : Nat) (x : V) (B : FGBlock (Fin p.n)),
             HonestRowBefore p c E rho i z r a ∧ p.actionTime r ≤ t)
 
 omit [Fintype V] in
-/-- DC: INTENTIONAL: local equation for the linked-seat filter. -/
-private theorem khistory_honestSeats_def : honestSeats p c rho =
-    @Finset.filter (Fin p.n) (fun i => rho.seatOf (.base .fg) i ∈ rho.honest)
-      (fun i => Classical.propDecidable (rho.seatOf (.base .fg) i ∈ rho.honest)) Finset.univ :=
-  honestSeats_def p c rho
-
-omit [Fintype V] in
 /-- DC: INTENTIONAL: membership uses the definition's classical decision procedure. -/
 private theorem khistory_honestSeats_mem (i : Fin p.n) :
     i ∈ honestSeats p c rho ↔ rho.seatOf (.base .fg) i ∈ rho.honest := by
-  rw [khistory_honestSeats_def p c rho]
+  rw [honestSeats_def p c rho]
   simpa only [Finset.mem_univ, true_and] using
     (@Finset.mem_filter (Fin p.n) (fun k => rho.seatOf (.base .fg) k ∈ rho.honest)
       (fun k => Classical.propDecidable (rho.seatOf (.base .fg) k ∈ rho.honest))
       Finset.univ i)
-
-omit [DecidableEq V] [Fintype V] in
-/-- DC: INTENTIONAL: local equation for optional event time. -/
-private theorem khistory_eventTime_def (j : Nat) :
-    eventTime rho j = rho.events[j]?.map V2.Event.time := eventTime_def rho j
-
-/-- DC: INTENTIONAL: local equation for optional row height. -/
-private theorem khistory_rowHeight_def (a : RowWire p.n) : rowHeight a =
-    (match a.payload.height_pair with | .empty => none | .vote h _ _ => some h) := rowHeight_def a
 
 /-- FINAL 22:948–958. Linked unit-weight seats bound the faulty weight.
 DC: INTENTIONAL: FG-SA uses linked seats. -/
@@ -111,7 +95,7 @@ DC: INTENTIONAL: the run uses event-indexed emission. -/
 private theorem khistory_event_time {j r : Nat} {z : V} {a : RowWire p.n}
     (hj : HonestRowAt p c E rho j z r a) :
     eventTime rho j = some (p.actionTime r) := by
-  rw [khistory_eventTime_def p c rho, hj.2.1]
+  rw [eventTime_def rho, hj.2.1]
   rfl
 
 include horigin in
@@ -152,7 +136,7 @@ private theorem khistory_matching_height {u : Row (Fin p.n)} {a : RowWire p.n}
     have hh : h = y := by
       simp only [hp, NamedHeightPair.matchesEntry, decide_eq_true_eq] at hm
       exact hm.1
-    rw [khistory_rowHeight_def p]
+    rw [rowHeight_def]
     change some h = some y
     rw [hh]
 

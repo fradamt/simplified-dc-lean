@@ -7,6 +7,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 exec python3 - "$@" <<'PY'
 from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor
 import importlib.util
 import os
 import re
@@ -34,6 +35,13 @@ EXPECTED = (
     # H-EXPORT-1: --expect ADDITIONS only.
     'AvailableChain.FGSA.Run.healing_renewedPromotionClaim_of',
     'AvailableChain.FGSA.Run.healing_rowPermissionClaim_of',
+    # F-ABOVE-B: --expect DATA only.
+    'AvailableChain.FGSA.Run.above_frontier_FE_W_of',
+    'AvailableChain.FGSA.Run.above_frontier_F4_W_of',
+    'AvailableChain.FGSA.Run.fgsa_aboveFrontierRecFE_W_of',
+    'AvailableChain.FGSA.Run.fgsa_aboveFrontierRecF4_W_of',
+    'AvailableChain.FGSA.Run.fgsa_aboveFrontierRecFE_W',
+    'AvailableChain.FGSA.Run.fgsa_aboveFrontierRecF4_W',
     # O-EXPORT-3: --expect ADDITIONS only.
     'AvailableChain.FGSA.Run.outage_outageCompatClaim_of',
     'AvailableChain.FGSA.Run.outage_fastP1Claim_of',
@@ -305,6 +313,7 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.rowsPrem_action_record',
     # K-ROWS-PREM P3: --expect DATA only.
     'AvailableChain.FGSA.Run.fgsa_action_walk_batch',
+    'AvailableChain.FGSA.Run.finality_action_time_bounds',
     'AvailableChain.FGSA.Run.rowsPrem_action_walk_batch',
     'AvailableChain.FGSA.Run.pending_action_head_capped',
     'AvailableChain.FGSA.Run.rowsPrem_pending_head',
@@ -395,7 +404,16 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.finality_liveness_of_forward_W',
     'AvailableChain.FGSA.Run.finality_liveness_FE_W_of',
     'AvailableChain.FGSA.Run.finality_liveness_F4_W_of',
+    # F-PROP: --expect DATA only.
+    'AvailableChain.FGSA.Run.proposal_final_of_forward_W',
+    'AvailableChain.FGSA.Run.proposal_final_FE_W_of',
+    'AvailableChain.FGSA.Run.proposal_final_F4_W_of',
+    'AvailableChain.FGSA.Run.fgsa_proposalFinalRecFE_W_of',
+    'AvailableChain.FGSA.Run.fgsa_proposalFinalRecF4_W_of',
+    'AvailableChain.FGSA.Run.fgsa_proposalFinalRecFE_W',
+    'AvailableChain.FGSA.Run.fgsa_proposalFinalRecF4_W',
     # K-JOIN: --expect DATA only.
+    'AvailableChain.FGSA.Run.finality_kernel_prem_W_of_joined',
     'AvailableChain.FGSA.Run.finality_kernel_joined_W_of',
     'AvailableChain.FGSA.Run.fgsa_finalityKernelJoined_W_of',
     'AvailableChain.FGSA.Run.fgsa_finalityKernelJoined_W',
@@ -488,6 +506,8 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.AboveFrontierGSTPrem_W.hhor',
     'AvailableChain.FGSA.Run.AboveFrontierGSTClaim_W',
     'AvailableChain.FGSA.Run.fgsa_finalityLivenessGST_recFE',
+    'AvailableChain.FGSA.Run.fgsa_firstFinality_recFE',
+    'AvailableChain.FGSA.Run.fgsa_firstFinality_recF4',
     'AvailableChain.FGSA.Run.fgsa_finalityLivenessGST_recF4',
     'AvailableChain.FGSA.Run.fgsa_proposalFinalGST_recFE',
     'AvailableChain.FGSA.Run.fgsa_proposalFinalGST_recF4',
@@ -666,6 +686,7 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.healing_loss_cause',
     'AvailableChain.FGSA.Run.healing_high_source_compat',
     'AvailableChain.FGSA.Run.healing_high_source_compat_reset',
+    'AvailableChain.FGSA.Run.emittedName_window',
     # H-BASE: --expect additions only.
     'AvailableChain.FGSA.Run.healing_rXing',
     'AvailableChain.FGSA.Run.healing_rCap',
@@ -1415,6 +1436,8 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.exactService_head_of_proposal_recovery',
     # fgsa-f1b8 step 3 (main b83d8f3): unconditional safety and its exact-head chain.
     'AvailableChain.FGSA.Run.fgsaSafetyClaims',
+    'AvailableChain.FGSA.Run.fgsaClaims_of_open',
+    'AvailableChain.FGSA.Run.fgsaClaims_of_hTime',
     'AvailableChain.FGSA.Run.fgsa_headReachesLoClaim',
     'AvailableChain.FGSA.Run.exactHead_of_pivot_ancestry',
     'AvailableChain.FGSA.Run.exactHead_of_pivot',
@@ -1994,6 +2017,7 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.vHead_eq_headAtIdx',
     'AvailableChain.FGSA.Run.actionSourceFG_eq_round',
     'AvailableChain.FGSA.Run.acceptsFinalBefore_of_idx',
+    'AvailableChain.FGSA.Run.acceptsFinalBefore_mono_deadline',
     'AvailableChain.FGSA.Run.stable_afterTicks',
     # fg-noround/07-H: height coverage, strict row receipt, and source adapters.
     'AvailableChain.FGSA.Run.RowServiceBaseClaim',
@@ -2073,25 +2097,84 @@ if not SOURCE_ONLY:
     print(f'FGSA claims audit logs: {work}', flush=True)
 serial = 0
 
-def run(label, args, *, expect=None, env=None, cwd=None):
+def audit_workers():
+    values = []
+    # Two is the measured default: control RSS exceeded 7 GiB on the Mac.
+    for key, default in (('AUDIT_WORKERS', '2'), ('LEAN_SLOTS', '3'),
+                         ('GATE_SLOTS', os.environ.get('LEAN_SLOTS', '3'))):
+        value = os.environ.get(key, default)
+        if not re.fullmatch(r'[1-9][0-9]*', value):
+            raise SystemExit(f'{key} must be a positive integer')
+        values.append(int(value))
+    return 1 if os.environ.get('AUDIT_SERIAL', '0') == '1' else min(values)
+
+workers = audit_workers()
+# The generated Lean code and the control pool use the same bound.
+os.environ['AUDIT_WORKERS'] = str(workers)
+
+def reserve_log(label):
     global serial
     serial += 1
-    path = work / f'{serial:02d}-{label}.log'
+    return work / f'{serial:02d}-{label}.log'
+
+def execute(path, args, *, env=None, cwd=None):
+    # Timing is opt-in; it does not enter the check's output.
+    if os.environ.get('AUDIT_TIMING', '0') == '1':
+        time_args = ['-l'] if sys.platform == 'darwin' else ['-v']
+        args = ['/usr/bin/time', *time_args, '-o', str(path.with_suffix('.time')), *args]
     with path.open('w') as out:
         proc = subprocess.run(args, stdout=out, stderr=subprocess.STDOUT,
                               env=env, cwd=cwd)
+    path.with_suffix('.rc').write_text(str(proc.returncode) + '\n')
+    return proc.returncode
+
+def result(label, path, code, expect):
     output = path.read_text()
-    print(f'{label}: rc {proc.returncode} ({path.name})', flush=True)
+    print(f'{label}: rc {code} ({path.name})', flush=True)
     if expect is None:
-        if proc.returncode:
+        if code:
             print(output)
-            raise SystemExit(proc.returncode)
-    elif proc.returncode == 0 or expect not in output:
+            raise SystemExit(code)
+    elif code == 0 or code < 0 or code >= 128 or expect not in output:
         print(output)
         raise SystemExit(f'STOP: negative control {label} did not fail with {expect!r}')
     else:
         print(f'rejected, as expected: {label}', flush=True)
     return output
+
+def run(label, args, *, expect=None, env=None, cwd=None):
+    path = reserve_log(label)
+    return result(label, path, execute(path, args, env=env, cwd=cwd), expect)
+
+def run_pool(controls):
+    # Reserve names before submission. Workers write only their own logs.
+    jobs = [(label, reserve_log(label), args, options)
+            for label, args, options in sorted(controls, key=lambda c: c[0])]
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = [pool.submit(execute, path, args,
+                               env=options.get('env'), cwd=options.get('cwd'))
+                   for _, path, args, options in jobs]
+        outputs = {}
+        failure = None
+        for (label, path, _, options), future in zip(jobs, futures):
+            try:
+                outputs[label] = result(label, path, future.result(), options.get('expect'))
+            except SystemExit as exc:
+                if failure is None:
+                    failure = exc
+        if failure is not None:
+            raise failure
+    return outputs
+
+# Exercise the same result path as a compiled control. A missed rejection
+# must make the driver fail, even when another concurrent control passes.
+if os.environ.get('AUDIT_POOL_SELFTEST', '0') == '1':
+    run_pool([
+        ('deliberately-failing-control', [sys.executable, '-c', 'print("CONTROL")'],
+         {'expect': 'CONTROL'}),
+        ('passing-control', [sys.executable, '-c', 'print("PASS")'], {}),
+    ])
+    raise SystemExit('STOP: pool accepted a deliberately failing control')
 
 # Source policy: use check (e), then the tighter P3/T7 direct-import set.
 ctx = L.load_context(ROOT)
@@ -2390,6 +2473,63 @@ source = source.replace('  for m in ← sourceModules dir do',
     '  for m in sourceMods do')
 source = source.replace('  if cs.isEmpty then\n    IO.eprintln "NO CONSTANTS FOUND"\n    return 2\n',
     '  -- Empty libraries are valid only with successful source/build coverage.\n')
+# Change only the generated claims auditor. The T7 template and its users
+# keep their existing behavior. Each call has a fresh CoreM state; tasks
+# share the imported, read-only Environment and return data without output.
+parallel_axioms = '''def auditWorkerCount : IO Nat := do
+  let mut count := 2
+  for key in ["AUDIT_WORKERS", "LEAN_SLOTS", "GATE_SLOTS"] do
+    if let some value ← IO.getEnv key then
+      let some n := value.toNat? | throw (IO.userError s!"{key} must be a positive integer")
+      if n == 0 then throw (IO.userError s!"{key} must be a positive integer")
+      if key == "AUDIT_WORKERS" then count := n else count := min count n
+  if (← IO.getEnv "AUDIT_SERIAL") == some "1" then return 1
+  return min count ((← IO.getEnv "LEAN_SLOTS").bind String.toNat? |>.getD 3)
+
+def auditAxiomChunk (env : Environment) (chunk : Array (Nat × Name)) :
+    IO (Array (Nat × Name × Array Name)) := do
+  let mut rows := #[]
+  for (i, n) in chunk do
+    let bad := (← axiomsOf env n).filter (fun a => !allowed.contains a)
+    unless bad.isEmpty do rows := rows.push (i, n, bad)
+  return rows
+
+def auditAxioms (env : Environment) (names : Array Name) :
+    IO (Array (Nat × Name × Array Name)) := do
+  let workers ← auditWorkerCount
+  let indexed := names.mapIdx fun i n => (i, n)
+  if workers == 1 then return ← auditAxiomChunk env indexed
+  let size := (names.size + workers - 1) / workers
+  let mut tasks := #[]
+  for i in [:workers] do
+    let chunk := (indexed.toList.drop (i * size) |>.take size).toArray
+    unless chunk.isEmpty do tasks := tasks.push (← IO.asTask (auditAxiomChunk env chunk))
+  let mut rows := #[]
+  let mut error : Option IO.Error := none
+  -- Join every task before propagating a failure.
+  for task in tasks do
+    match (← IO.wait task) with
+    | .ok result => rows := rows ++ result
+    | .error e => if error.isNone then error := some e
+  if let some e := error then throw e
+  -- Original ordinals preserve the serial diagnostic order byte for byte.
+  return rows.qsort (fun a b => a.1 < b.1)
+
+'''
+source = source.replace('def main (args : List String)', parallel_axioms + 'def main (args : List String)', 1)
+serial_loop = '''  for (n, _) in cs do
+    let axs ← axiomsOf env n
+    let bad := axs.filter (fun a => !allowed.contains a)
+    unless bad.isEmpty do
+      IO.println s!"BAD AXIOMS {n}: {bad}"
+      badAxioms := true
+'''
+assert source.count(serial_loop) == 1, 'STOP: claims axiom loop changed'
+source = source.replace(serial_loop, '''  let axiomRows ← auditAxioms env (cs.map Prod.fst).toArray
+  for (_, n, bad) in axiomRows do
+    IO.println s!"BAD AXIOMS {n}: {bad}"
+    badAxioms := true
+''', 1)
 # P10/Q-10: each theorem in a lane Export has a matching Claims/<Lane>
 # proposition as its type head (after binders). Helpers belong in lane files.
 anchor = '  let mut badAxioms := false\n'
@@ -2443,27 +2583,36 @@ if os.environ.get('NEG', '1') == '0':
 
 # Compiled negative controls. They are never added to the real library.
 # Use the real auditor and require its diagnostic, not merely a Lean error.
-neg = work / 'controls'
-neg.mkdir()
-# Lean resolves an entire module prefix at the first search-path entry.
-# Copy the built roots too, as the current T7 negative controls do.
-for lib in LIBS:
-    built = ROOT / '.lake/build/lib/lean'
-    shutil.copytree(built / lib, neg / lib)
-    for p in built.glob(lib + '.*'):
-        if p.is_file():
-            shutil.copy2(p, neg / p.name)
+control_path = run('control-lean-path', ['lake', 'env', 'printenv', 'LEAN_PATH']).strip()
+controls = []
 
-# A tiny offline Lake package lets the controls use lake env lean and lets
-# shake read their build traces. It has no dependencies or fetch step.
-(neg / 'lean-toolchain').write_text(Path('lean-toolchain').read_text())
-(neg / 'lakefile.toml').write_text('name = "fgsa-controls"\n[[lean_lib]]\nname = "FGSAControl"\nglobs = ["FGSAControl.+"]\n')
-negative_env = dict(os.environ, LEAN_PATH=str(neg) + os.pathsep +
-    run('control-lean-path', ['lake', 'env', 'printenv', 'LEAN_PATH']).strip())
+def control_dir(label, *, shadow=False):
+    neg = work / 'controls' / label
+    neg.mkdir(parents=True)
+    # A tiny offline Lake package: no dependencies or fetch step.
+    (neg / 'lean-toolchain').write_text(Path('lean-toolchain').read_text())
+    (neg / 'lakefile.toml').write_text('name = "fgsa-controls"\n[[lean_lib]]\nname = "FGSAControl"\nglobs = ["FGSAControl.+"]\n')
+    if shadow:
+        # Lean resolves an entire prefix at its first path entry. Each
+        # auditor gets private built roots and only its own shadow module.
+        built = ROOT / '.lake/build/lib/lean'
+        for lib in LIBS:
+            shutil.copytree(built / lib, neg / lib)
+            for p in built.glob(lib + '.*'):
+                if p.is_file():
+                    shutil.copy2(p, neg / p.name)
+    return neg
+
+def shadow_env(neg):
+    return dict(os.environ, LEAN_PATH=str(neg) + os.pathsep + control_path)
 
 def run_shadow(label, args, *, expect=None):
     return run(label, ['lake', 'env', 'lean', *args], expect=expect,
-               env=negative_env, cwd=neg)
+               env=shadow_env(neg), cwd=neg)
+
+def queue_shadow(label, args, *, expect):
+    controls.append((label, ['lake', 'env', 'lean', *args],
+                     dict(expect=expect, env=shadow_env(neg), cwd=neg)))
 
 def write_module(name, text):
     p = neg / (name.replace('.', '/') + '.lean')
@@ -2478,6 +2627,7 @@ def compile_module(name, text):
     return p
 
 bad = PROOFS + '.Proofs.Shared.NegUse'
+neg = control_dir('grid-constant-in-statement', shadow=True)
 compile_module(bad, '''module
 public import AvailableChainGridCO.Proofs.Map
 public import AvailableChainKit.Engine.EngineClock
@@ -2492,10 +2642,11 @@ theorem negGridStatement {n : Nat} (st : AvailableChain.GridCO.State n)
 end AvailableChain.FGSA.Run
 end
 ''')
-run_shadow('grid-constant-in-statement', ['--run', str(audit), '--root', bad],
+queue_shadow('grid-constant-in-statement', ['--run', str(audit), '--root', bad],
     expect='FORBIDDEN CONSTANT: AvailableChain.FGSA.Run.negGridStatement uses AvailableChain.GridCO.ComparableTargets')
 # The controls have the same FG-SA namespace and upstream reachability as T7.
 lease_bad = PROOFS + '.Proofs.Shared.NegLease'
+neg = control_dir('default-lease', shadow=True)
 compile_module(lease_bad, '''module
 public import AvailableChainFGSA.Model.Clock
 public section
@@ -2505,18 +2656,20 @@ def negLease (p : AvailableChain.GridCO.Params) (st : AvailableChain.GridCO.Stat
 end AvailableChain.FGSA.Run
 end
 ''')
-run_shadow('default-lease', ['--run', str(lease_file), lease_bad], expect='BAD LEASE INSTANCE')
+queue_shadow('default-lease', ['--run', str(lease_file), lease_bad], expect='BAD LEASE INSTANCE')
 
 # SYN L58: replace one ordinary Assembly .olean in the scratch copy only.
 # The generated table still contains its validated, unchanged source edges.
 assembly_bad = PROOFS + '.Proofs.Assembly.Foundations'
+neg = control_dir('assembly-facade-compiled-import', shadow=True)
 assembly_text = Path(assembly_bad.replace('.', '/') + '.lean').read_text()
 compile_module(assembly_bad, assembly_text.replace(
     'module\n', 'module\npublic import ' + CLAIMS + '.FGSAClaims\n', 1))
-run_shadow('assembly-facade-compiled-import', ['--run', str(audit), '--root', assembly_bad],
+queue_shadow('assembly-facade-compiled-import', ['--run', str(audit), '--root', assembly_bad],
     expect='COMPILED IMPORT NOT ALLOWED: ' + assembly_bad +
     ' imports ' + CLAIMS + '.FGSAClaims')
 
+neg = control_dir('control-build')
 write_module('FGSAControl.Statements.Fn', '''module
 @[expose] public section
 def fgsaControlFn : Bool → Nat
@@ -2539,15 +2692,20 @@ end
 run('control-build', ['lake', 'build', 'FGSAControl'], cwd=neg)
 # CheckProofEqns reads repository-relative inputs as well as its baseline.
 # This extra module has a unique prefix, so Lake's path order needs no shadow.
-control_env = dict(os.environ, LEAN_PATH=str(neg / '.lake/build/lib/lean'))
-run('simp-without-f-def', ['lake', 'env', 'lean', '--run', 'scripts/CheckProofEqns.lean',
+simp_dir = work / 'controls' / 'simp-without-f-def'
+unused_dir = work / 'controls' / 'unused-import-control'
+shutil.copytree(neg, simp_dir)
+shutil.copytree(neg, unused_dir)
+control_env = dict(os.environ, LEAN_PATH=str(simp_dir / '.lake/build/lib/lean'))
+controls.append(('simp-without-f-def', ['lake', 'env', 'lean', '--run', 'scripts/CheckProofEqns.lean',
     '--baseline', 'scripts/baselines/check-proof-eqns.txt', 'FGSAControl.Proofs.NegEq'],
-    env=control_env, expect='EQ EXPORT FGSAControl.Proofs.NegEq')
+    dict(env=control_env, expect='EQ EXPORT FGSAControl.Proofs.NegEq')))
 # Use the same --fail-on-new baseline comparison as the real D47 scan.
 # shake-report reads its package from cwd only via its cd, so obtain Lake's
 # raw report here, then apply the same removal key and frozen baseline.
-out = run('unused-import-control', ['lake', 'shake', 'FGSAControl.NegUnused'],
-          cwd=neg, expect='remove #[public import Init.Data.List.Sort]')
+controls.append(('unused-import-control', ['lake', 'shake', 'FGSAControl.NegUnused'],
+                 dict(cwd=unused_dir, expect='remove #[public import Init.Data.List.Sort]')))
+run_pool(controls)
 key = 'remove FGSAControl/NegUnused.lean public import Init.Data.List.Sort'
 if C.read_baseline('shake-report')[key]:
     raise SystemExit('STOP: unused-import control is in the baseline')
