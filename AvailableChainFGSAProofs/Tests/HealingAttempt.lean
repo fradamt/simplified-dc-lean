@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Healing.AttemptSettle -- shake: keep (four cut starts)
 public import AvailableChainFGSAProofs.Proofs.Healing.Attempt -- shake: keep (conditional assembly)
 public import AvailableChainFGSAProofs.Proofs.Healing.AttemptBudget -- shake: keep (four budget rows)
 public import AvailableChainFGSAProofs.Proofs.Healing.AttemptStop -- shake: keep (event and cut tests)
@@ -92,6 +93,33 @@ example : (18 : Time) + 2 * P attemptParams + Γ attemptParams 10 - 9 * attemptP
     ¬ ((18 : Time) + 2 * P attemptParams + Γ attemptParams 10 - 4 * attemptParams.Δ ≤ 41) := by
   decide
 
+
+-- Both raise rows can use all of the frozen budget at the terminal deadline.
+-- The current promotion premise asks for five more delta units.
+example (k : AttemptKey) (htask : k.task = .raise) (hphase : k.phase = .contest) :
+    (41 : Time) + 2 * P attemptParams + Γ attemptParams 10 - 9 * attemptParams.Δ =
+        attemptBudget attemptParams 10 k ∧
+      (41 : Time) + 2 * P attemptParams + Γ attemptParams 10 - 4 * attemptParams.Δ =
+        attemptBudget attemptParams 10 k + 5 := by
+  rw [healing_attempt_raise_contest_budget attemptParams 10 k htask hphase]
+  decide
+
+example (k : AttemptKey) (htask : k.task = .raise) (hphase : k.phase ≠ .contest) :
+    (77 : Time) + 2 * P attemptParams + Γ attemptParams 10 - 9 * attemptParams.Δ =
+        attemptBudget attemptParams 10 k ∧
+      (77 : Time) + 2 * P attemptParams + Γ attemptParams 10 - 4 * attemptParams.Δ =
+        attemptBudget attemptParams 10 k + 5 := by
+  rw [healing_attempt_raise_other_budget attemptParams 10 k htask hphase]
+  decide
+
+-- TERM reads this full recurrence window before it selects the carrier.
+-- At G=10, delta=1 its endpoint is one unit after the terminal deadline.
+example :
+    (3 : Time) * P attemptParams + 2 * P attemptParams - 4 * attemptParams.Δ + 10 = 66 ∧
+      attemptParams.actionTime 3 + 2 * P attemptParams + Γ attemptParams 10 -
+        9 * attemptParams.Δ = 65 := by
+  decide
+
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
 -- A strictly earlier effective event ends the attempt without later service.
@@ -182,6 +210,118 @@ example (p : Params) (G ΔF : Time)
           AttemptEndsBy p c E rho k (attemptBudget p G k))
     : ProgressAttemptStatement p G ΔF :=
   healing_progressAttempt_of p G ΔF raise_contest raise_other firstRow_contest firstRow_other
+
+-- The non-effective cut start in the raise / contest row.
+example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (crossing : RXing p c E rho) [Fintype V] {G ΔF : Time}
+    (hrec : HealingSet p c E rho G ΔF) {k : AttemptKey}
+    {ev : V2.Event V (Obj p)} {v : Time}
+    (hvalid : AttemptValid p c E rho k) (hstart : rho.events[k.start]? = some ev)
+    (hne : ¬ EffectiveEvent p c E rho k.start)
+    (hu : ev.time + 3 * p.Δ ≤ v) (hv : v ≤ rho.horizon)
+    (hquiet : ∀ j, k.start < j → j < timeIdx rho v → ¬ EffectiveEvent p c E rho j)
+    (htask : k.task = .raise) (hphase : k.phase = .contest) :
+    ∃ rG J,
+      ev.time = p.actionTime (rG + 2) ∧
+      timeIdx rho (p.actionTime (rG + 2)) = k.start + 1 ∧
+      let root := match k.phase with | .gap => none | .topJ => some J | .contest => none
+      let contested := match k.phase with | .gap => false | .topJ => false | .contest => true
+      PhaseInterval p c E rho (ev.time + 3 * p.Δ) v k.frontier root contested ∧
+      (∀ y s nd, y ∈ rho.honest → ev.time + 3 * p.Δ ≤ SA.voteTime p.toParams s →
+        SA.voteTime p.toParams s ≤ v →
+        postClock E rho y (SA.voteTime p.toParams s) = some nd →
+        SettledPhaseFrame p nd.st k.frontier root contested) := by
+  obtain ⟨ev0, rG, hi0, _, _, _, ht, hcut⟩ :=
+    healing_attempt_inclusive_start E rho hvalid hne
+  have he : ev0 = ev := Option.some.inj (hi0.symm.trans hstart)
+  subst ev0
+  obtain ⟨J, hsettled⟩ := healing_attempt_raise_contest_settle p c E rho crossing hrec
+    hvalid hstart hu hv hquiet htask hphase
+  exact ⟨rG, J, ht, hcut, hsettled⟩
+
+-- The non-effective cut start in the raise / other row.
+example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (crossing : RXing p c E rho) [Fintype V] {G ΔF : Time}
+    (hrec : HealingSet p c E rho G ΔF) {k : AttemptKey}
+    {ev : V2.Event V (Obj p)} {v : Time}
+    (hvalid : AttemptValid p c E rho k) (hstart : rho.events[k.start]? = some ev)
+    (hne : ¬ EffectiveEvent p c E rho k.start)
+    (hu : ev.time + 3 * p.Δ ≤ v) (hv : v ≤ rho.horizon)
+    (hquiet : ∀ j, k.start < j → j < timeIdx rho v → ¬ EffectiveEvent p c E rho j)
+    (htask : k.task = .raise) (hphase : k.phase ≠ .contest) :
+    ∃ rG J,
+      ev.time = p.actionTime (rG + 2) ∧
+      timeIdx rho (p.actionTime (rG + 2)) = k.start + 1 ∧
+      let root := match k.phase with | .gap => none | .topJ => some J | .contest => none
+      let contested := match k.phase with | .gap => false | .topJ => false | .contest => true
+      PhaseInterval p c E rho (ev.time + 3 * p.Δ) v k.frontier root contested ∧
+      (∀ y s nd, y ∈ rho.honest → ev.time + 3 * p.Δ ≤ SA.voteTime p.toParams s →
+        SA.voteTime p.toParams s ≤ v →
+        postClock E rho y (SA.voteTime p.toParams s) = some nd →
+        SettledPhaseFrame p nd.st k.frontier root contested) := by
+  obtain ⟨ev0, rG, hi0, _, _, _, ht, hcut⟩ :=
+    healing_attempt_inclusive_start E rho hvalid hne
+  have he : ev0 = ev := Option.some.inj (hi0.symm.trans hstart)
+  subst ev0
+  obtain ⟨J, hsettled⟩ := healing_attempt_raise_other_settle p c E rho crossing hrec
+    hvalid hstart hu hv hquiet htask hphase
+  exact ⟨rG, J, ht, hcut, hsettled⟩
+
+-- The non-effective cut start in the firstRow / contest row.
+example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (crossing : RXing p c E rho) [Fintype V] {G ΔF : Time}
+    (hrec : HealingSet p c E rho G ΔF) {k : AttemptKey}
+    {ev : V2.Event V (Obj p)} {v : Time}
+    (hvalid : AttemptValid p c E rho k) (hstart : rho.events[k.start]? = some ev)
+    (hne : ¬ EffectiveEvent p c E rho k.start)
+    (hu : ev.time + 3 * p.Δ ≤ v) (hv : v ≤ rho.horizon)
+    (hquiet : ∀ j, k.start < j → j < timeIdx rho v → ¬ EffectiveEvent p c E rho j)
+    (htask : k.task = .firstRow) (hphase : k.phase = .contest) :
+    ∃ rG J,
+      ev.time = p.actionTime (rG + 2) ∧
+      timeIdx rho (p.actionTime (rG + 2)) = k.start + 1 ∧
+      let root := match k.phase with | .gap => none | .topJ => some J | .contest => none
+      let contested := match k.phase with | .gap => false | .topJ => false | .contest => true
+      PhaseInterval p c E rho (ev.time + 3 * p.Δ) v k.frontier root contested ∧
+      (∀ y s nd, y ∈ rho.honest → ev.time + 3 * p.Δ ≤ SA.voteTime p.toParams s →
+        SA.voteTime p.toParams s ≤ v →
+        postClock E rho y (SA.voteTime p.toParams s) = some nd →
+        SettledPhaseFrame p nd.st k.frontier root contested) := by
+  obtain ⟨ev0, rG, hi0, _, _, _, ht, hcut⟩ :=
+    healing_attempt_inclusive_start E rho hvalid hne
+  have he : ev0 = ev := Option.some.inj (hi0.symm.trans hstart)
+  subst ev0
+  obtain ⟨J, hsettled⟩ := healing_attempt_firstRow_contest_settle p c E rho crossing hrec
+    hvalid hstart hu hv hquiet htask hphase
+  exact ⟨rG, J, ht, hcut, hsettled⟩
+
+-- The non-effective cut start in the firstRow / other row.
+example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (crossing : RXing p c E rho) [Fintype V] {G ΔF : Time}
+    (hrec : HealingSet p c E rho G ΔF) {k : AttemptKey}
+    {ev : V2.Event V (Obj p)} {v : Time}
+    (hvalid : AttemptValid p c E rho k) (hstart : rho.events[k.start]? = some ev)
+    (hne : ¬ EffectiveEvent p c E rho k.start)
+    (hu : ev.time + 3 * p.Δ ≤ v) (hv : v ≤ rho.horizon)
+    (hquiet : ∀ j, k.start < j → j < timeIdx rho v → ¬ EffectiveEvent p c E rho j)
+    (htask : k.task = .firstRow) (hphase : k.phase ≠ .contest) :
+    ∃ rG J,
+      ev.time = p.actionTime (rG + 2) ∧
+      timeIdx rho (p.actionTime (rG + 2)) = k.start + 1 ∧
+      let root := match k.phase with | .gap => none | .topJ => some J | .contest => none
+      let contested := match k.phase with | .gap => false | .topJ => false | .contest => true
+      PhaseInterval p c E rho (ev.time + 3 * p.Δ) v k.frontier root contested ∧
+      (∀ y s nd, y ∈ rho.honest → ev.time + 3 * p.Δ ≤ SA.voteTime p.toParams s →
+        SA.voteTime p.toParams s ≤ v →
+        postClock E rho y (SA.voteTime p.toParams s) = some nd →
+        SettledPhaseFrame p nd.st k.frontier root contested) := by
+  obtain ⟨ev0, rG, hi0, _, _, _, ht, hcut⟩ :=
+    healing_attempt_inclusive_start E rho hvalid hne
+  have he : ev0 = ev := Option.some.inj (hi0.symm.trans hstart)
+  subst ev0
+  obtain ⟨J, hsettled⟩ := healing_attempt_firstRow_other_settle p c E rho crossing hrec
+    hvalid hstart hu hv hquiet htask hphase
+  exact ⟨rG, J, ht, hcut, hsettled⟩
 
 end AvailableChain.FGSA.Run.Tests.HealingAttempt
 end

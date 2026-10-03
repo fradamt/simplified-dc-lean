@@ -2074,6 +2074,14 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.fgsa_rowServiceClaim',
     'AvailableChain.FGSA.Run.fgsa_rowsValidStored_atProposal',
     'AvailableChain.FGSA.Run.fgsa_batchCoverage',
+    # S5 H-ATTEMPT-2: --expect ADDITIONS only.
+    'AvailableChain.FGSA.Run.healing_settle_start',
+    'AvailableChain.FGSA.Run.healing_attempt_settle_start',
+    'AvailableChain.FGSA.Run.healing_attempt_raise_contest_settle',
+    'AvailableChain.FGSA.Run.healing_attempt_raise_other_settle',
+    'AvailableChain.FGSA.Run.healing_attempt_firstRow_contest_settle',
+    'AvailableChain.FGSA.Run.healing_attempt_firstRow_other_settle',
+
 )
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
          'Packages.Safety', 'OutputReads', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',

@@ -142,6 +142,7 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 public import AvailableChainFGSAProofs.Proofs.Healing.Attempt -- shake: keep (H-ATTEMPT axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.AttemptBudget -- shake: keep (H-ATTEMPT axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.AttemptStop -- shake: keep (H-ATTEMPT axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.AttemptSettle -- shake: keep (CUT axiom audit)
 
 #print axioms AvailableChain.FGSA.Run.kmid_honestSeats_mem
 #print axioms AvailableChain.FGSA.Run.kmid_honest_quorum
@@ -1533,3 +1534,11 @@ public import AvailableChainFGSAProofs.Proofs.Healing.AttemptStop -- shake: keep
 #print axioms AvailableChain.FGSA.Run.healing_attempt_ends_mono
 #print axioms AvailableChain.FGSA.Run.healing_attempt_no_event
 #print axioms AvailableChain.FGSA.Run.healing_attempt_inclusive_start
+
+-- S5 H-ATTEMPT-2: start settlement and four row settlement facts.
+#print axioms AvailableChain.FGSA.Run.healing_settle_start
+#print axioms AvailableChain.FGSA.Run.healing_attempt_settle_start
+#print axioms AvailableChain.FGSA.Run.healing_attempt_raise_contest_settle
+#print axioms AvailableChain.FGSA.Run.healing_attempt_raise_other_settle
+#print axioms AvailableChain.FGSA.Run.healing_attempt_firstRow_contest_settle
+#print axioms AvailableChain.FGSA.Run.healing_attempt_firstRow_other_settle

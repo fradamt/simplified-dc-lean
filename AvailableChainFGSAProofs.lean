@@ -198,3 +198,4 @@ public import AvailableChainFGSAProofs.Proofs.Finality.Local
 public import AvailableChainFGSAProofs.Proofs.Healing.Attempt
 public import AvailableChainFGSAProofs.Proofs.Healing.AttemptBudget
 public import AvailableChainFGSAProofs.Proofs.Healing.AttemptStop
+public import AvailableChainFGSAProofs.Proofs.Healing.AttemptSettle

@@ -5,9 +5,10 @@ public section
 
 namespace AvailableChain.FGSA.Run
 
-/-! Blueprint 21 H.10. A0 stopped each complete row at the inclusive-cut
-settlement producer. The raise rows also need terminal promotion within the
-frozen horizon. This theorem has each missing row as an explicit hypothesis.
+/-! Blueprint 21 H.10. AttemptSettle supplies settlement for either start arm.
+Complete rows still need the foundation and inline facts at the assembly
+boundary. The raise rows also need terminal promotion within the frozen
+horizon. This theorem keeps the four row facts as explicit hypotheses.
 It does not prove any of those row facts. -/
 
 /-- Conditional assembly of the four frozen attempt-budget rows. -/
