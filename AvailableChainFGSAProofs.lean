@@ -20,6 +20,11 @@ public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6S
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairGate
 public import AvailableChainFGSAProofs.Proofs.Healing.Repair
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportFrame
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportHeads
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportTransfer
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportProposal
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierRead
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseSettle
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseBoot
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposal

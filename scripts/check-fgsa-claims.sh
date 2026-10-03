@@ -102,6 +102,14 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.repair_two_lease',
     'AvailableChain.FGSA.Run.repair_synchronous',
     'AvailableChain.FGSA.Run.healing_tRepair',
+    # S5 G-HG1: --expect additions only.
+    'AvailableChain.FGSA.Run.frontier_Q_heads',
+    'AvailableChain.FGSA.Run.frontier_seed_leases',
+    'AvailableChain.FGSA.Run.frontier_lease_cover',
+    'AvailableChain.FGSA.Run.frontier_prior_support',
+    'AvailableChain.FGSA.Run.frontier_target_scores',
+    'AvailableChain.FGSA.Run.retainedHG1Input_through',
+    'AvailableChain.FGSA.Run.retainedHG1Input_before_first_rise',
     # S5 I-EXACT r2: G1 producer and E1/E2 theorems; --expect additions only.
     'AvailableChain.FGSA.Run.inclusion_retained_reads',
     'AvailableChain.FGSA.Run.inclusion_exact_compat',

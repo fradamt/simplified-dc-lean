@@ -19,6 +19,11 @@ public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6 -- shake: keep (H
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6S -- shake: keep (H-REPAIR audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairGate -- shake: keep (H-REPAIR audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.Repair -- shake: keep (H-REPAIR audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportFrame -- shake: keep (G-HG1 audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportHeads -- shake: keep (G-HG1 audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportTransfer -- shake: keep (G-HG1 audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportProposal -- shake: keep (G-HG1 audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierRead -- shake: keep (G-HG1 audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposal -- shake: keep (I-EXACT axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalHistory -- shake: keep (I-EXACT history audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalReceipts -- shake: keep (I-EXACT r2 receipt audit)
@@ -1007,6 +1012,31 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.repair_two_lease
 #print axioms AvailableChain.FGSA.Run.repair_synchronous
 #print axioms AvailableChain.FGSA.Run.healing_tRepair
+-- G-HG1: capped frontier support, lease cover and the retained HG.1 cone input.
+#print axioms AvailableChain.FGSA.Run.frontier_height_mono
+#print axioms AvailableChain.FGSA.Run.frontier_cap_before
+#print axioms AvailableChain.FGSA.Run.frontier_height_eq
+#print axioms AvailableChain.FGSA.Run.frontier_self_witness
+#print axioms AvailableChain.FGSA.Run.frontier_F_below
+#print axioms AvailableChain.FGSA.Run.frontier_relay
+#print axioms AvailableChain.FGSA.Run.frontier_head_relay
+#print axioms AvailableChain.FGSA.Run.frontier_head_batch_seat
+#print axioms AvailableChain.FGSA.Run.frontier_next_transfer_core
+#print axioms AvailableChain.FGSA.Run.frontier_first_transfer_core
+#print axioms AvailableChain.FGSA.Run.frontier_first_transfer_fast
+#print axioms AvailableChain.FGSA.Run.frontier_first_transfer_slow
+#print axioms AvailableChain.FGSA.Run.frontier_heads_transfer
+#print axioms AvailableChain.FGSA.Run.frontier_Q_heads
+#print axioms AvailableChain.FGSA.Run.frontier_fast_heads
+#print axioms AvailableChain.FGSA.Run.frontier_slow_heads
+#print axioms AvailableChain.FGSA.Run.frontier_proposal_batch_seat
+#print axioms AvailableChain.FGSA.Run.frontier_prior_support
+#print axioms AvailableChain.FGSA.Run.frontier_target_scores
+#print axioms AvailableChain.FGSA.Run.frontier_seed_leases
+#print axioms AvailableChain.FGSA.Run.frontier_lease_cover
+#print axioms AvailableChain.FGSA.Run.frontier_pivot_held
+#print axioms AvailableChain.FGSA.Run.retainedHG1Input_through
+#print axioms AvailableChain.FGSA.Run.retainedHG1Input_before_first_rise
 -- H-DESCENT: D1–D5.
 #print axioms AvailableChain.FGSA.Run.healing_source_gate
 #print axioms AvailableChain.FGSA.Run.healing_source_read
