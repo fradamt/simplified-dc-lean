@@ -28,6 +28,17 @@ LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainF
 CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = (
+    # O-EXPORT-2: --expect ADDITIONS only.
+    'AvailableChain.FGSA.Run.outage_cleanGrowthClaim_of',
+    'AvailableChain.FGSA.Run.fgsa_cleanGrowthClaim_of_clean',
+    # O-EXPORT-1b: --expect ADDITIONS only.
+    'AvailableChain.FGSA.Run.fgsa_exactProposalClaim_of_clean',
+    'AvailableChain.FGSA.Run.fgsa_cleanInclusionPostGateClaim_of_clean',
+    'AvailableChain.FGSA.Run.fgsa_cleanInclusionClaim_of_clean',
+    # O-EXPORT-1: --expect ADDITIONS only.
+    'AvailableChain.FGSA.Run.outage_exactProposalClaim_of',
+    'AvailableChain.FGSA.Run.outage_cleanInclusionPostGateClaim_of',
+    'AvailableChain.FGSA.Run.outage_cleanInclusionClaim_of',
     # post-freeze additive _def batch 2: --expect DATA only.
     'AvailableChain.FGSA.Run.finHeight_def',
     'AvailableChain.FGSA.Run.HealSuffix_def',
@@ -67,6 +78,29 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.healing_carried_path',
     'AvailableChain.FGSA.Run.healing_full_witness_all',
     'AvailableChain.FGSA.Run.healing_witness_relay_phase',
+    # H-PROMOTE helpers: --expect ADDITIONS only.
+    'AvailableChain.FGSA.Run.healing_promotion_gap_remainder',
+    'AvailableChain.FGSA.Run.healing_promotion_gap',
+    'AvailableChain.FGSA.Run.healing_promotion_row_deadline',
+    'AvailableChain.FGSA.Run.healing_promotion_row_receipt',
+    'AvailableChain.FGSA.Run.healing_promotion_maturity',
+    'AvailableChain.FGSA.Run.healing_promotion_age_gap',
+    'AvailableChain.FGSA.Run.healing_promotion_fixed_rows',
+    'AvailableChain.FGSA.Run.healing_promotion_source_body',
+    'AvailableChain.FGSA.Run.healing_promotion_source_parent',
+    'AvailableChain.FGSA.Run.healing_promotion_continuing_service',
+    # H-PROMOTE r2: --expect additions only.
+    'AvailableChain.FGSA.Run.healing_promotion_entry_slot',
+    'AvailableChain.FGSA.Run.healing_promotion_bounded_rows',
+    'AvailableChain.FGSA.Run.healing_promotion_carrier',
+    'AvailableChain.FGSA.Run.healing_promotion_slot_proposal',
+    'AvailableChain.FGSA.Run.healing_promotion_gap_proposal',
+    'AvailableChain.FGSA.Run.healing_promotion_same_rows',
+    # H-PROMOTE fix pass: --expect additions only.
+    'AvailableChain.FGSA.Run.healing_promotion_row_deadline_strict',
+    'AvailableChain.FGSA.Run.healing_promotion_row_receipt_strict',
+    'AvailableChain.FGSA.Run.healing_promotion_maturity_of_action',
+    'AvailableChain.FGSA.Run.healing_promotion_held_mono',
     # H-SUPPORT: --expect additions only.
     'AvailableChain.FGSA.Run.healing_settled_frame_strict',
     'AvailableChain.FGSA.Run.healing_witness_relay_settled',

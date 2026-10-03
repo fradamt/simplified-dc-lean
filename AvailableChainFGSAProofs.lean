@@ -1,4 +1,8 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Healing.Promotion
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionArithmetic
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionCarrier
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionRows
 public import AvailableChainFGSAProofs.Proofs.Healing.Frame
 public import AvailableChainFGSAProofs.Proofs.Healing.FrameSource
 public import AvailableChainFGSAProofs.Proofs.Healing.FrameRelay
@@ -156,6 +160,7 @@ public import AvailableChainFGSAProofs.Proofs.Foundations.RowPermission
 public import AvailableChainFGSAProofs.Proofs.Foundations.OpeningCovered
 public import AvailableChainFGSAProofs.Proofs.Foundations.OpeningCoveredLower
 public import AvailableChainFGSAProofs.Proofs.Foundations.FinalityApi
+public import AvailableChainFGSAProofs.Proofs.Assembly.Outage
 public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthCausal
 public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthProposal
 public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowth
