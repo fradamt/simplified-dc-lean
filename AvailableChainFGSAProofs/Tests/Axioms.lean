@@ -21,6 +21,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.RepairGate -- shake: keep 
 public import AvailableChainFGSAProofs.Proofs.Healing.Repair -- shake: keep (H-REPAIR audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceOne -- shake: keep (H-GATE audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.CommonEntry -- shake: keep (H-COMMON audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierOpenAll -- shake: keep (H-FRONT-OPEN audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposal -- shake: keep (I-EXACT axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalHistory -- shake: keep (I-EXACT history audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalReceipts -- shake: keep (I-EXACT r2 receipt audit)
@@ -1165,3 +1166,14 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.common_opening_covered
 #print axioms AvailableChain.FGSA.Run.healing_tCommon
 #print axioms AvailableChain.FGSA.Run.common_height_one
+
+-- H-FRONT-OPEN: F1–F5 and the opening-only helpers.
+#print axioms AvailableChain.FGSA.Run.FrontierOpeningServed
+#print axioms AvailableChain.FGSA.Run.frontier_open_indices
+#print axioms AvailableChain.FGSA.Run.frontier_open_domain
+#print axioms AvailableChain.FGSA.Run.frontier_open_plateau
+#print axioms AvailableChain.FGSA.Run.frontier_open_of_served
+#print axioms AvailableChain.FGSA.Run.frontier_open_q_eq
+#print axioms AvailableChain.FGSA.Run.frontier_open_later
+#print axioms AvailableChain.FGSA.Run.frontier_open_time
+#print axioms AvailableChain.FGSA.Run.frontier_openings
