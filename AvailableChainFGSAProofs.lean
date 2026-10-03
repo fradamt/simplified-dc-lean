@@ -243,3 +243,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetHigh
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJoint
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetProject
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchHG2a
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchRise
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchCompose
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTasks
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchFull

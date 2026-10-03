@@ -183,6 +183,10 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchBudget -- sh
 public import AvailableChainFGSAProofs.Proofs.Healing.Reset -- shake: keep (S5 J8 R1–R3 audit)
 public import AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival -- shake: keep (S5 J8 R2 audit)
 
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchHG2a -- shake: keep (axioms)
+
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchFull -- shake: keep (S5 audit)
+
 #print axioms AvailableChain.FGSA.Run.kmid_honestSeats_mem
 #print axioms AvailableChain.FGSA.Run.kmid_honest_quorum
 
@@ -1900,3 +1904,27 @@ public import AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival -- shake: ke
 #print axioms AvailableChain.FGSA.Run.postReset_source_gate_result
 #print axioms AvailableChain.FGSA.Run.postReset_tCarrier_reset
 #print axioms AvailableChain.FGSA.Run.postReset_h2A_reset
+-- S5 HG4-RISE F1 support: ADDITIONS only; no full F1--F3 producer.
+#print axioms AvailableChain.FGSA.Run.FrontierHG2aResult
+#print axioms AvailableChain.FGSA.Run.frontierSearch_hg2a_bound
+#print axioms AvailableChain.FGSA.Run.frontierSearch_hg2a_gate_cost
+#print axioms AvailableChain.FGSA.Run.frontierSearch_hg2a_gap
+
+#print axioms AvailableChain.FGSA.Run.PromotionSourceAt
+#print axioms AvailableChain.FGSA.Run.promotion_age_advance_of_source
+#print axioms AvailableChain.FGSA.Run.promotion_age_grid
+#print axioms AvailableChain.FGSA.Run.healing_promotion_age_receipt
+#print axioms AvailableChain.FGSA.Run.healing_promotion_age_service_tail
+#print axioms AvailableChain.FGSA.Run.healing_promotion_first_receipt_of_frontierCap
+#print axioms AvailableChain.FGSA.Run.healing_promotion_block_held_mono
+#print axioms AvailableChain.FGSA.Run.frontierSearch_strict_cap_or_rise
+#print axioms AvailableChain.FGSA.Run.frontier_hg2a_receipt
+#print axioms AvailableChain.FGSA.Run.healing_frontierTail_rise_of_seed
+#print axioms AvailableChain.FGSA.Run.healing_frontierTail_rise
+#print axioms AvailableChain.FGSA.Run.healing_frontierTail
+#print axioms AvailableChain.FGSA.Run.frontierSearch_repair_start
+#print axioms AvailableChain.FGSA.Run.frontierSearch_phase_tail
+#print axioms AvailableChain.FGSA.Run.frontierSearch_rise_task
+#print axioms AvailableChain.FGSA.Run.frontierSearch_row_task
+#print axioms AvailableChain.FGSA.Run.frontierSearch_cut_start
+#print axioms AvailableChain.FGSA.Run.healing_frontierSearch
