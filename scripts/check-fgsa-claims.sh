@@ -28,6 +28,13 @@ LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainF
 CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = (
+    # S5 M5b: --expect ADDITIONS only.
+    'AvailableChain.FGSA.Run.healing_rise_one_of_receipt',
+    'AvailableChain.FGSA.Run.healing_rise_one_advance',
+    'AvailableChain.FGSA.Run.healing_rise_one_of_effective',
+    'AvailableChain.FGSA.Run.healing_rise_one_receipt_all',
+    'AvailableChain.FGSA.Run.healing_rise_one_accept',
+    'AvailableChain.FGSA.Run.healing_rise_one_rise',
     # S5 M5: --expect ADDITIONS only.
     'AvailableChain.FGSA.Run.healing_rise_one_rows_received',
     'AvailableChain.FGSA.Run.RiseOneBy',

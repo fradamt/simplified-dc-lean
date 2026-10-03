@@ -1,5 +1,12 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.RiseOneRepair -- shake: keep (M1--M6 direct and boundary tests)
+public import AvailableChainFGSAProofs.Proofs.Healing.RiseOneRise -- shake: keep (M5b tests)
+public import AvailableChainFGSAProofs.Proofs.Foundations.Crossing -- shake: keep (RXing)
+public import AvailableChainFGSAProofs.Proofs.Foundations.Store -- shake: keep (RMono)
+public import AvailableChainFGSAProofs.Proofs.Foundations.Leases -- shake: keep (writes)
+public import AvailableChainFGSAProofs.Proofs.Foundations.RowPermission -- shake: keep (rowCoverage)
+public import AvailableChainFGSAProofs.Proofs.Foundations.RowService -- shake: keep (r3 row ports)
+public import AvailableChainFGSAProofs.Proofs.Finality.Height -- shake: keep (hfold)
+public import AvailableChainFGSAProofs.Proofs.Finality.MiddleSupport -- shake: keep (honestQuorum)
 
 set_option linter.privateModule false
 
@@ -319,5 +326,124 @@ example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
       (R_at p c E rho i x).rootIsJ = true ∧ (R_at p c E rho i x).lo = 0 :=
   boot_height_one p c E rho hx (healing_rise_one_frontier p c E rho hs hnr hne hstop hi)
 
+
+-- Apply B3 with every INLINE port discharged by its existing producer.
+private theorem riseOneWithPorts [Fintype V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF)
+    (qc : RQCOrigin p c E rho) {u D : Time}
+    (hgst : E.t_GST ≤ u) (huD : u ≤ D) (hD : D ≤ rho.horizon)
+    (hbudget : u + ρΓ p G + (P p - 4 * p.Δ) + (2 * P p + Γ p G - 9 * p.Δ) ≤ D)
+    (hhor : u + ρΓ p G + (P p - 4 * p.Δ) +
+      (2 * P p + Γ p G - 4 * p.Δ) ≤ rho.horizon) :
+    RiseOneBy p c E rho D ∨
+      ∃ r s X, p.actionTime r ≤ u + ρΓ p G + (P p - 4 * p.Δ) ∧
+        HonestProposal E rho (fgsaInterface p c) s (eraseFG X) ∧ X.slot = s ∧
+        (r : Time) * P p + 2 * P p ≤ SA.proposalTime p.toParams s ∧
+        SA.proposalTime p.toParams s ≤ p.actionTime r + 2 * P p + Γ p G - 10 * p.Δ ∧
+        2 ≤ (heightView p X).h ∧ SA.proposalTime p.toParams s + p.Δ ≤ D ∧
+        ∀ x ∈ rho.honest, Gen.V2.Duty.HoldsBefore E rho
+          (fun nd => X ∈ nd.st.fg.TF) (SA.proposalTime p.toParams s + p.Δ) x := by
+  let mono := fgsa_rMono p c E rho
+  let crossing := fgsa_rXing p c E rho hrec.base.linked
+    (fgsa_faultX_count_rec p hrec.fault) hrec.base.valid.toUnforgeableSignatures
+  exact healing_rise_one_rise E rho hrec hδ hbound mono crossing qc
+    (fgsa_leaseOrigins_lastWrite p c E rho hrec.base.valid.toScheduleWellFormed)
+    (rowPermission_covered E rho hrec.base hrec.fault)
+    (fgsa_tRowsReceipt p c E rho ΔF hrec.base.delta hrec.base.valid hrec.base.noRestart
+      hrec.sync hrec.deltaF)
+    (fgsa_batchCoverage p ΔF .progress c E rho)
+    (fgsa_foldTrichotomy_progress p) (fgsa_faultQ_of_count p hrec.fault)
+    (kmid_honest_quorum p c rho hrec.base.linked hrec.fault)
+    hgst huD hD hbudget hhor
+
+-- Genesis top J gives strict receipt for every honest receiver.
+example [Fintype V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (crossing : RXing p c E rho) {u : Time} {s : Slot} {X : FGBlock (Fin p.n)}
+    (hnew : HonestProposal E rho (fgsaInterface p c) s (eraseFG X))
+    (hu : u ≤ SA.proposalTime p.toParams s) (hgst : E.t_GST ≤ u)
+    (hp : PhaseInterval p c E rho u (SA.proposalTime p.toParams s + p.Δ) 1
+      (some .genesis) false) :
+    ∀ x ∈ rho.honest, Gen.V2.Duty.HoldsBefore E rho
+      (fun nd => X ∈ nd.st.fg.TF) (SA.proposalTime p.toParams s + p.Δ) x :=
+  healing_rise_one_receipt_all p c E rho hrec crossing hnew hu hgst hp
+
+-- B2 includes an event at D_event and retains the actual first rise.
+example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.NoRestart rho)
+    (hne : rho.honest.Nonempty) {i : Nat} {ev : V2.Event V (Obj p)} {D_event : Time}
+    (hi : rho.events[i]? = some ev) (ht : ev.time = D_event)
+    (heff : EffectiveEvent p c E rho i) : RiseOneBy p c E rho D_event :=
+  healing_rise_one_of_effective p c E rho hs hnr hne hi ht.le heff
+
+-- A strict receipt deadline can equal the finite horizon.
+example [Fintype V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (crossing : RXing p c E rho) {u : Time} {s : Slot} {X : FGBlock (Fin p.n)}
+    (hnew : HonestProposal E rho (fgsaInterface p c) s (eraseFG X))
+    (hu : u ≤ SA.proposalTime p.toParams s) (hgst : E.t_GST ≤ u)
+    (hhorizon : SA.proposalTime p.toParams s + p.Δ = rho.horizon) :
+    RiseOneBy p c E rho rho.horizon ∨
+      ∀ x ∈ rho.honest, Gen.V2.Duty.HoldsBefore E rho
+        (fun nd => X ∈ nd.st.fg.TF) (SA.proposalTime p.toParams s + p.Δ) x :=
+  healing_rise_one_accept p c E rho hrec crossing hnew hu hgst hhorizon.le le_rfl
+
+-- The full gap horizon is five Delta beyond the terminal deadline.
+example (G u : Time) :
+    u + ρΓ p G + (P p - 4 * p.Δ) + (2 * P p + Γ p G - 9 * p.Δ) <
+      u + ρΓ p G + (P p - 4 * p.Δ) + (2 * P p + Γ p G - 4 * p.Δ) := by
+  linarith [p.deltaPos]
+
 end AvailableChain.FGSA.Run.Tests.HealingRiseOne
 end
+
+namespace AvailableChain.FGSA.Run.Tests.HealingRiseOne
+open AvailableChain.SimplexFG
+
+private def riseOneParams : Params where
+  Δ := 1
+  n := 4
+  k := 2
+  η := 0
+  deltaPos := by decide
+  nPos := by decide
+  kLarge := by decide
+  etaNonneg := by decide
+  R := 3
+  δt := 6
+  RLarge := by decide
+
+-- The same r3 W bound permits DeltaF = 6 > Delta = 1.
+example : riseOneParams.Δ < (6 : Time) ∧ LivenessBoundW riseOneParams 6 :=
+  ⟨by decide, ⟨by decide⟩⟩
+
+example : EntryAt riseOneParams (.genesis : FGBlock (Fin 4)) 1 := ⟨rfl, rfl⟩
+
+-- The row deadline precedes the mature proposal; its strict receipt fits the event cut.
+example : riseOneParams.actionTime 1 + 6 ≤ carrierTimeW riseOneParams 6 1 ∧
+    carrierTimeW riseOneParams 6 1 < (1 : Time) * P riseOneParams + 2 * P riseOneParams ∧
+    SA.proposalTime riseOneParams.toParams 10 + riseOneParams.Δ ≤
+      riseOneParams.actionTime 1 + 2 * P riseOneParams + Γ riseOneParams 10 -
+        9 * riseOneParams.Δ := by
+  decide
+
+
+-- Apply the full proof with DeltaF > Delta, then locate the accepted first rise.
+example {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In}
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa riseOneParams c))
+    (hrec : Recovery₂ riseOneParams c E rho 10 6) (qc : RQCOrigin riseOneParams c E rho)
+    {u D : Time} (hgst : E.t_GST ≤ u) (huD : u ≤ D) (hD : D ≤ rho.horizon)
+    (hbudget : u + ρΓ riseOneParams 10 + (P riseOneParams - 4 * riseOneParams.Δ) +
+      (2 * P riseOneParams + Γ riseOneParams 10 - 9 * riseOneParams.Δ) ≤ D)
+    (hhor : u + ρΓ riseOneParams 10 + (P riseOneParams - 4 * riseOneParams.Δ) +
+      (2 * P riseOneParams + Γ riseOneParams 10 - 4 * riseOneParams.Δ) ≤ rho.horizon) :
+    RiseOneBy riseOneParams c E rho D := by
+  rcases riseOneWithPorts E rho hrec rfl ⟨by decide⟩ qc hgst huD hD hbudget hhor with
+    hrise | ⟨_, _, X, _, hnew, _, _, _, hh, hd, hreceipt⟩
+  · exact hrise
+  · exact healing_rise_one_of_receipt riseOneParams c E rho
+      hrec.base.valid.toScheduleWellFormed hrec.base.noRestart hnew.1.2 hh
+      (hreceipt _ hnew.1.2) hd
+
+end AvailableChain.FGSA.Run.Tests.HealingRiseOne

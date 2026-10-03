@@ -27,7 +27,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6S -- shake: keep (
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairGate -- shake: keep (H-REPAIR audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.Repair -- shake: keep (H-REPAIR audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceOne -- shake: keep (H-GATE audit)
-public import AvailableChainFGSAProofs.Proofs.Healing.RiseOneRepair -- shake: keep (M5 axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.RiseOneRise -- shake: keep (M5 and M5b axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.CommonEntry -- shake: keep (H-COMMON audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposal -- shake: keep (I-EXACT axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalHistory -- shake: keep (I-EXACT history audit)
@@ -1371,3 +1371,11 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.healing_renewedPromotion
 
 #print axioms AvailableChain.FGSA.Run.healing_promotion_age_service
+
+-- S5 M5b: height-one r3 progress and strict acceptance.
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_advance
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_of_effective
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_receipt_all
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_accept
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_rise
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_of_receipt

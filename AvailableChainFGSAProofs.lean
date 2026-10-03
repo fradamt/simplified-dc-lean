@@ -41,6 +41,9 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PhaseSettle
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseBoot
 public import AvailableChainFGSAProofs.Proofs.Healing.RiseOne
 public import AvailableChainFGSAProofs.Proofs.Healing.RiseOneRepair
+public import AvailableChainFGSAProofs.Proofs.Healing.RiseOneAdvance
+public import AvailableChainFGSAProofs.Proofs.Healing.RiseOneAccept
+public import AvailableChainFGSAProofs.Proofs.Healing.RiseOneRise
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposal
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalHistory
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalReceipts
