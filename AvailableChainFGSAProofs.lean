@@ -4,6 +4,18 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrameSource
 public import AvailableChainFGSAProofs.Proofs.Healing.FrameRelay
 public import AvailableChainFGSAProofs.Proofs.Healing.FramePaths
 public import AvailableChainFGSAProofs.Proofs.Healing.FrameZero
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportFrame
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportGate
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportHeads
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportLease
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportOutput
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportPerm
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportProposal
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportRelay
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportSaved
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportSlow
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportTransfer
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportWrite
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseSettle
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseBoot
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposal
@@ -16,6 +28,8 @@ public import AvailableChainFGSAProofs.Proofs.Finality.Height
 public import AvailableChainFGSAProofs.Proofs.Finality.History
 public import AvailableChainFGSAProofs.Proofs.Finality.Receipt
 public import AvailableChainFGSAProofs.Proofs.Finality.Rows
+public import AvailableChainFGSAProofs.Proofs.Finality.MiddleSupport
+public import AvailableChainFGSAProofs.Proofs.Finality.Middle
 public import AvailableChainFGSAProofs.Proofs.Finality.Carry
 public import AvailableChainFGSAProofs.Proofs.Finality.Batch
 public import AvailableChainFGSAProofs.Proofs.Finality.RecordInv
