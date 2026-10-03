@@ -41,10 +41,6 @@ private theorem receipt_finality (X : FGBlock (Fin p.n)) :
     (finalityView p X).F = (Window.derive p p.K_W X).F := by
   simp only [finalityView_def, Window.certificateFinality_def, Window.projectFinality_def]
 
-omit [DecidableEq V] [Fintype V] in
-private theorem receipt_eventTime (i : Nat) :
-    eventTime rho i = rho.events[i]?.map V2.Event.time := eventTime_def rho i
-
 omit [Fintype V] in
 private theorem receipt_stored_block (i : Nat) (x : V) (C : FGBlock (Fin p.n))
     (hC : C ∈ (storeAt p c E rho i x).fg.TF) (hne : C ≠ .genesis) :
@@ -146,7 +142,7 @@ theorem receipt_cap (ΔF : Time) (q y i : Nat) (x : V) (X : FGBlock (Fin p.n))
   have hnext := (KernelBeforeNextActionW_def p ΔF q).mp
     (kernel_before_next_actionW p ΔF q hbound)
   have htime : ∃ e, rho.events[i]? = some e ∧ e.time = t := by
-    rw [receipt_eventTime] at ht
+    rw [eventTime_def] at ht
     exact Option.map_eq_some_iff.mp ht
   obtain ⟨e, he, htime⟩ := htime
   have hi : i ≤ V2.D.Run.idxBefore rho (p.actionTime (q + 1)) := by
@@ -189,7 +185,7 @@ theorem receipt_receiver_finalityLag (ΔF : Time) (q y i : Nat) (x : V) (t : Tim
   have hnext := (KernelBeforeNextActionW_def p ΔF q).mp
     (kernel_before_next_actionW p ΔF q hbound)
   have htime : ∃ e, rho.events[i]? = some e ∧ e.time = t := by
-    rw [receipt_eventTime] at ht
+    rw [eventTime_def] at ht
     exact Option.map_eq_some_iff.mp ht
   obtain ⟨e, he, htime⟩ := htime
   have hi : i ≤ V2.D.Run.idxBefore rho (p.actionTime (q + 1)) := by
@@ -309,14 +305,6 @@ theorem receipt_ready_of_delivery (G ΔF : Time) (hrec : Recovery₂ p c E rho G
     he, hd, hP, hacc, hX⟩
 
 omit [Fintype V] in
-private theorem receipt_carrier_eq (s : Slot) (B : Block) (rows : List (RowWire p.n)) :
-    HonestCarrier p c E rho s B rows =
-      (HonestProposal E rho (fgsaInterface p c) s B ∧
-        ∃ o raw sup, V2.D.Run.emits E rho (V2.D.proposerOf rho (fgsaInterface p c) s) o
-          (V2.D.proposalTime (fgsaInterface p c) s) ∧ o.payload = .proposal B raw sup rows) :=
-  HonestCarrier_def p c E rho s B rows
-
-omit [Fintype V] in
 private theorem receipt_proposer_honest (s : Slot) (B : Block)
     (h : HonestProposal E rho (fgsaInterface p c) s B) :
     V2.D.proposerOf rho (fgsaInterface p c) s ∈ rho.honest := by
@@ -340,7 +328,7 @@ theorem receipt_delivery (G ΔF : Time) (hrec : Recovery₂ p c E rho G ΔF)
       (SA.proposalTime p.toParams X.slot + p.Δ)) := by
   classical
   obtain ⟨hproposal, o, raw, sup, hem, hpayload⟩ :=
-    (receipt_carrier_eq p c E rho _ _ rows).mp hcarrier
+    (HonestCarrier_def p c E rho _ _ rows).mp hcarrier
   change Obj p at o
   have hhon := receipt_proposer_honest p c E rho _ _ hproposal
   have hd : (toWire p o).decode = some (.block X.slot (eraseFG X) raw sup rows) := by
@@ -421,7 +409,7 @@ theorem receipt_delivery (G ΔF : Time) (hrec : Recovery₂ p c E rho G ΔF)
       have hil : i < rho.events.length := by dsimp only [i]; omega
       have he := List.getElem?_eq_getElem hil
       refine ⟨i, rho.events[i].time, ?_, ?_, Or.inl ?_⟩
-      · rw [receipt_eventTime, he]
+      · rw [eventTime_def, he]
         rfl
       · exact (Gen.V2.Duty.index_lt_idxBefore_iff hS he D).mp (by dsimp only [i]; omega)
       · have hi : i + 1 = V2.D.Run.idxBefore rho D := by dsimp only [i]; omega
@@ -475,7 +463,7 @@ theorem receipt_delivery (G ΔF : Time) (hrec : Recovery₂ p c E rho G ΔF)
         (Nat.le_of_lt hiD) x (hrec.base.noRestart.restartFree x i _) (KitFG.preceq_refl _)
       have hFiX := KitFG.preceq_trans hFF hFX
       refine ⟨i, t, ?_, htD', Or.inr ⟨hat, ?_⟩⟩
-      · rw [receipt_eventTime, he]
+      · rw [eventTime_def, he]
         rfl
       · exact receipt_ready_of_delivery p c E rho G ΔF hrec i x X t o raw sup rows
           he hd htrigger hat hFiX
@@ -502,13 +490,6 @@ private theorem receipt_actionTime_strictMono : StrictMono p.actionTime := by
     4 * p.Δ * ((b * p.R : Nat) : Int) + 6 * p.Δ
   push_cast
   convert add_lt_add_right (mul_lt_mul_of_pos_left hab' hpos) (6 * p.Δ) using 1 <;> ring
-
-omit [Fintype V] in
-private theorem receipt_mu_eq : muOf p c E rho = max 1 (sSup (oldRowHeights p c E rho)) :=
-  muOf_def p c E rho
-
-private theorem receipt_high_eq (w : HealingWitness) (X : FGBlock (Fin p.n)) :
-    high p w X = (w.M + 1 ≤ (heightView p X).h) := high_def p w X
 
 /-- Paper 22:1297–1302: a high cached J is on the terminal carrier path.
 DC: INTENTIONAL W cached pair and action-source ancestry. Stratification and
@@ -550,7 +531,7 @@ theorem receipt_jPath (ΔF : Time) (q y i : Nat) (x : V) (A U X : FGBlock (Fin p
     have hz : (heightView p C).h_j = 1 :=
       hJheight.symm.trans (receipt_height_genesis p)
     have hmu := hinput.wit.mu_le
-    rw [receipt_mu_eq] at hmu
+    rw [muOf_def] at hmu
     have hM : 1 ≤ w.M := (le_max_left 1 _).trans hmu
     simp only [Height] at hCJ hXj hfloor hstrict hz ⊢
     omega
@@ -563,13 +544,13 @@ theorem receipt_jPath (ΔF : Time) (q y i : Nat) (x : V) (A U X : FGBlock (Fin p
   have hJeq : (heightView p C).J = (heightView p S).T_h :=
     FGBlock.root_injective (congrArg Prod.snd hentry)
   have hhigh : high p w S := by
-    rw [receipt_high_eq]
+    rw [high_def]
     have hheight := congrArg Prod.fst hentry
     simp only [Height] at hCJ hXj hfloor hstrict hJheight hheight ⊢
     omega
   have hnext := (KernelBeforeNextActionW_def p ΔF q).mp
     (kernel_before_next_actionW p ΔF q hbound)
-  rw [receipt_eventTime] at ht
+  rw [eventTime_def] at ht
   obtain ⟨e, he, htime⟩ := Option.map_eq_some_iff.mp ht
   have hi : i < V2.D.Run.idxBefore rho (p.actionTime (q + 1)) :=
     (Gen.V2.Duty.index_lt_idxBefore_iff h.base.valid.toScheduleWellFormed he _).mpr
@@ -578,7 +559,7 @@ theorem receipt_jPath (ΔF : Time) (q y i : Nat) (x : V) (A U X : FGBlock (Fin p
     hrow.2.1 _).mp (hji.trans hi)
   have hrq : r ≤ q := Nat.le_of_lt_succ ((receipt_actionTime_strictMono p).lt_iff_lt.mp hrtime)
   obtain ⟨rows, hcarrier, _⟩ := h.carrier
-  have hproposal := ((receipt_carrier_eq p c E rho _ _ rows).mp hcarrier).1
+  have hproposal := ((HonestCarrier_def p c E rho _ _ rows).mp hcarrier).1
   have hFpos := E.Δ_pos.trans_le h.deltaF
   have hk := kappaF_ge_two p ΔF (le_of_lt hFpos)
   have hlabel : r * p.R + 2 ≤ X.slot := by

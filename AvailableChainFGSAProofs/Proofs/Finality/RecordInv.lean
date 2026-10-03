@@ -769,14 +769,9 @@ theorem high_target_first_row (w : HealingWitness)
   subst q
   exact ⟨j, a, ha, hc, hp⟩
 
-private theorem recordInv_honestSeats_def : honestSeats p c rho =
-    @Finset.filter (Fin p.n) (fun i => rho.seatOf (.base .fg) i ∈ rho.honest)
-      (fun i => Classical.propDecidable (rho.seatOf (.base .fg) i ∈ rho.honest)) Finset.univ :=
-  honestSeats_def p c rho
-
 private theorem recordInv_honestSeats_mem (i : Fin p.n) :
     i ∈ honestSeats p c rho ↔ rho.seatOf (.base .fg) i ∈ rho.honest := by
-  rw [recordInv_honestSeats_def p c rho]
+  rw [honestSeats_def p c rho]
   simpa only [Finset.mem_univ, true_and] using
     (@Finset.mem_filter (Fin p.n) (fun k => rho.seatOf (.base .fg) k ∈ rho.honest)
       (fun k => Classical.propDecidable (rho.seatOf (.base .fg) k ∈ rho.honest)) Finset.univ i)
