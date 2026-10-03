@@ -69,6 +69,7 @@ fi
 mkdir -p .lake
 GATE_SLOT_DIR=$(mktemp -d "$PWD/.lake/gate-slots.XXXXXX")
 gate_slots_init
+export AUDIT_WORKERS=${AUDIT_WORKERS:-$((GATE_SLOTS < 2 ? GATE_SLOTS : 2))}
 logs=$(mktemp -d "$PWD/.lake/gate-logs.XXXXXX")
 started=$(date +%s)
 failed=0
