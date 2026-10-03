@@ -152,6 +152,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat -- shake: 
 
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetCut -- shake: keep (RS-0 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep -- shake: keep (J3 audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetHigh -- shake: keep (THigh audit)
 
 #print axioms AvailableChain.FGSA.Run.kmid_honestSeats_mem
 #print axioms AvailableChain.FGSA.Run.kmid_honest_quorum
@@ -1660,3 +1661,15 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep -- shake: ke
 
 #print axioms AvailableChain.FGSA.Run.postReset_receiver_compatible
 #print axioms AvailableChain.FGSA.Run.postReset_tDel
+
+-- THigh: compatibility-only keep and selected-source label/reset facts.
+#print axioms AvailableChain.FGSA.Run.postReset_descent_kept_of_compat
+#print axioms AvailableChain.FGSA.Run.postReset_general_kept_of_compat
+#print axioms AvailableChain.FGSA.Run.postReset_rKeep_body_of_compat
+#print axioms AvailableChain.FGSA.Run.postReset_rKeep_body_reset
+#print axioms AvailableChain.FGSA.Run.postReset_selected_label_above
+#print axioms AvailableChain.FGSA.Run.postReset_selected_label
+#print axioms AvailableChain.FGSA.Run.SelectedBefore
+#print axioms AvailableChain.FGSA.Run.SelectedBefore_def
+#print axioms AvailableChain.FGSA.Run.selectedBefore_of_sourceBefore
+#print axioms AvailableChain.FGSA.Run.postReset_selected_reset_compatible

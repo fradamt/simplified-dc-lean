@@ -2183,6 +2183,17 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.healing_resetTransferCore',
     'AvailableChain.FGSA.Run.healing_tDelReset_of_reset',
     'AvailableChain.FGSA.Run.healing_low_finality_after_reset',
+    # THigh: --expect DATA additions only.
+    'AvailableChain.FGSA.Run.postReset_descent_kept_of_compat',
+    'AvailableChain.FGSA.Run.postReset_general_kept_of_compat',
+    'AvailableChain.FGSA.Run.postReset_rKeep_body_of_compat',
+    'AvailableChain.FGSA.Run.postReset_rKeep_body_reset',
+    'AvailableChain.FGSA.Run.postReset_selected_label_above',
+    'AvailableChain.FGSA.Run.postReset_selected_label',
+    'AvailableChain.FGSA.Run.SelectedBefore',
+    'AvailableChain.FGSA.Run.SelectedBefore_def',
+    'AvailableChain.FGSA.Run.selectedBefore_of_sourceBefore',
+    'AvailableChain.FGSA.Run.postReset_selected_reset_compatible',
 )
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
          'Packages.Safety', 'OutputReads', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',
