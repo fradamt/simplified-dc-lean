@@ -1,7 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.Reset -- shake: keep (R1–R3 tests)
 public import AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival -- shake: keep (R2 tests)
-public import AvailableChainFGSAProofs.Proofs.Foundations.Sources -- shake: keep (INLINE producer)
 
 set_option linter.privateModule false
 
@@ -9,36 +8,21 @@ public section
 
 /-! Blueprint 21 H.11:1744–1800, H.22:3229–3241; S5 J8 T.
 DC: SAME discharge the actual source producer and test all reset field support.
-R1/R2 are applied with a hypothetical named HG.5 input (producer HG4-RISE F3).
+R1/R2 are applied with a hypothetical named HG.5 input (producer HG2A-RECEIPT F3).
 The numeric tests cover both allowance choices and integer subtraction. -/
 
 namespace AvailableChain.FGSA.Run.Tests.HealingReset
 open AvailableChain.SimplexFG
 
-private theorem reset_emittedName (p : Params) {In V : Type} [DecidableEq V]
-    (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hs : V2.D.ScheduleWellFormed E rho)
-    {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId}
-    (ha : HonestRowAt p c E rho j x r a) (he : namedEntry a.payload.height_pair = some e) :
-    ∃ C G, actionSourceFG p c E rho x r = some (some C) ∧
-      e = ((heightView p C).h, (heightView p C).T_h.root) ∧
-      gateResult p c E rho x (r * p.R) = some (some G) ∧
-      Block.Preceq (eraseFG C) G ∧ fastAt p c E rho x (r * p.R) (eraseFG C) := by
-  obtain ⟨C, G, hC, hh, _, hG, hCG, hf⟩ :=
-    sourceDiscipline_emittedName p c E rho hs ha he
-  refine ⟨C, G, hC, ?_, hG, hCG, hf⟩
-  rw [heightView_eq_simplex p]
-  exact hh
-
 -- All frozen H0Reset fields are built from the exported first-row contract.
--- This support test does not replace the stopped HG.5-to-first-row derivation.
+-- R1 (healing_resetWitness) derives this contract from the named HG.5 input.
 example (p : Params) {In V : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {G ΔF deadline : Time}
     (hset : HealingSet p c E rho G ΔF)
     (firstRow : FirstHeightRowBy p c E rho (resetCutFrontier p c E rho + 1) deadline) :
     ∃ w, H0Reset p c E rho w ∧ p.actionTime w.rStar ≤ deadline :=
   healing_reset_fields p c E rho
-    (reset_emittedName p c E rho hset.base.valid.toScheduleWellFormed) hset firstRow
+    (healing_reset_emittedName p c E rho hset.base) hset firstRow
 
 private def resetParams (k : Nat) (hk : 2 ≤ k) : Params where
   Δ := 1

@@ -8,10 +8,11 @@ public section
 DC: INTENTIONAL inclusive SA cut and the first honest height-(M+1) row.
 R1 eliminates the named HG.5 input through frontierSearchStatement_iff and the
 budget equations frontierSearchRiseBudget_eq / frontierSearchRowBudget_eq.
-The named input is HG.5: producer HG4-RISE F3 (lf-hg2a). No frozen interface is changed.
-The source input is INLINE: producer sourceDiscipline_emittedName,
-projected through heightView_eq_simplex. It keeps the actual source and root.
-R2 (Assembly/ResetArrival.lean) discharges the INLINE fact.
+The named input is HG.5: producer HG2A-RECEIPT F3 (lf-hg2a). It supplies reset_row and
+reset_first (the least honest row at exactly M+1), so HG.5 owns the IF.3(a) skip case,
+global minimality and the ρ₁ arm. No frozen interface is changed.
+The source input is INLINE. R2 (Assembly/ResetArrival.lean) discharges it from the
+frozen SourceDisciplineBaseAt; it keeps the actual source and root.
 No progress-attempt statement or full-H0 proposal service is used. -/
 
 namespace AvailableChain.FGSA.Run
@@ -102,7 +103,7 @@ theorem healing_reset_mu_le (hs : V2.D.ScheduleWellFormed E rho)
 
 /-- Blueprint 21 H.11:1757–1759,1799–1800; S5 J8 R1 fresh.
 DC: SAME select an erased actual fresh source, with the row's exact root.
-INLINE producer: sourceDiscipline_emittedName through heightView_eq_simplex. -/
+INLINE producer: the frozen SourceDisciplineBaseAt (Assembly/ResetArrival.lean). -/
 theorem healing_reset_fresh {r M : Nat} (hrow : HeightRow p c E rho r (M + 1)) :
     ∃ CStar, ∃ j y, ∃ (a : RowWire p.n) (C : FGBlock (Fin p.n)),
       HonestRowAt p c E rho j y r a ∧
@@ -167,7 +168,7 @@ include emittedName
 DC: INTENTIONAL reset-only fields, with no Q* service at this horizon.
 The first-row contract is a frozen field input for this support lemma.
 healing_resetWitness derives the first-row contract from HG.5 (HG4-RISE F3).
-INLINE producer: sourceDiscipline_emittedName through heightView_eq_simplex. -/
+INLINE producer: the frozen SourceDisciplineBaseAt (Assembly/ResetArrival.lean). -/
 theorem healing_reset_fields [Fintype V] {G ΔF deadline : Time}
     (hset : HealingSet p c E rho G ΔF)
     (firstRow : FirstHeightRowBy p c E rho (resetCutFrontier p c E rho + 1) deadline) :
@@ -200,8 +201,8 @@ theorem healing_reset_fields [Fintype V] {G ΔF deadline : Time}
 
 /-- Blueprint 21 H.11:1744–1800, H.22:3229–3241; S5 J8 R1.
 DC: INTENTIONAL reset-only witness, strict reset deadline GST + B'_reset^F.
-Named HG.5 input `hsearch`: producer HG4-RISE F3 (lf-hg2a).
-INLINE producer: sourceDiscipline_emittedName through heightView_eq_simplex. -/
+Named HG.5 input `hsearch`: producer HG2A-RECEIPT F3 (lf-hg2a); it gives reset_row/first.
+INLINE producer: the frozen SourceDisciplineBaseAt (Assembly/ResetArrival.lean). -/
 theorem healing_resetWitness [Fintype V] {G ΔF : Time}
     (hset : HealingSet p c E rho G ΔF) (hδ : p.δt = 2 * p.R)
     (hbound : LivenessBoundW p ΔF) (hsearch : FrontierSearchStatement p c E rho G ΔF)

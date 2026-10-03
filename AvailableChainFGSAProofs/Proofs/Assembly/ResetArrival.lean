@@ -32,7 +32,9 @@ theorem healing_reset_emittedName (p : Params) {In V : Type} [DecidableEq V]
 
 /-- Blueprint 21 H.11:1572–1595; S5 J8 R2. Frozen ResetArrivalStatement.
 DC: INTENTIONAL row-delay bound; H0Reset and SA clocks unchanged.
-Named HG.5 input `hsearch` (all runs): producer HG4-RISE F3 (lf-hg2a). -/
+Named HG.5 input `hsearch` (all runs): producer HG2A-RECEIPT F3 (lf-hg2a); reset_row and
+reset_first come from it. Open: an Assembly bridge from the HG.5 producer's ports
+(RMono, RXing, RCap, writes, rowCoverage) to this all-run `hsearch` form. -/
 theorem healing_resetArrival (p : Params) (G ΔF : Time)
     (hsearch : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
       (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
