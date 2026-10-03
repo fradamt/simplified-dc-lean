@@ -40,6 +40,11 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PhaseOrder
 public import AvailableChainFGSAProofs.Proofs.Finality.Accept
 public import AvailableChainFGSAProofs.Proofs.Healing.Base
 public import AvailableChainFGSAProofs.Proofs.Healing.Descent
+public import AvailableChainFGSAProofs.Proofs.Healing.DescentLoss
+public import AvailableChainFGSAProofs.Proofs.Healing.DescentLossFirst
+public import AvailableChainFGSAProofs.Proofs.Healing.DescentLossNext
+public import AvailableChainFGSAProofs.Proofs.Healing.DescentLossLease
+public import AvailableChainFGSAProofs.Proofs.Healing.DescentLossCause
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersL2
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersQ
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersH6S

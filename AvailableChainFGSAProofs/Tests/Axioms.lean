@@ -36,6 +36,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PhaseSettle -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseBoot -- shake: keep (H-PHASE r2 audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.Base -- shake: keep (H-BASE audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.Descent -- shake: keep (H-DESCENT audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.DescentLossCause -- shake: keep (H-DESCENT D2 audit)
 public import AvailableChainFGSAProofs.Proofs.Foundations.HonestNeverSlashed -- shake: keep (HNS audit)
 public import AvailableChainFGSAProofs.Proofs.Foundations.FinalityApi -- shake: keep (S4.5b axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersL2 -- shake: keep (consumer audit)
@@ -966,6 +967,38 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.healing_finality_source
 #print axioms AvailableChain.FGSA.Run.healing_justified_source
 #print axioms AvailableChain.FGSA.Run.healing_rExcl
+-- H-DESCENT D2: loss, same, support, cause and the first-failure instance.
+#print axioms AvailableChain.FGSA.Run.SrcN_def
+#print axioms AvailableChain.FGSA.Run.HighSrcN_def
+#print axioms AvailableChain.FGSA.Run.Lost_def
+#print axioms AvailableChain.FGSA.Run.healing_srcN_of_source
+#print axioms AvailableChain.FGSA.Run.healing_headAtIdx_tick
+#print axioms AvailableChain.FGSA.Run.healing_idx_lt_of_time_lt
+#print axioms AvailableChain.FGSA.Run.healing_source_decode
+#print axioms AvailableChain.FGSA.Run.healing_high_source_sync
+#print axioms AvailableChain.FGSA.Run.healing_high_source_labelSync
+#print axioms AvailableChain.FGSA.Run.healing_loss_same
+#print axioms AvailableChain.FGSA.Run.healing_source_supporter
+#print axioms AvailableChain.FGSA.Run.healing_loss_of_supporter
+#print axioms AvailableChain.FGSA.Run.healing_loss_support
+#print axioms AvailableChain.FGSA.Run.healing_first_transfer_domain
+#print axioms AvailableChain.FGSA.Run.healing_block_receipt_sync
+#print axioms AvailableChain.FGSA.Run.healing_block_path_sync
+#print axioms AvailableChain.FGSA.Run.healing_block_stamp_le_now
+#print axioms AvailableChain.FGSA.Run.healing_batch_seat_sync
+#print axioms AvailableChain.FGSA.Run.healing_next_transfer_domain
+#print axioms AvailableChain.FGSA.Run.healing_loss_lease_late
+#print axioms AvailableChain.FGSA.Run.healing_head_covers_root
+#print axioms AvailableChain.FGSA.Run.healing_loss_late_source
+#print axioms AvailableChain.FGSA.Run.healing_loss_single_cause
+#print axioms AvailableChain.FGSA.Run.healing_loss_cause_of_view
+#print axioms AvailableChain.FGSA.Run.healing_noLoss_heads
+#print axioms AvailableChain.FGSA.Run.healing_loss_F_below
+#print axioms AvailableChain.FGSA.Run.healing_source_receipt
+#print axioms AvailableChain.FGSA.Run.healing_loss_domain
+#print axioms AvailableChain.FGSA.Run.healing_loss_cause
+#print axioms AvailableChain.FGSA.Run.healing_high_source_compat
+#print axioms AvailableChain.FGSA.Run.healing_high_source_compat_reset
 #print axioms AvailableChain.FGSA.Run.inclusion_acceptance_of_stored
 #print axioms AvailableChain.FGSA.Run.inclusion_receipt_of_compatible
 #print axioms AvailableChain.FGSA.Run.inclusion_proposal_receipt
