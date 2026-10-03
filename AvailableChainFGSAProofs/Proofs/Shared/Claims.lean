@@ -7,6 +7,10 @@ public import AvailableChainFGSAProofs.Proofs.Shared.Healed
 public import AvailableChainFGSAClaims.Claims.Foundations
 public import AvailableChainFGSAClaims.Claims.Clean
 public import AvailableChainFGSAProofs.Proofs.Shared.Regimes
+public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowth
+public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthCausal
+public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthProposal
+public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthReads
 
 /-! Holds claim → claim implications only; its Claims/* imports are an exact L42 exception.
 P3 r3.5.8 R5-66. -/
@@ -192,6 +196,54 @@ theorem fgsa_availableGST (hH : HTimeClaim p) : AvailableGSTClaim p := by
   change Block.Preceq pt.P (V2.D.outputAt E rho g x t)
   rw [hread]
   exact Gen.Pure.block_preceq_trans hb hm
+
+end AvailableChain.FGSA.Run
+end
+
+public section
+namespace AvailableChain.FGSA.Run
+variable {p : Params}
+
+/-- Plan B1–B2; Blueprint 21 H.20–H.22: conditional GST growth uses one
+H-time witness, recovery recurrence and awake proposers. The shared causal,
+emission, healed-read and order lemmas supply both public outputs. -/
+theorem fgsa_availableGrowthGST (hH : HTimeClaim p) : AvailableGrowthGSTClaim p := by
+  intro G ΔF hδ V _ _ In c E rho t hp hlate hhor
+  obtain ⟨w, input, hstar, available⟩ := fgsa_availableGST hH G ΔF hδ c E rho hp
+  have hd := p.deltaPos
+  have hgap := hp.set.gapPos
+  have hzero : 0 ≤ tstar p w := by
+    change 0 ≤ 4 * p.Δ * (w.u : Time) + 6 * p.Δ
+    positivity
+  have ht : 0 ≤ t := hzero.trans (hstar.le.trans hlate)
+  have hgst : E.t_GST ≤ t := input.wit.after_gst.trans (hstar.le.trans hlate)
+  have h6 : 0 ≤ 6 * p.Δ := mul_nonneg (by decide) hd.le
+  have hG : 0 ≤ G := (mul_nonneg (by decide : (0 : Time) ≤ 4) hd.le).trans hgap
+  have hwindow : t + G ≤ rho.horizon := (le_add_of_nonneg_right h6).trans hhor
+  have htD : t ≤ t + G + 6 * p.Δ :=
+    (le_add_of_nonneg_right hG).trans (le_add_of_nonneg_right h6)
+  obtain ⟨s, hfuture, hupper, hh⟩ := hp.set.gap t hgst hwindow
+  have hs := hp.set.base.valid.toScheduleWellFormed
+  have ha := hp.set.awake _ hh.2 _ (hgst.trans hfuture.le) (hupper.trans hwindow)
+  obtain ⟨B, hprop, hslot⟩ := fgsa_honestProposal_exists_of_awake_slot E rho hs
+    hp.set.base.delta hh ha (hupper.trans hwindow)
+  have hgate : SA.gateTime p.toParams s ≤ t + G + 6 * p.Δ := by
+    change 4 * p.Δ * (s : Time) + 6 * p.Δ ≤ t + G + 6 * p.Δ
+    change 4 * p.Δ * (s : Time) ≤ t + G at hupper
+    simpa only [add_comm] using add_le_add_left hupper (6 * p.Δ)
+  have hincl := available.2 ⟨s, B⟩ (hlate.trans hfuture.le) hprop (hgate.trans hhor)
+  refine ⟨w, input, hstar, s, B, jointGrowthAt_of_inclusion
+    (fun g x u => V2.D.outputAt E rho g x u)
+    (fun g => g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed])
+    (· ∈ rho.honest) (V2.D.proposalTime (fgsaInterface p c))
+    (HonestProposal E rho (fgsaInterface p c)) s B t (t + G + 6 * p.Δ)
+    hfuture hprop ?_ ?_ ?_⟩
+  · intro g x hg hx
+    exact fgsa_healed_output_mono E rho hs available.1 hlate htD g hg x hx
+  · intro g x hg hx
+    exact hincl g hg _ x ⟨hgate, hhor⟩ hx
+  · intro g x hg _
+    exact fgsa_output_noFuture_of_slot E rho hs ht hfuture hslot.ge g hg x
 
 end AvailableChain.FGSA.Run
 end

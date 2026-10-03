@@ -625,6 +625,7 @@ def AvailableChain.FGSA.Run.sourceCandidates 15ae2568da2c93f7
 def AvailableChain.FGSA.Run.jointSource a8e774b37966a38f
 def AvailableChain.FGSA.Run.proposerHead 4848c6880d5bdd2a
 def AvailableChain.FGSA.Run.outputS f3f1bf40e501d936
+theorem AvailableChain.FGSA.Run.outputS_def 6f0e9f78ba8dc35c
 theorem AvailableChain.FGSA.Run.frameR_def e647c3d9dd45e6b3
 theorem AvailableChain.FGSA.Run.jointSource_def eadd593b9688b0c7
 theorem AvailableChain.FGSA.Run.sourceCandidates_def a419a14c1319e0ab
@@ -924,6 +925,8 @@ field AvailableChain.FGSA.Run.HealingInput.t ce6ab438eb5d9085
 field AvailableChain.FGSA.Run.HealingInput.ac 104a593c7fe48e84
 def AvailableChain.FGSA.Run.HTimeStatement 99c16a93fb2da368
 theorem AvailableChain.FGSA.Run.HTimeStatement_def 802f73b6f7584190
+theorem AvailableChain.FGSA.Run.HealSuffix_def 77fd85e015683d8d
+theorem AvailableChain.FGSA.Run.healStart_def 2dda0ae3b45847ac
 ```
 
 ### `AvailableChainFGSAClaims.Statements.HealedBest`
@@ -1205,6 +1208,7 @@ field AvailableChain.FGSA.Run.TerminalCarriagePrem_W.receipt 0e72a79461882f77
 def AvailableChain.FGSA.Run.TerminalCarriage_W 975b3d16f0e9ec55
 theorem AvailableChain.FGSA.Run.FreshFinalityRows_W_def 5233573c6df65266
 theorem AvailableChain.FGSA.Run.TerminalCarriage_W_def 9b0257f618a69f02
+theorem AvailableChain.FGSA.Run.finHeight_def 9b7a4c751f560d6e
 ```
 
 ### `AvailableChainFGSAClaims.Statements.Reads`
@@ -1246,6 +1250,7 @@ def AvailableChain.FGSA.Run.HandlesRowAt 8b75822a1d00a018
 def AvailableChain.FGSA.Run.AcceptsFinalBefore 4cc0fb9af7db4ce7
 def AvailableChain.FGSA.Run.cleanResults f0df2d276deac5e5
 def AvailableChain.FGSA.Run.BelowLabel 0744de2d9ea42c8a
+theorem AvailableChain.FGSA.Run.S_at_def 6c021b70d01d96d6
 ```
 
 ### `AvailableChainFGSAClaims.Statements.Recurrence`
@@ -1402,6 +1407,7 @@ field AvailableChain.FGSA.Run.HealingWitness.CStar a6650ab30193da26
 field AvailableChain.FGSA.Run.HealingWitness.u 53e15c872782e203
 field AvailableChain.FGSA.Run.HealingWitness.QStar c0854bdbccdf113f
 def AvailableChain.FGSA.Run.tstar 337454ec3bb362a4
+theorem AvailableChain.FGSA.Run.tstar_def 3389582619b0d6ee
 def AvailableChain.FGSA.Run.oldRowHeights dc389602ef719188
 def AvailableChain.FGSA.Run.muOf 76f2326ad2478ce1
 def AvailableChain.FGSA.Run.high 7ff53a720615a0ba
