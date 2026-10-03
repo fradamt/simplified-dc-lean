@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.PromotionTerminal
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionTerminal -- shake: keep (terminal application and boundary tests)
 
 set_option linter.privateModule false
 

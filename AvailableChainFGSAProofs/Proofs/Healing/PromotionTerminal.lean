@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.PromotionRenewed
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionRenewed -- shake: keep (terminal promotion suppliers)
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportGate -- shake: keep (Recovery₂.gamma_eq supplier)
 
 public section
