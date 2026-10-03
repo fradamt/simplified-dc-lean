@@ -2168,6 +2168,13 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.healing_tDel',
     'AvailableChain.FGSA.Run.healing_tDelReset_core',
     'AvailableChain.FGSA.Run.healing_tDelReset',
+    # J11 H-TIME: --expect DATA additions only.
+    'AvailableChain.FGSA.Run.HealingInputOfH0Statement',
+    'AvailableChain.FGSA.Run.HealingInputOfH0Statement_def',
+    'AvailableChain.FGSA.Run.healing_resetF_budget_eq',
+    'AvailableChain.FGSA.Run.healing_resetFull_horizon',
+    'AvailableChain.FGSA.Run.healing_time_strict_of_reset',
+    'AvailableChain.FGSA.Run.healing_hTime_of',
     # J3-KEEP: --expect DATA only.
     'AvailableChain.FGSA.Run.postReset_general_kept',
     'AvailableChain.FGSA.Run.postReset_keep_height',

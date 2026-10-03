@@ -147,6 +147,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetInvariant -- shak
 public import AvailableChainFGSAProofs.Proofs.Healing.SourceTiming -- shake: keep (H12 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.Delivery -- shake: keep (TDel axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.DeliveryReset -- shake: keep (reset core axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.Time -- shake: keep (J11 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetTransfer -- shake: keep (J1 reset axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat -- shake: keep (J2 axiom audit)
 
@@ -1653,6 +1654,13 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw -- shake: kee
 #print axioms AvailableChain.FGSA.Run.reset_old_height_sup_le
 #print axioms AvailableChain.FGSA.Run.reset_mu_le_iff
 
+-- J11 H-TIME composition.
+#print axioms AvailableChain.FGSA.Run.HealingInputOfH0Statement
+#print axioms AvailableChain.FGSA.Run.HealingInputOfH0Statement_def
+#print axioms AvailableChain.FGSA.Run.healing_resetF_budget_eq
+#print axioms AvailableChain.FGSA.Run.healing_resetFull_horizon
+#print axioms AvailableChain.FGSA.Run.healing_time_strict_of_reset
+#print axioms AvailableChain.FGSA.Run.healing_hTime_of
 -- J4-LEASE: both H0Reset provenance clauses and the all-event body.
 #print axioms AvailableChain.FGSA.Run.postReset_fProv_all
 #print axioms AvailableChain.FGSA.Run.postReset_rFProv_reset
