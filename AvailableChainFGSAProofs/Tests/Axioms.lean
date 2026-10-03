@@ -41,6 +41,7 @@ public import AvailableChainFGSAProofs.Proofs.Finality.RowsFrame -- shake: keep 
 public import AvailableChainFGSAProofs.Proofs.Finality.RowsBatch -- shake: keep (K-ROWS-PREM audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.RowsRecords -- shake: keep (K-ROWS-PREM audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.RowsPrem -- shake: keep (K-ROWS-PREM P3 audit)
+public import AvailableChainFGSAProofs.Proofs.Finality.Kernel -- shake: keep (K-FWD audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Carry -- shake: keep (K-CARRY audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Batch -- shake: keep (K-BATCH audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Accept -- shake: keep (K-ACCEPT axiom audit)
@@ -1073,6 +1074,8 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_tVote
 #print axioms AvailableChain.FGSA.Run.fgsa_coreServices
 #print axioms AvailableChain.FGSA.Run.fgsa_kernelACSide_W
+#print axioms AvailableChain.FGSA.Run.fgsa_finalityKernel_W_of
+#print axioms AvailableChain.FGSA.Run.fgsa_finalityKernel_W
 -- K-HISTORY: raw origin is supplied by Assembly.
 #print axioms AvailableChain.FGSA.Run.noMixedPreBatchParent
 #print axioms AvailableChain.FGSA.Run.justifyFresh_W
@@ -1206,6 +1209,12 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.rowsPrem_fresh_rows
 #print axioms AvailableChain.FGSA.Run.rowsPrem_anchor_cap
 #print axioms AvailableChain.FGSA.Run.rowsPrem_anchor_retained_or_covered
+
+-- K-FWD: the forward W finality kernel.
+#print axioms AvailableChain.FGSA.Run.finality_kernel_W_of
+#print axioms AvailableChain.FGSA.Run.finality_kernel_joined_W_of
+#print axioms AvailableChain.FGSA.Run.fgsa_finalityKernelJoined_W_of
+#print axioms AvailableChain.FGSA.Run.fgsa_finalityKernelJoined_W
 -- S5 GROWTH: causal, emission, order, clean body and conditional GST proof.
 #print axioms AvailableChain.FGSA.Run.fgsa_timeIdx_now_le
 #print axioms AvailableChain.FGSA.Run.fgsa_output_noFuture_of_slot
