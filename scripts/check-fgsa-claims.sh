@@ -383,6 +383,19 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_continuation_proposal_receipts',
     'AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_source_row_receipt',
     'AvailableChain.FGSA.Run.Tests.WitnessPositive.positive_continuation_row_receipt',
+    # D4b timing: --expect additions only.
+    'AvailableChain.FGSA.Run.cap_finality_head',
+    'AvailableChain.FGSA.Run.healing_finality_source_clock',
+    'AvailableChain.FGSA.Run.healing_rFProv_finality',
+    # D4 timing: --expect additions only.
+    'AvailableChain.FGSA.Run.healing_low_finality_at_reset',
+    'AvailableChain.FGSA.Run.healing_row_delivery',
+    'AvailableChain.FGSA.Run.healing_receipt_before_tick',
+    'AvailableChain.FGSA.Run.healing_action_period',
+    'AvailableChain.FGSA.Run.healing_delivery_clock',
+    'AvailableChain.FGSA.Run.healing_justification_timed',
+    'AvailableChain.FGSA.Run.healing_justified_source_clock',
+    'AvailableChain.FGSA.Run.healing_action_source_held',
     # H-DESCENT: --expect additions only.
     'AvailableChain.FGSA.Run.healing_source_gate',
     'AvailableChain.FGSA.Run.healing_source_read',
