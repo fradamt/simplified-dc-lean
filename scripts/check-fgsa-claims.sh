@@ -105,6 +105,12 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.HighRecordGuard_W',
     'AvailableChain.FGSA.Run.HighRecordGuard_W_def',
     'AvailableChain.FGSA.Run.ff2_high_record_guards',
+    # K-MID: --expect DATA only.
+    'AvailableChain.FGSA.Run.kernel_opening_and_middle',
+    'AvailableChain.FGSA.Run.kernel_middle_fresh_U',
+    'AvailableChain.FGSA.Run.kernel_middle_early_justification',
+    'AvailableChain.FGSA.Run.kernel_middle_source_cap',
+    'AvailableChain.FGSA.Run.kmid_source_held_at_tick',
     # C-CORE: --expect DATA only.
     'AvailableChain.FGSA.Run.fgsa_tStart',
     'AvailableChain.FGSA.Run.fgsa_tWalk',
