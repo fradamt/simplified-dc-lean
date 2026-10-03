@@ -36,24 +36,6 @@ private theorem bounded_tCompat (hs : V2.D.ScheduleWellFormed E rho)
   obtain ⟨k, hk⟩ := ht
   exact hist.history k x r C ((Gen.V2.Duty.index_lt_idxBefore_iff hs hk _).mpr hr) hx hk hC
 
-private theorem gate_ne_vote (p : Params) (j s : Slot) :
-    SA.gateTime p.toParams j ≠ SA.voteTime p.toParams s := by
-  intro he
-  rw [arming_gate_eq, arming_vote_eq] at he
-  have hz : (4 * (j : Int) + 5 - 4 * (s : Int)) * p.Δ = 0 := by linear_combination he
-  rcases mul_eq_zero.mp hz with h | h
-  · omega
-  · exact (ne_of_gt p.deltaPos h).elim
-
-private theorem gate_ne_proposal (p : Params) (j s : Slot) :
-    SA.gateTime p.toParams j ≠ SA.proposalTime p.toParams s := by
-  intro he
-  rw [arming_gate_eq, arming_proposal_eq] at he
-  have hz : (4 * (j : Int) + 6 - 4 * (s : Int)) * p.Δ = 0 := by linear_combination he
-  rcases mul_eq_zero.mp hz with h | h
-  · omega
-  · exact (ne_of_gt p.deltaPos h).elim
-
 /-- Blueprint 03 §8.1; O-INDUCT plan §2 handoff. Class (iii).
 DC: INTENTIONAL; all old sources, including the pending action at d,
 are compatible with B. The real ArmingCert fields give the two cases.
@@ -98,10 +80,10 @@ theorem outage_arming_duties (hvalid : V2.D.ExecutionValid E rho) (j : Slot) (B 
   constructor
   · intro H hH
     obtain ⟨s, _, _, _, he, _, _⟩ := arming_emit_head hvalid hy ⟨k, htick, ho⟩ hH
-    exact (gate_ne_vote p j s (hte.symm.trans he)).elim
+    exact (arming_gate_ne_vote p j s (hte.symm.trans he)).elim
   · intro X raw sup rows hX
     obtain ⟨s, _, _, he, _, _⟩ := arming_emit_proposal hvalid hy ⟨k, htick, ho⟩ hX
-    exact (gate_ne_proposal p j s (hte.symm.trans he)).elim
+    exact (arming_gate_ne_proposal p j s (hte.symm.trans he)).elim
 
 section Prefix
 

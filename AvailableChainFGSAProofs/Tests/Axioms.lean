@@ -1257,6 +1257,15 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_cleanInclusionPostGateClaim_of_clean
 #print axioms AvailableChain.FGSA.Run.fgsa_cleanInclusionClaim_of_clean
 
+-- O-EXPORT-3: conditional outage claims.
+#print axioms AvailableChain.FGSA.Run.outage_outageCompatClaim_of
+#print axioms AvailableChain.FGSA.Run.outage_fastP1Claim_of
+#print axioms AvailableChain.FGSA.Run.outage_slowP1Claim_of
+#print axioms AvailableChain.FGSA.Run.outage_compat_body_of_cut
+#print axioms AvailableChain.FGSA.Run.fgsa_outageCompatClaim_of_clean
+#print axioms AvailableChain.FGSA.Run.fgsa_fastP1Claim_of_clean
+#print axioms AvailableChain.FGSA.Run.fgsa_slowP1Claim_of_clean
+
 -- O-EXPORT-2: conditional Clean growth claims.
 #print axioms AvailableChain.FGSA.Run.outage_cleanGrowthClaim_of
 #print axioms AvailableChain.FGSA.Run.fgsa_cleanGrowthClaim_of_clean
