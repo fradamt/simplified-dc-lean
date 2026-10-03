@@ -42,9 +42,10 @@ with that duty's own view X (as in RKeep), not at a pre-time cut with the full T
 is the base case of PostResetProtectedKept at such a tick, and Kept / D_at depend on the state
 at j and on X. First conjunct: the node holds C* in TF(j). Second: for every covered view X ⊆
 TF(j) that holds C* and every high source (RKeep's three source guards), C* has height M + 1,
-R.H = M + 1, R.lo ≤ h(C*), C* ∈ D_at and C* is kept — exactly protected_kept's kept clause for B
-= C* at the first release tick. The horizon guard is the one in frozen TDelReset. H0Reset is the
-future producer's input (J1), not a field here. -/
+R.H = M + 1, R.lo ≤ h(C*), and, when X also holds every prefix of C* (RKeep's path guard), C* ∈
+D_at and C* is kept — exactly protected_kept's kept clause for B = C* at the first release tick.
+The horizon guard is the one in frozen TDelReset. H0Reset is the future producer's input (J1),
+not a field here. -/
 def ResetTransferCore (w : HealingWitness) : Prop :=
   SA.releaseTime p.toParams w.sStar ≤ rho.horizon →
   ∀ j x, x ∈ rho.honest →
@@ -59,7 +60,8 @@ def ResetTransferCore (w : HealingWitness) : Prop :=
     high p w K → high p w K' → Block.Compatible (eraseFG K) (eraseFG K')) →
   (heightView p C).h = w.M + 1 ∧ (R_at p c E rho j x).H = w.M + 1 ∧
     (R_at p c E rho j x).lo ≤ (heightView p C).h ∧
-    C ∈ D_at p c E rho j x X ∧ Kept p c E rho j x X C
+    ((∀ A, FGBlock.Preceq A C → A ∈ X) →
+      C ∈ D_at p c E rho j x X ∧ Kept p c E rho j x X C)
 
 /-- Blueprint 21 H.14:2633–2651; plan "Induction design"; B1/B17/B18.
 C* and its prefixes have label s*. Other bodies are actual post-reset
