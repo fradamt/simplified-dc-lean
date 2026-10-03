@@ -38,6 +38,7 @@ public import AvailableChainFGSAProofs.Proofs.Outage.ArmingCover
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingPending
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingInput
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingMain
+public import AvailableChainFGSAProofs.Proofs.Outage.Close
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingGate
 public import AvailableChainFGSAProofs.Proofs.Outage.InclusionGateBody
 public import AvailableChainFGSAProofs.Proofs.Finality.CoreServices

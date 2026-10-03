@@ -23,6 +23,7 @@ public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposal -- shake: kee
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalHistory -- shake: keep (I-EXACT history audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalReceipts -- shake: keep (I-EXACT r2 receipt audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalRetained -- shake: keep (I-EXACT r2 G1 audit)
+public import AvailableChainFGSAProofs.Proofs.Outage.Close -- shake: keep (O-INDUCT/O-CLOSE axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingGate -- shake: keep (O-ARM audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingMain -- shake: keep (O-ARM audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.InclusionGateBody -- shake: keep (I-GATE/I-READ axiom audit)
@@ -1139,3 +1140,52 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_healed_output_mono
 #print axioms AvailableChain.FGSA.Run.clean_growth_body
 #print axioms AvailableChain.FGSA.Run.fgsa_availableGrowthGST
+
+-- S5 O-INDUCT/O-CLOSE: every public producer and defining equation.
+#print axioms AvailableChain.FGSA.Run.OutageSourceHistory_def
+#print axioms AvailableChain.FGSA.Run.OutageNamedHistory_def
+#print axioms AvailableChain.FGSA.Run.OutageProtection_def
+#print axioms AvailableChain.FGSA.Run.OutageDutyHistory_def
+#print axioms AvailableChain.FGSA.Run.outage_fault_lt_release
+#print axioms AvailableChain.FGSA.Run.outage_gate_ne_release
+#print axioms AvailableChain.FGSA.Run.outage_release_heads
+#print axioms AvailableChain.FGSA.Run.outage_release_bound
+#print axioms AvailableChain.FGSA.Run.outage_expire_row
+#print axioms AvailableChain.FGSA.Run.outage_release_row
+#print axioms AvailableChain.FGSA.Run.outage_clockPre_row
+#print axioms AvailableChain.FGSA.Run.outage_row_of_lease
+#print axioms AvailableChain.FGSA.Run.outage_normalize_covers
+#print axioms AvailableChain.FGSA.Run.outage_advance_covers
+#print axioms AvailableChain.FGSA.Run.outage_passed_raw_compatible
+#print axioms AvailableChain.FGSA.Run.outage_writeKeys_keep
+#print axioms AvailableChain.FGSA.Run.outage_normalize_protection
+#print axioms AvailableChain.FGSA.Run.outage_gateStep_protection
+#print axioms AvailableChain.FGSA.Run.outage_tick_source_compatible
+#print axioms AvailableChain.FGSA.Run.outage_head_of_root
+#print axioms AvailableChain.FGSA.Run.outage_delivery_protection
+#print axioms AvailableChain.FGSA.Run.outage_fold_covers
+#print axioms AvailableChain.FGSA.Run.outage_liveRoot_of_lease
+#print axioms AvailableChain.FGSA.Run.outage_liveRoot_covers
+#print axioms AvailableChain.FGSA.Run.outage_delivery_frame
+#print axioms AvailableChain.FGSA.Run.outage_frame_retains
+#print axioms AvailableChain.FGSA.Run.outage_row_before_delivery
+#print axioms AvailableChain.FGSA.Run.outage_named_of_source_history
+#print axioms AvailableChain.FGSA.Run.outage_disclosed_name_compatible
+#print axioms AvailableChain.FGSA.Run.outage_disclosed_crossing
+#print axioms AvailableChain.FGSA.Run.outage_disclosed_justification
+#print axioms AvailableChain.FGSA.Run.outage_disclosed_finalization
+#print axioms AvailableChain.FGSA.Run.outage_tick_after_cut
+#print axioms AvailableChain.FGSA.Run.outage_source_history_delivery
+#print axioms AvailableChain.FGSA.Run.outage_protected_read
+#print axioms AvailableChain.FGSA.Run.outage_finalized_read
+#print axioms AvailableChain.FGSA.Run.outage_compat_body
+#print axioms AvailableChain.FGSA.Run.fast_p1_body
+#print axioms AvailableChain.FGSA.Run.slow_p1_body
+#print axioms AvailableChain.FGSA.Run.outage_arming_sources
+#print axioms AvailableChain.FGSA.Run.outage_arming_duties
+#print axioms AvailableChain.FGSA.Run.outage_event_induction
+#print axioms AvailableChain.FGSA.Run.outage_arming_local
+#print axioms AvailableChain.FGSA.Run.outage_armed_induction
+#print axioms AvailableChain.FGSA.Run.outage_source_history
+#print axioms AvailableChain.FGSA.Run.lease_or_F_persists
+#print axioms AvailableChain.FGSA.Run.duties_and_outputs
