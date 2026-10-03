@@ -241,6 +241,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetOpening
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJoint
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJointStep
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetProject
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRawStep
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLeaseMove
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJoint2
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetTHigh
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchHG2a

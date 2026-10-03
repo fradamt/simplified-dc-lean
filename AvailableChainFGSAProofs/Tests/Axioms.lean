@@ -176,6 +176,9 @@ public import AvailableChainFGSAProofs.Proofs.Healing.AttemptSettle -- shake: ke
 public import AvailableChainFGSAProofs.Proofs.Healing.AttemptRows -- shake: keep (complete first rows)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetHealed -- shake: keep (J7 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Assembly.ProgressAttempt -- shake: keep
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRawStep -- shake: keep (J5-A-2 audit)
+
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLeaseMove -- shake: keep (J4A2-2 audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJoint2 -- shake: keep (JOINT-IND2 audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetTHigh -- shake: keep (THIGH-C audit)
 
@@ -1862,6 +1865,42 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone -- shake: ke
 -- J5-RAW: the reset-only all-cut H5 projection.
 #print axioms AvailableChain.FGSA.Run.postReset_h5RawTransfer_body
 
+-- J5A-RAW: separate reset leases, delivery, preservation and raw first transfer.
+#print axioms AvailableChain.FGSA.Run.PostResetResetLeaseCompatible
+#print axioms AvailableChain.FGSA.Run.PostResetResetLeaseCompatible_def
+#print axioms AvailableChain.FGSA.Run.healing_gate_result_supporter
+#print axioms AvailableChain.FGSA.Run.postReset_delivery_no_obligation
+#print axioms AvailableChain.FGSA.Run.postReset_resetLease_preserve
+#print axioms AvailableChain.FGSA.Run.postReset_resetLease_base
+#print axioms AvailableChain.FGSA.Run.healing_first_transfer_raw_domain
+
+-- J5A-RAW: shared moving-frame producers and ordered reset-lease successor.
+#print axioms AvailableChain.FGSA.Run.postReset_slow_window_sync
+#print axioms AvailableChain.FGSA.Run.postReset_raw_reset_compatible
+#print axioms AvailableChain.FGSA.Run.postReset_noRewrite
+#print axioms AvailableChain.FGSA.Run.healing_output_moving_suffix
+#print axioms AvailableChain.FGSA.Run.postReset_resetLease_at_reset
+#print axioms AvailableChain.FGSA.Run.postReset_resetLease_succ
+#print axioms AvailableChain.FGSA.Run.postReset_raw_release_compatible
+#print axioms AvailableChain.FGSA.Run.healing_proposal_moving_domain
+#print axioms AvailableChain.FGSA.Run.healing_proposal_moving_parent
+
+-- J5A lead step range: zero base and before-reset raw vacuity.
+#print axioms AvailableChain.FGSA.Run.postReset_resetLease_zero
+#print axioms AvailableChain.FGSA.Run.postReset_rawTransfer_before_reset
+
+-- J5A: exact prior-triple adapter for the published joint reset-lease step.
+#print axioms AvailableChain.FGSA.Run.postReset_resetLease_step
+-- J4-A2: frozen written-prefix domain, first HEAD and new-write S1.
+#print axioms AvailableChain.FGSA.Run.postReset_written_source_compatible
+#print axioms AvailableChain.FGSA.Run.postReset_written_domain
+#print axioms AvailableChain.FGSA.Run.postReset_written_first_head
+#print axioms AvailableChain.FGSA.Run.postReset_written_first_head_label
+#print axioms AvailableChain.FGSA.Run.postReset_written_heads_at_write_cut
+
+-- J4-A2: later-result boundary and its complete successor clause.
+#print axioms AvailableChain.FGSA.Run.postReset_written_later_result
+#print axioms AvailableChain.FGSA.Run.postReset_leaseSafe_results_succ
 -- J6-3: separate opening predicate and both cut producers.
 #print axioms AvailableChain.FGSA.Run.PostResetOpeningDomain
 #print axioms AvailableChain.FGSA.Run.PostResetOpeningDomain_def
@@ -1929,6 +1968,28 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone -- shake: ke
 #print axioms AvailableChain.FGSA.Run.postReset_tCarrier_reset
 #print axioms AvailableChain.FGSA.Run.postReset_h2A_reset
 
+-- J5-A-2: first HEAD, source cut, moving domain, and reset-lease adapter.
+#print axioms AvailableChain.FGSA.Run.postReset_raw_first_head_above
+#print axioms AvailableChain.FGSA.Run.postReset_raw_first_head
+#print axioms AvailableChain.FGSA.Run.postReset_raw_first_head_label
+#print axioms AvailableChain.FGSA.Run.postReset_raw_heads_at_gate_cut
+#print axioms AvailableChain.FGSA.Run.postReset_raw_moving_domain
+#print axioms AvailableChain.FGSA.Run.postReset_resetLease_succ_all
+
+#print axioms AvailableChain.FGSA.Run.postReset_raw_at_gate_cut
+#print axioms AvailableChain.FGSA.Run.postReset_moving_domain
+#print axioms AvailableChain.FGSA.Run.postReset_moving_head_cut
+
+-- J4A2-3: last-write leases and the frozen successor.
+#print axioms AvailableChain.FGSA.Run.postReset_moving_lease_compat
+#print axioms AvailableChain.FGSA.Run.postReset_written_next_head
+#print axioms AvailableChain.FGSA.Run.postReset_written_moving_parent
+#print axioms AvailableChain.FGSA.Run.postReset_written_heads_succ
+#print axioms AvailableChain.FGSA.Run.postReset_written_proposals_succ
+#print axioms AvailableChain.FGSA.Run.postReset_written_finality_compatible
+#print axioms AvailableChain.FGSA.Run.postReset_written_gate_lease_compat
+#print axioms AvailableChain.FGSA.Run.postReset_written_outputs_succ
+#print axioms AvailableChain.FGSA.Run.postReset_leaseSafe_succ
 -- JOINT-IND2: retained-cone field and joint induction.
 #print axioms AvailableChain.FGSA.Run.PostResetRetainedConeP
 #print axioms AvailableChain.FGSA.Run.PostResetConeStep
@@ -1985,6 +2046,18 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone -- shake: ke
 #print axioms AvailableChain.FGSA.Run.postReset_h2Prime_first
 #print axioms AvailableChain.FGSA.Run.postReset_h2Prime_reset
 
+-- J5-A-3: raw moving leases and the exact raw successor.
+#print axioms AvailableChain.FGSA.Run.postReset_raw_moving_lease_compat
+#print axioms AvailableChain.FGSA.Run.postReset_raw_heads_succ_above
+#print axioms AvailableChain.FGSA.Run.postReset_raw_proposals_succ_above
+#print axioms AvailableChain.FGSA.Run.postReset_raw_finality_compatible_above
+#print axioms AvailableChain.FGSA.Run.postReset_raw_gate_lease_compat
+#print axioms AvailableChain.FGSA.Run.postReset_raw_outputs_succ_above
+#print axioms AvailableChain.FGSA.Run.postReset_raw_heads_succ
+#print axioms AvailableChain.FGSA.Run.postReset_raw_proposals_succ
+#print axioms AvailableChain.FGSA.Run.postReset_raw_outputs_succ
+#print axioms AvailableChain.FGSA.Run.postReset_rawTransfer_succ
+#print axioms AvailableChain.FGSA.Run.postReset_resetLease_succ'
 -- S5 HTIME-WIRE W2–W4: standard axiom audit, additions only.
 #print axioms AvailableChain.FGSA.Run.healing_resetArrivalFull_of_open
 #print axioms AvailableChain.FGSA.Run.healing_hTimeClaim_of_statement
