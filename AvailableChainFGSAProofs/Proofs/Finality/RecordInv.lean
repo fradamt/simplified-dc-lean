@@ -53,7 +53,7 @@ private theorem recordInv_entry_source (w : HealingWitness) (hh : THigh p c E rh
   · obtain ⟨hz, hD, heq⟩ := Classical.choose_spec
       (Classical.choose_spec (Classical.choose_spec h))
     exact congrArg FGBlock.root (high_source_entry_eq p c E rho w hh _ x _ r _ C
-      hz hx hD hs (by change w.M + 1 ≤ _; rw [heq]; exact hc) hc heq)
+      hz hx hD hs (by simpa only [high_def, heq] using hc) hc heq)
   · exact (h ⟨x, r, C, hx, hs, rfl⟩).elim
 
 private theorem recordInv_height_pair_some_def (Λ : Record) (y : Nat) (T : BlockId)
@@ -148,7 +148,7 @@ private theorem recordInv_finality_source (w : HealingWitness)
       congrArg Prod.snd heq
     obtain ⟨j, _, hj⟩ := hb
     have hentry := recordInv_entry_source p c E rho w hh z r C hj.1 hC
-      (by change w.M + 1 ≤ _; rw [hyC]; exact hy)
+      (by rw [high_def, hyC]; exact hy)
     rw [hyC] at hentry
     exact hroot.trans (hTC.trans hentry.symm)
 
@@ -229,7 +229,7 @@ private theorem recordInv_released_pair (w : HealingWitness)
   rw [hfields] at hpair
   obtain ⟨C, hs, hc, ht⟩ := hsource
   have hentry := recordInv_entry_source p c E rho w hh x r C hx hs
-    (by change w.M + 1 ≤ _; rw [hc]; exact hy)
+    (by rw [high_def, hc]; exact hy)
   rw [hc, ht] at hentry
   obtain ⟨htr, hto, hlock, _⟩ := hg y hy
   have hchoice := high_record_target_choice Λ.toRecord y T
@@ -347,7 +347,7 @@ private theorem recordInv_all (w : HealingWitness)
               apply recordInv_write p _ _ Λ (body.toRow seat) hg
               · intro y T timeout hp hy
                 change body.height_pair = .vote y T timeout at hp
-                have hn : namedEntry body.height_pair = some (y, T) := by rw [hp]; rfl
+                have hn : namedEntry body.height_pair = some (y, T) := by rw [namedEntry_def, hp]
                 obtain ⟨C, hs, heq⟩ := hnames i x r _ _ ⟨hx, hj, hem⟩ hn
                 have hc := (congrArg Prod.fst heq).symm
                 have ht := (congrArg Prod.snd heq).symm
@@ -445,8 +445,8 @@ private theorem recordInv_own_origin (i : Nat) (x : V) (seat : Fin p.n) (body : 
 private theorem recordInv_rowHeight_def (a : RowWire p.n) : rowHeight a =
     NamedHeightPair.casesOn (motive := fun _ => Option Nat) a.payload.height_pair
       none (fun h _ _ => some h) := by
-  rcases a with ⟨auth, ⟨⟨hp, fp⟩⟩⟩
-  cases hp <;> rfl
+  rw [rowHeight_def]
+  cases a.payload.height_pair <;> rfl
 
 /-- Paper 22:886–909,1228–1254: no earlier row at or above y leaves y fresh.
 DC: INTENTIONAL: durable actual-write history, including restart and suppression. -/
@@ -710,7 +710,7 @@ theorem high_record_reset_fresh (w : HealingWitness) (h0 : H0Reset p c E rho w)
     have hgh : g = h := by
       rw [hp] at hh
       exact Option.some.inj hh
-    have hcap := h0.rowCap j x r a g T (p.actionTime r) ha ha.2.1 ht (by rw [hp]; rfl)
+    have hcap := h0.rowCap j x r a g T (p.actionTime r) ha ha.2.1 ht (by rw [namedEntry_def, hp])
     simp only [Height] at *
     omega
 
@@ -735,7 +735,7 @@ theorem high_record_guards_and_fresh (w : HealingWitness)
       Λ.target (y + 1) = none ∧ Λ.timeout (y + 1) = false ∧ Λ.lock (y + 1) = none ∧
       ∀ b ∈ Λ.sent, ∀ T timeout, b.1 ≠ .vote (y + 1) T timeout := by
   have hentry := recordInv_entry_source p c E rho w hh z r C hz hsource
-    (by change w.M + 1 ≤ _; rw [hheight]; exact hy)
+    (by rw [high_def, hheight]; exact hy)
   rw [hheight] at hentry
   obtain ⟨ht, hn, hl, _⟩ := recordInv_all p c E rho w hh hqc hnames i x hx y hy
   rw [hentry] at ht hl
@@ -771,7 +771,8 @@ theorem high_target_first_row (w : HealingWitness)
 
 private theorem recordInv_honestSeats_def : honestSeats p c rho =
     @Finset.filter (Fin p.n) (fun i => rho.seatOf (.base .fg) i ∈ rho.honest)
-      (fun i => Classical.propDecidable (rho.seatOf (.base .fg) i ∈ rho.honest)) Finset.univ := rfl
+      (fun i => Classical.propDecidable (rho.seatOf (.base .fg) i ∈ rho.honest)) Finset.univ :=
+  honestSeats_def p c rho
 
 private theorem recordInv_honestSeats_mem (i : Fin p.n) :
     i ∈ honestSeats p c rho ↔ rho.seatOf (.base .fg) i ∈ rho.honest := by
@@ -978,7 +979,7 @@ private theorem recordInv_honest_pair (w : HealingWitness)
   | empty => rw [hp] at hn; cases hn
   | vote g U timeout =>
     rw [hp] at hn
-    change some (g, U) = some (y, T) at hn
+    rw [namedEntry_def] at hn
     have he : (g, U) = (y, T) := Option.some.inj hn
     cases he
     rcases wire with ⟨auth, body⟩
@@ -994,7 +995,7 @@ private theorem recordInv_honest_pair (w : HealingWitness)
           (congrArg Row.height_pair he).trans hp
         obtain ⟨_, _, _, _, hsend⟩ :=
           (fgsa_emitsAt_row E rho j x (p.actionTime r) ha.2.1 seat body).mp ha.2.2
-        have hnwire : namedEntry body.height_pair = some (y, T) := by rw [hb]; rfl
+        have hnwire : namedEntry body.height_pair = some (y, T) := by rw [namedEntry_def, hb]
         obtain ⟨C, hs, hc⟩ := hnames j x r _ _ ha hnwire
         obtain ⟨hroot, htimeout⟩ := recordInv_released_pair p c E rho w hh hqc j x r
           seat body ha.1 hsend (recordInv_all p c E rho w hh hqc hnames j x ha.1)
@@ -1015,7 +1016,7 @@ private theorem recordInv_qc_source (w : HealingWitness) (hh : THigh p c E rho w
   have he := Option.some.inj (hn.symm.trans hp)
   have hc : (heightView p C).h = y := congrArg Prod.fst he
   have ht : T = (heightView p C).T_h.root := (congrArg Prod.snd he).symm
-  have hhigh : high p w C := by change w.M + 1 ≤ _; rw [hc]; exact hy
+  have hhigh : high p w C := by rw [high_def, hc]; exact hy
   have hentry := recordInv_entry_source p c E rho w hh z r C ha.1 hs hhigh
   rw [hc] at hentry
   exact ⟨ha.1, hhigh, hc, ht, ht.trans hentry.symm⟩
