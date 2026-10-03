@@ -164,6 +164,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.HealingInputExport -- shak
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLeaseStep -- shake: keep (J4-A audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetHigh -- shake: keep (THigh audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw -- shake: keep (J5 axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJoint -- shake: keep (JOINT-IND audit)
 
 #print axioms AvailableChain.FGSA.Run.kmid_honestSeats_mem
 #print axioms AvailableChain.FGSA.Run.kmid_honest_quorum
@@ -1742,3 +1743,24 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw -- shake: kee
 #print axioms AvailableChain.FGSA.Run.postReset_selected_reset_compatible
 -- J5-RAW: the reset-only all-cut H5 projection.
 #print axioms AvailableChain.FGSA.Run.postReset_h5RawTransfer_body
+
+-- JOINT-IND: the empty cut, named steps, induction and projections.
+#print axioms AvailableChain.FGSA.Run.PostResetResetLeaseCompatibleP
+#print axioms AvailableChain.FGSA.Run.PostResetOpeningDomainP
+#print axioms AvailableChain.FGSA.Run.PostResetResetLeaseStep
+#print axioms AvailableChain.FGSA.Run.PostResetLeaseStep
+#print axioms AvailableChain.FGSA.Run.PostResetRawStep
+#print axioms AvailableChain.FGSA.Run.PostResetOpeningDomainStep
+#print axioms AvailableChain.FGSA.Run.PostResetServiceStep
+#print axioms AvailableChain.FGSA.Run.PostResetResetLeaseCompatibleP_def
+#print axioms AvailableChain.FGSA.Run.PostResetOpeningDomainP_def
+#print axioms AvailableChain.FGSA.Run.PostResetResetLeaseStep_def
+#print axioms AvailableChain.FGSA.Run.PostResetLeaseStep_def
+#print axioms AvailableChain.FGSA.Run.PostResetRawStep_def
+#print axioms AvailableChain.FGSA.Run.PostResetOpeningDomainStep_def
+#print axioms AvailableChain.FGSA.Run.PostResetServiceStep_def
+#print axioms AvailableChain.FGSA.Run.postReset_joint_zero
+#print axioms AvailableChain.FGSA.Run.postReset_joint_all
+#print axioms AvailableChain.FGSA.Run.postReset_inv_all
+#print axioms AvailableChain.FGSA.Run.postReset_reset_lease_compatible_all
+#print axioms AvailableChain.FGSA.Run.postReset_opening_domain_all

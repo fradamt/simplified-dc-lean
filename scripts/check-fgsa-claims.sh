@@ -2249,6 +2249,27 @@ EXPECTED = (
     # J4-A-LEASE: --expect DATA only.
     'AvailableChain.FGSA.Run.healing_first_transfer_written',
     'AvailableChain.FGSA.Run.postReset_written_sync',
+    # JOINT-IND: --expect DATA additions only.
+    'AvailableChain.FGSA.Run.PostResetResetLeaseCompatibleP',
+    'AvailableChain.FGSA.Run.PostResetOpeningDomainP',
+    'AvailableChain.FGSA.Run.PostResetResetLeaseStep',
+    'AvailableChain.FGSA.Run.PostResetLeaseStep',
+    'AvailableChain.FGSA.Run.PostResetRawStep',
+    'AvailableChain.FGSA.Run.PostResetOpeningDomainStep',
+    'AvailableChain.FGSA.Run.PostResetServiceStep',
+    'AvailableChain.FGSA.Run.PostResetResetLeaseCompatibleP_def',
+    'AvailableChain.FGSA.Run.PostResetOpeningDomainP_def',
+    'AvailableChain.FGSA.Run.PostResetResetLeaseStep_def',
+    'AvailableChain.FGSA.Run.PostResetLeaseStep_def',
+    'AvailableChain.FGSA.Run.PostResetRawStep_def',
+    'AvailableChain.FGSA.Run.PostResetOpeningDomainStep_def',
+    'AvailableChain.FGSA.Run.PostResetServiceStep_def',
+    'AvailableChain.FGSA.Run.postReset_joint_zero',
+    'AvailableChain.FGSA.Run.postReset_joint_all',
+    'AvailableChain.FGSA.Run.postReset_inv_all',
+    'AvailableChain.FGSA.Run.postReset_reset_lease_compatible_all',
+    'AvailableChain.FGSA.Run.postReset_opening_domain_all',
+
 )
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
          'Packages.Safety', 'OutputReads', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',
