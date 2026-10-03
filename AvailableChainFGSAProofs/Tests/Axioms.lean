@@ -6,6 +6,7 @@ public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposal -- shake: kee
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalHistory -- shake: keep (I-EXACT history audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalReceipts -- shake: keep (I-EXACT r2 receipt audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalRetained -- shake: keep (I-EXACT r2 G1 audit)
+public import AvailableChainFGSAProofs.Proofs.Outage.InclusionGateBody -- shake: keep (I-GATE/I-READ axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.CoreServices -- shake: keep (C-CORE audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.History -- shake: keep (K-HISTORY audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Height -- shake: keep (K-HEIGHT audit)
@@ -960,3 +961,12 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.receipt_delivery
 #print axioms AvailableChain.FGSA.Run.receipt_jPath
 #print axioms AvailableChain.FGSA.Run.receipt_acceptPrem_W
+
+-- I-GATE/I-READ: G1–G7.
+#print axioms AvailableChain.FGSA.Run.inclusion_headAtLabel
+#print axioms AvailableChain.FGSA.Run.inclusion_prior_results_below
+#print axioms AvailableChain.FGSA.Run.inclusion_preGate_bounds
+#print axioms AvailableChain.FGSA.Run.inclusion_awake_seat_batch
+#print axioms AvailableChain.FGSA.Run.inclusion_gate_exact
+#print axioms AvailableChain.FGSA.Run.clean_inclusion_post_gate_body
+#print axioms AvailableChain.FGSA.Run.clean_inclusion_body
