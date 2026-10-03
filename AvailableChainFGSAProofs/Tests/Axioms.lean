@@ -155,6 +155,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.ResetCut -- shake: keep (R
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLease -- shake: keep (J4 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep -- shake: keep (J3 audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostReset -- shake: keep (J9 axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.HealingInputExport -- shake: keep (J10 axiom audit)
 
 #print axioms AvailableChain.FGSA.Run.kmid_honestSeats_mem
 #print axioms AvailableChain.FGSA.Run.kmid_honest_quorum
@@ -1684,3 +1685,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostReset -- shake: keep (
 #print axioms AvailableChain.FGSA.Run.healing_resetFull_horizon
 #print axioms AvailableChain.FGSA.Run.healing_time_strict_of_reset
 #print axioms AvailableChain.FGSA.Run.healing_hTime_of
+
+-- J10: H0 projection, HealingInput export, and H-time composition.
+#print axioms AvailableChain.FGSA.Run.healing_postResetStart_of_h0
+#print axioms AvailableChain.FGSA.Run.healing_healingInputOfH0
+#print axioms AvailableChain.FGSA.Run.healing_hTime_of_inputs

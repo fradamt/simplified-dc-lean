@@ -2204,6 +2204,10 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.healing_resetFull_horizon',
     'AvailableChain.FGSA.Run.healing_time_strict_of_reset',
     'AvailableChain.FGSA.Run.healing_hTime_of',
+    # J10 HealingInput export: --expect DATA additions only.
+    'AvailableChain.FGSA.Run.healing_postResetStart_of_h0',
+    'AvailableChain.FGSA.Run.healing_healingInputOfH0',
+    'AvailableChain.FGSA.Run.healing_hTime_of_inputs',
 )
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
          'Packages.Safety', 'OutputReads', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',

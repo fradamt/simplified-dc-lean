@@ -3,6 +3,7 @@ public import AvailableChainFGSAProofs.Proofs.Foundations.RowPermission -- shake
 public import AvailableChainFGSAProofs.Proofs.Foundations.Sources -- shake: keep (row source fields)
 public meta import AvailableChainFGSAProofs.Proofs.Foundations.RowPermission -- shake: keep (closed evaluations)
 public import AvailableChainFGSAProofs.Proofs.Healing.Time -- shake: keep (J11 composition)
+public import AvailableChainFGSAProofs.Proofs.Healing.HealingInputExport -- shake: keep (J10 NV application)
 
 @[expose] public section
 
@@ -820,6 +821,126 @@ theorem nvHTimeOf (hReset : ResetArrivalFullStatement params gap deltaF)
 #print axioms nvHealingInputOfH0
 #print axioms nvHTimeWitness
 #print axioms nvHTimeOf
+
+end AvailableChain.FGSA.Run.Tests.NonVacuity.HealingFirst
+end
+
+-- J10 additions apply the new exports to the unchanged NV5 witness.
+public section
+namespace AvailableChain.FGSA.Run.Tests.NonVacuity.HealingFirst
+
+section
+variable (healed : params.δt = 2 * params.R →
+    ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+      (E : Generic.Env V) (rho : V2.D.Run V (fgsa params c)),
+      HealingSet params c E rho gap deltaF → LivenessBoundW params deltaF →
+      E.t_GST + B'_resetF params deltaF gap + Γ params gap + 4 * params.Δ ≤ rho.horizon →
+      ∀ w, H0 params c E rho w → Healed params c E rho (tstar params w))
+
+variable (sourcePrefix : params.δt = 2 * params.R →
+    ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+      (E : Generic.Env V) (rho : V2.D.Run V (fgsa params c)),
+      HealingSet params c E rho gap deltaF → LivenessBoundW params deltaF →
+      E.t_GST + B'_resetF params deltaF gap + Γ params gap + 4 * params.Δ ≤ rho.horizon →
+      ∀ w, H0 params c E rho w → Block.Preceq w.CStar w.QStar)
+
+variable (tHigh : params.δt = 2 * params.R →
+    ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+      (E : Generic.Env V) (rho : V2.D.Run V (fgsa params c)),
+      HealingSet params c E rho gap deltaF → LivenessBoundW params deltaF →
+      E.t_GST + B'_resetF params deltaF gap + Γ params gap + 4 * params.Δ ≤ rho.horizon →
+      ∀ w, H0 params c E rho w → THigh params c E rho w)
+
+variable (tCarrier : params.δt = 2 * params.R →
+    ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+      (E : Generic.Env V) (rho : V2.D.Run V (fgsa params c)),
+      HealingSet params c E rho gap deltaF → LivenessBoundW params deltaF →
+      E.t_GST + B'_resetF params deltaF gap + Γ params gap + 4 * params.Δ ≤ rho.horizon →
+      ∀ w, H0 params c E rho w → TCarrier params c E rho w)
+
+variable (rows : params.δt = 2 * params.R →
+    ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+      (E : Generic.Env V) (rho : V2.D.Run V (fgsa params c)),
+      HealingSet params c E rho gap deltaF → LivenessBoundW params deltaF →
+      E.t_GST + B'_resetF params deltaF gap + Γ params gap + 4 * params.Δ ≤ rho.horizon →
+      TRows params c E rho deltaF)
+
+variable (h2A : params.δt = 2 * params.R →
+    ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+      (E : Generic.Env V) (rho : V2.D.Run V (fgsa params c)),
+      HealingSet params c E rho gap deltaF → LivenessBoundW params deltaF →
+      E.t_GST + B'_resetF params deltaF gap + Γ params gap + 4 * params.Δ ≤ rho.horizon →
+      ∀ w, H0 params c E rho w → H2A params c E rho w)
+
+variable (h2Prime : params.δt = 2 * params.R →
+    ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+      (E : Generic.Env V) (rho : V2.D.Run V (fgsa params c)),
+      HealingSet params c E rho gap deltaF → LivenessBoundW params deltaF →
+      E.t_GST + B'_resetF params deltaF gap + Γ params gap + 4 * params.Δ ≤ rho.horizon →
+      ∀ w, H0 params c E rho w → H2Prime params c E rho w)
+
+variable (h3 : params.δt = 2 * params.R →
+    ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+      (E : Generic.Env V) (rho : V2.D.Run V (fgsa params c)),
+      HealingSet params c E rho gap deltaF → LivenessBoundW params deltaF →
+      E.t_GST + B'_resetF params deltaF gap + Γ params gap + 4 * params.Δ ≤ rho.horizon →
+      ∀ w, H0 params c E rho w → H3 params c E rho w)
+
+variable (h4 : params.δt = 2 * params.R →
+    ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+      (E : Generic.Env V) (rho : V2.D.Run V (fgsa params c)),
+      HealingSet params c E rho gap deltaF → LivenessBoundW params deltaF →
+      E.t_GST + B'_resetF params deltaF gap + Γ params gap + 4 * params.Δ ≤ rho.horizon →
+      ∀ w, H0 params c E rho w → H4 params c E rho w)
+
+variable (h5 : params.δt = 2 * params.R →
+    ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+      (E : Generic.Env V) (rho : V2.D.Run V (fgsa params c)),
+      HealingSet params c E rho gap deltaF → LivenessBoundW params deltaF →
+      E.t_GST + B'_resetF params deltaF gap + Γ params gap + 4 * params.Δ ≤ rho.horizon →
+      ∀ w, H0 params c E rho w → H5RawTransfer params c E rho w)
+
+variable (h6 : params.δt = 2 * params.R →
+    ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+      (E : Generic.Env V) (rho : V2.D.Run V (fgsa params c)),
+      HealingSet params c E rho gap deltaF → LivenessBoundW params deltaF →
+      E.t_GST + B'_resetF params deltaF gap + Γ params gap + 4 * params.Δ ≤ rho.horizon →
+      ∀ w, H0 params c E rho w → H6GateService params c E rho w)
+
+variable (timeBound : params.δt = 2 * params.R →
+    ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+      (E : Generic.Env V) (rho : V2.D.Run V (fgsa params c)),
+      HealingSet params c E rho gap deltaF → LivenessBoundW params deltaF →
+      E.t_GST + B'_resetF params deltaF gap + Γ params gap + 4 * params.Δ ≤ rho.horizon →
+      ∀ w, H0 params c E rho w →
+        tstar params w ≤ params.actionTime w.rStar + Γ params gap + 4 * params.Δ)
+
+include healed sourcePrefix tHigh tCarrier rows h2A h2Prime h3 h4 h5 h6 timeBound
+
+/-- J10 E1 on nvH0. Only the named field suppliers and HealingSet are hypothetical. -/
+theorem nvHealingInputExport (hSet : HealingSet params unitCodec env run gap deltaF) :
+    HealingInput params unitCodec env run w' deltaF ∧
+      tstar params w' ≤ params.actionTime w'.rStar + Γ params gap + 4 * params.Δ := by
+  have hInput := healing_healingInputOfH0 params gap deltaF
+    healed sourcePrefix tHigh tCarrier rows h2A h2Prime h3 h4 h5 h6 timeBound
+  rw [HealingInputOfH0Statement_def] at hInput
+  exact hInput nvClock unitCodec env run hSet livenessBound nvFullHorizon w' nvH0
+
+/-- J10 E2 on the same concrete run, with named full reset arrival. -/
+theorem nvHTimeExport (hReset : ResetArrivalFullStatement params gap deltaF)
+    (hSet : HealingSet params unitCodec env run gap deltaF) :
+    ∃ witness, HealingInput params unitCodec env run witness deltaF ∧
+      tstar params witness ≤ params.actionTime witness.rStar + Γ params gap + 4 * params.Δ ∧
+      params.actionTime witness.rStar + Γ params gap + 4 * params.Δ <
+        env.t_GST + B_HF params deltaF gap :=
+  healing_hTime_of_inputs params gap deltaF
+    healed sourcePrefix tHigh tCarrier rows h2A h2Prime h3 h4 h5 h6 timeBound
+    hReset nvClock unitCodec env run hSet livenessBound healing_horizon
+
+end
+
+#print axioms nvHealingInputExport
+#print axioms nvHTimeExport
 
 end AvailableChain.FGSA.Run.Tests.NonVacuity.HealingFirst
 end
