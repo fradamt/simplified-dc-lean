@@ -2168,11 +2168,27 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.healing_tDel',
     'AvailableChain.FGSA.Run.healing_tDelReset_core',
     'AvailableChain.FGSA.Run.healing_tDelReset',
+    # J3-KEEP: --expect DATA only.
+    'AvailableChain.FGSA.Run.postReset_general_kept',
+    'AvailableChain.FGSA.Run.postReset_keep_height',
+    'AvailableChain.FGSA.Run.postReset_keep_contest',
+    'AvailableChain.FGSA.Run.postReset_keep_floor',
+    'AvailableChain.FGSA.Run.postReset_keep_roots',
+    'AvailableChain.FGSA.Run.postReset_keep_witness',
+    'AvailableChain.FGSA.Run.postReset_keep_body',
+    'AvailableChain.FGSA.Run.postReset_protected_kept_succ',
+    'AvailableChain.FGSA.Run.postReset_rKeep_body',
+    'AvailableChain.FGSA.Run.postReset_receiver_compatible',
+    'AvailableChain.FGSA.Run.postReset_tDel',
     # J1-RESET: --expect DATA additions only.
     'AvailableChain.FGSA.Run.healing_low_finality_at_reset_reset',
     'AvailableChain.FGSA.Run.healing_resetTransferCore',
     'AvailableChain.FGSA.Run.healing_tDelReset_of_reset',
     'AvailableChain.FGSA.Run.healing_low_finality_after_reset',
+    # J4-LEASE: --expect DATA only.
+    'AvailableChain.FGSA.Run.postReset_fProv_all',
+    'AvailableChain.FGSA.Run.postReset_rFProv_reset',
+    'AvailableChain.FGSA.Run.postReset_leaseSafe_antecedent_of_lastWrite',
 )
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
          'Packages.Safety', 'OutputReads', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',

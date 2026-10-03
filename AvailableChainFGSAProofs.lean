@@ -209,3 +209,5 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetInvariant
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetTransfer
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetCut
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLease
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep
