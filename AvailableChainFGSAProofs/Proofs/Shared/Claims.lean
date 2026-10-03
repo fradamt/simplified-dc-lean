@@ -163,8 +163,9 @@ theorem fgsa_availableGST (hH : HTimeClaim p) : AvailableGSTClaim p := by
     exact hstart.trans_lt (lt_add_of_pos_right _ (mul_pos (by decide) p.deltaPos))
   have hcut : HealSuffix p c rho (E.t_GST + B_HF p ΔF G)
       (afterTicksIdx rho (SA.gateTime p.toParams pt.s)) := by
+    rw [HealSuffix_def]
     refine ⟨?_, List.length_filter_le _ _⟩
-    unfold healStart
+    rw [healStart_def]
     split
     · exact afterTicksIdx_mono rho hgate.le
     · change (rho.events.filter _).length ≤ (rho.events.filter _).length
@@ -192,7 +193,7 @@ theorem fgsa_availableGST (hH : HTimeClaim p) : AvailableGSTClaim p := by
     simp only [List.mem_cons, List.not_mem_nil, or_false] at hg
     rcases hg with rfl | rfl <;>
       change (V2.D.Run.readAt E rho t x).st.base.stableRecord = _ <;>
-      rw [V2.D.Engine.readAt_eq_stateBefore hs t] <;> rfl
+      rw [S_at_def, V2.D.Engine.readAt_eq_stateBefore hs t] <;> rfl
   change Block.Preceq pt.P (V2.D.outputAt E rho g x t)
   rw [hread]
   exact Gen.Pure.block_preceq_trans hb hm
@@ -213,6 +214,7 @@ theorem fgsa_availableGrowthGST (hH : HTimeClaim p) : AvailableGrowthGSTClaim p 
   have hd := p.deltaPos
   have hgap := hp.set.gapPos
   have hzero : 0 ≤ tstar p w := by
+    rw [tstar_def]
     change 0 ≤ 4 * p.Δ * (w.u : Time) + 6 * p.Δ
     positivity
   have ht : 0 ≤ t := hzero.trans (hstar.le.trans hlate)

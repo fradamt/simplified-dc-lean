@@ -144,8 +144,7 @@ theorem fgsa_rCap_channel [Fintype V]
   refine ⟨j, z, r, a, T, hji, hj, ?_, ?_⟩
   · rw [ha]
     change namedEntry u.height_pair = some (y + 1, T)
-    rw [hp]
-    rfl
+    rw [namedEntry_def, hp]
   · let st := storeAt p c E rho i x
     have hs := storeBundle_stateBefore E rho i x
     have hmem : W ∈ st.fg.TF := hW.2
@@ -283,12 +282,14 @@ theorem fgsa_rCap_before [Fintype V]
   obtain ⟨j, _, hj⟩ := hb
   exact (Nat.lt_irrefl _) (hcut j z r a u _ T b hj hd hh (hrs.trans_lt hst))
 
-private theorem cap_finality_head {j r : Nat} {z : V} {a : RowWire p.n}
+/-- An honest finality row retains its held HEAD, height, target, and QC. -/
+theorem cap_finality_head {j r : Nat} {z : V} {a : RowWire p.n}
     {u : Row (Fin p.n)} (ha : HonestRowAt p c E rho j z r a)
     (hs : RowSigner p c rho a z) (hd : a.toRow? = some u)
     (fp : FinalityPair) (hf : u.finality_pair = some fp) :
-    ∃ H, HeldAt p c E rho j z H ∧ fp.height = (derive p.E p.cfg H).h_j ∧
-      rho.events[j]? = some (.tick z (p.actionTime r)) := by
+    ∃ H, HeldAt p c E rho j z H ∧ fp.height = (heightView p H).h_j ∧
+      fp.target = (heightView p H).J.root ∧
+      KitFG.TargetQCAt p.E H fp.height (heightView p H).J := by
   obtain ⟨hz, hj, hem⟩ := ha
   obtain ⟨seat, har, _⟩ := hs
   rcases a with ⟨auth, body⟩
@@ -323,13 +324,12 @@ private theorem cap_finality_head {j r : Nat} {z : V} {a : RowWire p.n}
       cases hfinal
   | some H =>
       have hemit := emitted_finality_pair_of_headFields p st Λ seat u fp H hhead hue hfp
-      have hp := KitFG.provenance_finalityRow_of_heightLaws p.E
+      obtain ⟨hh, hr, _, hqc⟩ := KitFG.provenance_finalityRow_of_heightLaws p.E
         (heightView p) (finalityView p) (fgCertificateLaws p).height Λ.toRecord H fp hemit
       have hmem := ((fgBlockOf_spec p st hst (fgHead p st) H).mp hhead).1
       change H ∈ (FGSA.clock p _ t).fg.TF at hmem
       rw [FGSA.clock_fg] at hmem
-      refine ⟨H, ⟨hz, hmem⟩, ?_, hj⟩
-      simpa only [heightView_eq_simplex, KitFG.simplexHeightView_def, KitFG.heightOf_def] using hp.1
+      exact ⟨H, ⟨hz, hmem⟩, hh, hr, hqc⟩
 
 /-- S1 G17 #19, with the lead's positive-height correction. The held read
 has a prefix before `a_(q+1)`. The absence premise concerns all honest
@@ -357,16 +357,19 @@ theorem fgsa_finalityLag [Fintype V]
     (p.actionTime (q + 1))).mp (hki.trans_le hi)
   have hrq : p.actionTime r < p.actionTime (q + 1) := hrs.trans_lt hst
   obtain ⟨j, _, hj⟩ := hb
-  obtain ⟨H, hH, hheight, htick⟩ := cap_finality_head p c E rho hj hs hd _ hf
+  obtain ⟨H, hH, hheight, _, _⟩ := cap_finality_head p c E rho hj hs hd _ hf
+  have hheightOld : (finalityView p W).h_F = (derive p.E p.cfg H).h_j := by
+    change (finalityView p W).h_F = _ at hheight
+    simpa only [heightView_eq_simplex, KitFG.simplexHeightView_def,
+      KitFG.heightOf_def] using hheight
   have hy' : y - 1 + 1 = y := by omega
   have hjust : y - 1 + 1 ≤ (derive p.E p.cfg H).h_j := by
-    change (finalityView p W).h_F = _ at hheight
     rw [hy']
-    exact (Nat.le_of_not_gt hn).trans hheight.le
+    exact (Nat.le_of_not_gt hn).trans hheightOld.le
   obtain ⟨v, _, _, ho, T, b, hh⟩ :=
     KitFG.causalCap_justified_row p.E p.cfg (capFaulty p c rho) (cap_weight p c rho hL hQ)
       (y - 1) H (CapOrigin p c E rho j z) (cap_origin_of_held p c E rho hL hv j z H hH) hjust
-  obtain ⟨z', r', a', hb', _, hd', hlt⟩ := cap_tick_lt p c E rho hv ho htick
+  obtain ⟨z', r', a', hb', _, hd', hlt⟩ := cap_tick_lt p c E rho hv ho hj.2.1
   obtain ⟨j', _, hj'⟩ := hb'
   rw [hy'] at hh
   apply hnone j' z' r' a' v T b hj' hd' hh

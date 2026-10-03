@@ -214,8 +214,10 @@ private theorem clean_gate_output_step {i j : Nat} {v : V} {s : Slot}
     rw [he]
     exact ⟨block_preceq_refl _, Or.inl rfl⟩
   · have hw := (hrun.accept C hraw hguard).1
-    change S_at p c E rho (j + 1) v = Gen.AC.normalizeOutput (F_at p c E rho j v)
-      (GridCO.advance (S_at p c E rho j v) C) at hw
+    change (storeAt p c E rho (j + 1) v).base.stableRecord =
+      Gen.AC.normalizeOutput (F_at p c E rho j v)
+        (GridCO.advance (storeAt p c E rho j v).base.stableRecord C) at hw
+    rw [← S_at_def p c E rho (j + 1) v, ← S_at_def p c E rho j v] at hw
     rw [hw, Gen.AC.normalizeOutput_def]
     have hnest : Block.Preceq (F_at p c E rho j v) (S_at p c E rho j v) :=
       nestOK_stateBefore E rho j v

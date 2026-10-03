@@ -33,7 +33,7 @@ private theorem carry_payload_pairs (p : Params) (a : RowWire p.n) (i : Fin p.n)
 
 private theorem carry_rowHeight {n : Nat} (a : RowWire n) :
     rowHeight a = (match a.payload.height_pair with
-      | .empty => none | .vote h _ _ => some h) := rfl
+      | .empty => none | .vote h _ _ => some h) := rowHeight_def a
 
 /-- Paper 22:1265–1289: a retained certificate below the source height gives
 the stale R6W arm after the parent crosses that source height.

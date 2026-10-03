@@ -56,8 +56,7 @@ theorem healing_rCap
   refine ⟨j, z, r, a, T, hji, hj, ?_, ?_⟩
   · rw [ha]
     change namedEntry u.height_pair = some (y + 1, T)
-    rw [hp]
-    rfl
+    rw [namedEntry_def, hp]
   · let st := storeAt p c E rho i x
     have hs := storeBundle_stateBefore E rho i x
     have hmem : W ∈ st.fg.TF := hW.2
