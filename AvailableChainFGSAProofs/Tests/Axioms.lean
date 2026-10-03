@@ -143,6 +143,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PeriodicStageBounds -- sha
 public import AvailableChainFGSAProofs.Proofs.Clean.Chain -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.State -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (axiom audit commands)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetInvariant -- shake: keep (post-reset design audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat -- shake: keep (J2 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.SourceTiming -- shake: keep (H12 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.Delivery -- shake: keep (TDel axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.DeliveryReset -- shake: keep (reset core axiom audit)
@@ -1546,6 +1548,35 @@ public import AvailableChainFGSAProofs.Proofs.Healing.ResetCut -- shake: keep (R
 #print axioms AvailableChain.FGSA.Run.healing_rise_one_accept
 #print axioms AvailableChain.FGSA.Run.healing_rise_one_rise
 #print axioms AvailableChain.FGSA.Run.healing_rise_one_of_receipt
+-- POSTRESET-DESIGN: structure assembly and carrier definitions.
+#print axioms AvailableChain.FGSA.Run.PostResetStart
+#print axioms AvailableChain.FGSA.Run.PostResetStart.toH0
+#print axioms AvailableChain.FGSA.Run.ResetTransferCore_def
+#print axioms AvailableChain.FGSA.Run.ProtectedBody_def
+#print axioms AvailableChain.FGSA.Run.PostResetProtectedKept_def
+#print axioms AvailableChain.FGSA.Run.PostResetHighCompatible_def
+#print axioms AvailableChain.FGSA.Run.PostResetResetCompatible_def
+#print axioms AvailableChain.FGSA.Run.PostResetLeaseSafe_def
+#print axioms AvailableChain.FGSA.Run.PostResetFProv_def
+#print axioms AvailableChain.FGSA.Run.PostResetRawTransfer_def
+#print axioms AvailableChain.FGSA.Run.PostResetService_def
+#print axioms AvailableChain.FGSA.Run.ResetTransferCore
+#print axioms AvailableChain.FGSA.Run.ProtectedBody
+#print axioms AvailableChain.FGSA.Run.PostResetProtectedKept
+#print axioms AvailableChain.FGSA.Run.PostResetHighCompatible
+#print axioms AvailableChain.FGSA.Run.PostResetResetCompatible
+#print axioms AvailableChain.FGSA.Run.PostResetLeaseSafe
+#print axioms AvailableChain.FGSA.Run.PostResetFProv
+#print axioms AvailableChain.FGSA.Run.PostResetRawTransfer
+#print axioms AvailableChain.FGSA.Run.PostResetService
+#print axioms AvailableChain.FGSA.Run.PostResetInv
+
+-- J2-COMPAT: compatibility fields and restricted J3/H.14 descent.
+#print axioms AvailableChain.FGSA.Run.postReset_high_compatible_all
+#print axioms AvailableChain.FGSA.Run.postReset_high_compatible_succ
+#print axioms AvailableChain.FGSA.Run.postReset_reset_compatible_all
+#print axioms AvailableChain.FGSA.Run.postReset_reset_compatible_succ
+#print axioms AvailableChain.FGSA.Run.postReset_descent_kept
 
 #print axioms AvailableChain.FGSA.Run.healing_source_label_bound
 #print axioms AvailableChain.FGSA.Run.healing_source_relay_deadline
