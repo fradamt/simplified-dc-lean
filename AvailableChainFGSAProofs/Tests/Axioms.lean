@@ -20,6 +20,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6S -- shake: keep (
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairGate -- shake: keep (H-REPAIR audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.Repair -- shake: keep (H-REPAIR audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceOne -- shake: keep (H-GATE audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.CommonEntry -- shake: keep (H-COMMON audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposal -- shake: keep (I-EXACT axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalHistory -- shake: keep (I-EXACT history audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalReceipts -- shake: keep (I-EXACT r2 receipt audit)
@@ -1146,3 +1147,21 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_healed_output_mono
 #print axioms AvailableChain.FGSA.Run.clean_growth_body
 #print axioms AvailableChain.FGSA.Run.fgsa_availableGrowthGST
+
+-- H-COMMON: C1–C7.
+#print axioms AvailableChain.FGSA.Run.common_first_opening_labels
+#print axioms AvailableChain.FGSA.Run.common_first_time_bound
+#print axioms AvailableChain.FGSA.Run.common_source_tick
+#print axioms AvailableChain.FGSA.Run.common_source_height_le
+#print axioms AvailableChain.FGSA.Run.common_source_below_raw
+#print axioms AvailableChain.FGSA.Run.common_sources_compatible
+#print axioms AvailableChain.FGSA.Run.common_entry_of_plateau
+#print axioms AvailableChain.FGSA.Run.common_low_or_high
+#print axioms AvailableChain.FGSA.Run.common_sources_extend_and_cap
+#print axioms AvailableChain.FGSA.Run.common_entry_at_high
+#print axioms AvailableChain.FGSA.Run.common_next_sources_extend_and_cap
+#print axioms AvailableChain.FGSA.Run.common_next_entry
+#print axioms AvailableChain.FGSA.Run.common_entry_at_low
+#print axioms AvailableChain.FGSA.Run.common_opening_covered
+#print axioms AvailableChain.FGSA.Run.healing_tCommon
+#print axioms AvailableChain.FGSA.Run.common_height_one

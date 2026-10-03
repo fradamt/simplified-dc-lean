@@ -24,6 +24,9 @@ public import AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceGate
 public import AvailableChainFGSAProofs.Proofs.Healing.OpeningService
 public import AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceBody
 public import AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceOne
+public import AvailableChainFGSAProofs.Proofs.Healing.CommonEntryFacts
+public import AvailableChainFGSAProofs.Proofs.Healing.CommonEntryHeight
+public import AvailableChainFGSAProofs.Proofs.Healing.CommonEntry
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseSettle
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseBoot
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposal
