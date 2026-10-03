@@ -78,6 +78,8 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.fgsa_tWalk',
     'AvailableChain.FGSA.Run.fgsa_tVote',
     'AvailableChain.FGSA.Run.fgsa_coreServices',
+    # B30 Finality Export: --expect DATA only.
+    'AvailableChain.FGSA.Run.fgsa_kernelACSide_W',
     # K-HISTORY: run-level history bodies; --expect DATA only.
     'AvailableChain.FGSA.Run.noMixedPreBatchParent',
     'AvailableChain.FGSA.Run.justifyFresh_W',
