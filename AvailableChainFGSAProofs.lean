@@ -20,6 +20,10 @@ public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6S
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairGate
 public import AvailableChainFGSAProofs.Proofs.Healing.Repair
+public import AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceGate
+public import AvailableChainFGSAProofs.Proofs.Healing.OpeningService
+public import AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceBody
+public import AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceOne
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseSettle
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseBoot
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposal
@@ -69,6 +73,11 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PhaseOrder
 public import AvailableChainFGSAProofs.Proofs.Finality.Accept
 public import AvailableChainFGSAProofs.Proofs.Healing.Base
 public import AvailableChainFGSAProofs.Proofs.Healing.Descent
+public import AvailableChainFGSAProofs.Proofs.Healing.DescentLoss
+public import AvailableChainFGSAProofs.Proofs.Healing.DescentLossFirst
+public import AvailableChainFGSAProofs.Proofs.Healing.DescentLossNext
+public import AvailableChainFGSAProofs.Proofs.Healing.DescentLossLease
+public import AvailableChainFGSAProofs.Proofs.Healing.DescentLossCause
 public import AvailableChainFGSAProofs.Proofs.Healing.DescentTiming
 public import AvailableChainFGSAProofs.Proofs.Healing.DescentTimingRFProv
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersL2
