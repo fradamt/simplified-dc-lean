@@ -1,6 +1,53 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Finality.Export -- shake: keep (L42 export boundary)
 
+public import AvailableChainFGSAProofs.Proofs.Foundations.Export -- shake: keep (B34 lane join)
+
 public section
 
 /-! Frozen Finality claims, exposed through the L42 assembly boundary (ruling B30). -/
+
+namespace AvailableChain.FGSA.Run
+open AvailableChain.SimplexFG AvailableChain.KitFG
+
+/-- Paper 22:1171–1305 (F1–F9), lead ruling B34: close the W kernel suppliers.
+DC-CS/W4FKChainSecondCheckpoint.lean:43: INTENTIONAL W retention, exact signed
+rows and actual receipt guards. Recovery₂ supplies every Foundations premise. -/
+theorem fgsa_finalityKernel_W (p : Params) : FinalityKernelClaim_W p := by
+  apply fgsa_finalityKernel_W_of p
+  · intro V _ _ In c E rho hv
+    exact fgsa_tRowsSelect p c E rho hv
+  · intro V _ _ In c E rho hv
+    exact held_chain_row_origin_before p c E rho
+      hv.toUnforgeableSignatures hv.toScheduleWellFormed
+  · intro ΔF
+    exact fgsa_batchCoverage p ΔF .target
+  · intro V _ _ In c E rho G ΔF pt hK
+    exact sourceDiscipline_qcOrigin p c E rho
+      (pt := pt) ⟨hK.set.base, hK.set.faultQ⟩ (fgsa_rStore p c E rho)
+  · intro V _ _ In c E rho G ΔF pt hK
+    exact fgsa_rXing p c E rho hK.set.base.linked
+      hK.set.faultX_count_rec hK.set.base.valid.toUnforgeableSignatures
+  · intro V _ _ In c E rho G ΔF pt _ hp
+    simpa only [FinalityBlock_def, FinalityRunBlock_def,
+      FinalityFinalizedAt_def, FGFinalizedAt_def] using
+      (fgsa_wholeRunAgreement p c E rho
+        (fgsa_slashableBound_of_base p c E rho hp.set hp.fault)).1
+  · intro V _ _ In c E rho G ΔF pt hK
+    have hs := sourceDiscipline_strat p c E rho
+      (pt := pt) ⟨hK.set.base, hK.set.faultQ⟩ (fgsa_rStore p c E rho)
+    rw [RStrat_def] at hs
+    exact hs
+  · intro V _ _ In c E rho G ΔF pt hK j z r a e ha he
+    have hb := sourceDiscipline_base p c E rho (pt := pt) ⟨hK.set.base⟩
+    obtain ⟨e', C, _, hn, hsrc, hentry, hp, _⟩ := hb.2.2 j z r a ha
+    have hee : e = e' := Option.some.inj (he.symm.trans hn)
+    exact ⟨C, hsrc, hee.trans hentry, hp⟩
+  · intro V _ _ In c E rho G ΔF pt hK cut b j z W hj hW hcut
+    have hc := fgsa_rCap_before p c E rho hK.set.base.linked hK.set.base.valid
+      hK.set.faultQ b j cut z W hj hW hcut
+    rw [heightView_bridge p W, heightOf_def]
+    exact hc
+
+end AvailableChain.FGSA.Run
+end

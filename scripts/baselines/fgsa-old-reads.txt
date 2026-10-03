@@ -58,6 +58,7 @@ height AvailableChain.FGSA.Run.fgsa_finalLock_erased # pre-J4 baseline 2026-10-0
 height AvailableChain.FGSA.Run.fgsa_finalLock_ev # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Accountable)
 height AvailableChain.FGSA.Run.fgsa_finalLock_faulty_count # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Accountable)
 height AvailableChain.FGSA.Run.fgsa_finalLock_of_bound # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Crossing)
+height AvailableChain.FGSA.Run.fgsa_finalityKernel_W # height-only, through the shared client (hOf/createRowOnce); bridge-equal
 height AvailableChain.FGSA.Run.fgsa_finalityLag # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Foundations.Cap)
 height AvailableChain.FGSA.Run.fgsa_headReachesLo # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.HeadGeometry)
 height AvailableChain.FGSA.Run.fgsa_headReachesLoClaim # bridge: old fgsa_headReachesLo → HeadReachesLoAt (view form) via filteredFrom_of_bridge/hOf_of_bridge; heights only

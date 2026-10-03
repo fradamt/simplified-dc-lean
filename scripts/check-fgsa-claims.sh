@@ -184,6 +184,9 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.fgsa_coreServices',
     # B30 Finality Export: --expect DATA only.
     'AvailableChain.FGSA.Run.fgsa_kernelACSide_W',
+    # A-KERNEL B34: --expect DATA only.
+    'AvailableChain.FGSA.Run.fgsa_finalityKernel_W_of',
+    'AvailableChain.FGSA.Run.fgsa_finalityKernel_W',
     # K-FWD: --expect DATA only.
     'AvailableChain.FGSA.Run.finality_kernel_W_of',
     # K-HISTORY: run-level history bodies; --expect DATA only.

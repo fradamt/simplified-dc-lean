@@ -1058,6 +1058,8 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_tVote
 #print axioms AvailableChain.FGSA.Run.fgsa_coreServices
 #print axioms AvailableChain.FGSA.Run.fgsa_kernelACSide_W
+#print axioms AvailableChain.FGSA.Run.fgsa_finalityKernel_W_of
+#print axioms AvailableChain.FGSA.Run.fgsa_finalityKernel_W
 -- K-HISTORY: raw origin is supplied by Assembly.
 #print axioms AvailableChain.FGSA.Run.noMixedPreBatchParent
 #print axioms AvailableChain.FGSA.Run.justifyFresh_W
