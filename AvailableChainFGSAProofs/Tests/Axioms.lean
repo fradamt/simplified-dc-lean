@@ -1670,3 +1670,30 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw -- shake: kee
 
 -- J5-RAW: the reset-only all-cut H5 projection.
 #print axioms AvailableChain.FGSA.Run.postReset_h5RawTransfer_body
+
+-- J5A-RAW: separate reset leases, delivery, preservation and raw first transfer.
+#print axioms AvailableChain.FGSA.Run.PostResetResetLeaseCompatible
+#print axioms AvailableChain.FGSA.Run.PostResetResetLeaseCompatible_def
+#print axioms AvailableChain.FGSA.Run.healing_gate_result_supporter
+#print axioms AvailableChain.FGSA.Run.postReset_delivery_no_obligation
+#print axioms AvailableChain.FGSA.Run.postReset_resetLease_preserve
+#print axioms AvailableChain.FGSA.Run.postReset_resetLease_base
+#print axioms AvailableChain.FGSA.Run.healing_first_transfer_raw_domain
+
+-- J5A-RAW: shared moving-frame producers and ordered reset-lease successor.
+#print axioms AvailableChain.FGSA.Run.postReset_slow_window_sync
+#print axioms AvailableChain.FGSA.Run.postReset_raw_reset_compatible
+#print axioms AvailableChain.FGSA.Run.postReset_noRewrite
+#print axioms AvailableChain.FGSA.Run.healing_output_moving_suffix
+#print axioms AvailableChain.FGSA.Run.postReset_resetLease_at_reset
+#print axioms AvailableChain.FGSA.Run.postReset_resetLease_succ
+#print axioms AvailableChain.FGSA.Run.postReset_raw_release_compatible
+#print axioms AvailableChain.FGSA.Run.healing_proposal_moving_domain
+#print axioms AvailableChain.FGSA.Run.healing_proposal_moving_parent
+
+-- J5A lead step range: zero base and before-reset raw vacuity.
+#print axioms AvailableChain.FGSA.Run.postReset_resetLease_zero
+#print axioms AvailableChain.FGSA.Run.postReset_rawTransfer_before_reset
+
+-- J5A: exact prior-triple adapter for the published joint reset-lease step.
+#print axioms AvailableChain.FGSA.Run.postReset_resetLease_step

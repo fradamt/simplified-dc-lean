@@ -346,5 +346,23 @@ theorem PostResetService_def (w : HealingWitness) (i : Nat) :
       (fgsaInterface p c).stable (afterTicks E rho (SA.gateTime p.toParams v) x) = Q ∧
       (∀ r, v = r * p.R → actionSource p c E rho x r = some (some Q)))) := by rfl
 
+/-- Blueprint 21 H.16:2930–2938, H.12:2664–2665; plan J5A C0;
+B1/B13/B17/B18. DC: INTENTIONAL; DC has no leases; this is the SA port.
+The global induction carries this predicate jointly with PostResetInv.
+The successor instance is proved before raw_transfer at the new cut. -/
+def PostResetResetLeaseCompatible (w : HealingWitness) (i : Nat) : Prop :=
+  ∀ j, j < i → ∀ x, x ∈ rho.honest →
+    afterTicksIdx rho (SA.releaseTime p.toParams w.sStar) ≤ j →
+    let st := (storeAt p c E rho j x).base
+    ∀ lease ∈ st.obligations, st.now < lease.2.2 → Block.Compatible lease.1 w.CStar
+
+-- equation export required by BUILD §7.2 B3a
+theorem PostResetResetLeaseCompatible_def (w : HealingWitness) (i : Nat) :
+    PostResetResetLeaseCompatible p c E rho w i = (
+    ∀ j, j < i → ∀ x, x ∈ rho.honest →
+      afterTicksIdx rho (SA.releaseTime p.toParams w.sStar) ≤ j →
+      let st := (storeAt p c E rho j x).base
+      ∀ lease ∈ st.obligations, st.now < lease.2.2 → Block.Compatible lease.1 w.CStar) := by rfl
+
 end AvailableChain.FGSA.Run
 end
