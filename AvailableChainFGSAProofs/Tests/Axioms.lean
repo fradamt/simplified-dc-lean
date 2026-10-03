@@ -1849,3 +1849,14 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLeaseMove -- shak
 
 #print axioms AvailableChain.FGSA.Run.postReset_moving_domain
 #print axioms AvailableChain.FGSA.Run.postReset_moving_head_cut
+
+-- J4A2-3: last-write leases and the frozen successor.
+#print axioms AvailableChain.FGSA.Run.postReset_moving_lease_compat
+#print axioms AvailableChain.FGSA.Run.postReset_written_next_head
+#print axioms AvailableChain.FGSA.Run.postReset_written_moving_parent
+#print axioms AvailableChain.FGSA.Run.postReset_written_heads_succ
+#print axioms AvailableChain.FGSA.Run.postReset_written_proposals_succ
+#print axioms AvailableChain.FGSA.Run.postReset_written_finality_compatible
+#print axioms AvailableChain.FGSA.Run.postReset_written_gate_lease_compat
+#print axioms AvailableChain.FGSA.Run.postReset_written_outputs_succ
+#print axioms AvailableChain.FGSA.Run.postReset_leaseSafe_succ
