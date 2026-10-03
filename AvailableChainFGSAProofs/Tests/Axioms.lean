@@ -150,6 +150,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.Delivery -- shake: keep (T
 public import AvailableChainFGSAProofs.Proofs.Healing.DeliveryReset -- shake: keep (reset core axiom audit)
 
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetCut -- shake: keep (RS-0 axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep -- shake: keep (J3 audit)
 
 #print axioms AvailableChain.FGSA.Run.kmid_honestSeats_mem
 #print axioms AvailableChain.FGSA.Run.kmid_honest_quorum
@@ -1639,3 +1640,17 @@ public import AvailableChainFGSAProofs.Proofs.Healing.ResetCut -- shake: keep (R
 #print axioms AvailableChain.FGSA.Run.reset_old_row_before_cut
 #print axioms AvailableChain.FGSA.Run.reset_old_height_sup_le
 #print axioms AvailableChain.FGSA.Run.reset_mu_le_iff
+
+-- J3-KEEP: general keep, field steps, successor and reset-only RKeep body.
+#print axioms AvailableChain.FGSA.Run.postReset_general_kept
+#print axioms AvailableChain.FGSA.Run.postReset_keep_height
+#print axioms AvailableChain.FGSA.Run.postReset_keep_contest
+#print axioms AvailableChain.FGSA.Run.postReset_keep_floor
+#print axioms AvailableChain.FGSA.Run.postReset_keep_roots
+#print axioms AvailableChain.FGSA.Run.postReset_keep_witness
+#print axioms AvailableChain.FGSA.Run.postReset_keep_body
+#print axioms AvailableChain.FGSA.Run.postReset_protected_kept_succ
+#print axioms AvailableChain.FGSA.Run.postReset_rKeep_body
+
+#print axioms AvailableChain.FGSA.Run.postReset_receiver_compatible
+#print axioms AvailableChain.FGSA.Run.postReset_tDel
