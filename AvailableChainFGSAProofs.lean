@@ -233,4 +233,5 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetHigh
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetOpening
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJoint
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJointStep
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetProject

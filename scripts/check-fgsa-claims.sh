@@ -2326,6 +2326,9 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.healing_postReset_opening_source_prefix',
     'AvailableChain.FGSA.Run.healing_postReset_openingDomain_new_tick',
     'AvailableChain.FGSA.Run.healing_postReset_openingDomain_step',
+    'AvailableChain.FGSA.Run.postResetOpeningDomainP_iff',
+    'AvailableChain.FGSA.Run.healing_postReset_openingDomainStep',
+    'AvailableChain.FGSA.Run.healing_postReset_serviceStep',
     # JOINT-IND: --expect DATA additions only.
     'AvailableChain.FGSA.Run.PostResetResetLeaseCompatibleP',
     'AvailableChain.FGSA.Run.PostResetOpeningDomainP',

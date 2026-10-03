@@ -2,6 +2,7 @@ module
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetService -- shake: keep (J6 applications)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetGate -- shake: keep (J6-2 H6 example)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Leases -- shake: keep (last-write supplier)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJointStep -- shake: keep (J6-3 step adapter)
 
 set_option linter.privateModule false
 
@@ -244,6 +245,10 @@ example (i : Nat) (hfp : PostResetFProv p c E rho w i)
   healing_postReset_service_step E rho hrec w hreset hcone cap rowCovered mono writes
     i hfp hraw hopening
 
+-- JOINT-IND: the service step holds at every cut, pre-reset cuts included.
+example : ∀ i, PostResetServiceStep p c E rho w i :=
+  healing_postReset_serviceStep E rho hrec w hreset hcone cap rowCovered mono writes
+
 end J63CutApplication
 
 section J63OpeningCutApplication
@@ -273,6 +278,10 @@ example (i : Nat) (hhigh : PostResetHighCompatible p c E rho w i)
     PostResetOpeningDomain p c E rho w (i + 1) :=
   healing_postReset_openingDomain_step E rho hrec w hreset hcone cap rowCovered xing origin
     i hhigh hfp hraw hopening
+
+-- JOINT-IND: the opening-domain step holds at every cut, pre-reset cuts included.
+example : ∀ i, PostResetOpeningDomainStep p c E rho w i :=
+  healing_postReset_openingDomainStep E rho hrec w hreset hcone cap rowCovered xing origin
 
 end J63OpeningCutApplication
 

@@ -168,6 +168,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLeaseStep -- shak
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetHigh -- shake: keep (THigh audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw -- shake: keep (J5 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJoint -- shake: keep (JOINT-IND audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJointStep -- shake: keep (J6-3 step adapter audit)
 
 public import AvailableChainFGSAProofs.Proofs.Healing.Attempt -- shake: keep (H-ATTEMPT axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.AttemptBudget -- shake: keep (H-ATTEMPT axiom audit)
@@ -1815,6 +1816,9 @@ public import AvailableChainFGSAProofs.Proofs.Assembly.ProgressAttempt -- shake:
 #print axioms AvailableChain.FGSA.Run.healing_postReset_opening_source_prefix
 #print axioms AvailableChain.FGSA.Run.healing_postReset_openingDomain_new_tick
 #print axioms AvailableChain.FGSA.Run.healing_postReset_openingDomain_step
+#print axioms AvailableChain.FGSA.Run.postResetOpeningDomainP_iff
+#print axioms AvailableChain.FGSA.Run.healing_postReset_openingDomainStep
+#print axioms AvailableChain.FGSA.Run.healing_postReset_serviceStep
 -- JOINT-IND: the empty cut, named steps, induction and projections.
 #print axioms AvailableChain.FGSA.Run.PostResetResetLeaseCompatibleP
 #print axioms AvailableChain.FGSA.Run.PostResetOpeningDomainP
