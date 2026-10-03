@@ -147,12 +147,19 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetInvariant -- shak
 public import AvailableChainFGSAProofs.Proofs.Healing.SourceTiming -- shake: keep (H12 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.Delivery -- shake: keep (TDel axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.DeliveryReset -- shake: keep (reset core axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.Time -- shake: keep (J11 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetTransfer -- shake: keep (J1 reset axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat -- shake: keep (J2 axiom audit)
 
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetCut -- shake: keep (RS-0 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetService -- shake: keep (J6 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetGate -- shake: keep (J6-2 gate axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLease -- shake: keep (J4 axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep -- shake: keep (J3 audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostReset -- shake: keep (J9 axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLeaseStep -- shake: keep (J4-A audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetHigh -- shake: keep (THigh audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw -- shake: keep (J5 axiom audit)
 
 #print axioms AvailableChain.FGSA.Run.kmid_honestSeats_mem
 #print axioms AvailableChain.FGSA.Run.kmid_honest_quorum
@@ -707,6 +714,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetGate -- shake: ke
 #print axioms AvailableChain.FGSA.Run.HealthyPrefix₂.of_legacy
 #print axioms AvailableChain.FGSA.Run.HealthyPrefix₂.legacy_delivery
 #print axioms AvailableChain.FGSA.Run.Recovery₂.of_legacy
+#print axioms AvailableChain.FGSA.Run.Recovery₂.gamma_eq
 #print axioms AvailableChain.FGSA.Run.Recovery₂.toRecoveryCore
 
 -- fg-noround/07-H additions.
@@ -1669,3 +1677,52 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetGate -- shake: ke
 
 #print axioms AvailableChain.FGSA.Run.healing_postReset_gate_guard
 #print axioms AvailableChain.FGSA.Run.healing_postReset_h6GateService
+-- J11 H-TIME composition.
+#print axioms AvailableChain.FGSA.Run.HealingInputOfH0Statement
+#print axioms AvailableChain.FGSA.Run.HealingInputOfH0Statement_def
+#print axioms AvailableChain.FGSA.Run.healing_resetF_budget_eq
+#print axioms AvailableChain.FGSA.Run.healing_resetFull_horizon
+#print axioms AvailableChain.FGSA.Run.healing_time_strict_of_reset
+#print axioms AvailableChain.FGSA.Run.healing_hTime_of
+-- J4-LEASE: both H0Reset provenance clauses and the all-event body.
+#print axioms AvailableChain.FGSA.Run.postReset_fProv_all
+#print axioms AvailableChain.FGSA.Run.postReset_rFProv_reset
+#print axioms AvailableChain.FGSA.Run.postReset_leaseSafe_antecedent_of_lastWrite
+-- J3-KEEP: general keep, field steps, successor and reset-only RKeep body.
+#print axioms AvailableChain.FGSA.Run.postReset_general_kept
+#print axioms AvailableChain.FGSA.Run.postReset_keep_height
+#print axioms AvailableChain.FGSA.Run.postReset_keep_contest
+#print axioms AvailableChain.FGSA.Run.postReset_keep_floor
+#print axioms AvailableChain.FGSA.Run.postReset_keep_roots
+#print axioms AvailableChain.FGSA.Run.postReset_keep_witness
+#print axioms AvailableChain.FGSA.Run.postReset_keep_body
+#print axioms AvailableChain.FGSA.Run.postReset_protected_kept_succ
+#print axioms AvailableChain.FGSA.Run.postReset_rKeep_body
+
+#print axioms AvailableChain.FGSA.Run.postReset_receiver_compatible
+#print axioms AvailableChain.FGSA.Run.postReset_tDel
+
+-- J9-POST: conditional packages and reset-only H0 adapters.
+#print axioms AvailableChain.FGSA.Run.healing_healTContract_reset
+#print axioms AvailableChain.FGSA.Run.healing_rKeep_of_reset
+#print axioms AvailableChain.FGSA.Run.healing_rFProv_of_reset
+#print axioms AvailableChain.FGSA.Run.healing_healRContract_reset
+#print axioms AvailableChain.FGSA.Run.healing_healT_of
+#print axioms AvailableChain.FGSA.Run.healing_healAC_of
+#print axioms AvailableChain.FGSA.Run.healing_healingInput_of
+-- J4-A: arbitrary-prefix first transfer and reset-cut synchrony.
+#print axioms AvailableChain.FGSA.Run.healing_first_transfer_written
+#print axioms AvailableChain.FGSA.Run.postReset_written_sync
+-- THigh: compatibility-only keep and selected-source label/reset facts.
+#print axioms AvailableChain.FGSA.Run.postReset_descent_kept_of_compat
+#print axioms AvailableChain.FGSA.Run.postReset_general_kept_of_compat
+#print axioms AvailableChain.FGSA.Run.postReset_rKeep_body_of_compat
+#print axioms AvailableChain.FGSA.Run.postReset_rKeep_body_reset
+#print axioms AvailableChain.FGSA.Run.postReset_selected_label_above
+#print axioms AvailableChain.FGSA.Run.postReset_selected_label
+#print axioms AvailableChain.FGSA.Run.SelectedBefore
+#print axioms AvailableChain.FGSA.Run.SelectedBefore_def
+#print axioms AvailableChain.FGSA.Run.selectedBefore_of_sourceBefore
+#print axioms AvailableChain.FGSA.Run.postReset_selected_reset_compatible
+-- J5-RAW: the reset-only all-cut H5 projection.
+#print axioms AvailableChain.FGSA.Run.postReset_h5RawTransfer_body
