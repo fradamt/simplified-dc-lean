@@ -13,13 +13,13 @@ open AvailableChain.SimplexFG Gen.Pure
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- H.17 abstract retained cone at labels at least sStar. The later producer
+/-- H.17 abstract retained cone at labels at least sStar + 2. The later producer
 is HG.3–HG.5 / G-H17. For each actual honest proposal with its HEAD deadline
 inside the horizon, it supplies exactly the per-reader `RetainedConeInput`
 premise of `fgsa_retainedReads_H17`, with one pivot D for that proposal.
 It supplies no exact HEAD, gate geometry, service, or source-prefix fact. -/
 def PostResetRetainedCone (w : HealingWitness) : Prop :=
-  ∀ s, w.sStar ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
+  ∀ s, w.sStar + 2 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
   ∀ {ip : Nat} {x : V}, x ∈ rho.honest →
     rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
     rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x →
@@ -36,7 +36,7 @@ def PostResetRetainedCone (w : HealingWitness) : Prop :=
 without access to private module data. -/
 theorem postResetRetainedCone_iff (w : HealingWitness) :
     PostResetRetainedCone p c E rho w ↔
-    (∀ s, w.sStar ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
+    (∀ s, w.sStar + 2 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
     ∀ {ip : Nat} {x : V}, x ∈ rho.honest →
       rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
       rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x →
@@ -96,13 +96,13 @@ theorem postReset_synchronous_window (w : HealingWitness)
 /-- A cone is empty only when every relevant HEAD deadline is outside the
 horizon. This lemma makes no reset or service claim for such a short run. -/
 theorem postResetRetainedCone_of_horizon_lt (w : HealingWitness)
-    (hshort : rho.horizon < SA.voteTime p.toParams w.sStar) :
+    (hshort : rho.horizon < SA.voteTime p.toParams (w.sStar + 2)) :
     PostResetRetainedCone p c E rho w := by
   intro s hs hHeadHorizon
-  have hsI : (w.sStar : Int) ≤ (s : Int) := by exact_mod_cast hs
-  change rho.horizon < 4 * p.Δ * (w.sStar : Int) + p.Δ at hshort
+  have hsI : ((w.sStar + 2 : Nat) : Int) ≤ (s : Int) := by exact_mod_cast hs
+  change rho.horizon < 4 * p.Δ * ((w.sStar + 2 : Nat) : Int) + p.Δ at hshort
   change 4 * p.Δ * (s : Int) + p.Δ ≤ rho.horizon at hHeadHorizon
-  have hmono : 4 * p.Δ * (w.sStar : Int) + p.Δ ≤
+  have hmono : 4 * p.Δ * ((w.sStar + 2 : Nat) : Int) + p.Δ ≤
       4 * p.Δ * (s : Int) + p.Δ := by nlinarith [p.deltaPos]
   exact (not_lt_of_ge (hmono.trans hHeadHorizon) hshort).elim
 
@@ -111,7 +111,7 @@ each reader's actual state and the common proposal pivot. -/
 theorem healing_postReset_retainedReads
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
     (w : HealingWitness) (hcone : PostResetRetainedCone p c E rho w)
-    (s : Slot) (hs : w.sStar ≤ s)
+    (s : Slot) (hs : w.sStar + 2 ≤ s)
     (hHeadHorizon : SA.voteTime p.toParams s ≤ rho.horizon)
     (hSync : Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o)
       (SA.proposalTime p.toParams s - p.Δ) (SA.voteTime p.toParams s))

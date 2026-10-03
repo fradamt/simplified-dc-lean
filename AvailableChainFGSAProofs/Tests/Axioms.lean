@@ -152,6 +152,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat -- shake: 
 
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetCut -- shake: keep (RS-0 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetService -- shake: keep (J6 axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetGate -- shake: keep (J6-2 gate axiom audit)
 
 #print axioms AvailableChain.FGSA.Run.kmid_honestSeats_mem
 #print axioms AvailableChain.FGSA.Run.kmid_honest_quorum
@@ -1660,3 +1661,11 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetService -- shake:
 #print axioms AvailableChain.FGSA.Run.healing_postReset_exactHead
 #print axioms AvailableChain.FGSA.Run.healing_postReset_headCarrier
 #print axioms AvailableChain.FGSA.Run.postResetRetainedCone_iff
+
+-- J6-2: gate covered-prefix derivation and service-field projections.
+#print axioms AvailableChain.FGSA.Run.healing_postReset_gate_covered_prefix
+#print axioms AvailableChain.FGSA.Run.healing_postReset_exactService_at_cut
+#print axioms AvailableChain.FGSA.Run.healing_postReset_exactService
+
+#print axioms AvailableChain.FGSA.Run.healing_postReset_gate_guard
+#print axioms AvailableChain.FGSA.Run.healing_postReset_h6GateService
