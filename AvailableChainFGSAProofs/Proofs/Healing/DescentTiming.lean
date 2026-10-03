@@ -7,9 +7,8 @@ public import AvailableChainKitV2.DutyEngineClock
 public section
 
 /-! W3 (blueprint 21:526–546), B19. The read index is arbitrary.
-Assembly supplies the INLINE held-chain delivery and RQCOrigin facts.
-The finality route also needs a field-only adapter for honest emission
-at the held HEAD.
+Assembly supplies the INLINE Cap, held-chain delivery, RQCOrigin,
+and honest finality HEAD facts.
 No healing reset is used. A receipt before a tick gives strict time order;
 strict order on the action grid gives a full period. -/
 
@@ -45,7 +44,7 @@ private theorem timing_row_signer {j r : Nat} {z : V} {a : RowWire p.n}
   exact ⟨u.signer, rfl, hseat⟩
 
 /-- Route 2: keep the receipt and bind its round to the actual source row.
-INLINE supplier: Foundations.Carrier.held_chain_row_origin_before. -/
+Assembly supplies the INLINE held-chain delivery fact. -/
 theorem healing_row_delivery (hv : V2.D.ExecutionValid E rho)
     (heldRows : ∀ e x W, HeldAt p c E rho e x W →
       ∀ u ∈ chainRows W, ∃ (a : RowWire p.n) (r : Nat),
@@ -143,8 +142,8 @@ private theorem timing_choose_rows {Q : Finset (Fin p.n)}
   exact Classical.choose_spec (Classical.choose_spec (h k hk))
 
 /-- Route 4: apply INLINE RQCOrigin at this pre-action store and retain
-its target row's real receiver delivery. Suppliers: sourceDiscipline_qcOrigin
-and held_chain_row_origin_before, closed by Assembly. -/
+its target row's real receiver delivery. Assembly supplies the INLINE
+origin and held-chain delivery facts. -/
 theorem healing_justification_timed (hv : V2.D.ExecutionValid E rho)
     (origin : RQCOrigin p c E rho)
     (heldRows : ∀ e x W, HeldAt p c E rho e x W →
@@ -174,6 +173,68 @@ theorem healing_justification_timed (hv : V2.D.ExecutionValid E rho)
   obtain ⟨j, hji, hj⟩ := hb
   exact ⟨K, r, j, z, a, hji, hj, hK, hh.symm,
     FGBlock.root_injective hroot.symm, hdel⟩
+
+/-- T1, routes 1–6. INLINE Cap supplies the honest finality row at the
+selected carrier's certificate height. It is not the height of F. -/
+theorem healing_finality_source_clock (hv : V2.D.ExecutionValid E rho)
+    (hnr : V2.D.NoRestart rho) (origin : RQCOrigin p c E rho)
+    (heldRows : ∀ e x W, HeldAt p c E rho e x W →
+      ∀ u ∈ chainRows W, ∃ (a : RowWire p.n) (r : Nat),
+        a.toRow? = some u ∧ a.auth = .seat .fg u.signer ∧
+        ∃ k o t, k < e ∧ rho.events[k]? = some (.deliver x o t) ∧
+          ∀ z : V, RowSigner p c rho a z → z ∈ rho.honest →
+            HonestRowBefore p c E rho e z r a ∧ p.actionTime r ≤ t)
+    (cap : ∀ (y i : Nat), 0 < y → ∀ x W, HeldAt p c E rho i x W →
+      y ≤ (finalityView p W).h_F →
+      ∃ z r a u, HonestRowBefore p c E rho i z r a ∧ RowSigner p c rho a z ∧
+        RowWire.toRow? a = some u ∧ u ∈ chainRows W ∧
+        u.finality_pair = some ⟨(finalityView p W).h_F, (finalityView p W).F.root⟩)
+    (hhead : ∀ {j r : Nat} {z : V} {a : RowWire p.n} {u : Row (Fin p.n)},
+      HonestRowAt p c E rho j z r a → RowSigner p c rho a z →
+      a.toRow? = some u → ∀ fp, u.finality_pair = some fp →
+      ∃ H, HeldAt p c E rho j z H ∧ fp.height = (heightView p H).h_j ∧
+        fp.target = (heightView p H).J.root ∧
+        KitFG.TargetQCAt p.E H fp.height (heightView p H).J)
+    {i : Nat} {x : V} (hx : x ∈ rho.honest)
+    (hF : (storeAt p c E rho i x).fg.F ≠ .genesis) :
+    ∃ D ∈ (storeAt p c E rho i x).fg.TF,
+      (finalityView p D).F = (storeAt p c E rho i x).fg.F ∧
+      ∃ K s, SourceBefore p c E rho i K s ∧
+        (heightView p K).h = (finalityView p D).h_F ∧
+        (heightView p K).T_h = (storeAt p c E rho i x).fg.F ∧
+        SA.gateTime p.toParams s + P p ≤ (storeAt p c E rho i x).base.now := by
+  obtain ⟨D, hD, hDF⟩ := (cstoreInv_stateBefore E rho i x).fg.Fcar
+  have hpos : 0 < (finalityView p D).h_F := by
+    have hnz : (finalityView p D).h_F ≠ 0 := fun hz =>
+      hF (hDF.symm.trans ((fgCertificateLaws p).finalized_zero D hz))
+    exact Nat.pos_of_ne_zero hnz
+  obtain ⟨z, rf, a, u, hb, hsign, hd, hu, hf⟩ :=
+    cap _ i hpos x D ⟨hx, hD⟩ le_rfl
+  obtain ⟨kf, objf, tf, hkfi, hkf, hft⟩ :=
+    healing_row_delivery p c E rho hv heldRows ⟨hx, hD⟩ hu hb hd
+  obtain ⟨jf, hjfi, hjf⟩ := hb
+  obtain ⟨H, hH, hh, hroot, hqc⟩ := hhead hjf hsign hd _ hf
+  change (finalityView p D).h_F = (heightView p H).h_j at hh
+  change (finalityView p D).F.root = (heightView p H).J.root at hroot
+  have hqc' : KitFG.TargetQCAt p.E H (heightView p H).h_j (heightView p H).J := by
+    rwa [hh] at hqc
+  obtain ⟨K, rt, jt, zt, atr, hjtjf, hjt, hK, hKh, hKT, kt, ot, tt, hktjf, hkt, htt⟩ :=
+    healing_justification_timed p c E rho hv origin heldRows hH.1 hH.2
+      (by rw [← hh]; exact Nat.ne_of_gt hpos) hqc'
+  have hlt := healing_receipt_before_tick p c E rho hv.toScheduleWellFormed hktjf hkt hjf.2.1
+  have hperiod := healing_action_period p (htt.trans_lt hlt)
+  have hclock := healing_delivery_clock p c E rho hv.toScheduleWellFormed hnr
+    hkfi hkf hjf.2.1 hft
+  have htime : SA.gateTime p.toParams (rt * p.R) + P p ≤
+      (storeAt p c E rho i x).base.now := by
+    change p.actionTime rt + P p ≤ _
+    exact hperiod.trans hclock
+  refine ⟨D, hD, hDF, K, rt * p.R,
+    ⟨jt, zt, rt, atr, Nat.lt_trans hjtjf hjfi, hjt, hK, rfl⟩,
+    hKh.trans hh.symm, ?_, htime⟩
+  apply FGBlock.root_injective
+  rw [hKT, ← hroot]
+  exact congrArg FGBlock.root hDF
 
 /-- T2: the analogous J source needs only the one-action clock bound.
 No reset, future event, or equality with a next event time is used. -/

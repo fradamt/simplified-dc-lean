@@ -1056,3 +1056,6 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.healing_justified_source_clock
 #print axioms AvailableChain.FGSA.Run.healing_action_source_held
 #print axioms AvailableChain.FGSA.Run.healing_low_finality_at_reset
+#print axioms AvailableChain.FGSA.Run.cap_finality_head
+#print axioms AvailableChain.FGSA.Run.healing_finality_source_clock
+#print axioms AvailableChain.FGSA.Run.healing_rFProv_finality

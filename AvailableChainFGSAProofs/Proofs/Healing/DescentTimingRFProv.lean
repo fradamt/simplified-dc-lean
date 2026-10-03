@@ -1,15 +1,16 @@
 module
-public import AvailableChainFGSAClaims.Statements.ChannelProps
+public import AvailableChainFGSAProofs.Proofs.Healing.DescentTiming
 public import AvailableChainFGSAProofs.Proofs.Shared.StoreRun
 public import AvailableChainKitV2.DutyExecution
+public import AvailableChainGeneric.Proofs.Pure.BlockOrder
 
 public section
 
-/-! The low-certificate arm of RFProv clause 1 (B19).
-Use its after-action lower cut. The high arm needs the finality source bound.
-The reset release q_(sStar) is before that action. This low arm cannot
-be applied there. T2 applies at arbitrary read indices; T1 remains an obligation.
-Blueprint: W3 21:542–546, H.17 21:2946–3040, H.18 21:3049–3060. -/
+/-! RFProv clause 1 (B19). Split at the selected carrier's certificate
+height. T1 gives the high source and its full period clock bound.
+The low arm uses the after-action lower cut. The reset release q_(sStar)
+is before that action; T1 also applies at the earlier release.
+Blueprint: W3 21:542–546, H.17 21:2946–3047, H.18 21:3049–3060. -/
 
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
@@ -55,8 +56,7 @@ theorem healing_action_source_held (hs : V2.D.ScheduleWellFormed E rho)
     rwa [FGSA.clock_fg] at hm'
 
 /-- The low-certificate arm of T3. This uses the actual CStar source
-from H0Reset.fresh and RXing, after RFProv's action cut.
-The full F producer stops at T1's field-only emission obligation. -/
+from H0Reset.fresh and RXing, after RFProv's action cut. -/
 theorem healing_low_finality_at_reset (hs : V2.D.ScheduleWellFormed E rho)
     (hnr : V2.D.NoRestart rho) (xing : RXing p c E rho)
     (w : HealingWitness) (h0 : H0 p c E rho w) {i : Nat} {x : V}
@@ -74,6 +74,56 @@ theorem healing_low_finality_at_reset (hs : V2.D.ScheduleWellFormed E rho)
     (by rw [hCh]; exact Nat.lt_succ_of_le hlow)
   rw [← hCS]
   exact eraseFG_preceq hFC
+
+/-- T3: the full F branch of RFProv clause 1. The high arm uses T1's
+source at the selected certificate height; the low arm uses the reset.
+Assembly supplies the INLINE facts and RXing. -/
+theorem healing_rFProv_finality (hv : V2.D.ExecutionValid E rho)
+    (hnr : V2.D.NoRestart rho) (origin : RQCOrigin p c E rho)
+    (heldRows : ∀ e x W, HeldAt p c E rho e x W →
+      ∀ u ∈ chainRows W, ∃ (a : RowWire p.n) (r : Nat),
+        a.toRow? = some u ∧ a.auth = .seat .fg u.signer ∧
+        ∃ k o t, k < e ∧ rho.events[k]? = some (.deliver x o t) ∧
+          ∀ z : V, RowSigner p c rho a z → z ∈ rho.honest →
+            HonestRowBefore p c E rho e z r a ∧ p.actionTime r ≤ t)
+    (cap : ∀ (y i : Nat), 0 < y → ∀ x W, HeldAt p c E rho i x W →
+      y ≤ (finalityView p W).h_F →
+      ∃ z r a u, HonestRowBefore p c E rho i z r a ∧ RowSigner p c rho a z ∧
+        RowWire.toRow? a = some u ∧ u ∈ chainRows W ∧
+        u.finality_pair = some ⟨(finalityView p W).h_F, (finalityView p W).F.root⟩)
+    (hhead : ∀ {j r : Nat} {z : V} {a : RowWire p.n} {u : Row (Fin p.n)},
+      HonestRowAt p c E rho j z r a → RowSigner p c rho a z →
+      a.toRow? = some u → ∀ fp, u.finality_pair = some fp →
+      ∃ H, HeldAt p c E rho j z H ∧ fp.height = (heightView p H).h_j ∧
+        fp.target = (heightView p H).J.root ∧
+        KitFG.TargetQCAt p.E H fp.height (heightView p H).J)
+    (xing : RXing p c E rho) (w : HealingWitness) :
+    H0 p c E rho w → ∀ i x, x ∈ rho.honest →
+      afterTicksIdx rho (p.actionTime w.rStar) ≤ i →
+      Block.Preceq (F_at p c E rho i x) w.CStar ∨
+        ∃ K s, SourceBefore p c E rho i K s ∧ high p w K ∧
+          SA.gateTime p.toParams s + P p ≤ (storeAt p c E rho i x).base.now ∧
+          Block.Preceq (F_at p c E rho i x) (eraseFG K) := by
+  intro h0 i x hx hi
+  by_cases hgen : (storeAt p c E rho i x).fg.F = .genesis
+  · left
+    change Block.Preceq (eraseFG (storeAt p c E rho i x).fg.F) w.CStar
+    rw [hgen]
+    exact Gen.Pure.block_genesis_preceq w.CStar
+  obtain ⟨D, hD, hDF, K, s, hsrc, hh, hT, htime⟩ :=
+    healing_finality_source_clock p c E rho hv hnr origin heldRows cap hhead hx hgen
+  by_cases hlow : (finalityView p D).h_F ≤ w.M
+  · exact Or.inl (healing_low_finality_at_reset p c E rho hv.toScheduleWellFormed
+      hnr xing w h0 hx hi hD hDF hlow)
+  · right
+    have hhigh : high p w K := by
+      change w.M + 1 ≤ (heightView p K).h
+      rw [hh]
+      exact Nat.succ_le_of_lt (Nat.lt_of_not_ge hlow)
+    refine ⟨K, s, hsrc, hhigh, htime, ?_⟩
+    change Block.Preceq (eraseFG (storeAt p c E rho i x).fg.F) (eraseFG K)
+    rw [← hT]
+    exact eraseFG_preceq ((fgCertificateLaws p).height.entry_preceq K)
 
 end AvailableChain.FGSA.Run
 end

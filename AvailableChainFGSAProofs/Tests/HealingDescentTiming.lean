@@ -1,5 +1,6 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.DescentTiming -- shake: keep (D4 boundary examples)
+public import AvailableChainFGSAProofs.Proofs.Healing.DescentTimingRFProv -- shake: keep (boundary examples)
+public import AvailableChainFGSAProofs.Proofs.Foundations.Cap -- shake: keep (INLINE supplier examples)
 
 set_option linter.privateModule false
 
@@ -96,5 +97,148 @@ example {In V : Type} [DecidableEq V] (c : AppCodec In) (E : Generic.Env V)
     params.actionTime r ≤ (storeAt params c E rho (rho.events.length + 7) x).base.now := by
   have hkl := (List.getElem?_eq_some_iff.mp hk).1
   exact healing_delivery_clock params c E rho hs hnr (by omega) hk hj ht
+
+-- The receipt round must agree with the honest row's actual round,
+-- even when the INLINE witness starts with a different round variable.
+example (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hv : V2.D.ExecutionValid E rho)
+    (heldRows : ∀ e x W, HeldAt p c E rho e x W →
+      ∀ u ∈ chainRows W, ∃ (a : RowWire p.n) (r : Nat),
+        a.toRow? = some u ∧ a.auth = .seat .fg u.signer ∧
+        ∃ k o t, k < e ∧ rho.events[k]? = some (.deliver x o t) ∧
+          ∀ z : V, RowSigner p c rho a z → z ∈ rho.honest →
+            HonestRowBefore p c E rho e z r a ∧ p.actionTime r ≤ t)
+    {i : Nat} {x z : V} {a : RowWire p.n}
+    {W : FGBlock (Fin p.n)} {u : Row (Fin p.n)}
+    (hW : HeldAt p c E rho i x W) (hu : u ∈ chainRows W)
+    (hb : HonestRowBefore p c E rho i z 0 a) (hd : a.toRow? = some u) :
+    ∃ k o t, k < i ∧ rho.events[k]? = some (.deliver x o t) ∧ p.actionTime 0 ≤ t :=
+  healing_row_delivery p c E rho hv heldRows hW hu hb hd
+
+-- T2 also applies after the event list ends. It needs no reset or future tick.
+example (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hv : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho)
+    (origin : RQCOrigin p c E rho)
+    (heldRows : ∀ e x W, HeldAt p c E rho e x W →
+      ∀ u ∈ chainRows W, ∃ (a : RowWire p.n) (r : Nat),
+        a.toRow? = some u ∧ a.auth = .seat .fg u.signer ∧
+        ∃ k o t, k < e ∧ rho.events[k]? = some (.deliver x o t) ∧
+          ∀ z : V, RowSigner p c rho a z → z ∈ rho.honest →
+            HonestRowBefore p c E rho e z r a ∧ p.actionTime r ≤ t)
+    {x : V} (hx : x ∈ rho.honest)
+    (hj : (storeAt p c E rho (rho.events.length + 7) x).fg.h_j ≠ 0) :
+    ∃ K s, SourceBefore p c E rho (rho.events.length + 7) K s ∧
+      (heightView p K).h = (storeAt p c E rho (rho.events.length + 7) x).fg.h_j ∧
+      (heightView p K).T_h = (storeAt p c E rho (rho.events.length + 7) x).fg.J ∧
+      SA.gateTime p.toParams s ≤
+        (storeAt p c E rho (rho.events.length + 7) x).base.now :=
+  healing_justified_source_clock p c E rho hv hnr origin heldRows hx hj
+
+-- The low arm includes the exact after-action cut, and a certificate
+-- height equal to M. Its hypothesis concerns h_F of the carrier.
+example (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.NoRestart rho)
+    (xing : RXing p c E rho) (w : HealingWitness) (h0 : H0 p c E rho w)
+    {x : V} {D : FGBlock (Fin p.n)} (hx : x ∈ rho.honest)
+    (hD : D ∈ (storeAt p c E rho (afterTicksIdx rho (p.actionTime w.rStar)) x).fg.TF)
+    (hDF : (finalityView p D).F =
+      (storeAt p c E rho (afterTicksIdx rho (p.actionTime w.rStar)) x).fg.F)
+    (hcert : (finalityView p D).h_F = w.M) :
+    Block.Preceq (F_at p c E rho (afterTicksIdx rho (p.actionTime w.rStar)) x) w.CStar :=
+  healing_low_finality_at_reset p c E rho hs hnr xing w h0 hx le_rfl hD hDF hcert.le
+
+-- These are the exact Assembly suppliers for Cap, held rows, and hhead.
+-- T1 keeps the carrier certificate height at an end-of-events prefix.
+example (p : Params) {In V : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hL : V2.D.Linked (fgsaFamilies p c).linked rho) (hv : V2.D.ExecutionValid E rho)
+    (hQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+    (hnr : V2.D.NoRestart rho) (origin : RQCOrigin p c E rho)
+    {x : V} (hx : x ∈ rho.honest)
+    (hF : (storeAt p c E rho (rho.events.length + 7) x).fg.F ≠ .genesis) :
+    ∃ D ∈ (storeAt p c E rho (rho.events.length + 7) x).fg.TF,
+      (finalityView p D).F = (storeAt p c E rho (rho.events.length + 7) x).fg.F ∧
+      ∃ K s, SourceBefore p c E rho (rho.events.length + 7) K s ∧
+        (heightView p K).h = (finalityView p D).h_F ∧
+        (heightView p K).T_h = (storeAt p c E rho (rho.events.length + 7) x).fg.F ∧
+        SA.gateTime p.toParams s + P p ≤
+          (storeAt p c E rho (rho.events.length + 7) x).base.now :=
+  healing_finality_source_clock p c E rho hv hnr origin
+    (held_chain_row_origin_before p c E rho hv.toUnforgeableSignatures hv.toScheduleWellFormed)
+    (fgsa_finalityCap p c E rho hL hv hQ) (cap_finality_head p c E rho) hx hF
+
+-- The full clause-1 producer has the exact RFProv F-branch conclusion.
+example (p : Params) {In V : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hL : V2.D.Linked (fgsaFamilies p c).linked rho) (hv : V2.D.ExecutionValid E rho)
+    (hQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+    (hnr : V2.D.NoRestart rho) (origin : RQCOrigin p c E rho)
+    (xing : RXing p c E rho) (w : HealingWitness) (h0 : H0 p c E rho w)
+    {i : Nat} {x : V} (hx : x ∈ rho.honest)
+    (hi : afterTicksIdx rho (p.actionTime w.rStar) ≤ i) :
+    Block.Preceq (F_at p c E rho i x) w.CStar ∨
+      ∃ K s, SourceBefore p c E rho i K s ∧ high p w K ∧
+        SA.gateTime p.toParams s + P p ≤ (storeAt p c E rho i x).base.now ∧
+        Block.Preceq (F_at p c E rho i x) (eraseFG K) :=
+  healing_rFProv_finality p c E rho hv hnr origin
+    (held_chain_row_origin_before p c E rho hv.toUnforgeableSignatures hv.toScheduleWellFormed)
+    (fgsa_finalityCap p c E rho hL hv hQ) (cap_finality_head p c E rho) xing w h0 i x hx hi
+
+-- A restart can clear the clock after a receipt on a well-formed schedule.
+-- The reader sleeps throughout. Delivery and public ticks still occur.
+private def restartEnv : Generic.Env Unit :=
+  ⟨1, by decide, 0, by decide, fun _ _ => false⟩
+private def restartObj : Obj params := ⟨.none, .row (.vote ⟨.empty, none⟩)⟩
+private def restartRun : V2.D.Run Unit (fgsa params unitCodec) :=
+  { honest := {()}, horizon := 7,
+    events := [.tick () 0, .tick () 1, .tick () 2, .tick () 3,
+      .tick () 4, .tick () 5, .tick () 6, .deliver () restartObj 6,
+      .restart () 7, .tick () 7],
+    seatOf := fun _ _ => (), input := fun _ _ => () }
+
+private theorem restartSchedule : V2.D.ScheduleWellFormed restartEnv restartRun where
+  horizon_nonneg := by decide
+  sorted := by decide
+  nodup := by decide
+  in_horizon := by decide
+  honest_only := by decide
+  tick_public := by
+    intro v t ht
+    change V2.Event.tick v t ∈
+      [.tick () 0, .tick () 1, .tick () 2, .tick () 3,
+        .tick () 4, .tick () 5, .tick () 6, .deliver () restartObj 6,
+        .restart () 7, .tick () 7] at ht
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at ht
+    rcases ht with he | he | he | he | he | he | he | he | he | he <;> cases he
+    · exact ⟨0, rfl⟩
+    · exact ⟨1, rfl⟩
+    · exact ⟨2, rfl⟩
+    · exact ⟨3, rfl⟩
+    · exact ⟨4, rfl⟩
+    · exact ⟨5, rfl⟩
+    · exact ⟨6, rfl⟩
+    · exact ⟨7, rfl⟩
+  tick_total := by
+    intro v hv t ⟨k, hk⟩ ht hh
+    cases v
+    change t = (k : Int) * 1 at hk
+    rw [mul_one] at hk
+    subst t
+    change (k : Int) ≤ 7 at hh
+    have hk7 : k ≤ 7 := by exact_mod_cast hh
+    interval_cases k <;> decide
+
+example : V2.D.ScheduleWellFormed restartEnv restartRun ∧
+    restartRun.events[7]? = some (.deliver () restartObj 6) ∧
+    restartRun.events[6]? = some (.tick () (params.actionTime 0)) ∧
+    ¬ V2.D.NoRestart restartRun ∧
+    ¬ params.actionTime 0 ≤ (storeAt params unitCodec restartEnv restartRun 9 ()).base.now := by
+  refine ⟨restartSchedule, rfl, rfl, ?_, ?_⟩
+  · intro hnr
+    exact hnr 8 () 7 rfl
+  · decide +kernel
 
 end AvailableChain.FGSA.Run.Tests.HealingDescentTiming
