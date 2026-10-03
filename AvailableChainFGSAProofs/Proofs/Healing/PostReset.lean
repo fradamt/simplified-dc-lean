@@ -23,7 +23,8 @@ variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
 
 /-- Blueprint 21 H.12:2646–2666, H.22 T-contract; plan J9 A;
 B1/B13/B17/B31. DC: SAME seven fields from their Healing producers.
-The reset adapter uses each public H0 only through toH0Reset. -/
+The reset adapter uses each public H0 only through toH0Reset.
+The unused _h0r input stays for signature uniformity. -/
 theorem healing_healTContract_reset [Fintype V] {G ΔF : Time}
     (hrec : Recovery₂ p c E rho G ΔF) (mono : RMono p c E rho)
     (xing : RXing p c E rho) (cap : RCap p c E rho)
@@ -99,7 +100,8 @@ theorem healing_rFProv_of_reset (hv : V2.D.ExecutionValid E rho) (hnr : V2.D.NoR
 
 /-- Blueprint 21 H.13–H.18:2668–3095; plan J9 B; B1/B13/B17/B18/B31/B32.
 DC: SAME six fields. Crossing and capacity are named channels;
-phase and descent use their producers, keep and provenance use the H0 adapters. -/
+phase and descent use their producers, keep and provenance use the H0 adapters.
+The unused _h0r input stays for signature uniformity. -/
 theorem healing_healRContract_reset (hv : V2.D.ExecutionValid E rho)
     (hnr : V2.D.NoRestart rho) (hdelta : E.Δ = p.Δ) {ΔF : Time}
     (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))

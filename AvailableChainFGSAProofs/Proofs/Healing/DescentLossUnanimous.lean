@@ -332,6 +332,7 @@ theorem healing_unanimous_release_compat [Fintype V] {G ΔF : Time}
   have hawk : Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams v) = rho.honest := by
     rw [Gen.V2.Duty.awakeHonest_def]
     exact Finset.filter_eq_self.mpr (fun z hz => hrec.awake z hz _ hgst hhor)
+  -- The release count uses only f < h from the batch bound.
   have hb := (hrec.batch hgst hhor).lt
   rw [hawk, hf] at hb
   have ht : SA.releaseThreshold p.toParams = (p.n + 1) / 2 := rfl

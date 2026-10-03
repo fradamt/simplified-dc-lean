@@ -31,6 +31,8 @@ def PostResetRetainedConeP (w : HealingWitness) (i : Nat) : Prop :=
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D
 
+/-- Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
+The retained-cone step uses the prior joint fields and the new raw-transfer field. -/
 def PostResetConeStep (w : HealingWitness) (i : Nat) : Prop :=
   PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatibleP p c E rho w i ∧
     PostResetOpeningDomainP p c E rho w i ∧ PostResetRetainedConeP p c E rho w i →
@@ -40,6 +42,8 @@ def PostResetConeStep (w : HealingWitness) (i : Nat) : Prop :=
   PostResetRawTransfer p c E rho w (i + 1) →
   PostResetRetainedConeP p c E rho w (i + 1)
 
+/-- Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
+The opening-domain step uses the prior joint fields and the new retained cone. -/
 def PostResetOpeningDomainStep₂ (w : HealingWitness) (i : Nat) : Prop :=
   PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatibleP p c E rho w i ∧
     PostResetOpeningDomainP p c E rho w i ∧ PostResetRetainedConeP p c E rho w i →
@@ -50,6 +54,8 @@ def PostResetOpeningDomainStep₂ (w : HealingWitness) (i : Nat) : Prop :=
   PostResetRetainedConeP p c E rho w (i + 1) →
   PostResetOpeningDomainP p c E rho w (i + 1)
 
+/-- Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
+The service step uses the prior joint fields, the new retained cone and opening domain. -/
 def PostResetServiceStep₂ (w : HealingWitness) (i : Nat) : Prop :=
   PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatibleP p c E rho w i ∧
     PostResetOpeningDomainP p c E rho w i ∧ PostResetRetainedConeP p c E rho w i →

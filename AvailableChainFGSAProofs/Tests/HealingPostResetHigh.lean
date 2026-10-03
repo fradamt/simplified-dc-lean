@@ -70,7 +70,7 @@ variable (cap : RCap p c E rho) (source : TSrc p c E rho)
 
 include cap source rowCovered
 
--- conditional package, anti-vacuity: A is consumed when this action emits no row.
+-- conditional package: A supplies the label bound; the no-row clause restates hnoRow.
 example {x : V} {r : Nat} {C : FGBlock (Fin p.n)} (hx : x ∈ rho.honest)
     (hsrc : actionSourceFG p c E rho x r = some (some C)) (hh : high p w C)
     (hnoRow : ∀ j a, ¬ HonestRowAt p c E rho j x r a) :
