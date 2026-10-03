@@ -436,43 +436,28 @@ theorem postReset_keep_witness (origin : RQCOrigin p c E rho)
 
 /-- Blueprint 21 H.12:2652–2666, H.14:2815–2884; plan J3 B, kept field step;
 B1/B13/B15/B17/B18. DC: SAME reset transfer at the first release duty.
-The named J1 input htransfer is used only through ResetTransferCore_def.
+The unused reset-transfer and release inputs stay for signature uniformity.
 Later reads use geometric descent in their own covered view. -/
-theorem postReset_keep_body (hs : V2.D.ScheduleWellFormed E rho)
+theorem postReset_keep_body (_hs : V2.D.ScheduleWellFormed E rho)
     (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
     {w : HealingWitness} (h0r : H0Reset p c E rho w)
-    (htransfer : ResetTransferCore p c E rho w)
+    (_htransfer : ResetTransferCore p c E rho w)
     {i : Nat} (hinv : PostResetInv p c E rho w i)
     {x : V} {X : Finset (FGBlock (Fin p.n))} {C B : FGBlock (Fin p.n)}
     (hx : x ∈ rho.honest) (hX : X ⊆ (storeAt p c E rho i x).fg.TF)
-    (htick : ∃ t, rho.events[i]? = some (.tick x t) ∧ SA.releaseTime p.toParams w.sStar ≤ t)
+    (_htick : ∃ t, rho.events[i]? = some (.tick x t) ∧ SA.releaseTime p.toParams w.sStar ≤ t)
     (hC : C ∈ X) (he : eraseFG C = w.CStar)
     (cover : ∀ K s, SourceBefore p c E rho i K s → high p w K → K ∈ X)
-    (hreset : ∀ K s, SourceBefore p c E rho i K s → high p w K →
+    (_hreset : ∀ K s, SourceBefore p c E rho i K s → high p w K →
       Block.Compatible (eraseFG K) w.CStar)
-    (hhigh : ∀ K K' s s', SourceBefore p c E rho i K s → SourceBefore p c E rho i K' s' →
+    (_hhigh : ∀ K K' s s', SourceBefore p c E rho i K s → SourceBefore p c E rho i K' s' →
       high p w K → high p w K' → Block.Compatible (eraseFG K) (eraseFG K'))
     (path : ∀ A, FGBlock.Preceq A B → A ∈ X)
     (hBC : Block.Compatible (eraseFG B) w.CStar)
     (hBK : ∀ K s, SourceBefore p c E rho i K s → high p w K →
       Block.Compatible (eraseFG B) (eraseFG K)) : Kept p c E rho i x X B := by
-  obtain ⟨t, ht, -⟩ := htick
-  by_cases hfirst : t = SA.releaseTime p.toParams w.sStar
-  · by_cases hprefix : FGBlock.Preceq B C
-    · by_cases pathC : ∀ A, FGBlock.Preceq A C → A ∈ X
-      · have hhor : SA.releaseTime p.toParams w.sStar ≤ rho.horizon := by
-          simpa only [V2.Event.time, hfirst] using
-            (hs.in_horizon _ (List.mem_of_getElem? ht)).2
-        rw [ResetTransferCore_def] at htransfer
-        obtain ⟨_, _, _, hk⟩ := (htransfer hhor i x hx (hfirst ▸ ht)).2
-          X C hX hC he cover hreset hhigh
-        exact keep_prefix p c E rho (path B (KitFG.preceq_refl B)) hprefix (hk pathC).2
-      · exact postReset_general_kept p c E rho xing origin h0r hinv
-          hx hX hC he cover path hBC hBK
-    · exact postReset_general_kept p c E rho xing origin h0r hinv
-        hx hX hC he cover path hBC hBK
-  · exact postReset_general_kept p c E rho xing origin h0r hinv
-        hx hX hC he cover path hBC hBK
+  exact postReset_general_kept p c E rho xing origin h0r hinv
+    hx hX hC he cover path hBC hBK
 
 /-- Blueprint 21 H.14:2815–2884; plan J3 B, protected_kept successor;
 B1/B13/B15/B17/B18. DC: SAME event-prefix history extension.

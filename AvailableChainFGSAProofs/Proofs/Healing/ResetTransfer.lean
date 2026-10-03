@@ -125,6 +125,7 @@ theorem healing_low_finality_at_reset_reset [Fintype V] (E : Generic.Env V)
 
 /-- Blueprint 21:2655–2666; plan J1; B1/B13/B15/B17/B18.
 DC: reset transfer at each node's own release tick, with its covered view.
+The floor bound uses Controls.lo_le_H; the J/contest split proves Z ⪯ C.
 Assembly supplies `fgsa_rXing`, `fgsa_rCap_channel`,
 `sourceDiscipline_tSrc`, and `fgsa_rMono`. No common node state is used. -/
 theorem healing_resetTransferCore [Fintype V] (E : Generic.Env V)
