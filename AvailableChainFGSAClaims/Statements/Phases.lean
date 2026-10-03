@@ -339,5 +339,10 @@ theorem TerminalCarriage_W_def (p : Params) (ΔF : Time) :
                row.finality_pair = some ⟨y, U.root⟩ ∧ RetainedW p X.parent y U)) ∧
            FinalityCoveredByChild_W p X U y)) := rfl
 
+-- equation export required by BUILD §7.2 B3a (post-freeze additive _def batch)
+omit [DecidableEq V] [Fintype V] in
+theorem finHeight_def {n : Nat} (a : RowWire n) :
+    finHeight a = a.payload.finality_pair.map (·.height) := rfl
+
 end AvailableChain.FGSA.Run
 end

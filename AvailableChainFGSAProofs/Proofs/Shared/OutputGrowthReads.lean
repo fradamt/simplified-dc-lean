@@ -17,7 +17,7 @@ theorem fgsa_outputAt_eq_S_at (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   simp only [List.mem_cons, List.not_mem_nil, or_false] at hg
   rcases hg with rfl | rfl <;>
     change (V2.D.Run.readAt E rho t x).st.base.stableRecord = _ <;>
-    rw [V2.D.Engine.readAt_eq_stateBefore hs t] <;> rfl
+    rw [S_at_def, V2.D.Engine.readAt_eq_stateBefore hs t] <;> rfl
 
 omit [DecidableEq V] in
 /-- An inclusive read at or after a healing cut is in its suffix, also
@@ -25,9 +25,10 @@ when the trigger equals a gate cut with same-time deliveries. -/
 theorem fgsa_healSuffix_timeIdx (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) {a t : Time} (hat : a ≤ t) :
     HealSuffix p c rho a (timeIdx rho t) := by
+  rw [HealSuffix_def]
   refine ⟨?_, List.length_filter_le _ _⟩
   have hm := V2.D.Engine.read_length_mono (rho := rho) a t hat
-  unfold healStart
+  rw [healStart_def]
   split
   · exact (preIdx_le_afterTicksIdx E rho hs a).2.trans hm
   · exact hm
