@@ -139,6 +139,10 @@ public import AvailableChainFGSAProofs.Proofs.Clean.Chain -- shake: keep (axiom 
 public import AvailableChainFGSAProofs.Proofs.Clean.State -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (axiom audit commands)
 
+public import AvailableChainFGSAProofs.Proofs.Healing.Attempt -- shake: keep (H-ATTEMPT axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.AttemptBudget -- shake: keep (H-ATTEMPT axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.AttemptStop -- shake: keep (H-ATTEMPT axiom audit)
+
 #print axioms AvailableChain.FGSA.Run.kmid_honestSeats_mem
 #print axioms AvailableChain.FGSA.Run.kmid_honest_quorum
 
@@ -1511,3 +1515,21 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.healing_rise_one_accept
 #print axioms AvailableChain.FGSA.Run.healing_rise_one_rise
 #print axioms AvailableChain.FGSA.Run.healing_rise_one_of_receipt
+
+-- S5 H-ATTEMPT: conditional rows, arithmetic and stopping facts.
+#print axioms AvailableChain.FGSA.Run.healing_progressAttempt_of
+#print axioms AvailableChain.FGSA.Run.healing_attempt_raise_contest_budget
+#print axioms AvailableChain.FGSA.Run.healing_attempt_raise_other_budget
+#print axioms AvailableChain.FGSA.Run.healing_attempt_firstRow_contest_budget
+#print axioms AvailableChain.FGSA.Run.healing_attempt_firstRow_other_budget
+#print axioms AvailableChain.FGSA.Run.healing_attempt_raise_contest_cost
+#print axioms AvailableChain.FGSA.Run.healing_attempt_raise_other_cost
+#print axioms AvailableChain.FGSA.Run.healing_attempt_firstRow_contest_cost
+#print axioms AvailableChain.FGSA.Run.healing_attempt_firstRow_other_cost
+#print axioms AvailableChain.FGSA.Run.healing_attempt_high_source_cost
+#print axioms AvailableChain.FGSA.Run.healing_attempt_terminal_horizon_gap
+#print axioms AvailableChain.FGSA.Run.healing_attempt_ends_of_event
+#print axioms AvailableChain.FGSA.Run.healing_attempt_ends_of_row
+#print axioms AvailableChain.FGSA.Run.healing_attempt_ends_mono
+#print axioms AvailableChain.FGSA.Run.healing_attempt_no_event
+#print axioms AvailableChain.FGSA.Run.healing_attempt_inclusive_start

@@ -28,6 +28,24 @@ LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainF
 CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = (
+    # S5 H-ATTEMPT: --expect ADDITIONS only.
+    'AvailableChain.FGSA.Run.healing_progressAttempt_of',
+    'AvailableChain.FGSA.Run.healing_attempt_raise_contest_budget',
+    'AvailableChain.FGSA.Run.healing_attempt_raise_other_budget',
+    'AvailableChain.FGSA.Run.healing_attempt_firstRow_contest_budget',
+    'AvailableChain.FGSA.Run.healing_attempt_firstRow_other_budget',
+    'AvailableChain.FGSA.Run.healing_attempt_raise_contest_cost',
+    'AvailableChain.FGSA.Run.healing_attempt_raise_other_cost',
+    'AvailableChain.FGSA.Run.healing_attempt_firstRow_contest_cost',
+    'AvailableChain.FGSA.Run.healing_attempt_firstRow_other_cost',
+    'AvailableChain.FGSA.Run.healing_attempt_high_source_cost',
+    'AvailableChain.FGSA.Run.healing_attempt_terminal_horizon_gap',
+    'AvailableChain.FGSA.Run.healing_attempt_ends_of_event',
+    'AvailableChain.FGSA.Run.healing_attempt_ends_of_row',
+    'AvailableChain.FGSA.Run.healing_attempt_ends_mono',
+    'AvailableChain.FGSA.Run.healing_attempt_no_event',
+    'AvailableChain.FGSA.Run.healing_attempt_inclusive_start',
+
     # O-EXPORT-3: --expect ADDITIONS only.
     'AvailableChain.FGSA.Run.outage_outageCompatClaim_of',
     'AvailableChain.FGSA.Run.outage_fastP1Claim_of',
