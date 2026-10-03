@@ -3,6 +3,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTail -- shak
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTop -- shake: keep (example uses)
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchBudget -- shake: keep (example uses)
 
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchHG2a -- shake: keep (examples)
+
 set_option linter.privateModule false
 
 /-! HG.3 phase applications, finite interrupts, phase-order progress,
@@ -193,3 +195,68 @@ example : ¬ (∀ d a horizon : Int, d ≤ a → a ≤ d + (8 - 4) →
 
 end AvailableChain.FGSA.Run.Tests.HealingFrontierSearch
 end
+
+namespace AvailableChain.FGSA.Run.Tests.HealingFrontierSearch
+open AvailableChain.SimplexFG
+
+-- HG4-RISE T: only the F1 slot component is applied. F1--F3 remain stopped.
+section HG2aGap
+variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In}
+
+example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : Recovery₂ p c E rho G ΔF) (r : Nat) (U : FGBlock (Fin p.n))
+    (hgst : E.t_GST ≤ (r : Time) * P p)
+    (hhor : max (p.actionTime r + Γ p G - p.Δ + epsF p ΔF)
+      (SA.proposalTime p.toParams U.slot + 2 * P p + Γ p G - 3 * p.Δ) = rho.horizon) :
+    let U_F := max ((r : Time) * P p + betaF p ΔF - 4 * p.Δ)
+      (SA.proposalTime p.toParams U.slot + 2 * P p - 4 * p.Δ)
+    ∃ s, U_F < SA.proposalTime p.toParams s ∧
+      SA.proposalTime p.toParams s + p.Δ ≤ rho.horizon := by
+  obtain ⟨_, s, hlo, _, _, ht, _⟩ := frontierSearch_hg2a_gap E rho hrec r U hgst hhor.le
+  exact ⟨s, hlo, ht.trans hhor.le⟩
+end HG2aGap
+
+private def hg2aParams : Params where
+  Δ := 1
+  n := 4
+  k := 2
+  η := 0
+  deltaPos := by decide
+  nPos := by decide
+  kLarge := by decide
+  etaNonneg := by decide
+  R := 2
+  δt := 4
+  RLarge := by decide
+
+-- The old grid values now fit the age bound at the unchanged HG.4 guard.
+example : max (54 + Γ hg2aParams 8 - hg2aParams.Δ + epsF hg2aParams 2)
+    (44 + 2 * P hg2aParams + Γ hg2aParams 8 - 3 * hg2aParams.Δ) ≤
+    50 + (2 * P hg2aParams + Γ hg2aParams 8 - 9 * hg2aParams.Δ) :=
+  frontierSearch_hg2a_bound hg2aParams 8 2 50 54 44 ⟨by decide⟩ (by decide) (by decide)
+
+example : max (54 + Γ hg2aParams 12 - hg2aParams.Δ + epsF hg2aParams 2)
+    (44 + 2 * P hg2aParams + Γ hg2aParams 12 - 3 * hg2aParams.Δ) ≤
+    50 + (2 * P hg2aParams + Γ hg2aParams 12 - 9 * hg2aParams.Δ) :=
+  frontierSearch_hg2a_bound hg2aParams 12 2 50 54 44 ⟨by decide⟩ (by decide) (by decide)
+
+-- Both aligned full gap windows fit. The service endpoint does not fit.
+-- These are interface checks, not counterexamples to HG.4 on valid runs.
+example : max (54 + (8 : Int) - 1) (44 + 2 * 8 + 8 - 3) = 65 ∧
+    max (6 * 8 + 8 - 4) (44 + 2 * 8 - 4) + 8 ≤ 65 ∧
+    ¬ (∃ v : Int, max (54 + 8 + 4) (44 + 2 * 8 + 8 + 2) ≤ v ∧ v ≤ 65) := by
+  norm_num
+  omega
+
+example : max (54 + (12 : Int) - 1) (44 + 2 * 8 + 12 - 3) = 69 ∧
+    max (6 * 8 + 8 - 4) (44 + 2 * 8 - 4) + 12 ≤ 69 ∧
+    ¬ (∃ v : Int, max (54 + 12 + 4) (44 + 2 * 8 + 12 + 2) ≤ v ∧ v ≤ 69) := by
+  norm_num
+  omega
+
+#check FrontierHG2aResult
+#print axioms frontierSearch_hg2a_bound
+#print axioms frontierSearch_hg2a_gate_cost
+#print axioms frontierSearch_hg2a_gap
+
+end AvailableChain.FGSA.Run.Tests.HealingFrontierSearch

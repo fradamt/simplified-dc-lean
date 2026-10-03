@@ -2216,6 +2216,12 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.frontierSearch_terminal_horizon_gap8',
     'AvailableChain.FGSA.Run.frontierSearch_terminal_horizon_gap12',
 
+    # S5 HG4-RISE F1 support: --expect ADDITIONS only.
+    'AvailableChain.FGSA.Run.FrontierHG2aResult',
+    'AvailableChain.FGSA.Run.frontierSearch_hg2a_bound',
+    'AvailableChain.FGSA.Run.frontierSearch_hg2a_gate_cost',
+    'AvailableChain.FGSA.Run.frontierSearch_hg2a_gap',
+
 )
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
          'Packages.Safety', 'OutputReads', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',

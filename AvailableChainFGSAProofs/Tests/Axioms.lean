@@ -160,6 +160,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.AttemptRows -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTop -- shake: keep (HG.3 phase audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchBudget -- shake: keep (terminal audit)
 
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchHG2a -- shake: keep (axioms)
+
 #print axioms AvailableChain.FGSA.Run.kmid_honestSeats_mem
 #print axioms AvailableChain.FGSA.Run.kmid_honest_quorum
 
@@ -1696,3 +1698,9 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchBudget -- sh
 #print axioms AvailableChain.FGSA.Run.healing_attempt_raise_contest
 #print axioms AvailableChain.FGSA.Run.healing_attempt_raise_other
 #print axioms AvailableChain.FGSA.Run.healing_progressAttempt
+
+-- S5 HG4-RISE F1 support: ADDITIONS only; no full F1--F3 producer.
+#print axioms AvailableChain.FGSA.Run.FrontierHG2aResult
+#print axioms AvailableChain.FGSA.Run.frontierSearch_hg2a_bound
+#print axioms AvailableChain.FGSA.Run.frontierSearch_hg2a_gate_cost
+#print axioms AvailableChain.FGSA.Run.frontierSearch_hg2a_gap
