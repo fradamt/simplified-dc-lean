@@ -1971,3 +1971,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchFull -- shak
 #print axioms AvailableChain.FGSA.Run.postReset_cStar_below_proposal
 #print axioms AvailableChain.FGSA.Run.postReset_h2Prime_first
 #print axioms AvailableChain.FGSA.Run.postReset_h2Prime_reset
+
+-- S5 HTIME-WIRE W2–W4: standard axiom audit, additions only.
+#print axioms AvailableChain.FGSA.Run.healing_resetArrivalFull_of_open
+#print axioms AvailableChain.FGSA.Run.healing_hTimeClaim_of_statement
+#print axioms AvailableChain.FGSA.Run.healing_hTimeClaim_of_open

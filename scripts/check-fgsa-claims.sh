@@ -2434,6 +2434,10 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.postReset_cStar_below_proposal',
     'AvailableChain.FGSA.Run.postReset_h2Prime_first',
     'AvailableChain.FGSA.Run.postReset_h2Prime_reset',
+    # S5 HTIME-WIRE W2–W4: --expect ADDITIONS only.
+    'AvailableChain.FGSA.Run.healing_resetArrivalFull_of_open',
+    'AvailableChain.FGSA.Run.healing_hTimeClaim_of_statement',
+    'AvailableChain.FGSA.Run.healing_hTimeClaim_of_open',
 )
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
          'Packages.Safety', 'OutputReads', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',
