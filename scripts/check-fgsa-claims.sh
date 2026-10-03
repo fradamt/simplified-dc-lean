@@ -28,6 +28,11 @@ LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainF
 CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = (
+    # HBEST STATEMENT: companion --expect DATA additions only.
+    'AvailableChain.FGSA.Run.HTimeBestConcl',
+    'AvailableChain.FGSA.Run.HTimeBestConcl_def',
+    'AvailableChain.FGSA.Run.HTimeBestClaim',
+    'AvailableChain.FGSA.Run.HTimeSearchClaim',
     # C-CORE: --expect DATA only.
     'AvailableChain.FGSA.Run.fgsa_tStart',
     'AvailableChain.FGSA.Run.fgsa_tWalk',
@@ -1608,7 +1613,7 @@ EXPECTED = (
 )
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
          'Packages.Safety', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',
-         'ChannelProps', 'FinalityApi', 'Healed', 'WeakContinuation', 'Packages.Finality', 'Packages.FinalityGST',
+         'ChannelProps', 'FinalityApi', 'Healed', 'HealedBest', 'WeakContinuation', 'Packages.Finality', 'Packages.FinalityGST',
          'ComposeStmt', 'Fold',
          'Phases', 'PhasesInternal', 'Packages.Healing')
 if not SOURCE_ONLY:

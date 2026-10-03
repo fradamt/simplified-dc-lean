@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAClaims.Statements.Packages.Healing
+public import AvailableChainFGSAClaims.Statements.HealedBest
 
 @[expose] public section
 
@@ -101,6 +102,32 @@ def RenewedPromotionClaim : Prop :=
     {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : PtR),
     RenewedPromotionPrem p c G ΔF E rho pt → RenewedPromotionConcl p c E rho G pt.r
+
+/-- Best H-time (21:3166–3169; 00:1101–1103), P3 §4.6 D11.
+This is a companion (user ruling after the re-freeze); ΔF port of the S4.6c text.
+Use the healing and liveness premises of HealingTimePrem, with the B_bestF horizon.
+DC: INTENTIONAL family delivery uses ΔF; SA clocks stay unchanged. -/
+def HTimeBestClaim : Prop :=
+  ∀ (G ΔF : Time) (g : Nat), p.δt = 2 * p.R →
+    ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+      (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      HealingSet p c E rho G ΔF → LivenessBoundW p ΔF →
+      Gen.Pure.FinForm.recS.holds (Gen.V2.Duty.HonestSlot rho (fgsaInterface p c))
+        p.R (P p) p.Δ E.t_GST rho.horizon g →
+      E.t_GST + B_bestF p ΔF G g ≤ rho.horizon → HTimeBestConcl p c E rho G ΔF g
+
+/-- Qualified-search H-time (21:2377–2378, 3166–3169), P3 §4.6 D50.
+This is a companion (user ruling after the re-freeze); ΔF port of the S4.6c text.
+The search domain requires 1 ≤ g (00:406).
+DC: INTENTIONAL family delivery uses ΔF; SA clocks stay unchanged. -/
+def HTimeSearchClaim : Prop :=
+  ∀ (G ΔF : Time) (g : Nat), p.δt = 2 * p.R →
+    ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+      (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      1 ≤ g → HealingSet p c E rho G ΔF → LivenessBoundW p ΔF →
+      Gen.Pure.QualSearch (Gen.V2.Duty.HonestSlot rho (fgsaInterface p c))
+        p.R (P p) p.Δ E.t_GST rho.horizon g →
+      E.t_GST + B_bestF p ΔF G g ≤ rho.horizon → HTimeBestConcl p c E rho G ΔF g
 
 end AvailableChain.FGSA.Run
 end

@@ -316,6 +316,8 @@ def AvailableChain.FGSA.Run.ResetArrivalConcl 7c58d028a7438644
 def AvailableChain.FGSA.Run.ResetArrivalClaim d91804917b1c03c6
 def AvailableChain.FGSA.Run.RenewedPromotionConcl 5706de43765b9044
 def AvailableChain.FGSA.Run.RenewedPromotionClaim 834e4d2fba3a6f2e
+def AvailableChain.FGSA.Run.HTimeBestClaim f001679c4117ae06
+def AvailableChain.FGSA.Run.HTimeSearchClaim c672eabdb0aefd80
 ```
 
 ### `AvailableChainFGSAClaims.Claims.Outage`
@@ -914,6 +916,13 @@ field AvailableChain.FGSA.Run.HealingInput.t ce6ab438eb5d9085
 field AvailableChain.FGSA.Run.HealingInput.ac 104a593c7fe48e84
 def AvailableChain.FGSA.Run.HTimeStatement 99c16a93fb2da368
 theorem AvailableChain.FGSA.Run.HTimeStatement_def 802f73b6f7584190
+```
+
+### `AvailableChainFGSAClaims.Statements.HealedBest`
+
+```text
+def AvailableChain.FGSA.Run.HTimeBestConcl 78f2e0390d426581
+theorem AvailableChain.FGSA.Run.HTimeBestConcl_def c66e237fef033d80
 ```
 
 ### `AvailableChainFGSAClaims.Statements.Packages.Finality`

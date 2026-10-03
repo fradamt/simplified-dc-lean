@@ -372,6 +372,10 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.HealingInputClaim
 #print axioms AvailableChain.FGSA.Run.HTimeConcl
 #print axioms AvailableChain.FGSA.Run.HTimeClaim
+#print axioms AvailableChain.FGSA.Run.HTimeBestConcl
+#print axioms AvailableChain.FGSA.Run.HTimeBestConcl_def
+#print axioms AvailableChain.FGSA.Run.HTimeBestClaim
+#print axioms AvailableChain.FGSA.Run.HTimeSearchClaim
 #print axioms AvailableChain.FGSA.Run.ResetArrivalConcl
 #print axioms AvailableChain.FGSA.Run.ResetArrivalClaim
 #print axioms AvailableChain.FGSA.Run.RenewedPromotionConcl
@@ -737,3 +741,27 @@ by
 #print axioms AvailableChain.FGSA.Run.AvailableGrowthGSTClaim
 #print axioms AvailableChain.FGSA.Run.AwakeProposerRecurrenceFrom
 #print axioms AvailableChain.FGSA.Run.CleanGrowthClaim
+
+namespace AvailableChain.FGSA.Run.Tests.HealedBest
+
+variable (p : Params) {In V : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (G ΔF : Time) (g : Nat)
+
+-- Apply only the stated premises. These tests do not prove the claims.
+example (h : HTimeBestClaim p) (hδ : p.δt = 2 * p.R)
+    (hs : HealingSet p c E rho G ΔF) (hb : LivenessBoundW p ΔF)
+    (hr : Gen.Pure.FinForm.recS.holds (Gen.V2.Duty.HonestSlot rho (fgsaInterface p c))
+      p.R (P p) p.Δ E.t_GST rho.horizon g)
+    (hh : E.t_GST + B_bestF p ΔF G g ≤ rho.horizon) :
+    HTimeBestConcl p c E rho G ΔF g :=
+  h G ΔF g hδ c E rho hs hb hr hh
+
+example (h : HTimeSearchClaim p) (hδ : p.δt = 2 * p.R) (hg : 1 ≤ g)
+    (hs : HealingSet p c E rho G ΔF) (hb : LivenessBoundW p ΔF)
+    (hq : Gen.Pure.QualSearch (Gen.V2.Duty.HonestSlot rho (fgsaInterface p c))
+      p.R (P p) p.Δ E.t_GST rho.horizon g)
+    (hh : E.t_GST + B_bestF p ΔF G g ≤ rho.horizon) :
+    HTimeBestConcl p c E rho G ΔF g :=
+  h G ΔF g hδ c E rho hg hs hb hq hh
+
+end AvailableChain.FGSA.Run.Tests.HealedBest
