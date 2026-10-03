@@ -38,6 +38,7 @@ public import AvailableChainFGSAProofs.Proofs.Finality.RowsFrame
 public import AvailableChainFGSAProofs.Proofs.Finality.RowsBatch
 public import AvailableChainFGSAProofs.Proofs.Finality.RowsRecords
 public import AvailableChainFGSAProofs.Proofs.Finality.RowsPrem
+public import AvailableChainFGSAProofs.Proofs.Finality.Kernel
 public import AvailableChainFGSAProofs.Proofs.Finality.Carry
 public import AvailableChainFGSAProofs.Proofs.Finality.Batch
 public import AvailableChainFGSAProofs.Proofs.Finality.RecordInv
