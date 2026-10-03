@@ -206,3 +206,5 @@ public import AvailableChainFGSAProofs.Proofs.Assembly.Healing
 public import AvailableChainFGSAProofs.Proofs.Finality.Proposal
 public import AvailableChainFGSAProofs.Proofs.Finality.Above
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetCut
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRead -- shake: keep (J6 public input)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetService -- shake: keep (J6 public adapters)

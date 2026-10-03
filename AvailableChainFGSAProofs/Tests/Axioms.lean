@@ -148,6 +148,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.Delivery -- shake: keep (T
 public import AvailableChainFGSAProofs.Proofs.Healing.DeliveryReset -- shake: keep (reset core axiom audit)
 
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetCut -- shake: keep (RS-0 axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetService -- shake: keep (J6 axiom audit)
 
 #print axioms AvailableChain.FGSA.Run.kmid_honestSeats_mem
 #print axioms AvailableChain.FGSA.Run.kmid_honest_quorum
@@ -1608,3 +1609,17 @@ public import AvailableChainFGSAProofs.Proofs.Healing.ResetCut -- shake: keep (R
 #print axioms AvailableChain.FGSA.Run.reset_old_row_before_cut
 #print axioms AvailableChain.FGSA.Run.reset_old_height_sup_le
 #print axioms AvailableChain.FGSA.Run.reset_mu_le_iff
+
+-- S5 J6: reset-only retained HEAD and carrier audit.
+#print axioms AvailableChain.FGSA.Run.PostResetRetainedCone
+#print axioms AvailableChain.FGSA.Run.postReset_source_label_le_sub_two
+#print axioms AvailableChain.FGSA.Run.postReset_release_before_proposal
+#print axioms AvailableChain.FGSA.Run.postReset_proposal_horizon
+#print axioms AvailableChain.FGSA.Run.postReset_head_horizon
+#print axioms AvailableChain.FGSA.Run.postReset_synchronous_window
+#print axioms AvailableChain.FGSA.Run.postResetRetainedCone_of_horizon_lt
+#print axioms AvailableChain.FGSA.Run.healing_postReset_retainedReads
+#print axioms AvailableChain.FGSA.Run.healing_postReset_headGeometry
+#print axioms AvailableChain.FGSA.Run.healing_postReset_exactHead
+#print axioms AvailableChain.FGSA.Run.healing_postReset_headCarrier
+#print axioms AvailableChain.FGSA.Run.postResetRetainedCone_iff
