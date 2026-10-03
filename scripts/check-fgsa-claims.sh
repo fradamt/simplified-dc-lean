@@ -1429,6 +1429,7 @@ EXPECTED = (
     # fgsa-f1b8 step 3 (main b83d8f3): unconditional safety and its exact-head chain.
     'AvailableChain.FGSA.Run.fgsaSafetyClaims',
     'AvailableChain.FGSA.Run.fgsaClaims_of_open',
+    'AvailableChain.FGSA.Run.fgsaClaims_of_hTime',
     'AvailableChain.FGSA.Run.fgsa_headReachesLoClaim',
     'AvailableChain.FGSA.Run.exactHead_of_pivot_ancestry',
     'AvailableChain.FGSA.Run.exactHead_of_pivot',

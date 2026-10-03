@@ -46,7 +46,8 @@ theorem fgsaSafetyClaims : FGSASafetyClaims p :=
 The open fields are firstFinalityRecFE, firstFinalityRecF4,
 finalityLivenessGSTRecFE, finalityLivenessGSTRecF4, proposalFinalGSTRecFE,
 proposalFinalGSTRecF4, aboveFrontierGSTRecFE, aboveFrontierGSTRecF4,
-availableGST, and availableGrowthGST. Each open field is a separate premise. -/
+availableGST, and availableGrowthGST. Each open field is a separate premise.
+Eight of them reduce to HTimeClaim through Shared/Claims; see `fgsaClaims_of_hTime`. -/
 theorem fgsaClaims_of_open
     (hFirstFinalityRecFE : FirstFinalityRecFEClaim_W p)
     (hFirstFinalityRecF4 : FirstFinalityRecF4Claim_W p)
@@ -88,6 +89,21 @@ theorem fgsaClaims_of_open
   availableGST := hAvailableGST
   availableGrowthGST := hAvailableGrowthGST
   cleanGrowth := fgsa_cleanGrowthClaim_of_clean p (fgsa_cleanCutClaim p)
+
+/-- SYN L58: the root from HTimeClaim and the two FirstFinality Rec claims. The GST
+liveness and availability fields come from HTimeClaim and the closed local Rec claims
+(Shared/Claims adapters); every other field is as in `fgsaClaims_of_open`. -/
+theorem fgsaClaims_of_hTime (hH : HTimeClaim p)
+    (hFirstFinalityRecFE : FirstFinalityRecFEClaim_W p)
+    (hFirstFinalityRecF4 : FirstFinalityRecF4Claim_W p) : FGSAClaims p :=
+  fgsaClaims_of_open p hFirstFinalityRecFE hFirstFinalityRecF4
+    (fgsa_finalityLivenessGST_recFE hH (fgsa_finalityLivenessRecFE_W p))
+    (fgsa_finalityLivenessGST_recF4 hH (fgsa_finalityLivenessRecF4_W p))
+    (fgsa_proposalFinalGST_recFE hH (fgsa_proposalFinalRecFE_W p))
+    (fgsa_proposalFinalGST_recF4 hH (fgsa_proposalFinalRecF4_W p))
+    (fgsa_aboveFrontierGST_recFE hH (fgsa_aboveFrontierRecFE_W p))
+    (fgsa_aboveFrontierGST_recF4 hH (fgsa_aboveFrontierRecF4_W p))
+    (fgsa_availableGST hH) (fgsa_availableGrowthGST hH)
 
 end AvailableChain.FGSA.Run
 end
