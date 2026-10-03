@@ -1516,3 +1516,7 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 -- H-EXPORT-1: conditional Healing claim wrappers.
 #print axioms AvailableChain.FGSA.Run.healing_renewedPromotionClaim_of
 #print axioms AvailableChain.FGSA.Run.healing_rowPermissionClaim_of
+
+-- H-EXPORT-2: unconditional Healing claims.
+#print axioms AvailableChain.FGSA.Run.fgsa_renewedPromotionClaim
+#print axioms AvailableChain.FGSA.Run.fgsa_rowPermissionClaim
