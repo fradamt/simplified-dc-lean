@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Assembly.Outage -- shake: keep (Outage Export axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.FramePaths -- shake: keep (H-FRAME audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.FrameZero -- shake: keep (zero-label audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.FrameRelay -- shake: keep (witness relay audit)
@@ -1055,3 +1056,13 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.kernel_middle_early_justification
 #print axioms AvailableChain.FGSA.Run.kernel_middle_source_cap
 #print axioms AvailableChain.FGSA.Run.kmid_source_held_at_tick
+
+-- O-EXPORT-1: conditional claim wrappers.
+#print axioms AvailableChain.FGSA.Run.outage_exactProposalClaim_of
+#print axioms AvailableChain.FGSA.Run.outage_cleanInclusionPostGateClaim_of
+#print axioms AvailableChain.FGSA.Run.outage_cleanInclusionClaim_of
+
+-- O-EXPORT-1b: conditional Assembly claims.
+#print axioms AvailableChain.FGSA.Run.fgsa_exactProposalClaim_of_clean
+#print axioms AvailableChain.FGSA.Run.fgsa_cleanInclusionPostGateClaim_of_clean
+#print axioms AvailableChain.FGSA.Run.fgsa_cleanInclusionClaim_of_clean

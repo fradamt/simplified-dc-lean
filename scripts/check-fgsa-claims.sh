@@ -28,6 +28,14 @@ LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainF
 CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = (
+    # O-EXPORT-1b: --expect ADDITIONS only.
+    'AvailableChain.FGSA.Run.fgsa_exactProposalClaim_of_clean',
+    'AvailableChain.FGSA.Run.fgsa_cleanInclusionPostGateClaim_of_clean',
+    'AvailableChain.FGSA.Run.fgsa_cleanInclusionClaim_of_clean',
+    # O-EXPORT-1: --expect ADDITIONS only.
+    'AvailableChain.FGSA.Run.outage_exactProposalClaim_of',
+    'AvailableChain.FGSA.Run.outage_cleanInclusionPostGateClaim_of',
+    'AvailableChain.FGSA.Run.outage_cleanInclusionClaim_of',
     # S5 I-GATE/I-READ: --expect ADDITIONS only.
     'AvailableChain.FGSA.Run.inclusion_headAtLabel',
     'AvailableChain.FGSA.Run.inclusion_prior_results_below',

@@ -115,3 +115,4 @@ public import AvailableChainFGSAProofs.Proofs.Foundations.RowPermission
 public import AvailableChainFGSAProofs.Proofs.Foundations.OpeningCovered
 public import AvailableChainFGSAProofs.Proofs.Foundations.OpeningCoveredLower
 public import AvailableChainFGSAProofs.Proofs.Foundations.FinalityApi
+public import AvailableChainFGSAProofs.Proofs.Assembly.Outage
