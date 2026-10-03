@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingBatch
+public import AvailableChainFGSAProofs.Proofs.Shared.Channels
 public import AvailableChainFGSARun.Proofs.EmissionWellFormed
 
 public section

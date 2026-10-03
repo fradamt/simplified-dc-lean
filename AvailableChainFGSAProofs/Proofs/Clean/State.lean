@@ -162,10 +162,10 @@ theorem clean_block_reconcile {j : Nat} {v : V} {o} {t : Time}
     Block.Compatible row.1 (eraseFG (storeAt p c E rho (j + 1) v).fg.F)) at hL
   change (∀ r C, (r, some C) ∈ (storeAt p c E rho j v).base.genuine →
     Block.Compatible C (eraseFG (storeAt p c E rho (j + 1) v).fg.F)) at hG
+  rw [S_at_def] at hS
   change Block.Compatible (storeAt p c E rho j v).base.stableRecord
     (eraseFG (storeAt p c E rho (j + 1) v).fg.F) at hS
-  change _ ∧ _ ∧ _ ∧ Block.Preceq (storeAt p c E rho j v).base.stableRecord
-    (storeAt p c E rho (j + 1) v).base.stableRecord
+  simp only [S_at_def]
   rw [hstore] at hL hG hS ⊢
   exact admitBlock_reconcile_harmless p _ (cstoreInv_stateBefore E rho j v)
     s B raw support rows P hP ha hL hG hS
@@ -601,8 +601,7 @@ theorem clean_blockStateStep {b₀ : Time} : CleanBlockStateStep (ΔF := ΔF) p 
         rw [V2.D.Run.stateBefore_succ E rho he]
         simp only [V2.D.World.step, Function.update_of_ne hw]
         rfl
-      change _ ∧ _ ∧ _ ∧ Block.Preceq (storeAt p c E rho j w).base.stableRecord
-        (storeAt p c E rho (j + 1) w).base.stableRecord
+      simp only [S_at_def]
       rw [hstore]
       exact ⟨rfl, rfl, rfl, Gen.Pure.block_preceq_refl _⟩
   obtain ⟨hnest, hstore, hframe, hclient⟩ := cleanState_index_facts h hf (j + 1)
@@ -643,8 +642,10 @@ theorem clean_blockStateStep {b₀ : Time} : CleanBlockStateStep (ΔF := ΔF) p 
         cases hgate
       · rw [Gen.AC.Duty.Reconcile_def] at hrec
         obtain ⟨_, _, _, _, _, _, hout⟩ := hrec
-        change S_at p c E rho (j + 1) w =
-          Gen.AC.normalizeOutput (F_at p c E rho (j + 1) w) (S_at p c E rho j w) at hout
+        change (storeAt p c E rho (j + 1) w).base.stableRecord =
+          Gen.AC.normalizeOutput (F_at p c E rho (j + 1) w)
+            (storeAt p c E rho j w).base.stableRecord at hout
+        rw [← S_at_def p c E rho (j + 1) w, ← S_at_def p c E rho j w] at hout
         rw [Gen.AC.normalizeOutput_def] at hout
         split at hout
         · exact Or.inl hout

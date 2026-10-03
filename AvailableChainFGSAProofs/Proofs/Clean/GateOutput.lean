@@ -78,8 +78,10 @@ theorem clean_gateOutput_body (b₀ : Time) :
     rw [hfresh] at hsaved
     cases hsaved
   · have hw := (hrun.accept B hraw hguard).1
-    change S_at p c E rho (j + 1) v = Gen.AC.normalizeOutput (F_at p c E rho j v)
-      (GridCO.advance (S_at p c E rho j v) B) at hw
+    change (storeAt p c E rho (j + 1) v).base.stableRecord =
+      Gen.AC.normalizeOutput (F_at p c E rho j v)
+        (GridCO.advance (storeAt p c E rho j v).base.stableRecord B) at hw
+    rw [← S_at_def p c E rho (j + 1) v, ← S_at_def p c E rho j v] at hw
     rw [hw, Gen.AC.normalizeOutput_def]
     have hnest : Block.Preceq (F_at p c E rho j v) (S_at p c E rho j v) :=
       nestOK_stateBefore E rho j v

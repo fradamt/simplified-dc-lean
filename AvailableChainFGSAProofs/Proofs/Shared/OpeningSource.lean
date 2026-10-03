@@ -139,18 +139,19 @@ private theorem opening_pair (Λ : Record) (h : Height) (T : BlockId)
       | some recorded => if recorded = T then .vote h T false else .vote h T true
       | none => .vote h T false) = _
   by_cases ht : Λ.timeout h = true
-  · rw [ht]; rfl
+  · rw [ht, ite_eq_left (rfl : true = true), namedEntry_def]
   · have ht' : Λ.timeout h = false := Bool.eq_false_of_not_eq_true ht
-    rw [ht']
+    rw [ht', ite_eq_right Bool.false_ne_true]
     rcases hpermit with hf | hn | he
     · exact (ht hf).elim
     · rw [hn]
       cases Λ.target h with
-      | none => rfl
-      | some recorded => by_cases he : recorded = T <;> simp only [he, ite_true, ite_false] <;> rfl
+      | none => rw [namedEntry_def]
+      | some recorded => by_cases he : recorded = T <;>
+          simp only [he, ite_true, ite_false] <;> rw [namedEntry_def]
     · rw [he]
-      simp only [Bool.false_eq_true, ite_false, ite_true]
-      rfl
+      simp only [ite_true]
+      rw [namedEntry_def]
 
 private theorem opening_time_bound (q r : Nat)
     (hle : q ≤ r * p.R) (hfirst : ∀ r', q ≤ r' * p.R → r ≤ r') :

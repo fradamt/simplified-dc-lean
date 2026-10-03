@@ -43,7 +43,7 @@ private theorem receipt_finality (X : FGBlock (Fin p.n)) :
 
 omit [DecidableEq V] [Fintype V] in
 private theorem receipt_eventTime (i : Nat) :
-    eventTime rho i = rho.events[i]?.map V2.Event.time := rfl
+    eventTime rho i = rho.events[i]?.map V2.Event.time := eventTime_def rho i
 
 omit [Fintype V] in
 private theorem receipt_stored_block (i : Nat) (x : V) (C : FGBlock (Fin p.n))
@@ -313,7 +313,8 @@ private theorem receipt_carrier_eq (s : Slot) (B : Block) (rows : List (RowWire 
     HonestCarrier p c E rho s B rows =
       (HonestProposal E rho (fgsaInterface p c) s B ∧
         ∃ o raw sup, V2.D.Run.emits E rho (V2.D.proposerOf rho (fgsaInterface p c) s) o
-          (V2.D.proposalTime (fgsaInterface p c) s) ∧ o.payload = .proposal B raw sup rows) := rfl
+          (V2.D.proposalTime (fgsaInterface p c) s) ∧ o.payload = .proposal B raw sup rows) :=
+  HonestCarrier_def p c E rho s B rows
 
 omit [Fintype V] in
 private theorem receipt_proposer_honest (s : Slot) (B : Block)
@@ -503,10 +504,11 @@ private theorem receipt_actionTime_strictMono : StrictMono p.actionTime := by
   convert add_lt_add_right (mul_lt_mul_of_pos_left hab' hpos) (6 * p.Δ) using 1 <;> ring
 
 omit [Fintype V] in
-private theorem receipt_mu_eq : muOf p c E rho = max 1 (sSup (oldRowHeights p c E rho)) := rfl
+private theorem receipt_mu_eq : muOf p c E rho = max 1 (sSup (oldRowHeights p c E rho)) :=
+  muOf_def p c E rho
 
 private theorem receipt_high_eq (w : HealingWitness) (X : FGBlock (Fin p.n)) :
-    high p w X = (w.M + 1 ≤ (heightView p X).h) := rfl
+    high p w X = (w.M + 1 ≤ (heightView p X).h) := high_def p w X
 
 /-- Paper 22:1297–1302: a high cached J is on the terminal carrier path.
 DC: INTENTIONAL W cached pair and action-source ancestry. Stratification and
