@@ -30,7 +30,7 @@ example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF) (hδ : p.δt = 2 * p
   obtain ⟨U, hU, hslot, _⟩ := healing_promotion_bounded_rows
     (p := p) (c := c) (E := E) (rho := rho) (G := G) (ΔF := ΔF) (hrec := hrec)
     (r := r) (height := height) (Q := Q) (hentry := hentry) (hcovered := hcovered)
-  exact ⟨U, hU, hslot, healing_promotion_maturity
+  exact ⟨U, hU, hslot, healing_promotion_maturity_of_action
     (p := p) (hδ := hδ) (r := r) (s := s) (U := U) (hU := hslot) (hs := hs)⟩
 
 -- The original gap binders now produce the proposal and its ordered FG rows.
@@ -103,9 +103,11 @@ example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     (hbound : LivenessBoundW p ΔF) {r j rSent : Nat} {y : V} {a : RowWire p.n}
     (hr : rSent ≤ r) (ha : HonestRowAt p c E rho j y rSent a)
     (hgst : E.t_GST ≤ p.actionTime r) {s : Slot}
-    (hs : (r : Time) * P p + 2 * P p ≤ SA.proposalTime p.toParams s)
+    (hs : carrierTimeW p ΔF r ≤ SA.proposalTime p.toParams s)
     (hhor : SA.proposalTime p.toParams s ≤ rho.horizon) :
-    max (p.actionTime rSent) E.t_GST + ΔF < SA.proposalTime p.toParams s ∧
+    max (p.actionTime rSent) E.t_GST + ΔF ≤ SA.proposalTime p.toParams s ∧
+    max (p.actionTime r) E.t_GST + ΔF ≤ SA.proposalTime p.toParams s ∧
+    r * p.R + 2 ≤ s ∧
     ∀ x ∈ rho.honest,
       HeldBefore p c E rho x a (max (p.actionTime rSent) E.t_GST + ΔF) ∧
       HeldBefore p c E rho x a (p.actionTime r + ΔF) :=
@@ -158,8 +160,8 @@ example {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
 
 example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF) (r : Nat) (q : Slot)
     (hgst : E.t_GST ≤ (r : Time) * P p)
-    (hhor : max (p.actionTime r + Γ p G + 4 * p.Δ + epsF p ΔF)
-      (SA.proposalTime p.toParams q + 2 * P p + Γ p G + 2 * p.Δ) ≤ rho.horizon) :
+    (hwin : max ((r : Time) * P p + betaF p ΔF - 4 * p.Δ)
+      (SA.proposalTime p.toParams q + 2 * P p - 4 * p.Δ) + G ≤ rho.horizon) :
     let U_F := max ((r : Time) * P p + betaF p ΔF - 4 * p.Δ)
       (SA.proposalTime p.toParams q + 2 * P p - 4 * p.Δ)
     ∃ s, U_F < SA.proposalTime p.toParams s ∧
@@ -167,7 +169,7 @@ example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF) (r : Nat) (q : Slot)
       Gen.V2.Duty.HonestSlot rho (fgsaInterface p c) s := by
   obtain ⟨_, s, hlo, hhi, hs, _, _⟩ := healing_promotion_age_gap
     (p := p) (c := c) (E := E) (rho := rho) (G := G) (ΔF := ΔF)
-    (hrec := hrec) (r := r) (q := q) (hgst := hgst) (hhor := hhor)
+    (hrec := hrec) (r := r) (q := q) (hgst := hgst) (hwin := hwin)
   exact ⟨s, hlo, hhi, hs⟩
 
 -- q = rR uses the initial exact gate. No strict later-opening call is used.
@@ -207,6 +209,8 @@ private def promotionParams : Params where
   δt := 6
   RLarge := by decide
 
+example : LivenessBoundW promotionParams 6 := ⟨by decide⟩
+
 -- ΔF = 6 > Δ = 1, κ = R = 3, and G = 10 has a nonzero grid remainder.
 example : let p := promotionParams
     p.Δ < 6 ∧ betaF p 6 = 12 ∧ epsF p 6 = 4 ∧ Γ p 10 = 8 ∧
@@ -220,8 +224,69 @@ example : Γ (promotionParams) 10 ≤ 10 ∧
 example : EntryAt (promotionParams) (.genesis : FGBlock (Fin 4)) 1 := ⟨rfl, rfl⟩
 
 example : (.genesis : FGBlock (Fin 4)).slot + (promotionParams).δt ≤ 9 :=
-  healing_promotion_maturity (p := promotionParams) (hδ := rfl)
+  healing_promotion_maturity_of_action (p := promotionParams) (hδ := rfl)
     (r := 1) (s := 9) (U := .genesis) (hU := by decide) (hs := by decide)
+
+-- HG.2 can choose t_s = 36 when U_F = 32 and the old trigger is 48.
+example : let p := promotionParams
+    max ((2 : Time) * P p + betaF p 6 - 4 * p.Δ)
+      (SA.proposalTime p.toParams 0 + 2 * P p - 4 * p.Δ) = 32 ∧
+    32 < SA.proposalTime p.toParams 9 ∧ SA.proposalTime p.toParams 9 = 36 ∧
+    carrierTimeW p 6 2 = SA.proposalTime p.toParams 9 ∧
+    ¬ ((2 : Time) * P p + 2 * P p ≤ SA.proposalTime p.toParams 9) := by decide
+
+example : (.genesis : FGBlock (Fin 4)).slot + promotionParams.δt ≤ 9 :=
+  healing_promotion_maturity promotionParams rfl (s := 9) (U := .genesis) (by decide)
+
+section
+variable {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In}
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa promotionParams c))
+
+-- The new deadline statement applies at equality with the carrier deadline.
+example (hrec : Recovery₂ promotionParams c E rho 10 6)
+    (hgst : E.t_GST ≤ promotionParams.actionTime 2) :
+    max (promotionParams.actionTime 2) E.t_GST + 6 ≤
+      SA.proposalTime promotionParams.toParams 9 ∧ promotionParams.R * 2 + 2 ≤ 9 := by
+  obtain ⟨_, _, _, _, hd, hs⟩ := healing_promotion_row_deadline E rho hrec
+    (show LivenessBoundW promotionParams 6 from ⟨by decide⟩)
+    (r := 2) (rSent := 2) (s := 9) (by decide) hgst (by decide)
+  exact ⟨hd, by simpa only [Nat.mul_comm] using hs⟩
+
+-- Discharge the receipt port with its Assembly producer at the same trigger.
+example (hrec : Recovery₂ promotionParams c E rho 10 6)
+    {j : Nat} {y : V} {a : RowWire 4}
+    (ha : HonestRowAt promotionParams c E rho j y 2 a)
+    (hgst : E.t_GST ≤ promotionParams.actionTime 2) (hhor : 36 ≤ rho.horizon) :
+    max (promotionParams.actionTime 2) E.t_GST + 6 ≤
+      SA.proposalTime promotionParams.toParams 9 ∧
+    max (promotionParams.actionTime 2) E.t_GST + 6 ≤
+      SA.proposalTime promotionParams.toParams 9 ∧
+    2 * promotionParams.R + 2 ≤ 9 ∧
+    ∀ x ∈ rho.honest,
+      HeldBefore promotionParams c E rho x a
+        (max (promotionParams.actionTime 2) E.t_GST + 6) ∧
+      HeldBefore promotionParams c E rho x a (promotionParams.actionTime 2 + 6) :=
+  healing_promotion_row_receipt E rho hrec ⟨by decide⟩
+    (fgsa_tRowsReceipt (p := promotionParams) (c := c) (E := E) (rho := rho)
+      (ΔF := 6) (hΔ := hrec.base.delta) (hv := hrec.base.valid)
+      (hnr := hrec.base.noRestart) (hsync := hrec.sync) (hΔF := hrec.deltaF))
+    (r := 2) (rSent := 2) (s := 9) (by decide) ha hgst (by decide) hhor
+
+-- The age gap needs the full G window, which ends at 42 instead of the gate budget 46.
+example (hrec : Recovery₂ promotionParams c E rho 10 6)
+    (hgst : E.t_GST ≤ (2 : Time) * P promotionParams) (hwin : 42 ≤ rho.horizon) :
+    ∃ s, (32 : Time) < SA.proposalTime promotionParams.toParams s ∧
+      SA.proposalTime promotionParams.toParams s ≤ 40 ∧
+      Gen.V2.Duty.HonestSlot rho (fgsaInterface promotionParams c) s := by
+  obtain ⟨_, s, hlo, hhi, hs, _, _⟩ :=
+    healing_promotion_age_gap E rho hrec 2 0 hgst hwin
+  exact ⟨s, hlo, hhi, hs⟩
+
+example (hrec : Recovery₂ promotionParams c E rho 10 6) {x : V} {a : RowWire 4}
+    (ha : HeldBefore promotionParams c E rho x a 36) :
+    HeldBefore promotionParams c E rho x a 40 :=
+  healing_promotion_held_mono E rho hrec (by decide) ha
+end
 
 -- Each arm can set U_F. These values check both terminal and gate budgets.
 example : let p := promotionParams

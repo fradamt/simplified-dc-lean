@@ -40,7 +40,8 @@ private theorem promotion_grid_upper (p : Params) (G z : Time) (s : Slot)
   change 4 * p.Δ * (s : Time) ≤ 4 * p.Δ * z + 4 * p.Δ * (G / (4 * p.Δ))
   nlinarith
 
-private theorem promotion_held_before_mono (E : Generic.Env V)
+/-- A row held before one deadline remains held before each later deadline. -/
+theorem healing_promotion_held_mono (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     {d d' : Time} (hdd : d ≤ d') {x : V} {a : RowWire p.n}
     (ha : HeldBefore p c E rho x a d) : HeldBefore p c E rho x a d' := by
@@ -120,11 +121,13 @@ theorem healing_promotion_row_deadline (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
     (hrec : Recovery₂ p c E rho G ΔF) (hbound : LivenessBoundW p ΔF)
     {r rSent : Nat} (hr : rSent ≤ r) (hgst : E.t_GST ≤ p.actionTime r)
-    {s : Slot} (hs : (r : Time) * P p + 2 * P p ≤ SA.proposalTime p.toParams s) :
+    {s : Slot} (hs : carrierTimeW p ΔF r ≤ SA.proposalTime p.toParams s) :
     max (p.actionTime rSent) E.t_GST + ΔF ≤ p.actionTime r + ΔF ∧
     p.actionTime r + ΔF ≤ carrierTimeW p ΔF r ∧
     carrierTimeW p ΔF r ≤ ((r : Time) + 1) * P p ∧
-    ((r : Time) + 1) * P p < SA.proposalTime p.toParams s := by
+    max (p.actionTime rSent) E.t_GST + ΔF ≤ SA.proposalTime p.toParams s ∧
+    max (p.actionTime r) E.t_GST + ΔF ≤ SA.proposalTime p.toParams s ∧
+    r * p.R + 2 ≤ s := by
   have hF : 0 ≤ ΔF := by have := hrec.deltaF; rw [hrec.base.delta] at this; linarith [p.deltaPos]
   have hcast : (rSent : Time) ≤ r := by exact_mod_cast hr
   have htime : p.actionTime rSent ≤ p.actionTime r := by
@@ -133,13 +136,69 @@ theorem healing_promotion_row_deadline (E : Generic.Env V)
     nlinarith
   have hb := action_delivery_boundsW p ΔF r hF hbound
   change _ ∧ _ ∧ _ at hb
-  exact ⟨by have := max_le htime hgst; linarith, hb.2.1, hb.2.2,
-    by have := promotion_period_pos p; linarith⟩
+  have h1 : max (p.actionTime rSent) E.t_GST + ΔF ≤ p.actionTime r + ΔF := by
+    have := max_le htime hgst
+    linarith
+  have hdeadline := hb.2.1.trans hs
+  have hk : (2 : Time) ≤ kappaF p ΔF := by exact_mod_cast kappaF_ge_two p ΔF hF
+  have hcast : ((r * p.R + 2 : Nat) : Time) ≤ s := by
+    rw [carrierTimeW_def, betaF_def] at hs
+    change (r : Time) * (4 * (p.R : Time) * p.Δ) +
+      4 * (kappaF p ΔF : Time) * p.Δ ≤ 4 * p.Δ * (s : Time) at hs
+    push_cast
+    nlinarith [p.deltaPos]
+  exact ⟨h1, hb.2.1, hb.2.2, h1.trans hdeadline,
+    by rw [max_eq_left hgst]; exact hdeadline, by exact_mod_cast hcast⟩
+
+/-- The H.9(b) trigger keeps the earlier strict deadline chain. -/
+theorem healing_promotion_row_deadline_strict (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : Recovery₂ p c E rho G ΔF) (hbound : LivenessBoundW p ΔF)
+    {r rSent : Nat} (hr : rSent ≤ r) (hgst : E.t_GST ≤ p.actionTime r)
+    {s : Slot} (hs : (r : Time) * P p + 2 * P p ≤ SA.proposalTime p.toParams s) :
+    max (p.actionTime rSent) E.t_GST + ΔF ≤ p.actionTime r + ΔF ∧
+    p.actionTime r + ΔF ≤ carrierTimeW p ΔF r ∧
+    carrierTimeW p ΔF r ≤ ((r : Time) + 1) * P p ∧
+    ((r : Time) + 1) * P p < SA.proposalTime p.toParams s := by
+  have hc : carrierTimeW p ΔF r ≤ SA.proposalTime p.toParams s := by
+    rw [carrierTimeW_def]
+    have := betaF_le_period p ΔF hbound
+    have := promotion_period_pos p
+    linarith
+  obtain ⟨h1, h2, h3, _⟩ := healing_promotion_row_deadline E rho hrec hbound hr hgst hc
+  exact ⟨h1, h2, h3, by have := promotion_period_pos p; linarith⟩
 
 /-- Blueprint 21:1371–1384; plan §3.2 step 3.
 DC: SAME strict receipt at max(send,GST)+ΔF, for the original signed row.
 Assembly supplies rowsReceipt with RowService.fgsa_tRowsReceipt. -/
 theorem healing_promotion_row_receipt (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : Recovery₂ p c E rho G ΔF) (hbound : LivenessBoundW p ΔF)
+    (rowsReceipt : ∀ j y r (a : RowWire p.n),
+      HonestRowAt p c E rho j y r a →
+      max (p.actionTime r) E.t_GST + ΔF ≤ rho.horizon →
+      ∀ x ∈ rho.honest,
+        HeldBefore p c E rho x a (max (p.actionTime r) E.t_GST + ΔF))
+    {r j rSent : Nat} {y : V} {a : RowWire p.n}
+    (hr : rSent ≤ r) (ha : HonestRowAt p c E rho j y rSent a)
+    (hgst : E.t_GST ≤ p.actionTime r) {s : Slot}
+    (hs : carrierTimeW p ΔF r ≤ SA.proposalTime p.toParams s)
+    (hhor : SA.proposalTime p.toParams s ≤ rho.horizon) :
+    max (p.actionTime rSent) E.t_GST + ΔF ≤ SA.proposalTime p.toParams s ∧
+    max (p.actionTime r) E.t_GST + ΔF ≤ SA.proposalTime p.toParams s ∧
+    r * p.R + 2 ≤ s ∧
+    ∀ x ∈ rho.honest,
+      HeldBefore p c E rho x a (max (p.actionTime rSent) E.t_GST + ΔF) ∧
+      HeldBefore p c E rho x a (p.actionTime r + ΔF) := by
+  obtain ⟨h1, _, _, hd, hbatch, hslot⟩ :=
+    healing_promotion_row_deadline E rho hrec hbound hr hgst hs
+  refine ⟨hd, hbatch, hslot, ?_⟩
+  intro x hx
+  have hheld := rowsReceipt j y rSent a ha (hd.trans hhor) x hx
+  exact ⟨hheld, healing_promotion_held_mono E rho hrec h1 hheld⟩
+
+/-- The H.9(b) trigger keeps the strict deadline and the original signed row. -/
+theorem healing_promotion_row_receipt_strict (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
     (hrec : Recovery₂ p c E rho G ΔF) (hbound : LivenessBoundW p ΔF)
     (rowsReceipt : ∀ j y r (a : RowWire p.n),
@@ -156,28 +215,41 @@ theorem healing_promotion_row_receipt (E : Generic.Env V)
     ∀ x ∈ rho.honest,
       HeldBefore p c E rho x a (max (p.actionTime rSent) E.t_GST + ΔF) ∧
       HeldBefore p c E rho x a (p.actionTime r + ΔF) := by
-  obtain ⟨h1, h2, h3, h4⟩ := healing_promotion_row_deadline E rho hrec hbound hr hgst hs
+  obtain ⟨h1, h2, h3, h4⟩ :=
+    healing_promotion_row_deadline_strict E rho hrec hbound hr hgst hs
   have hd := lt_of_le_of_lt (h1.trans (h2.trans h3)) h4
-  refine ⟨hd, ?_⟩
-  intro x hx
-  have hheld := rowsReceipt j y rSent a ha (hd.le.trans hhor) x hx
-  exact ⟨hheld, promotion_held_before_mono E rho hrec h1 hheld⟩
+  obtain ⟨_, _, _, hheld⟩ :=
+    healing_promotion_row_receipt E rho hrec hbound rowsReceipt hr ha hgst
+      ((h3.trans h4.le)) hhor
+  exact ⟨hd, hheld⟩
 
 /-- Blueprint 21:1385–1410; plan §3.2 steps 4–5.
 DC: SAME two full periods give the maturity required by K-HEIGHT. -/
 theorem healing_promotion_maturity (p : Params) (hδ : p.δt = 2 * p.R)
-    {r s : Nat} {U : FGBlock (Fin p.n)} (hU : U.slot ≤ r * p.R)
-    (hs : (r : Time) * P p + 2 * P p ≤ SA.proposalTime p.toParams s) :
+    {s : Nat} {U : FGBlock (Fin p.n)}
+    (hs : SA.proposalTime p.toParams U.slot + 2 * P p ≤ SA.proposalTime p.toParams s) :
     U.slot + p.δt ≤ s := by
-  have hcast : ((r * p.R + 2 * p.R : Nat) : Time) ≤ s := by
+  have hcast : ((U.slot + 2 * p.R : Nat) : Time) ≤ s := by
     push_cast
-    change (r : Time) * (4 * (p.R : Time) * p.Δ) +
+    change 4 * p.Δ * (U.slot : Time) +
       2 * (4 * (p.R : Time) * p.Δ) ≤ 4 * p.Δ * (s : Time) at hs
     have := p.deltaPos
     nlinarith
-  have hslot : r * p.R + 2 * p.R ≤ s := by exact_mod_cast hcast
   rw [hδ]
-  exact (Nat.add_le_add_right hU _).trans hslot
+  exact_mod_cast hcast
+
+/-- The entry-slot bound supplies the old action-based maturity case. -/
+theorem healing_promotion_maturity_of_action (p : Params) (hδ : p.δt = 2 * p.R)
+    {r s : Nat} {U : FGBlock (Fin p.n)} (hU : U.slot ≤ r * p.R)
+    (hs : (r : Time) * P p + 2 * P p ≤ SA.proposalTime p.toParams s) :
+    U.slot + p.δt ≤ s := by
+  apply healing_promotion_maturity p hδ
+  have hcast : (U.slot : Time) ≤ (r : Time) * p.R := by exact_mod_cast hU
+  change 4 * p.Δ * (U.slot : Time) + 2 * P p ≤ _
+  change (r : Time) * (4 * (p.R : Time) * p.Δ) +
+    2 * (4 * (p.R : Time) * p.Δ) ≤ _ at hs
+  change _ + 2 * (4 * (p.R : Time) * p.Δ) ≤ _
+  nlinarith [p.deltaPos]
 
 /-- Blueprint 21:1592–1638; plan §3.2 step 7.
 DC: INTENTIONAL the age-sensitive trigger is on the proposal grid.
@@ -186,8 +258,8 @@ theorem healing_promotion_age_gap (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
     (hrec : Recovery₂ p c E rho G ΔF) (r : Nat) (q : Slot)
     (hgst : E.t_GST ≤ (r : Time) * P p)
-    (hhor : max (p.actionTime r + Γ p G + 4 * p.Δ + epsF p ΔF)
-      (SA.proposalTime p.toParams q + 2 * P p + Γ p G + 2 * p.Δ) ≤ rho.horizon) :
+    (hwin : max ((r : Time) * P p + betaF p ΔF - 4 * p.Δ)
+      (SA.proposalTime p.toParams q + 2 * P p - 4 * p.Δ) + G ≤ rho.horizon) :
     let U_F := max ((r : Time) * P p + betaF p ΔF - 4 * p.Δ)
       (SA.proposalTime p.toParams q + 2 * P p - 4 * p.Δ)
     U_F + G ≤ rho.horizon ∧
@@ -206,7 +278,8 @@ theorem healing_promotion_age_gap (E : Generic.Env V)
   have hF : 0 ≤ ΔF := by have := hrec.deltaF; rw [hrec.base.delta] at this; linarith [p.deltaPos]
   have hk : (2 : Time) ≤ kappaF p ΔF := by exact_mod_cast kappaF_ge_two p ΔF hF
   have ha : E.t_GST ≤ a := by
-    change E.t_GST ≤ (r : Time) * P p + 4 * (kappaF p ΔF : Time) * p.Δ - 4 * p.Δ
+    dsimp only [a]
+    rw [betaF_def]
     nlinarith [p.deltaPos]
   have hstart : E.t_GST ≤ U_F := ha.trans (le_max_left a b)
   have hgate : max (p.actionTime r + Γ p G + 4 * p.Δ + epsF p ΔF)
@@ -223,10 +296,7 @@ theorem healing_promotion_age_gap (E : Generic.Env V)
     change max _ _ = max a b + _ + _
     rw [← max_add_add_right, ← max_add_add_right]
     congr 1 <;> dsimp only [a, b] <;> ring
-  have hwindow : U_F + G ≤ rho.horizon := by
-    rw [hgate] at hhor
-    have := (healing_promotion_gap_remainder p G).2
-    linarith [p.deltaPos]
+  have hwindow : U_F + G ≤ rho.horizon := hwin
   obtain ⟨s, hlo, hhi, hs⟩ := hrec.gap U_F hstart hwindow
   rw [proposalTime_fgsa] at hlo hhi
   have hgrid : U_F = 4 * p.Δ * max

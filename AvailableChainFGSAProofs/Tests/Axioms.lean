@@ -1064,8 +1064,12 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.healing_promotion_gap_remainder
 #print axioms AvailableChain.FGSA.Run.healing_promotion_gap
 #print axioms AvailableChain.FGSA.Run.healing_promotion_row_deadline
+#print axioms AvailableChain.FGSA.Run.healing_promotion_row_deadline_strict
 #print axioms AvailableChain.FGSA.Run.healing_promotion_row_receipt
+#print axioms AvailableChain.FGSA.Run.healing_promotion_row_receipt_strict
 #print axioms AvailableChain.FGSA.Run.healing_promotion_maturity
+#print axioms AvailableChain.FGSA.Run.healing_promotion_maturity_of_action
+#print axioms AvailableChain.FGSA.Run.healing_promotion_held_mono
 #print axioms AvailableChain.FGSA.Run.healing_promotion_age_gap
 #print axioms AvailableChain.FGSA.Run.healing_promotion_fixed_rows
 #print axioms AvailableChain.FGSA.Run.healing_promotion_source_body

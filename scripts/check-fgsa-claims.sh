@@ -67,6 +67,11 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.healing_promotion_slot_proposal',
     'AvailableChain.FGSA.Run.healing_promotion_gap_proposal',
     'AvailableChain.FGSA.Run.healing_promotion_same_rows',
+    # H-PROMOTE fix pass: --expect additions only.
+    'AvailableChain.FGSA.Run.healing_promotion_row_deadline_strict',
+    'AvailableChain.FGSA.Run.healing_promotion_row_receipt_strict',
+    'AvailableChain.FGSA.Run.healing_promotion_maturity_of_action',
+    'AvailableChain.FGSA.Run.healing_promotion_held_mono',
     # H-SUPPORT: --expect additions only.
     'AvailableChain.FGSA.Run.healing_settled_frame_strict',
     'AvailableChain.FGSA.Run.healing_witness_relay_settled',
