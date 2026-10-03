@@ -253,3 +253,4 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchCompose
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTasks
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchFull
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetH2Prime
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJointStep2 -- shake: keep (Step₂ API)

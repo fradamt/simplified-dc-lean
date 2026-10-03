@@ -190,6 +190,7 @@ public import AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival -- shake: ke
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchHG2a -- shake: keep (axioms)
 
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchFull -- shake: keep (S5 audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJointStep2 -- shake: keep (D5 tests)
 
 #print axioms AvailableChain.FGSA.Run.kmid_honestSeats_mem
 #print axioms AvailableChain.FGSA.Run.kmid_honest_quorum
@@ -1991,3 +1992,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchFull -- shak
 #print axioms AvailableChain.FGSA.Run.postReset_cStar_below_proposal
 #print axioms AvailableChain.FGSA.Run.postReset_h2Prime_first
 #print axioms AvailableChain.FGSA.Run.postReset_h2Prime_reset
+
+-- Blueprint 21 H.17:2946–3040; plan RE-BIND D5; DC: SAME axiom audit.
+#print axioms AvailableChain.FGSA.Run.healing_postReset_openingDomainStep₂
+#print axioms AvailableChain.FGSA.Run.healing_postReset_serviceStep₂
