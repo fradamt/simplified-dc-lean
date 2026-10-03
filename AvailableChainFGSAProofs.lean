@@ -221,3 +221,4 @@ public import AvailableChainFGSAProofs.Proofs.Healing.Time
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRead -- shake: keep (J6 public input)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetService -- shake: keep (J6 public adapters)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetGate -- shake: keep (J6-2 H6 adapter)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetHealed

@@ -2250,6 +2250,20 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.healing_resetFull_horizon',
     'AvailableChain.FGSA.Run.healing_time_strict_of_reset',
     'AvailableChain.FGSA.Run.healing_hTime_of',
+
+    # J7 H.18: --expect DATA additions only.
+    'AvailableChain.FGSA.Run.healing_sourcePrefix',
+    'AvailableChain.FGSA.Run.healing_proposal_grid_lower',
+    'AvailableChain.FGSA.Run.healing_firstProposal_deadline',
+    'AvailableChain.FGSA.Run.healing_firstProposal',
+    'AvailableChain.FGSA.Run.healing_h0_of',
+    'AvailableChain.FGSA.Run.healing_h4_stable',
+    'AvailableChain.FGSA.Run.healing_h4_stable_of_service',
+    'AvailableChain.FGSA.Run.healing_h4_crossBelow',
+    'AvailableChain.FGSA.Run.healing_healed_proposal_lower',
+    'AvailableChain.FGSA.Run.healing_healed',
+    'AvailableChain.FGSA.Run.healing_h4_rawCompatible',
+    'AvailableChain.FGSA.Run.healing_h4',
 )
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
          'Packages.Safety', 'OutputReads', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',

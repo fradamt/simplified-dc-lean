@@ -164,6 +164,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.AttemptSettle -- shake: ke
 public import AvailableChainFGSAProofs.Proofs.Healing.AttemptRows -- shake: keep (complete first rows)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetService -- shake: keep (J6 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetGate -- shake: keep (J6-2 gate axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetHealed -- shake: keep (J7 axiom audit)
 
 #print axioms AvailableChain.FGSA.Run.kmid_honestSeats_mem
 #print axioms AvailableChain.FGSA.Run.kmid_honest_quorum
@@ -1749,3 +1750,17 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetGate -- shake: ke
 
 #print axioms AvailableChain.FGSA.Run.healing_postReset_gate_guard
 #print axioms AvailableChain.FGSA.Run.healing_postReset_h6GateService
+
+-- J7 H.18: first proposal, derived prefix, full H4, and HEALED projection.
+#print axioms AvailableChain.FGSA.Run.healing_sourcePrefix
+#print axioms AvailableChain.FGSA.Run.healing_proposal_grid_lower
+#print axioms AvailableChain.FGSA.Run.healing_firstProposal_deadline
+#print axioms AvailableChain.FGSA.Run.healing_firstProposal
+#print axioms AvailableChain.FGSA.Run.healing_h0_of
+#print axioms AvailableChain.FGSA.Run.healing_h4_stable
+#print axioms AvailableChain.FGSA.Run.healing_h4_stable_of_service
+#print axioms AvailableChain.FGSA.Run.healing_h4_crossBelow
+#print axioms AvailableChain.FGSA.Run.healing_healed_proposal_lower
+#print axioms AvailableChain.FGSA.Run.healing_healed
+#print axioms AvailableChain.FGSA.Run.healing_h4_rawCompatible
+#print axioms AvailableChain.FGSA.Run.healing_h4
