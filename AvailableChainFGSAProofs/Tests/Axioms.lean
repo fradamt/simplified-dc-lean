@@ -189,6 +189,7 @@ public import AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival -- shake: ke
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchHG2a -- shake: keep (axioms)
 
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchFull -- shake: keep (S5 audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone -- shake: keep (S5 CONE audit)
 
 #print axioms AvailableChain.FGSA.Run.kmid_honestSeats_mem
 #print axioms AvailableChain.FGSA.Run.kmid_honest_quorum
@@ -1971,3 +1972,25 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchFull -- shak
 #print axioms AvailableChain.FGSA.Run.postReset_cStar_below_proposal
 #print axioms AvailableChain.FGSA.Run.postReset_h2Prime_first
 #print axioms AvailableChain.FGSA.Run.postReset_h2Prime_reset
+
+-- S5 CONE cut-indexed retained cone audit.
+#check AvailableChain.FGSA.Run.PostResetRetainedConeP
+#print axioms AvailableChain.FGSA.Run.PostResetRetainedConeP
+#check AvailableChain.FGSA.Run.PostResetConeStep
+#print axioms AvailableChain.FGSA.Run.PostResetConeStep
+#check AvailableChain.FGSA.Run.postReset_source_heads_at_cut
+#print axioms AvailableChain.FGSA.Run.postReset_source_heads_at_cut
+#check AvailableChain.FGSA.Run.postReset_liveLease_heads_at_cut
+#print axioms AvailableChain.FGSA.Run.postReset_liveLease_heads_at_cut
+#check AvailableChain.FGSA.Run.maxLiveH
+#print axioms AvailableChain.FGSA.Run.maxLiveH
+#check AvailableChain.FGSA.Run.postReset_commonPivot_at_cut
+#print axioms AvailableChain.FGSA.Run.postReset_commonPivot_at_cut
+#check AvailableChain.FGSA.Run.postReset_priorSupport_at_cut
+#print axioms AvailableChain.FGSA.Run.postReset_priorSupport_at_cut
+#check AvailableChain.FGSA.Run.postReset_targetScores_at_cut
+#print axioms AvailableChain.FGSA.Run.postReset_targetScores_at_cut
+#check AvailableChain.FGSA.Run.postReset_coneInput_at_cut
+#print axioms AvailableChain.FGSA.Run.postReset_coneInput_at_cut
+#check AvailableChain.FGSA.Run.healing_postReset_coneStep
+#print axioms AvailableChain.FGSA.Run.healing_postReset_coneStep

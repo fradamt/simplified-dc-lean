@@ -252,3 +252,10 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchCompose
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTasks
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchFull
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetH2Prime
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetConeDefsP
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetConeHeads
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetConeFrame
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetConePool
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetConeInput
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetConeReceipts
