@@ -44,10 +44,15 @@ theorem fgsa_finalityKernel_W (p : Params) : FinalityKernelClaim_W p := by
     have hee : e = e' := Option.some.inj (he.symm.trans hn)
     exact ⟨C, hsrc, hee.trans hentry, hp⟩
   · intro V _ _ In c E rho G ΔF pt hK cut b j z W hj hW hcut
-    have hc := fgsa_rCap_before p c E rho hK.set.base.linked hK.set.base.valid
-      hK.set.faultQ b j cut z W hj hW hcut
-    rw [heightView_bridge p W, heightOf_def]
-    exact hc
+    show (heightView p W).h < b + 2
+    by_contra hlt
+    obtain ⟨z', r, a, u, T, tmo, ⟨k, hk, hrow⟩, _, hd, _, hh⟩ :=
+      fgsa_rCap_heightView p c E rho hK.set.base.linked hK.set.base.valid
+        hK.set.faultQ b j z W hW (Nat.le_of_not_lt hlt)
+    have hcutr : p.actionTime r < cut :=
+      (Gen.V2.Duty.index_lt_idxBefore_iff hK.set.base.valid.toScheduleWellFormed
+        hrow.2.1 cut).mp (hk.trans_le hj)
+    exact absurd (hcut k z' r a u (b + 1) T tmo hrow hd hh hcutr) (Nat.lt_irrefl _)
 
 end AvailableChain.FGSA.Run
 end

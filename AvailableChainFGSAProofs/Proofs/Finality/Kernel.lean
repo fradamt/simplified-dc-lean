@@ -192,7 +192,7 @@ theorem finality_kernel_W_of (G ΔF : Time) (hδ : p.δt = 2 * p.R) (pt : Kernel
       rw [actionSourceFG_def, hnd]
       exact congrArg some hsrc
     have hhigh : high p pt.w C := by
-      change pt.w.M + 1 ≤ (heightView p C).h
+      rw [high_def]
       rw [hCh]
       have := m.highA
       omega
