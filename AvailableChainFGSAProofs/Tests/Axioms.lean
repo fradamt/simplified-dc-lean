@@ -2024,3 +2024,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone -- shake: ke
 -- Blueprint 21 H.17:2958–3012; plan S5 CONE-2 K2; DC: SAME axiom audit.
 #check AvailableChain.FGSA.Run.healing_postReset_coneStep_of_set
 #print axioms AvailableChain.FGSA.Run.healing_postReset_coneStep_of_set
+
+-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HTW-3; DC: SAME axiom audit.
+#print axioms AvailableChain.FGSA.Run.healing_resetArrivalFull_of_open₂
+#print axioms AvailableChain.FGSA.Run.healing_hTimeClaim_of_open₂

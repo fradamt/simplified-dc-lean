@@ -81,5 +81,51 @@ example (p : Params) {V In : Type} [DecidableEq V] [Fintype V]
 #check healing_postReset_coneStep_of_set
 #print axioms healing_postReset_coneStep_of_set
 
+section OpenInputs₂
+variable (p : Params)
+    (stepRL : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time},
+      HealingSet p c E rho G ΔF → ∀ {w : HealingWitness}, H0Reset p c E rho w →
+      ∀ i, PostResetResetLeaseStep p c E rho w i)
+    (stepLease : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time},
+      HealingSet p c E rho G ΔF → ∀ {w : HealingWitness}, H0Reset p c E rho w →
+      ∀ i, PostResetLeaseStep p c E rho w i)
+    (stepRaw : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time},
+      HealingSet p c E rho G ΔF → ∀ {w : HealingWitness}, H0Reset p c E rho w →
+      ∀ i, PostResetRawStep p c E rho w i)
+    (stepCone : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time},
+      HealingSet p c E rho G ΔF → ∀ {w : HealingWitness}, H0Reset p c E rho w →
+      ∀ i, PostResetConeStep p c E rho w i)
+
+include stepRL stepLease stepRaw stepCone
+
+/-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HTW-3 T/W2.
+DC: SAME full reset statement with the four future producers as hypotheses. -/
+example (G ΔF : Time) : ResetArrivalFullStatement p G ΔF :=
+  healing_resetArrivalFull_of_open₂ p stepRL stepLease stepRaw stepCone G ΔF
+
+/-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HTW-3 T/W4.
+DC: SAME literal HTimeClaim conclusion with only the four open inputs. -/
+example : HTimeClaim p :=
+  healing_hTimeClaim_of_open₂ p stepRL stepLease stepRaw stepCone
+
+/-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HTW-3 T/W4.
+DC: SAME witness and both time bounds after W4 is applied to a healing run. -/
+example (G ΔF : Time) (hClock : p.δt = 2 * p.R)
+    {V In : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (h : HealingTimePrem p c G ΔF E rho ()) : HTimeConcl p c E rho G ΔF :=
+  healing_hTimeClaim_of_open₂ p stepRL stepLease stepRaw stepCone G ΔF hClock c E rho () h
+
+end OpenInputs₂
+
+#check healing_resetArrivalFull_of_open₂
+#check healing_hTimeClaim_of_open₂
+#print axioms healing_resetArrivalFull_of_open₂
+#print axioms healing_hTimeClaim_of_open₂
+
 end AvailableChain.FGSA.Run.Tests.HealingHTime
 end

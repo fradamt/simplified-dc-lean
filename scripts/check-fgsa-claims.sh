@@ -2491,6 +2491,9 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.healing_postReset_coneStep',
     # Blueprint 21 H.17:2958–3012; plan S5 CONE-2 K2; DC: SAME Assembly producer.
     'AvailableChain.FGSA.Run.healing_postReset_coneStep_of_set',
+    # Blueprint 21 H.18–H.22; plan S5 HTW-3; DC: SAME claim exports.
+    'AvailableChain.FGSA.Run.healing_resetArrivalFull_of_open₂',
+    'AvailableChain.FGSA.Run.healing_hTimeClaim_of_open₂',
 )
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
          'Packages.Safety', 'OutputReads', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',
