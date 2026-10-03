@@ -66,6 +66,7 @@ public import AvailableChainFGSAProofs.Proofs.Foundations.OpeningCoveredLower --
 public import AvailableChainFGSAProofs.Proofs.Foundations.OpeningCovered -- shake: keep (J7 SO-COV audit)
 public import AvailableChainFGSAProofs.Proofs.Foundations.RowPermission -- shake: keep (J7 audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.BoundsW -- shake: keep (S4.1 axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Shared.HonestQuorum -- shake: keep (quorum audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.WindowTerminal -- shake: keep (S4.2b axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedWalkStore -- shake: keep (store adapter audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.ExactHead -- shake: keep (J2 HEAD axiom audit)
@@ -113,6 +114,9 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PeriodicStageBounds -- sha
 public import AvailableChainFGSAProofs.Proofs.Clean.Chain -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.State -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (axiom audit commands)
+
+#print axioms AvailableChain.FGSA.Run.kmid_honestSeats_mem
+#print axioms AvailableChain.FGSA.Run.kmid_honest_quorum
 
 #print axioms AvailableChain.FGSA.Run.high_source_entry_eq
 #print axioms AvailableChain.FGSA.Run.high_record_target_choice
