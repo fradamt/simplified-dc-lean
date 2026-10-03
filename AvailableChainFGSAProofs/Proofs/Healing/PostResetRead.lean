@@ -32,6 +32,41 @@ def PostResetRetainedCone (w : HealingWitness) : Prop :=
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D
 
+/-- Blueprint 21 H.17:2946–3040; plan RE-BIND D1; DC: SAME cone at one label. -/
+def PostResetConeAt (w : HealingWitness) (s : Slot) : Prop :=
+  w.sStar + 2 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
+  ∀ {ip : Nat} {x : V}, x ∈ rho.honest →
+    rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
+    rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x →
+  ∀ (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n)),
+    (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+      rho.emitsAt E ip →
+    ∃ D : FGBlock (Fin p.n), ∀ y ∈ rho.honest, ∀ ih,
+      rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
+      RetainedConeInput p
+        (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D
+
+/-- Blueprint 21 H.17:2946–3040; plan RE-BIND D1; DC: SAME cone at one label. -/
+theorem PostResetConeAt_def (w : HealingWitness) (s : Slot) :
+    PostResetConeAt p c E rho w s = (
+  w.sStar + 2 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
+  ∀ {ip : Nat} {x : V}, x ∈ rho.honest →
+    rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
+    rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x →
+  ∀ (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n)),
+    (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+      rho.emitsAt E ip →
+    ∃ D : FGBlock (Fin p.n), ∀ y ∈ rho.honest, ∀ ih,
+      rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
+      RetainedConeInput p
+        (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D) := by rfl
+
+/-- Blueprint 21 H.17:2946–3040; plan RE-BIND D1; DC: SAME cone at one label. -/
+theorem postResetRetainedCone_iff_at (w : HealingWitness) :
+    PostResetRetainedCone p c E rho w ↔ ∀ s, PostResetConeAt p c E rho w s := by rfl
+
 /-- Application theorem for this module's abstract input; consumers can apply it
 without access to private module data. -/
 theorem postResetRetainedCone_iff (w : HealingWitness) :
@@ -107,7 +142,30 @@ theorem postResetRetainedCone_of_horizon_lt (w : HealingWitness)
   exact (not_lt_of_ge (hmono.trans hHeadHorizon) hshort).elim
 
 /-- Apply the abstract cone to the existing H.17 supplier. The output keeps
-each reader's actual state and the common proposal pivot. -/
+each reader's actual state and the common proposal pivot.
+Blueprint 21 H.17:2946–3040; plan RE-BIND D2; DC: SAME per-label cone. -/
+theorem healing_postReset_retainedReads_at
+    (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
+    (w : HealingWitness) (s : Slot) (hcone : PostResetConeAt p c E rho w s) (hs : w.sStar + 2 ≤ s)
+    (hHeadHorizon : SA.voteTime p.toParams s ≤ rho.horizon)
+    (hSync : Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o)
+      (SA.proposalTime p.toParams s - p.Δ) (SA.voteTime p.toParams s))
+    {ip : Nat} {x : V} (hx : x ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
+    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+      rho.emitsAt E ip) :
+    ∃ D : FGBlock (Fin p.n), ∀ y ∈ rho.honest, ∀ ih,
+      rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
+      ∃ Kc, RetainedReadPremises p
+        (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D b Kc := by
+  obtain ⟨D, hinput⟩ := hcone hs hHeadHorizon hx hip hseat b raw sup rows hem
+  exact ⟨D, fgsa_retainedReads_H17 E rho hE hN hDelta s hSync hx hip hseat
+    b raw sup rows hem D hinput⟩
+
+/-- Blueprint 21 H.17:2946–3040; plan RE-BIND D2/D3; DC: SAME cone at its label. -/
 theorem healing_postReset_retainedReads
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
     (w : HealingWitness) (hcone : PostResetRetainedCone p c E rho w)
@@ -126,9 +184,9 @@ theorem healing_postReset_retainedReads
       ∃ Kc, RetainedReadPremises p
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D b Kc := by
-  obtain ⟨D, hinput⟩ := hcone s hs hHeadHorizon hx hip hseat b raw sup rows hem
-  exact ⟨D, fgsa_retainedReads_H17 E rho hE hN hDelta s hSync hx hip hseat
-    b raw sup rows hem D hinput⟩
+  exact healing_postReset_retainedReads_at p c E rho hE hN hDelta w s
+    ((postResetRetainedCone_iff_at p c E rho w).mp hcone s) hs hHeadHorizon hSync
+    hx hip hseat b raw sup rows hem
 
 end AvailableChain.FGSA.Run
 end

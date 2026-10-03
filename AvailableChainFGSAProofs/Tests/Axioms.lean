@@ -193,6 +193,8 @@ public import AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival -- shake: ke
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchHG2a -- shake: keep (axioms)
 
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchFull -- shake: keep (S5 audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJointStep2 -- shake: keep (D5 tests)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone -- shake: keep (S5 CONE audit)
 
 #print axioms AvailableChain.FGSA.Run.kmid_honestSeats_mem
 #print axioms AvailableChain.FGSA.Run.kmid_honest_quorum
@@ -2065,3 +2067,45 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchFull -- shak
 #print axioms AvailableChain.FGSA.Run.postReset_raw_outputs_succ
 #print axioms AvailableChain.FGSA.Run.postReset_rawTransfer_succ
 #print axioms AvailableChain.FGSA.Run.postReset_resetLease_succ'
+-- S5 HTIME-WIRE W2–W4: standard axiom audit, additions only.
+#print axioms AvailableChain.FGSA.Run.healing_resetArrivalFull_of_open
+#print axioms AvailableChain.FGSA.Run.healing_hTimeClaim_of_statement
+#print axioms AvailableChain.FGSA.Run.healing_hTimeClaim_of_open
+-- Blueprint 21 H.17:2946–3040; plan RE-BIND D5; DC: SAME axiom audit.
+#print axioms AvailableChain.FGSA.Run.healing_postReset_openingDomainStep₂
+#print axioms AvailableChain.FGSA.Run.healing_postReset_serviceStep₂
+-- S5 CONE cut-indexed retained cone audit.
+#check AvailableChain.FGSA.Run.PostResetRetainedConeP
+#check AvailableChain.FGSA.Run.PostResetConeStep
+#check AvailableChain.FGSA.Run.postReset_source_heads_at_cut
+#print axioms AvailableChain.FGSA.Run.postReset_source_heads_at_cut
+#check AvailableChain.FGSA.Run.postReset_liveLease_heads_at_cut
+#print axioms AvailableChain.FGSA.Run.postReset_liveLease_heads_at_cut
+#check AvailableChain.FGSA.Run.maxLiveH
+#print axioms AvailableChain.FGSA.Run.maxLiveH
+#check AvailableChain.FGSA.Run.postReset_commonPivot_at_cut
+#print axioms AvailableChain.FGSA.Run.postReset_commonPivot_at_cut
+#check AvailableChain.FGSA.Run.postReset_priorSupport_at_cut
+#print axioms AvailableChain.FGSA.Run.postReset_priorSupport_at_cut
+#check AvailableChain.FGSA.Run.postReset_targetScores_at_cut
+#print axioms AvailableChain.FGSA.Run.postReset_targetScores_at_cut
+#check AvailableChain.FGSA.Run.postReset_coneInput_at_cut
+#print axioms AvailableChain.FGSA.Run.postReset_coneInput_at_cut
+#check AvailableChain.FGSA.Run.healing_postReset_coneStep
+#print axioms AvailableChain.FGSA.Run.healing_postReset_coneStep
+
+-- Blueprint 21 H.17:2958–3012; plan S5 CONE-2 K2; DC: SAME axiom audit.
+#check AvailableChain.FGSA.Run.healing_postReset_coneStep_of_set
+#print axioms AvailableChain.FGSA.Run.healing_postReset_coneStep_of_set
+
+-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HTW-3; DC: SAME axiom audit.
+#print axioms AvailableChain.FGSA.Run.healing_resetArrivalFull_of_open₂
+#print axioms AvailableChain.FGSA.Run.healing_hTimeClaim_of_open₂
+
+-- Blueprint 21 H.18–H.22:3049–3176; plan S5 CONE-3 R1/R3; DC: SAME axiom audit.
+#print axioms AvailableChain.FGSA.Run.postReset_cone_reset_held
+#print axioms AvailableChain.FGSA.Run.postReset_root_heads_at_cut
+#print axioms AvailableChain.FGSA.Run.postReset_head_receipt_at_cut
+#print axioms AvailableChain.FGSA.Run.postReset_proposal_batch_seat_at_cut
+#print axioms AvailableChain.FGSA.Run.postReset_head_batch_seat_at_cut
+#print axioms AvailableChain.FGSA.Run.healing_hTimeClaim_of_steps

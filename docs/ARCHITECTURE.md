@@ -258,6 +258,16 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   strict all-emissions receipt at ΔF, parent-valid selection, and height
   coverage on the current fold. `HeightMatch` is explicit at height consumers.
   `TRowsSelect` remains the R7 validity selector. Finality-bit ports wait for 07-F.
+- FG-SA healing lane (S5 CONE): `Proofs/Healing/PostResetCone` proves the
+  cone step at each event cut; `PostResetConeFrame` supplies the common pivot
+  and floors; `PostResetConeHeads` bounds source and live-lease heads;
+  `PostResetConeInput` assembles the cone input; `PostResetConePool` proves
+  the honest-seat and frozen-pool bounds; `PostResetConeReceipts` proves
+  receipt and batch-seat facts. `Tests/HealingPostResetCone` checks the step,
+  the empty cut and the run projection. Paths are under `AvailableChainFGSAProofs/`.
+- FG-SA healing lane (RE-BIND): `Proofs/Healing/PostResetConeAt` projects the
+  cone at a bounded HEAD label; `PostResetJointStep2` supplies the opening
+  and service steps from the cone at the step cut.
 - `AvailableChainFGSARun` (T7.2) holds the v2 protocol, label families,
   isolation, wire adapters, and exclusion proofs, with separate Tests.
 
