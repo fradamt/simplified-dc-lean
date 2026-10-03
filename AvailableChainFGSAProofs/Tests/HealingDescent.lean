@@ -83,8 +83,8 @@ example (c₀ : Nat)
       c₀ ≤ (heightView p K).h → c₀ ≤ (heightView p K').h →
       Block.Compatible (eraseFG K) (eraseFG K'))
     (support : ∀ i K s (B : FGBlock (Fin p.n)) sB, SourceBefore p c E rho i K s →
-      c₀ ≤ (heightView p K).h → sB < s →
-      ¬ Block.Compatible (eraseFG B) (eraseFG K) → ∃ k < i, False)
+      c₀ ≤ (heightView p K).h → SourceBefore p c E rho i B sB → c₀ ≤ (heightView p B).h →
+      sB < s → ¬ Block.Compatible (eraseFG B) (eraseFG K) → ∃ k < i, False)
     {i : Nat} {K K' : FGBlock (Fin p.n)} {s s' : Slot}
     (hK : SourceBefore p c E rho i K s) (hK' : SourceBefore p c E rho i K' s')
     (hc : c₀ ≤ (heightView p K).h) (hc' : c₀ ≤ (heightView p K').h) :
@@ -98,6 +98,7 @@ example (c₀ : Nat) (Lost : FGBlock (Fin p.n) → Slot → Nat → Prop)
       c₀ ≤ (heightView p K).h → c₀ ≤ (heightView p K').h →
       Block.Compatible (eraseFG K) (eraseFG K'))
     (support : ∀ i K s B sB, SourceBefore p c E rho i K s → c₀ ≤ (heightView p K).h →
+      SourceBefore p c E rho i B sB → c₀ ≤ (heightView p B).h →
       sB < s → ¬ Block.Compatible (eraseFG B) (eraseFG K) → ∃ k < i, Lost B sB k)
     (loss : ∀ k K s, Lost K s k → c₀ ≤ (heightView p K).h ∧ SourceBefore p c E rho k K s ∧
       ∃ x X, KeepOrCause p c E rho k x X K ∧ ¬ Kept p c E rho k x X K) :

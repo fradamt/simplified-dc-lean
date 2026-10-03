@@ -750,6 +750,12 @@ by
 #print axioms AvailableChain.FGSA.Run.AvailableGrowthGSTClaim
 #print axioms AvailableChain.FGSA.Run.AwakeProposerRecurrenceFrom
 #print axioms AvailableChain.FGSA.Run.CleanGrowthClaim
+#print axioms AvailableChain.FGSA.Run.finHeight_def
+#print axioms AvailableChain.FGSA.Run.HealSuffix_def
+#print axioms AvailableChain.FGSA.Run.healStart_def
+#print axioms AvailableChain.FGSA.Run.tstar_def
+#print axioms AvailableChain.FGSA.Run.S_at_def
+#print axioms AvailableChain.FGSA.Run.outputS_def
 
 namespace AvailableChain.FGSA.Run.Tests.HealedBest
 
