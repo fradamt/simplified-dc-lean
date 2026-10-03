@@ -270,7 +270,7 @@ DC: INTENTIONAL: the wire height is optional for an empty pair. -/
 theorem kmid_rowHeight_entry (a : RowWire p.n) (h : Nat) (hh : rowHeight a = some h) :
     ∃ e, namedEntry a.payload.height_pair = some (h, e) := by
   have hdef : rowHeight a =
-      (match a.payload.height_pair with | .empty => none | .vote h _ _ => some h) := rfl
+      (match a.payload.height_pair with | .empty => none | .vote h _ _ => some h) := rowHeight_def a
   rw [hdef] at hh
   cases hp : a.payload.height_pair with
   | empty => rw [hp] at hh; cases hh
@@ -278,7 +278,7 @@ theorem kmid_rowHeight_entry (a : RowWire p.n) (h : Nat) (hh : rowHeight a = som
     rw [hp] at hh
     have hk : k = h := Option.some.inj hh
     subst k
-    exact ⟨e, rfl⟩
+    exact ⟨e, by rw [namedEntry_def]⟩
 
 /-- FINAL 22:946–956. An honest row height is its action source height.
 DC: INTENTIONAL: the source-discipline name channel is an explicit input. -/
@@ -392,11 +392,12 @@ theorem kmid_row_fin_lt {j : Nat} {x : V} {r : Nat} {a : RowWire p.n}
   subst hroweq
   refine ⟨h, ?_, ?_⟩
   · have hdef : rowHeight a =
-        (match a.payload.height_pair with | .empty => none | .vote h _ _ => some h) := rfl
+        (match a.payload.height_pair with | .empty => none | .vote h _ _ => some h) :=
+      rowHeight_def a
     rw [hdef, ← hbody]
     rfl
   · intro f hf
-    have hdef : finHeight a = a.payload.finality_pair.map (·.height) := rfl
+    have hdef : finHeight a = a.payload.finality_pair.map (·.height) := finHeight_def a
     rw [hdef, ← hbody] at hf
     change ((finality_pair _ _).filter (fun p => decide (p.height < h))).map (·.height) =
       some f at hf
@@ -516,7 +517,7 @@ private theorem kmid_honestSeats_mem (i : Fin p.n) :
   have hdef : honestSeats p c rho =
       @Finset.filter (Fin p.n) (fun i => rho.seatOf (.base .fg) i ∈ rho.honest)
         (fun i => Classical.propDecidable (rho.seatOf (.base .fg) i ∈ rho.honest))
-        Finset.univ := rfl
+        Finset.univ := honestSeats_def p c rho
   rw [hdef]
   simpa only [Finset.mem_univ, true_and] using
     (@Finset.mem_filter (Fin p.n) (fun k => rho.seatOf (.base .fg) k ∈ rho.honest)
@@ -586,7 +587,7 @@ DC: INTENTIONAL: the run uses event-indexed emission. -/
 theorem kmid_event_time {j r : Nat} {z : V} {a : RowWire p.n}
     (hj : HonestRowAt p c E rho j z r a) :
     eventTime rho j = some (p.actionTime r) := by
-  have hdef : eventTime rho j = rho.events[j]?.map V2.Event.time := rfl
+  have hdef : eventTime rho j = rho.events[j]?.map V2.Event.time := eventTime_def rho j
   rw [hdef, ((HonestRowAt_def p c E rho _ _ _ _).mp hj).2.1]
   rfl
 
@@ -599,7 +600,7 @@ theorem kmid_matching_height {u : Row (Fin p.n)} {a : RowWire p.n}
   rw [kmid_wire_decode p ha]
   have hdef : ∀ b : RowWire p.n, rowHeight b =
       (match b.payload.height_pair with | .empty => none | .vote h _ _ => some h) :=
-    fun _ => rfl
+    fun b => rowHeight_def b
   rw [hdef]
   cases hp : u.height_pair with
   | empty => simp only [hp, NamedHeightPair.matchesEntry] at hm; contradiction
@@ -715,7 +716,7 @@ theorem kmid_held_finality_afterTicks (base : BaseSet p c E rho)
   obtain ⟨j, z, r, a, t, hj, ha, ht, hlt⟩ := ho
   have hfin : finHeight a = some (finalityView p W).h_F := by
     rw [kmid_wire_decode p ha]
-    change u.finality_pair.map (·.height) = some (finalityView p W).h_F
+    rw [finHeight_def]
     rw [hp]
     rfl
   exact (Nat.not_lt.mpr hF) (hrows j z r a _ t hj hfin ht hlt)

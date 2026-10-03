@@ -153,6 +153,7 @@ theorem healing_output_gate_step [Fintype V] (E : Generic.Env V)
         SA.confirmationFrom p.toParams (eraseFG st.fg.F) v w := he.symm
     exact he'.trans hh
   have hf : (fgsaAC E rho).saved a y w = none := fgsa_gate_fresh E rho hS ht
+  rw [S_at_def]
   change Block.Preceq B ((fgsaAC E rho).output (a + 1) y)
   rcases (fgsaAC_gate_write E rho a w y ht).effects with hskip | hrun
   · obtain ⟨⟨result, hr⟩, _⟩ := hskip
@@ -309,6 +310,7 @@ theorem healing_output_cover [Fintype V] (E : Generic.Env V)
   -- Induction along the events of the interval.
   let a0 := afterTicksIdx rho (SA.gateTime p.toParams (s + 1))
   have h0 : Block.Preceq B (S_at p c E rho a0 y) := by
+    rw [S_at_def]
     change Block.Preceq B (V2.D.Run.stateBefore E rho a0 y).st.base.stableRecord
     rw [hcut]
     exact hbase
@@ -329,7 +331,8 @@ theorem healing_output_cover [Fintype V] (E : Generic.Env V)
     · exact hanchor _ hBF
     have hFb := hFmono (Nat.le_succ _) hFB
     rcases fgsaAC_output_step E rho b y with hsame | ⟨w, hw⟩ | hrc | ⟨t, hr, _⟩
-    · change Block.Preceq B ((fgsaAC E rho).output (b + 1) y)
+    · rw [S_at_def]
+      change Block.Preceq B ((fgsaAC E rho).output (b + 1) y)
       rw [hsame]
       exact hIH
     · -- A gate d_w with s+1 ≤ w and d_w ≤ v.
@@ -357,6 +360,7 @@ theorem healing_output_cover [Fintype V] (E : Generic.Env V)
         (hheads w (by exact_mod_cast hwI) (hvw.trans hwv)) hy hw hFb (Or.inl hIH)
     · -- A reconcile keeps an output above B, since the new finality is below B.
       obtain ⟨_, _, _, _, _, _, hout⟩ := hrc
+      rw [S_at_def]
       change Block.Preceq B ((fgsaAC E rho).output (b + 1) y)
       rw [hout, normalizeOutput_def]
       have ha : Block.preceq ((fgsaAC E rho).anchor (b + 1) y)
