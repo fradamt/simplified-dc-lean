@@ -1390,3 +1390,11 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_proposalFinalRecF4_W_of
 #print axioms AvailableChain.FGSA.Run.fgsa_proposalFinalRecFE_W
 #print axioms AvailableChain.FGSA.Run.fgsa_proposalFinalRecF4_W
+
+-- F-ABOVE-B: two-window bodies, conditional exports and closed wrappers.
+#print axioms AvailableChain.FGSA.Run.above_frontier_FE_W_of
+#print axioms AvailableChain.FGSA.Run.above_frontier_F4_W_of
+#print axioms AvailableChain.FGSA.Run.fgsa_aboveFrontierRecFE_W_of
+#print axioms AvailableChain.FGSA.Run.fgsa_aboveFrontierRecF4_W_of
+#print axioms AvailableChain.FGSA.Run.fgsa_aboveFrontierRecFE_W
+#print axioms AvailableChain.FGSA.Run.fgsa_aboveFrontierRecF4_W
