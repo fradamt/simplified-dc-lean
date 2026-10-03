@@ -73,6 +73,16 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.healing_slow_output',
     'AvailableChain.FGSA.Run.healing_phase_transfers',
     'AvailableChain.FGSA.Run.healing_tPerm',
+    # H-REPAIR: --expect additions only.
+    'AvailableChain.FGSA.Run.retainedH6Input_on_repaired_reads',
+    'AvailableChain.FGSA.Run.repair_head_two',
+    'AvailableChain.FGSA.Run.retainedH6Input_on_synchronous_reads',
+    'AvailableChain.FGSA.Run.repair_head_one',
+    'AvailableChain.FGSA.Run.repair_h6c_window',
+    'AvailableChain.FGSA.Run.repair_gate_geometry',
+    'AvailableChain.FGSA.Run.repair_two_lease',
+    'AvailableChain.FGSA.Run.repair_synchronous',
+    'AvailableChain.FGSA.Run.healing_tRepair',
     # S4.6c: --expect DATA only.
     'AvailableChain.FGSA.Run.fgsa_availableGST',
     'AvailableChain.FGSA.Run.AvailableFromConcl',
