@@ -28,6 +28,17 @@ LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainF
 CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = (
+    # S5 GROWTH: --expect ADDITIONS only.
+    'AvailableChain.FGSA.Run.fgsa_timeIdx_now_le',
+    'AvailableChain.FGSA.Run.fgsa_output_noFuture_of_slot',
+    'AvailableChain.FGSA.Run.fgsa_proposal_emission_exists_of_awake_slot',
+    'AvailableChain.FGSA.Run.fgsa_honestProposal_exists_of_awake_slot',
+    'AvailableChain.FGSA.Run.jointGrowthAt_of_inclusion',
+    'AvailableChain.FGSA.Run.fgsa_outputAt_eq_S_at',
+    'AvailableChain.FGSA.Run.fgsa_healSuffix_timeIdx',
+    'AvailableChain.FGSA.Run.fgsa_healed_output_mono',
+    'AvailableChain.FGSA.Run.clean_growth_body',
+    'AvailableChain.FGSA.Run.fgsa_availableGrowthGST',
     # S5 I-GATE/I-READ: --expect ADDITIONS only.
     'AvailableChain.FGSA.Run.inclusion_headAtLabel',
     'AvailableChain.FGSA.Run.inclusion_prior_results_below',

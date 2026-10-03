@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Outage.Growth -- shake: keep (growth axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.FramePaths -- shake: keep (H-FRAME audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.FrameZero -- shake: keep (zero-label audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.FrameRelay -- shake: keep (witness relay audit)
@@ -1055,3 +1056,15 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.kernel_middle_early_justification
 #print axioms AvailableChain.FGSA.Run.kernel_middle_source_cap
 #print axioms AvailableChain.FGSA.Run.kmid_source_held_at_tick
+
+-- S5 GROWTH: causal, emission, order, clean body and conditional GST proof.
+#print axioms AvailableChain.FGSA.Run.fgsa_timeIdx_now_le
+#print axioms AvailableChain.FGSA.Run.fgsa_output_noFuture_of_slot
+#print axioms AvailableChain.FGSA.Run.fgsa_proposal_emission_exists_of_awake_slot
+#print axioms AvailableChain.FGSA.Run.fgsa_honestProposal_exists_of_awake_slot
+#print axioms AvailableChain.FGSA.Run.jointGrowthAt_of_inclusion
+#print axioms AvailableChain.FGSA.Run.fgsa_outputAt_eq_S_at
+#print axioms AvailableChain.FGSA.Run.fgsa_healSuffix_timeIdx
+#print axioms AvailableChain.FGSA.Run.fgsa_healed_output_mono
+#print axioms AvailableChain.FGSA.Run.clean_growth_body
+#print axioms AvailableChain.FGSA.Run.fgsa_availableGrowthGST
