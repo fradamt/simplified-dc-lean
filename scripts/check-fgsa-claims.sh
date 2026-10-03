@@ -73,6 +73,16 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.HighRecordGuard_W',
     'AvailableChain.FGSA.Run.HighRecordGuard_W_def',
     'AvailableChain.FGSA.Run.ff2_high_record_guards',
+    # K-ROWS-PREM: --expect DATA only.
+    'AvailableChain.FGSA.Run.pending_action_domain_cap',
+    'AvailableChain.FGSA.Run.rowsPrem_postClock_store',
+    'AvailableChain.FGSA.Run.rowsPrem_F_below_D_at_gate',
+    'AvailableChain.FGSA.Run.rowsPrem_action_frame',
+    'AvailableChain.FGSA.Run.rowsPrem_full_domain',
+    'AvailableChain.FGSA.Run.rowsPrem_liveRoot_compatible',
+    'AvailableChain.FGSA.Run.rowsPrem_action_pools',
+    'AvailableChain.FGSA.Run.rowsPrem_earlier_height',
+    'AvailableChain.FGSA.Run.rowsPrem_action_record',
     # K-MID: --expect DATA only.
     'AvailableChain.FGSA.Run.kernel_opening_and_middle',
     'AvailableChain.FGSA.Run.kernel_middle_fresh_U',

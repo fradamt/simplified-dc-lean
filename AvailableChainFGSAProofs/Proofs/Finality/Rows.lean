@@ -76,6 +76,27 @@ private theorem rows_pending_action_head
   exact ⟨H, hdecode, hDH, hHh, hplateau.1.trans hDJ, hplateau.2.trans hDj,
     hfin H hH, (hlaws.entry_plateau hDH (hDh.trans hHh.symm)).symm⟩
 
+/-- Paper 22:1236–1239,1667–1687: translate the strict causal cap to a held domain.
+DC: INTENTIONAL: height-only cap through a TF inclusion at the actual read. -/
+theorem pending_action_domain_cap
+    (before : Nat) (x : V) (q y : Nat) (nd : Node p)
+    (hx : x ∈ rho.honest)
+    (hfgread : nd.st.fg.TF ⊆ (storeAt p c E rho before x).fg.TF)
+    (hbefore : before ≤ V2.D.Run.idxBefore rho (p.actionTime q))
+    (hcapBefore : ∀ (cut : Time) (b i : Nat) (x : V) (W : FGBlock (Fin p.n)),
+      i ≤ V2.D.Run.idxBefore rho cut → HeldAt p c E rho i x W →
+      (∀ j z r a u h T timeout, HonestRowAt p c E rho j z r a →
+        RowWire.toRow? a = some u → u.height_pair = .vote h T timeout →
+        p.actionTime r < cut → h < b + 1) →
+      (heightView p W).h < b + 2)
+    (hrows : ∀ j z r a u h T timeout, HonestRowAt p c E rho j z r a →
+      RowWire.toRow? a = some u → u.height_pair = .vote h T timeout →
+      p.actionTime r < p.actionTime q → h < y + 1) :
+    ∀ B ∈ nd.st.fg.TF, (heightView p B).h ≤ y + 1 := by
+  intro B hB
+  exact Nat.le_of_lt_succ
+    (hcapBefore (p.actionTime q) y before x B hbefore ⟨hx, hfgread hB⟩ hrows)
+
 /-- Paper 22:1228–1254: the actual full action walk has the pending fields.
 DC: INTENTIONAL: separate held-domain causal cap and finality lag, with read-index bridges. -/
 theorem pending_action_head
@@ -85,9 +106,9 @@ theorem pending_action_head
     (hx : x ∈ rho.honest)
     (hnd : postClock E rho x (p.actionTime q) = some nd)
     (hread : storeAt p c E rho k x = nd.st)
-    (hfgread : (storeAt p c E rho before x).fg = nd.st.fg)
+    (hfgread : nd.st.fg.TF ⊆ (storeAt p c E rho before x).fg.TF)
     (hbefore : before ≤ V2.D.Run.idxBefore rho (p.actionTime q))
-    (hlagBefore : before ≤ V2.D.Run.idxBefore rho (p.actionTime (q - 1 + 1)))
+    (hq : 0 < q)
     (hwalk : TWalk p c E rho)
     (hhead : FGSA.fgHead p nd.st = FGSA.getHead p nd.st raw support)
     (hcount : Gen.Pure.Batch seats.card m)
@@ -124,15 +145,14 @@ theorem pending_action_head
   have held : ∀ B ∈ nd.st.fg.TF, HeldAt p c E rho before x B := by
     intro B hB
     change x ∈ rho.honest ∧ B ∈ (storeAt p c E rho before x).fg.TF
-    exact ⟨hx, by rw [hfgread]; exact hB⟩
-  have hcap : ∀ B ∈ nd.st.fg.TF, (heightView p B).h ≤ y + 1 := by
-    intro B hB
-    exact Nat.le_of_lt_succ
-      (hcapBefore (p.actionTime q) y before x B hbefore (held B hB) hrows)
+    exact ⟨hx, hfgread hB⟩
+  have hcap := pending_action_domain_cap p c E rho before x q y nd
+    hx hfgread hbefore hcapBefore hrows
   have hfin : ∀ B ∈ nd.st.fg.TF, (finalityView p B).h_F < y := by
     intro B hB
     exact hfinalityLag (q - 1) y before x B ((Nat.zero_le _).trans_lt hDfin)
-      hlagBefore (held B hB) hnoRow
+      (by simpa only [Nat.sub_add_cancel (Nat.one_le_of_lt hq)] using hbefore)
+      (held B hB) hnoRow
   exact rows_pending_action_head p c E rho k x q y D U nd raw support seats m
     hx hnd hread hwalk hhead hcount hD hcompat hbatch hDh hDJ hDj hcap hfin
 

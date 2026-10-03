@@ -17,6 +17,9 @@ public import AvailableChainFGSAProofs.Proofs.Finality.Receipt
 public import AvailableChainFGSAProofs.Proofs.Finality.Rows
 public import AvailableChainFGSAProofs.Proofs.Finality.MiddleSupport
 public import AvailableChainFGSAProofs.Proofs.Finality.Middle
+public import AvailableChainFGSAProofs.Proofs.Finality.RowsFrame
+public import AvailableChainFGSAProofs.Proofs.Finality.RowsBatch
+public import AvailableChainFGSAProofs.Proofs.Finality.RowsRecords
 public import AvailableChainFGSAProofs.Proofs.Finality.Carry
 public import AvailableChainFGSAProofs.Proofs.Finality.Batch
 public import AvailableChainFGSAProofs.Proofs.Finality.RecordInv

@@ -12,6 +12,9 @@ public import AvailableChainFGSAProofs.Proofs.Finality.Height -- shake: keep (K-
 public import AvailableChainFGSAProofs.Proofs.Finality.Receipt -- shake: keep (K-RECEIPT audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Rows -- shake: keep (K-ROWS audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Middle -- shake: keep (K-MID audit)
+public import AvailableChainFGSAProofs.Proofs.Finality.RowsFrame -- shake: keep (K-ROWS-PREM audit)
+public import AvailableChainFGSAProofs.Proofs.Finality.RowsBatch -- shake: keep (K-ROWS-PREM audit)
+public import AvailableChainFGSAProofs.Proofs.Finality.RowsRecords -- shake: keep (K-ROWS-PREM audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Carry -- shake: keep (K-CARRY audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Batch -- shake: keep (K-BATCH audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Accept -- shake: keep (K-ACCEPT axiom audit)
@@ -968,3 +971,13 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.kernel_middle_early_justification
 #print axioms AvailableChain.FGSA.Run.kernel_middle_source_cap
 #print axioms AvailableChain.FGSA.Run.kmid_source_held_at_tick
+
+#print axioms AvailableChain.FGSA.Run.pending_action_domain_cap
+#print axioms AvailableChain.FGSA.Run.rowsPrem_postClock_store
+#print axioms AvailableChain.FGSA.Run.rowsPrem_F_below_D_at_gate
+#print axioms AvailableChain.FGSA.Run.rowsPrem_action_frame
+#print axioms AvailableChain.FGSA.Run.rowsPrem_full_domain
+#print axioms AvailableChain.FGSA.Run.rowsPrem_liveRoot_compatible
+#print axioms AvailableChain.FGSA.Run.rowsPrem_action_pools
+#print axioms AvailableChain.FGSA.Run.rowsPrem_earlier_height
+#print axioms AvailableChain.FGSA.Run.rowsPrem_action_record
