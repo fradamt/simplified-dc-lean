@@ -153,6 +153,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat -- shake: 
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetCut -- shake: keep (RS-0 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLease -- shake: keep (J4 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep -- shake: keep (J3 audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLeaseStep -- shake: keep (J4-A audit)
 
 #print axioms AvailableChain.FGSA.Run.kmid_honestSeats_mem
 #print axioms AvailableChain.FGSA.Run.kmid_honest_quorum
@@ -1665,3 +1666,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep -- shake: ke
 
 #print axioms AvailableChain.FGSA.Run.postReset_receiver_compatible
 #print axioms AvailableChain.FGSA.Run.postReset_tDel
+
+-- J4-A: arbitrary-prefix first transfer and reset-cut synchrony.
+#print axioms AvailableChain.FGSA.Run.healing_first_transfer_written
+#print axioms AvailableChain.FGSA.Run.postReset_written_sync
