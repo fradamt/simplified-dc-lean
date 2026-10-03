@@ -2,6 +2,7 @@ module
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetService -- shake: keep (J6 applications)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetGate -- shake: keep (J6-2 H6 example)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Leases -- shake: keep (last-write supplier)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJointStep -- shake: keep (J6-3 step adapter)
 
 set_option linter.privateModule false
 
@@ -158,6 +159,131 @@ example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     (fgsa_leaseOrigins_lastWrite p c E rho hrec.base.valid.toScheduleWellFormed)
     w.sStar D le_rfl hgst hGateHorizon hne
     hheads hfloor x hx
+
+-- J6-3 O1 partial: stored lift at the new tick of the cut, without service.
+example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (w : HealingWitness) (hreset : H0Reset p c E rho w)
+    (hcone : PostResetRetainedCone p c E rho w) (i : Nat)
+    {x : V} {v : Slot} {Q : Block} (hx : x ∈ rho.honest)
+    (ht : IsGateTick p c rho i x v)
+    (hp : HonestProposal E rho (fgsaInterface p c) v Q) (hv : w.sStar + 2 ≤ v)
+    (r : Nat) (hr : v = r * p.R) :
+    let st := ((fgsa p c).clock (V2.D.Run.stateBefore E rho i x) (p.actionTime r)).st
+    ∃ D : FGBlock (Fin p.n), eraseFG D = Q ∧ D ∈ st.fg.TF :=
+  healing_postReset_opening_clock_stored E rho hrec w hreset hcone hp hv hx ht r hr
+
+-- J6-3 O2 partial: opening_domain at cut i + 1 covers tick i.
+example (w : HealingWitness) (i : Nat)
+    (hopening : PostResetOpeningDomain p c E rho w (i + 1))
+    {x : V} {v : Slot} {Q : Block} (hx : x ∈ rho.honest)
+    (ht : IsGateTick p c rho i x v)
+    (hp : HonestProposal E rho (fgsaInterface p c) v Q) (hv : w.sStar + 2 ≤ v) :
+    ∀ r, v = r * p.R →
+      let st := ((fgsa p c).clock (V2.D.Run.stateBefore E rho i x) (p.actionTime r)).st
+      ∃ D, eraseFG D = Q ∧ D ∈ domainR p st (treeT p st) :=
+  healing_postReset_gate_opening_domain E rho w (i + 1) hopening
+    (Nat.lt_succ_self i) hx ht hp hv
+
+-- J6-3 O2 partial: opening target_floor at a cut uses exact HEAD.
+example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (w : HealingWitness) (hreset : H0Reset p c E rho w)
+    (hcone : PostResetRetainedCone p c E rho w) (i : Nat)
+    (hopening : PostResetOpeningDomain p c E rho w (i + 1))
+    {x : V} {v : Slot} {Q : Block} (hx : x ∈ rho.honest)
+    (ht : IsGateTick p c rho i x v)
+    (hp : HonestProposal E rho (fgsaInterface p c) v Q) (hv : w.sStar + 2 ≤ v)
+    (r : Nat) (hr : v = r * p.R) (q : Fin p.n)
+    (hy : rho.seatOf (.base (.head v)) q ∈ rho.honest)
+    (haw : E.awake (rho.seatOf (.base (.head v)) q) (SA.voteTime p.toParams v) = true)
+    (K : Block) (he : V2.D.Run.emits E rho (rho.seatOf (.base (.head v)) q)
+      (ofHead p ⟨.seat (.head v) q, K⟩) (SA.voteTime p.toParams v)) :
+    Block.Preceq (eraseFG (clockPre p (storeAt p c E rho i x)
+      (SA.gateTime p.toParams v)).fg.F) K :=
+  healing_postReset_opening_target_floor E rho hrec w hreset hcone (i + 1) hopening
+    (Nat.lt_succ_self i) hx ht hp hv r hr q hy haw K he
+
+section J63CutApplication
+variable {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (w : HealingWitness) (hreset : H0Reset p c E rho w)
+    (hcone : PostResetRetainedCone p c E rho w)
+    (cap : RCap p c E rho)
+    (rowCovered : ∀ (_hb : Base₂ p c E rho)
+      (_hf : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
+      (x : V), x ∈ rho.honest → ∀ (r : Nat) (nd : Node p),
+      postClock E rho x (p.actionTime r) = some nd → ∀ C : FGBlock (Fin p.n),
+      actionSourceFG p c E rho x r = some (some C) →
+      C ∈ FGSA.fullTree p nd.st → (FGSA.controls p nd.st).lo ≤ (heightView p C).h →
+      E.awake x (p.actionTime r) = true →
+      ∃ j rSent a, rSent ≤ r ∧ HonestRowAt p c E rho j x rSent a ∧
+        namedEntry a.payload.height_pair =
+          some ((heightView p C).h, (heightView p C).T_h.root))
+
+variable (mono : RMono p c E rho)
+    (writes : ∀ i x (row : Block × Nat × Time),
+      row ∈ (storeAt p c E rho i x).base.obligations →
+      ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
+        gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
+        row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
+        row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
+        ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
+          let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          GridCO.savedGenuine pre.base w = none →
+          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+            (actView pre) w C)
+
+include hrec hreset hcone cap rowCovered mono writes
+
+-- J6-3 O2: the producer gives both service conjuncts at any cut i.
+example (i : Nat) (hfp : PostResetFProv p c E rho w i)
+    (hraw : PostResetRawTransfer p c E rho w i)
+    (hopening : PostResetOpeningDomain p c E rho w i) :
+    PostResetService p c E rho w i :=
+  healing_postReset_service_step E rho hrec w hreset hcone cap rowCovered mono writes
+    i hfp hraw hopening
+
+-- JOINT-IND: the service step holds at every cut, pre-reset cuts included.
+example : ∀ i, PostResetServiceStep p c E rho w i :=
+  healing_postReset_serviceStep E rho hrec w hreset hcone cap rowCovered mono writes
+
+end J63CutApplication
+
+section J63OpeningCutApplication
+variable {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (w : HealingWitness) (hreset : H0Reset p c E rho w)
+    (hcone : PostResetRetainedCone p c E rho w)
+    (cap : RCap p c E rho)
+    (rowCovered : ∀ (_hb : Base₂ p c E rho)
+      (_hf : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
+      (x : V), x ∈ rho.honest → ∀ (r : Nat) (nd : Node p),
+      postClock E rho x (p.actionTime r) = some nd → ∀ C : FGBlock (Fin p.n),
+      actionSourceFG p c E rho x r = some (some C) →
+      C ∈ FGSA.fullTree p nd.st → (FGSA.controls p nd.st).lo ≤ (heightView p C).h →
+      E.awake x (p.actionTime r) = true →
+      ∃ j rSent a, rSent ≤ r ∧ HonestRowAt p c E rho j x rSent a ∧
+        namedEntry a.payload.height_pair =
+          some ((heightView p C).h, (heightView p C).T_h.root))
+
+variable (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
+include hrec hreset hcone cap rowCovered xing origin
+
+-- J6-3 O1: apply the full successor at cut i, before service.
+example (i : Nat) (hhigh : PostResetHighCompatible p c E rho w i)
+    (hfp : PostResetFProv p c E rho w i)
+    (hraw : PostResetRawTransfer p c E rho w i)
+    (hopening : PostResetOpeningDomain p c E rho w i) :
+    PostResetOpeningDomain p c E rho w (i + 1) :=
+  healing_postReset_openingDomain_step E rho hrec w hreset hcone cap rowCovered xing origin
+    i hhigh hfp hraw hopening
+
+-- JOINT-IND: the opening-domain step holds at every cut, pre-reset cuts included.
+example : ∀ i, PostResetOpeningDomainStep p c E rho w i :=
+  healing_postReset_openingDomainStep E rho hrec w hreset hcone cap rowCovered xing origin
+
+end J63OpeningCutApplication
 
 end AvailableChain.FGSA.Run.Tests.HealingPostResetService
 end
