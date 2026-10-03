@@ -14,8 +14,11 @@ def WeakContinuationClaim (p : Params) (G : Time) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In) (ΔF : Time),
     BoundedSafetyRecovery₂ p (V := V) c G ΔF
 
-/-- bp.weakContinuationAvailable.v2; blueprint 23:103–192,242–264.
-DC Legacy/Liveness.lean:29–71: SAME universal recovery/continuation role.
+/-- bp.weakContinuationAvailable.v2 = safety + inclusion (blueprint 23:103–192);
+growth: B33 §K(1) / plan §1.1; no blueprint statement yet; paper proof pending (B33
+§K(5) producer items).
+DC Legacy/Definitions/NamedVoteConsumers.lean:56–61 BoundedSafetyRecovery: SAME
+safety role; DC Legacy/Liveness.lean:29–71: SAME inclusion and growth roles.
 INTENTIONAL: one joint gate gives safety, actual-proposal service, and
 growth conditional on each awake-proposer recurrence gap (B33).
 The validator and input types, codec, and explicit row delay are universal. -/

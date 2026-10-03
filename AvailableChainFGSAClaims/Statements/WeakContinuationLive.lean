@@ -8,14 +8,17 @@ namespace AvailableChain.FGSA.Run
 
 variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V] [Fintype V]
 
-/-- bp.weakContinuationAvailable.v2; blueprint 23:133–192,242–264.
-DC Legacy/Liveness.lean:29–71: SAME safety, inclusion, and growth roles.
+/-- bp.weakContinuationAvailable.v2 = safety + inclusion (blueprint 23:126–192);
+the PROVED-paper status covers safety and inclusion only. Growth: B33 §K(1) / plan
+§1.1; no blueprint statement yet; paper proof pending (B33 §K(5) producer items).
+DC Legacy/Definitions/NamedVoteConsumers.lean:56–61 BoundedSafetyRecovery: SAME
+safety role; DC Legacy/Liveness.lean:29–71: SAME inclusion and growth roles.
 INTENTIONAL: all three results use one completed gate, and each field has
 the finite-horizon guard required by B31. An absent gate imposes no result.
-G is the source search gap; growth quantifies its own gap G' (B33). -/
+Growth quantifies its own continuation gap G' (B33). -/
 structure WeakContinuationLiveAt₂
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (u : Slot) (Q : Block) (iStar : Nat) (G ΔF : Time) : Prop where
+    (u : Slot) (Q : Block) (iStar : Nat) (ΔF : Time) : Prop where
   /-- Blueprint 23:145–160; DC SafetyRegimes:85–127: SAME safety role.
   INTENTIONAL: retain the exact SSafeFromCut₂ result from the chosen gate. -/
   safety :
@@ -33,7 +36,9 @@ structure WeakContinuationLiveAt₂
       HonestProposal E rho (fgsaInterface p c) pt.s pt.P →
       SA.gateTime p.toParams pt.s ≤ rho.horizon →
       ServedFromGateAt p c E rho pt
-  /-- Blueprint 23:242–264; DC AvailableChainGrowth.afterGST:46–51:
+  /-- B33 §K(1) / plan §1.1; no blueprint statement yet; paper proof pending (B33
+  §K(5) producer items).
+  DC AvailableChainGrowth.afterGST:46–51:
   SAME universal continuation-gap order (B33); SingleProposerRecurrence
   is Generic/Conditions.lean:207–211.
   INTENTIONAL: FG-SA requires an awake proposer, 4Δ ≤ G', and a covered
@@ -47,7 +52,9 @@ structure WeakContinuationLiveAt₂
       t + G' + 6 * p.Δ ≤ rho.horizon →
       JointGrowthAt p c E rho t (t + G' + 6 * p.Δ)
 
-/-- Blueprint 23:103–192,237–264; DC NamedVoteConsumers:56–61:
+/-- Blueprint 23:103–192 (safety + inclusion); growth: B33 §K(1) / plan §1.1; no
+blueprint statement yet; paper proof pending (B33 §K(5) producer items).
+DC NamedVoteConsumers:56–61:
 SAME source-witness-before-continuation order.
 INTENTIONAL: choose one joint cut for safety, inclusion, and growth; DC
 selects an existential m for each property. RecoveredBy t₀ uses recoveryEnd.
@@ -62,7 +69,7 @@ def BoundedSafetyLivenessRecovery₂ (G ΔF : Time) : Prop :=
       BoundedHealingCut₂ p c E source u Q iStar ΔF ∧
       ∀ (E' : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
         CleanContinuation₂ p c E source E' rho ΔF →
-        WeakContinuationLiveAt₂ p c E' rho u Q iStar G ΔF
+        WeakContinuationLiveAt₂ p c E' rho u Q iStar ΔF
 
 -- Equation export required by BUILD §7.2 B3a.
 theorem BoundedSafetyLivenessRecovery₂_def (G ΔF : Time) :
@@ -74,7 +81,7 @@ theorem BoundedSafetyLivenessRecovery₂_def (G ΔF : Time) :
           BoundedHealingCut₂ p c E source u Q iStar ΔF ∧
           ∀ (E' : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
             CleanContinuation₂ p c E source E' rho ΔF →
-            WeakContinuationLiveAt₂ p c E' rho u Q iStar G ΔF) := by
+            WeakContinuationLiveAt₂ p c E' rho u Q iStar ΔF) := by
   rw [BoundedSafetyLivenessRecovery₂]
 
 end AvailableChain.FGSA.Run

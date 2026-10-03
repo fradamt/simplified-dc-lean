@@ -19,9 +19,9 @@ example {G ΔF : Time}
 
 -- No state or safety premise is needed when the gate is beyond the horizon.
 example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (u : Slot) (Q : Block) (iStar : Nat) (G ΔF : Time)
+    (u : Slot) (Q : Block) (iStar : Nat) (ΔF : Time)
     (h : rho.horizon < SA.gateTime p.toParams u) :
-    WeakContinuationLiveAt₂ p c E rho u Q iStar G ΔF where
+    WeakContinuationLiveAt₂ p c E rho u Q iStar ΔF where
   safety := fun hcut => False.elim (not_le_of_gt h hcut)
   inclusion := fun hcut => False.elim (not_le_of_gt h hcut)
   growth := fun hcut => False.elim (not_le_of_gt h hcut)

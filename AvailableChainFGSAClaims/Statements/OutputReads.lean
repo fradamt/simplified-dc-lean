@@ -29,8 +29,11 @@ theorem ServedFromGateAt_def (pt : PtSP) :
           (fun t => SA.gateTime p.toParams pt.s ≤ t ∧ t ≤ rho.horizon)) := by
   rw [ServedFromGateAt]
 
-/-- Blueprint 23:242–245,255–264; DC confirmedLive/stableLive:
-SAME joint strict-prefix growth body as AvailableGrowthConcl.
+/-- Growth: B33 §K(1) / plan §1.1; no blueprint statement yet; paper proof pending
+(B33 §K(5) producer items). Blueprint 23:242–245 only for "both accessors expose
+S".
+DC Generic/Properties.lean:104–110 LiveFrom: SAME joint strict-prefix growth body
+as AvailableGrowthConcl.
 INTENTIONAL: one actual proposal extends both outputs at t and is in both
 outputs at the shared deadline d. Both FG-SA accessors expose S. -/
 def JointGrowthAt (t d : Time) : Prop :=

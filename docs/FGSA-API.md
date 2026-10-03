@@ -1335,13 +1335,13 @@ def AvailableChain.FGSA.Run.BoundedSafetyRecovery₂ a4ddace4f3e90b7e
 ### `AvailableChainFGSAClaims.Statements.WeakContinuationLive`
 
 ```text
-structure AvailableChain.FGSA.Run.WeakContinuationLiveAt₂ 43c3781322755aad
-ctor AvailableChain.FGSA.Run.WeakContinuationLiveAt₂.mk 33c1e03a0e3d5f19
-field AvailableChain.FGSA.Run.WeakContinuationLiveAt₂.safety be7bbed779f2791c
-field AvailableChain.FGSA.Run.WeakContinuationLiveAt₂.inclusion 78960829b45a7925
-field AvailableChain.FGSA.Run.WeakContinuationLiveAt₂.growth c88629d48c8c8579
-def AvailableChain.FGSA.Run.BoundedSafetyLivenessRecovery₂ b51b064177887e21
-theorem AvailableChain.FGSA.Run.BoundedSafetyLivenessRecovery₂_def fda8b14222cf802e
+structure AvailableChain.FGSA.Run.WeakContinuationLiveAt₂ 444aa594c122432f
+ctor AvailableChain.FGSA.Run.WeakContinuationLiveAt₂.mk 78a1b9694a381da2
+field AvailableChain.FGSA.Run.WeakContinuationLiveAt₂.safety 914a9494377582b9
+field AvailableChain.FGSA.Run.WeakContinuationLiveAt₂.inclusion 9bd576559e0b7f6d
+field AvailableChain.FGSA.Run.WeakContinuationLiveAt₂.growth b779e5f8a16cf1b8
+def AvailableChain.FGSA.Run.BoundedSafetyLivenessRecovery₂ b140751d03ed26f4
+theorem AvailableChain.FGSA.Run.BoundedSafetyLivenessRecovery₂_def eacdfbd983755b5c
 ```
 
 ### `AvailableChainFGSAClaims.Statements.Windows`
