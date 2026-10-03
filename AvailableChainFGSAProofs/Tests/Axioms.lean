@@ -1289,6 +1289,7 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.rowsPrem_earlier_height
 #print axioms AvailableChain.FGSA.Run.rowsPrem_action_record
 #print axioms AvailableChain.FGSA.Run.fgsa_action_walk_batch
+#print axioms AvailableChain.FGSA.Run.finality_action_time_bounds
 #print axioms AvailableChain.FGSA.Run.rowsPrem_action_walk_batch
 #print axioms AvailableChain.FGSA.Run.pending_action_head_capped
 #print axioms AvailableChain.FGSA.Run.rowsPrem_pending_head
@@ -1299,6 +1300,7 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 
 -- K-FWD: the forward W finality kernel.
 #print axioms AvailableChain.FGSA.Run.finality_kernel_W_of
+#print axioms AvailableChain.FGSA.Run.finality_kernel_prem_W_of_joined
 #print axioms AvailableChain.FGSA.Run.finality_kernel_joined_W_of
 #print axioms AvailableChain.FGSA.Run.fgsa_finalityKernelJoined_W_of
 #print axioms AvailableChain.FGSA.Run.fgsa_finalityKernelJoined_W

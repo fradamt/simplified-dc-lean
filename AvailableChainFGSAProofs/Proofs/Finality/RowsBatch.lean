@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Finality.ActionTime
 public import AvailableChainFGSARun.Proofs.Schedule
 public import AvailableChainFGSAProofs.Proofs.Finality.RowsFrame
 public import AvailableChainFGSAProofs.Proofs.Shared.HeadAdmit
@@ -69,32 +70,8 @@ theorem rowsPrem_action_walk_batch (hQC : RQCOrigin p c E rho) (hXing : RXing p 
     have := m.earlySlot.1
     have he : (pt.r + 1) * p.R = pt.r * p.R + p.R := Nat.succ_mul _ _
     omega
-  have hvGST : E.t_GST ≤ SA.voteTime p.toParams ((pt.r + 2) * p.R + 1) := by
-    refine hGST.trans ?_
-    have hle := kmid_slot_scale_le p (show pt.r * p.R ≤ (pt.r + 2) * p.R + 1 by
-      have := Nat.mul_le_mul_right p.R (show pt.r ≤ pt.r + 2 by omega)
-      omega)
-    have hd := p.deltaPos
-    change 4 * p.Δ * ((pt.r * p.R : Nat) : Time) ≤
-      4 * p.Δ * (((pt.r + 2) * p.R + 1 : Nat) : Time) + p.Δ
-    linarith
-  have hearly : SA.earlyTime p.toParams ((pt.r + 2) * p.R + 1) = p.actionTime (pt.r + 2) := by
-    change 4 * p.Δ * (((pt.r + 2) * p.R + 1 : Nat) : Int) + 2 * p.Δ =
-      4 * p.Δ * (((pt.r + 2) * p.R : Nat) : Int) + 6 * p.Δ
-    push_cast
-    ring
-  have hvte : SA.voteTime p.toParams ((pt.r + 2) * p.R + 1) + E.Δ ≤
-      SA.earlyTime p.toParams ((pt.r + 2) * p.R + 1) := by
-    rw [hK.set.base.delta]
-    change 4 * p.Δ * (((pt.r + 2) * p.R + 1 : Nat) : Int) + p.Δ + p.Δ ≤
-      4 * p.Δ * (((pt.r + 2) * p.R + 1 : Nat) : Int) + 2 * p.Δ
-    linarith
-  have heh : SA.earlyTime p.toParams ((pt.r + 2) * p.R + 1) ≤ rho.horizon :=
-    hearly ▸ m.actionsInRun
-  have hvthor : SA.voteTime p.toParams ((pt.r + 2) * p.R + 1) ≤ rho.horizon := by
-    have := hK.set.base.delta
-    have := p.deltaPos
-    linarith
+  obtain ⟨hvGST, hvte, heh, hvthor⟩ := finality_action_time_bounds p pt.r (pt.r + 2)
+    (by omega) E.t_GST E.Δ rho.horizon hGST hK.set.base.delta m.actionsInRun
   have hsync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _
     hK.set.sync (fgsaDelay_nonrow E.Δ _) hvGST hvte heh
   refine fgsa_action_walk_batch E rho hK.set.base (pt.r + 2) hsync

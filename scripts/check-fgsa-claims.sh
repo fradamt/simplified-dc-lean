@@ -233,6 +233,7 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.rowsPrem_action_record',
     # K-ROWS-PREM P3: --expect DATA only.
     'AvailableChain.FGSA.Run.fgsa_action_walk_batch',
+    'AvailableChain.FGSA.Run.finality_action_time_bounds',
     'AvailableChain.FGSA.Run.rowsPrem_action_walk_batch',
     'AvailableChain.FGSA.Run.pending_action_head_capped',
     'AvailableChain.FGSA.Run.rowsPrem_pending_head',
@@ -313,6 +314,7 @@ EXPECTED = (
     # K-FWD: --expect DATA only.
     'AvailableChain.FGSA.Run.finality_kernel_W_of',
     # K-JOIN: --expect DATA only.
+    'AvailableChain.FGSA.Run.finality_kernel_prem_W_of_joined',
     'AvailableChain.FGSA.Run.finality_kernel_joined_W_of',
     'AvailableChain.FGSA.Run.fgsa_finalityKernelJoined_W_of',
     'AvailableChain.FGSA.Run.fgsa_finalityKernelJoined_W',
