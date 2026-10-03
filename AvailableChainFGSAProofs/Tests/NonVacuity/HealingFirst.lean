@@ -2,6 +2,7 @@ module
 public import AvailableChainFGSAProofs.Proofs.Foundations.RowPermission -- shake: keep (own-library route)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Sources -- shake: keep (row source fields)
 public meta import AvailableChainFGSAProofs.Proofs.Foundations.RowPermission -- shake: keep (closed evaluations)
+public import AvailableChainFGSAProofs.Proofs.Healing.Time -- shake: keep (J11 composition)
 
 @[expose] public section
 
@@ -754,6 +755,71 @@ theorem nvH0 : H0 params unitCodec env run w' where
 #print axioms nvH0Reset'
 #print axioms nvProposal
 #print axioms nvH0
+
+end AvailableChain.FGSA.Run.Tests.NonVacuity.HealingFirst
+end
+
+-- J11 additions use the unchanged NV5 witness and run.
+public section
+namespace AvailableChain.FGSA.Run.Tests.NonVacuity.HealingFirst
+
+theorem nvClock : params.δt = 2 * params.R := by decide
+theorem nvTstarValue : tstar params w' = 50 := by decide
+theorem nvResetActionValue : params.actionTime w'.rStar = 42 := by decide
+theorem nvTimeBudgetValue : params.actionTime w'.rStar + Γ params gap + 4 * params.Δ = 50 := by
+  decide
+
+-- Equality is allowed in the first H-time bound: 50 ≤ 42 + 4 + 4.
+theorem nvTstarBound :
+    tstar params w' ≤ params.actionTime w'.rStar + Γ params gap + 4 * params.Δ := by
+  decide
+
+theorem nvResetTimeStrict :
+    params.actionTime w'.rStar < env.t_GST + B'_resetF params deltaF gap := by
+  decide
+
+-- Both horizon forms hold at 303 ≤ 304 on this run.
+theorem nvFullHorizon :
+    env.t_GST + B'_resetF params deltaF gap + Γ params gap + 4 * params.Δ ≤ run.horizon :=
+  healing_resetFull_horizon params gap deltaF env.t_GST run.horizon healing_horizon
+
+theorem nvTimeStrict :
+    params.actionTime w'.rStar + Γ params gap + 4 * params.Δ < env.t_GST + B_HF params deltaF gap :=
+  healing_time_strict_of_reset params gap deltaF env.t_GST
+    (params.actionTime w'.rStar) nvResetTimeStrict
+
+-- The producer and HealingSet remain hypothetical; H0 and the arithmetic are proved.
+theorem nvHealingInputOfH0 (hInput : HealingInputOfH0Statement params gap deltaF)
+    (hSet : HealingSet params unitCodec env run gap deltaF) :
+    HealingInput params unitCodec env run w' deltaF ∧
+      tstar params w' ≤ params.actionTime w'.rStar + Γ params gap + 4 * params.Δ := by
+  rw [HealingInputOfH0Statement_def] at hInput
+  exact hInput nvClock unitCodec env run hSet livenessBound nvFullHorizon w' nvH0
+
+theorem nvHTimeWitness (hInput : HealingInputOfH0Statement params gap deltaF)
+    (hSet : HealingSet params unitCodec env run gap deltaF) :
+    HealingInput params unitCodec env run w' deltaF ∧
+      tstar params w' ≤ params.actionTime w'.rStar + Γ params gap + 4 * params.Δ ∧
+      params.actionTime w'.rStar + Γ params gap + 4 * params.Δ <
+        env.t_GST + B_HF params deltaF gap :=
+  ⟨(nvHealingInputOfH0 hInput hSet).1, nvTstarBound, nvTimeStrict⟩
+
+theorem nvHTimeOf (hReset : ResetArrivalFullStatement params gap deltaF)
+    (hInput : HealingInputOfH0Statement params gap deltaF)
+    (hSet : HealingSet params unitCodec env run gap deltaF) :
+    ∃ witness, HealingInput params unitCodec env run witness deltaF ∧
+      tstar params witness ≤ params.actionTime witness.rStar + Γ params gap + 4 * params.Δ ∧
+      params.actionTime witness.rStar + Γ params gap + 4 * params.Δ <
+        env.t_GST + B_HF params deltaF gap :=
+  healing_hTime_of params gap deltaF hReset hInput nvClock unitCodec env run
+    hSet livenessBound healing_horizon
+
+#eval (tstar params w', params.actionTime w'.rStar, Γ params gap,
+  B'_resetF params deltaF gap, B_HF params deltaF gap, horizon)
+#print axioms nvTstarBound
+#print axioms nvHealingInputOfH0
+#print axioms nvHTimeWitness
+#print axioms nvHTimeOf
 
 end AvailableChain.FGSA.Run.Tests.NonVacuity.HealingFirst
 end

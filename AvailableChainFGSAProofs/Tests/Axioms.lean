@@ -146,6 +146,7 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 public import AvailableChainFGSAProofs.Proofs.Healing.SourceTiming -- shake: keep (H12 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.Delivery -- shake: keep (TDel axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.DeliveryReset -- shake: keep (reset core axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.Time -- shake: keep (J11 axiom audit)
 
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetCut -- shake: keep (RS-0 axiom audit)
 
@@ -1609,3 +1610,11 @@ public import AvailableChainFGSAProofs.Proofs.Healing.ResetCut -- shake: keep (R
 #print axioms AvailableChain.FGSA.Run.reset_old_row_before_cut
 #print axioms AvailableChain.FGSA.Run.reset_old_height_sup_le
 #print axioms AvailableChain.FGSA.Run.reset_mu_le_iff
+
+-- J11 H-TIME composition.
+#print axioms AvailableChain.FGSA.Run.HealingInputOfH0Statement
+#print axioms AvailableChain.FGSA.Run.HealingInputOfH0Statement_def
+#print axioms AvailableChain.FGSA.Run.healing_resetF_budget_eq
+#print axioms AvailableChain.FGSA.Run.healing_resetFull_horizon
+#print axioms AvailableChain.FGSA.Run.healing_time_strict_of_reset
+#print axioms AvailableChain.FGSA.Run.healing_hTime_of
