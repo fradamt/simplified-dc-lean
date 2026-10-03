@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetService -- shake: keep (J6 applications)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetGate -- shake: keep (J6-2 H6 example)
+public import AvailableChainFGSAProofs.Proofs.Foundations.Leases -- shake: keep (last-write supplier)
 
 set_option linter.privateModule false
 
@@ -136,24 +137,10 @@ example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
 
 
 -- S3: apply H6 at sStar. No cone or honest proposal is supplied at this label.
+-- The INLINE `writes` input is discharged by its producer fgsa_leaseOrigins_lastWrite.
 example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     (w : HealingWitness)
     (hrawTransfer : PostResetRawTransfer p c E rho w (rho.events.length + 1))
-    (writes : ∀ i x (row : Block × Nat × Time),
-      row ∈ (storeAt p c E rho i x).base.obligations →
-      ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
-        gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
-          (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
-        row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
-        row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
-        ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
-          let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
-          GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
-          (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
-            (actView pre) w C)
     (D : Block) (hgst : E.t_GST ≤ SA.voteTime p.toParams w.sStar)
     (hGateHorizon : SA.gateTime p.toParams w.sStar ≤ rho.horizon) (hne : D ≠ .genesis)
     (hheads : ∀ x ∈ rho.honest, ∃ H,
@@ -167,7 +154,9 @@ example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
       D ∈ (fastWriteAt nd.st w.sStar).getD [] ∧ leaseOf nd.st D = some d ∧
       SA.gateTime p.toParams w.sStar + L p ≤ d ∧ SA.gateTime p.toParams w.sStar < d) :=
   healing_postReset_h6GateService E rho hrec w (rho.events.length + 1)
-    (Nat.le_succ _) hrawTransfer writes w.sStar D le_rfl hgst hGateHorizon hne
+    (Nat.le_succ _) hrawTransfer
+    (fgsa_leaseOrigins_lastWrite p c E rho hrec.base.valid.toScheduleWellFormed)
+    w.sStar D le_rfl hgst hGateHorizon hne
     hheads hfloor x hx
 
 end AvailableChain.FGSA.Run.Tests.HealingPostResetService

@@ -81,7 +81,8 @@ theorem healing_postReset_exactHead [Fintype V]
 
 /-- A3 carrier at the HEAD read: the proposal has an exact erased FG
 representative in that reader's retained voter domain. This is the HEAD
-carrier; the opening-source projection at the later gate is stopped with A2. -/
+carrier; the opening-source projection at the later gate is the open S1 item
+(ExactServiceGateGeometry.opening_domain). -/
 theorem healing_postReset_headCarrier [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)

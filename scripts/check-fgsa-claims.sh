@@ -2166,7 +2166,7 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.healing_tDel',
     'AvailableChain.FGSA.Run.healing_tDelReset_core',
     'AvailableChain.FGSA.Run.healing_tDelReset',
-    # S5 J6: --expect additions only; gate items are stopped.
+    # S5 J6 / J6-2: --expect additions only; the S1 service step is stopped (opening_domain).
     'AvailableChain.FGSA.Run.PostResetRetainedCone',
     'AvailableChain.FGSA.Run.postReset_source_label_le_sub_two',
     'AvailableChain.FGSA.Run.postReset_release_before_proposal',
@@ -2179,6 +2179,11 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.healing_postReset_exactHead',
     'AvailableChain.FGSA.Run.healing_postReset_headCarrier',
     'AvailableChain.FGSA.Run.postResetRetainedCone_iff',
+    'AvailableChain.FGSA.Run.healing_postReset_gate_covered_prefix',
+    'AvailableChain.FGSA.Run.healing_postReset_exactService_at_cut',
+    'AvailableChain.FGSA.Run.healing_postReset_exactService',
+    'AvailableChain.FGSA.Run.healing_postReset_gate_guard',
+    'AvailableChain.FGSA.Run.healing_postReset_h6GateService',
     # J1-RESET: --expect DATA additions only.
     'AvailableChain.FGSA.Run.healing_low_finality_at_reset_reset',
     'AvailableChain.FGSA.Run.healing_resetTransferCore',
