@@ -36,7 +36,7 @@ theorem fgsa_exactProposalClaim_of_clean
 /-- Blueprint 03 §5. The Clean claims supply history and monotonicity.
 The E1 Export proves the frozen post-gate inclusion claim. -/
 theorem fgsa_cleanInclusionPostGateClaim_of_clean
-    (hcut : CleanCutClaim p) (hsafe : CleanSafetyClaim p) :
+    (hcut : CleanCutClaim p) :
     CleanInclusionPostGateClaim p := by
   exact outage_cleanInclusionPostGateClaim_of p
     (hstore := fun c E rho => (fgsa_activeViewAt p c E rho).1)
@@ -59,12 +59,12 @@ theorem fgsa_cleanInclusionPostGateClaim_of_clean
       exact (hcut c E rho (ΔF := ΔF) pt hc).1.2.2.2.2.2.1)
     (hmono := by
       intro V _ _ In c E rho ΔF pt hc
-      exact (hsafe c E rho (ΔF := ΔF) pt hc).2.1)
+      exact (cleanSafety_of_cut p hcut c E rho (ΔF := ΔF) pt hc).2.1)
 
 /-- Blueprint 03 §5. The Clean claims supply history and monotonicity.
 The E1 Export proves the frozen inclusion claim. -/
 theorem fgsa_cleanInclusionClaim_of_clean
-    (hcut : CleanCutClaim p) (hsafe : CleanSafetyClaim p) : CleanInclusionClaim p := by
+    (hcut : CleanCutClaim p) : CleanInclusionClaim p := by
   exact outage_cleanInclusionClaim_of p
     (hstore := fun c E rho => (fgsa_activeViewAt p c E rho).1)
     (hframe := fun c E rho => (fgsa_frameAt p c E rho).1)
@@ -86,12 +86,12 @@ theorem fgsa_cleanInclusionClaim_of_clean
       exact (hcut c E rho (ΔF := ΔF) pt hc).1.2.2.2.2.2.1)
     (hmono := by
       intro V _ _ In c E rho ΔF pt hc
-      exact (hsafe c E rho (ΔF := ΔF) pt hc).2.1)
+      exact (cleanSafety_of_cut p hcut c E rho (ΔF := ΔF) pt hc).2.1)
 
 /-- Blueprint 03 §5. The Clean claims supply history and monotonicity.
 The Outage Export proves the frozen growth claim. -/
 theorem fgsa_cleanGrowthClaim_of_clean
-    (hcut : CleanCutClaim p) (hsafe : CleanSafetyClaim p) : CleanGrowthClaim p := by
+    (hcut : CleanCutClaim p) : CleanGrowthClaim p := by
   exact outage_cleanGrowthClaim_of p
     (hstore := fun c E rho => (fgsa_activeViewAt p c E rho).1)
     (hframe := fun c E rho => (fgsa_frameAt p c E rho).1)
@@ -113,7 +113,7 @@ theorem fgsa_cleanGrowthClaim_of_clean
       exact (hcut c E rho (ΔF := ΔF) pt hc).1.2.2.2.2.2.1)
     (hmono := by
       intro V _ _ In c E rho ΔF pt hc
-      exact (hsafe c E rho (ΔF := ΔF) pt hc).2.1)
+      exact (cleanSafety_of_cut p hcut c E rho (ΔF := ΔF) pt hc).2.1)
 
 end AvailableChain.FGSA.Run
 end
