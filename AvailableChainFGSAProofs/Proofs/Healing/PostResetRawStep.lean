@@ -169,7 +169,7 @@ theorem postReset_raw_first_head_above
     push_cast
     linarith [p.deltaPos])
   have hD := postReset_written_domain p c E rho hrec mono emittedNonempty emittedName
-    writes xing origin h0r (healing_gate_result_supporter p c E rho) hinv hx hix hres
+    writes xing origin h0r hinv hx hix hres
     hCB hmem (heB ▸ Gen.Pure.block_preceq_refl C) hy hiy (hyx.le.trans hxi) hZ hF
   obtain ⟨hXv, hXc⟩ := rawStep_frozen_geometry p c E rho hrec hiy
   have hgst := postReset_written_sync p c E rho hrec h0r hx hix hCB hmem
@@ -230,7 +230,7 @@ private theorem rawStep_reset_first_head
   · exact healing_head_covers_root p c E rho hiy (l := w.sStar + 1)
       (Nat.succ_ne_zero w.sStar) (Or.inr hF)
   have hD := postReset_written_domain p c E rho hrec mono emittedNonempty emittedName
-    writes xing origin h0r (healing_gate_result_supporter p c E rho) hinv ha.1 hix hres
+    writes xing origin h0r hinv ha.1 hix hres
     (heB ▸ Gen.Pure.block_preceq_refl w.CStar) hmem hBC hy hiy hyi hZ hF
   obtain ⟨hXv, hXc⟩ := rawStep_frozen_geometry p c E rho hrec hiy
   exact healing_first_transfer_written p c E rho hrec mono writes ha.1 hix hres hBC
@@ -407,7 +407,8 @@ include movingDomain
 omit emittedNonempty emittedName writes mono xing origin h0r in
 /-- Blueprint 21 H.2:723–726,736–746; plan J5-A-2 R2 domain;
 B1/B13/B17/B18. DC: SAME moving reader's frozen-domain guard.
-This specializes J4A2-2 G2. The live-lease guard is a separate open item. -/
+This specializes J4A2-2 G2. The live-lease guard is proved in
+PostResetRaw.lean by postReset_raw_moving_lease_compat. -/
 theorem postReset_raw_moving_domain
     {i : Nat} (hinv : PostResetInv p c E rho w i)
     {l : Slot} {B : FGBlock (Fin p.n)} (hgst : E.t_GST ≤ SA.voteTime p.toParams l)

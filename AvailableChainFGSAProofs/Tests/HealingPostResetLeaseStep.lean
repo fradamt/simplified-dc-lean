@@ -109,15 +109,8 @@ variable [Fintype V] {G ΔF : Time}
             (actView pre) w C)
     (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
     {w : HealingWitness} (h0r : H0Reset p c E rho w)
-    (gateResultSupporter : ∀ {G ΔF : Time}, Recovery₂ p c E rho G ΔF →
-      ∀ {s : Slot}, E.t_GST ≤ SA.voteTime p.toParams s →
-      ∀ {ix : Nat} {x : V} {C : Block}, x ∈ rho.honest →
-      IsGateTick p c rho ix x s → gateResultAt p c E rho ix = some (some C) →
-      ∃ k z, z ∈ rho.honest ∧
-        rho.events[k]? = some (.tick z (SA.voteTime p.toParams s)) ∧
-        Block.Preceq C (headAtIdx p c E rho k s) ∧ k < ix)
 
-include hrec mono emittedNonempty emittedName writes xing origin h0r gateResultSupporter
+include hrec mono emittedNonempty emittedName writes xing origin h0r
 
 
 -- conditional package, anti-vacuity: A2 supplies a frozen domain witness
@@ -142,18 +135,8 @@ example {i : Nat} (hinv : PostResetInv p c E rho w i)
       gatePassedAt p c E rho ix ∧ eraseFG B ≠ w.CStar ∧ ¬ ∃ r, SrcN p c E rho B r := by
   obtain ⟨hmem, -, hBC, -, -⟩ := healing_support_key_cases p hkey
   exact ⟨postReset_written_domain p c E rho hrec mono emittedNonempty emittedName writes
-    xing origin h0r gateResultSupporter hinv hx hix hres hCB hmem hBC hy hiy hyi hnZ hnF,
+    xing origin h0r hinv hx hix hres hCB hmem hBC hy hiy hyi hnZ hnF,
     hpass, hne, hnotSource⟩
-
-variable (slowWindowSync : ∀ {G ΔF : Time}, Recovery₂ p c E rho G ΔF →
-  ∀ {w : HealingWitness}, H0Reset p c E rho w →
-  ∀ {i : Nat} {x : V} {s : Slot} {C : Block} {B : FGBlock (Fin p.n)},
-  x ∈ rho.honest →
-  GridCO.savedGenuine (storeAt p c E rho i x).base s = some (some C) →
-  Block.Preceq w.CStar (eraseFG B) → Block.Preceq (eraseFG B) C →
-  E.t_GST < SA.voteTime p.toParams s)
-
-include slowWindowSync
 
 
 -- conditional package, anti-vacuity: consume A5's proved new-write S1
@@ -174,13 +157,12 @@ example {i : Nat} (hinv : PostResetInv p c E rho w i)
     Block.Preceq (eraseFG B) H ∧ gatePassedAt p c E rho i ∧
       eraseFG B ≠ w.CStar ∧ ¬ ∃ r, SrcN p c E rho B r := by
   exact ⟨postReset_written_heads_at_write_cut p c E rho hrec mono emittedNonempty emittedName
-    writes xing origin h0r gateResultSupporter slowWindowSync hinv hx hi hres hCB hkey
+    writes xing origin h0r hinv hx hi hres hCB hkey
     y j H hy hsj hcut hhead, hpass, hne, hnotSource⟩
 
 
 -- conditional package: consume the full result clause at i + 1 for an
 -- old actual write and the new genuine gate reader at index i.
-omit slowWindowSync in
 example {i : Nat} (hinv : PostResetInv p c E rho w i)
     {k : Nat} (hki : k < i) {x : V} {s : Slot} {B C : Block} {g : Nat}
     (hx : x ∈ rho.honest) (hk : IsGateTick p c rho k x s)
@@ -196,7 +178,7 @@ example {i : Nat} (hinv : PostResetInv p c E rho w i)
     (hresult : gateResultAt p c E rho i = some (some D)) :
     Block.Preceq B D ∨ Block.Preceq B (F_at p c E rho i y) := by
   exact postReset_leaseSafe_results_succ p c E rho hrec mono emittedNonempty emittedName
-    writes xing origin h0r gateResultSupporter hinv k (hki.trans (Nat.lt_succ_self i))
+    writes xing origin h0r hinv k (hki.trans (Nat.lt_succ_self i))
     x s B g C hx hk hpass hres hCB hne hmem hgen hBC hg
     i (Nat.lt_succ_self i) y j D hy hsj hi hresult
 
@@ -304,22 +286,6 @@ variable [Fintype V] {G ΔF : Time}
             (actView pre) w C)
     (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
     {w : HealingWitness} (h0r : H0Reset p c E rho w)
-    (gateResultSupporter : ∀ {G ΔF : Time}, Recovery₂ p c E rho G ΔF →
-      ∀ {s : Slot}, E.t_GST ≤ SA.voteTime p.toParams s →
-      ∀ {ix : Nat} {x : V} {C : Block}, x ∈ rho.honest →
-      IsGateTick p c rho ix x s → gateResultAt p c E rho ix = some (some C) →
-      ∃ k z, z ∈ rho.honest ∧
-        rho.events[k]? = some (.tick z (SA.voteTime p.toParams s)) ∧
-        Block.Preceq C (headAtIdx p c E rho k s) ∧ k < ix)
-
-
-variable (slowWindowSync : ∀ {G ΔF : Time}, Recovery₂ p c E rho G ΔF →
-  ∀ {w : HealingWitness}, H0Reset p c E rho w →
-  ∀ {i : Nat} {x : V} {s : Slot} {C : Block} {B : FGBlock (Fin p.n)},
-  x ∈ rho.honest →
-  GridCO.savedGenuine (storeAt p c E rho i x).base s = some (some C) →
-  Block.Preceq w.CStar (eraseFG B) → Block.Preceq (eraseFG B) C →
-  E.t_GST < SA.voteTime p.toParams s)
 
 
 -- G1-written-prefix-no-source: conditional consumer of the full live-lease guard.
@@ -344,51 +310,8 @@ example
     (∀ row ∈ (FGSA.clock p (storeAt p c E rho iy y) t).base.obligations,
       Block.Compatible row.1 (eraseFG B)) ∧ ¬ ∃ r, SrcN p c E rho B r := by
   exact ⟨postReset_moving_lease_compat p c E rho hrec mono emittedNonempty emittedName
-    writes xing origin h0r slowWindowSync hinv hx hix hxi hpass hres hCB hne hkey
+    writes xing origin h0r hinv hx hix hxi hpass hres hCB hne hkey
     hsl hbatch hy hiy hyi hafter hupper, hnotSource⟩
-
-set_option linter.unusedVariables false
-variable (healing_proposal_moving_parent : ∀ [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF)
-    {r : Slot} {B : FGBlock (Fin p.n)} {Q : Block}
-    (hgst : E.t_GST ≤ SA.voteTime p.toParams r)
-    (hcover : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z r = some K →
-      Block.Preceq (eraseFG B) K)
-    (hp : HonestProposal E rho (fgsaInterface p c) (r + 1) Q)
-    (hdomain : ∀ ip, rho.events[ip]? = some
-      (.tick (V2.D.proposerOf rho (fgsaInterface p c) (r + 1))
-        (SA.proposalTime p.toParams (r + 1))) →
-      ∃ X : Finset (FGBlock (Fin p.n)),
-        X ⊆ (storeAt p c E rho ip (V2.D.proposerOf rho (fgsaInterface p c) (r + 1))).fg.TF ∧
-        (∀ W ∈ X, ∀ A, FGBlock.Preceq A W → A ∈ X) ∧
-        B ∈ D_at p c E rho ip (V2.D.proposerOf rho (fgsaInterface p c) (r + 1)) X)
-    (hlease : ∀ ip, rho.events[ip]? = some
-      (.tick (V2.D.proposerOf rho (fgsaInterface p c) (r + 1))
-        (SA.proposalTime p.toParams (r + 1))) →
-      ∀ row ∈ (FGSA.clock p
-        (storeAt p c E rho ip (V2.D.proposerOf rho (fgsaInterface p c) (r + 1)))
-        (SA.proposalTime p.toParams (r + 1))).base.obligations,
-        Block.Compatible row.1 (eraseFG B)), Block.Preceq (eraseFG B) Q.parent)
-set_option linter.unusedVariables true
-
-set_option linter.unusedVariables false
-variable (healing_output_moving_suffix : ∀ [Fintype V] {G ΔF : Time}
-    (hrec : Recovery₂ p c E rho G ΔF) (mono : RMono p c E rho)
-    {s : Slot} {B : Block} {cut : Nat}
-    (hgst : E.t_GST ≤ SA.voteTime p.toParams s)
-    (hguard : SA.gateTime p.toParams s + 4 * p.Δ ≤ rho.horizon)
-    (hheads : ∀ l, s + 1 ≤ l → timeIdx rho (SA.voteTime p.toParams l) ≤ cut →
-      ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z l = some K → Block.Preceq B K)
-    (hfinality : ∀ b, b ≤ cut → ∀ y, y ∈ rho.honest →
-      V2.D.Run.idxBefore rho (SA.gateTime p.toParams (s + 1)) ≤ b →
-      Block.Compatible (F_at p c E rho b y) B)
-    (hlease : ∀ j y, y ∈ rho.honest → IsGateTick p c rho j y (s + 1) → j ≤ cut →
-      Block.Preceq (F_at p c E rho j y) B →
-      ∀ row ∈ (storeAt p c E rho j y).base.obligations, Block.Compatible row.1 B),
-    ∀ a y, y ∈ rho.honest → a ≤ cut →
-      HealSuffix p c rho (SA.gateTime p.toParams s + 4 * p.Δ) a →
-      Block.Preceq B (S_at p c E rho a y))
-set_option linter.unusedVariables true
 
 -- G7-all-cuts: consumes the frozen step, including pre-reset and terminal cuts.
 example {i : Nat}
@@ -397,8 +320,7 @@ example {i : Nat}
     (hresetNext : PostResetResetLeaseCompatibleP p c E rho w (i + 1)) :
     PostResetLeaseSafe p c E rho w (i + 1) := by
   have h := postReset_leaseSafe_succ p c E rho hrec mono emittedNonempty emittedName writes
-    xing origin h0r gateResultSupporter slowWindowSync healing_proposal_moving_parent
-    healing_output_moving_suffix i
+    xing origin h0r i
   rw [PostResetLeaseStep_def] at h
   exact h hprev hresetNext
 
