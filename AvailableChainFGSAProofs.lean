@@ -25,6 +25,7 @@ public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalRetained
 public import AvailableChainFGSAProofs.Proofs.Finality.CoreServices
 public import AvailableChainFGSAProofs.Proofs.Finality.Height
 public import AvailableChainFGSAProofs.Proofs.Finality.History
+public import AvailableChainFGSAProofs.Proofs.Finality.Receipt
 public import AvailableChainFGSAProofs.Proofs.Finality.Rows
 public import AvailableChainFGSAProofs.Proofs.Finality.Carry
 public import AvailableChainFGSAProofs.Proofs.Finality.Batch
@@ -94,6 +95,7 @@ public import AvailableChainFGSAProofs.Proofs.Clean.Transfer
 public import AvailableChainFGSAProofs.Proofs.Clean.Zero
 public import AvailableChainFGSAProofs.Proofs.Clean.Safety
 public import AvailableChainFGSAProofs.Proofs.Assembly.Clean
+public import AvailableChainFGSAProofs.Proofs.Assembly.Finality
 public import AvailableChainFGSAProofs.Proofs.Shared.HeadCover
 public import AvailableChainFGSAProofs.Proofs.Shared.HeadGeometry
 public import AvailableChainFGSAProofs.Proofs.Shared.KeepExact

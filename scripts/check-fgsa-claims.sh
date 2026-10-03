@@ -96,11 +96,22 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.high_target_first_row',
     'AvailableChain.FGSA.Run.high_target_honest_quorum',
     'AvailableChain.FGSA.Run.high_target_quorum_covered',
+    # FF2-INV r2: --expect DATA only.
+    'AvailableChain.FGSA.Run.high_action_target_choice',
+    'AvailableChain.FGSA.Run.high_record_guards_and_fresh_at_action',
+    'AvailableChain.FGSA.Run.ff2_stored_high_qc_identity',
+    'AvailableChain.FGSA.Run.ff2_high_qc_identity',
+    'AvailableChain.FGSA.Run.ff2_no_high_contest',
+    'AvailableChain.FGSA.Run.HighRecordGuard_W',
+    'AvailableChain.FGSA.Run.HighRecordGuard_W_def',
+    'AvailableChain.FGSA.Run.ff2_high_record_guards',
     # C-CORE: --expect DATA only.
     'AvailableChain.FGSA.Run.fgsa_tStart',
     'AvailableChain.FGSA.Run.fgsa_tWalk',
     'AvailableChain.FGSA.Run.fgsa_tVote',
     'AvailableChain.FGSA.Run.fgsa_coreServices',
+    # B30 Finality Export: --expect DATA only.
+    'AvailableChain.FGSA.Run.fgsa_kernelACSide_W',
     # K-HISTORY: run-level history bodies; --expect DATA only.
     'AvailableChain.FGSA.Run.noMixedPreBatchParent',
     'AvailableChain.FGSA.Run.justifyFresh_W',
@@ -113,6 +124,18 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.fgsa_storedProgressConsume',
     'AvailableChain.FGSA.Run.fgsa_noMixedMaturity',
     'AvailableChain.FGSA.Run.fgsa_justifyAt',
+    # K-RECEIPT: --expect DATA only; fields and the terminal receipt producer.
+    'AvailableChain.FGSA.Run.receipt_kernel_fields',
+    'AvailableChain.FGSA.Run.receipt_finalized_of_carriage',
+    'AvailableChain.FGSA.Run.receipt_finCmp',
+    'AvailableChain.FGSA.Run.receipt_cap',
+    'AvailableChain.FGSA.Run.receipt_receiver_finalityLag',
+    'AvailableChain.FGSA.Run.receipt_jPath_of_cached_anchor',
+    'AvailableChain.FGSA.Run.receipt_finCmp_of_block',
+    'AvailableChain.FGSA.Run.receipt_ready_of_delivery',
+    'AvailableChain.FGSA.Run.receipt_delivery',
+    'AvailableChain.FGSA.Run.receipt_jPath',
+    'AvailableChain.FGSA.Run.receipt_acceptPrem_W',
     # K-ROWS: --expect DATA only.
     'AvailableChain.FGSA.Run.pending_action_head',
     'AvailableChain.FGSA.Run.finality_action_source',

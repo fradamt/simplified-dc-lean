@@ -21,6 +21,7 @@ public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalRetained -- sh
 public import AvailableChainFGSAProofs.Proofs.Finality.CoreServices -- shake: keep (C-CORE audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.History -- shake: keep (K-HISTORY audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Height -- shake: keep (K-HEIGHT audit)
+public import AvailableChainFGSAProofs.Proofs.Finality.Receipt -- shake: keep (K-RECEIPT audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Rows -- shake: keep (K-ROWS audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Carry -- shake: keep (K-CARRY audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Batch -- shake: keep (K-BATCH audit)
@@ -61,6 +62,7 @@ public import AvailableChainFGSAProofs.Proofs.Assembly.Root -- shake: keep (axio
 public import AvailableChainFGSAProofs.Proofs.Clean.GateOutput -- shake: keep (gate output axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Clean.Transfer -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Assembly.Clean -- shake: keep (axiom audit commands)
+public import AvailableChainFGSAProofs.Proofs.Assembly.Finality -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.TransferFrame -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.StepGate -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.Action -- shake: keep (axiom audit commands)
@@ -997,6 +999,7 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_tWalk
 #print axioms AvailableChain.FGSA.Run.fgsa_tVote
 #print axioms AvailableChain.FGSA.Run.fgsa_coreServices
+#print axioms AvailableChain.FGSA.Run.fgsa_kernelACSide_W
 -- K-HISTORY: raw origin is supplied by Assembly.
 #print axioms AvailableChain.FGSA.Run.noMixedPreBatchParent
 #print axioms AvailableChain.FGSA.Run.justifyFresh_W
@@ -1012,3 +1015,26 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 -- K-ACCEPT: selected W receipt acceptance and its pending-finality adapter.
 #print axioms AvailableChain.FGSA.Run.fgsa_acceptBefore_W
 #print axioms AvailableChain.FGSA.Run.fgsa_finalizePending_W
+
+-- FF2-INV r2: high QC identity and action record adapters.
+#print axioms AvailableChain.FGSA.Run.high_action_target_choice
+#print axioms AvailableChain.FGSA.Run.high_record_guards_and_fresh_at_action
+#print axioms AvailableChain.FGSA.Run.ff2_stored_high_qc_identity
+#print axioms AvailableChain.FGSA.Run.ff2_high_qc_identity
+#print axioms AvailableChain.FGSA.Run.ff2_no_high_contest
+#print axioms AvailableChain.FGSA.Run.HighRecordGuard_W
+#print axioms AvailableChain.FGSA.Run.HighRecordGuard_W_def
+#print axioms AvailableChain.FGSA.Run.ff2_high_record_guards
+
+-- K-RECEIPT: proved fields and the conditional cached-anchor guard.
+#print axioms AvailableChain.FGSA.Run.receipt_kernel_fields
+#print axioms AvailableChain.FGSA.Run.receipt_finalized_of_carriage
+#print axioms AvailableChain.FGSA.Run.receipt_finCmp
+#print axioms AvailableChain.FGSA.Run.receipt_cap
+#print axioms AvailableChain.FGSA.Run.receipt_receiver_finalityLag
+#print axioms AvailableChain.FGSA.Run.receipt_jPath_of_cached_anchor
+#print axioms AvailableChain.FGSA.Run.receipt_finCmp_of_block
+#print axioms AvailableChain.FGSA.Run.receipt_ready_of_delivery
+#print axioms AvailableChain.FGSA.Run.receipt_delivery
+#print axioms AvailableChain.FGSA.Run.receipt_jPath
+#print axioms AvailableChain.FGSA.Run.receipt_acceptPrem_W
