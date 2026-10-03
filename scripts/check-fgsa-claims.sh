@@ -29,6 +29,24 @@ LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainF
 CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = (
+    # S5 H-ATTEMPT: --expect ADDITIONS only.
+    'AvailableChain.FGSA.Run.healing_progressAttempt_of',
+    'AvailableChain.FGSA.Run.healing_attempt_raise_contest_budget',
+    'AvailableChain.FGSA.Run.healing_attempt_raise_other_budget',
+    'AvailableChain.FGSA.Run.healing_attempt_firstRow_contest_budget',
+    'AvailableChain.FGSA.Run.healing_attempt_firstRow_other_budget',
+    'AvailableChain.FGSA.Run.healing_attempt_raise_contest_cost',
+    'AvailableChain.FGSA.Run.healing_attempt_raise_other_cost',
+    'AvailableChain.FGSA.Run.healing_attempt_firstRow_contest_cost',
+    'AvailableChain.FGSA.Run.healing_attempt_firstRow_other_cost',
+    'AvailableChain.FGSA.Run.healing_attempt_high_source_cost',
+    'AvailableChain.FGSA.Run.healing_attempt_terminal_horizon_gap',
+    'AvailableChain.FGSA.Run.healing_attempt_ends_of_event',
+    'AvailableChain.FGSA.Run.healing_attempt_ends_of_row',
+    'AvailableChain.FGSA.Run.healing_attempt_ends_mono',
+    'AvailableChain.FGSA.Run.healing_attempt_no_event',
+    'AvailableChain.FGSA.Run.healing_attempt_inclusive_start',
+
     # S5 HG.1: --expect ADDITIONS only.
     'AvailableChain.FGSA.Run.frontier_service',
     'AvailableChain.FGSA.Run.frontierSeedQualification_iff',
@@ -2108,6 +2126,21 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.fgsa_rowServiceClaim',
     'AvailableChain.FGSA.Run.fgsa_rowsValidStored_atProposal',
     'AvailableChain.FGSA.Run.fgsa_batchCoverage',
+    # S5 H-ATTEMPT-2: --expect ADDITIONS only.
+    'AvailableChain.FGSA.Run.healing_settle_start',
+    'AvailableChain.FGSA.Run.healing_attempt_settle_start',
+    'AvailableChain.FGSA.Run.healing_attempt_raise_contest_settle',
+    'AvailableChain.FGSA.Run.healing_attempt_raise_other_settle',
+    'AvailableChain.FGSA.Run.healing_attempt_firstRow_contest_settle',
+    'AvailableChain.FGSA.Run.healing_attempt_firstRow_other_settle',
+    # S5 H-ATTEMPT-4: complete H.10 rows and lane assembly; --expect ADDITIONS only.
+    'AvailableChain.FGSA.Run.healing_attempt_firstRow_contest',
+    'AvailableChain.FGSA.Run.healing_attempt_firstRow_other',
+    'AvailableChain.FGSA.Run.healing_renewedPromotion_terminal',
+    'AvailableChain.FGSA.Run.healing_attempt_raise_contest',
+    'AvailableChain.FGSA.Run.healing_attempt_raise_other',
+    'AvailableChain.FGSA.Run.healing_progressAttempt',
+
     # POSTRESET-DESIGN: --expect DATA only.
     'AvailableChain.FGSA.Run.PostResetStart',
     'AvailableChain.FGSA.Run.PostResetStart.toH0',
@@ -2168,6 +2201,26 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.healing_tDel',
     'AvailableChain.FGSA.Run.healing_tDelReset_core',
     'AvailableChain.FGSA.Run.healing_tDelReset',
+    # S5 PA-ASSEMBLY P2: --expect ADDITIONS only.
+    'AvailableChain.FGSA.Run.healing_progressAttemptStatement',
+    # S5 J6 / J6-2: --expect additions only; the S1 service step is stopped (opening_domain).
+    'AvailableChain.FGSA.Run.PostResetRetainedCone',
+    'AvailableChain.FGSA.Run.postReset_source_label_le_sub_two',
+    'AvailableChain.FGSA.Run.postReset_release_before_proposal',
+    'AvailableChain.FGSA.Run.postReset_proposal_horizon',
+    'AvailableChain.FGSA.Run.postReset_head_horizon',
+    'AvailableChain.FGSA.Run.postReset_synchronous_window',
+    'AvailableChain.FGSA.Run.postResetRetainedCone_of_horizon_lt',
+    'AvailableChain.FGSA.Run.healing_postReset_retainedReads',
+    'AvailableChain.FGSA.Run.healing_postReset_headGeometry',
+    'AvailableChain.FGSA.Run.healing_postReset_exactHead',
+    'AvailableChain.FGSA.Run.healing_postReset_headCarrier',
+    'AvailableChain.FGSA.Run.postResetRetainedCone_iff',
+    'AvailableChain.FGSA.Run.healing_postReset_gate_covered_prefix',
+    'AvailableChain.FGSA.Run.healing_postReset_exactService_at_cut',
+    'AvailableChain.FGSA.Run.healing_postReset_exactService',
+    'AvailableChain.FGSA.Run.healing_postReset_gate_guard',
+    'AvailableChain.FGSA.Run.healing_postReset_h6GateService',
     # J11 H-TIME: --expect DATA additions only.
     'AvailableChain.FGSA.Run.HealingInputOfH0Statement',
     'AvailableChain.FGSA.Run.HealingInputOfH0Statement_def',
@@ -2217,6 +2270,17 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.healing_healT_of',
     'AvailableChain.FGSA.Run.healing_healAC_of',
     'AvailableChain.FGSA.Run.healing_healingInput_of',
+    # J11 H-TIME: --expect DATA additions only.
+    'AvailableChain.FGSA.Run.HealingInputOfH0Statement',
+    'AvailableChain.FGSA.Run.HealingInputOfH0Statement_def',
+    'AvailableChain.FGSA.Run.healing_resetF_budget_eq',
+    'AvailableChain.FGSA.Run.healing_resetFull_horizon',
+    'AvailableChain.FGSA.Run.healing_time_strict_of_reset',
+    'AvailableChain.FGSA.Run.healing_hTime_of',
+    # J10 HealingInput export: --expect DATA additions only.
+    'AvailableChain.FGSA.Run.healing_postResetStart_of_h0',
+    'AvailableChain.FGSA.Run.healing_healingInputOfH0',
+    'AvailableChain.FGSA.Run.healing_hTime_of_inputs',
     # J4-A-LEASE: --expect DATA only.
     'AvailableChain.FGSA.Run.healing_first_transfer_written',
     'AvailableChain.FGSA.Run.postReset_written_sync',
