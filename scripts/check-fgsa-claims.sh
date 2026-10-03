@@ -2329,6 +2329,11 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.postReset_source_gate_result',
     'AvailableChain.FGSA.Run.postReset_tCarrier_reset',
     'AvailableChain.FGSA.Run.postReset_h2A_reset',
+
+    # THIGH-C: --expect DATA additions only.
+    'AvailableChain.FGSA.Run.postReset_selected_supporting_head',
+    'AvailableChain.FGSA.Run.postReset_tHigh_pairwise',
+    'AvailableChain.FGSA.Run.postReset_tHigh_reset',
 )
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
          'Packages.Safety', 'OutputReads', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',
