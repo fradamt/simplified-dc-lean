@@ -162,6 +162,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.AttemptBudget -- shake: ke
 public import AvailableChainFGSAProofs.Proofs.Healing.AttemptStop -- shake: keep (H-ATTEMPT axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.AttemptSettle -- shake: keep (CUT axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.AttemptRows -- shake: keep (complete first rows)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetService -- shake: keep (J6 axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetGate -- shake: keep (J6-2 gate axiom audit)
 
 #print axioms AvailableChain.FGSA.Run.kmid_honestSeats_mem
 #print axioms AvailableChain.FGSA.Run.kmid_honest_quorum
@@ -1725,3 +1727,25 @@ public import AvailableChainFGSAProofs.Proofs.Healing.AttemptRows -- shake: keep
 #print axioms AvailableChain.FGSA.Run.healing_resetFull_horizon
 #print axioms AvailableChain.FGSA.Run.healing_time_strict_of_reset
 #print axioms AvailableChain.FGSA.Run.healing_hTime_of
+
+-- S5 J6: reset-only retained HEAD and carrier audit.
+#print axioms AvailableChain.FGSA.Run.PostResetRetainedCone
+#print axioms AvailableChain.FGSA.Run.postReset_source_label_le_sub_two
+#print axioms AvailableChain.FGSA.Run.postReset_release_before_proposal
+#print axioms AvailableChain.FGSA.Run.postReset_proposal_horizon
+#print axioms AvailableChain.FGSA.Run.postReset_head_horizon
+#print axioms AvailableChain.FGSA.Run.postReset_synchronous_window
+#print axioms AvailableChain.FGSA.Run.postResetRetainedCone_of_horizon_lt
+#print axioms AvailableChain.FGSA.Run.healing_postReset_retainedReads
+#print axioms AvailableChain.FGSA.Run.healing_postReset_headGeometry
+#print axioms AvailableChain.FGSA.Run.healing_postReset_exactHead
+#print axioms AvailableChain.FGSA.Run.healing_postReset_headCarrier
+#print axioms AvailableChain.FGSA.Run.postResetRetainedCone_iff
+
+-- J6-2: gate covered-prefix derivation and service-field projections.
+#print axioms AvailableChain.FGSA.Run.healing_postReset_gate_covered_prefix
+#print axioms AvailableChain.FGSA.Run.healing_postReset_exactService_at_cut
+#print axioms AvailableChain.FGSA.Run.healing_postReset_exactService
+
+#print axioms AvailableChain.FGSA.Run.healing_postReset_gate_guard
+#print axioms AvailableChain.FGSA.Run.healing_postReset_h6GateService
