@@ -168,5 +168,16 @@ theorem HTimeStatement_def (G ΔF : Time) :
       tstar p w ≤ p.actionTime w.rStar + Γ p G + 4 * p.Δ ∧
       p.actionTime w.rStar + Γ p G + 4 * p.Δ < E.t_GST + B_HF p ΔF G) := by rfl
 
+-- equation export required by BUILD §7.2 B3a (post-freeze additive _def batch)
+omit [DecidableEq V] in
+theorem HealSuffix_def (t : Time) (i : Nat) :
+    HealSuffix p c rho t i = (healStart p c rho t ≤ i ∧ i ≤ rho.events.length) := rfl
+
+-- equation export required by BUILD §7.2 B3a (post-freeze additive _def batch)
+omit [DecidableEq V] in
+theorem healStart_def (t : Time) :
+    healStart p c rho t =
+      (if isGateTime p t then afterTicksIdx rho t else timeIdx rho t) := rfl
+
 end AvailableChain.FGSA.Run
 end

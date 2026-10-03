@@ -62,6 +62,10 @@ def proposerHead (st : State p.n) (s : Slot) : Block :=
 /-- The AC output S (01 §1.2; T7.3 `fgsaOutputs`). -/
 def outputS (st : State p.n) : Block := st.base.stableRecord
 
+-- equation export required by BUILD §7.2 B3a (post-freeze additive _def batch)
+theorem outputS_def (st : State p.n) :
+    outputS p st = st.base.stableRecord := rfl
+
 -- equation export required by BUILD §7.2 B3a
 theorem frameR_def (st : State p.n) : frameR p st = FGSA.controls p st := by rw [frameR]
 -- equation export required by BUILD §7.2 B3a
