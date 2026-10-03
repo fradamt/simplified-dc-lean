@@ -13,6 +13,39 @@ open AvailableChain.SimplexFG Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
+omit [DecidableEq V] in
+/-- Blueprint 21 H.17:3021–3040; plan J6-3 O2; B1/B17.
+DC: SAME a gate tick lies before the complete post-gate cut. -/
+theorem healing_postReset_tick_lt_cut
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho) {j i : Nat} {x : V} {v : Slot}
+    (ht : IsGateTick p c rho j x v)
+    (hcut : afterTicksIdx rho (SA.gateTime p.toParams v) ≤ i) : j < i := by
+  have hji : j < afterTicksIdx rho (SA.gateTime p.toParams v) := by
+    by_contra hn
+    have hf := V2.D.Engine.filter_false_of_index_ge hs
+      (cutPred (SA.gateTime p.toParams v))
+      (fun e f h ef => decide_eq_true (h.trans (of_decide_eq_true ef)))
+      (Nat.le_of_not_gt hn) ht
+    have hc : cutPred (P := fgsa p c) (SA.gateTime p.toParams v)
+        (.tick x (SA.gateTime p.toParams v)) = true := decide_eq_true le_rfl
+    rw [hc] at hf
+    contradiction
+  exact hji.trans_le hcut
+
+omit [DecidableEq V] in
+/-- Blueprint 21 H.17:3021–3040; plan J6-3 O2; B1/B17.
+DC: SAME a strictly earlier inclusive read is before the current tick. -/
+theorem healing_postReset_time_cut_le_tick
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho) {j : Nat} {x : V} {v : Slot} {t : Time}
+    (ht : IsGateTick p c rho j x v) (hlt : t < SA.gateTime p.toParams v) :
+    timeIdx rho t ≤ j := by
+  by_contra hn
+  have hb := (V2.D.Engine.index_lt_read_length_iff hs t ht).mp (Nat.lt_of_not_ge hn)
+  change SA.gateTime p.toParams v ≤ t at hb
+  exact (not_le.mpr hlt) hb
+
 private theorem postReset_clockPre_lease_live (st : State p.n) (t : Time)
     (row : Block × Nat × Time) (hrow : row ∈ (clockPre p st t).base.obligations) :
     t < row.2.2 := by
@@ -23,13 +56,13 @@ private theorem postReset_clockPre_lease_live (st : State p.n) (t : Time)
     split_ifs <;> first | exact List.Sublist.refl _ | exact List.filter_sublist
   exact of_decide_eq_true (List.mem_filter.mp (hsub.subset hrow)).2
 
-/-- J6-2: raw transfer at the source release read gives the whole-result
-compatibility guard at that source's gate. A lease in the gate view has an
-older write and survives through the release read. -/
-theorem healing_postReset_gate_guard [Fintype V]
+/-- Blueprint 21 H.17:3021–3030; plan J6-3 O2; B1/B17/B18.
+DC: SAME J6-2 guard with the exact source and release cuts.
+INLINE writes has producer fgsa_leaseOrigins_lastWrite at Assembly. -/
+theorem healing_postReset_gate_guard_at_cut [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (w : HealingWitness) (i : Nat) (hcomplete : rho.events.length ≤ i)
+    (w : HealingWitness) (i : Nat)
     (hrawTransfer : PostResetRawTransfer p c E rho w i)
     (writes : ∀ i x (row : Block × Nat × Time),
       row ∈ (storeAt p c E rho i x).base.obligations →
@@ -48,12 +81,12 @@ theorem healing_postReset_gate_guard [Fintype V]
             (actView pre) w C)
     {s : Slot} (hs : w.sStar ≤ s)
     (hGateHorizon : SA.gateTime p.toParams s ≤ rho.horizon)
-    {j : Nat} {x : V} (hx : x ∈ rho.honest) (ht : IsGateTick p c rho j x s) :
+    {j : Nat} {x : V} (hx : x ∈ rho.honest) (ht : IsGateTick p c rho j x s)
+    (hji : j < i) (hReleaseCut : timeIdx rho (SA.releaseTime p.toParams s) ≤ i) :
     ∀ C, (fgsaAC E rho).raw j s x = some C →
       ∀ lease ∈ ((fgsaAC E rho).gateView j x s).obligations,
         Block.Compatible (Gen.AC.Lease.target lease) C := by
   have hS := hrec.base.valid.toScheduleWellFormed
-  have hji : j < i := (List.getElem?_eq_some_iff.mp ht).1.trans_le hcomplete
   have hv : { actView (clockPre p (storeAt p c E rho j x)
       (SA.gateTime p.toParams s)) with early := (storeAt p c E rho j x).base.early } =
       (fgsaAC E rho).gateView j x s := fgsa_clockPre_gateView p _ s
@@ -116,10 +149,48 @@ theorem healing_postReset_gate_guard [Fintype V]
   rw [hpost] at hkeep
   rw [PostResetRawTransfer_def] at hrawTransfer
   exact (hrawTransfer j hji x s C hx hs ht hresult).1 x nd hx
-    ((List.length_filter_le _ _).trans hcomplete) hnd lease hkeep hndlive
+    hReleaseCut hnd lease hkeep hndlive
 
 
-/-- J6-2 S3: H6 service from its HEAD coverage and gate-input floor.
+/-- Blueprint 21 H.17:3021–3030; plan J6-2/J6-3 O2; B1/B17/B18.
+DC: SAME raw transfer at the source release read gives the whole-result
+compatibility guard at that source's gate. A lease in the gate view has an
+older write and survives through the release read. -/
+theorem healing_postReset_gate_guard [Fintype V]
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (w : HealingWitness) (i : Nat) (hcomplete : rho.events.length ≤ i)
+    (hrawTransfer : PostResetRawTransfer p c E rho w i)
+    (writes : ∀ i x (row : Block × Nat × Time),
+      row ∈ (storeAt p c E rho i x).base.obligations →
+      ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
+        gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
+        row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
+        row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
+        ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
+          let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          GridCO.savedGenuine pre.base w = none →
+          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+            (actView pre) w C)
+    {s : Slot} (hs : w.sStar ≤ s)
+    (hGateHorizon : SA.gateTime p.toParams s ≤ rho.horizon)
+    {j : Nat} {x : V} (hx : x ∈ rho.honest) (ht : IsGateTick p c rho j x s) :
+    ∀ C, (fgsaAC E rho).raw j s x = some C →
+      ∀ lease ∈ ((fgsaAC E rho).gateView j x s).obligations,
+        Block.Compatible (Gen.AC.Lease.target lease) C := by
+  exact healing_postReset_gate_guard_at_cut E rho hrec w i hrawTransfer writes
+    hs hGateHorizon hx ht ((List.getElem?_eq_some_iff.mp ht).1.trans_le hcomplete)
+    ((List.length_filter_le _ _).trans hcomplete)
+
+
+
+
+/-- Blueprint 21 H.6:910–986; plan J6-2 S3; B1/B17/B18.
+DC: SAME H6 service from its HEAD coverage and gate-input floor.
 Raw transfer is a named field at the complete cut. The cone and an honest
 proposal are not needed. The covering batch gives the raw result, passed
 guard, saved fast write, and live lease. -/

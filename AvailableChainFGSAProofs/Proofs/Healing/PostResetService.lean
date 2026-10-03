@@ -1,134 +1,260 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRead
-public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6
-public import AvailableChainFGSAProofs.Proofs.Shared.RetainedEndpoint
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetInvariant
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetOpening
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetGate
 
 public section
 
-/-! S5 J6 / J6-2, H.17 exact HEAD and its retained carrier.
-S1 STOP: `ExactServiceGateGeometry.opening_domain` needs a retained
-representative at the gate. `PostResetFProv` gives the source of a high J,
-but gives no retained-domain floor for the proposal at that later read.
-The cone supplies its domain bounds only at HEAD ticks. The fields
-`PostResetLeaseSafe`, `PostResetRawTransfer`, and `PostResetFProv` at the cut
-do not supply this missing gate fact. No extra geometry premise is added.
-S2 projects H3 from the named `PostResetService` field at a complete cut.
-It does not prove that field; S1 remains open.
-S3 is proved in `PostResetGate`: raw transfer at the complete cut gives
-the whole-result guard through lease persistence from the source release
-read. The H6 adapter does not use the cone or an honest proposal. -/
+/-! Blueprint 21 H.17:2946–3048; plan J6-3 O2/S1; B1/B17/B18.
+DC: SAME exact service at the named cut. PostResetOpening supplies the
+opening predicate and the independent exact HEAD/raw/F-floor derivations.
+The gate geometry combines these with the cut-aware J6-2 guard and the
+old-output bound. The producer gives both service conjuncts without a
+service input. S2 and the PostResetGate H6 adapter keep their public types. -/
 
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- H.17: produce retained geometry at actual HEAD ticks. Recovery supplies
-synchrony through the explicit HEAD horizon. H0Reset supplies only the GST
-bound. There is no additional standing port or INLINE input on this route. -/
-theorem healing_postReset_headGeometry [Fintype V]
+/-- Blueprint 21 H.17:3031–3040; plan J6-3 O2; B1/B17/B18.
+DC: SAME opening geometry field from the separate predicate at its cut.
+This projection uses no service premise. -/
+theorem healing_postReset_gate_opening_domain
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (w : HealingWitness) (i : Nat) (hopening : PostResetOpeningDomain p c E rho w i)
+    {k : Nat} (hk : k < i) {x : V} {v : Slot} {Q : Block}
+    (hx : x ∈ rho.honest) (ht : IsGateTick p c rho k x v)
+    (hp : HonestProposal E rho (fgsaInterface p c) v Q) (hv : w.sStar + 2 ≤ v) :
+    ∀ r, v = r * p.R →
+      let st := ((fgsa p c).clock (V2.D.Run.stateBefore E rho k x) (p.actionTime r)).st
+      ∃ D, eraseFG D = Q ∧ D ∈ domainR p st (treeT p st) := by
+  rw [PostResetOpeningDomain_def] at hopening
+  exact hopening k hk x v Q hx ht hp hv
+
+/-- Blueprint 21 H.17:3031–3040; plan J6-3 O2; B1/B17/B18.
+DC: SAME opening-domain membership puts the current F below Q.
+This result is restricted to opening labels. -/
+theorem healing_postReset_opening_finality
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (w : HealingWitness) (i : Nat) (hopening : PostResetOpeningDomain p c E rho w i)
+    {k : Nat} (hk : k < i) {x : V} {v : Slot} {Q : Block}
+    (hx : x ∈ rho.honest) (ht : IsGateTick p c rho k x v)
+    (hp : HonestProposal E rho (fgsaInterface p c) v Q) (hv : w.sStar + 2 ≤ v)
+    (r : Nat) (hr : v = r * p.R) :
+    Block.Preceq (eraseFG (storeAt p c E rho k x).fg.F) Q := by
+  obtain ⟨D, he, hD⟩ :=
+    healing_postReset_gate_opening_domain E rho w i hopening hk hx ht hp hv r hr
+  have hF := ((KitFG.mem_filteredFromView _ _ _ _).mp hD).2.1
+  have hfg := clock_fg p (storeAt p c E rho k x) (p.actionTime r)
+  change FGBlock.Preceq (clock p (storeAt p c E rho k x) (p.actionTime r)).fg.F D at hF
+  rw [hfg] at hF
+  simpa only [he] using eraseFG_preceq hF
+
+/-- Blueprint 21 H.17:3024–3040; plan J6-3 O2; B1/B17/B18.
+DC: SAME exact HEAD and opening F bound give the receipt target floor.
+gate_finality below supplies the target floor at arbitrary labels. -/
+theorem healing_postReset_opening_target_floor [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     (w : HealingWitness) (hreset : H0Reset p c E rho w)
     (hcone : PostResetRetainedCone p c E rho w)
-    (v : Slot) (hv : w.sStar + 2 ≤ v)
-    (hHeadHorizon : SA.voteTime p.toParams v ≤ rho.horizon)
-    {ip : Nat} {x : V} (hx : x ∈ rho.honest)
-    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams v)))
-    (hseat : rho.seatOf (.prop v) ⟨0, Nat.one_pos⟩ = x)
-    (Q : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hem : (⟨.seat (.prop v) ⟨0, Nat.one_pos⟩, .proposal Q raw sup rows⟩ : Obj p) ∈
-      rho.emitsAt E ip) :
-    ∃ D : FGBlock (Fin p.n), RetainedExactHeadRunGeometry E rho ip x v D Q := by
-  have hGST := postReset_synchronous_window p c E rho w hreset hv
-  have hDelta := hrec.base.delta
-  have hWalkDeadline : SA.proposalTime p.toParams v - p.Δ + E.Δ ≤
-      SA.proposalTime p.toParams v := by rw [hDelta]; exact le_of_eq (sub_add_cancel _ _)
-  have hScoreDeadline : SA.proposalTime p.toParams v - p.Δ + E.Δ ≤
-      SA.voteTime p.toParams v := by
-    rw [hDelta, sub_add_cancel]
-    change 4 * p.Δ * (v : Int) ≤ 4 * p.Δ * (v : Int) + p.Δ
-    linarith [p.deltaPos]
-  have hWalkSync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho
-    (fun o => ¬ isRowObject o) _ _ hrec.sync (fgsaDelay_nonrow E.Δ _) hGST
-    hWalkDeadline (postReset_proposal_horizon p c rho hHeadHorizon)
-  have hScoreSync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho
-    (fun o => ¬ isRowObject o) _ _ hrec.sync (fgsaDelay_nonrow E.Δ _) hGST
-    hScoreDeadline hHeadHorizon
-  obtain ⟨D, hreads⟩ := healing_postReset_retainedReads p c E rho hrec.base.valid
-    hrec.base.noRestart hDelta w hcone v hv hHeadHorizon hScoreSync hx hip hseat
-    Q raw sup rows hem
-  exact ⟨D, fgsa_retainedExactHead_geometry_on_run E rho hrec.base.valid
-    hrec.base.noRestart hDelta v hWalkSync hScoreSync hx hip hseat Q raw sup rows hem D hreads⟩
-
-/-- A3: the HEAD clause of H3, for every honest proposal at v ≥ sStar + 2.
-The HEAD deadline is explicit and separate from the later gate deadline. -/
-theorem healing_postReset_exactHead [Fintype V]
-    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (w : HealingWitness) (hreset : H0Reset p c E rho w)
-    (hcone : PostResetRetainedCone p c E rho w) :
-    ∀ v Q, HonestProposal E rho (fgsaInterface p c) v Q → w.sStar + 2 ≤ v →
-      SA.voteTime p.toParams v ≤ rho.horizon →
-      ∀ y ∈ rho.honest, headAtLabel p c E rho y v = some Q := by
-  intro v Q hp hv hHeadHorizon
-  obtain ⟨ip, x, raw, sup, rows, hx, hip, hseat, hem⟩ := repair_proposal_emission E rho hp
-  obtain ⟨D, hgeom⟩ := healing_postReset_headGeometry E rho hrec w hreset hcone
-    v hv hHeadHorizon hx hip hseat Q raw sup rows hem
-  exact exactService_head_of_retained_proposal E rho hrec.base.valid hrec.base.delta
-    v hip Q raw sup rows hem D hgeom hHeadHorizon
-
-/-- A3 carrier at the HEAD read: the proposal has an exact erased FG
-representative in that reader's retained voter domain. This is the HEAD
-carrier; the opening-source projection at the later gate is the open S1 item
-(ExactServiceGateGeometry.opening_domain). -/
-theorem healing_postReset_headCarrier [Fintype V]
-    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (w : HealingWitness) (hreset : H0Reset p c E rho w)
-    (hcone : PostResetRetainedCone p c E rho w)
-    {v : Slot} {Q : Block} (hp : HonestProposal E rho (fgsaInterface p c) v Q)
-    (hv : w.sStar + 2 ≤ v)
-    (hHeadHorizon : SA.voteTime p.toParams v ≤ rho.horizon)
-    {y : V} {ih : Nat} (hy : y ∈ rho.honest)
-    (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams v))) :
-    let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams v)
-    ∃ C : FGBlock (Fin p.n), eraseFG C = Q ∧ C ∈ domainR p dst (voterBlocks p dst v) := by
-  intro dst
-  obtain ⟨ip, x, raw, sup, rows, hx, hip, hseat, hem⟩ := repair_proposal_emission E rho hp
-  obtain ⟨D, hgeom⟩ := healing_postReset_headGeometry E rho hrec w hreset hcone
-    v hv hHeadHorizon hx hip hseat Q raw sup rows hem
-  have hm : Q ∈ erasedList dst (domainR p dst (voterBlocks p dst v)) := by
-    rw [fgsa_domainR_eq_storeFrameView]
-    exact (hgeom.endpoint y hy ih hih).proposal_mem
-  obtain ⟨C, hC, heC⟩ := of_decide_eq_true (List.mem_filter.mp hm).2
-  exact ⟨C, heC, hC⟩
-
-/-- J6-2: exact HEAD gives the covered-prefix field of the gate receipt.
-This derivation does not give the gate's active F floor or retained domain. -/
-theorem healing_postReset_gate_covered_prefix [Fintype V]
-    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
-    (w : HealingWitness) (hreset : H0Reset p c E rho w)
-    (hcone : PostResetRetainedCone p c E rho w)
-    {v : Slot} {Q : Block} (hp : HonestProposal E rho (fgsaInterface p c) v Q)
-    (hv : w.sStar + 2 ≤ v)
-    (hGateHorizon : SA.gateTime p.toParams v ≤ rho.horizon) :
+    (i : Nat) (hopening : PostResetOpeningDomain p c E rho w i)
+    {k : Nat} (hk : k < i) {x : V} {v : Slot} {Q : Block}
+    (hx : x ∈ rho.honest) (ht : IsGateTick p c rho k x v)
+    (hp : HonestProposal E rho (fgsaInterface p c) v Q) (hv : w.sStar + 2 ≤ v)
+    (r : Nat) (hr : v = r * p.R) :
     ∀ q : Fin p.n, rho.seatOf (.base (.head v)) q ∈ rho.honest →
       E.awake (rho.seatOf (.base (.head v)) q) (SA.voteTime p.toParams v) = true →
       ∀ K, V2.D.Run.emits E rho (rho.seatOf (.base (.head v)) q)
         (ofHead p ⟨.seat (.head v) q, K⟩) (SA.voteTime p.toParams v) →
-        Block.Preceq Q K := by
-  intro q hy _ K he
+        Block.Preceq (eraseFG (clockPre p (storeAt p c E rho k x)
+          (SA.gateTime p.toParams v)).fg.F) K := by
+  have hGateHorizon := (hrec.base.valid.toScheduleWellFormed.in_horizon _
+    (List.mem_of_getElem? ht)).2
   have hhead := healing_postReset_exactHead E rho hrec w hreset hcone v Q hp hv
     (postReset_head_horizon p c rho hGateHorizon)
+  have hFQ := healing_postReset_opening_finality E rho w i hopening hk hx ht hp hv r hr
+  intro q hy _ K he
   have heq := exactService_emitted_head E rho hrec.base.valid.toScheduleWellFormed
     v Q hhead q hy K (SA.voteTime p.toParams v) he
-  rw [heq]
-  exact block_preceq_refl Q
+  simpa only [heq, clockPre_fg] using hFQ
 
-/-- J6-2 S2: project exact service from the named carrier at its cut.
+
+/-- Blueprint 21 H.17:3024–3030; plan J6-3 O2; B1/B17/B18.
+DC: SAME old-output split and stored strict-slot order. Standing mono has
+producer fgsa_rMono. The current F bound is a derived gate fact. -/
+theorem healing_postReset_gate_old_output
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho)
+    (mono : RMono p c E rho) {k : Nat} {x : V} {v : Slot} {Q : Block}
+    (hx : x ∈ rho.honest) (ht : IsGateTick p c rho k x v)
+    (hp : HonestProposal E rho (fgsaInterface p c) v Q)
+    (hFQ : Block.Preceq (eraseFG (storeAt p c E rho k x).fg.F) Q) :
+    Block.Preceq Q ((fgsaAC E rho).output k x) → (fgsaAC E rho).output k x = Q := by
+  intro hQo
+  rcases repair_output_bound E rho hE hN mono hx ht k le_rfl with h | ⟨hm, hsl⟩
+  · exact block_preceq_antisymm (block_preceq_trans h hFQ) hQo
+  · by_contra hne
+    have hlt := repair_stored_slot_lt E rho hE k x hm hQo (Ne.symm hne)
+    rw [repair_proposal_slot E rho hp] at hlt
+    exact lt_irrefl _ (hlt.trans_le hsl)
+
+section CompleteService
+variable [Fintype V]
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (w : HealingWitness) (hreset : H0Reset p c E rho w)
+    (hcone : PostResetRetainedCone p c E rho w)
+    (cap : RCap p c E rho)
+    (rowCovered : ∀ (_hb : Base₂ p c E rho)
+      (_hf : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
+      (x : V), x ∈ rho.honest → ∀ (r : Nat) (nd : Node p),
+      postClock E rho x (p.actionTime r) = some nd → ∀ C : FGBlock (Fin p.n),
+      actionSourceFG p c E rho x r = some (some C) →
+      C ∈ FGSA.fullTree p nd.st → (FGSA.controls p nd.st).lo ≤ (heightView p C).h →
+      E.awake x (p.actionTime r) = true →
+      ∃ j rSent a, rSent ≤ r ∧ HonestRowAt p c E rho j x rSent a ∧
+        namedEntry a.payload.height_pair =
+          some ((heightView p C).h, (heightView p C).T_h.root))
+
+variable (mono : RMono p c E rho)
+    (writes : ∀ i x (row : Block × Nat × Time),
+      row ∈ (storeAt p c E rho i x).base.obligations →
+      ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
+        gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
+        row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
+        row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
+        ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
+          let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          GridCO.savedGenuine pre.base w = none →
+          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+            (actView pre) w C)
+
+include hrec hreset hcone cap rowCovered mono writes
+
+/-- Blueprint 21 H.17:3021–3040; plan J6-3 O2; B1/B13/B17/B18.
+DC: SAME exact gate geometry at the named event-prefix cut.
+Standing mono/cap have producers fgsa_rMono/fgsa_rCap_channel. INLINE
+rowCovered/writes have producers rowPermission_covered/fgsa_leaseOrigins_lastWrite.
+The three carrier inputs remain named predicates at i. -/
+theorem healing_postReset_gate_geometry (i : Nat)
+    (hfp : PostResetFProv p c E rho w i)
+    (hraw : PostResetRawTransfer p c E rho w i)
+    (hopening : PostResetOpeningDomain p c E rho w i)
+    {k : Nat} (hk : k < i) {x : V} {v : Slot} {Q : Block}
+    (hx : x ∈ rho.honest) (ht : IsGateTick p c rho k x v)
+    (hp : HonestProposal E rho (fgsaInterface p c) v Q) (hv : w.sStar + 2 ≤ v)
+    (hcut : timeIdx rho (SA.proposalTime p.toParams v) ≤ i) :
+    ExactServiceGateGeometry E rho k x v Q := by
+  have hs := hrec.base.valid.toScheduleWellFormed
+  have hGateHorizon := (hs.in_horizon _ (List.mem_of_getElem? ht)).2
+  have hFQ := healing_postReset_gate_finality E rho hrec w hreset cap rowCovered
+    i hfp hraw hk hx ht hp hv hcut
+  have hhead := healing_postReset_exactHead E rho hrec w hreset hcone v Q hp hv
+    (postReset_head_horizon p c rho hGateHorizon)
+  have hreceipt : GateReceiptGeometry E rho
+      (clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams v)) v Q := by
+    refine ⟨?_, healing_postReset_gate_covered_prefix E rho hrec w hreset hcone
+      hp hv hGateHorizon⟩
+    intro q hy _ K he
+    have heq := exactService_emitted_head E rho hs v Q hhead q hy K
+      (SA.voteTime p.toParams v) he
+    simpa only [heq, clockPre_fg] using hFQ
+  have hrelease : SA.releaseTime p.toParams v < SA.gateTime p.toParams v := by
+    change 4 * p.Δ * (v : Int) + 5 * p.Δ < 4 * p.Δ * (v : Int) + 6 * p.Δ
+    linarith [p.deltaPos]
+  have hReleaseCut : timeIdx rho (SA.releaseTime p.toParams v) ≤ i :=
+    (healing_postReset_time_cut_le_tick E rho hs ht hrelease).trans hk.le
+  have hlower : w.sStar ≤ v := (Nat.le_add_right w.sStar 2).trans hv
+  have hguardAll := healing_postReset_gate_guard_at_cut E rho hrec w i hraw writes
+    hlower hGateHorizon hx ht hk hReleaseCut
+  have hgsts : E.t_GST ≤ SA.voteTime p.toParams v := by
+    refine (postReset_synchronous_window p c E rho w hreset hv).trans ?_
+    change 4 * p.Δ * (v : Int) - p.Δ ≤ 4 * p.Δ * (v : Int) + p.Δ
+    linarith [p.deltaPos]
+  have hvd : SA.voteTime p.toParams v + E.Δ ≤ SA.gateTime p.toParams v := by
+    rw [hrec.base.delta]
+    change 4 * p.Δ * (v : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * (v : Int) + 6 * p.Δ
+    linarith [p.deltaPos]
+  have hSync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho
+    (fun o => ¬ isRowObject o) _ _ hrec.sync (fgsaDelay_nonrow E.Δ _) hgsts hvd hGateHorizon
+  obtain ⟨H, hH, hbatch, _⟩ := healing_postReset_gate_participation E rho hrec
+    hgsts (postReset_head_horizon p c rho hGateHorizon)
+  obtain ⟨hr, _, _, _⟩ := exactService_gate_raw_of_head E rho hrec.base.valid
+    hrec.base.noRestart hrec.base.delta hrec.base.cstar v Q hhead hSync ht hreceipt H hH hbatch
+  have hrawQ : (fgsaAC E rho).raw k v x = some Q := by
+    have he := fgsa_clockPre_gateView p (storeAt p c E rho k x) v
+    have hr' := hr
+    rw [clockPre_fg] at hr'
+    exact (congrArg (fun st => SA.confirmationFrom p.toParams
+      (eraseFG (storeAt p c E rho k x).fg.F) st v) he).symm.trans hr'
+  exact { toGateReceiptGeometry := hreceipt
+          guard := hguardAll Q hrawQ
+          old_output := healing_postReset_gate_old_output E rho hrec.base.valid
+            hrec.base.noRestart mono hx ht hp hFQ
+          opening_domain := healing_postReset_gate_opening_domain E rho w i hopening
+            hk hx ht hp hv }
+
+/-- Blueprint 21 H.17:2946–3048; plan J6-3 O2/S1; B1/B13/B17/B18.
+DC: SAME complete HEAD and gate conjunction at cut i. The opening input is
+separate and follows raw_transfer in the joint order. No service input,
+carrier successor, full H0, or complete-run premise is used. -/
+theorem healing_postReset_service_step (i : Nat)
+    (hfp : PostResetFProv p c E rho w i)
+    (hraw : PostResetRawTransfer p c E rho w i)
+    (hopening : PostResetOpeningDomain p c E rho w i) :
+    PostResetService p c E rho w i := by
+  rw [PostResetService_def]
+  intro v Q hp hv hcut
+  refine ⟨fun hh _ => healing_postReset_exactHead E rho hrec w hreset hcone v Q hp hv hh, ?_⟩
+  intro hGateHorizon hGateCut x hx
+  have hs := hrec.base.valid.toScheduleWellFormed
+  have htime : ((4 * v + 6 : Nat) : Time) * p.Δ = SA.gateTime p.toParams v := by
+    change ((4 * v + 6 : Nat) : Int) * p.Δ = 4 * p.Δ * (v : Int) + 6 * p.Δ
+    push_cast
+    ring
+  obtain ⟨k, ht, _⟩ := fgsa_tick_total E rho hs hrec.base.delta x hx
+    (4 * v + 6) (htime ▸ hGateHorizon)
+  rw [htime] at ht
+  have hk := healing_postReset_tick_lt_cut E rho hs ht hGateCut
+  have hgeom := healing_postReset_gate_geometry E rho hrec w hreset hcone cap rowCovered
+    mono writes i hfp hraw hopening hk hx ht hp hv hcut
+  have hh := postReset_head_horizon p c rho hGateHorizon
+  have hhead := healing_postReset_exactHead E rho hrec w hreset hcone v Q hp hv hh
+  have hgsts : E.t_GST ≤ SA.voteTime p.toParams v := by
+    refine (postReset_synchronous_window p c E rho w hreset hv).trans ?_
+    change 4 * p.Δ * (v : Int) - p.Δ ≤ 4 * p.Δ * (v : Int) + p.Δ
+    linarith [p.deltaPos]
+  have hvd : SA.voteTime p.toParams v + E.Δ ≤ SA.gateTime p.toParams v := by
+    rw [hrec.base.delta]
+    change 4 * p.Δ * (v : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * (v : Int) + 6 * p.Δ
+    linarith [p.deltaPos]
+  have hSync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho
+    (fun o => ¬ isRowObject o) _ _ hrec.sync (fgsaDelay_nonrow E.Δ _) hgsts hvd hGateHorizon
+  obtain ⟨H, hH, hbatch, hfast⟩ := healing_postReset_gate_participation E rho hrec hgsts hh
+  have hne : Q ≠ .genesis := by
+    intro he
+    have hslot := repair_proposal_slot E rho hp
+    rw [he] at hslot
+    change 0 = v at hslot
+    have hvpos : 0 < v := (Nat.zero_lt_succ (w.sStar + 1)).trans_le
+      (by simpa only [Nat.add_assoc] using hv)
+    rw [← hslot] at hvpos
+    exact Nat.lt_irrefl 0 hvpos
+  obtain ⟨hresult, ⟨j, hj, hpass⟩, hwrite, hstable, hsource⟩ :=
+    exactService_gate_at_of_head E rho hrec.base.valid hrec.base.noRestart hrec.base.delta
+      hrec.base.cstar v Q hne hhead hSync hx ht hgeom H hH hbatch hfast
+  exact ⟨hresult, ⟨j, healing_postReset_tick_lt_cut E rho hs hj hGateCut, hj, hpass⟩,
+    hwrite, hstable, hsource⟩
+
+end CompleteService
+
+/-- Blueprint 21 H.17:2946–3048; plan J6-2 S2; B1/B17.
+DC: SAME projection of exact service from the named carrier at its cut.
 The proposal, HEAD, and post-gate cuts are explicit. The gate witness
 keeps its event and passed guard when its prefix bound is removed. -/
 theorem healing_postReset_exactService_at_cut
@@ -150,7 +276,8 @@ theorem healing_postReset_exactService_at_cut
     hgate hg (hGateCut hg) x hx
   exact ⟨hraw, ⟨j, ht, hpass⟩, hfast, hstable, hsource⟩
 
-/-- J6-2 S2: a carrier cut at or after the run's length gives the H3 shape.
+/-- Blueprint 21 H.17:2946–3048; plan J6-2 S2; B1/B17.
+DC: SAME a carrier cut at or after the run's length gives the H3 shape.
 The cut may exceed the run's length. Each time cut is bounded by the length
 of the event list; the two horizon guards remain in ExactService. -/
 theorem healing_postReset_exactService
