@@ -26,6 +26,15 @@ def FrontierOpeningServed (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   ∀ i x, x ∈ rho.honest → rho.events[i]? = some (.tick x (p.actionTime r)) →
     Gen.AC.Duty.GateService (fgsaAC E rho) i (r * p.R) x Q
 
+/-- Introduction rule for `FrontierOpeningServed`: its body is not exported from this
+module, so HG.1 producers build the predicate through this theorem. -/
+theorem frontierOpeningServed_intro (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    {r : Nat} {Q : Block}
+    (h : ∀ i x, x ∈ rho.honest → rho.events[i]? = some (.tick x (p.actionTime r)) →
+      Gen.AC.Duty.GateService (fgsaAC E rho) i (r * p.R) x Q) :
+    FrontierOpeningServed E rho r Q :=
+  h
+
 omit [DecidableEq V] in
 /-- Frontier plan §4 opening cuts. DC: SAME the opening is strictly after u,
 so its read lies between the inclusive cap cuts, including a_r = v. -/
