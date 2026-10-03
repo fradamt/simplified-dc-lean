@@ -660,6 +660,7 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.healing_loss_cause',
     'AvailableChain.FGSA.Run.healing_high_source_compat',
     'AvailableChain.FGSA.Run.healing_high_source_compat_reset',
+    'AvailableChain.FGSA.Run.emittedName_window',
     # H-BASE: --expect additions only.
     'AvailableChain.FGSA.Run.healing_rXing',
     'AvailableChain.FGSA.Run.healing_rCap',
@@ -1409,6 +1410,7 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.exactService_head_of_proposal_recovery',
     # fgsa-f1b8 step 3 (main b83d8f3): unconditional safety and its exact-head chain.
     'AvailableChain.FGSA.Run.fgsaSafetyClaims',
+    'AvailableChain.FGSA.Run.fgsaClaims_of_open',
     'AvailableChain.FGSA.Run.fgsa_headReachesLoClaim',
     'AvailableChain.FGSA.Run.exactHead_of_pivot_ancestry',
     'AvailableChain.FGSA.Run.exactHead_of_pivot',

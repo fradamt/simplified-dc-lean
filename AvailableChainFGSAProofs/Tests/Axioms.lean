@@ -162,6 +162,7 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.afterTicks_eq_stateBefore
 #print axioms AvailableChain.FGSA.Run.fgsaSafetyClaims_of_headReachesLo
 #print axioms AvailableChain.FGSA.Run.fgsaSafetyClaims
+#print axioms AvailableChain.FGSA.Run.fgsaClaims_of_open
 #print axioms AvailableChain.FGSA.Run.afterTicks_node
 #print axioms AvailableChain.FGSA.Run.afterTicks_eq_tick_preTick
 #print axioms AvailableChain.FGSA.Run.preIdx_le_afterTicksIdx
@@ -1140,6 +1141,7 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.healing_loss_cause
 #print axioms AvailableChain.FGSA.Run.healing_high_source_compat
 #print axioms AvailableChain.FGSA.Run.healing_high_source_compat_reset
+#print axioms AvailableChain.FGSA.Run.emittedName_window
 #print axioms AvailableChain.FGSA.Run.inclusion_acceptance_of_stored
 #print axioms AvailableChain.FGSA.Run.inclusion_receipt_of_compatible
 #print axioms AvailableChain.FGSA.Run.inclusion_proposal_receipt
