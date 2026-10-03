@@ -144,6 +144,17 @@ public import AvailableChainFGSAProofs.Proofs.Clean.Chain -- shake: keep (axiom 
 public import AvailableChainFGSAProofs.Proofs.Clean.State -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTail -- shake: keep (HG.3--HG.5 support audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.SourceTiming -- shake: keep (H12 axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.Delivery -- shake: keep (TDel axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.DeliveryReset -- shake: keep (reset core axiom audit)
+
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetCut -- shake: keep (RS-0 axiom audit)
+
+public import AvailableChainFGSAProofs.Proofs.Healing.Attempt -- shake: keep (H-ATTEMPT axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.AttemptBudget -- shake: keep (H-ATTEMPT axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.AttemptStop -- shake: keep (H-ATTEMPT axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.AttemptSettle -- shake: keep (CUT axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.AttemptRows -- shake: keep (complete first rows)
 
 #print axioms AvailableChain.FGSA.Run.kmid_honestSeats_mem
 #print axioms AvailableChain.FGSA.Run.kmid_honest_quorum
@@ -698,6 +709,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTail -- shak
 #print axioms AvailableChain.FGSA.Run.HealthyPrefix₂.of_legacy
 #print axioms AvailableChain.FGSA.Run.HealthyPrefix₂.legacy_delivery
 #print axioms AvailableChain.FGSA.Run.Recovery₂.of_legacy
+#print axioms AvailableChain.FGSA.Run.Recovery₂.gamma_eq
 #print axioms AvailableChain.FGSA.Run.Recovery₂.toRecoveryCore
 
 -- fg-noround/07-H additions.
@@ -1542,6 +1554,47 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTail -- shak
 #print axioms AvailableChain.FGSA.Run.healing_rise_one_rise
 #print axioms AvailableChain.FGSA.Run.healing_rise_one_of_receipt
 
+-- S5 H-ATTEMPT: conditional rows, arithmetic and stopping facts.
+#print axioms AvailableChain.FGSA.Run.healing_progressAttempt_of
+#print axioms AvailableChain.FGSA.Run.healing_attempt_raise_contest_budget
+#print axioms AvailableChain.FGSA.Run.healing_attempt_raise_other_budget
+#print axioms AvailableChain.FGSA.Run.healing_attempt_firstRow_contest_budget
+#print axioms AvailableChain.FGSA.Run.healing_attempt_firstRow_other_budget
+#print axioms AvailableChain.FGSA.Run.healing_attempt_raise_contest_cost
+#print axioms AvailableChain.FGSA.Run.healing_attempt_raise_other_cost
+#print axioms AvailableChain.FGSA.Run.healing_attempt_firstRow_contest_cost
+#print axioms AvailableChain.FGSA.Run.healing_attempt_firstRow_other_cost
+#print axioms AvailableChain.FGSA.Run.healing_attempt_high_source_cost
+#print axioms AvailableChain.FGSA.Run.healing_attempt_terminal_horizon_gap
+#print axioms AvailableChain.FGSA.Run.healing_attempt_ends_of_event
+#print axioms AvailableChain.FGSA.Run.healing_attempt_ends_of_row
+#print axioms AvailableChain.FGSA.Run.healing_attempt_ends_mono
+#print axioms AvailableChain.FGSA.Run.healing_attempt_no_event
+#print axioms AvailableChain.FGSA.Run.healing_attempt_inclusive_start
+
+-- S5 H-ATTEMPT-2: start settlement and four row settlement facts.
+#print axioms AvailableChain.FGSA.Run.healing_settle_start
+#print axioms AvailableChain.FGSA.Run.healing_attempt_settle_start
+#print axioms AvailableChain.FGSA.Run.healing_attempt_raise_contest_settle
+#print axioms AvailableChain.FGSA.Run.healing_attempt_raise_other_settle
+#print axioms AvailableChain.FGSA.Run.healing_attempt_firstRow_contest_settle
+#print axioms AvailableChain.FGSA.Run.healing_attempt_firstRow_other_settle
+
+-- S5 H-ATTEMPT-3: complete first-row lane lemmas.
+#print axioms AvailableChain.FGSA.Run.healing_attempt_firstRow_contest
+#print axioms AvailableChain.FGSA.Run.healing_attempt_firstRow_other
+#print axioms AvailableChain.FGSA.Run.healing_source_label_bound
+#print axioms AvailableChain.FGSA.Run.healing_source_relay_deadline
+#print axioms AvailableChain.FGSA.Run.healing_source_row_label
+#print axioms AvailableChain.FGSA.Run.healing_tf_retention
+#print axioms AvailableChain.FGSA.Run.healing_source_path_retained
+#print axioms AvailableChain.FGSA.Run.healing_source_supporter_head
+#print axioms AvailableChain.FGSA.Run.healing_source_body_relay
+#print axioms AvailableChain.FGSA.Run.healing_source_body_stamps
+#print axioms AvailableChain.FGSA.Run.healing_source_old_body
+#print axioms AvailableChain.FGSA.Run.healing_tDel
+#print axioms AvailableChain.FGSA.Run.healing_tDelReset_core
+#print axioms AvailableChain.FGSA.Run.healing_tDelReset
 -- S5 HG.1: frozen seed and q+1 lease cover.
 #print axioms AvailableChain.FGSA.Run.tfSeed_two_from_tRepair
 #print axioms AvailableChain.FGSA.Run.tfSeed_one_from_tRepair
@@ -1589,3 +1642,22 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTail -- shak
 #print axioms AvailableChain.FGSA.Run.frontierSearch_first_row_unique
 #print axioms AvailableChain.FGSA.Run.frontierSearch_skipped_row
 #print axioms AvailableChain.FGSA.Run.healing_frontierTail_row
+-- S5 RS-0: inclusive cut, row cap, old-row bound, and exact STOP conditions.
+#print axioms AvailableChain.FGSA.Run.reset_period_lower
+#print axioms AvailableChain.FGSA.Run.reset_action_exists
+#print axioms AvailableChain.FGSA.Run.resetFirstRound
+#print axioms AvailableChain.FGSA.Run.resetCutTime
+#print axioms AvailableChain.FGSA.Run.reset_rG_after
+#print axioms AvailableChain.FGSA.Run.reset_rG_first
+#print axioms AvailableChain.FGSA.Run.reset_cut
+#print axioms AvailableChain.FGSA.Run.reset_first_action_upper
+#print axioms AvailableChain.FGSA.Run.reset_cut_lower
+#print axioms AvailableChain.FGSA.Run.reset_cut_upper
+#print axioms AvailableChain.FGSA.Run.resetCutFrontier
+#print axioms AvailableChain.FGSA.Run.reset_frontier
+#print axioms AvailableChain.FGSA.Run.reset_inclusive_frontier
+#print axioms AvailableChain.FGSA.Run.reset_inclusive_start_iff
+#print axioms AvailableChain.FGSA.Run.reset_row_cap
+#print axioms AvailableChain.FGSA.Run.reset_old_row_before_cut
+#print axioms AvailableChain.FGSA.Run.reset_old_height_sup_le
+#print axioms AvailableChain.FGSA.Run.reset_mu_le_iff

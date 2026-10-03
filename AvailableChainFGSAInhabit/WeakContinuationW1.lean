@@ -1604,6 +1604,7 @@ theorem w1_strongRecovery : StrongRecoverySearchPrefix₂ params unitCodec stron
   fault := fault_bound.2
   awake := fun v _ t _ _ => strong_awake v t
   gapPos := gap_positive
+  gapAligned := gap_aligned
   endpoint := endpoint
 
 /-- Stage 3: the full clean-continuation pair after participation drops. -/

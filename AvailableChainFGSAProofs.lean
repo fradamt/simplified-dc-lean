@@ -199,9 +199,17 @@ public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthReads
 public import AvailableChainFGSAProofs.Proofs.Outage.Growth
 public import AvailableChainFGSAProofs.Proofs.Finality.Forward
 public import AvailableChainFGSAProofs.Proofs.Finality.Local
+public import AvailableChainFGSAProofs.Proofs.Healing.Attempt
+public import AvailableChainFGSAProofs.Proofs.Healing.AttemptBudget
+public import AvailableChainFGSAProofs.Proofs.Healing.AttemptStop
+public import AvailableChainFGSAProofs.Proofs.Healing.AttemptSettle
+public import AvailableChainFGSAProofs.Proofs.Healing.SourceTiming
+public import AvailableChainFGSAProofs.Proofs.Healing.Delivery
+public import AvailableChainFGSAProofs.Proofs.Healing.DeliveryReset
 public import AvailableChainFGSAProofs.Proofs.Assembly.Healing
 public import AvailableChainFGSAProofs.Proofs.Finality.Proposal
 public import AvailableChainFGSAProofs.Proofs.Finality.Above
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchDefs
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchStop
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTail
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetCut
