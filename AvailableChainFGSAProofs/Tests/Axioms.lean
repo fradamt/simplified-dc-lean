@@ -151,6 +151,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.ResetTransfer -- shake: ke
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat -- shake: keep (J2 axiom audit)
 
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetCut -- shake: keep (RS-0 axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLease -- shake: keep (J4 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep -- shake: keep (J3 audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw -- shake: keep (J5 axiom audit)
 
@@ -1648,6 +1649,10 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw -- shake: kee
 #print axioms AvailableChain.FGSA.Run.reset_old_height_sup_le
 #print axioms AvailableChain.FGSA.Run.reset_mu_le_iff
 
+-- J4-LEASE: both H0Reset provenance clauses and the all-event body.
+#print axioms AvailableChain.FGSA.Run.postReset_fProv_all
+#print axioms AvailableChain.FGSA.Run.postReset_rFProv_reset
+#print axioms AvailableChain.FGSA.Run.postReset_leaseSafe_antecedent_of_lastWrite
 -- J3-KEEP: general keep, field steps, successor and reset-only RKeep body.
 #print axioms AvailableChain.FGSA.Run.postReset_general_kept
 #print axioms AvailableChain.FGSA.Run.postReset_keep_height
