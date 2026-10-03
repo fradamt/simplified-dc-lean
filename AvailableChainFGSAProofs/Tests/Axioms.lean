@@ -3,6 +3,7 @@ public import AvailableChainFGSAProofs.Proofs.Finality.CoreServices -- shake: ke
 public import AvailableChainFGSAProofs.Proofs.Finality.History -- shake: keep (K-HISTORY audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Height -- shake: keep (K-HEIGHT audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Rows -- shake: keep (K-ROWS audit)
+public import AvailableChainFGSAProofs.Proofs.Finality.Middle -- shake: keep (K-MID audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Carry -- shake: keep (K-CARRY audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Batch -- shake: keep (K-BATCH audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.Claims -- shake: keep (S4.6b axiom audit)
@@ -841,3 +842,8 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fresh_unanimous_rows
 #print axioms AvailableChain.FGSA.Run.actual_anchor_cap
 #print axioms AvailableChain.FGSA.Run.actual_anchor_retained_or_covered
+
+-- K-MID: the kernel opening, middle block, fresh entry and early carrier.
+#print axioms AvailableChain.FGSA.Run.kernel_opening_and_middle
+#print axioms AvailableChain.FGSA.Run.kernel_middle_fresh_U
+#print axioms AvailableChain.FGSA.Run.kernel_middle_early_justification

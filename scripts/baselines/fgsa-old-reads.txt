@@ -76,6 +76,7 @@ height AvailableChain.FGSA.Run.fgsa_walkRun_path_domain # pre-J4 baseline 2026-1
 height AvailableChain.FGSA.Run.fgsa_walkRun_path_domain_view # G11 job 5a bridge: view form of the landed SR path-domain adapter via heightView_bridge; heights only (AvailableChainFGSAProofs.Proofs.Shared.RetainedReflect)
 height AvailableChain.FGSA.Run.kept_or_cause # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.KeepExact)
 height AvailableChain.FGSA.Run.kept_or_conflict # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.KeepExact)
+height AvailableChain.FGSA.Run.kmid_row_fin_lt # height-only, through the shared client (hOf/createRowOnce); bridge-equal
 height AvailableChain.FGSA.Run.openingSource_domain_of_kept_or_cause # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.OpeningSource)
 height AvailableChain.FGSA.Run.openingSource_firstOpening # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.OpeningSource)
 height AvailableChain.FGSA.Run.openingSource_firstOpening_exact # pre-J4 baseline 2026-10-02 (AvailableChainFGSAProofs.Proofs.Shared.OpeningSource)

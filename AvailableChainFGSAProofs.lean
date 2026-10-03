@@ -3,6 +3,8 @@ public import AvailableChainFGSAProofs.Proofs.Finality.CoreServices
 public import AvailableChainFGSAProofs.Proofs.Finality.Height
 public import AvailableChainFGSAProofs.Proofs.Finality.History
 public import AvailableChainFGSAProofs.Proofs.Finality.Rows
+public import AvailableChainFGSAProofs.Proofs.Finality.MiddleSupport
+public import AvailableChainFGSAProofs.Proofs.Finality.Middle
 public import AvailableChainFGSAProofs.Proofs.Finality.Carry
 public import AvailableChainFGSAProofs.Proofs.Finality.Batch
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseRelay
