@@ -62,6 +62,10 @@ def proposerHead (st : State p.n) (s : Slot) : Block :=
 /-- The AC output S (01 §1.2; T7.3 `fgsaOutputs`). -/
 def outputS (st : State p.n) : Block := st.base.stableRecord
 
+-- equation export required by BUILD §7.2 B3a (post-freeze additive _def batch)
+theorem outputS_def (st : State p.n) :
+    outputS p st = st.base.stableRecord := rfl
+
 -- equation export required by BUILD §7.2 B3a
 theorem frameR_def (st : State p.n) : frameR p st = FGSA.controls p st := by rw [frameR]
 -- equation export required by BUILD §7.2 B3a
@@ -200,6 +204,25 @@ theorem HeightMatch_def (s : Slot) (Q : Block) (a : RowWire p.n) :
 Consumers: H2.A, H2′, H3, H5 and H6. -/
 def headAtLabel (x : V) (s : Slot) : Option Block :=
   (postClock E rho x (SA.voteTime p.toParams s)).map (fun nd => FGSA.headVote p nd.st s)
+
+-- equation export required by BUILD §7.2 B3a (post-freeze additive _def batch)
+omit [DecidableEq V] in
+theorem RowComplete_def (x : V) (a : RowWire p.n) :
+    RowComplete p c rho x a = (a.valid = true ∧ RowSigner p c rho a x) := rfl
+-- equation export required by BUILD §7.2 B3a (post-freeze additive _def batch)
+theorem HonestCarrier_def (s : Slot) (Q : Block) (rows : List (RowWire p.n)) :
+    HonestCarrier p c E rho s Q rows = (HonestProposal E rho (fgsaInterface p c) s Q ∧
+      ∃ o raw sup, V2.D.Run.emits E rho (V2.D.proposerOf rho (fgsaInterface p c) s) o
+          (V2.D.proposalTime (fgsaInterface p c) s) ∧ o.payload = .proposal Q raw sup rows) := rfl
+-- equation export required by BUILD §7.2 B3a (post-freeze additive _def batch)
+theorem HeldAt_def (i : Nat) (x : V) (W : FGBlock (Fin p.n)) :
+    HeldAt p c E rho i x W = (x ∈ rho.honest ∧ W ∈ (storeAt p c E rho i x).fg.TF) := rfl
+-- equation export required by BUILD §7.2 B3a (post-freeze additive _def batch)
+theorem namedEntry_def (e : NamedHeightPair) :
+    namedEntry e = match e with
+      | .empty => none
+      | .vote h r _ => some (h, r) := by
+  cases e <;> rfl
 
 end AvailableChain.FGSA.Run
 end
