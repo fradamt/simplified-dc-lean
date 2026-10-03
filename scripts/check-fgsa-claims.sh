@@ -2561,6 +2561,14 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.postReset_proposal_batch_seat_at_cut',
     'AvailableChain.FGSA.Run.postReset_head_batch_seat_at_cut',
     'AvailableChain.FGSA.Run.healing_hTimeClaim_of_steps',
+    # Blueprint 21 H.18–H.22:3049–3176; plan S5 HCLOSE H1–H4; DC: SAME claims.
+    'AvailableChain.FGSA.Run.healing_postReset_resetLeaseStep_of_set',
+    'AvailableChain.FGSA.Run.healing_postReset_leaseStep_of_set',
+    'AvailableChain.FGSA.Run.healing_postReset_rawStep_of_set',
+    'AvailableChain.FGSA.Run.healing_hTimeClaim',
+    'AvailableChain.FGSA.Run.healing_hTimeClaim_all',
+    'AvailableChain.FGSA.Run.healing_resetArrivalFull',
+    'AvailableChain.FGSA.Run.healing_healingInputClaim',
 )
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
          'Packages.Safety', 'OutputReads', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',

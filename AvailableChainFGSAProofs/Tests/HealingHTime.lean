@@ -168,3 +168,52 @@ end Steps
 #print axioms healing_hTimeClaim_of_steps
 
 end AvailableChain.FGSA.Run.Tests.HealingHTime
+
+namespace AvailableChain.FGSA.Run.Tests.HealingHTime
+
+/-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HCLOSE T/H2.
+DC: SAME HTimeClaim with only the explicit Params binder. -/
+example (p : Params) : HTimeClaim p := healing_hTimeClaim p
+
+/-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HCLOSE T/H2 all parameters.
+DC: SAME claim for each Params value. -/
+example : ∀ p, HTimeClaim p := healing_hTimeClaim_all
+
+/-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HCLOSE T/H2 run application.
+DC: SAME witness and both time bounds under HealingTimePrem. -/
+example (p : Params) (G ΔF : Time) (hClock : p.δt = 2 * p.R)
+    {V In : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (h : HealingTimePrem p c G ΔF E rho ()) : HTimeConcl p c E rho G ΔF :=
+  healing_hTimeClaim p G ΔF hClock c E rho () h
+
+/-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HCLOSE T/H3.
+DC: SAME full reset arrival with p, G and ΔF explicit. -/
+example (p : Params) (G ΔF : Time) : ResetArrivalFullStatement p G ΔF :=
+  healing_resetArrivalFull p G ΔF
+
+/-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HCLOSE T/H4.
+DC: SAME HealingInputClaim with only the explicit Params binder. -/
+example (p : Params) : HealingInputClaim p := healing_healingInputClaim p
+
+/-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HCLOSE T/H4 run application.
+DC: SAME input package for the supplied witness and its local horizon. -/
+example (p : Params) (G ΔF : Time) (hClock : p.δt = 2 * p.R)
+    {V In : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : PtW)
+    (h : HealingInputPrem p c G ΔF E rho pt) : HealingInput p c E rho pt.w ΔF :=
+  healing_healingInputClaim p G ΔF hClock c E rho pt h
+
+#check healing_postReset_resetLeaseStep_of_set
+#check healing_postReset_leaseStep_of_set
+#check healing_postReset_rawStep_of_set
+#check healing_hTimeClaim
+#check healing_hTimeClaim_all
+#check healing_resetArrivalFull
+#check healing_healingInputClaim
+#print axioms healing_hTimeClaim
+#print axioms healing_hTimeClaim_all
+#print axioms healing_resetArrivalFull
+#print axioms healing_healingInputClaim
+
+end AvailableChain.FGSA.Run.Tests.HealingHTime

@@ -2109,3 +2109,16 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone -- shake: ke
 #print axioms AvailableChain.FGSA.Run.postReset_proposal_batch_seat_at_cut
 #print axioms AvailableChain.FGSA.Run.postReset_head_batch_seat_at_cut
 #print axioms AvailableChain.FGSA.Run.healing_hTimeClaim_of_steps
+
+-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HCLOSE H1–H4; DC: SAME axiom audit.
+#print axioms AvailableChain.FGSA.Run.healing_postReset_resetLeaseStep_of_set
+#print axioms AvailableChain.FGSA.Run.healing_postReset_leaseStep_of_set
+#print axioms AvailableChain.FGSA.Run.healing_postReset_rawStep_of_set
+#check AvailableChain.FGSA.Run.healing_hTimeClaim
+#print axioms AvailableChain.FGSA.Run.healing_hTimeClaim
+#check AvailableChain.FGSA.Run.healing_hTimeClaim_all
+#print axioms AvailableChain.FGSA.Run.healing_hTimeClaim_all
+#check AvailableChain.FGSA.Run.healing_resetArrivalFull
+#print axioms AvailableChain.FGSA.Run.healing_resetArrivalFull
+#check AvailableChain.FGSA.Run.healing_healingInputClaim
+#print axioms AvailableChain.FGSA.Run.healing_healingInputClaim

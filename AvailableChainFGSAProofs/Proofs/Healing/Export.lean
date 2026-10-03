@@ -12,6 +12,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJointStep2 -- sha
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetTHigh -- shake: keep (THigh)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetH2Prime -- shake: keep (H2P)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone -- shake: keep (cone step)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRawStep -- shake: keep (HCLOSE steps)
 
 public section
 

@@ -439,5 +439,123 @@ theorem healing_hTimeClaim_of_steps : HTimeClaim p :=
 
 end HTime₂
 
+/-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HCLOSE H1 reset lease.
+DC: SAME reset lease step at every cut. HealingSet supplies each run port. -/
+theorem healing_postReset_resetLeaseStep_of_set (p : Params) {V : Type}
+    [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hset : HealingSet p c E rho G ΔF) {w : HealingWitness}
+    (h0r : H0Reset p c E rho w) : ∀ i, PostResetResetLeaseStep p c E rho w i := by
+  have faultQ := fgsa_faultQ_of_count p hset.fault
+  have crossing := fgsa_rXing p c E rho hset.base.linked
+    (fgsa_faultX_count_rec p hset.fault) hset.base.valid.toUnforgeableSignatures
+  exact postReset_resetLease_succ' p c E rho hset
+    (sourceDiscipline_emittedNonempty p c E rho)
+    (emittedName_window p c E rho hset.base.valid.toScheduleWellFormed) crossing h0r
+    (fgsa_rCap_channel p c E rho hset.base.linked hset.base.valid faultQ)
+    (sourceDiscipline_tSrc p c E rho hset.base.valid.toScheduleWellFormed)
+
+/-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HCLOSE H1 lease safety.
+DC: SAME lease safety step at every cut. HealingSet supplies each run port. -/
+theorem healing_postReset_leaseStep_of_set (p : Params) {V : Type}
+    [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hset : HealingSet p c E rho G ΔF) {w : HealingWitness}
+    (h0r : H0Reset p c E rho w) : ∀ i, PostResetLeaseStep p c E rho w i := by
+  have faultQ := fgsa_faultQ_of_count p hset.fault
+  have mono := fgsa_rMono p c E rho
+  have crossing := fgsa_rXing p c E rho hset.base.linked
+    (fgsa_faultX_count_rec p hset.fault) hset.base.valid.toUnforgeableSignatures
+  have origin := sourceDiscipline_qcOrigin p c E rho (pt := ()) ⟨hset.base, faultQ⟩
+    (fgsa_rStore p c E rho)
+  have writes := fgsa_leaseOrigins_lastWrite p c E rho hset.base.valid.toScheduleWellFormed
+  exact postReset_leaseSafe_succ p c E rho hset mono
+    (sourceDiscipline_emittedNonempty p c E rho)
+    (emittedName_window p c E rho hset.base.valid.toScheduleWellFormed) writes
+    crossing origin h0r
+
+/-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HCLOSE H1 raw transfer.
+DC: SAME raw transfer step at every cut. HealingSet supplies each run port. -/
+theorem healing_postReset_rawStep_of_set (p : Params) {V : Type}
+    [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hset : HealingSet p c E rho G ΔF) {w : HealingWitness}
+    (h0r : H0Reset p c E rho w) : ∀ i, PostResetRawStep p c E rho w i := by
+  have faultQ := fgsa_faultQ_of_count p hset.fault
+  have mono := fgsa_rMono p c E rho
+  have crossing := fgsa_rXing p c E rho hset.base.linked
+    (fgsa_faultX_count_rec p hset.fault) hset.base.valid.toUnforgeableSignatures
+  have origin := sourceDiscipline_qcOrigin p c E rho (pt := ()) ⟨hset.base, faultQ⟩
+    (fgsa_rStore p c E rho)
+  have writes := fgsa_leaseOrigins_lastWrite p c E rho hset.base.valid.toScheduleWellFormed
+  exact postReset_rawTransfer_succ p c E rho hset
+    (sourceDiscipline_emittedNonempty p c E rho)
+    (emittedName_window p c E rho hset.base.valid.toScheduleWellFormed) writes
+    mono crossing origin h0r
+
+/-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HCLOSE H2.
+DC: SAME HTimeClaim. HealingSet supplies all three steps and the cone step. -/
+theorem healing_hTimeClaim (p : Params) : HTimeClaim p :=
+  healing_hTimeClaim_of_steps p (healing_postReset_resetLeaseStep_of_set p)
+    (healing_postReset_leaseStep_of_set p) (healing_postReset_rawStep_of_set p)
+
+/-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HCLOSE H2 all parameters.
+DC: SAME HTimeClaim for each Params value, with no other hypothesis. -/
+theorem healing_hTimeClaim_all : ∀ p, HTimeClaim p := healing_hTimeClaim
+
+/-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HCLOSE H3.
+DC: SAME full reset arrival. HealingSet supplies each of the four steps. -/
+theorem healing_resetArrivalFull (p : Params) (G ΔF : Time) :
+    ResetArrivalFullStatement p G ΔF :=
+  healing_resetArrivalFull_of_open₂ p (healing_postReset_resetLeaseStep_of_set p)
+    (healing_postReset_leaseStep_of_set p) (healing_postReset_rawStep_of_set p)
+    (healing_postReset_coneStep_of_set p) G ΔF
+
+/-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HCLOSE H4.
+DC: SAME HealingInputClaim. The J9 packages use the original H0 witness.
+The claim's local horizon supplies H4; no reset budget premise is required. -/
+theorem healing_healingInputClaim (p : Params) : HealingInputClaim p := by
+  intro G ΔF _hClock V _ _ In c E rho pt h
+  have hset := h.set
+  have h0 := h.h0
+  have inv := (healing_postReset_inv_cone_of_open₂ p c E rho hset h0.toH0Reset
+    (healing_postReset_resetLeaseStep_of_set p c E rho hset h0.toH0Reset)
+    (healing_postReset_leaseStep_of_set p c E rho hset h0.toH0Reset)
+    (healing_postReset_rawStep_of_set p c E rho hset h0.toH0Reset)
+    (healing_postReset_coneStep_of_set p c E rho hset h0.toH0Reset)).1
+  have faultQ := fgsa_faultQ_of_count p hset.fault
+  have mono := fgsa_rMono p c E rho
+  have crossing := fgsa_rXing p c E rho hset.base.linked
+    (fgsa_faultX_count_rec p hset.fault) hset.base.valid.toUnforgeableSignatures
+  have origin := sourceDiscipline_qcOrigin p c E rho (pt := ()) ⟨hset.base, faultQ⟩
+    (fgsa_rStore p c E rho)
+  have writes := fgsa_leaseOrigins_lastWrite p c E rho hset.base.valid.toScheduleWellFormed
+  have cap := fgsa_rCap_channel p c E rho hset.base.linked hset.base.valid faultQ
+  have source := sourceDiscipline_tSrc p c E rho hset.base.valid.toScheduleWellFormed
+  have high := postReset_tHigh_reset p c E rho hset mono
+    (sourceDiscipline_emittedNonempty p c E rho)
+    (emittedName_window p c E rho hset.base.valid.toScheduleWellFormed) writes
+    crossing origin h0.toH0Reset cap source (rowPermission_covered E rho) inv
+  have carrier := postReset_tCarrier_reset p c E rho hset cap source
+    (rowPermission_covered E rho) h0.toH0Reset inv
+  have h2a := postReset_h2A_reset p c E rho hset cap source
+    (rowPermission_covered E rho) h0.toH0Reset inv
+  have h2p := postReset_h2Prime_reset p c E rho hset cap source
+    (rowPermission_covered E rho) h0.toH0Reset crossing origin inv
+  have h3 := healing_postReset_exactService E rho pt.w rho.events.length le_rfl
+    (inv rho.events.length).service
+  have h5 := postReset_h5RawTransfer_body p c E rho h0.toH0Reset
+    (fun i => (inv i).raw_transfer)
+  have h6 := healing_postReset_h6GateService E rho hset pt.w rho.events.length le_rfl
+    (inv rho.events.length).raw_transfer writes
+  have start := healing_postResetStart_of_h0 p c E rho h0
+  have h4 := healing_h4 p c E rho hset start h2a h3 h5 inv h.hhor
+  exact healing_healingInput_of p c E rho (healing_healed p c E rho start h4 h3)
+    start h0.source_prefix
+    (healing_healT_of p c E rho high carrier
+      (fgsa_tRows p c E rho ΔF hset.base.delta hset.base.valid
+        hset.base.noRestart hset.sync hset.deltaF))
+    (healing_healAC_of p c E rho h2a h2p h3 h4 h5 h6)
+
 end AvailableChain.FGSA.Run
 end
