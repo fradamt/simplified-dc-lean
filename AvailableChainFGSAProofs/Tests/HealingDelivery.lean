@@ -27,7 +27,7 @@ example (p : Params) (st : State p.n) (K : FGBlock (Fin p.n))
 variable (p : Params) {In V : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
--- Conditional package fixture: receiver F changes between e_s and the freeze.
+-- Conditional package fixture: the frozen antecedent, as the consumer supplies it.
 example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     (source : TSrc p c E rho) (mono : RMono p c E rho)
     {x y : V} {r : Nat} {K : FGBlock (Fin p.n)}
@@ -35,8 +35,6 @@ example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     (hK : actionSourceFG p c E rho y r = some (some K))
     (hgst : E.t_GST ≤ SA.voteTime p.toParams (r * p.R))
     (hhor : SA.freezeTime p.toParams (r * p.R) ≤ rho.horizon)
-    (_hchange : (V2.D.Run.stateBeforeTime E rho (SA.earlyTime p.toParams (r * p.R)) x).st.fg.F ≠
-      (V2.D.Run.stateBeforeTime E rho (SA.freezeTime p.toParams (r * p.R)) x).st.fg.F)
     (hcompat : Block.Compatible (eraseFG K)
       (eraseFG (V2.D.Run.stateBeforeTime E rho (SA.freezeTime p.toParams (r * p.R)) x).st.fg.F)) :
     (∀ B, FGBlock.Preceq B K →
@@ -44,6 +42,40 @@ example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
       FGBlock.Preceq K
         (V2.D.Run.stateBeforeTime E rho (SA.freezeTime p.toParams (r * p.R)) x).st.fg.F :=
   healing_tDel E rho hrec source mono y r K hy hK hgst hhor x hx hcompat
+
+-- Conditional package fixture: hcompat from K ⪯ F at the freeze read.
+example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (source : TSrc p c E rho) (mono : RMono p c E rho)
+    {x y : V} {r : Nat} {K : FGBlock (Fin p.n)}
+    (hy : y ∈ rho.honest) (hx : x ∈ rho.honest)
+    (hK : actionSourceFG p c E rho y r = some (some K))
+    (hgst : E.t_GST ≤ SA.voteTime p.toParams (r * p.R))
+    (hhor : SA.freezeTime p.toParams (r * p.R) ≤ rho.horizon)
+    (hKF : FGBlock.Preceq K
+      (V2.D.Run.stateBeforeTime E rho (SA.freezeTime p.toParams (r * p.R)) x).st.fg.F) :
+    (∀ B, FGBlock.Preceq B K →
+      B ∈ (V2.D.Run.stateBeforeTime E rho (SA.freezeTime p.toParams (r * p.R)) x).st.fg.TF) ∨
+      FGBlock.Preceq K
+        (V2.D.Run.stateBeforeTime E rho (SA.freezeTime p.toParams (r * p.R)) x).st.fg.F :=
+  healing_tDel E rho hrec source mono y r K hy hK hgst hhor x hx
+    (Gen.Pure.block_compatible_of_common (eraseFG_preceq hKF) (Gen.Pure.block_preceq_refl _))
+
+-- Conditional package fixture: hcompat from F ⪯ K at the freeze read.
+example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (source : TSrc p c E rho) (mono : RMono p c E rho)
+    {x y : V} {r : Nat} {K : FGBlock (Fin p.n)}
+    (hy : y ∈ rho.honest) (hx : x ∈ rho.honest)
+    (hK : actionSourceFG p c E rho y r = some (some K))
+    (hgst : E.t_GST ≤ SA.voteTime p.toParams (r * p.R))
+    (hhor : SA.freezeTime p.toParams (r * p.R) ≤ rho.horizon)
+    (hFK : FGBlock.Preceq
+      (V2.D.Run.stateBeforeTime E rho (SA.freezeTime p.toParams (r * p.R)) x).st.fg.F K) :
+    (∀ B, FGBlock.Preceq B K →
+      B ∈ (V2.D.Run.stateBeforeTime E rho (SA.freezeTime p.toParams (r * p.R)) x).st.fg.TF) ∨
+      FGBlock.Preceq K
+        (V2.D.Run.stateBeforeTime E rho (SA.freezeTime p.toParams (r * p.R)) x).st.fg.F :=
+  healing_tDel E rho hrec source mono y r K hy hK hgst hhor x hx
+    (Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl _) (eraseFG_preceq hFK))
 
 -- Conditional package fixture: an actual honest pre-GST body acceptance.
 example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF) (mono : RMono p c E rho)
