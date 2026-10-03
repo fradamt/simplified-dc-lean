@@ -2187,6 +2187,14 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.postReset_fProv_all',
     'AvailableChain.FGSA.Run.postReset_rFProv_reset',
     'AvailableChain.FGSA.Run.postReset_leaseSafe_antecedent_of_lastWrite',
+    # J9-POST: --expect DATA additions only.
+    'AvailableChain.FGSA.Run.healing_healTContract_reset',
+    'AvailableChain.FGSA.Run.healing_rKeep_of_reset',
+    'AvailableChain.FGSA.Run.healing_rFProv_of_reset',
+    'AvailableChain.FGSA.Run.healing_healRContract_reset',
+    'AvailableChain.FGSA.Run.healing_healT_of',
+    'AvailableChain.FGSA.Run.healing_healAC_of',
+    'AvailableChain.FGSA.Run.healing_healingInput_of',
 )
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
          'Packages.Safety', 'OutputReads', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',

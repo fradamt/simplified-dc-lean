@@ -153,6 +153,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat -- shake: 
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetCut -- shake: keep (RS-0 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLease -- shake: keep (J4 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep -- shake: keep (J3 audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostReset -- shake: keep (J9 axiom audit)
 
 #print axioms AvailableChain.FGSA.Run.kmid_honestSeats_mem
 #print axioms AvailableChain.FGSA.Run.kmid_honest_quorum
@@ -1665,3 +1666,12 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep -- shake: ke
 
 #print axioms AvailableChain.FGSA.Run.postReset_receiver_compatible
 #print axioms AvailableChain.FGSA.Run.postReset_tDel
+
+-- J9-POST: conditional packages and reset-only H0 adapters.
+#print axioms AvailableChain.FGSA.Run.healing_healTContract_reset
+#print axioms AvailableChain.FGSA.Run.healing_rKeep_of_reset
+#print axioms AvailableChain.FGSA.Run.healing_rFProv_of_reset
+#print axioms AvailableChain.FGSA.Run.healing_healRContract_reset
+#print axioms AvailableChain.FGSA.Run.healing_healT_of
+#print axioms AvailableChain.FGSA.Run.healing_healAC_of
+#print axioms AvailableChain.FGSA.Run.healing_healingInput_of
