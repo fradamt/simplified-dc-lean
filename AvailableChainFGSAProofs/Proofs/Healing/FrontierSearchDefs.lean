@@ -298,5 +298,62 @@ def FrontierSearchStatement (G ΔF : Time) : Prop :=
           (∀ k, timeIdx rho u₀ ≤ k → k ≤ j → frontierAtIdx p c E rho k ≤ M) ∧
           p.actionTime rStar ≤ ev.time + frontierSearchRowBudget p G ΔF ρbar)
 
+/-- Blueprint 21:1695–1800; S5 F2, full HG.4.
+DC: SAME expose the frozen conclusion contract for its producer. -/
+theorem frontierTailStatement_iff (G ΔF : Time) :
+    FrontierTailStatement p c E rho G ΔF ↔
+  p.δt = 2 * p.R → LivenessBoundW p ΔF →
+  ∀ i ev m kind, FrontierSearchStart p c E rho i ev m kind →
+    StrongServed p c E rho m ev.time →
+    (ev.time + (2 * P p + Γ p G - 9 * p.Δ) ≤ rho.horizon →
+      FrontierRiseBy p c E rho i m (ev.time + (2 * P p + Γ p G - 9 * p.Δ))) ∧
+    (ev.time + (P p - 4 * p.Δ) ≤ rho.horizon →
+      FirstHeightRowBy p c E rho m (ev.time + (P p - 4 * p.Δ))) := Iff.rfl
+
+/-- Blueprint 21:1695–1800; S5 F3, full HG.5.
+DC: SAME expose the frozen conclusion contract for its producer. -/
+theorem frontierSearchStatement_iff (G ΔF : Time) :
+    FrontierSearchStatement p c E rho G ΔF ↔
+  p.δt = 2 * p.R → LivenessBoundW p ΔF →
+  ∀ rG u₀ M, E.t_GST ≤ p.actionTime rG →
+    (∀ r, E.t_GST ≤ p.actionTime r → rG ≤ r) → u₀ = p.actionTime (rG + 2) →
+    E.t_GST + 2 * P p ≤ u₀ → M = honestFrontier p c E rho u₀ →
+    (∀ j y r a h e t, HonestRowAt p c E rho j y r a →
+      rho.events[j]? = some (.tick y t) → t ≤ u₀ →
+      namedEntry a.payload.height_pair = some (h, e) → h ≤ M) →
+    (∀ ρbar, (ρbar = ρΓ p G ∨ (ρbar = ρ₁ p G ∧ p.k ≤ 2 * p.R + 1)) →
+      u₀ + frontierSearchRiseBudget p G ΔF ρbar ≤ rho.horizon →
+      ∃ j ev, timeIdx rho u₀ ≤ j ∧ rho.events[j]? = some ev ∧
+        ev.time ≤ u₀ + frontierSearchRiseBudget p G ΔF ρbar ∧
+        M < frontierAtIdx p c E rho (j + 1) ∧
+        (∀ k, timeIdx rho u₀ ≤ k → k ≤ j → frontierAtIdx p c E rho k ≤ M)) ∧
+    ((∃ ρbar, (ρbar = ρΓ p G ∨ (ρbar = ρ₁ p G ∧ p.k ≤ 2 * p.R + 1)) ∧
+      u₀ + frontierSearchRiseBudget p G ΔF ρbar +
+        frontierSearchRowBudget p G ΔF ρbar ≤ rho.horizon) →
+    ∃ rStar, HeightRow p c E rho rStar (M + 1) ∧
+      (∀ r, HeightRow p c E rho r (M + 1) → rStar ≤ r) ∧
+      ∀ ρbar, (ρbar = ρΓ p G ∨ (ρbar = ρ₁ p G ∧ p.k ≤ 2 * p.R + 1)) →
+        u₀ + frontierSearchRiseBudget p G ΔF ρbar +
+          frontierSearchRowBudget p G ΔF ρbar ≤ rho.horizon →
+        ∃ j ev, timeIdx rho u₀ ≤ j ∧ rho.events[j]? = some ev ∧
+          ev.time ≤ u₀ + frontierSearchRiseBudget p G ΔF ρbar ∧
+          M < frontierAtIdx p c E rho (j + 1) ∧
+          (∀ k, timeIdx rho u₀ ≤ k → k ≤ j → frontierAtIdx p c E rho k ≤ M) ∧
+          p.actionTime rStar ≤ ev.time + frontierSearchRowBudget p G ΔF ρbar) := Iff.rfl
+
+/-- Blueprint 21:1722–1800; S5 F3.
+DC: SAME expose the frozen rise budget for arithmetic composition. -/
+theorem frontierSearchRiseBudget_eq (G ΔF ρbar : Time) :
+    frontierSearchRiseBudget p G ΔF ρbar =
+      E_gF p ΔF G ρbar + E_jF p ΔF G ρbar + B_cF p ΔF G ρbar := by
+  exact Eq.refl _
+
+/-- Blueprint 21:1722–1800; S5 F3.
+DC: SAME expose the frozen row budget for arithmetic composition. -/
+theorem frontierSearchRowBudget_eq (G ΔF ρbar : Time) :
+    frontierSearchRowBudget p G ΔF ρbar =
+      E_gF p ΔF G ρbar + E_jF p ΔF G ρbar + D_cF p ρbar := by
+  exact Eq.refl _
+
 end AvailableChain.FGSA.Run
 end

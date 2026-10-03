@@ -220,3 +220,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTop
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchBudget
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionTerminal
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchHG2a
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchRise
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchCompose
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTasks
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchFull

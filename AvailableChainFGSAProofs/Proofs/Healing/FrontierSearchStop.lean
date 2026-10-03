@@ -205,5 +205,101 @@ theorem frontierSearch_phase_step (mono : RMono p c E rho) (hnr : V2.D.NoRestart
     · exact (hn htj).elim
     · exact (hn hcj).elim
 
+/-- Blueprint 21:1592–1638; S5 H2, route step 1.
+DC: SAME choose the first rise strictly before D, or cap the strict cut.
+A rise at exactly D does not enter the strict prefix. Same-frontier events do not stop it. -/
+theorem frontierSearch_strict_cap_or_rise
+    (hs : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.NoRestart rho)
+    (i m : Nat) (D : Time) (hstart : frontierAtIdx p c E rho (i + 1) ≤ m) :
+    FrontierRiseBy p c E rho i m D ∨
+      (∀ k x, k ≤ V2.D.Run.idxBefore rho D → x ∈ rho.honest →
+        (storeAt p c E rho k x).fg.h_max ≤ m) := by
+  classical
+  by_cases hc : frontierAtIdx p c E rho (V2.D.Run.idxBefore rho D) ≤ m
+  · right
+    intro k x hk hx
+    exact (healing_phase_local_le_frontier p c E rho hx).trans
+      ((healing_frontier_mono p c E rho hnr hk).trans hc)
+  · left
+    have hcut : i + 1 < V2.D.Run.idxBefore rho D := by
+      by_contra hn
+      exact hc ((healing_frontier_mono p c E rho hnr (by omega)).trans hstart)
+    have hex : ∃ j, i < j ∧ j < V2.D.Run.idxBefore rho D ∧
+        m < frontierAtIdx p c E rho (j + 1) := by
+      refine ⟨V2.D.Run.idxBefore rho D - 1, by omega, by omega, ?_⟩
+      simpa only [Nat.sub_add_cancel (by omega : 1 ≤ V2.D.Run.idxBefore rho D)] using
+        (lt_of_not_ge hc)
+    let j := Nat.find hex
+    obtain ⟨hij, hjD, hh⟩ := Nat.find_spec hex
+    have hjlen : j < rho.events.length := hjD.trans_le (List.length_filter_le ..)
+    let ev := rho.events[j]
+    have hj : rho.events[j]? = some ev := List.getElem?_eq_getElem hjlen
+    apply (frontierRiseBy_iff p c E rho i m D).mpr
+    refine ⟨j, ev, hij, hj,
+      ((Gen.V2.Duty.index_lt_idxBefore_iff hs hj D).mp hjD).le, hh, ?_⟩
+    intro k hik hkj
+    by_cases hk : k = i + 1
+    · exact hk ▸ hstart
+    · by_contra hn
+      have hkpos : 0 < k := by omega
+      apply Nat.find_min hex (show k - 1 < j by omega)
+      exact ⟨by omega, by omega, by
+        simpa only [Nat.sub_add_cancel hkpos] using (lt_of_not_ge hn)⟩
+
+omit [DecidableEq V] in
+/-- Blueprint 21:1592–1638; S5 H2, route step 4.
+DC: SAME an inclusive earlier read lies inside the strict later cut. -/
+theorem frontierSearch_timeIdx_le_idxBefore {t D : Time} (ht : t < D) :
+    timeIdx rho t ≤ V2.D.Run.idxBefore rho D := by
+  change (rho.events.filter (fun e => decide (e.time ≤ t))).length ≤
+    (rho.events.filter (fun e => decide (e.time < D))).length
+  rw [← List.countP_eq_length_filter, ← List.countP_eq_length_filter]
+  exact List.countP_mono_left (fun e _ he =>
+    decide_eq_true ((of_decide_eq_true he).trans_lt ht))
+
+/-- Blueprint 21:1695–1720; S5 F2.
+DC: SAME a longer deadline retains the same first rise and earlier frontier cap. -/
+theorem frontierSearch_rise_mono {i m : Nat} {d D : Time} (hd : d ≤ D)
+    (hr : FrontierRiseBy p c E rho i m d) : FrontierRiseBy p c E rho i m D := by
+  obtain ⟨j, ev, hij, hj, ht, hh, hf⟩ := (frontierRiseBy_iff p c E rho i m d).mp hr
+  exact (frontierRiseBy_iff p c E rho i m D).mpr ⟨j, ev, hij, hj, ht.trans hd, hh, hf⟩
+
+/-- Blueprint 21:1695–1720; S5 F2.
+DC: SAME strict honest high receipt forces a first rise before the receipt deadline. -/
+theorem frontierSearch_rise_of_receipt (hs : V2.D.ScheduleWellFormed E rho)
+    (hnr : V2.D.NoRestart rho) {i m : Nat} {d D : Time} {x : V}
+    {X : FGBlock (Fin p.n)} (hstart : frontierAtIdx p c E rho (i + 1) ≤ m)
+    (hx : x ∈ rho.honest) (hh : m + 1 ≤ (heightView p X).h)
+    (hheld : Gen.V2.Duty.HoldsBefore E rho (fun nd => X ∈ nd.st.fg.TF) d x)
+    (hd : d ≤ D) : FrontierRiseBy p c E rho i m D := by
+  rcases frontierSearch_strict_cap_or_rise p c E rho hs hnr i m D hstart with hr | hc
+  · exact hr
+  · change X ∈ (V2.D.Run.stateBeforeTime E rho d x).st.fg.TF at hheld
+    rw [← Gen.V2.Duty.stateBefore_idxBefore E rho d hs] at hheld
+    have hX := (fgsa_store_cumulative p c E rho hnr
+      (healing_phase_idxBefore_mono p c rho hd) x).1 hheld
+    have hhi := healing_phase_height_le p c E rho hX
+    have hcap := hc _ x le_rfl hx
+    simp only [Height] at *
+    omega
+
+/-- Blueprint 21:1722–1800; S5 F3.
+DC: SAME expose the frozen phase rank for finite composition. -/
+@[simp] theorem frontierSearch_phaseRank_gap :
+    frontierSearch_phaseRank .gap = 0 := by
+  exact Eq.refl _
+
+/-- Blueprint 21:1722–1800; S5 F3.
+DC: SAME expose the frozen phase rank for finite composition. -/
+@[simp] theorem frontierSearch_phaseRank_topJ :
+    frontierSearch_phaseRank .topJ = 1 := by
+  exact Eq.refl _
+
+/-- Blueprint 21:1722–1800; S5 F3.
+DC: SAME expose the frozen phase rank for finite composition. -/
+@[simp] theorem frontierSearch_phaseRank_contest :
+    frontierSearch_phaseRank .contest = 2 := by
+  exact Eq.refl _
+
 end AvailableChain.FGSA.Run
 end

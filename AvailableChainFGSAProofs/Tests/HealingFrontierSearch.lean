@@ -5,6 +5,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchBudget -- sh
 
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchHG2a -- shake: keep (examples)
 
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchFull -- shake: keep (S5 tests)
+
 set_option linter.privateModule false
 
 /-! HG.3 phase applications, finite interrupts, phase-order progress,
@@ -258,5 +260,131 @@ example : max (54 + (12 : Int) - 1) (44 + 2 * 8 + 12 - 3) = 69 ∧
 #print axioms frontierSearch_hg2a_bound
 #print axioms frontierSearch_hg2a_gate_cost
 #print axioms frontierSearch_hg2a_gap
+
+end AvailableChain.FGSA.Run.Tests.HealingFrontierSearch
+
+-- Blueprint 21:1592–1800; S5 T. H1, H2, F2, and F3 producer applications.
+-- DC: SAME all previous grid and interface tests remain in the file.
+namespace AvailableChain.FGSA.Run.Tests.HealingFrontierSearch
+open AvailableChain.SimplexFG
+
+section CappedReceiptApplications
+variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In}
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hrec : Recovery₂ p c E rho G ΔF)
+    (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF)
+    (mono : RMono p c E rho) (crossing : RXing p c E rho) (cap : RCap p c E rho)
+    (origin : RQCOrigin p c E rho) (repair : TRepair p c E rho) (common : TCommon p c E rho)
+    (perm : TPerm p c E rho) (frontier : TFrontier p c E rho)
+    (writes : ∀ i x (row : Block × Nat × Time),
+      row ∈ (storeAt p c E rho i x).base.obligations →
+      ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
+        gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
+        row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
+        row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
+        ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
+          let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          GridCO.savedGenuine pre.base w = none →
+          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+            (actView pre) w C)
+    (rowCoverage : ∀ x, x ∈ rho.honest → ∀ r nd,
+      postClock E rho x (p.actionTime r) = some nd → ∀ C,
+      actionSourceFG p c E rho x r = some (some C) →
+      C ∈ FGSA.fullTree p nd.st →
+      (FGSA.controls p nd.st).lo ≤ (heightView p C).h →
+      E.awake x (p.actionTime r) = true →
+      ∃ j rSent a, rSent ≤ r ∧ HonestRowAt p c E rho j x rSent a ∧
+        namedEntry a.payload.height_pair =
+          some ((heightView p C).h, (heightView p C).T_h.root))
+    (rowsReceipt : ∀ j y r (a : RowWire p.n), HonestRowAt p c E rho j y r a →
+      max (p.actionTime r) E.t_GST + ΔF ≤ rho.horizon →
+      ∀ x ∈ rho.honest, HeldBefore p c E rho x a (max (p.actionTime r) E.t_GST + ΔF))
+    (progressCoverage : ∀ (r height : Nat) (U X : FGBlock (Fin p.n)),
+      BatchPrem p c E rho ΔF .progress r height U X →
+      (heightView p X.parent).h = height → CoveredByChild p .progress X U height)
+    (hfold : foldTrichotomy p .progress)
+    (faultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+    (honestQuorum : p.E.q ≤ p.E.weightOf (honestSeats p c rho))
+
+example {r m : Nat} {s : Slot} {U X : FGBlock (Fin p.n)}
+    (src : PromotionSourceAt p c E rho ΔF r m U s X) : m + 1 ≤ (heightView p X).h :=
+  promotion_age_advance_of_source E rho hrec src hδ hbound rowsReceipt
+    progressCoverage hfold faultQ honestQuorum
+
+example {m : Nat} {s : Slot} {Qfg X : FGBlock (Fin p.n)}
+    (hnew : HonestProposal E rho (fgsaInterface p c) s (eraseFG X))
+    (hgst : E.t_GST ≤ SA.proposalTime p.toParams s) (hQX : FGBlock.Preceq Qfg X.parent)
+    (hcap : ∀ i x, i ≤ V2.D.Run.idxBefore rho (SA.proposalTime p.toParams s + p.Δ) →
+      x ∈ rho.honest → (storeAt p c E rho i x).fg.h_max ≤ m)
+    (hQm : (heightView p Qfg).h = m)
+    (hhor : SA.proposalTime p.toParams s + p.Δ = rho.horizon) :
+    ∃ y, y ∈ rho.honest ∧ Gen.V2.Duty.HoldsBefore E rho
+      (fun nd => X ∈ nd.st.fg.TF) rho.horizon y := by
+  simpa only [hhor] using healing_promotion_first_receipt_of_frontierCap E rho hrec
+    crossing hnew hgst hQX hcap hQm hhor.le
+
+example {u : Time} {i m r q : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
+    {Q : Block} {Qfg U : FGBlock (Fin p.n)}
+    (hgst : E.t_GST ≤ u) (hQ : HonestProposal E rho (fgsaInterface p c) q Q)
+    (he : eraseFG Qfg = Q) (hQm : (heightView p Qfg).h = m)
+    (hexact : ExactService p c E rho q Q) (hseed : FrontierSeedQualification p E u q)
+    (hu : u ≤ SA.proposalTime p.toParams q)
+    (hp : PhaseInterval p c E rho u (SA.gateTime p.toParams q) m J contested)
+    (hqr : q ≤ r * p.R) (hU : U = (heightView p Qfg).T_h)
+    (hstart : frontierAtIdx p c E rho (i + 1) ≤ m)
+    (hhor : max (p.actionTime r + Γ p G - p.Δ + epsF p ΔF)
+      (SA.proposalTime p.toParams U.slot + 2 * P p + Γ p G - 3 * p.Δ) = rho.horizon) :
+    FrontierHG2aResult E rho G ΔF i m r U :=
+  frontier_hg2a_receipt E rho hrec hδ hbound crossing frontier rowsReceipt progressCoverage
+    hfold faultQ honestQuorum hgst hQ he hQm hexact hseed hu hp hqr hU hstart hhor.le
+
+example : FrontierTailStatement p c E rho G ΔF :=
+  healing_frontierTail E rho hrec mono crossing cap writes rowCoverage rowsReceipt
+    progressCoverage hfold faultQ honestQuorum
+
+example : FrontierSearchStatement p c E rho G ΔF :=
+  healing_frontierSearch E rho hrec mono crossing cap origin repair common perm writes
+    rowCoverage rowsReceipt progressCoverage hfold faultQ honestQuorum
+
+example {i m : Nat} {ev : V2.Event V (Obj p)} {kind : PhaseKind}
+    (hstart : FrontierSearchStart p c E rho i ev m kind)
+    (hserved : StrongServed p c E rho m ev.time)
+    (hhor : ev.time + (2 * P p + Γ p G - 9 * p.Δ) = rho.horizon) :
+    FrontierRiseBy p c E rho i m rho.horizon := by
+  simpa only [hhor] using healing_frontierTail_rise E rho hrec hδ hbound crossing frontier
+    rowsReceipt progressCoverage hfold faultQ honestQuorum hstart hserved hhor.le
+
+-- The strict cut excludes the rise event when its time is exactly D.
+example (hs : V2.D.ScheduleWellFormed E rho) {j : Nat} {ev : V2.Event V (Obj p)} {D : Time}
+    (hj : rho.events[j]? = some ev) (ht : ev.time = D) : V2.D.Run.idxBefore rho D ≤ j := by
+  by_contra hn
+  have hlt := (Gen.V2.Duty.index_lt_idxBefore_iff hs hj D).mp (by omega)
+  have hlt' : ev.time < D := hlt
+  exact (not_lt_of_ge ht.ge) hlt'
+
+end CappedReceiptApplications
+
+-- Both aligned grid examples use the unchanged HG.4 horizon.
+example : max (54 + Γ hg2aParams 8 - hg2aParams.Δ + epsF hg2aParams 2)
+    (44 + 2 * P hg2aParams + Γ hg2aParams 8 - 3 * hg2aParams.Δ) ≤ (65 : Time) := by
+  convert frontierSearch_hg2a_bound hg2aParams 8 2 50 54 44
+    ⟨by decide⟩ (by decide) (by decide) using 1
+  norm_num [P, Γ, hg2aParams]
+
+example : max (54 + Γ hg2aParams 12 - hg2aParams.Δ + epsF hg2aParams 2)
+    (44 + 2 * P hg2aParams + Γ hg2aParams 12 - 3 * hg2aParams.Δ) ≤ (69 : Time) := by
+  convert frontierSearch_hg2a_bound hg2aParams 12 2 50 54 44
+    ⟨by decide⟩ (by decide) (by decide) using 1
+  norm_num [P, Γ, hg2aParams]
+
+#print axioms promotion_age_advance_of_source
+#print axioms healing_promotion_first_receipt_of_frontierCap
+#print axioms frontier_hg2a_receipt
+#print axioms healing_frontierTail
+#print axioms healing_frontierSearch
 
 end AvailableChain.FGSA.Run.Tests.HealingFrontierSearch
