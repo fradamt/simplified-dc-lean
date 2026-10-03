@@ -1,4 +1,6 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionArithmetic -- shake: keep (H-PROMOTE arithmetic audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.Promotion -- shake: keep (H-PROMOTE axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.FramePaths -- shake: keep (H-FRAME audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.FrameZero -- shake: keep (zero-label audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.FrameRelay -- shake: keep (witness relay audit)
@@ -1055,3 +1057,15 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.kernel_middle_early_justification
 #print axioms AvailableChain.FGSA.Run.kernel_middle_source_cap
 #print axioms AvailableChain.FGSA.Run.kmid_source_held_at_tick
+
+-- H-PROMOTE helpers; the full renewed boundary remains open.
+#print axioms AvailableChain.FGSA.Run.healing_promotion_gap_remainder
+#print axioms AvailableChain.FGSA.Run.healing_promotion_gap
+#print axioms AvailableChain.FGSA.Run.healing_promotion_row_deadline
+#print axioms AvailableChain.FGSA.Run.healing_promotion_row_receipt
+#print axioms AvailableChain.FGSA.Run.healing_promotion_maturity
+#print axioms AvailableChain.FGSA.Run.healing_promotion_age_gap
+#print axioms AvailableChain.FGSA.Run.healing_promotion_fixed_rows
+#print axioms AvailableChain.FGSA.Run.healing_promotion_source_body
+#print axioms AvailableChain.FGSA.Run.healing_promotion_source_parent
+#print axioms AvailableChain.FGSA.Run.healing_promotion_continuing_service

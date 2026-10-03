@@ -49,6 +49,17 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.healing_carried_path',
     'AvailableChain.FGSA.Run.healing_full_witness_all',
     'AvailableChain.FGSA.Run.healing_witness_relay_phase',
+    # H-PROMOTE helpers: --expect ADDITIONS only.
+    'AvailableChain.FGSA.Run.healing_promotion_gap_remainder',
+    'AvailableChain.FGSA.Run.healing_promotion_gap',
+    'AvailableChain.FGSA.Run.healing_promotion_row_deadline',
+    'AvailableChain.FGSA.Run.healing_promotion_row_receipt',
+    'AvailableChain.FGSA.Run.healing_promotion_maturity',
+    'AvailableChain.FGSA.Run.healing_promotion_age_gap',
+    'AvailableChain.FGSA.Run.healing_promotion_fixed_rows',
+    'AvailableChain.FGSA.Run.healing_promotion_source_body',
+    'AvailableChain.FGSA.Run.healing_promotion_source_parent',
+    'AvailableChain.FGSA.Run.healing_promotion_continuing_service',
     # H-SUPPORT: --expect additions only.
     'AvailableChain.FGSA.Run.healing_settled_frame_strict',
     'AvailableChain.FGSA.Run.healing_witness_relay_settled',
