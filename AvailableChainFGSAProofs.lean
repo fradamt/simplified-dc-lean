@@ -79,6 +79,7 @@ public import AvailableChainFGSAProofs.Proofs.Finality.MiddleSupport
 public import AvailableChainFGSAProofs.Proofs.Finality.Middle
 public import AvailableChainFGSAProofs.Proofs.Finality.FrontierBound
 public import AvailableChainFGSAProofs.Proofs.Finality.RowsFrame
+public import AvailableChainFGSAProofs.Proofs.Finality.ActionTime
 public import AvailableChainFGSAProofs.Proofs.Finality.RowsBatch
 public import AvailableChainFGSAProofs.Proofs.Finality.RowsRecords
 public import AvailableChainFGSAProofs.Proofs.Finality.RowsPrem
@@ -195,3 +196,5 @@ public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthReads
 public import AvailableChainFGSAProofs.Proofs.Outage.Growth
 public import AvailableChainFGSAProofs.Proofs.Finality.Forward
 public import AvailableChainFGSAProofs.Proofs.Finality.Local
+public import AvailableChainFGSAProofs.Proofs.Finality.Proposal
+public import AvailableChainFGSAProofs.Proofs.Finality.Above
