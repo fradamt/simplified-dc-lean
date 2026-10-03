@@ -36,6 +36,10 @@ structure HealingWitness where
 /-- Healing starts at d_u (21 H.22:3054; 22 §1:236). -/
 def tstar (p : Params) (w : HealingWitness) : Time := SA.gateTime p.toParams w.u
 
+-- equation export required by BUILD §7.2 B3a (post-freeze additive _def batch)
+theorem tstar_def (p : Params) (w : HealingWitness) :
+    tstar p w = SA.gateTime p.toParams w.u := rfl
+
 
 open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V]
