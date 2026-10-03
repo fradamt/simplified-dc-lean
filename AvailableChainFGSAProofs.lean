@@ -199,6 +199,10 @@ public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthReads
 public import AvailableChainFGSAProofs.Proofs.Outage.Growth
 public import AvailableChainFGSAProofs.Proofs.Finality.Forward
 public import AvailableChainFGSAProofs.Proofs.Finality.Local
+public import AvailableChainFGSAProofs.Proofs.Healing.Attempt
+public import AvailableChainFGSAProofs.Proofs.Healing.AttemptBudget
+public import AvailableChainFGSAProofs.Proofs.Healing.AttemptStop
+public import AvailableChainFGSAProofs.Proofs.Healing.AttemptSettle
 public import AvailableChainFGSAProofs.Proofs.Healing.SourceTiming
 public import AvailableChainFGSAProofs.Proofs.Healing.Delivery
 public import AvailableChainFGSAProofs.Proofs.Healing.DeliveryReset
@@ -209,6 +213,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetInvariant
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetTransfer
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetCut
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionTerminal
+public import AvailableChainFGSAProofs.Proofs.Assembly.ProgressAttempt
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLease
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep
 public import AvailableChainFGSAProofs.Proofs.Healing.PostReset
@@ -225,3 +231,4 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLeaseStep
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetHigh
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJoint
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetProject

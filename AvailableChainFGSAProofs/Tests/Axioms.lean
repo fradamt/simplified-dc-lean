@@ -9,6 +9,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.Promotion -- shake: keep (
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionCarrier -- shake: keep (H-PROMOTE carrier axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionRows -- shake: keep (H-PROMOTE same-row axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionRenewed -- shake: keep (r3 axiom checks)
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionTerminal -- shake: keep (terminal axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionAge -- shake: keep (HG.2 axiom check)
 public import AvailableChainFGSAProofs.Proofs.Healing.FramePaths -- shake: keep (H-FRAME audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.FrameZero -- shake: keep (zero-label audit)
@@ -139,6 +140,7 @@ public import AvailableChainFGSAProofs.Proofs.Shared.OpeningAfterGate -- shake: 
 public import AvailableChainFGSAProofs.Proofs.Shared.HeadAfterSettlement -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Healing.AdditiveStageBounds -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Healing.PeriodicStageBounds -- shake: keep (axiom audit commands)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetProject -- shake: keep (J3 projection audit)
 
 public import AvailableChainFGSAProofs.Proofs.Clean.Chain -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.State -- shake: keep (axiom audit commands)
@@ -165,6 +167,13 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLeaseStep -- shak
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetHigh -- shake: keep (THigh audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw -- shake: keep (J5 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJoint -- shake: keep (JOINT-IND audit)
+
+public import AvailableChainFGSAProofs.Proofs.Healing.Attempt -- shake: keep (H-ATTEMPT axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.AttemptBudget -- shake: keep (H-ATTEMPT axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.AttemptStop -- shake: keep (H-ATTEMPT axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.AttemptSettle -- shake: keep (CUT axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.AttemptRows -- shake: keep (complete first rows)
+public import AvailableChainFGSAProofs.Proofs.Assembly.ProgressAttempt -- shake: keep
 
 #print axioms AvailableChain.FGSA.Run.kmid_honestSeats_mem
 #print axioms AvailableChain.FGSA.Run.kmid_honest_quorum
@@ -1593,6 +1602,35 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJoint -- shake: k
 #print axioms AvailableChain.FGSA.Run.postReset_reset_compatible_succ
 #print axioms AvailableChain.FGSA.Run.postReset_descent_kept
 
+-- S5 H-ATTEMPT: conditional rows, arithmetic and stopping facts.
+#print axioms AvailableChain.FGSA.Run.healing_progressAttempt_of
+#print axioms AvailableChain.FGSA.Run.healing_attempt_raise_contest_budget
+#print axioms AvailableChain.FGSA.Run.healing_attempt_raise_other_budget
+#print axioms AvailableChain.FGSA.Run.healing_attempt_firstRow_contest_budget
+#print axioms AvailableChain.FGSA.Run.healing_attempt_firstRow_other_budget
+#print axioms AvailableChain.FGSA.Run.healing_attempt_raise_contest_cost
+#print axioms AvailableChain.FGSA.Run.healing_attempt_raise_other_cost
+#print axioms AvailableChain.FGSA.Run.healing_attempt_firstRow_contest_cost
+#print axioms AvailableChain.FGSA.Run.healing_attempt_firstRow_other_cost
+#print axioms AvailableChain.FGSA.Run.healing_attempt_high_source_cost
+#print axioms AvailableChain.FGSA.Run.healing_attempt_terminal_horizon_gap
+#print axioms AvailableChain.FGSA.Run.healing_attempt_ends_of_event
+#print axioms AvailableChain.FGSA.Run.healing_attempt_ends_of_row
+#print axioms AvailableChain.FGSA.Run.healing_attempt_ends_mono
+#print axioms AvailableChain.FGSA.Run.healing_attempt_no_event
+#print axioms AvailableChain.FGSA.Run.healing_attempt_inclusive_start
+
+-- S5 H-ATTEMPT-2: start settlement and four row settlement facts.
+#print axioms AvailableChain.FGSA.Run.healing_settle_start
+#print axioms AvailableChain.FGSA.Run.healing_attempt_settle_start
+#print axioms AvailableChain.FGSA.Run.healing_attempt_raise_contest_settle
+#print axioms AvailableChain.FGSA.Run.healing_attempt_raise_other_settle
+#print axioms AvailableChain.FGSA.Run.healing_attempt_firstRow_contest_settle
+#print axioms AvailableChain.FGSA.Run.healing_attempt_firstRow_other_settle
+
+-- S5 H-ATTEMPT-3: complete first-row lane lemmas.
+#print axioms AvailableChain.FGSA.Run.healing_attempt_firstRow_contest
+#print axioms AvailableChain.FGSA.Run.healing_attempt_firstRow_other
 #print axioms AvailableChain.FGSA.Run.healing_source_label_bound
 #print axioms AvailableChain.FGSA.Run.healing_source_relay_deadline
 #print axioms AvailableChain.FGSA.Run.healing_source_row_label
@@ -1660,7 +1698,13 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJoint -- shake: k
 #print axioms AvailableChain.FGSA.Run.reset_old_row_before_cut
 #print axioms AvailableChain.FGSA.Run.reset_old_height_sup_le
 #print axioms AvailableChain.FGSA.Run.reset_mu_le_iff
+#print axioms AvailableChain.FGSA.Run.healing_renewedPromotion_terminal
+#print axioms AvailableChain.FGSA.Run.healing_attempt_raise_contest
+#print axioms AvailableChain.FGSA.Run.healing_attempt_raise_other
+#print axioms AvailableChain.FGSA.Run.healing_progressAttempt
 
+-- Blueprint 21 H.10; plan item S5 PA-ASSEMBLY P2; DC: SAME frozen statement.
+#print axioms AvailableChain.FGSA.Run.healing_progressAttemptStatement
 -- S5 J6: reset-only retained HEAD and carrier audit.
 #print axioms AvailableChain.FGSA.Run.PostResetRetainedCone
 #print axioms AvailableChain.FGSA.Run.postReset_source_label_le_sub_two
@@ -1764,3 +1808,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJoint -- shake: k
 #print axioms AvailableChain.FGSA.Run.postReset_inv_all
 #print axioms AvailableChain.FGSA.Run.postReset_reset_lease_compatible_all
 #print axioms AvailableChain.FGSA.Run.postReset_opening_domain_all
+-- J3-REST: reset-only projections and source route.
+#print axioms AvailableChain.FGSA.Run.postReset_source_gate_result
+#print axioms AvailableChain.FGSA.Run.postReset_tCarrier_reset
+#print axioms AvailableChain.FGSA.Run.postReset_h2A_reset
