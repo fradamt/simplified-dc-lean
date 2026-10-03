@@ -22,7 +22,7 @@ private theorem boot_one_le_hmax (i : Nat) (x : V) :
 /-- Blueprint 21:1236–1237, 1467–1468; plan S20, H-PHASE r2/Q3 (B21).
 DC: INTENTIONAL at frontier one each live frame is the genesis top-J frame,
 with lo = 0. No contest is possible. -/
-private theorem boot_height_one {i : Nat} {x : V} (hx : x ∈ rho.honest)
+theorem boot_height_one {i : Nat} {x : V} (hx : x ∈ rho.honest)
     (hfront : frontierAtIdx p c E rho i = 1) :
     (R_at p c E rho i x).H = 1 ∧ (R_at p c E rho i x).j = 0 ∧
       (R_at p c E rho i x).J = .genesis ∧ (R_at p c E rho i x).contest = false ∧
@@ -59,7 +59,7 @@ private theorem boot_height_one {i : Nat} {x : V} (hx : x ∈ rho.honest)
 DC: INTENTIONAL the m = 1 PhaseInterval, with root `some genesis` and no
 contest, from the strict cut at u (B21, B25). It holds on every range at
 frontier one. -/
-private theorem boot_phase_one {u v : Time} (huv : u ≤ v) (hv : v ≤ rho.horizon)
+theorem boot_phase_one {u v : Time} (huv : u ≤ v) (hv : v ≤ rho.horizon)
     (hfront : ∀ i, V2.D.Run.idxBefore rho u ≤ i → i ≤ timeIdx rho v →
       frontierAtIdx p c E rho i = 1) :
     PhaseInterval p c E rho u v 1 (some .genesis) false := by
@@ -71,7 +71,7 @@ private theorem boot_phase_one {u v : Time} (huv : u ≤ v) (hv : v ≤ rho.hori
 /-- Blueprint 21:1003–1012, 1467–1468; plan S20, H-PHASE r2/Q3 (B21).
 DC: INTENTIONAL no event is effective with resulting frontier one, so the
 settlement clause is vacuous at m = 1. -/
-private theorem boot_not_effective_one (hnr : V2.D.NoRestart rho) {i : Nat}
+theorem boot_not_effective_one (hnr : V2.D.NoRestart rho) {i : Nat}
     (hf : frontierAtIdx p c E rho (i + 1) = 1) : ¬ EffectiveEvent p c E rho i := by
   have hne : rho.honest.Nonempty := by
     by_contra hn

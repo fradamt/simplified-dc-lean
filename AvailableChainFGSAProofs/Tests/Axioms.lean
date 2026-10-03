@@ -26,8 +26,15 @@ public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6 -- shake: keep (H
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6S -- shake: keep (H-REPAIR audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairGate -- shake: keep (H-REPAIR audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.Repair -- shake: keep (H-REPAIR audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportFrame -- shake: keep (G-HG1 audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportHeads -- shake: keep (G-HG1 audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportTransfer -- shake: keep (G-HG1 audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportProposal -- shake: keep (G-HG1 audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierRead -- shake: keep (G-HG1 audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceOne -- shake: keep (H-GATE audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.RiseOneRise -- shake: keep (M5 and M5b axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.CommonEntry -- shake: keep (H-COMMON audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierOpenAll -- shake: keep (H-FRONT-OPEN audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposal -- shake: keep (I-EXACT axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalHistory -- shake: keep (I-EXACT history audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalReceipts -- shake: keep (I-EXACT r2 receipt audit)
@@ -42,14 +49,17 @@ public import AvailableChainFGSAProofs.Proofs.Finality.Height -- shake: keep (K-
 public import AvailableChainFGSAProofs.Proofs.Finality.Receipt -- shake: keep (K-RECEIPT audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Rows -- shake: keep (K-ROWS audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Middle -- shake: keep (K-MID audit)
+public import AvailableChainFGSAProofs.Proofs.Finality.FrontierBound -- shake: keep (F-ABOVE-A audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.TailSplit -- shake: keep (K-TAIL audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.TailReceipt -- shake: keep (K-TAIL audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.TailKernel -- shake: keep (K-TAIL r2 audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.TailMixed -- shake: keep (K-TAIL r3 audit)
+public import AvailableChainFGSAProofs.Proofs.Finality.TailBatch -- shake: keep (K-TAIL r4 audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.RowsFrame -- shake: keep (K-ROWS-PREM audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.RowsBatch -- shake: keep (K-ROWS-PREM audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.RowsRecords -- shake: keep (K-ROWS-PREM audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.RowsPrem -- shake: keep (K-ROWS-PREM P3 audit)
+public import AvailableChainFGSAProofs.Proofs.Finality.Kernel -- shake: keep (K-FWD audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Carry -- shake: keep (K-CARRY audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Batch -- shake: keep (K-BATCH audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Accept -- shake: keep (K-ACCEPT axiom audit)
@@ -1029,6 +1039,31 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.repair_two_lease
 #print axioms AvailableChain.FGSA.Run.repair_synchronous
 #print axioms AvailableChain.FGSA.Run.healing_tRepair
+-- G-HG1: capped frontier support, lease cover and the retained HG.1 cone input.
+#print axioms AvailableChain.FGSA.Run.frontier_height_mono
+#print axioms AvailableChain.FGSA.Run.frontier_cap_before
+#print axioms AvailableChain.FGSA.Run.frontier_height_eq
+#print axioms AvailableChain.FGSA.Run.frontier_self_witness
+#print axioms AvailableChain.FGSA.Run.frontier_F_below
+#print axioms AvailableChain.FGSA.Run.frontier_relay
+#print axioms AvailableChain.FGSA.Run.frontier_head_relay
+#print axioms AvailableChain.FGSA.Run.frontier_head_batch_seat
+#print axioms AvailableChain.FGSA.Run.frontier_next_transfer_core
+#print axioms AvailableChain.FGSA.Run.frontier_first_transfer_core
+#print axioms AvailableChain.FGSA.Run.frontier_first_transfer_fast
+#print axioms AvailableChain.FGSA.Run.frontier_first_transfer_slow
+#print axioms AvailableChain.FGSA.Run.frontier_heads_transfer
+#print axioms AvailableChain.FGSA.Run.frontier_Q_heads
+#print axioms AvailableChain.FGSA.Run.frontier_fast_heads
+#print axioms AvailableChain.FGSA.Run.frontier_slow_heads
+#print axioms AvailableChain.FGSA.Run.frontier_proposal_batch_seat
+#print axioms AvailableChain.FGSA.Run.frontier_prior_support
+#print axioms AvailableChain.FGSA.Run.frontier_target_scores
+#print axioms AvailableChain.FGSA.Run.frontier_seed_leases
+#print axioms AvailableChain.FGSA.Run.frontier_lease_cover
+#print axioms AvailableChain.FGSA.Run.frontier_pivot_held
+#print axioms AvailableChain.FGSA.Run.retainedHG1Input_through
+#print axioms AvailableChain.FGSA.Run.retainedHG1Input_before_first_rise
 -- H-GATE: O1–O5.
 #print axioms AvailableChain.FGSA.Run.opening_gate_support
 #print axioms AvailableChain.FGSA.Run.opening_result_slot
@@ -1143,6 +1178,8 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_tVote
 #print axioms AvailableChain.FGSA.Run.fgsa_coreServices
 #print axioms AvailableChain.FGSA.Run.fgsa_kernelACSide_W
+#print axioms AvailableChain.FGSA.Run.fgsa_finalityKernel_W_of
+#print axioms AvailableChain.FGSA.Run.fgsa_finalityKernel_W
 -- K-HISTORY: raw origin is supplied by Assembly.
 #print axioms AvailableChain.FGSA.Run.noMixedPreBatchParent
 #print axioms AvailableChain.FGSA.Run.justifyFresh_W
@@ -1192,6 +1229,8 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.clean_inclusion_body
 -- K-MID: the kernel opening, middle block, fresh entry and early carrier.
 #print axioms AvailableChain.FGSA.Run.kernel_opening_and_middle
+#print axioms AvailableChain.FGSA.Run.honestFrontier_le_opening
+#print axioms AvailableChain.FGSA.Run.opening_height_succ_eq_middle
 #print axioms AvailableChain.FGSA.Run.kernel_middle_fresh_U
 #print axioms AvailableChain.FGSA.Run.kernel_middle_early_justification
 #print axioms AvailableChain.FGSA.Run.kernel_middle_source_cap
@@ -1299,6 +1338,12 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.rowsPrem_fresh_rows
 #print axioms AvailableChain.FGSA.Run.rowsPrem_anchor_cap
 #print axioms AvailableChain.FGSA.Run.rowsPrem_anchor_retained_or_covered
+
+-- K-FWD: the forward W finality kernel.
+#print axioms AvailableChain.FGSA.Run.finality_kernel_W_of
+#print axioms AvailableChain.FGSA.Run.finality_kernel_joined_W_of
+#print axioms AvailableChain.FGSA.Run.fgsa_finalityKernelJoined_W_of
+#print axioms AvailableChain.FGSA.Run.fgsa_finalityKernelJoined_W
 -- S5 GROWTH: causal, emission, order, clean body and conditional GST proof.
 #print axioms AvailableChain.FGSA.Run.fgsa_timeIdx_now_le
 #print axioms AvailableChain.FGSA.Run.fgsa_output_noFuture_of_slot
@@ -1359,6 +1404,28 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.outage_source_history
 #print axioms AvailableChain.FGSA.Run.lease_or_F_persists
 #print axioms AvailableChain.FGSA.Run.duties_and_outputs
+-- S5 M5: bounded stopped phase, repair gate, height one and H-GATE opening.
+#print axioms AvailableChain.FGSA.Run.boot_height_one
+#print axioms AvailableChain.FGSA.Run.boot_phase_one
+#print axioms AvailableChain.FGSA.Run.boot_not_effective_one
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_of_frontier
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_frontier
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_phase
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_split
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_entry
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_gate_copy
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_height
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_grid
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_repair
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_repair_synchronous
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_first_opening
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_later_opening
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_repair_opening
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_rows_received
+#print axioms AvailableChain.FGSA.Run.ktail_action_walk_batch
+#print axioms AvailableChain.FGSA.Run.tail_kernel_W_full_of
+#print axioms AvailableChain.FGSA.Run.fgsa_tailKernel_W_of
+#print axioms AvailableChain.FGSA.Run.fgsa_tailKernel_W
 -- H-COMMON: C1–C7.
 #print axioms AvailableChain.FGSA.Run.common_first_opening_labels
 #print axioms AvailableChain.FGSA.Run.common_first_time_bound
@@ -1376,6 +1443,17 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.common_opening_covered
 #print axioms AvailableChain.FGSA.Run.healing_tCommon
 #print axioms AvailableChain.FGSA.Run.common_height_one
+
+-- H-FRONT-OPEN: F1–F5 and the opening-only helpers.
+#print axioms AvailableChain.FGSA.Run.FrontierOpeningServed
+#print axioms AvailableChain.FGSA.Run.frontier_open_indices
+#print axioms AvailableChain.FGSA.Run.frontier_open_domain
+#print axioms AvailableChain.FGSA.Run.frontier_open_plateau
+#print axioms AvailableChain.FGSA.Run.frontier_open_of_served
+#print axioms AvailableChain.FGSA.Run.frontier_open_q_eq
+#print axioms AvailableChain.FGSA.Run.frontier_open_later
+#print axioms AvailableChain.FGSA.Run.frontier_open_time
+#print axioms AvailableChain.FGSA.Run.frontier_openings
 -- H-PROMOTE helpers; the full renewed boundary remains open.
 #print axioms AvailableChain.FGSA.Run.healing_promotion_gap_remainder
 #print axioms AvailableChain.FGSA.Run.healing_promotion_gap
@@ -1410,3 +1488,11 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.healing_renewedPromotion
 
 #print axioms AvailableChain.FGSA.Run.healing_promotion_age_service
+
+-- S5 M5b: height-one r3 progress and strict acceptance.
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_advance
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_of_effective
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_receipt_all
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_accept
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_rise
+#print axioms AvailableChain.FGSA.Run.healing_rise_one_of_receipt

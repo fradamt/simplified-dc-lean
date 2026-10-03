@@ -36,6 +36,45 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.fgsa_outageCompatClaim_of_clean',
     'AvailableChain.FGSA.Run.fgsa_fastP1Claim_of_clean',
     'AvailableChain.FGSA.Run.fgsa_slowP1Claim_of_clean',
+    # S5 M5b: --expect ADDITIONS only.
+    'AvailableChain.FGSA.Run.healing_rise_one_of_receipt',
+    'AvailableChain.FGSA.Run.healing_rise_one_advance',
+    'AvailableChain.FGSA.Run.healing_rise_one_of_effective',
+    'AvailableChain.FGSA.Run.healing_rise_one_receipt_all',
+    'AvailableChain.FGSA.Run.healing_rise_one_accept',
+    'AvailableChain.FGSA.Run.healing_rise_one_rise',
+    # S5 M5: --expect ADDITIONS only.
+    'AvailableChain.FGSA.Run.healing_rise_one_rows_received',
+    'AvailableChain.FGSA.Run.RiseOneBy',
+    'AvailableChain.FGSA.Run.boot_height_one',
+    'AvailableChain.FGSA.Run.boot_phase_one',
+    'AvailableChain.FGSA.Run.boot_not_effective_one',
+    'AvailableChain.FGSA.Run.healing_rise_one_of_frontier',
+    'AvailableChain.FGSA.Run.healing_rise_one_frontier',
+    'AvailableChain.FGSA.Run.healing_rise_one_phase',
+    'AvailableChain.FGSA.Run.healing_rise_one_split',
+    'AvailableChain.FGSA.Run.healing_rise_one_entry',
+    'AvailableChain.FGSA.Run.healing_rise_one_gate_copy',
+    'AvailableChain.FGSA.Run.healing_rise_one_height',
+    'AvailableChain.FGSA.Run.healing_rise_one_grid',
+    'AvailableChain.FGSA.Run.healing_rise_one_repair',
+    'AvailableChain.FGSA.Run.healing_rise_one_repair_synchronous',
+    'AvailableChain.FGSA.Run.healing_rise_one_first_opening',
+    'AvailableChain.FGSA.Run.healing_rise_one_later_opening',
+    'AvailableChain.FGSA.Run.healing_rise_one_repair_opening',
+    # H-FRONT-OPEN: --expect ADDITIONS only.
+    'AvailableChain.FGSA.Run.FrontierOpeningServed',
+    'AvailableChain.FGSA.Run.frontier_open_indices',
+    'AvailableChain.FGSA.Run.frontier_open_domain',
+    'AvailableChain.FGSA.Run.frontier_open_plateau',
+    'AvailableChain.FGSA.Run.frontier_open_of_served',
+    'AvailableChain.FGSA.Run.frontier_open_q_eq',
+    'AvailableChain.FGSA.Run.frontier_open_later',
+    'AvailableChain.FGSA.Run.frontier_open_time',
+    'AvailableChain.FGSA.Run.frontier_openings',
+    # F-ABOVE-A: --expect DATA only.
+    'AvailableChain.FGSA.Run.honestFrontier_le_opening',
+    'AvailableChain.FGSA.Run.opening_height_succ_eq_middle',
     # O-EXPORT-2: --expect ADDITIONS only.
     'AvailableChain.FGSA.Run.outage_cleanGrowthClaim_of',
     'AvailableChain.FGSA.Run.fgsa_cleanGrowthClaim_of_clean',
@@ -162,6 +201,14 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.repair_two_lease',
     'AvailableChain.FGSA.Run.repair_synchronous',
     'AvailableChain.FGSA.Run.healing_tRepair',
+    # S5 G-HG1: --expect additions only.
+    'AvailableChain.FGSA.Run.frontier_Q_heads',
+    'AvailableChain.FGSA.Run.frontier_seed_leases',
+    'AvailableChain.FGSA.Run.frontier_lease_cover',
+    'AvailableChain.FGSA.Run.frontier_prior_support',
+    'AvailableChain.FGSA.Run.frontier_target_scores',
+    'AvailableChain.FGSA.Run.retainedHG1Input_through',
+    'AvailableChain.FGSA.Run.retainedHG1Input_before_first_rise',
     # H-COMMON: --expect ADDITIONS only.
     'AvailableChain.FGSA.Run.common_first_opening_labels',
     'AvailableChain.FGSA.Run.common_first_time_bound',
@@ -296,6 +343,11 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.ktail_mixed_final',
     'AvailableChain.FGSA.Run.ktail_hmixed_of_relay',
     'AvailableChain.FGSA.Run.tail_kernel_W_of_relay',
+    # K-TAIL r4: --expect DATA only.
+    'AvailableChain.FGSA.Run.ktail_action_walk_batch',
+    'AvailableChain.FGSA.Run.tail_kernel_W_full_of',
+    'AvailableChain.FGSA.Run.fgsa_tailKernel_W_of',
+    'AvailableChain.FGSA.Run.fgsa_tailKernel_W',
     # HBEST STATEMENT: companion --expect DATA additions only.
     'AvailableChain.FGSA.Run.HTimeBestConcl',
     'AvailableChain.FGSA.Run.HTimeBestConcl_def',
@@ -321,6 +373,15 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.fgsa_coreServices',
     # B30 Finality Export: --expect DATA only.
     'AvailableChain.FGSA.Run.fgsa_kernelACSide_W',
+    # A-KERNEL B34: --expect DATA only.
+    'AvailableChain.FGSA.Run.fgsa_finalityKernel_W_of',
+    'AvailableChain.FGSA.Run.fgsa_finalityKernel_W',
+    # K-FWD: --expect DATA only.
+    'AvailableChain.FGSA.Run.finality_kernel_W_of',
+    # K-JOIN: --expect DATA only.
+    'AvailableChain.FGSA.Run.finality_kernel_joined_W_of',
+    'AvailableChain.FGSA.Run.fgsa_finalityKernelJoined_W_of',
+    'AvailableChain.FGSA.Run.fgsa_finalityKernelJoined_W',
     # K-HISTORY: run-level history bodies; --expect DATA only.
     'AvailableChain.FGSA.Run.noMixedPreBatchParent',
     'AvailableChain.FGSA.Run.justifyFresh_W',

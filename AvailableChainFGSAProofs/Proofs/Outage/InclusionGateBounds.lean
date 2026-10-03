@@ -157,18 +157,21 @@ private theorem igate_state_at_cut
     have hout : Block.Preceq (S_at p c E rho (k + 1) x) P := by
       rcases fgsaAC_output_step E rho k x with he | ⟨r, ht⟩ | ⟨o, t, B, ht, hb, ha, he⟩ |
         ⟨t, ht, he⟩
-      · rw [show S_at p c E rho (k + 1) x = S_at p c E rho k x from he]
+      · rw [show S_at p c E rho (k + 1) x = S_at p c E rho k x from
+          by rw [S_at_def, S_at_def]; exact he]
         exact hS
       · obtain ⟨C, hC, _⟩ := hnonempty k x r (lt_of_lt_of_le (by omega) hcut) hx ht
         have hraw : (fgsaAC E rho).raw k r x = some C := by
           exact Option.some.inj ((igate_raw_at_tick E rho hs ht).symm.trans hC)
         have hCP := hresults r C ⟨k, by omega, x, ht, hC⟩
         rcases (fgsaAC_gate_write E rho k r x ht).effects with hskip | hrun
-        · rw [show S_at p c E rho (k + 1) x = S_at p c E rho k x from hskip.2.1]
+        · rw [show S_at p c E rho (k + 1) x = S_at p c E rho k x from
+            by rw [S_at_def, S_at_def]; exact hskip.2.1]
           exact hS
         · by_cases hg : ∀ lease ∈ ((fgsaAC E rho).gateView k x r).obligations,
               Block.Compatible (Gen.AC.Lease.target lease) C
           · have he := (hrun.accept C hraw hg).1
+            rw [S_at_def]
             change Block.Preceq ((fgsaAC E rho).output (k + 1) x) P
             rw [he]
             apply igate_normal_below (hF k hk' x hx)
@@ -178,12 +181,14 @@ private theorem igate_state_at_cut
                 ¬ Block.Compatible (Gen.AC.Lease.target lease) C := by
               simpa only [not_forall, exists_prop] using hg
             rw [show S_at p c E rho (k + 1) x = S_at p c E rho k x from
-              (hrun.veto C hraw hveto).1]
+              by rw [S_at_def, S_at_def]; exact (hrun.veto C hraw hveto).1]
             exact hS
-      · change Block.Preceq ((fgsaAC E rho).output (k + 1) x) P
+      · rw [S_at_def]
+        change Block.Preceq ((fgsaAC E rho).output (k + 1) x) P
         rw [he]
         exact igate_normal_below (hF (k + 1) hk x hx) hS
-      · rw [show S_at p c E rho (k + 1) x = S_at p c E rho 0 x from he]
+      · rw [show S_at p c E rho (k + 1) x = S_at p c E rho 0 x from
+          by rw [S_at_def, S_at_def]; exact he]
         exact block_genesis_preceq _
     refine ⟨hout, ?_⟩
     intro r C hC
@@ -326,7 +331,7 @@ theorem inclusion_preGate_bounds [Fintype V]
     rw [savedGenuine_congr (clockPre_genuine p _ d) r, heq] at hC
     exact hsaved r C hC
   refine ⟨hfpre, hjpre, ?_, ?_, hsavepre, ?_⟩
-  · change Block.Preceq (storeAt p c E rho i x).base.stableRecord pt.P
+  · rw [S_at_def]
     rw [heq]
     exact hS
   · intro row hr
