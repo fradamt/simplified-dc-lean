@@ -26,13 +26,10 @@ example (E : Generic.Env V)
     (honestQuorum : p.E.q ≤ p.E.weightOf (honestSeats p c rho))
     (r : Nat)
     (hhor : p.actionTime r + 2 * P p + Γ p G - 9 * p.Δ ≤ rho.horizon) :
-    ∀ u m J contested l q Q height,
+    ∀ u m J contested q Q height,
       E.t_GST ≤ u → PhaseInterval p c E rho u (p.actionTime r) m J contested →
       u ≤ SA.proposalTime p.toParams q → q ≤ r * p.R →
-      SA.proposalTime p.toParams l < SA.proposalTime p.toParams q →
-      HonestProposal E rho (fgsaInterface p c) q Q → ExactService p c E rho q Q →
       OpeningEntry p c E rho r height → OpeningCovered p c E rho r Q →
-      (∀ v, PhaseInterval p c E rho u v m J contested → RepairAfter p c E rho l v) →
       (∃ i ev, afterTicksIdx rho (p.actionTime r) ≤ i ∧
         rho.events[i]? = some ev ∧ EffectiveEvent p c E rho i ∧
         ev.time ≤ p.actionTime r + 2 * P p + Γ p G - 9 * p.Δ) ∨

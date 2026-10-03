@@ -2134,6 +2134,7 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.healing_attempt_firstRow_contest_settle',
     'AvailableChain.FGSA.Run.healing_attempt_firstRow_other_settle',
     # S5 H-ATTEMPT-3: --expect ADDITIONS only.
+    # S5 H-ATTEMPT-4: complete H.10 rows and lane assembly; --expect ADDITIONS only.
     'AvailableChain.FGSA.Run.healing_attempt_firstRow_contest',
     'AvailableChain.FGSA.Run.healing_attempt_firstRow_other',
     'AvailableChain.FGSA.Run.healing_renewedPromotion_terminal',
@@ -2214,6 +2215,9 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.postReset_receiver_compatible',
     'AvailableChain.FGSA.Run.postReset_tDel',
     # S5 J6: --expect additions only; gate items are stopped.
+    # S5 PA-ASSEMBLY P2: --expect ADDITIONS only.
+    'AvailableChain.FGSA.Run.healing_progressAttemptStatement',
+    # S5 J6 / J6-2: --expect additions only; the S1 service step is stopped (opening_domain).
     'AvailableChain.FGSA.Run.PostResetRetainedCone',
     'AvailableChain.FGSA.Run.postReset_source_label_le_sub_two',
     'AvailableChain.FGSA.Run.postReset_release_before_proposal',
@@ -2226,11 +2230,37 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.healing_postReset_exactHead',
     'AvailableChain.FGSA.Run.healing_postReset_headCarrier',
     'AvailableChain.FGSA.Run.postResetRetainedCone_iff',
+    'AvailableChain.FGSA.Run.healing_postReset_gate_covered_prefix',
+    'AvailableChain.FGSA.Run.healing_postReset_exactService_at_cut',
+    'AvailableChain.FGSA.Run.healing_postReset_exactService',
+    'AvailableChain.FGSA.Run.healing_postReset_gate_guard',
+    'AvailableChain.FGSA.Run.healing_postReset_h6GateService',
+    # J11 H-TIME: --expect DATA additions only.
+    'AvailableChain.FGSA.Run.HealingInputOfH0Statement',
+    'AvailableChain.FGSA.Run.HealingInputOfH0Statement_def',
+    'AvailableChain.FGSA.Run.healing_resetF_budget_eq',
+    'AvailableChain.FGSA.Run.healing_resetFull_horizon',
+    'AvailableChain.FGSA.Run.healing_time_strict_of_reset',
+    'AvailableChain.FGSA.Run.healing_hTime_of',
+    # J3-KEEP: --expect DATA only.
     # J1-RESET: --expect DATA additions only.
     'AvailableChain.FGSA.Run.healing_low_finality_at_reset_reset',
     'AvailableChain.FGSA.Run.healing_resetTransferCore',
     'AvailableChain.FGSA.Run.healing_tDelReset_of_reset',
     'AvailableChain.FGSA.Run.healing_low_finality_after_reset',
+    # THigh: --expect DATA additions only.
+    'AvailableChain.FGSA.Run.postReset_descent_kept_of_compat',
+    'AvailableChain.FGSA.Run.postReset_general_kept_of_compat',
+    'AvailableChain.FGSA.Run.postReset_rKeep_body_of_compat',
+    'AvailableChain.FGSA.Run.postReset_rKeep_body_reset',
+    'AvailableChain.FGSA.Run.postReset_selected_label_above',
+    'AvailableChain.FGSA.Run.postReset_selected_label',
+    'AvailableChain.FGSA.Run.SelectedBefore',
+    'AvailableChain.FGSA.Run.SelectedBefore_def',
+    'AvailableChain.FGSA.Run.selectedBefore_of_sourceBefore',
+    'AvailableChain.FGSA.Run.postReset_selected_reset_compatible',
+    # J5-RAW: --expect DATA additions only.
+    'AvailableChain.FGSA.Run.postReset_h5RawTransfer_body',
     # J4-LEASE: --expect DATA only.
     'AvailableChain.FGSA.Run.postReset_fProv_all',
     'AvailableChain.FGSA.Run.postReset_rFProv_reset',
@@ -2267,6 +2297,17 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.healing_timeBound_of_resetArrival',
     'AvailableChain.FGSA.Run.healing_h4_rawCompatible',
     'AvailableChain.FGSA.Run.healing_h4',
+    # J10 HealingInput export: --expect DATA additions only.
+    'AvailableChain.FGSA.Run.healing_postResetStart_of_h0',
+    'AvailableChain.FGSA.Run.healing_healingInputOfH0',
+    'AvailableChain.FGSA.Run.healing_hTime_of_inputs',
+    # J4-A-LEASE: --expect DATA only.
+    'AvailableChain.FGSA.Run.healing_first_transfer_written',
+    'AvailableChain.FGSA.Run.postReset_written_sync',
+    # J3-REST: --expect DATA additions only.
+    'AvailableChain.FGSA.Run.postReset_source_gate_result',
+    'AvailableChain.FGSA.Run.postReset_tCarrier_reset',
+    'AvailableChain.FGSA.Run.postReset_h2A_reset',
 )
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
          'Packages.Safety', 'OutputReads', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',
