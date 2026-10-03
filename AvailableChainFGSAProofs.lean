@@ -241,10 +241,14 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostReset
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLeaseStep
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetHigh
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetOpening
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJoint
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJointStep
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetProject
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetTHigh
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchHG2a
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchRise
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchCompose
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTasks
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchFull
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetH2Prime

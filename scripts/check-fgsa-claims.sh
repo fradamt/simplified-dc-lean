@@ -2366,6 +2366,31 @@ EXPECTED = (
     # J4-A-LEASE: --expect DATA only.
     'AvailableChain.FGSA.Run.healing_first_transfer_written',
     'AvailableChain.FGSA.Run.postReset_written_sync',
+    # J6-3: separate opening predicate and both cut producers.
+    'AvailableChain.FGSA.Run.PostResetOpeningDomain',
+    'AvailableChain.FGSA.Run.PostResetOpeningDomain_def',
+    'AvailableChain.FGSA.Run.healing_postReset_opening_stored',
+    'AvailableChain.FGSA.Run.healing_postReset_opening_clock_stored',
+    'AvailableChain.FGSA.Run.healing_postReset_source_parent',
+    'AvailableChain.FGSA.Run.healing_postReset_reset_parent',
+    'AvailableChain.FGSA.Run.healing_postReset_gate_opening_domain',
+    'AvailableChain.FGSA.Run.healing_postReset_opening_finality',
+    'AvailableChain.FGSA.Run.healing_postReset_opening_target_floor',
+    'AvailableChain.FGSA.Run.healing_postReset_tick_lt_cut',
+    'AvailableChain.FGSA.Run.healing_postReset_time_cut_le_tick',
+    'AvailableChain.FGSA.Run.healing_postReset_gate_guard_at_cut',
+    'AvailableChain.FGSA.Run.healing_postReset_gate_finality',
+    'AvailableChain.FGSA.Run.healing_postReset_gate_old_output',
+    'AvailableChain.FGSA.Run.healing_postReset_gate_geometry',
+    'AvailableChain.FGSA.Run.healing_postReset_service_step',
+    'AvailableChain.FGSA.Run.healing_postReset_gate_participation',
+    'AvailableChain.FGSA.Run.healing_postReset_gate_raw',
+    'AvailableChain.FGSA.Run.healing_postReset_opening_source_prefix',
+    'AvailableChain.FGSA.Run.healing_postReset_openingDomain_new_tick',
+    'AvailableChain.FGSA.Run.healing_postReset_openingDomain_step',
+    'AvailableChain.FGSA.Run.postResetOpeningDomainP_iff',
+    'AvailableChain.FGSA.Run.healing_postReset_openingDomainStep',
+    'AvailableChain.FGSA.Run.healing_postReset_serviceStep',
     # JOINT-IND: --expect DATA additions only.
     'AvailableChain.FGSA.Run.PostResetResetLeaseCompatibleP',
     'AvailableChain.FGSA.Run.PostResetOpeningDomainP',
@@ -2391,12 +2416,24 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.postReset_source_gate_result',
     'AvailableChain.FGSA.Run.postReset_tCarrier_reset',
     'AvailableChain.FGSA.Run.postReset_h2A_reset',
+
+    # THIGH-C: --expect DATA additions only.
+    'AvailableChain.FGSA.Run.postReset_selected_supporting_head',
+    'AvailableChain.FGSA.Run.postReset_tHigh_pairwise',
+    'AvailableChain.FGSA.Run.postReset_tHigh_reset',
     # S5 HG4-RISE F1 support: --expect ADDITIONS only.
     'AvailableChain.FGSA.Run.FrontierHG2aResult',
     'AvailableChain.FGSA.Run.frontierSearch_hg2a_bound',
     'AvailableChain.FGSA.Run.frontierSearch_hg2a_gate_cost',
     'AvailableChain.FGSA.Run.frontierSearch_hg2a_gap',
 
+    # H2P: --expect DATA additions only.
+    'AvailableChain.FGSA.Run.postReset_h2Prime_late',
+    'AvailableChain.FGSA.Run.healing_unanimous_release_compat',
+    'AvailableChain.FGSA.Run.healing_unanimous_next_transfer_kept',
+    'AvailableChain.FGSA.Run.postReset_cStar_below_proposal',
+    'AvailableChain.FGSA.Run.postReset_h2Prime_first',
+    'AvailableChain.FGSA.Run.postReset_h2Prime_reset',
 )
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
          'Packages.Safety', 'OutputReads', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',

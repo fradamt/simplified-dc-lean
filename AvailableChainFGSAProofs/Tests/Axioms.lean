@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Assembly.Healing -- shake: keep (H-EXPORT-1 axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetH2Prime -- shake: keep (H2P axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Proposal -- shake: keep (F-PROP audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Local -- shake: keep (F-LOCAL audit)
 public import AvailableChainFGSAProofs.Proofs.Assembly.Outage -- shake: keep (Outage Export axiom audit)
@@ -169,6 +170,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLeaseStep -- shak
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetHigh -- shake: keep (THigh audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw -- shake: keep (J5 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJoint -- shake: keep (JOINT-IND audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJointStep -- shake: keep (J6-3 step adapter audit)
 
 public import AvailableChainFGSAProofs.Proofs.Healing.Attempt -- shake: keep (H-ATTEMPT axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.AttemptBudget -- shake: keep (H-ATTEMPT axiom audit)
@@ -177,6 +179,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.AttemptSettle -- shake: ke
 public import AvailableChainFGSAProofs.Proofs.Healing.AttemptRows -- shake: keep (complete first rows)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetHealed -- shake: keep (J7 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Assembly.ProgressAttempt -- shake: keep
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetTHigh -- shake: keep (THIGH-C audit)
 
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTop -- shake: keep (HG.3 phase audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchBudget -- shake: keep (terminal audit)
@@ -1865,6 +1868,31 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchFull -- shak
 -- J5-RAW: the reset-only all-cut H5 projection.
 #print axioms AvailableChain.FGSA.Run.postReset_h5RawTransfer_body
 
+-- J6-3: separate opening predicate and both cut producers.
+#print axioms AvailableChain.FGSA.Run.PostResetOpeningDomain
+#print axioms AvailableChain.FGSA.Run.PostResetOpeningDomain_def
+#print axioms AvailableChain.FGSA.Run.healing_postReset_opening_stored
+#print axioms AvailableChain.FGSA.Run.healing_postReset_opening_clock_stored
+#print axioms AvailableChain.FGSA.Run.healing_postReset_source_parent
+#print axioms AvailableChain.FGSA.Run.healing_postReset_reset_parent
+#print axioms AvailableChain.FGSA.Run.healing_postReset_gate_opening_domain
+#print axioms AvailableChain.FGSA.Run.healing_postReset_opening_finality
+#print axioms AvailableChain.FGSA.Run.healing_postReset_opening_target_floor
+#print axioms AvailableChain.FGSA.Run.healing_postReset_tick_lt_cut
+#print axioms AvailableChain.FGSA.Run.healing_postReset_time_cut_le_tick
+#print axioms AvailableChain.FGSA.Run.healing_postReset_gate_guard_at_cut
+#print axioms AvailableChain.FGSA.Run.healing_postReset_gate_finality
+#print axioms AvailableChain.FGSA.Run.healing_postReset_gate_old_output
+#print axioms AvailableChain.FGSA.Run.healing_postReset_gate_geometry
+#print axioms AvailableChain.FGSA.Run.healing_postReset_service_step
+#print axioms AvailableChain.FGSA.Run.healing_postReset_gate_participation
+#print axioms AvailableChain.FGSA.Run.healing_postReset_gate_raw
+#print axioms AvailableChain.FGSA.Run.healing_postReset_opening_source_prefix
+#print axioms AvailableChain.FGSA.Run.healing_postReset_openingDomain_new_tick
+#print axioms AvailableChain.FGSA.Run.healing_postReset_openingDomain_step
+#print axioms AvailableChain.FGSA.Run.postResetOpeningDomainP_iff
+#print axioms AvailableChain.FGSA.Run.healing_postReset_openingDomainStep
+#print axioms AvailableChain.FGSA.Run.healing_postReset_serviceStep
 -- JOINT-IND: the empty cut, named steps, induction and projections.
 #print axioms AvailableChain.FGSA.Run.PostResetResetLeaseCompatibleP
 #print axioms AvailableChain.FGSA.Run.PostResetOpeningDomainP
@@ -1906,6 +1934,11 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchFull -- shak
 #print axioms AvailableChain.FGSA.Run.postReset_source_gate_result
 #print axioms AvailableChain.FGSA.Run.postReset_tCarrier_reset
 #print axioms AvailableChain.FGSA.Run.postReset_h2A_reset
+
+-- THIGH-C A–C: standard axiom audit.
+#print axioms AvailableChain.FGSA.Run.postReset_selected_supporting_head
+#print axioms AvailableChain.FGSA.Run.postReset_tHigh_pairwise
+#print axioms AvailableChain.FGSA.Run.postReset_tHigh_reset
 -- S5 HG4-RISE F1 support: ADDITIONS only; no full F1--F3 producer.
 #print axioms AvailableChain.FGSA.Run.FrontierHG2aResult
 #print axioms AvailableChain.FGSA.Run.frontierSearch_hg2a_bound
@@ -1930,3 +1963,11 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchFull -- shak
 #print axioms AvailableChain.FGSA.Run.frontierSearch_row_task
 #print axioms AvailableChain.FGSA.Run.frontierSearch_cut_start
 #print axioms AvailableChain.FGSA.Run.healing_frontierSearch
+
+-- H2P: frozen H2Prime and gate-free transfer audit.
+#print axioms AvailableChain.FGSA.Run.postReset_h2Prime_late
+#print axioms AvailableChain.FGSA.Run.healing_unanimous_release_compat
+#print axioms AvailableChain.FGSA.Run.healing_unanimous_next_transfer_kept
+#print axioms AvailableChain.FGSA.Run.postReset_cStar_below_proposal
+#print axioms AvailableChain.FGSA.Run.postReset_h2Prime_first
+#print axioms AvailableChain.FGSA.Run.postReset_h2Prime_reset
