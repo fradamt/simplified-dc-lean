@@ -70,5 +70,16 @@ end OpenInputs
 #check healing_hTimeClaim_of_open
 #print axioms healing_hTimeClaim_of_open
 
+/-- Blueprint 21 H.17:2958–3012; plan S5 CONE-2 T.
+DC: SAME cone step after the Assembly producer is applied to a healing run. -/
+example (p : Params) {V In : Type} [DecidableEq V] [Fintype V]
+    (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    {G ΔF : Time} (hset : HealingSet p c E rho G ΔF) {w : HealingWitness}
+    (h0r : H0Reset p c E rho w) : ∀ i, PostResetConeStep p c E rho w i :=
+  healing_postReset_coneStep_of_set p c E rho hset h0r
+
+#check healing_postReset_coneStep_of_set
+#print axioms healing_postReset_coneStep_of_set
+
 end AvailableChain.FGSA.Run.Tests.HealingHTime
 end

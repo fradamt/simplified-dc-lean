@@ -2489,6 +2489,8 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.postReset_targetScores_at_cut',
     'AvailableChain.FGSA.Run.postReset_coneInput_at_cut',
     'AvailableChain.FGSA.Run.healing_postReset_coneStep',
+    # Blueprint 21 H.17:2958–3012; plan S5 CONE-2 K2; DC: SAME Assembly producer.
+    'AvailableChain.FGSA.Run.healing_postReset_coneStep_of_set',
 )
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
          'Packages.Safety', 'OutputReads', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',

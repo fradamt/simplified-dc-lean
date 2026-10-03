@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRead -- shake: keep
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetConeDefsP -- shake: keep
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJoint2 -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone -- shake: keep
 
 set_option linter.privateModule false

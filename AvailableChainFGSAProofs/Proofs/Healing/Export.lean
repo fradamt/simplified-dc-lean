@@ -10,6 +10,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetHealed -- shake: 
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJointStep -- shake: keep (J6-3)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetTHigh -- shake: keep (THigh)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetH2Prime -- shake: keep (H2P)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone -- shake: keep (cone step)
 
 public section
 

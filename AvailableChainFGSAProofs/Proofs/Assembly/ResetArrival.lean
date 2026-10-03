@@ -79,6 +79,28 @@ theorem healing_resetArrivalStatement (p : Params) (G ΔF : Time) :
     ResetArrivalStatement p G ΔF :=
   healing_resetArrival p G ΔF fun c E rho hset _ => healing_frontierSearch_of_set p c E rho hset
 
+/-- Blueprint 21 H.17:2958–3012; plan S5 CONE-2 K2.
+DC: SAME cone step at every event cut. HealingSet supplies each run port. -/
+theorem healing_postReset_coneStep_of_set (p : Params) {V : Type}
+    [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hset : HealingSet p c E rho G ΔF) {w : HealingWitness}
+    (h0r : H0Reset p c E rho w) : ∀ i, PostResetConeStep p c E rho w i := by
+  have faultQ := fgsa_faultQ_of_count p hset.fault
+  have mono := fgsa_rMono p c E rho
+  have crossing := fgsa_rXing p c E rho hset.base.linked
+    (fgsa_faultX_count_rec p hset.fault) hset.base.valid.toUnforgeableSignatures
+  have origin := sourceDiscipline_qcOrigin p c E rho (pt := ()) ⟨hset.base, faultQ⟩
+    (fgsa_rStore p c E rho)
+  have writes := fgsa_leaseOrigins_lastWrite p c E rho hset.base.valid.toScheduleWellFormed
+  have cap := fgsa_rCap_channel p c E rho hset.base.linked hset.base.valid faultQ
+  exact healing_postReset_coneStep p c E rho hset mono
+    (sourceDiscipline_emittedNonempty p c E rho)
+    (emittedName_window p c E rho hset.base.valid.toScheduleWellFormed) writes
+    crossing origin h0r cap
+    (sourceDiscipline_tSrc p c E rho hset.base.valid.toScheduleWellFormed)
+    (rowPermission_covered E rho)
+
 /-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HTIME-WIRE W2/W4.
 DC: SAME all-cut invariant. HealingSet supplies each standing run port.
 The cone is used only in the adjacent J6-3 step producers below. -/
