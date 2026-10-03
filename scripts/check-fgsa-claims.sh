@@ -28,6 +28,25 @@ LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainF
 CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = (
+    # S5 GROWTH: --expect ADDITIONS only.
+    'AvailableChain.FGSA.Run.fgsa_timeIdx_now_le',
+    'AvailableChain.FGSA.Run.fgsa_output_noFuture_of_slot',
+    'AvailableChain.FGSA.Run.fgsa_proposal_emission_exists_of_awake_slot',
+    'AvailableChain.FGSA.Run.fgsa_honestProposal_exists_of_awake_slot',
+    'AvailableChain.FGSA.Run.jointGrowthAt_of_inclusion',
+    'AvailableChain.FGSA.Run.fgsa_outputAt_eq_S_at',
+    'AvailableChain.FGSA.Run.fgsa_healSuffix_timeIdx',
+    'AvailableChain.FGSA.Run.fgsa_healed_output_mono',
+    'AvailableChain.FGSA.Run.clean_growth_body',
+    'AvailableChain.FGSA.Run.fgsa_availableGrowthGST',
+    # S5 I-GATE/I-READ: --expect ADDITIONS only.
+    'AvailableChain.FGSA.Run.inclusion_headAtLabel',
+    'AvailableChain.FGSA.Run.inclusion_prior_results_below',
+    'AvailableChain.FGSA.Run.inclusion_preGate_bounds',
+    'AvailableChain.FGSA.Run.inclusion_awake_seat_batch',
+    'AvailableChain.FGSA.Run.inclusion_gate_exact',
+    'AvailableChain.FGSA.Run.clean_inclusion_post_gate_body',
+    'AvailableChain.FGSA.Run.clean_inclusion_body',
     # H-FRAME: --expect additions only.
     'AvailableChain.FGSA.Run.healing_proposal_full_witness',
     'AvailableChain.FGSA.Run.healing_full_witness',
@@ -73,6 +92,16 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.healing_slow_output',
     'AvailableChain.FGSA.Run.healing_phase_transfers',
     'AvailableChain.FGSA.Run.healing_tPerm',
+    # H-REPAIR: --expect additions only.
+    'AvailableChain.FGSA.Run.retainedH6Input_on_repaired_reads',
+    'AvailableChain.FGSA.Run.repair_head_two',
+    'AvailableChain.FGSA.Run.retainedH6Input_on_synchronous_reads',
+    'AvailableChain.FGSA.Run.repair_head_one',
+    'AvailableChain.FGSA.Run.repair_h6c_window',
+    'AvailableChain.FGSA.Run.repair_gate_geometry',
+    'AvailableChain.FGSA.Run.repair_two_lease',
+    'AvailableChain.FGSA.Run.repair_synchronous',
+    'AvailableChain.FGSA.Run.healing_tRepair',
     # S5 I-EXACT r2: G1 producer and E1/E2 theorems; --expect additions only.
     'AvailableChain.FGSA.Run.inclusion_retained_reads',
     'AvailableChain.FGSA.Run.inclusion_exact_compat',
@@ -111,6 +140,24 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.kernel_middle_early_justification',
     'AvailableChain.FGSA.Run.kernel_middle_source_cap',
     'AvailableChain.FGSA.Run.kmid_source_held_at_tick',
+    # HBEST STATEMENT: companion --expect DATA additions only.
+    'AvailableChain.FGSA.Run.HTimeBestConcl',
+    'AvailableChain.FGSA.Run.HTimeBestConcl_def',
+    'AvailableChain.FGSA.Run.HTimeBestClaim',
+    'AvailableChain.FGSA.Run.HTimeSearchClaim',
+    # B33 WC-LIVE additive: --expect DATA additions only.
+    'AvailableChain.FGSA.Run.ServedFromGateAt',
+    'AvailableChain.FGSA.Run.ServedFromGateAt_def',
+    'AvailableChain.FGSA.Run.JointGrowthAt',
+    'AvailableChain.FGSA.Run.JointGrowthAt_def',
+    'AvailableChain.FGSA.Run.WeakContinuationLiveAt₂',
+    'AvailableChain.FGSA.Run.WeakContinuationLiveAt₂.mk',
+    'AvailableChain.FGSA.Run.WeakContinuationLiveAt₂.safety',
+    'AvailableChain.FGSA.Run.WeakContinuationLiveAt₂.inclusion',
+    'AvailableChain.FGSA.Run.WeakContinuationLiveAt₂.growth',
+    'AvailableChain.FGSA.Run.BoundedSafetyLivenessRecovery₂',
+    'AvailableChain.FGSA.Run.BoundedSafetyLivenessRecovery₂_def',
+    'AvailableChain.FGSA.Run.WeakContinuationLiveClaim',
     # C-CORE: --expect DATA only.
     'AvailableChain.FGSA.Run.fgsa_tStart',
     'AvailableChain.FGSA.Run.fgsa_tWalk',
@@ -1549,6 +1596,16 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.BlockInRunBefore',
     'AvailableChain.FGSA.Run.RowSigner_def',
     'AvailableChain.FGSA.Run.HonestRowAt_def',
+    # post-freeze additive _def batch: --expect DATA only.
+    'AvailableChain.FGSA.Run.RowComplete_def',
+    'AvailableChain.FGSA.Run.HonestCarrier_def',
+    'AvailableChain.FGSA.Run.HeldAt_def',
+    'AvailableChain.FGSA.Run.namedEntry_def',
+    'AvailableChain.FGSA.Run.rowHeight_def',
+    'AvailableChain.FGSA.Run.eventTime_def',
+    'AvailableChain.FGSA.Run.honestSeats_def',
+    'AvailableChain.FGSA.Run.muOf_def',
+    'AvailableChain.FGSA.Run.high_def',
     'AvailableChain.FGSA.Run.RStore',
     'AvailableChain.FGSA.Run.RStoreCumul',
     'AvailableChain.FGSA.Run.RMono',
@@ -1741,8 +1798,8 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.fgsa_batchCoverage',
 )
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
-         'Packages.Safety', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',
-         'ChannelProps', 'FinalityApi', 'Healed', 'WeakContinuation', 'Packages.Finality', 'Packages.FinalityGST',
+         'Packages.Safety', 'OutputReads', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',
+         'ChannelProps', 'FinalityApi', 'Healed', 'HealedBest', 'WeakContinuation', 'WeakContinuationLive', 'Packages.Finality', 'Packages.FinalityGST',
          'ComposeStmt', 'Fold',
          'Phases', 'PhasesInternal', 'Packages.Healing')
 if not SOURCE_ONLY:
