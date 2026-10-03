@@ -753,6 +753,7 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.Tests.WeakContinuationWitness.cstar',
     'AvailableChain.FGSA.Run.Tests.WeakContinuationWitness.linked',
     'AvailableChain.FGSA.Run.Tests.WeakContinuationWitness.gap_positive',
+    'AvailableChain.FGSA.Run.Tests.WeakContinuationWitness.gap_aligned',
     'AvailableChain.FGSA.Run.Tests.WeakContinuationWitness.source_gap',
     'AvailableChain.FGSA.Run.Tests.WeakContinuationWitness.boundary_duties',
     'AvailableChain.FGSA.Run.Tests.WeakContinuationWitness.delivery_fold_mem',
@@ -1866,6 +1867,7 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.HealthyPrefix₂.of_legacy',
     'AvailableChain.FGSA.Run.HealthyPrefix₂.legacy_delivery',
     'AvailableChain.FGSA.Run.Recovery₂.of_legacy',
+    'AvailableChain.FGSA.Run.Recovery₂.gamma_eq',
     'AvailableChain.FGSA.Run.Recovery₂.toRecoveryCore',
     'AvailableChain.FGSA.Run.fgsa_seed_reachable',
     'AvailableChain.FGSA.Run.fgsa_seed_accepted',
@@ -2194,6 +2196,12 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.SelectedBefore_def',
     'AvailableChain.FGSA.Run.selectedBefore_of_sourceBefore',
     'AvailableChain.FGSA.Run.postReset_selected_reset_compatible',
+    # J5-RAW: --expect DATA additions only.
+    'AvailableChain.FGSA.Run.postReset_h5RawTransfer_body',
+    # J4-LEASE: --expect DATA only.
+    'AvailableChain.FGSA.Run.postReset_fProv_all',
+    'AvailableChain.FGSA.Run.postReset_rFProv_reset',
+    'AvailableChain.FGSA.Run.postReset_leaseSafe_antecedent_of_lastWrite',
 )
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
          'Packages.Safety', 'OutputReads', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',

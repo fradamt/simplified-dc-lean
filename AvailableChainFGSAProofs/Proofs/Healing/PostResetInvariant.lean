@@ -118,8 +118,8 @@ def PostResetResetCompatible (w : HealingWitness) (i : Nat) : Prop :=
   ∀ K s, SourceBefore p c E rho i K s → high p w K →
     Block.Compatible w.CStar (eraseFG K)
 
-/-- Blueprint 21 H.15 (Lemma U):2700–2738; plan J4 and carrier lease_safe;
-B1/B17. PROVISIONAL (J4 may refine).
+/-- Blueprint 21 H.15 (Lemma U):2885–2923; plan J4 and carrier lease_safe;
+B1/B13/B17/B18.
 Every successful write or renewal strictly above C* has the H5 HEAD,
 parent and output clauses in this prefix. Later raw results extend its
 target or finality covers it. The exact gateWriteKeys membership guards
@@ -145,8 +145,8 @@ def PostResetLeaseSafe (w : HealingWitness) (i : Nat) : Prop :=
     HealSuffix p c rho (SA.gateTime p.toParams s + 4 * p.Δ) j →
     Block.Preceq B (S_at p c E rho j x))
 
-/-- Blueprint 21 H.15–H.18:2700–2867; plan J4 and carrier fprov; B1/B17.
-PROVISIONAL (J4 may refine). Both frozen RFProv clauses at states before
+/-- Blueprint 21 H.17/H.18:2946–3060; plan J4 and carrier fprov;
+B1/B13/B17/B18. Both frozen RFProv clauses at states before
 events j < i, without the public H0 premise. The reset lower cut and each
 source gate deadline remain unchanged. -/
 def PostResetFProv (w : HealingWitness) (i : Nat) : Prop :=
@@ -162,8 +162,8 @@ def PostResetFProv (w : HealingWitness) (i : Nat) : Prop :=
       SA.gateTime p.toParams s ≤ t ∧
       Block.Preceq (J_at p c E rho j x) (eraseFG K))
 
-/-- Blueprint 21 H.16:2739–2763, H.22:3125–3132; plan J5 and carrier
-raw_transfer; B1/B17. PROVISIONAL (J5 may refine).
+/-- Blueprint 21 H.16:2924–2945, H5:3318–3325; plan J5 and carrier
+raw_transfer; B1/B13/B17/B18. DC: SAME raw-result transfer clauses.
 All four frozen H5RawTransfer clauses. The source gate is an event before i;
 each reader is also in the prefix, with complete inclusive time cuts for
 postClock, HEAD and proposal reads. The output horizon guard is unchanged.
