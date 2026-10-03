@@ -2222,6 +2222,12 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.healing_reset_synchronous',
     'AvailableChain.FGSA.Run.healing_reset_reset_first',
     'AvailableChain.FGSA.Run.healing_reset_fields',
+    'AvailableChain.FGSA.Run.frontierSearchStatement_iff',
+    'AvailableChain.FGSA.Run.frontierSearchRiseBudget_eq',
+    'AvailableChain.FGSA.Run.frontierSearchRowBudget_eq',
+    'AvailableChain.FGSA.Run.healing_resetWitness',
+    'AvailableChain.FGSA.Run.healing_reset_emittedName',
+    'AvailableChain.FGSA.Run.healing_resetArrival',
 
 )
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',

@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAClaims.Claims.Healing
+public import AvailableChainFGSAProofs.Proofs.Healing.Reset -- shake: keep (H.11 reset supplier)
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionRenewed
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportPerm -- shake: keep (TPerm supplier boundary)
 

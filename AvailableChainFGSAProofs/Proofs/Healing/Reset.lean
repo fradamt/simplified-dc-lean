@@ -6,12 +6,12 @@ public section
 
 /-! Blueprint 21 H.11:1744–1800, H.22:3229–3241; S5 J8 R1–R3.
 DC: INTENTIONAL inclusive SA cut and the first honest height-(M+1) row.
-R1/R2 STOP: FrontierSearchStatement has no exposed body or eliminator.
-The named input is HG.5: producer HG4-RISE F3 (lf-hg4).
-The budget definitions also have no exposed bodies or equation exports.
-R3 uses their explicit integer charges. No frozen interface is changed.
+R1 eliminates the named HG.5 input through frontierSearchStatement_iff and the
+budget equations frontierSearchRiseBudget_eq / frontierSearchRowBudget_eq.
+The named input is HG.5: producer HG4-RISE F3 (lf-hg2a). No frozen interface is changed.
 The source input is INLINE: producer sourceDiscipline_emittedName,
 projected through heightView_eq_simplex. It keeps the actual source and root.
+R2 (Assembly/ResetArrival.lean) discharges the INLINE fact.
 No progress-attempt statement or full-H0 proposal service is used. -/
 
 namespace AvailableChain.FGSA.Run
@@ -142,7 +142,7 @@ theorem healing_reset_synchronous {r : Nat}
 
 /-- Blueprint 21 H.11:1757–1758; S5 J8 R1 reset_first support.
 DC: SAME the exported first-row contract supplies the exact minimality field.
-Obtaining this contract from the named HG.5 input remains STOPPED. -/
+healing_resetWitness obtains this contract from the named HG.5 input. -/
 theorem healing_reset_reset_first {M : Nat} {deadline : Time}
     (firstRow : FirstHeightRowBy p c E rho (M + 1) deadline) :
     ∃ rStar, HeightRow p c E rho rStar (M + 1) ∧
@@ -166,7 +166,7 @@ include emittedName
 /-- Blueprint 21 H.11:1744–1800, H.22:3229–3241; S5 J8 R1 field support.
 DC: INTENTIONAL reset-only fields, with no Q* service at this horizon.
 The first-row contract is a frozen field input for this support lemma.
-R1 is STOPPED at its derivation from HG.5, producer HG4-RISE F3 (lf-hg4).
+healing_resetWitness derives the first-row contract from HG.5 (HG4-RISE F3).
 INLINE producer: sourceDiscipline_emittedName through heightView_eq_simplex. -/
 theorem healing_reset_fields [Fintype V] {G ΔF deadline : Time}
     (hset : HealingSet p c E rho G ΔF)
@@ -197,6 +197,36 @@ theorem healing_reset_fields [Fintype V] {G ΔF deadline : Time}
       label := rfl
       fresh := hfresh
       synchronous := healing_reset_synchronous p c E rho hcap hrow }
+
+/-- Blueprint 21 H.11:1744–1800, H.22:3229–3241; S5 J8 R1.
+DC: INTENTIONAL reset-only witness, strict reset deadline GST + B'_reset^F.
+Named HG.5 input `hsearch`: producer HG4-RISE F3 (lf-hg2a).
+INLINE producer: sourceDiscipline_emittedName through heightView_eq_simplex. -/
+theorem healing_resetWitness [Fintype V] {G ΔF : Time}
+    (hset : HealingSet p c E rho G ΔF) (hδ : p.δt = 2 * p.R)
+    (hbound : LivenessBoundW p ΔF) (hsearch : FrontierSearchStatement p c E rho G ΔF)
+    (hhor : E.t_GST + B'_resetF p ΔF G ≤ rho.horizon) :
+    ∃ w, H0Reset p c E rho w ∧ p.actionTime w.rStar < E.t_GST + B'_resetF p ΔF G := by
+  have hs := hset.base.valid.toScheduleWellFormed
+  have hnr := hset.base.noRestart
+  have hcap := healing_reset_rowCap p c E rho emittedName hs hnr
+  obtain ⟨ρbar, hallow, hlt⟩ :=
+    healing_reset_budget_lt p G ΔF E.t_GST (resetCutTime p E) (reset_cut_upper p E)
+  rw [← frontierSearchRiseBudget_eq, ← frontierSearchRowBudget_eq] at hlt
+  have hguard : resetCutTime p E + frontierSearchRiseBudget p G ΔF ρbar +
+      frontierSearchRowBudget p G ΔF ρbar ≤ rho.horizon := by linarith
+  have hfs := (frontierSearchStatement_iff p c E rho G ΔF).mp hsearch hδ hbound
+    (resetFirstRound p E) (resetCutTime p E) (resetCutFrontier p c E rho)
+    (reset_rG_after p E) (reset_rG_first p E) (reset_cut p E) (reset_cut_lower p E)
+    (reset_frontier p c E rho) hcap
+  obtain ⟨rStar, hrow, hfirst, hall⟩ := hfs.2 ⟨ρbar, hallow, hguard⟩
+  obtain ⟨j, ev, _, _, hevt, _, _, hrt⟩ := hall ρbar hallow hguard
+  have firstRow : FirstHeightRowBy p c E rho (resetCutFrontier p c E rho + 1)
+      (resetCutTime p E + frontierSearchRiseBudget p G ΔF ρbar +
+        frontierSearchRowBudget p G ΔF ρbar) :=
+    (firstHeightRowBy_iff p c E rho _ _).mpr ⟨rStar, hrow, hfirst, by linarith⟩
+  obtain ⟨w, hw, htime⟩ := healing_reset_fields p c E rho emittedName hset firstRow
+  exact ⟨w, hw, lt_of_le_of_lt htime hlt⟩
 
 end Source
 

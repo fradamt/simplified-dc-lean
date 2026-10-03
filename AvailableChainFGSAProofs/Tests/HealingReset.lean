@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.Reset -- shake: keep (R1–R3 tests)
+public import AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival -- shake: keep (R2 tests)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Sources -- shake: keep (INLINE producer)
 
 set_option linter.privateModule false
@@ -8,7 +9,7 @@ public section
 
 /-! Blueprint 21 H.11:1744–1800, H.22:3229–3241; S5 J8 T.
 DC: SAME discharge the actual source producer and test all reset field support.
-R1/R2 application tests are STOPPED: the HG.5 contract has no public eliminator.
+R1/R2 are applied with a hypothetical named HG.5 input (producer HG4-RISE F3).
 The numeric tests cover both allowance choices and integer subtraction. -/
 
 namespace AvailableChain.FGSA.Run.Tests.HealingReset
@@ -85,6 +86,26 @@ example (p : Params) (G ΔF ρbar : Time) :
     B_resetF p ΔF G ρbar = 3 * P p +
       (E_gF p ΔF G ρbar + E_jF p ΔF G ρbar + B_cF p ΔF G ρbar) +
       (E_gF p ΔF G ρbar + E_jF p ΔF G ρbar + D_cF p ρbar) := healing_reset_budget_sum p G ΔF ρbar
+
+-- R1: the reset witness and the strict deadline from a hypothetical HG.5 input.
+example (p : Params) {In V : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hset : HealingSet p c E rho G ΔF) (hδ : p.δt = 2 * p.R)
+    (hbound : LivenessBoundW p ΔF) (hsearch : FrontierSearchStatement p c E rho G ΔF)
+    (hhor : E.t_GST + B'_resetF p ΔF G ≤ rho.horizon) :
+    ∃ w, H0Reset p c E rho w ∧ p.actionTime w.rStar < E.t_GST + B'_resetF p ΔF G :=
+  healing_resetWitness p c E rho
+    (healing_reset_emittedName p c E rho hset.base)
+    hset hδ hbound hsearch hhor
+
+-- R2: the frozen reset-arrival statement from a hypothetical all-run HG.5 input.
+example (p : Params) (G ΔF : Time)
+    (hsearch : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      HealingSet p c E rho G ΔF → LivenessBoundW p ΔF →
+      FrontierSearchStatement p c E rho G ΔF) :
+    ResetArrivalStatement p G ΔF :=
+  healing_resetArrival p G ΔF hsearch
 
 end AvailableChain.FGSA.Run.Tests.HealingReset
 end

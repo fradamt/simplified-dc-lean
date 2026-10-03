@@ -159,6 +159,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.AttemptRows -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTop -- shake: keep (HG.3 phase audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchBudget -- shake: keep (terminal audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.Reset -- shake: keep (S5 J8 R1–R3 audit)
+public import AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival -- shake: keep (S5 J8 R2 audit)
 
 #print axioms AvailableChain.FGSA.Run.kmid_honestSeats_mem
 #print axioms AvailableChain.FGSA.Run.kmid_honest_quorum
@@ -1703,3 +1704,9 @@ public import AvailableChainFGSAProofs.Proofs.Healing.Reset -- shake: keep (S5 J
 #print axioms AvailableChain.FGSA.Run.healing_reset_synchronous
 #print axioms AvailableChain.FGSA.Run.healing_reset_reset_first
 #print axioms AvailableChain.FGSA.Run.healing_reset_fields
+#print axioms AvailableChain.FGSA.Run.frontierSearchStatement_iff
+#print axioms AvailableChain.FGSA.Run.frontierSearchRiseBudget_eq
+#print axioms AvailableChain.FGSA.Run.frontierSearchRowBudget_eq
+#print axioms AvailableChain.FGSA.Run.healing_resetWitness
+#print axioms AvailableChain.FGSA.Run.healing_reset_emittedName
+#print axioms AvailableChain.FGSA.Run.healing_resetArrival
