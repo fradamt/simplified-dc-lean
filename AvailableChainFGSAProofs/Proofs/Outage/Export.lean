@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalRetained
 public import AvailableChainFGSAProofs.Proofs.Outage.InclusionGateBody
+public import AvailableChainFGSAProofs.Proofs.Outage.Growth
 public import AvailableChainFGSAClaims.Claims.Outage
 
 public section
@@ -150,6 +151,29 @@ theorem outage_cleanInclusionClaim_of : CleanInclusionClaim p := by
     fun i v hi hv row hrow => ((hl i v hi hv).2.2.2.1 row hrow).1
   exact clean_inclusion_body E rho ΔF h.set (hstore c E rho) (hframe c E rho)
     hs ho hn ht hbelow hr pt h.prop h.hhor (hmono c E rho () ⟨h.set⟩)
+
+/-- Blueprint 03 §5. The suppliers prove growth in the finite Clean horizon.
+The recurrence, gap, trigger, and deadline come from the claim binders. -/
+theorem outage_cleanGrowthClaim_of : CleanGrowthClaim p := by
+  intro G ΔF V _ _ In c E rho t hset hrec hgap ht hhor
+  have hG : 0 ≤ G :=
+    (mul_nonneg (by decide : (0 : Time) ≤ 4) p.deltaPos.le).trans hgap
+  have hpos : 0 < t + G + 6 * p.Δ := by
+    have hd := p.deltaPos
+    positivity
+  have hq := hset.pre.toCleanCut.faultQ_of_pos (hpos.trans_le hhor)
+  have hs := hsrc c E rho () ⟨hset.pre.base, hq⟩
+  have ho := hordered c E rho (ΔF := ΔF) ⟨rho.horizon⟩ ⟨hset.pre.toCleanCut⟩
+  have hn := hnonempty c E rho (ΔF := ΔF) ⟨rho.horizon⟩ ⟨hset.pre.toCleanCut⟩
+  have htransfer' := htransfer c E rho (ΔF := ΔF) ⟨rho.horizon⟩ ⟨hset.pre.toCleanCut⟩
+  have hl := hleases c E rho (ΔF := ΔF) ⟨rho.horizon⟩ ⟨hset.pre.toCleanCut⟩
+  have hr := hrows c E rho (ΔF := ΔF) ⟨rho.horizon⟩ ⟨hset.pre.toCleanCut⟩
+  have hbelow : ∀ i v, i ≤ timeIdx rho rho.horizon → v ∈ rho.honest →
+      ∀ row ∈ (storeAt p c E rho i v).base.obligations,
+        BelowLabel p c E rho i (labelBoundAt p c rho i) row.1 :=
+    fun i v hi hv row hrow => ((hl i v hi hv).2.2.2.1 row hrow).1
+  exact clean_growth_body E rho G ΔF hset (hstore c E rho) (hframe c E rho)
+    hs ho hn htransfer' hbelow hr (hmono c E rho () ⟨hset⟩) hrec hgap t ht hhor
 
 end AvailableChain.FGSA.Run
 end
