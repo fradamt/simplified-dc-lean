@@ -16,6 +16,10 @@ public import AvailableChainFGSAProofs.Proofs.Healing.SupportSaved
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportSlow
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportTransfer
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportWrite
+public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6
+public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6S
+public import AvailableChainFGSAProofs.Proofs.Healing.RepairGate
+public import AvailableChainFGSAProofs.Proofs.Healing.Repair
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseSettle
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseBoot
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposal
@@ -35,11 +39,14 @@ public import AvailableChainFGSAProofs.Proofs.Outage.ArmingPending
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingInput
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingMain
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingGate
+public import AvailableChainFGSAProofs.Proofs.Outage.InclusionGateBody
 public import AvailableChainFGSAProofs.Proofs.Finality.CoreServices
 public import AvailableChainFGSAProofs.Proofs.Finality.Height
 public import AvailableChainFGSAProofs.Proofs.Finality.History
 public import AvailableChainFGSAProofs.Proofs.Finality.Receipt
 public import AvailableChainFGSAProofs.Proofs.Finality.Rows
+public import AvailableChainFGSAProofs.Proofs.Finality.MiddleSupport
+public import AvailableChainFGSAProofs.Proofs.Finality.Middle
 public import AvailableChainFGSAProofs.Proofs.Finality.Carry
 public import AvailableChainFGSAProofs.Proofs.Finality.Batch
 public import AvailableChainFGSAProofs.Proofs.Finality.RecordInv
@@ -50,6 +57,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PhaseOrder
 public import AvailableChainFGSAProofs.Proofs.Finality.Accept
 public import AvailableChainFGSAProofs.Proofs.Healing.Base
 public import AvailableChainFGSAProofs.Proofs.Healing.Descent
+public import AvailableChainFGSAProofs.Proofs.Healing.DescentTiming
+public import AvailableChainFGSAProofs.Proofs.Healing.DescentTimingRFProv
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersL2
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersQ
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersH6S
@@ -125,3 +134,8 @@ public import AvailableChainFGSAProofs.Proofs.Foundations.RowPermission
 public import AvailableChainFGSAProofs.Proofs.Foundations.OpeningCovered
 public import AvailableChainFGSAProofs.Proofs.Foundations.OpeningCoveredLower
 public import AvailableChainFGSAProofs.Proofs.Foundations.FinalityApi
+public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthCausal
+public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthProposal
+public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowth
+public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthReads
+public import AvailableChainFGSAProofs.Proofs.Outage.Growth
