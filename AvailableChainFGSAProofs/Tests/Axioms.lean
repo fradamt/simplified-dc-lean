@@ -155,6 +155,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.AttemptBudget -- shake: ke
 public import AvailableChainFGSAProofs.Proofs.Healing.AttemptStop -- shake: keep (H-ATTEMPT axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.AttemptSettle -- shake: keep (CUT axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.AttemptRows -- shake: keep (complete first rows)
+public import AvailableChainFGSAProofs.Proofs.Assembly.ProgressAttempt -- shake: keep
 
 #print axioms AvailableChain.FGSA.Run.kmid_honestSeats_mem
 #print axioms AvailableChain.FGSA.Run.kmid_honest_quorum
@@ -1649,3 +1650,6 @@ public import AvailableChainFGSAProofs.Proofs.Healing.AttemptRows -- shake: keep
 #print axioms AvailableChain.FGSA.Run.healing_attempt_raise_contest
 #print axioms AvailableChain.FGSA.Run.healing_attempt_raise_other
 #print axioms AvailableChain.FGSA.Run.healing_progressAttempt
+
+-- Blueprint 21 H.10; plan item S5 PA-ASSEMBLY P2; DC: SAME frozen statement.
+#print axioms AvailableChain.FGSA.Run.healing_progressAttemptStatement

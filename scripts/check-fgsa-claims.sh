@@ -2133,7 +2133,7 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.healing_attempt_raise_other_settle',
     'AvailableChain.FGSA.Run.healing_attempt_firstRow_contest_settle',
     'AvailableChain.FGSA.Run.healing_attempt_firstRow_other_settle',
-    # S5 H-ATTEMPT-3: --expect ADDITIONS only.
+    # S5 H-ATTEMPT-4: complete H.10 rows and lane assembly; --expect ADDITIONS only.
     'AvailableChain.FGSA.Run.healing_attempt_firstRow_contest',
     'AvailableChain.FGSA.Run.healing_attempt_firstRow_other',
     'AvailableChain.FGSA.Run.healing_renewedPromotion_terminal',
@@ -2173,6 +2173,8 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.healing_tDel',
     'AvailableChain.FGSA.Run.healing_tDelReset_core',
     'AvailableChain.FGSA.Run.healing_tDelReset',
+    # S5 PA-ASSEMBLY P2: --expect ADDITIONS only.
+    'AvailableChain.FGSA.Run.healing_progressAttemptStatement',
 )
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
          'Packages.Safety', 'OutputReads', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',

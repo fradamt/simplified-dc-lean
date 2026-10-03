@@ -211,3 +211,4 @@ public import AvailableChainFGSAProofs.Proofs.Finality.Proposal
 public import AvailableChainFGSAProofs.Proofs.Finality.Above
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetCut
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionTerminal
+public import AvailableChainFGSAProofs.Proofs.Assembly.ProgressAttempt
