@@ -323,6 +323,14 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.finality_liveness_of_forward_W',
     'AvailableChain.FGSA.Run.finality_liveness_FE_W_of',
     'AvailableChain.FGSA.Run.finality_liveness_F4_W_of',
+    # F-PROP: --expect DATA only.
+    'AvailableChain.FGSA.Run.proposal_final_of_forward_W',
+    'AvailableChain.FGSA.Run.proposal_final_FE_W_of',
+    'AvailableChain.FGSA.Run.proposal_final_F4_W_of',
+    'AvailableChain.FGSA.Run.fgsa_proposalFinalRecFE_W_of',
+    'AvailableChain.FGSA.Run.fgsa_proposalFinalRecF4_W_of',
+    'AvailableChain.FGSA.Run.fgsa_proposalFinalRecFE_W',
+    'AvailableChain.FGSA.Run.fgsa_proposalFinalRecF4_W',
     # K-JOIN: --expect DATA only.
     'AvailableChain.FGSA.Run.finality_kernel_joined_W_of',
     'AvailableChain.FGSA.Run.fgsa_finalityKernelJoined_W_of',

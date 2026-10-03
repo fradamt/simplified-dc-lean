@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Finality.Proposal -- shake: keep (F-PROP audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Local -- shake: keep (F-LOCAL audit)
 public import AvailableChainFGSAProofs.Proofs.Assembly.Outage -- shake: keep (Outage Export axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.Growth -- shake: keep (growth axiom audit)
@@ -1380,3 +1381,12 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.healing_renewedPromotion
 
 #print axioms AvailableChain.FGSA.Run.healing_promotion_age_service
+
+-- F-PROP: paper 22:1421–1430; firstfin plan §6.
+#print axioms AvailableChain.FGSA.Run.proposal_final_of_forward_W
+#print axioms AvailableChain.FGSA.Run.proposal_final_FE_W_of
+#print axioms AvailableChain.FGSA.Run.proposal_final_F4_W_of
+#print axioms AvailableChain.FGSA.Run.fgsa_proposalFinalRecFE_W_of
+#print axioms AvailableChain.FGSA.Run.fgsa_proposalFinalRecF4_W_of
+#print axioms AvailableChain.FGSA.Run.fgsa_proposalFinalRecFE_W
+#print axioms AvailableChain.FGSA.Run.fgsa_proposalFinalRecF4_W
