@@ -16,6 +16,10 @@ public import AvailableChainFGSAProofs.Proofs.Healing.SupportSaved
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportSlow
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportTransfer
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportWrite
+public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6
+public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6S
+public import AvailableChainFGSAProofs.Proofs.Healing.RepairGate
+public import AvailableChainFGSAProofs.Proofs.Healing.Repair
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseSettle
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseBoot
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposal
@@ -115,3 +119,8 @@ public import AvailableChainFGSAProofs.Proofs.Foundations.RowPermission
 public import AvailableChainFGSAProofs.Proofs.Foundations.OpeningCovered
 public import AvailableChainFGSAProofs.Proofs.Foundations.OpeningCoveredLower
 public import AvailableChainFGSAProofs.Proofs.Foundations.FinalityApi
+public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthCausal
+public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthProposal
+public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowth
+public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthReads
+public import AvailableChainFGSAProofs.Proofs.Outage.Growth
