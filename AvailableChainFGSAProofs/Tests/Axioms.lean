@@ -24,6 +24,8 @@ public import AvailableChainFGSAProofs.Proofs.Finality.Height -- shake: keep (K-
 public import AvailableChainFGSAProofs.Proofs.Finality.Receipt -- shake: keep (K-RECEIPT audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Rows -- shake: keep (K-ROWS audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Middle -- shake: keep (K-MID audit)
+public import AvailableChainFGSAProofs.Proofs.Finality.TailSplit -- shake: keep (K-TAIL audit)
+public import AvailableChainFGSAProofs.Proofs.Finality.TailReceipt -- shake: keep (K-TAIL audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Carry -- shake: keep (K-CARRY audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Batch -- shake: keep (K-BATCH audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Accept -- shake: keep (K-ACCEPT axiom audit)
@@ -1046,3 +1048,40 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.kernel_middle_early_justification
 #print axioms AvailableChain.FGSA.Run.kernel_middle_source_cap
 #print axioms AvailableChain.FGSA.Run.kmid_source_held_at_tick
+
+-- K-TAIL: tail opening, frame producers, split, retention and the q receipt adapter.
+#print axioms AvailableChain.FGSA.Run.ktail_bounds
+#print axioms AvailableChain.FGSA.Run.ktail_slot_horizon
+#print axioms AvailableChain.FGSA.Run.ktail_slot_gst
+#print axioms AvailableChain.FGSA.Run.ktail_window_proposal
+#print axioms AvailableChain.FGSA.Run.ktail_window_exact
+#print axioms AvailableChain.FGSA.Run.ktail_batch_horizon
+#print axioms AvailableChain.FGSA.Run.TailOpeningWitness_W
+#print axioms AvailableChain.FGSA.Run.tail_opening_and_witness
+#print axioms AvailableChain.FGSA.Run.ktail_latest_entry
+#print axioms AvailableChain.FGSA.Run.ktail_one_birth
+#print axioms AvailableChain.FGSA.Run.ktail_retained_or_covered
+#print axioms AvailableChain.FGSA.Run.ktail_plateau_action_head
+#print axioms AvailableChain.FGSA.Run.ktail_fresh_rows
+#print axioms AvailableChain.FGSA.Run.ktail_record_guards_at_action
+#print axioms AvailableChain.FGSA.Run.ktail_afterTicksIdx_le
+#print axioms AvailableChain.FGSA.Run.ktail_action_store
+#print axioms AvailableChain.FGSA.Run.ktail_frame_of_store
+#print axioms AvailableChain.FGSA.Run.ktail_F_below_witness
+#print axioms AvailableChain.FGSA.Run.ktail_healStart
+#print axioms AvailableChain.FGSA.Run.ktail_action_suffix
+#print axioms AvailableChain.FGSA.Run.ktail_S_cover_after
+#print axioms AvailableChain.FGSA.Run.ktail_action_S_cover
+#print axioms AvailableChain.FGSA.Run.ktail_action_frame
+#print axioms AvailableChain.FGSA.Run.ktail_gate_finality
+#print axioms AvailableChain.FGSA.Run.ktail_action_source
+#print axioms AvailableChain.FGSA.Run.ktail_F_eq_J_of_heights
+#print axioms AvailableChain.FGSA.Run.ktail_witness_split
+#print axioms AvailableChain.FGSA.Run.ktail_finalized_propagates
+#print axioms AvailableChain.FGSA.Run.ktail_head_dichotomy
+#print axioms AvailableChain.FGSA.Run.ktail_tail_record
+#print axioms AvailableChain.FGSA.Run.ktail_action_head_split
+#print axioms AvailableChain.FGSA.Run.ktail_head_fields
+#print axioms AvailableChain.FGSA.Run.ktail_pending_rows
+#print axioms AvailableChain.FGSA.Run.ktail_terminal_key
+#print axioms AvailableChain.FGSA.Run.ktail_acceptPrem_W
