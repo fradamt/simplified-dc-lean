@@ -178,6 +178,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetHealed -- shake: 
 public import AvailableChainFGSAProofs.Proofs.Assembly.ProgressAttempt -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRawStep -- shake: keep (J5-A-2 audit)
 
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLeaseMove -- shake: keep (J4A2-2 audit)
+
 #print axioms AvailableChain.FGSA.Run.kmid_honestSeats_mem
 #print axioms AvailableChain.FGSA.Run.kmid_honest_quorum
 
@@ -1881,3 +1883,16 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRawStep -- shake:
 #print axioms AvailableChain.FGSA.Run.postReset_resetLease_succ_all
 
 #print axioms AvailableChain.FGSA.Run.postReset_raw_at_gate_cut
+#print axioms AvailableChain.FGSA.Run.postReset_moving_domain
+#print axioms AvailableChain.FGSA.Run.postReset_moving_head_cut
+
+-- J4A2-3: last-write leases and the frozen successor.
+#print axioms AvailableChain.FGSA.Run.postReset_moving_lease_compat
+#print axioms AvailableChain.FGSA.Run.postReset_written_next_head
+#print axioms AvailableChain.FGSA.Run.postReset_written_moving_parent
+#print axioms AvailableChain.FGSA.Run.postReset_written_heads_succ
+#print axioms AvailableChain.FGSA.Run.postReset_written_proposals_succ
+#print axioms AvailableChain.FGSA.Run.postReset_written_finality_compatible
+#print axioms AvailableChain.FGSA.Run.postReset_written_gate_lease_compat
+#print axioms AvailableChain.FGSA.Run.postReset_written_outputs_succ
+#print axioms AvailableChain.FGSA.Run.postReset_leaseSafe_succ
