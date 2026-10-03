@@ -2480,6 +2480,15 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.healing_postReset_service_step_at',
     'AvailableChain.FGSA.Run.healing_postReset_openingDomainStep₂',
     'AvailableChain.FGSA.Run.healing_postReset_serviceStep₂',
+    # S5 CONE: --expect DATA additions only.
+    'AvailableChain.FGSA.Run.postReset_source_heads_at_cut',
+    'AvailableChain.FGSA.Run.postReset_liveLease_heads_at_cut',
+    'AvailableChain.FGSA.Run.maxLiveH',
+    'AvailableChain.FGSA.Run.postReset_commonPivot_at_cut',
+    'AvailableChain.FGSA.Run.postReset_priorSupport_at_cut',
+    'AvailableChain.FGSA.Run.postReset_targetScores_at_cut',
+    'AvailableChain.FGSA.Run.postReset_coneInput_at_cut',
+    'AvailableChain.FGSA.Run.healing_postReset_coneStep',
 )
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
          'Packages.Safety', 'OutputReads', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',
