@@ -6,8 +6,8 @@ public section
 
 namespace AvailableChain.FGSA.Run
 
-/-- Plan A4/C1, DC liveFrom_of_includedFrom: one selected proposal serves
-both getters. A common deadline output orders the trigger output and B;
+/-- Plan A4/C1; DC Generic/Lemmas.lean:60 liveFrom_of_includedFrom:
+one selected proposal serves both getters. A common deadline output orders the trigger output and B;
 the no-future pair excludes the reverse order and equality. -/
 theorem jointGrowthAt_of_inclusion {Getter Reader : Type}
     (O : Getter → Reader → Time → Block) (selected : Getter → Prop)

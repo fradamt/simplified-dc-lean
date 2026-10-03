@@ -13,8 +13,10 @@ open AvailableChain.SimplexFG
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- Plan A1–A6: unfolded CleanGrowthClaim body. Select one awake honest
-proposal at the trigger and use its gate by the original deadline.
+/-- Plan A1–A6; bp 03 §5 (03:418–458);
+DC Generic/Lemmas.lean:60 liveFrom_of_includedFrom.
+Unfolded CleanGrowthClaim body. Select one awake honest proposal at the trigger
+and use its gate by the original deadline.
 Assembly supplies the inclusion fields and event monotonicity inline. -/
 theorem clean_growth_body [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (G ΔF : Time)

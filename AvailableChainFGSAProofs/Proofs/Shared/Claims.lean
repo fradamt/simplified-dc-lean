@@ -7,6 +7,10 @@ public import AvailableChainFGSAProofs.Proofs.Shared.Healed
 public import AvailableChainFGSAClaims.Claims.Foundations
 public import AvailableChainFGSAClaims.Claims.Clean
 public import AvailableChainFGSAProofs.Proofs.Shared.Regimes
+public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowth
+public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthCausal
+public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthProposal
+public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthReads
 
 /-! Holds claim → claim implications only; its Claims/* imports are an exact L42 exception.
 P3 r3.5.8 R5-66. -/
@@ -200,9 +204,9 @@ public section
 namespace AvailableChain.FGSA.Run
 variable {p : Params}
 
-/-- Plan B1–B2: conditional GST growth uses one H-time witness, recovery
-recurrence and awake proposers. The shared causal, emission and order proof
-steps are local here because this existing module is append-only. -/
+/-- Plan B1–B2; Blueprint 21 H.20–H.22: conditional GST growth uses one
+H-time witness, recovery recurrence and awake proposers. The shared causal,
+emission, healed-read and order lemmas supply both public outputs. -/
 theorem fgsa_availableGrowthGST (hH : HTimeClaim p) : AvailableGrowthGSTClaim p := by
   intro G ΔF hδ V _ _ In c E rho t hp hlate hhor
   obtain ⟨w, input, hstar, available⟩ := fgsa_availableGST hH G ΔF hδ c E rho hp
@@ -221,108 +225,25 @@ theorem fgsa_availableGrowthGST (hH : HTimeClaim p) : AvailableGrowthGSTClaim p 
   obtain ⟨s, hfuture, hupper, hh⟩ := hp.set.gap t hgst hwindow
   have hs := hp.set.base.valid.toScheduleWellFormed
   have ha := hp.set.awake _ hh.2 _ (hgst.trans hfuture.le) (hupper.trans hwindow)
-  -- Plan A2: construct the actual application-bearing proposal once.
-  let v := V2.D.proposerOf rho (fgsaInterface p c) s
-  let τ := V2.D.proposalTime (fgsaInterface p c) s
-  have he : ((4 * s : Nat) : Time) * p.Δ = τ := by
-    change ((4 * s : Nat) : Int) * p.Δ = 4 * p.Δ * (s : Int)
-    push_cast
-    ring
-  obtain ⟨i, hi, _⟩ := fgsa_tick_total E rho hs hp.set.base.delta v hh.2
-    (4 * s) (he ▸ hupper.trans hwindow)
-  rw [he] at hi
-  let st := FGSA.clock p (V2.D.Run.stateBefore E rho i v).st τ
-  let raw := proposerVotes st s
-  let sup := proposerSupport st s
-  let H := getHead p st raw sup
-  let rows := proposalRows p st H
-  let B := Block.node H s (packBody (c.app (rho.input v τ)) rows)
-  let m := Msg.proposal B (raw.filterMap liftHead?) (sup.filterMap liftHead?) rows
-  let o : Obj p := ⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, m⟩
-  have hm : o ∈ (V2.D.tick E rho (V2.D.Run.stateBefore E rho i v) v τ).2 := by
-    apply (fgsa_emits_proposal E rho _ v τ s m).mpr
-    refine ⟨ha, rfl, rfl, ?_⟩
-    delta propose
-    simp only [Nat.ne_of_gt hh.1, ↓reduceIte, Option.map_some]
-    rfl
-  have hprop : HonestProposal E rho (fgsaInterface p c) s B := by
-    refine ⟨hh, o, ⟨i, hi, ?_⟩, rfl⟩
-    rw [(V2.D.Run.step_tick_eq E rho hi).2]
-    exact hm
-  have hslot : B.slot = s := rfl
+  obtain ⟨B, hprop, hslot⟩ := fgsa_honestProposal_exists_of_awake_slot E rho hs
+    hp.set.base.delta hh ha (hupper.trans hwindow)
   have hgate : SA.gateTime p.toParams s ≤ t + G + 6 * p.Δ := by
     change 4 * p.Δ * (s : Time) + 6 * p.Δ ≤ t + G + 6 * p.Δ
     change 4 * p.Δ * (s : Time) ≤ t + G at hupper
     simpa only [add_comm] using add_le_add_left hupper (6 * p.Δ)
   have hincl := available.2 ⟨s, B⟩ (hlate.trans hfuture.le) hprop (hgate.trans hhor)
-  have hread : ∀ g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed],
-      ∀ x u, V2.D.outputAt E rho g x u = S_at p c E rho (timeIdx rho u) x := by
-    intro g hg x u
-    simp only [List.mem_cons, List.not_mem_nil, or_false] at hg
-    rcases hg with rfl | rfl <;>
-      change (V2.D.Run.readAt E rho u x).st.base.stableRecord = _ <;>
-      rw [V2.D.Engine.readAt_eq_stateBefore hs u] <;> rfl
-  have hcut : ∀ u, E.t_GST + B_HF p ΔF G ≤ u →
-      HealSuffix p c rho (E.t_GST + B_HF p ΔF G) (timeIdx rho u) := by
-    intro u hu
-    refine ⟨?_, List.length_filter_le _ _⟩
-    have hm := V2.D.Engine.read_length_mono (rho := rho) _ u hu
-    unfold healStart
-    split
-    · exact (preIdx_le_afterTicksIdx E rho hs _).2.trans hm
-    · exact hm
-  refine ⟨w, input, hstar, s, B, hfuture, hprop, ?_⟩
-  intro g hg
-  refine ⟨?_, fun x hx => hincl g hg _ x ⟨hgate, hhor⟩ hx⟩
-  intro x hx
-  -- Plan A5: a stored ancestor cannot have a strictly future slot.
-  have hn : ¬ Block.Preceq B (V2.D.outputAt E rho g x t) := by
-    intro hb
-    rw [hread g hg x t] at hb
-    have inv := cstoreInv_stateBefore E rho (timeIdx rho t) x
-    obtain ⟨S, hS, heS⟩ := (inv.baseTree _).mp inv.Smem
-    change Block.Preceq B (V2.D.Run.stateBefore E rho (timeIdx rho t) x).st.base.stableRecord at hb
-    rw [← heS] at hb
-    obtain ⟨C, hC, hCB⟩ := eraseFG_ancestor_mem inv.fg.closed hS hb
-    have hmem := (inv.baseTree B).mpr ⟨C, hC, hCB⟩
-    have hbound := (fgsa_stateBefore_bounds E rho hs (timeIdx rho t) x).1 B hmem
-    have hnow : (V2.D.Run.stateBefore E rho (timeIdx rho t) x).st.base.now ≤ t := by
-      rcases V2.D.Engine.stateBefore_now_source (fgsaClock p c) (fgsa_hrestore_now p c)
-        E rho (timeIdx rho t) x with hz | ⟨j, hj, hjt⟩
-      · rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho (timeIdx rho t) x)] at hz
-        exact hz.trans ht
-      · rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho (timeIdx rho t) x)] at hjt
-        exact (V2.D.Engine.index_lt_read_length_iff hs t hjt).mp hj
-    have hle : B.slot ≤ p.slotOf t := hbound.trans (Internal.slotOf_mono hnow)
-    have hpos : 0 < 4 * p.Δ := mul_pos (by decide) p.deltaPos
-    have hdiv : t / (4 * p.Δ) < (s : Time) := by
-      apply (Int.ediv_lt_iff_lt_mul hpos).mpr
-      change t < 4 * p.Δ * (s : Time) at hfuture
-      simpa only [mul_comm] using hfuture
-    have hlt : p.slotOf t < s := by
-      unfold Params.slotOf
-      exact (Int.toNat_lt_of_ne_zero (Nat.ne_of_gt hh.1)).mpr hdiv
-    exact (not_lt_of_ge (hslot.ge.trans hle)) hlt
-  have hmono : Block.Preceq (V2.D.outputAt E rho g x t)
-      (V2.D.outputAt E rho g x (t + G + 6 * p.Δ)) := by
-    rw [hread g hg x t, hread g hg x (t + G + 6 * p.Δ)]
-    exact available.1.2.1 _ _ x (hcut t hlate) (hcut _ (hlate.trans htD))
-      (V2.D.Engine.read_length_mono _ _ htD) hx
-  -- Plan A4: the same deadline output is the common upper bound.
-  have hle : Block.Preceq (V2.D.outputAt E rho g x t) B := by
-    rcases Gen.Pure.block_preceq_total_of_common hmono (hincl g hg _ x ⟨hgate, hhor⟩ hx)
-      with h | h
-    · exact h
-    · exact (hn h).elim
-  have hne : V2.D.outputAt E rho g x t ≠ B := by
-    intro heB
-    apply hn
-    rw [heB]
-    exact Gen.Pure.block_preceq_refl B
-  change (!decide (V2.D.outputAt E rho g x t = B) &&
-    Block.preceq (V2.D.outputAt E rho g x t) B) = true
-  simp only [Bool.and_eq_true, Bool.not_eq_true', decide_eq_false_iff_not]
-  exact ⟨hne, hle⟩
+  refine ⟨w, input, hstar, s, B, jointGrowthAt_of_inclusion
+    (fun g x u => V2.D.outputAt E rho g x u)
+    (fun g => g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed])
+    (· ∈ rho.honest) (V2.D.proposalTime (fgsaInterface p c))
+    (HonestProposal E rho (fgsaInterface p c)) s B t (t + G + 6 * p.Δ)
+    hfuture hprop ?_ ?_ ?_⟩
+  · intro g x hg hx
+    exact fgsa_healed_output_mono E rho hs available.1 hlate htD g hg x hx
+  · intro g x hg hx
+    exact hincl g hg _ x ⟨hgate, hhor⟩ hx
+  · intro g x hg _
+    exact fgsa_output_noFuture_of_slot E rho hs ht hfuture hslot.ge g hg x
 
 end AvailableChain.FGSA.Run
 end
