@@ -22,6 +22,44 @@ private theorem promotion_honest_nonempty (E : Generic.Env V)
   have := p.nPos
   omega
 
+omit [Fintype V] in
+private theorem promotion_stored_parent_slot (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (hv : V2.D.ExecutionValid E rho)
+    (i : Nat) (x : V) (W : FGBlock (Fin p.n))
+    (hW : W ∈ (storeAt p c E rho i x).fg.TF) (hne : W ≠ .genesis) :
+    W.parent.slot < W.slot := by
+  have hm := ((cstoreInv_stateBefore E rho i x).baseTree (eraseFG W)).mpr ⟨W, hW, rfl⟩
+  obtain ⟨w, hw, hb, j, o, t, _, hd, ho, _⟩ :=
+    fgsa_stored_block_origin E rho i x (eraseFG W) hm (by
+      intro he; exact hne (eraseFG_eq_genesis.mp he))
+  obtain ⟨s, Q, raw, sup, rows, rfl, _, _, _⟩ :=
+    (metaInv_stateBefore E rho i x).wireTree w hw
+  have hQ : Q = eraseFG W := Option.some.inj hb
+  subst Q
+  have hf := hv.wire j x o t hd
+  change FGSA.wellFormed p (toWire p o) = true at hf
+  rw [ho] at hf
+  have hlt : (eraseFG W).parent.slot < (eraseFG W).slot := of_decide_eq_true
+    (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp
+      (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp hf).1).1).1).1).2
+  rwa [eraseFG_parent, eraseFG_slot, eraseFG_slot] at hlt
+
+omit [Fintype V] in
+private theorem promotion_stored_ancestor_slot (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (hv : V2.D.ExecutionValid E rho)
+    (i : Nat) (x : V) {U K : FGBlock (Fin p.n)}
+    (hK : K ∈ (storeAt p c E rho i x).fg.TF) (hUK : FGBlock.Preceq U K) :
+    U.slot ≤ K.slot := by
+  induction K with
+  | genesis => obtain rfl := KitFG.preceq_genesis.mp hUK; exact le_rfl
+  | node P s body rows ih =>
+      by_cases he : U = .node P s body rows
+      · subst U; exact le_rfl
+      · have hUP := KitFG.preceq_parent_of_preceq_node hUK he
+        have hP := (cstoreInv_stateBefore E rho i x).fg.closed _ hK
+        exact (ih hP hUP).trans
+          (promotion_stored_parent_slot E rho hv i x _ hK (by intro h; cases h)).le
+
 /-- Blueprint 21:1356–1384; plan §3.2 step 1.
 DC: INTENTIONAL choose the starting action's SO-COV witnesses once.
 The sources can differ. Their actual entries agree by root injectivity.
@@ -61,6 +99,47 @@ theorem healing_promotion_fixed_rows (E : Generic.Env V)
     have heq : (h, root) = (height, U.root) := Option.some.inj hn
     cases heq
     exact ⟨timeout, rfl⟩
+
+/-- Blueprint 21:1356–1384; plan §3.2 steps 1 and 5.
+DC: SAME the common entry's slot is at most the starting action label.
+The equality is supplied by the fixed starting rows. -/
+theorem healing_promotion_entry_slot (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    {x : V} {r : Nat} {K U : FGBlock (Fin p.n)} (hx : x ∈ rho.honest)
+    (hK : actionSourceFG p c E rho x r = some (some K))
+    (hU : (heightView p K).T_h = U) : U.slot ≤ r * p.R := by
+  have hslot := healing_source_slot p c E rho hx hK
+  have hUK : FGBlock.Preceq U K := hU ▸ (fgCertificateLaws p).height.entry_preceq K
+  rw [actionSourceFG_def, postClock_def, preTick_def] at hK
+  cases hi : V2.D.Run.tickIdx? rho x (p.actionTime r) with
+  | none => simp only [hi, Option.map_none, reduceCtorEq] at hK
+  | some i =>
+    simp only [hi, Option.map_some, Option.some.injEq] at hK
+    have hm := (Finset.mem_filter.mp (pickPair_some_spec _ _ hK).1).1
+    have hs := ((KitFG.mem_filteredFromView _ _ _ _).mp hm).1
+    change K ∈ (clock p (storeAt p c E rho i x) (p.actionTime r)).fg.TF at hs
+    rw [clock_fg] at hs
+    exact (promotion_stored_ancestor_slot E rho hrec.base.valid i x hs hUK).trans hslot
+
+/-- Blueprint 21:1356–1384; plan §3.2 step 1.
+DC: SAME the fixed batch keeps the common entry and its action-slot bound.
+No starting row or source is replaced. -/
+theorem healing_promotion_bounded_rows (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    {r height : Nat} {Q : Block} (hentry : OpeningEntry p c E rho r height)
+    (hcovered : OpeningCovered p c E rho r Q) :
+    ∃ U : FGBlock (Fin p.n), EntryAt p U height ∧ U.slot ≤ r * p.R ∧
+      ∀ x ∈ rho.honest, ∃ K nd j rSent a,
+        postClock E rho x (p.actionTime r) = some nd ∧
+        actionSourceFG p c E rho x r = some (some K) ∧ K ∈ FGSA.fullTree p nd.st ∧
+        Block.Preceq Q (eraseFG K) ∧ FGBlock.Preceq U K ∧ K.slot ≤ r * p.R ∧
+        (heightView p K).h = height ∧ (heightView p K).T_h = U ∧
+        rSent ≤ r ∧ HonestRowAt p c E rho j x rSent a ∧
+        NamesEntry p .progress a height U := by
+  obtain ⟨U, hU, hrows⟩ := healing_promotion_fixed_rows E rho hrec hentry hcovered
+  obtain ⟨x, hx⟩ := promotion_honest_nonempty E rho hrec
+  obtain ⟨K, _, _, _, _, _, hK, _, _, _, _, _, he, _⟩ := hrows x hx
+  exact ⟨U, hU, healing_promotion_entry_slot E rho hrec hx hK he, hrows⟩
 
 omit [Fintype V] in
 /-- Blueprint 21:1385–1396; plan §3.2 step 4.

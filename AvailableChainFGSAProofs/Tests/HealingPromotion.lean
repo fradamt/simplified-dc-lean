@@ -1,6 +1,8 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionArithmetic -- shake: keep (arithmetic tests)
 public import AvailableChainFGSAProofs.Proofs.Healing.Promotion -- shake: keep (promotion helper tests)
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionCarrier -- shake: keep (actual proposal tests)
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionRows -- shake: keep (same-row validity tests)
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportPerm -- shake: keep (TPerm supplier)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Store -- shake: keep (RMono supplier)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Leases -- shake: keep (last-write supplier)
@@ -18,6 +20,61 @@ open AvailableChain.SimplexFG
 
 variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In}
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+
+-- The common entry's bound is derived from the fixed sources, then used for maturity.
+example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF) (hδ : p.δt = 2 * p.R)
+    {r s : Nat} {height : Nat} {Q : Block}
+    (hentry : OpeningEntry p c E rho r height) (hcovered : OpeningCovered p c E rho r Q)
+    (hs : (r : Time) * P p + 2 * P p ≤ SA.proposalTime p.toParams s) :
+    ∃ U : FGBlock (Fin p.n), EntryAt p U height ∧ U.slot ≤ r * p.R ∧ U.slot + p.δt ≤ s := by
+  obtain ⟨U, hU, hslot, _⟩ := healing_promotion_bounded_rows
+    (p := p) (c := c) (E := E) (rho := rho) (G := G) (ΔF := ΔF) (hrec := hrec)
+    (r := r) (height := height) (Q := Q) (hentry := hentry) (hcovered := hcovered)
+  exact ⟨U, hU, hslot, healing_promotion_maturity
+    (p := p) (hδ := hδ) (r := r) (s := s) (U := U) (hU := hslot) (hs := hs)⟩
+
+-- The original gap binders now produce the proposal and its ordered FG rows.
+example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF) (r : Nat)
+    (hgst : E.t_GST ≤ p.actionTime r)
+    (hhor : p.actionTime r + 2 * P p + Γ p G - 4 * p.Δ ≤ rho.horizon) :
+    ∃ s X, HonestProposal E rho (fgsaInterface p c) s (eraseFG X) ∧ X.slot = s ∧
+      (r : Time) * P p + 2 * P p ≤ SA.proposalTime p.toParams s ∧
+      SA.proposalTime p.toParams s ≤
+        p.actionTime r + 2 * P p + Γ p G - 10 * p.Δ ∧
+      ∃ rows, HonestCarrier p c E rho s (eraseFG X) rows ∧
+        X.rows = rows.filterMap RowWire.toRow? := by
+  obtain ⟨_, s, X, hp, hslot, hlo, hhi, _, hc⟩ := healing_promotion_gap_proposal
+    (p := p) (c := c) (E := E) (rho := rho) (G := G) (ΔF := ΔF) (hrec := hrec)
+    (r := r) (hgst := hgst) (hhor := hhor)
+  exact ⟨s, X, hp, hslot, hlo, hhi, hc⟩
+
+-- Source transfer supplies the path. Equal parent height is the local branch.
+-- Every validity result refers to the same row selected at the starting action.
+example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF) (perm : TPerm p c E rho)
+    {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
+    {r height : Nat} {s : Slot} {Q : Block} {X : FGBlock (Fin p.n)}
+    (hentry : OpeningEntry p c E rho r height) (hcovered : OpeningCovered p c E rho r Q)
+    (hgst : E.t_GST ≤ u)
+    (hphase : PhaseInterval p c E rho u (SA.proposalTime p.toParams s) m J contested)
+    (hu : u ≤ SA.voteTime p.toParams (r * p.R))
+    (hgate : p.actionTime r ≤ SA.proposalTime p.toParams s) (hs : r * p.R + 2 ≤ s)
+    (hnew : HonestProposal E rho (fgsaInterface p c) s (eraseFG X)) (hslot : X.slot = s)
+    (hheight : (heightView p X.parent).h = height) :
+    ∃ U : FGBlock (Fin p.n), EntryAt p U height ∧ U.slot ≤ r * p.R ∧
+      ∀ x ∈ rho.honest, ∃ j rSent a, rSent ≤ r ∧ HonestRowAt p c E rho j x rSent a ∧
+        NamesEntry p .progress a height U ∧
+        ValidForParent p c E rho X.slot (eraseFG X) a ∧
+        HeightMatch p c E rho X.slot (eraseFG X) a := by
+  obtain ⟨U, hU, hUslot, _, hrows⟩ := healing_promotion_same_rows
+    (p := p) (c := c) (E := E) (rho := rho) (G := G) (ΔF := ΔF) (hrec := hrec)
+    (perm := perm) (u := u) (m := m) (J := J) (contested := contested)
+    (r := r) (height := height) (s := s) (Q := Q) (X := X)
+    (hentry := hentry) (hcovered := hcovered) (hgst := hgst) (hphase := hphase)
+    (hu := hu) (hgate := hgate) (hs := hs) (hnew := hnew) (hslot := hslot)
+  refine ⟨U, hU, hUslot, ?_⟩
+  intro x hx
+  obtain ⟨_, _, j, rSent, a, _, _, _, _, _, _, _, _, hr, ha, hn, hv⟩ := hrows x hx
+  exact ⟨j, rSent, a, hr, ha, hn, hv hheight⟩
 
 -- Fixed action, with height one. Sources can differ and rows can be old.
 example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF) {r : Nat} {Q : Block}

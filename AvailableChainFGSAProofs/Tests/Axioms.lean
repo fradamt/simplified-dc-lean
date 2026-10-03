@@ -1,6 +1,8 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionArithmetic -- shake: keep (H-PROMOTE arithmetic audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.Promotion -- shake: keep (H-PROMOTE axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionCarrier -- shake: keep (H-PROMOTE carrier axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionRows -- shake: keep (H-PROMOTE same-row axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.FramePaths -- shake: keep (H-FRAME audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.FrameZero -- shake: keep (zero-label audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.FrameRelay -- shake: keep (witness relay audit)
@@ -1069,3 +1071,9 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.healing_promotion_source_body
 #print axioms AvailableChain.FGSA.Run.healing_promotion_source_parent
 #print axioms AvailableChain.FGSA.Run.healing_promotion_continuing_service
+#print axioms AvailableChain.FGSA.Run.healing_promotion_entry_slot
+#print axioms AvailableChain.FGSA.Run.healing_promotion_bounded_rows
+#print axioms AvailableChain.FGSA.Run.healing_promotion_carrier
+#print axioms AvailableChain.FGSA.Run.healing_promotion_slot_proposal
+#print axioms AvailableChain.FGSA.Run.healing_promotion_gap_proposal
+#print axioms AvailableChain.FGSA.Run.healing_promotion_same_rows

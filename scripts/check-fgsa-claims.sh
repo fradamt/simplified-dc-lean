@@ -60,6 +60,13 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.healing_promotion_source_body',
     'AvailableChain.FGSA.Run.healing_promotion_source_parent',
     'AvailableChain.FGSA.Run.healing_promotion_continuing_service',
+    # H-PROMOTE r2: --expect additions only.
+    'AvailableChain.FGSA.Run.healing_promotion_entry_slot',
+    'AvailableChain.FGSA.Run.healing_promotion_bounded_rows',
+    'AvailableChain.FGSA.Run.healing_promotion_carrier',
+    'AvailableChain.FGSA.Run.healing_promotion_slot_proposal',
+    'AvailableChain.FGSA.Run.healing_promotion_gap_proposal',
+    'AvailableChain.FGSA.Run.healing_promotion_same_rows',
     # H-SUPPORT: --expect additions only.
     'AvailableChain.FGSA.Run.healing_settled_frame_strict',
     'AvailableChain.FGSA.Run.healing_witness_relay_settled',
