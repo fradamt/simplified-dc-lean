@@ -143,6 +143,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.Attempt -- shake: keep (H-
 public import AvailableChainFGSAProofs.Proofs.Healing.AttemptBudget -- shake: keep (H-ATTEMPT axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.AttemptStop -- shake: keep (H-ATTEMPT axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.AttemptSettle -- shake: keep (CUT axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.AttemptRows -- shake: keep (complete first rows)
 
 #print axioms AvailableChain.FGSA.Run.kmid_honestSeats_mem
 #print axioms AvailableChain.FGSA.Run.kmid_honest_quorum
@@ -1542,3 +1543,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.AttemptSettle -- shake: ke
 #print axioms AvailableChain.FGSA.Run.healing_attempt_raise_other_settle
 #print axioms AvailableChain.FGSA.Run.healing_attempt_firstRow_contest_settle
 #print axioms AvailableChain.FGSA.Run.healing_attempt_firstRow_other_settle
+
+-- S5 H-ATTEMPT-3: complete first-row lane lemmas.
+#print axioms AvailableChain.FGSA.Run.healing_attempt_firstRow_contest
+#print axioms AvailableChain.FGSA.Run.healing_attempt_firstRow_other

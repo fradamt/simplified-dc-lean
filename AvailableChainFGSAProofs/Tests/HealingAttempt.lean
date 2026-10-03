@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Healing.AttemptRows -- shake: keep (complete first rows)
 public import AvailableChainFGSAProofs.Proofs.Healing.AttemptSettle -- shake: keep (four cut starts)
 public import AvailableChainFGSAProofs.Proofs.Healing.Attempt -- shake: keep (conditional assembly)
 public import AvailableChainFGSAProofs.Proofs.Healing.AttemptBudget -- shake: keep (four budget rows)
@@ -119,6 +120,45 @@ example :
       attemptParams.actionTime 3 + 2 * P attemptParams + Γ attemptParams 10 -
         9 * attemptParams.Δ = 65 := by
   decide
+
+-- P1 arithmetic: the shifted endpoint is within the terminal deadline in all four classes.
+-- For positive remainders the aligned proposal at a is permitted by the shifted window.
+example : (8 : Time) % 4 = 0 ∧ Γ attemptParams 8 = 8 ∧
+    (56 : Time) + Γ attemptParams 8 - 8 = 56 ∧
+    (56 : Time) + Γ attemptParams 8 ≤
+      attemptParams.actionTime 3 + 2 * P attemptParams + Γ attemptParams 8 -
+        9 * attemptParams.Δ := by decide
+
+example : (9 : Time) % 4 = 1 ∧ Γ attemptParams 9 = 8 ∧
+    (56 : Time) + Γ attemptParams 9 - 9 = 55 ∧
+    (56 : Time) + Γ attemptParams 9 ≤
+      attemptParams.actionTime 3 + 2 * P attemptParams + Γ attemptParams 9 -
+        9 * attemptParams.Δ := by decide
+
+example : (10 : Time) % 4 = 2 ∧ Γ attemptParams 10 = 8 ∧
+    (56 : Time) + Γ attemptParams 10 - 10 = 54 ∧
+    (56 : Time) + Γ attemptParams 10 ≤
+      attemptParams.actionTime 3 + 2 * P attemptParams + Γ attemptParams 10 -
+        9 * attemptParams.Δ := by decide
+
+example : (11 : Time) % 4 = 3 ∧ Γ attemptParams 11 = 8 ∧
+    (56 : Time) + Γ attemptParams 11 - 11 = 53 ∧
+    (56 : Time) + Γ attemptParams 11 ≤
+      attemptParams.actionTime 3 + 2 * P attemptParams + Γ attemptParams 11 -
+        9 * attemptParams.Δ := by decide
+
+example : SA.proposalTime attemptParams.toParams 14 =
+    (3 : Time) * P attemptParams + 2 * P attemptParams - 4 * attemptParams.Δ ∧
+    SA.proposalTime attemptParams.toParams 14 < attemptParams.actionTime 5 ∧
+    ¬ ((9 : Nat) + attemptParams.δt ≤ 14) := by decide
+
+example : ∀ G ∈ ([9, 10, 11] : List Time),
+    (56 : Time) + Γ attemptParams G - G < SA.proposalTime attemptParams.toParams 14 ∧
+    SA.proposalTime attemptParams.toParams 14 ≤ (56 : Time) + Γ attemptParams G := by decide
+
+-- Class 0 excludes t_s = a and allows the next grid slot, which is mature.
+example : ¬ ((56 : Time) + Γ attemptParams 8 - 8 < SA.proposalTime attemptParams.toParams 14) ∧
+    (9 : Nat) + attemptParams.δt ≤ 15 := by decide
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
@@ -322,6 +362,71 @@ example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   obtain ⟨J, hsettled⟩ := healing_attempt_firstRow_other_settle p c E rho crossing hrec
     hvalid hstart hu hv hquiet htask hphase
   exact ⟨rG, J, ht, hcut, hsettled⟩
+
+section CompleteRows
+variable [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (qc : RQCOrigin p c E rho)
+    (writes : ∀ i x (row : Block × Nat × Time),
+      row ∈ (storeAt p c E rho i x).base.obligations →
+      ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
+        gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
+        row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
+        row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
+        ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
+          let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          GridCO.savedGenuine pre.base w = none →
+          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+            (actView pre) w C)
+    (rowCoverage : ∀ x, x ∈ rho.honest → ∀ r nd,
+      postClock E rho x (p.actionTime r) = some nd → ∀ C,
+      actionSourceFG p c E rho x r = some (some C) →
+      C ∈ FGSA.fullTree p nd.st →
+      (FGSA.controls p nd.st).lo ≤ (heightView p C).h →
+      E.awake x (p.actionTime r) = true →
+      ∃ j rSent a, rSent ≤ r ∧ HonestRowAt p c E rho j x rSent a ∧
+        namedEntry a.payload.height_pair =
+          some ((heightView p C).h, (heightView p C).T_h.root))
+
+
+
+-- Complete contest row at either start arm, with no row-result premise.
+example {k : AttemptKey} {ev : V2.Event V (Obj p)}
+    (hvalid : AttemptValid p c E rho k) (hstart : rho.events[k.start]? = some ev)
+    (hhor : ev.time + attemptBudget p G k ≤ rho.horizon)
+    (htask : k.task = .firstRow) (hphase : k.phase = .contest) :
+    AttemptEndsBy p c E rho k (attemptBudget p G k) :=
+  healing_attempt_firstRow_contest E rho hrec mono crossing qc writes rowCoverage
+    hvalid hstart hhor htask hphase
+
+variable
+    (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF)
+    (rowsReceipt : ∀ j y r (a : RowWire p.n), HonestRowAt p c E rho j y r a →
+      max (p.actionTime r) E.t_GST + ΔF ≤ rho.horizon →
+      ∀ x ∈ rho.honest, HeldBefore p c E rho x a (max (p.actionTime r) E.t_GST + ΔF))
+    (progressCoverage : ∀ (r height : Nat) (U X : FGBlock (Fin p.n)),
+      BatchPrem p c E rho ΔF .progress r height U X →
+      (heightView p X.parent).h = height → CoveredByChild p .progress X U height)
+    (hfold : foldTrichotomy p .progress)
+    (faultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+    (honestQuorum : p.E.q ≤ p.E.weightOf (honestSeats p c rho))
+
+
+-- Complete gap and topJ row at either start arm, with the promotion INLINE facts.
+example {k : AttemptKey} {ev : V2.Event V (Obj p)}
+    (hvalid : AttemptValid p c E rho k) (hstart : rho.events[k.start]? = some ev)
+    (hhor : ev.time + attemptBudget p G k ≤ rho.horizon)
+    (htask : k.task = .firstRow) (hphase : k.phase ≠ .contest) :
+    AttemptEndsBy p c E rho k (attemptBudget p G k) :=
+  healing_attempt_firstRow_other E rho hrec mono crossing qc writes rowCoverage hδ hbound
+    rowsReceipt progressCoverage hfold faultQ honestQuorum hvalid hstart hhor htask hphase
+
+end CompleteRows
 
 end AvailableChain.FGSA.Run.Tests.HealingAttempt
 end

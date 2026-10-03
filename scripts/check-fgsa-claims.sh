@@ -2081,6 +2081,9 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.healing_attempt_raise_other_settle',
     'AvailableChain.FGSA.Run.healing_attempt_firstRow_contest_settle',
     'AvailableChain.FGSA.Run.healing_attempt_firstRow_other_settle',
+    # S5 H-ATTEMPT-3: --expect ADDITIONS only.
+    'AvailableChain.FGSA.Run.healing_attempt_firstRow_contest',
+    'AvailableChain.FGSA.Run.healing_attempt_firstRow_other',
 
 )
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
