@@ -2494,6 +2494,13 @@ EXPECTED = (
     # Blueprint 21 H.18–H.22; plan S5 HTW-3; DC: SAME claim exports.
     'AvailableChain.FGSA.Run.healing_resetArrivalFull_of_open₂',
     'AvailableChain.FGSA.Run.healing_hTimeClaim_of_open₂',
+    # Blueprint 21 H.18–H.22; plan S5 CONE-3 R1/R3; DC: SAME audit additions.
+    'AvailableChain.FGSA.Run.postReset_cone_reset_held',
+    'AvailableChain.FGSA.Run.postReset_root_heads_at_cut',
+    'AvailableChain.FGSA.Run.postReset_head_receipt_at_cut',
+    'AvailableChain.FGSA.Run.postReset_proposal_batch_seat_at_cut',
+    'AvailableChain.FGSA.Run.postReset_head_batch_seat_at_cut',
+    'AvailableChain.FGSA.Run.healing_hTimeClaim_of_steps',
 )
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
          'Packages.Safety', 'OutputReads', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',

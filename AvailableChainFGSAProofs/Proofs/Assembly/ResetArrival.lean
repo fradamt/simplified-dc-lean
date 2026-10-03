@@ -430,6 +430,13 @@ theorem healing_hTimeClaim_of_open₂ : HTimeClaim p := by
     (healing_resetArrivalFull_of_open₂ p stepRL stepLease stepRaw stepCone G ΔF) hInput
 
 
+omit stepCone in
+/-- Blueprint 21 H.18–H.22:3049–3176; plan S5 CONE-3 R3.
+DC: SAME HTimeClaim with the cone step supplied by HealingSet.
+The three inputs keep the exact types from healing_hTimeClaim_of_open₂. -/
+theorem healing_hTimeClaim_of_steps : HTimeClaim p :=
+  healing_hTimeClaim_of_open₂ p stepRL stepLease stepRaw (healing_postReset_coneStep_of_set p)
+
 end HTime₂
 
 end AvailableChain.FGSA.Run

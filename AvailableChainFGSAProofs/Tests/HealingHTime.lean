@@ -129,3 +129,42 @@ end OpenInputs₂
 
 end AvailableChain.FGSA.Run.Tests.HealingHTime
 end
+
+namespace AvailableChain.FGSA.Run.Tests.HealingHTime
+
+section Steps
+variable (p : Params)
+    (stepRL : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time},
+      HealingSet p c E rho G ΔF → ∀ {w : HealingWitness}, H0Reset p c E rho w →
+      ∀ i, PostResetResetLeaseStep p c E rho w i)
+    (stepLease : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time},
+      HealingSet p c E rho G ΔF → ∀ {w : HealingWitness}, H0Reset p c E rho w →
+      ∀ i, PostResetLeaseStep p c E rho w i)
+    (stepRaw : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time},
+      HealingSet p c E rho G ΔF → ∀ {w : HealingWitness}, H0Reset p c E rho w →
+      ∀ i, PostResetRawStep p c E rho w i)
+
+include stepRL stepLease stepRaw
+
+/-- Blueprint 21 H.18–H.22:3049–3176; plan S5 CONE-3 R3.
+DC: SAME HTimeClaim with the three exact step inputs and the cone supplied. -/
+example : HTimeClaim p :=
+  healing_hTimeClaim_of_steps p stepRL stepLease stepRaw
+
+/-- Blueprint 21 H.18–H.22:3049–3176; plan S5 CONE-3 R3.
+DC: SAME witness and both time bounds after the claim is applied to a run. -/
+example (G ΔF : Time) (hClock : p.δt = 2 * p.R)
+    {V In : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (h : HealingTimePrem p c G ΔF E rho ()) : HTimeConcl p c E rho G ΔF :=
+  healing_hTimeClaim_of_steps p stepRL stepLease stepRaw G ΔF hClock c E rho () h
+
+end Steps
+
+#check healing_hTimeClaim_of_steps
+#print axioms healing_hTimeClaim_of_steps
+
+end AvailableChain.FGSA.Run.Tests.HealingHTime
