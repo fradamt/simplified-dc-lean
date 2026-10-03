@@ -146,7 +146,7 @@ theorem postReset_general_kept_of_compat (xing : RXing p c E rho) (origin : RQCO
 /-- Blueprint 21 H.14:2815–2884; plan J3 D0; B1/B13/B17/B18.
 DC: SAME RKeep body over the reset witness. The last clause is supplied
 by postReset_general_kept_of_compat, including bodies outside ProtectedBody.
-This internal projection has no H0 or first-proposal input. -/
+This internal projection has no full H0 or first-proposal input. -/
 theorem postReset_rKeep_body_of_compat (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
     {w : HealingWitness} (h0r : H0Reset p c E rho w)
     (hs : V2.D.ScheduleWellFormed E rho)
@@ -171,7 +171,7 @@ theorem postReset_rKeep_body_of_compat (xing : RXing p c E rho) (origin : RQCOri
     (∀ B, (∀ A, FGBlock.Preceq A B → A ∈ X) → Block.Compatible (eraseFG B) w.CStar →
       (∀ K s, SourceBefore p c E rho i K s → high p w K →
         Block.Compatible (eraseFG B) (eraseFG K)) → Kept p c E rho i x X B) := by
-  intro i x X C hx hX htick hC he cover hreset hhigh
+  intro i x X C hx hX _htick hC he cover _hreset _hhigh
   have hh := postReset_keep_height p c E rho h0r (hX hC) he
   have hc := postReset_keep_contest p c E rho hs origin (highCompat i) hh hx
   exact ⟨hh, hc, postReset_keep_floor p c E rho hc,
