@@ -220,3 +220,26 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTop
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchBudget
 public import AvailableChainFGSAProofs.Proofs.Healing.Reset
 public import AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetInvariant
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetTransfer
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionTerminal
+public import AvailableChainFGSAProofs.Proofs.Assembly.ProgressAttempt
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLease
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep
+public import AvailableChainFGSAProofs.Proofs.Healing.PostReset
+public import AvailableChainFGSAProofs.Proofs.Healing.Time
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRead -- shake: keep (J6 public input)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetService -- shake: keep (J6 public adapters)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetGate -- shake: keep (J6-2 H6 adapter)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetHealed
+public import AvailableChainFGSAProofs.Proofs.Healing.HealingInputExport
+public import AvailableChainFGSAProofs.Proofs.Healing.Time
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLease
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep
+public import AvailableChainFGSAProofs.Proofs.Healing.PostReset
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLeaseStep
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetHigh
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJoint
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetProject
