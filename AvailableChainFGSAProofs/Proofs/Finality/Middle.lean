@@ -443,5 +443,20 @@ theorem kernel_middle_early_justification
     Window.RetainedW p m.X_D (m.d + 1) m.U :=
   ⟨m.heightD, m.justifiedD, m.justifiedHeightD, m.pendingD, m.retainedD⟩
 
+/-- FINAL 22:1265–1304. An honest source at action q+2 is at most d+2 high. Its own
+action tick is a held read before the read-phase cut of that action.
+DC: INTENTIONAL: the receipt Assembly reads the round-(q+2) source cap here. -/
+theorem kernel_middle_source_cap
+    (p : Params) {In V : Type} [DecidableEq V] [Fintype V]
+    (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (ΔF : Time) (pt : KernelPt) (A : Block)
+    (m : KernelMiddleWitness_W p c E rho ΔF pt A)
+    (hs : V2.D.ScheduleWellFormed E rho) {x : V} {C : FGBlock (Fin p.n)}
+    (hx : x ∈ rho.honest)
+    (hsrc : actionSourceFG p c E rho x (pt.r + 2) = some (some C)) :
+    (heightView p C).h ≤ m.d + 2 := by
+  obtain ⟨i, hi, hcut, hheld⟩ := kmid_source_held_at_tick p c E rho hs hx hsrc
+  exact m.capThroughFinalAction i x C (List.getElem?_eq_some_iff.mp hi).1.le hcut.le hheld
+
 end AvailableChain.FGSA.Run
 end

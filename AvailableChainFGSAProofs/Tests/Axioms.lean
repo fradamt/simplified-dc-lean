@@ -966,3 +966,5 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.kernel_opening_and_middle
 #print axioms AvailableChain.FGSA.Run.kernel_middle_fresh_U
 #print axioms AvailableChain.FGSA.Run.kernel_middle_early_justification
+#print axioms AvailableChain.FGSA.Run.kernel_middle_source_cap
+#print axioms AvailableChain.FGSA.Run.kmid_source_held_at_tick

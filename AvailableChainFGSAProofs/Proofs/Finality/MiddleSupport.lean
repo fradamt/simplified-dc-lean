@@ -450,6 +450,36 @@ theorem kmid_head_held {v : Slot}
     rw [FGSA.clock_fg] at hB
     exact hB
 
+omit [Fintype V] in
+/-- FINAL 22:1265–1304. The FG action source is a stored block of the read state.
+DC: INTENTIONAL: the joint source picks from the filtered stored tree. -/
+theorem kmid_source_mem_TF {st : State p.n} {C : FGBlock (Fin p.n)}
+    (h : FGSA.fgSource p st = some C) : C ∈ st.fg.TF := by
+  rw [fgSource_eq_jointSource, jointSource_def] at h
+  have hm := (Finset.mem_filter.mp (FGSA.pickPair_some_spec _ _ h).1).1
+  rw [domainR_def, KitFG.mem_filteredFromView, treeT_def] at hm
+  exact hm.1
+
+omit [Fintype V] in
+/-- FINAL 22:1265–1304. An honest action source is held at its own action tick,
+before the read-phase cut of that action. DC: INTENTIONAL: the run reads the source
+at the post-clock state of the action tick. -/
+theorem kmid_source_held_at_tick (hs : V2.D.ScheduleWellFormed E rho) {x : V} {r : Nat}
+    {C : FGBlock (Fin p.n)} (hx : x ∈ rho.honest)
+    (hsrc : actionSourceFG p c E rho x r = some (some C)) :
+    ∃ i, rho.events[i]? = some (.tick x (p.actionTime r)) ∧
+      i < afterTicksIdx rho (p.actionTime r) ∧ HeldAt p c E rho i x C := by
+  rw [actionSourceFG_def, postClock_def, preTick_def] at hsrc
+  cases hi : V2.D.Run.tickIdx? rho x (p.actionTime r) with
+  | none => simp only [hi, Option.map_none] at hsrc; contradiction
+  | some i =>
+    simp only [hi, Option.map_some, Option.some.injEq] at hsrc
+    have hj := V2.D.Run.tickIdx?_spec hi
+    have hm := kmid_source_mem_TF p hsrc
+    change C ∈ (FGSA.clock p _ _).fg.TF at hm
+    rw [FGSA.clock_fg] at hm
+    exact ⟨i, hj, kmid_tick_lt_afterTicks p c E rho hs hj le_rfl, hx, hm⟩
+
 /-- FINAL 22:954–956,1226. The exact HEAD read gives raw chain rows before a later cut.
 DC: INTENTIONAL: an actual honest strict-before read holds every carrier. -/
 theorem kmid_chainRows_of_head (hs : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.NoRestart rho)
