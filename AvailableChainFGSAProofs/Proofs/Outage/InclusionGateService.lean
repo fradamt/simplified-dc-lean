@@ -15,7 +15,7 @@ private theorem igate_vote_lt_gate (p : Params) (s : Slot) :
   change 4 * p.Δ * (s : Int) + p.Δ < 4 * p.Δ * (s : Int) + 6 * p.Δ
   linarith [p.deltaPos]
 
-/-- Blueprint 02:531–541; plan I-GATE, G4. Class (iii).
+/-- Blueprint 03:438–441 (h_s honest supporters vs ≤ a others); plan I-GATE, G4. Class (iii).
 DC: INTENTIONAL; the fresh HEAD seat bijection transfers the awake count.
 Strict-before participation gives Batch without a fast threshold. -/
 theorem inclusion_awake_seat_batch [Fintype V]
@@ -57,7 +57,7 @@ theorem inclusion_awake_seat_batch [Fintype V]
     ((igate_vote_lt_gate p s).trans_le hhor)⟩⟩
 
 
-/-- Blueprint 03:397–431; plan I-GATE, G5. Class (iii).
+/-- Blueprint 03:418–458; plan I-GATE, G5. Class (iii).
 DC: INTENTIONAL; a strict majority gives the exact raw result. Compatible
 leases let the gate advance S to P. No lease admission test is needed. -/
 theorem inclusion_gate_exact [Fintype V]

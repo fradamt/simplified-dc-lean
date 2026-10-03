@@ -15,7 +15,7 @@ private theorem igate_vote_lt_gate (p : Params) (s : Slot) :
   change 4 * p.Δ * (s : Int) + p.Δ < 4 * p.Δ * (s : Int) + 6 * p.Δ
   linarith [p.deltaPos]
 
-/-- Blueprint 03:397–431; plan I-GATE, G1. Class (iii).
+/-- Blueprint 03:350–417 (§4 exact adoption), 03:418–458 (§5); plan I-GATE, G1. Class (iii).
 DC: INTENTIONAL; the exact strict read is a scheduled HEAD read for every
 honest node. The tick does not need an awake node. -/
 theorem inclusion_headAtLabel [Fintype V]
@@ -61,7 +61,7 @@ theorem inclusion_headAtLabel [Fintype V]
   simp only [Option.map_some]
   rw [fgsa_preTick_eq_timeRead E rho hs hset.pre.base.noRestart hi, hhead y hy]
 
-/-- Blueprint 03:397–431; plan I-GATE, G2. Class (iii).
+/-- Blueprint 03:418–458; plan I-GATE, G2. Class (iii).
 DC: INTENTIONAL; transfer at s minus one bounds its raw results by P.
 Ordering bounds all older results. At s = 1 there is no older label. -/
 theorem inclusion_prior_results_below

@@ -11,7 +11,7 @@ open Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- Blueprint 03:397–431; S3a Q12:3454; plan I-GATE, G6. Class (iii).
+/-- Blueprint 03:418–458; S3a Q12:3454; plan I-GATE, G6. Class (iii).
 DC: INTENTIONAL; this is the unfolded InclusionPostGateAt body.
 The event-prefix monotonicity conjunct is the supplied hmono field. -/
 theorem clean_inclusion_post_gate_body [Fintype V]
@@ -63,7 +63,7 @@ theorem clean_inclusion_post_gate_body [Fintype V]
   rw [show S_at p c E rho (afterTicksIdx rho _) x = S_at p c E rho (i + 1) x from hS, hout]
   exact block_preceq_refl _
 
-/-- Blueprint 03:397–431; S3a Q12:3454; plan I-READ, G7. Class (iii).
+/-- Blueprint 03:418–458; S3a Q12:3454; plan I-READ, G7. Class (iii).
 DC: INTENTIONAL; this is the unfolded InclusionAt body. The inclusive
 public read uses hmono after the tick cut, including deliveries at d.
 Both getters read S. All read times are within the finite horizon. -/

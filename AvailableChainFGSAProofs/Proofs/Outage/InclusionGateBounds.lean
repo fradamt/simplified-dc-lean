@@ -256,7 +256,7 @@ private theorem igate_slot_pos (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   have hm := (fgsa_emits_proposal E rho _ _ _ _ _).mp hem
   exact (fgsa_walkRun_proposal_parent p _ pt.s _ pt.P raw sup rows hm.2.2.2).1
 
-/-- Blueprint 03:397–431; spec 683–694; plan I-GATE, G3. Class (iii).
+/-- Blueprint 03:418–458; spec 683–694; plan I-GATE, G3. Class (iii).
 DC: INTENTIONAL; all origins are bounded at the strict cut idxBefore d.
 Other nodes' gate ticks at d do not enter this cut. The local gate input
 has the same store. ClockPre keeps F, J, S and bodies, and deletes leases. -/
