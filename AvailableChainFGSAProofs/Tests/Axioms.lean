@@ -179,6 +179,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.AttemptSettle -- shake: ke
 public import AvailableChainFGSAProofs.Proofs.Healing.AttemptRows -- shake: keep (complete first rows)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetHealed -- shake: keep (J7 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Assembly.ProgressAttempt -- shake: keep
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJoint2 -- shake: keep (JOINT-IND2 audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetTHigh -- shake: keep (THIGH-C audit)
 
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTop -- shake: keep (HG.3 phase audit)
@@ -1935,6 +1936,25 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchFull -- shak
 #print axioms AvailableChain.FGSA.Run.postReset_tCarrier_reset
 #print axioms AvailableChain.FGSA.Run.postReset_h2A_reset
 
+-- JOINT-IND2: retained-cone field and joint induction.
+#print axioms AvailableChain.FGSA.Run.PostResetRetainedConeP
+#print axioms AvailableChain.FGSA.Run.PostResetConeStep
+#print axioms AvailableChain.FGSA.Run.PostResetOpeningDomainStep₂
+#print axioms AvailableChain.FGSA.Run.PostResetServiceStep₂
+#print axioms AvailableChain.FGSA.Run.PostResetRetainedConeP_def
+#print axioms AvailableChain.FGSA.Run.PostResetConeStep_def
+#print axioms AvailableChain.FGSA.Run.PostResetOpeningDomainStep₂_def
+#print axioms AvailableChain.FGSA.Run.PostResetServiceStep₂_def
+#print axioms AvailableChain.FGSA.Run.PostResetRetainedConeP_mono
+#print axioms AvailableChain.FGSA.Run.postReset_retainedCone_of_cut
+#print axioms AvailableChain.FGSA.Run.postReset_cone_zero
+#print axioms AvailableChain.FGSA.Run.postReset_joint₂_zero
+#print axioms AvailableChain.FGSA.Run.postReset_openingDomainStep₂_of_old
+#print axioms AvailableChain.FGSA.Run.postReset_serviceStep₂_of_old
+#print axioms AvailableChain.FGSA.Run.postReset_joint₂_all
+#print axioms AvailableChain.FGSA.Run.postReset_inv_all₂
+#print axioms AvailableChain.FGSA.Run.postReset_cone_all
+#print axioms AvailableChain.FGSA.Run.postReset_retainedCone_run
 -- THIGH-C A–C: standard axiom audit.
 #print axioms AvailableChain.FGSA.Run.postReset_selected_supporting_head
 #print axioms AvailableChain.FGSA.Run.postReset_tHigh_pairwise
