@@ -199,6 +199,9 @@ public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthReads
 public import AvailableChainFGSAProofs.Proofs.Outage.Growth
 public import AvailableChainFGSAProofs.Proofs.Finality.Forward
 public import AvailableChainFGSAProofs.Proofs.Finality.Local
+public import AvailableChainFGSAProofs.Proofs.Healing.SourceTiming
+public import AvailableChainFGSAProofs.Proofs.Healing.Delivery
+public import AvailableChainFGSAProofs.Proofs.Healing.DeliveryReset
 public import AvailableChainFGSAProofs.Proofs.Assembly.Healing
 public import AvailableChainFGSAProofs.Proofs.Finality.Proposal
 public import AvailableChainFGSAProofs.Proofs.Finality.Above
