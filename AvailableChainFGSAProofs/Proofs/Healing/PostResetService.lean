@@ -52,14 +52,15 @@ theorem healing_postReset_opening_finality
 
 /-- Blueprint 21 H.17:3024–3040; plan J6-3 O2; B1/B17/B18.
 DC: SAME exact HEAD and opening F bound give the receipt target floor.
-gate_finality below supplies the target floor at arbitrary labels. -/
-theorem healing_postReset_opening_target_floor [Fintype V]
+gate_finality below supplies the target floor at arbitrary labels.
+Blueprint 21 H.17:2946–3040; plan RE-BIND D2; DC: SAME per-label cone. -/
+theorem healing_postReset_opening_target_floor_at [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     (w : HealingWitness) (hreset : H0Reset p c E rho w)
-    (hcone : PostResetRetainedCone p c E rho w)
+    {v : Slot} (hcone : PostResetConeAt p c E rho w v)
     (i : Nat) (hopening : PostResetOpeningDomain p c E rho w i)
-    {k : Nat} (hk : k < i) {x : V} {v : Slot} {Q : Block}
+    {k : Nat} (hk : k < i) {x : V} {Q : Block}
     (hx : x ∈ rho.honest) (ht : IsGateTick p c rho k x v)
     (hp : HonestProposal E rho (fgsaInterface p c) v Q) (hv : w.sStar + 2 ≤ v)
     (r : Nat) (hr : v = r * p.R) :
@@ -71,14 +72,13 @@ theorem healing_postReset_opening_target_floor [Fintype V]
           (SA.gateTime p.toParams v)).fg.F) K := by
   have hGateHorizon := (hrec.base.valid.toScheduleWellFormed.in_horizon _
     (List.mem_of_getElem? ht)).2
-  have hhead := healing_postReset_exactHead E rho hrec w hreset hcone v Q hp hv
+  have hhead := healing_postReset_exactHead_at E rho hrec w hreset hcone Q hp hv
     (postReset_head_horizon p c rho hGateHorizon)
   have hFQ := healing_postReset_opening_finality E rho w i hopening hk hx ht hp hv r hr
   intro q hy _ K he
   have heq := exactService_emitted_head E rho hrec.base.valid.toScheduleWellFormed
     v Q hhead q hy K (SA.voteTime p.toParams v) he
   simpa only [heq, clockPre_fg] using hFQ
-
 
 /-- Blueprint 21 H.17:3024–3030; plan J6-3 O2; B1/B17/B18.
 DC: SAME old-output split and stored strict-slot order. Standing mono has
@@ -104,7 +104,6 @@ variable [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     (w : HealingWitness) (hreset : H0Reset p c E rho w)
-    (hcone : PostResetRetainedCone p c E rho w)
     (cap : RCap p c E rho)
     (rowCovered : ∀ (_hb : Base₂ p c E rho)
       (_hf : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
@@ -134,18 +133,20 @@ variable (mono : RMono p c E rho)
           (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
             (actView pre) w C)
 
-include hrec hreset hcone cap rowCovered mono writes
+include hrec hreset cap rowCovered mono writes
 
 /-- Blueprint 21 H.17:3021–3040; plan J6-3 O2; B1/B13/B17/B18.
 DC: SAME exact gate geometry at the named event-prefix cut.
 Standing mono/cap have producers fgsa_rMono/fgsa_rCap_channel. INLINE
 rowCovered/writes have producers rowPermission_covered/fgsa_leaseOrigins_lastWrite.
-The three carrier inputs remain named predicates at i. -/
-theorem healing_postReset_gate_geometry (i : Nat)
+The three carrier inputs remain named predicates at i.
+Blueprint 21 H.17:2946–3040; plan RE-BIND D2; DC: SAME per-label cone. -/
+theorem healing_postReset_gate_geometry_at (i : Nat) {v : Slot}
+    (hcone : PostResetConeAt p c E rho w v)
     (hfp : PostResetFProv p c E rho w i)
     (hraw : PostResetRawTransfer p c E rho w i)
     (hopening : PostResetOpeningDomain p c E rho w i)
-    {k : Nat} (hk : k < i) {x : V} {v : Slot} {Q : Block}
+    {k : Nat} (hk : k < i) {x : V} {Q : Block}
     (hx : x ∈ rho.honest) (ht : IsGateTick p c rho k x v)
     (hp : HonestProposal E rho (fgsaInterface p c) v Q) (hv : w.sStar + 2 ≤ v)
     (hcut : timeIdx rho (SA.proposalTime p.toParams v) ≤ i) :
@@ -154,11 +155,11 @@ theorem healing_postReset_gate_geometry (i : Nat)
   have hGateHorizon := (hs.in_horizon _ (List.mem_of_getElem? ht)).2
   have hFQ := healing_postReset_gate_finality E rho hrec w hreset cap rowCovered
     i hfp hraw hk hx ht hp hv hcut
-  have hhead := healing_postReset_exactHead E rho hrec w hreset hcone v Q hp hv
+  have hhead := healing_postReset_exactHead_at E rho hrec w hreset hcone Q hp hv
     (postReset_head_horizon p c rho hGateHorizon)
   have hreceipt : GateReceiptGeometry E rho
       (clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams v)) v Q := by
-    refine ⟨?_, healing_postReset_gate_covered_prefix E rho hrec w hreset hcone
+    refine ⟨?_, healing_postReset_gate_covered_prefix_at E rho hrec w hreset hcone
       hp hv hGateHorizon⟩
     intro q hy _ K he
     have heq := exactService_emitted_head E rho hs v Q hhead q hy K
@@ -202,16 +203,22 @@ theorem healing_postReset_gate_geometry (i : Nat)
 /-- Blueprint 21 H.17:2946–3048; plan J6-3 O2/S1; B1/B13/B17/B18.
 DC: SAME complete HEAD and gate conjunction at cut i. The opening input is
 separate and follows raw_transfer in the joint order. No service input,
-carrier successor, full H0, or complete-run premise is used. -/
-theorem healing_postReset_service_step (i : Nat)
+carrier successor, full H0, or complete-run premise is used.
+Blueprint 21 H.17:2946–3040; plan RE-BIND D2; DC: SAME per-label cone. -/
+theorem healing_postReset_service_step_at (i : Nat)
+    (hcone : ∀ v, timeIdx rho (SA.voteTime p.toParams v) ≤ i →
+      PostResetConeAt p c E rho w v)
     (hfp : PostResetFProv p c E rho w i)
     (hraw : PostResetRawTransfer p c E rho w i)
     (hopening : PostResetOpeningDomain p c E rho w i) :
     PostResetService p c E rho w i := by
   rw [PostResetService_def]
   intro v Q hp hv hcut
-  refine ⟨fun hh _ => healing_postReset_exactHead E rho hrec w hreset hcone v Q hp hv hh, ?_⟩
+  refine ⟨fun hh hc => healing_postReset_exactHead_at E rho hrec w hreset
+    (hcone v hc) Q hp hv hh, ?_⟩
   intro hGateHorizon hGateCut x hx
+  have hconeV := hcone v (healing_postReset_head_cut_le_afterTicks E rho
+    hrec.base.valid.toScheduleWellFormed hGateCut)
   have hs := hrec.base.valid.toScheduleWellFormed
   have htime : ((4 * v + 6 : Nat) : Time) * p.Δ = SA.gateTime p.toParams v := by
     change ((4 * v + 6 : Nat) : Int) * p.Δ = 4 * p.Δ * (v : Int) + 6 * p.Δ
@@ -221,10 +228,10 @@ theorem healing_postReset_service_step (i : Nat)
     (4 * v + 6) (htime ▸ hGateHorizon)
   rw [htime] at ht
   have hk := healing_postReset_tick_lt_cut E rho hs ht hGateCut
-  have hgeom := healing_postReset_gate_geometry E rho hrec w hreset hcone cap rowCovered
-    mono writes i hfp hraw hopening hk hx ht hp hv hcut
+  have hgeom := healing_postReset_gate_geometry_at E rho hrec w hreset cap rowCovered
+    mono writes i hconeV hfp hraw hopening hk hx ht hp hv hcut
   have hh := postReset_head_horizon p c rho hGateHorizon
-  have hhead := healing_postReset_exactHead E rho hrec w hreset hcone v Q hp hv hh
+  have hhead := healing_postReset_exactHead_at E rho hrec w hreset hconeV Q hp hv hh
   have hgsts : E.t_GST ≤ SA.voteTime p.toParams v := by
     refine (postReset_synchronous_window p c E rho w hreset hv).trans ?_
     change 4 * p.Δ * (v : Int) - p.Δ ≤ 4 * p.Δ * (v : Int) + p.Δ
@@ -293,6 +300,88 @@ theorem healing_postReset_exactService
     (List.length_filter_le _ _).trans hcomplete
   exact healing_postReset_exactService_at_cut E rho w i hservice hp hv
     hProposalCut (fun _ => hHeadCut) (fun _ => hGateCut)
+
+/-- Blueprint 21 H.17:2946–3040; plan RE-BIND D2/D3; DC: SAME cone at its label. -/
+theorem healing_postReset_opening_target_floor [Fintype V]
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (w : HealingWitness) (hreset : H0Reset p c E rho w)
+    (hcone : PostResetRetainedCone p c E rho w)
+    (i : Nat) (hopening : PostResetOpeningDomain p c E rho w i)
+    {k : Nat} (hk : k < i) {x : V} {v : Slot} {Q : Block}
+    (hx : x ∈ rho.honest) (ht : IsGateTick p c rho k x v)
+    (hp : HonestProposal E rho (fgsaInterface p c) v Q) (hv : w.sStar + 2 ≤ v)
+    (r : Nat) (hr : v = r * p.R) :
+    ∀ q : Fin p.n, rho.seatOf (.base (.head v)) q ∈ rho.honest →
+      E.awake (rho.seatOf (.base (.head v)) q) (SA.voteTime p.toParams v) = true →
+      ∀ K, V2.D.Run.emits E rho (rho.seatOf (.base (.head v)) q)
+        (ofHead p ⟨.seat (.head v) q, K⟩) (SA.voteTime p.toParams v) →
+        Block.Preceq (eraseFG (clockPre p (storeAt p c E rho k x)
+          (SA.gateTime p.toParams v)).fg.F) K := by
+  exact healing_postReset_opening_target_floor_at E rho hrec w hreset
+    ((postResetRetainedCone_iff_at p c E rho w).mp hcone v)
+    i hopening hk hx ht hp hv r hr
+
+section RunConeWrappers
+variable [Fintype V]
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (w : HealingWitness) (hreset : H0Reset p c E rho w)
+    (hcone : PostResetRetainedCone p c E rho w)
+    (cap : RCap p c E rho)
+    (rowCovered : ∀ (_hb : Base₂ p c E rho)
+      (_hf : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
+      (x : V), x ∈ rho.honest → ∀ (r : Nat) (nd : Node p),
+      postClock E rho x (p.actionTime r) = some nd → ∀ C : FGBlock (Fin p.n),
+      actionSourceFG p c E rho x r = some (some C) →
+      C ∈ FGSA.fullTree p nd.st → (FGSA.controls p nd.st).lo ≤ (heightView p C).h →
+      E.awake x (p.actionTime r) = true →
+      ∃ j rSent a, rSent ≤ r ∧ HonestRowAt p c E rho j x rSent a ∧
+        namedEntry a.payload.height_pair =
+          some ((heightView p C).h, (heightView p C).T_h.root))
+    (mono : RMono p c E rho)
+    (writes : ∀ i x (row : Block × Nat × Time),
+      row ∈ (storeAt p c E rho i x).base.obligations →
+      ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
+        gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
+        row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
+        row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
+        ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
+          let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          GridCO.savedGenuine pre.base w = none →
+          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+            (actView pre) w C)
+
+include hrec hreset hcone cap rowCovered mono writes
+
+/-- Blueprint 21 H.17:2946–3040; plan RE-BIND D2/D3; DC: SAME cone at its label. -/
+theorem healing_postReset_gate_geometry (i : Nat)
+    (hfp : PostResetFProv p c E rho w i)
+    (hraw : PostResetRawTransfer p c E rho w i)
+    (hopening : PostResetOpeningDomain p c E rho w i)
+    {k : Nat} (hk : k < i) {x : V} {v : Slot} {Q : Block}
+    (hx : x ∈ rho.honest) (ht : IsGateTick p c rho k x v)
+    (hp : HonestProposal E rho (fgsaInterface p c) v Q) (hv : w.sStar + 2 ≤ v)
+    (hcut : timeIdx rho (SA.proposalTime p.toParams v) ≤ i) :
+    ExactServiceGateGeometry E rho k x v Q := by
+  exact healing_postReset_gate_geometry_at E rho hrec w hreset cap rowCovered mono writes i
+    ((postResetRetainedCone_iff_at p c E rho w).mp hcone v) hfp hraw hopening hk hx ht hp hv hcut
+
+/-- Blueprint 21 H.17:2946–3040; plan RE-BIND D2/D3; DC: SAME cone at its label. -/
+theorem healing_postReset_service_step (i : Nat)
+    (hfp : PostResetFProv p c E rho w i)
+    (hraw : PostResetRawTransfer p c E rho w i)
+    (hopening : PostResetOpeningDomain p c E rho w i) :
+    PostResetService p c E rho w i := by
+  exact healing_postReset_service_step_at E rho hrec w hreset cap rowCovered mono writes i
+    (fun v _ => (postResetRetainedCone_iff_at p c E rho w).mp hcone v)
+    hfp hraw hopening
+
+end RunConeWrappers
 
 end AvailableChain.FGSA.Run
 end

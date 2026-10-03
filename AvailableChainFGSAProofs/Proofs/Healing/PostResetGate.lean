@@ -46,6 +46,37 @@ theorem healing_postReset_time_cut_le_tick
   change SA.gateTime p.toParams v ≤ t at hb
   exact (not_le.mpr hlt) hb
 
+omit [DecidableEq V] in
+/-- Blueprint 21 H.17:2946–3040; plan RE-BIND D4; DC: SAME HEAD cut before gate. -/
+theorem healing_postReset_head_cut_le_tick
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho) {k : Nat} {x : V} {v : Slot}
+    (ht : IsGateTick p c rho k x v) :
+    timeIdx rho (SA.voteTime p.toParams v) ≤ k := by
+  apply healing_postReset_time_cut_le_tick E rho hs ht
+  change 4 * p.Δ * (v : Int) + p.Δ < 4 * p.Δ * (v : Int) + 6 * p.Δ
+  linarith [p.deltaPos]
+
+omit [DecidableEq V] in
+/-- Blueprint 21 H.17:2946–3040; plan RE-BIND D4; DC: SAME HEAD cut before post-gate. -/
+theorem healing_postReset_head_cut_le_afterTicks
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hs : V2.D.ScheduleWellFormed E rho) {n : Nat} {v : Slot}
+    (hcut : afterTicksIdx rho (SA.gateTime p.toParams v) ≤ n) :
+    timeIdx rho (SA.voteTime p.toParams v) ≤ n := by
+  have htime : SA.voteTime p.toParams v < SA.gateTime p.toParams v := by
+    change 4 * p.Δ * (v : Int) + p.Δ < 4 * p.Δ * (v : Int) + 6 * p.Δ
+    linarith [p.deltaPos]
+  have hle : timeIdx rho (SA.voteTime p.toParams v) ≤
+      (rho.events.filter (fun e => decide (e.time < SA.gateTime p.toParams v))).length := by
+    change (rho.events.filter (fun e =>
+      decide (e.time ≤ SA.voteTime p.toParams v))).length ≤ _
+    rw [← List.countP_eq_length_filter, ← List.countP_eq_length_filter]
+    apply List.countP_mono_left
+    intro e _ he
+    exact decide_eq_true ((of_decide_eq_true he).trans_lt htime)
+  exact hle.trans ((preIdx_le_afterTicksIdx E rho hs _).1.trans hcut)
+
 private theorem postReset_clockPre_lease_live (st : State p.n) (t : Time)
     (row : Block × Nat × Time) (hrow : row ∈ (clockPre p st t).base.obligations) :
     t < row.2.2 := by
