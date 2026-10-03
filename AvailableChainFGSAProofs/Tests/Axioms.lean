@@ -180,6 +180,7 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.vHead_eq_headAtIdx
 #print axioms AvailableChain.FGSA.Run.actionSourceFG_eq_round
 #print axioms AvailableChain.FGSA.Run.acceptsFinalBefore_of_idx
+#print axioms AvailableChain.FGSA.Run.acceptsFinalBefore_mono_deadline
 #print axioms AvailableChain.FGSA.Run.stable_afterTicks
 
 #print axioms AvailableChain.FGSA.Run.card_eq_n_of_linked
@@ -826,6 +827,8 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_tickIdx_of_event
 
 -- S4.6b GST finality forms.
+#print axioms AvailableChain.FGSA.Run.fgsa_firstFinality_recFE
+#print axioms AvailableChain.FGSA.Run.fgsa_firstFinality_recF4
 #print axioms AvailableChain.FGSA.Run.fgsa_finalityLivenessGST_recFE
 #print axioms AvailableChain.FGSA.Run.fgsa_finalityLivenessGST_recF4
 #print axioms AvailableChain.FGSA.Run.fgsa_proposalFinalGST_recFE

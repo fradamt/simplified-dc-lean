@@ -471,6 +471,8 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.AboveFrontierGSTPrem_W.hhor',
     'AvailableChain.FGSA.Run.AboveFrontierGSTClaim_W',
     'AvailableChain.FGSA.Run.fgsa_finalityLivenessGST_recFE',
+    'AvailableChain.FGSA.Run.fgsa_firstFinality_recFE',
+    'AvailableChain.FGSA.Run.fgsa_firstFinality_recF4',
     'AvailableChain.FGSA.Run.fgsa_finalityLivenessGST_recF4',
     'AvailableChain.FGSA.Run.fgsa_proposalFinalGST_recFE',
     'AvailableChain.FGSA.Run.fgsa_proposalFinalGST_recF4',
@@ -1977,6 +1979,7 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.vHead_eq_headAtIdx',
     'AvailableChain.FGSA.Run.actionSourceFG_eq_round',
     'AvailableChain.FGSA.Run.acceptsFinalBefore_of_idx',
+    'AvailableChain.FGSA.Run.acceptsFinalBefore_mono_deadline',
     'AvailableChain.FGSA.Run.stable_afterTicks',
     # fg-noround/07-H: height coverage, strict row receipt, and source adapters.
     'AvailableChain.FGSA.Run.RowServiceBaseClaim',
