@@ -1,2 +1,3 @@
 # One entry per line: <name><TAB><reason><TAB><plan revision>. Full-line # comments are allowed. Optional fourth field: expect=<hash> (or expect=removed) pins the permitted change (C22).
 AvailableChain.FGSA.Run.TFrontier	user decision 2026-10-03: DC HG.1 seed qualification (H.6 or H.6-S) added after ExactService (TF-SEED Q4)	S5 TF-REFREEZE	expect=a6e2203cd67de153
+AvailableChain.FGSA.Run.Recovery₂.mk	user decision 2026-10-03: Recovery₂ gains gapAligned : 4 * p.Δ ∣ G (DC round-count gap; TERM, H-ATTEMPT-3 P1 + Centaur fgsa-s5-term-check.md); no bound change	S5 GAPALIGNED-REFREEZE	expect=18d9154d2012f72f

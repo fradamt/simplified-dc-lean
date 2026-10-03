@@ -97,6 +97,7 @@ private def healingSet (ΔF : Time) (hF : 1 ≤ ΔF) :
   fault := by rw [Gen.V2.Duty.faulty_def]; decide
   awake := by intros; rfl
   gapPos := le_rfl
+  gapAligned := dvd_rfl
 
 example : 2 * smokeParams.Δ < (6 : Time) ∧ kappaF smokeParams 6 = 3 := by decide
 example : kappaF smokeParams smokeEnv.Δ = 2 := by decide

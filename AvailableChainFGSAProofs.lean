@@ -212,3 +212,4 @@ public import AvailableChainFGSAProofs.Proofs.Healing.ResetCut
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLease
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep
 public import AvailableChainFGSAProofs.Proofs.Healing.PostReset
+public import AvailableChainFGSAProofs.Proofs.Healing.Time

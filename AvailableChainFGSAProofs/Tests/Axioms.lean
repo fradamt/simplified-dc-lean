@@ -149,6 +149,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.Delivery -- shake: keep (T
 public import AvailableChainFGSAProofs.Proofs.Healing.DeliveryReset -- shake: keep (reset core axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetTransfer -- shake: keep (J1 reset axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat -- shake: keep (J2 axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.Time -- shake: keep (J11 axiom audit)
 
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetCut -- shake: keep (RS-0 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLease -- shake: keep (J4 axiom audit)
@@ -708,6 +709,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostReset -- shake: keep (
 #print axioms AvailableChain.FGSA.Run.HealthyPrefix₂.of_legacy
 #print axioms AvailableChain.FGSA.Run.HealthyPrefix₂.legacy_delivery
 #print axioms AvailableChain.FGSA.Run.Recovery₂.of_legacy
+#print axioms AvailableChain.FGSA.Run.Recovery₂.gamma_eq
 #print axioms AvailableChain.FGSA.Run.Recovery₂.toRecoveryCore
 
 -- fg-noround/07-H additions.
@@ -1675,3 +1677,10 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostReset -- shake: keep (
 #print axioms AvailableChain.FGSA.Run.healing_healT_of
 #print axioms AvailableChain.FGSA.Run.healing_healAC_of
 #print axioms AvailableChain.FGSA.Run.healing_healingInput_of
+-- J11 H-TIME composition.
+#print axioms AvailableChain.FGSA.Run.HealingInputOfH0Statement
+#print axioms AvailableChain.FGSA.Run.HealingInputOfH0Statement_def
+#print axioms AvailableChain.FGSA.Run.healing_resetF_budget_eq
+#print axioms AvailableChain.FGSA.Run.healing_resetFull_horizon
+#print axioms AvailableChain.FGSA.Run.healing_time_strict_of_reset
+#print axioms AvailableChain.FGSA.Run.healing_hTime_of
