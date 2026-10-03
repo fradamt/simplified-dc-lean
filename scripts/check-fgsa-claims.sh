@@ -28,6 +28,13 @@ LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainF
 CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = (
+    # F-ABOVE-B: --expect DATA only.
+    'AvailableChain.FGSA.Run.above_frontier_FE_W_of',
+    'AvailableChain.FGSA.Run.above_frontier_F4_W_of',
+    'AvailableChain.FGSA.Run.fgsa_aboveFrontierRecFE_W_of',
+    'AvailableChain.FGSA.Run.fgsa_aboveFrontierRecF4_W_of',
+    'AvailableChain.FGSA.Run.fgsa_aboveFrontierRecFE_W',
+    'AvailableChain.FGSA.Run.fgsa_aboveFrontierRecF4_W',
     # F-ABOVE-A: --expect DATA only.
     'AvailableChain.FGSA.Run.honestFrontier_le_opening',
     'AvailableChain.FGSA.Run.opening_height_succ_eq_middle',
