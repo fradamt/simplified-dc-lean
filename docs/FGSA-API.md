@@ -658,6 +658,10 @@ theorem AvailableChain.FGSA.Run.ValidForParent_def afbdef6d40ecdd90
 def AvailableChain.FGSA.Run.HeightMatch 08cbd4e2a4572b2f
 theorem AvailableChain.FGSA.Run.HeightMatch_def 6dab81f044f4f4b3
 def AvailableChain.FGSA.Run.headAtLabel 11a6197ae324c6ff
+theorem AvailableChain.FGSA.Run.RowComplete_def 7658fcce09dc2a7c
+theorem AvailableChain.FGSA.Run.HonestCarrier_def f7bfbe79dc6bd98f
+theorem AvailableChain.FGSA.Run.HeldAt_def d159b86605f14840
+theorem AvailableChain.FGSA.Run.namedEntry_def f3827e3bef137733
 ```
 
 ### `AvailableChainFGSAClaims.Statements.ComposeStmt`
@@ -824,6 +828,9 @@ def AvailableChain.FGSA.Run.NamesEntry 4157bcc504c0ab7f
 def AvailableChain.FGSA.Run.rowHeight 8e2499ef46ddafdd
 def AvailableChain.FGSA.Run.eventTime 4bdaaa69edcc1980
 def AvailableChain.FGSA.Run.honestSeats da6d029ce398a2d3
+theorem AvailableChain.FGSA.Run.rowHeight_def 770f0d6454ee9f76
+theorem AvailableChain.FGSA.Run.eventTime_def 58ef7b966e9699ec
+theorem AvailableChain.FGSA.Run.honestSeats_def adb2bb518fa5f274
 def AvailableChain.FGSA.Run.ChainRowsBefore 2953d8ea725f8958
 structure AvailableChain.FGSA.Run.PreBatchPrem b7f85466ce8b4cff
 ctor AvailableChain.FGSA.Run.PreBatchPrem.mk ffc586ac4898317e
@@ -1393,4 +1400,6 @@ field AvailableChain.FGSA.Run.H0.proposal_first b8304ef1005fd171
 field AvailableChain.FGSA.Run.H0.after_gst 9e1af4e6abf48bdd
 field AvailableChain.FGSA.Run.H0.source_prefix 11a2e72ff6824828
 def AvailableChain.FGSA.Run.tstarOf dc0679feeb6093fb
+theorem AvailableChain.FGSA.Run.muOf_def 9b70ccd6d9fa8e04
+theorem AvailableChain.FGSA.Run.high_def 9b5235dbcdbbef28
 ```

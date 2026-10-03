@@ -150,6 +150,15 @@ The guard scans all compiled constants. -/
 #print axioms AvailableChain.FGSA.Run.BlockInRunBefore
 #print axioms AvailableChain.FGSA.Run.RowSigner_def
 #print axioms AvailableChain.FGSA.Run.HonestRowAt_def
+#print axioms AvailableChain.FGSA.Run.RowComplete_def
+#print axioms AvailableChain.FGSA.Run.HonestCarrier_def
+#print axioms AvailableChain.FGSA.Run.HeldAt_def
+#print axioms AvailableChain.FGSA.Run.namedEntry_def
+#print axioms AvailableChain.FGSA.Run.rowHeight_def
+#print axioms AvailableChain.FGSA.Run.eventTime_def
+#print axioms AvailableChain.FGSA.Run.honestSeats_def
+#print axioms AvailableChain.FGSA.Run.muOf_def
+#print axioms AvailableChain.FGSA.Run.high_def
 #print axioms AvailableChain.FGSA.Run.RStore
 #print axioms AvailableChain.FGSA.Run.RStoreCumul
 #print axioms AvailableChain.FGSA.Run.RMono
