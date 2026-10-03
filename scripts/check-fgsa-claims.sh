@@ -28,6 +28,9 @@ LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainF
 CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = (
+    # F-ABOVE-A: --expect DATA only.
+    'AvailableChain.FGSA.Run.honestFrontier_le_opening',
+    'AvailableChain.FGSA.Run.opening_height_succ_eq_middle',
     # post-freeze additive _def batch 2: --expect DATA only.
     'AvailableChain.FGSA.Run.finHeight_def',
     'AvailableChain.FGSA.Run.HealSuffix_def',
