@@ -2480,6 +2480,9 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.healing_postReset_service_step_at',
     'AvailableChain.FGSA.Run.healing_postReset_openingDomainStep₂',
     'AvailableChain.FGSA.Run.healing_postReset_serviceStep₂',
+    # Blueprint 21 H.18–H.22; plan S5 HTW-3; DC: SAME claim exports.
+    'AvailableChain.FGSA.Run.healing_resetArrivalFull_of_open₂',
+    'AvailableChain.FGSA.Run.healing_hTimeClaim_of_open₂',
 )
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
          'Packages.Safety', 'OutputReads', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',

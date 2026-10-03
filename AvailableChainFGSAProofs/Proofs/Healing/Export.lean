@@ -8,6 +8,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchFull -- shak
 public import AvailableChainFGSAProofs.Proofs.Healing.HealingInputExport -- shake: keep (J11)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetHealed -- shake: keep (J7)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJointStep -- shake: keep (J6-3)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJointStep2 -- shake: keep (HTW-3)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetTHigh -- shake: keep (THigh)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetH2Prime -- shake: keep (H2P)
 

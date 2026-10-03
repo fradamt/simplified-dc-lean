@@ -2000,3 +2000,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJointStep2 -- sha
 -- Blueprint 21 H.17:2946–3040; plan RE-BIND D5; DC: SAME axiom audit.
 #print axioms AvailableChain.FGSA.Run.healing_postReset_openingDomainStep₂
 #print axioms AvailableChain.FGSA.Run.healing_postReset_serviceStep₂
+
+-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HTW-3; DC: SAME axiom audit.
+#print axioms AvailableChain.FGSA.Run.healing_resetArrivalFull_of_open₂
+#print axioms AvailableChain.FGSA.Run.healing_hTimeClaim_of_open₂
