@@ -89,3 +89,14 @@ before its horizon bound, because Time = Int and a negative trigger gives a dead
 - S4.8 freeze commit: docs/FGSA-API-frozen.md = docs/FGSA-API.md at 46b8f58 (1127 entries, 45 modules; the trailing
   blank line that `scripts/fgsa-freeze.sh` copies is removed and the SHA-256 is recomputed);
   scripts/fgsa-manifest-allow.txt reset to its header line; `NEG=0 bash scripts/check-fgsa-manifest.sh` PASS.
+
+## Post-freeze re-freezes (user decisions)
+
+- TF-REFREEZE (cf15513, user decision 2026-10-03): `TFrontier` carries DC's H.6 / H.6-S seed
+  qualification after `ExactService`. Allow line: `TFrontier` expect=a6e2203cd67de153.
+- GAPALIGNED (bca83df, user decision 2026-10-03, "Require 4Δ divides G"): `Recovery₂` gains the
+  last field `gapAligned : 4 * p.Δ ∣ G`; no bound changes. Basis: the TERM gap (H-ATTEMPT-3 P1;
+  Centaur fgsa-s5-term-check.md): for G mod 4Δ > Δ the gap window ends after the raise terminal
+  deadline. Allow line: `Recovery₂.mk` expect=18d9154d2012f72f. `StrongRecoverySearchPrefix₂` and
+  every `HealingSet` consumer gain the premise with unchanged hashes, because the manifest hashes
+  reference names; this is intended. Review: Opus LAND-WITH-NITS (docstring corrected after landing).
