@@ -316,6 +316,8 @@ def AvailableChain.FGSA.Run.ResetArrivalConcl 7c58d028a7438644
 def AvailableChain.FGSA.Run.ResetArrivalClaim d91804917b1c03c6
 def AvailableChain.FGSA.Run.RenewedPromotionConcl 5706de43765b9044
 def AvailableChain.FGSA.Run.RenewedPromotionClaim 834e4d2fba3a6f2e
+def AvailableChain.FGSA.Run.HTimeBestClaim f001679c4117ae06
+def AvailableChain.FGSA.Run.HTimeSearchClaim c672eabdb0aefd80
 ```
 
 ### `AvailableChainFGSAClaims.Claims.Outage`
@@ -359,6 +361,7 @@ def AvailableChain.FGSA.Run.ReleaseClaim 7ce1c9e2699ad4a8
 
 ```text
 def AvailableChain.FGSA.Run.WeakContinuationClaim 7343e86e8a87d8c1
+def AvailableChain.FGSA.Run.WeakContinuationLiveClaim c3dc6104736035e7
 ```
 
 ### `AvailableChainFGSAClaims.FGSAClaims`
@@ -658,6 +661,10 @@ theorem AvailableChain.FGSA.Run.ValidForParent_def afbdef6d40ecdd90
 def AvailableChain.FGSA.Run.HeightMatch 08cbd4e2a4572b2f
 theorem AvailableChain.FGSA.Run.HeightMatch_def 6dab81f044f4f4b3
 def AvailableChain.FGSA.Run.headAtLabel 11a6197ae324c6ff
+theorem AvailableChain.FGSA.Run.RowComplete_def 7658fcce09dc2a7c
+theorem AvailableChain.FGSA.Run.HonestCarrier_def f7bfbe79dc6bd98f
+theorem AvailableChain.FGSA.Run.HeldAt_def d159b86605f14840
+theorem AvailableChain.FGSA.Run.namedEntry_def f3827e3bef137733
 ```
 
 ### `AvailableChainFGSAClaims.Statements.ComposeStmt`
@@ -824,6 +831,9 @@ def AvailableChain.FGSA.Run.NamesEntry 4157bcc504c0ab7f
 def AvailableChain.FGSA.Run.rowHeight 8e2499ef46ddafdd
 def AvailableChain.FGSA.Run.eventTime 4bdaaa69edcc1980
 def AvailableChain.FGSA.Run.honestSeats da6d029ce398a2d3
+theorem AvailableChain.FGSA.Run.rowHeight_def 770f0d6454ee9f76
+theorem AvailableChain.FGSA.Run.eventTime_def 58ef7b966e9699ec
+theorem AvailableChain.FGSA.Run.honestSeats_def adb2bb518fa5f274
 def AvailableChain.FGSA.Run.ChainRowsBefore 2953d8ea725f8958
 structure AvailableChain.FGSA.Run.PreBatchPrem b7f85466ce8b4cff
 ctor AvailableChain.FGSA.Run.PreBatchPrem.mk ffc586ac4898317e
@@ -914,6 +924,22 @@ field AvailableChain.FGSA.Run.HealingInput.t ce6ab438eb5d9085
 field AvailableChain.FGSA.Run.HealingInput.ac 104a593c7fe48e84
 def AvailableChain.FGSA.Run.HTimeStatement 99c16a93fb2da368
 theorem AvailableChain.FGSA.Run.HTimeStatement_def 802f73b6f7584190
+```
+
+### `AvailableChainFGSAClaims.Statements.HealedBest`
+
+```text
+def AvailableChain.FGSA.Run.HTimeBestConcl 78f2e0390d426581
+theorem AvailableChain.FGSA.Run.HTimeBestConcl_def c66e237fef033d80
+```
+
+### `AvailableChainFGSAClaims.Statements.OutputReads`
+
+```text
+def AvailableChain.FGSA.Run.ServedFromGateAt 0310fd73fd295186
+theorem AvailableChain.FGSA.Run.ServedFromGateAt_def f21f1b534914bea3
+def AvailableChain.FGSA.Run.JointGrowthAt 61b4b74a663fd4e5
+theorem AvailableChain.FGSA.Run.JointGrowthAt_def c875ad0c5d6c7afa
 ```
 
 ### `AvailableChainFGSAClaims.Statements.Packages.Finality`
@@ -1322,6 +1348,18 @@ field AvailableChain.FGSA.Run.SSafeFromCut₂.outputs 00557223598e2c84
 def AvailableChain.FGSA.Run.BoundedSafetyRecovery₂ a4ddace4f3e90b7e
 ```
 
+### `AvailableChainFGSAClaims.Statements.WeakContinuationLive`
+
+```text
+structure AvailableChain.FGSA.Run.WeakContinuationLiveAt₂ 444aa594c122432f
+ctor AvailableChain.FGSA.Run.WeakContinuationLiveAt₂.mk 78a1b9694a381da2
+field AvailableChain.FGSA.Run.WeakContinuationLiveAt₂.safety 914a9494377582b9
+field AvailableChain.FGSA.Run.WeakContinuationLiveAt₂.inclusion 9bd576559e0b7f6d
+field AvailableChain.FGSA.Run.WeakContinuationLiveAt₂.growth b779e5f8a16cf1b8
+def AvailableChain.FGSA.Run.BoundedSafetyLivenessRecovery₂ b140751d03ed26f4
+theorem AvailableChain.FGSA.Run.BoundedSafetyLivenessRecovery₂_def eacdfbd983755b5c
+```
+
 ### `AvailableChainFGSAClaims.Statements.Windows`
 
 ```text
@@ -1393,4 +1431,6 @@ field AvailableChain.FGSA.Run.H0.proposal_first b8304ef1005fd171
 field AvailableChain.FGSA.Run.H0.after_gst 9e1af4e6abf48bdd
 field AvailableChain.FGSA.Run.H0.source_prefix 11a2e72ff6824828
 def AvailableChain.FGSA.Run.tstarOf dc0679feeb6093fb
+theorem AvailableChain.FGSA.Run.muOf_def 9b70ccd6d9fa8e04
+theorem AvailableChain.FGSA.Run.high_def 9b5235dbcdbbef28
 ```
