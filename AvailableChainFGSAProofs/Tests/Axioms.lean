@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Assembly.Healing -- shake: keep (H-EXPORT-1 axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetH2Prime -- shake: keep (H2P axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Proposal -- shake: keep (F-PROP audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Local -- shake: keep (F-LOCAL audit)
 public import AvailableChainFGSAProofs.Proofs.Assembly.Outage -- shake: keep (Outage Export axiom audit)
@@ -1791,3 +1792,11 @@ public import AvailableChainFGSAProofs.Proofs.Assembly.ProgressAttempt -- shake:
 #print axioms AvailableChain.FGSA.Run.postReset_source_gate_result
 #print axioms AvailableChain.FGSA.Run.postReset_tCarrier_reset
 #print axioms AvailableChain.FGSA.Run.postReset_h2A_reset
+
+-- H2P: frozen H2Prime and gate-free transfer audit.
+#print axioms AvailableChain.FGSA.Run.postReset_h2Prime_late
+#print axioms AvailableChain.FGSA.Run.healing_unanimous_release_compat
+#print axioms AvailableChain.FGSA.Run.healing_unanimous_next_transfer_kept
+#print axioms AvailableChain.FGSA.Run.postReset_cStar_below_proposal
+#print axioms AvailableChain.FGSA.Run.postReset_h2Prime_first
+#print axioms AvailableChain.FGSA.Run.postReset_h2Prime_reset

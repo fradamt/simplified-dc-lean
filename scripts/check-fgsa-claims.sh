@@ -2288,6 +2288,13 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.postReset_source_gate_result',
     'AvailableChain.FGSA.Run.postReset_tCarrier_reset',
     'AvailableChain.FGSA.Run.postReset_h2A_reset',
+    # H2P: --expect DATA additions only.
+    'AvailableChain.FGSA.Run.postReset_h2Prime_late',
+    'AvailableChain.FGSA.Run.healing_unanimous_release_compat',
+    'AvailableChain.FGSA.Run.healing_unanimous_next_transfer_kept',
+    'AvailableChain.FGSA.Run.postReset_cStar_below_proposal',
+    'AvailableChain.FGSA.Run.postReset_h2Prime_first',
+    'AvailableChain.FGSA.Run.postReset_h2Prime_reset',
 )
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
          'Packages.Safety', 'OutputReads', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',
