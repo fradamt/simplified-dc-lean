@@ -111,6 +111,11 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.kernel_middle_early_justification',
     'AvailableChain.FGSA.Run.kernel_middle_source_cap',
     'AvailableChain.FGSA.Run.kmid_source_held_at_tick',
+    # HBEST STATEMENT: companion --expect DATA additions only.
+    'AvailableChain.FGSA.Run.HTimeBestConcl',
+    'AvailableChain.FGSA.Run.HTimeBestConcl_def',
+    'AvailableChain.FGSA.Run.HTimeBestClaim',
+    'AvailableChain.FGSA.Run.HTimeSearchClaim',
     # C-CORE: --expect DATA only.
     'AvailableChain.FGSA.Run.fgsa_tStart',
     'AvailableChain.FGSA.Run.fgsa_tWalk',
@@ -1729,7 +1734,7 @@ EXPECTED = (
 )
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
          'Packages.Safety', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',
-         'ChannelProps', 'FinalityApi', 'Healed', 'WeakContinuation', 'Packages.Finality', 'Packages.FinalityGST',
+         'ChannelProps', 'FinalityApi', 'Healed', 'HealedBest', 'WeakContinuation', 'Packages.Finality', 'Packages.FinalityGST',
          'ComposeStmt', 'Fold',
          'Phases', 'PhasesInternal', 'Packages.Healing')
 if not SOURCE_ONLY:
