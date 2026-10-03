@@ -35,6 +35,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PhaseSettle -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseBoot -- shake: keep (H-PHASE r2 audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.Base -- shake: keep (H-BASE audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.Descent -- shake: keep (H-DESCENT audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.DescentTiming -- shake: keep (D4 clock audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.DescentTimingRFProv -- shake: keep (D4 reset audit)
 public import AvailableChainFGSAProofs.Proofs.Foundations.HonestNeverSlashed -- shake: keep (HNS audit)
 public import AvailableChainFGSAProofs.Proofs.Foundations.FinalityApi -- shake: keep (S4.5b axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersL2 -- shake: keep (consumer audit)
@@ -1046,3 +1048,11 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.kernel_middle_early_justification
 #print axioms AvailableChain.FGSA.Run.kernel_middle_source_cap
 #print axioms AvailableChain.FGSA.Run.kmid_source_held_at_tick
+#print axioms AvailableChain.FGSA.Run.healing_row_delivery
+#print axioms AvailableChain.FGSA.Run.healing_receipt_before_tick
+#print axioms AvailableChain.FGSA.Run.healing_action_period
+#print axioms AvailableChain.FGSA.Run.healing_delivery_clock
+#print axioms AvailableChain.FGSA.Run.healing_justification_timed
+#print axioms AvailableChain.FGSA.Run.healing_justified_source_clock
+#print axioms AvailableChain.FGSA.Run.healing_action_source_held
+#print axioms AvailableChain.FGSA.Run.healing_low_finality_at_reset
