@@ -206,5 +206,6 @@ public import AvailableChainFGSAProofs.Proofs.Assembly.Healing
 public import AvailableChainFGSAProofs.Proofs.Finality.Proposal
 public import AvailableChainFGSAProofs.Proofs.Finality.Above
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetInvariant
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetTransfer
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetCut

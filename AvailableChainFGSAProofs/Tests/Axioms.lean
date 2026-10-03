@@ -144,10 +144,11 @@ public import AvailableChainFGSAProofs.Proofs.Clean.Chain -- shake: keep (axiom 
 public import AvailableChainFGSAProofs.Proofs.Clean.State -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetInvariant -- shake: keep (post-reset design audit)
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat -- shake: keep (J2 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.SourceTiming -- shake: keep (H12 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.Delivery -- shake: keep (TDel axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.DeliveryReset -- shake: keep (reset core axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetTransfer -- shake: keep (J1 reset axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat -- shake: keep (J2 axiom audit)
 
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetCut -- shake: keep (RS-0 axiom audit)
 
@@ -1621,6 +1622,11 @@ public import AvailableChainFGSAProofs.Proofs.Healing.ResetCut -- shake: keep (R
 #print axioms AvailableChain.FGSA.Run.fgsa_renewedPromotionClaim
 #print axioms AvailableChain.FGSA.Run.fgsa_rowPermissionClaim
 
+-- J1-RESET: pre-action floor, own-tick carrier, and closed reset delivery.
+#print axioms AvailableChain.FGSA.Run.healing_low_finality_at_reset_reset
+#print axioms AvailableChain.FGSA.Run.healing_resetTransferCore
+#print axioms AvailableChain.FGSA.Run.healing_tDelReset_of_reset
+#print axioms AvailableChain.FGSA.Run.healing_low_finality_after_reset
 -- S5 RS-0: inclusive cut, row cap, old-row bound, and exact STOP conditions.
 #print axioms AvailableChain.FGSA.Run.reset_period_lower
 #print axioms AvailableChain.FGSA.Run.reset_action_exists
