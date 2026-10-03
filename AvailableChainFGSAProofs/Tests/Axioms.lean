@@ -27,6 +27,7 @@ public import AvailableChainFGSAProofs.Proofs.Finality.Middle -- shake: keep (K-
 public import AvailableChainFGSAProofs.Proofs.Finality.TailSplit -- shake: keep (K-TAIL audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.TailReceipt -- shake: keep (K-TAIL audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.TailKernel -- shake: keep (K-TAIL r2 audit)
+public import AvailableChainFGSAProofs.Proofs.Finality.TailMixed -- shake: keep (K-TAIL r3 audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Carry -- shake: keep (K-CARRY audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Batch -- shake: keep (K-BATCH audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Accept -- shake: keep (K-ACCEPT axiom audit)
@@ -1093,3 +1094,10 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.ktail_rows_through_next
 #print axioms AvailableChain.FGSA.Run.ktail_terminal_final
 #print axioms AvailableChain.FGSA.Run.tail_kernel_W_of
+#print axioms AvailableChain.FGSA.Run.ktail_entry_bits
+#print axioms AvailableChain.FGSA.Run.ktail_final_quorum
+#print axioms AvailableChain.FGSA.Run.ktail_r6w_transfer
+#print axioms AvailableChain.FGSA.Run.ktail_head_delivered
+#print axioms AvailableChain.FGSA.Run.ktail_mixed_final
+#print axioms AvailableChain.FGSA.Run.ktail_hmixed_of_relay
+#print axioms AvailableChain.FGSA.Run.tail_kernel_W_of_relay

@@ -134,6 +134,14 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.ktail_rows_through_next',
     'AvailableChain.FGSA.Run.ktail_terminal_final',
     'AvailableChain.FGSA.Run.tail_kernel_W_of',
+    # K-TAIL r3: --expect DATA only.
+    'AvailableChain.FGSA.Run.ktail_entry_bits',
+    'AvailableChain.FGSA.Run.ktail_final_quorum',
+    'AvailableChain.FGSA.Run.ktail_r6w_transfer',
+    'AvailableChain.FGSA.Run.ktail_head_delivered',
+    'AvailableChain.FGSA.Run.ktail_mixed_final',
+    'AvailableChain.FGSA.Run.ktail_hmixed_of_relay',
+    'AvailableChain.FGSA.Run.tail_kernel_W_of_relay',
     # C-CORE: --expect DATA only.
     'AvailableChain.FGSA.Run.fgsa_tStart',
     'AvailableChain.FGSA.Run.fgsa_tWalk',
