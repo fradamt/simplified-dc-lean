@@ -30,19 +30,6 @@ open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
--- Assembly adapter: the window projection of `sourceDiscipline_emittedName`.
-theorem emittedName_window (hs : V2.D.ScheduleWellFormed E rho)
-    {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId}
-    (ha : HonestRowAt p c E rho j x r a) (he : namedEntry a.payload.height_pair = some e) :
-    ∃ C G, actionSourceFG p c E rho x r = some (some C) ∧
-      e.1 = (heightView p C).h ∧
-      gateResult p c E rho x (r * p.R) = some (some G) ∧
-      Block.Preceq (eraseFG C) G ∧ fastAt p c E rho x (r * p.R) (eraseFG C) := by
-  obtain ⟨C, G, hC, rfl, -, hG, hCG, hfast⟩ := sourceDiscipline_emittedName p c E rho hs ha he
-  refine ⟨C, G, hC, ?_, hG, hCG, hfast⟩
-  rw [heightView_eq_simplex p]
-  rfl
-
 -- B1: the unrestricted `support` forces every block that is not a high source to be
 -- compatible with every high source of a later label. A sibling of a high source in a
 -- concrete run refutes this; that run needs a model, so only the consequence is checked.

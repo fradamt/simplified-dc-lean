@@ -244,6 +244,21 @@ theorem acceptsFinalBefore_of_idx (hnr : V2.D.NoRestart rho)
     AcceptsFinalBefore p c E rho x X d :=
   (Gen.V2.Duty.holdsBefore_iff_exists_idx hnr hs (fgsa_monoAlong_preceq_F p c X)).mpr h
 
+/-- Blueprint 22:1382–1384; FirstFinality plan §8. DC: SAME prefix coverage.
+Without restarts, acceptance before a deadline holds before any later deadline. -/
+theorem acceptsFinalBefore_mono_deadline (hnr : V2.D.NoRestart rho)
+    (hs : V2.D.ScheduleWellFormed E rho) {x : V} {X : FGBlock (Fin p.n)}
+    {d d' : Time} (hdd : d ≤ d') (h : AcceptsFinalBefore p c E rho x X d) :
+    AcceptsFinalBefore p c E rho x X d' := by
+  obtain ⟨i, hi, hbefore, hX⟩ :=
+    (Gen.V2.Duty.holdsBefore_iff_exists_idx hnr hs
+      (fgsa_monoAlong_preceq_F p c X)).mp h
+  apply acceptsFinalBefore_of_idx p c E rho hnr hs
+  refine ⟨i, hi, ?_, hX⟩
+  intro k hk
+  obtain ⟨e, he, ht⟩ := hbefore k hk
+  exact ⟨e, he, ht.trans_le hdd⟩
+
 /-- The stable read at the post-gate cut is the post-clock stable read. -/
 theorem stable_afterTicks (hs : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.NoRestart rho)
     {i : Nat} {v : V} {t : Time} (hi : rho.events[i]? = some (.tick v t)) :

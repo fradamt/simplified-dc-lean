@@ -17,6 +17,8 @@ public import AvailableChainFGSAProofs.Proofs.Foundations.Timing -- shake: keep 
 public import AvailableChainFGSAProofs.Proofs.Foundations.RowService
 public import AvailableChainFGSAProofs.Proofs.Foundations.Crossing -- shake: keep (R-XING export)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Cap -- shake: keep (R-CAP export)
+public import AvailableChainFGSAProofs.Proofs.Foundations.Counts -- shake: keep (Healing fault count supplier boundary)
+public import AvailableChainFGSAProofs.Proofs.Foundations.RowPermission -- shake: keep (Healing row permission supplier boundary)
 
 public section
 

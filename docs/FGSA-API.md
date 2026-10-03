@@ -605,7 +605,7 @@ def AvailableChain.FGSA.Run.TRepair de45f33bb12274cd
 def AvailableChain.FGSA.Run.OpeningCovered 18b7a10efd09c74f
 def AvailableChain.FGSA.Run.OpeningEntry b07b2043c3d3ead4
 def AvailableChain.FGSA.Run.TCommon ae431fa50bd35733
-def AvailableChain.FGSA.Run.TFrontier ff29b68dfe2d4c42
+def AvailableChain.FGSA.Run.TFrontier a6e2203cd67de153
 def AvailableChain.FGSA.Run.FinalityRowCarriage 02ab956f748c5b90
 theorem AvailableChain.FGSA.Run.FinalityRowCarriage_def 2bafc2918220a116
 ```
