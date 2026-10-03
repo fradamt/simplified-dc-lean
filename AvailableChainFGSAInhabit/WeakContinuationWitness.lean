@@ -205,6 +205,8 @@ theorem linked (h : Time) (es : List Event) :
 
 theorem gap_positive : 4 * params.Δ ≤ (4 : Time) := by decide
 
+theorem gap_aligned : 4 * params.Δ ∣ (4 : Time) := by decide
+
 theorem source_gap (t : Time) (ht : strongEnv.t_GST ≤ t) (_hh : t + 4 ≤ source.horizon) :
     ∃ s, t < V2.D.proposalTime (fgsaInterface params unitCodec) s ∧
       V2.D.proposalTime (fgsaInterface params unitCodec) s ≤ t + 4 ∧

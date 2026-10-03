@@ -210,6 +210,22 @@ theorem sourceDiscipline_emittedName (hs : V2.D.ScheduleWellFormed E rho)
     exact ⟨C, G, hread, heq, KitFG.entry_preceq p.E p.cfg C, hG,
       hbelow _ hCX, hfast _ hCX⟩
 
+/-- The window projection of `sourceDiscipline_emittedName`: only the height of the
+source (`e.1 = (heightView p C).h`) and the gate facts. Healing consumers take this
+form as an INLINE premise (H-DESCENT D2), so they read no `SimplexFG.derive` field
+(lead ruling 2026-10-03). -/
+theorem emittedName_window (hs : V2.D.ScheduleWellFormed E rho)
+    {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId}
+    (ha : HonestRowAt p c E rho j x r a) (he : namedEntry a.payload.height_pair = some e) :
+    ∃ C G, actionSourceFG p c E rho x r = some (some C) ∧
+      e.1 = (heightView p C).h ∧
+      gateResult p c E rho x (r * p.R) = some (some G) ∧
+      Block.Preceq (eraseFG C) G ∧ fastAt p c E rho x (r * p.R) (eraseFG C) := by
+  obtain ⟨C, G, hC, rfl, -, hG, hCG, hfast⟩ := sourceDiscipline_emittedName p c E rho hs ha he
+  refine ⟨C, G, hC, ?_, hG, hCG, hfast⟩
+  rw [heightView_eq_simplex p]
+  rfl
+
 private theorem source_stored_row (hv : V2.D.ExecutionValid E rho)
     (e : Fin p.n ≃ V)
     (he : ∀ j, rho.seatOf (.base .fg) j = e j)

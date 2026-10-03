@@ -28,6 +28,9 @@ public import AvailableChainFGSAProofs.Proofs.Healing.SupportTransfer
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportWrite
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6S
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSeed
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierService
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierServiceCover
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairGate
 public import AvailableChainFGSAProofs.Proofs.Healing.Repair
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportFrame
@@ -79,6 +82,7 @@ public import AvailableChainFGSAProofs.Proofs.Finality.MiddleSupport
 public import AvailableChainFGSAProofs.Proofs.Finality.Middle
 public import AvailableChainFGSAProofs.Proofs.Finality.FrontierBound
 public import AvailableChainFGSAProofs.Proofs.Finality.RowsFrame
+public import AvailableChainFGSAProofs.Proofs.Finality.ActionTime
 public import AvailableChainFGSAProofs.Proofs.Finality.RowsBatch
 public import AvailableChainFGSAProofs.Proofs.Finality.RowsRecords
 public import AvailableChainFGSAProofs.Proofs.Finality.RowsPrem
@@ -199,3 +203,10 @@ public import AvailableChainFGSAProofs.Proofs.Healing.Attempt
 public import AvailableChainFGSAProofs.Proofs.Healing.AttemptBudget
 public import AvailableChainFGSAProofs.Proofs.Healing.AttemptStop
 public import AvailableChainFGSAProofs.Proofs.Healing.AttemptSettle
+public import AvailableChainFGSAProofs.Proofs.Healing.SourceTiming
+public import AvailableChainFGSAProofs.Proofs.Healing.Delivery
+public import AvailableChainFGSAProofs.Proofs.Healing.DeliveryReset
+public import AvailableChainFGSAProofs.Proofs.Assembly.Healing
+public import AvailableChainFGSAProofs.Proofs.Finality.Proposal
+public import AvailableChainFGSAProofs.Proofs.Finality.Above
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetCut
