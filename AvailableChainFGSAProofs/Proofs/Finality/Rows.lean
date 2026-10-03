@@ -76,6 +76,38 @@ private theorem rows_pending_action_head
   exact ⟨H, hdecode, hDH, hHh, hplateau.1.trans hDJ, hplateau.2.trans hDj,
     hfin H hH, (hlaws.entry_plateau hDH (hDh.trans hHh.symm)).symm⟩
 
+/-- Paper 22:1228–1254: the full action walk covers D; held caps bound its head fields.
+DC: INTENTIONAL: public form of the capped walk step; the caller supplies both caps. -/
+theorem pending_action_head_capped
+    (k : Nat) (x : V) (q y : Nat) (D U : FGBlock (Fin p.n))
+    (nd : Node p) (raw support : List (GridCO.Wire p.n))
+    (seats : Finset (Fin p.n)) (m : Nat)
+    (hx : x ∈ rho.honest)
+    (hnd : postClock E rho x (p.actionTime q) = some nd)
+    (hread : storeAt p c E rho k x = nd.st)
+    (hwalk : TWalk p c E rho)
+    (hhead : FGSA.fgHead p nd.st = FGSA.getHead p nd.st raw support)
+    (hcount : Gen.Pure.Batch seats.card m)
+    (hD : D ∈ FGSA.fullTree p nd.st)
+    (hcompat : Block.Compatible (FGSA.liveRoot p nd.st) (eraseFG D))
+    (hbatch : WalkBatch p c rho nd.st (q * p.R + 1)
+      raw support (eraseFG D) seats m)
+    (hDh : (heightView p D).h = y + 1)
+    (hDJ : (heightView p D).J = U)
+    (hDj : (heightView p D).h_j = y)
+    (hcap : ∀ B ∈ nd.st.fg.TF, (heightView p B).h ≤ y + 1)
+    (hfin : ∀ B ∈ nd.st.fg.TF, (finalityView p B).h_F < y) :
+    ∃ H : FGBlock (Fin p.n),
+      FGSA.fgBlockOf nd.st (FGSA.fgHead p nd.st) = some H ∧
+      FGBlock.Preceq D H ∧
+      (heightView p H).h = y + 1 ∧
+      (heightView p H).J = U ∧
+      (heightView p H).h_j = y ∧
+      (finalityView p H).h_F < y ∧
+      (heightView p H).T_h = (heightView p D).T_h :=
+  rows_pending_action_head p c E rho k x q y D U nd raw support seats m hx hnd hread hwalk
+    hhead hcount hD hcompat hbatch hDh hDJ hDj hcap hfin
+
 /-- Paper 22:1236–1239,1667–1687: translate the strict causal cap to a held domain.
 DC: INTENTIONAL: height-only cap through a TF inclusion at the actual read. -/
 theorem pending_action_domain_cap

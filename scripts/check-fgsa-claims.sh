@@ -83,6 +83,15 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.rowsPrem_action_pools',
     'AvailableChain.FGSA.Run.rowsPrem_earlier_height',
     'AvailableChain.FGSA.Run.rowsPrem_action_record',
+    # K-ROWS-PREM P3: --expect DATA only.
+    'AvailableChain.FGSA.Run.fgsa_action_walk_batch',
+    'AvailableChain.FGSA.Run.rowsPrem_action_walk_batch',
+    'AvailableChain.FGSA.Run.pending_action_head_capped',
+    'AvailableChain.FGSA.Run.rowsPrem_pending_head',
+    'AvailableChain.FGSA.Run.rowsPrem_action_source',
+    'AvailableChain.FGSA.Run.rowsPrem_fresh_rows',
+    'AvailableChain.FGSA.Run.rowsPrem_anchor_cap',
+    'AvailableChain.FGSA.Run.rowsPrem_anchor_retained_or_covered',
     # K-MID: --expect DATA only.
     'AvailableChain.FGSA.Run.kernel_opening_and_middle',
     'AvailableChain.FGSA.Run.kernel_middle_fresh_U',

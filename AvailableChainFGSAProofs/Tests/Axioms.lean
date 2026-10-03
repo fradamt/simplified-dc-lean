@@ -15,6 +15,7 @@ public import AvailableChainFGSAProofs.Proofs.Finality.Middle -- shake: keep (K-
 public import AvailableChainFGSAProofs.Proofs.Finality.RowsFrame -- shake: keep (K-ROWS-PREM audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.RowsBatch -- shake: keep (K-ROWS-PREM audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.RowsRecords -- shake: keep (K-ROWS-PREM audit)
+public import AvailableChainFGSAProofs.Proofs.Finality.RowsPrem -- shake: keep (K-ROWS-PREM P3 audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Carry -- shake: keep (K-CARRY audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Batch -- shake: keep (K-BATCH audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Accept -- shake: keep (K-ACCEPT axiom audit)
@@ -47,6 +48,7 @@ public import AvailableChainFGSAProofs.Proofs.Shared.ExactHead -- shake: keep (J
 public import AvailableChainFGSAProofs.Proofs.Shared.ExactService -- shake: keep (ExactService audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.Regimes -- shake: keep (gate regime audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.GateReceipt -- shake: keep (gate receipt audit)
+public import AvailableChainFGSAProofs.Proofs.Shared.HeadAdmit -- shake: keep (K-ROWS-PREM P3 audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.ScoreRun -- shake: keep (G25 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.OpeningSource -- shake: keep (F1b.9 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.KeepExact -- shake: keep (F1b.8 axiom audit)
@@ -981,3 +983,11 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.rowsPrem_action_pools
 #print axioms AvailableChain.FGSA.Run.rowsPrem_earlier_height
 #print axioms AvailableChain.FGSA.Run.rowsPrem_action_record
+#print axioms AvailableChain.FGSA.Run.fgsa_action_walk_batch
+#print axioms AvailableChain.FGSA.Run.rowsPrem_action_walk_batch
+#print axioms AvailableChain.FGSA.Run.pending_action_head_capped
+#print axioms AvailableChain.FGSA.Run.rowsPrem_pending_head
+#print axioms AvailableChain.FGSA.Run.rowsPrem_action_source
+#print axioms AvailableChain.FGSA.Run.rowsPrem_fresh_rows
+#print axioms AvailableChain.FGSA.Run.rowsPrem_anchor_cap
+#print axioms AvailableChain.FGSA.Run.rowsPrem_anchor_retained_or_covered
