@@ -27,15 +27,8 @@ example (h : KernelJoinedPrem p c G ΔF E rho pt) :
       KernelPrem_W p c G ΔF E rho ⟨w, pt.r⟩ ∧
         kernelDeadlineW p ΔF ((⟨w, pt.r⟩ : KernelPt).r + 2) =
           kernelDeadlineW p ΔF (pt.r + 2) := by
-  obtain ⟨w, input, start⟩ := h.start
-  exact ⟨w, {
-    set := h.set
-    bound := h.bound
-    window := h.window
-    start := start
-    hhor := h.hhor
-    input := input
-    services := fgsa_coreServices E rho h.set.base w }, rfl⟩
+  obtain ⟨w, hK⟩ := finality_kernel_prem_W_of_joined p c E rho G ΔF pt h
+  exact ⟨w, hK, rfl⟩
 
 /-- Conditional package, paper 00:1119–1134, 22:1171–1305; plan §4.
 DC-CS/W4FKChainSecondCheckpoint.lean:43: INTENTIONAL strict W receipt.

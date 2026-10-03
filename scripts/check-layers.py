@@ -135,7 +135,9 @@ ASSEMBLY_ROOT = PROOFS + ".Proofs.Assembly.Root"
 ASSEMBLY_ROOT_IMPORTS = frozenset({CLAIMS + ".FGSAClaims",
                                   PROOFS + ".Proofs.Assembly.Foundations",
                                   PROOFS + ".Proofs.Assembly.Shared",
-                                  PROOFS + ".Proofs.Assembly.Clean"})
+                                  PROOFS + ".Proofs.Assembly.Clean",
+                                  PROOFS + ".Proofs.Assembly.Outage",
+                                  PROOFS + ".Proofs.Assembly.Finality"})
 NAME_PART = r"(?:«[^»]+»|[^\W\d][\w'!?]*)"
 NAME = re.compile(NAME_PART + r"(?:\." + NAME_PART + r")*")
 Finding = tuple[str, str, str]

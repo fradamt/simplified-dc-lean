@@ -1,4 +1,6 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Finality.Proposal -- shake: keep (F-PROP audit)
+public import AvailableChainFGSAProofs.Proofs.Finality.Local -- shake: keep (F-LOCAL audit)
 public import AvailableChainFGSAProofs.Proofs.Assembly.Outage -- shake: keep (Outage Export axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.Growth -- shake: keep (growth axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionArithmetic -- shake: keep (H-PROMOTE arithmetic audit)
@@ -161,6 +163,8 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.afterTicks_eq_stateBefore
 #print axioms AvailableChain.FGSA.Run.fgsaSafetyClaims_of_headReachesLo
 #print axioms AvailableChain.FGSA.Run.fgsaSafetyClaims
+#print axioms AvailableChain.FGSA.Run.fgsaClaims_of_open
+#print axioms AvailableChain.FGSA.Run.fgsaClaims_of_hTime
 #print axioms AvailableChain.FGSA.Run.afterTicks_node
 #print axioms AvailableChain.FGSA.Run.afterTicks_eq_tick_preTick
 #print axioms AvailableChain.FGSA.Run.preIdx_le_afterTicksIdx
@@ -1142,6 +1146,7 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.healing_loss_cause
 #print axioms AvailableChain.FGSA.Run.healing_high_source_compat
 #print axioms AvailableChain.FGSA.Run.healing_high_source_compat_reset
+#print axioms AvailableChain.FGSA.Run.emittedName_window
 #print axioms AvailableChain.FGSA.Run.inclusion_acceptance_of_stored
 #print axioms AvailableChain.FGSA.Run.inclusion_receipt_of_compatible
 #print axioms AvailableChain.FGSA.Run.inclusion_proposal_receipt
@@ -1338,6 +1343,7 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.rowsPrem_earlier_height
 #print axioms AvailableChain.FGSA.Run.rowsPrem_action_record
 #print axioms AvailableChain.FGSA.Run.fgsa_action_walk_batch
+#print axioms AvailableChain.FGSA.Run.finality_action_time_bounds
 #print axioms AvailableChain.FGSA.Run.rowsPrem_action_walk_batch
 #print axioms AvailableChain.FGSA.Run.pending_action_head_capped
 #print axioms AvailableChain.FGSA.Run.rowsPrem_pending_head
@@ -1348,6 +1354,7 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 
 -- K-FWD: the forward W finality kernel.
 #print axioms AvailableChain.FGSA.Run.finality_kernel_W_of
+#print axioms AvailableChain.FGSA.Run.finality_kernel_prem_W_of_joined
 #print axioms AvailableChain.FGSA.Run.finality_kernel_joined_W_of
 #print axioms AvailableChain.FGSA.Run.fgsa_finalityKernelJoined_W_of
 #print axioms AvailableChain.FGSA.Run.fgsa_finalityKernelJoined_W
@@ -1362,6 +1369,16 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_healed_output_mono
 #print axioms AvailableChain.FGSA.Run.clean_growth_body
 #print axioms AvailableChain.FGSA.Run.fgsa_availableGrowthGST
+-- F-LOCAL: actual opening, inclusive outputs, certificate heights and strict receipt.
+#print axioms AvailableChain.FGSA.Run.ForwardWitness_W_def
+#print axioms AvailableChain.FGSA.Run.forward_witness_FE_of
+#print axioms AvailableChain.FGSA.Run.finality_liveness_of_forward_W
+#print axioms AvailableChain.FGSA.Run.finality_liveness_FE_W_of
+#print axioms AvailableChain.FGSA.Run.finality_liveness_F4_W_of
+#print axioms AvailableChain.FGSA.Run.fgsa_finalityLivenessRecFE_W_of
+#print axioms AvailableChain.FGSA.Run.fgsa_finalityLivenessRecF4_W_of
+#print axioms AvailableChain.FGSA.Run.fgsa_finalityLivenessRecFE_W
+#print axioms AvailableChain.FGSA.Run.fgsa_finalityLivenessRecF4_W
 
 -- S5 O-INDUCT/O-CLOSE: every public producer and defining equation.
 #print axioms AvailableChain.FGSA.Run.OutageSourceHistory_def
@@ -1496,6 +1513,22 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 
 #print axioms AvailableChain.FGSA.Run.healing_promotion_age_service
 
+-- F-PROP: paper 22:1421–1430; firstfin plan §6.
+#print axioms AvailableChain.FGSA.Run.proposal_final_of_forward_W
+#print axioms AvailableChain.FGSA.Run.proposal_final_FE_W_of
+#print axioms AvailableChain.FGSA.Run.proposal_final_F4_W_of
+#print axioms AvailableChain.FGSA.Run.fgsa_proposalFinalRecFE_W_of
+#print axioms AvailableChain.FGSA.Run.fgsa_proposalFinalRecF4_W_of
+#print axioms AvailableChain.FGSA.Run.fgsa_proposalFinalRecFE_W
+#print axioms AvailableChain.FGSA.Run.fgsa_proposalFinalRecF4_W
+
+-- F-ABOVE-B: two-window bodies, conditional exports and closed wrappers.
+#print axioms AvailableChain.FGSA.Run.above_frontier_FE_W_of
+#print axioms AvailableChain.FGSA.Run.above_frontier_F4_W_of
+#print axioms AvailableChain.FGSA.Run.fgsa_aboveFrontierRecFE_W_of
+#print axioms AvailableChain.FGSA.Run.fgsa_aboveFrontierRecF4_W_of
+#print axioms AvailableChain.FGSA.Run.fgsa_aboveFrontierRecFE_W
+#print axioms AvailableChain.FGSA.Run.fgsa_aboveFrontierRecF4_W
 -- S5 M5b: height-one r3 progress and strict acceptance.
 #print axioms AvailableChain.FGSA.Run.healing_rise_one_advance
 #print axioms AvailableChain.FGSA.Run.healing_rise_one_of_effective
