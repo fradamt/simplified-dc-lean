@@ -98,5 +98,95 @@ theorem fgsa_finalityKernelJoined_W (p : Params) : FinalityKernelJoinedClaim_W p
         hrow.2.1 cut).mp (hk.trans_le hj)
     exact absurd (hcut k z' r a u (b + 1) T tmo hrow hd hh hcutr) (Nat.lt_irrefl _)
 
+/-- Paper 22:1371–1400; firstfin plan §5 C. DC-CS/W4FKChainSecondCheckpoint.lean:43:
+INTENTIONAL closed local W liveness. The same K-JOIN producers use Recovery₂
+from the local package; no additional premise is supplied. -/
+theorem fgsa_finalityLivenessRecFE_W (p : Params) :
+    FinalityLivenessRecFEClaim_W p := by
+  apply fgsa_finalityLivenessRecFE_W_of p
+  · intro V _ _ In c E rho hv
+    exact fgsa_tRowsSelect p c E rho hv
+  · intro V _ _ In c E rho hv
+    exact held_chain_row_origin_before p c E rho
+      hv.toUnforgeableSignatures hv.toScheduleWellFormed
+  · intro ΔF
+    exact fgsa_batchCoverage p ΔF .target
+  · intro V _ _ In c E rho G ΔF hR
+    exact sourceDiscipline_qcOrigin p c E rho
+      (pt := ()) ⟨hR.base, hR.faultQ⟩ (fgsa_rStore p c E rho)
+  · intro V _ _ In c E rho G ΔF hR
+    exact fgsa_rXing p c E rho hR.base.linked
+      hR.faultX_count_rec hR.base.valid.toUnforgeableSignatures
+  · intro V _ _ In c E rho G ΔF _ hp
+    simpa only [FinalityBlock_def, FinalityRunBlock_def,
+      FinalityFinalizedAt_def, FGFinalizedAt_def] using
+      (fgsa_wholeRunAgreement p c E rho
+        (fgsa_slashableBound_of_base p c E rho hp.set hp.fault)).1
+  · intro V _ _ In c E rho G ΔF hR
+    have hs := sourceDiscipline_strat p c E rho
+      (pt := ()) ⟨hR.base, hR.faultQ⟩ (fgsa_rStore p c E rho)
+    rw [RStrat_def] at hs
+    exact hs
+  · intro V _ _ In c E rho G ΔF hR j z r a e ha he
+    have hb := sourceDiscipline_base p c E rho (pt := ()) ⟨hR.base⟩
+    obtain ⟨e', C, _, hn, hsrc, hentry, hp, _⟩ := hb.2.2 j z r a ha
+    have hee : e = e' := Option.some.inj (he.symm.trans hn)
+    exact ⟨C, hsrc, hee.trans hentry, hp⟩
+  · intro V _ _ In c E rho G ΔF hR cut b j z W hj hW hcut
+    show (heightView p W).h < b + 2
+    by_contra hlt
+    obtain ⟨z', r, a, u, T, tmo, ⟨k, hk, hrow⟩, _, hd, _, hh⟩ :=
+      fgsa_rCap_heightView p c E rho hR.base.linked hR.base.valid
+        hR.faultQ b j z W hW (Nat.le_of_not_lt hlt)
+    have hcutr : p.actionTime r < cut :=
+      (Gen.V2.Duty.index_lt_idxBefore_iff hR.base.valid.toScheduleWellFormed
+        hrow.2.1 cut).mp (hk.trans_le hj)
+    exact absurd (hcut k z' r a u (b + 1) T tmo hrow hd hh hcutr) (Nat.lt_irrefl _)
+
+/-- Paper 22:1371–1400; firstfin plan §5 C. DC-CS/W4FKChainSecondCheckpoint.lean:43:
+INTENTIONAL closed local W liveness. The same K-JOIN producers use Recovery₂
+from the local package; no additional premise is supplied. -/
+theorem fgsa_finalityLivenessRecF4_W (p : Params) :
+    FinalityLivenessRecF4Claim_W p := by
+  apply fgsa_finalityLivenessRecF4_W_of p
+  · intro V _ _ In c E rho hv
+    exact fgsa_tRowsSelect p c E rho hv
+  · intro V _ _ In c E rho hv
+    exact held_chain_row_origin_before p c E rho
+      hv.toUnforgeableSignatures hv.toScheduleWellFormed
+  · intro ΔF
+    exact fgsa_batchCoverage p ΔF .target
+  · intro V _ _ In c E rho G ΔF hR
+    exact sourceDiscipline_qcOrigin p c E rho
+      (pt := ()) ⟨hR.base, hR.faultQ⟩ (fgsa_rStore p c E rho)
+  · intro V _ _ In c E rho G ΔF hR
+    exact fgsa_rXing p c E rho hR.base.linked
+      hR.faultX_count_rec hR.base.valid.toUnforgeableSignatures
+  · intro V _ _ In c E rho G ΔF _ hp
+    simpa only [FinalityBlock_def, FinalityRunBlock_def,
+      FinalityFinalizedAt_def, FGFinalizedAt_def] using
+      (fgsa_wholeRunAgreement p c E rho
+        (fgsa_slashableBound_of_base p c E rho hp.set hp.fault)).1
+  · intro V _ _ In c E rho G ΔF hR
+    have hs := sourceDiscipline_strat p c E rho
+      (pt := ()) ⟨hR.base, hR.faultQ⟩ (fgsa_rStore p c E rho)
+    rw [RStrat_def] at hs
+    exact hs
+  · intro V _ _ In c E rho G ΔF hR j z r a e ha he
+    have hb := sourceDiscipline_base p c E rho (pt := ()) ⟨hR.base⟩
+    obtain ⟨e', C, _, hn, hsrc, hentry, hp, _⟩ := hb.2.2 j z r a ha
+    have hee : e = e' := Option.some.inj (he.symm.trans hn)
+    exact ⟨C, hsrc, hee.trans hentry, hp⟩
+  · intro V _ _ In c E rho G ΔF hR cut b j z W hj hW hcut
+    show (heightView p W).h < b + 2
+    by_contra hlt
+    obtain ⟨z', r, a, u, T, tmo, ⟨k, hk, hrow⟩, _, hd, _, hh⟩ :=
+      fgsa_rCap_heightView p c E rho hR.base.linked hR.base.valid
+        hR.faultQ b j z W hW (Nat.le_of_not_lt hlt)
+    have hcutr : p.actionTime r < cut :=
+      (Gen.V2.Duty.index_lt_idxBefore_iff hR.base.valid.toScheduleWellFormed
+        hrow.2.1 cut).mp (hk.trans_le hj)
+    exact absurd (hcut k z' r a u (b + 1) T tmo hrow hd hh hcutr) (Nat.lt_irrefl _)
+
 end AvailableChain.FGSA.Run
 end

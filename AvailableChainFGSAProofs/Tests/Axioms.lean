@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Finality.Local -- shake: keep (F-LOCAL audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.Growth -- shake: keep (growth axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.FramePaths -- shake: keep (H-FRAME audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.FrameZero -- shake: keep (zero-label audit)
@@ -1148,3 +1149,13 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_healed_output_mono
 #print axioms AvailableChain.FGSA.Run.clean_growth_body
 #print axioms AvailableChain.FGSA.Run.fgsa_availableGrowthGST
+-- F-LOCAL: actual opening, inclusive outputs, certificate heights and strict receipt.
+#print axioms AvailableChain.FGSA.Run.ForwardWitness_W_def
+#print axioms AvailableChain.FGSA.Run.forward_witness_FE_of
+#print axioms AvailableChain.FGSA.Run.finality_liveness_of_forward_W
+#print axioms AvailableChain.FGSA.Run.finality_liveness_FE_W_of
+#print axioms AvailableChain.FGSA.Run.finality_liveness_F4_W_of
+#print axioms AvailableChain.FGSA.Run.fgsa_finalityLivenessRecFE_W_of
+#print axioms AvailableChain.FGSA.Run.fgsa_finalityLivenessRecF4_W_of
+#print axioms AvailableChain.FGSA.Run.fgsa_finalityLivenessRecFE_W
+#print axioms AvailableChain.FGSA.Run.fgsa_finalityLivenessRecF4_W

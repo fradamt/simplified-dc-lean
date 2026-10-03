@@ -189,6 +189,17 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.fgsa_finalityKernel_W',
     # K-FWD: --expect DATA only.
     'AvailableChain.FGSA.Run.finality_kernel_W_of',
+    # F-LOCAL: --expect DATA only.
+    'AvailableChain.FGSA.Run.fgsa_finalityLivenessRecFE_W_of',
+    'AvailableChain.FGSA.Run.fgsa_finalityLivenessRecF4_W_of',
+    'AvailableChain.FGSA.Run.fgsa_finalityLivenessRecFE_W',
+    'AvailableChain.FGSA.Run.fgsa_finalityLivenessRecF4_W',
+    'AvailableChain.FGSA.Run.ForwardWitness_W',
+    'AvailableChain.FGSA.Run.ForwardWitness_W_def',
+    'AvailableChain.FGSA.Run.forward_witness_FE_of',
+    'AvailableChain.FGSA.Run.finality_liveness_of_forward_W',
+    'AvailableChain.FGSA.Run.finality_liveness_FE_W_of',
+    'AvailableChain.FGSA.Run.finality_liveness_F4_W_of',
     # K-JOIN: --expect DATA only.
     'AvailableChain.FGSA.Run.finality_kernel_joined_W_of',
     'AvailableChain.FGSA.Run.fgsa_finalityKernelJoined_W_of',
