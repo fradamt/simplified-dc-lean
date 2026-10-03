@@ -2212,6 +2212,17 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.frontierSearch_terminal_horizon_gap8',
     'AvailableChain.FGSA.Run.frontierSearch_terminal_horizon_gap12',
 
+    # S5 J8 H-RESET: --expect ADDITIONS only.
+    'AvailableChain.FGSA.Run.healing_reset_budget_sum',
+    'AvailableChain.FGSA.Run.healing_reset_budget_choice',
+    'AvailableChain.FGSA.Run.healing_reset_budget_lt',
+    'AvailableChain.FGSA.Run.healing_reset_rowCap',
+    'AvailableChain.FGSA.Run.healing_reset_mu_le',
+    'AvailableChain.FGSA.Run.healing_reset_fresh',
+    'AvailableChain.FGSA.Run.healing_reset_synchronous',
+    'AvailableChain.FGSA.Run.healing_reset_reset_first',
+    'AvailableChain.FGSA.Run.healing_reset_fields',
+
 )
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
          'Packages.Safety', 'OutputReads', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',

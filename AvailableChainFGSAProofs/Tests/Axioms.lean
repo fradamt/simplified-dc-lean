@@ -158,6 +158,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.AttemptRows -- shake: keep
 
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTop -- shake: keep (HG.3 phase audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchBudget -- shake: keep (terminal audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.Reset -- shake: keep (S5 J8 R1–R3 audit)
 
 #print axioms AvailableChain.FGSA.Run.kmid_honestSeats_mem
 #print axioms AvailableChain.FGSA.Run.kmid_honest_quorum
@@ -1691,3 +1692,14 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchBudget -- sh
 #print axioms AvailableChain.FGSA.Run.frontierSearch_terminal_opening_cost
 #print axioms AvailableChain.FGSA.Run.frontierSearch_terminal_horizon_gap8
 #print axioms AvailableChain.FGSA.Run.frontierSearch_terminal_horizon_gap12
+
+-- S5 J8 H-RESET: named HG.5 input and derived reset fields.
+#print axioms AvailableChain.FGSA.Run.healing_reset_budget_sum
+#print axioms AvailableChain.FGSA.Run.healing_reset_budget_choice
+#print axioms AvailableChain.FGSA.Run.healing_reset_budget_lt
+#print axioms AvailableChain.FGSA.Run.healing_reset_rowCap
+#print axioms AvailableChain.FGSA.Run.healing_reset_mu_le
+#print axioms AvailableChain.FGSA.Run.healing_reset_fresh
+#print axioms AvailableChain.FGSA.Run.healing_reset_synchronous
+#print axioms AvailableChain.FGSA.Run.healing_reset_reset_first
+#print axioms AvailableChain.FGSA.Run.healing_reset_fields
