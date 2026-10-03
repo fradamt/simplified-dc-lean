@@ -139,6 +139,7 @@ public import AvailableChainFGSAProofs.Proofs.Shared.OpeningAfterGate -- shake: 
 public import AvailableChainFGSAProofs.Proofs.Shared.HeadAfterSettlement -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Healing.AdditiveStageBounds -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Healing.PeriodicStageBounds -- shake: keep (axiom audit commands)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetProject -- shake: keep (J3 projection audit)
 
 public import AvailableChainFGSAProofs.Proofs.Clean.Chain -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.State -- shake: keep (axiom audit commands)
@@ -1703,3 +1704,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw -- shake: kee
 #print axioms AvailableChain.FGSA.Run.postReset_selected_reset_compatible
 -- J5-RAW: the reset-only all-cut H5 projection.
 #print axioms AvailableChain.FGSA.Run.postReset_h5RawTransfer_body
+
+-- J3-REST: reset-only projections and source route.
+#print axioms AvailableChain.FGSA.Run.postReset_source_gate_result
+#print axioms AvailableChain.FGSA.Run.postReset_tCarrier_reset
+#print axioms AvailableChain.FGSA.Run.postReset_h2A_reset
