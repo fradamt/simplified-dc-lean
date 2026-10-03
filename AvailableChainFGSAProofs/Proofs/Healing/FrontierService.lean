@@ -1,7 +1,9 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSeed
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierServiceCover
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierServiceGate
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierServiceSupport
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierOpenAll
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersQ
 
 public section
@@ -225,8 +227,7 @@ theorem frontier_later_exactService [Fintype V] (E : Generic.Env V)
 /-- Blueprint 21 HG.1:1333–1350, 1500–1574; plan §2.4 and §3.1.
 DC: INTENTIONAL the first two frozen TFrontier conjuncts, under its seed hypotheses.
 INLINE writes: `fgsa_leaseOrigins_lastWrite` (Foundations/Leases:392), supplied at Assembly.
-N5 STOP: `FrontierOpeningServed` has no exported constructor or definition theorem.
-The pointwise covering gate service is proved in `FrontierServiceCover`. -/
+The full opening conjunction is assembled by `frontier_service` below. -/
 theorem frontier_service_core [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     (mono : RMono p c E rho) (crossing : RXing p c E rho)
@@ -296,6 +297,55 @@ theorem frontier_service_core [Fintype V] (E : Generic.Env V)
         nlinarith
       exact frontier_later_exactService E rho hrec mono crossing writes hgst hQ hErase
         hHeight hService hu hPhase hqv hvh hCap hafter hgate hp
+
+/-- Blueprint 21 HG.1:1333–1350, 1500–1583; plan §2.4 and §3.1 step 8.
+DC: INTENTIONAL the seeded TFrontier, in its frozen order, through the closed cap.
+INLINE writes: `fgsa_leaseOrigins_lastWrite`; INLINE rowCoverage:
+`rowPermission_covered E rho hrec.base hrec.fault`, both supplied at Assembly.
+Later opening service follows from the covering gate, without an honest proposal
+at that label or a phase through that gate. -/
+theorem frontier_service [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (mono : RMono p c E rho) (crossing : RXing p c E rho)
+    (writes : ∀ i x (row : Block × Nat × Time),
+      row ∈ (storeAt p c E rho i x).base.obligations →
+      ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
+        gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
+        row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
+        row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
+        ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
+          let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          GridCO.savedGenuine pre.base w = none →
+          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+            (actView pre) w C)
+    (rowCoverage : ∀ x, x ∈ rho.honest → ∀ r nd,
+      postClock E rho x (p.actionTime r) = some nd → ∀ C,
+      actionSourceFG p c E rho x r = some (some C) →
+      C ∈ FGSA.fullTree p nd.st →
+      (FGSA.controls p nd.st).lo ≤ (heightView p C).h →
+      E.awake x (p.actionTime r) = true →
+      ∃ j rSent a, rSent ≤ r ∧ HonestRowAt p c E rho j x rSent a ∧
+        namedEntry a.payload.height_pair =
+          some ((heightView p C).h, (heightView p C).T_h.root)) :
+    TFrontier p c E rho := by
+  intro u v m J contested q Q Qfg hgst hQ hErase hHeight hService hseed hu hPhase hqv hvh hCap
+  have hcore := frontier_service_core E rho hrec mono crossing writes u v m J contested
+    q Q Qfg hgst hQ hErase hHeight hService hseed hu hPhase hqv hvh hCap
+  refine ⟨hcore.1, hcore.2, frontier_openings E rho hrec crossing rowCoverage
+    u v m J contested q Q Qfg hgst hQ hErase hHeight hService hu hPhase hqv hvh hCap ?_⟩
+  have huv : u ≤ v := (hu.trans (by
+    change 4 * p.Δ * (q : Int) ≤ 4 * p.Δ * (q : Int) + 6 * p.Δ
+    linarith [p.deltaPos])).trans hqv
+  have hcap := frontier_cap_before E rho mono hrec.base.noRestart huv hCap
+  intro r hqr hav
+  apply frontierOpeningServed_intro E rho
+  intro i x hx ht
+  exact frontier_opening_gateService_of_cover E rho hrec mono crossing writes hgst hQ
+    hErase hHeight hService hu hPhase hqv hvh hcap hqr hav hx ht
 
 end AvailableChain.FGSA.Run
 end

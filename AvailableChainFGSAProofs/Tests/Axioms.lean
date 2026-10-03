@@ -1536,3 +1536,5 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.frontier_later_head
 #print axioms AvailableChain.FGSA.Run.frontier_later_exactService
 #print axioms AvailableChain.FGSA.Run.frontier_service_core
+
+#print axioms AvailableChain.FGSA.Run.frontier_service

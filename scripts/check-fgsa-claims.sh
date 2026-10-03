@@ -29,6 +29,7 @@ CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = (
     # S5 HG.1: --expect ADDITIONS only.
+    'AvailableChain.FGSA.Run.frontier_service',
     'AvailableChain.FGSA.Run.frontierSeedQualification_iff',
     'AvailableChain.FGSA.Run.frontier_proposals_cover',
     'AvailableChain.FGSA.Run.frontier_output_cover',
