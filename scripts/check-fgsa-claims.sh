@@ -2312,6 +2312,9 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.postReset_written_heads_at_write_cut',
     'AvailableChain.FGSA.Run.postReset_written_later_result',
     'AvailableChain.FGSA.Run.postReset_leaseSafe_results_succ',
+    # J4A2-2: --expect DATA only.
+    'AvailableChain.FGSA.Run.postReset_moving_domain',
+    'AvailableChain.FGSA.Run.postReset_moving_head_cut',
     # JOINT-IND: --expect DATA additions only.
     'AvailableChain.FGSA.Run.PostResetResetLeaseCompatibleP',
     'AvailableChain.FGSA.Run.PostResetOpeningDomainP',

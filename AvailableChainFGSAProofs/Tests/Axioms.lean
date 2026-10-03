@@ -177,6 +177,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.AttemptRows -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetHealed -- shake: keep (J7 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Assembly.ProgressAttempt -- shake: keep
 
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLeaseMove -- shake: keep (J4A2-2 audit)
+
 #print axioms AvailableChain.FGSA.Run.kmid_honestSeats_mem
 #print axioms AvailableChain.FGSA.Run.kmid_honest_quorum
 
@@ -1844,3 +1846,6 @@ public import AvailableChainFGSAProofs.Proofs.Assembly.ProgressAttempt -- shake:
 #print axioms AvailableChain.FGSA.Run.postReset_source_gate_result
 #print axioms AvailableChain.FGSA.Run.postReset_tCarrier_reset
 #print axioms AvailableChain.FGSA.Run.postReset_h2A_reset
+
+#print axioms AvailableChain.FGSA.Run.postReset_moving_domain
+#print axioms AvailableChain.FGSA.Run.postReset_moving_head_cut

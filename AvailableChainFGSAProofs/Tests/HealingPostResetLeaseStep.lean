@@ -1,6 +1,8 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLeaseStep -- shake: keep (J4-A fixtures)
 
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLeaseMove -- shake: keep (J4A2-2 proposer fixture)
+
 set_option linter.privateModule false
 
 /-! Blueprint 21 H.15:2894–2914; plan J4-A; B1/B13/B17/B18.
@@ -199,6 +201,71 @@ example {i : Nat} (hinv : PostResetInv p c E rho w i)
     i (Nat.lt_succ_self i) y j D hy hsj hi hresult
 
 end WrittenConsumers
+
+section MovingConsumers
+variable [Fintype V] {G ΔF : Time}
+    (hrec : Recovery₂ p c E rho G ΔF) (mono : RMono p c E rho)
+    (emittedNonempty : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n},
+      HonestRowAt p c E rho j x r a → ∃ e, namedEntry a.payload.height_pair = some e)
+    (emittedName : ∀ {j : Nat} {x : V} {r : Nat} {a : RowWire p.n} {e : Height × BlockId},
+      HonestRowAt p c E rho j x r a → namedEntry a.payload.height_pair = some e →
+      ∃ C G, actionSourceFG p c E rho x r = some (some C) ∧
+        e.1 = (heightView p C).h ∧
+        gateResult p c E rho x (r * p.R) = some (some G) ∧
+        Block.Preceq (eraseFG C) G ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
+    (writes : ∀ i x (row : Block × Nat × Time),
+      row ∈ (storeAt p c E rho i x).base.obligations →
+      ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
+        gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
+        row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
+        row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
+        ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
+          let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          GridCO.savedGenuine pre.base w = none →
+          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+            (actView pre) w C)
+    (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
+    {w : HealingWitness} (h0r : H0Reset p c E rho w)
+
+
+include hrec mono emittedNonempty emittedName writes xing origin h0r
+
+-- G2-proposal-no-source: the proposer view is the complete reader tree.
+-- The frozen-tree inclusion is derived; no domain or receipt premise is used.
+example {i : Nat} (hinv : PostResetInv p c E rho w i)
+    {l : Slot} {B : FGBlock (Fin p.n)}
+    (hgst : E.t_GST ≤ SA.voteTime p.toParams l)
+    (hCB : Block.Preceq w.CStar (eraseFG B))
+    (hbatch : ∀ z ∈ rho.honest, ∀ H, headAtLabel p c E rho z l = some H →
+      Block.Preceq (eraseFG B) H)
+    (hnotSource : ¬ ∃ r, SrcN p c E rho B r)
+    {iy : Nat} {y : V} (hy : y ∈ rho.honest)
+    (hiy : rho.events[iy]? = some (.tick y (SA.proposalTime p.toParams (l + 1))))
+    (hyi : iy ≤ i)
+    (hnZ : ¬ FGBlock.Preceq B (R_at p c E rho iy y).Z)
+    (hnF : ¬ FGBlock.Preceq B (storeAt p c E rho iy y).fg.F) :
+    B ∈ D_at p c E rho iy y (storeAt p c E rho iy y).fg.TF ∧
+      timeIdx rho (SA.voteTime p.toParams l) ≤ i ∧ ¬ ∃ r, SrcN p c E rho B r := by
+  have hafter : SA.freezeTime p.toParams l < SA.proposalTime p.toParams (l + 1) := by
+    change 4 * p.Δ * (l : Int) + 3 * p.Δ < 4 * p.Δ * ((l + 1 : Nat) : Int)
+    push_cast
+    linarith [p.deltaPos]
+  have hupper : SA.proposalTime p.toParams (l + 1) ≤ SA.voteTime p.toParams (l + 1) := by
+    change 4 * p.Δ * ((l + 1 : Nat) : Int) ≤ 4 * p.Δ * ((l + 1 : Nat) : Int) + p.Δ
+    linarith [p.deltaPos]
+  have hcut := healing_support_idxBefore_le p c E rho
+    hrec.base.valid.toScheduleWellFormed hiy hafter.le
+  have hfrozen := (fgsa_store_cumulative p c E rho hrec.base.noRestart hcut y).1
+  exact ⟨postReset_moving_domain p c E rho hrec mono emittedNonempty emittedName writes
+    xing origin h0r hinv hgst hCB hbatch hy hiy hyi hafter hupper le_rfl hfrozen hnZ hnF,
+    (postReset_moving_head_cut p c E rho hrec.base.valid.toScheduleWellFormed hiy hafter).trans hyi,
+    hnotSource⟩
+
+end MovingConsumers
 
 end AvailableChain.FGSA.Run.Tests.HealingPostResetLeaseStep
 end
