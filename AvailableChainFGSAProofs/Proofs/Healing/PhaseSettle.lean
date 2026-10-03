@@ -141,17 +141,18 @@ private theorem settle_finish (crossing : RXing p c E rho)
       exact settle_frame_fg p (clock_fg p _ _).symm hf
 
 /-- Blueprint 21:1003–1045, 1142–1209; plan S20, H-PHASE r2/P3.
-DC: INTENTIONAL settlement after an effective event, with live controls,
-one common top J, and frozen HEAD frames. This is the third frozen RPhase
-clause. Its two matches list all three kinds, where the frozen text uses a
+DC: INTENTIONAL settlement after a start event, with live controls,
+one common top J, and frozen HEAD frames. Evidence can be present at the start.
+The effective-event corollary gives the third frozen RPhase clause.
+Its two matches list all three kinds, where the frozen text uses a
 wildcard; they agree for each kind. Assembly supplies RXing. The top-J
 identity uses the global absence of contest evidence, so no fault bound is an
 input. Carriers accepted before GST are relayed by GST + Δ. -/
-theorem healing_settle_event (crossing : RXing p c E rho)
+theorem healing_settle_start (crossing : RXing p c E rho)
     (hvalid : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho)
     (hdelta : E.Δ = p.Δ) {ΔF : Time}
     (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF)) :
-    ∀ i ev v m kind, rho.events[i]? = some ev → EffectiveEvent p c E rho i →
+    ∀ i ev v m kind, rho.events[i]? = some ev →
       E.t_GST ≤ ev.time → ev.time + 3 * p.Δ ≤ v → v ≤ rho.horizon → 1 ≤ m →
       frontierAtIdx p c E rho (i + 1) = m → AttemptPhaseAt p c E rho (i + 1) m kind →
       (∀ j, i < j → j < timeIdx rho v → ¬ EffectiveEvent p c E rho j) →
@@ -163,7 +164,7 @@ theorem healing_settle_event (crossing : RXing p c E rho)
           SA.voteTime p.toParams s ≤ v →
           postClock E rho y (SA.voteTime p.toParams s) = some nd →
           SettledPhaseFrame p nd.st m root contested) := by
-  intro i (ev : V2.Event V (Obj p)) v m kind hi _heff hgst hu hv hm hfront hkind hquiet
+  intro i (ev : V2.Event V (Obj p)) v m kind hi hgst hu hv hm hfront hkind hquiet
   -- Restate the event times at the object type of the relay lemmas.
   have hu : ev.time + 3 * p.Δ ≤ v := hu
   have hgst : E.t_GST ≤ ev.time := hgst
@@ -268,6 +269,26 @@ theorem healing_settle_event (crossing : RXing p c E rho)
       !(R_at p c E rho k y).contest) = false
     rw [hc]
     simp only [Bool.not_true, Bool.and_false]
+
+/-- The frozen effective-event statement follows from start settlement. -/
+theorem healing_settle_event (crossing : RXing p c E rho)
+    (hvalid : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho)
+    (hdelta : E.Δ = p.Δ) {ΔF : Time}
+    (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF)) :
+    ∀ i ev v m kind, rho.events[i]? = some ev → EffectiveEvent p c E rho i →
+      E.t_GST ≤ ev.time → ev.time + 3 * p.Δ ≤ v → v ≤ rho.horizon → 1 ≤ m →
+      frontierAtIdx p c E rho (i + 1) = m → AttemptPhaseAt p c E rho (i + 1) m kind →
+      (∀ j, i < j → j < timeIdx rho v → ¬ EffectiveEvent p c E rho j) →
+      ∃ J,
+        let root := match kind with | .gap => none | .topJ => some J | .contest => none
+        let contested := match kind with | .gap => false | .topJ => false | .contest => true
+        PhaseInterval p c E rho (ev.time + 3 * p.Δ) v m root contested ∧
+        (∀ y s nd, y ∈ rho.honest → ev.time + 3 * p.Δ ≤ SA.voteTime p.toParams s →
+          SA.voteTime p.toParams s ≤ v →
+          postClock E rho y (SA.voteTime p.toParams s) = some nd →
+          SettledPhaseFrame p nd.st m root contested) := by
+  exact fun i ev v m kind hi _heff =>
+    healing_settle_start p c E rho crossing hvalid hnr hdelta hsync i ev v m kind hi
 
 /-- Blueprint 21:1086–1278; plan S20, H-PHASE r2/P6.
 DC: INTENTIONAL the five frozen RPhase clauses from P1–P5.

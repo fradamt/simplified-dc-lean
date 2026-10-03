@@ -72,8 +72,9 @@ structure Recovery₂ (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (G : Tim
   gapPos : 4 * p.Δ ≤ G
   /-- The gap bound is a whole number of slots (DC: the proposer gap is a round
   count). User decision 2026-10-03 (S5 TERM): with `4Δ ∣ G`, `Γ p G = G`, so the
-  aligned gap window ends at the frozen terminal deadline `a_r + 2P + Γ − 9Δ`, and
-  its proposal is strictly after `a_r + 2P − 4Δ`. -/
+  gap window `(b, b + Γ]` with `b = rP + 2P − 4Δ` ends at `a_r + 2P + Γ − 10Δ`, its
+  receipt meets the frozen terminal deadline `a_r + 2P + Γ − 9Δ`, and its proposal
+  is strictly after `b`. -/
   gapAligned : 4 * p.Δ ∣ G
 
 abbrev BaseSet (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) : Prop := Base₂ p c E rho
