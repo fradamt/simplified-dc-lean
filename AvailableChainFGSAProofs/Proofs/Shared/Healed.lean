@@ -14,7 +14,7 @@ omit [DecidableEq V] in
 private theorem healed_start_le {t u : Time} (htu : t ≤ u) :
     healStart p c rho t ≤ healStart p c rho u := by
   rcases htu.lt_or_eq with hlt | rfl
-  · unfold healStart
+  · rw [healStart_def, healStart_def]
     split <;> split
     all_goals
       change (rho.events.filter _).length ≤ (rho.events.filter _).length

@@ -37,6 +37,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceOne
 public import AvailableChainFGSAProofs.Proofs.Healing.CommonEntryFacts
 public import AvailableChainFGSAProofs.Proofs.Healing.CommonEntryHeight
 public import AvailableChainFGSAProofs.Proofs.Healing.CommonEntry
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierOpen
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierOpenAll
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseSettle
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseBoot
 public import AvailableChainFGSAProofs.Proofs.Healing.RiseOne
@@ -69,10 +71,13 @@ public import AvailableChainFGSAProofs.Proofs.Finality.Receipt
 public import AvailableChainFGSAProofs.Proofs.Finality.Rows
 public import AvailableChainFGSAProofs.Proofs.Finality.MiddleSupport
 public import AvailableChainFGSAProofs.Proofs.Finality.Middle
+public import AvailableChainFGSAProofs.Proofs.Finality.FrontierBound
 public import AvailableChainFGSAProofs.Proofs.Finality.RowsFrame
 public import AvailableChainFGSAProofs.Proofs.Finality.RowsBatch
 public import AvailableChainFGSAProofs.Proofs.Finality.RowsRecords
 public import AvailableChainFGSAProofs.Proofs.Finality.RowsPrem
+public import AvailableChainFGSAProofs.Proofs.Finality.Kernel
+public import AvailableChainFGSAProofs.Proofs.Finality.Joined
 public import AvailableChainFGSAProofs.Proofs.Finality.Carry
 public import AvailableChainFGSAProofs.Proofs.Finality.Batch
 public import AvailableChainFGSAProofs.Proofs.Finality.RecordInv
@@ -84,6 +89,7 @@ public import AvailableChainFGSAProofs.Proofs.Finality.TailSplit
 public import AvailableChainFGSAProofs.Proofs.Finality.TailReceipt
 public import AvailableChainFGSAProofs.Proofs.Finality.TailKernel
 public import AvailableChainFGSAProofs.Proofs.Finality.TailMixed
+public import AvailableChainFGSAProofs.Proofs.Finality.TailBatch
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseRelay
 public import AvailableChainFGSAProofs.Proofs.Healing.Phase
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseFrame

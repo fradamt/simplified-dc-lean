@@ -60,7 +60,8 @@ theorem clean_inclusion_post_gate_body [Fintype V]
   rw [afterTicks_eq_stateBefore E rho hs] at hnode
   have hS := congrArg (fun nd : Node p => nd.st.base.stableRecord) hnode
   change Block.Preceq pt.P (S_at p c E rho (afterTicksIdx rho _) x)
-  rw [show S_at p c E rho (afterTicksIdx rho _) x = S_at p c E rho (i + 1) x from hS, hout]
+  rw [show S_at p c E rho (afterTicksIdx rho _) x = S_at p c E rho (i + 1) x from
+    by rw [S_at_def, S_at_def]; exact hS, hout]
   exact block_preceq_refl _
 
 /-- Blueprint 03:418–458; S3a Q12:3454; plan I-READ, G7. Class (iii).
@@ -111,7 +112,7 @@ theorem clean_inclusion_body [Fintype V]
     simp only [List.mem_cons, List.not_mem_nil, or_false] at hg
     rcases hg with rfl | rfl <;>
       change (V2.D.Run.readAt E rho t x).st.base.stableRecord = _ <;>
-      rw [V2.D.Engine.readAt_eq_stateBefore hs t] <;> rfl
+      rw [S_at_def, V2.D.Engine.readAt_eq_stateBefore hs t] <;> rfl
   change Block.Preceq pt.P (V2.D.outputAt E rho g x t)
   rw [hread]
   exact block_preceq_trans hb hm

@@ -27,7 +27,8 @@ omit [Fintype V] in
 /-- DC: INTENTIONAL: local equation for the linked-seat filter. -/
 private theorem khistory_honestSeats_def : honestSeats p c rho =
     @Finset.filter (Fin p.n) (fun i => rho.seatOf (.base .fg) i ∈ rho.honest)
-      (fun i => Classical.propDecidable (rho.seatOf (.base .fg) i ∈ rho.honest)) Finset.univ := rfl
+      (fun i => Classical.propDecidable (rho.seatOf (.base .fg) i ∈ rho.honest)) Finset.univ :=
+  honestSeats_def p c rho
 
 omit [Fintype V] in
 /-- DC: INTENTIONAL: membership uses the definition's classical decision procedure. -/
@@ -42,11 +43,11 @@ private theorem khistory_honestSeats_mem (i : Fin p.n) :
 omit [DecidableEq V] [Fintype V] in
 /-- DC: INTENTIONAL: local equation for optional event time. -/
 private theorem khistory_eventTime_def (j : Nat) :
-    eventTime rho j = rho.events[j]?.map V2.Event.time := rfl
+    eventTime rho j = rho.events[j]?.map V2.Event.time := eventTime_def rho j
 
 /-- DC: INTENTIONAL: local equation for optional row height. -/
 private theorem khistory_rowHeight_def (a : RowWire p.n) : rowHeight a =
-    (match a.payload.height_pair with | .empty => none | .vote h _ _ => some h) := rfl
+    (match a.payload.height_pair with | .empty => none | .vote h _ _ => some h) := rowHeight_def a
 
 /-- FINAL 22:948–958. Linked unit-weight seats bound the faulty weight.
 DC: INTENTIONAL: FG-SA uses linked seats. -/
@@ -239,7 +240,7 @@ private theorem khistory_finality_origin (base : BaseSet p c E rho)
   obtain ⟨j, r, a, t, hj, ha, ht, hearly⟩ := ho
   refine ⟨j, _, r, a, t, hj, ?_, ht, hearly⟩
   rw [khistory_decode p ha]
-  change u.finality_pair.map (·.height) = some (finalityView p X).h_F
+  rw [finHeight_def]
   rw [hp]
   rfl
 

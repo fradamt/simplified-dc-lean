@@ -40,6 +40,7 @@ theorem muOf_spec : BddAbove (oldRowHeights p c E rho) ∧
     rfl
   have hfin := (emitted.map ht).toFinset.finite_toSet.subset hsub
   have hb := hfin.bddAbove
+  rw [muOf_def]
   refine ⟨hb, fun hn => hn.csSup_mem hfin, le_max_left _ _, ?_, ?_⟩
   · intro h hh
     exact (le_csSup hb hh).trans (le_max_right _ _)
@@ -59,6 +60,7 @@ theorem H0.time_unique {w w' : HealingWitness}
   have hu : w.u = w'.u := Nat.le_antisymm
     (h.proposal_first _ _ (hs.symm ▸ h'.proposal_lower) h'.proposal)
     (h'.proposal_first _ _ (hs ▸ h.proposal_lower) h.proposal)
+  rw [tstar_def, tstar_def]
   exact congrArg (SA.gateTime p.toParams) hu
 
 /-- P3 D44: the joined kernel reads the full H0 time (21:2868–2876).
