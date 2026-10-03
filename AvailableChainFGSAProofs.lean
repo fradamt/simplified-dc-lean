@@ -30,6 +30,11 @@ public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6S
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairGate
 public import AvailableChainFGSAProofs.Proofs.Healing.Repair
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportFrame
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportHeads
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportTransfer
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportProposal
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierRead
 public import AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceGate
 public import AvailableChainFGSAProofs.Proofs.Healing.OpeningService
 public import AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceBody
@@ -37,8 +42,15 @@ public import AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceOne
 public import AvailableChainFGSAProofs.Proofs.Healing.CommonEntryFacts
 public import AvailableChainFGSAProofs.Proofs.Healing.CommonEntryHeight
 public import AvailableChainFGSAProofs.Proofs.Healing.CommonEntry
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierOpen
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierOpenAll
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseSettle
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseBoot
+public import AvailableChainFGSAProofs.Proofs.Healing.RiseOne
+public import AvailableChainFGSAProofs.Proofs.Healing.RiseOneRepair
+public import AvailableChainFGSAProofs.Proofs.Healing.RiseOneAdvance
+public import AvailableChainFGSAProofs.Proofs.Healing.RiseOneAccept
+public import AvailableChainFGSAProofs.Proofs.Healing.RiseOneRise
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposal
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalHistory
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalReceipts
@@ -55,6 +67,7 @@ public import AvailableChainFGSAProofs.Proofs.Outage.ArmingCover
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingPending
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingInput
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingMain
+public import AvailableChainFGSAProofs.Proofs.Outage.Close
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingGate
 public import AvailableChainFGSAProofs.Proofs.Outage.InclusionGateBody
 public import AvailableChainFGSAProofs.Proofs.Finality.CoreServices
@@ -107,6 +120,7 @@ public import AvailableChainFGSAProofs.Proofs.Shared.RetainedReflect
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedScores
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedWalk
 public import AvailableChainFGSAProofs.Proofs.Shared.BoundsW
+public import AvailableChainFGSAProofs.Proofs.Shared.HonestQuorum
 public import AvailableChainFGSAProofs.Proofs.Shared.WindowTerminal
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedWalkStore
 public import AvailableChainFGSAProofs.Proofs.Foundations.Cap
