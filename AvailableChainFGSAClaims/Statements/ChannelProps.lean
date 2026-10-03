@@ -976,10 +976,24 @@ def TCommon : Prop := ∀ u m J contested q Q Qfg r,
         OpeningEntry p c E rho (r + 1) m)))
 /-- T-FRONTIER (21 HG.1:1333–1350), P3 A.8. Consumers: HG.1–HG.5.
 The initial proposal is served in its phase. Subsequent service stops at frontier rise.
-SO-COV. DC: INTENTIONAL earlier-or-current source coverage. -/
+SO-COV. DC: INTENTIONAL earlier-or-current source coverage.
+Re-freeze 2026-10-03 (user decision): the seed q carries DC's HG.1 qualification, "H.6 or
+H.6-S service through its gate" (21:925–944, 1004–1025). q follows the H.6 threshold β + 2k − 1
+of the first label β after u, or the H.6-S threshold b + k of the first HEAD label b after u,
+with the synchronous window. These are TRepair's branch conditions. -/
 def TFrontier : Prop := ∀ u v m J contested q Q Qfg,
   E.t_GST ≤ u → HonestProposal E rho (fgsaInterface p c) q Q → eraseFG Qfg = Q →
   (heightView p Qfg).h = m → ExactService p c E rho q Q →
+  ((∃ β : Slot,
+    u < SA.proposalTime p.toParams β ∧
+    (∀ b, u < SA.proposalTime p.toParams b → β ≤ b) ∧
+    SA.proposalTime p.toParams (β + 2 * p.k - 1) < SA.proposalTime p.toParams q) ∨
+  (∃ b : Slot,
+    u ≤ SA.voteTime p.toParams b ∧
+    (∀ i, u ≤ SA.voteTime p.toParams i → b ≤ i) ∧
+    p.k ≤ b + 1 ∧
+    E.t_GST ≤ SA.voteTime p.toParams (b + 1 - p.k) ∧
+    SA.proposalTime p.toParams (b + p.k) < SA.proposalTime p.toParams q)) →
   u ≤ SA.proposalTime p.toParams q →
   PhaseInterval p c E rho u (SA.gateTime p.toParams q) m J contested →
   SA.gateTime p.toParams q ≤ v → v ≤ rho.horizon →
