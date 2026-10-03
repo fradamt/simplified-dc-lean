@@ -1,0 +1,95 @@
+module
+public import AvailableChainFGSAProofs.Proofs.Healing.Reset -- shake: keep (R1–R3 tests)
+public import AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival -- shake: keep (R2 tests)
+
+set_option linter.privateModule false
+
+public section
+
+/-! Blueprint 21 H.11:1744–1800, H.22:3229–3241; S5 J8 T.
+DC: SAME discharge the actual source producer and test all reset field support.
+R1/R2 are applied with a hypothetical named HG.5 input (producer HG2A-RECEIPT F3).
+The numeric tests cover both allowance choices and integer subtraction. -/
+
+namespace AvailableChain.FGSA.Run.Tests.HealingReset
+open AvailableChain.SimplexFG
+
+-- All frozen H0Reset fields are built from the exported first-row contract.
+-- R1 (healing_resetWitness) derives this contract from the named HG.5 input.
+example (p : Params) {In V : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {G ΔF deadline : Time}
+    (hset : HealingSet p c E rho G ΔF)
+    (firstRow : FirstHeightRowBy p c E rho (resetCutFrontier p c E rho + 1) deadline) :
+    ∃ w, H0Reset p c E rho w ∧ p.actionTime w.rStar ≤ deadline :=
+  healing_reset_fields p c E rho
+    (healing_reset_emittedName p c E rho hset.base) hset firstRow
+
+private def resetParams (k : Nat) (hk : 2 ≤ k) : Params where
+  Δ := 1
+  n := 4
+  k := k
+  η := 0
+  deltaPos := by decide
+  nPos := by decide
+  kLarge := hk
+  etaNonneg := by decide
+  R := 3
+  δt := 6
+  RLarge := by decide
+
+-- The short-lease branch attains the minimum: 339 = 3·12 + 159 + 144.
+example : let p := resetParams 2 (by decide)
+    B'_resetF p 6 8 = 339 ∧
+    (E_gF p 6 8 (ρ₁ p 8) + E_jF p 6 8 (ρ₁ p 8) + B_cF p 6 8 (ρ₁ p 8)) = 159 ∧
+    (E_gF p 6 8 (ρ₁ p 8) + E_jF p 6 8 (ρ₁ p 8) + D_cF p (ρ₁ p 8)) = 144 ∧
+    B'_resetF p 6 8 = 3 * P p + (E_gF p 6 8 (ρ₁ p 8) + E_jF p 6 8 (ρ₁ p 8) + B_cF p 6 8 (ρ₁ p 8)) +
+      (E_gF p 6 8 (ρ₁ p 8) + E_jF p 6 8 (ρ₁ p 8) + D_cF p (ρ₁ p 8)) := by decide
+
+-- k > 2R+1 selects the two-lease allowance.
+example : let p := resetParams 8 (by decide)
+    ¬ p.k ≤ 2 * p.R + 1 ∧
+    B'_resetF p 6 12 = 3 * P p +
+      (E_gF p 6 12 (ρΓ p 12) + E_jF p 6 12 (ρΓ p 12) + B_cF p 6 12 (ρΓ p 12)) +
+      (E_gF p 6 12 (ρΓ p 12) + E_jF p 6 12 (ρΓ p 12) + D_cF p (ρΓ p 12)) := by decide
+
+-- A negative allowance tests Int subtraction without Nat truncation.
+example : let p := resetParams 2 (by decide)
+    B_resetF p 6 8 (-100) = -209 ∧
+    B_resetF p 6 8 (-100) = 3 * P p + (E_gF p 6 8 (-100) + E_jF p 6 8 (-100) + B_cF p 6 8 (-100)) +
+      (E_gF p 6 8 (-100) + E_jF p 6 8 (-100) + D_cF p (-100)) := by decide
+
+-- The strict-cut step reaches the strict reset deadline with the chosen minimum.
+example : let p := resetParams 2 (by decide)
+    ∃ ρbar, (ρbar = ρΓ p 8 ∨ (ρbar = ρ₁ p 8 ∧ p.k ≤ 2 * p.R + 1)) ∧
+      45 + (E_gF p 6 8 ρbar + E_jF p 6 8 ρbar + B_cF p 6 8 ρbar) +
+        (E_gF p 6 8 ρbar + E_jF p 6 8 ρbar + D_cF p ρbar) < 10 + B'_resetF p 6 8 :=
+  healing_reset_budget_lt _ 8 6 10 45 (by decide)
+
+-- The same arithmetic holds for every integer allowance.
+example (p : Params) (G ΔF ρbar : Time) :
+    B_resetF p ΔF G ρbar = 3 * P p +
+      (E_gF p ΔF G ρbar + E_jF p ΔF G ρbar + B_cF p ΔF G ρbar) +
+      (E_gF p ΔF G ρbar + E_jF p ΔF G ρbar + D_cF p ρbar) := healing_reset_budget_sum p G ΔF ρbar
+
+-- R1: the reset witness and the strict deadline from a hypothetical HG.5 input.
+example (p : Params) {In V : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
+    (hset : HealingSet p c E rho G ΔF) (hδ : p.δt = 2 * p.R)
+    (hbound : LivenessBoundW p ΔF) (hsearch : FrontierSearchStatement p c E rho G ΔF)
+    (hhor : E.t_GST + B'_resetF p ΔF G ≤ rho.horizon) :
+    ∃ w, H0Reset p c E rho w ∧ p.actionTime w.rStar < E.t_GST + B'_resetF p ΔF G :=
+  healing_resetWitness p c E rho
+    (healing_reset_emittedName p c E rho hset.base)
+    hset hδ hbound hsearch hhor
+
+-- R2: the frozen reset-arrival statement from a hypothetical all-run HG.5 input.
+example (p : Params) (G ΔF : Time)
+    (hsearch : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      HealingSet p c E rho G ΔF → LivenessBoundW p ΔF →
+      FrontierSearchStatement p c E rho G ΔF) :
+    ResetArrivalStatement p G ΔF :=
+  healing_resetArrival p G ΔF hsearch
+
+end AvailableChain.FGSA.Run.Tests.HealingReset
+end
