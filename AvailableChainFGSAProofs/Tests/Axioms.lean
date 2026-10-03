@@ -1,5 +1,10 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Assembly.Outage -- shake: keep (Outage Export axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.Growth -- shake: keep (growth axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionArithmetic -- shake: keep (H-PROMOTE arithmetic audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.Promotion -- shake: keep (H-PROMOTE axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionCarrier -- shake: keep (H-PROMOTE carrier axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionRows -- shake: keep (H-PROMOTE same-row axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.FramePaths -- shake: keep (H-FRAME audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.FrameZero -- shake: keep (zero-label audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.FrameRelay -- shake: keep (witness relay audit)
@@ -25,6 +30,8 @@ public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposal -- shake: kee
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalHistory -- shake: keep (I-EXACT history audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalReceipts -- shake: keep (I-EXACT r2 receipt audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalRetained -- shake: keep (I-EXACT r2 G1 audit)
+public import AvailableChainFGSAProofs.Proofs.Outage.ArmingGate -- shake: keep (O-ARM audit)
+public import AvailableChainFGSAProofs.Proofs.Outage.ArmingMain -- shake: keep (O-ARM audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.InclusionGateBody -- shake: keep (I-GATE/I-READ axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.CoreServices -- shake: keep (C-CORE audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.History -- shake: keep (K-HISTORY audit)
@@ -32,6 +39,10 @@ public import AvailableChainFGSAProofs.Proofs.Finality.Height -- shake: keep (K-
 public import AvailableChainFGSAProofs.Proofs.Finality.Receipt -- shake: keep (K-RECEIPT audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Rows -- shake: keep (K-ROWS audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Middle -- shake: keep (K-MID audit)
+public import AvailableChainFGSAProofs.Proofs.Finality.RowsFrame -- shake: keep (K-ROWS-PREM audit)
+public import AvailableChainFGSAProofs.Proofs.Finality.RowsBatch -- shake: keep (K-ROWS-PREM audit)
+public import AvailableChainFGSAProofs.Proofs.Finality.RowsRecords -- shake: keep (K-ROWS-PREM audit)
+public import AvailableChainFGSAProofs.Proofs.Finality.RowsPrem -- shake: keep (K-ROWS-PREM P3 audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Carry -- shake: keep (K-CARRY audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Batch -- shake: keep (K-BATCH audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Accept -- shake: keep (K-ACCEPT axiom audit)
@@ -43,6 +54,9 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PhaseSettle -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseBoot -- shake: keep (H-PHASE r2 audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.Base -- shake: keep (H-BASE audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.Descent -- shake: keep (H-DESCENT audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.DescentLossCause -- shake: keep (H-DESCENT D2 audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.DescentTiming -- shake: keep (D4 clock audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.DescentTimingRFProv -- shake: keep (D4 reset audit)
 public import AvailableChainFGSAProofs.Proofs.Foundations.HonestNeverSlashed -- shake: keep (HNS audit)
 public import AvailableChainFGSAProofs.Proofs.Foundations.FinalityApi -- shake: keep (S4.5b axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumersL2 -- shake: keep (consumer audit)
@@ -64,6 +78,7 @@ public import AvailableChainFGSAProofs.Proofs.Shared.ExactHead -- shake: keep (J
 public import AvailableChainFGSAProofs.Proofs.Shared.ExactService -- shake: keep (ExactService audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.Regimes -- shake: keep (gate regime audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.GateReceipt -- shake: keep (gate receipt audit)
+public import AvailableChainFGSAProofs.Proofs.Shared.HeadAdmit -- shake: keep (K-ROWS-PREM P3 audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.ScoreRun -- shake: keep (G25 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.OpeningSource -- shake: keep (F1b.9 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Shared.KeepExact -- shake: keep (F1b.8 axiom audit)
@@ -1046,6 +1061,38 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.healing_finality_source
 #print axioms AvailableChain.FGSA.Run.healing_justified_source
 #print axioms AvailableChain.FGSA.Run.healing_rExcl
+-- H-DESCENT D2: loss, same, support, cause and the first-failure instance.
+#print axioms AvailableChain.FGSA.Run.SrcN_def
+#print axioms AvailableChain.FGSA.Run.HighSrcN_def
+#print axioms AvailableChain.FGSA.Run.Lost_def
+#print axioms AvailableChain.FGSA.Run.healing_srcN_of_source
+#print axioms AvailableChain.FGSA.Run.healing_headAtIdx_tick
+#print axioms AvailableChain.FGSA.Run.healing_idx_lt_of_time_lt
+#print axioms AvailableChain.FGSA.Run.healing_source_decode
+#print axioms AvailableChain.FGSA.Run.healing_high_source_sync
+#print axioms AvailableChain.FGSA.Run.healing_high_source_labelSync
+#print axioms AvailableChain.FGSA.Run.healing_loss_same
+#print axioms AvailableChain.FGSA.Run.healing_source_supporter
+#print axioms AvailableChain.FGSA.Run.healing_loss_of_supporter
+#print axioms AvailableChain.FGSA.Run.healing_loss_support
+#print axioms AvailableChain.FGSA.Run.healing_first_transfer_domain
+#print axioms AvailableChain.FGSA.Run.healing_block_receipt_sync
+#print axioms AvailableChain.FGSA.Run.healing_block_path_sync
+#print axioms AvailableChain.FGSA.Run.healing_block_stamp_le_now
+#print axioms AvailableChain.FGSA.Run.healing_batch_seat_sync
+#print axioms AvailableChain.FGSA.Run.healing_next_transfer_domain
+#print axioms AvailableChain.FGSA.Run.healing_loss_lease_late
+#print axioms AvailableChain.FGSA.Run.healing_head_covers_root
+#print axioms AvailableChain.FGSA.Run.healing_loss_late_source
+#print axioms AvailableChain.FGSA.Run.healing_loss_single_cause
+#print axioms AvailableChain.FGSA.Run.healing_loss_cause_of_view
+#print axioms AvailableChain.FGSA.Run.healing_noLoss_heads
+#print axioms AvailableChain.FGSA.Run.healing_loss_F_below
+#print axioms AvailableChain.FGSA.Run.healing_source_receipt
+#print axioms AvailableChain.FGSA.Run.healing_loss_domain
+#print axioms AvailableChain.FGSA.Run.healing_loss_cause
+#print axioms AvailableChain.FGSA.Run.healing_high_source_compat
+#print axioms AvailableChain.FGSA.Run.healing_high_source_compat_reset
 #print axioms AvailableChain.FGSA.Run.inclusion_acceptance_of_stored
 #print axioms AvailableChain.FGSA.Run.inclusion_receipt_of_compatible
 #print axioms AvailableChain.FGSA.Run.inclusion_proposal_receipt
@@ -1077,6 +1124,13 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.inclusion_exact_compat
 #print axioms AvailableChain.FGSA.Run.inclusion_exact_receipt
 #print axioms AvailableChain.FGSA.Run.inclusion_exact_head
+-- O-ARM: arming certificate, fast and slow arming, pending gate.
+#print axioms AvailableChain.FGSA.Run.ArmingData_def
+#print axioms AvailableChain.FGSA.Run.arming_cert
+#print axioms AvailableChain.FGSA.Run.fast_arming
+#print axioms AvailableChain.FGSA.Run.slow_arming
+#print axioms AvailableChain.FGSA.Run.arming_gate_core
+#print axioms AvailableChain.FGSA.Run.pending_gate_lease_or_F
 #print axioms AvailableChain.FGSA.Run.fgsa_tStart
 #print axioms AvailableChain.FGSA.Run.fgsa_tWalk
 #print axioms AvailableChain.FGSA.Run.fgsa_tVote
@@ -1136,6 +1190,49 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.kernel_middle_source_cap
 #print axioms AvailableChain.FGSA.Run.kmid_source_held_at_tick
 
+-- O-EXPORT-1: conditional claim wrappers.
+#print axioms AvailableChain.FGSA.Run.outage_exactProposalClaim_of
+#print axioms AvailableChain.FGSA.Run.outage_cleanInclusionPostGateClaim_of
+#print axioms AvailableChain.FGSA.Run.outage_cleanInclusionClaim_of
+
+-- O-EXPORT-1b: conditional Assembly claims.
+#print axioms AvailableChain.FGSA.Run.fgsa_exactProposalClaim_of_clean
+#print axioms AvailableChain.FGSA.Run.fgsa_cleanInclusionPostGateClaim_of_clean
+#print axioms AvailableChain.FGSA.Run.fgsa_cleanInclusionClaim_of_clean
+
+-- O-EXPORT-2: conditional Clean growth claims.
+#print axioms AvailableChain.FGSA.Run.outage_cleanGrowthClaim_of
+#print axioms AvailableChain.FGSA.Run.fgsa_cleanGrowthClaim_of_clean
+
+#print axioms AvailableChain.FGSA.Run.healing_row_delivery
+#print axioms AvailableChain.FGSA.Run.healing_receipt_before_tick
+#print axioms AvailableChain.FGSA.Run.healing_action_period
+#print axioms AvailableChain.FGSA.Run.healing_delivery_clock
+#print axioms AvailableChain.FGSA.Run.healing_justification_timed
+#print axioms AvailableChain.FGSA.Run.healing_justified_source_clock
+#print axioms AvailableChain.FGSA.Run.healing_action_source_held
+#print axioms AvailableChain.FGSA.Run.healing_low_finality_at_reset
+#print axioms AvailableChain.FGSA.Run.cap_finality_head
+#print axioms AvailableChain.FGSA.Run.healing_finality_source_clock
+#print axioms AvailableChain.FGSA.Run.healing_rFProv_finality
+
+#print axioms AvailableChain.FGSA.Run.pending_action_domain_cap
+#print axioms AvailableChain.FGSA.Run.rowsPrem_postClock_store
+#print axioms AvailableChain.FGSA.Run.rowsPrem_F_below_D_at_gate
+#print axioms AvailableChain.FGSA.Run.rowsPrem_action_frame
+#print axioms AvailableChain.FGSA.Run.rowsPrem_full_domain
+#print axioms AvailableChain.FGSA.Run.rowsPrem_liveRoot_compatible
+#print axioms AvailableChain.FGSA.Run.rowsPrem_action_pools
+#print axioms AvailableChain.FGSA.Run.rowsPrem_earlier_height
+#print axioms AvailableChain.FGSA.Run.rowsPrem_action_record
+#print axioms AvailableChain.FGSA.Run.fgsa_action_walk_batch
+#print axioms AvailableChain.FGSA.Run.rowsPrem_action_walk_batch
+#print axioms AvailableChain.FGSA.Run.pending_action_head_capped
+#print axioms AvailableChain.FGSA.Run.rowsPrem_pending_head
+#print axioms AvailableChain.FGSA.Run.rowsPrem_action_source
+#print axioms AvailableChain.FGSA.Run.rowsPrem_fresh_rows
+#print axioms AvailableChain.FGSA.Run.rowsPrem_anchor_cap
+#print axioms AvailableChain.FGSA.Run.rowsPrem_anchor_retained_or_covered
 -- S5 GROWTH: causal, emission, order, clean body and conditional GST proof.
 #print axioms AvailableChain.FGSA.Run.fgsa_timeIdx_now_le
 #print axioms AvailableChain.FGSA.Run.fgsa_output_noFuture_of_slot
@@ -1165,3 +1262,24 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.common_opening_covered
 #print axioms AvailableChain.FGSA.Run.healing_tCommon
 #print axioms AvailableChain.FGSA.Run.common_height_one
+-- H-PROMOTE helpers; the full renewed boundary remains open.
+#print axioms AvailableChain.FGSA.Run.healing_promotion_gap_remainder
+#print axioms AvailableChain.FGSA.Run.healing_promotion_gap
+#print axioms AvailableChain.FGSA.Run.healing_promotion_row_deadline
+#print axioms AvailableChain.FGSA.Run.healing_promotion_row_deadline_strict
+#print axioms AvailableChain.FGSA.Run.healing_promotion_row_receipt
+#print axioms AvailableChain.FGSA.Run.healing_promotion_row_receipt_strict
+#print axioms AvailableChain.FGSA.Run.healing_promotion_maturity
+#print axioms AvailableChain.FGSA.Run.healing_promotion_maturity_of_action
+#print axioms AvailableChain.FGSA.Run.healing_promotion_held_mono
+#print axioms AvailableChain.FGSA.Run.healing_promotion_age_gap
+#print axioms AvailableChain.FGSA.Run.healing_promotion_fixed_rows
+#print axioms AvailableChain.FGSA.Run.healing_promotion_source_body
+#print axioms AvailableChain.FGSA.Run.healing_promotion_source_parent
+#print axioms AvailableChain.FGSA.Run.healing_promotion_continuing_service
+#print axioms AvailableChain.FGSA.Run.healing_promotion_entry_slot
+#print axioms AvailableChain.FGSA.Run.healing_promotion_bounded_rows
+#print axioms AvailableChain.FGSA.Run.healing_promotion_carrier
+#print axioms AvailableChain.FGSA.Run.healing_promotion_slot_proposal
+#print axioms AvailableChain.FGSA.Run.healing_promotion_gap_proposal
+#print axioms AvailableChain.FGSA.Run.healing_promotion_same_rows

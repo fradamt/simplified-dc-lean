@@ -193,6 +193,10 @@ def cleanResults (i : Nat) : Set (Slot × Block) :=
 def BelowLabel (i : Nat) (r : Slot) (X : Block) : Prop :=
   X = .genesis ∨ ∃ s B, (s, B) ∈ cleanResults p c E rho i ∧ s ≤ r ∧ Block.Preceq X B
 
+-- equation export required by BUILD §7.2 B3a (post-freeze additive _def batch)
+theorem S_at_def (i : Nat) (x : V) :
+    S_at p c E rho i x = (storeAt p c E rho i x).base.stableRecord := rfl
+
 end AvailableChain.FGSA.Run
 
 end
