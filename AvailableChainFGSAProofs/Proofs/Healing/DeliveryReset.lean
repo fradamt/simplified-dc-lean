@@ -14,10 +14,10 @@ private theorem reset_delivery_lift {A B : FGBlock (Fin p.n)}
     ⟨A, by simp, KitFG.preceq_refl A⟩ ⟨B, by simp, KitFG.preceq_refl B⟩ h
 
 /-- Blueprint 21:2652–2660 (H.12 reset, IF.3(c)); B13, B17, B26; hint 2.
-DC: CONDITIONAL reset-only core. The receiver floor has no producer at this
-earlier cut on base 115fb30; `healing_low_finality_at_reset` needs the later
-action cut. Assembly supplies `sourceDiscipline_tSrc` and `fgsa_rMono`.
-`hCStarAboveLow` is the missing IF.3(c) obligation. -/
+DC: CONDITIONAL reset-only core. `hCStarAboveLow` is the IF.3(c) floor at
+the release cut; `healing_low_finality_at_reset_reset` (ResetTransfer.lean)
+supplies it, and `healing_tDelReset_of_reset` closes frozen TDelReset.
+Assembly supplies `sourceDiscipline_tSrc` and `fgsa_rMono`. -/
 theorem healing_tDelReset_core [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     (source : TSrc p c E rho) (mono : RMono p c E rho) (w : HealingWitness)

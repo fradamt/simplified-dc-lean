@@ -1,0 +1,252 @@
+module
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetInvariant
+public import AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceGate
+
+public section
+
+/-! J6-2 H6 gate service. The raw-transfer field is used at its complete
+cut. INLINE writes are supplied by `fgsa_leaseOrigins_lastWrite` at Assembly.
+No carrier successor or honest proposal is used. -/
+
+namespace AvailableChain.FGSA.Run
+open AvailableChain.SimplexFG Gen.Pure
+
+variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
+
+private theorem postReset_clockPre_lease_live (st : State p.n) (t : Time)
+    (row : Block × Nat × Time) (hrow : row ∈ (clockPre p st t).base.obligations) :
+    t < row.2.2 := by
+  have hsub : (clockPre p st t).base.obligations.Sublist
+      (GridCO.expire { st.base with now := t } t).obligations := by
+    unfold clockPre
+    dsimp only
+    split_ifs <;> first | exact List.Sublist.refl _ | exact List.filter_sublist
+  exact of_decide_eq_true (List.mem_filter.mp (hsub.subset hrow)).2
+
+/-- J6-2: raw transfer at the source release read gives the whole-result
+compatibility guard at that source's gate. A lease in the gate view has an
+older write and survives through the release read. -/
+theorem healing_postReset_gate_guard [Fintype V]
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (w : HealingWitness) (i : Nat) (hcomplete : rho.events.length ≤ i)
+    (hrawTransfer : PostResetRawTransfer p c E rho w i)
+    (writes : ∀ i x (row : Block × Nat × Time),
+      row ∈ (storeAt p c E rho i x).base.obligations →
+      ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
+        gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
+        row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
+        row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
+        ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
+          let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          GridCO.savedGenuine pre.base w = none →
+          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+            (actView pre) w C)
+    {s : Slot} (hs : w.sStar ≤ s)
+    (hGateHorizon : SA.gateTime p.toParams s ≤ rho.horizon)
+    {j : Nat} {x : V} (hx : x ∈ rho.honest) (ht : IsGateTick p c rho j x s) :
+    ∀ C, (fgsaAC E rho).raw j s x = some C →
+      ∀ lease ∈ ((fgsaAC E rho).gateView j x s).obligations,
+        Block.Compatible (Gen.AC.Lease.target lease) C := by
+  have hS := hrec.base.valid.toScheduleWellFormed
+  have hji : j < i := (List.getElem?_eq_some_iff.mp ht).1.trans_le hcomplete
+  have hv : { actView (clockPre p (storeAt p c E rho j x)
+      (SA.gateTime p.toParams s)) with early := (storeAt p c E rho j x).base.early } =
+      (fgsaAC E rho).gateView j x s := fgsa_clockPre_gateView p _ s
+  have hrawEq : (fgsaAC E rho).raw j s x = SA.confirmationFrom p.toParams
+      (eraseFG (storeAt p c E rho j x).fg.F)
+      (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s :=
+    (congrArg (fun v => SA.confirmationFrom p.toParams
+      (eraseFG (storeAt p c E rho j x).fg.F) v s) hv).symm
+  have hqd : SA.voteTime p.toParams (s + 1) < SA.gateTime p.toParams s := by
+    change 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ < 4 * p.Δ * (s : Int) + 6 * p.Δ
+    push_cast
+    linarith [p.deltaPos]
+  have hqeq : SA.voteTime p.toParams (s + 1) = SA.releaseTime p.toParams s := by
+    change 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ = 4 * p.Δ * (s : Int) + 5 * p.Δ
+    push_cast
+    ring
+  obtain ⟨iq, hiq⟩ := healing_support_vote_tick E rho hS hrec.base.delta hx (s + 1)
+    (hqd.le.trans hGateHorizon)
+  have hqj : iq < j := repair_idx_lt E rho hS hiq ht hqd
+  intro C hC lease hl
+  have hresult : gateResult p c E rho x s = some (some C) := by
+    rw [gateResult_def, gateIn_def, preTick_def, fgsa_tickIdx_of_event p c E rho hS ht]
+    simp only [Option.map_some, clockPre_fg]
+    exact congrArg some (hrawEq.symm.trans hC)
+  rw [← hv] at hl
+  have hpre : lease ∈ (clockPre p (storeAt p c E rho j x)
+      (SA.gateTime p.toParams s)).base.obligations := hl
+  have hlive := postReset_clockPre_lease_live _ _ lease hpre
+  have hstore := (clockPre_obligations_sublist p _ _).subset hpre
+  obtain ⟨k, hkj, u, B, htk, _, _, _, _, hdl, _, _⟩ := writes j x lease hstore
+  have hus : u < s := by
+    have hlt := fgsa_tick_time_strict E rho hS htk ht hkj
+    change 4 * p.Δ * (u : Int) + 6 * p.Δ < 4 * p.Δ * (s : Int) + 6 * p.Δ at hlt
+    have h : (u : Int) < s := by nlinarith [p.deltaPos]
+    exact_mod_cast h
+  have hkq : k < iq := by
+    apply repair_idx_lt E rho hS htk hiq
+    change 4 * p.Δ * (u : Int) + 6 * p.Δ <
+      4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
+    have h : (u : Int) + 1 ≤ (s : Int) := by exact_mod_cast hus
+    push_cast
+    nlinarith [p.deltaPos]
+  have hkeep := healing_lease_persist E rho hS htk (Nat.lt_succ_of_lt hkq)
+    (Nat.succ_le_of_lt hqj) lease hdl hstore
+  let nd := (fgsa p c).clock (V2.D.Run.stateBefore E rho iq x)
+    (SA.voteTime p.toParams (s + 1))
+  have hpost : storeAt p c E rho (iq + 1) x = nd.st := by
+    change (V2.D.Run.stateBefore E rho (iq + 1) x).st = _
+    rw [V2.D.Run.stateBefore_succ E rho hiq]
+    simp only [V2.D.World.step, Function.update_self]
+    exact tick_st (c := c) E rho _ x _
+  have hnd : postClock E rho x (SA.releaseTime p.toParams s) = some nd := by
+    rw [← hqeq, postClock_def, preTick_def, fgsa_tickIdx_of_event p c E rho hS hiq]
+    rfl
+  have hndlive : nd.st.base.now < lease.2.2 := by
+    change (FGSA.clock p (storeAt p c E rho iq x)
+      (SA.voteTime p.toParams (s + 1))).base.now < _
+    rw [(clock_vn _ _).2]
+    exact hqd.trans hlive
+  rw [hpost] at hkeep
+  rw [PostResetRawTransfer_def] at hrawTransfer
+  exact (hrawTransfer j hji x s C hx hs ht hresult).1 x nd hx
+    ((List.length_filter_le _ _).trans hcomplete) hnd lease hkeep hndlive
+
+
+/-- J6-2 S3: H6 service from its HEAD coverage and gate-input floor.
+Raw transfer is a named field at the complete cut. The cone and an honest
+proposal are not needed. The covering batch gives the raw result, passed
+guard, saved fast write, and live lease. -/
+theorem healing_postReset_h6GateService [Fintype V]
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (w : HealingWitness) (i : Nat) (hcomplete : rho.events.length ≤ i)
+    (hrawTransfer : PostResetRawTransfer p c E rho w i)
+    (writes : ∀ i x (row : Block × Nat × Time),
+      row ∈ (storeAt p c E rho i x).base.obligations →
+      ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
+        gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
+        row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
+        row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
+        ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
+          let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+          GridCO.savedGenuine pre.base w = none →
+          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+            (actView pre) w C)
+    : H6GateService p c E rho w := by
+  intro s D hs hgst hGateHorizon hne hheads hfloor x hx
+  have hS := hrec.base.valid.toScheduleWellFormed
+  have htime : ((4 * s + 6 : Nat) : Time) * p.Δ = SA.gateTime p.toParams s := by
+    change ((4 * s + 6 : Nat) : Int) * p.Δ = 4 * p.Δ * (s : Int) + 6 * p.Δ
+    push_cast
+    ring
+  obtain ⟨j, ht, _⟩ := fgsa_tick_total E rho hS hrec.base.delta x hx (4 * s + 6)
+    (htime ▸ hGateHorizon)
+  rw [htime] at ht
+  let pre := clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s)
+  have hidx := fgsa_tickIdx_of_event p c E rho hS ht
+  have hgateIn : gateIn p c E rho x s = some pre := by
+    rw [gateIn_def, preTick_def, hidx]
+    rfl
+  have hFD : Block.Preceq (eraseFG (storeAt p c E rho j x).fg.F) D := by
+    have h := hfloor x pre hx hgateIn
+    change Block.Preceq (eraseFG (clockPre p (storeAt p c E rho j x)
+      (SA.gateTime p.toParams s)).fg.F) D at h
+    simpa only [clockPre_fg] using h
+  have hcov : ∀ z ∈ rho.honest, ∀ K,
+      headAtLabel p c E rho z s = some K → Block.Preceq D K := by
+    intro z hz K hK
+    obtain ⟨H, hH, hDH⟩ := hheads z hz
+    exact Option.some.inj (hH.symm.trans hK) ▸ hDH
+  obtain ⟨C, hconf, hDC⟩ := healing_support_gate_cover E rho hrec hgst hGateHorizon
+    hcov ht (by rw [clockPre_fg]; exact hFD)
+  have hv : { actView pre with early := (storeAt p c E rho j x).base.early } =
+      (fgsaAC E rho).gateView j x s := fgsa_clockPre_gateView p _ s
+  have hrawEq : (fgsaAC E rho).raw j s x = SA.confirmationFrom p.toParams
+      (eraseFG pre.fg.F) (actView pre) s := by
+    rw [clockPre_fg]
+    exact (congrArg (fun v => SA.confirmationFrom p.toParams
+      (eraseFG (storeAt p c E rho j x).fg.F) v s) hv).symm
+  have hraw : (fgsaAC E rho).raw j s x = some C := hrawEq.trans hconf
+  have hinv : CStoreInv p pre := cstoreInv_clockPre p _ (cstoreInv_stateBefore E rho j x) _
+  have hCm : C ∈ pre.base.blocks := (compat_of_confirmation p pre hinv hconf).2
+  obtain ⟨K, hK, heK⟩ := (hinv.baseTree C).mp hCm
+  obtain ⟨A, hA, heA⟩ := eraseFG_ancestor_mem hinv.fg.closed hK (heK.symm ▸ hDC)
+  have hDm : D ∈ pre.base.blocks := (hinv.baseTree D).mpr ⟨A, hA, heA⟩
+  have hmem : D ∈ (actView pre).blocks := by
+    apply (actView_blocks pre D).mpr
+    exact ⟨hDm, Bool.or_eq_true_iff.mpr (Or.inr (by rw [clockPre_fg]; exact hFD))⟩
+  have hmemw : D ∈ ((fgsaAC E rho).gateView j x s).blocks :=
+    (congrArg GridCO.State.blocks hv) ▸ hmem
+  have hsupport : SA.releaseThreshold p.toParams ≤
+      SA.prefixSupport p.toParams ((fgsaAC E rho).gateView j x s) s D := by
+    have h := opening_gate_support E rho hrec hgst hGateHorizon hcov ht hFD
+    exact (congrArg (fun v => SA.prefixSupport p.toParams v s D) hv) ▸ h
+  have hservice := fgsa_gate_of_coveringBatch E rho hS j s x D ht ⟨C, hraw, hDC⟩
+    (healing_postReset_gate_guard E rho hrec w i hcomplete hrawTransfer writes
+      hs hGateHorizon hx ht) hne hmemw hsupport (opening_gate_level E rho j x s D hsupport)
+  have hservice' := hservice
+  obtain ⟨B, hB, hDB, hguard, _, d, hd, hlease⟩ := hservice'
+  have hconfB : SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) s =
+      some B := hrawEq.symm.trans hB
+  have hresult : gateResult p c E rho x s = some (some B) := by
+    rw [gateResult_def, hgateIn]
+    exact congrArg some hconfB
+  have hpass : gatePassedAt p c E rho j := by
+    refine ⟨x, s, ht, ?_, B, hconfB, ?_⟩
+    · unfold GridCO.savedGenuine
+      rw [clockPre_genuine]
+      exact fgsa_gate_fresh E rho hS ht
+    · apply List.any_eq_false.mpr
+      intro lease hl
+      have hlw : lease ∈ ((fgsaAC E rho).gateView j x s).obligations :=
+        (congrArg GridCO.State.obligations hv) ▸ hl
+      have hg : Block.compatible lease.1 B = true := hguard lease hlw
+      simp only [hg, Bool.not_true, Bool.false_eq_true, not_false_eq_true]
+  let nd := (fgsa p c).clock (V2.D.Run.stateBefore E rho j x) (SA.gateTime p.toParams s)
+  have hnd : postClock E rho x (SA.gateTime p.toParams s) = some nd := by
+    rw [postClock_def, preTick_def, hidx]
+    rfl
+  have hpost : (V2.D.Run.stateBefore E rho (j + 1) x).st = nd.st := by
+    rw [V2.D.Run.stateBefore_succ E rho ht]
+    simp only [V2.D.World.step, Function.update_self]
+    exact tick_st (c := c) E rho _ x _
+  change (D, SA.releaseThreshold p.toParams, d) ∈
+    (V2.D.Run.stateBefore E rho (j + 1) x).st.base.obligations at hlease
+  rw [hpost] at hlease
+  have hleaseFind : nd.st.base.obligations.find? (fun row => row.1 == D) =
+      some (D, SA.releaseThreshold p.toParams, d) := by
+    cases he : nd.st.base.obligations.find? (fun row => row.1 == D) with
+    | none => have hn := List.find?_eq_none.mp he _ hlease; simp at hn
+    | some row =>
+      have hk : row.1 = D := by simpa using List.find?_some he
+      have heq := List.inj_on_of_nodup_map
+        (storeBundle_postClock E rho j x (SA.gateTime p.toParams s)).cstore.leaseKeys.1
+        (List.mem_of_find?_eq_some he) hlease hk
+      exact congrArg some heq
+  have hleaseOf : leaseOf nd.st D = some d := by
+    change (nd.st.base.obligations.find? (fun row => row.1 == D)).map
+      (fun row => row.2.2) = some d
+    rw [hleaseFind]
+    rfl
+  have hL : 0 < L p := by
+    change 0 < (4 * (p.k : Time) - 1) * p.Δ
+    have hk : (2 : Time) ≤ p.k := by exact_mod_cast p.kLarge
+    exact mul_pos (by linarith) p.deltaPos
+  change SA.gateTime p.toParams s + L p ≤ d at hd
+  exact ⟨⟨B, hresult, hDB⟩, ⟨j, ht, hpass⟩, nd, d, hnd,
+    exactService_fastWrite_of_gateService E rho hS j x s D ht hservice,
+    hleaseOf, hd, (lt_add_of_pos_right _ hL).trans_le hd⟩
+
+end AvailableChain.FGSA.Run
+end
