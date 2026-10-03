@@ -3,6 +3,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PromotionArithmetic -- sha
 public import AvailableChainFGSAProofs.Proofs.Healing.Promotion -- shake: keep (H-PROMOTE axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionCarrier -- shake: keep (H-PROMOTE carrier axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionRows -- shake: keep (H-PROMOTE same-row axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionRenewed -- shake: keep (r3 axiom checks)
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionAge -- shake: keep (HG.2 axiom check)
 public import AvailableChainFGSAProofs.Proofs.Healing.FramePaths -- shake: keep (H-FRAME audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.FrameZero -- shake: keep (zero-label audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.FrameRelay -- shake: keep (witness relay audit)
@@ -1081,3 +1083,16 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.healing_promotion_slot_proposal
 #print axioms AvailableChain.FGSA.Run.healing_promotion_gap_proposal
 #print axioms AvailableChain.FGSA.Run.healing_promotion_same_rows
+
+-- H-PROMOTE r3: local above, phase extension, full conditional batch and first receipt.
+#print axioms AvailableChain.FGSA.Run.healing_promotion_proposal_read
+#print axioms AvailableChain.FGSA.Run.healing_promotion_proposal_reachable
+#print axioms AvailableChain.FGSA.Run.healing_rows_above_entry_at_height
+#print axioms AvailableChain.FGSA.Run.healing_promotion_quiet_window
+#print axioms AvailableChain.FGSA.Run.healing_phase_extend_of_no_effective
+#print axioms AvailableChain.FGSA.Run.healing_promotion_event_split
+#print axioms AvailableChain.FGSA.Run.healing_promotion_advance
+#print axioms AvailableChain.FGSA.Run.healing_promotion_first_receipt
+#print axioms AvailableChain.FGSA.Run.healing_renewedPromotion
+
+#print axioms AvailableChain.FGSA.Run.healing_promotion_age_service

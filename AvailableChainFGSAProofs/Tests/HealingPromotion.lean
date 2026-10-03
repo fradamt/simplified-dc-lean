@@ -3,6 +3,12 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PromotionArithmetic -- sha
 public import AvailableChainFGSAProofs.Proofs.Healing.Promotion -- shake: keep (promotion helper tests)
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionCarrier -- shake: keep (actual proposal tests)
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionRows -- shake: keep (same-row validity tests)
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionRenewed -- shake: keep (expanded frozen promotion test)
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionAge -- shake: keep (actual-entry HG.2 application)
+public import AvailableChainFGSAProofs.Proofs.Foundations.Crossing -- shake: keep (Assembly RXing supplier)
+public import AvailableChainFGSAProofs.Proofs.Foundations.Counts -- shake: keep (Assembly fault suppliers)
+public import AvailableChainFGSAProofs.Proofs.Finality.Height -- shake: keep (Assembly progress-fold supplier)
+public import AvailableChainFGSAProofs.Proofs.Finality.MiddleSupport -- shake: keep (Assembly honest-seat quorum supplier)
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportPerm -- shake: keep (TPerm supplier)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Store -- shake: keep (RMono supplier)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Leases -- shake: keep (last-write supplier)
@@ -10,8 +16,8 @@ public import AvailableChainFGSAProofs.Proofs.Foundations.RowService -- shake: k
 
 set_option linter.privateModule false
 
-/-! H-PROMOTE helper tests. The full renewed theorem and HG.2 acceptance
-remain open. These tests do not assume either conclusion.
+/-! H-PROMOTE tests include the expanded frozen renewed theorem.
+Assembly supplies every INLINE fact by its named producer.
 The same-time examples check event cuts, not a valid execution. -/
 
 section
@@ -189,6 +195,112 @@ example (x : V) (o : Obj p) :
     V2.D.Run.idxBefore same 10 = 0 ∧ timeIdx same 10 = 2 ∧ afterTicksIdx same 10 = 1 := by
   change 0 = 0 ∧ 2 = 2 ∧ 1 = 1
   decide
+
+-- The final test uses the expanded frozen Claims proposition.
+-- All standing ports have their named Assembly producers here.
+example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF) (r : Nat)
+    (hhor : p.actionTime r + 2 * P p + Γ p G - 4 * p.Δ ≤ rho.horizon) :
+  ∀ u m J contested l q Q height,
+    E.t_GST ≤ u → PhaseInterval p c E rho u (p.actionTime r) m J contested →
+    u ≤ SA.proposalTime p.toParams q → q ≤ r * p.R →
+    SA.proposalTime p.toParams l < SA.proposalTime p.toParams q →
+    HonestProposal E rho (fgsaInterface p c) q Q → ExactService p c E rho q Q →
+    OpeningEntry p c E rho r height → OpeningCovered p c E rho r Q →
+    (∀ v, PhaseInterval p c E rho u v m J contested → RepairAfter p c E rho l v) →
+    (∃ i ev, afterTicksIdx rho (p.actionTime r) ≤ i ∧
+      rho.events[i]? = some ev ∧ EffectiveEvent p c E rho i ∧
+      ev.time ≤ p.actionTime r + 2 * P p + Γ p G - 9 * p.Δ) ∨
+    (∃ s X, HonestProposal E rho (fgsaInterface p c) s (eraseFG X) ∧ X.slot = s ∧
+      ↑r * P p + 2 * P p ≤ SA.proposalTime p.toParams s ∧
+      SA.proposalTime p.toParams s ≤ p.actionTime r + 2 * P p + Γ p G - 10 * p.Δ ∧
+      height + 1 ≤ (heightView p X).h ∧
+      (∃ y, y ∈ rho.honest ∧ Gen.V2.Duty.HoldsBefore E rho
+        (fun nd => X ∈ nd.st.fg.TF) (SA.proposalTime p.toParams s + p.Δ) y) ∧
+      (PhaseInterval p c E rho u (SA.gateTime p.toParams s) m J contested →
+        ExactService p c E rho s (eraseFG X) ∧
+        SA.gateTime p.toParams s ≤ p.actionTime r + 2 * P p + Γ p G - 4 * p.Δ)) := by
+  let mono := fgsa_rMono p c E rho
+  let crossing := fgsa_rXing p c E rho hrec.base.linked
+    (fgsa_faultX_count_rec p hrec.fault) hrec.base.valid.toUnforgeableSignatures
+  let perm := healing_tPerm E rho hrec mono crossing
+    (fgsa_leaseOrigins_lastWrite p c E rho hrec.base.valid.toScheduleWellFormed)
+  exact healing_renewedPromotion E rho hrec hδ hbound mono crossing perm
+    (fgsa_tRowsReceipt p c E rho ΔF hrec.base.delta hrec.base.valid hrec.base.noRestart
+      hrec.sync hrec.deltaF)
+    (fgsa_batchCoverage p ΔF .progress c E rho)
+    (fgsa_foldTrichotomy_progress p) (fgsa_faultQ_of_count p hrec.fault)
+    (kmid_honest_quorum p c rho hrec.base.linked hrec.fault) r hhor
+
+-- HG.2 uses the actual fixed entry slot in both trigger arms and deadlines.
+-- Its phase and full-window premises include the finite horizon.
+example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (hδ : p.δt = 2 * p.R) (hbound : LivenessBoundW p ΔF)
+    {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
+    {r height : Nat} {l : Slot} {Q : Block}
+    (hentry : OpeningEntry p c E rho r height) (hcovered : OpeningCovered p c E rho r Q)
+    (hgst : E.t_GST ≤ u) (hstart : E.t_GST ≤ (r : Time) * P p)
+    (hu : u ≤ SA.voteTime p.toParams (r * p.R))
+    (hl : SA.proposalTime p.toParams l < (r : Time) * P p)
+    (hrepair : ∀ v, PhaseInterval p c E rho u v m J contested → RepairAfter p c E rho l v) :
+    ∃ U : FGBlock (Fin p.n), EntryAt p U height ∧ U.slot ≤ r * p.R ∧
+      ∀ v, PhaseInterval p c E rho u v m J contested →
+        max ((r : Time) * P p + betaF p ΔF - 4 * p.Δ)
+          (SA.proposalTime p.toParams U.slot + 2 * P p - 4 * p.Δ) + G ≤ rho.horizon →
+        max (p.actionTime r + Γ p G + 4 * p.Δ + epsF p ΔF)
+          (SA.proposalTime p.toParams U.slot + 2 * P p + Γ p G + 2 * p.Δ) ≤ v →
+        ∃ s X, HonestProposal E rho (fgsaInterface p c) s (eraseFG X) ∧ X.slot = s ∧
+          height + 1 ≤ (heightView p X).h ∧
+          (∃ y, y ∈ rho.honest ∧ Gen.V2.Duty.HoldsBefore E rho
+            (fun nd => X ∈ nd.st.fg.TF) (SA.proposalTime p.toParams s + p.Δ) y) := by
+  let mono := fgsa_rMono p c E rho
+  let crossing := fgsa_rXing p c E rho hrec.base.linked
+    (fgsa_faultX_count_rec p hrec.fault) hrec.base.valid.toUnforgeableSignatures
+  let perm := healing_tPerm E rho hrec mono crossing
+    (fgsa_leaseOrigins_lastWrite p c E rho hrec.base.valid.toScheduleWellFormed)
+  obtain ⟨U, hU, hslot, hgo⟩ := healing_promotion_age_service E rho hrec hδ hbound crossing
+    perm (fgsa_tRowsReceipt p c E rho ΔF hrec.base.delta hrec.base.valid hrec.base.noRestart
+      hrec.sync hrec.deltaF) (fgsa_batchCoverage p ΔF .progress c E rho)
+    (fgsa_foldTrichotomy_progress p) (fgsa_faultQ_of_count p hrec.fault)
+    (kmid_honest_quorum p c rho hrec.base.linked hrec.fault)
+    hentry hcovered hgst hstart hu hl hrepair
+  refine ⟨U, hU, hslot, ?_⟩
+  intro v hp hwin hbudget
+  obtain ⟨s, X, hnew, hXslot, _, _, hh, hreceipt, _⟩ := hgo v hp hwin hbudget
+  exact ⟨s, X, hnew, hXslot, hh, hreceipt⟩
+
+-- The event search contains an effective event exactly at D_event.
+omit [Fintype V] in
+example (hs : V2.D.ScheduleWellFormed E rho) {a d : Time} {i : Nat}
+    {ev : V2.Event V (Obj p)} (hi : rho.events[i]? = some ev)
+    (hlo : afterTicksIdx rho a ≤ i) (ht : ev.time = d)
+    (heff : EffectiveEvent p c E rho i) :
+    ∃ j ev', afterTicksIdx rho a ≤ j ∧ rho.events[j]? = some ev' ∧
+      EffectiveEvent p c E rho j ∧ ev'.time ≤ d := by
+  rcases healing_promotion_event_split p c E rho hs a d with
+    ⟨j, ev', hj, hev, he, htime, _⟩ | hquiet
+  · exact ⟨j, ev', hj, hev, he, htime⟩
+  · exact (hquiet i hlo (healing_phase_lt_timeIdx p c E rho hs hi ht.le) heff).elim
+
+-- A delivery exactly at d is excluded by the strict receipt cut.
+omit [Fintype V] in
+example (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {ev : V2.Event V (Obj p)}
+    {d : Time} (hi : rho.events[i]? = some ev) (ht : ev.time = d) :
+    ¬ i < V2.D.Run.idxBefore rho d := by
+  intro hlt
+  have := (Gen.V2.Duty.index_lt_idxBefore_iff hs hi d).mp hlt
+  exact (not_lt_of_ge ht.ge) this
+
+-- Genesis top J uses the first-receipt proof at frontier one.
+example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
+    (crossing : RXing p c E rho) {u : Time} {s : Slot} {X : FGBlock (Fin p.n)}
+    (hnew : HonestProposal E rho (fgsaInterface p c) s (eraseFG X))
+    (hu : u ≤ SA.proposalTime p.toParams s) (hgst : E.t_GST ≤ u)
+    (hp : PhaseInterval p c E rho u (SA.proposalTime p.toParams s + p.Δ) 1
+      (some .genesis) false) :
+    ∃ y, y ∈ rho.honest ∧ Gen.V2.Duty.HoldsBefore E rho
+      (fun nd => X ∈ nd.st.fg.TF) (SA.proposalTime p.toParams s + p.Δ) y :=
+  healing_promotion_first_receipt E rho hrec crossing hnew hu hgst hp
 
 end AvailableChain.FGSA.Run.Tests.HealingPromotion
 end

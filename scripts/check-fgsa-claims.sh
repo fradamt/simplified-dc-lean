@@ -67,6 +67,17 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.healing_promotion_slot_proposal',
     'AvailableChain.FGSA.Run.healing_promotion_gap_proposal',
     'AvailableChain.FGSA.Run.healing_promotion_same_rows',
+    # H-PROMOTE r3: --expect additions only.
+    'AvailableChain.FGSA.Run.healing_promotion_proposal_read',
+    'AvailableChain.FGSA.Run.healing_promotion_proposal_reachable',
+    'AvailableChain.FGSA.Run.healing_rows_above_entry_at_height',
+    'AvailableChain.FGSA.Run.healing_promotion_quiet_window',
+    'AvailableChain.FGSA.Run.healing_phase_extend_of_no_effective',
+    'AvailableChain.FGSA.Run.healing_promotion_event_split',
+    'AvailableChain.FGSA.Run.healing_promotion_advance',
+    'AvailableChain.FGSA.Run.healing_promotion_first_receipt',
+    'AvailableChain.FGSA.Run.healing_renewedPromotion',
+    'AvailableChain.FGSA.Run.healing_promotion_age_service',
     # H-PROMOTE fix pass: --expect additions only.
     'AvailableChain.FGSA.Run.healing_promotion_row_deadline_strict',
     'AvailableChain.FGSA.Run.healing_promotion_row_receipt_strict',

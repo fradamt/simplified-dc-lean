@@ -3,6 +3,12 @@ public import AvailableChainFGSAProofs.Proofs.Healing.Promotion
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionArithmetic
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionCarrier
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionRows
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionAbove
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionPhase
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionAdvance
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionReceipt
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionRenewed
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionAge
 public import AvailableChainFGSAProofs.Proofs.Healing.Frame
 public import AvailableChainFGSAProofs.Proofs.Healing.FrameSource
 public import AvailableChainFGSAProofs.Proofs.Healing.FrameRelay

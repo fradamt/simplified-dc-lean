@@ -10,7 +10,7 @@ open AvailableChain.SimplexFG
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
 /-- The proposal read retains the emitted wire, its rows and its exact parent. -/
-private theorem promotion_proposal_read (p : Params) {In V : Type} [DecidableEq V]
+theorem healing_promotion_proposal_read (p : Params) {In V : Type} [DecidableEq V]
     (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) {s : Slot} {b : Block}
     (hp : HonestProposal E rho (fgsaInterface p c) s b) :
@@ -116,7 +116,7 @@ theorem healing_promotion_carrier [Fintype V] (E : Generic.Env V)
       ∃ st, proposalStateAt p c E rho s = some st ∧
         FGSA.fgBlockOf st Q.parent = some X.parent := by
   obtain ⟨j, raw, sup, rows, hj, hem, hst, _hslot, hb, hrows⟩ :=
-    promotion_proposal_read p c E rho hrec.base.valid.toScheduleWellFormed hQ
+    healing_promotion_proposal_read p c E rho hrec.base.valid.toScheduleWellFormed hQ
   let v := V2.D.proposerOf rho (fgsaInterface p c) s
   let st := ((fgsa p c).clock (V2.D.Run.stateBefore E rho j v)
     (SA.proposalTime p.toParams s)).st
