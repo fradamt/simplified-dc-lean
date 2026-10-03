@@ -2171,6 +2171,10 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.healing_resetTransferCore',
     'AvailableChain.FGSA.Run.healing_tDelReset_of_reset',
     'AvailableChain.FGSA.Run.healing_low_finality_after_reset',
+    # J4-LEASE: --expect DATA only.
+    'AvailableChain.FGSA.Run.postReset_fProv_all',
+    'AvailableChain.FGSA.Run.postReset_rFProv_reset',
+    'AvailableChain.FGSA.Run.postReset_leaseSafe_antecedent_of_lastWrite',
 )
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
          'Packages.Safety', 'OutputReads', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',
