@@ -144,6 +144,8 @@ public import AvailableChainFGSAProofs.Proofs.Clean.Chain -- shake: keep (axiom 
 public import AvailableChainFGSAProofs.Proofs.Clean.State -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (axiom audit commands)
 
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetCut -- shake: keep (RS-0 axiom audit)
+
 #print axioms AvailableChain.FGSA.Run.kmid_honestSeats_mem
 #print axioms AvailableChain.FGSA.Run.kmid_honest_quorum
 
@@ -1571,3 +1573,23 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 -- H-EXPORT-2: unconditional Healing claims.
 #print axioms AvailableChain.FGSA.Run.fgsa_renewedPromotionClaim
 #print axioms AvailableChain.FGSA.Run.fgsa_rowPermissionClaim
+
+-- S5 RS-0: inclusive cut, row cap, old-row bound, and exact STOP conditions.
+#print axioms AvailableChain.FGSA.Run.reset_period_lower
+#print axioms AvailableChain.FGSA.Run.reset_action_exists
+#print axioms AvailableChain.FGSA.Run.resetFirstRound
+#print axioms AvailableChain.FGSA.Run.resetCutTime
+#print axioms AvailableChain.FGSA.Run.reset_rG_after
+#print axioms AvailableChain.FGSA.Run.reset_rG_first
+#print axioms AvailableChain.FGSA.Run.reset_cut
+#print axioms AvailableChain.FGSA.Run.reset_first_action_upper
+#print axioms AvailableChain.FGSA.Run.reset_cut_lower
+#print axioms AvailableChain.FGSA.Run.reset_cut_upper
+#print axioms AvailableChain.FGSA.Run.resetCutFrontier
+#print axioms AvailableChain.FGSA.Run.reset_frontier
+#print axioms AvailableChain.FGSA.Run.reset_inclusive_frontier
+#print axioms AvailableChain.FGSA.Run.reset_inclusive_start_iff
+#print axioms AvailableChain.FGSA.Run.reset_row_cap
+#print axioms AvailableChain.FGSA.Run.reset_old_row_before_cut
+#print axioms AvailableChain.FGSA.Run.reset_old_height_sup_le
+#print axioms AvailableChain.FGSA.Run.reset_mu_le_iff
