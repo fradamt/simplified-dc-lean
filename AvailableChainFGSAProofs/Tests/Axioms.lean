@@ -19,6 +19,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6 -- shake: keep (H
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairH6S -- shake: keep (H-REPAIR audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairGate -- shake: keep (H-REPAIR audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.Repair -- shake: keep (H-REPAIR audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.OpeningServiceOne -- shake: keep (H-GATE audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposal -- shake: keep (I-EXACT axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalHistory -- shake: keep (I-EXACT history audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalReceipts -- shake: keep (I-EXACT r2 receipt audit)
@@ -1005,6 +1006,34 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.repair_two_lease
 #print axioms AvailableChain.FGSA.Run.repair_synchronous
 #print axioms AvailableChain.FGSA.Run.healing_tRepair
+-- H-GATE: O1–O5.
+#print axioms AvailableChain.FGSA.Run.opening_gate_support
+#print axioms AvailableChain.FGSA.Run.opening_result_slot
+#print axioms AvailableChain.FGSA.Run.opening_fastWrite_spec
+#print axioms AvailableChain.FGSA.Run.opening_gate_level
+#print axioms AvailableChain.FGSA.Run.opening_gateService_of_fastWrite
+#print axioms AvailableChain.FGSA.Run.opening_phaseBody_of_fast_key
+#print axioms AvailableChain.FGSA.Run.opening_heads_cover
+#print axioms AvailableChain.FGSA.Run.opening_gate_guard
+#print axioms AvailableChain.FGSA.Run.opening_gateService_of_cover
+#print axioms AvailableChain.FGSA.Run.opening_postClock_of_tick
+#print axioms AvailableChain.FGSA.Run.opening_domain_clock
+#print axioms AvailableChain.FGSA.Run.opening_proposal_band
+#print axioms AvailableChain.FGSA.Run.opening_domain_of_band
+#print axioms AvailableChain.FGSA.Run.opening_exact_stored
+#print axioms AvailableChain.FGSA.Run.later_opening_service
+#print axioms AvailableChain.FGSA.Run.later_opening_gateService_domain
+#print axioms AvailableChain.FGSA.Run.opening_transfer
+#print axioms AvailableChain.FGSA.Run.opening_timeIdx_mono
+#print axioms AvailableChain.FGSA.Run.opening_phase_restrict
+#print axioms AvailableChain.FGSA.Run.opening_source_body
+#print axioms AvailableChain.FGSA.Run.later_opening_source_extends
+#print axioms AvailableChain.FGSA.Run.next_opening_body_service
+#print axioms AvailableChain.FGSA.Run.opening_action_tick
+#print axioms AvailableChain.FGSA.Run.later_opening_covered
+#print axioms AvailableChain.FGSA.Run.opening_first_time_bound
+#print axioms AvailableChain.FGSA.Run.opening_entry_one
+#print axioms AvailableChain.FGSA.Run.opening_height_one
 -- H-DESCENT: D1–D5.
 #print axioms AvailableChain.FGSA.Run.healing_source_gate
 #print axioms AvailableChain.FGSA.Run.healing_source_read
