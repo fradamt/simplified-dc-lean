@@ -1,6 +1,10 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Assembly.Outage -- shake: keep (Outage Export axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Outage.Growth -- shake: keep (growth axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionArithmetic -- shake: keep (H-PROMOTE arithmetic audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.Promotion -- shake: keep (H-PROMOTE axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionCarrier -- shake: keep (H-PROMOTE carrier axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionRows -- shake: keep (H-PROMOTE same-row axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.FramePaths -- shake: keep (H-FRAME audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.FrameZero -- shake: keep (zero-label audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.FrameRelay -- shake: keep (witness relay audit)
@@ -1146,3 +1150,24 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_healed_output_mono
 #print axioms AvailableChain.FGSA.Run.clean_growth_body
 #print axioms AvailableChain.FGSA.Run.fgsa_availableGrowthGST
+-- H-PROMOTE helpers; the full renewed boundary remains open.
+#print axioms AvailableChain.FGSA.Run.healing_promotion_gap_remainder
+#print axioms AvailableChain.FGSA.Run.healing_promotion_gap
+#print axioms AvailableChain.FGSA.Run.healing_promotion_row_deadline
+#print axioms AvailableChain.FGSA.Run.healing_promotion_row_deadline_strict
+#print axioms AvailableChain.FGSA.Run.healing_promotion_row_receipt
+#print axioms AvailableChain.FGSA.Run.healing_promotion_row_receipt_strict
+#print axioms AvailableChain.FGSA.Run.healing_promotion_maturity
+#print axioms AvailableChain.FGSA.Run.healing_promotion_maturity_of_action
+#print axioms AvailableChain.FGSA.Run.healing_promotion_held_mono
+#print axioms AvailableChain.FGSA.Run.healing_promotion_age_gap
+#print axioms AvailableChain.FGSA.Run.healing_promotion_fixed_rows
+#print axioms AvailableChain.FGSA.Run.healing_promotion_source_body
+#print axioms AvailableChain.FGSA.Run.healing_promotion_source_parent
+#print axioms AvailableChain.FGSA.Run.healing_promotion_continuing_service
+#print axioms AvailableChain.FGSA.Run.healing_promotion_entry_slot
+#print axioms AvailableChain.FGSA.Run.healing_promotion_bounded_rows
+#print axioms AvailableChain.FGSA.Run.healing_promotion_carrier
+#print axioms AvailableChain.FGSA.Run.healing_promotion_slot_proposal
+#print axioms AvailableChain.FGSA.Run.healing_promotion_gap_proposal
+#print axioms AvailableChain.FGSA.Run.healing_promotion_same_rows
