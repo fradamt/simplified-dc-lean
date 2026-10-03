@@ -5,6 +5,8 @@ public import AvailableChainFGSAProofs.Proofs.Finality.Kernel
 public import AvailableChainFGSAProofs.Proofs.Finality.Joined
 public import AvailableChainFGSAProofs.Proofs.Finality.TailBatch
 public import AvailableChainFGSAProofs.Proofs.Finality.Local
+public import AvailableChainFGSAProofs.Proofs.Finality.Proposal
+public import AvailableChainFGSAProofs.Proofs.Finality.Above
 
 public section
 
@@ -379,6 +381,301 @@ theorem fgsa_finalityLivenessRecF4_W_of (p : Params)
     (hBatch ΔF) (hQC c E rho G ΔF h.set.core) (hXing c E rho G ΔF h.set.core)
     (hI3 c E rho G ΔF h.set.core) (hStrat c E rho G ΔF h.set.core)
     (hEmittedSource c E rho G ΔF h.set.core) (hcapBefore c E rho G ΔF h.set.core)
+
+/-- Paper 22:1421–1430; firstfin plan §6. DC-CS/W4FKChainSecondCheckpoint.lean:43:
+INTENTIONAL specified proposal coverage before its local W deadline.
+Recovery₂ in the frozen package supplies the inherited kernel suppliers. -/
+theorem fgsa_proposalFinalRecFE_W_of (p : Params)
+    (hsel : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      V2.D.ExecutionValid E rho → TRowsSelect p c E rho)
+    (horigin : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      V2.D.ExecutionValid E rho → ∀ (i : Nat) (x : V) (B : FGBlock (Fin p.n)),
+      HeldAt p c E rho i x B → ∀ u ∈ chainRows B,
+        ∃ (a : RowWire p.n) (r : Nat),
+          a.toRow? = some u ∧ a.auth = .seat .fg u.signer ∧
+          ∃ k o t, k < i ∧ rho.events[k]? = some (.deliver x o t) ∧
+            ∀ z : V, RowSigner p c rho a z → z ∈ rho.honest →
+              HonestRowBefore p c E rho i z r a ∧ p.actionTime r ≤ t)
+    (hBatch : ∀ ΔF, BatchCoverage p ΔF .target)
+    (hQC : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      ∀ (G ΔF : Time), Recovery₂ p c E rho G ΔF →
+      RQCOrigin p c E rho)
+    (hXing : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      ∀ (G ΔF : Time), Recovery₂ p c E rho G ΔF →
+      RXing p c E rho)
+    (hI3 : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      ∀ (G ΔF : Time), Recovery₂ p c E rho G ΔF →
+      FinalizedSafetyPrem p c E rho () →
+      ∀ C W T₁ T₂ h₁ h₂,
+        FinalityBlock p c E rho C → FinalityBlock p c E rho W →
+        FinalityFinalizedAt p C T₁ h₁ → FinalityFinalizedAt p W T₂ h₂ →
+        FGBlock.compatible T₁ T₂ = true)
+    (hStrat : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      ∀ (G ΔF : Time), Recovery₂ p c E rho G ΔF →
+      ∀ j z W, z ∈ rho.honest → W ∈ (storeAt p c E rho j z).fg.TF →
+      ∀ J ∈ certified p W, J ≠ .genesis → ∃ u r a,
+        HonestRowBefore p c E rho j u r a ∧
+        namedEntry a.payload.height_pair = some ((heightView p J).h, J.root))
+    (hEmittedSource : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      ∀ (G ΔF : Time), Recovery₂ p c E rho G ΔF →
+      ∀ j z r a e, HonestRowAt p c E rho j z r a →
+      namedEntry a.payload.height_pair = some e → ∃ C,
+        actionSourceFG p c E rho z r = some (some C) ∧
+        e = ((heightView p C).h, (heightView p C).T_h.root) ∧
+        FGBlock.Preceq (heightView p C).T_h C)
+    (hcapBefore : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      ∀ (G ΔF : Time), Recovery₂ p c E rho G ΔF →
+      ∀ (cut : Time) (b j : Nat) (z : V) (W : FGBlock (Fin p.n)),
+      j ≤ V2.D.Run.idxBefore rho cut → HeldAt p c E rho j z W →
+      (∀ k u r a row h T timeout, HonestRowAt p c E rho k u r a →
+        RowWire.toRow? a = some row → row.height_pair = .vote h T timeout →
+        p.actionTime r < cut → h < b + 1) → (heightView p W).h < b + 2) :
+    ProposalFinalRecFEClaim_W p := by
+  intro G ΔF g w hδ V _ _ In c E rho pt h
+  exact proposal_final_FE_W_of p c E rho G ΔF g w hδ pt h
+    (hsel c E rho h.set.core.base.valid) (horigin c E rho h.set.core.base.valid)
+    (hBatch ΔF) (hQC c E rho G ΔF h.set.core) (hXing c E rho G ΔF h.set.core)
+    (hI3 c E rho G ΔF h.set.core) (hStrat c E rho G ΔF h.set.core)
+    (hEmittedSource c E rho G ΔF h.set.core) (hcapBefore c E rho G ΔF h.set.core)
+
+/-- Paper 22:1421–1430; firstfin plan §6. DC-CS/W4FKChainSecondCheckpoint.lean:43:
+INTENTIONAL specified proposal coverage before its local W deadline.
+Recovery₂ in the frozen package supplies the inherited kernel suppliers. -/
+theorem fgsa_proposalFinalRecF4_W_of (p : Params)
+    (hsel : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      V2.D.ExecutionValid E rho → TRowsSelect p c E rho)
+    (horigin : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      V2.D.ExecutionValid E rho → ∀ (i : Nat) (x : V) (B : FGBlock (Fin p.n)),
+      HeldAt p c E rho i x B → ∀ u ∈ chainRows B,
+        ∃ (a : RowWire p.n) (r : Nat),
+          a.toRow? = some u ∧ a.auth = .seat .fg u.signer ∧
+          ∃ k o t, k < i ∧ rho.events[k]? = some (.deliver x o t) ∧
+            ∀ z : V, RowSigner p c rho a z → z ∈ rho.honest →
+              HonestRowBefore p c E rho i z r a ∧ p.actionTime r ≤ t)
+    (hBatch : ∀ ΔF, BatchCoverage p ΔF .target)
+    (hQC : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      ∀ (G ΔF : Time), Recovery₂ p c E rho G ΔF →
+      RQCOrigin p c E rho)
+    (hXing : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      ∀ (G ΔF : Time), Recovery₂ p c E rho G ΔF →
+      RXing p c E rho)
+    (hI3 : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      ∀ (G ΔF : Time), Recovery₂ p c E rho G ΔF →
+      FinalizedSafetyPrem p c E rho () →
+      ∀ C W T₁ T₂ h₁ h₂,
+        FinalityBlock p c E rho C → FinalityBlock p c E rho W →
+        FinalityFinalizedAt p C T₁ h₁ → FinalityFinalizedAt p W T₂ h₂ →
+        FGBlock.compatible T₁ T₂ = true)
+    (hStrat : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      ∀ (G ΔF : Time), Recovery₂ p c E rho G ΔF →
+      ∀ j z W, z ∈ rho.honest → W ∈ (storeAt p c E rho j z).fg.TF →
+      ∀ J ∈ certified p W, J ≠ .genesis → ∃ u r a,
+        HonestRowBefore p c E rho j u r a ∧
+        namedEntry a.payload.height_pair = some ((heightView p J).h, J.root))
+    (hEmittedSource : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      ∀ (G ΔF : Time), Recovery₂ p c E rho G ΔF →
+      ∀ j z r a e, HonestRowAt p c E rho j z r a →
+      namedEntry a.payload.height_pair = some e → ∃ C,
+        actionSourceFG p c E rho z r = some (some C) ∧
+        e = ((heightView p C).h, (heightView p C).T_h.root) ∧
+        FGBlock.Preceq (heightView p C).T_h C)
+    (hcapBefore : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      ∀ (G ΔF : Time), Recovery₂ p c E rho G ΔF →
+      ∀ (cut : Time) (b j : Nat) (z : V) (W : FGBlock (Fin p.n)),
+      j ≤ V2.D.Run.idxBefore rho cut → HeldAt p c E rho j z W →
+      (∀ k u r a row h T timeout, HonestRowAt p c E rho k u r a →
+        RowWire.toRow? a = some row → row.height_pair = .vote h T timeout →
+        p.actionTime r < cut → h < b + 1) → (heightView p W).h < b + 2) :
+    ProposalFinalRecF4Claim_W p := by
+  intro G ΔF g w hδ V _ _ In c E rho pt h
+  exact proposal_final_F4_W_of p c E rho G ΔF g w hδ pt h
+    (hsel c E rho h.set.core.base.valid) (horigin c E rho h.set.core.base.valid)
+    (hBatch ΔF) (hQC c E rho G ΔF h.set.core) (hXing c E rho G ΔF h.set.core)
+    (hI3 c E rho G ΔF h.set.core) (hStrat c E rho G ΔF h.set.core)
+    (hEmittedSource c E rho G ΔF h.set.core) (hcapBefore c E rho G ΔF h.set.core)
+
+end AvailableChain.FGSA.Run
+end
+
+public section
+namespace AvailableChain.FGSA.Run
+open AvailableChain.SimplexFG AvailableChain.KitFG
+
+/-- Paper 22:1434–1451; firstfin plan §7 F-ABOVE-B.
+DC: W4D2GradeCallsite.lean:431; INTENTIONAL healing-input route.
+The frozen claim keeps both receipt horizons. Kernel and frontier inputs stay conditional. -/
+theorem fgsa_aboveFrontierRecFE_W_of (p : Params)
+    (hsel : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      V2.D.ExecutionValid E rho → TRowsSelect p c E rho)
+    (horigin : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      V2.D.ExecutionValid E rho → ∀ (i : Nat) (x : V) (B : FGBlock (Fin p.n)),
+      HeldAt p c E rho i x B → ∀ u ∈ chainRows B,
+        ∃ (a : RowWire p.n) (r : Nat),
+          a.toRow? = some u ∧ a.auth = .seat .fg u.signer ∧
+          ∃ k o t, k < i ∧ rho.events[k]? = some (.deliver x o t) ∧
+            ∀ z : V, RowSigner p c rho a z → z ∈ rho.honest →
+              HonestRowBefore p c E rho i z r a ∧ p.actionTime r ≤ t)
+    (hBatch : ∀ ΔF, BatchCoverage p ΔF .target)
+    (hQC : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      ∀ (G ΔF : Time), Recovery₂ p c E rho G ΔF →
+      RQCOrigin p c E rho)
+    (hXing : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      ∀ (G ΔF : Time), Recovery₂ p c E rho G ΔF →
+      RXing p c E rho)
+    (hI3 : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      ∀ (G ΔF : Time), Recovery₂ p c E rho G ΔF →
+      FinalizedSafetyPrem p c E rho () →
+      ∀ C W T₁ T₂ h₁ h₂,
+        FinalityBlock p c E rho C → FinalityBlock p c E rho W →
+        FinalityFinalizedAt p C T₁ h₁ → FinalityFinalizedAt p W T₂ h₂ →
+        FGBlock.compatible T₁ T₂ = true)
+    (hStrat : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      ∀ (G ΔF : Time), Recovery₂ p c E rho G ΔF →
+      ∀ j z W, z ∈ rho.honest → W ∈ (storeAt p c E rho j z).fg.TF →
+      ∀ J ∈ certified p W, J ≠ .genesis → ∃ u r a,
+        HonestRowBefore p c E rho j u r a ∧
+        namedEntry a.payload.height_pair = some ((heightView p J).h, J.root))
+    (hEmittedSource : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      ∀ (G ΔF : Time), Recovery₂ p c E rho G ΔF →
+      ∀ j z r a e, HonestRowAt p c E rho j z r a →
+      namedEntry a.payload.height_pair = some e → ∃ C,
+        actionSourceFG p c E rho z r = some (some C) ∧
+        e = ((heightView p C).h, (heightView p C).T_h.root) ∧
+        FGBlock.Preceq (heightView p C).T_h C)
+    (hcapBefore : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      ∀ (G ΔF : Time), Recovery₂ p c E rho G ΔF →
+      ∀ (cut : Time) (b j : Nat) (z : V) (W : FGBlock (Fin p.n)),
+      j ≤ V2.D.Run.idxBefore rho cut → HeldAt p c E rho j z W →
+      (∀ k u r a row h T timeout, HonestRowAt p c E rho k u r a →
+        RowWire.toRow? a = some row → row.height_pair = .vote h T timeout →
+        p.actionTime r < cut → h < b + 1) → (heightView p W).h < b + 2)
+    (hNames : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      BaseSet p c E rho → ∀ j x r a e, HonestRowAt p c E rho j x r a →
+      namedEntry a.payload.height_pair = some e →
+      ∃ C, actionSourceFG p c E rho x r = some (some C) ∧
+        e = ((heightView p C).h, (heightView p C).T_h.root))
+    (hOrigin : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      V2.D.ExecutionValid E rho → ∀ (i : Nat) (x : V) (W : FGBlock (Fin p.n)),
+      HeldAt p c E rho i x W → ∀ u ∈ chainRows W,
+        ∃ (a : RowWire p.n) (r : Nat),
+          a.toRow? = some u ∧ a.auth = .seat .fg u.signer ∧
+          ∃ k o t, k < i ∧ rho.events[k]? = some (.deliver x o t) ∧
+            ∀ z : V, RowSigner p c rho a z → z ∈ rho.honest →
+              HonestRowBefore p c E rho i z r a ∧ p.actionTime r ≤ t) :
+    AboveFrontierRecFEClaim_W p := by
+  intro G ΔF g w hδ V _ _ In c E rho pt h
+  exact above_frontier_FE_W_of p c E rho G ΔF g w hδ pt h
+    (hsel c E rho h.set.core.base.valid) (horigin c E rho h.set.core.base.valid)
+    (hBatch ΔF) (hQC c E rho G ΔF h.set.core) (hXing c E rho G ΔF h.set.core)
+    (hI3 c E rho G ΔF h.set.core) (hStrat c E rho G ΔF h.set.core)
+    (hEmittedSource c E rho G ΔF h.set.core) (hcapBefore c E rho G ΔF h.set.core)
+    (hNames c E rho h.set.core.base) (hOrigin c E rho h.set.core.base.valid)
+
+/-- Paper 22:1434–1451; firstfin plan §7 F-ABOVE-B.
+DC: W4D2GradeCallsite.lean:431; INTENTIONAL healing-input route.
+The frozen claim keeps both receipt horizons. Kernel and frontier inputs stay conditional. -/
+theorem fgsa_aboveFrontierRecF4_W_of (p : Params)
+    (hsel : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      V2.D.ExecutionValid E rho → TRowsSelect p c E rho)
+    (horigin : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      V2.D.ExecutionValid E rho → ∀ (i : Nat) (x : V) (B : FGBlock (Fin p.n)),
+      HeldAt p c E rho i x B → ∀ u ∈ chainRows B,
+        ∃ (a : RowWire p.n) (r : Nat),
+          a.toRow? = some u ∧ a.auth = .seat .fg u.signer ∧
+          ∃ k o t, k < i ∧ rho.events[k]? = some (.deliver x o t) ∧
+            ∀ z : V, RowSigner p c rho a z → z ∈ rho.honest →
+              HonestRowBefore p c E rho i z r a ∧ p.actionTime r ≤ t)
+    (hBatch : ∀ ΔF, BatchCoverage p ΔF .target)
+    (hQC : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      ∀ (G ΔF : Time), Recovery₂ p c E rho G ΔF →
+      RQCOrigin p c E rho)
+    (hXing : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      ∀ (G ΔF : Time), Recovery₂ p c E rho G ΔF →
+      RXing p c E rho)
+    (hI3 : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      ∀ (G ΔF : Time), Recovery₂ p c E rho G ΔF →
+      FinalizedSafetyPrem p c E rho () →
+      ∀ C W T₁ T₂ h₁ h₂,
+        FinalityBlock p c E rho C → FinalityBlock p c E rho W →
+        FinalityFinalizedAt p C T₁ h₁ → FinalityFinalizedAt p W T₂ h₂ →
+        FGBlock.compatible T₁ T₂ = true)
+    (hStrat : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      ∀ (G ΔF : Time), Recovery₂ p c E rho G ΔF →
+      ∀ j z W, z ∈ rho.honest → W ∈ (storeAt p c E rho j z).fg.TF →
+      ∀ J ∈ certified p W, J ≠ .genesis → ∃ u r a,
+        HonestRowBefore p c E rho j u r a ∧
+        namedEntry a.payload.height_pair = some ((heightView p J).h, J.root))
+    (hEmittedSource : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      ∀ (G ΔF : Time), Recovery₂ p c E rho G ΔF →
+      ∀ j z r a e, HonestRowAt p c E rho j z r a →
+      namedEntry a.payload.height_pair = some e → ∃ C,
+        actionSourceFG p c E rho z r = some (some C) ∧
+        e = ((heightView p C).h, (heightView p C).T_h.root) ∧
+        FGBlock.Preceq (heightView p C).T_h C)
+    (hcapBefore : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      ∀ (G ΔF : Time), Recovery₂ p c E rho G ΔF →
+      ∀ (cut : Time) (b j : Nat) (z : V) (W : FGBlock (Fin p.n)),
+      j ≤ V2.D.Run.idxBefore rho cut → HeldAt p c E rho j z W →
+      (∀ k u r a row h T timeout, HonestRowAt p c E rho k u r a →
+        RowWire.toRow? a = some row → row.height_pair = .vote h T timeout →
+        p.actionTime r < cut → h < b + 1) → (heightView p W).h < b + 2)
+    (hNames : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      BaseSet p c E rho → ∀ j x r a e, HonestRowAt p c E rho j x r a →
+      namedEntry a.payload.height_pair = some e →
+      ∃ C, actionSourceFG p c E rho x r = some (some C) ∧
+        e = ((heightView p C).h, (heightView p C).T_h.root))
+    (hOrigin : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
+      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
+      V2.D.ExecutionValid E rho → ∀ (i : Nat) (x : V) (W : FGBlock (Fin p.n)),
+      HeldAt p c E rho i x W → ∀ u ∈ chainRows W,
+        ∃ (a : RowWire p.n) (r : Nat),
+          a.toRow? = some u ∧ a.auth = .seat .fg u.signer ∧
+          ∃ k o t, k < i ∧ rho.events[k]? = some (.deliver x o t) ∧
+            ∀ z : V, RowSigner p c rho a z → z ∈ rho.honest →
+              HonestRowBefore p c E rho i z r a ∧ p.actionTime r ≤ t) :
+    AboveFrontierRecF4Claim_W p := by
+  intro G ΔF g w hδ V _ _ In c E rho pt h
+  exact above_frontier_F4_W_of p c E rho G ΔF g w hδ pt h
+    (hsel c E rho h.set.core.base.valid) (horigin c E rho h.set.core.base.valid)
+    (hBatch ΔF) (hQC c E rho G ΔF h.set.core) (hXing c E rho G ΔF h.set.core)
+    (hI3 c E rho G ΔF h.set.core) (hStrat c E rho G ΔF h.set.core)
+    (hEmittedSource c E rho G ΔF h.set.core) (hcapBefore c E rho G ΔF h.set.core)
+    (hNames c E rho h.set.core.base) (hOrigin c E rho h.set.core.base.valid)
 
 end AvailableChain.FGSA.Run
 end
