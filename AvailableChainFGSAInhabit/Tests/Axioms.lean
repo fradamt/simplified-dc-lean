@@ -46,6 +46,7 @@ namespace AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
 #print axioms cstar
 #print axioms linked
 #print axioms gap_positive
+#print axioms gap_aligned
 #print axioms source_gap
 #print axioms boundary_duties
 #print axioms delivery_fold_mem

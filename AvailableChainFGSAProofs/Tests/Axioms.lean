@@ -708,6 +708,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw -- shake: kee
 #print axioms AvailableChain.FGSA.Run.HealthyPrefix₂.of_legacy
 #print axioms AvailableChain.FGSA.Run.HealthyPrefix₂.legacy_delivery
 #print axioms AvailableChain.FGSA.Run.Recovery₂.of_legacy
+#print axioms AvailableChain.FGSA.Run.Recovery₂.gamma_eq
 #print axioms AvailableChain.FGSA.Run.Recovery₂.toRecoveryCore
 
 -- fg-noround/07-H additions.
