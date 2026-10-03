@@ -26,6 +26,7 @@ public import AvailableChainFGSAProofs.Proofs.Finality.Rows -- shake: keep (K-RO
 public import AvailableChainFGSAProofs.Proofs.Finality.Middle -- shake: keep (K-MID audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.TailSplit -- shake: keep (K-TAIL audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.TailReceipt -- shake: keep (K-TAIL audit)
+public import AvailableChainFGSAProofs.Proofs.Finality.TailKernel -- shake: keep (K-TAIL r2 audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Carry -- shake: keep (K-CARRY audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Batch -- shake: keep (K-BATCH audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Accept -- shake: keep (K-ACCEPT axiom audit)
@@ -1085,3 +1086,10 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.ktail_pending_rows
 #print axioms AvailableChain.FGSA.Run.ktail_terminal_key
 #print axioms AvailableChain.FGSA.Run.ktail_acceptPrem_W
+#print axioms AvailableChain.FGSA.Run.ktail_jPath
+#print axioms AvailableChain.FGSA.Run.ktail_hj_floor
+#print axioms AvailableChain.FGSA.Run.ktail_acceptPrem_two_W
+#print axioms AvailableChain.FGSA.Run.ktail_terminal_path
+#print axioms AvailableChain.FGSA.Run.ktail_rows_through_next
+#print axioms AvailableChain.FGSA.Run.ktail_terminal_final
+#print axioms AvailableChain.FGSA.Run.tail_kernel_W_of

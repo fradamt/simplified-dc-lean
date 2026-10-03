@@ -38,6 +38,7 @@ public import AvailableChainFGSAProofs.Proofs.Finality.TailRows
 public import AvailableChainFGSAProofs.Proofs.Finality.TailFrame
 public import AvailableChainFGSAProofs.Proofs.Finality.TailSplit
 public import AvailableChainFGSAProofs.Proofs.Finality.TailReceipt
+public import AvailableChainFGSAProofs.Proofs.Finality.TailKernel
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseRelay
 public import AvailableChainFGSAProofs.Proofs.Healing.Phase
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseFrame
