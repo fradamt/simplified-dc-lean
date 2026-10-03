@@ -116,6 +116,19 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.HTimeBestConcl_def',
     'AvailableChain.FGSA.Run.HTimeBestClaim',
     'AvailableChain.FGSA.Run.HTimeSearchClaim',
+    # B33 WC-LIVE additive: --expect DATA additions only.
+    'AvailableChain.FGSA.Run.ServedFromGateAt',
+    'AvailableChain.FGSA.Run.ServedFromGateAt_def',
+    'AvailableChain.FGSA.Run.JointGrowthAt',
+    'AvailableChain.FGSA.Run.JointGrowthAt_def',
+    'AvailableChain.FGSA.Run.WeakContinuationLiveAt₂',
+    'AvailableChain.FGSA.Run.WeakContinuationLiveAt₂.mk',
+    'AvailableChain.FGSA.Run.WeakContinuationLiveAt₂.safety',
+    'AvailableChain.FGSA.Run.WeakContinuationLiveAt₂.inclusion',
+    'AvailableChain.FGSA.Run.WeakContinuationLiveAt₂.growth',
+    'AvailableChain.FGSA.Run.BoundedSafetyLivenessRecovery₂',
+    'AvailableChain.FGSA.Run.BoundedSafetyLivenessRecovery₂_def',
+    'AvailableChain.FGSA.Run.WeakContinuationLiveClaim',
     # C-CORE: --expect DATA only.
     'AvailableChain.FGSA.Run.fgsa_tStart',
     'AvailableChain.FGSA.Run.fgsa_tWalk',
@@ -1733,8 +1746,8 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.fgsa_batchCoverage',
 )
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
-         'Packages.Safety', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',
-         'ChannelProps', 'FinalityApi', 'Healed', 'HealedBest', 'WeakContinuation', 'Packages.Finality', 'Packages.FinalityGST',
+         'Packages.Safety', 'OutputReads', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',
+         'ChannelProps', 'FinalityApi', 'Healed', 'HealedBest', 'WeakContinuation', 'WeakContinuationLive', 'Packages.Finality', 'Packages.FinalityGST',
          'ComposeStmt', 'Fold',
          'Phases', 'PhasesInternal', 'Packages.Healing')
 if not SOURCE_ONLY:

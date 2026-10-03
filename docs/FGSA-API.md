@@ -361,6 +361,7 @@ def AvailableChain.FGSA.Run.ReleaseClaim 7ce1c9e2699ad4a8
 
 ```text
 def AvailableChain.FGSA.Run.WeakContinuationClaim 7343e86e8a87d8c1
+def AvailableChain.FGSA.Run.WeakContinuationLiveClaim c3dc6104736035e7
 ```
 
 ### `AvailableChainFGSAClaims.FGSAClaims`
@@ -923,6 +924,13 @@ theorem AvailableChain.FGSA.Run.HTimeStatement_def 802f73b6f7584190
 ```text
 def AvailableChain.FGSA.Run.HTimeBestConcl 78f2e0390d426581
 theorem AvailableChain.FGSA.Run.HTimeBestConcl_def c66e237fef033d80
+### `AvailableChainFGSAClaims.Statements.OutputReads`
+
+```text
+def AvailableChain.FGSA.Run.ServedFromGateAt 0310fd73fd295186
+theorem AvailableChain.FGSA.Run.ServedFromGateAt_def f21f1b534914bea3
+def AvailableChain.FGSA.Run.JointGrowthAt 61b4b74a663fd4e5
+theorem AvailableChain.FGSA.Run.JointGrowthAt_def c875ad0c5d6c7afa
 ```
 
 ### `AvailableChainFGSAClaims.Statements.Packages.Finality`
@@ -1329,6 +1337,18 @@ field AvailableChain.FGSA.Run.SSafeFromCut₂.seed 96d7d1232ee31459
 field AvailableChain.FGSA.Run.SSafeFromCut₂.finalBelow 07e8af118ce16bf1
 field AvailableChain.FGSA.Run.SSafeFromCut₂.outputs 00557223598e2c84
 def AvailableChain.FGSA.Run.BoundedSafetyRecovery₂ a4ddace4f3e90b7e
+```
+
+### `AvailableChainFGSAClaims.Statements.WeakContinuationLive`
+
+```text
+structure AvailableChain.FGSA.Run.WeakContinuationLiveAt₂ 444aa594c122432f
+ctor AvailableChain.FGSA.Run.WeakContinuationLiveAt₂.mk 78a1b9694a381da2
+field AvailableChain.FGSA.Run.WeakContinuationLiveAt₂.safety 914a9494377582b9
+field AvailableChain.FGSA.Run.WeakContinuationLiveAt₂.inclusion 9bd576559e0b7f6d
+field AvailableChain.FGSA.Run.WeakContinuationLiveAt₂.growth b779e5f8a16cf1b8
+def AvailableChain.FGSA.Run.BoundedSafetyLivenessRecovery₂ b140751d03ed26f4
+theorem AvailableChain.FGSA.Run.BoundedSafetyLivenessRecovery₂_def eacdfbd983755b5c
 ```
 
 ### `AvailableChainFGSAClaims.Statements.Windows`
