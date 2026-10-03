@@ -5,6 +5,8 @@ public import AvailableChainFGSAProofs.Proofs.Assembly.Shared -- shake: keep (SY
 public import AvailableChainFGSAProofs.Proofs.Assembly.Clean
 public import AvailableChainFGSAProofs.Proofs.Assembly.Outage -- shake: keep (SYN L58 named assembly boundary)
 public import AvailableChainFGSAProofs.Proofs.Assembly.Finality -- shake: keep (SYN L58 named assembly boundary)
+public import AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival
+-- shake: keep (SYN L58 named assembly boundary)
 
 public section
 
@@ -104,6 +106,10 @@ theorem fgsaClaims_of_hTime (hH : HTimeClaim p) : FGSAClaims p :=
     (fgsa_aboveFrontierGST_recFE hH (fgsa_aboveFrontierRecFE_W p))
     (fgsa_aboveFrontierGST_recF4 hH (fgsa_aboveFrontierRecF4_W p))
     (fgsa_availableGST hH) (fgsa_availableGrowthGST hH)
+
+/-- Blueprint 21 H.18–H.22:3049–3176 and 22 §1; plan S5 NV7 L2.
+DC: SAME FGSAClaims; the closed HTimeClaim supplies the ten liveness fields. -/
+theorem fgsaClaims : FGSAClaims p := fgsaClaims_of_hTime p (healing_hTimeClaim p)
 
 end AvailableChain.FGSA.Run
 end

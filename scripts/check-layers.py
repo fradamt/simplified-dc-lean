@@ -33,7 +33,7 @@ SHARED             Shared imports no lane/Export/Assembly    SYN:106-114; BUILD:
 ASSEMBLY           Assembly joins lanes through Exports      SYN:112-114; BUILD:210-212
                    (Shared has an Export too: SYN L50)
                    Exact Assembly.Root imports facade and    SYN L58
-                   named lower Assembly modules
+                   named lower Assembly modules, including ResetArrival
 CLAIM-USE          Claims/<F> only from matching lane Export SYN:112-114; BUILD:234-236; L42
 LANE-CLAIMS        A lane module other than its Export reaches R-F1 D6 (fgsa-lean
                    no Claims/* or Shared.Claims, directly    2026-09-30); R5-66
@@ -137,7 +137,8 @@ ASSEMBLY_ROOT_IMPORTS = frozenset({CLAIMS + ".FGSAClaims",
                                   PROOFS + ".Proofs.Assembly.Shared",
                                   PROOFS + ".Proofs.Assembly.Clean",
                                   PROOFS + ".Proofs.Assembly.Outage",
-                                  PROOFS + ".Proofs.Assembly.Finality"})
+                                  PROOFS + ".Proofs.Assembly.Finality",
+                                  PROOFS + ".Proofs.Assembly.ResetArrival"})
 NAME_PART = r"(?:«[^»]+»|[^\W\d][\w'!?]*)"
 NAME = re.compile(NAME_PART + r"(?:\." + NAME_PART + r")*")
 Finding = tuple[str, str, str]

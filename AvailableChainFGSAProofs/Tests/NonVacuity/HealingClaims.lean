@@ -1552,10 +1552,22 @@ DC: SAME full H0 and tstar = 50; this package is closed. -/
 theorem nvHealingInputPrem : HealingInputPrem params unitCodec gap deltaF env run ⟨w'⟩ :=
   ⟨⟨healingPrem (⟨w'⟩ : PtW), nvH0⟩, by change (50 : Time) ≤ 304; decide⟩
 
--- S5 NV6 N1 STOP: ResetArrivalFullStatement has no closed producer on the base.
--- healing_resetArrivalFull_of_open₂ still requires stepRL, stepLease, stepRaw, stepCone.
--- S5 NV6 N1 STOP: HealingInputClaim has no closed producer on the base.
--- healing_healingInputOfH0 still requires the named field producers.
+/-- Blueprint 21 H.18–H.22; plan S5 NV7 N2: apply the closed full reset statement.
+DC: SAME canonical run and the proved full reset horizon. -/
+theorem nvResetArrivalFull : ∃ witness, H0 params unitCodec env run witness ∧
+    params.actionTime witness.rStar < env.t_GST + B'_resetF params deltaF gap :=
+  healing_resetArrivalFull params gap deltaF nvClock unitCodec env run
+    healingSet livenessBound nvFullHorizon
+
+/-- Blueprint 21 H.18–H.22; plan S5 NV7 N2: apply the closed HealingInputClaim.
+DC: SAME canonical run and the full NV5 witness with tstar = 50. -/
+theorem nvHealingInput : HealingInput params unitCodec env run w' deltaF :=
+  healing_healingInputClaim params gap deltaF nvClock unitCodec env run ⟨w'⟩ nvHealingInputPrem
+
+#check nvResetArrivalFull
+#print axioms nvResetArrivalFull
+#check nvHealingInput
+#print axioms nvHealingInput
 
 /-- S5 NV6 N3: CStar is the real slot-9 source block.
 DC: SAME NV4 source; compare slots instead of the full run. -/
@@ -1766,6 +1778,39 @@ theorem nvRowPermissionEvent : ∃ j rSent a, rSent ≤ 3 ∧
     ((source_read 3 (by decide)).trans (congrArg some nvSource))
     nvPermissionSource.1 nvPermissionSource.2 nvResetHeight.le
 
+/-- Blueprint 21 H.11; plan S5 NV7 N1: each returned row is the event-65 reset row.
+DC: SAME node 0 and action 3; row uniqueness uses the closed BaseSet. -/
+theorem nvRowPermissionBridge {j rSent : Nat} {a : RowWire params.n}
+    (hr : rSent ≤ 3) (ha : HonestRowAt params unitCodec env run j 0 rSent a)
+    (he : namedEntry a.payload.height_pair =
+      some ((heightView params resetSource).h, (heightView params resetSource).T_h.root)) :
+    j = 65 ∧ rSent = 3 ∧ a = resetRow := by
+  have he' := he
+  rw [nvResetHeight] at he'
+  have hround : rSent = 3 := by
+    by_contra hn
+    have hcap := nvEarlyRowCap ha he' (by omega)
+    omega
+  subst rSent
+  have hu := honest_at_most_one_row_per_action params unitCodec env run base
+    0 (nvHonest 0) 3 j 65 a resetRow ha nvResetEvent
+  exact ⟨hu.1, rfl, hu.2⟩
+
+/-- Blueprint 21 H.11; plan S5 NV7 N1: tie the permission result to the reset event.
+DC: SAME returned row, node 0, action 3, event 65, and resetRow. -/
+theorem nvRowPermissionResetEvent : ∃ j rSent a, rSent ≤ 3 ∧
+    HonestRowAt params unitCodec env run j 0 rSent a ∧
+    namedEntry a.payload.height_pair =
+      some ((heightView params resetSource).h, (heightView params resetSource).T_h.root) ∧
+    j = 65 ∧ rSent = 3 ∧ a = resetRow := by
+  obtain ⟨j, rSent, a, hr, ha, he⟩ := nvRowPermissionEvent
+  exact ⟨j, rSent, a, hr, ha, he, nvRowPermissionBridge hr ha he⟩
+
+#check nvRowPermissionBridge
+#print axioms nvRowPermissionBridge
+#check nvRowPermissionResetEvent
+#print axioms nvRowPermissionResetEvent
+
 end
 
 set_option maxHeartbeats 2000000 in
@@ -1861,208 +1906,193 @@ theorem nvOpeningProposalSmallEvent : run.events[17]? = some (.tick 0 12) := by
 -- RenewedPromotionConcl's real-event application is stopped at this exact service fact.
 
 section HTime
-variable
-    (stepRL : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
-      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa params c)) {G ΔF : Time},
-      HealingSet params c E rho G ΔF → ∀ {w : HealingWitness}, H0Reset params c E rho w →
-      ∀ i, PostResetResetLeaseStep params c E rho w i)
-    (stepLease : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
-      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa params c)) {G ΔF : Time},
-      HealingSet params c E rho G ΔF → ∀ {w : HealingWitness}, H0Reset params c E rho w →
-      ∀ i, PostResetLeaseStep params c E rho w i)
-    (stepRaw : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type}
-      (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa params c)) {G ΔF : Time},
-      HealingSet params c E rho G ΔF → ∀ {w : HealingWitness}, H0Reset params c E rho w →
-      ∀ i, PostResetRawStep params c E rho w i)
 
-include stepRL stepLease stepRaw
-
-/-- S5 NV6 N2: apply HTimeClaim with exactly its three named open inputs.
+/-- S5 NV7 N2: apply the closed HTimeClaim to the canonical run.
 DC: SAME NV3 HealingTimePrem and the canonical 304-tick horizon. -/
 theorem nvHTime : HTimeConcl params unitCodec env run gap deltaF :=
-  healing_hTimeClaim_of_steps params stepRL stepLease stepRaw gap deltaF nvClock
+  healing_hTimeClaim params gap deltaF nvClock
     unitCodec env run () healingTimePrem
 
-/-- S5 NV6 N2: obtain and destructure the complete applied HTimeConcl.
+/-- S5 NV7 N2: obtain and destructure the complete applied HTimeConcl.
 DC: SAME returned witness and both concrete NV4 time bounds. -/
 theorem nvHTimeDestructure : ∃ witness,
     HealingInput params unitCodec env run witness deltaF ∧
       tstar params witness ≤ 50 ∧ (50 : Time) < 303 := by
-  obtain ⟨w, hi, hlo, hhi⟩ := nvHTime stepRL stepLease stepRaw
+  obtain ⟨w, hi, hlo, hhi⟩ := nvHTime
   have hr : w.rStar = 3 :=
     healing_reset_rStar_unique params unitCodec env run hi.wit.toH0Reset nvH0Reset'
   rw [hr, action_three_value, gamma_value, params_delta] at hlo hhi
   exact ⟨w, hi, hlo, hhi⟩
 
-/-- S5 NV6 N2: name the witness returned by the applied HTimeConcl.
+/-- S5 NV7 N2: name the witness returned by the applied HTimeConcl.
 DC: SAME witness for every projected HealingInput field and bound. -/
 noncomputable def timeWitness : HealingWitness :=
-  Classical.choose (nvHTime stepRL stepLease stepRaw)
+  Classical.choose nvHTime
 
-/-- S5 NV6 N2: destructure HTimeConcl and every part of HealingInput.
+/-- S5 NV7 N2: destructure HTimeConcl and every part of HealingInput.
 DC: SAME returned witness; the fields are then available as named theorems. -/
 theorem nvHTimeInput : HealingInput params unitCodec env run
-    (timeWitness stepRL stepLease stepRaw) deltaF := by
-  obtain ⟨hi, _, _⟩ := Classical.choose_spec (nvHTime stepRL stepLease stepRaw)
+    timeWitness deltaF := by
+  obtain ⟨hi, _, _⟩ := Classical.choose_spec nvHTime
   rcases hi with ⟨healed, wit, ⟨h1, h2, ⟨select, sync, receipt⟩⟩,
     ⟨h2A, h2Prime, h3, h4, h5, h6⟩⟩
   exact ⟨healed, wit, ⟨h1, h2, ⟨select, sync, receipt⟩⟩,
     ⟨h2A, h2Prime, h3, h4, h5, h6⟩⟩
 
-/-- S5 NV6 N2: project HealingInput.healed on the returned witness.
-DC: SAME canonical run and exactly the three named step inputs. -/
+/-- S5 NV7 N2: project HealingInput.healed on the returned witness.
+DC: SAME canonical run and the closed HTime producer. -/
 theorem nvHTimeHealed :
-    Healed params unitCodec env run (tstar params (timeWitness stepRL stepLease stepRaw)) :=
-  (nvHTimeInput stepRL stepLease stepRaw).healed
+    Healed params unitCodec env run (tstar params timeWitness) :=
+  (nvHTimeInput).healed
 
-/-- S5 NV6 N2: project HealingInput.wit on the returned witness.
-DC: SAME canonical run and exactly the three named step inputs. -/
+/-- S5 NV7 N2: project HealingInput.wit on the returned witness.
+DC: SAME canonical run and the closed HTime producer. -/
 theorem nvHTimeWit :
-    H0 params unitCodec env run (timeWitness stepRL stepLease stepRaw) :=
-  (nvHTimeInput stepRL stepLease stepRaw).wit
+    H0 params unitCodec env run timeWitness :=
+  (nvHTimeInput).wit
 
-/-- S5 NV6 N2: project HealingInput.t.h1 on the returned witness.
-DC: SAME canonical run and exactly the three named step inputs. -/
+/-- S5 NV7 N2: project HealingInput.t.h1 on the returned witness.
+DC: SAME canonical run and the closed HTime producer. -/
 theorem nvHTimeTHigh :
-    THigh params unitCodec env run (timeWitness stepRL stepLease stepRaw) :=
-  (nvHTimeInput stepRL stepLease stepRaw).t.h1
+    THigh params unitCodec env run timeWitness :=
+  (nvHTimeInput).t.h1
 
-/-- S5 NV6 N2: project HealingInput.t.h2 on the returned witness.
-DC: SAME canonical run and exactly the three named step inputs. -/
+/-- S5 NV7 N2: project HealingInput.t.h2 on the returned witness.
+DC: SAME canonical run and the closed HTime producer. -/
 theorem nvHTimeTCarrier :
-    TCarrier params unitCodec env run (timeWitness stepRL stepLease stepRaw) :=
-  (nvHTimeInput stepRL stepLease stepRaw).t.h2
+    TCarrier params unitCodec env run timeWitness :=
+  (nvHTimeInput).t.h2
 
-/-- S5 NV6 N2: project HealingInput.t.rows.select on the returned witness.
-DC: SAME canonical run and exactly the three named step inputs. -/
+/-- S5 NV7 N2: project HealingInput.t.rows.select on the returned witness.
+DC: SAME canonical run and the closed HTime producer. -/
 theorem nvHTimeRowsSelect :
     TRowsSelect params unitCodec env run :=
-  (nvHTimeInput stepRL stepLease stepRaw).t.rows.select
+  (nvHTimeInput).t.rows.select
 
-/-- S5 NV6 N2: project HealingInput.t.rows.sync on the returned witness.
-DC: SAME canonical run and exactly the three named step inputs. -/
+/-- S5 NV7 N2: project HealingInput.t.rows.sync on the returned witness.
+DC: SAME canonical run and the closed HTime producer. -/
 theorem nvHTimeRowsSync :
     TRowsSync params unitCodec env run deltaF :=
-  (nvHTimeInput stepRL stepLease stepRaw).t.rows.sync
+  (nvHTimeInput).t.rows.sync
 
-/-- S5 NV6 N2: project HealingInput.t.rows.receipt on the returned witness.
-DC: SAME canonical run and exactly the three named step inputs. -/
+/-- S5 NV7 N2: project HealingInput.t.rows.receipt on the returned witness.
+DC: SAME canonical run and the closed HTime producer. -/
 theorem nvHTimeRowsReceipt :
     TRowsReceipt params unitCodec env run deltaF :=
-  (nvHTimeInput stepRL stepLease stepRaw).t.rows.receipt
+  (nvHTimeInput).t.rows.receipt
 
-/-- S5 NV6 N2: project HealingInput.ac.h2A on the returned witness.
-DC: SAME canonical run and exactly the three named step inputs. -/
+/-- S5 NV7 N2: project HealingInput.ac.h2A on the returned witness.
+DC: SAME canonical run and the closed HTime producer. -/
 theorem nvHTimeH2A :
-    H2A params unitCodec env run (timeWitness stepRL stepLease stepRaw) :=
-  (nvHTimeInput stepRL stepLease stepRaw).ac.h2A
+    H2A params unitCodec env run timeWitness :=
+  (nvHTimeInput).ac.h2A
 
-/-- S5 NV6 N2: project HealingInput.ac.h2' on the returned witness.
-DC: SAME canonical run and exactly the three named step inputs. -/
+/-- S5 NV7 N2: project HealingInput.ac.h2' on the returned witness.
+DC: SAME canonical run and the closed HTime producer. -/
 theorem nvHTimeH2Prime :
-    H2Prime params unitCodec env run (timeWitness stepRL stepLease stepRaw) :=
-  (nvHTimeInput stepRL stepLease stepRaw).ac.h2'
+    H2Prime params unitCodec env run timeWitness :=
+  (nvHTimeInput).ac.h2'
 
-/-- S5 NV6 N2: project HealingInput.ac.h3 on the returned witness.
-DC: SAME canonical run and exactly the three named step inputs. -/
+/-- S5 NV7 N2: project HealingInput.ac.h3 on the returned witness.
+DC: SAME canonical run and the closed HTime producer. -/
 theorem nvHTimeH3 :
-    H3 params unitCodec env run (timeWitness stepRL stepLease stepRaw) :=
-  (nvHTimeInput stepRL stepLease stepRaw).ac.h3
+    H3 params unitCodec env run timeWitness :=
+  (nvHTimeInput).ac.h3
 
-/-- S5 NV6 N2: project HealingInput.ac.h4 on the returned witness.
-DC: SAME canonical run and exactly the three named step inputs. -/
+/-- S5 NV7 N2: project HealingInput.ac.h4 on the returned witness.
+DC: SAME canonical run and the closed HTime producer. -/
 theorem nvHTimeH4 :
-    H4 params unitCodec env run (timeWitness stepRL stepLease stepRaw) :=
-  (nvHTimeInput stepRL stepLease stepRaw).ac.h4
+    H4 params unitCodec env run timeWitness :=
+  (nvHTimeInput).ac.h4
 
-/-- S5 NV6 N2: project HealingInput.ac.h5 on the returned witness.
-DC: SAME canonical run and exactly the three named step inputs. -/
+/-- S5 NV7 N2: project HealingInput.ac.h5 on the returned witness.
+DC: SAME canonical run and the closed HTime producer. -/
 theorem nvHTimeH5 :
-    H5RawTransfer params unitCodec env run (timeWitness stepRL stepLease stepRaw) :=
-  (nvHTimeInput stepRL stepLease stepRaw).ac.h5
+    H5RawTransfer params unitCodec env run timeWitness :=
+  (nvHTimeInput).ac.h5
 
-/-- S5 NV6 N2: project HealingInput.ac.h6 on the returned witness.
-DC: SAME canonical run and exactly the three named step inputs. -/
+/-- S5 NV7 N2: project HealingInput.ac.h6 on the returned witness.
+DC: SAME canonical run and the closed HTime producer. -/
 theorem nvHTimeH6 :
-    H6GateService params unitCodec env run (timeWitness stepRL stepLease stepRaw) :=
-  (nvHTimeInput stepRL stepLease stepRaw).ac.h6
+    H6GateService params unitCodec env run timeWitness :=
+  (nvHTimeInput).ac.h6
 
-/-- S5 NV6 N2/N3: freeze the returned witness's reset round to NV4's round 3.
+/-- S5 NV7 N2/N3: freeze the returned witness's reset round to NV4's round 3.
 DC: SAME first reset row, from the existing reset uniqueness producer. -/
-theorem nvHTimeResetRound : (timeWitness stepRL stepLease stepRaw).rStar = 3 :=
+theorem nvHTimeResetRound : timeWitness.rStar = 3 :=
   healing_reset_rStar_unique params unitCodec env run
-    (nvHTimeWit stepRL stepLease stepRaw).toH0Reset nvH0Reset'
+    (nvHTimeWit).toH0Reset nvH0Reset'
 
-/-- S5 NV6 N2/N3: project both bounds and use the concrete NV4 budget.
+/-- S5 NV7 N2/N3: project both bounds and use the concrete NV4 budget.
 DC: SAME returned witness; its HTime budget is 50 < 303. -/
 theorem nvHTimeBounds :
-    tstar params (timeWitness stepRL stepLease stepRaw) ≤ 50 ∧ (50 : Time) < 303 := by
-  obtain ⟨_, hlo, hhi⟩ := Classical.choose_spec (nvHTime stepRL stepLease stepRaw)
-  have hr := nvHTimeResetRound stepRL stepLease stepRaw
-  change tstar params (timeWitness stepRL stepLease stepRaw) ≤
-    params.actionTime (timeWitness stepRL stepLease stepRaw).rStar +
+    tstar params timeWitness ≤ 50 ∧ (50 : Time) < 303 := by
+  obtain ⟨_, hlo, hhi⟩ := Classical.choose_spec nvHTime
+  have hr := nvHTimeResetRound
+  change tstar params timeWitness ≤
+    params.actionTime timeWitness.rStar +
       Γ params gap + 4 * params.Δ at hlo
-  change params.actionTime (timeWitness stepRL stepLease stepRaw).rStar +
+  change params.actionTime timeWitness.rStar +
     Γ params gap + 4 * params.Δ < env.t_GST + B_HF params deltaF gap at hhi
   rw [hr, action_three_value, gamma_value, params_delta] at hlo hhi
   exact ⟨hlo, hhi⟩
 
-/-- S5 NV6 N2/N3: the returned witness starts at the NV5 time 50.
+/-- S5 NV7 N2/N3: the returned witness starts at the NV5 time 50.
 DC: SAME first honest proposal lower bound and the returned HTime bound. -/
-theorem nvHTimeTstar : tstar params (timeWitness stepRL stepLease stepRaw) = 50 := by
-  have h0 := nvHTimeWit stepRL stepLease stepRaw
-  have hs : (timeWitness stepRL stepLease stepRaw).sStar = 9 := by
-    rw [h0.label, nvHTimeResetRound stepRL stepLease stepRaw]
+theorem nvHTimeTstar : tstar params timeWitness = 50 := by
+  have h0 := nvHTimeWit
+  have hs : timeWitness.sStar = 9 := by
+    rw [h0.label, nvHTimeResetRound]
     rfl
   have hu := h0.proposal_lower
   rw [hs] at hu
-  change 11 ≤ (timeWitness stepRL stepLease stepRaw).u at hu
-  have hc : (11 : Int) ≤ (timeWitness stepRL stepLease stepRaw).u := by exact_mod_cast hu
-  have hlo : (50 : Time) ≤ tstar params (timeWitness stepRL stepLease stepRaw) := by
-    change 50 ≤ 4 * 1 * ((timeWitness stepRL stepLease stepRaw).u : Int) + 6 * 1
+  change 11 ≤ timeWitness.u at hu
+  have hc : (11 : Int) ≤ timeWitness.u := by exact_mod_cast hu
+  have hlo : (50 : Time) ≤ tstar params timeWitness := by
+    change 50 ≤ 4 * 1 * (timeWitness.u : Int) + 6 * 1
     omega
-  exact le_antisymm (nvHTimeBounds stepRL stepLease stepRaw).1 hlo
+  exact le_antisymm (nvHTimeBounds).1 hlo
 
-/-- S5 NV6 N2/N3: CStar of the returned witness is the real reset source.
+/-- S5 NV7 N2/N3: CStar of the returned witness is the real reset source.
 DC: SAME NV4 source read at the unique reset action. -/
 theorem nvHTimeCStar :
-    (timeWitness stepRL stepLease stepRaw).CStar = w'.CStar := by
-  have h0 := nvHTimeWit stepRL stepLease stepRaw
+    timeWitness.CStar = w'.CStar := by
+  have h0 := nvHTimeWit
   obtain ⟨j, y, a, C, _, _, hsrc, he, _⟩ := h0.fresh
   have hy : y = 0 := Subsingleton.elim _ _
   subst y
-  rw [nvHTimeResetRound stepRL stepLease stepRaw, source_read 3 (by decide), nvSource]
+  rw [nvHTimeResetRound, source_read 3 (by decide), nvSource]
     at hsrc
   have hc : resetSource = C := Option.some.inj (Option.some.inj hsrc)
   rw [← hc] at he
   exact he.symm
 
-/-- S5 NV6 N2/N3: CStar of the returned witness is not genesis.
+/-- S5 NV7 N2/N3: CStar of the returned witness is not genesis.
 DC: SAME real slot-9 source; use the closed NV6 probe. -/
-theorem nvHTimeCStarNonGenesis : (timeWitness stepRL stepLease stepRaw).CStar ≠ .genesis := by
-  rw [nvHTimeCStar stepRL stepLease stepRaw]
+theorem nvHTimeCStarNonGenesis : timeWitness.CStar ≠ .genesis := by
+  rw [nvHTimeCStar]
   exact nvCStarNonGenesis
 
-/-- S5 NV6 N2/N3: QStar of the returned witness is not genesis.
+/-- S5 NV7 N2/N3: QStar of the returned witness is not genesis.
 DC: SAME full H0 source prefix and real non-genesis CStar. -/
-theorem nvHTimeQStarNonGenesis : (timeWitness stepRL stepLease stepRaw).QStar ≠ .genesis := by
+theorem nvHTimeQStarNonGenesis : timeWitness.QStar ≠ .genesis := by
   intro he
-  have hp := (nvHTimeWit stepRL stepLease stepRaw).source_prefix
+  have hp := (nvHTimeWit).source_prefix
   rw [he] at hp
-  apply nvHTimeCStarNonGenesis stepRL stepLease stepRaw
+  apply nvHTimeCStarNonGenesis
   simpa only [Block.Preceq, Block.preceq, decide_eq_true_eq] using hp
 
-/-- S5 NV6 N2/N3: the returned healing time is strictly after GST.
+/-- S5 NV7 N2/N3: the returned healing time is strictly after GST.
 DC: SAME NV5 time, 0 < 50. -/
-theorem nvHTimeStrictGST : env.t_GST < tstar params (timeWitness stepRL stepLease stepRaw) := by
-  rw [env_gst, nvHTimeTstar stepRL stepLease stepRaw]
+theorem nvHTimeStrictGST : env.t_GST < tstar params timeWitness := by
+  rw [env_gst, nvHTimeTstar]
   decide
 
-/-- S5 NV6 N2/N3: project the returned source prefix.
+/-- S5 NV7 N2/N3: project the returned source prefix.
 DC: SAME CStar and QStar as every HealingInput projection. -/
-theorem nvHTimeSourcePrefix : Block.Preceq (timeWitness stepRL stepLease stepRaw).CStar
-    (timeWitness stepRL stepLease stepRaw).QStar :=
-  (nvHTimeWit stepRL stepLease stepRaw).source_prefix
+theorem nvHTimeSourcePrefix : Block.Preceq timeWitness.CStar
+    timeWitness.QStar :=
+  (nvHTimeWit).source_prefix
 
 end HTime
 
