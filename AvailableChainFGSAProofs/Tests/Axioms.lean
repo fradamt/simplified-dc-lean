@@ -139,6 +139,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PeriodicStageBounds -- sha
 public import AvailableChainFGSAProofs.Proofs.Clean.Chain -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.State -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (axiom audit commands)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetInvariant -- shake: keep (post-reset design audit)
 
 #print axioms AvailableChain.FGSA.Run.kmid_honestSeats_mem
 #print axioms AvailableChain.FGSA.Run.kmid_honest_quorum
@@ -1530,3 +1531,16 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.healing_rise_one_accept
 #print axioms AvailableChain.FGSA.Run.healing_rise_one_rise
 #print axioms AvailableChain.FGSA.Run.healing_rise_one_of_receipt
+-- POSTRESET-DESIGN: structure assembly and carrier definitions.
+#print axioms AvailableChain.FGSA.Run.PostResetStart
+#print axioms AvailableChain.FGSA.Run.PostResetStart.toH0
+#print axioms AvailableChain.FGSA.Run.ResetTransferCore
+#print axioms AvailableChain.FGSA.Run.ProtectedBody
+#print axioms AvailableChain.FGSA.Run.PostResetProtectedKept
+#print axioms AvailableChain.FGSA.Run.PostResetHighCompatible
+#print axioms AvailableChain.FGSA.Run.PostResetResetCompatible
+#print axioms AvailableChain.FGSA.Run.PostResetLeaseSafe
+#print axioms AvailableChain.FGSA.Run.PostResetFProv
+#print axioms AvailableChain.FGSA.Run.PostResetRawTransfer
+#print axioms AvailableChain.FGSA.Run.PostResetService
+#print axioms AvailableChain.FGSA.Run.PostResetInv
