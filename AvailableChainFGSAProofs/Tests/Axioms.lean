@@ -143,6 +143,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PeriodicStageBounds -- sha
 public import AvailableChainFGSAProofs.Proofs.Clean.Chain -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.State -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (axiom audit commands)
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTail -- shake: keep (HG.3--HG.5 support audit)
 
 #print axioms AvailableChain.FGSA.Run.kmid_honestSeats_mem
 #print axioms AvailableChain.FGSA.Run.kmid_honest_quorum
@@ -1571,3 +1572,20 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 -- H-EXPORT-2: unconditional Healing claims.
 #print axioms AvailableChain.FGSA.Run.fgsa_renewedPromotionClaim
 #print axioms AvailableChain.FGSA.Run.fgsa_rowPermissionClaim
+
+-- S5 HG.3--HG.5: checked interfaces and search support only.
+#print axioms AvailableChain.FGSA.Run.strongServed_iff
+#print axioms AvailableChain.FGSA.Run.StrongServed.toServedFrontier
+#print axioms AvailableChain.FGSA.Run.interruptedRepairBudget_gap
+#print axioms AvailableChain.FGSA.Run.interruptedRepairBudget_topJ
+#print axioms AvailableChain.FGSA.Run.interruptedRepairBudget_contest
+#print axioms AvailableChain.FGSA.Run.firstEffectiveBy_iff
+#print axioms AvailableChain.FGSA.Run.frontierRiseBy_iff
+#print axioms AvailableChain.FGSA.Run.firstHeightRowBy_iff
+#print axioms AvailableChain.FGSA.Run.frontierSearch_event_time_le
+#print axioms AvailableChain.FGSA.Run.frontierSearch_first_effective_split
+#print axioms AvailableChain.FGSA.Run.frontierSearch_first_rise
+#print axioms AvailableChain.FGSA.Run.frontierSearch_first_row
+#print axioms AvailableChain.FGSA.Run.frontierSearch_first_row_unique
+#print axioms AvailableChain.FGSA.Run.frontierSearch_skipped_row
+#print axioms AvailableChain.FGSA.Run.healing_frontierTail_row

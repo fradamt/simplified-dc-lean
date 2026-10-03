@@ -202,3 +202,6 @@ public import AvailableChainFGSAProofs.Proofs.Finality.Local
 public import AvailableChainFGSAProofs.Proofs.Assembly.Healing
 public import AvailableChainFGSAProofs.Proofs.Finality.Proposal
 public import AvailableChainFGSAProofs.Proofs.Finality.Above
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchDefs
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchStop
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTail
