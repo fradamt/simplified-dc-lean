@@ -2095,6 +2095,12 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.PostResetRawTransfer',
     'AvailableChain.FGSA.Run.PostResetService',
     'AvailableChain.FGSA.Run.PostResetInv',
+    # J2-COMPAT: --expect DATA only.
+    'AvailableChain.FGSA.Run.postReset_high_compatible_all',
+    'AvailableChain.FGSA.Run.postReset_high_compatible_succ',
+    'AvailableChain.FGSA.Run.postReset_reset_compatible_all',
+    'AvailableChain.FGSA.Run.postReset_reset_compatible_succ',
+    'AvailableChain.FGSA.Run.postReset_descent_kept',
 )
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
          'Packages.Safety', 'OutputReads', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',

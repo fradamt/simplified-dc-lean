@@ -199,3 +199,4 @@ public import AvailableChainFGSAProofs.Proofs.Finality.Local
 public import AvailableChainFGSAProofs.Proofs.Finality.Proposal
 public import AvailableChainFGSAProofs.Proofs.Finality.Above
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetInvariant
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat

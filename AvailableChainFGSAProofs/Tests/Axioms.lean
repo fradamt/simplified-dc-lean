@@ -140,6 +140,7 @@ public import AvailableChainFGSAProofs.Proofs.Clean.Chain -- shake: keep (axiom 
 public import AvailableChainFGSAProofs.Proofs.Clean.State -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetInvariant -- shake: keep (post-reset design audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat -- shake: keep (J2 axiom audit)
 
 #print axioms AvailableChain.FGSA.Run.kmid_honestSeats_mem
 #print axioms AvailableChain.FGSA.Run.kmid_honest_quorum
@@ -1553,3 +1554,10 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetInvariant -- shak
 #print axioms AvailableChain.FGSA.Run.PostResetRawTransfer
 #print axioms AvailableChain.FGSA.Run.PostResetService
 #print axioms AvailableChain.FGSA.Run.PostResetInv
+
+-- J2-COMPAT: compatibility fields and restricted J3/H.14 descent.
+#print axioms AvailableChain.FGSA.Run.postReset_high_compatible_all
+#print axioms AvailableChain.FGSA.Run.postReset_high_compatible_succ
+#print axioms AvailableChain.FGSA.Run.postReset_reset_compatible_all
+#print axioms AvailableChain.FGSA.Run.postReset_reset_compatible_succ
+#print axioms AvailableChain.FGSA.Run.postReset_descent_kept
