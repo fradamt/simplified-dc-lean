@@ -2141,6 +2141,11 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.healing_tDel',
     'AvailableChain.FGSA.Run.healing_tDelReset_core',
     'AvailableChain.FGSA.Run.healing_tDelReset',
+    # J1-RESET: --expect DATA additions only.
+    'AvailableChain.FGSA.Run.healing_low_finality_at_reset_reset',
+    'AvailableChain.FGSA.Run.healing_resetTransferCore',
+    'AvailableChain.FGSA.Run.healing_tDelReset_of_reset',
+    'AvailableChain.FGSA.Run.healing_low_finality_after_reset',
 )
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
          'Packages.Safety', 'OutputReads', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',

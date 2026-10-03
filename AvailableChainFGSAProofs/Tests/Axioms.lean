@@ -147,6 +147,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetInvariant -- shak
 public import AvailableChainFGSAProofs.Proofs.Healing.SourceTiming -- shake: keep (H12 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.Delivery -- shake: keep (TDel axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.DeliveryReset -- shake: keep (reset core axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetTransfer -- shake: keep (J1 reset axiom audit)
 
 #print axioms AvailableChain.FGSA.Run.kmid_honestSeats_mem
 #print axioms AvailableChain.FGSA.Run.kmid_honest_quorum
@@ -1609,3 +1610,9 @@ public import AvailableChainFGSAProofs.Proofs.Healing.DeliveryReset -- shake: ke
 -- H-EXPORT-2: unconditional Healing claims.
 #print axioms AvailableChain.FGSA.Run.fgsa_renewedPromotionClaim
 #print axioms AvailableChain.FGSA.Run.fgsa_rowPermissionClaim
+
+-- J1-RESET: pre-action floor, own-tick carrier, and closed reset delivery.
+#print axioms AvailableChain.FGSA.Run.healing_low_finality_at_reset_reset
+#print axioms AvailableChain.FGSA.Run.healing_resetTransferCore
+#print axioms AvailableChain.FGSA.Run.healing_tDelReset_of_reset
+#print axioms AvailableChain.FGSA.Run.healing_low_finality_after_reset
