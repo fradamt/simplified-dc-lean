@@ -219,3 +219,4 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostReset
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLeaseStep
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetHigh
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetOpening

@@ -1726,3 +1726,26 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw -- shake: kee
 #print axioms AvailableChain.FGSA.Run.postReset_selected_reset_compatible
 -- J5-RAW: the reset-only all-cut H5 projection.
 #print axioms AvailableChain.FGSA.Run.postReset_h5RawTransfer_body
+
+-- J6-3: separate opening predicate and both cut producers.
+#print axioms AvailableChain.FGSA.Run.PostResetOpeningDomain
+#print axioms AvailableChain.FGSA.Run.PostResetOpeningDomain_def
+#print axioms AvailableChain.FGSA.Run.healing_postReset_opening_stored
+#print axioms AvailableChain.FGSA.Run.healing_postReset_opening_clock_stored
+#print axioms AvailableChain.FGSA.Run.healing_postReset_source_parent
+#print axioms AvailableChain.FGSA.Run.healing_postReset_reset_parent
+#print axioms AvailableChain.FGSA.Run.healing_postReset_gate_opening_domain
+#print axioms AvailableChain.FGSA.Run.healing_postReset_opening_finality
+#print axioms AvailableChain.FGSA.Run.healing_postReset_opening_target_floor
+#print axioms AvailableChain.FGSA.Run.healing_postReset_tick_lt_cut
+#print axioms AvailableChain.FGSA.Run.healing_postReset_time_cut_le_tick
+#print axioms AvailableChain.FGSA.Run.healing_postReset_gate_guard_at_cut
+#print axioms AvailableChain.FGSA.Run.healing_postReset_gate_finality
+#print axioms AvailableChain.FGSA.Run.healing_postReset_gate_old_output
+#print axioms AvailableChain.FGSA.Run.healing_postReset_gate_geometry
+#print axioms AvailableChain.FGSA.Run.healing_postReset_service_step
+#print axioms AvailableChain.FGSA.Run.healing_postReset_gate_participation
+#print axioms AvailableChain.FGSA.Run.healing_postReset_gate_raw
+#print axioms AvailableChain.FGSA.Run.healing_postReset_opening_source_prefix
+#print axioms AvailableChain.FGSA.Run.healing_postReset_openingDomain_new_tick
+#print axioms AvailableChain.FGSA.Run.healing_postReset_openingDomain_step
