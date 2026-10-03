@@ -214,5 +214,137 @@ structure PostResetInv (w : HealingWitness) (i : Nat) : Prop where
   raw_transfer : PostResetRawTransfer p c E rho w i
   service : PostResetService p c E rho w i
 
+-- equation export required by BUILD §7.2 B3a (body not exposed across modules)
+theorem ResetTransferCore_def (w : HealingWitness) :
+    ResetTransferCore p c E rho w = (
+    SA.releaseTime p.toParams w.sStar ≤ rho.horizon →
+    ∀ j x, x ∈ rho.honest →
+    rho.events[j]? = some (.tick x (SA.releaseTime p.toParams w.sStar)) →
+    (∃ C ∈ (storeAt p c E rho j x).fg.TF, eraseFG C = w.CStar) ∧
+    ∀ (X : Finset (FGBlock (Fin p.n))) C,
+    X ⊆ (storeAt p c E rho j x).fg.TF → C ∈ X → eraseFG C = w.CStar →
+    (∀ K s, SourceBefore p c E rho j K s → high p w K → K ∈ X) →
+    (∀ K s, SourceBefore p c E rho j K s → high p w K →
+      Block.Compatible (eraseFG K) w.CStar) →
+    (∀ K K' s s', SourceBefore p c E rho j K s → SourceBefore p c E rho j K' s' →
+      high p w K → high p w K' → Block.Compatible (eraseFG K) (eraseFG K')) →
+    (heightView p C).h = w.M + 1 ∧ (R_at p c E rho j x).H = w.M + 1 ∧
+      (R_at p c E rho j x).lo ≤ (heightView p C).h ∧
+      ((∀ A, FGBlock.Preceq A C → A ∈ X) →
+        C ∈ D_at p c E rho j x X ∧ Kept p c E rho j x X C)) := by rfl
+
+-- equation export required by BUILD §7.2 B3a (body not exposed across modules)
+theorem ProtectedBody_def (w : HealingWitness) (B : FGBlock (Fin p.n)) (s : Slot) :
+    ProtectedBody p c E rho w B s = (
+    (s = w.sStar ∧ Block.Preceq (eraseFG B) w.CStar) ∨
+    (w.sStar ≤ s ∧ ∃ k y, y ∈ rho.honest ∧ IsGateTick p c rho k y s ∧
+      gatePassedAt p c E rho k ∧ gateResultAt p c E rho k = some (some (eraseFG B)))) := by rfl
+
+-- equation export required by BUILD §7.2 B3a (body not exposed across modules)
+theorem PostResetProtectedKept_def (w : HealingWitness) (i : Nat) :
+    PostResetProtectedKept p c E rho w i = (
+    ∀ j, j < i → ∀ x (X : Finset (FGBlock (Fin p.n))) C,
+    x ∈ rho.honest → X ⊆ (storeAt p c E rho j x).fg.TF →
+    (∃ t, rho.events[j]? = some (.tick x t) ∧ SA.releaseTime p.toParams w.sStar ≤ t) →
+    C ∈ X → eraseFG C = w.CStar →
+    (∀ K s, SourceBefore p c E rho j K s → high p w K → K ∈ X) →
+    (∀ K s, SourceBefore p c E rho j K s → high p w K →
+      Block.Compatible (eraseFG K) w.CStar) →
+    (∀ K K' s s', SourceBefore p c E rho j K s → SourceBefore p c E rho j K' s' →
+      high p w K → high p w K' → Block.Compatible (eraseFG K) (eraseFG K')) →
+    let st := storeAt p c E rho j x
+    let R := R_at p c E rho j x
+    w.M + 1 ≤ st.fg.h_max ∧ (R.contest = true → st.fg.h_max = w.M + 1) ∧
+    R.lo ≤ max (w.M + 1) (st.fg.h_max - 1) ∧
+    (∀ B ∈ [R.Z, st.fg.F], FGBlock.Preceq B C ∨
+      ∃ K s, SourceBefore p c E rho j K s ∧ high p w K ∧ FGBlock.Preceq B K) ∧
+    (∃ B ∈ X, (heightView p B).h = max (w.M + 1) (st.fg.h_max - 1)) ∧
+    (∀ B s, ProtectedBody p c E rho w B s →
+      (∀ A, FGBlock.Preceq A B → A ∈ X) → Block.Compatible (eraseFG B) w.CStar →
+      (∀ K s', SourceBefore p c E rho j K s' → high p w K →
+        Block.Compatible (eraseFG B) (eraseFG K)) → Kept p c E rho j x X B)) := by rfl
+
+-- equation export required by BUILD §7.2 B3a (body not exposed across modules)
+theorem PostResetHighCompatible_def (w : HealingWitness) (i : Nat) :
+    PostResetHighCompatible p c E rho w i = (
+    ∀ K K' s s', SourceBefore p c E rho i K s → SourceBefore p c E rho i K' s' →
+      high p w K → high p w K' → Block.Compatible (eraseFG K) (eraseFG K')) := by rfl
+
+-- equation export required by BUILD §7.2 B3a (body not exposed across modules)
+theorem PostResetResetCompatible_def (w : HealingWitness) (i : Nat) :
+    PostResetResetCompatible p c E rho w i = (
+    ∀ K s, SourceBefore p c E rho i K s → high p w K →
+      Block.Compatible w.CStar (eraseFG K)) := by rfl
+
+-- equation export required by BUILD §7.2 B3a (body not exposed across modules)
+theorem PostResetLeaseSafe_def (w : HealingWitness) (i : Nat) :
+    PostResetLeaseSafe p c E rho w i = (
+    ∀ k, k < i → ∀ y s B g C, y ∈ rho.honest → IsGateTick p c rho k y s →
+    gatePassedAt p c E rho k → gateResultAt p c E rho k = some (some C) →
+    Block.Preceq w.CStar B → B ≠ w.CStar →
+    let pre := FGSA.clockPre p (storeAt p c E rho k y) (SA.gateTime p.toParams s)
+    B ∈ (FGSA.actView pre).blocks → B ≠ .genesis → Block.Preceq B C →
+    g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.toParams.engine p.n
+      (FGSA.actView pre) s B →
+    (∀ l, l < i → ∀ x j D, x ∈ rho.honest → s + 1 ≤ j →
+      IsGateTick p c rho l x j → gateResultAt p c E rho l = some (some D) →
+      Block.Preceq B D ∨ Block.Preceq B (F_at p c E rho l x)) ∧
+    (∀ x j H, x ∈ rho.honest → s + 1 ≤ j →
+      timeIdx rho (SA.voteTime p.toParams j) ≤ i → headAtLabel p c E rho x j = some H →
+      Block.Preceq B H) ∧
+    (∀ v Q, s + 2 ≤ v → timeIdx rho (SA.proposalTime p.toParams v) ≤ i →
+      HonestProposal E rho (fgsaInterface p c) v Q → Block.Preceq B Q.parent) ∧
+    (∀ j x, j < i → x ∈ rho.honest → SA.gateTime p.toParams s + 4 * p.Δ ≤ rho.horizon →
+      HealSuffix p c rho (SA.gateTime p.toParams s + 4 * p.Δ) j →
+      Block.Preceq B (S_at p c E rho j x))) := by rfl
+
+-- equation export required by BUILD §7.2 B3a (body not exposed across modules)
+theorem PostResetFProv_def (w : HealingWitness) (i : Nat) :
+    PostResetFProv p c E rho w i = (
+    ∀ j, j < i → ∀ x,
+    x ∈ rho.honest → afterTicksIdx rho (p.actionTime w.rStar) ≤ j →
+    let t := (storeAt p c E rho j x).base.now
+    (Block.Preceq (F_at p c E rho j x) w.CStar ∨
+      ∃ K s, SourceBefore p c E rho j K s ∧ high p w K ∧
+        SA.gateTime p.toParams s + P p ≤ t ∧
+        Block.Preceq (F_at p c E rho j x) (eraseFG K)) ∧
+    (high p w (storeAt p c E rho j x).fg.J →
+      ∃ K s, SourceBefore p c E rho j K s ∧ high p w K ∧
+        SA.gateTime p.toParams s ≤ t ∧
+        Block.Preceq (J_at p c E rho j x) (eraseFG K))) := by rfl
+
+-- equation export required by BUILD §7.2 B3a (body not exposed across modules)
+theorem PostResetRawTransfer_def (w : HealingWitness) (i : Nat) :
+    PostResetRawTransfer p c E rho w i = (
+    ∀ k, k < i → ∀ y j C, y ∈ rho.honest → w.sStar ≤ j →
+    IsGateTick p c rho k y j → gateResult p c E rho y j = some (some C) →
+    (∀ x nd, x ∈ rho.honest → timeIdx rho (SA.releaseTime p.toParams j) ≤ i →
+      postClock E rho x (SA.releaseTime p.toParams j) = some nd →
+      ∀ lease ∈ nd.st.base.obligations, nd.st.base.now < lease.2.2 → Block.Compatible lease.1 C) ∧
+    (∀ x s H, x ∈ rho.honest → j + 1 ≤ s →
+      timeIdx rho (SA.voteTime p.toParams s) ≤ i → headAtLabel p c E rho x s = some H →
+      Block.Preceq C H) ∧
+    (∀ v Q, j + 2 ≤ v → timeIdx rho (SA.proposalTime p.toParams v) ≤ i →
+      HonestProposal E rho (fgsaInterface p c) v Q → Block.Preceq C Q.parent) ∧
+    (∀ a x, a < i → x ∈ rho.honest → SA.gateTime p.toParams j + 4 * p.Δ ≤ rho.horizon →
+      HealSuffix p c rho (SA.gateTime p.toParams j + 4 * p.Δ) a →
+      Block.Preceq C (S_at p c E rho a x))) := by rfl
+
+-- equation export required by BUILD §7.2 B3a (body not exposed across modules)
+theorem PostResetService_def (w : HealingWitness) (i : Nat) :
+    PostResetService p c E rho w i = (
+    ∀ v Q, HonestProposal E rho (fgsaInterface p c) v Q → w.sStar + 2 ≤ v →
+    timeIdx rho (SA.proposalTime p.toParams v) ≤ i →
+    (SA.voteTime p.toParams v ≤ rho.horizon → timeIdx rho (SA.voteTime p.toParams v) ≤ i →
+      ∀ x ∈ rho.honest, headAtLabel p c E rho x v = some Q) ∧
+    (SA.gateTime p.toParams v ≤ rho.horizon →
+      afterTicksIdx rho (SA.gateTime p.toParams v) ≤ i → ∀ x ∈ rho.honest,
+      gateResult p c E rho x v = some (some Q) ∧
+      (∃ j, j < i ∧ IsGateTick p c rho j x v ∧ gatePassedAt p c E rho j) ∧
+      (∃ nd, postClock E rho x (SA.gateTime p.toParams v) = some nd ∧
+        Q ∈ (fastWriteAt nd.st v).getD []) ∧
+      (fgsaInterface p c).stable (afterTicks E rho (SA.gateTime p.toParams v) x) = Q ∧
+      (∀ r, v = r * p.R → actionSource p c E rho x r = some (some Q)))) := by rfl
+
 end AvailableChain.FGSA.Run
 end

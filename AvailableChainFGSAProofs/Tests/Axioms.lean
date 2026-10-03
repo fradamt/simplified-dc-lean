@@ -1534,6 +1534,15 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetInvariant -- shak
 -- POSTRESET-DESIGN: structure assembly and carrier definitions.
 #print axioms AvailableChain.FGSA.Run.PostResetStart
 #print axioms AvailableChain.FGSA.Run.PostResetStart.toH0
+#print axioms AvailableChain.FGSA.Run.ResetTransferCore_def
+#print axioms AvailableChain.FGSA.Run.ProtectedBody_def
+#print axioms AvailableChain.FGSA.Run.PostResetProtectedKept_def
+#print axioms AvailableChain.FGSA.Run.PostResetHighCompatible_def
+#print axioms AvailableChain.FGSA.Run.PostResetResetCompatible_def
+#print axioms AvailableChain.FGSA.Run.PostResetLeaseSafe_def
+#print axioms AvailableChain.FGSA.Run.PostResetFProv_def
+#print axioms AvailableChain.FGSA.Run.PostResetRawTransfer_def
+#print axioms AvailableChain.FGSA.Run.PostResetService_def
 #print axioms AvailableChain.FGSA.Run.ResetTransferCore
 #print axioms AvailableChain.FGSA.Run.ProtectedBody
 #print axioms AvailableChain.FGSA.Run.PostResetProtectedKept
