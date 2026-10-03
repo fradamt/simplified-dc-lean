@@ -1644,3 +1644,5 @@ public import AvailableChainFGSAProofs.Proofs.Healing.AttemptRows -- shake: keep
 #print axioms AvailableChain.FGSA.Run.reset_old_row_before_cut
 #print axioms AvailableChain.FGSA.Run.reset_old_height_sup_le
 #print axioms AvailableChain.FGSA.Run.reset_mu_le_iff
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionTerminal -- shake: keep (terminal axiom audit)
+#print axioms AvailableChain.FGSA.Run.healing_renewedPromotion_terminal
