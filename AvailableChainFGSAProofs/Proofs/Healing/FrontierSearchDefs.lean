@@ -59,6 +59,17 @@ def FrontierSearchStart (i : Nat) (ev : V2.Event V (Obj p)) (m : Nat)
   frontierAtIdx p c E rho (i + 1) = m ∧ 1 ≤ m ∧
   AttemptPhaseAt p c E rho (i + 1) m kind
 
+/-- Blueprint 21 HG.3. DC: SAME the public conclusion interface. -/
+theorem frontierSearchStart_iff (i : Nat) (ev : V2.Event V (Obj p)) (m : Nat)
+    (kind : PhaseKind) : FrontierSearchStart p c E rho i ev m kind ↔
+  rho.events[i]? = some ev ∧ E.t_GST ≤ ev.time ∧
+  (EffectiveEvent p c E rho i ∨
+    ∃ rG, E.t_GST ≤ p.actionTime rG ∧
+      (∀ r, E.t_GST ≤ p.actionTime r → rG ≤ r) ∧
+      ev.time = p.actionTime (rG + 2) ∧ timeIdx rho ev.time = i + 1) ∧
+  frontierAtIdx p c E rho (i + 1) = m ∧ 1 ≤ m ∧
+  AttemptPhaseAt p c E rho (i + 1) m kind := Iff.rfl
+
 /-- Blueprint 21 HG.3:1639--1696, H.6/H.6-S.
 DC: SAME the one-lease arm retains its synchronous first-HEAD window. -/
 def FrontierRepairAllowance (G ρbar u : Time) : Prop :=
@@ -67,6 +78,93 @@ def FrontierRepairAllowance (G ρbar u : Time) : Prop :=
       u ≤ SA.voteTime p.toParams b ∧
       (∀ s, u ≤ SA.voteTime p.toParams s → b ≤ s) ∧
       p.k ≤ b + 1 ∧ E.t_GST ≤ SA.voteTime p.toParams (b + 1 - p.k))
+
+/-- Blueprint 21 H.6/H.6-S; HG.3 plan Q2.
+DC: SAME the full first-label inputs of both frozen TRepair arms. -/
+inductive FrontierRepairStart (G u : Time) : Time → Prop where
+  | two (β : Slot) (after : u < SA.proposalTime p.toParams β)
+      (least : ∀ b, u < SA.proposalTime p.toParams b → β ≤ b) :
+      FrontierRepairStart G u (ρΓ p G)
+  | one (b : Slot) (after : u ≤ SA.voteTime p.toParams b)
+      (least : ∀ i, u ≤ SA.voteTime p.toParams i → b ≤ i)
+      (window : p.k ≤ b + 1)
+      (sync : E.t_GST ≤ SA.voteTime p.toParams (b + 1 - p.k)) :
+      FrontierRepairStart G u (ρ₁ p G)
+
+/-- Blueprint 21 H.10/HG.3; HG.3 plan Q1.
+DC: SAME the first effective event changes the phase at the same frontier. -/
+def FirstPhaseStopBy (i m : Nat) (deadline : Time) : Prop :=
+  ∃ j ev, i < j ∧ rho.events[j]? = some ev ∧ ev.time ≤ deadline ∧
+    EffectiveEvent p c E rho j ∧ frontierAtIdx p c E rho (j + 1) = m ∧
+    (∀ k, i < k → k < j → ¬ EffectiveEvent p c E rho k)
+
+/-- Blueprint 21 HG.3. DC: SAME the public conclusion interface. -/
+theorem firstPhaseStopBy_iff (i m : Nat) (deadline : Time) :
+    FirstPhaseStopBy p c E rho i m deadline ↔
+  ∃ j ev, i < j ∧ rho.events[j]? = some ev ∧ ev.time ≤ deadline ∧
+    EffectiveEvent p c E rho j ∧ frontierAtIdx p c E rho (j + 1) = m ∧
+    (∀ k, i < k → k < j → ¬ EffectiveEvent p c E rho k) := Iff.rfl
+
+/-- Blueprint 21 H.10/HG.3; HG.3 plan Q1.
+DC: SAME a rise is the first effective event of the interrupted phase. -/
+def FirstRiseStopBy (i m : Nat) (deadline : Time) : Prop :=
+  ∃ j ev, i < j ∧ rho.events[j]? = some ev ∧ ev.time ≤ deadline ∧
+    EffectiveEvent p c E rho j ∧ m < frontierAtIdx p c E rho (j + 1) ∧
+    (∀ k, i < k → k < j → ¬ EffectiveEvent p c E rho k)
+
+/-- Blueprint 21 HG.3. DC: SAME the public conclusion interface. -/
+theorem firstRiseStopBy_iff (i m : Nat) (deadline : Time) : FirstRiseStopBy p c E rho i m deadline ↔
+  ∃ j ev, i < j ∧ rho.events[j]? = some ev ∧ ev.time ≤ deadline ∧
+    EffectiveEvent p c E rho j ∧ m < frontierAtIdx p c E rho (j + 1) ∧
+    (∀ k, i < k → k < j → ¬ EffectiveEvent p c E rho k) := Iff.rfl
+
+/-- Blueprint 21 HG.3; HG.3 plan Q1.
+DC: SAME the two first-stop arms and a complete saved seed. -/
+def FrontierHG3Result (i m : Nat) (start deadline : Time) : Prop :=
+  FirstPhaseStopBy p c E rho i m deadline ∨
+  FirstRiseStopBy p c E rho i m deadline ∨
+  ∃ t, start ≤ t ∧ t ≤ deadline ∧ StrongServed p c E rho m t
+
+/-- Blueprint 21 HG.3. DC: SAME the public conclusion interface. -/
+theorem frontierHG3Result_iff (i m : Nat) (start deadline : Time) :
+    FrontierHG3Result p c E rho i m start deadline ↔
+  FirstPhaseStopBy p c E rho i m deadline ∨
+  FirstRiseStopBy p c E rho i m deadline ∨
+  ∃ t, start ≤ t ∧ t ≤ deadline ∧ StrongServed p c E rho m t := Iff.rfl
+
+/-- Blueprint 21 H.10 terminal promotion; run 2 R2-a.
+DC: SAME the conclusion of hattempt3_class0_terminal, with its standing
+ports. The owner supplies healing_renewedPromotion_terminal after it lands.
+This is a contract, not an axiom or a proved terminal producer. -/
+def TerminalPromotionFact [Fintype V] (G ΔF : Time) : Prop :=
+  Recovery₂ p c E rho G ΔF → p.δt = 2 * p.R → LivenessBoundW p ΔF →
+  RMono p c E rho → RXing p c E rho → TPerm p c E rho →
+  (∀ j y r (a : RowWire p.n), HonestRowAt p c E rho j y r a →
+    max (p.actionTime r) E.t_GST + ΔF ≤ rho.horizon →
+    ∀ x ∈ rho.honest, HeldBefore p c E rho x a (max (p.actionTime r) E.t_GST + ΔF)) →
+  (∀ (r height : Nat) (U X : FGBlock (Fin p.n)),
+    BatchPrem p c E rho ΔF .progress r height U X →
+    (heightView p X.parent).h = height → CoveredByChild p .progress X U height) →
+  foldTrichotomy p .progress →
+  Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card →
+  p.E.q ≤ p.E.weightOf (honestSeats p c rho) →
+  ∀ r, p.actionTime r + 2 * P p + Γ p G - 9 * p.Δ ≤ rho.horizon →
+    ∀ u m J contested l q Q height,
+      E.t_GST ≤ u → PhaseInterval p c E rho u (p.actionTime r) m J contested →
+      u ≤ SA.proposalTime p.toParams q → q ≤ r * p.R →
+      SA.proposalTime p.toParams l < SA.proposalTime p.toParams q →
+      HonestProposal E rho (fgsaInterface p c) q Q → ExactService p c E rho q Q →
+      OpeningEntry p c E rho r height → OpeningCovered p c E rho r Q →
+      (∀ v, PhaseInterval p c E rho u v m J contested → RepairAfter p c E rho l v) →
+      (∃ i ev, afterTicksIdx rho (p.actionTime r) ≤ i ∧
+        rho.events[i]? = some ev ∧ EffectiveEvent p c E rho i ∧
+        ev.time ≤ p.actionTime r + 2 * P p + Γ p G - 9 * p.Δ) ∨
+      (∃ s X, HonestProposal E rho (fgsaInterface p c) s (eraseFG X) ∧ X.slot = s ∧
+        ↑r * P p + 2 * P p ≤ SA.proposalTime p.toParams s ∧
+        SA.proposalTime p.toParams s ≤ p.actionTime r + 2 * P p + Γ p G - 10 * p.Δ ∧
+        height + 1 ≤ (heightView p X).h ∧
+        (∃ y, y ∈ rho.honest ∧ Gen.V2.Duty.HoldsBefore E rho
+          (fun nd => X ∈ nd.st.fg.TF) (SA.proposalTime p.toParams s + p.Δ) y))
 
 /-- Blueprint 21 HG.3; plan §3.3 deadline interface.
 DC: SAME use the frozen maxima; do not replace their definitions. -/

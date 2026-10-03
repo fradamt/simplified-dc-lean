@@ -156,6 +156,9 @@ public import AvailableChainFGSAProofs.Proofs.Healing.AttemptStop -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.Healing.AttemptSettle -- shake: keep (CUT axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.AttemptRows -- shake: keep (complete first rows)
 
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTop -- shake: keep (HG.3 phase audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchBudget -- shake: keep (terminal audit)
+
 #print axioms AvailableChain.FGSA.Run.kmid_honestSeats_mem
 #print axioms AvailableChain.FGSA.Run.kmid_honest_quorum
 
@@ -1661,3 +1664,30 @@ public import AvailableChainFGSAProofs.Proofs.Healing.AttemptRows -- shake: keep
 #print axioms AvailableChain.FGSA.Run.reset_old_row_before_cut
 #print axioms AvailableChain.FGSA.Run.reset_old_height_sup_le
 #print axioms AvailableChain.FGSA.Run.reset_mu_le_iff
+
+-- S5 HG.3--HG.5 run 2: ADDITIONS only.
+#print axioms AvailableChain.FGSA.Run.frontierSearchStart_iff
+#print axioms AvailableChain.FGSA.Run.firstPhaseStopBy_iff
+#print axioms AvailableChain.FGSA.Run.firstRiseStopBy_iff
+#print axioms AvailableChain.FGSA.Run.frontierHG3Result_iff
+#print axioms AvailableChain.FGSA.Run.frontierSearch_classify_stop
+#print axioms AvailableChain.FGSA.Run.frontierSearch_timeIdx_mono
+#print axioms AvailableChain.FGSA.Run.frontierSearch_phase_cut
+#print axioms AvailableChain.FGSA.Run.frontierSearch_repair_seed
+#print axioms AvailableChain.FGSA.Run.frontierSearch_seed_after
+#print axioms AvailableChain.FGSA.Run.frontierSearch_proposal_heights
+#print axioms AvailableChain.FGSA.Run.frontierSearch_seed_repair
+#print axioms AvailableChain.FGSA.Run.frontierSearch_save_seed
+#print axioms AvailableChain.FGSA.Run.frontier_hg3_contest
+#print axioms AvailableChain.FGSA.Run.frontierSearch_age_service
+#print axioms AvailableChain.FGSA.Run.frontierSearch_period_bound
+#print axioms AvailableChain.FGSA.Run.frontierSearch_gap_phase
+#print axioms AvailableChain.FGSA.Run.frontier_hg3_gap
+#print axioms AvailableChain.FGSA.Run.frontierSearch_initial_J_age
+#print axioms AvailableChain.FGSA.Run.frontier_hg3_topJ
+#print axioms AvailableChain.FGSA.Run.frontierSearch_phase_step
+#print axioms AvailableChain.FGSA.Run.frontierSearch_contest_rise_cost
+#print axioms AvailableChain.FGSA.Run.frontierSearch_contest_row_cost
+#print axioms AvailableChain.FGSA.Run.frontierSearch_terminal_opening_cost
+#print axioms AvailableChain.FGSA.Run.frontierSearch_terminal_horizon_gap8
+#print axioms AvailableChain.FGSA.Run.frontierSearch_terminal_horizon_gap12

@@ -213,3 +213,8 @@ public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchDefs
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchStop
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTail
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetCut
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchRepair
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchAge
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchGap
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTop
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchBudget

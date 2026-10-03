@@ -51,6 +51,24 @@ theorem frontierSearch_first_effective_split (hs : V2.D.ScheduleWellFormed E rho
     intro j hij hjd he
     exact hex ⟨j, hij, hjd, he⟩
 
+/-- Blueprint 21 HG.3; plan Q1.
+DC: SAME classify the finite first stop by its actual frontier. -/
+theorem frontierSearch_classify_stop (hnr : V2.D.NoRestart rho)
+    {i m : Nat} {deadline : Time}
+    (hfront : frontierAtIdx p c E rho (i + 1) = m)
+    (hstop : FirstEffectiveBy p c E rho i deadline) :
+    FirstPhaseStopBy p c E rho i m deadline ∨
+      FirstRiseStopBy p c E rho i m deadline := by
+  obtain ⟨j, ev, hij, hj, ht, heff, hfirst⟩ := (firstEffectiveBy_iff p c E rho i deadline).mp hstop
+  have hmono := healing_frontier_mono p c E rho hnr
+    (show i + 1 ≤ j + 1 by omega)
+  rw [hfront] at hmono
+  by_cases heq : frontierAtIdx p c E rho (j + 1) = m
+  · exact Or.inl ((firstPhaseStopBy_iff p c E rho i m deadline).mpr
+      ⟨j, ev, hij, hj, ht, heff, heq, hfirst⟩)
+  · exact Or.inr ((firstRiseStopBy_iff p c E rho i m deadline).mpr
+      ⟨j, ev, hij, hj, ht, heff, by omega, hfirst⟩)
+
 /-- Blueprint 21 HG.1/HG.4; plan §4.
 DC: SAME first rise selection permits earlier same-frontier events. -/
 theorem frontierSearch_first_rise (hs : V2.D.ScheduleWellFormed E rho)
@@ -116,6 +134,76 @@ theorem frontierSearch_skipped_row (cap : RCap p c E rho)
       namedEntry a.payload.height_pair = some (M + 1, e) := by
   obtain ⟨j, z, r, a, e, hji, hr, hn, _⟩ := cap M i x W hW hskip
   exact ⟨j, z, r, a, e, hji, hr, hn⟩
+
+omit [DecidableEq V] in
+/-- Blueprint 21 HG.5. DC: SAME three phase charges in their fixed order. -/
+def frontierSearch_phaseRank (kind : PhaseKind) : Nat :=
+  match kind with | .gap => 0 | .topJ => 1 | .contest => 2
+
+/-- Blueprint 21 HG.5; phase-order composition.
+DC: SAME a same-frontier effective stop strictly advances the phase.
+Thus the gap and top-J charge cannot be repeated at this frontier. -/
+theorem frontierSearch_phase_step (mono : RMono p c E rho) (hnr : V2.D.NoRestart rho)
+    (hs : V2.D.ScheduleWellFormed E rho) {i m : Nat} {kind : PhaseKind}
+    {ev : V2.Event V (Obj p)} {deadline : Time}
+    (hstart : FrontierSearchStart p c E rho i ev m kind)
+    (hstop : FirstPhaseStopBy p c E rho i m deadline) :
+    ∃ j nextEv nextKind, i < j ∧ nextEv.time ≤ deadline ∧
+      FrontierSearchStart p c E rho j nextEv m nextKind ∧
+      frontierSearch_phaseRank nextKind > frontierSearch_phaseRank kind := by
+  classical
+  obtain ⟨j, nextEv, hij, hj, ht, heff, hf, _⟩ :=
+    (firstPhaseStopBy_iff p c E rho i m deadline).mp hstop
+  obtain ⟨hi, hgst, _, hf0, hm, hk⟩ :=
+    (frontierSearchStart_iff p c E rho i ev m kind).mp hstart
+  have hjlen : j < rho.events.length := (List.getElem?_eq_some_iff.mp hj).1
+  have hfixed : ∀ k, i + 1 ≤ k → k ≤ j + 1 → frontierAtIdx p c E rho k = m := by
+    intro k hik hkj
+    apply Nat.le_antisymm
+    · exact (healing_frontier_mono p c E rho hnr hkj).trans_eq hf
+    · exact hf0 ▸ healing_frontier_mono p c E rho hnr hik
+  have horder := healing_phase_order p c E rho mono hnr (i + 1) (j + 1) m
+    (by omega) (by omega) hm hfixed
+  have hbits := horder.1 (i + 1) j le_rfl (by omega) (by omega)
+  have heff' : (¬ TopEvidence p c E rho j m ∧ TopEvidence p c E rho (j + 1) m) ∨
+      (¬ ContestEvidence p c E rho j m ∧ ContestEvidence p c E rho (j + 1) m) := by
+    rcases heff with h | h
+    · rw [hfixed j (by omega) (by omega), hf] at h
+      exact (lt_irrefl m h).elim
+    · simpa only [hf] using h
+  have htime : ev.time ≤ nextEv.time := by
+    obtain ⟨hil, hie⟩ := List.getElem?_eq_some_iff.mp hi
+    obtain ⟨hjl, hje⟩ := List.getElem?_eq_some_iff.mp hj
+    have hkey := (List.pairwise_iff_getElem.mp hs.sorted) i j hil hjl hij
+    rw [hie, hje] at hkey
+    exact V2.D.Engine.time_le_of_key_le _ _ hkey
+  have finish (nextKind : PhaseKind) (hnext : AttemptPhaseAt p c E rho (j + 1) m nextKind)
+      (hrank : frontierSearch_phaseRank kind < frontierSearch_phaseRank nextKind) :
+      ∃ j nextEv nextKind, i < j ∧ nextEv.time ≤ deadline ∧
+        FrontierSearchStart p c E rho j nextEv m nextKind ∧
+        frontierSearch_phaseRank nextKind > frontierSearch_phaseRank kind := by
+    exact ⟨j, nextEv, nextKind, hij, ht,
+      (frontierSearchStart_iff p c E rho j nextEv m nextKind).mpr
+        ⟨hj, hgst.trans htime, Or.inl heff, hf, hm, hnext⟩, hrank⟩
+  cases kind with
+  | gap =>
+    rcases heff' with ⟨_, ht⟩ | ⟨_, hc⟩
+    · by_cases hc : ContestEvidence p c E rho (j + 1) m
+      · exact finish .contest hc (by decide)
+      · exact finish .topJ ⟨ht, hc⟩ (by decide)
+    · exact finish .contest hc (by decide)
+  | topJ =>
+    have htj := hbits.1 hk.1
+    rcases heff' with ⟨hn, _⟩ | ⟨_, hc⟩
+    · exact (hn htj).elim
+    · exact finish .contest hc (by decide)
+  | contest =>
+    have hcj := hbits.2 hk
+    have ht0 := horder.2 (i + 1) le_rfl (by omega) hk
+    have htj := hbits.1 ht0
+    rcases heff' with ⟨hn, _⟩ | ⟨hn, _⟩
+    · exact (hn htj).elim
+    · exact (hn hcj).elim
 
 end AvailableChain.FGSA.Run
 end
