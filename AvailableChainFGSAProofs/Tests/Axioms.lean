@@ -138,6 +138,9 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PeriodicStageBounds -- sha
 public import AvailableChainFGSAProofs.Proofs.Clean.Chain -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.State -- shake: keep (axiom audit commands)
 public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (axiom audit commands)
+public import AvailableChainFGSAProofs.Proofs.Healing.SourceTiming -- shake: keep (H12 axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.Delivery -- shake: keep (TDel axiom audit)
+public import AvailableChainFGSAProofs.Proofs.Healing.DeliveryReset -- shake: keep (reset core axiom audit)
 
 #print axioms AvailableChain.FGSA.Run.kmid_honestSeats_mem
 #print axioms AvailableChain.FGSA.Run.kmid_honest_quorum
@@ -1513,3 +1516,16 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.healing_rise_one_accept
 #print axioms AvailableChain.FGSA.Run.healing_rise_one_rise
 #print axioms AvailableChain.FGSA.Run.healing_rise_one_of_receipt
+
+#print axioms AvailableChain.FGSA.Run.healing_source_label_bound
+#print axioms AvailableChain.FGSA.Run.healing_source_relay_deadline
+#print axioms AvailableChain.FGSA.Run.healing_source_row_label
+#print axioms AvailableChain.FGSA.Run.healing_tf_retention
+#print axioms AvailableChain.FGSA.Run.healing_source_path_retained
+#print axioms AvailableChain.FGSA.Run.healing_source_supporter_head
+#print axioms AvailableChain.FGSA.Run.healing_source_body_relay
+#print axioms AvailableChain.FGSA.Run.healing_source_body_stamps
+#print axioms AvailableChain.FGSA.Run.healing_source_old_body
+#print axioms AvailableChain.FGSA.Run.healing_tDel
+#print axioms AvailableChain.FGSA.Run.healing_tDelReset_core
+#print axioms AvailableChain.FGSA.Run.healing_tDelReset
