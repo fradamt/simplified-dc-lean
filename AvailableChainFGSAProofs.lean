@@ -212,3 +212,5 @@ public import AvailableChainFGSAProofs.Proofs.Healing.ResetCut
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLease
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLeaseStep
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetHigh
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRaw
