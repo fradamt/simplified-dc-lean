@@ -62,6 +62,7 @@ public import AvailableChainFGSAProofs.Proofs.Finality.TailSplit
 public import AvailableChainFGSAProofs.Proofs.Finality.TailReceipt
 public import AvailableChainFGSAProofs.Proofs.Finality.TailKernel
 public import AvailableChainFGSAProofs.Proofs.Finality.TailMixed
+public import AvailableChainFGSAProofs.Proofs.Finality.TailBatch
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseRelay
 public import AvailableChainFGSAProofs.Proofs.Healing.Phase
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseFrame

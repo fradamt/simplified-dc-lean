@@ -202,6 +202,11 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.ktail_mixed_final',
     'AvailableChain.FGSA.Run.ktail_hmixed_of_relay',
     'AvailableChain.FGSA.Run.tail_kernel_W_of_relay',
+    # K-TAIL r4: --expect DATA only.
+    'AvailableChain.FGSA.Run.ktail_action_walk_batch',
+    'AvailableChain.FGSA.Run.tail_kernel_W_full_of',
+    'AvailableChain.FGSA.Run.fgsa_tailKernel_W_of',
+    'AvailableChain.FGSA.Run.fgsa_tailKernel_W',
     # HBEST STATEMENT: companion --expect DATA additions only.
     'AvailableChain.FGSA.Run.HTimeBestConcl',
     'AvailableChain.FGSA.Run.HTimeBestConcl_def',

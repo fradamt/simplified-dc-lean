@@ -36,6 +36,7 @@ public import AvailableChainFGSAProofs.Proofs.Finality.TailSplit -- shake: keep 
 public import AvailableChainFGSAProofs.Proofs.Finality.TailReceipt -- shake: keep (K-TAIL audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.TailKernel -- shake: keep (K-TAIL r2 audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.TailMixed -- shake: keep (K-TAIL r3 audit)
+public import AvailableChainFGSAProofs.Proofs.Finality.TailBatch -- shake: keep (K-TAIL r4 audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.RowsFrame -- shake: keep (K-ROWS-PREM audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.RowsBatch -- shake: keep (K-ROWS-PREM audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.RowsRecords -- shake: keep (K-ROWS-PREM audit)
@@ -1216,3 +1217,8 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate -- shake: keep (ax
 #print axioms AvailableChain.FGSA.Run.fgsa_healed_output_mono
 #print axioms AvailableChain.FGSA.Run.clean_growth_body
 #print axioms AvailableChain.FGSA.Run.fgsa_availableGrowthGST
+
+#print axioms AvailableChain.FGSA.Run.ktail_action_walk_batch
+#print axioms AvailableChain.FGSA.Run.tail_kernel_W_full_of
+#print axioms AvailableChain.FGSA.Run.fgsa_tailKernel_W_of
+#print axioms AvailableChain.FGSA.Run.fgsa_tailKernel_W
