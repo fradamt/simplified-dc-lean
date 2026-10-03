@@ -115,5 +115,45 @@ theorem fgsa_cleanGrowthClaim_of_clean
       intro V _ _ In c E rho ΔF pt hc
       exact (cleanSafety_of_cut p hcut c E rho (ΔF := ΔF) pt hc).2.1)
 
+/-- Blueprint 03 §9. Foundation Exports supply the source facts.
+One Clean cut result supplies all nine Clean inputs at b₀. -/
+theorem fgsa_outageCompatClaim_of_clean
+    (hcut : CleanCutClaim p) : OutageCompatClaim p := by
+  intro V _ _ In c E rho fast pt ΔF h
+  have hb : BasePrem p c E rho () := ⟨h.set.pre.base⟩
+  have hs := fgsa_sourceDisciplineBaseClaim p c E rho () hb
+  exact outage_compat_body_of_cut p
+    (hstore := (fgsa_activeViewAt p c E rho).1)
+    (hframe := (fgsa_frameAt p c E rho).1)
+    (hsrc := fgsa_srcFrameAboveClaim p c E rho () ⟨h.set.pre.base, h.set.faultQ⟩)
+    (htsrc := hs.1) (hnamed := hs.2.2)
+    (hcut := hcut c E rho (ΔF := ΔF) ⟨pt.b₀⟩ ⟨h.set.pre⟩) h
+
+/-- Blueprint 03 §9.1. The fast claim uses the P1 part of the cut wrapper. -/
+theorem fgsa_fastP1Claim_of_clean
+    (hcut : CleanCutClaim p) : FastP1Claim p := by
+  intro V _ _ In c E rho pt ΔF h
+  have hb : BasePrem p c E rho () := ⟨h.set.pre.base⟩
+  have hs := fgsa_sourceDisciplineBaseClaim p c E rho () hb
+  exact (outage_compat_body_of_cut p
+    (hstore := (fgsa_activeViewAt p c E rho).1)
+    (hframe := (fgsa_frameAt p c E rho).1)
+    (hsrc := fgsa_srcFrameAboveClaim p c E rho () ⟨h.set.pre.base, h.set.faultQ⟩)
+    (htsrc := hs.1) (hnamed := hs.2.2)
+    (hcut := hcut c E rho (ΔF := ΔF) ⟨pt.b₀⟩ ⟨h.set.pre⟩) h).1
+
+/-- Blueprint 03 §9.2. The slow claim also keeps the pending-gate lease clause. -/
+theorem fgsa_slowP1Claim_of_clean
+    (hcut : CleanCutClaim p) : SlowP1Claim p := by
+  intro V _ _ In c E rho pt ΔF h
+  have hb : BasePrem p c E rho () := ⟨h.set.pre.base⟩
+  have hs := fgsa_sourceDisciplineBaseClaim p c E rho () hb
+  exact outage_compat_body_of_cut p
+    (hstore := (fgsa_activeViewAt p c E rho).1)
+    (hframe := (fgsa_frameAt p c E rho).1)
+    (hsrc := fgsa_srcFrameAboveClaim p c E rho () ⟨h.set.pre.base, h.set.faultQ⟩)
+    (htsrc := hs.1) (hnamed := hs.2.2)
+    (hcut := hcut c E rho (ΔF := ΔF) ⟨pt.b₀⟩ ⟨h.set.pre⟩) h
+
 end AvailableChain.FGSA.Run
 end
