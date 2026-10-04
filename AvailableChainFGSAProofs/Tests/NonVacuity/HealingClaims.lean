@@ -325,7 +325,7 @@ theorem nv_wire_cases (o : Obj p) (hw : (fgsa p c).wellFormed o = true) :
     | block s b raw sup rows =>
       exact Or.inr (Or.inr ⟨s, b, raw, sup, rows, he _ (decode_eq_block.mp hd)⟩)
 
-theorem nv_liftHead (w : GridCO.Wire p.n) (a : HeadWire p.n) (ha : liftHead? w = some a) :
+theorem nv_liftHead (w : GridCO.Wire p.n .root) (a : HeadWire p.n) (ha : liftHead? w = some a) :
     baseVote a = w ∧ ∃ s j b, a = ⟨.seat (.head s) j, b⟩ := by
   obtain ⟨auth, m⟩ := w
   cases auth with
@@ -934,7 +934,7 @@ theorem carried_from_state (n : Nat) (hn : n < 305) (o o' : Object)
     (ho : o ∈ (V2.D.tick env (mkRun []) (runPrefix n).2 0 (n : Time)).2)
     (hc : carriesS params o o') :
     (∃ s j b, o' = ofHead params ⟨.seat (.head s) j, b⟩ ∧
-      (⟨.seat s j, .head b⟩ : GridCO.Wire params.n) ∈ (runPrefix n).2.st.base.votes) ∨
+      (⟨.seat s j, .head b⟩ : GridCO.Wire params.n .root) ∈ (runPrefix n).2.st.base.votes) ∨
     (∃ a : RowWire params.n, o' = ofRow params a ∧
       (a ∈ (runPrefix n).2.st.rowPool ∨
         ∃ w ∈ (runPrefix n).2.st.proposals, ∃ s b raw sup rows,
@@ -952,13 +952,13 @@ theorem carried_from_state (n : Nat) (hn : n < 305) (o o' : Object)
         (hxs : ∀ a ∈ xs, a ∈ (proposerVotes st s).filterMap liftHead?)
         (hc' : o' ∈ xs.map (ofHead params)) :
         ∃ r j B, o' = ofHead params ⟨.seat (.head r) j, B⟩ ∧
-          (⟨.seat r j, .head B⟩ : GridCO.Wire params.n) ∈ (runPrefix n).2.st.base.votes := by
+          (⟨.seat r j, .head B⟩ : GridCO.Wire params.n .root) ∈ (runPrefix n).2.st.base.votes := by
       obtain ⟨a, hm, rfl⟩ := List.mem_map.mp hc'
       obtain ⟨w, hw, hl⟩ := List.mem_filterMap.mp (hxs a hm)
       obtain ⟨he, r, j, B, rfl⟩ := nv_liftHead w a hl
       have hpool : w ∈ st.base.votes := (List.mem_filter.mp hw).1
       rw [← he] at hpool
-      change (⟨.seat r j, .head B⟩ : GridCO.Wire params.n) ∈
+      change (⟨.seat r j, .head B⟩ : GridCO.Wire params.n .root) ∈
         (FGSA.clock params (runPrefix n).2.st (n : Time)).base.votes at hpool
       rw [(clock_vn (runPrefix n).2.st (n : Time)).1] at hpool
       exact ⟨r, j, B, rfl, hpool⟩
@@ -1005,7 +1005,7 @@ theorem carried_authentic (n : Nat) (hn : n < 305) (o o' : Object)
     have hbefore := handled_before n past
     rcases carried_from_state n hn o o' ho hc with ⟨s, j, b, rfl, hm⟩ |
       ⟨a, rfl, hm | ⟨w, hw, s, b, raw, sup, rows, hd, hm⟩⟩
-    · have hp : (⟨.seat s j, .head b⟩ : GridCO.Wire params.n) ∈
+    · have hp : (⟨.seat s j, .head b⟩ : GridCO.Wire params.n .root) ∈
           (V2.D.Run.stateBefore env run (runPrefix n).1.length 0).st.base.votes := by
         rw [state_before_tick n hn]
         exact hm
@@ -1036,9 +1036,9 @@ theorem carried_authentic (n : Nat) (hn : n < 305) (o o' : Object)
       exact ⟨k, hkm.trans hmn, hkb, hek⟩
 
 theorem head_pool_authentic (n : Nat) (hn : n < 305) (s : Slot) (j : Fin params.n) (b : Block)
-    (hm : (⟨.seat s j, .head b⟩ : GridCO.Wire params.n) ∈ (runPrefix n).2.st.base.votes) :
+    (hm : (⟨.seat s j, .head b⟩ : GridCO.Wire params.n .root) ∈ (runPrefix n).2.st.base.votes) :
     EarlierEmitted n (ofHead params ⟨.seat (.head s) j, b⟩) := by
-  have hp : (⟨.seat s j, .head b⟩ : GridCO.Wire params.n) ∈
+  have hp : (⟨.seat s j, .head b⟩ : GridCO.Wire params.n .root) ∈
       (V2.D.Run.stateBefore env run (runPrefix n).1.length 0).st.base.votes := by
     rw [state_before_tick n hn]
     exact hm
@@ -1074,7 +1074,7 @@ theorem emitted_fresh (n : Nat) (hn : n < 305) (o : Object)
   have hw := emitted_wire n hn (prefix_rows n (by omega)) o ho
   rcases nv_wire_cases o hw with ⟨s, j, b, rfl⟩ | ⟨j, body, rfl⟩ |
     ⟨s, b, raw, sup, rows, rfl⟩
-  · change decide ((⟨.seat s j, .head b⟩ : GridCO.Wire params.n) ∈
+  · change decide ((⟨.seat s j, .head b⟩ : GridCO.Wire params.n .root) ∈
       (FGSA.clock params (runPrefix n).2.st (n : Time)).base.votes) = false
     apply decide_eq_false
     intro hm

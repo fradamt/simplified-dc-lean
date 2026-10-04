@@ -1,7 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.DescentLossCause
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJoint -- shake: keep
--- (J4A2-2 step types)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJoint -- shake: keep (J4A2-2 types)
 
 public section
 

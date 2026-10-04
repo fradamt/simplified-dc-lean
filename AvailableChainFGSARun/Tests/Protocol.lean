@@ -65,7 +65,7 @@ example (nd : Node p1) (i : Fin 1) (body : RowPayload)
 object records nothing. -/
 example : (recordRow? p1 RecordOnce.initial
       (baseObj .fg (.row (.vote ⟨.vote 3 genesisRoot false, none⟩)))).target 3 = some genesisRoot ∧
-    (recordRow? p1 RecordOnce.initial (baseObj (.head 0) (.head .genesis))).target 3 = none := by
+    (recordRow? p1 RecordOnce.initial (baseObj (.head 0) (.head genesisRoot))).target 3 = none := by
   decide +kernel
 
 /-! ### The proposal -/
@@ -74,12 +74,12 @@ example : (recordRow? p1 RecordOnce.initial
 body; its block passes `rowsOk`, and the input decodes. With `unitCodec` the
 application value is `0` (the I9 proposal). There is no proposal at slot `0`. -/
 example : P1n.act P1n.init (.propAction 1) 5 =
-      some (.proposal (.node .genesis 1 ⟨2⟩ (packBody 5 ([] : List (RowWire 1)))) [] [] []) ∧
+      some (.proposal (.node .genesis 1 ⟨2⟩ (packBody 5 ([] : List (RowWire 1))) [] [] [])) ∧
     rowsOk (.node .genesis 1 ⟨2⟩ (packBody 5 ([] : List (RowWire 1)))) ([] : List (RowWire 1)) ∧
     natCodec.unapp (appOf (Block.node .genesis 1 ⟨2⟩ (packBody 5 ([] : List (RowWire 1)))).body) =
       some 5 ∧
     P1.act P1.init (.propAction 1) () =
-      some (.proposal (.node .genesis 1 ⟨2⟩ (packBody 0 ([] : List (RowWire 1)))) [] [] []) ∧
+      some (.proposal (.node .genesis 1 ⟨2⟩ (packBody 0 ([] : List (RowWire 1))) [] [] [])) ∧
     P1.act P1.init (.propAction 0) () = none := by
   decide +kernel
 
@@ -88,8 +88,8 @@ def rws : List (RowWire 1) := [⟨.seat .fg 0, .vote ⟨.vote 1 genesisRoot fals
 
 /-- ROOT-DIGEST W3b. `withApp` on a block with one carried row: the rows stay, the application
 value changes, and the block passes `rowsOk` with its rows. -/
-example : withApp p1 7 (Msg.proposal (.node .genesis 1 ⟨2⟩ (packBody 0 rws)) [] [] rws) =
-      .proposal (.node .genesis 1 ⟨2⟩ (packBody 7 rws)) [] [] rws ∧
+example : withApp p1 7 (Msg.proposal (.node .genesis 1 ⟨2⟩ (packBody 0 rws) [] [] rws)) =
+      .proposal (.node .genesis 1 ⟨2⟩ (packBody 7 rws) [] [] rws) ∧
     rowsOk (.node .genesis 1 ⟨2⟩ (packBody 7 rws)) rws = true ∧
     appOf (Block.node .genesis 1 ⟨2⟩ (packBody 7 rws)).body = 7 := by
   decide +kernel
@@ -98,10 +98,11 @@ example : withApp p1 7 (Msg.proposal (.node .genesis 1 ⟨2⟩ (packBody 0 rws))
 
 /-- ROOT-DIGEST W3b. The adapter maps a store-label seat to its store seat, a proposal seat to
 the proposer key, and an unsigned object to an unsigned wire; it round trips. -/
-example : toWire p1 (baseObj (.head 2) (.head .genesis)) = ⟨.seat (.head 2) 0, .head .genesis⟩ ∧
-    toWire p1 (propObj 3 (.head .genesis)) = ⟨.proposer 3, .head .genesis⟩ ∧
+example : toWire p1 (baseObj (.head 2) (.head genesisRoot)) =
+      ⟨.seat (.head 2) 0, .head genesisRoot⟩ ∧
+    toWire p1 (propObj 3 (.head genesisRoot)) = ⟨.proposer 3, .head genesisRoot⟩ ∧
     toWire p1 ⟨.none, .row (.vote ⟨.empty, none⟩)⟩ = ⟨.none, .row (.vote ⟨.empty, none⟩)⟩ ∧
-    ofWire p1 (toWire p1 (propObj 3 (.head .genesis))) = propObj 3 (.head .genesis) ∧
+    ofWire p1 (toWire p1 (propObj 3 (.head genesisRoot))) = propObj 3 (.head genesisRoot) ∧
     ofWire p1 (toWire p1 (baseObj .fg (.row (.vote ⟨.empty, none⟩)))) =
       baseObj .fg (.row (.vote ⟨.empty, none⟩)) ∧
     toWire p1 (ofWire p1 ⟨.proposer 2, .row (.vote ⟨.empty, none⟩)⟩) =
@@ -150,9 +151,9 @@ example : (toWire p1 (baseObj (.head 0) (.row (.vote ⟨.empty, none⟩)))).deco
 
 /-- ROOT-DIGEST W3b. A proposal whose body is not the packing of its rows (`rowsOk = false`) is
 not well-formed; with the packed body it is. -/
-example : P1.wellFormed (propObj 1 (.proposal (.node .genesis 1 ⟨2⟩ 99) [] [] [])) = false ∧
-    P1.wellFormed (propObj 1 (.proposal (.node .genesis 1 ⟨2⟩ (packBody 0 ([] : List (RowWire 1))))
-      [] [] [])) = true := by
+example : P1.wellFormed (propObj 1 (.proposal (.node .genesis 1 ⟨2⟩ 99 [] [] []))) = false ∧
+    P1.wellFormed (propObj 1 (.proposal
+      (.node .genesis 1 ⟨2⟩ (packBody 0 ([] : List (RowWire 1))) [] [] []))) = true := by
   decide +kernel
 
 /-- ROOT-DIGEST W3b. A client with a live genesis source. This fixture tests the client action. -/
@@ -178,7 +179,7 @@ example : P1.act sourceNode (.fgAction 0) () = some (.row sourcePayload) ∧
 invalid. Refusal preserves all store fields and skips its carried row. -/
 example :
     let bad : RowWire 1 := ⟨.seat .fg 0, .vote ⟨.vote 2 genesisRoot false, none⟩⟩
-    let obj := propObj 1 (.proposal (.node .genesis 1 ⟨2⟩ (packBody 0 [bad])) [] [] [bad])
+    let obj := propObj 1 (.proposal (.node .genesis 1 ⟨2⟩ (packBody 0 [bad]) [] [] [bad]))
     let pre := P1.clock P1.init 4
     P1.wellFormed obj = true ∧ P1.excludes pre obj = true ∧
       (P1.process pre obj).st.rowPool = [] ∧ (P1.process pre obj).st.proposals = [] ∧
@@ -194,7 +195,7 @@ private def t77Rows : List (RowWire 1) :=
    ⟨.seat .fg 0, .vote ⟨.vote 1 genesisRoot false, some ⟨0, genesisRoot⟩⟩⟩]
 
 private def t77Envelope : Obj p1 :=
-  propObj 1 (.proposal (.node .genesis 1 ⟨2⟩ (packBody 0 t77Rows)) [] [] t77Rows)
+  propObj 1 (.proposal (.node .genesis 1 ⟨2⟩ (packBody 0 t77Rows) [] [] t77Rows))
 
 private def t77Third : Obj p1 :=
   baseObj .fg (.row (.vote ⟨.vote 1 genesisRoot false, some ⟨0, genesisRoot⟩⟩))
@@ -209,7 +210,7 @@ theorem fgsa_carried_row_cap_control :
        ⟨.seat .fg 0, .vote ⟨.vote 1 genesisRoot true, none⟩⟩,
        ⟨.seat .fg 0, .vote ⟨.vote 1 genesisRoot false, some ⟨0, genesisRoot⟩⟩⟩]
     let t77Envelope := propObj 1
-      (.proposal (.node .genesis 1 ⟨2⟩ (packBody 0 t77Rows)) [] [] t77Rows)
+      (.proposal (.node .genesis 1 ⟨2⟩ (packBody 0 t77Rows) [] [] t77Rows))
     let t77Third := baseObj .fg (.row (.vote ⟨.vote 1 genesisRoot false, some ⟨0, genesisRoot⟩⟩))
     let t77Pre := P1.clock P1.init 4
     P1.wellFormed t77Envelope = true ∧
@@ -234,18 +235,18 @@ example : P1.handles t77Pre t77Envelope t77Third := by
 /-- ROOT-DIGEST W3b. A slot-zero HEAD can be admitted before the honest vote time of 1. Its
 admission threshold is zero. -/
 example :
-    P1.processed (P1.process P1.init (baseObj (.head 0) (.head .genesis)))
-      (baseObj (.head 0) (.head .genesis)) = true ∧
-    fgsaTimely p1 P1.init (baseObj (.head 0) (.head .genesis)) := by
+    P1.processed (P1.process P1.init (baseObj (.head 0) (.head genesisRoot)))
+      (baseObj (.head 0) (.head genesisRoot)) = true ∧
+    fgsaTimely p1 P1.init (baseObj (.head 0) (.head genesisRoot)) := by
   unfold fgsaTimely
   decide +kernel
 
 /-- ROOT-DIGEST W3b. A negative store clock shows why AdmitSound requires a nonnegative clock. -/
 example :
     let nd : Node p1 := ⟨{ initial 1 with base.now := -1 }, RecordOnce.initial⟩
-    P1.processed (P1.process nd (baseObj (.head 0) (.head .genesis)))
-      (baseObj (.head 0) (.head .genesis)) = true ∧
-    ¬ fgsaTimely p1 nd (baseObj (.head 0) (.head .genesis)) := by
+    P1.processed (P1.process nd (baseObj (.head 0) (.head genesisRoot)))
+      (baseObj (.head 0) (.head genesisRoot)) = true ∧
+    ¬ fgsaTimely p1 nd (baseObj (.head 0) (.head genesisRoot)) := by
   unfold fgsaTimely
   decide +kernel
 

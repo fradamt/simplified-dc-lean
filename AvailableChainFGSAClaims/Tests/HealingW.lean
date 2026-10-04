@@ -50,14 +50,15 @@ private def smokeNoDelivery (i : Nat) (v : Fin 1) (o : (fgsa smokeParams smokeCo
 /-- Horizon zero with no faulty validator and GST zero. This is only a smoke test. -/
 private def smoke_base : Base₂ smokeParams smokeCodec smokeEnv smokeRun where
   idealization := by
-    have scope (B : Block) (h : RootBlockInRun smokeParams smokeCodec smokeEnv smokeRun B) :
+    have scope (B : NamedProposal smokeParams.n)
+        (h : NamedProposalInRun smokeParams smokeCodec smokeEnv smokeRun B) :
         B = .genesis := by
       obtain ⟨C, hC, hBC⟩ := h
       have hc : C = .genesis := by
-        rcases hC with ⟨v, o, t, raw, sup, rows, hm, _⟩ | ⟨v, hv, i, hm⟩
+        rcases hC with ⟨v, o, t, hm, _⟩ | ⟨v, hv, i, hm⟩
         · simp at hm
         · have hi : ∀ i : Nat, ∀ v : Fin 1,
-              (V2.D.Run.stateBefore smokeEnv smokeRun i v).st.base.blocks = [.genesis] := by
+              (V2.D.Run.stateBefore smokeEnv smokeRun i v).st.namedBodies = [.genesis] := by
             intro i v
             have hv : v = 0 := Subsingleton.elim _ _
             subst v

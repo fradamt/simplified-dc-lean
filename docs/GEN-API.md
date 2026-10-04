@@ -6,6 +6,10 @@ This file lists every public declaration of
 `AvailableChainGeneric.Statements.*` (Pure, V2 and AC), by fully qualified
 name and grouped by module. Gen has no anchor rule.
 
+ROOT-DIGEST-2 option 3 permits the 64 mode-indexed generic entries and measured
+representation dependencies. See the [full exception](FGSA-API.md#root-digest-2-option-3-exception).
+Keep the frozen baselines and SHAs. Exact old/new hashes and causes follow at integration.
+
 ## Baseline rule
 
 Baseline at the A0 step-2 close. Before G-F0a a Gen Statements edit re-writes this file in the SAME commit (visible diff); from G-F0a it is append-only.

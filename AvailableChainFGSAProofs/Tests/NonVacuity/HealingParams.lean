@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Foundations.RowPermission
+public import AvailableChainFGSAProofs.Proofs.Shared.BoundsW
 -- shake: keep (own-library route)
 
 @[expose] public section

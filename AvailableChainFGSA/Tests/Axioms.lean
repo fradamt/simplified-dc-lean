@@ -1,4 +1,6 @@
 module
+public import AvailableChainFGSA.Proofs.NamedReachable
+public import AvailableChainFGSA.Proofs.HeadResolution
 public import AvailableChainFGSA.Proofs.WindowOccurrences
 public import AvailableChainFGSA.Proofs.WindowTerminal
 public import AvailableChainFGSA.Proofs.WindowAdmissionInvariant
@@ -525,3 +527,93 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 #print axioms AvailableChain.FGSA.erasedList_rootInj
 #print axioms AvailableChain.FGSA.proposalBlock
 #print axioms AvailableChain.FGSA.proposalInput
+
+-- ROOT-DIGEST-2: new public W1 declarations from the signed checkpoint inventory.
+namespace AvailableChain.Block
+#print axioms findByRoot?
+#print axioms findByRoot?_mem
+#print axioms findByRoot?_of_unique
+#print axioms findByRoot?_perm
+#print axioms findByRoot?_root
+#print axioms findByRoot?_spec
+#print axioms findByRoot?_unique
+end AvailableChain.Block
+
+namespace AvailableChain.FGSA
+#print axioms NamedProposal
+#print axioms actView_resolutionTree
+#print axioms actView_resolvedHead
+#print axioms active_releaseCount_le
+#print axioms active_releaseCount_zero
+#print axioms active_resolvedBefore_base
+#print axioms admitProposal_headDomain
+#print axioms admitRow_headDomain
+#print axioms admitVote_headDomain
+#print axioms base_headDomain_none
+#print axioms clock_headDomain
+#print axioms clock_namedBodies
+#print axioms contentAgree_projection
+#print axioms foldRows_headDomain
+#print axioms foldVotes_headDomain
+#print axioms instDecidableEqNamedProposal
+#print axioms instReprNamedProposal
+#print axioms mem_namedBodies
+#print axioms namedBodies_erase_domain
+#print axioms namedBodies_erase_injective
+#print axioms namedBodies_parent
+#print axioms namedBodies_root_injective
+#print axioms namedByErase?
+#print axioms namedByErase?_complete
+#print axioms namedByErase?_sound
+#print axioms namedByErase?_stored
+#print axioms namedContentOk
+#print axioms namedParentHeld
+#print axioms namedProposal
+#print axioms namedProposal_erase
+#print axioms named_erase_ancestor
+#print axioms named_erase_eq_genesis
+#print axioms named_erase_parent
+#print axioms named_erase_root
+#print axioms named_erase_slot
+#print axioms named_preceq_erase
+#print axioms named_preceq_refl
+#print axioms named_preceq_trans
+#print axioms process_headDomain
+#print axioms proposal?_eq_some
+#print axioms propose_isSome_of_reachable
+#print axioms propose_parent_lookup
+#print axioms reachable_named_store
+#print axioms resolvedHead_mem
+end AvailableChain.FGSA
+
+namespace AvailableChain.FGSA.NamedProposal
+#print axioms Preceq
+#print axioms body
+#print axioms digestInput
+#print axioms erase
+#print axioms genesis
+#print axioms node
+#print axioms parent
+#print axioms preceq
+#print axioms raw
+#print axioms root
+#print axioms rows
+#print axioms slot
+#print axioms support
+end AvailableChain.FGSA.NamedProposal
+
+namespace AvailableChain.FGSA.State
+#print axioms namedBodies
+end AvailableChain.FGSA.State
+
+namespace AvailableChain.FGSA.Wire
+#print axioms proposal?
+end AvailableChain.FGSA.Wire
+
+namespace AvailableChain.FGSA.instDecidableEqNamedProposal
+#print axioms decEq
+end AvailableChain.FGSA.instDecidableEqNamedProposal
+
+namespace AvailableChain.FGSA.instReprNamedProposal
+#print axioms repr
+end AvailableChain.FGSA.instReprNamedProposal

@@ -37,7 +37,7 @@ example : jointSource channelParams
 
 example : proposerHead channelParams channelSourceStore 1 = .genesis := by decide +kernel
 example : FGSA.propose channelParams channelSourceStore 1 =
-    some (.proposal (.node .genesis 1 ⟨2⟩ (packBody (n := 1) 0 [])) [] [] []) := by decide +kernel
+    some (.proposal (.node .genesis 1 ⟨2⟩ (packBody (n := 1) 0 []) [] [] [])) := by decide +kernel
 
 /-- A non-current child with no votes: only the raised band floor admits it. -/
 private def channelLateChild : Block := .node .genesis 9 ⟨10⟩ 0

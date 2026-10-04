@@ -1,4 +1,7 @@
 module
+public import AvailableChainGeneric.Proofs.AC.RootVotes
+public import AvailableChainGeneric.Proofs.AC.RootSupport
+public import AvailableChainGeneric.Proofs.AC.RootBatch
 public import AvailableChainGeneric.Statements.Pure.ScheduleW -- shake: keep (S4.1 axiom audit)
 public import AvailableChainGeneric.Proofs.Pure.ScheduleW -- shake: keep (S4.1 axiom audit)
 public import AvailableChainGeneric.Proofs.V2.Duty.Linked
@@ -833,3 +836,84 @@ theorem, in facade order. The library globs build this test module. -/
 #print axioms AvailableChain.Gen.Pure.fgoodE_W_full_round_iff
 #print axioms AvailableChain.Gen.Pure.recF4_W_two_iff
 #print axioms AvailableChain.Gen.Pure.recF4_W_two_iff_holds
+
+-- ROOT-DIGEST-2: new public W1 declarations from the signed checkpoint inventory.
+namespace AvailableChain.Gen.AC.Root
+#print axioms BatchBounds
+#print axioms BatchBounds_def
+#print axioms BatchCountsStatement
+#print axioms BatchCountsStatement_def
+#print axioms BatchStatement
+#print axioms BatchStatement_def
+#print axioms CapPairStatement
+#print axioms CapPairStatement_def
+#print axioms CapVoteStatement
+#print axioms CapVoteStatement_def
+#print axioms ConflictingScoreSumLeStatement
+#print axioms ConflictingScoreSumLeStatement_def
+#print axioms GoldfishScoreAntitoneStatement
+#print axioms GoldfishScoreAntitoneStatement_def
+#print axioms LeaseMapChain
+#print axioms LeaseMapChain_def
+#print axioms ProtectsUntil
+#print axioms ProtectsUntil_def
+#print axioms ScoreEqOnStatement
+#print axioms ScoreEqOnStatement_def
+#print axioms TransferBounds
+#print axioms TransferBounds_def
+#print axioms TransferN2Statement
+#print axioms TransferN2Statement_def
+#print axioms TransferStatement
+#print axioms TransferStatement_def
+#print axioms UniqueLeaseKeys
+#print axioms UniqueLeaseKeys_def
+#print axioms VoterCountLeOfSeatsSubsetStatement
+#print axioms VoterCountLeOfSeatsSubsetStatement_def
+#print axioms batch_anchored
+#print axioms batch_counts
+#print axioms batch_counts_statement
+#print axioms cap_pair
+#print axioms cap_pair_statement
+#print axioms cap_vote
+#print axioms cap_vote_statement
+#print axioms conflicting_scoreOn_sum_le
+#print axioms conflicting_score_sum_le
+#print axioms conflicting_score_sum_le_statement
+#print axioms goldfishScoreOn_antitone
+#print axioms goldfishScoreOn_le
+#print axioms goldfishScore_antitone
+#print axioms goldfishScore_antitone_of_preceq
+#print axioms goldfishScore_antitone_statement
+#print axioms plainSupporters
+#print axioms plainSupporters_def
+#print axioms poolSupports
+#print axioms poolSupports_def
+#print axioms resolvedTarget?
+#print axioms resolvedTarget_transport
+#print axioms score_eq_on
+#print axioms score_eq_on_statement
+#print axioms transfer
+#print axioms transfer_n2
+#print axioms transfer_n2_statement
+#print axioms transfer_statement
+#print axioms voteSupports
+#print axioms voteSupports_def
+#print axioms vote_pool_clean_subset
+#print axioms vote_pool_clean_unique
+#print axioms vote_pool_equivocates_mono
+#print axioms vote_pool_equivocates_participant
+#print axioms vote_pool_eraseDups_nodup
+#print axioms vote_pool_mem_seats
+#print axioms vote_pool_plain_subset_score
+#print axioms vote_pool_score_card
+#print axioms vote_pool_seats_backward
+#print axioms vote_pool_seats_subset
+#print axioms vote_pool_support_ancestor
+#print axioms vote_pool_support_compatible
+#print axioms vote_pool_support_conflict
+#print axioms vote_pool_support_witness
+#print axioms vote_pool_voterCount_card
+#print axioms vote_support_body
+#print axioms voterCount_le_of_seats_subset
+#print axioms voterCount_le_of_seats_subset_statement
+end AvailableChain.Gen.AC.Root

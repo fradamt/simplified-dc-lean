@@ -4,6 +4,23 @@ public import AvailableChainFGSA.Model.Frame
 public import AvailableChainFGSA.Proofs.FrameViews
 public import AvailableChainFGSA.Proofs.BlockAncestry
 
+-- Find matcher bodies in the two definitions; do not depend on generated names.
+local elab "hygieneEq% " lhs:term:max rhs:term:max : term => do
+  let left ← Lean.Elab.Term.elabTerm lhs none
+  let right ← Lean.Elab.Term.elabTerm rhs none
+  let a ← Lean.getConstInfo left.getAppFn.constName!
+  let b ← Lean.getConstInfo right.getAppFn.constName!
+  for x in a.value!.getUsedConstants do
+    unless (← Lean.Meta.getMatcherInfo? x).isSome do continue
+    let ex ← Lean.Meta.mkConstWithFreshMVarLevels x
+    for y in b.value!.getUsedConstants do
+      unless (← Lean.Meta.getMatcherInfo? y).isSome do continue
+      let ey ← Lean.Meta.mkConstWithFreshMVarLevels y
+      if ← Lean.Meta.isDefEq (← Lean.Meta.inferType ex) (← Lean.Meta.inferType ey) then
+        if ← Lean.Meta.isDefEq ex ey then
+          return ← Lean.Meta.mkEq ex ey
+  throwError "No equal matcher bodies in the supplied definitions"
+
 namespace AvailableChain.FGSA
 
 open AvailableChain.Generic AvailableChain.SimplexFG
@@ -26,9 +43,8 @@ private def hygiene_admitBlock (p : Params) (st : State p.n) (s : Slot)
       else st
 
 -- The generated matcher bodies are definitionally equal.
-set_option linter.auxLemma false in
 private theorem hygiene_admitBlock_match_1_eq :
-    @admitBlock.match_1 = @hygiene_admitBlock.match_1 := rfl
+    hygieneEq% (@admitBlock) (@hygiene_admitBlock) := rfl
 
 end AvailableChain.FGSA
 

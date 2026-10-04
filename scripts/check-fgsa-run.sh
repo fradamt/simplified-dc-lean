@@ -32,6 +32,25 @@ fi
 # The declarations that the axiom script must find and check (fail closed: a
 # scan that misses the library fails). Each task adds its main outputs.
 AX_OPTS=(--expect
+  # ROOT-DIGEST-2: signed W1 named-scope public names.
+  AvailableChain.FGSA.Run.DirectNamedProposalInRun
+  AvailableChain.FGSA.Run.HeadTargetAtEmission
+  AvailableChain.FGSA.Run.NamedProposalInRun
+  AvailableChain.FGSA.Run.contentAgree_of_namedScope
+  AvailableChain.FGSA.Run.emitted_payload_parent_base_stored
+  AvailableChain.FGSA.Run.headTargetAtEmission_exists
+  AvailableChain.FGSA.Run.headTargetAtEmission_unique
+  AvailableChain.FGSA.Run.namedAncestor_eq
+  AvailableChain.FGSA.Run.namedOrigin_reachable
+  AvailableChain.FGSA.Run.namedProposal_eq
+  AvailableChain.FGSA.Run.namedScope_ancestor
+  AvailableChain.FGSA.Run.namedScope_collision
+  AvailableChain.FGSA.Run.namedScope_compatible_iff
+  AvailableChain.FGSA.Run.namedScope_delivered
+  AvailableChain.FGSA.Run.namedScope_erase_injective
+  AvailableChain.FGSA.Run.namedScope_held
+  AvailableChain.FGSA.Run.namedScope_preceq_iff
+  AvailableChain.FGSA.Run.proposal_trigger_in_root_scope
   # ROOT-DIGEST W3b: contract and origin producer inventory.
   AvailableChain.FGSA.Run.contentOk_withApp
   AvailableChain.FGSA.Run.emitted_payload_parent_stored

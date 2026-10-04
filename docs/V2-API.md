@@ -22,6 +22,10 @@ No v2 walk entry changes. The v2 generated delta remains the two named M1 remova
 The tool output is `.lake/rdw1c-v2-manifest.md`; its exact delta is
 `.lake/rdw1c-v2-manifest-delta.json`. Both Framework anchors remain declared.
 
+ROOT-DIGEST-2 option 3 permits the 64 mode-indexed generic entries and measured
+representation dependencies. See the [full exception](FGSA-API.md#root-digest-2-option-3-exception).
+Keep the frozen baselines and SHAs. Exact old/new hashes and causes follow at integration.
+
 ## Freeze rule
 
 After the gate, no declaration in this file changes its name, type or body

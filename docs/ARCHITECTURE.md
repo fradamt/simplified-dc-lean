@@ -115,6 +115,27 @@ changes, and tell the other sessions._
   Clean; 03 P1 and inclusion; 21 healing with `HEALING_INPUT`; 22
   finality).
 
+- ROOT-DIGEST-2 uses recursive `NamedProposal` values. Each value keeps its exact named
+  parent, body, ordered signed rows, raw HEAD list, and support list. `Block` and `FGBlock`
+  remain geometric projections. Admission requires the exact named parent in `namedBodies`,
+  rechecks the body and digest, and keeps the incoming value. Missing parents are dependencies.
+- FG-SA uses root-mode GridCO/SA. HEAD wires, vote keys, stamps, counts, and equivocation
+  use root identifiers. A read resolves one identifier in the cumulative store domain. No
+  body or multiple distinct bodies leave the vote unresolved. Active views keep that domain;
+  filtering the tree cannot remove ambiguity. Deferred protocols keep legacy block mode.
+- The named run scope contains directly delivered proposals, honest prefix-held proposals,
+  and their named ancestors. It includes rejected delivered bodies. Equal roots in this scope
+  identify full recursive content. HEAD-only names and emitted-only tips add no scope seeds.
+  Genesis enters through a held body or ancestry. `Base₂` keeps one idealization field.
+- Duty `ACReads` is mode-indexed. FG-SA uses root-mode reads; legacy interfaces remain.
+  The [ROOT-DIGEST-2 option-3 exception](FGSA-API.md#root-digest-2-option-3-exception)
+  records the representation and frozen statement changes. The closed `fgsaClaims` type,
+  claim fields, bounds, and prior exceptions remain.
+- Integration order: compile and sign the W1 model/interface checkpoint; then run W2 proof
+  work and W3 fixture/document work in separate trees. After W2 lands, the owner runs W3b
+  for manifests, exact-hash allow data, catalog lock records, paired costs, and all gates.
+  The lead applies the separate spec/blueprint patch. Historical pins stay unchanged.
+
 ## 3. Lean architecture (available-chain)
 
 Layers (design §1). L0, L1, LM, L2 and L3 import nothing from L4–L6.
@@ -276,24 +297,23 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   and `ResetArrival`. The other layer rules still apply.
 
 How the pieces meet:
-- FG-SA store: `FGSA.State = { base : GridCO.State, fg : SimplexFG.Store,
-  pools, … }` with glue handlers. Base facts come from the policy-generic
-  Grid CO proofs at `slowLeasePolicy`; FG store facts come from KitFG.
-- Blocks (ROOT-DIGEST): `Block.node parent slot root body` stores the root.
-  FG-SA uses `Params.digest` on six full proposal fields: parent root, slot,
-  app, signed rows, raw votes and support votes. The signed lists keep their
-  order and duplicates. `FGSA/Model/ProposalContent` defines `DigestInput`;
-  `proposalBlock` sets the root and `contentOk` checks it at admission.
-  The I9 BODY codec stays for payload and erasure only. FG-SA packs rows in
-  the body; `rowsOk` is the same check in `wellFormed` and `blockAccepted`.
-  GridCO, LStar and SAPC still construct their roots with `nodeRoot`.
-- Root scope: `FGSARun/Statements/Roots` defines `RootBlockInRun` from
-  delivered proposal bodies and honest stored bodies, with their ancestors.
-  `Base₂.idealization` supplies `NamedRootCollisionFree`. In the DC shape,
-  for two scoped bodies B and C, equal roots imply equality for A and D
-  on either ancestor chain. `FGSARun/Proofs/Roots` proves body origins and
-  local root facts; `FGSAProofs/Proofs/Shared/Roots` supplies scoped facts
-  to the claim proofs. `KitFG/RootScopeDef` defines the two-chain premise.
+- FG-SA store: `FGSA.State` keeps a root-mode `GridCO.State`, an FG store, and pools.
+  GridCO proofs use `slowLeasePolicy`; FG store facts come from KitFG. Duty `ACReads`
+  carries the HEAD mode. Deferred protocols retain their legacy block-mode reads.
+- ROOT-DIGEST-2: `NamedProposal` keeps every ancestor's body and signed lists.
+  `namedProposal` sets the six-field digest; `namedContentOk` checks it. Admission
+  requires the exact named parent, keeps the received named value, and also checks
+  the FG-parent projection. The I9 BODY codec remains the row/geometry projection.
+  HEAD targets are identifiers. Resolution uses the cumulative domain even in active views.
+  Standalone legacy GridCO, LStar, and SAPC keep `nodeRoot`.
+- Named run scope: directly delivered proposals and honest prefix-held named bodies,
+  closed under named ancestry. Rejected deliveries are seeds. HEAD-only identifiers
+  and emitted-only tips are not seeds. `RootBlockInRun` is the existential erasure
+  projection. `Base₂.idealization` has the one `NamedRootCollisionFree` field.
+  Its DC-shaped clause identifies full named ancestors of either scoped tip.
+  `FGSARun/Proofs/NamedScope` proves named equality and geometric projections;
+  `FGSARun/Proofs/Roots` supplies origins. `KitFG/RootScopeDef` keeps the explicit
+  pure two-chain premise.
 - Store safety: `FGStoreSafety` takes `StepOK`; `StoreStepRoots` requires
   root uniqueness on the inserted tree. `KitFG/StoreSafetyDef` defines this
   interface. `storeStepRoots_of_blockAccepted` proves it at admission.
@@ -449,9 +469,10 @@ and only the instance swap is atomic.
 
 ## 6. Decisions that shape the architecture
 
-- ROOT-DIGEST: FG-SA stores the full proposal digest and checks it at
-  admission. Run scope supplies collision freedom; the I9 BODY codec
-  supplies payload and erasure. GridCO, LStar and SAPC keep `nodeRoot`.
+- ROOT-DIGEST-2: the run premise identifies full recursive named proposals.
+  FG-SA checks the digest and exact named parent and uses root-mode HEAD handling.
+  The I9 BODY codec supplies row and geometry projections. Legacy GridCO, LStar,
+  and SAPC keep `nodeRoot`. The option-3 exception retains the closed claim fields.
 - Restart: interim form keeps Λ and resets the store; the faithful form
   (Λ + anchor at F) comes with the optional anchor feature.
 - SA walk starts at F (user, 2026-09-29).
@@ -495,4 +516,3 @@ and only the instance swap is atomic.
   1aa6885; `docs/PHASE2A-REPORT.md`);
   fgsa-composition-t7-t1 (r11 adopted, 2ec3003; in
   `~/worktrees/available-chain-fgsa-plan`).
-

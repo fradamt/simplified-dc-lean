@@ -1,12 +1,8 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetInvariant -- shake: keep
--- (J5 required carrier input)
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat -- shake: keep
--- (J5 required lane input)
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep -- shake: keep
--- (J5 required lane input)
-public import AvailableChainFGSAProofs.Proofs.Healing.ResetTransfer -- shake: keep
--- (J5 required lane input)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetInvariant -- shake: keep (J5 carrier)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat -- shake: keep (J5 lane input)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep -- shake: keep (J5 lane input)
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetTransfer -- shake: keep (J5 lane input)
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportSlow
 
 public section

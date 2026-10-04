@@ -1683,14 +1683,14 @@ namespace AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
 /-- The vote pool is also unchanged by the clock. -/
 theorem i7_clock_votes (st : State params.n) (t : Time) :
     (FGSA.clock params st t).base.votes = st.base.votes := by
-  have hw (st : GridCO.State params.n) (b : Block) (g : Nat) (d : Time) :
+  have hw (st : GridCO.State params.n .root) (b : Block) (g : Nat) (d : Time) :
       (GridCO.writeObligation st b g d).votes = st.votes := by
     rfl
   have hfold (xs : List Block) (levels : Block → List Nat) (d : Time)
-      (st : GridCO.State params.n) :
+      (st : GridCO.State params.n .root) :
       (xs.foldl (fun acc b => (levels b).foldl
         (fun acc g => GridCO.writeObligation acc b g d) acc) st).votes = st.votes := by
-    have inner (gs : List Nat) (b : Block) (st : GridCO.State params.n) :
+    have inner (gs : List Nat) (b : Block) (st : GridCO.State params.n .root) :
         (gs.foldl (fun acc g => GridCO.writeObligation acc b g d) st).votes = st.votes := by
       induction gs generalizing st with
       | nil => rfl
@@ -1698,7 +1698,7 @@ theorem i7_clock_votes (st : State params.n) (t : Time) :
     induction xs generalizing st with
     | nil => rfl
     | cons b xs ih => exact (ih _).trans (inner _ b st)
-  have hg (st : GridCO.State params.n) (a : Block) (s : Slot) :
+  have hg (st : GridCO.State params.n .root) (a : Block) (s : Slot) :
       (SA.gateFrom params.toParams a st s).votes = st.votes := by
     unfold SA.gateFrom GridCO.gateFrom
     split
@@ -1765,8 +1765,8 @@ theorem gen_known_rows (P : Obj params → Prop) (rows : List (RowWire params.n)
     exact ih _ (gen_known_row P st a h (hr a (List.mem_cons_self ..)))
       (fun a ha => hr a (List.mem_cons_of_mem _ ha))
 
-theorem gen_known_vote (P : Obj params → Prop) (st : GridCO.State params.n)
-    (o : GridCO.Wire params.n)
+theorem gen_known_vote (P : Obj params → Prop) (st : GridCO.State params.n .root)
+    (o : GridCO.Wire params.n .root)
     (h : ∀ a ∈ st.votes.filterMap liftHead?, P (ofHead params a))
     (ho : ∀ a, liftHead? o = some a → P (ofHead params a)) :
     ∀ a ∈ (GridCO.admitVote params.toParams.engine st o).votes.filterMap liftHead?,
@@ -1792,13 +1792,13 @@ theorem i7_lift_baseVote (a h : HeadWire params.n) (he : liftHead? (baseVote a) 
       GridCO.headLabel?, GridCO.headSeat?, GridCO.headTarget?] at he
   exact he
 
-theorem gen_known_base_proposal (P : Obj params → Prop) (st : GridCO.State params.n)
+theorem gen_known_base_proposal (P : Obj params → Prop) (st : GridCO.State params.n .root)
     (s : Slot) (b : Block) (raw sup : List (HeadWire params.n))
     (h : ∀ a ∈ st.votes.filterMap liftHead?, P (ofHead params a))
     (hr : ∀ a ∈ raw, P (ofHead params a)) :
     ∀ a ∈ (GridCO.admitProposal params.toParams.engine st (baseProposal s b raw sup)
       b (raw.map baseHead)).votes.filterMap liftHead?, P (ofHead params a) := by
-  have hf (xs : List (HeadWire params.n)) (st : GridCO.State params.n)
+  have hf (xs : List (HeadWire params.n)) (st : GridCO.State params.n .root)
       (hs : ∀ a ∈ st.votes.filterMap liftHead?, P (ofHead params a))
       (hx : ∀ a ∈ xs, P (ofHead params a)) :
       ∀ a ∈ ((xs.map baseHead).foldl (fun acc row =>

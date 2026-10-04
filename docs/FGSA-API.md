@@ -18,6 +18,18 @@ or removed entry needs an allow line in `scripts/fgsa-manifest-allow.txt`:
 Stale allow lines fail. Structure widening has no exception: put later fields
 in new structures.
 
+## ROOT-DIGEST-2 option-3 exception
+
+ROOT-DIGEST-2, option 3, 2026-10-04. Full identity means equality of recursive NamedProposal,
+including each ancestor's body, signed rows, raw HEAD list, and support list. This supersedes
+root-digest-plan r2's body-only limitation and its instruction to retain the old ContentAgree.
+The exception permits the exact N/A/H/E/Q changes in root-digest2-plan §4.1, the 64-entry generic
+mode delta in §9, and their measured representation dependencies. It permits exact named-parent
+admission and root-identifier HEAD handling in the shared GridCO base, with legacy block-mode
+behavior retained for the deferred protocols. The closed fgsaClaims type, all claim fields,
+numerical bounds, original observation scopes, and prior named exceptions remain. Each changed
+frozen entry must have an old/new type or hash and a cause. No frozen baseline or SHA is replaced.
+
 ## ROOT-DIGEST W1c class exception
 
 The [Gen exception list](GEN-API.md#root-digest-option-3-exception) names all four frozen walk
@@ -25,7 +37,7 @@ entries and their kernel evidence under plan r2.1 and r2.2. No frozen FG-SA walk
 new premise. The non-frozen `AvailableChain.FGSA.fgsa_headInTree_reanchor_of_pivot` now takes
 root uniqueness on its arbitrary `tree`. CStoreInv supplies this for each erasedList view.
 The census is `.lake/rdw1c-census.md`. FGSAClaims fields and Base₂ text are unchanged by W1c.
-The FG-SA manifest tool remains blocked by the W3 `AvailableChainFGSA.Tests.Support` fixture.
+W3 has migrated `AvailableChainFGSA.Tests.Support`. Final manifest generation waits for W2.
 No generated FG-SA entry, frozen baseline, SHA, or allow policy is changed here.
 
 ## ROOT-DIGEST W2b D1 exception

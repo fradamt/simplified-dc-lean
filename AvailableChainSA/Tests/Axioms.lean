@@ -94,3 +94,27 @@ public import AvailableChainGridCO.Proofs.Contract
 #print axioms AvailableChain.GridCO.gateFrom_eq_writeKeys
 #print axioms AvailableChain.GridCO.gateFrom_blocks
 #print axioms AvailableChain.GridCO.gateFrom_target_origin
+
+-- ROOT-DIGEST-2: new public W1 declarations from the signed checkpoint inventory.
+namespace AvailableChain.SA.Root
+#print axioms State
+#print axioms act
+#print axioms block
+#print axioms clock
+#print axioms clockFrom
+#print axioms confirmation
+#print axioms confirmationFrom
+#print axioms confirmed
+#print axioms deadlineOf
+#print axioms expire
+#print axioms gate
+#print axioms gateFrom
+#print axioms initial
+#print axioms prefixSupport
+#print axioms process
+#print axioms propose
+#print axioms release
+#print axioms savedGenuine
+#print axioms slowEligible
+#print axioms stable
+end AvailableChain.SA.Root

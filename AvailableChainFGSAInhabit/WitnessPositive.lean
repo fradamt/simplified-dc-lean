@@ -20,14 +20,14 @@ def positivePrefix (steps count : Nat) : V2.D.Run Validator (fgsa params unitCod
   runData (steps : Time) ((buildPrefix steps).2.take count)
 
 /-- Node zero's first HEAD votes for genesis in slot zero. -/
-def firstHead : Obj params := ⟨.seat (.base (.head 0)) ⟨0, by decide⟩, .head .genesis⟩
+def firstHead : Obj params := ⟨.seat (.base (.head 0)) ⟨0, by decide⟩, .head genesisRoot⟩
 
 /-- ROOT-DIGEST W3e. The first proposal has no rows and carries four slot-zero HEADs. -/
 def firstProposal : Obj params :=
-  let heads := nodes.map fun i => (⟨.seat (.head 0) i, .genesis⟩ : HeadWire params.n)
+  let heads := nodes.map fun i => (⟨.seat (.head 0) i, genesisRoot⟩ : HeadWire params.n)
   ⟨.seat (.prop 1) ⟨0, by decide⟩,
     .proposal (.node .genesis 1 (params.digest ⟨genesisRoot, 1, 0, [], heads, heads⟩)
-      (packBody (n := params.n) 0 [])) heads heads []⟩
+      (packBody (n := params.n) 0 []) heads heads [])⟩
 
 /-- P1: the tick that emits node zero's first HEAD. -/
 theorem positive_head_tick :
@@ -308,7 +308,7 @@ theorem positive_early_row_time (st : Node params) (v : Validator) (t : Time)
   have htime := (duties_spec params d t).mp hd
   cases d with
   | headAction s =>
-      change some (.head (headVote params (FGSA.clock params st.st t) s)) = some m at ha
+      change some (.head (headVote params (FGSA.clock params st.st t) s).root) = some m at ha
       cases ha
       cases hp
   | propAction s =>

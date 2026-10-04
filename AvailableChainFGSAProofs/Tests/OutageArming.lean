@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingArith
-public import AvailableChainFGSAProofs.Proofs.Outage.ArmingGate -- shake: keep (slow admission example)
+public import AvailableChainFGSAProofs.Proofs.Outage.ArmingGate -- shake: keep (slow admission)
 public import AvailableChainFGSAProofs.Proofs.Outage.ArmingMain -- shake: keep (axiom lines)
 
 set_option linter.privateModule false
@@ -75,11 +75,11 @@ theorem pending_after_horizon {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
 
 /-- Plan O-ARM §6.4, §10. Class (iii). DC: INTENTIONAL.
 Slow mode below τ: the slow test alone admits the release level. -/
-example (p : Params) {n : Nat} (v : GridCO.State n) (r : Slot) (B : Block)
+example (p : Params) {n : Nat} (v : GridCO.State n .root) (r : Slot) (B : Block)
     (_hbelow : SA.prefixSupport p.toParams v r B < SA.releaseThreshold p.toParams)
     (hslow : GridCO.slowEligible p.toParams.engine v r B = true) :
     SA.releaseThreshold p.toParams ∈
-      @GridCO.admissionLevels GridCO.slowLeasePolicy p.toParams.engine n v r B :=
+      @GridCO.admissionLevels GridCO.slowLeasePolicy p.toParams.engine n .root v r B :=
   arming_admission p v r B (Or.inr hslow)
 
 #print axioms cut_at_gate

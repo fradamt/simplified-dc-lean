@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSARun.Proofs.NamedScope
 public import AvailableChainFGSARun.Proofs.WindowExclusion
 public import AvailableChainFGSARun.Statements.Slashing
 public import AvailableChainFGSARun.Proofs.AncestorDeadlines
@@ -340,3 +341,25 @@ mechanically. -/
 -- ROOT-DIGEST: public root and content declarations.
 #print axioms AvailableChain.FGSA.Run.DirectRootBlockInRun
 #print axioms AvailableChain.FGSA.Run.RootBlockInRun
+
+-- ROOT-DIGEST-2: new public W1 declarations from the signed checkpoint inventory.
+namespace AvailableChain.FGSA.Run
+#print axioms DirectNamedProposalInRun
+#print axioms HeadTargetAtEmission
+#print axioms NamedProposalInRun
+#print axioms contentAgree_of_namedScope
+#print axioms emitted_payload_parent_base_stored
+#print axioms headTargetAtEmission_exists
+#print axioms headTargetAtEmission_unique
+#print axioms namedAncestor_eq
+#print axioms namedOrigin_reachable
+#print axioms namedProposal_eq
+#print axioms namedScope_ancestor
+#print axioms namedScope_collision
+#print axioms namedScope_compatible_iff
+#print axioms namedScope_delivered
+#print axioms namedScope_erase_injective
+#print axioms namedScope_held
+#print axioms namedScope_preceq_iff
+#print axioms proposal_trigger_in_root_scope
+end AvailableChain.FGSA.Run

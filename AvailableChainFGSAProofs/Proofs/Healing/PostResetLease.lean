@@ -1,11 +1,8 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetInvariant -- shake: keep
--- (J4 required carrier import)
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat -- shake: keep
--- (J4 carrier inputs)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetInvariant -- shake: keep (J4 carrier)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat -- shake: keep (J4 carrier)
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetTransfer
-public import AvailableChainFGSAProofs.Proofs.Healing.SupportWrite -- shake: keep
--- (gateWriteKeys equation)
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportWrite -- shake: keep (gateWriteKeys)
 
 public section
 

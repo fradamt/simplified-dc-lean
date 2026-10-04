@@ -182,6 +182,67 @@ echo "== axioms, build coverage, import closure"
 TEST_ROOTS=()
 for m in $(test_modules .); do TEST_ROOTS+=(--root "$m"); done
 gate_with_slot lake env lean --run scripts/CheckFGSAAxioms.lean "${TEST_ROOTS[@]}" --expect \
+  AvailableChain.FGSA.NamedProposal \
+  AvailableChain.FGSA.NamedProposal.Preceq \
+  AvailableChain.FGSA.NamedProposal.body \
+  AvailableChain.FGSA.NamedProposal.digestInput \
+  AvailableChain.FGSA.NamedProposal.erase \
+  AvailableChain.FGSA.NamedProposal.genesis \
+  AvailableChain.FGSA.NamedProposal.node \
+  AvailableChain.FGSA.NamedProposal.parent \
+  AvailableChain.FGSA.NamedProposal.preceq \
+  AvailableChain.FGSA.NamedProposal.raw \
+  AvailableChain.FGSA.NamedProposal.root \
+  AvailableChain.FGSA.NamedProposal.rows \
+  AvailableChain.FGSA.NamedProposal.slot \
+  AvailableChain.FGSA.NamedProposal.support \
+  AvailableChain.FGSA.State.namedBodies \
+  AvailableChain.FGSA.Wire.proposal? \
+  AvailableChain.FGSA.actView_resolutionTree \
+  AvailableChain.FGSA.actView_resolvedHead \
+  AvailableChain.FGSA.active_releaseCount_le \
+  AvailableChain.FGSA.active_releaseCount_zero \
+  AvailableChain.FGSA.active_resolvedBefore_base \
+  AvailableChain.FGSA.admitProposal_headDomain \
+  AvailableChain.FGSA.admitRow_headDomain \
+  AvailableChain.FGSA.admitVote_headDomain \
+  AvailableChain.FGSA.base_headDomain_none \
+  AvailableChain.FGSA.clock_headDomain \
+  AvailableChain.FGSA.clock_namedBodies \
+  AvailableChain.FGSA.contentAgree_projection \
+  AvailableChain.FGSA.foldRows_headDomain \
+  AvailableChain.FGSA.foldVotes_headDomain \
+  AvailableChain.FGSA.instDecidableEqNamedProposal \
+  AvailableChain.FGSA.instDecidableEqNamedProposal.decEq \
+  AvailableChain.FGSA.instReprNamedProposal \
+  AvailableChain.FGSA.instReprNamedProposal.repr \
+  AvailableChain.FGSA.mem_namedBodies \
+  AvailableChain.FGSA.namedBodies_erase_domain \
+  AvailableChain.FGSA.namedBodies_erase_injective \
+  AvailableChain.FGSA.namedBodies_parent \
+  AvailableChain.FGSA.namedBodies_root_injective \
+  AvailableChain.FGSA.namedByErase? \
+  AvailableChain.FGSA.namedByErase?_complete \
+  AvailableChain.FGSA.namedByErase?_sound \
+  AvailableChain.FGSA.namedByErase?_stored \
+  AvailableChain.FGSA.namedContentOk \
+  AvailableChain.FGSA.namedParentHeld \
+  AvailableChain.FGSA.namedProposal \
+  AvailableChain.FGSA.namedProposal_erase \
+  AvailableChain.FGSA.named_erase_ancestor \
+  AvailableChain.FGSA.named_erase_eq_genesis \
+  AvailableChain.FGSA.named_erase_parent \
+  AvailableChain.FGSA.named_erase_root \
+  AvailableChain.FGSA.named_erase_slot \
+  AvailableChain.FGSA.named_preceq_erase \
+  AvailableChain.FGSA.named_preceq_refl \
+  AvailableChain.FGSA.named_preceq_trans \
+  AvailableChain.FGSA.process_headDomain \
+  AvailableChain.FGSA.proposal?_eq_some \
+  AvailableChain.FGSA.propose_isSome_of_reachable \
+  AvailableChain.FGSA.propose_parent_lookup \
+  AvailableChain.FGSA.reachable_named_store \
+  AvailableChain.FGSA.resolvedHead_mem \
   Window.EntryBitW Window.EntryBitW_def Window.entry_bit_insertW Window.entry_bit_persistW Window.entry_bit_occurrenceW Window.entry_historyW Window.terminal_retained_scalarW Window.terminal_retained_birthsW Window.terminal_retained_or_coveredW Window.terminalRetentionW stored_r6wW stored_chain_r6wW \
   StoreSetEq admitRow_setEq proposalRows_perm_setEq \
   propose_setEq blockAccepted_slot_pos \

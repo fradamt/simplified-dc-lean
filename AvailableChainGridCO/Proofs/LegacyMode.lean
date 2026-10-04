@@ -1,6 +1,23 @@
 module
 public import AvailableChainGridCO.Model.Legacy
 
+-- Find matcher bodies in the two definitions; do not depend on generated names.
+local elab "hygieneEq% " lhs:term:max rhs:term:max : term => do
+  let left ← Lean.Elab.Term.elabTerm lhs none
+  let right ← Lean.Elab.Term.elabTerm rhs none
+  let a ← Lean.getConstInfo left.getAppFn.constName!
+  let b ← Lean.getConstInfo right.getAppFn.constName!
+  for x in a.value!.getUsedConstants do
+    unless (← Lean.Meta.getMatcherInfo? x).isSome do continue
+    let ex ← Lean.Meta.mkConstWithFreshMVarLevels x
+    for y in b.value!.getUsedConstants do
+      unless (← Lean.Meta.getMatcherInfo? y).isSome do continue
+      let ey ← Lean.Meta.mkConstWithFreshMVarLevels y
+      if ← Lean.Meta.isDefEq (← Lean.Meta.inferType ex) (← Lean.Meta.inferType ey) then
+        if ← Lean.Meta.isDefEq ex ey then
+          return ← Lean.Meta.mkEq ex ey
+  throwError "No equal matcher bodies in the supplied definitions"
+
 namespace AvailableChain.GridCO.Legacy
 
 open AvailableChain.Generic
@@ -16,9 +33,8 @@ private def hygiene_goldfishScore {n : Nat} (tree : List Block)
       | none => false))).length
 
 -- The generated matcher bodies are definitionally equal.
-set_option linter.auxLemma false in
 private theorem hygiene_goldfishScore_match_1_eq :
-    @goldfishScore.match_1 = @hygiene_goldfishScore.match_1 := rfl
+    hygieneEq% (@goldfishScore) (@hygiene_goldfishScore) := rfl
 
 end AvailableChain.GridCO.Legacy
 
@@ -34,9 +50,8 @@ private def hygiene_voterView (_p : Params) {n : Nat} (st : State n) (s : Slot) 
   (pool ++ carriedRaw st s).eraseDups
 
 -- The generated matcher bodies are definitionally equal.
-set_option linter.auxLemma false in
 private theorem hygiene_voterView_match_1_eq :
-    @voterView.match_1 = @hygiene_voterView.match_1 := rfl
+    hygieneEq% (@voterView) (@hygiene_voterView) := rfl
 
 end AvailableChain.GridCO.Legacy
 
@@ -57,9 +72,8 @@ private def hygiene_goldfishScoreOn {n : Nat} {mode : HeadMode} (domain tree : L
             Block.preceq b B))).length
 
 -- The generated matcher bodies are definitionally equal.
-set_option linter.auxLemma false in
 private theorem hygiene_goldfishScoreOn_match_1_eq :
-    @goldfishScoreOn.match_1 = @hygiene_goldfishScoreOn.match_3 := rfl
+    hygieneEq% (@goldfishScoreOn) (@hygiene_goldfishScoreOn) := rfl
 
 end AvailableChain.GridCO
 
@@ -77,9 +91,8 @@ private def hygiene_proposerSupportView
     | none => false)
 
 -- The generated matcher bodies are definitionally equal.
-set_option linter.auxLemma false in
 private theorem hygiene_proposerSupportView_match_1_eq :
-    @proposerSupportView.match_1 = @Legacy.hygiene_goldfishScore.match_1 := rfl
+    hygieneEq% (@proposerSupportView) (@Legacy.hygiene_goldfishScore) := rfl
 
 end AvailableChain.GridCO
 
@@ -96,9 +109,8 @@ private def hygiene_resolvedBefore {n : Nat} {mode : HeadMode}
       decide (stampVote st o < cutoff) && decide (stampBlock st B < cutoff)
 
 -- The generated matcher bodies are definitionally equal.
-set_option linter.auxLemma false in
 private theorem hygiene_resolvedBefore_match_1_eq :
-    @resolvedBefore.match_1 = @hygiene_goldfishScoreOn.match_1 := rfl
+    hygieneEq% (@resolvedBefore) (@hygiene_goldfishScoreOn) := rfl
 
 end AvailableChain.GridCO
 
@@ -116,9 +128,8 @@ private def hygiene_voterView
   (pool ++ carriedRaw st s).eraseDups
 
 -- The generated matcher bodies are definitionally equal.
-set_option linter.auxLemma false in
 private theorem hygiene_voterView_match_1_eq :
-    @voterView.match_1 = @hygiene_voterView.match_1 := rfl
+    hygieneEq% (@voterView) (@hygiene_voterView) := rfl
 
 end AvailableChain.GridCO
 

@@ -1,10 +1,7 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLease -- shake: keep
--- (J4-A required input)
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep -- shake: keep
--- (J4-A required input)
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat -- shake: keep
--- (J4-A required input)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLease -- shake: keep (J4-A input)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep -- shake: keep (J4-A input)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat -- shake: keep (J4-A input)
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportSlow
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportTransfer
 

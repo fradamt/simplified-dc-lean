@@ -19,8 +19,13 @@ def c1 : Block := .node .genesis 1 ⟨2⟩ (packBody 0 ([] : List (RowWire 4)))
 def bb : Block := .node c1 2 ⟨3⟩ (packBody 0 ([] : List (RowWire 4)))
 def ra : RowWire 4 := rw 0 0 (rowT 0)
 def rb : RowWire 4 := rw 0 1 (rowT 1)
-def ha : HeadWire 4 := ⟨.seat (.head 0) 0, .genesis⟩
-def hb : HeadWire 4 := ⟨.seat (.head 0) 1, .genesis⟩
+def ha : HeadWire 4 := ⟨.seat (.head 0) 0, genesisRoot⟩
+def hb : HeadWire 4 := ⟨.seat (.head 0) 1, genesisRoot⟩
+
+/-- Full fixture parents keep their exact signed content. -/
+def na : NamedProposal 4 := .node .genesis 4 ⟨1⟩ (packBody (n := 4) 0 []) [] [] []
+def n1 : NamedProposal 4 := .node .genesis 1 ⟨2⟩ (packBody (n := 4) 0 []) [] [] []
+def nb : NamedProposal 4 := .node n1 2 ⟨3⟩ (packBody (n := 4) 0 []) [] [] []
 
 /-- ROOT-DIGEST W3: valid old/new inputs change one content field or one list. -/
 def inputPairs : List (DigestInput 4 × DigestInput 4) :=
@@ -95,9 +100,9 @@ def stT : State pT.n := clock pT (initial 4) 20
 /- Honest slot-4 block on genesis: application value `0`, no rows. -/
 /- Honest slot-1 block on genesis. -/
 /-- ROOT-DIGEST W3: Honest slot-2 block on `c1`. -/
-def wa : Wire 4 := ⟨.proposer 4, .proposal ba [] [] []⟩
-def w1 : Wire 4 := ⟨.proposer 1, .proposal c1 [] [] []⟩
-def wb : Wire 4 := ⟨.proposer 2, .proposal bb [] [] []⟩
+def wa : Wire 4 := ⟨.proposer 4, .proposal na⟩
+def w1 : Wire 4 := ⟨.proposer 1, .proposal n1⟩
+def wb : Wire 4 := ⟨.proposer 2, .proposal nb⟩
 /-- ROOT-DIGEST W3: A node that received only `ba`. -/
 def stX : State pT.n := process pT stT wa
 /-- ROOT-DIGEST W3: A node that received `c1` and `bb`. -/
@@ -171,16 +176,19 @@ example : (pb .genesis 1 0 []).root ≠ (pb .genesis 1 1 []).root :=
 /-- ROOT-DIGEST W3: A slot-1 block that packs the row `ra`. -/
 def bR : Block := pb .genesis 1 0 [ra]
 
+def nR (rows : List (RowWire 4)) : NamedProposal 4 :=
+  .node .genesis 1 bR.root bR.body [] [] rows
+
 /-- ROOT-DIGEST W3: A wrong row list is refused, and both the base store and the FG store stay
 unchanged: the wire carries the block `bR` (which packs `[ra]`) with no rows. The
 companion wire with the right rows is accepted. -/
 example : rowsOk bR ([] : List (RowWire 4)) = false ∧
-    wellFormed pT ⟨.proposer 1, .proposal bR [] [] []⟩ = false ∧
-    (process pT stT ⟨.proposer 1, .proposal bR [] [] []⟩).base.blocks = stT.base.blocks ∧
-    (process pT stT ⟨.proposer 1, .proposal bR [] [] []⟩).fg.TF = stT.fg.TF ∧
-    (process pT stT ⟨.proposer 1, .proposal bR [] [] []⟩).proposals = stT.proposals ∧
-    rowsOk bR [ra] = true ∧ wellFormed pT ⟨.proposer 1, .proposal bR [] [] [ra]⟩ = true ∧
-    bR ∈ (process pT stT ⟨.proposer 1, .proposal bR [] [] [ra]⟩).base.blocks := by
+    wellFormed pT ⟨.proposer 1, .proposal (nR [])⟩ = false ∧
+    (process pT stT ⟨.proposer 1, .proposal (nR [])⟩).base.blocks = stT.base.blocks ∧
+    (process pT stT ⟨.proposer 1, .proposal (nR [])⟩).fg.TF = stT.fg.TF ∧
+    (process pT stT ⟨.proposer 1, .proposal (nR [])⟩).proposals = stT.proposals ∧
+    rowsOk bR [ra] = true ∧ wellFormed pT ⟨.proposer 1, .proposal (nR [ra])⟩ = true ∧
+    bR ∈ (process pT stT ⟨.proposer 1, .proposal (nR [ra])⟩).base.blocks := by
   decide +kernel
 
 /-- ROOT-DIGEST W3: A body with the right signed-row code and a wrong outer decoded-row list:
@@ -188,11 +196,12 @@ example : rowsOk bR ([] : List (RowWire 4)) = false ∧
 and the stored wires stay unchanged. (The companion with the right decoded rows
 is `bR`, above.) -/
 def bW : Block := .node .genesis 1 ⟨4⟩ (encFGBody (packInner 0 [ra]) ([] : List (Row (Fin 4))))
+def nW : NamedProposal 4 := .node .genesis 1 bW.root bW.body [] [] [ra]
 example : appOf bW.body = 0 ∧ rowsOk bW [ra] = false ∧
-    wellFormed pT ⟨.proposer 1, .proposal bW [] [] [ra]⟩ = false ∧
-    (process pT stT ⟨.proposer 1, .proposal bW [] [] [ra]⟩).base.blocks = stT.base.blocks ∧
-    (process pT stT ⟨.proposer 1, .proposal bW [] [] [ra]⟩).fg.TF = stT.fg.TF ∧
-    (process pT stT ⟨.proposer 1, .proposal bW [] [] [ra]⟩).proposals = stT.proposals := by
+    wellFormed pT ⟨.proposer 1, .proposal nW⟩ = false ∧
+    (process pT stT ⟨.proposer 1, .proposal nW⟩).base.blocks = stT.base.blocks ∧
+    (process pT stT ⟨.proposer 1, .proposal nW⟩).fg.TF = stT.fg.TF ∧
+    (process pT stT ⟨.proposer 1, .proposal nW⟩).proposals = stT.proposals := by
   decide +kernel
 
 /-- ROOT-DIGEST W3: The action round is absent from signed content and packed roots. -/
@@ -201,28 +210,64 @@ example : rw 0 0 (rowT 0) = rw 1 0 (rowT 0) ∧
   exact ⟨rfl, rfl⟩
 
 /-- ROOT-DIGEST W3: reconstruct the parent used by the finite input table. -/
-def inputBody (d : DigestInput 4) (r : BlockId) : Block :=
-  .node (if d.parent = c1.root then c1 else .genesis) d.slot r (packBody d.app d.rows)
+def inputBody (d : DigestInput 4) (r : BlockId) : NamedProposal 4 :=
+  .node (if d.parent = c1.root then n1 else .genesis) d.slot r (packBody d.app d.rows)
+    d.raw d.support d.rows
+
+/-- Reuse the failed content check instead of evaluating the digest a second time. -/
+private theorem rejected_content (N : NamedProposal 4) (s : Slot)
+    (h : contentOk pT N.erase N.raw N.support N.rows = false) :
+    wellFormed pT ⟨.proposer s, .proposal N⟩ = false := by
+  simp only [wellFormed, Wire.decode, h, Bool.and_false]
+
+private theorem content_facts : ∀ e ∈ inputPairs,
+    let stale := inputBody e.2 (fixtureDigest e.1)
+    let fresh := inputBody e.2 (fixtureDigest e.2)
+    rowsOk stale.erase e.2.rows = true ∧
+    contentOk pT stale.erase e.2.raw e.2.support e.2.rows = false ∧
+    contentOk pT fresh.erase e.2.raw e.2.support e.2.rows = true ∧
+    wellFormed pT ⟨.proposer e.2.slot, .proposal fresh⟩ = true := by
+  decide +kernel
 
 /-- ROOT-DIGEST W3: every stale digest fails; each recomputed companion is valid. -/
 theorem full_content_controls : ∀ e ∈ inputPairs,
     let stale := inputBody e.2 (fixtureDigest e.1)
     let fresh := inputBody e.2 (fixtureDigest e.2)
-    rowsOk stale e.2.rows = true ∧
-    contentOk pT stale e.2.raw e.2.support e.2.rows = false ∧
-    wellFormed pT ⟨.proposer e.2.slot, .proposal stale e.2.raw e.2.support e.2.rows⟩ = false ∧
-    contentOk pT fresh e.2.raw e.2.support e.2.rows = true ∧
-    wellFormed pT ⟨.proposer e.2.slot, .proposal fresh e.2.raw e.2.support e.2.rows⟩ = true := by
-  decide +kernel
+    rowsOk stale.erase e.2.rows = true ∧
+    contentOk pT stale.erase e.2.raw e.2.support e.2.rows = false ∧
+    wellFormed pT ⟨.proposer e.2.slot, .proposal stale⟩ = false ∧
+    contentOk pT fresh.erase e.2.raw e.2.support e.2.rows = true ∧
+    wellFormed pT ⟨.proposer e.2.slot, .proposal fresh⟩ = true := by
+  intro e he
+  obtain ⟨hrows, hstale, hfresh, hwf⟩ := content_facts e he
+  exact ⟨hrows, hstale, rejected_content _ _ hstale, hfresh, hwf⟩
 
 
 /-- ROOT-DIGEST W3: the recomputed companions pass actual block admission. -/
 theorem full_content_admission : ∀ e ∈ inputPairs,
     let st := process pT stT w1
     let fresh := inputBody e.2 (fixtureDigest e.2)
-    fresh ∈ (process pT st
-      ⟨.proposer e.2.slot, .proposal fresh e.2.raw e.2.support e.2.rows⟩).base.blocks := by
+    fresh.erase ∈ (process pT st
+      ⟨.proposer e.2.slot, .proposal fresh⟩).base.blocks := by
   decide +kernel
+
+abbrev aliasParams : Params := { pT with digest := fun d => ⟨d.slot + 1⟩ }
+def parentA : NamedProposal 4 := namedProposal aliasParams .genesis 1 0 [ha] [] []
+def parentB : NamedProposal 4 := namedProposal aliasParams .genesis 1 0 [hb] [] []
+def parentStore : State 4 := process aliasParams (clock aliasParams (initial 4) 8)
+  ⟨.proposer 1, .proposal parentA⟩
+def aliasChild : NamedProposal 4 := namedProposal aliasParams parentB 2 0 [] [] []
+
+/-- An equal erased parent cannot install a different named ancestor list. -/
+theorem exact_parent_dependency : parentA.erase = parentB.erase ∧ parentA ≠ parentB ∧
+    parentA ∈ parentStore.namedBodies ∧ parentB ∉ parentStore.namedBodies ∧
+    namedParentHeld parentStore aliasChild = false ∧
+    wellFormed aliasParams ⟨.proposer 2, .proposal aliasChild⟩ = true ∧
+    (process aliasParams parentStore ⟨.proposer 2, .proposal aliasChild⟩).proposals =
+      parentStore.proposals := by decide +kernel
+
+#print axioms exact_parent_dependency
+
 
 #print axioms full_content_admission
 

@@ -1,6 +1,23 @@
 module
 public import AvailableChainFGSA.Statements.Invariants
 
+-- Find matcher bodies in the two definitions; do not depend on generated names.
+local elab "hygieneEq% " lhs:term:max rhs:term:max : term => do
+  let left ← Lean.Elab.Term.elabTerm lhs none
+  let right ← Lean.Elab.Term.elabTerm rhs none
+  let a ← Lean.getConstInfo left.getAppFn.constName!
+  let b ← Lean.getConstInfo right.getAppFn.constName!
+  for x in a.value!.getUsedConstants do
+    unless (← Lean.Meta.getMatcherInfo? x).isSome do continue
+    let ex ← Lean.Meta.mkConstWithFreshMVarLevels x
+    for y in b.value!.getUsedConstants do
+      unless (← Lean.Meta.getMatcherInfo? y).isSome do continue
+      let ey ← Lean.Meta.mkConstWithFreshMVarLevels y
+      if ← Lean.Meta.isDefEq (← Lean.Meta.inferType ex) (← Lean.Meta.inferType ey) then
+        if ← Lean.Meta.isDefEq ex ey then
+          return ← Lean.Meta.mkEq ex ey
+  throwError "No equal matcher bodies in the supplied definitions"
+
 namespace AvailableChain.FGSA
 
 open AvailableChain.Generic AvailableChain.SimplexFG
@@ -23,9 +40,8 @@ private def hygiene_admitBlock (p : Params) (st : State p.n) (s : Slot)
       else st
 
 -- The generated matcher bodies are definitionally equal.
-set_option linter.auxLemma false in
 private theorem hygiene_admitBlock_match_1_eq :
-    @admitBlock.match_1 = @hygiene_admitBlock.match_1 := rfl
+    hygieneEq% (@admitBlock) (@hygiene_admitBlock) := rfl
 
 end AvailableChain.FGSA
 
@@ -41,9 +57,8 @@ private def hygiene_admitRow (p : Params) (st : State p.n) (a : RowWire p.n) : S
   | none => st
 
 -- The generated matcher bodies are definitionally equal.
-set_option linter.auxLemma false in
 private theorem hygiene_admitRow_match_1_eq :
-    @admitRow.match_1 = @hygiene_admitRow.match_1 := rfl
+    hygieneEq% (@admitRow) (@hygiene_admitRow) := rfl
 
 end AvailableChain.FGSA
 
@@ -60,9 +75,8 @@ private def hygiene_process (p : Params) (st : State p.n) (o : Wire p.n) : State
   | none => st
 
 -- The generated matcher bodies are definitionally equal.
-set_option linter.auxLemma false in
 private theorem hygiene_process_match_1_eq :
-    @process.match_1 = @hygiene_process.match_1 := rfl
+    hygieneEq% (@process) (@hygiene_process) := rfl
 
 end AvailableChain.FGSA
 
@@ -77,9 +91,8 @@ private def hygiene_headLabel {n : Nat} {mode : HeadMode} (o : Wire n mode) : Op
   | _, _ => none
 
 -- The generated matcher bodies are definitionally equal.
-set_option linter.auxLemma false in
 private theorem hygiene_headLabel_match_1_eq :
-    @headLabel?.match_1 = @hygiene_headLabel.match_1 := rfl
+    hygieneEq% (@headLabel?) (@hygiene_headLabel) := rfl
 
 end AvailableChain.GridCO
 

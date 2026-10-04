@@ -165,23 +165,36 @@ example : (Window.derive p p.K_W (.node .genesis 1 ⟨1⟩ 0 birthRows)).W =
     [⟨1, .genesis, ∅⟩] ∧
     (Window.derive p p.K_W (.node .genesis 1 ⟨1⟩ 0 birthRows)).h_F = 0 := by decide +kernel
 
+/-- This literal family contains signed rows and empty HEAD lists at every ancestor. -/
+private def namedFixture : FGBlock (Fin 4) → NamedProposal 4
+  | .genesis => .genesis
+  | B@(.node P slot root _ rows) =>
+      .node (namedFixture P) slot root (eraseFG B).body [] []
+        (rows.map (fun row => ⟨.seat .fg row.signer, .vote (RowBody.ofRow row)⟩))
+
 /-- Acceptance guards can be discharged on the actual W cache and h_max. -/
 private def beforeReceipt : State 4 :=
   { (FGSA.initial 4) with
     base := { (FGSA.initial 4).base with
       now := 24
       blocks := [.genesis, eraseFG first, eraseFG grow, eraseFG second] }
+    proposals := [⟨.proposer first.slot, .proposal (namedFixture first)⟩,
+      ⟨.proposer grow.slot, .proposal (namedFixture grow)⟩,
+      ⟨.proposer second.slot, .proposal (namedFixture second)⟩]
     fg := [first, grow, second].foldl (Window.on_block p p.K_W) SimplexFG.Store.init }
 private def receiptRows : List (RowWire 4) :=
   [finWire 2, higherWire 0, higherWire 1, higherWire 2]
 private def receiptBlock : FGBlock (Fin 4) :=
   FGSA.fgBlock second (.node (eraseFG second) 6 ⟨7⟩ (packBody 0 receiptRows)) receiptRows
 
-example : blockAccepted p beforeReceipt 6 (eraseFG receiptBlock) [] [] second receiptRows = true ∧
+private def namedReceipt : NamedProposal 4 :=
+  .node (namedFixture second) 6 ⟨7⟩ (packBody 0 receiptRows) [] [] receiptRows
+
+example : blockAccepted p beforeReceipt 6 namedReceipt second = true ∧
     FGBlock.Preceq beforeReceipt.fg.J receiptBlock ∧
     max beforeReceipt.fg.h_max (heightView p receiptBlock).h ≤
       (heightView p receiptBlock).h + 1 ∧
-    (admitBlock p beforeReceipt 6 (eraseFG receiptBlock) [] [] receiptRows).fg.F = first := by
+    (admitBlock p beforeReceipt 6 namedReceipt).fg.F = first := by
   decide +kernel
 
 -- The selected receipt index is shared by delivery and every guard.

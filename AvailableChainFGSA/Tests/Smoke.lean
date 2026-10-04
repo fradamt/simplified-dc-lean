@@ -54,11 +54,11 @@ def Y : FGBlock (Fin 4) :=
 /-- ROOT-DIGEST W3: X uses root 8, above childA root 4, to keep the stK tie. -/
 def X : FGBlock (Fin 4) := literalFG B1a 3 ⟨8⟩ 0 []
 
-def v2 : HeadWire 4 := ⟨.seat (.head 2) 0, eraseFG B2⟩
+def v2 : HeadWire 4 := ⟨.seat (.head 2) 0, B2.root⟩
 def rF : RowWire 4 := ⟨.seat .fg 3, .vote ⟨.vote 1 ⟨77⟩ true, none⟩⟩
 def r0 : RowWire 4 := ⟨.seat .fg 2, .vote ⟨.vote 0 genesisRoot false, none⟩⟩
 def r1 : RowWire 4 := ⟨.seat .fg 2, .vote ⟨.vote 1 genesisRoot false, none⟩⟩
-def vX : HeadWire 4 := ⟨.seat (.head 2) 1, (eraseFG B1')⟩
+def vX : HeadWire 4 := ⟨.seat (.head 2) 1, B1'.root⟩
 def q (h : Nat) : RowWire 4 :=
   ⟨.seat .fg 3, .vote ⟨.vote 3 B2.root false, some ⟨h - 1, genesisRoot⟩⟩⟩
 def r0z : RowWire 4 := rw 0 3 (rowAt 3 B2.root true 3)
@@ -134,6 +134,36 @@ def pb (P : Block) (s : Slot) (app : Nat) (rows : List (RowWire 4))
     (raw support : List (HeadWire 4) := []) : Block :=
   proposalBlock pT P s app raw support rows
 
+/-- The literal row-only family has empty ancestor HEAD lists. -/
+def namedFixture : FGBlock (Fin 4) → NamedProposal 4
+  | .genesis => .genesis
+  | .node P slot root app rows =>
+      .node (namedFixture P) slot root (eraseFG (.node P slot root app rows)).body
+        [] [] (rows.map (fun a => ⟨.seat .fg a.signer, .vote (RowBody.ofRow a)⟩))
+
+/-- Fixture list edits keep the exact previously constructed named parent. -/
+def namedLists (N : NamedProposal 4) (raw support : List (HeadWire 4))
+    (rows : List (RowWire 4)) : NamedProposal 4 :=
+  match N with
+  | .genesis => .genesis
+  | .node P slot root body _ _ _ => .node P slot root body raw support rows
+
+/-- A new fixture node takes its parent from the explicit named fixture family. -/
+def namedBody (P : NamedProposal 4) (b : Block) (raw support : List (HeadWire 4))
+    (rows : List (RowWire 4)) : NamedProposal 4 :=
+  .node P b.slot b.root b.body raw support rows
+
+theorem namedFixture_erase (B : FGBlock (Fin 4)) : (namedFixture B).erase = eraseFG B := by
+  induction B with
+  | genesis => rfl
+  | node P slot root app rows ih =>
+    simpa only [namedFixture, NamedProposal.erase, eraseFG, Block.body] using
+      congrArg (fun b => Block.node b slot root (encFGBody app rows)) ih
+
+theorem namedLists_erase (N : NamedProposal 4) (raw support : List (HeadWire 4))
+    (rows : List (RowWire 4)) : (namedLists N raw support rows).erase = N.erase := by
+  cases N <;> rfl
+
 /-- ROOT-DIGEST W3: the smart constructors reproduce the literal fixtures. -/
 theorem literal_constructors :
     pk .genesis 1 0 (signRows 0 [rowT 0, rowT 1, rowT 2]) = B1 ∧
@@ -182,8 +212,8 @@ example : pT.actionTime 1 = 14 := by decide
 example : pT.slotOf 14 = 3 ∧ pT.round 3 = 1 := by decide
 /-- The base form of a carried vote: a HEAD seat of slot `s` is a seat of base
 label `s`; an FG seat is not a base signature. -/
-example : baseHead (n := 4) ⟨.seat (.head 3) 1, .genesis⟩ = ⟨.seat 3 1, .genesis⟩ ∧
-    baseHead (n := 4) ⟨.seat .fg 1, .genesis⟩ = ⟨.none, .genesis⟩ := by decide
+example : baseHead (n := 4) ⟨.seat (.head 3) 1, genesisRoot⟩ = ⟨.seat 3 1, genesisRoot⟩ ∧
+    baseHead (n := 4) ⟨.seat .fg 1, genesisRoot⟩ = ⟨.none, genesisRoot⟩ := by decide
 /-- One row check (M12; spec 234–237): height 0 fails; height 1 passes and the empty
 pair fails; a row with a HEAD signature fails. -/
 example : (RowBody.mk (.vote 0 genesisRoot false) none).valid = false ∧
@@ -203,22 +233,24 @@ example : (rw 0 2 (rowT 2)).valid = true ∧
 
 /-- A carried HEAD vote of slot 3 by seat 1 for `B1`, and an FG signature on a
 HEAD payload. -/
-def hv : HeadWire 4 := ⟨.seat (.head 3) 1, eraseFG B1⟩
-def hf : HeadWire 4 := ⟨.seat .fg 1, eraseFG B1⟩
+def hv : HeadWire 4 := ⟨.seat (.head 3) 1, B1.root⟩
+def hf : HeadWire 4 := ⟨.seat .fg 1, B1.root⟩
 
 /-- G1: the decoders of a vote and a proposal; a wrong auth gives `none`. -/
-example : hv.decode? = some (3, 1, eraseFG B1) ∧ hf.decode? = none := by decide +kernel
-example : Wire.decode (n := 4) ⟨.seat (.head 3) 1, .head (eraseFG B1)⟩ =
-      some (.vote 3 1 (eraseFG B1)) ∧
-    Wire.decode (n := 4) ⟨.proposer 2, .proposal (eraseFG B1) [hv] [hv] [rw 0 2 (rowT 2)]⟩ =
-      some (.block 2 (eraseFG B1) [hv] [hv] [rw 0 2 (rowT 2)]) ∧
-    Wire.decode (n := 4) ⟨.proposer 2, .head (eraseFG B1)⟩ = none ∧
-    Wire.decode (n := 4) ⟨.seat (.head 2) 1, .proposal (eraseFG B1) [] [] []⟩ = none ∧
-    Wire.decode (n := 4) ⟨.seat .fg 2, .head (eraseFG B1)⟩ = none := by decide +kernel
+example : hv.decode? = some (3, 1, B1.root) ∧ hf.decode? = none := by decide +kernel
+example : Wire.decode (n := 4) ⟨.seat (.head 3) 1, .head B1.root⟩ =
+      some (.vote 3 1 B1.root) ∧
+    Wire.decode (n := 4) ⟨.proposer 2,
+    .proposal (namedLists (namedFixture B1) [hv] [hv] [rw 0 2 (rowT 2)])⟩ =
+      some (.block 2 (namedLists (namedFixture B1) [hv] [hv] [rw 0 2 (rowT 2)])) ∧
+    Wire.decode (n := 4) ⟨.proposer 2, .head B1.root⟩ = none ∧
+    Wire.decode (n := 4) ⟨.seat (.head 2) 1,
+    .proposal (namedLists (namedFixture B1) [] [] [])⟩ = none ∧
+    Wire.decode (n := 4) ⟨.seat .fg 2, .head B1.root⟩ = none := by decide +kernel
 /-- G1: `Wire.block?` gives the block of a proposal and `none` for a vote. -/
-example : Wire.block? (n := 4) ⟨.proposer 2, .proposal (eraseFG B1) [] [] []⟩ =
+example : Wire.block? (n := 4) ⟨.proposer 2, .proposal (namedLists (namedFixture B1) [] [] [])⟩ =
       some (eraseFG B1) ∧
-    Wire.block? (n := 4) ⟨.seat (.head 3) 1, .head (eraseFG B1)⟩ = none := by decide +kernel
+    Wire.block? (n := 4) ⟨.seat (.head 3) 1, .head B1.root⟩ = none := by decide +kernel
 /-- G1: `liftHead?` inverts `baseVote` on a HEAD vote; it gives `none` for a
 base proposal. -/
 example : liftHead? (baseVote hv) = some hv ∧
@@ -226,8 +258,8 @@ example : liftHead? (baseVote hv) = some hv ∧
 /-- G1: `baseProposal` maps each carried vote by `baseHead`: a HEAD seat keeps its
 slot and seat; an FG seat becomes `.none`. -/
 example : baseProposal 2 (eraseFG B1) [hv, hf] [hv] =
-    ⟨.proposer 2, .proposal (eraseFG B1) [⟨.seat 3 1, eraseFG B1⟩, ⟨.none, eraseFG B1⟩]
-      [⟨.seat 3 1, eraseFG B1⟩]⟩ := by decide +kernel
+    ⟨.proposer 2, .proposal (eraseFG B1) [⟨.seat 3 1, B1.root⟩, ⟨.none, B1.root⟩]
+      [⟨.seat 3 1, B1.root⟩]⟩ := by decide +kernel
 
 /-! Task 3: store, active view, reconcile, outputs. -/
 
@@ -240,7 +272,7 @@ so the correspondence "base list = Σ.T erased" (CStoreInv `baseTree`) does not
 hold. Use it only for the Task 3 read and reconcile tests, never with an
 invariant. -/
 def stR0 : State 4 :=
-  { fg := stF, base := { GridCO.initial 4 with
+  { fg := stF, base := { GridCO.initial 4 .root with
       blocks := [.genesis, b1, eraseFG B2, eraseFG B3, b1'],
       genuine := [(1, some b1'), (2, some .genesis)],
       obligations := [(b1', 2, 100)], stableRecord := b1' },
@@ -263,8 +295,8 @@ example : (normalizeS
 example : blockExcluded stR0 b1' = true ∧ blockExcluded stR0 .genesis = false := by decide +kernel
 /-- G3: `Σ.s = ⌊t / 4Δ⌋` (spec 711); with Δ = 1, times 0, 13 and 16 give slots 0, 3, 4. -/
 example : State.slot pT (initial 4) = 0 ∧
-    State.slot pT { base := { GridCO.initial 4 with now := 13 } } = 3 ∧
-    State.slot pT { base := { GridCO.initial 4 with now := 16 } } = 4 := by decide
+    State.slot pT { base := { GridCO.initial 4 .root with now := 13 } } = 3 ∧
+    State.slot pT { base := { GridCO.initial 4 .root with now := 16 } } = 4 := by decide
 
 /-- G3 coverage: the initial store (spec 486–503) and the outputs (spec 558–561). -/
 example : (initial 4).fg = Store.init ∧ (initial 4).base.stableRecord = .genesis ∧
@@ -293,20 +325,25 @@ example : (onView (fun v => { v with goldfishRecord := v.blocks.getLastD .genesi
 def rowsOf (_r : Nat) (B : FGBlock (Fin 4)) : List (RowWire 4) :=
   B.rows.map (fun a => ⟨.seat .fg a.signer,  .vote (RowBody.ofRow a)⟩)
 def wProp (B : FGBlock (Fin 4)) (r : Nat) (raw : List (HeadWire 4) := []) : Wire 4 :=
-  ⟨.proposer B.slot, .proposal (eraseFG B) raw [] (rowsOf r B)⟩
+  ⟨.proposer B.slot, .proposal (namedLists (namedFixture B) raw [] (rowsOf r B))⟩
 /-- Now = 12: slot 3, round 1. -/
-def st0 : State pT.n := { base := { GridCO.initial 4 with now := 12 } }
+def st0 : State pT.n := { base := { GridCO.initial 4 .root with now := 12 } }
 def stA : State pT.n := [wProp B1 0, wProp B2 1, wProp B3 1].foldl (process pT) st0
 
 /-- [test helper] `admitWith` for the wire `wProp B r` with FG parent `P`. -/
 def aw (st : State pT.n) (B P : FGBlock (Fin 4)) (r : Nat) : State pT.n :=
-  admitWith pT st B.slot (eraseFG B) [] [] (rowsOf r B) P B
+  admitWith pT st B.slot (namedLists (namedFixture B) [] [] (rowsOf r B)) P B
 
 /-- [test helper] The delivery of `wProp B r`, with FG parent `P`. -/
 theorem process_wProp_eq (st : State pT.n) (B P : FGBlock (Fin 4)) (r : Nat)
     (hP : parentFG st (eraseFG B) = some P) (hB : fgBlock P (eraseFG B) (rowsOf r B) = B) :
     process pT st (wProp B r) = aw st B P r :=
-  process_eq_admitWith pT st _ _ _ _ _ P B hP hB
+  process_eq_admitWith pT st B.slot (namedLists (namedFixture B) [] [] (rowsOf r B)) P B
+    (by simpa only [namedLists_erase, namedFixture_erase] using hP) (by
+      have hrows : (namedLists (namedFixture B) [] [] (rowsOf r B)).rows = rowsOf r B := by
+        cases B <;> rfl
+      simpa only [namedLists_erase, namedFixture_erase, hrows] using hB)
+
 
 /-- The FG part is the FG module's store after the same blocks (K4). -/
 example : stA.fg.TF = stF.TF ∧ stA.fg.F = B1 ∧ stA.fg.J = stF.J ∧
@@ -323,7 +360,8 @@ example : (process pT stA ⟨v2.auth, .head v2.payload⟩).base.votes ≠ stA.ba
 /-- A checked slot-3 block on genesis conflicts with F = B1. It carries `v2` and
 `rF`. Refusal of `F ⋠ B` before unpacking (spec 808, 535–536): no block, no
 stamp, no carried vote, no row, no FG change, no stored wire. -/
-def wX : Wire 4 := ⟨.proposer 3, .proposal (pb .genesis 3 99 [rF] [v2]) [v2] [] [rF]⟩
+def wX : Wire 4 := ⟨.proposer 3,
+    .proposal (namedBody .genesis (pb .genesis 3 99 [rF] [v2]) [v2] [] [rF])⟩
 example : wellFormed pT wX = true := by decide +kernel
 example : (process pT stA wX).base.blocks = stA.base.blocks ∧
     (process pT stA wX).base.votes = stA.base.votes ∧
@@ -338,16 +376,19 @@ example : (process pT stA (wProp B2 1)).base.blocks = stA.base.blocks ∧
 /-- The old round input is absent from the wire. This parent-valid row passes
 the input check and the block handler. -/
 def wFut : Wire 4 :=
-  ⟨.proposer 1, .proposal (pb .genesis 1 98 [rw 1 2 (rowT 2)]) [] [] [rw 1 2 (rowT 2)]⟩
+  ⟨.proposer 1,
+    .proposal (namedBody .genesis (pb .genesis 1 98 [rw 1 2 (rowT 2)]) [] [] [rw 1 2 (rowT 2)])⟩
 example : rowsOk (pb .genesis 1 98 [rw 1 2 (rowT 2)]) [rw 1 2 (rowT 2)] = true ∧
     wellFormed pT wFut = true ∧ wFut ∈ (process pT st0 wFut).proposals := by decide +kernel
 /-- Review Focus 9 (M12): the same height-0 row fails alone and in a block; the
 height-1 row passes in both forms. -/
 example : wellFormed pT ⟨r0.auth, .row r0.payload⟩ = false ∧
     rowsOk (pb .genesis 3 97 [r0]) [r0] = true ∧
-    wellFormed pT ⟨.proposer 3, .proposal (pb .genesis 3 97 [r0]) [] [] [r0]⟩ = false ∧
+    wellFormed pT ⟨.proposer 3,
+    .proposal (namedBody .genesis (pb .genesis 3 97 [r0]) [] [] [r0])⟩ = false ∧
     wellFormed pT ⟨r1.auth, .row r1.payload⟩ = true ∧
-    wellFormed pT ⟨.proposer 3, .proposal (pb .genesis 3 97 [r1]) [] [] [r1]⟩ = true := by
+    wellFormed pT ⟨.proposer 3,
+    .proposal (namedBody .genesis (pb .genesis 3 97 [r1]) [] [] [r1])⟩ = true := by
   decide +kernel
 
 /-- A handler-integration fixture (NOT a reachable state: the lease, the saved
@@ -391,28 +432,35 @@ stored, and a block from a future slot (`4 > Σ.s = 3`), change nothing. -/
 example : (process pT st0 (wProp B2 1)).fg.TF = st0.fg.TF ∧
     (process pT st0 (wProp B2 1)).base.blocks = st0.base.blocks ∧
     rowsOk (pb b1 4 96 []) ([] : List (RowWire 4)) = true ∧
-    (process pT stA ⟨.proposer 4, .proposal (pb b1 4 96 []) [] [] []⟩).fg.TF = stA.fg.TF := by
+    (process pT stA ⟨.proposer 4,
+    .proposal (namedBody (namedFixture B1) (pb b1 4 96 []) [] [] [])⟩).fg.TF = stA.fg.TF := by
   decide +kernel
 /-- G4 coverage: the slot-3 block signed by the slot-2 proposer key fails the
 input check and the handler refuses it (spec 511–512, 810–812). -/
 example : rowsOk (pb b1 3 95 []) ([] : List (RowWire 4)) = true ∧
-    wellFormed pT ⟨.proposer 2, .proposal (pb b1 3 95 []) [] [] []⟩ = false ∧
-    (process pT stA ⟨.proposer 2, .proposal (pb b1 3 95 []) [] [] []⟩).fg.TF = stA.fg.TF := by
+    wellFormed pT ⟨.proposer 2,
+    .proposal (namedBody (namedFixture B1) (pb b1 3 95 []) [] [] [])⟩ = false ∧
+    (process pT stA ⟨.proposer 2,
+    .proposal (namedBody (namedFixture B1) (pb b1 3 95 []) [] [] [])⟩).fg.TF = stA.fg.TF := by
   decide +kernel
 /-- G4 coverage: a slot-1 vote at slot 3 is outside the vote window (spec 834–835);
 a wire that does not decode changes nothing and fails the input check. -/
-example : (process pT stA ⟨.seat (.head 1) 0, .head b1⟩).base.votes = stA.base.votes ∧
-    (process pT stA ⟨.proposer 3, .head b1⟩).base.votes = stA.base.votes ∧
-    (process pT stA ⟨.proposer 3, .head b1⟩).fg.TF = stA.fg.TF ∧
-    wellFormed pT ⟨.proposer 3, .head b1⟩ = false := by decide +kernel
+example : (process pT stA ⟨.seat (.head 1) 0, .head b1.root⟩).base.votes = stA.base.votes ∧
+    (process pT stA ⟨.proposer 3, .head b1.root⟩).base.votes = stA.base.votes ∧
+    (process pT stA ⟨.proposer 3, .head b1.root⟩).fg.TF = stA.fg.TF ∧
+    wellFormed pT ⟨.proposer 3, .head b1.root⟩ = false := by decide +kernel
 /-- G4 coverage: an accepted slot-3 block on `B2` passes its carried vote `v2`
 to the vote pool (spec 820–821) and stores its wire. -/
-def wY : Wire 4 := ⟨.proposer 3, .proposal (pb (eraseFG B2) 3 96 [] [v2]) [v2] [] []⟩
+def wY : Wire 4 := ⟨.proposer 3,
+    .proposal (namedBody (namedFixture B2) (pb (eraseFG B2) 3 96 [] [v2]) [v2] [] [])⟩
 example : baseVote v2 ∈ (process pT stA wY).base.votes ∧ baseVote v2 ∉ stA.base.votes ∧
     (process pT stA wY).proposals = stA.proposals ++ [wY] ∧
     pb (eraseFG B2) 3 96 [] [v2] ∈ (process pT stA wY).base.blocks := by
-  rw [show process pT stA wY = _ from process_eq_admitWith pT stA 3 (pb (eraseFG B2) 3 96 [] [v2])
-    [v2] [] [] B2 (pk B2 3 96 [] [v2]) (by decide +kernel) (by decide +kernel)]
+  rw [show process pT stA wY = _
+    from process_eq_admitWith pT stA 3
+      (namedBody (namedFixture B2) (pb (eraseFG B2) 3 96 [] [v2]) [v2] [] [])
+    B2 (pk B2 3 96 [] [v2])
+    (by decide +kernel) (by decide +kernel)]
   decide +kernel
 /-- G4 coverage: the pool refuses the rows of `B1` in `stR2` (they duplicate the
 rows of `B1'`), but the FG block `B1` keeps them (spec 540–541). The pool holds
@@ -439,7 +487,7 @@ example : fastWriteAt (clock pT stA 14) 2 = some [] ∧ (clock pT stA 14).fg.F =
 def atTime (st : State pT.n) (t : Time) : State pT.n :=
   { st with base := { st.base with now := t } }
 /-- A label-2 HEAD vote of seat `i` for `B2`. -/
-def hv2 (i : Fin 4) : Wire 4 := ⟨.seat (.head 2) i, .head (eraseFG B2)⟩
+def hv2 (i : Fin 4) : Wire 4 := ⟨.seat (.head 2) i, .head B2.root⟩
 /-- `B1`, `B2` admitted at now = 8 (stamps 8 < e_2 = 10); F stays genesis
 (`B2` justifies `B1`; nothing finalizes it). -/
 def stS0 : State pT.n := [wProp B1 0, wProp B2 1].foldl (process pT) (atTime {} 8)
@@ -495,7 +543,7 @@ genesis. Two label-3 HEADs for block `b` enter at now = 13 (stamps 13 < e_3 = 14
 and the blocks have stamp 12), and the gate of label 3 runs at d_3 = 18. -/
 
 /-- A label-3 HEAD vote of seat `i` for block `b`. -/
-def hv3 (i : Fin 4) (b : Block) : Wire 4 := ⟨.seat (.head 3) i, .head b⟩
+def hv3 (i : Fin 4) (b : Block) : Wire 4 := ⟨.seat (.head 3) i, .head b.root⟩
 /-- `stA` (F = B1) with the label-3 HEADs of seats 0 and 1 for `b`, at d_3 = 18. -/
 def stFw (b : Block) : State pT.n :=
   atTime ([hv3 0 b, hv3 1 b].foldl (process pT) (atTime stA 13)) 18
@@ -509,7 +557,7 @@ the `savedGenuine` conjunct tells the two walks apart. Label 3 is unsaved
 before the gate, so the gate runs. -/
 example : (stFw .genesis).fg.F = B1 ∧ b1 ≠ .genesis ∧
     GridCO.savedGenuine (stFw .genesis).base 3 = none ∧
-    SA.confirmation pT.toParams (actView (stFw .genesis)) 3 = some .genesis ∧
+    SA.Root.confirmation pT.toParams (actView (stFw .genesis)) 3 = some .genesis ∧
     GridCO.savedGenuine (gateStep pT (stFw .genesis) 3).base 3 = some none ∧
     fastWriteAt (gateStep pT (stFw .genesis) 3) 3 = some [] ∧
     (gateStep pT (stFw .genesis) 3).base.obligations = [] ∧
@@ -523,7 +571,7 @@ example : (stFw (eraseFG B2)).fg.F = B1 ∧
     GridCO.savedGenuine (stFw (eraseFG B2)).base 3 = none ∧
     GridCO.savedGenuine (gateStep pT (stFw (eraseFG B2)) 3).base 3 =
       some (some (eraseFG B2)) ∧
-    SA.confirmation pT.toParams (actView (stFw (eraseFG B2))) 3 = some (eraseFG B2) ∧
+    SA.Root.confirmation pT.toParams (actView (stFw (eraseFG B2))) 3 = some (eraseFG B2) ∧
     fastWriteAt (gateStep pT (stFw (eraseFG B2)) 3) 3 = some [b1, eraseFG B2] := by
   decide +kernel
 
@@ -566,8 +614,9 @@ example : (admitRow pT (atTime {} 0) (rA 1)).rowPool = [rA 1] ∧
     (admitRow pT (atTime {} 4000) (rA 1)).rowPool = [rA 1] := by decide
 /-- G4: a vote of a label above Σ.s = 3 is refused (spec 834–835); a label-3 vote
 is admitted. -/
-example : (process pT st0 ⟨.seat (.head 4) 0, .head b1⟩).base.votes = st0.base.votes ∧
-    (process pT st0 ⟨.seat (.head 3) 0, .head b1⟩).base.votes = [⟨.seat 3 0, .head b1⟩] := by
+example : (process pT st0 ⟨.seat (.head 4) 0, .head b1.root⟩).base.votes = st0.base.votes ∧
+    (process pT st0 ⟨.seat (.head 3) 0, .head b1.root⟩).base.votes =
+      [⟨.seat 3 0, .head b1.root⟩] := by
   decide +kernel
 
 /-! Task 6: frame reads and duties. -/
@@ -607,10 +656,10 @@ z_2 = f_2 = 11). While F = genesis, the HEAD of slot 3 has the vote in both
 merges. After `B1`, `B2`, `B3` at now = 12 move F to `B1`, `b1'` leaves `act(Σ)`:
 the vote stays in the raw merge (stamp 9 < 11), but the frozen support tests the
 CURRENT `act(Σ)` and drops it; no slot-3 proposal declares support. -/
-def vH : GridCO.Wire 4 := ⟨.seat 2 0, .head b1'⟩
+def vH : GridCO.Wire 4 .root := ⟨.seat 2 0, .head b1'.root⟩
 def stH0 : State pT.n :=
   atTime (process pT (atTime ([wProp B1' 0].foldl (process pT) (atTime {} 8)) 9)
-    ⟨.seat (.head 2) 0, .head b1'⟩) 12
+    ⟨.seat (.head 2) 0, .head b1'.root⟩) 12
 def stH : State pT.n := [wProp B1 0, wProp B2 1, wProp B3 1].foldl (process pT) stH0
 example : vH ∈ headVotes pT stH0 3 ∧ vH ∈ headSupport pT stH0 3 ∧
     stH.fg.F = B1 ∧ vH ∈ headVotes pT stH 3 ∧ headSupport pT stH 3 = [] := by decide +kernel
@@ -624,7 +673,7 @@ def xB : Block := pb b1' 3 96 [] [vX]
 def stX : State pT.n :=
   [wProp B1 0, wProp B2 1, wProp B3 1].foldl (process pT)
     (process pT (atTime ([wProp B1' 0].foldl (process pT) (atTime {} 8)) 12)
-      ⟨.proposer 3, .proposal xB [vX] [] []⟩)
+      ⟨.proposer 3, .proposal (namedBody (namedFixture B1') xB [vX] [] [])⟩)
 example : stX.fg.F = B1 ∧ xB ∈ stX.base.blocks ∧ xB ∉ (actView stX).blocks ∧
     baseVote vX ∈ headVotes pT stX 3 := by decide +kernel
 
@@ -633,10 +682,13 @@ selected when they are absent from the parent chain. -/
 def yB3 : Block := pb (eraseFG B2) 3 95 [q 3]
 /-- `stA` with the pool rows `q 1`, `q 2`. -/
 def stAq : State pT.n := [q 1, q 2].foldl (admitRow pT) stA
-def stP : State pT.n := process pT stAq ⟨.proposer 3, .proposal yB3 [] [] [q 3]⟩
+def stP : State pT.n := process pT stAq ⟨.proposer 3,
+    .proposal (namedBody (namedFixture B2) yB3 [] [] [q 3])⟩
 /-- [test helper] `stP` with its FG block explicit (`process_eq_admitWith`). -/
-theorem stP_eq : stP = admitWith pT stAq 3 yB3 [] [] [q 3] B2 (pk B2 3 95 [q 3]) :=
-  process_eq_admitWith pT stAq 3 yB3 [] [] [q 3] B2 _ (by decide +kernel) (by decide +kernel)
+theorem stP_eq : stP = admitWith pT stAq 3 (namedBody (namedFixture B2) yB3 [] [] [q 3])
+    B2 (pk B2 3 95 [q 3]) :=
+  process_eq_admitWith pT stAq 3 (namedBody (namedFixture B2) yB3 [] [] [q 3]) B2 _
+    (by decide +kernel) (by decide +kernel)
 /-- Fallback (plan Global Constraints, R1): plain `decide` and the `Bool` form
 both reach the elaborator's recursion limit on `stP`; the kernel check works. -/
 example : yB3 ∈ stP.base.blocks ∧ q 3 ∈ stP.rowPool ∧
@@ -659,7 +711,9 @@ rows (I = {1, 2}): the rows of B1 (round 0) and B2 (on the chain of b2) drop;
 the pool rows of B3 stay; the block rows add nothing new. The block packs
 application value `0` with these rows (D5, D9). -/
 example : propose pT (atTime stA 16) 4 =
-    some (.proposal (pb (eraseFG B2) 4 0 (rowsOf 1 B3)) [] [] (rowsOf 1 B3)) := by decide +kernel
+    some (
+    .proposal (namedBody (namedFixture B2)
+      (pb (eraseFG B2) 4 0 (rowsOf 1 B3)) [] [] (rowsOf 1 B3))) := by decide +kernel
 /-- G6 coverage: the finality head (spec 1318–1323) at `stA` (slot 3): the walk
 reaches b3 (current slot), and the head fields are those of `B3`. -/
 example : fgHead pT stA = eraseFG B3 ∧
@@ -691,7 +745,7 @@ and the merges in `headVote` (spec 598–606, 616–646, 1219–1233, 1276–130
 J = B1, h_j = 2, H = 3, no contest, so Z = B1, lo = 2; the filtered view tree is
 {B1}, and the head is b1. With the full filtered tree, the two equivocating
 seats make b2 eligible (2 < 2·2), and the head would be b2. -/
-def eqv (i : Fin 4) (b : Block) : Wire 4 := ⟨.seat (.head 2) i, .head b⟩
+def eqv (i : Fin 4) (b : Block) : Wire 4 := ⟨.seat (.head 2) i, .head b.root⟩
 def stE : State pT.n :=
   atTime (process pT (atTime ([eqv 0 .genesis, eqv 0 b1, eqv 1 .genesis, eqv 1 b1].foldl
     (process pT) (atTime (process pT (atTime {} 8) (wProp B1 0)) 9)) 12) (wProp B2 1)) 13
@@ -709,7 +763,8 @@ Z = B1, lo = 2); the equivocating seats make b2 and x3 eligible, and the head is
 x3. Without the proposal arm the view is {genesis, B1} and the head is b1. -/
 def x3 : Block := pb (eraseFG B2) 3 96 []
 def stE3 : State pT.n :=
-  atTime (process pT (atTime stE 12) ⟨.proposer 3, .proposal x3 [] [] []⟩) 13
+  atTime (process pT (atTime stE 12) ⟨.proposer 3,
+    .proposal (namedBody (namedFixture B2) x3 [] [] [])⟩) 13
 example : B2 ∉ voterBlocks pT stE 3 ∧ B2 ∈ voterBlocks pT stE3 3 ∧
     headVote pT stE3 3 = x3 := by decide +kernel
 
@@ -760,7 +815,7 @@ def xBs : Block := pb b1' 3 96 [] [vX] [vX]
 def stXs : State pT.n :=
   [wProp B1 0, wProp B2 1, wProp B3 1].foldl (process pT)
     (process pT (atTime ([wProp B1' 0].foldl (process pT) (atTime {} 8)) 12)
-      ⟨.proposer 3, .proposal xBs [vX] [vX] []⟩)
+      ⟨.proposer 3, .proposal (namedBody (namedFixture B1') xBs [vX] [vX] [])⟩)
 example : stXs.fg.F = B1 ∧ xBs ∉ (actView stXs).blocks ∧ b1' ∉ (actView stXs).blocks ∧
     b1' ∈ stXs.base.blocks ∧ headSupport pT stXs 3 = [baseVote vX] := by decide +kernel
 
@@ -769,16 +824,21 @@ enter the pool; exact parent-chain exclusion removes only prior contents. -/
 def yB : Block := pb (eraseFG B2) 3 95 [q 1]
 def zB : Block := pb (eraseFG B2) 3 94 [q 3, r0z]
 def stB : State pT.n :=
-  [⟨.proposer 3, .proposal yB [] [] [q 1]⟩, ⟨.proposer 3, .proposal zB [] [] [q 3, r0z]⟩].foldl
+  [⟨.proposer 3,
+    .proposal (namedBody (namedFixture B2) yB [] [] [q 1])⟩,
+    ⟨.proposer 3, .proposal (namedBody (namedFixture B2) zB [] [] [q 3, r0z])⟩].foldl
     (process pT) stAq
 /-- [test helper] `stB` with its FG blocks explicit (`process_eq_admitWith`). -/
-theorem stB_eq : stB = admitWith pT (admitWith pT stAq 3 yB [] [] [q 1] B2 (pk B2 3 95 [q 1]))
-    3 zB [] [] [q 3, r0z] B2 (pk B2 3 94 [q 3, r0z]) := by
+theorem stB_eq : stB = admitWith pT
+    (admitWith pT stAq 3 (namedBody (namedFixture B2) yB [] [] [q 1]) B2 (pk B2 3 95 [q 1]))
+    3 (namedBody (namedFixture B2) zB [] [] [q 3, r0z]) B2 (pk B2 3 94 [q 3, r0z]) := by
   unfold stB
   rw [List.foldl_cons, List.foldl_cons, List.foldl_nil,
-    process_eq_admitWith pT stAq 3 yB [] [] [q 1] B2 (pk B2 3 95 [q 1]) (by decide +kernel)
+    process_eq_admitWith pT stAq 3 (namedBody (namedFixture B2) yB [] [] [q 1])
+    B2 (pk B2 3 95 [q 1]) (by decide +kernel)
       (by decide +kernel)]
-  exact process_eq_admitWith pT _ 3 zB [] [] [q 3, r0z] B2 _ (by decide +kernel)
+  exact process_eq_admitWith pT _ 3 (namedBody (namedFixture B2) zB [] [] [q 3, r0z]) B2 _
+    (by decide +kernel)
     (by decide +kernel)
 example : yB ∈ stB.base.blocks ∧ zB ∈ stB.base.blocks ∧ q 3 ∈ stB.rowPool ∧
     r0z ∈ stB.rowPool := by
@@ -884,8 +944,8 @@ def C : FGBlock (Fin 4) := pk .genesis 1 31 [a0]
 def D : FGBlock (Fin 4) := pk .genesis 2 32 [a2]
 def held : State 4 :=
   { fg := { Store.init with TF := {.genesis, C, D} }
-    proposals := [⟨.proposer 1, .proposal (eraseFG C) [] [] [a0]⟩,
-      ⟨.proposer 2, .proposal (eraseFG D) [] [] [a2]⟩]
+    proposals := [⟨.proposer 1, .proposal (namedLists (namedFixture C) [] [] [a0])⟩,
+      ⟨.proposer 2, .proposal (namedLists (namedFixture D) [] [] [a2])⟩]
     rowPool := [a0, a1, a0] }
 
 /-- Plan: mismatched height refusal. -/
@@ -995,14 +1055,14 @@ theorem progress_persists : 0 ∈ (derive pT.E pT.cfg (.node C 3 ⟨52⟩ 0 []))
 
 /-- Plan: the additive stored-row obligation holds for this R6-valid fixture. -/
 theorem valid_stored : RowsValidStored pT held := by
-  intro o ho s b raw sup rows hd
-  change o ∈ [⟨.proposer 1, .proposal (eraseFG C) [] [] [a0]⟩,
-    ⟨.proposer 2, .proposal (eraseFG D) [] [] [a2]⟩] at ho
+  intro o ho s N hd
+  change o ∈ [⟨.proposer 1, .proposal (namedLists (namedFixture C) [] [] [a0])⟩,
+    ⟨.proposer 2, .proposal (namedLists (namedFixture D) [] [] [a2])⟩] at ho
   simp only [List.mem_cons, List.not_mem_nil, or_false] at ho
   rcases ho with rfl | rfl
   all_goals
     simp only [Wire.decode, Option.some.injEq, Input.block.injEq] at hd
-    obtain ⟨rfl, rfl, rfl, rfl, rfl⟩ := hd
+    obtain ⟨rfl, rfl⟩ := hd
     exact ⟨.genesis, by decide +kernel, by decide +kernel⟩
 
 /-- Plan: all three bits retain their own tests. A timeout sets progress and

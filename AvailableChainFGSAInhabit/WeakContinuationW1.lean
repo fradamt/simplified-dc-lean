@@ -223,7 +223,7 @@ theorem w1_process_inert (st : State params.n) (o : Obj params)
     cases m with
     | vote s i b =>
       have hm := of_decide_eq_true hp
-      change (⟨.seat s i, .head b⟩ : GridCO.Wire params.n) ∈ st.base.votes at hm
+      change (⟨.seat s i, .head b⟩ : GridCO.Wire params.n .root) ∈ st.base.votes at hm
       simp [admitHead, GridCO.admitVote, hm]
     | row i body =>
       have hm := of_decide_eq_true hp
@@ -663,8 +663,8 @@ theorem w1_head_accept (P : Obj params → Prop) (hu : GenSingleDutyUnique P)
     have hs' : (st.base.now / (4 * params.toParams.engine.Δ)).toNat = s := hs
     change decide (baseVote a ∈ (admitHead params st s i b).base.votes) = true
     apply decide_eq_true
-    change (⟨.seat s i, .head b⟩ : GridCO.Wire params.n) ∈ _
-    change (⟨.seat s i, .head b⟩ : GridCO.Wire params.n) ∉ st.base.votes at hm
+    change (⟨.seat s i, .head b⟩ : GridCO.Wire params.n .root) ∈ _
+    change (⟨.seat s i, .head b⟩ : GridCO.Wire params.n .root) ∉ st.base.votes at hm
     simp [admitHead, GridCO.admitVote, hs', hm, hx, Nat.not_lt.mpr (Nat.sub_le s 1)]
 
 /-- A decoded full row is accepted without a round or key-count condition. -/
