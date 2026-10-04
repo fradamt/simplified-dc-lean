@@ -1,5 +1,4 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Foundations.Sources
 public import AvailableChainFGSAProofs.Proofs.Outage.InclusionGateBody -- shake: keep (examples)
 
 public section

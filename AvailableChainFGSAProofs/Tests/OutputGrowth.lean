@@ -1,5 +1,4 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Foundations.Sources
 public import AvailableChainFGSAProofs.Proofs.Outage.Growth
 -- shake: keep (boundary and body examples)
 public import AvailableChainFGSAProofs.Proofs.Shared.Claims

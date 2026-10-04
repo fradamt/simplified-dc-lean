@@ -1,5 +1,4 @@
 module
-public import AvailableChainFGSA.Proofs.StoreLaws
 public import AvailableChainFGSAProofs.Proofs.Foundations.Accountable
 
 public section

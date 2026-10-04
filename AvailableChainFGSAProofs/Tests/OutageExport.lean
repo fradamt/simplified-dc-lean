@@ -1,5 +1,4 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Foundations.Sources
 public import AvailableChainFGSAProofs.Proofs.Assembly.Outage -- shake: keep (body-to-claim checks)
 
 set_option linter.privateModule false

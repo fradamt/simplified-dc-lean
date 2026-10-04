@@ -1,5 +1,4 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Foundations.Sources
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposal
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalHistory -- shake: keep (axioms)
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedReflect -- shake: keep (X=Q example)

@@ -1,5 +1,4 @@
 module
-public import AvailableChainKitFG.RootScopeDef
 public import AvailableChainFGSAClaims.Statements.FinalityApi
 public import AvailableChainFGSARun.Statements.Slashing
 public import AvailableChainFGSAClaims.Statements.Packages.Safety

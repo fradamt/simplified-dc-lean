@@ -1,6 +1,4 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.AttemptRows
--- shake: keep (complete first rows)
 public import AvailableChainFGSAProofs.Proofs.Healing.AttemptSettle -- shake: keep (four cut starts)
 public import AvailableChainFGSAProofs.Proofs.Healing.Attempt -- shake: keep (conditional assembly)
 public import AvailableChainFGSAProofs.Proofs.Healing.AttemptBudget

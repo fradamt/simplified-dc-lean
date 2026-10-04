@@ -1,7 +1,6 @@
 module
 public import AvailableChainFGSAClaims.Statements.ChannelProps
 public import AvailableChainFGSARun.Proofs.Roots
-public import AvailableChainFGSA.Proofs.StoreLaws
 
 public section
 
