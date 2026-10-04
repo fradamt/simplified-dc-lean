@@ -179,8 +179,76 @@ private def s45b_slowPrefix :
     rw [ha.2.2] at hp
     contradiction
 
+/-- ROOT-DIGEST W3b/W3c. The finite run gives the table of stored proposal bodies. -/
+private abbrev s45b_rootTable : List Block :=
+  (V2.D.Run.stateBefore s45b_E s45b_rho s45b_rho.events.length 0).st.base.blocks
+
+/-- ROOT-DIGEST W3b/W3c. Each delivered proposal body is in the concrete table. -/
+private def s45b_deliveredTable : ∀ e ∈ s45b_rho.events,
+    (match e with
+    | .deliver _ o _ => match o.payload with
+      | .proposal B _ _ _ => decide (B ∈ s45b_rootTable)
+      | _ => true
+    | _ => true) = true := by
+  decide +kernel
+
+/-- ROOT-DIGEST W3b/W3c. All finite prefixes store only table bodies. -/
+private def s45b_prefixTable : ∀ i : Fin (s45b_rho.events.length + 1), ∀ v : Fin 1,
+    ∀ B ∈ (V2.D.Run.stateBefore s45b_E s45b_rho i v).st.base.blocks,
+      B ∈ s45b_rootTable := by
+  decide +kernel
+
+/-- ROOT-DIGEST W3b/W3c. The table contains every parent and separates its roots. -/
+private def s45b_tableChecks :
+    (∀ B ∈ s45b_rootTable, B.parent ∈ s45b_rootTable) ∧
+    (∀ B ∈ s45b_rootTable, ∀ C ∈ s45b_rootTable, B.root = C.root → B = C) := by
+  decide +kernel
+
+/-- ROOT-DIGEST W3b/W3c. Structural ancestor closure uses only the table certificate. -/
+private def s45b_ancestorTable (B : Block) (hB : B ∈ s45b_rootTable) :
+    ∀ A, Block.Preceq A B → A ∈ s45b_rootTable := by
+  induction B with
+  | genesis =>
+    intro A hA
+    have he : A = .genesis := of_decide_eq_true hA
+    exact he.symm ▸ hB
+  | node P slot root body ih =>
+    intro A hA
+    change (decide (A = .node P slot root body) || Block.preceq A P) = true at hA
+    rcases Bool.or_eq_true_iff.mp hA with he | hp
+    · exact (of_decide_eq_true he).symm ▸ hB
+    · exact ih (s45b_tableChecks.1 _ hB) A hp
+
+/-- ROOT-DIGEST W3b/W3c. Concrete delivery and prefix tables close the run scope. -/
+private def s45b_scopeTable (B : Block)
+    (hB : RootBlockInRun s45b_p unitCodec s45b_E s45b_rho B) : B ∈ s45b_rootTable := by
+  obtain ⟨C, hC, hBC⟩ := hB
+  apply s45b_ancestorTable C ?_ B hBC
+  rcases hC with ⟨v, o, t, raw, sup, rows, hd, hp⟩ | ⟨v, _, i, hm⟩
+  · have hc := s45b_deliveredTable _ hd
+    exact of_decide_eq_true (by simpa only [hp] using hc)
+  · by_cases hi : i < s45b_rho.events.length + 1
+    · exact s45b_prefixTable ⟨i, hi⟩ v C hm
+    · have hl : s45b_rho.events.length ≤ i := by omega
+      have he : V2.D.Run.stateBefore s45b_E s45b_rho i =
+          V2.D.Run.stateBefore s45b_E s45b_rho s45b_rho.events.length := by
+        simp only [V2.D.Run.stateBefore, List.take_of_length_le hl, List.take_length]
+      rw [he] at hm
+      exact s45b_prefixTable ⟨s45b_rho.events.length, Nat.lt_succ_self _⟩ v C hm
+
+/-- ROOT-DIGEST W3b/W3c. The idealization follows from the finite concrete run. -/
+private def s45b_rootPremise : NamedRootCollisionFree s45b_p unitCodec s45b_E s45b_rho where
+  root_injective := by
+    intro B C hB hC A D hA hD he
+    have ancestor (X : Block) (hX : Block.Preceq X B ∨ Block.Preceq X C) :
+        X ∈ s45b_rootTable := hX.elim
+      (s45b_ancestorTable B (s45b_scopeTable B hB) X)
+      (s45b_ancestorTable C (s45b_scopeTable C hC) X)
+    exact s45b_tableChecks.2 A (ancestor A hA) D (ancestor D hD) he
+
 private def s45b_base : Base₂ s45b_p unitCodec s45b_E s45b_rho where
   valid := s45b_lsync_execution
+  idealization := s45b_rootPremise
   linked := by
     refine ⟨1, Equiv.refl _, ?_⟩
     intro l hl
@@ -252,6 +320,7 @@ example : FinalityFinalizedAt s45b_p .genesis .genesis 0 := by
   rw [FinalityFinalizedAt_def]
   decide +kernel
 
+#print axioms s45b_rootPremise
 #print axioms s45b_cleanInclusion
 #print axioms s45b_exactProposal
 

@@ -27,6 +27,7 @@ def params : Params where
   R := 2
   δt := 4
   RLarge := by decide
+  digest := fun d => ⟨d.slot + 1⟩
 
 abbrev Validator := Fin 4
 abbrev Event := V2.Event Validator (fgsa params unitCodec).Object
@@ -1251,7 +1252,8 @@ theorem gen_tick_nonproposal_wire (st : Node params) (v : Validator) (t : Time) 
       subst m
       exact gen_attest_valid _ _ _ _ hb
   | propAction s =>
-      change (propose params (FGSA.clock params st.st t) s).map (withApp 0) = some m at ha
+      change (propose params (FGSA.clock params st.st t) s).map
+        (withApp params 0) = some m at ha
       unfold propose at ha
       split at ha
       · cases ha
@@ -1541,7 +1543,8 @@ theorem gen_tick_proposal_rows (st : Node params) (v : Validator) (t : Time)
     cases he
   | propAction s =>
     have hv : v = 0 := (Option.some.inj hh).symm
-    change (propose params (FGSA.clock params st.st t) s).map (withApp 0) = some m at ha
+    change (propose params (FGSA.clock params st.st t) s).map
+        (withApp params 0) = some m at ha
     unfold propose at ha
     split at ha
     · cases ha
@@ -1939,7 +1942,8 @@ theorem gen_tick_children_known (P : Obj params → Prop) (st : Node params)
     subst m
     exact fun _ h => h.elim
   | propAction s =>
-    change (propose params (FGSA.clock params st.st t) s).map (withApp 0) = some m at ha
+    change (propose params (FGSA.clock params st.st t) s).map
+        (withApp params 0) = some m at ha
     unfold propose at ha
     split at ha
     · cases ha

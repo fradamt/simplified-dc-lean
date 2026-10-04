@@ -2,157 +2,223 @@
   {
     "check": "lake build --wfail",
     "exit": 1,
-    "evidence": "build-complete.log",
-    "result": "STOP 1 and STOP 2; all other targets build."
+    "evidence": "TS/codex/reports/rdigest/w3c/build.log",
+    "result": "FAIL; unchanged WeakContinuationW1 does not build."
+  },
+  {
+    "check": "K1/K2 fixture build --wfail",
+    "exit": 0,
+    "evidence": "TS/codex/reports/rdigest/w3c/fixtures.log",
+    "result": "PASS; both W3b STOPs are closed."
+  },
+  {
+    "check": "K2 type, finite table, and axiom print",
+    "exit": 0,
+    "evidence": "TS/codex/reports/rdigest/w3c/table-details.log",
+    "result": "PASS; five roots; standard axioms only."
   },
   {
     "check": "bash scripts/check-fg.sh",
     "exit": 0,
-    "evidence": "check-fg.log",
-    "result": "Closure, pins, and all negative controls pass."
+    "evidence": "TS/codex/reports/rdigest/w3c/check-fg.log",
+    "result": "PASS; closure, pins, all negative controls."
   },
   {
-    "check": "SKIP_CONE=0 check-build.sh",
+    "check": "SKIP_CONE=0 bash scripts/check-build.sh",
     "exit": 1,
-    "evidence": "check-build-complete.log",
-    "result": "Every (a)\u2013(j) step ran. Detail below."
+    "evidence": "TS/codex/reports/rdigest/w3c/check-build.log",
+    "result": "FAIL; all (a)-(j) ran. See the step table."
   },
   {
     "check": "bash scripts/check-fgsa.sh",
-    "exit": 1,
-    "evidence": "check-fgsa-complete.log",
-    "result": "Blocked by Claims.Tests.FinalitySafety build."
+    "exit": 0,
+    "evidence": "TS/codex/reports/rdigest/w3c/check-fgsa.log",
+    "result": "PASS; positive checks and all negative controls."
   },
   {
     "check": "bash scripts/check-fgsa-run.sh",
     "exit": 0,
-    "evidence": "check-fgsa-run-complete.log",
-    "result": "Full positive and negative checks pass."
+    "evidence": "TS/codex/reports/rdigest/w3c/check-fgsa-run.log",
+    "result": "PASS; positive checks and all negative controls."
   },
   {
-    "check": "NEG=0 check-fgsa-claims.sh",
+    "check": "NEG=0 bash scripts/check-fgsa-claims.sh",
     "exit": 1,
-    "evidence": "check-fgsa-claims-final.log",
-    "result": "Source checks pass; Safety fixture lacks idealization."
+    "evidence": "TS/codex/reports/rdigest/w3c/check-fgsa-claims.log",
+    "result": "FAIL; unchanged WeakContinuationW1 does not build."
   },
   {
-    "check": "check-fgsa-manifest.sh",
+    "check": "bash scripts/check-fgsa-manifest.sh",
     "exit": 0,
-    "evidence": "check-fgsa-manifest.log",
-    "result": "1170 entries; hashes and all controls pass."
+    "evidence": "TS/codex/reports/rdigest/w3c/fgsa-manifest.log",
+    "result": "PASS; current/frozen entries and all controls."
   },
   {
     "check": "V2Manifest --check",
     "exit": 0,
-    "evidence": "v2-check.log",
-    "result": "592 entries; anchor coverage passes."
+    "evidence": "TS/codex/reports/rdigest/w3c/v2-manifest.log",
+    "result": "PASS; measured entries and anchor coverage."
   },
   {
     "check": "V2Manifest --scope gen --check",
     "exit": 0,
-    "evidence": "gen-check.log",
-    "result": "705 entries; four approved deltas retained."
+    "evidence": "TS/codex/reports/rdigest/w3c/gen-manifest.log",
+    "result": "PASS; four approved walk deltas remain."
   },
   {
     "check": "Registry --check",
     "exit": 0,
-    "evidence": "registry.log",
-    "result": "Current registry and matrix match."
+    "evidence": "TS/codex/reports/rdigest/w3c/registry.log",
+    "result": "PASS; registry and matrix match."
   },
   {
-    "check": "check-fg-pins.sh",
+    "check": "bash scripts/check-fg-pins.sh",
     "exit": 0,
-    "evidence": "pins-final.log",
-    "result": "All elaborated pin and registry checks pass."
+    "evidence": "TS/codex/reports/rdigest/w3c/pins.log",
+    "result": "PASS; current and historical pins match."
   },
   {
-    "check": "check-module-headers.py",
+    "check": "python3 scripts/check-module-headers.py",
     "exit": 0,
-    "evidence": "headers-final.log",
-    "result": "1069 files; no failure."
+    "evidence": "TS/codex/reports/rdigest/w3c/headers.log",
+    "result": "PASS; 1069 library files."
   },
   {
-    "check": "check-layers.py",
+    "check": "python3 scripts/check-layers.py",
     "exit": 0,
-    "evidence": "layers-final2.log",
-    "result": "72 findings; no new finding."
+    "evidence": "TS/codex/reports/rdigest/w3c/layers.log",
+    "result": "PASS; no new source-layer finding."
   },
   {
-    "check": "check-gly-rules.sh",
+    "check": "bash scripts/check-gly-rules.sh",
     "exit": 2,
-    "evidence": "gly-final.log",
-    "result": "Source rules pass; F-31 cannot complete fixture imports."
-  },
-  {
-    "check": "GLY migration + F-20 source",
-    "exit": 0,
-    "evidence": "gly-source-complete.log",
-    "result": "Exact records pass; no rule changed."
+    "evidence": "TS/codex/reports/rdigest/w3c/gly.log",
+    "result": "FAIL; F-31 cannot complete the Inhabit imports."
   },
   {
     "check": "CheckFGSAOldReads --controls",
     "exit": 0,
-    "evidence": "old-reads-final.log",
-    "result": "All active reads and all controls pass."
+    "evidence": "TS/codex/reports/rdigest/w3c/old-reads.log",
+    "result": "PASS; measured reads and all controls."
   },
   {
-    "check": "CheckProofEqns, existing baseline",
+    "check": "CheckProofEqns; existing baseline",
     "exit": 0,
-    "evidence": "proof-eqns-final.log",
-    "result": "39 exact new records; Gen has no export."
+    "evidence": "TS/codex/reports/rdigest/w3c/proof-eqns.log",
+    "result": "PASS; exact existing records; no Gen export."
   },
   {
     "check": "EXPECTED / ORDER superset",
     "exit": 0,
-    "evidence": "guard-lists-final.log",
-    "result": "No audit removed; ORDER stays. Source gate passes."
+    "evidence": "TS/codex/reports/rdigest/w3c/guard-lists.log",
+    "result": "PASS; EXPECTED superset and unchanged ORDER."
   },
   {
-    "check": "70 checks and axiom prints",
+    "check": "SOURCE_ONLY=1 check-fgsa-claims.sh",
     "exit": 0,
-    "evidence": "axioms-complete.log",
-    "result": "All required producers, nvRoots, LiveDC, fgsaClaims."
+    "evidence": "TS/codex/reports/rdigest/w3c/claims-source.log",
+    "result": "PASS; Claims/Proofs/Inhabit source policy."
   },
   {
-    "check": "NV/P fixture build --wfail",
+    "check": "70 #check / #print axioms",
     "exit": 0,
-    "evidence": "fixtures-imports.log",
-    "result": "All P tests and all seven NV files build."
+    "evidence": "TS/codex/reports/rdigest/w3c/axioms.log",
+    "result": "PASS; all 70 checks and standard axiom sets."
   },
   {
-    "check": "Smoke and Run --wfail",
+    "check": "All store/run/Claims/P/KitFG tests --wfail",
     "exit": 0,
-    "evidence": "smoke-run-final.log",
-    "result": "The final helper name and imports build."
+    "evidence": "TS/codex/reports/rdigest/w3c/all-fixtures.log",
+    "result": "PASS; all store/run/Claims/P/KitFG tests, all NV files."
   },
   {
-    "check": "Catalog expected-name comparison",
-    "exit": 1,
-    "evidence": "catalog-before-clean.log",
-    "result": "Exit 1 is the approved pre-write hash delta; set matches."
-  },
-  {
-    "check": "Catalog --write --allow-changes",
+    "check": "Full frozen diff and catalog expected-name sets",
     "exit": 0,
-    "evidence": "catalog-write-final.log",
-    "result": "252 lines; authorized update written."
+    "evidence": "TS/codex/reports/rdigest/w3c/frozen-catalog-records.log",
+    "result": "PASS; complete hash, classification, and name sets."
   },
   {
-    "check": "Catalog --check",
+    "check": "CatalogLock --check, before tool write",
     "exit": 0,
-    "evidence": "catalog-check.log",
-    "result": "Clean; no changed, removed, or added name."
+    "evidence": "TS/codex/reports/rdigest/w3c/catalog-before.log",
+    "result": "PASS; current lock is already clean."
+  },
+  {
+    "check": "CatalogLock --write --allow-changes",
+    "exit": 0,
+    "evidence": "TS/codex/reports/rdigest/w3c/catalog-write.log",
+    "result": "PASS; authorized tool write; no new hash delta."
+  },
+  {
+    "check": "CatalogLock --check, after tool write",
+    "exit": 0,
+    "evidence": "TS/codex/reports/rdigest/w3c/catalog-check.log",
+    "result": "PASS; 252 lines; no changed/removed/added names."
   },
   {
     "check": "gate_precheck 98a62cd",
-    "exit": 0,
-    "evidence": "precheck-complete.log",
-    "result": "Exact requested command passes."
+    "exit": 2,
+    "evidence": "TS/codex/reports/rdigest/w3c/precheck.log",
+    "result": "FAIL; W3b committed census has a blank line at EOF."
   },
   {
     "check": "git diff --check",
     "exit": 0,
-    "evidence": "diff-check.log",
-    "result": "Clean."
+    "evidence": "TS/codex/reports/rdigest/w3c/diff-check.log",
+    "result": "PASS; no whitespace error."
+  },
+  {
+    "check": "bash scripts/shake-report.sh (exit capture)",
+    "exit": 2,
+    "evidence": "TS/codex/reports/rdigest/w3c/shake.log",
+    "result": "FAIL; incomplete build tree; lake shake cannot run."
+  },
+  {
+    "check": "All GLY source rules and F-20",
+    "exit": 0,
+    "evidence": "TS/codex/reports/rdigest/w3c/gly-source.log",
+    "result": "PASS; all source rules, including F-20."
+  },
+  {
+    "check": "precheck self-test; temporary source inventory",
+    "exit": 0,
+    "evidence": "TS/codex/reports/rdigest/w3c/precheck-selftest-inventory.log",
+    "result": "PASS; source inventory omits moved files; original index unchanged."
+  },
+  {
+    "check": "Broad requested scratch-path grep",
+    "exit": 0,
+    "evidence": "TS/codex/reports/rdigest/w3c/scratch-grep.log",
+    "result": "414 matches, all in unchanged older documents."
+  },
+  {
+    "check": "Scratch-path grep; branch-changed files",
+    "exit": 0,
+    "evidence": "TS/codex/reports/rdigest/w3c/scratch-grep-changed.log",
+    "result": "PASS; empty, including all compact evidence."
+  },
+  {
+    "check": "Allowed files, line limits, move bytes, Git state",
+    "exit": 0,
+    "evidence": "TS/codex/reports/rdigest/w3c/final-audits.log",
+    "result": "PASS; allowed scope; unchanged move bytes; no commit."
+  },
+  {
+    "check": "Paired cost probes: HealingClaims 304",
+    "exit": 0,
+    "evidence": "TS/codex/reports/rdigest/w3c/probes/HealingClaims-new-2.log",
+    "result": "Two samples per side; fresh Lean processes."
+  },
+  {
+    "check": "Paired cost probes: FinalityClaims 404",
+    "exit": 0,
+    "evidence": "TS/codex/reports/rdigest/w3c/probes/Finality404-new-2.log",
+    "result": "Two samples per side; fresh Lean processes."
+  },
+  {
+    "check": "Paired cost probes: LIVE-DC 405",
+    "exit": 0,
+    "evidence": "TS/codex/reports/rdigest/w3c/probes/FinalityClaims-new-2.log",
+    "result": "Two samples per side; fresh Lean processes."
   }
 ]
