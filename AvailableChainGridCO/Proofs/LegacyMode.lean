@@ -1,6 +1,156 @@
 module
 public import AvailableChainGridCO.Model.Legacy
 
+namespace AvailableChain.GridCO.Legacy
+
+open AvailableChain.Generic
+
+-- ROOT-DIGEST-2 option 3: use a private copy of the same matcher (BUILD B3).
+private def hygiene_goldfishScore {n : Nat} (tree : List Block)
+    (raw support : List (Wire n)) (b : Block) : Nat :=
+  ((seats n raw).filter (fun i =>
+    equivocates raw i || (seatVotes support i).any (fun o =>
+      match headTarget? o with
+      | some target => target ∈ tree && target.slot ≤ (headLabel? o).getD 0 &&
+          Block.preceq b target
+      | none => false))).length
+
+-- The generated matcher bodies are definitionally equal.
+set_option linter.auxLemma false in
+private theorem hygiene_goldfishScore_match_1_eq :
+    @goldfishScore.match_1 = @hygiene_goldfishScore.match_1 := rfl
+
+end AvailableChain.GridCO.Legacy
+
+namespace AvailableChain.GridCO.Legacy
+
+open AvailableChain.Generic
+
+-- ROOT-DIGEST-2 option 3: use a private copy of the same matcher (BUILD B3).
+private def hygiene_voterView (_p : Params) {n : Nat} (st : State n) (s : Slot) : List (Wire n) :=
+  let pool := match frozenAt st (s - 1) with
+    | some (raw, _, _) => raw
+    | none => []
+  (pool ++ carriedRaw st s).eraseDups
+
+-- The generated matcher bodies are definitionally equal.
+set_option linter.auxLemma false in
+private theorem hygiene_voterView_match_1_eq :
+    @voterView.match_1 = @hygiene_voterView.match_1 := rfl
+
+end AvailableChain.GridCO.Legacy
+
+namespace AvailableChain.GridCO
+
+open AvailableChain.Generic
+
+-- ROOT-DIGEST-2 option 3: use a private copy of the same matcher (BUILD B3).
+private def hygiene_goldfishScoreOn {n : Nat} {mode : HeadMode} (domain tree : List Block)
+    (raw support : List (Wire n mode)) (b : Block) : Nat :=
+  ((seats n raw).filter (fun i =>
+    equivocates raw i || (seatVotes support i).any (fun o =>
+      match headTarget? o with
+      | none => false
+      | some target => match resolveTarget mode domain target with
+        | none => false
+        | some B => decide (B ∈ tree) && decide (B.slot ≤ (headLabel? o).getD 0) &&
+            Block.preceq b B))).length
+
+-- The generated matcher bodies are definitionally equal.
+set_option linter.auxLemma false in
+private theorem hygiene_goldfishScoreOn_match_1_eq :
+    @goldfishScoreOn.match_1 = @hygiene_goldfishScoreOn.match_3 := rfl
+
+end AvailableChain.GridCO
+
+namespace AvailableChain.GridCO
+
+open AvailableChain.Generic
+
+-- ROOT-DIGEST-2 option 3: use a private copy of the same matcher (BUILD B3).
+private def hygiene_proposerSupportView
+    {n : Nat} {mode : HeadMode} (st : State n mode) (s : Slot) : List
+    (Wire n mode) :=
+  (proposerView st s).filter (fun o =>
+    match resolvedHead? st o with
+    | some b => b.slot ≤ s - 1
+    | none => false)
+
+-- The generated matcher bodies are definitionally equal.
+set_option linter.auxLemma false in
+private theorem hygiene_proposerSupportView_match_1_eq :
+    @proposerSupportView.match_1 = @Legacy.hygiene_goldfishScore.match_1 := rfl
+
+end AvailableChain.GridCO
+
+namespace AvailableChain.GridCO
+
+open AvailableChain.Generic
+
+-- ROOT-DIGEST-2 option 3: use a private copy of the same matcher (BUILD B3).
+private def hygiene_resolvedBefore {n : Nat} {mode : HeadMode}
+    (st : State n mode) (o : Wire n mode) (cutoff : Time) : Bool :=
+  match resolvedHead? st o with
+  | none => false
+  | some B => decide (B.slot ≤ (headLabel? o).getD 0) &&
+      decide (stampVote st o < cutoff) && decide (stampBlock st B < cutoff)
+
+-- The generated matcher bodies are definitionally equal.
+set_option linter.auxLemma false in
+private theorem hygiene_resolvedBefore_match_1_eq :
+    @resolvedBefore.match_1 = @hygiene_goldfishScoreOn.match_1 := rfl
+
+end AvailableChain.GridCO
+
+namespace AvailableChain.GridCO
+
+open AvailableChain.Generic
+
+-- ROOT-DIGEST-2 option 3: use a private copy of the same matcher (BUILD B3).
+private def hygiene_voterView
+    (_p : Params) {n : Nat} {mode : HeadMode} (st : State n mode) (s : Slot) : List
+    (Wire n mode) :=
+  let pool := match frozenAt st (s - 1) with
+    | some (raw, _, _) => raw
+    | none => []
+  (pool ++ carriedRaw st s).eraseDups
+
+-- The generated matcher bodies are definitionally equal.
+set_option linter.auxLemma false in
+private theorem hygiene_voterView_match_1_eq :
+    @voterView.match_1 = @hygiene_voterView.match_1 := rfl
+
+end AvailableChain.GridCO
+
+-- Rewrite before simp can generate equations for the public matcher.
+attribute [local simp↓]
+  AvailableChain.GridCO.Legacy.hygiene_goldfishScore_match_1_eq
+  AvailableChain.GridCO.Legacy.hygiene_voterView_match_1_eq
+  AvailableChain.GridCO.hygiene_goldfishScoreOn_match_1_eq
+  AvailableChain.GridCO.hygiene_proposerSupportView_match_1_eq
+  AvailableChain.GridCO.hygiene_resolvedBefore_match_1_eq
+  AvailableChain.GridCO.hygiene_voterView_match_1_eq
+
+local macro "hygiene_split" : tactic =>
+  `(tactic| (
+    try rw [AvailableChain.GridCO.Legacy.hygiene_goldfishScore_match_1_eq] at *;
+    try rw [AvailableChain.GridCO.Legacy.hygiene_voterView_match_1_eq] at *;
+    try rw [AvailableChain.GridCO.hygiene_goldfishScoreOn_match_1_eq] at *;
+    try rw [AvailableChain.GridCO.hygiene_proposerSupportView_match_1_eq] at *;
+    try rw [AvailableChain.GridCO.hygiene_resolvedBefore_match_1_eq] at *;
+    try rw [AvailableChain.GridCO.hygiene_voterView_match_1_eq] at *;
+    all_goals split))
+
+local macro "hygiene_split" "at" h:ident : tactic =>
+  `(tactic| (
+    try rw [AvailableChain.GridCO.Legacy.hygiene_goldfishScore_match_1_eq] at *;
+    try rw [AvailableChain.GridCO.Legacy.hygiene_voterView_match_1_eq] at *;
+    try rw [AvailableChain.GridCO.hygiene_goldfishScoreOn_match_1_eq] at *;
+    try rw [AvailableChain.GridCO.hygiene_proposerSupportView_match_1_eq] at *;
+    try rw [AvailableChain.GridCO.hygiene_resolvedBefore_match_1_eq] at *;
+    try rw [AvailableChain.GridCO.hygiene_voterView_match_1_eq] at *;
+    all_goals split at $h:ident))
+
 public section
 
 namespace AvailableChain.GridCO.Legacy
@@ -106,7 +256,11 @@ theorem goldfishScore_block {n : Nat} (tree : List Block)
     (raw support : List (Wire n)) (B : Block) :
     GridCO.goldfishScore tree raw support B = goldfishScore tree raw support B := by
   unfold GridCO.goldfishScore GridCO.goldfishScoreOn goldfishScore
-  simp (config := { instances := true }) only [seats_block, seatVotes_block, equivocates_block]
+  simp (config := { instances := true }) only [
+      ↓AvailableChain.GridCO.Legacy.hygiene_goldfishScore_match_1_eq,
+      ↓AvailableChain.GridCO.hygiene_goldfishScoreOn_match_1_eq,
+      ↓AvailableChain.GridCO.hygiene_resolvedBefore_match_1_eq,
+      seats_block, seatVotes_block, equivocates_block]
   congr 1
   apply List.filter_congr
   intro i _
@@ -232,7 +386,10 @@ private theorem any_eq_on {α : Type} (xs : List α) (f g : α → Bool)
 theorem releaseCount_embed {n : Nat} (p : Params) (st : State n) (s : Slot) (B : Block) :
     GridCO.releaseCount p (embed st) s B = releaseCount p st s B := by
   unfold GridCO.releaseCount releaseCount
-  simp only [votesAt_embed, resolvedBefore_embed, seats_block, equivocates_block, seatVotes_block]
+  simp only [
+      ↓AvailableChain.GridCO.Legacy.hygiene_goldfishScore_match_1_eq,
+      ↓AvailableChain.GridCO.hygiene_proposerSupportView_match_1_eq,
+      votesAt_embed, resolvedBefore_embed, seats_block, equivocates_block, seatVotes_block]
   congr 1
   apply List.filter_congr
   intro i _
@@ -241,7 +398,6 @@ theorem releaseCount_embed {n : Nat} (p : Params) (st : State n) (s : Slot) (B :
   intro o ho
   have hr := (List.mem_filter.mp (List.mem_filter.mp ho).1).2
   rw [resolvedHead_of_before st o _ hr]
-  cases headTarget? o <;> rfl
 
 /-- [ROOT-DIGEST-2 W1; DC deferred behavior] Count the same old participants. -/
 @[simp] theorem voterCount_block {n : Nat} (xs : List (Wire n)) :
@@ -311,7 +467,10 @@ theorem releaseCount_embed {n : Nat} (p : Params) (st : State n) (s : Slot) (B :
 /-- [ROOT-DIGEST-2 W1; DC deferred behavior] Keep the old voter raw merge. -/
 @[simp] theorem voterView_embed {n : Nat} (p : Params) (st : State n) (s : Slot) :
     GridCO.voterView p (embed st) s = voterView p st s := by
-  simp only [GridCO.voterView, voterView, frozenAt_embed, carriedRaw_embed]
+  simp only [
+      ↓AvailableChain.GridCO.Legacy.hygiene_voterView_match_1_eq,
+      ↓AvailableChain.GridCO.hygiene_voterView_match_1_eq,
+      GridCO.voterView, voterView, frozenAt_embed, carriedRaw_embed]
   cases frozenAt st (s - 1) with
   | none => rfl
   | some x => rcases x with ⟨raw, sup, blocks⟩; rfl
@@ -319,7 +478,10 @@ theorem releaseCount_embed {n : Nat} (p : Params) (st : State n) (s : Slot) (B :
 /-- [ROOT-DIGEST-2 W1; DC deferred behavior] Keep the old voter support merge. -/
 @[simp] theorem voterSupportView_embed {n : Nat} (p : Params) (st : State n) (s : Slot) :
     GridCO.voterSupportView p (embed st) s = voterSupportView p st s := by
-  simp only [GridCO.voterSupportView, voterSupportView, frozenAt_embed, carriedSupport_embed]
+  simp only [
+      ↓AvailableChain.GridCO.Legacy.hygiene_voterView_match_1_eq,
+      ↓AvailableChain.GridCO.hygiene_voterView_match_1_eq,
+      GridCO.voterSupportView, voterSupportView, frozenAt_embed, carriedSupport_embed]
   cases frozenAt st (s - 1) with
   | none => rfl
   | some x => rcases x with ⟨raw, sup, blocks⟩; rfl
@@ -522,7 +684,7 @@ theorem gateFrom_embed [LeasePolicy] {n : Nat} (p : Params) (a : Block)
 /-- [ROOT-DIGEST-2 W1; DC deferred behavior] Conditional old states embed componentwise. -/
 @[simp] theorem embed_ite {n : Nat} (h : Prop) [Decidable h] (st st' : State n) :
     (if h then embed st else embed st') = embed (if h then st else st') := by
-  split <;> rfl
+  hygiene_split <;> rfl
 
 /-- [ROOT-DIGEST-2 W1; DC deferred behavior] Public clocks commute for every legacy state. -/
 theorem clockFrom_embed [LeasePolicy] {n : Nat} (p : Params) (a : Block)

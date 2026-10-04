@@ -3,6 +3,64 @@ public import AvailableChainGridCO.Proofs.StoreFacts
 public import AvailableChainGridCO.Model.StoreKeys
 public import AvailableChainGridCO.Proofs.Relay
 
+namespace AvailableChain.GridCO
+
+open AvailableChain.Generic
+
+-- ROOT-DIGEST-2 option 3: use a private copy of the same matcher (BUILD B3).
+private def hygiene_goldfishScoreOn {n : Nat} {mode : HeadMode} (domain tree : List Block)
+    (raw support : List (Wire n mode)) (b : Block) : Nat :=
+  ((seats n raw).filter (fun i =>
+    equivocates raw i || (seatVotes support i).any (fun o =>
+      match headTarget? o with
+      | none => false
+      | some target => match resolveTarget mode domain target with
+        | none => false
+        | some B => decide (B ∈ tree) && decide (B.slot ≤ (headLabel? o).getD 0) &&
+            Block.preceq b B))).length
+
+-- The generated matcher bodies are definitionally equal.
+set_option linter.auxLemma false in
+private theorem hygiene_goldfishScoreOn_match_1_eq :
+    @goldfishScoreOn.match_1 = @hygiene_goldfishScoreOn.match_3 := rfl
+
+end AvailableChain.GridCO
+
+namespace AvailableChain.GridCO
+
+open AvailableChain.Generic
+
+-- ROOT-DIGEST-2 option 3: use a private copy of the same matcher (BUILD B3).
+private def hygiene_resolvedBefore {n : Nat} {mode : HeadMode}
+    (st : State n mode) (o : Wire n mode) (cutoff : Time) : Bool :=
+  match resolvedHead? st o with
+  | none => false
+  | some B => decide (B.slot ≤ (headLabel? o).getD 0) &&
+      decide (stampVote st o < cutoff) && decide (stampBlock st B < cutoff)
+
+-- The generated matcher bodies are definitionally equal.
+set_option linter.auxLemma false in
+private theorem hygiene_resolvedBefore_match_1_eq :
+    @resolvedBefore.match_1 = @hygiene_goldfishScoreOn.match_1 := rfl
+
+end AvailableChain.GridCO
+
+attribute [local simp]
+  AvailableChain.GridCO.hygiene_goldfishScoreOn_match_1_eq
+  AvailableChain.GridCO.hygiene_resolvedBefore_match_1_eq
+
+local macro "hygiene_split" : tactic =>
+  `(tactic| (
+    try rw [AvailableChain.GridCO.hygiene_goldfishScoreOn_match_1_eq] at *;
+    try rw [AvailableChain.GridCO.hygiene_resolvedBefore_match_1_eq] at *;
+    all_goals split))
+
+local macro "hygiene_split" "at" h:ident : tactic =>
+  `(tactic| (
+    try rw [AvailableChain.GridCO.hygiene_goldfishScoreOn_match_1_eq] at *;
+    try rw [AvailableChain.GridCO.hygiene_resolvedBefore_match_1_eq] at *;
+    all_goals split at $h:ident))
+
 @[expose] public section
 
 namespace AvailableChain.GridCO
@@ -135,9 +193,9 @@ theorem goldfishScore_mono {n : Nat} (tree : List Block)
     obtain ⟨o, ho, hv⟩ := List.any_eq_true.mp hb
     apply List.any_eq_true.mpr
     refine ⟨o, ho, ?_⟩
-    split at hv
+    hygiene_split at hv
     · contradiction
-    · split at hv
+    · hygiene_split at hv
       · contradiction
       · rename_i C _
         simp only [Bool.and_eq_true] at hv ⊢
@@ -449,8 +507,8 @@ private theorem stored_prefix_closed_of_same_blocks {n : Nat}
 theorem admitVote_now (p : Params) {n : Nat} (st : State n)
     (o : Wire n) : (admitVote p st o).now = st.now := by
   unfold admitVote
-  split <;> simp_all
-  split <;> rfl
+  hygiene_split <;> simp_all
+  hygiene_split <;> rfl
 
 theorem admitVote_stored_prefix_closed (p : Params) {n : Nat}
     (st : State n) (o : Wire n) (hclosed : StoredPrefixClosed st) :
@@ -493,7 +551,7 @@ theorem admitProposal_now (p : Params) {n : Nat}
     proposals := st.proposals ++ [o] }
   change (if bad then st else
     raw.foldl (fun acc row => admitVote p acc (fromHead row)) st').now = st.now
-  split
+  hygiene_split
   · rfl
   · exact fold_admitVote_now p raw st'
 
@@ -613,7 +671,7 @@ theorem admissionLevels_mono (p : Params) {n : Nat} (st : State n)
   cases hmode : LeasePolicy.slowArming with
   | true =>
     simp only [hmode, ↓reduceIte] at hg ⊢
-    split at hg
+    hygiene_split at hg
     · rename_i ht
       have htest : (releaseThreshold p ≤ prefixSupport p st r B ||
           slowEligible p st r B) = true := by
@@ -911,14 +969,14 @@ theorem clock_blocks (p : Params) {n : Nat} (st : State n) (t : Time) :
   have h0 : s0.blocks = st.blocks := rfl
   have h1 : s1.blocks = s0.blocks := by
     dsimp [s1]
-    split <;> rfl
+    hygiene_split <;> rfl
   have h2 : s2.blocks = s1.blocks := by
     dsimp [s2]
-    split <;> rfl
+    hygiene_split <;> rfl
   have h3 : s3.blocks = s2.blocks := by
     dsimp [s3]
-    split <;> rfl
-  split
+    hygiene_split <;> rfl
+  hygiene_split
   · exact (gate_blocks p s3 dSlot).trans (h3.trans (h2.trans (h1.trans h0)))
   · exact h3.trans (h2.trans (h1.trans h0))
 
@@ -951,30 +1009,30 @@ theorem clock_deadline_horizon (p : Params) {n : Nat}
     linarith
   have h1now : s1.now = t := by
     dsimp [s1]
-    split <;> exact h0now
+    hygiene_split <;> exact h0now
   have h1bound : DeadlinesAtMost s1 (t + lifetime p) := by
     dsimp [s1]
-    split
+    hygiene_split
     · simpa [freeze, DeadlinesAtMost] using h0bound
     · exact h0bound
   have h2now : s2.now = t := by
     dsimp [s2]
-    split <;> exact h1now
+    hygiene_split <;> exact h1now
   have h2bound : DeadlinesAtMost s2 (t + lifetime p) := by
     dsimp [s2]
-    split
+    hygiene_split
     · simpa [DeadlinesAtMost] using h1bound
     · exact h1bound
   have h3now : s3.now = t := by
     dsimp [s3]
-    split <;> exact h2now
+    hygiene_split <;> exact h2now
   have h3bound : DeadlinesAtMost s3 (t + lifetime p) := by
     dsimp [s3]
-    split
+    hygiene_split
     · intro b g d hrow
       exact h2bound b g d (release_subset p s2 qSlot (b, g, d) hrow)
     · exact h2bound
-  split
+  hygiene_split
   · rename_i hcond
     have ht : t = gateTime p dSlot := by
       exact of_decide_eq_true (Bool.and_eq_true_iff.mp hcond).2
@@ -1000,10 +1058,10 @@ theorem clock_now (p : Params) {n : Nat} (st : State n) (t : Time) :
   change (if 0 ≤ t - 6 * p.Δ && t == gateTime p dSlot then
     gate p s3 dSlot else s3).now = t
   have h0 : s0.now = t := rfl
-  have h1 : s1.now = t := by dsimp [s1]; split <;> exact h0
-  have h2 : s2.now = t := by dsimp [s2]; split <;> exact h1
-  have h3 : s3.now = t := by dsimp [s3]; split <;> exact h2
-  split
+  have h1 : s1.now = t := by dsimp [s1]; hygiene_split <;> exact h0
+  have h2 : s2.now = t := by dsimp [s2]; hygiene_split <;> exact h1
+  have h3 : s3.now = t := by dsimp [s3]; hygiene_split <;> exact h2
+  hygiene_split
   · exact (gate_now p s3 dSlot).trans h3
   · exact h3
 
@@ -1079,68 +1137,68 @@ theorem clockPreGate_invariants (p : Params) {n : Nat}
   have h0now : s0.now = t := rfl
   have h1prefix : PrefixDeadlineOrder s1 := by
     dsimp [s1]
-    split
+    hygiene_split
     · simpa [freeze, PrefixDeadlineOrder] using h0prefix
     · exact h0prefix
   have h1comp : ComparableTargets s1 := by
     dsimp [s1]
-    split
+    hygiene_split
     · simpa [freeze, ComparableTargets] using h0comp
     · exact h0comp
   have h1blocks : StoredPrefixClosed s1 := by
     dsimp [s1]
-    split
+    hygiene_split
     · simpa [freeze, StoredPrefixClosed] using h0blocks
     · exact h0blocks
   have h1bound : DeadlinesAtMost s1 (t + lifetime p) := by
     dsimp [s1]
-    split
+    hygiene_split
     · simpa [freeze, DeadlinesAtMost] using h0bound
     · exact h0bound
-  have h1now : s1.now = t := by dsimp [s1]; split <;> exact h0now
+  have h1now : s1.now = t := by dsimp [s1]; hygiene_split <;> exact h0now
   have h2prefix : PrefixDeadlineOrder s2 := by
     dsimp [s2]
-    split
+    hygiene_split
     · simpa [PrefixDeadlineOrder] using h1prefix
     · exact h1prefix
   have h2comp : ComparableTargets s2 := by
     dsimp [s2]
-    split
+    hygiene_split
     · simpa [ComparableTargets] using h1comp
     · exact h1comp
   have h2blocks : StoredPrefixClosed s2 := by
     dsimp [s2]
-    split
+    hygiene_split
     · simpa [StoredPrefixClosed] using h1blocks
     · exact h1blocks
   have h2bound : DeadlinesAtMost s2 (t + lifetime p) := by
     dsimp [s2]
-    split
+    hygiene_split
     · simpa [DeadlinesAtMost] using h1bound
     · exact h1bound
-  have h2now : s2.now = t := by dsimp [s2]; split <;> exact h1now
+  have h2now : s2.now = t := by dsimp [s2]; hygiene_split <;> exact h1now
   have h3prefix : PrefixDeadlineOrder s3 := by
     dsimp [s3]
-    split
+    hygiene_split
     · exact release_prefix_deadline_order p s2 qSlot h2prefix
     · exact h2prefix
   have h3comp : ComparableTargets s3 := by
     dsimp [s3]
-    split
+    hygiene_split
     · exact release_comparable_targets p s2 qSlot h2comp
     · exact h2comp
   have h3blocks : StoredPrefixClosed s3 := by
     dsimp [s3]
-    split
+    hygiene_split
     · simpa [release, StoredPrefixClosed] using h2blocks
     · exact h2blocks
   have h3bound : DeadlinesAtMost s3 (t + lifetime p) := by
     dsimp [s3]
-    split
+    hygiene_split
     · intro b g d hrow
       exact h2bound b g d (release_subset p s2 qSlot (b, g, d) hrow)
     · exact h2bound
-  have h3now : s3.now = t := by dsimp [s3]; split <;> exact h2now
+  have h3now : s3.now = t := by dsimp [s3]; hygiene_split <;> exact h2now
   exact ⟨h3prefix, h3comp, h3blocks, h3bound, h3now⟩
 
 theorem clockPreGate_deadlines_aligned (p : Params) {n : Nat}
@@ -1164,17 +1222,17 @@ theorem clockPreGate_deadlines_aligned (p : Params) {n : Nat}
     exact haligned row (List.mem_filter.mp hrow).1
   have h1 : DeadlinesAligned p s1 := by
     dsimp [s1]
-    split
+    hygiene_split
     · simpa [freeze, DeadlinesAligned] using h0
     · exact h0
   have h2 : DeadlinesAligned p s2 := by
     dsimp [s2]
-    split
+    hygiene_split
     · simpa [DeadlinesAligned] using h1
     · exact h1
   have h3 : DeadlinesAligned p s3 := by
     dsimp [s3]
-    split
+    hygiene_split
     · intro row hrow
       exact h2 row (release_subset p s2 qSlot row hrow)
     · exact h2
@@ -1200,17 +1258,17 @@ theorem clockPreGate_live_rows (p : Params) {n : Nat}
     simpa [s0] using! (List.mem_filter.mp hrow).2
   have h1 : LiveRows s1 := by
     dsimp [s1]
-    split
+    hygiene_split
     · simpa [freeze, LiveRows] using h0
     · exact h0
   have h2 : LiveRows s2 := by
     dsimp [s2]
-    split
+    hygiene_split
     · simpa [LiveRows] using h1
     · exact h1
   have h3 : LiveRows s3 := by
     dsimp [s3]
-    split
+    hygiene_split
     · intro row hrow
       exact h2 row (release_subset p s2 qSlot row hrow)
     · exact h2
@@ -1236,7 +1294,7 @@ theorem clock_map_invariants (p : Params) {n : Nat}
         gate p pre dSlot else pre)
   obtain ⟨hpre, hcomp, hblocks', hbound, _⟩ :=
     clockPreGate_invariants p st t hprefix hcomparable hblocks hhorizon htime
-  split
+  hygiene_split
   · rename_i hcond
     have ht : t = gateTime p dSlot :=
       of_decide_eq_true (Bool.and_eq_true_iff.mp hcond).2
@@ -1264,7 +1322,7 @@ theorem clock_deadlines_aligned (p : Params) {n : Nat}
   have hpreAligned := clockPreGate_deadlines_aligned p st t haligned
   have hpreBound := (clockPreGate_invariants p st t
     hprefix hcomparable hblocks hhorizon htime).2.2.2.1
-  split
+  hygiene_split
   · rename_i hcond
     have ht : t = gateTime p dSlot :=
       of_decide_eq_true (Bool.and_eq_true_iff.mp hcond).2
@@ -1292,7 +1350,7 @@ theorem clock_live_rows (p : Params) {n : Nat}
     hprefix hcomparable hblocks hhorizon htime
   have hpreBound := hpreInv.2.2.2.1
   have hpreNow := hpreInv.2.2.2.2
-  split
+  hygiene_split
   · rename_i hcond
     have ht : t = gateTime p dSlot :=
       of_decide_eq_true (Bool.and_eq_true_iff.mp hcond).2
@@ -1490,7 +1548,7 @@ private theorem deeper_depth (best b : Block) :
     best.depth ≤ (deeper best b).depth ∧
     b.depth ≤ (deeper best b).depth := by
   unfold deeper
-  split
+  hygiene_split
   · rename_i h
     have hle : best.depth ≤ b.depth := by
       rcases Bool.or_eq_true_iff.mp h with hlt | htie
@@ -1530,7 +1588,7 @@ theorem fold_deeper_origin (xs : List Block) (start : Block) :
       rcases ih (deeper start x) with h | h
       · rw [h]
         unfold deeper
-        split
+        hygiene_split
         · exact Or.inr (List.mem_cons.mpr (Or.inl rfl))
         · exact Or.inl rfl
       · exact Or.inr (List.mem_cons.mpr (Or.inr h))

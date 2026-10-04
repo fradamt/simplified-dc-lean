@@ -171,5 +171,21 @@ structure DigestInput (n : Nat) where
   support : List (HeadWire n)
   deriving DecidableEq, Repr
 
+-- ROOT-DIGEST-2 option 3: generate equations in their home module (BUILD B3a).
+private theorem NamedProposal_Preceq_eq_1_export :
+    type_of% (@NamedProposal.Preceq.eq_1) := @NamedProposal.Preceq.eq_1
+private theorem NamedProposal_erase_eq_1_export :
+    type_of% (@NamedProposal.erase.eq_1) := @NamedProposal.erase.eq_1
+private theorem NamedProposal_erase_eq_2_export :
+    type_of% (@NamedProposal.erase.eq_2) := @NamedProposal.erase.eq_2
+private theorem NamedProposal_erase_eq_def_export :
+    type_of% (@NamedProposal.erase.eq_def) := @NamedProposal.erase.eq_def
+private theorem NamedProposal_preceq_eq_1_export :
+    type_of% (@NamedProposal.preceq.eq_1) := @NamedProposal.preceq.eq_1
+private theorem NamedProposal_preceq_eq_2_export :
+    type_of% (@NamedProposal.preceq.eq_2) := @NamedProposal.preceq.eq_2
+private theorem NamedProposal_preceq_eq_def_export :
+    type_of% (@NamedProposal.preceq.eq_def) := @NamedProposal.preceq.eq_def
+
 end AvailableChain.FGSA
 end

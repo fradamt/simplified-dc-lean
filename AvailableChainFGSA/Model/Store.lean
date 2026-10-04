@@ -120,5 +120,17 @@ def fastWriteAt (st : State n) (r : Slot) : Option (List Block) :=
 that conflicts with F. A stored finalized ancestor is not excluded. -/
 def blockExcluded (st : State n) (b : Block) : Bool := !activeCompatible st b
 
+-- ROOT-DIGEST-2 option 3: generate equations in their home module (BUILD B3a).
+private theorem State_namedBodies_eq_1_export :
+    type_of% (@State.namedBodies.eq_1) := @State.namedBodies.eq_1
+private theorem actView_eq_1_export :
+    type_of% (@actView.eq_1) := @actView.eq_1
+private theorem namedByErase_eq_1_export :
+    type_of% (@namedByErase?.eq_1) := @namedByErase?.eq_1
+private theorem normalizeS_eq_1_export :
+    type_of% (@normalizeS.eq_1) := @normalizeS.eq_1
+private theorem onView_eq_1_export :
+    type_of% (@onView.eq_1) := @onView.eq_1
+
 end AvailableChain.FGSA
 end

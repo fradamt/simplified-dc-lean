@@ -4,6 +4,48 @@ public import AvailableChainFGSA.Model.Frame
 public import AvailableChainFGSA.Proofs.FrameViews
 public import AvailableChainFGSA.Proofs.BlockAncestry
 
+namespace AvailableChain.FGSA
+
+open AvailableChain.Generic AvailableChain.SimplexFG
+
+-- ROOT-DIGEST-2 option 3: use a private copy of the same matcher (BUILD B3).
+private def hygiene_admitBlock (p : Params) (st : State p.n) (s : Slot)
+    (N : NamedProposal p.n) : State p.n :=
+  if !namedParentHeld st N then st else
+  match parentFG st N.erase with
+  | none => st
+  | some P =>
+      if blockAccepted p st s N P then
+        let st1 : State p.n := { st with
+          base := GridCO.admitProposal p.toParams.engine st.base
+            (baseProposal s N.erase N.raw N.support) N.erase (N.raw.map baseHead)
+          fg := Window.on_block p p.K_W st.fg (fgBlock P N.erase N.rows)
+          proposals := st.proposals ++ [⟨.proposer s, .proposal N⟩] }
+        let st2 := if st1.fg.F = st.fg.F then st1 else reconcile st1
+        N.rows.foldl (admitRow p) st2
+      else st
+
+-- The generated matcher bodies are definitionally equal.
+set_option linter.auxLemma false in
+private theorem hygiene_admitBlock_match_1_eq :
+    @admitBlock.match_1 = @hygiene_admitBlock.match_1 := rfl
+
+end AvailableChain.FGSA
+
+-- Rewrite before simp can generate equations for the public matcher.
+attribute [local simp↓]
+  AvailableChain.FGSA.hygiene_admitBlock_match_1_eq
+
+local macro "hygiene_split" : tactic =>
+  `(tactic| (
+    try rw [AvailableChain.FGSA.hygiene_admitBlock_match_1_eq] at *;
+    all_goals split))
+
+local macro "hygiene_split" "at" h:ident : tactic =>
+  `(tactic| (
+    try rw [AvailableChain.FGSA.hygiene_admitBlock_match_1_eq] at *;
+    all_goals split at $h:ident))
+
 @[expose] public section
 
 namespace AvailableChain.FGSA
@@ -39,7 +81,7 @@ theorem admitHead_fastWrite (p : Params) (st : State p.n) (s : Slot) (i : Fin p.
 theorem admitHead_genuine (p : Params) (st : State p.n) (s : Slot) (i : Fin p.n) (b : BlockId) :
     (admitHead p st s i b).base.genuine = st.base.genuine := by
   simp only [admitHead, GridCO.admitVote]
-  split <;> rfl
+  hygiene_split <;> rfl
 
 /-! ### `admitRow` and `admitBlock` -/
 
@@ -49,8 +91,8 @@ is appended. -/
 theorem admitRow_eq (p : Params) (st : State p.n) (a : RowWire p.n) :
     admitRow p st a = st ∨ admitRow p st a = { st with rowPool := st.rowPool ++ [a] } := by
   unfold admitRow
-  split
-  · split
+  hygiene_split
+  · hygiene_split
     · exact Or.inl rfl
     · exact Or.inr rfl
   · exact Or.inl rfl
@@ -65,9 +107,11 @@ theorem admitBlock_refused (p : Params) (st : State p.n) (s : Slot)
     admitBlock p st s N = st := by
   unfold admitBlock
   rcases h with h | h | ⟨P, hP, ha⟩
-  · simp only [h, Bool.not_false, ite_true]
-  · split <;> simp only [h]
-  · split <;> simp only [hP, ha, Bool.false_eq_true, ite_false]
+  · simp only [
+      ↓AvailableChain.FGSA.hygiene_admitBlock_match_1_eq,
+      h, Bool.not_false, ite_true]
+  · hygiene_split <;> simp only [h]
+  · hygiene_split <;> simp only [hP, ha, Bool.false_eq_true, ite_false]
 
 /-! ### `onView`, `normalizeS`, `reconcile` -/
 
@@ -90,14 +134,14 @@ theorem onView_fastWrite (f : GridCO.State n .root → GridCO.State n .root) (st
 /-- [ROOT-DIGEST-2 W1; DC root HEAD] [helper] `normalizeS` writes no FG field. -/
 theorem normalizeS_fg (st : State n) : (normalizeS st).fg = st.fg := by
   unfold normalizeS
-  split <;> rfl
+  hygiene_split <;> rfl
 /-- [ROOT-DIGEST-2 W1; DC root HEAD] [helper] `normalizeS` writes only S: `S := F` if `F ⋠ S`. -/
 theorem normalizeS_fields (st : State n) :
     normalizeS st = { st with base := { st.base with
       stableRecord := if Block.preceq (eraseFG st.fg.F) st.base.stableRecord then
         st.base.stableRecord else eraseFG st.fg.F } } := by
   unfold normalizeS
-  split <;> rfl
+  hygiene_split <;> rfl
 
 /-- [ROOT-DIGEST-2 W1; DC root HEAD] [helper] `reconcile` writes no FG field. -/
 theorem reconcile_fg (st : State n) : (reconcile st).fg = st.fg := by
@@ -127,25 +171,25 @@ theorem gateStep_fg (p : Params) (st : State p.n) (s : Slot) :
     (gateStep p st s).fg = st.fg := by
   unfold gateStep
   rw [normalizeS_fg]
-  split <;> rfl
+  hygiene_split <;> rfl
 /-- [ROOT-DIGEST-2 W1; DC root HEAD] [helper] The gate keeps the cumulative block list. -/
 theorem gateStep_base_blocks (p : Params) (st : State p.n) (s : Slot) :
     (gateStep p st s).base.blocks = st.base.blocks := by
   unfold gateStep
   rw [normalizeS_fields]
-  split <;> rfl
+  hygiene_split <;> rfl
 /-- [ROOT-DIGEST-2 W1; DC root HEAD] [helper] The gate writes no proposal wire. -/
 theorem gateStep_proposals (p : Params) (st : State p.n) (s : Slot) :
     (gateStep p st s).proposals = st.proposals := by
   unfold gateStep
   rw [normalizeS_fields]
-  split <;> rfl
+  hygiene_split <;> rfl
 /-- [ROOT-DIGEST-2 W1; DC root HEAD] [helper] The gate writes no row. -/
 theorem gateStep_rowPool (p : Params) (st : State p.n) (s : Slot) :
     (gateStep p st s).rowPool = st.rowPool := by
   unfold gateStep
   rw [normalizeS_fields]
-  split <;> rfl
+  hygiene_split <;> rfl
 
 /-- [ROOT-DIGEST-2 W1; DC root HEAD] [helper] `savedGenuine` of a list with one appended label `s`,
 when `s` was
@@ -157,7 +201,7 @@ theorem savedGenuine_append (v : GridCO.State n .root) (s : Slot) (x : Option Bl
   unfold GridCO.savedGenuine at hnew ⊢
   simp only [Option.map_eq_none_iff] at hnew
   rw [List.find?_append]
-  split
+  hygiene_split
   · next hr =>
     subst hr
     rw [hnew]
@@ -195,10 +239,10 @@ theorem saGate_genuine (p : SA.Params) (a : Block) (v : GridCO.State n .root) (s
         | nil => rfl
         | cons g gs ihg => simp only [List.foldl_cons]; rw [ihg]; rfl
   simp only [SA.Root.gateFrom, GridCO.gateFrom, SA.Root.confirmationFrom]
-  split
+  hygiene_split
   · next hc => simp only [hrec, hc]
   · next h hc =>
-    split
+    hygiene_split
     · simp only [hrec, hc]
     · rw [hfold]
       simp only [hrec, hc]
@@ -249,10 +293,10 @@ theorem fastSet_prefix (p : Params) (a : Block) (v : GridCO.State p.n .root) (s 
     ∃ h, SA.Root.confirmationFrom p.toParams a v s = some h ∧ Block.Preceq B h ∧ B ∈ v.blocks ∧
       B ≠ .genesis := by
   unfold fastSet at hB
-  split at hB
+  hygiene_split at hB
   · simp at hB
   · next h hc =>
-    split at hB
+    hygiene_split at hB
     · simp at hB
     · simp only [List.mem_filter, Bool.and_eq_true] at hB
       exact ⟨h, hc, hB.2.1.2, hB.1, by simpa using hB.2.1.1⟩
@@ -286,7 +330,7 @@ theorem clockPre_fastWrite (p : Params) (st : State p.n) (t : Time) :
 theorem clock_fg (p : Params) (st : State p.n) (t : Time) : (clock p st t).fg = st.fg := by
   unfold clock
   dsimp only
-  split
+  hygiene_split
   · rw [gateStep_fg, clockPre_fg]
   · exact clockPre_fg p st t
 /-- [ROOT-DIGEST-2 W1; DC root HEAD] [helper] The tick keeps the cumulative block list. -/
@@ -294,7 +338,7 @@ theorem clock_base_blocks (p : Params) (st : State p.n) (t : Time) :
     (clock p st t).base.blocks = st.base.blocks := by
   unfold clock
   dsimp only
-  split
+  hygiene_split
   · rw [gateStep_base_blocks]; exact (clockPre_fields p st t).2.1
   · exact (clockPre_fields p st t).2.1
 /-- [ROOT-DIGEST-2 W1; DC root HEAD] [helper] The tick writes no proposal wire. -/
@@ -302,7 +346,7 @@ theorem clock_proposals (p : Params) (st : State p.n) (t : Time) :
     (clock p st t).proposals = st.proposals := by
   unfold clock
   dsimp only
-  split
+  hygiene_split
   · rw [gateStep_proposals]; exact (clockPre_fields p st t).2.2.1
   · exact (clockPre_fields p st t).2.2.1
 /-- [ROOT-DIGEST-2 W1; DC root HEAD] [helper] The tick writes no row. -/
@@ -310,7 +354,7 @@ theorem clock_rowPool (p : Params) (st : State p.n) (t : Time) :
     (clock p st t).rowPool = st.rowPool := by
   unfold clock
   dsimp only
-  split
+  hygiene_split
   · rw [gateStep_rowPool]; exact (clockPre_fields p st t).2.2.2.1
   · exact (clockPre_fields p st t).2.2.2.1
 

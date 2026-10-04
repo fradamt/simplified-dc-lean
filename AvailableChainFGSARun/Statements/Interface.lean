@@ -63,6 +63,10 @@ def fgsaOutputs (p : Params) {In : Type} (c : AppCodec In) :
 The finalized output is the erasure of the stored FG block. -/
 def finalizedOut {p : Params} (nd : Node p) : Block := eraseFG nd.st.fg.F
 
+-- ROOT-DIGEST-2 option 3: generate equations in their home module (BUILD B3a).
+private theorem isRowObject_eq_1_export :
+    type_of% (@isRowObject.eq_1) := @isRowObject.eq_1
+
 end AvailableChain.FGSA.Run
 
 end

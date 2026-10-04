@@ -415,6 +415,28 @@ Payloads of `fgsa` have decidable equality (the instance of `Msg`). -/
 instance (p : Params) {In : Type} (c : AppCodec In) : DecidableEq (fgsa p c).Payload :=
   inferInstanceAs (DecidableEq (Msg p.n))
 
+-- ROOT-DIGEST-2 option 3: generate equations in their home module (BUILD B3a).
+private theorem ofAuth_eq_1_export :
+    type_of% (@ofAuth.eq_1) := @ofAuth.eq_1
+private theorem ofAuth_eq_2_export :
+    type_of% (@ofAuth.eq_2) := @ofAuth.eq_2
+private theorem ofAuth_eq_3_export :
+    type_of% (@ofAuth.eq_3) := @ofAuth.eq_3
+private theorem ofHead_eq_1_export :
+    type_of% (@ofHead.eq_1) := @ofHead.eq_1
+private theorem ofRow_eq_1_export :
+    type_of% (@ofRow.eq_1) := @ofRow.eq_1
+private theorem ofWire_eq_1_export :
+    type_of% (@ofWire.eq_1) := @ofWire.eq_1
+private theorem toAuth_eq_1_export :
+    type_of% (@toAuth.eq_1) := @toAuth.eq_1
+private theorem toAuth_eq_2_export :
+    type_of% (@toAuth.eq_2) := @toAuth.eq_2
+private theorem toAuth_eq_3_export :
+    type_of% (@toAuth.eq_3) := @toAuth.eq_3
+private theorem toWire_eq_1_export :
+    type_of% (@toWire.eq_1) := @toWire.eq_1
+
 end AvailableChain.FGSA.Run
 
 end

@@ -217,5 +217,15 @@ private theorem Block.Compatible_eq_1_export : type_of% (@Block.Compatible.eq_1)
 private theorem Block.compatible_eq_1_export : type_of% (@Block.compatible.eq_1) :=
   @Block.compatible.eq_1
 
+-- ROOT-DIGEST-2 option 3: generate equations in their home module (BUILD B3a).
+private theorem Block_Preceq_eq_1_export :
+    type_of% (@Block.Preceq.eq_1) := @Block.Preceq.eq_1
+private theorem Block_preceq_eq_1_export :
+    type_of% (@Block.preceq.eq_1) := @Block.preceq.eq_1
+private theorem Block_preceq_eq_2_export :
+    type_of% (@Block.preceq.eq_2) := @Block.preceq.eq_2
+private theorem Block_preceq_eq_def_export :
+    type_of% (@Block.preceq.eq_def) := @Block.preceq.eq_def
+
 end AvailableChain
 end

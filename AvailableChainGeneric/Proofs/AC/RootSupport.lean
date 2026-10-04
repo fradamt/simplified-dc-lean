@@ -2,6 +2,64 @@ module
 public import AvailableChainGeneric.Statements.AC.Support
 public import AvailableChainGeneric.Proofs.AC.RootVotes
 
+namespace AvailableChain.GridCO
+
+open AvailableChain.Generic
+
+-- ROOT-DIGEST-2 option 3: use a private copy of the same matcher (BUILD B3).
+private def hygiene_goldfishScoreOn {n : Nat} {mode : HeadMode} (domain tree : List Block)
+    (raw support : List (Wire n mode)) (b : Block) : Nat :=
+  ((seats n raw).filter (fun i =>
+    equivocates raw i || (seatVotes support i).any (fun o =>
+      match headTarget? o with
+      | none => false
+      | some target => match resolveTarget mode domain target with
+        | none => false
+        | some B => decide (B ∈ tree) && decide (B.slot ≤ (headLabel? o).getD 0) &&
+            Block.preceq b B))).length
+
+-- The generated matcher bodies are definitionally equal.
+set_option linter.auxLemma false in
+private theorem hygiene_goldfishScoreOn_match_1_eq :
+    @goldfishScoreOn.match_1 = @hygiene_goldfishScoreOn.match_3 := rfl
+
+end AvailableChain.GridCO
+
+namespace AvailableChain.GridCO
+
+open AvailableChain.Generic
+
+-- ROOT-DIGEST-2 option 3: use a private copy of the same matcher (BUILD B3).
+private def hygiene_resolvedBefore {n : Nat} {mode : HeadMode}
+    (st : State n mode) (o : Wire n mode) (cutoff : Time) : Bool :=
+  match resolvedHead? st o with
+  | none => false
+  | some B => decide (B.slot ≤ (headLabel? o).getD 0) &&
+      decide (stampVote st o < cutoff) && decide (stampBlock st B < cutoff)
+
+-- The generated matcher bodies are definitionally equal.
+set_option linter.auxLemma false in
+private theorem hygiene_resolvedBefore_match_1_eq :
+    @resolvedBefore.match_1 = @hygiene_goldfishScoreOn.match_1 := rfl
+
+end AvailableChain.GridCO
+
+attribute [local simp]
+  AvailableChain.GridCO.hygiene_goldfishScoreOn_match_1_eq
+  AvailableChain.GridCO.hygiene_resolvedBefore_match_1_eq
+
+local macro "hygiene_split" : tactic =>
+  `(tactic| (
+    try rw [AvailableChain.GridCO.hygiene_goldfishScoreOn_match_1_eq] at *;
+    try rw [AvailableChain.GridCO.hygiene_resolvedBefore_match_1_eq] at *;
+    all_goals split))
+
+local macro "hygiene_split" "at" h:ident : tactic =>
+  `(tactic| (
+    try rw [AvailableChain.GridCO.hygiene_goldfishScoreOn_match_1_eq] at *;
+    try rw [AvailableChain.GridCO.hygiene_resolvedBefore_match_1_eq] at *;
+    all_goals split at $h:ident))
+
 public section
 
 namespace AvailableChain.Gen.AC.Root
@@ -118,10 +176,10 @@ theorem goldfishScoreOn_antitone {n : Nat} (domain tree : List Block)
     obtain ⟨o, ho, hv⟩ := List.any_eq_true.mp hb
     apply List.any_eq_true.mpr
     refine ⟨o, ho, ?_⟩
-    split at hv
+    hygiene_split at hv
     · contradiction
     · rename_i r hr
-      split at hv
+      hygiene_split at hv
       · contradiction
       · rename_i C hC
         simp only [Bool.and_eq_true] at hv ⊢
@@ -142,10 +200,10 @@ theorem goldfishScoreOn_le {n : Nat} (domain tree : List Block)
     obtain ⟨o, ho, hv⟩ := List.any_eq_true.mp hb
     apply List.any_eq_true.mpr
     refine ⟨o, ho, ?_⟩
-    split at hv
+    hygiene_split at hv
     · contradiction
     · rename_i r hr
-      split at hv
+      hygiene_split at hv
       · contradiction
       · rename_i C hC
         simp only [Bool.and_eq_true, decide_eq_true_eq] at hv ⊢

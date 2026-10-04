@@ -622,5 +622,45 @@ def embed {n : Nat} (st : State n) : GridCO.State n .block where
   stableRecord := st.stableRecord
   goldfishRecord := st.goldfishRecord
 
+-- ROOT-DIGEST-2 option 3: generate equations in their home module (BUILD B3a).
+private theorem act_eq_1_export :
+    type_of% (@act.eq_1) := @act.eq_1
+private theorem admissionLevels_eq_1_export :
+    type_of% (@admissionLevels.eq_1) := @admissionLevels.eq_1
+private theorem admitVote_eq_1_export :
+    type_of% (@admitVote.eq_1) := @admitVote.eq_1
+private theorem blockKnown_eq_1_export :
+    type_of% (@blockKnown.eq_1) := @blockKnown.eq_1
+private theorem cleanSupport_eq_1_export :
+    type_of% (@cleanSupport.eq_1) := @cleanSupport.eq_1
+private theorem earlyVotes_eq_1_export :
+    type_of% (@earlyVotes.eq_1) := @earlyVotes.eq_1
+private theorem embed_eq_1_export :
+    type_of% (@embed.eq_1) := @embed.eq_1
+private theorem equivocates_eq_1_export :
+    type_of% (@equivocates.eq_1) := @equivocates.eq_1
+private theorem excludes_eq_1_export :
+    type_of% (@excludes.eq_1) := @excludes.eq_1
+private theorem forkChoice_eq_1_export :
+    type_of% (@forkChoice.eq_1) := @forkChoice.eq_1
+private theorem headTarget_eq_1_export :
+    type_of% (@headTarget?.eq_1) := @headTarget?.eq_1
+private theorem process_eq_1_export :
+    type_of% (@process.eq_1) := @process.eq_1
+private theorem releaseThreshold_eq_1_export :
+    type_of% (@releaseThreshold.eq_1) := @releaseThreshold.eq_1
+private theorem seatVotes_eq_1_export :
+    type_of% (@seatVotes.eq_1) := @seatVotes.eq_1
+private theorem seats_eq_1_export :
+    type_of% (@seats.eq_1) := @seats.eq_1
+private theorem voterCount_eq_1_export :
+    type_of% (@voterCount.eq_1) := @voterCount.eq_1
+private theorem voterSupportView_eq_1_export :
+    type_of% (@voterSupportView.eq_1) := @voterSupportView.eq_1
+private theorem voterView_eq_1_export :
+    type_of% (@voterView.eq_1) := @voterView.eq_1
+private theorem votesAt_eq_1_export :
+    type_of% (@votesAt.eq_1) := @votesAt.eq_1
+
 end AvailableChain.GridCO.Legacy
 end

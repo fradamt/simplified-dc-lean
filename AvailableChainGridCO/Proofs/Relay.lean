@@ -1,6 +1,40 @@
 module
 public import AvailableChainGridCO.Proofs.Goldfish
 
+namespace AvailableChain.GridCO
+
+open AvailableChain.Generic
+
+-- ROOT-DIGEST-2 option 3: use a private copy of the same matcher (BUILD B3).
+private def hygiene_proposerSupportView
+    {n : Nat} {mode : HeadMode} (st : State n mode) (s : Slot) : List
+    (Wire n mode) :=
+  (proposerView st s).filter (fun o =>
+    match resolvedHead? st o with
+    | some b => b.slot ≤ s - 1
+    | none => false)
+
+-- The generated matcher bodies are definitionally equal.
+set_option linter.auxLemma false in
+private theorem hygiene_proposerSupportView_match_1_eq :
+    @proposerSupportView.match_1 = @hygiene_proposerSupportView.match_1 := rfl
+
+end AvailableChain.GridCO
+
+-- Rewrite before simp can generate equations for the public matcher.
+attribute [local simp↓]
+  AvailableChain.GridCO.hygiene_proposerSupportView_match_1_eq
+
+local macro "hygiene_split" : tactic =>
+  `(tactic| (
+    try rw [AvailableChain.GridCO.hygiene_proposerSupportView_match_1_eq] at *;
+    all_goals split))
+
+local macro "hygiene_split" "at" h:ident : tactic =>
+  `(tactic| (
+    try rw [AvailableChain.GridCO.hygiene_proposerSupportView_match_1_eq] at *;
+    all_goals split at $h:ident))
+
 @[expose] public section
 
 namespace AvailableChain.GridCO
@@ -50,7 +84,9 @@ theorem releaseCount_eq_card (p : Params) {n : Nat} (st : State n)
   intro i _
   apply congrArg (fun x => !equivocates (votesAt st r) i && x)
   apply Bool.eq_iff_iff.mpr
-  simp only [List.any_eq_true]
+  simp only [
+      ↓AvailableChain.GridCO.hygiene_proposerSupportView_match_1_eq,
+      List.any_eq_true]
   constructor <;> rintro ⟨o, ho, hx⟩ <;> refine ⟨o, ho, ?_⟩
   · rwa [resolved o (List.mem_filter.mp (List.mem_filter.mp ho).1).2] at hx
   · rwa [resolved o (List.mem_filter.mp (List.mem_filter.mp ho).1).2]

@@ -1,6 +1,40 @@
 module
 public import AvailableChainGridCO.Proofs.Execution
 
+namespace AvailableChain.GridCO
+
+open AvailableChain.Generic
+
+-- ROOT-DIGEST-2 option 3: use a private copy of the same matcher (BUILD B3).
+private def hygiene_proposerSupportView
+    {n : Nat} {mode : HeadMode} (st : State n mode) (s : Slot) : List
+    (Wire n mode) :=
+  (proposerView st s).filter (fun o =>
+    match resolvedHead? st o with
+    | some b => b.slot ≤ s - 1
+    | none => false)
+
+-- The generated matcher bodies are definitionally equal.
+set_option linter.auxLemma false in
+private theorem hygiene_proposerSupportView_match_1_eq :
+    @proposerSupportView.match_1 = @hygiene_proposerSupportView.match_1 := rfl
+
+end AvailableChain.GridCO
+
+-- Rewrite before simp can generate equations for the public matcher.
+attribute [local simp↓]
+  AvailableChain.GridCO.hygiene_proposerSupportView_match_1_eq
+
+local macro "hygiene_split" : tactic =>
+  `(tactic| (
+    try rw [AvailableChain.GridCO.hygiene_proposerSupportView_match_1_eq] at *;
+    all_goals split))
+
+local macro "hygiene_split" "at" h:ident : tactic =>
+  `(tactic| (
+    try rw [AvailableChain.GridCO.hygiene_proposerSupportView_match_1_eq] at *;
+    all_goals split at $h:ident))
+
 @[expose] public section
 
 namespace AvailableChain.GridCO
@@ -11,6 +45,15 @@ set_option linter.unusedSectionVars false
 variable [LeasePolicy]
 
 open AvailableChain.Generic AvailableChain.Statements.Generic
+
+-- ROOT-DIGEST-2 option 3: keep the statement matcher in a private helper.
+private theorem resolvedBefore_block_local {n : Nat} (st : State n) (o : Wire n)
+    (cutoff : Time) :
+    resolvedBefore st o cutoff = (match headTarget? o with
+      | none => false
+      | some B => blockKnown st B && B.slot ≤ (headLabel? o).getD 0 &&
+          stampVote st o < cutoff && stampBlock st B < cutoff) :=
+  resolvedBefore_block st o cutoff
 
 /-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
 Every stored object has a receipt stamp. -/
@@ -39,10 +82,10 @@ private theorem fold_data {n : Nat} {α : Type} (xs : List α)
 theorem gate_receiptData (p : Params) {n : Nat} (st : State n) (r : Slot) :
     receiptData (gate p st r) = receiptData st := by
   unfold gate
-  split
+  hygiene_split
   · rfl
   · dsimp only
-    split
+    hygiene_split
     · rfl
     · apply fold_data
       intro acc b
@@ -54,13 +97,13 @@ theorem clockPreGate_receiptData (p : Params) {n : Nat} (st : State n) (t : Time
     receiptData (clockPreGate p st t) = receiptData st := by
   unfold clockPreGate
   dsimp only
-  split <;> split <;> split <;> rfl
+  hygiene_split <;> hygiene_split <;> hygiene_split <;> rfl
 
 theorem clock_receiptData (p : Params) {n : Nat} (st : State n) (t : Time) :
     receiptData (clock p st t) = receiptData st := by
   rw [clock_eq_gate_prestate]
   dsimp only
-  split
+  hygiene_split
   · rw [gate_receiptData, clockPreGate_receiptData]
   · exact clockPreGate_receiptData p st t
 
@@ -70,9 +113,9 @@ theorem initial_stamped (n : Nat) : ReceiptStamped (initial n) := by
 theorem admitVote_stamped (p : Params) {n : Nat} (st : State n) (o : Wire n)
     (h : ReceiptStamped st) : ReceiptStamped (admitVote p st o) := by
   unfold admitVote
-  split
+  hygiene_split
   · dsimp only
-    split
+    hygiene_split
     · exact h
     · refine ⟨h.1, ?_⟩
       intro u hu
@@ -108,7 +151,7 @@ theorem admitProposal_stamped (p : Params) {n : Nat} (st : State n) (o : Wire n)
 private theorem process_stamped (p : Params) {n : Nat} (st : State n) (o : Wire n)
     (h : ReceiptStamped st) : ReceiptStamped (process p st o) := by
   unfold process
-  split
+  hygiene_split
   · exact admitVote_stamped p st o h
   · exact admitProposal_stamped p st o _ _ h
   · exact h
@@ -167,8 +210,8 @@ theorem resolvedBefore_eq_of_receiptData {n : Nat} (a b : State n)
   have hv : stampVote a o = stampVote b o := by
     simp only [stampVote, h4]
     exact stamp_eq_of_data _ _ _ _ (hb.2 o ho)
-  simp only [resolvedBefore_block]
-  split
+  simp only [resolvedBefore_block_local]
+  hygiene_split
   · rfl
   · rename_i target ht
     by_cases hknown : target ∈ b.blocks
@@ -190,7 +233,9 @@ theorem releaseCount_eq_of_receiptData (p : Params) {n : Nat} (a b : State n)
     apply List.filter_congr
     intro o ho
     exact resolvedBefore_eq_of_receiptData a b heq hb o (List.mem_filter.mp ho).1 _
-  simp only [releaseCount, hraw, hresolved]
+  simp only [
+      ↓AvailableChain.GridCO.hygiene_proposerSupportView_match_1_eq,
+      releaseCount, hraw, hresolved]
   have hblocks : a.blocks = b.blocks := congrArg Prod.fst heq
   simp only [resolvedHead?, resolutionTree, hblocks]
 
@@ -209,8 +254,8 @@ theorem confirmation_eq_of_receiptData (p : Params) {n : Nat}
   have hres : ∀ o ∈ b.votes, resolvedBefore a o (earlyTime p r) =
       resolvedBefore b o (earlyTime p r) := by
     intro o ho
-    simp only [resolvedBefore_block]
-    split
+    simp only [resolvedBefore_block_local]
+    hygiene_split
     · rfl
     · rename_i target ht
       by_cases hknown : target ∈ b.blocks

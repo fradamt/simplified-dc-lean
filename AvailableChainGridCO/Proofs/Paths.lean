@@ -19,6 +19,15 @@ private theorem fold_votes_blocks (p : Params) {n : Nat} (raw : List (HeadWire n
   | nil => rfl
   | cons row raw ih => rw [List.foldl_cons, ih, admitVote_blocks]
 
+-- ROOT-DIGEST-2 option 3: keep the statement matcher in a private helper.
+private theorem resolvedBefore_block_local {n : Nat} (st : State n) (o : Wire n)
+    (cutoff : Time) :
+    resolvedBefore st o cutoff = (match headTarget? o with
+      | none => false
+      | some B => blockKnown st B && B.slot ≤ (headLabel? o).getD 0 &&
+          stampVote st o < cutoff && stampBlock st B < cutoff) :=
+  resolvedBefore_block st o cutoff
+
 /-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
 A new stored block is the block of the directly delivered proposal. -/
 theorem process_new_block (p : Params) {n : Nat} (st : State n) (o : Wire n)
@@ -372,7 +381,7 @@ theorem synchronous_honest_head_resolved {V : Type} [DecidableEq V]
   obtain ⟨hb, hbstamp⟩ := synchronous_block_path_at_gate p E rho hΔ r hsync
     (rho.seatOf r i) reader hh hr B hm
     (fun o ⟨raw, support, hp⟩ u _ => proposal_not_excluded p rho reader o B raw support hp u)
-  simp [earlyVotes, votesAt, hv, headLabel?, resolvedBefore_block, headTarget?, blockKnown,
+  simp [earlyVotes, votesAt, hv, headLabel?, resolvedBefore_block_local, headTarget?, blockKnown,
     hb, hslot, hstamp, hbstamp]
 
 end AvailableChain.GridCO

@@ -220,5 +220,9 @@ def attest (p : Params) (st : State p.n) (Λ : RecordOnce) (i : Fin p.n) :
   let y := createRowOnce p.E p.cfg Λ i x.1 x.2
   (y.1.map (fun a => .vote (RowBody.ofRow a)), y.2)
 
+-- ROOT-DIGEST-2 option 3: generate equations in their home module (BUILD B3a).
+private theorem propose_eq_1_export :
+    type_of% (@propose.eq_1) := @propose.eq_1
+
 end AvailableChain.FGSA
 end

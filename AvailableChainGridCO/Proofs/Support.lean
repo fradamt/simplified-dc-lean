@@ -13,6 +13,25 @@ variable [LeasePolicy]
 
 open AvailableChain.Generic AvailableChain.Statements.Generic
 
+-- ROOT-DIGEST-2 option 3: keep the statement matcher in a private helper.
+private theorem resolvedBefore_block_local {n : Nat} (st : State n) (o : Wire n)
+    (cutoff : Time) :
+    resolvedBefore st o cutoff = (match headTarget? o with
+      | none => false
+      | some B => blockKnown st B && B.slot ≤ (headLabel? o).getD 0 &&
+          stampVote st o < cutoff && stampBlock st B < cutoff) :=
+  resolvedBefore_block st o cutoff
+
+-- ROOT-DIGEST-2 option 3: keep the statement matcher in a private helper.
+private theorem goldfishScore_block_eq_local {n : Nat} (tree : List Block)
+    (raw support : List (Wire n)) (B : Block) :
+    goldfishScore tree raw support B =
+      ((seats n raw).filter (fun i => equivocates raw i || (seatVotes support i).any
+        (fun o => match headTarget? o with
+          | some C => C ∈ tree && C.slot ≤ (headLabel? o).getD 0 && Block.preceq B C
+          | none => false))).length :=
+  goldfishScore_block_eq tree raw support B
+
 /-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
 The actual non-equivocating seats counted for a genuine prefix. -/
 def prefixSupportSeats (p : Params) {n : Nat} (st : State n) (r : Slot) (B : Block) :
@@ -26,7 +45,7 @@ def prefixSupportSeats (p : Params) {n : Nat} (st : State n) (r : Slot) (B : Blo
 
 theorem prefixSupport_eq_card (p : Params) {n : Nat} (st : State n) (r : Slot) (B : Block) :
     prefixSupport p st r B = (prefixSupportSeats p st r B).card := by
-  simp only [prefixSupport_block_eq, goldfishScore_block_eq, cleanSupport_no_equivocation,
+  simp only [prefixSupport_block_eq, goldfishScore_block_eq_local, cleanSupport_no_equivocation,
     Bool.false_or,
     prefixSupportSeats]
   rw [← List.toFinset_filter]
@@ -121,7 +140,7 @@ theorem prefixSupport_ge_early_honest_batch
     · exact List.mem_toFinset.mpr (List.mem_dedup.mpr
         (List.mem_filterMap.mpr ⟨o, hc, hseat⟩))
     · have hresolved := (List.mem_filter.mp ho).2
-      simp only [resolvedBefore_block, ht, Bool.and_eq_true, decide_eq_true_eq] at hresolved
+      simp only [resolvedBefore_block_local, ht, Bool.and_eq_true, decide_eq_true_eq] at hresolved
       simpa only [ht, Bool.and_eq_true, decide_eq_true_eq, blockKnown, Block.Preceq] using
         And.intro (And.intro hresolved.1.1.1 hresolved.1.1.2) hp
   · intro u _ v _ he

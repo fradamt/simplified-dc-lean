@@ -4,6 +4,40 @@ public import AvailableChainFGSA.Proofs.Fields
 public import AvailableChainFGSA.Proofs.Carrier
 public import AvailableChainFGSA.Proofs.HeadResolution
 
+namespace AvailableChain.GridCO
+
+open AvailableChain.Generic
+
+-- ROOT-DIGEST-2 option 3: use a private copy of the same matcher (BUILD B3).
+private def hygiene_proposerSupportView
+    {n : Nat} {mode : HeadMode} (st : State n mode) (s : Slot) : List
+    (Wire n mode) :=
+  (proposerView st s).filter (fun o =>
+    match resolvedHead? st o with
+    | some b => b.slot ≤ s - 1
+    | none => false)
+
+-- The generated matcher bodies are definitionally equal.
+set_option linter.auxLemma false in
+private theorem hygiene_proposerSupportView_match_1_eq :
+    @proposerSupportView.match_1 = @hygiene_proposerSupportView.match_1 := rfl
+
+end AvailableChain.GridCO
+
+-- Rewrite before simp can generate equations for the public matcher.
+attribute [local simp↓]
+  AvailableChain.GridCO.hygiene_proposerSupportView_match_1_eq
+
+local macro "hygiene_split" : tactic =>
+  `(tactic| (
+    try rw [AvailableChain.GridCO.hygiene_proposerSupportView_match_1_eq] at *;
+    all_goals split))
+
+local macro "hygiene_split" "at" h:ident : tactic =>
+  `(tactic| (
+    try rw [AvailableChain.GridCO.hygiene_proposerSupportView_match_1_eq] at *;
+    all_goals split at $h:ident))
+
 @[expose] public section
 
 namespace AvailableChain.FGSA
@@ -145,13 +179,15 @@ count against `K` is zero, for every label. -/
 theorem actView_releaseCount_zero (st : State n) (q : GridCO.Params) (r : Slot) {K : Block}
     (hK : Block.Preceq K (eraseFG st.fg.F)) : GridCO.releaseCount q (actView st) r K = 0 := by
   unfold GridCO.releaseCount
-  simp only [List.length_eq_zero_iff, List.filter_eq_nil_iff, Bool.and_eq_true,
+  simp only [
+      ↓AvailableChain.GridCO.hygiene_proposerSupportView_match_1_eq,
+      List.length_eq_zero_iff, List.filter_eq_nil_iff, Bool.and_eq_true,
     Bool.not_eq_true', List.any_eq_true, not_and, not_exists]
   intro i _ _ o ho
   simp only [GridCO.seatVotes, List.mem_filter] at ho
   have hrb := ho.1.2
   unfold GridCO.resolvedBefore at hrb
-  split at hrb
+  hygiene_split at hrb
   · simp at hrb
   · next b hb =>
     rw [hb]
@@ -268,8 +304,12 @@ theorem clock_eq_saClockFrom_gate (p : Params) (st : State p.n) (t : Time) (s : 
   unfold gateStep
   dsimp only
   rw [ite_eq_right (by simp [hn]), clockPre_fastWrite, clockPre_fg]
-  rw [clockPre_eq, onView_onView _ _ (fun v => by dsimp only; split <;> split <;> split <;> rfl)
-    (fun v => by dsimp only; split <;> split <;> split <;> rfl)]
+  rw [clockPre_eq, onView_onView _ _ (fun v => by
+      dsimp only
+      hygiene_split <;> hygiene_split <;> hygiene_split <;> rfl)
+    (fun v => by
+      dsimp only
+      hygiene_split <;> hygiene_split <;> hygiene_split <;> rfl)]
   subst hs
   rw [show SA.Root.clockFrom p.toParams (eraseFG st.fg.F) (actView st) t = _ from ite_eq_left hc]
   rfl

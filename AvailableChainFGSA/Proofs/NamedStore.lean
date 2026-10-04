@@ -3,6 +3,36 @@ public import AvailableChainFGSA.Proofs.NamedProposal
 public import AvailableChainFGSA.Proofs.Carrier
 public import AvailableChainFGSA.Statements.Invariants
 
+namespace AvailableChain.FGSA
+
+open AvailableChain.Generic AvailableChain.SimplexFG
+
+-- ROOT-DIGEST-2 option 3: use a private copy of the same matcher (BUILD B3).
+private def hygiene_namedByErase {n : Nat} (st : State n) (H : Block) : Option (NamedProposal n) :=
+  match (st.namedBodies.filter (fun N => N.erase == H)).eraseDups with
+  | [N] => some N
+  | _ => none
+
+-- The generated matcher bodies are definitionally equal.
+set_option linter.auxLemma false in
+private theorem hygiene_namedByErase_match_1_eq :
+    @namedByErase?.match_1 = @hygiene_namedByErase.match_1 := rfl
+
+end AvailableChain.FGSA
+
+attribute [local simp]
+  AvailableChain.FGSA.hygiene_namedByErase_match_1_eq
+
+local macro "hygiene_split" : tactic =>
+  `(tactic| (
+    try rw [AvailableChain.FGSA.hygiene_namedByErase_match_1_eq] at *;
+    all_goals split))
+
+local macro "hygiene_split" "at" h:ident : tactic =>
+  `(tactic| (
+    try rw [AvailableChain.FGSA.hygiene_namedByErase_match_1_eq] at *;
+    all_goals split at $h:ident))
+
 @[expose] public section
 
 namespace AvailableChain.FGSA
@@ -106,7 +136,7 @@ theorem actView_resolutionTree {n : Nat} (st : State n) :
 theorem namedByErase?_sound {n : Nat} (st : State n) (H : Block) (N : NamedProposal n)
     (h : namedByErase? st H = some N) : N ∈ st.namedBodies ∧ N.erase = H := by
   unfold namedByErase? at h
-  split at h
+  hygiene_split at h
   · rename_i P he
     cases h
     have hm : N ∈ (st.namedBodies.filter (fun M => M.erase == H)).eraseDups := by

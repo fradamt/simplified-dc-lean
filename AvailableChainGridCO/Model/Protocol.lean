@@ -755,5 +755,51 @@ private theorem writeObligation_eq_1_export : type_of% (@writeObligation.eq_1) :
   @writeObligation.eq_1
 private theorem excludes_eq_1_export : type_of% (@excludes.eq_1) := @excludes.eq_1
 
+-- ROOT-DIGEST-2 option 3: generate equations in their home module (BUILD B3a).
+private theorem act_eq_1_export :
+    type_of% (@act.eq_1) := @act.eq_1
+private theorem admissionLevels_eq_1_export :
+    type_of% (@admissionLevels.eq_1) := @admissionLevels.eq_1
+private theorem admitVote_eq_1_export :
+    type_of% (@admitVote.eq_1) := @admitVote.eq_1
+private theorem cleanSupport_eq_1_export :
+    type_of% (@cleanSupport.eq_1) := @cleanSupport.eq_1
+private theorem earlyVotes_eq_1_export :
+    type_of% (@earlyVotes.eq_1) := @earlyVotes.eq_1
+private theorem expire_eq_1_export :
+    type_of% (@expire.eq_1) := @expire.eq_1
+private theorem forkChoice_eq_1_export :
+    type_of% (@forkChoice.eq_1) := @forkChoice.eq_1
+private theorem headTarget_eq_1_export :
+    type_of% (@headTarget?.eq_1) := @headTarget?.eq_1
+private theorem process_eq_1_export :
+    type_of% (@process.eq_1) := @process.eq_1
+private theorem releaseThreshold_eq_1_export :
+    type_of% (@releaseThreshold.eq_1) := @releaseThreshold.eq_1
+private theorem resolutionTree_eq_1_export :
+    type_of% (@resolutionTree.eq_1) := @resolutionTree.eq_1
+private theorem resolutionTree_eq_2_export :
+    type_of% (@resolutionTree.eq_2) := @resolutionTree.eq_2
+private theorem resolveTarget_eq_1_export :
+    type_of% (@resolveTarget.eq_1) := @resolveTarget.eq_1
+private theorem resolveTarget_eq_2_export :
+    type_of% (@resolveTarget.eq_2) := @resolveTarget.eq_2
+private theorem resolvedHead_eq_1_export :
+    type_of% (@resolvedHead?.eq_1) := @resolvedHead?.eq_1
+private theorem seatVotes_eq_1_export :
+    type_of% (@seatVotes.eq_1) := @seatVotes.eq_1
+private theorem seats_eq_1_export :
+    type_of% (@seats.eq_1) := @seats.eq_1
+private theorem targetOfBlock_eq_1_export :
+    type_of% (@targetOfBlock.eq_1) := @targetOfBlock.eq_1
+private theorem targetOfBlock_eq_2_export :
+    type_of% (@targetOfBlock.eq_2) := @targetOfBlock.eq_2
+private theorem voterCount_eq_1_export :
+    type_of% (@voterCount.eq_1) := @voterCount.eq_1
+private theorem voterSupportView_eq_1_export :
+    type_of% (@voterSupportView.eq_1) := @voterSupportView.eq_1
+private theorem voterView_eq_1_export :
+    type_of% (@voterView.eq_1) := @voterView.eq_1
+
 end AvailableChain.GridCO
 end

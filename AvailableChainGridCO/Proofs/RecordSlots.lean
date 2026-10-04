@@ -13,6 +13,25 @@ variable [LeasePolicy]
 
 open AvailableChain.Generic AvailableChain.Statements.Generic
 
+-- ROOT-DIGEST-2 option 3: keep the statement matcher in a private helper.
+private theorem resolvedBefore_block_local {n : Nat} (st : State n) (o : Wire n)
+    (cutoff : Time) :
+    resolvedBefore st o cutoff = (match headTarget? o with
+      | none => false
+      | some B => blockKnown st B && B.slot ≤ (headLabel? o).getD 0 &&
+          stampVote st o < cutoff && stampBlock st B < cutoff) :=
+  resolvedBefore_block st o cutoff
+
+-- ROOT-DIGEST-2 option 3: keep the statement matcher in a private helper.
+private theorem goldfishScore_block_eq_local {n : Nat} (tree : List Block)
+    (raw support : List (Wire n)) (B : Block) :
+    goldfishScore tree raw support B =
+      ((seats n raw).filter (fun i => equivocates raw i || (seatVotes support i).any
+        (fun o => match headTarget? o with
+          | some C => C ∈ tree && C.slot ≤ (headLabel? o).getD 0 && Block.preceq B C
+          | none => false))).length :=
+  goldfishScore_block_eq tree raw support B
+
 /-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
 The executable first-copy filter has no duplicate objects. -/
 theorem eraseDups_nodup {α : Type} [BEq α] [LawfulBEq α] (xs : List α) :
@@ -35,7 +54,7 @@ theorem earlyVotes_subset_lateVotes (p : Params) {n : Nat} (st : State n) (r : S
   intro o ho
   obtain ⟨hraw, hres⟩ := List.mem_filter.mp ho
   refine List.mem_filter.mpr ⟨hraw, ?_⟩
-  simp only [resolvedBefore_block] at hres
+  simp only [resolvedBefore_block_local] at hres
   split at hres
   · contradiction
   · simp only [Bool.and_eq_true, decide_eq_true_eq] at hres
@@ -96,7 +115,7 @@ Positive genuine support has an actual, slot-bounded target. -/
 theorem prefixSupport_target (p : Params) {n : Nat} (st : State n) (r : Slot)
     (B : Block) (hpos : 0 < prefixSupport p st r B) :
     ∃ target ∈ st.blocks, target.slot ≤ r ∧ Block.Preceq B target := by
-  simp only [prefixSupport_block_eq, goldfishScore_block_eq] at hpos
+  simp only [prefixSupport_block_eq, goldfishScore_block_eq_local] at hpos
   obtain ⟨i, hi⟩ := List.exists_mem_of_ne_nil _ (List.length_pos_iff.mp hpos)
   have hscore := (List.mem_filter.mp hi).2
   rw [cleanSupport_no_equivocation, Bool.false_or] at hscore
