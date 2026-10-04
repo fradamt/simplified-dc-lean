@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Healing.LiveDC -- shake: keep (LIVE-DC service)
 public import AvailableChainFGSAClaims.Claims.Healing
 public import AvailableChainFGSAProofs.Proofs.Healing.Reset -- shake: keep (H.11 reset supplier)
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionRenewed
