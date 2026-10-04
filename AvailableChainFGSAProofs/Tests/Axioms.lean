@@ -2108,3 +2108,7 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone -- shake: ke
 #print axioms AvailableChain.FGSA.Run.healing_resetArrivalFull
 #check AvailableChain.FGSA.Run.healing_healingInputClaim
 #print axioms AvailableChain.FGSA.Run.healing_healingInputClaim
+
+-- Blueprint 21 H.18–H.22 and 22 §1; plan S5 NV7 L2; DC: SAME axiom audit.
+#check AvailableChain.FGSA.Run.fgsaClaims
+#print axioms AvailableChain.FGSA.Run.fgsaClaims

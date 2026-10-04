@@ -2558,6 +2558,8 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.healing_hTimeClaim_all',
     'AvailableChain.FGSA.Run.healing_resetArrivalFull',
     'AvailableChain.FGSA.Run.healing_healingInputClaim',
+    # S5 NV7 L2: --expect addition only.
+    'AvailableChain.FGSA.Run.fgsaClaims',
 )
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
          'Packages.Safety', 'OutputReads', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',
