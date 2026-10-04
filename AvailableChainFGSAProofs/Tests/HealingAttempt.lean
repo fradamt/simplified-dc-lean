@@ -124,6 +124,8 @@ example :
 
 -- P1 arithmetic: the shifted endpoint is within the terminal deadline in all four classes.
 -- Round-up excludes the old proposal at a for positive remainders as well.
+example : Γ attemptParams 5 = 8 := by decide
+
 example : (8 : Time) % 4 = 0 ∧ Γ attemptParams 8 = 8 ∧
     (56 : Time) + Γ attemptParams 8 - 8 = 56 ∧
     (56 : Time) + Γ attemptParams 8 ≤
