@@ -7,7 +7,8 @@ public import AvailableChainGeneric.Statements.V2.Duty.DeliveryBy
 
 namespace AvailableChain.FGSA.Run
 
-/-- K8 inputs (bp00:707–708; bp01:858–930).
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+K8 inputs (bp00:707–708; bp01:858–930).
 
 `required o t` names an object and its original trigger time. `paths K d`
 names a required authentic support path, from genesis to `K`, with cutoff
@@ -46,13 +47,14 @@ structure ReceiptCoveragePremises {p : Params} {In V : Type} [DecidableEq V]
       0 ≤ t ∧ t < dl t ∧ dl t ≤ D) ∧
     (∀ K d, paths K d → Block.Preceq B K ∧ d ≤ D ∧
       ∀ b, Block.Preceq b K → b ≠ .genesis →
-        ∃ o t s raw sup rows, required o t ∧
-          (toWire p o).decode = some (.block s b raw sup rows) ∧ dl t ≤ d) ∧
-    (∀ o t s b raw sup rows, required o t →
-      (toWire p o).decode = some (.block s b raw sup rows) →
-      ∃ K d, paths K d ∧ Block.Preceq b K)
+        ∃ o t s N, N.erase = b ∧ required o t ∧
+          (toWire p o).decode = some (.block s N) ∧ dl t ≤ d) ∧
+    (∀ o t s N, required o t →
+      (toWire p o).decode = some (.block s N) →
+      ∃ K d, paths K d ∧ Block.Preceq N.erase K)
 
-/-- `bp.receiptCoverage.v1` (K8), one statement for Clean, P1 and Recovery.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+`bp.receiptCoverage.v1` (K8), one statement for Clean, P1 and Recovery.
 Source: bp00:700–713; bp01 §10:858–930; plan T7.12a.
 
 The split is at the strict deadline read. Coverage includes the output,
@@ -68,7 +70,7 @@ Readiness check for T7.12 (no extra premise):
 * `hWF` is `fgsa_hWF_of_delivery hExecution.wire`.
 * HEAD/row: their decoders cannot be `.block`; use
   `fgsa_hReady_of_not_block` with `hWF`.
-* Proposal decoded as `.block s b raw sup rows`: use
+* Proposal decoded as `.block s N`: use
   `fgsa_hReady_of_parentStored` with `hWF` and EXACTLY
 
   `hParent : ∀ i t', i < V2.D.Run.idxBefore rho (dl t) →
@@ -102,9 +104,9 @@ def ReceiptCoverageStatement : Prop :=
       Block.Preceq B (fgHead p st) ∧
       (∀ lease ∈ st.base.obligations, Block.Compatible B lease.1)) ∨
      (Block.Preceq (eraseFG st.fg.F) B ∧
-      (∀ o t s b raw sup rows, required o t →
-        (toWire p o).decode = some (.block s b raw sup rows) →
-        ∃ Y ∈ (V2.D.Run.stateBeforeTime E rho (dl t) x).st.fg.TF, eraseFG Y = b) ∧
+      (∀ o t s N, required o t →
+        (toWire p o).decode = some (.block s N) →
+        ∃ Y ∈ (V2.D.Run.stateBeforeTime E rho (dl t) x).st.fg.TF, eraseFG Y = N.erase) ∧
       (∀ K d, paths K d → ∀ b, Block.Preceq b K →
         ∃ Y ∈ (V2.D.Run.stateBeforeTime E rho d x).st.fg.TF, eraseFG Y = b))) ∧
     (∀ o t s a K, required o t → (toWire p o).decode = some (.vote s a K) →
@@ -132,9 +134,9 @@ theorem ReceiptCoverageStatement_def :
           Block.Preceq B (fgHead p st) ∧
           (∀ lease ∈ st.base.obligations, Block.Compatible B lease.1)) ∨
          (Block.Preceq (eraseFG st.fg.F) B ∧
-          (∀ o t s b raw sup rows, required o t →
-            (toWire p o).decode = some (.block s b raw sup rows) →
-            ∃ Y ∈ (V2.D.Run.stateBeforeTime E rho (dl t) x).st.fg.TF, eraseFG Y = b) ∧
+          (∀ o t s N, required o t →
+            (toWire p o).decode = some (.block s N) →
+            ∃ Y ∈ (V2.D.Run.stateBeforeTime E rho (dl t) x).st.fg.TF, eraseFG Y = N.erase) ∧
           (∀ K d, paths K d → ∀ b, Block.Preceq b K →
             ∃ Y ∈ (V2.D.Run.stateBeforeTime E rho d x).st.fg.TF, eraseFG Y = b))) ∧
         (∀ o t s a K, required o t → (toWire p o).decode = some (.vote s a K) →

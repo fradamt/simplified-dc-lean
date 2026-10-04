@@ -9,25 +9,33 @@ namespace AvailableChain.FGSA.Run
 variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- [ROOT-DIGEST W1; DC NamedRun.directBlockInRun] Delivered and honest-held bodies. -/
-def DirectRootBlockInRun (B : Block) : Prop :=
-  (∃ x o t raw support rows,
-    V2.Event.deliver x o t ∈ rho.events ∧
-    o.payload = Msg.proposal B raw support rows) ∨
+/-- [ROOT-DIGEST-2 W1; DC NamedRun.directBlockInRun] Exact delivered or held bodies. -/
+def DirectNamedProposalInRun (N : NamedProposal p.n) : Prop :=
+  (∃ x o t, V2.Event.deliver x o t ∈ rho.events ∧ o.payload = Msg.proposal N) ∨
   (∃ x ∈ rho.honest, ∃ i : Nat,
-    B ∈ (V2.D.Run.stateBefore E rho i x).st.base.blocks)
+    N ∈ (V2.D.Run.stateBefore E rho i x).st.namedBodies)
 
-/-- [ROOT-DIGEST W1; DC NamedRun.blockInRun] Ancestors of scoped bodies. -/
-def RootBlockInRun (A : Block) : Prop :=
-  ∃ B : Block, DirectRootBlockInRun p c E rho B ∧ Block.Preceq A B
+/-- [ROOT-DIGEST-2 W1; DC NamedRun.blockInRun] Close the exact named seeds under ancestry. -/
+def NamedProposalInRun (A : NamedProposal p.n) : Prop :=
+  ∃ B : NamedProposal p.n,
+    DirectNamedProposalInRun p c E rho B ∧ NamedProposal.Preceq A B
 
-/-- [ROOT-DIGEST W1; DC NamedRootCollisionFree] One run premise on body ancestors. -/
+/-- [ROOT-DIGEST-2 W1; DC NamedRootCollisionFree] The single full-identity run premise. -/
 structure NamedRootCollisionFree : Prop where
-  root_injective : ∀ B C : Block,
-    RootBlockInRun p c E rho B → RootBlockInRun p c E rho C →
-    ∀ A D : Block,
-      (Block.Preceq A B ∨ Block.Preceq A C) →
-      (Block.Preceq D B ∨ Block.Preceq D C) → A.root = D.root → A = D
+  root_injective : ∀ B C : NamedProposal p.n,
+    NamedProposalInRun p c E rho B → NamedProposalInRun p c E rho C →
+    ∀ A D : NamedProposal p.n,
+      (NamedProposal.Preceq A B ∨ NamedProposal.Preceq A C) →
+      (NamedProposal.Preceq D B ∨ NamedProposal.Preceq D C) →
+      A.root = D.root → A = D
+
+/-- [ROOT-DIGEST-2 W1; DC NamedRun.directBlockInRun] Project the direct named scope. -/
+def DirectRootBlockInRun (b : Block) : Prop :=
+  ∃ N : NamedProposal p.n, DirectNamedProposalInRun p c E rho N ∧ N.erase = b
+
+/-- [ROOT-DIGEST-2 W1; DC NamedRun.blockInRun] Project the ancestor-closed named scope. -/
+def RootBlockInRun (b : Block) : Prop :=
+  ∃ N : NamedProposal p.n, NamedProposalInRun p c E rho N ∧ N.erase = b
 
 end AvailableChain.FGSA.Run
 end

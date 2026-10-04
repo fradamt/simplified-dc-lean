@@ -20,19 +20,22 @@ namespace AvailableChain.FGSA.Run
 
 open AvailableChain.SimplexFG
 
-/-- One store step inside a restart epoch: a delivery of any store wire, or a
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+One store step inside a restart epoch: a delivery of any store wire, or a
 tick. With `mono = true`, a tick does not move the store clock back. -/
 inductive EpochStep (p : Params) (mono : Bool) : State p.n → State p.n → Prop
   | deliver (st : State p.n) (w : Wire p.n) : EpochStep p mono st (FGSA.process p st w)
   | clock (st : State p.n) (t : Time) (ht : mono = true → st.base.now ≤ t) :
       EpochStep p mono st (FGSA.clock p st t)
 
-/-- A part of a restart epoch: a finite sequence of epoch steps from `st` to
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+A part of a restart epoch: a finite sequence of epoch steps from `st` to
 `st'`. -/
 abbrev Epoch (p : Params) (mono : Bool) : State p.n → State p.n → Prop :=
   Relation.ReflTransGen (EpochStep p mono)
 
-/-- Exclusions that do not read the clock: a proposal conflicts with finality
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+Exclusions that do not read the clock: a proposal conflicts with finality
 or fails R6 against its held parent, or a missing HEAD has equivocation
 at its label. Decoded rows are never excluded. -/
 def excludesFixed (p : Params) (st : State p.n) (o : Obj p) : Bool :=
@@ -41,7 +44,7 @@ def excludesFixed (p : Params) (st : State p.n) (o : Obj p) : Bool :=
       !decide (baseVote (⟨.seat (.head s) i, b⟩ : HeadWire p.n) ∈ st.base.votes) &&
         GridCO.equivocates (GridCO.votesAt st.base s) i
   | some (.row _ _) => false
-  | some (.block _ b _ _ rows) => blockExcluded st b || invalidForParent p st b rows
+  | some (.block _ N) => blockExcluded st N.erase || invalidForParent p st N
   | none => false
 
 end AvailableChain.FGSA.Run

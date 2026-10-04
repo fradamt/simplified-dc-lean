@@ -192,7 +192,7 @@ incidence; record blueprint/02-clean.md:380–393. -/
 theorem vote_pool_score_card {n : Nat} (tree : List Block)
     (raw support : List (Wire n)) (B : Block) :
     goldfishScore tree raw support B = (scoreVoters tree raw support B).card := by
-  unfold goldfishScore
+  unfold goldfishScore goldfishScoreOn
   rw [← List.toFinset_card_of_nodup
     (List.Nodup.filter _ (show (seats n raw).Nodup from List.nodup_dedup _))]
   dsimp only
@@ -204,11 +204,11 @@ theorem vote_pool_score_card {n : Nat} (tree : List Block)
   apply congrArg (fun b => equivocates raw i || b)
   apply List.any_congr rfl
   intro o
-  change _ = (match headTarget? o with
-    | none => false
-    | some target => decide (target ∈ tree) &&
-        decide (target.slot ≤ (headLabel? o).getD 0) && Block.preceq B target)
-  cases headTarget? o <;> rfl
+  unfold voteSupports
+  cases ht : headTarget? o with
+  | none => rfl
+  | some C =>
+      by_cases hm : C ∈ tree <;> simp [resolveTarget, hm]
 
 /-- [helper] DC: Model/Protocol/ForkChoice/Goldfish:104; same: Read the score support
 incidence; record blueprint/02-clean.md:380–393. -/

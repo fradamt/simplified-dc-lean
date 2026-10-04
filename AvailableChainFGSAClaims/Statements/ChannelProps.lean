@@ -15,7 +15,8 @@ open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- bp.carrier.v1 (00:493–501, especially 496), 01 §2: admitted-view root injectivity.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+bp.carrier.v1 (00:493–501, especially 496), 01 §2: admitted-view root injectivity.
 Consumers: all lanes and KitFG frame lemmas. Producer: F1.1 via `viewRootInj_TF`.
 The claim has no Base premise; the existing run root premise is local here.
 ROOT-DIGEST W1: The local view proof uses the store invariant; DC body scope is separate. -/
@@ -27,7 +28,8 @@ theorem RCarrierView_def : RCarrierView p c E rho =
   ∀ i x, x ∈ rho.honest → ViewRootInj (storeAt p c E rho i x).fg.TF) := by
   rw [RCarrierView]
 
-/-- bp.store.v1 (00:516–527), bp.activeView.v1 (00:529–536); 01 §§4–5.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+bp.store.v1 (00:516–527), bp.activeView.v1 (00:529–536); 01 §§4–5.
 Consumers: all lanes. Producer: T7.5 and F1.1. This is a snapshot;
 `RStoreCumul` states the temporal part. -/
 def RStore : Prop := ∀ i x, x ∈ rho.honest →
@@ -58,7 +60,8 @@ theorem RStore_def :
   (FGSA.actView st).blockStamp = st.base.blockStamp ∧
   (FGSA.actView st).voteStamp = st.base.voteStamp) := rfl
 
-/-- bp.activeView.v1 (00:529–536), 01 §5: the remaining active-view laws.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+bp.activeView.v1 (00:529–536), 01 §5: the remaining active-view laws.
 Consumers: all lanes, P3:3263. Producer: F1.1 via `actView_antitone`,
 `actView_path`, `blockExcluded_stable`, `actView_blocks`, and `actView_fields`.
 The run clause excludes a conflicting block after any descendant F move. -/
@@ -92,7 +95,8 @@ theorem RActive_def : RActive p c E rho =
     ¬ Block.Compatible b (eraseFG st.fg.F) → b ∉ (FGSA.actView st').blocks)) := by
   rw [RActive]
 
-/-- bp.store.v1 (00:517–518): cumulative T and unchanged old stamps.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+bp.store.v1 (00:517–518): cumulative T and unchanged old stamps.
 Consumers: all lanes, 02 §5.2, 21 H.12. Producer: F1.1 via
 `process_cumulative` and `clock_cumulative`. Restarts reset the store. -/
 def RStoreCumul : Prop := V2.D.NoRestart rho → ∀ i j x, x ∈ rho.honest →
@@ -111,7 +115,8 @@ theorem RStoreCumul_def :
   st.fg.TF ⊆ st'.fg.TF ∧ st.base.blocks <+: st'.base.blocks ∧
   st.base.blockStamp <+: st'.base.blockStamp ∧ st.base.voteStamp <+: st'.base.voteStamp) := rfl
 
-/-- bp.store.v1 (00:516–527), last sentence: F, the lex pair, and H increase.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+bp.store.v1 (00:516–527), last sentence: F, the lex pair, and H increase.
 Consumers: 02 §5.3, 03 F′ cases, 22 FF2. Producer: F1.1 via `fMonotone`,
 `process_pair_mono`, and `process_hmax_mono`. -/
 def RMono : Prop := V2.D.NoRestart rho → ∀ i j x, x ∈ rho.honest → i ≤ j →
@@ -130,7 +135,8 @@ theorem RMono_def :
   lexKey (st.fg.h_j, st.fg.J) ≤ lexKey (st'.fg.h_j, st'.fg.J) ∧
   st.fg.h_max ≤ st'.fg.h_max) := rfl
 
-/-- bp.frame.v1 (00:581–587), 01 §1.1 and §4.3: cached controls and D(Σ.T).
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+bp.frame.v1 (00:581–587), 01 §1.1 and §4.3: cached controls and D(Σ.T).
 Consumers: 02 §4.1, 22 F6/F8/FL-T7, 21 H.17. Producer: F1.1 via `storeControls_eq`. -/
 def RFrameExact : Prop := ∀ i x, x ∈ rho.honest →
   let st := storeAt p c E rho i x
@@ -144,7 +150,8 @@ theorem RFrameExact_def :
   FGSA.controls p st = KitFG.fjControlsView (heightView p) st.fg.F st.fg.TF ∧
   FGSA.fullTree p st = domainR p st st.fg.TF) := rfl
 
-/-- bp.frame.v1 (00:581–587), 01 §4.3 (435–458): the FG projection and metadata.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+bp.frame.v1 (00:581–587), 01 §4.3 (435–458): the FG projection and metadata.
 Consumers: 02 §4.1, 22 F6/F8/FL-T7, 21 H.17. Producer: F1.1 via
 `admitBlock_accepted_eq`, `onView_fg`, `clock_fg`, `admitBlock_refused`,
 `reconcile_frame`, `metadataInvariant`, and `process_cumulative`.
@@ -152,29 +159,29 @@ The tree-read inventory is 00 §2.4 (219–239); 01:454–455 preserves its meta
 SA changes use the existing operations. Only temporal metadata needs NoRestart. -/
 def RFrame : Prop := ∀ i x, x ∈ rho.honest →
   let st := storeAt p c E rho i x
-  (∀ s b raw support P rows, parentFG st b = some P →
-    blockAccepted p st s b raw support P rows = true →
-    (admitBlock p st s b raw support rows).fg = Window.on_block p p.K_W st.fg (fgBlock P b rows)) ∧
-  ((∀ f : GridCO.State p.n → GridCO.State p.n, (onView f st).fg = st.fg) ∧
+  (∀ s N P, namedParentHeld st N = true → parentFG st N.erase = some P →
+    blockAccepted p st s N P = true →
+    (admitBlock p st s N).fg = Window.on_block p p.K_W st.fg (fgBlock P N.erase N.rows)) ∧
+  ((∀ f : GridCO.State p.n .root → GridCO.State p.n .root, (onView f st).fg = st.fg) ∧
     (∀ s k b, (admitHead p st s k b).fg = st.fg) ∧
     (∀ a, (admitRow p st a).fg = st.fg) ∧
     (∀ t, (FGSA.clock p st t).fg = st.fg) ∧
-    (∀ s b raw support rows,
-      (parentFG st b = none ∨
-        ∃ P, parentFG st b = some P ∧ blockAccepted p st s b raw support P rows = false) →
-      (admitBlock p st s b raw support rows).fg = st.fg) ∧
+    (∀ s N,
+      (namedParentHeld st N = false ∨ parentFG st N.erase = none ∨
+        ∃ P, parentFG st N.erase = some P ∧ blockAccepted p st s N P = false) →
+      (admitBlock p st s N).fg = st.fg) ∧
     (∀ o, o.decode = none → (FGSA.process p st o).fg = st.fg)) ∧
   (FGSA.controls p (FGSA.reconcile st) = FGSA.controls p st ∧
     ∀ X, domainR p (FGSA.reconcile st) X = domainR p st X) ∧
   (MetaInv p st ∧
     (∀ s, proposalsAt st s = st.proposals.filterMap (fun o => match o.decode with
-      | some (.block _ b raw sup _) => if b.slot = s then some (raw, sup) else none
+      | some (.block _ N) => if N.slot = s then some (N.raw, N.support) else none
       | _ => none)) ∧
     (∀ H, chainWireRows st H = (st.proposals.filterMap (fun o => match o.decode with
-      | some (.block _ b _ _ rows) => if Block.preceq b H then some rows else none
+      | some (.block _ N) => if Block.preceq N.erase H then some N.rows else none
       | _ => none)).flatten) ∧
     (blockWireRows st = (st.proposals.filterMap (fun o => match o.decode with
-      | some (.block _ _ _ _ rows) => some rows
+      | some (.block _ N) => some N.rows
       | _ => none)).flatten) ∧
     (∀ s, voterBlocks p st s = st.fg.TF.filter (fun B =>
       decide (GridCO.stampBlock st.base (eraseFG B) < SA.freezeTime p.toParams (s - 1)) ||
@@ -188,8 +195,8 @@ def RFrame : Prop := ∀ i x, x ∈ rho.honest →
       (((GridCO.votesAt st.base (s - 1)).filter (fun o =>
         GridCO.resolvedBefore (FGSA.actView st) o (SA.freezeTime p.toParams (s - 1)))) ++
         (((proposalsAt st s).flatMap (fun row => row.2.map baseVote)).filter (fun o =>
-          GridCO.headLabel? o == some (s - 1) && match GridCO.headTarget? o with
-          | some h => GridCO.blockKnown st.base h && decide (h.slot ≤ s - 1)
+          GridCO.headLabel? o == some (s - 1) && match GridCO.resolvedHead? st.base o with
+          | some h => decide (h.slot ≤ s - 1)
           | none => false))).eraseDups) ∧
     (∀ H, proposalRows p st H =
       match fgBlockOf st H with
@@ -206,29 +213,29 @@ def RFrame : Prop := ∀ i x, x ∈ rho.honest →
 theorem RFrame_def : RFrame p c E rho =
   (∀ i x, x ∈ rho.honest →
   let st := storeAt p c E rho i x
-  (∀ s b raw support P rows, parentFG st b = some P →
-    blockAccepted p st s b raw support P rows = true →
-    (admitBlock p st s b raw support rows).fg = Window.on_block p p.K_W st.fg (fgBlock P b rows)) ∧
-  ((∀ f : GridCO.State p.n → GridCO.State p.n, (onView f st).fg = st.fg) ∧
+  (∀ s N P, namedParentHeld st N = true → parentFG st N.erase = some P →
+    blockAccepted p st s N P = true →
+    (admitBlock p st s N).fg = Window.on_block p p.K_W st.fg (fgBlock P N.erase N.rows)) ∧
+  ((∀ f : GridCO.State p.n .root → GridCO.State p.n .root, (onView f st).fg = st.fg) ∧
     (∀ s k b, (admitHead p st s k b).fg = st.fg) ∧
     (∀ a, (admitRow p st a).fg = st.fg) ∧
     (∀ t, (FGSA.clock p st t).fg = st.fg) ∧
-    (∀ s b raw support rows,
-      (parentFG st b = none ∨
-        ∃ P, parentFG st b = some P ∧ blockAccepted p st s b raw support P rows = false) →
-      (admitBlock p st s b raw support rows).fg = st.fg) ∧
+    (∀ s N,
+      (namedParentHeld st N = false ∨ parentFG st N.erase = none ∨
+        ∃ P, parentFG st N.erase = some P ∧ blockAccepted p st s N P = false) →
+      (admitBlock p st s N).fg = st.fg) ∧
     (∀ o, o.decode = none → (FGSA.process p st o).fg = st.fg)) ∧
   (FGSA.controls p (FGSA.reconcile st) = FGSA.controls p st ∧
     ∀ X, domainR p (FGSA.reconcile st) X = domainR p st X) ∧
   (MetaInv p st ∧
     (∀ s, proposalsAt st s = st.proposals.filterMap (fun o => match o.decode with
-      | some (.block _ b raw sup _) => if b.slot = s then some (raw, sup) else none
+      | some (.block _ N) => if N.slot = s then some (N.raw, N.support) else none
       | _ => none)) ∧
     (∀ H, chainWireRows st H = (st.proposals.filterMap (fun o => match o.decode with
-      | some (.block _ b _ _ rows) => if Block.preceq b H then some rows else none
+      | some (.block _ N) => if Block.preceq N.erase H then some N.rows else none
       | _ => none)).flatten) ∧
     (blockWireRows st = (st.proposals.filterMap (fun o => match o.decode with
-      | some (.block _ _ _ _ rows) => some rows
+      | some (.block _ N) => some N.rows
       | _ => none)).flatten) ∧
     (∀ s, voterBlocks p st s = st.fg.TF.filter (fun B =>
       decide (GridCO.stampBlock st.base (eraseFG B) < SA.freezeTime p.toParams (s - 1)) ||
@@ -242,8 +249,8 @@ theorem RFrame_def : RFrame p c E rho =
       (((GridCO.votesAt st.base (s - 1)).filter (fun o =>
         GridCO.resolvedBefore (FGSA.actView st) o (SA.freezeTime p.toParams (s - 1)))) ++
         (((proposalsAt st s).flatMap (fun row => row.2.map baseVote)).filter (fun o =>
-          GridCO.headLabel? o == some (s - 1) && match GridCO.headTarget? o with
-          | some h => GridCO.blockKnown st.base h && decide (h.slot ≤ s - 1)
+          GridCO.headLabel? o == some (s - 1) && match GridCO.resolvedHead? st.base o with
+          | some h => decide (h.slot ≤ s - 1)
           | none => false))).eraseDups) ∧
     (∀ H, proposalRows p st H =
       match fgBlockOf st H with
@@ -258,7 +265,8 @@ theorem RFrame_def : RFrame p c E rho =
       st.base.blockStamp <+: st'.base.blockStamp ∧ st.base.voteStamp <+: st'.base.voteStamp))) := by
   rw [RFrame]
 
-/-- bp.chainCertificates.v1 (00:503–514): path heights and entries.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+bp.chainCertificates.v1 (00:503–514): path heights and entries.
 Consumers: 02 §3.1, 21 H.9(a), 22 I2. Producer: F1.1 from KitFG
 `h_mono`, `derive_node_height_cases`, `entry_same_height`, `entry_eq_on_plateau`. -/
 def RGeo : Prop := ∀ i x W, x ∈ rho.honest → W ∈ (storeAt p c E rho i x).fg.TF →
@@ -283,7 +291,8 @@ theorem RGeo_def :
   (∀ A B, FGBlock.Preceq A B → FGBlock.Preceq B W →
     (heightView p A).h = (heightView p B).h → (heightView p A).T_h = (heightView p B).T_h)) := rfl
 
-/-- bp.chainCertificates.v1 (00:503–514), 01 §3: stored-block certificates.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+bp.chainCertificates.v1 (00:503–514), 01 §3: stored-block certificates.
 Consumers: P3:3259–3261, 02 §3.1, 21 H.9(a), 22 I2.
 Producer: F1.1 via KitFG `height_crossing`, `justification_certificate`,
 `finality_certificate`, and `provenance_finality`; `J_is_entry` identifies
@@ -332,7 +341,8 @@ theorem RCert_def : RCert p c E rho =
       (heightView p C).h_j = (finalityView p W).h_F)) := by
   rw [RCert]
 
-/-- bp.reconcile.v1 (00:559–567), 01 §6: the exact AC edits at an F move.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+bp.reconcile.v1 (00:559–567), 01 §6: the exact AC edits at an F move.
 The displayed record update isolates reconcile from the other admission writes.
 Consumers: 02 §5.3, 03 F′ cases, 21 IF.7, 22 I5. Producer: F1.4 via
 `reconcile_frame`, `reconcile_harmless_origin`, `admitBlock_reconcile_harmless`. -/
@@ -379,7 +389,8 @@ theorem RRec_def :
     fastWrite := u.fastWrite.map (fun row => (row.1, row.2.filter (FGSA.activeCompatible u))) })) :=
   rfl
 
-/-- 01 §1.1 T-SRC (74–79), bp.sourceDiscipline.v1(a) (00:689–697).
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+01 §1.1 T-SRC (74–79), bp.sourceDiscipline.v1(a) (00:689–697).
 Consumers: CPPrefix in 02 §5.4 and 03 §8, 21 H.11, 22 kernel.
 Producer: F1.5(a) via `FastOrigin`, `fastOrigin_gateStep`, `deepest_spec`. -/
 def TSrc : Prop := ∀ x r C, x ∈ rho.honest →
@@ -398,7 +409,8 @@ theorem TSrc_def :
     (∀ B ∈ X, Block.Preceq B G) ∧ (∀ B ∈ X, fastAt p c E rho x (r * p.R) B) ∧
     ∃ j, IsGateTick p c rho j x (r * p.R) ∧ gatePassedAt p c E rho j) := rfl
 
-/-- 01 §8.4 (795–801): earlier honest row sources have bounded gate labels.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+01 §8.4 (795–801): earlier honest row sources have bounded gate labels.
 This also applies to every such row used by a duty. At q_s the bound is s−1;
 at a positive-slot proposal or HEAD it is s−2. Consumers: TimingContract.label
 and BelowLabel in the Clean induction. Producer: F1.5(d). -/
@@ -418,7 +430,8 @@ theorem LabelBound_def :
   (∀ s, 1 ≤ s → (t = SA.proposalTime p.toParams s ∨ t = SA.voteTime p.toParams s) →
     r * p.R ≤ s - 2)) := rfl
 
-/-- bp.cleanHistory.v1 (00:767–775): honest raw results through b₀ lie on
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+bp.cleanHistory.v1 (00:767–775): honest raw results through b₀ lie on
 one chain; each nonempty emitted name through b₀ lies below such a result.
 Consumers: no lane assumes this; F2 proves it as the Clean composition result. -/
 def TChain (b₀ : Time) : Prop :=
@@ -442,7 +455,8 @@ theorem TChain_def (b₀ : Time) :
     ∃ s B X, SA.gateTime p.toParams s ≤ b₀ ∧ gateResult p c E rho x s = some (some B) ∧
       ((heightView p X).h, X.root) = e ∧ Block.Preceq (eraseFG X) B)) := rfl
 
-/-- 03 §8.3 (702–726): after arming at d_j, honest sources are compatible
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+03 §8.3 (702–726): after arming at d_j, honest sources are compatible
 with protected B. Vocabulary: no claim asserts or consumes this predicate;
 a bounded form (actionTime r < b₁) stays private to stage-5 O-INDUCT. -/
 def TCompat (B : Block) (j : Slot) : Prop := ∀ x r C, x ∈ rho.honest →
@@ -455,12 +469,14 @@ theorem TCompat_def (B : Block) (j : Slot) :
   SA.gateTime p.toParams j ≤ p.actionTime r → actionSource p c E rho x r = some (some C) →
   Block.Compatible C B) := rfl
 
-/-- S3 D09, P3 App. A.10: the source-frame predicate is closed under ancestors.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+S3 D09, P3 App. A.10: the source-frame predicate is closed under ancestors.
 Consumers: F1.5 source frame, then F2–F5 via SrcFrameAboveStmt. -/
 structure AncestorClosed (Φ : FGBlock (Fin p.n) → Prop) : Prop where
   down : ∀ X Y, FGBlock.Preceq X Y → Φ Y → Φ X
 
-/-- P3 App. A.10: bp.cleanFrame.v1, 02 §3; lead FB1.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+P3 App. A.10: bp.cleanFrame.v1, 02 §3; lead FB1.
 Each frame block above the threshold satisfies Φ. -/
 def FrameBelow (Φ : FGBlock (Fin p.n) → Prop) (c₀ : Nat)
     (R : Controls (Fin p.n)) : Prop :=
@@ -475,7 +491,8 @@ theorem FrameBelow_def (Φ : FGBlock (Fin p.n) → Prop) (c₀ : Nat)
   (c₀ ≤ (heightView p R.J).h → Φ R.J) ∧
   (c₀ ≤ (heightView p R.Z).h → Φ R.Z)) := rfl
 
-/-- P3 App. A.2: bp.sourceDiscipline.v1(b,c), 01 §8.4, 02 §§3.3–3.5.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+P3 App. A.2: bp.sourceDiscipline.v1(b,c), 01 §8.4, 02 §§3.3–3.5.
 Each non-genesis certified entry has an earlier honest row at its height. -/
 def RStrat : Prop := ∀ i x W, x ∈ rho.honest →
   W ∈ (storeAt p c E rho i x).fg.TF →
@@ -491,7 +508,8 @@ theorem RStrat_def :
     ∃ y r, ∃ a : RowWire p.n, HonestRowBefore p c E rho i y r a ∧
       namedEntry a.payload.height_pair = some ((heightView p e).h, e.root)) := rfl
 
-/-- bp.sourceDiscipline.v1 (00:689–697, especially 691–695), 01 §8.4 (788–793).
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+bp.sourceDiscipline.v1 (00:689–697, especially 691–695), 01 §8.4 (788–793).
 Consumers: F2–F5 through SourceDisciplineAt. Producer: F1.5 via certificate-row
 lifting, the honest action source proof, and KitFG `provenance_finality`.
 SourceDisciplinePrem.quorum supplies FaultQ; no extra count hypothesis is needed.
@@ -501,9 +519,9 @@ def RQCOrigin : Prop := ∀ i x W, x ∈ rho.honest → W ∈ (storeAt p c E rho
   let origin := fun (carrier : FGBlock (Fin p.n)) (a : Row (Fin p.n)) =>
     ∃ y r, ∃ wire : RowWire p.n, HonestRowBefore p c E rho i y r wire ∧
       wire.toRow? = some a ∧
-      (∃ s raw sup rows,
-        (⟨.proposer s, .proposal (eraseFG carrier) raw sup rows⟩ : Wire p.n) ∈
-          (storeAt p c E rho i x).proposals ∧ wire ∈ rows) ∧
+      (∃ s N, N.erase = eraseFG carrier ∧
+        (⟨.proposer s, .proposal N⟩ : Wire p.n) ∈
+          (storeAt p c E rho i x).proposals ∧ wire ∈ N.rows) ∧
       ∃ C G, actionSourceFG p c E rho y r = some (some C) ∧
         namedEntry a.height_pair = some ((heightView p C).h, (heightView p C).T_h.root) ∧
         FGBlock.Preceq (heightView p C).T_h C ∧
@@ -537,9 +555,9 @@ theorem RQCOrigin_def : RQCOrigin p c E rho =
   let origin := fun (carrier : FGBlock (Fin p.n)) (a : Row (Fin p.n)) =>
     ∃ y r, ∃ wire : RowWire p.n, HonestRowBefore p c E rho i y r wire ∧
       wire.toRow? = some a ∧
-      (∃ s raw sup rows,
-        (⟨.proposer s, .proposal (eraseFG carrier) raw sup rows⟩ : Wire p.n) ∈
-          (storeAt p c E rho i x).proposals ∧ wire ∈ rows) ∧
+      (∃ s N, N.erase = eraseFG carrier ∧
+        (⟨.proposer s, .proposal N⟩ : Wire p.n) ∈
+          (storeAt p c E rho i x).proposals ∧ wire ∈ N.rows) ∧
       ∃ C G, actionSourceFG p c E rho y r = some (some C) ∧
         namedEntry a.height_pair = some ((heightView p C).h, (heightView p C).T_h.root) ∧
         FGBlock.Preceq (heightView p C).T_h C ∧
@@ -569,7 +587,8 @@ theorem RQCOrigin_def : RQCOrigin p c E rho =
         ∃ k ∈ Q, origin (rows k).1 (rows k).2)) := by
   rw [RQCOrigin]
 
-/-- P3 App. A.10, S3 D09: bp.sourceDiscipline.v1, 01 §8.4.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+P3 App. A.10, S3 D09: bp.sourceDiscipline.v1, 01 §8.4.
 T1 names an FG block by its height and root.
 genesis case: P3 r3.5.6 form refutable at index 0; lead G1. -/
 def SrcFrameAbove (Φ : FGBlock (Fin p.n) → Prop) (c₀ : Nat) : Prop :=
@@ -594,11 +613,13 @@ theorem SrcFrameAbove_def (Φ : FGBlock (Fin p.n) → Prop) (c₀ : Nat) :
     (∀ W ∈ (storeAt p c E rho i x).fg.TF, ∀ e ∈ certified p W,
       c₀ ≤ (heightView p e).h → Φ e) ∧ FrameBelow p Φ c₀ (R_at p c E rho i x)) := rfl
 
-/-- P3 App. A.10, S3 D09: source frame at threshold zero. -/
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+P3 App. A.10, S3 D09: source frame at threshold zero. -/
 abbrev SrcFrame (Φ : FGBlock (Fin p.n) → Prop) : Prop :=
   SrcFrameAbove p c E rho Φ 0
 
-/-- P3 App. A.10, G30: source frame for each ancestor-closed predicate and threshold.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+P3 App. A.10, G30: source frame for each ancestor-closed predicate and threshold.
 Blueprint bp.sourceDiscipline.v1, 01 §8.4. -/
 def SrcFrameAboveStmt : Prop :=
   ∀ (Φ : FGBlock (Fin p.n) → Prop) (c₀ : Nat),
@@ -609,7 +630,8 @@ theorem SrcFrameAboveStmt_def :
     SrcFrameAboveStmt p c E rho = (∀ (Φ : FGBlock (Fin p.n) → Prop) (c₀ : Nat),
     AncestorClosed p Φ → SrcFrameAbove p c E rho Φ c₀) := rfl
 
-/-- ROOT-DIGEST W2b. P3 App. A.3: bp.cleanFrame.v1 (00:733–741), 02 §3.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. P3 App. A.3: bp.cleanFrame.v1 (00:733–741), 02 §3.
 The EntryBelow premise and prefix conclusion are frozen. -/
 def CPPrefix : Prop := ∀ i x (B : FGBlock (Fin p.n)), x ∈ rho.honest →
   RootBlockInRun p c E rho (eraseFG B) →
@@ -631,7 +653,8 @@ theorem CPPrefix_def :
    FGBlock.Preceq R.F B ∧ FGBlock.Preceq R.J B ∧ FGBlock.Preceq R.Z B ∧
    R.contest = false ∧ R.lo ≤ (heightView p B).h)) := rfl
 
-/-- P3 App. A.3: bp.outageCompatibility.v1 (00:850–859), 03 §7.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+P3 App. A.3: bp.outageCompatibility.v1 (00:850–859), 03 §7.
 Every contest witness extends B (lead-approved universal form). -/
 def CPCompat : Prop := ∀ i x (B : FGBlock (Fin p.n)), x ∈ rho.honest →
   (∀ y r (a : RowWire p.n) (e : FGBlock (Fin p.n)),
@@ -670,7 +693,8 @@ theorem CPCompat_def :
        FGBlock.Preceq B W))) := rfl
 
 
-/-- R-XING, fg.finalLock.v2 (01:209–217; 00:643–650), P3 A.4.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+R-XING, fg.finalLock.v2 (01:209–217; 00:643–650), P3 A.4.
 Consumers: 21 H.4, H.6, H.14, H.18; 22 Q0. Lead ruling 2026-09-30:
 quantify every accepted carrier of the current F and use its certificate h_F.
 The claim producer supplies FaultX; there is no height function on F. -/
@@ -680,7 +704,8 @@ def RXing : Prop := ∀ i i' x y K W, x ∈ rho.honest → i ≤ i' →
   HeldAt p c E rho i' y W → (finalityView p K).h_F < (heightView p W).h →
   FGBlock.Preceq (storeAt p c E rho i x).fg.F W
 
-/-- R-CAP (01:219–233), P3 A.4. Consumers: 21 H.11–H.15; 22 FF1-A.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+R-CAP (01:219–233), P3 A.4. Consumers: 21 H.11–H.15; 22 FF1-A.
 The producer requires FaultQ. This is causal row carriage, not finality lag. -/
 def RCap : Prop := ∀ y i x W, HeldAt p c E rho i x W → y + 2 ≤ (heightView p W).h →
   ∃ j z r, ∃ (a : RowWire p.n) (e : BlockId), j < i ∧
@@ -688,7 +713,8 @@ def RCap : Prop := ∀ y i x W, HeldAt p c E rho i x W → y + 2 ≤ (heightView
     namedEntry a.payload.height_pair = some (y + 1, e) ∧
     a ∈ FGSA.chainWireRows (storeAt p c E rho i x) (eraseFG W)
 
-/-- H1/T-HIGH (21 H.22:3059–3065), P3 A.6.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+H1/T-HIGH (21 H.22:3059–3065), P3 A.6.
 Consumers: 22 FF2, F9, HP. The claim supplies H0 and HealingSet. -/
 def THigh (w : HealingWitness) : Prop := ∀ x y r r' C C',
   x ∈ rho.honest → y ∈ rho.honest →
@@ -696,13 +722,15 @@ def THigh (w : HealingWitness) : Prop := ∀ x y r r' C C',
   actionSourceFG p c E rho y r' = some (some C') → high p w C → high p w C' →
   Block.Compatible (eraseFG C) (eraseFG C') ∧ Block.Compatible (eraseFG C) w.CStar ∧
     w.sStar ≤ r * p.R
-/-- H2/T-XFER (21 H.22:3067–3070; 01:80–91), P3 A.6.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+H2/T-XFER (21 H.22:3067–3070; 01:80–91), P3 A.6.
 Consumers: 22 FF1-A, F2, F5, F8, FF7. Includes faulty openings. -/
 def TCarrier (w : HealingWitness) : Prop := ∀ x r K v Q,
   x ∈ rho.honest → actionSourceFG p c E rho x r = some (some K) → high p w K →
   HonestProposal E rho (fgsaInterface p c) v Q → r * p.R + 2 ≤ v →
   Block.Preceq (eraseFG K) Q.parent
-/-- T-ROWS selector (21:3072–3076; 01:83–86,95–101), P3 A.6.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+T-ROWS selector (21:3072–3076; 01:83–86,95–101), P3 A.6.
 Consumers: 22 F1–F5, F9, FF3–FF4, FL-W, FL-RF, FL-D. Exact signed rows.
 INTENTIONAL: exact-row service. The modeled proposer carries every valid held
 non-ancestor row (full inclusion, Model/Frame.lean proposalRows), so the exact-row
@@ -713,7 +741,8 @@ def TRowsSelect : Prop := ∀ s Q rows j y r (a : RowWire p.n),
   HonestCarrier p c E rho s Q rows → HonestRowAt p c E rho j y r a →
   ValidForParent p c E rho s Q a → heldAtProposal p c E rho s a →
   a ∈ rows ∨ onParentChain p c E rho s Q a
-/-- T-ROWS post-GST receipt and parent-valid carriage, including sleepers.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+T-ROWS post-GST receipt and parent-valid carriage, including sleepers.
 DC: SAME strict receipt; INTENTIONAL independent row delay and R6 selection.
 INTENTIONAL: exact-row service. The modeled proposer carries every valid held
 non-ancestor row (full inclusion, Model/Frame.lean proposalRows), so the exact-row
@@ -729,7 +758,8 @@ def TRowsSync (ΔF : Time) : Prop := ∀ j y r (a : RowWire p.n),
     p.actionTime r + ΔF ≤ SA.proposalTime p.toParams s →
     a ∈ rows ∨ onParentChain p c E rho s Q a)
 
-/-- T-ROWS all-emissions receipt, including pre-GST sends and sleepers.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+T-ROWS all-emissions receipt, including pre-GST sends and sleepers.
 DC: SAME strict max deadline and full horizon; INTENTIONAL row delay ΔF. -/
 def TRowsReceipt (ΔF : Time) : Prop := ∀ j y r (a : RowWire p.n),
   HonestRowAt p c E rho j y r a →
@@ -737,7 +767,8 @@ def TRowsReceipt (ΔF : Time) : Prop := ∀ j y r (a : RowWire p.n),
   ∀ x ∈ rho.honest,
     HeldBefore p c E rho x a (max (p.actionTime r) E.t_GST + ΔF)
 
-/-- DC: SAME defining equation of strict receipt. -/
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+DC: SAME defining equation of strict receipt. -/
 theorem TRowsReceipt_def (ΔF : Time) :
     TRowsReceipt p c E rho ΔF =
       (∀ j y r (a : RowWire p.n), HonestRowAt p c E rho j y r a →
@@ -745,26 +776,30 @@ theorem TRowsReceipt_def (ΔF : Time) :
         ∀ x ∈ rho.honest,
           HeldBefore p c E rho x a (max (p.actionTime r) E.t_GST + ΔF)) := rfl
 
-/-- T-ROWS (21 H.22:3072–3084), P3 A.6. Consumers: HealT and height coverage.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+T-ROWS (21 H.22:3072–3084), P3 A.6. Consumers: HealT and height coverage.
 DC: SAME transport clauses; INTENTIONAL held-row/R6 interface and row delay. -/
 structure TRows (ΔF : Time) : Prop where
   select : TRowsSelect p c E rho
   sync : TRowsSync p c E rho ΔF
   receipt : TRowsReceipt p c E rho ΔF
 
-/-- Source of an earlier emitted height row (21 H.13:2487–2585), P3 A.3.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+Source of an earlier emitted height row (21 H.13:2487–2585), P3 A.3.
 Consumers: RExcl, RKeep, RFProv. Only sources whose actions emitted a nonempty height pair. -/
 def SourceBefore (i : Nat) (C : FGBlock (Fin p.n)) (s : Slot) : Prop :=
   ∃ j y r, ∃ (a : RowWire p.n), j < i ∧ HonestRowAt p c E rho j y r a ∧
     actionSourceFG p c E rho y r = some (some C) ∧
     s = r * p.R
-/-- Kept path (21 H.14:2633–2641), P3 A.3. Consumers: RKeep, H.2, F1b.8.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+Kept path (21 H.14:2633–2641), P3 A.3. Consumers: RKeep, H.2, F1b.8.
 X is the duty's own view, so a full-store witness cannot replace a HEAD witness. -/
 def Kept (i : Nat) (x : V) (X : Finset (FGBlock (Fin p.n)))
     (B : FGBlock (Fin p.n)) : Prop :=
   FGBlock.Preceq B (R_at p c E rho i x).Z ∨ B ∈ D_at p c E rho i x X ∨
     FGBlock.Preceq B (storeAt p c E rho i x).fg.F
-/-- Descent alternatives (fj.descent.v2, 00:950–960; 21:2585–2627), P3 A.3.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+Descent alternatives (fj.descent.v2, 00:950–960; 21:2585–2627), P3 A.3.
 Consumers: RExcl and the first-failure proof H.13. -/
 def KeepOrCause (i : Nat) (x : V) (X : Finset (FGBlock (Fin p.n)))
     (C : FGBlock (Fin p.n)) : Prop :=
@@ -774,7 +809,8 @@ def KeepOrCause (i : Nat) (x : V) (X : Finset (FGBlock (Fin p.n)))
   (∃ C₁ C₂ s₁ s₂, SourceBefore p c E rho i C₁ s₁ ∧ SourceBefore p c E rho i C₂ s₂ ∧
     (heightView p C₁).h = (heightView p C₂).h ∧ (heightView p C).h < (heightView p C₁).h ∧
     (heightView p C₁).T_h.root ≠ (heightView p C₂).T_h.root)
-/-- fj.descent.v2 (00:950–960; 21 H.13:2487,2585), P3 A.3.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+fj.descent.v2 (00:950–960; 21 H.13:2487,2585), P3 A.3.
 Consumer: H.13. The view holds every earlier honest source unless F covers it. -/
 def RExcl : Prop := ∀ i x (X : Finset (FGBlock (Fin p.n))) C,
   x ∈ rho.honest → X ⊆ (storeAt p c E rho i x).fg.TF →
@@ -784,7 +820,8 @@ def RExcl : Prop := ∀ i x (X : Finset (FGBlock (Fin p.n))) C,
     C' ∈ X ∨ FGBlock.Preceq C' (storeAt p c E rho i x).fg.F) →
   KeepOrCause p c E rho i x X C
 
-/-- bp.postResetKeep.v1 (00:1055–1064; 21 H.14:2633–2651), P3 A.3.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+bp.postResetKeep.v1 (00:1055–1064; 21 H.14:2633–2651), P3 A.3.
 Consumers: H.12, H.14–H.17. H0 is a premise, as in TDelReset (ruling B32);
 X is HEAD or full view. -/
 def RKeep (w : HealingWitness) : Prop := H0 p c E rho w →
@@ -808,7 +845,8 @@ def RKeep (w : HealingWitness) : Prop := H0 p c E rho w →
     (∀ K s, SourceBefore p c E rho i K s → high p w K →
       Block.Compatible (eraseFG B) (eraseFG K)) → Kept p c E rho i x X B)
 
-/-- R-FPROV (21 H.17:2764; H.18:2867), P3 A.3.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+R-FPROV (21 H.17:2764; H.18:2867), P3 A.3.
 Consumers: H.15, H.17–H.19. Event order is explicit; times need not be strict.
 H0 is a premise, as in TDelReset; without it w is arbitrary (ruling B31). -/
 def RFProv (w : HealingWitness) : Prop := H0 p c E rho w → ∀ i x,
@@ -823,7 +861,8 @@ def RFProv (w : HealingWitness) : Prop := H0 p c E rho w → ∀ i x,
       SA.gateTime p.toParams s ≤ t ∧
       Block.Preceq (J_at p c E rho i x) (eraseFG K))
 
-/-- T-DEL (21 H.12:2456–2463), P3 A.8. Consumers: H.12 and H.14.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+T-DEL (21 H.12:2456–2463), P3 A.8. Consumers: H.12 and H.14.
 Pre-reset: no witness. Strict receipt includes the path through cumulative storage.
 As IF.5 (21:548; statement 21:550–557), the receipt is stated only for a prefix compatible
 with the receiver's F. -/
@@ -835,14 +874,16 @@ def TDel : Prop := ∀ y r K, y ∈ rho.honest →
     Block.Compatible (eraseFG K) (eraseFG nd.st.fg.F) →
       (∀ B, FGBlock.Preceq B K → B ∈ nd.st.fg.TF) ∨ FGBlock.Preceq K nd.st.fg.F)
       (SA.freezeTime p.toParams (r * p.R)) x
-/-- T-DEL reset (21 H.12:2456–2463; H.14), P3 A.8. Consumer: H.14.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+T-DEL reset (21 H.12:2456–2463; H.14), P3 A.8. Consumer: H.14.
 Only this T-delivery clause takes H0. Reset-only facts suffice, but P3 retains full H0. -/
 def TDelReset (w : HealingWitness) : Prop := H0 p c E rho w →
   SA.releaseTime p.toParams w.sStar ≤ rho.horizon →
   ∀ x ∈ rho.honest, Gen.V2.Duty.HoldsBefore E rho (fun nd =>
     ∃ C ∈ nd.st.fg.TF, eraseFG C = w.CStar)
       (SA.releaseTime p.toParams w.sStar) x
-/-- T-GEOM (21 H.6:749–756; H.7:918–1012; H.9(b):1148–1252), P3 A.8.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+T-GEOM (21 H.6:749–756; H.7:918–1012; H.9(b):1148–1252), P3 A.8.
 Consumers: H.7, H.9(b), HG.3. No reset witness. -/
 def TGeom : Prop :=
   (∀ s Q st, HonestProposal E rho (fgsaInterface p c) s Q →
@@ -850,7 +891,8 @@ def TGeom : Prop :=
     ∃ B ∈ FGSA.fullTree p st, eraseFG B = Q.parent ∧ (frameR p st).lo ≤ (heightView p B).h) ∧
   (∀ x r C, x ∈ rho.honest → actionSourceFG p c E rho x r = some (some C) → C.slot ≤ r * p.R)
 
-/-- Exact gate service (21 H.22:3109–3114), P3 A.9.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+Exact gate service (21 H.22:3109–3114), P3 A.9.
 Consumers: H3, TExact, and phase service. The gate is inside the finite horizon. -/
 def ExactService (v : Slot) (Q : Block) : Prop :=
   (SA.voteTime p.toParams v ≤ rho.horizon →
@@ -864,7 +906,8 @@ def ExactService (v : Slot) (Q : Block) : Prop :=
     (∀ r, v = r * p.R → actionSource p c E rho x r = some (some Q)))
 
 
-/-- A settled fixed phase on an inclusive interval (21 H.7:1003–1012;
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+A settled fixed phase on an inclusive interval (21 H.7:1003–1012;
 H.8:967–975), P3 A.8. Consumers: TPerm, TRepair, TCommon, TFrontier.
 The common root is J in a top-J phase. In an F-root phase each local F may move.
 This read does not assert a certificate height for F. Frontier m ≥ 1 (H.10 at m = 1,
@@ -878,7 +921,8 @@ def PhaseInterval (u v : Time) (m : Nat) (J : Option (FGBlock (Fin p.n)))
     R.H = m ∧ R.contest = contested ∧
       (match J with | some B => R.rootIsJ = true ∧ R.J = B | none => R.rootIsJ = false)
 
-/-- S1–S3 of H.2 (21:521–580), P3 A.8. Consumers: permanence and frontier service.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+S1–S3 of H.2 (21:521–580), P3 A.8. Consumers: permanence and frontier service.
 All HEAD, parent and output clauses stop at the interval's end. S3 applies only when its
 gate cut is within the interval (ruling B31; 21:717). -/
 def Transfers (s : Slot) (B : Block) (v : Time) : Prop :=
@@ -889,7 +933,8 @@ def Transfers (s : Slot) (B : Block) (v : Time) : Prop :=
   (∀ i x, x ∈ rho.honest → SA.gateTime p.toParams s + 4 * p.Δ ≤ v →
     afterTicksIdx rho (SA.gateTime p.toParams s + 4 * p.Δ) ≤ i →
     i ≤ timeIdx rho v → Block.Preceq B (S_at p c E rho i x))
-/-- Successful fast or synchronous-window slow body (21 H.4:628–650;
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+Successful fast or synchronous-window slow body (21 H.4:628–650;
 H.4-S:650–680), P3 A.8. Consumer: TPerm. -/
 def PhaseBody (s : Slot) (B : Block) : Prop :=
   ∃ x, x ∈ rho.honest ∧
@@ -900,26 +945,30 @@ def PhaseBody (s : Slot) (B : Block) : Prop :=
         gateResult p c E rho x s = some (some C) ∧ B ≠ .genesis ∧ Block.Preceq B C ∧
         GridCO.slowEligible p.toParams.engine (actView st) s B = true ∧
         IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j))
-/-- T-PERM, bp.phaseSourcePermanence.v1 (00:962–966; 21 H.4/H.4-S:628–680),
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+T-PERM, bp.phaseSourcePermanence.v1 (00:962–966; 21 H.4/H.4-S:628–680),
 P3 A.8. Consumers: H.6, H.9. H.4-S permits earlier window labels in other phases. -/
 def TPerm : Prop := ∀ u v m J contested s B,
   E.t_GST ≤ u → PhaseInterval p c E rho u v m J contested →
   u ≤ SA.voteTime p.toParams s → SA.gateTime p.toParams s ≤ v →
   PhaseBody p c E rho s B → Transfers p c E rho s B v
 
-/-- The gap predicate, not a regime (21 §2:274–282), P3 A.8.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+The gap predicate, not a regime (21 §2:274–282), P3 A.8.
 Consumer: repair bounds. Recovery₂.gap supplies it. -/
 def ProposalGap (G : Time) : Prop := ∀ t, E.t_GST ≤ t → t + G ≤ rho.horizon →
   ∃ s, t < V2.D.proposalTime (fgsaInterface p c) s ∧
     V2.D.proposalTime (fgsaInterface p c) s ≤ t + G ∧
     Gen.V2.Duty.HonestSlot rho (fgsaInterface p c) s
-/-- Later-proposal service after a repair threshold (21 H.6:749–756), P3 A.8.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+Later-proposal service after a repair threshold (21 H.6:749–756), P3 A.8.
 Consumer: TRepair. -/
 def RepairAfter (l : Slot) (v : Time) : Prop := ∀ s Q,
   SA.proposalTime p.toParams l < SA.proposalTime p.toParams s →
   SA.gateTime p.toParams s ≤ v → HonestProposal E rho (fgsaInterface p c) s Q →
   ExactService p c E rho s Q
-/-- T-REPAIR, bp.phaseRepair.v1 (00:968–978; 21 H.6:749–756;
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+T-REPAIR, bp.phaseRepair.v1 (00:968–978; 21 H.6:749–756;
 H.6-S:821–834), P3 A.8. Consumers: H.9, H.10, HG.3.
 Each budget is used only when the phase and finite horizon include it. -/
 def TRepair : Prop := ∀ G u v m J contested,
@@ -941,7 +990,8 @@ def TRepair : Prop := ∀ G u v m J contested,
       SA.gateTime p.toParams s < u + ρ₁ p G ∧
       HonestProposal E rho (fgsaInterface p c) s Q ∧ ExactService p c E rho s Q))
 
-/-- Nonempty sources and signed rows at an opening (21 H.9:1131–1144), P3 A.8.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+Nonempty sources and signed rows at an opening (21 H.9:1131–1144), P3 A.8.
 Consumer: common-entry and frontier service.
 SO-COV earlier-or-current coverage. DC: INTENTIONAL send-once source coverage. -/
 def OpeningCovered (r : Nat) (Q : Block) : Prop := ∀ x ∈ rho.honest,
@@ -952,12 +1002,14 @@ def OpeningCovered (r : Nat) (Q : Block) : Prop := ∀ x ∈ rho.honest,
     namedEntry a.payload.height_pair =
       some ((heightView p K).h, (heightView p K).T_h.root)
 
-/-- One state-height entry at an opening (21 H.9:1140–1144), P3 A.8.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+One state-height entry at an opening (21 H.9:1140–1144), P3 A.8.
 Consumer: TCommon. Bodies at one state height can differ. -/
 def OpeningEntry (r m : Nat) : Prop := ∃ e, ∀ x K, x ∈ rho.honest →
   actionSourceFG p c E rho x r = some (some K) →
   (heightView p K).h = m ∧ (heightView p K).T_h.root = e
-/-- T-COMMON, bp.commonEntry.v1 (00:1001–1010; 21 H.9:1100–1144),
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+T-COMMON, bp.commonEntry.v1 (00:1001–1010; 21 H.9:1100–1144),
 P3 A.8. Consumers: H.9 and HG.2. The second opening has its own phase premise.
 SO-COV. DC: INTENTIONAL earlier-or-current source coverage. -/
 def TCommon : Prop := ∀ u m J contested q Q Qfg r,
@@ -977,7 +1029,8 @@ def TCommon : Prop := ∀ u m J contested q Q Qfg r,
         (heightView p K).h = m) ∧
       (PhaseInterval p c E rho u (p.actionTime (r + 1)) m J contested →
         OpeningEntry p c E rho (r + 1) m)))
-/-- T-FRONTIER (21 HG.1:1333–1350), P3 A.8. Consumers: HG.1–HG.5.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+T-FRONTIER (21 HG.1:1333–1350), P3 A.8. Consumers: HG.1–HG.5.
 The initial proposal is served in its phase. Subsequent service stops at frontier rise.
 SO-COV. DC: INTENTIONAL earlier-or-current source coverage.
 Re-freeze 2026-10-03 (user decision): the seed q carries DC's HG.1 qualification, "H.6 or
@@ -1010,7 +1063,8 @@ def TFrontier : Prop := ∀ u v m J contested q Q Qfg,
     ((∀ r', q ≤ r' * p.R → r ≤ r') →
       p.actionTime r - SA.gateTime p.toParams q ≤ P p - 4 * p.Δ))
 
-/-- Raw wire origin under the honest-holder implication.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+Raw wire origin under the honest-holder implication.
 DC: SAME honest origin; INTENTIONAL fixed FG seat and emission action. -/
 def FinalityRowCarriage (A : Finset (Row (Fin p.n))) : Prop :=
   ∀ u ∈ A, ∃ a : RowWire p.n,
@@ -1018,7 +1072,8 @@ def FinalityRowCarriage (A : Finset (Row (Fin p.n))) : Prop :=
     ∀ z : V, RowSigner p c rho a z → z ∈ rho.honest →
       ∃ j r, HonestRowAt p c E rho j z r a
 
-/-- DC: SAME equation for raw wire origin. -/
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+DC: SAME equation for raw wire origin. -/
 theorem FinalityRowCarriage_def (A : Finset (Row (Fin p.n))) :
     FinalityRowCarriage p c E rho A =
       (∀ u ∈ A, ∃ a : RowWire p.n,

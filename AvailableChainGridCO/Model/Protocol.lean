@@ -11,7 +11,8 @@ namespace AvailableChain.GridCO
 
 open AvailableChain.Generic
 
-/-- The shared engine has two lease admission rules. The default is Grid CO.
+/-- [ROOT-DIGEST-2 W1; DC shared Goldfish engine]
+The shared engine has two lease admission rules. The default is Grid CO.
 SA uses the same engine with `slowArming = true`. -/
 class LeasePolicy where
   slowArming : Bool
@@ -20,11 +21,13 @@ instance gridLeasePolicy : LeasePolicy := ⟨false⟩
 
 abbrev slowLeasePolicy : LeasePolicy := ⟨true⟩
 
-/-- Largest grid level no greater than the observed support. -/
+/-- [ROOT-DIGEST-2 W1; DC shared Goldfish engine]
+Largest grid level no greater than the observed support. -/
 def gridLevel (n : Nat) (grid : Finset Nat) (h : Nat) : Nat :=
   ((List.range (n + 1)).filter (fun g => g ∈ grid && g ≤ h)).foldl max 0
 
-/-- Grid counted-obligations parameters. The grid is fixed in honest code. -/
+/-- [ROOT-DIGEST-2 W1; DC shared Goldfish engine]
+Grid counted-obligations parameters. The grid is fixed in honest code. -/
 structure Params where
   Δ : Time
   n : Nat
@@ -40,7 +43,8 @@ structure Params where
   etaNonneg : 0 ≤ η
   thetaLower : (1 / 2 : ℚ) ≤ θ_R
   thetaUpper : θ_R ≤ (3 / 4 : ℚ)
-  /-- The grid has enough levels for each admissible current count. -/
+  /-- [ROOT-DIGEST-2 W1; DC shared Goldfish engine]
+The grid has enough levels for each admissible current count. -/
   gridMatchesTheta : ∀ a h : Nat, 1 ≤ a → h ≤ n →
     θ_R * ((h + a : Nat) : ℚ) < (h : ℚ) → a < gridLevel n grid h
 
@@ -53,114 +57,169 @@ def freezeTime (p : Params) (s : Slot) : Time := proposalTime p s + 3 * p.Δ
 def releaseTime (p : Params) (s : Slot) : Time := proposalTime p s + 5 * p.Δ
 def gateTime (p : Params) (s : Slot) : Time := proposalTime p s + 6 * p.Δ
 
-/-- Signed HEADs inside proposals retain the proposer's raw and resolved views.
-Source: verified-consensus docs/PROTOCOL.md §§2.1–2.3, `propose_block` and
-`goldfish_vote`. No FG, SG, height, grade, or acknowledgement payload exists. -/
-abbrev HeadWire (n : Nat) := Signed Slot n Block
-
-inductive Msg (n : Nat) where
-  | head (target : Block)
-  | proposal (b : Block) (view supportView : List (HeadWire n))
+/-- [ROOT-DIGEST-2 W1; DC GoldfishVote] Select the signed HEAD target type. -/
+inductive HeadMode where
+  | block
+  | root
   deriving DecidableEq, Repr
 
-abbrev Wire (n : Nat) := Signed Slot n (Msg n)
+/-- [ROOT-DIGEST-2 W1; DC GoldfishVote] Legacy bodies or root identifiers. -/
+@[reducible] def HeadTarget : HeadMode → Type
+  | .block => Block
+  | .root => BlockId
 
-def fromHead {n : Nat} (o : HeadWire n) : Wire n :=
+instance (mode : HeadMode) : DecidableEq (HeadTarget mode) := by
+  cases mode <;> unfold HeadTarget <;> infer_instance
+
+instance (mode : HeadMode) : Repr (HeadTarget mode) := by
+  cases mode <;> unfold HeadTarget <;> infer_instance
+
+/-- [ROOT-DIGEST-2 W1; DC GoldfishVote] The signed target retains its auth. -/
+abbrev HeadWire (n : Nat) (mode : HeadMode := .block) := Signed Slot n (HeadTarget mode)
+
+/-- [ROOT-DIGEST-2 W1; DC NamedObject] Shared wire payloads indexed by HEAD mode. -/
+inductive Msg (n : Nat) (mode : HeadMode := .block) where
+  | head (target : HeadTarget mode)
+  | proposal (b : Block) (view supportView : List (HeadWire n mode))
+  deriving DecidableEq, Repr
+
+/-- [ROOT-DIGEST-2 W1; DC NamedObject] Authentication and mode-indexed payload. -/
+abbrev Wire (n : Nat) (mode : HeadMode := .block) := Signed Slot n (Msg n mode)
+
+/-- [ROOT-DIGEST-2 W1; DC Blocks.find?] Resolve in the specified domain. -/
+def resolveTarget (mode : HeadMode) (tree : List Block) : HeadTarget mode → Option Block :=
+  match mode with
+  | .block => fun (B : Block) => if B ∈ tree then some B else none
+  | .root => fun r => Block.findByRoot? tree r
+
+/-- [ROOT-DIGEST-2 W1; DC GoldfishVote] The signed name of a selected body. -/
+def targetOfBlock (mode : HeadMode) (B : Block) : HeadTarget mode :=
+  match mode with
+  | .block => B
+  | .root => B.root
+
+def fromHead {n : Nat} {mode : HeadMode} (o : HeadWire n mode) : Wire n mode :=
   ⟨o.auth, .head o.payload⟩
 
-def toHead? {n : Nat} (o : Wire n) : Option (HeadWire n) :=
+def toHead? {n : Nat} {mode : HeadMode} (o : Wire n mode) : Option (HeadWire n mode) :=
   match o.payload with
   | .head b => some ⟨o.auth, b⟩
   | _ => none
 
-def headTarget? {n : Nat} (o : Wire n) : Option Block :=
+def headTarget? {n : Nat} {mode : HeadMode} (o : Wire n mode) : Option (HeadTarget mode) :=
   match o.payload with
   | .head b => some b
   | _ => none
 
-def headLabel? {n : Nat} (o : Wire n) : Option Slot :=
+def headLabel? {n : Nat} {mode : HeadMode} (o : Wire n mode) : Option Slot :=
   match o.auth, o.payload with
   | .seat r _, .head _ => some r
   | _, _ => none
 
-def headSeat? {n : Nat} (o : Wire n) : Option (Fin n) :=
+def headSeat? {n : Nat} {mode : HeadMode} (o : Wire n mode) : Option (Fin n) :=
   match o.auth, o.payload with
   | .seat _ i, .head _ => some i
   | _, _ => none
 
-def sameSeat {n : Nat} (a b : Wire n) : Bool :=
+def sameSeat {n : Nat} {mode : HeadMode} (a b : Wire n mode) : Bool :=
   match a.auth, b.auth with
   | .seat r i, .seat s j => r == s && i == j
   | _, _ => false
 
-/-- Local store. Receipt stamps use the last public tick, as in
+/-- [ROOT-DIGEST-2 W1; DC shared Goldfish engine]
+Local store. Receipt stamps use the last public tick, as in
 verified-consensus `StoreBase.lean` and `Handlers.lean`. -/
-structure State (n : Nat) where
+structure State (n : Nat) (mode : HeadMode := .block) where
   now : Time := 0
   blocks : List Block := [.genesis]
   blockStamp : List (Block × Time) := [(.genesis, 0)]
-  votes : List (Wire n) := []
-  voteStamp : List (Wire n × Time) := []
-  proposals : List (Wire n) := []
-  /-- Label, raw frozen pool, resolved frozen pool, frozen block domain. -/
-  frozen : List (Slot × List (Wire n) × List (Wire n) × List Block) := []
-  early : List (Slot × List (Wire n)) := []
-  /-- Local raw gate results. `none` records an empty gate, not a missing label.
+  votes : List (Wire n mode) := []
+  voteStamp : List (Wire n mode × Time) := []
+  proposals : List (Wire n mode) := []
+  /-- [ROOT-DIGEST-2 W1; DC shared Goldfish engine]
+Label, raw frozen pool, resolved frozen pool, frozen block domain. -/
+  frozen : List (Slot × List (Wire n mode) × List (Wire n mode) × List Block) := []
+  early : List (Slot × List (Wire n mode)) := []
+  /-- [ROOT-DIGEST-2 W1; DC shared Goldfish engine]
+Local raw gate results. `none` records an empty gate, not a missing label.
   Only SA uses this field; Grid CO leaves it empty. -/
   genuine : List (Slot × Option Block) := []
-  /-- One deadline per block and grid level. -/
+  /-- [ROOT-DIGEST-2 W1; DC shared Goldfish engine]
+One deadline per block and grid level. -/
   obligations : List (Block × Nat × Time) := []
-  /-- Frozen label-r raw and resolved release views before the next HEAD. -/
-  releaseSnapshots : List (Slot × List (Wire n) × List (Wire n)) := []
+  /-- [ROOT-DIGEST-2 W1; DC shared Goldfish engine]
+Frozen label-r raw and resolved release views before the next HEAD. -/
+  releaseSnapshots : List (Slot × List (Wire n mode) × List (Wire n mode)) := []
   stableRecord : Block := .genesis
   goldfishRecord : Block := .genesis
+  /-- [ROOT-DIGEST-2 W1; DC Blocks.find?] Temporary resolution domain for an active view. -/
+  headDomain : Option (List Block) := none
   deriving Repr
 
-def initial (n : Nat) : State n := {}
+def initial (n : Nat) (mode : HeadMode := .block) : State n mode := {}
 
-def blockKnown {n : Nat} (st : State n) (b : Block) : Bool := b ∈ st.blocks
+def blockKnown {n : Nat} {mode : HeadMode} (st : State n mode) (b : Block) : Bool := b ∈ st.blocks
 
-def stampBlock {n : Nat} (st : State n) (b : Block) : Time :=
+def stampBlock {n : Nat} {mode : HeadMode} (st : State n mode) (b : Block) : Time :=
   ((st.blockStamp.find? (fun row => row.1 == b)).map Prod.snd).getD st.now
 
-def stampVote {n : Nat} (st : State n) (o : Wire n) : Time :=
+def stampVote {n : Nat} {mode : HeadMode} (st : State n mode) (o : Wire n mode) : Time :=
   ((st.voteStamp.find? (fun row => row.1 == o)).map Prod.snd).getD st.now
 
-/-- `resolution_time = max(receipt(vote), receipt(head))`, or infinity for
-an unknown head. Source: PROTOCOL.md §2.2, `resolution_time`. -/
-def resolvedBefore {n : Nat} (st : State n) (o : Wire n) (cutoff : Time) : Bool :=
-  match headTarget? o with
-  | none => false
-  | some b => blockKnown st b && b.slot ≤ (headLabel? o).getD 0 &&
-      stampVote st o < cutoff && stampBlock st b < cutoff
+/-- [ROOT-DIGEST-2 W1; DC Blocks.find?] Domain pinned before active filtering. -/
+def resolutionTree {n : Nat} {mode : HeadMode} (st : State n mode) : List Block :=
+  match mode with
+  | .block => st.blocks
+  | .root => st.headDomain.getD st.blocks
 
-def votesAt {n : Nat} (st : State n) (r : Slot) : List (Wire n) :=
+/-- [ROOT-DIGEST-2 W1; DC Goldfish] Resolve, then test active membership. -/
+def resolvedHead? {n : Nat} {mode : HeadMode}
+    (st : State n mode) (o : Wire n mode) : Option Block := do
+  let target ← headTarget? o
+  let B ← resolveTarget mode (resolutionTree st) target
+  if B ∈ st.blocks then some B else none
+
+/-- [ROOT-DIGEST-2 W1; DC resolution_time] Test the resolved body's slot and receipts. -/
+def resolvedBefore {n : Nat} {mode : HeadMode}
+    (st : State n mode) (o : Wire n mode) (cutoff : Time) : Bool :=
+  match resolvedHead? st o with
+  | none => false
+  | some B => decide (B.slot ≤ (headLabel? o).getD 0) &&
+      decide (stampVote st o < cutoff) && decide (stampBlock st B < cutoff)
+
+def votesAt {n : Nat} {mode : HeadMode} (st : State n mode) (r : Slot) : List (Wire n mode) :=
   st.votes.filter (fun o => headLabel? o == some r)
 
-def seats (n : Nat) (xs : List (Wire n)) : List (Fin n) :=
+def seats (n : Nat) {mode : HeadMode} (xs : List (Wire n mode)) : List (Fin n) :=
   (xs.filterMap headSeat?).dedup
 
-def seatVotes {n : Nat} (xs : List (Wire n)) (i : Fin n) : List (Wire n) :=
+def seatVotes {n : Nat} {mode : HeadMode} (xs : List (Wire n mode)) (i : Fin n) : List
+    (Wire n mode) :=
   xs.filter (fun o => headSeat? o == some i)
 
-def equivocates {n : Nat} (xs : List (Wire n)) (i : Fin n) : Bool :=
+def equivocates {n : Nat} {mode : HeadMode} (xs : List (Wire n mode)) (i : Fin n) : Bool :=
   2 ≤ ((seatVotes xs i).eraseDups).length
 
-/-- Each equivocating seat contributes one point to every subtree. Other
-seats contribute once if a support vote covers the block. Source:
-verified-consensus `ForkChoice/Goldfish.lean`, `goldfish_score`. -/
-def goldfishScore {n : Nat} (tree : List Block)
-    (raw support : List (Wire n)) (b : Block) : Nat :=
+/-- [ROOT-DIGEST-2 W1; DC goldfish_score] Resolve in domain and filter into tree. -/
+def goldfishScoreOn {n : Nat} {mode : HeadMode} (domain tree : List Block)
+    (raw support : List (Wire n mode)) (b : Block) : Nat :=
   ((seats n raw).filter (fun i =>
     equivocates raw i || (seatVotes support i).any (fun o =>
       match headTarget? o with
-      | some target => target ∈ tree && target.slot ≤ (headLabel? o).getD 0 &&
-          Block.preceq b target
-      | none => false))).length
+      | none => false
+      | some target => match resolveTarget mode domain target with
+        | none => false
+        | some B => decide (B ∈ tree) && decide (B.slot ≤ (headLabel? o).getD 0) &&
+            Block.preceq b B))).length
 
-def voterCount {n : Nat} (xs : List (Wire n)) : Nat := (seats n xs).length
+/-- [ROOT-DIGEST-2 W1; DC goldfish_score] Resolve and count on one tree. -/
+def goldfishScore {n : Nat} {mode : HeadMode} (tree : List Block)
+    (raw support : List (Wire n mode)) (b : Block) : Nat :=
+  goldfishScoreOn tree tree raw support b
 
-def liveRoot {n : Nat} (st : State n) : Block :=
+def voterCount {n : Nat} {mode : HeadMode} (xs : List (Wire n mode)) : Nat := (seats n xs).length
+
+def liveRoot {n : Nat} {mode : HeadMode} (st : State n mode) : Block :=
   ((st.obligations.filterMap (fun (b, _, expiry) =>
     if st.now < expiry then some b else none)).foldl (fun best b =>
       if best.depth < b.depth ||
@@ -170,68 +229,76 @@ def liveRoot {n : Nat} (st : State n) : Block :=
 def advance (old candidate : Block) : Block :=
   if Block.preceq candidate old then old else candidate
 
-/-- The proposal-time raw pool and its resolved subset.
+/-- [ROOT-DIGEST-2 W1; DC shared Goldfish engine]
+The proposal-time raw pool and its resolved subset.
 Source: verified-consensus `ForkChoice/Views.lean`, `proposer_view`. -/
-def proposerView {n : Nat} (st : State n) (s : Slot) : List (Wire n) :=
+def proposerView {n : Nat} {mode : HeadMode} (st : State n mode) (s : Slot) : List (Wire n mode) :=
   votesAt st (s - 1)
 
-def proposerSupportView {n : Nat} (st : State n) (s : Slot) : List (Wire n) :=
+def proposerSupportView {n : Nat} {mode : HeadMode} (st : State n mode) (s : Slot) : List
+    (Wire n mode) :=
   (proposerView st s).filter (fun o =>
-    match headTarget? o with
-    | some b => blockKnown st b && b.slot ≤ s - 1
+    match resolvedHead? st o with
+    | some b => b.slot ≤ s - 1
     | none => false)
 
-def proposalsAt {n : Nat} (st : State n) (s : Slot) : List (Wire n) :=
+def proposalsAt {n : Nat} {mode : HeadMode} (st : State n mode) (s : Slot) : List (Wire n mode) :=
   st.proposals.filter (fun o =>
     match o.payload with
     | .proposal b _ _ => b.slot == s
     | _ => false)
 
-def carriedRaw {n : Nat} (st : State n) (s : Slot) : List (Wire n) :=
+def carriedRaw {n : Nat} {mode : HeadMode} (st : State n mode) (s : Slot) : List (Wire n mode) :=
   ((proposalsAt st s).flatMap (fun o =>
     match o.payload with
     | .proposal _ raw _ => raw.map fromHead
     | _ => [])).filter (fun o => headLabel? o == some (s - 1))
 
-def carriedSupport {n : Nat} (st : State n) (s : Slot) : List (Wire n) :=
+def carriedSupport {n : Nat} {mode : HeadMode} (st : State n mode) (s : Slot) : List
+    (Wire n mode) :=
   ((proposalsAt st s).flatMap (fun o =>
     match o.payload with
     | .proposal _ _ support => support.map fromHead
     | _ => [])).filter (fun o =>
       headLabel? o == some (s - 1) &&
-      match headTarget? o with
-      | some b => blockKnown st b && b.slot ≤ s - 1
+      match resolvedHead? st o with
+      | some b => b.slot ≤ s - 1
       | none => false)
 
-def frozenAt {n : Nat} (st : State n) (r : Slot) :
-    Option (List (Wire n) × List (Wire n) × List Block) :=
+def frozenAt {n : Nat} {mode : HeadMode} (st : State n mode) (r : Slot) :
+    Option (List (Wire n mode) × List (Wire n mode) × List Block) :=
   ((st.frozen.find? (fun row => row.1 == r)).map Prod.snd)
 
-/-- The previous-slot freeze is a local clock evaluation. Its saved block
+/-- [ROOT-DIGEST-2 W1; DC shared Goldfish engine]
+The previous-slot freeze is a local clock evaluation. Its saved block
 domain and vote subsets are later merged with current proposals. -/
-def freeze (p : Params) {n : Nat} (st : State n) (r : Slot) : State n :=
+def freeze (p : Params) {n : Nat} {mode : HeadMode} (st : State n mode) (r : Slot) : State n mode :=
   let cutoff := freezeTime p r
   let raw := (votesAt st r).filter (fun o => stampVote st o < cutoff)
   let support := (votesAt st r).filter (fun o => resolvedBefore st o cutoff)
   let blocks := st.blocks.filter (fun b => stampBlock st b < cutoff)
   { st with frozen := st.frozen ++ [(r, raw, support, blocks)] }
 
-/-- Previous-slot freeze and proposal merge. Source:
+/-- [ROOT-DIGEST-2 W1; DC shared Goldfish engine]
+Previous-slot freeze and proposal merge. Source:
 verified-consensus `ForkChoice/Views.lean`, `voter_view`,
 `voter_support_view`, `voter_processed_block_tree`. -/
-def voterView (_p : Params) {n : Nat} (st : State n) (s : Slot) : List (Wire n) :=
+def voterView (_p : Params) {n : Nat} {mode : HeadMode} (st : State n mode) (s : Slot) : List
+    (Wire n mode) :=
   let pool := match frozenAt st (s - 1) with
     | some (raw, _, _) => raw
     | none => []
   (pool ++ carriedRaw st s).eraseDups
 
-def voterSupportView (_p : Params) {n : Nat} (st : State n) (s : Slot) : List (Wire n) :=
+def voterSupportView (_p : Params) {n : Nat} {mode : HeadMode} (st : State n mode)
+    (s : Slot) : List (Wire n mode) :=
   let pool := match frozenAt st (s - 1) with
     | some (_, support, _) => support
     | none => []
   (pool ++ carriedSupport st s).eraseDups
 
-def voterTree (_p : Params) {n : Nat} (st : State n) (s : Slot) : List Block :=
+def voterTree (_p : Params) {n : Nat} {mode : HeadMode} (st : State n mode)
+    (s : Slot) : List Block :=
   let proposals := (proposalsAt st s).filterMap (fun o =>
     match o.payload with
     | .proposal b _ _ => some b
@@ -243,19 +310,22 @@ def voterTree (_p : Params) {n : Nat} (st : State n) (s : Slot) : List Block :=
     b ∈ frozenBlocks ||
       proposals.any (fun q => Block.preceq b q))
 
-/-- With no heights or finality, the Goldfish eligibility clauses are
+/-- [ROOT-DIGEST-2 W1; DC shared Goldfish engine]
+With no heights or finality, the Goldfish eligibility clauses are
 strict majority for an old child and unconditional for a current-slot child.
 Source: PROTOCOL.md §2.2, `goldfish_eligible`. -/
-def goldfishEligible {n : Nat} (tree : List Block) (raw support : List (Wire n))
+def goldfishEligible {n : Nat} {mode : HeadMode} (tree : List Block) (raw support : List
+    (Wire n mode))
     (current : Slot) (b : Block) : Bool :=
   b.slot == current || 2 * goldfishScore tree raw support b > voterCount raw
 
-def forkChoice {n : Nat} (st : State n) (tree : List Block)
-    (raw support : List (Wire n)) (current : Slot) : Block :=
+def forkChoice {n : Nat} {mode : HeadMode} (st : State n mode) (tree : List Block)
+    (raw support : List (Wire n mode)) (current : Slot) : Block :=
   ghost (liveRoot st) tree (goldfishScore st.blocks raw support)
     (goldfishEligible st.blocks raw support current)
 
-def propose (_p : Params) {n : Nat} (st : State n) (s : Slot) : Option (Msg n) :=
+def propose (_p : Params) {n : Nat} {mode : HeadMode} (st : State n mode) (s : Slot) : Option
+    (Msg n mode) :=
   if s == 0 then none else
     let raw := proposerView st s
     let support := proposerSupportView st s
@@ -263,12 +333,14 @@ def propose (_p : Params) {n : Nat} (st : State n) (s : Slot) : Option (Msg n) :
     let b := Block.node parent s (nodeRoot parent.root s 0) 0
     some (.proposal b (raw.filterMap toHead?) (support.filterMap toHead?))
 
-def act (p : Params) {n : Nat} (st : State n) (s : Slot) : Option (Msg n) :=
-  if s == 0 then some (.head .genesis) else
-    some (.head (forkChoice st (voterTree p st s)
-      (voterView p st s) (voterSupportView p st s) s))
+def act (p : Params) {n : Nat} {mode : HeadMode} (st : State n mode) (s : Slot) : Option
+    (Msg n mode) :=
+  if s == 0 then some (.head (targetOfBlock mode .genesis)) else
+    some (.head (targetOfBlock mode (forkChoice st (voterTree p st s)
+      (voterView p st s) (voterSupportView p st s) s)))
 
-def admitVote (p : Params) {n : Nat} (st : State n) (o : Wire n) : State n :=
+def admitVote (p : Params) {n : Nat} {mode : HeadMode} (st : State n mode)
+    (o : Wire n mode) : State n mode :=
   match o.auth, o.payload with
   | .seat r i, .head _ =>
       let current := (st.now / (4 * p.Δ)).toNat
@@ -279,10 +351,11 @@ def admitVote (p : Params) {n : Nat} (st : State n) (o : Wire n) : State n :=
         { st with votes := st.votes ++ [o], voteStamp := st.voteStamp ++ [(o, st.now)] }
   | _, _ => st
 
-/-- Block admission then carried-vote admission, following the source
+/-- [ROOT-DIGEST-2 W1; DC shared Goldfish engine]
+Block admission then carried-vote admission, following the source
 `Handlers.lean` order. The support subset remains fixed metadata. -/
-def admitProposal (p : Params) {n : Nat} (st : State n) (o : Wire n)
-    (b : Block) (raw : List (HeadWire n)) : State n :=
+def admitProposal (p : Params) {n : Nat} {mode : HeadMode} (st : State n mode) (o : Wire n mode)
+    (b : Block) (raw : List (HeadWire n mode)) : State n mode :=
   let current := (st.now / (4 * p.Δ)).toNat
   let correctProposer := match o.auth with
     | .proposer s => s == b.slot
@@ -295,13 +368,14 @@ def admitProposal (p : Params) {n : Nat} (st : State n) (o : Wire n)
       proposals := st.proposals ++ [o] }
     raw.foldl (fun acc row => admitVote p acc (fromHead row)) st'
 
-def process (p : Params) {n : Nat} (st : State n) (o : Wire n) : State n :=
+def process (p : Params) {n : Nat} {mode : HeadMode} (st : State n mode)
+    (o : Wire n mode) : State n mode :=
   match o.auth, o.payload with
   | .seat _ _, .head _ => admitVote p st o
   | .proposer _, .proposal b raw _ => admitProposal p st o b raw
   | _, _ => st
 
-def wellFormed {n : Nat} (o : Wire n) : Bool :=
+def wellFormed {n : Nat} {mode : HeadMode} (o : Wire n mode) : Bool :=
   match o.auth, o.payload with
   | .seat _ _, .head _ => true
   | .proposer s, .proposal b raw support =>
@@ -312,88 +386,105 @@ def wellFormed {n : Nat} (o : Wire n) : Bool :=
       support.all (fun v => decide (v ∈ raw))
   | _, _ => false
 
-def depsPresent {n : Nat} (st : State n) (o : Wire n) : Bool :=
+def depsPresent {n : Nat} {mode : HeadMode} (st : State n mode) (o : Wire n mode) : Bool :=
   match o.payload with
   | .head _ => true
   | .proposal b _ _ => blockKnown st b.parent
 
-def processed {n : Nat} (st : State n) (o : Wire n) : Bool :=
+def processed {n : Nat} {mode : HeadMode} (st : State n mode) (o : Wire n mode) : Bool :=
   match o.payload with
   | .head _ => decide (o ∈ st.votes)
   | .proposal b _ _ => blockKnown st b
 
-def carries {n : Nat} (parent child : Wire n) : Prop :=
+def carries {n : Nat} {mode : HeadMode} (parent child : Wire n mode) : Prop :=
   match parent.payload with
   | .head _ => False
   | .proposal _ raw support => child ∈ raw.map fromHead ∨ child ∈ support.map fromHead
 
-/-- A direct delivery calls its handler. A proposal calls its raw HEAD
+/-- [ROOT-DIGEST-2 W1; DC shared Goldfish engine]
+A direct delivery calls its handler. A proposal calls its raw HEAD
 handlers only when its block enters the store. This matches the reference
 `Execution.handles` / `NamedReceiptCalls.postCore` admission test.
 Support metadata alone does not cause a call; `carries` remains structural
 for signature checks, including rejected proposals. -/
-def handles (p : Params) {n : Nat} (st : State n) (parent child : Wire n) : Prop :=
+def handles (p : Params) {n : Nat} {mode : HeadMode} (st : State n mode)
+    (parent child : Wire n mode) : Prop :=
   parent = child ∨ match parent.payload with
     | .proposal b raw _ =>
         b ∉ st.blocks ∧ b ∈ (process p st parent).blocks ∧ child ∈ raw.map fromHead
     | .head _ => False
 
-def earlyVotes (p : Params) {n : Nat} (st : State n) (r : Slot) : List (Wire n) :=
+def earlyVotes (p : Params) {n : Nat} {mode : HeadMode} (st : State n mode) (r : Slot) : List
+    (Wire n mode) :=
   (votesAt st r).filter (fun o => resolvedBefore st o (earlyTime p r))
 
-def savedEarly {n : Nat} (st : State n) (r : Slot) : List (Wire n) :=
+def savedEarly {n : Nat} {mode : HeadMode} (st : State n mode) (r : Slot) : List (Wire n mode) :=
   ((st.early.find? (fun row => row.1 == r)).map Prod.snd).getD []
 
-/-- `D_i[r,u]`: max distinct seats among labels in the fixed vote-time
+/-- [ROOT-DIGEST-2 W1; DC shared Goldfish engine]
+`D_i[r,u]`: max distinct seats among labels in the fixed vote-time
 window. An equivocating seat occurs once. Source: guarded-override.md §3.1. -/
-def lateVotes (p : Params) {n : Nat} (st : State n) (r : Slot) : List (Wire n) :=
+def lateVotes (p : Params) {n : Nat} {mode : HeadMode} (st : State n mode) (r : Slot) : List
+    (Wire n mode) :=
   (votesAt st r).filter (fun o => stampVote st o < gateTime p r)
 
-def cleanSupport (p : Params) {n : Nat} (st : State n) (r : Slot) : List (Wire n) :=
+def cleanSupport (p : Params) {n : Nat} {mode : HeadMode} (st : State n mode)
+    (r : Slot) : List (Wire n mode) :=
   (earlyVotes p st r).filter (fun o =>
     !(lateVotes p st r).any (fun u => sameSeat u o && u != o))
 
-/-- Genuine Goldfish confirmation at `d_r` with the walk anchored at `a`:
+/-- [ROOT-DIGEST-2 W1; DC shared Goldfish engine]
+Genuine Goldfish confirmation at `d_r` with the walk anchored at `a`:
 early resolved support, late equivocation exclusion, and a strict majority
 of late participants. The final test checks the walk result itself. -/
-def confirmationFrom (p : Params) {n : Nat} (a : Block) (st : State n) (r : Slot) :
+def confirmationFrom (p : Params) {n : Nat} {mode : HeadMode} (a : Block) (st : State n mode)
+    (r : Slot) :
     Option Block :=
   let support := cleanSupport p st r
   let late := lateVotes p st r
-  let eligible := fun b => 2 * goldfishScore st.blocks support support b > voterCount late
-  let h := ghost a st.blocks (goldfishScore st.blocks support support) eligible
+  let eligible := fun b => 2 * goldfishScoreOn
+    (resolutionTree st) st.blocks support support b > voterCount late
+  let h := ghost a st.blocks (goldfishScoreOn
+    (resolutionTree st) st.blocks support support) eligible
   if eligible h then some h else none
 
-/-- Genuine Goldfish confirmation at `d_r`: early resolved support,
+/-- [ROOT-DIGEST-2 W1; DC shared Goldfish engine]
+Genuine Goldfish confirmation at `d_r`: early resolved support,
 late equivocation exclusion, and a strict majority of late participants.
 The walk starts at genesis; proposals and HEADs start at the live root. -/
-def confirmation (p : Params) {n : Nat} (st : State n) (r : Slot) : Option Block :=
+def confirmation (p : Params) {n : Nat} {mode : HeadMode} (st : State n mode)
+    (r : Slot) : Option Block :=
   let support := cleanSupport p st r
   let late := lateVotes p st r
-  let eligible := fun b => 2 * goldfishScore st.blocks support support b > voterCount late
-  let h := ghost .genesis st.blocks (goldfishScore st.blocks support support) eligible
+  let eligible := fun b => 2 * goldfishScoreOn
+    (resolutionTree st) st.blocks support support b > voterCount late
+  let h := ghost .genesis st.blocks (goldfishScoreOn
+    (resolutionTree st) st.blocks support support) eligible
   if eligible h then some h else none
 
-theorem confirmation_eq_from_genesis (p : Params) {n : Nat} (st : State n) (r : Slot) :
+theorem confirmation_eq_from_genesis (p : Params) {n : Nat} {mode : HeadMode}
+    (st : State n mode) (r : Slot) :
     confirmation p st r = confirmationFrom p .genesis st r := rfl
 
-/-- A resolved label-r HEAD contributes to release only when its seat has
+/-- [ROOT-DIGEST-2 W1; DC shared Goldfish engine]
+A resolved label-r HEAD contributes to release only when its seat has
 exactly one known label-r HEAD and its target conflicts with the obligation. -/
-def releaseCount (p : Params) {n : Nat} (st : State n) (r : Slot)
+def releaseCount (p : Params) {n : Nat} {mode : HeadMode} (st : State n mode) (r : Slot)
     (b : Block) : Nat :=
   let raw := votesAt st r
   let resolved := raw.filter (fun o => resolvedBefore st o (releaseTime p r))
   ((seats n resolved).filter (fun i =>
     !equivocates raw i &&
     (seatVotes resolved i).any (fun o =>
-      match headTarget? o with
+      match resolvedHead? st o with
       | some target => !Block.compatible target b
       | none => false))).length
 
-def expire {n : Nat} (st : State n) (t : Time) : State n :=
+def expire {n : Nat} {mode : HeadMode} (st : State n mode) (t : Time) : State n mode :=
   { st with obligations := st.obligations.filter (fun (_, _, deadline) => t < deadline) }
 
-def release (p : Params) {n : Nat} (st : State n) (r : Slot) : State n :=
+def release (p : Params) {n : Nat} {mode : HeadMode} (st : State n mode)
+    (r : Slot) : State n mode :=
   let raw := votesAt st r
   let resolved := raw.filter
     (fun o => resolvedBefore st o (releaseTime p r))
@@ -402,43 +493,51 @@ def release (p : Params) {n : Nat} (st : State n) (r : Slot) : State n :=
     obligations := st.obligations.filter
       (fun (b, g, _) => releaseCount p st r b < g) }
 
-def deadlineOf {n : Nat} (st : State n) (b : Block) (g : Nat) : Option Time :=
+def deadlineOf {n : Nat} {mode : HeadMode} (st : State n mode) (b : Block)
+    (g : Nat) : Option Time :=
   ((st.obligations.find? (fun (target, level, _) =>
     target == b && level == g)).map (fun (_, _, deadline) => deadline))
 
-def writeObligation {n : Nat} (st : State n) (b : Block) (g : Nat)
-    (deadline : Time) : State n :=
+def writeObligation {n : Nat} {mode : HeadMode} (st : State n mode) (b : Block) (g : Nat)
+    (deadline : Time) : State n mode :=
   let newDeadline := max (deadlineOf st b g |>.getD deadline) deadline
   { st with obligations :=
     st.obligations.filter (fun (target, level, _) =>
       !(target == b && level == g)) ++ [(b, g, newDeadline)] }
 
-def prefixSupport (p : Params) {n : Nat} (st : State n) (r : Slot) (b : Block) : Nat :=
-  goldfishScore st.blocks (cleanSupport p st r) (cleanSupport p st r) b
+def prefixSupport (p : Params) {n : Nat} {mode : HeadMode} (st : State n mode) (r : Slot)
+    (b : Block) : Nat :=
+  goldfishScoreOn (resolutionTree st) st.blocks (cleanSupport p st r) (cleanSupport p st r) b
 
-/-- The single SA release threshold is the ceiling of half the seats. -/
+/-- [ROOT-DIGEST-2 W1; DC shared Goldfish engine]
+The single SA release threshold is the ceiling of half the seats. -/
 def releaseThreshold (p : Params) : Nat := (p.n + 1) / 2
 
-def savedGenuine {n : Nat} (st : State n) (r : Slot) : Option (Option Block) :=
+def savedGenuine {n : Nat} {mode : HeadMode} (st : State n mode) (r : Slot) : Option
+    (Option Block) :=
   (st.genuine.find? (fun row => row.1 == r)).map Prod.snd
 
-/-- Save the raw result before the local guard. A saved label is immutable. -/
-def recordGenuine [LeasePolicy] {n : Nat} (st : State n) (r : Slot)
+/-- [ROOT-DIGEST-2 W1; DC shared Goldfish engine]
+Save the raw result before the local guard. A saved label is immutable. -/
+def recordGenuine [LeasePolicy] {n : Nat} {mode : HeadMode} (st : State n mode) (r : Slot)
     (result : Option Block) : List (Slot × Option Block) :=
   if LeasePolicy.slowArming && !(savedGenuine st r).isSome then
     st.genuine ++ [(r, result)] else st.genuine
 
-/-- The current genuine result is supplied separately. The preceding `m-1`
+/-- [ROOT-DIGEST-2 W1; DC shared Goldfish engine]
+The current genuine result is supplied separately. The preceding `m-1`
 labels must all exist and cover the same prefix. No negative label is used. -/
-def slowEligible (p : Params) {n : Nat} (st : State n) (r : Slot) (b : Block) : Bool :=
+def slowEligible (p : Params) {n : Nat} {mode : HeadMode} (st : State n mode) (r : Slot)
+    (b : Block) : Bool :=
   p.m ≤ r + 1 && (List.range (p.m - 1)).all (fun j =>
     match savedGenuine st (r - (j + 1)) with
     | some (some C) => Block.preceq b C
     | _ => false)
 
-/-- The shared gate changes only the selected lease levels. SA selects
+/-- [ROOT-DIGEST-2 W1; DC shared Goldfish engine]
+The shared gate changes only the selected lease levels. SA selects
 its one level after either admission test. The outer gate checks containment. -/
-def admissionLevels [LeasePolicy] (p : Params) {n : Nat} (st : State n)
+def admissionLevels [LeasePolicy] (p : Params) {n : Nat} {mode : HeadMode} (st : State n mode)
     (r : Slot) (b : Block) : List Nat :=
   if LeasePolicy.slowArming then
     if releaseThreshold p ≤ prefixSupport p st r b || slowEligible p st r b then
@@ -446,10 +545,12 @@ def admissionLevels [LeasePolicy] (p : Params) {n : Nat} (st : State n)
   else
     (List.range (p.n + 1)).filter (fun g => g ∈ p.grid && g ≤ prefixSupport p st r b)
 
-/-- A genuine gate advances G. It advances S and writes obligations only
+/-- [ROOT-DIGEST-2 W1; DC shared Goldfish engine]
+A genuine gate advances G. It advances S and writes obligations only
 when the result is compatible with every live target. The walk starts at `a`. -/
-def gateFrom [LeasePolicy] (p : Params) {n : Nat} (a : Block) (st : State n) (r : Slot) :
-    State n :=
+def gateFrom [LeasePolicy] (p : Params) {n : Nat} {mode : HeadMode} (a : Block)
+    (st : State n mode) (r : Slot) :
+    State n mode :=
   match confirmationFrom p a st r with
   | none => { st with genuine := recordGenuine st r none }
   | some h =>
@@ -466,9 +567,11 @@ def gateFrom [LeasePolicy] (p : Params) {n : Nat} (a : Block) (st : State n) (r 
           (levels b).foldl
             (fun acc g => writeObligation acc b g (gateTime p r + lifetime p)) acc) st
 
-/-- A genuine gate advances G. It advances S and writes obligations only
+/-- [ROOT-DIGEST-2 W1; DC shared Goldfish engine]
+A genuine gate advances G. It advances S and writes obligations only
 when the result is compatible with every live target. -/
-def gate [LeasePolicy] (p : Params) {n : Nat} (st : State n) (r : Slot) : State n :=
+def gate [LeasePolicy] (p : Params) {n : Nat} {mode : HeadMode} (st : State n mode)
+    (r : Slot) : State n mode :=
   match confirmation p st r with
   | none => { st with genuine := recordGenuine st r none }
   | some h =>
@@ -485,14 +588,17 @@ def gate [LeasePolicy] (p : Params) {n : Nat} (st : State n) (r : Slot) : State 
           (levels b).foldl
             (fun acc g => writeObligation acc b g (gateTime p r + lifetime p)) acc) st
 
-theorem gate_eq_from_genesis [LeasePolicy] (p : Params) {n : Nat} (st : State n)
+theorem gate_eq_from_genesis [LeasePolicy] (p : Params) {n : Nat} {mode : HeadMode}
+    (st : State n mode)
     (r : Slot) : gate p st r = gateFrom p .genesis st r := rfl
 
-/-- Local public-time evaluations run for awake and asleep nodes. Equality
+/-- [ROOT-DIGEST-2 W1; DC shared Goldfish engine]
+Local public-time evaluations run for awake and asleep nodes. Equality
 checks make each cutoff run once; same-time expiry precedes acquisition.
 The gate walk starts at `a`. -/
-def clockFrom [LeasePolicy] (p : Params) {n : Nat} (a : Block) (st : State n) (t : Time) :
-    State n :=
+def clockFrom [LeasePolicy] (p : Params) {n : Nat} {mode : HeadMode} (a : Block)
+    (st : State n mode) (t : Time) :
+    State n mode :=
   let st := expire { st with now := t } t
   let fSlot := ((t - 3 * p.Δ) / (4 * p.Δ)).toNat
   let st := if 0 ≤ t - 3 * p.Δ && t == freezeTime p fSlot then
@@ -507,9 +613,11 @@ def clockFrom [LeasePolicy] (p : Params) {n : Nat} (a : Block) (st : State n) (t
   let dSlot := ((t - 6 * p.Δ) / (4 * p.Δ)).toNat
   if 0 ≤ t - 6 * p.Δ && t == gateTime p dSlot then gateFrom p a st dSlot else st
 
-/-- Local public-time evaluations run for awake and asleep nodes. Equality
+/-- [ROOT-DIGEST-2 W1; DC shared Goldfish engine]
+Local public-time evaluations run for awake and asleep nodes. Equality
 checks make each cutoff run once; same-time expiry precedes acquisition. -/
-def clock [LeasePolicy] (p : Params) {n : Nat} (st : State n) (t : Time) : State n :=
+def clock [LeasePolicy] (p : Params) {n : Nat} {mode : HeadMode} (st : State n mode)
+    (t : Time) : State n mode :=
   let st := expire { st with now := t } t
   let fSlot := ((t - 3 * p.Δ) / (4 * p.Δ)).toNat
   let st := if 0 ≤ t - 3 * p.Δ && t == freezeTime p fSlot then
@@ -524,14 +632,15 @@ def clock [LeasePolicy] (p : Params) {n : Nat} (st : State n) (t : Time) : State
   let dSlot := ((t - 6 * p.Δ) / (4 * p.Δ)).toNat
   if 0 ≤ t - 6 * p.Δ && t == gateTime p dSlot then gate p st dSlot else st
 
-theorem clock_eq_from_genesis [LeasePolicy] (p : Params) {n : Nat} (st : State n)
+theorem clock_eq_from_genesis [LeasePolicy] (p : Params) {n : Nat} {mode : HeadMode}
+    (st : State n mode)
     (t : Time) : clock p st t = clockFrom p .genesis st t := rfl
 
-def confirmed {n : Nat} (st : State n) : Block := st.stableRecord
+def confirmed {n : Nat} {mode : HeadMode} (st : State n mode) : Block := st.stableRecord
 
-def stable {n : Nat} (st : State n) : Block := st.stableRecord
+def stable {n : Nat} {mode : HeadMode} (st : State n mode) : Block := st.stableRecord
 
-def block {n : Nat} : Msg n → Option Block
+def block {n : Nat} {mode : HeadMode} : Msg n mode → Option Block
   | .proposal b _ _ => some b
   | .head _ => none
 
@@ -591,7 +700,8 @@ theorem slotsAt_nodup (p : Params) (t : Time) : (slotsAt p t).Nodup := by
 theorem duties_nodup (p : Params) (t : Time) : (duties p t).Nodup := by
   exact List.Nodup.filter _ List.nodup_range
 
-/-- Permanent rejection (design §2 E4) of a HEAD that is not yet processed:
+/-- [ROOT-DIGEST-2 W1; DC shared Goldfish engine]
+Permanent rejection (design §2 E4) of a HEAD that is not yet processed:
 its label `r` is before the previous slot (the clock only goes forward), or
 its seat already equivocates at `r`. `admitVote` returns the state unchanged
 in both cases, and in no later state of a valid run accepts the HEAD. A
@@ -599,14 +709,16 @@ processed HEAD is not excluded, and a proposal is never excluded. "Exactly the
 permanent refusals" is a statement about objects that pass the wire check
 (`wellFormed`). An ill-formed object is outside every valid run by
 `DeliveryWellFormed.wire`, so `excludes` does not have to cover it. -/
-def excludes (p : Params) {n : Nat} (st : State n) (o : Wire n) : Bool :=
+def excludes (p : Params) {n : Nat} {mode : HeadMode} (st : State n mode)
+    (o : Wire n mode) : Bool :=
   match o.auth, o.payload with
   | .seat r i, .head _ =>
       !decide (o ∈ st.votes) &&
         (decide (r + 1 < (st.now / (4 * p.Δ)).toNat) || equivocates (votesAt st r) i)
   | _, _ => false
 
-/-- The C* instance: seat identities occur in authentication only. Every
+/-- [ROOT-DIGEST-2 W1; DC shared Goldfish engine]
+The C* instance: seat identities occur in authentication only. Every
 seat of a label signs the same payload. Source: CONTRACT.md §2a. -/
 def gridCO [LeasePolicy] (p : Params) : ProtocolSpec p.n where
   State := State p.n

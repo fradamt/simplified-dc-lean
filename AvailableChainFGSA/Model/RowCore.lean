@@ -8,23 +8,27 @@ namespace AvailableChain.FGSA
 
 open AvailableChain.SimplexFG
 
-/-- [R7] All signed rows of admitted proposals, in stored order. -/
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+[R7] All signed rows of admitted proposals, in stored order. -/
 def allBlockRows {n : Nat} (st : State n) : List (RowWire n) :=
   (st.proposals.filterMap (fun o => match o.decode with
-    | some (.block _ _ _ _ rows) => some rows
+    | some (.block _ N) => some N.rows
     | _ => none)).flatten
 
-/-- [R6W] The window parent post-state with the child slot, before the row fold. -/
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+[R6W] The window parent post-state with the child slot, before the row fold. -/
 def parentFoldState (p : Params) (s : Slot) (P : FGBlock (Fin p.n)) :
     Window.State (Fin p.n) :=
   Window.parentState p p.K_W P s
 
-/-- [R6] Check every row against the same state before any row is folded. -/
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+[R6] Check every row against the same state before any row is folded. -/
 def rowsValidForParent (p : Params) (P : FGBlock (Fin p.n)) (s : Slot)
     (rows : List (RowWire p.n)) : Bool :=
   rows.all (Window.rowValidW (parentFoldState p s P))
 
-/-- [R7] Select held rows with the supplied chain and parent lookup functions.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+[R7] Select held rows with the supplied chain and parent lookup functions.
 This core does not depend on Frame. -/
 def proposalRowsCore (p : Params)
     (chainRows : State p.n → Block → List (RowWire p.n))

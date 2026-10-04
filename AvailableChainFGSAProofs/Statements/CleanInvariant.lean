@@ -18,7 +18,8 @@ open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- P3 §8.2, I1: facts about completed gate events. -/
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+P3 §8.2, I1: facts about completed gate events. -/
 structure CleanHist (i : Nat) : Prop where
   ordered : ∀ s r B C, (s, B) ∈ cleanResults p c E rho i →
     (r, C) ∈ cleanResults p c E rho i → s < r → Block.Preceq B C
@@ -31,7 +32,8 @@ structure CleanHist (i : Nat) : Prop where
     gateResultAt p c E rho j = some (some B) →
     Block.Preceq B (headAtIdx p c E rho k (s + 1))
 
-/-- I2 row sources retain the action label and the exact named entry. -/
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+I2 row sources retain the action label and the exact named entry. -/
 def CleanRowSources (i : Nat) : Prop :=
   ∀ j x r a e, j < i → HonestRowAt p c E rho j x r a →
     namedEntry a.payload.height_pair = some e →
@@ -40,7 +42,8 @@ def CleanRowSources (i : Nat) : Prop :=
       FGBlock.Preceq (derive p.E p.cfg C).T_h C ∧
       BelowLabel p c E rho i (r * p.R) (eraseFG C)
 
-/-- L49 first-unfold equation; bp02 §5, P3 §8.4. -/
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+L49 first-unfold equation; bp02 §5, P3 §8.4. -/
 theorem CleanRowSources_def (i : Nat) :
     CleanRowSources p c E rho i =
       (∀ j x r a e, j < i → HonestRowAt p c E rho j x r a →
@@ -50,7 +53,8 @@ theorem CleanRowSources_def (i : Nat) :
       FGBlock.Preceq (derive p.E p.cfg C).T_h C ∧
       BelowLabel p c E rho i (r * p.R) (eraseFG C)) := by rfl
 
-/-- I2 certificate sources are earlier honest target rows, with their labels.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+I2 certificate sources are earlier honest target rows, with their labels.
 The block and certified entry are universal; no common path or tip is chosen. -/
 def CleanCertSources (i : Nat) : Prop :=
   ∀ x W e, x ∈ rho.honest → W ∈ (storeAt p c E rho i x).fg.TF →
@@ -61,7 +65,8 @@ def CleanCertSources (i : Nat) : Prop :=
       FGBlock.Preceq e C ∧
       BelowLabel p c E rho i (r * p.R) (eraseFG C)
 
-/-- L49 first-unfold equation; bp02 §5, P3 §8.4. -/
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+L49 first-unfold equation; bp02 §5, P3 §8.4. -/
 theorem CleanCertSources_def (i : Nat) :
     CleanCertSources p c E rho i =
       (∀ x W e, x ∈ rho.honest → W ∈ (storeAt p c E rho i x).fg.TF →
@@ -72,14 +77,16 @@ theorem CleanCertSources_def (i : Nat) :
       FGBlock.Preceq e C ∧
       BelowLabel p c E rho i (r * p.R) (eraseFG C)) := by rfl
 
-/-- P3 §8.2, I2–I4. Each state fact is about this run and this index.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+P3 §8.2, I2–I4. Each state fact is about this run and this index.
 Lease origins include due rows. Saved results are event values. -/
 structure CleanState (i : Nat) : Prop where
   sources : CleanRowSources p c E rho i ∧ CleanCertSources p c E rho i
   fOrigin : ∀ v,
     BelowLabel p c E rho i (labelBoundAt p c rho i) (F_at p c E rho i v) ∧
     BelowLabel p c E rho i (labelBoundAt p c rho i) (J_at p c E rho i v)
-  /-- P3:5185–5195, bp02 §5.4: no same-batch label may witness a gate input.
+  /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+P3:5185–5195, bp02 §5.4: no same-batch label may witness a gate input.
   The strict bound also makes both inputs genesis at label zero. -/
   gateInputs : ∀ v s, IsGateTick p c rho i v s →
     let below := fun X => X = .genesis ∨
@@ -118,7 +125,8 @@ structure CleanState (i : Nat) : Prop where
   sExtends : ∀ v j k, j ≤ k → k ≤ i →
     Block.Preceq (S_at p c E rho j v) (S_at p c E rho k v)
 
-/-- P3 §8.2: the FG part used in the assume/guarantee rule. -/
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+P3 §8.2: the FG part used in the assume/guarantee rule. -/
 structure FGPart (i : Nat) : Prop where
   sources : CleanCertSources p c E rho i
   fOrigin : ∀ v,
@@ -128,7 +136,8 @@ structure FGPart (i : Nat) : Prop where
 def GT (b₀ : Time) (j : Nat) : Prop :=
   j < timeIdx rho b₀ → CleanHist p c E rho (j + 1)
 
-/-- P3 §8.7; first-unfold equation (`:= by rfl`, add-only).
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+P3 §8.7; first-unfold equation (`:= by rfl`, add-only).
 DC counterpart: none; FG-SA-specific statement. -/
 theorem GT_def (b₀ : Time) (j : Nat) :
     GT p c E rho b₀ j =
@@ -138,7 +147,8 @@ theorem GT_def (b₀ : Time) (j : Nat) :
 def GR (b₀ : Time) (i : Nat) : Prop :=
   i ≤ timeIdx rho b₀ → FGPart p c E rho i
 
-/-- P3 §8.7; first-unfold equation (`:= by rfl`, add-only).
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+P3 §8.7; first-unfold equation (`:= by rfl`, add-only).
 DC counterpart: none; FG-SA-specific statement. -/
 theorem GR_def (b₀ : Time) (i : Nat) :
     GR p c E rho b₀ i =
@@ -147,7 +157,8 @@ theorem GR_def (b₀ : Time) (i : Nat) :
 
 variable [Fintype V]
 
-/-- F2.4 producer for F2.7, bp02 §5.5: each completed honest gate passes
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+F2.4 producer for F2.7, bp02 §5.5: each completed honest gate passes
 and its result is below S after its tick. CleanState.sExtends transports
 this fact to afterTicksIdx for the frozen CleanGateAt export.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
@@ -160,7 +171,8 @@ def CleanGateOutputStmt (b₀ : Time) : Prop :=
       ∃ B, gateResultAt p c E rho j = some (some B) ∧
         gatePassedAt p c E rho j ∧ Block.Preceq B (S_at p c E rho (j + 1) v)
 
-/-- P3 §8.7; bp02 §5.5. Class B first-unfold equation.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+P3 §8.7; bp02 §5.5. Class B first-unfold equation.
 DC counterpart: none; FG-SA-specific statement.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
@@ -174,7 +186,8 @@ theorem CleanGateOutputStmt_def (b₀ : Time) :
       ∃ B, gateResultAt p c E rho j = some (some B) ∧
         gatePassedAt p c E rho j ∧ Block.Preceq B (S_at p c E rho (j + 1) v)) := by rfl
 
-/-- F2.7 source export, bp02 §5.6: all nonempty action-source reads,
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+F2.7 source export, bp02 §5.6: all nonempty action-source reads,
 including asleep nodes that emit no row. TSrc supplies the gate origin;
 F2.1 supplies the history-index and label conversion.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
@@ -188,7 +201,8 @@ def CleanActionSourcesStmt (b₀ : Time) : Prop :=
       actionSource p c E rho x r = some (some C) →
       BelowLabel p c E rho i (labelBoundAt p c rho j) C
 
-/-- P3 §8.7; bp02 §5.6. Class B first-unfold equation.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+P3 §8.7; bp02 §5.6. Class B first-unfold equation.
 DC counterpart: none; FG-SA-specific statement.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
@@ -203,7 +217,8 @@ theorem CleanActionSourcesStmt_def (b₀ : Time) :
       actionSource p c E rho x r = some (some C) →
       BelowLabel p c E rho i (labelBoundAt p c rho j) C) := by rfl
 
-/-- F2.2 producer for the F2.7 Clean frame export, bp02 §§3.3–3.4:
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+F2.2 producer for the F2.7 Clean frame export, bp02 §§3.3–3.4:
 no contest, a labelled root origin, and full-domain retention.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
@@ -222,7 +237,8 @@ def CleanFrameStmt (b₀ : Time) : Prop :=
         (FGBlock.Preceq st.fg.F (FGSA.controls p st).Z ∧
           FGBlock.Preceq (FGSA.controls p st).Z B ∧ B ∈ FGSA.fullTree p st))
 
-/-- P3 §8.7; bp02 §§3.3–3.4. Class B first-unfold equation.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+P3 §8.7; bp02 §§3.3–3.4. Class B first-unfold equation.
 DC counterpart: none; FG-SA-specific frame bundle.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
@@ -243,7 +259,8 @@ theorem CleanFrameStmt_def (b₀ : Time) :
         (FGBlock.Preceq st.fg.F (FGSA.controls p st).Z ∧
           FGBlock.Preceq (FGSA.controls p st).Z B ∧ B ∈ FGSA.fullTree p st))) := by rfl
 
-/-- R-F2a: Gen.AGRule.fg takes only `∀ j < i, GT j`.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+R-F2a: Gen.AGRule.fg takes only `∀ j < i, GT j`.
 Gen.Pure.AGRule.holds gives both conclusions at every index once this
 instance is proved. There is no same-index GT premise in the FG step.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
@@ -253,7 +270,8 @@ def CleanAGStmt (b₀ : Time) : Prop :=
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   Gen.Pure.AGRule (GR p c E rho b₀) (GT p c E rho b₀)
 
-/-- P3 §8.7; first-unfold equation (`:= by rfl`, add-only).
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+P3 §8.7; first-unfold equation (`:= by rfl`, add-only).
 DC counterpart: none; FG-SA-specific statement.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
@@ -264,7 +282,8 @@ theorem CleanAGStmt_def (b₀ : Time) :
   FGFoundation p c E rho → SrcFrameAboveStmt p c E rho →
   Gen.Pure.AGRule (GR p c E rho b₀) (GT p c E rho b₀)) := by rfl
 
-/-- State step under a fixed completed history, P3 §§8.2, 8.4.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+State step under a fixed completed history, P3 §§8.2, 8.4.
 The event predicate separates the handlers without a free path or tip.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
@@ -274,7 +293,8 @@ def CleanStateStep (b₀ : Time) (event : Nat → Prop) : Prop :=
   ∀ i, i ≤ timeIdx rho b₀ → CleanHist p c E rho i →
     ∀ j, j < i → event j → CleanState p c E rho j → CleanState p c E rho (j + 1)
 
-/-- L49 first-unfold equation; bp02 §5, P3 §8.4.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+L49 first-unfold equation; bp02 §5, P3 §8.4.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem CleanStateStep_def (b₀ : Time) (event : Nat → Prop) :
@@ -284,7 +304,8 @@ theorem CleanStateStep_def (b₀ : Time) (event : Nat → Prop) :
   ∀ i, i ≤ timeIdx rho b₀ → CleanHist p c E rho i →
     ∀ j, j < i → event j → CleanState p c E rho j → CleanState p c E rho (j + 1)) := by rfl
 
-/-- History step; state facts are available at all earlier indices, P3 §8.4.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+History step; state facts are available at all earlier indices, P3 §8.4.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 def CleanHistStep (b₀ : Time) (event : Nat → Prop) : Prop :=
@@ -293,7 +314,8 @@ def CleanHistStep (b₀ : Time) (event : Nat → Prop) : Prop :=
   ∀ i, i < timeIdx rho b₀ → event i → CleanHist p c E rho i →
     (∀ k, k ≤ i → CleanState p c E rho k) → CleanHist p c E rho (i + 1)
 
-/-- L49 first-unfold equation; bp02 §5, P3 §8.4.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+L49 first-unfold equation; bp02 §5, P3 §8.4.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem CleanHistStep_def (b₀ : Time) (event : Nat → Prop) :
@@ -303,53 +325,65 @@ theorem CleanHistStep_def (b₀ : Time) (event : Nat → Prop) :
   ∀ i, i < timeIdx rho b₀ → event i → CleanHist p c E rho i →
     (∀ k, k ≤ i → CleanState p c E rho k) → CleanHist p c E rho (i + 1)) := by rfl
 
-/-- ROOT-DIGEST W2b. Vote, row, or refused proposal: no accepted block handler. -/
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Vote, row, or refused proposal: no accepted block handler. -/
 def CleanOrdinaryDelivery (j : Nat) : Prop :=
   ∃ v o t, rho.events[j]? = some (.deliver v o t) ∧
-    ∀ s b raw support rows P, (toWire p o).decode = some (.block s b raw support rows) →
-      parentFG (storeAt p c E rho j v) b = some P →
-      blockAccepted p (storeAt p c E rho j v) s b raw support P rows = false
+    ∀ s N P, (toWire p o).decode = some (.block s N) →
+      namedParentHeld (storeAt p c E rho j v) N = true →
+      parentFG (storeAt p c E rho j v) N.erase = some P →
+      blockAccepted p (storeAt p c E rho j v) s N P = false
 
 omit [Fintype V] in
-/-- ROOT-DIGEST W2b. L49 first-unfold equation; bp02 §5, P3 §8.4. -/
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. L49 first-unfold equation; bp02 §5, P3 §8.4. -/
 theorem CleanOrdinaryDelivery_def (j : Nat) :
     CleanOrdinaryDelivery p c E rho j =
       (∃ v o t, rho.events[j]? = some (.deliver v o t) ∧
-    ∀ s b raw support rows P, (toWire p o).decode = some (.block s b raw support rows) →
-      parentFG (storeAt p c E rho j v) b = some P →
-      blockAccepted p (storeAt p c E rho j v) s b raw support P rows = false) := by rfl
+    ∀ s N P, (toWire p o).decode = some (.block s N) →
+      namedParentHeld (storeAt p c E rho j v) N = true →
+      parentFG (storeAt p c E rho j v) N.erase = some P →
+      blockAccepted p (storeAt p c E rho j v) s N P = false) := by rfl
 
-/-- ROOT-DIGEST W2b. A checked block receipt. -/
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. A checked block receipt. -/
 def CleanBlockDelivery (j : Nat) : Prop :=
-  ∃ v o t s b raw support rows P, rho.events[j]? = some (.deliver v o t) ∧
-    (toWire p o).decode = some (.block s b raw support rows) ∧
-    parentFG (storeAt p c E rho j v) b = some P ∧
-    blockAccepted p (storeAt p c E rho j v) s b raw support P rows = true
+  ∃ v o t s N P, rho.events[j]? = some (.deliver v o t) ∧
+    (toWire p o).decode = some (.block s N) ∧
+    namedParentHeld (storeAt p c E rho j v) N = true ∧
+    parentFG (storeAt p c E rho j v) N.erase = some P ∧
+    blockAccepted p (storeAt p c E rho j v) s N P = true
 
 omit [Fintype V] in
-/-- ROOT-DIGEST W2b. L49 first-unfold equation; bp02 §5, P3 §8.4. -/
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. L49 first-unfold equation; bp02 §5, P3 §8.4. -/
 theorem CleanBlockDelivery_def (j : Nat) :
     CleanBlockDelivery p c E rho j =
-      (∃ v o t s b raw support rows P, rho.events[j]? = some (.deliver v o t) ∧
-    (toWire p o).decode = some (.block s b raw support rows) ∧
-    parentFG (storeAt p c E rho j v) b = some P ∧
-    blockAccepted p (storeAt p c E rho j v) s b raw support P rows = true) := by rfl
+      (∃ v o t s N P, rho.events[j]? = some (.deliver v o t) ∧
+    (toWire p o).decode = some (.block s N) ∧
+    namedParentHeld (storeAt p c E rho j v) N = true ∧
+    parentFG (storeAt p c E rho j v) N.erase = some P ∧
+    blockAccepted p (storeAt p c E rho j v) s N P = true) := by rfl
 
-/-- A tick that has no gate. -/
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+A tick that has no gate. -/
 def CleanNoGateTick (j : Nat) : Prop :=
   ∃ v t, rho.events[j]? = some (.tick v t) ∧ isGateTime p t = false
 
 omit [DecidableEq V] [Fintype V] in
-/-- L49 first-unfold equation; bp02 §5, P3 §8.4. -/
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+L49 first-unfold equation; bp02 §5, P3 §8.4. -/
 theorem CleanNoGateTick_def (j : Nat) :
     CleanNoGateTick p c rho j =
       (∃ v t, rho.events[j]? = some (.tick v t) ∧ isGateTime p t = false) := by rfl
 
-/-- A tick with a gate; the FG action, when due, is part of this tick. -/
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+A tick with a gate; the FG action, when due, is part of this tick. -/
 def CleanGateTick (j : Nat) : Prop := ∃ v s, IsGateTick p c rho j v s
 
 omit [DecidableEq V] [Fintype V] in
-/-- L49 first-unfold equation; bp02 §5, P3 §8.4. -/
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+L49 first-unfold equation; bp02 §5, P3 §8.4. -/
 theorem CleanGateTick_def (j : Nat) :
     CleanGateTick p c rho j =
       (∃ v s, IsGateTick p c rho j v s) := by rfl
@@ -357,7 +391,8 @@ theorem CleanGateTick_def (j : Nat) :
 def CleanDeliveryStateStep (b₀ : Time) : Prop :=
   CleanStateStep (ΔF := ΔF) p c E rho b₀ (CleanOrdinaryDelivery p c E rho)
 
-/-- L49 first-unfold equation; bp02 §5, P3 §8.4.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+L49 first-unfold equation; bp02 §5, P3 §8.4.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem CleanDeliveryStateStep_def (b₀ : Time) :
@@ -366,7 +401,8 @@ theorem CleanDeliveryStateStep_def (b₀ : Time) :
 def CleanDeliveryHistStep (b₀ : Time) : Prop :=
   CleanHistStep (ΔF := ΔF) p c E rho b₀ (CleanOrdinaryDelivery p c E rho)
 
-/-- L49 first-unfold equation; bp02 §5, P3 §8.4.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+L49 first-unfold equation; bp02 §5, P3 §8.4.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem CleanDeliveryHistStep_def (b₀ : Time) :
@@ -375,7 +411,8 @@ theorem CleanDeliveryHistStep_def (b₀ : Time) :
 def CleanBlockStateStep (b₀ : Time) : Prop :=
   CleanStateStep (ΔF := ΔF) p c E rho b₀ (CleanBlockDelivery p c E rho)
 
-/-- L49 first-unfold equation; bp02 §5, P3 §8.4.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+L49 first-unfold equation; bp02 §5, P3 §8.4.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem CleanBlockStateStep_def (b₀ : Time) :
@@ -384,7 +421,8 @@ theorem CleanBlockStateStep_def (b₀ : Time) :
 def CleanBlockHistStep (b₀ : Time) : Prop :=
   CleanHistStep (ΔF := ΔF) p c E rho b₀ (CleanBlockDelivery p c E rho)
 
-/-- L49 first-unfold equation; bp02 §5, P3 §8.4.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+L49 first-unfold equation; bp02 §5, P3 §8.4.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem CleanBlockHistStep_def (b₀ : Time) :
@@ -393,7 +431,8 @@ theorem CleanBlockHistStep_def (b₀ : Time) :
 def CleanNoGateStateStep (b₀ : Time) : Prop :=
   CleanStateStep (ΔF := ΔF) p c E rho b₀ (CleanNoGateTick p c rho)
 
-/-- L49 first-unfold equation; bp02 §5, P3 §8.4.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+L49 first-unfold equation; bp02 §5, P3 §8.4.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem CleanNoGateStateStep_def (b₀ : Time) :
@@ -402,7 +441,8 @@ theorem CleanNoGateStateStep_def (b₀ : Time) :
 def CleanNoGateHistStep (b₀ : Time) : Prop :=
   CleanHistStep (ΔF := ΔF) p c E rho b₀ (CleanNoGateTick p c rho)
 
-/-- L49 first-unfold equation; bp02 §5, P3 §8.4.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+L49 first-unfold equation; bp02 §5, P3 §8.4.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem CleanNoGateHistStep_def (b₀ : Time) :
@@ -411,7 +451,8 @@ theorem CleanNoGateHistStep_def (b₀ : Time) :
 def CleanGateStateStep (b₀ : Time) : Prop :=
   CleanStateStep (ΔF := ΔF) p c E rho b₀ (CleanGateTick p c rho)
 
-/-- L49 first-unfold equation; bp02 §5, P3 §8.4.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+L49 first-unfold equation; bp02 §5, P3 §8.4.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem CleanGateStateStep_def (b₀ : Time) :
@@ -420,21 +461,24 @@ theorem CleanGateStateStep_def (b₀ : Time) :
 def CleanGateHistStep (b₀ : Time) : Prop :=
   CleanHistStep (ΔF := ΔF) p c E rho b₀ (CleanGateTick p c rho)
 
-/-- L49 first-unfold equation; bp02 §5, P3 §8.4.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+L49 first-unfold equation; bp02 §5, P3 §8.4.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem CleanGateHistStep_def (b₀ : Time) :
     CleanGateHistStep (ΔF := ΔF) p c E rho b₀ =
       (CleanHistStep (ΔF := ΔF) p c E rho b₀ (CleanGateTick p c rho)) := by rfl
 
-/-- A restart is excluded by Base₂.noRestart, P3 §8.4.
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+A restart is excluded by Base₂.noRestart, P3 §8.4.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 def CleanRestartStep (b₀ : Time) : Prop :=
   CleanCut₂ p c E rho b₀ ΔF → ∀ j v t, j < timeIdx rho b₀ →
     rho.events[j]? = some (.restart v t) → False
 
-/-- P3 §8.7; first-unfold equation (`:= by rfl`, add-only).
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+P3 §8.7; first-unfold equation (`:= by rfl`, add-only).
 DC counterpart: none; FG-SA-specific statement.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
@@ -444,7 +488,8 @@ theorem CleanRestartStep_def (b₀ : Time) :
   CleanCut₂ p c E rho b₀ ΔF → ∀ j v t, j < timeIdx rho b₀ →
     rho.events[j]? = some (.restart v t) → False) := by rfl
 
-/-- P3 §8.4 and bp02 §5.6: an action's new row belongs to the history
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+P3 §8.4 and bp02 §5.6: an action's new row belongs to the history
 that includes its gate. This is a substep of the same tick, not a new event.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
@@ -456,7 +501,8 @@ def CleanActionStep (b₀ : Time) : Prop :=
     CleanHist p c E rho (i + 1) → CleanState p c E rho i →
     CleanRowSources p c E rho (i + 1)
 
-/-- L49 first-unfold equation; P3 §8.4, bp02 §5.6, lead R2(a).
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+L49 first-unfold equation; P3 §8.4, bp02 §5.6, lead R2(a).
 DC counterpart: none; FG-SA emits action rows in the gate tick.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/

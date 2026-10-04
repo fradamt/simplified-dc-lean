@@ -7,11 +7,12 @@ namespace AvailableChain.Gen.AC.Duty
 
 open AvailableChain AvailableChain.V2 AvailableChain.V2.Engine
 
-/-- G1 composes the batch's raw coverage and support with the local gate
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+G1 composes the batch's raw coverage and support with the local gate
 write. The prefix and level folds retain the proposed deadline lower bound. -/
 theorem gate_of_coveringBatch_statement : GateOfCoveringBatchStatement := by
   rw [GateOfCoveringBatchStatement_def]
-  intro V In P E rho A i s x D hwrite hcover hguard hne hmem hsupport hlevel
+  intro V In P E rho mode A i s x D hwrite hcover hguard hne hmem hsupport hlevel
   have fold_preserves {α β : Type} (step : α → β → α) (Q : α → Prop)
       (hstep : ∀ st b, Q st → Q (step st b)) (xs : List β) (st : α) (h : Q st) :
       Q (xs.foldl step st) := by
@@ -31,13 +32,13 @@ theorem gate_of_coveringBatch_statement : GateOfCoveringBatchStatement := by
   -- All writes in this gate use the same proposed deadline. Thus neither
   -- uniqueness of old keys nor a bound on old deadlines is needed here.
   -- Source: spec:911–916; GridCO/Model/Protocol.lean:409–414.
-  have write_installs {n : Nat} (st : GridCO.State n) (B : Block)
+  have write_installs {n : Nat} (st : GridCO.State n mode) (B : Block)
       (g : Nat) (d : Time) :
       ∃ deadline, d ≤ deadline ∧
         (B, g, deadline) ∈ (GridCO.writeObligation st B g d).obligations := by
     refine ⟨max ((GridCO.deadlineOf st B g).getD d) d, le_max_right _ _, ?_⟩
     exact List.mem_append.mpr (Or.inr (List.mem_singleton.mpr rfl))
-  have write_preserves {n : Nat} (st : GridCO.State n) (B C : Block)
+  have write_preserves {n : Nat} (st : GridCO.State n mode) (B C : Block)
       (g k : Nat) (d : Time)
       (h : ∃ deadline, d ≤ deadline ∧ (B, g, deadline) ∈ st.obligations) :
       ∃ deadline, d ≤ deadline ∧
@@ -65,9 +66,9 @@ theorem gate_of_coveringBatch_statement : GateOfCoveringBatchStatement := by
   · rw [hleases, ACReads.gateLeases_def]
     let d := SA.gateTime A.prm s + SA.lifetime A.prm
     let g := SA.releaseThreshold A.prm
-    let Q := fun st : SA.State A.prm.n =>
+    let Q := fun st : GridCO.State A.prm.n mode =>
       ∃ deadline, d ≤ deadline ∧ (D, g, deadline) ∈ st.obligations
-    let step := fun (st : SA.State A.prm.n) b =>
+    let step := fun (st : GridCO.State A.prm.n mode) b =>
       (A.gateLevels i x s b).foldl (fun acc level => GridCO.writeObligation acc b level d) st
     have hstep : ∀ st b, Q st → Q (step st b) := by
       intro st b h
@@ -78,11 +79,12 @@ theorem gate_of_coveringBatch_statement : GateOfCoveringBatchStatement := by
         (fun acc level hp => write_preserves acc D D g level d hp)
         g (fun acc => write_installs acc D g d) _ hlevel st) _ hprefix _
 
-/-- G2 uses only the acceptance equation, absence of an old strict
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+G2 uses only the acceptance equation, absence of an old strict
 descendant, normalization, and the post-gate lease invariant (IF.4). -/
 theorem S_eq_of_exact_statement : SEqOfExactStatement := by
   rw [SEqOfExactStatement_def]
-  intro V In P E rho A i s x X hwrite hraw hguard hold hanchor hbelow
+  intro V In P E rho mode A i s x X hwrite hraw hguard hold hanchor hbelow
   have hadvance : GridCO.advance (A.output i x) X = X := by
     unfold GridCO.advance
     split
@@ -98,8 +100,10 @@ theorem S_eq_of_exact_statement : SEqOfExactStatement := by
 
 variable {V In : Type} {P : ProtocolSpecD In} {E : Generic.Env V} {rho : D.Run V P}
 
-/-- A covering batch gives gate service from its local count and walk facts. -/
-theorem gate_of_coveringBatch (A : ACReads E rho) (i : Nat) (s : Slot) (x : V) (D : Block)
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+A covering batch gives gate service from its local count and walk facts. -/
+theorem gate_of_coveringBatch {mode : GridCO.HeadMode} (A : ACReads E rho mode) (i : Nat) (s :
+    Slot) (x : V) (D : Block)
     (hwrite : ∀ C, A.raw i s x = some C →
       (∀ lease ∈ (A.gateView i x s).obligations,
         Block.Compatible (Lease.target lease) C) →
@@ -108,14 +112,17 @@ theorem gate_of_coveringBatch (A : ACReads E rho) (i : Nat) (s : Slot) (x : V) (
     (hguard : ∀ C, A.raw i s x = some C →
       ∀ lease ∈ (A.gateView i x s).obligations, Block.Compatible (Lease.target lease) C)
     (hne : D ≠ .genesis) (hmem : D ∈ (A.gateView i x s).blocks)
-    (hsupport : SA.releaseThreshold A.prm ≤ SA.prefixSupport A.prm (A.gateView i x s) s D)
+    (hsupport : SA.releaseThreshold A.prm ≤ GridCO.prefixSupport A.prm.engine (A.gateView i x s)
+      s D)
     (hlevel : SA.releaseThreshold A.prm ∈ A.gateLevels i x s D) :
     GateService A i s x D :=
   gate_of_coveringBatch_statement A i s x D hwrite hcover hguard hne hmem hsupport hlevel
 
-/-- An accepted exact result replaces an old output that is not its strict
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+An accepted exact result replaces an old output that is not its strict
 descendant. All live targets then precede that result. -/
-theorem S_eq_of_exact (A : ACReads E rho) (i : Nat) (s : Slot) (x : V) (X : Block)
+theorem S_eq_of_exact {mode : GridCO.HeadMode} (A : ACReads E rho mode) (i : Nat) (s : Slot) (x :
+    V) (X : Block)
     (hwrite : A.raw i s x = some X →
       (∀ lease ∈ (A.gateView i x s).obligations,
         Block.Compatible (Lease.target lease) X) →

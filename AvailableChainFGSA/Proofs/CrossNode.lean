@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSA.Proofs.Metadata
+public import AvailableChainFGSA.Proofs.NamedStore
 
 @[expose] public section
 

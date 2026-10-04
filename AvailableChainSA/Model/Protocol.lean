@@ -7,7 +7,8 @@ namespace AvailableChain.SA
 
 open AvailableChain.Generic
 
-/-- SA parameters from slow-arming.md §3. Counts are integer seats. -/
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+SA parameters from slow-arming.md §3. Counts are integer seats. -/
 structure Params where
   Δ : Time
   n : Nat
@@ -31,7 +32,8 @@ private theorem member_le_max (xs : List Nat) (acc g : Nat) (h : g ∈ xs) :
     · subst x; exact (le_max_right _ _).trans (hacc _ _)
     · exact ih _ ht
 
-/-- Adapter for the shared Goldfish engine. The dense grid is unused by
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+Adapter for the shared Goldfish engine. The dense grid is unused by
 SA admission. It provides the existing engine parameter type without
 adding a parameter or premise to SA. -/
 def Params.engine (p : Params) : GridCO.Params where
@@ -60,10 +62,10 @@ def Params.engine (p : Params) : GridCO.Params where
       decide_eq_true_eq, Finset.mem_erase, Finset.mem_range]
     exact ⟨by omega, ⟨by omega, by omega⟩, le_refl _⟩
 
-abbrev State := GridCO.State
-abbrev Msg := GridCO.Msg
-abbrev Wire := GridCO.Wire
-abbrev HeadWire := GridCO.HeadWire
+abbrev State (n : Nat) := GridCO.State n .block
+abbrev Msg (n : Nat) := GridCO.Msg n .block
+abbrev Wire (n : Nat) := GridCO.Wire n .block
+abbrev HeadWire (n : Nat) := GridCO.HeadWire n .block
 
 abbrev lifetime (p : Params) := GridCO.lifetime p.engine
 abbrev proposalTime (p : Params) := GridCO.proposalTime p.engine
@@ -73,30 +75,59 @@ abbrev freezeTime (p : Params) := GridCO.freezeTime p.engine
 abbrev releaseTime (p : Params) := GridCO.releaseTime p.engine
 abbrev gateTime (p : Params) := GridCO.gateTime p.engine
 abbrev releaseThreshold (p : Params) := GridCO.releaseThreshold p.engine
-abbrev confirmation (p : Params) {n : Nat} := @GridCO.confirmation p.engine n
-abbrev confirmationFrom (p : Params) {n : Nat} := @GridCO.confirmationFrom p.engine n
-abbrev prefixSupport (p : Params) {n : Nat} := @GridCO.prefixSupport p.engine n
-abbrev savedGenuine {n : Nat} := @GridCO.savedGenuine n
-abbrev slowEligible (p : Params) {n : Nat} := @GridCO.slowEligible p.engine n
-abbrev gate (p : Params) {n : Nat} := @GridCO.gate GridCO.slowLeasePolicy p.engine n
-abbrev clock (p : Params) {n : Nat} := @GridCO.clock GridCO.slowLeasePolicy p.engine n
-abbrev gateFrom (p : Params) {n : Nat} := @GridCO.gateFrom GridCO.slowLeasePolicy p.engine n
-abbrev clockFrom (p : Params) {n : Nat} := @GridCO.clockFrom GridCO.slowLeasePolicy p.engine n
-abbrev release (p : Params) {n : Nat} := @GridCO.release p.engine n
-abbrev process (p : Params) {n : Nat} := @GridCO.process p.engine n
-abbrev act (p : Params) {n : Nat} := @GridCO.act p.engine n
-abbrev propose (p : Params) {n : Nat} := @GridCO.propose p.engine n
-abbrev initial := GridCO.initial
-abbrev stable {n : Nat} := @GridCO.stable n
-abbrev confirmed {n : Nat} := @GridCO.confirmed n
-abbrev block {n : Nat} := @GridCO.block n
-abbrev deadlineOf {n : Nat} := @GridCO.deadlineOf n
-abbrev expire {n : Nat} := @GridCO.expire n
+abbrev confirmation (p : Params) {n : Nat} := @GridCO.confirmation p.engine n .block
+abbrev confirmationFrom (p : Params) {n : Nat} := @GridCO.confirmationFrom p.engine n .block
+abbrev prefixSupport (p : Params) {n : Nat} := @GridCO.prefixSupport p.engine n .block
+abbrev savedGenuine {n : Nat} := @GridCO.savedGenuine n .block
+abbrev slowEligible (p : Params) {n : Nat} := @GridCO.slowEligible p.engine n .block
+abbrev gate (p : Params) {n : Nat} := @GridCO.gate GridCO.slowLeasePolicy p.engine n .block
+abbrev clock (p : Params) {n : Nat} := @GridCO.clock GridCO.slowLeasePolicy p.engine n .block
+abbrev gateFrom (p : Params) {n : Nat} := @GridCO.gateFrom GridCO.slowLeasePolicy p.engine n .block
+abbrev clockFrom
+    (p : Params) {n : Nat} := @GridCO.clockFrom GridCO.slowLeasePolicy p.engine n .block
+abbrev release (p : Params) {n : Nat} := @GridCO.release p.engine n .block
+abbrev process (p : Params) {n : Nat} := @GridCO.process p.engine n .block
+abbrev act (p : Params) {n : Nat} := @GridCO.act p.engine n .block
+abbrev propose (p : Params) {n : Nat} := @GridCO.propose p.engine n .block
+abbrev initial (n : Nat) := GridCO.initial n .block
+abbrev stable {n : Nat} := @GridCO.stable n .block
+abbrev confirmed {n : Nat} := @GridCO.confirmed n .block
+abbrev block {n : Nat} := @GridCO.block n .block
+abbrev deadlineOf {n : Nat} := @GridCO.deadlineOf n .block
+abbrev expire {n : Nat} := @GridCO.expire n .block
 
-/-- Slow arming, one release level. All wire rules, views, and handlers
+/-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
+Slow arming, one release level. All wire rules, views, and handlers
 are the shared Grid CO engine. Only raw history and lease admission differ. -/
 abbrev sa (p : Params) : ProtocolSpec p.n :=
   @GridCO.gridCO GridCO.slowLeasePolicy p.engine
+
+namespace Root
+
+/-- [ROOT-DIGEST-2 W1; DC GoldfishVote] Root-mode SA store. -/
+abbrev State (n : Nat) := GridCO.State n .root
+
+abbrev confirmation (p : Params) {n : Nat} := @GridCO.confirmation p.engine n .root
+abbrev confirmationFrom (p : Params) {n : Nat} := @GridCO.confirmationFrom p.engine n .root
+abbrev prefixSupport (p : Params) {n : Nat} := @GridCO.prefixSupport p.engine n .root
+abbrev savedGenuine {n : Nat} := @GridCO.savedGenuine n .root
+abbrev slowEligible (p : Params) {n : Nat} := @GridCO.slowEligible p.engine n .root
+abbrev gate (p : Params) {n : Nat} := @GridCO.gate GridCO.slowLeasePolicy p.engine n .root
+abbrev clock (p : Params) {n : Nat} := @GridCO.clock GridCO.slowLeasePolicy p.engine n .root
+abbrev gateFrom (p : Params) {n : Nat} := @GridCO.gateFrom GridCO.slowLeasePolicy p.engine n .root
+abbrev clockFrom (p : Params) {n : Nat} := @GridCO.clockFrom GridCO.slowLeasePolicy p.engine n .root
+abbrev release (p : Params) {n : Nat} := @GridCO.release p.engine n .root
+abbrev process (p : Params) {n : Nat} := @GridCO.process p.engine n .root
+abbrev act (p : Params) {n : Nat} := @GridCO.act p.engine n .root
+abbrev propose (p : Params) {n : Nat} := @GridCO.propose p.engine n .root
+abbrev initial (n : Nat) := GridCO.initial n .root
+abbrev stable {n : Nat} := @GridCO.stable n .root
+abbrev confirmed {n : Nat} := @GridCO.confirmed n .root
+abbrev block {n : Nat} := @GridCO.block n .root
+abbrev deadlineOf {n : Nat} := @GridCO.deadlineOf n .root
+abbrev expire {n : Nat} := @GridCO.expire n .root
+
+end Root
 
 end AvailableChain.SA
 end
