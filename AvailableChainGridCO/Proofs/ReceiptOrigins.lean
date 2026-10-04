@@ -54,7 +54,8 @@ private theorem fold_vote_blocks (p : Params) {n : Nat} (raw : List (HeadWire n)
   | nil => rfl
   | cons row raw ih => rw [List.foldl_cons, ih, admitVote_blocks]
 
-/-- A new HEAD stamp comes from a called handler at the current local
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A new HEAD stamp comes from a called handler at the current local
 clock. This includes raw HEADs in an admitted proposal. -/
 theorem process_vote_stamp_origin (p : Params) {n : Nat} (st : State n)
     (parent o : Wire n) (t : Time) (hm : (o, t) ∈ (process p st parent).voteStamp) :
@@ -79,7 +80,9 @@ theorem process_vote_stamp_origin (p : Params) {n : Nat} (st : State n)
           refine ⟨?_, ?_, hr⟩
           · intro hold; simp [hold] at hgood
           · simp only [process, ha, hp, admitProposal]
-            simp [hgood, fold_vote_blocks]
+            simp only [hgood, Bool.false_eq_true, ite_false]
+            rw [fold_vote_blocks]
+            simp
   · exact Or.inl hm
 
 private def VoteStampsStored {n : Nat} (st : State n) : Prop :=
@@ -117,7 +120,8 @@ private theorem process_stamps_stored (p : Params) {n : Nat} (st : State n)
     all_goals first | exact h | exact fold_stamps_stored p _ _ h
   · exact h
 
-/-- Every HEAD stamp in a reachable state names a stored HEAD. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Every HEAD stamp in a reachable state names a stored HEAD. -/
 theorem run_vote_stamps_stored {V : Type} [DecidableEq V] (p : Params)
     (rho : Run V (gridCO p)) (index : Nat) (reader : V) :
     ∀ o t, (o, t) ∈ (Run.stateBefore (gridCO p) rho index reader).voteStamp →
@@ -147,7 +151,8 @@ theorem run_vote_stamps_stored {V : Type} [DecidableEq V] (p : Params)
               · subst v; simpa [World.step] using! process_stamps_stored p _ o ih
               · simpa [World.step, hv] using ih
 
-/-- A receipt stamp identifies an earlier acceptance and its exact local
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A receipt stamp identifies an earlier acceptance and its exact local
 clock. No assumption about the signer's honesty is needed. -/
 theorem stored_head_stamp_source {V : Type} [DecidableEq V] (p : Params)
     (rho : Run V (gridCO p)) (index : Nat) (reader : V) (o : Wire p.n) (stamp : Time)
@@ -199,7 +204,8 @@ theorem stored_head_stamp_source {V : Type} [DecidableEq V] (p : Params)
               · obtain ⟨j, hj, rest⟩ := ih (by simpa [World.step, hv] using hm)
                 exact ⟨j, by omega, rest⟩
 
-/-- A stored HEAD's selected first stamp is an actual receipt row. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A stored HEAD's selected first stamp is an actual receipt row. -/
 theorem stampVote_mem_of_stored {n : Nat} (st : State n) (hs : ReceiptStamped st)
     (o : Wire n) (hm : o ∈ st.votes) : (o, stampVote st o) ∈ st.voteStamp := by
   obtain ⟨t, ht⟩ := hs.2 o hm
@@ -212,7 +218,8 @@ theorem stampVote_mem_of_stored {n : Nat} (st : State n) (hs : ReceiptStamped st
       rw [← he]
       exact hh
 
-/-- A stamp below a public cutoff proves an acceptance strictly before
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A stamp below a public cutoff proves an acceptance strictly before
 that cutoff. The scheduled local tick excludes a late receipt with an
 old stamp, including at a sleeping reader. -/
 theorem stored_head_accepted_before {V : Type} [DecidableEq V] (p : Params)
@@ -244,7 +251,8 @@ private theorem fold_vote_blockStamp (p : Params) {n : Nat} (raw : List (HeadWir
       · dsimp only; split <;> rfl
       · rfl
 
-/-- A new block stamp is the stamp of the directly admitted proposal. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A new block stamp is the stamp of the directly admitted proposal. -/
 theorem process_block_stamp_origin (p : Params) {n : Nat} (st : State n)
     (o : Wire n) (B : Block) (t : Time) (hm : (B, t) ∈ (process p st o).blockStamp) :
     (B, t) ∈ st.blockStamp ∨
@@ -269,10 +277,13 @@ theorem process_block_stamp_origin (p : Params) {n : Nat} (st : State n)
         obtain ⟨rfl, rfl⟩ := he
         refine Or.inr ⟨rfl, ?_, ?_, raw, support, hp⟩
         · intro hold; simp [hold] at hgood
-        · simp [process, ha, hp, admitProposal, hgood, fold_vote_blocks]
+        · simp only [process, ha, hp, admitProposal, hgood, Bool.false_eq_true, ite_false]
+          rw [fold_vote_blocks]
+          simp
   · exact Or.inl hm
 
-/-- Every stored non-genesis block stamp comes from an earlier accepted
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Every stored non-genesis block stamp comes from an earlier accepted
 proposal, with the exact source clock preserved in the stamp. -/
 theorem stored_block_stamp_source {V : Type} [DecidableEq V] (p : Params)
     (rho : Run V (gridCO p)) (index : Nat) (reader : V) (B : Block) (stamp : Time)
@@ -326,7 +337,8 @@ theorem stored_block_stamp_source {V : Type} [DecidableEq V] (p : Params)
               · obtain ⟨j, hj, rest⟩ := ih (by simpa [World.step, hv] using hm)
                 exact ⟨j, by omega, rest⟩
 
-/-- A stored block's selected first stamp is an actual receipt row. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A stored block's selected first stamp is an actual receipt row. -/
 theorem stampBlock_mem_of_stored {n : Nat} (st : State n) (hs : ReceiptStamped st)
     (B : Block) (hm : B ∈ st.blocks) : (B, stampBlock st B) ∈ st.blockStamp := by
   obtain ⟨t, ht⟩ := hs.1 B hm
@@ -339,7 +351,8 @@ theorem stampBlock_mem_of_stored {n : Nat} (st : State n) (hs : ReceiptStamped s
       rw [← he]
       exact hh
 
-/-- An early block stamp gives an accepted proposal strictly before the
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+An early block stamp gives an accepted proposal strictly before the
 public cutoff. This applies separately to every block in a resolved path. -/
 theorem stored_block_accepted_before {V : Type} [DecidableEq V] (p : Params)
     (E : Env V) (rho : Run V (gridCO p)) (hs : ScheduleWellFormed E rho)

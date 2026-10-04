@@ -12,7 +12,8 @@ variable [LeasePolicy]
 
 open AvailableChain.Generic AvailableChain.Statements.Generic
 
-/-- Ready receipt relay stores a checked block before the proposal. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Ready receipt relay stores a checked block before the proposal. -/
 theorem accepted_block_before_ready_proposal {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p))
     (hx : ExecutionValid (gridCO p) E rho) (hΔ : E.Δ = p.Δ) (s : Slot)
@@ -37,7 +38,8 @@ theorem accepted_block_before_ready_proposal {V : Type} [DecidableEq V]
   exact ⟨j, .deliver reader parent' t', he, ht,
     by simpa [processed, hp, blockKnown] using hm⟩
 
-/-- A block stored at least Δ before the proposal reaches the proposer
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A block stored at least Δ before the proposal reaches the proposer
 before it acts. This includes old blocks from an arbitrary prefix. -/
 theorem stored_block_before_ready_proposal {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p))
@@ -60,7 +62,8 @@ theorem stored_block_before_ready_proposal {V : Type} [DecidableEq V]
   exact (stored_block_stamp_before_cut p E rho hsched hj
     (by simpa [processed, hp, blockKnown] using hk) he (le_refl _)).1
 
-/-- A frozen raw HEAD reaches the proposer or exposes its seat as an
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A frozen raw HEAD reaches the proposer or exposes its seat as an
 equivocator. No honesty premise is imposed on that seat. -/
 theorem stored_head_before_ready_proposal {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hsched : ScheduleWellFormed E rho)
@@ -109,14 +112,16 @@ theorem stored_head_before_ready_proposal {V : Type} [DecidableEq V]
   · exact Or.inl (List.mem_filter.mp hm).1
   · exact Or.inr (equivocates_mono _ _ i (fun q hq => (List.mem_filter.mp hq).1) he)
 
-/-- The proposer clock preserves all block and vote receipts. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The proposer clock preserves all block and vote receipts. -/
 theorem proposalState_receiptData {V : Type} [DecidableEq V]
     (p : Params) (rho : Run V (gridCO p)) (s : Slot) :
     receiptData (proposalState p rho s) = receiptData
       (Run.stateBeforeTime (gridCO p) rho (proposalTime p s) (rho.proposerOf s)) :=
   clock_receiptData p _ _
 
-/-- The actual saved freeze needs only the schedule and a finite horizon.
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The actual saved freeze needs only the schedule and a finite horizon.
 It does not require the preceding label to start after GST. -/
 theorem nextHeadState_frozenAt_of_schedule {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hs : ScheduleWellFormed E rho)
@@ -128,7 +133,8 @@ theorem nextHeadState_frozenAt_of_schedule {V : Type} [DecidableEq V]
   exact frozenAt_after_freeze p E rho hs hΔ r reader hr (releaseTime p r)
     (by dsimp [freezeTime, releaseTime]; linarith [p.deltaPos]) hh
 
-/-- Every block in the previous frozen domain is in the honest proposer's
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Every block in the previous frozen domain is in the honest proposer's
 store. This uses the full relay interval before the proposal. -/
 theorem frozen_blocks_at_proposer {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hx : ExecutionValid (gridCO p) E rho)
@@ -147,7 +153,8 @@ theorem frozen_blocks_at_proposer {V : Type} [DecidableEq V]
         simp only [hΔ, freezeTime, proposalTime, Nat.cast_add, Nat.cast_one]
         ring) B hm
 
-/-- Every frozen raw HEAD is in the proposer pool or its seat equivocates. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Every frozen raw HEAD is in the proposer pool or its seat equivocates. -/
 theorem frozen_raw_at_proposer {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hsched : ScheduleWellFormed E rho)
     (hΔ : E.Δ = p.Δ) (r : Slot) (hready : ProposalRelayReady p E rho (r + 1))
@@ -171,7 +178,8 @@ theorem frozen_raw_at_proposer {V : Type} [DecidableEq V]
         simp only [hΔ, freezeTime, proposalTime, Nat.cast_add, Nat.cast_one]
         ring) o target hp (by simpa using hl) ho
 
-/-- Frozen resolved support is also resolved at the proposer. Relay of
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Frozen resolved support is also resolved at the proposer. Relay of
 its target block is distinct from relay of the HEAD object. -/
 theorem frozen_support_at_proposer {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hx : ExecutionValid (gridCO p) E rho)
@@ -191,17 +199,19 @@ theorem frozen_support_at_proposer {V : Type} [DecidableEq V]
   · left
     apply List.mem_filter.mpr
     refine ⟨hraw, ?_⟩
+    have hres := (resolvedBefore_block _ o _).symm.trans hres
     cases ht : headTarget? o with
-    | none => simp [resolvedBefore, ht] at hres
+    | none => simp [ht] at hres
     | some target =>
-        simp only [resolvedBefore, ht, hl, Option.getD_some, Bool.and_eq_true,
+        simp only [ht, hl, Option.getD_some, Bool.and_eq_true,
           decide_eq_true_eq, blockKnown] at hres
         have hb := frozen_blocks_at_proposer p E rho hx hΔ r hready hh hprop reader hr
           target hres.1.1.1
-        simpa [ht, blockKnown, hb] using hres.1.1.2
+        simpa [resolvedHead?, ht, resolveTarget, resolutionTree, hb] using hres.1.1.2
   · exact Or.inr he
 
-/-- The actual proposal parent is already stored at the source, including
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The actual proposal parent is already stored at the source, including
 when the constrained walk stays at its live root. -/
 theorem honest_proposal_parent_stored {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hs : ScheduleWellFormed E rho)
@@ -227,7 +237,8 @@ theorem honest_proposal_parent_stored {V : Type} [DecidableEq V]
     exact liveRoot_mem_blocks _ ht hg
   · exact List.mem_eraseDups.mp hm
 
-/-- Every source block reaches every reader before the proposal's HEAD.
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Every source block reaches every reader before the proposal's HEAD.
 In particular, each declared support target is resolved in the merged view. -/
 theorem proposal_blocks_at_head {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -260,7 +271,8 @@ theorem proposal_blocks_at_head {V : Type} [DecidableEq V] [Fintype V]
   exact (stored_block_stamp_before_cut p E rho hs hj
     (by simpa [processed, hp, blockKnown] using hk) he (le_refl _)).1
 
-/-- The merged voter tree adds only the honest fresh proposal to the
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The merged voter tree adds only the honest fresh proposal to the
 proposer's domain. Every frozen block relays before proposal time, and
 all other proposal ancestors were already stored at the source. -/
 theorem honest_proposal_tree_reflects {V : Type} [DecidableEq V] [Fintype V]

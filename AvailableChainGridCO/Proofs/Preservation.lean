@@ -13,7 +13,8 @@ variable [LeasePolicy]
 
 open AvailableChain.Generic AvailableChain.Statements.Generic
 
-/-- An awake honest reader emits its ordinary next HEAD after the release
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+An awake honest reader emits its ordinary next HEAD after the release
 clock. The signature is the run's seat for that label. -/
 theorem next_head_emitted {V : Type} [DecidableEq V] (p : Params)
     (E : Env V) (rho : Run V (gridCO p)) (hx : ExecutionValid (gridCO p) E rho)
@@ -44,9 +45,10 @@ theorem next_head_emitted {V : Type} [DecidableEq V] (p : Params)
   change ((act p (clock p (Run.stateBeforeTime (gridCO p) rho (voteTime p (r + 1)) reader)
     (voteTime p (r + 1))) (r + 1)).map _) = _
   rw [← release_eq_next_vote]
-  simp [act, nextHead, nextHeadState, releaseInput]
+  simp [act, targetOfBlock, nextHead, nextHeadState, releaseInput]
 
-/-- Synchronous delivery provides the complete resolved early batch for
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Synchronous delivery provides the complete resolved early batch for
 the next label, including target paths and honest-seat authentication. -/
 theorem synchronous_next_head_batch {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -74,7 +76,8 @@ theorem synchronous_next_head_batch {V : Type} [DecidableEq V]
   exact synchronous_honest_head_earlyVotes p E rho hΔ (r + 1) hsync seat target
     (by simpa [seat] using hh) he reader hr
 
-/-- A complete early honest batch preserves its common prefix in the raw
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A complete early honest batch preserves its common prefix in the raw
 genuine gate result. Later delivery can be arbitrary. -/
 theorem preserve_of_early_delivery
     {V : Type} [DecidableEq V] [Fintype V]
@@ -102,7 +105,8 @@ theorem preserve_of_early_delivery
     obtain ⟨target, ht, _, hb⟩ := prefixSupport_target p _ (r + 1) B hpos
     exact run_time_stored_prefix_closed p rho _ reader target ht B hg hb
 
-/-- Prefix preservation follows from the engine, the label's delivery
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Prefix preservation follows from the engine, the label's delivery
 premises, and h>a. -/
 theorem preserve_from_engine
     {V : Type} [DecidableEq V] [Fintype V]
@@ -117,7 +121,8 @@ theorem preserve_from_engine
   intro r hsync
   exact preserve_of_early_delivery p E rho hΔ r (.of_synchronous hsync)
 
-/-- A fresh block covered by every ordinary HEAD repairs the public record
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A fresh block covered by every ordinary HEAD repairs the public record
 at its 6Δ gate if the local guard permits the write. Early delivery supplies
 all receipt and path premises of the repair. -/
 theorem read_gate_repairs_heads {V : Type} [DecidableEq V] [Fintype V]

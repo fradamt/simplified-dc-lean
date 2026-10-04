@@ -9,18 +9,19 @@ namespace AvailableChain.FGSA
 
 open AvailableChain.Generic AvailableChain.SimplexFG
 
-/-- [GLY E-11; ACI step-3 note] Every stored target is below the output.
+/-- [ROOT-DIGEST-2 W1; DC root HEAD] [GLY E-11; ACI step-3 note] Every stored target is below the
+output.
 This includes expired rows, so the predicate permits backward ticks. -/
 def StoredTargetsBelowOutput (p : Params) (st : State p.n) : Prop :=
   ∀ ℓ ∈ st.base.obligations, Block.Preceq ℓ.1 st.base.stableRecord
 
-/-- [Model/Store.lean:31] The initial store has no lease. -/
+/-- [ROOT-DIGEST-2 W1; DC root HEAD] [Model/Store.lean:31] The initial store has no lease. -/
 theorem storedTargetsBelowOutput_init (p : Params) :
     StoredTargetsBelowOutput p (initial p.n) := by
   intro ℓ hℓ
   exact False.elim (List.not_mem_nil hℓ)
 
-/-- [helper] Each stored target is below the output. -/
+/-- [ROOT-DIGEST-2 W1; DC root HEAD] [helper] Each stored target is below the output. -/
 theorem storedTargetsBelowOutput_target (p : Params) (st : State p.n)
     (h : StoredTargetsBelowOutput p st) (row : Block × Nat × Time)
     (hr : row ∈ st.base.obligations) : Block.Preceq row.1 st.base.stableRecord :=
@@ -29,21 +30,23 @@ theorem storedTargetsBelowOutput_target (p : Params) (st : State p.n)
 section StoreWrappers
 attribute [local instance] GridCO.slowLeasePolicy
 
-/-- [helper] A slow-policy gate keeps an old target or adds a prefix of its result.
+/-- [ROOT-DIGEST-2 W1; DC root HEAD] [helper] A slow-policy gate keeps an old target or adds a
+prefix of its result.
 Source: AvailableChainGridCO/Proofs/StoreFacts.lean, `gateFrom_target_origin`. -/
 theorem gateFrom_target_origin_slow (p : GridCO.Params) {n : Nat}
-    (a : Block) (st : GridCO.State n) (r : Slot) (B : Block) (g : Nat) (d : Time)
-    (hm : (B, g, d) ∈ (@GridCO.gateFrom GridCO.slowLeasePolicy p n a st r).obligations) :
+    (a : Block) (st : GridCO.State n .root) (r : Slot) (B : Block) (g : Nat) (d : Time)
+    (hm : (B, g, d) ∈ (@GridCO.gateFrom GridCO.slowLeasePolicy p n .root a st r).obligations) :
     (∃ k deadline, (B, k, deadline) ∈ st.obligations) ∨
       ∃ C, GridCO.confirmationFrom p a st r = some C ∧ Block.Preceq B C :=
-  @GridCO.gateFrom_target_origin GridCO.slowLeasePolicy p n a st r B g d hm
+  @GridCO.gateFrom_target_origin GridCO.slowLeasePolicy .root p n a st r B g d hm
 
-/-- [helper] [P3 §2 store wrapper] GridCO `admitProposal_obligations` for the
+/-- [ROOT-DIGEST-2 W1; DC root HEAD] [helper] [P3 §2 store wrapper] GridCO
+`admitProposal_obligations` for the
 FG-SA lease policy: a proposal admission keeps the obligations. The run
 library may not cite GridCO proof constants (T7 used-constant guard). -/
 theorem admitProposal_obligations_slow (p : GridCO.Params) {n : Nat}
-    (st : GridCO.State n) (o : GridCO.Wire n) (b : Block)
-    (raw : List (GridCO.HeadWire n)) :
+    (st : GridCO.State n .root) (o : GridCO.Wire n .root) (b : Block)
+    (raw : List (GridCO.HeadWire n .root)) :
     (GridCO.admitProposal p st o b raw).obligations = st.obligations :=
   GridCO.admitProposal_obligations p st o b raw
 
@@ -90,7 +93,7 @@ private theorem storedTargets_rows (p : Params) (rows : List (RowWire p.n))
   | cons a rows ih => exact ih _ (storedTargets_row p st a hL)
 
 set_option linter.unusedVariables false in
-/-- [Model/Handlers.lean:64–89; Proofs/Reconcile.lean:28,55]
+/-- [ROOT-DIGEST-2 W1; DC root HEAD] [Model/Handlers.lean:64–89; Proofs/Reconcile.lean:28,55]
 Deliveries keep the target bound. Reconcile checks each surviving target. -/
 theorem storedTargetsBelowOutput_process (p : Params) (st : State p.n) (o : Wire p.n)
     (hC : CStoreInv p st) (hL : StoredTargetsBelowOutput p st) :
@@ -106,31 +109,35 @@ theorem storedTargetsBelowOutput_process (p : Params) (st : State p.n) (o : Wire
       rw [admitHead_base_stable]
       exact hL ℓ hℓ
     | row i body => exact storedTargets_row p st _ hL
-    | block s b raw support rows =>
-      change StoredTargetsBelowOutput p (admitBlock p st s b raw support rows)
+    | block s N =>
+      change StoredTargetsBelowOutput p (admitBlock p st s N)
       unfold admitBlock
-      cases parentFG st b with
-      | none => exact hL
-      | some P =>
-        dsimp only
-        split
-        · apply storedTargets_rows
-          have hbase : ∀ (st' : State p.n) (o' : GridCO.Wire p.n)
-              (b : Block) (raw : List (GridCO.HeadWire p.n)),
-              st'.base = GridCO.admitProposal p.toParams.engine st.base o' b raw →
-              StoredTargetsBelowOutput p st' := by
-            intro st' o' b raw he ℓ hℓ
-            rw [he, @GridCO.admitProposal_obligations GridCO.slowLeasePolicy] at hℓ
-            rw [he, admitProposal_stable]
-            exact hL ℓ hℓ
+      split
+      · exact hL
+      · cases parentFG st N.erase with
+        | none => exact hL
+        | some P =>
+          dsimp only
           split
-          · exact hbase _ (baseProposal s b raw support) b (raw.map baseHead) rfl
-          · exact storedTargets_reconcile p _
-              (hbase _ (baseProposal s b raw support) b (raw.map baseHead) rfl)
-        · exact hL
+          · apply storedTargets_rows
+            have hbase : ∀ (st' : State p.n) (o' : GridCO.Wire p.n .root)
+                (b : Block) (raw : List (GridCO.HeadWire p.n .root)),
+                st'.base = GridCO.admitProposal p.toParams.engine st.base o' b raw →
+                StoredTargetsBelowOutput p st' := by
+              intro st' o' b raw he ℓ hℓ
+              rw [he, @GridCO.admitProposal_obligations GridCO.slowLeasePolicy] at hℓ
+              rw [he, admitProposal_stable]
+              exact hL ℓ hℓ
+            split
+            · exact hbase _ (baseProposal s N.erase N.raw N.support) N.erase
+                (N.raw.map baseHead) rfl
+            · exact storedTargets_reconcile p _
+                (hbase _ (baseProposal s N.erase N.raw N.support) N.erase (N.raw.map baseHead) rfl)
+          · exact hL
+
 
 -- Renewal can change a deadline, but each target is old or is the written key.
-private theorem writeKeys_targets {n : Nat} (v : GridCO.State n)
+private theorem writeKeys_targets {n : Nat} (v : GridCO.State n .root)
     (keys : List (Block × Nat)) (d : Time)
     (hL : ∀ ℓ ∈ v.obligations, Block.Preceq ℓ.1 v.stableRecord)
     (hk : ∀ key ∈ keys, Block.Preceq key.1 v.stableRecord) :
@@ -174,26 +181,26 @@ private theorem candidate_below_advance (S C : Block) :
   · exact block_preceq_refl _
 
 private theorem saGate_targets (p : SA.Params) {n : Nat} (a : Block)
-    (v : GridCO.State n) (s : Slot)
+    (v : GridCO.State n .root) (s : Slot)
     (hL : ∀ ℓ ∈ v.obligations, Block.Preceq ℓ.1 v.stableRecord) :
-    ∀ ℓ ∈ (SA.gateFrom p a v s).obligations,
-      Block.Preceq ℓ.1 (SA.gateFrom p a v s).stableRecord := by
-  cases hc : SA.confirmationFrom p a v s with
+    ∀ ℓ ∈ (SA.Root.gateFrom p a v s).obligations,
+      Block.Preceq ℓ.1 (SA.Root.gateFrom p a v s).stableRecord := by
+  cases hc : SA.Root.confirmationFrom p a v s with
   | none =>
-    unfold SA.gateFrom GridCO.gateFrom
+    unfold SA.Root.gateFrom GridCO.gateFrom
     rw [show GridCO.confirmationFrom p.engine a v s = none from hc]
     exact hL
   | some C =>
     cases hg : v.obligations.any (fun (target, _, _) => !Block.compatible target C) with
     | true =>
-      unfold SA.gateFrom GridCO.gateFrom
+      unfold SA.Root.gateFrom GridCO.gateFrom
       rw [show GridCO.confirmationFrom p.engine a v s = some C from hc]
       dsimp only
       rw [hg, ite_eq_left rfl]
       exact hL
     | false =>
-      have he := @GridCO.gateFrom_eq_writeKeys GridCO.slowLeasePolicy p.engine n a v s C hc hg
-      change SA.gateFrom p a v s = _ at he
+      have he := @GridCO.gateFrom_eq_writeKeys GridCO.slowLeasePolicy .root p.engine n a v s C hc hg
+      change SA.Root.gateFrom p a v s = _ at he
       rw [he]
       apply writeKeys_targets
       · intro ℓ hℓ
@@ -225,7 +232,7 @@ private theorem storedTargets_gate (p : Params) (st : State p.n) (s : Slot)
     apply storedTargets_normalize p _ (cstoreInv_gateFresh p st hC s hnone).saCompat
     exact saGate_targets p.toParams (eraseFG st.fg.F) (actView st) s hL
 
-/-- [Proofs/StoreInv.lean:278,428; Model/Clock.lean:28,40,57]
+/-- [ROOT-DIGEST-2 W1; DC root HEAD] [Proofs/StoreInv.lean:278,428; Model/Clock.lean:28,40,57]
 Expiry and release remove rows. A gate keeps the bound before and after normalization. -/
 theorem storedTargetsBelowOutput_clock (p : Params) (st : State p.n) (t : Time)
     (hC : CStoreInv p st) (hN : NestOK st) (hL : StoredTargetsBelowOutput p st) :
@@ -243,7 +250,8 @@ theorem storedTargetsBelowOutput_clock (p : Params) (st : State p.n) (t : Time)
     exact hN
   · exact hpre
 
-/-- [Statements/Invariants.lean:40] The bound on all rows implies the live-row bound. -/
+/-- [ROOT-DIGEST-2 W1; DC root HEAD] [Statements/Invariants.lean:40] The bound on all rows implies
+the live-row bound. -/
 theorem leaseBelowOutputStore_of_storedTargetsBelowOutput
     (p : Params) (st : State p.n) (hL : StoredTargetsBelowOutput p st) :
     LeaseBelowOutputStore p st := by

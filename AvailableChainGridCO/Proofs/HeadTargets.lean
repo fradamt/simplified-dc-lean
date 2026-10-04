@@ -12,7 +12,8 @@ variable [LeasePolicy]
 
 open AvailableChain.Generic AvailableChain.Statements.Generic
 
-/-- Every obligation target remains in the local block store. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Every obligation target remains in the local block store. -/
 def TargetsStored {n : Nat} (st : State n) : Prop :=
   ∀ row ∈ st.obligations, row.1 ∈ st.blocks
 
@@ -69,7 +70,8 @@ theorem clock_targetsStored (p : Params) {n : Nat} (st : State n)
   · exact gate_targetsStored p _ _ hpre
   · exact hpre
 
-/-- All reachable obligations refer to stored blocks, without synchrony. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+All reachable obligations refer to stored blocks, without synchrony. -/
 theorem run_targetsStored {V : Type} [DecidableEq V] (p : Params)
     (rho : Run V (gridCO p)) (i : Nat) (reader : V) :
     TargetsStored (Run.stateBefore (gridCO p) rho i reader) := by
@@ -97,7 +99,8 @@ theorem run_targetsStored {V : Type} [DecidableEq V] (p : Params)
                 exact (process_receiptPrefix p _ o).blocks.subset (ih row hold)
               · simpa [World.step, hv] using ih
 
-/-- A live root is stored if genesis and all obligation targets are stored. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A live root is stored if genesis and all obligation targets are stored. -/
 theorem liveRoot_mem_blocks {n : Nat} (st : State n) (h : TargetsStored st)
     (hg : Block.genesis ∈ st.blocks) : liveRoot st ∈ st.blocks := by
   rcases (liveRoot_is_deepest st).1 with he | hm
@@ -111,7 +114,8 @@ theorem liveRoot_mem_blocks {n : Nat} (st : State n) (h : TargetsStored st)
       exact h (B, g, d) hr
     · contradiction
 
-/-- The ordinary HEAD walk ends at a stored block, including when the
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The ordinary HEAD walk ends at a stored block, including when the
 live root is absent from the frozen voter tree. -/
 theorem head_walk_mem_blocks (p : Params) {n : Nat} (st : State n) (r : Slot)
     (h : TargetsStored st) (hg : Block.genesis ∈ st.blocks) :
@@ -124,7 +128,8 @@ theorem head_walk_mem_blocks (p : Params) {n : Nat} (st : State n) (r : Slot)
     exact liveRoot_mem_blocks st h hg
   · exact (List.mem_filter.mp (List.mem_eraseDups.mp hm)).1
 
-/-- The target of an honest HEAD was already stored before its emission
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The target of an honest HEAD was already stored before its emission
 clock tick. Its path can therefore use accepted-object relay. -/
 theorem emitted_head_target_stored {V : Type} [DecidableEq V] (p : Params)
     (E : Env V) (rho : Run V (gridCO p)) (hs : ScheduleWellFormed E rho)
@@ -145,7 +150,7 @@ theorem emitted_head_target_stored {V : Type} [DecidableEq V] (p : Params)
   have hb : B ∈ (clock p (Run.stateBefore (gridCO p) rho index source) (voteTime p r)).blocks := by
     by_cases hz : r = 0
     · subst r
-      have heq : B = .genesis := by simpa [act] using ha.symm
+      have heq : B = .genesis := by simpa [act, targetOfBlock] using ha.symm
       simpa [heq] using hg
     · have heq : forkChoice
           (clock p (Run.stateBefore (gridCO p) rho index source) (voteTime p r))
@@ -153,7 +158,7 @@ theorem emitted_head_target_stored {V : Type} [DecidableEq V] (p : Params)
           (voterView p (clock p (Run.stateBefore (gridCO p) rho index source) (voteTime p r)) r)
           (voterSupportView p
             (clock p (Run.stateBefore (gridCO p) rho index source) (voteTime p r)) r) r = B := by
-        simpa [act, hz] using ha
+        simpa [act, targetOfBlock, hz] using ha
       rw [← heq]
       exact head_walk_mem_blocks p _ r htargets hg
   have hblocks := congrArg Prod.fst
@@ -162,7 +167,8 @@ theorem emitted_head_target_stored {V : Type} [DecidableEq V] (p : Params)
   rw [hblocks, stateBefore_tick_eq_stateBeforeTime hs hi] at hb
   exact ⟨hb, stored_before_head_slot_le p E rho hs r source B hb⟩
 
-/-- A synchronous honest HEAD and its target are fully resolved at the
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A synchronous honest HEAD and its target are fully resolved at the
 reader's gate, with no added receipt, stamp, path, or slot premise. -/
 theorem synchronous_honest_head_earlyVotes {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)

@@ -23,7 +23,8 @@ private theorem early_nonneg (p : Params) (r : Slot) : 0 ≤ earlyTime p r := by
   dsimp [earlyTime, proposalTime]
   nlinarith [p.deltaPos, Int.natCast_nonneg r]
 
-/-- A surviving early HEAD is present before the ordinary freeze with a stamp before the
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A surviving early HEAD is present before the ordinary freeze with a stamp before the
 ordinary freeze. This includes faulty support and sleeping readers. -/
 theorem synchronous_early_head_at_freeze {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -41,7 +42,7 @@ theorem synchronous_early_head_at_freeze {V : Type} [DecidableEq V] [Fintype V]
     cases ho : o.payload <;> simp_all [headLabel?]
   obtain ⟨B, hb⟩ := hhead
   have ht : stampVote (gateInput p rho r source) o < earlyTime p r := by
-    simp only [resolvedBefore, headTarget?, hb, Bool.and_eq_true, decide_eq_true_eq] at hres
+    simp only [resolvedBefore_block, headTarget?, hb, Bool.and_eq_true, decide_eq_true_eq] at hres
     exact hres.1.2
   change o ∈ (Run.stateBeforeTime (gridCO p) rho (gateTime p r) source).votes at hm
   change stampVote (Run.stateBeforeTime (gridCO p) rho (gateTime p r) source) o < _ at ht
@@ -77,7 +78,8 @@ theorem synchronous_early_head_at_freeze {V : Type} [DecidableEq V] [Fintype V]
   obtain ⟨hm, hstamp⟩ := List.mem_filter.mp hm
   exact ⟨hm, of_decide_eq_true hstamp⟩
 
-/-- The target of an early resolved HEAD is stored before the ordinary freeze with
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The target of an early resolved HEAD is stored before the ordinary freeze with
 an early block stamp. Its accepted proposal relays independently of the HEAD. -/
 theorem synchronous_early_target_at_freeze {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -97,7 +99,7 @@ theorem synchronous_early_target_at_freeze {V : Type} [DecidableEq V] [Fintype V
     dsimp [freezeTime, proposalTime]
     nlinarith [p.deltaPos, Int.natCast_nonneg r]
   have hres := (List.mem_filter.mp ho).2
-  simp only [resolvedBefore, hb, Bool.and_eq_true, decide_eq_true_eq, blockKnown] at hres
+  simp only [resolvedBefore_block, hb, Bool.and_eq_true, decide_eq_true_eq, blockKnown] at hres
   have hm := hres.1.1.1
   have ht := hres.2
   change B ∈ (Run.stateBeforeTime (gridCO p) rho (gateTime p r) source).blocks at hm
@@ -114,7 +116,8 @@ theorem synchronous_early_target_at_freeze {V : Type} [DecidableEq V] [Fintype V
     (by simpa [processed, hp, blockKnown] using hstored) he
     (by dsimp [freezeTime, releaseTime]; linarith [p.deltaPos])
 
-/-- Receipt lists before the ordinary freeze remain available after release. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Receipt lists before the ordinary freeze remain available after release. -/
 theorem freezeInput_receiptPrefix_nextHead {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p))
     (hs : ScheduleWellFormed E rho) (r : Slot) (reader : V) :
@@ -131,7 +134,8 @@ theorem freezeInput_receiptPrefix_nextHead {V : Type} [DecidableEq V]
     simpa [receiptData, nextHeadState] using hd
   constructor <;> simp_all [releaseInput]
 
-/-- Forward relay places every surviving early HEAD in the actual next
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Forward relay places every surviving early HEAD in the actual next
 ordinary support view, even if a proposal omits it from declared support. -/
 theorem synchronous_early_head_in_voterSupport {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -144,14 +148,19 @@ theorem synchronous_early_head_in_voterSupport {V : Type} [DecidableEq V] [Finty
   have hearly := (List.mem_filter.mp ho).1
   have hres := (List.mem_filter.mp hearly).2
   cases hb : headTarget? o with
-  | none => simp [resolvedBefore, hb] at hres
+  | none => simp [resolvedBefore_block, hb] at hres
   | some B =>
       obtain ⟨hB, hstamp⟩ := synchronous_early_target_at_freeze p E rho hΔ r hsync
         source reader hs hr o B hb hearly
       have hresolved : resolvedBefore
           (Run.stateBeforeTime (gridCO p) rho (freezeTime p r) reader)
           o (freezeTime p r) = true := by
-        simp only [resolvedBefore, hb, Bool.and_eq_true, decide_eq_true_eq] at hres ⊢
+        refine (resolvedBefore_block
+          (Run.stateBeforeTime (gridCO p) rho (freezeTime p r) reader)
+          o (freezeTime p r)).trans ?_
+        rw [hb]
+        simp only [Bool.and_eq_true, decide_eq_true_eq]
+        simp only [resolvedBefore_block, hb, Bool.and_eq_true, decide_eq_true_eq] at hres
         exact ⟨⟨⟨by simpa [blockKnown] using hB, hres.1.1.2⟩, ht⟩, hstamp⟩
       refine ⟨?_, B, rfl, (freezeInput_receiptPrefix_nextHead p E rho
         hsync.1.toScheduleWellFormed r reader).blocks.subset hB⟩
@@ -160,7 +169,8 @@ theorem synchronous_early_head_in_voterSupport {V : Type} [DecidableEq V] [Finty
       apply List.mem_eraseDups.mpr
       exact List.mem_append_left _ (List.mem_filter.mpr ⟨hm, hresolved⟩)
 
-/-- Every non-genesis ancestor of an early HEAD target lies in the actual
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Every non-genesis ancestor of an early HEAD target lies in the actual
 next voter tree. The saved block domain supplies the full path at once. -/
 theorem synchronous_early_path_in_voterTree {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)

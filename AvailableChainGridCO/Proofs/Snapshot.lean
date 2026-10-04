@@ -22,7 +22,8 @@ private theorem early_nonneg (p : Params) (r : Slot) : 0 ≤ earlyTime p r := by
   dsimp [earlyTime, proposalTime]
   nlinarith [p.deltaPos, Int.natCast_nonneg r]
 
-/-- Every HEAD in a release snapshot reaches every honest late pool.
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Every HEAD in a release snapshot reaches every honest late pool.
 The relay deadline is the same label's gate, including the strict endpoint. -/
 theorem synchronous_release_vote_late {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -49,7 +50,8 @@ theorem synchronous_release_vote_late {V : Type} [DecidableEq V] [Fintype V]
     (by rw [hΔ]; dsimp [releaseTime, gateTime] at *; linarith)
     (by rw [hΔ]; dsimp [gateTime]; linarith [p.deltaPos]) (le_refl _) (le_refl _)
 
-/-- A genuine surviving seat cannot equivocate in another reader's
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A genuine surviving seat cannot equivocate in another reader's
 release snapshot: relay would expose both copies before the source gate. -/
 theorem synchronous_survivor_not_equivocating {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -81,7 +83,8 @@ theorem synchronous_survivor_not_equivocating {V : Type} [DecidableEq V] [Fintyp
   change decide (2 ≤ xs.eraseDups.length) = false
   exact decide_eq_false (by omega)
 
-/-- A surviving early HEAD is present before release with a stamp before the
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A surviving early HEAD is present before release with a stamp before the
 ordinary freeze. This includes faulty support and sleeping readers. -/
 theorem synchronous_early_head_at_release {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -97,7 +100,7 @@ theorem synchronous_early_head_at_release {V : Type} [DecidableEq V] [Fintype V]
     cases ho : o.payload <;> simp_all [headLabel?]
   obtain ⟨B, hb⟩ := hhead
   have ht : stampVote (gateInput p rho r source) o < earlyTime p r := by
-    simp only [resolvedBefore, headTarget?, hb, Bool.and_eq_true, decide_eq_true_eq] at hres
+    simp only [resolvedBefore_block, headTarget?, hb, Bool.and_eq_true, decide_eq_true_eq] at hres
     exact hres.1.2
   change o ∈ (Run.stateBeforeTime (gridCO p) rho (gateTime p r) source).votes at hm
   change stampVote (Run.stateBeforeTime (gridCO p) rho (gateTime p r) source) o < _ at ht
@@ -124,7 +127,8 @@ theorem synchronous_early_head_at_release {V : Type} [DecidableEq V] [Fintype V]
   obtain ⟨hm, hstamp⟩ := List.mem_filter.mp hm
   exact ⟨hm, of_decide_eq_true hstamp⟩
 
-/-- The target of an early resolved HEAD is stored before release with
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The target of an early resolved HEAD is stored before release with
 an early block stamp. Its accepted proposal relays independently of the HEAD. -/
 theorem synchronous_early_target_at_release {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -144,7 +148,7 @@ theorem synchronous_early_target_at_release {V : Type} [DecidableEq V] [Fintype 
     dsimp [freezeTime, proposalTime]
     nlinarith [p.deltaPos, Int.natCast_nonneg r]
   have hres := (List.mem_filter.mp ho).2
-  simp only [resolvedBefore, hb, Bool.and_eq_true, decide_eq_true_eq, blockKnown] at hres
+  simp only [resolvedBefore_block, hb, Bool.and_eq_true, decide_eq_true_eq, blockKnown] at hres
   have hm := hres.1.1.1
   have ht := hres.2
   change B ∈ (Run.stateBeforeTime (gridCO p) rho (gateTime p r) source).blocks at hm
@@ -161,7 +165,8 @@ theorem synchronous_early_target_at_release {V : Type} [DecidableEq V] [Fintype 
     (by simpa [processed, hp, blockKnown] using hstored) he
     (by dsimp [freezeTime, releaseTime]; linarith [p.deltaPos])
 
-/-- Every surviving early HEAD remains resolved at each reader's release
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Every surviving early HEAD remains resolved at each reader's release
 snapshot. Both the HEAD and its target path have arrived before the freeze. -/
 theorem synchronous_early_resolved_at_release {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -176,17 +181,18 @@ theorem synchronous_early_resolved_at_release {V : Type} [DecidableEq V] [Fintyp
   have hearly := (List.mem_filter.mp ho).1
   have hres := (List.mem_filter.mp hearly).2
   cases hb : headTarget? o with
-  | none => simp [resolvedBefore, hb] at hres
+  | none => simp [resolvedBefore_block, hb] at hres
   | some B =>
       obtain ⟨hblock, hstamp⟩ := synchronous_early_target_at_release p E rho hΔ r hsync
         source reader hs hr o B hb hearly
       have hcut : freezeTime p r ≤ releaseTime p r := by
         dsimp [freezeTime, releaseTime]; linarith [p.deltaPos]
-      simp only [resolvedBefore, hb, Bool.and_eq_true, decide_eq_true_eq] at hres ⊢
+      simp only [resolvedBefore_block, hb, Bool.and_eq_true, decide_eq_true_eq] at hres ⊢
       exact ⟨⟨⟨by simpa [blockKnown] using hblock, hres.1.1.2⟩,
         ht.trans_le hcut⟩, hstamp.trans_le hcut⟩
 
-/-- The engine supplies the resolved paths and reverse equivocation relay
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The engine supplies the resolved paths and reverse equivocation relay
 for every genuine prefix support set. -/
 theorem snapshotSeatAlignment_from_engine {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -207,7 +213,8 @@ theorem snapshotSeatAlignment_from_engine {V : Type} [DecidableEq V] [Fintype V]
     obtain ⟨o, ho, hseat, _⟩ := prefixSupportSeats_witness p _ r B i hi
     exact synchronous_survivor_not_equivocating p E rho hΔ r hsync source reader hs hr o i ho hseat
 
-/-- The snapshot bound follows from receipt relay in either label
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The snapshot bound follows from receipt relay in either label
 regime. The conclusion counts actual resolved, non-equivocating seats. -/
 theorem snapshot_from_engine {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ) :
@@ -221,7 +228,8 @@ theorem snapshot_from_engine {V : Type} [DecidableEq V] [Fintype V]
   intro r hsync
   exact snapshot_from_alignment p rho r (snapshotSeatAlignment_from_engine p E rho hΔ r hsync)
 
-/-- The engine release clears a conflicting row when its level is no
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The engine release clears a conflicting row when its level is no
 greater than the genuine prefix support. -/
 theorem release_clears_conflict_from_engine {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -239,7 +247,8 @@ theorem release_clears_conflict_from_engine {V : Type} [DecidableEq V] [Fintype 
     simpa [release] using (List.mem_filter.mp hm).2
   omega
 
-/-- Any conflicting row left by release is strictly stronger than the
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Any conflicting row left by release is strictly stronger than the
 genuine prefix support. This is the count step of the recovery descent. -/
 theorem surviving_conflict_stronger_from_engine {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)

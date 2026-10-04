@@ -13,7 +13,8 @@ variable [LeasePolicy]
 
 open AvailableChain.Generic AvailableChain.Statements.Generic
 
-/-- The actual non-equivocating seats counted for a genuine prefix. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The actual non-equivocating seats counted for a genuine prefix. -/
 def prefixSupportSeats (p : Params) {n : Nat} (st : State n) (r : Slot) (B : Block) :
     Finset (Fin n) :=
   (seats n (cleanSupport p st r)).toFinset.filter (fun i =>
@@ -25,13 +26,15 @@ def prefixSupportSeats (p : Params) {n : Nat} (st : State n) (r : Slot) (B : Blo
 
 theorem prefixSupport_eq_card (p : Params) {n : Nat} (st : State n) (r : Slot) (B : Block) :
     prefixSupport p st r B = (prefixSupportSeats p st r B).card := by
-  simp only [prefixSupport, goldfishScore, cleanSupport_no_equivocation, Bool.false_or,
+  simp only [prefixSupport_block_eq, goldfishScore_block_eq, cleanSupport_no_equivocation,
+    Bool.false_or,
     prefixSupportSeats]
   rw [← List.toFinset_filter]
   exact (List.toFinset_card_of_nodup
     (List.Nodup.filter _ (List.nodup_dedup _))).symm
 
-/-- Each counted seat has a surviving HEAD whose target contains the prefix. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Each counted seat has a surviving HEAD whose target contains the prefix. -/
 theorem prefixSupportSeats_witness (p : Params) {n : Nat} (st : State n) (r : Slot)
     (B : Block) (i : Fin n) (hi : i ∈ prefixSupportSeats p st r B) :
     ∃ o ∈ cleanSupport p st r, headSeat? o = some i ∧
@@ -54,7 +57,8 @@ theorem prefixSupportSeats_subset_late (p : Params) {n : Nat} (st : State n)
   apply List.mem_dedup.mpr
   exact List.mem_filterMap.mpr ⟨o, hl, hs⟩
 
-/-- Conflicting prefixes have disjoint genuine support at the same reader. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Conflicting prefixes have disjoint genuine support at the same reader. -/
 theorem prefixSupportSeats_disjoint (p : Params) {n : Nat} (st : State n)
     (r : Slot) (B C : Block) (hc : Block.compatible B C = false) :
     Disjoint (prefixSupportSeats p st r B) (prefixSupportSeats p st r C) := by
@@ -71,7 +75,8 @@ theorem prefixSupportSeats_disjoint (p : Params) {n : Nat} (st : State n)
   rw [hc] at hh
   contradiction
 
-/-- The support of conflicting prefixes fits in the late denominator. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The support of conflicting prefixes fits in the late denominator. -/
 theorem conflicting_support_sum_le_late (p : Params) {n : Nat} (st : State n)
     (r : Slot) (B C : Block) (hc : Block.compatible B C = false) :
     prefixSupport p st r B + prefixSupport p st r C ≤ voterCount (lateVotes p st r) := by
@@ -80,7 +85,8 @@ theorem conflicting_support_sum_le_late (p : Params) {n : Nat} (st : State n)
   exact Finset.card_le_card (Finset.union_subset
     (prefixSupportSeats_subset_late p st r B) (prefixSupportSeats_subset_late p st r C))
 
-/-- A majority prefix strictly outscores every conflicting prefix. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A majority prefix strictly outscores every conflicting prefix. -/
 theorem majority_support_dominates_conflict (p : Params) {n : Nat} (st : State n)
     (r : Slot) (B C : Block)
     (hm : voterCount (lateVotes p st r) < 2 * prefixSupport p st r B)
@@ -89,7 +95,8 @@ theorem majority_support_dominates_conflict (p : Params) {n : Nat} (st : State n
   have := conflicting_support_sum_le_late p st r B C hc
   omega
 
-/-- The complete early resolved honest batch contributes its full count.
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The complete early resolved honest batch contributes its full count.
 Authentication proves that all its seats survive the late filter. -/
 theorem prefixSupport_ge_early_honest_batch
     {V : Type} [DecidableEq V] (p : Params) (E : Env V)
@@ -114,13 +121,14 @@ theorem prefixSupport_ge_early_honest_batch
     · exact List.mem_toFinset.mpr (List.mem_dedup.mpr
         (List.mem_filterMap.mpr ⟨o, hc, hseat⟩))
     · have hresolved := (List.mem_filter.mp ho).2
-      simp only [resolvedBefore, ht, Bool.and_eq_true, decide_eq_true_eq] at hresolved
+      simp only [resolvedBefore_block, ht, Bool.and_eq_true, decide_eq_true_eq] at hresolved
       simpa only [ht, Bool.and_eq_true, decide_eq_true_eq, blockKnown, Block.Preceq] using
         And.intro (And.intro hresolved.1.1.1 hresolved.1.1.2) hp
   · intro u _ v _ he
     exact (rho.seatOf r).symm.injective he
 
-/-- A stored prefix with a strict genuine majority occurs in the genuine
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A stored prefix with a strict genuine majority occurs in the genuine
 result. This proves the confirmation step from the actual support count;
 it requires no preselected result or extra GHOST assumption. -/
 theorem confirmation_covers_majority (p : Params) {n : Nat} (st : State n)
@@ -163,7 +171,8 @@ theorem confirmation_covers_majority (p : Params) {n : Nat} (st : State n)
   · rename_i hbad
     exact (hbad (of_decide_eq_true he)).elim
 
-/-- The preservation counting step needs only the complete early resolved
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The preservation counting step needs only the complete early resolved
 honest batch. The path and the strict GHOST majority then follow. -/
 theorem confirmation_covers_early_honest_batch
     {V : Type} [DecidableEq V] [Fintype V] (p : Params) (E : Env V)
@@ -188,7 +197,8 @@ theorem confirmation_covers_early_honest_batch
     (fun C hn hp => run_time_stored_prefix_closed p rho cut reader target ht C hn
       (prefix_trans C B target hp hbt)) hmajority
 
-/-- A slot-ordered chain cannot have a different ancestor in the same slot. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A slot-ordered chain cannot have a different ancestor in the same slot. -/
 theorem prefix_eq_of_slot_ge (B C : Block) (ho : SlotOrdered C)
     (hp : Block.Preceq B C) (hs : C.slot ≤ B.slot) : B = C := by
   cases C with
@@ -202,7 +212,8 @@ theorem prefix_eq_of_slot_ge (B C : Block) (ho : SlotOrdered C)
         change s ≤ B.slot at hs
         exact (Nat.not_lt_of_ge hs (lt_of_le_of_lt hle hlt)).elim
 
-/-- A current-slot majority gives the exact fresh result used by repair. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A current-slot majority gives the exact fresh result used by repair. -/
 theorem confirmation_eq_fresh_majority (p : Params) {n : Nat} (st : State n)
     (r : Slot) (B : Block) (hslot : B.slot = r)
     (hordered : ∀ C ∈ st.blocks, SlotOrdered C)
@@ -218,7 +229,8 @@ theorem confirmation_eq_fresh_majority (p : Params) {n : Nat} (st : State n)
   have he := prefix_eq_of_slot_ge B C hco hp (hbound.trans_eq hslot.symm)
   simpa [he] using hc
 
-/-- The public gate repairs the record from a fresh strict majority and
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The public gate repairs the record from a fresh strict majority and
 guard permission. Path closure and the old-record bound follow from the run. -/
 theorem read_gate_repairs_majority {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p))
@@ -241,7 +253,8 @@ theorem read_gate_repairs_majority {V : Type} [DecidableEq V]
     (run_time_recordSlotOrdered p rho _ v).1
     (fun C hn hp => run_time_stored_prefix_closed p rho _ v B hb C hn hp) hm
 
-/-- With an awake majority, complete honest support suffices for repair.
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+With an awake majority, complete honest support suffices for repair.
 The late-pool bound, GHOST result, and record-slot bound come from the engine. -/
 theorem read_gate_repairs_honest_support {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p))
@@ -261,7 +274,8 @@ theorem read_gate_repairs_honest_support {V : Type} [DecidableEq V] [Fintype V]
   change voterCount (lateVotes p (gateInput p rho r v) r) ≤ _ at hlate
   omega
 
-/-- Repair from an early resolved honest batch and the local guard. All
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Repair from an early resolved honest batch and the local guard. All
 support counting, equivocation exclusion, path fuel, and record replacement
 are proved here; delivery of the batch and guard permission remain premises. -/
 theorem read_gate_repairs_early_honest_batch {V : Type} [DecidableEq V] [Fintype V]

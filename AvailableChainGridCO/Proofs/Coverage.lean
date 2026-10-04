@@ -14,7 +14,8 @@ variable [LeasePolicy]
 
 open AvailableChain.Generic AvailableChain.Statements.Generic
 
-/-- Receipt-preserving clock phases also preserve each genuine prefix count. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Receipt-preserving clock phases also preserve each genuine prefix count. -/
 theorem prefixSupport_eq_of_receiptData (p : Params) {n : Nat} (a b : State n)
     (he : receiptData a = receiptData b) (hb : ReceiptStamped b) (r : Slot) (B : Block) :
     prefixSupport p a r B = prefixSupport p b r B := by
@@ -32,9 +33,10 @@ theorem prefixSupport_eq_of_receiptData (p : Params) {n : Nat} (a b : State n)
     apply List.filter_congr
     intro o ho
     rw [hp.stampVote hb o (List.mem_filter.mp ho).1]
-  simp only [prefixSupport, cleanSupport, hearly, hlate, h1]
+  simp only [prefixSupport_block_eq, cleanSupport, hearly, hlate, h1]
 
-/-- Equal-time deliveries do not change the map after its unique local tick. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Equal-time deliveries do not change the map after its unique local tick. -/
 theorem read_field_eq_clock {α : Type} {V : Type} [DecidableEq V]
     (p : Params) (f : State p.n → α)
     (hf : ∀ st o, f (process p st o) = f st)
@@ -44,7 +46,8 @@ theorem read_field_eq_clock {α : Type} {V : Type} [DecidableEq V]
       f (clock p (Run.stateBeforeTime (gridCO p) rho t reader) t) :=
   Engine.read_field_eq_clock (gridCO p) f hf E rho hs reader t htick
 
-/-- Equal-time deliveries preserve the lease map after the public tick. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Equal-time deliveries preserve the lease map after the public tick. -/
 theorem read_obligations_eq_clock {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hs : ScheduleWellFormed E rho)
     (reader : V) (t : Time) (htick : Event.tick reader t ∈ rho.events) :
@@ -63,7 +66,8 @@ private theorem fold_max_origin (xs : List Nat) (acc : Nat) :
         · exact Or.inl (he.trans (max_eq_left h))
       · exact Or.inr (List.mem_cons_of_mem x hm)
 
-/-- Positive support selects a member of the declared grid. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Positive support selects a member of the declared grid. -/
 theorem roundedLevel_mem (p : Params) (h : Nat) (hh : 1 ≤ h) : roundedLevel p h ∈ p.grid := by
   have hpos := one_le_roundedLevel p h hh
   unfold roundedLevel gridLevel at hpos ⊢
@@ -72,7 +76,8 @@ theorem roundedLevel_mem (p : Params) (h : Nat) (hh : 1 ≤ h) : roundedLevel p 
   · omega
   · exact (Bool.and_eq_true_iff.mp (List.mem_filter.mp hm).2).1 |> of_decide_eq_true
 
-/-- A clean genuine result passes every reader's current map guard. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A clean genuine result passes every reader's current map guard. -/
 theorem clean_gate_guard {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
     (r : Slot) (hclean : CleanThroughLabel p E rho r)
@@ -94,7 +99,8 @@ theorem clean_gate_guard {V : Type} [DecidableEq V] [Fintype V]
     Bool.or_eq_true_iff.mpr (Or.inl (prefix_trans B D C hBD hp))
   simp [hgood] at hbad
 
-/-- The ordinary next HEADs cover every prefix of a clean stable read. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The ordinary next HEADs cover every prefix of a clean stable read. -/
 theorem clean_stable_heads_cover {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
     (r : Slot) (hclean : CleanThroughLabel p E rho r)
@@ -129,7 +135,8 @@ theorem gate_covers_result (p : Params) {n : Nat} (st : State n) (r : Slot)
   · assumption
   · exact block_preceq_self C
 
-/-- A permitted raw genuine result enters the public record, independently
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A permitted raw genuine result enters the public record, independently
 of whether the admission policy writes any lease. -/
 theorem read_gate_covers_result {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -154,7 +161,8 @@ theorem read_gate_covers_result {V : Type} [DecidableEq V]
     intro row hm
     exact List.any_eq_false.mp hg row (clockPreGate_obligations_subset p _ _ row hm)
 
-/-- A permitted genuine gate records its prefix and installs every
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A permitted genuine gate records its prefix and installs every
 supported grid row at the actual public read. -/
 theorem read_gate_writes_admitted_prefix {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -218,7 +226,8 @@ end Shared
 
 open AvailableChain.Generic AvailableChain.Statements.Generic
 
-/-- A permitted genuine gate records its prefix and installs every
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A permitted genuine gate records its prefix and installs every
 supported grid row at the actual public read. -/
 theorem read_gate_writes_supported_prefix {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -242,7 +251,8 @@ theorem read_gate_writes_supported_prefix {V : Type} [DecidableEq V]
       by simp [hg, he, hcount]⟩
   · exact hguard
 
-/-- Clean coverage follows from the engine. This discharges the full
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Clean coverage follows from the engine. This discharges the full
 coverage claim, including rounded strength, honest support, and the row
 deadline at the next public gate. -/
 theorem coverage_from_engine {V : Type} [DecidableEq V] [Fintype V]

@@ -8,9 +8,47 @@ namespace AvailableChain.GridCO
 -- Keep one shared proof interface for both lease policies.
 set_option linter.unusedSectionVars false
 
-variable [LeasePolicy]
+variable [LeasePolicy] {mode : HeadMode}
 
 open AvailableChain.Generic
+
+/-- [ROOT-DIGEST-2 W1; DC legacy HEAD] Keep the old block-mode receipt equation. -/
+theorem resolvedBefore_block {n : Nat} (st : State n) (o : Wire n) (cutoff : Time) :
+    resolvedBefore st o cutoff = (match headTarget? o with
+      | none => false
+      | some B => blockKnown st B && B.slot ≤ (headLabel? o).getD 0 &&
+          stampVote st o < cutoff && stampBlock st B < cutoff) := by
+  unfold resolvedBefore resolvedHead?
+  cases ht : headTarget? o with
+  | none => rfl
+  | some B =>
+    by_cases hm : B ∈ st.blocks <;>
+      simp [resolveTarget, resolutionTree, blockKnown, hm]
+
+/-- [ROOT-DIGEST-2 W1; DC legacy HEAD] Keep the old block-mode score equation. -/
+theorem goldfishScore_block_eq {n : Nat} (tree : List Block)
+    (raw support : List (Wire n)) (B : Block) :
+    goldfishScore tree raw support B =
+      ((seats n raw).filter (fun i => equivocates raw i || (seatVotes support i).any
+        (fun o => match headTarget? o with
+          | some C => C ∈ tree && C.slot ≤ (headLabel? o).getD 0 && Block.preceq B C
+          | none => false))).length := by
+  unfold goldfishScore goldfishScoreOn
+  congr 1
+  apply List.filter_congr
+  intro i _
+  apply congrArg (fun x => equivocates raw i || x)
+  apply List.any_congr rfl
+  intro o
+  cases ht : headTarget? o with
+  | none => rfl
+  | some C =>
+    by_cases hm : C ∈ tree <;> simp [resolveTarget, hm]
+
+/-- [ROOT-DIGEST-2 W1; DC legacy HEAD] Block-mode prefix support uses the old score domain. -/
+theorem prefixSupport_block_eq (p : Params) {n : Nat} (st : State n) (r : Slot) (B : Block) :
+    prefixSupport p st r B =
+      goldfishScore st.blocks (cleanSupport p st r) (cleanSupport p st r) B := rfl
 
 private theorem foldl_option_origin {α : Type}
     (f : Option α → α → Option α)
@@ -28,7 +66,8 @@ private theorem foldl_option_origin {α : Type}
           exact Or.inr (List.mem_cons.mpr (Or.inl heq.symm))
       · exact Or.inr (List.mem_cons.mpr (Or.inr htail))
 
-/-- A successful GHOST step selects a stored eligible child of its anchor. -/
+/-- [ROOT-DIGEST-2 W1; DC shared HEAD modes] A successful GHOST step selects a stored eligible child
+of its anchor. -/
 theorem ghostStep_child (tree : List Block) (score : Block → Nat)
     (eligible : Block → Bool) (anchor child : Block)
     (hstep : ghostStep tree score eligible anchor = some child) :
@@ -72,7 +111,8 @@ theorem ghostStep_child (tree : List Block) (score : Block → Nat)
         have ⟨hparent, helig⟩ := Bool.and_eq_true_iff.mp hp.2
         exact ⟨hp.1, by simpa using hparent, helig⟩
 
-/-- The GHOST walk returns its anchor or a member of its tree. This ports
+/-- [ROOT-DIGEST-2 W1; DC shared HEAD modes] The GHOST walk returns its anchor or a member of its
+tree. This ports
 the source `Records.ghost_walk_mem` argument to the list-based walk. -/
 theorem ghostWalk_mem (tree : List Block) (score : Block → Nat)
     (eligible : Block → Bool) (fuel : Nat) (anchor : Block) :
@@ -94,7 +134,7 @@ theorem ghostWalk_mem (tree : List Block) (score : Block → Nat)
           · exact Or.inr hm
 
 omit [LeasePolicy] in
-theorem confirmationFrom_mem (p : Params) {n : Nat} (a : Block) (st : State n)
+theorem confirmationFrom_mem (p : Params) {n : Nat} (a : Block) (st : State n mode)
     (r : Slot) (B : Block) (hc : confirmationFrom p a st r = some B) :
     B = a ∨ B ∈ st.blocks := by
   unfold confirmationFrom at hc
@@ -108,7 +148,7 @@ theorem confirmationFrom_mem (p : Params) {n : Nat} (a : Block) (st : State n)
     · exact Or.inr (List.mem_eraseDups.mp hm)
   · contradiction
 
-theorem gateFrom_eq_writeKeys (p : Params) {n : Nat} (a : Block) (st : State n)
+theorem gateFrom_eq_writeKeys (p : Params) {n : Nat} (a : Block) (st : State n mode)
     (r : Slot) (C : Block)
     (hc : confirmationFrom p a st r = some C)
     (hguard : st.obligations.any (fun (target, _, _) =>
@@ -122,7 +162,7 @@ theorem gateFrom_eq_writeKeys (p : Params) {n : Nat} (a : Block) (st : State n)
   simp [gateFrom, hc, hguard, writeKeys_def, gateWriteKeys_def,
     List.foldl_flatMap, List.foldl_map]
 
-private theorem writeKeys_target_origin {n : Nat} (st : State n)
+private theorem writeKeys_target_origin {n : Nat} (st : State n mode)
     (keys : List (Block × Nat)) (limit : Time) (B : Block) (g : Nat) (d : Time)
     (hm : (B, g, d) ∈ (writeKeys st keys limit).obligations) :
     (∃ k deadline, (B, k, deadline) ∈ st.obligations) ∨ ∃ k, (B, k) ∈ keys := by
@@ -136,8 +176,9 @@ private theorem writeKeys_target_origin {n : Nat} (st : State n)
           exact Or.inr ⟨key.2, List.mem_cons.mpr (Or.inl (by simp [he]))⟩
       · exact Or.inr ⟨k, List.mem_cons_of_mem key hk⟩
 
-/-- An anchored gate can add only prefixes of its genuine result to the map. -/
-theorem gateFrom_target_origin (p : Params) {n : Nat} (a : Block) (st : State n)
+/-- [ROOT-DIGEST-2 W1; DC shared HEAD modes] An anchored gate can add only prefixes of its genuine
+result to the map. -/
+theorem gateFrom_target_origin (p : Params) {n : Nat} (a : Block) (st : State n mode)
     (r : Slot) (B : Block) (g : Nat) (d : Time)
     (hm : (B, g, d) ∈ (gateFrom p a st r).obligations) :
     (∃ k deadline, (B, k, deadline) ∈ st.obligations) ∨
@@ -156,20 +197,20 @@ theorem gateFrom_target_origin (p : Params) {n : Nat} (a : Block) (st : State n)
           subst A
           exact Or.inr ⟨C, rfl, (Bool.and_eq_true_iff.mp (List.mem_filter.mp hA).2).2⟩
 
-theorem admitVote_blocks (p : Params) {n : Nat} (st : State n)
-    (o : Wire n) : (admitVote p st o).blocks = st.blocks := by
+theorem admitVote_blocks (p : Params) {n : Nat} (st : State n mode)
+    (o : Wire n mode) : (admitVote p st o).blocks = st.blocks := by
   unfold admitVote
   split <;> simp_all
   split <;> rfl
 
-theorem admitVote_obligations (p : Params) {n : Nat} (st : State n)
-    (o : Wire n) : (admitVote p st o).obligations = st.obligations := by
+theorem admitVote_obligations (p : Params) {n : Nat} (st : State n mode)
+    (o : Wire n mode) : (admitVote p st o).obligations = st.obligations := by
   unfold admitVote
   split <;> simp_all
   split <;> rfl
 
 private theorem foldl_blocks {n : Nat} {α : Type}
-    (f : State n → α → State n) (xs : List α) (st : State n)
+    (f : State n mode → α → State n mode) (xs : List α) (st : State n mode)
     (hf : ∀ acc x, (f acc x).blocks = acc.blocks) :
     (xs.foldl f st).blocks = st.blocks := by
   induction xs generalizing st with
@@ -178,7 +219,7 @@ private theorem foldl_blocks {n : Nat} {α : Type}
       simp only [List.foldl_cons]
       rw [ih, hf]
 
-theorem gateFrom_blocks (p : Params) {n : Nat} (a : Block) (st : State n) (r : Slot) :
+theorem gateFrom_blocks (p : Params) {n : Nat} (a : Block) (st : State n mode) (r : Slot) :
     (gateFrom p a st r).blocks = st.blocks := by
   cases hc : confirmationFrom p a st r with
   | none => simp [gateFrom, hc]
@@ -194,7 +235,7 @@ theorem gateFrom_blocks (p : Params) {n : Nat} (a : Block) (st : State n) (r : S
           intro acc g
           rfl
 
-theorem admitVote_stable (p : Params) {n : Nat} (st : State n) (o : Wire n) :
+theorem admitVote_stable (p : Params) {n : Nat} (st : State n mode) (o : Wire n mode) :
     (admitVote p st o).stableRecord = st.stableRecord := by
   unfold admitVote
   split
@@ -257,7 +298,7 @@ theorem ghost_extends (anchor : Block) (tree : List Block)
   exact ghostWalk_extends tree.eraseDups score eligible tree.eraseDups.length anchor
 
 private theorem fold_admitVote_obligations (p : Params) {n : Nat}
-    (raw : List (HeadWire n)) (st : State n) :
+    (raw : List (HeadWire n mode)) (st : State n mode) :
     (raw.foldl (fun acc row => admitVote p acc (fromHead row)) st).obligations =
       st.obligations := by
   induction raw generalizing st with
@@ -268,7 +309,7 @@ private theorem fold_admitVote_obligations (p : Params) {n : Nat}
           (admitVote_obligations p st (fromHead row))
 
 theorem admitProposal_obligations (p : Params) {n : Nat}
-    (st : State n) (o : Wire n) (b : Block) (raw : List (HeadWire n)) :
+    (st : State n mode) (o : Wire n mode) (b : Block) (raw : List (HeadWire n mode)) :
     (admitProposal p st o b raw).obligations = st.obligations := by
   let bad : Bool :=
     b.slot > (st.now / (4 * p.Δ)).toNat || !blockKnown st b.parent ||
@@ -276,7 +317,7 @@ theorem admitProposal_obligations (p : Params) {n : Nat}
       !(match o.auth with
         | .proposer s => s == b.slot
         | _ => false)
-  let st' : State n := { st with
+  let st' : State n mode := { st with
     blocks := st.blocks ++ [b]
     blockStamp := st.blockStamp ++ [(b, st.now)]
     proposals := st.proposals ++ [o] }

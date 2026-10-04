@@ -13,7 +13,8 @@ variable [LeasePolicy]
 
 open AvailableChain.Generic AvailableChain.Statements.Generic
 
-/-- The ordinary proposal walk from genesis, with the actual source views.
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The ordinary proposal walk from genesis, with the actual source views.
 This is a proof expression; honest code still starts at its live root. -/
 def ordinaryProposalHead {n : Nat} (st : State n) (s : Slot) : Block :=
   ghost .genesis st.blocks (goldfishScore st.blocks (proposerView st s) (proposerSupportView st s))
@@ -24,7 +25,8 @@ private theorem freeze_to_proposal (p : Params) (r : Slot) :
   dsimp [freezeTime, proposalTime]
   nlinarith [p.deltaPos]
 
-/-- Early resolved support is present in the next proposer's ordinary
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Early resolved support is present in the next proposer's ordinary
 view before it acts. Raw HEAD and target-path relay are both included. -/
 theorem early_support_at_proposal {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -39,7 +41,7 @@ theorem early_support_at_proposal {V : Type} [DecidableEq V] [Fintype V]
   have hres := (List.mem_filter.mp hearly).2
   have hl : headLabel? o = some r := by simpa using (List.mem_filter.mp hraw).2
   cases ht : headTarget? o with
-  | none => simp [resolvedBefore, ht] at hres
+  | none => simp [resolvedBefore_block, ht] at hres
   | some target =>
       have hvote := (synchronous_early_head_at_freeze p E rho hΔ r hsync source
         (rho.proposerOf (r + 1)) hs hprop o ho).1
@@ -58,12 +60,14 @@ theorem early_support_at_proposal {V : Type} [DecidableEq V] [Fintype V]
           by simp [hl]⟩
       have hblock' : target ∈ (proposalState p rho (r + 1)).blocks := by
         rw [hb]; exact hpre.blocks.subset hblock
-      simp only [resolvedBefore, ht, hl, Option.getD_some, Bool.and_eq_true,
+      simp only [resolvedBefore_block, ht, hl, Option.getD_some, Bool.and_eq_true,
         decide_eq_true_eq] at hres
-      exact ⟨List.mem_filter.mpr ⟨hvote', by simp [ht, blockKnown, hblock', hres.1.1.2]⟩,
+      exact ⟨List.mem_filter.mpr ⟨hvote', by
+        simp [resolvedHead?, ht, resolveTarget, resolutionTree, hblock', hres.1.1.2]⟩,
         target, rfl, hblock'⟩
 
-/-- Every proposer raw HEAD settles in the preceding confirmer's late pool
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Every proposer raw HEAD settles in the preceding confirmer's late pool
 as exact membership or equivocation evidence. -/
 theorem proposal_raw_in_previous_late {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -86,7 +90,8 @@ theorem proposal_raw_in_previous_late {V : Type} [DecidableEq V] [Fintype V]
     (proposalTime p (r + 1)) (releaseTime p r)
     (by dsimp [proposalTime, releaseTime]; nlinarith [p.deltaPos]) _).votes.subset hm
 
-/-- The genuine-result transfer receipt conditions hold for the next
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The genuine-result transfer receipt conditions hold for the next
 proposer as well as for the next ordinary HEAD. -/
 theorem proposalTransferReceipts_from_engine {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -103,7 +108,8 @@ theorem proposalTransferReceipts_from_engine {V : Type} [DecidableEq V] [Fintype
     exact proposal_raw_in_previous_late p E rho hΔ r hsync source hs hprop o ho i hi
   · intro o ho; exact (List.mem_filter.mp ho).1
 
-/-- Every genuine prefix of a synchronous label is on the next ordinary
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Every genuine prefix of a synchronous label is on the next ordinary
 proposer walk from genesis. No live-root assumption is required. -/
 theorem genuine_prefix_at_ordinary_proposal {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)

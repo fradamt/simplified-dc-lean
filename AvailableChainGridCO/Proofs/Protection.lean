@@ -13,7 +13,8 @@ variable [LeasePolicy]
 
 open AvailableChain.Generic AvailableChain.Statements.Generic
 
-/-- A row with this block and level has a deadline at least `d`. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A row with this block and level has a deadline at least `d`. -/
 def ProtectsUntil {n : Nat} (st : State n) (B : Block) (g : Nat) (d : Time) : Prop :=
   ∃ deadline, d ≤ deadline ∧ (B, g, deadline) ∈ st.obligations
 
@@ -50,7 +51,8 @@ private theorem deadlineOf_eq_of_row {n : Nat} (st : State n)
       have he := hu row hm (B, g, d) hr hk
       simp [he]
 
-/-- A write at any block or level cannot shorten a protected deadline.
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A write at any block or level cannot shorten a protected deadline.
 In particular, a lower-level renewal cannot change the protected key. -/
 theorem write_protectsUntil {n : Nat} (st : State n) (B C : Block) (g k : Nat)
     (d limit : Time) (hu : UniqueObligationKeys st) (h : ProtectsUntil st B g d) :
@@ -77,7 +79,8 @@ theorem fold_write_protectsUntil {n : Nat} {α : Type} (xs : List α)
       obtain ⟨hu', hp'⟩ := hstep st x hu hp
       exact ih (f st x) hu' hp'
 
-/-- A gate can renew a key but cannot delete it or shorten its deadline. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A gate can renew a key but cannot delete it or shorten its deadline. -/
 theorem gate_protectsUntil (p : Params) {n : Nat} (st : State n) (r : Slot)
     (B : Block) (g : Nat) (d : Time) (hu : UniqueObligationKeys st)
     (h : ProtectsUntil st B g d) : ProtectsUntil (gate p st r) B g d := by
@@ -98,7 +101,8 @@ theorem gate_protectsUntil (p : Params) {n : Nat} (st : State n) (r : Slot)
       · exact hu
       · exact h
 
-/-- The unique-key invariant also holds through all clock phases. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The unique-key invariant also holds through all clock phases. -/
 theorem clock_unique_keys (p : Params) {n : Nat} (st : State n) (t : Time)
     (hu : UniqueObligationKeys st) : UniqueObligationKeys (clock p st t) := by
   have hpre : UniqueObligationKeys (clockPreGate p st t) := by
@@ -136,7 +140,8 @@ theorem run_unique_keys {V : Type} [DecidableEq V] (p : Params)
     UniqueObligationKeys (Run.stateBefore (gridCO p) rho i v) :=
   fold_unique_keys p _ World.init (fun _ => initial_unique_keys p.n) v
 
-/-- Compatibility with a protected prefix prevents `advance` from losing it. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Compatibility with a protected prefix prevents `advance` from losing it. -/
 theorem advance_preserves_prefix (B old candidate : Block)
     (hold : Block.Preceq B old) (hc : Block.Compatible B candidate) :
     Block.Preceq B (advance old candidate) := by
@@ -154,7 +159,8 @@ theorem writeKeys_stable {n : Nat} (st : State n) (keys : List (Block × Nat))
   | nil => rfl
   | cons key keys ih => exact ih _
 
-/-- A protected row prevents the gate from losing an already stored prefix.
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A protected row prevents the gate from losing an already stored prefix.
 This includes a pending gate and a sleeping reader. -/
 theorem gate_preserves_protected_prefix (p : Params) {n : Nat} (st : State n)
     (r : Slot) (B : Block) (g : Nat) (d : Time)
@@ -178,7 +184,8 @@ theorem gate_preserves_protected_prefix (p : Params) {n : Nat} (st : State n)
         rw [(gate_veto_of_live_target p st r C B g deadline hc hrow hfalse).1]
         exact hold
 
-/-- All clock phases before the gate retain a row before its deadline
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+All clock phases before the gate retain a row before its deadline
 when the strict input's scheduled release count is below its level. -/
 theorem clockPreGate_protectsUntil (p : Params) {n : Nat} (st : State n) (t : Time)
     (B : Block) (g : Nat) (d : Time) (hs : ReceiptStamped st)
@@ -203,7 +210,8 @@ theorem clockPreGate_protectsUntil (p : Params) {n : Nat} (st : State n) (t : Ti
         · rfl
         · simpa using (Bool.and_eq_true_iff.mp hrelease).2
 
-/-- One clock step retains both a strong row and its record prefix.
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+One clock step retains both a strong row and its record prefix.
 The release-count premise is the only participation-dependent input. -/
 theorem clock_preserves_protection (p : Params) {n : Nat} (st : State n) (t : Time)
     (B : Block) (g : Nat) (d : Time) (hs : ReceiptStamped st)
@@ -225,7 +233,8 @@ theorem clock_preserves_protection (p : Params) {n : Nat} (st : State n) (t : Ti
       gate_preserves_protected_prefix p _ _ B g d hpre hrecord⟩
   · exact ⟨hpre, hrecord⟩
 
-/-- A live protected row constrains each emitted honest HEAD. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A live protected row constrains each emitted honest HEAD. -/
 theorem emitted_head_compatible_of_protection
     {V : Type} [DecidableEq V] (p : Params) (E : Env V)
     (rho : Run V (gridCO p)) (hs : ScheduleWellFormed E rho)
@@ -240,7 +249,7 @@ theorem emitted_head_compatible_of_protection
   have ha := (emitted_head_action p E rho i v t o r target hem hr hb).2
   by_cases hz : r = 0
   · subst r
-    have heq : target = .genesis := by simpa [act] using ha.symm
+    have heq : target = .genesis := by simpa [act, targetOfBlock] using ha.symm
     subst target
     exact Bool.or_eq_true_iff.mpr (Or.inl (genesis_prefix B))
   · have hstate : Run.stateBefore (gridCO p) rho (i + 1) v =
@@ -262,7 +271,8 @@ theorem emitted_head_compatible_of_protection
           _ _ _ r)
     exact Bool.or_eq_true_iff.mpr (Or.inr hprefix)
 
-/-- The batch in flight at arming must be compatible with the protected
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The batch in flight at arming must be compatible with the protected
 prefix. Only labels with a release after U occur in this premise. -/
 def ArmingHeadsCompatible {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (U : Time) (B : Block) : Prop :=
@@ -270,7 +280,8 @@ def ArmingHeadsCompatible {V : Type} [DecidableEq V]
     Run.emits (gridCO p) E rho u o t → headLabel? o = some r →
     ∀ target, headTarget? o = some target → Block.Compatible target B
 
-/-- First-loss induction from armed rows. New honest HEADs follow the live
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+First-loss induction from armed rows. New honest HEADs follow the live
 rows, so a release has at most the faulty count. A gate preserves both the
 row and the record prefix. No synchrony or awake-count premise is used. -/
 theorem protection_from_armed_index
@@ -314,7 +325,8 @@ theorem protection_from_armed_index
         j voter t' hj B (g voter) d (hpast j (by omega) hji voter hhonest).1
         (lt_trans ht' htd) o r target hmem hlabel htarget
 
-/-- Strong rows protect every later public read until their deadlines,
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Strong rows protect every later public read until their deadlines,
 provided the batch in flight at arming is compatible. The selected level
 can differ between readers. Expiry at the endpoint is deliberately excluded. -/
 theorem protection_from_armed_read

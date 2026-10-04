@@ -12,7 +12,8 @@ variable [LeasePolicy]
 
 open AvailableChain.Generic AvailableChain.Statements.Generic
 
-/-- Counts depend on the set of raw HEADs, not on list order or duplicates. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Counts depend on the set of raw HEADs, not on list order or duplicates. -/
 theorem voterCount_congr {n : Nat} (xs ys : List (Wire n))
     (h : ∀ o, o ∈ xs ↔ o ∈ ys) : voterCount xs = voterCount ys := by
   have hs : (seats n xs).toFinset = (seats n ys).toFinset := by
@@ -24,14 +25,16 @@ theorem voterCount_congr {n : Nat} (xs ys : List (Wire n))
   have hy : (seats n ys).Nodup := List.nodup_dedup _
   rw [← List.toFinset_card_of_nodup hx, ← List.toFinset_card_of_nodup hy, hs]
 
-/-- Equivocation is also a set property; the two-copy test ignores repeats. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Equivocation is also a set property; the two-copy test ignores repeats. -/
 theorem equivocates_congr {n : Nat} (xs ys : List (Wire n))
     (h : ∀ o, o ∈ xs ↔ o ∈ ys) (i : Fin n) : equivocates xs i = equivocates ys i := by
   apply Bool.eq_iff_iff.mpr
   exact ⟨fun he => equivocates_mono xs ys i (fun o ho => (h o).mp ho) he,
     fun he => equivocates_mono ys xs i (fun o ho => (h o).mpr ho) he⟩
 
-/-- Ordinary scores agree when raw and support sets agree and all support
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Ordinary scores agree when raw and support sets agree and all support
 targets have the same membership in the two stores. Unrelated blocks can
 differ; they do not contribute a support vote. -/
 theorem goldfishScore_congr {n : Nat} (tree₁ tree₂ : List Block)
@@ -77,7 +80,8 @@ theorem goldfishScore_congr {n : Nat} (tree₁ tree₂ : List Block)
   apply and_congr Iff.rfl
   exact Iff.of_eq (congrArg (fun b : Bool => (equivocates raw₂ i || b) = true) (hany i))
 
-/-- Set equality of the proposal merge discharges the arithmetic transport
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Set equality of the proposal merge discharges the arithmetic transport
 premises. Complete support paths suffice for the score-store comparison. -/
 theorem ProposalViewTransport.of_sets (p : Params) {n : Nat}
     (source reader : State n) (s : Slot) (B : Block)
@@ -93,8 +97,9 @@ theorem ProposalViewTransport.of_sets (p : Params) {n : Nat}
   apply goldfishScore_congr source.blocks reader.blocks _ _ _ _ hraw hsupport ?_ C
   intro o ho target ht
   have hm := (List.mem_filter.mp ho).2
-  simp only [ht, Bool.and_eq_true, decide_eq_true_eq] at hm
-  have hb : target ∈ source.blocks := of_decide_eq_true hm.1
+  have hb : target ∈ source.blocks := by
+    by_contra hn
+    simp [resolvedHead?, ht, resolveTarget, resolutionTree, hn] at hm
   exact iff_of_true hb (hknown o ho target ht)
 
 end AvailableChain.GridCO

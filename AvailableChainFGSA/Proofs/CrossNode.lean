@@ -11,53 +11,38 @@ open AvailableChain.Generic AvailableChain.SimplexFG
 /-! ROOT-DIGEST W1; DC NamedRootCollisionFree. The cross-store carrier uses
 scoped root equality for content agreement. Erasure is structurally injective. -/
 
-/-- [helper] `ContentAgree` is symmetric. -/
+/-- [ROOT-DIGEST-2 W1; DC NamedRootCollisionFree] Full agreement is symmetric. -/
 theorem contentAgree_symm {n : Nat} {st st' : State n} (hc : ContentAgree st st') :
     ContentAgree st' st := by
-  intro s b raw sup rows ho s' b' raw' sup' rows' ho' hr
-  obtain ⟨h1, h2⟩ := hc _ _ _ _ _ ho' _ _ _ _ _ ho hr.symm
-  exact ⟨h1.symm, h2.symm⟩
+  intro s N ho s' N' ho' hr
+  have he := (hc s' N' ho' s N ho hr.symm).1
+  subst N'
+  exact ⟨rfl, rfl, rfl, rfl, rfl⟩
 
-/-- [bp bp.carrier.v1; G12 m1] One store agrees with itself: `ContentAgree st st`
-follows from the local invariants, with no run premise. -/
+/-- [ROOT-DIGEST-2 W1; DC NamedStore.bodies] Local agreement needs no run premise. -/
 theorem contentAgree_self (p : Params) (st : State p.n) (h : CStoreInv p st)
     (m : MetaInv p st) : ContentAgree st st := by
-  intro s b raw sup rows ho s' b' raw' sup' rows' ho' hr
-  obtain ⟨_, _, _, _, _, he, -, -, B, hB, hBe, -⟩ := m.wireTree _ ho
-  obtain ⟨_, _, _, _, _, he', -, -, B', hB', hBe', -⟩ := m.wireTree _ ho'
-  simp only [Signed.mk.injEq, Msg.proposal.injEq] at he he'
-  obtain ⟨-, rfl, -, -, rfl⟩ := he
-  obtain ⟨-, rfl, -, -, rfl⟩ := he'
-  have hBB : B = B' :=
-    h.rootInj B hB B' hB' (by rw [← eraseFG_root, ← eraseFG_root, hBe, hBe', hr])
-  subst hBB
-  have hg : B ≠ .genesis := by
-    rintro rfl
-    exact m.noGenesisWire _ ho (by rw [block?_proposal, ← hBe]; rfl)
-  obtain ⟨w, -, hu⟩ := m.treeWire B hB hg
-  have e := (hu _ ⟨ho, by rw [block?_proposal, hBe]⟩).trans
-    (hu _ ⟨ho', by rw [block?_proposal, hBe']⟩).symm
-  simp only [Signed.mk.injEq, Msg.proposal.injEq] at e
-  exact ⟨e.2.1, e.2.2.2.2⟩
+  intro s N ho s' N' ho' hr
+  have he := namedBodies_root_injective p st h m
+    ((mem_namedBodies st N).mpr (Or.inr ⟨s, ho⟩))
+    ((mem_namedBodies st N').mpr (Or.inr ⟨s', ho'⟩)) hr
+  subst N'
+  exact ⟨rfl, rfl, rfl, rfl, rfl⟩
 
-/-- [ROOT-DIGEST W1; DC NamedRootCollisionFree] Scoped stored roots give content agreement. -/
-theorem contentAgree (p : Params) {st st' : State p.n} (m : MetaInv p st) (m' : MetaInv p st')
-    (hroot : ∀ X ∈ st.fg.TF, ∀ Y ∈ st'.fg.TF, X.root = Y.root → X = Y) :
+/-- [ROOT-DIGEST-2 W1; DC NamedRootCollisionFree; S2] Named cross-store identity
+supplies full content agreement. Stored named bodies are covered by the run premise. -/
+theorem contentAgree (p : Params) {st st' : State p.n}
+    (_m : MetaInv p st) (_m' : MetaInv p st')
+    (hroot : ∀ X ∈ st.namedBodies, ∀ Y ∈ st'.namedBodies, X.root = Y.root → X = Y) :
     ContentAgree st st' := by
-  intro s b raw sup rows ho s' b' raw' sup' rows' ho' hr
-  obtain ⟨_, _, _, _, _, he, hk, _, B, hB, hBe, _⟩ := m.wireTree _ ho
-  obtain ⟨_, _, _, _, _, he', hk', _, B', hB', hBe', _⟩ := m'.wireTree _ ho'
-  simp only [Signed.mk.injEq, Msg.proposal.injEq] at he he'
-  obtain ⟨-, rfl, rfl, rfl, rfl⟩ := he
-  obtain ⟨-, rfl, rfl, rfl, rfl⟩ := he'
-  have hBB : B = B' := hroot B hB B' hB'
-    (by rw [← eraseFG_root, ← eraseFG_root, hBe, hBe', hr])
-  have heq : b = b' := hBe.symm.trans ((congrArg eraseFG hBB).trans hBe')
-  refine ⟨heq, rows_eq_of_rowsOk (contentOk_rowsOk hk) ?_⟩
-  rw [heq]
-  exact contentOk_rowsOk hk'
+  intro s N ho s' N' ho' hr
+  have he := hroot N ((mem_namedBodies st N).mpr (Or.inr ⟨s, ho⟩))
+    N' ((mem_namedBodies st' N').mpr (Or.inr ⟨s', ho'⟩)) hr
+  subst N'
+  exact ⟨rfl, rfl, rfl, rfl, rfl⟩
 
-/-- [helper] The erased ancestor of a stored FG block has a stored FG ancestor,
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+[helper] The erased ancestor of a stored FG block has a stored FG ancestor,
 with the same erasure. -/
 theorem eraseFG_ancestor_preceq {n : Nat} {T : Finset (FGBlock (Fin n))}
     (hcl : ∀ B ∈ T, B.parent ∈ T) {B : FGBlock (Fin n)} (hB : B ∈ T) {c : Block}
@@ -74,7 +59,8 @@ theorem eraseFG_ancestor_preceq {n : Nat} {T : Finset (FGBlock (Fin n))}
       · obtain ⟨C, hC, hCe, hCP⟩ := ih (hcl _ hB) hc
         exact ⟨C, hC, hCe, KitFG.preceq_node_of_preceq s r_s r rows hCP⟩
 
-/-- [ROOT-DIGEST W2; bp.carrier.v1; K5 cross-node] Cross-store
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+[ROOT-DIGEST W2; bp.carrier.v1; K5 cross-node] Cross-store
 reconstruction: stored FG blocks at two stores with the same erasure are equal. -/
 theorem stored_fg_eq_of_erase_eq (p : Params) (st st' : State p.n)
     (_h : CStoreInv p st) (_h' : CStoreInv p st') (_m : MetaInv p st) (_m' : MetaInv p st')
@@ -83,7 +69,8 @@ theorem stored_fg_eq_of_erase_eq (p : Params) (st st' : State p.n)
   eraseFG_injective he
 
 set_option linter.unusedVariables false in
-/-- Compatibility wrapper for `stored_fg_eq_of_erase_eq`.
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Compatibility wrapper for `stored_fg_eq_of_erase_eq`.
 Delete after F2 (GLY E-13). -/
 theorem fg_eq_of_eraseFG_eq_across (p : Params) (st st' : State p.n)
     (h : CStoreInv p st) (h' : CStoreInv p st') (m : MetaInv p st) (m' : MetaInv p st')
@@ -91,7 +78,8 @@ theorem fg_eq_of_eraseFG_eq_across (p : Params) (st st' : State p.n)
     (he : eraseFG X = eraseFG Y) : X = Y :=
   stored_fg_eq_of_erase_eq p st st' h h' m m' hX hY he
 
-/-- [helper] Stored FG blocks at two stores with equal roots are equal. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+[helper] Stored FG blocks at two stores with equal roots are equal. -/
 theorem fg_eq_of_root_eq_across (p : Params) (st st' : State p.n)
     (h : CStoreInv p st) (h' : CStoreInv p st') (m : MetaInv p st) (m' : MetaInv p st')
     (hc : ContentAgree st st') {X Y : FGBlock (Fin p.n)} (hX : X ∈ st.fg.TF) (hY : Y ∈ st'.fg.TF)
@@ -102,12 +90,14 @@ theorem fg_eq_of_root_eq_across (p : Params) (st st' : State p.n)
   by_cases hYg : Y = .genesis
   · subst hYg
     exact h.rootInj _ hX _ h.fg.gen hr
-  obtain ⟨_, _, _, _, ho, -⟩ := stored_wire_of_block p st h m hX hXg
-  obtain ⟨_, _, _, _, ho', -⟩ := stored_wire_of_block p st' h' m' hY hYg
-  have hpay := hc _ _ _ _ _ ho _ _ _ _ _ ho' (by rw [eraseFG_root, eraseFG_root, hr])
-  exact fg_eq_of_eraseFG_eq_across p st st' h h' m m' hc hX hY hpay.1
+  obtain ⟨s, N, ho, he, -⟩ := stored_wire_of_block p st h m hX hXg
+  obtain ⟨s', N', ho', he', -⟩ := stored_wire_of_block p st' h' m' hY hYg
+  have hpay := hc s N ho s' N' ho' (by
+    rw [← named_erase_root, ← named_erase_root, he, he', eraseFG_root, eraseFG_root, hr])
+  exact eraseFG_injective (he.symm.trans (hpay.2.1.trans he'))
 
-/-- [bp bp.carrier.v1; K5 cross-node] Erasure preserves and reflects ancestry
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+[bp bp.carrier.v1; K5 cross-node] Erasure preserves and reflects ancestry
 across two stores. -/
 theorem stored_fg_preceq_iff_erase (p : Params) (st st' : State p.n)
     (h : CStoreInv p st) (h' : CStoreInv p st') (m : MetaInv p st) (m' : MetaInv p st')
@@ -119,7 +109,8 @@ theorem stored_fg_preceq_iff_erase (p : Params) (st st' : State p.n)
   exact hCY
 
 set_option linter.unusedVariables false in
-/-- Compatibility wrapper for `stored_fg_preceq_iff_erase`.
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Compatibility wrapper for `stored_fg_preceq_iff_erase`.
 Delete after F2 (GLY E-13). -/
 theorem preceq_iff_across (p : Params) (st st' : State p.n)
     (h : CStoreInv p st) (h' : CStoreInv p st') (m : MetaInv p st) (m' : MetaInv p st')
@@ -139,7 +130,8 @@ theorem stored_fg_compatible_eq_erase (p : Params) (st st' : State p.n)
   rw [Bool.eq_iff_iff.2 h1, Bool.eq_iff_iff.2 h2]
 
 set_option linter.unusedVariables false in
-/-- Compatibility wrapper for `stored_fg_compatible_eq_erase`.
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Compatibility wrapper for `stored_fg_compatible_eq_erase`.
 Delete after F2 (GLY E-13). -/
 theorem compatible_iff_across (p : Params) (st st' : State p.n)
     (h : CStoreInv p st) (h' : CStoreInv p st') (m : MetaInv p st) (m' : MetaInv p st')
@@ -147,7 +139,8 @@ theorem compatible_iff_across (p : Params) (st st' : State p.n)
     FGBlock.compatible X Y = Block.compatible (eraseFG X) (eraseFG Y) :=
   stored_fg_compatible_eq_erase p st st' h h' m m' hX hY
 
-/-- [bp bp.carrier.v1; K5 cross-node; r188 N4] The `KitFG.accountable` premise
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+[bp bp.carrier.v1; K5 cross-node; r188 N4] The `KitFG.accountable` premise
 for two chains at two stores (bp01 §2.2 step 6). -/
 theorem stored_fg_roots_injective (p : Params) (st st' : State p.n)
     (h : CStoreInv p st) (h' : CStoreInv p st') (m : MetaInv p st) (m' : MetaInv p st') (hc :
@@ -164,7 +157,8 @@ theorem stored_fg_roots_injective (p : Params) (st st' : State p.n)
   · exact h'.rootInj _ (mem' _ hX) _ (mem' _ hY) hr
 
 set_option linter.unusedVariables false in
-/-- Compatibility wrapper for `stored_fg_roots_injective`.
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Compatibility wrapper for `stored_fg_roots_injective`.
 Delete after F2 (GLY E-13). -/
 theorem rootInjectiveOn_across (p : Params) (st st' : State p.n)
     (h : CStoreInv p st) (h' : CStoreInv p st') (m : MetaInv p st) (m' : MetaInv p st')

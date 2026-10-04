@@ -103,4 +103,62 @@ theorem voterCount_le_of_seats_subset {n : Nat} (pool late : List (Wire n HeadMo
     voterCount pool ≤ voterCount late :=
   voterCount_le_of_seats_subset_statement pool late hsub
 
+/-- [ROOT-DIGEST-2 W1; DC fixed resolution domain] Active filtering keeps score ancestry. -/
+theorem goldfishScoreOn_antitone {n : Nat} (domain tree : List Block)
+    (raw support : List (Wire n .root)) (X B : Block) (hXB : Block.Preceq X B) :
+    goldfishScoreOn domain tree raw support B ≤ goldfishScoreOn domain tree raw support X := by
+  unfold goldfishScoreOn
+  apply List.Sublist.length_le
+  apply List.monotone_filter_right
+  intro i hi
+  rcases Bool.or_eq_true_iff.mp hi with he | hb
+  · exact Bool.or_eq_true_iff.mpr (Or.inl he)
+  · apply Bool.or_eq_true_iff.mpr
+    right
+    obtain ⟨o, ho, hv⟩ := List.any_eq_true.mp hb
+    apply List.any_eq_true.mpr
+    refine ⟨o, ho, ?_⟩
+    split at hv
+    · contradiction
+    · rename_i r hr
+      split at hv
+      · contradiction
+      · rename_i C hC
+        simp only [Bool.and_eq_true] at hv ⊢
+        exact ⟨hv.1, Gen.Pure.block_preceq_trans hXB hv.2⟩
+
+/-- [ROOT-DIGEST-2 W1; DC fixed resolution domain] Active filtering can only remove support. -/
+theorem goldfishScoreOn_le {n : Nat} (domain tree : List Block)
+    (raw support : List (Wire n .root)) (B : Block) :
+    goldfishScoreOn domain tree raw support B ≤ goldfishScore domain raw support B := by
+  unfold goldfishScore goldfishScoreOn
+  apply List.Sublist.length_le
+  apply List.monotone_filter_right
+  intro i hi
+  rcases Bool.or_eq_true_iff.mp hi with he | hb
+  · exact Bool.or_eq_true_iff.mpr (Or.inl he)
+  · apply Bool.or_eq_true_iff.mpr
+    right
+    obtain ⟨o, ho, hv⟩ := List.any_eq_true.mp hb
+    apply List.any_eq_true.mpr
+    refine ⟨o, ho, ?_⟩
+    split at hv
+    · contradiction
+    · rename_i r hr
+      split at hv
+      · contradiction
+      · rename_i C hC
+        simp only [Bool.and_eq_true, decide_eq_true_eq] at hv ⊢
+        exact ⟨⟨Block.findByRoot?_mem hC, hv.1.2⟩, hv.2⟩
+
+/-- [ROOT-DIGEST-2 W1; DC fixed resolution domain] Conflicting active scores are disjoint. -/
+theorem conflicting_scoreOn_sum_le {n : Nat} (domain tree : List Block)
+    (pool : List (Wire n .root)) (B D : Block) (hclean : ∀ i, equivocates pool i = false)
+    (hconf : Block.compatible B D = false) :
+    goldfishScoreOn domain tree pool pool B + goldfishScoreOn domain tree pool pool D ≤
+      voterCount pool :=
+  (Nat.add_le_add (goldfishScoreOn_le domain tree pool pool B)
+    (goldfishScoreOn_le domain tree pool pool D)).trans
+      (conflicting_score_sum_le domain pool B D hclean hconf)
+
 end AvailableChain.Gen.AC.Root

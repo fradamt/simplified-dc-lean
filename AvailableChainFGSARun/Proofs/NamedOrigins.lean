@@ -3,6 +3,8 @@ public import AvailableChainFGSARun.Proofs.NamedScope
 public import AvailableChainFGSARun.Statements.Interface
 public import AvailableChainFGSARun.Statements.Emission
 public import AvailableChainGeneric.Statements.V2.Duty.DeliveryBy
+public import AvailableChainGeneric.Proofs.V2.Duty.Induction
+public import AvailableChainFGSA.Proofs.NamedReachable
 
 public section
 
@@ -126,6 +128,29 @@ theorem emitted_payload_parent_stored (E : Generic.Env V)
         rw [clock_namedBodies] at hm
         simpa only [hparent] using hm
   · exact (List.not_mem_nil hemit).elim
+
+/-- [ROOT-DIGEST-2 W1; DC NamedStore.bodies] Indexed stores satisfy local reachability. -/
+theorem namedOrigin_reachable (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (i : Nat) (x : V) : Reachable p (V2.D.Run.stateBefore E rho i x).st := by
+  refine Gen.V2.Duty.invariant_triple (P := fgsa p c)
+    (fun nd : Node p => Reachable p nd.st) ?_ ?_ ?_ ?_ ?_ E rho i x
+  · exact Reachable.init
+  · intro nd t h; exact Reachable.tick t h
+  · intro nd o h; exact Reachable.deliver (toWire p o) h
+  · intro nd o h; exact h
+  · intro nd _; exact Reachable.init
+
+/-- [ROOT-DIGEST-2 W1; DC NamedBlocks.erase]
+The emitted parent has its old base-store projection. -/
+theorem emitted_payload_parent_base_stored (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {x : V} {o : Obj p} {t : Time}
+    {N : NamedProposal p.n}
+    (hem : V2.D.Run.emits E rho x o t) (ho : o.payload = .proposal N) :
+    ∃ i, N.erase.parent ∈ (V2.D.Run.stateBefore E rho i x).st.base.blocks := by
+  obtain ⟨i, hi⟩ := emitted_payload_parent_stored E rho hem ho
+  refine ⟨i, ?_⟩
+  have hr := namedOrigin_reachable E rho i x
+  exact ((reachable_named_store p hr).2.1 _).mpr ⟨N.parent, hi, named_erase_parent N |>.symm⟩
 
 /-- [ROOT-DIGEST-2 W1; DC goldfish_vote] Emission supplies the actual selected body. -/
 theorem headTargetAtEmission_exists (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))

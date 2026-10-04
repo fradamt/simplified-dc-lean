@@ -13,7 +13,8 @@ variable [LeasePolicy]
 
 open AvailableChain.Generic AvailableChain.Statements.Generic
 
-/-- A synchronous label supplies actual calls before the requested cutoff. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A synchronous label supplies actual calls before the requested cutoff. -/
 theorem synchronous_receipt_before {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (r : Slot)
     (hsync : SynchronousLabel p E rho r)
@@ -37,7 +38,8 @@ theorem synchronous_receipt_before {V : Type} [DecidableEq V] [Fintype V]
       (hd.trans (hc.trans hend)) (hx _ hd)
     exact ⟨t', htt, ht'.trans_le hd, j, hj⟩
 
-/-- Exact block transport follows from the checked causal handler bridge. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Exact block transport follows from the checked causal handler bridge. -/
 theorem synchronous_accepted_block_before {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ) (r : Slot)
     (hsync : SynchronousLabel p E rho r)
@@ -61,7 +63,8 @@ theorem synchronous_accepted_block_before {V : Type} [DecidableEq V] [Fintype V]
   obtain ⟨parent', hj, _⟩ := hh
   exact ⟨j, .deliver reader parent' t', hj, ht', by simpa [processed, hp, blockKnown] using hm⟩
 
-/-- Every label-`r` HEAD of a strict read at `u ≤ cut` is in each later read
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Every label-`r` HEAD of a strict read at `u ≤ cut` is in each later read
 with a stamp before `cut`. -/
 private theorem time_read_votesAt_stamped {V : Type} [DecidableEq V] (p : Params)
     (E : Env V) (rho : Run V (gridCO p)) (hs : ScheduleWellFormed E rho) (reader : V)
@@ -86,7 +89,8 @@ private theorem time_read_votesAt_stamped {V : Type} [DecidableEq V] (p : Params
         (show rho.events[k].time < cut by linarith) hread
       exact List.mem_filter.mpr ⟨List.mem_filter.mpr ⟨hm', hl⟩, by simpa using hstamp⟩
 
-/-- HEAD relay gives membership or equivocation within the admission window. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+HEAD relay gives membership or equivocation within the admission window. -/
 theorem synchronous_accepted_head_before {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ) (r : Slot)
     (hsync : SynchronousLabel p E rho r)
@@ -118,7 +122,8 @@ theorem synchronous_accepted_head_before {V : Type} [DecidableEq V] [Fintype V]
   · exact Or.inr (equivocates_mono _ _ i
       (time_read_votesAt_stamped p E rho hsched reader r u cut read hu hread) heq)
 
-/-- Every early HEAD settles in each honest late pool as that vote or
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Every early HEAD settles in each honest late pool as that vote or
 equivocation evidence for its seat. -/
 theorem synchronous_early_vote_late {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -134,7 +139,7 @@ theorem synchronous_early_vote_late {V : Type} [DecidableEq V] [Fintype V]
     cases ho : o.payload <;> simp_all [headLabel?]
   obtain ⟨B, hb⟩ := hhead
   have ht : stampVote (gateInput p rho r source) o < earlyTime p r := by
-    simp only [resolvedBefore, headTarget?, hb, Bool.and_eq_true, decide_eq_true_eq] at hres
+    simp only [resolvedBefore_block, headTarget?, hb, Bool.and_eq_true, decide_eq_true_eq] at hres
     exact hres.1.2
   have hpub : PublicTime E (earlyTime p r) := by
     refine ⟨4 * r + 2, ?_⟩
@@ -166,7 +171,8 @@ theorem synchronous_early_vote_late {V : Type} [DecidableEq V] [Fintype V]
   · exact Or.inr (equivocates_mono _ _ i hsub he)
 
 
-/-- A surviving early HEAD excludes any different late HEAD from its seat. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A surviving early HEAD excludes any different late HEAD from its seat. -/
 theorem cleanSupport_eq_of_late_same_seat (p : Params) {n : Nat} (st : State n)
     (r : Slot) (i : Fin n) (a b : Wire n)
     (ha : a ∈ cleanSupport p st r) (hb : b ∈ lateVotes p st r)
@@ -186,7 +192,8 @@ theorem cleanSupport_eq_of_late_same_seat (p : Params) {n : Nat} (st : State n)
     List.any_eq_true.mpr ⟨b, hb, by simp [hsame, Ne.symm hne]⟩
   simp [hany] at hclean
 
-/-- Surviving support excludes equivocation in its own late pool. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Surviving support excludes equivocation in its own late pool. -/
 theorem cleanSupport_not_equivocating (p : Params) {n : Nat} (st : State n)
     (r : Slot) (o : Wire n) (i : Fin n) (hi : headSeat? o = some i)
     (ho : o ∈ cleanSupport p st r) : equivocates (lateVotes p st r) i = false := by
@@ -198,7 +205,8 @@ theorem cleanSupport_not_equivocating (p : Params) {n : Nat} (st : State n)
     (by simpa using hai)).symm.trans
     (cleanSupport_eq_of_late_same_seat p st r i o b ho hb hi (by simpa using hbi))
 
-/-- Genuine prefix support seats appear in every honest late pool. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Genuine prefix support seats appear in every honest late pool. -/
 theorem synchronous_support_subset_late {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
     (r : Slot) (hsync : SynchronousLabel p E rho r)
@@ -218,7 +226,8 @@ theorem synchronous_support_subset_late {V : Type} [DecidableEq V] [Fintype V]
     exact List.mem_toFinset.mpr (List.mem_dedup.mpr
       (List.mem_filterMap.mpr ⟨q, hm, by simpa using hi⟩))
 
-/-- Conflicting genuine prefixes at different readers have disjoint
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Conflicting genuine prefixes at different readers have disjoint
 surviving support sets. Relay makes a shared conflicting seat fail the
 source reader's late equivocation test. -/
 theorem synchronous_support_disjoint {V : Type} [DecidableEq V] [Fintype V]
@@ -246,7 +255,8 @@ theorem synchronous_support_disjoint {V : Type} [DecidableEq V] [Fintype V]
   rw [hc] at hcompat
   contradiction
 
-/-- The engine and receipt relay establish cross-view seat alignment. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The engine and receipt relay establish cross-view seat alignment. -/
 theorem sameLabelSeatAlignment_from_engine {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
     (r : Slot) (hsync : SynchronousLabel p E rho r) : SameLabelSeatAlignment p rho r := by
@@ -260,7 +270,8 @@ theorem sameLabelSeatAlignment_from_engine {V : Type} [DecidableEq V] [Fintype V
       (prefixSupportSeats_subset_late p _ r C)
   · exact synchronous_support_disjoint p E rho hΔ r hsync u v hu hv B C
 
-/-- Same-label compatibility follows from the engine, the label's relay
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Same-label compatibility follows from the engine, the label's relay
 premises, and matching time units. -/
 theorem sameLabel_from_engine {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ) :

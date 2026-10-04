@@ -12,7 +12,8 @@ variable [LeasePolicy]
 
 open AvailableChain.Generic AvailableChain.Statements.Generic
 
-/-- An emitted proposer object comes from the proposer action at its slot's
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+An emitted proposer object comes from the proposer action at its slot's
 time. This includes the clock evaluation that precedes emission. -/
 theorem emitted_proposal_action {V : Type} [DecidableEq V] (p : Params)
     (E : Env V) (rho : Run V (gridCO p)) (i : Nat) (v : V) (t : Time)
@@ -48,13 +49,15 @@ theorem emitted_proposal_action {V : Type} [DecidableEq V] (p : Params)
       · contradiction
   · contradiction
 
-/-- The source state used by the actual proposer, including its clock tick. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The source state used by the actual proposer, including its clock tick. -/
 def proposalState {V : Type} [DecidableEq V] (p : Params)
     (rho : Run V (gridCO p)) (s : Slot) : State p.n :=
   clock p (Run.stateBeforeTime (gridCO p) rho (proposalTime p s) (rho.proposerOf s))
     (proposalTime p s)
 
-/-- Honest proposal emission fixes the complete raw view and support view
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Honest proposal emission fixes the complete raw view and support view
 carried on the wire. No cross-reader agreement is assumed here. -/
 theorem honest_proposal_views {V : Type} [DecidableEq V] (p : Params)
     (E : Env V) (rho : Run V (gridCO p)) (hs : ScheduleWellFormed E rho)
@@ -84,7 +87,8 @@ theorem honest_proposal_views {V : Type} [DecidableEq V] (p : Params)
         cases hm
         exact ⟨hn, rfl, i, hi, ho⟩
 
-/-- An honest proposal contains its own live root. Extending this fact to
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+An honest proposal contains its own live root. Extending this fact to
 every reader requires a separate common-root argument. -/
 theorem honest_proposal_contains_source_root {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p))
@@ -96,7 +100,8 @@ theorem honest_proposal_contains_source_root {V : Type} [DecidableEq V]
   rw [hb]
   exact ⟨rfl, forkChoice_extends_liveRoot _ _ _ _ _⟩
 
-/-- A receipt before the previous freeze causes a handler call before the
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A receipt before the previous freeze causes a handler call before the
 proposal when its relay interval is available. This applies to both HEADs
 and their separately admitted block paths. -/
 theorem handled_before_proposal_of_ready {V : Type} [DecidableEq V]
@@ -129,7 +134,8 @@ private theorem head_conversion {n : Nat} (o : Wire n) (r : Slot)
   rcases o with ⟨auth, payload⟩
   cases auth <;> cases payload <;> simp_all [headLabel?, toHead?, fromHead]
 
-/-- A stored current-slot proposal puts every stored prefix of its block
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A stored current-slot proposal puts every stored prefix of its block
 in the voter tree, even when that prefix was absent from the freeze. -/
 theorem proposal_prefix_mem_voterTree (p : Params) {n : Nat} (st : State n)
     (s : Slot) (o : Wire n) (B K : Block) (raw support : List (HeadWire n))
@@ -143,7 +149,8 @@ theorem proposal_prefix_mem_voterTree (p : Params) {n : Nat} (st : State n)
   apply List.mem_filterMap.mpr
   exact ⟨o, List.mem_filter.mpr ⟨ho, by simp [hp, hslot]⟩, by simp [hp]⟩
 
-/-- Reachable prefix closure supplies the path membership needed by the
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Reachable prefix closure supplies the path membership needed by the
 proposal-tree merge. The relay proof must still deliver the proposal. -/
 theorem proposal_path_mem_voterTree (p : Params) {n : Nat} (st : State n)
     (s : Slot) (o : Wire n) (B K : Block) (raw support : List (HeadWire n))
@@ -154,7 +161,8 @@ theorem proposal_path_mem_voterTree (p : Params) {n : Nat} (st : State n)
   exact proposal_prefix_mem_voterTree p st s o B K raw support ho hp hslot
     (hclosed B hb K hk hprefix) hprefix
 
-/-- The raw proposer view is merged into each reader's voter view once
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The raw proposer view is merged into each reader's voter view once
 that proposal is stored. This does not require equal proposal-time walks. -/
 theorem proposal_raw_mem_voterView (p : Params) {n : Nat} (source reader : State n)
     (s : Slot) (o : Wire n) (B : Block) (support : List (HeadWire n))
@@ -175,7 +183,8 @@ theorem proposal_raw_mem_voterView (p : Params) {n : Nat} (source reader : State
   simp only [hp]
   exact List.mem_map.mpr ⟨wire, List.mem_filterMap.mpr ⟨vote, hv, hc⟩, he⟩
 
-/-- The declared support is merged after its target path is known locally.
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The declared support is merged after its target path is known locally.
 Raw HEAD receipt alone is not enough for this step. -/
 theorem proposal_support_mem_voterSupportView (p : Params) {n : Nat}
     (source reader : State n) (s : Slot) (o : Wire n) (B : Block)
@@ -189,20 +198,22 @@ theorem proposal_support_mem_voterSupportView (p : Params) {n : Nat}
   have hl : headLabel? vote = some (s - 1) := by
     simpa using (List.mem_filter.mp hraw).2
   have hbound : target.slot ≤ s - 1 := by
-    simp only [ht, Bool.and_eq_true, decide_eq_true_eq] at hresolved
-    exact hresolved.2
+    by_cases hm : target ∈ source.blocks
+    · simpa [resolvedHead?, ht, resolveTarget, resolutionTree, hm] using hresolved
+    · simp [resolvedHead?, ht, resolveTarget, resolutionTree, hm] at hresolved
   obtain ⟨wire, hc, he⟩ := head_conversion vote (s - 1) hl
   apply List.mem_eraseDups.mpr
   apply List.mem_append.mpr
   apply Or.inr
   apply List.mem_filter.mpr
-  refine ⟨?_, by simp [hl, ht, blockKnown, hknown, hbound]⟩
+  refine ⟨?_, by simp [hl, ht, resolvedHead?, resolveTarget, resolutionTree, hknown, hbound]⟩
   apply List.mem_flatMap.mpr
   refine ⟨o, List.mem_filter.mpr ⟨ho, by simp [hp, hslot]⟩, ?_⟩
   simp only [hp]
   exact List.mem_map.mpr ⟨wire, List.mem_filterMap.mpr ⟨vote, hv, hc⟩, he⟩
 
-/-- An awake honest proposer at a positive slot emits a proposal. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+An awake honest proposer at a positive slot emits a proposal. -/
 theorem honest_proposal_exists {V : Type} [DecidableEq V]
     {p : Params} {E : Env V} {rho : Run V (gridCO p)}
     (hexec : ExecutionValid (gridCO p) E rho) (hΔ : E.Δ = p.Δ)

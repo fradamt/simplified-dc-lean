@@ -19,7 +19,8 @@ private theorem fold_votes_blocks (p : Params) {n : Nat} (raw : List (HeadWire n
   | nil => rfl
   | cons row raw ih => rw [List.foldl_cons, ih, admitVote_blocks]
 
-/-- A new stored block is the block of the directly delivered proposal. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A new stored block is the block of the directly delivered proposal. -/
 theorem process_new_block (p : Params) {n : Nat} (st : State n) (o : Wire n)
     (B : Block) (hn : B ∉ st.blocks) (hm : B ∈ (process p st o).blocks) :
     ∃ raw support, o.payload = .proposal B raw support := by
@@ -37,7 +38,8 @@ theorem process_new_block (p : Params) {n : Nat} (st : State n) (o : Wire n)
         exact ⟨raw, support, by simpa [he] using hp⟩
   · exact (hn hm).elim
 
-/-- Admission rejects a new block whose slot is ahead of the local clock. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Admission rejects a new block whose slot is ahead of the local clock. -/
 theorem process_new_block_slot (p : Params) {n : Nat} (st : State n) (o : Wire n)
     (B : Block) (hn : B ∉ st.blocks) (hm : B ∈ (process p st o).blocks) :
     B.slot ≤ (st.now / (4 * p.Δ)).toNat := by
@@ -60,7 +62,8 @@ theorem process_new_block_slot (p : Params) {n : Nat} (st : State n) (o : Wire n
         exact le_of_not_gt hb
   · exact (hn hm).elim
 
-/-- Every non-genesis stored block has an earlier accepted proposal at
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Every non-genesis stored block has an earlier accepted proposal at
 that reader. This is the path source needed by accepted-object relay. -/
 theorem stored_block_accepted {V : Type} [DecidableEq V] (p : Params)
     (rho : Run V (gridCO p)) (index : Nat) (reader : V) (B : Block)
@@ -108,7 +111,8 @@ theorem stored_block_accepted {V : Type} [DecidableEq V] (p : Params)
                     simpa [World.step, gridCO, processed, hp, blockKnown] using hnew
                 · exact (hold (by simpa [World.step, hv] using hm)).elim
 
-/-- The stored path before a HEAD cannot contain a future-slot block. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The stored path before a HEAD cannot contain a future-slot block. -/
 theorem stored_before_head_slot_le {V : Type} [DecidableEq V] (p : Params)
     (E : Env V) (rho : Run V (gridCO p)) (hs : ScheduleWellFormed E rho)
     (r : Slot) (reader : V) (B : Block)
@@ -134,7 +138,8 @@ theorem stored_before_head_slot_le {V : Type} [DecidableEq V] (p : Params)
   dsimp [voteTime, proposalTime] at hnow
   nlinarith [p.deltaPos]
 
-/-- Every reader's clock is at most the time of a completed event. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Every reader's clock is at most the time of a completed event. -/
 theorem stateAfter_now_le_event {V : Type} [DecidableEq V] (p : Params)
     (E : Env V) (rho : Run V (gridCO p)) (hs : ScheduleWellFormed E rho)
     {i : Nat} {e : Event V (gridCO p).Object}
@@ -153,7 +158,8 @@ theorem stateAfter_now_le_event {V : Type} [DecidableEq V] (p : Params)
       · subst v; simpa [World.step, gridCO, process_now] using! h
       · simpa [World.step, hv] using h
 
-/-- A block already stored after an event before the cutoff retains an
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A block already stored after an event before the cutoff retains an
 early block stamp at each later strict read. The event can be at any node. -/
 theorem stored_block_stamp_before_cut {V : Type} [DecidableEq V] (p : Params)
     (E : Env V) (rho : Run V (gridCO p)) (hs : ScheduleWellFormed E rho)
@@ -174,7 +180,8 @@ theorem stored_block_stamp_before_cut {V : Type} [DecidableEq V] (p : Params)
   exact ((run_stampsBounded p E rho hs (i + 1) reader).stampBlock_le B).trans_lt
     ((stateAfter_now_le_event p E rho hs hi reader).trans_lt ht)
 
-/-- Genesis is always stored with its original zero stamp. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Genesis is always stored with its original zero stamp. -/
 theorem genesis_stored_at_time {V : Type} [DecidableEq V] (p : Params)
     (E : Env V) (rho : Run V (gridCO p)) (hs : ScheduleWellFormed E rho)
     (cut : Time) (reader : V) :
@@ -187,7 +194,8 @@ theorem genesis_stored_at_time {V : Type} [DecidableEq V] (p : Params)
     simp [Run.stateBefore, World.init, gridCO, initial]
   exact ⟨hp.blocks.subset hm, (hp.stampBlock (run_receiptStamped p rho 0 reader) _ hm)⟩
 
-/-- A dependency-ready proposal call stores its block once its slot is public. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A dependency-ready proposal call stores its block once its slot is public. -/
 theorem handled_proposal_stored {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p))
     (hx : ExecutionValid (gridCO p) E rho) (hΔ : E.Δ = p.Δ)
@@ -239,7 +247,8 @@ theorem handled_proposal_stored {V : Type} [DecidableEq V]
   rw [fold_votes_blocks]
   simp
 
-/-- Source acceptance and the public schedule exclude a future block at
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Source acceptance and the public schedule exclude a future block at
 any later checked handler call. There is no lower block admission window. -/
 theorem accepted_proposal_handled_stored {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p))
@@ -284,7 +293,8 @@ theorem accepted_proposal_handled_stored {V : Type} [DecidableEq V]
   change (Run.stateBefore (gridCO p) rho i source).now ≤ t at hnow
   nlinarith
 
-/-- Any path block stored before the HEAD time relays before the early
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Any path block stored before the HEAD time relays before the early
 cutoff of a synchronous label. Both delivery regimes use receipt relay. -/
 theorem synchronous_block_path_at_gate {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -346,7 +356,8 @@ theorem synchronous_block_path_at_gate {V : Type} [DecidableEq V]
   obtain ⟨parent, hj, _⟩ := hh
   exact stored_block_stamp_before_cut p E rho hsched hj hm ht' hearly
 
-/-- Early HEAD receipt and early target-path relay together give a resolved
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Early HEAD receipt and early target-path relay together give a resolved
 honest HEAD at the gate. The caller supplies the target of the honest walk. -/
 theorem synchronous_honest_head_resolved {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -361,7 +372,7 @@ theorem synchronous_honest_head_resolved {V : Type} [DecidableEq V]
   obtain ⟨hb, hbstamp⟩ := synchronous_block_path_at_gate p E rho hΔ r hsync
     (rho.seatOf r i) reader hh hr B hm
     (fun o ⟨raw, support, hp⟩ u _ => proposal_not_excluded p rho reader o B raw support hp u)
-  simp [earlyVotes, votesAt, hv, headLabel?, resolvedBefore, headTarget?, blockKnown,
+  simp [earlyVotes, votesAt, hv, headLabel?, resolvedBefore_block, headTarget?, blockKnown,
     hb, hslot, hstamp, hbstamp]
 
 end AvailableChain.GridCO

@@ -15,17 +15,19 @@ only model-level constants; the Grid CO walk lemmas are called with
 
 /-! ### (W1) The walk result is stored -/
 
-/-- [helper; T7.W] The erased list of a block set is a sublist of the base list. -/
+/-- [ROOT-DIGEST-2 W1; DC root HEAD] [helper; T7.W] The erased list of a block set is a sublist of
+the base list. -/
 theorem erasedList_subset {n : Nat} (st : State n) (X : Finset (FGBlock (Fin n))) :
     erasedList st X ⊆ st.base.blocks :=
   fun _ hb => (List.mem_filter.1 hb).1
 
-/-- [spec 1074–1107; T7.W (W1)] The walk result is stored when its tree is in
+/-- [ROOT-DIGEST-2 W1; DC root HEAD] [spec 1074–1107; T7.W (W1)] The walk result is stored when its
+tree is in
 the base list, for every score and eligibility (the vote lists `raw` and
 `support`). -/
 theorem headInTree_stored (p : Params) (st : State p.n) (h : CStoreInv p st)
     (tree : List Block) (htree : tree ⊆ st.base.blocks)
-    (raw support : List (GridCO.Wire p.n)) :
+    (raw support : List (GridCO.Wire p.n .root)) :
     headInTree p st tree raw support ∈ st.base.blocks := by
   unfold headInTree GridCO.ghost
   dsimp only
@@ -34,18 +36,21 @@ theorem headInTree_stored (p : Params) (st : State p.n) (h : CStoreInv p st)
     exact liveRoot_stored p st h
   · exact htree (List.mem_eraseDups.1 hm)
 
-/-- [spec 1109–1114; T7.W (W1)] `get_head` is stored, for every vote list. -/
+/-- [ROOT-DIGEST-2 W1; DC root HEAD] [spec 1109–1114; T7.W (W1)] `get_head` is stored, for every
+vote list. -/
 theorem getHead_stored (p : Params) (st : State p.n) (h : CStoreInv p st)
-    (raw support : List (GridCO.Wire p.n)) :
+    (raw support : List (GridCO.Wire p.n .root)) :
     getHead p st raw support ∈ st.base.blocks :=
   headInTree_stored p st h _ (erasedList_subset st _) raw support
 
-/-- [spec 1276–1302; T7.W; G-walk MINOR-1] The HEAD vote at slot 0 is genesis
+/-- [ROOT-DIGEST-2 W1; DC root HEAD] [spec 1276–1302; T7.W; G-walk MINOR-1] The HEAD vote at slot 0
+is genesis
 (for the slot-0 branch of T7.12). -/
 theorem headVote_zero (p : Params) (st : State p.n) : headVote p st 0 = .genesis := by
   rfl
 
-/-- [spec 1276–1302; T7.W (W1)] The HEAD vote is stored, at every slot. -/
+/-- [ROOT-DIGEST-2 W1; DC root HEAD] [spec 1276–1302; T7.W (W1)] The HEAD vote is stored, at every
+slot. -/
 theorem headVote_stored (p : Params) (st : State p.n) (h : CStoreInv p st) (s : Slot) :
     headVote p st s ∈ st.base.blocks := by
   unfold headVote
@@ -55,14 +60,16 @@ theorem headVote_stored (p : Params) (st : State p.n) (h : CStoreInv p st) (s : 
 
 /-! ### (W2) The walk result extends the live root, and F -/
 
-/-- [spec 1074–1107; T7.W (W2)] The walk result extends the live root, for every
+/-- [ROOT-DIGEST-2 W1; DC root HEAD] [spec 1074–1107; T7.W (W2)] The walk result extends the live
+root, for every
 tree, score and eligibility. -/
 theorem liveRoot_preceq_headInTree (p : Params) (st : State p.n) (tree : List Block)
-    (raw support : List (GridCO.Wire p.n)) :
+    (raw support : List (GridCO.Wire p.n .root)) :
     Block.Preceq (liveRoot p st) (headInTree p st tree raw support) :=
   @GridCO.ghost_extends GridCO.slowLeasePolicy _ _ _ _
 
-/-- [spec 648–655; T7.W (W2)] F is an ancestor of the live root: Z is F or J
+/-- [ROOT-DIGEST-2 W1; DC root HEAD] [spec 648–655; T7.W (W2)] F is an ancestor of the live root: Z
+is F or J
 (`F ⪯ J`), and every live lease target is in the full filtered tree, above F. -/
 theorem F_preceq_liveRoot (p : Params) (st : State p.n) (h : CStoreInv p st) :
     Block.Preceq (eraseFG st.fg.F) (liveRoot p st) := by
@@ -85,27 +92,32 @@ theorem F_preceq_liveRoot (p : Params) (st : State p.n) (h : CStoreInv p st) :
       exact eraseFG_preceq ((KitFG.mem_filteredFromView (heightView p) _ _ B).1 hB).2.1
     · exact absurd hrow (by simp)
 
-/-- [spec 1074–1107; T7.W (W2)] The walk result extends F, for every tree, score
+/-- [ROOT-DIGEST-2 W1; DC root HEAD] [spec 1074–1107; T7.W (W2)] The walk result extends F, for
+every tree, score
 and eligibility. -/
 theorem F_preceq_headInTree (p : Params) (st : State p.n) (h : CStoreInv p st)
-    (tree : List Block) (raw support : List (GridCO.Wire p.n)) :
+    (tree : List Block) (raw support : List (GridCO.Wire p.n .root)) :
     Block.Preceq (eraseFG st.fg.F) (headInTree p st tree raw support) :=
   block_preceq_trans (F_preceq_liveRoot p st h) (liveRoot_preceq_headInTree p st tree raw support)
 
-/-- [spec 1109–1114; T7.W (W2)] An ancestor of F is an ancestor of `get_head`. -/
+/-- [ROOT-DIGEST-2 W1; DC root HEAD] [spec 1109–1114; T7.W (W2)] An ancestor of F is an ancestor of
+`get_head`. -/
 theorem preceq_getHead_of_preceq_F (p : Params) (st : State p.n) (h : CStoreInv p st)
-    {B : Block} (hB : Block.Preceq B (eraseFG st.fg.F)) (raw support : List (GridCO.Wire p.n)) :
+    {B : Block} (hB : Block.Preceq B (eraseFG st.fg.F)) (raw support : List (GridCO.Wire p.n .root))
+      :
     Block.Preceq B (getHead p st raw support) :=
   block_preceq_trans hB (F_preceq_headInTree p st h _ raw support)
 
-/-- [spec 1318–1323; T7.W (W2)] An ancestor of F is an ancestor of the finality
+/-- [ROOT-DIGEST-2 W1; DC root HEAD] [spec 1318–1323; T7.W (W2)] An ancestor of F is an ancestor of
+the finality
 head. -/
 theorem preceq_fgHead_of_preceq_F (p : Params) (st : State p.n) (h : CStoreInv p st)
     {B : Block} (hB : Block.Preceq B (eraseFG st.fg.F)) :
     Block.Preceq B (fgHead p st) :=
   preceq_getHead_of_preceq_F p st h hB _ _
 
-/-- [spec 1276–1302; T7.W (W2); Astra r11 m1] An ancestor of F is an ancestor of
+/-- [ROOT-DIGEST-2 W1; DC root HEAD] [spec 1276–1302; T7.W (W2); Astra r11 m1] An ancestor of F is
+an ancestor of
 the HEAD vote at a slot `s > 0`. At `s = 0` the HEAD vote is genesis, and a
 store with `CStoreInv` can have F ≠ genesis there (`clock pT stA 1`). -/
 theorem preceq_headVote_of_preceq_F (p : Params) (st : State p.n) (h : CStoreInv p st)

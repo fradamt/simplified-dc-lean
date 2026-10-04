@@ -11,7 +11,8 @@ def pcOK {n : Nat} (c : Option (PC n)) (b : Block) : Bool :=
   | none => true
   | some cert => Block.compatible b cert.target
 
-/-- A pure extension of the SA gate. The finite guard tests the whole
+/-- [ROOT-DIGEST-2 W1; DC deferred behavior]
+A pure extension of the SA gate. The finite guard tests the whole
 raw result. The stable write and each prefix lease have separate PC guards.
 Without PC authority this calls the proved SA transition directly. -/
 def gateWithPC (p : Params) {n : Nat} (st : GridCO.State n) (r : Slot)
@@ -20,12 +21,13 @@ def gateWithPC (p : Params) {n : Nat} (st : GridCO.State n) (r : Slot)
   | none => SA.gate p st r
   | some _ =>
       match SA.confirmation p st r with
-      | none => { st with genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy n st r none }
+      | none => { st with
+          genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy n .block st r none }
       | some h =>
-          let levels := @GridCO.admissionLevels GridCO.slowLeasePolicy p.engine n st r
+          let levels := @GridCO.admissionLevels GridCO.slowLeasePolicy p.engine n .block st r
           let st := { st with
             goldfishRecord := GridCO.advance st.goldfishRecord h
-            genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy n st r (some h) }
+            genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy n .block st r (some h) }
           if st.obligations.any (fun (target, _, _) =>
             !Block.compatible target h) then st else
             let st := if pcOK c h then

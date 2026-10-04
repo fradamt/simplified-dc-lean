@@ -66,7 +66,8 @@ private theorem block_ancestors_compatible (A B C : Block)
           simp [Block.compatible, hAC]
         · exact ih hA hB
 
-/-- A target that conflicts with an ancestor also conflicts with every
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A target that conflicts with an ancestor also conflicts with every
 descendant. This is the tree fact behind release-count monotonicity. -/
 theorem conflict_mono_descendant (B K target : Block)
     (hBK : Block.preceq B K = true)
@@ -85,7 +86,8 @@ theorem conflict_mono_descendant (B K target : Block)
     cases hconflict
   · cases hbool : Block.compatible target K <;> simp_all
 
-/-- Release conflicts increase along a branch: a HEAD that conflicts with
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Release conflicts increase along a branch: a HEAD that conflicts with
 an ancestor also conflicts with its descendant. -/
 theorem releaseConflictSeats_mono (p : Params) {n : Nat}
     (st : State n) (r : Slot) (B K : Block)
@@ -115,32 +117,31 @@ theorem releaseCount_mono (p : Params) {n : Nat}
   rw [releaseCount_eq_card, releaseCount_eq_card]
   exact Finset.card_le_card (releaseConflictSeats_mono p st r B K hBK)
 
-/-- A prefix receives at least the Goldfish score of its descendant. The
+/-- [ROOT-DIGEST-2 W1; DC legacy HEAD]
+A prefix receives at least the Goldfish score of its descendant. The
 same equivocation seats count on both sides. -/
 theorem goldfishScore_mono {n : Nat} (tree : List Block)
     (raw support : List (Wire n)) (B K : Block)
     (hBK : Block.preceq B K = true) :
     goldfishScore tree raw support K ≤ goldfishScore tree raw support B := by
-  unfold goldfishScore
-  rw [← List.countP_eq_length_filter, ← List.countP_eq_length_filter]
-  apply List.countP_mono_left
-  intro i _ hi
-  rcases Bool.or_eq_true_iff.mp hi with hequiv | hsupport
-  · exact Bool.or_eq_true_iff.mpr (Or.inl hequiv)
-  · obtain ⟨o, ho, htarget⟩ := List.any_eq_true.mp hsupport
-    cases ht : headTarget? o with
-    | none => simp [ht] at htarget
-    | some target =>
-        simp only [ht] at htarget
-        have hparts : (target ∈ tree &&
-            target.slot ≤ (headLabel? o).getD 0) = true ∧
-            Block.preceq K target = true := by
-          exact Bool.and_eq_true_iff.mp htarget
-        have hB := block_preceq_trans B K target hBK hparts.2
-        apply Bool.or_eq_true_iff.mpr
-        right
-        apply List.any_eq_true.mpr
-        exact ⟨o, ho, by simp [ht, hparts.1, hB]⟩
+  unfold goldfishScore goldfishScoreOn
+  apply List.Sublist.length_le
+  apply List.monotone_filter_right
+  intro i hi
+  rcases Bool.or_eq_true_iff.mp hi with he | hb
+  · exact Bool.or_eq_true_iff.mpr (Or.inl he)
+  · apply Bool.or_eq_true_iff.mpr
+    right
+    obtain ⟨o, ho, hv⟩ := List.any_eq_true.mp hb
+    apply List.any_eq_true.mpr
+    refine ⟨o, ho, ?_⟩
+    split at hv
+    · contradiction
+    · split at hv
+      · contradiction
+      · rename_i C _
+        simp only [Bool.and_eq_true] at hv ⊢
+        exact ⟨hv.1, block_preceq_trans B K C hBK hv.2⟩
 
 theorem prefixSupport_mono (p : Params) {n : Nat} (st : State n)
     (r : Slot) (B K : Block) (hBK : Block.preceq B K = true) :
@@ -148,16 +149,19 @@ theorem prefixSupport_mono (p : Params) {n : Nat} (st : State n)
   exact goldfishScore_mono st.blocks (cleanSupport p st r)
     (cleanSupport p st r) B K hBK
 
-/-- The map key of an obligation is its block and grid level. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The map key of an obligation is its block and grid level. -/
 def obligationKey (row : Block × Nat × Time) : Block × Nat :=
   (row.1, row.2.1)
 
-/-- At most one deadline is stored for each block and level. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+At most one deadline is stored for each block and level. -/
 def UniqueObligationKeys {n : Nat} (st : State n) : Prop :=
   ∀ x ∈ st.obligations, ∀ y ∈ st.obligations,
     obligationKey x = obligationKey y → x = y
 
-/-- Every non-genesis prefix at the same level has a deadline at least as
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Every non-genesis prefix at the same level has a deadline at least as
 late as its descendant's. This combines closure and deadline order. -/
 def PrefixDeadlineOrder {n : Nat} (st : State n) : Prop :=
   ∀ K g deadline, (K, g, deadline) ∈ st.obligations →
@@ -197,7 +201,8 @@ theorem release_prefix_deadline_order (p : Params) {n : Nat}
     simpa using (List.mem_filter.mp hrow).2
   simpa using lt_of_le_of_lt (releaseCount_mono p st r B K hBK) hkeep
 
-/-- All old deadlines are no later than a new gate deadline. This holds for
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+All old deadlines are no later than a new gate deadline. This holds for
 reachable states whose writes are at or before the present gate. -/
 def DeadlinesAtMost {n : Nat} (st : State n) (limit : Time) : Prop :=
   ∀ b g d, (b, g, d) ∈ st.obligations → d ≤ limit
@@ -306,7 +311,8 @@ private theorem writeKeys_preserves_limit_row {n : Nat} (st : State n)
         (writeObligation_bound st key.1 key.2 limit hbound)
         (write_preserves_limit_row st K g limit key hbound hrow)
 
-/-- A bounded gate write installs every selected key with the new deadline. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A bounded gate write installs every selected key with the new deadline. -/
 theorem writeKeys_mem_of_key {n : Nat} (st : State n)
     (keys : List (Block × Nat)) (K : Block) (g : Nat) (limit : Time)
     (hbound : DeadlinesAtMost st limit)
@@ -378,7 +384,8 @@ private theorem writeKeys_mem_old_of_unwritten {n : Nat} (st : State n)
         simp [hg]
       · simp [hb]
 
-/-- A complete gate write preserves ancestor closure and deadline order.
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A complete gate write preserves ancestor closure and deadline order.
 The key list can have any order: every written key gets the same new
 deadline, and its non-genesis ancestors must also occur in the list. -/
 theorem writeKeys_prefix_deadline_order {n : Nat} (st : State n)
@@ -417,7 +424,8 @@ theorem writeKeys_deadlines_aligned (p : Params) {n : Nat}
   · obtain ⟨s, hs⟩ := hlimit
     exact ⟨s, by simpa [hd] using hs⟩
 
-/-- The stored block domain contains each non-genesis ancestor of a stored
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The stored block domain contains each non-genesis ancestor of a stored
 block. Admission preserves this when it requires a known parent. -/
 def StoredPrefixClosed {n : Nat} (st : State n) : Prop :=
   ∀ K ∈ st.blocks, ∀ B, B ≠ .genesis →
@@ -579,7 +587,8 @@ theorem process_stored_prefix_closed (p : Params) {n : Nat}
         | exact admitProposal_stored_prefix_closed p st _ _ _ hclosed
         | exact hclosed
 
-/-- Slow admission is closed under containment of non-genesis prefixes. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Slow admission is closed under containment of non-genesis prefixes. -/
 theorem slowEligible_mono (p : Params) {n : Nat} (st : State n)
     (r : Slot) (B K : Block) (hBK : Block.preceq B K = true)
     (hK : slowEligible p st r K = true) : slowEligible p st r B = true := by
@@ -728,7 +737,8 @@ theorem gate_live_rows (p : Params) {n : Nat}
           · subst d
             linarith [lifetime_pos p]
 
-/-- The full gate write retains ancestor rows and their deadline order.
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The full gate write retains ancestor rows and their deadline order.
 The input bound is the reachable-time fact that previous deadlines do not
 exceed the deadline of this gate. -/
 theorem gate_prefix_deadline_order (p : Params) {n : Nat}
@@ -750,7 +760,8 @@ theorem gate_prefix_deadline_order (p : Params) {n : Nat}
           · simpa [DeadlinesAtMost] using hbound
           · exact gateWriteKeys_closed p st r C hblocks
 
-/-- Every pair of stored obligation targets lies on one chain. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Every pair of stored obligation targets lies on one chain. -/
 def ComparableTargets {n : Nat} (st : State n) : Prop :=
   ∀ K g d, (K, g, d) ∈ st.obligations →
     ∀ B level expiry, (B, level, expiry) ∈ st.obligations →
@@ -1002,7 +1013,8 @@ theorem clock_stored_prefix_closed (p : Params) {n : Nat}
   stored_prefix_closed_of_same_blocks st (clock p st t)
     (clock_blocks p st t) hclosed
 
-/-- The clock state just before a possible gate at time `t`. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The clock state just before a possible gate at time `t`. -/
 def clockPreGate (p : Params) {n : Nat} (st : State n) (t : Time) : State n :=
   let st := expire { st with now := t } t
   let fSlot := ((t - 3 * p.Δ) / (4 * p.Δ)).toNat
@@ -1385,7 +1397,8 @@ private theorem fold_world_map_reachable
       exact ih (World.step w e) e.time htail hfuture'
         (world_step_map_reachable p w e bound hinv he)
 
-/-- Every state reached by a well-formed schedule has ordered map rows,
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Every state reached by a well-formed schedule has ordered map rows,
 comparable targets, prefix-closed blocks, and a deadline horizon. -/
 theorem run_map_reachable
     {V : Type} [DecidableEq V] (p : Params)
@@ -1568,7 +1581,8 @@ theorem preceq_of_compatible_depth_le (B C : Block)
     subst C
     exact block_preceq_self B
 
-/-- With comparable live targets, the executable deepest-choice root is
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+With comparable live targets, the executable deepest-choice root is
 their deepest target. Every live target is its ancestor. -/
 theorem liveTarget_preceq_liveRoot {n : Nat} (st : State n)
     (hcomparable : ComparableTargets st)

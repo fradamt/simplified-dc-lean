@@ -12,12 +12,14 @@ variable [LeasePolicy]
 
 open AvailableChain.Generic AvailableChain.Statements.Generic
 
-/-- Every stored object has a receipt stamp. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Every stored object has a receipt stamp. -/
 def ReceiptStamped {n : Nat} (st : State n) : Prop :=
   (∀ b ∈ st.blocks, ∃ t, (b, t) ∈ st.blockStamp) ∧
   (∀ o ∈ st.votes, ∃ t, (o, t) ∈ st.voteStamp)
 
-/-- The fields read by confirmation, apart from the fallback clock. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The fields read by confirmation, apart from the fallback clock. -/
 def receiptData {n : Nat} (st : State n) :=
   (st.blocks, st.blockStamp, st.votes, st.voteStamp)
 
@@ -131,7 +133,8 @@ private theorem fold_stamped {V : Type} [DecidableEq V] (p : Params)
           · subst v; simpa [World.step] using! process_stamped p (w u) o (h u)
           · simpa [World.step, hv] using h v
 
-/-- Stored votes and blocks have stamps at every time-filtered run state. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Stored votes and blocks have stamps at every time-filtered run state. -/
 theorem run_receiptStamped {V : Type} [DecidableEq V]
     (p : Params) (rho : Run V (gridCO p)) (i : Nat) (v : V) :
     ReceiptStamped (Run.stateBefore (gridCO p) rho i v) :=
@@ -153,7 +156,8 @@ private theorem stamp_eq_of_data {α : Type} [BEq α] [LawfulBEq α]
       simp at hh
   | some row => rfl
 
-/-- A clock change does not change resolution of a stored, stamped HEAD. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A clock change does not change resolution of a stored, stamped HEAD. -/
 theorem resolvedBefore_eq_of_receiptData {n : Nat} (a b : State n)
     (heq : receiptData a = receiptData b) (hb : ReceiptStamped b)
     (o : Wire n) (ho : o ∈ b.votes) (cut : Time) :
@@ -163,7 +167,7 @@ theorem resolvedBefore_eq_of_receiptData {n : Nat} (a b : State n)
   have hv : stampVote a o = stampVote b o := by
     simp only [stampVote, h4]
     exact stamp_eq_of_data _ _ _ _ (hb.2 o ho)
-  unfold resolvedBefore
+  simp only [resolvedBefore_block]
   split
   · rfl
   · rename_i target ht
@@ -174,7 +178,8 @@ theorem resolvedBefore_eq_of_receiptData {n : Nat} (a b : State n)
       simp only [blockKnown, h1, ht, hv]
     · simp [blockKnown, h1, hknown]
 
-/-- Expiry, freeze, and clock stamping leave the release count unchanged. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Expiry, freeze, and clock stamping leave the release count unchanged. -/
 theorem releaseCount_eq_of_receiptData (p : Params) {n : Nat} (a b : State n)
     (heq : receiptData a = receiptData b) (hb : ReceiptStamped b) (r : Slot) (B : Block) :
     releaseCount p a r B = releaseCount p b r B := by
@@ -186,8 +191,11 @@ theorem releaseCount_eq_of_receiptData (p : Params) {n : Nat} (a b : State n)
     intro o ho
     exact resolvedBefore_eq_of_receiptData a b heq hb o (List.mem_filter.mp ho).1 _
   simp only [releaseCount, hraw, hresolved]
+  have hblocks : a.blocks = b.blocks := congrArg Prod.fst heq
+  simp only [resolvedHead?, resolutionTree, hblocks]
 
-/-- Restamping the local clock cannot change a genuine result once all
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Restamping the local clock cannot change a genuine result once all
 stored votes and blocks have their own receipt stamps. -/
 theorem confirmation_eq_of_receiptData (p : Params) {n : Nat}
     (a b : State n) (heq : receiptData a = receiptData b) (hb : ReceiptStamped b)
@@ -201,7 +209,7 @@ theorem confirmation_eq_of_receiptData (p : Params) {n : Nat}
   have hres : ∀ o ∈ b.votes, resolvedBefore a o (earlyTime p r) =
       resolvedBefore b o (earlyTime p r) := by
     intro o ho
-    unfold resolvedBefore
+    simp only [resolvedBefore_block]
     split
     · rfl
     · rename_i target ht
@@ -224,9 +232,11 @@ theorem confirmation_eq_of_receiptData (p : Params) {n : Nat}
     rw [hv o (List.mem_filter.mp ho).1]
   have hclean : cleanSupport p a r = cleanSupport p b r := by
     simp only [cleanSupport, hearly, hlate]
-  simp only [confirmation, hclean, hlate, h1]
+  simp only [confirmation, hclean, hlate, resolutionTree, h1]
+  rfl
 
-/-- The gate branch runs at its advertised time and label. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The gate branch runs at its advertised time and label. -/
 theorem clock_at_gate (p : Params) {n : Nat} (st : State n) (r : Slot) :
     clock p st (gateTime p r) = gate p (clockPreGate p st (gateTime p r)) r := by
   have hd : 4 * p.Δ ≠ 0 := ne_of_gt (by linarith [p.deltaPos])
@@ -240,7 +250,8 @@ theorem clock_at_gate (p : Params) {n : Nat} (st : State n) (r : Slot) :
   rw [clock_eq_gate_prestate]
   simp only [hslot, hn, decide_true, beq_self_eq_true, Bool.and_self, ↓reduceIte]
 
-/-- In integer time, the strict-time read is the preceding integer read. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+In integer time, the strict-time read is the preceding integer read. -/
 theorem stateBeforeTime_eq_readAt_pred {V : Type} [DecidableEq V]
     (p : Params) (rho : Run V (gridCO p)) (t : Time) :
     Run.stateBeforeTime (gridCO p) rho t = Run.readAt (gridCO p) rho (t - 1) := by
@@ -250,7 +261,8 @@ theorem stateBeforeTime_eq_readAt_pred {V : Type} [DecidableEq V]
   simp only [decide_eq_decide]
   exact Int.le_sub_one_iff.symm
 
-/-- The record before gate zero is genesis; later gates read the preceding
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The record before gate zero is genesis; later gates read the preceding
 completed gate's record. -/
 theorem gate_input_record {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p))
@@ -275,7 +287,8 @@ theorem gate_input_record {V : Type} [DecidableEq V]
       rw [hr]
       exact sub_lt_self _ (by norm_num)
 
-/-- An honest gate read either retains the preceding record or contains
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+An honest gate read either retains the preceding record or contains
 that reader's genuine result, computed from the strict gate input. -/
 theorem read_gate_record_cases {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p))

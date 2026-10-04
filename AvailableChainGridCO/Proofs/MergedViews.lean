@@ -32,7 +32,8 @@ private theorem gate_proposals (p : Params) {n : Nat} (st : State n) (r : Slot) 
       intro st B
       exact fold_proposals _ _ st (by intros; rfl)
 
-/-- The clock never changes the stored proposal objects. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The clock never changes the stored proposal objects. -/
 theorem clock_proposals (p : Params) {n : Nat} (st : State n) (t : Time) :
     (clock p st t).proposals = st.proposals := by
   unfold clock
@@ -55,7 +56,8 @@ private theorem fold_vote_blocks (p : Params) {n : Nat} (st : State n)
   | nil => rfl
   | cons row raw ih => rw [List.foldl_cons, ih, admitVote_blocks]
 
-/-- A new proposal entry comes from its admitted block envelope. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A new proposal entry comes from its admitted block envelope. -/
 theorem process_proposal_origin (p : Params) {n : Nat} (st : State n)
     (parent o : Wire n) (ho : o ∈ (process p st parent).proposals) :
     o ∈ st.proposals ∨ parent = o ∧ ∃ B raw support,
@@ -81,10 +83,13 @@ theorem process_proposal_origin (p : Params) {n : Nat} (st : State n)
           have hgt : (st.now / (4 * p.Δ)).toNat < B.slot := Nat.lt_of_not_ge h
           simp [hgt] at hgood
         refine Or.inr ⟨rfl, B, raw, support, hp, hn, ?_, hslot⟩
-        simp [process, ha, hp, admitProposal, hgood, fold_vote_blocks]
+        simp only [process, ha, hp, admitProposal, hgood, Bool.false_eq_true, ite_false]
+        rw [fold_vote_blocks]
+        simp
   · exact Or.inl ho
 
-/-- Each stored proposal has an earlier direct admission. The source
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Each stored proposal has an earlier direct admission. The source
 includes the complete wire views, the handler call, and the slot guard. -/
 theorem stored_proposal_admission {V : Type} [DecidableEq V] (p : Params)
     (rho : Run V (gridCO p)) (index : Nat) (reader : V) (o : Wire p.n)
@@ -126,7 +131,8 @@ theorem stored_proposal_admission {V : Type} [DecidableEq V] (p : Params)
               · obtain ⟨j, hj, hrest⟩ := ih (by simpa [World.step, hv] using ho)
                 exact ⟨j, by omega, hrest⟩
 
-/-- Every stored proposal passed the wire check at its direct delivery. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Every stored proposal passed the wire check at its direct delivery. -/
 theorem stored_proposal_wellFormed {V : Type} [DecidableEq V] (p : Params)
     (E : Env V) (rho : Run V (gridCO p)) (hx : ExecutionValid (gridCO p) E rho)
     (index : Nat) (reader : V) (o : Wire p.n)
@@ -135,7 +141,8 @@ theorem stored_proposal_wellFormed {V : Type} [DecidableEq V] (p : Params)
   obtain ⟨j, _, t, _, _, _, hi, _⟩ := stored_proposal_admission p rho index reader o ho
   exact hx.wire j reader o t hi
 
-/-- Proposal metadata in the next HEAD state also passed the wire check. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Proposal metadata in the next HEAD state also passed the wire check. -/
 theorem nextHeadState_proposal_wellFormed {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p))
     (hx : ExecutionValid (gridCO p) E rho) (r : Slot) (reader : V) (o : Wire p.n)
@@ -155,7 +162,8 @@ private theorem wellFormed_support_subset {n : Nat} (o : Wire n)
     | intro v hv
       exact of_decide_eq_true (List.all_eq_true.mp (Bool.and_eq_true_iff.mp hw).2 v hv)
 
-/-- The merged resolved view is a subset of the merged raw view. The
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The merged resolved view is a subset of the merged raw view. The
 wire check prevents a proposal from declaring an extra support vote. -/
 theorem nextHeadState_support_subset_raw_of_execution {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -174,11 +182,12 @@ theorem nextHeadState_support_subset_raw_of_execution {V : Type} [DecidableEq V]
     obtain ⟨hm, hres⟩ := List.mem_filter.mp hf
     apply List.mem_filter.mpr
     refine ⟨hm, ?_⟩
+    have hold := (resolvedBefore_block _ o _).symm.trans hres
     cases ht : headTarget? o with
-    | none => simp [resolvedBefore, ht] at hres
+    | none => simp [ht] at hold
     | some target =>
-        simp only [resolvedBefore, ht, Bool.and_eq_true, decide_eq_true_eq] at hres
-        exact decide_eq_true hres.1.2
+        simp only [ht, Bool.and_eq_true, decide_eq_true_eq] at hold
+        exact decide_eq_true hold.1.2
   · apply List.mem_append_right
     obtain ⟨hc, htest⟩ := List.mem_filter.mp hc
     apply List.mem_filter.mpr
@@ -201,7 +210,8 @@ theorem nextHeadState_support_subset_raw {V : Type} [DecidableEq V] [Fintype V]
       voterView p (nextHeadState p rho r reader) (r + 1) :=
   nextHeadState_support_subset_raw_of_execution p E rho hΔ r hsync.1 hsync.2.2.1 reader hr
 
-/-- A raw HEAD in a current proposal is stored at release, or its seat
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A raw HEAD in a current proposal is stored at release, or its seat
 already has two distinct copies there. The admission guard supplies the
 current/previous-label window; no extra clock premise is used. -/
 theorem nextHeadState_carried_raw_receipt {V : Type} [DecidableEq V]
@@ -261,7 +271,8 @@ theorem nextHeadState_carried_raw_receipt {V : Type} [DecidableEq V]
   · exact Or.inl (hsub (List.mem_filter.mpr ⟨hm, by simp [headLabel?]⟩))
   · exact Or.inr (equivocates_mono _ _ i hsub heq)
 
-/-- The whole next raw view has a stored release receipt or two-copy
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The whole next raw view has a stored release receipt or two-copy
 evidence. This includes the frozen part and every admitted proposal. -/
 theorem nextHeadState_raw_receipt_of_execution {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -293,7 +304,8 @@ theorem nextHeadState_raw_receipt {V : Type} [DecidableEq V] [Fintype V]
       equivocates (votesAt (releaseInput p rho r reader) r) i = true :=
   nextHeadState_raw_receipt_of_execution p E rho hΔ r hsync.1 hsync.2.2.1 reader hr o i hi ho
 
-/-- Reverse relay covers the complete merged raw view. A capped carried
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Reverse relay covers the complete merged raw view. A capped carried
 copy supplies equivocation evidence at the source gate instead. -/
 theorem synchronous_voter_raw_late {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -312,7 +324,8 @@ theorem synchronous_voter_raw_late {V : Type} [DecidableEq V] [Fintype V]
   · exact hback o hm hi
   · exact Or.inr (equivocates_of_mem_or_equivocates _ _ i hback he)
 
-/-- The engine supplies every receipt condition for genuine-prefix
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The engine supplies every receipt condition for genuine-prefix
 transfer. There is no equal-view, uncapped-handler, or honest-seat premise. -/
 theorem transferReceipts_from_engine {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -328,7 +341,8 @@ theorem transferReceipts_from_engine {V : Type} [DecidableEq V] [Fintype V]
   · intro o ho i hi
     exact synchronous_voter_raw_late p E rho hΔ r hsync source reader hs hr o i hi ho
 
-/-- Transfer follows from the engine, saved views, receipt relay,
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Transfer follows from the engine, saved views, receipt relay,
 compatible live targets, and the ordinary strict-majority walk. -/
 theorem transfer_from_engine {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ) :
@@ -360,7 +374,8 @@ theorem transfer_from_engine {V : Type} [DecidableEq V] [Fintype V]
       source reader hs hr o (List.mem_filter.mp ho).1 target A ht hn
       (prefix_trans A B target hA htarget))
 
-/-- The recovery descent now uses engine transfer after release. Only
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The recovery descent now uses engine transfer after release. Only
 compatibility of strictly stronger rows remains a stage premise. -/
 theorem transfer_of_stronger_rows_from_engine {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)

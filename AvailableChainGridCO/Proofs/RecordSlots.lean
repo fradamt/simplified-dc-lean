@@ -13,7 +13,8 @@ variable [LeasePolicy]
 
 open AvailableChain.Generic AvailableChain.Statements.Generic
 
-/-- The executable first-copy filter has no duplicate objects. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The executable first-copy filter has no duplicate objects. -/
 theorem eraseDups_nodup {α : Type} [BEq α] [LawfulBEq α] (xs : List α) :
     xs.eraseDups.Nodup := by
   cases xs with
@@ -27,13 +28,14 @@ theorem eraseDups_nodup {α : Type} [BEq α] [LawfulBEq α] (xs : List α) :
 termination_by xs.length
 decreasing_by exact Nat.lt_succ_of_le (List.length_filter_le _ _)
 
-/-- Every early vote is also in the late pool. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Every early vote is also in the late pool. -/
 theorem earlyVotes_subset_lateVotes (p : Params) {n : Nat} (st : State n) (r : Slot) :
     ∀ o ∈ earlyVotes p st r, o ∈ lateVotes p st r := by
   intro o ho
   obtain ⟨hraw, hres⟩ := List.mem_filter.mp ho
   refine List.mem_filter.mpr ⟨hraw, ?_⟩
-  unfold resolvedBefore at hres
+  simp only [resolvedBefore_block] at hres
   split at hres
   · contradiction
   · simp only [Bool.and_eq_true, decide_eq_true_eq] at hres
@@ -51,7 +53,8 @@ private theorem sameSeat_of_label_seat {n : Nat} (a b : Wire n) (r : Slot) (i : 
   cases aa <;> cases ap <;> cases ba <;> cases bp <;>
     simp_all [headLabel?, headSeat?, sameSeat]
 
-/-- Two surviving early votes from one seat are the same object. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Two surviving early votes from one seat are the same object. -/
 theorem cleanSupport_seat_unique (p : Params) {n : Nat} (st : State n) (r : Slot)
     (i : Fin n) (a b : Wire n)
     (ha : a ∈ cleanSupport p st r) (hb : b ∈ cleanSupport p st r)
@@ -69,7 +72,8 @@ theorem cleanSupport_seat_unique (p : Params) {n : Nat} (st : State n) (r : Slot
       by simp [sameSeat_of_label_seat b a r i hblabel halabel hib hia, Ne.symm hne]⟩
   simp [hany] at hclean
 
-/-- Genuine support never uses the equivocation score shortcut. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Genuine support never uses the equivocation score shortcut. -/
 theorem cleanSupport_no_equivocation (p : Params) {n : Nat} (st : State n)
     (r : Slot) (i : Fin n) : equivocates (cleanSupport p st r) i = false := by
   let xs := seatVotes (cleanSupport p st r) i
@@ -87,11 +91,12 @@ theorem cleanSupport_no_equivocation (p : Params) {n : Nat} (st : State n)
   change decide (2 ≤ xs.eraseDups.length) = false
   exact decide_eq_false (by omega)
 
-/-- Positive genuine support has an actual, slot-bounded target. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Positive genuine support has an actual, slot-bounded target. -/
 theorem prefixSupport_target (p : Params) {n : Nat} (st : State n) (r : Slot)
     (B : Block) (hpos : 0 < prefixSupport p st r B) :
     ∃ target ∈ st.blocks, target.slot ≤ r ∧ Block.Preceq B target := by
-  unfold prefixSupport goldfishScore at hpos
+  simp only [prefixSupport_block_eq, goldfishScore_block_eq] at hpos
   obtain ⟨i, hi⟩ := List.exists_mem_of_ne_nil _ (List.length_pos_iff.mp hpos)
   have hscore := (List.mem_filter.mp hi).2
   rw [cleanSupport_no_equivocation, Bool.false_or] at hscore
@@ -106,7 +111,8 @@ theorem prefixSupport_target (p : Params) {n : Nat} (st : State n) (r : Slot)
       simp only [ht, hlabel, Option.getD_some, Bool.and_eq_true, decide_eq_true_eq] at htarget
       exact ⟨target, htarget.1.1, htarget.1.2, htarget.2⟩
 
-/-- Slot order gives the slot bound for each prefix. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Slot order gives the slot bound for each prefix. -/
 theorem slot_le_of_prefix (B C : Block) (hordered : SlotOrdered C)
     (hBC : Block.Preceq B C) : B.slot ≤ C.slot := by
   induction C with
@@ -119,7 +125,8 @@ theorem slot_le_of_prefix (B C : Block) (hordered : SlotOrdered C)
       · subst B; rfl
       · exact le_trans (ih hordered.2 hp) (Nat.le_of_lt hordered.1)
 
-/-- A genuine result cannot name a block from a later slot. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A genuine result cannot name a block from a later slot. -/
 theorem confirmation_slot_le (p : Params) {n : Nat} (st : State n) (r : Slot)
     (B : Block) (hordered : ∀ b ∈ st.blocks, SlotOrdered b)
     (hresult : confirmation p st r = some B) : B.slot ≤ r := by
@@ -131,7 +138,8 @@ theorem confirmation_mem (p : Params) {n : Nat} (st : State n) (r : Slot)
     (B : Block) (hc : confirmation p st r = some B) : B = .genesis ∨ B ∈ st.blocks :=
   confirmationFrom_mem p .genesis st r B hc
 
-/-- Stored paths and the stable record have strictly increasing slots. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Stored paths and the stable record have strictly increasing slots. -/
 def RecordSlotOrdered {n : Nat} (st : State n) : Prop :=
   (∀ b ∈ st.blocks, SlotOrdered b) ∧ SlotOrdered st.stableRecord
 
@@ -281,7 +289,8 @@ private theorem fold_record_slot_le {V : Type} [DecidableEq V] (p : Params)
             · simpa [World.step, hv] using h v
       · intro e he; exact ht e (List.mem_cons_of_mem _ he)
 
-/-- At and before gate `r`, the stable record has slot at most `r`.
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+At and before gate `r`, the stable record has slot at most `r`.
 This also holds for a reachable prefix with no synchrony or participation. -/
 theorem read_stable_slot_le {V : Type} [DecidableEq V] (p : Params)
     (rho : Run V (gridCO p)) (r : Slot) (t : Time) (ht : t ≤ gateTime p r) (v : V) :
@@ -292,7 +301,8 @@ theorem read_stable_slot_le {V : Type} [DecidableEq V] (p : Params)
       intro e he
       exact le_trans (of_decide_eq_true (List.mem_filter.mp he).2) ht) v).2
 
-/-- The input to a positive-slot gate has a strictly older stable record. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The input to a positive-slot gate has a strictly older stable record. -/
 theorem gate_input_slot_lt {V : Type} [DecidableEq V] (p : Params)
     (E : Env V) (rho : Run V (gridCO p)) (hs : ScheduleWellFormed E rho)
     (r : Slot) (hr : 0 < r) (v : V) : (stable (gateInput p rho r v)).slot < r := by
@@ -300,7 +310,8 @@ theorem gate_input_slot_lt {V : Type} [DecidableEq V] (p : Params)
   exact lt_of_le_of_lt (read_stable_slot_le p rho (r - 1) _ (le_refl _) v)
     (Nat.sub_lt hr (by decide))
 
-/-- Before a gate, the clock can remove obligations but cannot add one. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Before a gate, the clock can remove obligations but cannot add one. -/
 theorem clockPreGate_obligations_subset (p : Params) {n : Nat} (st : State n) (t : Time) :
     ∀ row ∈ (clockPreGate p st t).obligations, row ∈ st.obligations := by
   unfold clockPreGate
@@ -311,7 +322,8 @@ theorem clockPreGate_obligations_subset (p : Params) {n : Nat} (st : State n) (t
     repeat first | exact (List.mem_filter.mp hr).1
                  | replace hr := (List.mem_filter.mp hr).1
 
-/-- The actual gate read repairs an older record once the fresh genuine
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The actual gate read repairs an older record once the fresh genuine
 result passes the local guard. No bound on the old record is a premise. -/
 theorem read_gate_repairs_fresh_slot {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p))

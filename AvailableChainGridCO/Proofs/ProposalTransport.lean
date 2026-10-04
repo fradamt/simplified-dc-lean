@@ -41,7 +41,8 @@ private theorem proposal_horizon {V : Type} [DecidableEq V] [Fintype V]
   dsimp [gateTime] at hh
   linarith [p.deltaPos]
 
-/-- The merged raw view contains the proposer view. Each extra copy belongs
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The merged raw view contains the proposer view. Each extra copy belongs
 to a seat that already equivocates at the proposer. -/
 theorem honest_proposal_raw_extension {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -77,7 +78,8 @@ theorem honest_proposal_raw_extension {V : Type} [DecidableEq V] [Fintype V]
       rw [nextHeadState_honest_proposal_unique p E rho hsync.1 r B hB reader wire hwire] at hraw
       exact Or.inl (mem_of_head_roundtrip _ o hraw)
 
-/-- The merged support view extends the proposer support view. Extra support
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The merged support view extends the proposer support view. Extra support
 belongs to seats which already equivocate; target paths relay separately. -/
 theorem honest_proposal_support_extension {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -101,12 +103,11 @@ theorem honest_proposal_support_extension {V : Type} [DecidableEq V] [Fintype V]
   · intro o ho
     have hres := (List.mem_filter.mp ho).2
     cases ht : headTarget? o with
-    | none => simp [ht] at hres
+    | none => simp [resolvedHead?, ht] at hres
     | some target =>
         have hknown : target ∈ (proposalState p rho (r + 1)).blocks := by
-          simpa only [ht, Bool.and_eq_true, decide_eq_true_eq, blockKnown] using
-            (show blockKnown (proposalState p rho (r + 1)) target = true from
-              (Bool.and_eq_true_iff.mp (by simpa only [ht] using hres)).1)
+          by_contra hn
+          simp [resolvedHead?, ht, resolveTarget, resolutionTree, hn] at hres
         exact proposal_support_mem_voterSupportView p _ _ (r + 1) _ B _ hstored.2 rfl
           hslot o target ho ht (proposal_blocks_at_head p E rho hΔ r hsync hB.1 reader hr
             target hknown)
@@ -121,7 +122,8 @@ theorem honest_proposal_support_extension {V : Type} [DecidableEq V] [Fintype V]
         at hsupport
       exact Or.inl (mem_of_head_roundtrip _ o hsupport)
 
-/-- The honest proposal merge preserves seats, scores, and eligibility.
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The honest proposal merge preserves seats, scores, and eligibility.
 Its raw and support sets can contain extra copies from equivocating seats. -/
 theorem honest_proposal_score_extension {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -138,7 +140,8 @@ theorem honest_proposal_score_extension {V : Type} [DecidableEq V] [Fintype V]
   have hsupport := honest_proposal_support_extension p E rho hΔ r hsync hready B hB reader hr
   exact ⟨hraw.1, hsupport.1, hraw.2, hsupport.2⟩
 
-/-- The engine discharges every local proposal-view transport obligation:
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The engine discharges every local proposal-view transport obligation:
 tree reflection, raw participant count, and all common-block scores. -/
 theorem proposalViewTransport_from_engine {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -156,9 +159,11 @@ theorem proposalViewTransport_from_engine {V : Type} [DecidableEq V] [Fintype V]
   apply hext.score_eq _ _ ?_ C
   intro o ho target ht
   have hres := (List.mem_filter.mp ho).2
-  simp only [ht, Bool.and_eq_true, blockKnown, decide_eq_true_eq] at hres
-  exact iff_of_true hres.1
-    (proposal_blocks_at_head p E rho hΔ r hsync hB.1 reader hr target hres.1)
+  have hm : target ∈ (proposalState p rho (r + 1)).blocks := by
+    by_contra hn
+    simp [resolvedHead?, ht, resolveTarget, resolutionTree, hn] at hres
+  exact iff_of_true hm
+    (proposal_blocks_at_head p E rho hΔ r hsync hB.1 reader hr target hm)
 
 end AvailableChain.GridCO
 end

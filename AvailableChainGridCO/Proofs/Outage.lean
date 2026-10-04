@@ -7,7 +7,8 @@ namespace AvailableChain.GridCO
 
 open AvailableChain.Generic AvailableChain.Statements.Generic
 
-/-- The last early healthy batch retains every earlier clean genuine
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The last early healthy batch retains every earlier clean genuine
 result. Its late pool and its gate may be inside the outage. -/
 theorem pending_genuine_extends_history [LeasePolicy] {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -31,7 +32,8 @@ theorem pending_genuine_extends_history [LeasePolicy] {V : Type} [DecidableEq V]
   have he : D = C := Option.some.inj (hD.symm.trans hC)
   exact he ▸ hBD
 
-/-- No earlier map target can veto the pending healthy gate. All targets
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+No earlier map target can veto the pending healthy gate. All targets
 come from earlier clean genuine results, covered by its honest batch. -/
 theorem pending_gate_guard [LeasePolicy] {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -57,7 +59,8 @@ theorem pending_gate_guard [LeasePolicy] {V : Type} [DecidableEq V] [Fintype V]
     Bool.or_eq_true_iff.mpr (Or.inl (prefix_trans B D C hBD hp))
   simp [hgood] at hbad
 
-/-- The pending healthy gate renews a covered prefix at its actual
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The pending healthy gate renews a covered prefix at its actual
 rounded support, with a deadline measured from that gate. -/
 theorem pending_coverage {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -88,7 +91,8 @@ theorem pending_coverage {V : Type} [DecidableEq V] [Fintype V]
     (pending_gate_guard p E rho hΔ r hclean hd hm reader hr C hc)
   exact ⟨hrecord, roundedLevel p count, hsupp, rfl, hrow⟩
 
-/-- Exactly one HEAD label is in flight at a gate. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Exactly one HEAD label is in flight at a gate. -/
 theorem in_flight_label_at_gate (p : Params) (r k : Slot)
     (hvote : voteTime p k ≤ gateTime p r)
     (hrelease : gateTime p r < releaseTime p k) : k = r + 1 := by
@@ -105,7 +109,8 @@ theorem in_flight_label_at_gate (p : Params) (r k : Slot)
     nlinarith
   exact le_antisymm hhi (Nat.succ_le_of_lt hlo)
 
-/-- Clean transfer supplies the in-flight HEAD premise at a completed gate. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Clean transfer supplies the in-flight HEAD premise at a completed gate. -/
 theorem armingHeadsCompatible_of_heads [LeasePolicy] {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p))
     (hx : ExecutionValid (gridCO p) E rho) (r : Slot) (B : Block)
@@ -121,7 +126,7 @@ theorem armingHeadsCompatible_of_heads [LeasePolicy] {V : Type} [DecidableEq V]
   rw [stateBefore_tick_eq_stateBeforeTime hx.toScheduleWellFormed hi,
     ← release_eq_next_vote] at ha
   have hh : nextHead p (nextHeadState p rho r u) r = target := by
-    simpa [act, nextHead, nextHeadState, releaseInput] using ha
+    simpa [act, targetOfBlock, nextHead, nextHeadState, releaseInput] using ha
   rw [← hh]
   exact Bool.or_eq_true_iff.mpr (Or.inr
     (hheads u hu))
@@ -135,7 +140,8 @@ theorem armingHeadsCompatible_of_clean [LeasePolicy] {V : Type} [DecidableEq V] 
   armingHeadsCompatible_of_heads p E rho (hclean r (le_refl _)).1 r B
     (clean_stable_heads_cover p E rho hΔ r hclean source hs B hp)
 
-/-- Protection carries the in-flight HEAD condition to a later arming read.
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Protection carries the in-flight HEAD condition to a later arming read.
 This includes HEADs emitted during the outage before the pending safe write. -/
 theorem armingHeadsCompatible_of_protection [LeasePolicy] {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p))
@@ -166,13 +172,15 @@ theorem armingHeadsCompatible_of_protection [LeasePolicy] {V : Type} [DecidableE
     exact emitted_head_compatible_of_protection p E rho hexec.toScheduleWellFormed
       i u t hi B (g u) d hpost htd o r target ho hl htarget
 
-/-- The minimum lease is longer than the gap to the pending gate. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The minimum lease is longer than the gap to the pending gate. -/
 theorem lifetime_gt_four_delta (p : Params) : 4 * p.Δ < lifetime p := by
   have hm : (2 : Time) ≤ p.m := by exact_mod_cast p.mLarge
   dsimp [lifetime]
   nlinarith [p.deltaPos]
 
-/-- A completed healthy covering gate gives a row stronger than all faults. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A completed healthy covering gate gives a row stronger than all faults. -/
 theorem outage_covering_protection {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
     (G T b₀ b₁ : Time)
@@ -202,7 +210,8 @@ theorem outage_covering_protection {V : Type} [DecidableEq V] [Fintype V]
   rw [hlevel] at hrow
   exact ⟨hstrong.trans_le (roundedLevel_mono p hsupport), ⟨deadline, hdeadline, hrow⟩, hrecord⟩
 
-/-- The pending healthy gate gives the same strong-row guarantee, even
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The pending healthy gate gives the same strong-row guarantee, even
 when delivery is arbitrary after its early cutoff. -/
 theorem pending_outage_protection {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -235,13 +244,15 @@ theorem pending_outage_protection {V : Type} [DecidableEq V] [Fintype V]
   exact ⟨hstrong.trans_le (roundedLevel_mono p hsupport),
     ⟨gateTime p (r + 1) + lifetime p, le_refl _, hrow⟩, hrecord⟩
 
-/-- The next early cutoff is the current genuine gate. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The next early cutoff is the current genuine gate. -/
 theorem early_next_eq_gate (p : Params) (r : Slot) :
     earlyTime p (r + 1) = gateTime p r := by
   simp only [earlyTime, gateTime, proposalTime, Nat.cast_add, Nat.cast_one]
   ring
 
-/-- Shared outage bridge from completed and pending covering leases.
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Shared outage bridge from completed and pending covering leases.
 The selected release level can vary by label, reader, and prefix. -/
 theorem resilient_of_covering_protection [LeasePolicy] {V : Type} [DecidableEq V] [Fintype V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -338,7 +349,8 @@ theorem resilient_of_covering_protection [LeasePolicy] {V : Type} [DecidableEq V
     exact (protection_from_armed_read p E rho ho.execution B g' W (W + lifetime p)
       hstrong' hrows' hseed' t hwt htd reader hr).2
 
-/-- Full P1 from the frozen OutageRegime. The last completed healthy gate
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Full P1 from the frozen OutageRegime. The last completed healthy gate
 protects the record until the pending healthy gate renews it beyond b₁.
 No delivery or participation premise is used inside the outage. -/
 theorem stable_resilient_from_engine {V : Type} [DecidableEq V] [Fintype V]

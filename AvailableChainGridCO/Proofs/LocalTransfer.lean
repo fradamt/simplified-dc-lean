@@ -7,7 +7,8 @@ open AvailableChain.Generic AvailableChain.Statements.Generic
 set_option linter.unusedSectionVars false
 variable [LeasePolicy]
 
-/-- A reader's own early resolved HEAD is present and resolved at its
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A reader's own early resolved HEAD is present and resolved at its
 ordinary freeze. This uses local receipt history, with no relay premise. -/
 theorem local_early_at_freeze {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -23,7 +24,8 @@ theorem local_early_at_freeze {V : Type} [DecidableEq V]
   | proposal b raw support => simp [headLabel?, hb] at hl
   | head B =>
     have htarget : headTarget? o = some B := by simp [headTarget?, hb]
-    simp only [resolvedBefore, htarget, Bool.and_eq_true, decide_eq_true_eq, blockKnown] at hres
+    simp only [resolvedBefore_block, htarget, Bool.and_eq_true,
+      decide_eq_true_eq, blockKnown] at hres
     have hpub : PublicTime E (earlyTime p r) := by
       refine ⟨4 * r + 2, ?_⟩
       simp only [earlyTime, proposalTime, hΔ, Nat.cast_add, Nat.cast_mul, Nat.cast_ofNat]
@@ -64,10 +66,12 @@ theorem local_early_at_freeze {V : Type} [DecidableEq V]
         exact stored_block_stamp_before_cut p E rho hs hj
           (by simpa [gridCO, processed, hp, blockKnown] using ha.2.2) (hu.trans_le hef) (le_refl _)
     exact ⟨List.mem_filter.mpr ⟨hmem, hl⟩, by
-      simp only [resolvedBefore, htarget, Bool.and_eq_true, decide_eq_true_eq, blockKnown]
+      refine (resolvedBefore_block _ o _).trans ?_
+      simp only [htarget, Bool.and_eq_true, decide_eq_true_eq, blockKnown]
       exact ⟨⟨⟨hB.1, hres.1.1.2⟩, hstamp.trans_le hef⟩, hB.2⟩⟩
 
-/-- Local frozen and merged views satisfy the transfer receipt conditions
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Local frozen and merged views satisfy the transfer receipt conditions
 against that reader's own later gate. This holds during an outage. -/
 theorem local_transferReceipts {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -80,13 +84,14 @@ theorem local_transferReceipts {V : Type} [DecidableEq V]
   refine ⟨?_, ?_, nextHeadState_support_subset_raw_of_execution p E rho hΔ r hx hh reader hr⟩
   · intro o ho _
     obtain ⟨hm, hres⟩ := local_early_at_freeze p E rho hΔ hx r reader o (List.mem_filter.mp ho).1
+    have hold := (resolvedBefore_block _ o _).symm.trans hres
     cases ht : headTarget? o with
-    | none => simp [resolvedBefore, ht] at hres
+    | none => simp [ht] at hold
     | some target =>
       have htree : target ∈
           (Run.stateBeforeTime (gridCO p) rho (freezeTime p r) reader).blocks := by
-        have h := hres
-        simp only [resolvedBefore, ht, Bool.and_eq_true, decide_eq_true_eq, blockKnown] at h
+        have h := hold
+        simp only [ht, Bool.and_eq_true, decide_eq_true_eq, blockKnown] at h
         exact h.1.1.1
       refine ⟨?_, target, rfl,
         (freezeInput_receiptPrefix_nextHead p E rho hs r reader).blocks.subset htree⟩
@@ -110,7 +115,8 @@ theorem local_transferReceipts {V : Type} [DecidableEq V]
     · exact Or.inl (hsub hm)
     · exact Or.inr (equivocates_mono _ _ i hsub he)
 
-/-- A local genuine prefix transfers to the preceding would-be HEAD when
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A local genuine prefix transfers to the preceding would-be HEAD when
 its live root is compatible. The statement needs no synchronous relay. -/
 theorem local_transfer_from_engine {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (hΔ : E.Δ = p.Δ)
@@ -130,7 +136,8 @@ theorem local_transfer_from_engine {V : Type} [DecidableEq V]
   obtain ⟨_, hres⟩ := local_early_at_freeze p E rho hΔ hx r reader o (List.mem_filter.mp ho).1
   have htargetmem : target ∈
       (Run.stateBeforeTime (gridCO p) rho (freezeTime p r) reader).blocks := by
-    simp only [resolvedBefore, ht, Bool.and_eq_true, decide_eq_true_eq, blockKnown] at hres
+    have hres := (resolvedBefore_block _ o _).symm.trans hres
+    simp only [ht, Bool.and_eq_true, decide_eq_true_eq, blockKnown] at hres
     exact hres.1.1.1
   apply forkChoice_covers_of_transfer p (gateInput p rho r reader)
     (nextHeadState p rho r reader) r (r + 1) _ _ _ B C hc hp

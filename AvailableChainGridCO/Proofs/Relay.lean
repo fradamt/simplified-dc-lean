@@ -13,7 +13,8 @@ variable [LeasePolicy]
 open AvailableChain.Generic
 open AvailableChain.Statements.Generic
 
-/-- The exact finite seat set counted by the executable release rule. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The exact finite seat set counted by the executable release rule. -/
 def releaseConflictSeats (p : Params) {n : Nat} (st : State n)
     (r : Slot) (B : Block) : Finset (Fin n) :=
   let raw := votesAt st r
@@ -25,15 +26,37 @@ def releaseConflictSeats (p : Params) {n : Nat} (st : State n)
       | some target => !Block.compatible target B
       | none => false))
 
+/-- [ROOT-DIGEST-2 W1; DC legacy HEAD] Resolved block votes keep the old seat count. -/
 theorem releaseCount_eq_card (p : Params) {n : Nat} (st : State n)
     (r : Slot) (B : Block) :
     releaseCount p st r B = (releaseConflictSeats p st r B).card := by
+  have resolved (o : Wire n) (ho : resolvedBefore st o (releaseTime p r) = true) :
+      resolvedHead? st o = headTarget? o := by
+    unfold resolvedBefore at ho
+    unfold resolvedHead? at ho ⊢
+    cases ht : headTarget? o with
+    | none => rfl
+    | some B =>
+      by_cases hm : B ∈ st.blocks <;>
+        simp [ht, resolveTarget, resolutionTree, hm] at ho ⊢
   unfold releaseCount releaseConflictSeats
+  dsimp only
   rw [← List.toFinset_filter]
-  exact (List.toFinset_card_of_nodup
-    (List.Nodup.filter _ (List.nodup_dedup _))).symm
+  rw [List.toFinset_card_of_nodup (List.Nodup.filter _
+    (show (seats n ((votesAt st r).filter
+      (fun o => resolvedBefore st o (releaseTime p r)))).Nodup from List.nodup_dedup _))]
+  congr 1
+  apply List.filter_congr
+  intro i _
+  apply congrArg (fun x => !equivocates (votesAt st r) i && x)
+  apply Bool.eq_iff_iff.mpr
+  simp only [List.any_eq_true]
+  constructor <;> rintro ⟨o, ho, hx⟩ <;> refine ⟨o, ho, ?_⟩
+  · rwa [resolved o (List.mem_filter.mp (List.mem_filter.mp ho).1).2] at hx
+  · rwa [resolved o (List.mem_filter.mp (List.mem_filter.mp ho).1).2]
 
-/-- The snapshot counting step. `hreceipts` must be obtained from accepted
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The snapshot counting step. `hreceipts` must be obtained from accepted
 HEAD relay plus path admission before `q_r`. `hnoEquivocation` needs the
 reverse relay of any second accepted copy before `d_r`; without that premise
 the implication is false. Both premises concern the same run and reader. -/

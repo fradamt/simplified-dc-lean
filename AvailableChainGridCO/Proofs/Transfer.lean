@@ -13,7 +13,8 @@ variable [LeasePolicy]
 
 open AvailableChain.Generic AvailableChain.Statements.Generic
 
-/-- Receipt conditions for one source result and one next ordinary view.
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Receipt conditions for one source result and one next ordinary view.
 The source's clean supporters occur in the resolved view. A raw vote
 relays back to the source's late pool, or that pool already contains
 equivocation evidence. The support view is a raw subset. This follows
@@ -43,7 +44,8 @@ private theorem no_equivocation_of_unique {n : Nat} (raw : List (Wire n))
     exact hc
   exact decide_eq_false (by omega)
 
-/-- A source supporter is the only raw vote for its seat in the next view.
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A source supporter is the only raw vote for its seat in the next view.
 This also excludes an equivocation that could score on all branches. -/
 theorem TransferReceipts.seat_unique {p : Params} {n : Nat} {source : State n}
     {r : Slot} {tree : List Block} {raw support : List (Wire n)} {B : Block}
@@ -59,7 +61,8 @@ theorem TransferReceipts.seat_unique {p : Params} {n : Nat} {source : State n}
       exact (cleanSupport_eq_of_late_same_seat p source r i o u ho hu hi hui).symm)
     simp [hno] at he
 
-/-- Every genuine prefix supporter scores for that prefix in the next view. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Every genuine prefix supporter scores for that prefix in the next view. -/
 theorem TransferReceipts.supporters_subset {p : Params} {n : Nat} {source : State n}
     {r : Slot} {tree : List Block} {raw support : List (Wire n)} {B : Block}
     (h : TransferReceipts p source r tree raw support B) :
@@ -70,7 +73,7 @@ theorem TransferReceipts.supporters_subset {p : Params} {n : Nat} {source : Stat
   have he : target' = target := Option.some.inj (ht'.symm.trans ht)
   subst target'
   have hres := (List.mem_filter.mp (List.mem_filter.mp ho).1).2
-  simp only [resolvedBefore, ht, Bool.and_eq_true, decide_eq_true_eq] at hres
+  simp only [resolvedBefore_block, ht, Bool.and_eq_true, decide_eq_true_eq] at hres
   apply Finset.mem_filter.mpr
   refine ⟨List.mem_toFinset.mpr (List.mem_dedup.mpr
     (List.mem_filterMap.mpr ⟨o, h.support_raw o hm, hseat⟩)), ?_⟩
@@ -80,7 +83,8 @@ theorem TransferReceipts.supporters_subset {p : Params} {n : Nat} {source : Stat
   exact ⟨o, List.mem_filter.mpr ⟨hm, by simp [hseat]⟩,
     by simpa [ht, htree, hres.1.1.2] using! hp⟩
 
-/-- A source supporter cannot score on a conflicting branch, including
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A source supporter cannot score on a conflicting branch, including
 through another proposal's declared support subset. -/
 theorem TransferReceipts.conflict_disjoint {p : Params} {n : Nat} {source : State n}
     {r : Slot} {tree : List Block} {raw support : List (Wire n)} {B : Block}
@@ -103,7 +107,8 @@ theorem TransferReceipts.conflict_disjoint {p : Params} {n : Nat} {source : Stat
   rw [hc] at hcomp
   contradiction
 
-/-- Reverse relay bounds the next view's participant denominator. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Reverse relay bounds the next view's participant denominator. -/
 theorem TransferReceipts.participants_subset {p : Params} {n : Nat} {source : State n}
     {r : Slot} {tree : List Block} {raw support : List (Wire n)} {B : Block}
     (h : TransferReceipts p source r tree raw support B) :
@@ -122,7 +127,8 @@ theorem TransferReceipts.participants_subset {p : Params} {n : Nat} {source : St
     exact List.mem_toFinset.mpr (List.mem_dedup.mpr
       (List.mem_filterMap.mpr ⟨q, hq, by simpa using hqi⟩))
 
-/-- The ordinary score of a conflicting branch and the genuine source
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The ordinary score of a conflicting branch and the genuine source
 support fit together in the source's late denominator. -/
 theorem TransferReceipts.conflicting_score_bound {p : Params} {n : Nat} {source : State n}
     {r : Slot} {tree : List Block} {raw support : List (Wire n)} {B : Block}
@@ -136,7 +142,8 @@ theorem TransferReceipts.conflicting_score_bound {p : Params} {n : Nat} {source 
   exact Finset.union_subset (prefixSupportSeats_subset_late p source r B)
     (Finset.Subset.trans (Finset.filter_subset _ _) h.participants_subset)
 
-/-- A genuine source majority is eligible in the next ordinary view and
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A genuine source majority is eligible in the next ordinary view and
 strictly beats every conflicting branch. This includes current-slot rivals. -/
 theorem TransferReceipts.majority {p : Params} {n : Nat} {source : State n}
     {r : Slot} {tree : List Block} {raw support : List (Wire n)} {B : Block}
@@ -158,7 +165,8 @@ theorem TransferReceipts.majority {p : Params} {n : Nat} {source : State n}
   have := h.conflicting_score_bound C hc
   omega
 
-/-- Ordinary scores increase towards ancestors, also for equivocators. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Ordinary scores increase towards ancestors, also for equivocators. -/
 theorem goldfishScore_prefix_mono {n : Nat} (tree : List Block)
     (raw support : List (Wire n)) (B C : Block) (hp : Block.Preceq B C) :
     goldfishScore tree raw support C ≤ goldfishScore tree raw support B := by
@@ -179,7 +187,8 @@ theorem goldfishScore_prefix_mono {n : Nat} (tree : List Block)
         simp only [htarg, Bool.and_eq_true, decide_eq_true_eq] at ht ⊢
         exact ⟨ht.1, prefix_trans B C target hp ht.2⟩
 
-/-- The transferred majority drives the executable walk through the
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+The transferred majority drives the executable walk through the
 source prefix from every compatible root. Only receipts and a stored
 voter path remain to be supplied by the run. -/
 theorem forkChoice_covers_of_transfer {n : Nat} (p : Params) (source st : State n)

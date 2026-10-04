@@ -5,7 +5,8 @@ public import AvailableChainGridCO.Proofs.Support
 @[expose] public section
 namespace AvailableChain.GridCO
 
-/-- Seats counted by the ordinary walk, including equivocators. -/
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Seats counted by the ordinary walk, including equivocators. -/
 def scoreSeats {n : Nat} (tree : List Block) (raw support : List (Wire n))
     (B : Block) : Finset (Fin n) :=
   (seats n raw).toFinset.filter (fun i =>
@@ -18,13 +19,15 @@ def scoreSeats {n : Nat} (tree : List Block) (raw support : List (Wire n))
 theorem goldfishScore_eq_card {n : Nat} (tree : List Block)
     (raw support : List (Wire n)) (B : Block) :
     goldfishScore tree raw support B = (scoreSeats tree raw support B).card := by
-  unfold goldfishScore scoreSeats
+  rw [goldfishScore_block_eq]
+  unfold scoreSeats
   rw [← List.toFinset_filter]
   exact (List.toFinset_card_of_nodup
     (List.Nodup.filter _ (List.nodup_dedup _))).symm
 
 
-/-- Relay can replace a raw key by two-target evidence for its seat.
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Relay can replace a raw key by two-target evidence for its seat.
 Such replacement preserves the participant set. -/
 theorem seats_eq_of_mem_or_equivocates {n : Nat} (xs ys : List (Wire n))
     (hsub : xs ⊆ ys)
@@ -46,7 +49,8 @@ theorem seats_eq_of_mem_or_equivocates {n : Nat} (xs ys : List (Wire n))
       obtain ⟨hm, hs⟩ := List.mem_filter.mp (List.mem_eraseDups.mp hk)
       exact ⟨key, hm, by simpa using hs⟩
 
-/-- Extra raw copies from a seat already known to equivocate cannot
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Extra raw copies from a seat already known to equivocate cannot
 change the equivocation test. -/
 theorem equivocates_eq_of_mem_or_equivocates {n : Nat}
     (xs ys : List (Wire n)) (hsub : xs ⊆ ys)
@@ -76,7 +80,8 @@ theorem voterCount_eq_of_mem_or_equivocates {n : Nat}
     ← List.toFinset_card_of_nodup (show (seats n ys).Nodup from List.nodup_dedup _),
     seats_eq_of_mem_or_equivocates xs ys hsub hback]
 
-/-- Common resolved support is needed only for non-equivocating seats.
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+Common resolved support is needed only for non-equivocating seats.
 This covers the different two-copy caches allowed by SA-PC relay. -/
 theorem goldfishScore_eq_of_mem_or_equivocates {n : Nat}
     (tree₁ tree₂ : List Block) (raw₁ raw₂ support₁ support₂ : List (Wire n))
@@ -116,7 +121,8 @@ theorem goldfishScore_eq_of_mem_or_equivocates {n : Nat}
       | none => simp [hh] at ht
       | some target => simpa only [hh, htree o hm' target hh] using ht
 
-/-- A view extension can add copies only at seats that already equivocate.
+/-- [ROOT-DIGEST-2 W1; DC shared named and HEAD interfaces]
+A view extension can add copies only at seats that already equivocate.
 This is the list-based form of DC's score-preserving proposal snapshot. -/
 structure ScorePreservingViewExtension {n : Nat}
     (sourceRaw sourceSupport targetRaw targetSupport : List (Wire n)) : Prop where

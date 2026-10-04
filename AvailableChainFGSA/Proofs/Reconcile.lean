@@ -12,7 +12,8 @@ bp01 §6.2–6.3). -/
 
 variable {n : Nat}
 
-/-- [helper] The exact effect of `reconcile`, as one record update. -/
+/-- [ROOT-DIGEST-2 W1; DC root HEAD] [helper] The exact effect of `reconcile`, as one record update.
+-/
 theorem reconcile_eq (st : State n) :
     reconcile st = { st with
       base := { st.base with
@@ -24,19 +25,20 @@ theorem reconcile_eq (st : State n) :
   unfold reconcile
   rw [normalizeS_fields]
 
-/-- [bp bp.reconcile.v1] (§6.2, exact effects) -/
+/-- [ROOT-DIGEST-2 W1; DC root HEAD] [bp bp.reconcile.v1] (§6.2, exact effects) -/
 theorem reconcile_obligations (st : State n) :
     (reconcile st).base.obligations =
       st.base.obligations.filter (fun row => activeCompatible st row.1) := by
   rw [reconcile_eq]
 
-/-- [bp bp.reconcile.v1] (§6.2, exact effects) -/
+/-- [ROOT-DIGEST-2 W1; DC root HEAD] [bp bp.reconcile.v1] (§6.2, exact effects) -/
 theorem reconcile_genuine (st : State n) :
     (reconcile st).base.genuine =
       st.base.genuine.map (fun row => (row.1, row.2.filter (activeCompatible st))) := by
   rw [reconcile_eq]
 
-/-- [bp bp.reconcile.v1] (§6.2, exact effects) A label stays evaluated; a result
+/-- [ROOT-DIGEST-2 W1; DC root HEAD] [bp bp.reconcile.v1] (§6.2, exact effects) A label stays
+evaluated; a result
 is kept or emptied, never replaced. -/
 theorem reconcile_savedGenuine (st : State n) (r : Slot) :
     GridCO.savedGenuine (reconcile st).base r =
@@ -45,20 +47,21 @@ theorem reconcile_savedGenuine (st : State n) (r : Slot) :
   rw [reconcile_genuine, List.find?_map, Option.map_map, Option.map_map]
   rfl
 
-/-- [bp bp.reconcile.v1] (§6.2, exact effects) -/
+/-- [ROOT-DIGEST-2 W1; DC root HEAD] [bp bp.reconcile.v1] (§6.2, exact effects) -/
 theorem reconcile_fastWrite (st : State n) :
     (reconcile st).fastWrite =
       st.fastWrite.map (fun row => (row.1, row.2.filter (activeCompatible st))) := by
   rw [reconcile_eq]
 
-/-- [bp bp.reconcile.v1] (§6.2, exact effects) -/
+/-- [ROOT-DIGEST-2 W1; DC root HEAD] [bp bp.reconcile.v1] (§6.2, exact effects) -/
 theorem reconcile_stable (st : State n) :
     (reconcile st).base.stableRecord =
       if Block.preceq (eraseFG st.fg.F) st.base.stableRecord then st.base.stableRecord
       else eraseFG st.fg.F := by
   rw [reconcile_eq]
 
-/-- [bp bp.reconcile.v1, bp.frame.v1; K3] Reconcile writes no frame input and no
+/-- [ROOT-DIGEST-2 W1; DC root HEAD] [bp bp.reconcile.v1, bp.frame.v1; K3] Reconcile writes no frame
+input and no
 other field: Σ.T, the FG caches, the stamps, both pools, the proposals, the
 time, the frozen and early caches, the release snapshots and G. -/
 theorem reconcile_frame (st : State n) :
@@ -77,19 +80,20 @@ theorem reconcile_frame (st : State n) :
   rw [reconcile_eq]
   exact ⟨rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl⟩
 
-/-- [bp bp.frame.v1, bp.reconcile.v1; K3] Reconcile keeps the FG frame. -/
+/-- [ROOT-DIGEST-2 W1; DC root HEAD] [bp bp.frame.v1, bp.reconcile.v1; K3] Reconcile keeps the FG
+frame. -/
 theorem storeControls_reconcile (p : Params) (st : State p.n) :
     storeControls p.E p.cfg (reconcile st).fg = storeControls p.E p.cfg st.fg := by
   rw [reconcile_fg]
 
-/-- [helper] `F ⪯ (if F ⪯ S then S else F)` in `Bool` form. -/
+/-- [ROOT-DIGEST-2 W1; DC root HEAD] [helper] `F ⪯ (if F ⪯ S then S else F)` in `Bool` form. -/
 theorem preceq_normal (F S : Block) :
     Block.preceq F (if Block.preceq F S then S else F) = true := by
   split
   · assumption
   · exact block_preceq_refl F
 
-/-- [bp bp.reconcile.v1] (idempotence for fixed F) -/
+/-- [ROOT-DIGEST-2 W1; DC root HEAD] [bp bp.reconcile.v1] (idempotence for fixed F) -/
 theorem reconcile_idem (st : State n) : reconcile (reconcile st) = reconcile st := by
   rw [reconcile_eq (reconcile st)]
   rw [reconcile_eq st]
@@ -97,7 +101,8 @@ theorem reconcile_idem (st : State n) : reconcile (reconcile st) = reconcile st 
     Function.comp_def, Option.filter_filter, preceq_normal, ite_true]
   rfl
 
-/-- [bp bp.reconcile.v1] After reconcile every SA target is compatible with F. -/
+/-- [ROOT-DIGEST-2 W1; DC root HEAD] [bp bp.reconcile.v1] After reconcile every SA target is
+compatible with F. -/
 theorem reconcile_saCompat (st : State n) : SACompat (reconcile st) := by
   have hF : (reconcile st).fg.F = st.fg.F := by rw [reconcile_fg]
   refine ⟨?_, ?_, ?_⟩
@@ -120,7 +125,8 @@ theorem reconcile_saCompat (st : State n) : SACompat (reconcile st) := by
     rw [hF]
     exact hb.2
 
-/-- [helper] `S ⪯ (if F ⪯ S then S else F)` when S and F are compatible. -/
+/-- [ROOT-DIGEST-2 W1; DC root HEAD] [helper] `S ⪯ (if F ⪯ S then S else F)` when S and F are
+compatible. -/
 theorem stable_preceq_normal {S F : Block} (hS : Block.Compatible S F) :
     Block.Preceq S (if Block.preceq F S then S else F) := by
   split
@@ -132,7 +138,8 @@ theorem stable_preceq_normal {S F : Block} (hS : Block.Compatible S F) :
     · exact hS
     · exact absurd hS h
 
-/-- [helper; bp bp.reconcile.v1] Harmless reconcile, filter form: if F is
+/-- [ROOT-DIGEST-2 W1; DC root HEAD] [helper; bp bp.reconcile.v1] Harmless reconcile, filter form:
+if F is
 compatible with every live lease, saved nonempty result, fastWrite member and S,
 then reconcile deletes nothing and only moves S forward. The fastWrite premise
 is discharged by `reconcile_harmless_origin`; do not cite this lemma as K1. -/
@@ -167,7 +174,8 @@ theorem reconcile_harmless (st : State n) (hC : SACompat st)
       (show activeCompatible st b = true from hC.2.2 (r, bs) hrb b hb))]
   rw [hO, hG, hW]
 
-/-- [bp bp.reconcile.v1 §6.3; K1 historical case] If the origin invariant holds
+/-- [ROOT-DIGEST-2 W1; DC root HEAD] [bp bp.reconcile.v1 §6.3; K1 historical case] If the origin
+invariant holds
 for the old F₀ and F₀ ⪯ F, it holds for F after reconcile. An emptied body C
 keeps only members B with B ⪯ F (C # F, B ⪯ C, B ∥ F force B ⪯ F). -/
 theorem reconcile_fastOrigin (st : State n) (F₀ : Block) (hO : FastOrigin F₀ st)
@@ -196,8 +204,8 @@ theorem reconcile_fastOrigin (st : State n) (F₀ : Block) (hO : FastOrigin F₀
         exact block_compatible_of_preceq (block_preceq_trans h hBC)
   · exact Or.inr (block_preceq_trans hB0 hF)
 
-/-- [helper] A saved nonempty result is a row of `genuine`. -/
-theorem mem_genuine_of_saved {v : GridCO.State n} {r : Slot} {C : Block}
+/-- [ROOT-DIGEST-2 W1; DC root HEAD] [helper] A saved nonempty result is a row of `genuine`. -/
+theorem mem_genuine_of_saved {v : GridCO.State n .root} {r : Slot} {C : Block}
     (h : GridCO.savedGenuine v r = some (some C)) : (r, some C) ∈ v.genuine := by
   unfold GridCO.savedGenuine at h
   rw [Option.map_eq_some_iff] at h
@@ -208,7 +216,8 @@ theorem mem_genuine_of_saved {v : GridCO.State n} {r : Slot} {C : Block}
   rw [← hr, ← hc]
   exact hm
 
-/-- [bp bp.reconcile.v1; K1] Harmless reconcile, blueprint form. The state holds
+/-- [ROOT-DIGEST-2 W1; DC root HEAD] [bp bp.reconcile.v1; K1] Harmless reconcile, blueprint form.
+The state holds
 the new F; `F₀` is the F before the move, with its origin invariant. If the new
 F is compatible with every live lease, every saved nonempty result and S, then
 reconcile deletes no target, no body and no fastWrite member, and only extends
