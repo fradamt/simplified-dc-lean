@@ -22,11 +22,12 @@ def positivePrefix (steps count : Nat) : V2.D.Run Validator (fgsa params unitCod
 /-- Node zero's first HEAD votes for genesis in slot zero. -/
 def firstHead : Obj params := ⟨.seat (.base (.head 0)) ⟨0, by decide⟩, .head .genesis⟩
 
-/-- The first proposal has no rows and carries the four slot-zero HEADs. -/
+/-- ROOT-DIGEST W3e. The first proposal has no rows and carries four slot-zero HEADs. -/
 def firstProposal : Obj params :=
-  ⟨.seat (.prop 1) ⟨0, by decide⟩, .proposal (.node .genesis 1 (packBody (n := params.n) 0 []))
-    (nodes.map fun i => ⟨.seat (.head 0) i, .genesis⟩)
-    (nodes.map fun i => ⟨.seat (.head 0) i, .genesis⟩) []⟩
+  let heads := nodes.map fun i => (⟨.seat (.head 0) i, .genesis⟩ : HeadWire params.n)
+  ⟨.seat (.prop 1) ⟨0, by decide⟩,
+    .proposal (.node .genesis 1 (params.digest ⟨genesisRoot, 1, 0, [], heads, heads⟩)
+      (packBody (n := params.n) 0 [])) heads heads []⟩
 
 /-- P1: the tick that emits node zero's first HEAD. -/
 theorem positive_head_tick :
@@ -311,7 +312,7 @@ theorem positive_early_row_time (st : Node params) (v : Validator) (t : Time)
       cases ha
       cases hp
   | propAction s =>
-      change (propose params (FGSA.clock params st.st t) s).map (withApp 0) = some m at ha
+      change (propose params (FGSA.clock params st.st t) s).map (withApp params 0) = some m at ha
       unfold propose at ha
       split at ha
       · cases ha
