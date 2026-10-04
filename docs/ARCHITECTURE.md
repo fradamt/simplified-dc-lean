@@ -271,6 +271,10 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
 - `AvailableChainFGSARun` (T7.2) holds the v2 protocol, label families,
   isolation, wire adapters, and exclusion proofs, with separate Tests.
 
+- SYN L58: `Proofs/Assembly/Root` imports the `FGSAClaims` facade and the named
+  lower Assembly modules `Foundations`, `Shared`, `Clean`, `Outage`, `Finality`,
+  and `ResetArrival`. The other layer rules still apply.
+
 How the pieces meet:
 - FG-SA store: `FGSA.State = { base : GridCO.State, fg : SimplexFG.Store,
   pools, … }` with glue handlers. Base facts come from the policy-generic
