@@ -1,6 +1,8 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLease
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetInvariant -- shake: keep (r2 owner)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetOpening
 
 public section
 
@@ -15,27 +17,12 @@ open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- PROVISIONAL: the owner job (J5-A) lands the real def; replace on landing -/
-def PostResetResetLeaseCompatibleP (w : HealingWitness) (i : Nat) : Prop :=
-  ∀ j, j < i → ∀ x, x ∈ rho.honest →
-    afterTicksIdx rho (SA.releaseTime p.toParams w.sStar) ≤ j →
-    let st := (storeAt p c E rho j x).base
-    ∀ lease ∈ st.obligations, st.now < lease.2.2 → Block.Compatible lease.1 w.CStar
-
-/-- PROVISIONAL: the owner job (J6-3) lands the real def; replace on landing -/
-def PostResetOpeningDomainP (w : HealingWitness) (i : Nat) : Prop :=
-  ∀ k, k < i → ∀ x v Q, x ∈ rho.honest → IsGateTick p c rho k x v →
-    HonestProposal E rho (fgsaInterface p c) v Q → w.sStar + 2 ≤ v →
-    ∀ r, v = r * p.R →
-      let st := ((fgsa p c).clock (V2.D.Run.stateBefore E rho k x) (p.actionTime r)).st
-      ∃ D, eraseFG D = Q ∧ D ∈ domainR p st (treeT p st)
-
 /-- Blueprint 21 H.12–H.18:2652–3064; plan "Induction design"; ruling R3.
 All event-prefix guards are empty at zero. An honest proposal supplies a
 tick at its proposal time, so its inclusive time cut is positive. -/
 theorem postReset_joint_zero (w : HealingWitness) :
-    PostResetInv p c E rho w 0 ∧ PostResetResetLeaseCompatibleP p c E rho w 0 ∧
-      PostResetOpeningDomainP p c E rho w 0 := by
+    PostResetInv p c E rho w 0 ∧ PostResetResetLeaseCompatible p c E rho w 0 ∧
+      PostResetOpeningDomain p c E rho w 0 := by
   refine ⟨?_, ?_, ?_⟩
   · constructor
     · rw [PostResetProtectedKept_def]
@@ -68,33 +55,35 @@ theorem postReset_joint_zero (w : HealingWitness) :
           change decide (SA.proposalTime p.toParams v ≤ SA.proposalTime p.toParams v) = true
           exact decide_eq_true le_rfl⟩)
       exact False.elim (Nat.not_lt_of_ge hcut hpos)
-  · intro j hj
+  · rw [PostResetResetLeaseCompatible_def]
+    intro j hj
     exact False.elim (Nat.not_lt_zero j hj)
-  · intro k hk
+  · rw [PostResetOpeningDomain_def]
+    intro k hk
     exact False.elim (Nat.not_lt_zero k hk)
 
 
 /-- Blueprint 21 H.15–H.18:2885–3064; plan "Induction design"; ruling R3.
 This named step uses the prior triple and only earlier successor fields. -/
 def PostResetResetLeaseStep (w : HealingWitness) (i : Nat) : Prop :=
-  PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatibleP p c E rho w i ∧
-    PostResetOpeningDomainP p c E rho w i →
-  PostResetResetLeaseCompatibleP p c E rho w (i + 1)
+  PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatible p c E rho w i ∧
+    PostResetOpeningDomain p c E rho w i →
+  PostResetResetLeaseCompatible p c E rho w (i + 1)
 
 /-- Blueprint 21 H.15–H.18:2885–3064; plan "Induction design"; ruling R3.
 This named step uses the prior triple and only earlier successor fields. -/
 def PostResetLeaseStep (w : HealingWitness) (i : Nat) : Prop :=
-  PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatibleP p c E rho w i ∧
-    PostResetOpeningDomainP p c E rho w i →
-  PostResetResetLeaseCompatibleP p c E rho w (i + 1) →
+  PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatible p c E rho w i ∧
+    PostResetOpeningDomain p c E rho w i →
+  PostResetResetLeaseCompatible p c E rho w (i + 1) →
   PostResetLeaseSafe p c E rho w (i + 1)
 
 /-- Blueprint 21 H.15–H.18:2885–3064; plan "Induction design"; ruling R3.
 This named step uses the prior triple and only earlier successor fields. -/
 def PostResetRawStep (w : HealingWitness) (i : Nat) : Prop :=
-  PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatibleP p c E rho w i ∧
-    PostResetOpeningDomainP p c E rho w i →
-  PostResetResetLeaseCompatibleP p c E rho w (i + 1) →
+  PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatible p c E rho w i ∧
+    PostResetOpeningDomain p c E rho w i →
+  PostResetResetLeaseCompatible p c E rho w (i + 1) →
   PostResetLeaseSafe p c E rho w (i + 1) →
   PostResetFProv p c E rho w (i + 1) →
   PostResetRawTransfer p c E rho w (i + 1)
@@ -102,83 +91,68 @@ def PostResetRawStep (w : HealingWitness) (i : Nat) : Prop :=
 /-- Blueprint 21 H.15–H.18:2885–3064; plan "Induction design"; ruling R3.
 This named step uses the prior triple and only earlier successor fields. -/
 def PostResetOpeningDomainStep (w : HealingWitness) (i : Nat) : Prop :=
-  PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatibleP p c E rho w i ∧
-    PostResetOpeningDomainP p c E rho w i →
-  PostResetResetLeaseCompatibleP p c E rho w (i + 1) →
+  PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatible p c E rho w i ∧
+    PostResetOpeningDomain p c E rho w i →
+  PostResetResetLeaseCompatible p c E rho w (i + 1) →
   PostResetLeaseSafe p c E rho w (i + 1) →
   PostResetFProv p c E rho w (i + 1) →
   PostResetRawTransfer p c E rho w (i + 1) →
-  PostResetOpeningDomainP p c E rho w (i + 1)
+  PostResetOpeningDomain p c E rho w (i + 1)
 
 /-- Blueprint 21 H.15–H.18:2885–3064; plan "Induction design"; ruling R3.
 This named step uses the prior triple and only earlier successor fields. -/
 def PostResetServiceStep (w : HealingWitness) (i : Nat) : Prop :=
-  PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatibleP p c E rho w i ∧
-    PostResetOpeningDomainP p c E rho w i →
-  PostResetResetLeaseCompatibleP p c E rho w (i + 1) →
+  PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatible p c E rho w i ∧
+    PostResetOpeningDomain p c E rho w i →
+  PostResetResetLeaseCompatible p c E rho w (i + 1) →
   PostResetLeaseSafe p c E rho w (i + 1) →
   PostResetFProv p c E rho w (i + 1) →
   PostResetRawTransfer p c E rho w (i + 1) →
-  PostResetOpeningDomainP p c E rho w (i + 1) →
+  PostResetOpeningDomain p c E rho w (i + 1) →
   PostResetService p c E rho w (i + 1)
 
 -- Equation exports for BUILD §7.2 B3a.
-theorem PostResetResetLeaseCompatibleP_def (w : HealingWitness) (i : Nat) :
-    PostResetResetLeaseCompatibleP p c E rho w i = (
-  ∀ j, j < i → ∀ x, x ∈ rho.honest →
-    afterTicksIdx rho (SA.releaseTime p.toParams w.sStar) ≤ j →
-    let st := (storeAt p c E rho j x).base
-    ∀ lease ∈ st.obligations, st.now < lease.2.2 → Block.Compatible lease.1 w.CStar) := by rfl
-
-theorem PostResetOpeningDomainP_def (w : HealingWitness) (i : Nat) :
-    PostResetOpeningDomainP p c E rho w i = (
-  ∀ k, k < i → ∀ x v Q, x ∈ rho.honest → IsGateTick p c rho k x v →
-    HonestProposal E rho (fgsaInterface p c) v Q → w.sStar + 2 ≤ v →
-    ∀ r, v = r * p.R →
-      let st := ((fgsa p c).clock (V2.D.Run.stateBefore E rho k x) (p.actionTime r)).st
-      ∃ D, eraseFG D = Q ∧ D ∈ domainR p st (treeT p st)) := by rfl
-
 theorem PostResetResetLeaseStep_def (w : HealingWitness) (i : Nat) :
     PostResetResetLeaseStep p c E rho w i = (
-  PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatibleP p c E rho w i ∧
-    PostResetOpeningDomainP p c E rho w i →
-  PostResetResetLeaseCompatibleP p c E rho w (i + 1)) := by rfl
+  PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatible p c E rho w i ∧
+    PostResetOpeningDomain p c E rho w i →
+  PostResetResetLeaseCompatible p c E rho w (i + 1)) := by rfl
 
 theorem PostResetLeaseStep_def (w : HealingWitness) (i : Nat) :
     PostResetLeaseStep p c E rho w i = (
-  PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatibleP p c E rho w i ∧
-    PostResetOpeningDomainP p c E rho w i →
-  PostResetResetLeaseCompatibleP p c E rho w (i + 1) →
+  PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatible p c E rho w i ∧
+    PostResetOpeningDomain p c E rho w i →
+  PostResetResetLeaseCompatible p c E rho w (i + 1) →
   PostResetLeaseSafe p c E rho w (i + 1)) := by rfl
 
 theorem PostResetRawStep_def (w : HealingWitness) (i : Nat) :
     PostResetRawStep p c E rho w i = (
-  PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatibleP p c E rho w i ∧
-    PostResetOpeningDomainP p c E rho w i →
-  PostResetResetLeaseCompatibleP p c E rho w (i + 1) →
+  PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatible p c E rho w i ∧
+    PostResetOpeningDomain p c E rho w i →
+  PostResetResetLeaseCompatible p c E rho w (i + 1) →
   PostResetLeaseSafe p c E rho w (i + 1) →
   PostResetFProv p c E rho w (i + 1) →
   PostResetRawTransfer p c E rho w (i + 1)) := by rfl
 
 theorem PostResetOpeningDomainStep_def (w : HealingWitness) (i : Nat) :
     PostResetOpeningDomainStep p c E rho w i = (
-  PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatibleP p c E rho w i ∧
-    PostResetOpeningDomainP p c E rho w i →
-  PostResetResetLeaseCompatibleP p c E rho w (i + 1) →
+  PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatible p c E rho w i ∧
+    PostResetOpeningDomain p c E rho w i →
+  PostResetResetLeaseCompatible p c E rho w (i + 1) →
   PostResetLeaseSafe p c E rho w (i + 1) →
   PostResetFProv p c E rho w (i + 1) →
   PostResetRawTransfer p c E rho w (i + 1) →
-  PostResetOpeningDomainP p c E rho w (i + 1)) := by rfl
+  PostResetOpeningDomain p c E rho w (i + 1)) := by rfl
 
 theorem PostResetServiceStep_def (w : HealingWitness) (i : Nat) :
     PostResetServiceStep p c E rho w i = (
-  PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatibleP p c E rho w i ∧
-    PostResetOpeningDomainP p c E rho w i →
-  PostResetResetLeaseCompatibleP p c E rho w (i + 1) →
+  PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatible p c E rho w i ∧
+    PostResetOpeningDomain p c E rho w i →
+  PostResetResetLeaseCompatible p c E rho w (i + 1) →
   PostResetLeaseSafe p c E rho w (i + 1) →
   PostResetFProv p c E rho w (i + 1) →
   PostResetRawTransfer p c E rho w (i + 1) →
-  PostResetOpeningDomainP p c E rho w (i + 1) →
+  PostResetOpeningDomain p c E rho w (i + 1) →
   PostResetService p c E rho w (i + 1)) := by rfl
 
 section Induction
@@ -246,8 +220,8 @@ emittedName_window, fgsa_leaseOrigins_lastWrite, fgsa_rXing,
 sourceDiscipline_qcOrigin, fgsa_rCap_channel, sourceDiscipline_tSrc,
 held_chain_row_origin_before, fgsa_finalityCap, cap_finality_head. -/
 theorem postReset_joint_all :
-    ∀ i, PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatibleP p c E rho w i ∧
-      PostResetOpeningDomainP p c E rho w i := by
+    ∀ i, PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatible p c E rho w i ∧
+      PostResetOpeningDomain p c E rho w i := by
   intro i
   induction i with
   | zero => exact postReset_joint_zero p c E rho w
@@ -277,14 +251,14 @@ theorem postReset_inv_all : ∀ i, PostResetInv p c E rho w i :=
 
 /-- Blueprint 21 H.12–H.18:2652–3064; plan "Induction design"; ruling R3.
 Projection of the joint induction with the same named steps and producer inputs. -/
-theorem postReset_reset_lease_compatible_all : ∀ i, PostResetResetLeaseCompatibleP p c E rho w i :=
+theorem postReset_reset_lease_compatible_all : ∀ i, PostResetResetLeaseCompatible p c E rho w i :=
   fun i => (postReset_joint_all p c E rho hrec mono emittedNonempty emittedName writes
     xing origin cap source heldRows finalityCap hhead h0r
     stepRL stepLease stepRaw stepOD stepService i).2.1
 
 /-- Blueprint 21 H.12–H.18:2652–3064; plan "Induction design"; ruling R3.
 Projection of the joint induction with the same named steps and producer inputs. -/
-theorem postReset_opening_domain_all : ∀ i, PostResetOpeningDomainP p c E rho w i :=
+theorem postReset_opening_domain_all : ∀ i, PostResetOpeningDomain p c E rho w i :=
   fun i => (postReset_joint_all p c E rho hrec mono emittedNonempty emittedName writes
     xing origin cap source heldRows finalityCap hhead h0r
     stepRL stepLease stepRaw stepOD stepService i).2.2

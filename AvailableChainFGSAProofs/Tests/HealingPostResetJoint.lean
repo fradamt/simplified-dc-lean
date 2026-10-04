@@ -16,8 +16,8 @@ variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V]
 
 -- JOINT-A-zero (pure/model): consume the complete empty-cut triple.
 example (w : HealingWitness) :
-    PostResetInv p c E rho w 0 ∧ PostResetResetLeaseCompatibleP p c E rho w 0 ∧
-      PostResetOpeningDomainP p c E rho w 0 :=
+    PostResetInv p c E rho w 0 ∧ PostResetResetLeaseCompatible p c E rho w 0 ∧
+      PostResetOpeningDomain p c E rho w 0 :=
   postReset_joint_zero p c E rho w
 
 variable [Fintype V] {G ΔF : Time}
@@ -72,10 +72,10 @@ include hrec mono emittedNonempty emittedName writes xing origin cap source
 -- JOINT-B-service-one (conditional package): concrete constant step functions.
 -- The fixture supplies successor witnesses; B still produces the other fields.
 example
-    (nextRL : ∀ i, PostResetResetLeaseCompatibleP p c E rho w (i + 1))
+    (nextRL : ∀ i, PostResetResetLeaseCompatible p c E rho w (i + 1))
     (nextLease : ∀ i, PostResetLeaseSafe p c E rho w (i + 1))
     (nextRaw : ∀ i, PostResetRawTransfer p c E rho w (i + 1))
-    (nextOD : ∀ i, PostResetOpeningDomainP p c E rho w (i + 1))
+    (nextOD : ∀ i, PostResetOpeningDomain p c E rho w (i + 1))
     (nextService : ∀ i, PostResetService p c E rho w (i + 1)) :
     PostResetService p c E rho w 1 := by
   have stepRL : ∀ i, PostResetResetLeaseStep p c E rho w i := by

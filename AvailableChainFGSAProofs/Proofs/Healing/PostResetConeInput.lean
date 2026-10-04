@@ -71,7 +71,7 @@ DC: SAME all six RetainedConeInput fields at one proposal label.
 C1 and H.14 roots supply root coverage; C2 supplies live lease coverage;
 C3 supplies one common pivot and both floors; C4 supplies the actual pool counts. -/
 theorem postReset_coneInput_at_cut (i : Nat)
-    (hrl : PostResetResetLeaseCompatibleP p c E rho w i)
+    (hrl : PostResetResetLeaseCompatible p c E rho w i)
     (hlease : PostResetLeaseSafe p c E rho w i)
     (hraw : PostResetRawTransfer p c E rho w i)
     {s : Slot} (hs : w.sStar + 2 ≤ s)

@@ -145,7 +145,7 @@ B1/B13/B17/B18. DC: SAME first HEAD above the reset block.
 No write key, fast threshold or passed-gate premise is required. -/
 theorem postReset_raw_first_head_above
     {i : Nat} (hinv : PostResetInv p c E rho w i)
-    (hresetNext : PostResetResetLeaseCompatibleP p c E rho w (i + 1))
+    (hresetNext : PostResetResetLeaseCompatible p c E rho w (i + 1))
     (hleaseNext : PostResetLeaseSafe p c E rho w (i + 1))
     {ix : Nat} {x : V} {s : Slot} {C : Block} (hx : x ∈ rho.honest)
     (hlabel : w.sStar ≤ s) (hix : IsGateTick p c rho ix x s) (hxi : ix ≤ i)
@@ -183,7 +183,6 @@ theorem postReset_raw_first_head_above
     rw [hq, postClock_def, preTick_def, fgsa_tickIdx_of_event p c E rho hs hiy]
     rfl
   have hreset : PostResetResetLeaseCompatible p c E rho w (i + 1) := by
-    rw [PostResetResetLeaseCompatible_def, PostResetResetLeaseCompatibleP_def] at *
     exact hresetNext
   have hrows := postReset_raw_release_compatible p c E rho hrec emittedNonempty emittedName
     writes h0r hinv hreset hleaseNext hx hlabel hix
@@ -242,7 +241,7 @@ P1 excludes conflicts with CStar. Below CStar, use the reset's first
 HEAD or its prior raw-transfer clause. Above it, use the frozen domain. -/
 theorem postReset_raw_first_head
     {i : Nat} (hinv : PostResetInv p c E rho w i)
-    (hresetNext : PostResetResetLeaseCompatibleP p c E rho w (i + 1))
+    (hresetNext : PostResetResetLeaseCompatible p c E rho w (i + 1))
     (hleaseNext : PostResetLeaseSafe p c E rho w (i + 1))
     {ix : Nat} {x : V} {s : Slot} {C : Block} (hx : x ∈ rho.honest)
     (hlabel : w.sStar ≤ s) (hix : IsGateTick p c rho ix x s) (hxi : ix ≤ i)
@@ -299,7 +298,7 @@ theorem postReset_raw_first_head
 B1/B13/B17/B18. DC: SAME first HEAD through its complete label read. -/
 theorem postReset_raw_first_head_label
     {i : Nat} (hinv : PostResetInv p c E rho w i)
-    (hresetNext : PostResetResetLeaseCompatibleP p c E rho w (i + 1))
+    (hresetNext : PostResetResetLeaseCompatible p c E rho w (i + 1))
     (hleaseNext : PostResetLeaseSafe p c E rho w (i + 1))
     {ix : Nat} {x : V} {s : Slot} {C : Block} (hx : x ∈ rho.honest)
     (hlabel : w.sStar ≤ s) (hix : IsGateTick p c rho ix x s) (hxi : ix ≤ i)
@@ -325,7 +324,7 @@ B1/B13/B17/B18. DC: SAME HEAD clause at the source event's successor cut.
 Only the first label can have an actual complete HEAD cut at i+1. -/
 theorem postReset_raw_heads_at_gate_cut
     {i : Nat} (hinv : PostResetInv p c E rho w i)
-    (hresetNext : PostResetResetLeaseCompatibleP p c E rho w (i + 1))
+    (hresetNext : PostResetResetLeaseCompatible p c E rho w (i + 1))
     (hleaseNext : PostResetLeaseSafe p c E rho w (i + 1))
     {x : V} {s : Slot} {C : Block} (hx : x ∈ rho.honest)
     (hlabel : w.sStar ≤ s) (hi : IsGateTick p c rho i x s)
@@ -359,7 +358,7 @@ Later proposals and output suffixes cannot be readers at this cut.
 This does not extend old raw results across their boundary readers. -/
 theorem postReset_raw_at_gate_cut
     {i : Nat} (hinv : PostResetInv p c E rho w i)
-    (hresetNext : PostResetResetLeaseCompatibleP p c E rho w (i + 1))
+    (hresetNext : PostResetResetLeaseCompatible p c E rho w (i + 1))
     (hleaseNext : PostResetLeaseSafe p c E rho w (i + 1))
     {x : V} {s : Slot} {C : Block} (hx : x ∈ rho.honest)
     (hlabel : w.sStar ≤ s) (hi : IsGateTick p c rho i x s)
@@ -380,7 +379,6 @@ theorem postReset_raw_at_gate_cut
     rawStep_outputs_at_gate_cut p c E rho hs hi⟩
   · intro y nd hy _hcut hnd
     have hreset : PostResetResetLeaseCompatible p c E rho w (i + 1) := by
-      rw [PostResetResetLeaseCompatible_def, PostResetResetLeaseCompatibleP_def] at *
       exact hresetNext
     exact postReset_raw_release_compatible p c E rho hrec emittedNonempty emittedName writes
       h0r hinv hreset hleaseNext hx hlabel hi hres le_rfl hy hnd
@@ -439,9 +437,8 @@ theorem postReset_resetLease_succ_all (cap : RCap p c E rho) (source : TSrc p c 
   rw [PostResetResetLeaseStep_def]
   intro hprev
   have hreset : PostResetResetLeaseCompatible p c E rho w i := by
-    rw [PostResetResetLeaseCompatible_def, PostResetResetLeaseCompatibleP_def] at *
     exact hprev.2.1
-  rw [PostResetResetLeaseCompatibleP_def]
+  rw [PostResetResetLeaseCompatible_def]
   have hn := postReset_resetLease_succ p c E rho hrec emittedNonempty emittedName xing cap
     source h0r hprev.1 hreset
   rwa [PostResetResetLeaseCompatible_def] at hn
@@ -452,7 +449,7 @@ omit movingDomain in
 B1/B13/B17/B18. DC: SAME complete successor HEAD cut above CStar. -/
 theorem postReset_raw_heads_succ_above
     {i : Nat} (hinv : PostResetInv p c E rho w i)
-    (hresetNext : PostResetResetLeaseCompatibleP p c E rho w (i + 1))
+    (hresetNext : PostResetResetLeaseCompatible p c E rho w (i + 1))
     (hleaseNext : PostResetLeaseSafe p c E rho w (i + 1))
     {ix : Nat} {x : V} {s : Slot} {C : Block} (hx : x ∈ rho.honest)
     (hlabel : w.sStar ≤ s) (hix : IsGateTick p c rho ix x s) (hxi : ix ≤ i)
@@ -524,7 +521,6 @@ theorem postReset_raw_heads_succ_above
         writes xing origin h0r)
       hinv hgst hCB hbatch hy hiy hyi hafter le_rfl hZ hF
     have hreset : PostResetResetLeaseCompatible p c E rho w (i + 1) := by
-      rw [PostResetResetLeaseCompatible_def, PostResetResetLeaseCompatibleP_def] at *
       exact hresetNext
     have hlease := postReset_raw_moving_lease_compat p c E rho hrec emittedNonempty emittedName
       writes h0r hinv hreset hx hlabel hix hxi hres hsl (heB ▸ hbatch) hy hiy hyi hafter le_rfl
@@ -588,7 +584,7 @@ omit movingDomain in
 B1/B13/B17/B18. DC: SAME successor proposal cut above CStar. -/
 theorem postReset_raw_proposals_succ_above
     {i : Nat} (hinv : PostResetInv p c E rho w i)
-    (hresetNext : PostResetResetLeaseCompatibleP p c E rho w (i + 1))
+    (hresetNext : PostResetResetLeaseCompatible p c E rho w (i + 1))
     {ix : Nat} {x : V} {s : Slot} {C : Block} (hx : x ∈ rho.honest)
     (hlabel : w.sStar ≤ s) (hix : IsGateTick p c rho ix x s) (hxi : ix ≤ i)
     (hres : gateResultAt p c E rho ix = some (some C)) (hCB : Block.Preceq w.CStar C) :
@@ -672,7 +668,6 @@ theorem postReset_raw_proposals_succ_above
     have he : j = ip := fgsa_tick_unique E rho hs hj hip
     subst j
     have hreset : PostResetResetLeaseCompatible p c E rho w (i + 1) := by
-      rw [PostResetResetLeaseCompatible_def, PostResetResetLeaseCompatibleP_def] at *
       exact hresetNext
     exact postReset_raw_moving_lease_compat p c E rho hrec emittedNonempty emittedName writes
       h0r hinv hreset hx hlabel hix hxi hres hsl hbatch hy hip hpi hafter hupper
@@ -693,7 +688,7 @@ omit movingDomain in
 B1/B13/B17/B18. DC: SAME provenance and crossing proof at every state cut. -/
 theorem postReset_raw_finality_compatible_above
     {i : Nat} (hinv : PostResetInv p c E rho w i)
-    (hresetNext : PostResetResetLeaseCompatibleP p c E rho w (i + 1))
+    (hresetNext : PostResetResetLeaseCompatible p c E rho w (i + 1))
     (hleaseNext : PostResetLeaseSafe p c E rho w (i + 1))
     {ix : Nat} {x : V} {s : Slot} {B : FGBlock (Fin p.n)} (hx : x ∈ rho.honest)
     (hlabel : w.sStar ≤ s) (hix : IsGateTick p c rho ix x s) (hxi : ix ≤ i)
@@ -785,7 +780,7 @@ B1/B13/B17/B18. DC: SAME stored leases at the first output gate.
 Each row persists from the preceding vote tick, where R5 applies. -/
 theorem postReset_raw_gate_lease_compat
     {i : Nat} (hinv : PostResetInv p c E rho w i)
-    (hresetNext : PostResetResetLeaseCompatibleP p c E rho w (i + 1))
+    (hresetNext : PostResetResetLeaseCompatible p c E rho w (i + 1))
     (hleaseNext : PostResetLeaseSafe p c E rho w (i + 1))
     {ix : Nat} {x : V} {s : Slot} {C : Block} (hx : x ∈ rho.honest)
     (hlabel : w.sStar ≤ s) (hix : IsGateTick p c rho ix x s) (hxi : ix ≤ i)
@@ -812,7 +807,6 @@ theorem postReset_raw_gate_lease_compat
     emittedNonempty emittedName writes mono xing origin h0r hinv hresetNext hleaseNext
     hx hlabel hix hxi hres hz hH
   have hreset : PostResetResetLeaseCompatible p c E rho w (i + 1) := by
-    rw [PostResetResetLeaseCompatible_def, PostResetResetLeaseCompatibleP_def] at *
     exact hresetNext
   have hcompat := postReset_raw_moving_lease_compat p c E rho hrec emittedNonempty emittedName
     writes h0r hinv hreset hx hlabel hix hxi hres le_rfl hbatch hy hiq
@@ -846,7 +840,7 @@ omit movingDomain in
 B1/B13/B17/B18. DC: SAME output suffix through the terminal state. -/
 theorem postReset_raw_outputs_succ_above
     {i : Nat} (hinv : PostResetInv p c E rho w i)
-    (hresetNext : PostResetResetLeaseCompatibleP p c E rho w (i + 1))
+    (hresetNext : PostResetResetLeaseCompatible p c E rho w (i + 1))
     (hleaseNext : PostResetLeaseSafe p c E rho w (i + 1))
     {ix : Nat} {x : V} {s : Slot} {C : Block} (hx : x ∈ rho.honest)
     (hlabel : w.sStar ≤ s) (hix : IsGateTick p c rho ix x s) (hxi : ix ≤ i)
@@ -895,7 +889,7 @@ omit movingDomain in
 B1/B13/B17/B18. DC: SAME successor HEAD cut for every raw result. -/
 theorem postReset_raw_heads_succ
     {i : Nat} (hinv : PostResetInv p c E rho w i)
-    (hresetNext : PostResetResetLeaseCompatibleP p c E rho w (i + 1))
+    (hresetNext : PostResetResetLeaseCompatible p c E rho w (i + 1))
     (hleaseNext : PostResetLeaseSafe p c E rho w (i + 1))
     {ix : Nat} {x : V} {s : Slot} {C : Block} (hx : x ∈ rho.honest)
     (hlabel : w.sStar ≤ s) (hix : IsGateTick p c rho ix x s) (hxi : ix ≤ i)
@@ -940,7 +934,7 @@ omit movingDomain in
 B1/B13/B17/B18. DC: SAME successor proposal cut for every raw result. -/
 theorem postReset_raw_proposals_succ
     {i : Nat} (hinv : PostResetInv p c E rho w i)
-    (hresetNext : PostResetResetLeaseCompatibleP p c E rho w (i + 1))
+    (hresetNext : PostResetResetLeaseCompatible p c E rho w (i + 1))
     (_hleaseNext : PostResetLeaseSafe p c E rho w (i + 1))
     {ix : Nat} {x : V} {s : Slot} {C : Block} (hx : x ∈ rho.honest)
     (hlabel : w.sStar ≤ s) (hix : IsGateTick p c rho ix x s) (hxi : ix ≤ i)
@@ -975,7 +969,7 @@ omit movingDomain in
 B1/B13/B17/B18. DC: SAME successor output cut for every raw result. -/
 theorem postReset_raw_outputs_succ
     {i : Nat} (hinv : PostResetInv p c E rho w i)
-    (hresetNext : PostResetResetLeaseCompatibleP p c E rho w (i + 1))
+    (hresetNext : PostResetResetLeaseCompatible p c E rho w (i + 1))
     (hleaseNext : PostResetLeaseSafe p c E rho w (i + 1))
     {ix : Nat} {x : V} {s : Slot} {C : Block} (hx : x ∈ rho.honest)
     (hlabel : w.sStar ≤ s) (hix : IsGateTick p c rho ix x s) (hxi : ix ≤ i)
@@ -1050,7 +1044,6 @@ theorem postReset_rawTransfer_succ : ∀ i, PostResetRawStep p c E rho w i := by
     refine ⟨?_, ?_, ?_, ?_⟩
     · intro y nd hy _hcut hnd
       have hreset : PostResetResetLeaseCompatible p c E rho w (i + 1) := by
-        rw [PostResetResetLeaseCompatible_def, PostResetResetLeaseCompatibleP_def] at *
         exact hresetNext
       exact postReset_raw_release_compatible p c E rho hrec emittedNonempty emittedName writes
         h0r hinv hreset hleaseNext hx hlabel hgate hres hki.le hy hnd

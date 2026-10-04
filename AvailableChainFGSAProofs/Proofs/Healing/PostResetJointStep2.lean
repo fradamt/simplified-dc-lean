@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetConeAt
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJointStep
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetService
 
 public section
 
@@ -40,7 +40,6 @@ theorem healing_postReset_openingDomainStep₂
     PostResetOpeningDomainStep₂ p c E rho w i := by
   rw [PostResetOpeningDomainStep₂_def]
   rintro ⟨hinv, -, hod, -⟩ - - - - hcone
-  rw [postResetOpeningDomainP_iff] at hod ⊢
   exact healing_postReset_openingDomain_step_at E rho hrec w hreset cap rowCovered
     xing origin i (fun v hv => postResetConeAt_of_cut p c E rho w hcone
       (hv.trans (Nat.le_succ i))) hinv.high_compatible hinv.fprov hinv.raw_transfer hod
@@ -69,7 +68,6 @@ theorem healing_postReset_serviceStep₂
     PostResetServiceStep₂ p c E rho w i := by
   rw [PostResetServiceStep₂_def]
   intro _ _ _ hfp hraw hcone hod
-  rw [postResetOpeningDomainP_iff] at hod
   exact healing_postReset_service_step_at E rho hrec w hreset cap rowCovered mono writes
     (i + 1) (fun _ hv => postResetConeAt_of_cut p c E rho w hcone hv) hfp hraw hod
 

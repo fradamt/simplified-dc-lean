@@ -1,26 +1,18 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJoint
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetOpening
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetService
 
 public section
 
 /-! Blueprint 21 H.15–H.18:2885–3064, especially H.17:3021–3040; plan J6-3 O1/O2;
 ruling R3 (JOINT-IND). DC: SAME the J6-3 cut steps in the JOINT-IND step shapes.
-The provisional PostResetOpeningDomainP has the body of PostResetOpeningDomain.
+The joint steps use PostResetOpeningDomain.
 Both steps hold at every cut i. No step takes THigh, H4 or H2Prime. -/
 
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
-
-/-- Blueprint 21 H.17:3031–3040; ruling R3. DC: SAME the provisional JOINT-IND
-opening predicate is the J6-3 definition. -/
-theorem postResetOpeningDomainP_iff (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (w : HealingWitness) (i : Nat) :
-    PostResetOpeningDomainP p c E rho w i ↔ PostResetOpeningDomain p c E rho w i := by
-  rw [PostResetOpeningDomainP_def, PostResetOpeningDomain_def]
 
 section JointSteps
 variable [Fintype V]
@@ -50,7 +42,6 @@ theorem healing_postReset_openingDomainStep
     PostResetOpeningDomainStep p c E rho w i := by
   rw [PostResetOpeningDomainStep_def]
   rintro ⟨hinv, -, hod⟩ - - - -
-  rw [postResetOpeningDomainP_iff] at hod ⊢
   exact healing_postReset_openingDomain_step E rho hrec w hreset hcone cap rowCovered
     xing origin i hinv.high_compatible hinv.fprov hinv.raw_transfer hod
 
@@ -78,7 +69,6 @@ theorem healing_postReset_serviceStep
     PostResetServiceStep p c E rho w i := by
   rw [PostResetServiceStep_def]
   intro _ _ _ hfp hraw hod
-  rw [postResetOpeningDomainP_iff] at hod
   exact healing_postReset_service_step E rho hrec w hreset hcone cap rowCovered mono writes
     (i + 1) hfp hraw hod
 

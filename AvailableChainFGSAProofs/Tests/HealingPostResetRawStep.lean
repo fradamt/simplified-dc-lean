@@ -330,7 +330,7 @@ variable [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
 
 -- R1-above, conditional package: an actual raw result strictly above CStar.
 example {i : Nat} (hinv : PostResetInv p c E rho w i)
-    (hresetNext : PostResetResetLeaseCompatibleP p c E rho w (i + 1))
+    (hresetNext : PostResetResetLeaseCompatible p c E rho w (i + 1))
     (hleaseNext : PostResetLeaseSafe p c E rho w (i + 1))
     {ix : Nat} {x : V} {s : Slot} {C : Block} (hx : x ∈ rho.honest)
     (hlabel : w.sStar ≤ s) (hix : IsGateTick p c rho ix x s) (hxi : ix ≤ i)
@@ -350,9 +350,9 @@ example (cap : RCap p c E rho) (source : TSrc p c E rho) :
 
 -- R4-all-cuts, conditional package: consume the exact joint successor, including terminal cuts.
 example {i : Nat}
-    (hprev : PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatibleP p c E rho w i ∧
-      PostResetOpeningDomainP p c E rho w i)
-    (hresetNext : PostResetResetLeaseCompatibleP p c E rho w (i + 1))
+    (hprev : PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatible p c E rho w i ∧
+      PostResetOpeningDomain p c E rho w i)
+    (hresetNext : PostResetResetLeaseCompatible p c E rho w (i + 1))
     (hleaseNext : PostResetLeaseSafe p c E rho w (i + 1))
     (hfprovNext : PostResetFProv p c E rho w (i + 1)) :
     PostResetRawTransfer p c E rho w (i + 1) := by

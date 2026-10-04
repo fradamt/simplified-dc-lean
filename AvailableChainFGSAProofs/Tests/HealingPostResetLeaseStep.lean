@@ -315,9 +315,9 @@ example
 
 -- G7-all-cuts: consumes the frozen step, including pre-reset and terminal cuts.
 example {i : Nat}
-    (hprev : PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatibleP p c E rho w i ∧
-      PostResetOpeningDomainP p c E rho w i)
-    (hresetNext : PostResetResetLeaseCompatibleP p c E rho w (i + 1)) :
+    (hprev : PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatible p c E rho w i ∧
+      PostResetOpeningDomain p c E rho w i)
+    (hresetNext : PostResetResetLeaseCompatible p c E rho w (i + 1)) :
     PostResetLeaseSafe p c E rho w (i + 1) := by
   have h := postReset_leaseSafe_succ p c E rho hrec mono emittedNonempty emittedName writes
     xing origin h0r i

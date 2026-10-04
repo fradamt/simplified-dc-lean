@@ -56,7 +56,7 @@ theorem postReset_source_heads_at_cut (i : Nat)
 DC: SAME live lease targets below the preceding honest HEAD batch.
 The last-write port has producer fgsa_leaseOrigins_lastWrite. -/
 theorem postReset_liveLease_heads_at_cut (i : Nat)
-    (hrl : PostResetResetLeaseCompatibleP p c E rho w i)
+    (hrl : PostResetResetLeaseCompatible p c E rho w i)
     (hlease : PostResetLeaseSafe p c E rho w i)
     (hraw : PostResetRawTransfer p c E rho w i)
     (writes : ∀ i x (row : Block × Nat × Time),
@@ -112,7 +112,7 @@ theorem postReset_liveLease_heads_at_cut (i : Nat)
   have hCHeads := postReset_source_heads_at_cut p c E rho hrec cap source rowCovered h0r
     i hraw hselected hhigh0
       (s := s - 1) (by simp only [Slot] at *; omega) hprev
-  rw [PostResetResetLeaseCompatibleP_def] at hrl
+  rw [PostResetResetLeaseCompatible_def] at hrl
   intro j z t row hz ht hlo hhi hrow hlive y hy H hH
   have hji : j < i :=
     ((V2.D.Engine.index_lt_read_length_iff hS _ ht).mpr hhi).trans_le hcut

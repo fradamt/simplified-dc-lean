@@ -1,6 +1,5 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJoint
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetRead
 
 public section
 
@@ -34,9 +33,9 @@ def PostResetRetainedConeP (w : HealingWitness) (i : Nat) : Prop :=
 /-- Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
 The retained-cone step uses the prior joint fields and the new raw-transfer field. -/
 def PostResetConeStep (w : HealingWitness) (i : Nat) : Prop :=
-  PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatibleP p c E rho w i ∧
-    PostResetOpeningDomainP p c E rho w i ∧ PostResetRetainedConeP p c E rho w i →
-  PostResetResetLeaseCompatibleP p c E rho w (i + 1) →
+  PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatible p c E rho w i ∧
+    PostResetOpeningDomain p c E rho w i ∧ PostResetRetainedConeP p c E rho w i →
+  PostResetResetLeaseCompatible p c E rho w (i + 1) →
   PostResetLeaseSafe p c E rho w (i + 1) →
   PostResetFProv p c E rho w (i + 1) →
   PostResetRawTransfer p c E rho w (i + 1) →
@@ -45,26 +44,26 @@ def PostResetConeStep (w : HealingWitness) (i : Nat) : Prop :=
 /-- Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
 The opening-domain step uses the prior joint fields and the new retained cone. -/
 def PostResetOpeningDomainStep₂ (w : HealingWitness) (i : Nat) : Prop :=
-  PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatibleP p c E rho w i ∧
-    PostResetOpeningDomainP p c E rho w i ∧ PostResetRetainedConeP p c E rho w i →
-  PostResetResetLeaseCompatibleP p c E rho w (i + 1) →
+  PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatible p c E rho w i ∧
+    PostResetOpeningDomain p c E rho w i ∧ PostResetRetainedConeP p c E rho w i →
+  PostResetResetLeaseCompatible p c E rho w (i + 1) →
   PostResetLeaseSafe p c E rho w (i + 1) →
   PostResetFProv p c E rho w (i + 1) →
   PostResetRawTransfer p c E rho w (i + 1) →
   PostResetRetainedConeP p c E rho w (i + 1) →
-  PostResetOpeningDomainP p c E rho w (i + 1)
+  PostResetOpeningDomain p c E rho w (i + 1)
 
 /-- Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
 The service step uses the prior joint fields, the new retained cone and opening domain. -/
 def PostResetServiceStep₂ (w : HealingWitness) (i : Nat) : Prop :=
-  PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatibleP p c E rho w i ∧
-    PostResetOpeningDomainP p c E rho w i ∧ PostResetRetainedConeP p c E rho w i →
-  PostResetResetLeaseCompatibleP p c E rho w (i + 1) →
+  PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatible p c E rho w i ∧
+    PostResetOpeningDomain p c E rho w i ∧ PostResetRetainedConeP p c E rho w i →
+  PostResetResetLeaseCompatible p c E rho w (i + 1) →
   PostResetLeaseSafe p c E rho w (i + 1) →
   PostResetFProv p c E rho w (i + 1) →
   PostResetRawTransfer p c E rho w (i + 1) →
   PostResetRetainedConeP p c E rho w (i + 1) →
-  PostResetOpeningDomainP p c E rho w (i + 1) →
+  PostResetOpeningDomain p c E rho w (i + 1) →
   PostResetService p c E rho w (i + 1)
 
 /-- Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
@@ -89,9 +88,9 @@ theorem PostResetRetainedConeP_def (w : HealingWitness) (i : Nat) :
 Equation export for BUILD §7.2 B3a. -/
 theorem PostResetConeStep_def (w : HealingWitness) (i : Nat) :
     PostResetConeStep p c E rho w i = (
-  PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatibleP p c E rho w i ∧
-    PostResetOpeningDomainP p c E rho w i ∧ PostResetRetainedConeP p c E rho w i →
-  PostResetResetLeaseCompatibleP p c E rho w (i + 1) →
+  PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatible p c E rho w i ∧
+    PostResetOpeningDomain p c E rho w i ∧ PostResetRetainedConeP p c E rho w i →
+  PostResetResetLeaseCompatible p c E rho w (i + 1) →
   PostResetLeaseSafe p c E rho w (i + 1) →
   PostResetFProv p c E rho w (i + 1) →
   PostResetRawTransfer p c E rho w (i + 1) →
@@ -101,27 +100,27 @@ theorem PostResetConeStep_def (w : HealingWitness) (i : Nat) :
 Equation export for BUILD §7.2 B3a. -/
 theorem PostResetOpeningDomainStep₂_def (w : HealingWitness) (i : Nat) :
     PostResetOpeningDomainStep₂ p c E rho w i = (
-  PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatibleP p c E rho w i ∧
-    PostResetOpeningDomainP p c E rho w i ∧ PostResetRetainedConeP p c E rho w i →
-  PostResetResetLeaseCompatibleP p c E rho w (i + 1) →
+  PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatible p c E rho w i ∧
+    PostResetOpeningDomain p c E rho w i ∧ PostResetRetainedConeP p c E rho w i →
+  PostResetResetLeaseCompatible p c E rho w (i + 1) →
   PostResetLeaseSafe p c E rho w (i + 1) →
   PostResetFProv p c E rho w (i + 1) →
   PostResetRawTransfer p c E rho w (i + 1) →
   PostResetRetainedConeP p c E rho w (i + 1) →
-  PostResetOpeningDomainP p c E rho w (i + 1)) := by rfl
+  PostResetOpeningDomain p c E rho w (i + 1)) := by rfl
 
 /-- Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
 Equation export for BUILD §7.2 B3a. -/
 theorem PostResetServiceStep₂_def (w : HealingWitness) (i : Nat) :
     PostResetServiceStep₂ p c E rho w i = (
-  PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatibleP p c E rho w i ∧
-    PostResetOpeningDomainP p c E rho w i ∧ PostResetRetainedConeP p c E rho w i →
-  PostResetResetLeaseCompatibleP p c E rho w (i + 1) →
+  PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatible p c E rho w i ∧
+    PostResetOpeningDomain p c E rho w i ∧ PostResetRetainedConeP p c E rho w i →
+  PostResetResetLeaseCompatible p c E rho w (i + 1) →
   PostResetLeaseSafe p c E rho w (i + 1) →
   PostResetFProv p c E rho w (i + 1) →
   PostResetRawTransfer p c E rho w (i + 1) →
   PostResetRetainedConeP p c E rho w (i + 1) →
-  PostResetOpeningDomainP p c E rho w (i + 1) →
+  PostResetOpeningDomain p c E rho w (i + 1) →
   PostResetService p c E rho w (i + 1)) := by rfl
 
 /-- Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
@@ -164,8 +163,8 @@ theorem postReset_cone_zero (w : HealingWitness) :
 /-- Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
 Extend the existing empty-cut triple with its vacuous cone. -/
 theorem postReset_joint₂_zero (w : HealingWitness) :
-    PostResetInv p c E rho w 0 ∧ PostResetResetLeaseCompatibleP p c E rho w 0 ∧
-      PostResetOpeningDomainP p c E rho w 0 ∧ PostResetRetainedConeP p c E rho w 0 := by
+    PostResetInv p c E rho w 0 ∧ PostResetResetLeaseCompatible p c E rho w 0 ∧
+      PostResetOpeningDomain p c E rho w 0 ∧ PostResetRetainedConeP p c E rho w 0 := by
   obtain ⟨hinv, hrl, hod⟩ := postReset_joint_zero p c E rho w
   exact ⟨hinv, hrl, hod, postReset_cone_zero p c E rho w⟩
 
@@ -255,8 +254,8 @@ emittedName_window, fgsa_leaseOrigins_lastWrite, fgsa_rXing,
 sourceDiscipline_qcOrigin, fgsa_rCap_channel, sourceDiscipline_tSrc,
 held_chain_row_origin_before, fgsa_finalityCap, cap_finality_head. -/
 theorem postReset_joint₂_all :
-    ∀ i, PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatibleP p c E rho w i ∧
-      PostResetOpeningDomainP p c E rho w i ∧ PostResetRetainedConeP p c E rho w i := by
+    ∀ i, PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatible p c E rho w i ∧
+      PostResetOpeningDomain p c E rho w i ∧ PostResetRetainedConeP p c E rho w i := by
   intro i
   induction i with
   | zero => exact postReset_joint₂_zero p c E rho w
@@ -274,8 +273,8 @@ theorem postReset_joint₂_all :
     have stepServiceAt := stepService i
     rw [PostResetServiceStep₂_def] at stepServiceAt
     have prior : PostResetInv p c E rho w i ∧
-        PostResetResetLeaseCompatibleP p c E rho w i ∧
-        PostResetOpeningDomainP p c E rho w i := ⟨ih.1, ih.2.1, ih.2.2.1⟩
+        PostResetResetLeaseCompatible p c E rho w i ∧
+        PostResetOpeningDomain p c E rho w i := ⟨ih.1, ih.2.1, ih.2.2.1⟩
     have hrl := stepRLAt prior
     have hlease := stepLeaseAt prior hrl
     have hfprov := postReset_fProv_all p c E rho hrec.base.valid hrec.base.noRestart

@@ -1923,19 +1923,14 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone -- shake: ke
 #print axioms AvailableChain.FGSA.Run.healing_postReset_opening_source_prefix
 #print axioms AvailableChain.FGSA.Run.healing_postReset_openingDomain_new_tick
 #print axioms AvailableChain.FGSA.Run.healing_postReset_openingDomain_step
-#print axioms AvailableChain.FGSA.Run.postResetOpeningDomainP_iff
 #print axioms AvailableChain.FGSA.Run.healing_postReset_openingDomainStep
 #print axioms AvailableChain.FGSA.Run.healing_postReset_serviceStep
 -- JOINT-IND: the empty cut, named steps, induction and projections.
-#print axioms AvailableChain.FGSA.Run.PostResetResetLeaseCompatibleP
-#print axioms AvailableChain.FGSA.Run.PostResetOpeningDomainP
 #print axioms AvailableChain.FGSA.Run.PostResetResetLeaseStep
 #print axioms AvailableChain.FGSA.Run.PostResetLeaseStep
 #print axioms AvailableChain.FGSA.Run.PostResetRawStep
 #print axioms AvailableChain.FGSA.Run.PostResetOpeningDomainStep
 #print axioms AvailableChain.FGSA.Run.PostResetServiceStep
-#print axioms AvailableChain.FGSA.Run.PostResetResetLeaseCompatibleP_def
-#print axioms AvailableChain.FGSA.Run.PostResetOpeningDomainP_def
 #print axioms AvailableChain.FGSA.Run.PostResetResetLeaseStep_def
 #print axioms AvailableChain.FGSA.Run.PostResetLeaseStep_def
 #print axioms AvailableChain.FGSA.Run.PostResetRawStep_def
