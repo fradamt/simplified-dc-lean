@@ -1,7 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLease
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetInvariant -- shake: keep
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetInvariant -- shake: keep (r2 owner)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetOpening
 
 public section

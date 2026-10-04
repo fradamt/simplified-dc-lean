@@ -233,3 +233,17 @@ theorem full_content_admission : ∀ e ∈ inputPairs,
 
 end AvailableChain.FGSA.Tests.RootCollision
 end
+
+-- ROOT-DIGEST: public fixture dependency audit.
+#print axioms AvailableChain.FGSA.Tests.RootCollision.digestInputs
+#print axioms AvailableChain.FGSA.Tests.RootCollision.fixtureDigest
+#print axioms AvailableChain.FGSA.Tests.RootCollision.ha
+#print axioms AvailableChain.FGSA.Tests.RootCollision.hb
+#print axioms AvailableChain.FGSA.Tests.RootCollision.inputBody
+#print axioms AvailableChain.FGSA.Tests.RootCollision.inputPairs
+#print axioms AvailableChain.FGSA.Tests.RootCollision.literal_bodies
+#print axioms AvailableChain.FGSA.Tests.RootCollision.pT
+#print axioms AvailableChain.FGSA.Tests.RootCollision.pb
+#print axioms AvailableChain.FGSA.Tests.RootCollision.pk
+#print axioms AvailableChain.FGSA.Tests.RootCollision.rb
+#print axioms AvailableChain.FGSA.Tests.RootCollision.rw

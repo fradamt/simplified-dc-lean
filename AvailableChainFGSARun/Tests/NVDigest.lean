@@ -36,3 +36,6 @@ theorem live_horizon_grid :
 
 end AvailableChain.FGSA.Run.Tests.NVDigest
 end
+
+-- ROOT-DIGEST: public fixture dependency audit.
+#print axioms AvailableChain.FGSA.Run.Tests.NVDigest.nvDigest

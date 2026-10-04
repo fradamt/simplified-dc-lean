@@ -2641,6 +2641,24 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.Tests.NonVacuity.FinalityClaims.nvLocalHigher',
     'AvailableChain.FGSA.Run.Tests.NonVacuity.FinalityClaims.nvLocalAccepted',
 
+    # ROOT-DIGEST: public finite-run root witnesses.
+    'AvailableChain.FGSA.Run.Tests.NonVacuity.FinalityClaims.nvParents',
+    'AvailableChain.FGSA.Run.Tests.NonVacuity.FinalityClaims.nv_delivery_origin',
+    'AvailableChain.FGSA.Run.Tests.NonVacuity.FinalityClaims.nv_delivery_root',
+    'AvailableChain.FGSA.Run.Tests.NonVacuity.FinalityClaims.nv_delivery_unique',
+    'AvailableChain.FGSA.Run.Tests.NonVacuity.HealingClaims.nvParents',
+    'AvailableChain.FGSA.Run.Tests.NonVacuity.HealingClaims.nv_delivery_origin',
+    'AvailableChain.FGSA.Run.Tests.NonVacuity.HealingClaims.nv_delivery_root',
+    'AvailableChain.FGSA.Run.Tests.NonVacuity.HealingClaims.nv_delivery_unique',
+    'AvailableChain.FGSA.Run.Tests.NonVacuity.HealingPackages.nvParents',
+    'AvailableChain.FGSA.Run.Tests.NonVacuity.HealingPackages.nv_delivery_origin',
+    'AvailableChain.FGSA.Run.Tests.NonVacuity.HealingPackages.nv_delivery_root',
+    'AvailableChain.FGSA.Run.Tests.NonVacuity.HealingPackages.nv_delivery_unique',
+    'AvailableChain.FGSA.Run.Tests.NonVacuity.HealingRun.nvParents',
+    'AvailableChain.FGSA.Run.Tests.NonVacuity.HealingRun.nv_delivery_origin',
+    'AvailableChain.FGSA.Run.Tests.NonVacuity.HealingRun.nv_delivery_root',
+    'AvailableChain.FGSA.Run.Tests.NonVacuity.HealingRun.nv_delivery_unique',
+
 )
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
          'Packages.Safety', 'OutputReads', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',

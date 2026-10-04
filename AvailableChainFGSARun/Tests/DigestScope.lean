@@ -129,3 +129,20 @@ theorem head_scope_control : NamedRootCollisionFree pT unitCodec env headRun ∧
 
 end AvailableChain.FGSA.Run.Tests.DigestScope
 end
+
+-- ROOT-DIGEST: public fixture dependency audit.
+#print axioms AvailableChain.FGSA.Run.Tests.DigestScope.ba
+#print axioms AvailableChain.FGSA.Run.Tests.DigestScope.collisionA
+#print axioms AvailableChain.FGSA.Run.Tests.DigestScope.collisionB
+#print axioms AvailableChain.FGSA.Run.Tests.DigestScope.collisionParams
+#print axioms AvailableChain.FGSA.Run.Tests.DigestScope.collisionRun
+#print axioms AvailableChain.FGSA.Run.Tests.DigestScope.collisionWireA
+#print axioms AvailableChain.FGSA.Run.Tests.DigestScope.collisionWireB
+#print axioms AvailableChain.FGSA.Run.Tests.DigestScope.env
+#print axioms AvailableChain.FGSA.Run.Tests.DigestScope.fakeHead
+#print axioms AvailableChain.FGSA.Run.Tests.DigestScope.fakeHeadBody
+#print axioms AvailableChain.FGSA.Run.Tests.DigestScope.headProposal
+#print axioms AvailableChain.FGSA.Run.Tests.DigestScope.headRun
+#print axioms AvailableChain.FGSA.Run.Tests.DigestScope.headWire
+#print axioms AvailableChain.FGSA.Run.Tests.DigestScope.pT
+#print axioms AvailableChain.FGSA.Run.Tests.DigestScope.traceRun

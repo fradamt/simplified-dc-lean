@@ -10,6 +10,8 @@ public import AvailableChainKitFG.RowBits
 public import AvailableChainKitFG.RecordHigh
 public import AvailableChainKitFG.ClientOnceSafety
 public import AvailableChainKitFG.RecordHighOnce
+public import AvailableChainKitFG.FrameGeometry
+public import AvailableChainKitFG.AccountableCore
 
 /-! Kernel dependency audit for the FG chain lemmas without root premises. -/
 
@@ -84,3 +86,14 @@ public import AvailableChainKitFG.RecordHighOnce
 #print axioms AvailableChain.KitFG.RecordHighOnceStatement_def
 #print axioms AvailableChain.KitFG.recordHigh_optional_finality
 #print axioms AvailableChain.KitFG.recordHighOnce
+
+-- ROOT-DIGEST: public root and content declarations.
+#print axioms AvailableChain.KitFG.RootInjectiveOn_def
+#print axioms AvailableChain.KitFG.StoreStepRoots
+#print axioms AvailableChain.KitFG.StoreStepRoots_def
+#print axioms AvailableChain.KitFG.candidateJ_rootInj_of_viewRootInj
+#print axioms AvailableChain.KitFG.e1Weight_or_finalized_preceq_of_parent_roots
+#print axioms AvailableChain.KitFG.finalized_preceq_parent_of_certificate
+#print axioms AvailableChain.KitFG.parent_preceq_parent
+#print axioms AvailableChain.KitFG.preceq_parent_of_ne
+#print axioms AvailableChain.KitFG.slashableWeight_or_finalized_compatible_of_parent_roots

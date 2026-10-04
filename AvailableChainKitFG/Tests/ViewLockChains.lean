@@ -88,3 +88,6 @@ example :
 
 end AvailableChain.KitFG.Tests.ViewLockChains
 end
+
+-- ROOT-DIGEST: public fixture dependency audit.
+#print axioms AvailableChain.KitFG.Tests.ViewLockChains.finite_chain_roots

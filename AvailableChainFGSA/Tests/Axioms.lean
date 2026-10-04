@@ -514,3 +514,14 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 #print axioms AvailableChain.FGSA.stored_r6wW
 #print axioms AvailableChain.FGSA.stored_chain_r6wW
 #print axioms AvailableChain.FGSA.Window.terminalRetentionW
+
+-- ROOT-DIGEST: public root and content declarations.
+#print axioms AvailableChain.FGSA.baseBlocks_rootInj
+#print axioms AvailableChain.FGSA.blockAccepted_contentOk
+#print axioms AvailableChain.FGSA.contentOk
+#print axioms AvailableChain.FGSA.contentOk_proposalBlock
+#print axioms AvailableChain.FGSA.contentOk_rowsOk
+#print axioms AvailableChain.FGSA.eraseFG_preceq_iff
+#print axioms AvailableChain.FGSA.erasedList_rootInj
+#print axioms AvailableChain.FGSA.proposalBlock
+#print axioms AvailableChain.FGSA.proposalInput

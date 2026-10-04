@@ -117,3 +117,6 @@ example : finalityRow.signer ∈ (derive E4 cfg1 finalityCarrier).finalize := by
 
 end AvailableChain.KitFG.Tests.RowHistory
 end
+
+-- ROOT-DIGEST: public fixture dependency audit.
+#print axioms AvailableChain.KitFG.Tests.RowHistory.finite_chain_roots

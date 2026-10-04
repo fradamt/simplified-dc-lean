@@ -1025,3 +1025,11 @@ end M05
 
 end AvailableChain.FGSA.Tests
 end
+
+-- ROOT-DIGEST: public fixture dependency audit.
+#print axioms AvailableChain.FGSA.Tests.digestTable
+#print axioms AvailableChain.FGSA.Tests.fixtureDigest
+#print axioms AvailableChain.FGSA.Tests.literalFG
+#print axioms AvailableChain.FGSA.Tests.smokeRootScope
+#print axioms AvailableChain.FGSA.Tests.smoke_scope_parent_mem
+#print axioms AvailableChain.FGSA.Tests.xBs

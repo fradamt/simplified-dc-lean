@@ -1234,3 +1234,10 @@ theorem renewedPromotionPrem : RenewedPromotionPrem params unitCodec gap deltaF 
 
 end AvailableChain.FGSA.Run.Tests.NonVacuity.HealingPackages
 end
+
+-- ROOT-DIGEST: public fixture dependency audit.
+#print axioms AvailableChain.FGSA.Run.Tests.NonVacuity.HealingPackages.nvParents
+#print axioms AvailableChain.FGSA.Run.Tests.NonVacuity.HealingPackages.nvRoots
+#print axioms AvailableChain.FGSA.Run.Tests.NonVacuity.HealingPackages.nv_delivery_origin
+#print axioms AvailableChain.FGSA.Run.Tests.NonVacuity.HealingPackages.nv_delivery_root
+#print axioms AvailableChain.FGSA.Run.Tests.NonVacuity.HealingPackages.nv_delivery_unique

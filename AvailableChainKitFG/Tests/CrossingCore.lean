@@ -224,3 +224,6 @@ private theorem crossing_fork_quorum_test :
 
 end AvailableChain.KitFG.Tests.CrossingCore
 end
+
+-- ROOT-DIGEST: public fixture dependency audit.
+#print axioms AvailableChain.KitFG.Tests.CrossingCore.finite_chain_roots

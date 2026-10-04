@@ -2229,3 +2229,10 @@ end HTime
 
 end AvailableChain.FGSA.Run.Tests.NonVacuity.HealingClaims
 end
+
+-- ROOT-DIGEST: public fixture dependency audit.
+#print axioms AvailableChain.FGSA.Run.Tests.NonVacuity.HealingClaims.nvParents
+#print axioms AvailableChain.FGSA.Run.Tests.NonVacuity.HealingClaims.nvRoots
+#print axioms AvailableChain.FGSA.Run.Tests.NonVacuity.HealingClaims.nv_delivery_origin
+#print axioms AvailableChain.FGSA.Run.Tests.NonVacuity.HealingClaims.nv_delivery_root
+#print axioms AvailableChain.FGSA.Run.Tests.NonVacuity.HealingClaims.nv_delivery_unique

@@ -117,7 +117,16 @@ lake env lean --run scripts/CheckFGAxioms.lean --expect \
   storeFrameView_height_of_crossed_prefix_of_inv finalityCap_row_of_certificate \
   FGJustificationLaws.of_bridge \
   storeFrameView_noContest_of_crossed_of_inv storeFrameView_contest_of_compatible_of_inv \
-  storeFrameView_retention_of_compatible_of_inv
+  storeFrameView_retention_of_compatible_of_inv \
+  AvailableChain.KitFG.RootInjectiveOn_def \
+  AvailableChain.KitFG.StoreStepRoots \
+  AvailableChain.KitFG.StoreStepRoots_def \
+  AvailableChain.KitFG.candidateJ_rootInj_of_viewRootInj \
+  AvailableChain.KitFG.e1Weight_or_finalized_preceq_of_parent_roots \
+  AvailableChain.KitFG.finalized_preceq_parent_of_certificate \
+  AvailableChain.KitFG.parent_preceq_parent \
+  AvailableChain.KitFG.preceq_parent_of_ne \
+  AvailableChain.KitFG.slashableWeight_or_finalized_compatible_of_parent_roots
 step "scripts/FGPinIds.lean --check-names"
 lake env lean --run scripts/FGPinIds.lean --check-names
 step "scripts/check-fg-pins.sh"

@@ -2015,3 +2015,9 @@ theorem nvLiveDC : LiveDCConcl_W params unitCodec env run 303 405 := by
 
 end AvailableChain.FGSA.Run.Tests.NonVacuity.FinalityClaims
 end
+
+-- ROOT-DIGEST: public fixture dependency audit.
+#print axioms AvailableChain.FGSA.Run.Tests.NonVacuity.FinalityClaims.nvParents
+#print axioms AvailableChain.FGSA.Run.Tests.NonVacuity.FinalityClaims.nv_delivery_origin
+#print axioms AvailableChain.FGSA.Run.Tests.NonVacuity.FinalityClaims.nv_delivery_root
+#print axioms AvailableChain.FGSA.Run.Tests.NonVacuity.FinalityClaims.nv_delivery_unique

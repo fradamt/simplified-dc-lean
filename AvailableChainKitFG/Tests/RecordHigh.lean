@@ -156,3 +156,6 @@ example (M H j : Height) (hc : H = j + 1) : H ≤ M + 1 ↔ ¬ M + 1 ≤ j := by
 
 end AvailableChain.KitFG.Tests.RecordHigh
 end
+
+-- ROOT-DIGEST: public fixture dependency audit.
+#print axioms AvailableChain.KitFG.Tests.RecordHigh.finite_view_roots

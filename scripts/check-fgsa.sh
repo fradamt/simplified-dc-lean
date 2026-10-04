@@ -273,7 +273,35 @@ gate_with_slot lake env lean --run scripts/CheckFGSAAxioms.lean "${TEST_ROOTS[@]
   Tests.smoke_ancestor_scope Tests.smoke_scope_roots \
   Tests.RootCollision.finite_digest_injective Tests.RootCollision.digestInputs_nodup \
   Tests.RootCollision.full_content_controls Tests.RootCollision.full_content_admission \
-  Tests.RootCollision.contentAgree_stX_stY
+  Tests.RootCollision.contentAgree_stX_stY \
+  AvailableChain.FGSA.baseBlocks_rootInj \
+  AvailableChain.FGSA.blockAccepted_contentOk \
+  AvailableChain.FGSA.contentOk \
+  AvailableChain.FGSA.contentOk_proposalBlock \
+  AvailableChain.FGSA.contentOk_rowsOk \
+  AvailableChain.FGSA.eraseFG_preceq_iff \
+  AvailableChain.FGSA.erasedList_rootInj \
+  AvailableChain.FGSA.proposalBlock \
+  AvailableChain.FGSA.proposalInput \
+  AvailableChain.FGSA.storeStepRoots_of_blockAccepted \
+  AvailableChain.FGSA.Tests.RootCollision.digestInputs \
+  AvailableChain.FGSA.Tests.RootCollision.fixtureDigest \
+  AvailableChain.FGSA.Tests.RootCollision.ha \
+  AvailableChain.FGSA.Tests.RootCollision.hb \
+  AvailableChain.FGSA.Tests.RootCollision.inputBody \
+  AvailableChain.FGSA.Tests.RootCollision.inputPairs \
+  AvailableChain.FGSA.Tests.RootCollision.literal_bodies \
+  AvailableChain.FGSA.Tests.RootCollision.pT \
+  AvailableChain.FGSA.Tests.RootCollision.pb \
+  AvailableChain.FGSA.Tests.RootCollision.pk \
+  AvailableChain.FGSA.Tests.RootCollision.rb \
+  AvailableChain.FGSA.Tests.RootCollision.rw \
+  AvailableChain.FGSA.Tests.digestTable \
+  AvailableChain.FGSA.Tests.fixtureDigest \
+  AvailableChain.FGSA.Tests.literalFG \
+  AvailableChain.FGSA.Tests.smokeRootScope \
+  AvailableChain.FGSA.Tests.smoke_scope_parent_mem \
+  AvailableChain.FGSA.Tests.xBs
 echo "== lease instances"
 gate_with_slot lake env lean --run scripts/CheckFGSALease.lean
 # Old-read audit (fg5-rulings STOP 6, ruling 7): no old SimplexFG store fold, old

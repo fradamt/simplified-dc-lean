@@ -162,3 +162,9 @@ theorem same_key_no_step_roots : ¬ StoreStepRoots beforeCollision collisionChil
 
 end AvailableChain.KitFG.Tests.StoreSafety
 end
+
+-- ROOT-DIGEST: public fixture dependency audit.
+#print axioms AvailableChain.KitFG.Tests.StoreSafety.beforeCollision
+#print axioms AvailableChain.KitFG.Tests.StoreSafety.collision
+#print axioms AvailableChain.KitFG.Tests.StoreSafety.collisionChild
+#print axioms AvailableChain.KitFG.Tests.StoreSafety.finite_chain_roots

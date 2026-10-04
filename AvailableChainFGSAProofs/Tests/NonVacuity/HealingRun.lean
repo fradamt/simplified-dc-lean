@@ -1213,3 +1213,10 @@ theorem healingSet : HealingSet params unitCodec env run gap deltaF := nvRecover
 
 end AvailableChain.FGSA.Run.Tests.NonVacuity.HealingRun
 end
+
+-- ROOT-DIGEST: public fixture dependency audit.
+#print axioms AvailableChain.FGSA.Run.Tests.NonVacuity.HealingRun.nvParents
+#print axioms AvailableChain.FGSA.Run.Tests.NonVacuity.HealingRun.nvRoots
+#print axioms AvailableChain.FGSA.Run.Tests.NonVacuity.HealingRun.nv_delivery_origin
+#print axioms AvailableChain.FGSA.Run.Tests.NonVacuity.HealingRun.nv_delivery_root
+#print axioms AvailableChain.FGSA.Run.Tests.NonVacuity.HealingRun.nv_delivery_unique

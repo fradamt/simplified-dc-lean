@@ -336,3 +336,7 @@ mechanically. -/
 #print axioms AvailableChain.FGSA.Run.stored_chain_rowsValidW
 #print axioms AvailableChain.FGSA.Run.exact_row_exclusion_checkedW
 #print axioms AvailableChain.FGSA.Run.exact_row_exclusionW
+
+-- ROOT-DIGEST: public root and content declarations.
+#print axioms AvailableChain.FGSA.Run.DirectRootBlockInRun
+#print axioms AvailableChain.FGSA.Run.RootBlockInRun

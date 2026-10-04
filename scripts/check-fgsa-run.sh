@@ -138,7 +138,26 @@ AX_OPTS=(--expect
   Run.Tests.DigestScope.body_collision_admitted Run.Tests.DigestScope.body_collision_control
   Run.Tests.DigestScope.head_direct_scope Run.Tests.DigestScope.head_body_scope
   Run.Tests.DigestScope.head_scope_control Run.Tests.NVDigest.proposal_slot_root
-  Run.Tests.NVDigest.same_slot_collision Run.Tests.NVDigest.live_horizon_grid)
+  Run.Tests.NVDigest.same_slot_collision Run.Tests.NVDigest.live_horizon_grid
+  # ROOT-DIGEST: public fixture inventory.
+  AvailableChain.FGSA.Run.Tests.DigestScope.ba
+  AvailableChain.FGSA.Run.Tests.DigestScope.collisionA
+  AvailableChain.FGSA.Run.Tests.DigestScope.collisionB
+  AvailableChain.FGSA.Run.Tests.DigestScope.collisionParams
+  AvailableChain.FGSA.Run.Tests.DigestScope.collisionRun
+  AvailableChain.FGSA.Run.Tests.DigestScope.collisionWireA
+  AvailableChain.FGSA.Run.Tests.DigestScope.collisionWireB
+  AvailableChain.FGSA.Run.Tests.DigestScope.env
+  AvailableChain.FGSA.Run.Tests.DigestScope.fakeHead
+  AvailableChain.FGSA.Run.Tests.DigestScope.fakeHeadBody
+  AvailableChain.FGSA.Run.Tests.DigestScope.headProposal
+  AvailableChain.FGSA.Run.Tests.DigestScope.headRun
+  AvailableChain.FGSA.Run.Tests.DigestScope.headWire
+  AvailableChain.FGSA.Run.Tests.DigestScope.pT
+  AvailableChain.FGSA.Run.Tests.DigestScope.traceRun
+  AvailableChain.FGSA.Run.Tests.NVDigest.live_horizon_grid
+  AvailableChain.FGSA.Run.Tests.NVDigest.nvDigest
+)
 
 # T7.11 content agreement.
 AX_OPTS+=(Run.contentAgree_run)

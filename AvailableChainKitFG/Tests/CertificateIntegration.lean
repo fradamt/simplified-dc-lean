@@ -171,3 +171,6 @@ example (E : Electorate V) (cfg : FGConfig) (Hd : FGBlock V) :
 
 end AvailableChain.KitFG.Tests.CertificateIntegration
 end
+
+-- ROOT-DIGEST: public fixture dependency audit.
+#print axioms AvailableChain.KitFG.Tests.CertificateIntegration.finite_chain_roots

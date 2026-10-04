@@ -163,3 +163,6 @@ theorem heightHistoryTransfer_cross_cases :
 
 end AvailableChain.KitFG.Tests.HeightHistoryTransfer
 end
+
+-- ROOT-DIGEST: public fixture dependency audit.
+#print axioms AvailableChain.KitFG.Tests.HeightHistoryTransfer.finite_chain_roots

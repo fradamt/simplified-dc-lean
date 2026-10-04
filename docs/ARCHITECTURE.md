@@ -123,8 +123,8 @@ Layers (design §1). L0, L1, LM, L2 and L3 import nothing from L4–L6.
 ┌────┬────────────┬──────────────────────────────────────────────────────┐
 │ L  │ Layer      │ Lean libraries                                       │
 ├────┼────────────┼──────────────────────────────────────────────────────┤
-│ L0 │ Engine     │ AvailableChainModel (objects; Block with derived     │
-│    │            │ roots after I9; v1 Generic engine);                  │
+│ L0 │ Engine     │ AvailableChainModel (objects; Block with stored      │
+│    │            │ roots after ROOT-DIGEST; v1 Generic engine);         │
 │    │            │ AvailableChainEngineV2/Engine (v2, from 2a)          │
 │ L1 │ Conditions │ AvailableChainStatements (v1); EngineV2/Conditions,  │
 │    │            │ EngineV2/Laws (Isolation, HooksSound, OutputsFactor) │
@@ -279,10 +279,27 @@ How the pieces meet:
 - FG-SA store: `FGSA.State = { base : GridCO.State, fg : SimplexFG.Store,
   pools, … }` with glue handlers. Base facts come from the policy-generic
   Grid CO proofs at `slowLeasePolicy`; FG store facts come from KitFG.
-- Blocks (I9): `Block.node parent slot body`; the root is derived,
-  `nodeRoot parent.root slot body`, injective through the `epair` codec.
-  FG-SA packs FG rows into the body (`encFGBody`); `rowsOk` is the same
-  function in `wellFormed` and `blockAccepted`.
+- Blocks (ROOT-DIGEST): `Block.node parent slot root body` stores the root.
+  FG-SA uses `Params.digest` on six full proposal fields: parent root, slot,
+  app, signed rows, raw votes and support votes. The signed lists keep their
+  order and duplicates. `FGSA/Model/ProposalContent` defines `DigestInput`;
+  `proposalBlock` sets the root and `contentOk` checks it at admission.
+  The I9 BODY codec stays for payload and erasure only. FG-SA packs rows in
+  the body; `rowsOk` is the same check in `wellFormed` and `blockAccepted`.
+  GridCO, LStar and SAPC still construct their roots with `nodeRoot`.
+- Root scope: `FGSARun/Statements/Roots` defines `RootBlockInRun` from
+  delivered proposal bodies and honest stored bodies, with their ancestors.
+  `Base₂.idealization` supplies `NamedRootCollisionFree`. In the DC shape,
+  for two scoped bodies B and C, equal roots imply equality for A and D
+  on either ancestor chain. `FGSARun/Proofs/Roots` proves body origins and
+  local root facts; `FGSAProofs/Proofs/Shared/Roots` supplies scoped facts
+  to the claim proofs. `KitFG/RootScopeDef` defines the two-chain premise.
+- Store safety: `FGStoreSafety` takes `StepOK`; `StoreStepRoots` requires
+  root uniqueness on the inserted tree. `KitFG/StoreSafetyDef` defines this
+  interface. `storeStepRoots_of_blockAccepted` proves it at admission.
+  Option-3 exceptions r2.1–r2.2 require uniqueness on each exact walked
+  tree; r2.3 adds body scope for `eraseFG B` to `CPPrefix` after honest
+  membership. See [the exception record](lock-log/root-digest/README.md).
 - FG-SA on engine v2 (T7): `Node = {st, rec}`, `base = st`, `rec = Λ`
   (durable). Label families: HEAD labels AP and fresh (`CStar`); FG labels
   `Linked`; proposal labels AP and `SingleSeat`, one label per slot
@@ -432,8 +449,9 @@ and only the instance swap is atomic.
 
 ## 6. Decisions that shape the architecture
 
-- I9: root derived from content; the block carries its parent root; the
-  store looks up the parent; no wire check (P2P spec deferred).
+- ROOT-DIGEST: FG-SA stores the full proposal digest and checks it at
+  admission. Run scope supplies collision freedom; the I9 BODY codec
+  supplies payload and erasure. GridCO, LStar and SAPC keep `nodeRoot`.
 - Restart: interim form keeps Λ and resets the store; the faithful form
   (Λ + anchor at F) comes with the optional anchor feature.
 - SA walk starts at F (user, 2026-09-29).
