@@ -10,6 +10,41 @@ name and grouped by module. Gen has no anchor rule.
 
 Baseline at the A0 step-2 close. Before G-F0a a Gen Statements edit re-writes this file in the SAME commit (visible diff); from G-F0a it is append-only.
 
+## ROOT-DIGEST option-3 exception
+
+ROOT-DIGEST W1b, user option 3 (2026-10-04), named addition to M1 in plan r2.1:
+`AvailableChain.Gen.Pure.WalkNoEligibleChildOfAnchorClosedStatement` and its `_def`
+add `(∀ A ∈ tree, ∀ B ∈ tree, A.root = B.root → A = B)` before `AnchorClosed anchor tree`.
+Reason: kernel-checked counterexample TS/codex/reports/rdigest/w1/rdw1-walk-stop.lean.
+Callers use the local store invariant or the run body scope. GHOST and its tie refusal stay
+unchanged.
+No global injectivity premise or axiom is added. The frozen baseline keeps all other Gen entries.
+The official Gen list has 705 entries. Only these two entries change.
+The list was generated from compiled source copies in `.lake/rdw1b-isolated`; two stopped proof
+callers
+were omitted there. Their omission does not change Statements entries or their manifest closure.
+The production Gen check cannot load the stopped proof module. This is not a complete checkpoint.
+The generated Gen list is `.lake/rdw1b-gen-manifest.md`; the baseline module blocks below stay in
+place.
+Measured old/new entries from `V2Manifest --scope gen --list`:
+
+`AvailableChain.Gen.Pure.WalkNoEligibleChildOfAnchorClosedStatement`:
+
+Old entry:
+`def AvailableChain.Gen.Pure.WalkNoEligibleChildOfAnchorClosedStatement 594efa6956805067`
+
+New entry:
+`def AvailableChain.Gen.Pure.WalkNoEligibleChildOfAnchorClosedStatement d7e1a22448999412`
+
+`AvailableChain.Gen.Pure.WalkNoEligibleChildOfAnchorClosedStatement_def`:
+
+Old entry:
+`theorem AvailableChain.Gen.Pure.WalkNoEligibleChildOfAnchorClosedStatement_def f44105eff0f46eb7`
+
+New entry:
+`theorem AvailableChain.Gen.Pure.WalkNoEligibleChildOfAnchorClosedStatement_def 3d69bb72395a590e`
+
+
 ## How to check
 
 `scripts/V2Manifest.lean` generates and checks this list.

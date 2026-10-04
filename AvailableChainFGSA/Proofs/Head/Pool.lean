@@ -100,12 +100,13 @@ theorem fgsa_conflicting_support_sum_le_late (p : Params) (v : GridCO.State p.n)
   (Gen.AC.conflicting_score_sum_le _ _ B D (fgsa_cleanSupport_no_equivocation p v s) h).trans
     (Gen.AC.voterCount_le_of_seats_subset _ _ (fgsa_cleanSupport_seats_subset_late p v s))
 
-/-- P3:4900–4945, F1b.1; blueprint 02 §5.4:541. Class (iii), store wrapper.
+/-- ROOT-DIGEST W1b: mark the unused constructor root argument.
+ P3:4900–4945, F1b.1; blueprint 02 §5.4:541. Class (iii), store wrapper.
 DC: NamedConfirmationWalk:28 and GSTZeroPreparedWalk:546–578.
 INTENTIONAL: F anchor and explicit anchor eligibility, spec:2506–2513;
 only the suffix above the anchor must be stored (P3 Astra r3 #1). -/
 theorem fgsa_confirmationFrom_covers_majority (p : Params) (v : GridCO.State p.n)
-    (a B : Block) (s : Slot) (r_s : BlockId) (hc : Block.Compatible a B)
+    (a B : Block) (s : Slot) (_r_s : BlockId) (hc : Block.Compatible a B)
     (ha : GridCO.voterCount (GridCO.lateVotes p.toParams.engine v s) <
       2 * SA.prefixSupport p.toParams v s a)
     (hb : GridCO.voterCount (GridCO.lateVotes p.toParams.engine v s) <

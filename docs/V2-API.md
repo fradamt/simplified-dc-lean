@@ -15,6 +15,15 @@ proof reference from its existing Framework anchor body; keep both anchors.
 This exception does not permit other engine claims or checker changes.
 W3 owns the final generated entries after the interface checkpoint.
 
+ROOT-DIGEST W1b, option-3 named addition (plan r2.1):
+`AvailableChain.Gen.Pure.WalkNoEligibleChildOfAnchorClosedStatement` and its `_def`
+add tree root uniqueness before `AnchorClosed anchor tree`.
+Reason: kernel-checked counterexample TS/codex/reports/rdigest/w1/rdw1-walk-stop.lean.
+The [Gen exception entry](GEN-API.md#root-digest-option-3-exception) records the old/new entries.
+GHOST and its tie refusal keep their existing definitions. This addition permits no other frozen
+delta.
+
+
 ## Freeze rule
 
 After the gate, no declaration in this file changes its name, type or body

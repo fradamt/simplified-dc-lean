@@ -197,6 +197,7 @@ theorem fgsa_headInTree_covers_of_transfer
       exact Bool.eq_false_iff.mpr (block_incompatible_of_preceq hn hcb)
     exact lt_of_lt_of_le (hdominance D hd) hm
 
+/-- ROOT-DIGEST W1b: structural erasure lifts the parent path with the explicit root. -/
 private theorem geometry_lift_prefix {n : Nat} (B : FGBlock (Fin n)) (a : Block)
     (ha : Block.Preceq a (eraseFG B)) :
     ∃ A, FGBlock.Preceq A B ∧ eraseFG A = a := by
@@ -209,7 +210,7 @@ private theorem geometry_lift_prefix {n : Nat} (B : FGBlock (Fin n)) (a : Block)
       rcases Bool.or_eq_true_iff.mp ha with he | hp
       · exact ⟨.node P s r_s r rs, KitFG.preceq_refl _, (of_decide_eq_true he).symm⟩
       · obtain ⟨A, hA, he⟩ := ih hp
-        exact ⟨A, KitFG.preceq_trans hA (KitFG.preceq_parent_node _ _ _ _), he⟩
+        exact ⟨A, KitFG.preceq_trans hA (KitFG.preceq_parent_node _ _ _ _ _), he⟩
 
 private theorem geometry_Z_liveRoot (p : Params) (st : State p.n) :
     Block.Preceq (eraseFG (controls p st).Z) (liveRoot p st) :=
@@ -261,7 +262,8 @@ theorem fgsa_filtered_anchorClosed (p : Params) (st : State p.n)
     ⟨hAX, KitFG.preceq_trans hFZ hZA, hZA, W, hWX,
       KitFG.preceq_trans hAB hBW, hlo⟩, rfl⟩
 
-/-- P3 F1b.5; bp02 §7. Class (iii), Gen walk instance.
+/-- ROOT-DIGEST W1b: use local CStoreInv root uniqueness.
+P3 F1b.5; bp02 §7. Class (iii), Gen walk instance.
 DC: Goldfish/Walk.lean:197 `ghost_step_none`, :433 `ghost_reaches`.
 INTENTIONAL: the FJ filtered closure supplies the finite-walk terminal
 condition (F1b.5a; SYN §3), for any ancestor-closed duty view X. -/
@@ -273,7 +275,12 @@ theorem fgsa_headInTree_noEligibleChild (p : Params) (st : State p.n)
     let tree := erasedList st (filteredFrom p.E p.cfg (controls p st) X)
     ∀ B ∈ tree, B.parent? = some (headInTree p st tree raw support) →
       eligible p st raw support B = false := by
-  exact walk_noEligibleChild_of_anchorClosed _ _ _ _
+  apply walk_noEligibleChild_of_anchorClosed _ _ _ _ ?_
     (fgsa_filtered_anchorClosed p st hi X hsub hclosed)
+  intro a ha b hb he
+  obtain ⟨A, hA, rfl⟩ := (hi.baseTree a).mp (List.mem_filter.mp ha).1
+  obtain ⟨B, hB, rfl⟩ := (hi.baseTree b).mp (List.mem_filter.mp hb).1
+  have hr : A.root = B.root := by simpa only [eraseFG_root] using he
+  exact congrArg eraseFG (hi.rootInj A hA B hB hr)
 
 end AvailableChain.FGSA

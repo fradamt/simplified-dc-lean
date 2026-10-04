@@ -223,18 +223,22 @@ theorem WalkTerminalOfDescendantDepthBoundStatement_def :
           (GridCO.ghostWalk tree score eligible fuel anchor) = none) := by
   rw [WalkTerminalOfDescendantDepthBoundStatement]
 
-/-- `walk_noEligibleChild_of_anchorClosed`. The conclusion is written in
+/-- ROOT-DIGEST W1b: tree root uniqueness excludes a refused tie.
+`walk_noEligibleChild_of_anchorClosed`. The conclusion is written in
 the source. Source: GLY:674–676; P3:4488–4490. Consumer: F1b.5. -/
 def WalkNoEligibleChildOfAnchorClosedStatement : Prop :=
   ∀ (anchor : Block) (tree : List Block) (score : Block → Nat)
     (eligible : Block → Bool),
+    (∀ A ∈ tree, ∀ B ∈ tree, A.root = B.root → A = B) →
     AnchorClosed anchor tree →
     ∀ B ∈ tree, B.parent? = some (GridCO.ghost anchor tree score eligible) → eligible B = false
 
+/-- ROOT-DIGEST W1b: the defining equation includes the approved tree premise. -/
 theorem WalkNoEligibleChildOfAnchorClosedStatement_def :
     WalkNoEligibleChildOfAnchorClosedStatement =
       (∀ (anchor : Block) (tree : List Block) (score : Block → Nat)
         (eligible : Block → Bool),
+        (∀ A ∈ tree, ∀ B ∈ tree, A.root = B.root → A = B) →
         AnchorClosed anchor tree →
         ∀ B ∈ tree, B.parent? = some (GridCO.ghost anchor tree score eligible) → eligible B = false
       ) := by

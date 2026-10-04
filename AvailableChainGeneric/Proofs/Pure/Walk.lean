@@ -132,8 +132,10 @@ theorem walk_aux_fold_choose_some (score : Block → Nat) (xs : List Block) (B :
       · rw [hnew]; exact ih C
 
 -- port: AvailableChainGridCO/Proofs/Walk.lean:296–323
+/-- ROOT-DIGEST W1b: use tree root uniqueness for the tie test. -/
 theorem walk_aux_ghostStep_eq_fold_of_rootInjective (tree : List Block) (score : Block → Nat)
-    (eligible : Block → Bool) (anchor : Block) :
+    (eligible : Block → Bool) (anchor : Block)
+    (hroot : ∀ A ∈ tree, ∀ B ∈ tree, A.root = B.root → A = B) :
     ghostStep tree score eligible anchor =
       (tree.filter (fun b => b.parent? == some anchor && eligible b)).foldl
         (fun best b => match best with
@@ -156,18 +158,21 @@ theorem walk_aux_ghostStep_eq_fold_of_rootInjective (tree : List Block) (score :
         intro h
         obtain ⟨C, hC, hc⟩ := List.any_eq_true.mp h
         simp only [Bool.and_eq_true, bne_iff_ne, beq_iff_eq] at hc
-        exact hc.1.1 (Block.root_injective hc.2)
+        exact hc.1.1 (hroot C (List.mem_filter.mp hC).1 B
+          (List.mem_filter.mp hB).1 hc.2)
       change (if children.any (fun c => c != B && score c == score B && c.root == B.root)
         then none else some B) = some B
       rw [htie]
       rfl
 
 -- port: AvailableChainGridCO/Proofs/Walk.lean:326–353
+/-- ROOT-DIGEST W1b: use root uniqueness only on the given tree. -/
 theorem walk_aux_ghostStep_none_iff_of_rootInjective (tree : List Block) (score : Block → Nat)
-    (eligible : Block → Bool) (anchor : Block) :
+    (eligible : Block → Bool) (anchor : Block)
+    (hroot : ∀ A ∈ tree, ∀ B ∈ tree, A.root = B.root → A = B) :
     ghostStep tree score eligible anchor = none ↔
       ∀ B ∈ tree, B.parent? = some anchor → eligible B = false := by
-  rw [walk_aux_ghostStep_eq_fold_of_rootInjective tree score eligible anchor]
+  rw [walk_aux_ghostStep_eq_fold_of_rootInjective tree score eligible anchor hroot]
   let children := tree.filter (fun b => b.parent? == some anchor && eligible b)
   change children.foldl (chooseChild score) none = none ↔ _
   have hempty : children.foldl (chooseChild score) none = none ↔ children = [] := by
@@ -191,16 +196,54 @@ theorem walk_aux_ghostStep_none_iff_of_rootInjective (tree : List Block) (score 
     by_cases hp : B.parent? = some anchor
     · simp [hp, h B hB hp]
     · simp [hp]
+/-- ROOT-DIGEST W1b: no eligible child makes the filtered candidate list empty. -/
+theorem walk_aux_ghostStep_none_of_noEligibleChild (tree : List Block) (score : Block → Nat)
+    (eligible : Block → Bool) (anchor : Block)
+    (hstop : NoEligibleChild tree eligible anchor) :
+    ghostStep tree score eligible anchor = none := by
+  have hempty : tree.filter (fun B => B.parent? == some anchor && eligible B) = [] := by
+    apply List.filter_eq_nil_iff.mpr
+    intro B hB
+    by_cases hp : B.parent? = some anchor
+    · simp [hp, hstop B hB hp]
+    · simp [hp]
+  change (match (tree.filter (fun B => B.parent? == some anchor && eligible B)).foldl
+    (chooseChild score) none with
+    | none => none
+    | some B => if (tree.filter (fun C => C.parent? == some anchor && eligible C)).any
+        (fun C => C != B && score C == score B && C.root == B.root)
+        then none else some B) = none
+  rw [hempty]
+  rfl
+
 -- port: AvailableChainGridCO/Proofs/StoreFacts.lean:32–73
+/-- ROOT-DIGEST W1b: read the successful selection branch directly. -/
 theorem walk_aux_ghostStep_child (tree : List Block) (score : Block → Nat)
     (eligible : Block → Bool) (anchor child : Block)
     (hstep : ghostStep tree score eligible anchor = some child) :
     child ∈ tree ∧ child.parent? = some anchor ∧ eligible child = true := by
-  rw [walk_aux_ghostStep_eq_fold_of_rootInjective] at hstep
-  have hm := (walk_aux_fold_choose_origin score _ none child hstep).resolve_left (by simp)
-  obtain ⟨ht, hp⟩ := List.mem_filter.mp hm
-  obtain ⟨hpar, he⟩ := Bool.and_eq_true_iff.mp hp
-  exact ⟨ht, by simpa using hpar, he⟩
+  let children := tree.filter (fun b => b.parent? == some anchor && eligible b)
+  change (match children.foldl (chooseChild score) none with
+    | none => none
+    | some B => if children.any (fun C => C != B && score C == score B && C.root == B.root)
+        then none else some B) = some child at hstep
+  cases hf : children.foldl (chooseChild score) none with
+  | none =>
+      rw [hf] at hstep
+      change none = some child at hstep
+      contradiction
+  | some B =>
+      rw [hf] at hstep
+      change (if children.any (fun D => D != B && score D == score B && D.root == B.root)
+        then none else some B) = some child at hstep
+      split at hstep
+      · contradiction
+      · cases hstep
+        have hm := (walk_aux_fold_choose_origin score children none child hf).resolve_left
+          (by simp)
+        obtain ⟨ht, hp⟩ := List.mem_filter.mp hm
+        obtain ⟨hpar, he⟩ := Bool.and_eq_true_iff.mp hp
+        exact ⟨ht, by simpa using hpar, he⟩
 
 -- port: AvailableChainGridCO/Proofs/WalkTransport.lean:200–202
 theorem walk_aux_child_depth (A C : Block) (h : C.parent? = some A) :
@@ -395,13 +438,14 @@ theorem walk_aux_ghost_covers_of_path_dominance (anchor target : Block) (tree : 
 
 -- The depth bound is needed only for descendants of each recursive anchor.
 -- port: AvailableChainGridCO/Proofs/Walk.lean:356–380
+/-- ROOT-DIGEST W1b: exclude children with the structural depth bound. -/
 theorem walk_aux_ghostWalk_terminal_of_depth_bound (tree : List Block) (score : Block → Nat)
     (eligible : Block → Bool) (fuel : Nat) (anchor : Block)
     (hdepth : DescendantDepthBound anchor tree fuel) :
     ghostStep tree score eligible (ghostWalk tree score eligible fuel anchor) = none := by
   induction fuel generalizing anchor with
   | zero =>
-      apply (walk_aux_ghostStep_none_iff_of_rootInjective tree score eligible anchor).mpr
+      apply walk_aux_ghostStep_none_of_noEligibleChild tree score eligible anchor
       intro B hB hp
       have hd := walk_aux_child_depth anchor B hp
       have hh := hdepth B hB (walk_aux_parent_prefix anchor B hp)
@@ -420,8 +464,10 @@ theorem walk_aux_ghostWalk_terminal_of_depth_bound (tree : List Block) (score : 
           omega
 
 -- port: AvailableChainGridCO/Proofs/Walk.lean:384–401
+/-- ROOT-DIGEST W1b: restrict the tree premise to eraseDups. -/
 theorem walk_aux_ghost_result_no_eligible_child (anchor : Block) (tree : List Block)
-    (score : Block → Nat) (eligible : Block → Bool) (hclosed : AnchorClosed anchor tree) :
+    (score : Block → Nat) (eligible : Block → Bool)
+    (hroot : ∀ A ∈ tree, ∀ B ∈ tree, A.root = B.root → A = B) (hclosed : AnchorClosed anchor tree) :
     NoEligibleChild tree eligible (ghost anchor tree score eligible) := by
   have ht := walk_aux_ghostWalk_terminal_of_depth_bound tree.eraseDups score eligible
     tree.eraseDups.length anchor (by
@@ -430,7 +476,8 @@ theorem walk_aux_ghost_result_no_eligible_child (anchor : Block) (tree : List Bl
       intro C hAC hCB
       exact hclosed B (List.mem_eraseDups.mp hB) hAB C ((walk_aux_prec_iff _ _).mp hAC).2 hCB)
   intro B hB hp
-  exact (walk_aux_ghostStep_none_iff_of_rootInjective tree.eraseDups score eligible _).mp ht
+  exact (walk_aux_ghostStep_none_iff_of_rootInjective tree.eraseDups score eligible _
+    (fun A hA B hB => hroot A (List.mem_eraseDups.mp hA) B (List.mem_eraseDups.mp hB))).mp ht
     B (List.mem_eraseDups.mpr hB) hp
 
 -- The rank is score first, then root. The notation adds no definition.
@@ -532,15 +579,18 @@ theorem walk_aux_ghostStep_best (tree : List Block) (score : Block → Nat)
           (List.mem_filter.mpr ⟨hd, by simp [hp, he]⟩)
 
 -- port: AvailableChainGridCO/Proofs/WalkTransport.lean:114–134
+/-- ROOT-DIGEST W1b: compare roots only for stored candidates. -/
 theorem walk_aux_ghostStep_of_best (tree : List Block) (score : Block → Nat)
     (eligible : Block → Bool) (anchor C : Block)
+    (hroot : ∀ A ∈ tree, ∀ B ∈ tree, A.root = B.root → A = B)
     (hc : C ∈ tree) (hp : C.parent? = some anchor) (he : eligible C = true)
     (hbest : ∀ D ∈ tree, D.parent? = some anchor → eligible D = true →
       score D ≤ score C ∧ (score D = score C → D.root ≤ C.root)) :
     ghostStep tree score eligible anchor = some C := by
   cases hs : ghostStep tree score eligible anchor with
   | none =>
-      have hf := (walk_aux_ghostStep_none_iff_of_rootInjective tree score eligible anchor).mp hs
+      have hf := (walk_aux_ghostStep_none_iff_of_rootInjective tree score eligible anchor
+        hroot).mp hs
         C hc hp
       rw [he] at hf
       contradiction
@@ -549,11 +599,90 @@ theorem walk_aux_ghostStep_of_best (tree : List Block) (score : Block → Nat)
       have hDC := hbest D hd.1 hd.2.1 hd.2.2
       have hCD := walk_aux_ghostStep_best tree score eligible anchor D hs C hc hp he
       have hscore : score D = score C := Nat.le_antisymm hDC.1 hCD.1
-      have heq := Block.root_injective (le_antisymm (hDC.2 hscore) (hCD.2 hscore.symm))
+      have heq := hroot D hd.1 C hc
+        (le_antisymm (hDC.2 hscore) (hCD.2 hscore.symm))
       subst D
       rfl
 
+/-- ROOT-DIGEST W1b: a successful step has no distinct child with the same selected key. -/
+theorem walk_aux_ghostStep_unique (tree : List Block) (score : Block → Nat)
+    (eligible : Block → Bool) (anchor C : Block)
+    (h : ghostStep tree score eligible anchor = some C) :
+    ∀ D ∈ tree, D.parent? = some anchor → eligible D = true →
+      score D = score C → D.root = C.root → D = C := by
+  let children := tree.filter (fun B => B.parent? == some anchor && eligible B)
+  change (match children.foldl (chooseChild score) none with
+    | none => none
+    | some B => if children.any (fun D => D != B && score D == score B && D.root == B.root)
+        then none else some B) = some C at h
+  cases hf : children.foldl (chooseChild score) none with
+  | none =>
+      rw [hf] at h
+      change none = some C at h
+      contradiction
+  | some B =>
+      rw [hf] at h
+      change (if children.any (fun D => D != B && score D == score B && D.root == B.root)
+        then none else some B) = some C at h
+      split at h
+      · contradiction
+      · rename_i hno
+        cases h
+        intro D hd hp he hs hr
+        by_contra hn
+        have ht : children.any
+            (fun D => D != C && score D == score C && D.root == C.root) = true := by
+          apply List.any_eq_true.mpr
+          exact ⟨D, List.mem_filter.mpr ⟨hd, by simp [hp, he]⟩, by simp [hn, hs, hr]⟩
+        exact hno ht
+
+/-- ROOT-DIGEST W1b: a unique greatest child is selected without a global root premise. -/
+theorem walk_aux_ghostStep_of_unique_best (tree : List Block) (score : Block → Nat)
+    (eligible : Block → Bool) (anchor C : Block)
+    (hc : C ∈ tree) (hp : C.parent? = some anchor) (he : eligible C = true)
+    (hbest : ∀ D ∈ tree, D.parent? = some anchor → eligible D = true →
+      score D ≤ score C ∧ (score D = score C → D.root ≤ C.root))
+    (hunique : ∀ D ∈ tree, D.parent? = some anchor → eligible D = true →
+      score D = score C → D.root = C.root → D = C) :
+    ghostStep tree score eligible anchor = some C := by
+  let children := tree.filter (fun B => B.parent? == some anchor && eligible B)
+  have hC : C ∈ children := List.mem_filter.mpr ⟨hc, by simp [hp, he]⟩
+  have hex : ∃ B, children.foldl (chooseChild score) none = some B := by
+    cases hs : children with
+    | nil => simp [hs] at hC
+    | cons D xs => exact walk_aux_fold_choose_some score xs D
+  obtain ⟨B, hf⟩ := hex
+  have hB := (walk_aux_fold_choose_origin score children none B hf).resolve_left (by simp)
+  obtain ⟨hb, hcond⟩ := List.mem_filter.mp hB
+  have ⟨hpar, helig⟩ := Bool.and_eq_true_iff.mp hcond
+  have hpar' : B.parent? = some anchor := by simpa using hpar
+  have hBC := hbest B hb hpar' helig
+  have hCB := (walk_aux_fold_bounds score children none B hf).2 C hC
+  have hs : score B = score C := le_antisymm hBC.1 hCB.1
+  have hr : B.root = C.root := le_antisymm (hBC.2 hs) (hCB.2 hs.symm)
+  have hEq := hunique B hb hpar' helig hs hr
+  subst B
+  have htie : children.any
+      (fun D => D != C && score D == score C && D.root == C.root) = false := by
+    apply Bool.eq_false_iff.mpr
+    intro ht
+    obtain ⟨D, hd, hkey⟩ := List.any_eq_true.mp ht
+    obtain ⟨hdt, hdcond⟩ := List.mem_filter.mp hd
+    have ⟨hdp, hde⟩ := Bool.and_eq_true_iff.mp hdcond
+    simp only [Bool.and_eq_true, bne_iff_ne, beq_iff_eq] at hkey
+    exact hkey.1.1 (hunique D hdt (by simpa using hdp) hde hkey.1.2 hkey.2)
+  change (match children.foldl (chooseChild score) none with
+    | none => none
+    | some B => if children.any (fun D => D != B && score D == score B && D.root == B.root)
+        then none else some B) = some C
+  rw [hf]
+  change (if children.any (fun D => D != C && score D == score C && D.root == C.root)
+    then none else some C) = some C
+  rw [htie]
+  rfl
+
 -- port: AvailableChainGridCO/Proofs/WalkTransport.lean:138–154
+/-- ROOT-DIGEST W1b: transfer the selected key and its unique child. -/
 theorem walk_aux_ghostStep_transport_of_subset (sourceTree targetTree : List Block)
     (sourceScore targetScore : Block → Nat) (sourceEligible targetEligible : Block → Bool)
     (anchor C : Block)
@@ -565,24 +694,38 @@ theorem walk_aux_ghostStep_transport_of_subset (sourceTree targetTree : List Blo
       targetScore D = sourceScore D) :
     ghostStep targetTree targetScore targetEligible anchor = some C := by
   have hc := walk_aux_ghostStep_child sourceTree sourceScore sourceEligible anchor C hsource
-  apply walk_aux_ghostStep_of_best targetTree targetScore targetEligible anchor C
+  apply walk_aux_ghostStep_of_unique_best targetTree targetScore targetEligible anchor C
     hkeep.1 hc.2.1 hkeep.2
-  intro D hd hp he
-  have hr := hreflect D hd hp he
-  rw [hscore D hd hp he, hscore C hkeep.1 hc.2.1 hkeep.2]
-  exact walk_aux_ghostStep_best sourceTree sourceScore sourceEligible anchor C
-    hsource D hr.1 hp hr.2
+  · intro D hd hp he
+    have hr := hreflect D hd hp he
+    rw [hscore D hd hp he, hscore C hkeep.1 hc.2.1 hkeep.2]
+    exact walk_aux_ghostStep_best sourceTree sourceScore sourceEligible anchor C
+      hsource D hr.1 hp hr.2
+  · intro D hd hp he hs hr
+    have hD := hreflect D hd hp he
+    have hs' : sourceScore D = sourceScore C := by
+      rw [← hscore D hd hp he, ← hscore C hkeep.1 hc.2.1 hkeep.2]
+      exact hs
+    exact walk_aux_ghostStep_unique sourceTree sourceScore sourceEligible anchor C hsource
+      D hD.1 hp hD.2 hs' hr
 
 -- port: AvailableChainGridCO/Proofs/WalkTransport.lean:157–176
+/-- ROOT-DIGEST W1b: transfer successful steps in both directions. -/
 theorem walk_aux_ghostStep_eraseDups (tree : List Block) (score : Block → Nat)
     (eligible : Block → Bool) (anchor : Block) :
     ghostStep tree.eraseDups score eligible anchor = ghostStep tree score eligible anchor := by
   cases hs : ghostStep tree score eligible anchor with
   | none =>
-      apply (walk_aux_ghostStep_none_iff_of_rootInjective _ _ _ _).mpr
-      intro B hb hp
-      exact (walk_aux_ghostStep_none_iff_of_rootInjective _ _ _ _).mp hs B
-        (List.mem_eraseDups.mp hb) hp
+      cases hd : ghostStep tree.eraseDups score eligible anchor with
+      | none => rfl
+      | some C =>
+          have hc := walk_aux_ghostStep_child tree.eraseDups score eligible anchor C hd
+          have hb := walk_aux_ghostStep_transport_of_subset tree.eraseDups tree
+            score score eligible eligible anchor C hd
+            ⟨List.mem_eraseDups.mp hc.1, hc.2.2⟩
+            (fun D hD _ he => ⟨List.mem_eraseDups.mpr hD, he⟩) (by intros; rfl)
+          rw [hs] at hb
+          contradiction
   | some C =>
       have hc := walk_aux_ghostStep_child tree score eligible anchor C hs
       exact walk_aux_ghostStep_transport_of_subset tree tree.eraseDups score score eligible eligible
@@ -590,13 +733,14 @@ theorem walk_aux_ghostStep_eraseDups (tree : List Block) (score : Block → Nat)
         (fun D hd _ he => ⟨List.mem_eraseDups.mp hd, he⟩) (by intros; rfl)
 
 -- Every selected child is a new strict descendant. Count only those candidates.
+/-- ROOT-DIGEST W1b: exclude children with the structural count bound. -/
 theorem walk_aux_ghostWalk_terminal_of_card (tree : List Block) (score : Block → Nat)
     (eligible : Block → Bool) (fuel : Nat) (anchor : Block)
     (hcard : (tree.toFinset.filter (fun C => Block.Prec anchor C)).card ≤ fuel) :
     ghostStep tree score eligible (ghostWalk tree score eligible fuel anchor) = none := by
   induction fuel generalizing anchor with
   | zero =>
-      apply (walk_aux_ghostStep_none_iff_of_rootInjective tree score eligible anchor).mpr
+      apply walk_aux_ghostStep_none_of_noEligibleChild tree score eligible anchor
       intro C hC hp
       have hd := walk_aux_child_depth anchor C hp
       have hm : C ∈ tree.toFinset.filter (fun C => Block.Prec anchor C) := by
@@ -864,7 +1008,7 @@ theorem walk_terminal_of_descendant_depth_bound_statement :
   intro anchor tree score eligible fuel hdepth
   exact walk_aux_ghostWalk_terminal_of_depth_bound tree score eligible fuel anchor hdepth
 
-/-- Closure between the anchor and stored descendants excludes an eligible child at the result. -/
+/-- ROOT-DIGEST W1b: closure and tree root uniqueness exclude eligible children at the result. -/
 theorem walk_noEligibleChild_of_anchorClosed_statement :
     WalkNoEligibleChildOfAnchorClosedStatement := by
   rw [WalkNoEligibleChildOfAnchorClosedStatement_def]
@@ -883,13 +1027,13 @@ theorem walk_reanchor_of_dominated_suffix_statement :
     (walk_aux_ghost_terminal anchor tree score eligible)
     (walk_aux_ghost_terminal target tree score eligible)
 
-/-- A dominated suffix with no eligible child at its target gives that exact result. -/
+/-- ROOT-DIGEST W1b: a dominated suffix with no eligible child gives the exact result. -/
 theorem walk_exact_of_dominated_suffix_statement : WalkExactOfDominatedSuffixStatement := by
   rw [WalkExactOfDominatedSuffixStatement_def]
   intro anchor target tree score eligible ha hdom hstop
   rw [walk_reanchor_of_dominated_suffix_statement anchor target tree score eligible ha hdom]
   apply walk_aux_ghostWalk_of_terminal
-  apply (walk_aux_ghostStep_none_iff_of_rootInjective tree.eraseDups score eligible target).mpr
+  apply walk_aux_ghostStep_none_of_noEligibleChild tree.eraseDups score eligible target
   intro C hC hp
   exact hstop C (List.mem_eraseDups.mp hC) hp
 
@@ -980,11 +1124,12 @@ theorem walk_terminal_of_descendant_depth_bound (anchor : Block) (tree : List Bl
     ghostStep tree score eligible (ghostWalk tree score eligible fuel anchor) = none :=
   walk_terminal_of_descendant_depth_bound_statement anchor tree score eligible fuel hdepth
 
-/-- Closure above the anchor excludes eligible children of the result. -/
+/-- ROOT-DIGEST W1b: closure and tree root uniqueness exclude eligible children of the result. -/
 theorem walk_noEligibleChild_of_anchorClosed (anchor : Block) (tree : List Block)
-    (score : Block → Nat) (eligible : Block → Bool) (hclosed : AnchorClosed anchor tree) :
+    (score : Block → Nat) (eligible : Block → Bool)
+    (hroot : ∀ A ∈ tree, ∀ B ∈ tree, A.root = B.root → A = B) (hclosed : AnchorClosed anchor tree) :
     ∀ B ∈ tree, B.parent? = some (ghost anchor tree score eligible) → eligible B = false :=
-  walk_noEligibleChild_of_anchorClosed_statement anchor tree score eligible hclosed
+  walk_noEligibleChild_of_anchorClosed_statement anchor tree score eligible hroot hclosed
 
 /-- Source coverage transfers with the three local suffix premises. -/
 theorem ghost_transfer_sfx (anchor target : Block) (sourceTree targetTree : List Block)
@@ -1000,11 +1145,13 @@ theorem ghost_transfer_sfx (anchor target : Block) (sourceTree targetTree : List
     sourceEligible targetEligible ha hcover hkeep hreflect hscore
 
 
-/-- Class (iii), selected-path composition. DC: Goldfish/Walk.lean:433 `ghost_reaches`.
+/-- ROOT-DIGEST W1b: root uniqueness on the selected tree. Class (iii), selected-path composition.
+DC: Goldfish/Walk.lean:433 `ghost_reaches`.
 INTENTIONAL: GLY G10/G33 (RP01 R1 P5) compose walks through path score/root order.
 Reanchor on the target's ancestry; no strict score gap is required. -/
 theorem walk_reanchor_of_best_ancestry (anchor target : Block) (tree : List Block)
     (score : Block → Nat) (eligible : Block → Bool)
+    (hroot : ∀ A ∈ tree, ∀ B ∈ tree, A.root = B.root → A = B)
     (ha : Block.Preceq anchor target)
     (hancestry : ∀ X, Block.Preceq anchor X → Block.Prec X target →
       ∃ C, C.parent? = some X ∧ Block.Preceq C target ∧ C ∈ tree ∧
@@ -1038,7 +1185,7 @@ theorem walk_reanchor_of_best_ancestry (anchor target : Block) (tree : List Bloc
     obtain ⟨C, hp, hCT, hm, hel, hbest⟩ := hancestry X hAX hXT
     refine ⟨C, ?_, hCT⟩
     rw [walk_aux_ghostStep_eraseDups]
-    exact walk_aux_ghostStep_of_best tree score eligible X C hm hp hel hbest
+    exact walk_aux_ghostStep_of_best tree score eligible X C hroot hm hp hel hbest
   exact walk_aux_ghostWalk_reanchor_terminal tree.eraseDups score eligible tree.eraseDups.length
     tree.eraseDups.length anchor target ha hc
     (walk_aux_ghost_terminal anchor tree score eligible)
@@ -1135,7 +1282,7 @@ theorem bestAncestry_of_dominatedSuffix (anchor target : Block) (tree : List Blo
   · have hlt := hbest B hB (hpar.trans hp.symm) hE he
     exact ⟨Nat.le_of_lt hlt, fun heq => (Nat.ne_of_lt hlt heq).elim⟩
 
-/-- Class (iii).
+/-- ROOT-DIGEST W1b: use root uniqueness on the target tree. Class (iii).
 DC: DecoupledConsensusProofs/Protocol/ForkChoice/Goldfish/ProposalWalkTransportCore.lean:162,259;
 DecoupledConsensusProofs/Protocol/ForkChoice/Goldfish/Walk.lean:433.
 INTENTIONAL: compose the two best-order prefixes with retained suffix transport.
@@ -1145,6 +1292,7 @@ theorem walk_covers_of_retained_transport
     (sourceTree targetTree : List Block)
     (sourceScore targetScore : Block → Nat)
     (sourceEligible targetEligible : Block → Bool)
+    (htargetRoot : ∀ A ∈ targetTree, ∀ B ∈ targetTree, A.root = B.root → A = B)
     (hsource : Block.Preceq parent (ghost sourceAnchor sourceTree sourceScore sourceEligible))
     (source_cut : Block.Preceq sourceAnchor cut)
     (target_cut : Block.Preceq targetAnchor cut)
@@ -1156,14 +1304,18 @@ theorem walk_covers_of_retained_transport
     (scores : SuffixScoresAgree cut parent targetTree sourceScore targetScore targetEligible) :
     Block.Preceq parent (ghost targetAnchor targetTree targetScore targetEligible) := by
   have hcut := block_preceq_trans cut_parent hsource
-  have hsource_splice := walk_reanchor_of_best_ancestry sourceAnchor cut
-    sourceTree sourceScore sourceEligible source_cut
-    (walk_best_ancestry_of_cover sourceAnchor cut sourceTree sourceScore sourceEligible hcut)
+  have hsource_splice := walk_aux_ghostWalk_reanchor_terminal sourceTree.eraseDups
+    sourceScore sourceEligible sourceTree.eraseDups.length sourceTree.eraseDups.length
+    sourceAnchor cut source_cut hcut
+    (walk_aux_ghost_terminal sourceAnchor sourceTree sourceScore sourceEligible)
+    (walk_aux_ghost_terminal cut sourceTree sourceScore sourceEligible)
+  change ghost sourceAnchor sourceTree sourceScore sourceEligible =
+    ghost cut sourceTree sourceScore sourceEligible at hsource_splice
   have hsource_cut : Block.Preceq parent (ghost cut sourceTree sourceScore sourceEligible) := by
     rw [← hsource_splice]
     exact hsource
   have htarget_splice := walk_reanchor_of_best_ancestry targetAnchor cut
-    targetTree targetScore targetEligible target_cut target_prefix
+    targetTree targetScore targetEligible htargetRoot target_cut target_prefix
   rw [htarget_splice]
   exact ghost_transfer_sfx cut parent sourceTree targetTree sourceScore targetScore
     sourceEligible targetEligible cut_parent hsource_cut persists reflects scores
