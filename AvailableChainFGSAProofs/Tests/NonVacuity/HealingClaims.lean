@@ -1109,7 +1109,6 @@ theorem nvRecovery : Recovery₂ params unitCodec env run gap deltaF where
   fault := by rw [fault_value]; decide
   awake := by intros; rfl
   gapPos := gap_lower
-  gapAligned := by decide
 
 theorem healingSet : HealingSet params unitCodec env run gap deltaF := nvRecovery
 

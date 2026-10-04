@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.Recurrence
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedEndpoint
 public import AvailableChainFGSAProofs.Proofs.Shared.ExactService
 public import AvailableChainFGSARun.Proofs.Receipts
@@ -47,16 +48,33 @@ theorem Recovery₂.of_legacy {G : Time}
     (core : Gen.V2.Duty.RecoveryCore (fgsa p c) (fgsaInterface p c) E rho G)
     (base : Base₂ p c E rho) (fault : (faulty rho).card ≤ (p.n - 1) / 3)
     (awake : ∀ v ∈ rho.honest, ∀ t, E.t_GST ≤ t → t ≤ rho.horizon → E.awake v t = true)
-    (gapPos : 4 * p.Δ ≤ G) (gapAligned : 4 * p.Δ ∣ G) :
+    (gapPos : 4 * p.Δ ≤ G) :
     Recovery₂ p c E rho G E.Δ := by
-  refine ⟨?_, le_rfl, core.gap, base, fault, awake, gapPos, gapAligned⟩
+  refine ⟨?_, le_rfl, core.gap, base, fault, awake, gapPos⟩
   rw [fgsaDelay_self]
   exact (Gen.V2.Duty.partialSynchrony_iff_by_const E rho).1 core.sync
 
-/-- With an aligned gap (`Recovery₂.gapAligned`, user decision 2026-10-03), `Γ p G = G`. -/
-theorem Recovery₂.gamma_eq {G ΔF : Time} (h : Recovery₂ p c E rho G ΔF) : Γ p G = G := by
-  unfold Γ
-  exact Int.mul_ediv_cancel' h.gapAligned
+/-- GUP r2: alignment is internal proof data, not a recovery premise. -/
+structure Recovery₂Aligned (p : Params) {In V : Type} (c : AppCodec In)
+    [DecidableEq V] [Fintype V] (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) (G : Time) (ΔF : Time := E.Δ)
+    : Prop extends Recovery₂ p c E rho G ΔF where
+  gapAligned : 4 * p.Δ ∣ G
+
+/-- GUP r2: the internal aligned regime keeps the original gap value. -/
+theorem Recovery₂Aligned.gamma_eq {G ΔF : Time}
+    (h : Recovery₂Aligned p c E rho G ΔF) : Γ p G = G :=
+  fgsa_gamma_eq_of_dvd p h.gapAligned
+
+/-- GUP r2: a longer recurrence window preserves each original witness. -/
+theorem recovery₂_roundUp {G ΔF : Time} (h : Recovery₂ p c E rho G ΔF) :
+    Recovery₂Aligned p c E rho (Γ p G) ΔF := by
+  have hle := (fgsa_gamma_bounds p G).1
+  refine ⟨⟨h.sync, h.deltaF, ?_, h.base, h.fault, h.awake,
+    h.gapPos.trans hle⟩, fgsa_gamma_aligned p G⟩
+  intro t hgst hhor
+  obtain ⟨s, hlo, hhi, hs⟩ := h.gap t hgst (by linarith)
+  exact ⟨s, hlo, by linarith, hs⟩
 
 /-- Recover the old recovery core at ΔF = Δ.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);

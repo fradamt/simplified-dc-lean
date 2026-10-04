@@ -169,11 +169,15 @@ example (hF : 0 ≤ ΔF) : E_j p G ρbar ≤ E_jF p ΔF G ρbar ∧
     E_jF p ΔF G ρbar ≤ E_j p G ρbar + epsF p ΔF := E_jF_bounds p ΔF G ρbar hF
 end PhaseApplications
 
-example [Fintype V] {ΔF : Time} (hrec : Recovery₂ p c E rho (8 * p.Δ) ΔF) :
-    Γ p (8 * p.Δ) = 8 * p.Δ := hrec.gamma_eq
+example [Fintype V] {ΔF : Time} (_hrec : Recovery₂ p c E rho (8 * p.Δ) ΔF) :
+    Γ p (8 * p.Δ) = 8 * p.Δ := fgsa_gamma_eq_of_dvd p ⟨2, by ring⟩
 
-example [Fintype V] {ΔF : Time} (hrec : Recovery₂ p c E rho (12 * p.Δ) ΔF) :
-    Γ p (12 * p.Δ) = 12 * p.Δ := hrec.gamma_eq
+example [Fintype V] {ΔF : Time} (_hrec : Recovery₂ p c E rho (12 * p.Δ) ΔF) :
+    Γ p (12 * p.Δ) = 12 * p.Δ := fgsa_gamma_eq_of_dvd p ⟨3, by ring⟩
+
+-- GUP r2: every unaligned recovery regime supplies the internal aligned regime.
+example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF) :
+    Recovery₂Aligned p c E rho (Γ p G) ΔF := recovery₂_roundUp hrec
 
 example : ¬ (∀ d a horizon : Int, d ≤ a → a ≤ d + (8 - 4) →
     d + (2 * 8 + 8 - 9) ≤ horizon → a + 2 * 8 + 8 - 9 ≤ horizon) :=

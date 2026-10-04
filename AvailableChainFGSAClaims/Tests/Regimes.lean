@@ -123,7 +123,6 @@ private def smoke_recovery : Recovery₂ smokeParams smokeCodec smokeEnv smokeRu
   fault := by rw [Gen.V2.Duty.faulty_def]; decide
   awake := by intros; rfl
   gapPos := le_rfl
-  gapAligned := dvd_rfl
 
 #print axioms smoke_base
 #print axioms smoke_healthyPrefix

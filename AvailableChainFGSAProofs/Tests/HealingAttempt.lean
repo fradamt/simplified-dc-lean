@@ -32,35 +32,35 @@ example : attemptParams.Δ < (6 : Time) ∧ LivenessBoundW attemptParams 6 :=
   ⟨by decide, ⟨by decide⟩⟩
 
 example (k : AttemptKey) (htask : k.task = .raise) (hphase : k.phase = .contest) :
-    attemptBudget attemptParams 10 k = 64 := by
+    attemptBudget attemptParams 10 k = 72 := by
   rw [healing_attempt_raise_contest_budget attemptParams 10 k htask hphase]
   decide
 
 example (k : AttemptKey) (htask : k.task = .raise) (hphase : k.phase = .gap) :
-    attemptBudget attemptParams 10 k = 100 := by
+    attemptBudget attemptParams 10 k = 112 := by
   rw [healing_attempt_raise_other_budget attemptParams 10 k htask
     (by rw [hphase]; intro h; cases h)]
   decide
 
 example (k : AttemptKey) (htask : k.task = .raise) (hphase : k.phase = .topJ) :
-    attemptBudget attemptParams 10 k = 100 := by
+    attemptBudget attemptParams 10 k = 112 := by
   rw [healing_attempt_raise_other_budget attemptParams 10 k htask
     (by rw [hphase]; intro h; cases h)]
   decide
 
 example (k : AttemptKey) (htask : k.task = .firstRow) (hphase : k.phase = .contest) :
-    attemptBudget attemptParams 10 k = 41 := by
+    attemptBudget attemptParams 10 k = 45 := by
   rw [healing_attempt_firstRow_contest_budget attemptParams 10 k htask hphase]
   decide
 
 example (k : AttemptKey) (htask : k.task = .firstRow) (hphase : k.phase = .gap) :
-    attemptBudget attemptParams 10 k = 77 := by
+    attemptBudget attemptParams 10 k = 85 := by
   rw [healing_attempt_firstRow_other_budget attemptParams 10 k htask
     (by rw [hphase]; intro h; cases h)]
   decide
 
 example (k : AttemptKey) (htask : k.task = .firstRow) (hphase : k.phase = .topJ) :
-    attemptBudget attemptParams 10 k = 77 := by
+    attemptBudget attemptParams 10 k = 85 := by
   rw [healing_attempt_firstRow_other_budget attemptParams 10 k htask
     (by rw [hphase]; intro h; cases h)]
   decide
@@ -91,59 +91,59 @@ example (p : Params) (G : Time) (hG : 4 * p.Δ ≤ G) :
   healing_attempt_high_source_cost p G hG
 
 -- The terminal carrier needs five fewer delta units than the gate-service carrier.
-example : (18 : Time) + 2 * P attemptParams + Γ attemptParams 10 - 9 * attemptParams.Δ = 41 ∧
-    ¬ ((18 : Time) + 2 * P attemptParams + Γ attemptParams 10 - 4 * attemptParams.Δ ≤ 41) := by
+example : (18 : Time) + 2 * P attemptParams + Γ attemptParams 10 - 9 * attemptParams.Δ = 45 ∧
+    ¬ ((18 : Time) + 2 * P attemptParams + Γ attemptParams 10 - 4 * attemptParams.Δ ≤ 45) := by
   decide
 
 
 -- Both raise rows can use all of the frozen budget at the terminal deadline.
 -- The gate-service carrier needs five more delta units; terminal promotion uses this budget.
 example (k : AttemptKey) (htask : k.task = .raise) (hphase : k.phase = .contest) :
-    (41 : Time) + 2 * P attemptParams + Γ attemptParams 10 - 9 * attemptParams.Δ =
+    (45 : Time) + 2 * P attemptParams + Γ attemptParams 10 - 9 * attemptParams.Δ =
         attemptBudget attemptParams 10 k ∧
-      (41 : Time) + 2 * P attemptParams + Γ attemptParams 10 - 4 * attemptParams.Δ =
+      (45 : Time) + 2 * P attemptParams + Γ attemptParams 10 - 4 * attemptParams.Δ =
         attemptBudget attemptParams 10 k + 5 := by
   rw [healing_attempt_raise_contest_budget attemptParams 10 k htask hphase]
   decide
 
 example (k : AttemptKey) (htask : k.task = .raise) (hphase : k.phase ≠ .contest) :
-    (77 : Time) + 2 * P attemptParams + Γ attemptParams 10 - 9 * attemptParams.Δ =
+    (85 : Time) + 2 * P attemptParams + Γ attemptParams 10 - 9 * attemptParams.Δ =
         attemptBudget attemptParams 10 k ∧
-      (77 : Time) + 2 * P attemptParams + Γ attemptParams 10 - 4 * attemptParams.Δ =
+      (85 : Time) + 2 * P attemptParams + Γ attemptParams 10 - 4 * attemptParams.Δ =
         attemptBudget attemptParams 10 k + 5 := by
   rw [healing_attempt_raise_other_budget attemptParams 10 k htask hphase]
   decide
 
--- G = 10, delta = 1 is an unaligned arithmetic example, outside Recovery₂.gapAligned.
--- Its recurrence endpoint is one unit after the terminal deadline.
+-- GUP r2: G = 10, delta = 1 is allowed without alignment.
+-- Its raw recurrence endpoint now precedes the rounded terminal deadline.
 example :
     (3 : Time) * P attemptParams + 2 * P attemptParams - 4 * attemptParams.Δ + 10 = 66 ∧
       attemptParams.actionTime 3 + 2 * P attemptParams + Γ attemptParams 10 -
-        9 * attemptParams.Δ = 65 := by
+        9 * attemptParams.Δ = 69 := by
   decide
 
 -- P1 arithmetic: the shifted endpoint is within the terminal deadline in all four classes.
--- For positive remainders the aligned proposal at a is permitted by the shifted window.
+-- Round-up excludes the old proposal at a for positive remainders as well.
 example : (8 : Time) % 4 = 0 ∧ Γ attemptParams 8 = 8 ∧
     (56 : Time) + Γ attemptParams 8 - 8 = 56 ∧
     (56 : Time) + Γ attemptParams 8 ≤
       attemptParams.actionTime 3 + 2 * P attemptParams + Γ attemptParams 8 -
         9 * attemptParams.Δ := by decide
 
-example : (9 : Time) % 4 = 1 ∧ Γ attemptParams 9 = 8 ∧
-    (56 : Time) + Γ attemptParams 9 - 9 = 55 ∧
+example : (9 : Time) % 4 = 1 ∧ Γ attemptParams 9 = 12 ∧
+    (56 : Time) + Γ attemptParams 9 - 9 = 59 ∧
     (56 : Time) + Γ attemptParams 9 ≤
       attemptParams.actionTime 3 + 2 * P attemptParams + Γ attemptParams 9 -
         9 * attemptParams.Δ := by decide
 
-example : (10 : Time) % 4 = 2 ∧ Γ attemptParams 10 = 8 ∧
-    (56 : Time) + Γ attemptParams 10 - 10 = 54 ∧
+example : (10 : Time) % 4 = 2 ∧ Γ attemptParams 10 = 12 ∧
+    (56 : Time) + Γ attemptParams 10 - 10 = 58 ∧
     (56 : Time) + Γ attemptParams 10 ≤
       attemptParams.actionTime 3 + 2 * P attemptParams + Γ attemptParams 10 -
         9 * attemptParams.Δ := by decide
 
-example : (11 : Time) % 4 = 3 ∧ Γ attemptParams 11 = 8 ∧
-    (56 : Time) + Γ attemptParams 11 - 11 = 53 ∧
+example : (11 : Time) % 4 = 3 ∧ Γ attemptParams 11 = 12 ∧
+    (56 : Time) + Γ attemptParams 11 - 11 = 57 ∧
     (56 : Time) + Γ attemptParams 11 ≤
       attemptParams.actionTime 3 + 2 * P attemptParams + Γ attemptParams 11 -
         9 * attemptParams.Δ := by decide
@@ -154,8 +154,9 @@ example : SA.proposalTime attemptParams.toParams 14 =
     ¬ ((9 : Nat) + attemptParams.δt ≤ 14) := by decide
 
 example : ∀ G ∈ ([9, 10, 11] : List Time),
-    (56 : Time) + Γ attemptParams G - G < SA.proposalTime attemptParams.toParams 14 ∧
-    SA.proposalTime attemptParams.toParams 14 ≤ (56 : Time) + Γ attemptParams G := by decide
+    ¬ ((56 : Time) + Γ attemptParams G - G < SA.proposalTime attemptParams.toParams 14) ∧
+    (56 : Time) + Γ attemptParams G - G < SA.proposalTime attemptParams.toParams 15 ∧
+    SA.proposalTime attemptParams.toParams 15 ≤ (56 : Time) + Γ attemptParams G := by decide
 
 -- Class 0 excludes t_s = a and allows the next grid slot, which is mature.
 example : ¬ ((56 : Time) + Γ attemptParams 8 - 8 < SA.proposalTime attemptParams.toParams 14) ∧
@@ -458,11 +459,11 @@ end CompleteRows
 -- Both required gaps are aligned for every parameter record.
 example (p : Params) : 4 * p.Δ ∣ 8 * p.Δ ∧ Γ p (8 * p.Δ) = 8 * p.Δ := by
   have hd : 4 * p.Δ ∣ 8 * p.Δ := ⟨2, by ring⟩
-  exact ⟨hd, Int.mul_ediv_cancel' hd⟩
+  exact ⟨hd, fgsa_gamma_eq_of_dvd p hd⟩
 
 example (p : Params) : 4 * p.Δ ∣ 12 * p.Δ ∧ Γ p (12 * p.Δ) = 12 * p.Δ := by
   have hd : 4 * p.Δ ∣ 12 * p.Δ := ⟨3, by ring⟩
-  exact ⟨hd, Int.mul_ediv_cancel' hd⟩
+  exact ⟨hd, fgsa_gamma_eq_of_dvd p hd⟩
 
 -- Check all four frozen budgets at G = 8Δ and G = 12Δ.
 example (k : AttemptKey) (htask : k.task = .raise) (hphase : k.phase = .contest) :

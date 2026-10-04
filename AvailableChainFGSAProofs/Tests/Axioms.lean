@@ -746,7 +746,12 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone -- shake: ke
 #print axioms AvailableChain.FGSA.Run.HealthyPrefix₂.of_legacy
 #print axioms AvailableChain.FGSA.Run.HealthyPrefix₂.legacy_delivery
 #print axioms AvailableChain.FGSA.Run.Recovery₂.of_legacy
-#print axioms AvailableChain.FGSA.Run.Recovery₂.gamma_eq
+#print axioms AvailableChain.FGSA.Run.Recovery₂Aligned.gamma_eq
+#print axioms AvailableChain.FGSA.Run.recovery₂_roundUp
+#print axioms AvailableChain.FGSA.Run.fgsa_gamma_bounds
+#print axioms AvailableChain.FGSA.Run.fgsa_gamma_aligned
+#print axioms AvailableChain.FGSA.Run.fgsa_gamma_eq_of_dvd
+#print axioms AvailableChain.FGSA.Run.fgsa_gamma_idem
 #print axioms AvailableChain.FGSA.Run.Recovery₂.toRecoveryCore
 
 -- fg-noround/07-H additions.

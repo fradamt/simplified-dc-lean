@@ -74,9 +74,8 @@ theorem healing_rise_one_rise (E : Generic.Env V)
     change 8 * p.Δ ≤ 4 * (p.R : Time) * p.Δ
     nlinarith [p.deltaPos]
   have hΓ : 0 ≤ Γ p G := by
-    change 0 ≤ 4 * p.Δ * (G / (4 * p.Δ))
-    exact mul_nonneg (by linarith [p.deltaPos])
-      (Int.ediv_nonneg (by linarith [hrec.gapPos, p.deltaPos]) (by linarith [p.deltaPos]))
+    have := (fgsa_gamma_bounds p G).1
+    linarith [hrec.gapPos, p.deltaPos]
   have hopeningBudget : u + ρΓ p G + (P p - 4 * p.Δ) ≤ D := by
     linarith [p.deltaPos]
   rcases healing_rise_one_repair_opening E rho hrec mono crossing qc writes rowCoverage

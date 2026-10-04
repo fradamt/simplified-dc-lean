@@ -50,27 +50,16 @@ theorem repair_honest_proposal [Fintype V] (E : Generic.Env V) (rho : V2.D.Run V
     exact (fgsa_emits_proposal E rho _ _ _ s m).mpr ⟨hawake, rfl, rfl, hm⟩
   exact ⟨Q, ⟨hs0, hx⟩, ⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, m⟩, ⟨j, hj, hem⟩, hQ⟩
 
-/-- Plan H-REPAIR step 11 (grid sharpening). DC: SAME a later proposal within G of t_l is
-within Γ = 4Δ⌊G/4Δ⌋ of t_l. -/
+/-- Plan H-REPAIR step 11. DC: INTENTIONAL GUP r2 uses the rounded-up gap. -/
 theorem repair_grid_Γ {Gp : Time} {l s : Nat}
     (hs : SA.proposalTime p.toParams s ≤ SA.proposalTime p.toParams l + Gp) :
     SA.proposalTime p.toParams s ≤ SA.proposalTime p.toParams l + Γ p Gp := by
-  have hd := p.deltaPos
-  have hq : (0 : Int) < 4 * p.Δ := by linarith
-  change 4 * p.Δ * (s : Int) ≤ 4 * p.Δ * (l : Int) + Gp at hs
-  have hn : ((s : Int) - l) * (4 * p.Δ) ≤ Gp := by linarith
-  have hle := Int.le_ediv_of_mul_le hq hn
-  change 4 * p.Δ * (s : Int) ≤ 4 * p.Δ * (l : Int) + 4 * p.Δ * (Gp / (4 * p.Δ))
-  nlinarith
+  linarith [(fgsa_gamma_bounds p Gp).1]
 
-/-- Plan H-REPAIR step 11. DC: SAME 0 ≤ G − Γ < 4Δ. -/
+/-- Plan H-REPAIR step 11. DC: INTENTIONAL GUP r2 has G ≤ Γ. -/
 theorem repair_lt_Γ (Gp : Time) : Gp < Γ p Gp + 4 * p.Δ := by
-  have hd := p.deltaPos
-  have hq : (0 : Int) < 4 * p.Δ := by linarith
-  have hdm := Int.mul_ediv_add_emod Gp (4 * p.Δ)
-  have hlt := Int.emod_lt_of_pos Gp hq
-  change Gp < 4 * p.Δ * (Gp / (4 * p.Δ)) + 4 * p.Δ
-  linarith
+  have := (fgsa_gamma_bounds p Gp).1
+  linarith [p.deltaPos]
 
 /-- Blueprint 21 H.6:965–986; plan H-REPAIR steps 9–10. DC: INTENTIONAL exact gate service of
 an honest proposal of slot r + 1 inside the phase, from the lease cover of its preceding
@@ -165,7 +154,7 @@ theorem repair_after_of_cover [Fintype V] (E : Generic.Env V)
 /-- Blueprint 21 H.6:910–986 (two leases); plan H-REPAIR steps 3, 4, 10–12 (R4).
 DC: INTENTIONAL with β the first proposal after u: RepairAfter (β + 2k − 1) v, and inside
 u + ρΓ an honest proposal after t_(β+2k−1) with exact service. The gap window is G (not Γ);
-Γ only sharpens the slot found. -/
+Γ bounds the slot found. -/
 theorem repair_two_lease [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     (mono : RMono p c E rho) (crossing : RXing p c E rho) (qc : RQCOrigin p c E rho)

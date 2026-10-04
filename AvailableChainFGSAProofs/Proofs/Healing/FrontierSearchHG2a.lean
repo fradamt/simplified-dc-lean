@@ -71,7 +71,7 @@ theorem frontierSearch_hg2a_gate_cost (p : Params) (G ΔF a tU : Time) :
 
 /-- Blueprint 21:1592--1640; HG4-RISE F1, slot component only.
 DC: SAME reuse healing_promotion_age_gap (PromotionArithmetic:257).
-Recovery₂.gamma_eq supplies the full G window from the terminal guard.
+GUP r2: the rounded bound supplies the full G window from the terminal guard.
 This produces an honest slot; it does not assert promotion or receipt. -/
 theorem frontierSearch_hg2a_gap [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
@@ -92,7 +92,8 @@ theorem frontierSearch_hg2a_gap [Fintype V] (E : Generic.Env V)
           (SA.proposalTime p.toParams U.slot + 2 * P p + Γ p G + 2 * p.Δ) := by
   have hwin : max ((r : Time) * P p + betaF p ΔF - 4 * p.Δ)
       (SA.proposalTime p.toParams U.slot + 2 * P p - 4 * p.Δ) + G ≤ rho.horizon := by
-    rw [← hrec.gamma_eq, ← max_add_add_right]
+    have := (fgsa_gamma_bounds p G).1
+    rw [← max_add_add_right]
     obtain ⟨ha, hU⟩ := max_le_iff.mp hhor
     rw [actionTime_periodW, epsF_def] at ha
     apply max_le <;> linarith [p.deltaPos]

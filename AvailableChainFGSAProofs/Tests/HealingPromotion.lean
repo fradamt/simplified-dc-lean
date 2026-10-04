@@ -325,11 +325,11 @@ example : LivenessBoundW promotionParams 6 := ⟨by decide⟩
 
 -- ΔF = 6 > Δ = 1, κ = R = 3, and G = 10 has a nonzero grid remainder.
 example : let p := promotionParams
-    p.Δ < 6 ∧ betaF p 6 = 12 ∧ epsF p 6 = 4 ∧ Γ p 10 = 8 ∧
+    p.Δ < 6 ∧ betaF p 6 = 12 ∧ epsF p 6 = 4 ∧ Γ p 10 = 12 ∧
       p.actionTime 1 + 6 = carrierTimeW p 6 1 := by decide
 
-example : Γ (promotionParams) 10 ≤ 10 ∧
-    10 < Γ (promotionParams) 10 + 4 * (promotionParams).Δ :=
+example : 10 ≤ Γ (promotionParams) 10 ∧
+    Γ (promotionParams) 10 < 10 + 4 * (promotionParams).Δ :=
   healing_promotion_gap_remainder (p := promotionParams) (G := 10)
 
 -- Height-one entry and two-period maturity, with the same unequal row delay fixture.
@@ -384,11 +384,11 @@ example (hrec : Recovery₂ promotionParams c E rho 10 6)
       (hnr := hrec.base.noRestart) (hsync := hrec.sync) (hΔF := hrec.deltaF))
     (r := 2) (rSent := 2) (s := 9) (by decide) ha hgst (by decide) hhor
 
--- The age gap needs the full G window, which ends at 42 instead of the gate budget 46.
+-- The age gap needs the full G window, which ends at 42 instead of the rounded gate budget 50.
 example (hrec : Recovery₂ promotionParams c E rho 10 6)
     (hgst : E.t_GST ≤ (2 : Time) * P promotionParams) (hwin : 42 ≤ rho.horizon) :
     ∃ s, (32 : Time) < SA.proposalTime promotionParams.toParams s ∧
-      SA.proposalTime promotionParams.toParams s ≤ 40 ∧
+      SA.proposalTime promotionParams.toParams s ≤ 44 ∧
       Gen.V2.Duty.HonestSlot rho (fgsaInterface promotionParams c) s := by
   obtain ⟨_, s, hlo, hhi, hs, _, _⟩ :=
     healing_promotion_age_gap E rho hrec 2 0 hgst hwin
@@ -407,8 +407,8 @@ example : let p := promotionParams
     max ((1 : Time) * P p + betaF p 6 - 4 * p.Δ)
       (SA.proposalTime p.toParams 3 + 2 * P p - 4 * p.Δ) = 32 ∧
     max (p.actionTime 1 + Γ p 10 - p.Δ + epsF p 6)
-      (SA.proposalTime p.toParams 3 + 2 * P p + Γ p 10 - 3 * p.Δ) = 41 ∧
+      (SA.proposalTime p.toParams 3 + 2 * P p + Γ p 10 - 3 * p.Δ) = 45 ∧
     max (p.actionTime 1 + Γ p 10 + 4 * p.Δ + epsF p 6)
-      (SA.proposalTime p.toParams 3 + 2 * P p + Γ p 10 + 2 * p.Δ) = 46 := by decide
+      (SA.proposalTime p.toParams 3 + 2 * P p + Γ p 10 + 2 * p.Δ) = 50 := by decide
 
 end AvailableChain.FGSA.Run.Tests.HealingPromotion

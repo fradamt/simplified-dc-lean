@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionRenewed -- shake: keep (terminal promotion suppliers)
-public import AvailableChainFGSAProofs.Proofs.Healing.SupportGate -- shake: keep (Recovery₂.gamma_eq supplier)
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportGate -- shake: keep (Recovery₂Aligned.gamma_eq supplier)
 
 public section
 
@@ -12,15 +12,10 @@ variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In
 private theorem promotion_terminal_grid_upper (p : Params) (G z : Time) (s : Slot)
     (hs : SA.proposalTime p.toParams s ≤ 4 * p.Δ * z + G) :
     SA.proposalTime p.toParams s ≤ 4 * p.Δ * z + Γ p G := by
-  have hd : 0 < 4 * p.Δ := by have := p.deltaPos; linarith
-  change 4 * p.Δ * (s : Time) ≤ 4 * p.Δ * z + G at hs
-  have hdiv : (s : Time) - z ≤ G / (4 * p.Δ) :=
-    (Int.le_ediv_iff_mul_le hd).mpr (by nlinarith)
-  change 4 * p.Δ * (s : Time) ≤ 4 * p.Δ * z + 4 * p.Δ * (G / (4 * p.Δ))
-  nlinarith
+  linarith [(fgsa_gamma_bounds p G).1]
 
-private theorem promotion_terminal_gap (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF) (r : Nat)
+private theorem promotion_terminal_gap_aligned (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    {G ΔF : Time} (hrec : Recovery₂Aligned p c E rho G ΔF) (r : Nat)
     (hgst : E.t_GST ≤ p.actionTime r)
     (hhor : p.actionTime r + 2 * P p + Γ p G - 9 * p.Δ ≤ rho.horizon) :
     (r : Time) * P p + 2 * P p - 4 * p.Δ + G ≤ rho.horizon ∧
@@ -63,9 +58,25 @@ private theorem promotion_terminal_gap (E : Generic.Env V) (rho : V2.D.Run V (fg
   change SA.proposalTime p.toParams s + 6 * p.Δ ≤ _
   linarith
 
+private theorem promotion_terminal_gap (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF) (r : Nat)
+    (hgst : E.t_GST ≤ p.actionTime r)
+    (hhor : p.actionTime r + 2 * P p + Γ p G - 9 * p.Δ ≤ rho.horizon) :
+    (r : Time) * P p + 2 * P p - 4 * p.Δ + G ≤ rho.horizon ∧
+    ∃ s, (r : Time) * P p + 2 * P p ≤ SA.proposalTime p.toParams s ∧
+      SA.proposalTime p.toParams s ≤
+        p.actionTime r + 2 * P p + Γ p G - 10 * p.Δ ∧
+      Gen.V2.Duty.HonestSlot rho (fgsaInterface p c) s ∧
+      SA.gateTime p.toParams s ≤
+        p.actionTime r + 2 * P p + Γ p G - 4 * p.Δ := by
+  have h := promotion_terminal_gap_aligned E rho (recovery₂_roundUp hrec) r hgst
+    (by simpa only [fgsa_gamma_idem] using hhor)
+  rw [fgsa_gamma_idem] at h
+  exact ⟨by linarith [h.1, (fgsa_gamma_bounds p G).1], h.2⟩
+
 /-- Blueprint 21 H.10:1356–1419; plan item S5 PA-ASSEMBLY N(1).
 DC: INTENTIONAL the terminal horizon supplies promotion and the strict first
-receipt. Recovery₂.gamma_eq supplies alignment. Assembly supplies RMono, RXing,
+receipt. Recovery₂Aligned.gamma_eq supplies internal alignment. Assembly supplies RMono, RXing,
 TPerm, the progress fold, and the standing INLINE row/coverage/quorum facts. -/
 theorem healing_renewedPromotion_terminal (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)

@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSAClaims.Statements.BoundsW
 public import AvailableChainFGSAProofs.Proofs.Shared.GridSchedule
+public import AvailableChainFGSAProofs.Proofs.Shared.Recurrence
 public import AvailableChainGeneric.Proofs.Pure.ScheduleW
 
 public section
@@ -254,9 +255,7 @@ theorem B_HF_numeric_351 (p : Params) (ΔF : Time)
   have hP : P p = 12 * p.Δ := by change 4 * (p.R : Time) * p.Δ = _; rw [hR]; ring
   have hL : L p = 7 * p.Δ := by change (4 * (p.k : Time) - 1) * p.Δ = _; rw [hk]; ring
   have hG : Γ p (8 * p.Δ) = 8 * p.Δ := by
-    change 4 * p.Δ * ((8 * p.Δ) / (4 * p.Δ)) = _
-    have hm : 8 * p.Δ = (4 * p.Δ) * 2 := by ring
-    rw [hm, Int.mul_ediv_cancel_left _ (by linarith)]
+    exact fgsa_gamma_eq_of_dvd p ⟨2, by ring⟩
   rw [B_HF_def, ite_eq_left (by omega), B_H2F_def, B_H1F_def,
     BF_max p ΔF _ _ hreg, BF_max p ΔF _ _ hreg]
   change min (max (6 * (2 * L p + Γ p (8 * p.Δ) + 8 * p.Δ) + 12 * P p +
@@ -279,9 +278,7 @@ private theorem B_HF_numeric_low_delay (p : Params) (ΔF : Time)
     ⟨by rw [(kappaF_eq_two_iff p ΔF hF).2 hhi]; exact p.RLarge⟩
   have hL : L p = 7 * p.Δ := by change (4 * (p.k : Time) - 1) * p.Δ = _; rw [hk]; ring
   have hG : Γ p (8 * p.Δ) = 8 * p.Δ := by
-    change 4 * p.Δ * ((8 * p.Δ) / (4 * p.Δ)) = _
-    have hm : 8 * p.Δ = (4 * p.Δ) * 2 := by ring
-    rw [hm, Int.mul_ediv_cancel_left _ (by linarith)]
+    exact fgsa_gamma_eq_of_dvd p ⟨2, by ring⟩
   have hP : P p ≤ 12 * p.Δ := by
     change 4 * (p.R : Time) * p.Δ ≤ 12 * p.Δ
     nlinarith

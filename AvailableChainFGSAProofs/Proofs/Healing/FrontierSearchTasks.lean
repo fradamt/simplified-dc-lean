@@ -27,7 +27,7 @@ theorem frontierSearch_task_bounds [Fintype V] (E : Generic.Env V)
     0 ≤ 2 * P p + Γ p G - 9 * p.Δ ∧ 0 ≤ P p - 4 * p.Δ ∧
     0 ≤ frontierSearchRiseBudget p G ΔF ρbar ∧ 0 ≤ frontierSearchRowBudget p G ΔF ρbar := by
   have hP := frontierSearch_period_bound p
-  have hΓ : 4 * p.Δ ≤ Γ p G := by rw [hrec.gamma_eq]; exact hrec.gapPos
+  have hΓ : 4 * p.Δ ≤ Γ p G := hrec.gapPos.trans (fgsa_gamma_bounds p G).1
   have hρ := frontierSearch_allowance_nonneg E rho hrec hmode
   have hg : 0 ≤ E_gF p ΔF G ρbar := by
     rw [E_gF_eq p ΔF G ρbar hbound]

@@ -52,7 +52,7 @@ theorem frontierSearch_gap_phase [Fintype V] (E : Generic.Env V)
   classical
   simp only [Time, Height] at *
   have hP := frontierSearch_period_bound p
-  have hΓ : Γ p G = G := hrec.gamma_eq
+  have hΓ := (fgsa_gamma_bounds p G).1
   have hbudget0 : u + ρbar ≤ D := by linarith [hrec.gapPos, p.deltaPos]
   obtain ⟨q, Q, hseed, hgate, hQ, hexact⟩ := frontierSearch_repair_seed E rho repair
     hrec.gap hrec.gapPos hgst hp mode hbudget0
@@ -157,7 +157,7 @@ theorem frontierSearch_gap_phase [Fintype V] (E : Generic.Env V)
       have heps := betaF_le_period p ΔF hbound
       apply le_trans _ hp.2.1
       rw [← max_add_add_right]
-      apply max_le <;> rw [← hΓ] <;> simp only [Time] at * <;> linarith [p.deltaPos]
+      apply max_le <;> simp only [Time] at * <;> linarith [p.deltaPos]
     obtain ⟨s, X, hnew, _, hlater, hsD, hh⟩ := frontierSearch_age_service E rho hrec
       hδ hbound perm rowsReceipt progressCoverage hfold faultQ honestQuorum he hc
       ⟨x, K, hx, hK, hKU⟩ hgst hstart huvote hp hwindow hgateBudget
@@ -169,7 +169,6 @@ theorem frontierSearch_gap_phase [Fintype V] (E : Generic.Env V)
       apply le_trans _ hp.2.1
       dsimp only [b]
       have ha := actionTime_periodW p r
-      rw [← hΓ]
       linarith [p.deltaPos]
     obtain ⟨s, hloS, hhiS, hslotS⟩ := hrec.gap b hbGST hbhor
     rw [proposalTime_fgsa] at hloS hhiS
@@ -177,7 +176,6 @@ theorem frontierSearch_gap_phase [Fintype V] (E : Generic.Env V)
       have ha := actionTime_periodW p r
       change SA.proposalTime p.toParams s + 6 * p.Δ ≤ D
       dsimp only [b] at hhiS
-      rw [← hΓ] at hhiS
       linarith
     have hsHor : SA.proposalTime p.toParams s ≤ rho.horizon := by
       change SA.proposalTime p.toParams s + 6 * p.Δ ≤ D at hsD
@@ -241,16 +239,14 @@ theorem frontier_hg3_gap [Fintype V] (E : Generic.Env V)
   obtain ⟨hi, hgst0, _, hfront, hm, hkind⟩ :=
     (frontierSearchStart_iff p c E rho i ev m .gap).mp hstart
   have hρ : 0 ≤ ρbar := by
-    have hG := hrec.gamma_eq
+    have hG := (fgsa_gamma_bounds p G).1
     have hk : (2 : Time) ≤ p.k := by exact_mod_cast p.kLarge
     cases mode with
     | two =>
       change 0 ≤ 2 * ((4 * (p.k : Time) - 1) * p.Δ) + Γ p G + 8 * p.Δ
-      rw [hG]
       nlinarith [p.deltaPos, hrec.gapPos]
     | one =>
       change 0 ≤ (4 * (p.k : Time) - 1) * p.Δ + Γ p G + 10 * p.Δ
-      rw [hG]
       nlinarith [p.deltaPos, hrec.gapPos]
   have hP := frontierSearch_period_bound p
   have hbudget : ev.time + 3 * p.Δ + ρbar +
@@ -263,7 +259,7 @@ theorem frontier_hg3_gap [Fintype V] (E : Generic.Env V)
   · rcases frontierSearch_classify_stop p c E rho hrec.base.noRestart hfront hstop with h | h
     · exact Or.inl h
     · exact Or.inr (Or.inl h)
-  have hG : 4 * p.Δ ≤ Γ p G := by rw [hrec.gamma_eq]; exact hrec.gapPos
+  have hG : 4 * p.Δ ≤ Γ p G := hrec.gapPos.trans (fgsa_gamma_bounds p G).1
   have htail0 : 0 ≤ 2 * P p + Γ p G - 4 * p.Δ := by
     linarith only [hP, hG, p.deltaPos]
   have hsettle : ev.time + 3 * p.Δ ≤ ev.time + E_gF p ΔF G ρbar := by

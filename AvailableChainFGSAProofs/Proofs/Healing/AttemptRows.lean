@@ -195,9 +195,8 @@ private theorem attempt_repair_opening
   have hP := attempt_period_bounds p
   have huD : ev.time + 3 * p.Δ ≤ ev.time + budget := by
     have hΓ : 0 ≤ Γ p G := by
-      change 0 ≤ 4 * p.Δ * (G / (4 * p.Δ))
-      exact mul_nonneg (by linarith [p.deltaPos])
-        (Int.ediv_nonneg (by linarith [hrec.gapPos, p.deltaPos]) (by linarith [p.deltaPos]))
+      have := (fgsa_gamma_bounds p G).1
+      linarith [hrec.gapPos, p.deltaPos]
     have hk : (2 : Time) ≤ p.k := by exact_mod_cast p.kLarge
     have hρ : 0 ≤ ρΓ p G := by
       change 0 ≤ 2 * ((4 * (p.k : Time) - 1) * p.Δ) + Γ p G + 8 * p.Δ
@@ -344,9 +343,8 @@ theorem healing_attempt_firstRow_other
   have hbudget := healing_attempt_firstRow_other_budget p G k htask hphase
   have hP := attempt_period_bounds p
   have hΓ : 0 ≤ Γ p G := by
-    change 0 ≤ 4 * p.Δ * (G / (4 * p.Δ))
-    exact mul_nonneg (by linarith [p.deltaPos])
-      (Int.ediv_nonneg (by linarith [hrec.gapPos, p.deltaPos]) (by linarith [p.deltaPos]))
+    have := (fgsa_gamma_bounds p G).1
+    linarith [hrec.gapPos, p.deltaPos]
   obtain ⟨β, q, Q, Qfg, r, root, contested, hp, hcont, hgst, huq, hq, hgate, hQ, hexact, heq,
     hlo, hhi, hqr, har, hc, hrepair⟩ := attempt_repair_opening E rho hrec mono crossing qc
       writes rowCoverage hvalid hstart hstop hhor (by rw [hbudget]; linarith [p.deltaPos])
@@ -457,9 +455,8 @@ private theorem attempt_terminal_contradiction
   have hS := hrec.base.valid.toScheduleWellFormed
   have hP := attempt_period_bounds p
   have hΓ : 0 ≤ Γ p G := by
-    change 0 ≤ 4 * p.Δ * (G / (4 * p.Δ))
-    exact mul_nonneg (by linarith [p.deltaPos])
-      (Int.ediv_nonneg (by linarith [hrec.gapPos, p.deltaPos]) (by linarith [p.deltaPos]))
+    have := (fgsa_gamma_bounds p G).1
+    linarith [hrec.gapPos, p.deltaPos]
   have hur : u ≤ p.actionTime r := by
     have hqrI : (q : Time) ≤ ((r * p.R : Nat) : Time) := by exact_mod_cast hqr
     change u ≤ 4 * p.Δ * ((r * p.R : Nat) : Time) + 6 * p.Δ
@@ -509,9 +506,8 @@ theorem healing_attempt_raise_contest
   have hbudget := healing_attempt_raise_contest_budget p G k htask hphase
   have hP := attempt_period_bounds p
   have hΓ : 0 ≤ Γ p G := by
-    change 0 ≤ 4 * p.Δ * (G / (4 * p.Δ))
-    exact mul_nonneg (by linarith [p.deltaPos])
-      (Int.ediv_nonneg (by linarith [hrec.gapPos, p.deltaPos]) (by linarith [p.deltaPos]))
+    have := (fgsa_gamma_bounds p G).1
+    linarith [hrec.gapPos, p.deltaPos]
   obtain ⟨β, q, Q, Qfg, r, root, contested, hp, hcont, hgst, huq, hq, _hgate, hQ, hexact,
     heq, hlo, hhi, hqr, har, hc, hrepair⟩ := attempt_repair_opening E rho hrec mono crossing
       qc writes rowCoverage hvalid hstart hstop hhor (by rw [hbudget]; linarith [p.deltaPos])
@@ -543,9 +539,8 @@ theorem healing_attempt_raise_other
   have hbudget := healing_attempt_raise_other_budget p G k htask hphase
   have hP := attempt_period_bounds p
   have hΓ : 0 ≤ Γ p G := by
-    change 0 ≤ 4 * p.Δ * (G / (4 * p.Δ))
-    exact mul_nonneg (by linarith [p.deltaPos])
-      (Int.ediv_nonneg (by linarith [hrec.gapPos, p.deltaPos]) (by linarith [p.deltaPos]))
+    have := (fgsa_gamma_bounds p G).1
+    linarith [hrec.gapPos, p.deltaPos]
   obtain ⟨β, q, Q, Qfg, r, root, contested, hp, hcont, hgst, huq, hq, _hgate, hQ, hexact,
     heq, hlo, hhi, hqr, har, hc, hrepair⟩ := attempt_repair_opening E rho hrec mono crossing
       qc writes rowCoverage hvalid hstart hstop hhor (by rw [hbudget]; linarith [p.deltaPos])
