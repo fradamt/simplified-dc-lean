@@ -107,28 +107,44 @@ theorem fgsa_firstFinality_recF4 (hH : HTimeClaim p)
 /-- Blueprint 22:1371–1380. DC: INTENTIONAL GST form; no healing output as premise;
 DC finalized (Generic/Claims.lean:39–44). H-time and the local claim supply the result. -/
 theorem fgsa_finalityLivenessGST_recFE (hH : HTimeClaim p)
-    (hL : FinalityLivenessRecFEClaim_W p) : FinalityLivenessGSTClaim_W p .recFE := by
+    (hL : FinalityLivenessRecFEClaim_W p) (hP : ProposalFinalRecFEClaim_W p)
+    (hDC : LiveDCFromWindowsStatement p) : FinalityLivenessGSTClaim_W p .recFE := by
   intro G ΔF g hδ V _ _ In c E rho pt h
   have hW := fgsa_gst_window_nonneg p ΔF g
   have hhor : E.t_GST + B_HF p ΔF G ≤ rho.horizon :=
     h.late.trans ((le_add_of_nonneg_right hW).trans h.hhor)
   obtain ⟨w, input, start, bound⟩ := hH G ΔF hδ c E rho ()
     ⟨⟨h.set.core, h.set.bound⟩, hhor⟩
-  refine ⟨w, input, start.trans_lt bound, hL G ΔF g w hδ c E rho pt ?_⟩
-  exact ⟨h.set, input, start.trans (bound.le.trans h.late), h.hhor⟩
+  have ht : tstar p w ≤ pt.t := start.trans (bound.le.trans h.late)
+  have hlocal := hL G ΔF g w hδ c E rho pt ⟨h.set, input, ht, h.hhor⟩
+  refine ⟨w, input, start.trans_lt bound, hlocal, ?_⟩
+  intro hlong
+  apply hDC c E rho G ΔF g pt.t h.set.core (input.wit.after_gst.trans ht) ?_ ?_ hlong
+  · obtain ⟨U, hU, _, ha⟩ := hlocal
+    exact ⟨U, hU, ha⟩
+  · intro s X hp hts hsHor
+    exact hP G ΔF g w hδ c E rho ⟨s, X⟩ ⟨h.set, input, hp, ht.trans hts, hsHor⟩
 
 /-- Blueprint 22:1371–1380. DC: INTENTIONAL GST form; no healing output as premise;
 DC finalized (Generic/Claims.lean:39–44). H-time and the local claim supply the result. -/
 theorem fgsa_finalityLivenessGST_recF4 (hH : HTimeClaim p)
-    (hL : FinalityLivenessRecF4Claim_W p) : FinalityLivenessGSTClaim_W p .recF4 := by
+    (hL : FinalityLivenessRecF4Claim_W p) (hP : ProposalFinalRecF4Claim_W p)
+    (hDC : LiveDCFromWindowsStatement p) : FinalityLivenessGSTClaim_W p .recF4 := by
   intro G ΔF g hδ V _ _ In c E rho pt h
   have hW := fgsa_gst_window_nonneg p ΔF g
   have hhor : E.t_GST + B_HF p ΔF G ≤ rho.horizon :=
     h.late.trans ((le_add_of_nonneg_right hW).trans h.hhor)
   obtain ⟨w, input, start, bound⟩ := hH G ΔF hδ c E rho ()
     ⟨⟨h.set.core, h.set.bound⟩, hhor⟩
-  refine ⟨w, input, start.trans_lt bound, hL G ΔF g w hδ c E rho pt ?_⟩
-  exact ⟨h.set, input, start.trans (bound.le.trans h.late), h.hhor⟩
+  have ht : tstar p w ≤ pt.t := start.trans (bound.le.trans h.late)
+  have hlocal := hL G ΔF g w hδ c E rho pt ⟨h.set, input, ht, h.hhor⟩
+  refine ⟨w, input, start.trans_lt bound, hlocal, ?_⟩
+  intro hlong
+  apply hDC c E rho G ΔF g pt.t h.set.core (input.wit.after_gst.trans ht) ?_ ?_ hlong
+  · obtain ⟨U, hU, _, ha⟩ := hlocal
+    exact ⟨U, hU, ha⟩
+  · intro s X hp hts hsHor
+    exact hP G ΔF g w hδ c E rho ⟨s, X⟩ ⟨h.set, input, hp, ht.trans hts, hsHor⟩
 
 /-- Blueprint 22:1421–1430. DC: INTENTIONAL GST form; no healing output as premise;
 DC finalized (Generic/Claims.lean:39–44). H-time and the local claim supply the result. -/

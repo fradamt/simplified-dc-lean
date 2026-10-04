@@ -99,8 +99,10 @@ theorem fgsaClaims_of_hTime (hH : HTimeClaim p) : FGSAClaims p :=
   fgsaClaims_of_open p
     (fgsa_firstFinality_recFE hH (fgsa_finalityLivenessRecFE_W p))
     (fgsa_firstFinality_recF4 hH (fgsa_finalityLivenessRecF4_W p))
-    (fgsa_finalityLivenessGST_recFE hH (fgsa_finalityLivenessRecFE_W p))
-    (fgsa_finalityLivenessGST_recF4 hH (fgsa_finalityLivenessRecF4_W p))
+    (fgsa_finalityLivenessGST_recFE hH (fgsa_finalityLivenessRecFE_W p)
+      (fgsa_proposalFinalRecFE_W p) (healing_liveDCFromWindows p))
+    (fgsa_finalityLivenessGST_recF4 hH (fgsa_finalityLivenessRecF4_W p)
+      (fgsa_proposalFinalRecF4_W p) (healing_liveDCFromWindows p))
     (fgsa_proposalFinalGST_recFE hH (fgsa_proposalFinalRecFE_W p))
     (fgsa_proposalFinalGST_recF4 hH (fgsa_proposalFinalRecF4_W p))
     (fgsa_aboveFrontierGST_recFE hH (fgsa_aboveFrontierRecFE_W p))

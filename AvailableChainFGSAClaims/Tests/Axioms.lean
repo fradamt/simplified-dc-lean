@@ -817,3 +817,11 @@ example (G : Time) : WeakContinuationLiveClaim p G → WeakContinuationClaim p G
 
 end AvailableChain.FGSA.Run.Tests.WeakContinuationLive
 end
+
+-- LIVE-DC definitions and equation exports.
+#print axioms AvailableChain.FGSA.Run.liveDCDeadline_W
+#print axioms AvailableChain.FGSA.Run.liveDCDeadline_W_def
+#print axioms AvailableChain.FGSA.Run.LiveDCConcl_W
+#print axioms AvailableChain.FGSA.Run.LiveDCConcl_W_def
+#print axioms AvailableChain.FGSA.Run.LiveDCFromWindowsStatement
+#print axioms AvailableChain.FGSA.Run.LiveDCFromWindowsStatement_def

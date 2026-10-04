@@ -1696,7 +1696,7 @@ theorem nvProposalGSTPrem (form : FinFormW) :
 
 /-- NV-FIN F3. DC: SAME FF5 from the closed aggregate, with deadline 352. -/
 theorem nvFF5 : FinalityLivenessConcl_W params unitCodec env run 303 352 := by
-  obtain ⟨_, _, _, h⟩ := (fgsaClaims params).finalityLivenessGSTRecFE gap deltaF 1
+  obtain ⟨_, _, _, h, _⟩ := (fgsaClaims params).finalityLivenessGSTRecFE gap deltaF 1
     nvClock unitCodec env run ⟨303⟩ (nvGSTPrem .recFE)
   exact h
 

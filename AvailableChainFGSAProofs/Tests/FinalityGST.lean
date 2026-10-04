@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Healing.LiveDC -- shake: keep (LIVE-DC service checks)
 public import AvailableChainFGSAProofs.Proofs.Shared.Claims -- shake: keep (GST theorem checks)
 
 #check AvailableChain.FGSA.Run.fgsa_finalityLivenessGST_recFE
@@ -12,12 +13,16 @@ public import AvailableChainFGSAProofs.Proofs.Shared.Claims -- shake: keep (GST 
 namespace AvailableChain.FGSA.Run
 
 -- Conditional composition checks: both results use the same H-time and local claims.
-example {p : Params} (hH : HTimeClaim p) (hL : FinalityLivenessRecFEClaim_W p) :
+example {p : Params} (hH : HTimeClaim p) (hL : FinalityLivenessRecFEClaim_W p)
+    (hP : ProposalFinalRecFEClaim_W p) :
     FirstFinalityRecFEClaim_W p ∧ FinalityLivenessGSTClaim_W p .recFE :=
-  ⟨fgsa_firstFinality_recFE hH hL, fgsa_finalityLivenessGST_recFE hH hL⟩
+  ⟨fgsa_firstFinality_recFE hH hL,
+    fgsa_finalityLivenessGST_recFE hH hL hP (healing_liveDCFromWindows p)⟩
 
-example {p : Params} (hH : HTimeClaim p) (hL : FinalityLivenessRecF4Claim_W p) :
+example {p : Params} (hH : HTimeClaim p) (hL : FinalityLivenessRecF4Claim_W p)
+    (hP : ProposalFinalRecF4Claim_W p) :
     FirstFinalityRecF4Claim_W p ∧ FinalityLivenessGSTClaim_W p .recF4 :=
-  ⟨fgsa_firstFinality_recF4 hH hL, fgsa_finalityLivenessGST_recF4 hH hL⟩
+  ⟨fgsa_firstFinality_recF4 hH hL,
+    fgsa_finalityLivenessGST_recF4 hH hL hP (healing_liveDCFromWindows p)⟩
 
 end AvailableChain.FGSA.Run

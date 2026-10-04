@@ -265,7 +265,7 @@ def AvailableChain.FGSA.Run.ProposalFinalRecFEClaim_W 8e1defc080ff8b69
 def AvailableChain.FGSA.Run.ProposalFinalRecF4Claim_W 52eabff641ff95e4
 def AvailableChain.FGSA.Run.AboveFrontierRecFEClaim_W 2fd789227508f890
 def AvailableChain.FGSA.Run.AboveFrontierRecF4Claim_W 9a15bc59bde68c58
-def AvailableChain.FGSA.Run.FinalityLivenessGSTClaim_W ad42fa3c074490c3
+def AvailableChain.FGSA.Run.FinalityLivenessGSTClaim_W a4dea1304fceb9dc
 def AvailableChain.FGSA.Run.ProposalFinalGSTClaim_W ac8a6a461e3d2484
 def AvailableChain.FGSA.Run.AboveFrontierGSTClaim_W 39fdaf18e2556eff
 ```
@@ -944,6 +944,17 @@ theorem AvailableChain.FGSA.Run.healStart_def 2dda0ae3b45847ac
 ```text
 def AvailableChain.FGSA.Run.HTimeBestConcl 78f2e0390d426581
 theorem AvailableChain.FGSA.Run.HTimeBestConcl_def c66e237fef033d80
+```
+
+### `AvailableChainFGSAClaims.Statements.LiveDC`
+
+```text
+def AvailableChain.FGSA.Run.liveDCDeadline_W 98bb35b3a856b670
+theorem AvailableChain.FGSA.Run.liveDCDeadline_W_def 69c7b1824c4488b2
+def AvailableChain.FGSA.Run.LiveDCConcl_W 702f69205045cc27
+theorem AvailableChain.FGSA.Run.LiveDCConcl_W_def 20c8b0e97702f234
+def AvailableChain.FGSA.Run.LiveDCFromWindowsStatement a66b973fe3d7887a
+theorem AvailableChain.FGSA.Run.LiveDCFromWindowsStatement_def ae9870af46834b07
 ```
 
 ### `AvailableChainFGSAClaims.Statements.OutputReads`

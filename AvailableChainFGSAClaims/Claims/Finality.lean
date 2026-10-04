@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSAClaims.Statements.Packages.Healing
 public import AvailableChainFGSAClaims.Statements.Packages.FinalityGST
+public import AvailableChainFGSAClaims.Statements.LiveDC
 
 @[expose] public section
 
@@ -151,7 +152,8 @@ def AboveFrontierRecF4Claim_W : Prop :=
     AboveFrontierConcl_W p c E rho pt.t (pt.t + 2 * W_W p ΔF g)
 
 /-- Blueprint 22:1371–1380. DC: INTENTIONAL GST form; no healing output as premise;
-DC finalized (Generic/Claims.lean:39–44). The conclusion returns the common input witness. -/
+DC finalized (Generic/Claims.lean:39–44). The conclusion returns the common input witness.
+LIVE-DC: add Generic/Properties.lean:105 at the guarded deadline 2 * W_W + G. -/
 def FinalityLivenessGSTClaim_W (form : FinFormW) : Prop :=
   ∀ (G ΔF : Time) (g : Nat) (_hδ : p.δt = 2 * p.R)
     {V : Type} [DecidableEq V] [Fintype V] {In : Type}
@@ -160,7 +162,9 @@ def FinalityLivenessGSTClaim_W (form : FinFormW) : Prop :=
     FinalityLivenessGSTPrem_W p c G ΔF form g E rho pt →
     ∃ w, HealingInput p c E rho w ΔF ∧ tstar p w < E.t_GST + B_HF p ΔF G ∧
       FinalityLivenessConcl_W p c E rho pt.t
-        (pt.t + W_W p ΔF g)
+        (pt.t + W_W p ΔF g) ∧
+      (pt.t + liveDCDeadline_W p ΔF G g ≤ rho.horizon →
+        LiveDCConcl_W p c E rho pt.t (pt.t + liveDCDeadline_W p ΔF G g))
 
 /-- Blueprint 22:1421–1430. DC: INTENTIONAL GST form; no healing output as premise;
 DC finalized (Generic/Claims.lean:39–44). The conclusion returns the common input witness. -/

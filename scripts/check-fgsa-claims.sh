@@ -29,6 +29,14 @@ LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainF
 CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = (
+    # LIVE-DC: --expect DATA only.
+    'AvailableChain.FGSA.Run.liveDCDeadline_W',
+    'AvailableChain.FGSA.Run.liveDCDeadline_W_def',
+    'AvailableChain.FGSA.Run.LiveDCConcl_W',
+    'AvailableChain.FGSA.Run.LiveDCConcl_W_def',
+    'AvailableChain.FGSA.Run.LiveDCFromWindowsStatement',
+    'AvailableChain.FGSA.Run.LiveDCFromWindowsStatement_def',
+    'AvailableChain.FGSA.Run.healing_liveDCFromWindows',
     # S5 H-ATTEMPT: --expect ADDITIONS only.
     'AvailableChain.FGSA.Run.healing_progressAttempt_of',
     'AvailableChain.FGSA.Run.healing_attempt_raise_contest_budget',
@@ -2614,7 +2622,7 @@ EXPECTED = (
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
          'Packages.Safety', 'OutputReads', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',
          'ChannelProps', 'FinalityApi', 'Healed', 'HealedBest', 'WeakContinuation', 'WeakContinuationLive', 'Packages.Finality', 'Packages.FinalityGST',
-         'ComposeStmt', 'Fold',
+         'LiveDC', 'ComposeStmt', 'Fold',
          'Phases', 'PhasesInternal', 'Packages.Healing')
 if not SOURCE_ONLY:
     work = Path(tempfile.mkdtemp(prefix='fgsa-claims-check.', dir=ROOT / '.lake'))
