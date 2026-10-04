@@ -18,9 +18,9 @@ private def hygiene_goldfishScoreOn {n : Nat} {mode : HeadMode} (domain tree : L
         | some B => decide (B ∈ tree) && decide (B.slot ≤ (headLabel? o).getD 0) &&
             Block.preceq b B))).length
 
--- The generated matcher bodies are definitionally equal.
+-- The generated matcher bodies are definitionally equal. The module hides this helper.
 set_option linter.auxLemma false in
-private theorem hygiene_goldfishScoreOn_match_1_eq :
+theorem gen_hygiene_goldfishScoreOn_match_1_eq :
     @goldfishScoreOn.match_1 = @hygiene_goldfishScoreOn.match_3 := rfl
 
 end AvailableChain.GridCO
@@ -37,27 +37,27 @@ private def hygiene_resolvedBefore {n : Nat} {mode : HeadMode}
   | some B => decide (B.slot ≤ (headLabel? o).getD 0) &&
       decide (stampVote st o < cutoff) && decide (stampBlock st B < cutoff)
 
--- The generated matcher bodies are definitionally equal.
+-- The generated matcher bodies are definitionally equal. The module hides this helper.
 set_option linter.auxLemma false in
-private theorem hygiene_resolvedBefore_match_1_eq :
+theorem gen_hygiene_resolvedBefore_match_1_eq :
     @resolvedBefore.match_1 = @hygiene_goldfishScoreOn.match_1 := rfl
 
 end AvailableChain.GridCO
 
 attribute [local simp]
-  AvailableChain.GridCO.hygiene_goldfishScoreOn_match_1_eq
-  AvailableChain.GridCO.hygiene_resolvedBefore_match_1_eq
+  AvailableChain.GridCO.gen_hygiene_goldfishScoreOn_match_1_eq
+  AvailableChain.GridCO.gen_hygiene_resolvedBefore_match_1_eq
 
 local macro "hygiene_split" : tactic =>
   `(tactic| (
-    try rw [AvailableChain.GridCO.hygiene_goldfishScoreOn_match_1_eq] at *;
-    try rw [AvailableChain.GridCO.hygiene_resolvedBefore_match_1_eq] at *;
+    try rw [AvailableChain.GridCO.gen_hygiene_goldfishScoreOn_match_1_eq] at *;
+    try rw [AvailableChain.GridCO.gen_hygiene_resolvedBefore_match_1_eq] at *;
     all_goals split))
 
 local macro "hygiene_split" "at" h:ident : tactic =>
   `(tactic| (
-    try rw [AvailableChain.GridCO.hygiene_goldfishScoreOn_match_1_eq] at *;
-    try rw [AvailableChain.GridCO.hygiene_resolvedBefore_match_1_eq] at *;
+    try rw [AvailableChain.GridCO.gen_hygiene_goldfishScoreOn_match_1_eq] at *;
+    try rw [AvailableChain.GridCO.gen_hygiene_resolvedBefore_match_1_eq] at *;
     all_goals split at $h:ident))
 
 public section

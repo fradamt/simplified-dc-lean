@@ -19,23 +19,23 @@ private def hygiene_proposerSupportView
 
 -- The generated matcher bodies are definitionally equal.
 set_option linter.auxLemma false in
-private theorem hygiene_proposerSupportView_match_1_eq :
+private theorem fgsa_hygiene_proposerSupportView_match_1_eq :
     @proposerSupportView.match_1 = @hygiene_proposerSupportView.match_1 := rfl
 
 end AvailableChain.GridCO
 
 -- Rewrite before simp can generate equations for the public matcher.
 attribute [local simp↓]
-  AvailableChain.GridCO.hygiene_proposerSupportView_match_1_eq
+  AvailableChain.GridCO.fgsa_hygiene_proposerSupportView_match_1_eq
 
 local macro "hygiene_split" : tactic =>
   `(tactic| (
-    try rw [AvailableChain.GridCO.hygiene_proposerSupportView_match_1_eq] at *;
+    try rw [AvailableChain.GridCO.fgsa_hygiene_proposerSupportView_match_1_eq] at *;
     all_goals split))
 
 local macro "hygiene_split" "at" h:ident : tactic =>
   `(tactic| (
-    try rw [AvailableChain.GridCO.hygiene_proposerSupportView_match_1_eq] at *;
+    try rw [AvailableChain.GridCO.fgsa_hygiene_proposerSupportView_match_1_eq] at *;
     all_goals split at $h:ident))
 
 @[expose] public section
@@ -180,7 +180,7 @@ theorem actView_releaseCount_zero (st : State n) (q : GridCO.Params) (r : Slot) 
     (hK : Block.Preceq K (eraseFG st.fg.F)) : GridCO.releaseCount q (actView st) r K = 0 := by
   unfold GridCO.releaseCount
   simp only [
-      ↓AvailableChain.GridCO.hygiene_proposerSupportView_match_1_eq,
+      ↓AvailableChain.GridCO.fgsa_hygiene_proposerSupportView_match_1_eq,
       List.length_eq_zero_iff, List.filter_eq_nil_iff, Bool.and_eq_true,
     Bool.not_eq_true', List.any_eq_true, not_and, not_exists]
   intro i _ _ o ho

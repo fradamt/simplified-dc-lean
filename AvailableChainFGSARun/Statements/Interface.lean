@@ -20,7 +20,10 @@ def isRowObject {p : Params} (o : Obj p) : Prop :=
   | _ => False
 
 theorem isRowObject_def {p : Params} (o : Obj p) :
-    isRowObject o = (match o.payload with | .row _ => True | _ => False) := rfl
+    isRowObject o = (match o.payload with | .row _ => True | _ => False) := by
+  -- Generate the equation in its home module (BUILD B3a).
+  have _h := @isRowObject.eq_1
+  rfl
 
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
 Per-object delivery bound for FG-SA.
@@ -62,10 +65,6 @@ def fgsaOutputs (p : Params) {In : Type} (c : AppCodec In) :
 /-- [ROOT-DIGEST-2 W1; DC named and HEAD interfaces]
 The finalized output is the erasure of the stored FG block. -/
 def finalizedOut {p : Params} (nd : Node p) : Block := eraseFG nd.st.fg.F
-
--- ROOT-DIGEST-2 option 3: generate equations in their home module (BUILD B3a).
-private theorem isRowObject_eq_1_export :
-    type_of% (@isRowObject.eq_1) := @isRowObject.eq_1
 
 end AvailableChain.FGSA.Run
 
