@@ -58,3 +58,6 @@ F-3 AvailableChain.KitFG.storeFrame_noContest_of_crossed
 F-3 AvailableChain.KitFG.storeFrame_retention_of_compatible
 F-3 AvailableChain.KitFG.viewLock_of_certificate
 F-3 AvailableChain.KitFG.viewLock_of_fault_certificate
+
+# AUTHORIZED EXCEPTION: ROOT-DIGEST-2 option 3, plan §1.4 premise, lead ruling 2026-10-04
+F-3 AvailableChain.FGSA.contentAgree_projection

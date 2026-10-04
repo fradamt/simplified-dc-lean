@@ -534,7 +534,6 @@ theorem TransferBounds_def {n : Nat}
     goldfishScore tree raw support C <
       goldfishScore tree raw support B)) := by rfl
 
-set_option linter.unusedVariables false in
 /-- [ROOT-DIGEST-2 W1; DC root HEAD support]
 DC: DGF/Confirmation:112,152,169; INTENTIONAL: Use atomic pool premises and combined bounds;
 record blueprint/02-clean.md:330. -/
@@ -542,22 +541,21 @@ def TransferStatement : Prop :=
   ∀ {n : Nat}
     (sourceTree targetTree : List Block)
     (P L U V : List (Wire n .root)) (B : Block)
-    (hPL : P ⊆ L)
-    (hclean : ∀ o ∈ P, ∀ i, headSeat? o = some i →
+    (_hPL : P ⊆ L)
+    (_hclean : ∀ o ∈ P, ∀ i, headSeat? o = some i →
       equivocates L i = false)
-    (hforward : ∀ o ∈ P, ∀ i, headSeat? o = some i →
+    (_hforward : ∀ o ∈ P, ∀ i, headSeat? o = some i →
       voteSupports sourceTree B o = true →
       (o ∈ V ∧ voteSupports targetTree B o = true) ∨
         equivocates U i = true)
-    (hbackward : ∀ o ∈ U, ∀ i, headSeat? o = some i →
+    (_hbackward : ∀ o ∈ U, ∀ i, headSeat? o = some i →
       o ∈ L ∨ equivocates L i = true)
-    (hsupport : V ⊆ U)
-    (hmajority :
+    (_hsupport : V ⊆ U)
+    (_hmajority :
       voterCount L < 2 * goldfishScore sourceTree P P B),
     TransferBounds (plainSupporters sourceTree P P B)
       L targetTree U V B
 
-set_option linter.unusedVariables false in
 /-- [ROOT-DIGEST-2 W1; DC root HEAD support]
 Defining equation. DC: DGF/Confirmation:112,152,169; INTENTIONAL: Use atomic pool premises and
 combined bounds; record blueprint/02-clean.md:330. -/
@@ -565,17 +563,17 @@ theorem TransferStatement_def : TransferStatement =
     (∀ {n : Nat}
     (sourceTree targetTree : List Block)
     (P L U V : List (Wire n .root)) (B : Block)
-    (hPL : P ⊆ L)
-    (hclean : ∀ o ∈ P, ∀ i, headSeat? o = some i →
+    (_hPL : P ⊆ L)
+    (_hclean : ∀ o ∈ P, ∀ i, headSeat? o = some i →
       equivocates L i = false)
-    (hforward : ∀ o ∈ P, ∀ i, headSeat? o = some i →
+    (_hforward : ∀ o ∈ P, ∀ i, headSeat? o = some i →
       voteSupports sourceTree B o = true →
       (o ∈ V ∧ voteSupports targetTree B o = true) ∨
         equivocates U i = true)
-    (hbackward : ∀ o ∈ U, ∀ i, headSeat? o = some i →
+    (_hbackward : ∀ o ∈ U, ∀ i, headSeat? o = some i →
       o ∈ L ∨ equivocates L i = true)
-    (hsupport : V ⊆ U)
-    (hmajority :
+    (_hsupport : V ⊆ U)
+    (_hmajority :
       voterCount L < 2 * goldfishScore sourceTree P P B),
     TransferBounds (plainSupporters sourceTree P P B)
       L targetTree U V B) := by rfl
@@ -613,7 +611,6 @@ theorem BatchBounds_def {n : Nat}
   (∀ C, (∀ i ∈ Hon, poolSupports tree support i C = false) →
     2 * goldfishScore tree raw support C ≤ voterCount D)) := by rfl
 
-set_option linter.unusedVariables false in
 /-- [ROOT-DIGEST-2 W1; DC root HEAD support]
 DC: DGF/Confirmation:494,508,567; INTENTIONAL: Use separate honest support and count facts;
 record S1a:327. -/
@@ -621,16 +618,15 @@ def BatchCountsStatement : Prop :=
   ∀ {n : Nat}
     (tree : List Block) (D raw support : List (Wire n .root))
     (Hon : Finset (Fin n)) (h m : Nat) (X : Block)
-    (hraw : raw ⊆ D)
-    (hsupport : support ⊆ raw)
-    (hcard : Hon.card = h)
-    (hclean : ∀ i ∈ Hon, equivocates raw i = false)
-    (hbatch : ∀ i ∈ Hon, poolSupports tree support i X = true)
-    (hother : ((seats n D).toFinset \ Hon).card ≤ m)
-    (hb : Batch h m),
+    (_hraw : raw ⊆ D)
+    (_hsupport : support ⊆ raw)
+    (_hcard : Hon.card = h)
+    (_hclean : ∀ i ∈ Hon, equivocates raw i = false)
+    (_hbatch : ∀ i ∈ Hon, poolSupports tree support i X = true)
+    (_hother : ((seats n D).toFinset \ Hon).card ≤ m)
+    (_hb : Batch h m),
     BatchBounds tree D raw support Hon h m X
 
-set_option linter.unusedVariables false in
 /-- [ROOT-DIGEST-2 W1; DC root HEAD support]
 Defining equation. DC: DGF/Confirmation:494,508,567; INTENTIONAL: Use separate honest support
 and count facts; record S1a:327. -/
@@ -638,16 +634,15 @@ theorem BatchCountsStatement_def : BatchCountsStatement =
     (∀ {n : Nat}
     (tree : List Block) (D raw support : List (Wire n .root))
     (Hon : Finset (Fin n)) (h m : Nat) (X : Block)
-    (hraw : raw ⊆ D)
-    (hsupport : support ⊆ raw)
-    (hcard : Hon.card = h)
-    (hclean : ∀ i ∈ Hon, equivocates raw i = false)
-    (hbatch : ∀ i ∈ Hon, poolSupports tree support i X = true)
-    (hother : ((seats n D).toFinset \ Hon).card ≤ m)
-    (hb : Batch h m),
+    (_hraw : raw ⊆ D)
+    (_hsupport : support ⊆ raw)
+    (_hcard : Hon.card = h)
+    (_hclean : ∀ i ∈ Hon, equivocates raw i = false)
+    (_hbatch : ∀ i ∈ Hon, poolSupports tree support i X = true)
+    (_hother : ((seats n D).toFinset \ Hon).card ≤ m)
+    (_hb : Batch h m),
     BatchBounds tree D raw support Hon h m X) := by rfl
 
-set_option linter.unusedVariables false in
 /-- [ROOT-DIGEST-2 W1; DC root HEAD support]
 DC: DGF/Confirmation:494,508; DGF/Adoption:311,334; INTENTIONAL: Honest non-equivocation
 replaces backward relay; record P3:2554. -/
@@ -655,12 +650,12 @@ def TransferN2Statement : Prop :=
   ∀ {n : Nat}
     (tree : List Block) (raw support : List (Wire n .root))
     (Hon : Finset (Fin n)) (h a : Nat) (Q : Block)
-    (hsupport : support ⊆ raw)
-    (hcard : Hon.card = h)
-    (hclean : ∀ i ∈ Hon, equivocates raw i = false)
-    (hbatch : ∀ i ∈ Hon, poolSupports tree support i Q = true)
-    (hother : ((seats n raw).toFinset \ Hon).card ≤ a)
-    (ha : a < h),
+    (_hsupport : support ⊆ raw)
+    (_hcard : Hon.card = h)
+    (_hclean : ∀ i ∈ Hon, equivocates raw i = false)
+    (_hbatch : ∀ i ∈ Hon, poolSupports tree support i Q = true)
+    (_hother : ((seats n raw).toFinset \ Hon).card ≤ a)
+    (_ha : a < h),
     h ≤ (plainSupporters tree raw support Q).card ∧
     h ≤ goldfishScore tree raw support Q ∧
     voterCount raw ≤ h + a ∧
@@ -672,7 +667,6 @@ def TransferN2Statement : Prop :=
       goldfishScore tree raw support C <
         goldfishScore tree raw support Q)
 
-set_option linter.unusedVariables false in
 /-- [ROOT-DIGEST-2 W1; DC root HEAD support]
 Defining equation. DC: DGF/Confirmation:494,508; DGF/Adoption:311,334; INTENTIONAL: Honest
 non-equivocation replaces backward relay; record P3:2554. -/
@@ -680,12 +674,12 @@ theorem TransferN2Statement_def : TransferN2Statement =
     (∀ {n : Nat}
     (tree : List Block) (raw support : List (Wire n .root))
     (Hon : Finset (Fin n)) (h a : Nat) (Q : Block)
-    (hsupport : support ⊆ raw)
-    (hcard : Hon.card = h)
-    (hclean : ∀ i ∈ Hon, equivocates raw i = false)
-    (hbatch : ∀ i ∈ Hon, poolSupports tree support i Q = true)
-    (hother : ((seats n raw).toFinset \ Hon).card ≤ a)
-    (ha : a < h),
+    (_hsupport : support ⊆ raw)
+    (_hcard : Hon.card = h)
+    (_hclean : ∀ i ∈ Hon, equivocates raw i = false)
+    (_hbatch : ∀ i ∈ Hon, poolSupports tree support i Q = true)
+    (_hother : ((seats n raw).toFinset \ Hon).card ≤ a)
+    (_ha : a < h),
     h ≤ (plainSupporters tree raw support Q).card ∧
     h ≤ goldfishScore tree raw support Q ∧
     voterCount raw ≤ h + a ∧
@@ -697,7 +691,6 @@ theorem TransferN2Statement_def : TransferN2Statement =
       goldfishScore tree raw support C <
         goldfishScore tree raw support Q)) := by rfl
 
-set_option linter.unusedVariables false in
 /-- [ROOT-DIGEST-2 W1; DC root HEAD support]
 DC: DS/ProposalSnapshot:65,223,239,257; DGF/ProposalSnapshotBridge:210; INTENTIONAL: Use
 candidate incidence when support inclusion fails; record blueprint/02-clean.md:390. -/
@@ -706,10 +699,10 @@ def ScoreEqOnStatement : Prop :=
     (tree tree' : List Block)
     (U U' support support' : List (Wire n .root))
     (Cand : Set Block)
-    (hraw : U ⊆ U')
-    (hextra : ∀ o ∈ U', ∀ i, headSeat? o = some i →
+    (_hraw : U ⊆ U')
+    (_hextra : ∀ o ∈ U', ∀ i, headSeat? o = some i →
       o ∉ U → equivocates U i = true)
-    (hinc : ∀ B ∈ Cand, ∀ i, equivocates U i = false →
+    (_hinc : ∀ B ∈ Cand, ∀ i, equivocates U i = false →
       poolSupports tree support i B =
         poolSupports tree' support' i B),
     (seats n U).toFinset = (seats n U').toFinset ∧
@@ -719,7 +712,6 @@ def ScoreEqOnStatement : Prop :=
       goldfishScore tree U support B =
         goldfishScore tree' U' support' B)
 
-set_option linter.unusedVariables false in
 /-- [ROOT-DIGEST-2 W1; DC root HEAD support]
 Defining equation. DC: DS/ProposalSnapshot:65,223,239,257; DGF/ProposalSnapshotBridge:210;
 INTENTIONAL: Use candidate incidence when support inclusion fails; record
@@ -729,10 +721,10 @@ theorem ScoreEqOnStatement_def : ScoreEqOnStatement =
     (tree tree' : List Block)
     (U U' support support' : List (Wire n .root))
     (Cand : Set Block)
-    (hraw : U ⊆ U')
-    (hextra : ∀ o ∈ U', ∀ i, headSeat? o = some i →
+    (_hraw : U ⊆ U')
+    (_hextra : ∀ o ∈ U', ∀ i, headSeat? o = some i →
       o ∉ U → equivocates U i = true)
-    (hinc : ∀ B ∈ Cand, ∀ i, equivocates U i = false →
+    (_hinc : ∀ B ∈ Cand, ∀ i, equivocates U i = false →
       poolSupports tree support i B =
         poolSupports tree' support' i B),
     (seats n U).toFinset = (seats n U').toFinset ∧
@@ -742,35 +734,32 @@ theorem ScoreEqOnStatement_def : ScoreEqOnStatement =
       goldfishScore tree U support B =
         goldfishScore tree' U' support' B)) := by rfl
 
-set_option linter.unusedVariables false in
 /-- [ROOT-DIGEST-2 W1; DC root HEAD support]
 DC: DS/AdoptionTransport:157; INTENTIONAL: Separate pool admission from timely settlement;
 record S1a:892,931. -/
 def CapVoteStatement : Prop :=
   ∀ (p : GridCO.Params) {n : Nat}
     (st : GridCO.State n .root) (s : Slot) (i : Fin n) (B : BlockId)
-    (hlo : (st.now / (4 * p.Δ)).toNat - 1 ≤ s)
-    (hhi : s ≤ (st.now / (4 * p.Δ)).toNat),
+    (_hlo : (st.now / (4 * p.Δ)).toNat - 1 ≤ s)
+    (_hhi : s ≤ (st.now / (4 * p.Δ)).toNat),
     let o : GridCO.Wire n .root := ⟨.seat s i, .head B⟩
     o ∈ (GridCO.admitVote p st o).votes ∨
       GridCO.equivocates
         (GridCO.votesAt (GridCO.admitVote p st o) s) i = true
 
-set_option linter.unusedVariables false in
 /-- [ROOT-DIGEST-2 W1; DC root HEAD support]
 Defining equation. DC: DS/AdoptionTransport:157; INTENTIONAL: Separate pool admission from
 timely settlement; record S1a:892,931. -/
 theorem CapVoteStatement_def : CapVoteStatement =
     (∀ (p : GridCO.Params) {n : Nat}
     (st : GridCO.State n .root) (s : Slot) (i : Fin n) (B : BlockId)
-    (hlo : (st.now / (4 * p.Δ)).toNat - 1 ≤ s)
-    (hhi : s ≤ (st.now / (4 * p.Δ)).toNat),
+    (_hlo : (st.now / (4 * p.Δ)).toNat - 1 ≤ s)
+    (_hhi : s ≤ (st.now / (4 * p.Δ)).toNat),
     let o : GridCO.Wire n .root := ⟨.seat s i, .head B⟩
     o ∈ (GridCO.admitVote p st o).votes ∨
       GridCO.equivocates
         (GridCO.votesAt (GridCO.admitVote p st o) s) i = true) := by rfl
 
-set_option linter.unusedVariables false in
 /-- [ROOT-DIGEST-2 W1; DC root HEAD support]
 DC: Model/Protocol/Schedule:99; same: Two distinct HEADs give the finite-pool cap test; record
 S1a:931. -/
@@ -782,7 +771,6 @@ def CapPairStatement : Prop :=
         GridCO.headSeat? u = some i ∧
         GridCO.headSeat? v = some i
 
-set_option linter.unusedVariables false in
 /-- [ROOT-DIGEST-2 W1; DC root HEAD support]
 Defining equation. DC: Model/Protocol/Schedule:99; same: Two distinct HEADs give the finite-
 pool cap test; record S1a:931. -/
@@ -794,7 +782,6 @@ theorem CapPairStatement_def : CapPairStatement =
         GridCO.headSeat? u = some i ∧
         GridCO.headSeat? v = some i) := by rfl
 
-set_option linter.unusedVariables false in
 /-- [ROOT-DIGEST-2 W1; DC root HEAD support]
 DC: DGF/Confirmation:494,508; DGF/Adoption:415; INTENTIONAL: Common-prefix heads need an
 eligible compatible anchor; record blueprint/02-clean.md:86; P3:4866. -/
@@ -802,17 +789,17 @@ def BatchStatement : Prop :=
   ∀ {n : Nat}
     (tree : List Block) (D raw support : List (Wire n .root))
     (Hon : Finset (Fin n)) (h m : Nat) (anchor X : Block)
-    (hraw : raw ⊆ D)
-    (hsupport : support ⊆ raw)
-    (hcard : Hon.card = h)
-    (hclean : ∀ i ∈ Hon, equivocates raw i = false)
-    (hbatch : ∀ i ∈ Hon, poolSupports tree support i X = true)
-    (hother : ((seats n D).toFinset \ Hon).card ≤ m)
-    (hb : Batch h m)
-    (hcompatible : Block.Compatible anchor X)
-    (hpath : ∀ C, Block.Prec anchor C → Block.Preceq C X →
+    (_hraw : raw ⊆ D)
+    (_hsupport : support ⊆ raw)
+    (_hcard : Hon.card = h)
+    (_hclean : ∀ i ∈ Hon, equivocates raw i = false)
+    (_hbatch : ∀ i ∈ Hon, poolSupports tree support i X = true)
+    (_hother : ((seats n D).toFinset \ Hon).card ≤ m)
+    (_hb : Batch h m)
+    (_hcompatible : Block.Compatible anchor X)
+    (_hpath : ∀ C, Block.Prec anchor C → Block.Preceq C X →
       C ∈ tree)
-    (hanchor :
+    (_hanchor :
       voterCount D < 2 * goldfishScore tree raw support anchor),
     let score := goldfishScore tree raw support
     let eligible := fun B => decide (voterCount D < 2 * score B)
@@ -820,7 +807,6 @@ def BatchStatement : Prop :=
       Block.Preceq X (GridCO.ghost anchor tree score eligible) ∧
       eligible (GridCO.ghost anchor tree score eligible) = true
 
-set_option linter.unusedVariables false in
 /-- [ROOT-DIGEST-2 W1; DC root HEAD support]
 Defining equation. DC: DGF/Confirmation:494,508; DGF/Adoption:415; INTENTIONAL: Common-prefix
 heads need an eligible compatible anchor; record blueprint/02-clean.md:86; P3:4866. -/
@@ -828,17 +814,17 @@ theorem BatchStatement_def : BatchStatement =
     (∀ {n : Nat}
     (tree : List Block) (D raw support : List (Wire n .root))
     (Hon : Finset (Fin n)) (h m : Nat) (anchor X : Block)
-    (hraw : raw ⊆ D)
-    (hsupport : support ⊆ raw)
-    (hcard : Hon.card = h)
-    (hclean : ∀ i ∈ Hon, equivocates raw i = false)
-    (hbatch : ∀ i ∈ Hon, poolSupports tree support i X = true)
-    (hother : ((seats n D).toFinset \ Hon).card ≤ m)
-    (hb : Batch h m)
-    (hcompatible : Block.Compatible anchor X)
-    (hpath : ∀ C, Block.Prec anchor C → Block.Preceq C X →
+    (_hraw : raw ⊆ D)
+    (_hsupport : support ⊆ raw)
+    (_hcard : Hon.card = h)
+    (_hclean : ∀ i ∈ Hon, equivocates raw i = false)
+    (_hbatch : ∀ i ∈ Hon, poolSupports tree support i X = true)
+    (_hother : ((seats n D).toFinset \ Hon).card ≤ m)
+    (_hb : Batch h m)
+    (_hcompatible : Block.Compatible anchor X)
+    (_hpath : ∀ C, Block.Prec anchor C → Block.Preceq C X →
       C ∈ tree)
-    (hanchor :
+    (_hanchor :
       voterCount D < 2 * goldfishScore tree raw support anchor),
     let score := goldfishScore tree raw support
     let eligible := fun B => decide (voterCount D < 2 * score B)
