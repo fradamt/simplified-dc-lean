@@ -20,25 +20,15 @@ private theorem promotion_period_pos (p : Params) : 0 < P p := by
   nlinarith
 
 /-- Blueprint 21:1356–1370; plan §3.2 step 2.
-DC: SAME integer division leaves less than one proposal-grid interval. -/
+DC: INTENTIONAL GUP r2 rounds the gap up by less than one proposal-grid interval. -/
 theorem healing_promotion_gap_remainder (p : Params) (G : Time) :
-    Γ p G ≤ G ∧ G < Γ p G + 4 * p.Δ := by
-  have hd : 0 < 4 * p.Δ := by have := p.deltaPos; linarith
-  have hlo := Int.ediv_mul_le G (ne_of_gt hd)
-  have hhi := Int.lt_ediv_add_one_mul_self G hd
-  change 4 * p.Δ * (G / (4 * p.Δ)) ≤ G ∧
-    G < 4 * p.Δ * (G / (4 * p.Δ)) + 4 * p.Δ
-  constructor <;> nlinarith
+    G ≤ Γ p G ∧ Γ p G < G + 4 * p.Δ :=
+  fgsa_gamma_bounds p G
 
 private theorem promotion_grid_upper (p : Params) (G z : Time) (s : Slot)
     (hs : SA.proposalTime p.toParams s ≤ 4 * p.Δ * z + G) :
     SA.proposalTime p.toParams s ≤ 4 * p.Δ * z + Γ p G := by
-  have hd : 0 < 4 * p.Δ := by have := p.deltaPos; linarith
-  change 4 * p.Δ * (s : Time) ≤ 4 * p.Δ * z + G at hs
-  have hdiv : (s : Time) - z ≤ G / (4 * p.Δ) :=
-    (Int.le_ediv_iff_mul_le hd).mpr (by nlinarith)
-  change 4 * p.Δ * (s : Time) ≤ 4 * p.Δ * z + 4 * p.Δ * (G / (4 * p.Δ))
-  nlinarith
+  linarith [(fgsa_gamma_bounds p G).1]
 
 /-- A row held before one deadline remains held before each later deadline. -/
 theorem healing_promotion_held_mono (E : Generic.Env V)
@@ -83,7 +73,7 @@ theorem healing_promotion_gap (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
       Gen.V2.Duty.HonestSlot rho (fgsaInterface p c) s ∧
       SA.gateTime p.toParams s ≤
         p.actionTime r + 2 * P p + Γ p G - 4 * p.Δ := by
-  have hrem := (healing_promotion_gap_remainder p G).2
+  have hrem := (healing_promotion_gap_remainder p G).1
   have hR : (2 : Time) ≤ p.R := by exact_mod_cast p.RLarge
   have hP : 8 * p.Δ ≤ P p := by change 8 * p.Δ ≤ 4 * (p.R : Time) * p.Δ; nlinarith [p.deltaPos]
   have ha := actionTime_periodW p r

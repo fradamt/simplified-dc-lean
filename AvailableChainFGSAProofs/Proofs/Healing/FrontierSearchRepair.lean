@@ -191,16 +191,14 @@ theorem frontier_hg3_contest [Fintype V] (E : Generic.Env V)
   obtain ⟨hi, hgst0, _, hfront, hm, hkind⟩ :=
     (frontierSearchStart_iff p c E rho i ev m .contest).mp hstart
   have hρ : 0 ≤ ρbar := by
-    have hG := hrec.gamma_eq
+    have hG := (fgsa_gamma_bounds p G).1
     have hk : (2 : Time) ≤ p.k := by exact_mod_cast p.kLarge
     cases mode with
     | two =>
       change 0 ≤ 2 * ((4 * (p.k : Time) - 1) * p.Δ) + Γ p G + 8 * p.Δ
-      rw [hG]
       nlinarith [p.deltaPos, hrec.gapPos]
     | one =>
       change 0 ≤ (4 * (p.k : Time) - 1) * p.Δ + Γ p G + 10 * p.Δ
-      rw [hG]
       nlinarith [p.deltaPos, hrec.gapPos]
   rcases frontierSearch_first_effective_split p c E rho hsched i
       (ev.time + (ρbar + 3 * p.Δ)) with hstop | hquiet

@@ -166,7 +166,7 @@ The four inputs have the exact joint-step and retained-cone types. -/
 theorem healing_resetArrivalFull_of_open (G ΔF : Time) :
     ResetArrivalFullStatement p G ΔF := by
   intro hClock V _ _ In c E rho hset hbound hhor
-  have hΓ : Γ p G = G := hset.gamma_eq
+  have hΓ := (fgsa_gamma_bounds p G).1
   have hG := hset.gapPos
   have hd := p.deltaPos
   obtain ⟨w, h0r, harrival⟩ := healing_resetArrivalStatement p G ΔF hClock c E rho
@@ -248,7 +248,7 @@ theorem healing_hTimeClaim_of_open : HTimeClaim p := by
       | exact h5
       | exact h6
       | have ht := timeBound hClock c E rho hset hbound hhor w h0
-        have hΓ : Γ p G = G := hset.gamma_eq
+        have hΓ := (fgsa_gamma_bounds p G).1
         have hG := hset.gapPos
         have hd := p.deltaPos
         obtain ⟨w₀, h0r, harrival⟩ := healing_resetArrivalStatement p G ΔF hClock c E rho
@@ -340,7 +340,7 @@ The four inputs are reset lease, lease safety, raw transfer, and cone steps. -/
 theorem healing_resetArrivalFull_of_open₂ (G ΔF : Time) :
     ResetArrivalFullStatement p G ΔF := by
   intro hClock V _ _ In c E rho hset hbound hhor
-  have hΓ : Γ p G = G := hset.gamma_eq
+  have hΓ := (fgsa_gamma_bounds p G).1
   have hG := hset.gapPos
   have hd := p.deltaPos
   obtain ⟨w, h0r, harrival⟩ := healing_resetArrivalStatement p G ΔF hClock c E rho
@@ -414,7 +414,7 @@ theorem healing_hTimeClaim_of_open₂ : HTimeClaim p := by
       | exact h5
       | exact h6
       | have ht := timeBound hClock c E rho hset hbound hhor w h0
-        have hΓ : Γ p G = G := hset.gamma_eq
+        have hΓ := (fgsa_gamma_bounds p G).1
         have hG := hset.gapPos
         have hd := p.deltaPos
         obtain ⟨w₀, h0r, harrival⟩ := healing_resetArrivalStatement p G ΔF hClock c E rho

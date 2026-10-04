@@ -9,7 +9,7 @@ namespace AvailableChain.FGSA.Run
 /-- Blueprint 00 §2.5 and 21 §1. All subtraction is in integer time. -/
 def L (p : Params) : Time := (4 * (p.k : Time) - 1) * p.Δ
 def P (p : Params) : Time := 4 * (p.R : Time) * p.Δ
-def Γ (p : Params) (G : Time) : Time := 4 * p.Δ * (G / (4 * p.Δ))
+def Γ (p : Params) (G : Time) : Time := 4 * p.Δ * ((G + 4 * p.Δ - 1) / (4 * p.Δ))
 def ρΓ (p : Params) (G : Time) : Time := 2 * L p + Γ p G + 8 * p.Δ
 def ρ₁ (p : Params) (G : Time) : Time := L p + Γ p G + 10 * p.Δ
 def ρ (p : Params) (G : Time) : Time := 2 * L p + G + 8 * p.Δ

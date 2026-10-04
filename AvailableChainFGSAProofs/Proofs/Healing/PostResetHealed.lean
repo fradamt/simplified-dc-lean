@@ -83,9 +83,9 @@ theorem healing_firstProposal [Fintype V] {G ΔF : Time}
     push_cast
     linarith
   have hwindow : SA.proposalTime p.toParams (w.sStar + 1) + G ≤ rho.horizon := by
-    rw [← hrec.gamma_eq]
+    have := (fgsa_gamma_bounds p G).1
     change p.actionTime w.rStar = 4 * p.Δ * (w.sStar : Int) + 6 * p.Δ at ha
-    change 4 * p.Δ * ((w.sStar + 1 : Nat) : Int) + Γ p G ≤ rho.horizon
+    change 4 * p.Δ * ((w.sStar + 1 : Nat) : Int) + G ≤ rho.horizon
     push_cast
     linarith
   obtain ⟨s, hlo, hhi, hs⟩ := hrec.gap _ htrigger hwindow
@@ -632,7 +632,7 @@ theorem healing_timeBound_of_resetArrival (G ΔF : Time)
       ∀ w, H0 p c E rho w → tstar p w ≤ p.actionTime w.rStar + Γ p G + 4 * p.Δ := by
   intro hδ V _ _ In c E rho hset hbound hhor w h0
   have hd := p.deltaPos
-  have hΓ : Γ p G = G := hset.gamma_eq
+  have hΓ := (fgsa_gamma_bounds p G).1
   have hG := hset.gapPos
   obtain ⟨w₀, h0r, hlt⟩ := hReset hδ c E rho hset hbound (by linarith)
   have hr : w.rStar = w₀.rStar := healing_reset_rStar_unique p c E rho h0.toH0Reset h0r

@@ -29,3 +29,4 @@ EXPECTED AvailableChain.FGSA.Run.PostResetResetLeaseCompatibleP PSWAP r2 lead ru
 EXPECTED AvailableChain.FGSA.Run.PostResetOpeningDomainP PSWAP r2 lead ruling (2026-10-04): provisional declaration removed; owner definitions used
 EXPECTED AvailableChain.FGSA.Run.PostResetResetLeaseCompatibleP_def PSWAP r2 lead ruling (2026-10-04): provisional declaration removed; owner definitions used
 EXPECTED AvailableChain.FGSA.Run.PostResetOpeningDomainP_def PSWAP r2 lead ruling (2026-10-04): provisional declaration removed; owner definitions used
+EXPECTED AvailableChain.FGSA.Run.Recovery₂.gamma_eq GUP r2 lead GO (2026-10-04): moved to Recovery₂Aligned.gamma_eq; general recovery has no alignment premise

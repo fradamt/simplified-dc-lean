@@ -274,7 +274,7 @@ example {g : Time} {b : Nat} (hk : p.k = 2 * p.R + 1)
     g ≤ SA.voteTime p.toParams (b + 1 - p.k) :=
   repair_h6c_window (le_of_eq hk) (le_of_eq hb) le_rfl hkb
 
--- Step 11: G − Γ is in [0, 4Δ), so the G-window gives t_s ≤ t_l + Γ.
+-- GUP r2: G ≤ Γ, so the G-window gives t_s ≤ t_l + Γ.
 example {Gp : Time} {l s : Nat}
     (hs : SA.proposalTime p.toParams s ≤ SA.proposalTime p.toParams l + Gp) :
     SA.proposalTime p.toParams s ≤ SA.proposalTime p.toParams l + Γ p Gp ∧

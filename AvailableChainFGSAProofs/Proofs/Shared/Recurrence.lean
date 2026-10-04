@@ -9,6 +9,36 @@ namespace AvailableChain.FGSA.Run
 
 open Gen.Pure
 
+/-- GUP r2: integer-time recovery budgets round the gap up to the proposal grid. -/
+theorem fgsa_gamma_bounds (p : Params) (G : Time) :
+    G ≤ Γ p G ∧ Γ p G < G + 4 * p.Δ := by
+  have hd : 0 < 4 * p.Δ := by linarith [p.deltaPos]
+  have hlo := Int.ediv_mul_le (G + 4 * p.Δ - 1) (ne_of_gt hd)
+  have hhi := Int.lt_ediv_add_one_mul_self (G + 4 * p.Δ - 1) hd
+  change G ≤ 4 * p.Δ * ((G + 4 * p.Δ - 1) / (4 * p.Δ)) ∧
+    4 * p.Δ * ((G + 4 * p.Δ - 1) / (4 * p.Δ)) < G + 4 * p.Δ
+  constructor <;> nlinarith
+
+/-- GUP r2: the rounded gap is a whole number of proposal slots. -/
+theorem fgsa_gamma_aligned (p : Params) (G : Time) : 4 * p.Δ ∣ Γ p G := by
+  exact dvd_mul_right _ _
+
+/-- GUP r2: an aligned gap keeps its existing numerical value. -/
+theorem fgsa_gamma_eq_of_dvd (p : Params) {G : Time} (h : 4 * p.Δ ∣ G) : Γ p G = G := by
+  obtain ⟨z, rfl⟩ := h
+  have hb := fgsa_gamma_bounds p (4 * p.Δ * z)
+  have hd : 0 < 4 * p.Δ := by linarith [p.deltaPos]
+  obtain ⟨q, hq⟩ := fgsa_gamma_aligned p (4 * p.Δ * z)
+  rw [hq] at hb ⊢
+  have hle : z ≤ q := by nlinarith [hb.1]
+  have hlt : q < z + 1 := by nlinarith [hb.2]
+  have : q = z := by omega
+  rw [this]
+
+/-- GUP r2: a second round-up does not change a bound. -/
+theorem fgsa_gamma_idem (p : Params) (G : Time) : Γ p (Γ p G) = Γ p G :=
+  fgsa_gamma_eq_of_dvd p (fgsa_gamma_aligned p G)
+
 variable (H : Slot → Prop) (R : Nat) (P Δ : Time) (q g : Nat) (t GST horizon : Time)
 
 /-- Pattern inclusion alone is insufficient: the last round and slot also agree. -/

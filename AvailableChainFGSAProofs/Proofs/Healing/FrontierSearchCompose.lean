@@ -68,11 +68,11 @@ theorem frontierSearch_allowance_nonneg [Fintype V] (E : Generic.Env V)
   rcases hmode with he | ⟨he, _⟩
   · rw [he]
     change 0 ≤ 2 * ((4 * (p.k : Time) - 1) * p.Δ) + Γ p G + 8 * p.Δ
-    rw [hrec.gamma_eq]
+    have := (fgsa_gamma_bounds p G).1
     nlinarith [p.deltaPos, hrec.gapPos]
   · rw [he]
     change 0 ≤ (4 * (p.k : Time) - 1) * p.Δ + Γ p G + 10 * p.Δ
-    rw [hrec.gamma_eq]
+    have := (fgsa_gamma_bounds p G).1
     nlinarith [p.deltaPos, hrec.gapPos]
 
 /-- Blueprint 21:1722–1800; S5 F3.
@@ -145,7 +145,7 @@ theorem frontierSearch_phase_tail [Fintype V] (E : Generic.Env V)
   have hs := hrec.base.valid.toScheduleWellFormed
   have hρ := frontierSearch_allowance_nonneg E rho hrec hmode
   have hP := frontierSearch_period_bound p
-  have hΓ : 4 * p.Δ ≤ Γ p G := by rw [hrec.gamma_eq]; exact hrec.gapPos
+  have hΓ : 4 * p.Δ ≤ Γ p G := hrec.gapPos.trans (fgsa_gamma_bounds p G).1
   have hF : 0 ≤ ΔF := by
     have := hrec.deltaF
     rw [hrec.base.delta] at this
