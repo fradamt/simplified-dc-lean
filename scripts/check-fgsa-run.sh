@@ -31,7 +31,37 @@ if [ "${SOURCE_ONLY:-0}" != 1 ]; then
 fi
 # The declarations that the axiom script must find and check (fail closed: a
 # scan that misses the library fails). Each task adds its main outputs.
-AX_OPTS=(--expect Run.stored_rows_r3W Run.stored_chain_rowsValidW Run.exact_row_exclusion_checkedW Run.exact_row_exclusionW
+AX_OPTS=(--expect
+  # ROOT-DIGEST W3b: contract and origin producer inventory.
+  AvailableChain.FGSA.Run.contentOk_withApp
+  AvailableChain.FGSA.Run.emitted_payload_parent_stored
+  AvailableChain.FGSA.Run.emitted_proposal_parent_stored
+  AvailableChain.FGSA.Run.emitted_proposal_slot_root
+  AvailableChain.FGSA.Run.proposal_handle_in_scope
+  AvailableChain.FGSA.Run.proposal_handlesS_direct
+  AvailableChain.FGSA.Run.proposal_trigger_in_scope
+  AvailableChain.FGSA.Run.rootBlockInRun_ancestor
+  AvailableChain.FGSA.Run.rootBlockInRun_delivered
+  AvailableChain.FGSA.Run.rootBlockInRun_eq
+  AvailableChain.FGSA.Run.rootBlockInRun_genesis_or_delivered
+  AvailableChain.FGSA.Run.rootBlockInRun_held
+  AvailableChain.FGSA.Run.rootBlockInRun_origin
+  AvailableChain.FGSA.Run.rootBlockInRun_stored
+  AvailableChain.FGSA.Run.rootBlockInRun_stored_proposal
+  AvailableChain.FGSA.Run.rootInjectiveOn_run
+  AvailableChain.FGSA.Run.rowsOk_withApp_proposalBlock
+  AvailableChain.FGSA.Run.storeStepRoots_run
+  AvailableChain.FGSA.Run.stored_body_ancestor
+  AvailableChain.FGSA.Run.stored_body_delivery
+  AvailableChain.FGSA.Run.stored_content_eq
+  AvailableChain.FGSA.Run.stored_fg_body_delivery
+  AvailableChain.FGSA.Run.withApp_zero_proposalBlock
+  AvailableChain.FGSA.Run.DirectRootBlockInRun
+  AvailableChain.FGSA.Run.RootBlockInRun
+  AvailableChain.FGSA.Run.NamedRootCollisionFree
+  AvailableChain.FGSA.Run.NamedRootCollisionFree.mk
+  AvailableChain.FGSA.Run.NamedRootCollisionFree.root_injective
+  Run.stored_rows_r3W Run.stored_chain_rowsValidW Run.exact_row_exclusion_checkedW Run.exact_row_exclusionW
   Run.isRowObject Run.isRowObject_def Run.fgsaDelay Run.fgsaDelay_def
   Run.fgsaDelay_row Run.fgsaDelay_nonrow Run.fgsaDelay_self Run.EmissionRowsValid Run.decode Run.HonestEmissionWellFormed
   Run.HonestProposalDecodes Run.fgsa_emissionRowsValid Run.fgsa_propose_parent_lt

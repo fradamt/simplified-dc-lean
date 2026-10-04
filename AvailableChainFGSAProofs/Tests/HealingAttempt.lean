@@ -1,9 +1,12 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.AttemptRows -- shake: keep (complete first rows)
+public import AvailableChainFGSAProofs.Proofs.Healing.AttemptRows
+-- shake: keep (complete first rows)
 public import AvailableChainFGSAProofs.Proofs.Healing.AttemptSettle -- shake: keep (four cut starts)
 public import AvailableChainFGSAProofs.Proofs.Healing.Attempt -- shake: keep (conditional assembly)
-public import AvailableChainFGSAProofs.Proofs.Healing.AttemptBudget -- shake: keep (four budget rows)
-public import AvailableChainFGSAProofs.Proofs.Healing.AttemptStop -- shake: keep (event and cut tests)
+public import AvailableChainFGSAProofs.Proofs.Healing.AttemptBudget
+-- shake: keep (four budget rows)
+public import AvailableChainFGSAProofs.Proofs.Healing.AttemptStop
+-- shake: keep (event and cut tests)
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseBoot -- shake: keep (B21 boundary)
 public import AvailableChainFGSAProofs.Proofs.Assembly.ProgressAttempt -- shake: keep (example)
 
@@ -26,6 +29,7 @@ private def attemptParams : Params where
   R := 3
   δt := 6
   RLarge := by decide
+  digest := fun d => ⟨d.slot + 1⟩
 
 -- The W bound permits a row delay greater than the block delay.
 example : attemptParams.Δ < (6 : Time) ∧ LivenessBoundW attemptParams 6 :=

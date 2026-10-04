@@ -1,0 +1,784 @@
+AvailableChain.FGSA.Run.proposal_handlesS_direct {p : AvailableChain.FGSA.Params} (st : AvailableChain.FGSA.State p.n)
+  (parent o : AvailableChain.FGSA.Run.Obj p) (s : AvailableChain.Slot) (b : AvailableChain.Block)
+  (raw sup : List (AvailableChain.FGSA.HeadWire p.n)) (rows : List (AvailableChain.FGSA.RowWire p.n))
+  (hd : (AvailableChain.FGSA.Run.toWire p o).decode = some (AvailableChain.FGSA.Input.block s b raw sup rows))
+  (hh : AvailableChain.FGSA.Run.handlesS p st parent o) : parent = o
+'AvailableChain.FGSA.Run.proposal_handlesS_direct' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.proposal_handle_in_scope {p : AvailableChain.FGSA.Params} {In V : Type}
+  {c : AvailableChain.FGSA.Run.AppCodec In} [DecidableEq V] (E : AvailableChain.Generic.Env V)
+  (rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c)) (o : AvailableChain.FGSA.Run.Obj p)
+  (s : AvailableChain.Slot) (b : AvailableChain.Block) (raw support : List (AvailableChain.FGSA.HeadWire p.n))
+  (rows : List (AvailableChain.FGSA.RowWire p.n))
+  (ho :
+    o =
+      AvailableChain.FGSA.Run.ofWire p
+        { auth := AvailableChain.Auth.proposer s, payload := AvailableChain.FGSA.Msg.proposal b raw support rows })
+  (j : ℕ) (w : V) (t : AvailableChain.Time) (hh : AvailableChain.V2.D.Run.handlesAt E rho j w o t) :
+  AvailableChain.FGSA.Run.RootBlockInRun p c E rho b
+'AvailableChain.FGSA.Run.proposal_handle_in_scope' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.proposal_trigger_in_scope {p : AvailableChain.FGSA.Params} {In V : Type}
+  {c : AvailableChain.FGSA.Run.AppCodec In} [DecidableEq V] (E : AvailableChain.Generic.Env V)
+  (rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c)) (o : AvailableChain.FGSA.Run.Obj p)
+  (s : AvailableChain.Slot) (b : AvailableChain.Block) (raw support : List (AvailableChain.FGSA.HeadWire p.n))
+  (rows : List (AvailableChain.FGSA.RowWire p.n))
+  (ho :
+    o =
+      AvailableChain.FGSA.Run.ofWire p
+        { auth := AvailableChain.Auth.proposer s, payload := AvailableChain.FGSA.Msg.proposal b raw support rows })
+  (dl : AvailableChain.Time → AvailableChain.Time) (cut t : AvailableChain.Time) (w : V)
+  (hD : AvailableChain.Gen.V2.Duty.DeliveryWithinOn E rho (fun o => ¬AvailableChain.FGSA.Run.isRowObject o) dl cut)
+  (hT : AvailableChain.Gen.V2.Duty.Trigger E rho o t) (hw : w ∈ rho.honest) (hcut : dl t ≤ cut)
+  (hNX :
+    (AvailableChain.FGSA.Run.fgsa p c).excludes (AvailableChain.V2.D.Run.stateBeforeTime E rho (dl t) w) o = false) :
+  AvailableChain.FGSA.Run.RootBlockInRun p c E rho b
+'AvailableChain.FGSA.Run.proposal_trigger_in_scope' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.stored_content_eq {p : AvailableChain.FGSA.Params} {In V : Type}
+  {c : AvailableChain.FGSA.Run.AppCodec In} [DecidableEq V] (E : AvailableChain.Generic.Env V)
+  (rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c))
+  (hr : AvailableChain.FGSA.Run.NamedRootCollisionFree p c E rho) {b b' : AvailableChain.Block}
+  {raw support raw' support' : List (AvailableChain.FGSA.HeadWire p.n)}
+  {rows rows' : List (AvailableChain.FGSA.RowWire p.n)} (hb : AvailableChain.FGSA.Run.RootBlockInRun p c E rho b)
+  (hb' : AvailableChain.FGSA.Run.RootBlockInRun p c E rho b')
+  (hc : AvailableChain.FGSA.contentOk p b raw support rows = true)
+  (hc' : AvailableChain.FGSA.contentOk p b' raw' support' rows' = true) (he : b.root = b'.root) : b = b' ∧ rows = rows'
+'AvailableChain.FGSA.Run.stored_content_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.contentOk_withApp {p : AvailableChain.FGSA.Params} (H : AvailableChain.Block)
+  (s : AvailableChain.Slot) (r : AvailableChain.BlockId) (body app : ℕ)
+  (raw support : List (AvailableChain.FGSA.HeadWire p.n)) (rows : List (AvailableChain.FGSA.RowWire p.n)) :
+  AvailableChain.FGSA.Run.withApp p app (AvailableChain.FGSA.Msg.proposal (H.node s r body) raw support rows) =
+      AvailableChain.FGSA.Msg.proposal (AvailableChain.FGSA.proposalBlock p H s app raw support rows) raw support rows ∧
+    AvailableChain.FGSA.contentOk p (AvailableChain.FGSA.proposalBlock p H s app raw support rows) raw support rows =
+      true
+'AvailableChain.FGSA.Run.contentOk_withApp' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.withApp_zero_proposalBlock {p : AvailableChain.FGSA.Params} (H : AvailableChain.Block)
+  (s : AvailableChain.Slot) (raw support : List (AvailableChain.FGSA.HeadWire p.n))
+  (rows : List (AvailableChain.FGSA.RowWire p.n)) :
+  AvailableChain.FGSA.Run.withApp p 0
+      (AvailableChain.FGSA.Msg.proposal (AvailableChain.FGSA.proposalBlock p H s 0 raw support rows) raw support rows) =
+    AvailableChain.FGSA.Msg.proposal (AvailableChain.FGSA.proposalBlock p H s 0 raw support rows) raw support rows
+'AvailableChain.FGSA.Run.withApp_zero_proposalBlock' depends on axioms: [propext]
+AvailableChain.FGSA.Run.rowsOk_withApp_proposalBlock {p : AvailableChain.FGSA.Params} (H : AvailableChain.Block)
+  (s : AvailableChain.Slot) (app : ℕ) (raw support : List (AvailableChain.FGSA.HeadWire p.n))
+  (rows : List (AvailableChain.FGSA.RowWire p.n)) :
+  AvailableChain.FGSA.rowsOk (AvailableChain.FGSA.proposalBlock p H s app raw support rows) rows = true
+'AvailableChain.FGSA.Run.rowsOk_withApp_proposalBlock' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.rootBlockInRun_delivered {p : AvailableChain.FGSA.Params} {In V : Type}
+  {c : AvailableChain.FGSA.Run.AppCodec In} [DecidableEq V] (E : AvailableChain.Generic.Env V)
+  (rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c)) {x : V} {o : AvailableChain.FGSA.Run.Obj p}
+  {t : AvailableChain.Time} {b : AvailableChain.Block} {raw sup : List (AvailableChain.FGSA.HeadWire p.n)}
+  {rows : List (AvailableChain.FGSA.RowWire p.n)} (hd : AvailableChain.V2.Event.deliver x o t ∈ rho.events)
+  (ho : o.payload = AvailableChain.FGSA.Msg.proposal b raw sup rows) :
+  AvailableChain.FGSA.Run.RootBlockInRun p c E rho b
+'AvailableChain.FGSA.Run.rootBlockInRun_delivered' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.rootBlockInRun_held {p : AvailableChain.FGSA.Params} {In V : Type}
+  {c : AvailableChain.FGSA.Run.AppCodec In} [DecidableEq V] (E : AvailableChain.Generic.Env V)
+  (rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c)) {x : V} (hx : x ∈ rho.honest) (i : ℕ)
+  {b : AvailableChain.Block} (hb : b ∈ (AvailableChain.V2.D.Run.stateBefore E rho i x).st.base.blocks) :
+  AvailableChain.FGSA.Run.RootBlockInRun p c E rho b
+'AvailableChain.FGSA.Run.rootBlockInRun_held' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.rootBlockInRun_ancestor {p : AvailableChain.FGSA.Params} {In V : Type}
+  {c : AvailableChain.FGSA.Run.AppCodec In} [DecidableEq V] (E : AvailableChain.Generic.Env V)
+  (rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c)) {A B : AvailableChain.Block}
+  (hB : AvailableChain.FGSA.Run.RootBlockInRun p c E rho B) (hAB : A.Preceq B) :
+  AvailableChain.FGSA.Run.RootBlockInRun p c E rho A
+'AvailableChain.FGSA.Run.rootBlockInRun_ancestor' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.rootBlockInRun_eq {p : AvailableChain.FGSA.Params} {In V : Type}
+  {c : AvailableChain.FGSA.Run.AppCodec In} [DecidableEq V] (E : AvailableChain.Generic.Env V)
+  (rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c))
+  (hr : AvailableChain.FGSA.Run.NamedRootCollisionFree p c E rho) {A B : AvailableChain.Block}
+  (hA : AvailableChain.FGSA.Run.RootBlockInRun p c E rho A) (hB : AvailableChain.FGSA.Run.RootBlockInRun p c E rho B)
+  (he : A.root = B.root) : A = B
+'AvailableChain.FGSA.Run.rootBlockInRun_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.rootInjectiveOn_run {p : AvailableChain.FGSA.Params} {In V : Type}
+  {c : AvailableChain.FGSA.Run.AppCodec In} [DecidableEq V] (E : AvailableChain.Generic.Env V)
+  (rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c))
+  (hr : AvailableChain.FGSA.Run.NamedRootCollisionFree p c E rho) {K W : AvailableChain.SimplexFG.FGBlock (Fin p.n)}
+  (hK : AvailableChain.FGSA.Run.RootBlockInRun p c E rho (AvailableChain.FGSA.eraseFG K))
+  (hW : AvailableChain.FGSA.Run.RootBlockInRun p c E rho (AvailableChain.FGSA.eraseFG W)) :
+  AvailableChain.KitFG.RootInjectiveOn K W
+'AvailableChain.FGSA.Run.rootInjectiveOn_run' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.storeStepRoots_run {p : AvailableChain.FGSA.Params} {In V : Type}
+  {c : AvailableChain.FGSA.Run.AppCodec In} [DecidableEq V] (E : AvailableChain.Generic.Env V)
+  (rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c))
+  (hr : AvailableChain.FGSA.Run.NamedRootCollisionFree p c E rho) (st : AvailableChain.SimplexFG.Store (Fin p.n))
+  (B : AvailableChain.SimplexFG.FGBlock (Fin p.n))
+  (hs : ∀ W ∈ insert B st.TF, AvailableChain.FGSA.Run.RootBlockInRun p c E rho (AvailableChain.FGSA.eraseFG W)) :
+  AvailableChain.KitFG.StoreStepRoots st B
+'AvailableChain.FGSA.Run.storeStepRoots_run' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.stored_fg_body_delivery {p : AvailableChain.FGSA.Params} {In V : Type}
+  {c : AvailableChain.FGSA.Run.AppCodec In} [DecidableEq V] (E : AvailableChain.Generic.Env V)
+  (rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c)) (i : ℕ) (x : V)
+  (W : AvailableChain.SimplexFG.FGBlock (Fin p.n)) (hW : W ∈ (AvailableChain.V2.D.Run.stateBefore E rho i x).st.fg.TF)
+  (hne : W ≠ AvailableChain.SimplexFG.FGBlock.genesis) :
+  ∃ s raw sup rows,
+    W.rows = List.filterMap AvailableChain.FGSA.RowWire.toRow? rows ∧
+      ∃ j o t,
+        j < i ∧
+          rho.events[j]? = some (AvailableChain.V2.Event.deliver x o t) ∧
+            o =
+              AvailableChain.FGSA.Run.ofWire p
+                { auth := AvailableChain.Auth.proposer s,
+                  payload := AvailableChain.FGSA.Msg.proposal (AvailableChain.FGSA.eraseFG W) raw sup rows }
+'AvailableChain.FGSA.Run.stored_fg_body_delivery' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.stored_body_delivery {p : AvailableChain.FGSA.Params} {In V : Type}
+  {c : AvailableChain.FGSA.Run.AppCodec In} [DecidableEq V] (E : AvailableChain.Generic.Env V)
+  (rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c)) (i : ℕ) (x : V) {b : AvailableChain.Block}
+  (hb : b ∈ (AvailableChain.V2.D.Run.stateBefore E rho i x).st.base.blocks) (hne : b ≠ AvailableChain.Block.genesis) :
+  ∃ j o t raw sup rows,
+    j < i ∧
+      rho.events[j]? = some (AvailableChain.V2.Event.deliver x o t) ∧
+        o.payload = AvailableChain.FGSA.Msg.proposal b raw sup rows
+'AvailableChain.FGSA.Run.stored_body_delivery' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.rootBlockInRun_stored {p : AvailableChain.FGSA.Params} {In V : Type}
+  {c : AvailableChain.FGSA.Run.AppCodec In} [DecidableEq V] (E : AvailableChain.Generic.Env V)
+  (rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c)) (i : ℕ) (x : V) {b : AvailableChain.Block}
+  (hb : b ∈ (AvailableChain.V2.D.Run.stateBefore E rho i x).st.base.blocks) (hne : b ≠ AvailableChain.Block.genesis) :
+  AvailableChain.FGSA.Run.RootBlockInRun p c E rho b
+'AvailableChain.FGSA.Run.rootBlockInRun_stored' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.rootBlockInRun_stored_proposal {p : AvailableChain.FGSA.Params} {In V : Type}
+  {c : AvailableChain.FGSA.Run.AppCodec In} [DecidableEq V] (E : AvailableChain.Generic.Env V)
+  (rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c)) (i : ℕ) (x : V) {s : AvailableChain.Slot}
+  {b : AvailableChain.Block} {raw sup : List (AvailableChain.FGSA.HeadWire p.n)}
+  {rows : List (AvailableChain.FGSA.RowWire p.n)}
+  (hw :
+    { auth := AvailableChain.Auth.proposer s, payload := AvailableChain.FGSA.Msg.proposal b raw sup rows } ∈
+      (AvailableChain.V2.D.Run.stateBefore E rho i x).st.proposals) :
+  AvailableChain.FGSA.Run.RootBlockInRun p c E rho b
+'AvailableChain.FGSA.Run.rootBlockInRun_stored_proposal' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.stored_body_ancestor {p : AvailableChain.FGSA.Params} {In V : Type}
+  {c : AvailableChain.FGSA.Run.AppCodec In} [DecidableEq V] (E : AvailableChain.Generic.Env V)
+  (rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c)) (i : ℕ) (x : V) {A B : AvailableChain.Block}
+  (hB : B ∈ (AvailableChain.V2.D.Run.stateBefore E rho i x).st.base.blocks) (hAB : A.Preceq B) :
+  A ∈ (AvailableChain.V2.D.Run.stateBefore E rho i x).st.base.blocks
+'AvailableChain.FGSA.Run.stored_body_ancestor' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.emitted_proposal_parent_stored {p : AvailableChain.FGSA.Params} {In V : Type}
+  {c : AvailableChain.FGSA.Run.AppCodec In} [DecidableEq V] (E : AvailableChain.Generic.Env V)
+  (rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c)) (i : ℕ) (x : V) (t : AvailableChain.Time)
+  (s : AvailableChain.Slot) (b : AvailableChain.Block) (raw sup : List (AvailableChain.FGSA.HeadWire p.n))
+  (rows : List (AvailableChain.FGSA.RowWire p.n)) (hi : rho.events[i]? = some (AvailableChain.V2.Event.tick x t))
+  (hem :
+    AvailableChain.FGSA.Run.ofWire p
+        { auth := AvailableChain.Auth.proposer s, payload := AvailableChain.FGSA.Msg.proposal b raw sup rows } ∈
+      AvailableChain.V2.D.Run.emitsAt E rho i) :
+  b.parent ∈ (AvailableChain.V2.D.Run.stateBefore E rho i x).st.base.blocks
+'AvailableChain.FGSA.Run.emitted_proposal_parent_stored' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.emitted_payload_parent_stored {p : AvailableChain.FGSA.Params} {In V : Type}
+  {c : AvailableChain.FGSA.Run.AppCodec In} [DecidableEq V] (E : AvailableChain.Generic.Env V)
+  (rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c)) {x : V} {o : AvailableChain.FGSA.Run.Obj p}
+  {t : AvailableChain.Time} {b : AvailableChain.Block} {raw sup : List (AvailableChain.FGSA.HeadWire p.n)}
+  {rows : List (AvailableChain.FGSA.RowWire p.n)} (hem : AvailableChain.V2.D.Run.emits E rho x o t)
+  (ho : o.payload = AvailableChain.FGSA.Msg.proposal b raw sup rows) :
+  ∃ i, b.parent ∈ (AvailableChain.V2.D.Run.stateBefore E rho i x).st.base.blocks
+'AvailableChain.FGSA.Run.emitted_payload_parent_stored' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.emitted_proposal_slot_root {p : AvailableChain.FGSA.Params} {In V : Type}
+  {c : AvailableChain.FGSA.Run.AppCodec In} [DecidableEq V] (E : AvailableChain.Generic.Env V)
+  (rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c))
+  (hdigest : ∀ (d : AvailableChain.FGSA.DigestInput p.n), p.digest d = { value := d.slot + 1 }) (i : ℕ) (x : V)
+  (t : AvailableChain.Time) (s : AvailableChain.Slot) (b : AvailableChain.Block)
+  (raw sup : List (AvailableChain.FGSA.HeadWire p.n)) (rows : List (AvailableChain.FGSA.RowWire p.n))
+  (hi : rho.events[i]? = some (AvailableChain.V2.Event.tick x t))
+  (hem :
+    AvailableChain.FGSA.Run.ofWire p
+        { auth := AvailableChain.Auth.proposer s, payload := AvailableChain.FGSA.Msg.proposal b raw sup rows } ∈
+      AvailableChain.V2.D.Run.emitsAt E rho i) :
+  b.root = { value := b.slot + 1 }
+'AvailableChain.FGSA.Run.emitted_proposal_slot_root' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.rootBlockInRun_genesis_or_delivered {p : AvailableChain.FGSA.Params} {In V : Type}
+  {c : AvailableChain.FGSA.Run.AppCodec In} [DecidableEq V] (E : AvailableChain.Generic.Env V)
+  (rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c))
+  (hparents :
+    ∀ (x : V) (o : (AvailableChain.FGSA.Run.fgsa p c).Object) (t : AvailableChain.Time) (b : AvailableChain.Block)
+      (raw sup : List (AvailableChain.FGSA.HeadWire p.n)) (rows : List (AvailableChain.FGSA.RowWire p.n)),
+      AvailableChain.V2.Event.deliver x o t ∈ rho.events →
+        o.payload = AvailableChain.FGSA.Msg.proposal b raw sup rows →
+          ∃ i y, b.parent ∈ (AvailableChain.V2.D.Run.stateBefore E rho i y).st.base.blocks)
+  {A : AvailableChain.Block} (hA : AvailableChain.FGSA.Run.RootBlockInRun p c E rho A) :
+  A = AvailableChain.Block.genesis ∨
+    ∃ x o t raw sup rows,
+      AvailableChain.V2.Event.deliver x o t ∈ rho.events ∧ o.payload = AvailableChain.FGSA.Msg.proposal A raw sup rows
+'AvailableChain.FGSA.Run.rootBlockInRun_genesis_or_delivered' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.rootBlockInRun_origin {p : AvailableChain.FGSA.Params} {In V : Type}
+  {c : AvailableChain.FGSA.Run.AppCodec In} [DecidableEq V] (E : AvailableChain.Generic.Env V)
+  (rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c))
+  (hparents :
+    ∀ (x : V) (o : (AvailableChain.FGSA.Run.fgsa p c).Object) (t : AvailableChain.Time) (b : AvailableChain.Block)
+      (raw sup : List (AvailableChain.FGSA.HeadWire p.n)) (rows : List (AvailableChain.FGSA.RowWire p.n)),
+      AvailableChain.V2.Event.deliver x o t ∈ rho.events →
+        o.payload = AvailableChain.FGSA.Msg.proposal b raw sup rows →
+          ∃ i y, b.parent ∈ (AvailableChain.V2.D.Run.stateBefore E rho i y).st.base.blocks)
+  (Q : AvailableChain.Block → Prop) (hgen : Q AvailableChain.Block.genesis)
+  (hdel :
+    ∀ (x : V) (o : (AvailableChain.FGSA.Run.fgsa p c).Object) (t : AvailableChain.Time) (b : AvailableChain.Block)
+      (raw sup : List (AvailableChain.FGSA.HeadWire p.n)) (rows : List (AvailableChain.FGSA.RowWire p.n)),
+      AvailableChain.V2.Event.deliver x o t ∈ rho.events →
+        o.payload = AvailableChain.FGSA.Msg.proposal b raw sup rows → Q b)
+  {A : AvailableChain.Block} (hA : AvailableChain.FGSA.Run.RootBlockInRun p c E rho A) : Q A
+'AvailableChain.FGSA.Run.rootBlockInRun_origin' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.rootScope_store {p : AvailableChain.FGSA.Params} {In V : Type}
+  {c : AvailableChain.FGSA.Run.AppCodec In} [DecidableEq V] {E : AvailableChain.Generic.Env V}
+  {rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c)} {i : ℕ} {x : V} (hx : x ∈ rho.honest)
+  {B : AvailableChain.SimplexFG.FGBlock (Fin p.n)} (hB : B ∈ (AvailableChain.FGSA.Run.storeAt p c E rho i x).fg.TF) :
+  AvailableChain.FGSA.Run.RootBlockInRun p c E rho (AvailableChain.FGSA.eraseFG B)
+'AvailableChain.FGSA.Run.rootScope_store' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.rootScope_ancestor {p : AvailableChain.FGSA.Params} {In V : Type}
+  {c : AvailableChain.FGSA.Run.AppCodec In} [DecidableEq V] {E : AvailableChain.Generic.Env V}
+  {rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c)}
+  {A B : AvailableChain.SimplexFG.FGBlock (Fin p.n)}
+  (hB : AvailableChain.FGSA.Run.RootBlockInRun p c E rho (AvailableChain.FGSA.eraseFG B)) (hAB : A.Preceq B) :
+  AvailableChain.FGSA.Run.RootBlockInRun p c E rho (AvailableChain.FGSA.eraseFG A)
+'AvailableChain.FGSA.Run.rootScope_ancestor' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.rootScope_eq {p : AvailableChain.FGSA.Params} {In V : Type}
+  {c : AvailableChain.FGSA.Run.AppCodec In} [DecidableEq V] {E : AvailableChain.Generic.Env V}
+  {rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c)}
+  (hr : AvailableChain.FGSA.Run.NamedRootCollisionFree p c E rho) {A B : AvailableChain.SimplexFG.FGBlock (Fin p.n)}
+  (hA : AvailableChain.FGSA.Run.RootBlockInRun p c E rho (AvailableChain.FGSA.eraseFG A))
+  (hB : AvailableChain.FGSA.Run.RootBlockInRun p c E rho (AvailableChain.FGSA.eraseFG B)) (he : A.root = B.root) : A = B
+'AvailableChain.FGSA.Run.rootScope_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.rootScope_source {p : AvailableChain.FGSA.Params} {In V : Type}
+  {c : AvailableChain.FGSA.Run.AppCodec In} [DecidableEq V] {E : AvailableChain.Generic.Env V}
+  {rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c)} {x : V} {r : ℕ}
+  {B : AvailableChain.SimplexFG.FGBlock (Fin p.n)} (hx : x ∈ rho.honest)
+  (hB : AvailableChain.FGSA.Run.actionSourceFG p c E rho x r = some (some B)) :
+  AvailableChain.FGSA.Run.RootBlockInRun p c E rho (AvailableChain.FGSA.eraseFG B)
+'AvailableChain.FGSA.Run.rootScope_source' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.certified_preceq {p : AvailableChain.FGSA.Params}
+  {W e : AvailableChain.SimplexFG.FGBlock (Fin p.n)} (he : e ∈ AvailableChain.FGSA.Run.certified p W) : e.Preceq W
+'AvailableChain.FGSA.Run.certified_preceq' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.rootScope_entry {p : AvailableChain.FGSA.Params} {In V : Type}
+  {c : AvailableChain.FGSA.Run.AppCodec In} [DecidableEq V] {E : AvailableChain.Generic.Env V}
+  {rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c)} {B : AvailableChain.SimplexFG.FGBlock (Fin p.n)}
+  (hB : AvailableChain.FGSA.Run.RootBlockInRun p c E rho (AvailableChain.FGSA.eraseFG B)) :
+  AvailableChain.FGSA.Run.RootBlockInRun p c E rho
+    (AvailableChain.FGSA.eraseFG (AvailableChain.FGSA.heightView p B).T_h)
+'AvailableChain.FGSA.Run.rootScope_entry' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.rootScope_justified {p : AvailableChain.FGSA.Params} {In V : Type}
+  {c : AvailableChain.FGSA.Run.AppCodec In} [DecidableEq V] {E : AvailableChain.Generic.Env V}
+  {rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c)} {B : AvailableChain.SimplexFG.FGBlock (Fin p.n)}
+  (hB : AvailableChain.FGSA.Run.RootBlockInRun p c E rho (AvailableChain.FGSA.eraseFG B)) :
+  AvailableChain.FGSA.Run.RootBlockInRun p c E rho (AvailableChain.FGSA.eraseFG (AvailableChain.FGSA.heightView p B).J)
+'AvailableChain.FGSA.Run.rootScope_justified' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.rootScope_finalized {p : AvailableChain.FGSA.Params} {In V : Type}
+  {c : AvailableChain.FGSA.Run.AppCodec In} [DecidableEq V] {E : AvailableChain.Generic.Env V}
+  {rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c)} {B : AvailableChain.SimplexFG.FGBlock (Fin p.n)}
+  (hB : AvailableChain.FGSA.Run.RootBlockInRun p c E rho (AvailableChain.FGSA.eraseFG B)) :
+  AvailableChain.FGSA.Run.RootBlockInRun p c E rho
+    (AvailableChain.FGSA.eraseFG (AvailableChain.FGSA.finalityView p B).F)
+'AvailableChain.FGSA.Run.rootScope_finalized' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.srcFrameAbove_scoped {In V : Type} [DecidableEq V] (p : AvailableChain.FGSA.Params)
+  (c : AvailableChain.FGSA.Run.AppCodec In) (E : AvailableChain.Generic.Env V)
+  (rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c)) (hS : AvailableChain.FGSA.Run.RStore p c E rho)
+  (hstrat : AvailableChain.FGSA.Run.RStrat p c E rho) (Φ : AvailableChain.SimplexFG.FGBlock (Fin p.n) → Prop) (c₀ : ℕ)
+  (_hclosed : AvailableChain.FGSA.Run.AncestorClosed p Φ)
+  (hg :
+    c₀ ≤ (AvailableChain.FGSA.heightView p AvailableChain.SimplexFG.FGBlock.genesis).h →
+      Φ AvailableChain.SimplexFG.FGBlock.genesis)
+  (i : ℕ) (x : V) (hx : x ∈ rho.honest)
+  (hrows :
+    ∀ (y : V) (r : ℕ) (a : AvailableChain.FGSA.RowWire p.n) (e : AvailableChain.SimplexFG.FGBlock (Fin p.n)),
+      AvailableChain.FGSA.Run.HonestRowBefore p c E rho i y r a →
+        AvailableChain.FGSA.Run.namedEntry a.payload.height_pair =
+            some ((AvailableChain.FGSA.heightView p e).h, e.root) →
+          AvailableChain.FGSA.Run.RootBlockInRun p c E rho (AvailableChain.FGSA.eraseFG e) →
+            c₀ ≤ (AvailableChain.FGSA.heightView p e).h → Φ e) :
+  (∀ W ∈ (AvailableChain.FGSA.Run.storeAt p c E rho i x).fg.TF,
+      ∀ e ∈ AvailableChain.FGSA.Run.certified p W, c₀ ≤ (AvailableChain.FGSA.heightView p e).h → Φ e) ∧
+    AvailableChain.FGSA.Run.FrameBelow p Φ c₀ (AvailableChain.FGSA.Run.R_at p c E rho i x)
+'AvailableChain.FGSA.Run.srcFrameAbove_scoped' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.rootScope_result {p : AvailableChain.FGSA.Params} {In V : Type}
+  {c : AvailableChain.FGSA.Run.AppCodec In} [DecidableEq V] {E : AvailableChain.Generic.Env V}
+  {rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c)} (hv : AvailableChain.V2.D.ExecutionValid E rho)
+  {i r : ℕ} {B : AvailableChain.Block} (hB : (r, B) ∈ AvailableChain.FGSA.Run.cleanResults p c E rho i) :
+  AvailableChain.FGSA.Run.RootBlockInRun p c E rho B
+'AvailableChain.FGSA.Run.rootScope_result' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.rootScope_belowLabel {p : AvailableChain.FGSA.Params} {In V : Type}
+  {c : AvailableChain.FGSA.Run.AppCodec In} [DecidableEq V] {E : AvailableChain.Generic.Env V}
+  {rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c)} (hv : AvailableChain.V2.D.ExecutionValid E rho)
+  {x : V} (hx : x ∈ rho.honest) {i r : ℕ} {B : AvailableChain.Block}
+  (hB : AvailableChain.FGSA.Run.BelowLabel p c E rho i r B) : AvailableChain.FGSA.Run.RootBlockInRun p c E rho B
+'AvailableChain.FGSA.Run.rootScope_belowLabel' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.contentAgree_run {p : AvailableChain.FGSA.Params} {In V : Type} [DecidableEq V]
+  {c : AvailableChain.FGSA.Run.AppCodec In} (E : AvailableChain.Generic.Env V)
+  (rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c))
+  (hr : AvailableChain.FGSA.Run.NamedRootCollisionFree p c E rho) (v w : V) (i j : ℕ) :
+  AvailableChain.FGSA.ContentAgree (AvailableChain.V2.D.Run.stateBefore E rho i v).st
+    (AvailableChain.V2.D.Run.stateBefore E rho j w).st
+'AvailableChain.FGSA.Run.contentAgree_run' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.fgsa_proposal_receipt {p : AvailableChain.FGSA.Params} {In V : Type} [DecidableEq V]
+  {c : AvailableChain.FGSA.Run.AppCodec In} (E : AvailableChain.Generic.Env V)
+  (rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c))
+  (hRoots : AvailableChain.FGSA.Run.NamedRootCollisionFree p c E rho) (hDelta : E.Δ = p.Δ)
+  (hExecution : AvailableChain.V2.D.ExecutionValid E rho) (hNoRestart : AvailableChain.V2.D.NoRestart rho)
+  (dl : AvailableChain.Time → AvailableChain.Time) (cut : AvailableChain.Time) (s : AvailableChain.Slot)
+  (b : AvailableChain.Block) (raw sup : List (AvailableChain.FGSA.HeadWire p.n))
+  (rows : List (AvailableChain.FGSA.RowWire p.n)) (t : AvailableChain.Time) (w : V)
+  (hD : AvailableChain.Gen.V2.Duty.DeliveryWithinOn E rho (fun o => ¬AvailableChain.FGSA.Run.isRowObject o) dl cut)
+  (hT :
+    AvailableChain.Gen.V2.Duty.Trigger E rho
+      (AvailableChain.FGSA.Run.ofWire p
+        { auth := AvailableChain.Auth.proposer s, payload := AvailableChain.FGSA.Msg.proposal b raw sup rows })
+      t)
+  (hw : w ∈ rho.honest) (hcut : dl t ≤ cut) (hlt : t < dl t)
+  (hCompat :
+    b.Compatible (AvailableChain.FGSA.eraseFG (AvailableChain.V2.D.Run.stateBeforeTime E rho (dl t) w).st.fg.F)) :
+  ∃ Y ∈ (AvailableChain.V2.D.Run.stateBeforeTime E rho (dl t) w).st.fg.TF, AvailableChain.FGSA.eraseFG Y = b
+'AvailableChain.FGSA.Run.fgsa_proposal_receipt' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.fgsa_receiptCoverage : AvailableChain.FGSA.Run.ReceiptCoverageStatement
+'AvailableChain.FGSA.Run.fgsa_receiptCoverage' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.fgsa_ordinary_parent_of_live_prefix (p : AvailableChain.FGSA.Params)
+  (src : AvailableChain.FGSA.State p.n) (raw sup : List (AvailableChain.GridCO.Wire p.n)) (A : AvailableChain.Block)
+  (hroot :
+    ∀ B ∈ AvailableChain.FGSA.erasedList src (AvailableChain.FGSA.fullTree p src),
+      ∀ C ∈ AvailableChain.FGSA.erasedList src (AvailableChain.FGSA.fullTree p src), B.root = C.root → B = C)
+  (hparent : AvailableChain.FGSA.getHead p src raw sup = A)
+  (hprefix :
+    have z := AvailableChain.FGSA.eraseFG (AvailableChain.FGSA.controls p src).Z;
+    have ap := AvailableChain.FGSA.liveRoot p src;
+    have S :=
+      List.filter
+        (fun b =>
+          decide
+            (∃ B ∈ AvailableChain.SimplexFG.storeFrame p.E p.cfg src.fg src.fg.TF, AvailableChain.FGSA.eraseFG B = b))
+        src.base.blocks;
+    have ss := AvailableChain.GridCO.goldfishScore src.base.blocks raw sup;
+    have es := AvailableChain.FGSA.eligible p src raw sup;
+    ∀ (X : AvailableChain.Block),
+      z.Preceq X →
+        X.Prec ap →
+          ∃ C,
+            C.parent? = some X ∧
+              C.Preceq ap ∧
+                C ∈ S ∧
+                  es C = true ∧
+                    ∀ D ∈ S, D.parent? = some X → es D = true → ss D ≤ ss C ∧ (ss D = ss C → D.root ≤ C.root)) :
+  have z := AvailableChain.FGSA.eraseFG (AvailableChain.FGSA.controls p src).Z;
+  have S :=
+    List.filter
+      (fun b =>
+        decide
+          (∃ B ∈ AvailableChain.SimplexFG.storeFrame p.E p.cfg src.fg src.fg.TF, AvailableChain.FGSA.eraseFG B = b))
+      src.base.blocks;
+  have ss := AvailableChain.GridCO.goldfishScore src.base.blocks raw sup;
+  have es := AvailableChain.FGSA.eligible p src raw sup;
+  AvailableChain.GridCO.ghost z S ss es = AvailableChain.FGSA.getHead p src raw sup ∧
+    AvailableChain.GridCO.ghost z S ss es = A
+'AvailableChain.FGSA.fgsa_ordinary_parent_of_live_prefix' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.exactHead_of_pivot_ancestry (p : AvailableChain.FGSA.Params)
+  (st : AvailableChain.FGSA.State p.n) (Y : Finset (AvailableChain.SimplexFG.FGBlock (Fin p.n)))
+  (raw support : List (AvailableChain.GridCO.Wire p.n)) (T P Q : AvailableChain.Block)
+  (hroot :
+    ∀ A ∈ AvailableChain.FGSA.erasedList st (AvailableChain.FGSA.Run.domainR p st Y),
+      ∀ B ∈ AvailableChain.FGSA.erasedList st (AvailableChain.FGSA.Run.domainR p st Y), A.root = B.root → A = B)
+  (hstart :
+    (AvailableChain.FGSA.liveRoot p st).Preceq T ∧
+        AvailableChain.Gen.Pure.DominatedSuffix (AvailableChain.FGSA.liveRoot p st) T
+          (AvailableChain.FGSA.erasedList st (AvailableChain.FGSA.Run.domainR p st Y))
+          (AvailableChain.GridCO.goldfishScore st.base.blocks raw support)
+          (AvailableChain.FGSA.eligible p st raw support) ∨
+      T.Preceq (AvailableChain.FGSA.liveRoot p st) ∧ (AvailableChain.FGSA.liveRoot p st).Preceq P)
+  (hTP : T.Preceq P)
+  (hancestry :
+    ∀ (X : AvailableChain.Block),
+      T.Preceq X →
+        (AvailableChain.FGSA.liveRoot p st).Preceq X →
+          X.Prec P →
+            ∃ C,
+              C.parent? = some X ∧
+                C.Preceq P ∧
+                  C ∈ AvailableChain.FGSA.erasedList st (AvailableChain.FGSA.Run.domainR p st Y) ∧
+                    AvailableChain.FGSA.eligible p st raw support C = true ∧
+                      ∀ D ∈ AvailableChain.FGSA.erasedList st (AvailableChain.FGSA.Run.domainR p st Y),
+                        D.parent? = some X →
+                          AvailableChain.FGSA.eligible p st raw support D = true →
+                            AvailableChain.GridCO.goldfishScore st.base.blocks raw support D ≤
+                                AvailableChain.GridCO.goldfishScore st.base.blocks raw support C ∧
+                              (AvailableChain.GridCO.goldfishScore st.base.blocks raw support D =
+                                  AvailableChain.GridCO.goldfishScore st.base.blocks raw support C →
+                                D.root ≤ C.root))
+  (hlast :
+    P = Q ∨
+      Q ∈ AvailableChain.FGSA.erasedList st (AvailableChain.FGSA.Run.domainR p st Y) ∧
+        Q.parent? = some P ∧
+          AvailableChain.FGSA.eligible p st raw support Q = true ∧
+            ∀ C ∈ AvailableChain.FGSA.erasedList st (AvailableChain.FGSA.Run.domainR p st Y),
+              C.parent? = some P → AvailableChain.FGSA.eligible p st raw support C = true → C = Q)
+  (hstop :
+    AvailableChain.Gen.Pure.NoEligibleChild (AvailableChain.FGSA.erasedList st (AvailableChain.FGSA.Run.domainR p st Y))
+      (AvailableChain.FGSA.eligible p st raw support) Q) :
+  AvailableChain.FGSA.headInTree p st (AvailableChain.FGSA.erasedList st (AvailableChain.FGSA.Run.domainR p st Y)) raw
+      support =
+    Q
+'AvailableChain.FGSA.Run.exactHead_of_pivot_ancestry' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.fgsa_ordinary_parent_of_live_cover (p : AvailableChain.FGSA.Params)
+  (src : AvailableChain.FGSA.State p.n) (raw sup : List (AvailableChain.GridCO.Wire p.n)) (A : AvailableChain.Block)
+  (hroot :
+    ∀ B ∈ AvailableChain.FGSA.erasedList src (AvailableChain.FGSA.fullTree p src),
+      ∀ C ∈ AvailableChain.FGSA.erasedList src (AvailableChain.FGSA.fullTree p src), B.root = C.root → B = C)
+  (hparent : AvailableChain.FGSA.getHead p src raw sup = A)
+  (hcover :
+    (AvailableChain.FGSA.liveRoot p src).Preceq
+      (AvailableChain.GridCO.ghost (AvailableChain.FGSA.eraseFG (AvailableChain.FGSA.controls p src).Z)
+        (List.filter
+          (fun b =>
+            decide
+              (∃ B ∈ AvailableChain.SimplexFG.storeFrame p.E p.cfg src.fg src.fg.TF, AvailableChain.FGSA.eraseFG B = b))
+          src.base.blocks)
+        (AvailableChain.GridCO.goldfishScore src.base.blocks raw sup) (AvailableChain.FGSA.eligible p src raw sup))) :
+  AvailableChain.GridCO.ghost (AvailableChain.FGSA.eraseFG (AvailableChain.FGSA.controls p src).Z)
+      (List.filter
+        (fun b =>
+          decide
+            (∃ B ∈ AvailableChain.SimplexFG.storeFrame p.E p.cfg src.fg src.fg.TF, AvailableChain.FGSA.eraseFG B = b))
+        src.base.blocks)
+      (AvailableChain.GridCO.goldfishScore src.base.blocks raw sup) (AvailableChain.FGSA.eligible p src raw sup) =
+    A
+'AvailableChain.FGSA.fgsa_ordinary_parent_of_live_cover' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.exactHead_of_pivot (p : AvailableChain.FGSA.Params) (st st' : AvailableChain.FGSA.State p.n)
+  (X Y : Finset (AvailableChain.SimplexFG.FGBlock (Fin p.n)))
+  (raw support raw' support' : List (AvailableChain.GridCO.Wire p.n)) (T P Q : AvailableChain.Block)
+  (hroot :
+    ∀ A ∈ AvailableChain.FGSA.erasedList st' (AvailableChain.FGSA.Run.domainR p st' Y),
+      ∀ B ∈ AvailableChain.FGSA.erasedList st' (AvailableChain.FGSA.Run.domainR p st' Y), A.root = B.root → A = B)
+  (hAT : (AvailableChain.FGSA.liveRoot p st).Preceq T) (hAT' : (AvailableChain.FGSA.liveRoot p st').Preceq T)
+  (hTP : T.Preceq P)
+  (hprefix :
+    AvailableChain.Gen.Pure.DominatedSuffix (AvailableChain.FGSA.liveRoot p st) T
+      (AvailableChain.FGSA.erasedList st (AvailableChain.FGSA.Run.domainR p st X))
+      (AvailableChain.GridCO.goldfishScore st.base.blocks raw support) (AvailableChain.FGSA.eligible p st raw support))
+  (hprefix' :
+    AvailableChain.Gen.Pure.DominatedSuffix (AvailableChain.FGSA.liveRoot p st') T
+      (AvailableChain.FGSA.erasedList st' (AvailableChain.FGSA.Run.domainR p st' Y))
+      (AvailableChain.GridCO.goldfishScore st'.base.blocks raw' support')
+      (AvailableChain.FGSA.eligible p st' raw' support'))
+  (hcover :
+    P.Preceq
+      (AvailableChain.FGSA.headInTree p st (AvailableChain.FGSA.erasedList st (AvailableChain.FGSA.Run.domainR p st X))
+        raw support))
+  (hkeep :
+    AvailableChain.Gen.Pure.SuffixPersists T P
+      (AvailableChain.FGSA.erasedList st (AvailableChain.FGSA.Run.domainR p st X))
+      (AvailableChain.FGSA.erasedList st' (AvailableChain.FGSA.Run.domainR p st' Y))
+      (AvailableChain.GridCO.goldfishScore st.base.blocks raw support) (AvailableChain.FGSA.eligible p st raw support)
+      (AvailableChain.FGSA.eligible p st' raw' support'))
+  (hreflect :
+    AvailableChain.Gen.Pure.SuffixReflects T P
+      (AvailableChain.FGSA.erasedList st (AvailableChain.FGSA.Run.domainR p st X))
+      (AvailableChain.FGSA.erasedList st' (AvailableChain.FGSA.Run.domainR p st' Y))
+      (AvailableChain.FGSA.eligible p st raw support) (AvailableChain.FGSA.eligible p st' raw' support'))
+  (hscore :
+    AvailableChain.Gen.Pure.SuffixScoresAgree T P
+      (AvailableChain.FGSA.erasedList st' (AvailableChain.FGSA.Run.domainR p st' Y))
+      (AvailableChain.GridCO.goldfishScore st.base.blocks raw support)
+      (AvailableChain.GridCO.goldfishScore st'.base.blocks raw' support')
+      (AvailableChain.FGSA.eligible p st' raw' support'))
+  (hlast :
+    P = Q ∨
+      Q ∈ AvailableChain.FGSA.erasedList st' (AvailableChain.FGSA.Run.domainR p st' Y) ∧
+        Q.parent? = some P ∧
+          AvailableChain.FGSA.eligible p st' raw' support' Q = true ∧
+            ∀ C ∈ AvailableChain.FGSA.erasedList st' (AvailableChain.FGSA.Run.domainR p st' Y),
+              C.parent? = some P → AvailableChain.FGSA.eligible p st' raw' support' C = true → C = Q)
+  (hclosed :
+    AvailableChain.Gen.Pure.AnchorClosed T
+      (AvailableChain.FGSA.erasedList st' (AvailableChain.FGSA.Run.domainR p st' Y)))
+  (hstop :
+    AvailableChain.Gen.Pure.NoEligibleChild
+      (AvailableChain.FGSA.erasedList st' (AvailableChain.FGSA.Run.domainR p st' Y))
+      (AvailableChain.FGSA.eligible p st' raw' support') Q) :
+  AvailableChain.FGSA.headInTree p st' (AvailableChain.FGSA.erasedList st' (AvailableChain.FGSA.Run.domainR p st' Y))
+      raw' support' =
+    Q
+'AvailableChain.FGSA.Run.exactHead_of_pivot' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.finalityRun_parent_scope (p : AvailableChain.FGSA.Params) {In V : Type} [DecidableEq V]
+  (c : AvailableChain.FGSA.Run.AppCodec In) (E : AvailableChain.Generic.Env V)
+  (rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c)) {K : AvailableChain.SimplexFG.FGBlock (Fin p.n)}
+  (hK : AvailableChain.FGSA.Run.FinalityRunBlock p c E rho K)
+  (hne : K.parent ≠ AvailableChain.SimplexFG.FGBlock.genesis) :
+  AvailableChain.FGSA.Run.RootBlockInRun p c E rho (AvailableChain.FGSA.eraseFG K.parent)
+'AvailableChain.FGSA.Run.finalityRun_parent_scope' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.fgsa_runAccountable (p : AvailableChain.FGSA.Params) {In V : Type} [DecidableEq V]
+  (c : AvailableChain.FGSA.Run.AppCodec In) (E : AvailableChain.Generic.Env V)
+  (rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c))
+  (hroots : AvailableChain.FGSA.Run.NamedRootCollisionFree p c E rho) {K W : AvailableChain.SimplexFG.FGBlock (Fin p.n)}
+  (hK : AvailableChain.FGSA.Run.FinalityRunBlock p c E rho K)
+  (hW : AvailableChain.FGSA.Run.FinalityRunBlock p c E rho W) :
+  AvailableChain.SimplexFG.HasSlashableWeightBetween p.E (AvailableChain.SimplexFG.chainRows K)
+      (AvailableChain.SimplexFG.chainRows W) ∨
+    (AvailableChain.FGSA.finalityView p K).F.compatible (AvailableChain.FGSA.finalityView p W).F = true
+'AvailableChain.FGSA.Run.fgsa_runAccountable' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.rootScope_finality_read (p : AvailableChain.FGSA.Params) {In V : Type} [DecidableEq V]
+  (c : AvailableChain.FGSA.Run.AppCodec In) (E : AvailableChain.Generic.Env V)
+  (rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c)) (t : AvailableChain.Time) (x : V)
+  (hx : x ∈ rho.honest) (K : AvailableChain.SimplexFG.FGBlock (Fin p.n))
+  (hK : K ∈ (AvailableChain.V2.D.Run.readAt E rho t x).st.fg.TF) :
+  AvailableChain.FGSA.Run.RootBlockInRun p c E rho (AvailableChain.FGSA.eraseFG K)
+'AvailableChain.FGSA.Run.rootScope_finality_read' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.cpPrefix_of_srcFrame (p : AvailableChain.FGSA.Params) {In V : Type}
+  (c : AvailableChain.FGSA.Run.AppCodec In) [DecidableEq V] (E : AvailableChain.Generic.Env V)
+  (rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c))
+  (hstore : AvailableChain.FGSA.Run.RStore p c E rho) (hframe : AvailableChain.FGSA.Run.RFrameExact p c E rho)
+  (hr : AvailableChain.FGSA.Run.NamedRootCollisionFree p c E rho) (hstrat : AvailableChain.FGSA.Run.RStrat p c E rho) :
+  AvailableChain.FGSA.Run.CPPrefix p c E rho
+'AvailableChain.FGSA.Run.cpPrefix_of_srcFrame' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.cpCompat_of_scopedFrame (p : AvailableChain.FGSA.Params) {In V : Type}
+  (c : AvailableChain.FGSA.Run.AppCodec In) [DecidableEq V] (E : AvailableChain.Generic.Env V)
+  (rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c))
+  (hstore : AvailableChain.FGSA.Run.RStore p c E rho) (hframe : AvailableChain.FGSA.Run.RFrameExact p c E rho)
+  (hstrat : AvailableChain.FGSA.Run.RStrat p c E rho) (i : ℕ) (x : V) (B : AvailableChain.SimplexFG.FGBlock (Fin p.n)) :
+  x ∈ rho.honest →
+    (∀ (y : V) (r : ℕ) (a : AvailableChain.FGSA.RowWire p.n) (e : AvailableChain.SimplexFG.FGBlock (Fin p.n)),
+        AvailableChain.FGSA.Run.HonestRowBefore p c E rho i y r a →
+          AvailableChain.FGSA.Run.namedEntry a.payload.height_pair =
+              some ((AvailableChain.FGSA.heightView p e).h, e.root) →
+            AvailableChain.FGSA.Run.RootBlockInRun p c E rho (AvailableChain.FGSA.eraseFG e) →
+              e.Preceq B ∨ B.Preceq e) →
+      (∀ W ∈ (AvailableChain.FGSA.Run.storeAt p c E rho i x).fg.TF,
+          ∀ e ∈ AvailableChain.FGSA.Run.certified p W, e.Preceq B ∨ B.Preceq e) ∧
+        have st := AvailableChain.FGSA.Run.storeAt p c E rho i x;
+        have R := AvailableChain.FGSA.Run.R_at p c E rho i x;
+        (R.F.Preceq B ∨ B.Preceq R.F) ∧
+          (R.J.Preceq B ∨ B.Preceq R.J) ∧
+            (B ∈ st.fg.TF → R.F.Preceq B → B.Preceq R.Z ∨ B ∈ AvailableChain.FGSA.Run.domainR p st st.fg.TF) ∧
+              (R.contest = true →
+                B.Preceq R.J ∧
+                  ∀ W ∈ st.fg.TF, (AvailableChain.FGSA.heightView p W).h = R.H → ¬R.J.Preceq W → B.Preceq W)
+'AvailableChain.FGSA.Run.cpCompat_of_scopedFrame' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.sourceDiscipline_strat (p : AvailableChain.FGSA.Params) {In V : Type} [DecidableEq V]
+  (c : AvailableChain.FGSA.Run.AppCodec In) (E : AvailableChain.Generic.Env V)
+  (rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c)) [Fintype V] {Pt : Type} {pt : Pt}
+  (hb : AvailableChain.FGSA.Run.SourceDisciplinePrem p c E rho pt) (hS : AvailableChain.FGSA.Run.RStore p c E rho) :
+  AvailableChain.FGSA.Run.RStrat p c E rho
+'AvailableChain.FGSA.Run.sourceDiscipline_strat' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.arming_frame_below {p : AvailableChain.FGSA.Params} {In V : Type} [DecidableEq V]
+  {c : AvailableChain.FGSA.Run.AppCodec In} {E : AvailableChain.Generic.Env V}
+  {rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c)}
+  (hs : AvailableChain.V2.D.ScheduleWellFormed E rho) (hstore : AvailableChain.FGSA.Run.RStore p c E rho)
+  (hframe : AvailableChain.FGSA.Run.RFrameExact p c E rho) (_hsrc : AvailableChain.FGSA.Run.SrcFrameAboveStmt p c E rho)
+  {l : AvailableChain.Slot} {D : AvailableChain.Block} {Dh : AvailableChain.SimplexFG.FGBlock (Fin p.n)}
+  (hDh : AvailableChain.FGSA.eraseFG Dh = D)
+  (hentry :
+    ∀ (i : ℕ) (y : V) (r : ℕ) (a : AvailableChain.FGSA.RowWire p.n)
+      (e : AvailableChain.SimplexFG.Height × AvailableChain.BlockId),
+      AvailableChain.FGSA.Run.HonestRowAt p c E rho i y r a →
+        p.actionTime r < AvailableChain.SA.gateTime p.toParams (l + 1) →
+          AvailableChain.FGSA.Run.namedEntry a.payload.height_pair = some e → AvailableChain.FGSA.Run.EntryBelow p e Dh)
+  {i : ℕ} (hi : i ≤ rho.idxBefore (AvailableChain.SA.gateTime p.toParams (l + 1))) {y : V} (hy : y ∈ rho.honest)
+  (hroots : AvailableChain.FGSA.Run.NamedRootCollisionFree p c E rho)
+  (hstrat : AvailableChain.FGSA.Run.RStrat p c E rho)
+  (hScope : AvailableChain.FGSA.Run.RootBlockInRun p c E rho (AvailableChain.FGSA.eraseFG Dh)) :
+  (AvailableChain.FGSA.Run.F_at p c E rho i y).Preceq D ∧
+    (AvailableChain.FGSA.Run.J_at p c E rho i y).Preceq D ∧
+      (AvailableChain.FGSA.eraseFG
+              (AvailableChain.FGSA.controls p (AvailableChain.FGSA.Run.storeAt p c E rho i y)).Z).Preceq
+          D ∧
+        (AvailableChain.FGSA.controls p (AvailableChain.FGSA.Run.storeAt p c E rho i y)).contest = false ∧
+          (AvailableChain.FGSA.controls p (AvailableChain.FGSA.Run.storeAt p c E rho i y)).lo ≤
+            (AvailableChain.FGSA.heightView p Dh).h
+'AvailableChain.FGSA.Run.arming_frame_below' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.inclusion_frame_below {p : AvailableChain.FGSA.Params} {In V : Type} [DecidableEq V]
+  {c : AvailableChain.FGSA.Run.AppCodec In} (E : AvailableChain.Generic.Env V)
+  (rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c))
+  (hstore : AvailableChain.FGSA.Run.RStore p c E rho) (hframe : AvailableChain.FGSA.Run.RFrameExact p c E rho)
+  (_hsrc : AvailableChain.FGSA.Run.SrcFrameAboveStmt p c E rho) (hs : AvailableChain.V2.D.ScheduleWellFormed E rho)
+  (hrows :
+    ∀ (i j : ℕ) (x : V) (r : ℕ) (a : AvailableChain.FGSA.RowWire p.n)
+      (e : AvailableChain.SimplexFG.Height × AvailableChain.BlockId),
+      i ≤ AvailableChain.FGSA.Run.timeIdx rho rho.horizon →
+        j < i →
+          AvailableChain.FGSA.Run.HonestRowAt p c E rho j x r a →
+            AvailableChain.FGSA.Run.namedEntry a.payload.height_pair = some e →
+              ∃ C,
+                AvailableChain.FGSA.Run.actionSourceFG p c E rho x r = some (some C) ∧
+                  AvailableChain.FGSA.Run.EntryBelow p e C ∧
+                    AvailableChain.FGSA.Run.BelowLabel p c E rho i (AvailableChain.FGSA.Run.labelBoundAt p c rho j)
+                      (AvailableChain.FGSA.eraseFG C))
+  (s : AvailableChain.Slot) (D0 : AvailableChain.Block) (D : AvailableChain.SimplexFG.FGBlock (Fin p.n))
+  (hD : AvailableChain.FGSA.eraseFG D = D0)
+  (hmax :
+    ∀ (X : AvailableChain.Block),
+      AvailableChain.FGSA.Run.BelowLabel p c E rho (rho.idxBefore (AvailableChain.SA.voteTime p.toParams s)) (s - 2) X →
+        X.Preceq D0)
+  {i : ℕ} (hiT : i ≤ AvailableChain.FGSA.Run.timeIdx rho rho.horizon)
+  (hi :
+    ∀ j < i,
+      ∀ (e : AvailableChain.V2.Event V (AvailableChain.FGSA.Run.fgsa p c).Object),
+        rho.events[j]? = some e → e.time ≤ AvailableChain.SA.voteTime p.toParams s)
+  {z : V} (hz : z ∈ rho.honest) (hroots : AvailableChain.FGSA.Run.NamedRootCollisionFree p c E rho)
+  (hstrat : AvailableChain.FGSA.Run.RStrat p c E rho)
+  (hScope : AvailableChain.FGSA.Run.RootBlockInRun p c E rho (AvailableChain.FGSA.eraseFG D)) :
+  (AvailableChain.FGSA.Run.storeAt p c E rho i z).fg.F.Preceq D ∧
+    (AvailableChain.FGSA.controls p (AvailableChain.FGSA.Run.storeAt p c E rho i z)).Z.Preceq D ∧
+      (AvailableChain.FGSA.controls p (AvailableChain.FGSA.Run.storeAt p c E rho i z)).lo ≤
+        (AvailableChain.FGSA.heightView p D).h
+'AvailableChain.FGSA.Run.inclusion_frame_below' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.fgsa_pureAccountable (p : AvailableChain.FGSA.Params)
+  (K W T₁ T₂ : AvailableChain.SimplexFG.FGBlock (Fin p.n)) (h₁ h₂ : ℕ)
+  (hroots : AvailableChain.KitFG.RootInjectiveOn K W) (hK : AvailableChain.FGSA.Run.FGFinalizedAt p K T₁ h₁)
+  (hW : AvailableChain.FGSA.Run.FGFinalizedAt p W T₂ h₂) :
+  AvailableChain.SimplexFG.HasSlashableWeightBetween p.E (AvailableChain.SimplexFG.chainRows K)
+      (AvailableChain.SimplexFG.chainRows W) ∨
+    T₁.compatible T₂ = true
+'AvailableChain.FGSA.Run.fgsa_pureAccountable' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.fgsa_pureAgreement (p : AvailableChain.FGSA.Params)
+  (K W T₁ T₂ : AvailableChain.SimplexFG.FGBlock (Fin p.n)) (h₁ h₂ : ℕ)
+  (hroots : AvailableChain.KitFG.RootInjectiveOn K W) (hK : AvailableChain.FGSA.Run.FGFinalizedAt p K T₁ h₁)
+  (hW : AvailableChain.FGSA.Run.FGFinalizedAt p W T₂ h₂)
+  (hb :
+    ¬AvailableChain.SimplexFG.HasSlashableWeightBetween p.E (AvailableChain.SimplexFG.chainRows K)
+        (AvailableChain.SimplexFG.chainRows W)) :
+  T₁.compatible T₂ = true
+'AvailableChain.FGSA.Run.fgsa_pureAgreement' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.fgsa_wholeRunAccountable (p : AvailableChain.FGSA.Params) {In V : Type} [DecidableEq V]
+  (c : AvailableChain.FGSA.Run.AppCodec In) (E : AvailableChain.Generic.Env V)
+  (rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c))
+  (hroots : AvailableChain.FGSA.Run.NamedRootCollisionFree p c E rho) :
+  AvailableChain.FGSA.Run.FGWholeRunAccountable p c E rho
+'AvailableChain.FGSA.Run.fgsa_wholeRunAccountable' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.fgsa_wholeRunAgreement (p : AvailableChain.FGSA.Params) {In V : Type} [DecidableEq V]
+  (c : AvailableChain.FGSA.Run.AppCodec In) (E : AvailableChain.Generic.Env V)
+  (rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c))
+  (hroots : AvailableChain.FGSA.Run.NamedRootCollisionFree p c E rho)
+  (hb : AvailableChain.FGSA.Run.FGSASlashableBound p c E rho) :
+  (∀ (K W T₁ T₂ : AvailableChain.SimplexFG.FGBlock (Fin p.n)) (h₁ h₂ : ℕ),
+      AvailableChain.FGSA.Run.FinalityRunBlock p c E rho K →
+        AvailableChain.FGSA.Run.FinalityRunBlock p c E rho W →
+          AvailableChain.FGSA.Run.FGFinalizedAt p K T₁ h₁ →
+            AvailableChain.FGSA.Run.FGFinalizedAt p W T₂ h₂ → T₁.compatible T₂ = true) ∧
+    ∀ u ∈ rho.honest,
+      ∀ v ∈ rho.honest,
+        ∀ (t t' : AvailableChain.Time),
+          (AvailableChain.V2.D.Run.readAt E rho t u).st.fg.F.compatible
+              (AvailableChain.V2.D.Run.readAt E rho t' v).st.fg.F =
+            true
+'AvailableChain.FGSA.Run.fgsa_wholeRunAgreement' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.fgsa_finalLock_of_bound (p : AvailableChain.FGSA.Params) {In V : Type} [DecidableEq V]
+  (c : AvailableChain.FGSA.Run.AppCodec In) (E : AvailableChain.Generic.Env V)
+  (rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c))
+  (hroots : AvailableChain.FGSA.Run.NamedRootCollisionFree p c E rho)
+  (hb : AvailableChain.FGSA.Run.FGSASlashableBound p c E rho) (K W : AvailableChain.SimplexFG.FGBlock (Fin p.n))
+  (hK : AvailableChain.FGSA.Run.FinalityRunBlock p c E rho K)
+  (hW : AvailableChain.FGSA.Run.FinalityRunBlock p c E rho W)
+  (hh : (AvailableChain.FGSA.finalityView p K).h_F < (AvailableChain.SimplexFG.derive p.E p.cfg W).h) :
+  (AvailableChain.FGSA.finalityView p K).F.Preceq W
+'AvailableChain.FGSA.Run.fgsa_finalLock_of_bound' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.fgsa_rXing (p : AvailableChain.FGSA.Params) {In V : Type} [DecidableEq V]
+  (c : AvailableChain.FGSA.Run.AppCodec In) (E : AvailableChain.Generic.Env V)
+  (rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c)) [Fintype V]
+  (hroots : AvailableChain.FGSA.Run.NamedRootCollisionFree p c E rho)
+  (hL : AvailableChain.V2.D.Linked (AvailableChain.FGSA.Run.fgsaFamilies p c).linked rho)
+  (hX : AvailableChain.Gen.Pure.FaultX p.n (AvailableChain.Gen.V2.Duty.faulty rho).card)
+  (hU : AvailableChain.V2.D.UnforgeableSignatures E rho) : AvailableChain.FGSA.Run.RXing p c E rho
+'AvailableChain.FGSA.Run.fgsa_rXing' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.healing_rows_above_entry_at_height (p : AvailableChain.FGSA.Params)
+  (st : AvailableChain.FGSA.State p.n) (hr : AvailableChain.FGSA.Reachable p st) (k : AvailableChain.FGSA.Run.RowKind)
+  (y : ℕ) (U P : AvailableChain.SimplexFG.FGBlock (Fin p.n)) (hP : P ∈ st.fg.TF)
+  (hPh : (AvailableChain.FGSA.heightView p P).h = y) (hUP : U.Preceq P) (i : Fin p.n)
+  (W : AvailableChain.SimplexFG.FGBlock (Fin p.n)) :
+  W.Preceq P → (∃ row ∈ W.rows, AvailableChain.FGSA.Run.RowNames p k row i y U) → U.Preceq W.parent
+'AvailableChain.FGSA.Run.healing_rows_above_entry_at_height' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.kmid_rows_above_entry (p : AvailableChain.FGSA.Params) (st : AvailableChain.FGSA.State p.n)
+  (hr : AvailableChain.FGSA.Reachable p st) (k : AvailableChain.FGSA.Run.RowKind) (y : ℕ)
+  (U P : AvailableChain.SimplexFG.FGBlock (Fin p.n)) (hP : P ∈ st.fg.TF)
+  (hPh : (AvailableChain.FGSA.heightView p P).h = y) (hUP : U.Preceq P) (i : Fin p.n)
+  (W : AvailableChain.SimplexFG.FGBlock (Fin p.n)) :
+  W.Preceq P → (∃ row ∈ W.rows, AvailableChain.FGSA.Run.RowNames p k row i y U) → U.Preceq W.parent
+'AvailableChain.FGSA.Run.kmid_rows_above_entry' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.fgsaClaims (p : AvailableChain.FGSA.Params) : AvailableChain.FGSA.Run.FGSAClaims p
+'AvailableChain.FGSA.Run.fgsaClaims' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.NamedRootCollisionFree.root_injective {p : AvailableChain.FGSA.Params} {In V : Type}
+  {c : AvailableChain.FGSA.Run.AppCodec In} [DecidableEq V] {E : AvailableChain.Generic.Env V}
+  {rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c)}
+  (self : AvailableChain.FGSA.Run.NamedRootCollisionFree p c E rho) (B C : AvailableChain.Block) :
+  AvailableChain.FGSA.Run.RootBlockInRun p c E rho B →
+    AvailableChain.FGSA.Run.RootBlockInRun p c E rho C →
+      ∀ (A D : AvailableChain.Block), A.Preceq B ∨ A.Preceq C → D.Preceq B ∨ D.Preceq C → A.root = D.root → A = D
+'AvailableChain.FGSA.Run.NamedRootCollisionFree.root_injective' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+AvailableChain.FGSA.Run.Base₂.idealization {p : AvailableChain.FGSA.Params} {In V : Type}
+  {c : AvailableChain.FGSA.Run.AppCodec In} [DecidableEq V] {E : AvailableChain.Generic.Env V}
+  {rho : AvailableChain.V2.D.Run V (AvailableChain.FGSA.Run.fgsa p c)}
+  (self : AvailableChain.FGSA.Run.Base₂ p c E rho) : AvailableChain.FGSA.Run.NamedRootCollisionFree p c E rho
+'AvailableChain.FGSA.Run.Base₂.idealization' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.KitFG.FGStoreSafety.of_certificate {V : Type} [DecidableEq V] [Fintype V]
+  [AvailableChain.SimplexFG.RowCodec V] (E : AvailableChain.SimplexFG.Electorate V)
+  (H : AvailableChain.KitFG.FGHeightView V) (f : AvailableChain.KitFG.FGFinalityView V)
+  (hc : AvailableChain.KitFG.FGCertificateLaws E H f) {S : Type} (read : S → AvailableChain.SimplexFG.Store V)
+  (cache : S → AvailableChain.SimplexFG.FGBlock V → AvailableChain.KitFG.FGHeight V × AvailableChain.KitFG.FGFinality V)
+  (initial : S) (step : S → AvailableChain.SimplexFG.FGBlock V → S) (Good : S → Prop)
+  (StepOK : S → AvailableChain.SimplexFG.FGBlock V → Prop) (hinit : Good initial)
+  (hinv : ∀ (s : S), Good s → AvailableChain.KitFG.FGStoreInvariant H f (read s))
+  (hstep : ∀ (s : S) (B : AvailableChain.SimplexFG.FGBlock V), Good s → StepOK s B → Good (step s B))
+  (htree : ∀ (s : S) (B : AvailableChain.SimplexFG.FGBlock V), Good s → (read s).TF ⊆ (read (step s B)).TF)
+  (hmono : ∀ (s : S) (B : AvailableChain.SimplexFG.FGBlock V), Good s → (read s).F.Preceq (read (step s B)).F)
+  (hcache : ∀ (s : S), Good s → ∀ B ∈ (read s).TF, cache s B = (H B, f B)) :
+  AvailableChain.KitFG.FGStoreSafety E H f read cache initial step Good StepOK
+'AvailableChain.KitFG.FGStoreSafety.of_certificate' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.KitFG.simplexStoreInvariant {V : Type} [DecidableEq V] [Fintype V] [AvailableChain.SimplexFG.RowCodec V]
+  (E : AvailableChain.SimplexFG.Electorate V) (cfg : AvailableChain.SimplexFG.FGConfig)
+  (st : AvailableChain.SimplexFG.Store V) (hi : AvailableChain.KitFG.StoreInv E cfg st)
+  (hinj : AvailableChain.SimplexFG.ViewRootInj st.TF) :
+  AvailableChain.KitFG.FGStoreInvariant (AvailableChain.KitFG.simplexHeightView E cfg)
+    (AvailableChain.KitFG.simplexFinalityView E cfg) st
+'AvailableChain.KitFG.simplexStoreInvariant' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.Tests.NonVacuity.HealingRun.nvRoots :
+  AvailableChain.FGSA.Run.NamedRootCollisionFree AvailableChain.FGSA.Run.Tests.NonVacuity.HealingRun.params
+    AvailableChain.FGSA.Run.unitCodec AvailableChain.FGSA.Run.Tests.NonVacuity.HealingRun.env
+    AvailableChain.FGSA.Run.Tests.NonVacuity.HealingRun.run
+'AvailableChain.FGSA.Run.Tests.NonVacuity.HealingRun.nvRoots' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Run.Tests.NonVacuity.HealingPackages.nvRoots :
+  AvailableChain.FGSA.Run.NamedRootCollisionFree AvailableChain.FGSA.Run.Tests.NonVacuity.HealingPackages.params
+    AvailableChain.FGSA.Run.unitCodec AvailableChain.FGSA.Run.Tests.NonVacuity.HealingPackages.env
+    AvailableChain.FGSA.Run.Tests.NonVacuity.HealingPackages.run
+'AvailableChain.FGSA.Run.Tests.NonVacuity.HealingPackages.nvRoots' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+AvailableChain.FGSA.Run.Tests.NonVacuity.HealingClaims.nvRoots :
+  AvailableChain.FGSA.Run.NamedRootCollisionFree AvailableChain.FGSA.Run.Tests.NonVacuity.HealingClaims.params
+    AvailableChain.FGSA.Run.unitCodec AvailableChain.FGSA.Run.Tests.NonVacuity.HealingClaims.env
+    AvailableChain.FGSA.Run.Tests.NonVacuity.HealingClaims.run
+'AvailableChain.FGSA.Run.Tests.NonVacuity.HealingClaims.nvRoots' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+AvailableChain.FGSA.Run.Tests.NonVacuity.FinalityClaims.nvRoots :
+  AvailableChain.FGSA.Run.NamedRootCollisionFree AvailableChain.FGSA.Run.Tests.NonVacuity.FinalityClaims.params
+    AvailableChain.FGSA.Run.unitCodec AvailableChain.FGSA.Run.Tests.NonVacuity.FinalityClaims.env
+    AvailableChain.FGSA.Run.Tests.NonVacuity.FinalityClaims.run
+'AvailableChain.FGSA.Run.Tests.NonVacuity.FinalityClaims.nvRoots' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+AvailableChain.FGSA.Run.Tests.NonVacuity.FinalityClaims.nvLiveDC :
+  AvailableChain.FGSA.Run.LiveDCConcl_W AvailableChain.FGSA.Run.Tests.NonVacuity.FinalityClaims.params
+    AvailableChain.FGSA.Run.unitCodec AvailableChain.FGSA.Run.Tests.NonVacuity.FinalityClaims.env
+    AvailableChain.FGSA.Run.Tests.NonVacuity.FinalityClaims.run 303 405
+'AvailableChain.FGSA.Run.Tests.NonVacuity.FinalityClaims.nvLiveDC' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+AvailableChain.FGSA.fgStoreSafety (p : AvailableChain.FGSA.Params) :
+  AvailableChain.KitFG.FGStoreSafety p.E (AvailableChain.FGSA.heightView p) (AvailableChain.FGSA.finalityView p) id
+    (fun x B => (AvailableChain.FGSA.heightView p B, AvailableChain.FGSA.finalityView p B))
+    AvailableChain.SimplexFG.Store.init (AvailableChain.FGSA.Window.on_block p p.K_W)
+    (AvailableChain.KitFG.FGStoreInvariant (AvailableChain.FGSA.heightView p) (AvailableChain.FGSA.finalityView p))
+    AvailableChain.KitFG.StoreStepRoots
+'AvailableChain.FGSA.fgStoreSafety' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.FGSA.Window.windowStoreSafety (p : AvailableChain.FGSA.Params) (K : ℕ) (hK : 2 ≤ K) :
+  AvailableChain.KitFG.FGStoreSafety p.E
+    (fun B => AvailableChain.FGSA.Window.projectHeight (AvailableChain.FGSA.Window.derive p K B))
+    (AvailableChain.FGSA.Window.certificateFinality p K) id
+    (fun x B =>
+      (AvailableChain.FGSA.Window.projectHeight (AvailableChain.FGSA.Window.derive p K B),
+        AvailableChain.FGSA.Window.certificateFinality p K B))
+    AvailableChain.SimplexFG.Store.init (AvailableChain.FGSA.Window.on_block p K)
+    (AvailableChain.KitFG.FGStoreInvariant
+      (fun B => AvailableChain.FGSA.Window.projectHeight (AvailableChain.FGSA.Window.derive p K B))
+      (AvailableChain.FGSA.Window.certificateFinality p K))
+    AvailableChain.KitFG.StoreStepRoots
+'AvailableChain.FGSA.Window.windowStoreSafety' depends on axioms: [propext, Classical.choice, Quot.sound]
+AvailableChain.KitFG.simplexStoreSafety {V : Type} [DecidableEq V] [Fintype V] [AvailableChain.SimplexFG.RowCodec V]
+  (E : AvailableChain.SimplexFG.Electorate V) (cfg : AvailableChain.SimplexFG.FGConfig) :
+  AvailableChain.KitFG.FGStoreSafety E (AvailableChain.KitFG.simplexHeightView E cfg)
+    (AvailableChain.KitFG.simplexFinalityView E cfg) id
+    (fun x B => (AvailableChain.KitFG.simplexHeightView E cfg B, AvailableChain.KitFG.simplexFinalityView E cfg B))
+    AvailableChain.SimplexFG.Store.init (AvailableChain.SimplexFG.on_block E cfg)
+    (fun st => AvailableChain.KitFG.StoreInv E cfg st ∧ AvailableChain.SimplexFG.ViewRootInj st.TF)
+    AvailableChain.KitFG.StoreStepRoots
+'AvailableChain.KitFG.simplexStoreSafety' depends on axioms: [propext, Classical.choice, Quot.sound]

@@ -1,9 +1,12 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Foundations.RowPermission -- shake: keep (own-library route)
+public import AvailableChainFGSAProofs.Proofs.Foundations.RowPermission
+-- shake: keep (own-library route)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Sources -- shake: keep (row source fields)
-public meta import AvailableChainFGSAProofs.Proofs.Foundations.RowPermission -- shake: keep (closed evaluations)
+public meta import AvailableChainFGSAProofs.Proofs.Foundations.RowPermission
+-- shake: keep (closed evaluations)
 public import AvailableChainFGSAProofs.Proofs.Healing.Time -- shake: keep (J11 composition)
-public import AvailableChainFGSAProofs.Proofs.Healing.HealingInputExport -- shake: keep (J10 NV application)
+public import AvailableChainFGSAProofs.Proofs.Healing.HealingInputExport
+-- shake: keep (J10 NV application)
 
 @[expose] public section
 
@@ -14,10 +17,10 @@ set_option exponentiation.threshold 2000
 -- Each test is complete on its own. The layer rules forbid test-to-test imports.
 namespace AvailableChain.FGSA.Run.Tests.NonVacuity.HealingFirst
 
-/-- S5 fixture: one honest node, positive horizon, and unchanged SA clocks. -/
+/-- ROOT-DIGEST W3b. S5 fixture: one honest node, positive horizon, and unchanged SA clocks. -/
 def params : Params :=
   ⟨⟨1, 1, 2, 0, by decide, by decide, by decide, by decide⟩,
-    3, 6, by decide, 2, by decide⟩
+    3, 6, by decide, 2, by decide, fun d => ⟨d.slot + 1⟩⟩
 
 def env : Generic.Env (Fin 1) := ⟨1, by decide, 0, le_rfl, fun _ _ => true⟩
 def deltaF : Time := 3
@@ -666,7 +669,7 @@ def proposalBlocks (s : Slot) : List Block :=
 /-- The chain is in child-to-parent order; each node records its slot and body. -/
 def parentChain : Block → List (Slot × Nat)
   | .genesis => [(0, 0)]
-  | .node B s x => (s, x) :: parentChain B
+  | .node B s _ x => (s, x) :: parentChain B
 
 def firstProposal : Block := (proposalBlocks 11).headD .genesis
 

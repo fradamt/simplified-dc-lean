@@ -13,6 +13,7 @@ open AvailableChain.SimplexFG
 
 variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hroots : NamedRootCollisionFree p c E rho)
 
 -- pure/model: the empty event cut has no source pair.
 example (w : HealingWitness) : PostResetHighCompatible p c E rho w 0 := by
@@ -101,12 +102,13 @@ include xing origin hinv hx hX hC hhC cover
 -- conditional package: restricted descent keeps a high emitted source.
 example {s : Slot} (hsrc : SourceBefore p c E rho i C s) :
     Kept p c E rho i x X C :=
-  postReset_descent_kept p c E rho xing origin hinv hx hX hC hhC
+  postReset_descent_kept (hroots := hroots) p c E rho xing origin hinv hx hX hC hhC
     (Or.inl ⟨s, hsrc⟩) cover
 
 -- conditional package: restricted descent keeps a high copy of the reset body.
 example (he : eraseFG C = w.CStar) : Kept p c E rho i x X C :=
-  postReset_descent_kept p c E rho xing origin hinv hx hX hC hhC (Or.inr he) cover
+  postReset_descent_kept (hroots := hroots) p c E rho xing origin hinv hx hX hC hhC (Or.inr he)
+      cover
 
 end Descent
 end AvailableChain.FGSA.Run.Tests.HealingPostResetCompat

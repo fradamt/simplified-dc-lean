@@ -8,13 +8,15 @@ set_option linter.defProp false
 
 @[expose] public section
 
--- Concrete one-node execution: Δ=1, ΔF=3, horizon 17; row at 14 is delivered at 16.
+-- ROOT-DIGEST W3b. One-node execution: Δ=1, ΔF=3, horizon 17.
+-- The row at 14 is delivered at 16.
 set_option maxSynthPendingDepth 100
 set_option maxRecDepth 10000
 open AvailableChain AvailableChain.SimplexFG
 namespace AvailableChain.FGSA.Run.Tests.FinalitySafety
 private abbrev s45b_p : FGSA.Params :=
-  ⟨⟨1, 1, 2, 0, by decide, by decide, by decide, by decide⟩, 2, 0, by decide, 2, by decide⟩
+  ⟨⟨1, 1, 2, 0, by decide, by decide, by decide, by decide⟩, 2, 0, by decide, 2, by decide,
+    fun d => ⟨d.slot + 1⟩⟩
 private abbrev s45b_E : Generic.Env (Fin 1) := ⟨1, by decide, 0, le_rfl, fun _ _ => true⟩
 private abbrev s45b_mkRun (es : List (V2.Event (Fin 1) (fgsa s45b_p unitCodec).Object)) :
     V2.D.Run (Fin 1) (fgsa s45b_p unitCodec) where

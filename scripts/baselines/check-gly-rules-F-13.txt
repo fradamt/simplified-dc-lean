@@ -122,8 +122,6 @@ F-13 dup recovered_from_engine AvailableChainGridCO AvailableChainSA AvailableCh
 F-13 dup recovery_proposal_after_sources AvailableChainGridCO AvailableChainSAPC
 F-13 dup refl AvailableChainGridCO AvailableChainKitFG AvailableChainSAPC
 F-13 dup releaseCount_le_faults_of_emissions AvailableChainGridCO AvailableChainSAPC
-F-13 dup rootInjective_all AvailableChainEngineV2 AvailableChainKit
-F-13 dup root_injective AvailableChainModel AvailableChainSimplexFG
 F-13 dup root_ne_genesis_of_node AvailableChainModel AvailableChainSimplexFG
 F-13 dup run_genuine_origin AvailableChainGridCO AvailableChainSAPC
 F-13 dup run_target_genuine_origin AvailableChainGridCO AvailableChainSAPC

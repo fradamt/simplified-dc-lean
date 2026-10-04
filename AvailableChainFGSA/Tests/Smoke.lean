@@ -144,13 +144,14 @@ theorem literal_constructors :
 /-- ROOT-DIGEST W3: the literal fixture table is closed under parents. -/
 def smokeRootScope : Finset (FGBlock (Fin 4)) := {.genesis, B1, B2, B3, B1', B1b, Y, X}
 
-theorem smoke_scope_closed : ∀ B ∈ smokeRootScope, B.parent ∈ smokeRootScope := by
+/-- ROOT-DIGEST W3b. Each table member has its parent in the same table. -/
+theorem smoke_scope_parent_mem : ∀ B ∈ smokeRootScope, B.parent ∈ smokeRootScope := by
   decide +kernel
 
 /-- ROOT-DIGEST W3: structural ancestor inclusion precedes the finite root check. -/
 theorem smoke_ancestor_scope : ∀ B ∈ smokeRootScope,
     ∀ A, FGBlock.Preceq A B → A ∈ smokeRootScope :=
-  KitFG.ancestor_closed_of_parent_closed smokeRootScope smoke_scope_closed
+  KitFG.ancestor_closed_of_parent_closed smokeRootScope smoke_scope_parent_mem
 
 theorem smoke_scope_roots : ∀ A ∈ smokeRootScope, ∀ B ∈ smokeRootScope,
     A.root = B.root → A = B := by decide +kernel

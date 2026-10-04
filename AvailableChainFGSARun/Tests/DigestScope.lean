@@ -1,6 +1,6 @@
 module
+public import AvailableChainFGSARun.Proofs.Reachable
 public import AvailableChainFGSARun.Statements.Roots
-public import AvailableChainFGSA.Proofs.StoreInv
 
 @[expose] public section
 

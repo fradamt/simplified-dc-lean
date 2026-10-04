@@ -13,6 +13,7 @@ open AvailableChain.SimplexFG
 
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hroots : NamedRootCollisionFree p c E rho)
 
 -- pure/model: no write is before the empty cut.
 example (w : HealingWitness) : PostResetLeaseSafe p c E rho w 0 := by
@@ -84,11 +85,12 @@ example {i : Nat} {x : V} (hx : x ∈ rho.honest)
     ∃ K s, SourceBefore p c E rho i K s ∧ high p w K ∧
       SA.gateTime p.toParams s ≤ (storeAt p c E rho i x).base.now ∧
       Block.Preceq (J_at p c E rho i x) (eraseFG K) :=
-  (postReset_rFProv_reset p c E rho hv hnr origin heldRows cap hhead xing h0r i x hx hi).2 hh
+  (postReset_rFProv_reset (hroots := hroots) p c E rho hv hnr origin heldRows cap hhead xing h0r
+      i x hx hi).2 hh
 
 -- conditional package: B supplies both prefix fields without a prior record.
 example (i : Nat) : PostResetFProv p c E rho w i :=
-  postReset_fProv_all p c E rho hv hnr origin heldRows cap hhead xing h0r i
+  postReset_fProv_all (hroots := hroots) p c E rho hv hnr origin heldRows cap hhead xing h0r i
 
 end Provenance
 end AvailableChain.FGSA.Run.Tests.HealingPostResetLease

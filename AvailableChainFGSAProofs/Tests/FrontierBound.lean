@@ -10,13 +10,14 @@ open AvailableChain.SimplexFG AvailableChain.KitFG
 
 private abbrev p : Params :=
   { Δ := 1, n := 4, k := 2, η := 11, deltaPos := by decide, nPos := by decide,
-    kLarge := by decide, etaNonneg := by decide, R := 3, δt := 6, RLarge := by decide }
+    kLarge := by decide, etaNonneg := by decide, R := 3, δt := 6, RLarge := by decide, digest :=
+        fun d => ⟨d.slot + 1⟩ }
 
 private def targets (h : Nat) (U : FGBlock (Fin 4)) : List (Row (Fin 4)) :=
   [⟨0, .vote h U.root false, none⟩, ⟨1, .vote h U.root false, none⟩,
     ⟨2, .vote h U.root false, none⟩]
-private def opening : FGBlock (Fin 4) := .node .genesis 1 0 (targets 1 .genesis)
-private def entry : FGBlock (Fin 4) := .node opening 2 0 (targets 2 opening)
+private def opening : FGBlock (Fin 4) := .node .genesis 1 ⟨1⟩ 0 (targets 1 .genesis)
+private def entry : FGBlock (Fin 4) := .node opening 2 ⟨2⟩ 0 (targets 2 opening)
 private def archive : Finset (FGBlock (Fin 4)) := {.genesis, opening, entry}
 
 -- Pure/model: H_t ≤ m+1, including an ancestor that carries older rows.

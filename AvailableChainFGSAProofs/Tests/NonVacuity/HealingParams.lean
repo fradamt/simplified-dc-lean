@@ -1,14 +1,15 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Foundations.RowPermission -- shake: keep (own-library route)
+public import AvailableChainFGSAProofs.Proofs.Foundations.RowPermission
+-- shake: keep (own-library route)
 
 @[expose] public section
 
 namespace AvailableChain.FGSA.Run.Tests.NonVacuity.HealingParams
 
-/-- S5 fixture: one honest node, positive horizon, and unchanged SA clocks. -/
+/-- ROOT-DIGEST W3b. S5 fixture: one honest node, positive horizon, and unchanged SA clocks. -/
 def params : Params :=
   ⟨⟨1, 1, 2, 0, by decide, by decide, by decide, by decide⟩,
-    3, 6, by decide, 2, by decide⟩
+    3, 6, by decide, 2, by decide, fun d => ⟨d.slot + 1⟩⟩
 
 def env : Generic.Env (Fin 1) := ⟨1, by decide, 0, le_rfl, fun _ _ => true⟩
 def deltaF : Time := 3

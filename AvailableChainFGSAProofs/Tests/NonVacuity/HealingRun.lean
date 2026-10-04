@@ -1,5 +1,6 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Foundations.RowPermission -- shake: keep (own-library route)
+public import AvailableChainFGSAProofs.Proofs.Foundations.RowPermission
+-- shake: keep (own-library route)
 
 @[expose] public section
 
@@ -9,10 +10,10 @@ set_option maxRecDepth 10000
 -- Each test is complete on its own. The layer rules forbid test-to-test imports.
 namespace AvailableChain.FGSA.Run.Tests.NonVacuity.HealingRun
 
-/-- S5 fixture: one honest node, positive horizon, and unchanged SA clocks. -/
+/-- ROOT-DIGEST W3b. S5 fixture: one honest node, positive horizon, and unchanged SA clocks. -/
 def params : Params :=
   ⟨⟨1, 1, 2, 0, by decide, by decide, by decide, by decide⟩,
-    3, 6, by decide, 2, by decide⟩
+    3, 6, by decide, 2, by decide, fun d => ⟨d.slot + 1⟩⟩
 
 def env : Generic.Env (Fin 1) := ⟨1, by decide, 0, le_rfl, fun _ _ => true⟩
 def deltaF : Time := 3
@@ -139,7 +140,7 @@ theorem nv_rows_process (st : State p.n) (o : Obj p)
               raw.all (fun v => match v.decode? with
                 | some (r, _, _) => r + 1 == b.slot | none => false) &&
               sup.all (fun v => decide (v ∈ raw)) &&
-              rows.all RowWire.valid && rowsOk b rows
+              rows.all RowWire.valid && contentOk p b raw sup rows
           | none => false) = true at hw
         rw [hd] at hw
         intro a ha
@@ -147,7 +148,7 @@ theorem nv_rows_process (st : State p.n) (o : Obj p)
           (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp hw).1).2 a ha
       change EmissionRowsValid (match parentFG st b with
         | none => st
-        | some P => if blockAccepted p st s b P rows then
+        | some P => if blockAccepted p st s b raw sup P rows then
           rows.foldl (admitRow p)
             (if (Window.on_block p p.K_W st.fg (fgBlock P b rows)).F = st.fg.F then
               { st with
@@ -247,21 +248,17 @@ theorem nv_proposal_votes (st : State p.n) (s : Slot) :
 theorem nv_proposal_wf (st : State p.n) (s : Slot) (a : Nat)
     (hv : EmissionRowsValid st)
     (hp : (getHead p st (proposerVotes st s) (proposerSupport st s)).slot < s)
-    {m : Msg p.n} (hm : (propose p st s).map (withApp a) = some m) :
+    {m : Msg p.n} (hm : (propose p st s).map (withApp p a) = some m) :
     FGSA.wellFormed p ⟨.proposer s, m⟩ = true := by
   have hs0 : 0 < s := Nat.zero_lt_of_lt hp
   let H := getHead p st (proposerVotes st s) (proposerSupport st s)
   let rows := proposalRows p st H
-  have he : m = .proposal (.node H s (packBody a rows))
-      ((proposerVotes st s).filterMap liftHead?)
-      ((proposerSupport st s).filterMap liftHead?) rows := by
-    change (if s = 0 then none else some (.proposal (.node H s (packBody 0 rows))
-      ((proposerVotes st s).filterMap liftHead?)
-      ((proposerSupport st s).filterMap liftHead?) rows)).map
-        (withApp a) = some m at hm
+  let raw := (proposerVotes st s).filterMap liftHead?
+  let sup := (proposerSupport st s).filterMap liftHead?
+  have he : m = .proposal (proposalBlock p H s a raw sup rows) raw sup rows := by
+    unfold propose at hm
     rw [ite_eq_right (Nat.ne_of_gt hs0)] at hm
     exact (Option.some.inj hm).symm
-  have hcontent := rowsOk_withApp st s a hm
   rw [he]
   change (true && (s == s) && decide (H.slot < s) &&
     ((proposerVotes st s).filterMap liftHead?).all (fun v => match v.decode? with
@@ -269,7 +266,7 @@ theorem nv_proposal_wf (st : State p.n) (s : Slot) (a : Nat)
     ((proposerSupport st s).filterMap liftHead?).all
       (fun v => decide (v ∈ (proposerVotes st s).filterMap liftHead?)) &&
     rows.all RowWire.valid &&
-    rowsOk (.node H s (packBody a rows)) rows) = true
+    contentOk p (proposalBlock p H s a raw sup rows) raw sup rows) = true
   obtain ⟨hraw, hsup⟩ := nv_proposal_votes st s
   have hr : rows.all RowWire.valid = true :=
     List.all_eq_true.mpr (nv_proposal_rows st H hv)
@@ -283,13 +280,7 @@ theorem nv_proposal_wf (st : State p.n) (s : Slot) (a : Nat)
   have hsupport : ((proposerSupport st s).filterMap liftHead?).all
       (fun v => decide (v ∈ (proposerVotes st s).filterMap liftHead?)) = true :=
     List.all_eq_true.mpr (fun v hv => decide_eq_true (hsup v hv))
-  have hc : rowsOk (.node H s (packBody a rows)) rows = true := by
-    obtain ⟨H', raw', sup', rows', he', hc, -⟩ := hcontent
-    rw [he] at he'
-    have eqs := Msg.proposal.inj he'
-    have hb := Block.node.inj eqs.1
-    rw [← hb.1, ← eqs.2.2.2] at hc
-    exact hc
+  have hc := contentOk_proposalBlock p H s a raw sup rows
   rw [hvotes, hsupport, hr, hc]
   simp only [beq_self_eq_true, Bool.true_and, Bool.and_true, decide_eq_true_eq]
   exact hp
@@ -297,15 +288,16 @@ theorem nv_proposal_wf (st : State p.n) (s : Slot) (a : Nat)
 
 theorem nv_proposal_shape (st : State p.n) (s : Slot) (app : Nat)
     (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (ha : (propose p st s).map (withApp app) = some (.proposal b raw sup rows)) :
-    b = .node (getHead p st (proposerVotes st s) (proposerSupport st s)) s (packBody app rows) ∧
+    (ha : (propose p st s).map (withApp p app) = some (.proposal b raw sup rows)) :
+    b = proposalBlock p
+      (getHead p st (proposerVotes st s) (proposerSupport st s)) s app raw sup rows ∧
       raw = (proposerVotes st s).filterMap liftHead? ∧
       sup = (proposerSupport st s).filterMap liftHead? ∧
       rows = proposalRows p st (getHead p st (proposerVotes st s) (proposerSupport st s)) := by
   unfold propose at ha
   split at ha
   · cases ha
-  · simp only [Option.map_some, withApp, Option.some.injEq, Msg.proposal.injEq] at ha
+  · simp only [Option.map_some, Option.some.injEq] at ha
     obtain ⟨rfl, rfl, rfl, rfl⟩ := ha
     exact ⟨rfl, rfl, rfl, rfl⟩
 
@@ -733,7 +725,7 @@ theorem emitted_wire (n : Nat) (hn : n < 305)
       subst l
       change SA.proposalTime params.toParams s = (n : Time) at ht
       change (propose params (FGSA.clock params (runPrefix n).2.st (n : Time)) s).map
-        (withApp 0) = some m at ha
+        (withApp params 0) = some m at ha
       have hs0 : 0 < s := by
         by_contra hh
         have hs : s = 0 := Nat.eq_zero_of_not_pos hh
@@ -774,6 +766,111 @@ theorem wire : ∀ (i : Nat) (v : Fin 1) (o : Object) (t : Time),
   intro i v o t hi
   obtain ⟨n, hn, _, _, ho⟩ := delivery_source hi
   exact emitted_wire n hn (prefix_rows n (by omega)) o ho
+
+/-- ROOT-DIGEST W3b. A delivered proposal is the unique release at its cached tick. -/
+theorem nv_delivery_origin {x : Fin 1} {o : Object} {t : Time} {b : Block}
+    {raw sup : List (HeadWire params.n)} {rows : List (RowWire params.n)}
+    (hd : V2.Event.deliver x o t ∈ run.events) (hp : o.payload = .proposal b raw sup rows) :
+    ∃ n : Nat, n < 305 ∧ ∃ s : Slot,
+      o ∈ (V2.D.tick env (mkRun []) (runPrefix n).2 0 (n : Time)).2 ∧
+      o = ofWire params ⟨.proposer s, .proposal b raw sup rows⟩ ∧
+      b.slot = s ∧ SA.proposalTime params.toParams s = (n : Time) := by
+  obtain ⟨i, hi⟩ := List.mem_iff_getElem?.mp hd
+  obtain ⟨n, hn, _, _, ho⟩ := delivery_source hi
+  rcases nv_wire_cases o (wire i x o t hi) with ⟨s, j, B, he⟩ | ⟨j, body, he⟩ |
+    ⟨s, B, raw', sup', rows', he⟩
+  · rw [he] at hp; cases hp
+  · rw [he] at hp; cases hp
+  · rw [he] at hp
+    obtain ⟨rfl, rfl, rfl, rfl⟩ := Msg.proposal.inj hp
+    subst o
+    have ha := (fgsa_emits_proposal env (mkRun []) (runPrefix n).2 0 (n : Time) s
+      (.proposal B raw' sup' rows')).mp ho
+    obtain ⟨hb, _, _, _⟩ := nv_proposal_shape _ s 0 B raw' sup' rows' ha.2.2.2
+    refine ⟨n, hn, s, ho, rfl, ?_, ha.2.1⟩
+    rw [hb]; rfl
+
+/-- ROOT-DIGEST W3b. W2's emission equation supplies the small delivered root. -/
+theorem nv_delivery_root {x : Fin 1} {o : Object} {t : Time} {b : Block}
+    {raw sup : List (HeadWire params.n)} {rows : List (RowWire params.n)}
+    (hd : V2.Event.deliver x o t ∈ run.events) (hp : o.payload = .proposal b raw sup rows) :
+    b.root = ⟨b.slot + 1⟩ := by
+  obtain ⟨n, hn, s, ho, rfl, _, _⟩ := nv_delivery_origin hd hp
+  exact emitted_proposal_slot_root env run (fun _ => rfl)
+    (runPrefix n).1.length 0 (n : Time) s b raw sup rows (tick_at n hn)
+    ((emits_at_tick n hn).symm ▸ ho)
+
+/-- ROOT-DIGEST W3b. Equal proposal slots give equal ticks and complete payloads. -/
+theorem nv_delivery_unique {x y : Fin 1} {o o' : Object} {t u : Time} {b B : Block}
+    {raw sup raw' sup' : List (HeadWire params.n)} {rows rows' : List (RowWire params.n)}
+    (hd : V2.Event.deliver x o t ∈ run.events) (hp : o.payload = .proposal b raw sup rows)
+    (hd' : V2.Event.deliver y o' u ∈ run.events) (hp' : o'.payload = .proposal B raw' sup' rows')
+    (hs : b.slot = B.slot) : b = B := by
+  obtain ⟨n, hn, s, ho, _, hb, ht⟩ := nv_delivery_origin hd hp
+  obtain ⟨m, _, s', ho', _, hB, ht'⟩ := nv_delivery_origin hd' hp'
+  have hss : s = s' := hb.symm.trans (hs.trans hB)
+  have hnm : n = m := by
+    have hh := ht.symm.trans (hss ▸ ht')
+    exact_mod_cast hh
+  subst m
+  have hl := released_length (runPrefix n).2 (n : Time)
+  have he : o = o' := by
+    generalize (V2.D.tick env (mkRun []) (runPrefix n).2 0 (n : Time)).2 = os at *
+    cases os with
+    | nil => cases ho
+    | cons a as =>
+      have hnil : as = [] := by
+        apply List.length_eq_zero_iff.mp
+        simp only [List.length_cons] at hl
+        omega
+      subst as
+      exact (List.mem_singleton.mp ho).trans (List.mem_singleton.mp ho').symm
+  rw [he, hp'] at hp
+  exact (Msg.proposal.inj hp).1.symm
+
+/-- ROOT-DIGEST W3b. Each delivered body's parent was held at its actual emission. -/
+theorem nvParents : ∀ x o t b raw sup rows,
+    V2.Event.deliver x o t ∈ run.events → o.payload = .proposal b raw sup rows →
+    ∃ i y, b.parent ∈ (V2.D.Run.stateBefore env run i y).st.base.blocks := by
+  intro x o t b raw sup rows hd hp
+  obtain ⟨i, hi⟩ := List.mem_iff_getElem?.mp hd
+  obtain ⟨n, hn, _, _, ho⟩ := delivery_source hi
+  obtain ⟨j, hj⟩ := emitted_payload_parent_stored env run
+    ⟨(runPrefix n).1.length, tick_at n hn, (emits_at_tick n hn).symm ▸ ho⟩ hp
+  exact ⟨j, 0, hj⟩
+
+/-- ROOT-DIGEST W3b. Origin and slot uniqueness prove the body-scope premise before Base₂. -/
+theorem nvRoots : NamedRootCollisionFree params unitCodec env run where
+  root_injective := by
+    intro B C hB hC A D hA hD he
+    have hAs : RootBlockInRun params unitCodec env run A := by
+      rcases hA with hA | hA
+      · exact rootBlockInRun_ancestor env run hB hA
+      · exact rootBlockInRun_ancestor env run hC hA
+    have hDs : RootBlockInRun params unitCodec env run D := by
+      rcases hD with hD | hD
+      · exact rootBlockInRun_ancestor env run hB hD
+      · exact rootBlockInRun_ancestor env run hC hD
+    rcases rootBlockInRun_genesis_or_delivered env run nvParents hAs with rfl | hA
+    · rcases rootBlockInRun_genesis_or_delivered env run nvParents hDs with rfl | hD
+      · rfl
+      · obtain ⟨x, o, t, raw, sup, rows, hd, hp⟩ := hD
+        have hr := nv_delivery_root hd hp
+        have hh := congrArg BlockId.value (he.trans hr)
+        change 0 = D.slot + 1 at hh
+        exact (Nat.succ_ne_zero _ hh.symm).elim
+    · obtain ⟨x, o, t, raw, sup, rows, hd, hp⟩ := hA
+      have hr := nv_delivery_root hd hp
+      rcases rootBlockInRun_genesis_or_delivered env run nvParents hDs with rfl | hD
+      · have hh := congrArg BlockId.value (hr.symm.trans he)
+        change A.slot + 1 = 0 at hh
+        exact (Nat.succ_ne_zero _ hh).elim
+      · obtain ⟨y, o', u, raw', sup', rows', hd', hp'⟩ := hD
+        have hr' := nv_delivery_root hd' hp'
+        apply nv_delivery_unique hd hp hd' hp'
+        have hh := congrArg BlockId.value (hr.symm.trans (he.trans hr'))
+        change A.slot + 1 = D.slot + 1 at hh
+        exact Nat.add_right_cancel hh
 
 theorem state_delivery_store (n : Nat) (hn : n < 305) :
     (V2.D.Run.stateBefore env run ((runPrefix n).1.length + 1) 0).st =
@@ -1010,7 +1107,16 @@ theorem emitted_fresh (n : Nat) (hn : n < 305) (o : Object)
       B.root = b.root) = false
     apply decide_eq_false
     rintro ⟨B, hB, hroot⟩
-    have he : eraseFG B = b := Block.root_injective ((eraseFG_root B).trans hroot)
+    have hc := cstoreInv_stateBefore env run (runPrefix n).1.length 0
+    have hm : B ∈ (V2.D.Run.stateBefore env run (runPrefix n).1.length 0).st.fg.TF := by
+      rw [state_before_tick n hn]
+      simpa only [clock_fg] using hB
+    have hBs := rootBlockInRun_held env run (Finset.mem_univ 0)
+      (runPrefix n).1.length ((hc.baseTree _).mpr ⟨B, hm, rfl⟩)
+    have hbs := rootBlockInRun_delivered env run
+      (List.mem_of_getElem? (immediate_delivery n hn _ ho)) rfl
+    have he : eraseFG B = b := rootBlockInRun_eq env run nvRoots hBs hbs
+      ((eraseFG_root B).trans hroot)
     have hslot : B.slot = s := (eraseFG_slot B).symm.trans
       ((congrArg Block.slot he).trans (by rw [hb]; rfl))
     have hh := hg B hB
@@ -1051,6 +1157,7 @@ theorem nvExecution : V2.D.ExecutionValid env run where
 
 theorem base : Base₂ params unitCodec env run where
   valid := nvExecution
+  idealization := nvRoots
   linked := by
     refine ⟨1, Equiv.refl _, ?_⟩
     intro l hl

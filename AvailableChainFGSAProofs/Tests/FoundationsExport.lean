@@ -8,11 +8,12 @@ open AvailableChain.SimplexFG
 
 variable (p : Params) {In V : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hroots : NamedRootCollisionFree p c E rho)
 
 example (hL : V2.D.Linked (fgsaFamilies p c).linked rho)
     (hX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
     (hU : V2.D.UnforgeableSignatures E rho) : RXing p c E rho :=
-  fgsa_rXing p c E rho hL hX hU
+  fgsa_rXing (hroots := hroots) p c E rho hL hX hU
 
 example (hL : V2.D.Linked (fgsaFamilies p c).linked rho)
     (hv : V2.D.ExecutionValid E rho)

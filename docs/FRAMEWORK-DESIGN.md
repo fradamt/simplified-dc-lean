@@ -1137,6 +1137,19 @@ when these land (after I9 and 2a).
   `StrongInstance` and `StrongInstance.{mk, sface, strong, toInstance}`;
   `V1Ctx` and `V1Ctx.{E, mk, rho}`; `ClaimDomain.{ofV1, strong, v1}`;
   `DomainMap.{ofV1, strongV1}`.
+- 2026-10-04, ROOT-DIGEST W3b (user option 3; plan §2 and r2.1–r2.3):
+  93 CHANGED lock lines, no REMOVED or ADDED line. Cost/source base: `98a62cd`.
+  Integrated input and result HEAD: `027f2f1`; W3b changes are not committed.
+  The expected set is the 91 I9 closure names plus `V2.anchor` and `V2.dutyAnchor`.
+  Set equality was checked before the final `--write --allow-changes`; `--check` is clean.
+  The closure change comes from explicit Block roots, Params.digest, generated constructor
+  helpers, and the two approved anchor-reference deletions. The BODY codec stays.
+  Exact names, causes, old/new hashes, frozen classifications, and check evidence are in
+  [the ROOT-DIGEST record](lock-log/root-digest/README.md). It includes the four r2.1/r2.2
+  Gen walk entries, the r2.3 CPPrefix scope restriction, and the retained GUP/LIVE-DC
+  exceptions. No checker rule changed. NV and the 405 LIVE-DC witness use standard axioms.
+  Full acceptance remains open: the inhabitance file and one Claims fixture need a scope
+  ruling. The full check table records the failed gates; no complete gate pass is claimed.
 - 2026-09-29, the Phase 2a gate (`fa190ec`; plan D6): one `ADDED` line,
   `AvailableChain.Framework.V2.anchor d7bf19c118bcf687`, written with
   `--write` and no `--allow-changes`. `lockedModulePrefixes` gained

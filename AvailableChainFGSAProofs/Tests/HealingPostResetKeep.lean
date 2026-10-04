@@ -13,6 +13,7 @@ open AvailableChain.SimplexFG
 
 variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hroots : NamedRootCollisionFree p c E rho)
 
 -- pure/model: the empty cut has no protected read.
 example (w : HealingWitness) : PostResetProtectedKept p c E rho w 0 := by
@@ -68,7 +69,8 @@ variable (hs : V2.D.ScheduleWellFormed E rho)
 -- with a reset copy in X and a protected body whose complete path is in X.
 example {s : Slot} (hprotected : ProtectedBody p c E rho w B s) :
     w.M + 1 ≤ (storeAt p c E rho i x).fg.h_max ∧ Kept p c E rho i x X B := by
-  have h := postReset_protected_kept_succ p c E rho hs xing origin h0r htransfer hinv
+  have h := postReset_protected_kept_succ (hroots := hroots) p c E rho hs xing origin h0r
+      htransfer hinv
   rw [PostResetProtectedKept_def] at h
   obtain ⟨hh, _, _, _, _, hk⟩ :=
     h i (Nat.lt_succ_self i) x X C hx hX htick hC he cover hreset hhigh
@@ -76,11 +78,13 @@ example {s : Slot} (hprotected : ProtectedBody p c E rho w B s) :
 
 -- conditional package: the general clause also consumes a body outside ProtectedBody.
 example (_houtside : ∀ s, ¬ ProtectedBody p c E rho w B s) : Kept p c E rho i x X B :=
-  postReset_general_kept p c E rho xing origin h0r hinv hx hX hC he cover path hBC hBK
+  postReset_general_kept (hroots := hroots) p c E rho xing origin h0r hinv hx hX hC he cover
+      path hBC hBK
 
 -- conditional package: consume the internal RKeep body's unrestricted last clause.
 example (inv : ∀ j, PostResetInv p c E rho w j) : Kept p c E rho i x X B := by
-  obtain ⟨_, _, _, _, _, hk⟩ := postReset_rKeep_body p c E rho xing origin h0r inv
+  obtain ⟨_, _, _, _, _, hk⟩ := postReset_rKeep_body (hroots := hroots) p c E rho xing origin
+      h0r inv
     i x X C hx hX htick hC he cover hreset hhigh
   exact hk B path hBC hBK
 

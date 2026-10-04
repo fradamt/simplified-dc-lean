@@ -1,6 +1,9 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Outage.Growth -- shake: keep (boundary and body examples)
-public import AvailableChainFGSAProofs.Proofs.Shared.Claims -- shake: keep (frozen GST claim example)
+public import AvailableChainFGSAProofs.Proofs.Foundations.Sources
+public import AvailableChainFGSAProofs.Proofs.Outage.Growth
+-- shake: keep (boundary and body examples)
+public import AvailableChainFGSAProofs.Proofs.Shared.Claims
+-- shake: keep (frozen GST claim example)
 
 public section
 
@@ -61,8 +64,8 @@ example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 -- The actual application value survives the proposal payload adapter.
 example (H : Block) (s : Slot) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
     (a : Nat) :
-    withApp a (.proposal (.node H s (packBody 0 rows)) raw sup rows) =
-      .proposal (.node H s (packBody a rows)) raw sup rows := rfl
+    withApp p a (.proposal (proposalBlock p H s 0 raw sup rows) raw sup rows) =
+      .proposal (proposalBlock p H s a raw sup rows) raw sup rows := rfl
 
 -- ABSTRACT regression: this is not a reachable FGSA execution. Both
 -- outputs already equal B at t and D. Monotonicity and inclusion hold, but
@@ -87,6 +90,7 @@ example [Fintype V]
     (hset : CleanSet p c E rho ΔF)
     (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
     (hsrc : SrcFrameAboveStmt p c E rho)
+    (hstrat : RStrat p c E rho)
     (hordered : ∀ x y r s B C, x ∈ rho.honest → y ∈ rho.honest →
       SA.gateTime p.toParams r ≤ rho.horizon → SA.gateTime p.toParams s ≤ rho.horizon →
       gateResult p c E rho x r = some (some B) →
@@ -110,7 +114,8 @@ example [Fintype V]
     (hgap : 4 * p.Δ ≤ G) (t : Time) (ht : 0 ≤ t)
     (hhor : t + G + 6 * p.Δ ≤ rho.horizon) :
     AvailableGrowthConcl p c E rho t (t + G + 6 * p.Δ) := by
-  exact clean_growth_body E rho G ΔF hset hstore hframe hsrc hordered hnonempty
+  exact clean_growth_body (hstrat :=
+    hstrat) E rho G ΔF hset hstore hframe hsrc hordered hnonempty
     htransfer hleases hrows hmono hrec hgap t ht hhor
 
 -- The conditional theorem has the exact frozen GST claim type.

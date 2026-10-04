@@ -15,21 +15,21 @@ DC: INTENTIONAL; finite parameters for the witness tests. -/
 private abbrev params : Params :=
   { Δ := 1, n := 1, k := 2, η := 0, deltaPos := by decide, nPos := by decide,
     kLarge := by decide, etaNonneg := by decide,
-    R := 2, δt := 1, RLarge := by decide }
+    R := 2, δt := 1, RLarge := by decide, digest := fun d => ⟨d.slot + 1⟩ }
 
 /-- Blueprint 21 H.6:942–958 (design 798–814); spec 1290–1297. Class (iii).
 DC: INTENTIONAL; retained cut and live lease target. -/
-private def cutFG : FGBlock (Fin 1) := .node .genesis 1 0 []
+private def cutFG : FGBlock (Fin 1) := .node .genesis 1 ⟨1⟩ 0 []
 /-- Blueprint 21 H.6:942–958 (design 798–814); spec 1290–1297. Class (iii).
 DC: INTENTIONAL; parent strictly above the retained cut. -/
-private def parentFG : FGBlock (Fin 1) := .node cutFG 2 0 []
+private def parentFG : FGBlock (Fin 1) := .node cutFG 2 ⟨2⟩ 0 []
 /-- Blueprint 21 H.6:942–958 (design 798–814); spec 1290–1297. Class (iii).
 DC: INTENTIONAL; old child at the inclusive endpoint. -/
-private def oldFG : FGBlock (Fin 1) := .node parentFG 3 0 []
+private def oldFG : FGBlock (Fin 1) := .node parentFG 3 ⟨3⟩ 0 []
 
 /-- Blueprint 21 H.17:3008–3011 (design 2869–2872); spec 1286–1293. Class (iii).
 DC: INTENTIONAL; the admitted current proposal shares A with the old child. -/
-private def proposalFG : FGBlock (Fin 1) := .node parentFG 4 0 []
+private def proposalFG : FGBlock (Fin 1) := .node parentFG 4 ⟨4⟩ 0 []
 
 /-- Blueprint 21 H.6:927–958 (design 783–814); spec 1373–1385, 1290–1297. Class (iii).
 DC: INTENTIONAL; a source with a live lease above its root. -/
@@ -252,6 +252,7 @@ DC: INTENTIONAL; compile the full supplier-to-schedule application.
 This is a conditional run instance; the fixture has no certified heights. -/
 private theorem scheduled_instance
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hroots : NamedRootCollisionFree p c E rho)
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
     (s : Slot)
     (hWalkSync : Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o)
@@ -273,7 +274,8 @@ private theorem scheduled_instance
     SA.voteTime p.toParams s ≤ rho.horizon →
       ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some b := by
   exact exactService_head_of_retained_proposal E rho hE hDelta s hip b raw sup rows hem D
-    (fgsa_retainedExactHead_geometry_on_run E rho hE hN hDelta s hWalkSync hScoreSync
+    (fgsa_retainedExactHead_geometry_on_run (hroots := hroots) E rho hE hN hDelta s hWalkSync
+        hScoreSync
       hx hip hseat b raw sup rows hem D hreads)
 
 /-- Blueprint 21 H.6:937–942. Class (iii).

@@ -33,6 +33,7 @@ private def Composes (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 Class (iii). DC: INTENTIONAL; derive the consumer's LabelSyncOn from each regime. -/
 private theorem compose
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hroots : NamedRootCollisionFree p c E rho)
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
     (s : Slot) {ip : Nat} {x : V} (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
@@ -57,7 +58,7 @@ private theorem compose
     linarith [p.deltaPos]
   refine ⟨?_, ?_, ?_⟩
   · intro hwalk hscore
-    exact fgsa_retainedExactHead_geometry_on_run E rho hE hN hDelta s
+    exact fgsa_retainedExactHead_geometry_on_run (hroots := hroots) E rho hE hN hDelta s
       hwalk hscore hx hip hseat b raw sup rows hem D (supply hscore)
   · intro b₀ ΔF h hcut
     have hscore := Gen.V2.Duty.LabelSyncOn.of_cleanCutBy E rho
@@ -76,6 +77,7 @@ private theorem compose
 DC: INTENTIONAL; H6 produces the exact hreads type for all three endpoints. -/
 private theorem check_H6
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hroots : NamedRootCollisionFree p c E rho)
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
     (s : Slot)
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
@@ -91,14 +93,16 @@ private theorem check_H6
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s) :
     Composes E rho ip x s
       (controls p (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))).Z b := by
-  apply compose E rho hE hN hDelta s hx hip hseat b raw sup rows hem
+  apply compose E rho hroots hE hN hDelta s hx hip hseat b raw sup rows hem
   intro hSync
-  exact fgsa_retainedReads_H6 E rho hE hN hDelta s hSync hx hip hseat b raw sup rows hem hinput
+  exact fgsa_retainedReads_H6 (hroots := hroots) E rho hE hN hDelta s hSync hx hip hseat b raw
+      sup rows hem hinput
 
 /-- Blueprint 21; design job 7 K6. Class (iii).
 DC: INTENTIONAL; H6S produces the exact hreads type for all three endpoints. -/
 private theorem check_H6S
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hroots : NamedRootCollisionFree p c E rho)
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
     (s : Slot)
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
@@ -114,14 +118,16 @@ private theorem check_H6S
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s) :
     Composes E rho ip x s
       (controls p (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))).Z b := by
-  apply compose E rho hE hN hDelta s hx hip hseat b raw sup rows hem
+  apply compose E rho hroots hE hN hDelta s hx hip hseat b raw sup rows hem
   intro hSync
-  exact fgsa_retainedReads_H6S E rho hE hN hDelta s hSync hx hip hseat b raw sup rows hem hinput
+  exact fgsa_retainedReads_H6S (hroots := hroots) E rho hE hN hDelta s hSync hx hip hseat b raw
+      sup rows hem hinput
 
 /-- Blueprint 21; design job 7 K6. Class (iii).
 DC: INTENTIONAL; H17 produces the exact hreads type for all three endpoints. -/
 private theorem check_H17
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hroots : NamedRootCollisionFree p c E rho)
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
     (s : Slot)
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
@@ -137,14 +143,16 @@ private theorem check_H17
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D) :
     Composes E rho ip x s D b := by
-  apply compose E rho hE hN hDelta s hx hip hseat b raw sup rows hem
+  apply compose E rho hroots hE hN hDelta s hx hip hseat b raw sup rows hem
   intro hSync
-  exact fgsa_retainedReads_H17 E rho hE hN hDelta s hSync hx hip hseat b raw sup rows hem D hinput
+  exact fgsa_retainedReads_H17 (hroots := hroots) E rho hE hN hDelta s hSync hx hip hseat b raw
+      sup rows hem D hinput
 
 /-- Blueprint 21; design job 7 K6. Class (iii).
 DC: INTENTIONAL; L4R produces the exact hreads type for all three endpoints. -/
 private theorem check_L4R
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hroots : NamedRootCollisionFree p c E rho)
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
     (s : Slot)
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
@@ -165,15 +173,17 @@ private theorem check_L4R
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s Q) :
     Composes E rho ip x s Q b := by
-  apply compose E rho hE hN hDelta s hx hip hseat b raw sup rows hem
+  apply compose E rho hroots hE hN hDelta s hx hip hseat b raw sup rows hem
   intro hSync
-  exact fgsa_retainedReads_L4R E rho hE hN hDelta s hSync hx hip hseat b raw sup rows hem
+  exact fgsa_retainedReads_L4R (hroots := hroots) E rho hE hN hDelta s hSync hx hip hseat b raw
+      sup rows hem
     Q q w_a w_b hafter hstop hinput
 
 /-- Blueprint 21; design job 7 K6. Class (iii).
 DC: INTENTIONAL; HG1 produces the exact hreads type for all three endpoints. -/
 private theorem check_HG1
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hroots : NamedRootCollisionFree p c E rho)
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
     (s : Slot)
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
@@ -194,15 +204,17 @@ private theorem check_HG1
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s Q) :
     Composes E rho ip x s Q b := by
-  apply compose E rho hE hN hDelta s hx hip hseat b raw sup rows hem
+  apply compose E rho hroots hE hN hDelta s hx hip hseat b raw sup rows hem
   intro hSync
-  exact fgsa_retainedReads_HG1 E rho hE hN hDelta s hSync hx hip hseat b raw sup rows hem
+  exact fgsa_retainedReads_HG1 (hroots := hroots) E rho hE hN hDelta s hSync hx hip hseat b raw
+      sup rows hem
     Q q stop hafter hstop hinput
 
 /-- Blueprint 21; design job 7 K6. Class (iii).
 DC: INTENTIONAL; L2 produces the exact hreads type for all three endpoints. -/
 private theorem check_L2
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hroots : NamedRootCollisionFree p c E rho)
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
     (s : Slot)
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
@@ -224,9 +236,10 @@ private theorem check_L2
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s J) :
     Composes E rho ip x s J b := by
-  apply compose E rho hE hN hDelta s hx hip hseat b raw sup rows hem
+  apply compose E rho hroots hE hN hDelta s hx hip hseat b raw sup rows hem
   intro hSync
-  exact fgsa_retainedReads_L2 E rho hE hN hDelta s hSync hx hip hseat b raw sup rows hem
+  exact fgsa_retainedReads_L2 (hroots := hroots) E rho hE hN hDelta s hSync hx hip hseat b raw
+      sup rows hem
     J rd w stop hinherited hevidence hstop hinput
 
 /-- Blueprint 21 HG.1:1570–1574. Class (iii).
@@ -243,6 +256,7 @@ private theorem q1_before_gate (p : Params) (q : Slot) :
 DC: INTENTIONAL; the boundary uses H6, with no post-d_q lease premise. -/
 private theorem q1_H6
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hroots : NamedRootCollisionFree p c E rho)
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
     (q : Slot)
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
@@ -262,12 +276,13 @@ private theorem q1_H6
       (controls p (clock p (rho.stateBefore E ip x).st
         (SA.proposalTime p.toParams (q + 1)))).Z b := by
   refine ⟨q1_before_gate p q, ?_⟩
-  exact check_H6 E rho hE hN hDelta (q + 1) hx hip hseat b raw sup rows hem hinput
+  exact check_H6 E rho hroots hE hN hDelta (q + 1) hx hip hseat b raw sup rows hem hinput
 
 /-- Blueprint 21 HG.1:1570–1574; design job 7 K4/K6. Class (iii).
 DC: INTENTIONAL; the boundary uses H6S, with no post-d_q lease premise. -/
 private theorem q1_H6S
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hroots : NamedRootCollisionFree p c E rho)
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
     (q : Slot)
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
@@ -287,6 +302,6 @@ private theorem q1_H6S
       (controls p (clock p (rho.stateBefore E ip x).st
         (SA.proposalTime p.toParams (q + 1)))).Z b := by
   refine ⟨q1_before_gate p q, ?_⟩
-  exact check_H6S E rho hE hN hDelta (q + 1) hx hip hseat b raw sup rows hem hinput
+  exact check_H6S E rho hroots hE hN hDelta (q + 1) hx hip hseat b raw sup rows hem hinput
 
 end AvailableChain.FGSA.Run.Tests.RetainedConsumers

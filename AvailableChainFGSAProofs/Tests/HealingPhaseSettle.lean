@@ -2,7 +2,8 @@ module
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseSettle -- shake: keep (RPhase tests)
 public import AvailableChainFGSAProofs.Proofs.Healing.PhaseBoot -- shake: keep (bootstrap tests)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Store -- shake: keep (foundation producer)
-public import AvailableChainFGSAProofs.Proofs.Foundations.FinalityApi -- shake: keep (foundation producer)
+public import AvailableChainFGSAProofs.Proofs.Foundations.FinalityApi
+-- shake: keep (foundation producer)
 
 set_option linter.privateModule false
 
@@ -49,13 +50,14 @@ open AvailableChain.SimplexFG
 
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hroots : NamedRootCollisionFree p c E rho)
 
 -- P6: the frozen contract from the foundation producers and the regime fields.
 example [Fintype V] (hp : FinalizedSafetyPrem p c E rho ())
     (hvalid : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho) (hdelta : E.Δ = p.Δ)
     {ΔF : Time} (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF)) :
     RPhase p c E rho :=
-  healing_rPhase p c E rho (fgsa_rMono p c E rho)
+  healing_rPhase (hroots := hroots) p c E rho (fgsa_rMono p c E rho)
     (fgsa_apiFinalLockClaim_body p c E rho () hp) hvalid hnr hdelta hsync
 
 -- An event at the deadline is not before the strict relay cut, but it is inside

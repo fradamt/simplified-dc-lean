@@ -11,6 +11,9 @@ open Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
     {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
+    (hroots : NamedRootCollisionFree p c E rho)
+    (hstrat : RStrat p c E rho)
+
 
 /-! O-INDUCT plan §10. Concrete tests use the actual model operations.
 The delayed-disclosure tests use real run stores and exact RQCOrigin
@@ -42,7 +45,8 @@ theorem same_time_disclosure (hs : V2.D.ScheduleWellFormed E rho)
 
 /-- A newly stored W can finalize an older target while its latest J differs.
 The retained target is identified through the prior justification carrier. -/
-theorem delayed_old_W_finalization (hqc : RQCOrigin p c E rho)
+theorem delayed_old_W_finalization (hroots : NamedRootCollisionFree p c E rho)
+    (hqc : RQCOrigin p c E rho)
     {i : Nat} {x : V} {o : Obj p} {t : Time}
     (hi : rho.events[i]? = some (.deliver x o t)) (hx : x ∈ rho.honest)
     {B : Block} {β W : FGBlock (Fin p.n)} (hβ : eraseFG β = B)
@@ -56,7 +60,8 @@ theorem delayed_old_W_finalization (hqc : RQCOrigin p c E rho)
         (heightView p carrier).J = (finalityView p W).F ∧
         (heightView p carrier).J ≠ (heightView p W).J ∧
         (FGBlock.Preceq (finalityView p W).F β ∨ FGBlock.Preceq β (finalityView p W).F) := by
-  obtain ⟨carrier, hp, hJ, _, hcompat⟩ := outage_disclosed_finalization hqc hi hx hβ hist hW hne
+  obtain ⟨carrier, hp, hJ, _, hcompat⟩ := outage_disclosed_finalization (hroots := hroots) hqc
+      hi hx hβ hist hW hne
   exact ⟨hnew, carrier, hp, hJ, hJ ▸ hdifferent, hcompat⟩
 
 /-- The same old history covers a newly disclosed crossing QC, including timeout rows. -/
@@ -72,11 +77,13 @@ example (hqc : RQCOrigin p c E rho) {i : Nat} {x : V} {o : Obj p} {t : Time}
     (hr : ∀ k ∈ Q, FGBlock.Preceq (rows k).1 W ∧ (rows k).2 ∈ (rows k).1.rows ∧
       (rows k).2.signer = k ∧ (rows k).2.height_pair.matchesEntry m X.root = true) :
     FGBlock.Preceq X β ∨ FGBlock.Preceq β X :=
-  (outage_disclosed_crossing hqc hi hx hβ hist hW hm hlt hX hheight hQ hr).2
+  (outage_disclosed_crossing (hroots := hroots) hqc hi hx hβ hist hW hm hlt hX hheight hQ hr).2
 
 /-- A raised contested frame uses every old source, not the old receiver's visible certificates. -/
-theorem delayed_contested_frame (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
-    (hsrc : SrcFrameAboveStmt p c E rho)
+theorem delayed_contested_frame (hroots : NamedRootCollisionFree p c E rho)
+    (hstrat : RStrat p c E rho)
+    (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+    (_hsrc : SrcFrameAboveStmt p c E rho)
     (hnamed : ∀ k x r (a : RowWire p.n) e,
       HonestRowAt p c E rho k x r a → namedEntry a.payload.height_pair = some e →
       ∃ C G, actionSourceFG p c E rho x r = some (some C) ∧
@@ -93,9 +100,9 @@ theorem delayed_contested_frame (hstore : RStore p c E rho) (hframe : RFrameExac
       (heightView p W).h = (R_at p c E rho (i + 1) x).H →
       ¬ FGBlock.Preceq (R_at p c E rho (i + 1) x).J W → FGBlock.Preceq β W := by
   have hn : OutageNamedHistory p c E rho β (i + 1) :=
-    outage_named_of_source_history hβ (outage_source_history_delivery hi hist) hnamed
-  have hcp := cpCompat_of_srcFrame p c E rho hstore hframe hsrc
-  rw [CPCompat_def] at hcp
+    outage_named_of_source_history (hroots := hroots) hβ (outage_source_history_delivery hi
+        hist) hnamed
+  have hcp := cpCompat_of_scopedFrame p c E rho hstore hframe hstrat
   exact ((hcp (i + 1) x β hx hn.history).2.2.2.2 hcontest).2
 
 /-- A delivery can leave F unchanged while the successor frame is contested.
@@ -125,9 +132,9 @@ example {i : Nat} {x : V} {o : Obj p} {t : Time}
 
 /-- Different descendants above B can conflict; normalization retains B and loses the old suffix. -/
 example :
-    let B := Block.node .genesis 1 0
-    let S := Block.node B 2 0
-    let F := Block.node B 2 1
+    let B := Block.node .genesis 1 ⟨1⟩ 0
+    let S := Block.node B 2 ⟨2⟩ 0
+    let F := Block.node B 2 ⟨3⟩ 1
     Gen.AC.normalizeOutput F S = F ∧
       Block.Preceq B (Gen.AC.normalizeOutput F S) ∧
       ¬ Block.Preceq S (Gen.AC.normalizeOutput F S) := by
@@ -175,14 +182,14 @@ example : 1 < 2 ∧ 2 ≤ 5 - 1 ∧ 2 < (5 + 1) / 2 ∧
 
 /-- Equality expires; a strict earlier time retains the selected row. -/
 example :
-    let B := Block.node .genesis 1 0
+    let B := Block.node .genesis 1 ⟨1⟩ 0
     let st : GridCO.State 1 := { GridCO.initial 1 with obligations := [(B, 1, 10)] }
     (GridCO.expire st 10).obligations = [] ∧
       (B, 1, 10) ∈ (GridCO.expire st 9).obligations := by decide
 
 /-- A shorter renewal keeps the greater deadline. -/
 example :
-    let B := Block.node .genesis 1 0
+    let B := Block.node .genesis 1 ⟨1⟩ 0
     let st : GridCO.State 1 := { GridCO.initial 1 with obligations := [(B, 1, 20)] }
     (B, 1, 20) ∈ (GridCO.writeObligation st B 1 10).obligations := by decide
 

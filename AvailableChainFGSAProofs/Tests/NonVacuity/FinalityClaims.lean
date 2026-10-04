@@ -10,23 +10,23 @@ set_option maxSynthPendingDepth 100
 set_option maxRecDepth 10000
 set_option exponentiation.threshold 2000
 
-/-! NV-FIN. DC: SAME one-node fixture, with horizon 404.
+/-! NV-FIN. DC: SAME one-node fixture, with horizon 405.
 TEST-USE forbids test-to-test imports. The fixture and prefix proofs below
 are copied from HealingClaims through nvHealingInput. Only the namespace,
 horizon, prefix bound, and plan comments change. This duplication is reported.
 The proof uses parametric folds; concrete kernel checks stop at tick 54. -/
 namespace AvailableChain.FGSA.Run.Tests.NonVacuity.FinalityClaims
 
-/-- NV-FIN: S5 fixture: one honest node, positive horizon, and unchanged SA clocks.
+/-- ROOT-DIGEST W3b. NV-FIN: S5 fixture: one honest node, positive horizon, and unchanged SA clocks.
 DC: SAME canonical fixture and cached prefix proof. -/
 def params : Params :=
   ⟨⟨1, 1, 2, 0, by decide, by decide, by decide, by decide⟩,
-    3, 6, by decide, 2, by decide⟩
+    3, 6, by decide, 2, by decide, fun d => ⟨d.slot + 1⟩⟩
 
 def env : Generic.Env (Fin 1) := ⟨1, by decide, 0, le_rfl, fun _ _ => true⟩
 def deltaF : Time := 3
 def gap : Time := 4
-def horizon : Time := 404
+def horizon : Time := 405
 
 theorem params_delta : params.Δ = 1 := rfl
 theorem params_n : params.n = 1 := rfl
@@ -40,7 +40,7 @@ theorem env_gst : env.t_GST = 0 := rfl
 theorem env_awake (v : Fin 1) (t : Time) : env.awake v t = true := rfl
 theorem deltaF_value : deltaF = 3 := rfl
 theorem gap_value : gap = 4 := rfl
-theorem horizon_value : horizon = 404 := rfl
+theorem horizon_value : horizon = 405 := rfl
 theorem horizon_pos : 0 < horizon := by decide
 theorem deltaF_lower : env.Δ ≤ deltaF := by decide
 theorem gap_lower : 4 * params.Δ ≤ gap := by decide
@@ -148,7 +148,7 @@ theorem nv_rows_process (st : State p.n) (o : Obj p)
               raw.all (fun v => match v.decode? with
                 | some (r, _, _) => r + 1 == b.slot | none => false) &&
               sup.all (fun v => decide (v ∈ raw)) &&
-              rows.all RowWire.valid && rowsOk b rows
+              rows.all RowWire.valid && contentOk p b raw sup rows
           | none => false) = true at hw
         rw [hd] at hw
         intro a ha
@@ -156,7 +156,7 @@ theorem nv_rows_process (st : State p.n) (o : Obj p)
           (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp hw).1).2 a ha
       change EmissionRowsValid (match parentFG st b with
         | none => st
-        | some P => if blockAccepted p st s b P rows then
+        | some P => if blockAccepted p st s b raw sup P rows then
           rows.foldl (admitRow p)
             (if (Window.on_block p p.K_W st.fg (fgBlock P b rows)).F = st.fg.F then
               { st with
@@ -256,21 +256,17 @@ theorem nv_proposal_votes (st : State p.n) (s : Slot) :
 theorem nv_proposal_wf (st : State p.n) (s : Slot) (a : Nat)
     (hv : EmissionRowsValid st)
     (hp : (getHead p st (proposerVotes st s) (proposerSupport st s)).slot < s)
-    {m : Msg p.n} (hm : (propose p st s).map (withApp a) = some m) :
+    {m : Msg p.n} (hm : (propose p st s).map (withApp p a) = some m) :
     FGSA.wellFormed p ⟨.proposer s, m⟩ = true := by
   have hs0 : 0 < s := Nat.zero_lt_of_lt hp
   let H := getHead p st (proposerVotes st s) (proposerSupport st s)
   let rows := proposalRows p st H
-  have he : m = .proposal (.node H s (packBody a rows))
-      ((proposerVotes st s).filterMap liftHead?)
-      ((proposerSupport st s).filterMap liftHead?) rows := by
-    change (if s = 0 then none else some (.proposal (.node H s (packBody 0 rows))
-      ((proposerVotes st s).filterMap liftHead?)
-      ((proposerSupport st s).filterMap liftHead?) rows)).map
-        (withApp a) = some m at hm
+  let raw := (proposerVotes st s).filterMap liftHead?
+  let sup := (proposerSupport st s).filterMap liftHead?
+  have he : m = .proposal (proposalBlock p H s a raw sup rows) raw sup rows := by
+    unfold propose at hm
     rw [ite_eq_right (Nat.ne_of_gt hs0)] at hm
     exact (Option.some.inj hm).symm
-  have hcontent := rowsOk_withApp st s a hm
   rw [he]
   change (true && (s == s) && decide (H.slot < s) &&
     ((proposerVotes st s).filterMap liftHead?).all (fun v => match v.decode? with
@@ -278,7 +274,7 @@ theorem nv_proposal_wf (st : State p.n) (s : Slot) (a : Nat)
     ((proposerSupport st s).filterMap liftHead?).all
       (fun v => decide (v ∈ (proposerVotes st s).filterMap liftHead?)) &&
     rows.all RowWire.valid &&
-    rowsOk (.node H s (packBody a rows)) rows) = true
+    contentOk p (proposalBlock p H s a raw sup rows) raw sup rows) = true
   obtain ⟨hraw, hsup⟩ := nv_proposal_votes st s
   have hr : rows.all RowWire.valid = true :=
     List.all_eq_true.mpr (nv_proposal_rows st H hv)
@@ -292,13 +288,7 @@ theorem nv_proposal_wf (st : State p.n) (s : Slot) (a : Nat)
   have hsupport : ((proposerSupport st s).filterMap liftHead?).all
       (fun v => decide (v ∈ (proposerVotes st s).filterMap liftHead?)) = true :=
     List.all_eq_true.mpr (fun v hv => decide_eq_true (hsup v hv))
-  have hc : rowsOk (.node H s (packBody a rows)) rows = true := by
-    obtain ⟨H', raw', sup', rows', he', hc, -⟩ := hcontent
-    rw [he] at he'
-    have eqs := Msg.proposal.inj he'
-    have hb := Block.node.inj eqs.1
-    rw [← hb.1, ← eqs.2.2.2] at hc
-    exact hc
+  have hc := contentOk_proposalBlock p H s a raw sup rows
   rw [hvotes, hsupport, hr, hc]
   simp only [beq_self_eq_true, Bool.true_and, Bool.and_true, decide_eq_true_eq]
   exact hp
@@ -306,15 +296,16 @@ theorem nv_proposal_wf (st : State p.n) (s : Slot) (a : Nat)
 
 theorem nv_proposal_shape (st : State p.n) (s : Slot) (app : Nat)
     (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (ha : (propose p st s).map (withApp app) = some (.proposal b raw sup rows)) :
-    b = .node (getHead p st (proposerVotes st s) (proposerSupport st s)) s (packBody app rows) ∧
+    (ha : (propose p st s).map (withApp p app) = some (.proposal b raw sup rows)) :
+    b = proposalBlock p
+      (getHead p st (proposerVotes st s) (proposerSupport st s)) s app raw sup rows ∧
       raw = (proposerVotes st s).filterMap liftHead? ∧
       sup = (proposerSupport st s).filterMap liftHead? ∧
       rows = proposalRows p st (getHead p st (proposerVotes st s) (proposerSupport st s)) := by
   unfold propose at ha
   split at ha
   · cases ha
-  · simp only [Option.map_some, withApp, Option.some.injEq, Msg.proposal.injEq] at ha
+  · simp only [Option.map_some, Option.some.injEq] at ha
     obtain ⟨rfl, rfl, rfl, rfl⟩ := ha
     exact ⟨rfl, rfl, rfl, rfl⟩
 
@@ -404,7 +395,7 @@ DC: SAME canonical fixture and cached prefix proof. -/
 def runPrefix (n : Nat) : List Event × FixtureNode :=
   (List.range n).foldl batch ([], (fgsa params unitCodec).init)
 
-def run := mkRun (runPrefix 405).1
+def run := mkRun (runPrefix 406).1
 
 theorem runPrefix_zero : runPrefix 0 = ([], (fgsa params unitCodec).init) := rfl
 
@@ -543,31 +534,31 @@ theorem prefix_flat (n : Nat) :
       List.flatMap_cons, List.flatMap_nil, List.append_nil, batchEvents]
     rw [← ih, List.append_assoc]
 
-theorem tick_at (n : Nat) (hn : n < 405) :
+theorem tick_at (n : Nat) (hn : n < 406) :
     run.events[(runPrefix n).1.length]? = some (.tick 0 (n : Time)) := by
-  obtain ⟨tail, he⟩ := prefix_mono (show n + 1 ≤ 405 by omega)
-  change (runPrefix 405).1[(runPrefix n).1.length]? = _
+  obtain ⟨tail, he⟩ := prefix_mono (show n + 1 ≤ 406 by omega)
+  change (runPrefix 406).1[(runPrefix n).1.length]? = _
   rw [← he, runPrefix_succ]
   simp [batch, List.append_assoc]
 
-theorem state_before_tick (n : Nat) (hn : n < 405) :
+theorem state_before_tick (n : Nat) (hn : n < 406) :
     V2.D.Run.stateBefore env run (runPrefix n).1.length = fun _ => (runPrefix n).2 := by
-  obtain ⟨tail, he⟩ := prefix_mono (show n ≤ 405 by omega)
+  obtain ⟨tail, he⟩ := prefix_mono (show n ≤ 406 by omega)
   unfold V2.D.Run.stateBefore
-  change ((runPrefix 405).1.take (runPrefix n).1.length).foldl
+  change ((runPrefix 406).1.take (runPrefix n).1.length).foldl
       (V2.D.World.step env run) V2.D.World.init = _
   rw [← he]
   simp only [List.take_append, List.take_length, Nat.sub_self, List.take_zero,
     List.append_nil]
   exact prefix_cached n
 
-theorem emits_at_tick (n : Nat) (hn : n < 405) :
+theorem emits_at_tick (n : Nat) (hn : n < 406) :
     V2.D.Run.emitsAt env run (runPrefix n).1.length =
       (V2.D.tick env (mkRun []) (runPrefix n).2 0 (n : Time)).2 := by
   rw [V2.D.Run.emitsAt, tick_at n hn, state_before_tick n hn]
   rfl
 
-theorem immediate_delivery (n : Nat) (hn : n < 405) (o : Object)
+theorem immediate_delivery (n : Nat) (hn : n < 406) (o : Object)
     (ho : o ∈ (V2.D.tick env (mkRun []) (runPrefix n).2 0 (n : Time)).2) :
     run.events[(runPrefix n).1.length + 1]? = some (.deliver 0 o (n : Time)) := by
   have hos : (V2.D.tick env (mkRun []) (runPrefix n).2 0 (n : Time)).2 = [o] := by
@@ -579,8 +570,8 @@ theorem immediate_delivery (n : Nat) (hn : n < 405) (o : Object)
       rw [he, has] at ho
       rw [has]
       exact (List.mem_singleton.mp ho) ▸ rfl
-  obtain ⟨tail, he⟩ := prefix_mono (show n + 1 ≤ 405 by omega)
-  change (runPrefix 405).1[(runPrefix n).1.length + 1]? = _
+  obtain ⟨tail, he⟩ := prefix_mono (show n + 1 ≤ 406 by omega)
+  change (runPrefix 406).1[(runPrefix n).1.length + 1]? = _
   rw [← he, runPrefix_succ]
   simp [batch, hos, List.append_assoc]
 
@@ -613,46 +604,46 @@ theorem prefix_strict (n : Nat) :
 
 theorem nvSchedule : V2.D.ScheduleWellFormed env run where
   horizon_nonneg := le_of_lt horizon_pos
-  sorted := (prefix_strict 405).imp (fun h => le_of_lt h)
+  sorted := (prefix_strict 406).imp (fun h => le_of_lt h)
   nodup := by
     have hne : run.events.Pairwise (fun e f => e ≠ f) :=
-      (prefix_strict 405).imp (fun h he => by rw [he] at h; exact lt_irrefl _ h)
+      (prefix_strict 406).imp (fun h he => by rw [he] at h; exact lt_irrefl _ h)
     exact hne
   in_horizon := by
     intro e he
-    obtain ⟨m, hm, ht, _⟩ := prefix_events_time 405 e he
+    obtain ⟨m, hm, ht, _⟩ := prefix_events_time 406 e he
     rw [ht]
-    change 0 ≤ (m : Time) ∧ (m : Time) ≤ 404
+    change 0 ≤ (m : Time) ∧ (m : Time) ≤ 405
     exact ⟨Int.natCast_nonneg m, by dsimp only [Time] at *; omega⟩
   honest_only := by intro e _; exact Finset.mem_univ _
   tick_public := by
     intro v t he
-    obtain ⟨m, _, ht, _⟩ := prefix_events_time 405 (.tick v t) he
+    obtain ⟨m, _, ht, _⟩ := prefix_events_time 406 (.tick v t) he
     exact ⟨m, by simpa only [V2.Event.time, env, Int.mul_one] using ht⟩
   tick_total := by
     intro v _ t _ ht hh
     have hv : v = 0 := Subsingleton.elim _ _
     subst v
-    change t ≤ 404 at hh
+    change t ≤ 405 at hh
     have he : t = (t.toNat : Time) := (Int.toNat_of_nonneg ht).symm
     rw [he]
-    exact prefix_ticks 405 t.toNat (by dsimp only [Time] at *; omega)
+    exact prefix_ticks 406 t.toNat (by dsimp only [Time] at *; omega)
 
 theorem noRestart : V2.D.NoRestart run := by
   intro i v t hi
-  obtain ⟨_, _, _, he⟩ := prefix_events_time 405 (.restart v t) (List.mem_of_getElem? hi)
+  obtain ⟨_, _, _, he⟩ := prefix_events_time 406 (.restart v t) (List.mem_of_getElem? hi)
   rcases he with he | ⟨o, he⟩ <;> cases he
 
 set_option maxHeartbeats 2000000 in
 -- Index uniqueness uses the symbolic prefix proof through the concrete run type.
 theorem delivery_source {i : Nat} {v : Fin 1} {o : Object} {t : Time}
     (hi : run.events[i]? = some (.deliver v o t)) :
-    ∃ n : Nat, n < 405 ∧ t = (n : Time) ∧ i = (runPrefix n).1.length + 1 ∧
+    ∃ n : Nat, n < 406 ∧ t = (n : Time) ∧ i = (runPrefix n).1.length + 1 ∧
       o ∈ (V2.D.tick env (mkRun []) (runPrefix n).2 0 (n : Time)).2 := by
   have hm := List.mem_of_getElem? hi
-  rw [show run.events = (runPrefix 405).1 from rfl, prefix_flat] at hm
+  rw [show run.events = (runPrefix 406).1 from rfl, prefix_flat] at hm
   obtain ⟨n, hn, hm⟩ := List.mem_flatMap.mp hm
-  have hn' : n < 405 := List.mem_range.mp hn
+  have hn' : n < 406 := List.mem_range.mp hn
   simp only [batchEvents, List.mem_append, List.mem_singleton, List.mem_map] at hm
   rcases hm with he | ⟨a, ha, he⟩
   · cases he
@@ -666,8 +657,8 @@ theorem delivery_source {i : Nat} {v : Fin 1} {o : Object} {t : Time}
 
 theorem tick_source {i : Nat} {v : Fin 1} {t : Time}
     (hi : run.events[i]? = some (.tick v t)) :
-    ∃ n : Nat, n < 405 ∧ t = (n : Time) ∧ i = (runPrefix n).1.length := by
-  obtain ⟨n, hn, ht, _⟩ := prefix_events_time 405 (.tick v t) (List.mem_of_getElem? hi)
+    ∃ n : Nat, n < 406 ∧ t = (n : Time) ∧ i = (runPrefix n).1.length := by
+  obtain ⟨n, hn, ht, _⟩ := prefix_events_time 406 (.tick v t) (List.mem_of_getElem? hi)
   change t = (n : Time) at ht
   have hv : v = 0 := Subsingleton.elim _ _
   subst v
@@ -701,7 +692,7 @@ theorem sync : Gen.V2.Duty.PartialSynchronyBy env run (fgsaDelay env.Δ deltaF) 
     rw [ha.2.2] at hp
     contradiction
 
-theorem emitted_wire (n : Nat) (hn : n < 405)
+theorem emitted_wire (n : Nat) (hn : n < 406)
     (hr : EmissionRowsValid (runPrefix n).2.st) (o : Object)
     (ho : o ∈ (V2.D.tick env (mkRun []) (runPrefix n).2 0 (n : Time)).2) :
     (fgsa params unitCodec).wellFormed o = true := by
@@ -745,7 +736,7 @@ theorem emitted_wire (n : Nat) (hn : n < 405)
       subst l
       change SA.proposalTime params.toParams s = (n : Time) at ht
       change (propose params (FGSA.clock params (runPrefix n).2.st (n : Time)) s).map
-        (withApp 0) = some m at ha
+        (withApp params 0) = some m at ha
       have hs0 : 0 < s := by
         by_contra hh
         have hs : s = 0 := Nat.eq_zero_of_not_pos hh
@@ -757,12 +748,12 @@ theorem emitted_wire (n : Nat) (hn : n < 405)
       rw [ht] at hp
       exact nv_proposal_wf _ s 0 (nv_rows_clock _ _ hr) hp ha
 
-theorem prefix_rows (n : Nat) (hn : n ≤ 405) : EmissionRowsValid (runPrefix n).2.st := by
+theorem prefix_rows (n : Nat) (hn : n ≤ 406) : EmissionRowsValid (runPrefix n).2.st := by
   induction n with
   | zero => exact ⟨fun _ h => (List.not_mem_nil h).elim,
       fun _ h => (List.not_mem_nil h).elim⟩
   | succ n ih =>
-    have hn' : n < 405 := by omega
+    have hn' : n < 406 := by omega
     have hr := ih (by omega)
     have hw := emitted_wire n hn' hr
     rw [runPrefix_succ]
@@ -787,7 +778,112 @@ theorem wire : ∀ (i : Nat) (v : Fin 1) (o : Object) (t : Time),
   obtain ⟨n, hn, _, _, ho⟩ := delivery_source hi
   exact emitted_wire n hn (prefix_rows n (by omega)) o ho
 
-theorem state_delivery_store (n : Nat) (hn : n < 405) :
+/-- ROOT-DIGEST W3b. A delivered proposal is the unique release at its cached tick. -/
+theorem nv_delivery_origin {x : Fin 1} {o : Object} {t : Time} {b : Block}
+    {raw sup : List (HeadWire params.n)} {rows : List (RowWire params.n)}
+    (hd : V2.Event.deliver x o t ∈ run.events) (hp : o.payload = .proposal b raw sup rows) :
+    ∃ n : Nat, n < 406 ∧ ∃ s : Slot,
+      o ∈ (V2.D.tick env (mkRun []) (runPrefix n).2 0 (n : Time)).2 ∧
+      o = ofWire params ⟨.proposer s, .proposal b raw sup rows⟩ ∧
+      b.slot = s ∧ SA.proposalTime params.toParams s = (n : Time) := by
+  obtain ⟨i, hi⟩ := List.mem_iff_getElem?.mp hd
+  obtain ⟨n, hn, _, _, ho⟩ := delivery_source hi
+  rcases nv_wire_cases o (wire i x o t hi) with ⟨s, j, B, he⟩ | ⟨j, body, he⟩ |
+    ⟨s, B, raw', sup', rows', he⟩
+  · rw [he] at hp; cases hp
+  · rw [he] at hp; cases hp
+  · rw [he] at hp
+    obtain ⟨rfl, rfl, rfl, rfl⟩ := Msg.proposal.inj hp
+    subst o
+    have ha := (fgsa_emits_proposal env (mkRun []) (runPrefix n).2 0 (n : Time) s
+      (.proposal B raw' sup' rows')).mp ho
+    obtain ⟨hb, _, _, _⟩ := nv_proposal_shape _ s 0 B raw' sup' rows' ha.2.2.2
+    refine ⟨n, hn, s, ho, rfl, ?_, ha.2.1⟩
+    rw [hb]; rfl
+
+/-- ROOT-DIGEST W3b. W2's emission equation supplies the small delivered root. -/
+theorem nv_delivery_root {x : Fin 1} {o : Object} {t : Time} {b : Block}
+    {raw sup : List (HeadWire params.n)} {rows : List (RowWire params.n)}
+    (hd : V2.Event.deliver x o t ∈ run.events) (hp : o.payload = .proposal b raw sup rows) :
+    b.root = ⟨b.slot + 1⟩ := by
+  obtain ⟨n, hn, s, ho, rfl, _, _⟩ := nv_delivery_origin hd hp
+  exact emitted_proposal_slot_root env run (fun _ => rfl)
+    (runPrefix n).1.length 0 (n : Time) s b raw sup rows (tick_at n hn)
+    ((emits_at_tick n hn).symm ▸ ho)
+
+/-- ROOT-DIGEST W3b. Equal proposal slots give equal ticks and complete payloads. -/
+theorem nv_delivery_unique {x y : Fin 1} {o o' : Object} {t u : Time} {b B : Block}
+    {raw sup raw' sup' : List (HeadWire params.n)} {rows rows' : List (RowWire params.n)}
+    (hd : V2.Event.deliver x o t ∈ run.events) (hp : o.payload = .proposal b raw sup rows)
+    (hd' : V2.Event.deliver y o' u ∈ run.events) (hp' : o'.payload = .proposal B raw' sup' rows')
+    (hs : b.slot = B.slot) : b = B := by
+  obtain ⟨n, hn, s, ho, _, hb, ht⟩ := nv_delivery_origin hd hp
+  obtain ⟨m, _, s', ho', _, hB, ht'⟩ := nv_delivery_origin hd' hp'
+  have hss : s = s' := hb.symm.trans (hs.trans hB)
+  have hnm : n = m := by
+    have hh := ht.symm.trans (hss ▸ ht')
+    exact_mod_cast hh
+  subst m
+  have hl := released_length (runPrefix n).2 (n : Time)
+  have he : o = o' := by
+    generalize (V2.D.tick env (mkRun []) (runPrefix n).2 0 (n : Time)).2 = os at *
+    cases os with
+    | nil => cases ho
+    | cons a as =>
+      have hnil : as = [] := by
+        apply List.length_eq_zero_iff.mp
+        simp only [List.length_cons] at hl
+        omega
+      subst as
+      exact (List.mem_singleton.mp ho).trans (List.mem_singleton.mp ho').symm
+  rw [he, hp'] at hp
+  exact (Msg.proposal.inj hp).1.symm
+
+/-- ROOT-DIGEST W3b. Each delivered body's parent was held at its actual emission. -/
+theorem nvParents : ∀ x o t b raw sup rows,
+    V2.Event.deliver x o t ∈ run.events → o.payload = .proposal b raw sup rows →
+    ∃ i y, b.parent ∈ (V2.D.Run.stateBefore env run i y).st.base.blocks := by
+  intro x o t b raw sup rows hd hp
+  obtain ⟨i, hi⟩ := List.mem_iff_getElem?.mp hd
+  obtain ⟨n, hn, _, _, ho⟩ := delivery_source hi
+  obtain ⟨j, hj⟩ := emitted_payload_parent_stored env run
+    ⟨(runPrefix n).1.length, tick_at n hn, (emits_at_tick n hn).symm ▸ ho⟩ hp
+  exact ⟨j, 0, hj⟩
+
+/-- ROOT-DIGEST W3b. Origin and slot uniqueness prove the body-scope premise before Base₂. -/
+theorem nvRoots : NamedRootCollisionFree params unitCodec env run where
+  root_injective := by
+    intro B C hB hC A D hA hD he
+    have hAs : RootBlockInRun params unitCodec env run A := by
+      rcases hA with hA | hA
+      · exact rootBlockInRun_ancestor env run hB hA
+      · exact rootBlockInRun_ancestor env run hC hA
+    have hDs : RootBlockInRun params unitCodec env run D := by
+      rcases hD with hD | hD
+      · exact rootBlockInRun_ancestor env run hB hD
+      · exact rootBlockInRun_ancestor env run hC hD
+    rcases rootBlockInRun_genesis_or_delivered env run nvParents hAs with rfl | hA
+    · rcases rootBlockInRun_genesis_or_delivered env run nvParents hDs with rfl | hD
+      · rfl
+      · obtain ⟨x, o, t, raw, sup, rows, hd, hp⟩ := hD
+        have hr := nv_delivery_root hd hp
+        have hh := congrArg BlockId.value (he.trans hr)
+        change 0 = D.slot + 1 at hh
+        exact (Nat.succ_ne_zero _ hh.symm).elim
+    · obtain ⟨x, o, t, raw, sup, rows, hd, hp⟩ := hA
+      have hr := nv_delivery_root hd hp
+      rcases rootBlockInRun_genesis_or_delivered env run nvParents hDs with rfl | hD
+      · have hh := congrArg BlockId.value (hr.symm.trans he)
+        change A.slot + 1 = 0 at hh
+        exact (Nat.succ_ne_zero _ hh).elim
+      · obtain ⟨y, o', u, raw', sup', rows', hd', hp'⟩ := hD
+        have hr' := nv_delivery_root hd' hp'
+        apply nv_delivery_unique hd hp hd' hp'
+        have hh := congrArg BlockId.value (hr.symm.trans (he.trans hr'))
+        change A.slot + 1 = D.slot + 1 at hh
+        exact Nat.add_right_cancel hh
+
+theorem state_delivery_store (n : Nat) (hn : n < 406) :
     (V2.D.Run.stateBefore env run ((runPrefix n).1.length + 1) 0).st =
       FGSA.clock params (runPrefix n).2.st (n : Time) := by
   have hs := (V2.D.Run.step_tick_eq env run (tick_at n hn)).1
@@ -795,7 +891,7 @@ theorem state_delivery_store (n : Nat) (hn : n < 405) :
   exact (congrArg Node.st hs).trans
     (tick_st (c := unitCodec) env run (runPrefix n).2 0 (n : Time))
 
-theorem emitted_deps (n : Nat) (hn : n < 405) (o : Object)
+theorem emitted_deps (n : Nat) (hn : n < 406) (o : Object)
     (ho : o ∈ (V2.D.tick env (mkRun []) (runPrefix n).2 0 (n : Time)).2) :
     depsS params (FGSA.clock params (runPrefix n).2.st (n : Time)) o = true := by
   have hw := emitted_wire n hn (prefix_rows n (by omega)) o ho
@@ -830,7 +926,7 @@ theorem deps : ∀ (i : Nat) (v : Fin 1) (o : Object) (t : Time),
 
 theorem earlier_batch {i n : Nat} {v : Fin 1} {o : Object} {t : Time}
     (hi : run.events[i]? = some (.deliver v o t)) (hin : i < (runPrefix n).1.length) :
-    ∃ m : Nat, m < n ∧ m < 405 ∧ t = (m : Time) ∧
+    ∃ m : Nat, m < n ∧ m < 406 ∧ t = (m : Time) ∧
       o ∈ (V2.D.tick env (mkRun []) (runPrefix m).2 0 (m : Time)).2 := by
   obtain ⟨m, hm, ht, he, ho⟩ := delivery_source hi
   refine ⟨m, ?_, hm, ht, ho⟩
@@ -838,7 +934,7 @@ theorem earlier_batch {i n : Nat} {v : Fin 1} {o : Object} {t : Time}
   have hl := (prefix_mono (Nat.le_of_not_gt hh)).length_le
   omega
 
-theorem carried_from_state (n : Nat) (hn : n < 405) (o o' : Object)
+theorem carried_from_state (n : Nat) (hn : n < 406) (o o' : Object)
     (ho : o ∈ (V2.D.tick env (mkRun []) (runPrefix n).2 0 (n : Time)).2)
     (hc : carriesS params o o') :
     (∃ s j b, o' = ofHead params ⟨.seat (.head s) j, b⟩ ∧
@@ -888,11 +984,11 @@ theorem carried_from_state (n : Nat) (hn : n < 405) (o o' : Object)
         exact ⟨a, rfl, Or.inr ⟨w, hw, r, B, raw', sup', rows', hd, hm⟩⟩
 
 def EarlierEmitted (n : Nat) (o : Object) : Prop :=
-  ∃ m : Nat, m < n ∧ m < 405 ∧
+  ∃ m : Nat, m < n ∧ m < 406 ∧
     o ∈ (V2.D.tick env (mkRun []) (runPrefix m).2 0 (m : Time)).2
 
 theorem handled_before (n : Nat)
-    (past : ∀ m : Nat, m < n → m < 405 → ∀ o o' : Object,
+    (past : ∀ m : Nat, m < n → m < 406 → ∀ o o' : Object,
       o ∈ (V2.D.tick env (mkRun []) (runPrefix m).2 0 (m : Time)).2 →
       carriesS params o o' → EarlierEmitted m o')
     (j : Nat) (hj : j < (runPrefix n).1.length) (o : Object) (t : Time)
@@ -904,7 +1000,7 @@ theorem handled_before (n : Nat)
   · obtain ⟨k, hkm, hk, ho'⟩ := past m hmn hm parent o ho hc
     exact ⟨k, hkm.trans hmn, hk, ho'⟩
 
-theorem carried_authentic (n : Nat) (hn : n < 405) (o o' : Object)
+theorem carried_authentic (n : Nat) (hn : n < 406) (o o' : Object)
     (ho : o ∈ (V2.D.tick env (mkRun []) (runPrefix n).2 0 (n : Time)).2)
     (hc : carriesS params o o') : EarlierEmitted n o' := by
   induction n using Nat.strong_induction_on generalizing o o' with
@@ -943,7 +1039,7 @@ theorem carried_authentic (n : Nat) (hn : n < 405) (o o' : Object)
       obtain ⟨k, hkm, hkb, hek⟩ := past m hmn hmb parent (ofRow params a) hem hcarry
       exact ⟨k, hkm.trans hmn, hkb, hek⟩
 
-theorem head_pool_authentic (n : Nat) (hn : n < 405) (s : Slot) (j : Fin params.n) (b : Block)
+theorem head_pool_authentic (n : Nat) (hn : n < 406) (s : Slot) (j : Fin params.n) (b : Block)
     (hm : (⟨.seat s j, .head b⟩ : GridCO.Wire params.n) ∈ (runPrefix n).2.st.base.votes) :
     EarlierEmitted n (ofHead params ⟨.seat (.head s) j, b⟩) := by
   have hp : (⟨.seat s j, .head b⟩ : GridCO.Wire params.n) ∈
@@ -959,7 +1055,7 @@ theorem head_pool_authentic (n : Nat) (hn : n < 405) (s : Slot) (j : Fin params.
   exact handled_before n (fun m _ hmb o o' ho hc => carried_authentic m hmb o o' ho hc)
     i hi _ t ha.1
 
-theorem row_pool_authentic (n : Nat) (hn : n < 405) (a : RowWire params.n)
+theorem row_pool_authentic (n : Nat) (hn : n < 406) (a : RowWire params.n)
     (hm : a ∈ (runPrefix n).2.st.rowPool) : EarlierEmitted n (ofRow params a) := by
   have hp : a ∈ (V2.D.Run.stateBefore env run (runPrefix n).1.length 0).st.rowPool := by
     rw [state_before_tick n hn]
@@ -976,7 +1072,7 @@ theorem prefix_length_strict {m n : Nat} (h : m < n) :
     omega
   exact hs.trans_le (prefix_mono (show m + 1 ≤ n by omega)).length_le
 
-theorem emitted_fresh (n : Nat) (hn : n < 405) (o : Object)
+theorem emitted_fresh (n : Nat) (hn : n < 406) (o : Object)
     (ho : o ∈ (V2.D.tick env (mkRun []) (runPrefix n).2 0 (n : Time)).2) :
     processedS params (FGSA.clock params (runPrefix n).2.st (n : Time)) o = false := by
   have hw := emitted_wire n hn (prefix_rows n (by omega)) o ho
@@ -1022,7 +1118,16 @@ theorem emitted_fresh (n : Nat) (hn : n < 405) (o : Object)
       B.root = b.root) = false
     apply decide_eq_false
     rintro ⟨B, hB, hroot⟩
-    have he : eraseFG B = b := Block.root_injective ((eraseFG_root B).trans hroot)
+    have hc := cstoreInv_stateBefore env run (runPrefix n).1.length 0
+    have hm : B ∈ (V2.D.Run.stateBefore env run (runPrefix n).1.length 0).st.fg.TF := by
+      rw [state_before_tick n hn]
+      simpa only [clock_fg] using hB
+    have hBs := rootBlockInRun_held env run (Finset.mem_univ 0)
+      (runPrefix n).1.length ((hc.baseTree _).mpr ⟨B, hm, rfl⟩)
+    have hbs := rootBlockInRun_delivered env run
+      (List.mem_of_getElem? (immediate_delivery n hn _ ho)) rfl
+    have he : eraseFG B = b := rootBlockInRun_eq env run nvRoots hBs hbs
+      ((eraseFG_root B).trans hroot)
     have hslot : B.slot = s := (eraseFG_slot B).symm.trans
       ((congrArg Block.slot he).trans (by rw [hb]; rfl))
     have hh := hg B hB
@@ -1063,6 +1168,7 @@ theorem nvExecution : V2.D.ExecutionValid env run where
 
 theorem base : Base₂ params unitCodec env run where
   valid := nvExecution
+  idealization := nvRoots
   linked := by
     refine ⟨1, Equiv.refl _, ?_⟩
     intro l hl
@@ -1191,7 +1297,7 @@ theorem prefix_cut (n m : Nat) (hn : n ≤ m) :
 
 /-- NV-FIN: The inclusive read at tick n is the cached node after tick n.
 DC: SAME canonical fixture and cached prefix proof. -/
-theorem read_prefix (n : Nat) (hn : n < 405) :
+theorem read_prefix (n : Nat) (hn : n < 406) :
     V2.D.Run.readAt env run (n : Time) = fun _ => (runPrefix (n + 1)).2 := by
   have hp : run.events.filter (fun e => decide (e.time ≤ (n : Time))) =
       (runPrefix (n + 1)).1 := by
@@ -1204,19 +1310,19 @@ theorem read_prefix (n : Nat) (hn : n < 405) :
         omega
       exact decide_eq_decide.mpr hp
     rw [he]
-    exact prefix_cut (n + 1) 405 (by omega)
+    exact prefix_cut (n + 1) 406 (by omega)
   unfold V2.D.Run.readAt
   rw [hp]
   exact prefix_cached (n + 1)
 
-theorem frontier_cached (n : Nat) (hn : n < 405) :
+theorem frontier_cached (n : Nat) (hn : n < 406) :
     honestFrontier params unitCodec env run (n : Time) = (runPrefix (n + 1)).2.st.fg.h_max := by
   unfold honestFrontier
   rw [read_prefix n hn]
   change (Finset.univ : Finset (Fin 1)).sup (fun _ => (runPrefix (n + 1)).2.st.fg.h_max) = _
   simp
 
-theorem frontier_idx_cached (n : Nat) (hn : n < 405) :
+theorem frontier_idx_cached (n : Nat) (hn : n < 406) :
     frontierAtIdx params unitCodec env run (runPrefix n).1.length =
       (runPrefix n).2.st.fg.h_max := by
   unfold frontierAtIdx storeAt
@@ -1234,7 +1340,7 @@ theorem nvFrontier : honestFrontier params unitCodec env run 30 = 2 :=
 theorem nvFrontierAtIdx : frontierAtIdx params unitCodec env run (runPrefix 31).1.length = 2 :=
   (frontier_idx_cached 31 (by decide)).trans nvCachedFrontier
 
-theorem action_read (r : Nat) (hr : (params.actionTime r).toNat < 405) :
+theorem action_read (r : Nat) (hr : (params.actionTime r).toNat < 406) :
     postClock env run 0 (params.actionTime r) = some (actionNode r) := by
   have ht : ((params.actionTime r).toNat : Time) = params.actionTime r := by
     apply Int.toNat_of_nonneg
@@ -1247,7 +1353,7 @@ theorem action_read (r : Nat) (hr : (params.actionTime r).toNat < 405) :
     Option.map_some, state_before_tick (params.actionTime r).toNat hr]
   rfl
 
-theorem source_read (r : Nat) (hr : (params.actionTime r).toNat < 405) :
+theorem source_read (r : Nat) (hr : (params.actionTime r).toNat < 406) :
     actionSourceFG params unitCodec env run 0 r = some (sourceAtAction r) := by
   rw [actionSourceFG_def, action_read r hr]
   rfl
@@ -1320,8 +1426,8 @@ theorem nvEarlyRowCap {j : Nat} {y : Fin 1} {r h : Nat} {a : RowWire params.n} {
     (he : namedEntry a.payload.height_pair = some (h, e)) (hr : r < 3) : h ≤ 2 := by
   have hy : y = 0 := Subsingleton.elim _ _
   subst y
-  have hb : (params.actionTime r).toNat < 405 := by
-    change (4 * 1 * ((r * 3 : Nat) : Int) + 6 * 1).toNat < 405
+  have hb : (params.actionTime r).toNat < 406 := by
+    change (4 * 1 * ((r * 3 : Nat) : Int) + 6 * 1).toNat < 406
     push_cast
     omega
   obtain ⟨C, _, hC, hh, _⟩ := emittedName_window params unitCodec env run nvSchedule ha he
@@ -1425,7 +1531,7 @@ def proposalBlocks (s : Slot) : List Block :=
 DC: SAME canonical fixture and cached prefix proof. -/
 def parentChain : Block → List (Slot × Nat)
   | .genesis => [(0, 0)]
-  | .node B s x => (s, x) :: parentChain B
+  | .node B s _ x => (s, x) :: parentChain B
 
 def firstProposal : Block := (proposalBlocks 11).headD .genesis
 
@@ -1452,7 +1558,7 @@ theorem nvFirstMember : firstProposal ∈ proposalBlocks 11 := by decide +kernel
 /-- NV-FIN: A cached block emission is an honest proposal of the complete run.
 DC: SAME canonical fixture and cached prefix proof. -/
 theorem honestProposal_of_cached {s : Slot} {B : Block} (hs : 0 < s)
-    (hn : 4 * s < 405) (hB : B ∈ proposalBlocks s) :
+    (hn : 4 * s < 406) (hB : B ∈ proposalBlocks s) :
     HonestProposal env run (fgsaInterface params unitCodec) s B := by
   obtain ⟨o, ho, hb⟩ := List.mem_filterMap.mp hB
   refine ⟨⟨hs, Finset.mem_univ _⟩, o, ?_, hb⟩
@@ -1519,7 +1625,7 @@ theorem nvResetTimeStrict :
     params.actionTime w'.rStar < env.t_GST + B'_resetF params deltaF gap := by
   decide
 
--- Both horizon forms hold at 303 ≤ 404 on this run.
+-- Both horizon forms hold at 303 ≤ 405 on this run.
 theorem nvFullHorizon :
     env.t_GST + B'_resetF params deltaF gap + Γ params gap + 4 * params.Δ ≤ run.horizon :=
   healing_resetFull_horizon params gap deltaF env.t_GST run.horizon healing_horizon
@@ -1555,7 +1661,7 @@ theorem nvResetArrival : ResetArrivalConcl params unitCodec env run gap deltaF :
 /-- NV-FIN: the NV5 full witness supplies the healing input package.
 DC: SAME full H0 and tstar = 50; this package is closed. -/
 theorem nvHealingInputPrem : HealingInputPrem params unitCodec gap deltaF env run ⟨w'⟩ :=
-  ⟨⟨healingPrem (⟨w'⟩ : PtW), nvH0⟩, by change (50 : Time) ≤ 404; decide⟩
+  ⟨⟨healingPrem (⟨w'⟩ : PtW), nvH0⟩, by change (50 : Time) ≤ 405; decide⟩
 
 /-- Blueprint 21 H.18–H.22; plan NV-FIN: apply the closed full reset statement.
 DC: SAME canonical run and the proved full reset horizon. -/
@@ -1657,10 +1763,10 @@ theorem nvAboveGSTPrem (form : FinFormW) :
 def nvProposalBlock (s : Slot) : Block :=
   let st := FGSA.clock params (runPrefix (4 * s)).2.st (4 * (s : Time))
   let H := getHead params st (proposerVotes st s) (proposerSupport st s)
-  Block.node H s (packBody 0 (proposalRows params st H))
+  Block.node H s ⟨s + 1⟩ (packBody 0 (proposalRows params st H))
 
 /-- NV-FIN F2/F4. DC: SAME concrete proposal; no full-run evaluation is used. -/
-theorem nvProposalBlock_honest (s : Slot) (hs : 0 < s) (hn : 4 * s < 405) :
+theorem nvProposalBlock_honest (s : Slot) (hs : 0 < s) (hn : 4 * s < 406) :
     HonestProposal env run (fgsaInterface params unitCodec) s (nvProposalBlock s) := by
   apply honestProposal_of_cached hs hn
   let st := FGSA.clock params (runPrefix (4 * s)).2.st (4 * (s : Time))
@@ -1891,6 +1997,21 @@ theorem nvLocalAccepted :
 #print axioms nvLocalHigher
 #check nvLocalAccepted
 #print axioms nvLocalAccepted
+
+/-- ROOT-DIGEST W3b. The aggregate's LIVE-DC guard holds at the 405 deadline. -/
+theorem nvLiveDC : LiveDCConcl_W params unitCodec env run 303 405 := by
+  obtain ⟨_, _, _, _, hlive⟩ := (fgsaClaims params).finalityLivenessGSTRecFE gap deltaF 1
+    nvClock unitCodec env run ⟨303⟩ (nvGSTPrem .recFE)
+  have hd : (303 : Time) + liveDCDeadline_W params deltaF gap 1 = 405 := by decide
+  rw [← hd]
+  exact hlive (by change (405 : Time) ≤ 405; decide)
+
+#check nvRoots
+#print axioms nvRoots
+#check nvLiveDC
+#print axioms nvLiveDC
+#check fgsaClaims
+#print axioms fgsaClaims
 
 end AvailableChain.FGSA.Run.Tests.NonVacuity.FinalityClaims
 end

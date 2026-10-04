@@ -1,0 +1,197 @@
+[
+  {
+    "module": "AvailableChainFGSA.Proofs.Carrier",
+    "constant": "AvailableChain.Block.parent.eq_1",
+    "owner": "AvailableChain.Block.parent"
+  },
+  {
+    "module": "AvailableChainFGSA.Proofs.Carrier",
+    "constant": "AvailableChain.Block.parent.eq_2",
+    "owner": "AvailableChain.Block.parent"
+  },
+  {
+    "module": "AvailableChainFGSA.Proofs.Carrier",
+    "constant": "AvailableChain.Block.root.eq_1",
+    "owner": "AvailableChain.Block.root"
+  },
+  {
+    "module": "AvailableChainFGSA.Proofs.Carrier",
+    "constant": "AvailableChain.Block.root.eq_2",
+    "owner": "AvailableChain.Block.root"
+  },
+  {
+    "module": "AvailableChainFGSA.Proofs.Carrier",
+    "constant": "AvailableChain.Block.slot.eq_1",
+    "owner": "AvailableChain.Block.slot"
+  },
+  {
+    "module": "AvailableChainFGSA.Proofs.Carrier",
+    "constant": "AvailableChain.Block.slot.eq_2",
+    "owner": "AvailableChain.Block.slot"
+  },
+  {
+    "module": "AvailableChainFGSA.Proofs.Carrier",
+    "constant": "AvailableChain.FGSA.contentOk.eq_1",
+    "owner": "AvailableChain.FGSA.contentOk"
+  },
+  {
+    "module": "AvailableChainFGSA.Proofs.Carrier",
+    "constant": "AvailableChain.FGSA.proposalBlock.eq_1",
+    "owner": "AvailableChain.FGSA.proposalBlock"
+  },
+  {
+    "module": "AvailableChainFGSA.Proofs.Carrier",
+    "constant": "AvailableChain.FGSA.proposalInput.eq_1",
+    "owner": "AvailableChain.FGSA.proposalInput"
+  },
+  {
+    "module": "AvailableChainFGSAProofs.Proofs.Shared.RetainedWalkStore",
+    "constant": "AvailableChain.FGSA.erasedList.eq_1",
+    "owner": "AvailableChain.FGSA.erasedList"
+  },
+  {
+    "module": "AvailableChainFGSAProofs.Proofs.Shared.Roots",
+    "constant": "AvailableChain.FGSA.Run.storeAt.eq_1",
+    "owner": "AvailableChain.FGSA.Run.storeAt"
+  },
+  {
+    "module": "AvailableChainFGSARun.Proofs.Roots",
+    "constant": "AvailableChain.FGSA.Run.isRowObject.eq_1",
+    "owner": "AvailableChain.FGSA.Run.isRowObject"
+  },
+  {
+    "module": "AvailableChainFGSARun.Proofs.Roots",
+    "constant": "AvailableChain.FGSA.Run.ofAuth.eq_1",
+    "owner": "AvailableChain.FGSA.Run.ofAuth"
+  },
+  {
+    "module": "AvailableChainFGSARun.Proofs.Roots",
+    "constant": "AvailableChain.FGSA.Run.ofAuth.eq_2",
+    "owner": "AvailableChain.FGSA.Run.ofAuth"
+  },
+  {
+    "module": "AvailableChainFGSARun.Proofs.Roots",
+    "constant": "AvailableChain.FGSA.Run.ofAuth.eq_3",
+    "owner": "AvailableChain.FGSA.Run.ofAuth"
+  },
+  {
+    "module": "AvailableChainFGSARun.Proofs.Roots",
+    "constant": "AvailableChain.FGSA.Run.ofHead.eq_1",
+    "owner": "AvailableChain.FGSA.Run.ofHead"
+  },
+  {
+    "module": "AvailableChainFGSARun.Proofs.Roots",
+    "constant": "AvailableChain.FGSA.Run.ofRow.eq_1",
+    "owner": "AvailableChain.FGSA.Run.ofRow"
+  },
+  {
+    "module": "AvailableChainFGSARun.Proofs.Roots",
+    "constant": "AvailableChain.FGSA.Run.ofWire.eq_1",
+    "owner": "AvailableChain.FGSA.Run.ofWire"
+  },
+  {
+    "module": "AvailableChainFGSARun.Proofs.Roots",
+    "constant": "AvailableChain.FGSA.Run.toAuth.eq_1",
+    "owner": "AvailableChain.FGSA.Run.toAuth"
+  },
+  {
+    "module": "AvailableChainFGSARun.Proofs.Roots",
+    "constant": "AvailableChain.FGSA.Run.toAuth.eq_2",
+    "owner": "AvailableChain.FGSA.Run.toAuth"
+  },
+  {
+    "module": "AvailableChainFGSARun.Proofs.Roots",
+    "constant": "AvailableChain.FGSA.Run.toAuth.eq_3",
+    "owner": "AvailableChain.FGSA.Run.toAuth"
+  },
+  {
+    "module": "AvailableChainFGSARun.Proofs.Roots",
+    "constant": "AvailableChain.FGSA.Run.toWire.eq_1",
+    "owner": "AvailableChain.FGSA.Run.toWire"
+  },
+  {
+    "module": "AvailableChainFGSARun.Proofs.Roots",
+    "constant": "_private.AvailableChainFGSARun.Proofs.Roots.0.AvailableChain.FGSA.Run.ofAuth.match_1.eq_1",
+    "owner": "AvailableChain.FGSA.Run.ofAuth.match_1"
+  },
+  {
+    "module": "AvailableChainFGSARun.Proofs.Roots",
+    "constant": "_private.AvailableChainFGSARun.Proofs.Roots.0.AvailableChain.FGSA.Run.ofAuth.match_1.eq_2",
+    "owner": "AvailableChain.FGSA.Run.ofAuth.match_1"
+  },
+  {
+    "module": "AvailableChainFGSARun.Proofs.Roots",
+    "constant": "_private.AvailableChainFGSARun.Proofs.Roots.0.AvailableChain.FGSA.Run.ofAuth.match_1.eq_3",
+    "owner": "AvailableChain.FGSA.Run.ofAuth.match_1"
+  },
+  {
+    "module": "AvailableChainFGSARun.Proofs.Roots",
+    "constant": "_private.AvailableChainFGSARun.Proofs.Roots.0.AvailableChain.FGSA.Run.ofAuth.match_1.splitter",
+    "owner": "AvailableChain.FGSA.Run.ofAuth.match_1"
+  },
+  {
+    "module": "AvailableChainFGSARun.Proofs.Roots",
+    "constant": "_private.AvailableChainFGSARun.Proofs.Roots.0.AvailableChain.FGSA.Run.toAuth.match_1.eq_1",
+    "owner": "AvailableChain.FGSA.Run.toAuth.match_1"
+  },
+  {
+    "module": "AvailableChainFGSARun.Proofs.Roots",
+    "constant": "_private.AvailableChainFGSARun.Proofs.Roots.0.AvailableChain.FGSA.Run.toAuth.match_1.eq_2",
+    "owner": "AvailableChain.FGSA.Run.toAuth.match_1"
+  },
+  {
+    "module": "AvailableChainFGSARun.Proofs.Roots",
+    "constant": "_private.AvailableChainFGSARun.Proofs.Roots.0.AvailableChain.FGSA.Run.toAuth.match_1.eq_3",
+    "owner": "AvailableChain.FGSA.Run.toAuth.match_1"
+  },
+  {
+    "module": "AvailableChainFGSARun.Proofs.Roots",
+    "constant": "_private.AvailableChainFGSARun.Proofs.Roots.0.AvailableChain.FGSA.Run.toAuth.match_1.splitter",
+    "owner": "AvailableChain.FGSA.Run.toAuth.match_1"
+  },
+  {
+    "module": "AvailableChainKitFG.TwoChanges",
+    "constant": "AvailableChain.KitFG.K3.eq_1",
+    "owner": "AvailableChain.KitFG.K3"
+  },
+  {
+    "module": "AvailableChainKitFG.TwoChanges",
+    "constant": "AvailableChain.SimplexFG.B1.eq_1",
+    "owner": "AvailableChain.SimplexFG.B1"
+  },
+  {
+    "module": "AvailableChainKitFG.TwoChanges",
+    "constant": "AvailableChain.SimplexFG.B2.eq_1",
+    "owner": "AvailableChain.SimplexFG.B2"
+  },
+  {
+    "module": "AvailableChainKitFG.TwoChanges",
+    "constant": "AvailableChain.SimplexFG.FGBlock.root.eq_1",
+    "owner": "AvailableChain.SimplexFG.FGBlock.root"
+  },
+  {
+    "module": "AvailableChainKitFG.TwoChanges",
+    "constant": "AvailableChain.SimplexFG.FGBlock.root.eq_2",
+    "owner": "AvailableChain.SimplexFG.FGBlock.root"
+  },
+  {
+    "module": "AvailableChainKitFG.TwoChanges",
+    "constant": "AvailableChain.genesisRoot.eq_1",
+    "owner": "AvailableChain.genesisRoot"
+  },
+  {
+    "module": "AvailableChainKitFG.TwoChanges",
+    "constant": "_private.AvailableChainKitFG.TwoChanges.0.AvailableChain.SimplexFG.FGBlock.slot.match_1.eq_1",
+    "owner": "AvailableChain.SimplexFG.FGBlock.slot.match_1"
+  },
+  {
+    "module": "AvailableChainKitFG.TwoChanges",
+    "constant": "_private.AvailableChainKitFG.TwoChanges.0.AvailableChain.SimplexFG.FGBlock.slot.match_1.eq_2",
+    "owner": "AvailableChain.SimplexFG.FGBlock.slot.match_1"
+  },
+  {
+    "module": "AvailableChainKitFG.TwoChanges",
+    "constant": "_private.AvailableChainKitFG.TwoChanges.0.AvailableChain.SimplexFG.FGBlock.slot.match_1.splitter",
+    "owner": "AvailableChain.SimplexFG.FGBlock.slot.match_1"
+  }
+]

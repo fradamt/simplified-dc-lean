@@ -276,9 +276,10 @@ an invalid shortcut that the proofs above do not take.
 
 -- Two children of one block at one slot are not compatible.
 example :
-    Block.preceq (.node .genesis 1 0) (.node (.node .genesis 1 0) 2 0) = true ∧
-      Block.preceq (.node .genesis 1 0) (.node (.node .genesis 1 0) 2 1) = true ∧
-      Block.compatible (.node (.node .genesis 1 0) 2 0) (.node (.node .genesis 1 0) 2 1) =
+    Block.preceq (.node .genesis 1 ⟨1⟩ 0) (.node (.node .genesis 1 ⟨1⟩ 0) 2 ⟨2⟩ 0) = true ∧
+      Block.preceq (.node .genesis 1 ⟨1⟩ 0) (.node (.node .genesis 1 ⟨1⟩ 0) 2 ⟨3⟩ 1) = true ∧
+      Block.compatible (.node (.node .genesis 1 ⟨1⟩ 0) 2 ⟨2⟩ 0) (.node (.node .genesis 1 ⟨1⟩ 0)
+          2 ⟨3⟩ 1) =
         false := by
   decide
 

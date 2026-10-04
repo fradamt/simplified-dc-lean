@@ -13,20 +13,20 @@ DC: INTENTIONAL; finite FG-SA fixture for the retained prefix. -/
 private abbrev params : Params :=
   { Δ := 1, n := 1, k := 2, η := 0, deltaPos := by decide, nPos := by decide,
     kLarge := by decide, etaNonneg := by decide,
-    R := 2, δt := 1, RLarge := by decide }
+    R := 2, δt := 1, RLarge := by decide, digest := fun d => ⟨d.slot + 1⟩ }
 
 /-- Blueprint 21:787–806; spec 1063–1107. Class (iii).
 DC: INTENTIONAL; the first retained child. -/
-private def pfg : FGBlock (Fin 1) := .node .genesis 1 0 []
+private def pfg : FGBlock (Fin 1) := .node .genesis 1 ⟨1⟩ 0 []
 /-- Blueprint 21:787–806; spec 1063–1107. Class (iii).
 DC: INTENTIONAL; the supported retained child. -/
-private def qfg : FGBlock (Fin 1) := .node pfg 2 0 []
+private def qfg : FGBlock (Fin 1) := .node pfg 2 ⟨2⟩ 0 []
 /-- Blueprint 21:787–806; spec 1063–1107. Class (iii).
 DC: INTENTIONAL; an eligible rival of the supported child. -/
-private def rfg : FGBlock (Fin 1) := .node pfg 3 1 []
+private def rfg : FGBlock (Fin 1) := .node pfg 3 ⟨3⟩ 1 []
 /-- Blueprint 21:812–814; spec 1276–1302. Class (iii).
 DC: INTENTIONAL; the proposal after the retained parent. -/
-private def bfg : FGBlock (Fin 1) := .node qfg 3 0 []
+private def bfg : FGBlock (Fin 1) := .node qfg 3 ⟨4⟩ 0 []
 /-- Blueprint 21:787–814; spec 1025–1037. Class (iii).
 DC: INTENTIONAL; the finite target duty store. -/
 private def fixture : State 1 :=

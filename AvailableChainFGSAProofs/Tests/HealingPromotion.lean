@@ -1,18 +1,30 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.PromotionArithmetic -- shake: keep (arithmetic tests)
-public import AvailableChainFGSAProofs.Proofs.Healing.Promotion -- shake: keep (promotion helper tests)
-public import AvailableChainFGSAProofs.Proofs.Healing.PromotionCarrier -- shake: keep (actual proposal tests)
-public import AvailableChainFGSAProofs.Proofs.Healing.PromotionRows -- shake: keep (same-row validity tests)
-public import AvailableChainFGSAProofs.Proofs.Healing.PromotionRenewed -- shake: keep (expanded frozen promotion test)
-public import AvailableChainFGSAProofs.Proofs.Healing.PromotionAge -- shake: keep (actual-entry HG.2 application)
-public import AvailableChainFGSAProofs.Proofs.Foundations.Crossing -- shake: keep (Assembly RXing supplier)
-public import AvailableChainFGSAProofs.Proofs.Foundations.Counts -- shake: keep (Assembly fault suppliers)
-public import AvailableChainFGSAProofs.Proofs.Finality.Height -- shake: keep (Assembly progress-fold supplier)
-public import AvailableChainFGSAProofs.Proofs.Finality.MiddleSupport -- shake: keep (Assembly honest-seat quorum supplier)
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionArithmetic
+-- shake: keep (arithmetic tests)
+public import AvailableChainFGSAProofs.Proofs.Healing.Promotion
+-- shake: keep (promotion helper tests)
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionCarrier
+-- shake: keep (actual proposal tests)
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionRows
+-- shake: keep (same-row validity tests)
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionRenewed
+-- shake: keep (expanded frozen promotion test)
+public import AvailableChainFGSAProofs.Proofs.Healing.PromotionAge
+-- shake: keep (actual-entry HG.2 application)
+public import AvailableChainFGSAProofs.Proofs.Foundations.Crossing
+-- shake: keep (Assembly RXing supplier)
+public import AvailableChainFGSAProofs.Proofs.Foundations.Counts
+-- shake: keep (Assembly fault suppliers)
+public import AvailableChainFGSAProofs.Proofs.Finality.Height
+-- shake: keep (Assembly progress-fold supplier)
+public import AvailableChainFGSAProofs.Proofs.Finality.MiddleSupport
+-- shake: keep (Assembly honest-seat quorum supplier)
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportPerm -- shake: keep (TPerm supplier)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Store -- shake: keep (RMono supplier)
-public import AvailableChainFGSAProofs.Proofs.Foundations.Leases -- shake: keep (last-write supplier)
-public import AvailableChainFGSAProofs.Proofs.Foundations.RowService -- shake: keep (Assembly receipt supplier)
+public import AvailableChainFGSAProofs.Proofs.Foundations.Leases
+-- shake: keep (last-write supplier)
+public import AvailableChainFGSAProofs.Proofs.Foundations.RowService
+-- shake: keep (Assembly receipt supplier)
 
 set_option linter.privateModule false
 
@@ -221,7 +233,7 @@ example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
         ExactService p c E rho s (eraseFG X) ∧
         SA.gateTime p.toParams s ≤ p.actionTime r + 2 * P p + Γ p G - 4 * p.Δ)) := by
   let mono := fgsa_rMono p c E rho
-  let crossing := fgsa_rXing p c E rho hrec.base.linked
+  let crossing := fgsa_rXing (hroots := hrec.base.idealization) p c E rho hrec.base.linked
     (fgsa_faultX_count_rec p hrec.fault) hrec.base.valid.toUnforgeableSignatures
   let perm := healing_tPerm E rho hrec mono crossing
     (fgsa_leaseOrigins_lastWrite p c E rho hrec.base.valid.toScheduleWellFormed)
@@ -254,7 +266,7 @@ example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
           (∃ y, y ∈ rho.honest ∧ Gen.V2.Duty.HoldsBefore E rho
             (fun nd => X ∈ nd.st.fg.TF) (SA.proposalTime p.toParams s + p.Δ) y) := by
   let mono := fgsa_rMono p c E rho
-  let crossing := fgsa_rXing p c E rho hrec.base.linked
+  let crossing := fgsa_rXing (hroots := hrec.base.idealization) p c E rho hrec.base.linked
     (fgsa_faultX_count_rec p hrec.fault) hrec.base.valid.toUnforgeableSignatures
   let perm := healing_tPerm E rho hrec mono crossing
     (fgsa_leaseOrigins_lastWrite p c E rho hrec.base.valid.toScheduleWellFormed)
@@ -320,6 +332,7 @@ private def promotionParams : Params where
   R := 3
   δt := 6
   RLarge := by decide
+  digest := fun d => ⟨d.slot + 1⟩
 
 example : LivenessBoundW promotionParams 6 := ⟨by decide⟩
 

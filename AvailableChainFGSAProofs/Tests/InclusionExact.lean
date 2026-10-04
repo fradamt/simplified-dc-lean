@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Foundations.Sources
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposal
 public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalHistory -- shake: keep (axioms)
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedReflect -- shake: keep (X=Q example)
@@ -15,7 +16,7 @@ open AvailableChain.SimplexFG
 -- Delta = 1; two honest nodes; node 1 sleeps only at the slot-1 HEAD time.
 private abbrev params : Params :=
   ⟨⟨1, 2, 2, 0, by decide, by decide, by decide, by decide⟩,
-    2, 0, by decide, 2, by decide⟩
+    2, 0, by decide, 2, by decide, fun d => ⟨d.slot + 1⟩⟩
 private abbrev env : Generic.Env (Fin 2) :=
   ⟨1, by decide, 0, le_rfl, fun x t => !decide (x = 1 ∧ t = 5)⟩
 private abbrev mkRun (es : List (V2.Event (Fin 2) (fgsa params unitCodec).Object)) :
@@ -179,6 +180,7 @@ example (body : RowPayload) :
 -- The old-child reflection route permits a rival at X = the stored parent Q.
 example {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hroots : NamedRootCollisionFree p c E rho)
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
     (s : Slot) (hSync : Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o)
       (SA.proposalTime p.toParams (s + 1) - p.Δ) (SA.proposalTime p.toParams (s + 1)))
@@ -201,7 +203,7 @@ example {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
       (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))) (s + 1) C) :
     C ∈ RetainedWalk.S p (clock p (rho.stateBefore E ip x).st
       (SA.proposalTime p.toParams (s + 1))) :=
-  fgsa_walkRun_reflected_old_child E rho hE hN hDelta s hSync hx hy hip hih hseat
+  fgsa_walkRun_reflected_old_child (hroots := hroots) E rho hE hN hDelta s hSync hx hy hip hih hseat
     b raw sup rows hem Kc b.parent C hcut hKQ (Gen.Pure.block_preceq_refl _)
     hp hold hm hw
 
@@ -280,6 +282,7 @@ example {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In}
     (hhor : SA.voteTime p.toParams pt.s ≤ rho.horizon)
     (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
     (hsrc : SrcFrameAboveStmt p c E rho)
+    (hstrat : RStrat p c E rho)
     (hordered : ∀ x y r s B C, x ∈ rho.honest → y ∈ rho.honest →
       SA.gateTime p.toParams r ≤ rho.horizon → SA.gateTime p.toParams s ≤ rho.horizon →
       gateResult p c E rho x r = some (some B) →
@@ -305,9 +308,11 @@ example {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In}
       (SA.voteTime p.toParams pt.s)).st pt.s = pt.P) ∧
     (∀ x ∈ rho.honest, E.awake x (SA.voteTime p.toParams pt.s) = false →
       ∀ o, ¬ V2.D.Run.emits E rho x o (SA.voteTime p.toParams pt.s)) :=
-  ⟨inclusion_exact_receipt E rho ΔF hset hstore hframe hsrc hordered hnonempty
+  ⟨inclusion_exact_receipt (hstrat :=
+    hstrat) E rho ΔF hset hstore hframe hsrc hordered hnonempty
       htransfer hleases hrows pt hprop hhor,
-    inclusion_exact_head E rho ΔF hset hstore hframe hsrc hordered hnonempty
+    inclusion_exact_head (hstrat :=
+    hstrat) E rho ΔF hset hstore hframe hsrc hordered hnonempty
       htransfer hleases hrows pt hprop hhor,
     inclusion_sleep_silence E rho pt.s⟩
 

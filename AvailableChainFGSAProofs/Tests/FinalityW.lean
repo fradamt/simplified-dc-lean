@@ -9,12 +9,13 @@ open AvailableChain.SimplexFG
 
 private abbrev p : Params :=
   { Δ := 1, n := 4, k := 2, η := 11, deltaPos := by decide, nPos := by decide,
-    kLarge := by decide, etaNonneg := by decide, R := 3, δt := 6, RLarge := by decide }
+    kLarge := by decide, etaNonneg := by decide, R := 3, δt := 6, RLarge := by decide, digest :=
+        fun d => ⟨d.slot + 1⟩ }
 
 private def targets (h : Nat) (U : FGBlock (Fin 4)) : List (Row (Fin 4)) :=
   [⟨0, .vote h U.root false, none⟩, ⟨1, .vote h U.root false, none⟩,
     ⟨2, .vote h U.root false, none⟩]
-private def first : FGBlock (Fin 4) := .node .genesis 1 0 (targets 1 .genesis)
+private def first : FGBlock (Fin 4) := .node .genesis 1 ⟨1⟩ 0 (targets 1 .genesis)
 private def finWire (i : Fin 4) : RowWire 4 :=
   ⟨.seat .fg i, .vote ⟨.vote 2 first.root false, some ⟨1, genesisRoot⟩⟩⟩
 private def actionState : State 4 :=
@@ -51,7 +52,7 @@ example : kappaF p 6 = p.R ∧ 2 * p.Δ < (6 : Time) ∧
     kernelDeadlineW p 6 1 = 25 := by decide +kernel
 
 private def finish : FGBlock (Fin 4) :=
-  .node first 6 0 ([finWire 0, finWire 1, finWire 2].filterMap RowWire.toRow?)
+  .node first 6 ⟨2⟩ 0 ([finWire 0, finWire 1, finWire 2].filterMap RowWire.toRow?)
 
 /-- Item 1 is not vacuous: the parent entry is below quorum and the child completes it. -/
 private theorem finishCover : FinalityCoveredByChild_W p finish .genesis 1 := by
@@ -88,11 +89,11 @@ example : (attest p earlierState RecordOnce.initial 0).1 = some (finWire 0).payl
   decide +kernel
 
 private def grow : FGBlock (Fin 4) :=
-  .node first 2 0 ([finWire 0, finWire 1].filterMap RowWire.toRow?)
-private def second : FGBlock (Fin 4) := .node grow 3 0 (targets 2 first)
+  .node first 2 ⟨3⟩ 0 ([finWire 0, finWire 1].filterMap RowWire.toRow?)
+private def second : FGBlock (Fin 4) := .node grow 3 ⟨4⟩ 0 (targets 2 first)
 private def higherWire (i : Fin 4) : RowWire 4 :=
   ⟨.seat .fg i, .vote ⟨.vote 3 second.root false, some ⟨2, first.root⟩⟩⟩
-private def bothReady : FGBlock (Fin 4) := .node second 6 0
+private def bothReady : FGBlock (Fin 4) := .node second 6 ⟨5⟩ 0
   ([finWire 2, higherWire 0, higherWire 1, higherWire 2].filterMap RowWire.toRow?)
 
 private theorem bothLowerCover : FinalityCoveredByChild_W p bothReady .genesis 1 := by
@@ -123,7 +124,7 @@ example : FGBlock.Preceq (.genesis : FGBlock (Fin 4)) (Window.derive p p.K_W bot
     1 ≤ (Window.derive p p.K_W bothReady).h_F :=
   pendingFold_consume_W p 1 .genesis bothReady ⟨by decide +kernel, bothLowerCover⟩
 
-private def higherOnly : FGBlock (Fin 4) := .node second 6 0
+private def higherOnly : FGBlock (Fin 4) := .node second 6 ⟨5⟩ 0
   ([higherWire 0, higherWire 1, higherWire 2].filterMap RowWire.toRow?)
 
 -- The lower entry is pruned and covered without a finality quorum of its own.
@@ -160,9 +161,9 @@ private def birthRows : List (Row (Fin 4)) :=
     ⟨2, .vote 1 genesisRoot false, some ⟨1, genesisRoot⟩⟩]
 
 -- Raw fold only: these birth-height finality payloads fail R3 and are not admitted rows.
-example : (Window.derive p p.K_W (.node .genesis 1 0 birthRows)).W =
+example : (Window.derive p p.K_W (.node .genesis 1 ⟨1⟩ 0 birthRows)).W =
     [⟨1, .genesis, ∅⟩] ∧
-    (Window.derive p p.K_W (.node .genesis 1 0 birthRows)).h_F = 0 := by decide +kernel
+    (Window.derive p p.K_W (.node .genesis 1 ⟨1⟩ 0 birthRows)).h_F = 0 := by decide +kernel
 
 /-- Acceptance guards can be discharged on the actual W cache and h_max. -/
 private def beforeReceipt : State 4 :=
@@ -174,9 +175,9 @@ private def beforeReceipt : State 4 :=
 private def receiptRows : List (RowWire 4) :=
   [finWire 2, higherWire 0, higherWire 1, higherWire 2]
 private def receiptBlock : FGBlock (Fin 4) :=
-  FGSA.fgBlock second (.node (eraseFG second) 6 (packBody 0 receiptRows)) receiptRows
+  FGSA.fgBlock second (.node (eraseFG second) 6 ⟨7⟩ (packBody 0 receiptRows)) receiptRows
 
-example : blockAccepted p beforeReceipt 6 (eraseFG receiptBlock) second receiptRows = true ∧
+example : blockAccepted p beforeReceipt 6 (eraseFG receiptBlock) [] [] second receiptRows = true ∧
     FGBlock.Preceq beforeReceipt.fg.J receiptBlock ∧
     max beforeReceipt.fg.h_max (heightView p receiptBlock).h ≤
       (heightView p receiptBlock).h + 1 ∧

@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSA.Model.ProposalContent
 public import AvailableChainFGSA.Model.Objects
 public import AvailableChainFGSA.Model.Store
 public import AvailableChainFGSA.Model.Clock

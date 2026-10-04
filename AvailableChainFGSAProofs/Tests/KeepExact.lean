@@ -75,8 +75,8 @@ theorem emptyTargetAncestryPremiseFails (P : Block)
 #print axioms emptyTargetAncestryPremiseFails
 
 -- P and its rival have equal score. The rival has the greater root.
-private def P : Block := .node .genesis 1 0
-private def D : Block := .node .genesis 1 1
+private def P : Block := .node .genesis 1 ⟨1⟩ 0
+private def D : Block := .node .genesis 1 ⟨2⟩ 1
 
 example : P.root < D.root := by decide
 example : GridCO.ghost .genesis [P, D] (fun _ => 0) (fun _ => true) = D := by decide
@@ -213,12 +213,12 @@ open AvailableChain.SimplexFG
 private abbrev params : Params :=
   { Δ := 1, n := 1, k := 2, η := 0, deltaPos := by decide, nPos := by decide,
     kLarge := by decide, etaNonneg := by decide,
-    R := 2, δt := 1, RLarge := by decide }
+    R := 2, δt := 1, RLarge := by decide, digest := fun d => ⟨d.slot + 1⟩ }
 
-private def c : FGBlock (Fin 1) := .node .genesis 1 0 []
-private def f : FGBlock (Fin 1) := .node c 2 0 []
-private def p : FGBlock (Fin 1) := .node f 3 0 []
-private def q : FGBlock (Fin 1) := .node p 4 0 []
+private def c : FGBlock (Fin 1) := .node .genesis 1 ⟨1⟩ 0 []
+private def f : FGBlock (Fin 1) := .node c 2 ⟨3⟩ 0 []
+private def p : FGBlock (Fin 1) := .node f 3 ⟨4⟩ 0 []
+private def q : FGBlock (Fin 1) := .node p 4 ⟨5⟩ 0 []
 private def T : Block := .genesis
 private def C : Block := eraseFG c
 private def F : Block := eraseFG f
@@ -275,7 +275,7 @@ private theorem ancestry :
 private theorem exactHead :
     headInTree params st (erasedList st (domainR params st st.fg.TF)) votes votes = Q := by
   apply exactHead_of_pivot_ancestry params st st.fg.TF votes votes T P Q
-    (Or.inr (by decide +kernel)) (by decide +kernel) ancestry
+    (by decide +kernel) (Or.inr (by decide +kernel)) (by decide +kernel) ancestry
   · right
     decide +kernel
   · change ∀ B ∈ [F, P, Q], B.parent? = some Q → eligible params st votes votes B = false
@@ -289,13 +289,13 @@ end HighStart
 
 -- Gen positive case: genesis < P < target, with P as the walk anchor.
 private theorem intermediateAnchorReanchor :
-    let target := Block.node P 2 0
+    let target := Block.node P 2 ⟨6⟩ 0
     Block.Prec .genesis P ∧ Block.Prec P target ∧
       GridCO.ghost P [P, target] (fun _ => 1) (fun _ => true) =
         GridCO.ghost target [P, target] (fun _ => 1) (fun _ => true) := by
   dsimp only
   refine ⟨by decide, by decide, ?_⟩
-  apply walk_reanchor_of_best_ancestry _ _ _ _ _ (by decide)
+  apply walk_reanchor_of_best_ancestry _ _ _ _ _ (by decide) (by decide)
   exact walk_best_ancestry_of_cover _ _ _ _ _ (by decide)
 
 #print axioms intermediateAnchorReanchor

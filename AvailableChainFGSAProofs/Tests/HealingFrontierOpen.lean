@@ -156,10 +156,11 @@ example {Qfg K : FGBlock (Fin p.n)} (hQK : FGBlock.Preceq Qfg K ∧ Qfg ≠ K)
 
 private abbrev p4 : Params :=
   { Δ := 1, n := 4, k := 2, η := 11, deltaPos := by decide, nPos := by decide,
-    kLarge := by decide, etaNonneg := by decide, R := 2, δt := 1, RLarge := by decide }
+    kLarge := by decide, etaNonneg := by decide, R := 2, δt := 1, RLarge := by decide, digest :=
+        fun d => ⟨d.slot + 1⟩ }
 
-private abbrev Q4 : FGBlock (Fin 4) := .node .genesis 1 0 []
-private abbrev K4 : FGBlock (Fin 4) := .node Q4 2 0 []
+private abbrev Q4 : FGBlock (Fin 4) := .node .genesis 1 ⟨1⟩ 0 []
+private abbrev K4 : FGBlock (Fin 4) := .node Q4 2 ⟨2⟩ 0 []
 
 -- Concrete, unequal, non-genesis bodies: K4 strictly extends Q4 at height one.
 -- Full block equality is obtained from the production plateau theorem.

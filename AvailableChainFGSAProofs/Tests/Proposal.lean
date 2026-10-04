@@ -10,11 +10,12 @@ open AvailableChain.SimplexFG AvailableChain.KitFG
 
 private abbrev p : Params :=
   { Δ := 1, n := 4, k := 2, η := 11, deltaPos := by decide, nPos := by decide,
-    kLarge := by decide, etaNonneg := by decide, R := 4, δt := 8, RLarge := by decide }
+    kLarge := by decide, etaNonneg := by decide, R := 4, δt := 8, RLarge := by decide, digest :=
+        fun d => ⟨d.slot + 1⟩ }
 
-private def X : FGBlock (Fin 4) := .node .genesis 4 0 []
-private def A : FGBlock (Fin 4) := .node X 8 0 []
-private def F : FGBlock (Fin 4) := .node A 12 0 []
+private def X : FGBlock (Fin 4) := .node .genesis 4 ⟨1⟩ 0 []
+private def A : FGBlock (Fin 4) := .node X 8 ⟨2⟩ 0 []
+private def F : FGBlock (Fin 4) := .node A 12 ⟨3⟩ 0 []
 private def modelOutput (t : Time) : Block :=
   if t < SA.gateTime p.toParams 4 then .genesis
   else if t < SA.gateTime p.toParams 8 then eraseFG X else eraseFG A

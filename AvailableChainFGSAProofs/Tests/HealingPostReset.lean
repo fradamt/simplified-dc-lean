@@ -13,6 +13,7 @@ open AvailableChain.SimplexFG
 
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hroots : NamedRootCollisionFree p c E rho)
 
 -- conditional package: A supplies reset delivery from the actual J1 producer.
 example [Fintype V] {G ΔF : Time}
@@ -67,7 +68,7 @@ example (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
     (hBC : Block.Compatible (eraseFG B) w.CStar)
     (hBK : ∀ K s, SourceBefore p c E rho i K s → high p w K →
       Block.Compatible (eraseFG B) (eraseFG K)) : Kept p c E rho i x X B := by
-  have h := healing_rKeep_of_reset p c E rho xing origin inv h0 i x X C
+  have h := healing_rKeep_of_reset (hroots := hroots) p c E rho xing origin inv h0 i x X C
     hx hX htick hC he cover hreset hhigh
   exact h.2.2.2.2.2 B path hBC hBK
 
@@ -102,7 +103,8 @@ example (hv : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho)
     (∃ K s, SourceBefore p c E rho i K s ∧ high p w K ∧
       SA.gateTime p.toParams s ≤ (storeAt p c E rho i x).base.now ∧
       Block.Preceq (J_at p c E rho i x) (eraseFG K)) := by
-  have h := healing_rFProv_of_reset p c E rho hv hnr origin heldRows cap hhead xing w
+  have h := healing_rFProv_of_reset (hroots := hroots) p c E rho hv hnr origin heldRows cap
+      hhead xing w
     h0 i x hx hi
   exact ⟨h.1, h.2 hJ⟩
 

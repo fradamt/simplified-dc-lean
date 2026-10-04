@@ -17,6 +17,7 @@ section Signatures
 
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hroots : NamedRootCollisionFree p c E rho)
 
 /-- Blueprint 21:1004–1018; plan §2.1. DC: INTENTIONAL the inline `lastWrite` binder of
 §2.1 (Assembly producer Foundations/Leases:392), named only in this test file. -/
@@ -66,7 +67,8 @@ example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
       ∃ Kc, RetainedReadPremises p
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s Qfg b Kc :=
-  fgsa_retainedReads_HG1 E rho hrec.base.valid hrec.base.noRestart hrec.base.delta s hSync hx
+  fgsa_retainedReads_HG1 (hroots := hroots) E rho hrec.base.valid hrec.base.noRestart
+      hrec.base.delta s hSync hx
     hip hseat b raw sup rows hem Qfg q stop hafter hsStop
     (retainedHG1Input_before_first_rise E rho hrec mono crossing lastWrite hGST hQ hErase
       hHeight hService hu hPhase hStopEv hStop hRise hCapStop hqStop hsStop hx hip hseat b raw
@@ -229,7 +231,8 @@ example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
   have hstop : SA.gateTime p.toParams s < rho.horizon + 1 := by
     rw [hds]
     exact lt_add_one _
-  exact fgsa_retainedReads_HG1 E rho hrec.base.valid hrec.base.noRestart hrec.base.delta s hSync
+  exact fgsa_retainedReads_HG1 (hroots := hroots) E rho hrec.base.valid hrec.base.noRestart
+      hrec.base.delta s hSync
     hx hip hseat b raw sup rows hem Qfg q (rho.horizon + 1) hafter hstop
     (fun y hy ih hih _ => retainedHG1Input_through E rho hrec mono crossing lastWrite hGST hQ
       hErase hHeight hService hu hPhase hqv le_rfl hCap hx hip hseat b raw sup rows hem hafter

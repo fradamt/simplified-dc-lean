@@ -36,6 +36,7 @@ private def resetParams (k : Nat) (hk : 2 ≤ k) : Params where
   R := 3
   δt := 6
   RLarge := by decide
+  digest := fun d => ⟨d.slot + 1⟩
 
 -- The short-lease branch attains the minimum: 339 = 3·12 + 159 + 144.
 example : let p := resetParams 2 (by decide)

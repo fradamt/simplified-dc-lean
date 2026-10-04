@@ -1,5 +1,6 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Foundations.RowPermission -- shake: keep (anonymous lock and non-vacuity examples)
+public import AvailableChainFGSAProofs.Proofs.Foundations.RowPermission
+-- shake: keep (anonymous lock and non-vacuity examples)
 
 set_option linter.privateModule false
 
@@ -10,7 +11,7 @@ open AvailableChain.SimplexFG
 private abbrev p1 : Params :=
   { Δ := 1, n := 1, k := 2, η := 11, deltaPos := by decide, nPos := by decide,
     kLarge := by decide, etaNonneg := by decide,
-    R := 2, δt := 4, RLarge := by decide }
+    R := 2, δt := 4, RLarge := by decide, digest := fun d => ⟨d.slot + 1⟩ }
 
 private abbrev rho0 : V2.D.Run (Fin 1) (fgsa p1 unitCodec) where
   honest := {0}
@@ -60,6 +61,25 @@ private theorem base0 : Base₂ p1 unitCodec env0 rho0 where
     fresh := by intro i v o t h; exact (noDelivery0 i v o t h).elim
     unforgeable := by rintro v o t ⟨i, hi⟩; exact (noDelivery0 i v o t hi).elim
     carried := by rintro v o t ⟨i, hi⟩; exact (noDelivery0 i v o t hi).elim }
+  idealization := by
+    have hnone : ∀ x o t, V2.Event.deliver x o t ∉ rho0.events := by
+      intro x o t hd
+      obtain ⟨i, hi⟩ := List.mem_iff_getElem?.mp hd
+      exact noDelivery0 i x o t hi
+    have hg {A : Block} (hA : RootBlockInRun p1 unitCodec env0 rho0 A) : A = .genesis := by
+      rcases rootBlockInRun_genesis_or_delivered env0 rho0
+        (by intro x o t b raw sup rows hd; exact (hnone x o t hd).elim) hA with h | hd
+      · exact h
+      · obtain ⟨x, o, t, raw, sup, rows, hd, _⟩ := hd
+        exact (hnone x o t hd).elim
+    refine ⟨?_⟩
+    intro B C hB hC A D hA hD _
+    have scopeX {X : Block} (hX : Block.Preceq X B ∨ Block.Preceq X C) :
+        RootBlockInRun p1 unitCodec env0 rho0 X := by
+      rcases hX with hX | hX
+      · exact rootBlockInRun_ancestor env0 rho0 hB hX
+      · exact rootBlockInRun_ancestor env0 rho0 hC hX
+    exact (hg (scopeX hA)).trans (hg (scopeX hD)).symm
   linked := by
     refine ⟨1, Equiv.refl _, ?_⟩
     intro ℓ hℓ
@@ -102,13 +122,13 @@ example :
     (by decide +kernel) (by decide +kernel)
 
 private def b1 : FGBlock (Fin 1) :=
-  .node .genesis 1 0 [⟨0, .vote 1 genesisRoot false, none⟩]
+  .node .genesis 1 ⟨1⟩ 0 [⟨0, .vote 1 genesisRoot false, none⟩]
 private def b2 : FGBlock (Fin 1) :=
-  .node b1 2 0 [⟨0, .vote 2 b1.root false, none⟩]
+  .node b1 2 ⟨2⟩ 0 [⟨0, .vote 2 b1.root false, none⟩]
 private def b1alt : FGBlock (Fin 1) :=
-  .node .genesis 1 1 [⟨0, .vote 1 genesisRoot false, none⟩]
+  .node .genesis 1 ⟨3⟩ 1 [⟨0, .vote 1 genesisRoot false, none⟩]
 private def b2alt : FGBlock (Fin 1) :=
-  .node b1alt 6 0 [⟨0, .vote 2 b1alt.root true, none⟩]
+  .node b1alt 6 ⟨4⟩ 0 [⟨0, .vote 2 b1alt.root true, none⟩]
 
 -- Local client computations for the four IF.3(b) cases. They use W head fields.
 -- Frontier case c=m=2: the head's justification is below the source height.

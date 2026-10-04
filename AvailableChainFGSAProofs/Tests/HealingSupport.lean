@@ -21,6 +21,7 @@ section Signatures
 
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hroots : NamedRootCollisionFree p c E rho)
 
 -- S0: the settled frame at the strict cut needs no GST premise.
 example (crossing : RXing p c E rho) (u v : Time) (m : Nat)
@@ -46,7 +47,8 @@ example (mono : RMono p c E rho) (crossing : RXing p c E rho)
         ∀ y ∈ rho.honest, Gen.V2.Duty.HoldsBefore E rho
           (fun nd => ∀ B, FGBlock.Preceq B W → B ∈ nd.st.fg.TF)
           (SA.voteTime p.toParams s + p.Δ) y :=
-  healing_head_witness_relay p c E rho mono crossing hv hnr hdelta hsync _ _ m J contested
+  healing_head_witness_relay (hroots := hroots) p c E rho mono crossing hv hnr hdelta hsync _ _
+      m J contested
     hgst hphase hx hi le_rfl le_rfl
 
 -- S3: a written key has the release level and the slow or fast admission test.
@@ -113,7 +115,7 @@ example (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.�
     (hFB : Block.Preceq (eraseFG (storeAt p c E rho iy y).fg.F) B) :
     ∀ row ∈ (FGSA.clock p (storeAt p c E rho iy y)
       (SA.voteTime p.toParams (s + 1))).base.obligations, Block.Compatible row.1 B :=
-  healing_support_release_compat E rho hE hN hDelta s hSync hx hy hix hiy hτ hFB
+  healing_support_release_compat (hroots := hroots) E rho hE hN hDelta s hSync hx hy hix hiy hτ hFB
 
 -- S2: a synchronous-window slow body covers every honest HEAD at s+1 inside v.
 example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
@@ -212,7 +214,7 @@ HEAD is at v_0 = 1 and the receipt deadline is the horizon 2. -/
 private abbrev p1 : Params :=
   { Δ := 1, n := 1, k := 2, η := 11, deltaPos := by decide, nPos := by decide,
     kLarge := by decide, etaNonneg := by decide,
-    R := 2, δt := 4, RLarge := by decide }
+    R := 2, δt := 4, RLarge := by decide, digest := fun d => ⟨d.slot + 1⟩ }
 
 private abbrev rho1 : V2.D.Run (Fin 1) (fgsa p1 unitCodec) where
   honest := {0}
@@ -332,6 +334,26 @@ private theorem R1 (i : Nat) (y : Fin 1) :
   change KitFG.storeControlsView (heightView p1) (storeAt p1 unitCodec env1 rho1 i y).fg = _
   rw [fg1]
 
+private theorem roots1 : NamedRootCollisionFree p1 unitCodec env1 rho1 := by
+    have hnone : ∀ x o t, V2.Event.deliver x o t ∉ rho1.events := by
+      intro x o t hd
+      obtain ⟨i, hi⟩ := List.mem_iff_getElem?.mp hd
+      exact noDelivery1 i x o t hi
+    have hg {A : Block} (hA : RootBlockInRun p1 unitCodec env1 rho1 A) : A = .genesis := by
+      rcases rootBlockInRun_genesis_or_delivered env1 rho1
+        (by intro x o t b raw sup rows hd; exact (hnone x o t hd).elim) hA with h | hd
+      · exact h
+      · obtain ⟨x, o, t, raw, sup, rows, hd, _⟩ := hd
+        exact (hnone x o t hd).elim
+    refine ⟨?_⟩
+    intro B C hB hC A D hA hD _
+    have scopeX {X : Block} (hX : Block.Preceq X B ∨ Block.Preceq X C) :
+        RootBlockInRun p1 unitCodec env1 rho1 X := by
+      rcases hX with hX | hX
+      · exact rootBlockInRun_ancestor env1 rho1 hB hX
+      · exact rootBlockInRun_ancestor env1 rho1 hC hX
+    exact (hg (scopeX hA)).trans (hg (scopeX hD)).symm
+
 private theorem mono1 : RMono p1 unitCodec env1 rho1 := by
   intro _ i j x _ _
   dsimp only
@@ -362,7 +384,8 @@ example : ∀ y ∈ rho1.honest, Gen.V2.Duty.HoldsBefore env1 rho1
   have hW : FGBlock.genesis ∈ (storeAt p1 unitCodec env1 rho1 1 0).fg.TF := by
     rw [fg1]
     decide
-  exact healing_witness_relay p1 unitCodec env1 rho1 mono1 crossing1 valid1 noRestart1 rfl
+  exact healing_witness_relay (hroots := roots1) (s := 0) p1 unitCodec env1 rho1 mono1 crossing1
+      valid1 noRestart1 rfl
     (sync1 0) (Finset.mem_singleton_self 0) (rfl : rho1.events[1]? = _) (by decide)
     (by decide) .genesis hW (frame1 1 0) (by rw [R1]; decide) (by rw [R1]; decide)
     (fun y _ => frame1 _ y)

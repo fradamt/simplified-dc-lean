@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Foundations.Sources
 public import AvailableChainFGSAProofs.Proofs.Outage.InclusionGateBody -- shake: keep (examples)
 
 public section
@@ -17,6 +18,7 @@ variable
     (hset : CleanSet p c E rho ΔF)
     (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
     (hsrc : SrcFrameAboveStmt p c E rho)
+    (hstrat : RStrat p c E rho)
     (hordered : ∀ x y r s B C, x ∈ rho.honest → y ∈ rho.honest →
       SA.gateTime p.toParams r ≤ rho.horizon → SA.gateTime p.toParams s ≤ rho.horizon →
       gateResult p c E rho x r = some (some B) →
@@ -46,7 +48,8 @@ example :
     Gen.Pure.ServedOn (· ∈ rho.honest) (S_at p c E rho) pt.P
       (fun i => i = afterTicksIdx rho (SA.gateTime p.toParams pt.s)) ∧
     Gen.Pure.MonoOn (· ∈ rho.honest) (S_at p c E rho) (· ≤ rho.events.length) :=
-  clean_inclusion_post_gate_body E rho ΔF hset hstore hframe hsrc hordered hnonempty
+  clean_inclusion_post_gate_body (hstrat :=
+    hstrat) E rho ΔF hset hstore hframe hsrc hordered hnonempty
     htransfer hleases hrows pt hprop hhor hmono
 
 -- G7 keeps both getters and every read in the closed interval.
@@ -54,7 +57,8 @@ example :
     ∀ g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed],
       Gen.Pure.ServedOn (· ∈ rho.honest) (fun t x => V2.D.outputAt E rho g x t) pt.P
         (fun t => SA.gateTime p.toParams pt.s ≤ t ∧ t ≤ rho.horizon) :=
-  clean_inclusion_body E rho ΔF hset hstore hframe hsrc hordered hnonempty
+  clean_inclusion_body (hstrat :=
+    hstrat) E rho ΔF hset hstore hframe hsrc hordered hnonempty
     htransfer hleases hrows pt hprop hhor hmono
 
 -- The last gate tick is included when d equals the horizon.
@@ -68,7 +72,8 @@ example (hd : SA.gateTime p.toParams pt.s = rho.horizon) {x : V} (hx : x ∈ rho
   obtain ⟨i, hi, _⟩ := fgsa_tick_total E rho hset.pre.base.valid.toScheduleWellFormed
     hset.pre.base.delta x hx (4 * pt.s + 6) (he ▸ hd.le)
   rw [he] at hi
-  have hg := inclusion_gate_exact E rho ΔF hset hstore hframe hsrc hordered hnonempty
+  have hg := inclusion_gate_exact (hstrat :=
+    hstrat) E rho ΔF hset hstore hframe hsrc hordered hnonempty
     htransfer hleases hrows pt hprop hd.le hx hi
   exact ⟨i, hi, hg.2.2.1, hg.2.2.2⟩
 
@@ -76,7 +81,8 @@ example (hd : SA.gateTime p.toParams pt.s = rho.horizon) {x : V} (hx : x ∈ rho
 example (hfirst : pt.s = 1) {x : V} (hx : x ∈ rho.honest) :
     ∀ B, (0, B) ∈ cleanResults p c E rho
       (V2.D.Run.idxBefore rho (SA.gateTime p.toParams pt.s)) → Block.Preceq B pt.P := by
-  have hh := inclusion_headAtLabel E rho ΔF hset hstore hframe hsrc hordered hnonempty
+  have hh := inclusion_headAtLabel (hstrat :=
+    hstrat) E rho ΔF hset hstore hframe hsrc hordered hnonempty
     htransfer hleases hrows pt hprop hhor
   exact inclusion_prior_results_below E rho hset.pre.base.valid.toScheduleWellFormed
     hset.pre.base.delta hordered hnonempty htransfer pt.s pt.P (hfirst ▸ Nat.one_pos)
@@ -88,9 +94,11 @@ example {x : V} (hx : x ∈ rho.honest)
     (_hd : E.awake x (SA.gateTime p.toParams pt.s) = false)
     {i : Nat} (hi : IsGateTick p c rho i x pt.s) :
     headAtLabel p c E rho x pt.s = some pt.P ∧ S_at p c E rho (i + 1) x = pt.P := by
-  exact ⟨inclusion_headAtLabel E rho ΔF hset hstore hframe hsrc hordered hnonempty
+  exact ⟨inclusion_headAtLabel (hstrat :=
+    hstrat) E rho ΔF hset hstore hframe hsrc hordered hnonempty
     htransfer hleases hrows pt hprop hhor x hx,
-    (inclusion_gate_exact E rho ΔF hset hstore hframe hsrc hordered hnonempty
+    (inclusion_gate_exact (hstrat :=
+    hstrat) E rho ΔF hset hstore hframe hsrc hordered hnonempty
       htransfer hleases hrows pt hprop hhor hx hi).2.2.2⟩
 
 -- At d, the inclusive read crosses same-time deliveries by the supplied hmono.
@@ -104,7 +112,8 @@ example {x y : V} (hx : x ∈ rho.honest) (o : Obj p) {j : Nat}
         (SA.gateTime p.toParams pt.s)) := by
   refine ⟨?_, List.mem_filter.mpr ⟨List.mem_of_getElem? hd, by simp [V2.Event.time]⟩, ?_⟩
   · simp [cutPred, V2.Event.key, V2.Event.time, V2.Event.phase, Prod.Lex.toLex_le_toLex]
-  · exact clean_inclusion_body E rho ΔF hset hstore hframe hsrc hordered hnonempty
+  · exact clean_inclusion_body (hstrat :=
+    hstrat) E rho ΔF hset hstore hframe hsrc hordered hnonempty
       htransfer hleases hrows pt hprop hhor hmono (fgsaInterface p c).confirmed
       (by simp) _ x ⟨le_rfl, hhor⟩ hx
 
@@ -112,7 +121,8 @@ example {x y : V} (hx : x ∈ rho.honest) (o : Obj p) {j : Nat}
 example {x : V} (hx : x ∈ rho.honest) :
     Block.Preceq pt.P (V2.D.outputAt E rho (fgsaInterface p c).stable x rho.horizon) ∧
       Block.Preceq pt.P (V2.D.outputAt E rho (fgsaInterface p c).confirmed x rho.horizon) := by
-  have hi := clean_inclusion_body E rho ΔF hset hstore hframe hsrc hordered hnonempty
+  have hi := clean_inclusion_body (hstrat :=
+    hstrat) E rho ΔF hset hstore hframe hsrc hordered hnonempty
     htransfer hleases hrows pt hprop hhor hmono
   exact ⟨hi _ (by simp) _ x ⟨hhor, le_rfl⟩ hx, hi _ (by simp) _ x ⟨hhor, le_rfl⟩ hx⟩
 

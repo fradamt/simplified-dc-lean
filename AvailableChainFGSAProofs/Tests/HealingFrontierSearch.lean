@@ -1,7 +1,10 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTail -- shake: keep (example uses)
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTop -- shake: keep (example uses)
-public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchBudget -- shake: keep (example uses)
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTail
+-- shake: keep (example uses)
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchTop
+-- shake: keep (example uses)
+public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchBudget
+-- shake: keep (example uses)
 
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSearchHG2a -- shake: keep (examples)
 
@@ -234,6 +237,7 @@ private def hg2aParams : Params where
   R := 2
   δt := 4
   RLarge := by decide
+  digest := fun d => ⟨d.slot + 1⟩
 
 -- The old grid values now fit the age bound at the unchanged HG.4 guard.
 example : max (54 + Γ hg2aParams 8 - hg2aParams.Δ + epsF hg2aParams 2)

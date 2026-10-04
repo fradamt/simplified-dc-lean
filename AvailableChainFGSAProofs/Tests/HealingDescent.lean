@@ -1,5 +1,6 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.Descent -- shake: keep (descent boundary tests)
+public import AvailableChainFGSAProofs.Proofs.Healing.Descent
+-- shake: keep (descent boundary tests)
 public import AvailableChainFGSAProofs.Proofs.Foundations.FinalityApi -- shake: keep (producer)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Sources -- shake: keep (producer)
 public import AvailableChainFGSAProofs.Proofs.Foundations.Store -- shake: keep (producer)
@@ -24,10 +25,12 @@ open AvailableChain.SimplexFG
 
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hroots : NamedRootCollisionFree p c E rho)
 
 -- The foundation producers discharge the descent channels under HealingSet.
 example [Fintype V] {G ΔF : Time} (h : HealingSet p c E rho G ΔF) : RExcl p c E rho :=
-  healing_rExcl p c E rho (fgsa_apiFinalLockClaim_body p c E rho () ⟨h.base, h.fault⟩)
+  healing_rExcl (hroots := hroots) p c E rho (fgsa_apiFinalLockClaim_body p c E rho () ⟨h.base,
+      h.fault⟩)
     (sourceDiscipline_qcOrigin p c E rho (pt := ()) ⟨h.base, h.faultQ⟩
       (fgsa_rStore p c E rho))
 
@@ -38,7 +41,7 @@ example (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
     (hx : x ∈ rho.honest) (hX : X ⊆ (storeAt p c E rho i x).fg.TF) (hC : C ∈ X)
     (cover : ∀ K s, SourceBefore p c E rho i K s → FGBlock.Preceq C K → K ∈ X) :
     KeepOrCause p c E rho i x X C :=
-  healing_descent p c E rho xing origin hx hX hC
+  healing_descent (hroots := hroots) p c E rho xing origin hx hX hC
     (fun K s hK _ hCK _ => Or.inl (cover K s hK hCK))
 
 -- The full view of the store satisfies the cover for each held block.
@@ -47,7 +50,7 @@ example (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
     (hC : C ∈ (storeAt p c E rho i x).fg.TF)
     (held : ∀ K s, SourceBefore p c E rho i K s → K ∈ (storeAt p c E rho i x).fg.TF) :
     KeepOrCause p c E rho i x (storeAt p c E rho i x).fg.TF C :=
-  healing_descent p c E rho xing origin hx subset_rfl hC
+  healing_descent (hroots := hroots) p c E rho xing origin hx subset_rfl hC
     (fun K s hK _ _ _ => Or.inl (held K s hK))
 
 -- B16: freeze and release reads see only strictly earlier labels.
@@ -118,7 +121,7 @@ example (hs : V2.D.ScheduleWellFormed E rho) (origin : RQCOrigin p c E rho)
     ∃ K s, SourceBefore p c E rho i K s ∧
       FGBlock.Preceq (storeAt p c E rho i x).fg.F K ∧ SA.gateTime p.toParams s ≤ t := by
   obtain ⟨-, -, -, K, s, hK, -, hT, ht⟩ :=
-    healing_finality_source p c E rho hs origin hx hF
+    healing_finality_source (hroots := hroots) p c E rho hs origin hx hF
   have he := (fgCertificateLaws p).height.entry_preceq K
   rw [hT] at he
   exact ⟨K, s, hK, he, ht _ hi⟩

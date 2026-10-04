@@ -345,7 +345,7 @@ private theorem riseOneWithPorts [Fintype V] (E : Generic.Env V) (rho : V2.D.Run
         ∀ x ∈ rho.honest, Gen.V2.Duty.HoldsBefore E rho
           (fun nd => X ∈ nd.st.fg.TF) (SA.proposalTime p.toParams s + p.Δ) x := by
   let mono := fgsa_rMono p c E rho
-  let crossing := fgsa_rXing p c E rho hrec.base.linked
+  let crossing := fgsa_rXing (hroots := hrec.base.idealization) p c E rho hrec.base.linked
     (fgsa_faultX_count_rec p hrec.fault) hrec.base.valid.toUnforgeableSignatures
   exact healing_rise_one_rise E rho hrec hδ hbound mono crossing qc
     (fgsa_leaseOrigins_lastWrite p c E rho hrec.base.valid.toScheduleWellFormed)
@@ -413,6 +413,7 @@ private def riseOneParams : Params where
   R := 3
   δt := 6
   RLarge := by decide
+  digest := fun d => ⟨d.slot + 1⟩
 
 -- The same r3 W bound permits DeltaF = 6 > Delta = 1.
 example : riseOneParams.Δ < (6 : Time) ∧ LivenessBoundW riseOneParams 6 :=

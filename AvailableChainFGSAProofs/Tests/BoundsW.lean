@@ -1,5 +1,6 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Shared.BoundsW -- shake: keep (concrete examples and axiom audit commands)
+public import AvailableChainFGSAProofs.Proofs.Shared.BoundsW
+-- shake: keep (concrete examples and axiom audit commands)
 
 public section
 
@@ -17,6 +18,7 @@ namespace AvailableChain.FGSA.Run
   R := R
   δt := 2 * R
   RLarge := hR
+  digest := fun d => ⟨d.slot + 1⟩
 
 example : kappaF (boundsWParams 2 (by decide)) 2 = 2 := by decide
 example : kappaF (boundsWParams 3 (by decide)) 6 = 3 := by decide

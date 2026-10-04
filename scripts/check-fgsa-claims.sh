@@ -29,6 +29,29 @@ LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainF
 CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = (
+    # ROOT-DIGEST W3b: scoped producers and concrete premise witnesses.
+    'AvailableChain.FGSA.Run.finalityRun_parent_scope',
+    'AvailableChain.FGSA.Run.fgsa_runAccountable',
+    'AvailableChain.FGSA.Run.rootScope_finality_read',
+    'AvailableChain.FGSA.Run.cpCompat_of_scopedFrame',
+    'AvailableChain.FGSA.Run.rootScope_store',
+    'AvailableChain.FGSA.Run.rootScope_ancestor',
+    'AvailableChain.FGSA.Run.rootScope_eq',
+    'AvailableChain.FGSA.Run.rootScope_source',
+    'AvailableChain.FGSA.Run.certified_preceq',
+    'AvailableChain.FGSA.Run.rootScope_entry',
+    'AvailableChain.FGSA.Run.rootScope_justified',
+    'AvailableChain.FGSA.Run.rootScope_finalized',
+    'AvailableChain.FGSA.Run.srcFrameAbove_scoped',
+    'AvailableChain.FGSA.Run.rootScope_result',
+    'AvailableChain.FGSA.Run.rootScope_belowLabel',
+    'AvailableChain.FGSA.Run.Base₂.idealization',
+    'AvailableChain.FGSA.Run.Tests.NonVacuity.HealingRun.nvRoots',
+    'AvailableChain.FGSA.Run.Tests.NonVacuity.HealingPackages.nvRoots',
+    'AvailableChain.FGSA.Run.Tests.NonVacuity.HealingClaims.nvRoots',
+    'AvailableChain.FGSA.Run.Tests.NonVacuity.FinalityClaims.nvRoots',
+    'AvailableChain.FGSA.Run.Tests.NonVacuity.FinalityClaims.nvLiveDC',
+
     # LIVE-DC: --expect DATA only.
     'AvailableChain.FGSA.Run.liveDCDeadline_W',
     'AvailableChain.FGSA.Run.liveDCDeadline_W_def',

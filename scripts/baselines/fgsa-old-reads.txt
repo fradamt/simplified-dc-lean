@@ -122,3 +122,7 @@ height AvailableChain.FGSA.fgsa_getHead_avoids_unsupported_child # pre-J4 baseli
 height AvailableChain.FGSA.heightView_bridge # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.FrameViews)
 height AvailableChain.FGSA.heightView_eq_simplex # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.StoreLaws)
 height AvailableChain.FGSA.row_bit_persist # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.RowValidity)
+
+# ROOT-DIGEST W3b: scoped r2.3 helpers keep the existing height-only route.
+height AvailableChain.FGSA.Run.cpCompat_of_scopedFrame # r2.3 scoped frame height view
+height AvailableChain.FGSA.Run.srcFrameAbove_scoped # r2.3 certified entry height view

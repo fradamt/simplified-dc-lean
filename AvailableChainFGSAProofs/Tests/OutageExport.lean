@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Foundations.Sources
 public import AvailableChainFGSAProofs.Proofs.Assembly.Outage -- shake: keep (body-to-claim checks)
 
 set_option linter.privateModule false
@@ -76,6 +77,8 @@ include hsavedKeep in
 /-- The expanded compatibility body has the frozen full claim conclusion. -/
 example (h : OutagePrem p c fast E rho pt ΔF) : OutageCompatAt p c E rho pt := by
   exact outage_compat_body
+    (hstrat := sourceDiscipline_strat p c E rho (pt := ())
+      ⟨h.set.pre.base, h.set.faultQ⟩ hstore)
     (hstore := hstore) (hframe := hframe) (hsrc := hsrc)
     (htsrc := htsrc) (hnamed := hnamed)
     (hordered := hordered) (hnonempty := hnonempty) (htransfer := htransfer)
@@ -86,6 +89,8 @@ example (h : OutagePrem p c fast E rho pt ΔF) : OutageCompatAt p c E rho pt := 
 /-- The expanded fast body has the frozen P1 conclusion. -/
 example (h : OutagePrem p c true E rho pt ΔF) : P1Concl p c E rho pt := by
   exact fast_p1_body
+    (hstrat := sourceDiscipline_strat p c E rho (pt := ())
+      ⟨h.set.pre.base, h.set.faultQ⟩ hstore)
     (hstore := hstore) (hframe := hframe) (hsrc := hsrc)
     (htsrc := htsrc) (hnamed := hnamed)
     (hordered := hordered) (hnonempty := hnonempty) (htransfer := htransfer)
@@ -96,6 +101,8 @@ include hsavedKeep in
 /-- The expanded slow body has the P1 conclusion as its first clause. -/
 example (h : OutagePrem p c false E rho pt ΔF) : P1Concl p c E rho pt := by
   exact (slow_p1_body
+    (hstrat := sourceDiscipline_strat p c E rho (pt := ())
+      ⟨h.set.pre.base, h.set.faultQ⟩ hstore)
     (hstore := hstore) (hframe := hframe) (hsrc := hsrc)
     (htsrc := htsrc) (hnamed := hnamed)
     (hordered := hordered) (hnonempty := hnonempty) (htransfer := htransfer)

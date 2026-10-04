@@ -1,4 +1,5 @@
 module
+public import AvailableChainKitFG.RootScopeDef
 public import AvailableChainKitFG.Ancestry
 public import AvailableChainKitFG.Certificates
 public import AvailableChainKitFG.Accountable

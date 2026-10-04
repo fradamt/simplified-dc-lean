@@ -13,19 +13,19 @@ DC: INTENTIONAL; finite parameters for the two eligibility cases. -/
 private abbrev params : Params :=
   { Δ := 1, n := 1, k := 2, η := 0, deltaPos := by decide, nPos := by decide,
     kLarge := by decide, etaNonneg := by decide,
-    R := 2, δt := 1, RLarge := by decide }
+    R := 2, δt := 1, RLarge := by decide, digest := fun d => ⟨d.slot + 1⟩ }
 
 /-- Blueprint 21 H.5:856–914; spec 1350–1360. Class (iii).
 DC: INTENTIONAL; common immutable parent. -/
-private def parentFG : FGBlock (Fin 1) := .node .genesis 1 0 []
+private def parentFG : FGBlock (Fin 1) := .node .genesis 1 ⟨1⟩ 0 []
 
 /-- Blueprint 21 H.5:856–914; spec 1350–1360. Class (iii).
 DC: INTENTIONAL; retained candidate child. -/
-private def candidateFG : FGBlock (Fin 1) := .node parentFG 2 0 []
+private def candidateFG : FGBlock (Fin 1) := .node parentFG 2 ⟨2⟩ 0 []
 
 /-- Blueprint 21 H.5:856–914; spec 1350–1360. Class (iii).
 DC: INTENTIONAL; extra target block makes the two stores different. -/
-private def extraFG : FGBlock (Fin 1) := .node parentFG 2 1 []
+private def extraFG : FGBlock (Fin 1) := .node parentFG 2 ⟨3⟩ 1 []
 
 /-- Blueprint 21 H.5:856–914; spec 1530–1538. Class (iii).
 DC: INTENTIONAL; source store with one resolved signed HEAD. -/

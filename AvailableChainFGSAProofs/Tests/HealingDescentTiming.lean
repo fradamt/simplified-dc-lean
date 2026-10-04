@@ -1,6 +1,8 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.DescentTimingRFProv -- shake: keep (boundary examples)
-public import AvailableChainFGSAProofs.Proofs.Foundations.Cap -- shake: keep (INLINE supplier examples)
+public import AvailableChainFGSAProofs.Proofs.Healing.DescentTimingRFProv
+-- shake: keep (boundary examples)
+public import AvailableChainFGSAProofs.Proofs.Foundations.Cap
+-- shake: keep (INLINE supplier examples)
 
 set_option linter.privateModule false
 
@@ -10,7 +12,7 @@ open AvailableChain.SimplexFG
 private abbrev params : Params :=
   { Δ := 1, n := 1, k := 2, η := 0, deltaPos := by decide, nPos := by decide,
     kLarge := by decide, etaNonneg := by decide,
-    R := 2, δt := 1, RLarge := by decide }
+    R := 2, δt := 1, RLarge := by decide, digest := fun d => ⟨d.slot + 1⟩ }
 
 local instance : DecidableEq (KitFG.FGCertEntry (Fin 1)) := fun a b =>
   decidable_of_iff (a.j = b.j ∧ a.X = b.X ∧ a.Q = b.Q) (by cases a; cases b; simp)
@@ -41,13 +43,13 @@ example : params.actionTime 0 + P params ≤ params.actionTime 1 :=
   healing_action_period params (by decide)
 
 private def progressBlock : FGBlock (Fin 1) :=
-  .node .genesis 1 0 [⟨0, .vote 1 genesisRoot true, none⟩]
+  .node .genesis 1 ⟨1⟩ 0 [⟨0, .vote 1 genesisRoot true, none⟩]
 private def signerHead : FGBlock (Fin 1) :=
-  .node progressBlock 2 0 [⟨0, .vote 2 progressBlock.root false, none⟩]
+  .node progressBlock 2 ⟨2⟩ 0 [⟨0, .vote 2 progressBlock.root false, none⟩]
 private def latestBirth : FGBlock (Fin 1) :=
-  .node signerHead 3 0 [⟨0, .vote 3 signerHead.root false, none⟩]
+  .node signerHead 3 ⟨3⟩ 0 [⟨0, .vote 3 signerHead.root false, none⟩]
 private def oldChoice : FGBlock (Fin 1) :=
-  .node latestBirth 4 0 [⟨0, .empty, some ⟨2, progressBlock.root⟩⟩]
+  .node latestBirth 4 ⟨4⟩ 0 [⟨0, .empty, some ⟨2, progressBlock.root⟩⟩]
 
 -- The honest finality signer's justification can differ from the eventual
 -- carrier's latest J. The pair retains the exact height and root.
@@ -70,9 +72,9 @@ example : (Window.certificateSelection params 2).chosen oldChoice =
       [⟨3, signerHead, ∅⟩] := by decide
 
 private def genesisBirth : FGBlock (Fin 1) :=
-  .node .genesis 1 0 [⟨0, .vote 1 genesisRoot false, none⟩]
+  .node .genesis 1 ⟨1⟩ 0 [⟨0, .vote 1 genesisRoot false, none⟩]
 private def genesisFinal : FGBlock (Fin 1) :=
-  .node genesisBirth 2 0 [⟨0, .empty, some ⟨1, genesisRoot⟩⟩]
+  .node genesisBirth 2 ⟨5⟩ 0 [⟨0, .empty, some ⟨1, genesisRoot⟩⟩]
 
 -- A positive certificate height does not require a non-genesis F.
 example : (finalityView params genesisFinal).F = .genesis ∧
@@ -119,6 +121,7 @@ example (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
 -- T2 also applies after the event list ends. It needs no reset or future tick.
 example (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hroots : NamedRootCollisionFree p c E rho)
     (hv : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho)
     (origin : RQCOrigin p c E rho)
     (heldRows : ∀ e x W, HeldAt p c E rho e x W →
@@ -134,7 +137,7 @@ example (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
       (heightView p K).T_h = (storeAt p c E rho (rho.events.length + 7) x).fg.J ∧
       SA.gateTime p.toParams s ≤
         (storeAt p c E rho (rho.events.length + 7) x).base.now :=
-  healing_justified_source_clock p c E rho hv hnr origin heldRows hx hj
+  healing_justified_source_clock (hroots := hroots) p c E rho hv hnr origin heldRows hx hj
 
 -- The low arm includes the exact after-action cut, and a certificate
 -- height equal to M. Its hypothesis concerns h_F of the carrier.
@@ -154,6 +157,7 @@ example (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
 -- T1 keeps the carrier certificate height at an end-of-events prefix.
 example (p : Params) {In V : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hroots : NamedRootCollisionFree p c E rho)
     (hL : V2.D.Linked (fgsaFamilies p c).linked rho) (hv : V2.D.ExecutionValid E rho)
     (hQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
     (hnr : V2.D.NoRestart rho) (origin : RQCOrigin p c E rho)
@@ -166,13 +170,14 @@ example (p : Params) {In V : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
         (heightView p K).T_h = (storeAt p c E rho (rho.events.length + 7) x).fg.F ∧
         SA.gateTime p.toParams s + P p ≤
           (storeAt p c E rho (rho.events.length + 7) x).base.now :=
-  healing_finality_source_clock p c E rho hv hnr origin
+  healing_finality_source_clock (hroots := hroots) p c E rho hv hnr origin
     (held_chain_row_origin_before p c E rho hv.toUnforgeableSignatures hv.toScheduleWellFormed)
     (fgsa_finalityCap p c E rho hL hv hQ) (cap_finality_head p c E rho) hx hF
 
 -- The full clause-1 producer has the exact RFProv F-branch conclusion.
 example (p : Params) {In V : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hroots : NamedRootCollisionFree p c E rho)
     (hL : V2.D.Linked (fgsaFamilies p c).linked rho) (hv : V2.D.ExecutionValid E rho)
     (hQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
     (hnr : V2.D.NoRestart rho) (origin : RQCOrigin p c E rho)
@@ -183,7 +188,7 @@ example (p : Params) {In V : Type} [DecidableEq V] [Fintype V] (c : AppCodec In)
       ∃ K s, SourceBefore p c E rho i K s ∧ high p w K ∧
         SA.gateTime p.toParams s + P p ≤ (storeAt p c E rho i x).base.now ∧
         Block.Preceq (F_at p c E rho i x) (eraseFG K) :=
-  healing_rFProv_finality p c E rho hv hnr origin
+  healing_rFProv_finality (hroots := hroots) p c E rho hv hnr origin
     (held_chain_row_origin_before p c E rho hv.toUnforgeableSignatures hv.toScheduleWellFormed)
     (fgsa_finalityCap p c E rho hL hv hQ) (cap_finality_head p c E rho) xing w h0 i x hx hi
 

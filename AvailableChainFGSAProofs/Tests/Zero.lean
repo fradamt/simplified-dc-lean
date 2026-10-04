@@ -1,5 +1,6 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Assembly.Clean -- shake: keep (test examples use the Export names)
+public import AvailableChainFGSAProofs.Proofs.Assembly.Clean
+-- shake: keep (test examples use the Export names)
 
 -- Test fixtures and examples stay private.
 set_option linter.privateModule false
@@ -11,7 +12,7 @@ namespace AvailableChain.FGSA.Run.Tests.Zero
 private abbrev p4 : Params :=
   { Δ := 1, n := 4, k := 2, η := 11, deltaPos := by decide, nPos := by decide,
     kLarge := by decide, etaNonneg := by decide,
-    R := 2, δt := 1, RLarge := by decide }
+    R := 2, δt := 1, RLarge := by decide, digest := fun d => ⟨d.slot + 1⟩ }
 
 private abbrev rho0 : V2.D.Run (Fin 4) (fgsa p4 unitCodec) where
   honest := {0}
@@ -61,6 +62,25 @@ private theorem base0 : Base₂ p4 unitCodec env0 rho0 where
     fresh := by intro i v o t h; exact (noDelivery0 i v o t h).elim
     unforgeable := by rintro v o t ⟨i, hi⟩; exact (noDelivery0 i v o t hi).elim
     carried := by rintro v o t ⟨i, hi⟩; exact (noDelivery0 i v o t hi).elim }
+  idealization := by
+    have hnone : ∀ x o t, V2.Event.deliver x o t ∉ rho0.events := by
+      intro x o t hd
+      obtain ⟨i, hi⟩ := List.mem_iff_getElem?.mp hd
+      exact noDelivery0 i x o t hi
+    have hg {A : Block} (hA : RootBlockInRun p4 unitCodec env0 rho0 A) : A = .genesis := by
+      rcases rootBlockInRun_genesis_or_delivered env0 rho0
+        (by intro x o t b raw sup rows hd; exact (hnone x o t hd).elim) hA with h | hd
+      · exact h
+      · obtain ⟨x, o, t, raw, sup, rows, hd, _⟩ := hd
+        exact (hnone x o t hd).elim
+    refine ⟨?_⟩
+    intro B C hB hC A D hA hD _
+    have scopeX {X : Block} (hX : Block.Preceq X B ∨ Block.Preceq X C) :
+        RootBlockInRun p4 unitCodec env0 rho0 X := by
+      rcases hX with hX | hX
+      · exact rootBlockInRun_ancestor env0 rho0 hB hX
+      · exact rootBlockInRun_ancestor env0 rho0 hC hX
+    exact (hg (scopeX hA)).trans (hg (scopeX hD)).symm
   linked := by
     refine ⟨4, Equiv.refl _, ?_⟩
     intro ℓ hℓ
@@ -130,7 +150,8 @@ set_option maxRecDepth 10000
 open AvailableChain AvailableChain.SimplexFG
 namespace AvailableChain.FGSA.Run.Tests.Delay
 private abbrev p : FGSA.Params :=
-  ⟨⟨1, 1, 2, 0, by decide, by decide, by decide, by decide⟩, 2, 0, by decide, 2, by decide⟩
+  ⟨⟨1, 1, 2, 0, by decide, by decide, by decide, by decide⟩, 2, 0, by decide, 2, by decide, fun
+      d => ⟨d.slot + 1⟩⟩
 private abbrev E : Generic.Env (Fin 1) := ⟨1, by decide, 0, le_rfl, fun _ _ => true⟩
 private abbrev mkRun (es : List (V2.Event (Fin 1) (fgsa p unitCodec).Object)) :
     V2.D.Run (Fin 1) (fgsa p unitCodec) where
@@ -315,8 +336,125 @@ private theorem old_fails : ¬ V2.D.HealthyPrefixDelivery E rho 17 := by
     rcases (fgsaHooks p unitCodec).handles_carries _ o row hh with rfl | hcarry
     · exact List.mem_cons_self
     · exact List.mem_cons_of_mem _ ((carries_children o row).mp hcarry)
+/-- ROOT-DIGEST W3b. The existing event certificate gives actual emission origin. -/
+private theorem delay_rootEmission {x : Fin 1} {o : Obj p} {t : Time}
+    (hd : V2.Event.deliver x o t ∈ rho.events) : ∃ i u,
+    rho.events[i]? = some (.tick 0 u) ∧ o ∈ rho.emitsAt E i := by
+  obtain ⟨j, hj⟩ := List.mem_iff_getElem?.mp hd
+  obtain ⟨hjl, he⟩ := List.getElem?_eq_some_iff.mp hj
+  have hc := checks ⟨j, hjl⟩
+  change EventOK j rho.events[j] at hc
+  have hc' : EventOK j (.deliver x o t) := he ▸ hc
+  dsimp only [EventOK] at hc'
+  obtain ⟨i, _, hi, hem⟩ := hc'.2.2.2.1
+  have hx : x = 0 := Subsingleton.elim _ _
+  subst x
+  exact ⟨i, _, List.getElem?_eq_some_iff.mpr ⟨i.isLt, hi⟩, hem⟩
+
+/-- ROOT-DIGEST W3b. Decode a delivered proposal without any root assumption. -/
+private theorem delay_rootProposal {x : Fin 1} {o : Obj p} {t : Time} {B : Block}
+    {raw sup : List (HeadWire p.n)} {rows : List (RowWire p.n)}
+    (hd : V2.Event.deliver x o t ∈ rho.events) (hp : o.payload = .proposal B raw sup rows) :
+    ∃ s, o = ofWire p ⟨.proposer s, .proposal B raw sup rows⟩ := by
+  obtain ⟨j, hj⟩ := List.mem_iff_getElem?.mp hd
+  have hw := lsync_execution.wire j x o t hj
+  cases hm : (toWire p o).decode with
+  | none =>
+    change FGSA.wellFormed p (toWire p o) = true at hw
+    simp only [FGSA.wellFormed, hm, Bool.false_eq_true] at hw
+  | some m =>
+    have he (w : Wire p.n) (h : toWire p o = w) : o = ofWire p w := by
+      apply (toWireEquiv p).injective
+      exact h.trans ((toWireEquiv p).right_inv w).symm
+    cases m with
+    | vote s j b => rw [he _ (decode_eq_vote.mp hm)] at hp; cases hp
+    | row j body => rw [he _ (decode_eq_row.mp hm)] at hp; cases hp
+    | block s b raw' sup' rows' =>
+      have ho := he _ (decode_eq_block.mp hm)
+      rw [ho] at hp
+      obtain ⟨rfl, rfl, rfl, rfl⟩ := Msg.proposal.inj hp
+      exact ⟨s, ho⟩
+
+/-- ROOT-DIGEST W3b. Each scoped non-genesis body has a delivered origin. -/
+private theorem delay_rootParents : ∀ x o t b raw sup rows,
+    V2.Event.deliver x o t ∈ rho.events → o.payload = .proposal b raw sup rows →
+    ∃ i y, b.parent ∈ (V2.D.Run.stateBefore E rho i y).st.base.blocks := by
+  intro x o t b raw sup rows hd hp
+  obtain ⟨i, u, hi, hem⟩ := delay_rootEmission hd
+  obtain ⟨j, hj⟩ := emitted_payload_parent_stored E rho ⟨i, hi, hem⟩ hp
+  exact ⟨j, 0, hj⟩
+
+/-- ROOT-DIGEST W3b. Equal delivered slot roots identify the same single-seat action. -/
+private theorem delay_rootDeliveredEq {x y : Fin 1} {o o' : Obj p} {t u : Time} {B C : Block}
+    {raw sup raw' sup' : List (HeadWire p.n)} {rows rows' : List (RowWire p.n)}
+    (hd : V2.Event.deliver x o t ∈ rho.events) (hp : o.payload = .proposal B raw sup rows)
+    (hd' : V2.Event.deliver y o' u ∈ rho.events) (hp' : o'.payload = .proposal C raw' sup' rows')
+    (he : B.root = C.root) : B = C := by
+  obtain ⟨s, rfl⟩ := delay_rootProposal hd hp
+  obtain ⟨s', rfl⟩ := delay_rootProposal hd' hp'
+  obtain ⟨i, ti, hi, hem⟩ := delay_rootEmission hd
+  obtain ⟨j, tj, hj, hem'⟩ := delay_rootEmission hd'
+  have hbr := emitted_proposal_slot_root E rho (fun _ => rfl) i 0 ti s B raw sup rows hi hem
+  have hcr := emitted_proposal_slot_root E rho (fun _ => rfl) j 0 tj s' C raw' sup' rows' hj hem'
+  have hslots : B.slot = C.slot := Nat.add_right_cancel
+    (congrArg BlockId.value (hbr.symm.trans (he.trans hcr)))
+  rw [(V2.D.Run.step_tick_eq E rho hi).2] at hem
+  rw [(V2.D.Run.step_tick_eq E rho hj).2] at hem'
+  have ha := (fgsa_emits_proposal E rho _ 0 ti s _).mp hem
+  have ha' := (fgsa_emits_proposal E rho _ 0 tj s' _).mp hem'
+  obtain ⟨H, raw0, sup0, rows0, hb, _, _⟩ := rowsOk_withApp _ _ _ ha.2.2.2
+  obtain ⟨H', raw1, sup1, rows1, hc, _, _⟩ := rowsOk_withApp _ _ _ ha'.2.2.2
+  have hBs : B.slot = s := by
+    have hh := congrArg (fun m : Msg p.n => match m with
+      | .proposal b _ _ _ => b.slot | _ => 0) hb
+    exact hh
+  have hCs : C.slot = s' := by
+    have hh := congrArg (fun m : Msg p.n => match m with
+      | .proposal b _ _ _ => b.slot | _ => 0) hc
+    exact hh
+  have hss : s = s' := hBs.symm.trans (hslots.trans hCs)
+  rw [← hss] at ha'
+  have htt : ti = tj := ha.2.1.symm.trans ha'.2.1
+  subst tj
+  have hij : i = j := by
+    obtain ⟨hil, hei⟩ := List.getElem?_eq_some_iff.mp hi
+    obtain ⟨hjl, hej⟩ := List.getElem?_eq_some_iff.mp hj
+    exact (lsync_execution.nodup.getElem_inj_iff (hi := hil) (hj := hjl)).mp (hei.trans hej.symm)
+  subst j
+  exact (Msg.proposal.inj (Option.some.inj (ha.2.2.2.symm.trans ha'.2.2.2))).1
+
+/-- ROOT-DIGEST W3b. Origin closes the body scope; no fixture premise is assumed. -/
+private theorem delay_rootPremise : NamedRootCollisionFree p unitCodec E rho where
+  root_injective := by
+    intro B C hB hC A D hA hD he
+    have scopeX {X : Block} (hX : Block.Preceq X B ∨ Block.Preceq X C) :
+        RootBlockInRun p unitCodec E rho X := by
+      rcases hX with hX | hX
+      · exact rootBlockInRun_ancestor E rho hB hX
+      · exact rootBlockInRun_ancestor E rho hC hX
+    have deliveredRoot {x : Fin 1} {o : Obj p} {t : Time} {X : Block}
+        {raw sup : List (HeadWire p.n)} {rows : List (RowWire p.n)}
+        (hd : V2.Event.deliver x o t ∈ rho.events) (hp : o.payload = .proposal X raw sup rows) :
+        X.root = ⟨X.slot + 1⟩ := by
+      obtain ⟨s, rfl⟩ := delay_rootProposal hd hp
+      obtain ⟨i, u, hi, hem⟩ := delay_rootEmission hd
+      exact emitted_proposal_slot_root E rho (fun _ => rfl) i 0 u s X raw sup rows hi hem
+    rcases rootBlockInRun_genesis_or_delivered E rho delay_rootParents (scopeX hA) with rfl | hdA
+    · rcases rootBlockInRun_genesis_or_delivered E rho delay_rootParents (scopeX hD) with rfl | hdD
+      · rfl
+      · obtain ⟨x, o, t, raw, sup, rows, hd, hp⟩ := hdD
+        exact (Nat.succ_ne_zero D.slot
+          (congrArg BlockId.value (he.trans (deliveredRoot hd hp))).symm).elim
+    · obtain ⟨x, o, t, raw, sup, rows, hd, hp⟩ := hdA
+      rcases rootBlockInRun_genesis_or_delivered E rho delay_rootParents (scopeX hD) with rfl | hdD
+      · exact (Nat.succ_ne_zero A.slot
+          (congrArg BlockId.value ((deliveredRoot hd hp).symm.trans he))).elim
+      · obtain ⟨y, o', u, raw', sup', rows', hd', hp'⟩ := hdD
+        exact delay_rootDeliveredEq hd hp hd' hp' he
+
 private theorem base : Base₂ p unitCodec E rho where
   valid := lsync_execution
+  idealization := delay_rootPremise
   linked := by
     refine ⟨1, Equiv.refl _, ?_⟩
     intro l hl

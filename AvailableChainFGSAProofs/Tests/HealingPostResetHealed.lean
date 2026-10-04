@@ -101,7 +101,7 @@ example [Fintype V] {G ΔF : Time} (rec : Recovery₂ p c E rho G ΔF)
 This local arithmetic fixture imports no NonVacuity module. -/
 private def arithmeticParams : Params :=
   ⟨⟨1, 1, 2, 0, by decide, by decide, by decide, by decide⟩,
-    3, 6, by decide, 2, by decide⟩
+    3, 6, by decide, 2, by decide, fun d => ⟨d.slot + 1⟩⟩
 
 /-- Blueprint 21:3057–3059,3097–3100; plan J7 T/B. DC: SAME first-slot arithmetic.
 For s*=9 and u=11: t_10=40 < t_11=44 ≤ 44 and d_11=50=a_3+Γ+4Δ. -/
