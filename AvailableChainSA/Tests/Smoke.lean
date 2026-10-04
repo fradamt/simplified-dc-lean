@@ -3,14 +3,16 @@ public import AvailableChainSA.Model.Protocol
 public meta import AvailableChainSA.Model.Protocol
 
 @[expose] public section
+
+/-! ROOT-DIGEST W3: explicit roots for finite test fixtures. -/
 namespace AvailableChain.SA.Tests
 open AvailableChain.Generic
 
 def p : Params := ⟨1, 4, 3, 11, by decide, by decide, by decide, by decide⟩
-def B : Block := .node .genesis 1 0
-def C : Block := .node B 2 0
+def B : Block := .node .genesis 1 (nodeRoot Block.genesis.root 1 0) 0
+def C : Block := .node B 2 (nodeRoot B.root 2 0) 0
 /-- A sibling of `B` at slot 1 with a different body. -/
-def X : Block := .node .genesis 1 1
+def X : Block := .node .genesis 1 (nodeRoot Block.genesis.root 1 1) 1
 
 /-- The derived roots keep the old sibling order (`⟨1⟩ < ⟨3⟩`). No check below
 compares the two roots: every walk has at most one eligible child of genesis. -/

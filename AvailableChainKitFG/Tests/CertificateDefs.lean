@@ -4,6 +4,8 @@ public import AvailableChainKitFG.StoreSafetyDef
 
 public section
 
+/-! ROOT-DIGEST W3: explicit roots for finite test fixtures. -/
+
 namespace AvailableChain.KitFG.Tests.CertificateDefs
 
 open AvailableChain.SimplexFG
@@ -139,7 +141,7 @@ example :
 example : acceptedThreshold (FGBlock.genesis : FGBlock (Fin 1)) 1 = 0 := rfl
 
 example :
-    acceptedThreshold (FGBlock.node .genesis 1 0 [] : FGBlock (Fin 1)) 7 = 7 := rfl
+    acceptedThreshold (FGBlock.node .genesis 1 ⟨100⟩ 0 [] : FGBlock (Fin 1)) 7 = 7 := rfl
 
 #print axioms finalityOf_def
 #print axioms simplexFinalityView_def

@@ -6,6 +6,8 @@ set_option linter.privateModule false
 
 @[expose] public section
 
+/-! ROOT-DIGEST W3: explicit small roots for statement fixtures. -/
+
 /-! F0.8a kernel controls: live/expired source, proposer parent, the lo branch,
 and a store edit that keeps F. The path control is F0.0b; F2.0 adds its own control. -/
 
@@ -15,7 +17,7 @@ open AvailableChain.SimplexFG
 private abbrev channelParams : Params :=
   { Δ := 1, n := 1, k := 2, η := 0, deltaPos := by decide, nPos := by decide,
     kLarge := by decide, etaNonneg := by decide,
-    R := 2, δt := 1, RLarge := by decide }
+    R := 2, δt := 1, RLarge := by decide, digest := fun d => ⟨d.slot + 1⟩ }
 
 /-- The round-zero candidate has a lease until time seven. -/
 private def channelSourceStore : State 1 :=
@@ -35,10 +37,10 @@ example : jointSource channelParams
 
 example : proposerHead channelParams channelSourceStore 1 = .genesis := by decide +kernel
 example : FGSA.propose channelParams channelSourceStore 1 =
-    some (.proposal (.node .genesis 1 (packBody (n := 1) 0 [])) [] [] []) := by decide +kernel
+    some (.proposal (.node .genesis 1 ⟨2⟩ (packBody (n := 1) 0 [])) [] [] []) := by decide +kernel
 
 /-- A non-current child with no votes: only the raised band floor admits it. -/
-private def channelLateChild : Block := .node .genesis 9 0
+private def channelLateChild : Block := .node .genesis 9 ⟨10⟩ 0
 private def channelRaisedLoStore : State 1 :=
   { channelSourceStore with fg := { channelSourceStore.fg with h_max := 3 } }
 
@@ -51,7 +53,7 @@ example : ¬ FAdvance channelParams channelSourceStore channelRaisedLoStore := b
   decide +kernel
 example : FAdvance channelParams channelSourceStore
     { channelSourceStore with
-      fg := { channelSourceStore.fg with F := .node .genesis 1 0 [] } } := by
+      fg := { channelSourceStore.fg with F := .node .genesis 1 ⟨2⟩ 0 [] } } := by
   rw [FAdvance_def]
   decide +kernel
 

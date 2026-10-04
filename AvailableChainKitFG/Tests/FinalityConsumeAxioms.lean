@@ -33,7 +33,7 @@ example : (transition E4 cfg1 fcStoredState B1 [fcFinalRow 2]).F = .genesis ∧
     (by decide +kernel)
 
 def fcFinalChild : FGBlock (Fin 4) :=
-  .node B1 2 0 [fcFinalRow 0, fcFinalRow 1, fcFinalRow 2]
+  .node B1 2 ⟨100⟩ 0 [fcFinalRow 0, fcFinalRow 1, fcFinalRow 2]
 
 -- A child consumes coverage supplied entirely by its own rows.
 example : (derive E4 cfg1 fcFinalChild).F = .genesis ∧
@@ -46,7 +46,7 @@ def fcBothRow (i : Fin 4) : Row (Fin 4) :=
   ⟨i, .vote 2 B1.root false, some ⟨1, genesisRoot⟩⟩
 
 def fcBothChild : FGBlock (Fin 4) :=
-  .node B1 2 0 [fcBothRow 0, fcBothRow 1, fcBothRow 2]
+  .node B1 2 ⟨101⟩ 0 [fcBothRow 0, fcBothRow 1, fcBothRow 2]
 
 -- Finality keeps the old pending pair when the same transition justifies B1.
 example : (derive E4 cfg1 fcBothChild).F = .genesis ∧

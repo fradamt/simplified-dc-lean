@@ -3,6 +3,8 @@ public import AvailableChainFGSA.Proofs.WindowSelection
 
 @[expose] public section
 
+/-! ROOT-DIGEST W3: explicit roots for finite test fixtures. -/
+
 namespace AvailableChain.FGSA.Window.Tests.Selection
 
 open AvailableChain.SimplexFG hiding process_row process_height_events transition derive
@@ -14,20 +16,20 @@ local instance : DecidableEq (FGCertEntry (Fin 1)) := fun a b =>
 abbrev params : Params :=
   { Δ := 1, n := 1, k := 2, η := 11, deltaPos := by decide, nPos := by decide,
     kLarge := by decide, etaNonneg := by decide,
-    R := 2, δt := 1, RLarge := by decide }
+    R := 2, δt := 1, RLarge := by decide, digest := fun d => ⟨d.slot + 1⟩ }
 
 /-- Progress first gives the oldest justification a non-genesis block. -/
 def progressBlock : FGBlock (Fin 1) :=
-  .node .genesis 1 0 [⟨0, .vote 1 genesisRoot true, none⟩]
+  .node .genesis 1 ⟨100⟩ 0 [⟨0, .vote 1 genesisRoot true, none⟩]
 
 def birth1 : FGBlock (Fin 1) :=
-  .node progressBlock 2 0 [⟨0, .vote 2 progressBlock.root false, none⟩]
+  .node progressBlock 2 ⟨101⟩ 0 [⟨0, .vote 2 progressBlock.root false, none⟩]
 
 def birth2 : FGBlock (Fin 1) :=
-  .node birth1 3 0 [⟨0, .vote 3 birth1.root false, none⟩]
+  .node birth1 3 ⟨102⟩ 0 [⟨0, .vote 3 birth1.root false, none⟩]
 
 def olderChoice : FGBlock (Fin 1) :=
-  .node birth2 4 0 [⟨0, .empty, some ⟨2, progressBlock.root⟩⟩]
+  .node birth2 4 ⟨103⟩ 0 [⟨0, .empty, some ⟨2, progressBlock.root⟩⟩]
 
 /-- Two retained entries: only the lower one is ready. -/
 example : (certificateSelection params 2).before olderChoice =
@@ -45,9 +47,9 @@ example : (certificateSelection params 2).chosen olderChoice =
     (certificateSelection params 2).afterPrune olderChoice = [⟨3, birth1, ∅⟩] := by decide
 
 def birth3 : FGBlock (Fin 1) :=
-  .node birth2 4 0 [⟨0, .vote 4 birth2.root false, none⟩]
+  .node birth2 4 ⟨104⟩ 0 [⟨0, .vote 4 birth2.root false, none⟩]
 
-def afterEviction : FGBlock (Fin 1) := .node birth3 5 0 []
+def afterEviction : FGBlock (Fin 1) := .node birth3 5 ⟨105⟩ 0 []
 
 set_option exponentiation.threshold 4096 in
 /-- Pruning keeps both old entries. The third append then evicts the oldest. -/

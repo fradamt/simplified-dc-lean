@@ -3,6 +3,8 @@ public import AvailableChainFGSA.Proofs.WindowCertificates
 
 @[expose] public section
 
+/-! ROOT-DIGEST W3: explicit roots for finite test fixtures. -/
+
 namespace AvailableChain.FGSA.Window.Tests
 
 open AvailableChain.SimplexFG hiding process_row process_height_events transition derive
@@ -10,11 +12,11 @@ open AvailableChain.SimplexFG hiding process_row process_height_events transitio
 abbrev params : Params :=
   { Δ := 1, n := 4, k := 2, η := 11, deltaPos := by decide, nPos := by decide,
     kLarge := by decide, etaNonneg := by decide,
-    R := 2, δt := 1, RLarge := by decide }
+    R := 2, δt := 1, RLarge := by decide, digest := fun d => ⟨d.slot + 1⟩ }
 
-def block1 : FGBlock (Fin 4) := .node .genesis 1 0 []
-def block2 : FGBlock (Fin 4) := .node block1 2 0 []
-def block3 : FGBlock (Fin 4) := .node block2 3 0 []
+def block1 : FGBlock (Fin 4) := .node .genesis 1 ⟨100⟩ 0 []
+def block2 : FGBlock (Fin 4) := .node block1 2 ⟨101⟩ 0 []
+def block3 : FGBlock (Fin 4) := .node block2 3 ⟨102⟩ 0 []
 
 def targets (h : Height) (X : FGBlock (Fin 4)) : List (Row (Fin 4)) :=
   [⟨0, .vote h X.root false, none⟩, ⟨1, .vote h X.root false, none⟩,
@@ -106,9 +108,9 @@ example : (process_height_events params.E ⟨2⟩ 2
 example : (process_height_events params.E ⟨100⟩ 2
     { staleState with target_participation := {0, 1, 2} }).h = 4 := by decide
 
-def derived1 : FGBlock (Fin 4) := .node .genesis 1 0 (targets 1 .genesis)
-def derived2 : FGBlock (Fin 4) := .node derived1 2 0 (targets 2 derived1)
-def mixed : FGBlock (Fin 4) := .node derived2 3 0
+def derived1 : FGBlock (Fin 4) := .node .genesis 1 ⟨103⟩ 0 (targets 1 .genesis)
+def derived2 : FGBlock (Fin 4) := .node derived1 2 ⟨104⟩ 0 (targets 2 derived1)
+def mixed : FGBlock (Fin 4) := .node derived2 3 ⟨105⟩ 0
   [⟨0, .vote 3 derived2.root false, some ⟨1, genesisRoot⟩⟩,
    ⟨1, .vote 2 derived1.root false, some ⟨1, genesisRoot⟩⟩,
    ⟨2, .empty, some ⟨2, derived1.root⟩⟩]
@@ -153,12 +155,12 @@ example : process_row justified3 ⟨0, .empty, some ⟨1, genesisRoot⟩⟩ = ju
 
 
 /-- FG1b: these target rows also name the entry born after their fold. -/
-def originBirth : FGBlock (Fin 4) := .node .genesis 1 0
+def originBirth : FGBlock (Fin 4) := .node .genesis 1 ⟨106⟩ 0
   [⟨0, .vote 1 genesisRoot false, some ⟨1, genesisRoot⟩⟩,
    ⟨1, .vote 1 genesisRoot false, some ⟨1, genesisRoot⟩⟩,
    ⟨2, .vote 1 genesisRoot false, some ⟨1, genesisRoot⟩⟩]
 
-def originLater : FGBlock (Fin 4) := .node originBirth 2 0
+def originLater : FGBlock (Fin 4) := .node originBirth 2 ⟨107⟩ 0
   [⟨3, .empty, some ⟨1, genesisRoot⟩⟩]
 
 /-- Birth-block rows are not applied to the appended entry. -/
@@ -193,7 +195,7 @@ example : (derive params 2 originLater).W = [⟨1, .genesis, {3}⟩] ∧
 example : KitFG.StrictPrefix originBirth originLater ∧
     KitFG.JustificationBirth params.E (certificateHeight params 2) originBirth 1 .genesis ∧
     EntryOriginAt params 2 originLater ⟨1, .genesis, {3}⟩ := by
-  refine ⟨⟨KitFG.preceq_parent_node _ _ _ _, by decide⟩, originBirth_birth, ?_⟩
+  refine ⟨⟨KitFG.preceq_parent_node _ _ _ _ _, by decide⟩, originBirth_birth, ?_⟩
   exact window_entry_origin params 2 (by decide) originLater _ (by decide)
 
 /-- Prefinality exposes a strictly earlier birth and the exact carried pair. -/

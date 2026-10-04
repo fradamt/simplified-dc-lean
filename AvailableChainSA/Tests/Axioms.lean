@@ -84,7 +84,8 @@ public import AvailableChainGridCO.Proofs.Contract
 #print axioms AvailableChain.GridCO.honest_proposal_exists
 #print axioms AvailableChain.GridCO.blockKnown_parent_slot_iff_root
 #print axioms AvailableChain.GridCO.admitProposal_missingParent
-#print axioms AvailableChain.GridCO.rootInjectiveBelow_all
+-- ROOT-DIGEST W3: deleted global-root audit; scoped replacement.
+#print axioms AvailableChain.GridCO.RootInjectiveBelow
 #print axioms AvailableChain.GridCO.confirmation_eq_from_genesis
 #print axioms AvailableChain.GridCO.gate_eq_from_genesis
 #print axioms AvailableChain.GridCO.clock_eq_from_genesis

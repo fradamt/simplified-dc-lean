@@ -4,6 +4,8 @@ public import AvailableChainKitFG.CertificateSimplex -- shake: keep (instance ch
 
 public section
 
+/-! ROOT-DIGEST W3: explicit roots for finite test fixtures. -/
+
 namespace AvailableChain.KitFG.Tests.ProvenanceCore
 
 open AvailableChain.SimplexFG
@@ -40,7 +42,7 @@ example (E : Electorate V) (H : FGHeightView V) (f : FGFinalityView V)
   provenance_finalityQC_of_heightLaws E H f hc.laws.height faulty hcap rows Q hQ p hw hemit
 
 private def pcFinalOne : FGBlock (Fin 4) :=
-  .node B1 2 0 [⟨0, .empty, some ⟨1, genesisRoot⟩⟩,
+  .node B1 2 ⟨100⟩ 0 [⟨0, .empty, some ⟨1, genesisRoot⟩⟩,
     ⟨1, .empty, some ⟨1, genesisRoot⟩⟩, ⟨2, .empty, some ⟨1, genesisRoot⟩⟩]
 
 -- The same pair is emitted at B1 and rejected after it has finalized.

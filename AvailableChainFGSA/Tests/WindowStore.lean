@@ -3,6 +3,8 @@ public import AvailableChainFGSA.Proofs.WindowStore
 
 public section
 
+/-! ROOT-DIGEST W3: explicit roots for finite test fixtures. -/
+
 namespace AvailableChain.FGSA.Window.StoreTests
 
 open AvailableChain.SimplexFG hiding derive acceptViable update_finality on_block
@@ -10,21 +12,21 @@ open AvailableChain.SimplexFG hiding derive acceptViable update_finality on_bloc
 abbrev params : Params :=
   { Δ := 1, n := 4, k := 2, η := 11, deltaPos := by decide, nPos := by decide,
     kLarge := by decide, etaNonneg := by decide,
-    R := 2, δt := 1, RLarge := by decide }
+    R := 2, δt := 1, RLarge := by decide, digest := fun d => ⟨d.slot + 1⟩ }
 
 private def targets (h : Height) (X : FGBlock (Fin 4)) : List (Row (Fin 4)) :=
   [⟨0, .vote h X.root false, none⟩, ⟨1, .vote h X.root false, none⟩,
    ⟨2, .vote h X.root false, none⟩]
 
-private def first : FGBlock (Fin 4) := .node .genesis 1 0 (targets 1 .genesis)
-private def second : FGBlock (Fin 4) := .node first 2 0 (targets 2 first)
-private def third : FGBlock (Fin 4) := .node second 3 0 (targets 3 second)
+private def first : FGBlock (Fin 4) := .node .genesis 1 ⟨100⟩ 0 (targets 1 .genesis)
+private def second : FGBlock (Fin 4) := .node first 2 ⟨101⟩ 0 (targets 2 first)
+private def third : FGBlock (Fin 4) := .node second 3 ⟨102⟩ 0 (targets 3 second)
 /-- Stale-arm rows: a past height pair `(3, second)` and the retained finality pair `(2, first)`. -/
 private def olderRows : List (Row (Fin 4)) :=
   [⟨0, .vote 3 second.root false, some ⟨2, first.root⟩⟩,
    ⟨1, .vote 3 second.root false, some ⟨2, first.root⟩⟩,
    ⟨2, .vote 3 second.root false, some ⟨2, first.root⟩⟩]
-private def olderFinality : FGBlock (Fin 4) := .node third 4 0 olderRows
+private def olderFinality : FGBlock (Fin 4) := .node third 4 ⟨103⟩ 0 olderRows
 
 private def before : SimplexFG.Store (Fin 4) :=
   [first, second, third].foldl (on_block params 2) SimplexFG.Store.init
@@ -52,8 +54,8 @@ example : (on_block params 2 before olderFinality).F = first ∧
 example : on_block params 2 before second = before ∧
     on_block params 2 SimplexFG.Store.init second = SimplexFG.Store.init := by decide +kernel
 
-private def sameSlot : FGBlock (Fin 4) := .node third 3 0 []
-private def conflict : FGBlock (Fin 4) := .node .genesis 5 1 []
+private def sameSlot : FGBlock (Fin 4) := .node third 3 ⟨104⟩ 0 []
+private def conflict : FGBlock (Fin 4) := .node .genesis 5 ⟨105⟩ 1 []
 
 /-- Parent-slot and incompatible-finality refusals leave the store unchanged. -/
 example : on_block params 2 before sameSlot = before ∧

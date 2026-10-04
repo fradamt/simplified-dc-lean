@@ -10,14 +10,6 @@ namespace AvailableChain.FGSA.Tests
 
 open AvailableChain.SimplexFG hiding B1 B2 B3 B1' B1a B1b childA X Y stF
 
-/-- The test parameters: Δ = 1, n = 4, k = 2, R = 2, δ_t = 1.
-`pT.cfg` is the FG module's `cfg1` and `pT.E` is its `E4`.
-`pT.n` reduces to `4`, so `State 4` and `State pT.n` are one type. -/
-abbrev pT : Params :=
-  { Δ := 1, n := 4, k := 2, η := 11, deltaPos := by decide, nPos := by decide,
-    kLarge := by decide, etaNonneg := by decide,
-    R := 2, δt := 1, RLarge := by decide }
-
 /-- A signed row by identity `i`; the legacy round input has no effect. -/
 def rw (_r : Nat) (i : Fin 4) (a : Row (Fin 4)) : RowWire 4 :=
   ⟨.seat .fg i,  .vote (RowBody.ofRow a)⟩
@@ -32,39 +24,141 @@ blocks `B1`, `B2`, `B3`, `B1'`, `B1a`, `childA`, `B1b`, `X`, `Y` have the
 parents, slots and decoded rows of the FG module's blocks of the same name
 (`AvailableChainSimplexFG`), with row targets that name the packed roots; the
 FG module's own blocks are hidden. Every block has application value `0`,
-except `B1b` (value `1`, so that it differs from `B1a`) and `X` (value `2 ^ 4096`). -/
+except `B1b` (value `1`, so that it differs from `B1a`). ROOT-DIGEST W3 uses small roots. -/
 
 /-- Fixed-FG signatures for the rows `rs`; the legacy round input has no effect. -/
 def signRows (_r : Nat) (rs : List (Row (Fin 4))) : List (RowWire 4) :=
   rs.map (fun a => ⟨.seat .fg a.signer,  .vote (RowBody.ofRow a)⟩)
-/-- The packed FG block: parent `P`, slot `s`, application value `app`,
-signed rows `rw`. -/
-def pk (P : FGBlock (Fin 4)) (s : Slot) (app : Nat) (rw : List (RowWire 4)) :
-    FGBlock (Fin 4) :=
-  .node P s (packInner app rw) (rw.filterMap RowWire.toRow?)
-/-- A wire block with parent `P`, slot `s` and the packed body of `app` and `rw`. -/
-def pb (P : Block) (s : Slot) (app : Nat) (rw : List (RowWire 4)) : Block :=
-  .node P s (packBody app rw)
 
-def B1 : FGBlock (Fin 4) := pk .genesis 1 0 (signRows 0 [rowT 0, rowT 1, rowT 2])
+/-- ROOT-DIGEST W3: the literal root is independent of the digest table. -/
+def literalFG (P : FGBlock (Fin 4)) (s : Slot) (r : BlockId) (app : Nat)
+    (rows : List (RowWire 4)) : FGBlock (Fin 4) :=
+  .node P s r (packInner app rows) (rows.filterMap RowWire.toRow?)
+
+def B1 : FGBlock (Fin 4) := literalFG .genesis 1 ⟨1⟩ 0 (signRows 0 [rowT 0, rowT 1, rowT 2])
 def B2 : FGBlock (Fin 4) :=
-  pk B1 2 0 (signRows 1 [rowAt 2 B1.root false 0, rowAt 2 B1.root false 1,
+  literalFG B1 2 ⟨4⟩ 0 (signRows 1 [rowAt 2 B1.root false 0, rowAt 2 B1.root false 1,
     rowAt 2 B1.root false 2])
 /-- [helper] A timeout row for `(3, B2)` with the finality pair `(2, B1)`. -/
 def rowB3' (i : Fin 4) : Row (Fin 4) := ⟨i, .vote 3 B2.root true, some ⟨2, B1.root⟩⟩
-def B3 : FGBlock (Fin 4) := pk B2 3 0 (signRows 1 [rowB3' 0, rowB3' 1, rowB3' 2])
-def B1' : FGBlock (Fin 4) := pk .genesis 2 0 (signRows 0 [rowT 0, rowT 1, rowT 2])
+def B3 : FGBlock (Fin 4) := literalFG B2 3 ⟨9⟩ 0 (signRows 1 [rowB3' 0, rowB3' 1, rowB3' 2])
+def B1' : FGBlock (Fin 4) := literalFG .genesis 2 ⟨3⟩ 0 (signRows 0 [rowT 0, rowT 1, rowT 2])
 def B1a : FGBlock (Fin 4) := B1
 def childA : FGBlock (Fin 4) :=
-  pk B1a 2 0 (signRows 1 [rowAt 2 B1a.root false 0, rowAt 2 B1a.root false 1,
+  literalFG B1a 2 ⟨4⟩ 0 (signRows 1 [rowAt 2 B1a.root false 0, rowAt 2 B1a.root false 1,
     rowAt 2 B1a.root false 2])
-def B1b : FGBlock (Fin 4) := pk .genesis 1 1 (signRows 0 [rowT 0, rowT 1, rowT 2])
+def B1b : FGBlock (Fin 4) := literalFG .genesis 1 ⟨2⟩ 1 (signRows 0 [rowT 0, rowT 1, rowT 2])
 def Y : FGBlock (Fin 4) :=
-  pk B1b 2 0 (signRows 1 [rowAt 2 B1b.root false 0, rowAt 2 B1b.root false 1,
+  literalFG B1b 2 ⟨7⟩ 0 (signRows 1 [rowAt 2 B1b.root false 0, rowAt 2 B1b.root false 1,
     rowAt 2 B1b.root true 2])
-/-- `X` has no rows and a large application value, so that its root is above the
-root of its sibling `childA` (the tie of `stK`). -/
-def X : FGBlock (Fin 4) := pk B1a 3 (2 ^ 4096) []
+/-- ROOT-DIGEST W3: X uses root 8, above childA root 4, to keep the stK tie. -/
+def X : FGBlock (Fin 4) := literalFG B1a 3 ⟨8⟩ 0 []
+
+def v2 : HeadWire 4 := ⟨.seat (.head 2) 0, eraseFG B2⟩
+def rF : RowWire 4 := ⟨.seat .fg 3, .vote ⟨.vote 1 ⟨77⟩ true, none⟩⟩
+def r0 : RowWire 4 := ⟨.seat .fg 2, .vote ⟨.vote 0 genesisRoot false, none⟩⟩
+def r1 : RowWire 4 := ⟨.seat .fg 2, .vote ⟨.vote 1 genesisRoot false, none⟩⟩
+def vX : HeadWire 4 := ⟨.seat (.head 2) 1, (eraseFG B1')⟩
+def q (h : Nat) : RowWire 4 :=
+  ⟨.seat .fg 3, .vote ⟨.vote 3 B2.root false, some ⟨h - 1, genesisRoot⟩⟩⟩
+def r0z : RowWire 4 := rw 0 3 (rowAt 3 B2.root true 3)
+
+namespace M05
+def a0 : RowWire 4 := ⟨.seat .fg 0, .vote ⟨.vote 1 genesisRoot false, none⟩⟩
+def a1 : RowWire 4 := ⟨.seat .fg 0, .vote ⟨.vote 1 genesisRoot true, none⟩⟩
+def a2 : RowWire 4 :=
+  ⟨.seat .fg 0, .vote ⟨.vote 1 genesisRoot false, some ⟨0, genesisRoot⟩⟩⟩
+def qW (i : Fin 4) : RowWire 4 := ⟨.seat .fg i, .vote ⟨.vote 1 genesisRoot false, none⟩⟩
+end M05
+
+/-- ROOT-DIGEST W3: every table key has all six signed-content fields. -/
+def digestTable : List (DigestInput 4 × BlockId) :=
+  [
+  (⟨genesisRoot, 1, 0, signRows 0 [rowT 0, rowT 1, rowT 2], [], []⟩, ⟨1⟩),
+  (⟨B1.root, 2, 0, signRows 1 [rowAt 2 B1.root false 0, rowAt 2 B1.root false 1, rowAt 2 B1.root
+      false 2], [], []⟩, ⟨4⟩),
+  (⟨B2.root, 3, 0, signRows 1 [rowB3' 0, rowB3' 1, rowB3' 2], [], []⟩, ⟨9⟩),
+  (⟨genesisRoot, 2, 0, signRows 0 [rowT 0, rowT 1, rowT 2], [], []⟩, ⟨3⟩),
+  (⟨genesisRoot, 1, 1, signRows 0 [rowT 0, rowT 1, rowT 2], [], []⟩, ⟨2⟩),
+  (⟨B1b.root, 2, 0, signRows 1 [rowAt 2 B1b.root false 0, rowAt 2 B1b.root false 1, rowAt 2 B1b.root
+      true 2], [], []⟩, ⟨7⟩),
+  (⟨B1.root, 3, 0, [], [], []⟩, ⟨8⟩),
+  (⟨genesisRoot, 3, 99, [rF], [v2], []⟩, ⟨20⟩),
+  (⟨genesisRoot, 1, 98, [rw 1 2 (rowT 2)], [], []⟩, ⟨21⟩),
+  (⟨genesisRoot, 3, 97, [r0], [], []⟩, ⟨22⟩),
+  (⟨genesisRoot, 3, 97, [r1], [], []⟩, ⟨23⟩),
+  (⟨B1.root, 4, 96, [], [], []⟩, ⟨24⟩),
+  (⟨B1.root, 3, 95, [], [], []⟩, ⟨25⟩),
+  (⟨B2.root, 3, 96, [], [v2], []⟩, ⟨26⟩),
+  (⟨B2.root, 3, 96, [], [], []⟩, ⟨27⟩),
+  (⟨B1'.root, 3, 96, [], [vX], []⟩, ⟨28⟩),
+  (⟨B1'.root, 3, 96, [], [vX], [vX]⟩, ⟨29⟩),
+  (⟨B2.root, 3, 95, [q 3], [], []⟩, ⟨30⟩),
+  (⟨B2.root, 4, 0, signRows 1 B3.rows, [], []⟩, ⟨31⟩),
+  (⟨B2.root, 3, 95, [q 1], [], []⟩, ⟨32⟩),
+  (⟨B2.root, 3, 94, [q 3, r0z], [], []⟩, ⟨33⟩),
+  (⟨genesisRoot, 1, 31, [M05.a0], [], []⟩, ⟨34⟩),
+  (⟨genesisRoot, 2, 32, [M05.a2], [], []⟩, ⟨35⟩),
+  (⟨genesisRoot, 1, 41, [M05.qW 0, M05.qW 1, M05.qW 2], [], []⟩, ⟨36⟩),
+  (⟨genesisRoot, 4, 33, [], [], []⟩, ⟨37⟩),
+  (⟨genesisRoot, 100, 9, [M05.a0, M05.a1, M05.a2], [], []⟩, ⟨38⟩),
+  (⟨genesisRoot, 100, 9, [M05.a1, M05.a0, M05.a2], [], []⟩, ⟨39⟩),
+  (⟨B1.root, 2, 0, [⟨.seat .fg 0, .vote ⟨.vote 2 B1.root false, some ⟨1, genesisRoot⟩⟩⟩], [], []⟩,
+      ⟨40⟩) ]
+
+/-- ROOT-DIGEST W3: positive IDs; 4095 is outside the finite table. -/
+def fixtureDigest (d : DigestInput 4) : BlockId :=
+  ((digestTable.find? (fun e => e.1 == d)).map Prod.snd).getD ⟨4095⟩
+
+/-- ROOT-DIGEST W3: the table has distinct roots for distinct full inputs. -/
+theorem digestTable_distinct :
+    ∀ e ∈ digestTable, ∀ f ∈ digestTable, e.2 = f.2 → e.1 = f.1 := by
+  decide +kernel
+
+/-- The test parameters: Δ = 1, n = 4, k = 2, R = 2, δ_t = 1.
+`pT.cfg` is the FG module's `cfg1` and `pT.E` is its `E4`.
+`pT.n` reduces to `4`, so `State 4` and `State pT.n` are one type. -/
+abbrev pT : Params :=
+  { Δ := 1, n := 4, k := 2, η := 11, deltaPos := by decide, nPos := by decide,
+    kLarge := by decide, etaNonneg := by decide,
+    R := 2, δt := 1, RLarge := by decide, digest := fixtureDigest }
+
+/-- ROOT-DIGEST W3: construct an FG fixture with its full digest input. -/
+def pk (P : FGBlock (Fin 4)) (s : Slot) (app : Nat) (rows : List (RowWire 4))
+    (raw support : List (HeadWire 4) := []) : FGBlock (Fin 4) :=
+  .node P s (fixtureDigest ⟨P.root, s, app, rows, raw, support⟩)
+    (packInner app rows) (rows.filterMap RowWire.toRow?)
+
+/-- ROOT-DIGEST W3: the wire fixture uses the model smart constructor. -/
+def pb (P : Block) (s : Slot) (app : Nat) (rows : List (RowWire 4))
+    (raw support : List (HeadWire 4) := []) : Block :=
+  proposalBlock pT P s app raw support rows
+
+/-- ROOT-DIGEST W3: the smart constructors reproduce the literal fixtures. -/
+theorem literal_constructors :
+    pk .genesis 1 0 (signRows 0 [rowT 0, rowT 1, rowT 2]) = B1 ∧
+    pk B1 2 0 (signRows 1 B2.rows) = B2 ∧
+    pk B2 3 0 (signRows 1 B3.rows) = B3 ∧
+    pk B1 3 0 [] = X := by decide +kernel
+
+/-- ROOT-DIGEST W3: the literal fixture table is closed under parents. -/
+def smokeRootScope : Finset (FGBlock (Fin 4)) := {.genesis, B1, B2, B3, B1', B1b, Y, X}
+
+theorem smoke_scope_closed : ∀ B ∈ smokeRootScope, B.parent ∈ smokeRootScope := by
+  decide +kernel
+
+/-- ROOT-DIGEST W3: structural ancestor inclusion precedes the finite root check. -/
+theorem smoke_ancestor_scope : ∀ B ∈ smokeRootScope,
+    ∀ A, FGBlock.Preceq A B → A ∈ smokeRootScope :=
+  KitFG.ancestor_closed_of_parent_closed smokeRootScope smoke_scope_closed
+
+theorem smoke_scope_roots : ∀ A ∈ smokeRootScope, ∀ B ∈ smokeRootScope,
+    A.root = B.root → A = B := by decide +kernel
+
+#print axioms digestTable_distinct
+#print axioms literal_constructors
+#print axioms smoke_ancestor_scope
+#print axioms smoke_scope_roots
 
 /-- [helper] The FG module's store after the packed blocks `B1`, `B2`, `B3`. -/
 def stF : Store (Fin 4) := [B1, B2, B3].foldl (on_block E4 cfg1) Store.init
@@ -223,14 +317,12 @@ example : stA.base.stableRecord = b1 := by decide +kernel
 
 /-- Review Focus 2 (audit N1). A label-2 vote and a fresh round-1 row: separate
 calls admit both at stA (slot 3, round 1). -/
-def v2 : HeadWire 4 := ⟨.seat (.head 2) 0, eraseFG B2⟩
-def rF : RowWire 4 := ⟨.seat .fg 3, .vote ⟨.vote 1 ⟨77⟩ true, none⟩⟩
 example : (process pT stA ⟨v2.auth, .head v2.payload⟩).base.votes ≠ stA.base.votes ∧
     (admitRow pT stA rF).rowPool = stA.rowPool ++ [rF] := by decide +kernel
 /-- A checked slot-3 block on genesis conflicts with F = B1. It carries `v2` and
 `rF`. Refusal of `F ⋠ B` before unpacking (spec 808, 535–536): no block, no
 stamp, no carried vote, no row, no FG change, no stored wire. -/
-def wX : Wire 4 := ⟨.proposer 3, .proposal (pb .genesis 3 99 [rF]) [v2] [] [rF]⟩
+def wX : Wire 4 := ⟨.proposer 3, .proposal (pb .genesis 3 99 [rF] [v2]) [v2] [] [rF]⟩
 example : wellFormed pT wX = true := by decide +kernel
 example : (process pT stA wX).base.blocks = stA.base.blocks ∧
     (process pT stA wX).base.votes = stA.base.votes ∧
@@ -250,8 +342,6 @@ example : rowsOk (pb .genesis 1 98 [rw 1 2 (rowT 2)]) [rw 1 2 (rowT 2)] = true �
     wellFormed pT wFut = true ∧ wFut ∈ (process pT st0 wFut).proposals := by decide +kernel
 /-- Review Focus 9 (M12): the same height-0 row fails alone and in a block; the
 height-1 row passes in both forms. -/
-def r0 : RowWire 4 := ⟨.seat .fg 2, .vote ⟨.vote 0 genesisRoot false, none⟩⟩
-def r1 : RowWire 4 := ⟨.seat .fg 2, .vote ⟨.vote 1 genesisRoot false, none⟩⟩
 example : wellFormed pT ⟨r0.auth, .row r0.payload⟩ = false ∧
     rowsOk (pb .genesis 3 97 [r0]) [r0] = true ∧
     wellFormed pT ⟨.proposer 3, .proposal (pb .genesis 3 97 [r0]) [] [] [r0]⟩ = false ∧
@@ -278,10 +368,11 @@ example : stR2.fg.F = B1 ∧ stR2.base.obligations = [] ∧
 /-- DQ2, the duplicate test: a new wire whose block is already stored (the
 slot-3 block of `B3` with its rows, and the carried label-2 vote `v2`) is
 refused by the root test. Distinct blocks have distinct roots, so the root test
-is the block test. The wire passes the input check. Direct delivery admits `v2`
+is the block test. ROOT-DIGEST W3 rejects the changed raw list with the old digest. Direct delivery
+    admits `v2`
 at `stA`, but the duplicate does not admit it. -/
 def wDup : Wire 4 := wProp B3 1 [v2]
-example : wellFormed pT wDup = true ∧ wDup ∉ stA.proposals ∧
+example : wellFormed pT wDup = false ∧ wDup ∉ stA.proposals ∧
     baseVote v2 ∉ stA.base.votes ∧
     baseVote v2 ∈ (process pT stA ⟨v2.auth, .head v2.payload⟩).base.votes ∧
     (process pT stA wDup).fg.TF = stA.fg.TF ∧
@@ -315,12 +406,12 @@ example : (process pT stA ⟨.seat (.head 1) 0, .head b1⟩).base.votes = stA.ba
     wellFormed pT ⟨.proposer 3, .head b1⟩ = false := by decide +kernel
 /-- G4 coverage: an accepted slot-3 block on `B2` passes its carried vote `v2`
 to the vote pool (spec 820–821) and stores its wire. -/
-def wY : Wire 4 := ⟨.proposer 3, .proposal (pb (eraseFG B2) 3 96 []) [v2] [] []⟩
+def wY : Wire 4 := ⟨.proposer 3, .proposal (pb (eraseFG B2) 3 96 [] [v2]) [v2] [] []⟩
 example : baseVote v2 ∈ (process pT stA wY).base.votes ∧ baseVote v2 ∉ stA.base.votes ∧
     (process pT stA wY).proposals = stA.proposals ++ [wY] ∧
-    pb (eraseFG B2) 3 96 [] ∈ (process pT stA wY).base.blocks := by
-  rw [show process pT stA wY = _ from process_eq_admitWith pT stA 3 (pb (eraseFG B2) 3 96 [])
-    [v2] [] [] B2 (pk B2 3 96 []) (by decide +kernel) (by decide +kernel)]
+    pb (eraseFG B2) 3 96 [] [v2] ∈ (process pT stA wY).base.blocks := by
+  rw [show process pT stA wY = _ from process_eq_admitWith pT stA 3 (pb (eraseFG B2) 3 96 [] [v2])
+    [v2] [] [] B2 (pk B2 3 96 [] [v2]) (by decide +kernel) (by decide +kernel)]
   decide +kernel
 /-- G4 coverage: the pool refuses the rows of `B1` in `stR2` (they duplicate the
 rows of `B1'`), but the FG block `B1` keeps them (spec 540–541). The pool holds
@@ -504,10 +595,10 @@ example : headVote pT { stA with base := { stA.base with now := 17 } } 4 = erase
   decide +kernel
 /-- DQ13: `deepest` breaks a depth tie by the greater root (spec 260–262). The
 two blocks have depth 1; the slot-2 block has the greater root. -/
-example : (FGBlock.node .genesis 1 5 [] : FGBlock (Fin 4)).root <
-      (FGBlock.node .genesis 2 9 [] : FGBlock (Fin 4)).root ∧
-    deepest ({.node .genesis 1 5 [], .node .genesis 2 9 []} : Finset (FGBlock (Fin 4)))
-      = some (.node .genesis 2 9 []) := by decide +kernel
+example : (FGBlock.node .genesis 1 ⟨50⟩ 5 [] : FGBlock (Fin 4)).root <
+      (FGBlock.node .genesis 2 ⟨51⟩ 9 [] : FGBlock (Fin 4)).root ∧
+    deepest ({.node .genesis 1 ⟨50⟩ 5 [], .node .genesis 2 ⟨51⟩ 9 []} : Finset (FGBlock (Fin 4)))
+      = some (.node .genesis 2 ⟨51⟩ 9 []) := by decide +kernel
 
 /-- (a) Review Focus 7 (spec 423–430): resolution at read time. `B1'` enters at
 now = 8, and a label-2 vote of seat 0 for `b1'` at now = 9 (before
@@ -528,8 +619,7 @@ vote of seat 1 for `b1'`. `X` is admitted at now = 12 while F = genesis (its vot
 enters the pool with stamp 12 ≥ z_2 = 11, so the frozen arm does not hold it).
 Then `B1`, `B2`, `B3` move F to `B1`: `X` leaves `act(Σ)`, but its carried vote
 stays in the raw merge of the slot-3 HEAD through the proposal arm. -/
-def vX : HeadWire 4 := ⟨.seat (.head 2) 1, b1'⟩
-def xB : Block := pb b1' 3 96 []
+def xB : Block := pb b1' 3 96 [] [vX]
 def stX : State pT.n :=
   [wProp B1 0, wProp B2 1, wProp B3 1].foldl (process pT)
     (process pT (atTime ([wProp B1' 0].foldl (process pT) (atTime {} 8)) 12)
@@ -539,8 +629,6 @@ example : stX.fg.F = B1 ∧ xB ∈ stX.base.blocks ∧ xB ∉ (actView stX).bloc
 
 /-- [R7] Three distinct fixed-seat rows are valid for B2. All are held and
 selected when they are absent from the parent chain. -/
-def q (h : Nat) : RowWire 4 :=
-  ⟨.seat .fg 3, .vote ⟨.vote 3 B2.root false, some ⟨h - 1, genesisRoot⟩⟩⟩
 def yB3 : Block := pb (eraseFG B2) 3 95 [q 3]
 /-- `stA` with the pool rows `q 1`, `q 2`. -/
 def stAq : State pT.n := [q 1, q 2].foldl (admitRow pT) stA
@@ -666,16 +754,17 @@ also declares `vX` as support. By hand: after F moves to B1, `xB` and `b1'` are
 outside `act(Σ)` but `b1'` is in Σ.T. The frozen arm is empty (the pool stamp of
 `vX` is 12 ≥ z_2 = 11). The carried arm keeps `vX`: label 2 = s − 1, head `b1'`
 in Σ.T, slot 2 ≤ 2. Without the carried arm the support is empty. -/
+-- ROOT-DIGEST W3: carried support has its own digest, root 29.
+def xBs : Block := pb b1' 3 96 [] [vX] [vX]
 def stXs : State pT.n :=
   [wProp B1 0, wProp B2 1, wProp B3 1].foldl (process pT)
     (process pT (atTime ([wProp B1' 0].foldl (process pT) (atTime {} 8)) 12)
-      ⟨.proposer 3, .proposal xB [vX] [vX] []⟩)
-example : stXs.fg.F = B1 ∧ xB ∉ (actView stXs).blocks ∧ b1' ∉ (actView stXs).blocks ∧
+      ⟨.proposer 3, .proposal xBs [vX] [vX] []⟩)
+example : stXs.fg.F = B1 ∧ xBs ∉ (actView stXs).blocks ∧ b1' ∉ (actView stXs).blocks ∧
     b1' ∈ stXs.base.blocks ∧ headSupport pT stXs 3 = [baseVote vX] := by decide +kernel
 
 /-- [R7] Two sibling proposals carry distinct parent-valid rows. All rows
 enter the pool; exact parent-chain exclusion removes only prior contents. -/
-def r0z : RowWire 4 := rw 0 3 (rowAt 3 B2.root true 3)
 def yB : Block := pb (eraseFG B2) 3 95 [q 1]
 def zB : Block := pb (eraseFG B2) 3 94 [q 3, r0z]
 def stB : State pT.n :=
@@ -789,11 +878,6 @@ isolate selection from the old admission rule. -/
 
 namespace M05
 
-/-- Three distinct contents signed by the same seat with the same old label. -/
-def a0 : RowWire 4 := ⟨.seat .fg 0, .vote ⟨.vote 1 genesisRoot false, none⟩⟩
-def a1 : RowWire 4 := ⟨.seat .fg 0, .vote ⟨.vote 1 genesisRoot true, none⟩⟩
-def a2 : RowWire 4 :=
-  ⟨.seat .fg 0, .vote ⟨.vote 1 genesisRoot false, some ⟨0, genesisRoot⟩⟩⟩
 /-- One on-chain row and a sibling's row. Both carriers stay at height 1. -/
 def C : FGBlock (Fin 4) := pk .genesis 1 31 [a0]
 def D : FGBlock (Fin 4) := pk .genesis 2 32 [a2]
@@ -833,8 +917,6 @@ theorem common_parent :
     (derive pT.E pT.cfg (pk .genesis 1 0 (signRows 0 [rowT 0, rowT 1, rowT 2]))).h = 2 := by
   decide +kernel
 
-/-- Three height-1 target rows: the parent window holds the entry (1, genesis). -/
-def qW (i : Fin 4) : RowWire 4 := ⟨.seat .fg i, .vote ⟨.vote 1 genesisRoot false, none⟩⟩
 /-- A parent whose window is not empty (J5 Opus N3). -/
 def winParent : FGBlock (Fin 4) := pk .genesis 1 41 [qW 0, qW 1, qW 2]
 
@@ -885,7 +967,7 @@ theorem reordered_pool :
 theorem packed_content : rowsOk
     (pb .genesis 100 9 (proposalRowsFor pT held 100 .genesis))
     (proposalRowsFor pT held 100 .genesis) = true :=
-  rowsOk_node_packBody _ _ _ _
+  rowsOk_node_packBody _ _ _ _ _
 
 /-- Plan: roots retain the ordered signed contents. A permutation need not
 keep the block root; erasure does keep it. -/
@@ -907,7 +989,7 @@ theorem payload_accessors :
     encRowPayload a0.payload ≠ encRowPayload a2.payload := by decide
 
 /-- Plan: bits persist while the height and entry stay fixed. -/
-theorem progress_persists : 0 ∈ (derive pT.E pT.cfg (.node C 3 0 [])).progress := by
+theorem progress_persists : 0 ∈ (derive pT.E pT.cfg (.node C 3 ⟨52⟩ 0 [])).progress := by
   decide +kernel
 
 /-- Plan: the additive stored-row obligation holds for this R6-valid fixture. -/
@@ -935,7 +1017,7 @@ theorem finality_persists :
     let a : RowWire 4 :=
       ⟨.seat .fg 0, .vote ⟨.vote 2 B1.root false, some ⟨1, genesisRoot⟩⟩⟩
     let C' := pk B1 2 0 [a]
-    0 ∈ (derive pT.E pT.cfg (.node C' 3 0 [])).finalize := by
+    0 ∈ (derive pT.E pT.cfg (.node C' 3 ⟨53⟩ 0 [])).finalize := by
   decide +kernel
 
 end M05

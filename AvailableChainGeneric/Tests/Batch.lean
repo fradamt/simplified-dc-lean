@@ -3,6 +3,8 @@ public import AvailableChainGeneric
 
 public section
 
+/-! ROOT-DIGEST W3: explicit roots for finite test fixtures. -/
+
 namespace AvailableChain.Gen.Pure.Tests.Batch
 
 -- The largest denominator passes when the anchor score equals the honest count.
@@ -23,7 +25,7 @@ namespace AvailableChain.Gen.AC.Tests.Batch
 
 open AvailableChain AvailableChain.GridCO AvailableChain.Gen.Pure
 
-def child : Block := .node .genesis 1 0
+def child : Block := .node .genesis 1 (nodeRoot Block.genesis.root 1 0) 0
 def head : Wire 1 := ⟨.seat 1 ⟨0, by decide⟩, .head child⟩
 
 -- A stored child with one honest vote is covered from the eligible genesis anchor.
@@ -46,9 +48,9 @@ example :
   have hCC : C = child := by
     cases C with
     | genesis => exact (hne rfl).elim
-    | node P s id =>
-        change (decide (Block.node P s id = child) ||
-          Block.preceq (.node P s id) .genesis) = true at hCX
+    | node P s r id =>
+        change (decide (Block.node P s r id = child) ||
+          Block.preceq (.node P s r id) .genesis) = true at hCX
         simpa [Block.preceq] using hCX
   simp [hCC]
 

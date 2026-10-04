@@ -3,6 +3,8 @@ public import AvailableChainKitFG.CertificateSimplex
 
 public section
 
+/-! ROOT-DIGEST W3: explicit roots for finite test fixtures. -/
+
 namespace AvailableChain.KitFG.Tests.CertificateSimplex
 
 open AvailableChain.SimplexFG
@@ -11,19 +13,19 @@ private def csFinalRow (i : Fin 4) : Row (Fin 4) :=
   ⟨i, .empty, some ⟨1, genesisRoot⟩⟩
 
 private def csFinalBlock : FGBlock (Fin 4) :=
-  .node B1 2 0 [csFinalRow 0, csFinalRow 1, csFinalRow 2]
+  .node B1 2 ⟨100⟩ 0 [csFinalRow 0, csFinalRow 1, csFinalRow 2]
 
 private def csBirthRow (i : Fin 4) : Row (Fin 4) :=
   ⟨i, .vote 1 genesisRoot false, some ⟨1, genesisRoot⟩⟩
 
 private def csBirthBlock : FGBlock (Fin 4) :=
-  .node .genesis 1 0 [csBirthRow 0, csBirthRow 1, csBirthRow 2]
+  .node .genesis 1 ⟨101⟩ 0 [csBirthRow 0, csBirthRow 1, csBirthRow 2]
 
 private def csBothRow (i : Fin 4) : Row (Fin 4) :=
   ⟨i, .vote 2 B1.root false, some ⟨1, genesisRoot⟩⟩
 
 private def csBothBlock : FGBlock (Fin 4) :=
-  .node B1 2 0 [csBothRow 0, csBothRow 1, csBothRow 2]
+  .node B1 2 ⟨102⟩ 0 [csBothRow 0, csBothRow 1, csBothRow 2]
 
 -- Genesis at height 1 is a different key from the initial anchor at height 0.
 theorem simplex_certificate_genesis_key_test :
@@ -66,7 +68,7 @@ example (E : Electorate V) (H : FGHeightView V) (f : FGFinalityView V)
   ⟨hc.selection.pruned_covered B _ he hle, hle⟩
 
 -- Deletion alone gives no coverage: a raw pending pair can lie above finality.
-example : let X : FGBlock (Fin 4) := .node .genesis 1 0 []
+example : let X : FGBlock (Fin 4) := .node .genesis 1 ⟨103⟩ 0 []
     let σ : ChainState (Fin 4) := { ChainState.initial with h_j := 2, J := X }
     (simplexPending σ).length = 1 ∧ ¬ FGBlock.Preceq X σ.F ∧ ¬ (2 ≤ σ.h_F) := by decide
 

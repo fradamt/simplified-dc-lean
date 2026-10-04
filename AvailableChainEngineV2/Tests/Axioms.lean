@@ -18,7 +18,8 @@ public import AvailableChainEngineV2.Laws.Duty.SelfDelivery
 #print axioms AvailableChain.V2.D.CStar.seats_eq
 #print axioms AvailableChain.V2.D.eq_propSeat
 #print axioms AvailableChain.V2.D.holder_propLabel
-#print axioms AvailableChain.V2.D.rootInjective_all
+-- ROOT-DIGEST W3: deleted global-root audit; scoped replacement.
+#print axioms AvailableChain.V2.D.rootInjective_toD_iff
 #print axioms AvailableChain.V2.D.apObject_toD_iff
 #print axioms AvailableChain.V2.D.interface_toD_iff
 #print axioms AvailableChain.V2.D.isolation_toD_iff

@@ -4,6 +4,8 @@ public import AvailableChainKitFG.HeightBridge
 
 public section
 
+/-! ROOT-DIGEST W3: explicit roots for finite test fixtures. -/
+
 namespace AvailableChain.KitFG.Tests.HeightConsumeTransfer
 
 open AvailableChain.SimplexFG
@@ -37,15 +39,15 @@ theorem heightConsumeTransfer_target_priority :
     (consumeView cfg0 B1).J = .genesis ∧
     (consumeView cfg0 B1).h_j = 1 := by
   exact derive_target_of_cover_of_bridge E4 cfg0 _ (heightConsumeTransfer_view_bridge _)
-    .genesis 1 0 [rowT 0, rowT 1, rowT 2] {0, 1, 2}
+    .genesis 1 ⟨1⟩ 0 [rowT 0, rowT 1, rowT 2] {0, 1, 2}
     (by unfold Electorate.IsQuorum; decide +kernel) (by decide +kernel)
 
-def consumeCarrier : FGBlock (Fin 4) := .node .genesis 1 0 [rowX 0, rowX 1, rowX 2]
-def consumeTail : FGBlock (Fin 4) := .node consumeCarrier 2 0 []
+def consumeCarrier : FGBlock (Fin 4) := .node .genesis 1 ⟨100⟩ 0 [rowX 0, rowX 1, rowX 2]
+def consumeTail : FGBlock (Fin 4) := .node consumeCarrier 2 ⟨101⟩ 0 []
 
-def consumeParent : FGBlock (Fin 4) := .node .genesis 0 0 [rowT 0, rowT 1]
-def consumeTargetChild : FGBlock (Fin 4) := .node consumeParent 1 0 [rowT 2]
-def consumeProgressChild : FGBlock (Fin 4) := .node consumeParent 5 0 [rowX 2]
+def consumeParent : FGBlock (Fin 4) := .node .genesis 0 ⟨102⟩ 0 [rowT 0, rowT 1]
+def consumeTargetChild : FGBlock (Fin 4) := .node consumeParent 1 ⟨103⟩ 0 [rowT 2]
+def consumeProgressChild : FGBlock (Fin 4) := .node consumeParent 5 ⟨104⟩ 0 [rowX 2]
 
 -- Two target bits in the parent combine with one new row before maturity.
 theorem heightConsumeTransfer_parent_target :
@@ -53,7 +55,7 @@ theorem heightConsumeTransfer_parent_target :
     (consumeView ⟨5⟩ consumeTargetChild).J = .genesis ∧
     (consumeView ⟨5⟩ consumeTargetChild).h_j = 1 := by
   exact derive_target_of_cover_of_bridge E4 ⟨5⟩ _ (heightConsumeTransfer_view_bridge _)
-    consumeParent 1 0 [rowT 2] {0, 1, 2}
+    consumeParent 1 ⟨103⟩ 0 [rowT 2] {0, 1, 2}
     (by unfold Electorate.IsQuorum; decide +kernel) (by decide +kernel)
 
 -- Two parent bits and one timeout row cross at the maturity boundary.
@@ -62,7 +64,7 @@ theorem heightConsumeTransfer_parent_progress :
     (consumeView ⟨5⟩ consumeProgressChild).h_j = 0 := by
   constructor
   · exact derive_progress_of_cover_of_bridge E4 ⟨5⟩ _ (heightConsumeTransfer_view_bridge _)
-      consumeParent 5 0 [rowX 2] {0, 1, 2}
+      consumeParent 5 ⟨104⟩ 0 [rowX 2] {0, 1, 2}
       (by unfold Electorate.IsQuorum; decide +kernel)
       (by decide +kernel) (by decide +kernel)
   · decide +kernel
@@ -94,11 +96,11 @@ theorem heightConsumeTransfer_step_progress :
 
 -- Delay zero permits a timeout crossing at the entry slot.
 theorem heightConsumeTransfer_zero_delay :
-    (consumeView cfg0 (.node .genesis 0 0 [rowX 0, rowX 1, rowX 2])).h = 2 ∧
-    (consumeView cfg0 (.node .genesis 0 0 [rowX 0, rowX 1, rowX 2])).h_j = 0 := by
+    (consumeView cfg0 (.node .genesis 0 ⟨105⟩ 0 [rowX 0, rowX 1, rowX 2])).h = 2 ∧
+    (consumeView cfg0 (.node .genesis 0 ⟨105⟩ 0 [rowX 0, rowX 1, rowX 2])).h_j = 0 := by
   constructor
   · exact derive_progress_of_cover_of_bridge E4 cfg0 _ (heightConsumeTransfer_view_bridge _)
-      .genesis 0 0 [rowX 0, rowX 1, rowX 2] {0, 1, 2}
+      .genesis 0 ⟨102⟩ 0 [rowX 0, rowX 1, rowX 2] {0, 1, 2}
       (by unfold Electorate.IsQuorum; decide +kernel)
       (by decide +kernel) (by decide +kernel)
   · decide +kernel
@@ -107,14 +109,14 @@ theorem heightConsumeTransfer_zero_delay :
 theorem heightConsumeTransfer_progress_persist :
     (consumeView ⟨5⟩ consumeCarrier).progress ⊆ (consumeView ⟨5⟩ consumeTail).progress := by
   exact progress_persist_of_bridge E4 ⟨5⟩ _ (heightConsumeTransfer_view_bridge _)
-    (preceq_parent_node consumeCarrier 2 0 []) (by decide +kernel)
+    (preceq_parent_node consumeCarrier 2 ⟨101⟩ 0 []) (by decide +kernel)
 
 -- A matching timeout row keeps its signer bit through the later block.
 theorem heightConsumeTransfer_progress_from_row :
     (1 : Fin 4) ∈ (consumeView ⟨5⟩ consumeTail).progress := by
   exact progress_from_row_of_bridge E4 ⟨5⟩ _ (heightConsumeTransfer_view_bridge _)
     (P := .genesis) (rs := [rowX 0, rowX 1, rowX 2]) (a := rowX 1)
-    (by decide +kernel) (preceq_parent_node consumeCarrier 2 0 [])
+    (by decide +kernel) (preceq_parent_node consumeCarrier 2 ⟨101⟩ 0 [])
     (by decide +kernel) (by decide +kernel)
 
 #print axioms transition_target_of_cover_of_bridge

@@ -3,14 +3,16 @@ public import AvailableChainGeneric.Proofs.Pure.Walk
 
 public section
 
+/-! ROOT-DIGEST W3: explicit roots for finite test fixtures. -/
+
 namespace AvailableChain.Gen.Pure.Tests.RetainedWalk
 
 open AvailableChain GridCO
 
-def trunk : Block := .node .genesis 1 1
-def trunkPeer : Block := .node .genesis 1 0
-def endpoint : Block := .node trunk 2 1
-def endpointPeer : Block := .node trunk 2 0
+def trunk : Block := .node .genesis 1 ⟨2⟩ 1
+def trunkPeer : Block := .node .genesis 1 ⟨1⟩ 0
+def endpoint : Block := .node trunk 2 ⟨4⟩ 1
+def endpointPeer : Block := .node trunk 2 ⟨3⟩ 0
 def fullTree : List Block := [.genesis, trunkPeer, trunk, endpointPeer, endpoint]
 def retainedTree : List Block := [endpointPeer, endpoint]
 def score (_ : Block) : Nat := 7
@@ -89,7 +91,7 @@ theorem retained_walk_source_before_target :
   obtain ⟨hsc, htc, hcp, hprefix, hp, hr, hs⟩ := retained_walk_removed_trunk_transport
   exact walk_covers_of_retained_transport .genesis trunk trunk endpoint
     fullTree retainedTree score score eligible eligible
-    (by decide +kernel) hsc htc hcp hprefix hp hr hs
+    (by decide +kernel) (by decide +kernel) hsc htc hcp hprefix hp hr hs
 
 -- Target start precedes source start. The target's nonempty prefix uses the root tie.
 theorem retained_walk_lower_target_transport :
@@ -119,7 +121,7 @@ theorem retained_walk_target_before_source :
   obtain ⟨hsc, htc, hcp, hprefix, hp, hr, hs⟩ := retained_walk_lower_target_transport
   exact walk_covers_of_retained_transport trunk .genesis trunk endpoint
     retainedTree fullTree score score eligible eligible
-    (by decide +kernel) hsc htc hcp hprefix hp hr hs
+    (by decide +kernel) (by decide +kernel) hsc htc hcp hprefix hp hr hs
 
 -- An interval from a block to itself has no strict interior.
 theorem retained_walk_self_interval (A X : Block)
@@ -151,7 +153,7 @@ theorem retained_walk_zero_length_prefix :
     Block.Preceq endpoint (ghost endpoint [] score eligible) := by
   obtain ⟨hp, hr, hs⟩ := retained_walk_self_suffix endpoint retainedTree []
   exact walk_covers_of_retained_transport trunk endpoint endpoint endpoint
-    retainedTree [] score score eligible eligible (by decide +kernel)
+    retainedTree [] score score eligible eligible (by decide +kernel) (by decide +kernel)
     (by decide) (by decide) (by decide) (retained_walk_self_best endpoint []) hp hr hs
 
 -- The source result is strictly after parent. This exercises coverage, with cut = parent.
@@ -161,7 +163,7 @@ theorem retained_walk_source_coverage :
   refine ⟨by decide +kernel, ?_⟩
   obtain ⟨hp, hr, hs⟩ := retained_walk_self_suffix trunk fullTree []
   exact walk_covers_of_retained_transport .genesis trunk trunk trunk
-    fullTree [] score score eligible eligible (by decide +kernel)
+    fullTree [] score score eligible eligible (by decide +kernel) (by decide +kernel)
     (by decide) (by decide) (by decide) (retained_walk_self_best trunk []) hp hr hs
 
 -- Source start = parent. The target still has a nonempty best-order prefix.
@@ -169,7 +171,7 @@ theorem retained_walk_source_at_parent :
     Block.Preceq endpoint (ghost trunk retainedTree score eligible) := by
   obtain ⟨hp, hr, hs⟩ := retained_walk_self_suffix endpoint [] retainedTree
   exact walk_covers_of_retained_transport endpoint trunk endpoint endpoint
-    [] retainedTree score score eligible eligible (by decide +kernel)
+    [] retainedTree score score eligible eligible (by decide +kernel) (by decide +kernel)
     (by decide) (by decide) (by decide)
     (walk_best_ancestry_of_cover trunk endpoint retainedTree score eligible (by decide +kernel))
     hp hr hs
@@ -179,7 +181,7 @@ theorem retained_walk_empty_trees :
     Block.Preceq .genesis (ghost .genesis [] score eligible) := by
   obtain ⟨hp, hr, hs⟩ := retained_walk_self_suffix .genesis [] []
   exact walk_covers_of_retained_transport .genesis .genesis .genesis .genesis
-    [] [] score score eligible eligible (by decide +kernel)
+    [] [] score score eligible eligible (by decide +kernel) (by decide +kernel)
     (by decide) (by decide) (by decide) (retained_walk_self_best .genesis []) hp hr hs
 
 -- Restrict and join a two-edge path. Both edges use equal-score root ties.
@@ -196,7 +198,7 @@ theorem retained_walk_losing_target_prefix :
     ¬ BestAncestry .genesis trunkPeer fullTree score eligible := by
   intro h
   have he := walk_reanchor_of_best_ancestry .genesis trunkPeer fullTree score eligible
-    (by decide) h
+    (by decide +kernel) (by decide) h
   exact (show ghost .genesis fullTree score eligible ≠
     ghost trunkPeer fullTree score eligible by decide +kernel) he
 

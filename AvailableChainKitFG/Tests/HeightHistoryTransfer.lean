@@ -1,4 +1,5 @@
 module
+public import AvailableChainKitFG.Correspondence
 public import AvailableChainKitFG.HeightHistoryTransfer
 public import AvailableChainKitFG.HeightConsumeTransfer
 public import AvailableChainKitFG.HeightFold
@@ -7,9 +8,24 @@ public import AvailableChainKitFG.FrameGeometry
 
 public section
 
+/-! ROOT-DIGEST W3: explicit roots for finite test fixtures. -/
+
 namespace AvailableChain.KitFG.Tests.HeightHistoryTransfer
 
 open AvailableChain.SimplexFG
+
+/-- ROOT-DIGEST W3: use a closed finite table for both ancestor chains. -/
+theorem finite_chain_roots {V : Type} [DecidableEq V] [RowCodec V]
+    (T : Finset (FGBlock V)) (hcl : ∀ B ∈ T, B.parent ∈ T)
+    (hinj : ∀ X ∈ T, ∀ Y ∈ T, X.root = Y.root → X = Y)
+    (A B : FGBlock V) (hA : A ∈ T) (hB : B ∈ T) : RootInjectiveOn A B := by
+  intro X Y hX hY hr
+  have mem : ∀ Z, (FGBlock.Preceq Z A ∨ FGBlock.Preceq Z B) → Z ∈ T := by
+    intro Z hZ
+    rcases hZ with hZ | hZ
+    · exact ancestor_closed_of_parent_closed T hcl A hA Z hZ
+    · exact ancestor_closed_of_parent_closed T hcl B hB Z hZ
+  exact hinj X (mem X hX) Y (mem Y hY) hr
 
 set_option maxRecDepth 4096
 
@@ -29,8 +45,8 @@ theorem heightHistoryTransfer_early_target :
     (by decide +kernel) (by decide +kernel) (by decide +kernel)
     (by decide +kernel) (by decide +kernel)
 
-def historyEarly : FGBlock (Fin 4) := .node .genesis 4 0 [rowX 0, rowX 1, rowX 2]
-def historyBoundary : FGBlock (Fin 4) := .node .genesis 5 0 [rowX 0, rowX 1, rowX 2]
+def historyEarly : FGBlock (Fin 4) := .node .genesis 4 ⟨100⟩ 0 [rowX 0, rowX 1, rowX 2]
+def historyBoundary : FGBlock (Fin 4) := .node .genesis 5 ⟨101⟩ 0 [rowX 0, rowX 1, rowX 2]
 
 -- Progress stays at height one before maturity and crosses at equality.
 -- At equality, the early-crossing justification conclusion is false.
@@ -42,7 +58,7 @@ theorem heightHistoryTransfer_exact_boundary :
     ¬ historyBoundary.slot < (FGBlock.genesis (V := Fin 4)).slot + 5 := by
   refine ⟨by decide +kernel, ?_, by decide +kernel, by decide +kernel, by decide +kernel⟩
   exact derive_progress_of_cover_of_bridge E4 ⟨5⟩ _ (heightHistoryTransfer_view_bridge _)
-    .genesis 5 0 [rowX 0, rowX 1, rowX 2] {0, 1, 2}
+    .genesis 5 ⟨101⟩ 0 [rowX 0, rowX 1, rowX 2] {0, 1, 2}
     (by unfold Electorate.IsQuorum; decide +kernel) (by decide +kernel) (by decide +kernel)
 
 -- The first crossing interface applies to the view without new induction.
@@ -54,8 +70,8 @@ theorem heightHistoryTransfer_first_edge :
     1 (genesis_preceq _) (by decide +kernel) (by decide +kernel)
 
 def historyTimeoutCarrier : FGBlock (Fin 4) :=
-  .node .genesis 1 0 [rowX 0, rowX 1, rowX 2]
-def historyRetainedCrossing : FGBlock (Fin 4) := .node historyTimeoutCarrier 5 0 []
+  .node .genesis 1 ⟨102⟩ 0 [rowX 0, rowX 1, rowX 2]
+def historyRetainedCrossing : FGBlock (Fin 4) := .node historyTimeoutCarrier 5 ⟨103⟩ 0 []
 
 -- A crossing with no new rows still has an honest row in a strict ancestor.
 theorem heightHistoryTransfer_honest_ancestor :
@@ -72,15 +88,15 @@ theorem heightHistoryTransfer_honest_ancestor :
   subst W
   simp only [historyRetainedCrossing, FGBlock.rows, List.not_mem_nil] at ha
 
-def historyCarrier : FGBlock (Fin 4) := .node .genesis 1 0 [rowX 0]
-def historyTail : FGBlock (Fin 4) := .node historyCarrier 2 0 []
+def historyCarrier : FGBlock (Fin 4) := .node .genesis 1 ⟨104⟩ 0 [rowX 0]
+def historyTail : FGBlock (Fin 4) := .node historyCarrier 2 ⟨105⟩ 0 []
 
 -- A nonempty plateau keeps the latest justification.
 theorem heightHistoryTransfer_plateau :
     (historyView ⟨5⟩ historyTail).J = (historyView ⟨5⟩ historyCarrier).J ∧
     (historyView ⟨5⟩ historyTail).h_j = (historyView ⟨5⟩ historyCarrier).h_j := by
   exact justification_eq_on_plateau_of_bridge E4 ⟨5⟩ _ (heightHistoryTransfer_view_bridge _)
-    (preceq_parent_node historyCarrier 2 0 []) (by decide +kernel)
+    (preceq_parent_node historyCarrier 2 ⟨105⟩ 0 []) (by decide +kernel)
 
 -- A matching occurrence keeps its parent's keys through the endpoint.
 theorem heightHistoryTransfer_occurrence :
@@ -89,11 +105,14 @@ theorem heightHistoryTransfer_occurrence :
     (historyView ⟨5⟩ historyCarrier.parent).T_h.root =
       (historyView ⟨5⟩ historyTail).T_h.root := by
   exact height_occurrence_keys_of_bridge E4 ⟨5⟩ _ (heightHistoryTransfer_view_bridge _)
-    (u := rowX 0) (y := 1) (χ := true) (List.mem_singleton_self _)
-    (preceq_parent_node historyCarrier 2 0 []) rfl rfl
+    (u := rowX 0) (y := 1) (χ := true)
+    (finite_chain_roots {.genesis, historyCarrier, historyTail}
+      (by decide +kernel) (by decide +kernel) _ _ (by decide +kernel) (by decide +kernel))
+    (List.mem_singleton_self _)
+    (preceq_parent_node historyCarrier 2 ⟨105⟩ 0 []) rfl rfl
     (by decide +kernel) (by decide +kernel)
 
-def historyStaleCarrier : FGBlock (Fin 4) := .node B1 2 0 [rowT 0]
+def historyStaleCarrier : FGBlock (Fin 4) := .node B1 2 ⟨106⟩ 0 [rowT 0]
 
 -- The stale row occurs, but it has a lower height and sets neither height bit.
 -- Thus it cannot supply heightMatch for height_occurrence_keys_of_bridge.

@@ -6,6 +6,8 @@ set_option linter.privateModule false
 
 @[expose] public section
 
+/-! ROOT-DIGEST W3: explicit small roots for statement fixtures. -/
+
 -- These private structure values are smoke data, not Claims theorems (F-28).
 set_option linter.defProp false
 
@@ -13,7 +15,8 @@ namespace AvailableChain.FGSA.Run.Tests.Regimes
 
 -- A concrete FG-SA run. The time-zero tick is required by tick_total.
 private abbrev smokeParams : Params :=
-  ⟨⟨1, 1, 2, 0, by decide, by decide, by decide, by decide⟩, 2, 0, by decide, 2, by decide⟩
+  ⟨⟨1, 1, 2, 0, by decide, by decide, by decide, by decide⟩, 2, 0, by decide, 2, by decide, fun d =>
+      ⟨d.slot + 1⟩⟩
 private abbrev smokeCodec : AppCodec Nat := ⟨id, some, fun _ => rfl⟩
 private abbrev smokeEnv : Generic.Env (Fin 1) := ⟨1, by decide, 0, le_rfl, fun _ _ => true⟩
 private abbrev smokeRun : V2.D.Run (Fin 1) (fgsa smokeParams smokeCodec) where
@@ -48,6 +51,30 @@ private def smokeNoDelivery (i : Nat) (v : Fin 1) (o : (fgsa smokeParams smokeCo
 
 /-- Horizon zero with no faulty validator and GST zero. This is only a smoke test. -/
 private def smoke_base : Base₂ smokeParams smokeCodec smokeEnv smokeRun where
+  idealization := by
+    have scope (B : Block) (h : RootBlockInRun smokeParams smokeCodec smokeEnv smokeRun B) :
+        B = .genesis := by
+      obtain ⟨C, hC, hBC⟩ := h
+      have hc : C = .genesis := by
+        rcases hC with ⟨v, o, t, raw, sup, rows, hm, _⟩ | ⟨v, hv, i, hm⟩
+        · simp at hm
+        · have hi : ∀ i : Nat, ∀ v : Fin 1,
+              (V2.D.Run.stateBefore smokeEnv smokeRun i v).st.base.blocks = [.genesis] := by
+            intro i v
+            have hv : v = 0 := Subsingleton.elim _ _
+            subst v
+            cases i <;> simp only [V2.D.Run.stateBefore, smokeRun, List.take_succ_cons,
+              List.take_nil, List.foldl_cons, List.foldl_nil] <;> rfl
+          rw [hi] at hm
+          exact List.mem_singleton.mp hm
+      rw [hc] at hBC
+      exact of_decide_eq_true hBC
+    constructor
+    intro B C hB hC A D hA hD _
+    rw [scope B hB, scope C hC] at hA hD
+    have ha : A = .genesis := of_decide_eq_true (hA.elim id id)
+    have hd : D = .genesis := of_decide_eq_true (hD.elim id id)
+    exact ha.trans hd.symm
   valid := {
     toScheduleWellFormed := smokeSchedule
     wire := by intro i v o t h; exact (smokeNoDelivery i v o t h).elim

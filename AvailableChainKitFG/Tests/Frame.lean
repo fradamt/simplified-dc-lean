@@ -1,7 +1,10 @@
 module
 public import AvailableChainKitFG.Correspondence
+public import AvailableChainKitFG.StoreSafetyDef
 
 public section
+
+/-! ROOT-DIGEST W3: explicit roots for finite test fixtures. -/
 
 set_option maxRecDepth 4096
 
@@ -9,20 +12,36 @@ namespace AvailableChain.KitFG.Tests.Frame
 
 open AvailableChain.SimplexFG
 
+/-- ROOT-DIGEST W3: close the finite table before checking distinct roots. -/
+private theorem finite_view_roots {V : Type} [DecidableEq V] [RowCodec V]
+    (T : Finset (FGBlock V)) (hcl : ∀ B ∈ T, B.parent ∈ T)
+    (hinj : ∀ X ∈ T, ∀ Y ∈ T, X.root = Y.root → X = Y) : ViewRootInj T := by
+  rintro X Y ⟨W, hW, hX⟩ ⟨U, hU, hY⟩ hr
+  exact hinj X (ancestor_closed_of_parent_closed T hcl W hW X hX)
+    Y (ancestor_closed_of_parent_closed T hcl U hU Y hY) hr
+
 /-- [GLY G18] Finality at height 2, without a height-3 vote. -/
 def finalRow (i : Fin 4) : Row (Fin 4) := ⟨i, .empty, some ⟨2, B1a.root⟩⟩
 
-def carrier : FGBlock (Fin 4) := .node childA 3 0 [finalRow 0, finalRow 1, finalRow 2]
+def carrier : FGBlock (Fin 4) := .node childA 3 ⟨100⟩ 0 [finalRow 0, finalRow 1, finalRow 2]
 
 /-- The sibling enters before finalization and remains in the cumulative tree. -/
 def st : Store (Fin 4) :=
   [B1b, B1a, childA, carrier].foldl (on_block E4 cfg1) Store.init
 
 theorem invariant : StoreInv E4 cfg1 st := by
-  unfold st
-  simp only [List.foldl_cons, List.foldl_nil]
-  repeat apply storeInv_on_block E4 cfg1 _ _ _ (fun _ => viewRootInj_all _)
-  exact storeInv_init E4 cfg1
+  have step : ∀ st B, StoreInv E4 cfg1 st →
+      StoreStepRoots st B → StoreInv E4 cfg1 (on_block E4 cfg1 st B) :=
+    fun st B hi hr => storeInv_on_block E4 cfg1 st B hi (fun _ => hr)
+  have h1 := step Store.init B1b (storeInv_init E4 cfg1)
+    (finite_view_roots _ (by decide +kernel) (by decide +kernel))
+  have h2 := step _ B1a h1
+    (finite_view_roots _ (by decide +kernel) (by decide +kernel))
+  have h3 := step _ childA h2
+    (finite_view_roots _ (by decide +kernel) (by decide +kernel))
+  have h4 := step _ carrier h3
+    (finite_view_roots _ (by decide +kernel) (by decide +kernel))
+  simpa only [st, List.foldl_cons, List.foldl_nil] using h4
 
 theorem floor_case :
     st.F = B1a ∧ st.J = B1a ∧ (storeControls E4 cfg1 st).j = 2 ∧

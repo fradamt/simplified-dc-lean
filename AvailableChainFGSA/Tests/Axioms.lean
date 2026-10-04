@@ -212,7 +212,8 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 #print axioms AvailableChain.FGSA.fastOrigin_congr
 #print axioms AvailableChain.FGSA.cstoreInv_of_sublist
 #print axioms AvailableChain.FGSA.cstoreInv_normalizeS
-#print axioms AvailableChain.FGSA.rootInj_all
+-- ROOT-DIGEST W3: deleted global-root audit; scoped replacement.
+#print axioms AvailableChain.FGSA.storeStepRoots_of_blockAccepted
 #print axioms AvailableChain.FGSA.cstoreInv_init
 #print axioms AvailableChain.FGSA.cstoreInv_accepted_pre
 #print axioms AvailableChain.FGSA.cstoreInv_admitBlock
@@ -273,7 +274,8 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 #print axioms AvailableChain.FGSA.contentAgree_symm
 #print axioms AvailableChain.FGSA.contentAgree_self
 #print axioms AvailableChain.FGSA.contentAgree
-#print axioms AvailableChain.FGSA.contentAgree_reachable
+#print axioms AvailableChain.FGSA.contentAgree
+#print axioms AvailableChain.FGSA.contentAgree_self
 #print axioms AvailableChain.FGSA.eraseFG_ancestor_preceq
 #print axioms AvailableChain.FGSA.fg_eq_of_eraseFG_eq_across
 #print axioms AvailableChain.FGSA.fg_eq_of_root_eq_across

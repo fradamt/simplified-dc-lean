@@ -3,20 +3,22 @@ public import AvailableChainSAPC.Model.Protocol
 public meta import AvailableChainSAPC.Model.Protocol
 
 @[expose] public section
+
+/-! ROOT-DIGEST W3: explicit roots for finite test fixtures. -/
 namespace AvailableChain.SAPC.Tests
 
 def p : Params := ⟨4, 4, 2, 28, by decide, by decide, by decide, by decide⟩
-def x : Block := .node .genesis 1 0
-def c : Block := .node x 2 0
-def y : Block := .node .genesis 5 0
-def d : Block := .node x 9 0
+def x : Block := .node .genesis 1 (nodeRoot Block.genesis.root 1 0) 0
+def c : Block := .node x 2 (nodeRoot x.root 2 0) 0
+def y : Block := .node .genesis 5 (nodeRoot Block.genesis.root 5 0) 0
+def d : Block := .node x 9 (nodeRoot x.root 9 0) 0
 
 /-- The derived roots keep the old literal sibling orders (x ⟨1⟩ < y ⟨5⟩;
 c ⟨2⟩ < d ⟨9⟩ < the slot-4 child ⟨44⟩ of `carriedDisableCheck`). No check below
 depends on these orders. -/
 example : x.root < y.root := by decide
 example : c.root < d.root := by decide
-example : d.root < (Block.node x 4 1).root := by decide
+example : d.root < (Block.node x 4 (nodeRoot x.root 4 1) 1).root := by decide
 
 def head (r : Slot) (i : Fin 4) (b : Block)
     (ack : Option (Slot × Block) := none) : HeadWire 4 := ⟨.seat r i, ⟨b, ack⟩⟩
@@ -101,7 +103,7 @@ def frozenSelectionCheck : Bool :=
   let st := { archivedOld with bestPC := none, frozenPC := [(2, none)] }
   let live := installPC st cPC
   let carried : Wire 4 := ⟨.proposer 3,
-    .proposal (.node c 3 0) [] [] (some cPC)⟩
+    .proposal (.node c 3 (nodeRoot c.root 3 0) 0) [] [] (some cPC)⟩
   (selectedPC p live 3).isNone &&
     selectedPC p { live with proposals := [carried] } 3 == some cPC &&
     preferPC (some cPC) { cPC with target := x } == some cPC
@@ -155,7 +157,7 @@ def releaseEqualityCheck : Bool :=
 
 def carriedDisableCheck : Bool :=
   let before := [head 3 0 x, head 3 1 x].foldl (admitHead p) (atTime withBlocks 64)
-  let b := Block.node x 4 1
+  let b := Block.node x 4 (nodeRoot x.root 4 1) 1
   let proposal : Wire 4 := ⟨.proposer 4,
     .proposal b [head 3 0 c, head 3 1 c] [] none⟩
   let after := process p before proposal

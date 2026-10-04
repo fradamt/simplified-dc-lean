@@ -268,7 +268,12 @@ gate_with_slot lake env lean --run scripts/CheckFGSAAxioms.lean "${TEST_ROOTS[@]
   Window.window_update_finality_TF \
   Window.window_update_finality_h_max \
   Window.window_update_finality_pair \
-  Window.window_update_finality_F_cases
+  Window.window_update_finality_F_cases \
+  Tests.digestTable_distinct Tests.literal_constructors \
+  Tests.smoke_ancestor_scope Tests.smoke_scope_roots \
+  Tests.RootCollision.finite_digest_injective Tests.RootCollision.digestInputs_nodup \
+  Tests.RootCollision.full_content_controls Tests.RootCollision.full_content_admission \
+  Tests.RootCollision.contentAgree_stX_stY
 echo "== lease instances"
 gate_with_slot lake env lean --run scripts/CheckFGSALease.lean
 # Old-read audit (fg5-rulings STOP 6, ruling 7): no old SimplexFG store fold, old

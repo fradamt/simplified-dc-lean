@@ -3,6 +3,8 @@ public import AvailableChainFGSA.Proofs.WindowLiveness
 
 @[expose] public section
 
+/-! ROOT-DIGEST W3: explicit roots for finite test fixtures. -/
+
 namespace AvailableChain.FGSA.Window.LivenessTests
 
 open AvailableChain.SimplexFG hiding process_row process_height_events transition derive
@@ -11,27 +13,27 @@ open AvailableChain.KitFG
 abbrev livenessParams : Params :=
   { Δ := 1, n := 4, k := 2, η := 11, deltaPos := by decide, nPos := by decide,
     kLarge := by decide, etaNonneg := by decide,
-    R := 2, δt := 1, RLarge := by decide }
+    R := 2, δt := 1, RLarge := by decide, digest := fun d => ⟨d.slot + 1⟩ }
 
 def livenessTargets (h : Height) (X : FGBlock (Fin 4)) : List (Row (Fin 4)) :=
   [⟨0, .vote h X.root false, none⟩, ⟨1, .vote h X.root false, none⟩,
    ⟨2, .vote h X.root false, none⟩]
 
-def livenessFirst : FGBlock (Fin 4) := .node .genesis 1 0 (livenessTargets 1 .genesis)
+def livenessFirst : FGBlock (Fin 4) := .node .genesis 1 ⟨100⟩ 0 (livenessTargets 1 .genesis)
 
 def livenessVote (i : Fin 4) : Row (Fin 4) :=
   ⟨i, .vote 2 livenessFirst.root false, some ⟨1, genesisRoot⟩⟩
 
-def livenessGrow : FGBlock (Fin 4) := .node livenessFirst 2 0 [livenessVote 0]
+def livenessGrow : FGBlock (Fin 4) := .node livenessFirst 2 ⟨101⟩ 0 [livenessVote 0]
 def livenessSecondRows : List (Row (Fin 4)) :=
   livenessTargets 2 livenessFirst ++ [livenessVote 1]
-def livenessSecond : FGBlock (Fin 4) := .node livenessGrow 3 0 livenessSecondRows
+def livenessSecond : FGBlock (Fin 4) := .node livenessGrow 3 ⟨102⟩ 0 livenessSecondRows
 
 def livenessFinalRows : List (Row (Fin 4)) :=
   [livenessVote 2, ⟨0, .empty, some ⟨2, livenessFirst.root⟩⟩,
    ⟨1, .empty, some ⟨2, livenessFirst.root⟩⟩,
    ⟨2, .empty, some ⟨2, livenessFirst.root⟩⟩]
-def livenessFinish : FGBlock (Fin 4) := .node livenessSecond 4 0 livenessFinalRows
+def livenessFinish : FGBlock (Fin 4) := .node livenessSecond 4 ⟨103⟩ 0 livenessFinalRows
 
 set_option maxRecDepth 8192
 set_option exponentiation.threshold 8192
@@ -40,19 +42,20 @@ set_option exponentiation.threshold 8192
 example : heightMatch (derive livenessParams 2 livenessFirst) (livenessVote 0) = true ∧
     (0 : Fin 4) ∈ ({0} : Finset (Fin 4)) := by
   refine ⟨by decide +kernel, ?_⟩
-  exact window_bit_add_of_row livenessParams 2 (by decide) livenessFirst 2 0 [livenessVote 0]
+  exact window_bit_add_of_row livenessParams 2 (by decide) livenessFirst 2 ⟨101⟩ 0 [livenessVote 0]
     ⟨1, .genesis, ∅⟩ ⟨1, .genesis, {0}⟩ (by decide +kernel) (by decide +kernel)
     rfl rfl (livenessVote 0) (by decide +kernel) rfl
 
 def livenessFreshSecond : FGBlock (Fin 4) :=
-  .node livenessFirst 2 0 (livenessTargets 2 livenessFirst)
+  .node livenessFirst 2 ⟨104⟩ 0 (livenessTargets 2 livenessFirst)
 
 /-- Item 1: the stale arm has the same bit effect. -/
 example : heightMatch (derive livenessParams 2 livenessFreshSecond) (livenessVote 0) = false ∧
     staleUseful (derive livenessParams 2 livenessFreshSecond) (livenessVote 0) = true ∧
     (0 : Fin 4) ∈ ({0} : Finset (Fin 4)) := by
   refine ⟨by decide +kernel, by decide +kernel, ?_⟩
-  exact window_bit_add_of_row livenessParams 2 (by decide) livenessFreshSecond 3 0 [livenessVote 0]
+  exact window_bit_add_of_row livenessParams 2 (by decide) livenessFreshSecond 3 ⟨106⟩ 0
+      [livenessVote 0]
     ⟨1, .genesis, ∅⟩ ⟨1, .genesis, {0}⟩ (by decide +kernel) (by decide +kernel)
     rfl rfl (livenessVote 0) (by decide +kernel) rfl
 
@@ -76,7 +79,7 @@ example : (⟨1, .genesis, {1, 0}⟩ : Entry (Fin 4)) ∈
     1 ≤ (derive livenessParams 2 livenessFinish).h_F := by
   refine ⟨by decide +kernel, by decide +kernel, by decide +kernel, ?_⟩
   apply window_finalize_of_accumulated_quorum livenessParams 2 (by decide)
-    livenessFirst livenessSecond (by decide +kernel) 4 0 livenessFinalRows
+    livenessFirst livenessSecond (by decide +kernel) 4 ⟨103⟩ 0 livenessFinalRows
     ⟨1, .genesis, ∅⟩ ⟨1, .genesis, {1, 0}⟩ (by decide +kernel) (by decide +kernel)
     rfl rfl {0, 1, 2} (by unfold Electorate.IsQuorum; decide +kernel)
   intro i hi
@@ -96,7 +99,7 @@ example : (derive livenessParams 2 livenessFinish).h_F = 2 ∧
     (derive livenessParams 2 livenessFinish).F ≠ .genesis := by decide +kernel
 
 def livenessThirdRows : List (Row (Fin 4)) := livenessTargets 3 livenessSecond
-def livenessThird : FGBlock (Fin 4) := .node livenessSecond 4 0 livenessThirdRows
+def livenessThird : FGBlock (Fin 4) := .node livenessSecond 4 ⟨105⟩ 0 livenessThirdRows
 
 /-- Item 4: append at capacity keeps heights 2 and 3. -/
 example : (derive livenessParams 2 livenessThird).W =
@@ -106,12 +109,13 @@ example : ∃ older, (derive livenessParams 2 livenessThird).W =
       older ++ [⟨3, livenessSecond, ∅⟩] ∧
     (∀ d ∈ older, d.j < 3) ∧ (derive livenessParams 2 livenessThird).h_F < 3 := by
   exact (window_target_appended_newest livenessParams 2 (by decide)
-    livenessSecond 4 0 livenessThirdRows (by decide +kernel)).2
+    livenessSecond 4 ⟨105⟩ 0 livenessThirdRows (by decide +kernel)).2
 
 /-- Item 5: one newer entry is below capacity; the old bits remain. -/
 example : ∃ d ∈ (derive livenessParams 2 livenessSecond).W,
     d.j = 1 ∧ d.X = .genesis ∧ ({0} : Finset (Fin 4)) ⊆ d.Q :=
-  window_retained_of_few_newer livenessParams 2 (by decide) livenessGrow 3 0 livenessSecondRows
+  window_retained_of_few_newer livenessParams 2 (by decide) livenessGrow 3 ⟨102⟩ 0
+      livenessSecondRows
     ⟨1, .genesis, {0}⟩ (by decide +kernel) (by decide +kernel) (by decide +kernel)
 
 /-- Item 5: both children after the first birth satisfy the retention bounds. -/
@@ -119,10 +123,10 @@ example : ∃ d ∈ (derive livenessParams 2 livenessSecond).W,
     d.j = 1 ∧ d.X = .genesis ∧ (∅ : Finset (Fin 4)) ⊆ d.Q := by
   apply window_retained_along livenessParams 2 (by decide) livenessFirst livenessSecond
     (by decide +kernel) ⟨1, .genesis, ∅⟩ (by decide +kernel)
-  intro P s x rs _ hPC
-  have hng : FGBlock.node P s x rs ≠ .genesis := by intro h; cases h
-  have hc : FGBlock.node P s x rs = livenessSecond ∨
-      FGBlock.node P s x rs = livenessGrow ∨ FGBlock.node P s x rs = livenessFirst := by
+  intro P s r_s x rs _ hPC
+  have hng : FGBlock.node P s r_s x rs ≠ .genesis := by intro h; cases h
+  have hc : FGBlock.node P s r_s x rs = livenessSecond ∨
+      FGBlock.node P s r_s x rs = livenessGrow ∨ FGBlock.node P s r_s x rs = livenessFirst := by
     simpa only [livenessSecond, livenessGrow, livenessFirst, FGBlock.Preceq,
       FGBlock.preceq, Bool.or_eq_true, decide_eq_true_eq, hng,
       or_false] using hPC
