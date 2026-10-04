@@ -264,6 +264,7 @@ private theorem consumer_h6_fields (p : Params) (src dst : State p.n)
   have hcover := consumer_prior_cover p src hs s (ap p src) hsource
   have hprefix := walk_best_ancestry_of_cover _ _ _ _ _ hcover
   have hordinary := (walk_reanchor_of_best_ancestry _ _ _ _ _
+    (erasedList_rootInj p src hs _)
     (fgsa_Z_preceq_liveRoot p src) hprefix).trans hp
   have hheight := consumer_parent_height p src hr s b.parent hp hf.source_witness
   have hy : Block.Preceq (ay p dst) b.parent := by
@@ -371,6 +372,7 @@ theorem fgsa_retainedReads_H6
   have hcover := consumer_prior_cover p src hs s (ap p src) hi.proposer_prior
   have hprefix := walk_best_ancestry_of_cover _ _ _ _ _ hcover
   have hordinary := (walk_reanchor_of_best_ancestry _ _ _ _ _
+    (erasedList_rootInj p src hs _)
     (fgsa_Z_preceq_liveRoot p src) hprefix).trans hparent.2.2.symm
   have hay : Block.Preceq (ay p dst) b.parent := by
     rcases hi.reader_prior with h | h | h
@@ -454,6 +456,7 @@ private theorem consumer_cone_starts (p : Params) (src dst : State p.n)
   have hc := consumer_prior_cover p src hs s (ap p src) h.proposer_prior
   have hprefix := walk_best_ancestry_of_cover _ _ _ _ _ hc
   have ho := (walk_reanchor_of_best_ancestry _ _ _ _ _
+    (erasedList_rootInj p src hs _)
     (fgsa_Z_preceq_liveRoot p src) hprefix).trans hp
   have hz := consumer_prior_cover p src hs s (z p src) (Or.inl (block_preceq_refl _))
   have hD := consumer_prior_cover p src hs s (eraseFG D) h.pivot_prior

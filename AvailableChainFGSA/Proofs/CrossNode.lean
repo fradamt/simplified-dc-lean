@@ -73,12 +73,11 @@ theorem eraseFG_ancestor_preceq {n : Nat} {T : Finset (FGBlock (Fin n))}
       · obtain ⟨C, hC, hCe, hCP⟩ := ih (hcl _ hB) hc
         exact ⟨C, hC, hCe, KitFG.preceq_node_of_preceq s r_s r rows hCP⟩
 
-set_option linter.unusedVariables false in
-/-- [bp bp.carrier.v1; K5 cross-node] Cross-store
+/-- [ROOT-DIGEST W2; bp.carrier.v1; K5 cross-node] Cross-store
 reconstruction: stored FG blocks at two stores with the same erasure are equal. -/
 theorem stored_fg_eq_of_erase_eq (p : Params) (st st' : State p.n)
-    (h : CStoreInv p st) (h' : CStoreInv p st') (m : MetaInv p st) (m' : MetaInv p st')
-    {X Y : FGBlock (Fin p.n)} (hX : X ∈ st.fg.TF) (hY : Y ∈ st'.fg.TF)
+    (_h : CStoreInv p st) (_h' : CStoreInv p st') (_m : MetaInv p st) (_m' : MetaInv p st')
+    {X Y : FGBlock (Fin p.n)} (_hX : X ∈ st.fg.TF) (_hY : Y ∈ st'.fg.TF)
     (he : eraseFG X = eraseFG Y) : X = Y :=
   eraseFG_injective he
 

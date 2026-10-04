@@ -269,7 +269,7 @@ theorem admitBlock_of_blockExcluded (st : State p.n) (s : Slot) (b : Block)
     obtain ⟨⟨⟨⟨⟨⟨⟨hgen, -⟩, -⟩, hF⟩, -⟩, -⟩, -⟩, hrows⟩ := hacc
     have hb : b ≠ .genesis := by simpa using hgen
     have hpar : eraseFG P = b.parent := by simpa using (pickPair_some_spec _ _ hP).2
-    have he := eraseFG_fgBlock hb hpar rows hrows
+    have he := eraseFG_fgBlock hb hpar rows (contentOk_rowsOk hrows)
     have hpre : Block.Preceq (eraseFG st.fg.F) b := he ▸ eraseFG_preceq hF
     have hc : Block.compatible b (eraseFG st.fg.F) = true := by
       rw [block_compatible_comm]; exact block_compatible_of_preceq hpre
@@ -285,8 +285,8 @@ theorem invalidForParent_mono (st st' : State p.n) (hsub : st.fg.TF ⊆ st'.fg.T
         | none => false | some P => !rowsValidForParent p P b.slot rows) = true at h
       simp only [hP, Bool.false_eq_true] at h
   | some P =>
-      obtain ⟨hm, he⟩ := (parentFG_spec st (rootInj_all st) b P).mp hP
-      have hP' := (parentFG_spec st' (rootInj_all st') b P).mpr ⟨hsub hm, he⟩
+      obtain ⟨hm, he⟩ := (parentFG_spec st b P).mp hP
+      have hP' := (parentFG_spec st' b P).mpr ⟨hsub hm, he⟩
       change (match parentFG st b with
         | none => false | some P => !rowsValidForParent p P b.slot rows) = true at h
       change (match parentFG st' b with
@@ -325,9 +325,9 @@ theorem admitBlock_of_invalidForParent (st : State p.n) (s : Slot) (b : Block)
 
 /-- [R6] A refused invalid proposal cannot call a carried object's handler. -/
 theorem invalidForParent_no_carried (st : State p.n) (s : Slot) (b : Block)
-    (rows : List (RowWire p.n))
+    (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
     (h : invalidForParent p st b rows = true) :
-    ¬ ∃ P, parentFG st b = some P ∧ blockAccepted p st s b P rows = true := by
+    ¬ ∃ P, parentFG st b = some P ∧ blockAccepted p st s b raw sup P rows = true := by
   rintro ⟨P, hP, ha⟩
   have hv := blockAccepted_rowsValid ha
   change (match parentFG st b with

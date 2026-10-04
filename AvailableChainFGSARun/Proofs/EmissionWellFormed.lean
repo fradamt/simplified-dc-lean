@@ -78,7 +78,7 @@ private theorem emission_rows_process (st : State p.n) (o : Obj p)
               raw.all (fun v => match v.decode? with
                 | some (r, _, _) => r + 1 == b.slot | none => false) &&
               sup.all (fun v => decide (v ∈ raw)) &&
-              rows.all RowWire.valid && rowsOk b rows
+              rows.all RowWire.valid && contentOk p b raw sup rows
           | none => false) = true at hw
         rw [hd] at hw
         intro a ha
@@ -86,7 +86,7 @@ private theorem emission_rows_process (st : State p.n) (o : Obj p)
           (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp hw).1).2 a ha
       change EmissionRowsValid (match parentFG st b with
         | none => st
-        | some P => if blockAccepted p st s b P rows then
+        | some P => if blockAccepted p st s b raw sup P rows then
           rows.foldl (admitRow p)
             (if (Window.on_block p p.K_W st.fg (fgBlock P b rows)).F = st.fg.F then
               { st with
@@ -216,32 +216,27 @@ theorem fgsa_propose_parent_lt (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   exact (fgsa_stored_block_slots E rho hs hi hs0).2.1 _
     (getHead_stored p _ (storeBundle_postClock E rho i v _).cstore _ _)
 
+/-- ROOT-DIGEST W2. Emission checks the exact digest and the BODY encoding. -/
 private theorem emission_proposal_wf (st : State p.n) (s : Slot) (a : Nat)
     (hv : EmissionRowsValid st)
     (hp : (getHead p st (proposerVotes st s) (proposerSupport st s)).slot < s)
-    {m : Msg p.n} (hm : (propose p st s).map (withApp a) = some m) :
+    {m : Msg p.n} (hm : (propose p st s).map (withApp p a) = some m) :
     FGSA.wellFormed p ⟨.proposer s, m⟩ = true := by
   have hs0 : 0 < s := Nat.zero_lt_of_lt hp
   let H := getHead p st (proposerVotes st s) (proposerSupport st s)
   let rows := proposalRows p st H
-  have he : m = .proposal (.node H s (packBody a rows))
-      ((proposerVotes st s).filterMap liftHead?)
-      ((proposerSupport st s).filterMap liftHead?) rows := by
-    change (if s = 0 then none else some (.proposal (.node H s (packBody 0 rows))
-      ((proposerVotes st s).filterMap liftHead?)
-      ((proposerSupport st s).filterMap liftHead?) rows)).map
-        (withApp a) = some m at hm
+  let raw := (proposerVotes st s).filterMap liftHead?
+  let sup := (proposerSupport st s).filterMap liftHead?
+  have he : m = .proposal (proposalBlock p H s a raw sup rows) raw sup rows := by
+    unfold propose at hm
     rw [ite_eq_right (Nat.ne_of_gt hs0)] at hm
     exact (Option.some.inj hm).symm
-  have hcontent := rowsOk_withApp st s a hm
   rw [he]
   change (true && (s == s) && decide (H.slot < s) &&
-    ((proposerVotes st s).filterMap liftHead?).all (fun v => match v.decode? with
+    raw.all (fun v => match v.decode? with
       | some (r, _, _) => r + 1 == s | none => false) &&
-    ((proposerSupport st s).filterMap liftHead?).all
-      (fun v => decide (v ∈ (proposerVotes st s).filterMap liftHead?)) &&
-    rows.all RowWire.valid &&
-    rowsOk (.node H s (packBody a rows)) rows) = true
+    sup.all (fun v => decide (v ∈ raw)) && rows.all RowWire.valid &&
+    contentOk p (proposalBlock p H s a raw sup rows) raw sup rows) = true
   obtain ⟨hraw, hsup⟩ := emission_proposal_votes st s
   have hr : rows.all RowWire.valid = true :=
     List.all_eq_true.mpr (emission_proposal_rows st H hv)
@@ -255,13 +250,7 @@ private theorem emission_proposal_wf (st : State p.n) (s : Slot) (a : Nat)
   have hsupport : ((proposerSupport st s).filterMap liftHead?).all
       (fun v => decide (v ∈ (proposerVotes st s).filterMap liftHead?)) = true :=
     List.all_eq_true.mpr (fun v hv => decide_eq_true (hsup v hv))
-  have hc : rowsOk (.node H s (packBody a rows)) rows = true := by
-    obtain ⟨H', raw', sup', rows', he', hc, -⟩ := hcontent
-    rw [he] at he'
-    have eqs := Msg.proposal.inj he'
-    have hb := Block.node.inj eqs.1
-    rw [← hb.1, ← eqs.2.2.2] at hc
-    exact hc
+  have hc := contentOk_proposalBlock p H s a raw sup rows
   rw [hvotes, hsupport, hr, hc]
   simp only [beq_self_eq_true, Bool.true_and, Bool.and_true, decide_eq_true_eq]
   exact hp
@@ -270,12 +259,12 @@ private theorem emission_proposal_wf (st : State p.n) (s : Slot) (a : Nat)
 theorem propose_rowsValid (st : State p.n) (hInv : CStoreInv p st) (s : Slot) (app : Nat)
     (hs : st.slot p = s) (b : Block) (raw sup : List (HeadWire p.n))
     (rows : List (RowWire p.n))
-    (hm : (propose p st s).map (withApp app) = some (.proposal b raw sup rows)) :
+    (hm : (propose p st s).map (withApp p app) = some (.proposal b raw sup rows)) :
     ∃ P, fgBlockOf st b.parent = some P ∧ rowsValidForParent p P b.slot rows = true := by
   unfold propose at hm
   split at hm
   · simp at hm
-  · dsimp only [Option.map, withApp] at hm
+  · dsimp only [Option.map, withApp, proposalBlock] at hm
     simp only [Option.some.injEq, Msg.proposal.injEq] at hm
     obtain ⟨rfl, rfl, rfl, rfl⟩ := hm
     let H := getHead p st (proposerVotes st s) (proposerSupport st s)
@@ -335,7 +324,7 @@ theorem honest_emit_wellFormed (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
       subst t
       have hm : (propose p (FGSA.clock p (V2.D.Run.stateBefore E rho i v).st
           (SA.proposalTime p.toParams s)) s).map
-          (withApp (c.app (rho.input v (SA.proposalTime p.toParams s)))) = some m := ha
+          (withApp p (c.app (rho.input v (SA.proposalTime p.toParams s)))) = some m := ha
       have hs0 : 0 < s := by
         by_contra hn
         have he : s = 0 := Nat.eq_zero_of_not_pos hn

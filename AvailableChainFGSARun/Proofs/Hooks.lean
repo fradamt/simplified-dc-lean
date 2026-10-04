@@ -39,9 +39,9 @@ private theorem deps_mono {st st' : State p.n} (hT : st.fg.TF ⊆ st'.fg.TF)
     | exact id
     | simp only [Option.isSome_iff_exists]
       rintro ⟨P, hP⟩
-      exact ⟨P, (parentFG_spec st' (rootInj_all st') _ P).2
-        ⟨hT ((parentFG_spec st (rootInj_all st) _ P).1 hP).1,
-          ((parentFG_spec st (rootInj_all st) _ P).1 hP).2⟩⟩
+      exact ⟨P, (parentFG_spec st' _ P).2
+        ⟨hT ((parentFG_spec st _ P).1 hP).1,
+          ((parentFG_spec st _ P).1 hP).2⟩⟩
 
 /-- All FG-SA hooks satisfy the engine laws. -/
 theorem fgsaHooks (p : Params) (c : AppCodec In) : V2.D.HooksSound (fgsa p c) where

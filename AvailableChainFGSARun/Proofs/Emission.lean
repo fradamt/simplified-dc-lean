@@ -74,7 +74,7 @@ theorem fgsa_emits_proposal (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, m⟩ : Obj p) ∈ (V2.D.tick E rho nd v t).2 ↔
       E.awake v t = true ∧ SA.proposalTime p.toParams s = t ∧
       rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = v ∧
-      (propose p (FGSA.clock p nd.st t) s).map (withApp (c.app (rho.input v t))) = some m :=
+      (propose p (FGSA.clock p nd.st t) s).map (withApp p (c.app (rho.input v t))) = some m :=
   Gen.V2.Duty.mem_tick_singleDuty_iff E rho nd v t (.prop s)
     (fgsa_prop_singleDuty s) (.propAction s) rfl ⟨0, Nat.one_pos⟩ m
 

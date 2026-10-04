@@ -63,7 +63,7 @@ private theorem t712_stamp_kept (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)
 /-- K8 receipt coverage at the strict deadline read (bp00:700–713;
 bp01:858–930). Each path vertex and HEAD keeps its own receipt deadline. -/
 theorem fgsa_receiptCoverage : ReceiptCoverageStatement := by
-  intro p In V inst c E rho dl cut D first x B required paths hDelta hExecution hNR hx h
+  intro p In V inst c E rho dl cut D first x B required paths hRoots hDelta hExecution hNR hx h
   have hS := hExecution.toScheduleWellFormed
   have hidx : Monotone (V2.D.Run.idxBefore rho) := by
     intro a b hab
@@ -125,7 +125,7 @@ theorem fgsa_receiptCoverage : ReceiptCoverageStatement := by
           exact decode_eq_block.mp hd
         have htrigger := (h.slotWindow o t hr).1
         rw [ho] at htrigger
-        exact fgsa_proposal_receipt E rho hDelta hExecution hNR dl cut s b raw sup rows t x
+        exact fgsa_proposal_receipt E rho hRoots hDelta hExecution hNR dl cut s b raw sup rows t x
           h.within htrigger hx (ht.2.2.2.trans h.deadline.2.1) ht.2.2.1 hbF
       refine ⟨hFB, hproposal, ?_⟩
       intro K d hk b hb

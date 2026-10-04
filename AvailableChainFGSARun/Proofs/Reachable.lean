@@ -164,7 +164,7 @@ private theorem fgsa_process_stored_wire_origin (st : State p.n) (h : CStoreInv 
         rw [admitBlock_refused p st s b raw sup rows (Or.inl hP)] at hw
         exact Or.inl hw
     | some P =>
-        cases ha : blockAccepted p st s b P rows with
+        cases ha : blockAccepted p st s b raw sup P rows with
         | false =>
             rw [admitBlock_refused p st s b raw sup rows (Or.inr ⟨P, hP, ha⟩)] at hw
             exact Or.inl hw

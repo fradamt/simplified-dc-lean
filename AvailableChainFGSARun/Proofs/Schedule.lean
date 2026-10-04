@@ -145,7 +145,7 @@ private theorem fgsa_process_labels (st : State p.n) (o : Wire p.n) :
     cases hp : parentFG st b with
     | none => rw [admitBlock_refused p st s b raw sup rows (Or.inl hp)]
     | some P =>
-      cases ha : blockAccepted p st s b P rows with
+      cases ha : blockAccepted p st s b raw sup P rows with
       | false => rw [admitBlock_refused p st s b raw sup rows (Or.inr ⟨P, hp, ha⟩)]
       | true =>
         obtain ⟨pool, he, -⟩ := admitBlock_accepted_eq p st s b raw sup P rows hp ha
@@ -308,7 +308,7 @@ private theorem fgsa_process_bounds (st : State p.n) (o : Wire p.n)
     cases hp : parentFG st b with
     | none => rw [admitBlock_refused p st s b raw sup rows (Or.inl hp)]; exact ⟨hb, hv⟩
     | some P =>
-      cases ha : blockAccepted p st s b P rows with
+      cases ha : blockAccepted p st s b raw sup P rows with
       | false =>
         rw [admitBlock_refused p st s b raw sup rows (Or.inr ⟨P, hp, ha⟩)]
         exact ⟨hb, hv⟩
@@ -498,7 +498,7 @@ private theorem fgsa_process_vote_keys (st : State p.n) (o : Wire p.n)
     cases hp : parentFG st b with
     | none => rw [admitBlock_refused p st s b raw sup rows (Or.inl hp)]; exact h
     | some P =>
-      cases ha : blockAccepted p st s b P rows with
+      cases ha : blockAccepted p st s b raw sup P rows with
       | false =>
         rw [admitBlock_refused p st s b raw sup rows (Or.inr ⟨P, hp, ha⟩)]; exact h
       | true =>

@@ -99,15 +99,17 @@ private theorem headInTree_unfold (st : State p.n) (tree : List Block)
 /-- Blueprint 21 H.6:947–958, H.17:2987–3012 (design 798–814,2847–2872);
 spec 1387–1401, 1555–1581. Class (iii). DC: INTENTIONAL;
 ProposalWalkTransportCore.lean:162,259 supplies retained walk transport.
-Use the named view bridge at the actual HEAD domain. -/
+ROOT-DIGEST W2. Use the named view bridge at the actual HEAD domain. -/
 theorem fgsa_headVote_covers_parent_of_retained_geometry
     (p : Params) (src dst : State p.n) (s : Slot) (hs : s ≠ 0)
     (D : FGBlock (Fin p.n)) (b Kc : Block)
+    (hsourceRoot : ∀ A ∈ S p src, ∀ B ∈ S p src, A.root = B.root → A = B)
+    (htargetRoot : ∀ A ∈ T p dst s, ∀ B ∈ T p dst s, A.root = B.root → A = B)
     (hparent : getHead p src (proposerVotes src s) (proposerSupport src s) = b.parent)
     (h : RetainedWalkRunGeometry p src dst s D b Kc) :
     Block.Preceq b.parent (headVote p dst s) := by
   have hp := (fgsa_ordinary_parent_of_live_prefix p src
-    (proposerVotes src s) (proposerSupport src s) b.parent hparent
+    (proposerVotes src s) (proposerSupport src s) b.parent hsourceRoot hparent
     (by simpa only [BestAncestry_def, S, fullTree_eq, erasedList_unfold, z, ap, ss, es]
       using h.ordinary_prefix)).2
   have hsource : Block.Preceq b.parent (GridCO.ghost (z p src) (S p src)
@@ -115,7 +117,8 @@ theorem fgsa_headVote_covers_parent_of_retained_geometry
     simpa only [S, fullTree_eq, erasedList_unfold, z, ss, es, hp] using block_preceq_refl b.parent
   have hc := walk_covers_of_retained_transport (z p src) (ay p dst) Kc b.parent
     (S p src) (T p dst s) (ss src s) (ts p dst s) (es p src s) (et p dst s)
-    hsource h.source_cut h.target_cut h.cut_parent h.target_prefix h.persists h.reflects h.scores
+    htargetRoot hsource h.source_cut h.target_cut h.cut_parent h.target_prefix
+    h.persists h.reflects h.scores
   unfold headVote
   rw [ite_eq_right hs]
   simpa only [fgsa_domainR_eq_storeFrameView, headInTree_unfold, ay, ts, et] using hc
@@ -284,11 +287,16 @@ theorem exactService_head_of_retained_proposal
   let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)
   obtain ⟨Kc, hw⟩ := hgeom.walk y hy ih hih
   have hc := fgsa_headVote_covers_parent_of_retained_geometry p src dst s
-    (Nat.ne_of_gt hparent.1) D b Kc hparent.2.2.symm hw
+    (Nat.ne_of_gt hparent.1) D b Kc
+    (erasedList_rootInj p src (cstoreInv_clock p _ (cstoreInv_stateBefore E rho ip x) _) _)
+    (erasedList_rootInj p dst (cstoreInv_clock p _ (cstoreInv_stateBefore E rho ih y) _) _)
+    hparent.2.2.symm hw
   have he := fgsa_exactHeadGeometry_of_retained_endpoint p src dst s b hstop
     (hgeom.endpoint y hy ih hih)
   have hexact := fgsa_headVote_exact_of_covered_parent p dst s (Nat.ne_of_gt hparent.1)
-    (ay p dst) b (Or.inr ⟨block_preceq_refl _, hw.target_parent⟩) hw.target_parent hc he
+    (ay p dst) b
+    (erasedList_rootInj p dst (cstoreInv_clock p _ (cstoreInv_stateBefore E rho ih y) _) _)
+    (Or.inr ⟨block_preceq_refl _, hw.target_parent⟩) hw.target_parent hc he
   have ht := fgsa_tickIdx_of_event p c E rho hE.toScheduleWellFormed hih
   change (postClock E rho y (SA.voteTime p.toParams s)).map _ = some b
   rw [postClock_def, preTick_def, ht]

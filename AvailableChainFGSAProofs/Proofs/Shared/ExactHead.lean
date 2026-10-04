@@ -51,7 +51,7 @@ structure ExactHeadGeometry (p : Params) (st : State p.n) (s : Slot) (b : Block)
   stop : NoEligibleChild (erasedList st (domainR p st (voterBlocks p st s)))
     (eligible p st (headVotes p st s) (headSupport p st s)) b
 
-/-- G33 at the HEAD read; S1b E1–E6:118–134, 21 H.17:2798–2825.
+/-- ROOT-DIGEST W2. G33 at the HEAD read; S1b E1–E6:118–134, 21 H.17:2798–2825.
 DC: Goldfish/Walk.lean:433 and ProposalWalkTransportCore.lean:162–198.
 INTENTIONAL: compose actual HEAD coverage with the FJ pivot start disjunction
 and the explicit terminal obligations. Both start orders are permitted.
@@ -59,6 +59,8 @@ The covered walk itself supplies the guarded ancestry; no source-store bridge
 or extra score premise is required. -/
 theorem fgsa_headVote_exact_of_covered_parent (p : Params) (st : State p.n)
     (s : Slot) (hs : s ≠ 0) (T b : Block)
+    (hroot : ∀ A ∈ erasedList st (domainR p st (voterBlocks p st s)),
+      ∀ B ∈ erasedList st (domainR p st (voterBlocks p st s)), A.root = B.root → A = B)
     (hstart : (Block.Preceq (liveRoot p st) T ∧
       DominatedSuffix (liveRoot p st) T
         (erasedList st (domainR p st (voterBlocks p st s)))
@@ -73,7 +75,7 @@ theorem fgsa_headVote_exact_of_covered_parent (p : Params) (st : State p.n)
   rw [ite_eq_right hs]
   simpa only [domainR_eq_storeFrame] using
     exactHead_of_pivot_ancestry p st (voterBlocks p st s)
-    (headVotes p st s) (headSupport p st s) T b.parent b hstart hTP
+    (headVotes p st s) (headSupport p st s) T b.parent b hroot hstart hTP
     hancestry (Or.inr hgeom.last) hgeom.stop
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
@@ -123,7 +125,9 @@ theorem exactHead_of_proposal_on_run
   have hcover := fgsa_ghost_transfer_sfx_on_run E rho hE hN hDelta s hScoreSync hSync
     hx hy hip hih hseat b raw sup rows hem hadm D hgeom
   exact fgsa_headVote_exact_of_covered_parent p dst s (Nat.ne_of_gt hparent.1)
-    (eraseFG D) b (Or.inl ⟨hgeom.target_anchor, by
+    (eraseFG D) b
+    (erasedList_rootInj p dst (cstoreInv_clock p _ (cstoreInv_stateBefore E rho ih y) _) _)
+    (Or.inl ⟨hgeom.target_anchor, by
       simpa only [domainR_eq_storeFrame] using hgeom.target_prefix⟩)
     hDP hcover hterminal
 

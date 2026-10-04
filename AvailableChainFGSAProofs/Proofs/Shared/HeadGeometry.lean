@@ -8,7 +8,7 @@ namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
 open Gen.Pure
 
-/-- P3 F1b.5; bp02 §7, ap.headReachesLo.v6 clauses 1–3.
+/-- ROOT-DIGEST W2. P3 F1b.5; bp02 §7, ap.headReachesLo.v6 clauses 1–3.
 Class (iii), store geometry. DC: Goldfish/Walk.lean:197 `ghost_step_none`
 and :433 `ghost_reaches` give the walk ingredients.
 INTENTIONAL: FJ's low-parent eligibility and filtered witness imply the
@@ -70,10 +70,10 @@ theorem fgsa_headReachesLo (p : Params) (st : State p.n)
     have hBC : FGBlock.Preceq B C := by
       cases C with
       | genesis => exact False.elim (hng rfl)
-      | node P s r rs =>
+      | node P s root r rs =>
         change P = B at hp
         subst P
-        exact KitFG.preceq_parent_node _ _ _ _
+        exact KitFG.preceq_parent_node _ _ _ _ _
     have hC : C ∈ D := (KitFG.mem_filteredFrom_of_bridge
       p.E p.cfg (heightView p) (heightView_bridge p) _ _ C).mpr
       ⟨hclosed W hWX C hCW, KitFG.preceq_trans hFB hBC,
@@ -81,7 +81,7 @@ theorem fgsa_headReachesLo (p : Params) (st : State p.n)
     have hparent : (eraseFG C).parent? = some H := by
       cases C with
       | genesis => exact False.elim (hng rfl)
-      | node P s r rs =>
+      | node P s root r rs =>
         change P = B at hp
         change some (eraseFG P) = some H
         rw [hp, he]

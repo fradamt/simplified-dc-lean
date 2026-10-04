@@ -198,7 +198,7 @@ private theorem t77_self_accepts (nd : Node p) (o : Obj p) (hInv : CStoreInv p n
         rw [ho] at hd
         exact hd
       obtain ⟨P, hP⟩ := Option.isSome_iff_exists.mp hdep
-      have hPe := ((parentFG_spec nd.st hInv.rootInj b P).1 hP).2
+      have hPe := ((parentFG_spec nd.st b P).1 hP).2
       by_cases hv : rowsValidForParent p P b.slot rows = true
       · by_cases hm : ∃ Y ∈ nd.st.fg.TF, Y.root = b.root
         · left
@@ -212,7 +212,7 @@ private theorem t77_self_accepts (nd : Node p) (o : Obj p) (hInv : CStoreInv p n
             simp only [Block.compatible, Bool.or_eq_true] at hc
             rcases hc with hc | hc
             · have hpar : b.parent ∈ nd.st.base.blocks :=
-                (hInv.baseTree _).2 ⟨P, ((parentFG_spec nd.st hInv.rootInj b P).1 hP).1, hPe⟩
+                (hInv.baseTree _).2 ⟨P, ((parentFG_spec nd.st b P).1 hP).1, hPe⟩
               have hfresh : ∀ c ∈ nd.st.base.blocks, c.root ≠ b.root := by
                 intro c hC hr
                 obtain ⟨Y, hY, rfl⟩ := (hInv.baseTree c).1 hC
@@ -229,13 +229,6 @@ private theorem t77_self_accepts (nd : Node p) (o : Obj p) (hInv : CStoreInv p n
               rw [hw']
               refine ⟨fgBlock Q b rows, hmem, ?_⟩
               exact fgBlock_root Q b rows
-                (by intro hg
-                    have hb := (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp
-                      (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp
-                        (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp wf).1).1).1).1).1).1
-                    exact (bne_iff_ne.mp hb) hg)
-                ((parentFG_spec nd.st hInv.rootInj b Q).1 hQ).2
-                (Bool.and_eq_true_iff.mp wf).2
             · obtain ⟨Y, hY, heY, _⟩ := eraseFG_ancestor_preceq hInv.fg.closed hInv.fg.Fmem hc
               exact (hm ⟨Y, hY, by rw [← eraseFG_root, heY]⟩).elim
           · right

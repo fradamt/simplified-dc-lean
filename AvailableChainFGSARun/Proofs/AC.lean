@@ -317,7 +317,7 @@ private theorem ac_block_output (p : Params) (st : State p.n) (hst : NestOK st)
     rw [admitBlock_refused p st s b raw support rows (Or.inl hp)]
     exact Or.inl rfl
   | some P =>
-    cases ha : blockAccepted p st s b P rows with
+    cases ha : blockAccepted p st s b raw support P rows with
     | false =>
       rw [admitBlock_refused p st s b raw support rows (Or.inr ⟨P, hp, ha⟩)]
       exact Or.inl rfl

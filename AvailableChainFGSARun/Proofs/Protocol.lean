@@ -135,34 +135,34 @@ theorem fgsa_prop_singleDuty (s : Slot) :
 /-- [plan T7.2] The payload of a proposal label is the store proposal with the
 application value of the input. -/
 theorem act_prop (nd : Node p) (s : Slot) (x : In) :
-    (fgsa p c).act nd (.propAction s) x = (propose p nd.st s).map (withApp (c.app x)) := rfl
+    (fgsa p c).act nd (.propAction s) x = (propose p nd.st s).map (withApp p (c.app x)) := rfl
 
 /-- [plan T7.2] There is no proposal at slot `0`. -/
 theorem act_prop_zero (nd : Node p) (x : In) : (fgsa p c).act nd (.propAction 0) x = none := rfl
 
-/-- [plan T7.2; I9] `withApp 0` does not change the I9 `propose` output. So with
-`unitCodec` the honest proposal is the I9 proposal. -/
+/-- ROOT-DIGEST W2. A zero-app update preserves the proposal digest and payload.
+Thus unitCodec preserves the local proposal output. -/
 theorem withApp_zero (st : State p.n) (s : Slot) :
-    (propose p st s).map (withApp 0) = propose p st s := by
+    (propose p st s).map (withApp p 0) = propose p st s := by
   unfold propose
   split <;> rfl
 
-/-- [plan T7.2; I9 D9; Opus M2] The proposal with application value `a` is a
+/-- [ROOT-DIGEST W2; plan T7.2; I9 D9; Opus M2] The proposal with application value `a` is a
 proposal whose block is a node of slot `s` with the packed body of `a` and its
-carried rows. So the block passes the content check `rowsOk` with its carried
-rows, and its application value is `a`. -/
+carried rows. The block passes the BODY check `rowsOk` with these rows,
+and its application value is `a`. -/
 theorem rowsOk_withApp (st : State p.n) (s : Slot) (a : Nat) {m : Msg p.n}
-    (h : (propose p st s).map (withApp a) = some m) :
-    ∃ H raw sup rows, m = .proposal (.node H s (packBody a rows)) raw sup rows ∧
-      rowsOk (.node H s (packBody a rows)) rows = true ∧
-      appOf (Block.node H s (packBody a rows)).body = a := by
+    (h : (propose p st s).map (withApp p a) = some m) :
+    ∃ H raw sup rows, m = .proposal (proposalBlock p H s a raw sup rows) raw sup rows ∧
+      rowsOk (proposalBlock p H s a raw sup rows) rows = true ∧
+      appOf (proposalBlock p H s a raw sup rows).body = a := by
   unfold propose at h
   split at h
   · simp at h
   · simp only [Option.map_some, Option.some.injEq] at h
     subst h
     refine ⟨_, _, _, _, rfl, ?_, appOf_packBody _ _⟩
-    simp [rowsOk, Block.body, appOf_packBody]
+    exact contentOk_rowsOk (contentOk_proposalBlock p _ s a _ _ _)
 
 /-! ### Label families and isolation -/
 
@@ -290,7 +290,7 @@ store accepts. -/
 theorem handlesS_ofRow_iff (st : State p.n) (o : Obj p) (a : RowWire p.n) :
     handlesS p st o (ofRow p a) ↔ o = ofRow p a ∨
       ∃ s b raw sup rows P, (toWire p o).decode = some (.block s b raw sup rows) ∧
-        parentFG st b = some P ∧ blockAccepted p st s b P rows = true ∧ a ∈ rows := by
+        parentFG st b = some P ∧ blockAccepted p st s b raw sup P rows = true ∧ a ∈ rows := by
   unfold handlesS
   refine or_congr Iff.rfl ?_
   constructor

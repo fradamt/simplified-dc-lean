@@ -47,9 +47,9 @@ theorem kept_or_conflict (p : Params) {In V : Type} [DecidableEq V]
           rw [block_compatible_comm]
           exact hc)
     have hfg : FGBlock.compatible K C = true := by
-      rw [compatible_iff_eraseFG (Vw := {K, C}) (KitFG.viewRootInj_all _)
-        ⟨K, by simp, KitFG.preceq_refl _⟩ ⟨C, by simp, KitFG.preceq_refl _⟩]
-      exact hKC
+      rcases Bool.or_eq_true_iff.mp hKC with hKC | hCK
+      · exact Bool.or_eq_true_iff.mpr (Or.inl (eraseFG_preceq_iff.mp hKC))
+      · exact Bool.or_eq_true_iff.mpr (Or.inr (eraseFG_preceq_iff.mp hCK))
     exact hbad (Bool.or_eq_true_iff.mp hfg)
   by_cases hF : FGBlock.Preceq (storeAt p c E rho i x).fg.F C ∨
       FGBlock.Preceq C (storeAt p c E rho i x).fg.F
@@ -104,7 +104,7 @@ theorem fgsa_domain_anchorClosed_mono (p : Params) (st : State p.n)
   intro B hB hTB C hTC hCB
   exact hclosed B hB (block_preceq_trans hAT hTB) C (block_preceq_trans hAT hTC) hCB
 
-/-- P3 F1b.8, G33; class (iii), conditional pivot composition.
+/-- ROOT-DIGEST W2. P3 F1b.8, G33; class (iii), conditional pivot composition.
 DC: ProposalWalkTransportCore.lean:162 `ghost_transport_of_source` and
 Goldfish/Walk.lean:433 `ghost_reaches`. INTENTIONAL: FJ uses a common pivot,
 not equal live roots (21 H.17:2798–2825). This theorem applies to each target read.
@@ -129,6 +129,8 @@ This local result does not produce ExactService or identify a scheduled HEAD rea
 theorem exactHead_of_pivot_ancestry (p : Params) (st : State p.n)
     (Y : Finset (FGBlock (Fin p.n)))
     (raw support : List (GridCO.Wire p.n)) (T P Q : Block)
+    (hroot : ∀ A ∈ erasedList st (domainR p st Y),
+      ∀ B ∈ erasedList st (domainR p st Y), A.root = B.root → A = B)
     (hstart : (Block.Preceq (liveRoot p st) T ∧
       DominatedSuffix (liveRoot p st) T (erasedList st (domainR p st Y))
         (GridCO.goldfishScore st.base.blocks raw support) (eligible p st raw support)) ∨
@@ -151,7 +153,7 @@ theorem exactHead_of_pivot_ancestry (p : Params) (st : State p.n)
     (hstop : NoEligibleChild (erasedList st (domainR p st Y)) (eligible p st raw support) Q) :
     headInTree p st (erasedList st (domainR p st Y)) raw support = Q := by
   rw [fgsa_headInTree_reanchor_of_pivot p st _ raw support T P
-    hstart hTP hancestry]
+    hroot hstart hTP hancestry]
   rcases hlast with rfl | ⟨hm, hp, hel, honly⟩
   · apply walk_exact_of_dominated_suffix _ _ _ _ _ (block_preceq_refl _) _ hstop
     intro C hPC hCP
@@ -163,7 +165,7 @@ theorem exactHead_of_pivot_ancestry (p : Params) (st : State p.n)
   · have hPQ : Block.Preceq P Q := by
       cases Q with
       | genesis => cases hp
-      | node R s r =>
+      | node R s root r =>
           have he : R = P := Option.some.inj hp
           subst R
           exact Bool.or_eq_true_iff.mpr (Or.inr (block_preceq_refl _))
@@ -172,7 +174,7 @@ theorem exactHead_of_pivot_ancestry (p : Params) (st : State p.n)
     have hC : C = Q := by
       cases Q with
       | genesis => cases hp
-      | node R s r =>
+      | node R s root r =>
           have he : R = P := Option.some.inj hp
           subst R
           rcases Bool.or_eq_true_iff.mp hCQ with he | hCP
@@ -187,7 +189,7 @@ theorem exactHead_of_pivot_ancestry (p : Params) (st : State p.n)
     intro D hD hpD helD hne
     exact (hne (honly D hD (hpD.trans hp) helD)).elim
 
-/-- Lower-start corollary, with its original statement.
+/-- ROOT-DIGEST W2. Lower-start corollary with target-tree root uniqueness.
 DC: ProposalWalkTransportCore.lean:162 and Goldfish/Walk.lean:433.
 INTENTIONAL: S1b E1's lower branch and the original G11 suppliers derive the
 ancestry premise of `exactHead_of_pivot_ancestry` (21 H.17:2820–2825).
@@ -195,6 +197,8 @@ ancestry premise of `exactHead_of_pivot_ancestry` (21 H.17:2820–2825).
 theorem exactHead_of_pivot (p : Params) (st st' : State p.n)
     (X Y : Finset (FGBlock (Fin p.n)))
     (raw support raw' support' : List (GridCO.Wire p.n)) (T P Q : Block)
+    (hroot : ∀ A ∈ erasedList st' (domainR p st' Y),
+      ∀ B ∈ erasedList st' (domainR p st' Y), A.root = B.root → A = B)
     (hAT : Block.Preceq (liveRoot p st) T) (hAT' : Block.Preceq (liveRoot p st') T)
     (hTP : Block.Preceq T P)
     (hprefix : DominatedSuffix (liveRoot p st) T (erasedList st (domainR p st X))
@@ -225,7 +229,7 @@ theorem exactHead_of_pivot (p : Params) (st st' : State p.n)
   change Block.Preceq P (GridCO.ghost _ _ _ _) at hcover
   rw [hs] at hcover
   have hc := ghost_transfer_sfx _ _ _ _ _ _ _ _ hTP hcover hkeep hreflect hscore
-  exact exactHead_of_pivot_ancestry p st' Y raw' support' T P Q (Or.inl ⟨hAT', hprefix'⟩) hTP
+  exact exactHead_of_pivot_ancestry p st' Y raw' support' T P Q hroot (Or.inl ⟨hAT', hprefix'⟩) hTP
     (fun X hTX _ => walk_best_ancestry_of_cover _ _ _ _ _ hc X hTX) hlast hstop
 
 end AvailableChain.FGSA.Run
