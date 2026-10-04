@@ -22,6 +22,22 @@ theorem viewRootInj_TF (p : Params) (st : State p.n) (h : CStoreInv p st) :
     ViewRootInj st.fg.TF :=
   viewRootInj_of_rootInj h.fg.closed h.rootInj
 
+/-- ROOT-DIGEST W1c: the body store inherits root uniqueness from CStoreInv. -/
+theorem baseBlocks_rootInj (p : Params) (st : State p.n) (h : CStoreInv p st) :
+    ∀ A ∈ st.base.blocks, ∀ B ∈ st.base.blocks, A.root = B.root → A = B := by
+  intro a ha b hb he
+  obtain ⟨A, hA, rfl⟩ := (h.baseTree a).mp ha
+  obtain ⟨B, hB, rfl⟩ := (h.baseTree b).mp hb
+  have hr : A.root = B.root := by simpa only [eraseFG_root] using he
+  exact congrArg eraseFG (h.rootInj A hA B hB hr)
+
+/-- ROOT-DIGEST W1c: every erasedList walk uses a subset of the body store. -/
+theorem erasedList_rootInj (p : Params) (st : State p.n) (h : CStoreInv p st)
+    (X : Finset (FGBlock (Fin p.n))) :
+    ∀ A ∈ erasedList st X, ∀ B ∈ erasedList st X, A.root = B.root → A = B := by
+  intro A hA B hB
+  exact baseBlocks_rootInj p st h A (List.mem_filter.mp hA).1 B (List.mem_filter.mp hB).1
+
 /-- [bp bp.frame.v1; K4] The live frame is the FJ_FRAME of Σ.T. -/
 theorem storeControls_eq (p : Params) (st : State p.n) (h : CStoreInv p st) :
     controls p st = fjControls p.E p.cfg st.fg.F st.fg.TF := by

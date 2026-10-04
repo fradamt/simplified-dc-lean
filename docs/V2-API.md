@@ -15,14 +15,12 @@ proof reference from its existing Framework anchor body; keep both anchors.
 This exception does not permit other engine claims or checker changes.
 W3 owns the final generated entries after the interface checkpoint.
 
-ROOT-DIGEST W1b, option-3 named addition (plan r2.1):
-`AvailableChain.Gen.Pure.WalkNoEligibleChildOfAnchorClosedStatement` and its `_def`
-add tree root uniqueness before `AnchorClosed anchor tree`.
-Reason: kernel-checked counterexample TS/codex/reports/rdigest/w1/rdw1-walk-stop.lean.
-The [Gen exception entry](GEN-API.md#root-digest-option-3-exception) records the old/new entries.
-GHOST and its tie refusal keep their existing definitions. This addition permits no other frozen
-delta.
-
+ROOT-DIGEST W1c, option-3 class addition (plan r2.1 and r2.2):
+the [Gen exception list](GEN-API.md#root-digest-option-3-exception) names the no-eligible-child
+and retained-transport statement/equation pairs, their exact tree premises, and kernel evidence.
+No v2 walk entry changes. The v2 generated delta remains the two named M1 removals above.
+The tool output is `.lake/rdw1c-v2-manifest.md`; its exact delta is
+`.lake/rdw1c-v2-manifest-delta.json`. Both Framework anchors remain declared.
 
 ## Freeze rule
 
@@ -320,7 +318,6 @@ def AvailableChain.V2.Output a8967dbc86e9ed88
 def AvailableChain.V2.outputAt 570216ff32904b17
 def AvailableChain.V2.BlockInRun 0b71fbf3d775323a
 def AvailableChain.V2.RootInjective ec4fa66dac4b0c45
-theorem AvailableChain.V2.rootInjective_all 97e44d2a94e02a96
 ```
 
 ### `AvailableChainEngineV2.Conditions.Schedule`
@@ -694,7 +691,6 @@ def AvailableChain.V2.D.Output fbb74f15a1c1780f
 def AvailableChain.V2.D.outputAt a4c36e19e9aa16a8
 def AvailableChain.V2.D.BlockInRun c9f042c525957db3
 def AvailableChain.V2.D.RootInjective be817fa0bd8bf6c3
-theorem AvailableChain.V2.D.rootInjective_all ca90d362547a2164
 ```
 
 ### `AvailableChainEngineV2.Conditions.Duty.Lift`

@@ -77,10 +77,11 @@ theorem fgsa_getHead_avoids_unsupported_child
 INTENTIONAL: S1b E1 permits either start order; E2 supplies the prefix below T.
 E3/E5 supply target ancestry, with E4 score/root order (bp21:789,2798–2825).
 The target read is arbitrary, so E1 is required separately for each compared read.
-No source-walk premise or equality of live roots is needed. -/
+ROOT-DIGEST W1c: require root uniqueness on the arbitrary walked tree. -/
 theorem fgsa_headInTree_reanchor_of_pivot
     (p : Params) (st : State p.n) (tree : List Block)
     (raw support : List (GridCO.Wire p.n)) (T P : Block)
+    (hroot : ∀ A ∈ tree, ∀ B ∈ tree, A.root = B.root → A = B)
     (hstart : (Block.Preceq (liveRoot p st) T ∧
       DominatedSuffix (liveRoot p st) T tree
         (GridCO.goldfishScore st.base.blocks raw support) (eligible p st raw support)) ∨
@@ -99,9 +100,9 @@ theorem fgsa_headInTree_reanchor_of_pivot
   change GridCO.ghost (liveRoot p st) _ _ _ = _
   rcases hstart with ⟨hAT, hprefix⟩ | ⟨hTA, hAP⟩
   · rw [walk_reanchor_of_dominated_suffix _ _ _ _ _ hAT hprefix]
-    exact walk_reanchor_of_best_ancestry _ _ _ _ _ hTP
+    exact walk_reanchor_of_best_ancestry _ _ _ _ _ hroot hTP
       (fun X hTX => hancestry X hTX (block_preceq_trans hAT hTX))
-  · exact walk_reanchor_of_best_ancestry _ _ _ _ _ hAP
+  · exact walk_reanchor_of_best_ancestry _ _ _ _ _ hroot hAP
       (fun X hAX => hancestry X (block_preceq_trans hTA hAX) hAX)
 
 /-- P3 F1b.4a W8:4868–4874; bp02 §4.1. Class (iii), store instance.
@@ -262,7 +263,7 @@ theorem fgsa_filtered_anchorClosed (p : Params) (st : State p.n)
     ⟨hAX, KitFG.preceq_trans hFZ hZA, hZA, W, hWX,
       KitFG.preceq_trans hAB hBW, hlo⟩, rfl⟩
 
-/-- ROOT-DIGEST W1b: use local CStoreInv root uniqueness.
+/-- ROOT-DIGEST W1c: use local CStoreInv root uniqueness.
 P3 F1b.5; bp02 §7. Class (iii), Gen walk instance.
 DC: Goldfish/Walk.lean:197 `ghost_step_none`, :433 `ghost_reaches`.
 INTENTIONAL: the FJ filtered closure supplies the finite-walk terminal
@@ -277,10 +278,6 @@ theorem fgsa_headInTree_noEligibleChild (p : Params) (st : State p.n)
       eligible p st raw support B = false := by
   apply walk_noEligibleChild_of_anchorClosed _ _ _ _ ?_
     (fgsa_filtered_anchorClosed p st hi X hsub hclosed)
-  intro a ha b hb he
-  obtain ⟨A, hA, rfl⟩ := (hi.baseTree a).mp (List.mem_filter.mp ha).1
-  obtain ⟨B, hB, rfl⟩ := (hi.baseTree b).mp (List.mem_filter.mp hb).1
-  have hr : A.root = B.root := by simpa only [eraseFG_root] using he
-  exact congrArg eraseFG (hi.rootInj A hA B hB hr)
+  exact erasedList_rootInj p st hi _
 
 end AvailableChain.FGSA

@@ -1323,7 +1323,8 @@ theorem walk_covers_of_retained_transport
 /-- Class (iii).
 DC: DecoupledConsensusProofs/Protocol/ForkChoice/Goldfish/ProposalWalkTransportCore.lean:162,259;
 DecoupledConsensusProofs/Protocol/ForkChoice/Goldfish/Walk.lean:433.
-INTENTIONAL: prove the universal Generic statement for per-reader G11 coverage. -/
+INTENTIONAL: prove the universal Generic statement for per-reader G11 coverage.
+ROOT-DIGEST W1c: the statement supplies target-tree root uniqueness. -/
 theorem walk_covers_of_retained_transport_statement :
     WalkCoversOfRetainedTransportStatement := by
   rw [WalkCoversOfRetainedTransportStatement_def]

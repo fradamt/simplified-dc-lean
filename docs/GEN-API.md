@@ -12,38 +12,33 @@ Baseline at the A0 step-2 close. Before G-F0a a Gen Statements edit re-writes th
 
 ## ROOT-DIGEST option-3 exception
 
-ROOT-DIGEST W1b, user option 3 (2026-10-04), named addition to M1 in plan r2.1:
-`AvailableChain.Gen.Pure.WalkNoEligibleChildOfAnchorClosedStatement` and its `_def`
-add `(∀ A ∈ tree, ∀ B ∈ tree, A.root = B.root → A = B)` before `AnchorClosed anchor tree`.
-Reason: kernel-checked counterexample TS/codex/reports/rdigest/w1/rdw1-walk-stop.lean.
-Callers use the local store invariant or the run body scope. GHOST and its tie refusal stay
-unchanged.
-No global injectivity premise or axiom is added. The frozen baseline keeps all other Gen entries.
-The official Gen list has 705 entries. Only these two entries change.
-The list was generated from compiled source copies in `.lake/rdw1b-isolated`; two stopped proof
-callers
-were omitted there. Their omission does not change Statements entries or their manifest closure.
-The production Gen check cannot load the stopped proof module. This is not a complete checkpoint.
-The generated Gen list is `.lake/rdw1b-gen-manifest.md`; the baseline module blocks below stay in
-place.
-Measured old/new entries from `V2Manifest --scope gen --list`:
+ROOT-DIGEST W1c, user option 3 (2026-10-04), plan r2 Addenda r2.1 and r2.2.
+The class exception covers these four entries in `AvailableChain.Gen.Pure`:
 
-`AvailableChain.Gen.Pure.WalkNoEligibleChildOfAnchorClosedStatement`:
+- `WalkNoEligibleChildOfAnchorClosedStatement` and
+  `WalkNoEligibleChildOfAnchorClosedStatement_def`: add
+  `(∀ A ∈ tree, ∀ B ∈ tree, A.root = B.root → A = B)` before `AnchorClosed anchor tree`.
+  Evidence: `.lake/rdw1b-walk-evidence.lean`, theorem `old_walk_claim_false`, checked against
+  production objects in `.lake/rdw1c-check-walk-evidence.log`. Equal-root eligible siblings
+  cause GHOST to stop at their parent.
+- `WalkCoversOfRetainedTransportStatement` and
+  `WalkCoversOfRetainedTransportStatement_def`: add
+  `(∀ A ∈ targetTree, ∀ B ∈ targetTree, A.root = B.root → A = B)` before source coverage.
+  Evidence: `.lake/rdw1c-retained-evidence.lean`, theorem `frozen_retained_claim_false`.
+  Its kernel check is `.lake/rdw1c-retained-evidence-final.log`. The source returns A;
+  equal-root target siblings make GHOST return genesis despite BestAncestry.
 
-Old entry:
-`def AvailableChain.Gen.Pure.WalkNoEligibleChildOfAnchorClosedStatement 594efa6956805067`
+The census is `.lake/rdw1c-census.md`. No other frozen walk entry needs a new premise.
+BestAncestry keeps its definition. Strict dominance and a selected source path need no new premise.
+CStoreInv supplies the local tree premise through `baseBlocks_rootInj` and `erasedList_rootInj`.
+Generic helpers forward their explicit tree premise. W2 caller edits remain outside W1 scope.
+No FGSAClaims field or Base₂ text changes beyond plan §2 are permitted by this exception.
+GHOST, its tie refusal, and the selector/window algorithm stay unchanged.
 
-New entry:
-`def AvailableChain.Gen.Pure.WalkNoEligibleChildOfAnchorClosedStatement d7e1a22448999412`
-
-`AvailableChain.Gen.Pure.WalkNoEligibleChildOfAnchorClosedStatement_def`:
-
-Old entry:
-`theorem AvailableChain.Gen.Pure.WalkNoEligibleChildOfAnchorClosedStatement_def f44105eff0f46eb7`
-
-New entry:
-`theorem AvailableChain.Gen.Pure.WalkNoEligibleChildOfAnchorClosedStatement_def 3d69bb72395a590e`
-
+The official Gen list has 705 entries. The tool output and the exact four-entry delta are in
+`.lake/rdw1c-gen-manifest.md` and `.lake/rdw1c-gen-manifest-delta.json`.
+All new objects come from the production build. No caller is removed from those modules.
+The full lower-library build remains blocked by W3 test migration.
 
 ## How to check
 
@@ -330,14 +325,14 @@ def AvailableChain.Gen.Pure.WalkCoversOfDominatedSuffixOfAnchorEligibleStatement
 theorem AvailableChain.Gen.Pure.WalkCoversOfDominatedSuffixOfAnchorEligibleStatement_def ec4d786c278ac43f
 def AvailableChain.Gen.Pure.WalkTerminalOfDescendantDepthBoundStatement 0383376a3f1fac6b
 theorem AvailableChain.Gen.Pure.WalkTerminalOfDescendantDepthBoundStatement_def 362f6282f730e355
-def AvailableChain.Gen.Pure.WalkNoEligibleChildOfAnchorClosedStatement 594efa6956805067
-theorem AvailableChain.Gen.Pure.WalkNoEligibleChildOfAnchorClosedStatement_def f44105eff0f46eb7
+def AvailableChain.Gen.Pure.WalkNoEligibleChildOfAnchorClosedStatement d7e1a22448999412
+theorem AvailableChain.Gen.Pure.WalkNoEligibleChildOfAnchorClosedStatement_def 3d69bb72395a590e
 def AvailableChain.Gen.Pure.GhostTransferSfxStatement 86e56762231deccc
 theorem AvailableChain.Gen.Pure.GhostTransferSfxStatement_def 8318f9c64d8c9652
 def AvailableChain.Gen.Pure.BestAncestry f85c0b55cba8beed
 theorem AvailableChain.Gen.Pure.BestAncestry_def 052b2208fd600434
-def AvailableChain.Gen.Pure.WalkCoversOfRetainedTransportStatement 3385b4377a3077f7
-theorem AvailableChain.Gen.Pure.WalkCoversOfRetainedTransportStatement_def f2834ebaab4d115e
+def AvailableChain.Gen.Pure.WalkCoversOfRetainedTransportStatement 581bc76ef7dc35d5
+theorem AvailableChain.Gen.Pure.WalkCoversOfRetainedTransportStatement_def 5f6252068ab2f1c2
 ```
 
 ### `AvailableChainGeneric.Statements.V2.Counts`

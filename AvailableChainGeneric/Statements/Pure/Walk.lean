@@ -300,12 +300,14 @@ theorem BestAncestry_def (anchor target : Block) (tree : List Block)
 DC: DecoupledConsensusProofs/Protocol/ForkChoice/Goldfish/ProposalWalkTransportCore.lean:162,259;
 DecoupledConsensusProofs/Protocol/ForkChoice/Goldfish/Walk.lean:433.
 INTENTIONAL: state per-reader retained transport with atomic premises and source coverage.
+ROOT-DIGEST W1c: require root uniqueness on targetTree.
 Use the existing list fuel and score/root order. -/
 def WalkCoversOfRetainedTransportStatement : Prop :=
   ∀ (sourceAnchor targetAnchor cut parent : Block)
     (sourceTree targetTree : List Block)
     (sourceScore targetScore : Block → Nat)
     (sourceEligible targetEligible : Block → Bool),
+    (∀ A ∈ targetTree, ∀ B ∈ targetTree, A.root = B.root → A = B) →
     Block.Preceq parent (GridCO.ghost sourceAnchor sourceTree sourceScore sourceEligible) →
     Block.Preceq sourceAnchor cut →
     Block.Preceq targetAnchor cut →
@@ -319,13 +321,15 @@ def WalkCoversOfRetainedTransportStatement : Prop :=
 /-- Class (iii).
 DC: DecoupledConsensusProofs/Protocol/ForkChoice/Goldfish/ProposalWalkTransportCore.lean:162,259;
 DecoupledConsensusProofs/Protocol/ForkChoice/Goldfish/Walk.lean:433.
-INTENTIONAL: the defining equation for the Generic retained-transport statement. -/
+INTENTIONAL: the defining equation for the Generic retained-transport statement.
+ROOT-DIGEST W1c: the same targetTree premise as the definition. -/
 theorem WalkCoversOfRetainedTransportStatement_def :
     WalkCoversOfRetainedTransportStatement =
       (∀ (sourceAnchor targetAnchor cut parent : Block)
         (sourceTree targetTree : List Block)
         (sourceScore targetScore : Block → Nat)
         (sourceEligible targetEligible : Block → Bool),
+        (∀ A ∈ targetTree, ∀ B ∈ targetTree, A.root = B.root → A = B) →
         Block.Preceq parent (GridCO.ghost sourceAnchor sourceTree sourceScore sourceEligible) →
         Block.Preceq sourceAnchor cut →
         Block.Preceq targetAnchor cut →

@@ -18,6 +18,16 @@ or removed entry needs an allow line in `scripts/fgsa-manifest-allow.txt`:
 Stale allow lines fail. Structure widening has no exception: put later fields
 in new structures.
 
+## ROOT-DIGEST W1c class exception
+
+The [Gen exception list](GEN-API.md#root-digest-option-3-exception) names all four frozen walk
+entries and their kernel evidence under plan r2.1 and r2.2. No frozen FG-SA walk entry needs a
+new premise. The non-frozen `AvailableChain.FGSA.fgsa_headInTree_reanchor_of_pivot` now takes
+root uniqueness on its arbitrary `tree`. CStoreInv supplies this for each erasedList view.
+The census is `.lake/rdw1c-census.md`. FGSAClaims fields and Base₂ text are unchanged by W1c.
+The FG-SA manifest tool remains blocked by the W3 `AvailableChainFGSA.Tests.Support` fixture.
+No generated FG-SA entry, frozen baseline, SHA, or allow policy is changed here.
+
 ## How to check
 
 `scripts/V2Manifest.lean` generates and checks this list.
