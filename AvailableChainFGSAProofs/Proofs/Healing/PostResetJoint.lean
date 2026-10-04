@@ -1,7 +1,7 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLease
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetInvariant -- shake: keep (r2 owner)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetInvariant -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetOpening
 
 public section
@@ -212,7 +212,7 @@ variable
 include hrec mono emittedNonempty emittedName writes xing origin cap source
     heldRows finalityCap hhead h0r stepRL stepLease stepRaw stepOD stepService
 
-/-- Blueprint 21 H.12–H.18:2652–3064; plan "Induction design"; ruling R3.
+/-- ROOT-DIGEST W2b. Blueprint 21 H.12–H.18:2652–3064; plan "Induction design"; ruling R3.
 Order: reset lease, lease safety, F provenance, raw transfer, opening domain,
 service. Each open step has a named full type. All other fields use producers.
 Foundations producers: fgsa_rMono, sourceDiscipline_emittedNonempty,
@@ -228,14 +228,16 @@ theorem postReset_joint_all :
   | succ i ih =>
     have hrl := stepRL i ih
     have hlease := stepLease i ih hrl
-    have hfprov := postReset_fProv_all p c E rho hrec.base.valid hrec.base.noRestart
+    have hfprov := postReset_fProv_all (hroots := hrec.base.idealization) p c E rho
+      hrec.base.valid hrec.base.noRestart
       origin heldRows finalityCap hhead xing h0r (i + 1)
     have hraw := stepRaw i ih hrl hlease hfprov
     have hod := stepOD i ih hrl hlease hfprov hraw
     have hservice := stepService i ih hrl hlease hfprov hraw hod
     have htransfer := healing_resetTransferCore E rho hrec xing cap source mono w h0r
     refine ⟨⟨?_, ?_, ?_, hlease, hfprov, hraw, hservice⟩, hrl, hod⟩
-    · exact postReset_protected_kept_succ p c E rho hrec.base.valid.toScheduleWellFormed
+    · exact postReset_protected_kept_succ (hroots := hrec.base.idealization) p c E rho
+        hrec.base.valid.toScheduleWellFormed
         xing origin h0r htransfer ih.1
     · exact postReset_high_compatible_all p c E rho hrec mono emittedNonempty emittedName
         writes xing origin h0r (i + 1)

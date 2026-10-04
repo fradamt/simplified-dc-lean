@@ -93,7 +93,7 @@ theorem postReset_reset_compatible_succ {i : Nat} (_hinv : PostResetInv p c E rh
 
 end Compatibility
 
-/-- Blueprint 21 H.13:2785–2813, H.14:2815–2830; plan J2 C;
+/-- ROOT-DIGEST W2b. Blueprint 21 H.13:2785–2813, H.14:2815–2830; plan J2 C;
 B1/B13/B15/B17/B18. DC: INTENTIONAL FJ single-source and pair causes.
 J3/H.14 uses this restricted descent in the duty's own covered view.
 The carrier excludes both causes for a high source or a high copy of C*. -/
@@ -106,13 +106,14 @@ theorem postReset_descent_kept (xing : RXing p c E rho) (origin : RQCOrigin p c 
     (cover : ∀ K s, SourceBefore p c E rho i K s →
       FGBlock.Preceq (storeAt p c E rho i x).fg.F K → FGBlock.Preceq C K →
       (heightView p C).h < (heightView p K).h →
-      K ∈ X ∨ FGBlock.Preceq K (storeAt p c E rho i x).fg.F) :
+      K ∈ X ∨ FGBlock.Preceq K (storeAt p c E rho i x).fg.F)
+    (hroots : NamedRootCollisionFree p c E rho) :
     Kept p c E rho i x X C := by
   have hhigh := hinv.high_compatible
   have hreset := hinv.reset_compatible
   rw [PostResetHighCompatible_def] at hhigh
   rw [PostResetResetCompatible_def] at hreset
-  rcases healing_descent p c E rho xing origin hx hX hC cover with
+  rcases healing_descent (hroots := hroots) p c E rho xing origin hx hX hC cover with
     hk | ⟨K, s, hK, hn, hh⟩ | ⟨K, K', s, s', hK, hK', hh, hlt, hr⟩
   · exact hk
   · have hhK : high p w K := by

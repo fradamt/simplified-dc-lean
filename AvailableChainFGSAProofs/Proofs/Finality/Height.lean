@@ -20,7 +20,7 @@ private theorem kheight_entry (p : Params) {U P : FGBlock (Fin p.n)} {y : Nat}
     (hP : (heightView p P).h = y) : (heightView p P).T_h = U :=
   ((kheight_laws p).entry_plateau hUP (hU.1.trans hP.symm)).symm.trans hU.2
 
-/-- Target coverage writes the entry through the height bridge. -/
+/-- ROOT-DIGEST W2b. Target coverage writes the entry through the height bridge. -/
 private theorem kheight_target (p : Params) {U X : FGBlock (Fin p.n)} {y : Nat}
     (hX : X ≠ .genesis) (hU : EntryAt p U y) (hUX : FGBlock.Preceq U X.parent)
     (hP : (heightView p X.parent).h = y) (hc : CoveredByChild p .target X U y) :
@@ -29,17 +29,17 @@ private theorem kheight_target (p : Params) {U X : FGBlock (Fin p.n)} {y : Nat}
   obtain ⟨S, hS, hc⟩ := hc
   cases X with
   | genesis => exact (hX rfl).elim
-  | node P s x rs =>
+  | node P s root x rs =>
       change (heightView p P).h = y at hP
       change (heightView p P).T_h = U at hT
       obtain ⟨hh, hJ, hj⟩ := derive_target_of_cover_of_bridge p.E p.cfg
-        (heightView p) (heightView_bridge p) P s x rs S hS (by
+        (heightView p) (heightView_bridge p) P s root x rs S hS (by
           simpa only [hP, hT] using
             (show ∀ i ∈ S, i ∈ (heightView p P).target_participation ∨
               ∃ a ∈ rs, a.signer = i ∧ a.height_pair = .vote y U.root false from hc))
       exact ⟨hP, hh.trans (congrArg (· + 1) hP), hJ.trans hT, hj.trans hP⟩
 
-/-- Mature progress coverage advances through the height bridge. -/
+/-- ROOT-DIGEST W2b. Mature progress coverage advances through the height bridge. -/
 private theorem kheight_progress (p : Params) {U X : FGBlock (Fin p.n)} {y : Nat}
     (hX : X ≠ .genesis) (hU : EntryAt p U y) (hUX : FGBlock.Preceq U X.parent)
     (hP : (heightView p X.parent).h = y) (hc : CoveredByChild p .progress X U y)
@@ -48,11 +48,11 @@ private theorem kheight_progress (p : Params) {U X : FGBlock (Fin p.n)} {y : Nat
   obtain ⟨S, hS, hc⟩ := hc
   cases X with
   | genesis => exact (hX rfl).elim
-  | node P s x rs =>
+  | node P s root x rs =>
       change (heightView p P).h = y at hP
       change (heightView p P).T_h = U at hT
       have hh := derive_progress_of_cover_of_bridge p.E p.cfg
-        (heightView p) (heightView_bridge p) P s x rs S hS (by
+        (heightView p) (heightView_bridge p) P s root x rs S hS (by
           intro i hi
           rcases hc i hi with hb | ⟨a, ha, hs, timeout, hp⟩
           · exact Or.inl hb
@@ -73,7 +73,7 @@ private theorem kheight_cross_cases (p : Params) {U W : FGBlock (Fin p.n)} {y : 
   cross_cases_of_laws (kheight_laws p) (FGJustificationLaws.of_bridge (heightView_bridge p))
     hU hUW hP hW
 
-/-- FINAL 22:710–737,1213–1223. The first target edge supplies the trichotomy.
+/-- ROOT-DIGEST W2b. FINAL 22:710–737,1213–1223. The first target edge supplies the trichotomy.
 DC: W4FKChainJustification.lean:185; FG-SA also names a mixed ancestor. -/
 theorem fgsa_foldTrichotomy_target (p : Params) : foldTrichotomy p .target := by
   rw [foldTrichotomy_def]
@@ -90,14 +90,14 @@ theorem fgsa_foldTrichotomy_target (p : Params) : foldTrichotomy p .target := by
     have hPX : FGBlock.Preceq X.parent X := by
       cases X with
       | genesis => exact (hX rfl).elim
-      | node P s x rs => exact preceq_parent_node P s x rs
+      | node P s root x rs => exact preceq_parent_node P s root x rs
     have hmono := laws.h_mono hPX
     refine ⟨by simp only [Height] at *; omega, fun _ => ?_⟩
     rcases kheight_cross_cases p hU hUW hp hw with hj | hm
     · exact Or.inl ⟨W, preceq_trans hWP hPX, hj⟩
     · exact Or.inr ⟨W, hWP, hm⟩
 
-/-- FINAL 22:710–737,1213–1223. Mature progress crosses or has already crossed.
+/-- ROOT-DIGEST W2b. FINAL 22:710–737,1213–1223. Mature progress crosses or has already crossed.
 DC: ProgressQuorumCore.lean:39; height monotonicity handles earlier crossings. -/
 theorem fgsa_foldTrichotomy_progress (p : Params) : foldTrichotomy p .progress := by
   rw [foldTrichotomy_def]
@@ -111,14 +111,14 @@ theorem fgsa_foldTrichotomy_progress (p : Params) : foldTrichotomy p .progress :
     · have hPX : FGBlock.Preceq X.parent X := by
         cases X with
         | genesis => exact (hX rfl).elim
-        | node P s x rs => exact preceq_parent_node P s x rs
+        | node P s root x rs => exact preceq_parent_node P s root x rs
       have := laws.h_mono hPX
       simp only [Height] at *
       omega
   · intro hk
     cases hk
 
-/-- A matching carrier row persists at a later point of the same height. -/
+/-- ROOT-DIGEST W2b. A matching carrier row persists at a later point of the same height. -/
 private theorem kheight_progress_row (p : Params) {B P : FGBlock (Fin p.n)}
     {a : Row (Fin p.n)} (ha : a ∈ B.rows) (hBP : FGBlock.Preceq B P)
     (hh : (heightView p B.parent).h = (heightView p P).h)
@@ -126,10 +126,11 @@ private theorem kheight_progress_row (p : Params) {B P : FGBlock (Fin p.n)}
       (heightView p B.parent).T_h.root = true) : a.signer ∈ (heightView p P).progress := by
   cases B with
   | genesis => exact (List.not_mem_nil ha).elim
-  | node D s x rs =>
+  | node D s root x rs =>
       exact progress_from_row_of_bridge p.E p.cfg (heightView p) (heightView_bridge p) ha hBP hm hh
 
-/-- FINAL 21:1397–1407,22:710–737. Equal-height paths keep stored progress coverage.
+/-- ROOT-DIGEST W2b. FINAL 21:1397–1407,22:710–737. Equal-height paths keep stored progress
+coverage.
 DC: ProgressQuorumCore.lean:39; KitFG row-bit persistence supplies the path transfer. -/
 theorem fgsa_storedProgressConsume (p : Params) : StoredProgressConsume p := by
   rw [StoredProgressConsume_def]
@@ -139,7 +140,7 @@ theorem fgsa_storedProgressConsume (p : Params) : StoredProgressConsume p := by
     have hb : FGBlock.Preceq B.parent B := by
       cases B with
       | genesis => exact preceq_refl _
-      | node D s x rs => exact preceq_parent_node D s x rs
+      | node D s root x rs => exact preceq_parent_node D s root x rs
     exact preceq_trans hb hBX
   have hlo := laws.h_mono hUB
   have hhi := laws.h_mono hBP
@@ -180,21 +181,21 @@ theorem fgsa_storedProgressConsume (p : Params) : StoredProgressConsume p := by
   exact kheight_progress p hX hU (preceq_trans hUB hBP) hP
     ⟨S, hS, fun i hi => Or.inl (hbits i hi)⟩ hm
 
-/-- Increasing slots give a slot bound on every ancestor. -/
+/-- ROOT-DIGEST W2b. Increasing slots give a slot bound on every ancestor. -/
 private theorem kheight_slot_le (p : Params) {W X : FGBlock (Fin p.n)}
     (hs : SlotChain X) (hWX : FGBlock.Preceq W X) : W.slot ≤ X.slot := by
   induction X with
   | genesis => obtain rfl := preceq_genesis.mp hWX; exact le_refl _
-  | node P s x rs ih =>
-      by_cases heq : W = .node P s x rs
+  | node P s root x rs ih =>
+      by_cases heq : W = .node P s root x rs
       · subst W; exact le_refl _
       · have hWP := preceq_parent_of_preceq_node hWX heq
-        have hslot := hs (.node P s x rs) (preceq_refl _) (by simp)
+        have hslot := hs (.node P s root x rs) (preceq_refl _) (by simp)
         have hp : SlotChain P := fun A hA hne =>
-          hs A (preceq_node_of_preceq s x rs hA) hne
+          hs A (preceq_node_of_preceq s root x rs hA) hne
         exact le_trans (ih hp hWP) (Nat.le_of_lt hslot)
 
-/-- FINAL 22:1213–1216. Every parent ancestor is strictly before maturity.
+/-- ROOT-DIGEST W2b. FINAL 22:1213–1216. Every parent ancestor is strictly before maturity.
 DC: CarrierTimeoutGate.lean:121; FG-SA takes the slot gate and slot order as premises. -/
 theorem fgsa_noMixedMaturity (p : Params) : NoMixedMaturity p := by
   intro y U X hs hU hUX hearly W hWP hm
@@ -217,7 +218,7 @@ theorem fgsa_noMixedMaturity (p : Params) : NoMixedMaturity p := by
   have hUWp : FGBlock.Preceq U W.parent := by
     cases W with
     | genesis => exact (hne rfl).elim
-    | node D s x rs =>
+    | node D s root x rs =>
         apply preceq_parent_of_preceq_node hUW
         intro heq
         rw [← heq, hU.1] at hW
@@ -232,7 +233,7 @@ theorem fgsa_noMixedMaturity (p : Params) : NoMixedMaturity p := by
     (fun A hA hAne => hs A (preceq_trans hA (by
       cases X with
       | genesis => exact preceq_refl _
-      | node D s x rs => exact preceq_parent_node D s x rs)) hAne) hWP
+      | node D s root x rs => exact preceq_parent_node D s root x rs)) hAne) hWP
   have hwEarly : W.slot < U.slot + p.cfg.timeoutDelay := by
     change X.slot < U.slot + p.cfg.timeoutDelay + 1 at hearly
     simp only [Slot] at *

@@ -57,7 +57,7 @@ theorem inclusion_awake_seat_batch [Fintype V]
     ((igate_vote_lt_gate p s).trans_le hhor)⟩⟩
 
 
-/-- Blueprint 03:418–458; plan I-GATE, G5. Class (iii).
+/-- ROOT-DIGEST W2b. Blueprint 03:418–458; plan I-GATE, G5. Class (iii).
 DC: INTENTIONAL; a strict majority gives the exact raw result. Compatible
 leases let the gate advance S to P. No lease admission test is needed. -/
 theorem inclusion_gate_exact [Fintype V]
@@ -85,7 +85,8 @@ theorem inclusion_gate_exact [Fintype V]
         BelowLabel p c E rho i (labelBoundAt p c rho j) (eraseFG C))
     (pt : PtSP) (hprop : HonestProposal E rho (fgsaInterface p c) pt.s pt.P)
     (hhor : SA.gateTime p.toParams pt.s ≤ rho.horizon)
-    {i : Nat} {x : V} (hx : x ∈ rho.honest) (ht : IsGateTick p c rho i x pt.s) :
+    {i : Nat} {x : V} (hx : x ∈ rho.honest) (ht : IsGateTick p c rho i x pt.s)
+    (hstrat : RStrat p c E rho) :
     gateResult p c E rho x pt.s = some (some pt.P) ∧
       (fgsaAC E rho).raw i pt.s x = some pt.P ∧ gatePassedAt p c E rho i ∧
       S_at p c E rho (i + 1) x = pt.P := by
@@ -94,9 +95,11 @@ theorem inclusion_gate_exact [Fintype V]
   let v := actView pre
   have hE := hset.pre.base.valid
   have hs := hE.toScheduleWellFormed
-  have hhead := inclusion_headAtLabel E rho ΔF hset hstore hframe hsrc hordered hnonempty
+  have hhead := inclusion_headAtLabel (hstrat := hstrat) E rho ΔF hset hstore hframe hsrc hordered
+    hnonempty
     htransfer hleases hrows pt hprop hhor
-  obtain ⟨hF, _, hS, hleasesP, _, _⟩ := inclusion_preGate_bounds E rho ΔF hset hstore hframe
+  obtain ⟨hF, _, hS, hleasesP, _, _⟩ := inclusion_preGate_bounds (hstrat := hstrat) E rho ΔF hset
+    hstore hframe
     hsrc hordered hnonempty htransfer hleases hrows pt hprop hhor hx ht
   have hgeom : GateReceiptGeometry E rho pre pt.s pt.P := by
     constructor
@@ -113,7 +116,8 @@ theorem inclusion_gate_exact [Fintype V]
   have hsync := Gen.V2.Duty.LabelSyncOn.of_cleanCutBy E rho (fun o => ¬ isRowObject o)
     rho.horizon _ _ hset.pre.healthy (fgsaDelay_nonrow E.Δ ΔF) hvd hhor le_rfl
   obtain ⟨H, hH, _, hbatch⟩ := inclusion_awake_seat_batch E rho ΔF hset pt.s hhor
-  obtain ⟨hr, _, _, _⟩ := exactService_gate_raw_of_head E rho hE hset.pre.base.noRestart
+  obtain ⟨hr, _, _, _⟩ := exactService_gate_raw_of_head (hroots := hset.pre.base.idealization)
+    E rho hE hset.pre.base.noRestart
     hset.pre.base.delta hset.pre.base.cstar pt.s pt.P hhead hsync ht hgeom H hH hbatch
   have hv : { v with early := st.base.early } = (fgsaAC E rho).gateView i x pt.s :=
     fgsa_clockPre_gateView p st pt.s

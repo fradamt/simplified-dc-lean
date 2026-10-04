@@ -15,7 +15,7 @@ open Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- Plan O-ARM §4 field 9, §6.2 step 8, §6.3. Class (iii). DC: INTENTIONAL;
+/-- ROOT-DIGEST W2b. Plan O-ARM §4 field 9, §6.2 step 8, §6.3. Class (iii). DC: INTENTIONAL;
 the stored batch at the pending gate tick gives strict majorities at the F
 anchor and at `D` (`fgsa_gate_batch_premises`), so the raw result covers `D`
 (`fgsa_confirmationFrom_covers_majority`). In fast mode the batch counts at
@@ -109,7 +109,7 @@ theorem arming_pending_input [Fintype V] {E : Generic.Env V}
   have hcover := fgsa_gate_batch_premises E rho hE hC i y (l + 1) D H hbatch
     (fun q hq haw => (hH q).mpr ⟨hq, haw⟩) hheads
   obtain ⟨Cj, hCj, hDCj⟩ := fgsa_confirmationFrom_covers_majority p (actView P)
-    (eraseFG P.fg.F) D (l + 1) (block_compatible_of_common (hPF ▸ hFi) (block_preceq_refl D))
+    (eraseFG P.fg.F) D (l + 1) D.root (block_compatible_of_common (hPF ▸ hFi) (block_preceq_refl D))
     hcover.1 hcover.2.1 hcover.2.2
   obtain ⟨w0, hw0⟩ := Finset.card_pos.mp (lt_of_le_of_lt (Nat.zero_le _) hbatch.lt)
   obtain ⟨K0, _, _, _, _, hK0, _, _, _, _, hDK0⟩ := hheads w0 hw0

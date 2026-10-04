@@ -14,13 +14,13 @@ open AvailableChain.SimplexFG
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- Blueprint 21 HG.1:1521–1534 (state height on a path, IF.1). DC: SAME state height does
+/-- ROOT-DIGEST W2b. Blueprint 21 HG.1:1521–1534 (state height on a path, IF.1). DC: SAME state
+height does
 not decrease along an erased path. -/
 theorem frontier_height_mono {D B : FGBlock (Fin p.n)}
     (h : Block.Preceq (eraseFG D) (eraseFG B)) : (heightView p D).h ≤ (heightView p B).h := by
   have hl : FGBlock.Preceq D B :=
-    preceq_of_eraseFG_preceq (Vw := {D, B}) (KitFG.viewRootInj_all _)
-      ⟨D, by simp, KitFG.preceq_refl _⟩ ⟨B, by simp, KitFG.preceq_refl _⟩ h
+    eraseFG_preceq_iff.mp h
   exact (fgCertificateLaws p).height.h_mono hl
 
 /-- Blueprint 21 HG.1:1520–1523; plan §3.1 step 2. DC: INTENTIONAL the closed cap of
@@ -93,7 +93,8 @@ theorem frontier_F_below (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   exact crossing a a y z Kc K hy le_rfl hKc hKcF ⟨hz, hKa⟩
     (by simp only [Height] at *; omega)
 
-/-- Blueprint 21 HG.1:1529–1534, IF.5; plan §3.1 step 2. DC: INTENTIONAL a block above the
+/-- ROOT-DIGEST W2b. Blueprint 21 HG.1:1529–1534, IF.5; plan §3.1 step 2. DC: INTENTIONAL a block
+above the
 height-m pivot, held by an honest node after an event at or after GST, is held by every
 honest node strictly before that time + Δ, when the cap covers the receipt cut
 (`healing_phase_held_receipt`). -/
@@ -109,17 +110,20 @@ theorem frontier_relay (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     {K : FGBlock (Fin p.n)} (hK : K ∈ (storeAt p c E rho (i + 1) z).fg.TF)
     (hQK : Block.Preceq (eraseFG Qfg) (eraseFG K)) (hhor : ev.time + p.Δ ≤ rho.horizon)
     (hcut : V2.D.Run.idxBefore rho (ev.time + p.Δ) ≤ timeIdx rho v)
-    {y : V} (hy : y ∈ rho.honest) :
+    {y : V} (hy : y ∈ rho.honest)
+    (hroots : NamedRootCollisionFree p c E rho) :
     K ∈ (storeAt p c E rho (V2.D.Run.idxBefore rho (ev.time + p.Δ)) y).fg.TF := by
   have hKm : m ≤ (heightView p K).h := hQm ▸ frontier_height_mono (p := p) hQK
   have hfront : frontierAtIdx p c E rho (V2.D.Run.idxBefore rho (ev.time + p.Δ)) ≤
       (heightView p K).h := by
     change rho.honest.sup (fun x => (storeAt p c E rho _ x).fg.h_max) ≤ _
     exact Finset.sup_le (fun x hx => (hcap _ x hcut hx).trans hKm)
-  exact healing_phase_held_receipt p c E rho crossing hE hN hDelta hsync hi hz hgst hK hhor
+  exact healing_phase_held_receipt (hroots := hroots)
+    p c E rho crossing hE hN hDelta hsync hi hz hgst hK hhor
     hfront hy
 
-/-- Blueprint 21 HG.1:1529–1534, H.2 S1 (709–715); plan §3.1 steps 2–3. DC: INTENTIONAL the
+/-- ROOT-DIGEST W2b. Blueprint 21 HG.1:1529–1534, H.2 S1 (709–715); plan §3.1 steps 2–3. DC:
+INTENTIONAL the
 HEAD of an honest node at label i that covers the pivot is a held block of height m in its
 full tree; every honest node holds it strictly before v_i + Δ, when the cap covers that
 cut. This replaces the fixed-phase HEAD witness relay (`healing_head_witness_relay`). -/
@@ -136,7 +140,8 @@ theorem frontier_head_relay (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hQK : Block.Preceq (eraseFG Qfg) (headVote p (FGSA.clock p
       (V2.D.Run.stateBefore E rho jz z).st (SA.voteTime p.toParams i)) i))
     (hhor : SA.voteTime p.toParams i + p.Δ ≤ rho.horizon)
-    (hcut : V2.D.Run.idxBefore rho (SA.voteTime p.toParams i + p.Δ) ≤ timeIdx rho v) :
+    (hcut : V2.D.Run.idxBefore rho (SA.voteTime p.toParams i + p.Δ) ≤ timeIdx rho v)
+    (hroots : NamedRootCollisionFree p c E rho) :
     ∃ Kfg, Kfg ∈ (storeAt p c E rho jz z).fg.TF ∧
       eraseFG Kfg = headVote p (FGSA.clock p (V2.D.Run.stateBefore E rho jz z).st
         (SA.voteTime p.toParams i)) i ∧ (heightView p Kfg).h = m ∧
@@ -159,7 +164,7 @@ theorem frontier_head_relay (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   have hKm := (frontier_height_eq E rho hQm (hcap jz z hjzv hz) hKT hQK').1
   refine ⟨Kfg, hKT, hKe', hKm, ?_⟩
   intro y hy
-  exact frontier_relay E rho crossing hE hN hDelta hsync hQm hcap hjz hz hgst
+  exact frontier_relay (hroots := hroots) E rho crossing hE hN hDelta hsync hQm hcap hjz hz hgst
     ((fgsa_store_cumulative p c E rho hN (Nat.le_succ jz) z).1 hKT) hQK' hhor hcut hy
 
 end AvailableChain.FGSA.Run

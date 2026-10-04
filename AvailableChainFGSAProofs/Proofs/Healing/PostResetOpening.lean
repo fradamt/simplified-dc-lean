@@ -45,7 +45,7 @@ theorem PostResetOpeningDomain_def (w : HealingWitness) (i : Nat) :
 
 variable {p c E rho}
 
-/-- Blueprint 21 H.17:2946–3012; plan J6/J6-3 O1; B1/B17/B18.
+/-- ROOT-DIGEST W2b. Blueprint 21 H.17:2946–3012; plan J6/J6-3 O1; B1/B17/B18.
 DC: SAME retained geometry at actual HEAD ticks. Recovery supplies
 synchrony through the explicit HEAD horizon. H0Reset supplies only the GST
 bound. There is no additional standing port or INLINE input on this route.
@@ -78,10 +78,12 @@ theorem healing_postReset_headGeometry_at [Fintype V]
   have hScoreSync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho
     (fun o => ¬ isRowObject o) _ _ hrec.sync (fgsaDelay_nonrow E.Δ _) hGST
     hScoreDeadline hHeadHorizon
-  obtain ⟨D, hreads⟩ := healing_postReset_retainedReads_at p c E rho hrec.base.valid
+  obtain ⟨D, hreads⟩ := healing_postReset_retainedReads_at (hroots := hrec.base.idealization)
+    p c E rho hrec.base.valid
     hrec.base.noRestart hDelta w v hcone hv hHeadHorizon hScoreSync hx hip hseat
     Q raw sup rows hem
-  exact ⟨D, fgsa_retainedExactHead_geometry_on_run E rho hrec.base.valid
+  exact ⟨D, fgsa_retainedExactHead_geometry_on_run (hroots := hrec.base.idealization) E rho
+    hrec.base.valid
     hrec.base.noRestart hDelta v hWalkSync hScoreSync hx hip hseat Q raw sup rows hem D hreads⟩
 
 /-- Blueprint 21 H.17:2946–3012; plan J6/J6-3 O1; B1/B17/B18.
@@ -289,7 +291,7 @@ variable [Fintype V]
 
 include hrec hreset cap rowCovered
 
-/-- Blueprint 21 H.17:3024–3040; plan J6-3 O1/O2; B1/B13/B17/B18.
+/-- ROOT-DIGEST W2b. Blueprint 21 H.17:3024–3040; plan J6-3 O1/O2; B1/B13/B17/B18.
 DC: SAME current F provenance and raw-result parent transfer at the cut.
 Standing cap has producer fgsa_rCap_channel. INLINE rowCovered has producer
 rowPermission_covered. postReset_selected_label supplies each high source's
@@ -317,7 +319,7 @@ theorem healing_postReset_gate_finality (i : Nat)
   have hparent : Block.Preceq Q.parent Q := by
     cases Q with
     | genesis => exact block_preceq_refl _
-    | node P s body => exact Bool.or_eq_true_iff.mpr (Or.inr (block_preceq_refl P))
+    | node P s root body => exact Bool.or_eq_true_iff.mpr (Or.inr (block_preceq_refl P))
   rw [PostResetFProv_def] at hfp
   rcases (hfp k hk x hx hresetCut).1 with hlow | ⟨K, s, hK, hh, htime, hFK⟩
   · exact block_preceq_trans hlow (block_preceq_trans hCQp hparent)
@@ -395,7 +397,7 @@ variable [Fintype V]
 
 include hrec hreset cap rowCovered
 
-/-- Blueprint 21 H.17:3021–3040; plan J6-3 O1/O2; B1/B13/B17/B18.
+/-- ROOT-DIGEST W2b. Blueprint 21 H.17:3021–3040; plan J6-3 O1/O2; B1/B13/B17/B18.
 DC: SAME exact raw result at an earlier tick in the cut. This result uses
 no service or opening-domain input. It covers same-time selected sources.
 Blueprint 21 H.17:2946–3040; plan RE-BIND D2; DC: SAME per-label cone. -/
@@ -432,7 +434,8 @@ theorem healing_postReset_gate_raw_at (i : Nat) {v : Slot} (hcone : PostResetCon
   have hSync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho
     (fun o => ¬ isRowObject o) _ _ hrec.sync (fgsaDelay_nonrow E.Δ _) hgsts hvd hGateHorizon
   obtain ⟨H, hH, hbatch, _⟩ := healing_postReset_gate_participation E rho hrec hgsts hh
-  obtain ⟨hr, _, _, _⟩ := exactService_gate_raw_of_head E rho hrec.base.valid
+  obtain ⟨hr, _, _, _⟩ := exactService_gate_raw_of_head (hroots := hrec.base.idealization)
+    E rho hrec.base.valid
     hrec.base.noRestart hrec.base.delta hrec.base.cstar v Q hhead hSync ht hreceipt H hH hbatch
   rw [gateResult_def, gateIn_def, preTick_def, fgsa_tickIdx_of_event p c E rho hs ht]
   exact congrArg some hr
@@ -462,10 +465,9 @@ include hrec hreset cap rowCovered
 omit hrec hreset cap rowCovered in
 private theorem opening_lift {A B : FGBlock (Fin p.n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
-  preceq_of_eraseFG_preceq (KitFG.viewRootInj_all {A, B})
-    ⟨A, by simp, KitFG.preceq_refl A⟩ ⟨B, by simp, KitFG.preceq_refl B⟩ h
+  eraseFG_preceq_iff.mp h
 
-/-- Blueprint 21 H.17:3031–3040; plan J6-3 O1; B1/B13/B17/B18.
+/-- ROOT-DIGEST W2b. Blueprint 21 H.17:3031–3040; plan J6-3 O1; B1/B13/B17/B18.
 DC: SAME earlier-opening parent transfer. A same-time source uses the
 exact raw result at its earlier tick, without service or opening_domain.
 Standing cap and INLINE rowCovered have the gate_finality producer map.
@@ -515,12 +517,12 @@ theorem healing_postReset_opening_source_prefix_at (i : Nat) {v : Slot}
     apply block_preceq_trans hparent
     cases Q with
     | genesis => exact block_preceq_refl _
-    | node P s body => exact Bool.or_eq_true_iff.mpr (Or.inr (block_preceq_refl P))
+    | node P s root body => exact Bool.or_eq_true_iff.mpr (Or.inr (block_preceq_refl P))
 
 variable (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
 include xing origin
 
-/-- Blueprint 21 H.17:3031–3040; plan J6-3 O1; B1/B13/B17/B18.
+/-- ROOT-DIGEST W2b. Blueprint 21 H.17:3031–3040; plan J6-3 O1; B1/B13/B17/B18.
 DC: SAME J3 height, contest, floor, roots and witness at the new tick.
 The witness view contains only the reset copy and high sources, so its
 returned witness has a proved prefix bound. The proposal witnesses its
@@ -572,14 +574,16 @@ theorem healing_postReset_openingDomain_new_tick_at (i : Nat) {v : Slot}
     apply block_preceq_trans hCQp
     cases Q with
     | genesis => exact block_preceq_refl _
-    | node P s body => exact Bool.or_eq_true_iff.mpr (Or.inr (block_preceq_refl P))
+    | node P s root body => exact Bool.or_eq_true_iff.mpr (Or.inr (block_preceq_refl P))
   obtain ⟨C, hC, heC⟩ := eraseFG_ancestor_mem (cstoreInv_stateBefore E rho i x).fg.closed
     hD (by rwa [heD])
   have hCD : FGBlock.Preceq C D := opening_lift (by rwa [heC, heD])
   have hheight := postReset_keep_height p c E rho hreset hC heC
-  have hcontest := postReset_keep_contest p c E rho hs origin hhigh hheight hx
+  have hcontest := postReset_keep_contest (hroots := hrec.base.idealization) p c E rho hs origin
+    hhigh hheight hx
   have hfloor := postReset_keep_floor p c E rho hcontest
-  have hroots := postReset_keep_roots p c E rho hs xing origin hreset hx hC heC
+  have hroots := postReset_keep_roots (hroots := hrec.base.idealization) p c E rho hs xing origin
+    hreset hx hC heC
   have hrootBound : ∀ B ∈ [(R_at p c E rho i x).Z, (storeAt p c E rho i x).fg.F],
       FGBlock.Preceq B D := by
     intro B hB
@@ -593,7 +597,8 @@ theorem healing_postReset_openingDomain_new_tick_at (i : Nat) {v : Slot}
   have hcover : ∀ K s, SourceBefore p c E rho i K s → high p w K → K ∈ X := by
     intro K s hK hh
     exact Finset.mem_filter.mpr ⟨hstored K s hK hh, Or.inr ⟨s, hK, hh⟩⟩
-  obtain ⟨B, hB, hBh⟩ := postReset_keep_witness p c E rho origin hreset hx hX hCX heC hcover
+  obtain ⟨B, hB, hBh⟩ := postReset_keep_witness (hroots := hrec.base.idealization) p c E rho
+    origin hreset hx hX hCX heC hcover
   have hBD : FGBlock.Preceq B D := by
     rcases (Finset.mem_filter.mp hB).2 with rfl | ⟨s, hBsrc, hh⟩
     · exact hCD

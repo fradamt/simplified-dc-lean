@@ -15,8 +15,7 @@ variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
 private theorem frontier_service_lift {A B : FGBlock (Fin p.n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
-  preceq_of_eraseFG_preceq (Vw := {A, B}) (KitFG.viewRootInj_all _)
-    ⟨A, by simp, KitFG.preceq_refl _⟩ ⟨B, by simp, KitFG.preceq_refl _⟩ h
+  eraseFG_preceq_iff.mp h
 
 /-- Blueprint 21:1529–1539; plan §3.1 step 3.
 DC: INTENTIONAL every later honest proposal at s ≥ q+2 has a parent above the seed Q.

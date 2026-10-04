@@ -75,7 +75,7 @@ variable (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
 
 include hstore hframe hsrc htsrc hnamed hordered hnonempty htransfer hbelow hleaseOrigin
   hsavedKeep hsOrigin hmono hcleanGate in
-/-- Blueprint 03 §§6–9; O-INDUCT plan §9.1–2. Class (iii).
+/-- ROOT-DIGEST W2b. Blueprint 03 §§6–9; O-INDUCT plan §9.1–2. Class (iii).
 DC: INTENTIONAL; split on the canonical pending gate before calling its
 boundary producer. INLINE Foundations inputs: activeViewAt, frameAt,
 SrcFrameAbove, tSrc, emittedName. INLINE Clean inputs: cleanHistoryAt,
@@ -83,7 +83,8 @@ cleanGateAt, and the individual projections of cleanTruncAt at b₀. -/
 theorem outage_protected_read (h : OutagePrem p c fast E rho pt ΔF)
     {x : V} {B : Block} (hx : x ∈ rho.honest)
     (hread : Block.Preceq B (V2.D.outputAt E rho (fgsaInterface p c).stable x pt.T))
-    (hne : B ≠ .genesis) :
+    (hne : B ≠ .genesis)
+    (hstrat : RStrat p c E rho) :
     (∀ y t, y ∈ rho.honest → pt.b₀ ≤ t → t < pt.b₁ →
       Block.Preceq B (S_at p c E rho (timeIdx rho t) y)) ∧
     (∀ y t o, y ∈ rho.honest → pt.b₀ ≤ t → t < pt.b₁ → V2.D.Run.emits E rho y o t →
@@ -105,13 +106,17 @@ theorem outage_protected_read (h : OutagePrem p c fast E rho pt ΔF)
     have harm : ArmingData p c E rho fast pt.T pt.b₀ pt.b₁ B := by
       cases fast with
       | true =>
-        exact fast_arming pt.T pt.b₀ pt.b₁ ΔF h.set.pre.base.valid h.set.pre.base.cstar
+        exact fast_arming (hroots := h.set.pre.base.idealization)
+          (hstrat := hstrat)
+          pt.T pt.b₀ pt.b₁ ΔF h.set.pre.base.valid h.set.pre.base.cstar
           h.set.pre.base.noRestart h.set.pre.base.delta h.set.pre.cut h.set.pre.healthy
           h.set.pre.partBefore h.set.order h.set.budget x B hx hread hne
           hstore hframe hsrc htsrc hnamed hordered hnonempty htransfer hbelow hleaseOrigin
           hsOrigin hmono hcleanGate h.set.lag (h.set.fastPart rfl)
       | false =>
-        exact slow_arming pt.T pt.b₀ pt.b₁ ΔF h.set.pre.base.valid h.set.pre.base.cstar
+        exact slow_arming (hroots := h.set.pre.base.idealization)
+          (hstrat := hstrat)
+          pt.T pt.b₀ pt.b₁ ΔF h.set.pre.base.valid h.set.pre.base.cstar
           h.set.pre.base.noRestart h.set.pre.base.delta h.set.pre.cut h.set.pre.healthy
           h.set.pre.partBefore h.set.order h.set.budget x B hx hread hne
           hstore hframe hsrc htsrc hnamed hordered hnonempty htransfer hbelow hleaseOrigin
@@ -138,7 +143,8 @@ theorem outage_protected_read (h : OutagePrem p c fast E rho pt ΔF)
       rw [Gen.V2.Duty.awakeHonest_def, ← hcard]
       exact Finset.card_filter_le _ _
     have hfault := outage_fault_lt_release p hah hhn
-    exact duties_and_outputs h.set.pre.base.valid h.set.pre.base.noRestart h.set.pre.base.cstar
+    exact duties_and_outputs (hroots := h.set.pre.base.idealization) (hstrat := hstrat)
+      h.set.pre.base.valid h.set.pre.base.noRestart h.set.pre.base.cstar
       h.set.pre.base.delta hfault hstore hframe hsrc htsrc hnamed hne hc hopen h.set.order.2.2.2
   · have hbd : pt.b₁ ≤ SA.gateTime p.toParams (l + 1) := le_of_not_gt hopen
     refine ⟨?_, ?_, ?_, ?_⟩
@@ -163,10 +169,11 @@ theorem outage_finalized_read (hs : V2.D.ScheduleWellFormed E rho) (y : V) (t : 
 
 include hstore hframe hsrc htsrc hnamed hordered hnonempty htransfer hbelow hleaseOrigin
   hsavedKeep hsOrigin hmono hcleanGate in
-/-- Blueprint 03 §9; O-INDUCT plan §9.2. Class (iii).
+/-- ROOT-DIGEST W2b. Blueprint 03 §9; O-INDUCT plan §9.2. Class (iii).
 DC: INTENTIONAL; the exact expanded OutageCompat body. All cross-lane
 facts stay inline and have the producers listed on outage_protected_read. -/
-theorem outage_compat_body (h : OutagePrem p c fast E rho pt ΔF) :
+theorem outage_compat_body (h : OutagePrem p c fast E rho pt ΔF)
+    (hstrat : RStrat p c E rho) :
     ((∀ g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed],
       ∀ x B, x ∈ rho.honest → Block.Preceq B (V2.D.outputAt E rho g x pt.T) →
         ServedOn (· ∈ rho.honest) (fun t y => V2.D.outputAt E rho g y t) B
@@ -201,7 +208,7 @@ theorem outage_compat_body (h : OutagePrem p c fast E rho pt ΔF) :
             (V2.D.outputAt E rho (fgsaInterface p c).stable x pt.T) := by
           rw [arming_stable_read hs]
           exact hread
-        have hp := outage_protected_read (hstore := hstore)
+        have hp := outage_protected_read (hstrat := hstrat) (hstore := hstore)
           (hframe := hframe)
           (hsrc := hsrc)
           (htsrc := htsrc)
@@ -226,7 +233,7 @@ theorem outage_compat_body (h : OutagePrem p c fast E rho pt ΔF) :
             fun X raw sup rows _ => block_genesis_preceq X.parent⟩
         · intro t y h0 htb hy
           exact block_compatible_of_common (block_genesis_preceq _) (block_preceq_refl _)
-      · have hp := outage_protected_read (hstore := hstore)
+      · have hp := outage_protected_read (hstrat := hstrat) (hstore := hstore)
           (hframe := hframe)
           (hsrc := hsrc)
           (htsrc := htsrc)
@@ -245,7 +252,7 @@ theorem outage_compat_body (h : OutagePrem p c fast E rho pt ΔF) :
         rw [outage_finalized_read hs]
         exact hp.2.2.1 t y h0 htb hy
   · intro x B hx hread hne
-    exact (outage_protected_read (hstore := hstore)
+    exact (outage_protected_read (hstrat := hstrat) (hstore := hstore)
           (hframe := hframe)
           (hsrc := hsrc)
           (htsrc := htsrc)
@@ -262,9 +269,10 @@ theorem outage_compat_body (h : OutagePrem p c fast E rho pt ΔF) :
 
 include hstore hframe hsrc htsrc hnamed hordered hnonempty htransfer hbelow hleaseOrigin
   hsOrigin hmono hcleanGate in
-/-- Blueprint 03 §9.1; O-INDUCT plan §9.3. Class (iii).
+/-- ROOT-DIGEST W2b. Blueprint 03 §9.1; O-INDUCT plan §9.3. Class (iii).
 DC: INTENTIONAL; the exact expanded FastP1 body returns the P1 pair. -/
-theorem fast_p1_body (h : OutagePrem p c true E rho pt ΔF) :
+theorem fast_p1_body (h : OutagePrem p c true E rho pt ΔF)
+    (hstrat : RStrat p c E rho) :
     (∀ g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed],
       ∀ x B, x ∈ rho.honest → Block.Preceq B (V2.D.outputAt E rho g x pt.T) →
         ServedOn (· ∈ rho.honest) (fun t y => V2.D.outputAt E rho g y t) B
@@ -276,7 +284,7 @@ theorem fast_p1_body (h : OutagePrem p c true E rho pt ΔF) :
         (∀ X raw sup rows, o.payload = .proposal X raw sup rows → Block.Preceq B X.parent)) ∧
       (∀ t y, 0 ≤ t → t < pt.b₁ → y ∈ rho.honest →
         Block.Compatible B (V2.D.outputAt E rho finalizedOut y t))) := by
-  exact (outage_compat_body (fast := true) (hstore := hstore)
+  exact (outage_compat_body (hstrat := hstrat) (fast := true) (hstore := hstore)
     (hframe := hframe)
     (hsrc := hsrc)
     (htsrc := htsrc)
@@ -293,14 +301,15 @@ theorem fast_p1_body (h : OutagePrem p c true E rho pt ΔF) :
 
 include hstore hframe hsrc htsrc hnamed hordered hnonempty htransfer hbelow hleaseOrigin
   hsOrigin hmono hcleanGate in
-/-- Blueprint 03 §9.2; O-INDUCT plan §9.4. Class (iii).
+/-- ROOT-DIGEST W2b. Blueprint 03 §9.2; O-INDUCT plan §9.4. Class (iii).
 DC: INTENTIONAL; the exact expanded SlowP1 body retains the lease field. -/
 theorem slow_p1_body
     (hsavedKeepSlow : ∀ i y, i ≤ timeIdx rho pt.b₀ → y ∈ rho.honest →
       ∀ q s C, q < i → IsGateTick p c rho q y s →
       gateResultAt p c E rho q = some (some C) →
       GridCO.savedGenuine (storeAt p c E rho i y).base s = some (some C))
-    (h : OutagePrem p c false E rho pt ΔF) :
+    (h : OutagePrem p c false E rho pt ΔF)
+    (hstrat : RStrat p c E rho) :
     ((∀ g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed],
       ∀ x B, x ∈ rho.honest → Block.Preceq B (V2.D.outputAt E rho g x pt.T) →
         ServedOn (· ∈ rho.honest) (fun t y => V2.D.outputAt E rho g y t) B
@@ -322,7 +331,7 @@ theorem slow_p1_body
             SA.gateTime p.toParams (((pt.b₀ - 6 * p.Δ) / (4 * p.Δ)).toNat + 1) + L p ≤ dl ∧
             ((∃ X ∈ FGSA.fullTree p st, eraseFG X = B) ∨
               Block.Preceq B (eraseFG (FGSA.controls p st).Z))) := by
-  exact outage_compat_body (fast := false) (hstore := hstore)
+  exact outage_compat_body (hstrat := hstrat) (fast := false) (hstore := hstore)
     (hframe := hframe)
     (hsrc := hsrc)
     (htsrc := htsrc)

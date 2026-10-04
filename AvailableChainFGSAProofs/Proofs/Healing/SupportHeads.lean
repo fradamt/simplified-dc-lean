@@ -128,7 +128,7 @@ theorem healing_support_honest_emits (E : Generic.Env V) (rho : V2.D.Run V (fgsa
     rw [postClock_def, preTick_def, fgsa_tickIdx_of_event p c E rho hS hj]
     rfl
 
-/-- Blueprint 21:709–715 (H.2 S1), 673–689 (IF.5 relay); plan H-SUPPORT §4 step 7.
+/-- ROOT-DIGEST W2b. Blueprint 21:709–715 (H.2 S1), 673–689 (IF.5 relay); plan H-SUPPORT §4 step 7.
 DC: INTENTIONAL an honest label-i HEAD that covers B is, at the receiver's q_i read, a
 clean resolved frozen vote that supports B: the vote arrives by e_i, and the HEAD
 block arrives with strict stamps through the HEAD witness W (F1 + F2). -/
@@ -173,7 +173,8 @@ theorem healing_support_honest_batch_seat [Fintype V] (E : Generic.Env V)
   have hBK : Block.Preceq B K := hcover z hk K hhl
   -- The witness of z's HEAD reaches y before e_i, so the HEAD block has strict stamps.
   obtain ⟨Kfg, hKfull, hKe, W, _, hKW, _, hrelay⟩ :=
-    healing_head_witness_relay p c E rho mono crossing hE hN hDelta hrec.sync u v m J contested
+    healing_head_witness_relay (hroots := hrec.base.idealization)
+      p c E rho mono crossing hE hN hDelta hrec.sync u v m J contested
       hgst hphase hk hjz hhead (hvi.trans hv)
   have hfz : SA.voteTime p.toParams i + p.Δ ≤ SA.freezeTime p.toParams i := by
     change 4 * p.Δ * (i : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * (i : Int) + 3 * p.Δ
@@ -304,7 +305,8 @@ theorem healing_support_honest_batch_seat [Fintype V] (E : Generic.Env V)
         contradiction
     exact hne ((hone a ha hka).trans (hone b hb hkb).symm)
 
-/-- Blueprint 21:748–783 (H.3), 1148–1252 (F1 + F2); plan H-SUPPORT §4 steps 3 and 7.
+/-- ROOT-DIGEST W2b. Blueprint 21:748–783 (H.3), 1148–1252 (F1 + F2); plan H-SUPPORT §4 steps 3 and
+7.
 DC: INTENTIONAL an honest label-i HEAD that covers B gives a witness W ⪰ B. W reaches
 the receiver before e_i, and at its q_i read Z and F are below W, with lo ≤ h(W). The
 F-root case uses RXing; the top-J case uses the common J. -/
@@ -321,7 +323,8 @@ theorem healing_support_head_frame (E : Generic.Env V) (rho : V2.D.Run V (fgsa p
     (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (i + 1))))
     (hv : SA.voteTime p.toParams (i + 1) ≤ v) {B : Block}
     (hBK : Block.Preceq B (headVote p (FGSA.clock p (V2.D.Run.stateBefore E rho jz z).st
-      (SA.voteTime p.toParams i)) i)) :
+      (SA.voteTime p.toParams i)) i))
+    (hroots : NamedRootCollisionFree p c E rho) :
     ∃ W, W ∈ (storeAt p c E rho
         (V2.D.Run.idxBefore rho (SA.voteTime p.toParams i + p.Δ)) y).fg.TF ∧
       Block.Preceq B (eraseFG W) ∧ FGBlock.Preceq (R_at p c E rho iy y).Z W ∧
@@ -336,7 +339,8 @@ theorem healing_support_head_frame (E : Generic.Env V) (rho : V2.D.Run V (fgsa p
   have hvsv : SA.voteTime p.toParams i ≤ SA.voteTime p.toParams (i + 1) :=
     (le_add_of_nonneg_right hd.le).trans hvi
   obtain ⟨Kfg, hKfull, hKe, W, _, hKW, hloW, hrelay⟩ :=
-    healing_head_witness_relay p c E rho mono crossing hE hN hDelta hsync u v m J contested
+    healing_head_witness_relay (hroots := hroots)
+      p c E rho mono crossing hE hN hDelta hsync u v m J contested
       hgst hphase hz hjz hhead (hvi.trans hv)
   have hBW : Block.Preceq B (eraseFG W) := by
     refine Gen.Pure.block_preceq_trans hBK ?_
@@ -397,10 +401,9 @@ theorem healing_support_head_frame (E : Generic.Env V) (rho : V2.D.Run V (fgsa p
 
 private theorem heads_lift {A B : FGBlock (Fin p.n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
-  preceq_of_eraseFG_preceq (KitFG.viewRootInj_all {A, B})
-    ⟨A, by simp, KitFG.preceq_refl A⟩ ⟨B, by simp, KitFG.preceq_refl B⟩ h
+  eraseFG_preceq_iff.mp h
 
-/-- Blueprint 21:709–715 (H.2 S1), 748–783 (H.3); plan H-SUPPORT §4 step 7.
+/-- ROOT-DIGEST W2b. Blueprint 21:709–715 (H.2 S1), 748–783 (H.3); plan H-SUPPORT §4 step 7.
 DC: INTENTIONAL one H.2 HEAD step. If every honest label-i HEAD covers B, then every
 honest HEAD at label i+1 inside the phase covers B. The honest batch of label i gives
 majority and rival bounds (`batch_head_covers`); a fresh witness W of an honest label-i
@@ -442,7 +445,8 @@ theorem healing_next_transfer_core [Fintype V] (E : Generic.Env V)
     unfold headAtLabel
     rw [postClock_def, preTick_def, fgsa_tickIdx_of_event p c E rho hS hjy]
     rfl
-  obtain ⟨W, hWd, hBW, hZW, hFW, hloy⟩ := healing_support_head_frame E rho mono crossing hE hN
+  obtain ⟨W, hWd, hBW, hZW, hFW, hloy⟩ := healing_support_head_frame (hroots :=
+    hrec.base.idealization) E rho mono crossing hE hN
     hDelta hrec.sync hgst hphase hhead hy hjy hy hiy hv (hcover y hy _ hhl)
   have hinv : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho iy y) _
   have hdfg : dst.fg = (storeAt p c E rho iy y).fg := clock_fg p _ _

@@ -67,10 +67,10 @@ private theorem proposal_read (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 private theorem proposal_lift {A B : FGBlock (Fin p.n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
-  preceq_of_eraseFG_preceq (KitFG.viewRootInj_all {A, B})
-    ⟨A, by simp, KitFG.preceq_refl A⟩ ⟨B, by simp, KitFG.preceq_refl B⟩ h
+  eraseFG_preceq_iff.mp h
 
-/-- Blueprint 21:709–715 (H.2 S2), 1240–1243 (proposer pools); plan H-SUPPORT §4 step 7.
+/-- ROOT-DIGEST W2b. Blueprint 21:709–715 (H.2 S2), 1240–1243 (proposer pools); plan H-SUPPORT §4
+step 7.
 DC: INTENTIONAL an honest label-r HEAD that covers B is, at the proposer's slot-(r+1)
 read, a resolved non-equivocating proposer-support vote that supports B: the vote arrives
 by e_r, and the HEAD block arrives through its HEAD witness W (F1 + F2). -/
@@ -115,7 +115,8 @@ theorem healing_proposal_batch_seat [Fintype V] (E : Generic.Env V)
   have hBK : Block.Preceq B K := hcover z hk K hhl
   -- The HEAD block reaches the proposer through its witness before e_r.
   obtain ⟨Kfg, hKfull, hKe, W, _, hKW, _, hrelay⟩ :=
-    healing_head_witness_relay p c E rho mono crossing hE hN hDelta hrec.sync u v m J contested
+    healing_head_witness_relay (hroots := hrec.base.idealization)
+      p c E rho mono crossing hE hN hDelta hrec.sync u v m J contested
       hgst hphase hk hjz hhead (hvp.trans hv)
   have hKe' : eraseFG Kfg = K := hKe
   have hKx : Kfg ∈ (storeAt p c E rho ip x).fg.TF := by
@@ -225,7 +226,7 @@ theorem healing_proposal_batch_seat [Fintype V] (E : Generic.Env V)
     obtain ⟨a, ha, b, hb, hne, hka, hkb⟩ := (cap_pair _ k).mp he
     exact absurd ((hall a ha hka).trans (hall b hb hkb).symm) hne
 
-/-- Blueprint 21:709–715 (H.2 S2); plan H-SUPPORT §4 step 7.
+/-- ROOT-DIGEST W2b. Blueprint 21:709–715 (H.2 S2); plan H-SUPPORT §4 step 7.
 DC: INTENTIONAL one proposal step. If every honest label-r HEAD covers B, the honest
 proposer head at slot r+1 inside the phase covers B. The honest batch of label r gives
 majority and rival bounds (`batch_head_covers` on the full tree); a witness W of the
@@ -273,7 +274,8 @@ theorem healing_proposal_core [Fintype V] (E : Generic.Env V)
     unfold headAtLabel
     rw [postClock_def, preTick_def, fgsa_tickIdx_of_event p c E rho hS hjx]
     rfl
-  obtain ⟨W, hW, hBW, hZW, hFW, hloW⟩ := healing_support_frame_at E rho mono crossing hE hN
+  obtain ⟨W, hW, hBW, hZW, hFW, hloW⟩ := healing_support_frame_at (hroots := hrec.base.idealization)
+    E rho mono crossing hE hN
     hDelta hrec.sync hgst hphase hhead (hvp.trans hv) hx hjx (hcover x hx _ hhl) hx
     (healing_support_idxBefore_le p c E rho hS hip hvp)
     (healing_support_idxBefore_le p c E rho hS hip

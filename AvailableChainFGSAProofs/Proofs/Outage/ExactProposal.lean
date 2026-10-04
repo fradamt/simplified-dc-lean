@@ -44,7 +44,7 @@ theorem inclusion_acceptance_of_stored
           | row => cases ho
           | proposal => exact ho
 
-/-- Blueprint 03:354–416; spec 2548–2551; plan I-EXACT, X1 (receipt step).
+/-- ROOT-DIGEST W2b. Blueprint 03:354–416; spec 2548–2551; plan I-EXACT, X1 (receipt step).
 Class (iii). DC: INTENTIONAL; non-row traffic uses Delta independently of
 the row delay. This is the receipt consumer; Clean compatibility must be
 produced before it can discharge X1. No awake-receiver premise is used. -/
@@ -66,7 +66,8 @@ theorem inclusion_receipt_of_compatible [Fintype V]
   have hdeadline : SA.proposalTime p.toParams s + E.Δ = SA.voteTime p.toParams s := by
     rw [hset.pre.base.delta]
     rfl
-  obtain ⟨Y, hY, heY⟩ := fgsa_proposal_receipt E rho hset.pre.base.delta
+  obtain ⟨Y, hY, heY⟩ := fgsa_proposal_receipt E rho hset.pre.base.idealization
+    hset.pre.base.delta
     hset.pre.base.valid hset.pre.base.noRestart (fun t => t + E.Δ) rho.horizon
     s b raw sup rows (SA.proposalTime p.toParams s) x hD htrigger hx
     (hdeadline ▸ hhor) (lt_add_of_pos_right _ E.Δ_pos)

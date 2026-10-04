@@ -135,7 +135,7 @@ variable (mono : RMono p c E rho)
 
 include hrec hreset cap rowCovered mono writes
 
-/-- Blueprint 21 H.17:3021–3040; plan J6-3 O2; B1/B13/B17/B18.
+/-- ROOT-DIGEST W2b. Blueprint 21 H.17:3021–3040; plan J6-3 O2; B1/B13/B17/B18.
 DC: SAME exact gate geometry at the named event-prefix cut.
 Standing mono/cap have producers fgsa_rMono/fgsa_rCap_channel. INLINE
 rowCovered/writes have producers rowPermission_covered/fgsa_leaseOrigins_lastWrite.
@@ -185,7 +185,8 @@ theorem healing_postReset_gate_geometry_at (i : Nat) {v : Slot}
     (fun o => ¬ isRowObject o) _ _ hrec.sync (fgsaDelay_nonrow E.Δ _) hgsts hvd hGateHorizon
   obtain ⟨H, hH, hbatch, _⟩ := healing_postReset_gate_participation E rho hrec
     hgsts (postReset_head_horizon p c rho hGateHorizon)
-  obtain ⟨hr, _, _, _⟩ := exactService_gate_raw_of_head E rho hrec.base.valid
+  obtain ⟨hr, _, _, _⟩ := exactService_gate_raw_of_head (hroots := hrec.base.idealization)
+    E rho hrec.base.valid
     hrec.base.noRestart hrec.base.delta hrec.base.cstar v Q hhead hSync ht hreceipt H hH hbatch
   have hrawQ : (fgsaAC E rho).raw k v x = some Q := by
     have he := fgsa_clockPre_gateView p (storeAt p c E rho k x) v
@@ -200,7 +201,7 @@ theorem healing_postReset_gate_geometry_at (i : Nat) {v : Slot}
           opening_domain := healing_postReset_gate_opening_domain E rho w i hopening
             hk hx ht hp hv }
 
-/-- Blueprint 21 H.17:2946–3048; plan J6-3 O2/S1; B1/B13/B17/B18.
+/-- ROOT-DIGEST W2b. Blueprint 21 H.17:2946–3048; plan J6-3 O2/S1; B1/B13/B17/B18.
 DC: SAME complete HEAD and gate conjunction at cut i. The opening input is
 separate and follows raw_transfer in the joint order. No service input,
 carrier successor, full H0, or complete-run premise is used.
@@ -253,7 +254,8 @@ theorem healing_postReset_service_step_at (i : Nat)
     rw [← hslot] at hvpos
     exact Nat.lt_irrefl 0 hvpos
   obtain ⟨hresult, ⟨j, hj, hpass⟩, hwrite, hstable, hsource⟩ :=
-    exactService_gate_at_of_head E rho hrec.base.valid hrec.base.noRestart hrec.base.delta
+    exactService_gate_at_of_head (hroots := hrec.base.idealization)
+      E rho hrec.base.valid hrec.base.noRestart hrec.base.delta
       hrec.base.cstar v Q hne hhead hSync hx ht hgeom H hH hbatch hfast
   exact ⟨hresult, ⟨j, healing_postReset_tick_lt_cut E rho hs hj hGateCut, hj, hpass⟩,
     hwrite, hstable, hsource⟩

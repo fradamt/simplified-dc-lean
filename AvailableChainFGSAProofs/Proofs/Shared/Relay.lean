@@ -185,7 +185,7 @@ private theorem relay_proposals_process (st : State p.n) (o : Obj p)
       cases hp : parentFG st b with
       | none => rw [admitBlock_refused p st s b raw sup rows (Or.inl hp)]; exact h
       | some P =>
-        cases ha : blockAccepted p st s b P rows with
+        cases ha : blockAccepted p st s b raw sup P rows with
         | false =>
           rw [admitBlock_refused p st s b raw sup rows (Or.inr ⟨P, hp, ha⟩)]
           exact h
@@ -272,7 +272,7 @@ private theorem relay_support_subset (st : State p.n) (s : Slot)
                 raw.all (fun v => match v.decode? with
                   | some (r, _, _) => r + 1 == B.slot | none => false) &&
                 sup.all (fun v => decide (v ∈ raw)) &&
-                rows.all RowWire.valid && rowsOk B rows
+                rows.all RowWire.valid && contentOk p B raw sup rows
             | none => false) = true at hwf
           rw [hdw] at hwf
           have hsub := (Bool.and_eq_true_iff.mp
@@ -387,7 +387,7 @@ private theorem relay_carried_process (st : State p.n) (hInv : CStoreInv p st)
       cases hp : parentFG st b with
       | none => rw [admitBlock_refused p st r b raw sup rows (Or.inl hp)]; exact h
       | some P =>
-        cases ha : blockAccepted p st r b P rows with
+        cases ha : blockAccepted p st r b raw sup P rows with
         | false =>
           rw [admitBlock_refused p st r b raw sup rows (Or.inr ⟨P, hp, ha⟩)]
           exact h

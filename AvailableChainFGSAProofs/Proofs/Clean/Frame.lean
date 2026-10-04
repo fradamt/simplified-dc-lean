@@ -16,7 +16,7 @@ open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} (c : AppCodec In)
     [DecidableEq V] [Fintype V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- P3 §8.7 F2.2; bp02 §§3.1–3.4. Class B, given-state Clean frame core.
+/-- ROOT-DIGEST W2b. P3 §8.7 F2.2; bp02 §§3.1–3.4. Class B, given-state Clean frame core.
 DC counterparts: ChainState/FGRootWitness.lean:327,493 (root origins) and
 ChainState/Chain.lean:414,447,460,475 (invariant pattern). DC has no exact
 contest/domain bundle. The differences are intentional: the FJ band prevents
@@ -38,22 +38,16 @@ theorem cleanFrame_of_state (b₀ : Time) :
       Block.Preceq (eraseFG B) (eraseFG st.fg.F) ∨
       (FGBlock.Preceq st.fg.F (FGSA.controls p st).Z ∧
         FGBlock.Preceq (FGSA.controls p st).Z B ∧ B ∈ FGSA.fullTree p st)) := by
-  intro _ _ hf hsrc i _ hh hs v hv
+  intro hbase _ hf _hsrc i _ hh hs v hv
   let st := storeAt p c E rho i v
   have hinv := (hs.store v hv).fg
   have liftCompat : ∀ A B : FGBlock (Fin p.n),
       Block.Compatible (eraseFG A) (eraseFG B) →
       FGBlock.Preceq A B ∨ FGBlock.Preceq B A := by
     intro A B hab
-    have he := compatible_iff_eraseFG (KitFG.viewRootInj_all {A, B})
-      (show ∃ W ∈ ({A, B} : Finset (FGBlock (Fin p.n))), FGBlock.Preceq A W from
-        ⟨A, by simp, KitFG.preceq_refl A⟩)
-      (show ∃ W ∈ ({A, B} : Finset (FGBlock (Fin p.n))), FGBlock.Preceq B W from
-        ⟨B, by simp, KitFG.preceq_refl B⟩)
-    have hc : FGBlock.compatible A B = true := he.trans hab
-    change (FGBlock.preceq A B || FGBlock.preceq B A) = true at hc
-    rw [Bool.or_eq_true] at hc
-    exact hc
+    rcases Bool.or_eq_true_iff.mp hab with hab | hab
+    · exact Or.inl (eraseFG_preceq_iff.mp hab)
+    · exact Or.inr (eraseFG_preceq_iff.mp hab)
   have hcert := hs.sources.2
   rw [CleanCertSources_def] at hcert
   simp only [certified_def, heightView_eq_simplex p,
@@ -85,12 +79,14 @@ theorem cleanFrame_of_state (b₀ : Time) :
   intro B hB hb
   have hrows := hs.sources.1
   rw [CleanRowSources_def] at hrows
-  have hcp := cpCompat_of_srcFrame p c E rho hf.store hf.frame hsrc i v B hv (by
-    intro y r a e ha he
+  have hcp := cpCompat_of_scopedFrame p c E rho hf.store hf.frame hf.strat i v B hv (by
+    intro y r a e ha he heScope
     obtain ⟨j, hj, hrow⟩ := ha
-    obtain ⟨C, _, heq, hpre, hc⟩ := hrows j y r a _ hj hrow he
+    obtain ⟨C, hSource, heq, hpre, hc⟩ := hrows j y r a _ hj hrow he
     have heC : e = (derive p.E p.cfg C).T_h :=
-      FGBlock.root_injective (congrArg Prod.snd heq)
+      rootScope_eq hbase.base.idealization heScope
+        (rootScope_ancestor (rootScope_source hrow.1 hSource) (KitFG.entry_preceq p.E p.cfg C))
+        (congrArg Prod.snd heq)
     exact liftCompat e B (cleanHist_belowLabel_compatible hh
       (belowLabel_of_preceq (eraseFG_preceq (heC ▸ hpre)) hc) hb))
   rcases hcp.2.1 with hFB | hBF

@@ -568,7 +568,7 @@ theorem healing_slow_lease [Fintype V] (E : Generic.Env V)
   · rw [hpost, clock_fg]
     exact hFB
 
-/-- Blueprint 21:650–699 (H.1 at s+1, slow arm); plan H-SUPPORT §5 steps 2–5, G3.
+/-- ROOT-DIGEST W2b. Blueprint 21:650–699 (H.1 at s+1, slow arm); plan H-SUPPORT §5 steps 2–5, G3.
 DC: INTENTIONAL the first HEAD transfer at s+1 for a synchronous-window slow body.
 The slow source result is a strict late majority with an honest clean supporter. -/
 theorem healing_slow_first_transfer [Fintype V] (E : Generic.Env V)
@@ -619,7 +619,8 @@ theorem healing_slow_first_transfer [Fintype V] (E : Generic.Env V)
   have hiy := V2.D.Run.tickIdx?_spec hiy'
   have hHeq := Option.some.inj hH
   subst hHeq
-  exact healing_first_transfer_core E rho mono crossing hE hN hDelta hrec.sync hgst hphase
+  exact healing_first_transfer_core (hroots := hrec.base.idealization)
+    E rho mono crossing hE hN hDelta hrec.sync hgst hphase
     hhead hgate hx hjx hkh ho hko hsup hmaj hy hiy hv
     (healing_slow_lease E rho hrec mono writes (hgst.trans hhead) hhor hx hgw hst hres hBC
       hel le_rfl (hv.trans hphase.2.1)

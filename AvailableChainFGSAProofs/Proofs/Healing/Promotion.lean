@@ -3,6 +3,8 @@ public import AvailableChainFGSAProofs.Proofs.Shared.GridSchedule
 public import AvailableChainFGSAProofs.Proofs.Healing.FrameSource
 public import AvailableChainFGSAClaims.Statements.Fold
 
+public import AvailableChainFGSAProofs.Proofs.Shared.Roots
+
 public section
 
 namespace AvailableChain.FGSA.Run
@@ -52,15 +54,15 @@ private theorem promotion_stored_ancestor_slot (E : Generic.Env V)
     U.slot ≤ K.slot := by
   induction K with
   | genesis => obtain rfl := KitFG.preceq_genesis.mp hUK; exact le_rfl
-  | node P s body rows ih =>
-      by_cases he : U = .node P s body rows
+  | node P s root body rows ih =>
+      by_cases he : U = .node P s root body rows
       · subst U; exact le_rfl
       · have hUP := KitFG.preceq_parent_of_preceq_node hUK he
         have hP := (cstoreInv_stateBefore E rho i x).fg.closed _ hK
         exact (ih hP hUP).trans
           (promotion_stored_parent_slot E rho hv i x _ hK (by intro h; cases h)).le
 
-/-- Blueprint 21:1356–1384; plan §3.2 step 1.
+/-- ROOT-DIGEST W2b. Blueprint 21:1356–1384; plan §3.2 step 1.
 DC: INTENTIONAL choose the starting action's SO-COV witnesses once.
 The sources can differ. Their actual entries agree by root injectivity.
 The source path, source slot and original send round remain in the result. -/
@@ -86,7 +88,9 @@ theorem healing_promotion_fixed_rows (E : Generic.Env V)
   intro x hx
   obtain ⟨K, nd, j, rSent, a, hnd, hK, hmem, hQ, hr, ha, hn⟩ := hcovered x hx
   obtain ⟨hh, hroot⟩ := he x K hx hK
-  have hU : (heightView p K).T_h = U := FGBlock.root_injective (hroot.trans hr₀.symm)
+  have hU : (heightView p K).T_h = U := rootScope_eq hrec.base.idealization
+    (rootScope_entry (rootScope_source hx hK))
+    (rootScope_entry (rootScope_source hx₀ hK₀)) (hroot.trans hr₀.symm)
   refine ⟨K, nd, j, rSent, a, hnd, hK, hmem, hQ,
     hU ▸ (fgCertificateLaws p).height.entry_preceq K,
     healing_source_slot p c E rho hx hK, hh, hU, hr, ha, ?_⟩

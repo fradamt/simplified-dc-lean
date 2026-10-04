@@ -188,7 +188,7 @@ theorem pending_action_head
   exact rows_pending_action_head p c E rho k x q y D U nd raw support seats m
     hx hnd hread hwalk hhead hcount hD hcompat hbatch hDh hDJ hDj hcap hfin
 
-/-- Paper 22:1256–1263, 1667–1687: H3 supplies the exact source at c = z;
+/-- ROOT-DIGEST W2b. Paper 22:1256–1263, 1667–1687: H3 supplies the exact source at c = z;
 H2′ and H6 supply a covering source at c < z, with the full filter guards.
 DC: INTENTIONAL: deepest fresh FG-SA selector; height plateau fixes the same entry. -/
 theorem finality_action_source (w : HealingWitness) (q y opening : Nat)
@@ -221,8 +221,7 @@ theorem finality_action_source (w : HealingWitness) (q y opening : Nat)
       some (some (eraseFG D)) at hexact
     obtain ⟨source, hs, he⟩ := Option.map_eq_some_iff.mp hexact
     obtain ⟨C, hC, hCe⟩ := Option.map_eq_some_iff.mp he
-    have hCD : C = D := FGBlock.root_injective
-      (by rw [← eraseFG_root C, ← eraseFG_root D, hCe])
+    have hCD : C = D := eraseFG_injective hCe
     subst C
     rw [hC] at hs
     rw [actionSourceFG_def] at hs

@@ -28,6 +28,14 @@ The census is `.lake/rdw1c-census.md`. FGSAClaims fields and Base₂ text are un
 The FG-SA manifest tool remains blocked by the W3 `AvailableChainFGSA.Tests.Support` fixture.
 No generated FG-SA entry, frozen baseline, SHA, or allow policy is changed here.
 
+## ROOT-DIGEST W2b D1 exception
+
+Plan r2.3 permits `AvailableChain.FGSA.Run.CPPrefix` and `CPPrefix_def` to take
+`RootBlockInRun p c E rho (eraseFG B)` after honest membership. EntryBelow is unchanged.
+CPPrefix now quantifies over run blocks only. Evidence:
+`TS/codex/reports/rdigest/w2/rdw2/cp-prefix-stop.lean`:
+"counterexample to the local inference only". This is not a full-run claim counterexample.
+
 ## How to check
 
 `scripts/V2Manifest.lean` generates and checks this list.

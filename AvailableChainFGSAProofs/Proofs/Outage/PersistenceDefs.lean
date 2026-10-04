@@ -2,6 +2,8 @@ module
 public import AvailableChainFGSAClaims.Statements.Bounds
 public import AvailableChainFGSAClaims.Statements.Channels
 
+public import AvailableChainFGSARun.Statements.Roots
+
 public section
 
 namespace AvailableChain.FGSA.Run
@@ -27,20 +29,22 @@ theorem OutageSourceHistory_def (B : Block) (i : Nat) :
   apply propext
   exact ⟨fun h => h.history, fun h => ⟨h⟩⟩
 
-/-- Blueprint 03 §8.3; O-INDUCT plan §3.2. Class (iii).
+/-- ROOT-DIGEST W2b. Blueprint 03 §8.3; O-INDUCT plan §3.2. Class (iii).
 DC: INTENTIONAL; compatibility of names is a derived history view. -/
 structure OutageNamedHistory (β : FGBlock (Fin p.n)) (i : Nat) : Prop where
   history : ∀ y r (a : RowWire p.n) (e : FGBlock (Fin p.n)),
     HonestRowBefore p c E rho i y r a →
     namedEntry a.payload.height_pair = some ((heightView p e).h, e.root) →
+    RootBlockInRun p c E rho (eraseFG e) →
     FGBlock.Preceq e β ∨ FGBlock.Preceq β e
 
-/-- O-INDUCT plan §3.2. Class (iii). DC: INTENTIONAL; defining equation. -/
+/-- ROOT-DIGEST W2b. O-INDUCT plan §3.2. Class (iii). DC: INTENTIONAL; defining equation. -/
 theorem OutageNamedHistory_def (β : FGBlock (Fin p.n)) (i : Nat) :
     OutageNamedHistory p c E rho β i =
       (∀ y r (a : RowWire p.n) (e : FGBlock (Fin p.n)),
         HonestRowBefore p c E rho i y r a →
         namedEntry a.payload.height_pair = some ((heightView p e).h, e.root) →
+    RootBlockInRun p c E rho (eraseFG e) →
         FGBlock.Preceq e β ∨ FGBlock.Preceq β e) := by
   apply propext
   exact ⟨fun h => h.history, fun h => ⟨h⟩⟩

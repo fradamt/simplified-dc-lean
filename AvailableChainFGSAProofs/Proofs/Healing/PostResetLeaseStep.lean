@@ -1,7 +1,7 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLease -- shake: keep (J4-A required input)
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep -- shake: keep (J4-A required input)
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat -- shake: keep (J4-A required input)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLease -- shake: keep
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep -- shake: keep
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportSlow
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportTransfer
 
@@ -27,8 +27,7 @@ variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
 omit [DecidableEq V] in
 private theorem written_lift {A B : FGBlock (Fin p.n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
-  preceq_of_eraseFG_preceq (KitFG.viewRootInj_all {A, B})
-    ⟨A, by simp, KitFG.preceq_refl A⟩ ⟨B, by simp, KitFG.preceq_refl B⟩ h
+  eraseFG_preceq_iff.mp h
 
 omit [DecidableEq V] in
 private theorem written_walk_extends (anchor : Block) (tree : List Block)
@@ -85,7 +84,7 @@ theorem postReset_written_sync [Fintype V] {G ΔF : Time}
   change E.t_GST < 4 * p.Δ * (s : Int) + p.Δ
   linarith [p.deltaPos]
 
-/-- Blueprint 21 H.15:2902–2914, H.1:673–699; plan J4-A A1;
+/-- ROOT-DIGEST W2b. Blueprint 21 H.15:2902–2914, H.1:673–699; plan J4-A A1;
 B1/B13/B17/B18. DC: SAME count and relay with a kept domain path.
 The fast arm uses release. The slow arm uses the last-write window.
 Assembly supplies fgsa_rMono and fgsa_leaseOrigins_lastWrite. The domain
@@ -180,7 +179,8 @@ theorem healing_first_transfer_written [Fintype V] {G ΔF : Time}
   -- Both admission arms remove conflicting leases at this HEAD read.
   have hrows : ∀ row ∈ dst.base.obligations, Block.Compatible row.1 (eraseFG B) := by
     rcases harm with hτ | ⟨hgw, hel⟩
-    · exact healing_support_release_compat E rho hE hN hDelta s hSync hx hy hix hiy hτ hFB0
+    · exact healing_support_release_compat (hroots := hrec.base.idealization) E rho hE hN hDelta s
+        hSync hx hy hix hiy hτ hFB0
     · have hst : gateIn p c E rho x s =
           some (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s)) := by
         rw [gateIn_def, preTick_def, fgsa_tickIdx_of_event p c E rho hS hix]
@@ -215,7 +215,8 @@ theorem healing_first_transfer_written [Fintype V] {G ΔF : Time}
     have hBK' : Block.Preceq (eraseFG B) K' := by
       rw [Gen.AC.voteSupports_def, hK'] at hsup'
       exact (Bool.and_eq_true_iff.mp hsup').2
-    obtain ⟨Kfg', hKe', hpath'⟩ := healing_support_target_path E rho hE hN hDelta s hSync
+    obtain ⟨Kfg', hKe', hpath'⟩ := healing_support_target_path (hroots := hrec.base.idealization)
+      E rho hE hN hDelta s hSync
       hx hy hiy K' hKm' hKst' (Gen.Pure.block_preceq_trans hFB' hBK')
     exact fgsa_cleanSupport_forward_relay E rho hE hN hDelta s hSync hx hy hix hiy o' ho'
       seat hs' Kfg' (hKe' ▸ hK') (eraseFG B) (hKe' ▸ hBK') hpath' hFB'
@@ -331,7 +332,7 @@ private theorem written_source_mono {j i : Nat} {K : FGBlock (Fin p.n)} {r : Slo
   obtain ⟨a, z, q, row, haj, hrow, hsrc, he⟩ := h
   exact ⟨a, z, q, row, haj.trans_le hji, hrow, hsrc, he⟩
 
-/-- Blueprint 21 H.15:2904–2914; plan J4-A2, frozen domain;
+/-- ROOT-DIGEST W2b. Blueprint 21 H.15:2904–2914; plan J4-A2, frozen domain;
 B1/B13/B17/B18. DC: INTENTIONAL moving-frame descent at the first HEAD.
 The root and finality coverage cases are excluded by the branch guards.
 The proof supplies receipt and restricted view coverage, then excludes
@@ -368,7 +369,7 @@ theorem postReset_written_domain
     by_cases hFg : (storeAt p c E rho iy y).fg.F = .genesis
     · rw [hFg]; exact KitFG.genesis_preceq B
     obtain ⟨D, hD, hDF, K, r, hK, hhK, hKF, -⟩ :=
-      healing_finality_source p c E rho hs origin hy hFg
+      healing_finality_source (hroots := hrec.base.idealization) p c E rho hs origin hy hFg
     by_cases hl : (finalityView p D).h_F < (heightView p B).h
     · exact xing iy (iy + ix) y x D B hy (Nat.le_add_right iy ix) hD hDF
         ⟨hx, (fgsa_store_cumulative p c E rho hN (Nat.le_add_left ix iy) x).1 hBstore⟩ hl
@@ -406,7 +407,8 @@ theorem postReset_written_domain
       (SA.voteTime p.toParams (s + 1))).fg.F) K := by
     rw [clock_fg]
     exact Gen.Pure.block_preceq_trans (eraseFG_preceq hFB) hBKt
-  obtain ⟨Y, heY, hY⟩ := healing_block_receipt_sync p c E rho hrec.base.valid hN
+  obtain ⟨Y, heY, hY⟩ := healing_block_receipt_sync (hroots := hrec.base.idealization)
+    p c E rho hrec.base.valid hN
     hrec.base.delta s hSync hx hy hiy K hKm hstamp hFK
   rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs] at hY
   let X := (storeAt p c E rho (V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s)) y).fg.TF
@@ -430,7 +432,8 @@ theorem postReset_written_domain
       (Nat.le_of_succ_le (written_source_label p c E rho hrec hiy hK)) hgst.le hy hiy hFK)
   have hhigh := hinv.high_compatible
   rw [PostResetHighCompatible_def] at hhigh
-  rcases healing_descent p c E rho xing origin hy hX hBX hcover with
+  rcases healing_descent (hroots := hrec.base.idealization) p c E rho xing origin hy hX hBX hcover
+    with
     hk | ⟨K, r, hK, hn, hhK⟩ | ⟨K, K', r, r', hK, hK', heh, hlt, hr⟩
   · exact (hk.resolve_left hnZ).resolve_right hnF
   · exact False.elim (hn (hBK K r hK (by
@@ -639,7 +642,7 @@ private theorem written_head_label {a : Nat} {z : V} {j : Slot}
   rw [healing_headAtIdx_tick p c E rho ha]
   rfl
 
-/-- Blueprint 21 H.15:2916–2923, H.2:720–733; plan J4-A4, later result boundary;
+/-- ROOT-DIGEST W2b. Blueprint 21 H.15:2916–2923, H.2:720–733; plan J4-A4, later result boundary;
 B1/B13/B17/B18. DC: SAME finality coverage or a covering-batch confirmation.
 The old write's S1 field at i covers the complete label-j batch before
 this gate. Earlier sources use no-loss; a same-label emitted source uses
@@ -737,7 +740,7 @@ theorem postReset_written_later_result
     by_cases hFg : (storeAt p c E rho i y).fg.F = .genesis
     · rw [hFg]; exact KitFG.genesis_preceq B
     obtain ⟨DF, hDF, heF, K, r, hK, hhK, hKF, -⟩ :=
-      healing_finality_source p c E rho hs origin hy hFg
+      healing_finality_source (hroots := hrec.base.idealization) p c E rho hs origin hy hFg
     by_cases hl : (finalityView p DF).h_F < (heightView p B).h
     · exact xing i (i + k) y x DF B hy (Nat.le_add_right i k) hDF heF
         ⟨hx, (fgsa_store_cumulative p c E rho hrec.base.noRestart
@@ -1305,7 +1308,7 @@ theorem postReset_written_proposals_succ
     xing origin h0r hinv hx hix hxi hpass
     hres hCB hne hkey hsl hbatch hp hcut
 
-/-- Blueprint 21 H.15:2919–2923; plan J4A2-3 G5 finality;
+/-- ROOT-DIGEST W2b. Blueprint 21 H.15:2919–2923; plan J4A2-3 G5 finality;
 B1/B13/B17/B18. DC: SAME provenance and complete honest HEAD history.
 A low finality is below B by crossing. A higher source shares an actual
 HEAD with B, either at s or at its own first transferred label.
@@ -1335,7 +1338,7 @@ theorem postReset_written_finality_compatible
     rw [hFg]
     exact Bool.or_eq_true_iff.mpr (Or.inl (Gen.Pure.block_genesis_preceq _))
   obtain ⟨DF, hDF, heF, K, r, hK, hhK, hKF, -⟩ :=
-    healing_finality_source p c E rho hs origin hy hFg
+    healing_finality_source (hroots := hrec.base.idealization) p c E rho hs origin hy hFg
   by_cases hl : (finalityView p DF).h_F < (heightView p B).h
   · have hFB := xing b (b + ix) y x DF B hy (Nat.le_add_right b ix) hDF heF
       ⟨hx, (fgsa_store_cumulative p c E rho hrec.base.noRestart

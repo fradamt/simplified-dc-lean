@@ -127,7 +127,7 @@ theorem healing_loss_single_cause [Fintype V] {G ΔF : Time}
       emittedName hC hB hgt hn
     exact noLoss k₀ (hord k _ hk (hvote s' hCl)) B sB hL
 
-/-- Plan fgsa-s5-m5-d2d4 B `cause`; blueprint 21:2689–2741, 2767–2813
+/-- ROOT-DIGEST W2b. Plan fgsa-s5-m5-d2d4 B `cause`; blueprint 21:2689–2741, 2767–2813
 (fj.descent.v3). DC: INTENTIONAL global event-index measure. At a loss read
 with no earlier loss, the restricted descent of B in a view X of the store
 gives the incompatible high pair of earlier sources. The F and Z keep cases
@@ -159,7 +159,8 @@ theorem healing_loss_cause_of_view [Fintype V] {G ΔF : Time}
       muOf p c E rho + 1 ≤ (heightView p K₁).h ∧ muOf p c E rho + 1 ≤ (heightView p K₂).h ∧
       ¬ Block.Compatible (eraseFG K₁) (eraseFG K₂) := by
   have hl0 : l ≠ 0 := Nat.ne_of_gt (Nat.lt_of_lt_of_le (Nat.succ_pos sB) hl)
-  rcases healing_descent p c E rho xing origin hx hX hBX cover with
+  rcases healing_descent (hroots := hrec.base.idealization) p c E rho xing origin hx hX hBX cover
+    with
     (hZ | hD | hF) | ⟨C, s', hC, hnC, hh⟩ | ⟨C₁, C₂, s₁, s₂, h₁, h₂, hh, hlt, hr⟩
   · exact absurd (healing_head_covers_root p c E rho hk hl0 (Or.inl hZ)) hn
   · exact absurd (domain hD) hn
@@ -177,17 +178,11 @@ omit [DecidableEq V] in
 private theorem cause_compat_of_erase {A B : FGBlock (Fin p.n)}
     (h : Block.Compatible (eraseFG A) (eraseFG B)) :
     FGBlock.Preceq A B ∨ FGBlock.Preceq B A := by
-  have hinj : ViewRootInj ({A, B} : Finset (FGBlock (Fin p.n))) :=
-    fun _ _ _ _ hr => FGBlock.root_injective hr
-  have hA : ∃ W ∈ ({A, B} : Finset (FGBlock (Fin p.n))), FGBlock.Preceq A W :=
-    ⟨A, Finset.mem_insert_self A _, KitFG.preceq_refl A⟩
-  have hB : ∃ W ∈ ({A, B} : Finset (FGBlock (Fin p.n))), FGBlock.Preceq B W :=
-    ⟨B, Finset.mem_insert_of_mem (Finset.mem_singleton_self B), KitFG.preceq_refl B⟩
   change (Block.preceq (eraseFG A) (eraseFG B) ||
     Block.preceq (eraseFG B) (eraseFG A)) = true at h
   rcases Bool.or_eq_true_iff.mp h with h | h
-  · exact Or.inl (preceq_of_eraseFG_preceq hinj hA hB h)
-  · exact Or.inr (preceq_of_eraseFG_preceq hinj hB hA h)
+  · exact Or.inl (eraseFG_preceq_iff.mp h)
+  · exact Or.inr (eraseFG_preceq_iff.mp h)
 
 /-- Plan fgsa-s5-m5-d2d4 B `cause` (the H.2 coverage input); blueprint
 21:709–715. DC: INTENTIONAL global event-index measure. Before the first
@@ -217,7 +212,7 @@ theorem healing_noLoss_heads (hs : V2.D.ScheduleWellFormed E rho)
     rw [Lost_def]
     exact ⟨hB, z, w, hz, hw, hjz, hn⟩)
 
-/-- Plan fgsa-s5-m5-d2d4 B `cause` (finality coverage first); blueprint
+/-- ROOT-DIGEST W2b. Plan fgsa-s5-m5-d2d4 B `cause` (finality coverage first); blueprint
 21:2689–2716 (IF.3(c)), 526–546 (W3). DC: INTENTIONAL global event-index
 measure. At a loss read with no earlier loss, F of the reader is below the
 lost high source B. If F conflicts with B or is above B: either the height of
@@ -251,7 +246,7 @@ theorem healing_loss_F_below [Fintype V] {G ΔF : Time}
   · rw [hFg]
     exact KitFG.genesis_preceq B
   obtain ⟨D, hD, hDF, K, s, hK, hKh, hKT, -⟩ :=
-    healing_finality_source p c E rho hS origin hx hFg
+    healing_finality_source (hroots := hrec.base.idealization) p c E rho hS origin hx hFg
   have hFK : FGBlock.Preceq (storeAt p c E rho k x).fg.F K := by
     have he := (fgCertificateLaws p).height.entry_preceq K
     rwa [hKT] at he
@@ -284,7 +279,7 @@ theorem healing_loss_F_below [Fintype V] {G ΔF : Time}
     · exact (healing_loss_single_cause p c E rho hrec emittedNonempty emittedName noLoss hB hl
         hk hK hc hhK).elim
 
-/-- Plan fgsa-s5-m5-d2d4 B `cause` (B ∈ X and the restricted B18 cover);
+/-- ROOT-DIGEST W2b. Plan fgsa-s5-m5-d2d4 B `cause` (B ∈ X and the restricted B18 cover);
 blueprint 21:673–689 (relay of each supporter head), 2689–2716.
 DC: INTENTIONAL per-block relay, not TDel. A source of label s ≤ u, above the
 finality of an honest node x that ticks at v_(u+1), is in the store of x before
@@ -347,7 +342,8 @@ theorem healing_source_receipt [Fintype V] {G ΔF : Time}
     change Block.Preceq (eraseFG (FGSA.clock p (storeAt p c E rho k x) _).fg.F) K'
     rw [clock_fg]
     exact Gen.Pure.block_preceq_trans (eraseFG_preceq hF) hKK'
-  obtain ⟨Y, hYK, hY⟩ := healing_block_receipt_sync p c E rho hE hN hDelta u hSync ha.1 hx hk
+  obtain ⟨Y, hYK, hY⟩ := healing_block_receipt_sync (hroots := hrec.base.idealization)
+    p c E rho hE hN hDelta u hSync ha.1 hx hk
     K' hKm' hstamp hF'
   have hinv := (storeBundle_stateBeforeTime E rho (SA.freezeTime p.toParams u) x).cstore
   obtain ⟨A, hA, hAe⟩ := eraseFG_ancestor_mem hinv.fg.closed hY (hYK ▸ hKK')

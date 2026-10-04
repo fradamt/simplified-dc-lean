@@ -12,7 +12,7 @@ open AvailableChain.SimplexFG
 
 variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In}
 
-/-- Blueprint 21:1410–1419; r3 A4.
+/-- ROOT-DIGEST W2b. Blueprint 21:1410–1419; r3 A4.
 DC: SAME first receipt uses the already-held parent and the strict deadline read.
 RXing is applied to the parent, with its own proposer-floor bound.
 At top J, the walk extends the fixed J, including genesis at m = 1. -/
@@ -106,7 +106,7 @@ theorem healing_promotion_first_receipt (E : Generic.Env V)
   have hPX : FGBlock.Preceq X.parent X := by
     cases X with
     | genesis => exact KitFG.preceq_refl _
-    | node P slot body rows => exact KitFG.preceq_parent_node _ _ _ _
+    | node P slot root body rows => exact KitFG.preceq_parent_node _ _ _ _ _
   have hcompat : Block.Compatible (eraseFG X)
       (eraseFG (V2.D.Run.stateBeforeTime E rho d x).st.fg.F) := by
     rw [← Gen.V2.Duty.stateBefore_idxBefore E rho d hs]
@@ -124,7 +124,8 @@ theorem healing_promotion_first_receipt (E : Generic.Env V)
       (ofWire p ⟨.proposer s, .proposal (eraseFG X) raw sup rows⟩) t :=
     Or.inl ⟨x, hx, ip, hip, hem⟩
   have hdline : max t E.t_GST + p.Δ = d := by rw [max_eq_left (hgst.trans hafter)]
-  obtain ⟨Y, hY, he⟩ := fgsa_proposal_receipt E rho hrec.base.delta hrec.base.valid
+  obtain ⟨Y, hY, he⟩ := fgsa_proposal_receipt (hRoots := hrec.base.idealization) E rho
+    hrec.base.delta hrec.base.valid
     hrec.base.noRestart (fun t => max t E.t_GST + p.Δ) rho.horizon s (eraseFG X)
     raw sup rows t x hD hT hx (hdline ▸ hp.2.1)
     (hdline ▸ lt_add_of_pos_right t p.deltaPos) (hdline ▸ hcompat)
@@ -132,7 +133,7 @@ theorem healing_promotion_first_receipt (E : Generic.Env V)
   rw [hdline, heq] at hY
   exact ⟨x, hx, hY⟩
 
-/-- Blueprint 21:1592–1638; S5 H1, route step 7.
+/-- ROOT-DIGEST W2b. Blueprint 21:1592–1638; S5 H1, route step 7.
 DC: SAME the strict frontier cap makes the emitted proposal compatible at receipt.
 The saved height-m block is below the parent. No phase after its gate is required. -/
 theorem healing_promotion_first_receipt_of_frontierCap (E : Generic.Env V)
@@ -176,7 +177,7 @@ theorem healing_promotion_first_receipt_of_frontierCap (E : Generic.Env V)
   have hPX : FGBlock.Preceq X.parent X := by
     cases X with
     | genesis => exact KitFG.preceq_refl _
-    | node P slot body rows => exact KitFG.preceq_parent_node _ _ _ _
+    | node P slot root body rows => exact KitFG.preceq_parent_node _ _ _ _ _
   have hcompat : Block.Compatible (eraseFG X)
       (eraseFG (V2.D.Run.stateBeforeTime E rho d x).st.fg.F) := by
     rw [← Gen.V2.Duty.stateBefore_idxBefore E rho d hs]
@@ -194,7 +195,8 @@ theorem healing_promotion_first_receipt_of_frontierCap (E : Generic.Env V)
       (ofWire p ⟨.proposer s, .proposal (eraseFG X) raw sup rows⟩) t :=
     Or.inl ⟨x, hx, ip, hip, hem⟩
   have hdline : max t E.t_GST + p.Δ = d := by rw [max_eq_left hgst]
-  obtain ⟨Y, hY, he⟩ := fgsa_proposal_receipt E rho hrec.base.delta hrec.base.valid
+  obtain ⟨Y, hY, he⟩ := fgsa_proposal_receipt (hRoots := hrec.base.idealization) E rho
+    hrec.base.delta hrec.base.valid
     hrec.base.noRestart (fun t => max t E.t_GST + p.Δ) rho.horizon s (eraseFG X)
     raw sup rows t x hD hT hx (hdline ▸ hhor)
     (hdline ▸ lt_add_of_pos_right t p.deltaPos) (hdline ▸ hcompat)

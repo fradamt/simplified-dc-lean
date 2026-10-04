@@ -121,7 +121,7 @@ theorem outage_liveRoot_covers (p : Params) (st : State p.n) (hinv : CStoreInv p
   · exact outage_liveRoot_of_lease p st hBS hbelow hlease hlive hdom
   · exact block_preceq_trans hZ (fgsa_Z_preceq_liveRoot p st)
 
-/-- Blueprint 03 §7; O-INDUCT plan §6 step 6. Class (iii).
+/-- ROOT-DIGEST W2b. Blueprint 03 §7; O-INDUCT plan §6 step 6. Class (iii).
 DC: INTENTIONAL; a delivery extends named history without a new emission,
 then CPCompat proves the successor frame before any reconciliation argument.
 INLINE hstore/hframe: fgsa_activeViewAt/fgsa_frameAt; hsrc:
@@ -129,7 +129,7 @@ fgsa_srcFrameAboveClaim; hnamed: sourceDiscipline_emittedName. -/
 theorem outage_delivery_frame {p : Params} {In V : Type} [DecidableEq V]
     {c : AppCodec In} {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
-    (hsrc : SrcFrameAboveStmt p c E rho)
+    (_hsrc : SrcFrameAboveStmt p c E rho)
     (hnamed : ∀ k x r (a : RowWire p.n) e,
       HonestRowAt p c E rho k x r a → namedEntry a.payload.height_pair = some e →
       ∃ C G, actionSourceFG p c E rho x r = some (some C) ∧
@@ -140,18 +140,19 @@ theorem outage_delivery_frame {p : Params} {In V : Type} [DecidableEq V]
     {i : Nat} {x : V} {o : Obj p} {t : Time}
     (hdel : rho.events[i]? = some (.deliver x o t)) (hx : x ∈ rho.honest)
     {B : Block} {β : FGBlock (Fin p.n)} (hβ : eraseFG β = B)
-    (hist : OutageSourceHistory p c E rho B i) :
+    (hist : OutageSourceHistory p c E rho B i)
+    (hroots : NamedRootCollisionFree p c E rho)
+    (hstrat : RStrat p c E rho) :
     (∀ W ∈ (storeAt p c E rho (i + 1) x).fg.TF, ∀ e ∈ certified p W,
       FGBlock.Preceq e β ∨ FGBlock.Preceq β e) ∧
     (Block.Compatible B (F_at p c E rho (i + 1) x) ∧
       Block.Compatible B (J_at p c E rho (i + 1) x)) := by
   have hnames : OutageNamedHistory p c E rho β (i + 1) := by
     constructor
-    intro y r a e ha he
-    exact (outage_named_of_source_history hβ hist hnamed).history y r a e
-      (outage_row_before_delivery hdel ha) he
-  have hcp := cpCompat_of_srcFrame p c E rho hstore hframe hsrc
-  rw [CPCompat_def] at hcp
+    intro y r a e ha he heScope
+    exact (outage_named_of_source_history (hroots := hroots) hβ hist hnamed).history y r a e
+      (outage_row_before_delivery hdel ha) he heScope
+  have hcp := cpCompat_of_scopedFrame p c E rho hstore hframe hstrat
   obtain ⟨hcert, hF, hJ, _, _⟩ := hcp (i + 1) x β hx hnames.history
   refine ⟨hcert, ?_, ?_⟩
   · rw [← hβ]
@@ -163,18 +164,19 @@ theorem outage_delivery_frame {p : Params} {In V : Type} [DecidableEq V]
     · exact block_compatible_of_common (block_preceq_refl _) (eraseFG_preceq h)
     · exact block_compatible_of_common (eraseFG_preceq h) (block_preceq_refl _)
 
-/-- Blueprint 03 §7; O-INDUCT plan §3.3. Class (iii).
+/-- ROOT-DIGEST W2b. Blueprint 03 §7; O-INDUCT plan §3.3. Class (iii).
 DC: INTENTIONAL; named history gives F compatibility and the retained
 full-domain or frame-root witness, including contested frames. INLINE
 hstore/hframe: fgsa_activeViewAt/fgsa_frameAt; hsrc: fgsa_srcFrameAboveClaim. -/
 theorem outage_frame_retains {p : Params} {In V : Type} [DecidableEq V]
     {c : AppCodec In} {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
-    (hsrc : SrcFrameAboveStmt p c E rho)
+    (_hsrc : SrcFrameAboveStmt p c E rho)
     {i : Nat} {y : V} (hy : y ∈ rho.honest)
     {B : Block} {β : FGBlock (Fin p.n)} (hβ : eraseFG β = B)
     (hist : OutageNamedHistory p c E rho β i)
-    (hBS : Block.Preceq B (S_at p c E rho i y)) :
+    (hBS : Block.Preceq B (S_at p c E rho i y))
+    (hstrat : RStrat p c E rho) :
     Block.Compatible (F_at p c E rho i y) B ∧
       (Block.Preceq B (F_at p c E rho i y) ∨
         ((∃ X ∈ FGSA.fullTree p (storeAt p c E rho i y), eraseFG X = B) ∨
@@ -186,11 +188,9 @@ theorem outage_frame_retains {p : Params} {In V : Type} [DecidableEq V]
     change Block.Preceq B (storeAt p c E rho i y).base.stableRecord at hBS
     rwa [hSe]
   obtain ⟨X, hX, hXe, _⟩ := eraseFG_ancestor_preceq hinv.fg.closed hS hBS'
-  have hXβ : X = β := FGBlock.root_injective (by
-    rw [← eraseFG_root, ← eraseFG_root, hXe, hβ])
+  have hXβ : X = β := eraseFG_injective (hXe.trans hβ.symm)
   have hβmem : β ∈ st.fg.TF := hXβ ▸ hX
-  have hcp := cpCompat_of_srcFrame p c E rho hstore hframe hsrc
-  rw [CPCompat_def] at hcp
+  have hcp := cpCompat_of_scopedFrame p c E rho hstore hframe hstrat
   obtain ⟨_, hF, _, hret, _⟩ := hcp i y β hy hist.history
   have hFB : Block.Compatible (F_at p c E rho i y) B := by
     rw [← hβ]

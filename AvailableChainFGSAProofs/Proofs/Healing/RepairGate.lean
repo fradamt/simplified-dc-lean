@@ -13,7 +13,7 @@ open AvailableChain.SimplexFG Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- Blueprint 03:367–373 (valid parent slots); plan H-REPAIR step 9.
+/-- ROOT-DIGEST W2b. Blueprint 03:367–373 (valid parent slots); plan H-REPAIR step 9.
 DC: SAME along the stored ancestor path of a stored block, slots do not decrease. -/
 theorem repair_stored_slot_le (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) (i : Nat) (v : V) :
@@ -27,9 +27,9 @@ theorem repair_stored_slot_le (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     have he : B = .genesis := by
       simpa only [Block.Preceq, Block.preceq, decide_eq_true_eq] using hB
     rw [he]
-  | node P t body ih =>
+  | node P t root body ih =>
     intro hm B hB
-    have hB' : B = .node P t body ∨ Block.Preceq B P := by
+    have hB' : B = .node P t root body ∨ Block.Preceq B P := by
       simpa only [Block.Preceq, Block.preceq, Bool.or_eq_true, decide_eq_true_eq] using hB
     rcases hB' with he | hBP
     · rw [he]
@@ -40,11 +40,12 @@ theorem repair_stored_slot_le (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
           exact Bool.or_eq_true_iff.mpr (Or.inr (block_preceq_refl P))
         obtain ⟨Y, hY, heY⟩ := eraseFG_ancestor_mem hi.fg.closed hX hPX
         exact (hi.baseTree _).mpr ⟨Y, hY, heY⟩
-      have hlt := fgsa_headRead_child_slot E rho hE i v 0 P (.node P t body)
+      have hlt := fgsa_headRead_child_slot E rho hE i v 0 P (.node P t root body)
         (by rw [clock_base_blocks]; exact hm) rfl
       exact (ih hPm B hBP).trans hlt.le
 
-/-- Blueprint 03:367–373; plan H-REPAIR step 9. DC: SAME a strict stored ancestor has a
+/-- ROOT-DIGEST W2b. Blueprint 03:367–373; plan H-REPAIR step 9. DC: SAME a strict stored ancestor
+has a
 smaller slot. -/
 theorem repair_stored_slot_lt (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) (i : Nat) (v : V) {B C : Block}
@@ -53,8 +54,8 @@ theorem repair_stored_slot_lt (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   cases C with
   | genesis =>
     exact absurd (by simpa only [Block.Preceq, Block.preceq, decide_eq_true_eq] using hBC) hne
-  | node P t body =>
-    have hB' : B = .node P t body ∨ Block.Preceq B P := by
+  | node P t root body =>
+    have hB' : B = .node P t root body ∨ Block.Preceq B P := by
       simpa only [Block.Preceq, Block.preceq, Bool.or_eq_true, decide_eq_true_eq] using hBC
     rcases hB' with he | hBP
     · exact absurd he hne
@@ -66,7 +67,7 @@ theorem repair_stored_slot_lt (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
           exact Bool.or_eq_true_iff.mpr (Or.inr (block_preceq_refl P))
         obtain ⟨Y, hY, heY⟩ := eraseFG_ancestor_mem hi.fg.closed hX hPX
         exact (hi.baseTree _).mpr ⟨Y, hY, heY⟩
-      have hlt := fgsa_headRead_child_slot E rho hE i v 0 P (.node P t body)
+      have hlt := fgsa_headRead_child_slot E rho hE i v 0 P (.node P t root body)
         (by rw [clock_base_blocks]; exact hC) rfl
       exact lt_of_le_of_lt (repair_stored_slot_le E rho hE i v P hPm B hBP) hlt
 
@@ -84,11 +85,13 @@ theorem repair_source_mem (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   change C ∈ (FGSA.clock p (V2.D.Run.stateBefore E rho j x).st (p.actionTime r)).fg.TF at hTF
   rwa [clock_fg] at hTF
 
-/-- Blueprint 01 §6.6 (finality before an honest proposal gate); plan H-REPAIR step 9 (a).
+/-- ROOT-DIGEST W2b. Blueprint 01 §6.6 (finality before an honest proposal gate); plan H-REPAIR step
+9 (a).
 DC: INTENTIONAL the finalized block of an honest store read at or before d_s has slot at
 most s. RQCOrigin gives, for a non-genesis F, a justification QC with an earlier honest
 row; its actual source C of round r has rR ≤ s and the row entry gives F ⪯ C. -/
 theorem repair_finality_slot (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hroots : NamedRootCollisionFree p c E rho)
     (hE : V2.D.ExecutionValid E rho) (qc : RQCOrigin p c E rho)
     {i : Nat} {x : V} (hx : x ∈ rho.honest) {ev : V2.Event V (Obj p)}
     (hi : rho.events[i]? = some ev) {s : Slot} (hts : ev.time ≤ SA.gateTime p.toParams s) :
@@ -110,7 +113,8 @@ theorem repair_finality_slot (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     rw [← hKF', ← hJ]
     exact h
   have hF : (storeAt p c E rho i x).fg.F = (heightView p C).T_h :=
-    FGBlock.root_injective hroot
+    rootScope_eq hroots (rootScope_store hx hinv.fg.Fmem)
+      (rootScope_entry (rootScope_source ha.1 hC)) hroot
   have hCT := repair_source_mem E rho hs ha.2.1 hC
   have hyinv := cstoreInv_stateBefore E rho j y
   have hCm : eraseFG C ∈ (V2.D.Run.stateBefore E rho j y).st.base.blocks :=
@@ -143,7 +147,7 @@ theorem repair_proposal_slot (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   have hpr := (fgsa_emits_proposal E rho _ x _ s _).mp hem
   exact (fgsa_scoreRun_proposal_pools p _ s _ Q raw sup rows hpr.2.2.2).1
 
-/-- Blueprint 01 §6.6, 21 H.3:769–775, H.6:965–973; plan H-REPAIR step 9 (a).
+/-- ROOT-DIGEST W2b. Blueprint 01 §6.6, 21 H.3:769–775, H.6:965–973; plan H-REPAIR step 9 (a).
 DC: INTENTIONAL at an honest gate of an exact-HEAD slot s inside the phase, the gate F is
 below the HEAD: the HEAD witness reaches the gate store, so F and the HEAD are comparable
 (RXing or common J), and F cannot strictly pass a slot-s block (01 §6.6). -/
@@ -175,7 +179,8 @@ theorem repair_gate_finality_le [Fintype V] (E : Generic.Env V)
     rw [postClock_def, preTick_def, fgsa_tickIdx_of_event p c E rho hS hjz]
     rfl
   have hQK := Option.some.inj ((hhead x hx).symm.trans hhl)
-  obtain ⟨W, hW, hQW, _, hFW, _⟩ := healing_support_frame_at E rho mono crossing hE hN hDelta
+  obtain ⟨W, hW, hQW, _, hFW, _⟩ := healing_support_frame_at (hroots := hrec.base.idealization)
+    E rho mono crossing hE hN hDelta
     hrec.sync hgst hphase hus (hvd.trans hgate) hx hjz (B := Q) (hQK ▸ block_preceq_refl _) hx
     (healing_support_idxBefore_le p c E rho hS ht hvd)
     (healing_support_idxBefore_le p c E rho hS ht (hus.trans hvg))
@@ -191,7 +196,8 @@ theorem repair_gate_finality_le [Fintype V] (E : Generic.Env V)
           (V2.D.Run.stateBefore E rho i x).st.base.blocks :=
         (hinv.baseTree _).mpr ⟨_, hinv.fg.Fmem, rfl⟩
       have hlt := repair_stored_slot_lt E rho hE i x hFm hQF heq
-      have hle := repair_finality_slot E rho hE qc hx ht (s := s) le_rfl
+      have hle := repair_finality_slot (hroots := hrec.base.idealization) E rho hE qc hx ht (s :=
+        s) le_rfl
       rw [← hQs] at hle
       exact lt_irrefl _ (lt_of_lt_of_le hlt hle)
 
@@ -225,7 +231,8 @@ theorem repair_gate_receipt [Fintype V] (E : Generic.Env V)
     rw [hK q hq K he]
     exact block_preceq_refl Q
 
-/-- Blueprint 21 H.6:965–970 (all h votes early and clean); plan H-REPAIR step 9 (c).
+/-- ROOT-DIGEST W2b. Blueprint 21 H.6:965–970 (all h votes early and clean); plan H-REPAIR step 9
+(c).
 DC: INTENTIONAL the fast count at an honest gate of an exact-HEAD slot: the honest awake
 HEAD seats are clean early supporters of Q, and their number reaches the release
 threshold under the Recovery fault bound. -/
@@ -279,7 +286,8 @@ theorem repair_gate_fast_count [Fintype V] (E : Generic.Env V)
     have h := (hrec.batch hgsts hvh).lt
     rw [hawk] at h
     exact ⟨hHcard ▸ h⟩
-  obtain ⟨_, hcount, _, _⟩ := exactService_gate_raw_of_head E rho hE hN hDelta hrec.base.cstar
+  obtain ⟨_, hcount, _, _⟩ := exactService_gate_raw_of_head (hroots := hrec.base.idealization)
+    E rho hE hN hDelta hrec.base.cstar
     s Q hhead hSync ht hgeom H hH hbatch
   have hn : Fintype.card V = p.n :=
     (V2.D.CStar.seats_eq (ℓ := .base (.head s)) hrec.base.cstar trivial).symm
@@ -297,7 +305,8 @@ theorem repair_gate_fast_count [Fintype V] (E : Generic.Env V)
     omega
   exact hτ.trans hcount
 
-/-- Blueprint 21 H.6:965–970 (release at q_s; no gate in (q_s, d_s)); plan H-REPAIR step 9 (c).
+/-- ROOT-DIGEST W2b. Blueprint 21 H.6:965–970 (release at q_s; no gate in (q_s, d_s)); plan H-REPAIR
+step 9 (c).
 DC: INTENTIONAL every live lease at an honest gate of an exact-HEAD slot s is compatible
 with Q. Its last write is a gate w < s before q_s = v_(s+1); the q_s release, counted by
 the clean early votes for Q at this gate, removes every target that conflicts with Q.
@@ -381,7 +390,8 @@ theorem repair_gate_guard [Fintype V] (E : Generic.Env V)
   rw [hpost] at hkeep
   have hFiq : Block.Preceq (eraseFG (storeAt p c E rho iq x).fg.F) Q :=
     block_preceq_trans (eraseFG_preceq (mono hN iq i x hx hqi.le).1) hFQ
-  exact healing_support_release_compat E rho hE hN hDelta s hSync hx hx ht hiq hτ hFiq lease hkeep
+  exact healing_support_release_compat (hroots := hrec.base.idealization)
+    E rho hE hN hDelta s hSync hx hx ht hiq hτ hFiq lease hkeep
 
 /-- Blueprint 21 H.6:965–973 (old output); 01 §6.6, §7; plan H-REPAIR step 9 (d).
 DC: INTENTIONAL before an honest gate of label s, the output is below the gate F or a
@@ -527,10 +537,9 @@ theorem repair_gate_old_output [Fintype V] (E : Generic.Env V)
 
 private theorem gate_lift {A B : FGBlock (Fin p.n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
-  preceq_of_eraseFG_preceq (Vw := {A, B}) (KitFG.viewRootInj_all _)
-    ⟨A, by simp, KitFG.preceq_refl _⟩ ⟨B, by simp, KitFG.preceq_refl _⟩ h
+  eraseFG_preceq_iff.mp h
 
-/-- Blueprint 21 H.9:1131–1144, H.6:965–973; plan H-REPAIR step 9 (e).
+/-- ROOT-DIGEST W2b. Blueprint 21 H.9:1131–1144, H.6:965–973; plan H-REPAIR step 9 (e).
 DC: INTENTIONAL at an honest gate of an exact-HEAD slot s = rR, Q has an FG
 representative in the full filtered domain of the action read: the HEAD witness gives a
 stored path at the floor; F is below Q (01 §6.6) and, in a top-J phase, J is below the
@@ -566,7 +575,8 @@ theorem repair_gate_opening [Fintype V] (E : Generic.Env V)
     rw [postClock_def, preTick_def, fgsa_tickIdx_of_event p c E rho hS hjz]
     rfl
   have hQK := Option.some.inj ((hhead x hx).symm.trans hhl)
-  obtain ⟨W, hW, hQW, hZW, _, hloW⟩ := healing_support_frame_at E rho mono crossing hE hN hDelta
+  obtain ⟨W, hW, hQW, hZW, _, hloW⟩ := healing_support_frame_at (hroots := hrec.base.idealization)
+    E rho mono crossing hE hN hDelta
     hrec.sync hgst hphase hus (hvd.trans hgate) hx hjz (B := Q) (hQK ▸ block_preceq_refl _) hx
     (healing_support_idxBefore_le p c E rho hS ht hvd)
     (healing_support_idxBefore_le p c E rho hS ht (hus.trans hvg))

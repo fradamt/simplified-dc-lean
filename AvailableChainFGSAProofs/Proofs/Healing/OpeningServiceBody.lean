@@ -113,7 +113,8 @@ theorem later_opening_source_extends [Fintype V] (E : Generic.Env V)
     exact hdom
   exact openingSource_extends_served E rho j y r Qfg hdom' (hQfg ▸ hcand)
 
-/-- Blueprint 21 H.2 S1, H.3 (HEAD witness relay), H.9:1100–1144; plan H-GATE §2.3 last
+/-- ROOT-DIGEST W2b. Blueprint 21 H.2 S1, H.3 (HEAD witness relay), H.9:1100–1144; plan H-GATE §2.3
+last
 paragraph, §3F step 4, gap 4. DC: INTENTIONAL the H-GATE supplier at the next opening for an
 arbitrary selected body K of opening r, with D = K. K is a fast PhaseBody of rR
 (`opening_source_body`), so TPerm S1 covers every honest HEAD of (r + 1)R. The HEAD relay
@@ -230,7 +231,8 @@ theorem next_opening_body_service [Fintype V] (E : Generic.Env V)
     healing_support_idxBefore_le p c E rho hS ht (hu.trans hgsu)
   have hiv : i ≤ timeIdx rho (p.actionTime (r + 1)) :=
     (healing_phase_lt_timeIdx p c E rho hS ht le_rfl).le
-  obtain ⟨W, hW, hKW, _⟩ := healing_support_frame_at E rho mono crossing hE hN hDelta hrec.sync
+  obtain ⟨W, hW, hKW, _⟩ := healing_support_frame_at (hroots := hrec.base.idealization)
+    E rho mono crossing hE hN hDelta hrec.sync
     hgst hphase hvsu hev hx hjz (hcov x hx _ hhl) hx
     (healing_support_idxBefore_le p c E rho hS ht hev) hui hiv
   have hinv := cstoreInv_stateBefore E rho i x

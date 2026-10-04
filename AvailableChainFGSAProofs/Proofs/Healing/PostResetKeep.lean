@@ -18,8 +18,7 @@ variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V]
 
 private theorem keep_lift {A B : FGBlock (Fin p.n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
-  preceq_of_eraseFG_preceq (KitFG.viewRootInj_all {A, B})
-    ⟨A, by simp, KitFG.preceq_refl A⟩ ⟨B, by simp, KitFG.preceq_refl B⟩ h
+  eraseFG_preceq_iff.mp h
 
 private theorem keep_comparable {A B : FGBlock (Fin p.n)}
     (h : Block.Compatible (eraseFG A) (eraseFG B)) :
@@ -47,7 +46,7 @@ private theorem keep_prefix {i : Nat} {x : V}
         ⟨hB, hFB, hZB, W, hW, KitFG.preceq_trans hBC hCW, hlo⟩))
   · exact Or.inr (Or.inr (KitFG.preceq_trans hBC hCF))
 
-/-- Blueprint 21 H.14:2847–2861; plan J3 C; B1/B13/B17/B18.
+/-- ROOT-DIGEST W2b. Blueprint 21 H.14:2847–2861; plan J3 C; B1/B13/B17/B18.
 DC: SAME geometric keep for every compatible body with its support path.
 The high case excludes both descent causes. A lower body is a prefix of
 the held reset copy. No ProtectedBody guard is needed.
@@ -62,12 +61,13 @@ theorem postReset_general_kept (xing : RXing p c E rho) (origin : RQCOrigin p c 
     (path : ∀ A, FGBlock.Preceq A B → A ∈ X)
     (hBC : Block.Compatible (eraseFG B) w.CStar)
     (hBK : ∀ K s, SourceBefore p c E rho i K s → high p w K →
-      Block.Compatible (eraseFG B) (eraseFG K)) : Kept p c E rho i x X B := by
+      Block.Compatible (eraseFG B) (eraseFG K))
+    (hroots : NamedRootCollisionFree p c E rho) : Kept p c E rho i x X B := by
   have hB := path B (KitFG.preceq_refl B)
   by_cases hhB : high p w B
   · have hhigh := hinv.high_compatible
     rw [PostResetHighCompatible_def] at hhigh
-    rcases healing_descent p c E rho xing origin hx hX hB
+    rcases healing_descent (hroots := hroots) p c E rho xing origin hx hX hB
       (fun K s hK _ _ hlt => Or.inl (cover K s hK (by
         rw [high_def] at hhB ⊢
         exact hhB.trans (Nat.le_of_lt hlt)))) with
@@ -88,7 +88,7 @@ theorem postReset_general_kept (xing : RXing p c E rho) (origin : RQCOrigin p c 
   · obtain ⟨_, _, _, C0, _, _, _, he0, hh0⟩ := h0r.fresh
     have hCC : C = C0 := eraseFG_injective (he.trans he0.symm)
     have hhC : high p w C := by rw [hCC, high_def, hh0]
-    have hkC := postReset_descent_kept p c E rho xing origin hinv hx hX hC hhC
+    have hkC := postReset_descent_kept (hroots := hroots) p c E rho xing origin hinv hx hX hC hhC
       (Or.inr he) (fun K s hK _ _ hlt => Or.inl (cover K s hK (by
         rw [high_def] at hhC ⊢
         exact hhC.trans (Nat.le_of_lt hlt))))
@@ -99,7 +99,8 @@ theorem postReset_general_kept (xing : RXing p c E rho) (origin : RQCOrigin p c 
         exact hhC.trans ((fgCertificateLaws p).height.h_mono hCB))
     exact keep_prefix p c E rho hB hBC' hkC
 
-private theorem keep_cross_source (origin : RQCOrigin p c E rho) {i : Nat} {x : V}
+private theorem keep_cross_source (hroots : NamedRootCollisionFree p c E rho) (origin : RQCOrigin
+    p c E rho) {i : Nat} {x : V}
     {W : FGBlock (Fin p.n)} {m : Nat} (hx : x ∈ rho.honest)
     (hW : W ∈ (storeAt p c E rho i x).fg.TF) (hm : 1 ≤ m)
     (hmW : m < (heightView p W).h) :
@@ -131,9 +132,11 @@ private theorem keep_cross_source (origin : RQCOrigin p c E rho) {i : Nat} {x : 
     rw [hp] at hmatch hn
     obtain ⟨rfl, rfl⟩ : h = m ∧ e = Y.root := of_decide_eq_true hmatch
     obtain ⟨h1, h2⟩ := Prod.mk.inj (Option.some.inj hn)
-    exact ⟨h1.symm, FGBlock.root_injective h2.symm⟩
+    exact ⟨h1.symm, rootScope_eq hroots (rootScope_entry (rootScope_source hrow.1 hK))
+      (rootScope_ancestor (rootScope_store hx hW) hYW) h2.symm⟩
 
-private theorem keep_final_source (origin : RQCOrigin p c E rho) {i : Nat} {x : V}
+private theorem keep_final_source (hroots : NamedRootCollisionFree p c E rho) (origin : RQCOrigin
+    p c E rho) {i : Nat} {x : V}
     {W : FGBlock (Fin p.n)} (hx : x ∈ rho.honest)
     (hW : W ∈ (storeAt p c E rho i x).fg.TF) (hF : (finalityView p W).F ≠ .genesis) :
     ∃ K s, SourceBefore p c E rho i K s ∧
@@ -146,8 +149,8 @@ private theorem keep_final_source (origin : RQCOrigin p c E rho) {i : Nat} {x : 
   rw [hpair] at hn
   obtain ⟨h1, h2⟩ := Prod.mk.inj (Option.some.inj hn)
   refine ⟨K, r * p.R, ⟨j, y, r, wire, hjl, hrow, hK, rfl⟩, h1.symm.trans hj, ?_⟩
-  rw [← hJ]
-  exact FGBlock.root_injective h2.symm
+  exact rootScope_eq hroots (rootScope_entry (rootScope_source hrow.1 hK))
+    (rootScope_finalized (rootScope_store hx hW)) (h2.symm.trans (congrArg FGBlock.root hJ))
 
 private theorem keep_reset_height {w : HealingWitness} (h0r : H0Reset p c E rho w)
     {C : FGBlock (Fin p.n)} (he : eraseFG C = w.CStar) :
@@ -180,7 +183,7 @@ variable (hnr : V2.D.NoRestart rho) (mono : RMono p c E rho)
 
 include hnr mono origin lowFinality highCompat resetCompat
 
-/-- Blueprint 21 H.14:2847–2849, 2880–2883; plan J3 A;
+/-- ROOT-DIGEST W2b. Blueprint 21 H.14:2847–2849, 2880–2883; plan J3 A;
 B1/B13/B15/B17/B18; hint 1 and its addendum. DC: SAME receiver-F split.
 Assembly supplies fgsa_rMono, sourceDiscipline_qcOrigin, J1's
 healing_low_finality_after_reset, and J2's all-cut compatibility results.
@@ -188,7 +191,8 @@ The lowFinality input keeps every producer guard. For an earlier read j,
 compare the same receiver at max j resetCut, then use F monotonicity back to j. -/
 theorem postReset_receiver_compatible {j l : Nat} {x : V}
     {K : FGBlock (Fin p.n)} {s : Slot} (hx : x ∈ rho.honest)
-    (hK : SourceBefore p c E rho l K s) (hhK : high p w K) :
+    (hK : SourceBefore p c E rho l K s) (hhK : high p w K)
+    (hroots : NamedRootCollisionFree p c E rho) :
     Block.Compatible (eraseFG K) (F_at p c E rho j x) := by
   let a := max j (afterTicksIdx rho (p.actionTime w.rStar))
   have hj : j ≤ a := le_max_left _ _
@@ -207,7 +211,7 @@ theorem postReset_receiver_compatible {j l : Nat} {x : V}
       rw [PostResetResetCompatible_def] at hr
       exact Gen.Pure.block_compatible_of_preceq_compatible hlow (hr K s hK hhK)
     · obtain ⟨KF, sF, hKF, hhF, heF⟩ :=
-        keep_final_source p c E rho origin hx hD (by rw [hDF]; exact hgen)
+        keep_final_source (hroots := hroots) p c E rho origin hx hD (by rw [hDF]; exact hgen)
       have hhKF : high p w KF := by
         rw [high_def, hhF]
         simp only [Height] at *
@@ -226,7 +230,7 @@ theorem postReset_receiver_compatible {j l : Nat} {x : V}
   exact keep_symm (Gen.Pure.block_compatible_of_preceq_compatible
     (eraseFG_preceq (hm hnr j a x hx hj).1) hfuture)
 
-/-- Blueprint 21 IF.5:550–567, H.12:2646–2652, H.14:2847–2861;
+/-- ROOT-DIGEST W2b. Blueprint 21 IF.5:550–567, H.12:2646–2652, H.14:2847–2861;
 plan J3 A; B1/B13/B15/B17/B18. DC: SAME conditional admission discharge.
 Assembly supplies sourceDiscipline_tSrc as source; all other inputs have
 the producers listed at postReset_receiver_compatible. hCompat is proved
@@ -241,7 +245,8 @@ theorem postReset_tDel [Fintype V] {G ΔF : Time}
     Gen.V2.Duty.HoldsBefore E rho (fun nd =>
       (∀ B, FGBlock.Preceq B K → B ∈ nd.st.fg.TF) ∨ FGBlock.Preceq K nd.st.fg.F)
       (SA.freezeTime p.toParams (r * p.R)) x := by
-  have hCompat := postReset_receiver_compatible p c E rho hnr mono origin
+  have hCompat := postReset_receiver_compatible (hroots := hrec.base.idealization) p c E rho hnr
+    mono origin
     lowFinality highCompat resetCompat (j := V2.D.Run.idxBefore rho
       (SA.freezeTime p.toParams (r * p.R))) hx hK hhK
   have hdel := healing_tDel E rho hrec source mono y r K hy hsrc hgst hhor x hx
@@ -264,14 +269,15 @@ theorem postReset_keep_height {w : HealingWitness} (h0r : H0Reset p c E rho w)
   exact (keep_reset_height p c E rho h0r he).symm ▸
     le_sup_of_le_left (Finset.le_sup (f := fun B => (heightView p B).h) hC)
 
-/-- Blueprint 21 H.14:2832–2835, 2847–2861; plan J3 B, contest field step;
+/-- ROOT-DIGEST W2b. Blueprint 21 H.14:2832–2835, 2847–2861; plan J3 B, contest field step;
 B1/B13/B17/B18. DC: INTENTIONAL FJ contest exclusion by two high entries.
 Assembly supplies sourceDiscipline_qcOrigin as origin. -/
 theorem postReset_keep_contest (hs : V2.D.ScheduleWellFormed E rho)
     (origin : RQCOrigin p c E rho) {w : HealingWitness}
     {i : Nat} {x : V} (hhigh : PostResetHighCompatible p c E rho w i)
     (hbound : w.M + 1 ≤ (storeAt p c E rho i x).fg.h_max)
-    (hx : x ∈ rho.honest) :
+    (hx : x ∈ rho.honest)
+    (hroots : NamedRootCollisionFree p c E rho) :
     (R_at p c E rho i x).contest = true →
       (storeAt p c E rho i x).fg.h_max = w.M + 1 := by
   intro hct
@@ -285,9 +291,9 @@ theorem postReset_keep_contest (hs : V2.D.ScheduleWellFormed E rho)
   have hhighj : w.M + 1 ≤ st.h_j := by dsimp only [st] at *; simp only [Height] at *; omega
   have hjnz : st.h_j ≠ 0 := by simp only [Height] at *; omega
   obtain ⟨K1, s1, hK1, hh1, he1, -⟩ :=
-    healing_justified_source p c E rho hs origin hx hjnz
+    healing_justified_source (hroots := hroots) p c E rho hs origin hx hjnz
   obtain ⟨Y, hYW, hhY, K2, s2, hK2, hh2, he2⟩ :=
-    keep_cross_source p c E rho origin hx hW (Nat.one_le_iff_ne_zero.mpr hjnz)
+    keep_cross_source (hroots := hroots) p c E rho origin hx hW (Nat.one_le_iff_ne_zero.mpr hjnz)
       (by rw [hhW, htop]; simp only [Height] at *; omega)
   have hh : (heightView p K1).h = (heightView p K2).h := hh1.trans hh2.symm
   have hhK1 : high p w K1 := by rw [high_def, hh1]; exact hhighj
@@ -317,14 +323,15 @@ theorem postReset_keep_floor {w : HealingWitness} {i : Nat} {x : V}
     rw [hct, hcontest hct]
     exact le_max_left _ _
 
-/-- Blueprint 21 H.14:2847–2861; plan J3 B, root field step;
+/-- ROOT-DIGEST W2b. Blueprint 21 H.14:2847–2861; plan J3 B, root field step;
 B1/B13/B17/B18. DC: INTENTIONAL FJ root is F or the selected J.
 Assembly supplies fgsa_rXing and sourceDiscipline_qcOrigin. -/
 theorem postReset_keep_roots (hs : V2.D.ScheduleWellFormed E rho)
     (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
     {w : HealingWitness} (h0r : H0Reset p c E rho w)
     {i : Nat} {x : V} {C : FGBlock (Fin p.n)} (hx : x ∈ rho.honest)
-    (hC : C ∈ (storeAt p c E rho i x).fg.TF) (he : eraseFG C = w.CStar) :
+    (hC : C ∈ (storeAt p c E rho i x).fg.TF) (he : eraseFG C = w.CStar)
+    (hroots : NamedRootCollisionFree p c E rho) :
     ∀ B ∈ [(R_at p c E rho i x).Z, (storeAt p c E rho i x).fg.F],
       FGBlock.Preceq B C ∨
         ∃ K s, SourceBefore p c E rho i K s ∧ high p w K ∧ FGBlock.Preceq B K := by
@@ -341,7 +348,7 @@ theorem postReset_keep_roots (hs : V2.D.ScheduleWellFormed E rho)
         simp only [Height] at *
         omega))
     · obtain ⟨K, s, hK, hh, hT⟩ :=
-        keep_final_source p c E rho origin hx hD (by rw [hDF]; exact hFn)
+        keep_final_source (hroots := hroots) p c E rho origin hx hD (by rw [hDF]; exact hFn)
       refine Or.inr ⟨K, s, hK, ?_, ?_⟩
       · rw [high_def, hh]
         simp only [Height] at *; omega
@@ -381,7 +388,7 @@ theorem postReset_keep_roots (hs : V2.D.ScheduleWellFormed E rho)
           contradiction
         exact Or.inl (hz ▸ hJC)
       · obtain ⟨K, s, hK, hh, hT, -⟩ :=
-          healing_justified_source p c E rho hs origin hx (by
+          healing_justified_source (hroots := hroots) p c E rho hs origin hx (by
             change st.h_j ≠ 0
             simp only [Height] at *
             omega)
@@ -397,7 +404,7 @@ theorem postReset_keep_roots (hs : V2.D.ScheduleWellFormed E rho)
   · exact hZ
   · exact hF
 
-/-- Blueprint 21 H.14:2853–2861; plan J3 B, witness field step;
+/-- ROOT-DIGEST W2b. Blueprint 21 H.14:2853–2861; plan J3 B, witness field step;
 B1/B13/B17/B18. DC: SAME crossed-height source in the duty's own view.
 Assembly supplies sourceDiscipline_qcOrigin as origin. -/
 theorem postReset_keep_witness (origin : RQCOrigin p c E rho)
@@ -405,7 +412,8 @@ theorem postReset_keep_witness (origin : RQCOrigin p c E rho)
     {i : Nat} {x : V} {X : Finset (FGBlock (Fin p.n))} {C : FGBlock (Fin p.n)}
     (hx : x ∈ rho.honest) (_hX : X ⊆ (storeAt p c E rho i x).fg.TF)
     (hC : C ∈ X) (he : eraseFG C = w.CStar)
-    (cover : ∀ K s, SourceBefore p c E rho i K s → high p w K → K ∈ X) :
+    (cover : ∀ K s, SourceBefore p c E rho i K s → high p w K → K ∈ X)
+    (hroots : NamedRootCollisionFree p c E rho) :
     ∃ B ∈ X, (heightView p B).h =
       max (w.M + 1) ((storeAt p c E rho i x).fg.h_max - 1) := by
   classical
@@ -423,7 +431,7 @@ theorem postReset_keep_witness (origin : RQCOrigin p c E rho)
       simp only [Height] at *
       omega
     obtain ⟨_, _, _, K, s, hK, hhK, -⟩ :=
-      keep_cross_source p c E rho origin hx hW (m := st.h_max - 1)
+      keep_cross_source (hroots := hroots) p c E rho origin hx hW (m := st.h_max - 1)
         (by dsimp only [st] at *; simp only [Height] at *; omega)
         (by dsimp only [st] at *; simp only [Height] at *; omega)
     have hh : high p w K := by
@@ -434,7 +442,7 @@ theorem postReset_keep_witness (origin : RQCOrigin p c E rho)
     refine ⟨K, cover K s hK hh, ?_⟩
     rw [max_eq_right (by simp only [Height] at *; omega), hhK]
 
-/-- Blueprint 21 H.12:2652–2666, H.14:2815–2884; plan J3 B, kept field step;
+/-- ROOT-DIGEST W2b. Blueprint 21 H.12:2652–2666, H.14:2815–2884; plan J3 B, kept field step;
 B1/B13/B15/B17/B18. DC: SAME reset transfer at the first release duty.
 The unused reset-transfer and release inputs stay for signature uniformity.
 Later reads use geometric descent in their own covered view. -/
@@ -455,11 +463,12 @@ theorem postReset_keep_body (_hs : V2.D.ScheduleWellFormed E rho)
     (path : ∀ A, FGBlock.Preceq A B → A ∈ X)
     (hBC : Block.Compatible (eraseFG B) w.CStar)
     (hBK : ∀ K s, SourceBefore p c E rho i K s → high p w K →
-      Block.Compatible (eraseFG B) (eraseFG K)) : Kept p c E rho i x X B := by
-  exact postReset_general_kept p c E rho xing origin h0r hinv
+      Block.Compatible (eraseFG B) (eraseFG K))
+    (hroots : NamedRootCollisionFree p c E rho) : Kept p c E rho i x X B := by
+  exact postReset_general_kept (hroots := hroots) p c E rho xing origin h0r hinv
     hx hX hC he cover path hBC hBK
 
-/-- Blueprint 21 H.14:2815–2884; plan J3 B, protected_kept successor;
+/-- ROOT-DIGEST W2b. Blueprint 21 H.14:2815–2884; plan J3 B, protected_kept successor;
 B1/B13/B15/B17/B18. DC: SAME event-prefix history extension.
 The old prefix uses the prior field. Only the new read at i needs the
 separate height, contest, floor, roots, witness and kept field lemmas.
@@ -468,7 +477,8 @@ theorem postReset_protected_kept_succ (hs : V2.D.ScheduleWellFormed E rho)
     (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
     {w : HealingWitness} (h0r : H0Reset p c E rho w)
     (htransfer : ResetTransferCore p c E rho w)
-    {i : Nat} (hinv : PostResetInv p c E rho w i) :
+    {i : Nat} (hinv : PostResetInv p c E rho w i)
+    (hroots : NamedRootCollisionFree p c E rho) :
     PostResetProtectedKept p c E rho w (i + 1) := by
   rw [PostResetProtectedKept_def]
   intro j hj x X C hx hX htick hC he cover hreset hhigh
@@ -477,21 +487,23 @@ theorem postReset_protected_kept_succ (hs : V2.D.ScheduleWellFormed E rho)
     rw [PostResetProtectedKept_def] at hprior
     exact hprior j hj x X C hx hX htick hC he cover hreset hhigh
   · have hbound := postReset_keep_height p c E rho h0r (hX hC) he
-    have hcontest := postReset_keep_contest p c E rho hs origin hinv.high_compatible hbound hx
+    have hcontest := postReset_keep_contest (hroots := hroots) p c E rho hs origin
+      hinv.high_compatible hbound hx
     refine ⟨hbound, hcontest, postReset_keep_floor p c E rho hcontest,
-      postReset_keep_roots p c E rho hs xing origin h0r hx (hX hC) he,
-      postReset_keep_witness p c E rho origin h0r hx hX hC he cover, ?_⟩
+      postReset_keep_roots (hroots := hroots) p c E rho hs xing origin h0r hx (hX hC) he,
+      postReset_keep_witness (hroots := hroots) p c E rho origin h0r hx hX hC he cover, ?_⟩
     intro B s _hprotected path hBC hBK
-    exact postReset_keep_body p c E rho hs xing origin h0r htransfer hinv
+    exact postReset_keep_body (hroots := hroots) p c E rho hs xing origin h0r htransfer hinv
       hx hX htick hC he cover hreset hhigh path hBC hBK
 
-/-- Blueprint 21 H.14:2815–2884; plan J3 D1; B1/B13/B17/B18.
+/-- ROOT-DIGEST W2b. Blueprint 21 H.14:2815–2884; plan J3 D1; B1/B13/B17/B18.
 DC: SAME RKeep body over the reset witness. The last clause is supplied
 by postReset_general_kept, including bodies outside ProtectedBody.
 This internal projection has no H0 or first-proposal input. -/
 theorem postReset_rKeep_body (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
     {w : HealingWitness} (h0r : H0Reset p c E rho w)
-    (inv : ∀ i, PostResetInv p c E rho w i) :
+    (inv : ∀ i, PostResetInv p c E rho w i)
+    (hroots : NamedRootCollisionFree p c E rho) :
     ∀ i x (X : Finset (FGBlock (Fin p.n))) C,
     x ∈ rho.honest → X ⊆ (storeAt p c E rho i x).fg.TF →
     (∃ t, rho.events[i]? = some (.tick x t) ∧ SA.releaseTime p.toParams w.sStar ≤ t) →
@@ -517,7 +529,8 @@ theorem postReset_rKeep_body (xing : RXing p c E rho) (origin : RQCOrigin p c E 
   obtain ⟨hh, hc, hl, hr, hw, -⟩ :=
     h i (Nat.lt_succ_self i) x X C hx hX htick hC he cover hreset hhigh
   exact ⟨hh, hc, hl, hr, hw, fun B path hBC hBK =>
-    postReset_general_kept p c E rho xing origin h0r (inv i) hx hX hC he cover path hBC hBK⟩
+    postReset_general_kept (hroots := hroots) p c E rho xing origin h0r (inv i) hx hX hC he cover
+      path hBC hBK⟩
 
 end AvailableChain.FGSA.Run
 end

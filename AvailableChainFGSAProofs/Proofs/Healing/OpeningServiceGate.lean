@@ -16,7 +16,7 @@ open AvailableChain.SimplexFG Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- Blueprint 21 H.2 S1, 02 §5.4:531–541; plan H-GATE §3C (support count).
+/-- ROOT-DIGEST W2b. Blueprint 21 H.2 S1, 02 §5.4:531–541; plan H-GATE §3C (support count).
 DC: INTENTIONAL if every honest HEAD of label w covers B and the gate F is at or below B,
 the honest HEAD seats are clean early supporters of B at an honest gate of w. Their number
 reaches the release threshold under the Recovery₂ fault bound. No exact HEAD is needed. -/
@@ -83,7 +83,8 @@ theorem opening_gate_support [Fintype V] (E : Generic.Env V)
       Gen.AC.poolSupports vw.blocks (GridCO.cleanSupport p.toParams.engine vw w) k B = true := by
     have hq := (hHmem k).mp hk
     obtain ⟨K, t, hh, he, hv, hK, hslot, hvs, hbs, _, hBK⟩ :=
-      fgsa_gateReceipt E rho hE hN hDelta hC w hSync ht B hgeom k hq
+      fgsa_gateReceipt (hroots := hrec.base.idealization)
+        E rho hE hN hDelta hC w hSync ht B hgeom k hq
         (hrec.awake _ hq _ hgst hhorv)
     exact fgsa_active_support_of_receipt E rho hE j y w k K B t hh he hv hK hslot hvs hbs hBK
   have hc := Gen.AC.batch_counts vw.blocks (GridCO.lateVotes p.toParams.engine vw w)
@@ -323,7 +324,8 @@ theorem opening_heads_cover [Fintype V] (E : Generic.Env V)
   intro z hz K hK
   exact htr.1 z s K hz hqs hvs hK
 
-/-- Blueprint 21 H.1 (release), H.2 S1, H.22 H3; plan H-GATE §3C (the intervening-gate
+/-- ROOT-DIGEST W2b. Blueprint 21 H.1 (release), H.2 S1, H.22 H3; plan H-GATE §3C (the
+intervening-gate
 induction, gaps 1 and 3). DC: INTENTIONAL every live lease at an honest gate of a label
 s > q in the phase is compatible with the ACTUAL raw result C of that gate. The last write
 of the lease is at a gate w < s. If w < q, the q_(q+1) release removes a target that
@@ -475,7 +477,8 @@ theorem opening_gate_guard [Fintype V] (E : Generic.Env V)
       linarith
     have hSync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _
       hrec.sync (fgsaDelay_nonrow E.Δ _) hgstq hvdq (hgq.trans hvh)
-    have hcq := healing_support_release_compat E rho hE hN hDelta q hSync hx hx hjqt hiq hτ
+    have hcq := healing_support_release_compat (hroots := hrec.base.idealization)
+      E rho hE hN hDelta q hSync hx hx hjqt hiq hτ
       hFiq lease hkeep
     obtain ⟨hBm, hBs⟩ := opening_result_slot E rho hS htj hres
     have hQs := repair_proposal_slot E rho hQ

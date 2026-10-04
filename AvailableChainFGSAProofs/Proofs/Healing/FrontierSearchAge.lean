@@ -104,7 +104,7 @@ private theorem frontierSearch_age_advance (E : Generic.Env V)
     · intro i _ W hW hn
       exact healing_rows_above_entry_at_height p st
         (healing_promotion_proposal_reachable p c E rho hst) .progress height U X.parent
-        hparent hpar i W hW hn
+        hparent hpar hUP i W hW hn
   exact progressCoverage r height U X hb hpar
 
 

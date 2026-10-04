@@ -119,7 +119,7 @@ theorem arming_read_bounds {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
   · exact inclusion_liveRoot_le p _ D (by rw [hctrl]; exact hZ)
       (fun row hrow => hobl row (hsub.subset hrow))
 
-/-- Plan O-ARM §6.2 step 6. Class (iii). DC: INTENTIONAL; the label-`(l + 2)`
+/-- ROOT-DIGEST W2b. Plan O-ARM §6.2 step 6. Class (iii). DC: INTENTIONAL; the label-`(l + 2)`
 HEAD of every honest node reads the batch and covers `D`. The frozen block
 arm holds every ancestor of `D` above the live root: each was stored before
 e(l + 1) < z(l + 1). -/
@@ -136,7 +136,8 @@ theorem arming_head_covers [Fintype V] {E : Generic.Env V} {rho : V2.D.Run V (fg
     (hprefix : ArmingPrefixState p c E rho l D Dh)
     (hbatchF : ArmingBatchState p c E rho l D)
     {y : V} (hy : y ∈ rho.honest) {ih : Nat}
-    (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams (l + 2)))) :
+    (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams (l + 2))))
+    (hroots : NamedRootCollisionFree p c E rho) :
     Block.Preceq D (headVote p (clock p (V2.D.Run.stateBefore E rho ih y).st
       (SA.voteTime p.toParams (l + 2))) (l + 2)) := by
   classical
@@ -224,7 +225,8 @@ theorem arming_head_covers [Fintype V] {E : Generic.Env V} {rho : V2.D.Run V (fg
       Block.Preceq (F_at p c E rho k0 y) X →
       ∃ Xh ∈ voterBlocks p dst (l + 1 + 1), eraseFG Xh = X := by
     intro X hne hXD hFX
-    obtain ⟨hXm, hXs⟩ := arming_ancestor_stamp hE hN hDelta hSync hk0 hyw0 hem0 hDK0
+    obtain ⟨hXm, hXs⟩ := arming_ancestor_stamp (hroots := hroots)
+      hE hN hDelta hSync hk0 hyw0 hem0 hDK0
       hk0ih.le _ hv0 X hne hXD hFX
     have hXd : X ∈ dst.base.blocks := by
       change X ∈ (clock p (storeAt p c E rho ih y) _).base.blocks

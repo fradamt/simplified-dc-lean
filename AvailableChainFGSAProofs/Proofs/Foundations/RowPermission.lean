@@ -56,6 +56,8 @@ private theorem rowPermission_carrier_entry (st : State p.n) (hs : CStoreInv p s
         ((fgCertificateLaws p).height.entry_preceq K)
       have hlock := KitFG.slashableWeight_or_finalized_preceq_of_certificate
         p.E (heightView p) (finalityView p) (fgCertificateLaws p) D (heightView p K).J
+          (rootInjectiveOn_of_viewRootInj (viewRootInj_TF p st hs) hD
+            (KitFG.ancestor_closed_of_parent_closed _ hs.fg.closed K hK _ hJK))
       have hheight : (finalityView p D).h_F < (heightView p (heightView p K).J).h := by
         rw [hentry, hk]
         exact hlt
@@ -70,7 +72,10 @@ private theorem rowPermission_carrier_entry (st : State p.n) (hs : CStoreInv p s
       have hn := rowPermission_noEvidence_mono (p := p) (KitFG.chainRows_mono hUD)
         (Finset.Subset.refl _) (hno D hD K hK)
       have he := (KitFG.slashableWeight_or_justified_eq_of_certificate
-        p.E (heightView p) (finalityView p) (fgCertificateLaws p) U K huK).resolve_left hn
+        p.E (heightView p) (finalityView p) (fgCertificateLaws p) U K
+          (rootInjectiveOn_of_viewRootInj (viewRootInj_TF p st hs)
+            (KitFG.ancestor_closed_of_parent_closed _ hs.fg.closed D hD _ hUD) hK)
+              huK).resolve_left hn
       rw [← he, hUF, hDF]
       exact KitFG.preceq_refl _
   have hmax := hs.fg.pair.2 K hK hFJ
@@ -80,7 +85,8 @@ private theorem rowPermission_carrier_entry (st : State p.n) (hs : CStoreInv p s
   have hLj := (fgCertificateLaws p).height.justified_below_height L
   have hjK : (heightView p L).h_j = (heightView p K).h_j := by simp only [Height] at *; omega
   have hsame := (KitFG.slashableWeight_or_justified_eq_of_certificate
-    p.E (heightView p) (finalityView p) (fgCertificateLaws p) L K hjK).resolve_left
+    p.E (heightView p) (finalityView p) (fgCertificateLaws p) L K
+      (rootInjectiveOn_of_viewRootInj (viewRootInj_TF p st hs) hL hK) hjK).resolve_left
       (hno L hL K hK)
   have hnc : (FGSA.controls p st).contest = false := by
     cases he : (FGSA.controls p st).contest

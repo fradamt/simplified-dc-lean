@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSAClaims.Statements.ChannelProps
 public import AvailableChainFGSARun.Proofs.Reachable
+public import AvailableChainFGSAProofs.Proofs.Shared.Roots
 
 public section
 
@@ -64,21 +65,15 @@ theorem healing_source_read (hs : V2.D.ScheduleWellFormed E rho)
       nlinarith
     exact_mod_cast hle
 
-/-- FG compatibility follows from compatibility of the erased blocks. -/
+/-- ROOT-DIGEST W2b. FG compatibility follows from compatibility of the erased blocks. -/
 private theorem desc_compat_of_erase {A B : FGBlock (Fin p.n)}
     (h : Block.Compatible (eraseFG A) (eraseFG B)) :
     FGBlock.Preceq A B ∨ FGBlock.Preceq B A := by
-  have hinj : ViewRootInj ({A, B} : Finset (FGBlock (Fin p.n))) :=
-    fun _ _ _ _ hr => FGBlock.root_injective hr
-  have hA : ∃ W ∈ ({A, B} : Finset (FGBlock (Fin p.n))), FGBlock.Preceq A W :=
-    ⟨A, Finset.mem_insert_self A _, KitFG.preceq_refl A⟩
-  have hB : ∃ W ∈ ({A, B} : Finset (FGBlock (Fin p.n))), FGBlock.Preceq B W :=
-    ⟨B, Finset.mem_insert_of_mem (Finset.mem_singleton_self B), KitFG.preceq_refl B⟩
   change (Block.preceq (eraseFG A) (eraseFG B) ||
     Block.preceq (eraseFG B) (eraseFG A)) = true at h
   rcases Bool.or_eq_true_iff.mp h with h | h
-  · exact Or.inl (preceq_of_eraseFG_preceq hinj hA hB h)
-  · exact Or.inr (preceq_of_eraseFG_preceq hinj hB hA h)
+  · exact Or.inl (eraseFG_preceq_iff.mp h)
+  · exact Or.inr (eraseFG_preceq_iff.mp h)
 
 /-- Erased compatibility is symmetric. -/
 private theorem desc_compat_symm {A B : Block} (h : Block.Compatible A B) :
@@ -102,8 +97,9 @@ private theorem desc_choose_rows {Q : Finset (Fin p.n)}
   simp only [hk, ↓reduceDIte]
   exact Classical.choose_spec (Classical.choose_spec (h k hk))
 
-/-- A crossed height of a held block has an earlier honest source at its entry. -/
-private theorem desc_cross_source (origin : RQCOrigin p c E rho) {i : Nat} {x : V}
+/-- ROOT-DIGEST W2b. A crossed height of a held block has an earlier honest source at its entry. -/
+private theorem desc_cross_source (hroots : NamedRootCollisionFree p c E rho) (origin : RQCOrigin
+    p c E rho) {i : Nat} {x : V}
     {W : FGBlock (Fin p.n)} {m : Nat} (hx : x ∈ rho.honest)
     (hW : W ∈ (storeAt p c E rho i x).fg.TF) (hm : 1 ≤ m)
     (hmW : m < (heightView p W).h) :
@@ -126,10 +122,12 @@ private theorem desc_cross_source (origin : RQCOrigin p c E rho) {i : Nat} {x : 
     rw [hp] at hmatch hn
     obtain ⟨rfl, rfl⟩ : h = m ∧ e = Y.root := of_decide_eq_true hmatch
     obtain ⟨h1, h2⟩ := Prod.mk.inj (Option.some.inj hn)
-    exact ⟨h1.symm, FGBlock.root_injective h2.symm⟩
+    exact ⟨h1.symm, rootScope_eq hroots (rootScope_entry (rootScope_source hrow.1 hK))
+      (rootScope_ancestor (rootScope_store hx hW) hYW) h2.symm⟩
 
-/-- A justified entry of a held block has an earlier honest source. -/
-private theorem desc_just_source (origin : RQCOrigin p c E rho) {i : Nat} {x : V}
+/-- ROOT-DIGEST W2b. A justified entry of a held block has an earlier honest source. -/
+private theorem desc_just_source (hroots : NamedRootCollisionFree p c E rho) (origin : RQCOrigin p
+    c E rho) {i : Nat} {x : V}
     {W : FGBlock (Fin p.n)} (hx : x ∈ rho.honest)
     (hW : W ∈ (storeAt p c E rho i x).fg.TF) (hj : (heightView p W).h_j ≠ 0) :
     ∃ K s, SourceBefore p c E rho i K s ∧ (heightView p K).h = (heightView p W).h_j ∧
@@ -142,10 +140,12 @@ private theorem desc_just_source (origin : RQCOrigin p c E rho) {i : Nat} {x : V
   rw [hpair] at hn
   obtain ⟨h1, h2⟩ := Prod.mk.inj (Option.some.inj hn)
   exact ⟨K, r * p.R, ⟨j, y, r, wire, hjl, hrow, hK, rfl⟩, h1.symm,
-    FGBlock.root_injective h2.symm⟩
+    rootScope_eq hroots (rootScope_entry (rootScope_source hrow.1 hK))
+      (rootScope_justified (rootScope_store hx hW)) h2.symm⟩
 
-/-- A finalized entry of a held block has an earlier honest target source. -/
-private theorem desc_final_source (origin : RQCOrigin p c E rho) {i : Nat} {x : V}
+/-- ROOT-DIGEST W2b. A finalized entry of a held block has an earlier honest target source. -/
+private theorem desc_final_source (hroots : NamedRootCollisionFree p c E rho) (origin : RQCOrigin
+    p c E rho) {i : Nat} {x : V}
     {W : FGBlock (Fin p.n)} (hx : x ∈ rho.honest)
     (hW : W ∈ (storeAt p c E rho i x).fg.TF) (hF : (finalityView p W).F ≠ .genesis) :
     ∃ K s, SourceBefore p c E rho i K s ∧
@@ -158,10 +158,10 @@ private theorem desc_final_source (origin : RQCOrigin p c E rho) {i : Nat} {x : 
   rw [hpair] at hn
   obtain ⟨h1, h2⟩ := Prod.mk.inj (Option.some.inj hn)
   refine ⟨K, r * p.R, ⟨j, y, r, wire, hjl, hrow, hK, rfl⟩, h1.symm.trans hj, ?_⟩
-  rw [← hJ]
-  exact FGBlock.root_injective h2.symm
+  exact rootScope_eq hroots (rootScope_entry (rootScope_source hrow.1 hK))
+    (rootScope_finalized (rootScope_store hx hW)) (h2.symm.trans (congrArg FGBlock.root hJ))
 
-/-- Blueprint 21:2689–2716, 2767–2813 (fj.descent.v3); plan S25, H-DESCENT/D3
+/-- ROOT-DIGEST W2b. Blueprint 21:2689–2716, 2767–2813 (fj.descent.v3); plan S25, H-DESCENT/D3
 (rulings B1, B18). DC: INTENTIONAL FJ contest exclusion; DC removes the J-root
 case with an NJ height (21:2742–2747). Restricted coverage-aware descent at one
 read. A block C of the view X is kept, or an earlier honest source conflicts
@@ -169,7 +169,8 @@ with C at a height at least that of C, or two earlier honest sources share a
 height above C with different entries. The view must hold only the earlier
 sources above F that extend C and are higher than C, or F must cover them.
 It needs no reset witness; H.13/H.14 apply it under H0Reset. -/
-theorem healing_descent (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
+theorem healing_descent (hroots : NamedRootCollisionFree p c E rho) (xing : RXing p c E rho)
+    (origin : RQCOrigin p c E rho)
     {i : Nat} {x : V} {X : Finset (FGBlock (Fin p.n))} {C : FGBlock (Fin p.n)}
     (hx : x ∈ rho.honest) (hX : X ⊆ (storeAt p c E rho i x).fg.TF) (hC : C ∈ X)
     (cover : ∀ K s, SourceBefore p c E rho i K s →
@@ -210,7 +211,7 @@ theorem healing_descent (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
       rw [hDF]
       intro h
       exact hFC (h ▸ KitFG.genesis_preceq C)
-    obtain ⟨K, s, hK, hh, hT⟩ := desc_final_source p c E rho origin hx hD hFg
+    obtain ⟨K, s, hK, hh, hT⟩ := desc_final_source (hroots := hroots) p c E rho origin hx hD hFg
     have hFK : FGBlock.Preceq st.F K := by
       have he := hH.entry_preceq K
       rwa [hT, hDF] at he
@@ -233,7 +234,7 @@ theorem healing_descent (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
   have hJent : st.h_j ≠ 0 → ∃ K s, SourceBefore p c E rho i K s ∧
       (heightView p K).h = st.h_j ∧ (heightView p K).T_h = st.J := fun hnz => by
     obtain ⟨K, s, hK, hh, hT⟩ :=
-      desc_just_source p c E rho origin hx hC1 (by rw [← hj1]; exact hnz)
+      desc_just_source (hroots := hroots) p c E rho origin hx hC1 (by rw [← hj1]; exact hnz)
     exact ⟨K, s, hK, by rw [hh, hj1], by rw [hT, hJ1]⟩
   cases hct : (R_at p c E rho i x).contest with
   | true =>
@@ -262,7 +263,7 @@ theorem healing_descent (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
       intro hz
       exact hn₀ (by rw [hJz hz]; exact KitFG.genesis_preceq W₀)
     obtain ⟨Y, hYW, hYh, K2, s2, hK2, hK2h, hK2T⟩ :=
-      desc_cross_source p c E rho origin hx hW₀ (Nat.one_le_iff_ne_zero.mpr hjnz)
+      desc_cross_source (hroots := hroots) p c E rho origin hx hW₀ (Nat.one_le_iff_ne_zero.mpr hjnz)
         (by rw [hh₀, htop]; exact Nat.lt_succ_self _)
     obtain ⟨K1, s1, hK1, hK1h, hK1T⟩ := hJent hjnz
     have hYe : (heightView p Y).T_h = Y := by
@@ -279,7 +280,12 @@ theorem healing_descent (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
         by rw [hK1h]; exact hlt, ?_⟩)
       rw [hK1T, hK2T]
       intro hr
-      exact hJY (Or.inl (by rw [FGBlock.root_injective hr]; exact KitFG.preceq_refl Y))
+      exact hJY (Or.inl (by
+        have he := viewRootInj_TF p _ (cstoreInv_stateBefore E rho i x) _ _
+          ⟨st.J, J_mem p _ (cstoreInv_stateBefore E rho i x), KitFG.preceq_refl _⟩
+          ⟨W₀, hW₀, hYW⟩ hr
+        rw [he]
+        exact KitFG.preceq_refl Y))
     have hCe : (heightView p C).h = st.h_j := by simp only [Height] at *; omega
     have entry_of : ∀ K, (FGBlock.Preceq C K ∨ FGBlock.Preceq K C) →
         (heightView p K).h = st.h_j → (heightView p C).T_h = (heightView p K).T_h := by
@@ -360,7 +366,7 @@ theorem healing_descent (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
       simp only [Height] at *
       omega
     obtain ⟨-, -, -, K2, s2, hK2, hK2h, -⟩ :=
-      desc_cross_source p c E rho origin hx hW₀ (m := st.h_max - 1)
+      desc_cross_source (hroots := hroots) p c E rho origin hx hW₀ (m := st.h_max - 1)
         (by simp only [Height] at *; omega) (by simp only [Height] at *; omega)
     by_cases hc : FGBlock.Preceq C K2 ∨ FGBlock.Preceq K2 C
     · have hCK : FGBlock.Preceq C K2 := hc.resolve_right (fun h => by
@@ -474,14 +480,15 @@ theorem healing_high_source_first_failure (c₀ : Nat)
     healing_high_pair_compat p c E rho c₀ Lost same support
       (fun k _ B sB => none k B sB) hK hK' hc hc'⟩
 
-/-- Blueprint 21:526–546 (W3), 2693–2695 (IF.3(c)); plan S27, H-DESCENT/D4.
+/-- ROOT-DIGEST W2b. Blueprint 21:526–546 (W3), 2693–2695 (IF.3(c)); plan S27, H-DESCENT/D4.
 DC: INTENTIONAL target QC of the prior justification as the finality source.
 A non-genesis finalized block has a held carrier D and an earlier honest
 source K whose entry is F at the certificate height of D. The source gate
 time is at most the time of the read event. -/
 theorem healing_finality_source (hs : V2.D.ScheduleWellFormed E rho)
     (origin : RQCOrigin p c E rho) {i : Nat} {x : V} (hx : x ∈ rho.honest)
-    (hF : (storeAt p c E rho i x).fg.F ≠ .genesis) :
+    (hF : (storeAt p c E rho i x).fg.F ≠ .genesis)
+    (hroots : NamedRootCollisionFree p c E rho) :
     ∃ D ∈ (storeAt p c E rho i x).fg.TF,
       (finalityView p D).F = (storeAt p c E rho i x).fg.F ∧
       ∃ K s, SourceBefore p c E rho i K s ∧
@@ -490,35 +497,38 @@ theorem healing_finality_source (hs : V2.D.ScheduleWellFormed E rho)
         ∀ ev, rho.events[i]? = some ev → SA.gateTime p.toParams s ≤ ev.time := by
   obtain ⟨D, hD, hDF⟩ := (cstoreInv_stateBefore E rho i x).fg.Fcar
   obtain ⟨K, s, hK, hh, hT⟩ :=
-    desc_final_source p c E rho origin hx hD (by rw [hDF]; exact hF)
+    desc_final_source (hroots := hroots) p c E rho origin hx hD (by rw [hDF]; exact hF)
   exact ⟨D, hD, hDF, K, s, hK, hh, hT.trans hDF,
     fun _ hi => healing_source_gate p c E rho hs hK hi⟩
 
-/-- Blueprint 21:526–546 (W3), 2696–2699; plan S27, H-DESCENT/D4.
+/-- ROOT-DIGEST W2b. Blueprint 21:526–546 (W3), 2696–2699; plan S27, H-DESCENT/D4.
 DC: SAME justification target QC. A positive cached justification J has an
 earlier honest source K whose entry is J at height h_j. The source gate time
 is at most the time of the read event. -/
 theorem healing_justified_source (hs : V2.D.ScheduleWellFormed E rho)
     (origin : RQCOrigin p c E rho) {i : Nat} {x : V} (hx : x ∈ rho.honest)
-    (hj : (storeAt p c E rho i x).fg.h_j ≠ 0) :
+    (hj : (storeAt p c E rho i x).fg.h_j ≠ 0)
+    (hroots : NamedRootCollisionFree p c E rho) :
     ∃ K s, SourceBefore p c E rho i K s ∧
       (heightView p K).h = (storeAt p c E rho i x).fg.h_j ∧
       (heightView p K).T_h = (storeAt p c E rho i x).fg.J ∧
       ∀ ev, rho.events[i]? = some ev → SA.gateTime p.toParams s ≤ ev.time := by
   obtain ⟨C1, hC1, -, hj1, hJ1⟩ := (cstoreInv_stateBefore E rho i x).fg.pair.1
   obtain ⟨K, s, hK, hh, hT⟩ :=
-    desc_just_source p c E rho origin hx hC1 (by rw [← hj1]; exact hj)
+    desc_just_source (hroots := hroots) p c E rho origin hx hC1 (by rw [← hj1]; exact hj)
   exact ⟨K, s, hK, hh.trans hj1.symm, hT.trans hJ1.symm,
     fun _ hi => healing_source_gate p c E rho hs hK hi⟩
 
-/-- Blueprint 21:2767–2813 (fj.descent.v2/v3); plan S25, H-DESCENT/D5.
+/-- ROOT-DIGEST W2b. Blueprint 21:2767–2813 (fj.descent.v2/v3); plan S25, H-DESCENT/D5.
 DC: INTENTIONAL FJ descent alternatives. RExcl is a direct corollary of
 `healing_descent`: its view holds every earlier source, so the restricted
 cover holds. Consumers use `healing_descent`, not RExcl (B18). -/
-theorem healing_rExcl (xing : RXing p c E rho) (origin : RQCOrigin p c E rho) :
+theorem healing_rExcl (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
+    (hroots : NamedRootCollisionFree p c E rho) :
     RExcl p c E rho := by
   intro i x X C hx hX hanc _hF hsrc
-  exact healing_descent p c E rho xing origin hx hX (hanc C (KitFG.preceq_refl C))
+  exact healing_descent (hroots := hroots) p c E rho xing origin hx hX (hanc C (KitFG.preceq_refl
+    C))
     (fun K s hK _ _ _ => hsrc K s hK)
 
 end AvailableChain.FGSA.Run

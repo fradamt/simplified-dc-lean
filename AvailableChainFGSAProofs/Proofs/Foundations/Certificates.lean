@@ -11,7 +11,7 @@ open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- Stored-chain geometry from KitFG; these facts hold for every FG block. -/
+/-- ROOT-DIGEST W2b. Stored-chain geometry from KitFG; these facts hold for every FG block. -/
 theorem fgsa_rGeo : RGeo p c E rho := by
   simp only [RGeo_def, heightView_eq_simplex p, KitFG.simplexHeightView_def, KitFG.heightOf_def]
   intro i x W _ _
@@ -21,9 +21,9 @@ theorem fgsa_rGeo : RGeo p c E rho := by
   intro B _
   cases B with
   | genesis => exact Nat.le_succ _
-  | node P s r rows =>
-    change (derive p.E p.cfg (.node P s r rows)).h ≤ (derive p.E p.cfg P).h + 1
-    rcases KitFG.derive_node_height_cases p.E p.cfg P s r rows with h | h <;> rw [h]
+  | node P s root r rows =>
+    change (derive p.E p.cfg (.node P s root r rows)).h ≤ (derive p.E p.cfg P).h + 1
+    rcases KitFG.derive_node_height_cases p.E p.cfg P s root r rows with h | h <;> rw [h]
     · exact Nat.le_succ _
 
 /-- L49 certificate clauses, using the designated KitFG producers directly. -/

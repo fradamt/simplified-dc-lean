@@ -19,8 +19,7 @@ variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V]
 
 private theorem high_lift {A B : FGBlock (Fin p.n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
-  preceq_of_eraseFG_preceq (KitFG.viewRootInj_all {A, B})
-    ⟨A, by simp, KitFG.preceq_refl A⟩ ⟨B, by simp, KitFG.preceq_refl B⟩ h
+  eraseFG_preceq_iff.mp h
 
 private theorem high_comparable {A B : FGBlock (Fin p.n)}
     (h : Block.Compatible (eraseFG A) (eraseFG B)) :
@@ -48,7 +47,7 @@ private theorem high_prefix {i : Nat} {x : V}
         ⟨hB, hFB, hZB, W, hW, KitFG.preceq_trans hBC hCW, hlo⟩))
   · exact Or.inr (Or.inr (KitFG.preceq_trans hBC hCF))
 
-/-- Blueprint 21 H.13:2785–2813, H.14:2815–2830; plan J3 D0;
+/-- ROOT-DIGEST W2b. Blueprint 21 H.13:2785–2813, H.14:2815–2830; plan J3 D0;
 B1/B13/B15/B17/B18. DC: INTENTIONAL FJ single-source and pair causes.
 J3/H.14 uses this restricted descent in the duty's own covered view.
 The two compatibility inputs exclude both causes for a high source or a high copy of C*. -/
@@ -62,13 +61,14 @@ theorem postReset_descent_kept_of_compat (xing : RXing p c E rho) (origin : RQCO
     (cover : ∀ K s, SourceBefore p c E rho i K s →
       FGBlock.Preceq (storeAt p c E rho i x).fg.F K → FGBlock.Preceq C K →
       (heightView p C).h < (heightView p K).h →
-      K ∈ X ∨ FGBlock.Preceq K (storeAt p c E rho i x).fg.F) :
+      K ∈ X ∨ FGBlock.Preceq K (storeAt p c E rho i x).fg.F)
+    (hroots : NamedRootCollisionFree p c E rho) :
     Kept p c E rho i x X C := by
   have hhigh := highCompat
   have hreset := resetCompat
   rw [PostResetHighCompatible_def] at hhigh
   rw [PostResetResetCompatible_def] at hreset
-  rcases healing_descent p c E rho xing origin hx hX hC cover with
+  rcases healing_descent (hroots := hroots) p c E rho xing origin hx hX hC cover with
     hk | ⟨K, s, hK, hn, hh⟩ | ⟨K, K', s, s', hK, hK', hh, hlt, hr⟩
   · exact hk
   · have hhK : high p w K := by
@@ -89,7 +89,7 @@ theorem postReset_descent_kept_of_compat (xing : RXing p c E rho) (origin : RQCO
     exact False.elim (healing_entry_pair_incompatible p hh hr
       (hhigh K K' s s' hK hK' hhK hhK'))
 
-/-- Blueprint 21 H.14:2847–2861; plan J3 D0; B1/B13/B17/B18.
+/-- ROOT-DIGEST W2b. Blueprint 21 H.14:2847–2861; plan J3 D0; B1/B13/B17/B18.
 DC: SAME geometric keep for every compatible body with its support path.
 The high case excludes both descent causes. A lower body is a prefix of
 the held reset copy. No ProtectedBody guard is needed.
@@ -105,12 +105,13 @@ theorem postReset_general_kept_of_compat (xing : RXing p c E rho) (origin : RQCO
     (path : ∀ A, FGBlock.Preceq A B → A ∈ X)
     (hBC : Block.Compatible (eraseFG B) w.CStar)
     (hBK : ∀ K s, SourceBefore p c E rho i K s → high p w K →
-      Block.Compatible (eraseFG B) (eraseFG K)) : Kept p c E rho i x X B := by
+      Block.Compatible (eraseFG B) (eraseFG K))
+    (hroots : NamedRootCollisionFree p c E rho) : Kept p c E rho i x X B := by
   have hB := path B (KitFG.preceq_refl B)
   by_cases hhB : high p w B
   · have hhigh := highCompat
     rw [PostResetHighCompatible_def] at hhigh
-    rcases healing_descent p c E rho xing origin hx hX hB
+    rcases healing_descent (hroots := hroots) p c E rho xing origin hx hX hB
       (fun K s hK _ _ hlt => Or.inl (cover K s hK (by
         rw [high_def] at hhB ⊢
         exact hhB.trans (Nat.le_of_lt hlt)))) with
@@ -131,7 +132,7 @@ theorem postReset_general_kept_of_compat (xing : RXing p c E rho) (origin : RQCO
   · obtain ⟨_, _, _, C0, _, _, _, he0, hh0⟩ := h0r.fresh
     have hCC : C = C0 := eraseFG_injective (he.trans he0.symm)
     have hhC : high p w C := by rw [hCC, high_def, hh0]
-    have hkC := postReset_descent_kept_of_compat p c E rho xing origin
+    have hkC := postReset_descent_kept_of_compat (hroots := hroots) p c E rho xing origin
       highCompat resetCompat hx hX hC hhC
       (Or.inr he) (fun K s hK _ _ hlt => Or.inl (cover K s hK (by
         rw [high_def] at hhC ⊢
@@ -143,7 +144,7 @@ theorem postReset_general_kept_of_compat (xing : RXing p c E rho) (origin : RQCO
         exact hhC.trans ((fgCertificateLaws p).height.h_mono hCB))
     exact high_prefix p c E rho hB hBC' hkC
 
-/-- Blueprint 21 H.14:2815–2884; plan J3 D0; B1/B13/B17/B18.
+/-- ROOT-DIGEST W2b. Blueprint 21 H.14:2815–2884; plan J3 D0; B1/B13/B17/B18.
 DC: SAME RKeep body over the reset witness. The last clause is supplied
 by postReset_general_kept_of_compat, including bodies outside ProtectedBody.
 This internal projection has no full H0 or first-proposal input. -/
@@ -151,7 +152,8 @@ theorem postReset_rKeep_body_of_compat (xing : RXing p c E rho) (origin : RQCOri
     {w : HealingWitness} (h0r : H0Reset p c E rho w)
     (hs : V2.D.ScheduleWellFormed E rho)
     (highCompat : ∀ i, PostResetHighCompatible p c E rho w i)
-    (resetCompat : ∀ i, PostResetResetCompatible p c E rho w i) :
+    (resetCompat : ∀ i, PostResetResetCompatible p c E rho w i)
+    (hroots : NamedRootCollisionFree p c E rho) :
     ∀ i x (X : Finset (FGBlock (Fin p.n))) C,
     x ∈ rho.honest → X ⊆ (storeAt p c E rho i x).fg.TF →
     (∃ t, rho.events[i]? = some (.tick x t) ∧ SA.releaseTime p.toParams w.sStar ≤ t) →
@@ -173,11 +175,12 @@ theorem postReset_rKeep_body_of_compat (xing : RXing p c E rho) (origin : RQCOri
         Block.Compatible (eraseFG B) (eraseFG K)) → Kept p c E rho i x X B) := by
   intro i x X C hx hX _htick hC he cover _hreset _hhigh
   have hh := postReset_keep_height p c E rho h0r (hX hC) he
-  have hc := postReset_keep_contest p c E rho hs origin (highCompat i) hh hx
+  have hc := postReset_keep_contest (hroots := hroots) p c E rho hs origin (highCompat i) hh hx
   exact ⟨hh, hc, postReset_keep_floor p c E rho hc,
-    postReset_keep_roots p c E rho hs xing origin h0r hx (hX hC) he,
-    postReset_keep_witness p c E rho origin h0r hx hX hC he cover,
-    fun B path hBC hBK => postReset_general_kept_of_compat p c E rho xing origin h0r
+    postReset_keep_roots (hroots := hroots) p c E rho hs xing origin h0r hx (hX hC) he,
+    postReset_keep_witness (hroots := hroots) p c E rho origin h0r hx hX hC he cover,
+    fun B path hBC hBK => postReset_general_kept_of_compat (hroots := hroots) p c E rho xing
+      origin h0r
       (highCompat i) (resetCompat i) hx hX hC he cover path hBC hBK⟩
 
 section KeepReset
@@ -211,7 +214,7 @@ variable [Fintype V] {G ΔF : Time}
 
 include hrec mono emittedNonempty emittedName writes xing origin h0r
 
-/-- Blueprint 21 H.14:2847–2861; plan J3 D0; B1/B13/B17/B18.
+/-- ROOT-DIGEST W2b. Blueprint 21 H.14:2847–2861; plan J3 D0; B1/B13/B17/B18.
 DC: SAME RKeep body. J2 supplies both compatibility inputs at every cut.
 No lease, raw, service, full carrier or first-proposal input is used.
 Assembly supplies fgsa_rMono, emittedName_window,
@@ -237,7 +240,7 @@ theorem postReset_rKeep_body_reset :
     (∀ B, (∀ A, FGBlock.Preceq A B → A ∈ X) → Block.Compatible (eraseFG B) w.CStar →
       (∀ K s, SourceBefore p c E rho i K s → high p w K →
         Block.Compatible (eraseFG B) (eraseFG K)) → Kept p c E rho i x X B) :=
-  postReset_rKeep_body_of_compat p c E rho xing origin h0r
+  postReset_rKeep_body_of_compat (hroots := hrec.base.idealization) p c E rho xing origin h0r
     hrec.base.valid.toScheduleWellFormed
     (postReset_high_compatible_all p c E rho hrec mono emittedNonempty emittedName
       writes xing origin h0r)

@@ -17,12 +17,11 @@ open Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- Plan O-ARM §2. Class (iii). DC: INTENTIONAL; the FG lift of an erased
+/-- ROOT-DIGEST W2b. Plan O-ARM §2. Class (iii). DC: INTENTIONAL; the FG lift of an erased
 order, with a two-block view (root injectivity holds on every view). -/
 theorem arming_lift {n : Nat} {A B : FGBlock (Fin n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
-  preceq_of_eraseFG_preceq (Vw := {A, B}) (KitFG.viewRootInj_all _)
-    ⟨A, by simp, KitFG.preceq_refl _⟩ ⟨B, by simp, KitFG.preceq_refl _⟩ h
+  eraseFG_preceq_iff.mp h
 
 /-- Plan O-ARM §4 field 4, §6.2 step 3. Class (iii). DC: INTENTIONAL; an actual
 honest source of an action strictly before the pending gate is below `D`. -/
@@ -88,26 +87,27 @@ theorem arming_entry_below {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
   refine ⟨(heightView p C).T_h, KitFG.preceq_trans hTC hCD, ?_⟩
   rw [heq, hee, hh]
 
-/-- Plan O-ARM §4 field 5, §6.2 step 3. Class (iii). DC: INTENTIONAL;
+/-- ROOT-DIGEST W2b. Plan O-ARM §4 field 5, §6.2 step 3. Class (iii). DC: INTENTIONAL;
 `cpPrefix_of_srcFrame` at the FG lift of `D`, for every index up to the strict
 pending read. The named entries are those of actions strictly before d(l + 1). -/
 theorem arming_frame_below {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     (hs : V2.D.ScheduleWellFormed E rho)
     (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
-    (hsrc : SrcFrameAboveStmt p c E rho) {l : Slot} {D : Block}
+    (_hsrc : SrcFrameAboveStmt p c E rho) {l : Slot} {D : Block}
     {Dh : FGBlock (Fin p.n)} (hDh : eraseFG Dh = D)
     (hentry : ∀ i y r (a : RowWire p.n) e, HonestRowAt p c E rho i y r a →
       p.actionTime r < SA.gateTime p.toParams (l + 1) →
       namedEntry a.payload.height_pair = some e → EntryBelow p e Dh)
     {i : Nat} (hi : i ≤ V2.D.Run.idxBefore rho (SA.gateTime p.toParams (l + 1)))
-    {y : V} (hy : y ∈ rho.honest) :
+    {y : V} (hy : y ∈ rho.honest) (hroots : NamedRootCollisionFree p c E rho)
+    (hstrat : RStrat p c E rho) (hScope : RootBlockInRun p c E rho (eraseFG Dh)) :
     Block.Preceq (F_at p c E rho i y) D ∧ Block.Preceq (J_at p c E rho i y) D ∧
       Block.Preceq (eraseFG (FGSA.controls p (storeAt p c E rho i y)).Z) D ∧
       (FGSA.controls p (storeAt p c E rho i y)).contest = false ∧
       (FGSA.controls p (storeAt p c E rho i y)).lo ≤ (heightView p Dh).h := by
-  have hcp := cpPrefix_of_srcFrame p c E rho hstore hframe hsrc
+  have hcp := cpPrefix_of_srcFrame p c E rho hstore hframe hroots hstrat
   rw [CPPrefix_def] at hcp
-  obtain ⟨_, hF, hJ, hZ, hn, hlo⟩ := hcp i y Dh hy (by
+  obtain ⟨_, hF, hJ, hZ, hn, hlo⟩ := hcp i y Dh hy hScope (by
     intro z r a e ha he
     obtain ⟨k, hk, hrow⟩ := ha
     have htk : p.actionTime r < SA.gateTime p.toParams (l + 1) :=
@@ -174,7 +174,7 @@ theorem arming_leases_interval {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
       · rw [h.1] at hrow
         exact hprev row (List.mem_filter.mp hrow).1
 
-/-- Plan O-ARM §4 field 5. Class (iii). DC: INTENTIONAL; field 5 of the arming
+/-- ROOT-DIGEST W2b. Plan O-ARM §4 field 5. Class (iii). DC: INTENTIONAL; field 5 of the arming
 certificate: every honest local state up to the strict pending read. -/
 theorem arming_prefix_state {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     (hs : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.NoRestart rho)
@@ -191,7 +191,8 @@ theorem arming_prefix_state {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
         gatePassedAt p c E rho q ∧
         gateResultAt p c E rho q = some (some C) ∧ Block.Preceq row.1 C)
     (hmax : ∀ r X, (r, X) ∈ cleanResults p c E rho (timeIdx rho b₀) → r ≤ l →
-      Block.Preceq X D) :
+      Block.Preceq X D) (hroots : NamedRootCollisionFree p c E rho)
+    (hstrat : RStrat p c E rho) (hScope : RootBlockInRun p c E rho (eraseFG Dh)) :
     ∀ i y, i ≤ V2.D.Run.idxBefore rho (SA.gateTime p.toParams (l + 1)) →
       i ≤ rho.events.length → y ∈ rho.honest →
       Block.Preceq (F_at p c E rho i y) D ∧ Block.Preceq (J_at p c E rho i y) D ∧
@@ -200,7 +201,9 @@ theorem arming_prefix_state {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
       (FGSA.controls p (storeAt p c E rho i y)).lo ≤ (heightView p Dh).h ∧
       ∀ row ∈ (storeAt p c E rho i y).base.obligations, Block.Preceq row.1 D := by
   intro i y hi _ hy
-  obtain ⟨hF, hJ, hZ, hn, hlo⟩ := arming_frame_below hs hstore hframe hsrc hDh hentry hi hy
+  obtain ⟨hF, hJ, hZ, hn, hlo⟩ := arming_frame_below (hroots := hroots) (hstrat := hstrat) (hScope
+    := hScope)
+    hs hstore hframe hsrc hDh hentry hi hy
   refine ⟨hF, hJ, hZ, hn, hlo, ?_⟩
   rcases le_or_gt i (timeIdx rho b₀) with hle | hgt
   · exact arming_leases_cut hs hcut hleaseOrigin hmax hle hy

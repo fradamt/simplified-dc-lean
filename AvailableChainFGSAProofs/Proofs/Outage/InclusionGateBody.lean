@@ -11,7 +11,7 @@ open Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- Blueprint 03:418–458; S3a Q12:3454; plan I-GATE, G6. Class (iii).
+/-- ROOT-DIGEST W2b. Blueprint 03:418–458; S3a Q12:3454; plan I-GATE, G6. Class (iii).
 DC: INTENTIONAL; this is the unfolded InclusionPostGateAt body.
 The event-prefix monotonicity conjunct is the supplied hmono field. -/
 theorem clean_inclusion_post_gate_body [Fintype V]
@@ -39,7 +39,8 @@ theorem clean_inclusion_post_gate_body [Fintype V]
         BelowLabel p c E rho i (labelBoundAt p c rho j) (eraseFG C))
     (pt : PtSP) (hprop : HonestProposal E rho (fgsaInterface p c) pt.s pt.P)
     (hhor : SA.gateTime p.toParams pt.s ≤ rho.horizon)
-    (hmono : Gen.Pure.MonoOn (· ∈ rho.honest) (S_at p c E rho) (· ≤ rho.events.length)) :
+    (hmono : Gen.Pure.MonoOn (· ∈ rho.honest) (S_at p c E rho) (· ≤ rho.events.length))
+    (hstrat : RStrat p c E rho) :
     Gen.Pure.ServedOn (· ∈ rho.honest) (S_at p c E rho) pt.P
       (fun i => i = afterTicksIdx rho (SA.gateTime p.toParams pt.s)) ∧
     Gen.Pure.MonoOn (· ∈ rho.honest) (S_at p c E rho) (· ≤ rho.events.length) := by
@@ -54,7 +55,8 @@ theorem clean_inclusion_post_gate_body [Fintype V]
   obtain ⟨i, hi, _⟩ := fgsa_tick_total E rho hs hset.pre.base.delta x hx
     (4 * pt.s + 6) (he ▸ hhor)
   rw [he] at hi
-  have hout := (inclusion_gate_exact E rho ΔF hset hstore hframe hsrc hordered hnonempty
+  have hout := (inclusion_gate_exact (hstrat := hstrat) E rho ΔF hset hstore hframe hsrc hordered
+    hnonempty
     htransfer hleases hrows pt hprop hhor hx hi).2.2.2
   have hnode := (afterTicks_node E rho hs hi).trans (V2.D.Run.step_tick_eq E rho hi).1.symm
   rw [afterTicks_eq_stateBefore E rho hs] at hnode
@@ -64,7 +66,7 @@ theorem clean_inclusion_post_gate_body [Fintype V]
     by rw [S_at_def, S_at_def]; exact hS, hout]
   exact block_preceq_refl _
 
-/-- Blueprint 03:418–458; S3a Q12:3454; plan I-READ, G7. Class (iii).
+/-- ROOT-DIGEST W2b. Blueprint 03:418–458; S3a Q12:3454; plan I-READ, G7. Class (iii).
 DC: INTENTIONAL; this is the unfolded InclusionAt body. The inclusive
 public read uses hmono after the tick cut, including deliveries at d.
 Both getters read S. All read times are within the finite horizon. -/
@@ -93,11 +95,13 @@ theorem clean_inclusion_body [Fintype V]
         BelowLabel p c E rho i (labelBoundAt p c rho j) (eraseFG C))
     (pt : PtSP) (hprop : HonestProposal E rho (fgsaInterface p c) pt.s pt.P)
     (hhor : SA.gateTime p.toParams pt.s ≤ rho.horizon)
-    (hmono : Gen.Pure.MonoOn (· ∈ rho.honest) (S_at p c E rho) (· ≤ rho.events.length)) :
+    (hmono : Gen.Pure.MonoOn (· ∈ rho.honest) (S_at p c E rho) (· ≤ rho.events.length))
+    (hstrat : RStrat p c E rho) :
     ∀ g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed],
       Gen.Pure.ServedOn (· ∈ rho.honest) (fun t x => V2.D.outputAt E rho g x t) pt.P
         (fun t => SA.gateTime p.toParams pt.s ≤ t ∧ t ≤ rho.horizon) := by
-  have hpost := clean_inclusion_post_gate_body E rho ΔF hset hstore hframe hsrc hordered
+  have hpost := clean_inclusion_post_gate_body (hstrat := hstrat) E rho ΔF hset hstore hframe hsrc
+    hordered
     hnonempty htransfer hleases hrows pt hprop hhor hmono
   have hs := hset.pre.base.valid.toScheduleWellFormed
   intro g hg t x ht hx

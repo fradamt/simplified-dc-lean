@@ -33,7 +33,7 @@ theorem exactService_emitted_head (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
   rw [postClock_def, preTick_def, fgsa_tickIdx_of_event p c E rho hs hj] at hr
   exact hK.trans (Option.some.inj hr)
 
-/-- P3 erratum 13 and blueprint 02:531–541, 21 H.22 H3.
+/-- ROOT-DIGEST W2b. P3 erratum 13 and blueprint 02:531–541, 21 H.22 H3.
 DC: Goldfish/Confirmation.lean:434–441, HonestSupport.vote.
 INTENTIONAL: exact HEAD reads specialize the Shared active receipts to Q;
 the consumer supplies GateReceiptGeometry at the actual gate read.
@@ -51,7 +51,8 @@ theorem exactService_gate_receipts_of_head
     (hgeom : GateReceiptGeometry E rho
       (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)) s Q)
     (q : Fin p.n) (hy : rho.seatOf (.base (.head s)) q ∈ rho.honest)
-    (hawake : E.awake (rho.seatOf (.base (.head s)) q) (SA.voteTime p.toParams s) = true) :
+    (hawake : E.awake (rho.seatOf (.base (.head s)) q) (SA.voteTime p.toParams s) = true)
+    (hroots : NamedRootCollisionFree p c E rho) :
     ∃ t, V2.D.Run.emits E rho (rho.seatOf (.base (.head s)) q)
       (ofHead p ⟨.seat (.head s) q, Q⟩) t ∧
       baseVote (⟨.seat (.head s) q, Q⟩ : HeadWire p.n) ∈
@@ -66,12 +67,12 @@ theorem exactService_gate_receipts_of_head
       Block.Preceq (eraseFG (clockPre p (storeAt p c E rho i x)
         (SA.gateTime p.toParams s)).fg.F) Q := by
   obtain ⟨K, t, hh, he, hv, hK, hslot, hvs, hbs, hF, _⟩ :=
-    fgsa_gateReceipt E rho hE hN hDelta hC s hSync ht Q hgeom q hy hawake
+    fgsa_gateReceipt (hroots := hroots) E rho hE hN hDelta hC s hSync ht Q hgeom q hy hawake
   have heq := exactService_emitted_head E rho hE.toScheduleWellFormed s Q hhead q hh K t he
   subst K
   exact ⟨t, he, hv, hK, hslot, hvs, hbs, hF⟩
 
-/-- Blueprint 02:531–541 and 21 H.22 H3, exact raw result from honest HEADs.
+/-- ROOT-DIGEST W2b. Blueprint 02:531–541 and 21 H.22 H3, exact raw result from honest HEADs.
 DC: Goldfish/Confirmation.lean:494,508,567, honest support and exclusion.
 INTENTIONAL: FG-SA uses the active F anchor and a late-vote denominator.
 The SA participation count and GateReceiptGeometry are explicit inputs.
@@ -92,7 +93,8 @@ theorem exactService_gate_raw_of_head [Fintype V]
     (H : Finset (Fin p.n))
     (hH : ∀ q, q ∈ H ↔ rho.seatOf (.base (.head s)) q ∈ rho.honest ∧
       E.awake (rho.seatOf (.base (.head s)) q) (SA.voteTime p.toParams s) = true)
-    (hbatch : Gen.Pure.Batch H.card (Gen.V2.Duty.faulty rho).card) :
+    (hbatch : Gen.Pure.Batch H.card (Gen.V2.Duty.faulty rho).card)
+    (hroots : NamedRootCollisionFree p c E rho) :
     let pre := clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)
     let v := actView pre
     SA.confirmationFrom p.toParams (eraseFG pre.fg.F) v s = some Q ∧
@@ -100,7 +102,8 @@ theorem exactService_gate_raw_of_head [Fintype V]
       Q ∈ v.blocks ∧ Block.Preceq (eraseFG pre.fg.F) Q := by
   intro pre v
   have hrec (q : Fin p.n) (hq : q ∈ H) :=
-    exactService_gate_receipts_of_head E rho hE hN hDelta hC s Q hhead hSync ht hgeom
+    exactService_gate_receipts_of_head (hroots := hroots)
+      E rho hE hN hDelta hC s Q hhead hSync ht hgeom
       q ((hH q).mp hq).1 ((hH q).mp hq).2
   have hheads (q : Fin p.n) (hq : q ∈ H) := hrec q hq
   have hcover := fgsa_gate_batch_premises E rho hE hC i x s Q H hbatch
@@ -125,7 +128,7 @@ theorem exactService_gate_raw_of_head [Fintype V]
   obtain ⟨q, hq⟩ := Finset.card_pos.mp hpos
   obtain ⟨_, _, _, hQ, _, _, _, hF⟩ := hrec q hq
   obtain ⟨C, hraw, hQC⟩ := fgsa_confirmationFrom_covers_majority p v (eraseFG pre.fg.F)
-    Q s (Bool.or_eq_true_iff.mpr (Or.inl hF)) hcover.1 hcover.2.1 hcover.2.2
+    Q s Q.root (Bool.or_eq_true_iff.mpr (Or.inl hF)) hcover.1 hcover.2.1 hcover.2.2
   have hno (D : Block) (hD : ¬ Block.Preceq D Q) (k : Fin p.n) (hk : k ∈ H) :
       Gen.AC.poolSupports v.blocks (GridCO.cleanSupport p.toParams.engine v s) k D = false := by
     apply Bool.eq_false_iff.mpr
@@ -289,7 +292,7 @@ theorem exactService_opening_of_gateService
   rw [hC]
   exact congrArg (fun B => some (some B)) heq
 
-/-- P3 A.9 / F1b.7; blueprint 21 H.22 H3, all gate clauses at one tick.
+/-- ROOT-DIGEST W2b. P3 A.9 / F1b.7; blueprint 21 H.22 H3, all gate clauses at one tick.
 DC: Goldfish/Confirmation.lean:494,508,567; UserConfirmationRecovery.lean:235;
 RecoveryCapturedActionCarrier.lean:30. INTENTIONAL: FG-SA combines the
 optional raw result, whole-result guard, saved fast write, stable output,
@@ -311,7 +314,8 @@ theorem exactService_gate_at_of_head [Fintype V]
     (hH : ∀ q, q ∈ H ↔ rho.seatOf (.base (.head s)) q ∈ rho.honest ∧
       E.awake (rho.seatOf (.base (.head s)) q) (SA.voteTime p.toParams s) = true)
     (hbatch : Gen.Pure.Batch H.card (Gen.V2.Duty.faulty rho).card)
-    (hfast : SA.releaseThreshold p.toParams ≤ H.card) :
+    (hfast : SA.releaseThreshold p.toParams ≤ H.card)
+    (hroots : NamedRootCollisionFree p c E rho) :
     gateResult p c E rho x s = some (some Q) ∧
     (∃ j, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j) ∧
     (∃ nd, postClock E rho x (SA.gateTime p.toParams s) = some nd ∧
@@ -323,7 +327,8 @@ theorem exactService_gate_at_of_head [Fintype V]
   let v := actView pre
   let w := (fgsaAC E rho).gateView i x s
   have hs := hE.toScheduleWellFormed
-  obtain ⟨hr, hcount, hmem, hanchor⟩ := exactService_gate_raw_of_head E rho hE hN hDelta hC
+  obtain ⟨hr, hcount, hmem, hanchor⟩ := exactService_gate_raw_of_head (hroots := hroots)
+    E rho hE hN hDelta hC
     s Q hhead hSync ht hgeom.toGateReceiptGeometry H hH hbatch
   have hv : { v with early := st.base.early } = w := fgsa_clockPre_gateView p st s
   have hrawEq : SA.confirmationFrom p.toParams (eraseFG pre.fg.F) v s =
@@ -381,7 +386,7 @@ theorem exactService_gate_at_of_head [Fintype V]
     exact exactService_opening_of_gateService E rho hs i x r Q ht hservice hout
       (hgeom.opening_domain r rfl)
 
-/-- P3 A.9; blueprint 21 H.22 H3: the gate clauses conditional on the HEAD clause.
+/-- ROOT-DIGEST W2b. P3 A.9; blueprint 21 H.22 H3: the gate clauses conditional on the HEAD clause.
 DC: UserConfirmationRecovery.lean:235 and Goldfish/Confirmation.lean:494,508,567.
 INTENTIONAL: J2 has separate finite HEAD and gate horizons. The caller supplies
 SA participation, gate geometry, and vote-to-gate synchrony only when the gate
@@ -405,7 +410,8 @@ theorem exactService_gate_of_head [Fintype V]
         Gen.Pure.Batch H.card (Gen.V2.Duty.faulty rho).card ∧
         SA.releaseThreshold p.toParams ≤ H.card)
     (hgeometry : ∀ i x, x ∈ rho.honest → IsGateTick p c rho i x v →
-      ExactServiceGateGeometry E rho i x v Q) :
+      ExactServiceGateGeometry E rho i x v Q)
+    (hroots : NamedRootCollisionFree p c E rho) :
     SA.gateTime p.toParams v ≤ rho.horizon → ∀ x ∈ rho.honest,
       gateResult p c E rho x v = some (some Q) ∧
       (∃ j, IsGateTick p c rho j x v ∧ gatePassedAt p c E rho j) ∧
@@ -425,10 +431,10 @@ theorem exactService_gate_of_head [Fintype V]
     (4 * v + 6) (htime ▸ hh)
   rw [htime] at hi
   obtain ⟨H, hH, hbatch, hfast⟩ := hparticipation hh
-  exact exactService_gate_at_of_head E rho hE hN hDelta hC v Q hne
+  exact exactService_gate_at_of_head (hroots := hroots) E rho hE hN hDelta hC v Q hne
     (hhead (hvg.trans hh)) (hSync hh) hx hi (hgeometry i x hx hi) H hH hbatch hfast
 
-/-- P3 A.9; blueprint 21 H.22 H3, composition with the supplied HEAD clause.
+/-- ROOT-DIGEST W2b. P3 A.9; blueprint 21 H.22 H3, composition with the supplied HEAD clause.
 DC: UserConfirmationRecovery.lean:235 and Goldfish/Confirmation.lean:434–441.
 INTENTIONAL: this is the complete J2 conjunction with its two horizons;
 the HEAD producer remains a separate input. The gate premises are unchanged.
@@ -451,9 +457,10 @@ theorem exactService_of_head_and_gate [Fintype V]
         Gen.Pure.Batch H.card (Gen.V2.Duty.faulty rho).card ∧
         SA.releaseThreshold p.toParams ≤ H.card)
     (hgeometry : ∀ i x, x ∈ rho.honest → IsGateTick p c rho i x v →
-      ExactServiceGateGeometry E rho i x v Q) :
+      ExactServiceGateGeometry E rho i x v Q)
+    (hroots : NamedRootCollisionFree p c E rho) :
     ExactService p c E rho v Q :=
-  ⟨hhead, exactService_gate_of_head E rho hE hN hDelta hC v Q hne hhead hSync
+  ⟨hhead, exactService_gate_of_head (hroots := hroots) E rho hE hN hDelta hC v Q hne hhead hSync
     hparticipation hgeometry⟩
 
 /-- Blueprint 02:531–541: express SA participation with the actual HEAD seats.

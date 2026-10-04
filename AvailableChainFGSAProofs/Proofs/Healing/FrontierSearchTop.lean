@@ -14,10 +14,9 @@ variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
 private theorem frontierSearch_top_lift {A B : FGBlock (Fin p.n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
-  preceq_of_eraseFG_preceq (Vw := {A, B}) (KitFG.viewRootInj_all _)
-    ⟨A, by simp, KitFG.preceq_refl _⟩ ⟨B, by simp, KitFG.preceq_refl _⟩ h
+  eraseFG_preceq_iff.mp h
 
-/-- Blueprint 21 HG.3 top J. DC: SAME an accepted nonzero J has an
+/-- ROOT-DIGEST W2b. Blueprint 21 HG.3 top J. DC: SAME an accepted nonzero J has an
 actual earlier honest source; its slot is at least 6Δ before the start. -/
 theorem frontierSearch_initial_J_age [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time}
@@ -28,7 +27,8 @@ theorem frontierSearch_initial_J_age [Fintype V] (E : Generic.Env V)
     SA.proposalTime p.toParams (storeAt p c E rho (i + 1) x).fg.J.slot ≤
       ev.time - 6 * p.Δ := by
   have hs := hrec.base.valid.toScheduleWellFormed
-  obtain ⟨K, s, hsrc, _, hT, _⟩ := healing_justified_source p c E rho hs origin hx hj
+  obtain ⟨K, s, hsrc, _, hT, _⟩ := healing_justified_source (hroots := hrec.base.idealization) p c
+    E rho hs origin hx hj
   obtain ⟨j, y, r, a, hji, ha, hK, rfl⟩ := hsrc
   have hmem := repair_source_mem E rho hs ha.2.1 hK
   have hbase : eraseFG K ∈ (rho.stateBefore E j y).st.base.blocks :=
@@ -48,7 +48,7 @@ theorem frontierSearch_initial_J_age [Fintype V] (E : Generic.Env V)
   change 4 * p.Δ * ((r * p.R : Nat) : Time) + 6 * p.Δ ≤ ev.time at htime
   nlinarith [p.deltaPos]
 
-/-- Blueprint 21 HG.3 top J. DC: SAME a low proposal in this phase
+/-- ROOT-DIGEST W2b. Blueprint 21 HG.3 top J. DC: SAME a low proposal in this phase
 has the current top J as its height entry. This is a path-plateau proof. -/
 private theorem frontierSearch_top_low_entry [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF u D : Time}
@@ -98,7 +98,7 @@ private theorem frontierSearch_top_low_entry [Fintype V] (E : Generic.Env V)
   have hPQ : FGBlock.Preceq Qfg.parent Qfg := by
     cases Qfg with
     | genesis => exact KitFG.preceq_refl _
-    | node P s body rows => exact KitFG.preceq_parent_node _ _ _ _
+    | node P s root body rows => exact KitFG.preceq_parent_node _ _ _ _ _
   have hJQ : FGBlock.Preceq J Qfg := KitFG.preceq_trans (hBQ ▸ hJB) hPQ
   obtain ⟨C, _, _, hjC, hJC⟩ := (storeBundle_stateBefore E rho j x).cstore.fg.pair.1
   have htop : (storeAt p c E rho j x).fg.h_j + 1 = m := hframe.2.2.2.1.2.2.2.1
@@ -118,7 +118,7 @@ private theorem frontierSearch_top_low_entry [Fintype V] (E : Generic.Env V)
     exact (fgJustificationLaws p).J_entry C
   exact ((fgCertificateLaws p).height.entry_plateau hJQ (hJheight.trans hlow.symm)).symm.trans hJe
 
-/-- Blueprint 21 HG.3 top J. DC: SAME the settled root is the
+/-- ROOT-DIGEST W2b. Blueprint 21 HG.3 top J. DC: SAME the settled root is the
 accepted top carrier's J at the start. Its earlier row fixes the entry age. -/
 private theorem frontierSearch_top_seed_age [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF D : Time}
@@ -155,7 +155,8 @@ private theorem frontierSearch_top_seed_age [Fintype V] (E : Generic.Env V)
   have hjD : j ≤ timeIdx rho D :=
     (healing_phase_lt_timeIdx p c E rho hs hq (hqg.trans hgate)).le
   have hcutD : V2.D.Run.idxBefore rho (ev.time + p.Δ) ≤ timeIdx rho D := hcut.trans hjD
-  have hCcut := healing_phase_held_receipt p c E rho crossing hrec.base.valid
+  have hCcut := healing_phase_held_receipt (hroots := hrec.base.idealization)
+    p c E rho crossing hrec.base.valid
     hrec.base.noRestart hrec.base.delta hrec.sync hi hx hgst hC
     (by linarith [p.deltaPos, hp.1, hp.2.1])
     (by rw [(hwin _ hiCut hcutD).1, hh]) hy
@@ -185,7 +186,7 @@ private theorem frontierSearch_top_seed_age [Fintype V] (E : Generic.Env V)
   rw [heJ, hJJ]
   exact hage
 
-/-- Blueprint 21 HG.3 gap. DC: SAME finish repair in a quiet settled phase.
+/-- ROOT-DIGEST W2b. Blueprint 21 HG.3 gap. DC: SAME finish repair in a quiet settled phase.
 The entry-age input is local to this helper. The public producer must prove it
 from the actual start carrier and RQCOrigin. -/
 private theorem frontierSearch_top_phase [Fintype V] (E : Generic.Env V)
@@ -364,14 +365,14 @@ private theorem frontierSearch_top_phase [Fintype V] (E : Generic.Env V)
     have hPX : FGBlock.Preceq X.parent X := by
       cases X with
       | genesis => exact KitFG.preceq_refl _
-      | node P s body rows => exact KitFG.preceq_parent_node _ _ _ _
+      | node P s root body rows => exact KitFG.preceq_parent_node _ _ _ _ _
     have hh : m ≤ (heightView p X).h := by
       have hKP := (fgCertificateLaws p).height.h_mono hpath
       have hPXh := (fgCertificateLaws p).height.h_mono hPX
       exact (hKh ▸ hKP).trans hPXh
     exact finish hnew hat hsD hh
 
-/-- Blueprint 21 HG.3 top J; run 2 R2-b.
+/-- ROOT-DIGEST W2b. Blueprint 21 HG.3 top J; run 2 R2-b.
 DC: SAME keep both E_jF branches. The actual accepted J supplies its age;
 no ExactService-to-seed reconstruction or E_jF collapse is used. -/
 theorem frontier_hg3_topJ [Fintype V] (E : Generic.Env V)
@@ -442,7 +443,8 @@ theorem frontier_hg3_topJ [Fintype V] (E : Generic.Env V)
     · exact Or.inr (Or.inl h)
   have hsettle : ev.time + 3 * p.Δ ≤ ev.time + E_jF p ΔF G ρbar :=
     (le_add_of_nonneg_right hρ).trans hrepair
-  obtain ⟨J, hp, _⟩ := healing_settle_start p c E rho crossing hrec.base.valid
+  obtain ⟨J, hp, _⟩ := healing_settle_start (hroots := hrec.base.idealization)
+    p c E rho crossing hrec.base.valid
     hrec.base.noRestart hrec.base.delta hrec.sync i ev _ m .topJ hi hgst0
     hsettle hhor hm hfront hkind hquiet
   have hgst : E.t_GST ≤ ev.time + 3 * p.Δ := by linarith [p.deltaPos]

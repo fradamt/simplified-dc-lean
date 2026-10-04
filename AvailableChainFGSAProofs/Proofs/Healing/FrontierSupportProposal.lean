@@ -25,7 +25,8 @@ private theorem fprop_idxBefore_le_timeIdx (rho : V2.D.Run V (fgsa p c)) {t v : 
   exact List.countP_mono_left (fun e _ he =>
     decide_eq_true ((of_decide_eq_true he).le.trans htv))
 
-/-- Blueprint 21:709–715 (H.2 S2), 1240–1243 (proposer pools), HG.1:1557–1561; plan §3.1
+/-- ROOT-DIGEST W2b. Blueprint 21:709–715 (H.2 S2), 1240–1243 (proposer pools), HG.1:1557–1561; plan
+§3.1
 step 5 (restates `healing_proposal_batch_seat`). DC: INTENTIONAL under the cap, an honest
 label-r HEAD that covers the pivot and B is, at the proposer's slot-(r+1) read, a
 resolved non-equivocating proposer-support vote that supports B. The HEAD block is the
@@ -71,7 +72,8 @@ theorem frontier_proposal_batch_seat [Fintype V] (E : Generic.Env V)
     (SA.voteTime p.toParams r)) r
   have hBK : Block.Preceq B K := hcover z hk K hhl
   -- The HEAD block itself reaches the proposer before e_r (capped relay).
-  obtain ⟨Kfg, hKz, hKe0, _, hrelay⟩ := frontier_head_relay E rho crossing hE hN hDelta
+  obtain ⟨Kfg, hKz, hKe0, _, hrelay⟩ := frontier_head_relay (hroots := hrec.base.idealization)
+    E rho crossing hE hN hDelta
     hrec.sync hQm hcap hk hjz hgstr (hcoverQ z hk K hhl) ((hvp.trans hv).trans hvh)
     (fprop_idxBefore_le_timeIdx rho (hvp.trans hv))
   have hKe' : eraseFG Kfg = K := hKe0
@@ -183,7 +185,8 @@ theorem frontier_proposal_batch_seat [Fintype V] (E : Generic.Env V)
     obtain ⟨a, ha, b, hb, hne, hka, hkb⟩ := (cap_pair _ k).mp he
     exact absurd ((hall a ha hka).trans (hall b hb hkb).symm) hne
 
-/-- Blueprint 21 HG.1:1557–1565, H.6:928–944, H.2 S2:709–715; plan §2.2 (RetainedPriorSupport)
+/-- ROOT-DIGEST W2b. Blueprint 21 HG.1:1557–1565, H.6:928–944, H.2 S2:709–715; plan §2.2
+(RetainedPriorSupport)
 and §3.1 step 5. DC: INTENTIONAL a target L that every honest label-r HEAD covers has
 retained prior support at the honest proposer read of slot r+1 under the cap: the
 proposer's own label-r HEAD block is the height-m witness, and the honest batch of label r
@@ -229,7 +232,8 @@ theorem frontier_prior_support [Fintype V] (E : Generic.Env V)
     unfold headAtLabel
     rw [postClock_def, preTick_def, fgsa_tickIdx_of_event p c E rho hS hjx]
     rfl
-  obtain ⟨W, _, hWe, _, hrelay⟩ := frontier_head_relay E rho crossing hE hN hDelta
+  obtain ⟨W, _, hWe, _, hrelay⟩ := frontier_head_relay (hroots := hrec.base.idealization)
+    E rho crossing hE hN hDelta
     hrec.sync hQm hcap hx hjx hgstr (hcoverQ x hx _ hhl) ((hvp.trans hv).trans hvh)
     (fprop_idxBefore_le_timeIdx rho (hvp.trans hv))
   have hW : W ∈ (storeAt p c E rho ip x).fg.TF :=

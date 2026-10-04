@@ -76,7 +76,7 @@ theorem arming_emit_awake {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
       (fgsa_tick_asleep E rho (V2.D.Run.stateBefore E rho i y) y t h).1] at hem
     exact (List.not_mem_nil hem).elim
 
-/-- Plan O-ARM §4 fields 7–8. Class (iii). DC: INTENTIONAL; an actual honest
+/-- ROOT-DIGEST W2b. Plan O-ARM §4 fields 7–8. Class (iii). DC: INTENTIONAL; an actual honest
 HEAD emission is the HEAD duty of its label at its vote time. -/
 theorem arming_emit_head {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     (hE : V2.D.ExecutionValid E rho) {y : V} (hy : y ∈ rho.honest) {o : Obj p} {t : Time}
@@ -112,7 +112,7 @@ theorem arming_emit_head {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
       cases hm
     | propAction s =>
       change (propose p (FGSA.clock p (V2.D.Run.stateBefore E rho i y).st t) s).map
-        (withApp (c.app (rho.input y t))) = some _ at ha
+        (withApp p (c.app (rho.input y t))) = some _ at ha
       obtain ⟨m', hm', hw'⟩ := Option.map_eq_some_iff.mp ha
       by_cases hs0 : s = 0
       · subst hs0
@@ -121,7 +121,7 @@ theorem arming_emit_head {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
         cases hm'
         cases hw'
 
-/-- Plan O-ARM §4 field 7. Class (iii). DC: INTENTIONAL; an actual honest
+/-- ROOT-DIGEST W2b. Plan O-ARM §4 field 7. Class (iii). DC: INTENTIONAL; an actual honest
 proposal emission is the proposal duty of its label; its parent is the
 proposer head of the clocked store. -/
 theorem arming_emit_proposal {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
@@ -152,7 +152,7 @@ theorem arming_emit_proposal {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     | propAction s =>
       change SA.proposalTime p.toParams s = t at ht
       change (propose p (FGSA.clock p (V2.D.Run.stateBefore E rho i y).st t) s).map
-        (withApp (c.app (rho.input y t))) = some _ at ha
+        (withApp p (c.app (rho.input y t))) = some _ at ha
       obtain ⟨m', hm', hw'⟩ := Option.map_eq_some_iff.mp ha
       by_cases hs0 : s = 0
       · subst hs0
@@ -175,7 +175,7 @@ theorem arming_emit_head_store {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
   rw [clock_base_blocks, ← hK] at hm
   exact hm
 
-/-- Plan O-ARM §6.2 steps 2 and 6. Class (iii). DC: INTENTIONAL; a non-genesis
+/-- ROOT-DIGEST W2b. Plan O-ARM §6.2 steps 2 and 6. Class (iii). DC: INTENTIONAL; a non-genesis
 block below `D` is in the store of an honest reader at a later tick, with a
 stamp before e(l + 1). The holder of a batch HEAD stores it, and the healthy
 label window delivers it before e(l + 1). -/
@@ -191,7 +191,8 @@ theorem arming_ancestor_stamp {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     (hDK : Block.Preceq D K) {ih : Nat} (hkih : k ≤ ih)
     (o : GridCO.Wire p.n) (ho : o ∈ (storeAt p c E rho k y).base.votes)
     (X : Block) (hne : X ≠ .genesis) (hXD : Block.Preceq X D)
-    (hF : Block.Preceq (F_at p c E rho k y) X) :
+    (hF : Block.Preceq (F_at p c E rho k y) X)
+    (hroots : NamedRootCollisionFree p c E rho) :
     X ∈ (storeAt p c E rho ih y).base.blocks ∧
       GridCO.stampBlock (storeAt p c E rho ih y).base X < SA.earlyTime p.toParams (l + 1) := by
   obtain ⟨i, hi, hKi⟩ := arming_emit_head_store hE hz hem
@@ -199,7 +200,8 @@ theorem arming_ancestor_stamp {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     (block_preceq_trans hXD hDK)
   have hXi : X ∈ (storeAt p c E rho i z).base.blocks :=
     ((cstoreInv_stateBefore E rho i z).baseTree _).2 ⟨A, hA, hAe⟩
-  obtain ⟨hXk, hst⟩ := arming_block_early hE hN hDelta (l + 1) hSync hk hz hi X hne hXi hF
+  obtain ⟨hXk, hst⟩ := arming_block_early (hroots := hroots)
+    hE hN hDelta (l + 1) hSync hk hz hi X hne hXi hF
   obtain ⟨_, hXih, _, hstamp⟩ := inclusion_stamps_kept E rho hN hkih y o X ho hXk
   exact ⟨hXih, hstamp ▸ hst⟩
 

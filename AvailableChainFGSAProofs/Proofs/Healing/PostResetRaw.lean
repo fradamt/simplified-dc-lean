@@ -1,8 +1,8 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetInvariant -- shake: keep (J5 required carrier input)
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat -- shake: keep (J5 required lane input)
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep -- shake: keep (J5 required lane input)
-public import AvailableChainFGSAProofs.Proofs.Healing.ResetTransfer -- shake: keep (J5 required lane input)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetInvariant -- shake: keep
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat -- shake: keep
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep -- shake: keep
+public import AvailableChainFGSAProofs.Proofs.Healing.ResetTransfer -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportSlow
 
 public section
@@ -178,10 +178,9 @@ theorem postReset_resetLease_base {w : HealingWitness} (_h0r : H0Reset p c E rho
 
 private theorem raw_lift {A B : FGBlock (Fin p.n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
-  preceq_of_eraseFG_preceq (KitFG.viewRootInj_all {A, B})
-    ⟨A, by simp, KitFG.preceq_refl A⟩ ⟨B, by simp, KitFG.preceq_refl B⟩ h
+  eraseFG_preceq_iff.mp h
 
-/-- Blueprint 21 H.1:673–700, H.16:2938–2944; plan J5A A2;
+/-- ROOT-DIGEST W2b. Blueprint 21 H.1:673–700, H.16:2938–2944; plan J5A A2;
 B1/B13/B17/B18. DC: INTENTIONAL moving frame with a direct lease input.
 A concrete raw result and receiver HEAD use their own frozen domain.
 No HighSrcN, threshold, passed gate, or PhaseInterval is required. -/
@@ -281,7 +280,8 @@ theorem healing_first_transfer_raw_domain [Fintype V] {G ΔF : Time}
     have hBK' : Block.Preceq (eraseFG B) K' := by
       rw [Gen.AC.voteSupports_def, hK'] at hsup'
       exact (Bool.and_eq_true_iff.mp hsup').2
-    obtain ⟨Kfg', hKe', hpath'⟩ := healing_support_target_path E rho hE hN hDelta s hSync
+    obtain ⟨Kfg', hKe', hpath'⟩ := healing_support_target_path (hroots := hrec.base.idealization)
+      E rho hE hN hDelta s hSync
       hx hy hiy K' hKm' hKst' (Gen.Pure.block_preceq_trans hFB' hBK')
     exact fgsa_cleanSupport_forward_relay E rho hE hN hDelta s hSync hx hy hix hiy o' ho'
       seat hs' Kfg' (hKe' ▸ hK') (eraseFG B) (hKe' ▸ hBK') hpath' hFB'
@@ -734,7 +734,7 @@ variable [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
 
 include hrec emittedNonempty emittedName xing cap source
 
-/-- Blueprint 21 H.12:2664–2665, H.16:2933–2935; plan J5A P0;
+/-- ROOT-DIGEST W2b. Blueprint 21 H.12:2664–2665, H.16:2933–2935; plan J5A P0;
 B1/B13/B17/B18. DC: INTENTIONAL; DC has no leases; SA fast reset release.
 The reset fast support removes every conflict at each node's own tick.
 Assembly supplies the source decoders, fgsa_rXing, fgsa_rCap_channel
@@ -782,7 +782,8 @@ theorem postReset_resetLease_at_reset {w : HealingWitness} (h0r : H0Reset p c E 
   rw [htime] at hiy
   have hF := healing_low_finality_at_reset_reset E rho hrec xing cap source w h0r x hx
   rw [← fgsa_preTick_eq_timeRead E rho hs hrec.base.noRestart hiy] at hF
-  have hrows := healing_support_release_compat E rho hrec.base.valid hrec.base.noRestart
+  have hrows := healing_support_release_compat (hroots := hrec.base.idealization)
+    E rho hrec.base.valid hrec.base.noRestart
     hrec.base.delta w.sStar hSync ha.1 hx hix (hqv ▸ hiy) hτ hF
   have hstore : storeAt p c E rho (afterTicksIdx rho (SA.releaseTime p.toParams w.sStar)) x =
       FGSA.clock p (storeAt p c E rho iy x) (SA.releaseTime p.toParams w.sStar) := by
@@ -1194,7 +1195,8 @@ private theorem raw_receipt_proposal
     (K : Block) (hK : K ∈ (storeAt p c E rho ix x).base.blocks)
     (hstamp : GridCO.stampBlock (storeAt p c E rho ix x).base K < SA.earlyTime p.toParams s)
     (hF : Block.Preceq (eraseFG (((fgsa p c).clock (V2.D.Run.stateBefore E rho iy y)
-      (SA.proposalTime p.toParams (s + 1))).st).fg.F) K) :
+      (SA.proposalTime p.toParams (s + 1))).st).fg.F) K)
+    (hroots : NamedRootCollisionFree p c E rho) :
     ∃ Y : FGBlock (Fin p.n), eraseFG Y = K ∧
       Y ∈ (V2.D.Run.stateBeforeTime E rho (SA.freezeTime p.toParams s) y).st.fg.TF := by
   let st := ((fgsa p c).clock (V2.D.Run.stateBefore E rho iy y)
@@ -1255,7 +1257,8 @@ private theorem raw_receipt_proposal
     rw [Gen.V2.Duty.MonoAlong_def] at h
     exact V2.D.Engine.stateBefore_stable _ h.1 h.2.1 h.2.2 E rho hidx y
       (hN.restartFree y _ iy) (KitFG.preceq_refl _)
-  obtain ⟨Y, hY, hYK⟩ := fgsa_proposal_receipt E rho hDelta hE hN dl cut u K raw sup rows t y
+  obtain ⟨Y, hY, hYK⟩ := fgsa_proposal_receipt (hRoots := hroots) E rho hDelta hE hN dl cut u K
+    raw sup rows t y
     hD (Or.inr ⟨x, hx, j, ha⟩) hy hdcut (hlt t)
     (Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl K) hFd)
   refine ⟨Y, hYK, ?_⟩
@@ -1320,7 +1323,8 @@ private theorem raw_proposal_seat [Fintype V] {G ΔF : Time}
     change Block.Preceq (eraseFG (FGSA.clock p (storeAt p c E rho ip x) _).fg.F) K
     rw [clock_fg]
     exact Gen.Pure.block_preceq_trans hFB hBK
-  obtain ⟨Kfg, hKe', hKD⟩ := raw_receipt_proposal p c E rho hE hN hDelta r hSync
+  obtain ⟨Kfg, hKe', hKD⟩ := raw_receipt_proposal (hroots := hrec.base.idealization)
+    p c E rho hE hN hDelta r hSync
     hk hx hip K hKz hKstz hFKpre
   have hKx : Kfg ∈ (storeAt p c E rho ip x).fg.TF := by
     have hKD' : Kfg ∈ (storeAt p c E rho (V2.D.Run.idxBefore rho

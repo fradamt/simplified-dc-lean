@@ -14,7 +14,7 @@ They retain the RXing input of H.8. They do not assert a complete row bound.
 The AttemptValid start disjunction is not used, so its inclusive-cut arm
 needs no effective event and no new settlement premise. -/
 
-/-- H.8 settlement for either frozen AttemptValid start arm. -/
+/-- ROOT-DIGEST W2b. H.8 settlement for either frozen AttemptValid start arm. -/
 theorem healing_attempt_settle_start
     (crossing : RXing p c E rho) {G ΔF : Time}
     (hrec : HealingSet p c E rho G ΔF) {k : AttemptKey}
@@ -33,7 +33,8 @@ theorem healing_attempt_settle_start
   obtain ⟨ev0, hi0, hgst, _hstart, hfront, hm, hkind, _⟩ := hvalid
   have he : ev0 = ev := Option.some.inj (hi0.symm.trans hstart)
   subst ev0
-  obtain ⟨J, hsettled⟩ := healing_settle_start p c E rho crossing hrec.base.valid
+  obtain ⟨J, hsettled⟩ := healing_settle_start (hroots := hrec.base.idealization)
+    p c E rho crossing hrec.base.valid
     hrec.base.noRestart hrec.base.delta hrec.sync k.start ev v k.frontier k.phase hstart hgst
     hu hv hm
     hfront.symm hkind hquiet

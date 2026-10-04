@@ -252,7 +252,8 @@ theorem frontier_lease_cover [Fintype V] (E : Generic.Env V)
         have hCQ : C = Q := Option.some.inj (Option.some.inj (hC.symm.trans hgr))
         exact hbelowQ (hCQ ▸ hrC)
 
-/-- Blueprint 21 HG.1:1521–1534, L4-R:2245–2262; plan §3.1 steps 2 and 5. DC: INTENTIONAL
+/-- ROOT-DIGEST W2b. Blueprint 21 HG.1:1521–1534, L4-R:2245–2262; plan §3.1 steps 2 and 5. DC:
+INTENTIONAL
 at an honest read after v_r + Δ under the cap, for a label r whose honest HEADs cover the
 pivot, the node holds the pivot itself, and F and Z are below it with the floor at most
 h(Qfg) = m (the own label-r HEAD block is the relayed witness). -/
@@ -289,7 +290,8 @@ theorem frontier_pivot_held [Fintype V] (E : Generic.Env V)
     rw [← List.countP_eq_length_filter, ← List.countP_eq_length_filter]
     exact List.countP_mono_left (fun e _ he =>
       decide_eq_true ((of_decide_eq_true he).le.trans (hrt.trans htv)))
-  obtain ⟨W, _, hWe, _, hrelay⟩ := frontier_head_relay E rho crossing hE hN hrec.base.delta
+  obtain ⟨W, _, hWe, _, hrelay⟩ := frontier_head_relay (hroots := hrec.base.idealization)
+    E rho crossing hE hN hrec.base.delta
     hrec.sync hQm hcap hy hjy hgstr (hcoverQ y hy _ hhl) ((hrt.trans htv).trans hvh) hcut
   have hW : W ∈ (storeAt p c E rho i y).fg.TF :=
     (fgsa_store_cumulative p c E rho hN

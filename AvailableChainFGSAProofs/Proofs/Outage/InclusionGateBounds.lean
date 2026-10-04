@@ -48,7 +48,7 @@ private theorem igate_process_saved (st : State p.n) (hinv : CStoreInv p st)
         rw [admitBlock_refused p st s B raw sup rows (Or.inl hp)] at hm
         exact hb r C hm
       | some D =>
-        cases ha : blockAccepted p st s B D rows with
+        cases ha : blockAccepted p st s B raw sup D rows with
         | false =>
           rw [admitBlock_refused p st s B raw sup rows (Or.inr ⟨D, hp, ha⟩)] at hm
           exact hb r C hm
@@ -81,7 +81,9 @@ private theorem igate_below_at_cut
 
 private theorem igate_frame_at_cut
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hsrc : SrcFrameAboveStmt p c E rho)
+    (hstrat : RStrat p c E rho) (hstore : RStore p c E rho)
+    (hroots : NamedRootCollisionFree p c E rho)
+    (_hsrc : SrcFrameAboveStmt p c E rho)
     (hrows : ∀ i j x r (a : RowWire p.n) e, i ≤ timeIdx rho rho.horizon → j < i →
       HonestRowAt p c E rho j x r a → namedEntry a.payload.height_pair = some e →
       ∃ C, actionSourceFG p c E rho x r = some (some C) ∧ EntryBelow p e C ∧
@@ -94,12 +96,14 @@ private theorem igate_frame_at_cut
   let Φ := fun X : FGBlock (Fin p.n) => Block.Preceq (eraseFG X) P
   have hac : AncestorClosed p Φ :=
     ⟨fun _ _ hXY hY => block_preceq_trans (eraseFG_preceq hXY) hY⟩
-  have hf := (hsrc Φ 0 hac (fun _ => block_genesis_preceq P) k x hx ?_).2
+  have hf := (srcFrameAbove_scoped p c E rho hstore hstrat Φ 0 hac (fun _ => block_genesis_preceq
+    P) k x hx ?_).2
   · exact ⟨hf.1 (Nat.zero_le _), hf.2.1 (Nat.zero_le _)⟩
-  · intro y r a X hrow hname _
+  · intro y r a X hrow hname hScope _
     obtain ⟨j, hj, ha⟩ := hrow
-    obtain ⟨C, _, ⟨Y, hYC, he⟩, hb⟩ := hrows k j y r a _ (hk.trans hcut) hj ha hname
-    have hYX : Y = X := FGBlock.root_injective (congrArg Prod.snd he)
+    obtain ⟨C, hSource, ⟨Y, hYC, he⟩, hb⟩ := hrows k j y r a _ (hk.trans hcut) hj ha hname
+    have hYX : Y = X := rootScope_eq hroots (rootScope_ancestor (rootScope_source ha.1 hSource) hYC)
+      hScope (congrArg Prod.snd he)
     subst Y
     exact block_preceq_trans (eraseFG_preceq hYC)
       (igate_below_at_cut E rho d P hresults hk hb)
@@ -261,7 +265,7 @@ private theorem igate_slot_pos (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   have hm := (fgsa_emits_proposal E rho _ _ _ _ _).mp hem
   exact (fgsa_walkRun_proposal_parent p _ pt.s _ pt.P raw sup rows hm.2.2.2).1
 
-/-- Blueprint 03:418–458; spec 683–694; plan I-GATE, G3. Class (iii).
+/-- ROOT-DIGEST W2b. Blueprint 03:418–458; spec 683–694; plan I-GATE, G3. Class (iii).
 DC: INTENTIONAL; all origins are bounded at the strict cut idxBefore d.
 Other nodes' gate ticks at d do not enter this cut. The local gate input
 has the same store. ClockPre keeps F, J, S and bodies, and deletes leases. -/
@@ -290,7 +294,8 @@ theorem inclusion_preGate_bounds [Fintype V]
         BelowLabel p c E rho i (labelBoundAt p c rho j) (eraseFG C))
     (pt : PtSP) (hprop : HonestProposal E rho (fgsaInterface p c) pt.s pt.P)
     (hhor : SA.gateTime p.toParams pt.s ≤ rho.horizon)
-    {i : Nat} {x : V} (hx : x ∈ rho.honest) (ht : IsGateTick p c rho i x pt.s) :
+    {i : Nat} {x : V} (hx : x ∈ rho.honest) (ht : IsGateTick p c rho i x pt.s)
+    (hstrat : RStrat p c E rho) :
     let pre := clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams pt.s)
     Block.Preceq (eraseFG pre.fg.F) pt.P ∧ Block.Preceq (eraseFG pre.fg.J) pt.P ∧
       Block.Preceq (S_at p c E rho i x) pt.P ∧
@@ -301,14 +306,16 @@ theorem inclusion_preGate_bounds [Fintype V]
   let k := V2.D.Run.idxBefore rho d
   let pre := clockPre p (storeAt p c E rho i x) d
   have hs := hset.pre.base.valid.toScheduleWellFormed
-  have hhead := inclusion_headAtLabel E rho ΔF hset hstore hframe hsrc hordered hnonempty
+  have hhead := inclusion_headAtLabel (hstrat := hstrat) E rho ΔF hset hstore hframe hsrc hordered
+    hnonempty
     htransfer hleases hrows pt hprop hhor
   have hpos := igate_slot_pos E rho hset.pre.base.valid pt hprop
   have hresults := inclusion_prior_results_below E rho hs hset.pre.base.delta hordered
     hnonempty htransfer pt.s pt.P hpos hhor hhead hx
   have hcut : k ≤ timeIdx rho rho.horizon := inclusion_idxBefore_le_timeIdx rho hhor
   have hframeCut {j : Nat} (hj : j ≤ k) {y : V} (hy : y ∈ rho.honest) :=
-    igate_frame_at_cut E rho hsrc hrows d pt.P hcut hresults hj hy
+    igate_frame_at_cut (hroots := hset.pre.base.idealization) (hstrat := hstrat) (hstore := hstore)
+       E rho hsrc hrows d pt.P hcut hresults hj hy
   have hF : ∀ j, j ≤ k → ∀ y ∈ rho.honest, Block.Preceq (F_at p c E rho j y) pt.P :=
     fun j hj y hy => (hframeCut hj hy).1
   obtain ⟨hS, hsaved⟩ := igate_state_at_cut E rho hs hnonempty d pt.P hcut hresults hF k le_rfl x hx

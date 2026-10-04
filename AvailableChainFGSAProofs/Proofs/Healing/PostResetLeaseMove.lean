@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.DescentLossCause
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJoint -- shake: keep (J4A2-2 step types)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetJoint -- shake: keep
 
 public section
 
@@ -18,8 +18,7 @@ variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
 omit [DecidableEq V] in
 private theorem leaseMove_lift {A B : FGBlock (Fin p.n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
-  preceq_of_eraseFG_preceq (KitFG.viewRootInj_all {A, B})
-    ⟨A, by simp, KitFG.preceq_refl A⟩ ⟨B, by simp, KitFG.preceq_refl B⟩ h
+  eraseFG_preceq_iff.mp h
 
 omit [DecidableEq V] in
 private theorem leaseMove_decode {o : Obj p} {b : Block}
@@ -51,7 +50,8 @@ private theorem leaseMove_block_receipt (hE : V2.D.ExecutionValid E rho) (hN : V
     (hK : K ∈ (storeAt p c E rho ix x).base.blocks)
     (hstamp : GridCO.stampBlock (storeAt p c E rho ix x).base K < SA.earlyTime p.toParams s)
     (hF : Block.Preceq (eraseFG (((fgsa p c).clock (V2.D.Run.stateBefore E rho iy y)
-      t).st).fg.F) K) :
+      t).st).fg.F) K)
+    (hroots : NamedRootCollisionFree p c E rho) :
     ∃ Y : FGBlock (Fin p.n), eraseFG Y = K ∧
       Y ∈ (V2.D.Run.stateBeforeTime E rho (SA.freezeTime p.toParams s) y).st.fg.TF := by
   let st := ((fgsa p c).clock (V2.D.Run.stateBefore E rho iy y)
@@ -103,7 +103,8 @@ private theorem leaseMove_block_receipt (hE : V2.D.ExecutionValid E rho) (hN : V
     rw [Gen.V2.Duty.MonoAlong_def] at h
     exact V2.D.Engine.stateBefore_stable _ h.1 h.2.1 h.2.2 E rho hidx y
       (hN.restartFree y _ iy) (KitFG.preceq_refl _)
-  obtain ⟨Y, hY, hYK⟩ := fgsa_proposal_receipt E rho hDelta hE hN dl cut u K raw sup rows tr y
+  obtain ⟨Y, hY, hYK⟩ := fgsa_proposal_receipt (hRoots := hroots) E rho hDelta hE hN dl cut u K
+    raw sup rows tr y
     hD (Or.inr ⟨x, hx, j, ha⟩) hy hdcut (hlt tr)
     (Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl K) hFd)
   refine ⟨Y, hYK, ?_⟩
@@ -174,7 +175,8 @@ private theorem leaseMove_source_receipt [Fintype V] {G ΔF : Time}
     change Block.Preceq (eraseFG (FGSA.clock p (storeAt p c E rho k x) _).fg.F) K'
     rw [clock_fg]
     exact Gen.Pure.block_preceq_trans (eraseFG_preceq hF) hKK'
-  obtain ⟨Y, hYK, hY⟩ := leaseMove_block_receipt p c E rho hE hN hDelta u hafter hSync ha.1 hx hk
+  obtain ⟨Y, hYK, hY⟩ := leaseMove_block_receipt (hroots := hrec.base.idealization)
+    p c E rho hE hN hDelta u hafter hSync ha.1 hx hk
     K' hKm' hstamp hF'
   have hinv := (storeBundle_stateBeforeTime E rho (SA.freezeTime p.toParams u) x).cstore
   obtain ⟨A, hA, hAe⟩ := eraseFG_ancestor_mem hinv.fg.closed hY (hYK ▸ hKK')
@@ -247,7 +249,7 @@ private theorem leaseMove_source_label {iy : Nat} {y : V} {l : Slot} {t : Time}
     nlinarith [p.deltaPos]
   exact_mod_cast hrs
 
-/-- Blueprint 21 H.15:2916–2923, H.2:709–746; plan J4A2-2 G2;
+/-- ROOT-DIGEST W2b. Blueprint 21 H.15:2916–2923, H.2:709–746; plan J4A2-2 G2;
 B1/B13/B17/B18. DC: INTENTIONAL domain at a moving reader after freeze.
 The label-l batch covers the target. The view contains the frozen store
 and is a subset of the reader's tree. Root and finality coverage are the
@@ -321,7 +323,7 @@ theorem postReset_moving_domain
     by_cases hFg : (storeAt p c E rho iy y).fg.F = .genesis
     · rw [hFg]; exact KitFG.genesis_preceq B
     obtain ⟨D, hD, hDF, K, r, hK, hhK, hKF, -⟩ :=
-      healing_finality_source p c E rho hs origin hy hFg
+      healing_finality_source (hroots := hrec.base.idealization) p c E rho hs origin hy hFg
     by_cases hl : (finalityView p D).h_F < (heightView p B).h
     · exact xing iy (iy + jy) y y D B hy (Nat.le_add_right iy jy) hD hDF
         ⟨hy, (fgsa_store_cumulative p c E rho hN (Nat.le_add_left jy iy) y).1 hBstore⟩ hl
@@ -357,7 +359,8 @@ theorem postReset_moving_domain
     change Block.Preceq (eraseFG (FGSA.clock p (storeAt p c E rho iy y) t).fg.F) _
     rw [clock_fg]
     exact Gen.Pure.block_preceq_trans (eraseFG_preceq hFB) hBH
-  obtain ⟨Y, heY, hY⟩ := leaseMove_block_receipt p c E rho hrec.base.valid hN
+  obtain ⟨Y, heY, hY⟩ := leaseMove_block_receipt (hroots := hrec.base.idealization)
+    p c E rho hrec.base.valid hN
     hrec.base.delta l hafter hSync hy hy hiy _ hHstore hHstamp hFH
   rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs] at hY
   have hBX : B ∈ X := by
@@ -378,7 +381,8 @@ theorem postReset_moving_domain
     intro K r hK
     obtain ⟨a, z, q, row, haj, hrow, hsrc, he⟩ := hK
     exact ⟨a, z, q, row, haj.trans_le hyi, hrow, hsrc, he⟩
-  rcases healing_descent p c E rho xing origin hy hX hBX hcover with
+  rcases healing_descent (hroots := hrec.base.idealization) p c E rho xing origin hy hX hBX hcover
+    with
     hk | ⟨K, r, hK, hn, hhK⟩ | ⟨K, K', r, r', hK, hK', heh, hlt, hr⟩
   · exact (hk.resolve_left hnZ).resolve_right hnF
   · exact False.elim (hn (hBK K r hK (by

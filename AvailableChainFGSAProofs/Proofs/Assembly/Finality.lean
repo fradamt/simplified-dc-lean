@@ -10,7 +10,7 @@ public section
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG AvailableChain.KitFG
 
-/-- Paper 22:1171–1305 (F1–F9), lead ruling B34: close the W kernel suppliers.
+/-- ROOT-DIGEST W2b. Paper 22:1171–1305 (F1–F9), lead ruling B34: close the W kernel suppliers.
 DC-CS/W4FKChainSecondCheckpoint.lean:43: INTENTIONAL W retention, exact signed
 rows and actual receipt guards. Recovery₂ supplies every Foundations premise. -/
 theorem fgsa_finalityKernel_W (p : Params) : FinalityKernelClaim_W p := by
@@ -26,12 +26,12 @@ theorem fgsa_finalityKernel_W (p : Params) : FinalityKernelClaim_W p := by
     exact sourceDiscipline_qcOrigin p c E rho
       (pt := pt) ⟨hK.set.base, hK.set.faultQ⟩ (fgsa_rStore p c E rho)
   · intro V _ _ In c E rho G ΔF pt hK
-    exact fgsa_rXing p c E rho hK.set.base.linked
+    exact fgsa_rXing (hroots := hK.set.base.idealization) p c E rho hK.set.base.linked
       hK.set.faultX_count_rec hK.set.base.valid.toUnforgeableSignatures
   · intro V _ _ In c E rho G ΔF pt _ hp
     simpa only [FinalityBlock_def, FinalityRunBlock_def,
       FinalityFinalizedAt_def, FGFinalizedAt_def] using
-      (fgsa_wholeRunAgreement p c E rho
+      (fgsa_wholeRunAgreement (hroots := hp.set.idealization) p c E rho
         (fgsa_slashableBound_of_base p c E rho hp.set hp.fault)).1
   · intro V _ _ In c E rho G ΔF pt hK
     have hs := sourceDiscipline_strat p c E rho
@@ -54,7 +54,7 @@ theorem fgsa_finalityKernel_W (p : Params) : FinalityKernelClaim_W p := by
         hrow.2.1 cut).mp (hk.trans_le hj)
     exact absurd (hcut k z' r a u (b + 1) T tmo hrow hd hh hcutr) (Nat.lt_irrefl _)
 
-/-- Paper 00:1119–1134, 22:1171–1305; plan §4: close the joined W kernel.
+/-- ROOT-DIGEST W2b. Paper 00:1119–1134, 22:1171–1305; plan §4: close the joined W kernel.
 DC-CS/W4FKChainSecondCheckpoint.lean:43: INTENTIONAL W retention and receipt.
 Recovery₂ in the joined premise supplies every Foundations premise. -/
 theorem fgsa_finalityKernelJoined_W (p : Params) : FinalityKernelJoinedClaim_W p := by
@@ -70,12 +70,12 @@ theorem fgsa_finalityKernelJoined_W (p : Params) : FinalityKernelJoinedClaim_W p
     exact sourceDiscipline_qcOrigin p c E rho
       (pt := pt) ⟨hK.set.base, hK.set.faultQ⟩ (fgsa_rStore p c E rho)
   · intro V _ _ In c E rho G ΔF pt hK
-    exact fgsa_rXing p c E rho hK.set.base.linked
+    exact fgsa_rXing (hroots := hK.set.base.idealization) p c E rho hK.set.base.linked
       hK.set.faultX_count_rec hK.set.base.valid.toUnforgeableSignatures
   · intro V _ _ In c E rho G ΔF pt _ hp
     simpa only [FinalityBlock_def, FinalityRunBlock_def,
       FinalityFinalizedAt_def, FGFinalizedAt_def] using
-      (fgsa_wholeRunAgreement p c E rho
+      (fgsa_wholeRunAgreement (hroots := hp.set.idealization) p c E rho
         (fgsa_slashableBound_of_base p c E rho hp.set hp.fault)).1
   · intro V _ _ In c E rho G ΔF pt hK
     have hs := sourceDiscipline_strat p c E rho
@@ -98,7 +98,7 @@ theorem fgsa_finalityKernelJoined_W (p : Params) : FinalityKernelJoinedClaim_W p
         hrow.2.1 cut).mp (hk.trans_le hj)
     exact absurd (hcut k z' r a u (b + 1) T tmo hrow hd hh hcutr) (Nat.lt_irrefl _)
 
-/-- Paper 22:1985–2009 (FT-Tail-W): close every tail supplier from Recovery₂
+/-- ROOT-DIGEST W2b. Paper 22:1985–2009 (FT-Tail-W): close every tail supplier from Recovery₂
 and HealingInput. DC: INTENTIONAL W Tail, with local receipt guards. -/
 theorem fgsa_tailKernel_W (p : Params) : TailKernelClaim_W p := by
   apply fgsa_tailKernel_W_of p
@@ -126,7 +126,7 @@ theorem fgsa_tailKernel_W (p : Params) : TailKernelClaim_W p := by
   · intro V _ _ In c E rho G ΔF pt hT hp
     simpa only [FinalityBlock_def, FinalityRunBlock_def,
       FinalityFinalizedAt_def, FGFinalizedAt_def] using
-      (fgsa_wholeRunAgreement p c E rho
+      (fgsa_wholeRunAgreement (hroots := hT.set.base.idealization) p c E rho
         (fgsa_slashableBound_of_base p c E rho hp.set hp.fault)).1
   · intro V _ _ In c E rho G ΔF pt hT
     have hs := sourceDiscipline_strat p c E rho
@@ -153,7 +153,8 @@ theorem fgsa_tailKernel_W (p : Params) : TailKernelClaim_W p := by
   · intro V _ _ In c E rho G ΔF pt hT
     exact fgsa_apiFinalLockClaim_body p c E rho () ⟨hT.set.base, hT.set.fault⟩
 
-/-- Paper 22:1371–1400; firstfin plan §5 C. DC-CS/W4FKChainSecondCheckpoint.lean:43:
+/-- ROOT-DIGEST W2b. Paper 22:1371–1400; firstfin plan §5 C.
+DC-CS/W4FKChainSecondCheckpoint.lean:43:
 INTENTIONAL closed local W liveness. The same K-JOIN producers use Recovery₂
 from the local package; no additional premise is supplied. -/
 theorem fgsa_finalityLivenessRecFE_W (p : Params) :
@@ -170,12 +171,12 @@ theorem fgsa_finalityLivenessRecFE_W (p : Params) :
     exact sourceDiscipline_qcOrigin p c E rho
       (pt := ()) ⟨hR.base, hR.faultQ⟩ (fgsa_rStore p c E rho)
   · intro V _ _ In c E rho G ΔF hR
-    exact fgsa_rXing p c E rho hR.base.linked
+    exact fgsa_rXing (hroots := hR.base.idealization) p c E rho hR.base.linked
       hR.faultX_count_rec hR.base.valid.toUnforgeableSignatures
   · intro V _ _ In c E rho G ΔF _ hp
     simpa only [FinalityBlock_def, FinalityRunBlock_def,
       FinalityFinalizedAt_def, FGFinalizedAt_def] using
-      (fgsa_wholeRunAgreement p c E rho
+      (fgsa_wholeRunAgreement (hroots := hp.set.idealization) p c E rho
         (fgsa_slashableBound_of_base p c E rho hp.set hp.fault)).1
   · intro V _ _ In c E rho G ΔF hR
     have hs := sourceDiscipline_strat p c E rho
@@ -198,7 +199,8 @@ theorem fgsa_finalityLivenessRecFE_W (p : Params) :
         hrow.2.1 cut).mp (hk.trans_le hj)
     exact absurd (hcut k z' r a u (b + 1) T tmo hrow hd hh hcutr) (Nat.lt_irrefl _)
 
-/-- Paper 22:1371–1400; firstfin plan §5 C. DC-CS/W4FKChainSecondCheckpoint.lean:43:
+/-- ROOT-DIGEST W2b. Paper 22:1371–1400; firstfin plan §5 C.
+DC-CS/W4FKChainSecondCheckpoint.lean:43:
 INTENTIONAL closed local W liveness. The same K-JOIN producers use Recovery₂
 from the local package; no additional premise is supplied. -/
 theorem fgsa_finalityLivenessRecF4_W (p : Params) :
@@ -215,12 +217,12 @@ theorem fgsa_finalityLivenessRecF4_W (p : Params) :
     exact sourceDiscipline_qcOrigin p c E rho
       (pt := ()) ⟨hR.base, hR.faultQ⟩ (fgsa_rStore p c E rho)
   · intro V _ _ In c E rho G ΔF hR
-    exact fgsa_rXing p c E rho hR.base.linked
+    exact fgsa_rXing (hroots := hR.base.idealization) p c E rho hR.base.linked
       hR.faultX_count_rec hR.base.valid.toUnforgeableSignatures
   · intro V _ _ In c E rho G ΔF _ hp
     simpa only [FinalityBlock_def, FinalityRunBlock_def,
       FinalityFinalizedAt_def, FGFinalizedAt_def] using
-      (fgsa_wholeRunAgreement p c E rho
+      (fgsa_wholeRunAgreement (hroots := hp.set.idealization) p c E rho
         (fgsa_slashableBound_of_base p c E rho hp.set hp.fault)).1
   · intro V _ _ In c E rho G ΔF hR
     have hs := sourceDiscipline_strat p c E rho
@@ -243,7 +245,7 @@ theorem fgsa_finalityLivenessRecF4_W (p : Params) :
         hrow.2.1 cut).mp (hk.trans_le hj)
     exact absurd (hcut k z' r a u (b + 1) T tmo hrow hd hh hcutr) (Nat.lt_irrefl _)
 
-/-- Paper 22:1421–1430; firstfin plan §6. DC-CS/W4FKChainSecondCheckpoint.lean:43:
+/-- ROOT-DIGEST W2b. Paper 22:1421–1430; firstfin plan §6. DC-CS/W4FKChainSecondCheckpoint.lean:43:
 INTENTIONAL closed specified proposal coverage with its proposal-relative deadline.
 The local package supplies the same Recovery₂ producers as local W liveness. -/
 theorem fgsa_proposalFinalRecFE_W (p : Params) :
@@ -260,12 +262,12 @@ theorem fgsa_proposalFinalRecFE_W (p : Params) :
     exact sourceDiscipline_qcOrigin p c E rho
       (pt := ()) ⟨hR.base, hR.faultQ⟩ (fgsa_rStore p c E rho)
   · intro V _ _ In c E rho G ΔF hR
-    exact fgsa_rXing p c E rho hR.base.linked
+    exact fgsa_rXing (hroots := hR.base.idealization) p c E rho hR.base.linked
       hR.faultX_count_rec hR.base.valid.toUnforgeableSignatures
   · intro V _ _ In c E rho G ΔF _ hp
     simpa only [FinalityBlock_def, FinalityRunBlock_def,
       FinalityFinalizedAt_def, FGFinalizedAt_def] using
-      (fgsa_wholeRunAgreement p c E rho
+      (fgsa_wholeRunAgreement (hroots := hp.set.idealization) p c E rho
         (fgsa_slashableBound_of_base p c E rho hp.set hp.fault)).1
   · intro V _ _ In c E rho G ΔF hR
     have hs := sourceDiscipline_strat p c E rho
@@ -288,7 +290,7 @@ theorem fgsa_proposalFinalRecFE_W (p : Params) :
         hrow.2.1 cut).mp (hk.trans_le hj)
     exact absurd (hcut k z' r a u (b + 1) T tmo hrow hd hh hcutr) (Nat.lt_irrefl _)
 
-/-- Paper 22:1421–1430; firstfin plan §6. DC-CS/W4FKChainSecondCheckpoint.lean:43:
+/-- ROOT-DIGEST W2b. Paper 22:1421–1430; firstfin plan §6. DC-CS/W4FKChainSecondCheckpoint.lean:43:
 INTENTIONAL closed specified proposal coverage with its proposal-relative deadline.
 The local package supplies the same Recovery₂ producers as local W liveness. -/
 theorem fgsa_proposalFinalRecF4_W (p : Params) :
@@ -305,12 +307,12 @@ theorem fgsa_proposalFinalRecF4_W (p : Params) :
     exact sourceDiscipline_qcOrigin p c E rho
       (pt := ()) ⟨hR.base, hR.faultQ⟩ (fgsa_rStore p c E rho)
   · intro V _ _ In c E rho G ΔF hR
-    exact fgsa_rXing p c E rho hR.base.linked
+    exact fgsa_rXing (hroots := hR.base.idealization) p c E rho hR.base.linked
       hR.faultX_count_rec hR.base.valid.toUnforgeableSignatures
   · intro V _ _ In c E rho G ΔF _ hp
     simpa only [FinalityBlock_def, FinalityRunBlock_def,
       FinalityFinalizedAt_def, FGFinalizedAt_def] using
-      (fgsa_wholeRunAgreement p c E rho
+      (fgsa_wholeRunAgreement (hroots := hp.set.idealization) p c E rho
         (fgsa_slashableBound_of_base p c E rho hp.set hp.fault)).1
   · intro V _ _ In c E rho G ΔF hR
     have hs := sourceDiscipline_strat p c E rho
@@ -340,7 +342,7 @@ public section
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG AvailableChain.KitFG
 
-/-- Paper 22:1434–1451; firstfin plan §7 F-ABOVE-B.
+/-- ROOT-DIGEST W2b. Paper 22:1434–1451; firstfin plan §7 F-ABOVE-B.
 DC: W4D2GradeCallsite.lean:431; INTENTIONAL healing-input route.
 Recovery supplies the same kernel producers; the package also supplies source discipline
 and timed held-row origin. No extra premise is required. -/
@@ -358,12 +360,12 @@ theorem fgsa_aboveFrontierRecFE_W (p : Params) :
     exact sourceDiscipline_qcOrigin p c E rho
       (pt := ()) ⟨hR.base, hR.faultQ⟩ (fgsa_rStore p c E rho)
   · intro V _ _ In c E rho G ΔF hR
-    exact fgsa_rXing p c E rho hR.base.linked
+    exact fgsa_rXing (hroots := hR.base.idealization) p c E rho hR.base.linked
       hR.faultX_count_rec hR.base.valid.toUnforgeableSignatures
   · intro V _ _ In c E rho G ΔF _ hp
     simpa only [FinalityBlock_def, FinalityRunBlock_def,
       FinalityFinalizedAt_def, FGFinalizedAt_def] using
-      (fgsa_wholeRunAgreement p c E rho
+      (fgsa_wholeRunAgreement (hroots := hp.set.idealization) p c E rho
         (fgsa_slashableBound_of_base p c E rho hp.set hp.fault)).1
   · intro V _ _ In c E rho G ΔF hR
     have hs := sourceDiscipline_strat p c E rho
@@ -393,7 +395,7 @@ theorem fgsa_aboveFrontierRecFE_W (p : Params) :
     exact held_chain_row_origin_before p c E rho
       hv.toUnforgeableSignatures hv.toScheduleWellFormed
 
-/-- Paper 22:1434–1451; firstfin plan §7 F-ABOVE-B.
+/-- ROOT-DIGEST W2b. Paper 22:1434–1451; firstfin plan §7 F-ABOVE-B.
 DC: W4D2GradeCallsite.lean:431; INTENTIONAL healing-input route.
 Recovery supplies the same kernel producers; the package also supplies source discipline
 and timed held-row origin. No extra premise is required. -/
@@ -411,12 +413,12 @@ theorem fgsa_aboveFrontierRecF4_W (p : Params) :
     exact sourceDiscipline_qcOrigin p c E rho
       (pt := ()) ⟨hR.base, hR.faultQ⟩ (fgsa_rStore p c E rho)
   · intro V _ _ In c E rho G ΔF hR
-    exact fgsa_rXing p c E rho hR.base.linked
+    exact fgsa_rXing (hroots := hR.base.idealization) p c E rho hR.base.linked
       hR.faultX_count_rec hR.base.valid.toUnforgeableSignatures
   · intro V _ _ In c E rho G ΔF _ hp
     simpa only [FinalityBlock_def, FinalityRunBlock_def,
       FinalityFinalizedAt_def, FGFinalizedAt_def] using
-      (fgsa_wholeRunAgreement p c E rho
+      (fgsa_wholeRunAgreement (hroots := hp.set.idealization) p c E rho
         (fgsa_slashableBound_of_base p c E rho hp.set hp.fault)).1
   · intro V _ _ In c E rho G ΔF hR
     have hs := sourceDiscipline_strat p c E rho

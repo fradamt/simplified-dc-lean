@@ -15,7 +15,8 @@ private theorem igate_vote_lt_gate (p : Params) (s : Slot) :
   change 4 * p.Δ * (s : Int) + p.Δ < 4 * p.Δ * (s : Int) + 6 * p.Δ
   linarith [p.deltaPos]
 
-/-- Blueprint 03:350–417 (§4 exact adoption), 03:418–458 (§5); plan I-GATE, G1. Class (iii).
+/-- ROOT-DIGEST W2b. Blueprint 03:350–417 (§4 exact adoption), 03:418–458 (§5); plan I-GATE, G1.
+Class (iii).
 DC: INTENTIONAL; the exact strict read is a scheduled HEAD read for every
 honest node. The tick does not need an awake node. -/
 theorem inclusion_headAtLabel [Fintype V]
@@ -42,11 +43,13 @@ theorem inclusion_headAtLabel [Fintype V]
       ∃ C, actionSourceFG p c E rho x r = some (some C) ∧ EntryBelow p e C ∧
         BelowLabel p c E rho i (labelBoundAt p c rho j) (eraseFG C))
     (pt : PtSP) (hprop : HonestProposal E rho (fgsaInterface p c) pt.s pt.P)
-    (hhor : SA.gateTime p.toParams pt.s ≤ rho.horizon) :
+    (hhor : SA.gateTime p.toParams pt.s ≤ rho.horizon)
+    (hstrat : RStrat p c E rho) :
     ∀ y ∈ rho.honest, headAtLabel p c E rho y pt.s = some pt.P := by
   have hs := hset.pre.base.valid.toScheduleWellFormed
   have hv := (igate_vote_lt_gate p pt.s).le.trans hhor
-  have hhead := inclusion_exact_head E rho ΔF hset hstore hframe hsrc hordered hnonempty
+  have hhead := inclusion_exact_head (hstrat := hstrat) E rho ΔF hset hstore hframe hsrc hordered
+    hnonempty
     htransfer hleases hrows pt hprop hv
   intro y hy
   have he : ((4 * pt.s + 1 : Nat) : Time) * p.Δ = SA.voteTime p.toParams pt.s := by

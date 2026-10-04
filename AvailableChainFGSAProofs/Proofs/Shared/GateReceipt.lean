@@ -164,7 +164,7 @@ private theorem gateReceipt_block_decode {o : Obj p} {K : Block}
   rw [toWire_ofWire]
   exact decode_eq_block.mp hd
 
-/-- Blueprint 02:537–539 and 03:293–304, compatible receipt before a read.
+/-- ROOT-DIGEST W2b. Blueprint 02:537–539 and 03:293–304, compatible receipt before a read.
 DC: Handlers/GoldfishVotePool.lean:810, retained resolved block membership.
 INTENTIONAL: the receiving FG-SA floor bounds earlier admission floors.
 Only the opaque proposal row list is passed to the receipt interface.
@@ -179,7 +179,8 @@ theorem fgsa_gateReceipt_block_to_tick
     (hT : Gen.V2.Duty.Trigger E rho o t) (hlt : t < dl t) (hc : dl t ≤ cut)
     {j : Nat} {x : V} {u : Time} (hx : x ∈ rho.honest)
     (hj : rho.events[j]? = some (.tick x u)) (hd : dl t ≤ u)
-    (hF : Block.Preceq (eraseFG (storeAt p c E rho j x).fg.F) K) :
+    (hF : Block.Preceq (eraseFG (storeAt p c E rho j x).fg.F) K)
+    (hroots : NamedRootCollisionFree p c E rho) :
     K ∈ (storeAt p c E rho j x).base.blocks := by
   have hsch := hE.toScheduleWellFormed
   have hidx := gateReceipt_idx_mono rho hd
@@ -193,7 +194,7 @@ theorem fgsa_gateReceipt_block_to_tick
   have hcompat := Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl K)
     (Gen.Pure.block_preceq_trans hfloor hF)
   obtain ⟨s, raw, sup, rows, rfl⟩ := gateReceipt_block_decode ho
-  obtain ⟨Y, hY, he⟩ := fgsa_proposal_receipt E rho hDelta hE hN dl cut
+  obtain ⟨Y, hY, he⟩ := fgsa_proposal_receipt (hRoots := hroots) E rho hDelta hE hN dl cut
     s K raw sup rows t x hD hT hx hc hlt hcompat
   have hkeep := (fgsa_store_cumulative p c E rho hN hidx x).1
   change (V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho (dl t)) x).st.fg.TF ⊆
@@ -203,7 +204,7 @@ theorem fgsa_gateReceipt_block_to_tick
     ← fgsa_preTick_eq_timeRead E rho hsch hN hj] at hkeep
   exact ((cstoreInv_stateBefore E rho j x).baseTree K).mpr ⟨Y, hkeep hY, he⟩
 
-/-- P3 erratum 13; blueprint 02:531–541 and 21 H.22:3100–3120.
+/-- ROOT-DIGEST W2b. P3 erratum 13; blueprint 02:531–541 and 21 H.22:3100–3120.
 DC: Goldfish/Confirmation.lean:434–441, HonestSupport.vote.
 INTENTIONAL: produce resolved honest HEAD receipts in the F-anchored gate view,
 with strict original early stamps and two consumer-supplied prefix bounds.
@@ -218,7 +219,8 @@ theorem fgsa_gateReceipt
       (SA.voteTime p.toParams s) (SA.gateTime p.toParams s))
     {i : Nat} {x : V} (ht : IsGateTick p c rho i x s) (B : Block)
     (hgeom : GateReceiptGeometry E rho
-      (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)) s B) :
+      (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)) s B)
+    (hroots : NamedRootCollisionFree p c E rho) :
     ∀ q : Fin p.n, rho.seatOf (.base (.head s)) q ∈ rho.honest →
       E.awake (rho.seatOf (.base (.head s)) q) (SA.voteTime p.toParams s) = true →
       ∃ K t,
@@ -311,7 +313,8 @@ theorem fgsa_gateReceipt
       · obtain ⟨parent, hdel, _⟩ := ha.1
         have htv := (Gen.V2.Duty.index_lt_idxBefore_iff hsch hdel _).mp hl
         have hdl := hdeadline t htv.le
-        exact fgsa_gateReceipt_block_to_tick E rho hE hN hDelta dl cut hD t o K ho
+        exact fgsa_gateReceipt_block_to_tick (hroots := hroots)
+          E rho hE hN hDelta dl cut hD t o K ho
           (Or.inr ⟨y, hy, l, ha⟩) (hlt t) (hdl.trans (hearly.le.trans hcut))
           hx hj hdl hFearly
   have hdl := hdeadline (SA.voteTime p.toParams s) le_rfl

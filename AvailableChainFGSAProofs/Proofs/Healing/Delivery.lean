@@ -10,8 +10,7 @@ variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
 private theorem delivery_lift {A B : FGBlock (Fin p.n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
-  preceq_of_eraseFG_preceq (KitFG.viewRootInj_all {A, B})
-    ⟨A, by simp, KitFG.preceq_refl A⟩ ⟨B, by simp, KitFG.preceq_refl B⟩ h
+  eraseFG_preceq_iff.mp h
 
 /-- Blueprint 21:550–567 (IF.5), 2646–2652 (H.12); B13, B15, B17, B26.
 DC: SAME admission or coverage at the exact strict-before freeze read.

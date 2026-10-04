@@ -49,18 +49,18 @@ private theorem fgsa_target_fold_covered (p : Params) (rows : List (Row (Fin p.n
       · right
         exact ⟨a, ha, hs, by rw [fields.2.2.1, fields.2.2.2.1]; exact hp⟩
 
-/-- 22 I7, target part: exact rows or existing bits for at least `n - a`
+/-- ROOT-DIGEST W2b. 22 I7, target part: exact rows or existing bits for at least `n - a`
 identities justify the parent's entry and advance once. The FG chain state has
 no `nj` field; the target test is unconditional. No restriction on δt. -/
 theorem fgsa_target_exact_quorum (p : Params) {a : Nat}
     (hf : a ≤ (p.n - 1) / 3) (H : Finset (Fin p.n)) (hH : p.n - a ≤ H.card)
-    (B : FGBlock (Fin p.n)) (s : Slot) (x : Nat) (rows : List (Row (Fin p.n)))
+    (B : FGBlock (Fin p.n)) (s : Slot) (root : BlockId) (x : Nat) (rows : List (Row (Fin p.n)))
     (hcov : ∀ i ∈ H, i ∈ (derive p.E p.cfg B).target_participation ∨
       ∃ r ∈ rows, r.signer = i ∧
         r.height_pair = .vote (derive p.E p.cfg B).h (derive p.E p.cfg B).T_h.root false) :
-    (derive p.E p.cfg (.node B s x rows)).J = (derive p.E p.cfg B).T_h ∧
-    (derive p.E p.cfg (.node B s x rows)).h_j = (derive p.E p.cfg B).h ∧
-    (derive p.E p.cfg (.node B s x rows)).h = (derive p.E p.cfg B).h + 1 := by
+    (derive p.E p.cfg (.node B s root x rows)).J = (derive p.E p.cfg B).T_h ∧
+    (derive p.E p.cfg (.node B s root x rows)).h_j = (derive p.E p.cfg B).h ∧
+    (derive p.E p.cfg (.node B s root x rows)).h = (derive p.E p.cfg B).h + 1 := by
   have hq : p.E.q = qF p.n :=
     (KitFG.toWeights_q p.E).symm.trans (KitFG.unit_toWeights_q p.n)
   have hw : p.E.weightOf H = H.card := by
@@ -75,7 +75,7 @@ theorem fgsa_target_exact_quorum (p : Params) {a : Nat}
     rw [hq, hw]
     exact hbound.trans hH
   have hc := KitFG.derive_target_of_cover_of_bridge p.E p.cfg
-    (heightView p) (heightView_bridge p) B s x rows H hquorum
+    (heightView p) (heightView_bridge p) B s root x rows H hquorum
     (by simpa only [heightView_eq_simplex, KitFG.simplexHeightView_def, KitFG.heightOf_def]
       using hcov)
   simpa only [heightView_eq_simplex, KitFG.simplexHeightView_def, KitFG.heightOf_def]

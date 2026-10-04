@@ -75,7 +75,7 @@ theorem fgsa_score_geometry_of_domains
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- Blueprint 03:293–331; 21 H.5:886–914, H.17:2987–3009;
+/-- ROOT-DIGEST W2b. Blueprint 03:293–331; 21 H.5:886–914, H.17:2987–3009;
 spec 1530–1538,1554–1577. Class (iii). DC: INTENTIONAL;
 ProposalWalkTransportCore.lean:185 compares common candidates. The parent
 instance supplies the count even for an empty candidate set. Each candidate
@@ -100,15 +100,16 @@ theorem fgsa_score_eq_on_candidates_on_run
       (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) b.parent)
     (hCandidates : ∀ C, Candidates C → ScoreRunGeometry
       (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
-      (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) C) :
+      (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) C)
+    (hroots : NamedRootCollisionFree p c E rho) :
     let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s)
     let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)
     GridCO.voterCount (proposerVotes src s) = GridCO.voterCount (headVotes p dst s) ∧
       ∀ C, Candidates C → RetainedWalk.ss src s C = RetainedWalk.ts p dst s C := by
-  refine ⟨(fgsa_score_eq_on_run E rho hE hN hDelta s hSync hx hy hip hih hseat
+  refine ⟨(fgsa_score_eq_on_run (hroots := hroots) E rho hE hN hDelta s hSync hx hy hip hih hseat
     b raw sup rows hem hadm b.parent hA).2.2.1, ?_⟩
   intro C hC
-  exact (fgsa_score_eq_on_run E rho hE hN hDelta s hSync hx hy hip hih hseat
+  exact (fgsa_score_eq_on_run (hroots := hroots) E rho hE hN hDelta s hSync hx hy hip hih hseat
     b raw sup rows hem hadm C (hCandidates C hC)).2.2.2 C (block_preceq_refl C)
 
 /-- Blueprint 21 H.5:886–914, H.17:2987–3009; spec 1330–1360.

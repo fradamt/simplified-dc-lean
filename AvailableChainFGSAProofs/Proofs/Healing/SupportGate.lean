@@ -29,7 +29,7 @@ theorem healing_support_emitted_head (E : Generic.Env V) (rho : V2.D.Run V (fgsa
   rw [postClock_def, preTick_def, fgsa_tickIdx_of_event p c E rho hs hj]
   exact congrArg some hK.symm
 
-/-- Blueprint 21:709–733 (H.2 S1–S3), 02 §5.4:541; plan H-SUPPORT §4 steps 7–8.
+/-- ROOT-DIGEST W2b. Blueprint 21:709–733 (H.2 S1–S3), 02 §5.4:541; plan H-SUPPORT §4 steps 7–8.
 DC: INTENTIONAL the covering-batch gate read. If every honest HEAD of label w covers B
 and the gate floor is at or below B, the raw confirmation of an honest gate at w covers
 B. The per-seat HEADs may differ (`fgsa_gate_batch_premises`); no exact HEAD is needed. -/
@@ -98,10 +98,11 @@ theorem healing_support_gate_cover [Fintype V] (E : Generic.Env V)
       intro k hk
       have hq := (hHmem k).mp hk
       obtain ⟨K, t, hh, he, hv, hK, hslot, hvs, hbs, hF, hBK⟩ :=
-        fgsa_gateReceipt E rho hE hN hDelta hC w hSync ht B hgeom k hq
+        fgsa_gateReceipt (hroots := hrec.base.idealization)
+          E rho hE hN hDelta hC w hSync ht B hgeom k hq
           (hrec.awake _ hq _ hgst hhorv)
       exact ⟨K, t, hh, he, hv, hK, hslot, hvs, hbs, hF, hBK⟩)
-  exact fgsa_confirmationFrom_covers_majority p _ _ B w
+  exact fgsa_confirmationFrom_covers_majority p _ _ B w B.root
     (Bool.or_eq_true_iff.mpr (Or.inl hFB)) hcover.1 hcover.2.1 hcover.2.2
 
 end AvailableChain.FGSA.Run

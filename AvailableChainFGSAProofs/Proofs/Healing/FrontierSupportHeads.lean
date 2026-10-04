@@ -19,8 +19,7 @@ variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
 private theorem fheads_lift {A B : FGBlock (Fin p.n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
-  preceq_of_eraseFG_preceq (KitFG.viewRootInj_all {A, B})
-    ⟨A, by simp, KitFG.preceq_refl A⟩ ⟨B, by simp, KitFG.preceq_refl B⟩ h
+  eraseFG_preceq_iff.mp h
 
 omit [DecidableEq V] in
 private theorem fheads_idxBefore_le_timeIdx (rho : V2.D.Run V (fgsa p c)) {t v : Time}
@@ -31,7 +30,7 @@ private theorem fheads_idxBefore_le_timeIdx (rho : V2.D.Run V (fgsa p c)) {t v :
   exact List.countP_mono_left (fun e _ he =>
     decide_eq_true ((of_decide_eq_true he).le.trans htv))
 
-/-- Blueprint 21 HG.1:1529–1534, H.2 S1:709–715; plan §3.1 step 4 (restates
+/-- ROOT-DIGEST W2b. Blueprint 21 HG.1:1529–1534, H.2 S1:709–715; plan §3.1 step 4 (restates
 `healing_support_honest_batch_seat`). DC: INTENTIONAL under the cap, an honest label-i
 HEAD that covers the pivot and B is, at the receiver's v_(i+1) read, a clean resolved
 frozen vote that supports B. The HEAD block itself is the relayed witness. -/
@@ -78,7 +77,8 @@ theorem frontier_head_batch_seat [Fintype V] (E : Generic.Env V)
   have hcut : V2.D.Run.idxBefore rho (SA.voteTime p.toParams i + p.Δ) ≤ timeIdx rho v :=
     fheads_idxBefore_le_timeIdx rho (hvi.trans hv)
   -- The HEAD block itself is the witness; it reaches y before e_i (capped relay).
-  obtain ⟨Kfg, hKz, hKe0, _, hrelay⟩ := frontier_head_relay E rho crossing hE hN hDelta
+  obtain ⟨Kfg, hKz, hKe0, _, hrelay⟩ := frontier_head_relay (hroots := hrec.base.idealization)
+    E rho crossing hE hN hDelta
     hrec.sync hQm hcap hk hjz hgsti (hcoverQ z hk K hhl) ((hvi.trans hv).trans hvh) hcut
   have hKe' : eraseFG Kfg = K := hKe0
   have hfz : SA.voteTime p.toParams i + p.Δ ≤ SA.freezeTime p.toParams i := by
@@ -214,7 +214,8 @@ theorem frontier_head_batch_seat [Fintype V] (E : Generic.Env V)
         contradiction
     exact hne ((hone a ha hka).trans (hone b hb hkb).symm)
 
-/-- Blueprint 21 HG.1:1536–1546, H.2 S1:709–715, H.3:748–783; plan §3.1 steps 3–4 (restates
+/-- ROOT-DIGEST W2b. Blueprint 21 HG.1:1536–1546, H.2 S1:709–715, H.3:748–783; plan §3.1 steps 3–4
+(restates
 `healing_next_transfer_core`). DC: INTENTIONAL one capped H.2 HEAD step. If every honest
 label-i HEAD covers the pivot and B, every honest HEAD at label i+1 under the cap covers B.
 The receiver's own label-i HEAD block is the witness; it has height m, so F and Z are below
@@ -260,7 +261,8 @@ theorem frontier_next_transfer_core [Fintype V] (E : Generic.Env V)
     rfl
   have hcut : V2.D.Run.idxBefore rho (SA.voteTime p.toParams i + p.Δ) ≤ timeIdx rho v :=
     fheads_idxBefore_le_timeIdx rho (hvi.trans hv)
-  obtain ⟨W, _, hWe, _, hrelay⟩ := frontier_head_relay E rho crossing hE hN hDelta
+  obtain ⟨W, _, hWe, _, hrelay⟩ := frontier_head_relay (hroots := hrec.base.idealization)
+    E rho crossing hE hN hDelta
     hrec.sync hQm hcap hy hjy hgsti (hcoverQ y hy _ hhl) ((hvi.trans hv).trans hvh) hcut
   have hWd := hrelay y hy
   have hBW : Block.Preceq B (eraseFG W) := by
@@ -390,7 +392,8 @@ theorem frontier_next_transfer_core [Fintype V] (E : Generic.Env V)
   rw [headVote_eq, ite_eq_right (Nat.succ_ne_zero i)]
   exact hcov
 
-/-- Blueprint 21 HG.1:1546–1556, H.1:673–699, H.3:748–783; plan §3.1 steps 3–4 (restates
+/-- ROOT-DIGEST W2b. Blueprint 21 HG.1:1546–1556, H.1:673–699, H.3:748–783; plan §3.1 steps 3–4
+(restates
 `healing_first_transfer_core`). DC: INTENTIONAL the capped first transfer at v_(s+1). One
 honest clean supporter of B at the gate d_s has a label-s HEAD above the pivot. That HEAD
 block has height m and is the witness: it reaches the receiver before e_s, and F and Z are
@@ -430,7 +433,8 @@ theorem frontier_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa
     (hv : SA.voteTime p.toParams (s + 1) ≤ v)
     (hlease : Block.Preceq (eraseFG (storeAt p c E rho iy y).fg.F) B →
       ∀ row ∈ (FGSA.clock p (storeAt p c E rho iy y)
-        (SA.voteTime p.toParams (s + 1))).base.obligations, Block.Compatible row.1 B) :
+        (SA.voteTime p.toParams (s + 1))).base.obligations, Block.Compatible row.1 B)
+    (hroots : NamedRootCollisionFree p c E rho) :
     Block.Preceq B (headVote p (FGSA.clock p (storeAt p c E rho iy y)
       (SA.voteTime p.toParams (s + 1))) (s + 1)) := by
   have hS := hE.toScheduleWellFormed
@@ -467,7 +471,8 @@ theorem frontier_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa
   have hcut : V2.D.Run.idxBefore rho (SA.voteTime p.toParams s + p.Δ) ≤ timeIdx rho v :=
     fheads_idxBefore_le_timeIdx rho (hes.trans hv)
   have hQK := hcoverQ _ hkh _ hhlz
-  obtain ⟨W, _, hWe, _, hrelay⟩ := frontier_head_relay E rho crossing hE hN hDelta hsync hQm
+  obtain ⟨W, _, hWe, _, hrelay⟩ := frontier_head_relay (hroots := hroots) E rho crossing hE hN
+    hDelta hsync hQm
     hcap hkh hjz hgsts hQK ((hvs.trans hgate).trans hvh) hcut
   have hKe2 : eraseFG W = K := hWe.trans hKeq.symm
   have hBW : Block.Preceq B (eraseFG W) := by
@@ -562,7 +567,8 @@ theorem frontier_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa
     have hBK' : Block.Preceq B K' := by
       rw [Gen.AC.voteSupports_def, hK'] at hsup'
       exact (Bool.and_eq_true_iff.mp hsup').2
-    obtain ⟨Kfg', hKe', hpath'⟩ := healing_support_target_path E rho hE hN hDelta s hSync
+    obtain ⟨Kfg', hKe', hpath'⟩ := healing_support_target_path (hroots := hroots)
+      E rho hE hN hDelta s hSync
       hx hy hiy K' hKm' hKst' (Gen.Pure.block_preceq_trans hFB hBK')
     exact fgsa_cleanSupport_forward_relay E rho hE hN hDelta s hSync hx hy hix hiy o' ho'
       seat hs' Kfg' (hKe' ▸ hK') B (hKe' ▸ hBK') hpath' hFB

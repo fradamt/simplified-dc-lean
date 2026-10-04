@@ -47,7 +47,7 @@ theorem healing_resetArrival (p : Params) (G ΔF : Time)
     (healing_reset_emittedName p c E rho hset.base)
     hset hδ hbound (hsearch c E rho hset hbound) hhor
 
-/-- Blueprint 21 HG.5, H.11:1695–1800; plan S5 HG5-BRIDGE (J8 review should-fix 2).
+/-- ROOT-DIGEST W2b. Blueprint 21 HG.5, H.11:1695–1800; plan S5 HG5-BRIDGE (J8 review should-fix 2).
 DC: SAME HG.5 on every healing run. HealingSet supplies recovery; named producers
 discharge every standing port of healing_frontierSearch. -/
 theorem healing_frontierSearch_of_set (p : Params) {V : Type} [DecidableEq V] [Fintype V]
@@ -56,7 +56,7 @@ theorem healing_frontierSearch_of_set (p : Params) {V : Type} [DecidableEq V] [F
     FrontierSearchStatement p c E rho G ΔF := by
   have faultQ := fgsa_faultQ_of_count p hset.fault
   have mono := fgsa_rMono p c E rho
-  have crossing := fgsa_rXing p c E rho hset.base.linked
+  have crossing := fgsa_rXing (hroots := hset.base.idealization) p c E rho hset.base.linked
     (fgsa_faultX_count_rec p hset.fault) hset.base.valid.toUnforgeableSignatures
   have qc := sourceDiscipline_qcOrigin p c E rho (pt := ()) ⟨hset.base, faultQ⟩
     (fgsa_rStore p c E rho)
@@ -79,7 +79,7 @@ theorem healing_resetArrivalStatement (p : Params) (G ΔF : Time) :
     ResetArrivalStatement p G ΔF :=
   healing_resetArrival p G ΔF fun c E rho hset _ => healing_frontierSearch_of_set p c E rho hset
 
-/-- Blueprint 21 H.17:2958–3012; plan S5 CONE-2 K2.
+/-- ROOT-DIGEST W2b. Blueprint 21 H.17:2958–3012; plan S5 CONE-2 K2.
 DC: SAME cone step at every event cut. HealingSet supplies each run port. -/
 theorem healing_postReset_coneStep_of_set (p : Params) {V : Type}
     [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
@@ -88,7 +88,7 @@ theorem healing_postReset_coneStep_of_set (p : Params) {V : Type}
     (h0r : H0Reset p c E rho w) : ∀ i, PostResetConeStep p c E rho w i := by
   have faultQ := fgsa_faultQ_of_count p hset.fault
   have mono := fgsa_rMono p c E rho
-  have crossing := fgsa_rXing p c E rho hset.base.linked
+  have crossing := fgsa_rXing (hroots := hset.base.idealization) p c E rho hset.base.linked
     (fgsa_faultX_count_rec p hset.fault) hset.base.valid.toUnforgeableSignatures
   have origin := sourceDiscipline_qcOrigin p c E rho (pt := ()) ⟨hset.base, faultQ⟩
     (fgsa_rStore p c E rho)
@@ -101,7 +101,7 @@ theorem healing_postReset_coneStep_of_set (p : Params) {V : Type}
     (sourceDiscipline_tSrc p c E rho hset.base.valid.toScheduleWellFormed)
     (rowPermission_covered E rho)
 
-/-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HTIME-WIRE W2/W4.
+/-- ROOT-DIGEST W2b. Blueprint 21 H.18–H.22:3049–3176; plan S5 HTIME-WIRE W2/W4.
 DC: SAME all-cut invariant. HealingSet supplies each standing run port.
 The cone is used only in the adjacent J6-3 step producers below. -/
 private theorem healing_postReset_inv_of_open (p : Params) {V : Type}
@@ -116,7 +116,7 @@ private theorem healing_postReset_inv_of_open (p : Params) {V : Type}
     ∀ i, PostResetInv p c E rho w i := by
   have faultQ := fgsa_faultQ_of_count p hset.fault
   have mono := fgsa_rMono p c E rho
-  have crossing := fgsa_rXing p c E rho hset.base.linked
+  have crossing := fgsa_rXing (hroots := hset.base.idealization) p c E rho hset.base.linked
     (fgsa_faultX_count_rec p hset.fault) hset.base.valid.toUnforgeableSignatures
   have origin := sourceDiscipline_qcOrigin p c E rho (pt := ()) ⟨hset.base, faultQ⟩
     (fgsa_rStore p c E rho)
@@ -191,7 +191,7 @@ theorem healing_hTimeClaim_of_statement
   intro G ΔF hClock V _ _ In c E rho pt h
   exact hTime G ΔF hClock c E rho h.set h.bound h.hhor
 
-/-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HTIME-WIRE W4.
+/-- ROOT-DIGEST W2b. Blueprint 21 H.18–H.22:3049–3176; plan S5 HTIME-WIRE W4.
 DC: SAME HTimeClaim. The only open inputs are J5-A reset lease and raw steps,
 J4A2-2 lease steps, and G-H17 retained cone, under HealingSet and H0Reset. -/
 theorem healing_hTimeClaim_of_open : HTimeClaim p := by
@@ -216,7 +216,7 @@ theorem healing_hTimeClaim_of_open : HTimeClaim p := by
         (stepRaw c E rho hset h0.toH0Reset) (hcone c E rho hset h0.toH0Reset)
       have faultQ := fgsa_faultQ_of_count p hset.fault
       have mono := fgsa_rMono p c E rho
-      have crossing := fgsa_rXing p c E rho hset.base.linked
+      have crossing := fgsa_rXing (hroots := hset.base.idealization) p c E rho hset.base.linked
         (fgsa_faultX_count_rec p hset.fault) hset.base.valid.toUnforgeableSignatures
       have origin := sourceDiscipline_qcOrigin p c E rho (pt := ()) ⟨hset.base, faultQ⟩
         (fgsa_rStore p c E rho)
@@ -265,7 +265,7 @@ theorem healing_hTimeClaim_of_open : HTimeClaim p := by
 
 end HTime
 
-/-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HTW-3 W2/W4.
+/-- ROOT-DIGEST W2b. Blueprint 21 H.18–H.22:3049–3176; plan S5 HTW-3 W2/W4.
 DC: SAME all-cut invariant and run cone, from joint₂ and the four open steps.
 HealingSet supplies each run port. RE-BIND supplies the two cut step producers. -/
 private theorem healing_postReset_inv_cone_of_open₂ (p : Params) {V : Type}
@@ -280,7 +280,7 @@ private theorem healing_postReset_inv_cone_of_open₂ (p : Params) {V : Type}
     (∀ i, PostResetInv p c E rho w i) ∧ PostResetRetainedCone p c E rho w := by
   have faultQ := fgsa_faultQ_of_count p hset.fault
   have mono := fgsa_rMono p c E rho
-  have crossing := fgsa_rXing p c E rho hset.base.linked
+  have crossing := fgsa_rXing (hroots := hset.base.idealization) p c E rho hset.base.linked
     (fgsa_faultX_count_rec p hset.fault) hset.base.valid.toUnforgeableSignatures
   have origin := sourceDiscipline_qcOrigin p c E rho (pt := ()) ⟨hset.base, faultQ⟩
     (fgsa_rStore p c E rho)
@@ -357,7 +357,7 @@ theorem healing_resetArrivalFull_of_open₂ (G ΔF : Time) :
   exact ⟨{w with u := u, QStar := Q}, h0, harrival⟩
 
 
-/-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HTW-3 W4.
+/-- ROOT-DIGEST W2b. Blueprint 21 H.18–H.22:3049–3176; plan S5 HTW-3 W4.
 DC: SAME HTimeClaim, from joint₂ with the three old steps and the cone step.
 The invariant and run cone are projections of joint₂ with RE-BIND cut steps. -/
 theorem healing_hTimeClaim_of_open₂ : HTimeClaim p := by
@@ -382,7 +382,7 @@ theorem healing_hTimeClaim_of_open₂ : HTimeClaim p := by
         (stepRaw c E rho hset h0.toH0Reset) (stepCone c E rho hset h0.toH0Reset)).1
       have faultQ := fgsa_faultQ_of_count p hset.fault
       have mono := fgsa_rMono p c E rho
-      have crossing := fgsa_rXing p c E rho hset.base.linked
+      have crossing := fgsa_rXing (hroots := hset.base.idealization) p c E rho hset.base.linked
         (fgsa_faultX_count_rec p hset.fault) hset.base.valid.toUnforgeableSignatures
       have origin := sourceDiscipline_qcOrigin p c E rho (pt := ()) ⟨hset.base, faultQ⟩
         (fgsa_rStore p c E rho)
@@ -439,7 +439,7 @@ theorem healing_hTimeClaim_of_steps : HTimeClaim p :=
 
 end HTime₂
 
-/-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HCLOSE H1 reset lease.
+/-- ROOT-DIGEST W2b. Blueprint 21 H.18–H.22:3049–3176; plan S5 HCLOSE H1 reset lease.
 DC: SAME reset lease step at every cut. HealingSet supplies each run port. -/
 theorem healing_postReset_resetLeaseStep_of_set (p : Params) {V : Type}
     [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
@@ -447,7 +447,7 @@ theorem healing_postReset_resetLeaseStep_of_set (p : Params) {V : Type}
     (hset : HealingSet p c E rho G ΔF) {w : HealingWitness}
     (h0r : H0Reset p c E rho w) : ∀ i, PostResetResetLeaseStep p c E rho w i := by
   have faultQ := fgsa_faultQ_of_count p hset.fault
-  have crossing := fgsa_rXing p c E rho hset.base.linked
+  have crossing := fgsa_rXing (hroots := hset.base.idealization) p c E rho hset.base.linked
     (fgsa_faultX_count_rec p hset.fault) hset.base.valid.toUnforgeableSignatures
   exact postReset_resetLease_succ' p c E rho hset
     (sourceDiscipline_emittedNonempty p c E rho)
@@ -455,7 +455,7 @@ theorem healing_postReset_resetLeaseStep_of_set (p : Params) {V : Type}
     (fgsa_rCap_channel p c E rho hset.base.linked hset.base.valid faultQ)
     (sourceDiscipline_tSrc p c E rho hset.base.valid.toScheduleWellFormed)
 
-/-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HCLOSE H1 lease safety.
+/-- ROOT-DIGEST W2b. Blueprint 21 H.18–H.22:3049–3176; plan S5 HCLOSE H1 lease safety.
 DC: SAME lease safety step at every cut. HealingSet supplies each run port. -/
 theorem healing_postReset_leaseStep_of_set (p : Params) {V : Type}
     [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
@@ -464,7 +464,7 @@ theorem healing_postReset_leaseStep_of_set (p : Params) {V : Type}
     (h0r : H0Reset p c E rho w) : ∀ i, PostResetLeaseStep p c E rho w i := by
   have faultQ := fgsa_faultQ_of_count p hset.fault
   have mono := fgsa_rMono p c E rho
-  have crossing := fgsa_rXing p c E rho hset.base.linked
+  have crossing := fgsa_rXing (hroots := hset.base.idealization) p c E rho hset.base.linked
     (fgsa_faultX_count_rec p hset.fault) hset.base.valid.toUnforgeableSignatures
   have origin := sourceDiscipline_qcOrigin p c E rho (pt := ()) ⟨hset.base, faultQ⟩
     (fgsa_rStore p c E rho)
@@ -474,7 +474,7 @@ theorem healing_postReset_leaseStep_of_set (p : Params) {V : Type}
     (emittedName_window p c E rho hset.base.valid.toScheduleWellFormed) writes
     crossing origin h0r
 
-/-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HCLOSE H1 raw transfer.
+/-- ROOT-DIGEST W2b. Blueprint 21 H.18–H.22:3049–3176; plan S5 HCLOSE H1 raw transfer.
 DC: SAME raw transfer step at every cut. HealingSet supplies each run port. -/
 theorem healing_postReset_rawStep_of_set (p : Params) {V : Type}
     [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
@@ -483,7 +483,7 @@ theorem healing_postReset_rawStep_of_set (p : Params) {V : Type}
     (h0r : H0Reset p c E rho w) : ∀ i, PostResetRawStep p c E rho w i := by
   have faultQ := fgsa_faultQ_of_count p hset.fault
   have mono := fgsa_rMono p c E rho
-  have crossing := fgsa_rXing p c E rho hset.base.linked
+  have crossing := fgsa_rXing (hroots := hset.base.idealization) p c E rho hset.base.linked
     (fgsa_faultX_count_rec p hset.fault) hset.base.valid.toUnforgeableSignatures
   have origin := sourceDiscipline_qcOrigin p c E rho (pt := ()) ⟨hset.base, faultQ⟩
     (fgsa_rStore p c E rho)
@@ -511,7 +511,7 @@ theorem healing_resetArrivalFull (p : Params) (G ΔF : Time) :
     (healing_postReset_leaseStep_of_set p) (healing_postReset_rawStep_of_set p)
     (healing_postReset_coneStep_of_set p) G ΔF
 
-/-- Blueprint 21 H.18–H.22:3049–3176; plan S5 HCLOSE H4.
+/-- ROOT-DIGEST W2b. Blueprint 21 H.18–H.22:3049–3176; plan S5 HCLOSE H4.
 DC: SAME HealingInputClaim. The J9 packages use the original H0 witness.
 The claim's local horizon supplies H4; no reset budget premise is required. -/
 theorem healing_healingInputClaim (p : Params) : HealingInputClaim p := by
@@ -525,7 +525,7 @@ theorem healing_healingInputClaim (p : Params) : HealingInputClaim p := by
     (healing_postReset_coneStep_of_set p c E rho hset h0.toH0Reset)).1
   have faultQ := fgsa_faultQ_of_count p hset.fault
   have mono := fgsa_rMono p c E rho
-  have crossing := fgsa_rXing p c E rho hset.base.linked
+  have crossing := fgsa_rXing (hroots := hset.base.idealization) p c E rho hset.base.linked
     (fgsa_faultX_count_rec p hset.fault) hset.base.valid.toUnforgeableSignatures
   have origin := sourceDiscipline_qcOrigin p c E rho (pt := ()) ⟨hset.base, faultQ⟩
     (fgsa_rStore p c E rho)

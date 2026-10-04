@@ -27,7 +27,7 @@ structure PromotionSourceAt (p : Params) (c : AppCodec In) (E : Generic.Env V)
   rows : ∀ x ∈ rho.honest, ∃ j rSent a, rSent ≤ r ∧ HonestRowAt p c E rho j x rSent a ∧
     NamesEntry p .progress a height U
 
-/-- Blueprint 21:1592–1638; S5 H1, route step 6.
+/-- ROOT-DIGEST W2b. Blueprint 21:1592–1638; S5 H1, route step 6.
 DC: SAME progress uses the fixed rows and source path at the proposal read.
 The core has no phase, permanence, repair, or service endpoint premise. -/
 theorem promotion_age_advance_of_source (E : Generic.Env V)
@@ -126,7 +126,7 @@ theorem promotion_age_advance_of_source (E : Generic.Env V)
     · intro i _ W hW hn
       exact healing_rows_above_entry_at_height p st
         (healing_promotion_proposal_reachable p c E rho hst) .progress height U X.parent
-        hparent hpar i W hW hn
+        hparent hpar hUP i W hW hn
   exact progressCoverage r height U X hb hpar
 
 

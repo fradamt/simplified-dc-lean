@@ -29,7 +29,7 @@ private theorem frame_vote_fold_blocks (xs : List (GridCO.HeadWire p.n))
   | nil => rfl
   | cons o xs ih => rw [List.foldl_cons, ih, frame_vote_blocks]
 
-/-- Blueprint 21:1288–1308; plan S30, H-FRAME/F3.
+/-- ROOT-DIGEST W2b. Blueprint 21:1288–1308; plan S30, H-FRAME/F3.
 DC: SAME the admitted parent has a smaller slot and all prefixes are slot-bounded.
 Only the permitted StoreFacts library is used for the carried vote fold. -/
 private theorem frame_admitProposal_slots (st : GridCO.State p.n)
@@ -57,7 +57,7 @@ private theorem frame_admitProposal_slots (st : GridCO.State p.n)
           have he : A = .genesis := by simpa [Block.Preceq, Block.preceq] using hAB
           subst A
           rfl
-        | node parent s root =>
+        | node parent s root root =>
           rcases Bool.or_eq_true_iff.mp hAB with he | hp
           · exact (of_decide_eq_true he) ▸ le_rfl
           · exact (ho parent (of_decide_eq_true hparent) A hp).trans hslot.le

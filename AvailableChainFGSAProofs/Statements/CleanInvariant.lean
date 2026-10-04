@@ -303,37 +303,37 @@ theorem CleanHistStep_def (b₀ : Time) (event : Nat → Prop) :
   ∀ i, i < timeIdx rho b₀ → event i → CleanHist p c E rho i →
     (∀ k, k ≤ i → CleanState p c E rho k) → CleanHist p c E rho (i + 1)) := by rfl
 
-/-- Vote, row, or refused proposal: no accepted block handler. -/
+/-- ROOT-DIGEST W2b. Vote, row, or refused proposal: no accepted block handler. -/
 def CleanOrdinaryDelivery (j : Nat) : Prop :=
   ∃ v o t, rho.events[j]? = some (.deliver v o t) ∧
     ∀ s b raw support rows P, (toWire p o).decode = some (.block s b raw support rows) →
       parentFG (storeAt p c E rho j v) b = some P →
-      blockAccepted p (storeAt p c E rho j v) s b P rows = false
+      blockAccepted p (storeAt p c E rho j v) s b raw support P rows = false
 
 omit [Fintype V] in
-/-- L49 first-unfold equation; bp02 §5, P3 §8.4. -/
+/-- ROOT-DIGEST W2b. L49 first-unfold equation; bp02 §5, P3 §8.4. -/
 theorem CleanOrdinaryDelivery_def (j : Nat) :
     CleanOrdinaryDelivery p c E rho j =
       (∃ v o t, rho.events[j]? = some (.deliver v o t) ∧
     ∀ s b raw support rows P, (toWire p o).decode = some (.block s b raw support rows) →
       parentFG (storeAt p c E rho j v) b = some P →
-      blockAccepted p (storeAt p c E rho j v) s b P rows = false) := by rfl
+      blockAccepted p (storeAt p c E rho j v) s b raw support P rows = false) := by rfl
 
-/-- A checked block receipt. -/
+/-- ROOT-DIGEST W2b. A checked block receipt. -/
 def CleanBlockDelivery (j : Nat) : Prop :=
   ∃ v o t s b raw support rows P, rho.events[j]? = some (.deliver v o t) ∧
     (toWire p o).decode = some (.block s b raw support rows) ∧
     parentFG (storeAt p c E rho j v) b = some P ∧
-    blockAccepted p (storeAt p c E rho j v) s b P rows = true
+    blockAccepted p (storeAt p c E rho j v) s b raw support P rows = true
 
 omit [Fintype V] in
-/-- L49 first-unfold equation; bp02 §5, P3 §8.4. -/
+/-- ROOT-DIGEST W2b. L49 first-unfold equation; bp02 §5, P3 §8.4. -/
 theorem CleanBlockDelivery_def (j : Nat) :
     CleanBlockDelivery p c E rho j =
       (∃ v o t s b raw support rows P, rho.events[j]? = some (.deliver v o t) ∧
     (toWire p o).decode = some (.block s b raw support rows) ∧
     parentFG (storeAt p c E rho j v) b = some P ∧
-    blockAccepted p (storeAt p c E rho j v) s b P rows = true) := by rfl
+    blockAccepted p (storeAt p c E rho j v) s b raw support P rows = true) := by rfl
 
 /-- A tick that has no gate. -/
 def CleanNoGateTick (j : Nat) : Prop :=

@@ -78,7 +78,7 @@ theorem frontierSearch_seed_after {V : Type} (E : Generic.Env V)
     push_cast at hlt
     nlinarith
 
-/-- Blueprint 21 HG.3. DC: SAME the proposer floor and exact-gate cap. -/
+/-- ROOT-DIGEST W2b. Blueprint 21 HG.3. DC: SAME the proposer floor and exact-gate cap. -/
 theorem frontierSearch_proposal_heights [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     (crossing : RXing p c E rho)
@@ -125,7 +125,7 @@ theorem frontierSearch_proposal_heights [Fintype V] (E : Generic.Env V)
   have hparent : FGBlock.Preceq Qfg.parent Qfg := by
     cases Qfg with
     | genesis => exact KitFG.preceq_refl _
-    | node P s body rows => exact KitFG.preceq_parent_node _ _ _ _
+    | node P s root body rows => exact KitFG.preceq_parent_node _ _ _ _ _
   refine ⟨hlo.trans ((fgCertificateLaws p).height.h_mono hparent), ?_⟩
   obtain ⟨i, K, hi, hK, heK⟩ := healing_rise_one_gate_copy p c E rho hS hexact
     (hgate.trans hp.2.1) hx
@@ -174,7 +174,7 @@ theorem frontierSearch_save_seed (E : Generic.Env V)
     ((healing_phase_idx_le_time p c rho le_rfl).trans hui)
     (hiq.trans (frontierSearch_timeIdx_mono rho hg)) hx).1.le
 
-/-- Blueprint 21 HG.3 contest; plan R2-b.
+/-- ROOT-DIGEST W2b. Blueprint 21 HG.3 contest; plan R2-b.
 DC: SAME stop at the finite first event, or save the repaired height-m seed.
 The horizon is closed. TRepair has producer healing_tRepair. -/
 theorem frontier_hg3_contest [Fintype V] (E : Generic.Env V)
@@ -205,7 +205,8 @@ theorem frontier_hg3_contest [Fintype V] (E : Generic.Env V)
   · rcases frontierSearch_classify_stop p c E rho hrec.base.noRestart hfront hstop with h | h
     · exact Or.inl h
     · exact Or.inr (Or.inl h)
-  obtain ⟨J, hp, _⟩ := healing_settle_start p c E rho crossing hrec.base.valid
+  obtain ⟨J, hp, _⟩ := healing_settle_start (hroots := hrec.base.idealization)
+    p c E rho crossing hrec.base.valid
     hrec.base.noRestart hrec.base.delta hrec.sync i ev _ m .contest hi hgst0
     (by change ev.time + 3 * p.Δ ≤ ev.time + (ρbar + 3 * p.Δ); linarith)
     hhor hm hfront hkind hquiet

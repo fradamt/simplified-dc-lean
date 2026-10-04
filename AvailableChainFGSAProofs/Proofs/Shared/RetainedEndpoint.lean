@@ -33,7 +33,7 @@ theorem fgsa_headRead_block_slots (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
       fgsa_vote_slot (c := c) (rho.stateBefore E i v) s
   exact ((fgsa_stateBefore_bounds E rho hs i v).1 C hm).trans (ht ▸ hslot)
 
-/-- Blueprint 03:367–373; 21 H.17:3006–3012 (design 2865–2872);
+/-- ROOT-DIGEST W2b. Blueprint 03:367–373; 21 H.17:3006–3012 (design 2865–2872);
 spec 1387–1401, 1555–1581. Class (iii). DC: INTENTIONAL; accepted proposal validity
 supplies strict parent-slot growth. Row metadata passes through unchanged. -/
 theorem fgsa_headRead_child_slot (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -55,7 +55,7 @@ theorem fgsa_headRead_child_slot (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c
   have hpar : C.parent = B := by
     cases C with
     | genesis => cases hp
-    | node P t r => exact Option.some.inj hp
+    | node P t root r => exact Option.some.inj hp
   simpa only [hpar] using hlt
 
 /-- Blueprint 21 H.6:956–958, H.17:3006–3012 (design 812–814,2865–2872);
@@ -181,7 +181,7 @@ structure RetainedExactHeadRunGeometry
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s b
 
-/-- Blueprint 21 H.6:927–958, H.17:2957–3012 (design 783–814,2818–2872);
+/-- ROOT-DIGEST W2b. Blueprint 21 H.6:927–958, H.17:2957–3012 (design 783–814,2818–2872);
 spec 1387–1401, 1555–1581. Class (iii). DC: INTENTIONAL; S1–S8 produce all fields
 from per-reader premises. E.proposal_mem supplies pre-clock admission, so
 reflection has no outstanding admission premise at this packaging point. -/
@@ -204,7 +204,8 @@ theorem fgsa_retainedExactHead_geometry_on_run
       rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
       ∃ Kc, RetainedReadPremises p
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
-        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D b Kc) :
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D b Kc)
+    (hroots : NamedRootCollisionFree p c E rho) :
     RetainedExactHeadRunGeometry E rho ip x s D b := by
   have hm := hem
   rw [(V2.D.Run.step_tick_eq E rho hip).2] at hm
@@ -221,7 +222,7 @@ theorem fgsa_retainedExactHead_geometry_on_run
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (r + 1))) (r + 1) b := by
     intro y hy ih hih
     obtain ⟨Kc, hr⟩ := hreads y hy ih hih
-    obtain ⟨hw, hm, ho⟩ := fgsa_retainedWalk_geometry_on_run E rho hE hN hDelta r
+    obtain ⟨hw, hm, ho⟩ := fgsa_retainedWalk_geometry_on_run (hroots := hroots) E rho hE hN hDelta r
       hWalkSync hScoreSync hx hy hip hih hseat b raw sup rows hem D Kc hr
     exact ⟨Kc, hw, fgsa_retainedEndpoint_geometry_on_run E rho hE (r + 1)
       hx hip hih hseat b raw sup rows hem hm ho⟩

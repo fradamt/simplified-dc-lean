@@ -15,8 +15,7 @@ variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
 private theorem cone_pool_lift {A B : FGBlock (Fin p.n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
-  preceq_of_eraseFG_preceq (KitFG.viewRootInj_all {A, B})
-    ⟨A, by simp, KitFG.preceq_refl A⟩ ⟨B, by simp, KitFG.preceq_refl B⟩ h
+  eraseFG_preceq_iff.mp h
 
 /-- Blueprint 21 H.14–H.17:2958–3012; plan S5 CONE C4.
 DC: SAME proposer majority and rivals from the preceding honest batch.

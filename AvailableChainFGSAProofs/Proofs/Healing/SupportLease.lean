@@ -52,7 +52,7 @@ private theorem lease_rows_process (st : State p.n) (o : Wire p.n) :
       cases hp : parentFG st b with
       | none => rw [admitBlock_refused p st s b raw sup rows (Or.inl hp)]
       | some P =>
-        cases ha : blockAccepted p st s b P rows with
+        cases ha : blockAccepted p st s b raw sup P rows with
         | false =>
           rw [admitBlock_refused p st s b raw sup rows (Or.inr ⟨P, hp, ha⟩)]
         | true =>
@@ -255,7 +255,8 @@ theorem healing_fast_source (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   rw [clockPre_fg]
   exact hconf
 
-/-- Blueprint 21:689–715 (H.1 release, H.2 S1), IF.1, IF.6; plan H-SUPPORT §4 steps 5–8,
+/-- ROOT-DIGEST W2b. Blueprint 21:689–715 (H.1 release, H.2 S1), IF.1, IF.6; plan H-SUPPORT §4 steps
+5–8,
 G5, G7, G8. DC: INTENTIONAL the lease invariant for a fast body. A row at an honest read
 after the q_(s+1) tick has its last write at a gate w before the read. If w < s, the row
 was live at the q_(s+1) release, which removes rows that conflict with B (G5). If w = s,
@@ -331,7 +332,8 @@ theorem healing_fast_lease_at [Fintype V] (E : Generic.Env V)
       exact tick_st (c := c) E rho _ y _
     rw [hpost] at hkeep
     obtain ⟨ix, h, hix, _, _, hτ⟩ := healing_fast_source (c := c) E rho hS hnd hB
-    exact healing_support_release_compat E rho hE hN hDelta s hSync hx hy hix hiq hτ
+    exact healing_support_release_compat (hroots := hrec.base.idealization)
+      E rho hE hN hDelta s hSync hx hy hix hiq hτ
       (hFmono hqa.le hFB) row hkeep
   · -- The same label as the source gate.
     have hws' : w = s := hws

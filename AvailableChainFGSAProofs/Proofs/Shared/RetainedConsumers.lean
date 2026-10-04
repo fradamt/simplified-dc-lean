@@ -19,12 +19,11 @@ structure RetainedPriorSupport (p : Params) (src : State p.n) (s : Slot)
   majority : GridCO.voterCount (proposerVotes src s) < 2 * ss src s L
   rivals : ∀ B, Block.compatible L B = false → ss src s B < ss src s L
 
-/-- Blueprint 21 H.3:761–775; H.6:947–958. Class (iii).
+/-- ROOT-DIGEST W2b. Blueprint 21 H.3:761–775; H.6:947–958. Class (iii).
 DC: INTENTIONAL; lift a stored witness path without evaluating heightView. -/
 private theorem consumer_lift {n : Nat} {A B : FGBlock (Fin n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
-  preceq_of_eraseFG_preceq (Vw := {A, B}) (KitFG.viewRootInj_all _)
-    ⟨A, by simp, KitFG.preceq_refl _⟩ ⟨B, by simp, KitFG.preceq_refl _⟩ h
+  eraseFG_preceq_iff.mp h
 
 /-- Blueprint 21 H.6:932–944. Class (iii).
 DC: INTENTIONAL; a stored height witness supplies the supported source path. -/
@@ -115,14 +114,14 @@ private theorem consumer_parent_height (p : Params) (src : State p.n)
     src.fg.TF H).mp hH).1, heH.trans hp, ?_⟩
   simpa only [KitFG.hOf_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)] using hh
 
-/-- Blueprint 21 H.5:877–886; H.6:953–956. Class (iii).
+/-- ROOT-DIGEST W2b. Blueprint 21 H.5:877–886; H.6:953–956. Class (iii).
 DC: INTENTIONAL; equality of erased stored parents. -/
 private theorem consumer_parent_eq {C X : Block} (h : C.parent? = some X) : C.parent = X := by
   cases C with
   | genesis => cases h
-  | node P s r => exact Option.some.inj h
+  | node P s root r => exact Option.some.inj h
 
-/-- Blueprint 21 H.5:877–886; H.6:953–956. Class (iii).
+/-- ROOT-DIGEST W2b. Blueprint 21 H.5:877–886; H.6:953–956. Class (iii).
 DC: INTENTIONAL; common height witnesses give a unique child below the source root.
 Scores need not be strict on this trunk. -/
 private theorem consumer_trunk_prefix (p : Params) (src dst : State p.n) (s : Slot)
@@ -143,7 +142,7 @@ private theorem consumer_trunk_prefix (p : Params) (src dst : State p.n) (s : Sl
   have hXC : Block.Preceq X C := by
     cases C with
     | genesis => cases hp
-    | node P s r =>
+    | node P s root r =>
       have he := Option.some.inj hp
       subst P
       exact Bool.or_eq_true_iff.mpr (Or.inr (block_preceq_refl _))
@@ -166,10 +165,10 @@ private theorem consumer_trunk_prefix (p : Params) (src dst : State p.n) (s : Sl
     have hd : B.depth = C.depth := by
       cases B with
       | genesis => cases hpB
-      | node P t i =>
+      | node P t root i =>
         cases C with
         | genesis => cases hp
-        | node Q u j =>
+        | node Q u root j =>
           have hPQ : P = Q := (Option.some.inj hpB).trans (Option.some.inj hp).symm
           subst P
           rfl
@@ -177,7 +176,7 @@ private theorem consumer_trunk_prefix (p : Params) (src dst : State p.n) (s : Sl
     · exact prefix_eq_of_depth B C h (Nat.le_of_eq hd.symm)
     · exact (prefix_eq_of_depth C B h (Nat.le_of_eq hd)).symm
 
-/-- Blueprint 21 H.6:947–952. Class (iii).
+/-- ROOT-DIGEST W2b. Blueprint 21 H.6:947–952. Class (iii).
 DC: INTENTIONAL; split the witness's own duty-view membership.
 The current-path arm uses the source parent; the frozen arm keeps its stamp. -/
 private theorem consumer_reflected_witness (p : Params) (src dst : State p.n)
@@ -204,10 +203,10 @@ private theorem consumer_reflected_witness (p : Params) (src dst : State p.n)
       | genesis =>
         change 0 = s at hslot
         exact (Nat.not_lt_zero _ (hslot.symm ▸ hold)).elim
-      | node P u i =>
+      | node P u root i =>
         rcases Bool.or_eq_true_iff.mp hCb with he | hp
         · have he := of_decide_eq_true he
-          have hbad : (Block.node P u i).slot < s := he ▸ hold
+          have hbad : (Block.node P u root i).slot < s := he ▸ hold
           exact (Nat.lt_irrefl _ (hslot ▸ hbad)).elim
         · exact hp
     obtain ⟨A, hA, heA, hh⟩ := hparent
@@ -324,7 +323,7 @@ structure RetainedH6Input (p : Params) (src dst : State p.n) (s : Slot) : Prop w
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- Blueprint 21 H.6:932–963; H.3:748–783; H.5:877–907. Class (iii).
+/-- ROOT-DIGEST W2b. Blueprint 21 H.6:932–963; H.3:748–783; H.5:877–907. Class (iii).
 DC: INTENTIONAL; H.4's prior support and fixed-phase frame facts supply all readers.
 The lane input cites each upstream fact in RetainedH6Input and RetainedH6Frame.
 Emission supplies the parent by fgsa_walkRun_proposal_parent. H.3 supplies height
@@ -347,7 +346,8 @@ theorem fgsa_retainedReads_H6
       rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
       RetainedH6Input p
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
-        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s) :
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s)
+    (hroots : NamedRootCollisionFree p c E rho) :
     ∀ y ∈ rho.honest, ∀ ih,
       rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
       ∃ Kc, RetainedReadPremises p
@@ -392,7 +392,7 @@ theorem fgsa_retainedReads_H6
     have hh := block_preceq_trans (F_preceq_liveRoot p dst ht) (block_preceq_trans hay hbpar)
     change Block.Preceq (eraseFG (rho.stateBefore E ih y).st.fg.F) b
     simpa only [dst, clock_fg] using hh
-  have hadm := fgsa_gateReceipt_block_to_tick E rho hE hN hDelta dl cut hD
+  have hadm := fgsa_gateReceipt_block_to_tick (hroots := hroots) E rho hE hN hDelta dl cut hD
     (SA.proposalTime p.toParams s)
     (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) b rfl
     (Or.inl ⟨x, hx, ip, hip, hem⟩) (hlt _) (hd.trans hc) hy hih hd hF
@@ -489,7 +489,7 @@ private theorem consumer_no_band (p : Params) (st : State p.n) (D : FGBlock (Fin
   have he : eraseFG P = X := heP.trans (consumer_parent_eq hp)
   exact Nat.not_lt_of_ge (hlo.trans (consumer_height_mono p (he.symm ▸ hDX))) hh
 
-/-- Blueprint 21 H.17:2987–3007; HG.1:1562–1565; L4-R:2288–2292;
+/-- ROOT-DIGEST W2b. Blueprint 21 H.17:2987–3007; HG.1:1562–1565; L4-R:2288–2292;
 L2:2159–2162. Class (iii). DC: INTENTIONAL; frozen cone children witness themselves.
 An old child on the current proposal path uses the stored source parent instead. -/
 private theorem consumer_cone_reflection (p : Params) (src dst : State p.n)
@@ -507,7 +507,7 @@ private theorem consumer_cone_reflection (p : Params) (src dst : State p.n)
   · have hXC : Block.Preceq X C := by
       cases C with
       | genesis => cases hp
-      | node P t i =>
+      | node P t root i =>
         have he := Option.some.inj hp
         subst P
         exact Bool.or_eq_true_iff.mpr (Or.inr (block_preceq_refl _))
@@ -523,10 +523,10 @@ private theorem consumer_cone_reflection (p : Params) (src dst : State p.n)
       | genesis =>
         change 0 = s at hslot
         exact (Nat.not_lt_zero _ (hslot.symm ▸ hold)).elim
-      | node P u i =>
+      | node P u root i =>
         rcases Bool.or_eq_true_iff.mp hCb with he | hp
         · have he := of_decide_eq_true he
-          have hbad : (Block.node P u i).slot < s := he ▸ hold
+          have hbad : (Block.node P u root i).slot < s := he ▸ hold
           exact (Nat.lt_irrefl _ (hslot ▸ hbad)).elim
         · exact hp
     obtain ⟨A, hA, heA, hh⟩ := hparent
@@ -617,7 +617,7 @@ private theorem consumer_cone_fields (p : Params) (src dst : State p.n)
     have ht := consumer_no_band p dst D h.target_floor X C (block_preceq_trans hDK hKX) hp
     exact ⟨fun hh => (hs hh).elim, fun hh => (ht hh).elim⟩
 
-/-- Blueprint 21 H.17:2958–3012. Class (iii).
+/-- ROOT-DIGEST W2b. Blueprint 21 H.17:2958–3012. Class (iii).
 DC: INTENTIONAL; instantiate the common cone fields at the paper's T.
 Choose D = C* when the maximum compared H is M+1; otherwise choose the earlier
 honest source body from a maximizing crossing (2968–2977). RetainedConeInput
@@ -642,7 +642,8 @@ theorem fgsa_retainedReads_H17
       rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
       RetainedConeInput p
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
-        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D) :
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D)
+    (hroots : NamedRootCollisionFree p c E rho) :
     ∀ y ∈ rho.honest, ∀ ih,
       rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
       ∃ Kc, RetainedReadPremises p
@@ -674,7 +675,7 @@ theorem fgsa_retainedReads_H17
     have hh := block_preceq_trans (F_preceq_liveRoot p dst ht) (block_preceq_trans hay hbpar)
     change Block.Preceq (eraseFG (rho.stateBefore E ih y).st.fg.F) b
     simpa only [dst, clock_fg] using hh
-  have hadm := fgsa_gateReceipt_block_to_tick E rho hE hN hDelta dl cut hD
+  have hadm := fgsa_gateReceipt_block_to_tick (hroots := hroots) E rho hE hN hDelta dl cut hD
     (SA.proposalTime p.toParams s)
     (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) b rfl
     (Or.inl ⟨x, hx, ip, hip, hem⟩) (hlt _) (hd.trans hc) hy hih hd hF

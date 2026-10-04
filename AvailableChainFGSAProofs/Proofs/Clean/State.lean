@@ -4,6 +4,7 @@ public import AvailableChainFGSAProofs.Proofs.Clean.StateGate
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads
 public import AvailableChainFGSARun.Proofs.ClientTrace
 public import AvailableChainFGSARun.Proofs.AC
+public import AvailableChainFGSAProofs.Proofs.Shared.Roots
 public import AvailableChainGeneric.Proofs.V2.Duty.Reads
 
 public section
@@ -77,14 +78,14 @@ theorem cleanHist_step_noGateTick {i : Nat} {v : V} {t : Time}
   rw [hn] at hg
   cases hg
 
-/-- A vote, row, or refused block keeps every state field used by the SA origins.
+/-- ROOT-DIGEST W2b. A vote, row, or refused block keeps every state field used by the SA origins.
 The vote case uses the FG-SA store wrappers for GridCO admission. -/
 theorem clean_delivery_fields {j : Nat} {v : V} {o} {t : Time}
     (he : rho.events[j]? = some (.deliver v o t))
     (href : ∀ s b raw support rows P,
       (toWire p o).decode = some (.block s b raw support rows) →
       parentFG (storeAt p c E rho j v) b = some P →
-      blockAccepted p (storeAt p c E rho j v) s b P rows = false) :
+      blockAccepted p (storeAt p c E rho j v) s b raw support P rows = false) :
     let a := storeAt p c E rho j v
     let b := storeAt p c E rho (j + 1) v
     b.fg = a.fg ∧ b.base.stableRecord = a.base.stableRecord ∧
@@ -129,7 +130,7 @@ theorem clean_delivery_fields {j : Nat} {v : V} {o} {t : Time}
       rw [hr]
       exact ⟨rfl, rfl, rfl, rfl, rfl⟩
 
-/-- K1 lifted to an admitted block event. The three compatibility premises
+/-- ROOT-DIGEST W2b. K1 lifted to an admitted block event. The three compatibility premises
 are the obligations left for the source-origin argument. Due rows are included. -/
 theorem clean_block_reconcile {j : Nat} {v : V} {o} {t : Time}
     {s : Slot} {B : Block} {raw support : List (HeadWire p.n)}
@@ -137,7 +138,7 @@ theorem clean_block_reconcile {j : Nat} {v : V} {o} {t : Time}
     (he : rho.events[j]? = some (.deliver v o t))
     (hd : (toWire p o).decode = some (.block s B raw support rows))
     (hP : parentFG (storeAt p c E rho j v) B = some P)
-    (ha : blockAccepted p (storeAt p c E rho j v) s B P rows = true)
+    (ha : blockAccepted p (storeAt p c E rho j v) s B raw support P rows = true)
     (hL : ∀ row ∈ (storeAt p c E rho j v).base.obligations,
       Block.Compatible row.1 (F_at p c E rho (j + 1) v))
     (hG : ∀ r C, (r, some C) ∈ (storeAt p c E rho j v).base.genuine →
@@ -232,10 +233,11 @@ private theorem clean_rows_step {j : Nat}
   exact ⟨C, hc, heq, hp, belowLabel_mono_index (Nat.le_succ j) hb⟩
 
 omit [Fintype V] in
-/-- bp02 §5.3: the F1 certificate channel and exact row names give all
+/-- ROOT-DIGEST W2b. bp02 §5.3: the F1 certificate channel and exact row names give all
 certificate sources. DC's GST-zero proof has no FG-SA row-source field. -/
 theorem clean_certSources_of_rows {i : Nat} (hf : FGFoundation p c E rho)
-    (hr : CleanRowSources p c E rho i) : CleanCertSources p c E rho i := by
+    (hr : CleanRowSources p c E rho i)
+    (hroots : NamedRootCollisionFree p c E rho) : CleanCertSources p c E rho i := by
   rw [CleanRowSources_def] at hr
   rw [CleanCertSources_def]
   intro x W e hx hW he hne
@@ -243,12 +245,16 @@ theorem clean_certSources_of_rows {i : Nat} (hf : FGFoundation p c E rho)
   rw [← KitFG.hOf_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)] at hn
   obtain ⟨C, hc, heq, hpre, hb⟩ := hr j y r a _ hj ha hn
   have heC : e = (derive p.E p.cfg C).T_h :=
-    FGBlock.root_injective (congrArg Prod.snd heq)
+    rootScope_eq hroots
+      (rootScope_ancestor (rootScope_store hx hW) (certified_preceq he))
+      (rootScope_ancestor (rootScope_source ha.1 hc) (KitFG.entry_preceq p.E p.cfg C))
+      (congrArg Prod.snd heq)
   exact ⟨j, y, r, a, C, hj, ha, hn, hc, heC ▸ hpre, hb⟩
 
 omit [Fintype V] in
-private theorem clean_frame_from_rows {i k : Nat} (hki : k ≤ i)
-    (hsrc : SrcFrameAboveStmt p c E rho) (hr : CleanRowSources p c E rho i)
+private theorem clean_frame_from_rows (hf : FGFoundation p c E rho)
+    (hroots : NamedRootCollisionFree p c E rho) {i k : Nat} (hki : k ≤ i) (hr : CleanRowSources p
+      c E rho i)
     (Φ : Block → Prop) (hg : Φ .genesis)
     (hp : ∀ X Y, Block.Preceq X Y → Φ Y → Φ X)
     (hrow : ∀ j x r a (C : FGBlock (Fin p.n)), j < k → HonestRowAt p c E rho j x r a →
@@ -258,13 +264,16 @@ private theorem clean_frame_from_rows {i k : Nat} (hki : k ≤ i)
   rw [CleanRowSources_def] at hr
   have hc : AncestorClosed p (fun e => Φ (eraseFG e)) :=
     ⟨fun X Y hXY hY => hp _ _ (eraseFG_preceq hXY) hY⟩
-  have hh := (hsrc (fun e => Φ (eraseFG e)) 0 hc (fun _ => hg) k v hv ?_).2
+  have hh := (srcFrameAbove_scoped p c E rho hf.store hf.strat (fun e => Φ (eraseFG e)) 0 hc (fun
+    _ => hg) k v hv ?_).2
   · exact ⟨hh.1 (Nat.zero_le _), hh.2.1 (Nat.zero_le _)⟩
-  · intro y r a e ha hn _
+  · intro y r a e ha hn heScope _
     obtain ⟨j, hj, hem⟩ := ha
-    obtain ⟨C, _, heq, hpre, hb⟩ := hr j y r a _ (Nat.lt_of_lt_of_le hj hki) hem hn
+    obtain ⟨C, hcSource, heq, hpre, hb⟩ := hr j y r a _ (Nat.lt_of_lt_of_le hj hki) hem hn
     have heC : e = (derive p.E p.cfg C).T_h :=
-      FGBlock.root_injective (congrArg Prod.snd heq)
+      rootScope_eq hroots heScope
+        (rootScope_ancestor (rootScope_source hem.1 hcSource) (KitFG.entry_preceq p.E p.cfg C))
+        (congrArg Prod.snd heq)
     exact hp _ _ (eraseFG_preceq (heC ▸ hpre)) (hrow j y r a C hj hem hb)
 
 omit [Fintype V] in
@@ -305,14 +314,16 @@ private theorem clean_row_label {i j : Nat} {x : V} {r : Nat} {a : RowWire p.n}
 
 
 omit [Fintype V] in
-private theorem clean_fOrigin_from_rows {i : Nat}
+private theorem clean_fOrigin_from_rows (hf : FGFoundation p c E rho) {i : Nat}
     (hsch : V2.D.ScheduleWellFormed E rho)
-    (hsrc : SrcFrameAboveStmt p c E rho) (hr : CleanRowSources p c E rho i) :
+    (_hsrc : SrcFrameAboveStmt p c E rho) (hr : CleanRowSources p c E rho i)
+    (hroots : NamedRootCollisionFree p c E rho) :
     ∀ v, BelowLabel p c E rho i (labelBoundAt p c rho i) (F_at p c E rho i v) ∧
       BelowLabel p c E rho i (labelBoundAt p c rho i) (J_at p c E rho i v) := by
   intro v
   by_cases hv : v ∈ rho.honest
-  · exact clean_frame_from_rows (Nat.le_refl i) hsrc hr _ (belowLabel_genesis _ _)
+  · exact clean_frame_from_rows (hroots := hroots) hf (Nat.le_refl i) hr _
+      (belowLabel_genesis _ _)
       (fun _ _ => belowLabel_of_preceq)
       (fun _ _ _ _ _ hj ha hb => belowLabel_mono_label (clean_row_label hsch hj ha) hb) v hv
   · have he := clean_dishonest_initial hsch i v hv
@@ -323,11 +334,12 @@ private theorem clean_fOrigin_from_rows {i : Nat}
 
 
 omit [Fintype V] in
-/-- bp02 §5.4: gate inputs use only rows before the gate time.
+/-- ROOT-DIGEST W2b. bp02 §5.4: gate inputs use only rows before the gate time.
 DC GSTZeroSafety has no FG-SA labelled gate-input field. -/
-theorem clean_gateInputs_from_rows {i : Nat}
+theorem clean_gateInputs_from_rows (hf : FGFoundation p c E rho) {i : Nat}
     (hsch : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.NoRestart rho)
-    (hsrc : SrcFrameAboveStmt p c E rho) (hr : CleanRowSources p c E rho i) :
+    (_hsrc : SrcFrameAboveStmt p c E rho) (hr : CleanRowSources p c E rho i)
+    (hroots : NamedRootCollisionFree p c E rho) :
     ∀ v s, IsGateTick p c rho i v s →
       let below := fun X => X = .genesis ∨
         ∃ r B, (r, B) ∈ cleanResults p c E rho i ∧ r < s ∧ Block.Preceq X B
@@ -361,7 +373,7 @@ theorem clean_gateInputs_from_rows {i : Nat}
     rcases hb with hg | ⟨r', B, hB, hrr, hCB⟩
     · exact Or.inl hg
     · exact Or.inr ⟨r', B, hB, Nat.lt_of_le_of_lt hrr hlabel, hCB⟩
-  have hh := clean_frame_from_rows hki hsrc hr Φ (Or.inl rfl) hp hrow v hv
+  have hh := clean_frame_from_rows (hroots := hroots) hf hki hr Φ (Or.inl rfl) hp hrow v hv
   have he : storeAt p c E rho i v = storeAt p c E rho k v := by
     change (V2.D.Run.stateBefore E rho i v).st = (V2.D.Run.stateBefore E rho k v).st
     rw [V2.D.Engine.stateBefore_tick_eq_stateBeforeTime hsch hnr ht,
@@ -414,7 +426,7 @@ private theorem clean_saved_of_member {st : State p.n} (hs : CStoreInv p st)
     rw [he]
     rfl
 
-/-- bp02 §5.3 steps 3–6: CleanState supplies all three K1 premises.
+/-- ROOT-DIGEST W2b. bp02 §5.3 steps 3–6: CleanState supplies all three K1 premises.
 Every obligation row is included, even if its deadline is due. DC's clean
 stable-record proof has no FG-SA reconcile handler or obligation rows.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
@@ -423,12 +435,12 @@ theorem clean_block_reconcile_state {b₀ : Time} {i j : Nat} {v : V} {o} {t : T
     {s : Slot} {B : Block} {raw support : List (HeadWire p.n)}
     {rows : List (RowWire p.n)} {P : FGBlock (Fin p.n)}
     (h : CleanCut₂ p c E rho b₀ ΔF) (hf : FGFoundation p c E rho)
-    (hsrc : SrcFrameAboveStmt p c E rho)
+    (_hsrc : SrcFrameAboveStmt p c E rho)
     (hji : j < i) (hh : CleanHist p c E rho i) (hs : CleanState p c E rho j)
     (he : rho.events[j]? = some (.deliver v o t))
     (hd : (toWire p o).decode = some (.block s B raw support rows))
     (hP : parentFG (storeAt p c E rho j v) B = some P)
-    (ha : blockAccepted p (storeAt p c E rho j v) s B P rows = true) :
+    (ha : blockAccepted p (storeAt p c E rho j v) s B raw support P rows = true) :
     (storeAt p c E rho (j + 1) v).base.obligations = (storeAt p c E rho j v).base.obligations ∧
     (storeAt p c E rho (j + 1) v).base.genuine = (storeAt p c E rho j v).base.genuine ∧
     (storeAt p c E rho (j + 1) v).fastWrite = (storeAt p c E rho j v).fastWrite ∧
@@ -436,7 +448,8 @@ theorem clean_block_reconcile_state {b₀ : Time} {i j : Nat} {v : V} {o} {t : T
   have hv := h.base.valid.honest_only _ (List.mem_of_getElem? he)
   have hr := clean_delivery_rowSources he hs.sources.1
   let Φ := fun X => ∃ r, BelowLabel p c E rho (j + 1) r X
-  have hfg := clean_frame_from_rows (Nat.le_refl (j + 1)) hsrc hr Φ
+  have hfg := clean_frame_from_rows (hroots := h.base.idealization) hf
+    (Nat.le_refl (j + 1)) hr Φ
     ⟨0, belowLabel_genesis _ _⟩
     (fun X Y hXY ⟨r, hY⟩ => ⟨r, belowLabel_of_preceq hXY hY⟩)
     (fun _ _ r _ _ _ _ hb => ⟨r * p.R, hb⟩) v hv
@@ -478,9 +491,11 @@ private theorem clean_state_unchanged {b₀ : Time} {j : Nat}
         b.fastWrite = a.fastWrite) : CleanState p c E rho (j + 1) := by
   obtain ⟨hnest, hstore, hframe, hclient⟩ := cleanState_index_facts h hf (j + 1)
   have hS (v : V) : S_at p c E rho (j + 1) v = S_at p c E rho j v := (he v).2.1
-  refine ⟨⟨hr, clean_certSources_of_rows hf hr⟩,
-    clean_fOrigin_from_rows h.base.valid.toScheduleWellFormed hsrc hr,
-    clean_gateInputs_from_rows h.base.valid.toScheduleWellFormed h.base.noRestart hsrc hr,
+  refine ⟨⟨hr, clean_certSources_of_rows (hroots := h.base.idealization) hf hr⟩,
+    clean_fOrigin_from_rows (hroots := h.base.idealization) hf h.base.valid.toScheduleWellFormed
+      hsrc hr,
+    clean_gateInputs_from_rows (hroots := h.base.idealization) hf
+      h.base.valid.toScheduleWellFormed h.base.noRestart hsrc hr,
     ?_, ?_, ?_, ?_, ?_, ?_, hnest, hstore, hframe, hclient, ?_⟩
   · intro v row hrow
     obtain ⟨k, hk, r, C, hkt, hp, hC, hpre⟩ := hs.leases v row ((he v).2.2.1.subset hrow)
@@ -576,7 +591,7 @@ theorem clean_noGateStateStep {b₀ : Time} : CleanNoGateStateStep (ΔF := ΔF) 
       exact ⟨rfl, rfl, List.Sublist.refl _, rfl, rfl⟩
 
 
-/-- bp02 §5.3: admission, certificate origins, and harmless reconcile
+/-- ROOT-DIGEST W2b. bp02 §5.3: admission, certificate origins, and harmless reconcile
 preserve every CleanState field at every node. DC clean stable safety has
 no FG-SA admission/reconcile event predicate.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
@@ -605,9 +620,11 @@ theorem clean_blockStateStep {b₀ : Time} : CleanBlockStateStep (ΔF := ΔF) p 
       rw [hstore]
       exact ⟨rfl, rfl, rfl, Gen.Pure.block_preceq_refl _⟩
   obtain ⟨hnest, hstore, hframe, hclient⟩ := cleanState_index_facts h hf (j + 1)
-  refine ⟨⟨hr, clean_certSources_of_rows hf hr⟩,
-    clean_fOrigin_from_rows h.base.valid.toScheduleWellFormed hsrc hr,
-    clean_gateInputs_from_rows h.base.valid.toScheduleWellFormed h.base.noRestart hsrc hr,
+  refine ⟨⟨hr, clean_certSources_of_rows (hroots := h.base.idealization) hf hr⟩,
+    clean_fOrigin_from_rows (hroots := h.base.idealization) hf h.base.valid.toScheduleWellFormed
+      hsrc hr,
+    clean_gateInputs_from_rows (hroots := h.base.idealization) hf
+      h.base.valid.toScheduleWellFormed h.base.noRestart hsrc hr,
     ?_, ?_, ?_, ?_, ?_, ?_, hnest, hstore, hframe, hclient, ?_⟩
   · intro w row hrow
     rw [(hkeep w).1] at hrow
@@ -671,7 +688,7 @@ theorem clean_blockStateStep {b₀ : Time} : CleanBlockStateStep (ΔF := ΔF) p 
           (hs.sExtends w k j (Nat.le_of_lt_succ hk) (Nat.le_refl j)) (hkeep w).2.2.2
       · exact Gen.Pure.block_preceq_refl _
 
-/-- bp02 §§5.5–5.6: the gate state closes once the action supplies its
+/-- ROOT-DIGEST W2b. bp02 §§5.5–5.6: the gate state closes once the action supplies its
 row sources. This is not the frozen CleanGateStateStep Prop: the action
 substep remains separate as required by S3. DC has no FG-SA action rows.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
@@ -685,9 +702,11 @@ theorem clean_gate_state_of_rows {b₀ : Time} {i j : Nat} {v : V} {s : Slot}
   obtain ⟨hL, hG, hOnly, hFast, hOrigin, hS⟩ :=
     clean_gate_fields_all h.base.valid.toScheduleWellFormed h.base.noRestart hji hh hs ht
   obtain ⟨hnest, hstore, hframe, hclient⟩ := cleanState_index_facts h hf (j + 1)
-  refine ⟨⟨hr, clean_certSources_of_rows hf hr⟩,
-    clean_fOrigin_from_rows h.base.valid.toScheduleWellFormed hsrc hr,
-    clean_gateInputs_from_rows h.base.valid.toScheduleWellFormed h.base.noRestart hsrc hr,
+  refine ⟨⟨hr, clean_certSources_of_rows (hroots := h.base.idealization) hf hr⟩,
+    clean_fOrigin_from_rows (hroots := h.base.idealization) hf h.base.valid.toScheduleWellFormed
+      hsrc hr,
+    clean_gateInputs_from_rows (hroots := h.base.idealization) hf
+      h.base.valid.toScheduleWellFormed h.base.noRestart hsrc hr,
     hL, hG, hOnly, hFast, hOrigin, ?_, hnest, hstore, hframe, hclient, hS⟩
   intro k w o t hk hw he hmov
   rcases Nat.lt_or_eq_of_le (Nat.le_of_lt_succ hk) with hk | rfl
@@ -795,7 +814,7 @@ theorem clean_gateStateStep_of_action {b₀ : Time}
       (cleanHist_restrict (Nat.succ_le_of_lt hji) hh) hs
   · exact clean_rows_step hs.sources.1 (fun x r he => ha ⟨x, r, he⟩)
 
-/-- P3 §§8.2–8.4, 8.7; bp02 §5; lead R2(c), S2 and S3.
+/-- ROOT-DIGEST W2b. P3 §§8.2–8.4, 8.7; bp02 §5; lead R2(c), S2 and S3.
 DC counterpart: none for this fixed-history state predicate. DC's
 Protocol/ChainState/Chain.lean carries the chain-order bundle; FG-SA
 instead derives the full state over event indices from a fixed history
@@ -850,7 +869,7 @@ theorem cleanState_of_hist {b₀ : Time} {i : Nat}
         by_cases ha : ∃ s B raw support rows P,
             (toWire p o).decode = some (.block s B raw support rows) ∧
             parentFG (storeAt p c E rho j v) B = some P ∧
-            blockAccepted p (storeAt p c E rho j v) s B P rows = true
+            blockAccepted p (storeAt p c E rho j v) s B raw support P rows = true
         · obtain ⟨s, B, raw, support, rows, P, hdec, hparent, hacc⟩ := ha
           apply hb h hq hf hsrc i hi hh j hji ?_ hs
           rw [CleanBlockDelivery_def]
@@ -859,7 +878,7 @@ theorem cleanState_of_hist {b₀ : Time} {i : Nat}
           rw [CleanOrdinaryDelivery_def]
           refine ⟨v, o, t, he, ?_⟩
           intro s B raw support rows P hdec hparent
-          cases hacc : blockAccepted p (storeAt p c E rho j v) s B P rows with
+          cases hacc : blockAccepted p (storeAt p c E rho j v) s B raw support P rows with
           | false => rfl
           | true => exact (ha ⟨s, B, raw, support, rows, P, hdec, hparent, hacc⟩).elim
   exact hall i (Nat.le_refl i)

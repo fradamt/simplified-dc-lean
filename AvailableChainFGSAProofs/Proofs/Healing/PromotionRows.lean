@@ -72,7 +72,7 @@ private theorem promotion_same_row (E : Generic.Env V)
     (parentFoldState p s X.parent).T_h.root)
   rw [hh, ht]
 
-/-- Blueprint 21:1385–1410; plan §3.2 step 4, same-height branch.
+/-- ROOT-DIGEST W2b. Blueprint 21:1385–1410; plan §3.2 step 4, same-height branch.
 DC: SAME source transfer puts the common entry on the new parent path.
 The original fixed rows supply both validity fields when the parent has the
 starting height. No above-entry occurrence premise is required. -/
@@ -107,9 +107,7 @@ theorem healing_promotion_same_rows (E : Generic.Env V)
     have hparent := healing_promotion_source_parent E rho perm hgst hphase hu hgate hx hK hs hnew
     rw [eraseFG_parent] at hparent
     have hKX : FGBlock.Preceq K X.parent :=
-      preceq_of_eraseFG_preceq (KitFG.viewRootInj_all {K, X.parent})
-        ⟨K, by simp, KitFG.preceq_refl K⟩
-        ⟨X.parent, by simp, KitFG.preceq_refl X.parent⟩ hparent
+      eraseFG_preceq_iff.mp hparent
     exact KitFG.preceq_trans hUK hKX
   have hUP : FGBlock.Preceq U X.parent := by
     obtain ⟨x, hx⟩ := (show rho.honest.Nonempty from by

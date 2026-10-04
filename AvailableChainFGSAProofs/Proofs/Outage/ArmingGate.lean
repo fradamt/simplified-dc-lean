@@ -210,11 +210,12 @@ theorem arming_gateResult_tick {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
   rw [gateResult_def, gateIn_def, preTick_def, fgsa_tickIdx_of_event p c E rho hs hk]
   rfl
 
-/-- Plan O-ARM §6.5. Class (iii). DC: INTENTIONAL; every named entry of an honest
+/-- ROOT-DIGEST W2b. Plan O-ARM §6.5. Class (iii). DC: INTENTIONAL; every named entry of an honest
 row before the post-tick read is on a chain with B. An action before d(l + 1)
 reads a gate of label at most `l`, below `D`; an action at d(l + 1) reads the
 pending gate, whose result covers `D` (field 9). -/
 theorem arming_rows_compat {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
+    (hroots : NamedRootCollisionFree p c E rho)
     (hs : V2.D.ScheduleWellFormed E rho)
     (hnamed : ∀ i y r a, HonestRowAt p c E rho i y r a →
       ∃ e C G, namedEntry a.payload.height_pair = some e ∧
@@ -231,14 +232,16 @@ theorem arming_rows_compat {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     ∀ y r (a : RowWire p.n) (e : FGBlock (Fin p.n)),
       HonestRowBefore p c E rho (afterTicksIdx rho (SA.gateTime p.toParams (l + 1))) y r a →
       namedEntry a.payload.height_pair = some ((heightView p e).h, e.root) →
+      RootBlockInRun p c E rho (eraseFG e) →
       FGBlock.Preceq e Bh ∨ FGBlock.Preceq Bh e := by
-  intro y r a e ⟨k, hk, hrow⟩ hent
-  obtain ⟨e', C', G, hent', _, hee, hTC, hG, hCG, _⟩ := hnamed k y r a hrow
+  intro y r a e ⟨k, hk, hrow⟩ hent heScope
+  obtain ⟨e', C', G, hent', hSource, hee, hTC, hG, hCG, _⟩ := hnamed k y r a hrow
   have h1 : ((heightView p e).h, e.root) =
       ((heightView p C').h, (heightView p C').T_h.root) := by
     rw [← hee]
     exact Option.some.inj (hent.symm.trans hent')
-  have he : e = (heightView p C').T_h := FGBlock.root_injective (Prod.mk.inj h1).2
+  have he : e = (heightView p C').T_h := rootScope_eq hroots heScope
+    (rootScope_entry (rootScope_source hrow.1 hSource)) (Prod.mk.inj h1).2
   have heG : Block.Preceq (eraseFG e) G :=
     block_preceq_trans (eraseFG_preceq (he ▸ hTC)) hCG
   have hkt : k < timeIdx rho (SA.gateTime p.toParams (l + 1)) :=
@@ -264,13 +267,13 @@ theorem arming_rows_compat {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
   · exact Or.inl (arming_lift (hBh ▸ h))
   · exact Or.inr (arming_lift (hBh ▸ h))
 
-/-- Plan O-ARM §5 `pending_gate_lease_or_F`, §6.5. Class (iii). DC: INTENTIONAL;
+/-- ROOT-DIGEST W2b. Plan O-ARM §5 `pending_gate_lease_or_F`, §6.5. Class (iii). DC: INTENTIONAL;
 the certificate form at its label `l`. The read index is I⁺, after all ticks
 at d(l + 1) and before the deliveries at d(l + 1). -/
 theorem arming_gate_core {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     (hvalid : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho) (hdelta : E.Δ = p.Δ)
     (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
-    (hsrc : SrcFrameAboveStmt p c E rho)
+    (_hsrc : SrcFrameAboveStmt p c E rho)
     (hnamed : ∀ i y r a, HonestRowAt p c E rho i y r a →
       ∃ e C G, namedEntry a.payload.height_pair = some e ∧
         actionSourceFG p c E rho y r = some (some C) ∧
@@ -282,7 +285,9 @@ theorem arming_gate_core {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     {fast : Bool} {T b₀ b₁ : Time} {B : Block} (hne : B ≠ .genesis)
     {l : Slot} {u : V} {s : Slot} {C : Block} {iₛ : Nat} {D : Block}
     {Dh : FGBlock (Fin p.n)} (hc : ArmingCert p c E rho fast T b₀ b₁ B l u s C iₛ D Dh)
-    (hgate : SA.gateTime p.toParams (l + 1) ≤ rho.horizon) :
+    (hgate : SA.gateTime p.toParams (l + 1) ≤ rho.horizon)
+    (hroots : NamedRootCollisionFree p c E rho)
+    (hstrat : RStrat p c E rho) :
     ∀ y ∈ rho.honest,
       let I := afterTicksIdx rho (SA.gateTime p.toParams (l + 1))
       let st := storeAt p c E rho I y
@@ -363,9 +368,9 @@ theorem arming_gate_core {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
       exact ((actView_blocks P B).mp h9d).1
     obtain ⟨Bh, hBh, hBe⟩ := (hinv.baseTree B).1 hBm
     have hFBh : FGBlock.Preceq st.fg.F Bh := arming_lift (hBe ▸ hFB)
-    have hcp := cpCompat_of_srcFrame p c E rho hstore hframe hsrc
-    rw [CPCompat_def] at hcp
-    obtain ⟨_, _, hdom, _⟩ := (hcp I y Bh hy (arming_rows_compat hs hnamed hc hBe)).2
+    have hcp := cpCompat_of_scopedFrame p c E rho hstore hframe hstrat
+    obtain ⟨_, _, hdom, _⟩ := (hcp I y Bh hy (arming_rows_compat (hroots := hroots) hs hnamed hc
+        hBe)).2
     rcases hdom hBh hFBh with hZ | hD
     · right
       rw [← hBe]
@@ -375,7 +380,7 @@ theorem arming_gate_core {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
       rw [fullTree_eq, ← domainR_eq_storeFrame]
       exact hD
 
-/-- Blueprint 03 §§7–8; plan O-ARM §5 `pending_gate_lease_or_F`. Class (iii).
+/-- ROOT-DIGEST W2b. Blueprint 03 §§7–8; plan O-ARM §5 `pending_gate_lease_or_F`. Class (iii).
 DC: INTENTIONAL; at the read I⁺ after all ticks at the pending gate d(j),
 j = l + 1, and before the deliveries at d(j), every honest S covers B, and B
 is below F or has a lease to at least d(j) + L with B in the full domain or
@@ -396,7 +401,9 @@ theorem pending_gate_lease_or_F {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)
         fastAt p c E rho y (r * p.R) (eraseFG C))
     (fast : Bool) (harm : ArmingData p c E rho fast T b₀ b₁ B)
     (hgate : SA.gateTime p.toParams (((b₀ - 6 * p.Δ) / (4 * p.Δ)).toNat + 1) ≤
-      rho.horizon) :
+      rho.horizon)
+    (hroots : NamedRootCollisionFree p c E rho)
+    (hstrat : RStrat p c E rho) :
     ∀ y ∈ rho.honest,
       let j := ((b₀ - 6 * p.Δ) / (4 * p.Δ)).toNat + 1
       let I := afterTicksIdx rho (SA.gateTime p.toParams j)
@@ -410,7 +417,9 @@ theorem pending_gate_lease_or_F {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)
               Block.Preceq B (eraseFG (FGSA.controls p st).Z)))) := by
   rw [ArmingData_def] at harm
   obtain ⟨u, s, C, iₛ, D, Dh, hc⟩ := harm
-  exact arming_gate_core hvalid hnr hdelta hstore hframe hsrc hnamed hne hc hgate
+  exact arming_gate_core (hroots := hroots) (hstrat := hstrat)  hvalid hnr
+    hdelta hstore hframe
+    hsrc hnamed hne hc hgate
 
 end AvailableChain.FGSA.Run
 end

@@ -104,7 +104,7 @@ variable (hvalid : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho)
 set_option maxHeartbeats 1600000 in
 -- The joint event proof has several model-state reductions.
 include hvalid hnr hcstar hdelta hfault hstore hframe hsrc htsrc hnamed in
-/-- Blueprint 03 §8.2–3; O-INDUCT plan §5. Class (iii).
+/-- ROOT-DIGEST W2b. Blueprint 03 §8.2–3; O-INDUCT plan §5. Class (iii).
 DC: INTENTIONAL; one joint induction on tick and delivery prefixes.
 The seeds have producers outage_arming_sources, outage_arming_duties,
 and pending_gate_lease_or_F. INLINE channels: Foundations active/frame,
@@ -119,7 +119,9 @@ theorem outage_event_induction {B : Block} {β : FGBlock (Fin p.n)} {j : Slot} {
     (hseedHeads : ∀ y o t (q : Fin p.n) H, y ∈ rho.honest → V2.D.Run.emits E rho y o t →
       o.auth = .seat (.base (.head (j + 1))) q → o.payload = .head H → Block.Preceq B H)
     {i : Nat} (hI : afterTicksIdx rho (SA.gateTime p.toParams j) ≤ i)
-    (hK : i ≤ V2.D.Run.idxBefore rho b₁) :
+    (hK : i ≤ V2.D.Run.idxBefore rho b₁)
+    (hroots : NamedRootCollisionFree p c E rho)
+    (hstrat : RStrat p c E rho) :
     OutageSourceHistory p c E rho B i ∧ OutageDutyHistory p c E rho B j i ∧
       OutageNamedHistory p c E rho β i ∧
       ∀ y ∈ rho.honest, OutageProtection p B j (storeAt p c E rho i y) := by
@@ -127,7 +129,7 @@ theorem outage_event_induction {B : Block} {β : FGBlock (Fin p.n)} {j : Slot} {
   induction i, hI using Nat.le_induction with
   | base =>
     exact ⟨hseedSource, hseedDuty,
-      outage_named_of_source_history hβ hseedSource hnamed, hseedLocal⟩
+      outage_named_of_source_history (hroots := hroots) hβ hseedSource hnamed, hseedLocal⟩
   | succ i hI ih =>
     have hiK : i < V2.D.Run.idxBefore rho b₁ := by omega
     obtain ⟨hsource, hduty, hnames, hlocal⟩ := ih hiK.le
@@ -149,7 +151,8 @@ theorem outage_event_induction {B : Block} {β : FGBlock (Fin p.n)} {j : Slot} {
           rw [he] at htick
           cases htick
         exact hduty.history k y u a (by omega) hy hdu htick ha
-      refine ⟨hsource', hduty', outage_named_of_source_history hβ hsource' hnamed, ?_⟩
+      refine ⟨hsource', hduty', outage_named_of_source_history (hroots := hroots) hβ hsource'
+        hnamed, ?_⟩
       intro y hy
       rcases arming_store_succ hnr he y with heq | ⟨u, hu, _⟩ | ⟨a, u, hu, _⟩
       · rw [heq]
@@ -158,7 +161,9 @@ theorem outage_event_induction {B : Block} {β : FGBlock (Fin p.n)} {j : Slot} {
       · have hxy := (V2.Event.deliver.inj hu).1
         have hyx : y = x := hxy.symm
         subst y
-        have hc := (outage_delivery_frame hstore hframe hsrc hnamed he hy hβ hsource).2.1
+        have hc := (outage_delivery_frame (hroots := hroots) (hstrat := hstrat)
+          hstore hframe hsrc
+          hnamed he hy hβ hsource).2.1
         have hc' : Block.Compatible (F_at p c E rho (i + 1) x) B := by
           change Block.compatible (F_at p c E rho (i + 1) x) B = true
           rw [block_compatible_comm]
@@ -202,7 +207,8 @@ theorem outage_event_induction {B : Block} {β : FGBlock (Fin p.n)} {j : Slot} {
               (htb.trans_le (hend.le.trans hd)) hcounts, hd⟩
       have hfP : Block.Compatible (eraseFG P.fg.F) B := by
         rw [clockPre_fg]
-        exact (outage_frame_retains hstore hframe hsrc hx hβ hnames (hlocal x hx).1).1
+        exact (outage_frame_retains (hstrat := hstrat) hstore hframe hsrc hx hβ hnames (hlocal x
+          hx).1).1
       have hpQ : OutageProtection p B j Q := by
         change OutageProtection p B j (FGSA.clock p st t)
         by_cases hg : ∃ s, SA.gateTime p.toParams s = t
@@ -219,7 +225,8 @@ theorem outage_event_induction {B : Block} {β : FGBlock (Fin p.n)} {j : Slot} {
         have hbelow : LeaseBelowOutputStore p Q := by
           rw [← hpost]
           exact leaseBelowOutput_stateBefore E rho (i + 1) x
-        have hret := (outage_frame_retains hstore hframe hsrc hx hβ hnames (hlocal x hx).1).2
+        have hret := (outage_frame_retains (hstrat := hstrat) hstore hframe hsrc hx hβ hnames
+          (hlocal x hx).1).2
         have hfg : Q.fg = st.fg := clock_fg p st t
         have hdom : FGSA.fullTree p Q = FGSA.fullTree p st := by
           unfold FGSA.fullTree
@@ -290,7 +297,8 @@ theorem outage_event_induction {B : Block} {β : FGBlock (Fin p.n)} {j : Slot} {
         · exact hduty.history k y u a hki hy hdu htick ha
         · subst k
           exact hduties a ha
-      refine ⟨hsource', hduty', outage_named_of_source_history hβ hsource' hnamed, ?_⟩
+      refine ⟨hsource', hduty', outage_named_of_source_history (hroots := hroots) hβ hsource'
+        hnamed, ?_⟩
       intro y hy
       rcases arming_store_succ hnr he y with heq | ⟨u, hu, _⟩ | ⟨a, u, hu, _⟩
       · rw [heq]
@@ -322,37 +330,45 @@ variable (hvalid : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho)
 
 omit [Fintype V] in
 include hvalid hnr hdelta hstore hframe hsrc hnamesFull in
-/-- Blueprint 03 §8.1; O-INDUCT plan §2. Class (iii).
+/-- ROOT-DIGEST W2b. Blueprint 03 §8.1; O-INDUCT plan §2. Class (iii).
 DC: INTENTIONAL; the selected-row adapter of the real O-ARM handoff.
 No field is added to ArmingData. INLINE names: Foundations emittedName. -/
 theorem outage_arming_local {fast : Bool} {T b₀ b₁ : Time} {B : Block} (hne : B ≠ .genesis)
     {l : Slot} {u : V} {s : Slot} {C : Block} {iₛ : Nat} {D : Block}
     {Dh : FGBlock (Fin p.n)} (hc : ArmingCert p c E rho fast T b₀ b₁ B l u s C iₛ D Dh)
-    (hgate : SA.gateTime p.toParams (l + 1) ≤ rho.horizon) :
+    (hgate : SA.gateTime p.toParams (l + 1) ≤ rho.horizon)
+    (hroots : NamedRootCollisionFree p c E rho)
+    (hstrat : RStrat p c E rho) :
     ∀ y ∈ rho.honest, OutageProtection p B (l + 1)
       (storeAt p c E rho (afterTicksIdx rho (SA.gateTime p.toParams (l + 1))) y) := by
   intro y hy
   obtain ⟨hS, hF | ⟨_, _, dl, hlease, _, hd, _⟩⟩ :=
-    arming_gate_core hvalid hnr hdelta hstore hframe hsrc hnamesFull hne hc hgate y hy
+    arming_gate_core (hroots := hroots) (hstrat := hstrat)  hvalid hnr hdelta
+      hstore hframe hsrc
+      hnamesFull hne hc hgate y hy
   · exact ⟨hS, Or.inl hF⟩
   · exact ⟨hS, Or.inr ⟨dl, outage_row_of_lease p _
       (cstoreInv_stateBefore E rho _ y) hlease, hd⟩⟩
 
 include hvalid hnr hcstar hdelta hfault hstore hframe hsrc htsrc hnamesFull in
-/-- Blueprint 03 §8.2–3; O-INDUCT plan §2, §5. Class (iii).
+/-- ROOT-DIGEST W2b. Blueprint 03 §8.2–3; O-INDUCT plan §2, §5. Class (iii).
 DC: INTENTIONAL; the joint induction is seeded by the landed ArmingCert.
 INLINE facts have the same producers as outage_event_induction. -/
 theorem outage_armed_induction {fast : Bool} {T b₀ b₁ : Time} {B : Block} (hne : B ≠ .genesis)
     {l : Slot} {u : V} {s : Slot} {C : Block} {iₛ : Nat} {D : Block}
     {Dh : FGBlock (Fin p.n)} (hc : ArmingCert p c E rho fast T b₀ b₁ B l u s C iₛ D Dh)
-    (hgate : SA.gateTime p.toParams (l + 1) ≤ rho.horizon) :
+    (hgate : SA.gateTime p.toParams (l + 1) ≤ rho.horizon)
+    (hroots : NamedRootCollisionFree p c E rho)
+    (hstrat : RStrat p c E rho) :
     ∃ β : FGBlock (Fin p.n), eraseFG β = B ∧
       ∀ i, afterTicksIdx rho (SA.gateTime p.toParams (l + 1)) ≤ i →
         i ≤ V2.D.Run.idxBefore rho b₁ →
         OutageSourceHistory p c E rho B i ∧ OutageDutyHistory p c E rho B (l + 1) i ∧
           OutageNamedHistory p c E rho β i ∧
           ∀ y ∈ rho.honest, OutageProtection p B (l + 1) (storeAt p c E rho i y) := by
-  have hlocal := outage_arming_local hvalid hnr hdelta hstore hframe hsrc hnamesFull hne hc hgate
+  have hlocal := outage_arming_local (hroots := hroots) (hstrat := hstrat)
+    hvalid hnr hdelta
+    hstore hframe hsrc hnamesFull hne hc hgate
   let I := afterTicksIdx rho (SA.gateTime p.toParams (l + 1))
   let st := storeAt p c E rho I u
   have hinv := cstoreInv_stateBefore E rho I u
@@ -373,7 +389,9 @@ theorem outage_armed_induction {fast : Bool} {T b₀ b₁ : Time} {B : Block} (h
     exact ⟨C, G, hC, (Option.some.inj (he.symm.trans he')).trans hn, hTC, hG, hCG, hf⟩
   refine ⟨β, hβ, ?_⟩
   intro i hI hK
-  exact outage_event_induction hvalid hnr hcstar hdelta hfault hstore hframe hsrc htsrc
+  exact outage_event_induction (hroots := hroots) (hstrat := hstrat)  hvalid hnr
+    hcstar hdelta
+    hfault hstore hframe hsrc htsrc
     hnamesCond hβ hc.end_lt_deadline
     (outage_arming_sources hvalid.toScheduleWellFormed htsrc hc)
     (outage_arming_duties hvalid (l + 1) B) hlocal hc.inflight_heads hI hK
@@ -385,14 +403,17 @@ variable {fast : Bool} {T b₀ b₁ : Time} {B : Block} (hne : B ≠ .genesis)
     (hopen : SA.gateTime p.toParams (l + 1) < b₁) (hhor : b₁ ≤ rho.horizon)
 
 include hvalid hnr hcstar hdelta hfault hstore hframe hsrc htsrc hnamesFull hne hc hopen hhor in
-/-- Blueprint 03 §8.3; O-INDUCT plan §3.4. Class (iii).
+/-- ROOT-DIGEST W2b. Blueprint 03 §8.3; O-INDUCT plan §3.4. Class (iii).
 DC: INTENTIONAL; the expanded finite source projection. Its type does
 not expose the private bounded compatibility predicate. -/
-theorem outage_source_history :
+theorem outage_source_history
+    (hroots : NamedRootCollisionFree p c E rho)
+    (hstrat : RStrat p c E rho) :
     ∀ x r X, x ∈ rho.honest → SA.gateTime p.toParams (l + 1) ≤ p.actionTime r →
       p.actionTime r < b₁ → actionSource p c E rho x r = some (some X) →
         Block.Compatible X B := by
-  obtain ⟨β, hβ, hhist⟩ := outage_armed_induction hvalid hnr hcstar hdelta hfault hstore
+  obtain ⟨β, hβ, hhist⟩ := outage_armed_induction (hroots := hroots) (hstrat := hstrat)  hvalid hnr
+    hcstar hdelta hfault hstore
     hframe hsrc htsrc hnamesFull hne hc (hopen.le.trans hhor)
   have hI : afterTicksIdx rho (SA.gateTime p.toParams (l + 1)) ≤ V2.D.Run.idxBefore rho b₁ :=
     (preIdx_le_afterTicksIdx E rho hvalid.toScheduleWellFormed _).2.trans
@@ -400,10 +421,12 @@ theorem outage_source_history :
   exact bounded_tCompat hvalid.toScheduleWellFormed (hhist _ hI le_rfl).1
 
 include hvalid hnr hcstar hdelta hfault hstore hframe hsrc htsrc hnamesFull hne hc hopen hhor in
-/-- Blueprint 03 §8.2; O-INDUCT plan §9.1. Class (iii).
+/-- ROOT-DIGEST W2b. Blueprint 03 §8.2; O-INDUCT plan §9.1. Class (iii).
 DC: INTENTIONAL; the selected row survives every inclusive public read,
 including the delivery suffix at d. The strict deadline gives t < dl. -/
-theorem lease_or_F_persists :
+theorem lease_or_F_persists
+    (hroots : NamedRootCollisionFree p c E rho)
+    (hstrat : RStrat p c E rho) :
     ∀ t y, SA.gateTime p.toParams (l + 1) ≤ t → t < b₁ → y ∈ rho.honest →
       let st := storeAt p c E rho (timeIdx rho t) y
       Block.Preceq B (eraseFG st.fg.F) ∨
@@ -411,14 +434,16 @@ theorem lease_or_F_persists :
           SA.gateTime p.toParams (l + 1) + L p ≤ dl ∧
           ((∃ X ∈ FGSA.fullTree p st, eraseFG X = B) ∨
             Block.Preceq B (eraseFG (FGSA.controls p st).Z)) := by
-  obtain ⟨β, hβ, hhist⟩ := outage_armed_induction hvalid hnr hcstar hdelta hfault hstore
+  obtain ⟨β, hβ, hhist⟩ := outage_armed_induction (hroots := hroots) (hstrat := hstrat)  hvalid hnr
+    hcstar hdelta hfault hstore
     hframe hsrc htsrc hnamesFull hne hc (hopen.le.trans hhor)
   intro t y hdt htb hy st
   have hI : afterTicksIdx rho (SA.gateTime p.toParams (l + 1)) ≤ timeIdx rho t :=
     (afterTicksIdx_mono rho hdt).trans
       (preIdx_le_afterTicksIdx E rho hvalid.toScheduleWellFormed t).2
   obtain ⟨_, _, hnames, hlocal⟩ := hhist _ hI (arming_timeIdx_le_idxBefore rho htb)
-  have hret := (outage_frame_retains hstore hframe hsrc hy hβ hnames (hlocal y hy).1).2
+  have hret := (outage_frame_retains (hstrat := hstrat) hstore hframe hsrc hy hβ hnames (hlocal y
+    hy).1).2
   rcases hret with hF | hret
   · exact Or.inl hF
   · rcases (hlocal y hy).2 with hF | ⟨dl, hm, hd⟩
@@ -427,11 +452,13 @@ theorem lease_or_F_persists :
         htb.trans_le (hc.end_lt_deadline.le.trans hd), hd, hret⟩
 
 include hvalid hnr hcstar hdelta hfault hstore hframe hsrc htsrc hnamesFull hne hc hopen hhor in
-/-- Blueprint 03 §8.2–3; O-INDUCT plan §9.1. Class (iii).
+/-- ROOT-DIGEST W2b. Blueprint 03 §8.2–3; O-INDUCT plan §9.1. Class (iii).
 DC: INTENTIONAL; the exact expanded protected-read conclusion.
 Compatibility starts at zero; output and duties start at b₀; the selected
 lease starts at d. Every interval ends strictly before b₁. -/
-theorem duties_and_outputs :
+theorem duties_and_outputs
+    (hroots : NamedRootCollisionFree p c E rho)
+    (hstrat : RStrat p c E rho) :
     (∀ y t, y ∈ rho.honest → b₀ ≤ t → t < b₁ →
       Block.Preceq B (S_at p c E rho (timeIdx rho t) y)) ∧
     (∀ y t o, y ∈ rho.honest → b₀ ≤ t → t < b₁ → V2.D.Run.emits E rho y o t →
@@ -446,14 +473,17 @@ theorem duties_and_outputs :
           SA.gateTime p.toParams (l + 1) + L p ≤ dl ∧
           ((∃ X ∈ FGSA.fullTree p st, eraseFG X = B) ∨
             Block.Preceq B (eraseFG (FGSA.controls p st).Z))) := by
-  obtain ⟨β, hβ, hhist⟩ := outage_armed_induction hvalid hnr hcstar hdelta hfault hstore
+  obtain ⟨β, hβ, hhist⟩ := outage_armed_induction (hroots := hroots) (hstrat := hstrat)  hvalid hnr
+    hcstar hdelta hfault hstore
     hframe hsrc htsrc hnamesFull hne hc (hopen.le.trans hhor)
   have hread (t : Time) (hdt : SA.gateTime p.toParams (l + 1) ≤ t) (htb : t < b₁) :=
     hhist (timeIdx rho t)
       ((afterTicksIdx_mono rho hdt).trans
         (preIdx_le_afterTicksIdx E rho hvalid.toScheduleWellFormed t).2)
       (arming_timeIdx_le_idxBefore rho htb)
-  refine ⟨?_, ?_, ?_, lease_or_F_persists hvalid hnr hcstar hdelta hfault hstore hframe
+  refine ⟨?_, ?_, ?_, lease_or_F_persists (hroots := hroots) (hstrat := hstrat)
+    hvalid hnr hcstar
+    hdelta hfault hstore hframe
     hsrc htsrc hnamesFull hne hc hopen hhor⟩
   · intro y t hy hbt htb
     rcases lt_or_ge t (SA.gateTime p.toParams (l + 1)) with htd | hdt
@@ -469,7 +499,8 @@ theorem duties_and_outputs :
     rcases lt_or_ge t (SA.gateTime p.toParams (l + 1)) with htd | hdt
     · exact hc.pending_compat y t hy h0 htd (htb.le.trans hhor)
     · obtain ⟨_, _, hnames, hlocal⟩ := hread t hdt htb
-      have hcomp := (outage_frame_retains hstore hframe hsrc hy hβ hnames (hlocal y hy).1).1
+      have hcomp := (outage_frame_retains (hstrat := hstrat) hstore hframe hsrc hy hβ hnames
+        (hlocal y hy).1).1
       change Block.compatible B (F_at p c E rho (timeIdx rho t) y) = true
       rw [block_compatible_comm]
       exact hcomp

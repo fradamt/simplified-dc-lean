@@ -170,7 +170,7 @@ theorem healing_full_witness (crossing : RXing p c E rho)
   obtain ⟨K, hK, hk⟩ := hmem
   exact ⟨K, hK, hk, ((KitFG.mem_filteredFromView _ _ _ _).mp hK).2.2.2⟩
 
-/-- Blueprint 21:749–783, 918–1012, 1288–1308; plan S30, H-FRAME/F3.
+/-- ROOT-DIGEST W2b. Blueprint 21:749–783, 918–1012, 1288–1308; plan S30, H-FRAME/F3.
 DC: SAME terminal walk argument; INTENTIONAL low-parent eligibility reaches the FJ floor.
 The full domain contains the live start, including a zero-step return. -/
 theorem healing_proposer_floor (hs : V2.D.ScheduleWellFormed E rho)
@@ -196,17 +196,17 @@ theorem healing_proposer_floor (hs : V2.D.ScheduleWellFormed E rho)
   have hBC : FGBlock.Preceq B C := by
     cases C with
     | genesis => exact (hng rfl).elim
-    | node P s body rows =>
+    | node P s root body rows =>
       change P = B at hCB
       subst P
-      exact KitFG.preceq_parent_node _ _ _ _
+      exact KitFG.preceq_parent_node _ _ _ _ _
   have hC : C ∈ fullTree p st := (KitFG.mem_filteredFromView _ _ _ _).mpr
     ⟨hclosed W hw C hCW, KitFG.preceq_trans hf hBC, KitFG.preceq_trans hz hBC,
       W, hw, hCW, hlo⟩
   have hPC : (eraseFG C).parent? = some (proposerHead p st s) := by
     cases C with
     | genesis => exact (hng rfl).elim
-    | node P u body rows =>
+    | node P u root body rows =>
       change P = B at hCB
       change some (eraseFG P) = some (proposerHead p st s)
       rw [hCB, heB, hparent]

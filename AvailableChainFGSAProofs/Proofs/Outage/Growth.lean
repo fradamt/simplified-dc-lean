@@ -13,7 +13,7 @@ open AvailableChain.SimplexFG
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- Plan A1–A6; bp 03 §5 (03:418–458);
+/-- ROOT-DIGEST W2b. Plan A1–A6; bp 03 §5 (03:418–458);
 DC Generic/Lemmas.lean:60 liveFrom_of_includedFrom.
 Unfolded CleanGrowthClaim body. Select one awake honest proposal at the trigger
 and use its gate by the original deadline.
@@ -44,7 +44,8 @@ theorem clean_growth_body [Fintype V]
     (hmono : Gen.Pure.MonoOn (· ∈ rho.honest) (S_at p c E rho) (· ≤ rho.events.length))
     (hrec : AwakeProposerRecurrenceFrom p c E rho 0 G)
     (hgap : 4 * p.Δ ≤ G) (t : Time) (ht : 0 ≤ t)
-    (hhor : t + G + 6 * p.Δ ≤ rho.horizon) :
+    (hhor : t + G + 6 * p.Δ ≤ rho.horizon)
+    (hstrat : RStrat p c E rho) :
     ∃ s B, t < V2.D.proposalTime (fgsaInterface p c) s ∧
       HonestProposal E rho (fgsaInterface p c) s B ∧
       ∀ g ∈ [(fgsaInterface p c).stable, (fgsaInterface p c).confirmed],
@@ -64,7 +65,8 @@ theorem clean_growth_body [Fintype V]
     change 4 * p.Δ * (s : Time) + 6 * p.Δ ≤ t + G + 6 * p.Δ
     change 4 * p.Δ * (s : Time) ≤ t + G at hupper
     simpa only [add_comm] using add_le_add_left hupper (6 * p.Δ)
-  have hincl := clean_inclusion_body E rho ΔF hset hstore hframe hsrc hordered hnonempty
+  have hincl := clean_inclusion_body (hstrat := hstrat) E rho ΔF hset hstore hframe hsrc hordered
+    hnonempty
     htransfer hleases hrows ⟨s, B⟩ hprop (hgate.trans hhor) hmono
   refine ⟨s, B, jointGrowthAt_of_inclusion
     (fun g x u => V2.D.outputAt E rho g x u)

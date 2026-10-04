@@ -18,7 +18,7 @@ open Gen.V2.Duty (faulty faulty_def awakeHonest awakeHonest_def SeedAt SeedAt_de
 variable {p : Params} {In V : Type} {c : AppCodec In} [DecidableEq V] [Fintype V]
 variable {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
 
-/-- The old prefix fields imply the per-object regime at ΔF = Δ.
+/-- ROOT-DIGEST W2b. The old prefix fields imply the per-object regime at ΔF = Δ.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem HealthyPrefix₂.of_legacy {b₀ : Time} (base : Base₂ p c E rho)
@@ -31,7 +31,7 @@ theorem HealthyPrefix₂.of_legacy {b₀ : Time} (base : Base₂ p c E rho)
   rw [fgsaDelay_self]
   exact (Gen.V2.Duty.healthyPrefix_iff_by_const E rho b₀).1 healthy
 
-/-- Recover the old prefix delivery law at ΔF = Δ.
+/-- ROOT-DIGEST W2b. Recover the old prefix delivery law at ΔF = Δ.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem HealthyPrefix₂.legacy_delivery {b₀ : Time} (h : HealthyPrefix₂ p c E rho b₀ E.Δ) :
@@ -41,7 +41,7 @@ theorem HealthyPrefix₂.legacy_delivery {b₀ : Time} (h : HealthyPrefix₂ p c
   rw [fgsaDelay_self] at hh
   exact hh
 
-/-- The old recovery fields imply the per-object regime at ΔF = Δ.
+/-- ROOT-DIGEST W2b. The old recovery fields imply the per-object regime at ΔF = Δ.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem Recovery₂.of_legacy {G : Time}
@@ -54,7 +54,7 @@ theorem Recovery₂.of_legacy {G : Time}
   rw [fgsaDelay_self]
   exact (Gen.V2.Duty.partialSynchrony_iff_by_const E rho).1 core.sync
 
-/-- GUP r2: alignment is internal proof data, not a recovery premise. -/
+/-- ROOT-DIGEST W2b. GUP r2: alignment is internal proof data, not a recovery premise. -/
 structure Recovery₂Aligned (p : Params) {In V : Type} (c : AppCodec In)
     [DecidableEq V] [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) (G : Time) (ΔF : Time := E.Δ)
@@ -76,7 +76,7 @@ theorem recovery₂_roundUp {G ΔF : Time} (h : Recovery₂ p c E rho G ΔF) :
   obtain ⟨s, hlo, hhi, hs⟩ := h.gap t hgst (by linarith)
   exact ⟨s, hlo, by linarith, hs⟩
 
-/-- Recover the old recovery core at ΔF = Δ.
+/-- ROOT-DIGEST W2b. Recover the old recovery core at ΔF = Δ.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem Recovery₂.toRecoveryCore {G : Time} (h : Recovery₂ p c E rho G E.Δ) :
@@ -227,7 +227,7 @@ theorem Outage₂.faultQ {fast : Bool} {T b₀ b₁ ΔF : Time}
 
 open AvailableChain.SimplexFG
 
-/-- Blueprint 02:537–539; P3 erratum 13, Clean wrapper.
+/-- ROOT-DIGEST W2b. Blueprint 02:537–539; P3 erratum 13, Clean wrapper.
 DC: Generic/Conditions.lean:134–156 and Goldfish/Confirmation.lean:434–441.
 INTENTIONAL: healthy-prefix delivery supplies the vote-to-gate LabelSync;
 geometry stays an explicit consumer obligation.
@@ -266,10 +266,11 @@ theorem fgsa_gateReceipt_clean
   have hsync := Gen.V2.Duty.LabelSyncOn.of_cleanCutBy E rho
       (fun o => ¬ isRowObject o) b₀ _ _ h.healthy
     (fgsaDelay_nonrow E.Δ _) hvd hcut h.cut.2
-  exact fgsa_gateReceipt E rho h.base.valid h.base.noRestart h.base.delta h.base.cstar
+  exact fgsa_gateReceipt (hroots := h.base.idealization)
+    E rho h.base.valid h.base.noRestart h.base.delta h.base.cstar
     s hsync ht B hgeom
 
-/-- Blueprint 21 H.22:3100–3120; P3 erratum 13, Recovery wrapper.
+/-- ROOT-DIGEST W2b. Blueprint 21 H.22:3100–3120; P3 erratum 13, Recovery wrapper.
 DC: Generic/Conditions.lean:110–132 and Goldfish/Confirmation.lean:434–441.
 INTENTIONAL: post-GST delivery supplies the vote-to-gate LabelSync.
 GST ≤ voteTime s suffices; no earlier synchrony pair is used.
@@ -309,10 +310,11 @@ theorem fgsa_gateReceipt_recovery
     (h.base.valid.in_horizon _ (List.mem_of_getElem? ht)).2
   have hsync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _ h.sync
     (fgsaDelay_nonrow E.Δ _) hGST hvd hhorizon
-  exact fgsa_gateReceipt E rho h.base.valid h.base.noRestart h.base.delta h.base.cstar
+  exact fgsa_gateReceipt (hroots := h.base.idealization)
+    E rho h.base.valid h.base.noRestart h.base.delta h.base.cstar
     s hsync ht B hgeom
 
-/-- P3 N1:2518–2525; blueprint 03:256–317.
+/-- ROOT-DIGEST W2b. P3 N1:2518–2525; blueprint 03:256–317.
 DC: Goldfish/ProposalSnapshotBridge.lean:210,225; Conditions.lean:134.
 INTENTIONAL: the Clean wrapper uses the healthy prefix through v_s and
 Gen LabelSync at (t_s - Δ, v_s); geometry remains a separate consumer input.
@@ -351,10 +353,11 @@ theorem fgsa_score_eq_on_clean
   have hsync := Gen.V2.Duty.LabelSyncOn.of_cleanCutBy E rho
       (fun o => ¬ isRowObject o) b₀ _ _ h.healthy
     (fgsaDelay_nonrow E.Δ _) hvd hcut h.cut.2
-  exact fgsa_score_eq_on_run E rho h.base.valid h.base.noRestart h.base.delta s hsync
+  exact fgsa_score_eq_on_run (hroots := h.base.idealization)
+    E rho h.base.valid h.base.noRestart h.base.delta s hsync
     hx hy hip hih hseat b raw sup rows hem hadm D hgeom
 
-/-- P3 N1:2518–2525 and O25 §7; blueprint 03:256–317.
+/-- ROOT-DIGEST W2b. P3 N1:2518–2525 and O25 §7; blueprint 03:256–317.
 DC: Goldfish/ProposalSnapshotBridge.lean:210,225; Conditions.lean:110.
 INTENTIONAL: Recovery requires GST ≤ t_s - Δ, not merely GST ≤ v_s.
 The actual HEAD tick supplies the horizon bound for Gen LabelSync.
@@ -394,10 +397,11 @@ theorem fgsa_score_eq_on_recovery
     (h.base.valid.in_horizon _ (List.mem_of_getElem? hih)).2
   have hsync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _ h.sync
     (fgsaDelay_nonrow E.Δ _) hGST hvd hhorizon
-  exact fgsa_score_eq_on_run E rho h.base.valid h.base.noRestart h.base.delta s hsync
+  exact fgsa_score_eq_on_run (hroots := h.base.idealization)
+    E rho h.base.valid h.base.noRestart h.base.delta s hsync
     hx hy hip hih hseat b raw sup rows hem hadm D hgeom
 
-/-- P3 F1b.4b N1 C14 and C9/C11–C13/C19; blueprint 03:350–379.
+/-- ROOT-DIGEST W2b. P3 F1b.4b N1 C14 and C9/C11–C13/C19; blueprint 03:350–379.
 DC: Goldfish/ProposalWalkTransportCore.lean:162–191; Conditions.lean:134.
 INTENTIONAL: the Clean healthy prefix ends no earlier than v_s. Both N1
 LabelSync records come from the same healthy prefix.
@@ -435,10 +439,11 @@ theorem fgsa_ghost_transfer_sfx_on_clean
       (fun o => ¬ isRowObject o) b₀ _ _ h.healthy
     (fgsaDelay_nonrow E.Δ _)
     hpt (htv.trans hcut) h.cut.2
-  exact fgsa_ghost_transfer_sfx_on_run E rho h.base.valid h.base.noRestart h.base.delta s
+  exact fgsa_ghost_transfer_sfx_on_run (hroots := h.base.idealization)
+    E rho h.base.valid h.base.noRestart h.base.delta s
     hscore hwalk hx hy hip hih hseat b raw sup rows hem hadm D hgeom
 
-/-- P3 F1b.4b N1 C14 and C9/C11–C13/C19; blueprint 03:350–379.
+/-- ROOT-DIGEST W2b. P3 F1b.4b N1 C14 and C9/C11–C13/C19; blueprint 03:350–379.
 DC: Goldfish/ProposalWalkTransportCore.lean:162–191; Conditions.lean:110.
 INTENTIONAL: Recovery requires GST ≤ t_s - Δ. The actual proposal and
 HEAD ticks supply the horizons for the two N1 LabelSync records.
@@ -474,10 +479,11 @@ theorem fgsa_ghost_transfer_sfx_on_recovery
     (fgsaDelay_nonrow E.Δ _) hGST (hpt.trans htv) hvh
   have hwalk := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _ h.sync
     (fgsaDelay_nonrow E.Δ _) hGST hpt (htv.trans hvh)
-  exact fgsa_ghost_transfer_sfx_on_run E rho h.base.valid h.base.noRestart h.base.delta s
+  exact fgsa_ghost_transfer_sfx_on_run (hroots := h.base.idealization)
+    E rho h.base.valid h.base.noRestart h.base.delta s
     hscore hwalk hx hy hip hih hseat b raw sup rows hem hadm D hgeom
 
-/-- J2 HEAD clause on a Clean prefix; 21 H.22:3100–3120, S1b E1–E6.
+/-- ROOT-DIGEST W2b. J2 HEAD clause on a Clean prefix; 21 H.22:3100–3120, S1b E1–E6.
 DC: Goldfish/PreparedV4CanonicalProposalDuty.lean:867–887; Conditions.lean:134.
 INTENTIONAL: the Clean record supplies both G25/G11 synchronization intervals.
 The consumer supplies the same per-reader geometry as the Shared producer.
@@ -510,10 +516,11 @@ theorem exactService_head_of_proposal_clean
       (fun o => ¬ isRowObject o) b₀ _ _ h.healthy
     (fgsaDelay_nonrow E.Δ _)
     hpt (htv.trans hcut) h.cut.2
-  exact exactService_head_of_proposal E rho h.base.valid h.base.noRestart h.base.delta s
+  exact exactService_head_of_proposal (hroots := h.base.idealization)
+    E rho h.base.valid h.base.noRestart h.base.delta s
     hscore hwalk hx hip hseat b raw sup rows hem D hgeom
 
-/-- J2 HEAD clause in Recovery; 21 H.22:3100–3120, S1b E1–E6.
+/-- ROOT-DIGEST W2b. J2 HEAD clause in Recovery; 21 H.22:3100–3120, S1b E1–E6.
 DC: Goldfish/PreparedV4CanonicalProposalDuty.lean:867–887; Conditions.lean:110.
 INTENTIONAL: GST precedes t_s - Δ, and the HEAD horizon supplies both
 G25/G11 synchronization intervals. Geometry remains a consumer obligation.
@@ -543,10 +550,11 @@ theorem exactService_head_of_proposal_recovery
     (fgsaDelay_nonrow E.Δ _) hGST (hpt.trans htv) hhorizon
   have hwalk := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _ h.sync
     (fgsaDelay_nonrow E.Δ _) hGST hpt (htv.trans hhorizon)
-  exact exactService_head_of_proposal E rho h.base.valid h.base.noRestart h.base.delta s
+  exact exactService_head_of_proposal (hroots := h.base.idealization)
+    E rho h.base.valid h.base.noRestart h.base.delta s
     hscore hwalk hx hip hseat b raw sup rows hem D hgeom hhorizon
 
-/-- J2 HEAD clause on a Clean prefix; 21 H.22:3100–3120, S1b E1–E6.
+/-- ROOT-DIGEST W2b. J2 HEAD clause on a Clean prefix; 21 H.22:3100–3120, S1b E1–E6.
 DC: Goldfish/PreparedV4CanonicalProposalDuty.lean:867–887; Conditions.lean:134.
 INTENTIONAL: the Clean record supplies both G25/G11 synchronization intervals.
 Class (iii). The Shared supplier constructs walk and endpoint geometry
@@ -585,12 +593,13 @@ theorem exactService_head_of_retained_proposal_clean
       (fun o => ¬ isRowObject o) b₀ _ _ h.healthy
     (fgsaDelay_nonrow E.Δ _)
     hpt (htv.trans hcut) h.cut.2
-  have hgeom := fgsa_retainedExactHead_geometry_on_run E rho h.base.valid h.base.noRestart
+  have hgeom := fgsa_retainedExactHead_geometry_on_run (hroots := h.base.idealization)
+    E rho h.base.valid h.base.noRestart
     h.base.delta s hwalk hscore hx hip hseat b raw sup rows hem D hreads
   exact exactService_head_of_retained_proposal E rho h.base.valid h.base.delta s
     hip b raw sup rows hem D hgeom
 
-/-- J2 HEAD clause in Recovery; 21 H.22:3100–3120, S1b E1–E6.
+/-- ROOT-DIGEST W2b. J2 HEAD clause in Recovery; 21 H.22:3100–3120, S1b E1–E6.
 DC: Goldfish/PreparedV4CanonicalProposalDuty.lean:867–887; Conditions.lean:110.
 INTENTIONAL: GST precedes t_s - Δ, and the HEAD horizon supplies both
 G25/G11 synchronization intervals. Class (iii). The Shared supplier
@@ -626,12 +635,13 @@ theorem exactService_head_of_retained_proposal_recovery
     (fgsaDelay_nonrow E.Δ _) hGST (hpt.trans htv) hhorizon
   have hwalk := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _ h.sync
     (fgsaDelay_nonrow E.Δ _) hGST hpt (htv.trans hhorizon)
-  have hgeom := fgsa_retainedExactHead_geometry_on_run E rho h.base.valid h.base.noRestart
+  have hgeom := fgsa_retainedExactHead_geometry_on_run (hroots := h.base.idealization)
+    E rho h.base.valid h.base.noRestart
     h.base.delta s hwalk hscore hx hip hseat b raw sup rows hem D hreads
   exact exactService_head_of_retained_proposal E rho h.base.valid h.base.delta s
     hip b raw sup rows hem D hgeom hhorizon
 
-/-- P3 A.9 and blueprint 21 H.22 H3, conditional Clean exact service.
+/-- ROOT-DIGEST W2b. P3 A.9 and blueprint 21 H.22 H3, conditional Clean exact service.
 DC: Generic/Conditions.lean:134–156; UserConfirmationRecovery.lean:235.
 INTENTIONAL: healthy-prefix delivery supplies LabelSync. Clean participation
 alone need not reach the fast threshold, so that count stays explicit.
@@ -658,7 +668,8 @@ theorem exactService_of_head_clean
   have hvcut : SA.voteTime p.toParams v < b₀ := by
     have hd : 0 < E.Δ := h.base.delta.symm ▸ p.deltaPos
     linarith
-  apply exactService_of_head_and_gate E rho h.base.valid h.base.noRestart h.base.delta
+  apply exactService_of_head_and_gate (hroots := h.base.idealization)
+    E rho h.base.valid h.base.noRestart h.base.delta
     h.base.cstar v Q hne hhead
     (fun _ => Gen.V2.Duty.LabelSyncOn.of_cleanCutBy E rho
       (fun o => ¬ isRowObject o) b₀ _ _ h.healthy
@@ -668,7 +679,7 @@ theorem exactService_of_head_clean
   exact exactService_participation_of_card E rho h.base.cstar v
     ⟨h.partBefore _ hvpos hvcut⟩ hfast
 
-/-- P3 A.9 and blueprint 21 H.22 H3, conditional Recovery exact service.
+/-- ROOT-DIGEST W2b. P3 A.9 and blueprint 21 H.22 H3, conditional Recovery exact service.
 DC: Generic/Conditions.lean:110–132; UserConfirmationRecovery.lean:235.
 INTENTIONAL: post-GST waking and the one-third fault bound supply the SA
 fast count. Cardinality uses only the fresh HEAD-seat bijection.
@@ -687,7 +698,8 @@ theorem exactService_of_head_recovery
     rw [h.base.delta]
     change 4 * p.Δ * (v : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * (v : Int) + 6 * p.Δ
     linarith [p.deltaPos]
-  apply exactService_of_head_and_gate E rho h.base.valid h.base.noRestart h.base.delta
+  apply exactService_of_head_and_gate (hroots := h.base.idealization)
+    E rho h.base.valid h.base.noRestart h.base.delta
     h.base.cstar v Q hne hhead
     (fun hh => Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _ h.sync
     (fgsaDelay_nonrow E.Δ _) hGST hvd hh) _ hgeometry

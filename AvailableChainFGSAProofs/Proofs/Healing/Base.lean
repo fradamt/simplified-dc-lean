@@ -24,7 +24,7 @@ theorem healing_rXing [Fintype V] {G ΔF : Time}
     RXing p c E rho :=
   crossing ⟨h.base, h.fault⟩
 
-/-- Blueprint 21:449–477, 2637–2666; plan S22, H-BASE/HB2.
+/-- ROOT-DIGEST W2b. Blueprint 21:449–477, 2637–2666; plan S22, H-BASE/HB2.
 DC: SAME causal cap; INTENTIONAL exact FG wire membership in the held chain.
 `fgsa_rCap` supplies `cap` after its foundation premises are discharged.
 Its height premise is transported to `heightView` at the lane boundary. -/
@@ -63,7 +63,7 @@ theorem healing_rCap
     clear hW hh
     induction W with
     | genesis => exact (Finset.notMem_empty u hu).elim
-    | node P s body rows ih =>
+    | node P s root body rows ih =>
       change u ∈ rows.toFinset ∪ chainRows P at hu
       rcases Finset.mem_union.mp hu with hu | hu
       · obtain ⟨slot, raw, sup, wires, hw, hr⟩ :=
@@ -76,8 +76,8 @@ theorem healing_rCap
         subst b
         apply List.mem_flatten.mpr
         refine ⟨wires, List.mem_filterMap.mpr ⟨_, hw, ?_⟩, hbw⟩
-        have hrefl : Block.preceq (eraseFG (.node P s body rows))
-            (eraseFG (.node P s body rows)) = true := Gen.Pure.block_preceq_refl _
+        have hrefl : Block.preceq (eraseFG (.node P s root body rows))
+            (eraseFG (.node P s root body rows)) = true := Gen.Pure.block_preceq_refl _
         simp only [Wire.decode, hrefl, ↓reduceIte]
       · have hpar := ih hu (hs.cstore.fg.closed _ hmem)
         obtain ⟨wires, hw, haw⟩ := List.mem_flatten.mp hpar
@@ -94,10 +94,10 @@ theorem healing_rCap
             simp only [hbd] at hdec ⊢
             split at hdec
             · rename_i hpre
-              have hparent : FGBlock.Preceq P (.node P s body rows) := by
-                change (decide (P = .node P s body rows) || FGBlock.preceq P P) = true
+              have hparent : FGBlock.Preceq P (.node P s root body rows) := by
+                change (decide (P = .node P s root body rows) || FGBlock.preceq P P) = true
                 rw [KitFG.preceq_refl P, Bool.or_true]
-              have hle : B.preceq (eraseFG (.node P s body rows)) = true :=
+              have hle : B.preceq (eraseFG (.node P s root body rows)) = true :=
                 Gen.Pure.block_preceq_trans hpre (eraseFG_preceq hparent)
               rw [hle, ite_eq_left (rfl : true = true)]
               exact hdec

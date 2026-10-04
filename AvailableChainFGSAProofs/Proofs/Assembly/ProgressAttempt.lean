@@ -8,7 +8,7 @@ public section
 
 namespace AvailableChain.FGSA.Run
 
-/-- Blueprint 21 H.10:1426–1495; plan item S5 PA-ASSEMBLY P2.
+/-- ROOT-DIGEST W2b. Blueprint 21 H.10:1426–1495; plan item S5 PA-ASSEMBLY P2.
 DC: SAME four attempt budgets and horizon after the actual start event.
 HealingSet supplies recovery. Named producers discharge every standing port. -/
 theorem healing_progressAttemptStatement (p : Params) (G ΔF : Time) :
@@ -17,7 +17,7 @@ theorem healing_progressAttemptStatement (p : Params) (G ΔF : Time) :
   have faultQ := fgsa_faultQ_of_count p hset.fault
   exact healing_progressAttempt E rho hset
     (fgsa_rMono p c E rho)
-    (fgsa_rXing p c E rho hset.base.linked
+    (fgsa_rXing (hroots := hset.base.idealization) p c E rho hset.base.linked
       (fgsa_faultX_count_rec p hset.fault) hset.base.valid.toUnforgeableSignatures)
     (sourceDiscipline_qcOrigin p c E rho (pt := ()) ⟨hset.base, faultQ⟩
       (fgsa_rStore p c E rho))

@@ -42,7 +42,7 @@ theorem opening_domain_clock (nd : Node p) (t : Time) :
       KitFG.storeControlsView (heightView p) nd.st.fg
     rw [hfg]
 
-/-- Blueprint 21:749–783, 918–1012 (H.7 floor); plan H-GATE §3A, gap 2.
+/-- ROOT-DIGEST W2b. Blueprint 21:749–783, 918–1012 (H.7 floor); plan H-GATE §3A, gap 2.
 DC: INTENTIONAL the proposal band at the actual proposal read. The proposer reads inside
 the phase, so its floor is the phase floor (m in a contest, else m − 1). The parent of Qfg
 is the floor witness of `healing_proposer_floor`; height monotonicity lifts the floor to
@@ -87,7 +87,7 @@ theorem opening_proposal_band (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     rw [hBp]
     cases Qfg with
     | genesis => exact KitFG.preceq_refl _
-    | node P s b rows => exact KitFG.preceq_parent_node _ _ _ _
+    | node P s root b rows => exact KitFG.preceq_parent_node _ _ _ _ _
   have hR : frameR p st = FGSA.controls p (storeAt p c E rho j y) := by
     change KitFG.storeControlsView (heightView p) st.fg =
       KitFG.storeControlsView (heightView p) (storeAt p c E rho j y).fg

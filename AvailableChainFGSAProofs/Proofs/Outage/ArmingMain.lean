@@ -16,7 +16,7 @@ open Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- Plan O-ARM §4, §6. Class (iii). DC: INTENTIONAL; the arming certificate at
+/-- ROOT-DIGEST W2b. Plan O-ARM §4, §6. Class (iii). DC: INTENTIONAL; the arming certificate at
 an arbitrary label `l` with d(l) ≤ b₀ < d(l + 1). The mode label distance and
 the fast count are inputs; the slow window is proved here. -/
 theorem arming_cert [Fintype V] {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
@@ -96,7 +96,8 @@ theorem arming_cert [Fintype V] {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)
     (hgap : ∀ s : Slot, SA.gateTime p.toParams s ≤ T →
       if fast then s + 2 ≤ l + 1 else s + p.k ≤ l + 1)
     (hfast : fast = true → SA.releaseThreshold p.toParams ≤
-      (Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams (l + 1))).card) :
+      (Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams (l + 1))).card)
+    (hroots : NamedRootCollisionFree p c E rho) (hstrat : RStrat p c E rho) :
     ∃ u s C iₛ D Dh, ArmingCert p c E rho fast T b₀ b₁ B l u s C iₛ D Dh := by
   have hs := hvalid.toScheduleWellFormed
   obtain ⟨u, s, C, iₛ, hu, hs1, hts, hpass, hres, hsT, hBC⟩ :=
@@ -125,12 +126,15 @@ theorem arming_cert [Fintype V] {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)
     exact hne (block_preceq_antisymm hBD (block_genesis_preceq B))
   have hentry := arming_entry_below hs hnamed hcleanGate hDh hl hmax
   have hprefix : ArmingPrefixState p c E rho l D Dh :=
-    arming_prefix_state hs hnr hstore hframe hsrc hDh hl hcutl hentry hleaseOrigin hmax
+    arming_prefix_state (hroots := hroots) (hstrat := hstrat)
+      (hScope := hDh.symm ▸ rootScope_result hvalid hDmem) hs hnr hstore hframe hsrc hDh hl hcutl
+        hentry hleaseOrigin hmax
   have hF : ∀ k y, k ≤ V2.D.Run.idxBefore rho (SA.gateTime p.toParams (l + 1)) →
       y ∈ rho.honest → Block.Preceq (F_at p c E rho k y) D := fun k y hk hy =>
     (hprefix k y hk (hk.trans (arming_idxBefore_le_length rho _)) hy).1
   have hbatchF : ArmingBatchState p c E rho l D :=
-    arming_healthy_batch hvalid hnr hdelta hcstar hcut hhealthy htransfer hl hcutl hDmem hF
+    arming_healthy_batch (hroots := hroots)
+      hvalid hnr hdelta hcstar hcut hhealthy htransfer hl hcutl hDmem hF
   have hev : SA.voteTime p.toParams (l + 1) < SA.earlyTime p.toParams (l + 1) :=
     (arming_vote_lt_early p (l + 1)).1
   have he : SA.earlyTime p.toParams (l + 1) ≤ b₀ := (arming_early_next p l).trans_le hl
@@ -187,7 +191,8 @@ theorem arming_cert [Fintype V] {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)
       · intro H hH
         obtain ⟨r, _, i, _, rfl, hi, rfl⟩ := arming_emit_head hvalid hy hem hH
         obtain rfl := arming_vote_window p l r hlt htd
-        exact block_preceq_trans hBD (arming_head_covers hvalid hnr hdelta hcstar hDh hDne
+        exact block_preceq_trans hBD (arming_head_covers (hroots := hroots) hvalid hnr hdelta
+          hcstar hDh hDne
           hSync hpartv hprefix hbatchF hy hi)
       · intro X raw sup rows hX
         obtain ⟨r, i, _, rfl, hi, hpar⟩ := arming_emit_proposal hvalid hy hem hX
@@ -205,12 +210,13 @@ theorem arming_cert [Fintype V] {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)
       injection hlab with hlab
       injection hlab with hlab
       subst hlab
-      exact block_preceq_trans hBD (arming_head_covers hvalid hnr hdelta hcstar hDh hDne
+      exact block_preceq_trans hBD (arming_head_covers (hroots := hroots) hvalid hnr hdelta hcstar
+        hDh hDne
         hSync hpartv hprefix hbatchF hy hi)
     pending_input := arming_pending_input hvalid hnr hcstar hBD hpartv hprefix hbatchF fast
       hfast hslowIn }
 
-/-- Blueprint 03 §§6–8; plan O-ARM §5 `fast_arming`. Class (iii).
+/-- ROOT-DIGEST W2b. Blueprint 03 §§6–8; plan O-ARM §5 `fast_arming`. Class (iii).
 DC: INTENTIONAL; the fast arming certificate of a protected stable read. The
 lag T + 4Δ ≤ b₀ puts the pending label at least two labels after the origin.
 High participation before b₀ gives the fast count at the pending gate. -/
@@ -284,7 +290,8 @@ theorem fast_arming [Fintype V] {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)
           Block.Preceq C' C)
     (hlag : T + 4 * p.Δ ≤ b₀)
     (hfastPart : ∀ t : Time, 0 ≤ t → t < b₀ →
-      (p.n + 1) / 2 ≤ (Gen.V2.Duty.awakeHonest E rho t).card) :
+      (p.n + 1) / 2 ≤ (Gen.V2.Duty.awakeHonest E rho t).card)
+    (hroots : NamedRootCollisionFree p c E rho) (hstrat : RStrat p c E rho) :
     ArmingData p c E rho true T b₀ b₁ B := by
   have hs := hvalid.toScheduleWellFormed
   obtain ⟨_, s, _, _, _, _, _, _, _, hsT, _⟩ :=
@@ -297,14 +304,15 @@ theorem fast_arming [Fintype V] {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)
     linarith
   obtain ⟨hl, hcutl⟩ := arming_label p b₀ h6
   rw [ArmingData_def]
-  exact arming_cert true T b₀ b₁ ΔF hvalid hcstar hnr hdelta hcut hhealthy hpart horder.2.1
+  exact arming_cert (hroots := hroots) (hstrat := hstrat)
+    true T b₀ b₁ ΔF hvalid hcstar hnr hdelta hcut hhealthy hpart horder.2.1
     hbudget x B hx hread hne hstore hframe hsrc htsrc hnamed hordered hnonempty htransfer hbelow
     hleaseOrigin (fun h => nomatch h) hsOrigin hmono hcleanGate _ hl hcutl
     (fun s hs => arming_fast_gap p s T b₀ hs hlag)
     (fun _ => hfastPart _ (by rw [arming_vote_eq]; have := p.deltaPos; positivity)
       ((arming_vote_lt_early p _).1.trans_le ((arming_early_next p _).trans_le hl)))
 
-/-- Blueprint 03 §§6–8; plan O-ARM §5 `slow_arming`. Class (iii).
+/-- ROOT-DIGEST W2b. Blueprint 03 §§6–8; plan O-ARM §5 `slow_arming`. Class (iii).
 DC: INTENTIONAL; the slow arming certificate of a protected stable read. The
 lag T + (L − 3Δ) ≤ b₀ puts the pending label at least k labels after the
 origin. The saved Clean results give the slow window; no participation
@@ -381,7 +389,8 @@ theorem slow_arming [Fintype V] {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)
           (afterTicksIdx rho (SA.gateTime p.toParams r)) y) ∧
         ∀ r' < r, ∀ C', gateResult p c E rho y r' = some (some C') →
           Block.Preceq C' C)
-    (hlag : T + (L p - 3 * p.Δ) ≤ b₀) :
+    (hlag : T + (L p - 3 * p.Δ) ≤ b₀)
+    (hroots : NamedRootCollisionFree p c E rho) (hstrat : RStrat p c E rho) :
     ArmingData p c E rho false T b₀ b₁ B := by
   have hs := hvalid.toScheduleWellFormed
   obtain ⟨_, s, _, _, _, _, _, _, _, hsT, _⟩ :=
@@ -394,7 +403,8 @@ theorem slow_arming [Fintype V] {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)
     linarith
   obtain ⟨hl, hcutl⟩ := arming_label p b₀ h6
   rw [ArmingData_def]
-  exact arming_cert false T b₀ b₁ ΔF hvalid hcstar hnr hdelta hcut hhealthy hpart horder.2.1
+  exact arming_cert (hroots := hroots) (hstrat := hstrat)
+    false T b₀ b₁ ΔF hvalid hcstar hnr hdelta hcut hhealthy hpart horder.2.1
     hbudget x B hx hread hne hstore hframe hsrc htsrc hnamed hordered hnonempty htransfer hbelow
     hleaseOrigin (fun _ => hsavedKeep) hsOrigin hmono hcleanGate _ hl hcutl
     (fun s hs => arming_slow_gap p s T b₀ hs hlag) (fun h => nomatch h)

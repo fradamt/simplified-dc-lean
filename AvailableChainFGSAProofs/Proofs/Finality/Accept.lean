@@ -132,7 +132,7 @@ private theorem accept_update (st : Store (Fin p.n))
 variable {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- DC: INTENTIONAL actual receipt and ancestor-closed inserted tree. -/
+/-- ROOT-DIGEST W2b. DC: INTENTIONAL actual receipt and ancestor-closed inserted tree. -/
 private theorem accept_ready (i : Nat) (x : V) (W : FGBlock (Fin p.n)) (t : Time)
     (hr : Ready_W p c E rho i x W t) :
     (storeAt p c E rho (i + 1) x).fg =
@@ -144,7 +144,7 @@ private theorem accept_ready (i : Nat) (x : V) (W : FGBlock (Fin p.n)) (t : Time
   obtain ⟨o, s, raw, support, rows, P, he, hd, hp, ha, hw⟩ := hr
   let st := storeAt p c E rho i x
   have hI : CStoreInv p st := cstoreInv_stateBefore E rho i x
-  have hPT := ((parentFG_spec st hI.rootInj (eraseFG W) P).mp hp).1
+  have hPT := ((parentFG_spec st (eraseFG W) P).mp hp).1
   have hparent : W.parent = P := by rw [← hw, fgBlock_parent]
   have hclosed : ∀ B ∈ insert W st.fg.TF, B.parent ∈ insert W st.fg.TF := by
     intro B hB

@@ -165,18 +165,18 @@ theorem noMixedPreBatchParent (q y : Nat) (U X : FGBlock (Fin p.n))
   exact (not_lt.mpr hlate) (hearly.trans_le h.early)
 
 
-/-- FINAL 22:954–956. Expose the carrier of a raw chain row.
+/-- ROOT-DIGEST W2b. FINAL 22:954–956. Expose the carrier of a raw chain row.
 DC: INTENTIONAL: the endpoint need not be held. -/
 private theorem khistory_carrier (B : FGBlock (Fin p.n)) (u : Row (Fin p.n))
     (hu : u ∈ chainRows B) : ∃ W, FGBlock.Preceq W B ∧ u ∈ W.rows := by
   induction B with
   | genesis => exact (Finset.notMem_empty u hu).elim
-  | node P s x rs ih =>
+  | node P s root x rs ih =>
     change u ∈ rs.toFinset ∪ chainRows P at hu
     rcases Finset.mem_union.mp hu with hu | hu
-    · exact ⟨.node P s x rs, preceq_refl _, List.mem_toFinset.mp hu⟩
+    · exact ⟨.node P s root x rs, preceq_refl _, List.mem_toFinset.mp hu⟩
     · obtain ⟨W, hWP, hu⟩ := ih hu
-      exact ⟨W, preceq_node_of_preceq s x rs hWP, hu⟩
+      exact ⟨W, preceq_node_of_preceq s root x rs hWP, hu⟩
 
 include horigin in
 /-- FINAL 22:948–958. Raw rows before a cut bound the endpoint height.
@@ -228,7 +228,8 @@ private theorem khistory_finality_origin (base : BaseSet p c E rho)
   rw [hp]
   rfl
 
-/-- FINAL 22:1061–1070. A justified target crossing creates the exact retained W key.
+/-- ROOT-DIGEST W2b. FINAL 22:1061–1070. A justified target crossing creates the exact retained W
+key.
 DC: W4FKChainJustification.lean:185; FG-SA appends the key to its window. -/
 private theorem khistory_retained_cross (y : Nat) (U C : FGBlock (Fin p.n))
     (hc : JustifiedCross p C U y) : Window.RetainedW p C y U := by
@@ -242,37 +243,37 @@ private theorem khistory_retained_cross (y : Nat) (U C : FGBlock (Fin p.n))
     omega
   cases C with
   | genesis => exact (hne rfl).elim
-  | node P s x rs =>
+  | node P s root x rs =>
     change (heightView p P).h = y at hp
     have hp' : (Window.derive p p.K_W P).h = y := by
       simpa only [heightView_def, Window.projectHeight_def] using hp
-    have hj' : (Window.derive p p.K_W (.node P s x rs)).h_j = y := by
+    have hj' : (Window.derive p p.K_W (.node P s root x rs)).h_j = y := by
       simpa only [heightView_def, Window.projectHeight_def] using hj
-    have hJ' : (Window.derive p p.K_W (.node P s x rs)).J = U := by
+    have hJ' : (Window.derive p p.K_W (.node P s root x rs)).J = U := by
       simpa only [heightView_def, Window.projectHeight_def] using hJ
     have ht : Window.targetQuorum p.E
-        (Window.finalizeWindow p.E (Window.certificateFolded p p.K_W (.node P s x rs))) =
+        (Window.finalizeWindow p.E (Window.certificateFolded p p.K_W (.node P s root x rs))) =
           true := by
-      rcases Window.window_latest_pair_kept p p.K_W P s x rs with kept | crossed
+      rcases Window.window_latest_pair_kept p p.K_W P s root x rs with kept | crossed
       · have below := (fgCertificateLaws p).height.justified_below_height P
         simp only [heightView_def, Window.projectHeight_def] at below
         rw [← kept.1, hj', hp'] at below
         exact (Nat.lt_irrefl y below).elim
       · exact crossed.2.2
-    have latest : (Window.derive p p.K_W (.node P s x rs)).h_j =
+    have latest : (Window.derive p p.K_W (.node P s root x rs)).h_j =
         (Window.finalizeWindow p.E
-          (Window.certificateFolded p p.K_W (.node P s x rs))).h ∧
-        (Window.derive p p.K_W (.node P s x rs)).J =
+          (Window.certificateFolded p p.K_W (.node P s root x rs))).h ∧
+        (Window.derive p p.K_W (.node P s root x rs)).J =
         (Window.finalizeWindow p.E
-          (Window.certificateFolded p p.K_W (.node P s x rs))).T_h := by
+          (Window.certificateFolded p p.K_W (.node P s root x rs))).T_h := by
       change (Window.process_height_events p.E p.cfg p.K_W
-          (Window.certificateFolded p p.K_W (.node P s x rs))).h_j = _ ∧
+          (Window.certificateFolded p p.K_W (.node P s root x rs))).h_j = _ ∧
         (Window.process_height_events p.E p.cfg p.K_W
-          (Window.certificateFolded p p.K_W (.node P s x rs))).J = _
+          (Window.certificateFolded p p.K_W (.node P s root x rs))).J = _
       rw [Window.process_height_events_def, ite_eq_left ht]
       exact ⟨rfl, rfl⟩
     obtain ⟨_hw, older, appended, _hord, _hf⟩ :=
-      Window.window_target_appended_newest p p.K_W p.kWLarge P s x rs ht
+      Window.window_target_appended_newest p p.K_W p.kWLarge P s root x rs ht
     rw [latest.1.symm.trans hj', latest.2.symm.trans hJ'] at appended
     rw [Window.RetainedW_def]
     refine ⟨⟨y, U, ∅⟩, ?_, rfl, rfl⟩

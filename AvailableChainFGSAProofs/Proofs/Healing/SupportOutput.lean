@@ -38,7 +38,8 @@ private theorem output_time_le (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     exact hv
   exact Int.lt_add_one_iff.mp ((Gen.V2.Duty.index_lt_idxBefore_iff hs hb (v + 1)).mp hlt)
 
-/-- Blueprint 21:748–783 (H.3), 1148–1252 (F1 + F2 + F4); plan H-SUPPORT §4 steps 7–8.
+/-- ROOT-DIGEST W2b. Blueprint 21:748–783 (H.3), 1148–1252 (F1 + F2 + F4); plan H-SUPPORT §4 steps
+7–8.
 DC: INTENTIONAL every honest frame inside the phase, after an honest label-i HEAD witness
 W ⪰ B reaches it, has Z and F below W and lo ≤ h(W). The F-root case uses RXing; the
 top-J case uses the common J. So honest finality and B are comparable. -/
@@ -56,7 +57,8 @@ theorem healing_support_frame_at (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c
       (SA.voteTime p.toParams i)) i))
     {a : Nat} {y : V} (hy : y ∈ rho.honest)
     (ha1 : V2.D.Run.idxBefore rho (SA.voteTime p.toParams i + p.Δ) ≤ a)
-    (ha0 : V2.D.Run.idxBefore rho u ≤ a) (hav : a ≤ timeIdx rho v) :
+    (ha0 : V2.D.Run.idxBefore rho u ≤ a) (hav : a ≤ timeIdx rho v)
+    (hroots : NamedRootCollisionFree p c E rho) :
     ∃ W ∈ (storeAt p c E rho a y).fg.TF, Block.Preceq B (eraseFG W) ∧
       FGBlock.Preceq (R_at p c E rho a y).Z W ∧
       FGBlock.Preceq (storeAt p c E rho a y).fg.F W ∧
@@ -65,7 +67,8 @@ theorem healing_support_frame_at (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c
   have hd := p.deltaPos
   have hvq : SA.voteTime p.toParams i ≤ v := (le_add_of_nonneg_right hd.le).trans hev
   obtain ⟨Kfg, hKfull, hKe, W, _, hKW, hloW, hrelay⟩ :=
-    healing_head_witness_relay p c E rho mono crossing hE hN hDelta hsync u v m J contested
+    healing_head_witness_relay (hroots := hroots)
+      p c E rho mono crossing hE hN hDelta hsync u v m J contested
       hgst hphase hz hjz hhead hev
   have hBW : Block.Preceq B (eraseFG W) := by
     refine Gen.Pure.block_preceq_trans hBK ?_
@@ -200,7 +203,8 @@ theorem healing_output_gate_step [Fintype V] (E : Generic.Env V)
         hnc
     · exact Gen.Pure.block_preceq_trans hBK hKS
 
-/-- Blueprint 21:721–739 (H.2 S3), 1012–1045 (frame); plan H-SUPPORT §4 step 8, G7, G8;
+/-- ROOT-DIGEST W2b. Blueprint 21:721–739 (H.2 S3), 1012–1045 (frame); plan H-SUPPORT §4 step 8, G7,
+G8;
 ruling B31. DC: INTENTIONAL the guarded S3 output clause from a HEAD clause and the
 lease invariant at the gates d_(s+1). From the cut after d_(s+1) to the end of the
 interval, every honest output covers B. Finality and B are comparable in the phase
@@ -287,7 +291,8 @@ theorem healing_output_cover [Fintype V] (E : Generic.Env V)
       (hbv : b ≤ timeIdx rho v) :
       Block.Preceq B (eraseFG (storeAt p c E rho b y).fg.F) ∨
         Block.Preceq (eraseFG (storeAt p c E rho b y).fg.F) B := by
-    obtain ⟨W, _, hBW, _, hFW, _⟩ := healing_support_frame_at E rho mono crossing hE hN hDelta
+    obtain ⟨W, _, hBW, _, hFW, _⟩ := healing_support_frame_at (hroots := hrec.base.idealization)
+      E rho mono crossing hE hN hDelta
       hrec.sync hgst hphase hu1 hq1v hy hjz hBK hy ((hidxmono hq1).trans hb1)
       ((hidxmono (hu1.trans ((le_add_of_nonneg_right hd.le).trans hq1))).trans hb1) hbv
     rcases Gen.Pure.block_preceq_total_of_common (eraseFG_preceq hFW) hBW with h | h

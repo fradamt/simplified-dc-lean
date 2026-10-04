@@ -181,7 +181,7 @@ theorem frontier_seed_qSucc_input [Fintype V] {G ΔF : Time}
   exact repair_h6_input E rho hrec mono crossing hgst hphase hhead hvs
     (tfSeed_qSucc_lease_cover E rho hrec mono crossing writes hgst hphase hseed) hx hip hy hih
 
-/-- Blueprint 21:956–958, 1004–1025, 1570–1574; plan §3.1 step 7.
+/-- ROOT-DIGEST W2b. Blueprint 21:956–958, 1004–1025, 1570–1574; plan §3.1 step 7.
 DC: INTENTIONAL every honest q+1 HEAD is the honest q+1 proposal.
 The two arms consume `fgsa_retainedReads_H6` and `fgsa_retainedReads_H6S`, respectively. -/
 theorem frontier_seed_qSucc_head [Fintype V] {G ΔF : Time}
@@ -255,9 +255,11 @@ theorem frontier_seed_qSucc_head [Fintype V] {G ΔF : Time}
         (controls p (clock p (rho.stateBefore E ip x).st
           (SA.proposalTime p.toParams (q + 1)))).Z B Kc := by
     rcases hseed with _h6 | _h6s
-    · exact fgsa_retainedReads_H6 E rho hE hN hDelta (q + 1) hSync hx hip hseat B raw sup
+    · exact fgsa_retainedReads_H6 (hroots := hrec.base.idealization)
+        E rho hE hN hDelta (q + 1) hSync hx hip hseat B raw sup
         rows hem hinput
-    · exact fgsa_retainedReads_H6S E rho hE hN hDelta (q + 1) hSync hx hip hseat B raw sup
+    · exact fgsa_retainedReads_H6S (hroots := hrec.base.idealization) E rho hE hN hDelta (q + 1)
+        hSync hx hip hseat B raw sup
         rows hem hinput
   exact exactService_head_of_retained_proposal_recovery E rho G hrec (q + 1) hGST hx hip
     hseat B raw sup rows hem _ hreads hhor

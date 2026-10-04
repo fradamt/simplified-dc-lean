@@ -70,7 +70,7 @@ private theorem ordered_of_confirmation
         · exact block_compatible_of_preceq_compatible haD (cleanHist_results_compatible hh hD hBold)
       obtain ⟨ha, hb, hpath⟩ := hbatch x r ht s B hBold hsr
       obtain ⟨D, hD, hBD⟩ := fgsa_confirmationFrom_covers_majority p (actView pre)
-        (eraseFG pre.fg.F) B r hac ha hb hpath
+        (eraseFG pre.fg.F) B r B.root hac ha hb hpath
       have hraw := Option.some.inj ((clean_gate_raw hsch ht).symm.trans hCnew)
       have he : D = C := Option.some.inj (hD.symm.trans hraw)
       exact he ▸ hBD
@@ -604,7 +604,8 @@ private theorem gate_active_heads (b₀ : Time) (h : CleanCut₂ p c E rho b₀ 
       (SA.earlyTime p.toParams (s + 1)) x).st.fg.F) K := by
     rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hsch]
     exact hprefix.2 _ hidx
-  have hpath := fgsa_active_path_of_coverage E rho h.base.valid h.base.noRestart h.base.delta
+  have hpath := fgsa_active_path_of_coverage (hroots := h.base.idealization)
+    E rho h.base.valid h.base.noRestart h.base.delta
     (fun t => t + p.Δ) b₀ (SA.earlyTime p.toParams (s + 1)) 0 x K required paths hx hcov hp hFearly
   have hKearly : K ∈ (storeAt p c E rho j x).base.blocks := by
     have hm := (actView_blocks _ K).mp (hpath K (block_preceq_refl K))
@@ -703,7 +704,7 @@ private theorem gate_batch_of_history (b₀ : Time) (h : CleanCut₂ p c E rho b
   exact gate_active_heads p c E rho b₀ h hf hi ht hh hs B hB k
     ((hH k).mp hk).1 ((hH k).mp hk).2
 
-/-- P3 F2.5a; bp02 §5.4. Class B, new-gate nonemptiness.
+/-- ROOT-DIGEST W2b. P3 F2.5a; bp02 §5.4. Class B, new-gate nonemptiness.
 DC: NamedConfirmationWalk.lean:38 and Goldfish/Confirmation.lean:494,567.
 INTENTIONAL: the optional F-anchored raw result must pass the anchor test
 (spec/fgsa-protocol.tex:2506–2513). Label zero returns genesis exactly.
@@ -723,7 +724,7 @@ theorem clean_gate_nonempty (b₀ : Time) :
       .genesis (fun _ _ _ => block_genesis_preceq _)
     let pre := clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams (s + 1))
     obtain ⟨B, hB, _⟩ := fgsa_confirmationFrom_covers_majority p (actView pre)
-      (eraseFG pre.fg.F) .genesis (s + 1)
+      (eraseFG pre.fg.F) .genesis (s + 1) genesisRoot
       (block_compatible_of_common (block_preceq_refl _) (block_genesis_preceq _))
       hb.1 hb.2.1 hb.2.2
     refine ⟨B, (clean_gate_raw h.base.valid.toScheduleWellFormed ht).trans (congrArg some hB), ?_⟩

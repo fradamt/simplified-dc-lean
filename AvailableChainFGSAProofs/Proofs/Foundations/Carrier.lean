@@ -9,7 +9,7 @@ public section
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
 
-/-- Erasure preserves identity and order on all FG blocks, hence on run blocks.
+/-- ROOT-DIGEST W2b. Erasure preserves identity and order on all FG blocks, hence on run blocks.
 This uses the existing derived-root carrier lemmas. -/
 theorem fgsa_carrier_geometry {n : Nat} (X Y : FGBlock (Fin n)) :
     (eraseFG X = eraseFG Y → X = Y) ∧
@@ -19,9 +19,7 @@ theorem fgsa_carrier_geometry {n : Nat} (X Y : FGBlock (Fin n)) :
   refine ⟨fun h => eraseFG_injective h, ⟨eraseFG_preceq, ?_⟩,
     (eraseFG_parent X).symm, eraseFG_slot X, eraseFG_root X⟩
   intro h
-  exact preceq_of_eraseFG_preceq (Vw := ({X, Y} : Finset (FGBlock (Fin n))))
-    (fun A B _ _ he => FGBlock.root_injective he)
-    ⟨X, by simp, KitFG.preceq_refl X⟩ ⟨Y, by simp, KitFG.preceq_refl Y⟩ h
+  exact eraseFG_preceq_iff.mp h
 
 /-- DC counterpart: none (row decoding helper).
 A decoded row has the FG seat authentication of its signer. -/
@@ -56,7 +54,7 @@ theorem stored_block_wire_delivery (p : Params) {In V : Type} [DecidableEq V]
   apply toWire_injective
   rw [toWire_ofWire, ho]
 
-/-- DC counterpart: none (stored-chain delivery refinement).
+/-- ROOT-DIGEST W2b. DC counterpart: none (stored-chain delivery refinement).
 Every stored-chain row at any node has an authenticated wire from a delivered proposal.
 T7.5 supplies the stored wire and its delivery; unforgeability supplies the
 honest holder's emission. No schedule or execution-validity premise is needed. -/
@@ -75,7 +73,7 @@ theorem stored_chain_row_origin_delivery (p : Params) {In V : Type} [DecidableEq
   clear hW
   induction W with
   | genesis => intro u hu; exact (Finset.notMem_empty u hu).elim
-  | node P s body rows ih =>
+  | node P s root body rows ih =>
       intro u hu
       change u ∈ rows.toFinset ∪ chainRows P at hu
       rcases (Finset.mem_union.mp hu).symm with hu | hu

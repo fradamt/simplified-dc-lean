@@ -58,13 +58,13 @@ private theorem scoreRun_lift_raw {n : Nat} (xs : List (GridCO.Wire n)) (s : Slo
     rw [ht]
     rfl
 
-/-- P3 F1b.4b G25; blueprint 03:279–283.
+/-- ROOT-DIGEST W2b. P3 F1b.4b G25; blueprint 03:279–283.
 DC: Goldfish/ProposalSnapshotBridge.lean:29,42,55, proposal snapshot identities.
 INTENTIONAL: the wire encoding preserves the actual FG-SA proposal pools.
 The proposal's row list is kept opaque; only its vote fields are projected. -/
 theorem fgsa_scoreRun_proposal_pools (p : Params) (st : State p.n) (s : Slot)
     (a : Nat) (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (he : (propose p st s).map (withApp a) = some (.proposal b raw sup rows)) :
+    (he : (propose p st s).map (withApp p a) = some (.proposal b raw sup rows)) :
     b.slot = s ∧ raw.map baseVote = proposerVotes st s ∧
       sup.map baseVote = proposerSupport st s := by
   have hl : ∀ o ∈ proposerVotes st s, GridCO.headLabel? o = some (s - 1) := by
@@ -452,7 +452,8 @@ private theorem scoreRun_block_receipt_to_tick
     (hT : Gen.V2.Duty.Trigger E rho o t) (hlt : t < dl t) (hc : dl t ≤ cut)
     {ih : Nat} {y : V} {u : Time} (hy : y ∈ rho.honest)
     (hih : rho.events[ih]? = some (.tick y u)) (hd : dl t ≤ u)
-    (hF : Block.Preceq (eraseFG (clock p (V2.D.Run.stateBefore E rho ih y).st u).fg.F) B) :
+    (hF : Block.Preceq (eraseFG (clock p (V2.D.Run.stateBefore E rho ih y).st u).fg.F) B)
+    (hroots : NamedRootCollisionFree p c E rho) :
     B ∈ (clock p (V2.D.Run.stateBefore E rho ih y).st u).base.blocks := by
   let a := V2.D.Run.idxBefore rho (dl t)
   let z := V2.D.Run.idxBefore rho u
@@ -472,7 +473,7 @@ private theorem scoreRun_block_receipt_to_tick
     exact Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl B)
       (Gen.Pure.block_preceq_trans (eraseFG_preceq hFmono) hF')
   obtain ⟨s, raw, sup, rows, rfl⟩ := scoreRun_block_decode ho
-  obtain ⟨Y, hY, he⟩ := fgsa_proposal_receipt E rho hDelta hE hN dl cut
+  obtain ⟨Y, hY, he⟩ := fgsa_proposal_receipt (hRoots := hroots) E rho hDelta hE hN dl cut
     s B raw sup rows t y hD hT hy hc hlt hcompat
   have hkeep := (fgsa_store_cumulative p c E rho hN haz y).1
   change (V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho (dl t)) y).st.fg.TF ⊆
@@ -502,7 +503,7 @@ private theorem scoreRun_block_before_tick
     exact ⟨j, t, o, ho, ha,
       (Gen.V2.Duty.index_lt_idxBefore_iff hE.toScheduleWellFormed hd u).mp hj⟩
 
-/-- P3 F1b.4b G25 N1; blueprint 03:293–304.
+/-- ROOT-DIGEST W2b. P3 F1b.4b G25 N1; blueprint 03:293–304.
 DC: Goldfish/ProposalSnapshotBridge.lean:147–151, forward target membership.
 INTENTIONAL: the receiving endpoint floor bounds earlier receipt floors.
 A stored proposal-support head above D is retained at the HEAD read.
@@ -524,7 +525,8 @@ theorem fgsa_scoreRun_block_forward
       (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) D)
     (hDB : Block.Preceq D B)
     (hm : B ∈ (clock p (V2.D.Run.stateBefore E rho ip x).st
-      (SA.proposalTime p.toParams s)).base.blocks) :
+      (SA.proposalTime p.toParams s)).base.blocks)
+    (hroots : NamedRootCollisionFree p c E rho) :
     B ∈ (clock p (V2.D.Run.stateBefore E rho ih y).st
       (SA.voteTime p.toParams s)).base.blocks := by
   rw [clock_base_blocks] at hm
@@ -542,7 +544,7 @@ theorem fgsa_scoreRun_block_forward
       max_lt ht (sub_lt_self _ p.deltaPos)
     change dl t ≤ SA.proposalTime p.toParams s + p.Δ
     linarith
-  exact scoreRun_block_receipt_to_tick E rho hE hN hDelta dl cut hD t o B ho
+  exact scoreRun_block_receipt_to_tick (hroots := hroots) E rho hE hN hDelta dl cut hD t o B ho
     (Or.inr ⟨x, hx, j, ha⟩) (hlt t) (hd.trans hc) hy hih hd
     (Gen.Pure.block_preceq_trans hgeom.target_floor hDB)
 
@@ -565,7 +567,7 @@ private theorem scoreRun_clock_block_stamp
     contradiction
   | some row => rfl
 
-/-- P3 F1b.4b G25 N1; blueprint 03:305–312.
+/-- ROOT-DIGEST W2b. P3 F1b.4b G25 N1; blueprint 03:305–312.
 DC: Goldfish/ProposalSnapshotBridge.lean:152–155, backward target membership.
 INTENTIONAL: a frozen resolved head above D is active at the proposal read.
 The source endpoint floor supplies compatibility at the earlier receipt.
@@ -585,7 +587,8 @@ theorem fgsa_scoreRun_block_backward
     (hDB : Block.Preceq D B)
     (hm : B ∈ (V2.D.Run.stateBefore E rho ih y).st.base.blocks)
     (ht : GridCO.stampBlock (V2.D.Run.stateBefore E rho ih y).st.base B <
-      SA.freezeTime p.toParams s) :
+      SA.freezeTime p.toParams s)
+    (hroots : NamedRootCollisionFree p c E rho) :
     B ∈ (actView (clock p (V2.D.Run.stateBefore E rho ip x).st
       (SA.proposalTime p.toParams (s + 1)))).blocks := by
   have hFB := Gen.Pure.block_preceq_trans hgeom.source_floor hDB
@@ -620,7 +623,7 @@ theorem fgsa_scoreRun_block_backward
   have hpv : SA.proposalTime p.toParams (s + 1) ≤ SA.voteTime p.toParams (s + 1) := by
     change 4 * p.Δ * ((s + 1 : Nat) : Int) ≤ 4 * p.Δ * ((s + 1 : Nat) : Int) + p.Δ
     linarith [p.deltaPos]
-  exact scoreRun_block_receipt_to_tick E rho hE hN hDelta dl cut hD t o B ho
+  exact scoreRun_block_receipt_to_tick (hroots := hroots) E rho hE hN hDelta dl cut hD t o B ho
     (Or.inr ⟨y, hy, j, ha⟩) (hlt t) (hd.trans (hpv.trans hc)) hx hip hd hFB
 
 private theorem scoreRun_carried_support (p : Params) (st : State p.n)
@@ -642,7 +645,7 @@ private theorem scoreRun_carried_support (p : Params) (st : State p.n)
   · simp only [hl, beq_self_eq_true, Bool.true_and, hk]
     exact Bool.and_eq_true_iff.mpr ⟨decide_eq_true hm, decide_eq_true hv⟩
 
-/-- P3 F1b.4b G25 N1; blueprint 03:298–304.
+/-- ROOT-DIGEST W2b. P3 F1b.4b G25 N1; blueprint 03:298–304.
 DC: Goldfish/ProposalSnapshotBridge.lean:147–151, `forward`.
 INTENTIONAL: the original declared support is carried literally and its
 head is relayed using the target endpoint floor. This gives incidence above D.
@@ -664,7 +667,8 @@ theorem fgsa_scoreRun_support_forward
     (D : Block)
     (hgeom : ScoreRunGeometry
       (clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s))
-      (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) D) :
+      (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) D)
+    (hroots : NamedRootCollisionFree p c E rho) :
     let src := clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s)
     let dst := clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)
     ∀ X, Block.Preceq D X → ∀ i,
@@ -685,7 +689,8 @@ theorem fgsa_scoreRun_support_forward
     have hslot : K.slot ≤ s - 1 := by
       have h := (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp hv).1).2
       simpa only [hl, Option.getD_some, decide_eq_true_eq] using h
-    have hKdst := fgsa_scoreRun_block_forward E rho hE hN hDelta s hSync hx hy hip hih
+    have hKdst := fgsa_scoreRun_block_forward (hroots := hroots)
+      E rho hE hN hDelta s hSync hx hy hip hih
       D K hgeom (Gen.Pure.block_preceq_trans hDX hXK) hm
     have hmem := hem
     rw [(V2.D.Run.step_tick_eq E rho hip).2] at hmem
@@ -700,7 +705,7 @@ theorem fgsa_scoreRun_support_forward
     exact Bool.and_eq_true_iff.mpr ⟨Bool.and_eq_true_iff.mpr
       ⟨decide_eq_true hKdst, decide_eq_true hslot⟩, hXK⟩
 
-/-- P3 F1b.4b G25 N1; blueprint 03:305–312.
+/-- ROOT-DIGEST W2b. P3 F1b.4b G25 N1; blueprint 03:305–312.
 DC: Goldfish/ProposalSnapshotBridge.lean:152–155, `backward`.
 INTENTIONAL: an original declaration is already source support; a frozen
 support relays both its signature and head. A clean source seat rules out
@@ -721,7 +726,8 @@ theorem fgsa_scoreRun_support_backward
     (D : Block)
     (hgeom : ScoreRunGeometry
       (clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams (s + 1)))
-      (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams (s + 1))) D) :
+      (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams (s + 1))) D)
+    (hroots : NamedRootCollisionFree p c E rho) :
     let src := clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams (s + 1))
     let dst := clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams (s + 1))
     ∀ X, Block.Preceq D X → ∀ i, GridCO.equivocates (proposerVotes src (s + 1)) i = false →
@@ -784,7 +790,8 @@ theorem fgsa_scoreRun_support_backward
         rwa [clock_base_blocks] at h
       change GridCO.stampBlock (clock p _ _).base K < _ at hbstamp
       rw [scoreRun_clock_block_stamp E rho ih y _ K hKpre] at hbstamp
-      have hKsrc := fgsa_scoreRun_block_backward E rho hE hN hDelta s hSync hx hy hip
+      have hKsrc := fgsa_scoreRun_block_backward (hroots := hroots)
+        E rho hE hN hDelta s hSync hx hy hip
         D K hgeom hDK hKpre hbstamp
       change GridCO.stampVote (clock p _ _).base o < _ at hvstamp
       rw [scoreRun_clock_vote_stamp E rho ih y _ o hm'] at hvstamp
@@ -806,7 +813,7 @@ theorem fgsa_scoreRun_support_backward
       rw [hpairs q hq] at hsup
       exact finish (pools.2.2 ▸ hsup)
 
-/-- P3 F1b.4b G25, N1 C9/C11–C13/C19; blueprint 03:256–317.
+/-- ROOT-DIGEST W2b. P3 F1b.4b G25, N1 C9/C11–C13/C19; blueprint 03:256–317.
 DC: Goldfish/ProposalSnapshotBridge.lean:139–155,210,225.
 INTENTIONAL: FG-SA compares the actual proposal and HEAD pools only above
 D. The two endpoint floor bounds replace any ordering of active floors.
@@ -830,7 +837,8 @@ theorem fgsa_score_eq_on_run
     (D : Block)
     (hgeom : ScoreRunGeometry
       (clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s))
-      (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) D) :
+      (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) D)
+    (hroots : NamedRootCollisionFree p c E rho) :
     let src := clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s)
     let dst := clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)
     let U := proposerVotes src s
@@ -876,12 +884,13 @@ theorem fgsa_score_eq_on_run
     · exact fgsa_scoreRun_raw_extra E rho hE hN hDelta s hSync hx hy hip hseat b raw sup rows hem
     · intro X hDX i hclean
       apply Bool.eq_iff_iff.mpr
-      exact ⟨fgsa_scoreRun_support_forward E rho hE hN hDelta (s + 1) hSync hx hy hip hih
+      exact ⟨fgsa_scoreRun_support_forward (hroots := hroots)
+        E rho hE hN hDelta (s + 1) hSync hx hy hip hih
           b raw sup rows hem hadm' D hgeom X hDX i,
-        fgsa_scoreRun_support_backward E rho hE hN hDelta s hSync hx hy hip hseat
+        fgsa_scoreRun_support_backward (hroots := hroots) E rho hE hN hDelta s hSync hx hy hip hseat
           b raw sup rows hem D hgeom X hDX i hclean⟩
 
-/-- P3 F1b.4b N1 C14; blueprint 03:367–373.
+/-- ROOT-DIGEST W2b. P3 F1b.4b N1 C14; blueprint 03:367–373.
 DC: Goldfish/ProposalWalkTransportCore.lean:183–187, reflected membership.
 INTENTIONAL: relay an FG-SA frozen block at exactly (t_s - Δ, t_s).
 The endpoint floor gives receipt compatibility. The existing private
@@ -902,7 +911,8 @@ theorem fgsa_walkRun_frozen_block
     (hDB : Block.Preceq D B)
     (hm : B ∈ (V2.D.Run.stateBefore E rho ih y).st.base.blocks)
     (ht : GridCO.stampBlock (V2.D.Run.stateBefore E rho ih y).st.base B <
-      SA.freezeTime p.toParams s) :
+      SA.freezeTime p.toParams s)
+    (hroots : NamedRootCollisionFree p c E rho) :
     B ∈ (actView (clock p (V2.D.Run.stateBefore E rho ip x).st
       (SA.proposalTime p.toParams (s + 1)))).blocks := by
   have hFB := Gen.Pure.block_preceq_trans hgeom.source_floor hDB
@@ -934,13 +944,12 @@ theorem fgsa_walkRun_frozen_block
     have hb := hb t
     rw [← hz, max_eq_right (le_of_lt htz), hDelta, hz] at hb
     linarith
-  exact scoreRun_block_receipt_to_tick E rho hE hN hDelta dl cut hD t o B ho
+  exact scoreRun_block_receipt_to_tick (hroots := hroots) E rho hE hN hDelta dl cut hD t o B ho
     (Or.inr ⟨y, hy, j, ha⟩) (hlt t) (hd.trans hc) hx hip hd hFB
 
 private theorem walkRun_lift_prefix {n : Nat} {A B : FGBlock (Fin n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B := by
-  exact preceq_of_eraseFG_preceq (Vw := {A, B}) (KitFG.viewRootInj_all _)
-    ⟨A, by simp, KitFG.preceq_refl _⟩ ⟨B, by simp, KitFG.preceq_refl _⟩ h
+  exact eraseFG_preceq_iff.mp h
 
 /-- P3 F1b.4b G11; blueprint 03:371–373.
 DC: Goldfish/ProposalWalkTransportCore.lean:183–187, reflected membership.
@@ -1022,13 +1031,13 @@ theorem fgsa_walkRun_eligible_iff (p : Params) (st : State p.n)
   simp only [hf, decide_false, Bool.false_or, beq_eq_false_iff_ne.mpr hs,
     Bool.or_false, decide_eq_true_eq]
 
-/-- P3 F1b.4b G11; blueprint 03:340–341.
+/-- ROOT-DIGEST W2b. P3 F1b.4b G11; blueprint 03:340–341.
 DC: ChainState/ProposalBridge.lean:90, proposedBlockAt_parent.
 INTENTIONAL: project only the parent selected at the FG-SA proposal read;
 the selected row list remains opaque. -/
 theorem fgsa_walkRun_proposal_parent (p : Params) (st : State p.n) (s : Slot)
     (a : Nat) (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (he : (propose p st s).map (withApp a) = some (.proposal b raw sup rows)) :
+    (he : (propose p st s).map (withApp p a) = some (.proposal b raw sup rows)) :
     0 < s ∧ b.parent? = some (getHead p st (proposerVotes st s) (proposerSupport st s)) ∧
       b.parent = getHead p st (proposerVotes st s) (proposerSupport st s) := by
   unfold propose at he
@@ -1074,7 +1083,7 @@ private theorem walkRun_parent_prefix {C X : Block} (h : C.parent? = some X) :
     Block.Preceq X C := by
   cases C with
   | genesis => cases h
-  | node P s r =>
+  | node P s root r =>
     have he : P = X := Option.some.inj h
     subst P
     change (decide _ || Block.preceq X X) = true
@@ -1083,17 +1092,17 @@ private theorem walkRun_parent_prefix {C X : Block} (h : C.parent? = some X) :
 private theorem walkRun_parent_eq {C X : Block} (h : C.parent? = some X) : C.parent = X := by
   cases C with
   | genesis => cases h
-  | node P s r => exact Option.some.inj h
+  | node P s root r => exact Option.some.inj h
 
 private theorem walkRun_child_before_parent {P Q X C : Block}
     (hP : P.parent? = some Q) (hC : C.parent? = some X)
     (hCP : Block.Preceq C P) (hne : X ≠ Q) : Block.Preceq C Q := by
   cases P with
   | genesis => cases hP
-  | node A s r =>
+  | node A s root r =>
     have he : A = Q := Option.some.inj hP
     subst A
-    change (decide (C = .node Q s r) || Block.preceq C Q) = true at hCP
+    change (decide (C = .node Q s root r) || Block.preceq C Q) = true at hCP
     rcases Bool.or_eq_true_iff.mp hCP with he | hp
     · have he := of_decide_eq_true he
       subst C
@@ -1116,7 +1125,7 @@ private theorem walkRun_ancestor_stored (p : Params) (st : State p.n)
   obtain ⟨A, hA, he⟩ := eraseFG_ancestor_mem h.fg.closed hW hCB
   exact (h.baseTree C).mpr ⟨A, hA, he⟩
 
-/-- P3 F1b.4b N1 C14; blueprint 03:367–371.
+/-- ROOT-DIGEST W2b. P3 F1b.4b N1 C14; blueprint 03:367–371.
 DC: Goldfish/ProposalWalkTransportCore.lean:183–187, target-child reflection.
 INTENTIONAL: split the actual FG-SA voter domain into its frozen arm and
 its authenticated proposal-path arm. Only the frozen arm needs delivery,
@@ -1146,7 +1155,8 @@ theorem fgsa_walkRun_reflected_block
         (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams (s + 1))).fg
         (voterBlocks p
           (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams (s + 1)))
-          (s + 1)))) :
+          (s + 1))))
+    (hroots : NamedRootCollisionFree p c E rho) :
     C ∈ (clock p (V2.D.Run.stateBefore E rho ip x).st
       (SA.proposalTime p.toParams (s + 1))).base.blocks := by
   let src := clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams (s + 1))
@@ -1167,7 +1177,8 @@ theorem fgsa_walkRun_reflected_block
     rw [scoreRun_clock_block_stamp E rho ih y _ C hCpre] at hf
     have hf' : GridCO.stampBlock (V2.D.Run.stateBefore E rho ih y).st.base C <
         SA.freezeTime p.toParams s := by simpa only [Nat.add_sub_cancel] using hf
-    have hb := fgsa_walkRun_frozen_block E rho hE hN hDelta s hSync hx hy hip D C hgeom
+    have hb := fgsa_walkRun_frozen_block (hroots := hroots)
+      E rho hE hN hDelta s hSync hx hy hip D C hgeom
       (Gen.Pure.block_preceq_trans hDX (walkRun_parent_prefix hp)) hCpre hf'
     exact ((actView_blocks src C).mp hb).1
   · obtain ⟨P, hP, hslot, hAP⟩ := of_decide_eq_true hc
@@ -1257,7 +1268,7 @@ private theorem walkRun_step_child (tree : List Block) (score : Block → Nat)
         exact ⟨hp.1, by simpa using hparent, helig⟩
 
 
-/-- P3 F1b.4b G11, N1 C14 with G25 C9/C11–C13/C19; blueprint 03:350–379.
+/-- ROOT-DIGEST W2b. P3 F1b.4b G11, N1 C14 with G25 C9/C11–C13/C19; blueprint 03:350–379.
 DC: Goldfish/ProposalWalkTransportCore.lean:162–191.
 INTENTIONAL: FG-SA transfers suffix coverage of the proposal parent.
 The two N1 records have the exact G25 and G11 time pairs. Comparison-prefix
@@ -1282,7 +1293,8 @@ theorem fgsa_ghost_transfer_sfx_on_run
     (D : FGBlock (Fin p.n))
     (hgeom : WalkRunGeometry p
       (clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s))
-      (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) s D) :
+      (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) s D)
+    (hroots : NamedRootCollisionFree p c E rho) :
     let dst := clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)
     Block.Preceq b.parent (headVote p dst s) := by
   intro dst
@@ -1296,7 +1308,8 @@ theorem fgsa_ghost_transfer_sfx_on_run
   have htInv : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ih y) _
   have hsrcslot : src.slot p = s := fgsa_proposal_slot (c := c) _ s
   have hdstslot : dst.slot p = s := fgsa_vote_slot (c := c) _ s
-  have hscore := fgsa_score_eq_on_run E rho hE hN hDelta s hScoreSync hx hy hip hih hseat
+  have hscore := fgsa_score_eq_on_run (hroots := hroots)
+    E rho hE hN hDelta s hScoreSync hx hy hip hih hseat
     b raw sup rows hem hadm (eraseFG D) hgeom.toScoreRunGeometry
   have hcount := hscore.2.2.1
   have hscores := hscore.2.2.2
@@ -1357,7 +1370,8 @@ theorem fgsa_ghost_transfer_sfx_on_run
       cases s with
       | zero => exact (Nat.lt_irrefl 0 hparent.1).elim
       | succ r =>
-        exact fgsa_walkRun_reflected_block E rho hE hN hDelta r hSync hx hy hip hseat
+        exact fgsa_walkRun_reflected_block (hroots := hroots)
+          E rho hE hN hDelta r hSync hx hy hip hseat
           b raw sup rows hem (eraseFG D) X C hgeom.toScoreRunGeometry hDX hXQ hpC hC
     refine ⟨fgsa_walkRun_full_domain p src hsInv D C hgeom.source_floor hgeom.source_Z
       hgeom.source_lo hstored hDC, ?_⟩

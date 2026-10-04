@@ -140,7 +140,7 @@ private theorem settle_finish (crossing : RXing p c E rho)
       have hf := healing_phase_frame p c E rho crossing hy hm hH hc hr
       exact settle_frame_fg p (clock_fg p _ _).symm hf
 
-/-- Blueprint 21:1003–1045, 1142–1209; plan S20, H-PHASE r2/P3.
+/-- ROOT-DIGEST W2b. Blueprint 21:1003–1045, 1142–1209; plan S20, H-PHASE r2/P3.
 DC: INTENTIONAL settlement after a start event, with live controls,
 one common top J, and frozen HEAD frames. Evidence can be present at the start.
 The effective-event corollary gives the third frozen RPhase clause.
@@ -151,7 +151,8 @@ input. Carriers accepted before GST are relayed by GST + Δ. -/
 theorem healing_settle_start (crossing : RXing p c E rho)
     (hvalid : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho)
     (hdelta : E.Δ = p.Δ) {ΔF : Time}
-    (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF)) :
+    (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+    (hroots : NamedRootCollisionFree p c E rho) :
     ∀ i ev v m kind, rho.events[i]? = some ev →
       E.t_GST ≤ ev.time → ev.time + 3 * p.Δ ≤ v → v ≤ rho.horizon → 1 ≤ m →
       frontierAtIdx p c E rho (i + 1) = m → AttemptPhaseAt p c E rho (i + 1) m kind →
@@ -187,7 +188,8 @@ theorem healing_settle_start (crossing : RXing p c E rho)
       (hh : (heightView p W).h = m) {k : Nat} {y : V}
       (hk : V2.D.Run.idxBefore rho (ev.time + p.Δ) ≤ k) (hy : y ∈ rho.honest) :
       W ∈ (storeAt p c E rho k y).fg.TF := by
-    have h0 := healing_phase_held_receipt p c E rho crossing hvalid hnr hdelta hsync hi
+    have h0 := healing_phase_held_receipt (hroots := hroots)
+      p c E rho crossing hvalid hnr hdelta hsync hi
       hW.1 hgst hW.2 hhor ((hcap _ le_rfl hj0v).trans hh.symm).le hy
     exact (fgsa_store_cumulative p c E rho hnr hk y).1 h0
   have hH {x : V} {W : FGBlock (Fin p.n)} (hW : HeldAt p c E rho (i + 1) x W)
@@ -270,11 +272,12 @@ theorem healing_settle_start (crossing : RXing p c E rho)
     rw [hc]
     simp only [Bool.not_true, Bool.and_false]
 
-/-- The frozen effective-event statement follows from start settlement. -/
+/-- ROOT-DIGEST W2b. The frozen effective-event statement follows from start settlement. -/
 theorem healing_settle_event (crossing : RXing p c E rho)
     (hvalid : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho)
     (hdelta : E.Δ = p.Δ) {ΔF : Time}
-    (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF)) :
+    (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+    (hroots : NamedRootCollisionFree p c E rho) :
     ∀ i ev v m kind, rho.events[i]? = some ev → EffectiveEvent p c E rho i →
       E.t_GST ≤ ev.time → ev.time + 3 * p.Δ ≤ v → v ≤ rho.horizon → 1 ≤ m →
       frontierAtIdx p c E rho (i + 1) = m → AttemptPhaseAt p c E rho (i + 1) m kind →
@@ -288,25 +291,29 @@ theorem healing_settle_event (crossing : RXing p c E rho)
           postClock E rho y (SA.voteTime p.toParams s) = some nd →
           SettledPhaseFrame p nd.st m root contested) := by
   exact fun i ev v m kind hi _heff =>
-    healing_settle_start p c E rho crossing hvalid hnr hdelta hsync i ev v m kind hi
+    healing_settle_start (hroots := hroots)
+      p c E rho crossing hvalid hnr hdelta hsync i ev v m kind hi
 
-/-- Blueprint 21:1086–1278; plan S20, H-PHASE r2/P6.
+/-- ROOT-DIGEST W2b. Blueprint 21:1086–1278; plan S20, H-PHASE r2/P6.
 DC: INTENTIONAL the five frozen RPhase clauses from P1–P5.
 Assembly supplies RMono and RXing. The other inputs are Base₂ and Recovery₂
 fields. No phase, service, fault-bound, or reset premise is an input. -/
 theorem healing_rPhase (mono : RMono p c E rho) (crossing : RXing p c E rho)
     (hvalid : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho)
     (hdelta : E.Δ = p.Δ) {ΔF : Time}
-    (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF)) :
+    (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+    (hroots : NamedRootCollisionFree p c E rho) :
     RPhase p c E rho := by
   refine ⟨?_, ?_, ?_, ?_, ?_⟩
   · intro a b m hab hb hm hfixed
     exact healing_phase_order p c E rho mono hnr a b m hab hb hm hfixed
   · intro i ev x W m hi hx hgst hm hfront hbefore hafter hh
-    exact healing_evidence_spread p c E rho crossing hvalid hnr hdelta hsync i ev x W m
+    exact healing_evidence_spread (hroots := hroots)
+      p c E rho crossing hvalid hnr hdelta hsync i ev x W m
       hi hx hgst hm hfront hbefore hafter hh
   · intro i ev v m kind hi heff hgst hu hv hm hfront hkind hquiet
-    obtain ⟨J, h⟩ := healing_settle_event p c E rho crossing hvalid hnr hdelta hsync
+    obtain ⟨J, h⟩ := healing_settle_event (hroots := hroots)
+      p c E rho crossing hvalid hnr hdelta hsync
       i ev v m kind hi heff hgst hu hv hm hfront hkind hquiet
     refine ⟨J, ?_⟩
     cases kind <;> exact h

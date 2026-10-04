@@ -55,8 +55,7 @@ theorem postReset_h2Prime_late (hs : V2.D.ScheduleWellFormed E rho)
 
 private theorem h2Prime_lift {A B : FGBlock (Fin p.n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
-  preceq_of_eraseFG_preceq (KitFG.viewRootInj_all {A, B})
-    ⟨A, by simp, KitFG.preceq_refl A⟩ ⟨B, by simp, KitFG.preceq_refl B⟩ h
+  eraseFG_preceq_iff.mp h
 
 section Sources
 variable [Fintype V] {G ΔF : Time}
@@ -76,7 +75,7 @@ variable [Fintype V] {G ΔF : Time}
 
 include hrec cap source rowCovered h0r
 
-/-- Blueprint 21 H2′:3382–3391, H.14 S2:2823; Centaur reset-prefix route;
+/-- ROOT-DIGEST W2b. Blueprint 21 H2′:3382–3391, H.14 S2:2823; Centaur reset-prefix route;
 B1/B13/B17/B18. DC: SAME C* strictly below an honest proposal.
 Named producers: fgsa_rCap_channel, sourceDiscipline_tSrc, rowPermission_covered.
 The all-cut carrier is used only by postReset_tCarrier_reset. -/
@@ -94,23 +93,24 @@ theorem postReset_cStar_below_proposal (inv : ∀ i, PostResetInv p c E rho w i)
   | genesis =>
     have hpos : 0 < v := lt_of_lt_of_le (Nat.succ_pos (w.sStar + 1)) hv
     exact False.elim (Nat.ne_of_gt hpos hslot.symm)
-  | node parent slot body =>
-    have hp : Block.Preceq parent (.node parent slot body) := by
-      change (decide (parent = Block.node parent slot body) || Block.preceq parent parent) = true
+  | node parent slot root body =>
+    have hp : Block.Preceq parent (.node parent slot root body) := by
+      change (decide (parent = Block.node parent slot root body) || Block.preceq parent parent) =
+        true
       rw [Gen.Pure.block_preceq_refl parent, Bool.or_true]
-    have hne : w.CStar ≠ .node parent slot body := by
+    have hne : w.CStar ≠ .node parent slot root body := by
       intro he
       rw [he] at hparent
       have hc := Gen.Pure.block_preceq_antisymm hparent hp
       have hd := congrArg Block.depth hc
       change parent.depth + 1 = parent.depth at hd
       omega
-    change (Bool.not (decide (w.CStar = Block.node parent slot body)) &&
-      Block.preceq w.CStar (.node parent slot body)) = true
+    change (Bool.not (decide (w.CStar = Block.node parent slot root body)) &&
+      Block.preceq w.CStar (.node parent slot root body)) = true
     simp only [Bool.and_eq_true, Bool.not_eq_true', decide_eq_false_iff_not]
     exact ⟨hne, Gen.Pure.block_preceq_trans hparent hp⟩
 
-/-- Blueprint 21 H2′:3382–3391; Centaur first-reader route;
+/-- ROOT-DIGEST W2b. Blueprint 21 H2′:3382–3391; Centaur first-reader route;
 B1/B13/B15/B17/B18. DC: SAME coverage before the proposal's gate.
 Named producers: fgsa_rXing and sourceDiscipline_qcOrigin, in addition to
 those of postReset_cStar_below_proposal. The path view contains every high
@@ -219,7 +219,8 @@ theorem postReset_h2Prime_first (xing : RXing p c E rho) (origin : RQCOrigin p c
     linarith [p.deltaPos]
   have hSync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _
     hrec.sync (fgsaDelay_nonrow E.Δ _) hgst (by rw [hDelta]; exact hvi) hhor
-  obtain ⟨Qfg, hefg, hpath⟩ := healing_block_path_sync p c E rho hrec.base.valid hN hDelta
+  obtain ⟨Qfg, hefg, hpath⟩ := healing_block_path_sync (hroots := hrec.base.idealization)
+    p c E rho hrec.base.valid hN hDelta
     v hSync hx hx hiy Q hQstore hQstamp (by
       change Block.Preceq (eraseFG (FGSA.clock p (storeAt p c E rho iy x) _).fg.F) Q
       rw [clock_fg]
@@ -250,7 +251,8 @@ theorem postReset_h2Prime_first (xing : RXing p c E rho) (origin : RQCOrigin p c
   have cover : ∀ K s, SourceBefore p c E rho iy K s → high p w K → K ∈ X := by
     intro K s hK hhK
     exact path K (h2Prime_lift p (by rw [hefg]; exact hbelow K s hK hhK))
-  have hkept := postReset_general_kept p c E rho xing origin h0r (inv iy) hx hX
+  have hkept := postReset_general_kept (hroots := hrec.base.idealization) p c E rho xing origin
+    h0r (inv iy) hx hX
     (path C0 hC0Q) he0 cover path
     (Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl _) (by rwa [hefg]))
     (fun K s hK hhK => Gen.Pure.block_compatible_of_common

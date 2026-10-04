@@ -31,7 +31,7 @@ private theorem ktail_view_hF (B : FGBlock (Fin p.n)) :
 
 /-! ### The latest pending pair is a window entry -/
 
-/-- Paper 22:1997–1999 (FT-Tail-W: "in the pending case the latest entry is
+/-- ROOT-DIGEST W2b. Paper 22:1997–1999 (FT-Tail-W: "in the pending case the latest entry is
 retained"). While finality is below the latest justification, the window keeps the
 latest pair (h_j, J) as an entry. Plan §3: membership from the fold, not from birth.
 DC: INTENTIONAL: W keeps up to K entries; DC keeps one pending pair. -/
@@ -45,20 +45,20 @@ theorem ktail_latest_entry (B : FGBlock (Fin p.n))
     exfalso
     rw [Window.derive_def] at hpend
     exact Nat.lt_irrefl 0 hpend
-  | node P s x rs ih =>
-    have hPB : FGBlock.Preceq P (.node P s x rs) := preceq_parent_node P s x rs
-    rcases Window.window_latest_pair_kept p p.K_W P s x rs with
+  | node P s root x rs ih =>
+    have hPB : FGBlock.Preceq P (.node P s root x rs) := preceq_parent_node P s root x rs
+    rcases Window.window_latest_pair_kept p p.K_W P s root x rs with
       ⟨hj, hJ, _hq⟩ | ⟨_hj, _hJ, hq⟩
     · have hFP := Window.window_hF_mono p p.K_W hK P _ hPB
       obtain ⟨e, he, hej, heX⟩ := ih (by rw [← hj]; exact lt_of_le_of_lt hFP hpend)
       rcases Window.window_entry_history p p.K_W hK P _ hPB e he with
         ⟨d, hd, hdj, hdX, -⟩ | ⟨-, hle, -⟩ |
-          ⟨-, -, -, P', s', x', rs', -, hP'B, -, -, hlen, _C, -, -, hall⟩
+          ⟨-, -, -, P', s', root', x', rs', -, hP'B, -, -, hlen, _C, -, -, hall⟩
       · exact ⟨d, hd, hdj.trans (hej.trans hj.symm), hdX.trans (heX.trans hJ.symm)⟩
       · rw [hej, ← hj] at hle
         exact absurd hpend (Nat.not_lt.mpr hle)
       · exfalso
-        have hne : (Window.derive p p.K_W (.node P' s' x' rs')).W ≠ [] := by
+        have hne : (Window.derive p p.K_W (.node P' s' root' x' rs')).W ≠ [] := by
           intro h0
           rw [h0] at hlen
           have h2 := hK
@@ -71,15 +71,16 @@ theorem ktail_latest_entry (B : FGBlock (Fin p.n))
         rw [hej, ← hj] at hlt
         exact absurd (lt_of_lt_of_le hlt (hdle.trans hmono)) (Nat.lt_irrefl _)
     · obtain ⟨-, older, hW, -, -⟩ :=
-        Window.window_target_appended_newest p p.K_W hK P s x rs hq
-      have hjEq : (Window.derive p p.K_W (.node P s x rs)).h_j =
-          (Window.finalizeWindow p.E (Window.certificateFolded p p.K_W (.node P s x rs))).h ∧
-          (Window.derive p p.K_W (.node P s x rs)).J =
-          (Window.finalizeWindow p.E (Window.certificateFolded p p.K_W (.node P s x rs))).T_h := by
+        Window.window_target_appended_newest p p.K_W hK P s root x rs hq
+      have hjEq : (Window.derive p p.K_W (.node P s root x rs)).h_j =
+          (Window.finalizeWindow p.E (Window.certificateFolded p p.K_W (.node P s root x rs))).h ∧
+          (Window.derive p p.K_W (.node P s root x rs)).J =
+          (Window.finalizeWindow p.E (Window.certificateFolded p p.K_W (.node P s root x rs))).T_h
+            := by
         change (Window.process_height_events p.E p.cfg p.K_W
-          (Window.certificateFolded p p.K_W (.node P s x rs))).h_j = _ ∧
+          (Window.certificateFolded p p.K_W (.node P s root x rs))).h_j = _ ∧
           (Window.process_height_events p.E p.cfg p.K_W
-          (Window.certificateFolded p p.K_W (.node P s x rs))).J = _
+          (Window.certificateFolded p p.K_W (.node P s root x rs))).J = _
         rw [Window.process_height_events_def]
         dsimp only
         rw [ite_eq_left hq]
@@ -89,7 +90,8 @@ theorem ktail_latest_entry (B : FGBlock (Fin p.n))
 
 /-! ### At most one justification birth above a height-sourceH witness -/
 
-/-- Paper 22:2001–2003 (FT-Tail-W: "before the terminal z+κ carrier there is at most
+/-- ROOT-DIGEST W2b. Paper 22:2001–2003 (FT-Tail-W: "before the terminal z+κ carrier there is at
+most
 one newer justification, at e+1"). On the chain from Q to P with Q at height at least
 y and P at height at most y+1, every birth crosses height y, and the crossing is unique.
 Plan §3: the birth set is built from uniqueness, not from a scalar height bound.
@@ -112,7 +114,7 @@ theorem ktail_one_birth (Q P : FGBlock (Fin p.n)) (y : Nat)
     have hQpar : FGBlock.Preceq Q C.parent := by
       cases C with
       | genesis => exact (hne rfl).elim
-      | node R t z rows => exact preceq_parent_of_preceq_node hQC.1 hQC.2
+      | node R t root z rows => exact preceq_parent_of_preceq_node hQC.1 hQC.2
     have h1 := laws.h_mono hQpar
     have h2 := laws.h_mono hCP
     rw [hpar'] at h1
@@ -139,7 +141,7 @@ theorem ktail_one_birth (Q P : FGBlock (Fin p.n)) (y : Nat)
       have hAp : FGBlock.Preceq A B.parent := by
         cases B with
         | genesis => exact (hBg rfl).elim
-        | node R t z rows => exact preceq_parent_of_preceq_node hAB hne
+        | node R t root z rows => exact preceq_parent_of_preceq_node hAB hne
       have := laws.h_mono hAp
       simp only [Height] at *
       omega

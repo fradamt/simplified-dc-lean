@@ -18,10 +18,9 @@ variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
 omit [DecidableEq V] in
 private theorem first_lift {A B : FGBlock (Fin p.n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
-  preceq_of_eraseFG_preceq (KitFG.viewRootInj_all {A, B})
-    ⟨A, by simp, KitFG.preceq_refl A⟩ ⟨B, by simp, KitFG.preceq_refl B⟩ h
+  eraseFG_preceq_iff.mp h
 
-/-- Plan fgsa-s5-m5-d2d4 B `cause` (first release l = sB + 1; H.1 re-proved
+/-- ROOT-DIGEST W2b. Plan fgsa-s5-m5-d2d4 B `cause` (first release l = sB + 1; H.1 re-proved
 without PhaseInterval); blueprint 21:673–699, 2777–2798.
 DC: INTENTIONAL moving frame. Let B be a high source of label sB, and X an
 ancestor-closed part of the frozen HEAD view of an honest node x at v_(sB+1).
@@ -127,7 +126,8 @@ theorem healing_first_transfer_domain [Fintype V] {G ΔF : Time}
     exact (KitFG.mem_filteredFromView (heightView p) (FGSA.controls p dst) _ A).mpr
       ⟨hXv (hXc W hWX A hAW), hFA, hZA, W, hvW, hAW, hRd ▸ hloW⟩
   -- The live root is compatible with B: every surviving lease passed the release.
-  have hrows := healing_support_release_compat E rho hE hN hDelta s hSync hx hy hix hiy hτ hFB0
+  have hrows := healing_support_release_compat (hroots := hrec.base.idealization) E rho hE hN
+    hDelta s hSync hx hy hix hiy hτ hFB0
   have hanchor : Block.Compatible (liveRoot p dst) (eraseFG B) := by
     have hselect := Gen.Pure.foldl_select_mem (fun (best b : Block) =>
       best.depth < b.depth || (best.depth == b.depth && best.root < b.root))
@@ -155,7 +155,8 @@ theorem healing_first_transfer_domain [Fintype V] {G ΔF : Time}
     have hBK' : Block.Preceq (eraseFG B) K' := by
       rw [Gen.AC.voteSupports_def, hK'] at hsup'
       exact (Bool.and_eq_true_iff.mp hsup').2
-    obtain ⟨Kfg', hKe', hpath'⟩ := healing_support_target_path E rho hE hN hDelta s hSync
+    obtain ⟨Kfg', hKe', hpath'⟩ := healing_support_target_path (hroots := hrec.base.idealization)
+      E rho hE hN hDelta s hSync
       hx hy hiy K' hKm' hKst' (Gen.Pure.block_preceq_trans hFB' hBK')
     exact fgsa_cleanSupport_forward_relay E rho hE hN hDelta s hSync hx hy hix hiy o' ho'
       seat hs' Kfg' (hKe' ▸ hK') (eraseFG B) (hKe' ▸ hBK') hpath' hFB'

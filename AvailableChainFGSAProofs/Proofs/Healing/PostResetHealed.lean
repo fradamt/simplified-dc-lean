@@ -15,7 +15,7 @@ open AvailableChain.SimplexFG Gen.Pure
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- Blueprint 21 H.18:3049–3103, H0 proof:3373–3374; plan J7 A.
+/-- ROOT-DIGEST W2b. Blueprint 21 H.18:3049–3103, H0 proof:3373–3374; plan J7 A.
 DC: SAME source-to-parent transfer. Named TCarrier producer: J3 rest.
 The actual fresh source has height M+1; its parent prefix gives C* ⪯ Q*. -/
 theorem healing_sourcePrefix {w : HealingWitness}
@@ -29,8 +29,8 @@ theorem healing_sourcePrefix {w : HealingWitness}
   apply block_preceq_trans hparent
   cases w.QStar with
   | genesis => exact block_preceq_refl _
-  | node P s b =>
-    change (decide (P = Block.node P s b) || Block.preceq P P) = true
+  | node P s root b =>
+    change (decide (P = Block.node P s root b) || Block.preceq P P) = true
     exact Bool.or_eq_true_iff.mpr (Or.inr (block_preceq_refl P))
 
 /-- Blueprint 21 H.18:3097–3100; plan J7 B.

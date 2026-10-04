@@ -145,7 +145,8 @@ end Bits
 
 variable {p : Params}
 
-/-- Paper 22:1990–2009 (FT-Tail-W, the bits of one retained key). Every bit of the key
+/-- ROOT-DIGEST W2b. Paper 22:1990–2009 (FT-Tail-W, the bits of one retained key). Every bit of the
+key
 (hK, K) at a descendant P of Q was already set at Q, or comes from an exact finality row
 in a block strictly after Q and at or below P.
 DC: INTENTIONAL: the W window keeps bits per retained key; DC reads one live pair. -/
@@ -160,14 +161,14 @@ theorem ktail_entry_bits (Q : FGBlock (Fin p.n)) (hK : Nat) (K : FGBlock (Fin p.
       intro hQ e he hj hX i hi
       obtain rfl := preceq_genesis.mp hQ
       exact Or.inl ⟨e, he, hj, hX, hi⟩
-  | node P s x rs ih =>
+  | node P s root x rs ih =>
       intro hQ e he hj hX i hi
-      by_cases hQB : Q = .node P s x rs
+      by_cases hQB : Q = .node P s root x rs
       · subst hQB
         exact Or.inl ⟨e, he, hj, hX, hi⟩
       have hQP := preceq_parent_of_preceq_node hQ hQB
       have hev := (ktail_events_fields p.E p.cfg p.K_W
-        (Window.certificateFolded p p.K_W (.node P s x rs))).2.2 e he
+        (Window.certificateFolded p p.K_W (.node P s root x rs))).2.2 e he
       rcases hev with he' | hempty
       · have hW := (ktail_fold_fields rs { Window.derive p p.K_W P with s := s }).1
         change e ∈ (rs.foldl Window.process_row { Window.derive p p.K_W P with s := s }).W at he'
@@ -179,13 +180,14 @@ theorem ktail_entry_bits (Q : FGBlock (Fin p.n)) (hK : Nat) (K : FGBlock (Fin p.
         rcases (kbits i).mp hi with hi' | ⟨a, ha, hsig, hfp⟩
         · rcases ih hQP e' he'' hj' hX' i hi' with h | ⟨Y, hQY, hYP, h⟩
           · exact Or.inl h
-          · exact Or.inr ⟨Y, hQY, preceq_node_of_preceq s x rs hYP, h⟩
-        · refine Or.inr ⟨.node P s x rs, ⟨hQ, hQB⟩, preceq_refl _, a, ha, hsig, ?_⟩
+          · exact Or.inr ⟨Y, hQY, preceq_node_of_preceq s root x rs hYP, h⟩
+        · refine Or.inr ⟨.node P s root x rs, ⟨hQ, hQB⟩, preceq_refl _, a, ha, hsig, ?_⟩
           rw [hfp, hj', hX']
       · rw [hempty] at hi
         exact absurd hi (Finset.notMem_empty i)
 
-/-- Paper 22:1990–2009 (FT-Tail-W, an already-finalized action head). If a descendant H
+/-- ROOT-DIGEST W2b. Paper 22:1990–2009 (FT-Tail-W, an already-finalized action head). If a
+descendant H
 of Q finalizes the key (hK, K) that is pending at Q, then a quorum of identities have a
 bit for that key at Q or an exact finality row in a block strictly after Q and at or
 below H. The quorum is the bit set of the entry that H's chain selects.
@@ -204,13 +206,13 @@ theorem ktail_final_quorum (Q : FGBlock (Fin p.n)) (hK : Nat) (K : FGBlock (Fin 
       intro hQH _ hFh
       obtain rfl := preceq_genesis.mp hQH
       exact absurd hFh (Nat.ne_of_lt hQ)
-  | node P s x rs ih =>
+  | node P s root x rs ih =>
       intro hQH hF hFh
-      by_cases hQB : Q = .node P s x rs
+      by_cases hQB : Q = .node P s root x rs
       · subst hQB
         exact absurd hFh (Nat.ne_of_lt hQ)
       have hQP := preceq_parent_of_preceq_node hQH hQB
-      let w := Window.certificateFolded p p.K_W (.node P s x rs)
+      let w := Window.certificateFolded p p.K_W (.node P s root x rs)
       have hev := ktail_events_fields p.E p.cfg p.K_W w
       have hfold := ktail_fold_fields rs { Window.derive p p.K_W P with s := s }
       change (Window.process_height_events p.E p.cfg p.K_W w).F = K at hF
@@ -230,7 +232,7 @@ theorem ktail_final_quorum (Q : FGBlock (Fin p.n)) (hK : Nat) (K : FGBlock (Fin 
           refine ⟨S, hS, fun i hi => ?_⟩
           rcases hcov i hi with h | ⟨Y, h1, h2, h3⟩
           · exact Or.inl h
-          · exact Or.inr ⟨Y, h1, preceq_node_of_preceq s x rs h2, h3⟩
+          · exact Or.inr ⟨Y, h1, preceq_node_of_preceq s root x rs h2, h3⟩
       | some d =>
           have hfin := (ktail_finalize_fields p.E w).1 d hg
           obtain ⟨hdW, hdQ⟩ := ktail_greatest_mem p.E w d hg
@@ -247,8 +249,8 @@ theorem ktail_final_quorum (Q : FGBlock (Fin p.n)) (hK : Nat) (K : FGBlock (Fin 
           rcases (kbits i).mp hi with hi' | ⟨a, ha, hsig, hfp⟩
           · rcases ktail_entry_bits Q hK K P hQP e he hj' hX' i hi' with h | ⟨Y, h1, h2, h3⟩
             · exact Or.inl h
-            · exact Or.inr ⟨Y, h1, preceq_node_of_preceq s x rs h2, h3⟩
-          · refine Or.inr ⟨.node P s x rs, ⟨hQH, hQB⟩, preceq_refl _, a, ha, hsig, ?_⟩
+            · exact Or.inr ⟨Y, h1, preceq_node_of_preceq s root x rs h2, h3⟩
+          · refine Or.inr ⟨.node P s root x rs, ⟨hQH, hQB⟩, preceq_refl _, a, ha, hsig, ?_⟩
             rw [hfp, hj', hX']
 
 /-- Paper 22:1265–1289, 2007–2009. A row that is R6W-valid at a parent below the key
@@ -311,7 +313,8 @@ private theorem ktail_idx_le_afterTicks {a b : Time} (hab : a ≤ b) :
   exact decide_eq_true (Prod.Lex.toLex_le_toLex.mpr
     (Or.inl ((of_decide_eq_true he).trans_le hab)))
 
-/-- Copy of Healing/FrameRelay.lean:29 (`healing_held_block_receipt`); the Finality lane
+/-- ROOT-DIGEST W2b. Copy of Healing/FrameRelay.lean:29 (`healing_held_block_receipt`); the Finality
+lane
 does not import Healing. An FG block held at an honest post-GST tick is held by every
 honest node one Δ later, when that node's store finality is below it.
 Paper 01:106–126 (acceptance relay). DC: INTENTIONAL strict relay of a held FG block. -/
@@ -325,7 +328,8 @@ private theorem ktail_held_block_receipt (mono : RMono p c E rho)
     (hW : W ∈ (storeAt p c E rho i x).fg.TF)
     (hgst : E.t_GST ≤ t) (hhor : t + p.Δ ≤ rho.horizon)
     (hF : FGBlock.Preceq
-      (storeAt p c E rho (V2.D.Run.idxBefore rho (t + p.Δ)) y).fg.F W) :
+      (storeAt p c E rho (V2.D.Run.idxBefore rho (t + p.Δ)) y).fg.F W)
+    (hroots : NamedRootCollisionFree p c E rho) :
     Gen.V2.Duty.HoldsBefore E rho (fun nd => W ∈ nd.st.fg.TF) (t + p.Δ) y := by
   have hs := hvalid.toScheduleWellFormed
   change W ∈ (V2.D.Run.stateBeforeTime E rho (t + p.Δ) y).st.fg.TF
@@ -375,14 +379,16 @@ private theorem ktail_held_block_receipt (mono : RMono p c E rho)
       apply toWire_injective
       rw [toWire_ofWire]
       exact decode_eq_block.mp hdec
-    obtain ⟨Y, hY, hYW⟩ := fgsa_proposal_receipt E rho hdelta hvalid hnr dl rho.horizon
+    obtain ⟨Y, hY, hYW⟩ := fgsa_proposal_receipt (hRoots := hroots) E rho hdelta hvalid hnr dl
+      rho.horizon
       slot (eraseFG W) raw sup rows u y hD (Or.inr ⟨x, hx, k, he ▸ ha⟩) hy
       (hd.trans hhor) hu hcompat
     have hYeq : Y = W := eraseFG_injective hYW
     rw [hYeq, ← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs] at hY
     exact (fgsa_store_cumulative p c E rho hnr hidx y).1 hY
 
-/-- Copy of the private carrier read of Foundations/RowService.lean:102: the exact rows of
+/-- ROOT-DIGEST W2b. Copy of the private carrier read of Foundations/RowService.lean:102: the exact
+rows of
 an honest carrier are the modeled proposer selection at its proposal read.
 Paper 01:83–86 (R7). DC: INTENTIONAL exact FG-SA row selector. -/
 private theorem ktail_carrier_read {s : Slot} {Q : Block} {rows : List (RowWire p.n)}
@@ -450,11 +456,12 @@ private theorem ktail_carrier_read {s : Slot} {Q : Block} {rows : List (RowWire 
           (fun nd : Node p => nd.st) = some st
         rw [htick]
         rfl
-      · change (propose p st s).map (withApp _) = some (.proposal Q raw sup rows) at hm
+      · change (propose p st s).map (withApp p _) = some (.proposal Q raw sup rows) at hm
         rw [propose_head p st s (Nat.ne_of_gt hs0)] at hm
         have he : Msg.proposal
-            (.node (proposerHead p st s) s (packBody (c.app (rho.input _ _))
-              (proposalRows p st (proposerHead p st s))))
+            (proposalBlock p (proposerHead p st s) s (c.app (rho.input _ _)) ((proposerVotes st
+              s).filterMap liftHead?) ((proposerSupport st s).filterMap liftHead?) (proposalRows p
+              st (proposerHead p st s)))
             ((proposerVotes st s).filterMap liftHead?)
             ((proposerSupport st s).filterMap liftHead?)
             (proposalRows p st (proposerHead p st s)) = .proposal Q raw sup rows :=
@@ -509,15 +516,14 @@ private theorem ktail_chain_occurrence (st : State p.n) (hmeta : MetaInv p st)
     have he := Option.some.inj hrows
     subst rows
     refine ⟨W, ?_, ?_⟩
-    · apply preceq_of_eraseFG_preceq (Vw := ({W, H} : Finset (FGBlock (Fin p.n))))
-        (fun A B _ _ he => FGBlock.root_injective he)
-        ⟨W, by simp, KitFG.preceq_refl W⟩ ⟨H, by simp, KitFG.preceq_refl H⟩
+    · apply eraseFG_preceq_iff.mp
       rwa [hWe]
     · rw [hWr]
       exact List.mem_filterMap.mpr ⟨a, ha, hd⟩
   next hpath => cases hrows
 
-/-- Paper 22:715–728, 1265–1289, 2007–2009. A held finality row of any signer that is
+/-- ROOT-DIGEST W2b. Paper 22:715–728, 1265–1289, 2007–2009. A held finality row of any signer that
+is
 R6W-valid at the carrier parent sets the retained bit or is carried by the carrier.
 This is `finalityRow_bit_or_carried_W` without the honest-origin input.
 DC: INTENTIONAL exact signed row selection and checked W history. -/
@@ -555,9 +561,9 @@ private theorem ktail_any_row_bit (hv : V2.D.ExecutionValid E rho)
     left
     cases W with
     | genesis => exact (List.not_mem_nil hbW).elim
-    | node P s body rs =>
+    | node P s root body rs =>
         exact exact_row_exclusionW E rho hv k _ X.parent hstored y U e he hej heX
-          P s body rs hWP b hbW hpair
+          P s root body rs hWP b hbW hpair
 
 end Relay
 
@@ -582,7 +588,8 @@ private theorem ktail_mixed_height (X : FGBlock (Fin p.n)) :
   rw [heightView_def, Window.projectHeight_def]
   exact ⟨rfl, rfl⟩
 
-/-- Paper 01:106–126 (acceptance relay), 22:2007–2009. The action head H of an honest node
+/-- ROOT-DIGEST W2b. Paper 01:106–126 (acceptance relay), 22:2007–2009. The action head H of an
+honest node
 at action r+1 is held by the terminal proposer at its read. The block relay needs the
 receiver's store finality below H: its carrier has finality below e+1 = ht(H) before the
 next action, so R-XING puts the store finality below H.
@@ -652,7 +659,8 @@ theorem ktail_head_delivered {G ΔF : Time} {pt : TailKernelPt p}
   have hHj : HeldAt p c E rho (V2.D.Run.idxBefore rho (p.actionTime (pt.r + 1) + p.Δ)) x H :=
     ⟨hx, (fgsa_store_cumulative p c E rho hnr hkj.le x).1 hHk⟩
   have hguard := hXing _ _ _ x D H hprop le_rfl hD hDF hHj (hHh ▸ hDh)
-  have hrec := ktail_held_block_receipt hmono hT.set.base.valid hnr hT.set.base.delta
+  have hrec := ktail_held_block_receipt (hroots := hT.set.base.idealization)
+    hmono hT.set.base.valid hnr hT.set.base.delta
     hT.set.sync hk hx hprop hHk hGSTq hhor hguard
   change (postClock E rho (V2.D.proposerOf rho (fgsaInterface p c) s)
     (V2.D.proposalTime (fgsaInterface p c) s)).map (·.st) = some st at hst
@@ -678,7 +686,7 @@ theorem ktail_head_delivered {G ΔF : Time} {pt : TailKernelPt p}
     rw [clock_fg]
     exact hcum
 
-/-- Paper 22:1993–2009 (FT-Tail-W: "an already-finalized covering entry … the chain
+/-- ROOT-DIGEST W2b. Paper 22:1993–2009 (FT-Tail-W: "an already-finalized covering entry … the chain
 retains and exposes the covering finalization"). The mixed arm: some honest action head H
 of round r+1 has finalized the witness key K = J(Q) at h_K = h_j(Q). The certificate of
 H's chain is replayed at the terminal carrier X: each quorum bit is already in X's parent
@@ -772,15 +780,15 @@ theorem ktail_mixed_final {G ΔF : Time} {pt : TailKernelPt p}
       cases Y with
       | genesis =>
           exact absurd (preceq_genesis.mp hQY.1) hQY.2
-      | node P s' bx rs =>
+      | node P s' root bx rs =>
           have hQP : FGBlock.Preceq ow.Q P := preceq_parent_of_preceq_node hQY.1 hQY.2
-          have hPH : FGBlock.Preceq P H' := preceq_trans (preceq_parent_node P s' bx rs) hYH
+          have hPH : FGBlock.Preceq P H' := preceq_trans (preceq_parent_node P s' root bx rs) hYH
           have hPh : (heightView p P).h = ow.e + 1 :=
             le_antisymm (hHh ▸ laws.h_mono hPH) (ow.heightQ ▸ laws.h_mono hQP)
           have hPT : (heightView p ow.Q).T_h = (heightView p P).T_h :=
             laws.entry_plateau hQP (ow.heightQ.trans hPh.symm)
           have hval := (stored_chain_rowsValidW E rho hT.set.base.valid.toDeliveryWellFormed
-            (k + 1) x H' hHk P s' bx rs hYH a ha).2
+            (k + 1) x H' hHk P s' root bx rs hYH a ha).2
           have hvalX : Window.r6w (parentFoldState p X.slot X.parent) a = true := by
             refine ktail_r6w_transfer (Window.derive p p.K_W P) _ a _ _ hfp hval ?_ ?_ ?_
               ⟨eX, heX, heXj, heXX⟩
@@ -796,7 +804,7 @@ theorem ktail_mixed_final {G ΔF : Time} {pt : TailKernelPt p}
               rw [(ktail_mixed_height P).1, (ktail_mixed_height X.parent).1] at heq
               rw [(ktail_mixed_height P).2, (ktail_mixed_height X.parent).2, ← hPT,
                 laws.entry_plateau hQXp (ow.heightQ.trans (hPh.symm.trans heq))]
-          have hYst : FGBlock.node P s' bx rs ∈ st.fg.TF :=
+          have hYst : FGBlock.node P s' root bx rs ∈ st.fg.TF :=
             KitFG.ancestor_closed_of_parent_closed _ bundle.cstore.fg.closed H' hHst _ hYH
           obtain ⟨s0, raw0, sup0, rows0, hmem, hYrows⟩ :=
             stored_wire_of_block p st bundle.cstore bundle.meta hYst (by intro h; cases h)

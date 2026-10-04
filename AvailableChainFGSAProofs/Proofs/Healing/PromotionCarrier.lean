@@ -9,7 +9,7 @@ open AvailableChain.SimplexFG
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- The proposal read retains the emitted wire, its rows and its exact parent. -/
+/-- ROOT-DIGEST W2b. The proposal read retains the emitted wire, its rows and its exact parent. -/
 theorem healing_promotion_proposal_read (p : Params) {In V : Type} [DecidableEq V]
     (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) {s : Slot} {b : Block}
@@ -22,9 +22,9 @@ theorem healing_promotion_proposal_read (p : Params) {In V : Type} [DecidableEq 
         (V2.D.Run.stateBefore E rho j (V2.D.proposerOf rho (fgsaInterface p c) s))
         (SA.proposalTime p.toParams s)).st
       proposalStateAt p c E rho s = some st ∧ st.slot p = s ∧
-        b = .node (proposerHead p st s) s (packBody (c.app (rho.input
-          (V2.D.proposerOf rho (fgsaInterface p c) s) (SA.proposalTime p.toParams s)))
-          (proposalRows p st (proposerHead p st s))) ∧
+        b = proposalBlock p (proposerHead p st s) s (c.app (rho.input
+          (V2.D.proposerOf rho (fgsaInterface p c) s) (SA.proposalTime p.toParams s))) raw sup
+            (proposalRows p st (proposerHead p st s)) ∧
         rows = proposalRows p st (proposerHead p st s) := by
   obtain ⟨hslot, o, ⟨j, hj, hem⟩, hpay⟩ := hp
   have hs0 : 0 < s := hslot.1
@@ -85,11 +85,12 @@ theorem healing_promotion_proposal_read (p : Params) {In V : Type} [DecidableEq 
             List.any_eq_true]
           exact ⟨_, List.mem_of_getElem? hj, by simp⟩
         exact (fgsa_tick_unique E rho hs (V2.D.Run.tickIdx?_spec hk) hj) ▸ hk
-      change (propose p st s).map (withApp _) = some (.proposal b raw sup rows) at hm
+      change (propose p st s).map (withApp p _) = some (.proposal b raw sup rows) at hm
       rw [propose_head p st s (Nat.ne_of_gt hs0)] at hm
       have he : Msg.proposal
-          (.node (proposerHead p st s) s (packBody (c.app (rho.input _ _))
-            (proposalRows p st (proposerHead p st s))))
+          (proposalBlock p (proposerHead p st s) s (c.app (rho.input _ _)) ((proposerVotes st
+            s).filterMap liftHead?) ((proposerSupport st s).filterMap liftHead?) (proposalRows p
+            st (proposerHead p st s)))
           ((proposerVotes st s).filterMap liftHead?)
           ((proposerSupport st s).filterMap liftHead?)
           (proposalRows p st (proposerHead p st s)) = .proposal b raw sup rows :=
@@ -105,7 +106,7 @@ theorem healing_promotion_proposal_read (p : Params) {In V : Type} [DecidableEq 
       rw [htick]
       rfl
 
-/-- Blueprint 21:1356–1370; plan §3.2 step 2.
+/-- ROOT-DIGEST W2b. Blueprint 21:1356–1370; plan §3.2 step 2.
 DC: SAME the honest proposal wire gives one FG carrier and its stored parent.
 The result retains the original signed rows in their original order. -/
 theorem healing_promotion_carrier [Fintype V] (E : Generic.Env V)
@@ -128,7 +129,7 @@ theorem healing_promotion_carrier [Fintype V] (E : Generic.Env V)
   have hpar : Q.parent = proposerHead p st s := by rw [hb]; rfl
   have hok : rowsOk Q rows = true := by
     rw [hb, hrows]
-    exact rowsOk_node_packBody _ _ _ _
+    exact rowsOk_node_packBody _ _ _ _ _
   have hne : Q ≠ .genesis := by rw [hb]; intro h; cases h
   have hlook : FGSA.fgBlockOf st Q.parent = some P :=
     (fgBlockOf_spec p st hinv _ P).mpr ⟨hP, hPe.trans hpar.symm⟩
@@ -142,7 +143,7 @@ theorem healing_promotion_carrier [Fintype V] (E : Generic.Env V)
   · rw [fgBlock_parent]
     exact hlook
 
-/-- Blueprint 21:1356–1370; plan §3.2 step 2.
+/-- ROOT-DIGEST W2b. Blueprint 21:1356–1370; plan §3.2 step 2.
 DC: SAME an honest slot after GST emits an actual proposal within the horizon.
 Recovery supplies the awake proposer; the scheduled tick supplies emission. -/
 theorem healing_promotion_slot_proposal [Fintype V] (E : Generic.Env V)
@@ -165,14 +166,14 @@ theorem healing_promotion_slot_proposal [Fintype V] (E : Generic.Env V)
   let nd := V2.D.Run.stateBefore E rho i v
   let st := FGSA.clock p nd.st (SA.proposalTime p.toParams s)
   obtain ⟨m, hm⟩ : ∃ m, (propose p st s).map
-      (withApp (c.app (rho.input v (SA.proposalTime p.toParams s)))) = some m := by
+      (withApp p (c.app (rho.input v (SA.proposalTime p.toParams s)))) = some m := by
     rw [propose_head p st s (Nat.ne_of_gt hslot.1)]
     exact ⟨_, rfl⟩
   obtain ⟨H, raw, sup, rows, rfl, _, _⟩ := rowsOk_withApp st s _ hm
   have hQ : HonestProposal E rho (fgsaInterface p c) s
-      (.node H s (packBody (c.app (rho.input v (SA.proposalTime p.toParams s))) rows)) := by
+      (proposalBlock p H s (c.app (rho.input v (SA.proposalTime p.toParams s))) raw sup rows) := by
     refine ⟨hslot, ⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal
-      (.node H s (packBody (c.app (rho.input v (SA.proposalTime p.toParams s))) rows))
+      (proposalBlock p H s (c.app (rho.input v (SA.proposalTime p.toParams s))) raw sup rows)
       raw sup rows⟩, ⟨i, hi, ?_⟩, rfl⟩
     rw [(V2.D.Run.step_tick_eq E rho hi).2]
     exact (fgsa_emits_proposal E rho nd v _ s _).mpr

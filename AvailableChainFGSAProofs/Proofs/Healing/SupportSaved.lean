@@ -38,7 +38,7 @@ private theorem saved_process (st : State p.n) (o : Wire p.n) (w : Slot) (C : Bl
       rw [admitBlock_refused p st s b raw sup rows (Or.inl hp)] at h
       exact h
     | some P =>
-      cases ha : blockAccepted p st s b P rows with
+      cases ha : blockAccepted p st s b raw sup P rows with
       | false =>
         rw [admitBlock_refused p st s b raw sup rows (Or.inr ⟨P, hp, ha⟩)] at h
         exact h

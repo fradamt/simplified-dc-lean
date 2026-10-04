@@ -99,7 +99,7 @@ theorem frontierSearch_hg2a_gap [Fintype V] (E : Generic.Env V)
     apply max_le <;> linarith [p.deltaPos]
   exact healing_promotion_age_gap E rho hrec r U.slot hgst hwin
 
-/-- Blueprint 21:1592–1640; S5 H2, route steps 1–8.
+/-- ROOT-DIGEST W2b. Blueprint 21:1592–1640; S5 H2, route steps 1–8.
 DC: SAME the saved seed supplies source transfer only through the proposal read.
 The strict cap supplies receipt compatibility through t_X+Δ.
 The seed binders are the frozen StrongServed fields; r is an opening after q. -/
@@ -182,9 +182,7 @@ theorem frontier_hg2a_receipt [Fintype V] (E : Generic.Env V)
     have hQX : FGBlock.Preceq Qfg X.parent := by
       have hb := hf.1.2.1 s (eraseFG X) hqs le_rfl hnew
       rw [← he, eraseFG_parent] at hb
-      exact preceq_of_eraseFG_preceq (KitFG.viewRootInj_all {Qfg, X.parent})
-        ⟨Qfg, by simp, KitFG.preceq_refl _⟩
-        ⟨X.parent, by simp, KitFG.preceq_refl _⟩ hb
+      exact eraseFG_preceq_iff.mp hb
     have hUP : FGBlock.Preceq U X.parent := by
       rw [hU]
       exact KitFG.preceq_trans ((fgCertificateLaws p).height.entry_preceq Qfg) hQX

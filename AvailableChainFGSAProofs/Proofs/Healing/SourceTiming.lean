@@ -93,7 +93,7 @@ theorem healing_source_path_retained (E : Generic.Env V) (rho : V2.D.Run V (fgsa
   intro B hBK
   exact (fgsa_store_cumulative p c E rho hnr (source_idx_mono rho hab) x).1 (hpath B hBK)
 
-/-- Blueprint 21:620–631 (IF.6), 2649–2651 (H.12); B13, B17.
+/-- ROOT-DIGEST W2b. Blueprint 21:620–631 (IF.6), 2649–2651 (H.12); B13, B17.
 DC: SAME a fast source has an honest supporting HEAD at its source vote.
 Assembly supplies `sourceDiscipline_tSrc` as `source`; no Foundations import. -/
 theorem healing_source_supporter_head [Fintype V] (E : Generic.Env V)
@@ -141,10 +141,9 @@ theorem healing_source_supporter_head [Fintype V] (E : Generic.Env V)
       have hb := (Bool.and_eq_true_iff.mp hsup).2
       simpa only [hWH, decide_eq_true_eq, Block.Preceq] using hb
     refine ⟨j, z, W, hh, hj, hW, ?_⟩
-    exact preceq_of_eraseFG_preceq (KitFG.viewRootInj_all {K, W})
-      ⟨K, by simp, KitFG.preceq_refl K⟩ ⟨W, by simp, KitFG.preceq_refl W⟩ hKW
+    exact eraseFG_preceq_iff.mp hKW
 
-/-- Blueprint 21:2649–2652 (H.12), 563–567 (IF.5); B13, B17, B26.
+/-- ROOT-DIGEST W2b. Blueprint 21:2649–2652 (H.12), 563–567 (IF.5); B13, B17, B26.
 DC: SAME relay before e_s and retain the full source path at the target freeze.
 Assembly supplies `sourceDiscipline_tSrc` and `fgsa_rMono` as the named inputs.
 Finality is compared at the target read, so it can change during transport. -/
@@ -173,7 +172,8 @@ theorem healing_source_body_relay [Fintype V] (E : Generic.Env V)
     have hmono := (mono hrec.base.noRestart _ _ x hx hidx).1
     rw [← Gen.V2.Duty.stateBefore_idxBefore E rho D hs] at hF
     exact KitFG.preceq_trans hmono (KitFG.preceq_trans hF hKW)
-  have hreceipt := healing_held_block_receipt p c E rho mono hrec.base.valid
+  have hreceipt := healing_held_block_receipt (hroots := hrec.base.idealization)
+    p c E rho mono hrec.base.valid
     hrec.base.noRestart hrec.base.delta hrec.sync hj hz hx hW hgst
     (htime ▸ heD.trans hhor) (htime ▸ hFearly)
   rw [htime, Gen.V2.Duty.HoldsBefore_def] at hreceipt
@@ -244,7 +244,7 @@ theorem healing_source_body_stamps [Fintype V] (E : Generic.Env V)
     positivity
   exact hpos.trans_le heD
 
-/-- Blueprint 21:2651–2652 (H.12 old bodies), 563–567 (IF.5); B13, B17, B26.
+/-- ROOT-DIGEST W2b. Blueprint 21:2651–2652 (H.12 old bodies), 563–567 (IF.5); B13, B17, B26.
 DC: SAME honest acceptance before GST relays by GST+Δ.
 Assembly supplies `fgsa_rMono` as `mono`. The acceptance is an actual proposal
 handler call, as supplied by `fgsa_block_stamp_source`, not an assumed receipt. -/
@@ -278,7 +278,8 @@ theorem healing_source_old_body [Fintype V] (E : Generic.Env V) (rho : V2.D.Run 
   have hD := Gen.V2.Duty.deliveryWithinOn_of_partialSynchronyBy E rho hrec.sync
     (fun o => ¬ isRowObject o) p.Δ (fun o ho =>
       (fgsaDelay_nonrow E.Δ ΔF o ho).trans hrec.base.delta)
-  obtain ⟨Y, hY, hYb⟩ := fgsa_proposal_receipt E rho hrec.base.delta hrec.base.valid
+  obtain ⟨Y, hY, hYb⟩ := fgsa_proposal_receipt (hRoots := hrec.base.idealization) E rho
+    hrec.base.delta hrec.base.valid
     hrec.base.noRestart dl rho.horizon s b raw sup rows t x hD
     (Or.inr ⟨y, hy, j, ha⟩) hx ((hdl ▸ hd).trans hhor)
     ((le_max_left t E.t_GST).trans_lt (lt_add_of_pos_right _ p.deltaPos)) hcompat

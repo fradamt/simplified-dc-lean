@@ -1,8 +1,8 @@
 module
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetInvariant -- shake: keep (J4 required carrier import)
-public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat -- shake: keep (J4 carrier inputs)
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetInvariant -- shake: keep
+public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat -- shake: keep
 public import AvailableChainFGSAProofs.Proofs.Healing.ResetTransfer
-public import AvailableChainFGSAProofs.Proofs.Healing.SupportWrite -- shake: keep (gateWriteKeys equation)
+public import AvailableChainFGSAProofs.Proofs.Healing.SupportWrite -- shake: keep
 
 public section
 
@@ -89,11 +89,12 @@ variable (hv : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho)
 
 include hv hnr origin heldRows cap hhead xing h0r
 
-/-- Blueprint 21 H.17:2982–2987, H.18:3073–3095; plan J4 B;
+/-- ROOT-DIGEST W2b. Blueprint 21 H.17:2982–2987, H.18:3073–3095; plan J4 B;
 B1/B13/B17/B18. DC: SAME two provenance arms. Clause 1 uses J1's
 reset-only low arm. Clause 2 uses the selected J carrier's target QC
 and its actual delivery clock, without any future invariant field. -/
-theorem postReset_fProv_all (i : Nat) : PostResetFProv p c E rho w i := by
+theorem postReset_fProv_all (i : Nat)
+    (hroots : NamedRootCollisionFree p c E rho) : PostResetFProv p c E rho w i := by
   rw [PostResetFProv_def]
   intro j _hj x hx hi
   constructor
@@ -103,7 +104,8 @@ theorem postReset_fProv_all (i : Nat) : PostResetFProv p c E rho w i := by
       rw [hgen]
       exact Gen.Pure.block_genesis_preceq w.CStar
     obtain ⟨D, hD, hDF, K, s, hsrc, hh, hT, htime⟩ :=
-      healing_finality_source_clock p c E rho hv hnr origin heldRows cap hhead hx hgen
+      healing_finality_source_clock (hroots := hroots) p c E rho hv hnr origin heldRows cap hhead
+        hx hgen
     by_cases hlow : (finalityView p D).h_F ≤ w.M
     · exact Or.inl (healing_low_finality_after_reset E rho hv.toScheduleWellFormed
         hnr xing w h0r hx hi hD hDF hlow)
@@ -141,7 +143,7 @@ theorem postReset_fProv_all (i : Nat) : PostResetFProv p c E rho w i := by
       rw [hJW, hjW]
       exact (fgJustificationLaws p).J_height W (by rwa [← hjW])
     obtain ⟨K, s, hsrc, hh, hT, htime⟩ :=
-      healing_justified_source_clock p c E rho hv hnr origin heldRows hx hnz
+      healing_justified_source_clock (hroots := hroots) p c E rho hv hnr origin heldRows hx hnz
     have hhigh : high p w K := by
       rw [high_def] at hhighJ ⊢
       rwa [hh, ← hJh]
@@ -150,10 +152,11 @@ theorem postReset_fProv_all (i : Nat) : PostResetFProv p c E rho w i := by
     rw [← hT]
     exact eraseFG_preceq ((fgCertificateLaws p).height.entry_preceq K)
 
-/-- Blueprint 21 H.17/H.18:2946–3095; plan J4 C; B1/B13/B17/B18.
+/-- ROOT-DIGEST W2b. Blueprint 21 H.17/H.18:2946–3095; plan J4 C; B1/B13/B17/B18.
 DC: SAME RFProv body. Apply B at i + 1 to remove only its prefix guard.
 J9 supplies the frozen public H0 adapter; this theorem uses H0Reset. -/
-theorem postReset_rFProv_reset : ∀ i x,
+theorem postReset_rFProv_reset
+    (hroots : NamedRootCollisionFree p c E rho) : ∀ i x,
     x ∈ rho.honest → afterTicksIdx rho (p.actionTime w.rStar) ≤ i →
     let t := (storeAt p c E rho i x).base.now
     (Block.Preceq (F_at p c E rho i x) w.CStar ∨
@@ -165,7 +168,8 @@ theorem postReset_rFProv_reset : ∀ i x,
         SA.gateTime p.toParams s ≤ t ∧
         Block.Preceq (J_at p c E rho i x) (eraseFG K)) := by
   intro i x hx hi
-  have h := postReset_fProv_all p c E rho hv hnr origin heldRows cap hhead xing h0r (i + 1)
+  have h := postReset_fProv_all (hroots := hroots) p c E rho hv hnr origin heldRows cap hhead xing
+    h0r (i + 1)
   rw [PostResetFProv_def] at h
   exact h i (Nat.lt_succ_self i) x hx hi
 

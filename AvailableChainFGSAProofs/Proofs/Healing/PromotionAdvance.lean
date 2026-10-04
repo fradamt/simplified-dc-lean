@@ -9,7 +9,7 @@ open AvailableChain.SimplexFG
 
 variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In}
 
-/-- Blueprint 21:1385–1410; r3 A3.
+/-- ROOT-DIGEST W2b. Blueprint 21:1385–1410; r3 A3.
 DC: SAME the fixed original rows give coverage only at unchanged parent height.
 Assembly supplies rowsReceipt, progressCoverage, the honest-seat quorum and FaultQ.
 No batch is built in the parent-already-crossed branch of hfold. -/
@@ -108,7 +108,7 @@ theorem healing_promotion_advance (E : Generic.Env V)
     · intro i _ W hW hn
       exact healing_rows_above_entry_at_height p st
         (healing_promotion_proposal_reachable p c E rho hst) .progress height U X.parent
-        hparent hpar i W hW hn
+        hparent hpar hUP i W hW hn
   exact progressCoverage r height U X hb hpar
 
 end AvailableChain.FGSA.Run

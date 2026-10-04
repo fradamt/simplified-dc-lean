@@ -246,7 +246,7 @@ variable
 include hrec mono emittedNonempty emittedName writes xing origin cap source
     heldRows finalityCap hhead h0r stepRL stepLease stepRaw stepCone stepOD stepService
 
-/-- Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
+/-- ROOT-DIGEST W2b. Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
 Order: reset lease, lease safety, F provenance, raw transfer, cone,
 opening domain, service. Each open step has a named full type. All other fields use producers.
 Foundations producers: fgsa_rMono, sourceDiscipline_emittedNonempty,
@@ -277,7 +277,8 @@ theorem postReset_joint₂_all :
         PostResetOpeningDomain p c E rho w i := ⟨ih.1, ih.2.1, ih.2.2.1⟩
     have hrl := stepRLAt prior
     have hlease := stepLeaseAt prior hrl
-    have hfprov := postReset_fProv_all p c E rho hrec.base.valid hrec.base.noRestart
+    have hfprov := postReset_fProv_all (hroots := hrec.base.idealization) p c E rho
+      hrec.base.valid hrec.base.noRestart
       origin heldRows finalityCap hhead xing h0r (i + 1)
     have hraw := stepRawAt prior hrl hlease hfprov
     have hcone := stepConeAt ih hrl hlease hfprov hraw
@@ -285,7 +286,8 @@ theorem postReset_joint₂_all :
     have hservice := stepServiceAt ih hrl hlease hfprov hraw hcone hod
     have htransfer := healing_resetTransferCore E rho hrec xing cap source mono w h0r
     refine ⟨⟨?_, ?_, ?_, hlease, hfprov, hraw, hservice⟩, hrl, hod, hcone⟩
-    · exact postReset_protected_kept_succ p c E rho hrec.base.valid.toScheduleWellFormed
+    · exact postReset_protected_kept_succ (hroots := hrec.base.idealization) p c E rho
+        hrec.base.valid.toScheduleWellFormed
         xing origin h0r htransfer ih.1
     · exact postReset_high_compatible_all p c E rho hrec mono emittedNonempty emittedName
         writes xing origin h0r (i + 1)

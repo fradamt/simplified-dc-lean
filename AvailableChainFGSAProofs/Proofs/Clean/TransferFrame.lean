@@ -7,6 +7,8 @@ public import AvailableChainFGSARun.Proofs.Receipts
 public import AvailableChainFGSAProofs.Statements.CleanInvariant
 public import Mathlib.CategoryTheory.Category.Basic
 
+public import AvailableChainFGSAProofs.Proofs.Shared.Roots
+
 public section
 
 /-! P3 §8.7 F2.2; bp02 §3.5 steps 5–6 and §4.2. Proposal paths for the
@@ -32,12 +34,13 @@ private theorem transfer_decode {o : Obj p} {b : Block}
     subst b
     exact ⟨_, _, _, _, rfl⟩
 
-/-- P3 F2.2, T7.8; bp02 §3.5 step 5 and §4.2. Class B.
+/-- ROOT-DIGEST W2b. P3 F2.2, T7.8; bp02 §3.5 step 5 and §4.2. Class B.
 DC: Protocol/Schedule/AdoptionTransport.lean:509, acceptance-window boundary.
 INTENTIONAL: FG-SA uses each proposal's stored stamp and acceptance, not
 an honest supporting seat (spec/fgsa-protocol.tex:2506–2513).
 Ancestor closure is applied just after K's early acceptance. -/
 theorem clean_transfer_source_acceptances
+    (hroots : NamedRootCollisionFree p c E rho)
     (hsch : V2.D.ScheduleWellFormed E rho) (hDelta : E.Δ = p.Δ)
     {i : Nat} {x : V} {s : Slot} {K B : Block}
     (hK : K ∈ (storeAt p c E rho i x).base.blocks)
@@ -72,7 +75,11 @@ theorem clean_transfer_source_acceptances
   dsimp only [processedS] at hpost
   rw [hdec] at hpost
   obtain ⟨Kfg, hKfg, hroot⟩ := of_decide_eq_true hpost
-  have heK : eraseFG Kfg = K := Block.root_injective ((eraseFG_root Kfg).trans hroot)
+  obtain ⟨envelope, hdelivery, _⟩ := ha.1
+  have hx := hsch.honest_only _ (List.mem_of_getElem? hdelivery)
+  have heK : eraseFG Kfg = K := rootBlockInRun_eq E rho hroots
+    (rootScope_store hx hKfg) (rootBlockInRun_held E rho hx i hK)
+    ((eraseFG_root Kfg).trans hroot)
   have hc := (storeBundle_stateBefore E rho (j + 1) x).cstore
   obtain ⟨A, hA, heA⟩ := eraseFG_ancestor_mem hc.fg.closed hKfg (heK ▸ hbK)
   have hbm := (hc.baseTree b).mpr ⟨A, hA, heA⟩
@@ -139,7 +146,7 @@ private theorem transfer_early_support (v : GridCO.State p.n) (s : Slot) (a B : 
     rw [he] at hres
     exact ⟨o, K, ho, he, hm, hb.2, of_decide_eq_true (Bool.and_eq_true_iff.mp hres).2⟩
 
-/-- P3 F2.2, T7.8; bp02 §3.5 step 5 and §4.2. Class B.
+/-- ROOT-DIGEST W2b. P3 F2.2, T7.8; bp02 §3.5 step 5 and §4.2. Class B.
 DC: Protocol/Schedule/AdoptionTransport.lean:509, confirmation acceptance window.
 INTENTIONAL: the F-anchored raw result supplies an early resolved supporter;
 its seat and proposer need not be honest (spec/fgsa-protocol.tex:2506–2513). -/
@@ -147,7 +154,8 @@ theorem clean_transfer_gate_acceptances
     (hsch : V2.D.ScheduleWellFormed E rho) (hDelta : E.Δ = p.Δ)
     {i : Nat} {x : V} {s : Slot} {B : Block}
     (ht : IsGateTick p c rho i x s)
-    (hB : gateResultAt p c E rho i = some (some B)) :
+    (hB : gateResultAt p c E rho i = some (some B))
+    (hroots : NamedRootCollisionFree p c E rho) :
     ∀ b, Block.Preceq b B → b ≠ .genesis →
       ∃ l < i, ∃ t o u raw sup rows,
         (toWire p o).decode = some (.block u b raw sup rows) ∧
@@ -174,20 +182,20 @@ theorem clean_transfer_gate_acceptances
       contradiction
     | some row => rfl
   rw [heq] at hstamp
-  exact clean_transfer_source_acceptances p c E rho hsch hDelta hmem hstamp hBK
+  exact clean_transfer_source_acceptances (hroots := hroots) p c E rho hsch hDelta hmem hstamp hBK
 
 private theorem transfer_lift {A B : FGBlock (Fin p.n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
-  preceq_of_eraseFG_preceq (KitFG.viewRootInj_all {A, B})
-    ⟨A, by simp, KitFG.preceq_refl A⟩ ⟨B, by simp, KitFG.preceq_refl B⟩ h
+  eraseFG_preceq_iff.mp h
 
 private theorem transfer_row_tick {j : Nat} {x : V} {r : Nat} {a : RowWire p.n}
     (ha : HonestRowAt p c E rho j x r a) :
     rho.events[j]? = some (.tick x (p.actionTime r)) := ha.2.1
 
 private theorem transfer_frame_at_vote
+    (hroots : NamedRootCollisionFree p c E rho)
     (hsch : V2.D.ScheduleWellFormed E rho)
-    (hf : FGFoundation p c E rho) (hsrc : SrcFrameAboveStmt p c E rho)
+    (hf : FGFoundation p c E rho) (_hsrc : SrcFrameAboveStmt p c E rho)
     {i k : Nat} {y : V} {s : Slot} {Bfg : FGBlock (Fin p.n)}
     (hki : k < i)
     (hk : rho.events[k]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
@@ -201,7 +209,8 @@ private theorem transfer_frame_at_vote
   have hy := hsch.honest_only _ (List.mem_of_getElem? hk)
   have hrows := hs.sources.1
   rw [CleanRowSources_def] at hrows
-  have hsrc' := hsrc (fun e => FGBlock.Preceq e Bfg) 0
+  have hsrc' := srcFrameAbove_scoped p c E rho hf.store hf.strat
+    (fun e => FGBlock.Preceq e Bfg) 0
     ⟨fun _ _ hXY hY => KitFG.preceq_trans hXY hY⟩
     (fun _ => KitFG.genesis_preceq Bfg) k y hy ?_
   · have hc : ∀ W ∈ (storeAt p c E rho k y).fg.TF, ∀ e ∈ certified p W,
@@ -235,11 +244,13 @@ private theorem transfer_frame_at_vote
     change (controls p st).lo ≤ hOf p.E p.cfg Bfg
     rw [KitFG.hOf_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
     exact hlo
-  · intro z r a e ha he _
+  · intro z r a e ha he heScope _
     obtain ⟨j, hj, hrow⟩ := ha
-    obtain ⟨C, _, heq, hpre, hC⟩ := hrows j z r a _ (hj.trans hki) hrow he
+    obtain ⟨C, hcSource, heq, hpre, hC⟩ := hrows j z r a _ (hj.trans hki) hrow he
     have heC : e = (derive p.E p.cfg C).T_h :=
-      FGBlock.root_injective (congrArg Prod.snd heq)
+      rootScope_eq hroots heScope
+        (rootScope_ancestor (rootScope_source hrow.1 hcSource) (KitFG.entry_preceq p.E p.cfg C))
+        (congrArg Prod.snd heq)
     have hrowtick := transfer_row_tick p c E rho hrow
     obtain ⟨hjl, hje⟩ := List.getElem?_eq_some_iff.mp hrowtick
     obtain ⟨hkl, hke⟩ := List.getElem?_eq_some_iff.mp hk
@@ -334,7 +345,7 @@ private theorem transfer_raw_lift (hsch : V2.D.ScheduleWellFormed E rho)
   obtain ⟨Bfg, _, he⟩ := (hc.baseTree B).mp hm
   exact ⟨Bfg, he⟩
 
-/-- P3 F2.2, T7.12a/K8; bp02 §3.5 step 5 and §4.2. Class B.
+/-- ROOT-DIGEST W2b. P3 F2.2, T7.12a/K8; bp02 §3.5 step 5 and §4.2. Class B.
 DC: GSTZeroPreparedWalk.lean:546; AdoptionTransport.lean:442, receipt transport.
 INTENTIONAL: FG-SA uses the strict freeze read, per-proposal accepted relay,
 and the old-source F prefix (spec/fgsa-protocol.tex:2506–2513). The F-covered
@@ -357,7 +368,8 @@ theorem clean_transfer_receipt_path [Fintype V] (b₀ : Time)
   have hx := hsch.honest_only _ (List.mem_of_getElem? ht)
   have hy := hsch.honest_only _ (List.mem_of_getElem? hk)
   obtain ⟨Bfg, he⟩ := transfer_raw_lift p c E rho hsch ht hB
-  have hframe := transfer_frame_at_vote p c E rho hsch hf hsrc (Bfg := Bfg) hki hk hs
+  have hframe := transfer_frame_at_vote (hroots := h.base.idealization) p c E rho hsch hf hsrc
+    (Bfg := Bfg) hki hk hs
     (by simpa only [he] using hord)
   have hidx : V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s) ≤ k := by
     by_contra hn
@@ -382,8 +394,10 @@ theorem clean_transfer_receipt_path [Fintype V] (b₀ : Time)
     linarith
   obtain ⟨required, hcov⟩ := transfer_coverage p c E rho h.base.valid h.base.delta
     b₀ h.healthy h.cut.2 hx hcut
-    (clean_transfer_gate_acceptances p c E rho hsch h.base.delta ht hB) hF
-  apply fgsa_active_path_of_coverage E rho h.base.valid h.base.noRestart h.base.delta
+    (clean_transfer_gate_acceptances (hroots := h.base.idealization) p c E rho hsch h.base.delta
+      ht hB) hF
+  apply fgsa_active_path_of_coverage (hroots := h.base.idealization)
+    E rho h.base.valid h.base.noRestart h.base.delta
     (fun t => t + p.Δ) b₀ (SA.freezeTime p.toParams s) 0 y B required
     (fun L d => L = B ∧ d = SA.freezeTime p.toParams s) hy hcov ⟨rfl, rfl⟩
   have hh := hF _ le_rfl
@@ -392,7 +406,7 @@ theorem clean_transfer_receipt_path [Fintype V] (b₀ : Time)
   rw [Gen.V2.Duty.stateBefore_idxBefore E rho _ hsch] at hh
   exact hh
 
-/-- P3 F2.2, T7.8/T7.12a/K8; bp02 §3.5 step 5 and §4.2. Class B.
+/-- ROOT-DIGEST W2b. P3 F2.2, T7.8/T7.12a/K8; bp02 §3.5 step 5 and §4.2. Class B.
 DC: GSTZeroPreparedWalk.lean:546; AdoptionTransport.lean:442, receipt transport.
 INTENTIONAL: FG-SA transports the clean supporter's head K, not just B,
 using each proposal's acceptance and strict freeze read
@@ -418,7 +432,8 @@ theorem clean_transfer_receipt_path_of_head [Fintype V] (b₀ : Time)
   have hx := hsch.honest_only _ (List.mem_of_getElem? ht)
   have hy := hsch.honest_only _ (List.mem_of_getElem? hk)
   obtain ⟨Bfg, he⟩ := transfer_raw_lift p c E rho hsch ht hB
-  have hframe := transfer_frame_at_vote p c E rho hsch hf hsrc (Bfg := Bfg) hki hk hs
+  have hframe := transfer_frame_at_vote (hroots := h.base.idealization) p c E rho hsch hf hsrc
+    (Bfg := Bfg) hki hk hs
     (by simpa only [he] using hord)
   have hidx : V2.D.Run.idxBefore rho (SA.freezeTime p.toParams s) ≤ k := by
     by_contra hn
@@ -471,12 +486,14 @@ theorem clean_transfer_receipt_path_of_head [Fintype V] (b₀ : Time)
       contradiction
     | some row => rfl
   rw [heq] at hstamp
-  have haccept := clean_transfer_source_acceptances p c E rho hsch h.base.delta
+  have haccept := clean_transfer_source_acceptances (hroots := h.base.idealization) p c E rho hsch
+    h.base.delta
     hmem hstamp (block_preceq_refl K)
   obtain ⟨required, hcov⟩ := transfer_coverage p c E rho h.base.valid h.base.delta
     b₀ h.healthy h.cut.2 hx hcut
     haccept (fun j hj => block_preceq_trans (hF j hj) hBK)
-  apply fgsa_active_path_of_coverage E rho h.base.valid h.base.noRestart h.base.delta
+  apply fgsa_active_path_of_coverage (hroots := h.base.idealization)
+    E rho h.base.valid h.base.noRestart h.base.delta
     (fun t => t + p.Δ) b₀ (SA.freezeTime p.toParams s) 0 y K required
     (fun L d => L = K ∧ d = SA.freezeTime p.toParams s) hy hcov ⟨rfl, rfl⟩
   have hh := block_preceq_trans (hF _ le_rfl) hBK
@@ -731,7 +748,7 @@ private theorem transfer_live_bounds (st : State p.n) (B : Block)
       exact eraseFG_preceq hXZ
     · contradiction
 
-/-- P3 F2.2; bp02 §3.5 steps 5–6 and §4.2. Class B.
+/-- ROOT-DIGEST W2b. P3 F2.2; bp02 §3.5 steps 5–6 and §4.2. Class B.
 DC: GSTZeroPreparedWalk.lean:513,546; WeakGenesisGSTZeroActionSources.lean:106.
 INTENTIONAL: the exact Q6 retrospective FG-SA frame includes the FJ band,
 contest, live lease root, and a witness in the actual voter set
@@ -765,7 +782,8 @@ theorem clean_transfer_frame [Fintype V] (b₀ : Time) :
   obtain ⟨Bfg, he, hpath⟩ := clean_transfer_prefreeze_path p c E rho b₀ h hq hf hsrc
     i k x y s B hi hki ht hk hh hall hB hord
   have hsch := h.base.valid.toScheduleWellFormed
-  have hframe := transfer_frame_at_vote p c E rho hsch hf hsrc (Bfg := Bfg) hki hk
+  have hframe := transfer_frame_at_vote (hroots := h.base.idealization) p c E rho hsch hf hsrc
+    (Bfg := Bfg) hki hk
     (hall i le_rfl) (by simpa only [he] using hord)
   have hfg : st.fg = (storeAt p c E rho k y).fg := clock_fg p _ _
   have hcontrols : FGSA.controls p st = FGSA.controls p (storeAt p c E rho k y) :=

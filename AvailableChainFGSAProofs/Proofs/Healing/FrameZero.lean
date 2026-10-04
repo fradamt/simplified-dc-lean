@@ -8,7 +8,7 @@ open AvailableChain.SimplexFG
 
 variable (p : Params)
 
-/-- Blueprint 21:749–783, 1148–1252; plan S30, H-FRAME/F1.
+/-- ROOT-DIGEST W2b. Blueprint 21:749–783, 1148–1252; plan S30, H-FRAME/F1.
 DC: SAME accepted non-genesis blocks have positive slots. -/
 private theorem frame_zero_process (st : State p.n) (hi : CStoreInv p st)
     (o : Wire p.n) (hz : ∀ B ∈ st.base.blocks, B.slot = 0 → B = .genesis) :
@@ -27,7 +27,7 @@ private theorem frame_zero_process (st : State p.n) (hi : CStoreInv p st)
       cases hp : parentFG st b with
       | none => rw [admitBlock_refused p st s b raw sup rows (Or.inl hp)]; exact hz
       | some P =>
-        cases ha : blockAccepted p st s b P rows with
+        cases ha : blockAccepted p st s b raw sup P rows with
         | false =>
           rw [admitBlock_refused p st s b raw sup rows (Or.inr ⟨P, hp, ha⟩)]
           exact hz

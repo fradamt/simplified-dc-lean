@@ -106,7 +106,7 @@ theorem frontier_seed_qSucc_exactService [Fintype V] (E : Generic.Env V)
     hService hu hPhase hqv hvh hCap (Nat.lt_succ_self q) hgate hp
     (frontier_seed_qSucc_head E rho hrec mono crossing writes hgst hPhase hseed hp)
 
-/-- Blueprint 21:1500–1574; plan §3.1 step 6.
+/-- ROOT-DIGEST W2b. Blueprint 21:1500–1574; plan §3.1 step 6.
 DC: INTENTIONAL the HG.1 retained-read chain gives exact HEADs for s ≥ q+2.
 The strict consumer uses v+1 only as an integer bound; every read and gate is within v. -/
 theorem frontier_later_head [Fintype V] (E : Generic.Env V)
@@ -163,7 +163,8 @@ theorem frontier_later_head [Fintype V] (E : Generic.Env V)
     hrec.sync (fgsaDelay_nonrow E.Δ _) hgsts hpt (hvs.trans hvh)
   have hinput := retainedHG1Input_through E rho hrec mono crossing writes hgst hQ hErase
     hHeight hService hu hPhase hqv hvh hCap hx hip hseat B raw sup rows hem hafter hgate
-  have hreads := fgsa_retainedReads_HG1 E rho hE hN hDelta s hSync hx hip hseat B raw sup
+  have hreads := fgsa_retainedReads_HG1 (hroots := hrec.base.idealization)
+    E rho hE hN hDelta s hSync hx hip hseat B raw sup
     rows hem Qfg q (v + 1) hafter
     (lt_of_le_of_lt hgate (lt_add_of_pos_right v (show (0 : Int) < 1 by decide)))
     (fun y hy ih hih _ => hinput y hy ih hih)
@@ -176,7 +177,8 @@ theorem frontier_later_head [Fintype V] (E : Generic.Env V)
     linarith
   have hWalk := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _
     hrec.sync (fgsaDelay_nonrow E.Δ _) hgsts hptWalk hph
-  have hgeom := fgsa_retainedExactHead_geometry_on_run E rho hE hN hDelta s hWalk hSync
+  have hgeom := fgsa_retainedExactHead_geometry_on_run (hroots := hrec.base.idealization)
+    E rho hE hN hDelta s hWalk hSync
     hx hip hseat B raw sup rows hem Qfg hreads
   exact exactService_head_of_retained_proposal E rho hE hDelta s hip B raw sup rows hem
     Qfg hgeom (hvs.trans hvh)

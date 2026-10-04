@@ -222,7 +222,8 @@ theorem stored_body_ancestor (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   obtain ⟨C, hC, he, _⟩ := eraseFG_ancestor_preceq hs.fg.closed hW hAB
   exact (hs.baseTree A).mpr ⟨C, hC, he⟩
 
-/-- ROOT-DIGEST W2. An emitted proposal's parent was already in the emitter's store.
+/-- ROOT-DIGEST W2b. ROOT-DIGEST W2. An emitted proposal's parent was already in the emitter's
+store.
 The emitted tip itself need not be in the body scope. -/
 theorem emitted_proposal_parent_stored (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) (i : Nat) (x : V) (t : Time) (s : Slot)
@@ -241,6 +242,48 @@ theorem emitted_proposal_parent_stored (E : Generic.Env V)
       (proposerVotes (clock p (rho.stateBefore E i x).st t) s)
       (proposerSupport (clock p (rho.stateBefore E i x).st t) s)
     rwa [clock_base_blocks] at hm
+
+/-- ROOT-DIGEST W2b. Every emitted proposal payload has a stored parent. -/
+theorem emitted_payload_parent_stored (E : Generic.Env V)
+    (rho : V2.D.Run V (fgsa p c)) {x : V} {o : Obj p} {t : Time}
+    {b : Block} {raw sup : List (HeadWire p.n)} {rows : List (RowWire p.n)}
+    (hem : V2.D.Run.emits E rho x o t) (ho : o.payload = .proposal b raw sup rows) :
+    ∃ i, b.parent ∈ (V2.D.Run.stateBefore E rho i x).st.base.blocks := by
+  obtain ⟨i, hi, hemit⟩ := hem
+  rw [(V2.D.Run.step_tick_eq E rho hi).2] at hemit
+  change o ∈ (if E.awake x t then
+    (duties p t).flatMap (fun d => (rho.ownSeats (RunDuty.signLabel d) x).filterMap
+      (fun seat => ((fgsa p c).act ((fgsa p c).clock (rho.stateBefore E i x) t) d
+        (rho.input x t)).map (fun m => ⟨.seat (RunDuty.signLabel d) seat, m⟩))) ++ []
+    else []) at hemit
+  split at hemit
+  · rw [List.append_nil] at hemit
+    obtain ⟨d, _, hpool⟩ := List.mem_flatMap.mp hemit
+    obtain ⟨seat, _, hwire⟩ := List.mem_filterMap.mp hpool
+    obtain ⟨m, hact, heq⟩ := Option.map_eq_some_iff.mp hwire
+    subst o
+    change m = .proposal b raw sup rows at ho
+    subst m
+    cases d with
+    | headAction s => cases hact
+    | fgAction r =>
+      change (attest p _ _ _).1.map Msg.row = some (.proposal b raw sup rows) at hact
+      obtain ⟨_, _, he⟩ := Option.map_eq_some_iff.mp hact
+      cases he
+    | propAction s =>
+      change (propose p _ s).map (withApp p _) = some (.proposal b raw sup rows) at hact
+      unfold propose at hact
+      split at hact
+      · cases hact
+      · change some (Msg.proposal _ _ _ _) = some (Msg.proposal b raw sup rows) at hact
+        obtain ⟨rfl, _, _, _⟩ := Msg.proposal.inj (Option.some.inj hact)
+        refine ⟨i, ?_⟩
+        have hhead := getHead_stored p _
+          (cstoreInv_clock p _ (cstoreInv_stateBefore E rho i x) t)
+          (proposerVotes (clock p (rho.stateBefore E i x).st t) s)
+          (proposerSupport (clock p (rho.stateBefore E i x).st t) s)
+        rwa [clock_base_blocks] at hhead
+  · exact (List.not_mem_nil hemit).elim
 
 /-- ROOT-DIGEST W2. An emitted proposal with a slot digest has that small root. -/
 theorem emitted_proposal_slot_root (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))

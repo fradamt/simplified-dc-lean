@@ -65,7 +65,8 @@ theorem kmid_kappa_cover (p : Params) (ΔF : Time) (hF : 0 ≤ ΔF) :
 variable (p : Params) {In V : Type} [DecidableEq V]
     (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- FINAL 22:1171–1180. An awake honest proposer at a positive slot emits its block.
+/-- ROOT-DIGEST W2b. FINAL 22:1171–1180. An awake honest proposer at a positive slot emits its
+block.
 DC: INTENTIONAL: the FG-SA proposer duty always builds a block at a positive slot. -/
 theorem kmid_honest_proposal_exists (hs : V2.D.ScheduleWellFormed E rho) (hΔ : E.Δ = p.Δ)
     (s : Slot) (hslot : Gen.V2.Duty.HonestSlot rho (fgsaInterface p c) s)
@@ -85,18 +86,19 @@ theorem kmid_honest_proposal_exists (hs : V2.D.ScheduleWellFormed E rho) (hΔ : 
   let st := FGSA.clock p nd.st (SA.proposalTime p.toParams s)
   have hs0 : s ≠ 0 := Nat.ne_of_gt hslot.1
   obtain ⟨m, hm⟩ : ∃ m, (propose p st s).map
-      (withApp (c.app (rho.input v (SA.proposalTime p.toParams s)))) = some m := by
+      (withApp p (c.app (rho.input v (SA.proposalTime p.toParams s)))) = some m := by
     rw [propose_head p st s hs0]
     exact ⟨_, rfl⟩
   obtain ⟨H, raw, sup, rows, rfl, -, -⟩ := rowsOk_withApp st s _ hm
-  refine ⟨.node H s (packBody (c.app (rho.input v (SA.proposalTime p.toParams s))) rows),
-    hslot, ⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal (.node H s
-      (packBody (c.app (rho.input v (SA.proposalTime p.toParams s))) rows)) raw sup rows⟩,
+  refine ⟨proposalBlock p H s (c.app (rho.input v (SA.proposalTime p.toParams s))) raw sup rows,
+    hslot, ⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal (proposalBlock p H s (c.app (rho.input v
+      (SA.proposalTime p.toParams s))) raw sup rows) raw sup rows⟩,
     ⟨i, hi, ?_⟩, rfl⟩
   rw [(V2.D.Run.step_tick_eq E rho hi).2]
   exact (fgsa_emits_proposal E rho nd v _ s _).mpr ⟨hawake, rfl, rfl, hm⟩
 
-/-- FINAL 22:1171–1180. The emitted proposal object and its post-clock proposer read.
+/-- ROOT-DIGEST W2b. FINAL 22:1171–1180. The emitted proposal object and its post-clock proposer
+read.
 DC: INTENTIONAL: FG-SA reads the proposal tick of the actual signed wire. -/
 theorem kmid_proposal_read (hs : V2.D.ScheduleWellFormed E rho) {s : Slot} {b : Block}
     (hp : HonestProposal E rho (fgsaInterface p c) s b) :
@@ -108,9 +110,9 @@ theorem kmid_proposal_read (hs : V2.D.ScheduleWellFormed E rho) {s : Slot} {b : 
         (V2.D.Run.stateBefore E rho j (V2.D.proposerOf rho (fgsaInterface p c) s))
         (SA.proposalTime p.toParams s)).st
       proposalStateAt p c E rho s = some st ∧ st.slot p = s ∧
-        b = .node (proposerHead p st s) s (packBody (c.app (rho.input
-          (V2.D.proposerOf rho (fgsaInterface p c) s) (SA.proposalTime p.toParams s)))
-          (proposalRows p st (proposerHead p st s))) ∧
+        b = proposalBlock p (proposerHead p st s) s (c.app (rho.input
+          (V2.D.proposerOf rho (fgsaInterface p c) s) (SA.proposalTime p.toParams s))) raw sup
+            (proposalRows p st (proposerHead p st s)) ∧
         rows = proposalRows p st (proposerHead p st s) := by
   obtain ⟨hslot, o, ⟨j, hj, hem⟩, hpay⟩ := hp
   have hs0 : 0 < s := hslot.1
@@ -171,11 +173,12 @@ theorem kmid_proposal_read (hs : V2.D.ScheduleWellFormed E rho) {s : Slot} {b : 
             List.any_eq_true]
           exact ⟨_, List.mem_of_getElem? hj, by simp⟩
         exact (fgsa_tick_unique E rho hs (V2.D.Run.tickIdx?_spec hk) hj) ▸ hk
-      change (propose p st s).map (withApp _) = some (.proposal b raw sup rows) at hm
+      change (propose p st s).map (withApp p _) = some (.proposal b raw sup rows) at hm
       rw [propose_head p st s (Nat.ne_of_gt hs0)] at hm
       have he : Msg.proposal
-          (.node (proposerHead p st s) s (packBody (c.app (rho.input _ _))
-            (proposalRows p st (proposerHead p st s))))
+          (proposalBlock p (proposerHead p st s) s (c.app (rho.input _ _)) ((proposerVotes st
+            s).filterMap liftHead?) ((proposerSupport st s).filterMap liftHead?) (proposalRows p
+            st (proposerHead p st s)))
           ((proposerVotes st s).filterMap liftHead?)
           ((proposerSupport st s).filterMap liftHead?)
           (proposalRows p st (proposerHead p st s)) = .proposal b raw sup rows :=
@@ -191,7 +194,8 @@ theorem kmid_proposal_read (hs : V2.D.ScheduleWellFormed E rho) {s : Slot} {b : 
       rw [htick]
       rfl
 
-/-- FINAL 22:1171–1180,585–598. The FG block of an honest proposal, with its stored parent.
+/-- ROOT-DIGEST W2b. FINAL 22:1171–1180,585–598. The FG block of an honest proposal, with its stored
+parent.
 DC: INTENTIONAL: the emitted wire, proposer read, parent and decoded rows give one block. -/
 theorem kmid_opening_carrier (hs : V2.D.ScheduleWellFormed E rho) {s : Slot} {b : Block}
     (hp : HonestProposal E rho (fgsaInterface p c) s b) :
@@ -211,7 +215,7 @@ theorem kmid_opening_carrier (hs : V2.D.ScheduleWellFormed E rho) {s : Slot} {b 
   have hpar : b.parent = proposerHead p st s := by rw [hb]; rfl
   have hok : rowsOk b rows = true := by
     rw [hb, _hrows]
-    exact rowsOk_node_packBody _ _ _ _
+    exact rowsOk_node_packBody _ _ _ _ _
   have hne : b ≠ .genesis := by rw [hb]; intro h; cases h
   have hlook : FGSA.fgBlockOf st b.parent = some P :=
     (fgBlockOf_spec p st hinv _ P).mpr ⟨hP, hPe.trans hpar.symm⟩
@@ -228,27 +232,25 @@ theorem kmid_opening_carrier (hs : V2.D.ScheduleWellFormed E rho) {s : Slot} {b 
 /-! ### Step group A: erased identity and ancestry -/
 
 omit [DecidableEq V] in
-/-- FINAL 22:1188–1197. FG roots are content hashes; erasure is injective.
+/-- ROOT-DIGEST W2b. FINAL 22:1188–1197. FG roots are content hashes; erasure is injective.
 DC: INTENTIONAL: the flat FG wire keeps one erasure. -/
 theorem kmid_eraseFG_inj {A B : FGBlock (Fin p.n)} (h : eraseFG A = eraseFG B) : A = B :=
-  FGBlock.root_injective (by rw [← eraseFG_root A, ← eraseFG_root B, h])
+  eraseFG_injective h
 
 omit [DecidableEq V] in
-/-- FINAL 22:1188–1197. Erased ancestry lifts to FG ancestry.
+/-- ROOT-DIGEST W2b. FINAL 22:1188–1197. Erased ancestry lifts to FG ancestry.
 DC: INTENTIONAL: the flat FG wire keeps one erasure. -/
 theorem kmid_lift_preceq {A B : FGBlock (Fin p.n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
-  preceq_of_eraseFG_preceq (Vw := ({A, B} : Finset (FGBlock (Fin p.n))))
-    (fun _ _ _ _ he => FGBlock.root_injective he)
-    ⟨A, by simp, preceq_refl A⟩ ⟨B, by simp, preceq_refl B⟩ h
+  eraseFG_preceq_iff.mp h
 
 omit [DecidableEq V] in
-/-- FINAL 22:1188–1197. A block's parent precedes it, also at genesis.
+/-- ROOT-DIGEST W2b. FINAL 22:1188–1197. A block's parent precedes it, also at genesis.
 DC: SAME chain order. -/
 theorem kmid_parent_preceq (B : FGBlock (Fin p.n)) : FGBlock.Preceq B.parent B := by
   cases B with
   | genesis => exact preceq_refl _
-  | node P s x rs => exact preceq_parent_node P s x rs
+  | node P s root x rs => exact preceq_parent_node P s root x rs
 
 /-- FINAL 22:1188–1197. H3 at an action slot fixes the FG action source.
 DC: INTENTIONAL: the erased H3 source lifts by root identity. -/
@@ -339,7 +341,7 @@ theorem kmid_rows_at_source
   cases Option.some.inj (Option.some.inj hC)
   rfl
 
-/-- FINAL 22:946–956. An honest row is the client output of its action tick.
+/-- ROOT-DIGEST W2b. FINAL 22:946–956. An honest row is the client output of its action tick.
 DC: INTENTIONAL: the run uses event-indexed emission. -/
 theorem kmid_row_action {j : Nat} {x : V} {r : Nat} {a : RowWire p.n}
     (ha : HonestRowAt p c E rho j x r a) :
@@ -374,7 +376,7 @@ theorem kmid_row_action {j : Nat} {x : V} {r : Nat} {a : RowWire p.n}
       dsimp only [fgsa] at hb ⊢
       exact hb
     | propAction s =>
-      change (propose p _ s).map (withApp _) = some (.row a.payload) at hm
+      change (propose p _ s).map (withApp p _) = some (.row a.payload) at hm
       obtain ⟨m, hm, he⟩ := Option.map_eq_some_iff.mp hm
       obtain ⟨_, _, _, _, heq, _, _⟩ := rowsOk_withApp _ _ _ (by rw [hm]; exact congrArg some he)
       cases heq
@@ -748,11 +750,12 @@ theorem kmid_proposal_reachable {s : Slot} {st : State p.n}
       rw [← Option.some.inj hs]
       exact reachable_postClock E rho k _ _
 
-/-- FINAL 22:583–610. Rows on a stored chain that name an entry lie above that entry,
+/-- ROOT-DIGEST W2b. FINAL 22:583–610. Rows on a stored chain that name an entry lie above that
+entry,
 when the chain stays at the entry height. DC: INTENTIONAL: stored R6W validity. -/
 theorem kmid_rows_above_entry (st : State p.n) (hr : Reachable p st)
     (k : RowKind) (y : Nat) (U P : FGBlock (Fin p.n)) (hP : P ∈ st.fg.TF)
-    (hPh : (heightView p P).h = y) :
+    (hPh : (heightView p P).h = y) (hUP : FGBlock.Preceq U P) :
     ∀ i W, FGBlock.Preceq W P → (∃ row ∈ W.rows, RowNames p k row i y U) →
       FGBlock.Preceq U W.parent := by
   intro i W hWP ⟨row, hrow, hnames⟩
@@ -760,15 +763,15 @@ theorem kmid_rows_above_entry (st : State p.n) (hr : Reachable p st)
   have hW : W ∈ st.fg.TF := ancestor_closed_of_parent_closed _ hinv.fg.closed P hP W hWP
   cases W with
   | genesis => exact (List.not_mem_nil hrow).elim
-  | node Q t x rs =>
-  have hv := stored_r6wW p hr Q t x rs hW row hrow
+  | node Q t root x rs =>
+  have hv := stored_r6wW p hr Q t root x rs hW row hrow
   have hpair : ∃ timeout, row.height_pair = .vote y U.root timeout := by
     obtain ⟨_, hk⟩ := hnames
     cases k with
     | target => exact ⟨_, hk⟩
     | progress => obtain ⟨timeout, ht⟩ := hk; exact ⟨timeout, ht⟩
   obtain ⟨timeout, hp⟩ := hpair
-  have hQP : FGBlock.Preceq Q P := preceq_trans (preceq_parent_node Q t x rs) hWP
+  have hQP : FGBlock.Preceq Q P := preceq_trans (preceq_parent_node Q t root x rs) hWP
   have hQh : (heightView p Q).h ≤ y := hPh ▸ (fgCertificateLaws p).height.h_mono hQP
   have hdh : (Window.derive p p.K_W Q).h = (heightView p Q).h := by
     rw [heightView_def, Window.projectHeight_def]
@@ -779,7 +782,8 @@ theorem kmid_rows_above_entry (st : State p.n) (hr : Reachable p st)
   · rw [Window.heightMatch_def, hp] at hm
     simp only [NamedHeightPair.matchesEntry, decide_eq_true_eq] at hm
     have hroot : U.root = (heightView p Q).T_h.root := hdT ▸ hm.2
-    have hU : U = (heightView p Q).T_h := FGBlock.root_injective hroot
+    have hU : U = (heightView p Q).T_h := viewRootInj_TF p st hinv _ _ ⟨P, hP, hUP⟩
+      ⟨P, hP, preceq_trans ((fgCertificateLaws p).height.entry_preceq Q) hQP⟩ hroot
     change FGBlock.Preceq U Q
     rw [hU]
     exact (fgCertificateLaws p).height.entry_preceq Q
@@ -830,7 +834,7 @@ theorem kmid_stored_slotChain (hE : V2.D.ExecutionValid E rho) (i : Nat) (v : V)
   rwa [eraseFG_parent, eraseFG_slot, eraseFG_slot] at hlt
 
 omit [DecidableEq V] [Fintype V] in
-/-- FINAL 22:43–54. Slots do not decrease along a slot chain.
+/-- ROOT-DIGEST W2b. FINAL 22:43–54. Slots do not decrease along a slot chain.
 DC: INTENTIONAL: FG-SA height coverage has explicit chain-history inputs. -/
 theorem kmid_slot_le_of_preceq {W X : FGBlock (Fin p.n)} (hX : SlotChain X)
     (hW : FGBlock.Preceq W X) : W.slot ≤ X.slot := by
@@ -838,32 +842,33 @@ theorem kmid_slot_le_of_preceq {W X : FGBlock (Fin p.n)} (hX : SlotChain X)
   | genesis =>
     rw [preceq_genesis] at hW
     rw [hW]
-  | node P s x rs ih =>
-    by_cases he : W = .node P s x rs
+  | node P s root x rs ih =>
+    by_cases he : W = .node P s root x rs
     · rw [he]
     · have hWP := preceq_parent_of_preceq_node hW he
       have hP : SlotChain P := fun Z hZ hg =>
-        hX Z (preceq_trans hZ (preceq_parent_node P s x rs)) hg
-      have hlt := hX (.node P s x rs) (preceq_refl _) (by intro h; cases h)
+        hX Z (preceq_trans hZ (preceq_parent_node P s root x rs)) hg
+      have hlt := hX (.node P s root x rs) (preceq_refl _) (by intro h; cases h)
       exact (ih hP hWP).trans (le_of_lt hlt)
 
 omit [DecidableEq V] [Fintype V] in
-/-- FINAL 22:43–54. A strict ancestor has a strictly smaller slot.
+/-- ROOT-DIGEST W2b. FINAL 22:43–54. A strict ancestor has a strictly smaller slot.
 DC: INTENTIONAL: FG-SA height coverage has explicit chain-history inputs. -/
 theorem kmid_slot_lt_of_strict {W X : FGBlock (Fin p.n)} (hX : SlotChain X)
     (hW : FGBlock.Preceq W X) (hne : W ≠ X) : W.slot < X.slot := by
   cases X with
   | genesis => exact (hne (preceq_genesis.mp hW)).elim
-  | node P s x rs =>
+  | node P s root x rs =>
     have hWP := preceq_parent_of_preceq_node hW hne
     have hP : SlotChain P := fun Z hZ hg =>
-      hX Z (preceq_trans hZ (preceq_parent_node P s x rs)) hg
-    have hlt := hX (.node P s x rs) (preceq_refl _) (by intro h; cases h)
+      hX Z (preceq_trans hZ (preceq_parent_node P s root x rs)) hg
+    have hlt := hX (.node P s root x rs) (preceq_refl _) (by intro h; cases h)
     exact (kmid_slot_le_of_preceq p hP hWP).trans_lt hlt
 
 /-! ### Step group C: the honest batch of a stored parent -/
 
-/-- FINAL 22:583–610,886–915. Complete honest target rows at a stored parent form a batch.
+/-- ROOT-DIGEST W2b. FINAL 22:583–610,886–915. Complete honest target rows at a stored parent form a
+batch.
 DC: SAME height coverage; INTENTIONAL: complete earlier-or-current send-once witnesses. -/
 theorem kmid_batchPrem (ΔF : Time) (base : BaseSet p c E rho)
     (faultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
@@ -911,7 +916,7 @@ theorem kmid_batchPrem (ΔF : Time) (base : BaseSet p c E rho)
       rfl
   · intro i _ W hW hrow
     exact kmid_rows_above_entry p st (kmid_proposal_reachable p c E rho hst) .target y U X.parent
-      hparTF hpar i W hW hrow
+      hparTF hpar path i W hW hrow
 
 /-! ### Step group A: kernel clock bounds -/
 

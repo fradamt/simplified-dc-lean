@@ -3,7 +3,9 @@ public import AvailableChainFGSAProofs.Proofs.Outage.ExactProposalRetained
 public import AvailableChainFGSAProofs.Proofs.Outage.InclusionGateBody
 public import AvailableChainFGSAProofs.Proofs.Outage.Growth
 public import AvailableChainFGSAProofs.Proofs.Outage.Close
-public import AvailableChainFGSAProofs.Proofs.Shared.Claims -- shake: keep (Clean cut statement boundary)
+public import AvailableChainFGSAProofs.Proofs.Shared.Claims
+-- shake: keep (Clean cut statement boundary)
+
 
 public section
 
@@ -22,6 +24,9 @@ variable
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)), RStore p c E rho)
     (hframe : ∀ {In V : Type} [DecidableEq V] (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)), RFrameExact p c E rho)
+    (hstrat : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+      (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit),
+      SourceDisciplinePrem p c E rho pt → RStrat p c E rho)
     (hsrc : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit),
       SourceDisciplinePrem p c E rho pt → SrcFrameAboveStmt p c E rho)
@@ -76,9 +81,9 @@ variable
         ∃ C, actionSourceFG p c E rho x r = some (some C) ∧ EntryBelow p e C ∧
           BelowLabel p c E rho i (labelBoundAt p c rho j) (eraseFG C))
 
-include hstore hframe hsrc hordered hnonempty htransfer hleases hrows
+include hstore hframe hstrat hsrc hordered hnonempty htransfer hleases hrows
 
-/-- Blueprint 03 §4; DC available/stableIncludedFast: INTENTIONAL exact HEAD.
+/-- ROOT-DIGEST W2b. Blueprint 03 §4; DC available/stableIncludedFast: INTENTIONAL exact HEAD.
 The supplier projections restore the frozen claim, including sleep silence. -/
 theorem outage_exactProposalClaim_of : ExactProposalClaim p := by
   intro V _ _ In c E rho pt ΔF h
@@ -97,9 +102,11 @@ theorem outage_exactProposalClaim_of : ExactProposalClaim p := by
       ∀ row ∈ (storeAt p c E rho i v).base.obligations,
         BelowLabel p c E rho i (labelBoundAt p c rho i) row.1 :=
     fun i v hi hv row hrow => ((hl i v hi hv).2.2.2.1 row hrow).1
-  exact ⟨inclusion_exact_receipt E rho ΔF h.set (hstore c E rho) (hframe c E rho)
+  exact ⟨inclusion_exact_receipt (hstrat := hstrat c E rho () ⟨h.set.pre.base, hq⟩) E rho ΔF h.set
+    (hstore c E rho) (hframe c E rho)
       hs ho hn ht hbelow hr pt h.prop h.hhor,
-    inclusion_exact_head E rho ΔF h.set (hstore c E rho) (hframe c E rho)
+    inclusion_exact_head (hstrat := hstrat c E rho () ⟨h.set.pre.base, hq⟩) E rho ΔF h.set (hstore
+      c E rho) (hframe c E rho)
       hs ho hn ht hbelow hr pt h.prop h.hhor,
     inclusion_sleep_silence E rho pt.s⟩
 
@@ -111,7 +118,8 @@ variable
 
 include hmono
 
-/-- Blueprint 03 §5; DC available/stableIncludedFast: INTENTIONAL post-gate event read.
+/-- ROOT-DIGEST W2b. Blueprint 03 §5; DC available/stableIncludedFast: INTENTIONAL post-gate event
+read.
 The supplier projections restore the frozen claim at the finite Clean horizon. -/
 theorem outage_cleanInclusionPostGateClaim_of : CleanInclusionPostGateClaim p := by
   intro V _ _ In c E rho pt ΔF h
@@ -130,10 +138,12 @@ theorem outage_cleanInclusionPostGateClaim_of : CleanInclusionPostGateClaim p :=
       ∀ row ∈ (storeAt p c E rho i v).base.obligations,
         BelowLabel p c E rho i (labelBoundAt p c rho i) row.1 :=
     fun i v hi hv row hrow => ((hl i v hi hv).2.2.2.1 row hrow).1
-  exact clean_inclusion_post_gate_body E rho ΔF h.set (hstore c E rho) (hframe c E rho)
+  exact clean_inclusion_post_gate_body (hstrat := hstrat c E rho () ⟨h.set.pre.base, hq⟩) E rho ΔF
+    h.set (hstore c E rho) (hframe c E rho)
     hs ho hn ht hbelow hr pt h.prop h.hhor (hmono c E rho () ⟨h.set⟩)
 
-/-- Blueprint 03 §5; DC available/stableIncludedFast: INTENTIONAL inclusive public reads.
+/-- ROOT-DIGEST W2b. Blueprint 03 §5; DC available/stableIncludedFast: INTENTIONAL inclusive public
+reads.
 The supplier projections restore the frozen claim at the finite Clean horizon. -/
 theorem outage_cleanInclusionClaim_of : CleanInclusionClaim p := by
   intro V _ _ In c E rho pt ΔF h
@@ -152,10 +162,11 @@ theorem outage_cleanInclusionClaim_of : CleanInclusionClaim p := by
       ∀ row ∈ (storeAt p c E rho i v).base.obligations,
         BelowLabel p c E rho i (labelBoundAt p c rho i) row.1 :=
     fun i v hi hv row hrow => ((hl i v hi hv).2.2.2.1 row hrow).1
-  exact clean_inclusion_body E rho ΔF h.set (hstore c E rho) (hframe c E rho)
+  exact clean_inclusion_body (hstrat := hstrat c E rho () ⟨h.set.pre.base, hq⟩) E rho ΔF h.set
+    (hstore c E rho) (hframe c E rho)
     hs ho hn ht hbelow hr pt h.prop h.hhor (hmono c E rho () ⟨h.set⟩)
 
-/-- Blueprint 03 §5. The suppliers prove growth in the finite Clean horizon.
+/-- ROOT-DIGEST W2b. Blueprint 03 §5. The suppliers prove growth in the finite Clean horizon.
 The recurrence, gap, trigger, and deadline come from the claim binders. -/
 theorem outage_cleanGrowthClaim_of : CleanGrowthClaim p := by
   intro G ΔF V _ _ In c E rho t hset hrec hgap ht hhor
@@ -175,7 +186,8 @@ theorem outage_cleanGrowthClaim_of : CleanGrowthClaim p := by
       ∀ row ∈ (storeAt p c E rho i v).base.obligations,
         BelowLabel p c E rho i (labelBoundAt p c rho i) row.1 :=
     fun i v hi hv row hrow => ((hl i v hi hv).2.2.2.1 row hrow).1
-  exact clean_growth_body E rho G ΔF hset (hstore c E rho) (hframe c E rho)
+  exact clean_growth_body (hstrat := hstrat c E rho () ⟨hset.pre.base, hq⟩) E rho G ΔF hset
+    (hstore c E rho) (hframe c E rho)
     hs ho hn htransfer' hbelow hr (hmono c E rho () ⟨hset⟩) hrec hgap t ht hhor
 
 end CleanClaims
@@ -187,6 +199,9 @@ variable
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)), RStore p c E rho)
     (hframe : ∀ {In V : Type} [DecidableEq V] (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)), RFrameExact p c E rho)
+    (hstrat : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
+      (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit),
+      SourceDisciplinePrem p c E rho pt → RStrat p c E rho)
     (hsrc : ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
       (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (pt : Unit),
       SourceDisciplinePrem p c E rho pt → SrcFrameAboveStmt p c E rho)
@@ -273,17 +288,18 @@ variable
           ∀ r' < r, ∀ C', gateResult p c E rho y r' = some (some C') →
             Block.Preceq C' C)
 
-include hstore hframe hsrc htsrc hnamed hordered hnonempty htransfer hbelow
+include hstore hframe hstrat hsrc htsrc hnamed hordered hnonempty htransfer hbelow
   hleaseOrigin hsOrigin hmono hcleanGate
 
 include hsavedKeep in
-/-- Blueprint 03 §9. The suppliers prove the frozen OutageCompatClaim.
+/-- ROOT-DIGEST W2b. Blueprint 03 §9. The suppliers prove the frozen OutageCompatClaim.
 The outage premise and point come from the claim binders. -/
 theorem outage_outageCompatClaim_of : OutageCompatClaim p := by
   intro V _ _ In c E rho fast pt ΔF h
   have hb : BasePrem p c E rho () := ⟨h.set.pre.base⟩
   have hc : CleanCutPrem p c E rho ⟨pt.b₀⟩ ΔF := ⟨h.set.pre⟩
-  exact outage_compat_body
+  exact outage_compat_body (hstrat := hstrat c E rho ()
+    ⟨h.set.pre.base, h.set.faultQ⟩)
     (hstore := hstore c E rho) (hframe := hframe c E rho)
     (hsrc := hsrc c E rho () ⟨h.set.pre.base, h.set.faultQ⟩)
     (htsrc := htsrc c E rho () hb) (hnamed := hnamed c E rho () hb)
@@ -297,13 +313,14 @@ theorem outage_outageCompatClaim_of : OutageCompatClaim p := by
     (hcleanGate := hcleanGate c E rho ⟨pt.b₀⟩ hc)
     (hsavedKeep := fun _ => hsavedKeep c E rho ⟨pt.b₀⟩ hc) h
 
-/-- Blueprint 03 §9. The suppliers prove the frozen FastP1Claim.
+/-- ROOT-DIGEST W2b. Blueprint 03 §9. The suppliers prove the frozen FastP1Claim.
 The outage premise and point come from the claim binders. -/
 theorem outage_fastP1Claim_of : FastP1Claim p := by
   intro V _ _ In c E rho pt ΔF h
   have hb : BasePrem p c E rho () := ⟨h.set.pre.base⟩
   have hc : CleanCutPrem p c E rho ⟨pt.b₀⟩ ΔF := ⟨h.set.pre⟩
-  exact fast_p1_body
+  exact fast_p1_body (hstrat := hstrat c E rho ()
+    ⟨h.set.pre.base, h.set.faultQ⟩)
     (hstore := hstore c E rho) (hframe := hframe c E rho)
     (hsrc := hsrc c E rho () ⟨h.set.pre.base, h.set.faultQ⟩)
     (htsrc := htsrc c E rho () hb) (hnamed := hnamed c E rho () hb)
@@ -318,13 +335,14 @@ theorem outage_fastP1Claim_of : FastP1Claim p := by
     h
 
 include hsavedKeep in
-/-- Blueprint 03 §9. The suppliers prove the frozen SlowP1Claim.
+/-- ROOT-DIGEST W2b. Blueprint 03 §9. The suppliers prove the frozen SlowP1Claim.
 The outage premise and point come from the claim binders. -/
 theorem outage_slowP1Claim_of : SlowP1Claim p := by
   intro V _ _ In c E rho pt ΔF h
   have hb : BasePrem p c E rho () := ⟨h.set.pre.base⟩
   have hc : CleanCutPrem p c E rho ⟨pt.b₀⟩ ΔF := ⟨h.set.pre⟩
-  exact slow_p1_body
+  exact slow_p1_body (hstrat := hstrat c E rho ()
+    ⟨h.set.pre.base, h.set.faultQ⟩)
     (hstore := hstore c E rho) (hframe := hframe c E rho)
     (hsrc := hsrc c E rho () ⟨h.set.pre.base, h.set.faultQ⟩)
     (htsrc := htsrc c E rho () hb) (hnamed := hnamed c E rho () hb)
@@ -346,7 +364,7 @@ variable {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In}
     {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     {fast : Bool} {pt : PtOut} {ΔF : Time}
 
-/-- Blueprint 03 §9. One Clean cut result supplies all nine Clean inputs.
+/-- ROOT-DIGEST W2b. Blueprint 03 §9. One Clean cut result supplies all nine Clean inputs.
 Monotonicity applies only up to the inclusive cut at b₀. -/
 theorem outage_compat_body_of_cut
     (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
@@ -366,9 +384,10 @@ theorem outage_compat_body_of_cut
         gateResult p c E rho y (r * p.R) = some (some G) ∧
         Block.Preceq (eraseFG C) G ∧ fastAt p c E rho y (r * p.R) (eraseFG C))
     (hcut : CleanHistoryAt p c E rho pt.b₀ ∧ CleanTruncAt p c E rho pt.b₀)
-    (h : OutagePrem p c fast E rho pt ΔF) : OutageCompatAt p c E rho pt := by
+    (h : OutagePrem p c fast E rho pt ΔF)
+    (hstrat : RStrat p c E rho) : OutageCompatAt p c E rho pt := by
   have hl := hcut.1.2.2.2.1
-  exact outage_compat_body
+  exact outage_compat_body (hstrat := hstrat)
     (hstore := hstore) (hframe := hframe) (hsrc := hsrc)
     (htsrc := htsrc) (hnamed := hnamed)
     (hordered := hcut.1.1) (hnonempty := hcut.1.2.1) (htransfer := hcut.1.2.2.1)

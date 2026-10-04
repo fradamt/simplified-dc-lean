@@ -13,7 +13,7 @@ open AvailableChain.SimplexFG Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- Blueprint 21:965–970, 1551–1574.
+/-- ROOT-DIGEST W2b. Blueprint 21:965–970, 1551–1574.
 DC: INTENTIONAL exact HEAD receipts release conflicting leases before the gate.
 This local lemma does not use a phase. Its receipt input is built by the capped proof. -/
 theorem frontier_gate_guard_of_receipts [Fintype V] (E : Generic.Env V)
@@ -90,9 +90,10 @@ theorem frontier_gate_guard_of_receipts [Fintype V] (E : Generic.Env V)
   rw [hpost] at hkeep
   have hFiq : Block.Preceq (eraseFG (storeAt p c E rho iq x).fg.F) Q :=
     block_preceq_trans (eraseFG_preceq (mono hN iq i x hx hqi.le).1) hFQ
-  exact healing_support_release_compat E rho hE hN hDelta s hSync hx hx ht hiq hτ hFiq lease hkeep
+  exact healing_support_release_compat (hroots := hrec.base.idealization)
+    E rho hE hN hDelta s hSync hx hx ht hiq hτ hFiq lease hkeep
 
-/-- Blueprint 21:1520–1534, 1551–1574; plan §3.1 steps 6–7.
+/-- ROOT-DIGEST W2b. Blueprint 21:1520–1534, 1551–1574; plan §3.1 steps 6–7.
 DC: INTENTIONAL gate geometry of a later exact-HEAD slot under the frontier cap.
 The honest HEAD is a height-m witness. It reaches the gate, where F and Z are below it.
 The release argument checks all live leases, including writes at the pending q gate. -/
@@ -156,7 +157,8 @@ theorem frontier_gate_geometry [Fintype V] (E : Generic.Env V)
     rw [← List.countP_eq_length_filter, ← List.countP_eq_length_filter]
     exact List.countP_mono_left (fun e _ he =>
       decide_eq_true ((of_decide_eq_true he).le.trans (hvd.trans hgate)))
-  obtain ⟨Kfg, _, hKe, hKm, hrelay⟩ := frontier_head_relay E rho crossing hE hN hrec.base.delta
+  obtain ⟨Kfg, _, hKe, hKm, hrelay⟩ := frontier_head_relay (hroots := hrec.base.idealization)
+    E rho crossing hE hN hrec.base.delta
     hrec.sync hHeight hcap hx hjz hgsts (hErase ▸ hcovQ x hx _ hhl)
     (hvd.trans hgh) hcut
   have hKi : Kfg ∈ (storeAt p c E rho i x).fg.TF :=

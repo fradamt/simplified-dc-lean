@@ -105,7 +105,8 @@ theorem rowsPrem_F_below_D_at_gate (hXing : RXing p c E rho) :
     exact eraseFG_preceq (preceq_trans hf (rowsPrem_UD p m.U m.B m.X_D m.pathUB m.parentBD))
 
 include hK in
-/-- Paper 22:1236–1242,1687–1695: the full F6 control frame at the actual action read.
+/-- ROOT-DIGEST W2b. Paper 22:1236–1242,1687–1695: the full F6 control frame at the actual action
+read.
 DC: INTENTIONAL: F below U precedes the cached-J calculation and FF2 contest exclusion. -/
 theorem rowsPrem_action_frame (hQC : RQCOrigin p c E rho) (hXing : RXing p c E rho)
     (hNames : ∀ j x r a e, HonestRowAt p c E rho j x r a →
@@ -167,7 +168,10 @@ theorem rowsPrem_action_frame (hQC : RQCOrigin p c E rho) (hXing : RXing p c E r
   have heK := ((hidentity i x K hx (by rw [hr]; exact hKmem)).2.1
     (by rw [← hjK, hj]; omega)).1
   have hJ : nd.st.fg.J = m.U := by
-    apply FGBlock.root_injective
+    have hst : CStoreInv p nd.st := hr ▸ cstoreInv_stateBefore E rho i x
+    apply viewRootInj_TF p nd.st hst _ _
+      ⟨nd.st.fg.J, J_mem p nd.st hst, KitFG.preceq_refl _⟩
+      ⟨m.X_D, hD, rowsPrem_UD p m.U m.B m.X_D m.pathUB m.parentBD⟩
     rw [hJK, heK, ← hjK, hj, heB]
   have hc : (FGSA.controls p nd.st).contest = false := by
     cases hh : (FGSA.controls p nd.st).contest with

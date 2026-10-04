@@ -44,12 +44,12 @@ private theorem core_lift_prefix {n : Nat} (B : FGBlock (Fin n)) (a : Block)
   | genesis =>
       have he : a = .genesis := by simpa [eraseFG, Block.Preceq, Block.preceq] using ha
       exact ⟨.genesis, KitFG.preceq_refl _, he.symm⟩
-  | node P s r rs ih =>
-      change (decide (a = eraseFG (.node P s r rs)) || Block.preceq a (eraseFG P)) = true at ha
+  | node P s root r rs ih =>
+      change (decide (a = eraseFG (.node P s root r rs)) || Block.preceq a (eraseFG P)) = true at ha
       rcases Bool.or_eq_true_iff.mp ha with he | hp
-      · exact ⟨.node P s r rs, KitFG.preceq_refl _, (of_decide_eq_true he).symm⟩
+      · exact ⟨.node P s root r rs, KitFG.preceq_refl _, (of_decide_eq_true he).symm⟩
       · obtain ⟨A, hA, he⟩ := ih hp
-        exact ⟨A, KitFG.preceq_trans hA (KitFG.preceq_parent_node _ _ _ _), he⟩
+        exact ⟨A, KitFG.preceq_trans hA (KitFG.preceq_parent_node _ _ _ _ _), he⟩
 
 private theorem core_full_mem (st : State p.n) (B : FGBlock (Fin p.n)) :
     B ∈ fullTree p st ↔ B ∈ st.fg.TF ∧ FGBlock.Preceq (controls p st).F B ∧
@@ -57,7 +57,7 @@ private theorem core_full_mem (st : State p.n) (B : FGBlock (Fin p.n)) :
       ∃ W ∈ st.fg.TF, FGBlock.Preceq B W ∧ (controls p st).lo ≤ (heightView p W).h :=
   KitFG.mem_filteredFromView (heightView p) (controls p st) st.fg.TF B
 
-/-- Blueprint 01:158–164,184–199; 22 I8:637. Class (iii).
+/-- ROOT-DIGEST W2b. Blueprint 01:158–164,184–199; 22 I8:637. Class (iii).
 DC b241081: Protocol/ForkChoice/Goldfish/Adoption.lean:415 and
 Protocol/ForkChoice/Goldfish/Walk.lean:184,197,433.
 INTENTIONAL: the FJ tree and live root supply the path; Batch supplies the
@@ -144,39 +144,39 @@ theorem fgsa_tWalk (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) :
           have hn := (Bool.and_eq_true_iff.mp hac).1
           change (!decide (liveRoot p st = .genesis)) = true at hn
           simp only [he, decide_true, Bool.not_true, Bool.false_eq_true] at hn
-      | node P t id =>
+      | node P t root id =>
           have hAP : Block.Preceq (liveRoot p st) P := by
-            have hne : liveRoot p st ≠ .node P t id := by
+            have hne : liveRoot p st ≠ .node P t root id := by
               intro he
               have hn := (Bool.and_eq_true_iff.mp hac).1
-              change (!decide (liveRoot p st = .node P t id)) = true at hn
+              change (!decide (liveRoot p st = .node P t root id)) = true at hn
               simp only [he, decide_true, Bool.not_true, Bool.false_eq_true] at hn
             have hp := (Bool.and_eq_true_iff.mp hac).2
-            change (decide (liveRoot p st = .node P t id) ||
+            change (decide (liveRoot p st = .node P t root id) ||
               Block.preceq (liveRoot p st) P) = true at hp
             simp only [hne, decide_false, Bool.false_or] at hp
             exact hp
           obtain ⟨C, hp, hCB, _, hc, _⟩ := walk_best_ancestry_of_cover (liveRoot p st)
-            (.node P t id) (erasedList st (fullTree p st))
+            (.node P t root id) (erasedList st (fullTree p st))
             (GridCO.goldfishScore st.base.blocks raw support) (eligible p st raw support)
             hBH P hAP (by
-              have hne : P ≠ .node P t id := by
+              have hne : P ≠ .node P t root id := by
                 intro he
                 have hd := congrArg Block.depth he
                 change P.depth = P.depth + 1 at hd
                 omega
-              change ((!decide (P = .node P t id)) &&
-                (decide (P = .node P t id) || Block.preceq P P)) = true
+              change ((!decide (P = .node P t root id)) &&
+                (decide (P = .node P t root id) || Block.preceq P P)) = true
               simp only [hne, decide_false, Bool.not_false, Bool.false_or, Bool.true_and]
               exact block_preceq_refl P)
-          have hdepth : C.depth = (Block.node P t id).depth := by
+          have hdepth : C.depth = (Block.node P t root id).depth := by
             cases C with
             | genesis => cases hp
-            | node D u jd =>
+            | node D u root jd =>
                 have hD := Option.some.inj hp
                 subst D
                 rfl
-          have hC : C = .node P t id := prefix_eq_of_depth C (.node P t id)
+          have hC : C = .node P t root id := prefix_eq_of_depth C (.node P t root id)
             hCB (Nat.le_of_eq hdepth.symm)
           exact hC ▸ hc
     change (_ || decide (_ < 2 * _) || _) = true at hel

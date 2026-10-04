@@ -101,7 +101,7 @@ private theorem iexact_idx_mono (rho : V2.D.Run V (fgsa p c)) :
   exact List.countP_mono_left (fun e _ he => decide_eq_true
     (lt_of_lt_of_le (of_decide_eq_true he) hab))
 
-/-- Blueprint 03:293–312, 21 H.22:3100–3120; spec 1240–1243, 1283–1294;
+/-- ROOT-DIGEST W2b. Blueprint 03:293–312, 21 H.22:3100–3120; spec 1240–1243, 1283–1294;
 plan I-EXACT, G1 step 4. Class (iii). DC: INTENTIONAL; the gate-receipt
 argument of fgsa_gateReceipt, read at the early tick e_r of any honest
 reader instead of at the gate d_r. The emitted HEAD is the scheduled read.
@@ -119,7 +119,8 @@ theorem inclusion_head_receipt_early
       some (.tick (rho.seatOf (.base (.head r)) q) (SA.voteTime p.toParams r)))
     (K : Block) (hK : headVote p ((fgsa p c).clock (V2.D.Run.stateBefore E rho k
       (rho.seatOf (.base (.head r)) q)) (SA.voteTime p.toParams r)).st r = K)
-    (hF : Block.Preceq (eraseFG (storeAt p c E rho j x).fg.F) K) :
+    (hF : Block.Preceq (eraseFG (storeAt p c E rho j x).fg.F) K)
+    (hroots : NamedRootCollisionFree p c E rho) :
     V2.D.Run.emits E rho (rho.seatOf (.base (.head r)) q) (ofHead p ⟨.seat (.head r) q, K⟩)
       (SA.voteTime p.toParams r) ∧
     baseVote (⟨.seat (.head r) q, K⟩ : HeadWire p.n) ∈ (storeAt p c E rho j x).base.votes ∧
@@ -173,7 +174,8 @@ theorem inclusion_head_receipt_early
       · obtain ⟨parent, hdel, _⟩ := ha.1
         have htv := (Gen.V2.Duty.index_lt_idxBefore_iff hsch hdel _).mp hl
         have hdl := hdeadline t htv.le
-        exact fgsa_gateReceipt_block_to_tick E rho hE hN hDelta dl cut hD t o K ho
+        exact fgsa_gateReceipt_block_to_tick (hroots := hroots)
+          E rho hE hN hDelta dl cut hD t o K ho
           (Or.inr ⟨y, hy, l, ha⟩) (hlt t) (hdl.trans hcut) hx hj hdl hF
   have hdl := hdeadline (SA.voteTime p.toParams r) le_rfl
   have hwindow : (V2.D.Run.stateBeforeTime E rho (dl (SA.voteTime p.toParams r)) x).st.slot p ≤
@@ -293,7 +295,8 @@ theorem inclusion_rest_bound [Fintype V]
   · intro k _ j _ he
     exact (hC (.base (.head r)) trivial).injective he
 
-/-- Paper 22:1228–1234,1251–1253,1719–1722: the full action pool at label qR+1 is a walk
+/-- ROOT-DIGEST W2b. Paper 22:1228–1234,1251–1253,1719–1722: the full action pool at label qR+1 is a
+walk
 batch for every Q below all honest label HEADs and above the reader's F; the action head
 is the walk on these pools.
 DC: Goldfish/Confirmation.lean:494,508, honest/rest partition with unique honest votes.
@@ -381,7 +384,8 @@ theorem fgsa_action_walk_batch [Fintype V] (E : Generic.Env V) (rho : V2.D.Run V
       rfl
     have hQK := hcover _ K hy hHL
     have hFK : Block.Preceq (eraseFG nd.st.fg.F) K := Gen.Pure.block_preceq_trans hFQ hQK
-    obtain ⟨hem, hv, _, hKb, _, hslot⟩ := inclusion_head_receipt_early E rho hb.valid
+    obtain ⟨hem, hv, _, hKb, _, hslot⟩ := inclusion_head_receipt_early (hroots := hb.idealization)
+      E rho hb.valid
       hb.noRestart hb.delta hb.cstar s hSync hjE a hy hawake hk K rfl (by rwa [← hfg])
     have hKn : K ∈ nd.st.base.blocks := hblocks ▸ hKb
     have hKact : K ∈ (FGSA.actView nd.st).blocks := (actView_blocks _ K).mpr

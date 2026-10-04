@@ -14,7 +14,7 @@ open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} [DecidableEq V]
     (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- Paper 22:841–879: high honest sources at one height have one entry.
+/-- ROOT-DIGEST W2b. Paper 22:841–879: high honest sources at one height have one entry.
 DC: INTENTIONAL: H1 supplies compatibility; height plateau supplies the entry. -/
 theorem high_source_entry_eq (w : HealingWitness) (hhigh : THigh p c E rho w)
     (x z : V) (r s : Nat) (C D : FGBlock (Fin p.n))
@@ -29,9 +29,7 @@ theorem high_source_entry_eq (w : HealingWitness) (hhigh : THigh p c E rho w)
   rw [Bool.or_eq_true] at hcompat
   have lift (A B : FGBlock (Fin p.n)) (hab : Block.Preceq (eraseFG A) (eraseFG B)) :
       FGBlock.Preceq A B :=
-    preceq_of_eraseFG_preceq (Vw := ({A, B} : Finset (FGBlock (Fin p.n))))
-      (fun _ _ _ _ h => FGBlock.root_injective h)
-      ⟨A, by simp, KitFG.preceq_refl A⟩ ⟨B, by simp, KitFG.preceq_refl B⟩ hab
+    eraseFG_preceq_iff.mp hab
   rcases hcompat with h | h
   · exact (fgCertificateLaws p).height.entry_plateau (lift C D h) heq
   · exact ((fgCertificateLaws p).height.entry_plateau (lift D C h) heq.symm).symm
@@ -1252,7 +1250,7 @@ theorem ff2_high_qc_identity (w : HealingWitness)
     exact ⟨he, z, r, C, hz, hs, hc, hhC, ht⟩
 
 
-/-- Paper 22:876–879,917–921: a high contest is impossible at every honest prefix.
+/-- ROOT-DIGEST W2b. Paper 22:876–879,917–921: a high contest is impossible at every honest prefix.
 DC: INTENTIONAL: QC identity covers every stored contest witness, including
 blocks disclosed late in cumulative TF. -/
 theorem ff2_no_high_contest (w : HealingWitness)
@@ -1304,7 +1302,9 @@ theorem ff2_no_high_contest (w : HealingWitness)
     have hXroot := ((hidentity i x D hx hD).1 st.fg.h_j X Q
       (fun k => (B k, a k)) hjhigh
       (by rw [hd, htop]; exact Nat.lt_succ_self _) hXD hXheight hQ ha).1
-    have he : st.fg.J = X := FGBlock.root_injective (hJroot.trans hXroot.symm)
+    have he : st.fg.J = X := viewRootInj_TF p st (cstoreInv_stateBefore E rho i x)
+      _ _ ⟨st.fg.J, J_mem p st (cstoreInv_stateBefore E rho i x), KitFG.preceq_refl _⟩
+      ⟨D, hD, hXD⟩ (hJroot.trans hXroot.symm)
     exact he ▸ hXD
   exact hbad (allWitnesses W hW hw)
 

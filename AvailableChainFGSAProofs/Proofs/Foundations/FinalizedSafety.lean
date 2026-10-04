@@ -9,7 +9,7 @@ namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
 
 set_option linter.unusedVariables false in
-/-- Finalized safety through the all-run FGSASlashableBound.
+/-- ROOT-DIGEST W2b. Finalized safety through the all-run FGSASlashableBound.
 DC DecoupledConsensusInternal/Legacy/Definitions/FinalitySafety.lean:83
 (WholeRunFinalitySafety); stored non-genesis blocks are run blocks.
 The frozen hx and hy binders are unused: reachable stores at any node suffice.
@@ -17,10 +17,11 @@ Local F only extends by fgsa_rMono under NoRestart. -/
 theorem fgsa_finalizedSafety (p : Params) {In V : Type} [DecidableEq V] [Fintype V]
     (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     {Pt : Type} {pt : Pt} (hp : FinalizedSafetyPrem p c E rho pt)
-    (e e' : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest) :
+    (e e' : Nat) (x y : V) (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
+    (hroots : NamedRootCollisionFree p c E rho) :
     FGBlock.compatible (storeAt p c E rho e x).fg.F
       (storeAt p c E rho e' y).fg.F = true := by
-  exact fgsa_eventPrefixAgreement_of_bound p c E rho
+  exact fgsa_eventPrefixAgreement_of_bound (hroots := hroots) p c E rho
     (fgsa_slashableBound_of_base p c E rho hp.set hp.fault) e e' x y
 
 private theorem finality_filter_prefix {α : Type} {R : α → α → Prop} {q : α → Bool}

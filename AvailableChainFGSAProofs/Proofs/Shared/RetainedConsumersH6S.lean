@@ -9,7 +9,7 @@ open AvailableChain.SimplexFG Gen.Pure RetainedWalk
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- Blueprint 21 H.6-S:988–1033; H.4-S:817–854. Class (iii).
+/-- ROOT-DIGEST W2b. Blueprint 21 H.6-S:988–1033; H.4-S:817–854. Class (iii).
 DC: INTENTIONAL; reuse the H.6 field producers with H.4-S prior support.
 Here the prior-support part of hinput is the upstream consequence of (S),
 the last actual write split, and expiry before the preceding HEAD duty.
@@ -31,7 +31,8 @@ theorem fgsa_retainedReads_H6S
       rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
       RetainedH6Input p
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
-        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s) :
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s)
+    (hroots : NamedRootCollisionFree p c E rho) :
     ∀ y ∈ rho.honest, ∀ ih,
       rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
       ∃ Kc, RetainedReadPremises p
@@ -39,7 +40,8 @@ theorem fgsa_retainedReads_H6S
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s
         (controls p (clock p (rho.stateBefore E ip x).st
           (SA.proposalTime p.toParams s))).Z b Kc := by
-  exact fgsa_retainedReads_H6 E rho hE hN hDelta s hSync hx hip hseat b raw sup rows hem hinput
+  exact fgsa_retainedReads_H6 (hroots := hroots)
+    E rho hE hN hDelta s hSync hx hip hseat b raw sup rows hem hinput
 
 end AvailableChain.FGSA.Run
 end

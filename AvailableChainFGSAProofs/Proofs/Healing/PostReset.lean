@@ -63,16 +63,17 @@ theorem healing_healTContract_reset [Fintype V] {G ΔF : Time}
       frontier := frontier_service E rho hrec mono xing writes rowCoverage
       geom := healing_tGeom p c E rho hrec.base.valid.toScheduleWellFormed }
 
-/-- Blueprint 21 H.14:2847–2861; plan J9 B; B1/B13/B17/B18/B32.
+/-- ROOT-DIGEST W2b. Blueprint 21 H.14:2847–2861; plan J9 B; B1/B13/B17/B18/B32.
 DC: SAME kept-view conclusion. Consume H0 only through toH0Reset.
 J10 must replace the named all-cut carrier when its producer is available. -/
 theorem healing_rKeep_of_reset (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
-    {w : HealingWitness} (inv : ∀ i, PostResetInv p c E rho w i) :
+    {w : HealingWitness} (inv : ∀ i, PostResetInv p c E rho w i)
+    (hroots : NamedRootCollisionFree p c E rho) :
     RKeep p c E rho w := by
   intro h0
-  exact postReset_rKeep_body p c E rho xing origin h0.toH0Reset inv
+  exact postReset_rKeep_body (hroots := hroots) p c E rho xing origin h0.toH0Reset inv
 
-/-- Blueprint 21 H.17/H.18:2946–3095; plan J9 B; B1/B13/B17/B31.
+/-- ROOT-DIGEST W2b. Blueprint 21 H.17/H.18:2946–3095; plan J9 B; B1/B13/B17/B31.
 DC: SAME both provenance clauses. The seven named inputs have J4's types.
 Consume H0 only through toH0Reset; no first-proposal field is read. -/
 theorem healing_rFProv_of_reset (hv : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho)
@@ -94,11 +95,13 @@ theorem healing_rFProv_of_reset (hv : V2.D.ExecutionValid E rho) (hnr : V2.D.NoR
       ∃ H, HeldAt p c E rho j z H ∧ fp.height = (heightView p H).h_j ∧
         fp.target = (heightView p H).J.root ∧
         KitFG.TargetQCAt p.E H fp.height (heightView p H).J)
-    (xing : RXing p c E rho) (w : HealingWitness) : RFProv p c E rho w := by
+    (xing : RXing p c E rho) (w : HealingWitness)
+    (hroots : NamedRootCollisionFree p c E rho) : RFProv p c E rho w := by
   intro h0
-  exact postReset_rFProv_reset p c E rho hv hnr origin heldRows cap hhead xing h0.toH0Reset
+  exact postReset_rFProv_reset (hroots := hroots) p c E rho hv hnr origin heldRows cap hhead xing
+    h0.toH0Reset
 
-/-- Blueprint 21 H.13–H.18:2668–3095; plan J9 B; B1/B13/B17/B18/B31/B32.
+/-- ROOT-DIGEST W2b. Blueprint 21 H.13–H.18:2668–3095; plan J9 B; B1/B13/B17/B18/B31/B32.
 DC: SAME six fields. Crossing and capacity are named channels;
 phase and descent use their producers, keep and provenance use the H0 adapters.
 The unused _h0r input stays for signature uniformity. -/
@@ -125,14 +128,16 @@ theorem healing_healRContract_reset (hv : V2.D.ExecutionValid E rho)
         fp.target = (heightView p H).J.root ∧
         KitFG.TargetQCAt p.E H fp.height (heightView p H).J)
     {w : HealingWitness} (_h0r : H0Reset p c E rho w)
-    (inv : ∀ i, PostResetInv p c E rho w i) : HealRContract p c E rho w := by
+    (inv : ∀ i, PostResetInv p c E rho w i)
+    (hroots : NamedRootCollisionFree p c E rho) : HealRContract p c E rho w := by
   exact
     { xing := xing
       cap := cap
-      phase := healing_rPhase p c E rho mono xing hv hnr hdelta hsync
-      excl := healing_rExcl p c E rho xing origin
-      keep := healing_rKeep_of_reset p c E rho xing origin inv
-      fprov := healing_rFProv_of_reset p c E rho hv hnr origin heldRows finalityCap hhead xing w }
+      phase := healing_rPhase (hroots := hroots) p c E rho mono xing hv hnr hdelta hsync
+      excl := healing_rExcl (hroots := hroots) p c E rho xing origin
+      keep := healing_rKeep_of_reset (hroots := hroots) p c E rho xing origin inv
+      fprov := healing_rFProv_of_reset (hroots := hroots) p c E rho hv hnr origin heldRows
+        finalityCap hhead xing w }
 
 /-- Blueprint 21 H.22 H1/H2:3250–3263; plan J9 C; B13/B17.
 DC: SAME T-stream fields, with explicit row delay. Each field is a named

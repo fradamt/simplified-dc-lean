@@ -14,7 +14,7 @@ open AvailableChain.SimplexFG Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- Blueprint 21:1551–1569; plan §3.1 steps 6 and 8.
+/-- ROOT-DIGEST W2b. Blueprint 21:1551–1569; plan §3.1 steps 6 and 8.
 DC: INTENTIONAL the whole raw result passes the guard under the cap.
 H-GATE's fixed-phase transfers are replaced by the capped fast and slow transfers. -/
 theorem frontier_gate_guard_of_cover [Fintype V] (E : Generic.Env V)
@@ -162,7 +162,8 @@ theorem frontier_gate_guard_of_cover [Fintype V] (E : Generic.Env V)
       linarith
     have hSync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _
       hrec.sync (fgsaDelay_nonrow E.Δ _) hgstq hvdq (hgq.trans hvh)
-    have hcq := healing_support_release_compat E rho hE hN hDelta q hSync hx hx hjqt hiq hτ
+    have hcq := healing_support_release_compat (hroots := hrec.base.idealization)
+      E rho hE hN hDelta q hSync hx hx hjqt hiq hτ
       hFiq lease hkeep
     obtain ⟨hBm, hBs⟩ := opening_result_slot E rho hS htj hres
     have hQs := repair_proposal_slot E rho hQ

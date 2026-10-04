@@ -1,8 +1,11 @@
 module
 public import AvailableChainFGSAProofs.Proofs.Healing.Export -- shake: keep (Healing claim boundary)
-public import AvailableChainFGSAProofs.Proofs.Foundations.Export -- shake: keep (foundation supplier boundary)
-public import AvailableChainFGSAProofs.Proofs.Finality.Export -- shake: keep (progress fold supplier boundary)
-public import AvailableChainFGSAProofs.Proofs.Shared.HonestQuorum -- shake: keep (honest quorum supplier boundary)
+public import AvailableChainFGSAProofs.Proofs.Foundations.Export
+-- shake: keep (foundation supplier boundary)
+public import AvailableChainFGSAProofs.Proofs.Finality.Export
+-- shake: keep (progress fold supplier boundary)
+public import AvailableChainFGSAProofs.Proofs.Shared.HonestQuorum
+-- shake: keep (honest quorum supplier boundary)
 
 public section
 
@@ -10,19 +13,19 @@ namespace AvailableChain.FGSA.Run
 
 variable (p : Params)
 
-/-- Blueprint 21:1356–1425. Named producers supply all renewed promotion ports.
+/-- ROOT-DIGEST W2b. Blueprint 21:1356–1425. Named producers supply all renewed promotion ports.
 Recovery₂ supplies the execution, fault, and synchrony facts. -/
 theorem fgsa_renewedPromotionClaim : RenewedPromotionClaim p := by
   exact healing_renewedPromotionClaim_of p
     (hmono := fun c E rho => fgsa_rMono p c E rho)
     (hcrossing := by
       intro V _ _ In c E rho G ΔF hrec
-      exact fgsa_rXing p c E rho hrec.base.linked
+      exact fgsa_rXing (hroots := hrec.base.idealization) p c E rho hrec.base.linked
         (fgsa_faultX_count_rec p hrec.fault) hrec.base.valid.toUnforgeableSignatures)
     (hperm := by
       intro V _ _ In c E rho G ΔF hrec
       exact healing_tPerm E rho hrec (fgsa_rMono p c E rho)
-        (fgsa_rXing p c E rho hrec.base.linked
+        (fgsa_rXing (hroots := hrec.base.idealization) p c E rho hrec.base.linked
           (fgsa_faultX_count_rec p hrec.fault) hrec.base.valid.toUnforgeableSignatures)
         (fgsa_leaseOrigins_lastWrite p c E rho hrec.base.valid.toScheduleWellFormed))
     (hrowsReceipt := by

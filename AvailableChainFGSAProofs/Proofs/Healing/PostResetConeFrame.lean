@@ -29,7 +29,8 @@ theorem maxLiveH_def (s : Slot) (ip : Nat) (x : V) :
         (fun q => rho.events[q.1]? = some (.tick q.2 (SA.voteTime p.toParams s))))).sup
           (fun q => (storeAt p c E rho q.1 q.2).fg.h_max) := by rfl
 
-private theorem cone_cross_source (origin : RQCOrigin p c E rho) {i : Nat} {x : V}
+private theorem cone_cross_source (hroots : NamedRootCollisionFree p c E rho) (origin : RQCOrigin
+    p c E rho) {i : Nat} {x : V}
     {W : FGBlock (Fin p.n)} {m : Nat} (hx : x ∈ rho.honest)
     (hW : W ∈ (storeAt p c E rho i x).fg.TF) (hm : 1 ≤ m)
     (hmW : m < (heightView p W).h) :
@@ -61,7 +62,8 @@ private theorem cone_cross_source (origin : RQCOrigin p c E rho) {i : Nat} {x : 
     rw [hp] at hmatch hn
     obtain ⟨rfl, rfl⟩ : h = m ∧ e = Y.root := of_decide_eq_true hmatch
     obtain ⟨h1, h2⟩ := Prod.mk.inj (Option.some.inj hn)
-    exact ⟨h1.symm, FGBlock.root_injective h2.symm⟩
+    exact ⟨h1.symm, rootScope_eq hroots (rootScope_entry (rootScope_source hrow.1 hK))
+      (rootScope_ancestor (rootScope_store hx hW) hYW) h2.symm⟩
 
 section Frame
 variable [Fintype V] {G ΔF : Time}
@@ -112,7 +114,7 @@ theorem postReset_cone_reset_held {s : Slot} (hs : w.sStar + 2 ≤ s)
   exact ⟨C, (fgsa_store_cumulative p c E rho hrec.base.noRestart hjqj x).1 hC, he⟩
 
 omit mono in
-/-- Blueprint 21 H.14–H.17:2958–3012; plan S5 CONE C3/C4.
+/-- ROOT-DIGEST W2b. Blueprint 21 H.14–H.17:2958–3012; plan S5 CONE C3/C4.
 DC: SAME each active root below the preceding honest HEADs.
 postReset_keep_roots supplies the reset or high-source alternative. -/
 theorem postReset_root_heads_at_cut (i : Nat)
@@ -129,7 +131,8 @@ theorem postReset_root_heads_at_cut (i : Nat)
       ∀ y ∈ rho.honest, ∀ H, headAtLabel p c E rho y (s - 1) = some H →
         Block.Preceq (eraseFG B) H := by
   intro B hB y hy H hH
-  rcases postReset_keep_roots p c E rho hrec.base.valid.toScheduleWellFormed xing origin
+  rcases postReset_keep_roots (hroots := hrec.base.idealization) p c E rho
+    hrec.base.valid.toScheduleWellFormed xing origin
       h0r hx hC he B hB with hBC | ⟨K, u, hK, hhK, hBK⟩
   · exact block_preceq_trans (he ▸ eraseFG_preceq hBC) (hCHeads y hy H hH)
   · obtain ⟨k, z, r, a, hkj, ha, hsrc, hu⟩ := hK
@@ -214,7 +217,7 @@ private theorem cone_source_held (source : TSrc p c E rho)
   exact (fgsa_store_cumulative p c E rho hrec.base.noRestart
     (healing_support_idxBefore_le p c E rho hS ht (hu ▸ hdeadline)) x).1 hheld
 
-/-- Blueprint 21 H.14–H.17:2958–3012; plan S5 CONE C3.
+/-- ROOT-DIGEST W2b. Blueprint 21 H.14–H.17:2958–3012; plan S5 CONE C3.
 DC: SAME common pivot chosen after the maximum over all actual reads.
 The high and reset compatibility facts have the base J2 producers.
 The ports have producers fgsa_rMono, sourceDiscipline_emittedNonempty,
@@ -317,7 +320,8 @@ theorem postReset_commonPivot_at_cut
         simp only [Height] at *
         omega
       obtain ⟨_, _, _, K, u, hK, hhK, _⟩ :=
-        cone_cross_source p c E rho origin hqhonest hW (m := m - 1)
+        cone_cross_source (hroots := hrec.base.idealization) p c E rho origin hqhonest hW (m := m
+          - 1)
           (by simp only [Height] at *; omega) (by simp only [Height] at *; omega)
       obtain ⟨k, z, r, a, hkq, ha, hsrc, hu⟩ := hK
       have hgap := healing_source_row_label E rho hS hqt ⟨k, hkq, ha⟩ hqtype
@@ -354,7 +358,8 @@ theorem postReset_commonPivot_at_cut
           nlinarith [p.deltaPos]
         exact htp.trans_le hlo
       exact ⟨k, z, r, a, repair_idx_lt E rho hS ha.2.1 ht htime, ha, hsrc, hu⟩
-    have hkept := postReset_descent_kept_of_compat p c E rho xing origin
+    have hkept := postReset_descent_kept_of_compat (hroots := hrec.base.idealization) p c E rho
+      xing origin
       (highCompat q.1) (resetCompat q.1) hz (Finset.Subset.refl _) hDh hhD
       (Or.inl ⟨u, hDCut⟩) (by
         intro K v hK _ _ hlt
@@ -376,7 +381,8 @@ theorem postReset_commonPivot_at_cut
     obtain ⟨C, hC, heC⟩ := postReset_cone_reset_held p c E rho hrec cap source h0r
       mono xing hs hz ht hlo
     have hH := postReset_keep_height p c E rho h0r hC heC
-    have hcontest := postReset_keep_contest p c E rho hS origin (highCompat q.1) hH hz
+    have hcontest := postReset_keep_contest (hroots := hrec.base.idealization) p c E rho hS origin
+      (highCompat q.1) hH hz
     have hfloor := postReset_keep_floor p c E rho hcontest
     have hbound := hread_bound q hq
     refine ⟨hDh, hkept, ?_⟩

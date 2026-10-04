@@ -24,11 +24,11 @@ theorem healing_promotion_proposal_reachable {s : Slot} {st : State p.n}
       rw [← Option.some.inj hs]
       exact reachable_postClock E rho k _ _
 
-/-- Blueprint 21:1385–1410; r3 A1.
+/-- ROOT-DIGEST W2b. Blueprint 21:1385–1410; r3 A1.
 DC: SAME stored R6W at the row parent rules out staleUseful at this height. -/
 theorem healing_rows_above_entry_at_height (st : State p.n) (hr : Reachable p st)
     (k : RowKind) (y : Nat) (U P : FGBlock (Fin p.n)) (hP : P ∈ st.fg.TF)
-    (hPh : (heightView p P).h = y) :
+    (hPh : (heightView p P).h = y) (hUP : FGBlock.Preceq U P) :
     ∀ i W, FGBlock.Preceq W P → (∃ row ∈ W.rows, RowNames p k row i y U) →
       FGBlock.Preceq U W.parent := by
   intro i W hWP ⟨row, hrow, hnames⟩
@@ -36,15 +36,15 @@ theorem healing_rows_above_entry_at_height (st : State p.n) (hr : Reachable p st
   have hW : W ∈ st.fg.TF := ancestor_closed_of_parent_closed _ hinv.fg.closed P hP W hWP
   cases W with
   | genesis => exact (List.not_mem_nil hrow).elim
-  | node Q t x rs =>
-  have hv := stored_r6wW p hr Q t x rs hW row hrow
+  | node Q t root x rs =>
+  have hv := stored_r6wW p hr Q t root x rs hW row hrow
   have hpair : ∃ timeout, row.height_pair = .vote y U.root timeout := by
     obtain ⟨_, hk⟩ := hnames
     cases k with
     | target => exact ⟨_, hk⟩
     | progress => obtain ⟨timeout, ht⟩ := hk; exact ⟨timeout, ht⟩
   obtain ⟨timeout, hp⟩ := hpair
-  have hQP : FGBlock.Preceq Q P := preceq_trans (preceq_parent_node Q t x rs) hWP
+  have hQP : FGBlock.Preceq Q P := preceq_trans (preceq_parent_node Q t root x rs) hWP
   have hQh : (heightView p Q).h ≤ y := hPh ▸ (fgCertificateLaws p).height.h_mono hQP
   have hdh : (Window.derive p p.K_W Q).h = (heightView p Q).h := by
     rw [heightView_def, Window.projectHeight_def]
@@ -55,7 +55,8 @@ theorem healing_rows_above_entry_at_height (st : State p.n) (hr : Reachable p st
   · rw [Window.heightMatch_def, hp] at hm
     simp only [NamedHeightPair.matchesEntry, decide_eq_true_eq] at hm
     have hroot : U.root = (heightView p Q).T_h.root := hdT ▸ hm.2
-    have hU : U = (heightView p Q).T_h := FGBlock.root_injective hroot
+    have hU : U = (heightView p Q).T_h := viewRootInj_TF p st hinv _ _ ⟨P, hP, hUP⟩
+      ⟨P, hP, preceq_trans ((fgCertificateLaws p).height.entry_preceq Q) hQP⟩ hroot
     change FGBlock.Preceq U Q
     rw [hU]
     exact (fgCertificateLaws p).height.entry_preceq Q

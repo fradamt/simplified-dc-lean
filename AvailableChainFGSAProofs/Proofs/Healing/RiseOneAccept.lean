@@ -39,7 +39,7 @@ theorem healing_rise_one_of_receipt (hs : V2.D.ScheduleWellFormed E rho)
       ((healing_phase_local_le_frontier p c E rho hx).trans
         (healing_frontier_mono p c E rho hnr (healing_phase_idx_le_time p c rho hd)))))
 
-/-- Blueprint 21:1410–1419, 1467–1468; S5 M5b B2.
+/-- ROOT-DIGEST W2b. Blueprint 21:1410–1419, 1467–1468; S5 M5b B2.
 DC: SAME r3 supplies the first honest receipt. In the genesis top-J phase,
 each honest receiver has an F path to genesis, so the same signed proposal
 is stored strictly before its deadline by every honest receiver. -/
@@ -87,7 +87,8 @@ theorem healing_rise_one_receipt_all [Fintype V] {G ΔF : Time}
       (ofWire p ⟨.proposer s, .proposal (eraseFG X) raw sup rows⟩) t :=
     Or.inl ⟨_, hnew.1.2, ip, hip, hem⟩
   have hdline : max t E.t_GST + p.Δ = d := by rw [max_eq_left (hgst.trans hu)]
-  obtain ⟨Y, hY, he⟩ := fgsa_proposal_receipt E rho hrec.base.delta hrec.base.valid
+  obtain ⟨Y, hY, he⟩ := fgsa_proposal_receipt (hRoots := hrec.base.idealization) E rho
+    hrec.base.delta hrec.base.valid
     hrec.base.noRestart (fun t => max t E.t_GST + p.Δ) rho.horizon s (eraseFG X)
     raw sup rows t x hD hT hx (hdline ▸ hp.2.1)
     (hdline ▸ lt_add_of_pos_right t p.deltaPos) (hdline ▸ hcompat)

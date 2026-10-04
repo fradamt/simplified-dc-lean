@@ -75,7 +75,7 @@ private theorem zero_state (h : HealthyPrefix₂ p c E rho 0 ΔF)
         have href : ∀ s b raw support rows P,
             (toWire p o).decode = some (.block s b raw support rows) →
             parentFG (storeAt p c E rho k v) b = some P →
-            blockAccepted p (storeAt p c E rho k v) s b P rows = false := by
+            blockAccepted p (storeAt p c E rho k v) s b raw support P rows = false := by
           intro s b raw support rows P _ _
           apply Bool.eq_false_iff.mpr
           intro ha

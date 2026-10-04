@@ -31,8 +31,7 @@ private theorem transfer_vote_shape {n : Nat} (o : GridCO.Wire n) (s : Slot) (k 
 
 private theorem transfer_lift' {A B : FGBlock (Fin p.n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
-  preceq_of_eraseFG_preceq (KitFG.viewRootInj_all {A, B})
-    ⟨A, by simp, KitFG.preceq_refl A⟩ ⟨B, by simp, KitFG.preceq_refl B⟩ h
+  eraseFG_preceq_iff.mp h
 
 private theorem transfer_vote_release (s : Slot) :
     SA.voteTime p.toParams (s + 1) = SA.releaseTime p.toParams s := by
@@ -266,7 +265,8 @@ theorem healing_support_honest_head (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
   subst htime
   exact ⟨j', ht, by rw [hK]; rfl⟩
 
-/-- Blueprint 21:689–692 (H.1 release), 620–631 (IF.6); plan H-SUPPORT §4 step 5 (G5).
+/-- ROOT-DIGEST W2b. Blueprint 21:689–692 (H.1 release), 620–631 (IF.6); plan H-SUPPORT §4 step 5
+(G5).
 DC: INTENTIONAL release LOWER bound. The clean early supporters of B at the honest source
 gate are resolved and clean at the receiver's q_s release read, by forward and reverse
 relay. Each one opposes a target that conflicts with B, so the count reaches the lease
@@ -283,7 +283,8 @@ theorem healing_support_release_compat (E : Generic.Env V)
     {B : Block}
     (hτ : SA.releaseThreshold p.toParams ≤ SA.prefixSupport p.toParams
       (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s B)
-    (hFB : Block.Preceq (eraseFG (storeAt p c E rho iy y).fg.F) B) :
+    (hFB : Block.Preceq (eraseFG (storeAt p c E rho iy y).fg.F) B)
+    (hroots : NamedRootCollisionFree p c E rho) :
     ∀ row ∈ (FGSA.clock p (storeAt p c E rho iy y)
       (SA.voteTime p.toParams (s + 1))).base.obligations, Block.Compatible row.1 B := by
   intro row hrow
@@ -319,7 +320,8 @@ theorem healing_support_release_compat (E : Generic.Env V)
       change Block.Preceq (eraseFG (FGSA.clock p st0 _).fg.F) K
       rw [clock_fg]
       exact hFK
-    obtain ⟨Kfg, hKe, hpath⟩ := healing_support_target_path E rho hE hN hDelta s hSync
+    obtain ⟨Kfg, hKe, hpath⟩ := healing_support_target_path (hroots := hroots)
+      E rho hE hN hDelta s hSync
       hx hy hiy K hKm hKst hFK'
     have hcl := fgsa_cleanSupport_seat_clean_late p src s o ho k hko
     rcases fgsa_cleanSupport_vote_forward E rho hE hN hDelta s hSync hx hy hix hiy o ho k hko
@@ -395,7 +397,8 @@ theorem healing_support_release_compat (E : Generic.Env V)
   have hτ' : SA.releaseThreshold p.toParams ≤ SA.prefixSupport p.toParams src s B := hτ
   omega
 
-/-- Blueprint 21:673–699 (H.1), 748–783 (H.3 kept path); plan H-SUPPORT §4 steps 2–5.
+/-- ROOT-DIGEST W2b. Blueprint 21:673–699 (H.1), 748–783 (H.3 kept path); plan H-SUPPORT §4 steps
+2–5.
 DC: INTENTIONAL first transfer at q_s = v_(s+1) in a settled phase. One honest clean
 supporter gives the HEAD witness W (F1+F2, via S0), so W and its ancestors are in the
 receiver's frozen q_s domain; RXing (F-root) or the common J (top-J) puts Z and F below
@@ -433,7 +436,8 @@ theorem healing_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
     (hv : SA.voteTime p.toParams (s + 1) ≤ v)
     (hlease : Block.Preceq (eraseFG (storeAt p c E rho iy y).fg.F) B →
       ∀ row ∈ (FGSA.clock p (storeAt p c E rho iy y)
-        (SA.voteTime p.toParams (s + 1))).base.obligations, Block.Compatible row.1 B) :
+        (SA.voteTime p.toParams (s + 1))).base.obligations, Block.Compatible row.1 B)
+    (hroots : NamedRootCollisionFree p c E rho) :
     Block.Preceq B (headVote p (FGSA.clock p (storeAt p c E rho iy y)
       (SA.voteTime p.toParams (s + 1))) (s + 1)) := by
   have hS := hE.toScheduleWellFormed
@@ -458,7 +462,8 @@ theorem healing_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
     change 4 * p.Δ * (s : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
     linarith
   obtain ⟨Kfg, hKfull, hKe, W, hW, hKW, hloW, hrelay⟩ :=
-    healing_head_witness_relay p c E rho mono crossing hE hN hDelta hsync u v m J contested
+    healing_head_witness_relay (hroots := hroots)
+      p c E rho mono crossing hE hN hDelta hsync u v m J contested
       hgst hphase hkh hjz hhead (hvs.trans hgate)
   have hKe2 : eraseFG Kfg = K := hKe.trans hKeq.symm
   have hBW : Block.Preceq B (eraseFG W) := by
@@ -603,7 +608,8 @@ theorem healing_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
     have hBK' : Block.Preceq B K' := by
       rw [Gen.AC.voteSupports_def, hK'] at hsup'
       exact (Bool.and_eq_true_iff.mp hsup').2
-    obtain ⟨Kfg', hKe', hpath'⟩ := healing_support_target_path E rho hE hN hDelta s hSync
+    obtain ⟨Kfg', hKe', hpath'⟩ := healing_support_target_path (hroots := hroots)
+      E rho hE hN hDelta s hSync
       hx hy hiy K' hKm' hKst' (Gen.Pure.block_preceq_trans hFB hBK')
     exact fgsa_cleanSupport_forward_relay E rho hE hN hDelta s hSync hx hy hix hiy o' ho'
       seat hs' Kfg' (hKe' ▸ hK') B (hKe' ▸ hBK') hpath' hFB
@@ -617,7 +623,8 @@ theorem healing_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
   rw [Gen.AC.TransferBounds_def] at hc
   exact fgsa_headVote_covers_of_transfer p dst s B hanchor hpath hc.2.2.2.2.2.1 hc.2.2.2.2.2.2
 
-/-- Blueprint 21:673–699 (H.1, fast case p ≥ τ); plan H-SUPPORT §4 (S1 first HEAD clause).
+/-- ROOT-DIGEST W2b. Blueprint 21:673–699 (H.1, fast case p ≥ τ); plan H-SUPPORT §4 (S1 first HEAD
+clause).
 DC: INTENTIONAL the fast arm of PhaseBody gives the first transfer: every honest HEAD at
 label s+1 inside the phase covers B. The fast test gives the honest supporter (G3) and the
 release lower bound (G5); the genuine result gives the majority. This is only the s+1
@@ -697,9 +704,11 @@ theorem healing_first_transfer_fast [Fintype V] (E : Generic.Env V)
     linarith [p.deltaPos]
   have hSync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _
     hrec.sync (fgsaDelay_nonrow E.Δ _) (hgst.trans hhead) hvd (hgate.trans hphase.2.1)
-  exact healing_first_transfer_core E rho mono crossing hE hN hDelta hrec.sync hgst hphase
+  exact healing_first_transfer_core (hroots := hrec.base.idealization)
+    E rho mono crossing hE hN hDelta hrec.sync hgst hphase
     hhead hgate hx hix hkh ho hko hsup hmaj hy hiy hv
-    (fun hFB => healing_support_release_compat E rho hE hN hDelta s hSync hx hy hix hiy hτ hFB)
+    (fun hFB => healing_support_release_compat (hroots := hrec.base.idealization)
+      E rho hE hN hDelta s hSync hx hy hix hiy hτ hFB)
 
 end AvailableChain.FGSA.Run
 end

@@ -2,6 +2,7 @@ module
 public import AvailableChainFGSAClaims.Statements.Phases
 public import AvailableChainFGSARun.Proofs.EmissionWellFormed
 public import AvailableChainFGSARun.Proofs.Hooks
+public import AvailableChainFGSAProofs.Proofs.Shared.Roots
 
 public section
 
@@ -52,10 +53,12 @@ theorem fgSource_eq_jointSource (st : State p.n) :
     Finset.mem_filter, List.mem_toFinset]
   cases leaseOf st (eraseFG B) <;> rfl
 
-/-- For a positive slot, propose uses the joint proposer head as parent. -/
+/-- ROOT-DIGEST W2b. For a positive slot, propose uses the joint proposer head as parent. -/
 theorem propose_head (st : State p.n) (s : Slot) (hs : s ≠ 0) :
     FGSA.propose p st s = some (.proposal
-      (.node (proposerHead p st s) s (packBody 0 (proposalRows p st (proposerHead p st s))))
+      (proposalBlock p (proposerHead p st s) s 0
+        ((proposerVotes st s).filterMap liftHead?) ((proposerSupport st s).filterMap liftHead?)
+        (proposalRows p st (proposerHead p st s)))
       ((proposerVotes st s).filterMap liftHead?) ((proposerSupport st s).filterMap liftHead?)
       (proposalRows p st (proposerHead p st s))) := by
   rw [proposerHead_def]
@@ -150,7 +153,7 @@ theorem honestRow_auth (E : Generic.Env V) (h : V2.D.ExecutionValid E rho)
     | head s => cases hv
     | fg => exact ⟨i, rfl⟩
 
-/-- An honest signed row is released before its direct or carried handler call.
+/-- ROOT-DIGEST W2b. An honest signed row is released before its direct or carried handler call.
 The time inequality can be non-strict; tick-before-delivery makes the index strict. -/
 theorem emit_lt_handles (E : Generic.Env V) (h : V2.D.ExecutionValid E rho)
     {j k : Nat} {y x : V} {r : Nat} {a : RowWire p.n}
@@ -178,29 +181,39 @@ theorem emit_lt_handles (E : Generic.Env V) (h : V2.D.ExecutionValid E rho)
   have htime := (V2.Event.tick.inj (Option.some.inj (hj.symm.trans hj'))).2
   exact V2.D.Engine.tick_index_lt_delivery E rho h.toScheduleWellFormed hj hk (htime ▸ hle)
 
-/-- P3 §8.7 F2.2; bp02 §§3.1–3.5. Class B channel assembly.
+/-- ROOT-DIGEST W2b. P3 §8.7 F2.2; bp02 §§3.1–3.5. Class B channel assembly.
 DC counterparts: ChainState/FGRootWitness.lean:327,493 and
 Execution/WeakGenesisGSTZeroActionSources.lean:106. The all-entry FJ bundle
 and G1 differ intentionally (TS/spec/fgsa-protocol.tex:2557–2571;
 TS/log.md:1475). No source existence or Clean premise is used. -/
 theorem cpPrefix_of_srcFrame (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
-    (hsrc : SrcFrameAboveStmt p c E rho) : CPPrefix p c E rho := by
-  simp only [CPPrefix_def, heightView_eq_simplex p, KitFG.simplexHeightView_def, KitFG.heightOf_def]
-  intro i x B hx hrows
-  have hs := hsrc (fun e => FGBlock.Preceq e B) 0 (ancestorClosed_preceq p B)
-    (by simpa only [KitFG.hOf_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
-      using srcFrame_genesis_preceq p B 0) i x hx (by
-      intro y r a e ha hn _
-      obtain ⟨X, hXB, he⟩ := hrows y r a _ ha hn
-      have heX : X = e := FGBlock.root_injective (congrArg Prod.snd he)
-      exact heX ▸ hXB)
-  have hc : ∀ W ∈ (storeAt p c E rho i x).fg.TF, ∀ e ∈ certified p W,
-      FGBlock.Preceq e B := fun W hW e he => hs.1 W hW e he (Nat.zero_le _)
-  have hF := hs.2.1 (Nat.zero_le _)
-  have hJ := hs.2.2.1 (Nat.zero_le _)
-  have hZ := hs.2.2.2 (Nat.zero_le _)
+    (hr : NamedRootCollisionFree p c E rho) (hstrat : RStrat p c E rho) :
+    CPPrefix p c E rho := by
+  intro i x B hx hB hrows
   let st := storeAt p c E rho i x
+  have hc : ∀ W ∈ st.fg.TF, ∀ e ∈ certified p W, FGBlock.Preceq e B := by
+    intro W hW e he
+    by_cases hg : e = .genesis
+    · subst e; exact KitFG.genesis_preceq B
+    obtain ⟨y, r, a, ha, hn⟩ := hstrat i x W hx hW e he hg
+    obtain ⟨X, hXB, hname⟩ := hrows y r a _ ha hn
+    have heX : X = e := rootScope_eq hr (rootScope_ancestor hB hXB)
+      (rootScope_ancestor (rootScope_store hx hW) (certified_preceq he))
+      (congrArg Prod.snd hname)
+    exact heX ▸ hXB
+  have hI := (hstore i x hx).1.fg
+  obtain ⟨K, hK, hKF⟩ := hI.Fcar
+  have hF : FGBlock.Preceq st.fg.F B :=
+    hc K hK _ ⟨K, KitFG.preceq_refl K, Or.inr (Or.inl hKF.symm)⟩
+  obtain ⟨D, hD, _, _, hDJ⟩ := hI.pair.1
+  have hJ : FGBlock.Preceq st.fg.J B :=
+    hc D hD _ ⟨D, KitFG.preceq_refl D, Or.inl hDJ⟩
+  have hZ : FGBlock.Preceq (controls p st).Z B := by
+    rw [controls_eq]
+    change FGBlock.Preceq (if (storeControls p.E p.cfg st.fg).rootIsJ then
+      st.fg.J else st.fg.F) B
+    split <;> assumption
   have hinv := (hstore i x hx).1.fg
   have hcert := (fgCertificateLaws p).height
   have hjust := fgJustificationLaws p
@@ -225,9 +238,10 @@ theorem cpPrefix_of_srcFrame (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
         using (storeControls_eq p st (hstore i x hx).1).symm.trans (controls_eq p st))
   refine ⟨hc, hF, hJ, hZ, ?_, ?_⟩
   · rw [hcontrols]; exact hn
-  · rw [hcontrols]; exact hlo
+  · rw [hcontrols, heightView_eq_simplex p]
+    exact hlo
 
-/-- P3 §8.7 F2.2; bp02 §3.4 and P3 App. A.3 CPCompat. Class B.
+/-- ROOT-DIGEST W2b. P3 §8.7 F2.2; bp02 §3.4 and P3 App. A.3 CPCompat. Class B.
 DC counterpart: ChainState/FGRootWitness.lean:548 concludes root
 compatibility only. Retention and EVERY contest witness are intentional FJ
 extensions (TS/spec/fgsa-protocol.tex:2557–2571; TS/log.md:1475). G1 is explicit. -/
@@ -283,7 +297,76 @@ theorem cpCompat_of_srcFrame (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
         hjust B hJ hcross
 
 
-/-- Plan item 4. DC: INTENTIONAL exact retained entry, then prefix coverage.
+/-- ROOT-DIGEST W2b. The compatibility proof consumes names only for scoped entries. -/
+theorem cpCompat_of_scopedFrame (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
+    (hstrat : RStrat p c E rho) : ∀ i x (B : FGBlock (Fin p.n)), x ∈ rho.honest →
+  (∀ y r (a : RowWire p.n) (e : FGBlock (Fin p.n)),
+    HonestRowBefore p c E rho i y r a →
+    namedEntry a.payload.height_pair = some ((heightView p e).h, e.root) →
+    RootBlockInRun p c E rho (eraseFG e) →
+    FGBlock.Preceq e B ∨ FGBlock.Preceq B e) →
+  (∀ W ∈ (storeAt p c E rho i x).fg.TF, ∀ e ∈ certified p W,
+    FGBlock.Preceq e B ∨ FGBlock.Preceq B e) ∧
+  (let st := storeAt p c E rho i x
+   let R := R_at p c E rho i x
+   (FGBlock.Preceq R.F B ∨ FGBlock.Preceq B R.F) ∧
+   (FGBlock.Preceq R.J B ∨ FGBlock.Preceq B R.J) ∧
+   (B ∈ st.fg.TF → FGBlock.Preceq R.F B →
+     FGBlock.Preceq B R.Z ∨ B ∈ domainR p st st.fg.TF) ∧
+   (R.contest = true → FGBlock.Preceq B R.J ∧
+     ∀ W ∈ st.fg.TF, (heightView p W).h = R.H → ¬ FGBlock.Preceq R.J W →
+       FGBlock.Preceq B W)) := by
+  simp only [heightView_eq_simplex p, KitFG.simplexHeightView_def, KitFG.heightOf_def]
+  intro i x B hx hrows
+  have hs := srcFrameAbove_scoped p c E rho hstore hstrat (fun e => FGBlock.Preceq e B ∨
+    FGBlock.Preceq B e) 0
+    (ancestorClosed_compatible p B) (by
+      simpa only [KitFG.hOf_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
+        using srcFrame_genesis_compatible p B 0) i x hx
+    (fun y r a e ha hn heScope _ => hrows y r a e ha (by
+      simpa only [heightView_eq_simplex p, KitFG.simplexHeightView_def, KitFG.heightOf_def]
+        using hn) heScope)
+  have hc : ∀ W ∈ (storeAt p c E rho i x).fg.TF, ∀ e ∈ certified p W,
+      FGBlock.Preceq e B ∨ FGBlock.Preceq B e :=
+    fun W hW e he => hs.1 W hW e he (Nat.zero_le _)
+  have hF := hs.2.1 (Nat.zero_le _)
+  have hJ := hs.2.2.1 (Nat.zero_le _)
+  let st := storeAt p c E rho i x
+  have hinv := (hstore i x hx).1.fg
+  have hcert := (fgCertificateLaws p).height
+  have hjust := fgJustificationLaws p
+  rw [heightView_eq_simplex p] at hinv hcert hjust
+  have hcross : ∀ W ∈ st.fg.TF, ∀ U, FGBlock.Preceq U W →
+      hOf p.E p.cfg U < hOf p.E p.cfg W →
+      FGBlock.Preceq (derive p.E p.cfg U).T_h B ∨ FGBlock.Preceq B (derive p.E p.cfg U).T_h := by
+    intro W hW U hU hlt
+    apply hc W hW
+    simp only [certified_def, heightView_eq_simplex p,
+      KitFG.simplexHeightView_def, KitFG.heightOf_def]
+    exact ⟨U, hU, Or.inr (Or.inr ⟨rfl, hlt⟩)⟩
+  have hcontrols : R_at p c E rho i x = storeControls p.E p.cfg st.fg :=
+    (hframe i x hx).1.trans (by
+      simpa only [KitFG.fjControls_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
+        using (storeControls_eq p st (hstore i x hx).1).symm.trans (controls_eq p st))
+  refine ⟨hc, hF, hJ, ?_, ?_⟩
+  · intro hB hFB
+    have hr := KitFG.storeFrameView_retention_of_compatible_of_inv
+      p.E (KitFG.simplexHeightView p.E p.cfg) hcert (finalityView p) st.fg hinv
+        hjust B hB hFB hJ hcross
+    rcases hr with hr | hr
+    · left
+      rw [hcontrols]
+      exact hr
+    · right
+      rw [← (hframe i x hx).2, fullTree_eq]
+      exact hr
+  · rw [hcontrols]
+    exact KitFG.storeFrameView_contest_of_compatible_of_inv
+      p.E (KitFG.simplexHeightView p.E p.cfg) hcert (finalityView p) st.fg hinv
+        hjust B hJ hcross
+
+/-- ROOT-DIGEST W2b. Plan item 4. DC: INTENTIONAL exact retained entry, then prefix coverage.
 This is the pure window_finality_of_cover adapter; genesis is excluded. -/
 theorem pendingFold_consume_W (p : Params) (y : Nat) (U X : FGBlock (Fin p.n))
     (h : PendingFold_W p y U X) :
@@ -292,20 +375,20 @@ theorem pendingFold_consume_W (p : Params) (y : Nat) (U X : FGBlock (Fin p.n))
   rcases h with ⟨child, e, he, hj, hX, Q, hQ, cover⟩
   cases X with
   | genesis => exact (child rfl).elim
-  | node P s body rows =>
+  | node P s root body rows =>
       have hc : ∀ i ∈ Q, i ∈ e.Q ∨ ∃ row ∈ rows,
           row.signer = i ∧ row.finality_pair = some ⟨e.j, e.X.root⟩ := by
         simpa only [FinRowNames_def, hj, hX, FGBlock.rows] using cover
       simpa only [hj, hX] using
-        Window.window_finality_of_cover p p.K_W p.kWLarge P s body rows e he Q hQ hc
+        Window.window_finality_of_cover p p.K_W p.kWLarge P s root body rows e he Q hQ hc
 
-/-- DC: INTENTIONAL separate prior coverage, extended by W monotonicity. -/
+/-- ROOT-DIGEST W2b. DC: INTENTIONAL separate prior coverage, extended by W monotonicity. -/
 theorem covered_parent_W (p : Params) (y : Nat) (U X : FGBlock (Fin p.n))
     (h : Window.CoveredW p X.parent y U) : Window.CoveredW p X y U := by
   have path : FGBlock.Preceq X.parent X := by
     cases X with
     | genesis => exact KitFG.preceq_refl _
-    | node P s body rows => exact KitFG.preceq_parent_node P s body rows
+    | node P s root body rows => exact KitFG.preceq_parent_node P s root body rows
   exact ⟨h.1.trans (Window.window_hF_mono p p.K_W p.kWLarge _ _ path),
     KitFG.preceq_trans h.2 (Window.window_F_mono p p.K_W p.kWLarge _ _ path)⟩
 

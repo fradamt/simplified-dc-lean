@@ -26,7 +26,7 @@ private theorem fgsa_block_reconcile_edits (st : State p.n) (h : CStoreInv p st)
       rw [admitBlock_refused p st s b raw support rows (Or.inl hP)] at hF
       exact (hF rfl).elim
   | some P =>
-      cases ha : blockAccepted p st s b P rows with
+      cases ha : blockAccepted p st s b raw support P rows with
       | false =>
           rw [admitBlock_refused p st s b raw support rows (Or.inr ⟨P, hP, ha⟩)] at hF
           exact (hF rfl).elim

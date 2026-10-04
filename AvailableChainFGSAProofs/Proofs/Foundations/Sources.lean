@@ -109,7 +109,7 @@ private theorem source_row_action {j : Nat} {x : V} {r : Nat} {a : RowWire p.n}
       dsimp only [fgsa] at hb ⊢
       exact hb
     | propAction s =>
-      change (propose p _ s).map (withApp _) = some (.row a.payload) at hm
+      change (propose p _ s).map (withApp p _) = some (.row a.payload) at hm
       obtain ⟨m, hm, he⟩ := Option.map_eq_some_iff.mp hm
       obtain ⟨_, _, _, _, heq, _, _⟩ := rowsOk_withApp _ _ _ (by rw [hm]; exact congrArg some he)
       cases heq
@@ -407,7 +407,7 @@ private theorem source_named_quorum [Fintype V] {Pt : Type} {pt : Pt}
     source_stored_row p c E rho hb.set.valid e he hS hx hcstore ha hhon'
   exact ⟨e a.signer, r, wire, hbefore, hheight ▸ hp⟩
 
-/-- Each non-genesis certified entry has an earlier honest name. -/
+/-- ROOT-DIGEST W2b. Each non-genesis certified entry has an earlier honest name. -/
 theorem sourceDiscipline_strat [Fintype V] {Pt : Type} {pt : Pt}
     (hb : SourceDisciplinePrem p c E rho pt)
     (hS : RStore p c E rho) : RStrat p c E rho := by
@@ -465,10 +465,13 @@ theorem sourceDiscipline_strat [Fintype V] {Pt : Type} {pt : Pt}
                 decide_eq_true_eq] using hp
             exact congrArg some (Prod.ext hp'.1 hp'.2))
     obtain ⟨j, hj, hem⟩ := hbefore
-    obtain ⟨C, G, _, hpair, _, _, _, _⟩ :=
+    obtain ⟨C, G, hC, hpair, _, _, _, _⟩ :=
       sourceDiscipline_emittedName p c E rho hb.set.valid.toScheduleWellFormed hem hname
     have hXC : X = (derive p.E p.cfg C).T_h :=
-      FGBlock.root_injective (congrArg Prod.snd hpair)
+      rootScope_eq hb.set.idealization
+        (rootScope_ancestor (rootScope_store hx hW) hXW)
+        (rootScope_ancestor (rootScope_source hem.1 hC)
+          (KitFG.entry_preceq p.E p.cfg C)) (congrArg Prod.snd hpair)
     have hXentry : (derive p.E p.cfg X).T_h = X := by
       rw [hXC]
       exact KitFG.entry_idem p.E p.cfg C

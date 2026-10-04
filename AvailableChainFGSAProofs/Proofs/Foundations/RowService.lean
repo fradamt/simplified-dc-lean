@@ -14,17 +14,17 @@ open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- BP01:109–114: a height row in an actual held carrier sets its matching bit,
+/-- ROOT-DIGEST W2b. BP01:109–114: a height row in an actual held carrier sets its matching bit,
 which persists forward while the key stays fixed. DC: ChainState/
 MatchingProgress.lean:147 gives the converse witness.
 INTENTIONAL: this FG-SA adapter uses the forward KitFG
 laws and an explicit occurrence; a parent-chain row alone is insufficient.
 The held premise records the occurrence in the run; the fold law is pure. -/
 theorem fgsa_rowBitPersist (target : Bool) (i : Nat) (x : V)
-    (parent B W : FGBlock (Fin p.n)) (s : Slot) (body : Nat)
+    (parent B W : FGBlock (Fin p.n)) (s : Slot) (root : BlockId) (body : Nat)
     (rows : List (Row (Fin p.n))) (a : Row (Fin p.n))
-    (_held : HeldAt p c E rho i x (.node parent s body rows))
-    (ha : a ∈ rows) (hCB : FGBlock.Preceq (.node parent s body rows) B)
+    (_held : HeldAt p c E rho i x (.node parent s root body rows))
+    (ha : a ∈ rows) (hCB : FGBlock.Preceq (.node parent s root body rows) B)
     (hm : if target then a.height_pair = .vote (heightView p parent).h
       (heightView p parent).T_h.root false else
       a.height_pair.matchesEntry (heightView p parent).h (heightView p parent).T_h.root = true)
@@ -35,7 +35,7 @@ theorem fgsa_rowBitPersist (target : Bool) (i : Nat) (x : V)
       (heightView p B).T_h.root = (heightView p W).T_h.root) :
     a.signer ∈ (if target then (heightView p W).target_participation
       else (heightView p W).progress) :=
-  row_bit_persist p target parent W s body rows a ha (KitFG.preceq_trans hCB hBW) hm
+  row_bit_persist p target parent W s root body rows a ha (KitFG.preceq_trans hCB hBW) hm
     ⟨hPB.1.trans hstate.1, hPB.2.trans hstate.2⟩
 
 private theorem rowService_receipt_on (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -165,11 +165,12 @@ private theorem rowService_carrier_read {s : Slot} {Q : Block} {rows : List (Row
           (fun nd : Node p => nd.st) = some st
         rw [htick]
         rfl
-      · change (propose p st s).map (withApp _) = some (.proposal Q raw sup rows) at hm
+      · change (propose p st s).map (withApp p _) = some (.proposal Q raw sup rows) at hm
         rw [propose_head p st s (Nat.ne_of_gt hs0)] at hm
         have he : Msg.proposal
-            (.node (proposerHead p st s) s (packBody (c.app (rho.input _ _))
-              (proposalRows p st (proposerHead p st s))))
+            (proposalBlock p (proposerHead p st s) s (c.app (rho.input _ _)) ((proposerVotes st
+              s).filterMap liftHead?) ((proposerSupport st s).filterMap liftHead?) (proposalRows p
+              st (proposerHead p st s)))
             ((proposerVotes st s).filterMap liftHead?)
             ((proposerSupport st s).filterMap liftHead?)
             (proposalRows p st (proposerHead p st s)) = .proposal Q raw sup rows :=
@@ -356,7 +357,7 @@ theorem BatchPrem.batch_of_valid {p : Params} {V : Type} [DecidableEq V] [Fintyp
         eventTime rho j = some t ∧ t = p.actionTime r := by
   rcases h.valid with ⟨S, hs, hq, hv⟩; exact ⟨S, hs, hq, by grind⟩
 
-/-- SO-COV chooses the same complete witness for validity, match, and receipt.
+/-- ROOT-DIGEST W2b. SO-COV chooses the same complete witness for validity, match, and receipt.
 DC: SAME height coverage; INTENTIONAL cutoff q and pre-GST row transport. -/
 theorem fgsa_batchCoverage (ΔF : Time) (kind : RowKind) : BatchCoverage p ΔF kind := by
   intro V _ _ In c E rho q y U X hb hheight
@@ -405,7 +406,8 @@ theorem fgsa_batchCoverage (ΔF : Time) (kind : RowKind) : BatchCoverage p ΔF k
     have hpar : FGBlock.Preceq W.parent X.parent := by
       cases W with
       | genesis => exact hWP
-      | node P s body rs => exact KitFG.preceq_trans (KitFG.preceq_parent_node P s body rs) hWP
+      | node P s root body rs =>
+          exact KitFG.preceq_trans (KitFG.preceq_parent_node P s root body rs) hWP
     have hlow := KitFG.h_mono p.E p.cfg hUW
     have hhigh := KitFG.h_mono p.E p.cfg hpar
     have hentry : (heightView p U).h = y ∧ (heightView p U).T_h = U := hb.entry
@@ -426,7 +428,7 @@ theorem fgsa_batchCoverage (ΔF : Time) (kind : RowKind) : BatchCoverage p ΔF k
     left
     cases W with
     | genesis => exact (List.not_mem_nil hbW).elim
-    | node P s body rs =>
+    | node P s root body rs =>
       change (derive p.E p.cfg P).h = y at hh
       change (derive p.E p.cfg P).T_h = U at hT
       change (derive p.E p.cfg P).h = (derive p.E p.cfg X.parent).h ∧
@@ -441,7 +443,7 @@ theorem fgsa_batchCoverage (ΔF : Time) (kind : RowKind) : BatchCoverage p ΔF k
             (heightView p P).T_h.root = (heightView p X.parent).T_h.root := by
           simpa only [heightView_eq_simplex, KitFG.simplexHeightView_def, KitFG.heightOf_def]
             using hsames
-        have ht := row_bit_persist p true P X.parent s body rs b hbW hWP hm hk
+        have ht := row_bit_persist p true P X.parent s root body rs b hbW hWP hm hk
         change b.signer ∈ (heightView p X.parent).target_participation at ht
         exact hrow.1 ▸ ht
       | progress =>
@@ -455,7 +457,7 @@ theorem fgsa_batchCoverage (ΔF : Time) (kind : RowKind) : BatchCoverage p ΔF k
             (heightView p P).T_h.root = (heightView p X.parent).T_h.root := by
           simpa only [heightView_eq_simplex, KitFG.simplexHeightView_def, KitFG.heightOf_def]
             using hsames
-        have ht := row_bit_persist p false P X.parent s body rs b hbW hWP hm hk
+        have ht := row_bit_persist p false P X.parent s root body rs b hbW hWP hm hk
         change b.signer ∈ (heightView p X.parent).progress at ht
         exact hrow.1 ▸ ht
 

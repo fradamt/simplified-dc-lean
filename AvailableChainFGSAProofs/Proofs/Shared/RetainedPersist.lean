@@ -56,19 +56,20 @@ theorem fgsa_score_geometry_of_retained_cuts (p : Params) (src dst : State p.n)
     block_preceq_trans (F_preceq_liveRoot p dst ht)
       (block_preceq_trans h.target_cut h.cut_parent)⟩
 
-/-- Blueprint 21 H.6:942–953, H.17:3008–3011 (design 798–809,2869–2872); spec 1286–1293.
+/-- ROOT-DIGEST W2b. Blueprint 21 H.6:942–953, H.17:3008–3011 (design 798–809,2869–2872); spec
+1286–1293.
 Class (iii). DC: INTENTIONAL; immutable erased ancestry lifts to FG ancestry. -/
 private theorem persist_lift {n : Nat} {A B : FGBlock (Fin n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
-  preceq_of_eraseFG_preceq (Vw := {A, B}) (KitFG.viewRootInj_all _)
-    ⟨A, by simp, KitFG.preceq_refl _⟩ ⟨B, by simp, KitFG.preceq_refl _⟩ h
+  eraseFG_preceq_iff.mp h
 
-/-- Blueprint 21 H.6:942–953, H.17:3008–3011 (design 798–809,2869–2872); spec 1286–1293.
+/-- ROOT-DIGEST W2b. Blueprint 21 H.6:942–953, H.17:3008–3011 (design 798–809,2869–2872); spec
+1286–1293.
 Class (iii). DC: INTENTIONAL; every block extends its parent. -/
 private theorem persist_parent (b : Block) : Block.Preceq b.parent b := by
   cases b with
   | genesis => exact block_preceq_refl _
-  | node P s r => exact Bool.or_eq_true_iff.mpr (Or.inr (block_preceq_refl _))
+  | node P s root r => exact Bool.or_eq_true_iff.mpr (Or.inr (block_preceq_refl _))
 
 /-- Blueprint 21 H.6:935–953, HG.1:1518–1532, HG.8:2249–2259, HG.8:2079–2121, H.17:3008–3011
 (design 791–809,1385–1399,2107–2117,1937–1979,2869–2872);
@@ -179,7 +180,8 @@ theorem fgsa_retained_persists_of_path
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- Blueprint 21 H.6:935–953, HG.1:1518–1532, HG.8:2249–2259, HG.8:2079–2121, H.17:3008–3011
+/-- ROOT-DIGEST W2b. Blueprint 21 H.6:935–953, HG.1:1518–1532, HG.8:2249–2259, HG.8:2079–2121,
+H.17:3008–3011
 (design 791–809,1385–1399,2107–2117,1937–1979,2869–2872);
 spec 1555–1581. Class (iii). DC: INTENTIONAL; S8
 composes the existing R6-aware trigger-to-tick receipt and S3. The chain
@@ -198,7 +200,8 @@ theorem fgsa_retained_proposal_mem_on_run
     (D : FGBlock (Fin p.n)) (Kc : Block)
     (h : RetainedReadPremises p
       (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
-      (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D b Kc) :
+      (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D b Kc)
+    (hroots : NamedRootCollisionFree p c E rho) :
     b ∈ (rho.stateBefore E ih y).st.base.blocks ∧
       b ∈ T p (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s := by
   let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s)
@@ -218,7 +221,7 @@ theorem fgsa_retained_proposal_mem_on_run
       (block_preceq_trans h.target_parent (persist_parent b))
     change Block.Preceq (eraseFG (rho.stateBefore E ih y).st.fg.F) b
     simpa only [dst, clock_fg] using hf
-  have hadm := fgsa_gateReceipt_block_to_tick E rho hE hN hDelta dl cut hD
+  have hadm := fgsa_gateReceipt_block_to_tick (hroots := hroots) E rho hE hN hDelta dl cut hD
     (SA.proposalTime p.toParams s)
     (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) b rfl
     (Or.inl ⟨x, hx, ip, hip, hem⟩) (hlt _) (hd.trans hc) hy hih hd hF
@@ -227,7 +230,8 @@ theorem fgsa_retained_proposal_mem_on_run
     (F_preceq_liveRoot p dst ht) s b ?_ hslot h.target_parent h.parent_height⟩
   simpa only [dst, clock_base_blocks] using hadm'
 
-/-- Blueprint 21 H.6:942–953, H.17:2971–3006 (design 798–809,2832–2867); spec 1286–1293,1330–1360.
+/-- ROOT-DIGEST W2b. Blueprint 21 H.6:942–953, H.17:2971–3006 (design 798–809,2832–2867); spec
+1286–1293,1330–1360.
 Class (iii). DC: INTENTIONAL; exact W.persists. Target receipt and its
 internal path witness give membership. Candidate-local G25 and the band
 adapter then preserve all three eligibility arms. -/
@@ -248,7 +252,8 @@ theorem fgsa_retained_path_persists_on_run
     (D : FGBlock (Fin p.n)) (Kc : Block)
     (h : RetainedReadPremises p
       (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1)))
-      (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))) (s + 1) D b Kc) :
+      (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))) (s + 1) D b Kc)
+    (hroots : NamedRootCollisionFree p c E rho) :
     let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1))
     let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))
     SuffixPersists Kc b.parent (S p src) (T p dst (s + 1))
@@ -261,7 +266,7 @@ theorem fgsa_retained_path_persists_on_run
   rw [(V2.D.Run.step_tick_eq E rho hip).2] at hm
   have hp := (fgsa_emits_proposal E rho _ x _ (s + 1) _).mp hm
   have hbslot := (fgsa_scoreRun_proposal_pools p _ (s + 1) _ b raw sup rows hp.2.2.2).1
-  have scores := fgsa_score_eq_on_candidates_on_run E rho hE hN hDelta (s + 1)
+  have scores := fgsa_score_eq_on_candidates_on_run (hroots := hroots) E rho hE hN hDelta (s + 1)
     hScoreSync hx hy hip hih hseat b raw sup rows hem hadm
     (fun C => C ∈ S p src ∧ C ∈ T p dst (s + 1))
     (fgsa_score_geometry_of_retained_cuts p src dst hs ht (s + 1) D b Kc h)
@@ -272,10 +277,10 @@ theorem fgsa_retained_path_persists_on_run
     have hXC : Block.Preceq X C := by
       cases C with
       | genesis => cases hp
-      | node P t r =>
+      | node P t root r =>
         have heq : P = X := Option.some.inj hp
         subst P
-        exact persist_parent (.node X t r)
+        exact persist_parent (.node X t root r)
     exact fgsa_retained_path_mem p src dst ht.baseTree ht.fg.closed
       (F_preceq_liveRoot p dst ht) (s + 1) b C
       (by simpa only [dst, clock_base_blocks] using hadm) hbslot
@@ -292,7 +297,8 @@ theorem fgsa_retained_path_persists_on_run
       ((fgsa_proposal_slot (c := c) _ (s + 1)).trans
         (fgsa_vote_slot (c := c) _ (s + 1)).symm)
 
-/-- Blueprint 21 H.6:942–958, H.17:2986–3011 (design 798–814,2847–2872); spec 1555–1581,1330–1360.
+/-- ROOT-DIGEST W2b. Blueprint 21 H.6:942–958, H.17:2986–3011 (design 798–814,2847–2872); spec
+1555–1581,1330–1360.
 Class (iii). DC: INTENTIONAL; job-5 strict-path assembly. The landed Gen
 API takes atomic fields, so this constructs RetainedWalkRunGeometry and
 returns the endpoint fields already supplied by jobs 5a/5b for job 6. -/
@@ -314,7 +320,8 @@ theorem fgsa_retainedWalk_geometry_on_run
     (D : FGBlock (Fin p.n)) (Kc : Block)
     (h : RetainedReadPremises p
       (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1)))
-      (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))) (s + 1) D b Kc) :
+      (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))) (s + 1) D b Kc)
+    (hroots : NamedRootCollisionFree p c E rho) :
     let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1))
     let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))
     RetainedWalkRunGeometry p src dst (s + 1) D b Kc ∧
@@ -325,12 +332,13 @@ theorem fgsa_retainedWalk_geometry_on_run
   let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))
   have hs : CStoreInv p src := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ip x) _
   have ht : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ih y) _
-  obtain ⟨hadm, hmem⟩ := fgsa_retained_proposal_mem_on_run E rho hE hN hDelta (s + 1)
+  obtain ⟨hadm, hmem⟩ := fgsa_retained_proposal_mem_on_run (hroots := hroots)
+    E rho hE hN hDelta (s + 1)
     hScoreSync hx hy hip hih b raw sup rows hem D Kc h
-  have hr := fgsa_retained_old_child_reflects_on_run E rho hE hN hDelta s
+  have hr := fgsa_retained_old_child_reflects_on_run (hroots := hroots) E rho hE hN hDelta s
     hWalkSync hScoreSync hx hy hip hih hseat b raw sup rows hem hadm D Kc h
   have hA := fgsa_score_geometry_of_retained_cuts p src dst hs ht (s + 1) D b Kc h
-  have scores := fgsa_score_eq_on_candidates_on_run E rho hE hN hDelta (s + 1)
+  have scores := fgsa_score_eq_on_candidates_on_run (hroots := hroots) E rho hE hN hDelta (s + 1)
     hScoreSync hx hy hip hih hseat b raw sup rows hem hadm
     (fun C => C ∈ S p src ∧ C ∈ T p dst (s + 1)) hA
     (fun C hm => fgsa_score_geometry_of_domains p src dst src.fg.TF
@@ -344,7 +352,8 @@ theorem fgsa_retainedWalk_geometry_on_run
     target_cut := h.target_cut
     cut_parent := h.cut_parent
     target_prefix := h.target_prefix
-    persists := fgsa_retained_path_persists_on_run E rho hE hN hDelta s hScoreSync
+    persists := fgsa_retained_path_persists_on_run (hroots := hroots) E rho hE hN hDelta s
+      hScoreSync
       hx hy hip hih hseat b raw sup rows hem hadm D Kc h
     reflects := hr.1
     scores := ?_ }, hmem, hr.2⟩
@@ -354,7 +363,7 @@ theorem fgsa_retainedWalk_geometry_on_run
   have hsrc : C ∈ S p src := by
     rcases hcase with hstrict | hold
     · exact (hr.1 X C hK hstrict hm hp he).1
-    · exact fgsa_walkRun_reflected_old_child E rho hE hN hDelta s hWalkSync
+    · exact fgsa_walkRun_reflected_old_child (hroots := hroots) E rho hE hN hDelta s hWalkSync
         hx hy hip hih hseat b raw sup rows hem Kc X C h.source_cut hK hX hp hold hm
         (h.reflected_witness X C hK hX hm hp hold he)
   exact scores.2 C ⟨hsrc, hm⟩

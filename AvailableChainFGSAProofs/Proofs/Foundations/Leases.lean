@@ -68,7 +68,7 @@ private theorem leaseRows_process (st : State p.n) (o : Wire p.n) :
       cases hp : parentFG st b with
       | none => rw [admitBlock_refused p st s b raw sup rows (Or.inl hp)]
       | some P =>
-        cases ha : blockAccepted p st s b P rows with
+        cases ha : blockAccepted p st s b raw sup P rows with
         | false =>
           rw [admitBlock_refused p st s b raw sup rows (Or.inr ⟨P, hp, ha⟩)]
         | true =>
@@ -180,7 +180,7 @@ private theorem fastPairs_process (st : State p.n) (o : Wire p.n) :
       cases hp : parentFG st b with
       | none => rw [admitBlock_refused p st s b raw sup rows (Or.inl hp)]
       | some P =>
-        cases ha : blockAccepted p st s b P rows with
+        cases ha : blockAccepted p st s b raw sup P rows with
         | false => rw [admitBlock_refused p st s b raw sup rows (Or.inr ⟨P, hp, ha⟩)]
         | true =>
           unfold admitBlock

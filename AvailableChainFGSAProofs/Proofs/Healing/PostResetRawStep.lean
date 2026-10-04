@@ -684,7 +684,7 @@ private theorem rawStep_head_label {a : Nat} {z : V} {j : Slot}
 
 
 omit movingDomain in
-/-- Blueprint 21 H.16:2940–2944, H.2:729–735; plan J5-A-3 R6 finality;
+/-- ROOT-DIGEST W2b. Blueprint 21 H.16:2940–2944, H.2:729–735; plan J5-A-3 R6 finality;
 B1/B13/B17/B18. DC: SAME provenance and crossing proof at every state cut. -/
 theorem postReset_raw_finality_compatible_above
     {i : Nat} (hinv : PostResetInv p c E rho w i)
@@ -703,8 +703,7 @@ theorem postReset_raw_finality_compatible_above
   obtain ⟨A, hA, heA⟩ := (cstoreInv_stateBefore E rho ix x).baseTree (eraseFG B) |>.mp hb
   have hBstore : B ∈ (storeAt p c E rho ix x).fg.TF := (eraseFG_injective heA) ▸ hA
   obtain ⟨-, -, -, Cfg, -, -, -, heC, hhC⟩ := h0r.fresh
-  have hCBfg : FGBlock.Preceq Cfg B := preceq_of_eraseFG_preceq (KitFG.viewRootInj_all {Cfg, B})
-      ⟨Cfg, by simp, KitFG.preceq_refl Cfg⟩ ⟨B, by simp, KitFG.preceq_refl B⟩ (by rwa [heC])
+  have hCBfg : FGBlock.Preceq Cfg B := eraseFG_preceq_iff.mp (by rwa [heC])
   have hhB : high p w B := by
     rw [high_def]
     exact hhC ▸ (fgCertificateLaws p).height.h_mono hCBfg
@@ -713,7 +712,7 @@ theorem postReset_raw_finality_compatible_above
     rw [hFg]
     exact Bool.or_eq_true_iff.mpr (Or.inl (Gen.Pure.block_genesis_preceq _))
   obtain ⟨DF, hDF, heF, K, r, hK, hhK, hKF, -⟩ :=
-    healing_finality_source p c E rho hs origin hy hFg
+    healing_finality_source (hroots := hrec.base.idealization) p c E rho hs origin hy hFg
   by_cases hl : (finalityView p DF).h_F < (heightView p B).h
   · have hFB := xing b (b + ix) y x DF B hy (Nat.le_add_right b ix) hDF heF
       ⟨hx, (fgsa_store_cumulative p c E rho hrec.base.noRestart

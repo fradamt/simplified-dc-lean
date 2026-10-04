@@ -129,7 +129,7 @@ theorem fgsa_active_support_of_receipt (E : Generic.Env V)
   simp only [hK, hslot, decide_true, Bool.true_and]
   exact hBK
 
-/-- P3 F1b.1, K8 and blueprint 02 §5.4:531–541. Class (ii), active path
+/-- ROOT-DIGEST W2b. P3 F1b.1, K8 and blueprint 02 §5.4:531–541. Class (ii), active path
 instance. DC: no exact counterpart for active F filtering. INTENTIONAL: compatibility
 through every intervening F (the K8 `compat` field, P3:4921–4929).
 A received path whose head extends the final F stays in the active view. -/
@@ -141,11 +141,12 @@ theorem fgsa_active_path_of_coverage (E : Generic.Env V)
     (hx : x ∈ rho.honest)
     (hcov : ReceiptCoveragePremises E rho dl cut D first x K required paths)
     (hpath : paths K D)
-    (hFK : Block.Preceq (eraseFG (V2.D.Run.stateBeforeTime E rho D x).st.fg.F) K) :
+    (hFK : Block.Preceq (eraseFG (V2.D.Run.stateBeforeTime E rho D x).st.fg.F) K)
+    (hroots : NamedRootCollisionFree p c E rho) :
     ∀ X, Block.Preceq X K → X ∈ (actView (V2.D.Run.stateBeforeTime E rho D x).st).blocks := by
   let st := (V2.D.Run.stateBeforeTime E rho D x).st
   have hc := (fgsa_receiptCoverage E rho dl cut D first x K required paths
-    hDelta hE hN hx hcov).1
+    hroots hDelta hE hN hx hcov).1
   have hb := (storeBundle_stateBeforeTime E rho D x).cstore
   have hK : K ∈ (actView st).blocks := by
     rcases hc with ⟨hKF, _⟩ | ⟨_, _, hpaths⟩

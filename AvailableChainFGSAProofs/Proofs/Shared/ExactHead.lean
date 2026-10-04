@@ -80,7 +80,7 @@ theorem fgsa_headVote_exact_of_covered_parent (p : Params) (st : State p.n)
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- G25/G11 followed by G33; 21 H.17:2794–2830, S1b E1–E6:118–134.
+/-- ROOT-DIGEST W2b. G25/G11 followed by G33; 21 H.17:2794–2830, S1b E1–E6:118–134.
 DC: Goldfish/ProposalWalkTransportCore.lean:162 and Walk.lean:433.
 INTENTIONAL: FG-SA supplies actual tick reads, two LabelSync intervals and
 live-frame geometry. Admission and terminal geometry are consumer premises.
@@ -108,7 +108,8 @@ theorem exactHead_of_proposal_on_run
       (clock p (V2.D.Run.stateBefore E rho ip x).st (SA.proposalTime p.toParams s))
       (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) s D)
     (hterminal : ExactHeadGeometry p
-      (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) s b) :
+      (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) s b)
+    (hroots : NamedRootCollisionFree p c E rho) :
     let dst := clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)
     headVote p dst s = b := by
   intro dst
@@ -122,7 +123,8 @@ theorem exactHead_of_proposal_on_run
     exact walk_covers_of_dominated_suffix _ _ _ _ _
       (block_compatible_of_common hgeom.source_anchor (block_preceq_refl _))
       hgeom.source_prefix
-  have hcover := fgsa_ghost_transfer_sfx_on_run E rho hE hN hDelta s hScoreSync hSync
+  have hcover := fgsa_ghost_transfer_sfx_on_run (hroots := hroots)
+    E rho hE hN hDelta s hScoreSync hSync
     hx hy hip hih hseat b raw sup rows hem hadm D hgeom
   exact fgsa_headVote_exact_of_covered_parent p dst s (Nat.ne_of_gt hparent.1)
     (eraseFG D) b
@@ -152,7 +154,7 @@ structure ExactHeadRunGeometry
       ExactHeadGeometry p
         (clock p (V2.D.Run.stateBefore E rho ih y).st (SA.voteTime p.toParams s)) s b
 
-/-- The HEAD clause of J2 ExactService, before freeze; 21 H.22:3109–3114.
+/-- ROOT-DIGEST W2b. The HEAD clause of J2 ExactService, before freeze; 21 H.22:3109–3114.
 DC: Goldfish/PreparedV4CanonicalProposalDuty.lean:867–887.
 INTENTIONAL: FG-SA uses the option-valued post-clock reader and the finite
 HEAD horizon. The schedule supplies every honest reader, including a reader
@@ -173,7 +175,8 @@ theorem exactService_head_of_proposal
     (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
     (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
       V2.D.Run.emitsAt E rho ip)
-    (D : FGBlock (Fin p.n)) (hgeom : ExactHeadRunGeometry E rho ip x s D b) :
+    (D : FGBlock (Fin p.n)) (hgeom : ExactHeadRunGeometry E rho ip x s D b)
+    (hroots : NamedRootCollisionFree p c E rho) :
     SA.voteTime p.toParams s ≤ rho.horizon →
       ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some b := by
   intro hhorizon y hy
@@ -184,7 +187,7 @@ theorem exactService_head_of_proposal
   obtain ⟨ih, hih, _⟩ := fgsa_tick_total E rho hE.toScheduleWellFormed hDelta y hy
     (4 * s + 1) (hvt ▸ hhorizon)
   rw [hvt] at hih
-  have he := exactHead_of_proposal_on_run E rho hE hN hDelta s hScoreSync hSync
+  have he := exactHead_of_proposal_on_run (hroots := hroots) E rho hE hN hDelta s hScoreSync hSync
     hx hy hip hih hseat b raw sup rows hem (hgeom.admitted y hy ih hih) D
     (hgeom.walk y hy ih hih) (hgeom.terminal y hy ih hih)
   have ht := fgsa_tickIdx_of_event p c E rho hE.toScheduleWellFormed hih

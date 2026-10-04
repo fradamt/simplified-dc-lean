@@ -18,7 +18,8 @@ open Gen.AC
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- Blueprint 21 HG.1:1546–1556, H.1:673–699 (fast case); plan §3.1 step 3 (restates
+/-- ROOT-DIGEST W2b. Blueprint 21 HG.1:1546–1556, H.1:673–699 (fast case); plan §3.1 step 3
+(restates
 `healing_first_transfer_fast`). DC: INTENTIONAL a fast body B at an honest gate d_s whose
 label-s HEADs cover the pivot transfers to every honest HEAD at v_(s+1) under the cap. -/
 theorem frontier_first_transfer_fast [Fintype V] (E : Generic.Env V)
@@ -99,11 +100,13 @@ theorem frontier_first_transfer_fast [Fintype V] (E : Generic.Env V)
     linarith [p.deltaPos]
   have hSync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _
     hrec.sync (fgsaDelay_nonrow E.Δ _) hgsts hvd (hgate.trans hvh)
-  exact frontier_first_transfer_core E rho crossing hE hN hDelta hrec.sync hQm hvh hcap hgsts
+  exact frontier_first_transfer_core (hroots := hrec.base.idealization)
+    E rho crossing hE hN hDelta hrec.sync hQm hvh hcap hgsts
     hgate hcoverQ hx hix hkh ho hko hsup hmaj hy hiy hv
-    (fun hFB => healing_support_release_compat E rho hE hN hDelta s hSync hx hy hix hiy hτ hFB)
+    (fun hFB => healing_support_release_compat (hroots := hrec.base.idealization)
+      E rho hE hN hDelta s hSync hx hy hix hiy hτ hFB)
 
-/-- Blueprint 21 HG.1:1546–1556, H.4-S:650–680; plan §3.1 step 3 (restates
+/-- ROOT-DIGEST W2b. Blueprint 21 HG.1:1546–1556, H.4-S:650–680; plan §3.1 step 3 (restates
 `healing_slow_first_transfer`). DC: INTENTIONAL a synchronous-window slow body at an honest
 gate d_s whose label-s HEADs cover the pivot transfers to every honest HEAD at v_(s+1)
 under the cap. The slow source result is a strict late majority with an honest supporter. -/
@@ -158,7 +161,8 @@ theorem frontier_first_transfer_slow [Fintype V] (E : Generic.Env V)
   have hiy := V2.D.Run.tickIdx?_spec hiy'
   have hHeq := Option.some.inj hH
   subst hHeq
-  exact frontier_first_transfer_core E rho crossing hE hN hDelta hrec.sync hQm hvh hcap hgsts
+  exact frontier_first_transfer_core (hroots := hrec.base.idealization)
+    E rho crossing hE hN hDelta hrec.sync hQm hvh hcap hgsts
     hgate hcoverQ hx hjx hkh ho hko hsup hmaj hy hiy hv
     (healing_slow_lease E rho hrec mono lastWrite hgsts hhor hx hgw hst hres hBC
       hel le_rfl (hv.trans hvh)

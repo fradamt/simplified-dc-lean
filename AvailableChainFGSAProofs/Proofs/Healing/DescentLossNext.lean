@@ -47,10 +47,9 @@ private theorem next_decode {o : Obj p} {b : Block}
 omit [DecidableEq V] in
 private theorem next_lift {A B : FGBlock (Fin p.n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
-  preceq_of_eraseFG_preceq (KitFG.viewRootInj_all {A, B})
-    ⟨A, by simp, KitFG.preceq_refl A⟩ ⟨B, by simp, KitFG.preceq_refl B⟩ h
+  eraseFG_preceq_iff.mp h
 
-/-- Blueprint 21:673–689, 709–715 (H.2 relay of each honest HEAD); plan
+/-- ROOT-DIGEST W2b. Blueprint 21:673–689, 709–715 (H.2 relay of each honest HEAD); plan
 fgsa-s5-m5-d2d4 B `cause` (H.2 re-proved without PhaseInterval).
 DC: INTENTIONAL per-block relay with label-local synchrony on [v_s, v_(s+1)],
 not TDel. A block stamped before e_s in an honest store reaches each honest
@@ -67,7 +66,8 @@ theorem healing_block_receipt_sync (hE : V2.D.ExecutionValid E rho) (hN : V2.D.N
     (hK : K ∈ (storeAt p c E rho ix x).base.blocks)
     (hstamp : GridCO.stampBlock (storeAt p c E rho ix x).base K < SA.earlyTime p.toParams s)
     (hF : Block.Preceq (eraseFG (((fgsa p c).clock (V2.D.Run.stateBefore E rho iy y)
-      (SA.voteTime p.toParams (s + 1))).st).fg.F) K) :
+      (SA.voteTime p.toParams (s + 1))).st).fg.F) K)
+    (hroots : NamedRootCollisionFree p c E rho) :
     ∃ Y : FGBlock (Fin p.n), eraseFG Y = K ∧
       Y ∈ (V2.D.Run.stateBeforeTime E rho (SA.freezeTime p.toParams s) y).st.fg.TF := by
   let st := ((fgsa p c).clock (V2.D.Run.stateBefore E rho iy y)
@@ -128,7 +128,8 @@ theorem healing_block_receipt_sync (hE : V2.D.ExecutionValid E rho) (hN : V2.D.N
     rw [Gen.V2.Duty.MonoAlong_def] at h
     exact V2.D.Engine.stateBefore_stable _ h.1 h.2.1 h.2.2 E rho hidx y
       (hN.restartFree y _ iy) (KitFG.preceq_refl _)
-  obtain ⟨Y, hY, hYK⟩ := fgsa_proposal_receipt E rho hDelta hE hN dl cut u K raw sup rows t y
+  obtain ⟨Y, hY, hYK⟩ := fgsa_proposal_receipt (hRoots := hroots) E rho hDelta hE hN dl cut u K
+    raw sup rows t y
     hD (Or.inr ⟨x, hx, j, ha⟩) hy hdcut (hlt t)
     (Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl K) hFd)
   refine ⟨Y, hYK, ?_⟩
@@ -139,7 +140,7 @@ theorem healing_block_receipt_sync (hE : V2.D.ExecutionValid E rho) (hN : V2.D.N
     Gen.V2.Duty.stateBefore_idxBefore E rho D hsch] at hc
   exact hc hY
 
-/-- Blueprint 21:673–689, 709–715 (H.2 relay of each honest HEAD); plan
+/-- ROOT-DIGEST W2b. Blueprint 21:673–689, 709–715 (H.2 relay of each honest HEAD); plan
 fgsa-s5-m5-d2d4 B `cause`. DC: INTENTIONAL per-block relay (not TDel). The
 relayed block of `healing_block_receipt_sync` has its whole FG path in the
 post-clock store of the v_(s+1) tick, with strict stamps before z_s. -/
@@ -153,14 +154,16 @@ theorem healing_block_path_sync (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRe
     (hK : K ∈ (storeAt p c E rho ix x).base.blocks)
     (hstamp : GridCO.stampBlock (storeAt p c E rho ix x).base K < SA.earlyTime p.toParams s)
     (hF : Block.Preceq (eraseFG (((fgsa p c).clock (V2.D.Run.stateBefore E rho iy y)
-      (SA.voteTime p.toParams (s + 1))).st).fg.F) K) :
+      (SA.voteTime p.toParams (s + 1))).st).fg.F) K)
+    (hroots : NamedRootCollisionFree p c E rho) :
     let st := ((fgsa p c).clock (V2.D.Run.stateBefore E rho iy y)
       (SA.voteTime p.toParams (s + 1))).st
     ∃ Kfg : FGBlock (Fin p.n), eraseFG Kfg = K ∧
       ∀ A : FGBlock (Fin p.n), FGBlock.Preceq A Kfg →
         A ∈ st.fg.TF ∧ GridCO.stampBlock st.base (eraseFG A) < SA.freezeTime p.toParams s := by
   intro st
-  obtain ⟨Y, hYK, hYD⟩ := healing_block_receipt_sync p c E rho hE hN hDelta s hSync hx hy hiy
+  obtain ⟨Y, hYK, hYD⟩ := healing_block_receipt_sync (hroots := hroots)
+    p c E rho hE hN hDelta s hSync hx hy hiy
     K hK hstamp hF
   exact ⟨Y, hYK, healing_support_prefreeze_path E rho hE.toScheduleWellFormed hN hiy hYD⟩
 
@@ -206,7 +209,7 @@ theorem healing_block_stamp_le_now (hs : V2.D.ScheduleWellFormed E rho)
         fgsa_clock_now p c (V2.D.Run.stateBefore E rho jz z)] at h
       exact h
 
-/-- Blueprint 21:709–715 (H.2 S1), 673–689 (IF.5 relay); plan fgsa-s5-m5-d2d4 B
+/-- ROOT-DIGEST W2b. Blueprint 21:709–715 (H.2 S1), 673–689 (IF.5 relay); plan fgsa-s5-m5-d2d4 B
 `cause` (H.2 receipt re-proved without PhaseInterval). DC: INTENTIONAL moving
 frame. An honest label-i HEAD that covers B is, at the receiver's v_(i+1) read,
 a clean resolved frozen vote that supports B. The vote arrives by e_i, and the
@@ -267,7 +270,8 @@ theorem healing_batch_seat_sync [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p
     change Block.Preceq (eraseFG (FGSA.clock p (storeAt p c E rho iy y) _).fg.F) K
     rw [clock_fg]
     exact Gen.Pure.block_preceq_trans hFB hBK
-  obtain ⟨Kfg, hKe', hpath⟩ := healing_block_path_sync p c E rho hE hN hDelta i hSync
+  obtain ⟨Kfg, hKe', hpath⟩ := healing_block_path_sync (hroots := hrec.base.idealization)
+    p c E rho hE hN hDelta i hSync
     hk hy hiy K hKz hKstz hFK
   have hinv : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho iy y) _
   have hKb : K ∈ dst.base.blocks := by

@@ -14,7 +14,7 @@ open AvailableChain.SimplexFG Gen.Pure RetainedWalk
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- Plan H-REPAIR step 11 (HonestSlot → HonestProposal); Run/Emission.lean:72.
+/-- ROOT-DIGEST W2b. Plan H-REPAIR step 11 (HonestSlot → HonestProposal); Run/Emission.lean:72.
 DC: INTENTIONAL the honest proposer of a post-GST slot inside the horizon ticks at t_s
 (tick totality), is awake (Recovery₂) and emits its proposal (s ≠ 0). -/
 theorem repair_honest_proposal [Fintype V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -35,7 +35,7 @@ theorem repair_honest_proposal [Fintype V] (E : Generic.Env V) (rho : V2.D.Run V
   have hne : s ≠ 0 := Nat.pos_iff_ne_zero.mp hs0
   obtain ⟨m, hm⟩ : ∃ m, (propose p (FGSA.clock p (rho.stateBefore E j
       (V2.D.proposerOf rho (fgsaInterface p c) s)).st (SA.proposalTime p.toParams s)) s).map
-      (withApp (c.app (rho.input (V2.D.proposerOf rho (fgsaInterface p c) s)
+      (withApp p (c.app (rho.input (V2.D.proposerOf rho (fgsaInterface p c) s)
         (SA.proposalTime p.toParams s)))) = some m := by
     unfold propose
     simp only [hne, ↓reduceIte, Option.map_some, Option.some.injEq, exists_eq']

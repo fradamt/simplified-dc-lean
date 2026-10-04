@@ -294,7 +294,8 @@ private theorem support_decode {o : Obj p} {b : Block}
   rw [toWire_ofWire]
   exact decode_eq_block.mp hd
 
-/-- Blueprint 21:673–689 (H.1, IF.5 relay of each supporter head); plan H-SUPPORT §4
+/-- ROOT-DIGEST W2b. Blueprint 21:673–689 (H.1, IF.5 relay of each supporter head); plan H-SUPPORT
+§4
 step 4 and gap G4. DC: Schedule/AdoptionTransport.lean:346.
 INTENTIONAL: per-vote relay, also for faulty seats, not TDel. A block resolved before
 e_s at the honest source gate reaches each honest receiver before z_s when the receiver's
@@ -310,7 +311,8 @@ theorem healing_support_target_path (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
     (hK : K ∈ (storeAt p c E rho ix x).base.blocks)
     (hstamp : GridCO.stampBlock (storeAt p c E rho ix x).base K < SA.earlyTime p.toParams s)
     (hF : Block.Preceq (eraseFG (((fgsa p c).clock (V2.D.Run.stateBefore E rho iy y)
-      (SA.voteTime p.toParams (s + 1))).st).fg.F) K) :
+      (SA.voteTime p.toParams (s + 1))).st).fg.F) K)
+    (hroots : NamedRootCollisionFree p c E rho) :
     let st := ((fgsa p c).clock (V2.D.Run.stateBefore E rho iy y)
       (SA.voteTime p.toParams (s + 1))).st
     ∃ Kfg : FGBlock (Fin p.n), eraseFG Kfg = K ∧
@@ -374,7 +376,8 @@ theorem healing_support_target_path (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
     rw [Gen.V2.Duty.MonoAlong_def] at h
     exact V2.D.Engine.stateBefore_stable _ h.1 h.2.1 h.2.2 E rho hidx y
       (hN.restartFree y _ iy) (KitFG.preceq_refl _)
-  obtain ⟨Y, hY, hYK⟩ := fgsa_proposal_receipt E rho hDelta hE hN dl cut u K raw sup rows t y
+  obtain ⟨Y, hY, hYK⟩ := fgsa_proposal_receipt (hRoots := hroots) E rho hDelta hE hN dl cut u K
+    raw sup rows t y
     hD (Or.inr ⟨x, hx, j, ha⟩) hy hdcut (hlt t)
     (Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl K) hFd)
   refine ⟨Y, hYK, ?_⟩

@@ -141,7 +141,7 @@ theorem postResetRetainedCone_of_horizon_lt (w : HealingWitness)
       4 * p.Δ * (s : Int) + p.Δ := by nlinarith [p.deltaPos]
   exact (not_lt_of_ge (hmono.trans hHeadHorizon) hshort).elim
 
-/-- Apply the abstract cone to the existing H.17 supplier. The output keeps
+/-- ROOT-DIGEST W2b. Apply the abstract cone to the existing H.17 supplier. The output keeps
 each reader's actual state and the common proposal pivot.
 Blueprint 21 H.17:2946–3040; plan RE-BIND D2; DC: SAME per-label cone. -/
 theorem healing_postReset_retainedReads_at
@@ -155,17 +155,18 @@ theorem healing_postReset_retainedReads_at
     (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
     (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
     (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
-      rho.emitsAt E ip) :
+      rho.emitsAt E ip)
+    (hroots : NamedRootCollisionFree p c E rho) :
     ∃ D : FGBlock (Fin p.n), ∀ y ∈ rho.honest, ∀ ih,
       rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
       ∃ Kc, RetainedReadPremises p
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D b Kc := by
   obtain ⟨D, hinput⟩ := hcone hs hHeadHorizon hx hip hseat b raw sup rows hem
-  exact ⟨D, fgsa_retainedReads_H17 E rho hE hN hDelta s hSync hx hip hseat
+  exact ⟨D, fgsa_retainedReads_H17 (hroots := hroots) E rho hE hN hDelta s hSync hx hip hseat
     b raw sup rows hem D hinput⟩
 
-/-- Blueprint 21 H.17:2946–3040; plan RE-BIND D2/D3; DC: SAME cone at its label. -/
+/-- ROOT-DIGEST W2b. Blueprint 21 H.17:2946–3040; plan RE-BIND D2/D3; DC: SAME cone at its label. -/
 theorem healing_postReset_retainedReads
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
     (w : HealingWitness) (hcone : PostResetRetainedCone p c E rho w)
@@ -178,13 +179,14 @@ theorem healing_postReset_retainedReads
     (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
     (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
     (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
-      rho.emitsAt E ip) :
+      rho.emitsAt E ip)
+    (hroots : NamedRootCollisionFree p c E rho) :
     ∃ D : FGBlock (Fin p.n), ∀ y ∈ rho.honest, ∀ ih,
       rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
       ∃ Kc, RetainedReadPremises p
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D b Kc := by
-  exact healing_postReset_retainedReads_at p c E rho hE hN hDelta w s
+  exact healing_postReset_retainedReads_at (hroots := hroots) p c E rho hE hN hDelta w s
     ((postResetRetainedCone_iff_at p c E rho w).mp hcone s) hs hHeadHorizon hSync
     hx hip hseat b raw sup rows hem
 

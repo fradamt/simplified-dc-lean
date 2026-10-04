@@ -58,7 +58,7 @@ theorem arming_tick_exists {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
   obtain ⟨k, hk, _⟩ := fgsa_tick_total E rho hs hΔ y hy m hh
   exact ⟨k, hk⟩
 
-/-- Plan O-ARM §6.2 step 2, §11 obligation 3. Class (iii). DC: INTENTIONAL;
+/-- ROOT-DIGEST W2b. Plan O-ARM §6.2 step 2, §11 obligation 3. Class (iii). DC: INTENTIONAL;
 the block step of `inclusion_head_receipt_early` for any non-genesis block in
 the store of an honest node before its v(r) tick: the healthy label window
 delivers it to every honest reader before the e(r) tick. -/
@@ -71,7 +71,8 @@ theorem arming_block_early {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     {k : Nat} {z : V} (hz : z ∈ rho.honest)
     (hk : rho.events[k]? = some (.tick z (SA.voteTime p.toParams r)))
     (a : Block) (hne : a ≠ .genesis) (ha : a ∈ (storeAt p c E rho k z).base.blocks)
-    (hF : Block.Preceq (eraseFG (storeAt p c E rho j x).fg.F) a) :
+    (hF : Block.Preceq (eraseFG (storeAt p c E rho j x).fg.F) a)
+    (hroots : NamedRootCollisionFree p c E rho) :
     a ∈ (storeAt p c E rho j x).base.blocks ∧
       GridCO.stampBlock (storeAt p c E rho j x).base a < SA.earlyTime p.toParams r := by
   have hsch := hE.toScheduleWellFormed
@@ -100,7 +101,7 @@ theorem arming_block_early {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     · obtain ⟨parent, hdel, _⟩ := hacc.1
       have htv := (Gen.V2.Duty.index_lt_idxBefore_iff hsch hdel _).mp hl
       have hdl := hdeadline t htv.le
-      exact fgsa_gateReceipt_block_to_tick E rho hE hN hDelta dl cut hD t o a ho
+      exact fgsa_gateReceipt_block_to_tick (hroots := hroots) E rho hE hN hDelta dl cut hD t o a ho
         (Or.inr ⟨z, hz, l, hacc⟩) (hlt t) (hdl.trans hcut)
         (hsch.honest_only _ (List.mem_of_getElem? hj)) hj hdl hF
   refine ⟨hmem, ?_⟩
@@ -131,7 +132,7 @@ theorem arming_head_ge {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
   rw [hread] at hvh
   exact htransfer u z l D _ hu hz hlb hgr hvh
 
-/-- Plan O-ARM §4 field 6, §6.2 steps 1–2, §11 obligation 3. Class (iii).
+/-- ROOT-DIGEST W2b. Plan O-ARM §4 field 6, §6.2 steps 1–2, §11 obligation 3. Class (iii).
 DC: INTENTIONAL; the last healthy batch at every honest receiver, asleep or
 awake. Its window v(l + 1) < e(l + 1) = d(l) ≤ b₀ is inside the healthy cut. -/
 theorem arming_healthy_batch {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
@@ -147,7 +148,8 @@ theorem arming_healthy_batch {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     (hcutl : b₀ < SA.gateTime p.toParams (l + 1))
     (hDmem : (l, D) ∈ cleanResults p c E rho (timeIdx rho b₀))
     (hF : ∀ k y, k ≤ V2.D.Run.idxBefore rho (SA.gateTime p.toParams (l + 1)) →
-      y ∈ rho.honest → Block.Preceq (F_at p c E rho k y) D) :
+      y ∈ rho.honest → Block.Preceq (F_at p c E rho k y) D)
+    (hroots : NamedRootCollisionFree p c E rho) :
     ∀ y (q : Fin p.n), y ∈ rho.honest →
       rho.seatOf (.base (.head (l + 1))) q ∈ rho.honest →
       E.awake (rho.seatOf (.base (.head (l + 1))) q) (SA.voteTime p.toParams (l + 1)) = true →
@@ -180,7 +182,8 @@ theorem arming_healthy_batch {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
   have hDK := arming_head_ge hs htransfer hDmem hq hkk
   have hkI : k ≤ V2.D.Run.idxBefore rho (SA.gateTime p.toParams (l + 1)) :=
     ((Gen.V2.Duty.index_lt_idxBefore_iff hs hk _).mpr (he.trans_lt hcutl)).le
-  obtain ⟨hem, hvm, hvs, hKm, hbs, hslot⟩ := inclusion_head_receipt_early E rho hE hN hDelta hC
+  obtain ⟨hem, hvm, hvs, hKm, hbs, hslot⟩ := inclusion_head_receipt_early (hroots := hroots)
+    E rho hE hN hDelta hC
     (l + 1) hSync hk q hq hawake hkk _ rfl (block_preceq_trans (hF k y hkI hy) hDK)
   exact ⟨_, k, hk, hem, hDK, hslot, hvm, hKm, hvs, hbs⟩
 

@@ -152,21 +152,20 @@ private theorem reflect_F_Z (p : Params) (st : State p.n) (h : CStoreInv p st) :
   · exact h.fg.FJ
   · exact KitFG.preceq_refl _
 
-/-- Blueprint 21 H.5:891–902, H.6:942–958, H.17:2986–3006
+/-- ROOT-DIGEST W2b. Blueprint 21 H.5:891–902, H.6:942–958, H.17:2986–3006
 (design 747–758,798–814,2847–2867); spec 1290–1297.
 Class (iii). DC: INTENTIONAL; lift the immutable erased ancestry. -/
 private theorem reflect_lift {n : Nat} {A B : FGBlock (Fin n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
-  preceq_of_eraseFG_preceq (Vw := {A, B}) (KitFG.viewRootInj_all _)
-    ⟨A, by simp, KitFG.preceq_refl _⟩ ⟨B, by simp, KitFG.preceq_refl _⟩ h
+  eraseFG_preceq_iff.mp h
 
-/-- Blueprint 21 H.5:891–902, H.6:942–958 (design 747–758,798–814); spec 1290–1297.
+/-- ROOT-DIGEST W2b. Blueprint 21 H.5:891–902, H.6:942–958 (design 747–758,798–814); spec 1290–1297.
 Class (iii). DC: INTENTIONAL; parent ancestry for a retained FG-SA candidate. -/
 private theorem reflect_parent {C X : Block} (hp : C.parent? = some X) :
     Block.Preceq X C := by
   cases C with
   | genesis => cases hp
-  | node P s r =>
+  | node P s root r =>
     have he : P = X := Option.some.inj hp
     subst P
     exact Bool.or_eq_true_iff.mpr (Or.inr (block_preceq_refl _))
@@ -194,7 +193,7 @@ private theorem reflect_clock_stamp (E : Generic.Env V) (rho : V2.D.Run V (fgsa 
     contradiction
   | some row => rfl
 
-/-- Blueprint 21 H.5:747–758, H.6:798–814, H.17:2847–2867;
+/-- ROOT-DIGEST W2b. Blueprint 21 H.5:747–758, H.6:798–814, H.17:2847–2867;
 spec 1290–1297, 1330–1360. Class (iii). DC: INTENTIONAL; inclusive S4.
 The witness itself reaches the source. Closure then gives the candidate,
 including candidates below lo. Neither source F/Z bound is a premise. -/
@@ -213,7 +212,8 @@ private theorem reflect_witness_on_run
       (SA.voteTime p.toParams (s + 1))) (s + 1))
     (hw : ReflectedDomainWitness p
       (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1)))
-      (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))) (s + 1) C) :
+      (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))) (s + 1) C)
+    (hroots : NamedRootCollisionFree p c E rho) :
     C ∈ S p (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1))) := by
   let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1))
   let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))
@@ -236,7 +236,7 @@ private theorem reflect_witness_on_run
         rwa [clock_base_blocks] at hb
       rw [reflect_clock_stamp E rho ih y _ (eraseFG W) hmW] at hstamp
       have hgeom : ScoreRunGeometry src dst (eraseFG B) := ⟨eraseFG_preceq hFB, hFdst⟩
-      have hr := fgsa_walkRun_frozen_block E rho hE hN hDelta s hSync hx hy hip
+      have hr := fgsa_walkRun_frozen_block (hroots := hroots) E rho hE hN hDelta s hSync hx hy hip
         (eraseFG B) (eraseFG W) hgeom (eraseFG_preceq hBW) hmW
         (by simpa only [Nat.add_sub_cancel] using hstamp)
       have hb := ((actView_blocks src (eraseFG W)).mp hr).1
@@ -249,7 +249,7 @@ private theorem reflect_witness_on_run
     decide_eq_true ⟨B, (KitFG.mem_filteredFromView (heightView p) (controls p src)
       src.fg.TF B).mpr ⟨hBsrc, hFB, hZB, W, hWsrc, hBW, hlo⟩, rfl⟩⟩
 
-/-- Blueprint 21 H.5:747–758, H.6:798–814, H.17:2847–2867;
+/-- ROOT-DIGEST W2b. Blueprint 21 H.5:747–758, H.6:798–814, H.17:2847–2867;
 spec 1290–1297, 1330–1360. Class (iii). DC: INTENTIONAL; S4 at X ≤ A.
 The old-slot guard includes X = A and excludes the current proposal.
 The stronger witness relay needs no strict-parent split. -/
@@ -274,11 +274,13 @@ theorem fgsa_walkRun_reflected_old_child
       (SA.voteTime p.toParams (s + 1))) (s + 1))
     (hw : ReflectedDomainWitness p
       (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1)))
-      (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))) (s + 1) C) :
+      (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))) (s + 1) C)
+    (hroots : NamedRootCollisionFree p c E rho) :
     C ∈ S p (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1))) :=
-  reflect_witness_on_run E rho hE hN hDelta s hSync hx hy hip Kc X C hcut hKX hp hm hw
+  reflect_witness_on_run (hroots := hroots)
+    E rho hE hN hDelta s hSync hx hy hip Kc X C hcut hKX hp hm hw
 
-/-- Blueprint 21 H.5:747–758, H.6:798–814, H.17:2847–2867;
+/-- ROOT-DIGEST W2b. Blueprint 21 H.5:747–758, H.6:798–814, H.17:2847–2867;
 spec 1290–1297, 1330–1360. Class (iii). DC: INTENTIONAL; supplies exactly
 W.reflects and E.old_reflects. Strict-parent rivals are old by the landed
 raw reflection and proposal-slot bound. G25 then compares each common
@@ -302,7 +304,8 @@ theorem fgsa_retained_old_child_reflects_on_run
     (D : FGBlock (Fin p.n)) (Kc : Block)
     (h : RetainedReadPremises p
       (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1)))
-      (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))) (s + 1) D b Kc) :
+      (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))) (s + 1) D b Kc)
+    (hroots : NamedRootCollisionFree p c E rho) :
     let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams (s + 1))
     let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams (s + 1))
     SuffixReflects Kc b.parent (S p src) (T p dst (s + 1))
@@ -319,7 +322,7 @@ theorem fgsa_retained_old_child_reflects_on_run
   have hA : ScoreRunGeometry src dst b.parent :=
     ⟨block_preceq_trans hK.source_floor h.cut_parent,
       block_preceq_trans hK.target_floor h.cut_parent⟩
-  have scores := fgsa_score_eq_on_candidates_on_run E rho hE hN hDelta (s + 1)
+  have scores := fgsa_score_eq_on_candidates_on_run (hroots := hroots) E rho hE hN hDelta (s + 1)
     hScoreSync hx hy hip hih hseat b raw sup rows hem hadm
     (fun C => C ∈ S p src ∧ C ∈ T p dst (s + 1)) hA
     (fun C hm => fgsa_score_geometry_of_domains p src dst src.fg.TF
@@ -327,7 +330,7 @@ theorem fgsa_retained_old_child_reflects_on_run
   have reflect (X C : Block) (hKX : Block.Preceq Kc X) (hXA : Block.Preceq X b.parent)
       (hm : C ∈ T p dst (s + 1)) (hp : C.parent? = some X) (hold : C.slot < s + 1)
       (he : et p dst (s + 1) C = true) : C ∈ S p src ∧ es p src (s + 1) C = true := by
-    have hc := fgsa_walkRun_reflected_old_child E rho hE hN hDelta s hWalkSync
+    have hc := fgsa_walkRun_reflected_old_child (hroots := hroots) E rho hE hN hDelta s hWalkSync
       hx hy hip hih hseat b raw sup rows hem Kc X C h.source_cut hKX hXA hp hold hm
       (h.reflected_witness X C hKX hXA hm hp hold he)
     refine ⟨hc, ?_⟩
@@ -343,7 +346,8 @@ theorem fgsa_retained_old_child_reflects_on_run
     have hmOld := hm
     dsimp only [T] at hmOld
     rw [← KitFG.storeFrame_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)] at hmOld
-    have hc := fgsa_walkRun_reflected_block E rho hE hN hDelta s hWalkSync hx hy hip
+    have hc := fgsa_walkRun_reflected_block (hroots := hroots)
+      E rho hE hN hDelta s hWalkSync hx hy hip
       hseat b raw sup rows hem Kc X C hK hKX hXA hp hmOld
     have hold := (fgsa_stored_block_slots E rho hE.toScheduleWellFormed hip
       (Nat.succ_pos s)).2.1 C hc

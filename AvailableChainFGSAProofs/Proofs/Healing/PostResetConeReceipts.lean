@@ -17,10 +17,9 @@ variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
 private theorem cone_pool_lift {A B : FGBlock (Fin p.n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
-  preceq_of_eraseFG_preceq (KitFG.viewRootInj_all {A, B})
-    ⟨A, by simp, KitFG.preceq_refl A⟩ ⟨B, by simp, KitFG.preceq_refl B⟩ h
+  eraseFG_preceq_iff.mp h
 
-/-- Blueprint 21 H.14–H.17:2958–3012; plan S5 CONE C4.
+/-- ROOT-DIGEST W2b. Blueprint 21 H.14–H.17:2958–3012; plan S5 CONE C4.
 DC: SAME held honest HEAD in the receiver store before its early deadline.
 The F bound follows from root HEAD coverage or the strict target arm. -/
 theorem postReset_head_receipt_at_cut [Fintype V]
@@ -51,7 +50,8 @@ theorem postReset_head_receipt_at_cut [Fintype V]
       (V2.D.Run.idxBefore rho (SA.voteTime p.toParams r + p.Δ)) x).fg.F Kfg :=
     KitFG.preceq_trans (mono hrec.base.noRestart _ _ x hx hidx).1
       (cone_pool_lift (by rwa [heK]))
-  have hreceipt := healing_held_block_receipt p c E rho mono hrec.base.valid
+  have hreceipt := healing_held_block_receipt (hroots := hrec.base.idealization)
+    p c E rho mono hrec.base.valid
     hrec.base.noRestart hrec.base.delta hrec.sync hjz hz hx hKz hgstr
     (hdeadline.trans (hS.in_horizon _ (List.mem_of_getElem? ht)).2) hFearly
   rw [Gen.V2.Duty.HoldsBefore_def,

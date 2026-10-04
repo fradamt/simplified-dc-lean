@@ -75,7 +75,7 @@ theorem healing_low_finality_at_reset (hs : V2.D.ScheduleWellFormed E rho)
   rw [← hCS]
   exact eraseFG_preceq hFC
 
-/-- T3: the full F branch of RFProv clause 1. The high arm uses T1's
+/-- ROOT-DIGEST W2b. T3: the full F branch of RFProv clause 1. The high arm uses T1's
 source at the selected certificate height; the low arm uses the reset.
 Assembly supplies the INLINE facts and RXing. -/
 theorem healing_rFProv_finality (hv : V2.D.ExecutionValid E rho)
@@ -97,7 +97,8 @@ theorem healing_rFProv_finality (hv : V2.D.ExecutionValid E rho)
       ∃ H, HeldAt p c E rho j z H ∧ fp.height = (heightView p H).h_j ∧
         fp.target = (heightView p H).J.root ∧
         KitFG.TargetQCAt p.E H fp.height (heightView p H).J)
-    (xing : RXing p c E rho) (w : HealingWitness) :
+    (xing : RXing p c E rho) (w : HealingWitness)
+    (hroots : NamedRootCollisionFree p c E rho) :
     H0 p c E rho w → ∀ i x, x ∈ rho.honest →
       afterTicksIdx rho (p.actionTime w.rStar) ≤ i →
       Block.Preceq (F_at p c E rho i x) w.CStar ∨
@@ -111,7 +112,8 @@ theorem healing_rFProv_finality (hv : V2.D.ExecutionValid E rho)
     rw [hgen]
     exact Gen.Pure.block_genesis_preceq w.CStar
   obtain ⟨D, hD, hDF, K, s, hsrc, hh, hT, htime⟩ :=
-    healing_finality_source_clock p c E rho hv hnr origin heldRows cap hhead hx hgen
+    healing_finality_source_clock (hroots := hroots) p c E rho hv hnr origin heldRows cap hhead hx
+      hgen
   by_cases hlow : (finalityView p D).h_F ≤ w.M
   · exact Or.inl (healing_low_finality_at_reset p c E rho hv.toScheduleWellFormed
       hnr xing w h0 hx hi hD hDF hlow)

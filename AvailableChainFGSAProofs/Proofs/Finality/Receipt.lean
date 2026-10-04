@@ -198,7 +198,7 @@ theorem receipt_receiver_finalityLag (ΔF : Time) (q y i : Nat) (x : V) (t : Tim
   exact (Nat.lt_irrefl _) (hrowsEarlier j z r a row (y + 1) T timeout ha hd hp hlt)
 
 omit [Fintype V] in
-/-- Paper 22:1297–1302: the h_j = y case has its cached anchor on the carrier path.
+/-- ROOT-DIGEST W2b. Paper 22:1297–1302: the h_j = y case has its cached anchor on the carrier path.
 DC: INTENTIONAL W cached-J guard. This does not produce source provenance;
 Per-height justification uniqueness must prove the cached equality in this case. -/
 theorem receipt_jPath_of_cached_anchor (i : Nat) (x : V) (X U : FGBlock (Fin p.n))
@@ -208,13 +208,13 @@ theorem receipt_jPath_of_cached_anchor (i : Nat) (x : V) (X U : FGBlock (Fin p.n
   have hp : FGBlock.Preceq X.parent X := by
     cases X with
     | genesis => exact KitFG.preceq_refl _
-    | node P s body rows => exact KitFG.preceq_parent_node P s body rows
+    | node P s root body rows => exact KitFG.preceq_parent_node P s root body rows
   exact Or.inl (hcached ▸ KitFG.preceq_trans hpath hp)
 
 private theorem receipt_parent_path (X : FGBlock (Fin p.n)) : FGBlock.Preceq X.parent X := by
   cases X with
   | genesis => exact KitFG.preceq_refl _
-  | node P s body rows => exact KitFG.preceq_parent_node P s body rows
+  | node P s root body rows => exact KitFG.preceq_parent_node P s root body rows
 
 private theorem receipt_proposal_checks (s : Slot) (b : Block)
     (raw support : List (HeadWire p.n)) (rows : List (RowWire p.n)) :
@@ -224,9 +224,9 @@ private theorem receipt_proposal_checks (s : Slot) (b : Block)
           | some (r, _, _) => r + 1 == b.slot
           | none => false) &&
         support.all (fun v => decide (v ∈ raw)) && rows.all RowWire.valid &&
-        rowsOk b rows) := rfl
+        contentOk p b raw support rows) := rfl
 
-/-- Paper 22:1294–1296, 995–1002: a checked delivery admits the actual carrier.
+/-- ROOT-DIGEST W2b. Paper 22:1294–1296, 995–1002: a checked delivery admits the actual carrier.
 DC: INTENTIONAL selected W handler; R6 checks every carried row against its parent. -/
 theorem receipt_ready_of_delivery (G ΔF : Time) (hrec : Recovery₂ p c E rho G ΔF)
     (i : Nat) (x : V) (X : FGBlock (Fin p.n)) (t : Time)
@@ -249,7 +249,7 @@ theorem receipt_ready_of_delivery (G ΔF : Time) (hrec : Recovery₂ p c E rho G
   dsimp only [depsS] at hdeps
   rw [hd] at hdeps
   obtain ⟨P, hP⟩ := Option.isSome_iff_exists.mp hdeps
-  have hPe := ((FGSA.parentFG_spec _ (FGSA.rootInj_all _) _ P).mp hP).2
+  have hPe := ((FGSA.parentFG_spec _ _ P).mp hP).2
   have hchecks := hwf'
   rw [receipt_proposal_checks] at hchecks
   simp only [Bool.and_eq_true] at hchecks
@@ -258,11 +258,11 @@ theorem receipt_ready_of_delivery (G ΔF : Time) (hrec : Recovery₂ p c E rho G
   have hparent : eraseFG X.parent = (eraseFG X).parent := by
     cases X with
     | genesis => rfl
-    | node P s body rs => rfl
+    | node P s root body rs => rfl
   have hPX : P = X.parent := FGSA.eraseFG_injective (hPe.trans hparent.symm)
   subst P
   have hX : FGSA.fgBlock X.parent (eraseFG X) rows = X :=
-    FGSA.eraseFG_injective (FGSA.eraseFG_fgBlock hbne hparent rows hok)
+    FGSA.eraseFG_injective (FGSA.eraseFG_fgBlock hbne hparent rows (contentOk_rowsOk hok))
   have hvalid := fgsa_trigger_rowsValid E rho o _ X.slot (eraseFG X) raw sup rows
     htrigger hd (storeAt p c E rho i x) X.parent hP
   have hfresh := hD.fresh i x o t he
@@ -297,7 +297,7 @@ theorem receipt_ready_of_delivery (G ΔF : Time) (hrec : Recovery₂ p c E rho G
     rw [FGSA.eraseFG_slot]
     exact (fgsa_slot_threshold_iff p _ (htime.trans htimely) X.slot).mpr htimely
   have hacc : FGSA.blockAccepted p (storeAt p c E rho i x) X.slot
-      (eraseFG X) X.parent rows = true := by
+      (eraseFG X) raw sup X.parent rows = true := by
     rw [FGSA.blockAccepted_of_wellFormed p _ _ _ raw sup rows _ hwf', hX]
     simp only [Bool.and_eq_true, decide_eq_true_eq, Bool.not_eq_true', decide_eq_false_iff_not]
     exact ⟨⟨⟨hslot, of_decide_eq_false hfresh⟩, hF⟩, hvalid⟩
@@ -491,10 +491,11 @@ private theorem receipt_actionTime_strictMono : StrictMono p.actionTime := by
   push_cast
   convert add_lt_add_right (mul_lt_mul_of_pos_left hab' hpos) (6 * p.Δ) using 1 <;> ring
 
-/-- Paper 22:1297–1302: a high cached J is on the terminal carrier path.
+/-- ROOT-DIGEST W2b. Paper 22:1297–1302: a high cached J is on the terminal carrier path.
 DC: INTENTIONAL W cached pair and action-source ancestry. Stratification and
 emitted-name provenance are explicit Foundations inputs; H2 supplies the path. -/
-theorem receipt_jPath (ΔF : Time) (q y i : Nat) (x : V) (A U X : FGBlock (Fin p.n))
+theorem receipt_jPath (hroots : NamedRootCollisionFree p c E rho) (ΔF : Time) (q y i : Nat) (x :
+    V) (A U X : FGBlock (Fin p.n))
     (t : Time) (h : TerminalCarriagePrem_W p c E rho ΔF q y A U X)
     (w : HealingWitness) (hinput : HealingInput p c E rho w ΔF)
     (hx : x ∈ rho.honest) (hbound : LivenessBoundW p ΔF)
@@ -542,7 +543,8 @@ theorem receipt_jPath (ΔF : Time) (q y i : Nat) (x : V) (A U X : FGBlock (Fin p
   obtain ⟨j, hji, hrow⟩ := (HonestRowBefore_def p c E rho i u r a).mp hrowBefore
   obtain ⟨S, hsource, hentry, hJS⟩ := hEmittedSource j u r a _ hrow hnames
   have hJeq : (heightView p C).J = (heightView p S).T_h :=
-    FGBlock.root_injective (congrArg Prod.snd hentry)
+    rootScope_eq hroots (rootScope_justified (rootScope_store hx hC))
+      (rootScope_entry (rootScope_source hrow.1 hsource)) (congrArg Prod.snd hentry)
   have hhigh : high p w S := by
     rw [high_def]
     have hheight := congrArg Prod.fst hentry
@@ -568,12 +570,11 @@ theorem receipt_jPath (ΔF : Time) (q y i : Nat) (x : V) (A U X : FGBlock (Fin p
   have hbasepath := hinput.t.h2 u r S X.slot (eraseFG X) hrow.1 hsource hhigh hproposal hlabel
   rw [FGSA.eraseFG_parent] at hbasepath
   have hpath : FGBlock.Preceq S X.parent :=
-    FGSA.preceq_of_eraseFG_preceq (KitFG.viewRootInj_all {S, X.parent})
-      ⟨S, by simp, KitFG.preceq_refl _⟩ ⟨X.parent, by simp, KitFG.preceq_refl _⟩ hbasepath
+    eraseFG_preceq_iff.mp hbasepath
   exact Or.inl (hJ.trans hJeq ▸ KitFG.preceq_trans hJS
     (KitFG.preceq_trans hpath (receipt_parent_path p X)))
 
-/-- Paper 22:1286–1305: the terminal carrier gives every AcceptPrem_W field.
+/-- ROOT-DIGEST W2b. Paper 22:1286–1305: the terminal carrier gives every AcceptPrem_W field.
 DC: INTENTIONAL local W receipt and same-event guards. The final action is
 q = pt.r + 2; Assembly supplies the stated Foundations and K-MID inputs. -/
 theorem receipt_acceptPrem_W (G ΔF : Time) (pt : KernelPt)
@@ -640,7 +641,8 @@ theorem receipt_acceptPrem_W (G ΔF : Time) (pt : KernelPt)
     dsimp only
     intro _hready _hnotCovered
     have hw := delivery.witness x hx
-    exact receipt_jPath p c E rho ΔF (pt.r + 2) y (delivery.selected x hx).index x A U X
+    exact receipt_jPath (hroots := hkernel.set.base.idealization) p c E rho ΔF (pt.r + 2) y
+      (delivery.selected x hx).index x A U X
       (delivery.selected x hx).time h pt.w hkernel.input hx hkernel.bound hw.1 hw.2.1
       hslot hanchor hfloor hStrat hEmittedSource
   · intro x hx

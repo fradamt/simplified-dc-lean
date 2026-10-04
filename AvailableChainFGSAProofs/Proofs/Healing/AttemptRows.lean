@@ -158,7 +158,7 @@ private theorem attempt_proposal_heights
   have hparent : FGBlock.Preceq Qfg.parent Qfg := by
     cases Qfg with
     | genesis => exact KitFG.preceq_refl _
-    | node P s body rows => exact KitFG.preceq_parent_node _ _ _ _
+    | node P s root body rows => exact KitFG.preceq_parent_node _ _ _ _ _
   refine ⟨hlo.trans ((fgCertificateLaws p).height.h_mono hparent), ?_⟩
   obtain ⟨i, K, hi, hK, heK⟩ := healing_rise_one_gate_copy p c E rho hS hexact
     (hgate.trans hp.2.1) hx

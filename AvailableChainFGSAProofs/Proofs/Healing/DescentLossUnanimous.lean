@@ -139,7 +139,8 @@ private theorem unanimous_seat_release [Fintype V] {G ΔF : Time}
     change Block.Preceq (eraseFG (FGSA.clock p (storeAt p c E rho iy y) _).fg.F) K
     rw [clock_fg]
     exact Gen.Pure.block_preceq_trans hFB hBK
-  obtain ⟨Kfg, hKe', hpath⟩ := healing_block_path_sync p c E rho hE hN hDelta i hSync
+  obtain ⟨Kfg, hKe', hpath⟩ := healing_block_path_sync (hroots := hrec.base.idealization)
+    p c E rho hE hN hDelta i hSync
     hk hy hiy K hKz hKstz hFK
   have hinv : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho iy y) _
   have hKb : K ∈ dst.base.blocks := by

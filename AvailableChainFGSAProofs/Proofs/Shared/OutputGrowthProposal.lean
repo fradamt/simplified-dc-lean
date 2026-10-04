@@ -9,7 +9,7 @@ namespace AvailableChain.FGSA.Run
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- Plan A2: a scheduled awake positive-slot proposer emits an actual
+/-- ROOT-DIGEST W2b. Plan A2: a scheduled awake positive-slot proposer emits an actual
 proposal. The block includes the application value and keeps slot s. -/
 theorem fgsa_proposal_emission_exists_of_awake_slot (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) (hs : V2.D.ScheduleWellFormed E rho)
@@ -34,7 +34,8 @@ theorem fgsa_proposal_emission_exists_of_awake_slot (E : Generic.Env V)
   let sup := proposerSupport st s
   let H := getHead p st raw sup
   let rows := proposalRows p st H
-  let B := Block.node H s (packBody (c.app (rho.input v t)) rows)
+  let B := proposalBlock p H s (c.app (rho.input v t))
+    (raw.filterMap liftHead?) (sup.filterMap liftHead?) rows
   let m := Msg.proposal B (raw.filterMap liftHead?) (sup.filterMap liftHead?) rows
   let o : Obj p := ⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, m⟩
   have hm : o ∈ (V2.D.tick E rho (V2.D.Run.stateBefore E rho i v) v t).2 := by

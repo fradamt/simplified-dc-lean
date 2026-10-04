@@ -27,7 +27,7 @@ theorem arming_proposal_genuine (q : GridCO.Params) {n : Nat}
     | rfl
     | exact (foldVotes_fields q raw _).2.2.2.2.1
 
-/-- Plan O-ARM §6.2 step 5, §6.4. Class (iii). DC: INTENTIONAL; a delivery
+/-- ROOT-DIGEST W2b. Plan O-ARM §6.2 step 5, §6.4. Class (iii). DC: INTENTIONAL; a delivery
 keeps the leases and the saved results, or filters both by the new F. -/
 theorem arming_process_lease (p : Params) (st : State p.n) (w : Wire p.n) :
     ((FGSA.process p st w).base.obligations = st.base.obligations ∧
@@ -60,7 +60,7 @@ theorem arming_process_lease (p : Params) (st : State p.n) (w : Wire p.n) :
       rw [admitBlock_refused p st s b raw sup rows (Or.inl hp)]
       exact ⟨rfl, rfl⟩
     | some P =>
-      cases ha : blockAccepted p st s b P rows with
+      cases ha : blockAccepted p st s b raw sup P rows with
       | false =>
         left
         rw [admitBlock_refused p st s b raw sup rows (Or.inr ⟨P, hp, ha⟩)]

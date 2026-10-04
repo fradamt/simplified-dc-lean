@@ -4,6 +4,8 @@ public import AvailableChainFGSARun.Proofs.Reachable
 public import AvailableChainFGSARun.Proofs.Emission
 public import AvailableChainKitV2.DutyEngineClock
 
+public import AvailableChainFGSAProofs.Proofs.Shared.Roots
+
 public section
 
 /-! W3 (blueprint 21:526–546), B19. The read index is arbitrary.
@@ -141,10 +143,11 @@ private theorem timing_choose_rows {Q : Finset (Fin p.n)}
   simp only [hk, ↓reduceDIte]
   exact Classical.choose_spec (Classical.choose_spec (h k hk))
 
-/-- Route 4: apply INLINE RQCOrigin at this pre-action store and retain
+/-- ROOT-DIGEST W2b. Route 4: apply INLINE RQCOrigin at this pre-action store and retain
 its target row's real receiver delivery. Assembly supplies the INLINE
 origin and held-chain delivery facts. -/
-theorem healing_justification_timed (hv : V2.D.ExecutionValid E rho)
+theorem healing_justification_timed (hroots : NamedRootCollisionFree p c E rho) (hv :
+    V2.D.ExecutionValid E rho)
     (origin : RQCOrigin p c E rho)
     (heldRows : ∀ e x W, HeldAt p c E rho e x W →
       ∀ u ∈ chainRows W, ∃ (a : RowWire p.n) (r : Nat),
@@ -172,11 +175,13 @@ theorem healing_justification_timed (hv : V2.D.ExecutionValid E rho)
   obtain ⟨hh, hroot⟩ := Prod.mk.inj (Option.some.inj hn)
   obtain ⟨j, hji, hj⟩ := hb
   exact ⟨K, r, j, z, a, hji, hj, hK, hh.symm,
-    FGBlock.root_injective hroot.symm, hdel⟩
+    rootScope_eq hroots (rootScope_entry (rootScope_source hj.1 hK))
+      (rootScope_justified (rootScope_store hx hW)) hroot.symm, hdel⟩
 
-/-- T1, routes 1–6. INLINE Cap supplies the honest finality row at the
+/-- ROOT-DIGEST W2b. T1, routes 1–6. INLINE Cap supplies the honest finality row at the
 selected carrier's certificate height. It is not the height of F. -/
-theorem healing_finality_source_clock (hv : V2.D.ExecutionValid E rho)
+theorem healing_finality_source_clock (hroots : NamedRootCollisionFree p c E rho) (hv :
+    V2.D.ExecutionValid E rho)
     (hnr : V2.D.NoRestart rho) (origin : RQCOrigin p c E rho)
     (heldRows : ∀ e x W, HeldAt p c E rho e x W →
       ∀ u ∈ chainRows W, ∃ (a : RowWire p.n) (r : Nat),
@@ -219,7 +224,7 @@ theorem healing_finality_source_clock (hv : V2.D.ExecutionValid E rho)
   have hqc' : KitFG.TargetQCAt p.E H (heightView p H).h_j (heightView p H).J := by
     rwa [hh] at hqc
   obtain ⟨K, rt, jt, zt, atr, hjtjf, hjt, hK, hKh, hKT, kt, ot, tt, hktjf, hkt, htt⟩ :=
-    healing_justification_timed p c E rho hv origin heldRows hH.1 hH.2
+    healing_justification_timed (hroots := hroots) p c E rho hv origin heldRows hH.1 hH.2
       (by rw [← hh]; exact Nat.ne_of_gt hpos) hqc'
   have hlt := healing_receipt_before_tick p c E rho hv.toScheduleWellFormed hktjf hkt hjf.2.1
   have hperiod := healing_action_period p (htt.trans_lt hlt)
@@ -232,11 +237,12 @@ theorem healing_finality_source_clock (hv : V2.D.ExecutionValid E rho)
   refine ⟨D, hD, hDF, K, rt * p.R,
     ⟨jt, zt, rt, atr, Nat.lt_trans hjtjf hjfi, hjt, hK, rfl⟩,
     hKh.trans hh.symm, ?_, htime⟩
-  apply FGBlock.root_injective
+  apply rootScope_eq hroots (rootScope_entry (rootScope_source hjt.1 hK))
+    (rootScope_store hx (cstoreInv_stateBefore E rho i x).fg.Fmem)
   rw [hKT, ← hroot]
   exact congrArg FGBlock.root hDF
 
-/-- T2: the analogous J source needs only the one-action clock bound.
+/-- ROOT-DIGEST W2b. T2: the analogous J source needs only the one-action clock bound.
 No reset, future event, or equality with a next event time is used. -/
 theorem healing_justified_source_clock (hv : V2.D.ExecutionValid E rho)
     (hnr : V2.D.NoRestart rho) (origin : RQCOrigin p c E rho)
@@ -247,7 +253,8 @@ theorem healing_justified_source_clock (hv : V2.D.ExecutionValid E rho)
           ∀ z : V, RowSigner p c rho a z → z ∈ rho.honest →
             HonestRowBefore p c E rho e z r a ∧ p.actionTime r ≤ t)
     {i : Nat} {x : V} (hx : x ∈ rho.honest)
-    (hj : (storeAt p c E rho i x).fg.h_j ≠ 0) :
+    (hj : (storeAt p c E rho i x).fg.h_j ≠ 0)
+    (hroots : NamedRootCollisionFree p c E rho) :
     ∃ K s, SourceBefore p c E rho i K s ∧
       (heightView p K).h = (storeAt p c E rho i x).fg.h_j ∧
       (heightView p K).T_h = (storeAt p c E rho i x).fg.J ∧
@@ -256,7 +263,7 @@ theorem healing_justified_source_clock (hv : V2.D.ExecutionValid E rho)
   have hnz : (heightView p W).h_j ≠ 0 := by rwa [← hjW]
   have hqc := (fgCertificateLaws p).height.justification_certificate W hnz
   obtain ⟨K, r, j, z, a, hji, ha, hK, hh, hT, k, o, t, hki, hk, ht⟩ :=
-    healing_justification_timed p c E rho hv origin heldRows hx hW hnz hqc
+    healing_justification_timed (hroots := hroots) p c E rho hv origin heldRows hx hW hnz hqc
   exact ⟨K, r * p.R, ⟨j, z, r, a, hji, ha, hK, rfl⟩, hh.trans hjW.symm,
     hT.trans hJW.symm, healing_delivery_clock p c E rho hv.toScheduleWellFormed hnr
       hki hk ha.2.1 ht⟩

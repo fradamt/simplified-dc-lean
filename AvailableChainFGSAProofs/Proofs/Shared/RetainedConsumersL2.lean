@@ -45,7 +45,7 @@ private theorem consumer_l2_cone (p : Params) (src dst : State p.n) (s : Slot)
     have hn := (Bool.and_eq_true_iff.mp hlt).1
     simp only [heq, decide_true, Bool.not_true, Bool.false_eq_true] at hn
 
-/-- Blueprint 21 L2:2128–2167; L2-W:2119–2126. Class (iii).
+/-- ROOT-DIGEST W2b. Blueprint 21 L2:2128–2167; L2-W:2119–2126. Class (iii).
 DC: INTENTIONAL; inherited service and root-evidence time are both retained.
 rd is the original inherited deadline; an unresolved repair does not reset it.
 stop is the next effective event. The preceding HEAD need not cover J.
@@ -73,13 +73,15 @@ theorem fgsa_retainedReads_L2
         w + 2 * p.Δ ≤ SA.proposalTime p.toParams s ∧ SA.gateTime p.toParams s < stop) →
       RetainedL2Input p
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
-        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s J) :
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s J)
+    (hroots : NamedRootCollisionFree p c E rho) :
     ∀ y ∈ rho.honest, ∀ ih,
       rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
       ∃ Kc, RetainedReadPremises p
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s J b Kc := by
-  apply fgsa_retainedReads_H17 E rho hE hN hDelta s hSync hx hip hseat b raw sup rows hem J
+  apply fgsa_retainedReads_H17 (hroots := hroots)
+    E rho hE hN hDelta s hSync hx hip hseat b raw sup rows hem J
   intro y hy ih hih
   exact consumer_l2_cone p _ _ s J
     (hinput y hy ih hih ⟨hinherited, hevidence, hstop⟩)

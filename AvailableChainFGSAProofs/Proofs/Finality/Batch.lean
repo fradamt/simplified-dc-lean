@@ -39,15 +39,14 @@ private theorem batch_chain_occurrence (st : State p.n) (hmeta : MetaInv p st)
     have he := Option.some.inj hrows
     subst rows
     refine ⟨W, ?_, ?_⟩
-    · apply preceq_of_eraseFG_preceq (Vw := ({W, H} : Finset (FGBlock (Fin p.n))))
-        (fun A B _ _ he => FGBlock.root_injective he)
-        ⟨W, by simp, KitFG.preceq_refl W⟩ ⟨H, by simp, KitFG.preceq_refl H⟩
+    · apply eraseFG_preceq_iff.mp
       rwa [hWe]
     · rw [hWr]
       exact List.mem_filterMap.mpr ⟨a, ha, hd⟩
   next hpath => cases hrows
 
-/-- Paper 22:715–728, 1265–1289: a finality row sets the retained bit or is carried.
+/-- ROOT-DIGEST W2b. Paper 22:715–728, 1265–1289: a finality row sets the retained bit or is
+carried.
 DC: INTENTIONAL exact signed row selection and checked W history; the caller
 supplies T-ROWS selection so this Finality proof does not depend on Foundations. -/
 theorem finalityRow_bit_or_carried_W
@@ -98,9 +97,9 @@ theorem finalityRow_bit_or_carried_W
     left
     cases W with
     | genesis => exact (List.not_mem_nil hbW).elim
-    | node P s body rs =>
+    | node P s root body rs =>
         exact exact_row_exclusionW E rho hv k _ X.parent hstored y U e he hej heX
-          P s body rs hWP b hbW hpair
+          P s root body rs hWP b hbW hpair
 
 variable [Fintype V]
 

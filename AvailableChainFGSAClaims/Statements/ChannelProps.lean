@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSAClaims.Statements.Witness
 public import AvailableChainFGSA.Statements.Invariants
+public import AvailableChainFGSARun.Statements.Roots
 
 @[expose] public section
 
@@ -608,9 +609,10 @@ theorem SrcFrameAboveStmt_def :
     SrcFrameAboveStmt p c E rho = (∀ (Φ : FGBlock (Fin p.n) → Prop) (c₀ : Nat),
     AncestorClosed p Φ → SrcFrameAbove p c E rho Φ c₀) := rfl
 
-/-- P3 App. A.3: bp.cleanFrame.v1 (00:733–741), 02 §3.
+/-- ROOT-DIGEST W2b. P3 App. A.3: bp.cleanFrame.v1 (00:733–741), 02 §3.
 The EntryBelow premise and prefix conclusion are frozen. -/
 def CPPrefix : Prop := ∀ i x (B : FGBlock (Fin p.n)), x ∈ rho.honest →
+  RootBlockInRun p c E rho (eraseFG B) →
   (∀ y r (a : RowWire p.n) e, HonestRowBefore p c E rho i y r a →
     namedEntry a.payload.height_pair = some e → EntryBelow p e B) →
   (∀ W ∈ (storeAt p c E rho i x).fg.TF, ∀ e ∈ certified p W, FGBlock.Preceq e B) ∧
@@ -621,6 +623,7 @@ def CPPrefix : Prop := ∀ i x (B : FGBlock (Fin p.n)), x ∈ rho.honest →
 -- equation export required by BUILD §7.2 B3a
 theorem CPPrefix_def :
     CPPrefix p c E rho = (∀ i x (B : FGBlock (Fin p.n)), x ∈ rho.honest →
+  RootBlockInRun p c E rho (eraseFG B) →
   (∀ y r (a : RowWire p.n) e, HonestRowBefore p c E rho i y r a →
     namedEntry a.payload.height_pair = some e → EntryBelow p e B) →
   (∀ W ∈ (storeAt p c E rho i x).fg.TF, ∀ e ∈ certified p W, FGBlock.Preceq e B) ∧

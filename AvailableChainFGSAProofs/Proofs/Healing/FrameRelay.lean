@@ -22,7 +22,7 @@ private theorem frame_idx_mono {a b : Time} (hab : a ≤ b) :
   exact List.countP_mono_left (fun e _ he =>
     decide_eq_true ((of_decide_eq_true he).trans_le hab))
 
-/-- Blueprint 21:749–783, 1148–1252; plan S30, H-FRAME/F2.
+/-- ROOT-DIGEST W2b. Blueprint 21:749–783, 1148–1252; plan S30, H-FRAME/F2.
 DC: INTENTIONAL strict relay of an arbitrary held FG carrier, including old carriers.
 The receiver ancestry is explicit at the deadline. Assembly supplies RMono.
 Standalone rows use ΔF; this block object uses Δ. -/
@@ -36,7 +36,8 @@ theorem healing_held_block_receipt (mono : RMono p c E rho)
     (hW : W ∈ (storeAt p c E rho i x).fg.TF)
     (hgst : E.t_GST ≤ t) (hhor : t + p.Δ ≤ rho.horizon)
     (hF : FGBlock.Preceq
-      (storeAt p c E rho (V2.D.Run.idxBefore rho (t + p.Δ)) y).fg.F W) :
+      (storeAt p c E rho (V2.D.Run.idxBefore rho (t + p.Δ)) y).fg.F W)
+    (hroots : NamedRootCollisionFree p c E rho) :
     Gen.V2.Duty.HoldsBefore E rho (fun nd => W ∈ nd.st.fg.TF) (t + p.Δ) y := by
   have hs := hvalid.toScheduleWellFormed
   change W ∈ (V2.D.Run.stateBeforeTime E rho (t + p.Δ) y).st.fg.TF
@@ -86,14 +87,15 @@ theorem healing_held_block_receipt (mono : RMono p c E rho)
       apply toWire_injective
       rw [toWire_ofWire]
       exact decode_eq_block.mp hdec
-    obtain ⟨Y, hY, hYW⟩ := fgsa_proposal_receipt E rho hdelta hvalid hnr dl rho.horizon
+    obtain ⟨Y, hY, hYW⟩ := fgsa_proposal_receipt (hRoots := hroots) E rho hdelta hvalid hnr dl
+      rho.horizon
       slot (eraseFG W) raw sup rows u y hD (Or.inr ⟨x, hx, k, he ▸ ha⟩) hy
       (hd.trans hhor) hu hcompat
     have hYeq : Y = W := eraseFG_injective hYW
     rw [hYeq, ← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs] at hY
     exact (fgsa_store_cumulative p c E rho hnr hidx y).1 hY
 
-/-- Blueprint 21:749–783, 1148–1252; plan S30, H-FRAME/F2.
+/-- ROOT-DIGEST W2b. Blueprint 21:749–783, 1148–1252; plan S30, H-FRAME/F2.
 DC: INTENTIONAL receiver frames are required at the strict receipt cut.
 RXing uses the accepted finality certificate and a witness held at that same cut.
 Settlement only at the source HEAD does not supply the destination frames. -/
@@ -112,7 +114,8 @@ theorem healing_witness_relay (mono : RMono p c E rho) (crossing : RXing p c E r
     (hlo : (R_at p c E rho i x).lo ≤ (heightView p W).h)
     (hdst : ∀ y ∈ rho.honest, SettledPhaseFrame p
       (storeAt p c E rho (V2.D.Run.idxBefore rho (SA.voteTime p.toParams s + p.Δ)) y)
-      m J contested) :
+      m J contested)
+    (hroots : NamedRootCollisionFree p c E rho) :
     ∀ y ∈ rho.honest, Gen.V2.Duty.HoldsBefore E rho
       (fun nd => ∀ B, FGBlock.Preceq B W → B ∈ nd.st.fg.TF)
       (SA.voteTime p.toParams s + p.Δ) y := by
@@ -133,7 +136,8 @@ theorem healing_witness_relay (mono : RMono p c E rho) (crossing : RXing p c E r
         hd.2.2.1.trans hsrc.2.2.1.symm
       exact crossing j j y x K W hy le_rfl hK hKF ⟨hx, hWj⟩
         (hKh.trans_le (hfloor ▸ hlo))
-  have hreceipt := healing_held_block_receipt p c E rho mono hvalid hnr hdelta hsync
+  have hreceipt := healing_held_block_receipt (hroots := hroots)
+    p c E rho mono hvalid hnr hdelta hsync
     hi hx hy hW hgst hhor hF
   change W ∈ (V2.D.Run.stateBeforeTime E rho _ y).st.fg.TF at hreceipt
   change ∀ B, FGBlock.Preceq B W → B ∈ (V2.D.Run.stateBeforeTime E rho _ y).st.fg.TF
@@ -142,7 +146,7 @@ theorem healing_witness_relay (mono : RMono p c E rho) (crossing : RXing p c E r
   obtain ⟨A, hA, he⟩ := eraseFG_ancestor_mem hinv.fg.closed hreceipt (eraseFG_preceq hBW)
   exact (eraseFG_injective he) ▸ hA
 
-/-- Blueprint 21:749–783, 1148–1252; plan S30, H-FRAME/F2; owner B25/B26.
+/-- ROOT-DIGEST W2b. Blueprint 21:749–783, 1148–1252; plan S30, H-FRAME/F2; owner B25/B26.
 DC: INTENTIONAL the phase must include the strict receipt deadline.
 The receiver frames come from healing_settled_frame. The lower-cut bridge is
 kept in one place; it uses B25's strict PhaseInterval cut (idxBefore u). -/
@@ -160,7 +164,8 @@ theorem healing_witness_relay_phase (mono : RMono p c E rho) (crossing : RXing p
     (W : FGBlock (Fin p.n)) (hW : W ∈ (storeAt p c E rho i x).fg.TF)
     (hsrc : SettledPhaseFrame p (storeAt p c E rho i x) m J contested)
     (hZW : FGBlock.Preceq (R_at p c E rho i x).Z W)
-    (hlo : (R_at p c E rho i x).lo ≤ (heightView p W).h) :
+    (hlo : (R_at p c E rho i x).lo ≤ (heightView p W).h)
+    (hroots : NamedRootCollisionFree p c E rho) :
     ∀ y ∈ rho.honest, Gen.V2.Duty.HoldsBefore E rho
       (fun nd => ∀ B, FGBlock.Preceq B W → B ∈ nd.st.fg.TF)
       (SA.voteTime p.toParams s + p.Δ) y := by
@@ -178,7 +183,8 @@ theorem healing_witness_relay_phase (mono : RMono p c E rho) (crossing : RXing p
     rw [← List.countP_eq_length_filter, ← List.countP_eq_length_filter]
     exact List.countP_mono_left (fun e _ he =>
       decide_eq_true ((of_decide_eq_true he).le.trans hreceipt))
-  apply healing_witness_relay p c E rho mono crossing hvalid hnr hdelta hsync hx hi
+  apply healing_witness_relay (hroots := hroots)
+    p c E rho mono crossing hvalid hnr hdelta hsync hx hi
     (hgst.trans hhead) hhor W hW hsrc hZW hlo
   intro y hy
   exact healing_settled_frame p c E rho crossing u v m J contested hgst hphase _ y hlow hhigh hy

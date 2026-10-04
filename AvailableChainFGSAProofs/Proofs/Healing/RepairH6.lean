@@ -52,7 +52,8 @@ theorem repair_F_preceq_Z (st : State p.n) (hs : CStoreInv p st) :
   · exact hs.fg.FJ
   · exact KitFG.preceq_refl _
 
-/-- Blueprint 21:928–944 (H.6 prior support), 709–715 (H.2 S2 counts); plan H-REPAIR step 6.
+/-- ROOT-DIGEST W2b. Blueprint 21:928–944 (H.6 prior support), 709–715 (H.2 S2 counts); plan
+H-REPAIR step 6.
 DC: INTENTIONAL a target L that every honest label-r HEAD covers is, at the honest
 proposer read of slot r + 1 inside the phase, below the ordinary root or has retained prior
 support in the ACTUAL proposer pool: an honest strict majority, smaller rival scores, and a
@@ -97,7 +98,8 @@ theorem repair_prior_support [Fintype V] (E : Generic.Env V)
     unfold headAtLabel
     rw [postClock_def, preTick_def, fgsa_tickIdx_of_event p c E rho hS hjx]
     rfl
-  obtain ⟨W, hW, hLW, hZW, hFW, hloW⟩ := healing_support_frame_at E rho mono crossing hE hN
+  obtain ⟨W, hW, hLW, hZW, hFW, hloW⟩ := healing_support_frame_at (hroots := hrec.base.idealization)
+    E rho mono crossing hE hN
     hDelta hrec.sync hgst hphase hhead (hvp.trans hv) hx hjx (hcover x hx _ hhl) hx
     (healing_support_idxBefore_le p c E rho hS hip hvp)
     (healing_support_idxBefore_le p c E rho hS hip
@@ -532,7 +534,7 @@ theorem repair_proposal_emission (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c
         exact hem0
     · exact (List.not_mem_nil hem).elim
 
-/-- Blueprint 21:915–963 (H.6 exact HEAD); plan H-REPAIR steps 6–8 (G-H6).
+/-- ROOT-DIGEST W2b. Blueprint 21:915–963 (H.6 exact HEAD); plan H-REPAIR steps 6–8 (G-H6).
 DC: INTENTIONAL the repaired-slot unanimous HEAD. Under the lease cover of the preceding
 honest batch, the retained H.6 input holds at every honest reader, so the Shared retained
 exact-head supplier gives the honest proposal as every honest label-(r + 1) HEAD. -/
@@ -564,7 +566,8 @@ theorem repair_head_exact [Fintype V] (E : Generic.Env V)
     linarith
   have hSync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _
     hrec.sync (fgsaDelay_nonrow E.Δ _) hGST hpt hhor
-  have hreads := fgsa_retainedReads_H6 E rho hE hN hDelta (r + 1) hSync hx hip hseat Q raw sup
+  have hreads := fgsa_retainedReads_H6 (hroots := hrec.base.idealization)
+    E rho hE hN hDelta (r + 1) hSync hx hip hseat Q raw sup
     rows hem (fun y hy ih hih => repair_h6_input E rho hrec mono crossing hgst hphase hhead hvq
       hlease hx hip hy hih)
   exact exactService_head_of_retained_proposal_recovery E rho G hrec (r + 1) hGST hx hip hseat

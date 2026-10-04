@@ -15,11 +15,10 @@ open AvailableChain.SimplexFG
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- Blueprint 21 HG.3. DC: SAME lift the source path by root injectivity. -/
+/-- ROOT-DIGEST W2b. Blueprint 21 HG.3. DC: SAME lift the source path by root injectivity. -/
 private theorem frontierSearch_lift {A B : FGBlock (Fin p.n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
-  preceq_of_eraseFG_preceq (Vw := {A, B}) (KitFG.viewRootInj_all _)
-    ⟨A, by simp, KitFG.preceq_refl _⟩ ⟨B, by simp, KitFG.preceq_refl _⟩ h
+  eraseFG_preceq_iff.mp h
 
 /-- Blueprint 21 HG.3. DC: SAME period bound for the first opening. -/
 theorem frontierSearch_period_bound (p : Params) : 8 * p.Δ ≤ P p := by
@@ -27,7 +26,7 @@ theorem frontierSearch_period_bound (p : Params) : 8 * p.Δ ≤ P p := by
   change 8 * p.Δ ≤ 4 * (p.R : Time) * p.Δ
   nlinarith [p.deltaPos]
 
-/-- Blueprint 21 HG.3 gap. DC: SAME finish repair in a quiet settled phase.
+/-- ROOT-DIGEST W2b. Blueprint 21 HG.3 gap. DC: SAME finish repair in a quiet settled phase.
 The initial seed and every later seed keep the frozen first-label qualification. -/
 theorem frontierSearch_gap_phase [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF ρbar u D : Time}
@@ -204,14 +203,14 @@ theorem frontierSearch_gap_phase [Fintype V] (E : Generic.Env V)
     have hPX : FGBlock.Preceq X.parent X := by
       cases X with
       | genesis => exact KitFG.preceq_refl _
-      | node P s body rows => exact KitFG.preceq_parent_node _ _ _ _
+      | node P s root body rows => exact KitFG.preceq_parent_node _ _ _ _ _
     have hh : m ≤ (heightView p X).h := by
       have hKP := (fgCertificateLaws p).height.h_mono hpath
       have hPXh := (fgCertificateLaws p).height.h_mono hPX
       exact (hKh ▸ hKP).trans hPXh
     exact finish hnew hat hsD hh
 
-/-- Blueprint 21 HG.3 gap; run 2 R2-b.
+/-- ROOT-DIGEST W2b. Blueprint 21 HG.3 gap; run 2 R2-b.
 DC: SAME finite first stop or the complete seed by the frozen gap deadline.
 E_gF_eq is used only under LivenessBoundW. The horizon is closed. -/
 theorem frontier_hg3_gap [Fintype V] (E : Generic.Env V)
@@ -265,7 +264,8 @@ theorem frontier_hg3_gap [Fintype V] (E : Generic.Env V)
   have hsettle : ev.time + 3 * p.Δ ≤ ev.time + E_gF p ΔF G ρbar := by
     rw [← hbudget]
     exact (le_add_of_nonneg_right hρ).trans (le_add_of_nonneg_right htail0)
-  obtain ⟨J, hp, _⟩ := healing_settle_start p c E rho crossing hrec.base.valid
+  obtain ⟨J, hp, _⟩ := healing_settle_start (hroots := hrec.base.idealization)
+    p c E rho crossing hrec.base.valid
     hrec.base.noRestart hrec.base.delta hrec.sync i ev _ m .gap hi hgst0
     hsettle
     hhor hm hfront hkind hquiet
