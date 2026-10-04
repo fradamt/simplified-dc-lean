@@ -36,22 +36,36 @@ theorem proposalRows_perm_setEq (p : Params) {st st' : State p.n}
   exact proposalRowsFor_perm p (st := st) (st' := { st with rowPool := st'.rowPool })
     rfl hp (List.Perm.refl _) _ _
 
-/-- Both proposals have the same parent, slot, votes and support; their
-row lists are permutations. The packed block identities can differ. -/
+/-- [ROOT-DIGEST-2 W1; DC NamedBlocks] Row order preserves proposal failure or success.
+Successful proposals have the same named parent, slot, votes and support, with permuted rows.
+The packed bodies and roots can differ. This statement applies to arbitrary stores. -/
 theorem propose_setEq (p : Params) {st st' : State p.n}
-    (h : StoreSetEq st st') (s : Slot) (hs : s ≠ 0) :
-    ∃ H raw sup rows rows', rows.Perm rows' ∧
-      propose p st s = some (.proposal (proposalBlock p H s 0 raw sup rows) raw sup rows) ∧
-      propose p st' s = some (.proposal (proposalBlock p H s 0 raw sup rows') raw sup rows') := by
+    (h : StoreSetEq st st') (s : Slot) :
+    (propose p st s = none ∧ propose p st' s = none) ∨
+      ∃ H raw sup rows rows', rows.Perm rows' ∧
+        propose p st s = some (.proposal (namedProposal p H s 0 raw sup rows)) ∧
+        propose p st' s = some (.proposal (namedProposal p H s 0 raw sup rows')) := by
   have hr := proposalRows_perm_setEq p h
-  obtain ⟨he, hp⟩ := h
+  obtain ⟨he, _⟩ := h
   rw [he] at hr ⊢
-  refine ⟨getHead p st (proposerVotes st s) (proposerSupport st s),
-    (proposerVotes st s).filterMap liftHead?, (proposerSupport st s).filterMap liftHead?,
-    _, _, hr (getHead p st (proposerVotes st s) (proposerSupport st s)), ?_, ?_⟩ <;>
-    dsimp only [propose]
-  all_goals simp only [hs, ↓reduceIte]
-  · rfl
+  have hv : proposerVotes { st with rowPool := st'.rowPool } s = proposerVotes st s := rfl
+  have hu : proposerSupport { st with rowPool := st'.rowPool } s = proposerSupport st s := rfl
+  have hg (raw sup) : getHead p { st with rowPool := st'.rowPool } raw sup =
+      getHead p st raw sup := rfl
+  have hn (H) : namedByErase? { st with rowPool := st'.rowPool } H =
+      namedByErase? st H := rfl
+  by_cases hs : s = 0
+  · exact Or.inl (by simp only [propose, hs, ↓reduceIte, and_self])
+  · cases hN : namedByErase? st
+        (getHead p st (proposerVotes st s) (proposerSupport st s)) with
+    | none =>
+        exact Or.inl (by
+          simp only [propose, hs, ↓reduceIte, hv, hu, hg, hn, hN, Option.map_none, and_self])
+    | some N =>
+        refine Or.inr ⟨N, (proposerVotes st s).filterMap liftHead?,
+          (proposerSupport st s).filterMap liftHead?, _, _,
+          hr (getHead p st (proposerVotes st s) (proposerSupport st s)), ?_, ?_⟩ <;>
+          simp only [propose, hs, ↓reduceIte, hv, hu, hg, hn, hN, Option.map_some]
 
 end AvailableChain.FGSA
 end

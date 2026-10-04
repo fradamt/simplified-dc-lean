@@ -315,7 +315,7 @@ no axiom. `scripts/CheckFGSAAxioms.lean` checks every FGSA constant mechanically
 #print axioms AvailableChain.FGSA.StoreSetEq
 #print axioms AvailableChain.FGSA.admitRow_setEq
 #print axioms AvailableChain.FGSA.proposalRows_perm_setEq
-#print axioms AvailableChain.FGSA.propose_setEq
+#print axioms AvailableChain.FGSA.propose_setEq -- ROOT-DIGEST-2 W1 C1: Option relation
 #print axioms AvailableChain.GridCO.writeKeys_def
 #print axioms AvailableChain.GridCO.gateWriteKeys_def
 
