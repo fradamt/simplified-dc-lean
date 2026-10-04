@@ -18,8 +18,8 @@ structure FGHeightLaws (E : Electorate V)
     ∀ {A B}, FGBlock.Preceq A B → (v A).h ≤ (v B).h
 
   node_cases :
-    ∀ (p : FGBlock V) (s : Slot) (x : Nat) (rs : List (Row V)),
-      let B := FGBlock.node p s x rs
+    ∀ (p : FGBlock V) (s : Slot) (r_s : BlockId) (x : Nat) (rs : List (Row V)),
+      let B := FGBlock.node p s r_s x rs
       ((v B).h = (v p).h ∧ (v B).T_h = (v p).T_h) ∨
       ((v B).h = (v p).h + 1 ∧ (v B).T_h = B)
 

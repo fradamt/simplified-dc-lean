@@ -193,8 +193,8 @@ theorem prefix_eq_of_slot_ge (B C : Block) (ho : SlotOrdered C)
     (hp : Block.Preceq B C) (hs : C.slot ≤ B.slot) : B = C := by
   cases C with
   | genesis => simpa [Block.Preceq, Block.preceq] using hp
-  | node parent s id =>
-      obtain he | hpre : B = .node parent s id ∨ Block.Preceq B parent := by
+  | node parent s r_s id =>
+      obtain he | hpre : B = .node parent s r_s id ∨ Block.Preceq B parent := by
         simpa [Block.Preceq, Block.preceq, Bool.or_eq_true] using hp
       · exact he
       · have hle := slot_le_of_prefix B parent ho.2 hpre

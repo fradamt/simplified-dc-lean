@@ -13,8 +13,9 @@ namespace AvailableChain.Gen.Pure
 theorem block_preceq_refl (B : Block) : Block.Preceq B B := by
   cases B with
   | genesis => rfl
-  | node p s r =>
-      change (decide (Block.node p s r = Block.node p s r) || Block.preceq (.node p s r) p) = true
+  | node p s r_s r =>
+      change (decide (Block.node p s r_s r = Block.node p s r_s r) || Block.preceq (.node p s r_s
+        r) p) = true
       simp only [decide_true, Bool.true_or]
 /-- [helper] `⪯` is transitive. -/
 theorem block_preceq_trans {A B C : Block} (h₁ : Block.Preceq A B) (h₂ : Block.Preceq B C) :
@@ -25,15 +26,15 @@ theorem block_preceq_trans {A B C : Block} (h₁ : Block.Preceq A B) (h₂ : Blo
       simp only [decide_eq_true_eq] at h₂
       subst h₂
       exact h₁
-  | node p s r ih =>
-      change (decide (B = Block.node p s r) || Block.preceq B p) = true at h₂
+  | node p s r_s r ih =>
+      change (decide (B = Block.node p s r_s r) || Block.preceq B p) = true at h₂
       simp only [Bool.or_eq_true, decide_eq_true_eq] at h₂
-      change Block.preceq A (Block.node p s r) = true
+      change Block.preceq A (Block.node p s r_s r) = true
       rcases h₂ with h | h
       · subst h
         exact h₁
       · have hAp : Block.preceq A p = true := ih h
-        change (decide (A = Block.node p s r) || Block.preceq A p) = true
+        change (decide (A = Block.node p s r_s r) || Block.preceq A p) = true
         simp only [hAp, Bool.or_true]
 /-- [helper] `⪯` is antisymmetric. -/
 theorem block_preceq_antisymm {A B : Block} (h₁ : Block.Preceq A B) (h₂ : Block.Preceq B A) :
@@ -46,8 +47,8 @@ theorem block_preceq_antisymm {A B : Block} (h₁ : Block.Preceq A B) (h₂ : Bl
         simp only [decide_eq_true_eq] at h
         subst h
         exact Nat.le_refl _
-    | node p s r ih =>
-        change (decide (X = Block.node p s r) || Block.preceq X p) = true at h
+    | node p s r_s r ih =>
+        change (decide (X = Block.node p s r_s r) || Block.preceq X p) = true at h
         simp only [Bool.or_eq_true, decide_eq_true_eq] at h
         rcases h with h | h
         · subst h
@@ -62,8 +63,8 @@ theorem block_preceq_antisymm {A B : Block} (h₁ : Block.Preceq A B) (h₂ : Bl
         change decide (X = Block.genesis) = true at h
         simp only [decide_eq_true_eq] at h
         exact h
-    | node p s r _ =>
-        change (decide (X = Block.node p s r) || Block.preceq X p) = true at h
+    | node p s r_s r _ =>
+        change (decide (X = Block.node p s r_s r) || Block.preceq X p) = true at h
         simp only [Bool.or_eq_true, decide_eq_true_eq] at h
         rcases h with h | h
         · exact h
@@ -76,9 +77,9 @@ theorem block_preceq_antisymm {A B : Block} (h₁ : Block.Preceq A B) (h₂ : Bl
 theorem block_genesis_preceq (B : Block) : Block.Preceq .genesis B := by
   induction B with
   | genesis => exact block_preceq_refl _
-  | node p s r ih =>
+  | node p s r_s r ih =>
       change Block.preceq .genesis p = true at ih
-      change (decide (Block.genesis = Block.node p s r) || Block.preceq .genesis p) = true
+      change (decide (Block.genesis = Block.node p s r_s r) || Block.preceq .genesis p) = true
       simp only [Bool.or_eq_true, decide_eq_true_eq]
       exact Or.inr ih
 /-- [helper] Two ancestors of one block are comparable. -/
@@ -92,23 +93,23 @@ theorem block_preceq_total_of_common {A B W : Block} (hA : Block.Preceq A W)
       subst hA
       subst hB
       exact Or.inl (block_preceq_refl _)
-  | node p s r ih =>
-      change (decide (A = Block.node p s r) || Block.preceq A p) = true at hA
-      change (decide (B = Block.node p s r) || Block.preceq B p) = true at hB
+  | node p s r_s r ih =>
+      change (decide (A = Block.node p s r_s r) || Block.preceq A p) = true at hA
+      change (decide (B = Block.node p s r_s r) || Block.preceq B p) = true at hB
       simp only [Bool.or_eq_true, decide_eq_true_eq] at hA hB
       rcases hA with hA | hA
       · rcases hB with hB | hB
         · subst hA; subst hB; exact Or.inl (block_preceq_refl _)
         · subst hA
           refine Or.inr ?_
-          change Block.preceq B (Block.node p s r) = true
-          change (decide (B = Block.node p s r) || Block.preceq B p) = true
+          change Block.preceq B (Block.node p s r_s r) = true
+          change (decide (B = Block.node p s r_s r) || Block.preceq B p) = true
           simp only [hB, Bool.or_true]
       · rcases hB with hB | hB
         · subst hB
           refine Or.inl ?_
-          change Block.preceq A (Block.node p s r) = true
-          change (decide (A = Block.node p s r) || Block.preceq A p) = true
+          change Block.preceq A (Block.node p s r_s r) = true
+          change (decide (A = Block.node p s r_s r) || Block.preceq A p) = true
           simp only [hA, Bool.or_true]
         · exact ih hA hB
 /-- [helper] `compatible` is commutative. -/
@@ -153,9 +154,9 @@ theorem prefix_depth (A B : Block) (h : Block.Preceq A B) : A.depth ≤ B.depth 
   induction B with
   | genesis => have : A = .genesis := by exact of_decide_eq_true h
                subst A; rfl
-  | node P s id ih =>
-      obtain he | hp : A = .node P s id ∨ Block.Preceq A P := by
-        change (decide (A = Block.node P s id) || Block.preceq A P) = true at h
+  | node P s r_s id ih =>
+      obtain he | hp : A = .node P s r_s id ∨ Block.Preceq A P := by
+        change (decide (A = Block.node P s r_s id) || Block.preceq A P) = true at h
         exact (Bool.or_eq_true_iff.mp h).imp of_decide_eq_true (fun hp => hp)
       · subst A; rfl
       · exact le_trans (ih hp) (Nat.le_succ _)
@@ -164,9 +165,9 @@ theorem prefix_eq_of_depth (A B : Block) (h : Block.Preceq A B)
     (hd : B.depth ≤ A.depth) : A = B := by
   cases B with
   | genesis => exact of_decide_eq_true h
-  | node P s id =>
-      obtain he | hp : A = .node P s id ∨ Block.Preceq A P := by
-        change (decide (A = Block.node P s id) || Block.preceq A P) = true at h
+  | node P s r_s id =>
+      obtain he | hp : A = .node P s r_s id ∨ Block.Preceq A P := by
+        change (decide (A = Block.node P s r_s id) || Block.preceq A P) = true at h
         exact (Bool.or_eq_true_iff.mp h).imp of_decide_eq_true (fun hp => hp)
       · exact he
       · have := prefix_depth A P hp
@@ -177,19 +178,19 @@ theorem path_child (A B : Block) (h : Block.Preceq A B) (hne : A ≠ B) :
     ∃ C, C.parent? = some A ∧ Block.Preceq C B := by
   induction B with
   | genesis => exact (hne (by exact of_decide_eq_true h)).elim
-  | node P s id ih =>
+  | node P s r_s id ih =>
       have hp : Block.Preceq A P := by
-        change (decide (A = Block.node P s id) || Block.preceq A P) = true at h
+        change (decide (A = Block.node P s r_s id) || Block.preceq A P) = true at h
         exact (Bool.or_eq_true_iff.mp h).resolve_left (by simpa only [decide_eq_true_eq] using hne)
       by_cases he : A = P
       · subst P
-        exact ⟨.node A s id, rfl, block_preceq_refl _⟩
+        exact ⟨.node A s r_s id, rfl, block_preceq_refl _⟩
       · obtain ⟨C, hc, hcp⟩ := ih hp he
         exact ⟨C, hc, Bool.or_eq_true_iff.mpr (Or.inr hcp)⟩
 
 def pathNodes : Block → List Block
   | .genesis => []
-  | b@(.node parent _ _) => b :: pathNodes parent
+  | b@(.node parent _ _ _) => b :: pathNodes parent
 
 theorem pathNodes_spec (B : Block) :
     (pathNodes B).length = B.depth ∧ (pathNodes B).Nodup ∧
@@ -200,11 +201,11 @@ theorem pathNodes_spec (B : Block) :
         ∀ C ∈ ([] : List Block), C ≠ .genesis ∧ Block.Preceq C .genesis
       simp only [List.length_nil, List.nodup_nil, List.not_mem_nil, false_implies,
         implies_true, and_self]
-  | node P s id ih =>
-      change (Block.node P s id :: pathNodes P).length = P.depth + 1 ∧
-        (Block.node P s id :: pathNodes P).Nodup ∧
-        ∀ C ∈ Block.node P s id :: pathNodes P,
-          C ≠ .genesis ∧ Block.Preceq C (.node P s id)
+  | node P s r_s id ih =>
+      change (Block.node P s r_s id :: pathNodes P).length = P.depth + 1 ∧
+        (Block.node P s r_s id :: pathNodes P).Nodup ∧
+        ∀ C ∈ Block.node P s r_s id :: pathNodes P,
+          C ≠ .genesis ∧ Block.Preceq C (.node P s r_s id)
       refine ⟨by simpa only [List.length_cons] using congrArg Nat.succ ih.1, ?_, ?_⟩
       · apply List.nodup_cons.mpr
         refine ⟨?_, ih.2.1⟩

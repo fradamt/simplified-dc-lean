@@ -20,10 +20,8 @@ def hOf (W : FGBlock V) : Height := (derive E cfg W).h
 /-- `H = max({1} ∪ {h(W) : W ∈ V})` (r148 §2 `FJ_FRAME`). -/
 def frontier (Vw : View V) : Height := Vw.sup (hOf E cfg) ⊔ 1
 
-/-- Collision freedom on a view: roots identify the blocks of the view and their
-ancestors (DC `RootInjectiveOnAncestors`). It holds on every view, because the
-root is a function of the content (`FGBlock.root_injective`). A hypothesis of
-every lemma that reads the selected pair; no definition assumes it. -/
+/-- [ROOT-DIGEST W1; DC RootInjectiveOnAncestors] Roots identify view ancestors.
+The selector proofs use this local premise. The model does not assume it. -/
 def ViewRootInj (Vw : View V) : Prop :=
   ∀ X Y, (∃ W ∈ Vw, FGBlock.Preceq X W) → (∃ W ∈ Vw, FGBlock.Preceq Y W) →
     X.root = Y.root → X = Y
@@ -87,13 +85,13 @@ def pickPair (T : Finset α) (p : α → Bool) : Option α :=
 
 end Pick
 
-/-- The lex-greatest `(h_j, J)` over `W ∈ Vw` with `F ⪯ σ[W].J`, or `(0, genesis)`
+/-- [ROOT-DIGEST W1; DC NamedBlocks and RootInjectiveOnAncestors]
+The lex-greatest `(h_j, J)` over `W ∈ Vw` with `F ⪯ σ[W].J`, or `(0, genesis)`
 if there is none (r148 §2 `FJ_FRAME`, the `(j, J)` line). The candidates are the
 image of `Vw`, so two carriers of one pair count once; `pickPair` (DC's
 `pickUnique?`) returns `none` when no candidate or more than one candidate has
-the greatest key, and `lexMax` then falls back. Roots are injective
-(`FGBlock.root_injective`), so two candidates with one key are one pair: only
-an empty candidate set gives the fallback. -/
+the greatest key, and `lexMax` then falls back. Under `ViewRootInj`, equal
+keys identify equal pairs, so only an empty candidate set gives the fallback. -/
 def lexMax (F : FGBlock V) (Vw : View V) : Height × FGBlock V :=
   let candidates : Finset (Height × FGBlock V) :=
     (Vw.filter (fun W => FGBlock.preceq F (derive E cfg W).J)).image
@@ -151,16 +149,16 @@ target rows at height 2 for their own parent's root, so they justify
 `B1a`/`B1b` at height 2. -/
 
 def B1a : FGBlock (Fin 4) := B1
-def B1b : FGBlock (Fin 4) := .node .genesis 1 1 [rowT 0, rowT 1, rowT 2]
+def B1b : FGBlock (Fin 4) := .node .genesis 1 ⟨2⟩ 1 [rowT 0, rowT 1, rowT 2]
 
 /-- [helper] A target or timeout row at height `h` for `target`. -/
 def rowAt (h : Height) (target : BlockId) (timeout : Bool) (i : Fin 4) : Row (Fin 4) :=
   ⟨i, .vote h target timeout, none⟩
 
 def childA : FGBlock (Fin 4) :=
-  .node B1a 2 0 [rowAt 2 B1a.root false 0, rowAt 2 B1a.root false 1, rowAt 2 B1a.root false 2]
+  .node B1a 2 ⟨4⟩ 0 [rowAt 2 B1a.root false 0, rowAt 2 B1a.root false 1, rowAt 2 B1a.root false 2]
 def childB : FGBlock (Fin 4) :=
-  .node B1b 2 0 [rowAt 2 B1b.root false 0, rowAt 2 B1b.root false 1, rowAt 2 B1b.root false 2]
+  .node B1b 2 ⟨5⟩ 0 [rowAt 2 B1b.root false 0, rowAt 2 B1b.root false 1, rowAt 2 B1b.root false 2]
 
 /-- `B1b` justifies genesis at height 1, like `B1a`. -/
 example : (derive E4 cfg1 B1b).h = 2 ∧ (derive E4 cfg1 B1b).h_j = 1 ∧
@@ -181,20 +179,14 @@ example : (fjFrame E4 cfg1 .genesis {.genesis, B1a, B1b, childA, childB}).j = 2 
     (fjFrame E4 cfg1 .genesis {.genesis, B1a, B1b, childA, childB}).J = B1b := by
   decide +kernel
 
-/-! ### Review Focus 4: distinct content gives distinct roots (Astra G03)
+/-! ### ROOT-DIGEST W1: finite root assignment (DC scoped roots)
 
-Before I9 a block carried its root, and `B1c` had the root of `B1a` with a
-different slot: the pairs `(2, B1a)` and `(2, B1c)` had one lex key, and the
-frame fell back to `(0, genesis)`. The root is now a function of the content,
-so this collision cannot occur. `B1c` (slot 2, parent genesis, body `0`) has
-the rows of `B1a` but a different slot, so `B1a ≠ B1c`, and root injectivity
-gives `B1a.root ≠ B1c.root`. `childC` justifies `B1c` at height 2, exactly like
-`childA` justifies `B1a`. The two pairs have different lex keys, and the frame
-selects the greater root, `B1c`. -/
+The fixture assigns different small roots to B1a and B1c. This is a property
+of these values. It is not a property of arbitrary FGBlock values. -/
 
-def B1c : FGBlock (Fin 4) := .node .genesis 2 0 [rowT 0, rowT 1, rowT 2]
+def B1c : FGBlock (Fin 4) := .node .genesis 2 ⟨3⟩ 0 [rowT 0, rowT 1, rowT 2]
 def childC : FGBlock (Fin 4) :=
-  .node B1c 3 0 [rowAt 2 B1c.root false 0, rowAt 2 B1c.root false 1, rowAt 2 B1c.root false 2]
+  .node B1c 3 ⟨6⟩ 0 [rowAt 2 B1c.root false 0, rowAt 2 B1c.root false 1, rowAt 2 B1c.root false 2]
 
 /-- `B1c` justifies genesis at height 1, like `B1a`, and is a different block. -/
 example : (derive E4 cfg1 B1c).h = 2 ∧ (derive E4 cfg1 B1c).h_j = 1 ∧
@@ -203,14 +195,23 @@ example : (derive E4 cfg1 B1c).h = 2 ∧ (derive E4 cfg1 B1c).h_j = 1 ∧
 example : (derive E4 cfg1 childC).h = 3 ∧ (derive E4 cfg1 childC).h_j = 2 ∧
     (derive E4 cfg1 childC).J = B1c := by decide
 
-/-- Distinct content gives distinct roots: the proof uses `B1a ≠ B1c` and root
-injectivity, not the values of the roots. -/
-example : B1a.root ≠ B1c.root := fun h => absurd (FGBlock.root_injective h) (by decide)
+/-- [ROOT-DIGEST W1; DC NamedBlocks and RootInjectiveOnAncestors]
+The explicit finite IDs give different roots to B1a and B1c. -/
+example : B1a.root ≠ B1c.root := by decide
 
-/-- `ViewRootInj` holds on the view of the old collision (the old test showed
-that it failed there). -/
+/-- [ROOT-DIGEST W1; DC NamedBlocks and RootInjectiveOnAncestors]
+`ViewRootInj` holds on this explicit finite view. -/
 example : ViewRootInj ({.genesis, B1a, B1c, childA, childC} : View (Fin 4)) :=
-  fun _ _ _ _ h => FGBlock.root_injective h
+  by
+    intro A B hA hB h
+    simp only [Finset.mem_insert, Finset.mem_singleton, exists_eq_or_imp, exists_eq_left,
+      FGBlock.Preceq, FGBlock.preceq, B1a, B1, B1c, childA, childC,
+      Bool.or_eq_true, decide_eq_true_eq] at hA hB
+    simp only [or_assoc] at hA hB
+    rcases hA with (rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl) <;>
+      rcases hB with (rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl) <;>
+      first | rfl | simp only [FGBlock.root, genesisRoot, BlockId.mk.injEq,
+        Nat.reduceEqDiff] at h
 
 /-- The root order of the two entries: `B1a.root < B1c.root`. -/
 example : B1a.root.value < B1c.root.value := by decide
@@ -230,8 +231,8 @@ rows, so its state height stays at 2: in the view with `Y`, `X`'s only witness
 H − 1 = 2` and `X ∈ D`, since `X` extends `J = B1a`. -/
 
 def Y : FGBlock (Fin 4) :=
-  .node B1b 2 0 [rowAt 2 B1b.root false 0, rowAt 2 B1b.root false 1, rowAt 2 B1b.root true 2]
-def X : FGBlock (Fin 4) := .node B1a 3 0 []
+  .node B1b 2 ⟨7⟩ 0 [rowAt 2 B1b.root false 0, rowAt 2 B1b.root false 1, rowAt 2 B1b.root true 2]
+def X : FGBlock (Fin 4) := .node B1a 3 ⟨8⟩ 0 []
 
 /-- `Y` reaches height 3 by a mature progress quorum (two targets, one
 timeout), without a target quorum: it does not justify `B1b` (`J`, `h_j` stay

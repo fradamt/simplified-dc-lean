@@ -32,10 +32,21 @@ theorem mem_filteredFrom_of_bridge (E : Electorate V) (cfg : FGConfig)
   rw [filteredFrom_of_bridge E cfg H hb]
   exact mem_filteredFromView H c blocks B
 
+/-- [ROOT-DIGEST W1; DC RootInjectiveOnAncestors] Candidate J values are ancestors. -/
+theorem candidateJ_rootInj_of_viewRootInj (E : Electorate V) (H : FGHeightView V)
+    (hH : FGHeightLaws E H) (T : View V) (hinj : ViewRootInj T) :
+    ∀ A ∈ T, ∀ B ∈ T, (H A).J.root = (H B).J.root → (H A).J = (H B).J := by
+  intro A hA B hB hr
+  exact hinj _ _
+    ⟨A, hA, preceq_trans (hH.justified_preceq_entry A) (hH.entry_preceq A)⟩
+    ⟨B, hB, preceq_trans (hH.justified_preceq_entry B) (hH.entry_preceq B)⟩ hr
+
 omit [Fintype V] in
 /-- The structural pair fields select the same pair as the view selector. -/
 private theorem frameGeometry_lexMax_of_inv (H : FGHeightView V) (f : FGFinalityView V)
-    (st : Store V) (hI : FGStoreInvariant H f st) :
+    (st : Store V) (hI : FGStoreInvariant H f st)
+    (hroots : ∀ A ∈ st.TF, ∀ B ∈ st.TF,
+      (H A).J.root = (H B).J.root → (H A).J = (H B).J) :
     lexMaxView H st.F st.TF = (st.h_j, st.J) := by
   rw [lexMaxView_def]
   dsimp only
@@ -59,28 +70,36 @@ private theorem frameGeometry_lexMax_of_inv (H : FGHeightView V) (f : FGFinality
     (0, .genesis) = _
   rw [hsup, pickPair_eq_of_unique _ _ _ hp (by simp)]
   · rfl
-  · intro q _ hk
-    have hk' : (q.1, q.2.root.value) = (st.h_j, st.J.root.value) :=
-      toLex.injective (show lexKey q = lexKey (st.h_j, st.J) from of_decide_eq_true hk)
+  · intro q hq hk
+    obtain ⟨W, hW, _, rfl⟩ := (hmem q).1 hq
+    have hk' : ((H W).h_j, (H W).J.root.value) = (st.h_j, st.J.root.value) :=
+      toLex.injective (show lexKey ((H W).h_j, (H W).J) = lexKey (st.h_j, st.J) from
+        of_decide_eq_true hk)
     exact Prod.ext (Prod.mk.inj hk').1
-      (FGBlock.root_injective (BlockId.ext (Prod.mk.inj hk').2))
+      (by
+        rw [hJ] at hk' ⊢
+        exact hroots W hW C hC (BlockId.ext (Prod.mk.inj hk').2))
 
 omit [Fintype V] in
 /-- The structural invariant makes the store controls equal to the full-tree controls. -/
 theorem storeControlsView_eq_fjControlsView_of_inv
     (H : FGHeightView V) (f : FGFinalityView V)
-    (st : Store V) (hI : FGStoreInvariant H f st) :
+    (st : Store V) (hI : FGStoreInvariant H f st)
+    (hroots : ∀ A ∈ st.TF, ∀ B ∈ st.TF,
+      (H A).J.root = (H B).J.root → (H A).J = (H B).J) :
     storeControlsView H st = fjControlsView H st.F st.TF := by
   rw [storeControlsView_def, fjControlsView_def, frontierView_def,
-    frameGeometry_lexMax_of_inv H f st hI, ← hI.hmax]
+    frameGeometry_lexMax_of_inv H f st hI hroots, ← hI.hmax]
 
 omit [Fintype V] in
 /-- The store frame on the full tree is the domain of its FJ frame. -/
 theorem storeFrameView_full_of_inv (H : FGHeightView V) (f : FGFinalityView V)
-    (st : Store V) (hI : FGStoreInvariant H f st) :
+    (st : Store V) (hI : FGStoreInvariant H f st)
+    (hroots : ∀ A ∈ st.TF, ∀ B ∈ st.TF,
+      (H A).J.root = (H B).J.root → (H A).J = (H B).J) :
     storeFrameView H st st.TF = (fjFrameView H st.F st.TF).D := by
   rw [storeFrameView_def, fjFrameView_def,
-    storeControlsView_eq_fjControlsView_of_inv H f st hI]
+    storeControlsView_eq_fjControlsView_of_inv H f st hI hroots]
 
 /-- Crossed entries below a block bound the floor of an uncontested frame. -/
 theorem storeFrameView_height_of_crossed_prefix_of_inv

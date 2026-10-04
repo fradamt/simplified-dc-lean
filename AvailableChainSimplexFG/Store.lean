@@ -167,14 +167,14 @@ content, `B2` is `childA` of Frame.lean and `B1'` is `B1c`: a block is its
 content. -/
 
 def B2 : FGBlock (Fin 4) :=
-  .node B1 2 0 [rowAt 2 B1.root false 0, rowAt 2 B1.root false 1, rowAt 2 B1.root false 2]
+  .node B1 2 ⟨10⟩ 0 [rowAt 2 B1.root false 0, rowAt 2 B1.root false 1, rowAt 2 B1.root false 2]
 
 /-- [helper] A timeout row for `(3, B2)` with the finality pair `(2, B1)`. -/
 def rowB3 (i : Fin 4) : Row (Fin 4) := ⟨i, .vote 3 B2.root true, some ⟨2, B1.root⟩⟩
 
-def B3 : FGBlock (Fin 4) := .node B2 3 0 [rowB3 0, rowB3 1, rowB3 2]
+def B3 : FGBlock (Fin 4) := .node B2 3 ⟨11⟩ 0 [rowB3 0, rowB3 1, rowB3 2]
 
-def B1' : FGBlock (Fin 4) := .node .genesis 2 0 [rowT 0, rowT 1, rowT 2]
+def B1' : FGBlock (Fin 4) := .node .genesis 2 ⟨12⟩ 0 [rowT 0, rowT 1, rowT 2]
 
 /-- The G02 chain: `B2` justifies `B1` at height 2; `B3` reaches height 4 and
 finalizes `B1`. -/
@@ -212,7 +212,7 @@ example : on_block E4 cfg1 Store.init B2 = Store.init := by
 def st1 : Store (Fin 4) := on_block E4 cfg1 Store.init B1
 
 /-- [helper] A child of `B1` at slot 1, the slot of `B1`. -/
-def Bs : FGBlock (Fin 4) := .node B1 1 0 []
+def Bs : FGBlock (Fin 4) := .node B1 1 ⟨13⟩ 0 []
 
 /-- The parent-slot refusal (alfs4 line 798; DC `consensus.tex` 791 and 2220):
 `Bs` is new, its parent `B1` is in the tree, and it extends `F = genesis`, but

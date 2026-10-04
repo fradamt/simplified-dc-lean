@@ -14,10 +14,6 @@ variable [LeasePolicy]
 
 open AvailableChain.Generic AvailableChain.Statements.Generic
 
-/-- Roots are computed from block content, so every tree meets the premise. -/
-theorem rootInjectiveBelow_all (tree : List Block) : RootInjectiveBelow tree :=
-  fun _ _ _ _ he => Block.root_injective he
-
 /-- The common run scope is closed under ancestry. -/
 theorem blockInRun_of_prefix {V : Type} [DecidableEq V]
     (p : Params) (E : Env V) (rho : Run V (gridCO p)) (A B : Block)

@@ -150,9 +150,9 @@ theorem selection_finalized_zero (hinit : f .genesis = ⟨.genesis, 0⟩)
     (B : FGBlock V) (hz : (f B).h_F = 0) : (f B).F = .genesis := by
   induction B with
   | genesis => rw [hinit]
-  | node p s x rs ih =>
-      have hw := hs.write (.node p s x rs) (by simp)
-      cases hc : r.chosen (.node p s x rs) with
+  | node p s r_s x rs ih =>
+      have hw := hs.write (.node p s r_s x rs) (by simp)
+      cases hc : r.chosen (.node p s r_s x rs) with
       | none =>
           rw [hc] at hw
           rw [hw] at hz ⊢
@@ -169,13 +169,13 @@ theorem selection_finalized_mono {A B : FGBlock V} (hAB : FGBlock.Preceq A B) :
   | genesis =>
       obtain rfl := preceq_genesis.mp hAB
       exact ⟨le_rfl, preceq_refl _⟩
-  | node p s x rs ih =>
-      by_cases he : A = .node p s x rs
+  | node p s r_s x rs ih =>
+      by_cases he : A = .node p s r_s x rs
       · subst A
         exact ⟨le_rfl, preceq_refl _⟩
       obtain ⟨hh, hF⟩ := ih (preceq_parent_of_preceq_node hAB he)
-      have hw := hs.write (.node p s x rs) (by simp)
-      cases hc : r.chosen (.node p s x rs) with
+      have hw := hs.write (.node p s r_s x rs) (by simp)
+      cases hc : r.chosen (.node p s r_s x rs) with
       | none =>
           rw [hc] at hw
           rw [hw]
@@ -194,18 +194,18 @@ theorem selection_finality_origin (hinit : f .genesis = ⟨.genesis, 0⟩)
       FinalityQCAfter E C D (f B).h_F (f B).F := by
   induction B with
   | genesis => exact (hnz (by rw [hinit])).elim
-  | node p s x rs ih =>
-      have hw := hs.write (.node p s x rs) (by simp)
-      cases hc : r.chosen (.node p s x rs) with
+  | node p s r_s x rs ih =>
+      have hw := hs.write (.node p s r_s x rs) (by simp)
+      cases hc : r.chosen (.node p s r_s x rs) with
       | none =>
           rw [hc] at hw
           rw [hw] at hnz ⊢
           obtain ⟨C, D, hCD, hDp, hb, hinc, heq, hqc⟩ := ih hnz
-          exact ⟨C, D, hCD, preceq_node_of_preceq s x rs hDp, hb, hinc, heq, hqc⟩
+          exact ⟨C, D, hCD, preceq_node_of_preceq s r_s x rs hDp, hb, hinc, heq, hqc⟩
       | some e =>
           obtain ⟨hmem, hq, hlt, heq⟩ := selection_chosen_spec E H f r hs _ e hc
           obtain ⟨C, hCB, hb, hrows⟩ := hs.entry_origin _ e hmem
-          refine ⟨C, .node p s x rs, hCB, preceq_refl _, ?_, ?_, rfl, ?_⟩
+          refine ⟨C, .node p s r_s x rs, hCB, preceq_refl _, ?_, ?_, rfl, ?_⟩
           · simpa only [heq] using hb
           · simpa only [heq] using hlt
           · rw [heq]

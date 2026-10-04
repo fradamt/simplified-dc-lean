@@ -55,7 +55,7 @@ omit [DecidableEq V] [Fintype V] in
 `preceq_antisymm`: the number of parent edges from genesis. -/
 private def depth : FGBlock V → Nat
   | .genesis => 0
-  | .node p _ _ _ => depth p + 1
+  | .node p _ _ _ _ => depth p + 1
 
 omit [Fintype V] in
 -- port: DC/DecoupledConsensusProofs/Objects/Ancestry.lean:36-38 (preceq_self)
@@ -63,7 +63,7 @@ omit [Fintype V] in
 theorem preceq_refl (B : FGBlock V) : FGBlock.Preceq B B := by
   cases B with
   | genesis => simp [FGBlock.Preceq, FGBlock.preceq]
-  | node p s r rs => simp [FGBlock.Preceq, FGBlock.preceq]
+  | node p s r_s r rs => simp [FGBlock.Preceq, FGBlock.preceq]
 
 omit [Fintype V] in
 -- port: DC/DecoupledConsensusProofs/Objects/Ancestry.lean:46-60 (preceq_trans)
@@ -75,9 +75,9 @@ theorem preceq_trans {A B C : FGBlock V} (h₁ : FGBlock.Preceq A B)
       simp only [FGBlock.Preceq, FGBlock.preceq, decide_eq_true_eq] at h₂
       subst h₂
       exact h₁
-  | node p s r rs ih =>
+  | node p s r_s r rs ih =>
       simp only [FGBlock.Preceq, FGBlock.preceq, Bool.or_eq_true, decide_eq_true_eq] at h₂
-      change FGBlock.preceq A (FGBlock.node p s r rs) = true
+      change FGBlock.preceq A (FGBlock.node p s r_s r rs) = true
       rcases h₂ with h | h
       · subst h
         exact h₁
@@ -93,7 +93,7 @@ private theorem preceq_depth_le {B C : FGBlock V} (h : FGBlock.Preceq B C) :
       simp only [FGBlock.Preceq, FGBlock.preceq, decide_eq_true_eq] at h
       subst h
       exact Nat.le_refl _
-  | node p s r rs ih =>
+  | node p s r_s r rs ih =>
       simp only [FGBlock.Preceq, FGBlock.preceq, Bool.or_eq_true, decide_eq_true_eq] at h
       rcases h with h | h
       · subst h
@@ -110,7 +110,7 @@ private theorem preceq_eq_of_depth_le {B C : FGBlock V} (h : FGBlock.Preceq B C)
   | genesis =>
       simp only [FGBlock.Preceq, FGBlock.preceq, decide_eq_true_eq] at h
       exact h
-  | node p s r rs ih =>
+  | node p s r_s r rs ih =>
       simp only [FGBlock.Preceq, FGBlock.preceq, Bool.or_eq_true, decide_eq_true_eq] at h
       rcases h with h | h
       · exact h
@@ -140,7 +140,7 @@ omit [Fintype V] in
 theorem genesis_preceq (B : FGBlock V) : FGBlock.Preceq .genesis B := by
   induction B with
   | genesis => exact preceq_refl _
-  | node p s r rs ih =>
+  | node p s r_s r rs ih =>
       simp only [FGBlock.Preceq, FGBlock.preceq, Bool.or_eq_true, decide_eq_true_eq] at ih ⊢
       exact Or.inr ih
 
@@ -164,19 +164,19 @@ theorem preceq_total_of_common {A B W : FGBlock V}
       subst hA
       subst hB
       exact Or.inl (preceq_refl _)
-  | node p s r rs ih =>
+  | node p s r_s r rs ih =>
       simp only [FGBlock.Preceq, FGBlock.preceq, Bool.or_eq_true, decide_eq_true_eq] at hA hB
       rcases hA with hA | hA
       · rcases hB with hB | hB
         · subst hA; subst hB; exact Or.inl (preceq_refl _)
         · subst hA
           refine Or.inr ?_
-          change FGBlock.preceq B (FGBlock.node p s r rs) = true
+          change FGBlock.preceq B (FGBlock.node p s r_s r rs) = true
           simp only [FGBlock.preceq, hB, Bool.or_true]
       · rcases hB with hB | hB
         · subst hB
           refine Or.inl ?_
-          change FGBlock.preceq A (FGBlock.node p s r rs) = true
+          change FGBlock.preceq A (FGBlock.node p s r_s r rs) = true
           simp only [FGBlock.preceq, hA, Bool.or_true]
         · exact ih hA hB
 
@@ -198,19 +198,19 @@ theorem child_toward {B W : FGBlock V} (h : FGBlock.Preceq B W) (hne : B ≠ W) 
   | genesis =>
       simp only [FGBlock.Preceq, FGBlock.preceq, decide_eq_true_eq] at h
       exact absurd h hne
-  | node p s r rs ih =>
+  | node p s r_s r rs ih =>
       simp only [FGBlock.Preceq, FGBlock.preceq, Bool.or_eq_true, decide_eq_true_eq] at h
       rcases h with h | h
       · exact absurd h hne
       · by_cases hBp : B = p
         · subst hBp
-          refine ⟨FGBlock.node B s r rs, rfl, ?_, preceq_refl _⟩
+          refine ⟨FGBlock.node B s r_s r rs, rfl, ?_, preceq_refl _⟩
           intro hcontra
           injection hcontra
         · obtain ⟨C, hC1, hC2, hC3⟩ := ih h hBp
           refine ⟨C, hC1, hC2, ?_⟩
-          change FGBlock.preceq C (FGBlock.node p s r rs) = true
-          have hpW : FGBlock.preceq p (FGBlock.node p s r rs) = true := by
+          change FGBlock.preceq C (FGBlock.node p s r_s r rs) = true
+          have hpW : FGBlock.preceq p (FGBlock.node p s r_s r rs) = true := by
             simp only [FGBlock.preceq, Bool.or_eq_true]
             exact Or.inr (preceq_refl p)
           exact preceq_trans hC3 hpW
@@ -225,7 +225,7 @@ theorem chainRows_mono {A B : FGBlock V} (h : FGBlock.Preceq A B) :
       simp only [FGBlock.Preceq, FGBlock.preceq, decide_eq_true_eq] at h
       subst h
       exact Finset.Subset.refl _
-  | node p s r rs ih =>
+  | node p s r_s r rs ih =>
       simp only [FGBlock.Preceq, FGBlock.preceq, Bool.or_eq_true, decide_eq_true_eq] at h
       rcases h with h | h
       · subst h
@@ -243,7 +243,7 @@ theorem mem_chainRows_of_carrier {carrier B : FGBlock V} {a : Row V}
   refine chainRows_mono hc ?_
   cases carrier with
   | genesis => simp [FGBlock.rows] at ha
-  | node p s r rs =>
+  | node p s r_s r rs =>
       simp only [chainRows, Finset.mem_union, List.mem_toFinset]
       exact Or.inl ha
 

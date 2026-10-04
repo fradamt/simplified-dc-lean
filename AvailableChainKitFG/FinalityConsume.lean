@@ -65,8 +65,8 @@ theorem derive_finality_of_cover (E : Electorate V) (cfg : FGConfig)
       (derive E cfg B).h_F = (derive E cfg B.parent).h_j := by
   cases B with
   | genesis => exact (hB rfl).elim
-  | node p s x rs =>
-      exact transition_finality_of_cover E cfg (derive E cfg p) (.node p s x rs)
+  | node p s r_s x rs =>
+      exact transition_finality_of_cover E cfg (derive E cfg p) (.node p s r_s x rs)
         rs S hlt hquorum hcover
 
 end AvailableChain.KitFG

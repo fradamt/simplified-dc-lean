@@ -30,3 +30,4 @@ public import AvailableChainFGSARun.Proofs.EmissionWellFormed
 public import AvailableChainFGSARun.Proofs.ReceiptCoverage
 public import AvailableChainFGSARun.Proofs.AncestorDeadlinesStore
 public import AvailableChainFGSARun.Proofs.AncestorDeadlines
+public import AvailableChainFGSARun.Proofs.Roots

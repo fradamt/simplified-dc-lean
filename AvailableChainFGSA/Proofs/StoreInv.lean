@@ -28,6 +28,8 @@ theorem storeControls_eq (p : Params) (st : State p.n) (h : CStoreInv p st) :
   rw [KitFG.fjControls_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
   exact KitFG.storeControlsView_eq_fjControlsView_of_inv
     (heightView p) (finalityView p) st.fg h.fg
+    (KitFG.candidateJ_rootInj_of_viewRootInj p.E (heightView p)
+      (fgCertificateLaws p).height st.fg.TF (viewRootInj_TF p st h))
 
 /-- [bp bp.store.v1; K4] The live J is in Σ.T (the clause "F, J ∈ T"; `Fmem` of
 `KitFG.FGStoreInvariant` gives F). -/
@@ -110,15 +112,13 @@ theorem cstoreInv_normalizeS (p : Params) (st : State p.n) (h : CStoreInv p st) 
       h.leaseKeys⟩
     exact (h.baseTree _).2 ⟨_, h.fg.Fmem, rfl⟩
 
-/-- [bp bp.store.v1; D6] Σ.T is root-injective on every store: roots are derived
-from the content (`FGBlock.root_injective`). It fills `CStoreInv.rootInj`. -/
-theorem rootInj_all {n : Nat} (st : State n) :
-    ∀ X ∈ st.fg.TF, ∀ Y ∈ st.fg.TF, X.root = Y.root → X = Y :=
-  fun _ _ _ _ hr => FGBlock.root_injective hr
-
 /-- [bp bp.store.v1] -/
 theorem cstoreInv_init (p : Params) : CStoreInv p (initial p.n) := by
-  refine ⟨(fgStoreSafety p).initial_good, rootInj_all _, ?_, ⟨?_, ?_, ?_⟩, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨(fgStoreSafety p).initial_good, ?_, ?_, ⟨?_, ?_, ?_⟩, ?_, ?_, ?_, ?_, ?_⟩
+  · intro X hX Y hY _
+    have hx : X = .genesis := Finset.mem_singleton.mp hX
+    have hy : Y = .genesis := Finset.mem_singleton.mp hY
+    exact hx.trans hy.symm
   · intro b
     simp only [initial, GridCO.initial, Store.init, List.mem_singleton, Finset.mem_singleton,
       exists_eq_left, eraseFG]
@@ -132,6 +132,28 @@ theorem cstoreInv_init (p : Params) : CStoreInv p (initial p.n) := by
   · simp [initial, GridCO.initial]
   · simp [initial, GridCO.initial]
 
+/-- [ROOT-DIGEST W1; DC RootInjectiveOnAncestors] Admission proves inserted-tree roots locally. -/
+theorem storeStepRoots_of_blockAccepted (p : Params) (st : State p.n) (h : CStoreInv p st)
+    (s : Slot) (b : Block) (raw support : List (HeadWire p.n))
+    (P : FGBlock (Fin p.n)) (rows : List (RowWire p.n))
+    (hP : parentFG st b = some P)
+    (hacc : blockAccepted p st s b raw support P rows = true) :
+    KitFG.StoreStepRoots st.fg (fgBlock P b rows) := by
+  have hparent := ((parentFG_spec st b P).1 hP).1
+  have hfresh := (blockAccepted_facts hacc).2.2.1
+  apply viewRootInj_of_rootInj
+  · intro X hX
+    rcases Finset.mem_insert.mp hX with rfl | hX
+    · exact Finset.mem_insert_of_mem hparent
+    · exact Finset.mem_insert_of_mem (h.fg.closed X hX)
+  · intro X hX Y hY hr
+    rcases Finset.mem_insert.mp hX with rfl | hX <;>
+      rcases Finset.mem_insert.mp hY with rfl | hY
+    · rfl
+    · exact False.elim (hfresh ⟨Y, hY, hr.symm⟩)
+    · exact False.elim (hfresh ⟨X, hX, hr⟩)
+    · exact h.rootInj X hX Y hY hr
+
 /-! ### Delivery -/
 
 /-- [helper] The pre-reconcile state of an accepted block keeps the invariant
@@ -139,7 +161,7 @@ fields that do not read F, and the origin invariant for the old F. -/
 theorem cstoreInv_accepted_pre (p : Params) (st : State p.n) (h : CStoreInv p st) (s : Slot)
     (b : Block) (raw support : List (HeadWire p.n)) (P : FGBlock (Fin p.n))
     (rows : List (RowWire p.n))
-    (hP : parentFG st b = some P) (hacc : blockAccepted p st s b P rows = true) :
+    (hP : parentFG st b = some P) (hacc : blockAccepted p st s b raw support P rows = true) :
     let st1 : State p.n := { st with
       base := GridCO.admitProposal p.toParams.engine st.base (baseProposal s b raw support) b
         (raw.map baseHead)
@@ -161,9 +183,12 @@ theorem cstoreInv_accepted_pre (p : Params) (st : State p.n) (h : CStoreInv p st
     change (Window.on_block p p.K_W st.fg (fgBlock P b rows)).TF = _
     rw [fg_on_block_accepts p st s b P rows hP hacc, Window.window_update_finality_TF]
   have hok := blockAccepted_rowsOk hacc
+  have hStep := storeStepRoots_of_blockAccepted p st h s b raw support P rows hP hacc
   refine ⟨?_, ?_, ?_, hob, hgen, hstab, rfl, ?_, Window.window_on_block_F_mono p p.K_W st.fg _⟩
-  · exact (fgStoreSafety p).invariant _ ((fgStoreSafety p).step_good st.fg _ h.fg)
-  · exact rootInj_all st1
+  · exact (fgStoreSafety p).invariant _ ((fgStoreSafety p).step_good st.fg _ h.fg hStep)
+  · intro X hX Y hY hr
+    rw [hTF] at hX hY
+    exact hStep X Y ⟨X, hX, KitFG.preceq_refl X⟩ ⟨Y, hY, KitFG.preceq_refl Y⟩ hr
   · intro c
     change c ∈ (GridCO.admitProposal p.toParams.engine st.base (baseProposal s b raw support) b
       (raw.map baseHead)).blocks ↔ _
@@ -192,7 +217,7 @@ theorem cstoreInv_admitBlock (p : Params) (st : State p.n) (h : CStoreInv p st) 
       rw [admitBlock_refused p st s b raw support rows (Or.inl hP)]
       exact h
   | some P =>
-      cases hacc : blockAccepted p st s b P rows with
+      cases hacc : blockAccepted p st s b raw support P rows with
       | false =>
           rw [admitBlock_refused p st s b raw support rows (Or.inr ⟨P, hP, hacc⟩)]
           exact h
@@ -549,7 +574,7 @@ theorem fg_step_cases (p : Params) (st : State p.n) (o : Wire p.n) :
         left
         rw [admitBlock_refused p st s b raw support rows (Or.inl hP)]
     | some P =>
-        cases hacc : blockAccepted p st s b P rows with
+        cases hacc : blockAccepted p st s b raw support P rows with
         | false =>
             left
             rw [admitBlock_refused p st s b raw support rows (Or.inr ⟨P, hP, hacc⟩)]
@@ -635,7 +660,7 @@ fastWrite premise: `FastOrigin` comes from `CStoreInv`. -/
 theorem admitBlock_reconcile_harmless (p : Params) (st : State p.n) (h : CStoreInv p st)
     (s : Slot) (b : Block) (raw support : List (HeadWire p.n)) (rows : List (RowWire p.n))
     (P : FGBlock (Fin p.n)) (hP : parentFG st b = some P)
-    (hacc : blockAccepted p st s b P rows = true)
+    (hacc : blockAccepted p st s b raw support P rows = true)
     (hL : ∀ row ∈ st.base.obligations,
       Block.Compatible row.1 (eraseFG (admitBlock p st s b raw support rows).fg.F))
     (hG : ∀ r C, (r, some C) ∈ st.base.genuine →

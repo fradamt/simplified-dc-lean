@@ -176,10 +176,10 @@ example :
 /-- `clientB1alt` has the parent, the slot and the rows of `B1` but body `1`:
 height 2, a different entry root. With the same content, it is `B1b` of
 Frame.lean (it was the same term before I9 too). -/
-def clientB1alt : FGBlock (Fin 4) := .node .genesis 1 1 [rowT 0, rowT 1, rowT 2]
+def clientB1alt : FGBlock (Fin 4) := .node .genesis 1 ⟨14⟩ 1 [rowT 0, rowT 1, rowT 2]
 
 /-- The two entries are different: distinct content gives distinct roots. -/
-example : B1.root ≠ clientB1alt.root := fun h => absurd (FGBlock.root_injective h) (by decide)
+example : B1.root ≠ clientB1alt.root := by decide
 
 /-- A second call at height 2 with a different entry repeats no target: it
 times out (DC's target-repeat rule). -/

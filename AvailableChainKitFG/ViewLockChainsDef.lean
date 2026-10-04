@@ -1,4 +1,5 @@
 module
+public import AvailableChainKitFG.RootScopeDef
 public import AvailableChainKitFG.ViewLock
 public import AvailableChainSimplexFG.Evidence
 
@@ -17,6 +18,7 @@ def ViewLockOfChainsStatement : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] [RowCodec V]
     (E : Electorate V) (cfg : FGConfig)
     (K Fb : FGBlock V) (vw : View V) (θ : Nat),
+    (∀ W ∈ vw, RootInjectiveOn K W) →
     (derive E cfg K).F = Fb →
     (derive E cfg K).h_F ≤ θ →
     (∀ W ∈ vw,
@@ -30,6 +32,7 @@ theorem ViewLockOfChainsStatement_def :
       (∀ {V : Type} [DecidableEq V] [Fintype V] [RowCodec V]
         (E : Electorate V) (cfg : FGConfig)
         (K Fb : FGBlock V) (vw : View V) (θ : Nat),
+    (∀ W ∈ vw, RootInjectiveOn K W) →
         (derive E cfg K).F = Fb →
         (derive E cfg K).h_F ≤ θ →
         (∀ W ∈ vw,
@@ -46,6 +49,7 @@ def ViewLockOfHonestChainsStatement : Prop :=
     (E : Electorate V) (cfg : FGConfig)
     (K Fb : FGBlock V) (vw : View V) (θ : Nat)
     (faulty : Finset V),
+    (∀ W ∈ vw, RootInjectiveOn K W) →
     (derive E cfg K).F = Fb →
     (derive E cfg K).h_F ≤ θ →
     E.weightOf faulty + E.totalWeight < 2 * E.q →
@@ -61,6 +65,7 @@ theorem ViewLockOfHonestChainsStatement_def :
         (E : Electorate V) (cfg : FGConfig)
         (K Fb : FGBlock V) (vw : View V) (θ : Nat)
         (faulty : Finset V),
+    (∀ W ∈ vw, RootInjectiveOn K W) →
         (derive E cfg K).F = Fb →
         (derive E cfg K).h_F ≤ θ →
         E.weightOf faulty + E.totalWeight < 2 * E.q →

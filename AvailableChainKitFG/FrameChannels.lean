@@ -13,11 +13,11 @@ open AvailableChain.SimplexFG
 variable {V : Type} [DecidableEq V] [Fintype V] [RowCodec V]
     (E : Electorate V) (cfg : FGConfig)
 
-private theorem frame_J_carrier (st : Store V) (h : StoreInv E cfg st) :
+private theorem frame_J_carrier (st : Store V) (h : StoreInv E cfg st) (hinj : ViewRootInj st.TF) :
     ∃ K ∈ st.TF, st.J = (derive E cfg K).J ∧ st.h_j = (derive E cfg K).h_j := by
   obtain ⟨L, hL, hLF⟩ := h.Fcar
   obtain ⟨K, hK, _, hp, _⟩ := lexMax_spec E cfg st.F st.TF
-    (viewRootInj_all _) ⟨L, hL, hLF ▸ derive_F_preceq_J E cfg L⟩
+    hinj ⟨L, hL, hLF ▸ derive_F_preceq_J E cfg L⟩
   exact ⟨K, hK, congrArg Prod.snd (h.pair.trans hp),
     congrArg Prod.fst (h.pair.trans hp)⟩
 
@@ -27,13 +27,14 @@ private theorem frame_crossed_entry (W : FGBlock V) (m : Nat)
   obtain ⟨U, hU, hh, _⟩ := height_crossing E cfg W m hm hlt
   exact ⟨U, hU, hh⟩
 
-private theorem frame_contest_crossing (st : Store V) (h : StoreInv E cfg st)
+private theorem frame_contest_crossing (st : Store V) (h : StoreInv E cfg st) (hinj : ViewRootInj
+  st.TF)
     (htop : st.h_max = st.h_j + 1) (W : FGBlock V)
     (hW : hOf E cfg W = st.h_max) (hn : ¬ FGBlock.Preceq st.J W) :
     ∃ U, FGBlock.Preceq U W ∧ hOf E cfg U < hOf E cfg W ∧
       ¬ (FGBlock.Preceq st.J (derive E cfg U).T_h ∨
         FGBlock.Preceq (derive E cfg U).T_h st.J) := by
-  obtain ⟨K, _, hJ, hj⟩ := frame_J_carrier E cfg st h
+  obtain ⟨K, _, hJ, hj⟩ := frame_J_carrier E cfg st h hinj
   have hnz : st.h_j ≠ 0 := by
     intro hz
     exact hn (hJ ▸ justified_zero_is_genesis E cfg K (hj.symm.trans hz) ▸ genesis_preceq W)
@@ -59,7 +60,8 @@ private theorem frame_contest_crossing (st : Store V) (h : StoreInv E cfg st)
 /-- P3 §8.7 F2.2, bp02 §§3.1,3.3: compatible crossed entries exclude contest.
 DC counterpart: none for contest; EntryHeight.lean:131 supplies the plateau
 step. Class A2. The FJ test differs by TS/spec/fgsa-protocol.tex:2557–2571. -/
-theorem storeFrame_noContest_of_crossed (st : Store V) (h : StoreInv E cfg st)
+theorem storeFrame_noContest_of_crossed (st : Store V) (h : StoreInv E cfg st) (hinj : ViewRootInj
+  st.TF)
     (hc : ∀ W ∈ st.TF, ∀ U, FGBlock.Preceq U W → hOf E cfg U < hOf E cfg W →
       FGBlock.Preceq st.J (derive E cfg U).T_h ∨
         FGBlock.Preceq (derive E cfg U).T_h st.J) :
@@ -69,14 +71,15 @@ theorem storeFrame_noContest_of_crossed (st : Store V) (h : StoreInv E cfg st)
   change (decide (st.h_max = st.h_j + 1) && decide _) = true at ht
   rw [Bool.and_eq_true, decide_eq_true_eq, decide_eq_true_eq] at ht
   obtain ⟨htop, W, hW, hh, hn⟩ := ht
-  obtain ⟨U, hU, hlt, hbad⟩ := frame_contest_crossing E cfg st h htop W hh hn
+  obtain ⟨U, hU, hlt, hbad⟩ := frame_contest_crossing E cfg st h hinj htop W hh hn
   exact hbad (hc W hW U hU hlt)
 
 /-- P3 §8.7 F2.2, bp02 §3.3 and the universal CPCompat clause: a block
 compatible with J and all crossed entries precedes every contest witness.
 DC counterpart: none for contest (FGRootWitness.lean:548 has only root
 compatibility). Class A2; TS/spec/fgsa-protocol.tex:2557–2571. -/
-theorem storeFrame_contest_of_compatible (st : Store V) (h : StoreInv E cfg st)
+theorem storeFrame_contest_of_compatible (st : Store V) (h : StoreInv E cfg st) (hinj :
+  ViewRootInj st.TF)
     (B : FGBlock V) (hJ : FGBlock.Preceq st.J B ∨ FGBlock.Preceq B st.J)
     (hc : ∀ W ∈ st.TF, ∀ U, FGBlock.Preceq U W → hOf E cfg U < hOf E cfg W →
       FGBlock.Preceq (derive E cfg U).T_h B ∨ FGBlock.Preceq B (derive E cfg U).T_h)
@@ -90,7 +93,7 @@ theorem storeFrame_contest_of_compatible (st : Store V) (h : StoreInv E cfg st)
   have step : ∀ W ∈ st.TF, hOf E cfg W = st.h_max → ¬ FGBlock.Preceq st.J W →
       FGBlock.Preceq B st.J ∧ FGBlock.Preceq B W := by
     intro W hW hh hn
-    obtain ⟨U, hU, hlt, hbad⟩ := frame_contest_crossing E cfg st h htop W hh hn
+    obtain ⟨U, hU, hlt, hbad⟩ := frame_contest_crossing E cfg st h hinj htop W hh hn
     have hBW : FGBlock.Preceq B (derive E cfg U).T_h := by
       rcases hc W hW U hU hlt with hu | hu
       · rcases hJ with hj | hj
@@ -131,7 +134,8 @@ theorem storeFrame_height_of_crossed_prefix (st : Store V) (h : StoreInv E cfg s
 stored block above F unless Z covers it. DC analogue: FGRootWitness.lean:548
 for compatibility; none for the FJ filtered-domain conclusion. Class A2;
 TS/spec/fgsa-protocol.tex:2557–2571 explains the FJ band. -/
-theorem storeFrame_retention_of_compatible (st : Store V) (h : StoreInv E cfg st)
+theorem storeFrame_retention_of_compatible (st : Store V) (h : StoreInv E cfg st) (hinj :
+  ViewRootInj st.TF)
     (B : FGBlock V) (hB : B ∈ st.TF) (hFB : FGBlock.Preceq st.F B)
     (hJ : FGBlock.Preceq st.J B ∨ FGBlock.Preceq B st.J)
     (hc : ∀ W ∈ st.TF, ∀ U, FGBlock.Preceq U W → hOf E cfg U < hOf E cfg W →
@@ -155,7 +159,7 @@ theorem storeFrame_retention_of_compatible (st : Store V) (h : StoreInv E cfg st
   refine ⟨hB, hFB, hZB, ?_⟩
   cases ht : c.contest with
   | true =>
-    have hx := storeFrame_contest_of_compatible E cfg st h B hJ hc ht
+    have hx := storeFrame_contest_of_compatible E cfg st h hinj B hJ hc ht
     have ht' := ht
     change (decide (st.h_max = st.h_j + 1) && decide _) = true at ht'
     rw [Bool.and_eq_true, decide_eq_true_eq, decide_eq_true_eq] at ht'

@@ -1,5 +1,6 @@
 module
 public import AvailableChainKitFG.CertificateCoreDef
+public import AvailableChainKitFG.RootScopeDef
 public import AvailableChainSimplexFG.Store
 public import AvailableChainSimplexFG.Evidence
 
@@ -53,7 +54,7 @@ structure FGStoreSafety (E : Electorate V)
     (cache : S → FGBlock V → FGHeight V × FGFinality V)
     (initial : S)
     (step : S → FGBlock V → S)
-    (Good : S → Prop) : Prop where
+    (Good : S → Prop) (StepOK : S → FGBlock V → Prop) : Prop where
   initial_good :
     Good initial
 
@@ -61,7 +62,7 @@ structure FGStoreSafety (E : Electorate V)
     ∀ s, Good s → FGStoreInvariant H f (read s)
 
   step_good :
-    ∀ s B, Good s → Good (step s B)
+    ∀ s B, Good s → StepOK s B → Good (step s B)
 
   tree_mono :
     ∀ s B, Good s →
@@ -77,7 +78,7 @@ structure FGStoreSafety (E : Electorate V)
 
   -- The carrier D gives the threshold. W need not be in the store.
   F_lock_no_evidence :
-    ∀ s, Good s → ∀ D W,
+    ∀ s, Good s → ∀ D W, RootInjectiveOn D W →
       D ∈ (read s).TF →
       (f D).F = (read s).F →
       (f D).h_F < (H W).h →
@@ -85,13 +86,22 @@ structure FGStoreSafety (E : Electorate V)
       FGBlock.Preceq (read s).F W
 
   F_lock_fault :
-    ∀ s, Good s → ∀ D W (faulty : Finset V),
+    ∀ s, Good s → ∀ D W, RootInjectiveOn D W → ∀ faulty : Finset V,
       D ∈ (read s).TF →
       (f D).F = (read s).F →
       (f D).h_F < (H W).h →
       E.weightOf faulty + E.totalWeight < 2 * E.q →
       NoSlashOutside faulty (chainRows D) (chainRows W) →
       FGBlock.Preceq (read s).F W
+
+/-- [ROOT-DIGEST W1; DC RootInjectiveOnAncestors] Roots on the inserted tree. -/
+def StoreStepRoots (st : Store V) (B : FGBlock V) : Prop :=
+  ViewRootInj (insert B st.TF)
+
+omit [Fintype V] in
+/-- [ROOT-DIGEST W1; DC RootInjectiveOnAncestors] The local step premise. -/
+theorem StoreStepRoots_def (st : Store V) (B : FGBlock V) :
+    StoreStepRoots st B = ViewRootInj (insert B st.TF) := rfl
 
 /-- The accepted threshold is zero at genesis, even for a nonzero certificate height. -/
 def acceptedThreshold (F : FGBlock V) (certificateHeight : Height) : Height :=

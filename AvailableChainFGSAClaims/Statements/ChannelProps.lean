@@ -17,7 +17,7 @@ variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V]
 /-- bp.carrier.v1 (00:493–501, especially 496), 01 §2: admitted-view root injectivity.
 Consumers: all lanes and KitFG frame lemmas. Producer: F1.1 via `viewRootInj_TF`.
 The claim has no Base premise; the existing run root premise is local here.
-Derived content roots discharge it via `V2.D.rootInjective_all`. -/
+ROOT-DIGEST W1: The local view proof uses the store invariant; DC body scope is separate. -/
 def RCarrierView : Prop := V2.D.RootInjective E (fgsaInterface p c) rho →
   ∀ i x, x ∈ rho.honest → ViewRootInj (storeAt p c E rho i x).fg.TF
 
@@ -152,7 +152,7 @@ SA changes use the existing operations. Only temporal metadata needs NoRestart. 
 def RFrame : Prop := ∀ i x, x ∈ rho.honest →
   let st := storeAt p c E rho i x
   (∀ s b raw support P rows, parentFG st b = some P →
-    blockAccepted p st s b P rows = true →
+    blockAccepted p st s b raw support P rows = true →
     (admitBlock p st s b raw support rows).fg = Window.on_block p p.K_W st.fg (fgBlock P b rows)) ∧
   ((∀ f : GridCO.State p.n → GridCO.State p.n, (onView f st).fg = st.fg) ∧
     (∀ s k b, (admitHead p st s k b).fg = st.fg) ∧
@@ -160,7 +160,7 @@ def RFrame : Prop := ∀ i x, x ∈ rho.honest →
     (∀ t, (FGSA.clock p st t).fg = st.fg) ∧
     (∀ s b raw support rows,
       (parentFG st b = none ∨
-        ∃ P, parentFG st b = some P ∧ blockAccepted p st s b P rows = false) →
+        ∃ P, parentFG st b = some P ∧ blockAccepted p st s b raw support P rows = false) →
       (admitBlock p st s b raw support rows).fg = st.fg) ∧
     (∀ o, o.decode = none → (FGSA.process p st o).fg = st.fg)) ∧
   (FGSA.controls p (FGSA.reconcile st) = FGSA.controls p st ∧
@@ -206,7 +206,7 @@ theorem RFrame_def : RFrame p c E rho =
   (∀ i x, x ∈ rho.honest →
   let st := storeAt p c E rho i x
   (∀ s b raw support P rows, parentFG st b = some P →
-    blockAccepted p st s b P rows = true →
+    blockAccepted p st s b raw support P rows = true →
     (admitBlock p st s b raw support rows).fg = Window.on_block p p.K_W st.fg (fgBlock P b rows)) ∧
   ((∀ f : GridCO.State p.n → GridCO.State p.n, (onView f st).fg = st.fg) ∧
     (∀ s k b, (admitHead p st s k b).fg = st.fg) ∧
@@ -214,7 +214,7 @@ theorem RFrame_def : RFrame p c E rho =
     (∀ t, (FGSA.clock p st t).fg = st.fg) ∧
     (∀ s b raw support rows,
       (parentFG st b = none ∨
-        ∃ P, parentFG st b = some P ∧ blockAccepted p st s b P rows = false) →
+        ∃ P, parentFG st b = some P ∧ blockAccepted p st s b raw support P rows = false) →
       (admitBlock p st s b raw support rows).fg = st.fg) ∧
     (∀ o, o.decode = none → (FGSA.process p st o).fg = st.fg)) ∧
   (FGSA.controls p (FGSA.reconcile st) = FGSA.controls p st ∧

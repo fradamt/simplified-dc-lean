@@ -149,7 +149,6 @@ def anchor : Unit :=
   let _ := @AvailableChain.V2.outputAt
   let _ := @AvailableChain.V2.BlockInRun
   let _ := @AvailableChain.V2.RootInjective
-  let _ := @AvailableChain.V2.rootInjective_all
   -- AvailableChainEngineV2.Conditions.Schedule
   let _ := @AvailableChain.V2.PublicTime
   let _ := @AvailableChain.V2.ScheduleWellFormed

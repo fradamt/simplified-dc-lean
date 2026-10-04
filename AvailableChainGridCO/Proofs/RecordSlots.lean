@@ -113,8 +113,8 @@ theorem slot_le_of_prefix (B C : Block) (hordered : SlotOrdered C)
   | genesis =>
       have : B = .genesis := by simpa [Block.Preceq, Block.preceq] using hBC
       subst B; rfl
-  | node parent s root ih =>
-      obtain heq | hp : B = .node parent s root ∨ Block.Preceq B parent := by
+  | node parent s r_s root ih =>
+      obtain heq | hp : B = .node parent s r_s root ∨ Block.Preceq B parent := by
         simpa [Block.Preceq, Block.preceq, Bool.or_eq_true] using hBC
       · subst B; rfl
       · exact le_trans (ih hordered.2 hp) (Nat.le_of_lt hordered.1)
@@ -172,7 +172,7 @@ theorem admitProposal_blocks_ordered (p : Params) {n : Nat} (st : State n)
         have ho := h _ (of_decide_eq_true hparent)
         cases target with
         | genesis => exact True.intro
-        | node parent s root => exact ⟨hslot, ho⟩
+        | node parent s r_s root => exact ⟨hslot, ho⟩
 
 private theorem process_blocks_ordered (p : Params) {n : Nat} (st : State n) (o : Wire n)
     (h : ∀ b ∈ st.blocks, SlotOrdered b) :

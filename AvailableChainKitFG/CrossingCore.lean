@@ -12,7 +12,7 @@ variable {V : Type} [DecidableEq V] [Fintype V] [RowCodec V]
 
 /-- Height-law form of `exists_crossing_quorum_ne_justified`. -/
 theorem exists_crossing_quorum_ne_justified_of_heightLaws (E : Electorate V)
-    (H : FGHeightView V) (hH : FGHeightLaws E H) (B W : FGBlock V)
+    (H : FGHeightView V) (hH : FGHeightLaws E H) (B W : FGBlock V) (hroot : RootInjectiveOn B W)
     (hJ : (H B).h_j ≠ 0)
     (hW : (H B).h_j < (H W).h)
     (hnot : ¬ FGBlock.Preceq (H B).J W) :
@@ -22,14 +22,15 @@ theorem exists_crossing_quorum_ne_justified_of_heightLaws (E : Electorate V)
   obtain ⟨X, hXW, -, Q, hQ, hw⟩ :=
     hH.height_crossing W _ (Nat.one_le_iff_ne_zero.mpr hJ) hW
   refine ⟨X, fun hr => hnot ?_, Q, hQ, fun i hi => ?_⟩
-  · rw [← FGBlock.root_injective hr]
+  · rw [← hroot _ _ (Or.inr hXW) (Or.inl (preceq_trans (hH.justified_preceq_entry B)
+    (hH.entry_preceq B))) hr]
     exact hXW
   · obtain ⟨carrier, b, hc, hb, hbi, hm⟩ := hw i hi
     exact ⟨b, mem_chainRows_of_carrier hc hb, hbi, hm⟩
 
 /-- Height-law form of `e1Weight_of_finalityQC_not_preceq`. -/
 theorem e1Weight_of_finalityQC_not_preceq_of_heightLaws (E : Electorate V)
-    (H : FGHeightView V) (hH : FGHeightLaws E H) (B W : FGBlock V)
+    (H : FGHeightView V) (hH : FGHeightLaws E H) (B W : FGBlock V) (hroot : RootInjectiveOn B W)
     (hJ : (H B).h_j ≠ 0)
     (hW : (H B).h_j < (H W).h)
     (hnot : ¬ FGBlock.Preceq (H B).J W)
@@ -38,7 +39,7 @@ theorem e1Weight_of_finalityQC_not_preceq_of_heightLaws (E : Electorate V)
       a.finality_pair = some ⟨(H B).h_j, (H B).J.root⟩) :
     HasE1WeightBetween E A (chainRows W) := by
   obtain ⟨X, hne, Qc, hQc, hwc⟩ :=
-    exists_crossing_quorum_ne_justified_of_heightLaws E H hH B W hJ hW hnot
+    exists_crossing_quorum_ne_justified_of_heightLaws E H hH B W hroot hJ hW hnot
   refine ⟨Q ∩ Qc, quorum_intersection E hQ hQc, fun i hi => ?_⟩
   obtain ⟨hf, hc⟩ := Finset.mem_inter.mp hi
   obtain ⟨f, hfA, hfi, hfp⟩ := hfin i hf
@@ -49,7 +50,7 @@ theorem e1Weight_of_finalityQC_not_preceq_of_heightLaws (E : Electorate V)
 /-- Shared certificate form of `slashableWeight_of_finalized_crossing`. -/
 theorem slashableWeight_of_finalized_crossing_of_certificate (E : Electorate V)
     (H : FGHeightView V) (f : FGFinalityView V) (hc : FGCertificateLaws E H f)
-    (B W D : FGBlock V)
+    (B W D : FGBlock V) (hroot : RootInjectiveOn B W)
     (hJ : (H B).h_j ≠ 0)
     (hW : (H B).h_j < (H W).h)
     (hnot : ¬ FGBlock.Preceq (H B).J W)
@@ -59,7 +60,7 @@ theorem slashableWeight_of_finalized_crossing_of_certificate (E : Electorate V)
   have hnz : (f D).h_F ≠ 0 := hfinH ▸ hJ
   obtain ⟨F, -, rfl, Q, hQ, hw⟩ := finality_certificate_of_certificate E H f hc D hnz
   refine hasSlashableWeightBetween_of_hasE1WeightBetween_swap
-    (e1Weight_of_finalityQC_not_preceq_of_heightLaws E H hc.height B W hJ hW hnot
+    (e1Weight_of_finalityQC_not_preceq_of_heightLaws E H hc.height B W hroot hJ hW hnot
       (chainRows D) Q hQ fun i hi => ?_)
   obtain ⟨carrier, a, hcarrier, ha, hai, hap⟩ := hw i hi
   rw [hfinH, hfin] at hap
@@ -68,19 +69,17 @@ theorem slashableWeight_of_finalized_crossing_of_certificate (E : Electorate V)
 /-- I4 uses the finalized pair directly, without a latest-justification block. -/
 theorem slashableWeight_of_finalized_pair_crossing_of_certificate (E : Electorate V)
     (H : FGHeightView V) (f : FGFinalityView V) (hc : FGCertificateLaws E H f)
-    (D W : FGBlock V) (hnz : (f D).h_F ≠ 0)
+    (D W : FGBlock V) (hroot : RootInjectiveOn D W) (hnz : (f D).h_F ≠ 0)
     (hW : (f D).h_F < (H W).h) (hnot : ¬ FGBlock.Preceq (f D).F W) :
     HasSlashableWeightBetween E (chainRows W) (chainRows D) := by
-  obtain ⟨C, _, _, _, hb, _, _, _⟩ := hc.finality_origin D hnz
-  have hj := hb.2.2.2.1
-  have hJ := hb.2.2.2.2.1
-  exact slashableWeight_of_finalized_crossing_of_certificate E H f hc C W D
-    (hj ▸ hnz) (hj ▸ hW) (hJ ▸ hnot) hJ.symm hj.symm
+  have _ := hnz
+  exact hasSlashableWeightBetween_of_hasE1WeightBetween_swap
+    ((e1Weight_or_finalized_preceq_of_certificate E H f hc D W hroot hW).resolve_right hnot)
 
 /-- Height-law form of `exists_honest_timeout_of_crossing`. -/
 theorem exists_honest_timeout_of_crossing_of_heightLaws (E : Electorate V)
     (H : FGHeightView V) (hH : FGHeightLaws E H) (faulty : Finset V)
-    (B W : FGBlock V)
+    (B W : FGBlock V) (hroot : RootInjectiveOn B W)
     (hcap : E.weightOf faulty + E.totalWeight < 2 * E.q)
     (hJ : (H B).h_j ≠ 0)
     (hW : (H B).h_j < (H W).h)
@@ -92,7 +91,7 @@ theorem exists_honest_timeout_of_crossing_of_heightLaws (E : Electorate V)
       (∃ b ∈ chainRows W, b.signer = i ∧ b.height_pair = .vote (H B).h_j X true) := by
   obtain ⟨Qj, hQj, hwj⟩ := justification_certificate_rows_of_heightLaws E H hH B hJ
   obtain ⟨X, hne, Qc, hQc, hwc⟩ :=
-    exists_crossing_quorum_ne_justified_of_heightLaws E H hH B W hJ hW hnot
+    exists_crossing_quorum_ne_justified_of_heightLaws E H hH B W hroot hJ hW hnot
   obtain ⟨i, hi, hif⟩ := honest_in_intersection E faulty hQj hQc hcap
   obtain ⟨hij, hic⟩ := Finset.mem_inter.mp hi
   obtain ⟨a, haB, hai, hap⟩ := hwj i hij
@@ -117,16 +116,16 @@ theorem exists_honest_timeout_of_crossing_of_heightLaws (E : Electorate V)
 theorem crossing_maturity_of_heightBridge
     (E : Electorate V) (cfg : FGConfig)
     (H : FGHeightView V) (hb : HeightBridge E cfg H)
-    (P : FGBlock V) (s : Slot) (x : Nat) (rs : List (Row V))
-    (hup : (H P).h < (H (.node P s x rs)).h) :
+    (P : FGBlock V) (s : Slot) (r_s : BlockId) (x : Nat) (rs : List (Row V))
+    (hup : (H P).h < (H (.node P s r_s x rs)).h) :
     (∃ Q : Finset V, E.IsQuorum Q ∧
-      ∀ i ∈ Q, ∃ a ∈ chainRows (.node P s x rs),
+      ∀ i ∈ Q, ∃ a ∈ chainRows (.node P s r_s x rs),
         a.signer = i ∧
         a.height_pair = .vote (H P).h (H P).T_h.root false) ∨
       (H P).T_h.slot + cfg.timeoutDelay ≤ s := by
-  rw [hb P, hb (.node P s x rs)] at hup
+  rw [hb P, hb (.node P s r_s x rs)] at hup
   rw [hb P]
-  exact crossing_maturity E cfg P s x rs hup
+  exact crossing_maturity E cfg P s r_s x rs hup
 
 end AvailableChain.KitFG
 end

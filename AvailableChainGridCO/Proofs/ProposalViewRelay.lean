@@ -299,7 +299,8 @@ theorem honest_proposal_tree_reflects {V : Type} [DecidableEq V] [Fintype V]
       have hp : Block.Preceq C B.parent := by
         cases B with
         | genesis => simp [Block.preceq] at hCD; contradiction
-        | node parent slot root => simpa [Block.Preceq, Block.preceq, heq, Block.parent] using hCD
+        | node parent slot r_slot root => simpa [Block.Preceq, Block.preceq, heq, Block.parent]
+          using hCD
       by_cases hg : C = .genesis
       · subst C
         have he := congrArg Prod.fst (proposalState_receiptData p rho (r + 1))

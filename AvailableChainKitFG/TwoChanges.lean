@@ -761,12 +761,13 @@ example : FGBlock.genesis ∈ (fjFrame E4 cfg1 .genesis {.genesis, B1, B2, B3}).
 pair `(2, B1)`. It finalizes `B1` at height 2 and stays at state height 3. In
 the view `{genesis, B1, B2, K3}` (`m = 3`), the move F = genesis → F′ = B1 is
 case (ii) of item 3. `K3` has body 0, as every block of the G02 chain. The
-hypothesis `ViewRootInj` holds on every view (`viewRootInj_all`). -/
+hypothesis `ViewRootInj` holds on this finite view (`K3_roots`). -/
 
 /-- [helper] A row with no height pair and the finality pair `(2, B1)`. -/
 def rowK3 (i : Fin 4) : Row (Fin 4) := ⟨i, .empty, some ⟨2, B1.root⟩⟩
 
-def K3 : FGBlock (Fin 4) := .node B2 3 0 [rowK3 0, rowK3 1, rowK3 2]
+def K3 : FGBlock (Fin 4) := .node B2 3 ⟨16⟩ 0 [rowK3 0, rowK3 1, rowK3
+  2]
 
 /-- The decidable hypotheses of `Fmove_atTop` hold with `K = K3`, `F = genesis`,
 `F′ = B1`, `m = 3`. -/
@@ -793,11 +794,23 @@ example : phaseOf E4 cfg1 .genesis {.genesis, B1, B2, K3} = .uncontested ∧
       (fjFrame E4 cfg1 .genesis {.genesis, B1, B2, K3}).D := by
   decide +kernel
 
-/-- `Fmove_atTop` applies to `K3`: `viewRootInj_all` gives its root hypothesis,
+/-- [ROOT-DIGEST W1; DC RootInjectiveOnAncestors] The finite K3 scope has distinct roots. -/
+private theorem K3_roots : ViewRootInj ({.genesis, B1, B2, K3} : View (Fin 4)) := by
+  intro A B hA hB hr
+  simp only [Finset.mem_insert, Finset.mem_singleton, exists_eq_or_imp,
+    exists_eq_left, FGBlock.Preceq, FGBlock.preceq, B1, B2, K3, Bool.or_eq_true,
+    decide_eq_true_eq, or_assoc] at hA hB
+  rcases hA with (rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl) <;>
+    rcases hB with (rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl) <;>
+    first | rfl | simp only [FGBlock.root, genesisRoot, BlockId.mk.injEq,
+      Nat.reduceEqDiff] at hr
+
+/-- [ROOT-DIGEST W1; DC NamedBlocks and RootInjectiveOnAncestors]
+`Fmove_atTop` applies to `K3`: `K3_roots` gives its root hypothesis,
 and each other hypothesis is decided. -/
 example : (fjFrame E4 cfg1 B1 {.genesis, B1, B2, K3}).D =
     (fjFrame E4 cfg1 .genesis {.genesis, B1, B2, K3}).D :=
-  (Fmove_atTop E4 cfg1 (m := 3) (F := .genesis) (F' := B1) (by decide) (viewRootInj_all _)
+  (Fmove_atTop E4 cfg1 (m := 3) (F := .genesis) (F' := B1) (by decide) K3_roots
     (by decide +kernel) (by decide) K3 (by decide) (by decide +kernel) (by decide +kernel)
     (by decide +kernel) (by decide +kernel)).2.2.2.2.2.2
 

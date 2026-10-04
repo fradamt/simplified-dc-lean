@@ -31,7 +31,6 @@ theorem pickPair_some_spec {α : Type} [DecidableEq α] (T : Finset α) (q : α 
 
 /-- [M3] Under root injectivity the parent lookup is exact. -/
 theorem parentFG_spec {n : Nat} (st : State n)
-    (hinj : ∀ X ∈ st.fg.TF, ∀ Y ∈ st.fg.TF, X.root = Y.root → X = Y)
     (b : Block) (P : FGBlock (Fin n)) :
     parentFG st b = some P ↔ P ∈ st.fg.TF ∧ eraseFG P = b.parent := by
   constructor
@@ -41,22 +40,22 @@ theorem parentFG_spec {n : Nat} (st : State n)
   · rintro ⟨hP, he⟩
     unfold parentFG
     apply KitFG.pickPair_eq_of_unique _ _ P hP (by simpa using he)
-    intro P' hP' he'
+    intro P' _ he'
     simp only [decide_eq_true_eq] at he'
-    apply hinj P' hP' P hP
-    rw [← eraseFG_root P', ← eraseFG_root P, he, he']
+    exact eraseFG_injective (he'.trans he.symm)
 
 /-- [store lookup; Review Focus 1] Under the store correspondence, the FG parent
 lookup succeeds exactly when a stored base block has the parent's root. The
 test reads the store only; no wire carries a root to check. -/
-theorem parentFG_isSome_iff_root (p : Params) (st : State p.n) (h : CStoreInv p st) (b : Block) :
+theorem parentFG_isSome_iff_root (p : Params) (st : State p.n) (h : CStoreInv p st) (b : Block)
+    (hr : ∀ q ∈ st.base.blocks, q.root = b.parent.root → q = b.parent) :
     (parentFG st b).isSome = true ↔ ∃ q ∈ st.base.blocks, q.root = b.parent.root := by
-  rw [← parent_mem_iff_root, h.baseTree, Option.isSome_iff_exists]
+  rw [← parent_mem_iff_root b st.base.blocks hr, h.baseTree, Option.isSome_iff_exists]
   constructor
   · rintro ⟨P, hP⟩
-    exact ⟨P, (parentFG_spec st h.rootInj b P).1 hP⟩
+    exact ⟨P, (parentFG_spec st b P).1 hP⟩
   · rintro ⟨P, hP⟩
-    exact ⟨P, (parentFG_spec st h.rootInj b P).2 hP⟩
+    exact ⟨P, (parentFG_spec st b P).2 hP⟩
 
 /-- [missing dependency] A proposal whose parent is not stored returns the state
 before any write: no base block, no FG block, no wire, no carried vote or row. -/
@@ -73,12 +72,12 @@ theorem eraseFG_fgBlock {n : Nat} {P : FGBlock (Fin n)} {b : Block} (hb : b ≠ 
     eraseFG (fgBlock P b rows) = b := by
   cases b with
   | genesis => exact absurd rfl hb
-  | node q s x =>
+  | node q s r_s x =>
       rw [rowsOk_iff] at hrows
       simp only [Block.body] at hrows
       simp only [fgBlock, eraseFG, Block.slot, Block.body]
       rw [hP]
-      change Block.node q s (packBody (appOf x) rows) = _
+      change Block.node q s r_s (packBody (appOf x) rows) = _
       rw [← hrows]
 /-- [helper] -/
 theorem fgBlock_parent {n : Nat} (P : FGBlock (Fin n)) (b : Block) (rows : List (RowWire n)) :
@@ -86,21 +85,19 @@ theorem fgBlock_parent {n : Nat} (P : FGBlock (Fin n)) (b : Block) (rows : List 
 /-- [helper] -/
 theorem fgBlock_slot {n : Nat} (P : FGBlock (Fin n)) (b : Block) (rows : List (RowWire n)) :
     (fgBlock P b rows).slot = b.slot := rfl
-/-- [helper; D9] The FG root is the wire root, by the erasure law. -/
-theorem fgBlock_root {n : Nat} (P : FGBlock (Fin n)) (b : Block) (rows : List (RowWire n))
-    (hb : b ≠ .genesis) (hP : eraseFG P = b.parent) (hrows : rowsOk b rows = true) :
-    (fgBlock P b rows).root = b.root := by
-  rw [← eraseFG_root, eraseFG_fgBlock hb hP rows hrows]
+/-- [ROOT-DIGEST W1; DC NamedBlocks] The FG view copies the supplied root. -/
+theorem fgBlock_root {n : Nat} (P : FGBlock (Fin n)) (b : Block) (rows : List (RowWire n)) :
+    (fgBlock P b rows).root = b.root := rfl
 /-- [helper] -/
 theorem fgBlock_rows {n : Nat} (P : FGBlock (Fin n)) (b : Block) (rows : List (RowWire n)) :
     (fgBlock P b rows).rows = rows.filterMap RowWire.toRow? := rfl
 /-- [helper; DQ2] A block with a fresh root is not in Σ.T. The three premises
 make its FG root the wire root (`fgBlock_root`). -/
 theorem fgBlock_notMem {n : Nat} (st : State n) (P : FGBlock (Fin n)) (b : Block)
-    (rows : List (RowWire n)) (hb : b ≠ .genesis) (hP : eraseFG P = b.parent)
-    (hrows : rowsOk b rows = true) (hfresh : ¬ ∃ Y ∈ st.fg.TF, Y.root = b.root) :
+    (rows : List (RowWire n)) (_hb : b ≠ .genesis) (_hP : eraseFG P = b.parent)
+    (_hrows : rowsOk b rows = true) (hfresh : ¬ ∃ Y ∈ st.fg.TF, Y.root = b.root) :
     fgBlock P b rows ∉ st.fg.TF :=
-  fun hm => hfresh ⟨_, hm, fgBlock_root P b rows hb hP hrows⟩
+  fun hm => hfresh ⟨_, hm, fgBlock_root P b rows⟩
 
 /-- [audit M2; DQ12] A row list whose rows all decode loses no occurrence: the
 FG rows are the decoded rows, position by position. -/
@@ -124,7 +121,7 @@ the state tests: slot not in the future, fresh root, `F ⪯ B`. -/
 theorem blockAccepted_of_wellFormed (p : Params) (st : State p.n) (s : Slot) (b : Block)
     (raw support : List (HeadWire p.n)) (rows : List (RowWire p.n)) (P : FGBlock (Fin p.n))
     (hwf : wellFormed p ⟨.proposer s, .proposal b raw support rows⟩ = true) :
-    blockAccepted p st s b P rows =
+    blockAccepted p st s b raw support P rows =
       (decide (b.slot ≤ st.slot p) && !decide (∃ Y ∈ st.fg.TF, Y.root = b.root) &&
         FGBlock.preceq st.fg.F (fgBlock P b rows) && rowsValidForParent p P b.slot rows) := by
   simp only [wellFormed, Wire.decode, Bool.and_eq_true] at hwf
@@ -132,9 +129,10 @@ theorem blockAccepted_of_wellFormed (p : Params) (st : State p.n) (s : Slot) (b 
   simp only [blockAccepted, hg, hs, hps, hok, Bool.true_and, Bool.and_true]
 
 /-- [R6] Acceptance checks all rows against the parent's pre-fold state. -/
-theorem blockAccepted_rowsValid {p : Params} {st : State p.n} {s : Slot} {b : Block}
+theorem blockAccepted_rowsValid {p : Params} {raw support : List (HeadWire p.n)} {st : State p.n}
+  {s : Slot} {b : Block}
     {P : FGBlock (Fin p.n)} {rows : List (RowWire p.n)}
-    (hacc : blockAccepted p st s b P rows = true) :
+    (hacc : blockAccepted p st s b raw support P rows = true) :
     rowsValidForParent p P b.slot rows = true := by
   simp only [blockAccepted, Bool.and_eq_true] at hacc
   exact hacc.1.2
@@ -163,9 +161,10 @@ theorem rootTest_iff_blockTest (p : Params) (st : State p.n) (h : Inv0 p st) (b 
     exact ⟨B, hB, (eraseFG_root B).symm⟩
 
 /-- [helper] The acceptance test, unpacked. -/
-theorem blockAccepted_facts {p : Params} {st : State p.n} {s : Slot} {b : Block}
+theorem blockAccepted_facts {p : Params} {raw support : List (HeadWire p.n)} {st : State p.n} {s :
+  Slot} {b : Block}
     {P : FGBlock (Fin p.n)} {rows : List (RowWire p.n)}
-    (hacc : blockAccepted p st s b P rows = true) :
+    (hacc : blockAccepted p st s b raw support P rows = true) :
     b ≠ .genesis ∧ b.slot ≤ st.slot p ∧ (¬ ∃ Y ∈ st.fg.TF, Y.root = b.root) ∧
       FGBlock.Preceq st.fg.F (fgBlock P b rows) ∧ b.parent.slot < b.slot ∧ s = b.slot := by
   simp only [blockAccepted, Bool.and_eq_true, bne_iff_ne, ne_eq, decide_eq_true_eq,
@@ -174,9 +173,10 @@ theorem blockAccepted_facts {p : Params} {st : State p.n} {s : Slot} {b : Block}
   exact ⟨hg, hsl, hfr, hF, hps, hs⟩
 
 /-- P3 §8.5: an accepted block has a positive slot and needs time at least 4Δ. -/
-theorem blockAccepted_slot_pos {p : Params} {st : State p.n} {s : Slot} {b : Block}
+theorem blockAccepted_slot_pos {p : Params} {raw support : List (HeadWire p.n)} {st : State p.n}
+  {s : Slot} {b : Block}
     {P : FGBlock (Fin p.n)} {rows : List (RowWire p.n)}
-    (hacc : blockAccepted p st s b P rows = true) :
+    (hacc : blockAccepted p st s b raw support P rows = true) :
     0 < b.slot ∧ 4 * p.Δ ≤ st.base.now := by
   obtain ⟨-, hslot, -, -, hparent, -⟩ := blockAccepted_facts hacc
   have hpos : 0 < b.slot := Nat.zero_lt_of_lt hparent
@@ -193,20 +193,29 @@ theorem blockAccepted_slot_pos {p : Params} {st : State p.n} {s : Slot} {b : Blo
     have hd : 0 ≤ 4 * p.Δ := le_of_lt (by linarith [p.deltaPos])
     exact le_trans (by simpa using mul_le_mul_of_nonneg_right hb hd) htime
 
+/-- [ROOT-DIGEST W1; DC NamedBlocks] Admission checks the full supplied content. -/
+theorem blockAccepted_contentOk {p : Params} {st : State p.n} {s : Slot} {b : Block}
+    {raw support : List (HeadWire p.n)} {P : FGBlock (Fin p.n)}
+    {rows : List (RowWire p.n)}
+    (hacc : blockAccepted p st s b raw support P rows = true) :
+    contentOk p b raw support rows = true := (Bool.and_eq_true_iff.mp hacc).2
+
 /-- [helper; D9] An accepted block packs its rows. -/
-theorem blockAccepted_rowsOk {p : Params} {st : State p.n} {s : Slot} {b : Block}
+theorem blockAccepted_rowsOk {p : Params} {raw support : List (HeadWire p.n)} {st : State p.n} {s
+  : Slot} {b : Block}
     {P : FGBlock (Fin p.n)} {rows : List (RowWire p.n)}
-    (hacc : blockAccepted p st s b P rows = true) : rowsOk b rows = true := by
-  simp only [blockAccepted, Bool.and_eq_true] at hacc
-  exact hacc.2
+    (hacc : blockAccepted p st s b raw support P rows = true) : rowsOk b rows = true := by
+  simp only [blockAccepted, contentOk, Bool.and_eq_true] at hacc
+  exact hacc.2.1
 
 /-- [helper] Under `Inv0`, an accepted block is not in the base list, and its
 parent is. -/
-theorem accepted_base_facts (p : Params) (st : State p.n) (h : Inv0 p st) {s : Slot} {b : Block}
+theorem accepted_base_facts (p : Params) {raw support : List (HeadWire p.n)} (st : State p.n) (h :
+  Inv0 p st) {s : Slot} {b : Block}
     {P : FGBlock (Fin p.n)} {rows : List (RowWire p.n)}
-    (hP : parentFG st b = some P) (hacc : blockAccepted p st s b P rows = true) :
+    (hP : parentFG st b = some P) (hacc : blockAccepted p st s b raw support P rows = true) :
     P ∈ st.fg.TF ∧ eraseFG P = b.parent ∧ b.parent ∈ st.base.blocks ∧ b ∉ st.base.blocks := by
-  obtain ⟨hPT, hPe⟩ := (parentFG_spec st h.2.1 b P).1 hP
+  obtain ⟨hPT, hPe⟩ := (parentFG_spec st b P).1 hP
   obtain ⟨-, -, hfr, -⟩ := blockAccepted_facts hacc
   refine ⟨hPT, hPe, (h.2.2 _).2 ⟨P, hPT, hPe⟩, ?_⟩
   intro hb
@@ -214,9 +223,10 @@ theorem accepted_base_facts (p : Params) (st : State p.n) (h : Inv0 p st) {s : S
   exact hfr ⟨B, hB, by rw [← eraseFG_root, hBe]⟩
 
 /-- [bp bp.frame.v1] The FG module accepts every block that the composite accepts. -/
-theorem fg_on_block_accepts (p : Params) (st : State p.n) (s : Slot)
+theorem fg_on_block_accepts (p : Params) {raw support : List (HeadWire p.n)} (st : State p.n) (s :
+  Slot)
     (b : Block) (P : FGBlock (Fin p.n)) (rows : List (RowWire p.n))
-    (hP : parentFG st b = some P) (hacc : blockAccepted p st s b P rows = true) :
+    (hP : parentFG st b = some P) (hacc : blockAccepted p st s b raw support P rows = true) :
     Window.on_block p p.K_W st.fg (fgBlock P b rows) =
       Window.update_finality p p.K_W { st.fg with TF := insert (fgBlock P b rows) st.fg.TF }
         (fgBlock P b rows) := by
@@ -308,7 +318,7 @@ leases, saved results and S do not change. -/
 theorem base_admitProposal_accepts (p : Params) (st : State p.n) (h : Inv0 p st) (s : Slot)
     (b : Block) (raw support : List (HeadWire p.n)) (P : FGBlock (Fin p.n))
     (rows : List (RowWire p.n))
-    (hP : parentFG st b = some P) (hacc : blockAccepted p st s b P rows = true) :
+    (hP : parentFG st b = some P) (hacc : blockAccepted p st s b raw support P rows = true) :
     let base' := GridCO.admitProposal p.toParams.engine st.base (baseProposal s b raw support) b
       (raw.map baseHead)
     base'.blocks = st.base.blocks ++ [b] ∧
@@ -354,7 +364,7 @@ reconcile when F moves, and the row fold that changes only the row pool. -/
 theorem admitBlock_accepted_eq (p : Params) (st : State p.n) (s : Slot)
     (b : Block) (raw support : List (HeadWire p.n)) (P : FGBlock (Fin p.n))
     (rows : List (RowWire p.n))
-    (hP : parentFG st b = some P) (hacc : blockAccepted p st s b P rows = true) :
+    (hP : parentFG st b = some P) (hacc : blockAccepted p st s b raw support P rows = true) :
     let st1 : State p.n := { st with
       base := GridCO.admitProposal p.toParams.engine st.base (baseProposal s b raw support) b
         (raw.map baseHead)
@@ -371,9 +381,10 @@ theorem admitBlock_accepted_eq (p : Params) (st : State p.n) (s : Slot)
 
 /-- [helper] An accepted block extends F: `F ⪯ P` for its stored parent, so the
 parent and the block are active. -/
-theorem accepted_F_facts (p : Params) (st : State p.n) (h : Inv0 p st) {s : Slot} {b : Block}
+theorem accepted_F_facts (p : Params) {raw support : List (HeadWire p.n)} (st : State p.n) (h :
+  Inv0 p st) {s : Slot} {b : Block}
     {P : FGBlock (Fin p.n)} {rows : List (RowWire p.n)}
-    (hP : parentFG st b = some P) (hacc : blockAccepted p st s b P rows = true) :
+    (hP : parentFG st b = some P) (hacc : blockAccepted p st s b raw support P rows = true) :
     FGBlock.Preceq st.fg.F P ∧ Block.Preceq (eraseFG st.fg.F) b.parent ∧
       Block.Preceq (eraseFG st.fg.F) b := by
   obtain ⟨hg, -, hfr, hF, -, -⟩ := blockAccepted_facts hacc
@@ -402,7 +413,7 @@ lists. -/
 theorem admitProposal_base_view (p : Params) (st : State p.n) (h : Inv0 p st) (s : Slot)
     (b : Block) (raw support : List (HeadWire p.n)) (P : FGBlock (Fin p.n))
     (rows : List (RowWire p.n))
-    (hP : parentFG st b = some P) (hacc : blockAccepted p st s b P rows = true) :
+    (hP : parentFG st b = some P) (hacc : blockAccepted p st s b raw support P rows = true) :
     let W := (raw.map baseHead).foldl
       (fun acc row => GridCO.admitVote p.toParams.engine acc (GridCO.fromHead row))
       { st.base with
@@ -438,7 +449,7 @@ admission on the active view (the carried rows change only the row pool). -/
 theorem actView_admitBlock_sameF (p : Params) (st : State p.n) (h : CStoreInv p st) (s : Slot)
     (b : Block) (raw support : List (HeadWire p.n)) (rows : List (RowWire p.n))
     (P : FGBlock (Fin p.n))
-    (hP : parentFG st b = some P) (hacc : blockAccepted p st s b P rows = true)
+    (hP : parentFG st b = some P) (hacc : blockAccepted p st s b raw support P rows = true)
     (hF : (admitBlock p st s b raw support rows).fg.F = st.fg.F) :
     actView (admitBlock p st s b raw support rows) =
       GridCO.admitProposal p.toParams.engine (actView st) (baseProposal s b raw support) b
@@ -480,7 +491,7 @@ old view, with its blocks filtered by `F'` and reconcile's three writes
 theorem actView_admitBlock_movedF (p : Params) (st : State p.n) (h : CStoreInv p st) (s : Slot)
     (b : Block) (raw support : List (HeadWire p.n)) (rows : List (RowWire p.n))
     (P : FGBlock (Fin p.n))
-    (hP : parentFG st b = some P) (hacc : blockAccepted p st s b P rows = true)
+    (hP : parentFG st b = some P) (hacc : blockAccepted p st s b raw support P rows = true)
     (hF : (admitBlock p st s b raw support rows).fg.F ≠ st.fg.F) :
     let A := GridCO.admitProposal p.toParams.engine (actView st) (baseProposal s b raw support) b
       (raw.map baseHead)
@@ -547,7 +558,7 @@ theorem admitBlock_sufficient (p : Params) (st : State p.n) (h : CStoreInv p st)
     intro hb
     simp [wellFormed, Wire.decode, hb] at hwf
   obtain ⟨P, hPT, hPe⟩ := (h.baseTree _).1 hpar
-  have hP : parentFG st b = some P := (parentFG_spec st h.rootInj b P).2 ⟨hPT, hPe⟩
+  have hP : parentFG st b = some P := (parentFG_spec st b P).2 ⟨hPT, hPe⟩
   have hfr : ¬ ∃ Y ∈ st.fg.TF, Y.root = b.root := by
     rintro ⟨Y, hY, hr⟩
     exact hfresh _ ((h.baseTree _).2 ⟨Y, hY, rfl⟩) (by rw [eraseFG_root, hr])
@@ -560,7 +571,7 @@ theorem admitBlock_sufficient (p : Params) (st : State p.n) (h : CStoreInv p st)
     rw [hPe]
     cases b with
     | genesis => exact absurd rfl hg
-    | node q sl r =>
+    | node q sl r_sl r =>
         simp only [Block.Preceq, Block.preceq, Bool.or_eq_true, decide_eq_true_eq] at hF
         rcases hF with hF | hF
         · exact absurd hF hFne
@@ -571,8 +582,8 @@ theorem admitBlock_sufficient (p : Params) (st : State p.n) (h : CStoreInv p st)
     preceq_of_eraseFG_preceq hinj ⟨_, h.fg.Fmem, KitFG.preceq_refl _⟩
       ⟨_, hPT, KitFG.preceq_refl _⟩ hFpar
   have hFB : FGBlock.Preceq st.fg.F (fgBlock P b rows) :=
-    KitFG.preceq_node_of_preceq _ _ _ hFP
-  have hacc : blockAccepted p st s b P rows = true := by
+    KitFG.preceq_node_of_preceq _ _ _ _ hFP
+  have hacc : blockAccepted p st s b raw support P rows = true := by
     rw [blockAccepted_of_wellFormed p st s b raw support rows P hwf]
     simp only [Bool.and_eq_true, decide_eq_true_eq, Bool.not_eq_true', decide_eq_false_iff_not]
     exact ⟨⟨⟨hslot, hfr⟩, hFB⟩, hvalid P hP⟩

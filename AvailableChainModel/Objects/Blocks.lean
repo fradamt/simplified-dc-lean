@@ -13,48 +13,47 @@ def nodeRoot (pr : BlockId) (s : Slot) (x : Nat) : BlockId :=
   ⟨epair pr.value (epair s x) + 1⟩
 
 /-- A structural chain block. Protocol wire objects belong to an instance.
-A block has no proposer identity: the proposer of slot `s` signs with the
+ROOT-DIGEST W1; DC NamedBlocks. The proposer of slot `s` signs with the
 slot-scoped `Auth.proposer s` (see `Objects/Seats.lean`). A node carries a
-body, not a root: `Block.root` computes the root from the content. -/
+body and an explicit root. The run contract limits root collisions. -/
 inductive Block where
   | genesis
-  | node (parent : Block) (slot : Slot) (body : Nat)
+  | node (parent : Block) (slot : Slot) (root : BlockId) (body : Nat)
 deriving DecidableEq, Repr
 
 namespace Block
 def slot : Block → Slot
   | .genesis => 0
-  | .node _ s _ => s
+  | .node _ s _ _ => s
 
-/-- The root is a function of the content: the parent's root, the slot and
-the body. The block does not store it. -/
+/-- [ROOT-DIGEST W1; DC NamedBlocks] Read the stored root. -/
 def root : Block → BlockId
   | .genesis => genesisRoot
-  | .node p s x => nodeRoot p.root s x
+  | .node _ _ r _ => r
 
 /-- The body of a node block (`0` for genesis). -/
 def body : Block → Nat
   | .genesis => 0
-  | .node _ _ x => x
+  | .node _ _ _ x => x
 
 def parent? : Block → Option (Block)
   | .genesis => none
-  | .node p _ _ => some p
+  | .node p _ _ _ => some p
 
 def parent : Block → Block
   | .genesis => .genesis
-  | .node p _ _ => p
+  | .node p _ _ _ => p
 
 def depth : Block → Nat
   | .genesis => 0
-  | .node p _ _ => p.depth + 1
+  | .node p _ _ _ => p.depth + 1
 
 section Ancestry
 
 /-- `B ⪯ C`, by walking from `C` to genesis. -/
 def preceq (B : Block) : Block → Bool
   | .genesis => decide (B = Block.genesis)
-  | C@(.node p _ _) => decide (B = C) || preceq B p
+  | C@(.node p _ _ _) => decide (B = C) || preceq B p
 
 def prec (B C : Block) : Bool :=
   !decide (B = C) && preceq B C
@@ -76,29 +75,10 @@ def Compatible (B C : Block) : Prop := compatible B C = true
 
 end Ancestry
 
-/-- A node root is not the genesis root, for every slot (slot `0` included). -/
-theorem root_ne_genesis_of_node (p : Block) (s : Slot) (x : Nat) :
-    (Block.node p s x).root ≠ genesisRoot := by
-  simp [root, nodeRoot, genesisRoot]
-
-/-- Distinct blocks have distinct roots. -/
-theorem root_injective : Function.Injective Block.root := by
-  intro B
-  induction B with
-  | genesis =>
-    intro C h
-    cases C with
-    | genesis => rfl
-    | node q t y => exact absurd h.symm (root_ne_genesis_of_node q t y)
-  | node p s x ih =>
-    intro C h
-    cases C with
-    | genesis => exact absurd h (root_ne_genesis_of_node p s x)
-    | node q t y =>
-      simp only [root, nodeRoot, BlockId.mk.injEq, Nat.add_right_cancel_iff] at h
-      obtain ⟨hpq, hst⟩ := epair_inj h
-      obtain ⟨rfl, rfl⟩ := epair_inj hst
-      rw [ih (BlockId.ext hpq)]
+/-- [ROOT-DIGEST W1; DC NamedRootCollisionFree] Scoped node/genesis separation. -/
+theorem root_ne_genesis_of_node (p : Block) (s : Slot) (r : BlockId) (x : Nat)
+    (hr : (Block.node p s r x).root = genesisRoot → Block.node p s r x = .genesis) :
+    (Block.node p s r x).root ≠ genesisRoot := fun h => Block.noConfusion (hr h)
 
 end Block
 
@@ -114,23 +94,25 @@ That refinement is open. -/
 /-- The parent is in the store exactly when a stored block has its root. This
 holds in the resolved-block model only; see the section note for what a
 root-only wire needs. -/
-theorem parent_mem_iff_root (b : Block) (blocks : List Block) :
+theorem parent_mem_iff_root (b : Block) (blocks : List Block)
+    (hr : ∀ p ∈ blocks, p.root = b.parent.root → p = b.parent) :
     b.parent ∈ blocks ↔ ∃ p ∈ blocks, p.root = b.parent.root := by
   constructor
   · intro h
     exact ⟨b.parent, h, rfl⟩
   · rintro ⟨p, hp, hroot⟩
-    rwa [← Block.root_injective hroot]
+    rwa [← hr p hp hroot]
 
 /-- A test `q` on the stored parent is the same test on the stored block that
 the root lookup finds. Pass `q` explicitly. -/
-theorem parent_mem_and_iff_root (b : Block) (blocks : List Block) (q : Block → Prop) :
+theorem parent_mem_and_iff_root (b : Block) (blocks : List Block) (q : Block → Prop)
+    (hr : ∀ p ∈ blocks, p.root = b.parent.root → p = b.parent) :
     (b.parent ∈ blocks ∧ q b.parent) ↔ ∃ p ∈ blocks, p.root = b.parent.root ∧ q p := by
   constructor
   · rintro ⟨h, hq⟩
     exact ⟨b.parent, h, rfl, hq⟩
   · rintro ⟨p, hp, hroot, hq⟩
-    rw [← Block.root_injective hroot]
+    rw [← hr p hp hroot]
     exact ⟨hp, hq⟩
 
 private theorem Block.Compatible_eq_1_export : type_of% (@Block.Compatible.eq_1) :=

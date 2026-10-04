@@ -11,7 +11,7 @@ theorem pathKnown_eq_of_blocks_eq {n : Nat} (a b : State n)
     pathKnown a target = pathKnown b target := by
   induction target with
   | genesis => simp only [pathKnown, GridCO.blockKnown, h]
-  | node parent s root ih => simp only [pathKnown, GridCO.blockKnown, h, ih]
+  | node parent s r_s root ih => simp only [pathKnown, GridCO.blockKnown, h, ih]
 
 theorem pcValid_eq_of_data (p : Params) {n : Nat} (a b : State n)
     (hb : a.base.blocks = b.base.blocks) (hh : a.receivedHeads = b.receivedHeads) (c : PC n) :
@@ -23,7 +23,7 @@ theorem pathKnown_mono {n : Nat} (before after : State n)
     (h : pathKnown before b = true) : pathKnown after b = true := by
   induction b with
   | genesis => exact decide_eq_true (hsub (of_decide_eq_true h))
-  | node parent slot root ih =>
+  | node parent slot r_slot root ih =>
       simp only [pathKnown, Bool.and_eq_true] at h ⊢
       exact ⟨decide_eq_true (hsub (of_decide_eq_true h.1)), ih h.2⟩
 

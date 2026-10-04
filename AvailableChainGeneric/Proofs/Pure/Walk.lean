@@ -207,7 +207,7 @@ theorem walk_aux_child_depth (A C : Block) (h : C.parent? = some A) :
     C.depth = A.depth + 1 := by
   cases C with
   | genesis => change none = some A at h; contradiction
-  | node P s id =>
+  | node P s r_s id =>
       change some P = some A at h
       cases Option.some.inj h
       rfl
@@ -217,7 +217,7 @@ theorem walk_aux_parent_prefix (A C : Block) (h : C.parent? = some A) :
     Block.Preceq A C := by
   cases C with
   | genesis => change none = some A at h; contradiction
-  | node P s id =>
+  | node P s r_s id =>
       change some P = some A at h
       cases Option.some.inj h
       exact Bool.or_eq_true_iff.mpr (Or.inr (block_preceq_refl _))
@@ -281,11 +281,11 @@ theorem walk_aux_siblings_incompatible (B C : Block) (hp : B.parent? = C.parent?
     | genesis =>
         cases C with
         | genesis => rfl
-        | node P s id => change none = some P at hp; contradiction
-    | node P s id =>
+        | node P s r_s id => change none = some P at hp; contradiction
+    | node P s r_s id =>
         cases C with
         | genesis => change some P = none at hp; contradiction
-        | node Q t jd =>
+        | node Q t r_t jd =>
             change some P = some Q at hp
             cases Option.some.inj hp
             rfl
@@ -314,16 +314,16 @@ theorem walk_aux_suffix_depth_le_card (anchor target : Block) (S : Finset Block)
       subst anchor
       change 0 ≤ 0 + S.card
       omega
-  | node P s id ih =>
-      by_cases he : anchor = .node P s id
+  | node P s r_s id ih =>
+      by_cases he : anchor = .node P s r_s id
       · subst anchor
         omega
       · have hp : Block.Preceq anchor P := by
-          change (decide (anchor = Block.node P s id) || Block.preceq anchor P) = true at ha
+          change (decide (anchor = Block.node P s r_s id) || Block.preceq anchor P) = true at ha
           exact (Bool.or_eq_true_iff.mp ha).resolve_left (by simpa using he)
-        have hm := hpath (.node P s id) ((walk_aux_prec_iff _ _).mpr ⟨he, ha⟩)
+        have hm := hpath (.node P s r_s id) ((walk_aux_prec_iff _ _).mpr ⟨he, ha⟩)
           (block_preceq_refl _)
-        have hd := ih (S.erase (.node P s id)) hp (by
+        have hd := ih (S.erase (.node P s r_s id)) hp (by
           intro C hAC hCP
           apply Finset.mem_erase.mpr
           refine ⟨?_, hpath C hAC (Bool.or_eq_true_iff.mpr (Or.inr hCP))⟩
@@ -816,22 +816,22 @@ theorem walk_aux_source_suffix_selected (anchor target : Block) (tree : List Blo
   obtain ⟨hne, hAC'⟩ := (walk_aux_prec_iff _ _).mp hAC
   cases C with
   | genesis => exact (hne (of_decide_eq_true hAC')).elim
-  | node X s id =>
+  | node X s r_s id =>
       have hAX : Block.Preceq anchor X := by
-        change (decide (anchor = Block.node X s id) || Block.preceq anchor X) = true at hAC'
+        change (decide (anchor = Block.node X s r_s id) || Block.preceq anchor X) = true at hAC'
         exact (Bool.or_eq_true_iff.mp hAC').resolve_left (by simpa using hne)
       have hXT : Block.Prec X target := by
         apply (walk_aux_prec_iff _ _).mpr
-        refine ⟨?_, block_preceq_trans (walk_aux_parent_prefix X (.node X s id) rfl) hCT⟩
+        refine ⟨?_, block_preceq_trans (walk_aux_parent_prefix X (.node X s r_s id) rfl) hCT⟩
         intro he
-        have hd := prefix_depth (.node X s id) target hCT
+        have hd := prefix_depth (.node X s r_s id) target hCT
         rw [← he] at hd
         change X.depth + 1 ≤ X.depth at hd
         omega
       obtain ⟨D, hs, hDT⟩ := walk_aux_ghost_step_towards_prefix tree score eligible anchor target X
         hcover hAX hXT
       have hd := walk_aux_ghostStep_child _ _ _ _ _ hs
-      have he := walk_aux_same_child_of_common D (.node X s id) target hd.2.1 hDT hCT
+      have he := walk_aux_same_child_of_common D (.node X s r_s id) target hd.2.1 hDT hCT
       subst D
       exact ⟨X, rfl, hAX, hXT,
         (walk_aux_ghostStep_eraseDups tree score eligible X).symm.trans hs⟩
@@ -1016,20 +1016,20 @@ theorem walk_reanchor_of_best_ancestry (anchor target : Block) (tree : List Bloc
     obtain ⟨hne, hAC'⟩ := (walk_aux_prec_iff _ _).mp hAC
     cases C with
     | genesis => exact (hne (of_decide_eq_true hAC')).elim
-    | node X s id =>
+    | node X s r_s id =>
         have hAX : Block.Preceq anchor X := by
-          change (decide (anchor = Block.node X s id) || Block.preceq anchor X) = true at hAC'
+          change (decide (anchor = Block.node X s r_s id) || Block.preceq anchor X) = true at hAC'
           exact (Bool.or_eq_true_iff.mp hAC').resolve_left (by simpa using hne)
         have hXT : Block.Prec X target := by
           apply (walk_aux_prec_iff _ _).mpr
-          refine ⟨?_, block_preceq_trans (walk_aux_parent_prefix X (.node X s id) rfl) hCT⟩
+          refine ⟨?_, block_preceq_trans (walk_aux_parent_prefix X (.node X s r_s id) rfl) hCT⟩
           intro he
-          have hd := prefix_depth (.node X s id) target hCT
+          have hd := prefix_depth (.node X s r_s id) target hCT
           rw [← he] at hd
           change X.depth + 1 ≤ X.depth at hd
           omega
         obtain ⟨D, hp, hDT, hm, _, _⟩ := hancestry X hAX hXT
-        exact walk_aux_same_child_of_common D (.node X s id) target hp hDT hCT ▸ hm
+        exact walk_aux_same_child_of_common D (.node X s r_s id) target hp hDT hCT ▸ hm
   have hc : Block.Preceq target (ghost anchor tree score eligible) := by
     apply walk_aux_walk_covers_steps tree.eraseDups score eligible anchor target ?_
       tree.eraseDups.length anchor (block_preceq_refl _) ha

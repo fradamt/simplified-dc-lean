@@ -95,7 +95,7 @@ theorem heightRefinement (p : Params) (K : Nat) (hK : 2 ≤ K) :
   · rw [initial_def, projectHeight_def]
     rfl
   · rw [derive_def]
-  · intro q s x rs
+  · intro q s r x rs
     rw [derive_def]
   · intro w σ B rs heq
     rw [transition_def]

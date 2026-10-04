@@ -28,7 +28,8 @@ theorem fgStoreSafety (p : Params) :
     FGStoreSafety p.E (heightView p) (finalityView p)
       (id : Store (Fin p.n) → Store (Fin p.n))
       (fun _ B => (heightView p B, finalityView p B))
-      Store.init (Window.on_block p p.K_W) (FGStoreInvariant (heightView p) (finalityView p)) :=
+      Store.init (Window.on_block p p.K_W) (FGStoreInvariant (heightView p) (finalityView p))
+        StoreStepRoots :=
   Window.windowStoreSafety p p.K_W p.kWLarge
 
 end AvailableChain.FGSA

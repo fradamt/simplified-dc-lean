@@ -107,7 +107,7 @@ theorem pathBefore_of_pathKnown {n : Nat} (st : State n) (cut : Time)
   | genesis =>
       exact Bool.and_eq_true_iff.mpr
         ⟨hb, by simpa using (hbound.stampBlock_le _).trans_lt ht⟩
-  | node parent s root ih =>
+  | node parent s r_s root ih =>
       have hp := Bool.and_eq_true_iff.mp hb
       exact Bool.and_eq_true_iff.mpr
         ⟨Bool.and_eq_true_iff.mpr ⟨hp.1, by simpa using (hbound.stampBlock_le _).trans_lt ht⟩,
@@ -130,7 +130,7 @@ theorem pathBefore_mono {n : Nat} (before after : State n)
       simpa only [pathBefore, Bool.and_eq_true_iff, decide_eq_true_eq] using
         hblock .genesis (Bool.and_eq_true_iff.mp hb).1
           (by simpa using (Bool.and_eq_true_iff.mp hb).2)
-  | node parent s root ih =>
+  | node parent s r_s root ih =>
       simp only [pathBefore, Bool.and_eq_true_iff, decide_eq_true_eq] at hb ⊢
       exact ⟨hblock _ hb.1.1 hb.1.2, ih hb.2⟩
 

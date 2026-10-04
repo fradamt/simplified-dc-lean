@@ -63,7 +63,7 @@ theorem FinalitySlashableBound_def : FinalitySlashableBound p c E rho =
     ¬ HasSlashableWeightBetween p.E (chainRows K) (chainRows W)) := by rfl
 
 /-- F-API, dc-align-full.md:89–92; DC L/FinalitySafety.lean:103; class: INTENTIONAL.
-Sorted events are retained. KitFG.rootInjectiveOn_all discharges root freedom. -/
+Sorted events are retained. ROOT-DIGEST W1 uses the separate DC root premises. -/
 def FinalityExecution : Prop :=
   rho.events.Pairwise (fun a b => a.key ≤ b.key)
 

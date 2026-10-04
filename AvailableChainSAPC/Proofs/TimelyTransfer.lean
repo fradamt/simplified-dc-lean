@@ -102,7 +102,7 @@ theorem timely_quorum_score_at_head {V : Type} [DecidableEq V] (p : Params)
     apply strict_block_relay p E rho hs _ _ hef hrelay v w hv hw b
     cases b with
     | genesis => exact of_decide_eq_true (Bool.and_eq_true_iff.mp hparts.1.2).1
-    | node parent slot root =>
+    | node parent slot r_slot root =>
         exact of_decide_eq_true (Bool.and_eq_true_iff.mp
           (Bool.and_eq_true_iff.mp hparts.1.2).1).1
   have hbh : b ∈ (headState p rho (r + 1) w).base.blocks := by

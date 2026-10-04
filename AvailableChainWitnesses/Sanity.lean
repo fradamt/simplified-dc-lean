@@ -8,7 +8,7 @@ namespace AvailableChain.Witnesses.Sanity
 
 open AvailableChain AvailableChain.Generic AvailableChain.Statements.Generic
 
-def proposed (s : Slot) : Block := .node .genesis s 0
+def proposed (s : Slot) : Block := .node .genesis s (nodeRoot genesisRoot s 0) 0
 
 /-- This protocol proposes blocks but never advances either output. -/
 def alwaysGenesis (n : Nat) : ProtocolSpec n where
@@ -217,7 +217,37 @@ theorem exampleSynchrony (D : Time) :
 /-- Roots are computed from block content, so they are injective on every block. -/
 theorem exampleRootInjective (D : Time) :
     RootInjective exampleEnv (interface 1) (exampleRun D) :=
-  fun _ _ _ _ h => Block.root_injective h
+  by
+    have scope : ∀ B, BlockInRun exampleEnv (interface 1) (exampleRun D) B →
+        B = .genesis ∨ ∃ s, B = proposed s := by
+      intro B hB
+      rcases hB with hg | ⟨v, o, t, tip, hobj, htip, hp⟩
+      · exact Or.inl hg
+      · have hpay : o.payload = tip := Option.some.inj htip
+        rcases hobj with ⟨i, hi⟩ | ⟨i, _, ho⟩
+        · exact False.elim (no_delivery D i v o t hi)
+        · have hex : ∃ s, o.payload = proposed s := by
+            have hv : v = 0 := Subsingleton.elim _ _
+            subst v
+            by_cases ht : 0 ≤ t <;> by_cases hz : t.toNat = 0
+            all_goals simp [Run.emittedAt, alwaysGenesis, exampleEnv, exampleRun, ht, hz] at ho
+            all_goals first
+              | exact False.elim (List.not_mem_nil ho)
+              | exact ⟨t.toNat, congrArg Signed.payload (List.mem_singleton.mp ho)⟩
+          obtain ⟨s, hs⟩ := hex
+          rw [← hpay, hs] at hp
+          simp only [proposed, Block.Preceq, Block.preceq, Bool.or_eq_true,
+            decide_eq_true_eq] at hp
+          exact hp.elim (fun he => Or.inr ⟨s, he⟩) Or.inl
+    intro B C hB hC hr
+    rcases scope B hB with rfl | ⟨s, rfl⟩ <;>
+      rcases scope C hC with rfl | ⟨t, rfl⟩
+    · rfl
+    · simp [proposed, Block.root, nodeRoot, genesisRoot] at hr
+    · simp [proposed, Block.root, nodeRoot, genesisRoot] at hr
+    · simp only [proposed, Block.root, nodeRoot, BlockId.mk.injEq,
+        Nat.add_right_cancel_iff] at hr
+      exact congrArg proposed (epair_inj (epair_inj hr).2).1
 
 theorem exampleSleepy (D : Time) : SleepyRegime (alwaysGenesis 1) exampleEnv
     (interface 1) (exampleRun D) 0 := by

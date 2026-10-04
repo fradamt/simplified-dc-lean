@@ -21,9 +21,9 @@ theorem block_preceq_trans {A B C : Block} (h₁ : Block.Preceq A B) (h₂ : Blo
       simp only [Block.Preceq, Block.preceq, decide_eq_true_eq] at h₂
       subst h₂
       exact h₁
-  | node p s r ih =>
+  | node p s r_s r ih =>
       simp only [Block.Preceq, Block.preceq, Bool.or_eq_true, decide_eq_true_eq] at h₂
-      change Block.preceq A (Block.node p s r) = true
+      change Block.preceq A (Block.node p s r_s r) = true
       rcases h₂ with h | h
       · subst h
         exact h₁
@@ -39,7 +39,7 @@ theorem block_preceq_antisymm {A B : Block} (h₁ : Block.Preceq A B) (h₂ : Bl
         simp only [Block.Preceq, Block.preceq, decide_eq_true_eq] at h
         subst h
         exact Nat.le_refl _
-    | node p s r ih =>
+    | node p s r_s r ih =>
         simp only [Block.Preceq, Block.preceq, Bool.or_eq_true, decide_eq_true_eq] at h
         rcases h with h | h
         · subst h
@@ -53,7 +53,7 @@ theorem block_preceq_antisymm {A B : Block} (h₁ : Block.Preceq A B) (h₂ : Bl
     | genesis =>
         simp only [Block.Preceq, Block.preceq, decide_eq_true_eq] at h
         exact h
-    | node p s r _ =>
+    | node p s r_s r _ =>
         simp only [Block.Preceq, Block.preceq, Bool.or_eq_true, decide_eq_true_eq] at h
         rcases h with h | h
         · exact h
@@ -66,7 +66,7 @@ theorem block_preceq_antisymm {A B : Block} (h₁ : Block.Preceq A B) (h₂ : Bl
 theorem block_genesis_preceq (B : Block) : Block.Preceq .genesis B := by
   induction B with
   | genesis => exact block_preceq_refl _
-  | node p s r ih =>
+  | node p s r_s r ih =>
       simp only [Block.Preceq, Block.preceq, Bool.or_eq_true, decide_eq_true_eq] at ih ⊢
       exact Or.inr ih
 /-- [helper] Two ancestors of one block are comparable. -/
@@ -78,19 +78,19 @@ theorem block_preceq_total_of_common {A B W : Block} (hA : Block.Preceq A W)
       subst hA
       subst hB
       exact Or.inl (block_preceq_refl _)
-  | node p s r ih =>
+  | node p s r_s r ih =>
       simp only [Block.Preceq, Block.preceq, Bool.or_eq_true, decide_eq_true_eq] at hA hB
       rcases hA with hA | hA
       · rcases hB with hB | hB
         · subst hA; subst hB; exact Or.inl (block_preceq_refl _)
         · subst hA
           refine Or.inr ?_
-          change Block.preceq B (Block.node p s r) = true
+          change Block.preceq B (Block.node p s r_s r) = true
           simp only [Block.preceq, hB, Bool.or_true]
       · rcases hB with hB | hB
         · subst hB
           refine Or.inl ?_
-          change Block.preceq A (Block.node p s r) = true
+          change Block.preceq A (Block.node p s r_s r) = true
           simp only [Block.preceq, hA, Bool.or_true]
         · exact ih hA hB
 /-- [helper] `compatible` is commutative. -/

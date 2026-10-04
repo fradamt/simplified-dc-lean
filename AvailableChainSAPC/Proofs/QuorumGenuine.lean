@@ -76,7 +76,7 @@ theorem timely_compatible_confirmation {V : Type} [DecidableEq V] (p : Params)
     apply strict_block_relay p E rho hs _ _ htime hrelay source reader hsource hr b
     cases b with
     | genesis => exact of_decide_eq_true (Bool.and_eq_true_iff.mp hparts.1.2).1
-    | node parent slot root =>
+    | node parent slot r_slot root =>
         exact of_decide_eq_true (Bool.and_eq_true_iff.mp
           (Bool.and_eq_true_iff.mp hparts.1.2).1).1
   apply raw_quorum_compatible_confirmation p _ r b c hb (le_of_eq hparts.1.1.2)

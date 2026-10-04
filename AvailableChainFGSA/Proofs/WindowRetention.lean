@@ -16,12 +16,12 @@ theorem window_hj_mono (p : Params) (K : Nat) (hK : 2 ≤ K)
   | genesis =>
       obtain rfl := preceq_genesis.mp hAB
       exact Nat.le_refl _
-  | node P s x rs ih =>
-      by_cases hA : A = .node P s x rs
+  | node P s r_s x rs ih =>
+      by_cases hA : A = .node P s r_s x rs
       · subst A
         exact Nat.le_refl _
       · apply (ih (preceq_parent_of_preceq_node hAB hA)).trans
-        rcases window_latest_pair_kept p K P s x rs with h | h
+        rcases window_latest_pair_kept p K P s r_s x rs with h | h
         · exact h.1.ge
         · rw [h.1]
           exact Nat.le_of_lt ((windowHeightLaws p K hK).justified_below_height P)
@@ -55,9 +55,9 @@ theorem window_retained_of_scalar (p : Params) (K : Nat) (hK : 2 ≤ K)
     Nat.sub_lt_left_of_lt_add
       (((window_bounds p K hK A e he).2.1).trans (window_hj_mono p K hK A P hAP)) near
   apply window_retained_along p K hK A P hAP e he
-  intro R s x rs _ hBP
+  intro R s r_s x rs _ hBP
   refine ⟨(window_hF_mono p K hK _ _ hBP).trans_lt above, ?_⟩
-  have bound := retentionHeight_count p K hK (.node R s x rs) e.j
+  have bound := retentionHeight_count p K hK (.node R s r_s x rs) e.j
     (Finset.Ioc e.j (derive p K P).h_j) (fun d hd hy =>
       Finset.mem_Ioc.mpr ⟨hy, ((window_bounds p K hK _ d hd).2.1).trans
         (window_hj_mono p K hK _ _ hBP)⟩)
@@ -75,16 +75,16 @@ theorem window_retained_or_covered (p : Params) (K : Nat) (hK : 2 ≤ K)
   rcases window_entry_history p K hK A P hAP e he with retained | covered | evicted
   · exact Or.inl retained
   · exact Or.inr covered.2
-  · obtain ⟨_, _, _, R, s, x, rs, _, hBP, _, _, full, C, _, _, newer⟩ := evicted
+  · obtain ⟨_, _, _, R, s, r_s, x, rs, _, hBP, _, _, full, C, _, _, newer⟩ := evicted
     have small : (derive p K P).h_j - e.j < K :=
       Nat.sub_lt_left_of_lt_add
         (((window_bounds p K hK A e he).2.1).trans (window_hj_mono p K hK A P hAP)) near
-    have bound := retentionHeight_count p K hK (.node R s x rs) e.j
+    have bound := retentionHeight_count p K hK (.node R s r_s x rs) e.j
       (Finset.Ioc e.j (derive p K P).h_j) (fun d hd hy =>
         Finset.mem_Ioc.mpr ⟨hy, ((window_bounds p K hK _ d hd).2.1).trans
           (window_hj_mono p K hK _ _ hBP)⟩)
-    have allNewer : ((derive p K (.node R s x rs)).W.filter
-        (fun d => decide (e.j < d.j))) = (derive p K (.node R s x rs)).W := by
+    have allNewer : ((derive p K (.node R s r_s x rs)).W.filter
+        (fun d => decide (e.j < d.j))) = (derive p K (.node R s r_s x rs)).W := by
       apply List.filter_eq_self.mpr
       exact fun d hd => decide_eq_true (newer d hd).1
     rw [allNewer, full, Nat.card_Ioc] at bound
@@ -96,31 +96,31 @@ private theorem retentionBirth_entry (p : Params) (K : Nat) (hK : 2 ≤ K)
     (Entry.mk j X ∅) ∈ (derive p K C).W := by
   cases C with
   | genesis => exact (birth.1 rfl).elim
-  | node P s x rs =>
+  | node P s r_s x rs =>
       have hp : (derive p K P).h = j := birth.2.1
-      have hcj : (derive p K (.node P s x rs)).h_j = j := birth.2.2.2.1
-      have hcX : (derive p K (.node P s x rs)).J = X := birth.2.2.2.2.1
+      have hcj : (derive p K (.node P s r_s x rs)).h_j = j := birth.2.2.2.1
+      have hcX : (derive p K (.node P s r_s x rs)).J = X := birth.2.2.2.2.1
       have ht : targetQuorum p.E
-          (finalizeWindow p.E (certificateFolded p K (.node P s x rs))) = true := by
-        rcases window_latest_pair_kept p K P s x rs with kept | crossed
+          (finalizeWindow p.E (certificateFolded p K (.node P s r_s x rs))) = true := by
+        rcases window_latest_pair_kept p K P s r_s x rs with kept | crossed
         · have below := (windowHeightLaws p K hK).justified_below_height P
           change (derive p K P).h_j < (derive p K P).h at below
           rw [← kept.1, hcj, hp] at below
           exact (Nat.lt_irrefl j below).elim
         · exact crossed.2.2
-      have latest : (derive p K (.node P s x rs)).h_j =
-          (finalizeWindow p.E (certificateFolded p K (.node P s x rs))).h ∧
-          (derive p K (.node P s x rs)).J =
-          (finalizeWindow p.E (certificateFolded p K (.node P s x rs))).T_h := by
+      have latest : (derive p K (.node P s r_s x rs)).h_j =
+          (finalizeWindow p.E (certificateFolded p K (.node P s r_s x rs))).h ∧
+          (derive p K (.node P s r_s x rs)).J =
+          (finalizeWindow p.E (certificateFolded p K (.node P s r_s x rs))).T_h := by
         change (process_height_events p.E p.cfg K
-            (certificateFolded p K (.node P s x rs))).h_j = _ ∧
+            (certificateFolded p K (.node P s r_s x rs))).h_j = _ ∧
           (process_height_events p.E p.cfg K
-            (certificateFolded p K (.node P s x rs))).J = _
+            (certificateFolded p K (.node P s r_s x rs))).J = _
         rw [process_height_events_def, ite_eq_left ht]
         exact ⟨rfl, rfl⟩
       have hj := latest.1.symm.trans hcj
       have hX := latest.2.symm.trans hcX
-      obtain ⟨_, older, appended, _, _⟩ := window_target_appended_newest p K hK P s x rs ht
+      obtain ⟨_, older, appended, _, _⟩ := window_target_appended_newest p K hK P s r_s x rs ht
       rw [hj, hX] at appended
       rw [appended]
       exact List.mem_append_right _ (List.mem_singleton_self _)
@@ -131,13 +131,13 @@ theorem window_exact_row_no_missing_effect (p : Params) (K : Nat) (hK : 2 ≤ K)
     (B : FGBlock (Fin p.n)) (y : Nat) (U : FGBlock (Fin p.n))
     (d : Entry (Fin p.n)) (hd : d ∈ (derive p K B).W)
     (hj : d.j = y) (hX : d.X = U)
-    (valid : ∀ P s x rs, FGBlock.Preceq (.node P s x rs) B → ∀ a ∈ rs,
+    (valid : ∀ P s r_s x rs, FGBlock.Preceq (.node P s r_s x rs) B → ∀ a ∈ rs,
       (RowBody.ofRow a).valid = true ∧ r6w (derive p K P) a = true)
-    (P : FGBlock (Fin p.n)) (s : Slot) (x : Nat) (rs : List (Row (Fin p.n)))
-    (hCB : FGBlock.Preceq (.node P s x rs) B)
+    (P : FGBlock (Fin p.n)) (s : Slot) (r_s : BlockId) (x : Nat) (rs : List (Row (Fin p.n)))
+    (hCB : FGBlock.Preceq (.node P s r_s x rs) B)
     (a : Row (Fin p.n)) (ha : a ∈ rs)
     (hpair : a.finality_pair = some ⟨y, U.root⟩) : a.signer ∈ d.Q := by
-  obtain ⟨hr3, hr6⟩ := valid P s x rs hCB a ha
+  obtain ⟨hr3, hr6⟩ := valid P s r_s x rs hCB a ha
   change (RowBody.mk a.height_pair a.finality_pair).valid = true at hr3
   have below : y < (derive p K P).h := by
     cases hp : a.height_pair with
@@ -167,15 +167,15 @@ theorem window_exact_row_no_missing_effect (p : Params) (K : Nat) (hK : 2 ≤ K)
   have hCP : FGBlock.Preceq C P := by
     cases C with
     | genesis => exact (birth.1 rfl).elim
-    | node R t z rows =>
+    | node R t r_t z rows =>
         have hb : (derive p K R).h = y := birth.2.1.trans hj
-        have ne : FGBlock.node P s x rs ≠ .node R t z rows := by
+        have ne : FGBlock.node P s r_s x rs ≠ .node R t r_t z rows := by
           intro eq
           have ep : P = R := (FGBlock.node.inj eq).1
           rw [ep, hb] at below
           exact (Nat.lt_irrefl y) below
         rcases preceq_total_of_common hCB hC with before | after
-        · have hPR := preceq_trans (preceq_parent_node P s x rs)
+        · have hPR := preceq_trans (preceq_parent_node P s r_s x rs)
             (preceq_parent_of_preceq_node before ne)
           have hm := (windowHeightLaws p K hK).h_mono hPR
           change (derive p K P).h ≤ (derive p K R).h at hm
@@ -183,14 +183,14 @@ theorem window_exact_row_no_missing_effect (p : Params) (K : Nat) (hK : 2 ≤ K)
           exact (Nat.not_lt_of_ge hm below).elim
         · exact preceq_parent_of_preceq_node after (Ne.symm ne)
   have born := retentionBirth_entry p K hK C d.j d.X birth
-  have hPB := preceq_trans (preceq_parent_node P s x rs) hCB
+  have hPB := preceq_trans (preceq_parent_node P s r_s x rs) hCB
   obtain ⟨e, he, hej, heX, _, _⟩ := window_retained_bits_mono p K hK C P B
     hCP hPB ⟨d.j, d.X, ∅⟩ d born hd rfl rfl
   obtain ⟨c, hc, hcj, hcX, _, _⟩ := window_retained_bits_mono p K hK P
-    (.node P s x rs) B (preceq_parent_node P s x rs) hCB e d he hd hej.symm heX.symm
-  have bit := window_bit_add_of_row p K hK P s x rs e c he hc hcj hcX a ha
+    (.node P s r_s x rs) B (preceq_parent_node P s r_s x rs) hCB e d he hd hej.symm heX.symm
+  have bit := window_bit_add_of_row p K hK P s r_s x rs e c he hc hcj hcX a ha
     (by simpa only [hej, heX, hj, hX] using hpair)
-  exact window_bit_retained p K hK (.node P s x rs) B hCB c d hc hd
+  exact window_bit_retained p K hK (.node P s r_s x rs) B hCB c d hc hd
     (hcj.trans hej) (hcX.trans heX) bit
 
 /-- [plan item 12] A finite set covers all births with certificate height
@@ -205,9 +205,9 @@ theorem window_retained_of_few_births (p : Params) (K : Nat) (hK : 2 ≤ K)
       JustificationBirth p.E (certificateHeight p K) C j X → C ∈ births) :
     ∃ d ∈ (derive p K P).W, d.j = e.j ∧ d.X = e.X ∧ e.Q ⊆ d.Q := by
   apply window_retained_along p K hK A P hAP e he
-  intro R s x rs _ hBP
+  intro R s r_s x rs _ hBP
   refine ⟨(window_hF_mono p K hK _ _ hBP).trans_lt above, ?_⟩
-  apply lt_of_le_of_lt (retentionHeight_count p K hK (.node R s x rs) e.j
+  apply lt_of_le_of_lt (retentionHeight_count p K hK (.node R s r_s x rs) e.j
     (births.image (fun C => (derive p K C).h_j)) ?_)
     ((Finset.card_image_le).trans_lt few)
   intro d hd hy

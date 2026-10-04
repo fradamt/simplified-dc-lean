@@ -20,12 +20,6 @@ theorem viewRootInj_mono {Vw Vw' : View V} (hinj : ViewRootInj Vw') (h : Vw ⊆ 
     ViewRootInj Vw := fun X Y ⟨W, hW, hXW⟩ ⟨W', hW', hYW'⟩ hr =>
   hinj X Y ⟨W, h hW, hXW⟩ ⟨W', h hW', hYW'⟩ hr
 
-omit [Fintype V] in
-/-- [helper] Collision freedom holds on every view: the root is a function of the
-content, and `FGBlock.root_injective` proves it injective. -/
-theorem viewRootInj_all (Vw : View V) : ViewRootInj Vw :=
-  fun _ _ _ _ hr => FGBlock.root_injective hr
-
 -- port: DC/DecoupledConsensusProofs/Protocol/ForkChoice/Goldfish/Walk.lean:53-64
 omit [Fintype V] in
 /-- [helper] `pickPair` returns the unique member that satisfies the test. -/
@@ -322,7 +316,7 @@ theorem ancestor_closed_of_parent_closed (T : Finset (FGBlock V))
       rw [preceq_genesis] at hAB
       subst hAB
       exact hB
-  | node p s r rs ih =>
+  | node p s r_s r rs ih =>
       simp only [FGBlock.Preceq, FGBlock.preceq, Bool.or_eq_true, decide_eq_true_eq] at hAB
       rcases hAB with rfl | hAp
       · exact hB
@@ -593,10 +587,10 @@ theorem filteredFrom_viable_child (c : Controls V) (blocks : Finset (FGBlock V))
   have hBC : FGBlock.Preceq B C := by
     cases C with
     | genesis => exact absurd rfl hCg
-    | node p s r rs =>
+    | node p s r_s r rs =>
         simp only [FGBlock.parent] at hCp
         subst hCp
-        exact preceq_parent_node p s r rs
+        exact preceq_parent_node p s r_s r rs
   exact ⟨C, (mem_filteredFrom E cfg c blocks C).2
     ⟨hclosed W hW C hCW, preceq_trans hF hBC, preceq_trans hZ hBC, W, hW, hCW, hlo⟩, hCp⟩
 
@@ -761,7 +755,8 @@ each held carrier of F; `StoreInv.Fcar` supplies such a carrier. Its `h_F` is
 the certificate height, not the state height of F. No run premise is needed.
 The last disjunction does not assert that every held block at `lo` extends F:
 in the top-J case, a stale branch can remain in the cumulative tree. -/
-theorem frame_facts (st : Store V) (h : StoreInv E cfg st) :
+theorem frame_facts (st : Store V) (h : StoreInv E cfg st)
+    (hinj : ViewRootInj st.TF) :
     let c := storeControls E cfg st
     c.j < c.H ∧
       (c.Z, c.lo) =
@@ -777,7 +772,7 @@ theorem frame_facts (st : Store V) (h : StoreInv E cfg st) :
   let c := storeControls E cfg st
   obtain ⟨K₀, hK₀, hK₀F⟩ := h.Fcar
   obtain ⟨L, hL, -, hp, hmax⟩ := lexMax_spec E cfg st.F st.TF
-    (viewRootInj_all st.TF) ⟨K₀, hK₀, hK₀F ▸ derive_F_preceq_J E cfg K₀⟩
+    hinj ⟨K₀, hK₀, hK₀F ▸ derive_F_preceq_J E cfg K₀⟩
   have hj : c.j = (derive E cfg L).h_j := congrArg Prod.fst (h.pair.trans hp)
   have hjH : c.j < c.H := by
     rw [hj]

@@ -110,7 +110,7 @@ def deriveWithSelector (E : Electorate V) (cfg : FGConfig)
     (sel : ChainState V → List (Row V) → List (Row V)) :
     FGBlock V → ChainState V
   | .genesis => .initial
-  | B@(.node p _ _ rs) =>
+  | B@(.node p _ _ _ rs) =>
       let σ := deriveWithSelector E cfg sel p
       transition E cfg σ B (sel σ rs)
 
@@ -142,8 +142,8 @@ structure HeightFoldRefinement
   derive_genesis :
     d .genesis = initial
   derive_node :
-    ∀ (p : FGBlock V) (s : Slot) (x : Nat) (rs : List (Row V)),
-      d (.node p s x rs) = step (d p) (.node p s x rs) rs
+    ∀ (p : FGBlock V) (s : Slot) (r_s : BlockId) (x : Nat) (rs : List (Row V)),
+      d (.node p s r_s x rs) = step (d p) (.node p s r_s x rs) rs
   step_height :
     HeightStepBridge E cfg π step
 
@@ -152,9 +152,9 @@ theorem deriveWithSelector_def (E : Electorate V) (cfg : FGConfig)
     deriveWithSelector E cfg sel B =
       match B with
       | .genesis => .initial
-      | .node p s x rs =>
+      | .node p s r_s x rs =>
           let σ := deriveWithSelector E cfg sel p
-          transition E cfg σ (.node p s x rs) (sel σ rs) := by
+          transition E cfg σ (.node p s r_s x rs) (sel σ rs) := by
   cases B <;> rfl
 
 end AvailableChain.KitFG

@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSARun.Statements.Roots
 public import AvailableChainFGSAClaims.Statements.Counts
 public import AvailableChainGeneric.Statements.V2.Duty.Counts
 public import AvailableChainFGSAClaims.Statements.Bounds
@@ -20,6 +21,8 @@ structure Base₂ (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) : Prop where
   cstar : V2.D.CStar (fgsaFamilies p c).fresh rho
   noRestart : V2.D.NoRestart rho
   delta : E.Δ = p.Δ
+  /-- [ROOT-DIGEST W1; DC NamedRootCollisionFree] Run body collision freedom. -/
+  idealization : NamedRootCollisionFree p c E rho
 
 /-- Per-object delivery regime.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);

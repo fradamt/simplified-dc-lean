@@ -12,7 +12,7 @@ open AvailableChain.Statements.Generic
 /-- The chain of height `k`: a fixed block for every height. -/
 def chain : Nat → Block
   | 0 => .genesis
-  | k + 1 => .node (chain k) k k
+  | k + 1 => .node (chain k) k (nodeRoot (chain k).root k k) k
 
 /-- Each proposer proposes the next height; a node accepts exactly the next
 height. Payload `k` depends on height `k - 1`. -/

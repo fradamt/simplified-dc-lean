@@ -180,10 +180,10 @@ theorem fgsa_headInTree_covers_of_transfer
       cases D with
       | genesis => cases C with
         | genesis => rfl
-        | node P s id => cases hp
-      | node P s id => cases C with
+        | node P s r_s id => cases hp
+      | node P s r_s id => cases C with
         | genesis => cases hp
-        | node Q t jd =>
+        | node Q t r_t jd =>
           have heq : P = Q := Option.some.inj hp
           subst Q
           rfl
@@ -204,10 +204,10 @@ private theorem geometry_lift_prefix {n : Nat} (B : FGBlock (Fin n)) (a : Block)
   | genesis =>
       have he : a = .genesis := by simpa [eraseFG, Block.Preceq, Block.preceq] using ha
       exact ⟨.genesis, KitFG.preceq_refl _, he.symm⟩
-  | node P s r rs ih =>
-      change (decide (a = eraseFG (.node P s r rs)) || Block.preceq a (eraseFG P)) = true at ha
+  | node P s r_s r rs ih =>
+      change (decide (a = eraseFG (.node P s r_s r rs)) || Block.preceq a (eraseFG P)) = true at ha
       rcases Bool.or_eq_true_iff.mp ha with he | hp
-      · exact ⟨.node P s r rs, KitFG.preceq_refl _, (of_decide_eq_true he).symm⟩
+      · exact ⟨.node P s r_s r rs, KitFG.preceq_refl _, (of_decide_eq_true he).symm⟩
       · obtain ⟨A, hA, he⟩ := ih hp
         exact ⟨A, KitFG.preceq_trans hA (KitFG.preceq_parent_node _ _ _ _), he⟩
 

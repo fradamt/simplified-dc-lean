@@ -33,8 +33,8 @@ private theorem block_preceq_trans (A B C : Block)
       have h : B = .genesis := by simpa [Block.preceq] using hBC
       subst B
       exact hAB
-  | node parent slot root ih =>
-      have h : B = .node parent slot root ∨ Block.preceq B parent = true := by
+  | node parent slot r_slot root ih =>
+      have h : B = .node parent slot r_slot root ∨ Block.preceq B parent = true := by
         simpa [Block.preceq, Bool.or_eq_true] using hBC
       rcases h with h | h
       · subst B
@@ -53,10 +53,10 @@ private theorem block_ancestors_compatible (A B C : Block)
       subst A
       subst B
       decide
-  | node parent slot root ih =>
-      have hA : A = .node parent slot root ∨ Block.preceq A parent = true := by
+  | node parent slot r_slot root ih =>
+      have hA : A = .node parent slot r_slot root ∨ Block.preceq A parent = true := by
         simpa [Block.preceq, Bool.or_eq_true] using hAC
-      have hB : B = .node parent slot root ∨ Block.preceq B parent = true := by
+      have hB : B = .node parent slot r_slot root ∨ Block.preceq B parent = true := by
         simpa [Block.preceq, Bool.or_eq_true] using hBC
       rcases hA with hA | hA
       · subst A
@@ -555,7 +555,7 @@ theorem admitProposal_stored_prefix_closed (p : Params) {n : Nat}
             have hcase : B = b ∨ Block.preceq B b.parent = true := by
               cases b with
               | genesis => exact False.elim (hB (by simpa [Block.preceq] using hBK))
-              | node parent slot root =>
+              | node parent slot r_slot root =>
                   simpa [Block.preceq, Bool.or_eq_true] using! hBK
             rcases hcase with heq | hparent
             · exact List.mem_append.mpr (Or.inr (by simp [heq]))
@@ -1536,8 +1536,8 @@ private theorem preceq_depth_le (B C : Block)
       have h : B = .genesis := by simpa [Block.preceq] using hBC
       subst B
       exact le_refl _
-  | node parent slot root ih =>
-      have h : B = .node parent slot root ∨ Block.preceq B parent = true := by
+  | node parent slot r_slot root ih =>
+      have h : B = .node parent slot r_slot root ∨ Block.preceq B parent = true := by
         simpa [Block.preceq, Bool.or_eq_true] using hBC
       rcases h with h | h
       · subst B
@@ -1550,8 +1550,8 @@ private theorem preceq_eq_of_depth_ge (B C : Block)
   induction C with
   | genesis =>
       simpa [Block.preceq] using hBC
-  | node parent slot root ih =>
-      have h : B = .node parent slot root ∨ Block.preceq B parent = true := by
+  | node parent slot r_slot root ih =>
+      have h : B = .node parent slot r_slot root ∨ Block.preceq B parent = true := by
         simpa [Block.preceq, Bool.or_eq_true] using hBC
       rcases h with h | h
       · exact h
@@ -1585,7 +1585,7 @@ theorem liveTarget_preceq_liveRoot {n : Nat} (st : State n)
   · rw [hgenesis] at hdepth ⊢
     cases b with
     | genesis => decide
-    | node parent slot root => simp [Block.depth] at hdepth
+    | node parent slot r_slot root => simp [Block.depth] at hdepth
   · obtain ⟨row, hrow', htarget⟩ := List.mem_filterMap.mp hmem
     rcases row with ⟨K', level, expiry⟩
     by_cases htime : st.now < expiry

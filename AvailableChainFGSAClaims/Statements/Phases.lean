@@ -70,7 +70,7 @@ def Ready_W (i : Nat) (x : V) (W : FGBlock (Fin p.n)) (t : Time) : Prop :=
     rho.events[i]? = some (.deliver x o t) ∧
     (toWire p o).decode = some (.block s (eraseFG W) raw support rows) ∧
     FGSA.parentFG (storeAt p c E rho i x) (eraseFG W) = some P ∧
-    FGSA.blockAccepted p (storeAt p c E rho i x) s (eraseFG W) P rows = true ∧
+    FGSA.blockAccepted p (storeAt p c E rho i x) s (eraseFG W) raw support P rows = true ∧
     FGSA.fgBlock P (eraseFG W) rows = W
 
 /-- FINAL 22:1001–1005. The inserted tree and updated maximum, before the
@@ -213,7 +213,7 @@ theorem Ready_W_def (i : Nat) (x : V) (W : FGBlock (Fin p.n)) (t : Time) :
     rho.events[i]? = some (.deliver x o t) ∧
     (toWire p o).decode = some (.block s (eraseFG W) raw support rows) ∧
     FGSA.parentFG (storeAt p c E rho i x) (eraseFG W) = some P ∧
-    FGSA.blockAccepted p (storeAt p c E rho i x) s (eraseFG W) P rows = true ∧
+    FGSA.blockAccepted p (storeAt p c E rho i x) s (eraseFG W) raw support P rows = true ∧
     FGSA.fgBlock P (eraseFG W) rows = W) := rfl
 
 omit [Fintype V] in

@@ -49,7 +49,7 @@ theorem window_provenance_finalityQC (p : Params) (K : Nat) (hK : 2 ≤ K)
 
 /-- Window views supply the height laws; all client premises stay explicit. -/
 theorem window_exists_crossing_quorum_ne_justified (p : Params) (K : Nat) (hK : 2 ≤ K)
-    (B W : FGBlock (Fin p.n))
+    (B W : FGBlock (Fin p.n)) (hroot : RootInjectiveOn B W)
     (hJ : (certificateHeight p K B).h_j ≠ 0)
     (hW : (certificateHeight p K B).h_j < (certificateHeight p K W).h)
     (hnot : ¬ FGBlock.Preceq (certificateHeight p K B).J W) :
@@ -58,12 +58,12 @@ theorem window_exists_crossing_quorum_ne_justified (p : Params) (K : Nat) (hK : 
       ∀ i ∈ Q, ∃ b ∈ chainRows W, b.signer = i ∧
         b.height_pair.matchesEntry (certificateHeight p K B).h_j X.root = true :=
   exists_crossing_quorum_ne_justified_of_heightLaws p.E (certificateHeight p K)
-    (windowHeightLaws p K hK) B W hJ hW hnot
+    (windowHeightLaws p K hK) B W hroot hJ hW hnot
 
 /-- Window views supply the height laws; all client premises stay explicit. -/
 theorem window_exists_honest_timeout_of_crossing (p : Params) (K : Nat) (hK : 2 ≤ K)
     (faulty : Finset (Fin p.n))
-    (B W : FGBlock (Fin p.n))
+    (B W : FGBlock (Fin p.n)) (hroot : RootInjectiveOn B W)
     (hcap : p.E.weightOf faulty + p.E.totalWeight < 2 * p.E.q)
     (hJ : (certificateHeight p K B).h_j ≠ 0)
     (hW : (certificateHeight p K B).h_j < (certificateHeight p K W).h)
@@ -77,7 +77,7 @@ theorem window_exists_honest_timeout_of_crossing (p : Params) (K : Nat) (hK : 2 
         b.height_pair = .vote (certificateHeight p K B).h_j X true) :=
   exists_honest_timeout_of_crossing_of_heightLaws p.E (certificateHeight p K)
     (windowHeightLaws p K hK)
-    faulty B W hcap hJ hW hnot hhonest
+    faulty B W hroot hcap hJ hW hnot hhonest
 
 /-- An honest row names the latest pair of its signer's head at emission. On the
 including chain, that pair can be an older retained entry. Such an entry gains bits

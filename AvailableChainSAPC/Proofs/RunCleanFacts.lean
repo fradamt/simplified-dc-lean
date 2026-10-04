@@ -31,7 +31,7 @@ theorem cleanRunPath_accessible {V : Type} [DecidableEq V] [Fintype V]
     have hm : c ∈ (Run.stateBefore (sapc p) rho i v).base.blocks := by
       cases c with
       | genesis => exact of_decide_eq_true hc
-      | node parent slot root => exact of_decide_eq_true (Bool.and_eq_true_iff.mp hc).1
+      | node parent slot r_slot root => exact of_decide_eq_true (Bool.and_eq_true_iff.mp hc).1
     exact stored v hv i hi c hm hp
   have pc (v : V) (hv : v ∈ rho.honest) (i : Nat) (hi : i ≤ index)
       (c : PC p.n) (hc : pcValid p (Run.stateBefore (sapc p) rho i v) c = true)
@@ -58,7 +58,7 @@ theorem cleanRunPath_accessible {V : Type} [DecidableEq V] [Fintype V]
     have mem : c ∈ (Run.stateBefore (sapc p) rho k v).base.blocks := by
       cases c with
       | genesis => exact of_decide_eq_true (Bool.and_eq_true_iff.mp path).1
-      | node parent slot root =>
+      | node parent slot r_slot root =>
         exact of_decide_eq_true (Bool.and_eq_true_iff.mp
           (Bool.and_eq_true_iff.mp path).1).1
     exact stored v hv k (by omega) c mem hp

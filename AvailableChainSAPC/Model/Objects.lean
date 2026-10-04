@@ -80,7 +80,7 @@ def headSeat? {n : Nat} (o : HeadWire n) : Option (Fin n) :=
 /-- Full admitted ancestry is required for N and PC evidence. -/
 def pathKnown {n : Nat} (st : State n) : Block → Bool
   | .genesis => GridCO.blockKnown st.base .genesis
-  | b@(.node parent _ _) => GridCO.blockKnown st.base b && pathKnown st parent
+  | b@(.node parent _ _ _) => GridCO.blockKnown st.base b && pathKnown st parent
 
 def stampHead {n : Nat} (st : State n) (o : HeadWire n) : Time :=
   ((st.headStamp.find? (fun row => row.1 == o)).map Prod.snd).getD st.base.now
@@ -88,7 +88,7 @@ def stampHead {n : Nat} (st : State n) (o : HeadWire n) : Time :=
 def pathBefore {n : Nat} (st : State n) (cutoff : Time) : Block → Bool
   | .genesis => GridCO.blockKnown st.base .genesis &&
       GridCO.stampBlock st.base .genesis < cutoff
-  | b@(.node parent _ _) => GridCO.blockKnown st.base b &&
+  | b@(.node parent _ _ _) => GridCO.blockKnown st.base b &&
       GridCO.stampBlock st.base b < cutoff && pathBefore st cutoff parent
 
 def stable {n : Nat} (st : State n) : Block := st.base.stableRecord

@@ -216,8 +216,8 @@ private theorem preceq_trans (A B C : Block)
       have h : B = .genesis := by simpa [Block.preceq] using hBC
       subst B
       exact hAB
-  | node parent slot root ih =>
-      have h : B = .node parent slot root ∨ Block.preceq B parent = true := by
+  | node parent slot r_slot root ih =>
+      have h : B = .node parent slot r_slot root ∨ Block.preceq B parent = true := by
         simpa [Block.preceq, Bool.or_eq_true] using hBC
       rcases h with h | h
       · subst B
@@ -230,7 +230,7 @@ private theorem preceq_parent (anchor child : Block)
     Block.preceq anchor child = true := by
   cases child with
   | genesis => simp [Block.parent?] at hparent
-  | node parent slot root =>
+  | node parent slot r_slot root =>
       have h : parent = anchor := by simpa [Block.parent?] using hparent
       subst parent
       simp only [Block.preceq, Bool.or_eq_true]

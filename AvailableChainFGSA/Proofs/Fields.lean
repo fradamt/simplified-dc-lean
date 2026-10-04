@@ -59,7 +59,7 @@ acceptance test. -/
 theorem admitBlock_refused (p : Params) (st : State p.n) (s : Slot) (b : Block)
     (raw support : List (HeadWire p.n)) (rows : List (RowWire p.n))
     (h : parentFG st b = none ∨
-      ∃ P, parentFG st b = some P ∧ blockAccepted p st s b P rows = false) :
+      ∃ P, parentFG st b = some P ∧ blockAccepted p st s b raw support P rows = false) :
     admitBlock p st s b raw support rows = st := by
   unfold admitBlock
   rcases h with h | ⟨P, hP, ha⟩

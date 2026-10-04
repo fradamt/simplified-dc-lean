@@ -83,7 +83,7 @@ theorem height_occurrence_keys_of_bridge
     (v : FGHeightView V) (hb : HeightBridge E cfg v)
     {u : Row V} {W P U : FGBlock V}
     {y : Height} {χ : Bool}
-    (occ : u ∈ W.rows)
+    (hroot : RootInjectiveOn P U) (occ : u ∈ W.rows)
     (path : FGBlock.Preceq W P)
     (heightMatch :
       u.height_pair =
@@ -96,7 +96,7 @@ theorem height_occurrence_keys_of_bridge
     (v W.parent).T_h.root = (v P).T_h.root := by
   have heq : ∀ B, v B = heightOf (derive E cfg B) := hb
   simp only [heq, heightOf_def] at heightMatch entry endpoint ⊢
-  exact height_occurrence_keys E cfg occ path heightMatch name entry endpoint
+  exact height_occurrence_keys E cfg hroot occ path heightMatch name entry endpoint
 
 /-- A one-step crossing from an entry at height y writes this entry or keeps a lower
 justification. -/
@@ -124,7 +124,7 @@ theorem cross_cases_of_laws
     have hPW : FGBlock.Preceq W.parent W := by
       cases W with
       | genesis => exact preceq_refl _
-      | node P s x rs => exact preceq_parent_node P s x rs
+      | node P s r_s x rs => exact preceq_parent_node P s r_s x rs
     have hUW' := preceq_trans hUW hPW
     have hJ : (v W).J = U := by
       rcases preceq_total_of_common hJW hUW' with hJU | hUJ

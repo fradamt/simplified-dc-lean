@@ -21,8 +21,8 @@ theorem prefix_trans (A B C : Block)
       have h : B = .genesis := by simpa [Block.Preceq, Block.preceq] using hBC
       subst B
       exact hAB
-  | node parent slot root ih =>
-      obtain h | h : B = .node parent slot root ∨ Block.Preceq B parent := by
+  | node parent slot r_slot root ih =>
+      obtain h | h : B = .node parent slot r_slot root ∨ Block.Preceq B parent := by
         simpa [Block.Preceq, Block.preceq, Bool.or_eq_true] using hBC
       · subst B; exact hAB
       · simp only [Block.Preceq, Block.preceq, Bool.or_eq_true]
@@ -38,11 +38,11 @@ theorem ancestors_compatible (A B C : Block)
       subst A
       simp only [Block.Compatible, Block.compatible, Bool.or_eq_true]
       exact Or.inl (genesis_prefix B)
-  | node parent slot root ih =>
-      obtain ha | ha : A = .node parent slot root ∨ Block.Preceq A parent := by
+  | node parent slot r_slot root ih =>
+      obtain ha | ha : A = .node parent slot r_slot root ∨ Block.Preceq A parent := by
         simpa [Block.Preceq, Block.preceq, Bool.or_eq_true] using hA
       · subst A; simp [Block.Compatible, Block.compatible, hB]
-      · obtain hb | hb : B = .node parent slot root ∨ Block.Preceq B parent := by
+      · obtain hb | hb : B = .node parent slot r_slot root ∨ Block.Preceq B parent := by
           simpa [Block.Preceq, Block.preceq, Bool.or_eq_true] using hB
         · subst B; simp [Block.Compatible, Block.compatible, hA]
         · exact ih ha hb

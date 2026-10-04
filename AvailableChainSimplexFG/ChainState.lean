@@ -169,23 +169,23 @@ def transition (E : Electorate V) (cfg : FGConfig) (σ : ChainState V)
 in order (alfs4 Fig. `alg:chain-full`, lines 890–954). -/
 def derive (E : Electorate V) (cfg : FGConfig) : FGBlock V → ChainState V
   | .genesis => .initial
-  | B@(.node p _ _ rs) => transition E cfg (derive E cfg p) B rs
+  | B@(.node p _ _ _ rs) => transition E cfg (derive E cfg p) B rs
 
 def E4 : Electorate (Fin 4) := ⟨fun _ => 1, fun _ => Nat.one_pos⟩
 def cfg1 : FGConfig := ⟨1⟩
 def rowT (i : Fin 4) : Row (Fin 4) := ⟨i, .vote 1 genesisRoot false, none⟩
 /-- `B1`: slot 1, body `0` (the honest body), three targets at height 1 for
 genesis. -/
-def B1 : FGBlock (Fin 4) := .node .genesis 1 0 [rowT 0, rowT 1, rowT 2]
+def B1 : FGBlock (Fin 4) := .node .genesis 1 ⟨1⟩ 0 [rowT 0, rowT 1, rowT 2]
 
 /-- Three of four matching targets at height 1 justify genesis at height 1. -/
 example : (derive E4 cfg1 B1).h = 2 ∧ (derive E4 cfg1 B1).h_j = 1 := by decide
 /-- Two rows are not a quorum: the height stays 1. -/
-example : (derive E4 cfg1 (.node .genesis 1 0 [rowT 0, rowT 1])).h = 1 := by decide
+example : (derive E4 cfg1 (.node .genesis 1 ⟨15⟩ 0 [rowT 0, rowT 1])).h = 1 := by decide
 
 def cfg0 : FGConfig := ⟨0⟩
 def rowX (i : Fin 4) : Row (Fin 4) := ⟨i, .vote 1 genesisRoot true, none⟩
-def BX : FGBlock (Fin 4) := .node .genesis 1 0 [rowX 0, rowX 1, rowX 2]
+def BX : FGBlock (Fin 4) := .node .genesis 1 ⟨9⟩ 0 [rowX 0, rowX 1, rowX 2]
 /-- δ_t = 0 is allowed: three timeouts at slot 1 cross height 1 at once, and
 justify nothing. -/
 example : (derive E4 cfg0 BX).h = 2 ∧ (derive E4 cfg0 BX).h_j = 0 := by decide

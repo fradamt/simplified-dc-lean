@@ -90,9 +90,9 @@ private theorem livenessEvents_old [Fintype V] (E : Electorate V) (cfg : FGConfi
 /-- Every row with the exact finality pair adds its bit to a retained entry.
 The height pair and the R6W arm do not restrict this effect. -/
 theorem window_bit_add_of_row (p : Params) (K : Nat) (hK : 2 ≤ K)
-    (P : FGBlock (Fin p.n)) (s : Slot) (x : Nat) (rs : List (Row (Fin p.n)))
+    (P : FGBlock (Fin p.n)) (s : Slot) (r_s : BlockId) (x : Nat) (rs : List (Row (Fin p.n)))
     (e d : Entry (Fin p.n)) (he : e ∈ (derive p K P).W)
-    (hd : d ∈ (derive p K (.node P s x rs)).W)
+    (hd : d ∈ (derive p K (.node P s r_s x rs)).W)
     (hj : d.j = e.j) (hX : d.X = e.X)
     (a : Row (Fin p.n)) (ha : a ∈ rs)
     (hpair : a.finality_pair = some ⟨e.j, e.X.root⟩) : a.signer ∈ d.Q := by
@@ -101,7 +101,7 @@ theorem window_bit_add_of_row (p : Params) (K : Nat) (hK : 2 ≤ K)
     rw [hj]
     exact (window_bounds p K hK P e he).2.1.trans_lt
       ((windowHeightLaws p K hK).justified_below_height P)
-  have hm := livenessEvents_old p.E p.cfg K (certificateFolded p K (.node P s x rs))
+  have hm := livenessEvents_old p.E p.cfg K (certificateFolded p K (.node P s r_s x rs))
     d hd (by
       change d.j < (rs.foldl process_row { derive p K P with s := s }).h
       rw [ff.2]
@@ -127,14 +127,14 @@ theorem window_bits_accumulate (p : Params) (K : Nat) (hK : 2 ≤ K)
   intro B hAB hBC a ha hpair
   cases B with
   | genesis => simp [FGBlock.rows] at ha
-  | node P s x rs =>
+  | node P s r_s x rs =>
       have hAP := preceq_parent_of_preceq_node hAB.1 hAB.2
       obtain ⟨b, hb, hbj, hbX, _, _⟩ := window_retained_bits_mono p K hK
-        A P C hAP (preceq_trans (preceq_parent_node P s x rs) hBC) e d he hd hj hX
+        A P C hAP (preceq_trans (preceq_parent_node P s r_s x rs) hBC) e d he hd hj hX
       obtain ⟨c, hc, hcj, hcX, _, hcQ⟩ := window_retained_bits_mono p K hK
-        A (.node P s x rs) C hAB.1 hBC e d he hd hj hX
+        A (.node P s r_s x rs) C hAB.1 hBC e d he hd hj hX
       apply hcQ
-      exact window_bit_add_of_row p K hK P s x rs b c hb hc
+      exact window_bit_add_of_row p K hK P s r_s x rs b c hb hc
         (hcj.trans hbj.symm) (hcX.trans hbX.symm) a ha
         (by simpa only [hbj, hbX] using hpair)
 
@@ -142,42 +142,42 @@ theorem window_bits_accumulate (p : Params) (K : Nat) (hK : 2 ≤ K)
 the retained pair. A greater ready height can win the same finality test. -/
 theorem window_finalize_of_accumulated_quorum (p : Params) (K : Nat) (hK : 2 ≤ K)
     (A P : FGBlock (Fin p.n)) (hAP : FGBlock.Preceq A P)
-    (s : Slot) (x : Nat) (rs : List (Row (Fin p.n)))
+    (s : Slot) (r_s : BlockId) (x : Nat) (rs : List (Row (Fin p.n)))
     (e d : Entry (Fin p.n)) (he : e ∈ (derive p K A).W)
     (hd : d ∈ (derive p K P).W) (hj : d.j = e.j) (hX : d.X = e.X)
     (Q : Finset (Fin p.n)) (hQ : p.E.IsQuorum Q)
     (hcover : ∀ i ∈ Q, i ∈ e.Q ∨ ∃ B, StrictPrefix A B ∧
-      FGBlock.Preceq B (.node P s x rs) ∧ ∃ a ∈ B.rows,
+      FGBlock.Preceq B (.node P s r_s x rs) ∧ ∃ a ∈ B.rows,
         a.signer = i ∧ a.finality_pair = some ⟨e.j, e.X.root⟩) :
-    FGBlock.Preceq e.X (derive p K (.node P s x rs)).F ∧
-      e.j ≤ (derive p K (.node P s x rs)).h_F := by
+    FGBlock.Preceq e.X (derive p K (.node P s r_s x rs)).F ∧
+      e.j ≤ (derive p K (.node P s r_s x rs)).h_F := by
   have acc := window_bits_accumulate p K hK A P hAP e d he hd hj hX
   have cover : ∀ i ∈ Q, i ∈ d.Q ∨ ∃ a ∈ rs,
       a.signer = i ∧ a.finality_pair = some ⟨d.j, d.X.root⟩ := by
     intro i hi
     rcases hcover i hi with old | ⟨B, hAB, hBC, a, ha, hai, hp⟩
     · exact Or.inl (acc.1 old)
-    · by_cases hB : B = .node P s x rs
+    · by_cases hB : B = .node P s r_s x rs
       · subst B
         exact Or.inr ⟨a, ha, hai, by simpa only [hj, hX] using hp⟩
       · rw [← hai]
         exact Or.inl (acc.2 B hAB (preceq_parent_of_preceq_node hBC hB) a ha hp)
-  simpa only [hj, hX] using window_finality_of_cover p K hK P s x rs d hd Q hQ cover
+  simpa only [hj, hX] using window_finality_of_cover p K hK P s r_s x rs d hd Q hQ cover
 
 /-- The exact target branch appends the current height and target after
 finality pruning. The appended entry is last and has the greatest height. -/
 theorem window_target_appended_newest (p : Params) (K : Nat) (hK : 2 ≤ K)
-    (P : FGBlock (Fin p.n)) (s : Slot) (x : Nat) (rs : List (Row (Fin p.n)))
+    (P : FGBlock (Fin p.n)) (s : Slot) (r_s : BlockId) (x : Nat) (rs : List (Row (Fin p.n)))
     (ht : targetQuorum p.E
-      (finalizeWindow p.E (certificateFolded p K (.node P s x rs))) = true) :
-    let B := FGBlock.node P s x rs
+      (finalizeWindow p.E (certificateFolded p K (.node P s r_s x rs))) = true) :
+    let B := FGBlock.node P s r_s x rs
     let f := finalizeWindow p.E (certificateFolded p K B)
     let new : Entry (Fin p.n) := ⟨f.h, f.T_h, ∅⟩
     (derive p K B).W = (f.W ++ [new]).drop ((f.W ++ [new]).length - K) ∧
       ∃ older, (derive p K B).W = older ++ [new] ∧
         (∀ d ∈ older, d.j < new.j) ∧ (derive p K B).h_F < new.j := by
   dsimp only
-  let B := FGBlock.node P s x rs
+  let B := FGBlock.node P s r_s x rs
   let f := finalizeWindow p.E (certificateFolded p K B)
   let new : Entry (Fin p.n) := ⟨f.h, f.T_h, ∅⟩
   have hw : (derive p K B).W = (f.W ++ [new]).drop ((f.W ++ [new]).length - K) := by
@@ -198,47 +198,47 @@ theorem window_target_appended_newest (p : Params) (K : Nat) (hK : 2 ≤ K)
 
 /-- Above current finality, fewer than K newer entries prevents eviction. -/
 theorem window_retained_of_few_newer (p : Params) (K : Nat) (hK : 2 ≤ K)
-    (P : FGBlock (Fin p.n)) (s : Slot) (x : Nat) (rs : List (Row (Fin p.n)))
+    (P : FGBlock (Fin p.n)) (s : Slot) (r_s : BlockId) (x : Nat) (rs : List (Row (Fin p.n)))
     (e : Entry (Fin p.n)) (he : e ∈ (derive p K P).W)
-    (above : (derive p K (.node P s x rs)).h_F < e.j)
-    (few : ((derive p K (.node P s x rs)).W.filter (fun d => decide (e.j < d.j))).length < K) :
-    ∃ d ∈ (derive p K (.node P s x rs)).W, d.j = e.j ∧ d.X = e.X ∧ e.Q ⊆ d.Q := by
-  have present : ∃ d ∈ (derive p K (.node P s x rs)).W, d.j = e.j ∧ d.X = e.X := by
+    (above : (derive p K (.node P s r_s x rs)).h_F < e.j)
+    (few : ((derive p K (.node P s r_s x rs)).W.filter (fun d => decide (e.j < d.j))).length < K) :
+    ∃ d ∈ (derive p K (.node P s r_s x rs)).W, d.j = e.j ∧ d.X = e.X ∧ e.Q ⊆ d.Q := by
+  have present : ∃ d ∈ (derive p K (.node P s r_s x rs)).W, d.j = e.j ∧ d.X = e.X := by
     by_contra gone
-    obtain ⟨hl, _, _, _, hn⟩ := window_evicted_has_K_newer p K hK P s x rs e he gone above
-    have hf : (derive p K (.node P s x rs)).W.filter (fun d => decide (e.j < d.j)) =
-        (derive p K (.node P s x rs)).W := by
+    obtain ⟨hl, _, _, _, hn⟩ := window_evicted_has_K_newer p K hK P s r_s x rs e he gone above
+    have hf : (derive p K (.node P s r_s x rs)).W.filter (fun d => decide (e.j < d.j)) =
+        (derive p K (.node P s r_s x rs)).W := by
       apply List.filter_eq_self.mpr
       intro d hd
       exact decide_eq_true (hn d hd).1
     rw [hf, hl] at few
     exact (Nat.lt_irrefl K) few
   obtain ⟨d, hd, hj, hX⟩ := present
-  exact ⟨d, hd, hj, hX, window_bit_retained p K hK P (.node P s x rs)
-    (preceq_parent_node P s x rs) e d he hd hj.symm hX.symm⟩
+  exact ⟨d, hd, hj, hX, window_bit_retained p K hK P (.node P s r_s x rs)
+    (preceq_parent_node P s r_s x rs) e d he hd hj.symm hX.symm⟩
 
 /-- Apply the current-state finality and capacity bounds at each child
 strictly after A. The same entry key remains, and its bits only increase. -/
 theorem window_retained_along (p : Params) (K : Nat) (hK : 2 ≤ K)
     (A C : FGBlock (Fin p.n)) (hAC : FGBlock.Preceq A C)
     (e : Entry (Fin p.n)) (he : e ∈ (derive p K A).W)
-    (bounds : ∀ P s x rs, FGBlock.Preceq A P → FGBlock.Preceq (.node P s x rs) C →
-      (derive p K (.node P s x rs)).h_F < e.j ∧
-        ((derive p K (.node P s x rs)).W.filter (fun d => decide (e.j < d.j))).length < K) :
+    (bounds : ∀ P s r_s x rs, FGBlock.Preceq A P → FGBlock.Preceq (.node P s r_s x rs) C →
+      (derive p K (.node P s r_s x rs)).h_F < e.j ∧
+        ((derive p K (.node P s r_s x rs)).W.filter (fun d => decide (e.j < d.j))).length < K) :
     ∃ d ∈ (derive p K C).W, d.j = e.j ∧ d.X = e.X ∧ e.Q ⊆ d.Q := by
   induction C with
   | genesis =>
       obtain rfl := preceq_genesis.mp hAC
       exact ⟨e, he, rfl, rfl, Finset.Subset.refl _⟩
-  | node P s x rs ih =>
-      by_cases hA : A = .node P s x rs
+  | node P s r_s x rs ih =>
+      by_cases hA : A = .node P s r_s x rs
       · subst A
         exact ⟨e, he, rfl, rfl, Finset.Subset.refl _⟩
       · have hAP := preceq_parent_of_preceq_node hAC hA
-        obtain ⟨b, hb, hbj, hbX, hbQ⟩ := ih hAP (fun R t y rows hAR hRP =>
-          bounds R t y rows hAR (preceq_node_of_preceq s x rs hRP))
-        have hbound := bounds P s x rs hAP (preceq_refl _)
-        obtain ⟨d, hd, hdj, hdX, hdQ⟩ := window_retained_of_few_newer p K hK P s x rs b hb
+        obtain ⟨b, hb, hbj, hbX, hbQ⟩ := ih hAP (fun R t r_t y rows hAR hRP =>
+          bounds R t r_t y rows hAR (preceq_node_of_preceq s r_s x rs hRP))
+        have hbound := bounds P s r_s x rs hAP (preceq_refl _)
+        obtain ⟨d, hd, hdj, hdX, hdQ⟩ := window_retained_of_few_newer p K hK P s r_s x rs b hb
           (by simpa only [hbj] using hbound.1) (by simpa only [hbj] using hbound.2)
         exact ⟨d, hd, hdj.trans hbj, hdX.trans hbX, hbQ.trans hdQ⟩
 

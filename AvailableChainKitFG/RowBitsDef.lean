@@ -119,9 +119,9 @@ def BitFromRowStatement : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] [RowCodec V]
     (E : Electorate V) (cfg : FGConfig)
     (kind : ChainBit) (parent W : FGBlock V)
-    (slot : Slot) (body : Nat) (rows : List (Row V)) (a : Row V),
+    (slot : Slot) (r_slot : BlockId) (body : Nat) (rows : List (Row V)) (a : Row V),
     a ∈ rows →
-    FGBlock.Preceq (.node parent slot body rows) W →
+    FGBlock.Preceq (.node parent slot r_slot body rows) W →
     rowMatchesBit kind (derive E cfg parent) a →
     sameBitState kind (derive E cfg parent) (derive E cfg W) →
     a.signer ∈ chainBits kind (derive E cfg W)
@@ -135,9 +135,9 @@ theorem BitFromRowStatement_def :
       (∀ {V : Type} [DecidableEq V] [Fintype V] [RowCodec V]
         (E : Electorate V) (cfg : FGConfig)
         (kind : ChainBit) (parent W : FGBlock V)
-        (slot : Slot) (body : Nat) (rows : List (Row V)) (a : Row V),
+        (slot : Slot) (r_slot : BlockId) (body : Nat) (rows : List (Row V)) (a : Row V),
         a ∈ rows →
-        FGBlock.Preceq (.node parent slot body rows) W →
+        FGBlock.Preceq (.node parent slot r_slot body rows) W →
         rowMatchesBit kind (derive E cfg parent) a →
         sameBitState kind (derive E cfg parent) (derive E cfg W) →
         a.signer ∈ chainBits kind (derive E cfg W)) := by rfl

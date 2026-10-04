@@ -22,17 +22,17 @@ theorem simplexPending_def (σ : ChainState V) :
 def simplexSelectionView (E : Electorate V) (cfg : FGConfig) : FGSelectionView V where
   before := fun B => match B with
     | .genesis => []
-    | .node p _ _ rs =>
+    | .node p _ _ _ rs =>
         let σ := { rs.foldl process_row { derive E cfg p with s := B.slot } with L := B }
         simplexPending σ
   chosen := fun B => match B with
     | .genesis => none
-    | .node p _ _ rs =>
+    | .node p _ _ _ rs =>
         let σ := { rs.foldl process_row { derive E cfg p with s := B.slot } with L := B }
         if finalityReady E σ then some ⟨σ.h_j, σ.J, σ.finalize⟩ else none
   afterPrune := fun B => match B with
     | .genesis => []
-    | .node p _ _ rs =>
+    | .node p _ _ _ rs =>
         let σ := { rs.foldl process_row { derive E cfg p with s := B.slot } with L := B }
         simplexPending (if finalityReady E σ then { σ with F := σ.J, h_F := σ.h_j } else σ)
 
@@ -40,17 +40,17 @@ theorem simplexSelectionView_def (E : Electorate V) (cfg : FGConfig) :
     simplexSelectionView E cfg =
       { before := fun B => match B with
           | .genesis => []
-          | .node p _ _ rs =>
+          | .node p _ _ _ rs =>
               let σ := { rs.foldl process_row { derive E cfg p with s := B.slot } with L := B }
               simplexPending σ
         chosen := fun B => match B with
           | .genesis => none
-          | .node p _ _ rs =>
+          | .node p _ _ _ rs =>
               let σ := { rs.foldl process_row { derive E cfg p with s := B.slot } with L := B }
               if finalityReady E σ then some ⟨σ.h_j, σ.J, σ.finalize⟩ else none
         afterPrune := fun B => match B with
           | .genesis => []
-          | .node p _ _ rs =>
+          | .node p _ _ _ rs =>
               let σ := { rs.foldl process_row { derive E cfg p with s := B.slot } with L := B }
               simplexPending
                 (if finalityReady E σ then { σ with F := σ.J, h_F := σ.h_j } else σ) } := rfl

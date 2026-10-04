@@ -21,12 +21,9 @@ omit [DecidableEq V] in
 theorem eraseFG_slot (B : FGBlock V) : (eraseFG B).slot = B.slot := by
   cases B <;> rfl
 omit [DecidableEq V] in
-/-- [bp bp.carrier.v1; K5 local] (step 1) The erasure keeps the root, on every
-FG block: both roots read the same content with the same outer code. -/
+/-- [ROOT-DIGEST W1; DC NamedWire.erase] Erasure copies every stored root. -/
 theorem eraseFG_root (B : FGBlock V) : (eraseFG B).root = B.root := by
-  induction B with
-  | genesis => rfl
-  | node p s x rs ih => simp only [eraseFG, Block.root, FGBlock.root, ih]
+  cases B <;> rfl
 omit [DecidableEq V] in
 /-- [bp bp.carrier.v1; K5 local] (step 1) -/
 theorem eraseFG_parent (B : FGBlock V) : (eraseFG B).parent = eraseFG B.parent := by
@@ -35,6 +32,29 @@ omit [DecidableEq V] in
 /-- [bp bp.carrier.v1; K5 local] (step 1) -/
 theorem eraseFG_eq_genesis {B : FGBlock V} : eraseFG B = .genesis ↔ B = .genesis := by
   cases B <;> simp [eraseFG]
+omit [DecidableEq V] in
+/-- [ROOT-DIGEST W1; DC NamedWire.erase] Erasure keeps every structural field. -/
+theorem eraseFG_injective : Function.Injective (eraseFG (V := V)) := by
+  intro A
+  induction A with
+  | genesis =>
+    intro B h
+    cases B <;> simp_all [eraseFG]
+  | node p s r x rs ih =>
+    intro B h
+    cases B with
+    | genesis => simp [eraseFG] at h
+    | node q t u y ts =>
+      simp only [eraseFG, Block.node.injEq] at h
+      obtain ⟨hp, hs, hr, hb⟩ := h
+      obtain ⟨hx, hrows⟩ := encFGBody_inj hb
+      cases ih hp
+      cases hs
+      cases hr
+      cases hx
+      cases hrows
+      rfl
+
 /-- [bp bp.carrier.v1; K5 local] (step 2; DC `NamedWire.erase_preceq`) Forward ancestry. -/
 theorem eraseFG_preceq {A B : FGBlock V} (h : FGBlock.Preceq A B) :
     Block.Preceq (eraseFG A) (eraseFG B) := by
@@ -43,12 +63,12 @@ theorem eraseFG_preceq {A B : FGBlock V} (h : FGBlock.Preceq A B) :
       rw [KitFG.preceq_genesis] at h
       subst h
       exact block_preceq_refl _
-  | node p s r rs ih =>
+  | node p s r_s r rs ih =>
       simp only [FGBlock.Preceq, FGBlock.preceq, Bool.or_eq_true, decide_eq_true_eq] at h
       rcases h with rfl | h
       · exact block_preceq_refl _
       · have hp := ih h
-        change Block.preceq (eraseFG A) (Block.node (eraseFG p) s (encFGBody r rs)) = true
+        change Block.preceq (eraseFG A) (Block.node (eraseFG p) s r_s (encFGBody r rs)) = true
         simp only [Block.preceq, Bool.or_eq_true]
         exact Or.inr hp
 /-- [bp bp.carrier.v1; K5 local] (step 2) Forward compatibility. -/
@@ -60,6 +80,27 @@ theorem eraseFG_compatible {A B : FGBlock V} (h : FGBlock.compatible A B = true)
   rcases h with h | h
   · exact Or.inl (eraseFG_preceq h)
   · exact Or.inr (eraseFG_preceq h)
+/-- [ROOT-DIGEST W1; DC NamedWire.erase_preceq] Erasure reflects ancestry globally. -/
+theorem eraseFG_preceq_iff {A B : FGBlock V} :
+    Block.Preceq (eraseFG A) (eraseFG B) ↔ FGBlock.Preceq A B := by
+  constructor
+  · intro h
+    induction B with
+    | genesis =>
+      have hg : eraseFG A = .genesis := by
+        simpa [eraseFG, Block.Preceq, Block.preceq] using h
+      rw [eraseFG_eq_genesis.mp hg]
+      exact KitFG.preceq_refl _
+    | node p s r x rs ih =>
+      simp only [eraseFG, Block.Preceq, Block.preceq, Bool.or_eq_true,
+        decide_eq_true_eq] at h
+      rcases h with h | h
+      · have he : A = .node p s r x rs := eraseFG_injective h
+        rw [he]
+        exact KitFG.preceq_refl _
+      · exact KitFG.preceq_node_of_preceq s r x rs (ih h)
+  · exact eraseFG_preceq
+
 /-- [bp bp.carrier.v1; K5 local] (step 3) Erasure is injective on the ancestors
 of a root-injective view. -/
 theorem eraseFG_injOn {Vw : View V} (hinj : ViewRootInj Vw) {A B : FGBlock V}
@@ -76,15 +117,15 @@ theorem preceq_of_eraseFG_preceq {Vw : View V} (hinj : ViewRootInj Vw) {A B : FG
         simpa [eraseFG, Block.Preceq, Block.preceq] using h
       rw [eraseFG_eq_genesis.mp hg]
       exact KitFG.preceq_refl _
-  | node p s r rs ih =>
-      change Block.preceq (eraseFG A) (Block.node (eraseFG p) s (encFGBody r rs)) = true at h
+  | node p s r_s r rs ih =>
+      change Block.preceq (eraseFG A) (Block.node (eraseFG p) s r_s (encFGBody r rs)) = true at h
       simp only [Block.preceq, Bool.or_eq_true, decide_eq_true_eq] at h
       rcases h with h | h
-      · have hAB : A = .node p s r rs := eraseFG_injOn hinj hA hB h
+      · have hAB : A = .node p s r_s r rs := eraseFG_injOn hinj hA hB h
         subst hAB
         exact KitFG.preceq_refl _
       · obtain ⟨W, hW, hBW⟩ := hB
-        have hpB : FGBlock.Preceq p (.node p s r rs) := by
+        have hpB : FGBlock.Preceq p (.node p s r_s r rs) := by
           simp only [FGBlock.Preceq, FGBlock.preceq, Bool.or_eq_true, decide_eq_true_eq]
           exact Or.inr (KitFG.preceq_refl p)
         exact KitFG.preceq_trans (ih ⟨W, hW, KitFG.preceq_trans hpB hBW⟩ h) hpB
@@ -129,14 +170,6 @@ theorem erase_rootInjective {T : Finset (FGBlock V)} (hinj : ViewRootInj T) :
   obtain ⟨Y, hY, rfl⟩ := Finset.mem_image.mp hc
   rw [eraseFG_root, eraseFG_root] at hr
   rw [hinj X Y ⟨X, hX, KitFG.preceq_refl X⟩ ⟨Y, hY, KitFG.preceq_refl Y⟩ hr]
-
-omit [DecidableEq V] in
-/-- [bp bp.carrier.v1; derived roots] The erasure is injective on all FG blocks:
-it keeps the root, and FG roots are injective. -/
-theorem eraseFG_injective : Function.Injective (eraseFG (V := V)) := by
-  intro A B h
-  apply FGBlock.root_injective
-  rw [← eraseFG_root A, ← eraseFG_root B, h]
 
 /-! ### The packed content (D9) -/
 
@@ -215,8 +248,9 @@ theorem rowsOk_iff (b : Block) (rw : List (RowWire n)) :
 
 /-- [D9] A node whose body packs the rows passes the content check (the honest
 proposer's block, `propose`). -/
-theorem rowsOk_node_packBody (P : Block) (s : Slot) (app : Nat) (rw : List (RowWire n)) :
-    rowsOk (.node P s (packBody app rw)) rw = true := by
+theorem rowsOk_node_packBody (P : Block) (s : Slot) (r_s : BlockId) (app : Nat) (rw : List
+  (RowWire n)) :
+    rowsOk (.node P s r_s (packBody app rw)) rw = true := by
   rw [rowsOk_iff]
   simp [Block.body]
 
@@ -226,6 +260,18 @@ theorem rows_eq_of_rowsOk {b : Block} {rw rw' : List (RowWire n)} (h : rowsOk b 
     (h' : rowsOk b rw' = true) : rw = rw' := by
   rw [rowsOk_iff] at h h'
   exact (packBody_inj (h.symm.trans h')).2
+
+/-- [ROOT-DIGEST W1; DC NamedBlocks] The full content check keeps BODY validity. -/
+theorem contentOk_rowsOk {p : Params} {b : Block} {raw support : List (HeadWire p.n)}
+    {rows : List (RowWire p.n)} (h : contentOk p b raw support rows = true) :
+    rowsOk b rows = true := (Bool.and_eq_true_iff.mp h).1
+
+/-- [ROOT-DIGEST W1; DC NamedBlocks] The smart constructor passes both content checks. -/
+theorem contentOk_proposalBlock (p : Params) (H : Block) (s : Slot) (app : Nat)
+    (raw support : List (HeadWire p.n)) (rows : List (RowWire p.n)) :
+    contentOk p (proposalBlock p H s app raw support rows) raw support rows = true := by
+  simp [contentOk, rowsOk, proposalBlock, proposalInput, Block.body, Block.root,
+    Block.parent, Block.slot]
 
 end Packing
 

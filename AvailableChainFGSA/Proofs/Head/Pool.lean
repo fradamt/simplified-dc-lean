@@ -105,7 +105,7 @@ DC: NamedConfirmationWalk:28 and GSTZeroPreparedWalk:546–578.
 INTENTIONAL: F anchor and explicit anchor eligibility, spec:2506–2513;
 only the suffix above the anchor must be stored (P3 Astra r3 #1). -/
 theorem fgsa_confirmationFrom_covers_majority (p : Params) (v : GridCO.State p.n)
-    (a B : Block) (s : Slot) (hc : Block.Compatible a B)
+    (a B : Block) (s : Slot) (r_s : BlockId) (hc : Block.Compatible a B)
     (ha : GridCO.voterCount (GridCO.lateVotes p.toParams.engine v s) <
       2 * SA.prefixSupport p.toParams v s a)
     (hb : GridCO.voterCount (GridCO.lateVotes p.toParams.engine v s) <
@@ -134,11 +134,11 @@ theorem fgsa_confirmationFrom_covers_majority (p : Params) (v : GridCO.State p.n
       | genesis =>
         cases X with
         | genesis => rfl
-        | node P s id => cases hp
-      | node P s id =>
+        | node P s r_s id => cases hp
+      | node P s r_s id =>
         cases X with
         | genesis => cases hp
-        | node Q t jd =>
+        | node Q t r_t jd =>
           have heq : P = Q := Option.some.inj hp
           subst Q
           rfl

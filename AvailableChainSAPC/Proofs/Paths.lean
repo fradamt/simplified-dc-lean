@@ -37,7 +37,7 @@ theorem pathKnown_of_mem {n : Nat} (st : State n)
     (b : Block) (hb : b ∈ st.base.blocks) : pathKnown st b = true := by
   induction b with
   | genesis => simpa [pathKnown, GridCO.blockKnown] using hg
-  | node parent s root ih =>
+  | node parent s r_s root ih =>
       have hp : parent ∈ st.base.blocks := by
         by_cases he : parent = .genesis
         · simpa [he] using hg

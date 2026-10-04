@@ -158,7 +158,7 @@ theorem gate_veto_of_live_target (p : Params) {n : Nat}
 separate run invariant; it is not true for arbitrary structural blocks. -/
 def SlotOrdered : Block → Prop
   | .genesis => True
-  | .node parent slot _ => parent.slot < slot ∧ SlotOrdered parent
+  | .node parent slot _ _ => parent.slot < slot ∧ SlotOrdered parent
 
 private theorem preceq_slot_le (B C : Block) (hordered : SlotOrdered C)
     (hBC : Block.preceq B C = true) : B.slot ≤ C.slot := by
@@ -167,9 +167,9 @@ private theorem preceq_slot_le (B C : Block) (hordered : SlotOrdered C)
       have h : B = .genesis := by simpa [Block.preceq] using hBC
       subst B
       exact le_refl _
-  | node parent slot root ih =>
+  | node parent slot r_slot root ih =>
       obtain ⟨hparent, horderedParent⟩ := hordered
-      have h : B = .node parent slot root ∨ Block.preceq B parent = true := by
+      have h : B = .node parent slot r_slot root ∨ Block.preceq B parent = true := by
         simpa [Block.preceq, Bool.or_eq_true] using hBC
       rcases h with h | h
       · subst B

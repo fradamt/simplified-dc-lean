@@ -64,10 +64,6 @@ def RootInjective (E : Generic.Env V) (I : Interface P) (rho : Run V P) : Prop :
   ∀ B C, BlockInRun E I rho B → BlockInRun E I rho C →
     B.root = C.root → B = C
 
-theorem rootInjective_all (E : Generic.Env V) (I : Interface P) (rho : Run V P) :
-    RootInjective E I rho :=
-  fun _ _ _ _ h => Block.root_injective h
-
 end AvailableChain.V2.D
 
 end

@@ -43,11 +43,11 @@ theorem eraseFG_ancestor_mem {T : Finset (FGBlock (Fin n))} (hcl : ∀ B ∈ T, 
   | genesis =>
       simp only [eraseFG, Block.Preceq, Block.preceq, decide_eq_true_eq] at hc
       exact ⟨.genesis, hB, hc.symm⟩
-  | node P s r rows ih =>
+  | node P s r_s r rows ih =>
       simp only [eraseFG, Block.Preceq, Block.preceq, Bool.or_eq_true,
         decide_eq_true_eq] at hc
       rcases hc with hc | hc
-      · exact ⟨.node P s r rows, hB, hc.symm⟩
+      · exact ⟨.node P s r_s r rows, hB, hc.symm⟩
       · exact ih (hcl _ hB) hc
 
 /-- [bp bp.activeView.v1] (item 1, first part) `actView` keeps only stored blocks. -/

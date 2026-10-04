@@ -52,7 +52,7 @@ theorem honest_proposal_views {V : Type} [DecidableEq V] (p : Params)
     let st := proposalState p rho s
     let parent := choice p st st.base.blocks (GridCO.proposerView st.base s)
       (GridCO.proposerSupportView st.base s) s st.bestPC
-    0 < s ∧ b = .node parent s 0 ∧
+    0 < s ∧ b = .node parent s (nodeRoot parent.root s 0) 0 ∧
       Run.emits (sapc p) E rho (rho.proposerOf s)
         ⟨.proposer s, .proposal b (originalHeads st (GridCO.proposerView st.base s))
           (originalHeads st (GridCO.proposerSupportView st.base s)) st.bestPC⟩
@@ -103,7 +103,7 @@ theorem honest_proposal_exists {V : Type} [DecidableEq V]
   let st := clock p (Run.stateBefore (sapc p) rho i (rho.proposerOf s)) (proposalTime p s)
   let parent := choice p st st.base.blocks (GridCO.proposerView st.base s)
     (GridCO.proposerSupportView st.base s) s st.bestPC
-  let b := Block.node parent s 0
+  let b := Block.node parent s (nodeRoot parent.root s 0) 0
   let msg := Msg.proposal b (originalHeads st (GridCO.proposerView st.base s))
     (originalHeads st (GridCO.proposerSupportView st.base s)) st.bestPC
   have hp : propose p st s = some msg := by simp [propose, Nat.ne_of_gt hs, msg, b, parent]

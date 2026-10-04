@@ -49,7 +49,7 @@ theorem selectedPC_installPC (p : Params) {n : Nat} (st : State n)
   have hpath (b : Block) : pathKnown (installPC st c) b = pathKnown st b := by
     induction b with
     | genesis => rfl
-    | node parent s root ih =>
+    | node parent s r_s root ih =>
         rw [pathKnown, pathKnown, ih]
         rfl
   have hvalid (cert : PC n) : pcValid p (installPC st c) cert = pcValid p st cert := by

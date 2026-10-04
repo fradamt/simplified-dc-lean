@@ -57,11 +57,12 @@ def FastOrigin {n : Nat} (Fb : Block) (st : State n) : Prop :=
     (∃ C, GridCO.savedGenuine st.base row.1 = some (some C) ∧ Block.Preceq B C) ∨
       Block.Preceq B Fb
 
-/-- [bp bp.store.v1; K4 core; K1] The composite store invariant. `fg`: the FG
+/-- [ROOT-DIGEST W1; DC NamedBlocks and RootInjectiveOnAncestors]
+[bp bp.store.v1; K4 core; K1] The composite store invariant. `fg`: the FG
 module's invariant (K4). `rootInj`: Σ.T is root-injective (DQ2). `baseTree`: the
 base list is Σ.T erased. `Smem`: S is stored. `fastOrigin`, `fastDom`: the
-fast-write origins (M3). `rootInj` holds on every store (`FGBlock.root_injective`,
-derived roots); the field stays (D6). `genuineKeys`, `leaseKeys`: one saved result per label
+fast-write origins (M3). `rootInj` follows from local fresh-root admission; the field stays (D6).
+`genuineKeys`, `leaseKeys`: one saved result per label
 and one lease row per target, at the SA level (audit M4; used by `fastWriteAt`,
 `leaseOf`). -/
 structure CStoreInv (p : Params) (st : State p.n) : Prop where
@@ -94,7 +95,7 @@ and whose FG block is in Σ.T, with the SAME ordered rows (`filterMap toRow?`).
 carries genesis (G12 m1; with `treeWire` it gives `contentAgree_self`). -/
 structure MetaInv (p : Params) (st : State p.n) : Prop where
   wireTree : ∀ o ∈ st.proposals, ∃ s b raw sup rows,
-    o = ⟨.proposer s, .proposal b raw sup rows⟩ ∧ rowsOk b rows = true ∧
+    o = ⟨.proposer s, .proposal b raw sup rows⟩ ∧ contentOk p b raw sup rows = true ∧
     (∀ a ∈ rows, (RowWire.decode? a).isSome) ∧
     ∃ B ∈ st.fg.TF, eraseFG B = b ∧ B.rows = rows.filterMap RowWire.toRow?
   treeWire : ∀ B ∈ st.fg.TF, B ≠ .genesis →
@@ -106,13 +107,10 @@ structure MetaInv (p : Params) (st : State p.n) : Prop where
   poolNodup : st.rowPool.Nodup
   noGenesisWire : ∀ o ∈ st.proposals, Wire.block? o ≠ some .genesis
 
-/-- [bp bp.carrier.v1; K5 cross-node; DQ3(b), which REVERSES comp D4; audit M2;
-narrowed at G12] The content premise on two stores: stored proposal wires whose
-blocks have equal roots have the same erased block (with its parent chain) and
-the same ordered signed rows. The carried votes and the
-support list are free: no cross-node proof reads them. With derived roots and
-the content check `rowsOk` it is a theorem for any two stores with the metadata
-invariant (`contentAgree`, `Proofs/CrossNode.lean`); no run premise is needed. -/
+/-- [ROOT-DIGEST W1; DC NamedRootCollisionFree] Content agreement for two stores.
+Stored proposals with equal roots have the same erased block and signed rows.
+The run proof needs body scope and the content check. Raw and support list
+identity must come from authenticated wire origin. -/
 def ContentAgree {n : Nat} (st st' : State n) : Prop :=
   ∀ s b raw sup rows, (⟨.proposer s, .proposal b raw sup rows⟩ : Wire n) ∈ st.proposals →
   ∀ s' b' raw' sup' rows',

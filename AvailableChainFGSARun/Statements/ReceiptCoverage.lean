@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSARun.Statements.Roots
 public import AvailableChainFGSARun.Statements.AC
 public import AvailableChainGeneric.Statements.V2.Duty.DeliveryBy
 
@@ -90,7 +91,8 @@ def ReceiptCoverageStatement : Prop :=
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (dl : Time → Time) (cut D : Time) (first : Nat) (x : V) (B : Block)
     (required : Obj p → Time → Prop) (paths : Block → Time → Prop),
-    E.Δ = p.Δ → V2.D.ExecutionValid E rho → V2.D.NoRestart rho → x ∈ rho.honest →
+    NamedRootCollisionFree p c E rho → E.Δ = p.Δ → V2.D.ExecutionValid E rho → V2.D.NoRestart rho
+      → x ∈ rho.honest →
     ReceiptCoveragePremises E rho dl cut D first x B required paths →
     let st := (V2.D.Run.stateBeforeTime E rho D x).st
     ((Block.Preceq B (eraseFG st.fg.F) ∧
@@ -119,7 +121,8 @@ theorem ReceiptCoverageStatement_def :
         (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
         (dl : Time → Time) (cut D : Time) (first : Nat) (x : V) (B : Block)
         (required : Obj p → Time → Prop) (paths : Block → Time → Prop),
-        E.Δ = p.Δ → V2.D.ExecutionValid E rho → V2.D.NoRestart rho → x ∈ rho.honest →
+        NamedRootCollisionFree p c E rho → E.Δ = p.Δ → V2.D.ExecutionValid E rho → V2.D.NoRestart
+          rho → x ∈ rho.honest →
         ReceiptCoveragePremises E rho dl cut D first x B required paths →
         let st := (V2.D.Run.stateBeforeTime E rho D x).st
         ((Block.Preceq B (eraseFG st.fg.F) ∧

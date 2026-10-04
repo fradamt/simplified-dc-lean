@@ -179,8 +179,8 @@ private theorem prefix_depth (A B : Block) (h : Block.Preceq A B) : A.depth ≤ 
   induction B with
   | genesis => have : A = .genesis := by simpa [Block.Preceq, Block.preceq] using h
                subst A; rfl
-  | node P s id ih =>
-      obtain he | hp : A = .node P s id ∨ Block.Preceq A P := by
+  | node P s r_s id ih =>
+      obtain he | hp : A = .node P s r_s id ∨ Block.Preceq A P := by
         simpa [Block.Preceq, Block.preceq, Bool.or_eq_true] using h
       · subst A; rfl
       · exact (ih hp).trans (Nat.le_succ _)
@@ -189,8 +189,8 @@ private theorem prefix_eq_of_depth (A B : Block) (h : Block.Preceq A B)
     (hd : B.depth ≤ A.depth) : A = B := by
   cases B with
   | genesis => simpa [Block.Preceq, Block.preceq] using h
-  | node P s id =>
-      obtain he | hp : A = .node P s id ∨ Block.Preceq A P := by
+  | node P s r_s id =>
+      obtain he | hp : A = .node P s r_s id ∨ Block.Preceq A P := by
         simpa [Block.Preceq, Block.preceq, Bool.or_eq_true] using h
       · exact he
       · have := prefix_depth A P hp
@@ -205,7 +205,7 @@ private theorem parent_prefix (A C : Block) (h : C.parent? = some A) :
     Block.Preceq A C := by
   cases C with
   | genesis => simp [Block.parent?] at h
-  | node P s id =>
+  | node P s r_s id =>
       have he : P = A := by simpa [Block.parent?] using h
       subst P
       exact Bool.or_eq_true_iff.mpr (Or.inr (block_preceq_self A))
@@ -410,7 +410,7 @@ theorem ghost_adopts_fresh_child (sourceTree targetTree : List Block)
   have hXP : Block.Preceq X parent := by
     cases B with
     | genesis => simp [Block.parent?] at hparent
-    | node P s id =>
+    | node P s r_s id =>
         have he : P = parent := by simpa [Block.parent?] using hparent
         subst P
         simpa [Block.Preceq, Block.preceq, hneB] using hXB

@@ -15,7 +15,7 @@ theorem simplexHeightRefinement
     HeightFoldRefinement E cfg heightOf
       (ChainState.initial : ChainState V)
       (transition E cfg) (derive E cfg) := by
-  refine ⟨rfl, rfl, fun _ _ _ _ => rfl, ?_⟩
+  refine ⟨rfl, rfl, fun _ _ _ _ _ => rfl, ?_⟩
   intro w σ B rs heq
   exact transition_height_eq_of_rowsEq E cfg heq B rs rs (heightSelector_id _ _)
 
@@ -34,9 +34,9 @@ theorem heightBridge_of_refinement
   | genesis =>
       rw [href.derive_genesis]
       exact href.initial_height
-  | node p s x rs ih =>
+  | node p s r_s x rs ih =>
       rw [href.derive_node]
-      exact href.step_height (d p) (derive E cfg p) (.node p s x rs) rs ih
+      exact href.step_height (d p) (derive E cfg p) (.node p s r_s x rs) rs ih
 
 /-- A bridge step also equals a height-preserving selected row step. -/
 theorem heightStepBridge_selector

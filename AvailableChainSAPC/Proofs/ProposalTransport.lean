@@ -63,7 +63,7 @@ theorem honest_proposal_tree_reflects {V : Type} [DecidableEq V]
       have hparent : Block.Preceq c b.parent := by
         cases b with
         | genesis => simp [Block.preceq] at hct; contradiction
-        | node parent slot root =>
+        | node parent slot r_slot root =>
           simpa [Block.Preceq, Block.preceq, heq, Block.parent] using hct
       by_cases hg : c = .genesis
       · simpa only [hg] using (proposalState_paths p rho (r + 1)).2

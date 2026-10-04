@@ -246,7 +246,7 @@ theorem recovery_honest_proposal_head_quorum {V : Type} [DecidableEq V] [Fintype
     simp only [target, headState, clock_blocks]
     cases b with
     | genesis => exact of_decide_eq_true (Bool.and_eq_true_iff.mp path).1
-    | node parent slot root =>
+    | node parent slot r_slot root =>
       exact of_decide_eq_true (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp path).1).1
   have targetClosed : GridCO.StoredPrefixClosed target.base := by
     simpa only [target, headState, GridCO.StoredPrefixClosed, clock_blocks] using!

@@ -340,16 +340,16 @@ private theorem derived_inv (p : Params) (K : Nat) (hK : 2 ≤ K)
   | genesis =>
       rw [derive_def, initial_def]
       refine ⟨⟨by simp, by simp, by simp, preceq_refl _, le_rfl, fun _ => rfl⟩, by simp⟩
-  | node P s x rs ih =>
-      have hw : Inv K { derive p K P with s := (FGBlock.node P s x rs).slot } :=
+  | node P s r_s x rs ih =>
+      have hw : Inv K { derive p K P with s := (FGBlock.node P s r_s x rs).slot } :=
         ⟨ih.1.ordered, ih.1.bounds, ih.1.capacity, ih.1.finality, ih.1.heights, ih.1.zero⟩
       have hi := inv_fold K _ rs hw
-      have ff := fold_fields rs { derive p K P with s := (FGBlock.node P s x rs).slot }
+      have ff := fold_fields rs { derive p K P with s := (FGBlock.node P s r_s x rs).slot }
       have hg := windowHeightLaws p K hK
       have hj : (derive p K P).h_j < (derive p K P).h := hg.justified_below_height P
       have hJT : FGBlock.Preceq (derive p K P).J (derive p K P).T_h :=
         hg.justified_preceq_entry P
-      simp only [derive_def p K (.node P s x rs), transition_def]
+      simp only [derive_def p K (.node P s r_s x rs), transition_def]
       apply inv_events
       · exact ⟨hi.ordered, hi.bounds, hi.capacity, hi.finality, hi.heights, hi.zero⟩
       · simpa only [ff.2.1, ff.2.2.2.1] using hj
@@ -391,19 +391,19 @@ theorem window_finalized_zero (p : Params) (K : Nat) (hK : 2 ≤ K)
     (derive p K B).F = .genesis := (derived_inv p K hK B).1.zero hz
 
 private theorem node_mono (p : Params) (K : Nat) (hK : 2 ≤ K)
-    (P : FGBlock (Fin p.n)) (s : Slot) (x : Nat) (rs : List (Row (Fin p.n))) :
-    (derive p K P).h_F ≤ (derive p K (.node P s x rs)).h_F ∧
-    FGBlock.Preceq (derive p K P).F (derive p K (.node P s x rs)).F := by
+    (P : FGBlock (Fin p.n)) (s : Slot) (r_s : BlockId) (x : Nat) (rs : List (Row (Fin p.n))) :
+    (derive p K P).h_F ≤ (derive p K (.node P s r_s x rs)).h_F ∧
+    FGBlock.Preceq (derive p K P).F (derive p K (.node P s r_s x rs)).F := by
   have hw := (derived_inv p K hK P).1
-  have hs : Inv K { derive p K P with s := (FGBlock.node P s x rs).slot } :=
+  have hs : Inv K { derive p K P with s := (FGBlock.node P s r_s x rs).slot } :=
     ⟨hw.ordered, hw.bounds, hw.capacity, hw.finality, hw.heights, hw.zero⟩
   have hi := inv_fold K _ rs hs
-  have ff := fold_fields rs { derive p K P with s := (FGBlock.node P s x rs).slot }
+  have ff := fold_fields rs { derive p K P with s := (FGBlock.node P s r_s x rs).slot }
   have hm := (inv_final p.E K
-    { rs.foldl process_row { derive p K P with s := (FGBlock.node P s x rs).slot }
-      with L := .node P s x rs }
+    { rs.foldl process_row { derive p K P with s := (FGBlock.node P s r_s x rs).slot }
+      with L := .node P s r_s x rs }
     ⟨hi.ordered, hi.bounds, hi.capacity, hi.finality, hi.heights, hi.zero⟩).2.2
-  simp only [derive_def p K (.node P s x rs), transition_def]
+  simp only [derive_def p K (.node P s r_s x rs), transition_def]
   rw [(events_finality p.E p.cfg K _).1, (events_finality p.E p.cfg K _).2]
   simpa only [ff.2.2.2.2.2.1, ff.2.2.2.2.2.2] using hm
 
@@ -416,12 +416,12 @@ private theorem ancestor_mono (p : Params) (K : Nat) (hK : 2 ≤ K)
       have : A = .genesis := preceq_genesis.mp hAB
       subst A
       exact ⟨le_rfl, preceq_refl _⟩
-  | node P s x rs ih =>
-      by_cases heq : A = .node P s x rs
+  | node P s r_s x rs ih =>
+      by_cases heq : A = .node P s r_s x rs
       · subst A
         exact ⟨le_rfl, preceq_refl _⟩
       · have ha := ih (preceq_parent_of_preceq_node hAB heq)
-        have hb := node_mono p K hK P s x rs
+        have hb := node_mono p K hK P s r_s x rs
         exact ⟨ha.1.trans hb.1, preceq_trans ha.2 hb.2⟩
 
 /-- [bp §3.1] Finalized height is monotone along ancestry. -/
@@ -453,12 +453,12 @@ private theorem events_old (E : Electorate V) (cfg : FGConfig) (K : Nat) (w : St
   · exact ff.2.2.2.2 hd
 
 private theorem node_old (p : Params) (K : Nat)
-    (P : FGBlock (Fin p.n)) (s : Slot) (x : Nat) (rs : List (Row (Fin p.n)))
-    (d : Entry (Fin p.n)) (hd : d ∈ (derive p K (.node P s x rs)).W)
+    (P : FGBlock (Fin p.n)) (s : Slot) (r_s : BlockId) (x : Nat) (rs : List (Row (Fin p.n)))
+    (d : Entry (Fin p.n)) (hd : d ∈ (derive p K (.node P s r_s x rs)).W)
     (hj : d.j < (derive p K P).h) :
     ∃ e ∈ (derive p K P).W, e.j = d.j ∧ e.X = d.X ∧ e.Q ⊆ d.Q := by
-  have ff := fold_fields rs { derive p K P with s := (FGBlock.node P s x rs).slot }
-  simp only [derive_def p K (.node P s x rs), transition_def] at hd
+  have ff := fold_fields rs { derive p K P with s := (FGBlock.node P s r_s x rs).slot }
+  simp only [derive_def p K (.node P s r_s x rs), transition_def] at hd
   have hm := events_old p.E p.cfg K _ d hd (by simpa only [ff.2.1] using hj)
   change d ∈ (rs.foldl process_row _).W at hm
   rw [ff.1, List.mem_map] at hm
@@ -476,14 +476,14 @@ private theorem ancestor_old (p : Params) (K : Nat) (hK : 2 ≤ K)
       have : A = .genesis := preceq_genesis.mp hAB
       subst A
       exact ⟨d, hd, rfl, rfl, Finset.Subset.refl _⟩
-  | node P s x rs ih =>
-      by_cases heq : A = .node P s x rs
+  | node P s r_s x rs ih =>
+      by_cases heq : A = .node P s r_s x rs
       · subst A
         exact ⟨d, hd, rfl, rfl, Finset.Subset.refl _⟩
       · have ha := preceq_parent_of_preceq_node hAB heq
         have hh : (derive p K A).h ≤ (derive p K P).h :=
           (windowHeightLaws p K hK).h_mono ha
-        obtain ⟨c, hc, hcj, hcX, hcQ⟩ := node_old p K P s x rs d hd (hj.trans_le hh)
+        obtain ⟨c, hc, hcj, hcX, hcQ⟩ := node_old p K P s r_s x rs d hd (hj.trans_le hh)
         obtain ⟨e, he, hej, heX, heQ⟩ := ih ha c hc (hcj ▸ hj)
         exact ⟨e, he, hej.trans hcj, heX.trans hcX, heQ.trans hcQ⟩
 
@@ -521,15 +521,15 @@ theorem window_no_reentry (p : Params) (K : Nat) (hK : 2 ≤ K)
 
 /-- [design §5; bp 22 I7] A covered quorum finalizes this entry or a later entry. -/
 theorem window_finality_of_cover (p : Params) (K : Nat) (hK : 2 ≤ K)
-    (P : FGBlock (Fin p.n)) (s : Slot) (x : Nat) (rs : List (Row (Fin p.n)))
+    (P : FGBlock (Fin p.n)) (s : Slot) (r_s : BlockId) (x : Nat) (rs : List (Row (Fin p.n)))
     (e : Entry (Fin p.n)) (he : e ∈ (derive p K P).W)
     (Q : Finset (Fin p.n)) (hQ : p.E.IsQuorum Q)
     (hcover : ∀ i ∈ Q, i ∈ e.Q ∨ ∃ a ∈ rs,
       a.signer = i ∧ a.finality_pair = some ⟨e.j, e.X.root⟩) :
-    FGBlock.Preceq e.X (derive p K (.node P s x rs)).F ∧
-      e.j ≤ (derive p K (.node P s x rs)).h_F := by
-  let w := { derive p K P with s := (FGBlock.node P s x rs).slot }
-  let u := { rs.foldl process_row w with L := FGBlock.node P s x rs }
+    FGBlock.Preceq e.X (derive p K (.node P s r_s x rs)).F ∧
+      e.j ≤ (derive p K (.node P s r_s x rs)).h_F := by
+  let w := { derive p K P with s := (FGBlock.node P s r_s x rs).slot }
+  let u := { rs.foldl process_row w with L := FGBlock.node P s r_s x rs }
   let d := rs.foldl (fun e a => addBit a e) e
   have hw := (derived_inv p K hK P).1
   have hw' : Inv K w :=
@@ -543,7 +543,7 @@ theorem window_finality_of_cover (p : Params) (K : Nat) (hK : 2 ≤ K)
     exact List.mem_map.mpr ⟨e, he, rfl⟩
   have hsub : Q ⊆ d.Q := fun i hi => ((fold_entry rs e).2.2 i).mpr (hcover i hi)
   have hc := final_cover p.E K u hu d hd (isQuorum_of_subset p.E hQ hsub)
-  simp only [derive_def p K (.node P s x rs), transition_def]
+  simp only [derive_def p K (.node P s r_s x rs), transition_def]
   rw [(events_finality p.E p.cfg K _).1, (events_finality p.E p.cfg K _).2]
   simpa only [d, (fold_entry rs e).1, (fold_entry rs e).2.1] using hc
 

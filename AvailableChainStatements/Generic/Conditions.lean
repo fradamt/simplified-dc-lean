@@ -24,8 +24,7 @@ def BlockInRun (E : AvailableChain.Generic.Env V) (I : Interface P)
 
 /-- Injectivity of block roots on genesis and the ancestors of all blocks
 named by this run. Roots are computed from block content, and
-`Block.root_injective` holds on the whole `Block` type, so this condition is a
-theorem for every run: `rootInjective_all` in `AvailableChainKit/Roots.lean`
+ROOT-DIGEST W1 keeps this as an explicit DC-style run premise
 proves it. -/
 def RootInjective (E : AvailableChain.Generic.Env V) (I : Interface P)
     (rho : AvailableChain.Generic.Run V P) : Prop :=

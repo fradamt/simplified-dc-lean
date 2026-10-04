@@ -137,8 +137,9 @@ def propose (p : Params) (st : State p.n) (s : Slot) : Option (Msg p.n) :=
     let sup := proposerSupport st s
     let H := getHead p st raw sup
     let rows := proposalRows p st H
-    some (.proposal (.node H s (packBody 0 rows)) (raw.filterMap liftHead?)
-      (sup.filterMap liftHead?) rows)
+    let rawWire := raw.filterMap liftHead?
+    let supportWire := sup.filterMap liftHead?
+    some (.proposal (proposalBlock p H s 0 rawWire supportWire rows) rawWire supportWire rows)
 
 /-- [spec 1318–1323] The finality head: `get_head` with the current-slot votes
 and their active resolved subset. -/
@@ -154,10 +155,11 @@ def fgHead (p : Params) (st : State p.n) : Block :=
 Task 11, `fgBlockOf_spec`). -/
 def fgBlockOf {n : Nat} (st : State n) (b : Block) : Option (FGBlock (Fin n)) :=
   pickPair st.fg.TF (fun B => decide (eraseFG B = b))
-/-- [spec 260–262, 1327–1335; DQ13] The deepest member (depth of the erasure);
+/-- [ROOT-DIGEST W1; DC NamedBlocks and RootInjectiveOnAncestors]
+[spec 260–262, 1327–1335; DQ13] The deepest member (depth of the erasure);
 ties: the greater root. `deepest ∅ = none`. For a nonempty set, `none` only if
 two distinct maximal candidates share both depth and root (which
-`FGBlock.root_injective` excludes); a tie between
+local store root uniqueness excludes); a tie between
 members that are not maximal does not cause `none`. For a nonempty subset of
 Σ.T, the result is `some` (Task 11, `deepest_spec`). -/
 def deepest {n : Nat} (X : Finset (FGBlock (Fin n))) : Option (FGBlock (Fin n)) :=

@@ -47,9 +47,9 @@ theorem RowPayload.ofRow_toRow {V : Type} (a : RowPayload) (i : V) :
 
 /-- A matching target or progress row retains its bit while the height keys agree. -/
 theorem row_bit_persist (p : Params) (target : Bool)
-    (P W : FGBlock (Fin p.n)) (s : Slot) (body : Nat)
+    (P W : FGBlock (Fin p.n)) (s : Slot) (r_s : BlockId) (body : Nat)
     (rows : List (Row (Fin p.n))) (b : Row (Fin p.n))
-    (ha : b ∈ rows) (hCW : FGBlock.Preceq (.node P s body rows) W)
+    (ha : b ∈ rows) (hCW : FGBlock.Preceq (.node P s r_s body rows) W)
     (hm : if target then b.height_pair = .vote (heightView p P).h (heightView p P).T_h.root false
       else b.height_pair.matchesEntry (heightView p P).h (heightView p P).T_h.root = true)
     (hk : (heightView p P).h = (heightView p W).h ∧
@@ -59,8 +59,8 @@ theorem row_bit_persist (p : Params) (target : Bool)
   have hb : ∀ B, heightView p B = KitFG.heightOf (derive p.E p.cfg B) := heightView_bridge p
   simp only [hb, KitFG.heightOf_def] at hm hk ⊢
   cases target with
-  | false => exact KitFG.bit_from_row p.E p.cfg .progress P W s body rows b ha hCW hm hk
-  | true => exact KitFG.bit_from_row p.E p.cfg .target P W s body rows b ha hCW hm hk
+  | false => exact KitFG.bit_from_row p.E p.cfg .progress P W s r_s body rows b ha hCW hm hk
+  | true => exact KitFG.bit_from_row p.E p.cfg .target P W s r_s body rows b ha hCW hm hk
 
 end AvailableChain.FGSA
 end

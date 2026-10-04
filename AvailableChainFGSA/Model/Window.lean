@@ -193,13 +193,13 @@ theorem transition_def (p : Params) (K : Nat) (σ : State (Fin p.n))
 /-- [spec 1186–1200; bp.heightBridge.v1] Fold the original decoded block tree. -/
 def derive (p : Params) (K : Nat) : FGBlock (Fin p.n) → State (Fin p.n)
   | .genesis => initial
-  | .node q s x rs => transition p K (derive p K q) (.node q s x rs) rs
+  | .node q s r_s x rs => transition p K (derive p K q) (.node q s r_s x rs) rs
 
 theorem derive_def (p : Params) (K : Nat) (B : FGBlock (Fin p.n)) :
     derive p K B =
       match B with
       | .genesis => initial
-      | .node q s x rs => transition p K (derive p K q) (.node q s x rs) rs := by
+      | .node q s r_s x rs => transition p K (derive p K q) (.node q s r_s x rs) rs := by
   cases B <;> rfl
 
 /-- [spec 782] Match the parent height and entry. -/

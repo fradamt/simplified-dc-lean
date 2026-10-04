@@ -1,5 +1,6 @@
 module
 public import AvailableChainKitFG.Certificates
+public import AvailableChainKitFG.RootScopeDef
 
 @[expose] public section
 
@@ -9,17 +10,6 @@ open AvailableChain.SimplexFG
 
 variable {V : Type} [DecidableEq V]
 
-/-! ## Root injectivity and evidence helpers -/
-
--- port: DC/DecoupledConsensusModel/Execution/Setup.lean:51-56 (RootInjectiveOnAncestors)
-/-- [helper] Roots identify blocks on the two compared chains (port: DC
-`RootInjectiveOnAncestors`, a collision-free hash idealization in DC). Here the
-root is a function of the content, so it holds for every two tips
-(`rootInjectiveOn_all`). -/
-def RootInjectiveOn [RowCodec V] (B₁ B₂ : FGBlock V) : Prop :=
-  ∀ X Y : FGBlock V, (X.Preceq B₁ ∨ X.Preceq B₂) → (Y.Preceq B₁ ∨ Y.Preceq B₂) →
-    X.root = Y.root → X = Y
-
 -- port: DC/DecoupledConsensusProofs/Protocol/ChainState/Main.lean:39-48
 -- (rootInjectiveOnAncestors_symm)
 /-- [helper] `RootInjectiveOn` is symmetric in the two tips. -/
@@ -27,10 +17,7 @@ theorem RootInjectiveOn.symm [RowCodec V] {B₁ B₂ : FGBlock V} (h : RootInjec
     RootInjectiveOn B₂ B₁ :=
   fun X Y hX hY hr => h X Y hX.symm hY.symm hr
 
-/-- [helper] `RootInjectiveOn` holds for every two tips: the root is a function of
-the content, and `FGBlock.root_injective` proves it injective. -/
-theorem rootInjectiveOn_all [RowCodec V] (B₁ B₂ : FGBlock V) : RootInjectiveOn B₁ B₂ :=
-  fun _ _ _ _ hr => FGBlock.root_injective hr
+/-! ## Root injectivity and evidence helpers -/
 
 -- port: DC/DecoupledConsensusProofs/Protocol/ChainState/FinalityComparison.lean:31-48
 -- (matching_finality_e1)
@@ -174,6 +161,7 @@ theorem justification_certificate_rows (E : Electorate V) (cfg : FGConfig) (D : 
 /-- [pin fg.uniqueJust.v1] (chain form) Two chains justified at one height have
 the same J, or E2 weight exists between their rows. -/
 theorem slashableWeight_or_justified_eq (E : Electorate V) (cfg : FGConfig) (B₁ B₂ : FGBlock V)
+    (hroot : RootInjectiveOn B₁ B₂)
     (hh : (derive E cfg B₁).h_j = (derive E cfg B₂).h_j) :
     HasSlashableWeightBetween E (chainRows B₁) (chainRows B₂) ∨
       (derive E cfg B₁).J = (derive E cfg B₂).J := by
@@ -182,7 +170,8 @@ theorem slashableWeight_or_justified_eq (E : Electorate V) (cfg : FGConfig) (B�
     rw [justified_zero_is_genesis E cfg B₁ hz,
       justified_zero_is_genesis E cfg B₂ (hh.symm.trans hz)]
   · by_cases hr : (derive E cfg B₁).J.root = (derive E cfg B₂).J.root
-    · exact Or.inr (FGBlock.root_injective hr)
+    · exact Or.inr (hroot _ _ (Or.inl ((derive_anchors_preceq E cfg B₁).2)) (Or.inr
+      ((derive_anchors_preceq E cfg B₂).2)) hr)
     · obtain ⟨Q₁, hQ₁, hw₁⟩ := justification_certificate_rows E cfg B₁ hz
       obtain ⟨Q₂, hQ₂, hw₂⟩ := justification_certificate_rows E cfg B₂ (hh ▸ hz)
       rw [← hh] at hw₂
@@ -196,7 +185,7 @@ theorem uniqueJust_chains (E : Electorate V) (cfg : FGConfig) (B₁ B₂ : FGBlo
     (hh : (derive E cfg B₁).h_j = (derive E cfg B₂).h_j) :
     HasSlashableWeightBetween E (chainRows B₁) (chainRows B₂) ∨
       (derive E cfg B₁).J = (derive E cfg B₂).J :=
-  slashableWeight_or_justified_eq E cfg B₁ B₂ hh
+  slashableWeight_or_justified_eq E cfg B₁ B₂ hroot hh
 
 /-! ## `fg.finalLock.v1` -/
 
@@ -206,6 +195,7 @@ theorem uniqueJust_chains (E : Electorate V) (cfg : FGConfig) (B₁ B₂ : FGBlo
 quorum of `B` and the crossing quorum of `W` at `h_F(B)` meet in `2q − W` weight
 of E1 pairs, with the finality row from `B`'s chain first. -/
 theorem e1Weight_or_finalized_preceq (E : Electorate V) (cfg : FGConfig) (B W : FGBlock V)
+    (hroot : RootInjectiveOn B W)
     (hh : (derive E cfg B).h_F < (derive E cfg W).h) :
     HasE1WeightBetween E (chainRows B) (chainRows W) ∨
       FGBlock.Preceq (derive E cfg B).F W := by
@@ -218,7 +208,7 @@ theorem e1Weight_or_finalized_preceq (E : Electorate V) (cfg : FGConfig) (B W : 
       height_crossing E cfg W _ (Nat.one_le_iff_ne_zero.mpr hz) hh
     by_cases hr : X.root = (derive E cfg B).F.root
     · refine Or.inr ?_
-      rw [← FGBlock.root_injective hr]
+      rw [← hroot _ _ (Or.inr hXW) (Or.inl ((derive_anchors_preceq E cfg B).1)) hr]
       exact hXW
     · refine Or.inl ⟨Qf ∩ Qc, quorum_intersection E hQf hQc, fun i hi => ?_⟩
       obtain ⟨hf, hc⟩ := Finset.mem_inter.mp hi
@@ -235,17 +225,19 @@ theorem finalLock_e1 (E : Electorate V) (cfg : FGConfig) (B W : FGBlock V)
     (hh : (derive E cfg B).h_F < (derive E cfg W).h) :
     HasE1WeightBetween E (chainRows B) (chainRows W) ∨
       FGBlock.Preceq (derive E cfg B).F W :=
-  e1Weight_or_finalized_preceq E cfg B W hh
+  e1Weight_or_finalized_preceq E cfg B W hroot hh
 
 /-- [pin fg.finalLock.v1] A block above a finalized height extends the
 finalized checkpoint, or E1 weight exists. This is the pure form of the
 finalized-crossing law (r148 fj-redteam.md:226); the registered slashable bound
 removes the evidence branch. -/
 theorem slashableWeight_or_finalized_preceq (E : Electorate V) (cfg : FGConfig) (B W : FGBlock V)
+    (hroot : RootInjectiveOn B W)
     (hh : (derive E cfg B).h_F < (derive E cfg W).h) :
     HasSlashableWeightBetween E (chainRows B) (chainRows W) ∨
       FGBlock.Preceq (derive E cfg B).F W :=
-  (e1Weight_or_finalized_preceq E cfg B W hh).imp hasSlashableWeightBetween_of_hasE1WeightBetween id
+  (e1Weight_or_finalized_preceq E cfg B W hroot hh).imp
+    hasSlashableWeightBetween_of_hasE1WeightBetween id
 
 set_option linter.unusedVariables false in
 /-- Compatibility wrapper for `slashableWeight_or_finalized_preceq`.
@@ -255,7 +247,7 @@ theorem finalLock (E : Electorate V) (cfg : FGConfig) (B W : FGBlock V)
     (hh : (derive E cfg B).h_F < (derive E cfg W).h) :
     HasSlashableWeightBetween E (chainRows B) (chainRows W) ∨
       FGBlock.Preceq (derive E cfg B).F W :=
-  slashableWeight_or_finalized_preceq E cfg B W hh
+  slashableWeight_or_finalized_preceq E cfg B W hroot hh
 
 /-! ## `fg.accountable.v1` -/
 
@@ -265,12 +257,13 @@ theorem finalLock (E : Electorate V) (cfg : FGConfig) (B W : FGBlock V)
 finalization and the crossing of its height on the other chain. -/
 theorem e1Weight_or_finalized_compatible_of_le (E : Electorate V) (cfg : FGConfig)
     (B₁ B₂ : FGBlock V)
+    (hroot : RootInjectiveOn B₁ B₂)
     (hle : (derive E cfg B₁).h_F ≤ (derive E cfg B₂).h_F) :
     HasE1WeightBetween E (chainRows B₁) (chainRows B₂) ∨
       FGBlock.compatible (derive E cfg B₁).F (derive E cfg B₂).F = true := by
   have hlt : (derive E cfg B₁).h_F < (derive E cfg B₂).h :=
     Nat.lt_of_le_of_lt hle (finalized_below_height E cfg B₂)
-  rcases e1Weight_or_finalized_preceq E cfg B₁ B₂ hlt with hev | hF
+  rcases e1Weight_or_finalized_preceq E cfg B₁ B₂ hroot hlt with hev | hF
   · exact Or.inl hev
   · exact Or.inr (compatible_of_preceq_common hF (derive_anchors_preceq E cfg B₂).1)
 
@@ -282,7 +275,7 @@ theorem accountable_oriented (E : Electorate V) (cfg : FGConfig) (B₁ B₂ : FG
     (hle : (derive E cfg B₁).h_F ≤ (derive E cfg B₂).h_F) :
     HasE1WeightBetween E (chainRows B₁) (chainRows B₂) ∨
       FGBlock.compatible (derive E cfg B₁).F (derive E cfg B₂).F = true :=
-  e1Weight_or_finalized_compatible_of_le E cfg B₁ B₂ hle
+  e1Weight_or_finalized_compatible_of_le E cfg B₁ B₂ hroot hle
 
 -- port: DC/DecoupledConsensusProofs/Protocol/ChainState/WholeRunFinalitySafety.lean:195-213
 -- (namedChainAccountableSafety)
@@ -290,13 +283,14 @@ theorem accountable_oriented (E : Electorate V) (cfg : FGConfig) (B₁ B₂ : FG
 checkpoints are compatible, or the two chains' rows convict weight `2q − W`
 (E1 or E2). -/
 theorem slashableWeight_or_finalized_compatible (E : Electorate V) (cfg : FGConfig)
-    (B₁ B₂ : FGBlock V) :
+    (B₁ B₂ : FGBlock V)
+    (hroot : RootInjectiveOn B₁ B₂) :
     HasSlashableWeightBetween E (chainRows B₁) (chainRows B₂) ∨
       FGBlock.compatible (derive E cfg B₁).F (derive E cfg B₂).F = true := by
   rcases Nat.le_total (derive E cfg B₁).h_F (derive E cfg B₂).h_F with hle | hle
-  · exact (e1Weight_or_finalized_compatible_of_le E cfg B₁ B₂ hle).imp
+  · exact (e1Weight_or_finalized_compatible_of_le E cfg B₁ B₂ hroot hle).imp
       hasSlashableWeightBetween_of_hasE1WeightBetween id
-  · rcases e1Weight_or_finalized_compatible_of_le E cfg B₂ B₁ hle with hev | hc
+  · rcases e1Weight_or_finalized_compatible_of_le E cfg B₂ B₁ hroot.symm hle with hev | hc
     · exact Or.inl (hasSlashableWeightBetween_of_hasE1WeightBetween_swap hev)
     · exact Or.inr ((compatible_comm _ _).trans hc)
 
@@ -307,7 +301,7 @@ theorem accountable (E : Electorate V) (cfg : FGConfig) (B₁ B₂ : FGBlock V)
     (hroot : RootInjectiveOn B₁ B₂) :
     HasSlashableWeightBetween E (chainRows B₁) (chainRows B₂) ∨
       FGBlock.compatible (derive E cfg B₁).F (derive E cfg B₂).F = true :=
-  slashableWeight_or_finalized_compatible E cfg B₁ B₂
+  slashableWeight_or_finalized_compatible E cfg B₁ B₂ hroot
 
 end AvailableChain.KitFG
 end

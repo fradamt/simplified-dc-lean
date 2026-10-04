@@ -40,8 +40,9 @@ structure Row (V : Type) where
   finality_pair : Option FinalityPair
   deriving DecidableEq, Repr
 
-/-- An injective code of signer identities (D10). The row code reads it, so one
-fixed code for each `V` gives one `FGBlock.root`. -/
+/-- [ROOT-DIGEST W1; DC NamedBlocks and RootInjectiveOnAncestors]
+An injective code of signer identities (D10). The row code reads it, so one
+fixed code for each `V` gives one body serialization. -/
 class RowCodec (V : Type) where
   encodeSigner : V → Nat
   encodeSigner_inj : Function.Injective encodeSigner
@@ -119,70 +120,51 @@ theorem encFGBody_inj {V : Type} [RowCodec V] {x y : Nat} {rs ts : List (Row V)}
   exact ⟨hx, encList_inj encRow_inj hr⟩
 
 /-- A block as the FG reads it. The AP maps its blocks to this type later. A
-node carries a body and its rows, not a root: `FGBlock.root` computes the root
-from the content. -/
+node carries a body, its rows, and its root (ROOT-DIGEST W1; DC NamedBlocks). -/
 inductive FGBlock (V : Type) where
   | genesis
-  | node (parent : FGBlock V) (slot : Slot) (body : Nat) (rows : List (Row V))
+  | node (parent : FGBlock V) (slot : Slot) (root : BlockId) (body : Nat) (rows : List (Row V))
   deriving DecidableEq, Repr
 
 namespace FGBlock
 variable {V : Type}
 def slot : FGBlock V → Slot
   | .genesis => 0
-  | .node _ s _ _ => s
+  | .node _ s _ _ _ => s
 /-- The body of a node (`0` for genesis). -/
 def body : FGBlock V → Nat
   | .genesis => 0
-  | .node _ _ x _ => x
+  | .node _ _ _ x _ => x
 def parent : FGBlock V → FGBlock V
   | .genesis => .genesis
-  | .node p _ _ _ => p
+  | .node p _ _ _ _ => p
 def rows : FGBlock V → List (Row V)
   | .genesis => []
-  | .node _ _ _ rs => rs
+  | .node _ _ _ _ rs => rs
 
 section Root
-variable [RowCodec V]
 
-/-- The root is a function of the content: the parent's root, the slot, the
-body and the rows. It uses the `nodeRoot` of `Block.root`, with the body code
-`encFGBody x rs`. -/
-def root : FGBlock V → BlockId
+/-- [ROOT-DIGEST W1; DC NamedBlocks] Read the stored root. -/
+def root [RowCodec V] : FGBlock V → BlockId
   | .genesis => genesisRoot
-  | .node p s x rs => nodeRoot p.root s (encFGBody x rs)
+  | .node _ _ r _ _ => r
 
-/-- A node root is not the genesis root, for every slot (slot `0` included). -/
-theorem root_ne_genesis_of_node (p : FGBlock V) (s : Slot) (x : Nat) (rs : List (Row V)) :
-    (FGBlock.node p s x rs).root ≠ genesisRoot := by
-  simp [root, nodeRoot, genesisRoot]
-
-/-- Distinct FG blocks have distinct roots. -/
-theorem root_injective : Function.Injective (root (V := V)) := by
-  intro B
-  induction B with
-  | genesis =>
-    intro C h
-    cases C with
-    | genesis => rfl
-    | node q t y ts => exact absurd h.symm (root_ne_genesis_of_node q t y ts)
-  | node p s x rs ih =>
-    intro C h
-    cases C with
-    | genesis => exact absurd h (root_ne_genesis_of_node p s x rs)
-    | node q t y ts =>
-      simp only [root, nodeRoot, BlockId.mk.injEq, Nat.add_right_cancel_iff] at h
-      obtain ⟨hpq, hst⟩ := epair_inj h
-      obtain ⟨rfl, hb⟩ := epair_inj hst
-      obtain ⟨rfl, rfl⟩ := encFGBody_inj hb
-      rw [ih (BlockId.ext hpq)]
+/-- [ROOT-DIGEST W1; DC NamedRootCollisionFree] Scoped node/genesis separation. -/
+theorem root_ne_genesis_of_node [RowCodec V] (p : FGBlock V) (s : Slot) (r : BlockId)
+    (x : Nat) (rs : List (Row V))
+    (hr : (FGBlock.node p s r x rs).root = genesisRoot →
+      FGBlock.node p s r x rs = .genesis) :
+    (FGBlock.node p s r x rs).root ≠ genesisRoot := by
+  intro h
+  have he := hr h
+  cases he
 
 end Root
 
 variable [DecidableEq V]
 def preceq (A : FGBlock V) : FGBlock V → Bool
   | .genesis => decide (A = .genesis)
-  | B@(.node p _ _ _) => decide (A = B) || preceq A p
+  | B@(.node p _ _ _ _) => decide (A = B) || preceq A p
 def Preceq (A B : FGBlock V) : Prop := preceq A B = true
 instance (A B : FGBlock V) : Decidable (Preceq A B) :=
   inferInstanceAs (Decidable (preceq A B = true))
@@ -193,7 +175,7 @@ end FGBlock
 /-- The rows carried by the chain that ends at `B`. -/
 def chainRows {V : Type} [DecidableEq V] : FGBlock V → Finset (Row V)
   | .genesis => ∅
-  | .node p _ _ rs => rs.toFinset ∪ chainRows p
+  | .node p _ _ _ rs => rs.toFinset ∪ chainRows p
 
 -- port: DC/DecoupledConsensusModel/Objects/Weights.lean:49–78
 /-- Fixed positive weights. FG-SA uses weight 1. -/

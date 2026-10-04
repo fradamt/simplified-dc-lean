@@ -156,7 +156,7 @@ private theorem finality_eq (p : Params) (K : Nat) (B : FGBlock (Fin p.n)) :
     certificateFinality p K B = projectFinality (finalizeWindow p.E (certificateFolded p K B)) := by
   cases B with
   | genesis => rfl
-  | node P s x rs => exact events_finality p.E p.cfg K _
+  | node P s r_s x rs => exact events_finality p.E p.cfg K _
 
 /-- [spec 1222–1227] The window supplies the core selection laws; KitFG derives coverage. -/
 theorem windowSelectionLaws (p : Params) (K : Nat) (hK : 2 ≤ K) :

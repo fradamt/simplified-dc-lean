@@ -34,11 +34,11 @@ theorem batch_anchored : BatchStatement := by
     | genesis =>
         cases Y with
         | genesis => rfl
-        | node P s id => change some P = none at hp; contradiction
-    | node P s id =>
+        | node P s r_s id => change some P = none at hp; contradiction
+    | node P s r_s id =>
         cases Y with
         | genesis => change none = some P at hp; contradiction
-        | node Q t jd =>
+        | node Q t r_t jd =>
             change some Q = some P at hp
             cases Option.some.inj hp
             rfl

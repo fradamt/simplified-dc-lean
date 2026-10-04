@@ -299,8 +299,8 @@ theorem chain_injective {i j : Nat} (h : chain i = chain j) : i = j := by
 theorem preceq_refl (B : Block) : Block.Preceq B B := by
   cases B <;> simp [Block.Preceq, Block.preceq]
 
-theorem preceq_node {B p : Block} (s : Slot) (x : Nat) (h : Block.Preceq B p) :
-    Block.Preceq B (.node p s x) := by
+theorem preceq_node {B p : Block} (s : Slot) (r_s : BlockId) (x : Nat) (h : Block.Preceq B p) :
+    Block.Preceq B (.node p s r_s x) := by
   simp only [Block.Preceq, Block.preceq, Bool.or_eq_true, decide_eq_true_eq] at h ⊢
   exact Or.inr h
 
@@ -310,7 +310,7 @@ theorem chain_preceq : ∀ {a b : Nat}, a ≤ b → Block.Preceq (chain a) (chai
     exact preceq_refl _
   | a, b + 1, h => by
     rcases Nat.lt_or_ge a (b + 1) with hlt | hge
-    · exact preceq_node _ _ (chain_preceq (by omega))
+    · exact preceq_node _ _ _ (chain_preceq (by omega))
     · obtain rfl : a = b + 1 := by omega
       exact preceq_refl _
 
@@ -334,7 +334,23 @@ theorem blockInRun_chain {V : Type} [DecidableEq V] {E : Env V}
 /-- Roots are computed from block content, so they are injective in every run. -/
 theorem counter_rootInjective {V : Type} [DecidableEq V] (E : Env V)
     (rho : Run V counter) : RootInjective E counterIface rho :=
-  Framework.Kit.rootInjective_all E counterIface rho
+  by
+    intro A B hA hB hr
+    obtain ⟨i, rfl⟩ := blockInRun_chain hA
+    obtain ⟨j, rfl⟩ := blockInRun_chain hB
+    cases i with
+    | zero =>
+      cases j with
+      | zero => rfl
+      | succ j => simp [chain, Block.root, nodeRoot, genesisRoot] at hr
+    | succ i =>
+      cases j with
+      | zero => simp [chain, Block.root, nodeRoot, genesisRoot] at hr
+      | succ j =>
+        simp only [chain, Block.root, nodeRoot, BlockId.mk.injEq,
+          Nat.add_right_cancel_iff] at hr
+        have hs := (epair_inj (epair_inj hr).2).1
+        exact congrArg chain (congrArg Nat.succ hs)
 
 theorem tick_mem {k H j : Nat} (hj : j ≤ H) (v : Fin k.succ) :
     Event.tick v (j : Time) ∈ (canonical k H).events := by

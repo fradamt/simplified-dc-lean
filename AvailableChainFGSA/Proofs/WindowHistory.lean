@@ -120,8 +120,8 @@ theorem window_final_birth (p : Params) (K : Nat) (hK : 2 ≤ K)
       C (derive p K B).h_F (derive p K B).F := by
   induction B with
   | genesis => exact (hnz rfl).elim
-  | node P s x rs ih =>
-      let B := FGBlock.node P s x rs
+  | node P s r_s x rs ih =>
+      let B := FGBlock.node P s r_s x rs
       let w := certificateFolded p K B
       have ff := fold_fields rs { derive p K P with s := s }
       have ef := events_finality p K w
@@ -136,7 +136,7 @@ theorem window_final_birth (p : Params) (K : Nat) (hK : 2 ≤ K)
             rw [finalizeWindow_def, hg]; exact ff.2.2.2.2.2.1
           rw [hh, hF]
           obtain ⟨C, hc, hb⟩ := ih (hh ▸ hnz)
-          exact ⟨C, preceq_node_of_preceq s x rs hc, hb⟩
+          exact ⟨C, preceq_node_of_preceq s r_s x rs hc, hb⟩
       | some d =>
           obtain ⟨C, hc, hb, _⟩ := window_prefinal_entry_origin p K hK B d
             (greatest_mem p w d hg)
@@ -154,7 +154,7 @@ private theorem birth_geometry (p : Params) (K : Nat) (hK : 2 ≤ K)
     apply preceq_trans (laws.entry_preceq C.parent)
     cases C with
     | genesis => exact preceq_refl _
-    | node P s x rs => exact preceq_parent_node P s x rs
+    | node P s r_s x rs => exact preceq_parent_node P s r_s x rs
   · rw [← hb.2.2.1, laws.entry_same_height, hb.2.1]
   · rw [← hb.2.2.1, laws.entry_idem]
 
@@ -231,8 +231,8 @@ theorem window_retained_bits_mono (p : Params) (K : Nat) (hK : 2 ≤ K)
 /-- [spec 605–607] A step keeps the latest pair unless it crosses a target
 quorum. Pruning does not clear the pair; a capacity append writes a new pair. -/
 theorem window_latest_pair_kept (p : Params) (K : Nat)
-    (P : FGBlock (Fin p.n)) (s : Slot) (x : Nat) (rs : List (Row (Fin p.n))) :
-    let B := FGBlock.node P s x rs
+    (P : FGBlock (Fin p.n)) (s : Slot) (r_s : BlockId) (x : Nat) (rs : List (Row (Fin p.n))) :
+    let B := FGBlock.node P s r_s x rs
     let w := certificateFolded p K B
     ((derive p K B).h_j = (derive p K P).h_j ∧
       (derive p K B).J = (derive p K P).J ∧
@@ -242,8 +242,8 @@ theorem window_latest_pair_kept (p : Params) (K : Nat)
       targetQuorum p.E (finalizeWindow p.E w) = true) := by
   dsimp only
   have ff := fold_fields rs { derive p K P with s := s }
-  have fin := final_fields p (certificateFolded p K (.node P s x rs))
-  simp only [derive_def p K (.node P s x rs), transition_def, process_height_events_def]
+  have fin := final_fields p (certificateFolded p K (.node P s r_s x rs))
+  simp only [derive_def p K (.node P s r_s x rs), transition_def, process_height_events_def]
   split_ifs with ht
   · exact Or.inr ⟨fin.1.trans ff.2.1, fin.2.1.trans ff.2.2.1, ht⟩
   · exact Or.inl ⟨fin.2.2.1.trans ff.2.2.2.1, fin.2.2.2.1.trans ff.2.2.2.2.1,
@@ -280,13 +280,13 @@ private theorem drop_oldest (K : Nat) (xs : List (Entry V))
         exact fun d hd => ((List.pairwise_cons.mp hord).1 d hd).1
 
 private theorem node_evicted (p : Params) (K : Nat) (hK : 2 ≤ K)
-    (P : FGBlock (Fin p.n)) (s : Slot) (x : Nat) (rs : List (Row (Fin p.n)))
+    (P : FGBlock (Fin p.n)) (s : Slot) (r_s : BlockId) (x : Nat) (rs : List (Row (Fin p.n)))
     (e : Entry (Fin p.n)) (he : e ∈ (derive p K P).W)
-    (gone : ¬ ∃ d ∈ (derive p K (.node P s x rs)).W, d.j = e.j ∧ d.X = e.X)
-    (above : (derive p K (.node P s x rs)).h_F < e.j) :
-    (derive p K (.node P s x rs)).W.length = K ∧
-    ∀ d ∈ (derive p K (.node P s x rs)).W, e.j < d.j := by
-  let B := FGBlock.node P s x rs
+    (gone : ¬ ∃ d ∈ (derive p K (.node P s r_s x rs)).W, d.j = e.j ∧ d.X = e.X)
+    (above : (derive p K (.node P s r_s x rs)).h_F < e.j) :
+    (derive p K (.node P s r_s x rs)).W.length = K ∧
+    ∀ d ∈ (derive p K (.node P s r_s x rs)).W, e.j < d.j := by
+  let B := FGBlock.node P s r_s x rs
   let w := certificateFolded p K B
   let f := finalizeWindow p.E w
   let d := rs.foldl (fun e a => addBit a e) e
@@ -353,27 +353,27 @@ private theorem node_evicted (p : Params) (K : Nat) (hK : 2 ≤ K)
 /-- A capacity removal leaves exactly K newer entries. Each has a birth
 strictly after the removed entry's birth on the same chain. -/
 theorem window_evicted_has_K_newer (p : Params) (K : Nat) (hK : 2 ≤ K)
-    (P : FGBlock (Fin p.n)) (s : Slot) (x : Nat) (rs : List (Row (Fin p.n)))
+    (P : FGBlock (Fin p.n)) (s : Slot) (r_s : BlockId) (x : Nat) (rs : List (Row (Fin p.n)))
     (e : Entry (Fin p.n)) (he : e ∈ (derive p K P).W)
-    (gone : ¬ ∃ d ∈ (derive p K (.node P s x rs)).W, d.j = e.j ∧ d.X = e.X)
-    (above : (derive p K (.node P s x rs)).h_F < e.j) :
-    (derive p K (.node P s x rs)).W.length = K ∧
+    (gone : ¬ ∃ d ∈ (derive p K (.node P s r_s x rs)).W, d.j = e.j ∧ d.X = e.X)
+    (above : (derive p K (.node P s r_s x rs)).h_F < e.j) :
+    (derive p K (.node P s r_s x rs)).W.length = K ∧
     ∃ C, FGBlock.Preceq C P ∧
       JustificationBirth p.E (certificateHeight p K) C e.j e.X ∧
-      ∀ d ∈ (derive p K (.node P s x rs)).W, e.j < d.j ∧
-        ∃ D, StrictPrefix C D ∧ FGBlock.Preceq D (.node P s x rs) ∧
+      ∀ d ∈ (derive p K (.node P s r_s x rs)).W, e.j < d.j ∧
+        ∃ D, StrictPrefix C D ∧ FGBlock.Preceq D (.node P s r_s x rs) ∧
           JustificationBirth p.E (certificateHeight p K) D d.j d.X := by
-  obtain ⟨hl, hn⟩ := node_evicted p K hK P s x rs e he gone above
+  obtain ⟨hl, hn⟩ := node_evicted p K hK P s r_s x rs e he gone above
   obtain ⟨C, hc, hb, _⟩ := window_entry_origin p K hK P e he
   refine ⟨hl, C, hc, hb, ?_⟩
   intro d hd
-  obtain ⟨D, hD, hbirth, _⟩ := window_entry_origin p K hK (.node P s x rs) d hd
+  obtain ⟨D, hD, hbirth, _⟩ := window_entry_origin p K hK (.node P s r_s x rs) d hd
   have hlt := hn d hd
   have heights : (certificateHeight p K C).h < (certificateHeight p K D).h := by
     rw [hb.2.2.2.2.2.1, hbirth.2.2.2.2.2.1]
     exact Nat.succ_lt_succ hlt
   have hCD : FGBlock.Preceq C D := by
-    rcases preceq_total_of_common (preceq_node_of_preceq s x rs hc) hD with h | h
+    rcases preceq_total_of_common (preceq_node_of_preceq s r_s x rs hc) hD with h | h
     · exact h
     · exact (Nat.not_lt_of_ge ((windowHeightLaws p K hK).h_mono h) heights).elim
   exact ⟨hlt, D, ⟨hCD, fun h => by simp only [h, lt_self_iff_false] at heights⟩, hD, hbirth⟩
@@ -382,22 +382,22 @@ private theorem first_removal (p : Params) (K : Nat)
     (A B : FGBlock (Fin p.n)) (hAB : FGBlock.Preceq A B)
     (e : Entry (Fin p.n)) (he : e ∈ (derive p K A).W)
     (gone : ¬ ∃ d ∈ (derive p K B).W, d.j = e.j ∧ d.X = e.X) :
-    ∃ P s x rs, FGBlock.Preceq A P ∧ FGBlock.Preceq (.node P s x rs) B ∧
+    ∃ P s r_s x rs, FGBlock.Preceq A P ∧ FGBlock.Preceq (.node P s r_s x rs) B ∧
       (∃ d ∈ (derive p K P).W, d.j = e.j ∧ d.X = e.X) ∧
-      ¬ ∃ d ∈ (derive p K (.node P s x rs)).W, d.j = e.j ∧ d.X = e.X := by
+      ¬ ∃ d ∈ (derive p K (.node P s r_s x rs)).W, d.j = e.j ∧ d.X = e.X := by
   induction B with
   | genesis =>
       obtain rfl := preceq_genesis.mp hAB
       exact (gone ⟨e, he, rfl, rfl⟩).elim
-  | node P s x rs ih =>
-      by_cases ha : A = .node P s x rs
+  | node P s r_s x rs ih =>
+      by_cases ha : A = .node P s r_s x rs
       · subst A
         exact (gone ⟨e, he, rfl, rfl⟩).elim
       · have hAP := preceq_parent_of_preceq_node hAB ha
         by_cases hp : ∃ d ∈ (derive p K P).W, d.j = e.j ∧ d.X = e.X
-        · exact ⟨P, s, x, rs, hAP, preceq_refl _, hp, gone⟩
-        · obtain ⟨R, t, y, rows, hAR, hRP, hr, hg⟩ := ih hAP hp
-          exact ⟨R, t, y, rows, hAR, preceq_node_of_preceq s x rs hRP, hr, hg⟩
+        · exact ⟨P, s, r_s, x, rs, hAP, preceq_refl _, hp, gone⟩
+        · obtain ⟨R, t, r_t, y, rows, hAR, hRP, hr, hg⟩ := ih hAP hp
+          exact ⟨R, t, r_t, y, rows, hAR, preceq_node_of_preceq s r_s x rs hRP, hr, hg⟩
 
 /-- [07-F entry] The cases refer to B's state and are exclusive by key
 presence and coverage. A later finalization can cover an earlier eviction. -/
@@ -410,14 +410,14 @@ theorem window_entry_history (p : Params) (K : Nat) (hK : 2 ≤ K)
     ((¬ ∃ d ∈ (derive p K B).W, d.j = e.j ∧ d.X = e.X) ∧
       ¬ (e.j ≤ (derive p K B).h_F ∧ FGBlock.Preceq e.X (derive p K B).F) ∧
       (derive p K B).h_F < e.j ∧
-      ∃ P s x rs, FGBlock.Preceq A P ∧ FGBlock.Preceq (.node P s x rs) B ∧
+      ∃ P s r_s x rs, FGBlock.Preceq A P ∧ FGBlock.Preceq (.node P s r_s x rs) B ∧
         (∃ d ∈ (derive p K P).W, d.j = e.j ∧ d.X = e.X) ∧
-        (¬ ∃ d ∈ (derive p K (.node P s x rs)).W, d.j = e.j ∧ d.X = e.X) ∧
-        (derive p K (.node P s x rs)).W.length = K ∧
+        (¬ ∃ d ∈ (derive p K (.node P s r_s x rs)).W, d.j = e.j ∧ d.X = e.X) ∧
+        (derive p K (.node P s r_s x rs)).W.length = K ∧
         ∃ C, FGBlock.Preceq C P ∧
           JustificationBirth p.E (certificateHeight p K) C e.j e.X ∧
-          ∀ d ∈ (derive p K (.node P s x rs)).W, e.j < d.j ∧
-            ∃ D, StrictPrefix C D ∧ FGBlock.Preceq D (.node P s x rs) ∧
+          ∀ d ∈ (derive p K (.node P s r_s x rs)).W, e.j < d.j ∧
+            ∃ D, StrictPrefix C D ∧ FGBlock.Preceq D (.node P s r_s x rs) ∧
               JustificationBirth p.E (certificateHeight p K) D d.j d.X) := by
   by_cases present : ∃ d ∈ (derive p K B).W, d.j = e.j ∧ d.X = e.X
   · obtain ⟨d, hd, hj, hX⟩ := present
@@ -426,16 +426,16 @@ theorem window_entry_history (p : Params) (K : Nat) (hK : 2 ≤ K)
   · by_cases covered : e.j ≤ (derive p K B).h_F ∧ FGBlock.Preceq e.X (derive p K B).F
     · exact Or.inr (Or.inl ⟨present, covered⟩)
     · have above := window_evicted_above_hF p K hK A B hAB e he present covered
-      obtain ⟨P, s, x, rs, hAP, hPB, hp, hg⟩ := first_removal p K A B hAB e he present
+      obtain ⟨P, s, r_s, x, rs, hAP, hPB, hp, hg⟩ := first_removal p K A B hAB e he present
       obtain ⟨d, hd, hj, hX⟩ := hp
-      have stepAbove : (derive p K (.node P s x rs)).h_F < d.j := by
+      have stepAbove : (derive p K (.node P s r_s x rs)).h_F < d.j := by
         rw [hj]
         exact (window_hF_mono p K hK _ _ hPB).trans_lt above
-      have stepGone : ¬ ∃ a ∈ (derive p K (.node P s x rs)).W,
+      have stepGone : ¬ ∃ a ∈ (derive p K (.node P s r_s x rs)).W,
           a.j = d.j ∧ a.X = d.X := by simpa only [hj, hX] using hg
-      have ev := window_evicted_has_K_newer p K hK P s x rs d hd stepGone stepAbove
+      have ev := window_evicted_has_K_newer p K hK P s r_s x rs d hd stepGone stepAbove
       rw [hj, hX] at ev
-      exact Or.inr (Or.inr ⟨present, covered, above, P, s, x, rs, hAP, hPB,
+      exact Or.inr (Or.inr ⟨present, covered, above, P, s, r_s, x, rs, hAP, hPB,
         ⟨d, hd, hj, hX⟩, hg, ev⟩)
 
 end AvailableChain.FGSA.Window

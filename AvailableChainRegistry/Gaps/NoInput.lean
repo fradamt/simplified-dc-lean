@@ -38,7 +38,7 @@ open AvailableChain.Statements.Generic AvailableChain.Framework.Catalog
 /-- The block of slot `k` on the clock chain. -/
 def clockBlock : Nat → Block
   | 0 => .genesis
-  | k + 1 => .node (clockBlock k) (k + 1) 0
+  | k + 1 => .node (clockBlock k) (k + 1) (nodeRoot (clockBlock k).root (k + 1) 0) 0
 
 /-- A protocol that reads no input (design §12, I1): it excludes every
 object, and its outputs depend on the clock only. -/
@@ -200,8 +200,8 @@ theorem clockBlock_injective {i j : Nat} (h : clockBlock i = clockBlock j) : i =
 theorem preceq_refl (B : Block) : Block.Preceq B B := by
   cases B <;> simp [Block.Preceq, Block.preceq]
 
-theorem preceq_node {B p : Block} (s : Slot) (x : Nat) (h : Block.Preceq B p) :
-    Block.Preceq B (.node p s x) := by
+theorem preceq_node {B p : Block} (s : Slot) (r_s : BlockId) (x : Nat) (h : Block.Preceq B p) :
+    Block.Preceq B (.node p s r_s x) := by
   simp only [Block.Preceq, Block.preceq, Bool.or_eq_true, decide_eq_true_eq] at h ⊢
   exact Or.inr h
 
@@ -211,7 +211,7 @@ theorem clockBlock_preceq : ∀ {a b : Nat}, a ≤ b → Block.Preceq (clockBloc
     exact preceq_refl _
   | a, b + 1, h => by
     rcases Nat.lt_or_ge a (b + 1) with hlt | hge
-    · exact preceq_node _ _ (clockBlock_preceq (by omega))
+    · exact preceq_node _ _ _ (clockBlock_preceq (by omega))
     · obtain rfl : a = b + 1 := by omega
       exact preceq_refl _
 
@@ -237,7 +237,23 @@ theorem blockInRun_clock {V : Type} [DecidableEq V] {E : Env V}
 /-- Roots are computed from block content, so they are injective in every run. -/
 theorem clock_rootInjective {V : Type} [DecidableEq V] (E : Env V)
     (rho : Run V clockChain) : RootInjective E clockIface rho :=
-  Framework.Kit.rootInjective_all E clockIface rho
+  by
+    intro A B hA hB hr
+    obtain ⟨i, rfl⟩ := blockInRun_clock hA
+    obtain ⟨j, rfl⟩ := blockInRun_clock hB
+    cases i with
+    | zero =>
+      cases j with
+      | zero => rfl
+      | succ j => simp [clockBlock, Block.root, nodeRoot, genesisRoot] at hr
+    | succ i =>
+      cases j with
+      | zero => simp [clockBlock, Block.root, nodeRoot, genesisRoot] at hr
+      | succ j =>
+        simp only [clockBlock, Block.root, nodeRoot, BlockId.mk.injEq,
+          Nat.add_right_cancel_iff] at hr
+        have hs := (epair_inj (epair_inj hr).2).1
+        exact congrArg clockBlock hs
 
 /-! ### Safety, prefix and inclusion -/
 

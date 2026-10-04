@@ -22,8 +22,8 @@ theorem no_mixed_cross_before_maturity (E : Electorate V) (cfg : FGConfig)
   have hT := (entry_eq_on_plateau E cfg hUX (hU.trans hparent.symm)).symm.trans hentry
   cases X with
   | genesis => exact (hX rfl).elim
-  | node p s x rs =>
-      obtain ⟨-, hh, hfoldT, -⟩ := foldRows_fields (derive E cfg p) (.node p s x rs) rs
+  | node p s r_s x rs =>
+      obtain ⟨-, hh, hfoldT, -⟩ := foldRows_fields (derive E cfg p) (.node p s r_s x rs) rs
       change (derive E cfg p).h = y at hparent
       change (derive E cfg p).T_h = U at hT
       rw [derive_node, process_height_events_eq] at hcross ⊢
@@ -50,19 +50,19 @@ theorem first_height_crossing_edge (E : Electorate V) (cfg : FGConfig)
   | genesis =>
       obtain rfl := preceq_genesis.mp hDP
       simp only [Height] at *; omega
-  | node p s x rs ih =>
-      have hne : D ≠ .node p s x rs := by
+  | node p s r_s x rs ih =>
+      have hne : D ≠ .node p s r_s x rs := by
         intro heq
         subst D
         simp only [Height] at *; omega
       have hDp := preceq_parent_of_preceq_node hDP hne
       by_cases hp : y < (derive E cfg p).h
       · obtain ⟨C, hC, hDC, hCp, hCy, hnext⟩ := ih hDp hp
-        exact ⟨C, hC, hDC, preceq_node_of_preceq s x rs hCp, hCy, hnext⟩
+        exact ⟨C, hC, hDC, preceq_node_of_preceq s r_s x rs hCp, hCy, hnext⟩
       · have hlow := h_mono E cfg hDp
         have hpy : (derive E cfg p).h = y := by simp only [Height] at *; omega
-        refine ⟨.node p s x rs, by simp, hDp, preceq_refl _, hpy, ?_⟩
-        rcases derive_node_height_cases E cfg p s x rs with hstay | hnext
+        refine ⟨.node p s r_s x rs, by simp, hDp, preceq_refl _, hpy, ?_⟩
+        rcases derive_node_height_cases E cfg p s r_s x rs with hstay | hnext
         · simp only [Height] at *; omega
         · simp only [Height] at *; omega
 
@@ -77,9 +77,9 @@ theorem crossing_honest_matching_row (E : Electorate V) (cfg : FGConfig)
       a.height_pair.matchesEntry y (derive E cfg C.parent).T_h.root = true := by
   cases C with
   | genesis => exact (hC rfl).elim
-  | node p s x rs =>
+  | node p s r_s x rs =>
       change (derive E cfg p).h = y at hparent
-      obtain ⟨Q, hQ, hw⟩ := crossing_matching_quorum E cfg p s x rs
+      obtain ⟨Q, hQ, hw⟩ := crossing_matching_quorum E cfg p s r_s x rs
         (by simp only [Height] at *; omega)
       obtain ⟨i, hi, hhonest⟩ := honest_in_quorum E faulty hQ hcap
       obtain ⟨W, a, hW, ha, hsigner, hmatch⟩ := hw i hi
@@ -97,18 +97,18 @@ theorem justification_eq_on_plateau (E : Electorate V) (cfg : FGConfig)
   | genesis =>
       obtain rfl := preceq_genesis.mp hDP
       exact ⟨rfl, rfl⟩
-  | node p s x rs ih =>
-      by_cases hsame : D = .node p s x rs
+  | node p s r_s x rs ih =>
+      by_cases hsame : D = .node p s r_s x rs
       · subst D
         exact ⟨rfl, rfl⟩
       · have hDp := preceq_parent_of_preceq_node hDP hsame
         have hlow := h_mono E cfg hDp
-        have hhigh := h_mono E cfg (preceq_parent_node p s x rs)
-        have hpar : (derive E cfg p).h = (derive E cfg (.node p s x rs)).h := by
+        have hhigh := h_mono E cfg (preceq_parent_node p s r_s x rs)
+        have hpar : (derive E cfg p).h = (derive E cfg (.node p s r_s x rs)).h := by
           simp only [Height] at *; omega
         obtain ⟨hJ, hj⟩ := ih hDp (hh.trans hpar.symm)
         obtain ⟨-, hfold, -, hfoldJ, hfoldj, -⟩ :=
-          foldRows_fields (derive E cfg p) (.node p s x rs) rs
+          foldRows_fields (derive E cfg p) (.node p s r_s x rs) rs
         rw [derive_node, process_height_events_eq] at hpar ⊢
         split_ifs at hpar ⊢
         · change (derive E cfg p).h = (afterFin E _).h + 1 at hpar

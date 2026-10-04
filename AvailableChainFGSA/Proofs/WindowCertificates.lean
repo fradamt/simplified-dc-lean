@@ -19,11 +19,11 @@ theorem justificationBirth_window_iff_simplex (p : Params) (K : Nat) (hK : 2 ≤
   rw [hv]
 
 private theorem strict_node (p : Params) {C P : FGBlock (Fin p.n)}
-    (s : Slot) (x : Nat) (rs : List (Row (Fin p.n))) (hCP : FGBlock.Preceq C P) :
-    StrictPrefix C (.node P s x rs) := by
-  refine ⟨preceq_node_of_preceq s x rs hCP, ?_⟩
+    (s : Slot) (r_s : BlockId) (x : Nat) (rs : List (Row (Fin p.n))) (hCP : FGBlock.Preceq C P) :
+    StrictPrefix C (.node P s r_s x rs) := by
+  refine ⟨preceq_node_of_preceq s r_s x rs hCP, ?_⟩
   intro he
-  have hcycle := preceq_antisymm (he ▸ hCP) (preceq_parent_node P s x rs)
+  have hcycle := preceq_antisymm (he ▸ hCP) (preceq_parent_node P s r_s x rs)
   have hs := congrArg sizeOf hcycle
   simp only [FGBlock.node.sizeOf_spec] at hs
   omega
@@ -31,19 +31,19 @@ private theorem strict_node (p : Params) {C P : FGBlock (Fin p.n)}
 /-- The transported birth is this node when its justification height is
 its parent's height. A proper ancestor has a smaller justification height. -/
 private theorem birth_at_target (p : Params) (K : Nat) (hK : 2 ≤ K)
-    (P : FGBlock (Fin p.n)) (s : Slot) (x : Nat) (rs : List (Row (Fin p.n)))
-    (hj : (derive p K (.node P s x rs)).h_j = (derive p K P).h)
-    (hJ : (derive p K (.node P s x rs)).J = (derive p K P).T_h) :
-    JustificationBirth p.E (certificateHeight p K) (.node P s x rs)
+    (P : FGBlock (Fin p.n)) (s : Slot) (r_s : BlockId) (x : Nat) (rs : List (Row (Fin p.n)))
+    (hj : (derive p K (.node P s r_s x rs)).h_j = (derive p K P).h)
+    (hJ : (derive p K (.node P s r_s x rs)).J = (derive p K P).T_h) :
+    JustificationBirth p.E (certificateHeight p K) (.node P s r_s x rs)
       (derive p K P).h (derive p K P).T_h := by
-  let B := FGBlock.node P s x rs
+  let B := FGBlock.node P s r_s x rs
   change (derive p K B).h_j = (derive p K P).h at hj
   change (derive p K B).J = (derive p K P).T_h at hJ
   have hg := windowHeightLaws p K hK
   have hlt := hg.justified_below_height B
   change (derive p K B).h_j < (derive p K B).h at hlt
   have hh : (derive p K B).h = (derive p K P).h + 1 := by
-    rcases hg.node_cases P s x rs with hn | hn
+    rcases hg.node_cases P s r_s x rs with hn | hn
     · have he := hn.1
       change (derive p K B).h = (derive p K P).h at he
       rw [hj, he] at hlt
@@ -89,9 +89,9 @@ private theorem fold_sources (p : Params) (rs : List (Row (Fin p.n)))
       obtain ⟨d, hd, hj, hX, hbits⟩ := hs e he
       rw [rW, List.mem_map] at hd
       obtain ⟨c, hc, hcd⟩ := hd
-      have keys : c.j = d.j ∧ c.X.root = d.X.root := by
+      have keys : c.j = d.j ∧ c.X = d.X := by
         split_ifs at hcd <;> subst d <;> exact ⟨rfl, rfl⟩
-      have cX : c.X = e.X := (FGBlock.root_injective keys.2).trans hX
+      have cX : c.X = e.X := keys.2.trans hX
       have cj := keys.1.trans hj
       refine ⟨c, hc, cj, cX, ?_⟩
       intro i hi
@@ -105,26 +105,26 @@ private theorem fold_sources (p : Params) (rs : List (Row (Fin p.n)))
       · exact Or.inr ⟨b, List.mem_cons_of_mem _ hb, hbi, hbf⟩
 
 private theorem prefinal_of_parent (p : Params) (K : Nat)
-    (P : FGBlock (Fin p.n)) (s : Slot) (x : Nat) (rs : List (Row (Fin p.n)))
+    (P : FGBlock (Fin p.n)) (s : Slot) (r_s : BlockId) (x : Nat) (rs : List (Row (Fin p.n)))
     (hp : ∀ e ∈ (derive p K P).W, EntryOriginAt p K P e)
-    (e : Entry (Fin p.n)) (he : e ∈ (certificateFolded p K (.node P s x rs)).W) :
-    ∃ C, StrictPrefix C (.node P s x rs) ∧
+    (e : Entry (Fin p.n)) (he : e ∈ (certificateFolded p K (.node P s r_s x rs)).W) :
+    ∃ C, StrictPrefix C (.node P s r_s x rs) ∧
       JustificationBirth p.E (certificateHeight p K) C e.j e.X ∧
       ∀ i ∈ e.Q, ∃ carrier a,
-        StrictPrefix C carrier ∧ FGBlock.Preceq carrier (.node P s x rs) ∧
+        StrictPrefix C carrier ∧ FGBlock.Preceq carrier (.node P s r_s x rs) ∧
         a ∈ carrier.rows ∧ a.signer = i ∧
         a.finality_pair = some ⟨e.j, e.X.root⟩ := by
   obtain ⟨d, hd, hj, hX, hbits⟩ :=
     (fold_sources p rs { derive p K P with s := s }).2.2 e he
   obtain ⟨C, hCP, hb, hw⟩ := hp d hd
-  refine ⟨C, strict_node p s x rs hCP, ?_, ?_⟩
+  refine ⟨C, strict_node p s r_s x rs hCP, ?_, ?_⟩
   · simpa only [hj, hX] using hb
   · intro i hi
     rcases hbits i hi with hi | ⟨a, ha, hai, haf⟩
     · obtain ⟨carrier, a, hCc, hcP, ha, hai, haf⟩ := hw i hi
-      exact ⟨carrier, a, hCc, preceq_node_of_preceq s x rs hcP, ha, hai,
+      exact ⟨carrier, a, hCc, preceq_node_of_preceq s r_s x rs hcP, ha, hai,
         by simpa only [hj, hX] using haf⟩
-    · exact ⟨.node P s x rs, a, strict_node p s x rs hCP, preceq_refl _, ha, hai, haf⟩
+    · exact ⟨.node P s r_s x rs, a, strict_node p s r_s x rs hCP, preceq_refl _, ha, hai, haf⟩
 
 /-- [bp §3.1–3.2] Every retained entry has a birth on this chain and exact
 finality rows strictly after that birth. A new entry has no bits. -/
@@ -133,8 +133,8 @@ theorem window_entry_origin (p : Params) (K : Nat) (hK : 2 ≤ K)
     (he : e ∈ (derive p K B).W) : EntryOriginAt p K B e := by
   induction B generalizing e with
   | genesis => exact (List.not_mem_nil he).elim
-  | node P s x rs ih =>
-      let B := FGBlock.node P s x rs
+  | node P s r_s x rs ih =>
+      let B := FGBlock.node P s r_s x rs
       let w := certificateFolded p K B
       let f := finalizeWindow p.E w
       have hf : f.h = w.h ∧ f.T_h = w.T_h ∧ f.W ⊆ w.W := by
@@ -145,7 +145,7 @@ theorem window_entry_origin (p : Params) (K : Nat) (hK : 2 ≤ K)
       have fh : f.h = (derive p K P).h := hf.1.trans ff.1
       have fT : f.T_h = (derive p K P).T_h := hf.2.1.trans ff.2.1
       have old (d : Entry (Fin p.n)) (hd : d ∈ f.W) : EntryOriginAt p K B d := by
-        obtain ⟨C, hC, hb, hw⟩ := prefinal_of_parent p K P s x rs ih d (hf.2.2 hd)
+        obtain ⟨C, hC, hb, hw⟩ := prefinal_of_parent p K P s r_s x rs ih d (hf.2.2 hd)
         exact ⟨C, hC.1, hb, hw⟩
       change e ∈ (process_height_events p.E p.cfg K w).W at he
       rw [process_height_events_def] at he
@@ -167,7 +167,7 @@ theorem window_entry_origin (p : Params) (K : Nat) (hK : 2 ≤ K)
             rw [process_height_events_def, ite_eq_left ht]
           refine ⟨B, preceq_refl _, ?_, ?_⟩
           · rw [fh, fT]
-            apply birth_at_target p K hK P s x rs
+            apply birth_at_target p K hK P s r_s x rs
             · rw [hnew]; exact fh
             · rw [hnew]; exact fT
           · intro i hi; exact (Finset.notMem_empty i hi).elim
@@ -187,8 +187,8 @@ theorem window_prefinal_entry_origin (p : Params) (K : Nat) (hK : 2 ≤ K)
         a.finality_pair = some ⟨e.j, e.X.root⟩ := by
   cases B with
   | genesis => exact (List.not_mem_nil he).elim
-  | node P s x rs =>
-      exact prefinal_of_parent p K P s x rs (window_entry_origin p K hK P) e he
+  | node P s r_s x rs =>
+      exact prefinal_of_parent p K P s r_s x rs (window_entry_origin p K hK P) e he
 
 end AvailableChain.FGSA.Window
 end

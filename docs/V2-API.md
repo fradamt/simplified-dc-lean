@@ -8,6 +8,13 @@ This file lists the frozen v2 API: every public declaration of engine v2
 Kit v2 (`AvailableChainKitV2`, without `Tests`), by fully qualified name
 and grouped by module.
 
+ROOT-DIGEST W1 exception: user option 3, 2026-10-04 (plan r2 §2 M1).
+Remove only `AvailableChain.V2.rootInjective_all` and
+`AvailableChain.V2.D.rootInjective_all`. Keep both scope predicates. Remove each
+proof reference from its existing Framework anchor body; keep both anchors.
+This exception does not permit other engine claims or checker changes.
+W3 owns the final generated entries after the interface checkpoint.
+
 ## Freeze rule
 
 After the gate, no declaration in this file changes its name, type or body

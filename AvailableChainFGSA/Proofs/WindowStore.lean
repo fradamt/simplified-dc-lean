@@ -134,6 +134,7 @@ theorem on_block_TF_eq
       window_update_finality_TF, KitFG.update_finality_TF]
 
 private theorem window_pair_iff (hK : 2 ≤ K) (st : SimplexFG.Store (Fin p.n))
+    (hinj : ViewRootInj st.TF)
     (hne : ∃ C ∈ st.TF, FGBlock.Preceq st.F (SimplexFG.derive p.E p.cfg C).J) :
     ((∃ C ∈ st.TF, FGBlock.Preceq st.F (projectHeight (derive p K C)).J ∧
       st.h_j = (projectHeight (derive p K C)).h_j ∧
@@ -144,11 +145,11 @@ private theorem window_pair_iff (hK : 2 ≤ K) (st : SimplexFG.Store (Fin p.n))
   simp only [projectHeight_def, window_J_eq p K hK, window_hj_eq p K hK]
   constructor
   · rintro ⟨⟨C, hC, hFC, hh, hJ⟩, hm⟩
-    rw [lexMax_eq_of_greatest p.E p.cfg st.F st.TF (viewRootInj_all _) C hC hFC]
+    rw [lexMax_eq_of_greatest p.E p.cfg st.F st.TF hinj C hC hFC]
     · exact Prod.ext hh hJ
     · simpa only [← hh, ← hJ] using hm
   · intro hp
-    obtain ⟨C, hC, hFC, heq, hm⟩ := lexMax_spec p.E p.cfg st.F st.TF (viewRootInj_all _) hne
+    obtain ⟨C, hC, hFC, heq, hm⟩ := lexMax_spec p.E p.cfg st.F st.TF hinj hne
     have hpair := hp.trans heq
     exact ⟨⟨C, hC, hFC, (Prod.mk.inj hpair).1, (Prod.mk.inj hpair).2⟩,
       fun B hB hFB => hpair ▸ hm B hB hFB⟩
@@ -178,7 +179,8 @@ theorem windowStoreInvariant_init :
 theorem windowStoreInvariant_accept (hK : 2 ≤ K)
     (st : SimplexFG.Store (Fin p.n)) (B : FGBlock (Fin p.n))
     (h : FGStoreInvariant (fun B => projectHeight (derive p K B))
-      (certificateFinality p K) st) (hpar : B.parent ∈ st.TF) :
+      (certificateFinality p K) st) (hpar : B.parent ∈ st.TF)
+    (hroots : StoreStepRoots st B) :
     FGStoreInvariant (fun B => projectHeight (derive p K B)) (certificateFinality p K)
       (update_finality p K { st with TF := insert B st.TF } B) := by
   have hTF := window_update_finality_TF p K { st with TF := insert B st.TF } B
@@ -188,12 +190,12 @@ theorem windowStoreInvariant_accept (hK : 2 ≤ K)
     refine ⟨D, hD, ?_⟩
     rw [← window_J_eq p K hK, ← hDF]
     exact window_F_preceq_J p K hK D
-  have hp := (window_pair_iff p K hK st hne).mp h.pair
+  have hp := (window_pair_iff p K hK st (viewRootInj_mono hroots hsub) hne).mp h.pair
   have hpairJ : ((update_finality p K { st with TF := insert B st.TF } B).h_j,
       (update_finality p K { st with TF := insert B st.TF } B).J) =
       lexMax p.E p.cfg st.F (insert B st.TF) := by
     rw [window_update_finality_pair, window_hj_eq p K hK, window_J_eq p K hK,
-      lexMax_insert p.E p.cfg st.F st.TF B (viewRootInj_all _) hne, ← hp]
+      lexMax_insert p.E p.cfg st.F st.TF B hroots hne, ← hp]
   have hFJ : FGBlock.Preceq st.F
       (update_finality p K { st with TF := insert B st.TF } B).J := by
     have hj := window_update_finality_pair p K { st with TF := insert B st.TF } B
@@ -233,7 +235,7 @@ theorem windowStoreInvariant_accept (hK : 2 ≤ K)
   · have hnew : ∃ C ∈ (update_finality p K { st with TF := insert B st.TF } B).TF,
         FGBlock.Preceq (update_finality p K { st with TF := insert B st.TF } B).F
           (SimplexFG.derive p.E p.cfg C).J := by
-      obtain ⟨C, hC, _, heq, _⟩ := lexMax_spec p.E p.cfg st.F _ (viewRootInj_all _) hne'
+      obtain ⟨C, hC, _, heq, _⟩ := lexMax_spec p.E p.cfg st.F _ hroots hne'
       refine ⟨C, hTF ▸ hC, ?_⟩
       have hj := (Prod.mk.inj (hpairJ.trans heq)).2
       rw [← hj]
@@ -243,14 +245,14 @@ theorem windowStoreInvariant_accept (hK : 2 ≤ K)
         exact hFJ
       · rw [hF]
         exact hJ
-    apply (window_pair_iff p K hK _ hnew).mpr
+    apply (window_pair_iff p K hK _ (hTF.symm ▸ hroots) hnew).mpr
     rw [hTF]
     rcases window_update_finality_F_cases p K { st with TF := insert B st.TF } B with
       hF | ⟨hadv, _, hJ, hF⟩
     · rw [hF]
       exact hpairJ
     · rw [hF, hpairJ]
-      apply (lexMax_of_advance p.E p.cfg st.F _ _ (viewRootInj_all _) hne' hadv ?_).symm
+      apply (lexMax_of_advance p.E p.cfg st.F _ _ hroots hne' hadv ?_).symm
       rw [← hpairJ]
       exact hJ
   · rcases window_update_finality_F_cases p K { st with TF := insert B st.TF } B with
@@ -294,7 +296,7 @@ theorem window_on_block_F_mono
 theorem windowStoreInvariant_on_block (hK : 2 ≤ K)
     (st : SimplexFG.Store (Fin p.n)) (B : FGBlock (Fin p.n))
     (h : FGStoreInvariant (fun B => projectHeight (derive p K B))
-      (certificateFinality p K) st) :
+      (certificateFinality p K) st) (hroots : StoreStepRoots st B) :
     FGStoreInvariant (fun B => projectHeight (derive p K B)) (certificateFinality p K)
       (on_block p K st B) := by
   by_cases hc : B ∈ st.TF ∨ B.parent ∉ st.TF ∨ FGBlock.preceq st.F B = false ∨
@@ -304,7 +306,7 @@ theorem windowStoreInvariant_on_block (hK : 2 ≤ K)
   · rw [window_on_block_of_accepted p K st B hc]
     simp only [not_or, not_not, Bool.not_eq_false] at hc
     obtain ⟨-, hpar, -, -⟩ := hc
-    exact windowStoreInvariant_accept p K hK st B h hpar
+    exact windowStoreInvariant_accept p K hK st B h hpar hroots
 
 theorem window_on_block_TF_subset
     (st : SimplexFG.Store (Fin p.n)) (B : FGBlock (Fin p.n)) :
@@ -321,10 +323,12 @@ theorem windowStoreSafety (hK : 2 ≤ K) :
       (id : SimplexFG.Store (Fin p.n) → SimplexFG.Store (Fin p.n))
       (fun _ B => (projectHeight (derive p K B), certificateFinality p K B))
       SimplexFG.Store.init (on_block p K)
-      (FGStoreInvariant (fun B => projectHeight (derive p K B)) (certificateFinality p K)) :=
+      (FGStoreInvariant (fun B => projectHeight (derive p K B)) (certificateFinality p K))
+        StoreStepRoots :=
   FGStoreSafety.of_certificate p.E _ _ (windowCertificateLaws p K hK)
     id _ SimplexFG.Store.init (on_block p K)
     (FGStoreInvariant (fun B => projectHeight (derive p K B)) (certificateFinality p K))
+      StoreStepRoots
     (windowStoreInvariant_init p K) (fun _ hi => hi)
     (windowStoreInvariant_on_block p K hK)
     (fun st B _ => window_on_block_TF_subset p K st B)

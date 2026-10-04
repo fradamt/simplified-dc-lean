@@ -8,9 +8,9 @@ namespace AvailableChain.Witnesses.Accumulation
 open AvailableChain AvailableChain.Generic AvailableChain.Statements.Generic
 
 /-- Honest votes for the parent do not choose either child. -/
-def parentBlock : Block := .node .genesis 0 0
-def visibleChild : Block := .node parentBlock 1 0
-def hiddenChild : Block := .node parentBlock 1 1
+def parentBlock : Block := .node .genesis 0 (nodeRoot (.genesis : Block).root 0 0) 0
+def visibleChild : Block := .node parentBlock 1 (nodeRoot (parentBlock : Block).root 1 0) 0
+def hiddenChild : Block := .node parentBlock 1 (nodeRoot (parentBlock : Block).root 1 1) 1
 
 inductive Vote where
   | parent | visible | hidden

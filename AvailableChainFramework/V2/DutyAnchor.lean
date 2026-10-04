@@ -136,7 +136,6 @@ def dutyAnchor : Unit :=
   let _ := @AvailableChain.V2.D.outputAt
   let _ := @AvailableChain.V2.D.BlockInRun
   let _ := @AvailableChain.V2.D.RootInjective
-  let _ := @AvailableChain.V2.D.rootInjective_all
   -- AvailableChainEngineV2.Conditions.Duty.Lift
   let _ := @AvailableChain.V2.LabelFamilies.toD
   let _ := @AvailableChain.V2.Interface.toD

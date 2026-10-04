@@ -6,7 +6,7 @@ public import AvailableChainEngineV2.Engine.Run
 
 /-! The interface of an instance, the output reader and the root condition
 over v2 runs (plan 2a, Task 5). The texts of `Interface`, `Output`, the output
-reader, `BlockInRun`, `RootInjective` and `rootInjective_all` are the post-I9 v1
+reader, `BlockInRun`, `RootInjective` and the root premise are the shared v1
 texts (`AvailableChainStatements/Generic/Interface.lean`,
 `AvailableChainStatements/Generic/Conditions.lean`,
 `AvailableChainKit/Roots.lean`) over v2 runs. The v1 output reader `readAt` is
@@ -87,18 +87,10 @@ def BlockInRun (E : Generic.Env V) (I : Interface P) (rho : Run V P) (B : Block)
     I.block o.payload = some tip ∧ Block.Preceq B tip
 
 /-- Injectivity of block roots on genesis and the ancestors of all blocks
-named by this run. Roots are computed from block content, and
-`Block.root_injective` holds on the whole `Block` type, so this condition is a
-theorem for every run: `rootInjective_all` proves it. -/
+named by this run. ROOT-DIGEST W1 keeps this explicit DC-style scope premise. -/
 def RootInjective (E : Generic.Env V) (I : Interface P) (rho : Run V P) : Prop :=
   ∀ B C, BlockInRun E I rho B → BlockInRun E I rho C →
     B.root = C.root → B = C
-
-/-- Every run has injective roots: roots are computed from block content, and
-`Block.root_injective` holds on the whole `Block` type. -/
-theorem rootInjective_all (E : Generic.Env V) (I : Interface P) (rho : Run V P) :
-    RootInjective E I rho :=
-  fun _ _ _ _ h => Block.root_injective h
 
 end AvailableChain.V2
 

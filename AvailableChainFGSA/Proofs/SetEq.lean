@@ -41,8 +41,8 @@ row lists are permutations. The packed block identities can differ. -/
 theorem propose_setEq (p : Params) {st st' : State p.n}
     (h : StoreSetEq st st') (s : Slot) (hs : s ≠ 0) :
     ∃ H raw sup rows rows', rows.Perm rows' ∧
-      propose p st s = some (.proposal (.node H s (packBody 0 rows)) raw sup rows) ∧
-      propose p st' s = some (.proposal (.node H s (packBody 0 rows')) raw sup rows') := by
+      propose p st s = some (.proposal (proposalBlock p H s 0 raw sup rows) raw sup rows) ∧
+      propose p st' s = some (.proposal (proposalBlock p H s 0 raw sup rows') raw sup rows') := by
   have hr := proposalRows_perm_setEq p h
   obtain ⟨he, hp⟩ := h
   rw [he] at hr ⊢

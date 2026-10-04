@@ -7,11 +7,8 @@ namespace AvailableChain.FGSA
 
 open AvailableChain.Generic AvailableChain.SimplexFG
 
-/-! The cross-node carrier (K5 cross-node; `bp.carrier.v1`, audit M2). Two stores
-that satisfy `ContentAgree` read their stored FG blocks the same way. With
-derived roots and the content check, `ContentAgree` holds for any two stores
-with the metadata invariant (`contentAgree`). The old names keep the content
-premise as compatibility wrappers; the new forms do not need it. -/
+/-! ROOT-DIGEST W1; DC NamedRootCollisionFree. The cross-store carrier uses
+scoped root equality for content agreement. Erasure is structurally injective. -/
 
 /-- [helper] `ContentAgree` is symmetric. -/
 theorem contentAgree_symm {n : Nat} {st st' : State n} (hc : ContentAgree st st') :
@@ -42,28 +39,22 @@ theorem contentAgree_self (p : Params) (st : State p.n) (h : CStoreInv p st)
   simp only [Signed.mk.injEq, Msg.proposal.injEq] at e
   exact ⟨e.2.1, e.2.2.2.2⟩
 
-/-- [bp bp.carrier.v1; K5 cross-node; D9] `ContentAgree` is a theorem: two stores
-with the metadata invariant agree on the content of their stored proposals.
-Equal roots give equal blocks (`Block.root_injective`), hence equal bodies;
-both bodies pack their signed rows (`MetaInv.wireTree`, `rowsOk`), and the
-packing is injective, so the ordered signed rows are equal, rounds included.
-The carried votes and the support lists stay outside the conclusion. -/
-theorem contentAgree (p : Params) {st st' : State p.n} (m : MetaInv p st) (m' : MetaInv p st') :
+/-- [ROOT-DIGEST W1; DC NamedRootCollisionFree] Scoped stored roots give content agreement. -/
+theorem contentAgree (p : Params) {st st' : State p.n} (m : MetaInv p st) (m' : MetaInv p st')
+    (hroot : ∀ X ∈ st.fg.TF, ∀ Y ∈ st'.fg.TF, X.root = Y.root → X = Y) :
     ContentAgree st st' := by
   intro s b raw sup rows ho s' b' raw' sup' rows' ho' hr
-  obtain rfl : b = b' := Block.root_injective hr
-  obtain ⟨_, _, _, _, _, he, hk, -⟩ := m.wireTree _ ho
-  obtain ⟨_, _, _, _, _, he', hk', -⟩ := m'.wireTree _ ho'
+  obtain ⟨_, _, _, _, _, he, hk, _, B, hB, hBe, _⟩ := m.wireTree _ ho
+  obtain ⟨_, _, _, _, _, he', hk', _, B', hB', hBe', _⟩ := m'.wireTree _ ho'
   simp only [Signed.mk.injEq, Msg.proposal.injEq] at he he'
-  obtain ⟨-, rfl, -, -, rfl⟩ := he
-  obtain ⟨-, rfl, -, -, rfl⟩ := he'
-  exact ⟨rfl, rows_eq_of_rowsOk hk hk'⟩
-
-/-- [bp bp.carrier.v1; K5 cross-node] Any two reachable stores satisfy
-`ContentAgree`; no run premise. -/
-theorem contentAgree_reachable (p : Params) {st st' : State p.n} (hst : Reachable p st)
-    (hst' : Reachable p st') : ContentAgree st st' :=
-  contentAgree p (metadataInvariant p st hst) (metadataInvariant p st' hst')
+  obtain ⟨-, rfl, rfl, rfl, rfl⟩ := he
+  obtain ⟨-, rfl, rfl, rfl, rfl⟩ := he'
+  have hBB : B = B' := hroot B hB B' hB'
+    (by rw [← eraseFG_root, ← eraseFG_root, hBe, hBe', hr])
+  have heq : b = b' := hBe.symm.trans ((congrArg eraseFG hBB).trans hBe')
+  refine ⟨heq, rows_eq_of_rowsOk (contentOk_rowsOk hk) ?_⟩
+  rw [heq]
+  exact contentOk_rowsOk hk'
 
 /-- [helper] The erased ancestor of a stored FG block has a stored FG ancestor,
 with the same erasure. -/
@@ -74,40 +65,22 @@ theorem eraseFG_ancestor_preceq {n : Nat} {T : Finset (FGBlock (Fin n))}
   | genesis =>
       simp only [eraseFG, Block.Preceq, Block.preceq, decide_eq_true_eq] at hc
       exact ⟨.genesis, hB, hc.symm, KitFG.preceq_refl _⟩
-  | node P s r rows ih =>
+  | node P s r_s r rows ih =>
       simp only [eraseFG, Block.Preceq, Block.preceq, Bool.or_eq_true,
         decide_eq_true_eq] at hc
       rcases hc with hc | hc
-      · exact ⟨.node P s r rows, hB, hc.symm, KitFG.preceq_refl _⟩
+      · exact ⟨.node P s r_s r rows, hB, hc.symm, KitFG.preceq_refl _⟩
       · obtain ⟨C, hC, hCe, hCP⟩ := ih (hcl _ hB) hc
-        exact ⟨C, hC, hCe, KitFG.preceq_node_of_preceq s r rows hCP⟩
+        exact ⟨C, hC, hCe, KitFG.preceq_node_of_preceq s r_s r rows hCP⟩
 
+set_option linter.unusedVariables false in
 /-- [bp bp.carrier.v1; K5 cross-node] Cross-store
 reconstruction: stored FG blocks at two stores with the same erasure are equal. -/
 theorem stored_fg_eq_of_erase_eq (p : Params) (st st' : State p.n)
     (h : CStoreInv p st) (h' : CStoreInv p st') (m : MetaInv p st) (m' : MetaInv p st')
     {X Y : FGBlock (Fin p.n)} (hX : X ∈ st.fg.TF) (hY : Y ∈ st'.fg.TF)
-    (he : eraseFG X = eraseFG Y) : X = Y := by
-  induction X generalizing Y with
-  | genesis => exact (eraseFG_eq_genesis.1 he.symm).symm
-  | node P s r rows ih =>
-      cases Y with
-      | genesis => exact absurd (eraseFG_eq_genesis.1 he) (by simp)
-      | node P' s' r' rows' =>
-          have he' := he
-          simp only [eraseFG, Block.node.injEq] at he'
-          obtain ⟨hP, rfl, hx⟩ := he'
-          obtain ⟨rfl, -⟩ := encFGBody_inj hx
-          have hPP : P = P' := ih (h.fg.closed _ hX) (h'.fg.closed _ hY) hP
-          subst hPP
-          obtain ⟨sx, raw, sup, rw, ho, hXr⟩ :=
-            stored_wire_of_block p st h m hX (by simp)
-          obtain ⟨sy, raw', sup', rw', ho', hYr⟩ :=
-            stored_wire_of_block p st' h' m' hY (by simp)
-          obtain ⟨-, rfl⟩ := contentAgree p m m' _ _ _ _ _ ho _ _ _ _ _ ho' (by rw [he])
-          change rows = _ at hXr
-          change rows' = _ at hYr
-          rw [hXr, hYr]
+    (he : eraseFG X = eraseFG Y) : X = Y :=
+  eraseFG_injective he
 
 set_option linter.unusedVariables false in
 /-- Compatibility wrapper for `stored_fg_eq_of_erase_eq`.
@@ -177,7 +150,8 @@ theorem compatible_iff_across (p : Params) (st st' : State p.n)
 /-- [bp bp.carrier.v1; K5 cross-node; r188 N4] The `KitFG.accountable` premise
 for two chains at two stores (bp01 §2.2 step 6). -/
 theorem stored_fg_roots_injective (p : Params) (st st' : State p.n)
-    (h : CStoreInv p st) (h' : CStoreInv p st') (m : MetaInv p st) (m' : MetaInv p st')
+    (h : CStoreInv p st) (h' : CStoreInv p st') (m : MetaInv p st) (m' : MetaInv p st') (hc :
+      ContentAgree st st')
     {B₁ B₂ : FGBlock (Fin p.n)} (h₁ : B₁ ∈ st.fg.TF)
     (h₂ : B₂ ∈ st'.fg.TF) : KitFG.RootInjectiveOn B₁ B₂ := by
   have mem := KitFG.ancestor_closed_of_parent_closed _ h.fg.closed B₁ h₁
@@ -185,10 +159,8 @@ theorem stored_fg_roots_injective (p : Params) (st st' : State p.n)
   intro X Y hX hY hr
   rcases hX with hX | hX <;> rcases hY with hY | hY
   · exact h.rootInj _ (mem _ hX) _ (mem _ hY) hr
-  · exact stored_fg_eq_of_erase_eq p st st' h h' m m' (mem _ hX) (mem' _ hY)
-      (congrArg eraseFG (FGBlock.root_injective hr))
-  · exact (stored_fg_eq_of_erase_eq p st st' h h' m m' (mem _ hY) (mem' _ hX)
-      (congrArg eraseFG (FGBlock.root_injective hr.symm))).symm
+  · exact fg_eq_of_root_eq_across p st st' h h' m m' hc (mem _ hX) (mem' _ hY) hr
+  · exact (fg_eq_of_root_eq_across p st st' h h' m m' hc (mem _ hY) (mem' _ hX) hr.symm).symm
   · exact h'.rootInj _ (mem' _ hX) _ (mem' _ hY) hr
 
 set_option linter.unusedVariables false in
@@ -198,7 +170,7 @@ theorem rootInjectiveOn_across (p : Params) (st st' : State p.n)
     (h : CStoreInv p st) (h' : CStoreInv p st') (m : MetaInv p st) (m' : MetaInv p st')
     (hc : ContentAgree st st') {B₁ B₂ : FGBlock (Fin p.n)} (h₁ : B₁ ∈ st.fg.TF)
     (h₂ : B₂ ∈ st'.fg.TF) : KitFG.RootInjectiveOn B₁ B₂ :=
-  stored_fg_roots_injective p st st' h h' m m' h₁ h₂
+  stored_fg_roots_injective p st st' h h' m m' hc h₁ h₂
 
 end AvailableChain.FGSA
 end

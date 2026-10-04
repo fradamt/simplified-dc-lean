@@ -86,7 +86,7 @@ theorem ghost_adopts_of_rooted_proposal_transport (p : Params) {n : Nat}
     have hPB : Block.Preceq parent B := by
       cases B with
       | genesis => contradiction
-      | node P slot root =>
+      | node P slot r_slot root =>
           have he : P = parent := by simpa [Block.parent?] using hparent
           subst P
           exact Bool.or_eq_true_iff.mpr (Or.inr (block_preceq_self parent))

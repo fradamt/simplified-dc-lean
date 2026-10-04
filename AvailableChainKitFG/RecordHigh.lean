@@ -71,7 +71,7 @@ DC: none; INTENTIONAL addition: FJ contest replaces DC's NJ case; record
 TS blueprint/21-healing.md:2579–2581. H.13 gives H ≤ μ+1, which excludes
 j > μ in a contest; FF2 gives H ≤ M+1 (TS blueprint/22-finality.md:775–779). -/
 theorem noHighContest : NoHighContestStatement := by
-  intro V _ _ _ E cfg h0 entry faulty A F vw hcap hrows hhigh hcontest
+  intro V _ _ _ E cfg h0 entry faulty A F vw hinj hcap hrows hhigh hcontest
   change (decide (frontier E cfg vw = (lexMax E cfg F vw).1 + 1) &&
     decide (∃ W ∈ vw, hOf E cfg W = frontier E cfg vw ∧
       ¬ FGBlock.Preceq (lexMax E cfg F vw).2 W)) = true at hcontest
@@ -83,7 +83,7 @@ theorem noHighContest : NoHighContestStatement := by
     simp only [Height] at hH hbound ⊢
     omega
   by_cases hex : ∃ K ∈ vw, FGBlock.Preceq F (derive E cfg K).J
-  · obtain ⟨K, hK, _, hlex, _⟩ := lexMax_spec E cfg F vw (viewRootInj_all vw) hex
+  · obtain ⟨K, hK, _, hlex, _⟩ := lexMax_spec E cfg F vw hinj hex
     rw [hlex] at hH hj hnot
     dsimp only at hH hj hnot
     by_cases hz : (derive E cfg K).h_j = 0
@@ -115,7 +115,8 @@ theorem noHighContest : NoHighContestStatement := by
           have hX := (hhigh b hbA (hbk ▸ hkf) g T timeout hp (hm.1 ▸ hj)).1
           have hroot : X.root = (derive E cfg K).J.root := by
             rw [← hm.2, hX, hm.1, hJ]
-          exact hnot ((FGBlock.root_injective hroot) ▸ hXW)
+          exact hnot ((hinj X (derive E cfg K).J ⟨W, hW, hXW⟩
+            ⟨K, hK, (derive_anchors_preceq E cfg K).2⟩ hroot) ▸ hXW)
   · have hlex := lexMax_of_none E cfg F vw (fun K hK hFK => hex ⟨K, hK, hFK⟩)
     rw [hlex] at hnot
     exact hnot (genesis_preceq W)

@@ -1,4 +1,5 @@
 module
+public import AvailableChainKitFG.RootScopeDef
 public import AvailableChainFGSAClaims.Statements.FinalityApi
 public import AvailableChainFGSARun.Statements.Slashing
 public import AvailableChainFGSAClaims.Statements.Packages.Safety
@@ -228,9 +229,10 @@ variable (p : Params)
 
 /-- F-API, dc-align-full.md:78–86;
 DC Generic/Claims.lean:56 Consensus.certificatesAccountable; class: INTENTIONAL.
-SAME conclusion shape. FG content roots are injective; no root premise is needed. -/
+ROOT-DIGEST W1: Keep the conclusion with explicit scoped root premises. -/
 def PureAccountableClaim : Prop :=
   ∀ (K W T₁ T₂ : FGBlock (Fin p.n)) (h₁ h₂ : Nat),
+    KitFG.RootInjectiveOn K W →
     FinalityFinalizedAt p K T₁ h₁ → FinalityFinalizedAt p W T₂ h₂ →
     HasSlashableWeightBetween p.E (chainRows K) (chainRows W) ∨
       FGBlock.compatible T₁ T₂ = true
@@ -238,9 +240,10 @@ def PureAccountableClaim : Prop :=
 /-- F-API, dc-align-full.md:84–87;
 DC certificatesAccountable agreement corollary (L/FinalitySafety.lean:45);
 class: INTENTIONAL.
-SAME conclusion shape. FG content roots are injective; no root premise is needed. -/
+ROOT-DIGEST W1: Keep the conclusion with explicit scoped root premises. -/
 def PureAgreementClaim : Prop :=
   ∀ (K W T₁ T₂ : FGBlock (Fin p.n)) (h₁ h₂ : Nat),
+    KitFG.RootInjectiveOn K W →
     FinalityFinalizedAt p K T₁ h₁ → FinalityFinalizedAt p W T₂ h₂ →
     ¬ HasSlashableWeightBetween p.E (chainRows K) (chainRows W) →
       FGBlock.compatible T₁ T₂ = true
@@ -248,29 +251,31 @@ def PureAgreementClaim : Prop :=
 /-- F-API, dc-align-full.md:94–110;
 DC Generic/Claims.lean:59,65 Consensus.finalizedAccountable/finalizedSafe;
 class: INTENTIONAL.
-SAME conclusion shape. FG content roots are injective; no root premise is needed. -/
+ROOT-DIGEST W1: Keep the conclusion with explicit scoped root premises. -/
 def WholeRunAccountableClaim : Prop :=
   ∀ {V : Type} [DecidableEq V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
-    FinalityExecution p c rho → WholeRunAccountable p c E rho
+    NamedRootCollisionFree p c E rho → FinalityExecution p c rho → WholeRunAccountable p c E rho
 
 /-- F-API, dc-align-full.md:104–112;
 DC Generic/Claims.lean:59,65 Consensus.finalizedAccountable/finalizedSafe;
 class: INTENTIONAL.
-SAME conclusion shape. FG content roots are injective; no root premise is needed. -/
+ROOT-DIGEST W1: Keep the conclusion with explicit scoped root premises. -/
 def WholeRunAgreementClaim : Prop :=
   ∀ {V : Type} [DecidableEq V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
-    FinalityExecution p c rho → FinalitySlashableBound p c E rho →
+    NamedRootCollisionFree p c E rho → FinalityExecution p c rho → FinalitySlashableBound p c E
+      rho →
     WholeRunAgreement p c E rho
 
 /-- F-API, dc-align-full.md:112;
 DC L/FinalitySafety.lean:61 (internal; no direct public field); class: INTENTIONAL.
-Event-prefix observations use stored W finality. FG content roots are injective. -/
+ROOT-DIGEST W1: Event-prefix observations use stored W finality and scoped roots. -/
 def EventPrefixAgreementClaim : Prop :=
   ∀ {V : Type} [DecidableEq V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)),
-    FinalityExecution p c rho → FinalitySlashableBound p c E rho →
+    NamedRootCollisionFree p c E rho → FinalityExecution p c rho → FinalitySlashableBound p c E
+      rho →
     ∀ x ∈ rho.honest, ∀ y ∈ rho.honest, ∀ i j,
       FGBlock.compatible (storeAt p c E rho i x).fg.F (storeAt p c E rho j y).fg.F = true
 

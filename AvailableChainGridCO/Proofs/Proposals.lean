@@ -62,7 +62,7 @@ theorem honest_proposal_views {V : Type} [DecidableEq V] (p : Params)
     (h : HonestProposalAt E (gridInterface p) rho s B) :
     let st := proposalState p rho s
     let parent := forkChoice st st.blocks (proposerView st s) (proposerSupportView st s) s
-    0 < s ∧ B = .node parent s 0 ∧
+    0 < s ∧ B = .node parent s (nodeRoot parent.root s 0) 0 ∧
       Run.emits (gridCO p) E rho (rho.proposerOf s)
         ⟨.proposer s, .proposal B ((proposerView st s).filterMap toHead?)
           ((proposerSupportView st s).filterMap toHead?)⟩ (proposalTime p s) := by
@@ -220,7 +220,7 @@ theorem honest_proposal_exists {V : Type} [DecidableEq V]
     (hexec.tick_total _ hawake.1 _ hpub ht hh)
   let st := clock p (Run.stateBefore (gridCO p) rho i (rho.proposerOf s)) (proposalTime p s)
   let parent := forkChoice st st.blocks (proposerView st s) (proposerSupportView st s) s
-  let B := Block.node parent s 0
+  let B := Block.node parent s (nodeRoot parent.root s 0) 0
   let msg := Msg.proposal B ((proposerView st s).filterMap toHead?)
     ((proposerSupportView st s).filterMap toHead?)
   have hp : propose p st s = some msg := by simp [propose, Nat.ne_of_gt hs, msg, B, parent]

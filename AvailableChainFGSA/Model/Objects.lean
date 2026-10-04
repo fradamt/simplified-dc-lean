@@ -1,5 +1,6 @@
 module
 public import AvailableChainSA.Model.Protocol
+public import AvailableChainFGSA.Model.ProposalContent
 public import AvailableChainSimplexFG.Store
 public import AvailableChainSimplexFG.Client
 
@@ -20,6 +21,8 @@ structure Params extends SA.Params where
   The default is not a fixed protocol value. -/
   K_W : Nat := 2
   kWLarge : 2 ≤ K_W := by decide
+  /-- [ROOT-DIGEST W1; DC NamedBlocks] Fixed digest of the full proposal. -/
+  digest : DigestInput n → BlockId
 
 namespace Params
 /-- [spec 154–158] Unit weights on the fixed identities `V = Fin n`. -/
@@ -33,83 +36,6 @@ def actionTime (p : Params) (r : Nat) : Time := SA.gateTime p.toParams (r * p.R)
 /-- [spec 711] `Σ.s = ⌊t / 4Δ⌋`, as `GridCO.admitProposal` computes it. -/
 def slotOf (p : Params) (t : Time) : Slot := (t / (4 * p.Δ)).toNat
 end Params
-
-/-- [spec 197–220; comp §4.2; model representation of the duty labels] Duty labels: the HEAD of
-slot `s` and the fixed FG identity. -/
-inductive Label where
-  | head (s : Slot)
-  | fg
-  deriving DecidableEq, Repr
-
-/-- [spec 230–237] An FG row without its identity: the height pair and
-the finality pair. The identity is the seat index of the fixed FG signature. -/
-structure RowBody where
-  height_pair : NamedHeightPair
-  finality_pair : Option FinalityPair
-  deriving DecidableEq, Repr
-
-/-- [spec 230–237; model representation of a row without its signer] The body of an FG
-row: the row without its signer. -/
-def RowBody.ofRow {V : Type} (a : Row V) : RowBody := ⟨a.height_pair, a.finality_pair⟩
-
-/-- [R2/R3] A row needs a positive height. A present finality pair must
-have a smaller height. An empty height pair is not a valid sent row. -/
-def RowBody.valid (a : RowBody) : Bool :=
-  match a.height_pair with
-  | .empty => false
-  | .vote h _ _ => decide (1 ≤ h) &&
-      (a.finality_pair.map (fun fp => decide (fp.height < h))).getD true
-
-/-- [R3] The signed row payload. Finality rides on a vote at a greater height. -/
-inductive RowPayload where
-  | vote (body : RowBody)
-  deriving DecidableEq, Repr
-
-/-- The height pair of the vote payload. -/
-def RowPayload.height_pair : RowPayload → NamedHeightPair
-  | .vote body => body.height_pair
-
-/-- The finality pair of the vote payload. -/
-def RowPayload.finality_pair : RowPayload → Option FinalityPair
-  | .vote body => body.finality_pair
-
-/-- The input check for the vote payload. -/
-def RowPayload.valid : RowPayload → Bool
-  | .vote body => body.valid
-
-/-- Decode the payload with the supplied signing identity. -/
-def RowPayload.toRow {V : Type} (a : RowPayload) (i : V) : Row V :=
-  ⟨i, a.height_pair, a.finality_pair⟩
-
-/-- [spec 225–228] A signed Goldfish vote, as a block carries it. -/
-abbrev HeadWire (n : Nat) := Signed Label n Block
-/-- [spec 230–237] A signed FG row. Its auth is `.seat .fg i`. -/
-abbrev RowWire (n : Nat) := Signed Label n RowPayload
-
-namespace HeadWire
-variable {n : Nat}
-/-- [spec 225–228, 510–511; J1] The one auth decoder of a carried vote: label `s`,
-seat `i`, head. -/
-def decode? (o : HeadWire n) : Option (Slot × Fin n × Block) :=
-  match o.auth with
-  | .seat (.head s) i => some (s, i, o.payload)
-  | _ => none
-end HeadWire
-
-namespace RowWire
-variable {n : Nat}
-/-- [R1/R9] Decode the fixed FG seat and the full payload. -/
-def decode? (a : RowWire n) : Option (Fin n × RowPayload) :=
-  match a.auth with
-  | .seat .fg i => some (i, a.payload)
-  | _ => none
-/-- [spec 230–237; M4] The FG row: the signer is the seat index of the fg-label
-signature. The round is not a field of the FG row. -/
-def toRow? (a : RowWire n) : Option (Row (Fin n)) :=
-  a.decode?.map (fun x => x.2.toRow x.1)
-/-- [spec 505–518; M12] The row input check: an FG signature and a valid body. -/
-def valid (a : RowWire n) : Bool := (a.decode?.map (fun x => x.2.valid)).getD false
-end RowWire
 
 /-- [spec 225–263; comp §4.2] The payloads. A proposal carries the erased block,
 the previous-slot votes, the declared support subset and its own signed rows
@@ -148,13 +74,13 @@ def Wire.block? {n : Nat} (o : Wire n) : Option Block :=
   | some (.block _ b _ _ _) => some b
   | _ => none
 
-/-- [spec 248–263, 381–403; bp bp.carrier.v1] The geometric erasure of an FG block
+/-- [ROOT-DIGEST W1; DC NamedBlocks and RootInjectiveOnAncestors]
+[spec 248–263, 381–403; bp bp.carrier.v1] The geometric erasure of an FG block
 (bp01 §2.1 `eraseFG`). The base body is the FG body code `encFGBody x rs`, so
-the erasure keeps the root (`eraseFG_root`): both roots read the same content
-with the same outer code. -/
+the erasure copies the stored digest (`eraseFG_root`). -/
 def eraseFG {V : Type} [RowCodec V] : FGBlock V → Block
   | .genesis => .genesis
-  | .node p s x rs => .node (eraseFG p) s (encFGBody x rs)
+  | .node p s r x rs => .node (eraseFG p) s r (encFGBody x rs)
 
 /-! ### Signed content in the base body (D9)
 
@@ -202,12 +128,28 @@ def packBody {n : Nat} (app : Nat) (rw : List (RowWire n)) : Nat :=
 is not packed the value has no meaning; `rowsOk` checks the full packing. -/
 def appOf (x : Nat) : Nat := efst (efst (esnd x))
 
-/-- [D9] The content check of a proposal: the base body is the packing of its
+/-- [ROOT-DIGEST W1; DC NamedBlocks and RootInjectiveOnAncestors]
+[D9] The content check of a proposal: the base body is the packing of its
 own application value with the carried signed rows. It is a full
-reconstruction check of the body, not a root check. `wellFormed` and
-`blockAccepted` use this same function. -/
+reconstruction check of the body, not a root check. `contentOk` adds the digest check for both
+  admission paths. -/
 def rowsOk {n : Nat} (b : Block) (rw : List (RowWire n)) : Bool :=
   b.body == packBody (appOf b.body) rw
+
+/-- [ROOT-DIGEST W1; DC NamedBlocks] Recover the full digest input. -/
+def proposalInput {n : Nat} (b : Block) (raw support : List (HeadWire n))
+    (rows : List (RowWire n)) : DigestInput n :=
+  ⟨b.parent.root, b.slot, appOf b.body, rows, raw, support⟩
+
+/-- [ROOT-DIGEST W1; DC NamedBlocks] Check the BODY codec and the supplied digest. -/
+def contentOk (p : Params) (b : Block) (raw support : List (HeadWire p.n))
+    (rows : List (RowWire p.n)) : Bool :=
+  rowsOk b rows && b.root == p.digest (proposalInput b raw support rows)
+
+/-- [ROOT-DIGEST W1; DC NamedBlocks] Construct a proposal with its full digest. -/
+def proposalBlock (p : Params) (H : Block) (s : Slot) (app : Nat)
+    (raw support : List (HeadWire p.n)) (rows : List (RowWire p.n)) : Block :=
+  .node H s (p.digest ⟨H.root, s, app, rows, raw, support⟩) (packBody app rows)
 
 /-- [spec 225–228; model representation of a carried vote in the SA base] The base
 form of a carried vote: a HEAD seat of slot `s` becomes a

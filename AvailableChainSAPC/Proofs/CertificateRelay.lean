@@ -108,7 +108,7 @@ theorem pathKnown_mem {n : Nat} (st : State n) (b : Block) (hb : pathKnown st b 
     b ∈ st.base.blocks := by
   cases b with
   | genesis => exact of_decide_eq_true hb
-  | node parent s root => exact of_decide_eq_true (Bool.and_eq_true_iff.mp hb).1
+  | node parent s r_s root => exact of_decide_eq_true (Bool.and_eq_true_iff.mp hb).1
 
 /-- The accepted-object premise transfers the full PC, including every
 admitted path. Gossip timing and the reader's awake status are not needed. -/

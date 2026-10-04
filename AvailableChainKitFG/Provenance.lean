@@ -102,18 +102,18 @@ theorem provenance_finality (E : Electorate V) (cfg : FGConfig) (D : FGBlock V)
       (derive E cfg C).h_j = (derive E cfg D).h_F := by
   induction D with
   | genesis => exact absurd rfl hnz
-  | node p s r rs ih =>
-      obtain ⟨-, -, -, hJ, hhj, hF, hhF⟩ := foldRows_fields (derive E cfg p) (.node p s r rs) rs
+  | node p s r_s r rs ih =>
+      obtain ⟨-, -, -, hJ, hhj, hF, hhF⟩ := foldRows_fields (derive E cfg p) (.node p s r_s r rs) rs
       rw [derive_node] at hnz ⊢
-      rcases finality_pair_cases E cfg (foldRows (derive E cfg p) (.node p s r rs) rs) with
+      rcases finality_pair_cases E cfg (foldRows (derive E cfg p) (.node p s r_s r rs) rs) with
         ⟨h1, h2⟩ | ⟨h1, h2, -⟩
       · have hnz' : (derive E cfg p).h_F ≠ 0 := by
           rw [h2, hhF] at hnz
           exact hnz
         obtain ⟨C, hCp, hCJ, hCh⟩ := ih hnz'
-        exact ⟨C, preceq_node_of_preceq s r rs hCp,
+        exact ⟨C, preceq_node_of_preceq s r_s r rs hCp,
           hCJ.trans (h1.trans hF).symm, hCh.trans (h2.trans hhF).symm⟩
-      · exact ⟨p, preceq_parent_node p s r rs, (h1.trans hJ).symm, (h2.trans hhj).symm⟩
+      · exact ⟨p, preceq_parent_node p s r_s r rs, (h1.trans hJ).symm, (h2.trans hhj).symm⟩
 
 end AvailableChain.KitFG
 end

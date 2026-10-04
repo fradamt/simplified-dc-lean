@@ -39,7 +39,7 @@ def viewProtocol : ProtocolSpec 6 where
 def interface : Interface viewProtocol where
   confirmed := fun _ => .genesis
   stable := fun _ => .genesis
-  block := fun _ => some (.node .genesis 2 0)
+  block := fun _ => some (.node .genesis 2 (nodeRoot (.genesis : Block).root 2 0) 0)
   opening := fun s => s = 2
 
 def sleepyEnv : Env (Fin 6) where
@@ -254,7 +254,20 @@ theorem belowQuarter : BelowQuarter witnessRun := by
 
 /-- Roots are computed from block content, so they are injective on every block. -/
 theorem rootInjective (E : Env (Fin 6)) : RootInjective E interface witnessRun :=
-  fun _ _ _ _ h => Block.root_injective h
+  by
+    have scope : ∀ B, BlockInRun E interface witnessRun B →
+        B = .genesis ∨ B = .node .genesis 2 (nodeRoot genesisRoot 2 0) 0 := by
+      intro B hB
+      rcases hB with hg | ⟨v, o, t, tip, _, htip, hp⟩
+      · exact Or.inl hg
+      · have he : tip = .node .genesis 2 (nodeRoot genesisRoot 2 0) 0 :=
+          (Option.some.inj htip).symm
+        rw [he] at hp
+        simpa only [Block.Preceq, Block.preceq, Bool.or_eq_true,
+          decide_eq_true_eq, or_comm] using hp
+    intro B C hB hC hr
+    rcases scope B hB with rfl | rfl <;> rcases scope C hC with rfl | rfl <;>
+      first | rfl | simp [Block.root, nodeRoot, genesisRoot] at hr
 
 theorem sleepy : SleepyRegime viewProtocol sleepyEnv interface witnessRun 0 := by
   refine { rootInjective := rootInjective _
@@ -377,7 +390,7 @@ theorem recovery : RecoveryRegime viewProtocol fullEnv interface constants witne
     exact ⟨by decide, by decide⟩
 
 theorem recoveryProposalEmitted : HonestProposalAt fullEnv interface witnessRun 2
-    (.node .genesis 2 0) := by
+    (.node .genesis 2 (nodeRoot (.genesis : Block).root 2 0) 0) := by
   refine ⟨by decide, (), rfl, ?_⟩
   refine ⟨15, rfl, ?_⟩
   change ({ auth := Auth.proposer 2, payload := () } : Wire) ∈

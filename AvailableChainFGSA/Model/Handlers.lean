@@ -31,7 +31,7 @@ application value and signed rows, and the decoded rows. Under `rowsOk` its
 erasure is the wire block (`eraseFG_fgBlock`). -/
 def fgBlock {n : Nat} (P : FGBlock (Fin n)) (b : Block) (rows : List (RowWire n)) :
     FGBlock (Fin n) :=
-  .node P b.slot (packInner (appOf b.body) rows) (rows.filterMap RowWire.toRow?)
+  .node P b.slot b.root (packInner (appOf b.body) rows) (rows.filterMap RowWire.toRow?)
 
 /-- [spec 530–536, 806–817; M5, DQ2, DQ12, DQ14; D9] The acceptance tests of
 `on_block`, all before any write: not genesis; `b.slot ≤ Σ.s`; no stored block
@@ -40,13 +40,14 @@ the slot-`b.slot` proposer signs it; every row passes R6 against the parent
 state; the body packs the carried rows (`rowsOk`, the same check as
 in `wellFormed`). The parent test is `parentFG st b = some P`. -/
 def blockAccepted (p : Params) (st : State p.n) (s : Slot) (b : Block)
-    (P : FGBlock (Fin p.n)) (rows : List (RowWire p.n)) : Bool :=
+    (raw support : List (HeadWire p.n)) (P : FGBlock (Fin p.n))
+    (rows : List (RowWire p.n)) : Bool :=
   b != .genesis && decide (b.slot ≤ st.slot p) &&
     !decide (∃ Y ∈ st.fg.TF, Y.root = b.root) &&
     FGBlock.preceq st.fg.F (fgBlock P b rows) &&
     decide (b.parent.slot < b.slot) && s == b.slot &&
     rowsValidForParent p P b.slot rows &&
-    rowsOk b rows
+    contentOk p b raw support rows
 
 /-- [spec 804–829; M6] `on_block`. On refusal the state does not change. On
 acceptance: the SA block admission and the carried votes (SA code on the
@@ -61,7 +62,7 @@ def admitBlock (p : Params) (st : State p.n) (s : Slot) (b : Block)
   match parentFG st b with
   | none => st
   | some P =>
-      if blockAccepted p st s b P rows then
+      if blockAccepted p st s b raw support P rows then
         let st1 : State p.n := { st with
           base := GridCO.admitProposal p.toParams.engine st.base
             (baseProposal s b raw support) b (raw.map baseHead)
@@ -98,7 +99,7 @@ def wellFormed (p : Params) (o : Wire p.n) : Bool :=
           | none => false) &&
         support.all (fun v => decide (v ∈ raw)) &&
         rows.all RowWire.valid &&
-        rowsOk b rows
+        contentOk p b raw support rows
   | none => false
 
 end AvailableChain.FGSA

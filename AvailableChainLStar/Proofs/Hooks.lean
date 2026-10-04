@@ -502,10 +502,11 @@ theorem excludes_second_wire (p : Params) {n : Nat} {V : Type} [DecidableEq V]
 /-- The store dependency lookup with the `wellFormed` parent-slot test: the
 parent is stored with a slot below `s` iff a stored block has the parent's root
 and a slot below `s`. `wellFormed` itself reads no store. -/
-theorem blockKnown_parent_slot_iff_root {n : Nat} (st : State n) (b : Block) (s : Slot) :
+theorem blockKnown_parent_slot_iff_root {n : Nat} (st : State n) (b : Block) (s : Slot)
+    (hr : ∀ q ∈ st.blocks, q.root = b.parent.root → q = b.parent) :
     (blockKnown st b.parent = true ∧ b.parent.slot < s) ↔
       ∃ q ∈ st.blocks, q.root = b.parent.root ∧ q.slot < s := by
-  simpa [blockKnown] using parent_mem_and_iff_root b st.blocks (fun q => q.slot < s)
+  simpa [blockKnown] using parent_mem_and_iff_root b st.blocks (fun q => q.slot < s) hr
 
 /-- A proposal with an unknown parent is a missing dependency: admission
 returns the state before it stores the block or admits carried HEADs. The

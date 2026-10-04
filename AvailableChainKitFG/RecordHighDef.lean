@@ -92,6 +92,7 @@ def NoHighContestStatement : Prop :=
     (entry : Height → BlockId)
     (faulty : Finset V) (A : Finset (Row V))
     (F : FGBlock V) (vw : View V),
+    ViewRootInj vw →
     E.weightOf faulty < E.q →
     (∀ W ∈ vw, chainRows W ⊆ A) →
     (∀ a ∈ A, a.signer ∉ faulty →
@@ -114,6 +115,7 @@ theorem NoHighContestStatement_def :
         (entry : Height → BlockId)
         (faulty : Finset V) (A : Finset (Row V))
         (F : FGBlock V) (vw : View V),
+    ViewRootInj vw →
         E.weightOf faulty < E.q →
         (∀ W ∈ vw, chainRows W ⊆ A) →
         (∀ a ∈ A, a.signer ∉ faulty →

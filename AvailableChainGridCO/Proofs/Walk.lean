@@ -108,8 +108,8 @@ private theorem prefix_depth (A B : Block) (h : Block.Preceq A B) : A.depth ≤ 
   induction B with
   | genesis => have : A = .genesis := by simpa [Block.Preceq, Block.preceq] using h
                subst A; rfl
-  | node P s id ih =>
-      obtain he | hp : A = .node P s id ∨ Block.Preceq A P := by
+  | node P s r_s id ih =>
+      obtain he | hp : A = .node P s r_s id ∨ Block.Preceq A P := by
         simpa [Block.Preceq, Block.preceq, Bool.or_eq_true] using h
       · subst A; rfl
       · exact le_trans (ih hp) (Nat.le_succ _)
@@ -118,8 +118,8 @@ private theorem prefix_eq_of_depth (A B : Block) (h : Block.Preceq A B)
     (hd : B.depth ≤ A.depth) : A = B := by
   cases B with
   | genesis => simpa [Block.Preceq, Block.preceq] using h
-  | node P s id =>
-      obtain he | hp : A = .node P s id ∨ Block.Preceq A P := by
+  | node P s r_s id =>
+      obtain he | hp : A = .node P s r_s id ∨ Block.Preceq A P := by
         simpa [Block.Preceq, Block.preceq, Bool.or_eq_true] using h
       · exact he
       · have := prefix_depth A P hp
@@ -130,25 +130,25 @@ private theorem path_child (A B : Block) (h : Block.Preceq A B) (hne : A ≠ B) 
     ∃ C, C.parent? = some A ∧ Block.Preceq C B := by
   induction B with
   | genesis => exact (hne (by simpa [Block.Preceq, Block.preceq] using h)).elim
-  | node P s id ih =>
+  | node P s r_s id ih =>
       have hp : Block.Preceq A P := by
         simpa [Block.Preceq, Block.preceq, hne] using h
       by_cases he : A = P
       · subst P
-        exact ⟨.node A s id, rfl, block_preceq_self _⟩
+        exact ⟨.node A s r_s id, rfl, block_preceq_self _⟩
       · obtain ⟨C, hc, hcp⟩ := ih hp he
         exact ⟨C, hc, Bool.or_eq_true_iff.mpr (Or.inr hcp)⟩
 
 private def pathNodes : Block → List Block
   | .genesis => []
-  | b@(.node parent _ _) => b :: pathNodes parent
+  | b@(.node parent _ _ _) => b :: pathNodes parent
 
 private theorem pathNodes_spec (B : Block) :
     (pathNodes B).length = B.depth ∧ (pathNodes B).Nodup ∧
       ∀ C ∈ pathNodes B, C ≠ .genesis ∧ Block.Preceq C B := by
   induction B with
   | genesis => simp [pathNodes, Block.depth]
-  | node P s id ih =>
+  | node P s r_s id ih =>
       refine ⟨by simpa [pathNodes, Block.depth] using congrArg Nat.succ ih.1, ?_, ?_⟩
       · apply List.nodup_cons.mpr
         refine ⟨?_, ih.2.1⟩
@@ -198,7 +198,7 @@ theorem ghostWalk_covers_path (tree : List Block) (score : Block → Nat)
         have hdepth : C.depth = anchor.depth + 1 := by
           cases C with
           | genesis => contradiction
-          | node parent s id =>
+          | node parent s r_s id =>
               have heq : parent = anchor := by simpa [Block.parent?] using hpar
               subst parent; rfl
         have hs := ghostStep_of_strict_dominance tree score eligible anchor C

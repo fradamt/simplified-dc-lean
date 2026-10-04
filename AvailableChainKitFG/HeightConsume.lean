@@ -103,26 +103,26 @@ theorem transition_progress_of_cover (E : Electorate V) (cfg : FGConfig)
 /-- [helper] Target coverage in a child justifies the parent's entry and
 advances the parent's height. -/
 theorem derive_target_of_cover (E : Electorate V) (cfg : FGConfig)
-    (p : FGBlock V) (s : Slot) (x : Nat) (rs : List (Row V)) (S : Finset V)
+    (p : FGBlock V) (s : Slot) (r_s : BlockId) (x : Nat) (rs : List (Row V)) (S : Finset V)
     (hS : E.IsQuorum S)
     (hcover : ∀ i ∈ S, i ∈ (derive E cfg p).target_participation ∨
       ∃ a ∈ rs, a.signer = i ∧
         a.height_pair = .vote (derive E cfg p).h (derive E cfg p).T_h.root false) :
-    (derive E cfg (.node p s x rs)).h = (derive E cfg p).h + 1 ∧
-      (derive E cfg (.node p s x rs)).J = (derive E cfg p).T_h ∧
-      (derive E cfg (.node p s x rs)).h_j = (derive E cfg p).h :=
-  transition_target_of_cover E cfg (derive E cfg p) (.node p s x rs) rs S hS hcover
+    (derive E cfg (.node p s r_s x rs)).h = (derive E cfg p).h + 1 ∧
+      (derive E cfg (.node p s r_s x rs)).J = (derive E cfg p).T_h ∧
+      (derive E cfg (.node p s r_s x rs)).h_j = (derive E cfg p).h :=
+  transition_target_of_cover E cfg (derive E cfg p) (.node p s r_s x rs) rs S hS hcover
 
 /-- [helper] Mature progress coverage in a child advances the parent's height. -/
 theorem derive_progress_of_cover (E : Electorate V) (cfg : FGConfig)
-    (p : FGBlock V) (s : Slot) (x : Nat) (rs : List (Row V)) (S : Finset V)
+    (p : FGBlock V) (s : Slot) (r_s : BlockId) (x : Nat) (rs : List (Row V)) (S : Finset V)
     (hS : E.IsQuorum S)
     (hcover : ∀ i ∈ S, i ∈ (derive E cfg p).progress ∨
       ∃ a ∈ rs, a.signer = i ∧
         a.height_pair.matchesEntry (derive E cfg p).h (derive E cfg p).T_h.root = true)
     (hmature : (derive E cfg p).T_h.slot + cfg.timeoutDelay ≤ s) :
-    (derive E cfg (.node p s x rs)).h = (derive E cfg p).h + 1 :=
-  transition_progress_of_cover E cfg (derive E cfg p) (.node p s x rs) rs S hS hcover hmature
+    (derive E cfg (.node p s r_s x rs)).h = (derive E cfg p).h + 1 :=
+  transition_progress_of_cover E cfg (derive E cfg p) (.node p s r_s x rs) rs S hS hcover hmature
 
 end AvailableChain.KitFG
 end

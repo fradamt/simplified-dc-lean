@@ -153,10 +153,10 @@ theorem deriveWithSelector_id
     deriveWithSelector E cfg (fun _ rs => rs) B = derive E cfg B := by
   induction B with
   | genesis => rfl
-  | node p s x rs ih =>
+  | node p s r_s x rs ih =>
       rw [deriveWithSelector_def]
       change transition E cfg (deriveWithSelector E cfg (fun _ rs => rs) p)
-        (.node p s x rs) rs = transition E cfg (derive E cfg p) (.node p s x rs) rs
+        (.node p s r_s x rs) rs = transition E cfg (derive E cfg p) (.node p s r_s x rs) rs
       rw [ih]
 
 /-- Coverage preservation at each incoming state lifts through the raw fold. -/
@@ -168,9 +168,9 @@ theorem deriveWithSelector_height
       heightOf (derive E cfg B) := by
   induction B with
   | genesis => rfl
-  | node p s x rs ih =>
+  | node p s r_s x rs ih =>
       rw [deriveWithSelector_def]
-      exact transition_height_eq_of_rowsEq E cfg ih (.node p s x rs)
+      exact transition_height_eq_of_rowsEq E cfg ih (.node p s r_s x rs)
         (sel (deriveWithSelector E cfg sel p) rs) rs (hsel _ _)
 
 end AvailableChain.KitFG

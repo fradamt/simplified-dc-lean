@@ -228,13 +228,11 @@ theorem duties_nodup (p : Params) (t : Time) : (duties p t).Nodup := by
 
 /-! ### Duty payloads -/
 
-/-- [plan T7.2; 2c I1; I9 D5, D9] Put the application value `a` into a proposal:
-the block body becomes the packed body of `a` with the carried rows, and the
-rows stay. On the I9 `propose` output (`packBody 0 rows`) it replaces only the
-application value (`withApp_zero`, `rowsOk_withApp`). Every other payload does
-not change. -/
-def withApp {n : Nat} (a : Nat) : Msg n → Msg n
-  | .proposal (.node H s _) raw sup rows => .proposal (.node H s (packBody a rows)) raw sup rows
+/-- [ROOT-DIGEST W1; DC NamedBlocks] Replace the app and recompute the full digest.
+The BODY codec, signed rows, raw list, and support list keep their roles. -/
+def withApp (p : Params) (a : Nat) : Msg p.n → Msg p.n
+  | .proposal (.node H s _ _) raw sup rows =>
+      .proposal (proposalBlock p H s a raw sup rows) raw sup rows
   | m => m
 
 /-- [spec 1236–1253, 1276–1302; plan T7.2] The payload of the base duties (the
@@ -244,7 +242,7 @@ def actS (p : Params) {In : Type} (c : AppCodec In) (st : State p.n) :
     RunDuty → In → Option (Msg p.n)
   | .headAction s, _ => some (.head (headVote p st s))
   | .fgAction _, _ => none
-  | .propAction s, x => (propose p st s).map (withApp (c.app x))
+  | .propAction s, x => (propose p st s).map (withApp p (c.app x))
 
 /-- [spec 1304–1313, 1391–1399; plan T7.2] The payload of a duty: `actS` on the
 base labels, and the `attest` row body on an FG label. `attest` reads Λ; its
@@ -314,8 +312,8 @@ proposal that the store accepts (`parentFG` and `blockAccepted`, the tests of
 v2 objects (`ofHead`, `ofRow`). -/
 def handlesS (p : Params) (st : State p.n) (o o' : Obj p) : Prop :=
   o = o' ∨ match (toWire p o).decode with
-    | some (.block s b raw _ rows) =>
-        (∃ P, parentFG st b = some P ∧ blockAccepted p st s b P rows = true) ∧
+    | some (.block s b raw support rows) =>
+        (∃ P, parentFG st b = some P ∧ blockAccepted p st s b raw support P rows = true) ∧
           (o' ∈ raw.map (ofHead p) ∨ o' ∈ rows.map (ofRow p))
     | _ => False
 

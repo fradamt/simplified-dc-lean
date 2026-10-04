@@ -119,7 +119,7 @@ grow, and the row pool is unchanged. -/
 theorem accepted_st2 (p : Params) (st : State p.n) (h : CStoreInv p st) (s : Slot)
     (b : Block) (raw support : List (HeadWire p.n)) (P : FGBlock (Fin p.n))
     (rows : List (RowWire p.n))
-    (hP : parentFG st b = some P) (hacc : blockAccepted p st s b P rows = true) :
+    (hP : parentFG st b = some P) (hacc : blockAccepted p st s b raw support P rows = true) :
     let st1 : State p.n := { st with
       base := GridCO.admitProposal p.toParams.engine st.base (baseProposal s b raw support) b
         (raw.map baseHead)
@@ -216,7 +216,7 @@ theorem process_cumulative (p : Params) (st : State p.n) (o : Wire p.n) :
         rw [admitBlock_refused p st s b raw support rows (Or.inl hP)]
         exact refl6
     | some P =>
-        cases hacc : blockAccepted p st s b P rows with
+        cases hacc : blockAccepted p st s b raw support P rows with
         | false =>
             rw [admitBlock_refused p st s b raw support rows (Or.inr ⟨P, hP, hacc⟩)]
             exact refl6
@@ -306,9 +306,11 @@ theorem wire_block_mem (p : Params) (st : State p.n) (h : CStoreInv p st) (m : M
   exact (h.baseTree _).2 ⟨B, hB, hBe⟩
 
 /-- [helper] Every row of an accepted block decodes (DQ12). -/
-theorem accepted_rows_decode {p : Params} {st : State p.n} {s : Slot} {b : Block}
+theorem accepted_rows_decode {p : Params} {raw support : List (HeadWire p.n)} {st : State p.n} {s
+  : Slot} {b : Block}
     {P : FGBlock (Fin p.n)} {rows : List (RowWire p.n)}
-    (hacc : blockAccepted p st s b P rows = true) : ∀ a ∈ rows, (RowWire.decode? a).isSome := by
+    (hacc : blockAccepted p st s b raw support P rows = true) : ∀ a ∈ rows, (RowWire.decode?
+      a).isSome := by
   have hv : rowsValidForParent p P b.slot rows = true := by
     simp only [blockAccepted, Bool.and_eq_true] at hacc
     exact hacc.1.2
@@ -330,8 +332,10 @@ theorem metaInv_accepted (p : Params) (st : State p.n) (h : CStoreInv p st) (m :
     (hX4 : X.base.blockStamp = st.base.blockStamp ++ [(b, st.base.now)])
     (hX6 : X.rowPool = st.rowPool)
     (hg : b ≠ .genesis) (hPe : eraseFG P = b.parent) (hb : b ∉ st.base.blocks)
-    (hdec : ∀ a ∈ rows, (RowWire.decode? a).isSome) (hrows : rowsOk b rows = true) :
+    (hdec : ∀ a ∈ rows, (RowWire.decode? a).isSome) (hcontent : contentOk p b raw support rows =
+      true) :
     MetaInv p X := by
+  have hrows := contentOk_rowsOk hcontent
   have hwb : ∀ {o : Wire p.n}, o ∈ st.proposals → ∀ {c : Block}, Wire.block? o = some c →
       c ∈ st.base.blocks := fun ho _ hc => wire_block_mem p st h m ho hc
   refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
@@ -341,7 +345,7 @@ theorem metaInv_accepted (p : Params) (st : State p.n) (h : CStoreInv p st) (m :
     · obtain ⟨s', b', raw', sup', rows', ho', hk', hd', B, hB, hBe, hBr⟩ := m.wireTree o ho
       exact ⟨s', b', raw', sup', rows', ho', hk', hd', B,
         by rw [hX2]; exact Finset.mem_insert_of_mem hB, hBe, hBr⟩
-    · exact ⟨s, b, raw, support, rows, rfl, hrows, hdec, fgBlock P b rows,
+    · exact ⟨s, b, raw, support, rows, rfl, hcontent, hdec, fgBlock P b rows,
         by rw [hX2]; exact Finset.mem_insert_self _ _, eraseFG_fgBlock hg hPe rows hrows, rfl⟩
   · intro B hB hBg
     rw [hX2, Finset.mem_insert] at hB
@@ -408,7 +412,7 @@ theorem metaInv_process (p : Params) (st : State p.n) (h : CStoreInv p st) (m : 
         rw [admitBlock_refused p st s b raw support rows (Or.inl hP)]
         exact m
     | some P =>
-        cases hacc : blockAccepted p st s b P rows with
+        cases hacc : blockAccepted p st s b raw support P rows with
         | false =>
             rw [admitBlock_refused p st s b raw support rows (Or.inr ⟨P, hP, hacc⟩)]
             exact m
@@ -424,7 +428,7 @@ theorem metaInv_process (p : Params) (st : State p.n) (h : CStoreInv p st) (m : 
             simp only [hacc, ite_true]
             exact metaInv_foldl_admitRow p rows _
               (metaInv_accepted p st h m s b raw support P rows _ k1 k2 k3 k4 k6 hg hPe hb
-                (accepted_rows_decode hacc) (blockAccepted_rowsOk hacc))
+                (accepted_rows_decode hacc) (blockAccepted_contentOk hacc))
   · exact m
 
 theorem metaInv_clock (p : Params) (st : State p.n) (m : MetaInv p st) (t : Time) :
@@ -467,7 +471,7 @@ theorem rowsValidStored_admitBlock (p : Params) (st : State p.n)
       rw [admitBlock_refused p st s b raw support rows (Or.inl hP)]
       exact hv
   | some P =>
-      cases ha : blockAccepted p st s b P rows with
+      cases ha : blockAccepted p st s b raw support P rows with
       | false =>
           rw [admitBlock_refused p st s b raw support rows (Or.inr ⟨P, hP, ha⟩)]
           exact hv
@@ -487,7 +491,7 @@ theorem rowsValidStored_admitBlock (p : Params) (st : State p.n)
             exact ⟨Q, fgBlockOf_mono p h hn hsub hQ, hvQ⟩
           · simp only [Wire.decode, Option.some.injEq, Input.block.injEq] at hd
             obtain ⟨rfl, rfl, rfl, rfl, rfl⟩ := hd
-            obtain ⟨hm, he⟩ := (parentFG_spec st h.rootInj b P).mp hP
+            obtain ⟨hm, he⟩ := (parentFG_spec st b P).mp hP
             exact ⟨P, (fgBlockOf_spec p _ hn b.parent P).mpr ⟨hsub hm, he⟩,
               blockAccepted_rowsValid ha⟩
 

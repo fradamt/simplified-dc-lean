@@ -13,8 +13,8 @@ DC: ChainState/FinalityComparison.lean:50–56; same: strict height and finalize
 The local chain agreement premise supplies DC's bound for this comparison.
 INTENTIONAL: root is a function of the content; record K/Accountable:15–18, GLY:57–58. -/
 theorem viewLock_of_chains : ViewLockOfChainsStatement := by
-  intro V _ _ _ E cfg K Fb vw θ hKF hθ hbound W hW hh
-  have hc := (slashableWeight_or_finalized_preceq E cfg K W
+  intro V _ _ _ E cfg K Fb vw θ hroots hKF hθ hbound W hW hh
+  have hc := (slashableWeight_or_finalized_preceq E cfg K W (hroots W hW)
     (Nat.lt_of_le_of_lt hθ hh)).resolve_left (hbound W hW)
   exact hKF ▸ hc
 
@@ -23,8 +23,8 @@ DC: ChainState/FinalityComparison.lean:50–56; same: strict height and finalize
 The strict weight bound and honest chain rows supply the agreement premise.
 INTENTIONAL: root is a function of the content; record K/Accountable:15–18, GLY:57–58. -/
 theorem viewLock_of_honest_chains : ViewLockOfHonestChainsStatement := by
-  intro V _ _ _ E cfg K Fb vw θ faulty hKF hθ hweight hnoSlash
-  apply viewLock_of_chains E cfg K Fb vw θ hKF hθ
+  intro V _ _ _ E cfg K Fb vw θ faulty hroots hKF hθ hweight hnoSlash
+  apply viewLock_of_chains E cfg K Fb vw θ hroots hKF hθ
   intro W hW hev
   obtain ⟨S, hS, he⟩ := hev
   have hsub : S ⊆ faulty := by
