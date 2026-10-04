@@ -102,7 +102,13 @@ AX_OPTS=(--expect Run.stored_rows_r3W Run.stored_chain_rowsValidW Run.exact_row_
   Run.fgsaAC_lease_le_output Run.fgsaAC_gate_write
   Run.fgsaAC_output_step Run.fgsaAC_laws
   Run.fgsaAC_slot_gate_reads
-  Run.depsS_of_not_block Run.depsS_of_not_proposal Run.fgsa_hWF_of_delivery Run.fgsa_hReady_of_not_block Run.fgsa_hReady_of_parentStored Run.fgsa_accepted_by_deadline_of_parentStored)
+  Run.depsS_of_not_block Run.depsS_of_not_proposal Run.fgsa_hWF_of_delivery
+  Run.fgsa_hReady_of_not_block Run.fgsa_hReady_of_parentStored
+  Run.fgsa_accepted_by_deadline_of_parentStored
+  Run.Tests.DigestScope.body_collision_admitted Run.Tests.DigestScope.body_collision_control
+  Run.Tests.DigestScope.head_direct_scope Run.Tests.DigestScope.head_body_scope
+  Run.Tests.DigestScope.head_scope_control Run.Tests.NVDigest.proposal_slot_root
+  Run.Tests.NVDigest.same_slot_collision Run.Tests.NVDigest.live_horizon_grid)
 
 # T7.11 content agreement.
 AX_OPTS+=(Run.contentAgree_run)

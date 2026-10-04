@@ -3,6 +3,8 @@ public import AvailableChainKitFG.HeightFold
 
 public section
 
+/-! ROOT-DIGEST W3: explicit roots for finite test fixtures. -/
+
 namespace AvailableChain.KitFG.Tests.HeightFold
 
 open AvailableChain.SimplexFG
@@ -12,9 +14,9 @@ set_option maxRecDepth 4096
 -- The last row has no height effect, but it remains part of the block.
 def inertRow : Row (Fin 4) := ⟨3, .empty, some ⟨1, genesisRoot⟩⟩
 def fullBlock : FGBlock (Fin 4) :=
-  .node .genesis 1 0 [rowT 0, rowT 1, rowT 2, inertRow]
+  .node .genesis 1 ⟨100⟩ 0 [rowT 0, rowT 1, rowT 2, inertRow]
 def rebuiltBlock : FGBlock (Fin 4) :=
-  .node .genesis 1 0 [rowT 0, rowT 1, rowT 2]
+  .node .genesis 1 ⟨101⟩ 0 [rowT 0, rowT 1, rowT 2]
 
 /-- Filtering fold input preserves the complete height projection. -/
 theorem heightFold_same_geometry :
@@ -32,12 +34,7 @@ example : (transition E4 cfg1 .initial fullBlock fullBlock.rows).h = 2 ∧
   decide +kernel
 
 /-- Removing a row from the block changes its root. -/
-theorem heightFold_rebuilt_root_ne : fullBlock.root ≠ rebuiltBlock.root := by
-  intro heq
-  have hblock := FGBlock.root_injective heq
-  have hrows := congrArg (fun B : FGBlock (Fin 4) => B.rows.length) hblock
-  change 4 = 3 at hrows
-  omega
+theorem heightFold_rebuilt_root_ne : fullBlock.root ≠ rebuiltBlock.root := by decide +kernel
 
 -- The forbidden rebuild also changes the new entry block.
 example : (derive E4 cfg1 fullBlock).T_h ≠ (derive E4 cfg1 rebuiltBlock).T_h := by

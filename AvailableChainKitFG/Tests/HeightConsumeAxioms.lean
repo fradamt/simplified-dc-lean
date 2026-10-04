@@ -3,6 +3,8 @@ public import AvailableChainKitFG.HeightConsume
 
 public section
 
+/-! ROOT-DIGEST W3: explicit roots for finite test fixtures. -/
+
 namespace AvailableChain.KitFG.Tests.HeightConsume
 
 open AvailableChain.SimplexFG
@@ -56,10 +58,10 @@ example : (transition oneElectorate ⟨5⟩ .initial .genesis [oneHeightRow fals
     (by unfold Electorate.IsQuorum; decide +kernel) (by decide +kernel)
 
 -- The target corollary applies to a child of genesis.
-example : (derive oneElectorate ⟨5⟩ (.node .genesis 0 0 [oneHeightRow false])).h = 2 ∧
-    (derive oneElectorate ⟨5⟩ (.node .genesis 0 0 [oneHeightRow false])).J = .genesis ∧
-    (derive oneElectorate ⟨5⟩ (.node .genesis 0 0 [oneHeightRow false])).h_j = 1 :=
-  derive_target_of_cover oneElectorate ⟨5⟩ .genesis 0 0 [oneHeightRow false] {0}
+example : (derive oneElectorate ⟨5⟩ (.node .genesis 0 ⟨100⟩ 0 [oneHeightRow false])).h = 2 ∧
+    (derive oneElectorate ⟨5⟩ (.node .genesis 0 ⟨100⟩ 0 [oneHeightRow false])).J = .genesis ∧
+    (derive oneElectorate ⟨5⟩ (.node .genesis 0 ⟨100⟩ 0 [oneHeightRow false])).h_j = 1 :=
+  derive_target_of_cover oneElectorate ⟨5⟩ .genesis 0 ⟨100⟩ 0 [oneHeightRow false] {0}
     (by unfold Electorate.IsQuorum; decide +kernel) (by decide +kernel)
 
 -- A single timeout row advances at zero delay without a justification write.
@@ -72,16 +74,16 @@ example : (transition oneElectorate ⟨0⟩ .initial .genesis [oneHeightRow true
   · decide +kernel
 
 -- Timeout coverage is consumed exactly at maturity.
-example : (derive oneElectorate ⟨5⟩ (.node .genesis 5 0 [oneHeightRow true])).h = 2 ∧
-    (derive oneElectorate ⟨5⟩ (.node .genesis 5 0 [oneHeightRow true])).h_j = 0 := by
+example : (derive oneElectorate ⟨5⟩ (.node .genesis 5 ⟨101⟩ 0 [oneHeightRow true])).h = 2 ∧
+    (derive oneElectorate ⟨5⟩ (.node .genesis 5 ⟨101⟩ 0 [oneHeightRow true])).h_j = 0 := by
   constructor
-  · exact derive_progress_of_cover oneElectorate ⟨5⟩ .genesis 5 0 [oneHeightRow true] {0}
+  · exact derive_progress_of_cover oneElectorate ⟨5⟩ .genesis 5 ⟨101⟩ 0 [oneHeightRow true] {0}
       (by unfold Electorate.IsQuorum; decide +kernel) (by decide +kernel) (by decide +kernel)
   · decide +kernel
 
 -- The same timeout quorum does not advance one slot before maturity.
-example : (derive oneElectorate ⟨5⟩ (.node .genesis 4 0 [oneHeightRow true])).h = 1 ∧
-    (derive oneElectorate ⟨5⟩ (.node .genesis 4 0 [oneHeightRow true])).h_j = 0 := by
+example : (derive oneElectorate ⟨5⟩ (.node .genesis 4 ⟨102⟩ 0 [oneHeightRow true])).h = 1 ∧
+    (derive oneElectorate ⟨5⟩ (.node .genesis 4 ⟨102⟩ 0 [oneHeightRow true])).h_j = 0 := by
   decide +kernel
 
 def storedPair : ChainState (Fin 4) :=
@@ -95,10 +97,10 @@ example : (transition E4 ⟨5⟩ storedPair .genesis [rowT 2]).h = 2 ∧
     (by unfold Electorate.IsQuorum; decide +kernel) (by decide +kernel)
 
 -- Mixed target and timeout progress advances at maturity without justification.
-example : (transition E4 ⟨5⟩ storedPair (.node .genesis 5 0 []) [rowX 2]).h = 2 ∧
-    (transition E4 ⟨5⟩ storedPair (.node .genesis 5 0 []) [rowX 2]).h_j = 0 := by
+example : (transition E4 ⟨5⟩ storedPair (.node .genesis 5 ⟨103⟩ 0 []) [rowX 2]).h = 2 ∧
+    (transition E4 ⟨5⟩ storedPair (.node .genesis 5 ⟨103⟩ 0 []) [rowX 2]).h_j = 0 := by
   constructor
-  · exact transition_progress_of_cover E4 ⟨5⟩ storedPair (.node .genesis 5 0 [])
+  · exact transition_progress_of_cover E4 ⟨5⟩ storedPair (.node .genesis 5 ⟨103⟩ 0 [])
       [rowX 2] {0, 1, 2} (by unfold Electorate.IsQuorum; decide +kernel)
       (by decide +kernel) (by decide +kernel)
   · decide +kernel

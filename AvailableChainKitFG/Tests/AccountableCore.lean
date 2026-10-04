@@ -4,6 +4,8 @@ public import AvailableChainKitFG.CertificateSimplex -- shake: keep (instance ch
 
 public section
 
+/-! ROOT-DIGEST W3: safety tests use roots on the compared chains. -/
+
 namespace AvailableChain.KitFG.Tests.AccountableCore
 
 open AvailableChain.SimplexFG
@@ -13,24 +15,24 @@ variable {V : Type} [DecidableEq V] [Fintype V] [RowCodec V]
 -- The complete chain certificate supplies the shared safety core.
 theorem accountable_certificate_bundle_test (E : Electorate V)
     (H : FGHeightView V) (f : FGFinalityView V) (r : FGSelectionView V)
-    (hc : FGChainCertificate E H f r) (B₁ B₂ : FGBlock V) :
+    (hc : FGChainCertificate E H f r) (B₁ B₂ : FGBlock V) (hroots : RootInjectiveOn B₁ B₂) :
     HasSlashableWeightBetween E (chainRows B₁) (chainRows B₂) ∨
       FGBlock.compatible (f B₁).F (f B₂).F = true :=
-  slashableWeight_or_finalized_compatible_of_certificate E H f hc.laws B₁ B₂
+  slashableWeight_or_finalized_compatible_of_certificate E H f hc.laws B₁ B₂ hroots
 
 -- The safety argument needs no selection, retention, capacity, or timing premise.
 example (E : Electorate V) (H : FGHeightView V) (f : FGFinalityView V)
-    (hc : FGCertificateLaws E H f) (B W : FGBlock V)
+    (hc : FGCertificateLaws E H f) (B W : FGBlock V) (hroots : RootInjectiveOn B W)
     (hh : (f B).h_F < (H W).h) (hfork : ¬ FGBlock.Preceq (f B).F W) :
     HasE1WeightBetween E (chainRows B) (chainRows W) :=
-  (e1Weight_or_finalized_preceq_of_certificate E H f hc B W hh).resolve_right hfork
+  (e1Weight_or_finalized_preceq_of_certificate E H f hc B W hroots hh).resolve_right hfork
 
 -- Unequal justified blocks at one height give slashable evidence.
 example (E : Electorate V) (H : FGHeightView V) (f : FGFinalityView V)
-    (hc : FGCertificateLaws E H f) (B₁ B₂ : FGBlock V)
+    (hc : FGCertificateLaws E H f) (B₁ B₂ : FGBlock V) (hroots : RootInjectiveOn B₁ B₂)
     (hh : (H B₁).h_j = (H B₂).h_j) (hne : (H B₁).J ≠ (H B₂).J) :
     HasSlashableWeightBetween E (chainRows B₁) (chainRows B₂) :=
-  (slashableWeight_or_justified_eq_of_certificate E H f hc B₁ B₂ hh).resolve_right hne
+  (slashableWeight_or_justified_eq_of_certificate E H f hc B₁ B₂ hroots hh).resolve_right hne
 
 -- The exact finality QC remains available when before has no retained entry.
 example (E : Electorate V) (H : FGHeightView V) (f : FGFinalityView V)
@@ -52,16 +54,18 @@ example (E : Electorate V) (H : FGHeightView V) (f : FGFinalityView V)
   exact genesis_preceq W
 
 -- The concrete corollaries use the LF2 instance and keep the concrete chain types.
-example (E : Electorate V) (cfg : FGConfig) (B W : FGBlock V)
+example (E : Electorate V) (cfg : FGConfig) (B W : FGBlock V) (hroots : RootInjectiveOn B W)
     (hh : (derive E cfg B).h_F < (derive E cfg W).h) :
     HasSlashableWeightBetween E (chainRows B) (chainRows W) ∨
       FGBlock.Preceq (derive E cfg B).F W :=
-  slashableWeight_or_finalized_preceq_of_certificate E _ _ (simplexCertificateLaws E cfg) B W hh
+  slashableWeight_or_finalized_preceq_of_certificate E _ _ (simplexCertificateLaws E cfg) B W hroots
+      hh
 
-example (E : Electorate V) (cfg : FGConfig) (B₁ B₂ : FGBlock V) :
+example (E : Electorate V) (cfg : FGConfig) (B₁ B₂ : FGBlock V) (hroots : RootInjectiveOn B₁ B₂) :
     HasSlashableWeightBetween E (chainRows B₁) (chainRows B₂) ∨
       FGBlock.compatible (derive E cfg B₁).F (derive E cfg B₂).F = true :=
   slashableWeight_or_finalized_compatible_of_certificate E _ _ (simplexCertificateLaws E cfg) B₁ B₂
+      hroots
 
 -- Both certificate keys for genesis reach the shared records.
 example : (simplexFinalityView E4 cfg1 .genesis).h_F = 0 ∧
@@ -77,46 +81,48 @@ example
 
 -- Instance check: slashableWeight_or_justified_eq_of_certificate.
 example
-    (E : Electorate V) (cfg : FGConfig) (B₁ B₂ : FGBlock V)
+    (E : Electorate V) (cfg : FGConfig) (B₁ B₂ : FGBlock V) (hroots : RootInjectiveOn B₁ B₂)
     (hh : (derive E cfg B₁).h_j = (derive E cfg B₂).h_j) :
     HasSlashableWeightBetween E (chainRows B₁) (chainRows B₂) ∨
       (derive E cfg B₁).J = (derive E cfg B₂).J :=
-  slashableWeight_or_justified_eq_of_certificate E _ _ (simplexCertificateLaws E cfg) B₁ B₂ hh
+  slashableWeight_or_justified_eq_of_certificate E _ _ (simplexCertificateLaws E cfg) B₁ B₂ hroots
+      hh
 
 -- Instance check: e1Weight_or_finalized_preceq_of_certificate.
 example
-    (E : Electorate V) (cfg : FGConfig) (B W : FGBlock V)
+    (E : Electorate V) (cfg : FGConfig) (B W : FGBlock V) (hroots : RootInjectiveOn B W)
     (hh : (derive E cfg B).h_F < (derive E cfg W).h) :
     HasE1WeightBetween E (chainRows B) (chainRows W) ∨
       FGBlock.Preceq (derive E cfg B).F W :=
-  e1Weight_or_finalized_preceq_of_certificate E _ _ (simplexCertificateLaws E cfg) B W hh
+  e1Weight_or_finalized_preceq_of_certificate E _ _ (simplexCertificateLaws E cfg) B W hroots hh
 
 -- Instance check: slashableWeight_or_finalized_preceq_of_certificate.
 example
-    (E : Electorate V) (cfg : FGConfig) (B W : FGBlock V)
+    (E : Electorate V) (cfg : FGConfig) (B W : FGBlock V) (hroots : RootInjectiveOn B W)
     (hh : (derive E cfg B).h_F < (derive E cfg W).h) :
     HasSlashableWeightBetween E (chainRows B) (chainRows W) ∨
       FGBlock.Preceq (derive E cfg B).F W :=
-  slashableWeight_or_finalized_preceq_of_certificate E _ _ (simplexCertificateLaws E cfg) B W hh
+  slashableWeight_or_finalized_preceq_of_certificate E _ _ (simplexCertificateLaws E cfg) B W hroots
+      hh
 
 -- Instance check: e1Weight_or_finalized_compatible_of_le_of_certificate.
 example
     (E : Electorate V) (cfg : FGConfig)
-    (B₁ B₂ : FGBlock V)
+    (B₁ B₂ : FGBlock V) (hroots : RootInjectiveOn B₁ B₂)
     (hle : (derive E cfg B₁).h_F ≤ (derive E cfg B₂).h_F) :
     HasE1WeightBetween E (chainRows B₁) (chainRows B₂) ∨
       FGBlock.compatible (derive E cfg B₁).F (derive E cfg B₂).F = true :=
   e1Weight_or_finalized_compatible_of_le_of_certificate E _ _
-    (simplexCertificateLaws E cfg) B₁ B₂ hle
+    (simplexCertificateLaws E cfg) B₁ B₂ hroots hle
 
 -- Instance check: slashableWeight_or_finalized_compatible_of_certificate.
 example
     (E : Electorate V) (cfg : FGConfig)
-    (B₁ B₂ : FGBlock V) :
+    (B₁ B₂ : FGBlock V) (hroots : RootInjectiveOn B₁ B₂) :
     HasSlashableWeightBetween E (chainRows B₁) (chainRows B₂) ∨
       FGBlock.compatible (derive E cfg B₁).F (derive E cfg B₂).F = true :=
   slashableWeight_or_finalized_compatible_of_certificate E _ _
-    (simplexCertificateLaws E cfg) B₁ B₂
+    (simplexCertificateLaws E cfg) B₁ B₂ hroots
 
 #print axioms accountable_certificate_bundle_test
 #print axioms finalized_preceq_chain_of_certificate

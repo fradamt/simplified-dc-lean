@@ -1,17 +1,22 @@
 module
-public import AvailableChainFGSAClaims.Statements.Packages.Finality -- shake: keep (package examples)
-public import AvailableChainFGSAClaims.Statements.Packages.Healing -- shake: keep (joined kernel examples)
+public import AvailableChainFGSAClaims.Statements.Packages.Finality
+-- shake: keep (package examples)
+public import AvailableChainFGSAClaims.Statements.Packages.Healing
+-- shake: keep (joined kernel examples)
 
 set_option linter.privateModule false
 set_option linter.defProp false
 
 @[expose] public section
 
+/-! ROOT-DIGEST W3: explicit small roots for statement fixtures. -/
+
 namespace AvailableChain.FGSA.Run.Tests.FinalityW
 open Gen.Pure
 
 private abbrev params : Params :=
-  ⟨⟨1, 1, 2, 0, by decide, by decide, by decide, by decide⟩, 3, 6, by decide, 2, by decide⟩
+  ⟨⟨1, 1, 2, 0, by decide, by decide, by decide, by decide⟩, 3, 6, by decide, 2, by decide, fun d =>
+      ⟨d.slot + 1⟩⟩
 private abbrev codec : AppCodec Nat := ⟨id, some, fun _ => rfl⟩
 private abbrev env : Generic.Env (Fin 1) := ⟨1, by decide, 0, le_rfl, fun _ _ => true⟩
 -- This finite schedule checks recurrence guards. It is not a healing execution witness.

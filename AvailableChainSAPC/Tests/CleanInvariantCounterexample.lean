@@ -19,14 +19,16 @@ root injectivity, and the cap. It starts at the actual engine init.
 -/
 
 @[expose] public section
+
+/-! ROOT-DIGEST W3: explicit roots for finite test fixtures. -/
 namespace AvailableChain.SAPC.Tests.CleanInvariantCounterexample
 open AvailableChain.Generic AvailableChain.Statements.Generic
 
 abbrev p : Params := ⟨1, 4, 2, 0, by decide, by decide, by decide, by decide⟩
 local instance : DecidableEq (sapc p).Object := inferInstanceAs (DecidableEq (Wire 4))
 
-def x : Block := .node .genesis 1 1
-def y : Block := .node .genesis 1 0
+def x : Block := .node .genesis 1 (nodeRoot Block.genesis.root 1 1) 1
+def y : Block := .node .genesis 1 (nodeRoot Block.genesis.root 1 0) 0
 
 /-- `x` and `y` are siblings at slot 1 with different bodies. The time-5
 HEAD choice is a score tie between them, so the larger root, `x`, wins it. -/
@@ -208,9 +210,68 @@ private theorem synchrony : PartialSynchrony (sapc p) env run := by
     obtain ⟨t', hlo, hhi, j, hj⟩ := relay v hv i o t ha w hw hp hd
     exact ⟨t', hlo, hhi, j, hj.1⟩
 
+/-- ROOT-DIGEST W3: the finite trace names only genesis and the two siblings. -/
+private def namedOnly (o : Wire 4) : Bool :=
+  match (sapcInterface p).block o.payload with
+  | none => true
+  | some B => decide (B ∈ ([.genesis, x, y] : List Block))
+
+private theorem delivered_named : ∀ e ∈ run.events,
+    e.object?.all namedOnly = true := by decide +kernel
+
+private theorem emitted_named : ∀ i : Fin run.events.length,
+    (match run.events[i.val] with
+    | .deliver _ _ _ => true
+    | .tick v t => (Run.emittedAt (sapc p) env run i v t).all namedOnly) = true := by
+  decide +kernel
+
+private theorem named_tip (o : Wire 4) (tip : Block) (h : namedOnly o = true)
+    (hb : (sapcInterface p).block o.payload = some tip) :
+    tip ∈ ([.genesis, x, y] : List Block) := by
+  unfold namedOnly at h
+  rw [hb] at h
+  exact of_decide_eq_true h
+
+private theorem finite_root_scope :
+    RootInjective env (sapcInterface p).toInterface run := by
+  have closed : ∀ tip ∈ ([.genesis, x, y] : List Block),
+      ∀ B, Block.Preceq B tip → B ∈ ([.genesis, x, y] : List Block) := by
+    intro tip ht B hp
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at ht
+    rcases ht with rfl | rfl | rfl
+    · have he : B = .genesis := of_decide_eq_true hp
+      rw [he]; exact List.mem_cons_self
+    · have hB : B = x ∨ B = .genesis := by
+        simpa [x, Block.Preceq, Block.preceq] using hp
+      rcases hB with rfl | rfl <;> simp
+    · have hB : B = y ∨ B = .genesis := by
+        simpa [y, Block.Preceq, Block.preceq] using hp
+      rcases hB with rfl | rfl <;> simp
+  have scope (B : Block) (h : BlockInRun env (sapcInterface p).toInterface run B) :
+      B ∈ ([.genesis, x, y] : List Block) := by
+    rcases h with rfl | ⟨v, o, t, tip, ho, hb, hp⟩
+    · exact List.mem_cons_self
+    · apply closed tip _ B hp
+      apply named_tip o tip _ hb
+      rcases ho with ⟨i, hi⟩ | ⟨i, hi, hm⟩
+      · have h := delivered_named _ (List.mem_of_getElem? hi)
+        change (some o).all namedOnly = true at h
+        exact h
+      · obtain ⟨hlt, he⟩ := List.getElem?_eq_some_iff.mp hi
+        have h := emitted_named ⟨i, hlt⟩
+        rw [he] at h
+        exact List.all_eq_true.mp h o hm
+  have hinj : ∀ B ∈ ([.genesis, x, y] : List Block),
+      ∀ C ∈ ([.genesis, x, y] : List Block), B.root = C.root → B = C := by
+    decide +kernel
+  intro B C hB hC hr
+  exact hinj B (scope B hB) C (scope C hC) hr
+
+#print axioms finite_root_scope
+
 /-- A full Sleepy execution with the fault cap and full honest participation. -/
 theorem sleepy : SleepyRegime (sapc p) env (sapcInterface p).toInterface run 0 := by
-  refine { rootInjective := Framework.Kit.rootInjective_all env _ run
+  refine { rootInjective := finite_root_scope
            execution := execution
            partialSynchrony := synchrony
            gst_zero := rfl

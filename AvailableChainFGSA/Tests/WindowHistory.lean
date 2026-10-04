@@ -4,6 +4,8 @@ public import AvailableChainFGSA.Proofs.WindowProvenance
 
 @[expose] public section
 
+/-! ROOT-DIGEST W3: explicit roots for finite test fixtures. -/
+
 namespace AvailableChain.FGSA.Window.HistoryTests
 
 open AvailableChain.SimplexFG hiding process_row process_height_events transition derive
@@ -12,14 +14,14 @@ open AvailableChain.KitFG
 abbrev params : Params :=
   { Δ := 1, n := 4, k := 2, η := 11, deltaPos := by decide, nPos := by decide,
     kLarge := by decide, etaNonneg := by decide,
-    R := 2, δt := 1, RLarge := by decide }
+    R := 2, δt := 1, RLarge := by decide, digest := fun d => ⟨d.slot + 1⟩ }
 
 def targets (h : Height) (X : FGBlock (Fin 4)) : List (Row (Fin 4)) :=
   [⟨0, .vote h X.root false, none⟩, ⟨1, .vote h X.root false, none⟩,
    ⟨2, .vote h X.root false, none⟩]
 
-def derived1 : FGBlock (Fin 4) := .node .genesis 1 0 (targets 1 .genesis)
-def derived2 : FGBlock (Fin 4) := .node derived1 2 0 (targets 2 derived1)
+def derived1 : FGBlock (Fin 4) := .node .genesis 1 ⟨100⟩ 0 (targets 1 .genesis)
+def derived2 : FGBlock (Fin 4) := .node derived1 2 ⟨101⟩ 0 (targets 2 derived1)
 
 set_option maxRecDepth 8192
 set_option exponentiation.threshold 8192
@@ -29,8 +31,8 @@ is stale when the second justification has entered the window. -/
 def oldVote (i : Fin 4) : Row (Fin 4) :=
   ⟨i, .vote 2 derived1.root false, some ⟨1, genesisRoot⟩⟩
 
-def bits1 : FGBlock (Fin 4) := .node derived2 3 0 [oldVote 0]
-def bits2 : FGBlock (Fin 4) := .node bits1 4 0 [oldVote 1]
+def bits1 : FGBlock (Fin 4) := .node derived2 3 ⟨102⟩ 0 [oldVote 0]
+def bits2 : FGBlock (Fin 4) := .node bits1 4 ⟨103⟩ 0 [oldVote 1]
 
 /-- A retained entry gains bits without a gap. -/
 example : (derive params 2 derived2).W = [⟨1, .genesis, ∅⟩, ⟨2, derived1, ∅⟩] ∧
@@ -55,7 +57,7 @@ def finals (j : Height) (X : FGBlock (Fin 4)) : List (Row (Fin 4)) :=
   [⟨0, .empty, some ⟨j, X.root⟩⟩, ⟨1, .empty, some ⟨j, X.root⟩⟩,
    ⟨2, .empty, some ⟨j, X.root⟩⟩]
 
-def cover2 : FGBlock (Fin 4) := .node derived2 3 0 (finals 2 derived1)
+def cover2 : FGBlock (Fin 4) := .node derived2 3 ⟨104⟩ 0 (finals 2 derived1)
 
 /-- The older entry is covered by a strictly higher finalization. The
 latest pair remains even though its own entry has been pruned. -/
@@ -67,14 +69,14 @@ example : (derive params 2 cover2).W = [] ∧ (derive params 2 cover2).h_F = 2 �
       (certificateHeadFields (certificateHeight params 2) (certificateFinality params 2)
         cover2) = none := by decide +kernel
 
-def evict3 : FGBlock (Fin 4) := .node derived2 3 0 (targets 3 derived2)
+def evict3 : FGBlock (Fin 4) := .node derived2 3 ⟨105⟩ 0 (targets 3 derived2)
 
 /-- Three justifications with K = 2 evict the first key without coverage. -/
 example : (derive params 2 evict3).W = [⟨2, derived1, ∅⟩, ⟨3, derived2, ∅⟩] ∧
     (derive params 2 evict3).h_F = 0 ∧ ¬ (1 ≤ (derive params 2 evict3).h_F) ∧
     (derive params 2 evict3).h_j = 3 := by decide +kernel
 
-def laterCover : FGBlock (Fin 4) := .node evict3 4 0 (finals 3 derived2)
+def laterCover : FGBlock (Fin 4) := .node evict3 4 ⟨106⟩ 0 (finals 3 derived2)
 
 /-- The same evicted key becomes covered by a later finalization. -/
 example : (derive params 2 laterCover).h_F = 3 ∧
@@ -104,7 +106,7 @@ example : (¬ ∃ d ∈ (derive params 2 laterCover).W, d.j = 1 ∧ d.X = .genes
   · exact ⟨hgone, hle, hcov⟩
   · exact absurd hlt (by decide +kernel : ¬ ((derive params 2 laterCover).h_F < 1))
 
-def olderReady : FGBlock (Fin 4) := .node bits2 5 0 [oldVote 2]
+def olderReady : FGBlock (Fin 4) := .node bits2 5 ⟨107⟩ 0 [oldVote 2]
 
 /-- A ready older entry exists in the prefinality fold. The latest-pair
 fields still select the newer pair. This phase is not an admitted head state. -/

@@ -4,6 +4,8 @@ public import AvailableChainKitFG.CertificateSimplex
 
 public section
 
+/-! ROOT-DIGEST W3: explicit roots for finite test fixtures. -/
+
 namespace AvailableChain.KitFG.Tests.SelectionCore
 
 open AvailableChain.SimplexFG
@@ -28,7 +30,7 @@ theorem selection_simplex_constructor_test (E : Electorate V) (cfg : FGConfig) :
     (derive_F_preceq_J E cfg) (heights_ordered E cfg)
 
 private def scFinalOne : FGBlock (Fin 4) :=
-  .node B1 2 0 [⟨0, .empty, some ⟨1, genesisRoot⟩⟩,
+  .node B1 2 ⟨100⟩ 0 [⟨0, .empty, some ⟨1, genesisRoot⟩⟩,
     ⟨1, .empty, some ⟨1, genesisRoot⟩⟩, ⟨2, .empty, some ⟨1, genesisRoot⟩⟩]
 
 -- Read the instance's pruning result through the named library equation.
@@ -48,8 +50,8 @@ private theorem selection_historical_origin_test :
     (selection_simplex_constructor_test E4 cfg1).finality_origin scFinalOne (by decide)
   exact ⟨C, D, hCD, hD, hb, hqc⟩
 
-private def scLowBlock : FGBlock (Fin 4) := .node .genesis 1 0 []
-private def scHighBlock : FGBlock (Fin 4) := .node scLowBlock 2 0 []
+private def scLowBlock : FGBlock (Fin 4) := .node .genesis 1 ⟨101⟩ 0 []
+private def scHighBlock : FGBlock (Fin 4) := .node scLowBlock 2 ⟨102⟩ 0 []
 private def scLow : FGCertEntry (Fin 4) := ⟨2, scLowBlock, ∅⟩
 private def scHigh : FGCertEntry (Fin 4) := ⟨3, scHighBlock, {0, 1, 2}⟩
 

@@ -3,6 +3,8 @@ public import AvailableChainKitFG.ClientOnceSafety
 
 public section
 
+/-! ROOT-DIGEST W3: explicit roots for finite test fixtures. -/
+
 set_option maxRecDepth 4096
 
 namespace AvailableChain.KitFG.Tests.ClientOnce
@@ -43,10 +45,11 @@ example : clientRunOnce E4 cfg1 0 RecordOnce.initial
 -- Once the timeout is recorded, another new entry can also be named.
 example : clientRunOnce E4 cfg1 0 RecordOnce.initial
     [(some B1, clientHdNone), (some clientB1alt, clientHdNone),
-     (some (.node .genesis 1 2 [rowT 0, rowT 1, rowT 2]), clientHdNone)] =
+     (some (.node .genesis 1 ⟨100⟩ 2 [rowT 0, rowT 1, rowT 2]), clientHdNone)] =
       [⟨0, .vote 2 B1.root false, none⟩,
        ⟨0, .vote 2 clientB1alt.root true, none⟩,
-       ⟨0, .vote 2 (FGBlock.node .genesis 1 2 [rowT 0, rowT 1, rowT 2]).root true, none⟩] := by
+       ⟨0, .vote 2 (FGBlock.node .genesis 1 ⟨100⟩ 2 [rowT 0, rowT 1, rowT 2]).root true, none⟩] :=
+           by
   decide +kernel
 
 -- Full-content repeats are suppressed, including repeats of a timeout.

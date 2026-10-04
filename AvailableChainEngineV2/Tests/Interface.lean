@@ -6,6 +6,8 @@ public import AvailableChainEngineV2.Tests.Laws
 
 @[expose] public section
 
+/-! ROOT-DIGEST W3: explicit roots for finite test fixtures. -/
+
 /-! Tests of the interface, the output reader, the outputs law and the delivery
 conditions (plan 2a, Task 5). A proposal duty is a one-seat label, and a
 two-seat label cannot be one. Two slots never share a proposal duty, so a spec
@@ -77,9 +79,9 @@ abbrev specSR : ProtocolSpec Nat := slotSpec (fun _ => 1) true 10
 
 /-- Slot `s` proposes with label `s`. The confirmed output names the state. -/
 def IS : Interface specS where
-  confirmed := fun st => .node .genesis 1 st
+  confirmed := fun st => .node .genesis 1 (nodeRoot Block.genesis.root 1 st) st
   stable := fun _ => .genesis
-  block := fun p => some (.node .genesis 1 p)
+  block := fun p => some (.node .genesis 1 (nodeRoot Block.genesis.root 1 p) p)
   opening := fun _ => True
   propLabel := id
   propLabel_single := fun _ => rfl
@@ -145,11 +147,42 @@ def rhoS : Run Unit specS where
 
 -- At time 4 the delivery set the state to 1; at time 5 the restart restored 0,
 -- and the tick kept it.
-example : outputAt (envAwake _) rhoS IS.confirmed () 4 = .node .genesis 1 1 := rfl
-example : outputAt (envAwake _) rhoS IS.confirmed () 5 = .node .genesis 1 0 := rfl
-example : RootInjective (envAwake _) IS rhoS := rootInjective_all _ _ _
+example : outputAt (envAwake _) rhoS IS.confirmed () 4 = .node .genesis 1 (nodeRoot
+    Block.genesis.root 1 1) 1 := rfl
+example : outputAt (envAwake _) rhoS IS.confirmed () 5 = .node .genesis 1 (nodeRoot
+    Block.genesis.root 1 0) 0 := rfl
+/-- ROOT-DIGEST W3: the interface names only genesis and constructed children. -/
+theorem interface_root_scope : RootInjective (envAwake _) IS rhoS := by
+  have scope (B : Block) (hB : BlockInRun (envAwake _) IS rhoS B) :
+      B = .genesis ∨ ∃ x, B = .node .genesis 1 (nodeRoot genesisRoot 1 x) x := by
+    rcases hB with rfl | ⟨v, o, t, tip, _, hb, hp⟩
+    · exact Or.inl rfl
+    · have he : Block.node .genesis 1 (nodeRoot genesisRoot 1 o.payload) o.payload = tip :=
+        Option.some.inj hb
+      subst tip
+      simp only [Block.Preceq, Block.preceq, Bool.or_eq_true, decide_eq_true_eq] at hp
+      rcases hp with hp | hp
+      · exact Or.inr ⟨o.payload, hp⟩
+      · exact Or.inl hp
+  intro B C hB hC hr
+  rcases scope B hB with rfl | ⟨x, rfl⟩ <;>
+    rcases scope C hC with rfl | ⟨y, rfl⟩
+  · rfl
+  · have h := congrArg BlockId.value hr
+    change 0 = epair 0 (epair 1 y) + 1 at h
+    omega
+  · have h := congrArg BlockId.value hr
+    change epair 0 (epair 1 x) + 1 = 0 at h
+    omega
+  · have h := congrArg BlockId.value hr
+    change epair 0 (epair 1 x) + 1 = epair 0 (epair 1 y) + 1 at h
+    have he := (epair_inj (epair_inj (Nat.add_right_cancel h)).2).2
+    subst y
+    rfl
+
+#print axioms interface_root_scope
 -- The block of the delivered payload at time 4 is in the run.
-example : BlockInRun (envAwake _) IS rhoS (.node .genesis 1 1) :=
+example : BlockInRun (envAwake _) IS rhoS (.node .genesis 1 (nodeRoot Block.genesis.root 1 1) 1) :=
   Or.inr ⟨(), ⟨.none, 1⟩, 4, _, Or.inl ⟨0, rfl⟩, rfl, by decide⟩
 
 /-! ### `OutputsFactor` -/
@@ -187,7 +220,7 @@ example (st : Nat) : IS.confirmed (tick (envAwake _) rhoS st () 5).1 =
 
 /-- `specSR` with a confirmed output that names the state. -/
 def IA : Interface specSR where
-  confirmed := fun st => .node .genesis 1 st
+  confirmed := fun st => .node .genesis 1 (nodeRoot Block.genesis.root 1 st) st
   stable := fun _ => .genesis
   block := fun _ => none
   opening := fun _ => True
@@ -217,7 +250,8 @@ def isoSR : Isolation specSR ⟨fun _ => False, fun _ => False, fun _ => True⟩
   separation := fun _ h => h.elim (fun h => h.elim) (fun h => h.elim)
 
 -- The own record of `specSR` changes the state, and so `confirmed`.
-example : IA.confirmed (specSR.recordOwn 0 ⟨.none, 0⟩) = .node .genesis 1 10 := rfl
+example : IA.confirmed (specSR.recordOwn 0 ⟨.none, 0⟩) = .node .genesis 1 (nodeRoot
+    Block.genesis.root 1 10) 10 := rfl
 -- The base of `isoSR` is trivial, but `confirmed` reads the state, which the
 -- own record changes: there is no `OutputsFactor` value.
 example : IsEmpty (OutputsFactor IA isoSR) := by

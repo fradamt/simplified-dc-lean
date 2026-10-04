@@ -9,6 +9,14 @@ namespace AvailableChain.KitFG.Tests.RecordHigh
 
 open AvailableChain.SimplexFG
 
+/-- ROOT-DIGEST W3: close the finite table before checking distinct roots. -/
+theorem finite_view_roots {V : Type} [DecidableEq V] [RowCodec V]
+    (T : Finset (FGBlock V)) (hcl : ∀ B ∈ T, B.parent ∈ T)
+    (hinj : ∀ X ∈ T, ∀ Y ∈ T, X.root = Y.root → X = Y) : ViewRootInj T := by
+  rintro X Y ⟨W, hW, hX⟩ ⟨U, hU, hY⟩ hr
+  exact hinj X (ancestor_closed_of_parent_closed T hcl W hW X hX)
+    Y (ancestor_closed_of_parent_closed T hcl U hU Y hY) hr
+
 -- The initial record supports every inclusive cut, including zero.
 example (h0 : Height) (entry : Height → BlockId) : HighRecord h0 entry Record.initial := by
   intro h _
@@ -76,7 +84,9 @@ example : ¬ HighRecord 2 (fun _ => B1.root) (Record.initial.with_timeout 2) := 
 example : (fjControls E4 cfg1 .genesis {childA, Y}).H ≤ 3 := by
   apply noHighContest E4 cfg1 3 (fun _ => B1.root) ∅
     (chainRows childA ∪ chainRows Y) .genesis {childA, Y}
-    (by decide +kernel) ?_ ?_ (by decide +kernel)
+    (viewRootInj_mono (finite_view_roots {.genesis, B1, B1b, childA, Y}
+      (by decide +kernel) (by decide +kernel)) (by decide +kernel)) (by decide +kernel) ?_ ?_ (by
+          decide +kernel)
   · intro W hW
     simp only [Finset.mem_insert, Finset.mem_singleton] at hW
     rcases hW with rfl | rfl
@@ -101,7 +111,9 @@ example : (fjControls E4 cfg1 .genesis {childA}).contest = false := by
   | false => rfl
   | true =>
       have hbound := noHighContest E4 cfg1 2 (fun _ => B1.root) {3}
-        (chainRows childA) .genesis {childA} (by decide +kernel)
+        (chainRows childA) .genesis {childA}
+        (viewRootInj_mono (finite_view_roots {.genesis, B1, B1b, childA, Y}
+      (by decide +kernel) (by decide +kernel)) (by decide +kernel)) (by decide +kernel)
         (by intro W hW; rw [Finset.mem_singleton.mp hW])
         (by
           have hknown : ∀ a ∈ chainRows childA,
@@ -126,7 +138,8 @@ example : (fjControls E4 cfg1 B1 {.genesis}).contest = false := by
   | false => rfl
   | true =>
       have hbound := noHighContest E4 cfg1 0 (fun _ => genesisRoot) ∅ ∅ B1
-        {.genesis} (by decide +kernel) (by decide +kernel)
+        {.genesis} (finite_view_roots _ (by decide +kernel) (by decide +kernel))
+        (by decide +kernel) (by decide +kernel)
         (by intro a ha; exact (Finset.notMem_empty a ha).elim) hc
       have hh : (fjControls E4 cfg1 B1 {.genesis}).H = 1 := by decide +kernel
       simp only [Height] at *

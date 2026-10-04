@@ -5,6 +5,8 @@ import Mathlib.Tactic.IntervalCases
 
 @[expose] public section
 
+/-! ROOT-DIGEST W3: explicit roots for finite test fixtures. -/
+
 namespace AvailableChain.GridCO.Tests
 
 open AvailableChain
@@ -51,13 +53,13 @@ def tinyHeadCount : Nat :=
 
 /-- Expiry at the deadline removes the entry before an act at that tick. -/
 def tinyExpiry : Bool :=
-  let b := Block.node .genesis 1 0
+  let b := Block.node .genesis 1 (nodeRoot Block.genesis.root 1 0) 0
   let st : State 1 := { obligations := [(b, 1, 5)] }
   (expire st 4).obligations.length == 1 &&
     (expire st 5).obligations.isEmpty
 
-def blockB : Block := Block.node .genesis 1 0
-def blockC : Block := Block.node .genesis 2 0
+def blockB : Block := Block.node .genesis 1 (nodeRoot Block.genesis.root 1 0) 0
+def blockC : Block := Block.node .genesis 2 (nodeRoot Block.genesis.root 2 0) 0
 
 /-- The derived roots keep the old literal order (`⟨1⟩ < ⟨2⟩`). No check below
 compares the two roots: no walk has both blocks as eligible children. -/
@@ -108,7 +110,7 @@ def blockAdmissionPass : Bool :=
   let other : Wire 1 := ⟨.proposer 1, .proposal blockB [⟨.seat 0 0, .genesis⟩] []⟩
   let st := admitProposal smokeParams ({ now := 4 } : State 1) first blockB []
   let again := admitProposal smokeParams st other blockB [⟨.seat 0 0, .genesis⟩]
-  let badChild := Block.node blockB 1 0
+  let badChild := Block.node blockB 1 (nodeRoot blockB.root 1 0) 0
   let badParentSlot : Wire 1 := ⟨.proposer 1, .proposal badChild [] []⟩
   let wrongSigner : Wire 1 := ⟨.proposer 1, .proposal blockC [] []⟩
   again.proposals.length == 1 && again.votes.isEmpty &&

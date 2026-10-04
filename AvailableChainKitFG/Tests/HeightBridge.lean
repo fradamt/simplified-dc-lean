@@ -3,6 +3,8 @@ public import AvailableChainKitFG.HeightLaws
 
 public section
 
+/-! ROOT-DIGEST W3: explicit roots for finite test fixtures. -/
+
 namespace AvailableChain.KitFG.Tests.HeightBridge
 
 open AvailableChain.SimplexFG
@@ -23,7 +25,7 @@ example (E : Electorate V) (cfg : FGConfig) :
       (.initial, ())
       (fun w B rs => (transition E cfg w.1 B rs, ()))
       (fun B => (derive E cfg B, ())) := by
-  refine ⟨rfl, rfl, fun _ _ _ _ => rfl, ?_⟩
+  refine ⟨rfl, rfl, fun _ _ _ _ _ => rfl, ?_⟩
   intro w σ B rs heq
   exact transition_height_eq_of_rowsEq E cfg heq B rs rs (heightSelector_id _ _)
 
@@ -77,15 +79,15 @@ example (E : Electorate V) (cfg : FGConfig) (B : FGBlock V) :
     selectHeightRows heightSelector_selectHeightRows B
 
 -- A parent target bit combines with two later rows before timeout maturity.
-def targetParent : FGBlock (Fin 4) := .node .genesis 0 0 [rowT 0]
-def targetChild : FGBlock (Fin 4) := .node targetParent 1 0 [rowT 1, rowT 2]
+def targetParent : FGBlock (Fin 4) := .node .genesis 0 ⟨100⟩ 0 [rowT 0]
+def targetChild : FGBlock (Fin 4) := .node targetParent 1 ⟨101⟩ 0 [rowT 1, rowT 2]
 
 example : (deriveWithSelector E4 ⟨5⟩ selectHeightRows targetChild).h = 2 ∧
     (deriveWithSelector E4 ⟨5⟩ selectHeightRows targetChild).h_j = 1 := by decide +kernel
 
 -- Mixed coverage includes an old target bit and two timeout rows.
-def mixedEarly : FGBlock (Fin 4) := .node targetParent 1 0 [rowX 1, rowX 2]
-def mixedBoundary : FGBlock (Fin 4) := .node targetParent 2 0 [rowX 1, rowX 2]
+def mixedEarly : FGBlock (Fin 4) := .node targetParent 1 ⟨102⟩ 0 [rowX 1, rowX 2]
+def mixedBoundary : FGBlock (Fin 4) := .node targetParent 2 ⟨103⟩ 0 [rowX 1, rowX 2]
 
 example : (deriveWithSelector E4 ⟨2⟩ selectHeightRows mixedEarly).h = 1 ∧
     (deriveWithSelector E4 ⟨2⟩ selectHeightRows mixedEarly).progress = {0, 1, 2} ∧
@@ -93,7 +95,7 @@ example : (deriveWithSelector E4 ⟨2⟩ selectHeightRows mixedEarly).h = 1 ∧
     (deriveWithSelector E4 ⟨2⟩ selectHeightRows mixedBoundary).h_j = 0 := by decide +kernel
 
 -- Delay zero permits progress at the entry slot itself.
-def zeroBoundary : FGBlock (Fin 4) := .node .genesis 0 0 [rowX 0, rowX 1, rowX 2]
+def zeroBoundary : FGBlock (Fin 4) := .node .genesis 0 ⟨104⟩ 0 [rowX 0, rowX 1, rowX 2]
 
 example : (deriveWithSelector E4 cfg0 selectHeightRows zeroBoundary).h = 2 ∧
     (deriveWithSelector E4 cfg0 selectHeightRows zeroBoundary).h_j = 0 := by decide +kernel

@@ -20,7 +20,7 @@ def finalRow (i : Fin 4) : Row (Fin 4) :=
 
 /-- `B1` and three finality rows: genesis becomes final at height 1. -/
 def certK : FGBlock (Fin 4) :=
-  .node B1 2 0 [finalRow 0, finalRow 1, finalRow 2]
+  .node B1 2 ⟨100⟩ 0 [finalRow 0, finalRow 1, finalRow 2]
 
 example : (derive E4 cfg1 (.genesis : FGBlock (Fin 4))).F = .genesis ∧
     (derive E4 cfg1 certK).F = .genesis ∧

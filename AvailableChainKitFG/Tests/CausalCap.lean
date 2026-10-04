@@ -3,6 +3,8 @@ public import AvailableChainKitFG.CausalCap
 
 @[expose] public section
 
+/-! ROOT-DIGEST W3: explicit roots for finite test fixtures. -/
+
 namespace AvailableChain.KitFG.Tests
 
 open AvailableChain.SimplexFG
@@ -35,7 +37,7 @@ theorem faultQ_counterexample :
 
 /-- The finality rows have empty height pairs; B1 supplies the height rows. -/
 def BFinal : FGBlock (Fin 4) :=
-  .node B1 2 0
+  .node B1 2 ⟨100⟩ 0
     [⟨0, .empty, some ⟨1, genesisRoot⟩⟩,
      ⟨1, .empty, some ⟨1, genesisRoot⟩⟩,
      ⟨2, .empty, some ⟨1, genesisRoot⟩⟩]

@@ -6,6 +6,8 @@ public import AvailableChainKitV2.RunCheck
 
 @[expose] public section
 
+/-! ROOT-DIGEST W3: explicit roots for finite test fixtures. -/
+
 /-! A toy protocol on engine v2 and a complete valid run (plan 2a, Task 6;
 Review Focus 4; Task 5 review M1).
 
@@ -177,7 +179,7 @@ def toyIso : Isolation toyP toyFam where
 def latestBlock : List ToyObject → Block
   | [] => .genesis
   | o :: r => match o.payload with
-    | .prop s _ x => .node .genesis s x
+    | .prop s _ x => .node .genesis s (nodeRoot Block.genesis.root s x) x
     | .row _ => latestBlock r
 
 /-- The confirmed output is the block of the latest received proposal. -/
@@ -185,7 +187,7 @@ def toyI : Interface toyP where
   confirmed := fun st => latestBlock st.rcpt
   stable := fun _ => .genesis
   block := fun p => match p with
-    | .prop s _ x => some (.node .genesis s x)
+    | .prop s _ x => some (.node .genesis s (nodeRoot Block.genesis.root s x) x)
     | .row _ => none
   opening := fun _ => True
   propLabel := .prop
@@ -318,8 +320,9 @@ example : Linked toyFam.linked toyRun := by
   exact ⟨rfl, fun _ => rfl⟩
 example : proposerOf toyRun toyI 0 = 0 ∧ proposerOf toyRun toyI 1 = 1 := ⟨rfl, rfl⟩
 -- The outputs at time 1.
-example : outputAt toyEnv toyRun toyI.confirmed 0 1 = .node .genesis 1 8 := by decide +kernel
-example : BlockInRun toyEnv toyI toyRun (.node .genesis 1 8) :=
+example : outputAt toyEnv toyRun toyI.confirmed 0 1 = .node .genesis 1 (nodeRoot Block.genesis.root
+    1 8) 8 := by decide +kernel
+example : BlockInRun toyEnv toyI toyRun (.node .genesis 1 (nodeRoot Block.genesis.root 1 8) 8) :=
   Or.inr ⟨0, prop1, 1, _, Or.inl ⟨11, rfl⟩, rfl, by decide⟩
 
 /-! ### Validity (Review Focus 4) -/

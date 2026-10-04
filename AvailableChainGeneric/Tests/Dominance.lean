@@ -3,10 +3,12 @@ public import AvailableChainGeneric.Proofs.Pure.Quorum
 
 public section
 
+/-! ROOT-DIGEST W3: explicit roots for finite test fixtures. -/
+
 namespace AvailableChain.Gen.Pure.Tests.Dominance
 
-def leftChild : Block := .node .genesis 1 0
-def rightChild : Block := .node .genesis 1 1
+def leftChild : Block := .node .genesis 1 (nodeRoot Block.genesis.root 1 0) 0
+def rightChild : Block := .node .genesis 1 (nodeRoot Block.genesis.root 1 1) 1
 def children : Finset Block := {leftChild, rightChild}
 def support (C : Block) : Finset (Fin 3) :=
   if C = leftChild then {0, 1} else {2}
