@@ -1,0 +1,369 @@
+module
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Origins
+public import AvailableChainFGSAProofs.Proofs.Shared.Roots
+public import AvailableChainFGSAProofs.Proofs.Shared.Reads
+public import AvailableChainFGSARun.Proofs.Receipts
+
+namespace AvailableChain.FGSA
+open AvailableChain.SimplexFG
+/-- WC plan §6.5; DC finite event provenance: private replay or source-construction helper. -/
+private def step_admitBlock (p : Params) (st : State p.n) (s : Slot)
+    (N : NamedProposal p.n) : State p.n :=
+  if !namedParentHeld st N then st else
+  match parentFG st N.erase with
+  | none => st
+  | some P =>
+      if blockAccepted p st s N P then
+        let st1 : State p.n := { st with
+          base := GridCO.admitProposal p.toParams.engine st.base
+            (baseProposal s N.erase N.raw N.support) N.erase (N.raw.map baseHead)
+          fg := Window.on_block p p.K_W st.fg (fgBlock P N.erase N.rows)
+          proposals := st.proposals ++ [⟨.proposer s, .proposal N⟩] }
+        let st2 := if st1.fg.F = st.fg.F then st1 else reconcile st1
+        N.rows.foldl (admitRow p) st2
+      else st
+
+/-- WC plan §6.5; DC finite event provenance: private replay or source-construction helper. -/
+private theorem step_admitBlock_eq : @admitBlock = @step_admitBlock := rfl
+
+end AvailableChain.FGSA
+
+public section
+
+/-! WC plan §6.5; DC original saved-result and certificate events persist in each finite read. -/
+
+namespace AvailableChain.FGSA.Run
+
+open AvailableChain.SimplexFG KitFG
+
+variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
+    {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
+
+/-- WC plan §6.5; DC receipt replay: retain the original trigger and acceptance index. -/
+private theorem step_receiptOrigins (i : Nat) (x : V) :
+    WCReceiptOrigins p c E rho i x (storeAt p c E rho i x) := by
+  constructor
+  · exact fgsa_block_stamp_source E rho i x
+  · exact fgsa_vote_stamp_source E rho i x
+
+/-- WC plan §6.5; DC finite event provenance: private replay or source-construction helper. -/
+private def step_savedPairs (st : State p.n) : List (Slot × Block) :=
+  st.base.genuine.filterMap (fun row => row.2.map (fun B => (row.1, B)))
+
+/-- WC plan §6.5; DC finite event provenance: private replay or source-construction helper. -/
+private theorem step_savedPairs_mem (st : State p.n) (s : Slot) (B : Block) :
+    (s, B) ∈ step_savedPairs st ↔ (s, some B) ∈ st.base.genuine := by
+  constructor
+  · intro h
+    obtain ⟨row, hr, hb⟩ := List.mem_filterMap.mp h
+    obtain ⟨C, hc, he⟩ := Option.map_eq_some_iff.mp hb
+    obtain ⟨rfl, rfl⟩ := Prod.mk.inj he
+    have hrow : row = (row.1, some C) := Prod.ext rfl hc
+    rwa [hrow] at hr
+  · intro h
+    exact List.mem_filterMap.mpr ⟨(s, some B), h, rfl⟩
+
+/-- WC plan §6.5; DC finite event provenance: private replay or source-construction helper. -/
+private theorem step_savedPairs_reconcile (st : State p.n) :
+    step_savedPairs (reconcile st) ⊆ step_savedPairs st := by
+  rintro ⟨s, B⟩ hm
+  rw [step_savedPairs_mem, reconcile_genuine] at hm
+  obtain ⟨row, hr, he⟩ := List.mem_map.mp hm
+  have hk := congrArg Prod.fst he
+  have hb := (Option.filter_eq_some_iff.mp (congrArg Prod.snd he)).1
+  rw [step_savedPairs_mem]
+  have hrow : row = (s, some B) := Prod.ext hk hb
+  rwa [hrow] at hr
+
+/-- WC plan §6.5; DC finite event provenance: private replay or source-construction helper. -/
+private theorem step_savedPairs_admitRows (rows : List (RowWire p.n)) (st : State p.n) :
+    step_savedPairs (rows.foldl (admitRow p) st) = step_savedPairs st := by
+  induction rows generalizing st with
+  | nil => rfl
+  | cons a rows ih =>
+    rw [List.foldl_cons, ih]
+    rcases admitRow_eq p st a with h | h
+    · rw [h]
+    · rw [h]
+      rfl
+
+-- WC plan §6.5; DC handler order. The upstream Schedule helper is private.
+/-- WC plan §6.5; DC finite event provenance: private replay or source-construction helper. -/
+private theorem step_proposal_genuine (q : GridCO.Params) {n : Nat}
+    (st : GridCO.State n .root) (o : GridCO.Wire n .root) (b : Block)
+    (raw : List (GridCO.HeadWire n .root)) :
+    (GridCO.admitProposal q st o b raw).genuine = st.genuine := by
+  obtain ⟨auth, msg⟩ := o
+  cases auth <;> unfold GridCO.admitProposal <;> dsimp only <;> split
+  all_goals first | rfl | exact (foldVotes_fields q raw _).2.2.2.2.1
+
+/-- WC plan §6.5; DC finite event provenance: private replay or source-construction helper. -/
+private theorem step_savedPairs_process (st : State p.n) (o : Wire p.n) :
+    step_savedPairs (process p st o) ⊆ step_savedPairs st := by
+  change step_savedPairs (match o.decode with
+    | some (.vote s i b) => admitHead p st s i b
+    | some (.row _ body) => admitRow p st ⟨o.auth, body⟩
+    | some (.block s N) => admitBlock p st s N
+    | none => st) ⊆ step_savedPairs st
+  cases o.decode with
+  | none => exact List.Subset.refl _
+  | some a =>
+    cases a <;> dsimp only
+    case vote s i b =>
+      unfold step_savedPairs
+      rw [admitHead_genuine]
+    case row i body =>
+      rcases admitRow_eq p st ⟨o.auth, body⟩ with h | h <;> rw [h]
+      exact List.Subset.refl _
+    case block s N =>
+      cases hn : namedParentHeld st N with
+      | false => rw [admitBlock_refused p st s N (Or.inl hn)]
+      | true =>
+        cases hp : parentFG st N.erase with
+        | none => rw [admitBlock_refused p st s N (Or.inr (Or.inl hp))]
+        | some P =>
+          cases ha : blockAccepted p st s N P with
+          | false =>
+            rw [admitBlock_refused p st s N (Or.inr (Or.inr ⟨P, hp, ha⟩))]
+          | true =>
+            rw [step_admitBlock_eq]
+            unfold step_admitBlock
+            simp only [hn, Bool.not_true, Bool.false_eq_true, ite_false]
+            rw [hp]
+            dsimp only
+            rw [ha, ite_eq_left rfl, step_savedPairs_admitRows]
+            split
+            · unfold step_savedPairs
+              dsimp only
+              rw [step_proposal_genuine]
+            · apply List.Subset.trans (step_savedPairs_reconcile _)
+              unfold step_savedPairs
+              dsimp only
+              rw [step_proposal_genuine]
+
+/-- WC plan §6.5; DC finite event provenance: private replay or source-construction helper. -/
+private theorem step_savedPairs_clock (st : State p.n) (t : Time) (pair : Slot × Block)
+    (hm : pair ∈ step_savedPairs (clock p st t)) :
+    pair ∈ step_savedPairs st ∨
+      (t = SA.gateTime p.toParams pair.1 ∧
+       SA.Root.confirmationFrom p.toParams (eraseFG (clockPre p st t).fg.F)
+         (actView (clockPre p st t)) pair.1 = some pair.2) := by
+  change pair ∈ step_savedPairs (if isGateTime p t then
+    gateStep p (clockPre p st t) ((t - 6 * p.Δ) / (4 * p.Δ)).toNat
+    else clockPre p st t) at hm
+  have hpre : step_savedPairs (clockPre p st t) = step_savedPairs st := by
+    unfold step_savedPairs
+    rw [clockPre_genuine]
+  split at hm
+  · rename_i ht
+    let s := ((t - 6 * p.Δ) / (4 * p.Δ)).toNat
+    let pre := clockPre p st t
+    have htime : t = SA.gateTime p.toParams s :=
+      beq_iff_eq.mp (Bool.and_eq_true_iff.mp ht).2
+    cases hs : GridCO.savedGenuine pre.base s with
+    | some saved =>
+      rw [gateStep_saved p pre s (by rw [hs]; rfl)] at hm
+      unfold step_savedPairs at hm
+      rw [normalizeS_fields] at hm
+      exact Or.inl (hpre ▸ hm)
+    | none =>
+      have hg : (gateStep p pre s).base.genuine = pre.base.genuine ++
+          [(s, SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) s)] := by
+        unfold gateStep
+        rw [normalizeS_fields]
+        simp only [hs, Option.isSome_none, Bool.false_eq_true, ite_false]
+        exact saGate_genuine p.toParams (eraseFG pre.fg.F) (actView pre) s hs
+      rcases pair with ⟨v, B⟩
+      rw [step_savedPairs_mem, hg, List.mem_append] at hm
+      rcases hm with hm | hm
+      · exact Or.inl (hpre ▸ (step_savedPairs_mem pre v B).mpr hm)
+      · have he := List.mem_singleton.mp hm
+        obtain ⟨rfl, hC⟩ := Prod.mk.inj he
+        exact Or.inr ⟨htime, hC.symm⟩
+  · exact Or.inl (hpre ▸ hm)
+
+/-- WC plan §6.5; DC actual saved origin: a retained value still has its original gate result. -/
+private theorem step_savedOrigin (hs : V2.D.ScheduleWellFormed E rho)
+    (i : Nat) (x : V) (s : Slot) (B : Block)
+    (hb : GridCO.savedGenuine (storeAt p c E rho i x).base s = some (some B)) :
+    ∃ j < i, IsGateTick p c rho j x s ∧ gateResultAt p c E rho j = some (some B) := by
+  obtain ⟨row, hr, he⟩ := Option.map_eq_some_iff.mp hb
+  have hk : row.1 = s := by simpa using List.find?_some hr
+  have hm : (s, B) ∈ step_savedPairs (storeAt p c E rho i x) := by
+    rw [step_savedPairs_mem]
+    simpa only [← hk, ← he] using List.mem_of_find?_eq_some hr
+  obtain ⟨j, hj, t, ht, htime, hC⟩ :=
+    V2.D.Engine.clock_field_origin_of_subset (P := fgsa p c)
+      (fun nd => step_savedPairs nd.st) rfl
+      (fun nd o pair h => step_savedPairs_process nd.st (toWire p o) h)
+      (fun _ _ _ h => h) (fgsa_hrestore_field p c step_savedPairs rfl)
+      (fun nd t pair => t = SA.gateTime p.toParams pair.1 ∧
+        SA.Root.confirmationFrom p.toParams (eraseFG (clockPre p nd.st t).fg.F)
+          (actView (clockPre p nd.st t)) pair.1 = some pair.2)
+      (fun nd t pair h => step_savedPairs_clock nd.st t pair h) E rho i x (s, B) hm
+  change t = SA.gateTime p.toParams s at htime
+  subst t
+  refine ⟨j, hj, ht, ?_⟩
+  rw [gateResultAt_eq_gateResult p c E rho hs ht, gateResult_def, gateIn_def, preTick_def,
+    fgsa_tickIdx_of_event p c E rho hs ht]
+  exact congrArg some hC
+
+/-- WC plan §6.5; DC a gate is after the completed cut exactly when its label is later. -/
+theorem wc_gate_cut_iff (hsch : V2.D.ScheduleWellFormed E rho)
+    {w : HealingWitness} {iStar j : Nat} {x : V} {s : Slot}
+    (hs : WCSeed p c E rho w iStar) (ht : IsGateTick p c rho j x s) :
+    iStar ≤ j ↔ w.u < s := by
+  have hc := V2.D.Engine.filter_eq_take hsch (cutPred (SA.gateTime p.toParams w.u)) (by
+    intro e f hle hf
+    exact decide_eq_true (hle.trans (of_decide_eq_true hf)))
+  constructor
+  · intro hj
+    by_contra hn
+    have hle : (s : Int) ≤ w.u := Int.ofNat_le.mpr (Nat.le_of_not_gt hn)
+    have htime : SA.gateTime p.toParams s ≤ SA.gateTime p.toParams w.u := by
+      change 4 * p.Δ * (s : Int) + 6 * p.Δ ≤ 4 * p.Δ * (w.u : Int) + 6 * p.Δ
+      nlinarith [p.deltaPos]
+    have hf := V2.D.Engine.filter_false_of_index_ge hsch
+      (cutPred (SA.gateTime p.toParams w.u)) (by
+        intro e f hle hf
+        exact decide_eq_true (hle.trans (of_decide_eq_true hf)))
+      (show afterTicksIdx rho (SA.gateTime p.toParams w.u) ≤ j from hs.cut ▸ hj) ht
+    have hh : cutPred (SA.gateTime p.toParams w.u)
+        (.tick x (SA.gateTime p.toParams s) : V2.Event V (fgsa p c).Object) = true :=
+      decide_eq_true (Prod.Lex.toLex_le_toLex.mpr
+        (htime.lt_or_eq.imp id (fun he => ⟨he, le_rfl⟩)))
+    rw [hh] at hf
+    cases hf
+  · intro hslabel
+    by_contra hn
+    have hj : j < afterTicksIdx rho (SA.gateTime p.toParams w.u) :=
+      hs.cut ▸ Nat.lt_of_not_ge hn
+    have hm : V2.Event.tick x (SA.gateTime p.toParams s) ∈
+        rho.events.filter (cutPred (SA.gateTime p.toParams w.u)) := by
+      rw [hc]
+      apply List.mem_of_getElem? (i := j)
+      change (rho.events.take (afterTicksIdx rho (SA.gateTime p.toParams w.u)))[j]? = _
+      rw [List.getElem?_take_of_lt hj]
+      exact ht
+    have hk := of_decide_eq_true (List.mem_filter.mp hm).2
+    have hh : SA.gateTime p.toParams s ≤ SA.gateTime p.toParams w.u := by
+      rcases Prod.Lex.toLex_le_toLex.mp hk with h | ⟨h, _⟩
+      · exact h.le
+      · exact h.le
+    have hcast : (w.u : Int) < s := Int.ofNat_lt.mpr hslabel
+    change 4 * p.Δ * (s : Int) + 6 * p.Δ ≤ 4 * p.Δ * (w.u : Int) + 6 * p.Δ at hh
+    nlinarith [p.deltaPos]
+
+variable [Fintype V]
+
+/-- WC plan §6.5; DC each event's finite facts retain actual origins and deadlines. -/
+theorem wc_finiteStep (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
+  ∀
+  (_hvalid : V2.D.ExecutionValid E rho)
+  (_hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
+  (_hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
+  (_hnr : V2.D.NoRestart rho)
+  (_hdelta : E.Δ = p.Δ)
+  (_hroots : NamedRootCollisionFree p c E rho)
+  (_hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+  (_hdeltaF : E.Δ ≤ ΔF)
+  (_hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
+  (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+  (_hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
+  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
+    (Gen.V2.Duty.faulty rho).card <
+      (Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s)).card)
+  (_hstore : RStore p c E rho)
+  (_hcumul : RStoreCumul p c E rho)
+  (_hmono : RMono p c E rho)
+  (_hactive : RActive p c E rho)
+  (_hframe : RFrameExact p c E rho)
+  (_hmeta : RFrame p c E rho)
+  (_hrec : RRec p c E rho)
+  (_hgeo : RGeo p c E rho)
+  (_hcert : RCert p c E rho)
+  (_hsrc : TSrc p c E rho)
+  (_hlabel : LabelBound p c E rho)
+  (_hqc : RQCOrigin p c E rho)
+  (_hstrat : RStrat p c E rho)
+  (_hnoslash : ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x)
+  (_hemitted : ∀ j x r a e, HonestRowAt p c E rho j x r a →
+    namedEntry a.payload.height_pair = some e →
+    ∃ C B, actionSourceFG p c E rho x r = some (some C) ∧
+      e = (hOf p.E p.cfg C, (derive p.E p.cfg C).T_h.root) ∧
+      FGBlock.Preceq (derive p.E p.cfg C).T_h C ∧
+      gateResult p c E rho x (r * p.R) = some (some B) ∧
+      Block.Preceq (eraseFG C) B ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
+  (_htargets : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
+    Block.Preceq row.1 (storeAt p c E rho i x).base.stableRecord)
+  (_hlease : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
+    ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
+      gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
+      (row.1, row.2.1) ∈
+      (let wcView := actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s));
+        (wcView.blocks.filter (fun b => b != .genesis && Block.preceq b B)).flatMap
+          (fun b => (@GridCO.admissionLevels GridCO.slowLeasePolicy
+            p.toParams.engine p.n .root wcView s b).map (fun g => (b, g)))) ∧
+      row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
+      row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
+      ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
+        let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
+        GridCO.savedGenuine pre.base w = none →
+        SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+        (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
+        (row.1, row.2.1) ∉ (let wcView := actView pre;
+        (wcView.blocks.filter (fun b => b != .genesis && Block.preceq b C)).flatMap
+          (fun b => (@GridCO.admissionLevels GridCO.slowLeasePolicy
+            p.toParams.engine p.n .root wcView w b).map (fun g => (b, g)))))
+  (_hfast : ∀ i x,
+    ∀ s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
+      ∃ j < i, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
+        ∃ B, gateResultAt p c E rho j = some (some B) ∧
+          Block.Preceq X B ∧ fastAt p c E rho x s X)
+  (_hdeadlines : ∀ i x,
+    ∀ K g deadline, (K, g, deadline) ∈ (storeAt p c E rho i x).base.obligations →
+      ∀ B, B ≠ .genesis → Block.Preceq B K →
+        Gen.AC.Root.ProtectsUntil (storeAt p c E rho i x).base B g deadline)
+  (_hheldRows : ∀ i x W, HeldAt p c E rho i x W → ∀ a ∈ chainRows W,
+    ∃ (wire : RowWire p.n) (r : Nat), wire.toRow? = some a ∧
+      wire.auth = .seat .fg a.signer ∧ ∃ k o t, k < i ∧
+        rho.events[k]? = some (.deliver x o t) ∧
+        ∀ z, RowSigner p c rho wire z → z ∈ rho.honest →
+          HonestRowBefore p c E rho i z r wire ∧ p.actionTime r ≤ t)
+  (_hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
+    rho.seatOf (.base .fg) a.signer ∈ rho.honest → ∃ j r wire,
+      HonestRowAt p c E rho j (rho.seatOf (.base .fg) a.signer) r wire ∧
+      wire.toRow? = some a ∧ wire.auth = .seat .fg a.signer)
+  (_hfinalHead : ∀ j z r a u, HonestRowAt p c E rho j z r a →
+    RowSigner p c rho a z → a.toRow? = some u → ∀ fp,
+    u.finality_pair = some fp → ∃ B, HeldAt p c E rho j z B ∧
+      fp.height = (heightView p B).h_j ∧ fp.target = (heightView p B).J.root ∧
+      TargetQCAt p.E B fp.height (heightView p B).J),
+  WCSeed p c E rho w iStar → ∀ i, iStar ≤ i → i < rho.events.length →
+    WCInv p c E rho w iStar i → ∀ e, rho.events[i]? = some e →
+      WCFiniteFacts p c E rho (i + 1) := by
+  intro hvalid _hlinked _hcstar _hnr _hdelta hroots _hsync _hdeltaF _hfault _hfaultQ
+    _hfaultX _hpart _hstore _hcumul _hmono _hactive _hframe _hmeta _hrec _hgeo _hcert
+    _hsrc _hlabel _hqc hstrat hnoslash hemitted _htargets hlease hfast hdeadlines
+    _hheldRows _hscopeRows _hfinalHead _hs i _hi _hilen _inv _e _he
+  let n := i + 1
+  refine ⟨fun x _ => cstoreInv_stateBefore E rho n x,
+    fun x _ => nestOK_stateBefore E rho n x,
+    fun x _ => metaInv_stateBefore E rho n x,
+    fun x _ => step_receiptOrigins n x,
+    fun x _ row hr => ⟨hlease n x row hr⟩,
+    fun x _ => hdeadlines n x,
+    fun x _ => hfast n x,
+    fun x _ s C hc => step_savedOrigin hvalid.toScheduleWellFormed n x s C hc, ?_, ?_⟩
+  · intro x hx W hW X hX hne
+    obtain ⟨y, r, wire, ⟨j, hj, hrow⟩, hname⟩ := hstrat n x W hx hW X hX hne
+    obtain ⟨K, B, hK, hpair, hentry, hB, hKB, _⟩ := hemitted j y r wire _ hrow hname
+    have hXK : X = (derive p.E p.cfg K).T_h := rootScope_eq hroots
+      (rootScope_ancestor (rootScope_store hx hW) (certified_preceq hX))
+      (rootScope_ancestor (rootScope_source hrow.1 hK) hentry) (congrArg Prod.snd hpair)
+    exact ⟨j, y, r, wire, K, B, hj, hrow, hname, hK, hXK ▸ hentry, hB, hKB⟩
+  · intro j k x r r' a b u v _ _ ha hb hu hv
+    exact hnoslash x ha.1 a b ⟨j, p.actionTime r, ha.2⟩ ⟨k, p.actionTime r', hb.2⟩ u v hu hv
+
+end AvailableChain.FGSA.Run
+end
