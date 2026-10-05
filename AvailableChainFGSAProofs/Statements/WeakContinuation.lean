@@ -370,49 +370,48 @@ structure WCFinalityTargetEarlier (i : Nat) (D X : FGBlock (Fin p.n))
 
 variable [Fintype V]
 
-set_option linter.unusedVariables false in
 /-- WC J1; DC blueprint 23: later-job interface, with the complete separate [L] telescope.
 This declaration states the proposition. Job 2 or Job 3 supplies its proof. -/
 abbrev WCInitStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) : Prop :=
   ∀
-  (hvalid : V2.D.ExecutionValid E rho)
-  (hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
-  (hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
-  (hnr : V2.D.NoRestart rho)
-  (hdelta : E.Δ = p.Δ)
-  (hroots : NamedRootCollisionFree p c E rho)
-  (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
-  (hdeltaF : E.Δ ≤ ΔF)
-  (hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
-  (hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
-  (hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
-  (hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
+  (_hvalid : V2.D.ExecutionValid E rho)
+  (_hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
+  (_hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
+  (_hnr : V2.D.NoRestart rho)
+  (_hdelta : E.Δ = p.Δ)
+  (_hroots : NamedRootCollisionFree p c E rho)
+  (_hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+  (_hdeltaF : E.Δ ≤ ΔF)
+  (_hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
+  (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+  (_hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
+  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
     (Gen.V2.Duty.faulty rho).card <
       (Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s)).card)
-  (hstore : RStore p c E rho)
-  (hcumul : RStoreCumul p c E rho)
-  (hmono : RMono p c E rho)
-  (hactive : RActive p c E rho)
-  (hframe : RFrameExact p c E rho)
-  (hmeta : RFrame p c E rho)
-  (hrec : RRec p c E rho)
-  (hgeo : RGeo p c E rho)
-  (hcert : RCert p c E rho)
-  (hsrc : TSrc p c E rho)
-  (hlabel : LabelBound p c E rho)
-  (hqc : RQCOrigin p c E rho)
-  (hstrat : RStrat p c E rho)
-  (hnoslash : ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x)
-  (hemitted : ∀ j x r a e, HonestRowAt p c E rho j x r a →
+  (_hstore : RStore p c E rho)
+  (_hcumul : RStoreCumul p c E rho)
+  (_hmono : RMono p c E rho)
+  (_hactive : RActive p c E rho)
+  (_hframe : RFrameExact p c E rho)
+  (_hmeta : RFrame p c E rho)
+  (_hrec : RRec p c E rho)
+  (_hgeo : RGeo p c E rho)
+  (_hcert : RCert p c E rho)
+  (_hsrc : TSrc p c E rho)
+  (_hlabel : LabelBound p c E rho)
+  (_hqc : RQCOrigin p c E rho)
+  (_hstrat : RStrat p c E rho)
+  (_hnoslash : ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x)
+  (_hemitted : ∀ j x r a e, HonestRowAt p c E rho j x r a →
     namedEntry a.payload.height_pair = some e →
     ∃ C B, actionSourceFG p c E rho x r = some (some C) ∧
       e = (hOf p.E p.cfg C, (derive p.E p.cfg C).T_h.root) ∧
       FGBlock.Preceq (derive p.E p.cfg C).T_h C ∧
       gateResult p c E rho x (r * p.R) = some (some B) ∧
       Block.Preceq (eraseFG C) B ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
-  (htargets : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
+  (_htargets : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
     Block.Preceq row.1 (storeAt p c E rho i x).base.stableRecord)
-  (hlease : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
+  (_hlease : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
     ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
       gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
       (row.1, row.2.1) ∈
@@ -431,26 +430,26 @@ abbrev WCInitStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) : Prop :=
         (wcView.blocks.filter (fun b => b != .genesis && Block.preceq b C)).flatMap
           (fun b => (@GridCO.admissionLevels GridCO.slowLeasePolicy
             p.toParams.engine p.n .root wcView w b).map (fun g => (b, g)))))
-  (hfast : ∀ i x,
+  (_hfast : ∀ i x,
     ∀ s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
       ∃ j < i, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         ∃ B, gateResultAt p c E rho j = some (some B) ∧
           Block.Preceq X B ∧ fastAt p c E rho x s X)
-  (hdeadlines : ∀ i x,
+  (_hdeadlines : ∀ i x,
     ∀ K g deadline, (K, g, deadline) ∈ (storeAt p c E rho i x).base.obligations →
       ∀ B, B ≠ .genesis → Block.Preceq B K →
         Gen.AC.Root.ProtectsUntil (storeAt p c E rho i x).base B g deadline)
-  (hheldRows : ∀ i x W, HeldAt p c E rho i x W → ∀ a ∈ chainRows W,
+  (_hheldRows : ∀ i x W, HeldAt p c E rho i x W → ∀ a ∈ chainRows W,
     ∃ (wire : RowWire p.n) (r : Nat), wire.toRow? = some a ∧
       wire.auth = .seat .fg a.signer ∧ ∃ k o t, k < i ∧
         rho.events[k]? = some (.deliver x o t) ∧
         ∀ z, RowSigner p c rho wire z → z ∈ rho.honest →
           HonestRowBefore p c E rho i z r wire ∧ p.actionTime r ≤ t)
-  (hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
+  (_hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
     rho.seatOf (.base .fg) a.signer ∈ rho.honest → ∃ j r wire,
       HonestRowAt p c E rho j (rho.seatOf (.base .fg) a.signer) r wire ∧
       wire.toRow? = some a ∧ wire.auth = .seat .fg a.signer)
-  (hfinalHead : ∀ j z r a u, HonestRowAt p c E rho j z r a →
+  (_hfinalHead : ∀ j z r a u, HonestRowAt p c E rho j z r a →
     RowSigner p c rho a z → a.toRow? = some u → ∀ fp,
     u.finality_pair = some fp → ∃ B, HeldAt p c E rho j z B ∧
       fp.height = (heightView p B).h_j ∧ fp.target = (heightView p B).J.root ∧
@@ -458,49 +457,48 @@ abbrev WCInitStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) : Prop :=
   WCSeed p c E rho w iStar → iStar ≤ rho.events.length →
     WCInv p c E rho w iStar iStar
 
-set_option linter.unusedVariables false in
 /-- WC J1; DC blueprint 23: later-job interface, with the complete separate [L] telescope.
 This declaration states the proposition. Job 2 or Job 3 supplies its proof. -/
 abbrev WCStepDeliveryStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) : Prop :=
   ∀
-  (hvalid : V2.D.ExecutionValid E rho)
-  (hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
-  (hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
-  (hnr : V2.D.NoRestart rho)
-  (hdelta : E.Δ = p.Δ)
-  (hroots : NamedRootCollisionFree p c E rho)
-  (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
-  (hdeltaF : E.Δ ≤ ΔF)
-  (hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
-  (hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
-  (hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
-  (hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
+  (_hvalid : V2.D.ExecutionValid E rho)
+  (_hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
+  (_hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
+  (_hnr : V2.D.NoRestart rho)
+  (_hdelta : E.Δ = p.Δ)
+  (_hroots : NamedRootCollisionFree p c E rho)
+  (_hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+  (_hdeltaF : E.Δ ≤ ΔF)
+  (_hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
+  (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+  (_hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
+  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
     (Gen.V2.Duty.faulty rho).card <
       (Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s)).card)
-  (hstore : RStore p c E rho)
-  (hcumul : RStoreCumul p c E rho)
-  (hmono : RMono p c E rho)
-  (hactive : RActive p c E rho)
-  (hframe : RFrameExact p c E rho)
-  (hmeta : RFrame p c E rho)
-  (hrec : RRec p c E rho)
-  (hgeo : RGeo p c E rho)
-  (hcert : RCert p c E rho)
-  (hsrc : TSrc p c E rho)
-  (hlabel : LabelBound p c E rho)
-  (hqc : RQCOrigin p c E rho)
-  (hstrat : RStrat p c E rho)
-  (hnoslash : ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x)
-  (hemitted : ∀ j x r a e, HonestRowAt p c E rho j x r a →
+  (_hstore : RStore p c E rho)
+  (_hcumul : RStoreCumul p c E rho)
+  (_hmono : RMono p c E rho)
+  (_hactive : RActive p c E rho)
+  (_hframe : RFrameExact p c E rho)
+  (_hmeta : RFrame p c E rho)
+  (_hrec : RRec p c E rho)
+  (_hgeo : RGeo p c E rho)
+  (_hcert : RCert p c E rho)
+  (_hsrc : TSrc p c E rho)
+  (_hlabel : LabelBound p c E rho)
+  (_hqc : RQCOrigin p c E rho)
+  (_hstrat : RStrat p c E rho)
+  (_hnoslash : ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x)
+  (_hemitted : ∀ j x r a e, HonestRowAt p c E rho j x r a →
     namedEntry a.payload.height_pair = some e →
     ∃ C B, actionSourceFG p c E rho x r = some (some C) ∧
       e = (hOf p.E p.cfg C, (derive p.E p.cfg C).T_h.root) ∧
       FGBlock.Preceq (derive p.E p.cfg C).T_h C ∧
       gateResult p c E rho x (r * p.R) = some (some B) ∧
       Block.Preceq (eraseFG C) B ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
-  (htargets : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
+  (_htargets : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
     Block.Preceq row.1 (storeAt p c E rho i x).base.stableRecord)
-  (hlease : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
+  (_hlease : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
     ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
       gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
       (row.1, row.2.1) ∈
@@ -519,26 +517,26 @@ abbrev WCStepDeliveryStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
         (wcView.blocks.filter (fun b => b != .genesis && Block.preceq b C)).flatMap
           (fun b => (@GridCO.admissionLevels GridCO.slowLeasePolicy
             p.toParams.engine p.n .root wcView w b).map (fun g => (b, g)))))
-  (hfast : ∀ i x,
+  (_hfast : ∀ i x,
     ∀ s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
       ∃ j < i, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         ∃ B, gateResultAt p c E rho j = some (some B) ∧
           Block.Preceq X B ∧ fastAt p c E rho x s X)
-  (hdeadlines : ∀ i x,
+  (_hdeadlines : ∀ i x,
     ∀ K g deadline, (K, g, deadline) ∈ (storeAt p c E rho i x).base.obligations →
       ∀ B, B ≠ .genesis → Block.Preceq B K →
         Gen.AC.Root.ProtectsUntil (storeAt p c E rho i x).base B g deadline)
-  (hheldRows : ∀ i x W, HeldAt p c E rho i x W → ∀ a ∈ chainRows W,
+  (_hheldRows : ∀ i x W, HeldAt p c E rho i x W → ∀ a ∈ chainRows W,
     ∃ (wire : RowWire p.n) (r : Nat), wire.toRow? = some a ∧
       wire.auth = .seat .fg a.signer ∧ ∃ k o t, k < i ∧
         rho.events[k]? = some (.deliver x o t) ∧
         ∀ z, RowSigner p c rho wire z → z ∈ rho.honest →
           HonestRowBefore p c E rho i z r wire ∧ p.actionTime r ≤ t)
-  (hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
+  (_hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
     rho.seatOf (.base .fg) a.signer ∈ rho.honest → ∃ j r wire,
       HonestRowAt p c E rho j (rho.seatOf (.base .fg) a.signer) r wire ∧
       wire.toRow? = some a ∧ wire.auth = .seat .fg a.signer)
-  (hfinalHead : ∀ j z r a u, HonestRowAt p c E rho j z r a →
+  (_hfinalHead : ∀ j z r a u, HonestRowAt p c E rho j z r a →
     RowSigner p c rho a z → a.toRow? = some u → ∀ fp,
     u.finality_pair = some fp → ∃ B, HeldAt p c E rho j z B ∧
       fp.height = (heightView p B).h_j ∧ fp.target = (heightView p B).J.root ∧
@@ -547,49 +545,48 @@ abbrev WCStepDeliveryStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
     iStar ≤ i → i < rho.events.length → WCInv p c E rho w iStar i →
     ∀ x o t, rho.events[i]? = some (.deliver x o t) → WCInv p c E rho w iStar (i + 1)
 
-set_option linter.unusedVariables false in
 /-- WC J1; DC blueprint 23: later-job interface, with the complete separate [L] telescope.
 This declaration states the proposition. Job 2 or Job 3 supplies its proof. -/
 abbrev WCStepNoGateTickStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) : Prop :=
   ∀
-  (hvalid : V2.D.ExecutionValid E rho)
-  (hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
-  (hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
-  (hnr : V2.D.NoRestart rho)
-  (hdelta : E.Δ = p.Δ)
-  (hroots : NamedRootCollisionFree p c E rho)
-  (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
-  (hdeltaF : E.Δ ≤ ΔF)
-  (hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
-  (hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
-  (hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
-  (hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
+  (_hvalid : V2.D.ExecutionValid E rho)
+  (_hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
+  (_hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
+  (_hnr : V2.D.NoRestart rho)
+  (_hdelta : E.Δ = p.Δ)
+  (_hroots : NamedRootCollisionFree p c E rho)
+  (_hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+  (_hdeltaF : E.Δ ≤ ΔF)
+  (_hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
+  (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+  (_hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
+  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
     (Gen.V2.Duty.faulty rho).card <
       (Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s)).card)
-  (hstore : RStore p c E rho)
-  (hcumul : RStoreCumul p c E rho)
-  (hmono : RMono p c E rho)
-  (hactive : RActive p c E rho)
-  (hframe : RFrameExact p c E rho)
-  (hmeta : RFrame p c E rho)
-  (hrec : RRec p c E rho)
-  (hgeo : RGeo p c E rho)
-  (hcert : RCert p c E rho)
-  (hsrc : TSrc p c E rho)
-  (hlabel : LabelBound p c E rho)
-  (hqc : RQCOrigin p c E rho)
-  (hstrat : RStrat p c E rho)
-  (hnoslash : ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x)
-  (hemitted : ∀ j x r a e, HonestRowAt p c E rho j x r a →
+  (_hstore : RStore p c E rho)
+  (_hcumul : RStoreCumul p c E rho)
+  (_hmono : RMono p c E rho)
+  (_hactive : RActive p c E rho)
+  (_hframe : RFrameExact p c E rho)
+  (_hmeta : RFrame p c E rho)
+  (_hrec : RRec p c E rho)
+  (_hgeo : RGeo p c E rho)
+  (_hcert : RCert p c E rho)
+  (_hsrc : TSrc p c E rho)
+  (_hlabel : LabelBound p c E rho)
+  (_hqc : RQCOrigin p c E rho)
+  (_hstrat : RStrat p c E rho)
+  (_hnoslash : ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x)
+  (_hemitted : ∀ j x r a e, HonestRowAt p c E rho j x r a →
     namedEntry a.payload.height_pair = some e →
     ∃ C B, actionSourceFG p c E rho x r = some (some C) ∧
       e = (hOf p.E p.cfg C, (derive p.E p.cfg C).T_h.root) ∧
       FGBlock.Preceq (derive p.E p.cfg C).T_h C ∧
       gateResult p c E rho x (r * p.R) = some (some B) ∧
       Block.Preceq (eraseFG C) B ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
-  (htargets : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
+  (_htargets : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
     Block.Preceq row.1 (storeAt p c E rho i x).base.stableRecord)
-  (hlease : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
+  (_hlease : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
     ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
       gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
       (row.1, row.2.1) ∈
@@ -608,26 +605,26 @@ abbrev WCStepNoGateTickStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat)
         (wcView.blocks.filter (fun b => b != .genesis && Block.preceq b C)).flatMap
           (fun b => (@GridCO.admissionLevels GridCO.slowLeasePolicy
             p.toParams.engine p.n .root wcView w b).map (fun g => (b, g)))))
-  (hfast : ∀ i x,
+  (_hfast : ∀ i x,
     ∀ s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
       ∃ j < i, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         ∃ B, gateResultAt p c E rho j = some (some B) ∧
           Block.Preceq X B ∧ fastAt p c E rho x s X)
-  (hdeadlines : ∀ i x,
+  (_hdeadlines : ∀ i x,
     ∀ K g deadline, (K, g, deadline) ∈ (storeAt p c E rho i x).base.obligations →
       ∀ B, B ≠ .genesis → Block.Preceq B K →
         Gen.AC.Root.ProtectsUntil (storeAt p c E rho i x).base B g deadline)
-  (hheldRows : ∀ i x W, HeldAt p c E rho i x W → ∀ a ∈ chainRows W,
+  (_hheldRows : ∀ i x W, HeldAt p c E rho i x W → ∀ a ∈ chainRows W,
     ∃ (wire : RowWire p.n) (r : Nat), wire.toRow? = some a ∧
       wire.auth = .seat .fg a.signer ∧ ∃ k o t, k < i ∧
         rho.events[k]? = some (.deliver x o t) ∧
         ∀ z, RowSigner p c rho wire z → z ∈ rho.honest →
           HonestRowBefore p c E rho i z r wire ∧ p.actionTime r ≤ t)
-  (hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
+  (_hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
     rho.seatOf (.base .fg) a.signer ∈ rho.honest → ∃ j r wire,
       HonestRowAt p c E rho j (rho.seatOf (.base .fg) a.signer) r wire ∧
       wire.toRow? = some a ∧ wire.auth = .seat .fg a.signer)
-  (hfinalHead : ∀ j z r a u, HonestRowAt p c E rho j z r a →
+  (_hfinalHead : ∀ j z r a u, HonestRowAt p c E rho j z r a →
     RowSigner p c rho a z → a.toRow? = some u → ∀ fp,
     u.finality_pair = some fp → ∃ B, HeldAt p c E rho j z B ∧
       fp.height = (heightView p B).h_j ∧ fp.target = (heightView p B).J.root ∧
@@ -637,49 +634,48 @@ abbrev WCStepNoGateTickStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat)
     ∀ x t, rho.events[i]? = some (.tick x t) → isGateTime p t = false →
     WCInv p c E rho w iStar (i + 1)
 
-set_option linter.unusedVariables false in
 /-- WC J1; DC blueprint 23: later-job interface, with the complete separate [L] telescope.
 This declaration states the proposition. Job 2 or Job 3 supplies its proof. -/
 abbrev WCStepGateTickStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) : Prop :=
   ∀
-  (hvalid : V2.D.ExecutionValid E rho)
-  (hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
-  (hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
-  (hnr : V2.D.NoRestart rho)
-  (hdelta : E.Δ = p.Δ)
-  (hroots : NamedRootCollisionFree p c E rho)
-  (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
-  (hdeltaF : E.Δ ≤ ΔF)
-  (hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
-  (hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
-  (hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
-  (hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
+  (_hvalid : V2.D.ExecutionValid E rho)
+  (_hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
+  (_hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
+  (_hnr : V2.D.NoRestart rho)
+  (_hdelta : E.Δ = p.Δ)
+  (_hroots : NamedRootCollisionFree p c E rho)
+  (_hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+  (_hdeltaF : E.Δ ≤ ΔF)
+  (_hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
+  (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+  (_hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
+  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
     (Gen.V2.Duty.faulty rho).card <
       (Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s)).card)
-  (hstore : RStore p c E rho)
-  (hcumul : RStoreCumul p c E rho)
-  (hmono : RMono p c E rho)
-  (hactive : RActive p c E rho)
-  (hframe : RFrameExact p c E rho)
-  (hmeta : RFrame p c E rho)
-  (hrec : RRec p c E rho)
-  (hgeo : RGeo p c E rho)
-  (hcert : RCert p c E rho)
-  (hsrc : TSrc p c E rho)
-  (hlabel : LabelBound p c E rho)
-  (hqc : RQCOrigin p c E rho)
-  (hstrat : RStrat p c E rho)
-  (hnoslash : ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x)
-  (hemitted : ∀ j x r a e, HonestRowAt p c E rho j x r a →
+  (_hstore : RStore p c E rho)
+  (_hcumul : RStoreCumul p c E rho)
+  (_hmono : RMono p c E rho)
+  (_hactive : RActive p c E rho)
+  (_hframe : RFrameExact p c E rho)
+  (_hmeta : RFrame p c E rho)
+  (_hrec : RRec p c E rho)
+  (_hgeo : RGeo p c E rho)
+  (_hcert : RCert p c E rho)
+  (_hsrc : TSrc p c E rho)
+  (_hlabel : LabelBound p c E rho)
+  (_hqc : RQCOrigin p c E rho)
+  (_hstrat : RStrat p c E rho)
+  (_hnoslash : ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x)
+  (_hemitted : ∀ j x r a e, HonestRowAt p c E rho j x r a →
     namedEntry a.payload.height_pair = some e →
     ∃ C B, actionSourceFG p c E rho x r = some (some C) ∧
       e = (hOf p.E p.cfg C, (derive p.E p.cfg C).T_h.root) ∧
       FGBlock.Preceq (derive p.E p.cfg C).T_h C ∧
       gateResult p c E rho x (r * p.R) = some (some B) ∧
       Block.Preceq (eraseFG C) B ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
-  (htargets : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
+  (_htargets : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
     Block.Preceq row.1 (storeAt p c E rho i x).base.stableRecord)
-  (hlease : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
+  (_hlease : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
     ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
       gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
       (row.1, row.2.1) ∈
@@ -698,26 +694,26 @@ abbrev WCStepGateTickStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
         (wcView.blocks.filter (fun b => b != .genesis && Block.preceq b C)).flatMap
           (fun b => (@GridCO.admissionLevels GridCO.slowLeasePolicy
             p.toParams.engine p.n .root wcView w b).map (fun g => (b, g)))))
-  (hfast : ∀ i x,
+  (_hfast : ∀ i x,
     ∀ s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
       ∃ j < i, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         ∃ B, gateResultAt p c E rho j = some (some B) ∧
           Block.Preceq X B ∧ fastAt p c E rho x s X)
-  (hdeadlines : ∀ i x,
+  (_hdeadlines : ∀ i x,
     ∀ K g deadline, (K, g, deadline) ∈ (storeAt p c E rho i x).base.obligations →
       ∀ B, B ≠ .genesis → Block.Preceq B K →
         Gen.AC.Root.ProtectsUntil (storeAt p c E rho i x).base B g deadline)
-  (hheldRows : ∀ i x W, HeldAt p c E rho i x W → ∀ a ∈ chainRows W,
+  (_hheldRows : ∀ i x W, HeldAt p c E rho i x W → ∀ a ∈ chainRows W,
     ∃ (wire : RowWire p.n) (r : Nat), wire.toRow? = some a ∧
       wire.auth = .seat .fg a.signer ∧ ∃ k o t, k < i ∧
         rho.events[k]? = some (.deliver x o t) ∧
         ∀ z, RowSigner p c rho wire z → z ∈ rho.honest →
           HonestRowBefore p c E rho i z r wire ∧ p.actionTime r ≤ t)
-  (hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
+  (_hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
     rho.seatOf (.base .fg) a.signer ∈ rho.honest → ∃ j r wire,
       HonestRowAt p c E rho j (rho.seatOf (.base .fg) a.signer) r wire ∧
       wire.toRow? = some a ∧ wire.auth = .seat .fg a.signer)
-  (hfinalHead : ∀ j z r a u, HonestRowAt p c E rho j z r a →
+  (_hfinalHead : ∀ j z r a u, HonestRowAt p c E rho j z r a →
     RowSigner p c rho a z → a.toRow? = some u → ∀ fp,
     u.finality_pair = some fp → ∃ B, HeldAt p c E rho j z B ∧
       fp.height = (heightView p B).h_j ∧ fp.target = (heightView p B).J.root ∧
@@ -726,49 +722,48 @@ abbrev WCStepGateTickStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
     iStar ≤ i → i < rho.events.length → WCInv p c E rho w iStar i →
     ∀ x s, IsGateTick p c rho i x s → w.u < s → WCInv p c E rho w iStar (i + 1)
 
-set_option linter.unusedVariables false in
 /-- WC J1; DC blueprint 23: later-job interface, with the complete separate [L] telescope.
 This declaration states the proposition. Job 2 or Job 3 supplies its proof. -/
 abbrev WCStepRestartStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) : Prop :=
   ∀
-  (hvalid : V2.D.ExecutionValid E rho)
-  (hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
-  (hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
-  (hnr : V2.D.NoRestart rho)
-  (hdelta : E.Δ = p.Δ)
-  (hroots : NamedRootCollisionFree p c E rho)
-  (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
-  (hdeltaF : E.Δ ≤ ΔF)
-  (hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
-  (hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
-  (hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
-  (hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
+  (_hvalid : V2.D.ExecutionValid E rho)
+  (_hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
+  (_hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
+  (_hnr : V2.D.NoRestart rho)
+  (_hdelta : E.Δ = p.Δ)
+  (_hroots : NamedRootCollisionFree p c E rho)
+  (_hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+  (_hdeltaF : E.Δ ≤ ΔF)
+  (_hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
+  (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+  (_hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
+  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
     (Gen.V2.Duty.faulty rho).card <
       (Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s)).card)
-  (hstore : RStore p c E rho)
-  (hcumul : RStoreCumul p c E rho)
-  (hmono : RMono p c E rho)
-  (hactive : RActive p c E rho)
-  (hframe : RFrameExact p c E rho)
-  (hmeta : RFrame p c E rho)
-  (hrec : RRec p c E rho)
-  (hgeo : RGeo p c E rho)
-  (hcert : RCert p c E rho)
-  (hsrc : TSrc p c E rho)
-  (hlabel : LabelBound p c E rho)
-  (hqc : RQCOrigin p c E rho)
-  (hstrat : RStrat p c E rho)
-  (hnoslash : ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x)
-  (hemitted : ∀ j x r a e, HonestRowAt p c E rho j x r a →
+  (_hstore : RStore p c E rho)
+  (_hcumul : RStoreCumul p c E rho)
+  (_hmono : RMono p c E rho)
+  (_hactive : RActive p c E rho)
+  (_hframe : RFrameExact p c E rho)
+  (_hmeta : RFrame p c E rho)
+  (_hrec : RRec p c E rho)
+  (_hgeo : RGeo p c E rho)
+  (_hcert : RCert p c E rho)
+  (_hsrc : TSrc p c E rho)
+  (_hlabel : LabelBound p c E rho)
+  (_hqc : RQCOrigin p c E rho)
+  (_hstrat : RStrat p c E rho)
+  (_hnoslash : ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x)
+  (_hemitted : ∀ j x r a e, HonestRowAt p c E rho j x r a →
     namedEntry a.payload.height_pair = some e →
     ∃ C B, actionSourceFG p c E rho x r = some (some C) ∧
       e = (hOf p.E p.cfg C, (derive p.E p.cfg C).T_h.root) ∧
       FGBlock.Preceq (derive p.E p.cfg C).T_h C ∧
       gateResult p c E rho x (r * p.R) = some (some B) ∧
       Block.Preceq (eraseFG C) B ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
-  (htargets : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
+  (_htargets : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
     Block.Preceq row.1 (storeAt p c E rho i x).base.stableRecord)
-  (hlease : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
+  (_hlease : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
     ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
       gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
       (row.1, row.2.1) ∈
@@ -787,26 +782,26 @@ abbrev WCStepRestartStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) : 
         (wcView.blocks.filter (fun b => b != .genesis && Block.preceq b C)).flatMap
           (fun b => (@GridCO.admissionLevels GridCO.slowLeasePolicy
             p.toParams.engine p.n .root wcView w b).map (fun g => (b, g)))))
-  (hfast : ∀ i x,
+  (_hfast : ∀ i x,
     ∀ s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
       ∃ j < i, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         ∃ B, gateResultAt p c E rho j = some (some B) ∧
           Block.Preceq X B ∧ fastAt p c E rho x s X)
-  (hdeadlines : ∀ i x,
+  (_hdeadlines : ∀ i x,
     ∀ K g deadline, (K, g, deadline) ∈ (storeAt p c E rho i x).base.obligations →
       ∀ B, B ≠ .genesis → Block.Preceq B K →
         Gen.AC.Root.ProtectsUntil (storeAt p c E rho i x).base B g deadline)
-  (hheldRows : ∀ i x W, HeldAt p c E rho i x W → ∀ a ∈ chainRows W,
+  (_hheldRows : ∀ i x W, HeldAt p c E rho i x W → ∀ a ∈ chainRows W,
     ∃ (wire : RowWire p.n) (r : Nat), wire.toRow? = some a ∧
       wire.auth = .seat .fg a.signer ∧ ∃ k o t, k < i ∧
         rho.events[k]? = some (.deliver x o t) ∧
         ∀ z, RowSigner p c rho wire z → z ∈ rho.honest →
           HonestRowBefore p c E rho i z r wire ∧ p.actionTime r ≤ t)
-  (hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
+  (_hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
     rho.seatOf (.base .fg) a.signer ∈ rho.honest → ∃ j r wire,
       HonestRowAt p c E rho j (rho.seatOf (.base .fg) a.signer) r wire ∧
       wire.toRow? = some a ∧ wire.auth = .seat .fg a.signer)
-  (hfinalHead : ∀ j z r a u, HonestRowAt p c E rho j z r a →
+  (_hfinalHead : ∀ j z r a u, HonestRowAt p c E rho j z r a →
     RowSigner p c rho a z → a.toRow? = some u → ∀ fp,
     u.finality_pair = some fp → ∃ B, HeldAt p c E rho j z B ∧
       fp.height = (heightView p B).h_j ∧ fp.target = (heightView p B).J.root ∧
@@ -815,49 +810,48 @@ abbrev WCStepRestartStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) : 
     iStar ≤ i → i < rho.events.length → WCInv p c E rho w iStar i →
     ∀ x t, rho.events[i]? = some (.restart x t) → False
 
-set_option linter.unusedVariables false in
 /-- WC J1; DC blueprint 23: later-job interface, with the complete separate [L] telescope.
 This declaration states the proposition. Job 2 or Job 3 supplies its proof. -/
 abbrev WCStepStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) : Prop :=
   ∀
-  (hvalid : V2.D.ExecutionValid E rho)
-  (hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
-  (hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
-  (hnr : V2.D.NoRestart rho)
-  (hdelta : E.Δ = p.Δ)
-  (hroots : NamedRootCollisionFree p c E rho)
-  (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
-  (hdeltaF : E.Δ ≤ ΔF)
-  (hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
-  (hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
-  (hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
-  (hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
+  (_hvalid : V2.D.ExecutionValid E rho)
+  (_hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
+  (_hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
+  (_hnr : V2.D.NoRestart rho)
+  (_hdelta : E.Δ = p.Δ)
+  (_hroots : NamedRootCollisionFree p c E rho)
+  (_hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+  (_hdeltaF : E.Δ ≤ ΔF)
+  (_hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
+  (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+  (_hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
+  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
     (Gen.V2.Duty.faulty rho).card <
       (Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s)).card)
-  (hstore : RStore p c E rho)
-  (hcumul : RStoreCumul p c E rho)
-  (hmono : RMono p c E rho)
-  (hactive : RActive p c E rho)
-  (hframe : RFrameExact p c E rho)
-  (hmeta : RFrame p c E rho)
-  (hrec : RRec p c E rho)
-  (hgeo : RGeo p c E rho)
-  (hcert : RCert p c E rho)
-  (hsrc : TSrc p c E rho)
-  (hlabel : LabelBound p c E rho)
-  (hqc : RQCOrigin p c E rho)
-  (hstrat : RStrat p c E rho)
-  (hnoslash : ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x)
-  (hemitted : ∀ j x r a e, HonestRowAt p c E rho j x r a →
+  (_hstore : RStore p c E rho)
+  (_hcumul : RStoreCumul p c E rho)
+  (_hmono : RMono p c E rho)
+  (_hactive : RActive p c E rho)
+  (_hframe : RFrameExact p c E rho)
+  (_hmeta : RFrame p c E rho)
+  (_hrec : RRec p c E rho)
+  (_hgeo : RGeo p c E rho)
+  (_hcert : RCert p c E rho)
+  (_hsrc : TSrc p c E rho)
+  (_hlabel : LabelBound p c E rho)
+  (_hqc : RQCOrigin p c E rho)
+  (_hstrat : RStrat p c E rho)
+  (_hnoslash : ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x)
+  (_hemitted : ∀ j x r a e, HonestRowAt p c E rho j x r a →
     namedEntry a.payload.height_pair = some e →
     ∃ C B, actionSourceFG p c E rho x r = some (some C) ∧
       e = (hOf p.E p.cfg C, (derive p.E p.cfg C).T_h.root) ∧
       FGBlock.Preceq (derive p.E p.cfg C).T_h C ∧
       gateResult p c E rho x (r * p.R) = some (some B) ∧
       Block.Preceq (eraseFG C) B ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
-  (htargets : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
+  (_htargets : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
     Block.Preceq row.1 (storeAt p c E rho i x).base.stableRecord)
-  (hlease : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
+  (_hlease : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
     ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
       gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
       (row.1, row.2.1) ∈
@@ -876,26 +870,26 @@ abbrev WCStepStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) : Prop :=
         (wcView.blocks.filter (fun b => b != .genesis && Block.preceq b C)).flatMap
           (fun b => (@GridCO.admissionLevels GridCO.slowLeasePolicy
             p.toParams.engine p.n .root wcView w b).map (fun g => (b, g)))))
-  (hfast : ∀ i x,
+  (_hfast : ∀ i x,
     ∀ s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
       ∃ j < i, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         ∃ B, gateResultAt p c E rho j = some (some B) ∧
           Block.Preceq X B ∧ fastAt p c E rho x s X)
-  (hdeadlines : ∀ i x,
+  (_hdeadlines : ∀ i x,
     ∀ K g deadline, (K, g, deadline) ∈ (storeAt p c E rho i x).base.obligations →
       ∀ B, B ≠ .genesis → Block.Preceq B K →
         Gen.AC.Root.ProtectsUntil (storeAt p c E rho i x).base B g deadline)
-  (hheldRows : ∀ i x W, HeldAt p c E rho i x W → ∀ a ∈ chainRows W,
+  (_hheldRows : ∀ i x W, HeldAt p c E rho i x W → ∀ a ∈ chainRows W,
     ∃ (wire : RowWire p.n) (r : Nat), wire.toRow? = some a ∧
       wire.auth = .seat .fg a.signer ∧ ∃ k o t, k < i ∧
         rho.events[k]? = some (.deliver x o t) ∧
         ∀ z, RowSigner p c rho wire z → z ∈ rho.honest →
           HonestRowBefore p c E rho i z r wire ∧ p.actionTime r ≤ t)
-  (hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
+  (_hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
     rho.seatOf (.base .fg) a.signer ∈ rho.honest → ∃ j r wire,
       HonestRowAt p c E rho j (rho.seatOf (.base .fg) a.signer) r wire ∧
       wire.toRow? = some a ∧ wire.auth = .seat .fg a.signer)
-  (hfinalHead : ∀ j z r a u, HonestRowAt p c E rho j z r a →
+  (_hfinalHead : ∀ j z r a u, HonestRowAt p c E rho j z r a →
     RowSigner p c rho a z → a.toRow? = some u → ∀ fp,
     u.finality_pair = some fp → ∃ B, HeldAt p c E rho j z B ∧
       fp.height = (heightView p B).h_j ∧ fp.target = (heightView p B).J.root ∧
@@ -904,49 +898,48 @@ abbrev WCStepStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) : Prop :=
     iStar ≤ i → i < rho.events.length → WCInv p c E rho w iStar i →
     ∀ e, rho.events[i]? = some e → WCInv p c E rho w iStar (i + 1)
 
-set_option linter.unusedVariables false in
 /-- WC J1; DC blueprint 23: later-job interface, with the complete separate [L] telescope.
 This declaration states the proposition. Job 2 or Job 3 supplies its proof. -/
 abbrev WCSeededInductionStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) : Prop :=
   ∀
-  (hvalid : V2.D.ExecutionValid E rho)
-  (hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
-  (hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
-  (hnr : V2.D.NoRestart rho)
-  (hdelta : E.Δ = p.Δ)
-  (hroots : NamedRootCollisionFree p c E rho)
-  (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
-  (hdeltaF : E.Δ ≤ ΔF)
-  (hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
-  (hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
-  (hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
-  (hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
+  (_hvalid : V2.D.ExecutionValid E rho)
+  (_hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
+  (_hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
+  (_hnr : V2.D.NoRestart rho)
+  (_hdelta : E.Δ = p.Δ)
+  (_hroots : NamedRootCollisionFree p c E rho)
+  (_hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+  (_hdeltaF : E.Δ ≤ ΔF)
+  (_hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
+  (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+  (_hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
+  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
     (Gen.V2.Duty.faulty rho).card <
       (Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s)).card)
-  (hstore : RStore p c E rho)
-  (hcumul : RStoreCumul p c E rho)
-  (hmono : RMono p c E rho)
-  (hactive : RActive p c E rho)
-  (hframe : RFrameExact p c E rho)
-  (hmeta : RFrame p c E rho)
-  (hrec : RRec p c E rho)
-  (hgeo : RGeo p c E rho)
-  (hcert : RCert p c E rho)
-  (hsrc : TSrc p c E rho)
-  (hlabel : LabelBound p c E rho)
-  (hqc : RQCOrigin p c E rho)
-  (hstrat : RStrat p c E rho)
-  (hnoslash : ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x)
-  (hemitted : ∀ j x r a e, HonestRowAt p c E rho j x r a →
+  (_hstore : RStore p c E rho)
+  (_hcumul : RStoreCumul p c E rho)
+  (_hmono : RMono p c E rho)
+  (_hactive : RActive p c E rho)
+  (_hframe : RFrameExact p c E rho)
+  (_hmeta : RFrame p c E rho)
+  (_hrec : RRec p c E rho)
+  (_hgeo : RGeo p c E rho)
+  (_hcert : RCert p c E rho)
+  (_hsrc : TSrc p c E rho)
+  (_hlabel : LabelBound p c E rho)
+  (_hqc : RQCOrigin p c E rho)
+  (_hstrat : RStrat p c E rho)
+  (_hnoslash : ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x)
+  (_hemitted : ∀ j x r a e, HonestRowAt p c E rho j x r a →
     namedEntry a.payload.height_pair = some e →
     ∃ C B, actionSourceFG p c E rho x r = some (some C) ∧
       e = (hOf p.E p.cfg C, (derive p.E p.cfg C).T_h.root) ∧
       FGBlock.Preceq (derive p.E p.cfg C).T_h C ∧
       gateResult p c E rho x (r * p.R) = some (some B) ∧
       Block.Preceq (eraseFG C) B ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
-  (htargets : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
+  (_htargets : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
     Block.Preceq row.1 (storeAt p c E rho i x).base.stableRecord)
-  (hlease : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
+  (_hlease : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
     ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
       gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
       (row.1, row.2.1) ∈
@@ -965,26 +958,26 @@ abbrev WCSeededInductionStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat
         (wcView.blocks.filter (fun b => b != .genesis && Block.preceq b C)).flatMap
           (fun b => (@GridCO.admissionLevels GridCO.slowLeasePolicy
             p.toParams.engine p.n .root wcView w b).map (fun g => (b, g)))))
-  (hfast : ∀ i x,
+  (_hfast : ∀ i x,
     ∀ s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
       ∃ j < i, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         ∃ B, gateResultAt p c E rho j = some (some B) ∧
           Block.Preceq X B ∧ fastAt p c E rho x s X)
-  (hdeadlines : ∀ i x,
+  (_hdeadlines : ∀ i x,
     ∀ K g deadline, (K, g, deadline) ∈ (storeAt p c E rho i x).base.obligations →
       ∀ B, B ≠ .genesis → Block.Preceq B K →
         Gen.AC.Root.ProtectsUntil (storeAt p c E rho i x).base B g deadline)
-  (hheldRows : ∀ i x W, HeldAt p c E rho i x W → ∀ a ∈ chainRows W,
+  (_hheldRows : ∀ i x W, HeldAt p c E rho i x W → ∀ a ∈ chainRows W,
     ∃ (wire : RowWire p.n) (r : Nat), wire.toRow? = some a ∧
       wire.auth = .seat .fg a.signer ∧ ∃ k o t, k < i ∧
         rho.events[k]? = some (.deliver x o t) ∧
         ∀ z, RowSigner p c rho wire z → z ∈ rho.honest →
           HonestRowBefore p c E rho i z r wire ∧ p.actionTime r ≤ t)
-  (hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
+  (_hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
     rho.seatOf (.base .fg) a.signer ∈ rho.honest → ∃ j r wire,
       HonestRowAt p c E rho j (rho.seatOf (.base .fg) a.signer) r wire ∧
       wire.toRow? = some a ∧ wire.auth = .seat .fg a.signer)
-  (hfinalHead : ∀ j z r a u, HonestRowAt p c E rho j z r a →
+  (_hfinalHead : ∀ j z r a u, HonestRowAt p c E rho j z r a →
     RowSigner p c rho a z → a.toRow? = some u → ∀ fp,
     u.finality_pair = some fp → ∃ B, HeldAt p c E rho j z B ∧
       fp.height = (heightView p B).h_j ∧ fp.target = (heightView p B).J.root ∧
@@ -992,49 +985,48 @@ abbrev WCSeededInductionStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat
   WCSeed p c E rho w iStar →
     ∀ i, iStar ≤ i ∧ i ≤ rho.events.length → WCInv p c E rho w iStar i
 
-set_option linter.unusedVariables false in
 /-- WC J1; DC blueprint 23: later-job interface, with the complete separate [L] telescope.
 This declaration states the proposition. Job 2 or Job 3 supplies its proof. -/
 abbrev WCService4Statement (ΔF : Time) (w : HealingWitness) (iStar : Nat) : Prop :=
   ∀
-  (hvalid : V2.D.ExecutionValid E rho)
-  (hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
-  (hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
-  (hnr : V2.D.NoRestart rho)
-  (hdelta : E.Δ = p.Δ)
-  (hroots : NamedRootCollisionFree p c E rho)
-  (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
-  (hdeltaF : E.Δ ≤ ΔF)
-  (hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
-  (hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
-  (hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
-  (hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
+  (_hvalid : V2.D.ExecutionValid E rho)
+  (_hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
+  (_hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
+  (_hnr : V2.D.NoRestart rho)
+  (_hdelta : E.Δ = p.Δ)
+  (_hroots : NamedRootCollisionFree p c E rho)
+  (_hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+  (_hdeltaF : E.Δ ≤ ΔF)
+  (_hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
+  (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+  (_hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
+  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
     (Gen.V2.Duty.faulty rho).card <
       (Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s)).card)
-  (hstore : RStore p c E rho)
-  (hcumul : RStoreCumul p c E rho)
-  (hmono : RMono p c E rho)
-  (hactive : RActive p c E rho)
-  (hframe : RFrameExact p c E rho)
-  (hmeta : RFrame p c E rho)
-  (hrec : RRec p c E rho)
-  (hgeo : RGeo p c E rho)
-  (hcert : RCert p c E rho)
-  (hsrc : TSrc p c E rho)
-  (hlabel : LabelBound p c E rho)
-  (hqc : RQCOrigin p c E rho)
-  (hstrat : RStrat p c E rho)
-  (hnoslash : ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x)
-  (hemitted : ∀ j x r a e, HonestRowAt p c E rho j x r a →
+  (_hstore : RStore p c E rho)
+  (_hcumul : RStoreCumul p c E rho)
+  (_hmono : RMono p c E rho)
+  (_hactive : RActive p c E rho)
+  (_hframe : RFrameExact p c E rho)
+  (_hmeta : RFrame p c E rho)
+  (_hrec : RRec p c E rho)
+  (_hgeo : RGeo p c E rho)
+  (_hcert : RCert p c E rho)
+  (_hsrc : TSrc p c E rho)
+  (_hlabel : LabelBound p c E rho)
+  (_hqc : RQCOrigin p c E rho)
+  (_hstrat : RStrat p c E rho)
+  (_hnoslash : ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x)
+  (_hemitted : ∀ j x r a e, HonestRowAt p c E rho j x r a →
     namedEntry a.payload.height_pair = some e →
     ∃ C B, actionSourceFG p c E rho x r = some (some C) ∧
       e = (hOf p.E p.cfg C, (derive p.E p.cfg C).T_h.root) ∧
       FGBlock.Preceq (derive p.E p.cfg C).T_h C ∧
       gateResult p c E rho x (r * p.R) = some (some B) ∧
       Block.Preceq (eraseFG C) B ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
-  (htargets : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
+  (_htargets : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
     Block.Preceq row.1 (storeAt p c E rho i x).base.stableRecord)
-  (hlease : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
+  (_hlease : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
     ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
       gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
       (row.1, row.2.1) ∈
@@ -1053,26 +1045,26 @@ abbrev WCService4Statement (ΔF : Time) (w : HealingWitness) (iStar : Nat) : Pro
         (wcView.blocks.filter (fun b => b != .genesis && Block.preceq b C)).flatMap
           (fun b => (@GridCO.admissionLevels GridCO.slowLeasePolicy
             p.toParams.engine p.n .root wcView w b).map (fun g => (b, g)))))
-  (hfast : ∀ i x,
+  (_hfast : ∀ i x,
     ∀ s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
       ∃ j < i, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         ∃ B, gateResultAt p c E rho j = some (some B) ∧
           Block.Preceq X B ∧ fastAt p c E rho x s X)
-  (hdeadlines : ∀ i x,
+  (_hdeadlines : ∀ i x,
     ∀ K g deadline, (K, g, deadline) ∈ (storeAt p c E rho i x).base.obligations →
       ∀ B, B ≠ .genesis → Block.Preceq B K →
         Gen.AC.Root.ProtectsUntil (storeAt p c E rho i x).base B g deadline)
-  (hheldRows : ∀ i x W, HeldAt p c E rho i x W → ∀ a ∈ chainRows W,
+  (_hheldRows : ∀ i x W, HeldAt p c E rho i x W → ∀ a ∈ chainRows W,
     ∃ (wire : RowWire p.n) (r : Nat), wire.toRow? = some a ∧
       wire.auth = .seat .fg a.signer ∧ ∃ k o t, k < i ∧
         rho.events[k]? = some (.deliver x o t) ∧
         ∀ z, RowSigner p c rho wire z → z ∈ rho.honest →
           HonestRowBefore p c E rho i z r wire ∧ p.actionTime r ≤ t)
-  (hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
+  (_hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
     rho.seatOf (.base .fg) a.signer ∈ rho.honest → ∃ j r wire,
       HonestRowAt p c E rho j (rho.seatOf (.base .fg) a.signer) r wire ∧
       wire.toRow? = some a ∧ wire.auth = .seat .fg a.signer)
-  (hfinalHead : ∀ j z r a u, HonestRowAt p c E rho j z r a →
+  (_hfinalHead : ∀ j z r a u, HonestRowAt p c E rho j z r a →
     RowSigner p c rho a z → a.toRow? = some u → ∀ fp,
     u.finality_pair = some fp → ∃ B, HeldAt p c E rho j z B ∧
       fp.height = (heightView p B).h_j ∧ fp.target = (heightView p B).J.root ∧
@@ -1085,49 +1077,48 @@ abbrev WCService4Statement (ΔF : Time) (w : HealingWitness) (iStar : Nat) : Pro
       ∀ i y, afterTicksIdx rho (SA.gateTime p.toParams s + 4 * p.Δ) ≤ i →
         i ≤ rho.events.length → y ∈ rho.honest → Block.Preceq B (S_at p c E rho i y)
 
-set_option linter.unusedVariables false in
 /-- WC J1; DC blueprint 23: later-job interface, with the complete separate [L] telescope.
 This declaration states the proposition. Job 2 or Job 3 supplies its proof. -/
 abbrev WCSeededFrameStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) : Prop :=
   ∀
-  (hvalid : V2.D.ExecutionValid E rho)
-  (hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
-  (hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
-  (hnr : V2.D.NoRestart rho)
-  (hdelta : E.Δ = p.Δ)
-  (hroots : NamedRootCollisionFree p c E rho)
-  (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
-  (hdeltaF : E.Δ ≤ ΔF)
-  (hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
-  (hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
-  (hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
-  (hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
+  (_hvalid : V2.D.ExecutionValid E rho)
+  (_hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
+  (_hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
+  (_hnr : V2.D.NoRestart rho)
+  (_hdelta : E.Δ = p.Δ)
+  (_hroots : NamedRootCollisionFree p c E rho)
+  (_hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+  (_hdeltaF : E.Δ ≤ ΔF)
+  (_hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
+  (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+  (_hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
+  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
     (Gen.V2.Duty.faulty rho).card <
       (Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s)).card)
-  (hstore : RStore p c E rho)
-  (hcumul : RStoreCumul p c E rho)
-  (hmono : RMono p c E rho)
-  (hactive : RActive p c E rho)
-  (hframe : RFrameExact p c E rho)
-  (hmeta : RFrame p c E rho)
-  (hrec : RRec p c E rho)
-  (hgeo : RGeo p c E rho)
-  (hcert : RCert p c E rho)
-  (hsrc : TSrc p c E rho)
-  (hlabel : LabelBound p c E rho)
-  (hqc : RQCOrigin p c E rho)
-  (hstrat : RStrat p c E rho)
-  (hnoslash : ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x)
-  (hemitted : ∀ j x r a e, HonestRowAt p c E rho j x r a →
+  (_hstore : RStore p c E rho)
+  (_hcumul : RStoreCumul p c E rho)
+  (_hmono : RMono p c E rho)
+  (_hactive : RActive p c E rho)
+  (_hframe : RFrameExact p c E rho)
+  (_hmeta : RFrame p c E rho)
+  (_hrec : RRec p c E rho)
+  (_hgeo : RGeo p c E rho)
+  (_hcert : RCert p c E rho)
+  (_hsrc : TSrc p c E rho)
+  (_hlabel : LabelBound p c E rho)
+  (_hqc : RQCOrigin p c E rho)
+  (_hstrat : RStrat p c E rho)
+  (_hnoslash : ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x)
+  (_hemitted : ∀ j x r a e, HonestRowAt p c E rho j x r a →
     namedEntry a.payload.height_pair = some e →
     ∃ C B, actionSourceFG p c E rho x r = some (some C) ∧
       e = (hOf p.E p.cfg C, (derive p.E p.cfg C).T_h.root) ∧
       FGBlock.Preceq (derive p.E p.cfg C).T_h C ∧
       gateResult p c E rho x (r * p.R) = some (some B) ∧
       Block.Preceq (eraseFG C) B ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
-  (htargets : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
+  (_htargets : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
     Block.Preceq row.1 (storeAt p c E rho i x).base.stableRecord)
-  (hlease : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
+  (_hlease : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
     ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
       gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
       (row.1, row.2.1) ∈
@@ -1146,26 +1137,26 @@ abbrev WCSeededFrameStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) : 
         (wcView.blocks.filter (fun b => b != .genesis && Block.preceq b C)).flatMap
           (fun b => (@GridCO.admissionLevels GridCO.slowLeasePolicy
             p.toParams.engine p.n .root wcView w b).map (fun g => (b, g)))))
-  (hfast : ∀ i x,
+  (_hfast : ∀ i x,
     ∀ s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
       ∃ j < i, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         ∃ B, gateResultAt p c E rho j = some (some B) ∧
           Block.Preceq X B ∧ fastAt p c E rho x s X)
-  (hdeadlines : ∀ i x,
+  (_hdeadlines : ∀ i x,
     ∀ K g deadline, (K, g, deadline) ∈ (storeAt p c E rho i x).base.obligations →
       ∀ B, B ≠ .genesis → Block.Preceq B K →
         Gen.AC.Root.ProtectsUntil (storeAt p c E rho i x).base B g deadline)
-  (hheldRows : ∀ i x W, HeldAt p c E rho i x W → ∀ a ∈ chainRows W,
+  (_hheldRows : ∀ i x W, HeldAt p c E rho i x W → ∀ a ∈ chainRows W,
     ∃ (wire : RowWire p.n) (r : Nat), wire.toRow? = some a ∧
       wire.auth = .seat .fg a.signer ∧ ∃ k o t, k < i ∧
         rho.events[k]? = some (.deliver x o t) ∧
         ∀ z, RowSigner p c rho wire z → z ∈ rho.honest →
           HonestRowBefore p c E rho i z r wire ∧ p.actionTime r ≤ t)
-  (hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
+  (_hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
     rho.seatOf (.base .fg) a.signer ∈ rho.honest → ∃ j r wire,
       HonestRowAt p c E rho j (rho.seatOf (.base .fg) a.signer) r wire ∧
       wire.toRow? = some a ∧ wire.auth = .seat .fg a.signer)
-  (hfinalHead : ∀ j z r a u, HonestRowAt p c E rho j z r a →
+  (_hfinalHead : ∀ j z r a u, HonestRowAt p c E rho j z r a →
     RowSigner p c rho a z → a.toRow? = some u → ∀ fp,
     u.finality_pair = some fp → ∃ B, HeldAt p c E rho j z B ∧
       fp.height = (heightView p B).h_j ∧ fp.target = (heightView p B).J.root ∧
@@ -1177,49 +1168,48 @@ abbrev WCSeededFrameStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) : 
       (heightView p WStar).h = w.M + 1 → Block.Preceq w.QStar B → eraseFG Bfg = B →
       WCUsableHighSourcesBelow p c E rho w i x st B → WCFrameBelow p st B
 
-set_option linter.unusedVariables false in
 /-- WC J1; DC blueprint 23: later-job interface, with the complete separate [L] telescope.
 This declaration states the proposition. Job 2 or Job 3 supplies its proof. -/
 abbrev WCFinalBelowStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) : Prop :=
   ∀
-  (hvalid : V2.D.ExecutionValid E rho)
-  (hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
-  (hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
-  (hnr : V2.D.NoRestart rho)
-  (hdelta : E.Δ = p.Δ)
-  (hroots : NamedRootCollisionFree p c E rho)
-  (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
-  (hdeltaF : E.Δ ≤ ΔF)
-  (hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
-  (hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
-  (hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
-  (hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
+  (_hvalid : V2.D.ExecutionValid E rho)
+  (_hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
+  (_hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
+  (_hnr : V2.D.NoRestart rho)
+  (_hdelta : E.Δ = p.Δ)
+  (_hroots : NamedRootCollisionFree p c E rho)
+  (_hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+  (_hdeltaF : E.Δ ≤ ΔF)
+  (_hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
+  (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+  (_hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
+  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
     (Gen.V2.Duty.faulty rho).card <
       (Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s)).card)
-  (hstore : RStore p c E rho)
-  (hcumul : RStoreCumul p c E rho)
-  (hmono : RMono p c E rho)
-  (hactive : RActive p c E rho)
-  (hframe : RFrameExact p c E rho)
-  (hmeta : RFrame p c E rho)
-  (hrec : RRec p c E rho)
-  (hgeo : RGeo p c E rho)
-  (hcert : RCert p c E rho)
-  (hsrc : TSrc p c E rho)
-  (hlabel : LabelBound p c E rho)
-  (hqc : RQCOrigin p c E rho)
-  (hstrat : RStrat p c E rho)
-  (hnoslash : ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x)
-  (hemitted : ∀ j x r a e, HonestRowAt p c E rho j x r a →
+  (_hstore : RStore p c E rho)
+  (_hcumul : RStoreCumul p c E rho)
+  (_hmono : RMono p c E rho)
+  (_hactive : RActive p c E rho)
+  (_hframe : RFrameExact p c E rho)
+  (_hmeta : RFrame p c E rho)
+  (_hrec : RRec p c E rho)
+  (_hgeo : RGeo p c E rho)
+  (_hcert : RCert p c E rho)
+  (_hsrc : TSrc p c E rho)
+  (_hlabel : LabelBound p c E rho)
+  (_hqc : RQCOrigin p c E rho)
+  (_hstrat : RStrat p c E rho)
+  (_hnoslash : ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x)
+  (_hemitted : ∀ j x r a e, HonestRowAt p c E rho j x r a →
     namedEntry a.payload.height_pair = some e →
     ∃ C B, actionSourceFG p c E rho x r = some (some C) ∧
       e = (hOf p.E p.cfg C, (derive p.E p.cfg C).T_h.root) ∧
       FGBlock.Preceq (derive p.E p.cfg C).T_h C ∧
       gateResult p c E rho x (r * p.R) = some (some B) ∧
       Block.Preceq (eraseFG C) B ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
-  (htargets : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
+  (_htargets : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
     Block.Preceq row.1 (storeAt p c E rho i x).base.stableRecord)
-  (hlease : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
+  (_hlease : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
     ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
       gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
       (row.1, row.2.1) ∈
@@ -1238,26 +1228,26 @@ abbrev WCFinalBelowStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) : P
         (wcView.blocks.filter (fun b => b != .genesis && Block.preceq b C)).flatMap
           (fun b => (@GridCO.admissionLevels GridCO.slowLeasePolicy
             p.toParams.engine p.n .root wcView w b).map (fun g => (b, g)))))
-  (hfast : ∀ i x,
+  (_hfast : ∀ i x,
     ∀ s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
       ∃ j < i, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         ∃ B, gateResultAt p c E rho j = some (some B) ∧
           Block.Preceq X B ∧ fastAt p c E rho x s X)
-  (hdeadlines : ∀ i x,
+  (_hdeadlines : ∀ i x,
     ∀ K g deadline, (K, g, deadline) ∈ (storeAt p c E rho i x).base.obligations →
       ∀ B, B ≠ .genesis → Block.Preceq B K →
         Gen.AC.Root.ProtectsUntil (storeAt p c E rho i x).base B g deadline)
-  (hheldRows : ∀ i x W, HeldAt p c E rho i x W → ∀ a ∈ chainRows W,
+  (_hheldRows : ∀ i x W, HeldAt p c E rho i x W → ∀ a ∈ chainRows W,
     ∃ (wire : RowWire p.n) (r : Nat), wire.toRow? = some a ∧
       wire.auth = .seat .fg a.signer ∧ ∃ k o t, k < i ∧
         rho.events[k]? = some (.deliver x o t) ∧
         ∀ z, RowSigner p c rho wire z → z ∈ rho.honest →
           HonestRowBefore p c E rho i z r wire ∧ p.actionTime r ≤ t)
-  (hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
+  (_hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
     rho.seatOf (.base .fg) a.signer ∈ rho.honest → ∃ j r wire,
       HonestRowAt p c E rho j (rho.seatOf (.base .fg) a.signer) r wire ∧
       wire.toRow? = some a ∧ wire.auth = .seat .fg a.signer)
-  (hfinalHead : ∀ j z r a u, HonestRowAt p c E rho j z r a →
+  (_hfinalHead : ∀ j z r a u, HonestRowAt p c E rho j z r a →
     RowSigner p c rho a z → a.toRow? = some u → ∀ fp,
     u.finality_pair = some fp → ∃ B, HeldAt p c E rho j z B ∧
       fp.height = (heightView p B).h_j ∧ fp.target = (heightView p B).J.root ∧
@@ -1267,49 +1257,48 @@ abbrev WCFinalBelowStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) : P
     ∀ i x y, iStar ≤ i ∧ i ≤ rho.events.length → x ∈ rho.honest → y ∈ rho.honest →
       Block.Preceq (F_at p c E rho i x) (S_at p c E rho i y)
 
-set_option linter.unusedVariables false in
 /-- WC J1; DC blueprint 23: later-job interface, with the complete separate [L] telescope.
 This declaration states the proposition. Job 2 or Job 3 supplies its proof. -/
 abbrev WCProposalPivotStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) : Prop :=
   ∀
-  (hvalid : V2.D.ExecutionValid E rho)
-  (hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
-  (hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
-  (hnr : V2.D.NoRestart rho)
-  (hdelta : E.Δ = p.Δ)
-  (hroots : NamedRootCollisionFree p c E rho)
-  (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
-  (hdeltaF : E.Δ ≤ ΔF)
-  (hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
-  (hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
-  (hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
-  (hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
+  (_hvalid : V2.D.ExecutionValid E rho)
+  (_hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
+  (_hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
+  (_hnr : V2.D.NoRestart rho)
+  (_hdelta : E.Δ = p.Δ)
+  (_hroots : NamedRootCollisionFree p c E rho)
+  (_hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+  (_hdeltaF : E.Δ ≤ ΔF)
+  (_hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
+  (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+  (_hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
+  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
     (Gen.V2.Duty.faulty rho).card <
       (Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s)).card)
-  (hstore : RStore p c E rho)
-  (hcumul : RStoreCumul p c E rho)
-  (hmono : RMono p c E rho)
-  (hactive : RActive p c E rho)
-  (hframe : RFrameExact p c E rho)
-  (hmeta : RFrame p c E rho)
-  (hrec : RRec p c E rho)
-  (hgeo : RGeo p c E rho)
-  (hcert : RCert p c E rho)
-  (hsrc : TSrc p c E rho)
-  (hlabel : LabelBound p c E rho)
-  (hqc : RQCOrigin p c E rho)
-  (hstrat : RStrat p c E rho)
-  (hnoslash : ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x)
-  (hemitted : ∀ j x r a e, HonestRowAt p c E rho j x r a →
+  (_hstore : RStore p c E rho)
+  (_hcumul : RStoreCumul p c E rho)
+  (_hmono : RMono p c E rho)
+  (_hactive : RActive p c E rho)
+  (_hframe : RFrameExact p c E rho)
+  (_hmeta : RFrame p c E rho)
+  (_hrec : RRec p c E rho)
+  (_hgeo : RGeo p c E rho)
+  (_hcert : RCert p c E rho)
+  (_hsrc : TSrc p c E rho)
+  (_hlabel : LabelBound p c E rho)
+  (_hqc : RQCOrigin p c E rho)
+  (_hstrat : RStrat p c E rho)
+  (_hnoslash : ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x)
+  (_hemitted : ∀ j x r a e, HonestRowAt p c E rho j x r a →
     namedEntry a.payload.height_pair = some e →
     ∃ C B, actionSourceFG p c E rho x r = some (some C) ∧
       e = (hOf p.E p.cfg C, (derive p.E p.cfg C).T_h.root) ∧
       FGBlock.Preceq (derive p.E p.cfg C).T_h C ∧
       gateResult p c E rho x (r * p.R) = some (some B) ∧
       Block.Preceq (eraseFG C) B ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
-  (htargets : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
+  (_htargets : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
     Block.Preceq row.1 (storeAt p c E rho i x).base.stableRecord)
-  (hlease : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
+  (_hlease : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
     ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
       gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
       (row.1, row.2.1) ∈
@@ -1328,26 +1317,26 @@ abbrev WCProposalPivotStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) 
         (wcView.blocks.filter (fun b => b != .genesis && Block.preceq b C)).flatMap
           (fun b => (@GridCO.admissionLevels GridCO.slowLeasePolicy
             p.toParams.engine p.n .root wcView w b).map (fun g => (b, g)))))
-  (hfast : ∀ i x,
+  (_hfast : ∀ i x,
     ∀ s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
       ∃ j < i, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         ∃ B, gateResultAt p c E rho j = some (some B) ∧
           Block.Preceq X B ∧ fastAt p c E rho x s X)
-  (hdeadlines : ∀ i x,
+  (_hdeadlines : ∀ i x,
     ∀ K g deadline, (K, g, deadline) ∈ (storeAt p c E rho i x).base.obligations →
       ∀ B, B ≠ .genesis → Block.Preceq B K →
         Gen.AC.Root.ProtectsUntil (storeAt p c E rho i x).base B g deadline)
-  (hheldRows : ∀ i x W, HeldAt p c E rho i x W → ∀ a ∈ chainRows W,
+  (_hheldRows : ∀ i x W, HeldAt p c E rho i x W → ∀ a ∈ chainRows W,
     ∃ (wire : RowWire p.n) (r : Nat), wire.toRow? = some a ∧
       wire.auth = .seat .fg a.signer ∧ ∃ k o t, k < i ∧
         rho.events[k]? = some (.deliver x o t) ∧
         ∀ z, RowSigner p c rho wire z → z ∈ rho.honest →
           HonestRowBefore p c E rho i z r wire ∧ p.actionTime r ≤ t)
-  (hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
+  (_hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
     rho.seatOf (.base .fg) a.signer ∈ rho.honest → ∃ j r wire,
       HonestRowAt p c E rho j (rho.seatOf (.base .fg) a.signer) r wire ∧
       wire.toRow? = some a ∧ wire.auth = .seat .fg a.signer)
-  (hfinalHead : ∀ j z r a u, HonestRowAt p c E rho j z r a →
+  (_hfinalHead : ∀ j z r a u, HonestRowAt p c E rho j z r a →
     RowSigner p c rho a z → a.toRow? = some u → ∀ fp,
     u.finality_pair = some fp → ∃ B, HeldAt p c E rho j z B ∧
       fp.height = (heightView p B).h_j ∧ fp.target = (heightView p B).J.root ∧
@@ -1358,49 +1347,48 @@ abbrev WCProposalPivotStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) 
       SA.gateTime p.toParams pt.s ≤ rho.horizon → ∃ D,
         WCProposalPivot p c E rho w iStar pt D
 
-set_option linter.unusedVariables false in
 /-- WC J1; DC blueprint 23: later-job interface, with the complete separate [L] telescope.
 This declaration states the proposition. Job 2 or Job 3 supplies its proof. -/
 abbrev WCProposalAdmissionStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) : Prop :=
   ∀
-  (hvalid : V2.D.ExecutionValid E rho)
-  (hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
-  (hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
-  (hnr : V2.D.NoRestart rho)
-  (hdelta : E.Δ = p.Δ)
-  (hroots : NamedRootCollisionFree p c E rho)
-  (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
-  (hdeltaF : E.Δ ≤ ΔF)
-  (hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
-  (hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
-  (hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
-  (hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
+  (_hvalid : V2.D.ExecutionValid E rho)
+  (_hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
+  (_hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
+  (_hnr : V2.D.NoRestart rho)
+  (_hdelta : E.Δ = p.Δ)
+  (_hroots : NamedRootCollisionFree p c E rho)
+  (_hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+  (_hdeltaF : E.Δ ≤ ΔF)
+  (_hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
+  (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+  (_hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
+  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
     (Gen.V2.Duty.faulty rho).card <
       (Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s)).card)
-  (hstore : RStore p c E rho)
-  (hcumul : RStoreCumul p c E rho)
-  (hmono : RMono p c E rho)
-  (hactive : RActive p c E rho)
-  (hframe : RFrameExact p c E rho)
-  (hmeta : RFrame p c E rho)
-  (hrec : RRec p c E rho)
-  (hgeo : RGeo p c E rho)
-  (hcert : RCert p c E rho)
-  (hsrc : TSrc p c E rho)
-  (hlabel : LabelBound p c E rho)
-  (hqc : RQCOrigin p c E rho)
-  (hstrat : RStrat p c E rho)
-  (hnoslash : ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x)
-  (hemitted : ∀ j x r a e, HonestRowAt p c E rho j x r a →
+  (_hstore : RStore p c E rho)
+  (_hcumul : RStoreCumul p c E rho)
+  (_hmono : RMono p c E rho)
+  (_hactive : RActive p c E rho)
+  (_hframe : RFrameExact p c E rho)
+  (_hmeta : RFrame p c E rho)
+  (_hrec : RRec p c E rho)
+  (_hgeo : RGeo p c E rho)
+  (_hcert : RCert p c E rho)
+  (_hsrc : TSrc p c E rho)
+  (_hlabel : LabelBound p c E rho)
+  (_hqc : RQCOrigin p c E rho)
+  (_hstrat : RStrat p c E rho)
+  (_hnoslash : ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x)
+  (_hemitted : ∀ j x r a e, HonestRowAt p c E rho j x r a →
     namedEntry a.payload.height_pair = some e →
     ∃ C B, actionSourceFG p c E rho x r = some (some C) ∧
       e = (hOf p.E p.cfg C, (derive p.E p.cfg C).T_h.root) ∧
       FGBlock.Preceq (derive p.E p.cfg C).T_h C ∧
       gateResult p c E rho x (r * p.R) = some (some B) ∧
       Block.Preceq (eraseFG C) B ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
-  (htargets : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
+  (_htargets : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
     Block.Preceq row.1 (storeAt p c E rho i x).base.stableRecord)
-  (hlease : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
+  (_hlease : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
     ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
       gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
       (row.1, row.2.1) ∈
@@ -1419,26 +1407,26 @@ abbrev WCProposalAdmissionStatement (ΔF : Time) (w : HealingWitness) (iStar : N
         (wcView.blocks.filter (fun b => b != .genesis && Block.preceq b C)).flatMap
           (fun b => (@GridCO.admissionLevels GridCO.slowLeasePolicy
             p.toParams.engine p.n .root wcView w b).map (fun g => (b, g)))))
-  (hfast : ∀ i x,
+  (_hfast : ∀ i x,
     ∀ s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
       ∃ j < i, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         ∃ B, gateResultAt p c E rho j = some (some B) ∧
           Block.Preceq X B ∧ fastAt p c E rho x s X)
-  (hdeadlines : ∀ i x,
+  (_hdeadlines : ∀ i x,
     ∀ K g deadline, (K, g, deadline) ∈ (storeAt p c E rho i x).base.obligations →
       ∀ B, B ≠ .genesis → Block.Preceq B K →
         Gen.AC.Root.ProtectsUntil (storeAt p c E rho i x).base B g deadline)
-  (hheldRows : ∀ i x W, HeldAt p c E rho i x W → ∀ a ∈ chainRows W,
+  (_hheldRows : ∀ i x W, HeldAt p c E rho i x W → ∀ a ∈ chainRows W,
     ∃ (wire : RowWire p.n) (r : Nat), wire.toRow? = some a ∧
       wire.auth = .seat .fg a.signer ∧ ∃ k o t, k < i ∧
         rho.events[k]? = some (.deliver x o t) ∧
         ∀ z, RowSigner p c rho wire z → z ∈ rho.honest →
           HonestRowBefore p c E rho i z r wire ∧ p.actionTime r ≤ t)
-  (hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
+  (_hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
     rho.seatOf (.base .fg) a.signer ∈ rho.honest → ∃ j r wire,
       HonestRowAt p c E rho j (rho.seatOf (.base .fg) a.signer) r wire ∧
       wire.toRow? = some a ∧ wire.auth = .seat .fg a.signer)
-  (hfinalHead : ∀ j z r a u, HonestRowAt p c E rho j z r a →
+  (_hfinalHead : ∀ j z r a u, HonestRowAt p c E rho j z r a →
     RowSigner p c rho a z → a.toRow? = some u → ∀ fp,
     u.finality_pair = some fp → ∃ B, HeldAt p c E rho j z B ∧
       fp.height = (heightView p B).h_j ∧ fp.target = (heightView p B).J.root ∧
@@ -1448,49 +1436,48 @@ abbrev WCProposalAdmissionStatement (ΔF : Time) (w : HealingWitness) (iStar : N
       SA.gateTime p.toParams pt.s ≤ rho.horizon → WCProposalPivot p c E rho w iStar pt D →
       ∀ x ∈ rho.honest, WCProposalAdmittedBeforeVote p c E rho x pt
 
-set_option linter.unusedVariables false in
 /-- WC J1; DC blueprint 23: later-job interface, with the complete separate [L] telescope.
 This declaration states the proposition. Job 2 or Job 3 supplies its proof. -/
 abbrev WCExactProposalStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) : Prop :=
   ∀
-  (hvalid : V2.D.ExecutionValid E rho)
-  (hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
-  (hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
-  (hnr : V2.D.NoRestart rho)
-  (hdelta : E.Δ = p.Δ)
-  (hroots : NamedRootCollisionFree p c E rho)
-  (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
-  (hdeltaF : E.Δ ≤ ΔF)
-  (hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
-  (hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
-  (hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
-  (hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
+  (_hvalid : V2.D.ExecutionValid E rho)
+  (_hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
+  (_hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
+  (_hnr : V2.D.NoRestart rho)
+  (_hdelta : E.Δ = p.Δ)
+  (_hroots : NamedRootCollisionFree p c E rho)
+  (_hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+  (_hdeltaF : E.Δ ≤ ΔF)
+  (_hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
+  (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+  (_hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
+  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
     (Gen.V2.Duty.faulty rho).card <
       (Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s)).card)
-  (hstore : RStore p c E rho)
-  (hcumul : RStoreCumul p c E rho)
-  (hmono : RMono p c E rho)
-  (hactive : RActive p c E rho)
-  (hframe : RFrameExact p c E rho)
-  (hmeta : RFrame p c E rho)
-  (hrec : RRec p c E rho)
-  (hgeo : RGeo p c E rho)
-  (hcert : RCert p c E rho)
-  (hsrc : TSrc p c E rho)
-  (hlabel : LabelBound p c E rho)
-  (hqc : RQCOrigin p c E rho)
-  (hstrat : RStrat p c E rho)
-  (hnoslash : ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x)
-  (hemitted : ∀ j x r a e, HonestRowAt p c E rho j x r a →
+  (_hstore : RStore p c E rho)
+  (_hcumul : RStoreCumul p c E rho)
+  (_hmono : RMono p c E rho)
+  (_hactive : RActive p c E rho)
+  (_hframe : RFrameExact p c E rho)
+  (_hmeta : RFrame p c E rho)
+  (_hrec : RRec p c E rho)
+  (_hgeo : RGeo p c E rho)
+  (_hcert : RCert p c E rho)
+  (_hsrc : TSrc p c E rho)
+  (_hlabel : LabelBound p c E rho)
+  (_hqc : RQCOrigin p c E rho)
+  (_hstrat : RStrat p c E rho)
+  (_hnoslash : ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x)
+  (_hemitted : ∀ j x r a e, HonestRowAt p c E rho j x r a →
     namedEntry a.payload.height_pair = some e →
     ∃ C B, actionSourceFG p c E rho x r = some (some C) ∧
       e = (hOf p.E p.cfg C, (derive p.E p.cfg C).T_h.root) ∧
       FGBlock.Preceq (derive p.E p.cfg C).T_h C ∧
       gateResult p c E rho x (r * p.R) = some (some B) ∧
       Block.Preceq (eraseFG C) B ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
-  (htargets : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
+  (_htargets : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
     Block.Preceq row.1 (storeAt p c E rho i x).base.stableRecord)
-  (hlease : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
+  (_hlease : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
     ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
       gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
       (row.1, row.2.1) ∈
@@ -1509,26 +1496,26 @@ abbrev WCExactProposalStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) 
         (wcView.blocks.filter (fun b => b != .genesis && Block.preceq b C)).flatMap
           (fun b => (@GridCO.admissionLevels GridCO.slowLeasePolicy
             p.toParams.engine p.n .root wcView w b).map (fun g => (b, g)))))
-  (hfast : ∀ i x,
+  (_hfast : ∀ i x,
     ∀ s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
       ∃ j < i, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         ∃ B, gateResultAt p c E rho j = some (some B) ∧
           Block.Preceq X B ∧ fastAt p c E rho x s X)
-  (hdeadlines : ∀ i x,
+  (_hdeadlines : ∀ i x,
     ∀ K g deadline, (K, g, deadline) ∈ (storeAt p c E rho i x).base.obligations →
       ∀ B, B ≠ .genesis → Block.Preceq B K →
         Gen.AC.Root.ProtectsUntil (storeAt p c E rho i x).base B g deadline)
-  (hheldRows : ∀ i x W, HeldAt p c E rho i x W → ∀ a ∈ chainRows W,
+  (_hheldRows : ∀ i x W, HeldAt p c E rho i x W → ∀ a ∈ chainRows W,
     ∃ (wire : RowWire p.n) (r : Nat), wire.toRow? = some a ∧
       wire.auth = .seat .fg a.signer ∧ ∃ k o t, k < i ∧
         rho.events[k]? = some (.deliver x o t) ∧
         ∀ z, RowSigner p c rho wire z → z ∈ rho.honest →
           HonestRowBefore p c E rho i z r wire ∧ p.actionTime r ≤ t)
-  (hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
+  (_hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
     rho.seatOf (.base .fg) a.signer ∈ rho.honest → ∃ j r wire,
       HonestRowAt p c E rho j (rho.seatOf (.base .fg) a.signer) r wire ∧
       wire.toRow? = some a ∧ wire.auth = .seat .fg a.signer)
-  (hfinalHead : ∀ j z r a u, HonestRowAt p c E rho j z r a →
+  (_hfinalHead : ∀ j z r a u, HonestRowAt p c E rho j z r a →
     RowSigner p c rho a z → a.toRow? = some u → ∀ fp,
     u.finality_pair = some fp → ∃ B, HeldAt p c E rho j z B ∧
       fp.height = (heightView p B).h_j ∧ fp.target = (heightView p B).J.root ∧
@@ -1539,49 +1526,48 @@ abbrev WCExactProposalStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) 
       (∀ x ∈ rho.honest, WCProposalAdmittedBeforeVote p c E rho x pt) →
       ∀ x ∈ rho.honest, headAtLabel p c E rho x pt.s = some pt.P
 
-set_option linter.unusedVariables false in
 /-- WC J1; DC blueprint 23: later-job interface, with the complete separate [L] telescope.
 This declaration states the proposition. Job 2 or Job 3 supplies its proof. -/
 abbrev WCInclusion6Statement (ΔF : Time) (w : HealingWitness) (iStar : Nat) : Prop :=
   ∀
-  (hvalid : V2.D.ExecutionValid E rho)
-  (hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
-  (hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
-  (hnr : V2.D.NoRestart rho)
-  (hdelta : E.Δ = p.Δ)
-  (hroots : NamedRootCollisionFree p c E rho)
-  (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
-  (hdeltaF : E.Δ ≤ ΔF)
-  (hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
-  (hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
-  (hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
-  (hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
+  (_hvalid : V2.D.ExecutionValid E rho)
+  (_hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
+  (_hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
+  (_hnr : V2.D.NoRestart rho)
+  (_hdelta : E.Δ = p.Δ)
+  (_hroots : NamedRootCollisionFree p c E rho)
+  (_hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+  (_hdeltaF : E.Δ ≤ ΔF)
+  (_hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
+  (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+  (_hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
+  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
     (Gen.V2.Duty.faulty rho).card <
       (Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s)).card)
-  (hstore : RStore p c E rho)
-  (hcumul : RStoreCumul p c E rho)
-  (hmono : RMono p c E rho)
-  (hactive : RActive p c E rho)
-  (hframe : RFrameExact p c E rho)
-  (hmeta : RFrame p c E rho)
-  (hrec : RRec p c E rho)
-  (hgeo : RGeo p c E rho)
-  (hcert : RCert p c E rho)
-  (hsrc : TSrc p c E rho)
-  (hlabel : LabelBound p c E rho)
-  (hqc : RQCOrigin p c E rho)
-  (hstrat : RStrat p c E rho)
-  (hnoslash : ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x)
-  (hemitted : ∀ j x r a e, HonestRowAt p c E rho j x r a →
+  (_hstore : RStore p c E rho)
+  (_hcumul : RStoreCumul p c E rho)
+  (_hmono : RMono p c E rho)
+  (_hactive : RActive p c E rho)
+  (_hframe : RFrameExact p c E rho)
+  (_hmeta : RFrame p c E rho)
+  (_hrec : RRec p c E rho)
+  (_hgeo : RGeo p c E rho)
+  (_hcert : RCert p c E rho)
+  (_hsrc : TSrc p c E rho)
+  (_hlabel : LabelBound p c E rho)
+  (_hqc : RQCOrigin p c E rho)
+  (_hstrat : RStrat p c E rho)
+  (_hnoslash : ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x)
+  (_hemitted : ∀ j x r a e, HonestRowAt p c E rho j x r a →
     namedEntry a.payload.height_pair = some e →
     ∃ C B, actionSourceFG p c E rho x r = some (some C) ∧
       e = (hOf p.E p.cfg C, (derive p.E p.cfg C).T_h.root) ∧
       FGBlock.Preceq (derive p.E p.cfg C).T_h C ∧
       gateResult p c E rho x (r * p.R) = some (some B) ∧
       Block.Preceq (eraseFG C) B ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
-  (htargets : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
+  (_htargets : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
     Block.Preceq row.1 (storeAt p c E rho i x).base.stableRecord)
-  (hlease : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
+  (_hlease : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
     ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
       gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
       (row.1, row.2.1) ∈
@@ -1600,26 +1586,26 @@ abbrev WCInclusion6Statement (ΔF : Time) (w : HealingWitness) (iStar : Nat) : P
         (wcView.blocks.filter (fun b => b != .genesis && Block.preceq b C)).flatMap
           (fun b => (@GridCO.admissionLevels GridCO.slowLeasePolicy
             p.toParams.engine p.n .root wcView w b).map (fun g => (b, g)))))
-  (hfast : ∀ i x,
+  (_hfast : ∀ i x,
     ∀ s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
       ∃ j < i, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         ∃ B, gateResultAt p c E rho j = some (some B) ∧
           Block.Preceq X B ∧ fastAt p c E rho x s X)
-  (hdeadlines : ∀ i x,
+  (_hdeadlines : ∀ i x,
     ∀ K g deadline, (K, g, deadline) ∈ (storeAt p c E rho i x).base.obligations →
       ∀ B, B ≠ .genesis → Block.Preceq B K →
         Gen.AC.Root.ProtectsUntil (storeAt p c E rho i x).base B g deadline)
-  (hheldRows : ∀ i x W, HeldAt p c E rho i x W → ∀ a ∈ chainRows W,
+  (_hheldRows : ∀ i x W, HeldAt p c E rho i x W → ∀ a ∈ chainRows W,
     ∃ (wire : RowWire p.n) (r : Nat), wire.toRow? = some a ∧
       wire.auth = .seat .fg a.signer ∧ ∃ k o t, k < i ∧
         rho.events[k]? = some (.deliver x o t) ∧
         ∀ z, RowSigner p c rho wire z → z ∈ rho.honest →
           HonestRowBefore p c E rho i z r wire ∧ p.actionTime r ≤ t)
-  (hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
+  (_hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
     rho.seatOf (.base .fg) a.signer ∈ rho.honest → ∃ j r wire,
       HonestRowAt p c E rho j (rho.seatOf (.base .fg) a.signer) r wire ∧
       wire.toRow? = some a ∧ wire.auth = .seat .fg a.signer)
-  (hfinalHead : ∀ j z r a u, HonestRowAt p c E rho j z r a →
+  (_hfinalHead : ∀ j z r a u, HonestRowAt p c E rho j z r a →
     RowSigner p c rho a z → a.toRow? = some u → ∀ fp,
     u.finality_pair = some fp → ∃ B, HeldAt p c E rho j z B ∧
       fp.height = (heightView p B).h_j ∧ fp.target = (heightView p B).J.root ∧
@@ -1629,48 +1615,47 @@ abbrev WCInclusion6Statement (ΔF : Time) (w : HealingWitness) (iStar : Nat) : P
     ∀ pt : PtSP, w.u + 2 ≤ pt.s → HonestProposal E rho (fgsaInterface p c) pt.s pt.P →
       SA.gateTime p.toParams pt.s ≤ rho.horizon → ServedFromGateAt p c E rho pt
 
-set_option linter.unusedVariables false in
 /-- WC J1; DC blueprint 23: explicit interface for a later-job proof. -/
 abbrev WCRetrospectiveStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) : Prop :=
   ∀
-  (hvalid : V2.D.ExecutionValid E rho)
-  (hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
-  (hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
-  (hnr : V2.D.NoRestart rho)
-  (hdelta : E.Δ = p.Δ)
-  (hroots : NamedRootCollisionFree p c E rho)
-  (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
-  (hdeltaF : E.Δ ≤ ΔF)
-  (hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
-  (hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
-  (hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
-  (hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
+  (_hvalid : V2.D.ExecutionValid E rho)
+  (_hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
+  (_hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
+  (_hnr : V2.D.NoRestart rho)
+  (_hdelta : E.Δ = p.Δ)
+  (_hroots : NamedRootCollisionFree p c E rho)
+  (_hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+  (_hdeltaF : E.Δ ≤ ΔF)
+  (_hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
+  (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+  (_hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
+  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
     (Gen.V2.Duty.faulty rho).card <
       (Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s)).card)
-  (hstore : RStore p c E rho)
-  (hcumul : RStoreCumul p c E rho)
-  (hmono : RMono p c E rho)
-  (hactive : RActive p c E rho)
-  (hframe : RFrameExact p c E rho)
-  (hmeta : RFrame p c E rho)
-  (hrec : RRec p c E rho)
-  (hgeo : RGeo p c E rho)
-  (hcert : RCert p c E rho)
-  (hsrc : TSrc p c E rho)
-  (hlabel : LabelBound p c E rho)
-  (hqc : RQCOrigin p c E rho)
-  (hstrat : RStrat p c E rho)
-  (hnoslash : ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x)
-  (hemitted : ∀ j x r a e, HonestRowAt p c E rho j x r a →
+  (_hstore : RStore p c E rho)
+  (_hcumul : RStoreCumul p c E rho)
+  (_hmono : RMono p c E rho)
+  (_hactive : RActive p c E rho)
+  (_hframe : RFrameExact p c E rho)
+  (_hmeta : RFrame p c E rho)
+  (_hrec : RRec p c E rho)
+  (_hgeo : RGeo p c E rho)
+  (_hcert : RCert p c E rho)
+  (_hsrc : TSrc p c E rho)
+  (_hlabel : LabelBound p c E rho)
+  (_hqc : RQCOrigin p c E rho)
+  (_hstrat : RStrat p c E rho)
+  (_hnoslash : ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x)
+  (_hemitted : ∀ j x r a e, HonestRowAt p c E rho j x r a →
     namedEntry a.payload.height_pair = some e →
     ∃ C B, actionSourceFG p c E rho x r = some (some C) ∧
       e = (hOf p.E p.cfg C, (derive p.E p.cfg C).T_h.root) ∧
       FGBlock.Preceq (derive p.E p.cfg C).T_h C ∧
       gateResult p c E rho x (r * p.R) = some (some B) ∧
       Block.Preceq (eraseFG C) B ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
-  (htargets : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
+  (_htargets : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
     Block.Preceq row.1 (storeAt p c E rho i x).base.stableRecord)
-  (hlease : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
+  (_hlease : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
     ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
       gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
       (row.1, row.2.1) ∈
@@ -1689,26 +1674,26 @@ abbrev WCRetrospectiveStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) 
         (wcView.blocks.filter (fun b => b != .genesis && Block.preceq b C)).flatMap
           (fun b => (@GridCO.admissionLevels GridCO.slowLeasePolicy
             p.toParams.engine p.n .root wcView w b).map (fun g => (b, g)))))
-  (hfast : ∀ i x,
+  (_hfast : ∀ i x,
     ∀ s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
       ∃ j < i, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         ∃ B, gateResultAt p c E rho j = some (some B) ∧
           Block.Preceq X B ∧ fastAt p c E rho x s X)
-  (hdeadlines : ∀ i x,
+  (_hdeadlines : ∀ i x,
     ∀ K g deadline, (K, g, deadline) ∈ (storeAt p c E rho i x).base.obligations →
       ∀ B, B ≠ .genesis → Block.Preceq B K →
         Gen.AC.Root.ProtectsUntil (storeAt p c E rho i x).base B g deadline)
-  (hheldRows : ∀ i x W, HeldAt p c E rho i x W → ∀ a ∈ chainRows W,
+  (_hheldRows : ∀ i x W, HeldAt p c E rho i x W → ∀ a ∈ chainRows W,
     ∃ (wire : RowWire p.n) (r : Nat), wire.toRow? = some a ∧
       wire.auth = .seat .fg a.signer ∧ ∃ k o t, k < i ∧
         rho.events[k]? = some (.deliver x o t) ∧
         ∀ z, RowSigner p c rho wire z → z ∈ rho.honest →
           HonestRowBefore p c E rho i z r wire ∧ p.actionTime r ≤ t)
-  (hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
+  (_hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
     rho.seatOf (.base .fg) a.signer ∈ rho.honest → ∃ j r wire,
       HonestRowAt p c E rho j (rho.seatOf (.base .fg) a.signer) r wire ∧
       wire.toRow? = some a ∧ wire.auth = .seat .fg a.signer)
-  (hfinalHead : ∀ j z r a u, HonestRowAt p c E rho j z r a →
+  (_hfinalHead : ∀ j z r a u, HonestRowAt p c E rho j z r a →
     RowSigner p c rho a z → a.toRow? = some u → ∀ fp,
     u.finality_pair = some fp → ∃ B, HeldAt p c E rho j z B ∧
       fp.height = (heightView p B).h_j ∧ fp.target = (heightView p B).J.root ∧
@@ -1719,48 +1704,47 @@ abbrev WCRetrospectiveStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) 
       gateResultAt p c E rho i = some (some B) →
       ∀ y ∈ rho.honest, ∃ k < i, WCHeadRead p c E rho k y (s + 1) B
 
-set_option linter.unusedVariables false in
 /-- WC J1; DC blueprint 23: explicit interface for a later-job proof. -/
 abbrev WCSeededFrameLiveStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) : Prop :=
   ∀
-  (hvalid : V2.D.ExecutionValid E rho)
-  (hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
-  (hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
-  (hnr : V2.D.NoRestart rho)
-  (hdelta : E.Δ = p.Δ)
-  (hroots : NamedRootCollisionFree p c E rho)
-  (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
-  (hdeltaF : E.Δ ≤ ΔF)
-  (hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
-  (hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
-  (hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
-  (hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
+  (_hvalid : V2.D.ExecutionValid E rho)
+  (_hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
+  (_hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
+  (_hnr : V2.D.NoRestart rho)
+  (_hdelta : E.Δ = p.Δ)
+  (_hroots : NamedRootCollisionFree p c E rho)
+  (_hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+  (_hdeltaF : E.Δ ≤ ΔF)
+  (_hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
+  (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+  (_hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
+  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
     (Gen.V2.Duty.faulty rho).card <
       (Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s)).card)
-  (hstore : RStore p c E rho)
-  (hcumul : RStoreCumul p c E rho)
-  (hmono : RMono p c E rho)
-  (hactive : RActive p c E rho)
-  (hframe : RFrameExact p c E rho)
-  (hmeta : RFrame p c E rho)
-  (hrec : RRec p c E rho)
-  (hgeo : RGeo p c E rho)
-  (hcert : RCert p c E rho)
-  (hsrc : TSrc p c E rho)
-  (hlabel : LabelBound p c E rho)
-  (hqc : RQCOrigin p c E rho)
-  (hstrat : RStrat p c E rho)
-  (hnoslash : ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x)
-  (hemitted : ∀ j x r a e, HonestRowAt p c E rho j x r a →
+  (_hstore : RStore p c E rho)
+  (_hcumul : RStoreCumul p c E rho)
+  (_hmono : RMono p c E rho)
+  (_hactive : RActive p c E rho)
+  (_hframe : RFrameExact p c E rho)
+  (_hmeta : RFrame p c E rho)
+  (_hrec : RRec p c E rho)
+  (_hgeo : RGeo p c E rho)
+  (_hcert : RCert p c E rho)
+  (_hsrc : TSrc p c E rho)
+  (_hlabel : LabelBound p c E rho)
+  (_hqc : RQCOrigin p c E rho)
+  (_hstrat : RStrat p c E rho)
+  (_hnoslash : ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x)
+  (_hemitted : ∀ j x r a e, HonestRowAt p c E rho j x r a →
     namedEntry a.payload.height_pair = some e →
     ∃ C B, actionSourceFG p c E rho x r = some (some C) ∧
       e = (hOf p.E p.cfg C, (derive p.E p.cfg C).T_h.root) ∧
       FGBlock.Preceq (derive p.E p.cfg C).T_h C ∧
       gateResult p c E rho x (r * p.R) = some (some B) ∧
       Block.Preceq (eraseFG C) B ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
-  (htargets : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
+  (_htargets : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
     Block.Preceq row.1 (storeAt p c E rho i x).base.stableRecord)
-  (hlease : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
+  (_hlease : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
     ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
       gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
       (row.1, row.2.1) ∈
@@ -1779,26 +1763,26 @@ abbrev WCSeededFrameLiveStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat
         (wcView.blocks.filter (fun b => b != .genesis && Block.preceq b C)).flatMap
           (fun b => (@GridCO.admissionLevels GridCO.slowLeasePolicy
             p.toParams.engine p.n .root wcView w b).map (fun g => (b, g)))))
-  (hfast : ∀ i x,
+  (_hfast : ∀ i x,
     ∀ s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
       ∃ j < i, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         ∃ B, gateResultAt p c E rho j = some (some B) ∧
           Block.Preceq X B ∧ fastAt p c E rho x s X)
-  (hdeadlines : ∀ i x,
+  (_hdeadlines : ∀ i x,
     ∀ K g deadline, (K, g, deadline) ∈ (storeAt p c E rho i x).base.obligations →
       ∀ B, B ≠ .genesis → Block.Preceq B K →
         Gen.AC.Root.ProtectsUntil (storeAt p c E rho i x).base B g deadline)
-  (hheldRows : ∀ i x W, HeldAt p c E rho i x W → ∀ a ∈ chainRows W,
+  (_hheldRows : ∀ i x W, HeldAt p c E rho i x W → ∀ a ∈ chainRows W,
     ∃ (wire : RowWire p.n) (r : Nat), wire.toRow? = some a ∧
       wire.auth = .seat .fg a.signer ∧ ∃ k o t, k < i ∧
         rho.events[k]? = some (.deliver x o t) ∧
         ∀ z, RowSigner p c rho wire z → z ∈ rho.honest →
           HonestRowBefore p c E rho i z r wire ∧ p.actionTime r ≤ t)
-  (hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
+  (_hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
     rho.seatOf (.base .fg) a.signer ∈ rho.honest → ∃ j r wire,
       HonestRowAt p c E rho j (rho.seatOf (.base .fg) a.signer) r wire ∧
       wire.toRow? = some a ∧ wire.auth = .seat .fg a.signer)
-  (hfinalHead : ∀ j z r a u, HonestRowAt p c E rho j z r a →
+  (_hfinalHead : ∀ j z r a u, HonestRowAt p c E rho j z r a →
     RowSigner p c rho a z → a.toRow? = some u → ∀ fp,
     u.finality_pair = some fp → ∃ B, HeldAt p c E rho j z B ∧
       fp.height = (heightView p B).h_j ∧ fp.target = (heightView p B).J.root ∧
@@ -1813,48 +1797,47 @@ abbrev WCSeededFrameLiveStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat
         Block.Preceq row.1 (eraseFG Bfg)) →
       ∀ view, WCDutyView p st phase view → view ⊆ st.fg.TF → WCFrameLiveBelow p st phase Bfg view
 
-set_option linter.unusedVariables false in
 /-- WC J1; DC blueprint 23: explicit interface for a later-job proof. -/
 abbrev WCSeededFramePathStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat) : Prop :=
   ∀
-  (hvalid : V2.D.ExecutionValid E rho)
-  (hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
-  (hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
-  (hnr : V2.D.NoRestart rho)
-  (hdelta : E.Δ = p.Δ)
-  (hroots : NamedRootCollisionFree p c E rho)
-  (hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
-  (hdeltaF : E.Δ ≤ ΔF)
-  (hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
-  (hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
-  (hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
-  (hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
+  (_hvalid : V2.D.ExecutionValid E rho)
+  (_hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
+  (_hcstar : V2.D.CStar (fgsaFamilies p c).fresh rho)
+  (_hnr : V2.D.NoRestart rho)
+  (_hdelta : E.Δ = p.Δ)
+  (_hroots : NamedRootCollisionFree p c E rho)
+  (_hsync : Gen.V2.Duty.PartialSynchronyBy E rho (fgsaDelay E.Δ ΔF))
+  (_hdeltaF : E.Δ ≤ ΔF)
+  (_hfault : (Gen.V2.Duty.faulty rho).card ≤ (p.n - 1) / 3)
+  (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+  (_hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
+  (_hpart : ∀ s, w.u + 1 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
     (Gen.V2.Duty.faulty rho).card <
       (Gen.V2.Duty.awakeHonest E rho (SA.voteTime p.toParams s)).card)
-  (hstore : RStore p c E rho)
-  (hcumul : RStoreCumul p c E rho)
-  (hmono : RMono p c E rho)
-  (hactive : RActive p c E rho)
-  (hframe : RFrameExact p c E rho)
-  (hmeta : RFrame p c E rho)
-  (hrec : RRec p c E rho)
-  (hgeo : RGeo p c E rho)
-  (hcert : RCert p c E rho)
-  (hsrc : TSrc p c E rho)
-  (hlabel : LabelBound p c E rho)
-  (hqc : RQCOrigin p c E rho)
-  (hstrat : RStrat p c E rho)
-  (hnoslash : ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x)
-  (hemitted : ∀ j x r a e, HonestRowAt p c E rho j x r a →
+  (_hstore : RStore p c E rho)
+  (_hcumul : RStoreCumul p c E rho)
+  (_hmono : RMono p c E rho)
+  (_hactive : RActive p c E rho)
+  (_hframe : RFrameExact p c E rho)
+  (_hmeta : RFrame p c E rho)
+  (_hrec : RRec p c E rho)
+  (_hgeo : RGeo p c E rho)
+  (_hcert : RCert p c E rho)
+  (_hsrc : TSrc p c E rho)
+  (_hlabel : LabelBound p c E rho)
+  (_hqc : RQCOrigin p c E rho)
+  (_hstrat : RStrat p c E rho)
+  (_hnoslash : ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x)
+  (_hemitted : ∀ j x r a e, HonestRowAt p c E rho j x r a →
     namedEntry a.payload.height_pair = some e →
     ∃ C B, actionSourceFG p c E rho x r = some (some C) ∧
       e = (hOf p.E p.cfg C, (derive p.E p.cfg C).T_h.root) ∧
       FGBlock.Preceq (derive p.E p.cfg C).T_h C ∧
       gateResult p c E rho x (r * p.R) = some (some B) ∧
       Block.Preceq (eraseFG C) B ∧ fastAt p c E rho x (r * p.R) (eraseFG C))
-  (htargets : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
+  (_htargets : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
     Block.Preceq row.1 (storeAt p c E rho i x).base.stableRecord)
-  (hlease : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
+  (_hlease : ∀ i x row, row ∈ (storeAt p c E rho i x).base.obligations →
     ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
       gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
       (row.1, row.2.1) ∈
@@ -1873,26 +1856,26 @@ abbrev WCSeededFramePathStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat
         (wcView.blocks.filter (fun b => b != .genesis && Block.preceq b C)).flatMap
           (fun b => (@GridCO.admissionLevels GridCO.slowLeasePolicy
             p.toParams.engine p.n .root wcView w b).map (fun g => (b, g)))))
-  (hfast : ∀ i x,
+  (_hfast : ∀ i x,
     ∀ s X, X ∈ (FGSA.fastWriteAt (storeAt p c E rho i x) s).getD [] →
       ∃ j < i, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         ∃ B, gateResultAt p c E rho j = some (some B) ∧
           Block.Preceq X B ∧ fastAt p c E rho x s X)
-  (hdeadlines : ∀ i x,
+  (_hdeadlines : ∀ i x,
     ∀ K g deadline, (K, g, deadline) ∈ (storeAt p c E rho i x).base.obligations →
       ∀ B, B ≠ .genesis → Block.Preceq B K →
         Gen.AC.Root.ProtectsUntil (storeAt p c E rho i x).base B g deadline)
-  (hheldRows : ∀ i x W, HeldAt p c E rho i x W → ∀ a ∈ chainRows W,
+  (_hheldRows : ∀ i x W, HeldAt p c E rho i x W → ∀ a ∈ chainRows W,
     ∃ (wire : RowWire p.n) (r : Nat), wire.toRow? = some a ∧
       wire.auth = .seat .fg a.signer ∧ ∃ k o t, k < i ∧
         rho.events[k]? = some (.deliver x o t) ∧
         ∀ z, RowSigner p c rho wire z → z ∈ rho.honest →
           HonestRowBefore p c E rho i z r wire ∧ p.actionTime r ≤ t)
-  (hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
+  (_hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
     rho.seatOf (.base .fg) a.signer ∈ rho.honest → ∃ j r wire,
       HonestRowAt p c E rho j (rho.seatOf (.base .fg) a.signer) r wire ∧
       wire.toRow? = some a ∧ wire.auth = .seat .fg a.signer)
-  (hfinalHead : ∀ j z r a u, HonestRowAt p c E rho j z r a →
+  (_hfinalHead : ∀ j z r a u, HonestRowAt p c E rho j z r a →
     RowSigner p c rho a z → a.toRow? = some u → ∀ fp,
     u.finality_pair = some fp → ∃ B, HeldAt p c E rho j z B ∧
       fp.height = (heightView p B).h_j ∧ fp.target = (heightView p B).J.root ∧
@@ -1909,56 +1892,53 @@ abbrev WCSeededFramePathStatement (ΔF : Time) (w : HealingWitness) (iStar : Nat
     Bfg ∈ view →
         WCFramePathBelow p st phase Bfg view
 
-set_option linter.unusedVariables false in
 /-- WC J1; DC blueprint 23: explicit interface for a later-job proof. -/
 abbrev WCLowFinalizedStatement (w : HealingWitness) (iStar : Nat) : Prop :=
   ∀
-  (hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
-  (hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
-  (hroots : NamedRootCollisionFree p c E rho)
-  (hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
+  (_hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
+  (_hfaultX : Gen.Pure.FaultX p.n (Gen.V2.Duty.faulty rho).card)
+  (_hroots : NamedRootCollisionFree p c E rho)
+  (_hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
     rho.seatOf (.base .fg) a.signer ∈ rho.honest → ∃ j r wire,
       HonestRowAt p c E rho j (rho.seatOf (.base .fg) a.signer) r wire ∧
       wire.toRow? = some a ∧ wire.auth = .seat .fg a.signer)
-  (hnoslash : ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x),
+  (_hnoslash : ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x),
   WCSeed p c E rho w iStar → ∀ D X h,
     WCFinalizedOccurrence p c E rho D X h → h ≤ w.M →
     Block.Preceq (eraseFG X) w.CStar ∧ Block.Preceq (eraseFG X) w.QStar
 
-set_option linter.unusedVariables false in
 /-- WC J1; DC blueprint 23: explicit interface for a later-job proof. -/
 abbrev WCFinalizedOccurrenceStatement : Prop :=
   ∀
-  (hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
+  (_hscopeRows : ∀ D, RootBlockInRun p c E rho (eraseFG D) → ∀ a ∈ chainRows D,
     rho.seatOf (.base .fg) a.signer ∈ rho.honest → ∃ j r wire,
       HonestRowAt p c E rho j (rho.seatOf (.base .fg) a.signer) r wire ∧
       wire.toRow? = some a ∧ wire.auth = .seat .fg a.signer)
-  (hnoslash : ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x),
+  (_hnoslash : ∀ x ∈ rho.honest, EmittedRowsNoSlash p c E rho x),
   ∀ D X h,
     RootBlockInRun p c E rho (eraseFG D) → (finalityView p D).F = X →
     (finalityView p D).h_F = h → WCFinalizedOccurrence p c E rho D X h
 
-set_option linter.unusedVariables false in
 /-- WC J1; DC blueprint 23: explicit interface for a later-job proof. -/
 abbrev WCFinalityTargetEarlierStatement : Prop :=
   ∀
-  (hvalid : V2.D.ExecutionValid E rho)
-  (hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
-  (hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
-  (hroots : NamedRootCollisionFree p c E rho)
-  (hheldRows : ∀ i x W, HeldAt p c E rho i x W → ∀ a ∈ chainRows W,
+  (_hvalid : V2.D.ExecutionValid E rho)
+  (_hlinked : V2.D.Linked (fgsaFamilies p c).linked rho)
+  (_hfaultQ : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
+  (_hroots : NamedRootCollisionFree p c E rho)
+  (_hheldRows : ∀ i x W, HeldAt p c E rho i x W → ∀ a ∈ chainRows W,
     ∃ (wire : RowWire p.n) (r : Nat), wire.toRow? = some a ∧
       wire.auth = .seat .fg a.signer ∧ ∃ k o t, k < i ∧
         rho.events[k]? = some (.deliver x o t) ∧
         ∀ z, RowSigner p c rho wire z → z ∈ rho.honest →
           HonestRowBefore p c E rho i z r wire ∧ p.actionTime r ≤ t)
-  (hfinalHead : ∀ j z r a u, HonestRowAt p c E rho j z r a →
+  (_hfinalHead : ∀ j z r a u, HonestRowAt p c E rho j z r a →
     RowSigner p c rho a z → a.toRow? = some u → ∀ fp,
     u.finality_pair = some fp → ∃ B, HeldAt p c E rho j z B ∧
       fp.height = (heightView p B).h_j ∧ fp.target = (heightView p B).J.root ∧
       TargetQCAt p.E B fp.height (heightView p B).J)
-  (hqc : RQCOrigin p c E rho)
-  (hemitted : ∀ j x r a e, HonestRowAt p c E rho j x r a →
+  (_hqc : RQCOrigin p c E rho)
+  (_hemitted : ∀ j x r a e, HonestRowAt p c E rho j x r a →
     namedEntry a.payload.height_pair = some e →
     ∃ C B, actionSourceFG p c E rho x r = some (some C) ∧
       e = (hOf p.E p.cfg C, (derive p.E p.cfg C).T_h.root) ∧
