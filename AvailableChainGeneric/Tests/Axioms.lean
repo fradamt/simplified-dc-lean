@@ -84,6 +84,7 @@ public import AvailableChainGeneric.Statements.Pure.PCRank
 public import AvailableChainGeneric.Proofs.Pure.PCRank
 public import AvailableChainGeneric.Statements.Pure.PCFloor
 public import AvailableChainGeneric.Proofs.Pure.PCFloor
+public import AvailableChainGeneric.Statements.V2.Duty.PCCompanion
 public import AvailableChainGeneric.Proofs.AC.Batch
 public import AvailableChainGeneric.Statements.V2.Duty.Counts
 public import AvailableChainGeneric.Statements.V2.Duty.Interface
@@ -1000,3 +1001,14 @@ end AvailableChain.Gen.AC.Root
 #print axioms AvailableChain.Gen.Pure.pcFloor_mono_statement
 #print axioms AvailableChain.Gen.Pure.pcFloor_mono
 #print axioms AvailableChain.Gen.Pure.pcFloor_mono_some
+
+-- PC persistence companion over Duty runs (PC-SA).
+#print axioms AvailableChain.Gen.V2.Duty.InBy_def
+#print axioms AvailableChain.Gen.V2.Duty.PersistsFrom_def
+#print axioms AvailableChain.Gen.V2.Duty.HonestProposalAt_def
+#print axioms AvailableChain.Gen.V2.Duty.HonestAwakeProposer_def
+#print axioms AvailableChain.Gen.V2.Duty.IncludedFrom_def
+#print axioms AvailableChain.Gen.V2.Duty.AwakeMajority_def
+#print axioms AvailableChain.Gen.V2.Duty.FullParticipation_def
+#print axioms AvailableChain.Gen.V2.Duty.PCPersistenceStatement_def
+#print axioms AvailableChain.Gen.V2.Duty.PCIncludedStatement_def

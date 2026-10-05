@@ -852,6 +852,58 @@ def AvailableChain.Gen.V2.Duty.LinkedCardLeOfHoldersStatement 171155983d688132
 theorem AvailableChain.Gen.V2.Duty.LinkedCardLeOfHoldersStatement_def b48cb2a179b12916
 ```
 
+### `AvailableChainGeneric.Statements.V2.Duty.PCCompanion`
+
+```text
+def AvailableChain.Gen.V2.Duty.InBy 55cc151e9f182d62
+theorem AvailableChain.Gen.V2.Duty.InBy_def 8d78f93bfad174c0
+def AvailableChain.Gen.V2.Duty.PersistsFrom add5679920d75656
+theorem AvailableChain.Gen.V2.Duty.PersistsFrom_def b90e9887976438fa
+def AvailableChain.Gen.V2.Duty.HonestProposalAt 2bbde9d742a6d8c3
+theorem AvailableChain.Gen.V2.Duty.HonestProposalAt_def 743cd6772b64cd13
+def AvailableChain.Gen.V2.Duty.HonestAwakeProposer f1a41ef1dc494fed
+theorem AvailableChain.Gen.V2.Duty.HonestAwakeProposer_def bf7ce8ba8ebcc0e6
+def AvailableChain.Gen.V2.Duty.IncludedFrom 769736c55dea80e5
+theorem AvailableChain.Gen.V2.Duty.IncludedFrom_def 0a6e37324c8352b3
+def AvailableChain.Gen.V2.Duty.AwakeMajority e4265d5e9290672d
+theorem AvailableChain.Gen.V2.Duty.AwakeMajority_def 804b37c82c77b5ed
+def AvailableChain.Gen.V2.Duty.FullParticipation 8732d46e00b3b71e
+theorem AvailableChain.Gen.V2.Duty.FullParticipation_def e1f5837b85aefed0
+structure AvailableChain.Gen.V2.Duty.PCInterface 7265758712fe88ba
+def AvailableChain.Gen.V2.Duty.PCInterface.toInterface 9a0ede5af3022972
+ctor AvailableChain.Gen.V2.Duty.PCInterface.mk 9e70bafb9641baba
+def AvailableChain.Gen.V2.Duty.PCInterface.strong a89ce896fd5e94ad
+structure AvailableChain.Gen.V2.Duty.PCArmedRegime 309ff1cc3314650b
+ctor AvailableChain.Gen.V2.Duty.PCArmedRegime.mk 77d8d704484fddb5
+theorem AvailableChain.Gen.V2.Duty.PCArmedRegime.execution bb0ef9aacd36298e
+theorem AvailableChain.Gen.V2.Duty.PCArmedRegime.noRestart bc667fc9f21bfeb4
+theorem AvailableChain.Gen.V2.Duty.PCArmedRegime.rootInjective 1b274d0a5330e220
+theorem AvailableChain.Gen.V2.Duty.PCArmedRegime.healthy d67641fc418a7f60
+theorem AvailableChain.Gen.V2.Duty.PCArmedRegime.faultBound 151dadb58fa9d0ad
+theorem AvailableChain.Gen.V2.Duty.PCArmedRegime.interval 3c72071117d3391f
+theorem AvailableChain.Gen.V2.Duty.PCArmedRegime.armed bb73411fae65ea42
+theorem AvailableChain.Gen.V2.Duty.PCArmedRegime.sleepyBefore 0fd57b9d0f4a612e
+structure AvailableChain.Gen.V2.Duty.PCIncludedRegime 2eb325a3417d7904
+ctor AvailableChain.Gen.V2.Duty.PCIncludedRegime.mk 6b8683938227f17e
+theorem AvailableChain.Gen.V2.Duty.PCIncludedRegime.execution d366ca678bcfcf0a
+theorem AvailableChain.Gen.V2.Duty.PCIncludedRegime.noRestart c53ad120e1cb0e5b
+theorem AvailableChain.Gen.V2.Duty.PCIncludedRegime.rootInjective a989df125d3bd37d
+theorem AvailableChain.Gen.V2.Duty.PCIncludedRegime.partialSynchrony 5d93e0105f90915b
+theorem AvailableChain.Gen.V2.Duty.PCIncludedRegime.gst_zero 6df7b3a3e5460b40
+theorem AvailableChain.Gen.V2.Duty.PCIncludedRegime.start_zero 4dca336c562eb4f8
+theorem AvailableChain.Gen.V2.Duty.PCIncludedRegime.participation 0b68311229864680
+theorem AvailableChain.Gen.V2.Duty.PCIncludedRegime.fullParticipation 3860adcbc89d303a
+theorem AvailableChain.Gen.V2.Duty.PCIncludedRegime.quarterCap d7138925392f6a04
+def AvailableChain.Gen.V2.Duty.PCPersistenceStatement 4a6b0c453469225d
+theorem AvailableChain.Gen.V2.Duty.PCPersistenceStatement_def b2c5f0a70fec8632
+def AvailableChain.Gen.V2.Duty.PCIncludedStatement 77132e2931255aff
+theorem AvailableChain.Gen.V2.Duty.PCIncludedStatement_def faaf18902a6c144f
+structure AvailableChain.Gen.V2.Duty.PCCompanion c0aa0afeb0777429
+ctor AvailableChain.Gen.V2.Duty.PCCompanion.mk 331bd9bc177eb653
+theorem AvailableChain.Gen.V2.Duty.PCCompanion.persistence 3436221e757768a1
+theorem AvailableChain.Gen.V2.Duty.PCCompanion.included f0e5745605b5bf3c
+```
+
 ### `AvailableChainGeneric.Statements.V2.Duty.Reads`
 
 ```text

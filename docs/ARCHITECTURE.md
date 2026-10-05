@@ -188,6 +188,10 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
 │ Statements/V2/Interface  │ FinalityInterface extends the v2 interface   │
 │ Statements/V2/Receipt    │ DeliveryWithin; E-9 statements PROVED        │
 │ Statements/V2/Regimes    │ Regime cores, LabelSync, LabelFacts, SeedAt  │
+│ Statements/V2/Duty/      │ PC companion over Duty runs: DC mirrors      │
+│   PCCompanion            │ (InBy, PersistsFrom, IncludedFrom, …),       │
+│                          │ PCInterface, PCArmedRegime, PCIncluded,      │
+│                          │ PCCompanion (statements only)                │
 │ Statements/AC/Reads      │ ACReads, ACLaws, gate and reconcile reads    │
 │ Proofs/Pure/FirstBad     │ Strong induction for the FirstBad rules      │
 │ Proofs/Pure/Schedule     │ Pattern, window and recurrence facts         │
@@ -218,6 +222,14 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   monotonicity). Import constraint: Pure layer, closure Mathlib +
   `AvailableChainModel.Objects.*` + Generic Pure only (GLY F-4, F-12); no
   V2, AC, GridCO or FG-SA import. Consumer: the PCSA family.
+- PC persistence companion (2026-10-05; `pcsa34-r3.md` §5.4, App. B):
+  `Statements/V2/Duty/PCCompanion` over Duty runs, modelled on the frozen v1
+  `StrongClaims` (`AvailableChainStatements/Strong`, unchanged). `PCArmedRegime`
+  is `StrongArmedRegime` with lag 3Δ, `a < q_A n`, `HealthyPrefixDeliveryBy`
+  from the run start to `b₀` (ARM-healthy) and no restart; `PCIncludedRegime`
+  has full participation and `4a ≤ n`. Import constraint: S/V2 rule
+  (GLY-SV2): Generic Pure and V2 statements, EngineV2 Engine/Conditions/Laws.
+  The PCSA instance proves it; the recovery form (ARM-same-slot) is later.
 - KitFG definition modules: `StoreInvDef` holds the unchanged `StoreInv`;
   `ViewLock` states the strict height bound; `HonestRows` holds the three
   honest-row premises. Each uses `@[expose] public section`.
