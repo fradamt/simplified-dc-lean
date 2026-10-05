@@ -12,6 +12,8 @@ lib AvailableChainFGSARun
 lib AvailableChainFGSAClaims
 lib AvailableChainFGSAProofs
 lib AvailableChainFGSAInhabit
+lib AvailableChainPCSA
+lib AvailableChainPCSARun
 # KitFG: the modules on main 7ac5b0c are legacy; every later KitFG module is new.
 partial AvailableChainKitFG
 legacy AvailableChainKitFG
