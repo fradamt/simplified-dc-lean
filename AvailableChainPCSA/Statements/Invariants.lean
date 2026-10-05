@@ -34,20 +34,6 @@ def SACompat {n : Nat} (st : State n) : Prop :=
   (∀ c ∈ st.pcs, Block.Compatible c.target (eraseFG st.fg.F)) ∧
   (∀ row ∈ st.pcSnapshot, ∀ c ∈ row.2, Block.Compatible c.target (eraseFG st.fg.F))
 
-/-- [PC-SA M1; review fix 3] [GLY E-11, §C.3; D14] Every live EFFECTIVE lease
-target (compatible with `Σ.pc.target`) is below the stored record `S`. A
-non-effective lease has no authority in the guard, so it can stay live above
-a replaced `S` (r3 3.1). There is no honest premise. -/
-def LeaseBelowOutputStore (p : Params) (st : State p.n) : Prop :=
-  ∀ ℓ ∈ st.base.obligations, st.base.now < ℓ.2.2 → effectiveLease st ℓ.1 = true →
-    Block.Preceq ℓ.1 st.base.stableRecord
-
-theorem LeaseBelowOutputStore_def (p : Params) (st : State p.n) :
-    LeaseBelowOutputStore p st =
-      (∀ ℓ ∈ st.base.obligations, st.base.now < ℓ.2.2 → effectiveLease st ℓ.1 = true →
-        Block.Preceq ℓ.1 st.base.stableRecord) := by
-  rw [LeaseBelowOutputStore]
-
 /-- [PC-SA M1; pcsa34-r3 2.3, 2.6, 3.6] The PC domain: every held PC is valid
 (well formed, usable, F-compatible), one PC per slot and target, the ack pool
 holds decodable acks once each, and the snapshot has one row per freeze

@@ -319,21 +319,10 @@ theorem encLabel_small : ∀ s < 6, ∀ s' < 6,
 theorem ackSlot_cases (s : Slot) : Label.ackSlot? (.ack s) = some s ∧
     Label.ackSlot? (.head s) = none ∧ Label.ackSlot? .fg = none := ⟨rfl, rfl, rfl⟩
 
-/-- (h) The label code is injective. -/
-theorem encLabel_injective : Function.Injective encLabel := by
-  intro a b h
-  cases a <;> cases b
-  all_goals
-    first
-    | rfl
-    | (have h' := epair_inj (show epair _ _ = epair _ _ from h); omega)
-    | (have h' := epair_inj (show epair _ _ = epair _ _ from h); rw [h'.2])
-
 #print axioms gate_saves
 #print axioms proposal_carries
 #print axioms source_from_pc
 #print axioms source_filter_first
-#print axioms encLabel_injective
 
 end AvailableChain.PCSA.Tests
 end

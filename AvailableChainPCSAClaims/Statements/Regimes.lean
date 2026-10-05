@@ -4,13 +4,14 @@ public import AvailableChainEngineV2.Conditions.Duty.Committees
 public import AvailableChainGeneric.Statements.V2.Duty.Counts
 public import AvailableChainGeneric.Statements.V2.Duty.DeliveryBy
 public import AvailableChainPCSARun.Model.Families
+public import AvailableChainPCSARun.Statements.Roots
 
 @[expose] public section
 
 /-! [PC-SA claims; FG-SA Claims/Statements/Regimes.lean] The run regimes of
-the PC-SA claims. `Base₂` has no `idealization` field yet: the PC-SA run
-statement of root collision freedom (FG-SA `NamedRootCollisionFree`) is not
-ported in M1. -/
+the PC-SA claims. `Base₂` carries the root collision freedom premise
+(`NamedRootCollisionFree`, review C1); `FGSafetyBound` is the FG safety
+fault bound `a ≤ (n − 1)/3` (review C2). -/
 
 namespace AvailableChain.PCSA.Run
 
@@ -19,13 +20,18 @@ open Gen.V2.Duty (faulty awakeHonest)
 variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V] [Fintype V]
 
 /-- [PC-SA claims; FG-SA Base₂] A valid execution with linked FG seats, fresh
-HEAD and ack committees, no restart, and the model delay. -/
+HEAD and ack committees, no restart, the model delay, and root collision
+freedom. -/
 structure Base₂ (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) : Prop where
   valid : V2.D.ExecutionValid E rho
   linked : V2.D.Linked (pcsaFamilies p c).linked rho
   cstar : V2.D.CStar (pcsaFamilies p c).fresh rho
   noRestart : V2.D.NoRestart rho
   delta : E.Δ = p.Δ
+  /-- [review C1; DC NamedRootCollisionFree] Run body collision freedom: without
+  it a constant digest lets two honest nodes hold different slot-`s` blocks
+  with one root, and the acks on that root form PCs on different targets. -/
+  idealization : NamedRootCollisionFree p c E rho
 
 /-- [PC-SA claims; FG-SA fgsaDelay] Per-object delivery delay: rows `ΔF`,
 every other object (HEAD, proposal, ack, PC) `Δ`. -/
@@ -56,6 +62,20 @@ def FaultsBelowQA (rho : V2.D.Run V (pcsa p c)) : Prop :=
 theorem FaultsBelowQA_def (rho : V2.D.Run V (pcsa p c)) :
     FaultsBelowQA p c rho = ((faulty rho).card < pcQuorum p.n) := by
   rw [FaultsBelowQA]
+
+/-- [PC-SA claims; review C2; FG-SA AcceptPrem_W.faultBound] The FG safety
+fault bound `a ≤ f = (n − 1)/3`: honest `F` values are on one chain, so a PC
+target that is `F`-compatible at one honest node stays `F`-compatible at
+every honest node. `FaultsBelowQA` (`a < ⌈n/2⌉`) does not give this. Whether
+the healthy prefix (`HealthyPrefix₂`) gives it without the bound is a
+proof-phase question; until then the claims that need `F`-compatibility of
+the PC target take this premise. -/
+def FGSafetyBound (rho : V2.D.Run V (pcsa p c)) : Prop :=
+  (faulty rho).card ≤ (p.n - 1) / 3
+
+theorem FGSafetyBound_def (rho : V2.D.Run V (pcsa p c)) :
+    FGSafetyBound p c rho = ((faulty rho).card ≤ (p.n - 1) / 3) := by
+  rw [FGSafetyBound]
 
 end AvailableChain.PCSA.Run
 end

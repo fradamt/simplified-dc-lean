@@ -19,13 +19,16 @@ def OutputNestingStored (p : Params) : Prop :=
 invariant. -/
 def StoreInvariant (p : Params) : Prop := ∀ st, Reachable p st → CStoreInv p st
 
-/-- [PC-SA M1] [GLY E-11, §C.3; D14] The store, metadata, nesting, and live lease
-invariants. -/
+/-- [PC-SA M1] [GLY E-11, §C.3; D14] The store, metadata and nesting
+invariants. The FG-SA `lease` field (live leases below `S`) is not a PC-SA
+store invariant: a lease can turn non-effective under a conflicting PC, `S`
+can advance past it, and a later PC can make it effective again while it is
+live (second review, fix 3). It is the lane claim
+`LeaseBelowAvailableClaim` (Claims/PC.lean). -/
 structure StoreBundle (p : Params) (st : State p.n) : Prop where
   cstore : CStoreInv p st
   «meta» : MetaInv p st
   nest : NestOK st
-  lease : LeaseBelowOutputStore p st
 
 /-- [PC-SA M1] [GLY E-11; D14] Every reachable state satisfies the store bundle. -/
 def StoreBundleInvariant (p : Params) : Prop := ∀ st, Reachable p st → StoreBundle p st
