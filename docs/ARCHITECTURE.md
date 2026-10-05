@@ -227,7 +227,9 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
   `StrongClaims` (`AvailableChainStatements/Strong`, unchanged). `PCArmedRegime`
   is `StrongArmedRegime` with lag 3Δ, `a < q_A n`, `HealthyPrefixDeliveryBy`
   from the run start to `b₀` (ARM-healthy) and no restart; `PCIncludedRegime`
-  has full participation and `4a ≤ n`. Import constraint: S/V2 rule
+  has full participation and `4a ≤ n`. Both take a label family `Fam` with
+  `CStar` and `n` seats per label (validator count = seat count, as `cstar` in
+  FG-SA `Base₂`) and `delayPos` (the instance pins `delayOf`). Import constraint: S/V2 rule
   (GLY-SV2): Generic Pure and V2 statements, EngineV2 Engine/Conditions/Laws.
   The PCSA instance proves it; the recovery form (ARM-same-slot) is later.
 - KitFG definition modules: `StoreInvDef` holds the unchanged `StoreInv`;
