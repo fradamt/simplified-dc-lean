@@ -24,6 +24,7 @@ defaultTargets = [
   "AvailableChainFGSAInhabit",
   "AvailableChainPCSA",
   "AvailableChainPCSARun",
+  "AvailableChainPCSAClaims",
 ]
 
 [leanOptions]
@@ -178,3 +179,8 @@ globs = ["AvailableChainPCSA.*"]
 [[lean_lib]]
 name = "AvailableChainPCSARun"
 globs = ["AvailableChainPCSARun.*"]
+
+# PC-SA claims: run regimes, reads and the Statements-layer claim Props.
+[[lean_lib]]
+name = "AvailableChainPCSAClaims"
+globs = ["AvailableChainPCSAClaims.*"]
