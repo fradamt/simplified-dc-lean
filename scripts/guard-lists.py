@@ -3,13 +3,16 @@
 import argparse
 import ast
 from pathlib import Path
+import sys
+sys.dont_write_bytecode = True
 import subprocess
+from check_inventory import parse_names
 
 LISTS = ('EXPECTED', 'ORDER')
 CHECKER = 'scripts/check-fgsa-claims.sh'
 
 
-def read_guard(text, label):
+def read_guard(text, label, inventory_text=None):
     lines = text.splitlines(keepends=True)
     start = next((i + 1 for i, line in enumerate(lines) if "<<'PY'" in line), None)
     if start is None:
@@ -27,6 +30,20 @@ def read_guard(text, label):
         if len(nodes) != 1:
             raise ValueError(f'{label}: {name} needs one top-level literal tuple')
         node = nodes[0]
+        external = (name == 'EXPECTED' and isinstance(node.value, ast.Call)
+                    and ast.dump(node.value) == ast.dump(ast.parse(
+                        "read_names('scripts/fgsa-claims-expected.txt')", mode='eval').body))
+        if external:
+            before = body[node.lineno - 1].encode()[:node.col_offset].strip()
+            after = body[node.end_lineno - 1].encode()[node.end_col_offset:].strip()
+            if len(node.targets) != 1 or before or (after and not after.startswith(b'#')):
+                raise ValueError(f'{label}: {name} must occupy separate lines')
+            if inventory_text is None:
+                inventory_text = (Path(label).parent / 'fgsa-claims-expected.txt').read_text()
+            values = parse_names(inventory_text, label)
+            # Expansion is literal data. No expression from the target is copied.
+            body[node.lineno - 1:node.end_lineno] = [f'EXPECTED = {values!r}\n']
+            return read_guard(''.join(lines[:start] + body + lines[end:]), label)
         if len(node.targets) != 1 or not isinstance(node.value, ast.Tuple):
             raise ValueError(f'{label}: {name} must be a literal tuple')
         try:
@@ -35,6 +52,8 @@ def read_guard(text, label):
             raise ValueError(f'{label}: {name} must be a literal tuple') from None
         if not all(isinstance(value, str) for value in values):
             raise ValueError(f'{label}: {name} entries must be strings')
+        if len(values) != len(set(values)):
+            raise ValueError(f'{label}: duplicate {name} entry')
         # Whole-line replacement must not copy other target code on those lines.
         before = body[node.lineno - 1].encode()[:node.col_offset].strip()
         after = body[node.end_lineno - 1].encode()[node.end_col_offset:].strip()
@@ -94,7 +113,16 @@ def main():
         else:
             label = args.main
             main_text = args.main.read_text()
-        _, main_lists = read_guard(main_text, label)
+        inventory_text = None
+        external = "read_names('scripts/fgsa-claims-expected.txt')" in main_text
+        if args.main_rev is not None and external:
+            data = subprocess.run(['git', 'show',
+                f'{args.main_rev}:scripts/fgsa-claims-expected.txt'],
+                capture_output=True, text=True)
+            if data.returncode:
+                raise ValueError('cannot read historical EXPECTED inventory')
+            inventory_text = data.stdout
+        _, main_lists = read_guard(main_text, label, inventory_text)
         _, target_lists = read_guard(args.target.read_text(), args.target)
         allow = read_allow(args.allow)
         allowed = {(name, entry) for name, entry, _ in allow}
