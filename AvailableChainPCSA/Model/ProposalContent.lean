@@ -18,6 +18,13 @@ inductive Label where
   | ack (s : Slot)
   deriving DecidableEq, Repr
 
+/-- [PC-SA M1; pcsa34-v2-delta (4)] The slot of an ack label; `none` for the
+other labels. Every definition that classifies acks reads this hook, so a
+later second ack label extends it without a change of their text. -/
+def Label.ackSlot? : Label → Option Slot
+  | .ack s => some s
+  | _ => none
+
 /-- [PC-SA M1; FG-SA ProposalContent.lean:19]
 [spec 230–237] An FG row without its identity: the height pair and
 the finality pair. The identity is the seat index of the fixed FG signature. -/
@@ -67,10 +74,9 @@ abbrev HeadWire (n : Nat) := Signed Label n BlockId
 /-- [PC-SA M1; FG-SA ProposalContent.lean:69]
 [spec 230–237] A signed FG row. Its auth is `.seat .fg i`. -/
 abbrev RowWire (n : Nat) := Signed Label n RowPayload
-/-- [PC-SA M1; pcsa-decisions 3n/4] A signed exact ack: seat `i` of label
-`ack s` acks the erased block `B` (the payload). The ack carries the full
-erased block, so a PC target needs no resolution. -/
-abbrev AckWire (n : Nat) := Signed Label n Block
+/-- [PC-SA M1; pcsa34-r3 2.2] A signed exact ack: seat `i` of label `ack s`
+signs the root identifier of the acked block. It may be unresolved. -/
+abbrev AckWire (n : Nat) := Signed Label n BlockId
 
 namespace HeadWire
 variable {n : Nat}
@@ -103,9 +109,9 @@ namespace AckWire
 variable {n : Nat}
 /-- [PC-SA M1; pcsa-decisions 3n/4] The one auth decoder of an ack: label
 `s`, seat `i`, the acked block. -/
-def decode? (a : AckWire n) : Option (Slot × Fin n × Block) :=
+def decode? (a : AckWire n) : Option (Slot × Fin n × BlockId) :=
   match a.auth with
-  | .seat (.ack s) i => some (s, i, a.payload)
+  | .seat ℓ i => ℓ.ackSlot?.map (fun s => (s, i, a.payload))
   | _ => none
 /-- [PC-SA M1] The seat of an ack, if it has an ack auth. -/
 def seat? (a : AckWire n) : Option (Fin n) := a.decode?.map (fun x => x.2.1)
@@ -118,9 +124,9 @@ def pcQuorum (n : Nat) : Nat := (n + 1) / 2
 /-- [PC-SA M1; pcsa-decisions 3n/4] `q_N = ⌈3n/4⌉`: the ack trigger count. -/
 def nQuorum (n : Nat) : Nat := (3 * n + 3) / 4
 
-/-- [PC-SA M1; pcsa-decisions 3n/4; SAPC Objects.lean PC] A PC: `q_A` exact
-acks of slot `slot` on `target`. A node assembles it from its ack pool; it is
-never revoked by later acks. -/
+/-- [PC-SA M1; pcsa34-r3 2.3; SAPC Objects.lean PC] A PC: at least `q_A`
+exact acks of slot `slot` with distinct seats on the root of `target`. A
+node assembles it from its ack pool; it is never revoked. -/
 structure PC (n : Nat) where
   slot : Slot
   target : Block
@@ -131,14 +137,14 @@ namespace PC
 variable {n : Nat}
 /-- [PC-SA M1] The distinct ack seats. -/
 def seats (c : PC n) : List (Fin n) := (c.acks.filterMap AckWire.seat?).dedup
-/-- [PC-SA M1; pcsa-decisions 3n/4] The structural check: a positive slot, a
-non-genesis target of that slot, exactly `q_A` acks with distinct seats, each
-an exact ack on `(slot, target)`. -/
+/-- [PC-SA M1; pcsa34-r3 2.3] The structural check: a positive slot, a
+non-genesis target of that slot, at least `q_A` acks with pairwise distinct
+seats, each an exact ack of label `ack slot` on the root of the target. -/
 def wellFormed (c : PC n) : Bool :=
   0 < c.slot && c.target != .genesis && c.target.slot == c.slot &&
-    c.acks.length == pcQuorum n && c.seats.length == pcQuorum n &&
+    pcQuorum n ≤ c.acks.length && c.seats.length == c.acks.length &&
     c.acks.all (fun a => match a.decode? with
-      | some (s, _, b) => s == c.slot && b == c.target
+      | some (s, _, r) => s == c.slot && r == c.target.root
       | none => false)
 end PC
 
@@ -291,8 +297,8 @@ def encBlock : Block → Nat
   | .genesis => epair 0 0
   | .node P s r x => epair 1 (epair (encBlock P) (epair s (epair r.value x)))
 
-/-- [PC-SA M1] The code of an ack wire: its auth and the erased block. -/
-def encAckWire {n : Nat} (a : AckWire n) : Nat := epair (encAuth a.auth) (encBlock a.payload)
+/-- [PC-SA M1] The code of an ack wire: its auth and the root value. -/
+def encAckWire {n : Nat} (a : AckWire n) : Nat := epair (encAuth a.auth) a.payload.value
 
 /-- [PC-SA M1] The code of a PC: slot, target, and the ack list. -/
 def encPC {n : Nat} (c : PC n) : Nat :=

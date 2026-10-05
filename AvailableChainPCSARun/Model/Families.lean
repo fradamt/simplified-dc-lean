@@ -14,11 +14,11 @@ open AvailableChain.SimplexFG
 variable (p : Params) {In : Type} (c : AppCodec In)
 
 /-- [PC-SA M1; FRAMEWORK E2, E5; 2a Task 3 Step 5; DC N9] The PC-SA label
-families: the AP labels are the HEAD, the ack and the proposal labels; the
-designated fresh family is the HEAD labels; the linked family is exactly the
-fixed FG label. A proposal label has one seat, so it is not fresh (`CStar`
-needs `seats ℓ = |V|`); it is `SingleSeat`. An ack label is an AP label that
-is neither fresh nor linked. -/
+families (pcsa34-v2-delta (1)): the AP labels are the HEAD, the ack and the
+proposal labels; the fresh family is the HEAD and the ack labels (one
+committee of `n` seats per slot); the linked family is exactly the fixed FG
+label. A proposal label has one seat, so it is not fresh (`CStar` needs
+`seats ℓ = |V|`); it is `SingleSeat`. -/
 def pcsaFamilies : V2.D.LabelFamilies (pcsa p c) where
   ap
     | .base (.head _) => True
@@ -27,6 +27,7 @@ def pcsaFamilies : V2.D.LabelFamilies (pcsa p c) where
     | .prop _ => True
   fresh
     | .base (.head _) => True
+    | .base (.ack _) => True
     | _ => False
   linked
     | .base .fg => True

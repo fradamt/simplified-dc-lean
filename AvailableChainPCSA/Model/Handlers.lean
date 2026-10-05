@@ -23,13 +23,13 @@ def admitRow (p : Params) (st : State p.n) (a : RowWire p.n) : State p.n :=
 
 /-- [PC-SA M1; pcsa-decisions 3n/4] `on_ack`: pool the ack, then assemble the
 PCs the pool supports. -/
-def admitAck {n : Nat} (st : State n) (a : AckWire n) : State n :=
-  collectPCs (poolAck st a)
+def admitAck (p : Params) (st : State p.n) (a : AckWire p.n) : State p.n :=
+  collectPCs (poolAck p st a)
 
 /-- [PC-SA M1; pcsa-decisions 3n/4] `on_pc`: pool the acks of the PC, then
 assemble. A PC enters the store only by assembly. -/
-def admitPC {n : Nat} (st : State n) (c : PC n) : State n :=
-  collectPCs (c.acks.foldl poolAck st)
+def admitPC (p : Params) (st : State p.n) (c : PC p.n) : State p.n :=
+  collectPCs (c.acks.foldl (poolAck p) st)
 
 /-- [PC-SA M1] [spec 519–522; M3] The stored FG parent of an erased block. -/
 def parentFG {n : Nat} (st : State n) (b : Block) : Option (FGBlock (Fin n)) :=
@@ -79,7 +79,7 @@ def admitBlock (p : Params) (st : State p.n) (s : Slot)
           fg := FGSA.Window.on_block p p.K_W st.fg (fgBlock P N.erase N.rows)
           proposals := st.proposals ++ [⟨.proposer s, .proposal N⟩] }
         let st2 := if st1.fg.F = st.fg.F then st1 else reconcile st1
-        let st3 := collectPCs (N.pcAcks.foldl poolAck st2)
+        let st3 := collectPCs (N.pcAcks.foldl (poolAck p) st2)
         N.rows.foldl (admitRow p) st3
       else st
 
@@ -90,16 +90,16 @@ def process (p : Params) (st : State p.n) (o : Wire p.n) : State p.n :=
   | some (.vote s i b) => admitHead p st s i b
   | some (.row _ body) => admitRow p st ⟨o.auth, body⟩
   | some (.block s N) => admitBlock p st s N
-  | some (.ack _ _ b) => admitAck st ⟨o.auth, b⟩
-  | some (.pc c) => admitPC st c
+  | some (.ack _ _ b) => admitAck p st ⟨o.auth, b⟩
+  | some (.pc c) => admitPC p st c
   | none => st
 
 /-- [PC-SA M1; FG-SA Handlers.lean wellFormed; pcsa-decisions 3n/4]
 [spec 247–255, 505–518; M12, DQ9, DQ14] The input check, as a pure function
 (T7 binds it). A vote: a HEAD seat. A row: an FG seat and a valid body. An
-ack: an ack seat of slot `s` on a non-genesis block of slot `s`. A PC: well
-formed. A block: not genesis; the proposer key of its slot; every carried
-vote a HEAD seat of slot `b.slot − 1`; support ⊆ votes; every carried row
+ack: an ack seat (the identifier may be unresolved). A PC: well formed. A
+block: not genesis; the proposer key of its slot; every carried vote a HEAD
+seat of slot `b.slot − 1`; support ⊆ votes; every carried row
 passes the SAME row check (`RowWire.valid`); a carried PC is well formed. The
 parent slot must be smaller than the block slot. R6 is state-dependent and
 belongs to `blockAccepted`. The body packs the carried rows and the digest
@@ -108,7 +108,7 @@ def wellFormed (p : Params) (o : Wire p.n) : Bool :=
   match o.decode with
   | some (.vote _ _ _) => true
   | some (.row _ body) => body.valid
-  | some (.ack s _ b) => b != .genesis && b.slot == s
+  | some (.ack _ _ _) => true
   | some (.pc c) => c.wellFormed
   | some (.block s N) =>
       let b := N.erase

@@ -22,13 +22,13 @@ def digestOf (p : Params) (d : DigestInput p.n) : BlockId := p.digest d.toFGSA
 
 /-- [PC-SA M1; FG-SA Objects.lean Msg; pcsa-decisions 3n/4]
 [spec 225–263; comp §4.2] A proposal carries its full named parent and signed
-content. A HEAD carries only its root identifier. An ack carries the erased
-block it acks; a PC carries its acks. The geometric readers use named erasure. -/
+content. A HEAD and an ack carry only a root identifier; a PC carries its
+acks and its resolved target. The geometric readers use named erasure. -/
 inductive Msg (n : Nat) where
   | head (target : BlockId)
   | proposal (N : NamedProposal n)
   | row (body : RowPayload)
-  | ack (target : Block)
+  | ack (target : BlockId)
   | pc (c : PC n)
   deriving DecidableEq, Repr
 
@@ -41,7 +41,7 @@ inductive Input (n : Nat) where
   | vote (s : Slot) (i : Fin n) (target : BlockId)
   | row (i : Fin n) (body : RowPayload)
   | block (s : Slot) (N : NamedProposal n)
-  | ack (s : Slot) (i : Fin n) (target : Block)
+  | ack (s : Slot) (i : Fin n) (target : BlockId)
   | pc (c : PC n)
   deriving DecidableEq, Repr
 
@@ -54,7 +54,7 @@ def Wire.decode {n : Nat} (o : Wire n) : Option (Input n) :=
   | .seat (.head s) i, .head b => some (.vote s i b)
   | .seat .fg i, .row body => some (.row i body)
   | .proposer s, .proposal N => some (.block s N)
-  | .seat (.ack s) i, .ack b => some (.ack s i b)
+  | .seat ℓ i, .ack b => ℓ.ackSlot?.map (fun s => .ack s i b)
   | .none, .pc c => some (.pc c)
   | _, _ => none
 

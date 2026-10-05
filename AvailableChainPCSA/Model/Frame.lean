@@ -22,23 +22,29 @@ The erasure of an FG block set, in the order of the base list. -/
 def erasedList {n : Nat} (st : State n) (X : Finset (FGBlock (Fin n))) : List Block :=
   st.base.blocks.filter (fun b => decide (∃ B ∈ X, eraseFG B = b))
 
-/-- [PC-SA M1; FG-SA Frame.lean liveRoot; pcsa-decisions R-f]
-[spec 648–655, 1086–1098] `live_root` with the PC view `c`: the anchor is the
-PC target when it is in the full filtered tree and deeper than the FG root
-`Z`, else `Z`; then the deepest live lease target in the tree that is
-compatible with the PC target (ties: the greater root), if deeper than the
-anchor. Conflicting leases are ignored, not deleted. -/
+/-- [PC-SA M1; pcsa34-r3 3.3 frame_active] A PC is frame-active when its
+target is in the full filtered tree. -/
+def frameActive (p : Params) (st : State p.n) (c : PC p.n) : Bool :=
+  decide (∃ B ∈ fullTree p st, eraseFG B = c.target)
+
+/-- [PC-SA M1; FG-SA Frame.lean liveRoot; pcsa34-r3 3.3 live_root, R6]
+[spec 648–655, 1086–1098] `live_root` with the PC view `c`: the root is the
+view target when the view is frame-active, else the FG root `Z`; then the
+deepest of the root and the live lease targets in the tree that are
+compatible with the root, deeper than it, and compatible with `Σ.pc.target`
+(the effective leases; ties: the greater root). Non-effective leases are
+ignored, not deleted. -/
 def liveRoot (p : Params) (st : State p.n) (c : Option (PC p.n)) : Block :=
   let tree := fullTree p st
   let inTree := fun b => decide (∃ B ∈ tree, eraseFG B = b)
   let z := eraseFG (controls p st).Z
-  let anchor := match c with
-    | some c => if inTree c.target && deeper z c.target then c.target else z
+  let root := match c with
+    | some c => if frameActive p st c then c.target else z
     | none => z
   let targets := st.base.obligations.filterMap (fun row =>
-    if st.base.now < row.2.2 && inTree row.1 &&
-        (c.map (fun c => Block.compatible row.1 c.target)).getD true then some row.1 else none)
-  targets.foldl (fun best b => if deeper best b then b else best) anchor
+    if st.base.now < row.2.2 && inTree row.1 && Block.compatible row.1 root &&
+        root.depth < row.1.depth && effectiveLease st row.1 then some row.1 else none)
+  targets.foldl (fun best b => if deeper best b then b else best) root
 
 /-- [PC-SA M1] [spec 1063–1072] `goldfish_eligible` with the band floor: the parent's state
 height is below `lo`, or a strict majority, or the store's current slot. -/
@@ -77,11 +83,26 @@ def carriedPCs {n : Nat} (st : State n) (s : Slot) : List (PC n) :=
     | some (.block _ N) => if N.slot = s then N.pc else none
     | _ => none)).filter (pcValid st)
 
-/-- [PC-SA M1; pcsa-decisions R-f] The HEAD PC view of slot `s`: the PC
-frozen at `z_{s−1}` and the PCs carried by the slot-`s` proposals, the
-highest by rank (the frozen one on a tie). -/
+/-- [PC-SA M1; pcsa34-r3 3.3 view] `view(Σ, s)`: the PC frozen at `z_{s−1}`
+and the PCs carried by the held slot-`s` proposals, the highest by rank (the
+frozen one on a tie). -/
 def voterPC {n : Nat} (st : State n) (s : Slot) : Option (PC n) :=
   (carriedPCs st s).foldl preferPC (pcSnapshotAt st (s - 1))
+
+/-- [PC-SA M1; pcsa34-r3 3.4 A2] The view filter of an ack on `b` at `e_s`:
+`view(s)` is empty, or not frame-active, or its target is below `b`. -/
+def viewOK (p : Params) (st : State p.n) (s : Slot) (b : Block) : Bool :=
+  match voterPC st s with
+  | none => true
+  | some c => !frameActive p st c || Block.preceq c.target b
+
+/-- [PC-SA M1; pcsa34-r3 3.4, 3.8] The ack rule at `e_s`: the N target
+(A1: `holdsN` on the active view, so held and F-compatible) when it passes
+the view filter (A2). A6 (one ack per seat and slot) is the duty schedule:
+one `ackAction s`, one object per label and seat. No veto, no continuity
+rule, no lease condition, nothing the gate writes. -/
+def ackFor (p : Params) (st : State p.n) (s : Slot) : Option Block :=
+  (nTarget? p st s).filter (viewOK p st s)
 
 /-- [PC-SA M1] [spec 598–606, 1219–1226] `voter_processed_block_tree(Σ, s)`: blocks of Σ.T
 received before `z_{s−1}`, and every ancestor of an admitted slot-`s` proposal. -/
@@ -186,13 +207,13 @@ def fgHead (p : Params) (st : State p.n) : Block :=
 def fgBlockOf {n : Nat} (st : State n) (b : Block) : Option (FGBlock (Fin n)) :=
   pickPair st.fg.TF (fun B => decide (eraseFG B = b))
 
-/-- [PC-SA M1; FG-SA Frame.lean fgSource; pcsa-decisions 3n/4]
-[spec 666–677, 1327–1335] `C_fg`: the target of the held PC of the opening
-slot `rR` of the current round, if it is in the full filtered tree; else no
-row. There is no lease condition and no fallback. -/
+/-- [PC-SA M1; FG-SA Frame.lean fgSource; pcsa34-r3 3.9, R8]
+[spec 666–677, 1327–1335] `C_fg`: the target of the max-rank frame-active
+held PC of the opening slot `rR` of the current round; else no row. There is
+no lease condition and no fallback. -/
 def fgSource (p : Params) (st : State p.n) : Option (FGBlock (Fin p.n)) :=
   let r := p.round (st.slot p)
-  match pcAt st (r * p.R) with
+  match bestPC ((st.pcs.filter (fun c => c.slot == r * p.R)).filter (frameActive p st)) with
   | some c => pickPair (fullTree p st) (fun B => decide (eraseFG B = c.target))
   | none => none
 

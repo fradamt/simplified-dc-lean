@@ -14,12 +14,15 @@ def slowLevels (p : Params) {n : Nat} (v : GridCO.State n .root) (s : Slot) (b :
     List Nat :=
   if SA.Root.slowEligible p.toParams v s b then [SA.releaseThreshold p.toParams] else []
 
-/-- [PC-SA M1; pcsa-decisions R-a; GridCO gateFrom] The SA gate with the walk
-from `a` and the slow lease loop only. A genuine gate advances G. It advances
-S and writes obligations only when the result is compatible with every live
-target. -/
-def gateFrom (p : Params) {n : Nat} (a : Block) (v : GridCO.State n .root) (s : Slot) :
-    GridCO.State n .root :=
+/-- [PC-SA M1; pcsa34-r3 3.7; GridCO gateFrom] The SA gate with the walk
+from `a`, the slow lease loop only, and the effective leases: `pcT` is
+`Σ.pc.target`. A genuine gate advances G. It advances S and writes
+obligations only when the result is compatible with every live EFFECTIVE
+target (compatible with `pcT`); a lease write needs the prefix compatible
+with `pcT`. -/
+def gateFrom (p : Params) {n : Nat} (a : Block) (pcT : Option Block)
+    (v : GridCO.State n .root) (s : Slot) : GridCO.State n .root :=
+  let pcOK := fun b => pcT.all (fun t => Block.compatible b t)
   let q := p.toParams.engine
   match SA.Root.confirmationFrom p.toParams a v s with
   | none => { v with genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy n .root v s none }
@@ -27,9 +30,9 @@ def gateFrom (p : Params) {n : Nat} (a : Block) (v : GridCO.State n .root) (s : 
       let v := { v with
         goldfishRecord := GridCO.advance v.goldfishRecord h
         genuine := @GridCO.recordGenuine GridCO.slowLeasePolicy n .root v s (some h) }
-      if v.obligations.any (fun row => !Block.compatible row.1 h) then v else
+      if v.obligations.any (fun row => pcOK row.1 && !Block.compatible row.1 h) then v else
         let v := { v with stableRecord := GridCO.advance v.stableRecord h }
-        let prefixes := v.blocks.filter (fun b => b != .genesis && Block.preceq b h)
+        let prefixes := v.blocks.filter (fun b => b != .genesis && Block.preceq b h && pcOK b)
         prefixes.foldl (fun acc b =>
           (slowLevels p acc s b).foldl
             (fun acc g => GridCO.writeObligation acc b g
@@ -43,7 +46,7 @@ gate. There is no fast-write set. -/
 def gateStep (p : Params) (st : State p.n) (s : Slot) : State p.n :=
   let a := eraseFG st.fg.F
   let st := if (GridCO.savedGenuine st.base s).isSome then st else
-    onView (fun v => gateFrom p a v s) st
+    onView (fun v => gateFrom p a (pcTarget? st) v s) st
   normalizeS st
 
 /-- [PC-SA M1; FG-SA Clock.lean clockPre; pcsa-decisions R-f]

@@ -15,10 +15,11 @@ also has the model-only caches `frozen`, `early`, `releaseSnapshots`,
 `goldfishRecord` (G) and `base.proposals`; the ack duty reads `early`. `fg`
 holds `Σ.T` with rows and the FG caches `F, J, h_j, hmax`. `proposals` is the
 authoritative store of exact admitted named proposal wires. `rowPool` is
-`Σ.attestations`. `ackPool` is `Σ.acks` (one copy of each received exact
-ack). `pcs` holds the PCs assembled from the pool, at most one per slot (the
-highest rank; never revoked by acks). `pcSnapshot[s]` is the latest PC frozen
-at `z_s`. There is no `fastWrite`. -/
+`Σ.attestations`. `ackPool` is `Σ.acks` (one copy of each accepted exact
+ack, at most two per seat and slot). `pcs` is `Σ.pcs`: the accepted usable
+F-compatible PCs, assembled from the pool, never revoked by acks; `Σ.pc` is
+`latestPC`. `pcSnapshot[s]` is `Σ.pc` frozen at `z_s`. There is no
+`fastWrite`. -/
 structure State (n : Nat) where
   base : GridCO.State n .root := GridCO.initial n .root
   fg : Store (Fin n) := Store.init
@@ -59,12 +60,22 @@ deeper than `best`, or as deep with the greater root. -/
 def deeper (best b : Block) : Bool :=
   best.depth < b.depth || (best.depth == b.depth && best.root < b.root)
 
-/-- [PC-SA M1; pcsa-decisions R-f] The held PC of slot `s`, if any. -/
-def pcAt (st : State n) (s : Slot) : Option (PC n) := st.pcs.find? (fun c => c.slot == s)
+/-- [PC-SA M1; pcsa34-r3 2.3] The max-rank PC of a list, the first on a
+tie (`preferPC`). -/
+def bestPC (cs : List (PC n)) : Option (PC n) := cs.foldl preferPC none
 
-/-- [PC-SA M1; pcsa-decisions R-e] `Σ.pc`: the latest held PC by rank
+/-- [PC-SA M1; pcsa34-r3 3.9] The max-rank held PC of slot `s`, if any. -/
+def pcAt (st : State n) (s : Slot) : Option (PC n) :=
+  bestPC (st.pcs.filter (fun c => c.slot == s))
+
+/-- [PC-SA M1; pcsa34-r3 3.1] `Σ.pc`: the max-rank held PC by rank
 `(slot, depth, root)`. -/
-def latestPC (st : State n) : Option (PC n) := st.pcs.foldl preferPC none
+def latestPC (st : State n) : Option (PC n) := bestPC st.pcs
+
+/-- [PC-SA M1; pcsa34-r3 3.1] A lease row is effective when its target is
+compatible with `Σ.pc.target` (or there is no PC). -/
+def effectiveLease (st : State n) (b : Block) : Bool :=
+  (latestPC st).all (fun c => Block.compatible b c.target)
 
 /-- [PC-SA M1; pcsa-decisions R-f] The PC frozen at `z_s`: `none` if no PC
 was held, or the freeze did not run. -/

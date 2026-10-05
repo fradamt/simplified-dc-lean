@@ -18,7 +18,7 @@ the adapter `toWire`, a bijection (`toWireEquiv`), so the store's decode
 discipline (J1) does not change. Every hook reads only the store. The FG
 action (`attest`) is the only duty that reads Λ, and `recordOwn` is the only
 step that writes it. The ack duty (`ackAction s`) runs at `e_s` and sends
-only; its payload is the store read `ackTarget?`.
+only; its payload is the store read `ackFor`.
 
 v1 `Auth` and `Signed` (namespace `AvailableChain`) and v2 `Auth` and `Signed`
 (namespace `AvailableChain.V2`) clash, so this file writes the v2 names as
@@ -68,7 +68,9 @@ def selfVisible : RunLabel → Bool
 end RunLabel
 
 /-- [PC-SA M1; pcsa-decisions 3n/4] Scheduled actions. FG actions share one
-signing label. The ack action of slot `s` runs at `e_s`. -/
+signing label. The ack action of slot `s` runs at `e_s` and only there
+(`duties_spec`), and the engine signs one object per label and seat per tick,
+so a seat sends at most one ack per slot (r3 A6) without a store field. -/
 inductive RunDuty where
   | headAction (s : Slot)
   | fgAction (r : Nat)
@@ -262,14 +264,14 @@ def withApp (p : Params) (a : Nat) : Msg p.n → Msg p.n
 /-- [PC-SA M1; pcsa-decisions 3n/4] [spec 1236–1253, 1276–1302; plan T7.2]
 The payload of the base duties (the AP labels): the HEAD vote at `v_s`, the
 proposal at `t_s` with the input in the body, and the ack at `e_s` on the
-trigger target (`ackTarget?`; no payload when no block has `N(s, B)`). It
+ack target (`ackFor`: A1 and A2; no payload otherwise). It
 reads only the store. There is no base payload for an FG label. -/
 def actS (p : Params) {In : Type} (c : AppCodec In) (st : State p.n) :
     RunDuty → In → Option (Msg p.n)
   | .headAction s, _ => some (.head (headVote p st s).root)
   | .fgAction _, _ => none
   | .propAction s, x => (propose p st s).map (withApp p (c.app x))
-  | .ackAction s, _ => (ackTarget? p st s).map Msg.ack
+  | .ackAction s, _ => (ackFor p st s).map (fun b => Msg.ack b.root)
 
 /-- [PC-SA M1] [spec 1304–1313, 1391–1399; plan T7.2] The payload of a duty: `actS` on the
 base labels, and the `attest` row body on an FG label. `attest` reads Λ; its
