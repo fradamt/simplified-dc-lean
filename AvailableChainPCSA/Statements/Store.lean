@@ -24,7 +24,7 @@ invariants. The FG-SA `lease` field (live leases below `S`) is not a PC-SA
 store invariant: a lease can turn non-effective under a conflicting PC, `S`
 can advance past it, and a later PC can make it effective again while it is
 live (second review, fix 3). It is the lane claim
-`LeaseBelowAvailableClaim` (Claims/PC.lean). -/
+`LeaseBelowRecordClaim` (Claims/PC.lean). -/
 structure StoreBundle (p : Params) (st : State p.n) : Prop where
   cstore : CStoreInv p st
   «meta» : MetaInv p st

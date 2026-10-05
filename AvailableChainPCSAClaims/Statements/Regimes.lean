@@ -55,7 +55,8 @@ structure HealthyPrefix₂ (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c))
   partBefore : ∀ t : Time, 0 ≤ t → t < b₀ → (faulty rho).card < (awakeHonest E rho t).card
 
 /-- [PC-SA claims; pcsa34-r3 5.1] The PC fault premise: fewer than `q_A`
-faulty seats, so every PC has an honest acker. -/
+faulty seats, so every PC has an honest acker.
+Implied by `FGSafetyBound` for n ≥ 1; kept for when the proof phase drops `FGSafetyBound`. -/
 def FaultsBelowQA (rho : V2.D.Run V (pcsa p c)) : Prop :=
   (faulty rho).card < pcQuorum p.n
 
@@ -64,12 +65,10 @@ theorem FaultsBelowQA_def (rho : V2.D.Run V (pcsa p c)) :
   rw [FaultsBelowQA]
 
 /-- [PC-SA claims; review C2; FG-SA AcceptPrem_W.faultBound] The FG safety
-fault bound `a ≤ f = (n − 1)/3`: honest `F` values are on one chain, so a PC
-target that is `F`-compatible at one honest node stays `F`-compatible at
-every honest node. `FaultsBelowQA` (`a < ⌈n/2⌉`) does not give this. Whether
-the healthy prefix (`HealthyPrefix₂`) gives it without the bound is a
-proof-phase question; until then the claims that need `F`-compatibility of
-the PC target take this premise. -/
+fault bound `a ≤ f = (n − 1)/3`.
+a ≤ f is the stage-2 CLEAN premise of r4.2 §5.0; with it,
+CI(vi) (reconcile drops no PC) gives F-compatibility of PC targets.
+The proof phase may remove it (FG-SA's clean claims have no a ≤ f). -/
 def FGSafetyBound (rho : V2.D.Run V (pcsa p c)) : Prop :=
   (faulty rho).card ≤ (p.n - 1) / 3
 
