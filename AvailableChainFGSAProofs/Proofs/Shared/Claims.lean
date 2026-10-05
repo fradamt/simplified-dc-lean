@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSAClaims.Claims.Outage
+public import AvailableChainFGSAClaims.Claims.WeakContinuation
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads
 public import AvailableChainFGSAClaims.Claims.Healing
 public import AvailableChainFGSAClaims.Claims.Finality
@@ -304,6 +305,16 @@ theorem fgsa_availableGrowthGST (hH : HTimeClaim p) : AvailableGrowthGSTClaim p 
     exact hincl g hg _ x ⟨hgate, hhor⟩ hx
   · intro g x hg _
     exact fgsa_output_noFuture_of_slot E rho hs ht hfuture hslot.ge g hg x
+
+/-- WC plan §8 Job 4 and r2.1; DC safety projection with the same source witness.
+Source cut coverage and continuation coverage discharge the live safety guard. -/
+theorem weakContinuation_of_live {G : Time} (h : WeakContinuationLiveClaim p G) :
+    WeakContinuationClaim p G := by
+  intro V _ _ In c ΔF hδ E source hS
+  obtain ⟨u, Q, iStar, cut, live⟩ := h c ΔF hδ E source hS
+  refine ⟨u, Q, iStar, cut, ?_⟩
+  intro E' rho hc
+  exact (live E' rho hc).safety (cut.beforeEnd.le.trans hc.covered)
 
 end AvailableChain.FGSA.Run
 end

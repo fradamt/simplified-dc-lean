@@ -6,6 +6,7 @@ public import AvailableChainFGSAProofs.Proofs.Assembly.Clean
 public import AvailableChainFGSAProofs.Proofs.Assembly.Outage -- shake: keep (SYN L58 named assembly boundary)
 public import AvailableChainFGSAProofs.Proofs.Assembly.Finality -- shake: keep (SYN L58 named assembly boundary)
 public import AvailableChainFGSAProofs.Proofs.Assembly.ResetArrival
+public import AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuation
 -- shake: keep (SYN L58 named assembly boundary)
 
 public section
@@ -91,6 +92,7 @@ theorem fgsaClaims_of_open
   availableGST := hAvailableGST
   availableGrowthGST := hAvailableGrowthGST
   cleanGrowth := fgsa_cleanGrowthClaim_of_clean p (fgsa_cleanCutClaim p)
+  weakContinuationLive := fgsa_weakContinuationLiveClaim_of_hTime (healing_hTimeClaim p)
 
 /-- SYN L58: the root from HTimeClaim alone. The FirstFinality, GST liveness and
 availability fields come from HTimeClaim and the closed local Rec claims
@@ -110,7 +112,8 @@ theorem fgsaClaims_of_hTime (hH : HTimeClaim p) : FGSAClaims p :=
     (fgsa_availableGST hH) (fgsa_availableGrowthGST hH)
 
 /-- Blueprint 21 H.18–H.22:3049–3176 and 22 §1; plan S5 NV7 L2.
-DC: SAME FGSAClaims; the closed HTimeClaim supplies the ten liveness fields. -/
+WC plan §8 Job 4 and r2.1; DC: SAME source-witness order for weak continuation.
+The closed HTimeClaim also supplies the ten existing liveness fields. -/
 theorem fgsaClaims : FGSAClaims p := fgsaClaims_of_hTime p (healing_hTimeClaim p)
 
 end AvailableChain.FGSA.Run

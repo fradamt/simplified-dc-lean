@@ -281,7 +281,6 @@ public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Step
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Induction
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Safety
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.FinalBelow
-public import AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuation
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Proposal
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.ExactProposal
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Inclusion

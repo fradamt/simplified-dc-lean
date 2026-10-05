@@ -4,6 +4,7 @@ public import AvailableChainFGSAClaims.Claims.Shared
 public import AvailableChainFGSAClaims.Claims.Clean
 public import AvailableChainFGSAClaims.Claims.Outage
 public import AvailableChainFGSAClaims.Claims.Finality
+public import AvailableChainFGSAClaims.Claims.WeakContinuation
 
 @[expose] public section
 
@@ -108,6 +109,8 @@ structure FGSAClaims (p : FGSA.Params) : Prop extends FGSASafetyClaims p where
   availableGST : AvailableGSTClaim p
   availableGrowthGST : AvailableGrowthGSTClaim p
   cleanGrowth : CleanGrowthClaim p
+  /-- WC plan §8 Job 4 and r2.1; DC one source cut for weak safety and liveness. -/
+  weakContinuationLive : ∀ G : Time, WeakContinuationLiveClaim p G
 
 end AvailableChain.FGSA.Run
 end

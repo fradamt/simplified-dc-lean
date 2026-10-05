@@ -62,5 +62,5 @@ F-3 AvailableChain.KitFG.viewLock_of_fault_certificate
 # AUTHORIZED EXCEPTION: ROOT-DIGEST-2 option 3, plan §1.4 premise, lead ruling 2026-10-04
 F-3 AvailableChain.FGSA.contentAgree_projection
 
-# WC approved plan §5: the pure crossing adapter requires explicit two-chain root identity.
+# AUTHORIZED EXCEPTION: WC plan r2 §5 pure crossing adapter (explicit two-chain root identity; run callers discharge it from named scope), lead ruling 2026-10-05
 F-3 AvailableChain.KitFG.finalizedOccurrence_preceq_of_crossing

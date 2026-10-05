@@ -3,6 +3,8 @@ public import AvailableChainFGSAProofs.Statements.WeakContinuation
 public import AvailableChainFGSAProofs.Proofs.Foundations.Export
 public import AvailableChainFGSAProofs.Proofs.Shared.HonestQuorum
 public import AvailableChainFGSARun.Proofs.Receipts
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Export
+public import AvailableChainFGSAProofs.Proofs.Shared.Claims
 
 -- WC J1; DC handler order. B3 private matcher copy, with a checked equality.
 namespace AvailableChain.FGSA
@@ -694,6 +696,31 @@ theorem wc_dischargeContinuation {E' : Generic.Env V} {source : V2.D.Run V (fgsa
       TargetQCAt p.E B fp.height (heightView p B).J), Result) : Result :=
   wc_dischargeL hc.base hc.sync hc.deltaF (wc_faultTransfer hS hc)
     (wc_participation hS hc hs.firstVoteAfterGST) consume
+
+/-- WC plan §8 Job 4 and r2.1; DC source witness before every continuation.
+Select H-time once, build the source seed once, then replay and discharge [L]. -/
+theorem fgsa_weakContinuationLiveClaim_of_hTime (hH : HTimeClaim p) (G : Time) :
+    WeakContinuationLiveClaim p G := by
+  intro V _ _ In c ΔF hδ E source hS
+  obtain ⟨w, input, start, bound⟩ := hH G ΔF hδ c E source ()
+    ⟨⟨hS.toRecovery₂, hS.liveness⟩, hS.endpoint.ge⟩
+  have hend : tstar p w < source.horizon := by
+    rw [hS.endpoint]
+    exact start.trans_lt bound
+  obtain ⟨cut, hs⟩ := wc_heightSeed hS input hend
+  refine ⟨w.u, w.QStar, afterTicksIdx source (tstar p w), cut, ?_⟩
+  intro E' rho hc
+  have hs' := wc_seedReplay hc.agrees hS.base.valid hs cut.beforeEnd
+  apply wc_dischargeContinuation hS hc hs
+  intro hvalid hlinked hcstar hnr hdelta hroots hsync hdeltaF
+    hfault hfaultQ hfaultX hpart hstore hcumul hmono hactive hframe hmeta hrec hgeo hcert
+    hsrc hlabel hqc hstrat hnoslash hemitted htargets hlease hfast hdeadlines hheldRows
+    hscopeRows hfinalHead
+  exact wc_seededLiveAt ΔF w (afterTicksIdx source (tstar p w))
+    hvalid hlinked hcstar hnr hdelta hroots hsync hdeltaF
+    hfault hfaultQ hfaultX hpart hstore hcumul hmono hactive hframe hmeta hrec hgeo hcert
+    hsrc hlabel hqc hstrat hnoslash hemitted htargets hlease hfast hdeadlines hheldRows
+    hscopeRows hfinalHead hs'
 
 end AvailableChain.FGSA.Run
 end
