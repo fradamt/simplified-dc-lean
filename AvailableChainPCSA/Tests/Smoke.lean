@@ -168,6 +168,52 @@ theorem proposal_carries : liveRoot pT (atTime stA 8) (some pc1) = b1 ∧
     st8.base.blocks = [.genesis, b1, prop2.erase] ∧
     carriedPCs st8 2 = [pc1] ∧ voterPC st8 2 = some pc1 := by decide +kernel
 
+/-- The slot-2 proposal with NO PC (acks never delivered), delivered at 8. -/
+def prop2n : NamedProposal 4 :=
+  match propose pT (atTime st6 8) 2 with
+  | some (.proposal N) => N
+  | _ => .genesis
+def st8n : State pT.n := process pT (atTime st6 8) ⟨.proposer 2, .proposal prop2n⟩
+/-- Three slot-2 HEADs on the slot-2 block at `v_2 = 9`, then the ticks to
+`a_1 = d_2 = 14`: with the PC (`st14`) and without any PC (`st14n`). -/
+def hv2 (b : Block) (i : Fin 4) : Wire 4 := ⟨.seat (.head 2) i, .head b.root⟩
+def st14 : State pT.n :=
+  [(10 : Time), 11, 12, 13, 14].foldl (clock pT)
+    ([hv2 prop2.erase 0, hv2 prop2.erase 1, hv2 prop2.erase 2].foldl (process pT) (atTime st8 9))
+def st14n : State pT.n :=
+  [(10 : Time), 11, 12, 13, 14].foldl (clock pT)
+    ([hv2 prop2n.erase 0, hv2 prop2n.erase 1, hv2 prop2n.erase 2].foldl (process pT)
+      (atTime st8n 9))
+
+/-- (R-l) The gate at `d_1` writes the source-only `fastWrite[1] = [b1]` and
+no lease; the empty gate of slot 0 wrote `[]`. -/
+theorem fastWrite_gate : fastWriteAt st10 1 = some [b1] ∧ fastWriteAt st10 0 = some [] ∧
+    fastWriteAt st10 2 = none ∧ st10.base.obligations = [] := by decide +kernel
+
+/-- (R-l) An honest opening of round 1 (slot 2): at `a_1 = 14` the source is
+the slot-2 proposal (`fastWrite[2] = [b1, b2]`, deepest frame-active member);
+the PC is not the source. With no PC at all the source still exists. -/
+theorem source_from_fastWrite :
+    fastWriteAt st14 2 = some [b1, prop2.erase] ∧ st14.pcs = [pc1] ∧
+    (fgSource pT st14).map eraseFG = some prop2.erase ∧
+    fastWriteAt st14n 2 = some [b1, prop2n.erase] ∧ st14n.pcs = [] ∧
+    (fgSource pT st14n).map eraseFG = some prop2n.erase ∧
+    fgSource pT st10 = none := by decide +kernel
+
+/-- (R-l) Reconcile filters the fastWrite sets by F. -/
+theorem fastWrite_reconcile :
+    (reconcile { st10 with fg := { st10.fg with F := B1' } }).fastWrite = [(0, []), (1, [])] := by
+  decide +kernel
+
+/-- (D5) The snapshot of `z_1 = 7` is taken at the tick, before the deliveries
+of time 7: a PC assembled from acks delivered at `z_1` itself is held but is
+not in the snapshot; acks delivered before `z_1` are. -/
+theorem snapshot_boundary :
+    pcSnapshotAt (clock pT stA 7) 1 = some pc1 ∧
+    pcSnapshotAt ([akWire 0, akWire 1].foldl (process pT) (clock pT st6 7)) 1 = none ∧
+    ([akWire 0, akWire 1].foldl (process pT) (clock pT st6 7)).pcs = [pc1] := by
+  decide +kernel
+
 /-- (h) The label code separates the three constructors (small slots); the
 ack-slot hook reads the ack label only. -/
 theorem encLabel_small : ∀ s < 6, ∀ s' < 6,
@@ -192,6 +238,7 @@ theorem encLabel_injective : Function.Injective encLabel := by
 
 #print axioms gate_saves
 #print axioms proposal_carries
+#print axioms source_from_fastWrite
 #print axioms encLabel_injective
 
 end AvailableChain.PCSA.Tests

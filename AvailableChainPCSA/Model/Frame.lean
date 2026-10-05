@@ -207,15 +207,25 @@ def fgHead (p : Params) (st : State p.n) : Block :=
 def fgBlockOf {n : Nat} (st : State n) (b : Block) : Option (FGBlock (Fin n)) :=
   pickPair st.fg.TF (fun B => decide (eraseFG B = b))
 
-/-- [PC-SA M1; FG-SA Frame.lean fgSource; pcsa34-r3 3.9, R8]
-[spec 666–677, 1327–1335] `C_fg`: the target of the max-rank frame-active
-held PC of the opening slot `rR` of the current round; else no row. There is
-no lease condition and no fallback. -/
+/-- [PC-SA M1; FG-SA Frame.lean deepest]
+[spec 260–262, 1327–1335; DQ13] The deepest member (depth of the erasure);
+ties: the greater root. `deepest ∅ = none`. For a nonempty set, `none` only if
+two distinct maximal candidates share both depth and root (which local store
+root uniqueness excludes). -/
+def deepest {n : Nat} (X : Finset (FGBlock (Fin n))) : Option (FGBlock (Fin n)) :=
+  pickPair X (fun B => decide (∀ C ∈ X, (eraseFG C).depth < (eraseFG B).depth ∨
+    ((eraseFG C).depth = (eraseFG B).depth ∧ C.root.value ≤ B.root.value)))
+
+/-- [PC-SA M1; FG-SA Frame.lean fgSource; pcsa-decisions R-l]
+[spec 666–677, 1327–1335] `C_fg`: the deepest block of the full filtered
+tree that is in `fastWrite[rR]` (the gate-coverage source of FG-SA). The set
+is the one of the scheduled gate `d_{rR}`; there is no older set and no
+fallback. No lease condition: PC-SA writes no lease from the fast test
+(R-a), so the FG-SA lease clause is dropped. The PC is not the source. -/
 def fgSource (p : Params) (st : State p.n) : Option (FGBlock (Fin p.n)) :=
   let r := p.round (st.slot p)
-  match bestPC ((st.pcs.filter (fun c => c.slot == r * p.R)).filter (frameActive p st)) with
-  | some c => pickPair (fullTree p st) (fun B => decide (eraseFG B = c.target))
-  | none => none
+  let fw := (fastWriteAt st (r * p.R)).getD []
+  deepest ((fullTree p st).filter (fun B => decide (eraseFG B ∈ fw)))
 
 /-- [PC-SA M1] [spec 1315–1338] `get_fg_vote`: the source and the head fields of the
 finality head. -/
