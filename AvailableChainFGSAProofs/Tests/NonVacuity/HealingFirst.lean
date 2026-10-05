@@ -722,8 +722,12 @@ theorem nvH0Reset' : H0Reset params unitCodec env run w' where
 
 theorem nvProposalLower : w'.sStar + 2 ≤ w'.u := by decide
 
-theorem nvProposal : HonestProposal env run (fgsaInterface params unitCodec) w'.u w'.QStar :=
-  honestProposal_of_cached (by decide) (by decide) nvFirstMember
+-- Keep the evaluated block closed during proposal and H0 assembly.
+attribute [irreducible] firstProposal
+
+theorem nvProposal : HonestProposal env run (fgsaInterface params unitCodec) w'.u w'.QStar := by
+  change HonestProposal env run (fgsaInterface params unitCodec) 11 firstProposal
+  exact honestProposal_of_cached (by decide) (by decide) nvFirstMember
 
 theorem nvProposalFirst : ∀ v Q, w'.sStar + 2 ≤ v →
     HonestProposal env run (fgsaInterface params unitCodec) v Q → w'.u ≤ v := by
@@ -731,9 +735,6 @@ theorem nvProposalFirst : ∀ v Q, w'.sStar + 2 ≤ v →
   exact hv
 
 theorem nvAfterGST : env.t_GST ≤ tstar params w' := by decide
-
--- Keep the evaluated block closed during the H0 assembly.
-attribute [irreducible] firstProposal
 
 /-- All H0 fields hold on the unchanged one-node run. -/
 theorem nvH0 : H0 params unitCodec env run w' where

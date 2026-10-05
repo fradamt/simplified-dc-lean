@@ -61,10 +61,11 @@ example (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     HealSuffix p c rho a (timeIdx rho a) := fgsa_healSuffix_timeIdx E rho hs le_rfl
 
 -- The actual application value survives the proposal payload adapter.
-example (H : Block) (s : Slot) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
+example (H : NamedProposal p.n) (s : Slot) (raw sup : List (HeadWire p.n))
+    (rows : List (RowWire p.n))
     (a : Nat) :
-    withApp p a (.proposal (proposalBlock p H s 0 raw sup rows) raw sup rows) =
-      .proposal (proposalBlock p H s a raw sup rows) raw sup rows := rfl
+    withApp p a (.proposal (namedProposal p H s 0 raw sup rows)) =
+      .proposal (namedProposal p H s a raw sup rows) := rfl
 
 -- ABSTRACT regression: this is not a reachable FGSA execution. Both
 -- outputs already equal B at t and D. Monotonicity and inclusion hold, but

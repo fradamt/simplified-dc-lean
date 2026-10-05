@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.ProposalRead
 public import AvailableChainFGSAProofs.Proofs.Assembly.Healing -- shake: keep (H-EXPORT-1 axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetH2Prime -- shake: keep (H2P axiom audit)
 public import AvailableChainFGSAProofs.Proofs.Finality.Proposal -- shake: keep (F-PROP audit)
@@ -2209,3 +2210,6 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone -- shake: ke
 #print axioms AvailableChain.FGSA.Run.arming_frame_below
 #check AvailableChain.FGSA.Run.kmid_rows_above_entry
 #print axioms AvailableChain.FGSA.Run.kmid_rows_above_entry
+
+-- ROOT-DIGEST-2 W2: exact named origin and root resolution producers.
+#print axioms AvailableChain.FGSA.Run.proposal_read_named

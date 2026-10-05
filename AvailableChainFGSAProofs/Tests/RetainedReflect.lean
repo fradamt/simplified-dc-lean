@@ -47,8 +47,8 @@ private def target : State 1 :=
   { source with
     base := { source.base with
       blocks := source.base.blocks ++ [eraseFG oldFG]
-      votes := [⟨.seat 3 0, .head (eraseFG oldFG)⟩]
-      voteStamp := [(⟨.seat 3 0, .head (eraseFG oldFG)⟩, 0)]
+      votes := [⟨.seat 3 0, .head (eraseFG oldFG).root⟩]
+      voteStamp := [(⟨.seat 3 0, .head (eraseFG oldFG).root⟩, 0)]
       blockStamp := source.base.blockStamp ++ [(eraseFG oldFG, 0)] }
     fg := { source.fg with TF := {.genesis, cutFG, parentFG, oldFG} } }
 

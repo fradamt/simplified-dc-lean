@@ -187,13 +187,13 @@ example {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (s + 1))))
     (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
     (hseat : rho.seatOf (.prop (s + 1)) ⟨0, Nat.one_pos⟩ = x)
-    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hem : (⟨.seat (.prop (s + 1)) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop (s + 1)) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       rho.emitsAt E ip)
     (Kc C : Block)
     (hcut : Block.Preceq (RetainedWalk.z p (clock p (rho.stateBefore E ip x).st
       (SA.proposalTime p.toParams (s + 1)))) Kc)
-    (hKQ : Block.Preceq Kc b.parent) (hp : C.parent? = some b.parent)
+    (hKQ : Block.Preceq Kc N.erase.parent) (hp : C.parent? = some N.erase.parent)
     (hold : C.slot < s + 1)
     (hm : C ∈ RetainedWalk.T p (clock p (rho.stateBefore E ih y).st
       (SA.voteTime p.toParams (s + 1))) (s + 1))
@@ -203,7 +203,7 @@ example {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
     C ∈ RetainedWalk.S p (clock p (rho.stateBefore E ip x).st
       (SA.proposalTime p.toParams (s + 1))) :=
   fgsa_walkRun_reflected_old_child (hroots := hroots) E rho hE hN hDelta s hSync hx hy hip hih hseat
-    b raw sup rows hem Kc b.parent C hcut hKQ (Gen.Pure.block_preceq_refl _)
+    N hem Kc N.erase.parent C hcut hKQ (Gen.Pure.block_preceq_refl _)
     hp hold hm hw
 
 #print axioms receipt
@@ -270,7 +270,7 @@ example (p : Params) (st : State p.n) (D : Block)
 
 -- One vote per seat is not a cap.
 example : GridCO.equivocates
-    [baseVote (⟨.seat (.head 0) (0 : Fin 2), .genesis⟩ : HeadWire 2)] 0 = false :=
+    [baseVote (⟨.seat (.head 0) (0 : Fin 2), genesisRoot⟩ : HeadWire 2)] 0 = false :=
   inclusion_no_equivocation _ 0 _ (fun _ ho _ => List.mem_singleton.mp ho)
 
 -- O-CLOSE shape: the ExactProposalPrem fields and the field-level Clean binders give E1, E2 and E3

@@ -224,11 +224,12 @@ theorem fgsa_carried_row_cap_control :
 example : P1.handles t77Pre t77Envelope t77Third := by
   change handlesS p1 t77Pre.st t77Envelope t77Third
   right
-  change (∃ P, parentFG t77Pre.st _ = some P ∧
-    blockAccepted p1 t77Pre.st 1 _ [] [] P t77Rows = true) ∧
+  change (namedParentHeld t77Pre.st _ = true ∧
+    ∃ P, parentFG t77Pre.st _ = some P ∧
+      blockAccepted p1 t77Pre.st 1 _ P = true) ∧
       (t77Third ∈ [].map (ofHead p1) ∨ t77Third ∈ t77Rows.map (ofRow p1))
   constructor
-  · exact ⟨.genesis, by decide +kernel, by decide +kernel⟩
+  · exact ⟨by decide +kernel, .genesis, by decide +kernel, by decide +kernel⟩
   · right
     decide +kernel
 

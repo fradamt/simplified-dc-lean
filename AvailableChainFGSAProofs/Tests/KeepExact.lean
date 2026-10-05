@@ -231,7 +231,7 @@ private def st : State 1 :=
     base := { (initial 1).base with blocks := [T, C, F, P, Q] }
     fg := { TF := {.genesis, c, f, p, q}, F := f, J := f, h_j := 0, h_max := 1 } }
 
-private def votes : List (GridCO.Wire 1) := [⟨.seat 4 0, .head Q⟩]
+private def votes : List (GridCO.Wire 1 .root) := [⟨.seat 4 0, .head Q.root⟩]
 
 private theorem geometry :
     Block.Prec T C ∧ Block.Prec C F ∧ Block.Prec F P ∧ Block.Prec P Q ∧

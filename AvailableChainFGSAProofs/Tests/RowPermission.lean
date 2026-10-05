@@ -66,19 +66,21 @@ private theorem base0 : Base₂ p1 unitCodec env0 rho0 where
       intro x o t hd
       obtain ⟨i, hi⟩ := List.mem_iff_getElem?.mp hd
       exact noDelivery0 i x o t hi
-    have hg {A : Block} (hA : RootBlockInRun p1 unitCodec env0 rho0 A) : A = .genesis := by
-      rcases rootBlockInRun_genesis_or_delivered env0 rho0
-        (by intro x o t b raw sup rows hd; exact (hnone x o t hd).elim) hA with h | hd
+    have hg {A : NamedProposal p1.n} (hA : NamedProposalInRun p1 unitCodec env0 rho0 A) :
+        A = .genesis := by
+      rcases namedProposalInRun_genesis_or_delivered env0 rho0
+        (by intro x o t b hd; exact (hnone x o t hd).elim) hA with h | hd
       · exact h
-      · obtain ⟨x, o, t, raw, sup, rows, hd, _⟩ := hd
+      · obtain ⟨x, o, t, hd, _⟩ := hd
         exact (hnone x o t hd).elim
     refine ⟨?_⟩
     intro B C hB hC A D hA hD _
-    have scopeX {X : Block} (hX : Block.Preceq X B ∨ Block.Preceq X C) :
-        RootBlockInRun p1 unitCodec env0 rho0 X := by
+    have scopeX {X : NamedProposal p1.n} (hX : NamedProposal.Preceq X B ∨
+        NamedProposal.Preceq X C) :
+        NamedProposalInRun p1 unitCodec env0 rho0 X := by
       rcases hX with hX | hX
-      · exact rootBlockInRun_ancestor env0 rho0 hB hX
-      · exact rootBlockInRun_ancestor env0 rho0 hC hX
+      · exact namedScope_ancestor env0 rho0 hB hX
+      · exact namedScope_ancestor env0 rho0 hC hX
     exact (hg (scopeX hA)).trans (hg (scopeX hD)).symm
   linked := by
     refine ⟨1, Equiv.refl _, ?_⟩

@@ -36,8 +36,8 @@ private def source : State 1 :=
   { initial 1 with
     base := { (initial 1).base with
       now := 16
-      votes := [⟨.seat 3 0, .head (eraseFG parentFG)⟩]
-      voteStamp := [(⟨.seat 3 0, .head (eraseFG parentFG)⟩, 0)]
+      votes := [⟨.seat 3 0, .head (eraseFG parentFG).root⟩]
+      voteStamp := [(⟨.seat 3 0, .head (eraseFG parentFG).root⟩, 0)]
       blocks := [.genesis, eraseFG cutFG, eraseFG parentFG]
       blockStamp := [(.genesis, 0), (eraseFG cutFG, 0), (eraseFG parentFG, 0)]
       obligations := [(eraseFG cutFG, 0, 100)] }

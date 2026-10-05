@@ -316,8 +316,8 @@ theorem positive_early_row_time (st : Node params) (v : Validator) (t : Time)
       unfold propose at ha
       split at ha
       · cases ha
-      · simp only [Option.map_some, withApp] at ha
-        cases ha
+      · simp only [Option.map_map] at ha
+        obtain ⟨P, _, rfl⟩ := Option.map_eq_some_iff.mp ha
         cases hp
   | fgAction r =>
       change 4 * (↑(r * 2) : Int) + 6 = t at htime

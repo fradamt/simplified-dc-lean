@@ -79,11 +79,11 @@ example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
 
 -- Conditional package fixture: an actual honest pre-GST body acceptance.
 example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF) (mono : RMono p c E rho)
-    {j : Nat} {y x : V} {t D : Time} {s : Slot} {b : Block}
-    {raw sup : List (HeadWire p.n)} {rows : List (RowWire p.n)} {K : FGBlock (Fin p.n)}
+    {j : Nat} {y x : V} {t D : Time} {s : Slot} {N : NamedProposal p.n}
+    {K : FGBlock (Fin p.n)}
     (hy : y ∈ rho.honest) (hx : x ∈ rho.honest)
-    (ha : V2.D.Run.acceptsAt E rho j y (ofWire p ⟨.proposer s, .proposal b raw sup rows⟩) t)
-    (ht : t < E.t_GST) (hKb : eraseFG K = b)
+    (ha : V2.D.Run.acceptsAt E rho j y (ofWire p ⟨.proposer s, .proposal N⟩) t)
+    (ht : t < E.t_GST) (hKb : eraseFG K = N.erase)
     (hd : E.t_GST + p.Δ ≤ D) (hhor : D ≤ rho.horizon)
     (hF : FGBlock.Preceq (V2.D.Run.stateBeforeTime E rho D x).st.fg.F K) :
     Gen.V2.Duty.HoldsBefore E rho

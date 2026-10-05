@@ -1,4 +1,5 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.ProposalRead
 public import AvailableChainFGSAProofs.Proofs.Shared.Roots
 public import AvailableChainFGSAProofs.Proofs.Healing.Promotion
 public import AvailableChainFGSAProofs.Proofs.Healing.PromotionArithmetic

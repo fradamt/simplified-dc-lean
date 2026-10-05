@@ -143,7 +143,7 @@ example :
 /-- A raw conflicting result is saved but creates no fast-write source. -/
 theorem raw_conflicting_saved (p : Params) (st : State p.n) (s : Slot) {B C : Block}
     (hnew : GridCO.savedGenuine st.base s = none)
-    (hraw : SA.confirmationFrom p.toParams (eraseFG st.fg.F) (FGSA.actView st) s = some C)
+    (hraw : SA.Root.confirmationFrom p.toParams (eraseFG st.fg.F) (FGSA.actView st) s = some C)
     {dl : Time} (hrow : (B, SA.releaseThreshold p.toParams, dl) ∈ st.base.obligations)
     (hconflict : ¬ Block.Compatible B C) :
     GridCO.savedGenuine (FGSA.gateStep p st s).base s = some (some C) ∧

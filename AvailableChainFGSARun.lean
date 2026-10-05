@@ -34,3 +34,7 @@ public import AvailableChainFGSARun.Proofs.ReceiptCoverage
 public import AvailableChainFGSARun.Proofs.AncestorDeadlinesStore
 public import AvailableChainFGSARun.Proofs.AncestorDeadlines
 public import AvailableChainFGSARun.Proofs.Roots
+public import AvailableChainFGSARun.Proofs.HeadIdentity
+public import AvailableChainFGSARun.Proofs.NamedDelivery
+public import AvailableChainFGSARun.Proofs.RootLease
+public import AvailableChainFGSARun.Proofs.RootResolution

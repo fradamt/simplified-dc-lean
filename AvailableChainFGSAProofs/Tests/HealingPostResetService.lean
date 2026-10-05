@@ -32,8 +32,8 @@ example (w : HealingWitness) (hcone : PostResetRetainedCone p c E rho w)
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
     (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
-    (Q : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal Q raw sup rows⟩ : Obj p) ∈
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       rho.emitsAt E ip) :
     ∃ D : FGBlock (Fin p.n), ∀ y ∈ rho.honest, ∀ ih,
       rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
@@ -41,7 +41,7 @@ example (w : HealingWitness) (hcone : PostResetRetainedCone p c E rho w)
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D := by
   rw [postResetRetainedCone_iff] at hcone
-  exact hcone s hs hHeadHorizon hx hip hseat Q raw sup rows hem
+  exact hcone s hs hHeadHorizon hx hip hseat N hem
 
 -- D1: the HEAD at sStar + 1 is inside the horizon, but no cone input is asked.
 example (w : HealingWitness)
@@ -195,8 +195,8 @@ example {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     (r : Nat) (hr : v = r * p.R) (q : Fin p.n)
     (hy : rho.seatOf (.base (.head v)) q ∈ rho.honest)
     (haw : E.awake (rho.seatOf (.base (.head v)) q) (SA.voteTime p.toParams v) = true)
-    (K : Block) (he : V2.D.Run.emits E rho (rho.seatOf (.base (.head v)) q)
-      (ofHead p ⟨.seat (.head v) q, K⟩) (SA.voteTime p.toParams v)) :
+    (K : Block) (he : HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head v)) q)
+      (ofHead p ⟨.seat (.head v) q, K.root⟩) (SA.voteTime p.toParams v) K) :
     Block.Preceq (eraseFG (clockPre p (storeAt p c E rho i x)
       (SA.gateTime p.toParams v)).fg.F) K :=
   healing_postReset_opening_target_floor E rho hrec w hreset hcone (i + 1) hopening
@@ -223,17 +223,17 @@ variable (mono : RMono p c E rho)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n .root
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
           (row.1, row.2.1) ∉
-          @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n .root
+          @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
             (actView pre) w C)
 
 include hrec hreset hcone cap rowCovered mono writes

@@ -56,7 +56,7 @@ example (hs : V2.D.ExecutionValid E rho) {j : Nat} {x : V} {w : Slot} {B : Block
     (hx : x ∈ rho.honest) (ht : IsGateTick p c rho j x w)
     (hpass : gatePassedAt p c E rho j) (hres : gateResultAt p c E rho j = some (some B))
     {K : Block} {g : Nat}
-    (hkey : (K, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n .root
+    (hkey : (K, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
       (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams w))) w B)
     (hwindow : E.t_GST ≤ SA.voteTime p.toParams (w + 1 - p.k)) :
     PhaseBody p c E rho w K :=
@@ -110,7 +110,7 @@ example (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.�
     {ix iy : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (hix : rho.events[ix]? = some (.tick x (SA.gateTime p.toParams s)))
     (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1)))) {B : Block}
-    (hτ : SA.releaseThreshold p.toParams ≤ SA.prefixSupport p.toParams
+    (hτ : SA.releaseThreshold p.toParams ≤ SA.Root.prefixSupport p.toParams
       (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s B)
     (hFB : Block.Preceq (eraseFG (storeAt p c E rho iy y).fg.F) B) :
     ∀ row ∈ (FGSA.clock p (storeAt p c E rho iy y)
@@ -124,17 +124,17 @@ example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n .root
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
           (row.1, row.2.1) ∉
-          @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n .root
+          @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
@@ -157,17 +157,17 @@ example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n .root
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
           (row.1, row.2.1) ∉
-          @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n .root
+          @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
@@ -186,17 +186,17 @@ example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n .root
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
           (row.1, row.2.1) ∉
-          @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n .root
+          @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
             (actView pre) w C) :
     TPerm p c E rho :=
   healing_tPerm E rho hrec mono crossing writes
@@ -342,19 +342,21 @@ private theorem roots1 : NamedRootCollisionFree p1 unitCodec env1 rho1 := by
       intro x o t hd
       obtain ⟨i, hi⟩ := List.mem_iff_getElem?.mp hd
       exact noDelivery1 i x o t hi
-    have hg {A : Block} (hA : RootBlockInRun p1 unitCodec env1 rho1 A) : A = .genesis := by
-      rcases rootBlockInRun_genesis_or_delivered env1 rho1
-        (by intro x o t b raw sup rows hd; exact (hnone x o t hd).elim) hA with h | hd
+    have hg {A : NamedProposal p1.n} (hA : NamedProposalInRun p1 unitCodec env1 rho1 A) :
+        A = .genesis := by
+      rcases namedProposalInRun_genesis_or_delivered env1 rho1
+        (by intro x o t b hd; exact (hnone x o t hd).elim) hA with h | hd
       · exact h
-      · obtain ⟨x, o, t, raw, sup, rows, hd, _⟩ := hd
+      · obtain ⟨x, o, t, hd, _⟩ := hd
         exact (hnone x o t hd).elim
     refine ⟨?_⟩
     intro B C hB hC A D hA hD _
-    have scopeX {X : Block} (hX : Block.Preceq X B ∨ Block.Preceq X C) :
-        RootBlockInRun p1 unitCodec env1 rho1 X := by
+    have scopeX {X : NamedProposal p1.n} (hX : NamedProposal.Preceq X B ∨
+        NamedProposal.Preceq X C) :
+        NamedProposalInRun p1 unitCodec env1 rho1 X := by
       rcases hX with hX | hX
-      · exact rootBlockInRun_ancestor env1 rho1 hB hX
-      · exact rootBlockInRun_ancestor env1 rho1 hC hX
+      · exact namedScope_ancestor env1 rho1 hB hX
+      · exact namedScope_ancestor env1 rho1 hC hX
     exact (hg (scopeX hA)).trans (hg (scopeX hD)).symm
 
 private theorem mono1 : RMono p1 unitCodec env1 rho1 := by

@@ -34,8 +34,8 @@ private def fixture : State 1 :=
     base := { (initial 1).base with
       now := 12
       blocks := [.genesis, eraseFG pfg, eraseFG qfg, eraseFG rfg]
-      votes := [⟨.seat 2 0, .head (eraseFG qfg)⟩]
-      voteStamp := [(⟨.seat 2 0, .head (eraseFG qfg)⟩, 0)]
+      votes := [⟨.seat 2 0, .head (eraseFG qfg).root⟩]
+      voteStamp := [(⟨.seat 2 0, .head (eraseFG qfg).root⟩, 0)]
       blockStamp := [(.genesis, 0), (eraseFG pfg, 0), (eraseFG qfg, 0), (eraseFG rfg, 0)] }
     fg := { TF := {.genesis, pfg, qfg, rfg}, F := .genesis, J := .genesis, h_j := 0, h_max := 1 } }
 

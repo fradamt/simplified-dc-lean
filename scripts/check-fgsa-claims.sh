@@ -29,6 +29,8 @@ LIBS = ('AvailableChainFGSAClaims', 'AvailableChainFGSAProofs', 'AvailableChainF
 CLAIMS, PROOFS, INHABIT = LIBS
 # Required declarations: later tasks add their principal outputs here.
 EXPECTED = (
+    # ROOT-DIGEST-2 W2 producers.
+    'AvailableChain.FGSA.Run.proposal_read_named',
     # ROOT-DIGEST W3b: scoped producers and concrete premise witnesses.
     'AvailableChain.FGSA.Run.finalityRun_parent_scope',
     'AvailableChain.FGSA.Run.fgsa_runAccountable',

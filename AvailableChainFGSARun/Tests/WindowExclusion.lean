@@ -25,14 +25,20 @@ private def secondRows : List (RowWire 4) := [⟨.seat .fg 3, .vote (RowBody.ofR
 private def second : FGBlock (Fin 4) :=
   .node first 2 ⟨3⟩ (packInner 0 secondRows) (secondRows.filterMap RowWire.toRow?)
 
-private def object (s : Slot) (B : FGBlock (Fin 4)) (rows : List (RowWire 4)) : Obj p :=
-  ⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal (eraseFG B) [] [] rows⟩
+private def firstNamed : NamedProposal 4 :=
+  .node .genesis 1 ⟨2⟩ (packBody 0 firstRows) [] [] firstRows
+
+private def secondNamed : NamedProposal 4 :=
+  .node firstNamed 2 ⟨3⟩ (packBody 0 secondRows) [] [] secondRows
+
+private def object (s : Slot) (N : NamedProposal 4) : Obj p :=
+  ⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩
 
 private def env : Generic.Env Unit := ⟨1, by decide, 0, by decide, fun _ _ => false⟩
 private def run : V2.D.Run Unit (fgsa p unitCodec) :=
   { honest := {()}, horizon := 8,
-    events := [.tick () 4, .deliver () (object 1 first firstRows) 4,
-      .tick () 8, .deliver () (object 2 second secondRows) 8],
+    events := [.tick () 4, .deliver () (object 1 firstNamed) 4,
+      .tick () 8, .deliver () (object 2 secondNamed) 8],
     seatOf := fun _ _ => (), input := fun _ _ => () }
 
 set_option maxRecDepth 8192
@@ -57,8 +63,8 @@ private theorem checked : V2.D.DeliveryWellFormed env run := by
 
 /-- ROOT-DIGEST W3b. Both complete packed proposals pass wire checks and actual admission.
 The stored two-block chain has the decoded rows used by the transfer. -/
-example : (fgsa p unitCodec).wellFormed (object 1 first firstRows) = true ∧
-    (fgsa p unitCodec).wellFormed (object 2 second secondRows) = true ∧
+example : (fgsa p unitCodec).wellFormed (object 1 firstNamed) = true ∧
+    (fgsa p unitCodec).wellFormed (object 2 secondNamed) = true ∧
     second ∈ (V2.D.Run.stateBefore env run 4 ()).st.fg.TF ∧
     first ∈ (V2.D.Run.stateBefore env run 4 ()).st.fg.TF ∧
     second.rows = [row] := by decide +kernel

@@ -26,16 +26,16 @@ private def LastWrite : Prop :=
     row ∈ (storeAt p c E rho i x).base.obligations →
     ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
       gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-      (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n .root
+      (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
         (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
       row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
       row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
       ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
         let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
         GridCO.savedGenuine pre.base w = none →
-        SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+        SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
         (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-        (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n .root
+        (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView pre) w C
 
 -- F1: the strict-stop adapter applied directly in the HG.1 consumer.
@@ -56,8 +56,8 @@ example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
     (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
-    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       rho.emitsAt E ip)
     (hSync : Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o)
       (SA.proposalTime p.toParams s - p.Δ) (SA.voteTime p.toParams s))
@@ -66,13 +66,12 @@ example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
       rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
       ∃ Kc, RetainedReadPremises p
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
-        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s Qfg b Kc :=
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s Qfg N.erase Kc :=
   fgsa_retainedReads_HG1 (hroots := hroots) E rho hrec.base.valid hrec.base.noRestart
       hrec.base.delta s hSync hx
-    hip hseat b raw sup rows hem Qfg q stop hafter hsStop
+    hip hseat N hem Qfg q stop hafter hsStop
     (retainedHG1Input_before_first_rise E rho hrec mono crossing lastWrite hGST hQ hErase
-      hHeight hService hu hPhase hStopEv hStop hRise hCapStop hqStop hsStop hx hip hseat b raw
-      sup rows hem)
+      hHeight hService hu hPhase hStopEv hStop hRise hCapStop hqStop hsStop hx hip hseat N hem)
 
 -- F2: m = 1 (height-one pivot; the frame may be top J with genesis).
 example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
@@ -89,8 +88,8 @@ example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
     (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
-    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       rho.emitsAt E ip)
     (hafter : SA.gateTime p.toParams q ≤ SA.proposalTime p.toParams s)
     (hgate : SA.gateTime p.toParams s ≤ v) :
@@ -100,7 +99,7 @@ example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s Qfg :=
   retainedHG1Input_through E rho hrec mono crossing lastWrite hGST hQ hErase hHeight hService
-    hu hPhase hqv hHorizon hCap hx hip hseat b raw sup rows hem hafter hgate
+    hu hPhase hqv hHorizon hCap hx hip hseat N hem hafter hgate
 
 -- F3: unequal floors: the source and target floors are bounded separately by m.
 example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
@@ -117,8 +116,8 @@ example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
     (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
-    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       rho.emitsAt E ip)
     (hafter : SA.gateTime p.toParams q ≤ SA.proposalTime p.toParams s)
     (hgate : SA.gateTime p.toParams s ≤ v)
@@ -130,7 +129,7 @@ example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     (controls p (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))).lo ≤ m ∧
     (controls p (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s))).lo ≤ m := by
   have h := retainedHG1Input_through E rho hrec mono crossing lastWrite hGST hQ hErase hHeight
-    hService hu hPhase hqv hHorizon hCap hx hip hseat b raw sup rows hem hafter hgate y hy ih hih
+    hService hu hPhase hqv hHorizon hCap hx hip hseat N hem hafter hgate y hy ih hih
   exact ⟨hne, hHeight ▸ h.source_floor, hHeight ▸ h.target_floor⟩
 
 -- F4: same-time reads: two HEAD ticks at v_s, in either index order, both get the input.
@@ -148,8 +147,8 @@ example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
     (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
-    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       rho.emitsAt E ip)
     (hafter : SA.gateTime p.toParams q ≤ SA.proposalTime p.toParams s)
     (hgate : SA.gateTime p.toParams s ≤ v)
@@ -164,7 +163,7 @@ example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
       (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
       (clock p (rho.stateBefore E i₂ y₂).st (SA.voteTime p.toParams s)) s Qfg := by
   have h := retainedHG1Input_through E rho hrec mono crossing lastWrite hGST hQ hErase hHeight
-    hService hu hPhase hqv hHorizon hCap hx hip hseat b raw sup rows hem hafter hgate
+    hService hu hPhase hqv hHorizon hCap hx hip hseat N hem hafter hgate
   exact ⟨h12, h y₁ hy₁ i₁ hi₁, h y₂ hy₂ i₂ hi₂⟩
 
 -- F5: ΔF > Δ: the row delay is not used by the producer.
@@ -182,8 +181,8 @@ example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF) (hΔF : 
     (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
     (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
-    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       rho.emitsAt E ip)
     (hafter : SA.gateTime p.toParams q ≤ SA.proposalTime p.toParams s)
     (hgate : SA.gateTime p.toParams s ≤ v) :
@@ -193,7 +192,7 @@ example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF) (hΔF : 
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s Qfg :=
   ⟨hΔF, retainedHG1Input_through E rho hrec mono crossing lastWrite hGST hQ hErase hHeight
-    hService hu hPhase hqv hHorizon hCap hx hip hseat b raw sup rows hem hafter hgate⟩
+    hService hu hPhase hqv hHorizon hCap hx hip hseat N hem hafter hgate⟩
 
 -- F6: d_s = horizon: the closed endpoint v = horizon; the consumer takes the integer
 -- sentinel stop = horizon + 1, after all bounds are proved within the horizon.
@@ -210,8 +209,8 @@ example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
     (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
-    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       rho.emitsAt E ip)
     (hSync : Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o)
       (SA.proposalTime p.toParams s - p.Δ) (SA.voteTime p.toParams s))
@@ -221,7 +220,7 @@ example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
       rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
       ∃ Kc, RetainedReadPremises p
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
-        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s Qfg b Kc := by
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s Qfg N.erase Kc := by
   have hd := p.deltaPos
   have hqv : SA.gateTime p.toParams q ≤ rho.horizon := by
     rw [← hds]
@@ -233,9 +232,9 @@ example [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
     exact lt_add_one _
   exact fgsa_retainedReads_HG1 (hroots := hroots) E rho hrec.base.valid hrec.base.noRestart
       hrec.base.delta s hSync
-    hx hip hseat b raw sup rows hem Qfg q (rho.horizon + 1) hafter hstop
+    hx hip hseat N hem Qfg q (rho.horizon + 1) hafter hstop
     (fun y hy ih hih _ => retainedHG1Input_through E rho hrec mono crossing lastWrite hGST hQ
-      hErase hHeight hService hu hPhase hqv le_rfl hCap hx hip hseat b raw sup rows hem hafter
+      hErase hHeight hService hu hPhase hqv le_rfl hCap hx hip hseat N hem hafter
       hds.le y hy ih hih)
 
 end Signatures

@@ -37,8 +37,8 @@ private def source : State 1 :=
   { initial 1 with
     base := { (initial 1).base with
       now := 16
-      votes := [⟨.seat 3 0, .head (eraseFG parentFG)⟩]
-      voteStamp := [(⟨.seat 3 0, .head (eraseFG parentFG)⟩, 0)]
+      votes := [⟨.seat 3 0, .head (eraseFG parentFG).root⟩]
+      voteStamp := [(⟨.seat 3 0, .head (eraseFG parentFG).root⟩, 0)]
       blocks := [.genesis, eraseFG cutFG, eraseFG parentFG]
       blockStamp := [(.genesis, 0), (eraseFG cutFG, 0), (eraseFG parentFG, 0)]
       obligations := [(eraseFG cutFG, 0, 100)] }
@@ -262,21 +262,21 @@ private theorem scheduled_instance
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
     (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
-    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       rho.emitsAt E ip)
     (D : FGBlock (Fin p.n))
     (hreads : ∀ y ∈ rho.honest, ∀ ih,
       rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
       ∃ Kc, RetainedReadPremises p
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
-        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D b Kc) :
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D N.erase Kc) :
     SA.voteTime p.toParams s ≤ rho.horizon →
-      ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some b := by
-  exact exactService_head_of_retained_proposal E rho hE hDelta s hip b raw sup rows hem D
+      ∀ y ∈ rho.honest, headAtLabel p c E rho y s = some N.erase := by
+  exact exactService_head_of_retained_proposal E rho hE hDelta s hip N hem D
     (fgsa_retainedExactHead_geometry_on_run (hroots := hroots) E rho hE hN hDelta s hWalkSync
         hScoreSync
-      hx hip hseat b raw sup rows hem D hreads)
+      hx hip hseat N hem D hreads)
 
 /-- Blueprint 21 H.6:937–942. Class (iii).
 DC: INTENTIONAL; identify the finite source's actual live start. -/
@@ -406,7 +406,7 @@ private theorem consumer_prior_instance :
       have hi : i = (0 : Fin 1) := Fin.eq_zero i
       subst i
       decide +kernel
-    have hh := Gen.AC.conflicting_score_sum_le source.base.blocks
+    have hh := Gen.AC.Root.conflicting_score_sum_le source.base.blocks
       (proposerVotes source 4) (eraseFG cutFG) B hclean hconflict
     have hc : GridCO.goldfishScore source.base.blocks (proposerVotes source 4)
         (proposerVotes source 4) (eraseFG cutFG) = 1 := by decide +kernel

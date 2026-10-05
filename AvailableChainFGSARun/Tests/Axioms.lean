@@ -1,4 +1,8 @@
 module
+public import AvailableChainFGSARun.Proofs.RootResolution
+public import AvailableChainFGSARun.Proofs.RootLease
+public import AvailableChainFGSARun.Proofs.NamedDelivery
+public import AvailableChainFGSARun.Proofs.HeadIdentity
 public import AvailableChainFGSARun.Proofs.NamedScope
 public import AvailableChainFGSARun.Proofs.WindowExclusion
 public import AvailableChainFGSARun.Statements.Slashing
@@ -363,3 +367,42 @@ namespace AvailableChain.FGSA.Run
 #print axioms namedScope_preceq_iff
 #print axioms proposal_trigger_in_root_scope
 end AvailableChain.FGSA.Run
+
+-- ROOT-DIGEST-2 W2: exact named origin and root resolution producers.
+#print axioms AvailableChain.FGSA.Run.process_namedBodies_subset
+#print axioms AvailableChain.FGSA.Run.stored_block_eq_of_root_eq
+#print axioms AvailableChain.FGSA.Run.headTargetAtEmission_stored
+#print axioms AvailableChain.FGSA.Run.headTargetAtEmission_scope
+#print axioms AvailableChain.FGSA.Run.resolvedHead_root
+#print axioms AvailableChain.FGSA.Run.headTargetAtEmission_receiver_eq
+#print axioms AvailableChain.FGSA.Run.headTargetAtEmission_at_tick
+#print axioms AvailableChain.FGSA.Run.headTargetAtEmission_of_stored
+#print axioms AvailableChain.FGSA.Run.stored_eq_headVote
+#print axioms AvailableChain.FGSA.Run.namedScope_stored_proposal
+#print axioms AvailableChain.FGSA.Run.stored_named_body_delivery
+#print axioms AvailableChain.FGSA.Run.stored_named_body_ancestor
+#print axioms AvailableChain.FGSA.Run.namedProposalInRun_genesis_or_delivered
+#print axioms AvailableChain.FGSA.Run.namedProposalInRun_origin
+#print axioms AvailableChain.FGSA.Run.namedStored_eq
+#print axioms AvailableChain.FGSA.RootLease.root_write_unique_keys
+#print axioms AvailableChain.FGSA.RootLease.root_write_protectsUntil
+#print axioms AvailableChain.FGSA.RootLease.root_expire_protectsUntil
+#print axioms AvailableChain.FGSA.RootLease.root_release_protectsUntil
+#print axioms AvailableChain.FGSA.Run.findByRoot_subtree
+#print axioms AvailableChain.FGSA.Run.goldfishScoreOn_subtree
+#print axioms AvailableChain.FGSA.Run.clockPre_headDomain
+#print axioms AvailableChain.FGSA.Run.actView_score
+#print axioms AvailableChain.FGSA.Run.actView_resolve_of_mem
+#print axioms AvailableChain.FGSA.Run.resolvedTarget_root
+#print axioms AvailableChain.FGSA.Run.resolvedTarget_of_mem
+#print axioms AvailableChain.FGSA.Run.base_resolve_target
+#print axioms AvailableChain.FGSA.Run.actView_resolve_target
+#print axioms AvailableChain.FGSA.Run.clock_stored_block_eq
+#print axioms AvailableChain.FGSA.Run.prefixSupport_body
+#print axioms AvailableChain.FGSA.Run.confirmation_support_body
+#print axioms AvailableChain.FGSA.Run.resolvedHead_target
+#print axioms AvailableChain.FGSA.Run.resolvedHead_of_lookup
+#print axioms AvailableChain.FGSA.Run.cleanSupport_domain_score
+#print axioms AvailableChain.FGSA.Run.actView_target_of_resolvedHead
+#print axioms AvailableChain.FGSA.Run.resolvedTarget_mem
+#print axioms AvailableChain.FGSA.Run.actView_support_in_domain

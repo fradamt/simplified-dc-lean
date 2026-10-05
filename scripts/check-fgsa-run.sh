@@ -32,6 +32,44 @@ fi
 # The declarations that the axiom script must find and check (fail closed: a
 # scan that misses the library fails). Each task adds its main outputs.
 AX_OPTS=(--expect
+  # ROOT-DIGEST-2 W2 producers.
+  AvailableChain.FGSA.Run.process_namedBodies_subset
+  AvailableChain.FGSA.Run.stored_block_eq_of_root_eq
+  AvailableChain.FGSA.Run.headTargetAtEmission_stored
+  AvailableChain.FGSA.Run.headTargetAtEmission_scope
+  AvailableChain.FGSA.Run.resolvedHead_root
+  AvailableChain.FGSA.Run.headTargetAtEmission_receiver_eq
+  AvailableChain.FGSA.Run.headTargetAtEmission_at_tick
+  AvailableChain.FGSA.Run.headTargetAtEmission_of_stored
+  AvailableChain.FGSA.Run.stored_eq_headVote
+  AvailableChain.FGSA.Run.namedScope_stored_proposal
+  AvailableChain.FGSA.Run.stored_named_body_delivery
+  AvailableChain.FGSA.Run.stored_named_body_ancestor
+  AvailableChain.FGSA.Run.namedProposalInRun_genesis_or_delivered
+  AvailableChain.FGSA.Run.namedProposalInRun_origin
+  AvailableChain.FGSA.Run.namedStored_eq
+  AvailableChain.FGSA.RootLease.root_write_unique_keys
+  AvailableChain.FGSA.RootLease.root_write_protectsUntil
+  AvailableChain.FGSA.RootLease.root_expire_protectsUntil
+  AvailableChain.FGSA.RootLease.root_release_protectsUntil
+  AvailableChain.FGSA.Run.findByRoot_subtree
+  AvailableChain.FGSA.Run.goldfishScoreOn_subtree
+  AvailableChain.FGSA.Run.clockPre_headDomain
+  AvailableChain.FGSA.Run.actView_score
+  AvailableChain.FGSA.Run.actView_resolve_of_mem
+  AvailableChain.FGSA.Run.resolvedTarget_root
+  AvailableChain.FGSA.Run.resolvedTarget_of_mem
+  AvailableChain.FGSA.Run.base_resolve_target
+  AvailableChain.FGSA.Run.actView_resolve_target
+  AvailableChain.FGSA.Run.clock_stored_block_eq
+  AvailableChain.FGSA.Run.prefixSupport_body
+  AvailableChain.FGSA.Run.confirmation_support_body
+  AvailableChain.FGSA.Run.resolvedHead_target
+  AvailableChain.FGSA.Run.resolvedHead_of_lookup
+  AvailableChain.FGSA.Run.cleanSupport_domain_score
+  AvailableChain.FGSA.Run.actView_target_of_resolvedHead
+  AvailableChain.FGSA.Run.resolvedTarget_mem
+  AvailableChain.FGSA.Run.actView_support_in_domain
   # ROOT-DIGEST-2: signed W1 named-scope public names.
   AvailableChain.FGSA.Run.DirectNamedProposalInRun
   AvailableChain.FGSA.Run.HeadTargetAtEmission

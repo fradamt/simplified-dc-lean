@@ -25,17 +25,17 @@ example [Fintype V] {G ΔF : Time}
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n .root
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
           (row.1, row.2.1) ∉
-          @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n .root
+          @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
             (actView pre) w C)
     {w : HealingWitness} (h0r : H0Reset p c E rho w)
     {ix : Nat} {x : V} {s : Slot} {C : Block} {g : Nat}
@@ -44,7 +44,7 @@ example [Fintype V] {G ΔF : Time}
     (hres : gateResultAt p c E rho ix = some (some C))
     {B : FGBlock (Fin p.n)} (hCB : Block.Preceq w.CStar (eraseFG B))
     (hne : eraseFG B ≠ w.CStar)
-    (hkey : (eraseFG B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy
+    (hkey : (eraseFG B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
       p.toParams.engine p.n
       (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s C)
     (hgw : E.t_GST ≤ SA.voteTime p.toParams (s + 1 - p.k))
@@ -60,7 +60,7 @@ example [Fintype V] {G ΔF : Time}
       gatePassedAt p c E rho ix ∧ eraseFG B ≠ w.CStar ∧ ¬ ∃ r, SrcN p c E rho B r := by
   obtain ⟨hmem, _, hBC, _, hcase⟩ := healing_support_key_cases p hkey
   have hgst := postReset_written_sync p c E rho hrec h0r hx hix hCB hmem
-  have harm : SA.releaseThreshold p.toParams ≤ SA.prefixSupport p.toParams
+  have harm : SA.releaseThreshold p.toParams ≤ SA.Root.prefixSupport p.toParams
         (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s
         (eraseFG B) ∨
       (E.t_GST ≤ SA.voteTime p.toParams (s + 1 - p.k) ∧
@@ -97,17 +97,17 @@ variable [Fintype V] {G ΔF : Time}
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n .root
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
           (row.1, row.2.1) ∉
-          @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n .root
+          @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
             (actView pre) w C)
     (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
     {w : HealingWitness} (h0r : H0Reset p c E rho w)
@@ -123,7 +123,7 @@ example {i : Nat} (hinv : PostResetInv p c E rho w i)
     (hpass : gatePassedAt p c E rho ix)
     (hres : gateResultAt p c E rho ix = some (some C))
     (hCB : Block.Preceq w.CStar (eraseFG B)) (hne : eraseFG B ≠ w.CStar)
-    (hkey : (eraseFG B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy
+    (hkey : (eraseFG B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
       p.toParams.engine p.n
       (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s C)
     (hnotSource : ¬ ∃ r, SrcN p c E rho B r)
@@ -149,7 +149,7 @@ example {i : Nat} (hinv : PostResetInv p c E rho w i)
     (hpass : gatePassedAt p c E rho i)
     (hres : gateResultAt p c E rho i = some (some C))
     (hCB : Block.Preceq w.CStar (eraseFG B)) (hne : eraseFG B ≠ w.CStar)
-    (hkey : (eraseFG B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy
+    (hkey : (eraseFG B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
       p.toParams.engine p.n
       (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))) s C)
     (hnotSource : ¬ ∃ r, SrcN p c E rho B r)
@@ -201,17 +201,17 @@ variable [Fintype V] {G ΔF : Time}
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n .root
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
           (row.1, row.2.1) ∉
-          @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n .root
+          @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
             (actView pre) w C)
     (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
     {w : HealingWitness} (h0r : H0Reset p c E rho w)
@@ -276,17 +276,17 @@ variable [Fintype V] {G ΔF : Time}
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n .root
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
           (row.1, row.2.1) ∉
-          @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n .root
+          @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
             (actView pre) w C)
     (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
     {w : HealingWitness} (h0r : H0Reset p c E rho w)
@@ -300,7 +300,7 @@ example
     (hpass : gatePassedAt p c E rho ix)
     (hres : gateResultAt p c E rho ix = some (some C))
     (hCB : Block.Preceq w.CStar (eraseFG B)) (hne : eraseFG B ≠ w.CStar)
-    (hkey : (eraseFG B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy
+    (hkey : (eraseFG B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
       p.toParams.engine p.n
       (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s C)
     (hnotSource : ¬ ∃ r, SrcN p c E rho B r)

@@ -38,8 +38,8 @@ private theorem compose
     (s : Slot) {ip : Nat} {x : V} (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
     (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
-    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       rho.emitsAt E ip)
     (D : FGBlock (Fin p.n))
     (supply : Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o)
@@ -48,8 +48,8 @@ private theorem compose
         rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
         ∃ Kc, RetainedReadPremises p
           (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
-          (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D b Kc) :
-    Composes E rho ip x s D b := by
+          (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D N.erase Kc) :
+    Composes E rho ip x s D N.erase := by
   have hpt : SA.proposalTime p.toParams s - p.Δ + E.Δ ≤ SA.proposalTime p.toParams s := by
     rw [hDelta]
     exact le_of_eq (sub_add_cancel _ _)
@@ -59,19 +59,19 @@ private theorem compose
   refine ⟨?_, ?_, ?_⟩
   · intro hwalk hscore
     exact fgsa_retainedExactHead_geometry_on_run (hroots := hroots) E rho hE hN hDelta s
-      hwalk hscore hx hip hseat b raw sup rows hem D (supply hscore)
+      hwalk hscore hx hip hseat N hem D (supply hscore)
   · intro b₀ ΔF h hcut
     have hscore := Gen.V2.Duty.LabelSyncOn.of_cleanCutBy E rho
       (fun o => ¬ isRowObject o) b₀ _ _ h.healthy (fgsaDelay_nonrow E.Δ _)
       (hpt.trans htv) hcut h.cut.2
     exact exactService_head_of_retained_proposal_clean E rho b₀ h s hcut
-      hx hip hseat b raw sup rows hem D (supply hscore)
+      hx hip hseat N hem D (supply hscore)
   · intro G ΔF h hGST hhorizon
     have hscore := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho
       (fun o => ¬ isRowObject o) _ _ h.sync (fgsaDelay_nonrow E.Δ _)
       hGST (hpt.trans htv) hhorizon
     exact exactService_head_of_retained_proposal_recovery E rho G h s hGST
-      hx hip hseat b raw sup rows hem D (supply hscore) hhorizon
+      hx hip hseat N hem D (supply hscore) hhorizon
 
 /-- Blueprint 21; design job 7 K6. Class (iii).
 DC: INTENTIONAL; H6 produces the exact hreads type for all three endpoints. -/
@@ -83,8 +83,8 @@ private theorem check_H6
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
     (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
-    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       rho.emitsAt E ip)
     (hinput : ∀ y ∈ rho.honest, ∀ ih,
       rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
@@ -92,11 +92,12 @@ private theorem check_H6
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s) :
     Composes E rho ip x s
-      (controls p (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))).Z b := by
-  apply compose E rho hroots hE hN hDelta s hx hip hseat b raw sup rows hem
+      (controls p (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))).Z
+      N.erase := by
+  apply compose E rho hroots hE hN hDelta s hx hip hseat N hem
   intro hSync
-  exact fgsa_retainedReads_H6 (hroots := hroots) E rho hE hN hDelta s hSync hx hip hseat b raw
-      sup rows hem hinput
+  exact fgsa_retainedReads_H6 (hroots := hroots) E rho hE hN hDelta s hSync hx hip hseat
+      N hem hinput
 
 /-- Blueprint 21; design job 7 K6. Class (iii).
 DC: INTENTIONAL; H6S produces the exact hreads type for all three endpoints. -/
@@ -108,8 +109,8 @@ private theorem check_H6S
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
     (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
-    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       rho.emitsAt E ip)
     (hinput : ∀ y ∈ rho.honest, ∀ ih,
       rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
@@ -117,11 +118,12 @@ private theorem check_H6S
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s) :
     Composes E rho ip x s
-      (controls p (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))).Z b := by
-  apply compose E rho hroots hE hN hDelta s hx hip hseat b raw sup rows hem
+      (controls p (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))).Z
+      N.erase := by
+  apply compose E rho hroots hE hN hDelta s hx hip hseat N hem
   intro hSync
-  exact fgsa_retainedReads_H6S (hroots := hroots) E rho hE hN hDelta s hSync hx hip hseat b raw
-      sup rows hem hinput
+  exact fgsa_retainedReads_H6S (hroots := hroots) E rho hE hN hDelta s hSync hx hip hseat
+      N hem hinput
 
 /-- Blueprint 21; design job 7 K6. Class (iii).
 DC: INTENTIONAL; H17 produces the exact hreads type for all three endpoints. -/
@@ -133,8 +135,8 @@ private theorem check_H17
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
     (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
-    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       rho.emitsAt E ip)
     (D : FGBlock (Fin p.n))
     (hinput : ∀ y ∈ rho.honest, ∀ ih,
@@ -142,11 +144,11 @@ private theorem check_H17
       RetainedConeInput p
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D) :
-    Composes E rho ip x s D b := by
-  apply compose E rho hroots hE hN hDelta s hx hip hseat b raw sup rows hem
+    Composes E rho ip x s D N.erase := by
+  apply compose E rho hroots hE hN hDelta s hx hip hseat N hem
   intro hSync
-  exact fgsa_retainedReads_H17 (hroots := hroots) E rho hE hN hDelta s hSync hx hip hseat b raw
-      sup rows hem D hinput
+  exact fgsa_retainedReads_H17 (hroots := hroots) E rho hE hN hDelta s hSync hx hip hseat
+      N hem D hinput
 
 /-- Blueprint 21; design job 7 K6. Class (iii).
 DC: INTENTIONAL; L4R produces the exact hreads type for all three endpoints. -/
@@ -158,8 +160,8 @@ private theorem check_L4R
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
     (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
-    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       rho.emitsAt E ip)
     (Q : FGBlock (Fin p.n))
     (q : Slot) (w_a w_b : Time)
@@ -172,11 +174,10 @@ private theorem check_L4R
       RetainedConeInput p
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s Q) :
-    Composes E rho ip x s Q b := by
-  apply compose E rho hroots hE hN hDelta s hx hip hseat b raw sup rows hem
+    Composes E rho ip x s Q N.erase := by
+  apply compose E rho hroots hE hN hDelta s hx hip hseat N hem
   intro hSync
-  exact fgsa_retainedReads_L4R (hroots := hroots) E rho hE hN hDelta s hSync hx hip hseat b raw
-      sup rows hem
+  exact fgsa_retainedReads_L4R (hroots := hroots) E rho hE hN hDelta s hSync hx hip hseat N hem
     Q q w_a w_b hafter hstop hinput
 
 /-- Blueprint 21; design job 7 K6. Class (iii).
@@ -189,8 +190,8 @@ private theorem check_HG1
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
     (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
-    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       rho.emitsAt E ip)
     (Q : FGBlock (Fin p.n))
     (q : Slot) (stop : Time)
@@ -203,11 +204,10 @@ private theorem check_HG1
       RetainedConeInput p
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s Q) :
-    Composes E rho ip x s Q b := by
-  apply compose E rho hroots hE hN hDelta s hx hip hseat b raw sup rows hem
+    Composes E rho ip x s Q N.erase := by
+  apply compose E rho hroots hE hN hDelta s hx hip hseat N hem
   intro hSync
-  exact fgsa_retainedReads_HG1 (hroots := hroots) E rho hE hN hDelta s hSync hx hip hseat b raw
-      sup rows hem
+  exact fgsa_retainedReads_HG1 (hroots := hroots) E rho hE hN hDelta s hSync hx hip hseat N hem
     Q q stop hafter hstop hinput
 
 /-- Blueprint 21; design job 7 K6. Class (iii).
@@ -220,8 +220,8 @@ private theorem check_L2
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
     (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
-    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       rho.emitsAt E ip)
     (J : FGBlock (Fin p.n))
     (rd w stop : Time)
@@ -235,11 +235,10 @@ private theorem check_L2
       RetainedL2Input p
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s J) :
-    Composes E rho ip x s J b := by
-  apply compose E rho hroots hE hN hDelta s hx hip hseat b raw sup rows hem
+    Composes E rho ip x s J N.erase := by
+  apply compose E rho hroots hE hN hDelta s hx hip hseat N hem
   intro hSync
-  exact fgsa_retainedReads_L2 (hroots := hroots) E rho hE hN hDelta s hSync hx hip hseat b raw
-      sup rows hem
+  exact fgsa_retainedReads_L2 (hroots := hroots) E rho hE hN hDelta s hSync hx hip hseat N hem
     J rd w stop hinherited hevidence hstop hinput
 
 /-- Blueprint 21 HG.1:1570–1574. Class (iii).
@@ -262,8 +261,8 @@ private theorem q1_H6
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (q + 1))))
     (hseat : rho.seatOf (.prop (q + 1)) ⟨0, Nat.one_pos⟩ = x)
-    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hem : (⟨.seat (.prop (q + 1)) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop (q + 1)) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       rho.emitsAt E ip)
     (hinput : ∀ y ∈ rho.honest, ∀ ih,
       rho.events[ih]? = some (.tick y (SA.voteTime p.toParams (q + 1))) →
@@ -274,9 +273,11 @@ private theorem q1_H6
       SA.voteTime p.toParams (q + 1) < SA.gateTime p.toParams q) ∧
     Composes E rho ip x (q + 1)
       (controls p (clock p (rho.stateBefore E ip x).st
-        (SA.proposalTime p.toParams (q + 1)))).Z b := by
+        (SA.proposalTime p.toParams (q + 1)))).Z
+      N.erase := by
   refine ⟨q1_before_gate p q, ?_⟩
-  exact check_H6 E rho hroots hE hN hDelta (q + 1) hx hip hseat b raw sup rows hem hinput
+  exact check_H6 E rho hroots hE hN hDelta (q + 1) hx hip hseat
+      N hem hinput
 
 /-- Blueprint 21 HG.1:1570–1574; design job 7 K4/K6. Class (iii).
 DC: INTENTIONAL; the boundary uses H6S, with no post-d_q lease premise. -/
@@ -288,8 +289,8 @@ private theorem q1_H6S
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (q + 1))))
     (hseat : rho.seatOf (.prop (q + 1)) ⟨0, Nat.one_pos⟩ = x)
-    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hem : (⟨.seat (.prop (q + 1)) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop (q + 1)) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       rho.emitsAt E ip)
     (hinput : ∀ y ∈ rho.honest, ∀ ih,
       rho.events[ih]? = some (.tick y (SA.voteTime p.toParams (q + 1))) →
@@ -300,8 +301,10 @@ private theorem q1_H6S
       SA.voteTime p.toParams (q + 1) < SA.gateTime p.toParams q) ∧
     Composes E rho ip x (q + 1)
       (controls p (clock p (rho.stateBefore E ip x).st
-        (SA.proposalTime p.toParams (q + 1)))).Z b := by
+        (SA.proposalTime p.toParams (q + 1)))).Z
+      N.erase := by
   refine ⟨q1_before_gate p q, ?_⟩
-  exact check_H6S E rho hroots hE hN hDelta (q + 1) hx hip hseat b raw sup rows hem hinput
+  exact check_H6S E rho hroots hE hN hDelta (q + 1) hx hip hseat
+      N hem hinput
 
 end AvailableChain.FGSA.Run.Tests.RetainedConsumers

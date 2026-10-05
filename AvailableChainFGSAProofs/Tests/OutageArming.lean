@@ -76,7 +76,7 @@ theorem pending_after_horizon {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
 /-- Plan O-ARM §6.4, §10. Class (iii). DC: INTENTIONAL.
 Slow mode below τ: the slow test alone admits the release level. -/
 example (p : Params) {n : Nat} (v : GridCO.State n .root) (r : Slot) (B : Block)
-    (_hbelow : SA.prefixSupport p.toParams v r B < SA.releaseThreshold p.toParams)
+    (_hbelow : SA.Root.prefixSupport p.toParams v r B < SA.releaseThreshold p.toParams)
     (hslow : GridCO.slowEligible p.toParams.engine v r B = true) :
     SA.releaseThreshold p.toParams ∈
       @GridCO.admissionLevels GridCO.slowLeasePolicy p.toParams.engine n .root v r B :=

@@ -1175,11 +1175,11 @@ namespace AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
 open AvailableChain.SimplexFG
 
 theorem gen_nonproposal_deps (st : Node params) (o : Obj params)
-    (hn : ∀ b raw sup rows, o.payload ≠ .proposal b raw sup rows) :
+    (hn : ∀ b, o.payload ≠ .proposal b) :
     (fgsa params unitCodec).depsPresent st o = true := by
   obtain ⟨auth, payload⟩ := o
   cases payload with
-  | proposal b raw sup rows => exact (hn b raw sup rows rfl).elim
+  | proposal b => exact (hn b rfl).elim
   | head b =>
       rcases auth with ⟨((_ | _) | _), _⟩ | _ <;>
         rfl
@@ -1237,12 +1237,12 @@ theorem gen_tick_seat (st : Node params) (v : Validator) (t : Time) (o : Obj par
 /-- The wire check for non-proposal releases. WeakContinuationW1 proves proposal wire. -/
 theorem gen_tick_nonproposal_wire (st : Node params) (v : Validator) (t : Time) (o : Obj params)
     (ho : o ∈ (V2.D.tick weakEnv (runData 263 []) st v t).2)
-    (hn : ∀ b raw sup rows, o.payload ≠ .proposal b raw sup rows) :
+    (hn : ∀ b, o.payload ≠ .proposal b) :
     (fgsa params unitCodec).wellFormed o = true := by
   obtain ⟨l, i, m, rfl, _, ha⟩ := gen_tick_seat st v t o ho
   cases l with
   | headAction s =>
-      have he : .head (headVote params (FGSA.clock params st.st t) s) = m := Option.some.inj ha
+      have he : .head (headVote params (FGSA.clock params st.st t) s).root = m := Option.some.inj ha
       subst m
       rfl
   | fgAction r =>
@@ -1257,8 +1257,9 @@ theorem gen_tick_nonproposal_wire (st : Node params) (v : Validator) (t : Time) 
       unfold propose at ha
       split at ha
       · cases ha
-      · cases ha
-        exact (hn _ _ _ _ rfl).elim
+      · simp only [Option.map_map] at ha
+        obtain ⟨P, _, rfl⟩ := Option.map_eq_some_iff.mp ha
+        exact (hn _ rfl).elim
 
 end AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
 end
@@ -1308,21 +1309,21 @@ theorem timeBatch_offered (t : Time) (w : World) (v : Validator) (o : Obj params
 /-- Wire validity for the HEAD and row part of a trace with emission origin. -/
 theorem genOrigin_nonproposal_wire (w : World) (es : List Event) (horigin : GenOrigin w es)
     (v : Validator) (o : Obj params) (t : Time) (hm : V2.Event.deliver v o t ∈ es)
-    (hn : ∀ b raw sup rows, o.payload ≠ .proposal b raw sup rows) :
+    (hn : ∀ b, o.payload ≠ .proposal b) :
     (fgsa params unitCodec).wellFormed o = true := by
   obtain ⟨u, pre, post, _, ho⟩ := horigin v o t hm
   exact gen_tick_nonproposal_wire (genFold w pre u) u t o ho hn
 
 theorem source_nonproposal_wire (i : Nat) (v : Validator) (o : Obj params) (t : Time)
     (he : source.events[i]? = some (.deliver v o t))
-    (hn : ∀ b raw sup rows, o.payload ≠ .proposal b raw sup rows) :
+    (hn : ∀ b, o.payload ≠ .proposal b) :
     (fgsa params unitCodec).wellFormed o = true :=
   genOrigin_nonproposal_wire V2.D.World.init _ (prefix_origin 248) v o t
     (List.mem_of_getElem? he) hn
 
 theorem continuation_nonproposal_wire (i : Nat) (v : Validator) (o : Obj params) (t : Time)
     (he : continuation.events[i]? = some (.deliver v o t))
-    (hn : ∀ b raw sup rows, o.payload ≠ .proposal b raw sup rows) :
+    (hn : ∀ b, o.payload ≠ .proposal b) :
     (fgsa params unitCodec).wellFormed o = true :=
   genOrigin_nonproposal_wire V2.D.World.init _ continuation_genOrigin v o t
     (List.mem_of_getElem? he) hn
@@ -1412,8 +1413,8 @@ theorem i7_tick_st (st : Node params) (v : Validator) (t : Time) :
 
 /-- A property of every row in every stored proposal. -/
 def GenStoredRows (P : RowWire params.n → Prop) (st : State params.n) : Prop :=
-  ∀ w ∈ st.proposals, ∀ s b raw sup rows,
-    w.decode = some (.block s b raw sup rows) → ∀ a ∈ rows, P a
+  ∀ w ∈ st.proposals, ∀ s b,
+    w.decode = some (.block s b) → ∀ a ∈ b.rows, P a
 
 /-- Selection keeps any property shared by pool rows and stored proposal rows. -/
 theorem gen_proposalRows_origin (P : RowWire params.n → Prop) (st : State params.n)
@@ -1422,9 +1423,9 @@ theorem gen_proposalRows_origin (P : RowWire params.n → Prop) (st : State para
   intro a ha
   rw [proposalRows_eq_proposalRowsFor] at ha
   rcases proposalRowsFor_origin params st (st.slot params) H a ha with
-    hm | ⟨o, ho, s, b, raw, sup, rows, hd, hm⟩
+    hm | ⟨o, ho, s, b, hd, hm⟩
   · exact hp a hm
-  · exact hs o ho s b raw sup rows hd a hm
+  · exact hs o ho s b hd a hm
 
 /-- The clock keeps the stored proposals. -/
 theorem gen_storedRows_clock (P : RowWire params.n → Prop) (st : State params.n)
@@ -1442,7 +1443,7 @@ theorem gen_storedRows_fold (P : RowWire params.n → Prop) (st : State params.n
 /-- A delivery adds only its own proposal to the stored proposals. -/
 theorem gen_storedRows_process (P : RowWire params.n → Prop) (st : State params.n)
     (o : Obj params) (hs : GenStoredRows P st)
-    (ho : ∀ b raw sup rows, o.payload = .proposal b raw sup rows → ∀ a ∈ rows, P a) :
+    (ho : ∀ b, o.payload = .proposal b → ∀ a ∈ b.rows, P a) :
     GenStoredRows P (FGSA.process params st (toWire params o)) := by
   unfold FGSA.process
   cases hd : (toWire params o).decode with
@@ -1454,9 +1455,9 @@ theorem gen_storedRows_process (P : RowWire params.n → Prop) (st : State param
       dsimp only
       rcases i7_admitRow_eq st ⟨(toWire params o).auth, body⟩ with he | he <;>
         rw [he] <;> exact hs
-    | block s b raw sup rows =>
+    | block s b =>
       dsimp only
-      have he : o.payload = .proposal b raw sup rows := by
+      have he : o.payload = .proposal b := by
         obtain ⟨auth, payload⟩ := o
         cases auth with
         | none => cases payload <;> cases hd
@@ -1464,30 +1465,32 @@ theorem gen_storedRows_process (P : RowWire params.n → Prop) (st : State param
           cases l with
           | base l => cases l <;> cases payload <;> cases hd
           | prop s => cases payload <;> cases hd; rfl
-      have hr : ∀ a ∈ rows, P a := ho b raw sup rows he
+      have hr : ∀ a ∈ b.rows, P a := ho b he
       unfold admitBlock
       split
       · exact hs
-      · rename_i parent hparent
-        split
-        · apply gen_storedRows_fold
-          have hs' : GenStoredRows P
-              { st with
-                base := GridCO.admitProposal params.toParams.engine st.base
-                  (baseProposal s b raw sup) b (raw.map baseHead)
-                fg := Window.on_block params params.K_W st.fg (fgBlock parent b rows)
-                proposals := st.proposals ++ [⟨.proposer s, .proposal b raw sup rows⟩] } := by
-            intro w hw s' b' raw' sup' rows' hd' a ha
-            rcases List.mem_append.mp hw with hw | hw
-            · exact hs w hw s' b' raw' sup' rows' hd' a ha
-            · have he := List.mem_singleton.mp hw
-              subst w
-              cases hd'
-              exact hr a ha
-          split
-          · exact hs'
-          · simpa only [GenStoredRows, (i7_reconcile_fields _).1] using hs'
+      · split
         · exact hs
+        · rename_i parent hparent
+          split
+          · apply gen_storedRows_fold
+            have hs' : GenStoredRows P
+                { st with
+                  base := GridCO.admitProposal params.toParams.engine st.base
+                    (baseProposal s b.erase b.raw b.support) b.erase (b.raw.map baseHead)
+                  fg := Window.on_block params params.K_W st.fg (fgBlock parent b.erase b.rows)
+                  proposals := st.proposals ++ [⟨.proposer s, .proposal b⟩] } := by
+              intro w hw s' b' hd' a ha
+              rcases List.mem_append.mp hw with hw | hw
+              · exact hs w hw s' b' hd' a ha
+              · have he := List.mem_singleton.mp hw
+                subst w
+                cases hd'
+                exact hr a ha
+            split
+            · exact hs'
+            · simpa only [GenStoredRows, (i7_reconcile_fields _).1] using hs'
+          · exact hs
 
 /-- A delivery only adds to the row pool. -/
 theorem gen_process_pool_mono (st : State params.n) (o : Obj params) :
@@ -1503,13 +1506,15 @@ by
     split
     · exact List.Subset.refl _
     · split
-      · obtain ⟨pool, he, hp⟩ := i7_foldl_admitRow_eq _ _
-        rw [he]
-        dsimp only at hp ⊢
-        split at hp
-        · exact hp
-        · rwa [(i7_reconcile_fields _).2] at hp
       · exact List.Subset.refl _
+      · split
+        · obtain ⟨pool, he, hp⟩ := i7_foldl_admitRow_eq _ _
+          rw [he]
+          dsimp only at hp ⊢
+          split at hp
+          · exact hp
+          · rwa [(i7_reconcile_fields _).2] at hp
+        · exact List.Subset.refl _
   · exact List.Subset.refl _
 
 /-- The invariant needed at the only proposer, node zero. -/
@@ -1525,14 +1530,14 @@ namespace AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
 /-- Every generated proposal selects its rows at node zero. -/
 theorem gen_tick_proposal_rows (st : Node params) (v : Validator) (t : Time)
     (o : Obj params) (ho : o ∈ (V2.D.tick weakEnv (runData 263 []) st v t).2)
-    (b : Block) (raw sup : List (HeadWire params.n)) (rows : List (RowWire params.n))
-    (he : o.payload = .proposal b raw sup rows) :
-    v = 0 ∧ ∃ H, rows = proposalRows params (FGSA.clock params st.st t) H := by
+    (b : NamedProposal params.n)
+    (he : o.payload = .proposal b) :
+    v = 0 ∧ ∃ H, b.rows = proposalRows params (FGSA.clock params st.st t) H := by
   have hh := gen_tick_holder st v t o ho
   obtain ⟨l, i, m, rfl, _, ha⟩ := gen_tick_seat st v t o ho
   cases l with
   | headAction s =>
-    have hm : .head (headVote params (FGSA.clock params st.st t) s) = m := Option.some.inj ha
+    have hm : .head (headVote params (FGSA.clock params st.st t) s).root = m := Option.some.inj ha
     subst m
     cases he
   | fgAction r =>
@@ -1548,7 +1553,8 @@ theorem gen_tick_proposal_rows (st : Node params) (v : Validator) (t : Time)
     unfold propose at ha
     split at ha
     · cases ha
-    · cases ha
+    · simp only [Option.map_map] at ha
+      obtain ⟨P, _, rfl⟩ := Option.map_eq_some_iff.mp ha
       cases he
       exact ⟨hv, _, rfl⟩
 
@@ -1570,14 +1576,14 @@ theorem gen_tick_pool_fields (w : World) (v : Validator) (t : Time) (u : Validat
 /-- The invariant holds throughout the tick fold, and covers every released proposal. -/
 theorem gen_tick_fold_pool (t : Time) (vs : List Validator) (w : World)
     (os : List (Obj params)) (hw : GenPoolWitness w)
-    (ho : ∀ o ∈ os, ∀ b raw sup rows, o.payload = .proposal b raw sup rows →
-      ∀ a ∈ rows, a ∈ (w 0).st.rowPool) :
+    (ho : ∀ o ∈ os, ∀ b, o.payload = .proposal b →
+      ∀ a ∈ b.rows, a ∈ (w 0).st.rowPool) :
     let result := vs.foldl (fun acc v =>
       let result := V2.D.tick weakEnv (runData 263 []) (acc.1 v) v t
       (Function.update acc.1 v result.1, acc.2 ++ result.2)) (w, os)
     GenPoolWitness result.1 ∧
-      ∀ o ∈ result.2, ∀ b raw sup rows, o.payload = .proposal b raw sup rows →
-        ∀ a ∈ rows, a ∈ (result.1 0).st.rowPool := by
+      ∀ o ∈ result.2, ∀ b, o.payload = .proposal b →
+        ∀ a ∈ b.rows, a ∈ (result.1 0).st.rowPool := by
   induction vs generalizing w os with
   | nil => exact ⟨hw, ho⟩
   | cons v vs ih =>
@@ -1586,11 +1592,13 @@ theorem gen_tick_fold_pool (t : Time) (vs : List Validator) (w : World)
     have hw' : GenPoolWitness w' := by
       simpa only [GenPoolWitness, GenStoredRows, w', hf.1, hf.2] using hw
     apply ih w' _ hw'
-    intro o hm b raw sup rows he a ha
+    intro o hm b he a ha
     rw [hf.1]
     rcases List.mem_append.mp hm with hm | hm
-    · exact ho o hm b raw sup rows he a ha
-    · obtain ⟨rfl, H, rfl⟩ := gen_tick_proposal_rows (w v) v t o hm b raw sup rows he
+    · exact ho o hm b he a ha
+    · obtain ⟨hv, H, hrows⟩ := gen_tick_proposal_rows (w v) v t o hm b he
+      subst v
+      rw [hrows] at ha
       have hs := gen_storedRows_clock _ (w 0).st t hw
       exact gen_proposalRows_origin _ _ H
         (fun a ha => (i7_clock_rowPool (w 0).st t) ▸ ha) hs a ha
@@ -1598,8 +1606,8 @@ theorem gen_tick_fold_pool (t : Time) (vs : List Validator) (w : World)
 /-- A delivery to the proposer preserves its stored-row invariant. -/
 theorem gen_deliver_pool (t : Time) (acc : World × List Event) (vo : Validator × Obj params)
     (hw : GenPoolWitness acc.1)
-    (ho : ∀ b raw sup rows, vo.2.payload = .proposal b raw sup rows →
-      ∀ a ∈ rows, a ∈ (acc.1 0).st.rowPool) :
+    (ho : ∀ b, vo.2.payload = .proposal b →
+      ∀ a ∈ b.rows, a ∈ (acc.1 0).st.rowPool) :
     GenPoolWitness (deliverOne t acc vo).1 ∧
       (acc.1 0).st.rowPool ⊆ ((deliverOne t acc vo).1 0).st.rowPool := by
   unfold deliverOne
@@ -1611,8 +1619,8 @@ theorem gen_deliver_pool (t : Time) (acc : World × List Event) (vo : Validator 
       have hp := gen_process_pool_mono (acc.1 0).st vo.2
       simp only [V2.D.World.step, hv, Function.update_self]
       refine ⟨?_, hp⟩
-      intro w hm s b raw sup rows hd a ha
-      exact hp (hs w hm s b raw sup rows hd a ha)
+      intro w hm s b hd a ha
+      exact hp (hs w hm s b hd a ha)
     · simpa only [GenPoolWitness, V2.D.World.step, Function.update_of_ne (Ne.symm hv)] using
         (show GenPoolWitness acc.1 ∧ (acc.1 0).st.rowPool ⊆ (acc.1 0).st.rowPool from
           ⟨hw, List.Subset.refl _⟩)
@@ -1626,26 +1634,26 @@ namespace AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
 /-- All offers have rows already in the proposer's pool, which only grows. -/
 theorem gen_delivery_fold_pool (t : Time) (xs : List (Validator × Obj params))
     (acc : World × List Event) (hw : GenPoolWitness acc.1)
-    (ho : ∀ vo ∈ xs, ∀ b raw sup rows, vo.2.payload = .proposal b raw sup rows →
-      ∀ a ∈ rows, a ∈ (acc.1 0).st.rowPool) :
+    (ho : ∀ vo ∈ xs, ∀ b, vo.2.payload = .proposal b →
+      ∀ a ∈ b.rows, a ∈ (acc.1 0).st.rowPool) :
     GenPoolWitness (xs.foldl (deliverOne t) acc).1 := by
   induction xs generalizing acc with
   | nil => exact hw
   | cons vo xs ih =>
     obtain ⟨hw', hp⟩ := gen_deliver_pool t acc vo hw (ho vo (List.mem_cons_self ..))
     apply ih _ hw'
-    intro vo' hv b raw sup rows he a ha
-    exact hp (ho vo' (List.mem_cons_of_mem _ hv) b raw sup rows he a ha)
+    intro vo' hv b he a ha
+    exact hp (ho vo' (List.mem_cons_of_mem _ hv) b he a ha)
 
 theorem gen_timeBatch_pool (t : Time) (w : World) (hw : GenPoolWitness w) :
     GenPoolWitness (timeBatch t w).1 := by
   obtain ⟨ht, ho⟩ := gen_tick_fold_pool t nodes w [] hw (by simp)
   apply gen_delivery_fold_pool t _ _ ht
-  intro vo hv b raw sup rows he a ha
+  intro vo hv b he a ha
   obtain ⟨o, hm, hv⟩ := List.mem_flatMap.mp hv
   obtain ⟨v, _, hv⟩ := List.mem_map.mp hv
   subst vo
-  exact ho o hm b raw sup rows he a ha
+  exact ho o hm b he a ha
 
 theorem gen_prefix_pool (steps : Nat) : GenPoolWitness (buildPrefix steps).1 := by
   induction steps with
@@ -1699,8 +1707,8 @@ theorem i7_clock_votes (st : State params.n) (t : Time) :
     | nil => rfl
     | cons b xs ih => exact (ih _).trans (inner _ b st)
   have hg (st : GridCO.State params.n .root) (a : Block) (s : Slot) :
-      (SA.gateFrom params.toParams a st s).votes = st.votes := by
-    unfold SA.gateFrom GridCO.gateFrom
+      (SA.Root.gateFrom params.toParams a st s).votes = st.votes := by
+    unfold SA.Root.gateFrom GridCO.gateFrom
     split
     · rfl
     · dsimp only
@@ -1736,7 +1744,7 @@ def GenKnown (P : Obj params → Prop) (st : State params.n) : Prop :=
 theorem gen_known_mono (P Q : Obj params → Prop) (st : State params.n)
     (h : GenKnown P st) (hp : ∀ o, P o → Q o) : GenKnown Q st :=
   ⟨fun a ha => hp _ (h.1 a ha),
-    fun w hw s b raw sup rows hd a ha => hp _ (h.2.1 w hw s b raw sup rows hd a ha),
+    fun w hw s b hd a ha => hp _ (h.2.1 w hw s b hd a ha),
     fun a ha => hp _ (h.2.2 a ha)⟩
 
 theorem gen_known_clock (P : Obj params → Prop) (st : State params.n) (t : Time)
@@ -1823,7 +1831,7 @@ end
 @[expose] public section
 namespace AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
 
-theorem i7_decode_vote (o : Obj params) (s : Slot) (i : Fin params.n) (b : Block)
+theorem i7_decode_vote (o : Obj params) (s : Slot) (i : Fin params.n) (b : BlockId)
     (h : (toWire params o).decode = some (.vote s i b)) :
     o = ⟨.seat (.base (.head s)) i, .head b⟩ := by
   obtain ⟨auth, payload⟩ := o
@@ -1845,10 +1853,9 @@ theorem i7_decode_row (o : Obj params) (i : Fin params.n) (body : RowPayload)
     | prop s => cases payload <;> cases h
     | base l => cases l <;> cases payload <;> cases h; rfl
 
-theorem i7_decode_proposal (o : Obj params) (s : Slot) (b : Block)
-    (raw sup : List (HeadWire params.n)) (rows : List (RowWire params.n))
-    (h : (toWire params o).decode = some (.block s b raw sup rows)) :
-    o.payload = .proposal b raw sup rows := by
+theorem i7_decode_proposal (o : Obj params) (s : Slot) (b : NamedProposal params.n)
+    (h : (toWire params o).decode = some (.block s b)) :
+    o.payload = .proposal b := by
   obtain ⟨auth, payload⟩ := o
   cases auth with
   | none => cases payload <;> cases h
@@ -1885,15 +1892,15 @@ theorem gen_known_process (P : Obj params → Prop) (st : State params.n) (o : O
       dsimp only
       obtain rfl := i7_decode_row o i body hd
       exact gen_known_row P st _ h ho
-    | block s b raw sup rows =>
+    | block s b =>
       dsimp only
-      have he := i7_decode_proposal o s b raw sup rows hd
-      have hr : ∀ a ∈ rows, P (ofRow params a) := by
+      have he := i7_decode_proposal o s b hd
+      have hr : ∀ a ∈ b.rows, P (ofRow params a) := by
         intro a ha
         apply hc
         simp only [carriesS, he]
         exact Or.inr (Or.inr (List.mem_map.mpr ⟨a, ha, rfl⟩))
-      have hv : ∀ a ∈ raw, P (ofHead params a) := by
+      have hv : ∀ a ∈ b.raw, P (ofHead params a) := by
         intro a ha
         apply hc
         simp only [carriesS, he]
@@ -1901,28 +1908,29 @@ theorem gen_known_process (P : Obj params → Prop) (st : State params.n) (o : O
       unfold admitBlock
       split
       · exact h
-      · rename_i parent hparent
-        split
-        · apply gen_known_rows _ _ _ _ hr
-          have hs : GenKnown P
-              { st with
-                base := GridCO.admitProposal params.toParams.engine st.base
-                  (baseProposal s b raw sup) b (raw.map baseHead)
-                fg := Window.on_block params params.K_W st.fg (fgBlock parent b rows)
-                proposals := st.proposals ++ [⟨.proposer s, .proposal b raw sup rows⟩] } := by
-            refine ⟨h.1, ?_, gen_known_base_proposal P st.base s b raw sup h.2.2 hv⟩
-            intro w hw s' b' raw' sup' rows' hd' a ha
-            rcases List.mem_append.mp hw with hw | hw
-            · exact h.2.1 w hw s' b' raw' sup' rows' hd' a ha
-            · have he := List.mem_singleton.mp hw
-              subst w
-              cases hd'
-              exact hr a ha
-          split
-          · exact hs
-          · exact gen_known_reconcile P _ hs
+      · split
         · exact h
-
+        · rename_i parent hparent
+          split
+          · apply gen_known_rows _ _ _ _ hr
+            have hs : GenKnown P
+                { st with
+                  base := GridCO.admitProposal params.toParams.engine st.base
+                    (baseProposal s b.erase b.raw b.support) b.erase (b.raw.map baseHead)
+                  fg := Window.on_block params params.K_W st.fg (fgBlock parent b.erase b.rows)
+                  proposals := st.proposals ++ [⟨.proposer s, .proposal b⟩] } := by
+              refine ⟨h.1, ?_, gen_known_base_proposal P st.base s b.erase b.raw b.support h.2.2 hv⟩
+              intro w hw s' b' hd' a ha
+              rcases List.mem_append.mp hw with hw | hw
+              · exact h.2.1 w hw s' b' hd' a ha
+              · have he := List.mem_singleton.mp hw
+                subst w
+                cases hd'
+                exact hr a ha
+            split
+            · exact hs
+            · exact gen_known_reconcile P _ hs
+          · exact h
 /-- A proposal takes every carried signature from the stored state. -/
 theorem gen_tick_children_known (P : Obj params → Prop) (st : Node params)
     (v : Validator) (t : Time) (o : Obj params) (h : GenKnown P st.st)
@@ -1932,7 +1940,7 @@ theorem gen_tick_children_known (P : Obj params → Prop) (st : Node params)
   obtain ⟨l, i, m, rfl, _, ha⟩ := gen_tick_seat st v t o ho
   cases l with
   | headAction s =>
-    have hm : .head (headVote params (FGSA.clock params st.st t) s) = m := Option.some.inj ha
+    have hm : .head (headVote params (FGSA.clock params st.st t) s).root = m := Option.some.inj ha
     subst m
     exact fun _ h => h.elim
   | fgAction r =>
@@ -1947,7 +1955,8 @@ theorem gen_tick_children_known (P : Obj params → Prop) (st : Node params)
     unfold propose at ha
     split at ha
     · cases ha
-    · cases ha
+    · simp only [Option.map_map] at ha
+      obtain ⟨parent, _, rfl⟩ := Option.map_eq_some_iff.mp ha
       have hv (a : HeadWire params.n)
           (hm : a ∈ (proposerVotes (FGSA.clock params st.st t) s).filterMap liftHead?) :
           P (ofHead params a) := by
@@ -2189,26 +2198,26 @@ theorem i7_tick_fold_pool_eq (t : Time) (vs : List Validator) (w : World)
 /-- Every proposal actually released by a batch carries only rows in node zero's pool. -/
 theorem i7_batch_emitted_rows (t : Time) (w : World) (hw : GenPoolWitness w)
     (o : Obj params) (ho : o ∈ (tickBatch t w).2)
-    (b : Block) (raw sup : List (HeadWire params.n)) (rows : List (RowWire params.n))
-    (he : o.payload = .proposal b raw sup rows) : ∀ a ∈ rows, a ∈ (w 0).st.rowPool := by
-  have hr := (gen_tick_fold_pool t nodes w [] hw (by simp)).2 o ho b raw sup rows he
+    (b : NamedProposal params.n)
+    (he : o.payload = .proposal b) : ∀ a ∈ b.rows, a ∈ (w 0).st.rowPool := by
+  have hr := (gen_tick_fold_pool t nodes w [] hw (by simp)).2 o ho b he
   simpa only [i7_tick_fold_pool_eq] using hr
 
 /-- H for the actual prefix emissions, for every generator length. -/
 theorem i7_prefix_emitted_rows (steps : Nat) (o : Obj params)
     (ho : o ∈ (tickBatch steps (buildPrefix steps).1).2)
-    (b : Block) (raw sup : List (HeadWire params.n)) (rows : List (RowWire params.n))
-    (he : o.payload = .proposal b raw sup rows) :
-    ∀ a ∈ rows, a ∈ ((buildPrefix steps).1 0).st.rowPool :=
-  i7_batch_emitted_rows steps _ (gen_prefix_pool steps) o ho b raw sup rows he
+    (b : NamedProposal params.n)
+    (he : o.payload = .proposal b) :
+    ∀ a ∈ b.rows, a ∈ ((buildPrefix steps).1 0).st.rowPool :=
+  i7_batch_emitted_rows steps _ (gen_prefix_pool steps) o ho b he
 
 /-- H for the actual suffix emissions, without a bound on the generator length. -/
 theorem i7_suffix_emitted_rows (steps : Nat) (o : Obj params)
     (ho : o ∈ (tickBatch (248 + steps : Nat) (buildSuffix steps).1).2)
-    (b : Block) (raw sup : List (HeadWire params.n)) (rows : List (RowWire params.n))
-    (he : o.payload = .proposal b raw sup rows) :
-    ∀ a ∈ rows, a ∈ ((buildSuffix steps).1 0).st.rowPool :=
-  i7_batch_emitted_rows (248 + steps : Nat) _ (gen_suffix_pool steps) o ho b raw sup rows he
+    (b : NamedProposal params.n)
+    (he : o.payload = .proposal b) :
+    ∀ a ∈ b.rows, a ∈ ((buildSuffix steps).1 0).st.rowPool :=
+  i7_batch_emitted_rows (248 + steps : Nat) _ (gen_suffix_pool steps) o ho b he
 
 end AvailableChain.FGSA.Run.Tests.WeakContinuationWitness
 end
@@ -2221,7 +2230,7 @@ theorem gen_past_row_valid (es : List Event) (t : Time) (a : RowWire params.n)
     (h : GenPast es t (ofRow params a)) : a.valid = true := by
   obtain ⟨v, s, _, pre, post, _, ho⟩ := h
   have hw := gen_tick_nonproposal_wire (genFold V2.D.World.init pre v) v s (ofRow params a) ho
-    (by intro b raw sup rows; cases a with | mk auth body => cases auth <;> simp [ofRow,
+    (by intro b; cases a with | mk auth body => cases auth <;> simp [ofRow,
       ofWire])
   obtain ⟨auth, body⟩ := a
   rcases auth with ⟨(_ | _), _⟩ | _ | _ <;>
@@ -2235,8 +2244,8 @@ theorem gen_prefix_rows_valid (steps : Nat) (v : Validator) :
       GenStoredRows (fun a => a.valid = true) ((buildPrefix steps).1 v).st := by
   have h := (gen_prefix_carried steps).1 v
   exact ⟨fun a ha => gen_past_row_valid _ _ a (h.1 a ha),
-    fun w hw s b raw sup rows hd a ha =>
-      gen_past_row_valid _ _ a (h.2.1 w hw s b raw sup rows hd a ha)⟩
+    fun w hw s b hd a ha =>
+      gen_past_row_valid _ _ a (h.2.1 w hw s b hd a ha)⟩
 
 /-- The same row validity invariant holds throughout the generated suffix. -/
 theorem gen_suffix_rows_valid (steps : Nat) (v : Validator) :
@@ -2244,8 +2253,8 @@ theorem gen_suffix_rows_valid (steps : Nat) (v : Validator) :
       GenStoredRows (fun a => a.valid = true) ((buildSuffix steps).1 v).st := by
   have h := (gen_suffix_carried steps).1 v
   exact ⟨fun a ha => gen_past_row_valid _ _ a (h.1 a ha),
-    fun w hw s b raw sup rows hd a ha =>
-      gen_past_row_valid _ _ a (h.2.1 w hw s b raw sup rows hd a ha)⟩
+    fun w hw s b hd a ha =>
+      gen_past_row_valid _ _ a (h.2.1 w hw s b hd a ha)⟩
 
 /-- Proposal row validity in the source is now a generator invariant. -/
 theorem i7_prefix_proposal_rows_valid (steps : Nat) (v : Validator) (H : Block) :
