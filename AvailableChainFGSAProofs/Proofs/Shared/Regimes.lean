@@ -3,6 +3,7 @@ public import AvailableChainFGSAProofs.Proofs.Shared.Recurrence
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedEndpoint
 public import AvailableChainFGSAProofs.Proofs.Shared.ExactService
 public import AvailableChainFGSARun.Proofs.Receipts
+public import AvailableChainFGSAProofs.Proofs.Shared.SelfDelivery
 
 /-! F-23 exception (L47): each theorem here takes at most one regime record, Set or Contract
 premise and concludes a field-level fact or another regime record. -/
@@ -744,6 +745,44 @@ theorem exactService_of_head_recovery
   · rw [hawake]
     change (p.n + 1) / 2 ≤ rho.honest.card
     omega
+
+/-- [own-row Option 1; DC N3] `HealthyPrefix₂` survives the same-time self-delivery of a
+released FG row: the base through `Base₂.snoc_ownRow`, the delivery premise through
+`healthyPrefixDeliveryBy_snoc_selfDelivery`; the cut and participation fields read no event. -/
+theorem HealthyPrefix₂.snoc_ownRow {b₀ : Time} (h : HealthyPrefix₂ p c E rho b₀ ΔF)
+    {i : Nat} {v : V} {t : Time} (hkey : ∀ e ∈ rho.events, e.key ≤ toLex (t, 2))
+    (hi : rho.events[i]? = some (.tick v t))
+    (hlast : ∀ k e, i < k → rho.events[k]? = some e → e.node ≠ v)
+    {j : Fin p.n} {body : RowPayload}
+    (ho : ofRow p ⟨.seat .fg j, body⟩ ∈ V2.D.Run.emitsAt E rho i) :
+    HealthyPrefix₂ p c E
+      ({ rho with events := rho.events ++ [.deliver v (ofRow p ⟨.seat .fg j, body⟩) t] })
+      b₀ ΔF where
+  base := h.base.snoc_ownRow hkey hi hlast ho
+  cut := h.cut
+  healthy := healthyPrefixDeliveryBy_snoc_selfDelivery h.healthy hi ho (fgsa_row_noCarried _)
+  deltaF := h.deltaF
+  partBefore := h.partBefore
+
+/-- [own-row Option 1; DC N3] `Recovery₂` survives the same-time self-delivery of a released
+FG row: the delivery premise through `partialSynchronyBy_snoc_selfDelivery`, the base through
+`Base₂.snoc_ownRow`; the recurrence, fault, awake and gap fields read no event. -/
+theorem Recovery₂.snoc_ownRow {G : Time} (h : Recovery₂ p c E rho G ΔF)
+    {i : Nat} {v : V} {t : Time} (hkey : ∀ e ∈ rho.events, e.key ≤ toLex (t, 2))
+    (hi : rho.events[i]? = some (.tick v t))
+    (hlast : ∀ k e, i < k → rho.events[k]? = some e → e.node ≠ v)
+    {j : Fin p.n} {body : RowPayload}
+    (ho : ofRow p ⟨.seat .fg j, body⟩ ∈ V2.D.Run.emitsAt E rho i) :
+    Recovery₂ p c E
+      ({ rho with events := rho.events ++ [.deliver v (ofRow p ⟨.seat .fg j, body⟩) t] })
+      G ΔF where
+  sync := partialSynchronyBy_snoc_selfDelivery h.sync hi ho (fgsa_row_noCarried _)
+  deltaF := h.deltaF
+  gap := h.gap
+  base := h.base.snoc_ownRow hkey hi hlast ho
+  fault := h.fault
+  awake := h.awake
+  gapPos := h.gapPos
 
 end AvailableChain.FGSA.Run
 end

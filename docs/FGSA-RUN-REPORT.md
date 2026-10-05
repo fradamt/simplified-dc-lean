@@ -447,3 +447,42 @@ Mac, `pgrep -x lean.orig` below 3 before each build):
 │                                              │ sorryAx                      │
 └──────────────────────────────────────────────┴──────────────────────────────┘
 ```
+
+## Own-row self-delivery (own-row audit item, Option 1)
+
+The FG action tick records the released row in Λ only (`recordOwn_st`); the
+row enters the sender's store through a delivery event (the T7.10 divergence
+above). The specification text (`fgsa-protocol.tex`, paragraph "Lean model of the
+own FG row") states that a node that processes its own row in the tick
+has the store trajectory of the Lean run with the row's self-delivery placed
+at the action time, first among that time's deliveries. The four results
+below record the transfer argument in Lean: a spec-like run is a valid Lean
+run under every regime, so every claim (they quantify over all valid runs)
+covers it. No Statements, Claims, manifest or fixture changed.
+
+- `fgsa_emitOk_row` (`AvailableChainFGSARun/Proofs/SelfDelivery.lean`):
+  `EmitOk` for every FG row released at a tick of a valid run. The `fresh`
+  field is `fgsa_emitted_row_fresh`: the own row is not in `rowPool` before
+  the tick, from `rowPool_provenance`, `UnforgeableSignatures`,
+  `fgsa_emitOnceUnder` and the schedule order. `fgsa_emitOk_fg` covers every
+  object released at an FG seat.
+- `executionValid_snoc_selfDelivery` (same file) and `Base₂.snoc_ownRow`
+  (`AvailableChainFGSAProofs/Proofs/Shared/SelfDelivery.lean`): the run with
+  the same-time self-delivery of the own row appended after the last event
+  of the sender is `ExecutionValid` (engine law
+  `ExecutionValid.snoc_selfDelivery`) and keeps `Base₂`
+  (`namedRootCollisionFree_snoc_row`: a row delivery adds no named body).
+- `partialSynchronyBy_snoc_selfDelivery` and
+  `healthyPrefixDeliveryBy_snoc_selfDelivery` (run file): the per-object
+  delivery premises survive the append for any released object that carries
+  nothing. Old obligations keep their witnesses; the relay obligations of
+  the new acceptance are the broadcast obligations of the emission, with
+  the same deadline; exclusions transfer by `excludesS_process`.
+- `HealthyPrefix₂.snoc_ownRow` and `Recovery₂.snoc_ownRow`
+  (`AvailableChainFGSAProofs/Proofs/Shared/Regimes.lean`): the regime
+  records survive the append; the cut, participation, recurrence, fault,
+  awake and gap fields read no event.
+
+All theorems use only `propext`, `Classical.choice` and `Quot.sound`. The
+results are not a full run embedding (Option 2 of the analysis); they close
+the own-row audit item as a recorded transfer argument.
