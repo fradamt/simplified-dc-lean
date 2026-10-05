@@ -414,6 +414,47 @@ def AvailableChain.Gen.Pure.FirstOpeningAfterGateStatement e54d3f77916f9072
 theorem AvailableChain.Gen.Pure.FirstOpeningAfterGateStatement_def 826adcbec5d6c494
 ```
 
+### `AvailableChainGeneric.Statements.Pure.PCQuorum`
+
+```text
+def AvailableChain.Gen.Pure.qN 1e4f943db359b177
+theorem AvailableChain.Gen.Pure.qN_def aedb8b29887439e9
+def AvailableChain.Gen.Pure.qA 54f821a94614b76c
+theorem AvailableChain.Gen.Pure.qA_def bdb52cd475890afa
+def AvailableChain.Gen.Pure.QNInterCardStatement e7e6fa477c3bb091
+theorem AvailableChain.Gen.Pure.QNInterCardStatement_def 0928a37e9e06615b
+def AvailableChain.Gen.Pure.QAHonestStatement 0238bb9aab4cfe13
+theorem AvailableChain.Gen.Pure.QAHonestStatement_def 91a893bb425e081f
+def AvailableChain.Gen.Pure.QNInterHonestStatement 138224c6ec71dbc0
+theorem AvailableChain.Gen.Pure.QNInterHonestStatement_def 455bfaba89237058
+def AvailableChain.Gen.Pure.QNHeadUniqueStatement 39aab0b609f55b9f
+theorem AvailableChain.Gen.Pure.QNHeadUniqueStatement_def 486f99e09641bbea
+```
+
+### `AvailableChainGeneric.Statements.Pure.PCRank`
+
+```text
+structure AvailableChain.Gen.Pure.PC f76b87a9e85dca80
+ctor AvailableChain.Gen.Pure.PC.mk ef10139282a28561
+def AvailableChain.Gen.Pure.PC.slot 28e0d2ba9b489b8f
+def AvailableChain.Gen.Pure.PC.target fc717175a5ebd99f
+def AvailableChain.Gen.Pure.PC.ackers f4b2a74d20ddfa0d
+def AvailableChain.Gen.Pure.PC.Formed ebb784524b42d1d8
+theorem AvailableChain.Gen.Pure.PC.Formed_def 4cd6590f4fde6c06
+def AvailableChain.Gen.Pure.RankLT 5938aba1065c031b
+theorem AvailableChain.Gen.Pure.RankLT_def 985b847b64826335
+def AvailableChain.Gen.Pure.RankLE 10f639a33acc3c9a
+theorem AvailableChain.Gen.Pure.RankLE_def adf696c7933892b9
+def AvailableChain.Gen.Pure.pickPC 89d7f0a6667d5a14
+theorem AvailableChain.Gen.Pure.pickPC_def ba986415476748c8
+def AvailableChain.Gen.Pure.preferPC b5616dfc66842555
+theorem AvailableChain.Gen.Pure.preferPC_def 1c34f8931b4e96b0
+def AvailableChain.Gen.Pure.OptRankLE 8420f92284ad6e78
+theorem AvailableChain.Gen.Pure.OptRankLE_def aa79b5730c5c63ae
+def AvailableChain.Gen.Pure.PCSameSlotTargetStatement fd157320ca73986b
+theorem AvailableChain.Gen.Pure.PCSameSlotTargetStatement_def 0d1b8903972ea528
+```
+
 ### `AvailableChainGeneric.Statements.Pure.PeriodicStages`
 
 ```text
