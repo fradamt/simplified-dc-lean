@@ -38,33 +38,15 @@ def gateFrom (p : Params) {n : Nat} (a : Block) (pcT : Option Block)
             (fun acc g => GridCO.writeObligation acc b g
               (GridCO.gateTime q s + GridCO.lifetime q)) acc) v
 
-/-- [PC-SA M1; FG-SA Clock.lean fastSet; pcsa-decisions R-l]
-[spec 4e85ff34: 892–906, 588–592, 1280–1297] The fast-write set of gate
-`s`, computed on the active view before the gate: empty if the result is empty
-or vetoed (by an effective lease, as the gate guard); else the non-genesis
-active prefixes of the result that pass the fast test `p(s,B) ≥ τ`. The
-result is `genuine_result`: the walk from the anchor `a` (the gate passes
-`Σ.F`). SOURCE-ONLY: no lease is written from it. -/
-def fastSet (p : Params) (a : Block) (pcT : Option Block) (v : GridCO.State p.n .root)
-    (s : Slot) : List Block :=
-  let pcOK := fun b => pcT.all (fun t => Block.compatible b t)
-  match SA.Root.confirmationFrom p.toParams a v s with
-  | none => []
-  | some h =>
-      if v.obligations.any (fun row => pcOK row.1 && !Block.compatible row.1 h) then [] else
-        v.blocks.filter (fun b => b != .genesis && Block.preceq b h &&
-          decide (SA.releaseThreshold p.toParams ≤ SA.Root.prefixSupport p.toParams v s b))
-
-/-- [PC-SA M1; FG-SA Clock.lean gateStep; pcsa-decisions R-l]
+/-- [PC-SA M1; FG-SA Clock.lean gateStep; pcsa-decisions 3n/4, R8′]
 [spec 885–913, 502–505; M7, DQ5] `update_confirmation`: if label `s` is not
 saved, run the gate on the active view with the walk from `Σ.F`
-(`genuine_result`) and record the source-only `fastWrite[s]`; then `S := F`
-if `F ⋠ S`, also after an empty or vetoed gate. -/
+(`genuine_result`); then `S := F` if `F ⋠ S`, also after an empty or vetoed
+gate. There is no fast-write set (R8′: the FG source is a PC). -/
 def gateStep (p : Params) (st : State p.n) (s : Slot) : State p.n :=
   let a := eraseFG st.fg.F
   let st := if (GridCO.savedGenuine st.base s).isSome then st else
-    { onView (fun v => gateFrom p a (pcTarget? st) v s) st with
-      fastWrite := st.fastWrite ++ [(s, fastSet p a (pcTarget? st) (actView st) s)] }
+    onView (fun v => gateFrom p a (pcTarget? st) v s) st
   normalizeS st
 
 /-- [PC-SA M1; FG-SA Clock.lean clockPre; pcsa-decisions R-f]

@@ -18,9 +18,8 @@ authoritative store of exact admitted named proposal wires. `rowPool` is
 `Σ.attestations`. `ackPool` is `Σ.acks` (one copy of each accepted exact
 ack, at most two per seat and slot). `pcs` is `Σ.pcs`: the accepted usable
 F-compatible PCs, assembled from the pool, never revoked by acks; `Σ.pc` is
-`latestPC`. `pcSnapshot[s]` is `Σ.pc` frozen at `z_s`. `fastWrite` is
-`Σ.fastWrite`, a SOURCE-ONLY set (pcsa-decisions R-l): the gate writes it as
-FG-SA does, no rule writes a lease from it, and only `fgSource` reads it. -/
+`latestPC`. `pcSnapshot[s]` is `Σ.pc` frozen at `z_s`. There is no
+`fastWrite` (R8′: the FG source is a frozen PC). -/
 structure State (n : Nat) where
   base : GridCO.State n .root := GridCO.initial n .root
   fg : Store (Fin n) := Store.init
@@ -29,7 +28,6 @@ structure State (n : Nat) where
   ackPool : List (AckWire n) := []
   pcs : List (PC n) := []
   pcSnapshot : List (Slot × Option (PC n)) := []
-  fastWrite : List (Slot × List Block) := []
 
 variable {n : Nat}
 
@@ -128,8 +126,8 @@ def normalizeS (st : State n) : State n :=
 /-- [PC-SA M1; FG-SA Store.lean reconcile; pcsa-decisions 3n/4]
 [spec 474–484, 874–894; K1, K3] `reconcile_with_finality`: delete the leases
 whose target conflicts with F; drop every held and frozen PC whose target
-conflicts with F; filter every fastWrite set; empty each conflicting saved
-result and keep its label; then `S := F` if `F ⋠ S`. It writes no other
+conflicts with F; empty each conflicting saved result and keep its label; then
+`S := F` if `F ⋠ S`. It writes no other
 field: not `fg`, not the blocks, stamps, pools or proposals, not
 `goldfishRecord`. The ack pool is kept; a dropped PC cannot re-form while F
 stands (`pcValid` needs `act(Σ)`). -/
@@ -140,18 +138,11 @@ def reconcile (st : State n) : State n :=
       obligations := st.base.obligations.filter (fun row => ok row.1)
       genuine := st.base.genuine.map (fun row => (row.1, row.2.filter ok)) }
     pcs := st.pcs.filter (fun c => ok c.target)
-    pcSnapshot := st.pcSnapshot.map (fun row => (row.1, row.2.filter (fun c => ok c.target)))
-    fastWrite := st.fastWrite.map (fun row => (row.1, row.2.filter ok)) }
+    pcSnapshot := st.pcSnapshot.map (fun row => (row.1, row.2.filter (fun c => ok c.target))) }
 
 /-- [PC-SA M1] [spec 293–294] `Σ.lease[B]`: the deadline of the first lease row on `b`. -/
 def leaseOf (st : State n) (b : Block) : Option Time :=
   (st.base.obligations.find? (fun row => row.1 == b)).map (fun row => row.2.2)
-
-/-- [PC-SA M1; FG-SA Store.lean fastWriteAt] [spec 297–298, 457–461]
-`Σ.fastWrite[r]`, or `none` if the gate at `d_r` did not run. There is at
-most one row per label. -/
-def fastWriteAt (st : State n) (r : Slot) : Option (List Block) :=
-  (st.fastWrite.find? (fun row => row.1 == r)).map Prod.snd
 
 /-- [PC-SA M1] [spec 178–182; DQ9] DC `NamedReceipt.excludes` as a store predicate: a block
 that conflicts with F. A stored finalized ancestor is not excluded. -/

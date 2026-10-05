@@ -235,24 +235,34 @@ def st14n : State pT.n :=
     ([hv2 prop2n.erase 0, hv2 prop2n.erase 1, hv2 prop2n.erase 2].foldl (process pT)
       (atTime st8n 9))
 
-/-- (R-l) The gate at `d_1` writes the source-only `fastWrite[1] = [b1]` and
-no lease; the empty gate of slot 0 wrote `[]`. -/
-theorem fastWrite_gate : fastWriteAt st10 1 = some [b1] ∧ fastWriteAt st10 0 = some [] ∧
-    fastWriteAt st10 2 = none ∧ st10.base.obligations = [] := by decide +kernel
+/-- A slot-2 exact ack of seat `i` on the slot-2 proposal `prop2`. -/
+def akWire2 (i : Fin 4) : Wire 4 := ⟨.seat (.ack 2) i, .ack prop2.erase.root⟩
+def ak2 (i : Fin 4) : AckWire 4 := ⟨.seat (.ack 2) i, prop2.erase.root⟩
+def pc2 : PC 4 := ⟨2, prop2.erase, [ak2 0, ak2 1]⟩
+/-- An honest opening of round 1 (slot 2): the three HEADs at `v_2 = 9`, the
+tick at `e_2 = 10`, two acks delivered at 10, the ticks `z_2 = 11` to
+`a_1 = d_2 = 14`. -/
+def st14h : State pT.n :=
+  [(11 : Time), 12, 13, 14].foldl (clock pT)
+    ([akWire2 0, akWire2 1].foldl (process pT)
+      (clock pT ([hv2 prop2.erase 0, hv2 prop2.erase 1, hv2 prop2.erase 2].foldl (process pT)
+        (atTime st8 9)) 10))
 
-/-- (R-l) An honest opening of round 1 (slot 2): at `a_1 = 14` the source is
-the slot-2 proposal (`fastWrite[2] = [b1, b2]`, deepest frame-active member);
-the PC is not the source. With no PC at all the source still exists. -/
-theorem source_from_fastWrite :
-    fastWriteAt st14 2 = some [b1, prop2.erase] ∧ st14.pcs = [pc1] ∧
-    (fgSource pT st14).map eraseFG = some prop2.erase ∧
-    fastWriteAt st14n 2 = some [b1, prop2n.erase] ∧ st14n.pcs = [] ∧
-    (fgSource pT st14n).map eraseFG = some prop2n.erase ∧
+/-- (R8′) The gate writes no fast set and no lease at `d_1`; the FG source
+of round 0 at `d_1 = 10` is `none` (no PC frozen at `z_0`). -/
+theorem gate_no_fast : st10.base.obligations = [] ∧ pcSnapshotAt st10 0 = none ∧
     fgSource pT st10 = none := by decide +kernel
 
-/-- (R-l) Reconcile filters the fastWrite sets by F. -/
-theorem fastWrite_reconcile :
-    (reconcile { st10 with fg := { st10.fg with F := B1' } }).fastWrite = [(0, []), (1, [])] := by
+/-- (R8′) At `a_1 = 14`: an honest opening freezes `PC(2)` at `z_2` and the
+source is its target `prop2`; a faulty opening with no `PC(2)` freezes `PC(1)`,
+in the window `(0, 2]`, and the source is `b1`; with no PC in the window the
+source is `none`. -/
+theorem source_from_pc :
+    st14h.pcs = [pc1, pc2] ∧ pcSnapshotAt st14h 2 = some pc2 ∧
+    (fgSource pT st14h).map eraseFG = some prop2.erase ∧
+    st14.pcs = [pc1] ∧ pcSnapshotAt st14 2 = some pc1 ∧
+    (fgSource pT st14).map eraseFG = some b1 ∧
+    st14n.pcs = [] ∧ pcSnapshotAt st14n 2 = none ∧ fgSource pT st14n = none := by
   decide +kernel
 
 /-- (D5) The snapshot of `z_1 = 7` is taken at the tick, before the deliveries
@@ -288,7 +298,7 @@ theorem encLabel_injective : Function.Injective encLabel := by
 
 #print axioms gate_saves
 #print axioms proposal_carries
-#print axioms source_from_fastWrite
+#print axioms source_from_pc
 #print axioms encLabel_injective
 
 end AvailableChain.PCSA.Tests
