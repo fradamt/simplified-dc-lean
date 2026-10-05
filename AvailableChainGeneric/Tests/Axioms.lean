@@ -82,6 +82,8 @@ public import AvailableChainGeneric.Statements.Pure.PCQuorum
 public import AvailableChainGeneric.Proofs.Pure.PCQuorum
 public import AvailableChainGeneric.Statements.Pure.PCRank
 public import AvailableChainGeneric.Proofs.Pure.PCRank
+public import AvailableChainGeneric.Statements.Pure.PCFloor
+public import AvailableChainGeneric.Proofs.Pure.PCFloor
 public import AvailableChainGeneric.Proofs.AC.Batch
 public import AvailableChainGeneric.Statements.V2.Duty.Counts
 public import AvailableChainGeneric.Statements.V2.Duty.Interface
@@ -976,3 +978,25 @@ end AvailableChain.Gen.AC.Root
 #print axioms AvailableChain.Gen.Pure.PC.Formed.honest_acker
 #print axioms AvailableChain.Gen.Pure.pc_same_slot_target_statement
 #print axioms AvailableChain.Gen.Pure.pc_same_slot_target
+
+-- PC output floor (PC-SA R-g).
+#print axioms AvailableChain.Gen.Pure.pcFloor_def
+#print axioms AvailableChain.Gen.Pure.PCFloorTargetStatement_def
+#print axioms AvailableChain.Gen.Pure.PCFloorNestStatement_def
+#print axioms AvailableChain.Gen.Pure.PCFloorMonoStatement_def
+#print axioms AvailableChain.Gen.Pure.block_compatible_iff_preceq_or
+#print axioms AvailableChain.Gen.Pure.pcFloor_none
+#print axioms AvailableChain.Gen.Pure.pcFloor_some_of_preceq
+#print axioms AvailableChain.Gen.Pure.pcFloor_some_of_not_preceq
+#print axioms AvailableChain.Gen.Pure.pcFloor_some_eq_or
+#print axioms AvailableChain.Gen.Pure.pcFloor_some_of_not_compatible
+#print axioms AvailableChain.Gen.Pure.pcFloor_target_statement
+#print axioms AvailableChain.Gen.Pure.target_preceq_pcFloor
+#print axioms AvailableChain.Gen.Pure.preceq_pcFloor_of_preceq_target
+#print axioms AvailableChain.Gen.Pure.self_preceq_pcFloor_some_iff
+#print axioms AvailableChain.Gen.Pure.self_preceq_pcFloor
+#print axioms AvailableChain.Gen.Pure.pcFloor_nest_statement
+#print axioms AvailableChain.Gen.Pure.preceq_pcFloor
+#print axioms AvailableChain.Gen.Pure.pcFloor_mono_statement
+#print axioms AvailableChain.Gen.Pure.pcFloor_mono
+#print axioms AvailableChain.Gen.Pure.pcFloor_mono_some

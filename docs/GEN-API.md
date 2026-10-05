@@ -414,6 +414,19 @@ def AvailableChain.Gen.Pure.FirstOpeningAfterGateStatement e54d3f77916f9072
 theorem AvailableChain.Gen.Pure.FirstOpeningAfterGateStatement_def 826adcbec5d6c494
 ```
 
+### `AvailableChainGeneric.Statements.Pure.PCFloor`
+
+```text
+def AvailableChain.Gen.Pure.pcFloor 5548b0b08077679b
+theorem AvailableChain.Gen.Pure.pcFloor_def 8f015b76f47ac23d
+def AvailableChain.Gen.Pure.PCFloorTargetStatement 4b611fac91d7fdbf
+theorem AvailableChain.Gen.Pure.PCFloorTargetStatement_def b51d1172dd9bf2fd
+def AvailableChain.Gen.Pure.PCFloorNestStatement 0533d9cba0cdd284
+theorem AvailableChain.Gen.Pure.PCFloorNestStatement_def 6fd09ae4dee5d6d1
+def AvailableChain.Gen.Pure.PCFloorMonoStatement 7462182b33300849
+theorem AvailableChain.Gen.Pure.PCFloorMonoStatement_def 79513b6c6c0e121f
+```
+
 ### `AvailableChainGeneric.Statements.Pure.PCQuorum`
 
 ```text

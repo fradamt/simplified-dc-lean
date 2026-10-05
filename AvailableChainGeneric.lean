@@ -80,6 +80,8 @@ public import AvailableChainGeneric.Statements.Pure.PCQuorum
 public import AvailableChainGeneric.Proofs.Pure.PCQuorum
 public import AvailableChainGeneric.Statements.Pure.PCRank
 public import AvailableChainGeneric.Proofs.Pure.PCRank
+public import AvailableChainGeneric.Statements.Pure.PCFloor
+public import AvailableChainGeneric.Proofs.Pure.PCFloor
 public import AvailableChainGeneric.Proofs.AC.Batch
 
 public import AvailableChainGeneric.Proofs.V2.Duty.Signatures
