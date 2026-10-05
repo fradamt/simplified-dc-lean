@@ -32,5 +32,11 @@ theorem firstEligibleHeads
     ∀ y ∈ rho.honest, ∃ k, WCHeadRead p c E rho k y ((w.u + 2) - 1) w.QStar :=
   wc_history_previousHeads hs hdelta hseed hi (w.u + 2) w.QStar le_rfl hgate (Or.inl rfl)
 
+/-- WC J3, plan §6.9; DC pivot contract: all path and walk fields are present. -/
+theorem pivotContract [Fintype V] (ΔF : Time) (w : HealingWitness) (iStar : Nat)
+    (hframe : WCSeededFrameLiveStatement p c E rho ΔF w iStar) :
+    WCProposalPivotStatement p c E rho ΔF w iStar :=
+  wc_proposalPivot ΔF w iStar hframe
+
 end AvailableChain.FGSA.Run.Tests.WeakContinuationProposal
 end

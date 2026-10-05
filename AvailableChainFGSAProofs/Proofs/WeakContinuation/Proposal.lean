@@ -677,7 +677,7 @@ theorem wc_reader_scores [Fintype V]
     change Block.compatible L B = true at hLB
     rw [hB] at hLB
     contradiction
-  
+
 variable [Fintype V]
 
 /-- WC J3, plan §6.9; DC strict receipt relay: the previous honest HEAD batch is stored.
@@ -1105,7 +1105,10 @@ theorem wc_proposalPivot (ΔF : Time) (w : HealingWitness) (iStar : Nat)
         (hcountsS D (block_preceq_refl D)).2
       have hsne : pt.s ≠ 0 := by simp only [Slot] at hs2 ⊢; omega
       have hread : headVote p st pt.s = H := hH
-      rw [headVote, ite_eq_right hsne] at hread
+      change (if pt.s = 0 then .genesis else headInTree p st
+        (erasedList st (KitFG.storeFrameView (heightView p) st.fg (voterBlocks p st pt.s)))
+        (headVotes p st pt.s) (headSupport p st pt.s)) = H at hread
+      rw [ite_eq_right hsne] at hread
       exact hread ▸ hw
   obtain ⟨ip, N, hN, hip, hem, _⟩ := proposal_read_named p c E rho hs hprop
   let src := clock p (storeAt p c E rho ip

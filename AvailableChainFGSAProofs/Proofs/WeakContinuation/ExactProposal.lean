@@ -248,7 +248,7 @@ theorem wc_proposalAdmission (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
     change (blockExcluded _ N.erase || invalidForParent p _ N) = false
     have hc : activeCompatible (V2.D.Run.stateBeforeTime E rho
         (SA.voteTime p.toParams pt.s) x).st N.erase = true := by
-      exact block_compatible_symm hcompat
+      exact hcompat
     rw [blockExcluded, hc, Bool.not_true, Bool.false_or]
     exact fgsa_trigger_invalid_false E rho o _ pt.s N htrigger rfl _
   have hscope := proposal_trigger_in_scope E rho o pt.s N rfl dl rho.horizon
@@ -284,8 +284,14 @@ theorem wc_proposalAdmission (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
   have hwf := hvalid.wire j x _ t he
   change wellFormed p (toWire p (ofWire p ⟨.proposer s', .proposal N⟩)) = true at hwf
   rw [toWire_ofWire] at hwf
-  simp only [wellFormed, Wire.decode, Bool.and_eq_true] at hwf
-  have hlabel : s' = pt.s := (beq_iff_eq.mp hwf.1.1.1.1.1.2).trans hslot
+  change (N.erase != .genesis && s' == N.erase.slot && _ && _ && _ && _ && _) = true at hwf
+  have h6 := (Bool.and_eq_true_iff.mp hwf).1
+  have h5 := (Bool.and_eq_true_iff.mp h6).1
+  have h4 := (Bool.and_eq_true_iff.mp h5).1
+  have h3 := (Bool.and_eq_true_iff.mp h4).1
+  have h2 := (Bool.and_eq_true_iff.mp h3).1
+  have hlabel : s' = pt.s :=
+    (beq_iff_eq.mp (Bool.and_eq_true_iff.mp h2).2).trans hslot
   subst s'
   have hbefore := (Gen.V2.Duty.index_lt_idxBefore_iff hs he _).mp hj
   refine ⟨⟨N, j, _, t, rfl, hN, he, hbefore, Or.inl ha,
