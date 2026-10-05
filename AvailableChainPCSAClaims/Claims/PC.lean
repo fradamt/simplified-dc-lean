@@ -58,7 +58,15 @@ theorem OneAckPerSlotClaim_def (p : Params) : OneAckPerSlotClaim p =
 /-- [pcsa34-r3 5.2, R4] PC dissemination before `z_s` under synchrony: when
 `q_A` honest seats of slot `s` emit acks on one root at `e_s` and delivery is
 healthy up to `z_s`, every honest node holds a PC of slot `s` on that root
-after the ticks at `z_s` (so it is in every frozen view of slot `s + 1`). -/
+after the ticks at `z_s` (so it is in every frozen view of slot `s + 1`).
+
+Open premise (review 2026-10-06): `reconcile` drops a held PC whose target
+conflicts with the new `F`, and `admitBlock` and `admitPC` only install a PC
+whose target resolves in the node's tree. The claim therefore also needs the
+PC target to stay `F`-compatible on every honest node up to `z_s`
+(pcsa34-r3 5.4 states this as a premise). The statement below does not yet
+carry that premise; whether it is derivable from `HealthyPrefix₂` or must be
+added is open. -/
 def PCDisseminationClaim (p : Params) : Prop :=
   ∀ {V : Type} [DecidableEq V] [Fintype V] {In : Type} (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (pcsa p c)) (b₀ ΔF : Time),

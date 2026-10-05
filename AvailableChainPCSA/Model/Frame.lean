@@ -194,7 +194,9 @@ def propose (p : Params) (st : State p.n) (s : Slot) : Option (Msg p.n) :=
       .proposal (namedProposal p P s 0 rawWire supportWire rows c))
 
 /-- [PC-SA M1] [spec 1318–1323] The finality head: `get_head` from the latest
-held PC with the current-slot votes and their active resolved subset. -/
+held PC (`latestPC`, the proposer's view; r3 3.3 is ambiguous between this
+and `view(Σ.s)`; the choice is to be confirmed in spec r4) with the
+current-slot votes and their active resolved subset. -/
 def fgHead (p : Params) (st : State p.n) : Block :=
   let s := st.slot p
   let raw := GridCO.votesAt st.base s

@@ -70,7 +70,8 @@ def gateStep (p : Params) (st : State p.n) (s : Slot) : State p.n :=
 /-- [PC-SA M1; FG-SA Clock.lean clockPre; pcsa-decisions R-f]
 [spec 683–694, 709–752; M8] The tick before the gate: set the time and
 expire leases; the freeze (on the active view) and the PC snapshot at `z_s`
-(the latest held PC); the early cache at `e_s` (on the active view; the ack
+(the latest held PC; written once per label, as `recordGenuine`; review fix
+4); the early cache at `e_s` (on the active view; the ack
 duty reads it); the release at `q_{s−1}` (on the active view). The step order
 and the time tests are those of `GridCO.clockFrom`. -/
 def clockPre (p : Params) (st : State p.n) (t : Time) : State p.n :=
@@ -79,7 +80,8 @@ def clockPre (p : Params) (st : State p.n) (t : Time) : State p.n :=
   let fSlot := ((t - 3 * p.Δ) / (4 * p.Δ)).toNat
   let st := if 0 ≤ t - 3 * p.Δ && t == SA.freezeTime q fSlot then
     { onView (fun v => GridCO.freeze q.engine v fSlot) st with
-      pcSnapshot := st.pcSnapshot ++ [(fSlot, latestPC st)] } else st
+      pcSnapshot := if (st.pcSnapshot.find? (fun row => row.1 == fSlot)).isSome then
+        st.pcSnapshot else st.pcSnapshot ++ [(fSlot, latestPC st)] } else st
   let eSlot := ((t - 2 * p.Δ) / (4 * p.Δ)).toNat
   let st := if 0 ≤ t - 2 * p.Δ && t == SA.earlyTime q eSlot then
     onView (fun v =>

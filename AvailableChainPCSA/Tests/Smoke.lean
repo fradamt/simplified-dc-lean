@@ -18,7 +18,9 @@ open AvailableChain.SimplexFG
 its embedding). -/
 def digestTable : List (DigestInput 4 × BlockId) :=
   [ (⟨genesisRoot, 1, 0, [], [], [], none⟩, ⟨1⟩),
-    (⟨genesisRoot, 1, 1, [], [], [], none⟩, ⟨2⟩) ]
+    (⟨genesisRoot, 1, 1, [], [], [], none⟩, ⟨2⟩),
+    (⟨⟨1⟩, 2, 0, [], [], [], none⟩, ⟨5⟩),
+    (⟨⟨2⟩, 2, 1, [], [], [], none⟩, ⟨6⟩) ]
 
 /-- Positive IDs; 4095 is outside the finite table. -/
 def fixtureDigest (d : FGSA.DigestInput 4) : BlockId :=
@@ -79,8 +81,24 @@ of slot 0 is set by hand. -/
 def st6both : State pT.n :=
   clock pT ([hv 0, hv 1, hv 2].foldl (process pT)
     (atTime ([w1, w1'].foldl (process pT) (atTime {} 4)) 5)) 6
-def withView (st : State pT.n) (b : Block) : State pT.n :=
-  { st with pcSnapshot := [(0, some ⟨1, b, []⟩)] }
+/-- A slot-2 HEAD of seat `i` on `b`. -/
+def hv2 (b : Block) (i : Fin 4) : Wire 4 := ⟨.seat (.head 2) i, .head b.root⟩
+/-- A slot-1 exact ack of seat `i` on `b1'`. -/
+def ak' (i : Fin 4) : AckWire 4 := ⟨.seat (.ack 1) i, b1'.root⟩
+def akWire' (i : Fin 4) : Wire 4 := ⟨.seat (.ack 1) i, .ack b1'.root⟩
+/-- (A2, reachable) `PC(1, b1')` from seats 2 and 3 at 6, the freeze at `z_1 = 7`
+(snapshot = that PC); at 8 a hand-built slot-2 block `X2` on `b1` (a faulty
+proposer, no carried PC) or `Y2` on `b1'`; three slot-2 HEADs on it at 9;
+the tick at `e_2 = 10`. -/
+def stPC' : State pT.n := clock pT ([akWire' 2, akWire' 3].foldl (process pT) st6both) 7
+def X2 : NamedProposal 4 := .node N1 2 ⟨5⟩ b1.body [] [] [] none
+def Y2 : NamedProposal 4 := .node N1' 2 ⟨6⟩ b1'.body [] [] [] none
+def st10x : State pT.n :=
+  clock pT ([hv2 X2.erase 0, hv2 X2.erase 1, hv2 X2.erase 2].foldl (process pT)
+    (atTime (process pT (atTime stPC' 8) ⟨.proposer 2, .proposal X2⟩) 9)) 10
+def st10y : State pT.n :=
+  clock pT ([hv2 Y2.erase 0, hv2 Y2.erase 1, hv2 Y2.erase 2].foldl (process pT)
+    (atTime (process pT (atTime stPC' 8) ⟨.proposer 2, .proposal Y2⟩) 9)) 10
 
 /-- The block is admitted: the erased tree, the FG tree, F unchanged; the
 proposal and an ack pass the input check. -/
@@ -105,12 +123,45 @@ theorem n_split : nCount pT (actView st6split) 1 b1 = 2 ∧
 theorem n_equivocator : nCount pT (actView st6equiv) 1 b1 = 2 ∧
     ackFor pT st6equiv 1 = none := by decide +kernel
 
-/-- (A2) A frame-active frozen view on the sibling blocks the ack; a view on
-`b1` itself does not. -/
-theorem view_filter : frameActive pT st6both ⟨1, b1', []⟩ = true ∧
-    viewOK pT (withView st6both b1') 1 b1 = false ∧
-    ackFor pT (withView st6both b1') 1 = none ∧
-    ackFor pT (withView st6both b1) 1 = some b1 := by decide +kernel
+/-- (A2, reachable) The frozen view of slot 2 is `PC(1, b1')`, frame-active:
+the N target `X2` on `b1` fails the view filter (no ack); `Y2` on `b1'`
+passes (ack). -/
+theorem view_filter : pcSnapshotAt stPC' 1 = some ⟨1, b1', [ak' 2, ak' 3]⟩ ∧
+    frameActive pT st10x ⟨1, b1', [ak' 2, ak' 3]⟩ = true ∧
+    nTarget? pT st10x 2 = some X2.erase ∧ viewOK pT st10x 2 X2.erase = false ∧
+    ackFor pT st10x 2 = none ∧
+    nTarget? pT st10y 2 = some Y2.erase ∧ ackFor pT st10y 2 = some Y2.erase := by
+  decide +kernel
+
+/-- (review fix 1, D4) h1 holds two distinct unresolved acks of the faulty
+seat 3 at slot 1; the relayed `PC(1, b1) = {seat 0, seat 3}` is still
+installed whole (through its acks), although seat 3's ack would be refused
+as a loose ack. A malformed PC (one ack) is ignored. -/
+def stF : State pT.n :=
+  [⟨.seat (.ack 1) 3, .ack ⟨50⟩⟩, ⟨.seat (.ack 1) 3, .ack ⟨51⟩⟩].foldl (process pT) st6
+def pcF : PC 4 := ⟨1, b1, [ak 0, ak 3]⟩
+theorem pc_whole : (process pT stF ⟨.seat (.ack 1) 3, .ack b1.root⟩).ackPool = stF.ackPool ∧
+    (process pT stF ⟨.none, .pc pcF⟩).pcs = [pcF] ∧
+    (process pT stF ⟨.none, .pc ⟨1, b1, [ak 0]⟩⟩).pcs = [] := by decide +kernel
+
+/-- (review fix 2) A silent slot-2 proposer: all slot-2 HEADs are on `b1`
+(slot 1), `N_2(b1) = 3` holds, but `b1` is not a slot-2 block: no N target,
+no ack; and an ack of slot 2 on `b1` is refused at acceptance. -/
+def st10s : State pT.n :=
+  clock pT ([hv2 b1 0, hv2 b1 1, hv2 b1 2].foldl (process pT) (atTime stA 9)) 10
+theorem silent_proposer : nCount pT (actView st10s) 2 b1 = 3 ∧ nTarget? pT st10s 2 = none ∧
+    ackFor pT st10s 2 = none ∧
+    (process pT st10s ⟨.seat (.ack 2) 0, .ack b1.root⟩).ackPool = st10s.ackPool := by
+  decide +kernel
+
+/-- (review fix 4) A repeated freeze tick writes the snapshot once. -/
+theorem snapshot_once : (clock pT (clock pT stA 7) 7).pcSnapshot = [(1, some pc1)] := by
+  decide +kernel
+
+/-- (review fix 5) A block carrying a malformed PC is refused. -/
+theorem carried_pc_wellFormed :
+    (process pT (atTime stA 8) ⟨.proposer 2, .proposal (.node N1 2 ⟨5⟩ b1.body [] [] []
+      (some ⟨1, b1, [ak 0]⟩))⟩).proposals = stA.proposals := by decide +kernel
 
 /-- (d) One ack forms no PC; two acks form `PC(1, b1)` (`q_A = 2`), the
 latest PC; a third ack is pooled but the held PC does not change. -/
@@ -176,7 +227,6 @@ def prop2n : NamedProposal 4 :=
 def st8n : State pT.n := process pT (atTime st6 8) ⟨.proposer 2, .proposal prop2n⟩
 /-- Three slot-2 HEADs on the slot-2 block at `v_2 = 9`, then the ticks to
 `a_1 = d_2 = 14`: with the PC (`st14`) and without any PC (`st14n`). -/
-def hv2 (b : Block) (i : Fin 4) : Wire 4 := ⟨.seat (.head 2) i, .head b.root⟩
 def st14 : State pT.n :=
   [(10 : Time), 11, 12, 13, 14].foldl (clock pT)
     ([hv2 prop2.erase 0, hv2 prop2.erase 1, hv2 prop2.erase 2].foldl (process pT) (atTime st8 9))

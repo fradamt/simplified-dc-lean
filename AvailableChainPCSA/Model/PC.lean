@@ -65,13 +65,30 @@ def collectPCs (st : State n) : State n :=
       | none => acc
       | some c => installPC acc c) st
 
+/-- [PC-SA M1; review fix 1 (D4)] Pool one copy of a decodable ack with no
+acceptance limit: the acks of a well-formed PC (received or carried) enter
+the pool whole, as r3 `on_pc` accepts a valid PC whole, so a faulty seat's
+earlier acks cannot keep a valid PC out of the store. -/
+def poolAckRaw {n : Nat} (st : State n) (a : AckWire n) : State n :=
+  match a.decode? with
+  | some _ => if a ∈ st.ackPool then st else { st with ackPool := st.ackPool ++ [a] }
+  | none => st
+
+/-- [PC-SA M1; review fix 2] The slot test of an ack on a resolved root: the
+block of slot `s` only (`B.slot = s`; spec r4). An unresolved root passes
+(it can only join a PC through `pcValid`, which tests the slot). -/
+def ackSlotOK {n : Nat} (st : State n) (s : Slot) (r : BlockId) : Bool :=
+  match st.base.blocks.find? (fun b => b.root == r) with
+  | some b => b.slot == s
+  | none => true
+
 /-- [PC-SA M1; pcsa34-r3 2.6, 3.6 on_ack] Pool one copy of a decodable ack
-of a slot `≤ Σ.s`, unless the pool holds two distinct acks of its seat at
-its slot. No PC assembly. -/
+of a slot `≤ Σ.s` on a slot-`s` block (or an unresolved root), unless the
+pool holds two distinct acks of its seat at its slot. No PC assembly. -/
 def poolAck (p : Params) (st : State p.n) (a : AckWire p.n) : State p.n :=
   match a.decode? with
   | some (s, i, r) =>
-      if st.slot p < s || a ∈ st.ackPool then st else
+      if st.slot p < s || !ackSlotOK st s r || a ∈ st.ackPool then st else
       if 2 ≤ (seatAcks st s i).length && !decide (r ∈ seatAcks st s i) then st else
       { st with ackPool := st.ackPool ++ [a] }
   | none => st
@@ -97,14 +114,16 @@ def nCount (p : Params) (v : GridCO.State p.n .root) (s : Slot) (b : Block) : Na
 def holdsN (p : Params) (v : GridCO.State p.n .root) (s : Slot) (b : Block) : Bool :=
   decide (nQuorum p.n ≤ nCount p v s b)
 
-/-- [PC-SA M1; pcsa34-r3 3.8] The N target of slot `s` on the active view:
-the first timely head with `holdsN`. Two N targets of one slot need
+/-- [PC-SA M1; pcsa34-r3 3.8; review fix 2] The N target of slot `s` on the
+active view: the first timely head of slot `s` (`B.slot = s`, as
+`PC.wellFormed` needs; spec r4) with `holdsN`. Two N targets of one slot need
 `2⌈3n/4⌉ − n ≥ ⌈n/2⌉` equivocating seats, so under `a < ⌈n/2⌉` the choice
 by `find?` is unreachable and the target is unique (r3 5.1; lead decision
 G4). The active view gives `B ∈ Σ.T` and `B` compatible with `F`. -/
 def nTarget? (p : Params) (st : State p.n) (s : Slot) : Option Block :=
   let v := actView st
-  ((timelyHeads p v s).filterMap (GridCO.resolvedHead? v)).find? (holdsN p v s)
+  ((timelyHeads p v s).filterMap (GridCO.resolvedHead? v)).find? (fun b =>
+    b.slot == s && holdsN p v s b)
 
 end AvailableChain.PCSA
 end

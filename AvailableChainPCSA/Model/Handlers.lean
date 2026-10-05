@@ -26,10 +26,12 @@ PCs the pool supports. -/
 def admitAck (p : Params) (st : State p.n) (a : AckWire p.n) : State p.n :=
   collectPCs (poolAck p st a)
 
-/-- [PC-SA M1; pcsa-decisions 3n/4] `on_pc`: pool the acks of the PC, then
-assemble. A PC enters the store only by assembly. -/
-def admitPC (p : Params) (st : State p.n) (c : PC p.n) : State p.n :=
-  collectPCs (c.acks.foldl (poolAck p) st)
+/-- [PC-SA M1; pcsa-decisions 3n/4; review fix 1 (D4)] `on_pc`: a well-formed
+PC contributes its acks whole (no acceptance limit), then the PCs are
+assembled; a malformed PC is ignored. A PC enters the store only by
+assembly, with the node's own first-per-seat acks. -/
+def admitPC {n : Nat} (st : State n) (c : PC n) : State n :=
+  if c.wellFormed then collectPCs (c.acks.foldl poolAckRaw st) else st
 
 /-- [PC-SA M1] [spec 519–522; M3] The stored FG parent of an erased block. -/
 def parentFG {n : Nat} (st : State n) (b : Block) : Option (FGBlock (Fin n)) :=
@@ -47,8 +49,9 @@ def fgBlock {n : Nat} (P : FGBlock (Fin n)) (b : Block) (rows : List (RowWire n)
 `on_block`, all before any write: not genesis; `b.slot ≤ Σ.s`; no stored block
 has the root of `b` (the duplicate test); `F ⪯ B`; `b.parent.slot < b.slot`;
 the slot-`b.slot` proposer signs it; every row passes R6 against the parent
-state; the body packs the carried rows and the digest covers the carried PC
-(`namedContentOk`). -/
+state; a carried PC is well formed (review fix 5: an invalid carried PC is a
+malformed block); the body packs the carried rows and the digest covers the
+carried PC (`namedContentOk`). -/
 def blockAccepted (p : Params) (st : State p.n) (s : Slot) (N : NamedProposal p.n)
     (P : FGBlock (Fin p.n)) : Bool :=
   let b := N.erase
@@ -56,7 +59,8 @@ def blockAccepted (p : Params) (st : State p.n) (s : Slot) (N : NamedProposal p.
     !decide (∃ Y ∈ st.fg.TF, Y.root = b.root) &&
     FGBlock.preceq st.fg.F (fgBlock P b N.rows) &&
     decide (b.parent.slot < b.slot) && s == b.slot &&
-    rowsValidForParent p P b.slot N.rows && namedContentOk p N
+    rowsValidForParent p P b.slot N.rows && (N.pc.map PC.wellFormed).getD true &&
+    namedContentOk p N
 
 /-- [PC-SA M1; FG-SA Handlers.lean admitBlock; pcsa-decisions R-e]
 [spec 804–829; M6] `on_block`. On refusal the state does not change. On
@@ -79,7 +83,7 @@ def admitBlock (p : Params) (st : State p.n) (s : Slot)
           fg := FGSA.Window.on_block p p.K_W st.fg (fgBlock P N.erase N.rows)
           proposals := st.proposals ++ [⟨.proposer s, .proposal N⟩] }
         let st2 := if st1.fg.F = st.fg.F then st1 else reconcile st1
-        let st3 := collectPCs (N.pcAcks.foldl (poolAck p) st2)
+        let st3 := collectPCs (N.pcAcks.foldl poolAckRaw st2)
         N.rows.foldl (admitRow p) st3
       else st
 
@@ -91,7 +95,7 @@ def process (p : Params) (st : State p.n) (o : Wire p.n) : State p.n :=
   | some (.row _ body) => admitRow p st ⟨o.auth, body⟩
   | some (.block s N) => admitBlock p st s N
   | some (.ack _ _ b) => admitAck p st ⟨o.auth, b⟩
-  | some (.pc c) => admitPC p st c
+  | some (.pc c) => admitPC st c
   | none => st
 
 /-- [PC-SA M1; FG-SA Handlers.lean wellFormed; pcsa-decisions 3n/4]

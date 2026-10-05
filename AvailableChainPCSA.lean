@@ -14,3 +14,4 @@ public import AvailableChainPCSA.Statements.WindowCertificate
 public import AvailableChainPCSA.Statements.FinalityView
 public import AvailableChainPCSA.Statements.Invariants
 public import AvailableChainPCSA.Statements.Store
+public import AvailableChainPCSA.Proofs.Digest
