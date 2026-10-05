@@ -2,12 +2,19 @@
 import ast
 from pathlib import Path
 import sys
+import importlib.util
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+spec = importlib.util.spec_from_file_location('guards',
+    Path(__file__).resolve().parents[1] / 'guard-lists.py')
+guards = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(guards)
 
 NAMES = ('EXPECTED', 'ORDER')
 
 
 def read(path):
-    header, rest = Path(path).read_text().split("<<'PY'\n", 1)
+    lines, _ = guards.read_guard(Path(path).read_text(), path)
+    header, rest = ''.join(lines).split("<<'PY'\n", 1)
     body, trailer = rest.split('\nPY', 1)
     tree = ast.parse(body)
     nodes = {node.targets[0].id: node for node in tree.body

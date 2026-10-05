@@ -1,5 +1,6 @@
 import AvailableChainFGSA
 import Lean.Util.CollectAxioms
+import AvailableChainCheckSupport.ImportPolicy
 open Lean
 
 /-! FGSA axiom check. Every compiled constant of the modules of
@@ -50,37 +51,9 @@ def forbiddenRoots : List Name :=
   [`AvailableChainFramework, `AvailableChainRegistry, `AvailableChainSAPC,
     `AvailableChainWitnesses]
 
-/-- The external modules that every layer may import (the allowlist of
-`scripts/check-fgsa.sh`). -/
-def externalOK (m : Name) : Bool :=
-  (`AvailableChainModel).isPrefixOf m || m == `AvailableChainGridCO.Model.Protocol ||
-    m == `AvailableChainSA.Model.Protocol || (`AvailableChainSimplexFG).isPrefixOf m ||
-    (`Mathlib).isPrefixOf m
-
-/-- The direct-import allowlist with its layer rules (plan, Global Constraints
-"Imports"; the same rules as `check_direct_imports` in `scripts/check-fgsa.sh`).
-The layer of `AvailableChainFGSA.L.…` is `L`; the root `AvailableChainFGSA`
-imports only FGSA modules; a module directly under the root or in another
-directory imports nothing but `Init`. -/
+/-- The same generated policy as the source checks. -/
 def allowedImport (mod imp : Name) : Bool :=
-  let fgsa (l : String) := (Name.str `AvailableChainFGSA l).isPrefixOf imp
-  imp == `Init ||
-  match mod.components.map (·.toString) with
-  | ["AvailableChainFGSA"] => (`AvailableChainFGSA).isPrefixOf imp && imp != `AvailableChainFGSA
-  | "AvailableChainFGSA" :: l :: _ :: _ =>
-      match l with
-      | "Tests" => ((`AvailableChainFGSA).isPrefixOf imp && imp != `AvailableChainFGSA) ||
-          externalOK imp
-      | "Model" => fgsa "Model" || externalOK imp || imp == `AvailableChainKitFG.ClientOnce ||
-          imp == `AvailableChainKitFG.FrameBridgeDef
-      | "Statements" => fgsa "Model" || fgsa "Statements" || externalOK imp ||
-          (`AvailableChainKitFG).isPrefixOf imp
-      | "Proofs" => fgsa "Model" || fgsa "Statements" || fgsa "Proofs" || externalOK imp ||
-          (`AvailableChainGridCO.Proofs).isPrefixOf imp || (`AvailableChainKitFG).isPrefixOf imp ||
-          -- GEN-FIRST/F-31: FG-SA proofs instantiate Gen proofs (lead ruling 2026-10-01, SYN L56).
-          (`AvailableChainGeneric.Proofs).isPrefixOf imp
-      | _ => false
-  | _ => false
+  AvailableChainCheckSupport.ImportPolicy.fgsaAllowedImport mod imp
 
 /-- The module names of the `.lean` files under `dir`, whose last component is
 `AvailableChainFGSA`. -/

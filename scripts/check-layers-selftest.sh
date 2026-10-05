@@ -111,6 +111,10 @@ def setup(root):
     put(root, "lakefile.toml", text)
     for relative in ("scripts/CatalogLock.lean", "scripts/baselines/kitfg-def-modules.txt"):
         put(root, relative, (repo / relative).read_text(encoding="utf-8"))
+    for line in (repo / "scripts/baselines/kitfg-def-modules.txt").read_text().splitlines():
+        name = line.split("#", 1)[0].strip()
+        if name:
+            module(root, K + "." + name)
 
 
 def run(root, expected_code, expected=None, extra=()):

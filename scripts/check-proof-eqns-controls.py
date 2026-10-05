@@ -68,8 +68,26 @@ with tempfile.TemporaryDirectory(prefix="proof-eqns-neg.", dir=REPO / ".lake") a
     ):
         compile_module(f"{prefix}.Tests.{case}",
                        f"module\npublic import {prefix}.Statements.Valid\n{line}\n")
+    for case, line in (("PrivateSyntax", "#print axioms Valid.P"),
+                       ("PrivateSyntaxMissing", "-- #print axioms Valid.P")):
+        compile_module(f"{prefix}.Tests.{case}",
+                       f"module\npublic import {prefix}.Statements.Valid\n"
+                       "import Lean.Elab.Tactic.RCases\n"
+                       "example : True := by\n"
+                       "  obtain ⟨h, _⟩ := And.intro True.intro True.intro\n"
+                       "  exact h\n" + line + "\n")
     compile_module("OtherCoverageControl.Tests.Axioms",
                    f"module\npublic import {prefix}.Statements.Valid\n#print axioms Valid.P\n")
+    special = ("B'_resetF", "B'_resetF_def", "clock_eq_saClockFrom_gate'", 'block?_proposal')
+    owner = f'{prefix}.Model.Special'
+    compile_module(owner, 'module\npublic import Init\npublic section\nnamespace Special\n'
+                   + '\n'.join(f'theorem {name} : True := True.intro' for name in special)
+                   + '\nend Special\n')
+    special_audit = f'{prefix}.Tests.Special'
+    special_body = (f'module\npublic import {owner}\nnamespace Special\n'
+                    + '\n'.join(f'#print axioms {name}' for name in special)
+                    + '\nend Special\n#print axioms True.intro\n')
+    compile_module(special_audit, special_body)
 
     def check(label, module, rc, reason, audit=None):
         args = lean + ["--run", "scripts/CheckProofEqns.lean", "--baseline",
@@ -101,10 +119,39 @@ with tempfile.TemporaryDirectory(prefix="proof-eqns-neg.", dir=REPO / ".lake") a
         check("equation export", f"{prefix}.Proofs.Leak", 1, "EQ EXPORT")
         for case, rc, reason in (("Valid", 0, "0 unaccepted"),
                                  ("Commented", 1, "AUDIT LINE MISSING"),
-                                 ("Short", 1, "AUDIT LINE MISSING")):
+                                 ("Short", 1, "AUDIT LINE MISSING"),
+                                 ("PrivateSyntax", 0, "0 unaccepted"),
+                                 ("PrivateSyntaxMissing", 1, "AUDIT LINE MISSING")):
             audit = f"{prefix}.Tests.{case}"
             check(f"audit {case}", audit, rc, reason, audit)
         audit = "OtherCoverageControl.Tests.Axioms"
         check("audit wrong library", audit, 1, "AUDIT MODULE NOT COVERED", audit)
+        # Generate from all commands, including local names and an imported owner.
+        data = root / 'complete-coverage.txt'
+        args = lean + ['--run', 'scripts/CheckProofEqns.lean', '--baseline',
+                       'scripts/baselines/check-proof-eqns.txt', special_audit]
+        result = command(args + ['--write-coverage', str(data)])
+        assert result.returncode == 0, (result.stdout, result.stderr)
+        original = data.read_text()
+        assert len(original.splitlines()) == 5, original
+        for name in special:
+            assert f'{owner} Special.{name} {special_audit}\n' in original, original
+        check_args = args + ['--coverage', str(data), '--complete-coverage']
+
+        def complete_check(label, rc, reason):
+            result = command(check_args)
+            output = result.stdout + result.stderr
+            assert result.returncode == rc and reason in output, (label, output)
+            print(f'CONTROL complete coverage {label}: PASS (rc {rc}; {reason})', flush=True)
+
+        complete_check('all commands and owners', 0, '0 unaccepted')
+        audit_path = source / (special_audit.replace('.', '/') + '.lean')
+        for name in special:
+            audit_path.write_text(special_body.replace(f'#print axioms {name}\n', ''))
+            complete_check('removed ' + name, 1, f'AUDIT LINE MISSING name=Special.{name} ')
+            audit_path.write_text(special_body)
+        data.write_text('\n'.join(line for line in original.splitlines()
+                                  if " Special.B'_resetF " not in line) + '\n')
+        complete_check('inventory omission', 1, "AUDIT INVENTORY MISSING name=Special.B'_resetF ")
     finally:
         link.unlink()

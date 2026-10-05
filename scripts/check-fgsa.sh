@@ -17,6 +17,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 source scripts/gate-common.sh
+source scripts/import-policy.sh
 if [ "${SOURCE_ONLY:-0}" != 1 ]; then
   gate_options "$@"
   for f in scripts/CheckFGSAAxioms.lean scripts/CheckFGSALease.lean scripts/CheckFGSAExt.lean \
@@ -109,25 +110,7 @@ check_direct_imports() {
     if [ "$f" = AvailableChainFGSA.lean ]; then layer=root; else layer=${rel%%/*}; fi
     for m in $(imports_of "$base/$f"); do
       if [ "$m" = '!UNPARSED' ]; then echo "UNPARSED IMPORT HEADER: $f"; bad=1; continue; fi
-      case "$layer:$m" in
-        root:AvailableChainFGSA.*|Tests:AvailableChainFGSA.*) continue ;;
-        Model:AvailableChainFGSA.Model.*) continue ;;
-        Model:AvailableChainKitFG.ClientOnce|Model:AvailableChainKitFG.FrameBridgeDef) continue ;;
-        Statements:AvailableChainFGSA.Model.*|Statements:AvailableChainFGSA.Statements.*) continue ;;
-        Proofs:AvailableChainFGSA.Model.*|Proofs:AvailableChainFGSA.Statements.*) continue ;;
-        Proofs:AvailableChainFGSA.Proofs.*) continue ;;
-        Proofs:AvailableChainGeneric.Proofs.*) continue ;;
-        root:*) ;;
-        Model:*|Statements:*|Proofs:*|Tests:*)
-          case "$m" in
-            AvailableChainFGSA.*) ;;
-            AvailableChainModel.*|AvailableChainGridCO.Model.Protocol) continue ;;
-            AvailableChainSA.Model.Protocol|AvailableChainSimplexFG.*|Mathlib.*) continue ;;
-            AvailableChainGridCO.Proofs.*) [ "$layer" = Proofs ] && continue ;;
-            AvailableChainKitFG.*)
-              { [ "$layer" = Statements ] || [ "$layer" = Proofs ]; } && continue ;;
-          esac ;;
-      esac
+      fgsa_import_allowed "$layer" "$m" && continue
       echo "IMPORT NOT ALLOWED: $f imports $m"; bad=1
     done
   done

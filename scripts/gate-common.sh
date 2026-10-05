@@ -37,6 +37,7 @@ gate_precheck() (
       --main-rev "$base" --target scripts/check-fgsa-claims.sh \
       --allow scripts/guard-lists-allow.txt || exit $?
   fi
+  gate_precheck_step import-policy python3 scripts/generate-import-policy.py --check || exit $?
   gate_precheck_step check-layers python3 scripts/check-layers.py || exit $?
   gate_precheck_step check-module-headers python3 scripts/check-module-headers.py || exit $?
   gate_precheck_step check-expose python3 scripts/check-expose.py || exit $?

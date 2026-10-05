@@ -41,6 +41,10 @@ equality or iff. Exposed predicates do not need this backstop.
 `<owning module> <declaration> <audit module>`, one row per line. The audit must
 be imported by the roots. Only active, fully qualified `#print axioms` commands
 in that module count. The gate/source inventory is a separate check.
+`--complete-coverage` also checks all audit commands, including namespace-local
+names and declarations imported from other libraries. It requires an inventory
+entry for each command. `--write-coverage FILE` generates that inventory for the
+explicit audit roots. Generation is a separate action; normal checks never write it.
 `--controls` tests the added checks in the same run.
 -/
 
@@ -164,12 +168,18 @@ structure CheckOptions where
   baseline : Option System.FilePath := none
   write : Bool := false
   coverage : Option System.FilePath := none
+  completeCoverage : Bool := false
+  writeCoverage : Option System.FilePath := none
   controls : Bool := false
 
 def parseArgs : List String → CheckOptions → Except String CheckOptions
   | [], options =>
     if options.write && options.baseline.isSome then
       .error "--write-baseline and --baseline cannot be used together"
+    else if options.completeCoverage && options.coverage.isNone then
+      .error "--complete-coverage requires --coverage"
+    else if options.writeCoverage.isSome && options.coverage.isSome then
+      .error "--write-coverage and --coverage cannot be used together"
     else .ok options
   | "--baseline" :: path :: rest, options =>
     if path.startsWith "--" || options.baseline.isSome then .error "invalid --baseline"
@@ -179,6 +189,11 @@ def parseArgs : List String → CheckOptions → Except String CheckOptions
     if path.startsWith "--" || options.coverage.isSome then .error "invalid --coverage"
     else parseArgs rest { options with coverage := some path }
   | "--controls" :: rest, options => parseArgs rest { options with controls := true }
+  | "--complete-coverage" :: rest, options =>
+    parseArgs rest { options with completeCoverage := true }
+  | "--write-coverage" :: path :: rest, options =>
+    if path.startsWith "--" || options.writeCoverage.isSome then .error "invalid --write-coverage"
+    else parseArgs rest { options with writeCoverage := some path }
   | arg :: rest, options =>
     if arg.startsWith "-" then .error s!"unknown or incomplete option: {arg}"
     else parseArgs rest { options with roots := options.roots.push arg.toName }
@@ -262,46 +277,84 @@ def statementCoverage (env : Environment) : IO (Array String) := do
   return out
 
 /-- Use the Lean parser so comments, strings and short names cannot supply a line. -/
-def auditNames (env : Environment) (text : String) : IO (Std.HashSet Name) := do
+def auditNames (env : Environment) (text : String) (complete := false) :
+    IO (Std.HashSet Name) := do
   let input := Parser.mkInputContext text "audit coverage"
   let (_, initial, messages) ← Parser.parseHeader input
   let mut state := initial
   let mut messages := messages
   let mut out : Std.HashSet Name := {}
+  let mut scopes : List Name := []
+  let mut ns := Name.anonymous
   repeat
     let (command, next, log) := Parser.parseCommand input { env, options := {} } state messages
     state := next
     messages := log
+    if complete then
+      if command.getKind == ``Parser.Command.namespace then
+        scopes := ns :: scopes
+        ns := ns ++ command[1].getId
+      else if command.getKind == ``Parser.Command.section then
+        scopes := ns :: scopes
+      else if command.getKind == ``Parser.Command.end then
+        ns := scopes.headD .anonymous
+        scopes := scopes.drop 1
     if command.getKind == ``Parser.Command.printAxioms then
-      out := out.insert command[2].getId
+      let name := command[2].getId
+      let name := if complete && env.contains (ns ++ name) then ns ++ name else name
+      out := out.insert name
     if Parser.isTerminalCommand command then break
-  if messages.hasErrors then throw <| IO.userError "COVERAGE PARSE UNSUPPORTED"
+  if messages.hasErrors then
+    for message in messages.toList do IO.eprintln (← message.toString)
+    throw <| IO.userError "COVERAGE PARSE UNSUPPORTED"
   return out
 
-def auditCoverage (env : Environment) (path : System.FilePath) : IO (Array String) := do
+def auditFile (a : Name) : System.FilePath :=
+  (a.components.foldl (fun p c => p / c.toString) (System.FilePath.mk ".")).addExtension "lean"
+
+def writeAuditCoverage (env : Environment) (audits : Array Name) (path : System.FilePath) :
+    IO Unit := do
+  let mut rows := #[]
+  for audit in audits do
+    let names ← auditNames env (← IO.FS.readFile (auditFile audit)) true
+    for name in names.toArray.qsort Name.lt do
+      let some owner := moduleOf env name |
+        throw <| IO.userError s!"AUDIT OWNER MISSING name={name} audit={audit}"
+      rows := rows.push s!"{owner} {name} {audit}\n"
+  IO.FS.writeFile path (String.join rows.toList)
+
+def auditCoverage (env : Environment) (path : System.FilePath) (complete := false) :
+    IO (Array String) := do
   let mut out := #[]
   let mut cache : Std.HashMap Name (Std.HashSet Name) := {}
+  let mut required : Std.HashMap Name (Std.HashSet Name) := {}
   for line in ← dataLines path do
     let [owner, decl, audit] := (line.splitOn " ").filter (!·.isEmpty) |
       throw <| IO.userError s!"invalid coverage row: {line}"
     let m := owner.toName
     let n := decl.toName
     let a := audit.toName
+    required := required.insert a ((required[a]?.getD {}).insert n)
     unless moduleOf env n == some m && !isPrivateName n do
       out := out.push s!"AUDIT DECLARATION MISSING name={n} module={m}"
-    unless m.components.head? == a.components.head? &&
+    unless (complete || m.components.head? == a.components.head?) &&
         env.header.moduleNames.contains a do
       out := out.push s!"AUDIT MODULE NOT COVERED name={n} audit={a}"
       continue
     let names ← match cache[a]? with
       | some ns => pure ns
       | none =>
-          let file := (a.components.foldl (fun p c => p / c.toString)
-            (System.FilePath.mk ".")).addExtension "lean"
-          let ns ← auditNames env (← IO.FS.readFile file)
+          let file := auditFile a
+          let ns ← try auditNames env (← IO.FS.readFile file) complete
+            catch error => throw <| IO.userError s!"{file}: {error}"
           cache := cache.insert a ns
           pure ns
     unless names.contains n do out := out.push s!"AUDIT LINE MISSING name={n} audit={a}"
+  if complete then
+    for (audit, names) in cache.toArray do
+      for name in names.toArray do
+        unless (required[audit]?.getD {}).contains name do
+          out := out.push s!"AUDIT INVENTORY MISSING name={name} audit={audit}"
   return out
 
 def coverageControls (env : Environment) : IO Bool := do
@@ -343,12 +396,20 @@ def runCheck (options : CheckOptions) : IO UInt32 := do
     | some path => dataLines path
     | none => pure [])
   initSearchPath (← findSysroot)
-  let env ← importModules (roots.map fun m => { module := m }) {} (level := .exported)
+  -- The command parser needs imported syntax extensions. Keep one exported
+  -- environment; loading a second private proof environment exceeds the cap.
+  let parseAudits := options.coverage.isSome || options.writeCoverage.isSome
+  if parseAudits then unsafe enableInitializersExecution
+  let env ← importModules (roots.map fun m => { module := m }) {}
+    (loadExts := parseAudits) (level := .exported)
+  if let some path := options.writeCoverage then
+    writeAuditCoverage env options.roots path
+    return 0
   let rows ← resolveOwners env (findings env definitions)
   let mut bad := 0
   let mut coverageErrors ← statementCoverage env
   if let some path := options.coverage then
-    coverageErrors := coverageErrors ++ (← auditCoverage env path)
+    coverageErrors := coverageErrors ++ (← auditCoverage env path options.completeCoverage)
   for error in coverageErrors do IO.println error
   bad := coverageErrors.size
   if options.controls then

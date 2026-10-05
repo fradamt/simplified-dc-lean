@@ -1,0 +1,151 @@
+{
+  "groups": {
+    "foundation": [
+      "Init.**",
+      "Lean.**",
+      "Std.**",
+      "Mathlib.**"
+    ],
+    "fgsaExternal": [
+      "AvailableChainModel.*",
+      "AvailableChainGridCO.Model.Protocol",
+      "AvailableChainSA.Model.Protocol",
+      "AvailableChainSimplexFG.*",
+      "Mathlib.*"
+    ],
+    "runExternal": [
+      "AvailableChainEngineV2.*",
+      "AvailableChainFGSA.Model.*",
+      "AvailableChainFGSA.Statements.*",
+      "AvailableChainGeneric.Statements.*",
+      "AvailableChainSimplexFG.*",
+      "Mathlib.*",
+      "AvailableChainModel.Objects.Identifiers",
+      "AvailableChainModel.Objects.Time",
+      "AvailableChainModel.Objects.Blocks",
+      "AvailableChainModel.Objects.Codec",
+      "AvailableChainModel.Generic.Env",
+      "AvailableChainGridCO.Model.Protocol",
+      "AvailableChainGridCO.Model.Walk",
+      "AvailableChainSA.Model.Protocol"
+    ],
+    "runProof": [
+      "AvailableChainKitV2.*",
+      "AvailableChainFGSA.Proofs.*",
+      "AvailableChainKitFG.*",
+      "AvailableChainGeneric.Proofs.*"
+    ],
+    "claimsExternal": [
+      "AvailableChainEngineV2.*",
+      "AvailableChainFGSA.Model.*",
+      "AvailableChainFGSA.Statements.*",
+      "AvailableChainFGSARun.Model.*",
+      "AvailableChainFGSARun.Statements.*",
+      "AvailableChainGeneric.Statements.*",
+      "AvailableChainSimplexFG.*",
+      "Mathlib.*",
+      "Init.*",
+      "Lean.*",
+      "Std.*",
+      "AvailableChainModel.Objects.Identifiers",
+      "AvailableChainModel.Objects.Time",
+      "AvailableChainModel.Objects.Blocks",
+      "AvailableChainModel.Objects.Codec",
+      "AvailableChainModel.Generic.Env",
+      "AvailableChainGridCO.Model.Protocol",
+      "AvailableChainGridCO.Model.Walk",
+      "AvailableChainSA.Model.Protocol"
+    ],
+    "claimsProof": [
+      "AvailableChainKitV2.*",
+      "AvailableChainKitFG.*",
+      "AvailableChainFGSA.Proofs.*",
+      "AvailableChainFGSARun.Proofs.*",
+      "AvailableChainGeneric.Proofs.*"
+    ],
+    "layersRun": [
+      "AvailableChainFGSARun.**",
+      "AvailableChainFGSA.**",
+      "AvailableChainGeneric.**",
+      "AvailableChainEngineV2.**",
+      "AvailableChainKitV2.**",
+      "AvailableChainKitFG.**",
+      "AvailableChainSimplexFG.**"
+    ],
+    "layersClaims": [
+      "AvailableChainFGSAClaims.**",
+      "AvailableChainFGSARun.Model.**",
+      "AvailableChainFGSARun.Statements.**",
+      "AvailableChainFGSA.Model.**",
+      "AvailableChainFGSA.Statements.**",
+      "AvailableChainGeneric.Statements.**"
+    ],
+    "laneUpstream": [
+      "AvailableChainGeneric.**",
+      "AvailableChainKitFG.**",
+      "AvailableChainEngineV2.**",
+      "AvailableChainKitV2.**",
+      "AvailableChainFGSA.**",
+      "AvailableChainFGSARun.**"
+    ]
+  },
+  "profiles": {
+    "AvailableChainFGSA": {
+      "root": [
+        "AvailableChainFGSA.*"
+      ],
+      "Tests": [
+        "AvailableChainFGSA.*",
+        "@fgsaExternal"
+      ],
+      "Model": [
+        "AvailableChainFGSA.Model.*",
+        "@fgsaExternal",
+        "AvailableChainKitFG.ClientOnce",
+        "AvailableChainKitFG.FrameBridgeDef"
+      ],
+      "Statements": [
+        "AvailableChainFGSA.Model.*",
+        "AvailableChainFGSA.Statements.*",
+        "@fgsaExternal",
+        "AvailableChainKitFG.*"
+      ],
+      "Proofs": [
+        "AvailableChainFGSA.Model.*",
+        "AvailableChainFGSA.Statements.*",
+        "AvailableChainFGSA.Proofs.*",
+        "@fgsaExternal",
+        "AvailableChainGridCO.Proofs.*",
+        "AvailableChainKitFG.*",
+        "AvailableChainGeneric.Proofs.*"
+      ]
+    },
+    "AvailableChainFGSARun": {
+      "root": [
+        "AvailableChainFGSARun.*"
+      ],
+      "Tests": [
+        "AvailableChainFGSARun.*",
+        "@runExternal",
+        "@runProof",
+        "AvailableChainFGSA.Tests.Support"
+      ],
+      "Model": [
+        "AvailableChainFGSARun.Model.*",
+        "@runExternal"
+      ],
+      "Statements": [
+        "AvailableChainFGSARun.Model.*",
+        "AvailableChainFGSARun.Statements.*",
+        "@runExternal"
+      ],
+      "Proofs": [
+        "AvailableChainFGSARun.Model.*",
+        "AvailableChainFGSARun.Statements.*",
+        "AvailableChainFGSARun.Proofs.*",
+        "@runExternal",
+        "@runProof"
+      ]
+    }
+  }
+}

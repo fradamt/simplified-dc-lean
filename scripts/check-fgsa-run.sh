@@ -21,6 +21,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 source scripts/gate-common.sh
+source scripts/import-policy.sh
 if [ "${SOURCE_ONLY:-0}" != 1 ]; then
   gate_options "$@"
   for f in scripts/CheckFGSARunAxioms.lean scripts/CheckFGSARunLease.lean \
@@ -319,28 +320,7 @@ check_direct_imports() {
     if [ "$f" = AvailableChainFGSARun.lean ]; then layer=root; else layer=${rel%%/*}; fi
     for m in $(imports_of "$base/$f"); do
       if [ "$m" = '!UNPARSED' ]; then echo "UNPARSED IMPORT HEADER: $f"; bad=1; continue; fi
-      case "$layer:$m" in
-        root:AvailableChainFGSARun.*|Tests:AvailableChainFGSARun.*) continue ;;
-        Model:AvailableChainFGSARun.Model.*) continue ;;
-        Statements:AvailableChainFGSARun.Model.*|Statements:AvailableChainFGSARun.Statements.*) continue ;;
-        Proofs:AvailableChainFGSARun.Model.*|Proofs:AvailableChainFGSARun.Statements.*) continue ;;
-        Proofs:AvailableChainFGSARun.Proofs.*) continue ;;
-        Statements:AvailableChainGeneric.Statements.AC.Reads|Proofs:AvailableChainGeneric.Statements.AC.Reads|Tests:AvailableChainGeneric.Statements.AC.Reads) continue ;;
-        root:*) ;;
-        Model:*|Statements:*|Proofs:*|Tests:*)
-          case "$m" in
-            AvailableChainFGSARun.*) ;;
-            AvailableChainEngineV2.*|AvailableChainFGSA.Model.*|AvailableChainFGSA.Statements.*) continue ;;
-            AvailableChainModel.Objects.Identifiers|AvailableChainModel.Objects.Time) continue ;;
-            AvailableChainModel.Objects.Blocks|AvailableChainModel.Objects.Codec) continue ;;
-            AvailableChainModel.Generic.Env|AvailableChainSimplexFG.*|Mathlib.*) continue ;;
-            AvailableChainGridCO.Model.Protocol|AvailableChainGridCO.Model.Walk) continue ;;
-            AvailableChainSA.Model.Protocol|AvailableChainGeneric.Statements.*) continue ;;
-            AvailableChainKitV2.*|AvailableChainFGSA.Proofs.*|AvailableChainKitFG.*|AvailableChainGeneric.Proofs.*)
-              { [ "$layer" = Proofs ] || [ "$layer" = Tests ]; } && continue ;;
-            AvailableChainFGSA.Tests.Support) [ "$layer" = Tests ] && continue ;;
-          esac ;;
-      esac
+      run_import_allowed "$layer" "$m" && continue
       echo "IMPORT NOT ALLOWED: $f imports $m"; bad=1
     done
   done

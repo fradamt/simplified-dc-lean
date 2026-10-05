@@ -6,13 +6,17 @@
 # Defaults: Mac 3, Linux 3 (scripts/gate-common.sh); env wins. JOBS is only a per-script pool bound.
 # Linux requires a user scope with GATE_MEM (default 16G) and no swap; without it the gate refuses to run.
 set -euo pipefail
+export PYTHONDONTWRITEBYTECODE=1
 cd "$(dirname "$0")/.."
 source scripts/gate-common.sh
 gate_args=("$@")
-tier=auto; base=; critical_path=0
+tier=auto; base=; critical_path=0; attest_key=; attest_head=
 usage() { echo "usage: bash scripts/gate.sh [--tier merge|full|auto] [--base <ref>] [--jobs N] | --critical-path"; }
 while [ $# -gt 0 ]; do
   case "$1" in
+    --attest-key)
+      [ $# -ge 2 ] || { usage >&2; exit 2; }
+      attest_key=$2; shift 2 ;;
     --tier|--base|--jobs)
       [ $# -ge 2 ] || { usage >&2; exit 2; }
       case "$1" in --tier) tier=$2 ;; --base) base=$2 ;; --jobs) JOBS=$2 ;; esac
@@ -23,6 +27,21 @@ while [ $# -gt 0 ]; do
   esac
 done
 case "$tier" in auto|merge|full) ;; *) usage >&2; exit 2 ;; esac
+if [ "${SOURCE_ONLY:-0}" != 0 ]; then
+  echo 'GATE REFUSED: SOURCE_ONLY must be unset or 0' >&2
+  exit 2
+fi
+# Signing is opt-in. The operator must keep the private key outside target code.
+# Main trusts only keys in its committed full-pass-signers policy file.
+if [ -n "$attest_key" ]; then
+  [ "$tier" = full ] && [ -n "$base" ] && [ "$critical_path" = 0 ] || {
+    echo 'FULL RECEIPT requires --tier full --base <policy-head>' >&2; exit 2;
+  }
+  [ -z "$(git status --porcelain --untracked-files=all)" ] || {
+    echo 'FULL RECEIPT DIRTY TARGET' >&2; exit 2;
+  }
+  attest_head=$(git rev-parse HEAD)
+fi
 # Auto tier selection needs a base. Explicit tiers and critical-path mode
 # use a base when the caller supplies one.
 if [ -z "$base" ] && [ "$tier" = auto ] && [ "$critical_path" = 0 ]; then
@@ -153,6 +172,10 @@ finish() {
       echo "memory.peak=$((peak / 1048576)) MiB (cgroup $cg)"
   fi
   if [ "$failed" -eq 0 ]; then
+    if [ -n "$attest_key" ]; then
+      python3 scripts/full-pass.py sign "$PWD" "$attest_head" "$base" "$logs" \
+        "$attest_key" "$logs/full-pass.json" || return $?
+    fi
     if [ "$tier" = full ]; then touch .lake/gate-last-full; fi
     echo "GATE PASS tier=$tier slots=$GATE_SLOTS memory=$memory_limit wall=$(($(date +%s)-started))s"
   else
@@ -225,6 +248,10 @@ audit() {
   echo "sorryAx = $count"
   [ "$rc" -eq 0 ] && [ "$count" = 0 ]
 }
+# C14: keep required audit lines tied to their declaration's owning module.
+step proof-audit-coverage gate_with_slot python3 scripts/check-proof-coverage.py
+summary proof-audit-coverage
+stop_if_failed
 for lib in Generic FGSA FGSARun; do
   step "$lib-axioms" audit "AvailableChain$lib/Tests/Axioms.lean" "$logs/$lib.axioms"
   summary "$lib-axioms"

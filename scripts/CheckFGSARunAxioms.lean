@@ -1,6 +1,7 @@
 import AvailableChainFGSARun
 import AvailableChainCheckSupport.GeneratedOwner
 import Lean
+import AvailableChainCheckSupport.ImportPolicy
 open Lean AvailableChainCheckSupport
 
 /-! FGSA run-library axiom and import check (plan
@@ -74,45 +75,9 @@ def forbiddenConstModule (m : Name) : Bool :=
 /-- A strict submodule of the library `r` (not its root). -/
 def under (r m : Name) : Bool := r.isPrefixOf m && m != r
 
-/-- The external modules that every layer may import (the allowlist of
-`scripts/check-fgsa-run.sh`). -/
-def externalOK (m : Name) : Bool :=
-  under `AvailableChainEngineV2 m || under `AvailableChainFGSA.Model m ||
-    under `AvailableChainFGSA.Statements m || under `AvailableChainGeneric.Statements m ||
-    [`AvailableChainModel.Objects.Identifiers, `AvailableChainModel.Objects.Time,
-      `AvailableChainModel.Objects.Blocks, `AvailableChainModel.Objects.Codec,
-      `AvailableChainModel.Generic.Env, `AvailableChainGridCO.Model.Protocol,
-      `AvailableChainGridCO.Model.Walk,
-      `AvailableChainSA.Model.Protocol].contains m ||
-    under `AvailableChainSimplexFG m || under `Mathlib m
-
-/-- The external modules that only `Proofs/` and `Tests/` may import. -/
-def proofOK (m : Name) : Bool :=
-  under `AvailableChainKitV2 m || under `AvailableChainFGSA.Proofs m ||
-    under `AvailableChainKitFG m || under `AvailableChainGeneric.Proofs m
-
-/-- The direct-import allowlist with its layer rules (plan §3.1; the same rules
-as `check_direct_imports` in `scripts/check-fgsa-run.sh`). The layer of
-`AvailableChainFGSARun.L.…` is `L`; the root imports only library modules; a
-module directly under the root or in another directory imports nothing but
-`Init`. -/
+/-- The same generated policy as the source checks. -/
 def allowedImport (mod imp : Name) : Bool :=
-  let run (l : String) := (Name.str lib l).isPrefixOf imp
-  imp == `Init ||
-  match mod.components.map (·.toString) with
-  | ["AvailableChainFGSARun"] => under lib imp
-  | "AvailableChainFGSARun" :: l :: _ :: _ =>
-      match l with
-      | "Tests" => under lib imp || externalOK imp || proofOK imp ||
-          imp == `AvailableChainGeneric.Statements.AC.Reads ||
-          imp == `AvailableChainFGSA.Tests.Support
-      | "Model" => run "Model" || externalOK imp
-      | "Statements" => run "Model" || run "Statements" || externalOK imp ||
-          imp == `AvailableChainGeneric.Statements.AC.Reads
-      | "Proofs" => run "Model" || run "Statements" || run "Proofs" || externalOK imp ||
-          proofOK imp || imp == `AvailableChainGeneric.Statements.AC.Reads
-      | _ => false
-  | _ => false
+  AvailableChainCheckSupport.ImportPolicy.runAllowedImport mod imp
 
 /-- The module names of the `.lean` files under `dir`, whose last component is
 `AvailableChainFGSARun`. -/

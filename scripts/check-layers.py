@@ -94,8 +94,12 @@ import os
 from pathlib import Path
 import re
 import sys
+sys.dont_write_bytecode = True
 import tomllib
 from collections.abc import Callable, Iterator
+
+sys.path.insert(0, str(Path(__file__).parent))
+import import_policy as P
 
 
 GEN = "AvailableChainGeneric"
@@ -308,9 +312,12 @@ def load_context(root: Path) -> Context:
     for line in def_path.read_text(encoding="utf-8").splitlines():
         line = line.split("#", 1)[0].strip()
         if line:
-            if not NAME.fullmatch(line):
-                raise ValueError(f"invalid KitFG definition module: {line}")
-            definitions.add(line if under(line, KITFG) else KITFG + "." + line)
+            if not NAME.fullmatch(line) or "." in line:
+                raise ValueError(f"invalid short KitFG definition module: {line}")
+            name = KITFG + "." + line
+            if name not in modules or modules[name].library != KITFG:
+                raise ValueError(f"missing KitFG definition module: {line}")
+            definitions.add(name)
     locked, prefixes = locked_scope(root)
     importers: dict[str, set[str]] = {}
     for module in modules.values():
@@ -338,7 +345,7 @@ def is_proof(ctx: Context, name: str) -> bool:
 
 
 def foundation(dep: str) -> bool:
-    return any_under(dep, ("Init", "Lean", "Std", "Mathlib"))
+    return P.matches("foundation", dep)
 
 
 def pure_base(dep: str) -> bool:
@@ -480,14 +487,12 @@ def fg_grid(ctx: Context, m: Module, dep: str) -> bool:
 
 def run(ctx: Context, m: Module, dep: str) -> bool:
     return under(m.name, RUN) and not m.facade and not is_test(m.name) and not (
-        foundation(dep) or any_under(dep, (RUN, FGSA, GEN, "AvailableChainEngineV2", "AvailableChainKitV2",
-                              "AvailableChainKitFG", "AvailableChainSimplexFG"))
+        foundation(dep) or P.matches("layersRun", dep)
         or dep == STORE_FACTS)
 
 
 def claims(ctx: Context, m: Module, dep: str) -> bool:
-    allowed = foundation(dep) or dep in ctx.definitions or any_under(dep, (
-        CLAIMS, RUN + ".Model", RUN + ".Statements", FGSA + ".Model", FGSA + ".Statements", GEN + ".Statements"))
+    allowed = foundation(dep) or dep in ctx.definitions or P.matches("layersClaims", dep)
     return under(m.name, CLAIMS) and not m.facade and not is_test(m.name) and (not allowed or is_proof(ctx, dep))
 
 
@@ -510,7 +515,7 @@ def is_export(name: str) -> bool:
 
 def lane_upstream(ctx: Context, dep: str) -> bool:
     return (foundation(dep) or is_statement(ctx, dep)
-            or any_under(dep, (GEN, KITFG, "AvailableChainEngineV2", "AvailableChainKitV2", FGSA, RUN))
+            or P.matches("laneUpstream", dep)
             or dep == STORE_FACTS)
 
 

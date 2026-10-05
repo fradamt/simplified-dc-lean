@@ -3,10 +3,22 @@
 # Sources, lakefile and policy data come from the target; checker code is ours.
 # The temporary Git index uses the target HEAD. No worktree or build is created.
 set -euo pipefail
-if [ $# -ne 1 ]; then
-  echo "usage: bash scripts/precheck.sh <worktree>" >&2
-  exit 2
-fi
+brief=; base=; receipt=
+usage() {
+  echo 'usage: precheck.sh [--brief FILE] [--base REF] [--full-pass RECEIPT] <worktree>'
+}
+while [ $# -gt 1 ]; do
+  [ $# -ge 3 ] || { usage >&2; exit 2; }
+  case "$1" in
+    --brief) brief=$2 ;;
+    --base) base=$2 ;;
+    --full-pass) receipt=$2 ;;
+    *) usage >&2; exit 2 ;;
+  esac
+  shift 2
+done
+[ $# -eq 1 ] || { usage >&2; exit 2; }
+[ -z "$base" ] || [ -n "$brief" ] || { usage >&2; exit 2; }
 main_root=$(cd "$(dirname "$0")/.." && pwd -P)
 target_root=$(cd "$1" && pwd -P)
 main_head=$(git -C "$main_root" rev-parse --verify HEAD)
@@ -14,6 +26,16 @@ target_head=$(git -C "$target_root" rev-parse --verify HEAD)
 if [ "$(git -C "$target_root" rev-parse --show-toplevel)" != "$target_root" ]; then
   echo "precheck.sh: target must be a worktree root" >&2
   exit 2
+fi
+
+if [ -n "$brief" ]; then
+  python3 "$main_root/scripts/precheck-scope.py" "$target_root" \
+    "${base:-$main_head}" "$brief"
+fi
+if [ -n "$receipt" ]; then
+  python3 "$main_root/scripts/full-pass.py" verify "$main_root" "$target_root" "$receipt"
+  echo 'MAIN POLICY COPY SKIPPED: verified exact-head FULL PASS'
+  exit 0
 fi
 
 scratch=$(mktemp -d "${TMPDIR:-/tmp}/main-precheck.XXXXXX")
