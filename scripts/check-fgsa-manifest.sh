@@ -25,19 +25,32 @@ manifest_run() {
   fi
 }
 mkdir -p .lake
+tmp= timing_dir=
+trap 'rm -rf "$tmp" "$timing_dir"' EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 timing_dir=$(mktemp -d "$PWD/.lake/fgsa-manifest-times.XXXXXX")
 manifest_run main lake env lean --run scripts/V2Manifest.lean --scope fgsa --check
 # The controls are negative controls: the merge tier (NEG=0) skips them (BUILD §7.7).
 if [ "${NEG:-1}" != 1 ]; then echo "controls skipped (NEG=0, merge tier)"; exit 0; fi
 mkdir -p .lake
 tmp=$(mktemp -d "$PWD/.lake/fgsa-manifest.XXXXXX")
-trap 'rm -rf "$tmp"' EXIT
-trap 'exit 130' INT
-trap 'exit 143' TERM
 
 # Test the freeze helper only on temp paths. It builds the control doc with --write.
 bash scripts/fgsa-freeze.sh --manifest "$tmp/base.md" \
   --frozen "$tmp/base-frozen.md" --frozen-sha "$tmp/base.sha256"
+python3 - "$tmp" <<'PY'
+import hashlib
+import pathlib
+import sys
+
+root = pathlib.Path(sys.argv[1])
+current = (root / 'base.md').read_bytes()
+assert current.endswith(b'\n') and not current.endswith(b'\n\n'), 'EOF is not one newline'
+assert current == (root / 'base-frozen.md').read_bytes(), 'frozen bytes differ'
+assert (root / 'base.sha256').read_text() == hashlib.sha256(current).hexdigest() + '\n'
+print('CONTROL EOF/copy/hash OK')
+PY
 entry=$(awk '/^[a-z]+ [^ ]+ [0-9a-f]+$/ { print $2; exit }' "$tmp/base.md")
 [ -n "$entry" ] || { echo "CONTROL SETUP FAIL: no entry" >&2; exit 1; }
 
@@ -181,14 +194,17 @@ PY
       rehash
       case "$control_id" in
         C11)
-          printf '%s\tcontrol change\tG-F0a control C11\texpect=%s\n' "$entry" "$cur_hash" > "$allow"
+          printf '%s\tcontrol change\tG-F0a control C11\texpect=%s\n' \
+            "$entry" "$cur_hash" > "$allow"
           expect_pass C11 "frozen entries present and unchanged" ;;
         C12)
-          printf '%s\tcontrol change\tG-F0a control C12\texpect=0000000000000000\n' "$entry" > "$allow"
+          printf '%s\tcontrol change\tG-F0a control C12\texpect=0000000000000000\n' \
+            "$entry" > "$allow"
           expect_fail C12 "ALLOW EXPECT $entry: expected 0000000000000000, got $cur_hash" ;;
         C13)
           printf '%s\tcontrol change\tG-F0a control C13\tpin=%s\n' "$entry" "$cur_hash" > "$allow"
-          expect_fail C13 "INVALID ALLOW line 1: fourth field must be expect=<hash> or expect=removed" ;;
+          expect_fail C13 \
+            "INVALID ALLOW line 1: fourth field must be expect=<hash> or expect=removed" ;;
       esac ;;
     *) echo "unknown manifest control: $control_id" >&2; exit 2 ;;
   esac
