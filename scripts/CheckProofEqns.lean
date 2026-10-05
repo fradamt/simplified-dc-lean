@@ -3,6 +3,7 @@ import Lake.Toml.Load
 import AvailableChainCheckSupport.GeneratedOwner
 
 open Lean AvailableChainCheckSupport
+open Lean.Meta
 
 /-! Check (d), BUILD §7.2 B3a and §7.3: equation-like exports of proof modules.
 Source: `claude-files/a0/check-sketches/CheckProofEqns.lean`.
@@ -13,8 +14,8 @@ Run from the repository root after the default targets have been built:
   lake env lean --run scripts/CheckProofEqns.lean --write-baseline
 
 Roots come from `defaultTargets` in lakefile.toml. Extra command-line modules
-are additional roots. Proof source modules are also imported, so a proof
-module need not appear in its library facade to be checked. Missing compiled
+are additional roots. Proof and Statements source modules are also imported,
+so they need not appear in their library facade to be checked. Missing compiled
 modules are errors; this script does not build or use the network.
 
 Only `.exported` module data is scanned. Each module's own constant list is
@@ -32,6 +33,15 @@ Gen findings cannot be accepted by a baseline. Baseline generation writes
 only non-Gen findings and returns 1 if there are Gen findings. The initial
 baseline records the existing exports at 03bd912, including FGSARun.
 Exit codes: 0 accepted; 1 unaccepted exports; 2 usage or input error.
+
+The default run also checks non-exposed public Statements predicates. Each
+needs a public `<name>_def` theorem in its owning module, with the defining
+equality or iff. Exposed predicates do not need this backstop.
+`--coverage FILE` checks required audit lines from a caller-supplied inventory:
+`<owning module> <declaration> <audit module>`, one row per line. The audit must
+be imported by the roots. Only active, fully qualified `#print axioms` commands
+in that module count. The gate/source inventory is a separate check.
+`--controls` tests the added checks in the same run.
 -/
 
 def baselinePath : System.FilePath := "scripts/baselines/check-proof-eqns.txt"
@@ -93,7 +103,8 @@ def defaultRoots (definitions : Std.HashSet Name) : IO (Array Name) := do
         unless file.extension == some "lean" do continue
         let parts := (file.withExtension "").components.drop srcDir.components.length
         let m := parts.foldl Name.str .anonymous
-        if isProofModule definitions m then roots := roots.push m
+        if isProofModule definitions m || m.components.contains `Statements then
+          roots := roots.push m
     unless found do throw <| IO.userError s!"default target is not a lean_lib: {name}"
   return (Std.HashSet.ofList roots.toList).toArray.qsort Name.lt
 
@@ -152,6 +163,8 @@ structure CheckOptions where
   roots : Array Name := #[]
   baseline : Option System.FilePath := none
   write : Bool := false
+  coverage : Option System.FilePath := none
+  controls : Bool := false
 
 def parseArgs : List String → CheckOptions → Except String CheckOptions
   | [], options =>
@@ -162,9 +175,166 @@ def parseArgs : List String → CheckOptions → Except String CheckOptions
     if path.startsWith "--" || options.baseline.isSome then .error "invalid --baseline"
     else parseArgs rest { options with baseline := some path }
   | "--write-baseline" :: rest, options => parseArgs rest { options with write := true }
+  | "--coverage" :: path :: rest, options =>
+    if path.startsWith "--" || options.coverage.isSome then .error "invalid --coverage"
+    else parseArgs rest { options with coverage := some path }
+  | "--controls" :: rest, options => parseArgs rest { options with controls := true }
   | arg :: rest, options =>
     if arg.startsWith "-" then .error s!"unknown or incomplete option: {arg}"
     else parseArgs rest { options with roots := options.roots.push arg.toName }
+
+def moduleOf (env : Environment) (n : Name) : Option Name :=
+  (env.getModuleIdxFor? n).map (env.header.moduleNames[·.toNat]!)
+
+/-- Compare the theorem with the definition's actual body, after its binders. -/
+def definingEquation (d : DefinitionVal) (t : Expr) : MetaM Bool := do
+  let tail := t.getForallBody.consumeMData
+  let args := tail.getAppArgs
+  let lhs? := if tail.getAppFn.isConstOf ``Eq && args.size == 3 then some args[1]!
+    else if tail.getAppFn.isConstOf ``Iff && args.size == 2 then some args[0]! else none
+  unless lhs?.any (·.getAppFn.isConstOf d.name) do return false
+  forallTelescope d.type fun xs _ => do
+    let lhs := mkAppN (mkConst d.name (d.levelParams.map Level.param)) xs
+    let rhs := d.value.beta xs
+    let relation ← if tail.getAppFn.isConstOf ``Iff then mkAppM ``Iff #[lhs, rhs]
+      else mkEq lhs rhs
+    let expected ← mkForallFVars xs relation
+    -- Keep the predicate opaque here. Otherwise `P = P` can pass after
+    -- unfolding P, although it gives an importing module no defining equation.
+    withCanUnfoldPred (fun cfg ci => do
+      if ci.name == d.name then return false
+      canUnfoldDefault cfg ci) <| isDefEq t expected
+
+def homeEquation (env : Environment) (m : Name) (d : DefinitionVal) : MetaM (Option String) := do
+  let n := d.name.appendAfter "_def"
+  unless env.contains n do
+    return some s!"STATEMENT DEF MISSING name={d.name} module={m}"
+  unless moduleOf env n == some m do
+    return some s!"STATEMENT DEF WRONG MODULE name={n} expected={m}"
+  -- Exported theorems can have only an axiom-shaped signature. Their private
+  -- module data supplies the declaration kind; the public map supplies visibility.
+  let some (.thmInfo thm) := (← getEnv).find? n |
+    return some s!"STATEMENT DEF NOT THEOREM name={n} module={m}"
+  let ty := thm.type.instantiateLevelParams thm.levelParams (d.levelParams.map Level.param)
+  unless thm.levelParams.length == d.levelParams.length && (← definingEquation d ty) do
+    return some s!"STATEMENT DEF WRONG TYPE name={n} module={m}"
+  return none
+
+def runMeta (env : Environment) (x : MetaM α) : IO α :=
+  x.run' {} |>.toIO' { fileName := "CheckProofEqns", fileMap := .ofString "" } { env }
+
+/-- Read private definition values only for public, non-exposed Statements names.
+The exported environment still decides visibility and equation ownership. -/
+def statementCoverage (env : Environment) : IO (Array String) := do
+  let mut out := #[]
+  let mut checked := 0
+  let mut hidden : Array (Name × DefinitionVal) := #[]
+  for i in [:env.header.moduleNames.size] do
+    let m := env.header.moduleNames[i]!
+    unless m.components.contains `Statements &&
+        m.components.head!.toString.startsWith "AvailableChain" do continue
+    let candidates := env.header.moduleData[i]!.constNames.filter fun n =>
+      !isPrivateName n && !n.isInternal && moduleOf env n == some m && !env.hasExposedBody n
+    if candidates.isEmpty then continue
+    let path ← findOLean m
+    let parts ← readModuleDataParts
+      #[path, OLeanLevel.server.adjustFileName path, OLeanLevel.private.adjustFileName path]
+    let mut seen : Std.HashSet Name := {}
+    for (data, _) in parts do
+      for ci in data.constants do
+        let .defnInfo d := ci | continue
+        unless candidates.contains d.name && !seen.contains d.name do continue
+        seen := seen.insert d.name
+        hidden := hidden.push (m, d)
+  if !hidden.isEmpty then
+    -- Private data also resolves hidden aliases for Prop. It never decides
+    -- whether the predicate or its equation is public.
+    let modules := Std.HashSet.ofList (hidden.toList.map (·.1))
+    let lookup ← importModules (modules.toArray.map fun m => { module := m }) {}
+      (level := .private)
+    for (m, d) in hidden do
+      let prop ← runMeta lookup <| forallTelescopeReducing d.type fun _ t => do
+        return (← whnf t).isProp
+      unless prop do continue
+      checked := checked + 1
+      if let some error ← runMeta lookup (homeEquation env m d) then out := out.push error
+  IO.println s!"CheckProofEqns: {checked} non-exposed Statements predicates"
+  return out
+
+/-- Use the Lean parser so comments, strings and short names cannot supply a line. -/
+def auditNames (env : Environment) (text : String) : IO (Std.HashSet Name) := do
+  let input := Parser.mkInputContext text "audit coverage"
+  let (_, initial, messages) ← Parser.parseHeader input
+  let mut state := initial
+  let mut messages := messages
+  let mut out : Std.HashSet Name := {}
+  repeat
+    let (command, next, log) := Parser.parseCommand input { env, options := {} } state messages
+    state := next
+    messages := log
+    if command.getKind == ``Parser.Command.printAxioms then
+      out := out.insert command[2].getId
+    if Parser.isTerminalCommand command then break
+  if messages.hasErrors then throw <| IO.userError "COVERAGE PARSE UNSUPPORTED"
+  return out
+
+def auditCoverage (env : Environment) (path : System.FilePath) : IO (Array String) := do
+  let mut out := #[]
+  let mut cache : Std.HashMap Name (Std.HashSet Name) := {}
+  for line in ← dataLines path do
+    let [owner, decl, audit] := (line.splitOn " ").filter (!·.isEmpty) |
+      throw <| IO.userError s!"invalid coverage row: {line}"
+    let m := owner.toName
+    let n := decl.toName
+    let a := audit.toName
+    unless moduleOf env n == some m && !isPrivateName n do
+      out := out.push s!"AUDIT DECLARATION MISSING name={n} module={m}"
+    unless m.components.head? == a.components.head? &&
+        env.header.moduleNames.contains a do
+      out := out.push s!"AUDIT MODULE NOT COVERED name={n} audit={a}"
+      continue
+    let names ← match cache[a]? with
+      | some ns => pure ns
+      | none =>
+          let file := (a.components.foldl (fun p c => p / c.toString)
+            (System.FilePath.mk ".")).addExtension "lean"
+          let ns ← auditNames env (← IO.FS.readFile file)
+          cache := cache.insert a ns
+          pure ns
+    unless names.contains n do out := out.push s!"AUDIT LINE MISSING name={n} audit={a}"
+  return out
+
+def coverageControls (env : Environment) : IO Bool := do
+  let add (env : Environment) (ci : ConstantInfo) : IO Environment := do
+    let result ← env.addConstAsync ci.name (.ofConstantInfo ci) (reportExts := false)
+    result.commitConst env (some ci) (some ci)
+    result.commitCheckEnv env
+    return result.mainEnv
+  let n := `CoverageControl.predicate
+  let d : DefinitionVal :=
+    { name := n, levelParams := [], type := mkSort .zero
+      value := mkConst ``True, hints := .opaque, safety := .safe }
+  let fixture ← add env (.defnInfo d)
+  let good ← runMeta fixture (mkEq (mkConst n) (mkConst ``True))
+  let bad ← runMeta fixture (mkEq (mkConst n) (mkConst ``False))
+  let valid ← runMeta fixture (definingEquation d good)
+  let unrelated ← runMeta fixture (definingEquation d (mkConst ``True))
+  let wrongBody ← runMeta fixture (definingEquation d bad)
+  let missing ← runMeta fixture (homeEquation fixture `CoverageControl.Statements d)
+  let thm : TheoremVal :=
+    { name := n.appendAfter "_def", levelParams := []
+      type := good, value := mkConst ``True.intro }
+  let withThm ← add fixture (.thmInfo thm)
+  let wrongModule ← runMeta withThm (homeEquation withThm `CoverageControl.Statements d)
+  let printed ← auditNames env "-- #print axioms CoverageControl.hidden\n\
+    /- #print axioms CoverageControl.hidden -/\n\
+    def text := \"#print axioms CoverageControl.hidden\"\n\
+    #print axioms CoverageControl.predicate\n#print axioms predicate\n"
+  let ok := valid && !unrelated && !wrongBody && missing.isSome &&
+    wrongModule.any (·.startsWith "STATEMENT DEF WRONG MODULE") && printed.contains n &&
+    !printed.contains `CoverageControl.hidden && !printed.contains `Other.predicate
+  IO.println s!"CONTROL home equation / audit coverage: {if ok then "PASS" else "FAIL"}"
+  return ok
 
 def runCheck (options : CheckOptions) : IO UInt32 := do
   let definitions ← kitFGDefinitions
@@ -176,6 +346,13 @@ def runCheck (options : CheckOptions) : IO UInt32 := do
   let env ← importModules (roots.map fun m => { module := m }) {} (level := .exported)
   let rows ← resolveOwners env (findings env definitions)
   let mut bad := 0
+  let mut coverageErrors ← statementCoverage env
+  if let some path := options.coverage then
+    coverageErrors := coverageErrors ++ (← auditCoverage env path)
+  for error in coverageErrors do IO.println error
+  bad := coverageErrors.size
+  if options.controls then
+    if !(← coverageControls env) then bad := bad + 1
   let mut legacy : Array String := #[]
   let mut counts : Std.HashMap Name Nat := {}
   for row in rows do
@@ -191,7 +368,8 @@ def runCheck (options : CheckOptions) : IO UInt32 := do
     IO.FS.writeFile baselinePath (String.join <| legacy.toList.map (· ++ "\n"))
     IO.println s!"CheckProofEqns: wrote {legacy.size} legacy entries to {baselinePath}"
   let proofModules := env.header.moduleNames.filter (isProofModule definitions)
-  IO.println s!"CheckProofEqns: {proofModules.size} proof modules; {rows.size} exports; {bad} unaccepted"
+  IO.println s!"CheckProofEqns: {proofModules.size} proof modules; \
+    {rows.size} exports; {bad} unaccepted"
   for lib in counts.toArray.qsort (fun a b => Name.lt a.1 b.1) do
     IO.println s!"CheckProofEqns: {lib.1} {lib.2}"
   let gen := rows.filter (fun row => (`AvailableChainGeneric).isPrefixOf row.mod)

@@ -31,6 +31,9 @@ Read classes of an active declaration (its type and value):
 - HEIGHT: it names `SimplexFG.derive` (directly, or through a constant outside
   the active path whose type or definition value names it), and it is not OLD
   or FINALITY.
+- HYPOTHESIS: a HEIGHT read confined to binder hypotheses `local = derive …`
+  (either direction). The optional `hypothesis` section records these reads.
+  Existing `height` entries remain valid for them. OLD and FINALITY take priority.
 Also FINALITY (J5 Opus review N7): a finality projector passed as an argument
 (`congrArg ChainState.F h`), a beta-redex `(fun σ => σ.F) (derive …)`, a
 `ChainState` case split or compiled matcher on derive whose branch uses a finality
@@ -43,22 +46,25 @@ their declaration `foo`; a private name counts under its user name.
 Data file (default `scripts/baselines/fgsa-old-reads.txt`), one entry per line:
   `allow <declaration> # <reason>`   an OLD or FINALITY read that may stay for now;
   `height <declaration> # <reason>`  a HEIGHT-only read (ruling 7 named exceptions);
+  `hypothesis <declaration> # <reason>` a HYPOTHESIS-only read (optional);
   `old <constant> # <reason>`        one more old constant (tightening only);
 blank lines and lines that start with `#` are comments. Every entry needs a
 reason after ` # `.
 
 Result: every OLD or FINALITY reader needs an `allow` line, every HEIGHT reader
-a `height` line; a line for a declaration with no read of its class (stale), a
+a `height` line. A HYPOTHESIS reader accepts `height` or `hypothesis`. A line
+for a declaration with no read of its class (stale), a
 duplicate line, or a line in the wrong section fails. So the data only shrinks
 with the code (J4: allow lines; J6: height lines).
 
 Run: `lake env lean --run scripts/CheckFGSAOldReads.lean [--data F] [--write]
-[--controls]`. `--write` rewrites the `allow` and `height` lines from the
-current reads (it keeps the reason of a kept line) and exits 0. `--controls`
+[--controls]`. `--write` rewrites the data from current reads. It keeps each
+reason and each valid optional `hypothesis` entry, and exits 0. `--controls`
 also runs the negative controls in the same environment: planted reads (a
 direct old constant, an old constant through a KitFG lemma, a
 `(SimplexFG.derive …).F` projection, a height-only derive read, and the N7 forms:
-congrArg, beta-redex, casesOn, matcher, local name) must each fail as unlisted, and a dropped and an extra data line must be detected.
+congrArg, beta-redex, casesOn, matcher, local name) must each fail as unlisted.
+A dropped and an extra data line must also be detected.
 Exit codes: 0 pass; 1 an unlisted read, a stale, duplicate or misplaced line,
 or a control that is not detected; 2 a usage, data or setup error. -/
 
@@ -227,8 +233,28 @@ def finalityOfDeriveWhy (fc : FinCtx) (e : Expr) : Option String :=
 def finalityOfDerive (fc : FinCtx) (e : Expr) : Bool := (finalityOfDeriveWhy fc e).isSome
 
 inductive Cls where
-  | major | height
+  | major | height | hypothesis
   deriving BEq, Inhabited
+
+/-- Only a direct equality to a local qualifies, and only in a binder domain. -/
+def isDeriveHypothesis (e : Expr) : Bool :=
+  let e := e.consumeMData
+  let args := e.getAppArgs
+  e.getAppFn.isConstOf ``Eq && args.size == 3 &&
+    ((isLocal args[1]! && isDeriveApp args[2]!) ||
+      (isDeriveApp args[1]! && isLocal args[2]!))
+
+/-- Keep all other reads, including conclusions and executable terms. -/
+partial def mentionsOutsideHypotheses (e : Expr) : Bool :=
+  match e with
+  | .forallE _ ty b _ | .lam _ ty b _ =>
+      (!isDeriveHypothesis ty && mentionsOutsideHypotheses ty) || mentionsOutsideHypotheses b
+  | .app f a => mentionsOutsideHypotheses f || mentionsOutsideHypotheses a
+  | .letE _ t v b _ =>
+      mentionsOutsideHypotheses t || mentionsOutsideHypotheses v || mentionsOutsideHypotheses b
+  | .mdata _ b | .proj _ _ b => mentionsOutsideHypotheses b
+  | .const n _ => n == deriveName
+  | _ => false
 
 structure Read where
   cls : Cls
@@ -240,9 +266,12 @@ def readsOf (env : Environment) (active : NameSet) (old : NameSet) (fc : FinCtx)
   let es := exprsOf ci true
   let mut major := #[]
   let mut height := #[]
+  let mut hypothesisOnly := true
   if let some w := es.findSome? (finalityOfDeriveWhy fc) then
     major := major.push s!"finality of SimplexFG.derive ({w})"
-  else if es.any mentionsDerive then height := height.push s!"{deriveName}"
+  else if es.any mentionsDerive then
+    height := height.push s!"{deriveName}"
+    hypothesisOnly := !es.any mentionsOutsideHypotheses
   let mut seen : NameSet := {}
   for e in es do
     for c in e.getUsedConstants do
@@ -260,13 +289,16 @@ def readsOf (env : Environment) (active : NameSet) (old : NameSet) (fc : FinCtx)
             major := major.push s!"finality of SimplexFG.derive ({w}; via {c})"
           else if ces.any mentionsDerive then
             height := height.push s!"{deriveName} (via {c})"
+            hypothesisOnly := hypothesisOnly && !ces.any mentionsOutsideHypotheses
   if !major.isEmpty then return some ⟨.major, major⟩
-  if !height.isEmpty then return some ⟨.height, height⟩
+  if !height.isEmpty then
+    return some ⟨if hypothesisOnly then .hypothesis else .height, height⟩
   return none
 
 structure Data where
   allow : Array (Name × String) := #[]
   height : Array (Name × String) := #[]
+  hypothesis : Array (Name × String) := #[]
   old : Array (Name × String) := #[]
   bad : Array String := #[]
 
@@ -283,12 +315,14 @@ def parseData (text : String) : Data := Id.run do
     match ws with
     | ["allow", n] => d := { d with allow := d.allow.push (n.toName, reason) }
     | ["height", n] => d := { d with height := d.height.push (n.toName, reason) }
+    | ["hypothesis", n] => d := { d with hypothesis := d.hypothesis.push (n.toName, reason) }
     | ["old", n] => d := { d with old := d.old.push (n.toName, reason) }
     | _ => d := { d with bad := d.bad.push s!"bad line: {line}" }
   return d
 
 /-- Unlisted reads, and stale, duplicate or misplaced lines. -/
-def compare (reads : Std.HashMap Name Read) (allow height : Array Name) :
+def compare (reads : Std.HashMap Name Read) (allow height : Array Name)
+    (hypothesis : Array Name := #[]) :
     Array String × Array String := Id.run do
   let mut unlisted := #[]
   for (k, r) in reads.toArray.qsort (fun a b => a.1.toString < b.1.toString) do
@@ -299,23 +333,31 @@ def compare (reads : Std.HashMap Name Read) (allow height : Array Name) :
     | .height =>
         unless height.contains k do
           unlisted := unlisted.push s!"OLD READ NOT LISTED (height): {k} reads {r.why.toList}"
+    | .hypothesis =>
+        unless height.contains k || hypothesis.contains k do
+          unlisted := unlisted.push s!"OLD READ NOT LISTED (hypothesis): {k} reads {r.why.toList}"
   let mut stale := #[]
   let mut seen : NameSet := {}
-  for (sect, ks, cls) in [("allow", allow, Cls.major), ("height", height, Cls.height)] do
+  for (sect, ks, cls) in [("allow", allow, Cls.major), ("height", height, Cls.height),
+      ("hypothesis", hypothesis, Cls.hypothesis)] do
     for k in ks do
       if seen.contains k then stale := stale.push s!"DUPLICATE LINE: {k}"
       seen := seen.insert k
       match reads[k]? with
       | none => stale := stale.push s!"STALE {sect} LINE (no old read now; remove it): {k}"
       | some r =>
-          unless r.cls == cls do
-            stale := stale.push s!"MISPLACED {sect} LINE (move it to the other section): {k} reads {r.why.toList}"
+          unless r.cls == cls || (cls == .height && r.cls == .hypothesis) do
+            stale := stale.push s!"MISPLACED {sect} LINE (move it to the other section): \
+              {k} reads {r.why.toList}"
   return (unlisted, stale)
 
 def header : String :=
   "# FG-SA old-read audit data (scripts/CheckFGSAOldReads.lean; fg5-rulings STOP 6, ruling 7).\n\
-   # allow <declaration> # <reason>: an old-constant or old-derive FINALITY read that may stay for now (J4 removes).\n\
-   # height <declaration> # <reason>: a height-only read of the old derive (ruling 7 named exceptions; J6 removes).\n\
+   # allow <declaration> # <reason>: an old-constant or old-derive FINALITY read \
+   that may stay for now (J4 removes).\n\
+   # height <declaration> # <reason>: a height-only read of the old derive \
+   (ruling 7 named exceptions; J6 removes).\n\
+   # hypothesis <declaration> # <reason>: an optional hypothesis-only derive read.\n\
    # old <constant> # <reason>: one more old constant (tightening only).\n\
    # An unlisted read fails; a stale, duplicate or misplaced line fails.\n"
 
@@ -417,34 +459,39 @@ def main (args : List String) : IO UInt32 := do
     if let some r := readsOf env active old fc ci then
       let k := declKey ci.name
       let r := match reads[k]? with
-        | some r0 => ⟨if r0.cls == .major || r.cls == .major then .major else .height,
-            r0.why ++ r.why⟩
+        | some r0 =>
+            ⟨if r0.cls == .major || r.cls == .major then .major
+              else if r0.cls == .height || r.cls == .height then .height else .hypothesis,
+              r0.why ++ r.why⟩
         | none => r
       reads := reads.insert k r
       if let some i := env.getModuleIdxFor? ci.name then
         home := home.insert k env.header.moduleNames[i.toNat]!
   let allow := data.allow.map (·.1)
   let height := data.height.map (·.1)
+  let hypothesis := data.hypothesis.map (·.1)
   let nMajor := (reads.toArray.filter (·.2.cls == .major)).size
   IO.println s!"scanned {cs.length} constants of {mods.size} active modules; {old.size} old \
     constants; {fc.fns.size} finality functions; {nMajor} old/finality readers, \
     {reads.size - nMajor} height-only readers; {allow.size} allow and {height.size} height lines"
   if write then
     let keep : Std.HashMap Name String :=
-      (data.allow ++ data.height).foldl (fun m (n, r) => m.insert n r) {}
+      (data.allow ++ data.height ++ data.hypothesis).foldl (fun m (n, r) => m.insert n r) {}
     let mut out := header
     for (n, r) in data.old do out := out ++ s!"old {n} # {r}\n"
     let ks := (reads.toArray.map (·.1)).qsort (fun a b => a.toString < b.toString)
-    for (sect, cls) in [("allow", Cls.major), ("height", Cls.height)] do
+    for sect in ["allow", "height", "hypothesis"] do
       for k in ks do
         let some r := reads[k]? | continue
-        unless r.cls == cls do continue
+        let targetSection := if r.cls == .major then "allow"
+          else if r.cls == .hypothesis && hypothesis.contains k then "hypothesis" else "height"
+        unless sect == targetSection do continue
         let rsn := keep.getD k s!"pre-J4 baseline 2026-10-02 ({home.getD k .anonymous})"
         out := out ++ s!"{sect} {k} # {rsn}\n"
     IO.FS.writeFile path out
     IO.println s!"wrote {path}"
     return 0
-  let (unlisted, stale) := compare reads allow height
+  let (unlisted, stale) := compare reads allow height hypothesis
   for s in unlisted ++ stale do IO.println s
   let mut failed := !(unlisted.isEmpty && stale.isEmpty)
   if controls then
@@ -466,6 +513,10 @@ def main (args : List String) : IO UInt32 := do
       IO.println "CONTROL SETUP FAIL: no matcher exists"; return 2
     let der := mkApp (mkConst deriveName) (mkConst `Nat)
     let fIdx := idx.head!
+    let hypothesisRead := mk `OldReadControl.hypothesisOnly
+      (.forallE `σ (mkConst stateName)
+        (.forallE `h (mkApp3 (mkConst ``Eq [1]) (mkConst stateName) (.bvar 0) der)
+          (mkConst ``True) .default) .default)
     let planted : List (ConstantInfo × Cls) :=
       [(mk `OldReadControl.direct (mkConst o), .major),
         (mk `OldReadControl.indirect (mkConst indirectFixture), .major),
@@ -473,6 +524,7 @@ def main (args : List String) : IO UInt32 := do
         (mk `OldReadControl.finalityFn
           (mkApp2 (mkConst (stateName ++ `F)) (mkConst `Nat) der), .major),
         (mk `OldReadControl.heightOnly der, .height),
+        (hypothesisRead, .hypothesis),
         -- J5 Opus review N7 (a): a finality projector in argument position.
         (mk `OldReadControl.congrArgF
           (mkAppN (mkConst `congrArg [1, 1]) #[mkConst stateName, mkConst `Nat, der, der,
@@ -506,7 +558,7 @@ def main (args : List String) : IO UInt32 := do
       | none =>
           IO.println s!"NEGATIVE CONTROL NOT DETECTED: {ci.name} is not an old read"
           failed := true
-    let (u, _) := compare withPlanted allow height
+    let (u, _) := compare withPlanted allow height hypothesis
     for (ci, _) in planted do
       if u.any (fun s => (s.splitOn s!": {ci.name} reads").length > 1) then
         IO.println s!"control planted {ci.name}: detected"
@@ -515,8 +567,8 @@ def main (args : List String) : IO UInt32 := do
         failed := true
     for (sect, ks) in [("allow", allow), ("height", height)] do
       if let some first := ks[0]? then
-        let (u, _) := if sect == "allow" then compare reads (allow.erase first) height
-          else compare reads allow (height.erase first)
+        let (u, _) := if sect == "allow" then compare reads (allow.erase first) height hypothesis
+          else compare reads allow (height.erase first) hypothesis
         if u.any (fun s => (s.splitOn s!": {first} reads").length > 1) then
           IO.println s!"control dropped {sect} line {first}: detected"
         else
@@ -524,11 +576,35 @@ def main (args : List String) : IO UInt32 := do
           failed := true
       else
         IO.println s!"control dropped {sect} line: skipped (no {sect} lines)"
-    let (_, st) := compare reads (allow.push `OldReadControl.stale) height
+    let (_, st) := compare reads (allow.push `OldReadControl.stale) height hypothesis
     if st.any (·.endsWith "OldReadControl.stale") then
       IO.println "control stale allow line: detected"
     else
       IO.println "NEGATIVE CONTROL NOT DETECTED: stale allow line"
+      failed := true
+    -- A hypothesis entry must not accept a value/conclusion or a finality read.
+    for n in [`OldReadControl.heightOnly, `OldReadControl.localName] do
+      let (u, st) := compare withPlanted allow height (hypothesis.push n)
+      if u.any (·.contains n.toString) &&
+          st.any (·.startsWith "MISPLACED hypothesis LINE") then
+        IO.println s!"control misplaced hypothesis {n}: detected"
+      else
+        IO.println s!"NEGATIVE CONTROL NOT DETECTED: misplaced hypothesis {n}"
+        failed := true
+    let k := hypothesisRead.name
+    let only := withPlanted.filter fun n _ => n == k
+    for (hs, hyps) in [(#[k], #[]), (#[], #[k])] do
+      let (u, st) := compare only #[] hs hyps
+      unless u.isEmpty && st.isEmpty do
+        IO.println "POSITIVE CONTROL FAILED: height/hypothesis compatibility"
+        failed := true
+    let (_, duplicate) := compare only #[] #[k] #[k]
+    let (_, misplaced) := compare reads allow height (hypothesis.push `OldReadControl.stale)
+    if duplicate.any (·.startsWith "DUPLICATE LINE") &&
+        misplaced.any (·.startsWith "STALE hypothesis LINE") then
+      IO.println "control duplicate/stale hypothesis: detected"
+    else
+      IO.println "NEGATIVE CONTROL NOT DETECTED: duplicate/stale hypothesis"
       failed := true
   IO.println s!"FGSA old-read audit: {if failed then "FAIL" else "PASS"}"
   return if failed then 1 else 0

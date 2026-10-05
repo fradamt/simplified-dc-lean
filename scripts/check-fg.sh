@@ -7,15 +7,31 @@
 # positive runs. The Lean
 # checks read the built .olean files, which Lean does not compare with the
 # sources, so they must run after the build. Run: bash scripts/check-fg.sh.
+# --research-only checks the pin names, registry, research sources and pin
+# controls. It requires fresh FG build output and still runs Lean emitters.
+# Use the default mode for the full FG gate.
 # Exit codes: 0 all checks pass; otherwise the exit code of the failed step.
 set -euo pipefail
 unset FGPINIDS FGREG FGHISTALLOW
 cd "$(dirname "$0")/.."
+research_only=0
+case "${1:-}" in
+  '') [ $# -eq 0 ] || exit 2 ;;
+  --research-only) [ $# -eq 1 ] || exit 2; research_only=1 ;;
+  *) echo "usage: bash scripts/check-fg.sh [--research-only]" >&2; exit 2 ;;
+esac
 step() { echo "== $1"; }
-step "lake build --wfail AvailableChainSimplexFG AvailableChainKitFG"
+mkdir -p .lake
 log=$(mktemp)
 neg=$(mktemp -d "$PWD/.lake/fg-neg.XXXXXX")
 trap 'rm -f "$log"; rm -rf "$neg"' EXIT
+if [ "$research_only" = 1 ]; then
+  step "research-only: require fresh FG build output"
+  lake build --no-build AvailableChainSimplexFG AvailableChainKitFG >"$log" 2>&1 ||
+    { rc=$?; echo "RESEARCH CHECK NEEDS FRESH FG BUILD"; tail -30 "$log"; exit "$rc"; }
+  export GATE_NO_BUILD=1
+else
+step "lake build --wfail AvailableChainSimplexFG AvailableChainKitFG"
 lake build --wfail AvailableChainSimplexFG AvailableChainKitFG >"$log" 2>&1 ||
   { rc=$?; echo "BUILD FAILED"; tail -30 "$log"; exit $rc; }
 step "root imports"
@@ -127,6 +143,7 @@ lake env lean --run scripts/CheckFGAxioms.lean --expect \
   AvailableChain.KitFG.parent_preceq_parent \
   AvailableChain.KitFG.preceq_parent_of_ne \
   AvailableChain.KitFG.slashableWeight_or_finalized_compatible_of_parent_roots
+fi
 step "scripts/FGPinIds.lean --check-names"
 lake env lean --run scripts/FGPinIds.lean --check-names
 step "scripts/check-fg-pins.sh"
@@ -276,12 +293,16 @@ expect_fail "(k) a mention record of no pin" "MENTION OF NO PIN: neg.extra.v1"
 # The FG import closure (CheckFGAxioms.lean): a root module that imports a
 # library outside the closure allowlist (a stand-in for AvailableChainFGSA;
 # scripts/check-fgsa.sh runs the control with AvailableChainFGSA itself).
+if [ "$research_only" = 0 ]; then
 printf 'def negLibX : Nat := 1\n' > "$neg/AvailableChainNegLib.lean"
 printf 'import AvailableChainNegLib\n' > "$neg/FGClosureNeg.lean"
 for m in AvailableChainNegLib FGClosureNeg; do
   lake env bash -c 'LEAN_PATH="$0:$LEAN_PATH" lean -o "$0/$1.olean" "$0/$1.lean"' "$neg" "$m"
 done
-run lake env bash -c 'LEAN_PATH="$0:$LEAN_PATH" lean --run scripts/CheckFGAxioms.lean --root FGClosureNeg' "$neg"
+run lake env bash -c \
+  'LEAN_PATH="$0:$LEAN_PATH" lean --run scripts/CheckFGAxioms.lean --root FGClosureNeg' "$neg"
 expect_fail "(l) a library above the FG libraries in the FG import closure" \
   "FORBIDDEN LIBRARY IN THE FG IMPORT CLOSURE: AvailableChainNegLib"
-echo "all FG checks pass"
+fi
+if [ "$research_only" = 1 ]; then echo "FG research checks pass (research-only)"
+else echo "all FG checks pass"; fi

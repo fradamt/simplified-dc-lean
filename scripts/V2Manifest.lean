@@ -414,7 +414,7 @@ def fgsaManifest (env : Environment)
         let h ← runCore env (entryHex .fgsa n)
         out := out ++ s!"{k} {n} {h}\n"
       out := out ++ "```\n\n"
-  return out
+  return (out.dropEndWhile (· == '\n')).toString ++ "\n"
 
 /-- Full-line comments are allowed. Each data line has three non-empty fields and an
 optional fourth field `expect=<hash>` or `expect=removed`; the map holds that value. -/
@@ -442,7 +442,8 @@ def parseAllow (text : String) : Except String (Std.HashMap Name (Option String)
 /-- Hash the exact frozen file bytes on macOS and Linux. -/
 def sha256 (path : System.FilePath) : IO String := do
   let p ← IO.Process.output { cmd := "python3", args := #["-c",
-    "import hashlib, pathlib, sys; print(hashlib.sha256(pathlib.Path(sys.argv[1]).read_bytes()).hexdigest())",
+    "import hashlib, pathlib, sys; \
+    print(hashlib.sha256(pathlib.Path(sys.argv[1]).read_bytes()).hexdigest())",
     path.toString] }
   unless p.exitCode == 0 do throw <| IO.userError s!"cannot hash {path}: {p.stderr}"
   return p.stdout.trimAscii.toString
@@ -478,7 +479,8 @@ def checkFrozen (current : Array (Name × Array Line))
       | some (some e) =>
         match now[l.name]? with
         | none =>
-          unless e == "removed" do fails := fails.push s!"ALLOW EXPECT {l.name}: expected {e}, entry removed"
+          unless e == "removed" do
+            fails := fails.push s!"ALLOW EXPECT {l.name}: expected {e}, entry removed"
         | some n =>
           if e == "removed" then
             fails := fails.push s!"ALLOW EXPECT {l.name}: expected removed, entry present"
@@ -490,7 +492,8 @@ def checkFrozen (current : Array (Name × Array Line))
       | none => fails := fails.push s!"FROZEN REMOVED {l.name}"
       | some n =>
         if n.kind != l.kind || n.hash? != l.hash? then
-          fails := fails.push s!"FROZEN CHANGED {l.name}: {l.kind} {l.hash?.getD ""} -> {n.kind} {n.hash?.getD ""}"
+          fails := fails.push s!"FROZEN CHANGED {l.name}: \
+            {l.kind} {l.hash?.getD ""} -> {n.kind} {n.hash?.getD ""}"
   for n in (allowed.toList.map (·.1)).toArray.qsort Name.lt do
     unless names.contains n do fails := fails.push s!"STALE ALLOW {n}: no frozen entry"
   return fails
@@ -522,20 +525,24 @@ def parseArgs : List String → Opts → Option Opts
   | "--frozen-sha" :: p :: r, o =>
       if o.frozenSha?.isSome then none else parseArgs r { o with frozenSha? := some p }
   | m :: r, o =>
-      if o.mode.isEmpty && ["--list", "--anchor", "--check", "--write", "--check-frozen"].contains m then
+      if o.mode.isEmpty &&
+          ["--list", "--anchor", "--check", "--write", "--check-frozen"].contains m then
         parseArgs r { o with mode := m }
       else none
 
 def main (args : List String) : IO UInt32 := do
   let some o := parseArgs args {} | do
-    IO.eprintln "usage: lake env lean --run scripts/V2Manifest.lean [--scope (v2 | gen | fgsa)] (--list | --anchor | --check | --write | --check-frozen) [--manifest <path>] [--frozen <path>] [--allow <path>] [--frozen-sha <path>]"
+    IO.eprintln "usage: lake env lean --run scripts/V2Manifest.lean [--scope (v2 | gen | fgsa)] \
+      (--list | --anchor | --check | --write | --check-frozen) [--manifest <path>] \
+      [--frozen <path>] [--allow <path>] [--frozen-sha <path>]"
     return 2
   if o.scope != .v2 && o.mode == "--anchor" then
     IO.eprintln "usage error: --anchor requires --scope v2"
     return 2
   if o.scope != .fgsa && (o.mode == "--write" || o.mode == "--check-frozen" || o.frozen?.isSome ||
       o.allow?.isSome || o.frozenSha?.isSome) then
-    IO.eprintln "usage error: --write, --check-frozen, --frozen, --allow and --frozen-sha require --scope fgsa"
+    IO.eprintln "usage error: --write, --check-frozen, --frozen, --allow and --frozen-sha \
+      require --scope fgsa"
     return 2
   let mode := o.mode
   let manifest := o.manifest?.getD (match o.scope with
@@ -575,7 +582,8 @@ def main (args : List String) : IO UInt32 := do
           if inScope .fgsa m && (← findDeclarationRangesCore? n).isSome then return true
       return false
     unless hasRanges do
-      IO.eprintln "no FGSA declaration ranges: the .olean.server data is missing or the scope is empty"
+      IO.eprintln "no FGSA declaration ranges: \
+        the .olean.server data is missing or the scope is empty"
       return 2
   else
     let probe := if o.scope == .v2 then rangeProbe else `AvailableChain.Gen.Pure.qF
@@ -667,7 +675,8 @@ def main (args : List String) : IO UInt32 := do
     for f in frozenFails do IO.println f
     unless frozenFails.isEmpty do return 1
   if o.scope == .v2 then
-    IO.println s!"{manifest}: {count} entries in {headings.size} modules; complete; engine entries anchored; hashes match"
+    IO.println s!"{manifest}: {count} entries in {headings.size} modules; \
+      complete; engine entries anchored; hashes match"
   else
     IO.println s!"{manifest}: {count} entries in {headings.size} modules; complete; hashes match"
   return 0

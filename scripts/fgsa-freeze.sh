@@ -6,7 +6,8 @@ manifest=docs/FGSA-API.md
 frozen=docs/FGSA-API-frozen.md
 frozen_sha=scripts/fgsa-manifest-frozen.sha256
 usage() {
-  echo "usage: bash scripts/fgsa-freeze.sh [--manifest <path>] [--frozen <path>] [--frozen-sha <path>]" >&2
+  echo "usage: bash scripts/fgsa-freeze.sh [--manifest <path>]" \
+    "[--frozen <path>] [--frozen-sha <path>]" >&2
 }
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -22,6 +23,14 @@ while [ $# -gt 0 ]; do
   esac
 done
 lake env lean --run scripts/V2Manifest.lean --scope fgsa --write --manifest "$manifest"
+# Normalize the source before the copy. Hash exactly the bytes in that copy.
+python3 - "$manifest" <<'PY'
+import pathlib
+import sys
+
+path = pathlib.Path(sys.argv[1])
+path.write_bytes(path.read_bytes().rstrip(b'\n') + b'\n')
+PY
 cp "$manifest" "$frozen"
 python3 - "$frozen" "$frozen_sha" <<'PY'
 import hashlib
