@@ -40,3 +40,4 @@ public import AvailableChainFGSARun.Proofs.HeadIdentity
 public import AvailableChainFGSARun.Proofs.NamedDelivery
 public import AvailableChainFGSARun.Proofs.RootLease
 public import AvailableChainFGSARun.Proofs.RootResolution
+public import AvailableChainFGSARun.Proofs.SelfDelivery
