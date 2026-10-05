@@ -55,18 +55,21 @@ owner's commit is recorded separately; it is not reported as a passed check.
 
 ## Final acceptance status
 
-The full build passes. The Claims shake scan has 0 NEW findings.
-All 31 original equation keys are hidden. One replacement equation export remains
-in Run.Proofs.Hooks. The eight E1 modules keep all 133 public declaration types.
-The axiom audit has 1,147 current names and only standard axioms.
-The Claims compiled EXPECTED/coverage audit and source ORDER checks pass.
+Every check in the final W3d table exits 0. All check-build sections (a)–(j) exit 0.
+The final report and command records are at
+`TS/codex/reports/rdigest2/w3d/rd2w3d-final.md` and
+`TS/codex/reports/rdigest2/w3d/rd2w3d/final-checks.json`.
 
-Check-build fails only at proof equations; its (j) self-tests pass.
-The FG-SA and Run gates fail in old negative lease fixtures that lack HeadMode
-arguments. The exact base precheck fails on a blank EOF line in committed HEAD.
-Its working tree fix is ready. The current source precheck passes.
+The W3c lease patch and W3d fixture arguments are applied. The negative lease
+fixtures pass the required `.block` arguments. B3a generates `namedParentHeld.eq_1`
+in Model.Store through a private theorem. Run.Proofs.Hooks no longer exports it.
+CheckProofEqns, with the existing baseline, checks 651 proof modules and reports
+0 unaccepted exports and 0 Gen exports. All 31 original equation keys are hidden.
+The eight E1 modules keep all 133 public declaration types. The axiom audit has
+1,147 current names and only standard axioms. The Claims compiled EXPECTED/coverage
+audit and source ORDER checks pass. The Claims shake scan has 0 NEW findings.
 
-Two prepared, unapplied patches are held for owner review: home-equation.patch
-adds the B3a home generation in Model.Store; lease-controls-mode.patch adds .block
-to 14 control calls. Both pass git apply --check. Both await scope approval.
-The owner must clear those scope items and commit the EOF fix before full acceptance.
+Both landing reviews report LAND:
+`TS/codex/reports/reviews/rd2land-sol61.md` and
+`TS/codex/reports/reviews/rd2land-astra.md`.
+The FULL-tier NUC gate reports PASS. ROOT-DIGEST-2 landed at `be214b3`.
