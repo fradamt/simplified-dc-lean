@@ -1,7 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepTransferFrame
 public import AvailableChainFGSAProofs.Proofs.Shared.Count
-public import AvailableChainFGSARun.Proofs.ReceiptCoverage
 
 public section
 

@@ -1,7 +1,7 @@
 # FG-SA old-read audit data (scripts/CheckFGSAOldReads.lean; fg5-rulings STOP 6, ruling 7).
 # allow <declaration> # <reason>: an old-constant or old-derive FINALITY read that may stay for now (J4 removes).
 # height <declaration> # <reason>: a height-only read of the old derive (ruling 7 named exceptions; J6 removes).
-# Exception: lead ruling 2026-10-05 added the WC height lines (68) for the weak-continuation lane; J6 must cover them too.
+# Exception: lead ruling 2026-10-05 added the WC height lines (70) for the weak-continuation lane; J6 must cover them too.
 # old <constant> # <reason>: one more old constant (tightening only).
 # An unlisted read fails; a stale, duplicate or misplaced line fails.
 allow AvailableChain.FGSA.Window.acceptViable_eq # pre-J4 baseline 2026-10-02 (AvailableChainFGSA.Proofs.WindowStore)
@@ -156,6 +156,7 @@ height AvailableChain.FGSA.Run.WCStepGateTickStatement # WC plan r2: height-only
 height AvailableChain.FGSA.Run.WCStepNoGateTickStatement # WC plan r2: height-only via shared client (hOf/entry_preceq/simplexHeightView); bridge-equal; inherited from existing producers; lead ruling 2026-10-05
 height AvailableChain.FGSA.Run.WCStepRestartStatement # WC plan r2: height-only via shared client (hOf/entry_preceq/simplexHeightView); bridge-equal; inherited from existing producers; lead ruling 2026-10-05
 height AvailableChain.FGSA.Run.WCStepStatement # WC plan r2: height-only via shared client (hOf/entry_preceq/simplexHeightView); bridge-equal; inherited from existing producers; lead ruling 2026-10-05
+height AvailableChain.FGSA.Run.fgsa_weakContinuationLiveClaim_of_hTime # WC plan r2: height-only via shared client (hOf/entry_preceq/simplexHeightView); bridge-equal; inherited from existing producers; lead ruling 2026-10-05
 height AvailableChain.FGSA.Run.step_core # WC plan r2: height-only via shared client (hOf/entry_preceq/simplexHeightView); bridge-equal; inherited from existing producers; lead ruling 2026-10-05
 height AvailableChain.FGSA.Run.wc_checkpoint # WC plan r2: height-only via shared client (hOf/entry_preceq/simplexHeightView); bridge-equal; inherited from existing producers; lead ruling 2026-10-05
 height AvailableChain.FGSA.Run.wc_dischargeContinuation # WC plan r2: height-only via shared client (hOf/entry_preceq/simplexHeightView); bridge-equal; inherited from existing producers; lead ruling 2026-10-05
@@ -186,6 +187,7 @@ height AvailableChain.FGSA.Run.wc_seededFrame # WC plan r2: height-only via shar
 height AvailableChain.FGSA.Run.wc_seededFrameLive # WC plan r2: height-only via shared client (hOf/entry_preceq/simplexHeightView); bridge-equal; inherited from existing producers; lead ruling 2026-10-05
 height AvailableChain.FGSA.Run.wc_seededFramePath # WC plan r2: height-only via shared client (hOf/entry_preceq/simplexHeightView); bridge-equal; inherited from existing producers; lead ruling 2026-10-05
 height AvailableChain.FGSA.Run.wc_seededInduction # WC plan r2: height-only via shared client (hOf/entry_preceq/simplexHeightView); bridge-equal; inherited from existing producers; lead ruling 2026-10-05
+height AvailableChain.FGSA.Run.wc_seededLiveAt # WC plan r2: height-only via shared client (hOf/entry_preceq/simplexHeightView); bridge-equal; inherited from existing producers; lead ruling 2026-10-05
 height AvailableChain.FGSA.Run.wc_seededSafeFromCut # WC plan r2: height-only via shared client (hOf/entry_preceq/simplexHeightView); bridge-equal; inherited from existing producers; lead ruling 2026-10-05
 height AvailableChain.FGSA.Run.wc_service4 # WC plan r2: height-only via shared client (hOf/entry_preceq/simplexHeightView); bridge-equal; inherited from existing producers; lead ruling 2026-10-05
 height AvailableChain.FGSA.Run.wc_service4_prefix # WC plan r2: height-only via shared client (hOf/entry_preceq/simplexHeightView); bridge-equal; inherited from existing producers; lead ruling 2026-10-05

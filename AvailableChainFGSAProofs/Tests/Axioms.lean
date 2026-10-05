@@ -2212,3 +2212,9 @@ public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCone -- shake: ke
 
 -- ROOT-DIGEST-2 W2: exact named origin and root resolution producers.
 #print axioms AvailableChain.FGSA.Run.proposal_read_named
+
+-- WC plan r2.1, §8 Job 4; DC: SAME live claim and safety projection.
+#print axioms AvailableChain.FGSA.Run.fgsa_weakContinuationLiveClaim_of_hTime
+#print axioms AvailableChain.FGSA.Run.wc_seededLiveAt
+#print axioms AvailableChain.FGSA.Run.weakContinuation_of_live
+#print axioms AvailableChain.FGSA.Run.FGSAClaims.weakContinuationLive

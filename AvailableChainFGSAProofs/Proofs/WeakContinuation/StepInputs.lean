@@ -1,6 +1,6 @@
 module
+public import AvailableChainFGSAProofs.Proofs.Shared.Reads -- shake: keep (WC tick API)
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepFinality
-public import AvailableChainFGSAProofs.Proofs.Shared.Reads
 
 public section
 

@@ -1,12 +1,12 @@
 module
-public import AvailableChainFGSAClaims.Statements.WeakContinuation
-public import AvailableChainFGSAClaims.Statements.WeakContinuationLive
-public import AvailableChainFGSAClaims.Statements.Healed
+public import AvailableChainFGSAClaims.Statements.WeakContinuation -- shake: keep (WC interface)
+public import AvailableChainFGSAClaims.Statements.WeakContinuationLive -- shake: keep (WC interface)
+public import AvailableChainFGSAClaims.Statements.Healed -- shake: keep (WC interface)
 public import AvailableChainFGSARun.Statements.Client
 public import AvailableChainFGSARun.Statements.Receipts
 public import AvailableChainGeneric.Statements.AC.Lease
-public import AvailableChainKitFG.CertificateCoreDef
-public import AvailableChainKitFG.RootScopeDef
+public import AvailableChainKitFG.CertificateCoreDef -- shake: keep (WC interface)
+public import AvailableChainKitFG.RootScopeDef -- shake: keep (WC interface)
 
 public section
 

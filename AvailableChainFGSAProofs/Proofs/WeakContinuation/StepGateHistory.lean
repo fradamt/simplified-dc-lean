@@ -182,7 +182,12 @@ theorem wc_gateResult (ΔF : Time) (w : HealingWitness) (iStar : Nat) :
     change (if _ then some _ else none) = some B at hraw
     split at hraw
     · cases hraw
-      exact @GridCO.ghost_extends GridCO.slowLeasePolicy _ _ _ _
+      apply walk_covers_of_dominated_suffix _ _ _ _ _
+      · exact block_compatible_of_common (block_preceq_refl _) (block_preceq_refl _)
+      · intro C hAC hCA
+        change (!decide (_ = C) && Block.preceq _ C) = true at hAC
+        have heq := block_preceq_antisymm (Bool.and_eq_true_iff.mp hAC).2 hCA
+        simp only [heq, decide_true, Bool.not_true, Bool.false_and, Bool.false_eq_true] at hAC
     · contradiction
   have hSB : Block.Compatible (S_at p c E rho i x) B := by
     rcases inv.outputOrigin i x hi le_rfl hx with hq | ⟨j, y, r, hr⟩ | ⟨l, _, hli, he, _⟩

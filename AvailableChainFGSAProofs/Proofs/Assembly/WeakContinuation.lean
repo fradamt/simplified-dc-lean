@@ -1,10 +1,9 @@
 module
-public import AvailableChainFGSAProofs.Statements.WeakContinuation
-public import AvailableChainFGSAProofs.Proofs.Foundations.Export
-public import AvailableChainFGSAProofs.Proofs.Shared.HonestQuorum
+public import AvailableChainFGSAProofs.Statements.WeakContinuation -- shake: keep (WC interface)
+public import AvailableChainFGSAProofs.Proofs.Foundations.Export -- shake: keep (P10 producers)
 public import AvailableChainFGSARun.Proofs.Receipts
-public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Export
-public import AvailableChainFGSAProofs.Proofs.Shared.Claims
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Export -- shake: keep (P10 WC Export)
+public import AvailableChainFGSAProofs.Proofs.Shared.Claims -- shake: keep (P10 claim adapter)
 
 -- WC J1; DC handler order. B3 private matcher copy, with a checked equality.
 namespace AvailableChain.FGSA

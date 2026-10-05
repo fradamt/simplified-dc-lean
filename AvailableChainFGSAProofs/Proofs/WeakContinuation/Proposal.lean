@@ -1,6 +1,5 @@
 module
 public import AvailableChainFGSAProofs.Statements.WeakContinuation
-public import AvailableChainGeneric.Proofs.Pure.BlockOrder
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads
 public import AvailableChainFGSAProofs.Proofs.Shared.HeadAdmit
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumers

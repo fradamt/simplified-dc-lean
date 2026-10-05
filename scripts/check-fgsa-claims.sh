@@ -2661,7 +2661,14 @@ EXPECTED = (
     'AvailableChain.FGSA.Run.Tests.NonVacuity.HealingRun.nv_delivery_root',
     'AvailableChain.FGSA.Run.Tests.NonVacuity.HealingRun.nv_delivery_unique',
 
+    # WC plan r2.1, §8 Job 4; DC: SAME source witness before continuation.
+    'AvailableChain.FGSA.Run.fgsa_weakContinuationLiveClaim_of_hTime',
+    'AvailableChain.FGSA.Run.wc_seededLiveAt',
+    'AvailableChain.FGSA.Run.weakContinuation_of_live',
+    'AvailableChain.FGSA.Run.FGSAClaims.weakContinuationLive',
+
 )
+# WC Job 4 adds no Statements module; the WC entries keep their current order.
 ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windows',
          'Packages.Safety', 'OutputReads', 'Packages.Inclusion', 'Packages.Outage', 'Channels', 'Witness',
          'ChannelProps', 'FinalityApi', 'Healed', 'HealedBest', 'WeakContinuation', 'WeakContinuationLive', 'Packages.Finality', 'Packages.FinalityGST',

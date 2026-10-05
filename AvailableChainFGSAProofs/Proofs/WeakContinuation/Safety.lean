@@ -2,7 +2,6 @@ module
 public import AvailableChainFGSAProofs.Statements.WeakContinuation
 public import AvailableChainFGSAProofs.Proofs.Shared.OutputGrowthReads
 public import AvailableChainFGSA.Proofs.StoreLaws
-public import AvailableChainGeneric.Proofs.Pure.BlockOrder
 
 public section
 

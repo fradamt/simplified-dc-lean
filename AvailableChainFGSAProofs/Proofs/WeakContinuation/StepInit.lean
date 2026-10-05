@@ -1,6 +1,5 @@
 module
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Origins
-public import AvailableChainFGSAProofs.Proofs.Shared.Reads
 public import AvailableChainFGSAProofs.Proofs.Shared.Roots
 
 public section

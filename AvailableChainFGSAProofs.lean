@@ -285,3 +285,4 @@ public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Proposal
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.ExactProposal
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Inclusion
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Growth
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Live

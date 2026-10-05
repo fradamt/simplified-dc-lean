@@ -1,9 +1,6 @@
 module
-public import AvailableChainFGSAClaims.Statements.WeakContinuation
-public import AvailableChainFGSAClaims.Statements.Channels
-public import AvailableChainFGSAProofs.Proofs.Shared.Reads
 public import AvailableChainFGSAProofs.Statements.WeakContinuation
-public import AvailableChainFGSARun.Proofs.Roots
+public import AvailableChainFGSAProofs.Proofs.Shared.Reads -- shake: keep (B3 ownSeats)
 
 public section
 

@@ -1,6 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Induction
-public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Replay
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Replay -- shake: keep (WC checks)
 public import AvailableChainFGSAProofs.Proofs.Assembly.WeakContinuation
 
 public section

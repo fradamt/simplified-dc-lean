@@ -15,8 +15,22 @@ in `scripts/fgsa-manifest-frozen.sha256`. From G-F0a the API is append-only.
 Every frozen entry must keep its kind and hash; new entries pass. A changed
 or removed entry needs an allow line in `scripts/fgsa-manifest-allow.txt`:
 `<name>\t<reason>\t<plan revision>`, with actual tabs and no empty field.
-Stale allow lines fail. Structure widening has no exception: put later fields
-in new structures.
+Stale allow lines fail. Put later fields in new structures unless a named
+exception below permits the exact aggregate change.
+
+## WC plan r2.1 aggregate exception
+
+Lead ruling 2026-10-05, WC plan r2.1, §8 Job 4; DC: SAME source witness order.
+Append exactly one field after `cleanGrowth` in `AvailableChain.FGSA.Run.FGSAClaims`:
+`weakContinuationLive : ∀ G : Time, WeakContinuationLiveClaim p G`.
+The permitted delta is this aggregate, its constructor, every existing generated
+projection, and the new field entry. Each changed frozen entry has one measured
+allow line. The new field is additive and needs no frozen allowance.
+Root fills the field with the complete WC proof and the closed H-time producer.
+`fgsaClaims (p) : FGSAClaims p` stays hypothesis-free. The live-to-safety adapter
+stays in Shared/Claims. Source non-vacuity still requires `4 * p.Δ ≤ G`.
+No other frozen entry changes under this exception. Preserve the frozen file
+bytes and SHA. All earlier exception records still apply.
 
 ## ROOT-DIGEST-2 option-3 exception
 
@@ -453,7 +467,7 @@ field AvailableChain.FGSA.Run.FGSAFinalityClaims.finalizedMonotone c203bcc84666a
 field AvailableChain.FGSA.Run.FGSAFinalityClaims.honestNeverSlashed 88cbce8179191455
 structure AvailableChain.FGSA.Run.FGSAClaims d8b2bb6875cfa430
 field AvailableChain.FGSA.Run.FGSAClaims.toFGSASafetyClaims 958e9ddf34deb309
-ctor AvailableChain.FGSA.Run.FGSAClaims.mk 1db2da773082f5a7
+ctor AvailableChain.FGSA.Run.FGSAClaims.mk fe7d357de128923d
 field AvailableChain.FGSA.Run.FGSAClaims.finality 2767f89208e4a6c5
 field AvailableChain.FGSA.Run.FGSAClaims.finalizedSafety 170d891e9f223730
 field AvailableChain.FGSA.Run.FGSAClaims.finalLock 49e04391d4bffc35
@@ -474,6 +488,7 @@ field AvailableChain.FGSA.Run.FGSAClaims.aboveFrontierGSTRecF4 744012b26cc85fa0
 field AvailableChain.FGSA.Run.FGSAClaims.availableGST de755e826b4ac0d2
 field AvailableChain.FGSA.Run.FGSAClaims.availableGrowthGST 44a0f9534e819916
 field AvailableChain.FGSA.Run.FGSAClaims.cleanGrowth 3610f9c12a1e5239
+field AvailableChain.FGSA.Run.FGSAClaims.weakContinuationLive 3d2e6dc505d159dc
 ```
 
 ### `AvailableChainFGSAClaims.Statements.Bounds`

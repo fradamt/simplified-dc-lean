@@ -1,8 +1,6 @@
 module
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepInputs
 public import AvailableChainFGSAProofs.Proofs.Shared.Count
-public import AvailableChainFGSAProofs.Proofs.Shared.GateReceipt
-public import AvailableChainFGSARun.Proofs.ReceiptCoverage
 
 public section
 

@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepInit
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.StepInit -- shake: keep (WC init API)
 public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Safety
 public import AvailableChainFGSARun.Proofs.AC
 

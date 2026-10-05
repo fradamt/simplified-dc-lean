@@ -1,5 +1,5 @@
 module
-public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Origins
+public import AvailableChainFGSAProofs.Proofs.WeakContinuation.Origins -- shake: keep (WC interface)
 public import AvailableChainFGSAProofs.Proofs.Shared.Roots
 public import AvailableChainKitFG.CausalCapCore
 

@@ -294,7 +294,21 @@ relative to `AvailableChainGeneric/` and omit `.lean`.
 
 - SYN L58: `Proofs/Assembly/Root` imports the `FGSAClaims` facade and the named
   lower Assembly modules `Foundations`, `Shared`, `Clean`, `Outage`, `Finality`,
-  and `ResetArrival`. The other layer rules still apply.
+  `ResetArrival`, and `WeakContinuation`. The other layer rules still apply.
+
+- WC plan r2.1, §8 Job 4; DC: SAME source witness before continuation.
+  `Proofs/Assembly/WeakContinuation` takes the H-time producer from Root.
+  It selects the source witness, constructs one seed, then replays the seed
+  and supplies the 34 separate [L] premises for each continuation.
+  `Proofs/WeakContinuation/Live` combines seeded safety with `wc_checkpoint`.
+  `WeakContinuation/Export` re-exports this helper and replay for Assembly.
+  Its four Statement inputs use the actual Job 2 producers. The result contains
+  safety, persistent inclusion, and growth at `t + G' + 6 * p.Δ`.
+  `Proofs/Shared/Claims` projects the live claim to the safety claim.
+  Root fills the appended `FGSAClaims.weakContinuationLive` field with the
+  closed `healing_hTimeClaim`. `fgsaClaims` has no additional hypothesis.
+  Assembly/WeakContinuation imports WC Export and Shared/Claims; it imports
+  no Assembly module.
 
 How the pieces meet:
 - FG-SA store: `FGSA.State` keeps a root-mode `GridCO.State`, an FG store, and pools.
