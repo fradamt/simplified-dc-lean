@@ -446,6 +446,43 @@ theorem executionValid_cut (hvalid : V2.D.ExecutionValid E rho)
       have hst : s < t := deliver_key_le.mp ((hcut k _ hk').mp hkn)
       exact ⟨t', ht', (emits_cut_iff hcut).mpr ⟨le_trans ht' (le_of_lt hst), he⟩⟩
 
+omit [DecidableEq V] in
+/-- [own-row Option 1; DC N3] The key bound `(t, 2)` survives an appended delivery at `t`:
+the `hkey` premise for a further self-delivery. -/
+theorem hkey_snoc_deliver {v : V} {o : P.Object}
+    (hkey : ∀ e ∈ rho.events, e.key ≤ toLex (t, 2)) :
+    ∀ e ∈ ({ rho with events := rho.events ++ [.deliver v o t] } : V2.D.Run V P).events,
+      e.key ≤ toLex (t, 2) := by
+  intro e he
+  rcases List.mem_append.mp he with he | he
+  · exact hkey e he
+  · rw [List.mem_singleton.mp he]
+    exact le_refl (toLex (t, 2))
+
+omit [DecidableEq V] in
+/-- [own-row Option 1; DC N3] An appended delivery to another node keeps "no later event of
+`u`": the `hlast` premise for a further self-delivery. -/
+theorem hlast_snoc_of_ne {i : Nat} {u v : V} {o : P.Object}
+    (hlast : ∀ k e, i < k → rho.events[k]? = some e → e.node ≠ u) (hne : v ≠ u) :
+    ∀ k e, i < k →
+      ({ rho with events := rho.events ++ [.deliver v o t] } : V2.D.Run V P).events[k]? =
+        some e → e.node ≠ u := by
+  intro k e hik hk
+  rcases getElem?_snoc_cases hk with ⟨-, hk'⟩ | ⟨-, rfl⟩
+  · exact hlast k e hik hk'
+  · exact hne
+
+/-- [own-row Option 1; DC Generic/Conditions.lean:134] A prefix delivery premise holds at
+every earlier cut. -/
+theorem healthyPrefixDeliveryBy_of_le {delayOf : P.Object → Time} {b₀ b : Time}
+    (hb : b ≤ b₀)
+    (h : Gen.V2.Duty.HealthyPrefixDeliveryBy E rho delayOf b₀) :
+    Gen.V2.Duty.HealthyPrefixDeliveryBy E rho delayOf b where
+  broadcast_emitted u hu o s he w hw hdl hx :=
+    h.broadcast_emitted u hu o s he w hw (le_trans hdl hb) hx
+  relay_accepted u hu k o s hacc w hw hp hdl hx :=
+    h.relay_accepted u hu k o s hacc w hw hp (le_trans hdl hb) hx
+
 end Cut
 
 /-! ### FG-SA facts about the own row -/

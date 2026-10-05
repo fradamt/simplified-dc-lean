@@ -78,6 +78,24 @@ theorem Base₂.ownRow_run_exists (h : Base₂ p c E rho) {i : Nat} {v : V} {t :
   obtain ⟨n, hcut⟩ := exists_cut h.valid.sorted (toLex (t, 1))
   exact ⟨n, hcut, h.ownRow_run hcut hi ho⟩
 
+/-- [own-row Option 1; DC N3] A further self-delivery at `t`: after the self-delivery of
+`v`, the row of another sender `u` released at `t` appends in the same way. Iterate with
+`hkey_snoc_deliver` and `hlast_snoc_of_ne` for every sender with an FG action at `t`. -/
+theorem Base₂.snoc_ownRow_other {v : V} {o : Obj p} {t : Time}
+    (h : Base₂ p c E ({ rho with events := rho.events ++ [.deliver v o t] }))
+    (hkey : ∀ e ∈ rho.events, e.key ≤ toLex (t, 2)) {i : Nat} {u : V}
+    (hi : rho.events[i]? = some (.tick u t))
+    (hlast : ∀ k e, i < k → rho.events[k]? = some e → e.node ≠ u) (hne : v ≠ u)
+    {j : Fin p.n} {body : RowPayload}
+    (ho : ofRow p ⟨.seat .fg j, body⟩ ∈ V2.D.Run.emitsAt E rho i) :
+    Base₂ p c E
+      ({ rho with events := rho.events ++ [.deliver v o t] ++
+                    [.deliver u (ofRow p ⟨.seat .fg j, body⟩) t] }) := by
+  have hilen : i < rho.events.length := (List.getElem?_eq_some_iff.mp hi).1
+  exact h.snoc_ownRow (hkey_snoc_deliver hkey)
+    (by rw [V2.D.Run.getElem?_snoc_of_lt hilen]; exact hi) (hlast_snoc_of_ne hlast hne)
+    (by rw [V2.D.Run.emitsAt_snoc_of_lt hilen]; exact ho)
+
 end AvailableChain.FGSA.Run
 
 end
