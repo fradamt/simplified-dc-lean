@@ -12,7 +12,8 @@ open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- Blueprint 21:749–783, 918–1012; plan S30, H-FRAME/F1.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:749–783, 918–1012; plan S30, H-FRAME/F1.
 DC: SAME proposal-parent projection; INTENTIONAL post-clock FG-SA read. -/
 private theorem frame_proposal_read (hs : V2.D.ScheduleWellFormed E rho)
     {s : Slot} {Q : Block} {st : State p.n}
@@ -38,11 +39,11 @@ private theorem frame_proposal_read (hs : V2.D.ScheduleWellFormed E rho)
   cases m with
   | head _ => cases hb
   | row _ => cases hb
-  | proposal b raw sup rows =>
-    have he : b = Q := Option.some.inj hb
-    subst b
+  | proposal N =>
+    have he : N.erase = Q := Option.some.inj hb
+    subst Q
     rw [(V2.D.Run.step_tick_eq E rho hj).2] at hem
-    change (⟨auth, .proposal Q raw sup rows⟩ : Obj p) ∈
+    change (⟨auth, .proposal N⟩ : Obj p) ∈
       (if E.awake _ (SA.proposalTime p.toParams s) then
         (duties p (SA.proposalTime p.toParams s)).flatMap (fun d =>
           (rho.ownSeats (RunDuty.signLabel d) _).filterMap (fun i =>
@@ -54,12 +55,12 @@ private theorem frame_proposal_read (hs : V2.D.ScheduleWellFormed E rho)
       obtain ⟨d, hd, hem⟩ := List.mem_flatMap.mp hem
       obtain ⟨i, _, hm⟩ := List.mem_filterMap.mp hem
       obtain ⟨m, hm, ho⟩ := Option.map_eq_some_iff.mp hm
-      have he : m = .proposal Q raw sup rows := congrArg V2.Signed.payload ho
+      have he : m = .proposal N := congrArg V2.Signed.payload ho
       subst m
       cases d with
       | headAction _ => cases hm
       | fgAction _ =>
-        change (attest p _ _ _).1.map Msg.row = some (.proposal Q raw sup rows) at hm
+        change (attest p _ _ _).1.map Msg.row = some (.proposal N) at hm
         obtain ⟨_, _, he⟩ := Option.map_eq_some_iff.mp hm
         cases he
       | propAction s' =>
@@ -70,10 +71,11 @@ private theorem frame_proposal_read (hs : V2.D.ScheduleWellFormed E rho)
           have he : (s' : Int) = s := by nlinarith
           exact_mod_cast he
         subst s'
-        exact (fgsa_walkRun_proposal_parent p _ s _ Q raw sup rows hm).2.2
+        exact (fgsa_walkRun_proposal_parent p _ s _ N hm).2.2
     · exact (List.not_mem_nil hem).elim
 
-/-- Blueprint 21:749–783; plan S30, H-FRAME/F1.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:749–783; plan S30, H-FRAME/F1.
 DC: INTENTIONAL the live lease selector starts inside a nonempty full FJ domain. -/
 private theorem frame_liveRoot_mem (st : State p.n) (hi : CStoreInv p st)
     (hne : (fullTree p st).Nonempty) :
@@ -103,7 +105,8 @@ private theorem frame_liveRoot_mem (st : State p.n) (hi : CStoreInv p st)
       exact ⟨B, hB, heB.trans (Option.some.inj hrow)⟩
     · cases hrow
 
-/-- Blueprint 21:749–783, 918–1012; plan S30, H-FRAME/F1.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:749–783, 918–1012; plan S30, H-FRAME/F1.
 DC: SAME finite-walk membership; INTENTIONAL the full tree uses live FJ controls.
 The honest proposal's parent has an exact FG witness in the full tree. -/
 theorem healing_proposal_full_witness (hs : V2.D.ScheduleWellFormed E rho)
@@ -120,7 +123,8 @@ theorem healing_proposal_full_witness (hs : V2.D.ScheduleWellFormed E rho)
     exact ⟨B, hB, heB.trans he.symm⟩
   · exact of_decide_eq_true (List.mem_filter.mp hm).2
 
-/-- Blueprint 21:749–783, 1148–1252; plan S30, H-FRAME/F1.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:749–783, 1148–1252; plan S30, H-FRAME/F1.
 DC: INTENTIONAL a local frontier carrier makes the full FJ domain nonempty. -/
 private theorem frame_fullTree_nonempty (crossing : RXing p c E rho)
     {i : Nat} {x : V} (hx : x ∈ rho.honest) :
@@ -130,7 +134,8 @@ private theorem frame_fullTree_nonempty (crossing : RXing p c E rho)
   exact ⟨W, (KitFG.mem_filteredFromView _ _ _ _).mpr
     ⟨hW, hF, hZ, W, hW, KitFG.preceq_refl _, hh ▸ KitFG.Controls.lo_le_H _⟩⟩
 
-/-- Blueprint 21:749–783; plan S30, H-FRAME/F1.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:749–783; plan S30, H-FRAME/F1.
 DC: INTENTIONAL a duty-domain member and its witness remain in the full domain. -/
 private theorem frame_domain_subset_full (st : State p.n)
     (X : Finset (FGBlock (Fin p.n))) (hX : X ⊆ st.fg.TF) :
@@ -140,7 +145,8 @@ private theorem frame_domain_subset_full (st : State p.n)
     (KitFG.mem_filteredFromView _ _ _ _).mp hB
   exact (KitFG.mem_filteredFromView _ _ _ _).mpr ⟨hX hb, hf, hz, W, hX hw, hbw, hlo⟩
 
-/-- Blueprint 21:749–783, 1148–1252; plan S30, H-FRAME/F1.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:749–783, 1148–1252; plan S30, H-FRAME/F1.
 DC: SAME walk membership; INTENTIONAL the floor belongs to a full-store witness.
 An honest positive-label HEAD can return an outside anchor. Its full-domain
 witness still exists; this theorem does not put the HEAD in the frozen domain. -/
@@ -170,7 +176,8 @@ theorem healing_full_witness (crossing : RXing p c E rho)
   obtain ⟨K, hK, hk⟩ := hmem
   exact ⟨K, hK, hk, ((KitFG.mem_filteredFromView _ _ _ _).mp hK).2.2.2⟩
 
-/-- ROOT-DIGEST W2b. Blueprint 21:749–783, 918–1012, 1288–1308; plan S30, H-FRAME/F3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21:749–783, 918–1012, 1288–1308; plan S30, H-FRAME/F3.
 DC: SAME terminal walk argument; INTENTIONAL low-parent eligibility reaches the FJ floor.
 The full domain contains the live start, including a zero-step return. -/
 theorem healing_proposer_floor (hs : V2.D.ScheduleWellFormed E rho)
@@ -226,7 +233,8 @@ theorem healing_proposer_floor (hs : V2.D.ScheduleWellFormed E rho)
   rw [hel] at hc
   cases hc
 
-/-- Blueprint 21:749–783, 918–1012, 1148–1252, 1288–1308; plan S30, H-FRAME/F4.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:749–783, 918–1012, 1148–1252, 1288–1308; plan S30, H-FRAME/F4.
 DC: INTENTIONAL the exact frozen TGeom conjunction, with both geometry and source slots.
 The schedule identifies the actual proposal read. No phase or source-delivery premise is added. -/
 theorem healing_tGeom (hs : V2.D.ScheduleWellFormed E rho) : TGeom p c E rho := by

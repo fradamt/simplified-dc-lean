@@ -19,28 +19,32 @@ open Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- Plan O-ARM §2. Class (iii). DC: INTENTIONAL; v(r) as a multiple of Δ. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan O-ARM §2. Class (iii). DC: INTENTIONAL; v(r) as a multiple of Δ. -/
 theorem arming_vote_nat (p : Params) (r : Slot) :
     ((4 * r + 1 : Nat) : Time) * p.Δ = SA.voteTime p.toParams r := by
   rw [arming_vote_eq]
   push_cast
   ring
 
-/-- Plan O-ARM §2. Class (iii). DC: INTENTIONAL; e(r) as a multiple of Δ. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan O-ARM §2. Class (iii). DC: INTENTIONAL; e(r) as a multiple of Δ. -/
 theorem arming_early_nat (p : Params) (r : Slot) :
     ((4 * r + 2 : Nat) : Time) * p.Δ = SA.earlyTime p.toParams r := by
   rw [arming_early_eq]
   push_cast
   ring
 
-/-- Plan O-ARM §2. Class (iii). DC: INTENTIONAL; t(r) as a multiple of Δ. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan O-ARM §2. Class (iii). DC: INTENTIONAL; t(r) as a multiple of Δ. -/
 theorem arming_proposal_nat (p : Params) (r : Slot) :
     ((4 * r : Nat) : Time) * p.Δ = SA.proposalTime p.toParams r := by
   rw [arming_proposal_eq]
   push_cast
   ring
 
-/-- Plan O-ARM §2. Class (iii). DC: INTENTIONAL; d(r) as a multiple of Δ. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan O-ARM §2. Class (iii). DC: INTENTIONAL; d(r) as a multiple of Δ. -/
 theorem arming_gate_nat (p : Params) (r : Slot) :
     ((4 * r + 6 : Nat) : Time) * p.Δ = SA.gateTime p.toParams r := by
   rw [arming_gate_eq]
@@ -48,7 +52,8 @@ theorem arming_gate_nat (p : Params) (r : Slot) :
   ring
 
 omit [DecidableEq V] in
-/-- Plan O-ARM §6.2 step 1. Class (iii). DC: INTENTIONAL; an honest node ticks
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan O-ARM §6.2 step 1. Class (iii). DC: INTENTIONAL; an honest node ticks
 at every public multiple of Δ in the horizon, also asleep. -/
 theorem arming_tick_exists {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     (hs : V2.D.ScheduleWellFormed E rho) (hΔ : E.Δ = p.Δ) {y : V} (hy : y ∈ rho.honest)
@@ -58,7 +63,8 @@ theorem arming_tick_exists {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
   obtain ⟨k, hk, _⟩ := fgsa_tick_total E rho hs hΔ y hy m hh
   exact ⟨k, hk⟩
 
-/-- ROOT-DIGEST W2b. Plan O-ARM §6.2 step 2, §11 obligation 3. Class (iii). DC: INTENTIONAL;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Plan O-ARM §6.2 step 2, §11 obligation 3. Class (iii). DC: INTENTIONAL;
 the block step of `inclusion_head_receipt_early` for any non-genesis block in
 the store of an honest node before its v(r) tick: the healthy label window
 delivers it to every honest reader before the e(r) tick. -/
@@ -110,7 +116,8 @@ theorem arming_block_early {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
   rw [arming_early_eq]
   positivity
 
-/-- Plan O-ARM §6.1 step 6. Class (iii). DC: INTENTIONAL; `htransfer` at the
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan O-ARM §6.1 step 6. Class (iii). DC: INTENTIONAL; `htransfer` at the
 label `l` of `D`: every honest label-`(l + 1)` HEAD extends `D`. -/
 theorem arming_head_ge {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     (hs : V2.D.ScheduleWellFormed E rho) {b₀ : Time}
@@ -132,7 +139,8 @@ theorem arming_head_ge {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
   rw [hread] at hvh
   exact htransfer u z l D _ hu hz hlb hgr hvh
 
-/-- ROOT-DIGEST W2b. Plan O-ARM §4 field 6, §6.2 steps 1–2, §11 obligation 3. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Plan O-ARM §4 field 6, §6.2 steps 1–2, §11 obligation 3. Class (iii).
 DC: INTENTIONAL; the last healthy batch at every honest receiver, asleep or
 awake. Its window v(l + 1) < e(l + 1) = d(l) ≤ b₀ is inside the healthy cut. -/
 theorem arming_healthy_batch {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
@@ -155,13 +163,13 @@ theorem arming_healthy_batch {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
       E.awake (rho.seatOf (.base (.head (l + 1))) q) (SA.voteTime p.toParams (l + 1)) = true →
       ∃ K k, rho.events[k]? = some (.tick y (SA.earlyTime p.toParams (l + 1))) ∧
         V2.D.Run.emits E rho (rho.seatOf (.base (.head (l + 1))) q)
-          (ofHead p ⟨.seat (.head (l + 1)) q, K⟩) (SA.voteTime p.toParams (l + 1)) ∧
+          (ofHead p ⟨.seat (.head (l + 1)) q, K.root⟩) (SA.voteTime p.toParams (l + 1)) ∧
         Block.Preceq D K ∧ K.slot ≤ l + 1 ∧
-        baseVote (⟨.seat (.head (l + 1)) q, K⟩ : HeadWire p.n) ∈
+        baseVote (⟨.seat (.head (l + 1)) q, K.root⟩ : HeadWire p.n) ∈
           (storeAt p c E rho k y).base.votes ∧
         K ∈ (storeAt p c E rho k y).base.blocks ∧
         GridCO.stampVote (storeAt p c E rho k y).base
-          (baseVote (⟨.seat (.head (l + 1)) q, K⟩ : HeadWire p.n)) <
+          (baseVote (⟨.seat (.head (l + 1)) q, K.root⟩ : HeadWire p.n)) <
           SA.earlyTime p.toParams (l + 1) ∧
         GridCO.stampBlock (storeAt p c E rho k y).base K < SA.earlyTime p.toParams (l + 1) := by
   intro y q hy hq hawake

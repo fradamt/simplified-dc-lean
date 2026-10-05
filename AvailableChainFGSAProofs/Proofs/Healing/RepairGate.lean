@@ -13,7 +13,8 @@ open AvailableChain.SimplexFG Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- ROOT-DIGEST W2b. Blueprint 03:367–373 (valid parent slots); plan H-REPAIR step 9.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 03:367–373 (valid parent slots); plan H-REPAIR step 9.
 DC: SAME along the stored ancestor path of a stored block, slots do not decrease. -/
 theorem repair_stored_slot_le (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) (i : Nat) (v : V) :
@@ -44,7 +45,8 @@ theorem repair_stored_slot_le (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
         (by rw [clock_base_blocks]; exact hm) rfl
       exact (ih hPm B hBP).trans hlt.le
 
-/-- ROOT-DIGEST W2b. Blueprint 03:367–373; plan H-REPAIR step 9. DC: SAME a strict stored ancestor
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 03:367–373; plan H-REPAIR step 9. DC: SAME a strict stored ancestor
 has a
 smaller slot. -/
 theorem repair_stored_slot_lt (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -71,7 +73,8 @@ theorem repair_stored_slot_lt (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
         (by rw [clock_base_blocks]; exact hC) rfl
       exact lt_of_le_of_lt (repair_stored_slot_le E rho hE i v P hPm B hBP) hlt
 
-/-- Blueprint 01 §8.4 (actual sources); plan H-REPAIR step 9. DC: SAME the actual FG action
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 01 §8.4 (actual sources); plan H-REPAIR step 9. DC: SAME the actual FG action
 source of an honest node is in its FG tree at the action read. -/
 theorem repair_source_mem (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) {j : Nat} {x : V} {r : Nat}
@@ -85,7 +88,8 @@ theorem repair_source_mem (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   change C ∈ (FGSA.clock p (V2.D.Run.stateBefore E rho j x).st (p.actionTime r)).fg.TF at hTF
   rwa [clock_fg] at hTF
 
-/-- ROOT-DIGEST W2b. Blueprint 01 §6.6 (finality before an honest proposal gate); plan H-REPAIR step
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 01 §6.6 (finality before an honest proposal gate); plan H-REPAIR step
 9 (a).
 DC: INTENTIONAL the finalized block of an honest store read at or before d_s has slot at
 most s. RQCOrigin gives, for a non-genesis F, a justification QC with an earlier honest
@@ -138,16 +142,18 @@ theorem repair_finality_slot (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     exact hCslot.trans hrs
   exact hle.trans hC'
 
-/-- Blueprint 21:960–963; plan H-REPAIR step 7. DC: SAME an honest proposal of slot s is a
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:960–963; plan H-REPAIR step 7. DC: SAME an honest proposal of slot s is a
 block of slot s. -/
 theorem repair_proposal_slot (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     {s : Slot} {Q : Block} (hp : HonestProposal E rho (fgsaInterface p c) s Q) : Q.slot = s := by
-  obtain ⟨ip, x, raw, sup, rows, _, hip, _, hem⟩ := repair_proposal_emission E rho hp
+  obtain ⟨ip, x, N, heN, _, hip, _, hem⟩ := repair_proposal_emission E rho hp
   rw [(V2.D.Run.step_tick_eq E rho hip).2] at hem
   have hpr := (fgsa_emits_proposal E rho _ x _ s _).mp hem
-  exact (fgsa_scoreRun_proposal_pools p _ s _ Q raw sup rows hpr.2.2.2).1
+  simpa only [heN] using (fgsa_scoreRun_proposal_pools p _ s _ N hpr.2.2.2).1
 
-/-- ROOT-DIGEST W2b. Blueprint 01 §6.6, 21 H.3:769–775, H.6:965–973; plan H-REPAIR step 9 (a).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 01 §6.6, 21 H.3:769–775, H.6:965–973; plan H-REPAIR step 9 (a).
 DC: INTENTIONAL at an honest gate of an exact-HEAD slot s inside the phase, the gate F is
 below the HEAD: the HEAD witness reaches the gate store, so F and the HEAD are comparable
 (RXing or common J), and F cannot strictly pass a slot-s block (01 §6.6). -/
@@ -201,7 +207,8 @@ theorem repair_gate_finality_le [Fintype V] (E : Generic.Env V)
       rw [← hQs] at hle
       exact lt_irrefl _ (lt_of_lt_of_le hlt hle)
 
-/-- Blueprint 21 H.6:965–973 (fields (a), (b)); plan H-REPAIR step 9.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.6:965–973 (fields (a), (b)); plan H-REPAIR step 9.
 DC: INTENTIONAL the gate receipt geometry of an exact-HEAD slot: every emitted honest HEAD
 of label s is the exact HEAD Q, and the gate F is below Q. -/
 theorem repair_gate_receipt [Fintype V] (E : Generic.Env V)
@@ -219,8 +226,8 @@ theorem repair_gate_receipt [Fintype V] (E : Generic.Env V)
   have hFQ := repair_gate_finality_le E rho hrec mono crossing qc hgst hphase hus hgate hQs
     hhead hx ht
   have hK (q : Fin p.n) (hq : rho.seatOf (.base (.head s)) q ∈ rho.honest) (K : Block)
-      (he : V2.D.Run.emits E rho (rho.seatOf (.base (.head s)) q)
-        (ofHead p ⟨.seat (.head s) q, K⟩) (SA.voteTime p.toParams s)) : K = Q := by
+      (he : HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head s)) q)
+        (ofHead p ⟨.seat (.head s) q, K.root⟩) (SA.voteTime p.toParams s) K) : K = Q := by
     have h := healing_support_emitted_head E rho hS s q K _ he
     exact Option.some.inj (h.symm.trans (hhead _ hq))
   refine ⟨?_, ?_⟩
@@ -231,7 +238,8 @@ theorem repair_gate_receipt [Fintype V] (E : Generic.Env V)
     rw [hK q hq K he]
     exact block_preceq_refl Q
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.6:965–970 (all h votes early and clean); plan H-REPAIR step 9
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.6:965–970 (all h votes early and clean); plan H-REPAIR step 9
 (c).
 DC: INTENTIONAL the fast count at an honest gate of an exact-HEAD slot: the honest awake
 HEAD seats are clean early supporters of Q, and their number reaches the release
@@ -244,7 +252,7 @@ theorem repair_gate_fast_count [Fintype V] (E : Generic.Env V)
     {i : Nat} {x : V} (ht : IsGateTick p c rho i x s)
     (hgeom : GateReceiptGeometry E rho
       (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)) s Q) :
-    SA.releaseThreshold p.toParams ≤ SA.prefixSupport p.toParams
+    SA.releaseThreshold p.toParams ≤ SA.Root.prefixSupport p.toParams
       (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))) s Q := by
   classical
   have hE := hrec.base.valid
@@ -305,7 +313,8 @@ theorem repair_gate_fast_count [Fintype V] (E : Generic.Env V)
     omega
   exact hτ.trans hcount
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.6:965–970 (release at q_s; no gate in (q_s, d_s)); plan H-REPAIR
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.6:965–970 (release at q_s; no gate in (q_s, d_s)); plan H-REPAIR
 step 9 (c).
 DC: INTENTIONAL every live lease at an honest gate of an exact-HEAD slot s is compatible
 with Q. Its last write is a gate w < s before q_s = v_(s+1); the q_s release, counted by
@@ -318,16 +327,17 @@ theorem repair_gate_guard [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
@@ -393,7 +403,8 @@ theorem repair_gate_guard [Fintype V] (E : Generic.Env V)
   exact healing_support_release_compat (hroots := hrec.base.idealization)
     E rho hE hN hDelta s hSync hx hx ht hiq hτ hFiq lease hkeep
 
-/-- Blueprint 21 H.6:965–973 (old output); 01 §6.6, §7; plan H-REPAIR step 9 (d).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.6:965–973 (old output); 01 §6.6, §7; plan H-REPAIR step 9 (d).
 DC: INTENTIONAL before an honest gate of label s, the output is below the gate F or a
 stored block of slot at most s: a gate before it has a label w < s and its result is the
 anchor or a stored block of slot at most w + 1; a reconciliation moves S to an earlier F. -/
@@ -470,11 +481,11 @@ theorem repair_output_bound (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
                 (h ∈ (storeAt p c E rho (j + 1) x).base.blocks ∧ h.slot ≤ s) := by
               have hc := spec.raw_eq.symm.trans hr
               let pre := clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams w)
-              have hpre : SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w =
+              have hpre : SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w =
                   some h := by
                 have hv := fgsa_clockPre_gateView p (storeAt p c E rho j x) w
-                change SA.confirmationFrom p.toParams (eraseFG (storeAt p c E rho j x).fg.F)
-                  (SA.expire { actView (storeAt p c E rho j x) with
+                change SA.Root.confirmationFrom p.toParams (eraseFG (storeAt p c E rho j x).fg.F)
+                  (SA.Root.expire { actView (storeAt p c E rho j x) with
                     now := SA.gateTime p.toParams w } (SA.gateTime p.toParams w)) w = some h at hc
                 rw [← hv] at hc
                 rw [clockPre_fg]
@@ -512,7 +523,8 @@ theorem repair_output_bound (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
       · exact hkeep j hj hprev _ (Or.inr (Or.inr rfl))
     · exact absurd hr (hN j x t)
 
-/-- Blueprint 21 H.6:965–973; 01 §7; plan H-REPAIR step 9 (d). DC: INTENTIONAL the old output
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.6:965–973; 01 §7; plan H-REPAIR step 9 (d). DC: INTENTIONAL the old output
 at an honest gate of an exact-HEAD slot is not a strict descendant of Q. -/
 theorem repair_gate_old_output [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
@@ -539,7 +551,8 @@ private theorem gate_lift {A B : FGBlock (Fin p.n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
   eraseFG_preceq_iff.mp h
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.9:1131–1144, H.6:965–973; plan H-REPAIR step 9 (e).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.9:1131–1144, H.6:965–973; plan H-REPAIR step 9 (e).
 DC: INTENTIONAL at an honest gate of an exact-HEAD slot s = rR, Q has an FG
 representative in the full filtered domain of the action read: the HEAD witness gives a
 stored path at the floor; F is below Q (01 §6.6) and, in a top-J phase, J is below the
@@ -624,7 +637,8 @@ theorem repair_gate_opening [Fintype V] (E : Generic.Env V)
   exact (KitFG.mem_filteredFromView _ _ _ _).mpr ⟨hD, gate_lift (heD ▸ hFQ),
     gate_lift (heD ▸ hZQ), W, hW, hDW, hloW⟩
 
-/-- Blueprint 21 H.6:965–973, 01 §6.6; plan H-REPAIR step 9 (R3).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.6:965–973, 01 §6.6; plan H-REPAIR step 9 (R3).
 DC: INTENTIONAL all five ExactServiceGateGeometry fields at every honest gate tick of an
 exact-HEAD slot s inside the phase (u ≤ v_s, d_s ≤ v). Hypotheses: Recovery₂ (standing),
 RMono, RXing, RQCOrigin (FGFoundation field), and the inline last-write premise (B27). -/
@@ -635,16 +649,17 @@ theorem repair_gate_geometry [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)

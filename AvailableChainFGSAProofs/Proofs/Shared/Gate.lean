@@ -18,7 +18,8 @@ open AvailableChain.SimplexFG
 variable {p : Params} {In V : Type} {c : AppCodec In} [DecidableEq V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- G32 covering service, with the atomic count and walk premises of Gen. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+G32 covering service, with the atomic count and walk premises of Gen. -/
 theorem fgsa_gate_of_coveringBatch (hs : V2.D.ScheduleWellFormed E rho)
     (i : Nat) (s : Slot) (x : V) (D : Block)
     (ht : rho.events[i]? = some (.tick x (SA.gateTime p.toParams s)))
@@ -28,7 +29,7 @@ theorem fgsa_gate_of_coveringBatch (hs : V2.D.ScheduleWellFormed E rho)
         Block.Compatible (Gen.AC.Lease.target lease) C)
     (hne : D ≠ .genesis) (hmem : D ∈ ((fgsaAC E rho).gateView i x s).blocks)
     (hsupport : SA.releaseThreshold p.toParams ≤
-      SA.prefixSupport p.toParams ((fgsaAC E rho).gateView i x s) s D)
+      SA.Root.prefixSupport p.toParams ((fgsaAC E rho).gateView i x s) s D)
     (hlevel : SA.releaseThreshold p.toParams ∈ (fgsaAC E rho).gateLevels i x s D) :
     Gen.AC.Duty.GateService (fgsaAC E rho) i s x D := by
   have hf : (fgsaAC E rho).saved i x s = none := fgsa_gate_fresh E rho hs ht
@@ -39,7 +40,8 @@ theorem fgsa_gate_of_coveringBatch (hs : V2.D.ScheduleWellFormed E rho)
   · exact Gen.AC.Duty.gate_of_coveringBatch (fgsaAC E rho) i s x D
       (fun C hC hg => (hrun.accept C hC hg).2) hcover hguard hne hmem hsupport hlevel
 
-/-- G32 exact service. The old output has no strict extension of X. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+G32 exact service. The old output has no strict extension of X. -/
 theorem fgsa_S_eq_of_exact (hs : V2.D.ScheduleWellFormed E rho)
     (i : Nat) (s : Slot) (x : V) (X : Block) (hx : x ∈ rho.honest)
     (ht : rho.events[i]? = some (.tick x (SA.gateTime p.toParams s)))
@@ -61,7 +63,8 @@ theorem fgsa_S_eq_of_exact (hs : V2.D.ScheduleWellFormed E rho)
       (fun hr hg => (hrun.accept X hr hg).1) hraw hguard hold hanchor
       (fgsaAC_lease_le_output E rho (i + 1) x hx)
 
-/-- COVERING SELECTOR STEP: G32 opening-source coverage from local retention and service facts
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+COVERING SELECTOR STEP: G32 opening-source coverage from local retention and service facts
 of S1b R15 and S1c P5. `sourceCandidates` requires the selected fast-write
 label and a live lease. Retention in the full filtered domain is separate. -/
 theorem openingSource_extends_served (i : Nat) (x : V) (r : Nat)
@@ -110,7 +113,8 @@ theorem openingSource_extends_served (i : Nat) (x : V) (r : Nat)
     · rw [Gen.Pure.prefix_eq_of_depth _ _ hCD hdepth]
       exact Gen.Pure.block_preceq_refl _
 
-/-- R15 EXACT selector step. No selected candidate strictly extends D.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+R15 EXACT selector step. No selected candidate strictly extends D.
 The temporal first-opening composition is a separate consumer result. -/
 theorem openingSource_eq_of_no_strict_extension (i : Nat) (x : V) (r : Nat)
     (D : FGBlock (Fin p.n)) :

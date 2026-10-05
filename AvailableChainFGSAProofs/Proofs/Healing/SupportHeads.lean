@@ -1,4 +1,6 @@
 module
+public import AvailableChainGeneric.Proofs.AC.RootBatch
+public import AvailableChainGeneric.Proofs.AC.RootSupport
 public import AvailableChainFGSAProofs.Proofs.Shared.Count
 public import AvailableChainFGSAProofs.Proofs.Shared.HeadCover
 public import AvailableChainFGSAProofs.Proofs.Shared.Regimes
@@ -13,7 +15,7 @@ honest HEAD of that label. The lease premise stays explicit at each step. -/
 
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
-open Gen.AC
+open Gen.AC.Root
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
@@ -26,7 +28,8 @@ private theorem heads_idx_mono (rho : V2.D.Run V (fgsa p c)) :
   exact List.countP_mono_left (fun e _ he => decide_eq_true
     (lt_of_lt_of_le (of_decide_eq_true he) hab))
 
-/-- Blueprint 21:673–689; plan H-SUPPORT §4 step 7.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:673–689; plan H-SUPPORT §4 step 7.
 DC: SAME a state read before a tick at T has a slot at most the slot of T. -/
 theorem healing_support_read_window (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hS : V2.D.ScheduleWellFormed E rho) (hN : V2.D.NoRestart rho)
@@ -59,11 +62,12 @@ private theorem heads_stamp_kept {α : Type} [BEq α] [LawfulBEq α]
     contradiction
   | some row => rfl
 
-/-- Blueprint 21:673–689; plan H-SUPPORT §4 step 7.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:673–689; plan H-SUPPORT §4 step 7.
 DC: SAME a stored vote keeps its membership and its stamp at every later post-clock read. -/
 theorem healing_support_vote_kept (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hN : V2.D.NoRestart rho) {a b : Nat} (hab : a ≤ b) (y : V) (t : Time)
-    (o : GridCO.Wire p.n) (ho : o ∈ (storeAt p c E rho a y).base.votes) :
+    (o : GridCO.Wire p.n .root) (ho : o ∈ (storeAt p c E rho a y).base.votes) :
     o ∈ (FGSA.clock p (storeAt p c E rho b y) t).base.votes ∧
       GridCO.stampVote (FGSA.clock p (storeAt p c E rho b y) t).base o =
         GridCO.stampVote (storeAt p c E rho a y).base o := by
@@ -93,7 +97,8 @@ theorem healing_support_vote_kept (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
     | some row => rfl
 
 omit [DecidableEq V] in
-/-- Blueprint 21:709–715 (H.2); plan H-SUPPORT §4 step 7.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:709–715 (H.2); plan H-SUPPORT §4 step 7.
 DC: SAME an honest node ticks at every vote time inside the horizon. -/
 theorem healing_support_vote_tick (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hS : V2.D.ScheduleWellFormed E rho) (hDelta : E.Δ = p.Δ) {z : V}
@@ -107,7 +112,8 @@ theorem healing_support_vote_tick (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
   rw [htime] at hj
   exact ⟨j, hj⟩
 
-/-- Blueprint 21:709–715 (H.2); plan H-SUPPORT §4 step 7.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:709–715 (H.2); plan H-SUPPORT §4 step 7.
 DC: SAME an awake honest holder emits its HEAD at its vote tick, and this HEAD is its
 read at the label. -/
 theorem healing_support_honest_emits (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -118,17 +124,18 @@ theorem healing_support_honest_emits (E : Generic.Env V) (rho : V2.D.Run V (fgsa
     let K := headVote p (FGSA.clock p (V2.D.Run.stateBefore E rho j
       (rho.seatOf (.base (.head i)) k)).st (SA.voteTime p.toParams i)) i
     V2.D.Run.emits E rho (rho.seatOf (.base (.head i)) k)
-        (ofHead p ⟨.seat (.head i) k, K⟩) (SA.voteTime p.toParams i) ∧
+        (ofHead p ⟨.seat (.head i) k, K.root⟩) (SA.voteTime p.toParams i) ∧
       headAtLabel p c E rho (rho.seatOf (.base (.head i)) k) i = some K := by
   intro K
   refine ⟨⟨j, hj, ?_⟩, ?_⟩
   · rw [(V2.D.Run.step_tick_eq E rho hj).2]
-    exact (fgsa_emits_head E rho _ _ _ i k K).mpr ⟨hawake, rfl, rfl, rfl⟩
+    exact (fgsa_emits_head E rho _ _ _ i k K.root).mpr ⟨hawake, rfl, rfl, rfl⟩
   · unfold headAtLabel
     rw [postClock_def, preTick_def, fgsa_tickIdx_of_event p c E rho hS hj]
     rfl
 
-/-- ROOT-DIGEST W2b. Blueprint 21:709–715 (H.2 S1), 673–689 (IF.5 relay); plan H-SUPPORT §4 step 7.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21:709–715 (H.2 S1), 673–689 (IF.5 relay); plan H-SUPPORT §4 step 7.
 DC: INTENTIONAL an honest label-i HEAD that covers B is, at the receiver's q_i read, a
 clean resolved frozen vote that supports B: the vote arrives by e_i, and the HEAD
 block arrives with strict stamps through the HEAD witness W (F1 + F2). -/
@@ -144,7 +151,7 @@ theorem healing_support_honest_batch_seat [Fintype V] (E : Generic.Env V)
     (hv : SA.voteTime p.toParams (i + 1) ≤ v)
     (hFB : Block.Preceq (eraseFG (storeAt p c E rho iy y).fg.F) B)
     (k : Fin p.n) (hk : rho.seatOf (.base (.head i)) k ∈ rho.honest) :
-    Gen.AC.poolSupports (FGSA.clock p (storeAt p c E rho iy y)
+    Gen.AC.Root.poolSupports (FGSA.clock p (storeAt p c E rho iy y)
         (SA.voteTime p.toParams (i + 1))).base.blocks
       (FGSA.headSupport p (FGSA.clock p (storeAt p c E rho iy y)
         (SA.voteTime p.toParams (i + 1))) (i + 1)) k B = true ∧
@@ -234,9 +241,9 @@ theorem healing_support_honest_batch_seat [Fintype V] (E : Generic.Env V)
   have hcut : dl (SA.voteTime p.toParams i) ≤ cut := by
     refine hdle.trans (le_trans ?_ hdcut)
     rw [hDelta]
-  obtain ⟨hom, hos⟩ := fgsa_honest_head_receipt E rho hDelta hE hN hrec.base.cstar dl cut i k K
+  obtain ⟨hom, hos⟩ := fgsa_honest_head_receipt E rho hDelta hE hN hrec.base.cstar dl cut i k K.root
     (SA.voteTime p.toParams i) z y hD hk hem hy hcut (hlt _) hwindow
-  let o := baseVote (⟨.seat (.head i) k, K⟩ : HeadWire p.n)
+  let o := baseVote (⟨.seat (.head i) k, K.root⟩ : HeadWire p.n)
   have hidx : V2.D.Run.idxBefore rho (dl (SA.voteTime p.toParams i)) ≤ iy :=
     healing_support_idxBefore_le p c E rho hS hiy (hdle.trans hvi)
   have hom' : o ∈ (storeAt p c E rho (V2.D.Run.idxBefore rho
@@ -258,7 +265,10 @@ theorem healing_support_honest_batch_seat [Fintype V] (E : Generic.Env V)
       (Gen.Pure.block_preceq_trans hFB hBK)
   have hol : GridCO.headLabel? o = some i := rfl
   have hok : GridCO.headSeat? o = some k := rfl
-  have hoK : GridCO.headTarget? o = some K := rfl
+  have hoK : GridCO.headTarget? o = some K.root := rfl
+  have hresolve := actView_resolve_target p dst hinv
+    (base_headDomain_none p (Reachable.tick _ (reachable_stateBefore E rho iy y)))
+    o ((actView_blocks dst K).mpr ⟨hKb, hFK⟩) hoK
   -- The vote is in the frozen support arm and supports B.
   have hsupp : o ∈ FGSA.headSupport p dst (i + 1) := by
     change o ∈ List.eraseDups (_ ++ _)
@@ -268,21 +278,21 @@ theorem healing_support_honest_batch_seat [Fintype V] (E : Generic.Env V)
     refine ⟨List.mem_filter.mpr ⟨hod, ?_⟩, ?_⟩
     · simpa only [Nat.add_sub_cancel, hol] using beq_self_eq_true (some i)
     · unfold GridCO.resolvedBefore
-      rw [hoK]
-      simp only [Bool.and_eq_true, decide_eq_true_eq, GridCO.blockKnown, Nat.add_sub_cancel,
+      rw [hresolve]
+      simp only [Bool.and_eq_true, decide_eq_true_eq, Nat.add_sub_cancel,
         hol, Option.getD_some]
-      exact ⟨⟨⟨(actView_blocks dst K).mpr ⟨hKb, hFK⟩, hKslot⟩, hstampv⟩, hKst⟩
-  have hvs : Gen.AC.voteSupports dst.base.blocks B o = true := by
-    rw [Gen.AC.voteSupports_def, hoK]
-    simp only [Bool.and_eq_true, decide_eq_true_eq, hol, Option.getD_some]
-    exact ⟨⟨hKb, hKslot⟩, hBK⟩
-  refine ⟨(Gen.AC.vote_pool_support_witness _ _ k B).mpr ⟨o, hsupp, hok, hvs⟩, ?_⟩
+      exact ⟨⟨hKslot, hstampv⟩, hKst⟩
+  have hvs : Gen.AC.Root.voteSupports dst.base.blocks B o = true := by
+    exact (Gen.AC.Root.vote_support_body _ _ _).mpr
+      ⟨K, resolvedTarget_of_mem _ (baseBlocks_rootInj p dst hinv) o hKb hoK,
+        hKb, by simpa only [hol, Option.getD_some] using hKslot, hBK⟩
+  refine ⟨(Gen.AC.Root.vote_pool_support_witness _ _ k B).mpr ⟨o, hsupp, hok, hvs⟩, ?_⟩
   -- Every stored label-i vote of the honest seat is its emitted HEAD.
   have hall : ∀ w ∈ GridCO.votesAt (storeAt p c E rho iy y).base i,
       GridCO.headSeat? w = some k → w = o := by
     intro w hw hwk
     obtain ⟨hwm, hwl⟩ := List.mem_filter.mp hw
-    exact fgsa_honest_head_eq_of_stored E rho hE iy y i k K _ hk hem w hwm
+    exact fgsa_honest_head_eq_of_stored E rho hE iy y i k K.root _ hk hem w hwm
       (by simpa only [beq_iff_eq] using hwl) hwk
   have hnoeq : GridCO.equivocates (GridCO.votesAt (storeAt p c E rho iy y).base i) k = false := by
     cases he : GridCO.equivocates (GridCO.votesAt (storeAt p c E rho iy y).base i) k with
@@ -305,7 +315,8 @@ theorem healing_support_honest_batch_seat [Fintype V] (E : Generic.Env V)
         contradiction
     exact hne ((hone a ha hka).trans (hone b hb hkb).symm)
 
-/-- ROOT-DIGEST W2b. Blueprint 21:748–783 (H.3), 1148–1252 (F1 + F2); plan H-SUPPORT §4 steps 3 and
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21:748–783 (H.3), 1148–1252 (F1 + F2); plan H-SUPPORT §4 steps 3 and
 7.
 DC: INTENTIONAL an honest label-i HEAD that covers B gives a witness W ⪰ B. W reaches
 the receiver before e_i, and at its q_i read Z and F are below W, with lo ≤ h(W). The
@@ -403,7 +414,8 @@ private theorem heads_lift {A B : FGBlock (Fin p.n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
   eraseFG_preceq_iff.mp h
 
-/-- ROOT-DIGEST W2b. Blueprint 21:709–715 (H.2 S1), 748–783 (H.3); plan H-SUPPORT §4 step 7.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21:709–715 (H.2 S1), 748–783 (H.3); plan H-SUPPORT §4 step 7.
 DC: INTENTIONAL one H.2 HEAD step. If every honest label-i HEAD covers B, then every
 honest HEAD at label i+1 inside the phase covers B. The honest batch of label i gives
 majority and rival bounds (`batch_head_covers`); a fresh witness W of an honest label-i
@@ -564,7 +576,8 @@ theorem healing_next_transfer_core [Fintype V] (E : Generic.Env V)
   rw [headVote_eq, ite_eq_right (Nat.succ_ne_zero i)]
   exact hcov
 
-/-- Blueprint 21:709–715 (H.2 S1); plan H-SUPPORT §4 step 7, G8.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:709–715 (H.2 S1); plan H-SUPPORT §4 step 7, G8.
 DC: INTENTIONAL the bounded H.2 HEAD induction. From a common honest HEAD prefix B at
 label s+1, every honest HEAD at a label i ≥ s+1 with q_i ≤ v covers B. Each step uses
 the honest batch of the previous label (no gate lookahead, G8). `hlease` is the lease
@@ -612,7 +625,8 @@ theorem healing_heads_transfer [Fintype V] (E : Generic.Env V)
     exact healing_next_transfer_core E rho hrec mono crossing hgst hphase (hhead.trans hsi)
       (ih (hvi.trans hv)) hz hiz hv (hlease i hi hv iz z hz hiz)
 
-/-- Blueprint 21:620–715 (H.1 + H.2 S1, fast arm); plan H-SUPPORT §4 steps 1–7.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:620–715 (H.1 + H.2 S1, fast arm); plan H-SUPPORT §4 steps 1–7.
 DC: INTENTIONAL the S1 HEAD clause for a fast PhaseBody arm, under the per-label lease
 premise `hlease` after s+1 (the s+1 lease bound is proved, G5). -/
 theorem healing_fast_heads_transfer [Fintype V] (E : Generic.Env V)

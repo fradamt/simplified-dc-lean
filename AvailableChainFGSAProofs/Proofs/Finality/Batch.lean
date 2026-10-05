@@ -31,9 +31,9 @@ private theorem batch_chain_occurrence (st : State p.n) (hmeta : MetaInv p st)
     ∃ W, FGBlock.Preceq W H ∧ b ∈ W.rows := by
   obtain ⟨rows, hrs, ha⟩ := List.mem_flatten.mp ha
   obtain ⟨o, ho, hrows⟩ := List.mem_filterMap.mp hrs
-  obtain ⟨s, B, raw, sup, wires, rfl, _hok, _hdec, W, _hW, hWe, hWr⟩ :=
+  obtain ⟨s, N, rfl, _hok, _hparent, _hdec, W, _hW, hWe, hWr⟩ :=
     hmeta.wireTree o ho
-  change (if Block.preceq B (eraseFG H) then some wires else none) = some rows at hrows
+  change (if Block.preceq N.erase (eraseFG H) then some N.rows else none) = some rows at hrows
   split at hrows
   next hpath =>
     have he := Option.some.inj hrows
@@ -45,7 +45,8 @@ private theorem batch_chain_occurrence (st : State p.n) (hmeta : MetaInv p st)
       exact List.mem_filterMap.mpr ⟨a, ha, hd⟩
   next hpath => cases hrows
 
-/-- ROOT-DIGEST W2b. Paper 22:715–728, 1265–1289: a finality row sets the retained bit or is
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Paper 22:715–728, 1265–1289: a finality row sets the retained bit or is
 carried.
 DC: INTENTIONAL exact signed row selection and checked W history; the caller
 supplies T-ROWS selection so this Finality proof does not depend on Foundations. -/
@@ -103,7 +104,8 @@ theorem finalityRow_bit_or_carried_W
 
 variable [Fintype V]
 
-/-- Paper 22:715–728, 1265–1289: a finality batch gives prior parent coverage
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:715–728, 1265–1289: a finality batch gives prior parent coverage
 or quorum coverage of the same retained entry by the child.
 DC: INTENTIONAL W coverage separates the covered and retained cases; T-ROWS
 selection is an explicit input for later discharge in Assembly. -/

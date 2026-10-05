@@ -18,7 +18,8 @@ open AvailableChain.SimplexFG
 variable {p : Params} {In V : Type} {c : AppCodec In} [DecidableEq V]
     {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
 
-/-- A non-gate event adds no completed result. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+A non-gate event adds no completed result. -/
 theorem cleanResults_eq_of_noGate {i : Nat}
     (hn : ∀ x s, ¬ IsGateTick p c rho i x s) :
     cleanResults p c E rho (i + 1) = cleanResults p c E rho i := by
@@ -30,7 +31,8 @@ theorem cleanResults_eq_of_noGate {i : Nat}
     · exact (hn x s hx).elim
   · exact Or.inl
 
-/-- All four history fields persist at a non-gate event. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+All four history fields persist at a non-gate event. -/
 theorem cleanHist_step_of_noGate {i : Nat}
     (hn : ∀ x s, ¬ IsGateTick p c rho i x s)
     (hh : CleanHist p c E rho i) : CleanHist p c E rho (i + 1) := by
@@ -60,13 +62,15 @@ private theorem delivery_noGate {i : Nat} {v : V} {o} {t : Time}
   rw [he] at hx
   cases hx
 
-/-- Every delivery, including an admitted block, preserves history. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Every delivery, including an admitted block, preserves history. -/
 theorem cleanHist_step_delivery {i : Nat} {v : V} {o} {t : Time}
     (he : rho.events[i]? = some (.deliver v o t))
     (hh : CleanHist p c E rho i) : CleanHist p c E rho (i + 1) :=
   cleanHist_step_of_noGate (delivery_noGate he) hh
 
-/-- A tick without a gate preserves the completed history. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+A tick without a gate preserves the completed history. -/
 theorem cleanHist_step_noGateTick {i : Nat} {v : V} {t : Time}
     (he : rho.events[i]? = some (.tick v t)) (hn : isGateTime p t = false)
     (hh : CleanHist p c E rho i) : CleanHist p c E rho (i + 1) := by
@@ -78,14 +82,16 @@ theorem cleanHist_step_noGateTick {i : Nat} {v : V} {t : Time}
   rw [hn] at hg
   cases hg
 
-/-- ROOT-DIGEST W2b. A vote, row, or refused block keeps every state field used by the SA origins.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. A vote, row, or refused block keeps every state field used by the SA origins.
 The vote case uses the FG-SA store wrappers for GridCO admission. -/
 theorem clean_delivery_fields {j : Nat} {v : V} {o} {t : Time}
     (he : rho.events[j]? = some (.deliver v o t))
-    (href : ∀ s b raw support rows P,
-      (toWire p o).decode = some (.block s b raw support rows) →
-      parentFG (storeAt p c E rho j v) b = some P →
-      blockAccepted p (storeAt p c E rho j v) s b raw support P rows = false) :
+    (href : ∀ s N P,
+      (toWire p o).decode = some (.block s N) →
+      namedParentHeld (storeAt p c E rho j v) N = true →
+      parentFG (storeAt p c E rho j v) N.erase = some P →
+      blockAccepted p (storeAt p c E rho j v) s N P = false) :
     let a := storeAt p c E rho j v
     let b := storeAt p c E rho (j + 1) v
     b.fg = a.fg ∧ b.base.stableRecord = a.base.stableRecord ∧
@@ -103,7 +109,7 @@ theorem clean_delivery_fields {j : Nat} {v : V} {o} {t : Time}
   change (let b := match w.decode with
     | some (.vote s k B) => admitHead p (storeAt p c E rho j v) s k B
     | some (.row _ body) => admitRow p (storeAt p c E rho j v) ⟨w.auth, body⟩
-    | some (.block s B raw sup rows) => admitBlock p (storeAt p c E rho j v) s B raw sup rows
+    | some (.block s N) => admitBlock p (storeAt p c E rho j v) s N
     | none => storeAt p c E rho j v
     b.fg = _ ∧ b.base.stableRecord = _ ∧ b.base.obligations = _ ∧
       b.base.genuine = _ ∧ b.fastWrite = _)
@@ -119,26 +125,31 @@ theorem clean_delivery_fields {j : Nat} {v : V} {o} {t : Time}
       dsimp only
       rcases admitRow_eq p (storeAt p c E rho j v) ⟨w.auth, body⟩ with hr | hr <;>
         rw [hr] <;> exact ⟨rfl, rfl, rfl, rfl, rfl⟩
-    | block s B raw sup rows =>
-      have hr : admitBlock p (storeAt p c E rho j v) s B raw sup rows =
+    | block s N =>
+      have hr : admitBlock p (storeAt p c E rho j v) s N =
           storeAt p c E rho j v := by
         apply admitBlock_refused
-        cases hP : parentFG (storeAt p c E rho j v) B with
-        | none => exact Or.inl rfl
-        | some P => exact Or.inr ⟨P, rfl, href s B raw sup rows P hd hP⟩
+        cases hn : namedParentHeld (storeAt p c E rho j v) N with
+        | false => exact Or.inl rfl
+        | true =>
+          apply Or.inr
+          cases hP : parentFG (storeAt p c E rho j v) N.erase with
+          | none => exact Or.inl rfl
+          | some P => exact Or.inr ⟨P, rfl, href s N P hd hn hP⟩
       dsimp only
       rw [hr]
       exact ⟨rfl, rfl, rfl, rfl, rfl⟩
 
-/-- ROOT-DIGEST W2b. K1 lifted to an admitted block event. The three compatibility premises
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. K1 lifted to an admitted block event. The three compatibility premises
 are the obligations left for the source-origin argument. Due rows are included. -/
 theorem clean_block_reconcile {j : Nat} {v : V} {o} {t : Time}
-    {s : Slot} {B : Block} {raw support : List (HeadWire p.n)}
-    {rows : List (RowWire p.n)} {P : FGBlock (Fin p.n)}
+    {s : Slot} {N : NamedProposal p.n} {P : FGBlock (Fin p.n)}
     (he : rho.events[j]? = some (.deliver v o t))
-    (hd : (toWire p o).decode = some (.block s B raw support rows))
-    (hP : parentFG (storeAt p c E rho j v) B = some P)
-    (ha : blockAccepted p (storeAt p c E rho j v) s B raw support P rows = true)
+    (hd : (toWire p o).decode = some (.block s N))
+    (hNamed : namedParentHeld (storeAt p c E rho j v) N = true)
+    (hP : parentFG (storeAt p c E rho j v) N.erase = some P)
+    (ha : blockAccepted p (storeAt p c E rho j v) s N P = true)
     (hL : ∀ row ∈ (storeAt p c E rho j v).base.obligations,
       Block.Compatible row.1 (F_at p c E rho (j + 1) v))
     (hG : ∀ r C, (r, some C) ∈ (storeAt p c E rho j v).base.genuine →
@@ -149,14 +160,14 @@ theorem clean_block_reconcile {j : Nat} {v : V} {o} {t : Time}
     (storeAt p c E rho (j + 1) v).fastWrite = (storeAt p c E rho j v).fastWrite ∧
     Block.Preceq (S_at p c E rho j v) (S_at p c E rho (j + 1) v) := by
   have hstore : storeAt p c E rho (j + 1) v =
-      admitBlock p (storeAt p c E rho j v) s B raw support rows := by
+      admitBlock p (storeAt p c E rho j v) s N := by
     change (V2.D.Run.stateBefore E rho (j + 1) v).st = _
     rw [V2.D.Run.stateBefore_succ E rho he]
     simp only [V2.D.World.step, Function.update_self]
     change (match (toWire p o).decode with
       | some (.vote r k b) => admitHead p (storeAt p c E rho j v) r k b
       | some (.row _ body) => admitRow p (storeAt p c E rho j v) ⟨(toWire p o).auth, body⟩
-      | some (.block r b raw sup rows) => admitBlock p (storeAt p c E rho j v) r b raw sup rows
+      | some (.block r M) => admitBlock p (storeAt p c E rho j v) r M
       | none => storeAt p c E rho j v) = _
     rw [hd]
   change (∀ row ∈ (storeAt p c E rho j v).base.obligations,
@@ -169,9 +180,10 @@ theorem clean_block_reconcile {j : Nat} {v : V} {o} {t : Time}
   simp only [S_at_def]
   rw [hstore] at hL hG hS ⊢
   exact admitBlock_reconcile_harmless p _ (cstoreInv_stateBefore E rho j v)
-    s B raw support rows P hP ha hL hG hS
+    s N P hNamed hP ha hL hG hS
 
-/-- Expiry and release remove targets. Cache and own-record writes keep the
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Expiry and release remove targets. Cache and own-record writes keep the
 FG state, output, genuine results, and fast-write history. -/
 theorem clean_noGate_fields {j : Nat} {v : V} {t : Time}
     (he : rho.events[j]? = some (.tick v t)) (hn : isGateTime p t = false) :
@@ -195,7 +207,8 @@ theorem clean_noGate_fields {j : Nat} {v : V} {t : Time}
 
 variable [Fintype V]
 
-/-- These state fields hold at every index, independently of Clean history.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+These state fields hold at every index, independently of Clean history.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem cleanState_index_facts {b₀ : Time} (h : CleanCut₂ p c E rho b₀ ΔF)
@@ -233,7 +246,8 @@ private theorem clean_rows_step {j : Nat}
   exact ⟨C, hc, heq, hp, belowLabel_mono_index (Nat.le_succ j) hb⟩
 
 omit [Fintype V] in
-/-- ROOT-DIGEST W2b. bp02 §5.3: the F1 certificate channel and exact row names give all
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. bp02 §5.3: the F1 certificate channel and exact row names give all
 certificate sources. DC's GST-zero proof has no FG-SA row-source field. -/
 theorem clean_certSources_of_rows {i : Nat} (hf : FGFoundation p c E rho)
     (hr : CleanRowSources p c E rho i)
@@ -334,7 +348,8 @@ private theorem clean_fOrigin_from_rows (hf : FGFoundation p c E rho) {i : Nat}
 
 
 omit [Fintype V] in
-/-- ROOT-DIGEST W2b. bp02 §5.4: gate inputs use only rows before the gate time.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. bp02 §5.4: gate inputs use only rows before the gate time.
 DC GSTZeroSafety has no FG-SA labelled gate-input field. -/
 theorem clean_gateInputs_from_rows (hf : FGFoundation p c E rho) {i : Nat}
     (hsch : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.NoRestart rho)
@@ -385,7 +400,8 @@ theorem clean_gateInputs_from_rows (hf : FGFoundation p c E rho) {i : Nat}
 
 
 omit [Fintype V] in
-/-- bp02 §5.2: a delivery emits no new row. DC GSTZeroSafety uses a
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+bp02 §5.2: a delivery emits no new row. DC GSTZeroSafety uses a
 whole-run statement; this is an FG-SA source-preservation substep. -/
 theorem clean_delivery_rowSources {j : Nat} {v : V} {o} {t : Time}
     (he : rho.events[j]? = some (.deliver v o t))
@@ -396,7 +412,8 @@ theorem clean_delivery_rowSources {j : Nat} {v : V} {o} {t : Time}
   cases ht
 
 omit [Fintype V] in
-/-- bp02 §5.2: all action times are gate times, so this tick emits no row.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+bp02 §5.2: all action times are gate times, so this tick emits no row.
 DC GSTZeroSafety has no FG-SA action-row predicate. -/
 theorem clean_noGate_rowSources {j : Nat} {v : V} {t : Time}
     (he : rho.events[j]? = some (.tick v t)) (hn : isGateTime p t = false)
@@ -426,21 +443,22 @@ private theorem clean_saved_of_member {st : State p.n} (hs : CStoreInv p st)
     rw [he]
     rfl
 
-/-- ROOT-DIGEST W2b. bp02 §5.3 steps 3–6: CleanState supplies all three K1 premises.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. bp02 §5.3 steps 3–6: CleanState supplies all three K1 premises.
 Every obligation row is included, even if its deadline is due. DC's clean
 stable-record proof has no FG-SA reconcile handler or obligation rows.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
 theorem clean_block_reconcile_state {b₀ : Time} {i j : Nat} {v : V} {o} {t : Time}
-    {s : Slot} {B : Block} {raw support : List (HeadWire p.n)}
-    {rows : List (RowWire p.n)} {P : FGBlock (Fin p.n)}
+    {s : Slot} {N : NamedProposal p.n} {P : FGBlock (Fin p.n)}
     (h : CleanCut₂ p c E rho b₀ ΔF) (hf : FGFoundation p c E rho)
     (_hsrc : SrcFrameAboveStmt p c E rho)
     (hji : j < i) (hh : CleanHist p c E rho i) (hs : CleanState p c E rho j)
     (he : rho.events[j]? = some (.deliver v o t))
-    (hd : (toWire p o).decode = some (.block s B raw support rows))
-    (hP : parentFG (storeAt p c E rho j v) B = some P)
-    (ha : blockAccepted p (storeAt p c E rho j v) s B raw support P rows = true) :
+    (hd : (toWire p o).decode = some (.block s N))
+    (hNamed : namedParentHeld (storeAt p c E rho j v) N = true)
+    (hP : parentFG (storeAt p c E rho j v) N.erase = some P)
+    (ha : blockAccepted p (storeAt p c E rho j v) s N P = true) :
     (storeAt p c E rho (j + 1) v).base.obligations = (storeAt p c E rho j v).base.obligations ∧
     (storeAt p c E rho (j + 1) v).base.genuine = (storeAt p c E rho j v).base.genuine ∧
     (storeAt p c E rho (j + 1) v).fastWrite = (storeAt p c E rho j v).fastWrite ∧
@@ -455,7 +473,7 @@ theorem clean_block_reconcile_state {b₀ : Time} {i j : Nat} {v : V} {o} {t : T
     (fun _ _ r _ _ _ _ hb => ⟨r * p.R, hb⟩) v hv
   obtain ⟨rF, hF⟩ := hfg.1
   have hFi := belowLabel_mono_index (Nat.succ_le_of_lt hji) hF
-  apply clean_block_reconcile he hd hP ha
+  apply clean_block_reconcile he hd hNamed hP ha
   · intro row hrow
     obtain ⟨k, hk, r, C, hkt, _, hC, hpre⟩ := hs.leases v row hrow
     exact Gen.Pure.block_compatible_of_preceq_compatible hpre
@@ -537,7 +555,8 @@ private theorem clean_state_unchanged {b₀ : Time} {j : Nat}
       · rw [hS]; exact hs.sExtends v k j (Nat.le_of_lt_succ hk) (Nat.le_refl j)
       · exact Gen.Pure.block_preceq_refl _
 
-/-- bp02 §5.2: ordinary delivery preserves the full state at every node.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+bp02 §5.2: ordinary delivery preserves the full state at every node.
 DC GSTZeroSafety is a whole-run result; this is an FG-SA event substep.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
@@ -562,7 +581,8 @@ theorem clean_deliveryStateStep {b₀ : Time} : CleanDeliveryStateStep (ΔF := �
     rw [hh]
     exact ⟨rfl, rfl, List.Sublist.refl _, rfl, rfl⟩
 
-/-- bp02 §5.2: a non-gate tick preserves the full state at every node.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+bp02 §5.2: a non-gate tick preserves the full state at every node.
 DC GSTZeroSafety has no separate FG-SA clock-handler predicate.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
@@ -591,7 +611,8 @@ theorem clean_noGateStateStep {b₀ : Time} : CleanNoGateStateStep (ΔF := ΔF) 
       exact ⟨rfl, rfl, List.Sublist.refl _, rfl, rfl⟩
 
 
-/-- ROOT-DIGEST W2b. bp02 §5.3: admission, certificate origins, and harmless reconcile
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. bp02 §5.3: admission, certificate origins, and harmless reconcile
 preserve every CleanState field at every node. DC clean stable safety has
 no FG-SA admission/reconcile event predicate.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
@@ -600,7 +621,7 @@ theorem clean_blockStateStep {b₀ : Time} : CleanBlockStateStep (ΔF := ΔF) p 
   rw [CleanBlockStateStep_def (ΔF := ΔF), CleanStateStep_def (ΔF := ΔF)]
   intro h _ hf hsrc i _ hh j hji he hs
   rw [CleanBlockDelivery_def] at he
-  obtain ⟨v, o, t, s, B, raw, support, rows, P, he, hd, hP, ha⟩ := he
+  obtain ⟨v, o, t, s, N, P, he, hd, hNamed, hP, ha⟩ := he
   have hr := clean_delivery_rowSources he hs.sources.1
   have hkeep (w : V) :
       (storeAt p c E rho (j + 1) w).base.obligations =
@@ -610,7 +631,7 @@ theorem clean_blockStateStep {b₀ : Time} : CleanBlockStateStep (ΔF := ΔF) p 
       (storeAt p c E rho (j + 1) w).fastWrite = (storeAt p c E rho j w).fastWrite ∧
       Block.Preceq (S_at p c E rho j w) (S_at p c E rho (j + 1) w) := by
     by_cases hw : w = v
-    · subst w; exact clean_block_reconcile_state h hf hsrc hji hh hs he hd hP ha
+    · subst w; exact clean_block_reconcile_state h hf hsrc hji hh hs he hd hNamed hP ha
     · have hstore : storeAt p c E rho (j + 1) w = storeAt p c E rho j w := by
         change (V2.D.Run.stateBefore E rho (j + 1) w).st = _
         rw [V2.D.Run.stateBefore_succ E rho he]
@@ -688,7 +709,8 @@ theorem clean_blockStateStep {b₀ : Time} : CleanBlockStateStep (ΔF := ΔF) p 
           (hs.sExtends w k j (Nat.le_of_lt_succ hk) (Nat.le_refl j)) (hkeep w).2.2.2
       · exact Gen.Pure.block_preceq_refl _
 
-/-- ROOT-DIGEST W2b. bp02 §§5.5–5.6: the gate state closes once the action supplies its
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. bp02 §§5.5–5.6: the gate state closes once the action supplies its
 row sources. This is not the frozen CleanGateStateStep Prop: the action
 substep remains separate as required by S3. DC has no FG-SA action rows.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
@@ -713,7 +735,8 @@ theorem clean_gate_state_of_rows {b₀ : Time} {i j : Nat} {v : V} {s : Slot}
   · exact hs.harmless k w o t hk hw he hmov
   · exact (delivery_noGate he v s ht).elim
 
-/-- bp02 §5.2: the delivery case of the prefix history induction.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+bp02 §5.2: the delivery case of the prefix history induction.
 DC GSTZeroSafety is a whole-run safety result; this is its FG-SA event substep.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
@@ -724,7 +747,8 @@ theorem clean_deliveryHistStep {b₀ : Time} : CleanDeliveryHistStep (ΔF := ΔF
   obtain ⟨v, o, t, he, _⟩ := he
   exact cleanHist_step_delivery he hh
 
-/-- bp02 §5.3: block admission changes no completed gate history.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+bp02 §5.3: block admission changes no completed gate history.
 DC GSTZeroSafety has no separate FG-SA block-handler predicate.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
@@ -732,10 +756,11 @@ theorem clean_blockHistStep {b₀ : Time} : CleanBlockHistStep (ΔF := ΔF) p c 
   rw [CleanBlockHistStep_def (ΔF := ΔF), CleanHistStep_def (ΔF := ΔF)]
   intro _ _ _ _ i _ he hh _
   rw [CleanBlockDelivery_def] at he
-  obtain ⟨v, o, t, _, _, _, _, _, _, he, _⟩ := he
+  obtain ⟨v, o, t, _, _, _, he, _⟩ := he
   exact cleanHist_step_delivery he hh
 
-/-- bp02 §5.2: a tick without a gate changes no completed history.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+bp02 §5.2: a tick without a gate changes no completed history.
 DC GSTZeroSafety has no separate FG-SA clock-handler predicate.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
@@ -746,7 +771,8 @@ theorem clean_noGateHistStep {b₀ : Time} : CleanNoGateHistStep (ΔF := ΔF) p 
   obtain ⟨v, t, he, hn⟩ := he
   exact cleanHist_step_noGateTick he hn hh
 
-/-- bp02 §5.2: the initial state has no sources or saved gate writes.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+bp02 §5.2: the initial state has no sources or saved gate writes.
 DC GSTZeroSafety uses a genesis execution; this is the FG-SA initial state.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
 non-row traffic keeps Δ. -/
@@ -794,7 +820,8 @@ theorem cleanState_zero {b₀ : Time} (h : CleanCut₂ p c E rho b₀ ΔF)
     subst j; subst k
     exact Gen.Pure.block_preceq_refl _
 
-/-- P3 §§8.2, 8.4, 8.7; bp02 §§5.5–5.6; lead R2(b).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+P3 §§8.2, 8.4, 8.7; bp02 §§5.5–5.6; lead R2(b).
 DC counterpart: none; FG-SA's action shares the gate tick. The action
 premise supplies successor row sources from the given prior state.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
@@ -814,7 +841,8 @@ theorem clean_gateStateStep_of_action {b₀ : Time}
       (cleanHist_restrict (Nat.succ_le_of_lt hji) hh) hs
   · exact clean_rows_step hs.sources.1 (fun x r he => ha ⟨x, r, he⟩)
 
-/-- ROOT-DIGEST W2b. P3 §§8.2–8.4, 8.7; bp02 §5; lead R2(c), S2 and S3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. P3 §§8.2–8.4, 8.7; bp02 §5; lead R2(c), S2 and S3.
 DC counterpart: none for this fixed-history state predicate. DC's
 Protocol/ChainState/Chain.lean carries the chain-order bundle; FG-SA
 instead derives the full state over event indices from a fixed history
@@ -866,24 +894,26 @@ theorem cleanState_of_hist {b₀ : Time} {i : Nat}
           rw [hsTime]
           exact he
       | deliver v o t =>
-        by_cases ha : ∃ s B raw support rows P,
-            (toWire p o).decode = some (.block s B raw support rows) ∧
-            parentFG (storeAt p c E rho j v) B = some P ∧
-            blockAccepted p (storeAt p c E rho j v) s B raw support P rows = true
-        · obtain ⟨s, B, raw, support, rows, P, hdec, hparent, hacc⟩ := ha
+        by_cases ha : ∃ s N P,
+            (toWire p o).decode = some (.block s N) ∧
+            namedParentHeld (storeAt p c E rho j v) N = true ∧
+            parentFG (storeAt p c E rho j v) N.erase = some P ∧
+            blockAccepted p (storeAt p c E rho j v) s N P = true
+        · obtain ⟨s, N, P, hdec, hNamed, hparent, hacc⟩ := ha
           apply hb h hq hf hsrc i hi hh j hji ?_ hs
           rw [CleanBlockDelivery_def]
-          exact ⟨v, o, t, s, B, raw, support, rows, P, he, hdec, hparent, hacc⟩
+          exact ⟨v, o, t, s, N, P, he, hdec, hNamed, hparent, hacc⟩
         · apply hd h hq hf hsrc i hi hh j hji ?_ hs
           rw [CleanOrdinaryDelivery_def]
           refine ⟨v, o, t, he, ?_⟩
-          intro s B raw support rows P hdec hparent
-          cases hacc : blockAccepted p (storeAt p c E rho j v) s B raw support P rows with
+          intro s N P hdec hNamed hparent
+          cases hacc : blockAccepted p (storeAt p c E rho j v) s N P with
           | false => rfl
-          | true => exact (ha ⟨s, B, raw, support, rows, P, hdec, hparent, hacc⟩).elim
+          | true => exact (ha ⟨s, N, P, hdec, hNamed, hparent, hacc⟩).elim
   exact hall i (Nat.le_refl i)
 
-/-- P3 §8.2, §8.7; bp02 §5.5; lead R2(b), S2.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+P3 §8.2, §8.7; bp02 §5.5; lead R2(b), S2.
 DC counterpart: Generic/Properties.lean MonotoneFrom. This event-index
 form uses a fixed CleanHist and an explicit action step, which F2.6
 discharges before the whole-run monotonicity result.

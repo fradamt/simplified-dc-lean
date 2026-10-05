@@ -1,4 +1,6 @@
 module
+public import AvailableChainGeneric.Proofs.AC.RootBatch
+public import AvailableChainGeneric.Proofs.AC.RootSupport
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetInvariant -- shake: keep
 -- (J5 required carrier input)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetCompat -- shake: keep
@@ -17,7 +19,7 @@ The all-cut input is conditional; this file does not produce its successor. -/
 
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
-open Gen.AC
+open Gen.AC.Root
 
 variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -30,7 +32,8 @@ private theorem raw_result_tick {y : V} {j : Slot} {C : Block}
   | none => rw [hk] at hC; cases hC
   | some k => exact ⟨k, V2.D.Run.tickIdx?_spec hk⟩
 
-/-- Blueprint 21 H.16:2924–2945, H5:3318–3325; plan J5 B;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.16:2924–2945, H5:3318–3325; plan J5 B;
 B1/B13/B17/B18. DC: SAME all-cut projection of the four H5 clauses.
 Each concrete reader uses a cut past the source tick and its own read.
 The input covers every Nat cut, including cuts past rho.events.length.
@@ -66,7 +69,8 @@ theorem postReset_h5RawTransfer_body {w : HealingWitness}
     exact h.2.2.2 a x (Nat.lt_of_lt_of_le (Nat.lt_succ_self a) (le_max_right _ _))
       hx hhor ha
 
-/-- Blueprint 21 H.16:2926–2932, H.1:673–689; plan J5A shared helper.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.16:2926–2932, H.1:673–689; plan J5A shared helper.
 B1/B13/B17/B18. DC: SAME strict-majority honest supporter.
 The raw result can have low support or a vetoed guard. Its supporter
 HEAD is an actual earlier event; no release-threshold premise is used. -/
@@ -85,12 +89,20 @@ theorem healing_gate_result_supporter [Fintype V] {G ΔF : Time}
   have hhor := (hS.in_horizon _ (List.mem_of_getElem? hix)).2
   obtain ⟨seat, o, hh, ho, hs, hsup⟩ :=
     healing_slow_honest_seat E rho hrec hgst hhor hx hix hmaj
-  obtain ⟨_, _, _, _, _, hom, hol⟩ := healing_support_clean_target E rho o ho
+  obtain ⟨H, hH, hHm, _, _, hom, hol⟩ := healing_support_clean_target E rho o ho
   obtain ⟨k, hk, ht⟩ := healing_support_honest_head E rho hrec.base.valid hom hol hs hh
   refine ⟨k, _, hh, hk, ?_, ?_⟩
-  · rw [Gen.AC.voteSupports_def, ht] at hsup
+  · have hlookup : Gen.AC.Root.resolvedTarget?
+        (actView (clockPre p (storeAt p c E rho ix x)
+          (SA.gateTime p.toParams s))).blocks o = some H :=
+      actView_target_of_resolvedHead p _
+        (cstoreInv_clockPre p _ (cstoreInv_stateBefore E rho ix x) _) o hH
+    rw [Gen.AC.Root.voteSupports_def, hlookup] at hsup
+    have heq := stored_eq_headVote E rho hrec.base.idealization ix x hHm k
+      (rho.seatOf (.base (.head s)) seat) (SA.voteTime p.toParams s) s
+      (Option.some.inj ((resolvedHead_root _ o hH).symm.trans ht))
     rw [healing_headAtIdx_tick p c E rho hk]
-    exact (Bool.and_eq_true_iff.mp hsup).2
+    exact heq ▸ (Bool.and_eq_true_iff.mp hsup).2
   · apply healing_idx_lt_of_time_lt p c E rho hS hk hix
     change 4 * p.Δ * (s : Int) + p.Δ < 4 * p.Δ * (s : Int) + 6 * p.Δ
     linarith [p.deltaPos]
@@ -104,25 +116,28 @@ private theorem raw_process_obligations (st : State p.n) (o : Wire p.n) :
     cases input with
     | vote s seat b => rw [admitHead_obligations]
     | row seat body => rw [Internal.admitRow_base]
-    | block s b raw support rows =>
-      change (admitBlock p st s b raw support rows).base.obligations ⊆ st.base.obligations
+    | block s N =>
+      change (admitBlock p st s N).base.obligations ⊆ st.base.obligations
       unfold admitBlock
-      cases parentFG st b with
-      | none => exact List.Subset.refl _
-      | some P =>
-        dsimp only
-        split
-        · rw [Internal.foldl_admitRow_base]
+      split
+      · exact List.Subset.refl _
+      · cases parentFG st N.erase with
+        | none => exact List.Subset.refl _
+        | some P =>
+          dsimp only
           split
-          · intro row hm
-            rwa [admitProposal_obligations_slow] at hm
-          · intro row hm
-            rw [reconcile_obligations] at hm
-            have hold := (List.mem_filter.mp hm).1
-            rwa [admitProposal_obligations_slow] at hold
-        · exact List.Subset.refl _
+          · rw [Internal.foldl_admitRow_base]
+            split
+            · intro row hm
+              rwa [admitProposal_obligations_slow] at hm
+            · intro row hm
+              rw [reconcile_obligations] at hm
+              have hold := (List.mem_filter.mp hm).1
+              rwa [admitProposal_obligations_slow] at hold
+          · exact List.Subset.refl _
 
-/-- Blueprint 21 H.16:2933–2935; plan J5A C1, R2(c); B13/B17.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.16:2933–2935; plan J5A C1, R2(c); B13/B17.
 DC: INTENTIONAL; DC has no leases. Delivery adds no obligation at any
 node. Reconciliation can remove rows, so the conclusion is inclusion. -/
 theorem postReset_delivery_no_obligation {i : Nat} {x y : V} {o : Obj p} {t : Time}
@@ -138,7 +153,8 @@ theorem postReset_delivery_no_obligation {i : Nat} {x y : V} {o : Obj p} {t : Ti
   · simp only [V2.D.World.step, Function.update_of_ne (Ne.symm hxy)]
     exact List.Subset.refl _
 
-/-- Blueprint 21 H.16:2933–2938; plan J5A C1, P2(a)(b); B13/B17.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.16:2933–2938; plan J5A C1, P2(a)(b); B13/B17.
 DC: INTENTIONAL; DC has no leases. Expiry, release and reconciliation
 only remove rows. A write can merge a deadline only at its own target.
 The compatible write-target input is supplied by P1. -/
@@ -148,7 +164,7 @@ theorem postReset_resetLease_preserve (w : HealingWitness) (st : State p.n)
     (hB : Block.Compatible B w.CStar) :
     (∀ row ∈ (GridCO.expire st.base t).obligations, st.base.now < row.2.2 →
       Block.Compatible row.1 w.CStar) ∧
-    (∀ row ∈ (SA.release p.toParams st.base s).obligations, st.base.now < row.2.2 →
+    (∀ row ∈ (SA.Root.release p.toParams st.base s).obligations, st.base.now < row.2.2 →
       Block.Compatible row.1 w.CStar) ∧
     (∀ row ∈ (reconcile st).base.obligations, st.base.now < row.2.2 →
       Block.Compatible row.1 w.CStar) ∧
@@ -169,7 +185,8 @@ theorem postReset_resetLease_preserve (w : HealingWitness) (st : State p.n)
     · rw [List.mem_singleton.mp hnew]
       exact hB
 
-/-- Blueprint 21 H.16:2933–2938, H.12:2664–2665; plan J5A C2 base;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.16:2933–2938, H.12:2664–2665; plan J5A C2 base;
 B1/B13/B17. DC: INTENTIONAL; DC has no leases; SA reset cut.
 No stored read is both before and at or after the reset cut. The first
 successor still needs the actual reset-release removal proof. -/
@@ -184,7 +201,8 @@ private theorem raw_lift {A B : FGBlock (Fin p.n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
   eraseFG_preceq_iff.mp h
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.1:673–700, H.16:2938–2944; plan J5A A2;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.1:673–700, H.16:2938–2944; plan J5A A2;
 B1/B13/B17/B18. DC: INTENTIONAL moving frame with a direct lease input.
 A concrete raw result and receiver HEAD use their own frozen domain.
 No HighSrcN, threshold, passed gate, or PhaseInterval is required. -/
@@ -275,28 +293,31 @@ theorem healing_first_transfer_raw_domain [Fintype V] {G ΔF : Time}
       · contradiction
   -- Majority and rival dominance at the receiver (forward and reverse relay).
   have hforward : ∀ o ∈ GridCO.cleanSupport p.toParams.engine src s, ∀ seat,
-      GridCO.headSeat? o = some seat → Gen.AC.voteSupports src.blocks (eraseFG B) o = true →
+      GridCO.headSeat? o = some seat → Gen.AC.Root.voteSupports src.blocks (eraseFG B) o = true →
       (o ∈ FGSA.headSupport p dst (s + 1) ∧
-        Gen.AC.voteSupports dst.base.blocks (eraseFG B) o = true) ∨
+        Gen.AC.Root.voteSupports dst.base.blocks (eraseFG B) o = true) ∨
         GridCO.equivocates (FGSA.headVotes p dst (s + 1)) seat = true := by
     intro o' ho' seat hs' hsup'
     obtain ⟨K', hK', hKm', hKst', _, _, _⟩ := healing_support_clean_target E rho o' ho'
     have hBK' : Block.Preceq (eraseFG B) K' := by
-      rw [Gen.AC.voteSupports_def, hK'] at hsup'
+      have hlookup : Gen.AC.Root.resolvedTarget? src.blocks o' = some K' :=
+        actView_target_of_resolvedHead p _
+          (cstoreInv_clockPre p _ (cstoreInv_stateBefore E rho ix x) _) o' hK'
+      rw [Gen.AC.Root.voteSupports_def, hlookup] at hsup'
       exact (Bool.and_eq_true_iff.mp hsup').2
     obtain ⟨Kfg', hKe', hpath'⟩ := healing_support_target_path (hroots := hrec.base.idealization)
       E rho hE hN hDelta s hSync
       hx hy hiy K' hKm' hKst' (Gen.Pure.block_preceq_trans hFB' hBK')
     exact fgsa_cleanSupport_forward_relay E rho hE hN hDelta s hSync hx hy hix hiy o' ho'
       seat hs' Kfg' (hKe' ▸ hK') (eraseFG B) (hKe' ▸ hBK') hpath' hFB'
-  have htr := Gen.AC.transfer src.blocks dst.base.blocks
+  have htr := Gen.AC.Root.transfer src.blocks dst.base.blocks
     (GridCO.cleanSupport p.toParams.engine src s) (GridCO.lateVotes p.toParams.engine src s)
     (FGSA.headVotes p dst (s + 1)) (FGSA.headSupport p dst (s + 1)) (eraseFG B)
     (fun _ ho' => fgsa_early_subset_late p src s (List.mem_filter.mp ho').1)
     (fgsa_cleanSupport_seat_clean_late p src s) hforward
     (fgsa_headVotes_backward_relay E rho hE hN hDelta s hSync hx hy hix hiy)
     (fgsa_headSupport_subset_headVotes E rho hE iy y s) hmaj
-  rw [Gen.AC.TransferBounds_def] at htr
+  rw [Gen.AC.Root.TransferBounds_def] at htr
   rw [healing_headAtIdx_tick p c E rho hiy]
   exact fgsa_headVote_covers_of_transfer p dst s (eraseFG B) hanchor hpath
     htr.2.2.2.2.2.1 htr.2.2.2.2.2.2
@@ -319,16 +340,18 @@ private theorem raw_result_sync [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p
   have hmaj' : GridCO.voterCount (GridCO.lateVotes p.toParams.engine src s) <
       2 * GridCO.goldfishScore src.blocks supp supp C := hmaj
   have hpos : 0 < GridCO.goldfishScore src.blocks supp supp C := by omega
-  rw [Gen.AC.vote_pool_score_card] at hpos
+  rw [Gen.AC.Root.vote_pool_score_card] at hpos
   obtain ⟨seat, hseat⟩ := Finset.card_pos.mp hpos
   have hsup := (Finset.mem_filter.mp hseat).2
   have hclean : GridCO.equivocates supp seat = false :=
     fgsa_cleanSupport_no_equivocation p src s seat
   rw [hclean, Bool.false_or] at hsup
-  obtain ⟨o, ho, _, hvs⟩ := (Gen.AC.vote_pool_support_witness src.blocks supp seat C).mp hsup
+  obtain ⟨o, ho, _, hvs⟩ := (Gen.AC.Root.vote_pool_support_witness src.blocks supp seat C).mp hsup
   obtain ⟨K, hK, hKm, _, _, _, _⟩ := healing_support_clean_target E rho o ho
   have hCK : Block.Preceq C K := by
-    rw [Gen.AC.voteSupports_def, hK] at hvs
+    have hlookup : Gen.AC.Root.resolvedTarget? src.blocks o = some K :=
+      actView_target_of_resolvedHead p pre hinv o hK
+    rw [Gen.AC.Root.voteSupports_def, hlookup] at hvs
     exact (Bool.and_eq_true_iff.mp hvs).2
   have hKpre : K ∈ pre.base.blocks := by
     change K ∈ (clockPre p (storeAt p c E rho ix x) _).base.blocks
@@ -375,7 +398,8 @@ private theorem raw_result_sync [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p
   rw [hgv] at hafter
   linarith [h0r.cut_lower]
 
-/-- Blueprint 21 H.15:2893–2900; plan J5A shared slow-window helper;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.15:2893–2900; plan J5A shared slow-window helper;
 B1/B13/B17/B18. DC: INTENTIONAL reset frontier and SA saved results.
 Each actual saved result covering a reset extension has its own
 synchronous label. No earliest-window synchrony premise is required. -/
@@ -427,7 +451,8 @@ variable [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
 
 include hrec emittedNonempty emittedName
 
-/-- Blueprint 21 H.16:2930–2932; plan J5A A1(b) and P1;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.16:2930–2932; plan J5A A1(b) and P1;
 B1/B13/B17/B18. DC: SAME compatibility in a concrete honest HEAD.
 At the reset label use IF.6. At a later label use the reset result's
 HEAD clause at cut i and the raw result's earlier honest supporter.
@@ -462,7 +487,8 @@ theorem postReset_raw_reset_compatible {w : HealingWitness}
     have hSync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _
       hrec.sync (fgsaDelay_nonrow E.Δ _) hgst hvd hhor
     exact Gen.Pure.block_compatible_of_preceq_compatible hresetG
-      (fgsa_sameLabel p c E rho hrec.base.valid hrec.base.noRestart hrec.base.delta
+      (fgsa_sameLabel (hroots := hrec.base.idealization) p c E rho hrec.base.valid
+          hrec.base.noRestart hrec.base.delta
         w.sStar hSync y0 x G0 C ha.1 hx hG0 hres')
   · obtain ⟨k0, hk0⟩ := raw_result_tick p c E rho hG0
     have ht : SA.gateTime p.toParams w.sStar < SA.gateTime p.toParams s := by
@@ -484,7 +510,8 @@ theorem postReset_raw_reset_compatible {w : HealingWitness}
       (raw_head_read p c E rho hs hkh)
     exact Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_trans hresetG hG0H) hCH
 
-/-- Blueprint 21 H.16:2933–2938; plan J5A P1; B1/B13/B17/B18.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.16:2933–2938; plan J5A P1; B1/B13/B17/B18.
 DC: INTENTIONAL; DC has no leases. A post-reset passing gate can write
 only targets compatible with CStar. Only raw_transfer at cut i is used.
 The writing event can be i; raw_transfer at i+1 is not an input. -/
@@ -494,7 +521,7 @@ theorem postReset_noRewrite {w : HealingWitness} (h0r : H0Reset p c E rho w)
     (hlabel : w.sStar ≤ s) (hix : IsGateTick p c rho ix x s)
     (_hpass : gatePassedAt p c E rho ix)
     (hres : gateResultAt p c E rho ix = some (some C)) (hcut : ix ≤ i)
-    (hkey : (B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+    (hkey : (B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
       (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s C) :
     Block.Compatible B w.CStar := by
   have hcomp := postReset_raw_reset_compatible p c E rho hrec emittedNonempty emittedName
@@ -523,7 +550,8 @@ private theorem raw_tick_cut (hs : V2.D.ScheduleWellFormed E rho)
 private theorem raw_F_read (b : Nat) (y : V) :
     F_at p c E rho b y = eraseFG (storeAt p c E rho b y).fg.F := by rfl
 
-/-- Blueprint 21 H.2:721–734, H.16:2940–2944; plan J5A A4;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.2:721–734, H.16:2940–2944; plan J5A A4;
 B1/B13/B17/B18. DC: INTENTIONAL moving finality and SA leases.
 For any block covered by the preceding HEAD batches, the next gate
 establishes output coverage. Event induction preserves it on HealSuffix.
@@ -658,7 +686,7 @@ theorem healing_output_moving_suffix [Fintype V] {G ΔF : Time}
     · obtain ⟨_, _, _, _, _, _, hout⟩ := hrc
       rw [S_at_def]
       change Block.Preceq B ((fgsaAC E rho).output (b + 1) y)
-      rw [hout, normalizeOutput_def]
+      rw [hout, Gen.AC.normalizeOutput_def]
       have ha : Block.preceq ((fgsaAC E rho).anchor (b + 1) y)
           ((fgsaAC E rho).output b y) = true := Gen.Pure.block_preceq_trans hFB hIH
       simp only [ha]
@@ -669,7 +697,7 @@ private theorem raw_clock_compatible (w : HealingWitness) (st : State p.n) (t : 
     (hold : ∀ row ∈ st.base.obligations, st.base.now < row.2.2 →
       Block.Compatible row.1 w.CStar) (hnow : st.base.now ≤ t)
     (hresult : ∀ s C, t = SA.gateTime p.toParams s →
-      SA.confirmationFrom p.toParams
+      SA.Root.confirmationFrom p.toParams
         (eraseFG (clockPre p st t).fg.F) (actView (clockPre p st t)) s = some C →
       Block.Compatible C w.CStar) :
     ∀ row ∈ (FGSA.clock p st t).base.obligations, Block.Compatible row.1 w.CStar := by
@@ -694,22 +722,22 @@ private theorem raw_clock_compatible (w : HealingWitness) (st : State p.n) (t : 
       exact hpre row hm
     | none =>
       have he : (gateStep p pre s).base.obligations =
-          (SA.gateFrom p.toParams (eraseFG pre.fg.F) (actView pre) s).obligations := by
+          (SA.Root.gateFrom p.toParams (eraseFG pre.fg.F) (actView pre) s).obligations := by
         unfold gateStep
         rw [normalizeS_fields]
         simp only [hsaved, Option.isSome_none, Bool.false_eq_true, ite_false]
         rfl
       rw [he] at hm
-      cases hc : SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) s with
+      cases hc : SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) s with
       | none =>
-        unfold SA.gateFrom GridCO.gateFrom at hm
+        unfold SA.Root.gateFrom GridCO.gateFrom at hm
         rw [show GridCO.confirmationFrom p.toParams.engine
           (eraseFG pre.fg.F) (actView pre) s = none from hc] at hm
         exact hpre row hm
       | some C =>
         cases hg : (actView pre).obligations.any (fun r => !Block.compatible r.1 C) with
         | true =>
-          unfold SA.gateFrom GridCO.gateFrom at hm
+          unfold SA.Root.gateFrom GridCO.gateFrom at hm
           rw [show GridCO.confirmationFrom p.toParams.engine
             (eraseFG pre.fg.F) (actView pre) s = some C from hc] at hm
           dsimp only at hm
@@ -738,7 +766,8 @@ variable [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
 
 include hrec emittedNonempty emittedName xing cap source
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.12:2664–2665, H.16:2933–2935; plan J5A P0;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.12:2664–2665, H.16:2933–2935; plan J5A P0;
 B1/B13/B17/B18. DC: INTENTIONAL; DC has no leases; SA fast reset release.
 The reset fast support removes every conflict at each node's own tick.
 Assembly supplies the source decoders, fgsa_rXing, fgsa_rCap_channel
@@ -797,7 +826,8 @@ theorem postReset_resetLease_at_reset {w : HealingWitness} (h0r : H0Reset p c E 
   rw [hstore, hqv]
   exact hrows
 
-/-- Blueprint 21 H.16:2933–2938; plan J5A C2, R3; B1/B13/B17/B18.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.16:2933–2938; plan J5A C2, R3; B1/B13/B17/B18.
 DC: INTENTIONAL; DC has no leases; SA event preservation.
 The new stored instance j=i is proved first. It uses only cut-i raw
 transfer, past reset leases, reset release and the preceding event's
@@ -872,7 +902,7 @@ theorem postReset_resetLease_succ {w : HealingWitness} (h0r : H0Reset p c E rho 
               positivity
             have hnow := (fgsa_preTick_now_lt E rho hs he (hqpos.trans_le hqt)).le
             have hresult : ∀ s C, t = SA.gateTime p.toParams s →
-                SA.confirmationFrom p.toParams
+                SA.Root.confirmationFrom p.toParams
                   (eraseFG (clockPre p (storeAt p c E rho m x) t).fg.F)
                   (actView (clockPre p (storeAt p c E rho m x) t)) s = some C →
                 Block.Compatible C w.CStar := by
@@ -950,9 +980,10 @@ private theorem raw_cut_time (hs : V2.D.ScheduleWellFormed E rho)
   · exact h.le
   · exact h.le
 
-private theorem raw_key_admission {v : GridCO.State p.n} {s : Slot} {C B : Block} {g : Nat}
-    (hkey : (B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n v s C) :
-    g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.toParams.engine p.n v s B := by
+private theorem raw_key_admission {v : GridCO.State p.n .root} {s : Slot} {C B : Block} {g : Nat}
+    (hkey : (B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n v
+        s C) :
+    g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.toParams.engine p.n .root v s B := by
   rw [@GridCO.gateWriteKeys_def GridCO.slowLeasePolicy] at hkey
   obtain ⟨b, _, hm⟩ := List.mem_flatMap.mp hkey
   obtain ⟨g', hg', he⟩ := List.mem_map.mp hm
@@ -973,21 +1004,23 @@ variable [Fintype V] {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
 
 include hrec emittedNonempty emittedName writes
 
-/-- Blueprint 21 H.16:2930–2938; plan J5A A1; B1/B13/B17/B18.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.16:2930–2938; plan J5A A1; B1/B13/B17/B18.
 DC: INTENTIONAL; DC has no leases. Classify each live release lease.
 C0 at i+1 excludes reset conflicts. Prefixes of CStar use reset/raw
 compatibility at i. Strict extensions use lease_safe at i+1 in the
@@ -1066,7 +1099,8 @@ theorem postReset_raw_release_compatible {w : HealingWitness} (h0r : H0Reset p c
   exact Gen.Pure.block_compatible_of_common hBHead hCH
 
 
-/-- Blueprint 21 H.16:2933–2944, H.2:736–746; plan J5-A-3 R5;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.16:2933–2944, H.2:736–746; plan J5-A-3 R5;
 B1/B13/B17/B18. DC: SAME lease guard for an actual raw result.
 The reader is after the reset release. Strict extensions of CStar and
 C share an honest HEAD in the complete preceding batch. -/
@@ -1171,23 +1205,18 @@ private theorem raw_idx_mono : Monotone (V2.D.Run.idxBefore rho) := by
     (lt_of_lt_of_le (of_decide_eq_true he) hab))
 
 omit [DecidableEq V] in
-private theorem raw_block_decode {o : Obj p} {b : Block}
-    (h : blockOf? p o = some b) :
-    ∃ u raw sup rows, o = ofWire p ⟨.proposer u, .proposal b raw sup rows⟩ := by
-  have hd : ∃ u raw sup rows, (toWire p o).decode = some (.block u b raw sup rows) := by
-    change (match (toWire p o).decode with
-      | some (.block _ b _ _ _) => some b | _ => none) = _ at h
-    cases hd : (toWire p o).decode with
-    | none => rw [hd] at h; contradiction
-    | some m =>
-      cases m <;> simp only [hd, reduceCtorEq, Option.some.injEq] at h
-      subst b
-      exact ⟨_, _, _, _, rfl⟩
-  obtain ⟨u, raw, sup, rows, hd⟩ := hd
-  refine ⟨u, raw, sup, rows, ?_⟩
-  apply toWire_injective
-  rw [toWire_ofWire]
-  exact decode_eq_block.mp hd
+private theorem raw_block_decode {o : Obj p} {b : Block} (h : blockOf? p o = some b) :
+    ∃ u N, o = ofWire p ⟨.proposer u, .proposal N⟩ ∧ N.erase = b := by
+  unfold blockOf? at h
+  cases hd : (toWire p o).decode with
+  | none => simp only [hd, reduceCtorEq] at h
+  | some m =>
+    cases m <;> simp only [hd, reduceCtorEq, Option.some.injEq] at h
+    rename_i u N
+    refine ⟨u, N, ?_, h⟩
+    apply toWire_injective (p := p)
+    rw [toWire_ofWire]
+    exact decode_eq_block.mp hd
 
 
 private theorem raw_receipt_proposal
@@ -1234,7 +1263,7 @@ private theorem raw_receipt_proposal
     positivity
   obtain ⟨j, _, t, o, ho, ha, ht⟩ :=
     fgsa_block_accepted_before E rho hsch ix x K _ hg hpub hz hK hstamp
-  obtain ⟨u, raw, sup, rows, rfl⟩ := raw_block_decode p ho
+  obtain ⟨u, N, rfl, heN⟩ := raw_block_decode p ho
   obtain ⟨dl, cut, hD, _, hlt, hb, _, hcut, _⟩ := hSync
   have hdz : dl t < D := by
     have hb := hb t
@@ -1261,18 +1290,17 @@ private theorem raw_receipt_proposal
     rw [Gen.V2.Duty.MonoAlong_def] at h
     exact V2.D.Engine.stateBefore_stable _ h.1 h.2.1 h.2.2 E rho hidx y
       (hN.restartFree y _ iy) (KitFG.preceq_refl _)
-  obtain ⟨Y, hY, hYK⟩ := fgsa_proposal_receipt (hRoots := hroots) E rho hDelta hE hN dl cut u K
-    raw sup rows t y
+  obtain ⟨Y, hY, hYK⟩ := fgsa_proposal_receipt (hRoots := hroots) E rho hDelta hE hN dl cut u N t y
     hD (Or.inr ⟨x, hx, j, ha⟩) hy hdcut (hlt t)
-    (Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl K) hFd)
-  refine ⟨Y, hYK, ?_⟩
+    (by simpa only [heN] using
+      Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl K) hFd)
+  refine ⟨Y, hYK.trans heN, ?_⟩
   have hc := (fgsa_store_cumulative p c E rho hN (raw_idx_mono p c rho (le_of_lt hdz)) y).1
   change (V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho (dl t)) y).st.fg.TF ⊆
     (V2.D.Run.stateBefore E rho (V2.D.Run.idxBefore rho D) y).st.fg.TF at hc
   rw [Gen.V2.Duty.stateBefore_idxBefore E rho (dl t) hsch,
     Gen.V2.Duty.stateBefore_idxBefore E rho D hsch] at hc
   exact hc hY
-
 
 private theorem raw_proposal_seat [Fintype V] {G ΔF : Time}
     (hrec : Recovery₂ p c E rho G ΔF)
@@ -1282,7 +1310,7 @@ private theorem raw_proposal_seat [Fintype V] {G ΔF : Time}
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (r + 1))))
     (hFB : Block.Preceq (eraseFG (storeAt p c E rho ip x).fg.F) B)
     (k : Fin p.n) (hk : rho.seatOf (.base (.head r)) k ∈ rho.honest) :
-    Gen.AC.poolSupports (FGSA.clock p (storeAt p c E rho ip x)
+    Gen.AC.Root.poolSupports (FGSA.clock p (storeAt p c E rho ip x)
         (SA.proposalTime p.toParams (r + 1))).base.blocks
       (FGSA.proposerSupport (FGSA.clock p (storeAt p c E rho ip x)
         (SA.proposalTime p.toParams (r + 1))) (r + 1)) k B = true ∧
@@ -1382,9 +1410,9 @@ private theorem raw_proposal_seat [Fintype V] {G ΔF : Time}
   have hcut : dl (SA.voteTime p.toParams r) ≤ cut := by
     refine hdle.trans (le_trans ?_ hdcut)
     rw [hDelta]
-  obtain ⟨hom, _⟩ := fgsa_honest_head_receipt E rho hDelta hE hN hrec.base.cstar dl cut r k K
+  obtain ⟨hom, _⟩ := fgsa_honest_head_receipt E rho hDelta hE hN hrec.base.cstar dl cut r k K.root
     (SA.voteTime p.toParams r) z x hD hk hem hx hcut (hlt _) hwindow
-  let o := baseVote (⟨.seat (.head r) k, K⟩ : HeadWire p.n)
+  let o := baseVote (⟨.seat (.head r) k, K.root⟩ : HeadWire p.n)
   have hidx : V2.D.Run.idxBefore rho (dl (SA.voteTime p.toParams r)) ≤ ip :=
     healing_support_idxBefore_le p c E rho hS hip (hdle.trans hvp)
   have hom' : o ∈ (storeAt p c E rho (V2.D.Run.idxBefore rho
@@ -1401,7 +1429,10 @@ private theorem raw_proposal_seat [Fintype V] {G ΔF : Time}
       (Gen.Pure.block_preceq_trans hFB hBK)
   have hol : GridCO.headLabel? o = some r := rfl
   have hok : GridCO.headSeat? o = some k := rfl
-  have hoK : GridCO.headTarget? o = some K := rfl
+  have hoK : GridCO.headTarget? o = some K.root := rfl
+  have hresolve := actView_resolve_target p st hinv
+    (base_headDomain_none p (Reachable.tick _ (reachable_stateBefore E rho ip x)))
+    o ((actView_blocks st K).mpr ⟨hKb, hFK⟩) hoK
   have hvotes : o ∈ FGSA.proposerVotes st (r + 1) := by
     change o ∈ GridCO.votesAt st.base (r + 1 - 1)
     exact List.mem_filter.mpr ⟨hod, by
@@ -1409,20 +1440,21 @@ private theorem raw_proposal_seat [Fintype V] {G ΔF : Time}
   have hsupp : o ∈ FGSA.proposerSupport st (r + 1) := by
     apply List.mem_filter.mpr
     refine ⟨hvotes, ?_⟩
-    rw [hoK]
-    simp only [Bool.and_eq_true, decide_eq_true_eq, GridCO.blockKnown, Nat.add_sub_cancel]
-    exact ⟨(actView_blocks st K).mpr ⟨hKb, hFK⟩, hKslot⟩
-  have hvs : Gen.AC.voteSupports st.base.blocks B o = true := by
-    rw [Gen.AC.voteSupports_def, hoK]
-    simp only [Bool.and_eq_true, decide_eq_true_eq, hol, Option.getD_some]
-    exact ⟨⟨hKb, hKslot⟩, hBK⟩
-  refine ⟨(Gen.AC.vote_pool_support_witness _ _ k B).mpr ⟨o, hsupp, hok, hvs⟩, ?_⟩
+    change (match GridCO.resolvedHead? (actView st) o with
+      | some H => decide (H.slot ≤ r + 1 - 1) | none => false) = true
+    rw [hresolve]
+    exact decide_eq_true (by simpa only [Nat.add_sub_cancel] using hKslot)
+  have hvs : Gen.AC.Root.voteSupports st.base.blocks B o = true := by
+    exact (Gen.AC.Root.vote_support_body _ _ _).mpr
+      ⟨K, resolvedTarget_of_mem _ (baseBlocks_rootInj p st hinv) o hKb hoK,
+        hKb, by simpa only [hol, Option.getD_some] using hKslot, hBK⟩
+  refine ⟨(Gen.AC.Root.vote_pool_support_witness _ _ k B).mpr ⟨o, hsupp, hok, hvs⟩, ?_⟩
   -- Every stored label-r vote of the honest seat is its emitted HEAD.
   have hall : ∀ w ∈ GridCO.votesAt (storeAt p c E rho ip x).base r,
       GridCO.headSeat? w = some k → w = o := by
     intro w hw hwk
     obtain ⟨hwm, hwl⟩ := List.mem_filter.mp hw
-    exact fgsa_honest_head_eq_of_stored E rho hE ip x r k K _ hk hem w hwm
+    exact fgsa_honest_head_eq_of_stored E rho hE ip x r k K.root _ hk hem w hwm
       (by simpa only [beq_iff_eq] using hwl) hwk
   have hvat : FGSA.proposerVotes st (r + 1) = GridCO.votesAt (storeAt p c E rho ip x).base r := by
     change GridCO.votesAt st.base (r + 1 - 1) = _
@@ -1436,8 +1468,8 @@ private theorem raw_proposal_seat [Fintype V] {G ΔF : Time}
     obtain ⟨a, ha, b, hb, hne, hka, hkb⟩ := (cap_pair _ k).mp he
     exact absurd ((hall a ha hka).trans (hall b hb hkb).symm) hne
 
-
-/-- Blueprint 21 H.2:736–745, H.16:2940–2944; plan J5A A3;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.2:736–745, H.16:2940–2944; plan J5A A3;
 B1/B13/B17/B18. DC: INTENTIONAL moving full-tree proposal domain.
 A general block in this read's domain uses the preceding honest HEAD
 batch, direct lease compatibility, and per-block receipt. No fixed
@@ -1580,11 +1612,11 @@ private theorem raw_proposal_read (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
   cases m with
   | head _ => cases hb
   | row _ => cases hb
-  | proposal b raw sup rows =>
-    have he : b = Q := Option.some.inj hb
-    subst b
+  | proposal N =>
+    have he : N.erase = Q := Option.some.inj hb
+    subst Q
     rw [(V2.D.Run.step_tick_eq E rho hj).2] at hem
-    change (⟨auth, .proposal Q raw sup rows⟩ : Obj p) ∈
+    change (⟨auth, .proposal N⟩ : Obj p) ∈
       (if E.awake _ (SA.proposalTime p.toParams s) then
         (duties p (SA.proposalTime p.toParams s)).flatMap (fun d =>
           (rho.ownSeats (RunDuty.signLabel d) _).filterMap (fun i =>
@@ -1596,12 +1628,12 @@ private theorem raw_proposal_read (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
       obtain ⟨d, hd, hem⟩ := List.mem_flatMap.mp hem
       obtain ⟨i, _, hm⟩ := List.mem_filterMap.mp hem
       obtain ⟨m, hm, ho⟩ := Option.map_eq_some_iff.mp hm
-      have he : m = .proposal Q raw sup rows := congrArg V2.Signed.payload ho
+      have he : m = .proposal N := congrArg V2.Signed.payload ho
       subst m
       cases d with
       | headAction _ => cases hm
       | fgAction _ =>
-        change (attest p _ _ _).1.map Msg.row = some (.proposal Q raw sup rows) at hm
+        change (attest p _ _ _).1.map Msg.row = some (.proposal N) at hm
         obtain ⟨_, _, he⟩ := Option.map_eq_some_iff.mp hm
         cases he
       | propAction s' =>
@@ -1612,11 +1644,12 @@ private theorem raw_proposal_read (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
           have he : (s' : Int) = s := by nlinarith
           exact_mod_cast he
         subst s'
-        exact (fgsa_walkRun_proposal_parent p _ s _ Q raw sup rows hm).2.2
+        exact (fgsa_walkRun_proposal_parent p _ s _ N hm).2.2
     · exact (List.not_mem_nil hem).elim
 
 
-/-- Blueprint 21 H.2:736–745, H.16:2940–2944; plan J5A A3;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.2:736–745, H.16:2940–2944; plan J5A A3;
 B1/B13/B17/B18. DC: INTENTIONAL moving-frame parent consumer.
 A concrete honest proposal uses its own domain and live lease read,
 and the preceding HEAD batch. The block can be any transferred prefix. -/
@@ -1647,7 +1680,8 @@ theorem healing_proposal_moving_parent [Fintype V] {G ΔF : Time}
   exact healing_proposal_moving_domain p c E rho hrec hgst hcover hp.1.2 hip hX hXc hD
     (hlease ip hip)
 
-/-- Blueprint 21 H.16:2933–2938; plan J5A C0; lead step-range hint,
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.16:2933–2938; plan J5A C0; lead step-range hint,
 2026-10-03 20:05. DC: INTENTIONAL; DC has no leases; empty SA prefix.
 The joint induction can start at zero without an after-reset premise. -/
 theorem postReset_resetLease_zero {w : HealingWitness} (_h0r : H0Reset p c E rho w) :
@@ -1656,7 +1690,8 @@ theorem postReset_resetLease_zero {w : HealingWitness} (_h0r : H0Reset p c E rho
   intro j hj
   exact False.elim (Nat.not_lt_zero j hj)
 
-/-- Blueprint 21 H.16:2926–2938; plan J5A A5 before-reset case;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.16:2926–2938; plan J5A A5 before-reset case;
 lead step-range hint, 2026-10-03 20:05; B1/B17.
 DC: SAME a post-reset source gate is strictly after reset release.
 No concrete source gate can precede a cut at or before that release. -/
@@ -1674,7 +1709,8 @@ theorem postReset_rawTransfer_before_reset
     (preIdx_le_afterTicksIdx E rho hs _).2.trans (raw_timeIdx_le p c E rho hs hgate ht)
   exact False.elim (Nat.not_lt_of_ge (hbefore.trans hcut) hk)
 
-/-- Blueprint 21 H.16:2933–2938; lead joint step type, 2026-10-03 20:33.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.16:2933–2938; lead joint step type, 2026-10-03 20:33.
 DC: INTENTIONAL; DC has no leases; SA reset-lease step.
 The third conjunct is exactly the prior opening-domain body owned by
 J6-3. It is written inline because its real definition is not on this

@@ -1,4 +1,6 @@
 module
+public import AvailableChainGeneric.Proofs.AC.RootBatch
+public import AvailableChainGeneric.Proofs.AC.RootSupport
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetLease -- shake: keep
 -- (J4-A required input)
 public import AvailableChainFGSAProofs.Proofs.Healing.PostResetKeep -- shake: keep
@@ -46,7 +48,8 @@ private theorem written_walk_extends (anchor : Block) (tree : List Block)
     have he := Gen.Pure.block_preceq_antisymm hpre hAF
     simp only [he, decide_true, Bool.not_true, Bool.false_eq_true] at hne
 
-/-- Blueprint 21 H.15:2894–2900; plan J4-A A1 synchrony;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.15:2894–2900; plan J4-A A1 synchrony;
 B1/B13/B17/B18. DC: SAME causal frontier cut. A stored prefix above C*
 cannot be held at u₀. Its gate is after u₀, so its HEAD label is after GST.
 This uses the actual stored prefix, without an emitted-source premise. -/
@@ -87,7 +90,8 @@ theorem postReset_written_sync [Fintype V] {G ΔF : Time}
   change E.t_GST < 4 * p.Δ * (s : Int) + p.Δ
   linarith [p.deltaPos]
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.15:2902–2914, H.1:673–699; plan J4-A A1;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.15:2902–2914, H.1:673–699; plan J4-A A1;
 B1/B13/B17/B18. DC: SAME count and relay with a kept domain path.
 The fast arm uses release. The slow arm uses the last-write window.
 Assembly supplies fgsa_rMono and fgsa_leaseOrigins_lastWrite. The domain
@@ -98,23 +102,24 @@ theorem healing_first_transfer_written [Fintype V] {G ΔF : Time}
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     {ix : Nat} {x : V} {s : Slot} {C : Block} (hx : x ∈ rho.honest)
     (hix : IsGateTick p c rho ix x s)
     (hres : gateResultAt p c E rho ix = some (some C))
     {B : FGBlock (Fin p.n)} (hBC : Block.Preceq (eraseFG B) C)
     (hgst : E.t_GST ≤ SA.voteTime p.toParams s)
-    (harm : SA.releaseThreshold p.toParams ≤ SA.prefixSupport p.toParams
+    (harm : SA.releaseThreshold p.toParams ≤ SA.Root.prefixSupport p.toParams
         (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s
         (eraseFG B) ∨
       (E.t_GST ≤ SA.voteTime p.toParams (s + 1 - p.k) ∧
@@ -209,28 +214,31 @@ theorem healing_first_transfer_written [Fintype V] {G ΔF : Time}
       · contradiction
   -- Majority and rival dominance at the receiver (forward and reverse relay).
   have hforward : ∀ o ∈ GridCO.cleanSupport p.toParams.engine src s, ∀ seat,
-      GridCO.headSeat? o = some seat → Gen.AC.voteSupports src.blocks (eraseFG B) o = true →
+      GridCO.headSeat? o = some seat → Gen.AC.Root.voteSupports src.blocks (eraseFG B) o = true →
       (o ∈ FGSA.headSupport p dst (s + 1) ∧
-        Gen.AC.voteSupports dst.base.blocks (eraseFG B) o = true) ∨
+        Gen.AC.Root.voteSupports dst.base.blocks (eraseFG B) o = true) ∨
         GridCO.equivocates (FGSA.headVotes p dst (s + 1)) seat = true := by
     intro o' ho' seat hs' hsup'
     obtain ⟨K', hK', hKm', hKst', _, _, _⟩ := healing_support_clean_target E rho o' ho'
     have hBK' : Block.Preceq (eraseFG B) K' := by
-      rw [Gen.AC.voteSupports_def, hK'] at hsup'
+      have hlookup : Gen.AC.Root.resolvedTarget? src.blocks o' = some K' :=
+        actView_target_of_resolvedHead p _
+          (cstoreInv_clockPre p _ (cstoreInv_stateBefore E rho ix x) _) o' hK'
+      rw [Gen.AC.Root.voteSupports_def, hlookup] at hsup'
       exact (Bool.and_eq_true_iff.mp hsup').2
     obtain ⟨Kfg', hKe', hpath'⟩ := healing_support_target_path (hroots := hrec.base.idealization)
       E rho hE hN hDelta s hSync
       hx hy hiy K' hKm' hKst' (Gen.Pure.block_preceq_trans hFB' hBK')
     exact fgsa_cleanSupport_forward_relay E rho hE hN hDelta s hSync hx hy hix hiy o' ho'
       seat hs' Kfg' (hKe' ▸ hK') (eraseFG B) (hKe' ▸ hBK') hpath' hFB'
-  have htr := Gen.AC.transfer src.blocks dst.base.blocks
+  have htr := Gen.AC.Root.transfer src.blocks dst.base.blocks
     (GridCO.cleanSupport p.toParams.engine src s) (GridCO.lateVotes p.toParams.engine src s)
     (FGSA.headVotes p dst (s + 1)) (FGSA.headSupport p dst (s + 1)) (eraseFG B)
     (fun _ ho' => fgsa_early_subset_late p src s (List.mem_filter.mp ho').1)
     (fgsa_cleanSupport_seat_clean_late p src s) hforward
     (fgsa_headVotes_backward_relay E rho hE hN hDelta s hSync hx hy hix hiy)
     (fgsa_headSupport_subset_headVotes E rho hE iy y s) hmaj
-  rw [Gen.AC.TransferBounds_def] at htr
+  rw [Gen.AC.Root.TransferBounds_def] at htr
   rw [healing_headAtIdx_tick p c E rho hiy]
   exact fgsa_headVote_covers_of_transfer p dst s (eraseFG B) hanchor hpath
     htr.2.2.2.2.2.1 htr.2.2.2.2.2.2
@@ -251,16 +259,17 @@ variable [Fintype V] {G ΔF : Time}
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
     {w : HealingWitness} (h0r : H0Reset p c E rho w)
@@ -282,7 +291,8 @@ private theorem written_source_label {iy : Nat} {y : V} {s : Slot}
     nlinarith [p.deltaPos]
   exact_mod_cast hrs
 
-/-- Blueprint 21 H.15:2908–2914; plan J4-A2 route steps 1–7;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.15:2908–2914; plan J4-A2 route steps 1–7;
 B1/B13/B17/B18. DC: SAME common honest HEAD from emitted-source no-loss.
 The written prefix needs no emitted row. The shared supporter producer is
 J5-A healing_gate_result_supporter, with its exact statement. Synchrony
@@ -335,7 +345,8 @@ private theorem written_source_mono {j i : Nat} {K : FGBlock (Fin p.n)} {r : Slo
   obtain ⟨a, z, q, row, haj, hrow, hsrc, he⟩ := h
   exact ⟨a, z, q, row, haj.trans_le hji, hrow, hsrc, he⟩
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.15:2904–2914; plan J4-A2, frozen domain;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.15:2904–2914; plan J4-A2, frozen domain;
 B1/B13/B17/B18. DC: INTENTIONAL moving-frame descent at the first HEAD.
 The root and finality coverage cases are excluded by the branch guards.
 The proof supplies receipt and restricted view coverage, then excludes
@@ -396,7 +407,12 @@ theorem postReset_written_domain
   obtain ⟨-, o, -, ho, -, hsup⟩ := healing_slow_honest_seat E rho hrec hgst.le hhor hx hix hmaj
   obtain ⟨K, hKt, hKm, hstamp, -, -, -⟩ := healing_support_clean_target E rho o ho
   have hBKt : Block.Preceq (eraseFG B) K := by
-    rw [Gen.AC.voteSupports_def, hKt] at hsup
+    have hlookup : Gen.AC.Root.resolvedTarget?
+        (actView (clockPre p (storeAt p c E rho ix x)
+          (SA.gateTime p.toParams s))).blocks o = some K :=
+      actView_target_of_resolvedHead p _
+        (cstoreInv_clockPre p _ (cstoreInv_stateBefore E rho ix x) _) o hKt
+    rw [Gen.AC.Root.voteSupports_def, hlookup] at hsup
     exact (Bool.and_eq_true_iff.mp hsup).2
   have hvh := (hs.in_horizon _ (List.mem_of_getElem? hiy)).2
   have hvu : SA.voteTime p.toParams s + E.Δ ≤ SA.voteTime p.toParams (s + 1) := by
@@ -521,7 +537,8 @@ private theorem written_frozen_geometry
     (cstoreInv_stateBefore E rho _ y).fg.closed hW (eraseFG_preceq hAW)
   exact (eraseFG_injective heA') ▸ hA'
 
-/-- Blueprint 21 H.15:2902–2914, H.1:663–708; plan J4-A3;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.15:2902–2914, H.1:663–708; plan J4-A3;
 B1/B13/B17/B18. DC: SAME first common HEAD for an actual written prefix.
 A2 supplies the frozen domain; root and finality coverage are direct.
 The actual key supplies the fast or slow arm. J5-A's exact named
@@ -533,8 +550,8 @@ theorem postReset_written_first_head
     (hx : x ∈ rho.honest) (hix : IsGateTick p c rho ix x s) (hxi : ix ≤ i)
     (hres : gateResultAt p c E rho ix = some (some C))
     (hCB : Block.Preceq w.CStar (eraseFG B))
-    (hkey : (eraseFG B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy
-      p.toParams.engine p.n
+    (hkey : (eraseFG B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+        p.toParams.engine p.n
       (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s C)
     {iy : Nat} {y : V} (hy : y ∈ rho.honest)
     (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1)))) :
@@ -554,7 +571,7 @@ theorem postReset_written_first_head
     writes xing origin h0r hinv hx hix hres hCB hmem hBC hy hiy
     (hyx.le.trans hxi) hZ hF
   have hgst := postReset_written_sync p c E rho hrec h0r hx hix hCB hmem
-  have harm : SA.releaseThreshold p.toParams ≤ SA.prefixSupport p.toParams
+  have harm : SA.releaseThreshold p.toParams ≤ SA.Root.prefixSupport p.toParams
       (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s
       (eraseFG B) ∨
     (E.t_GST ≤ SA.voteTime p.toParams (s + 1 - p.k) ∧
@@ -566,7 +583,8 @@ theorem postReset_written_first_head
   exact healing_first_transfer_written p c E rho hrec mono writes hx hix hres hBC
     hgst.le harm hy hiy hXv hXc hD
 
-/-- Blueprint 21 H.15 S1:2902–2914; plan J4-A3; B1/B13/B17/B18.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.15 S1:2902–2914; plan J4-A3; B1/B13/B17/B18.
 DC: SAME complete first-HEAD clause, expressed through headAtLabel.
 No bounded induction range or first-proposal input is used. -/
 theorem postReset_written_first_head_label
@@ -575,8 +593,8 @@ theorem postReset_written_first_head_label
     (hx : x ∈ rho.honest) (hix : IsGateTick p c rho ix x s) (hxi : ix ≤ i)
     (hres : gateResultAt p c E rho ix = some (some C))
     (hCB : Block.Preceq w.CStar (eraseFG B))
-    (hkey : (eraseFG B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy
-      p.toParams.engine p.n
+    (hkey : (eraseFG B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+        p.toParams.engine p.n
       (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s C)
     {y : V} {H : Block} (hy : y ∈ rho.honest)
     (hhead : headAtLabel p c E rho y (s + 1) = some H) : Block.Preceq (eraseFG B) H := by
@@ -595,7 +613,8 @@ theorem postReset_written_first_head_label
       writes xing origin h0r hinv hx hix hxi hres hCB hkey hy hiy
 
 
-/-- Blueprint 21 H.15 S1:2887–2914; plan J4-A5, new-write HEAD clause;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.15 S1:2887–2914; plan J4-A5, new-write HEAD clause;
 B1/B13/B17/B18. DC: SAME event-index cut. For every i : Nat, the only
 label at or above s + 1 whose actual HEAD cut can be complete at i + 1
 is s + 1. Later actual ticks contradict the cut. No induction or bound
@@ -607,8 +626,8 @@ theorem postReset_written_heads_at_write_cut
     (hx : x ∈ rho.honest) (hi : IsGateTick p c rho i x s)
     (hres : gateResultAt p c E rho i = some (some C))
     (hCB : Block.Preceq w.CStar (eraseFG B))
-    (hkey : (eraseFG B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy
-      p.toParams.engine p.n
+    (hkey : (eraseFG B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+        p.toParams.engine p.n
       (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))) s C) :
     ∀ y j H, y ∈ rho.honest → s + 1 ≤ j →
       timeIdx rho (SA.voteTime p.toParams j) ≤ i + 1 →
@@ -645,7 +664,8 @@ private theorem written_head_label {a : Nat} {z : V} {j : Slot}
   rw [healing_headAtIdx_tick p c E rho ha]
   rfl
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.15:2916–2923, H.2:720–733; plan J4-A4, later result boundary;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.15:2916–2923, H.2:720–733; plan J4-A4, later result boundary;
 B1/B13/B17/B18. DC: SAME finality coverage or a covering-batch confirmation.
 The old write's S1 field at i covers the complete label-j batch before
 this gate. Earlier sources use no-loss; a same-label emitted source uses
@@ -658,8 +678,8 @@ theorem postReset_written_later_result
     (hpass : gatePassedAt p c E rho k)
     (hres : gateResultAt p c E rho k = some (some C))
     (hCB : Block.Preceq w.CStar (eraseFG B)) (hne : eraseFG B ≠ w.CStar)
-    (hkey : (eraseFG B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy
-      p.toParams.engine p.n
+    (hkey : (eraseFG B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+        p.toParams.engine p.n
       (actView (clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams s))) s C)
     {y : V} {j : Slot} {D : Block} (hy : y ∈ rho.honest) (hsj : s + 1 ≤ j)
     (hi : IsGateTick p c rho i y j)
@@ -667,7 +687,7 @@ theorem postReset_written_later_result
     Block.Preceq (eraseFG B) D ∨ Block.Preceq (eraseFG B) (F_at p c E rho i y) := by
   have hs := hrec.base.valid.toScheduleWellFormed
   obtain ⟨hmem, hgen, hBC, -, -⟩ := healing_support_key_cases p hkey
-  have hadm : g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.toParams.engine p.n
+  have hadm : g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.toParams.engine p.n .root
       (actView (clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams s))) s (eraseFG B) := by
     have hkey' := hkey
     rw [@GridCO.gateWriteKeys_def GridCO.slowLeasePolicy] at hkey'
@@ -782,9 +802,9 @@ omit [Fintype V] in
 private theorem written_key_of_guards {k : Nat} {x : V} {s : Slot} {B C : Block} {g : Nat}
     (hmem : B ∈ (actView (clockPre p (storeAt p c E rho k x)
       (SA.gateTime p.toParams s))).blocks) (hgen : B ≠ .genesis) (hBC : Block.Preceq B C)
-    (hg : g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.toParams.engine p.n
-      (actView (clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams s))) s B) :
-    (B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+    (hg : g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.toParams.engine p.n .root
+        (actView (clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams s))) s B) :
+    (B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
       (actView (clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams s))) s C := by
   rw [@GridCO.gateWriteKeys_def GridCO.slowLeasePolicy]
   apply List.mem_flatMap.mpr
@@ -792,7 +812,8 @@ private theorem written_key_of_guards {k : Nat} {x : V} {s : Slot} {B C : Block}
   simp only [Bool.and_eq_true, bne_iff_ne]
   exact ⟨hgen, hBC⟩
 
-/-- Blueprint 21 H.15:2887–2892, 2916–2923; plan J4-A4, result clause at i + 1;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.15:2887–2892, 2916–2923; plan J4-A4, result clause at i + 1;
 B1/B13/B17/B18. DC: SAME event-prefix result extension for every i : Nat.
 Old writes use the prior result clause or the new gate boundary lemma.
 A new write cannot have a later-label gate before this cut. This is the
@@ -803,7 +824,8 @@ theorem postReset_leaseSafe_results_succ {i : Nat} (hinv : PostResetInv p c E rh
     Block.Preceq w.CStar B → B ≠ w.CStar →
     let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams s)
     B ∈ (actView pre).blocks → B ≠ .genesis → Block.Preceq B C →
-    g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.toParams.engine p.n (actView pre) s B →
+    g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.toParams.engine p.n .root (actView pre)
+        s B →
     ∀ l, l < i + 1 → ∀ y j D, y ∈ rho.honest → s + 1 ≤ j →
       IsGateTick p c rho l y j → gateResultAt p c E rho l = some (some D) →
       Block.Preceq B D ∨ Block.Preceq B (F_at p c E rho l y) := by
@@ -831,7 +853,8 @@ theorem postReset_leaseSafe_results_succ {i : Nat} (hinv : PostResetInv p c E rh
     omega
 
 
-/-- Blueprint 21 H.15:2916–2923, H.2:723–746; plan J4A2-3 G1;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.15:2916–2923, H.2:723–746; plan J4A2-3 G1;
 B1/B13/B17/B18. DC: SAME last-write route at a moving reader.
 The reader index iy is explicitly at most the prior cut i. The written
 prefix has no emitted-source premise. Older writes use the first release
@@ -844,8 +867,8 @@ theorem postReset_moving_lease_compat
     (hpass : gatePassedAt p c E rho ix)
     (hres : gateResultAt p c E rho ix = some (some C))
     (hCB : Block.Preceq w.CStar (eraseFG B)) (hne : eraseFG B ≠ w.CStar)
-    (hkey : (eraseFG B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy
-      p.toParams.engine p.n
+    (hkey : (eraseFG B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+        p.toParams.engine p.n
       (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s C)
     {l : Slot} (hsl : s + 1 ≤ l)
     (hbatch : ∀ z ∈ rho.honest, ∀ H, headAtLabel p c E rho z l = some H →
@@ -876,12 +899,12 @@ theorem postReset_moving_lease_compat
   have hxcut : ix < i := lt_of_le_of_ne hxi (by omega)
   have hraw := (gateResultAt_eq_gateResult p c E rho hs hix).symm.trans hres
   have hgate := (healing_support_gate_reads p c E rho hs hix).1
-  have hconf : SA.confirmationFrom p.toParams
+  have hconf : SA.Root.confirmationFrom p.toParams
       (eraseFG (storeAt p c E rho ix x).fg.F)
       (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s = some C := by
     rw [gateResult_def, hgate] at hraw
     simpa only [Option.map_some, Option.some.injEq, clockPre_fg] using hraw
-  have hadm : g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.toParams.engine p.n
+  have hadm : g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.toParams.engine p.n .root
       (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s
       (eraseFG B) := by
     have hk := hkey
@@ -964,10 +987,10 @@ theorem postReset_moving_lease_compat
       have hg := (healing_support_gate_reads p c E rho hs ht).1
       have hd := (gateResultAt_eq_gateResult p c E rho hs ht).symm.trans hD
       rw [gateResult_def, hg] at hd
-      have hd' : SA.confirmationFrom p.toParams (eraseFG (storeAt p c E rho j y).fg.F)
+      have hd' : SA.Root.confirmationFrom p.toParams (eraseFG (storeAt p c E rho j y).fg.F)
           (actView (clockPre p (storeAt p c E rho j y) (SA.gateTime p.toParams q))) q = some D := by
         simpa only [Option.map_some, Option.some.injEq, clockPre_fg] using hd
-      unfold SA.confirmationFrom GridCO.confirmationFrom at hd'
+      unfold SA.Root.confirmationFrom GridCO.confirmationFrom at hd'
       dsimp only at hd'
       split at hd'
       · cases hd'
@@ -1006,7 +1029,8 @@ theorem postReset_moving_lease_compat
       hwindow.le hgate hraw hBC hslow hhor hcov hy hiq hqa hT
       (eraseFG_preceq hFB) row hrow
 
-/-- Blueprint 21 H.15:2916–2923, H.2:723–726; plan J4A2-3 G3;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.15:2916–2923, H.2:723–726; plan J4A2-3 G3;
 B1/B13/B17/B18. DC: SAME one continuation step from the prior batch.
 The complete preceding batch, G2 domain and G1 leases supply H.2.
 The reader cut iy ≤ i is explicit, including the event at iy = i. -/
@@ -1017,8 +1041,8 @@ theorem postReset_written_next_head
     (hpass : gatePassedAt p c E rho ix)
     (hres : gateResultAt p c E rho ix = some (some C))
     (hCB : Block.Preceq w.CStar (eraseFG B)) (hne : eraseFG B ≠ w.CStar)
-    (hkey : (eraseFG B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy
-      p.toParams.engine p.n
+    (hkey : (eraseFG B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+        p.toParams.engine p.n
       (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s C)
     {l : Slot} (hsl : s + 1 ≤ l)
     (hbatch : ∀ z ∈ rho.honest, ∀ H, headAtLabel p c E rho z l = some H →
@@ -1069,11 +1093,11 @@ private theorem written_proposal_read
   cases m with
   | head _ => cases hb
   | row _ => cases hb
-  | proposal b raw sup rows =>
-    have he : b = Q := Option.some.inj hb
-    subst b
+  | proposal N =>
+    have he : N.erase = Q := Option.some.inj hb
+    subst Q
     rw [(V2.D.Run.step_tick_eq E rho hj).2] at hem
-    change (⟨auth, .proposal Q raw sup rows⟩ : Obj p) ∈
+    change (⟨auth, .proposal N⟩ : Obj p) ∈
       (if E.awake _ (SA.proposalTime p.toParams s) then
         (duties p (SA.proposalTime p.toParams s)).flatMap (fun d =>
           (rho.ownSeats (RunDuty.signLabel d) _).filterMap (fun i =>
@@ -1085,12 +1109,12 @@ private theorem written_proposal_read
       obtain ⟨d, hd, hem⟩ := List.mem_flatMap.mp hem
       obtain ⟨i, _, hm⟩ := List.mem_filterMap.mp hem
       obtain ⟨m, hm, ho⟩ := Option.map_eq_some_iff.mp hm
-      have he : m = .proposal Q raw sup rows := congrArg V2.Signed.payload ho
+      have he : m = .proposal N := congrArg V2.Signed.payload ho
       subst m
       cases d with
       | headAction _ => cases hm
       | fgAction _ =>
-        change (attest p _ _ _).1.map Msg.row = some (.proposal Q raw sup rows) at hm
+        change (attest p _ _ _).1.map Msg.row = some (.proposal N) at hm
         obtain ⟨_, _, he⟩ := Option.map_eq_some_iff.mp hm
         cases he
       | propAction s' =>
@@ -1101,11 +1125,12 @@ private theorem written_proposal_read
           have he : (s' : Int) = s := by nlinarith
           exact_mod_cast he
         subst s'
-        exact (fgsa_walkRun_proposal_parent p _ s _ Q raw sup rows hm).2.2
+        exact (fgsa_walkRun_proposal_parent p _ s _ N hm).2.2
     · exact (List.not_mem_nil hem).elim
 
 
-/-- Blueprint 21 H.15:2916–2923, H.2:736–746; plan J4A2-3 G4;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.15:2916–2923, H.2:736–746; plan J4A2-3 G4;
 B1/B13/B17/B18. DC: SAME proposal continuation at the complete cut.
 J5-A supplies the exact named moving-parent wrapper. G2 and G1 supply
 its domain and lease guards. Root and finality coverage are direct. -/
@@ -1116,8 +1141,8 @@ theorem postReset_written_moving_parent
     (hpass : gatePassedAt p c E rho ix)
     (hres : gateResultAt p c E rho ix = some (some C))
     (hCB : Block.Preceq w.CStar (eraseFG B)) (hne : eraseFG B ≠ w.CStar)
-    (hkey : (eraseFG B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy
-      p.toParams.engine p.n
+    (hkey : (eraseFG B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+        p.toParams.engine p.n
       (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s C)
     {l : Slot} (hsl : s + 1 ≤ l)
     (hbatch : ∀ z ∈ rho.honest, ∀ H, headAtLabel p c E rho z l = some H →
@@ -1184,7 +1209,8 @@ theorem postReset_written_moving_parent
       writes xing origin h0r hinv hx hix hxi hpass hres hCB hne hkey hsl
       hbatch hy hip hpi hafter hupper
 
-/-- Blueprint 21 H.15:2916–2923, H.2:723–726; plan J4A2-3 G6 HEAD;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.15:2916–2923, H.2:723–726; plan J4A2-3 G6 HEAD;
 B1/B13/B17/B18. DC: SAME inclusive cut at i + 1, for every i : Nat.
 Old complete reads use the prior field. A new boundary read uses G3.
 New writes use the proved first-HEAD clause at their write cut. -/
@@ -1195,8 +1221,8 @@ theorem postReset_written_heads_succ
     (hpass : gatePassedAt p c E rho ix)
     (hres : gateResultAt p c E rho ix = some (some C))
     (hCB : Block.Preceq w.CStar (eraseFG B)) (hne : eraseFG B ≠ w.CStar)
-    (hkey : (eraseFG B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy
-      p.toParams.engine p.n
+    (hkey : (eraseFG B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+        p.toParams.engine p.n
       (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s C)
  :
     ∀ y j H, y ∈ rho.honest → s + 1 ≤ j →
@@ -1204,7 +1230,7 @@ theorem postReset_written_heads_succ
       headAtLabel p c E rho y j = some H → Block.Preceq (eraseFG B) H := by
   rcases Nat.lt_or_eq_of_le hxi with hxi | rfl
   · obtain ⟨hmem, hgen, hBC, -, -⟩ := healing_support_key_cases p hkey
-    have hadm : g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.toParams.engine p.n
+    have hadm : g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.toParams.engine p.n .root
         (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s
         (eraseFG B) := by
       have hk := hkey
@@ -1255,7 +1281,8 @@ theorem postReset_written_heads_succ
   · exact postReset_written_heads_at_write_cut p c E rho hrec mono emittedNonempty emittedName
       writes xing origin h0r hinv hx hix hres hCB hkey
 
-/-- Blueprint 21 H.15:2916–2923, H.2:736–746; plan J4A2-3 G6 proposal;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.15:2916–2923, H.2:736–746; plan J4A2-3 G6 proposal;
 B1/B13/B17/B18. DC: SAME complete proposal cut at i + 1.
 The preceding HEAD batch is complete at i. G4 supplies the parent.
 A new write cannot precede a proposal with this completed cut. -/
@@ -1266,8 +1293,8 @@ theorem postReset_written_proposals_succ
     (hpass : gatePassedAt p c E rho ix)
     (hres : gateResultAt p c E rho ix = some (some C))
     (hCB : Block.Preceq w.CStar (eraseFG B)) (hne : eraseFG B ≠ w.CStar)
-    (hkey : (eraseFG B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy
-      p.toParams.engine p.n
+    (hkey : (eraseFG B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+        p.toParams.engine p.n
       (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s C)
  :
     ∀ v Q, s + 2 ≤ v → timeIdx rho (SA.proposalTime p.toParams v) ≤ i + 1 →
@@ -1293,7 +1320,7 @@ theorem postReset_written_proposals_succ
     linarith [p.deltaPos]
   have hbcut := postReset_moving_head_cut p c E rho hs hip hafter
   obtain ⟨hmem, hgen, hBC, -, -⟩ := healing_support_key_cases p hkey
-  have hadm : g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.toParams.engine p.n
+  have hadm : g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.toParams.engine p.n .root
       (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s
       (eraseFG B) := by
     have hk := hkey
@@ -1311,7 +1338,8 @@ theorem postReset_written_proposals_succ
     xing origin h0r hinv hx hix hxi hpass
     hres hCB hne hkey hsl hbatch hp hcut
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.15:2919–2923; plan J4A2-3 G5 finality;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.15:2919–2923; plan J4A2-3 G5 finality;
 B1/B13/B17/B18. DC: SAME provenance and complete honest HEAD history.
 A low finality is below B by crossing. A higher source shares an actual
 HEAD with B, either at s or at its own first transferred label.
@@ -1323,8 +1351,8 @@ theorem postReset_written_finality_compatible
     (hpass : gatePassedAt p c E rho ix)
     (hres : gateResultAt p c E rho ix = some (some C))
     (hCB : Block.Preceq w.CStar (eraseFG B)) (hne : eraseFG B ≠ w.CStar)
-    (hkey : (eraseFG B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy
-      p.toParams.engine p.n
+    (hkey : (eraseFG B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+        p.toParams.engine p.n
       (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s C)
     {b : Nat} {y : V} (hbi : b ≤ i) (hy : y ∈ rho.honest) :
     Block.Compatible (F_at p c E rho b y) (eraseFG B) := by
@@ -1403,7 +1431,8 @@ theorem postReset_written_finality_compatible
   exact Gen.Pure.block_compatible_of_common
     (Gen.Pure.block_preceq_trans (eraseFG_preceq hFK) hKH) hBH
 
-/-- Blueprint 21 H.15:2916–2923, H.2:729–735; plan J4A2-3 G5 gate lease;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.15:2916–2923, H.2:729–735; plan J4A2-3 G5 gate lease;
 B1/B13/B17/B18. DC: SAME stored lease guard before the first output gate.
 The fast release or slow last-write window applies before s + 1.
 The finality-prefix input is the output wrapper's exact branch guard. -/
@@ -1414,8 +1443,8 @@ theorem postReset_written_gate_lease_compat
     (hpass : gatePassedAt p c E rho ix)
     (hres : gateResultAt p c E rho ix = some (some C))
     (hCB : Block.Preceq w.CStar (eraseFG B)) (hne : eraseFG B ≠ w.CStar)
-    (hkey : (eraseFG B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy
-      p.toParams.engine p.n
+    (hkey : (eraseFG B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+        p.toParams.engine p.n
       (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s C)
     {iy : Nat} {y : V} (hy : y ∈ rho.honest)
     (hiy : IsGateTick p c rho iy y (s + 1)) (hyi : iy ≤ i)
@@ -1432,7 +1461,7 @@ theorem postReset_written_gate_lease_compat
     linarith [p.deltaPos]
   have hraw := (gateResultAt_eq_gateResult p c E rho hs hix).symm.trans hres
   have hgate := (healing_support_gate_reads p c E rho hs hix).1
-  have hconf : SA.confirmationFrom p.toParams
+  have hconf : SA.Root.confirmationFrom p.toParams
       (eraseFG (storeAt p c E rho ix x).fg.F)
       (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s = some C := by
     rw [gateResult_def, hgate] at hraw
@@ -1495,7 +1524,8 @@ theorem postReset_written_gate_lease_compat
       hFB row hrow
 
 
-/-- Blueprint 21 H.15:2916–2923, H.2:729–735; plan J4A2-3 G5/S3;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.15:2916–2923, H.2:729–735; plan J4A2-3 G5/S3;
 B1/B13/B17/B18. DC: SAME pre-event output suffix through cut i.
 J5-A supplies the exact named suffix wrapper. The complete HEAD history,
 finality provenance and first output gate leases are proved guards.
@@ -1507,8 +1537,8 @@ theorem postReset_written_outputs_succ
     (hpass : gatePassedAt p c E rho ix)
     (hres : gateResultAt p c E rho ix = some (some C))
     (hCB : Block.Preceq w.CStar (eraseFG B)) (hne : eraseFG B ≠ w.CStar)
-    (hkey : (eraseFG B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy
-      p.toParams.engine p.n
+    (hkey : (eraseFG B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+        p.toParams.engine p.n
       (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s C)
     (hguard : SA.gateTime p.toParams s + 4 * p.Δ ≤ rho.horizon) :
     ∀ a y, y ∈ rho.honest → a ≤ i →
@@ -1531,7 +1561,8 @@ theorem postReset_written_outputs_succ
       writes xing origin h0r hinv hx hix hxi hpass hres
       hCB hne hkey hy hj hji hFB
 
-/-- Blueprint 21 H.15:2885–2923, H.2:709–746; plan J4A2-3 G7;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.15:2885–2923, H.2:709–746; plan J4A2-3 G7;
 B1/B13/B17/B18. DC: SAME frozen PostResetLeaseStep for every i : Nat.
 The antecedents are exactly the prior triple and RL at i + 1.
 The proof uses only hinv from that triple; the remaining fields are unused.

@@ -1,14 +1,15 @@
 module
 public import AvailableChainFGSARun.Proofs.Receipts
+public import AvailableChainFGSARun.Proofs.RootResolution
 public import AvailableChainFGSAClaims.Statements.Reads
 
 public section
 
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
-open Gen.AC
+open Gen.AC.Root
 
-private theorem sl_vote_shape {n : Nat} (o : GridCO.Wire n) (s : Slot) (k : Fin n)
+private theorem sl_vote_shape {n : Nat} (o : GridCO.Wire n .root) (s : Slot) (k : Fin n)
     (hl : GridCO.headLabel? o = some s) (hk : GridCO.headSeat? o = some k) :
     ∃ B, o = ⟨.seat s k, .head B⟩ := by
   obtain ⟨auth, payload⟩ := o
@@ -19,8 +20,8 @@ private theorem sl_vote_shape {n : Nat} (o : GridCO.Wire n) (s : Slot) (k : Fin 
   subst r; subst j
   exact ⟨B, rfl⟩
 
-private theorem sl_clean_mem (p : Params) (v : GridCO.State p.n) (s : Slot)
-    (o : GridCO.Wire p.n) (ho : o ∈ GridCO.cleanSupport p.toParams.engine v s) :
+private theorem sl_clean_mem (p : Params) (v : GridCO.State p.n .root) (s : Slot)
+    (o : GridCO.Wire p.n .root) (ho : o ∈ GridCO.cleanSupport p.toParams.engine v s) :
     o ∈ v.votes ∧ GridCO.headLabel? o = some s ∧
       GridCO.stampVote v o < SA.earlyTime p.toParams s ∧
       ∀ u ∈ GridCO.lateVotes p.toParams.engine v s,
@@ -31,7 +32,7 @@ private theorem sl_clean_mem (p : Params) (v : GridCO.State p.n) (s : Slot)
   obtain ⟨hm, hl⟩ := List.mem_filter.mp hv
   have hstamp : GridCO.stampVote v o < SA.earlyTime p.toParams s := by
     unfold GridCO.resolvedBefore at hr
-    cases ht : GridCO.headTarget? o with
+    cases ht : GridCO.resolvedHead? v o with
     | none => simp only [ht, Bool.false_eq_true] at hr
     | some B =>
       rw [ht] at hr
@@ -44,7 +45,7 @@ private theorem sl_clean_mem (p : Params) (v : GridCO.State p.n) (s : Slot)
   have hn := List.any_eq_false.mp hc' u hu
   simpa only [hs, Bool.true_and, bne_iff_ne, not_not] using hn
 
-private theorem sl_clean_late (p : Params) (v : GridCO.State p.n) (s : Slot) :
+private theorem sl_clean_late (p : Params) (v : GridCO.State p.n .root) (s : Slot) :
     GridCO.cleanSupport p.toParams.engine v s ⊆ GridCO.lateVotes p.toParams.engine v s := by
   intro o ho
   have h := sl_clean_mem p v s o ho
@@ -57,7 +58,7 @@ private theorem sl_clean_late (p : Params) (v : GridCO.State p.n) (s : Slot) :
   change GridCO.stampVote v o < 4 * p.Δ * (s : Int) + 2 * p.Δ at ht
   linarith
 
-private theorem sl_same_seat {n : Nat} (u v : GridCO.Wire n) (s : Slot) (k : Fin n)
+private theorem sl_same_seat {n : Nat} (u v : GridCO.Wire n .root) (s : Slot) (k : Fin n)
     (hu : GridCO.headLabel? u = some s) (hv : GridCO.headLabel? v = some s)
     (hku : GridCO.headSeat? u = some k) (hkv : GridCO.headSeat? v = some k) :
     GridCO.sameSeat u v = true := by
@@ -66,8 +67,8 @@ private theorem sl_same_seat {n : Nat} (u v : GridCO.Wire n) (s : Slot) (k : Fin
   change (s == s && k == k) = true
   simp only [BEq.rfl, Bool.and_self]
 
-private theorem sl_clean_no_equiv (p : Params) (v : GridCO.State p.n) (s : Slot)
-    (o : GridCO.Wire p.n) (ho : o ∈ GridCO.cleanSupport p.toParams.engine v s)
+private theorem sl_clean_no_equiv (p : Params) (v : GridCO.State p.n .root) (s : Slot)
+    (o : GridCO.Wire p.n .root) (ho : o ∈ GridCO.cleanSupport p.toParams.engine v s)
     (k : Fin p.n) (hk : GridCO.headSeat? o = some k) :
     GridCO.equivocates (GridCO.lateVotes p.toParams.engine v s) k = false := by
   cases he : GridCO.equivocates (GridCO.lateVotes p.toParams.engine v s) k with
@@ -75,14 +76,14 @@ private theorem sl_clean_no_equiv (p : Params) (v : GridCO.State p.n) (s : Slot)
   | true =>
     obtain ⟨u, hu, w, hw, hn, hku, hkw⟩ := (cap_pair _ k).mp he
     have h := sl_clean_mem p v s o ho
-    have hl (a : GridCO.Wire p.n) (ha : a ∈ GridCO.lateVotes p.toParams.engine v s) :
+    have hl (a : GridCO.Wire p.n .root) (ha : a ∈ GridCO.lateVotes p.toParams.engine v s) :
         GridCO.headLabel? a = some s := by
       simpa only [beq_iff_eq] using (List.mem_filter.mp (List.mem_filter.mp ha).1).2
     have eu := h.2.2.2 u hu (sl_same_seat u o s k (hl u hu) h.2.1 hku hk)
     have ew := h.2.2.2 w hw (sl_same_seat w o s k (hl w hw) h.2.1 hkw hk)
     exact (hn (eu.trans ew.symm)).elim
 
-private theorem sl_clean_pool (p : Params) (v : GridCO.State p.n) (s : Slot) :
+private theorem sl_clean_pool (p : Params) (v : GridCO.State p.n .root) (s : Slot) :
     ∀ k, GridCO.equivocates (GridCO.cleanSupport p.toParams.engine v s) k = false := by
   intro k
   cases he : GridCO.equivocates (GridCO.cleanSupport p.toParams.engine v s) k with
@@ -94,12 +95,12 @@ private theorem sl_clean_pool (p : Params) (v : GridCO.State p.n) (s : Slot) :
     rw [hf] at ht
     contradiction
 
-private def sl_support (p : Params) (v : GridCO.State p.n) (s : Slot) (B : Block) :
+private def sl_support (p : Params) (v : GridCO.State p.n .root) (s : Slot) (B : Block) :
     Finset (Fin p.n) :=
   (GridCO.seats p.n (GridCO.cleanSupport p.toParams.engine v s)).toFinset.filter
     (fun k => poolSupports v.blocks (GridCO.cleanSupport p.toParams.engine v s) k B = true)
 
-private theorem sl_support_mem (p : Params) (v : GridCO.State p.n) (s : Slot)
+private theorem sl_support_mem (p : Params) (v : GridCO.State p.n .root) (s : Slot)
     (B : Block) (k : Fin p.n) : k ∈ sl_support p v s B ↔
       ∃ o ∈ GridCO.cleanSupport p.toParams.engine v s,
         GridCO.headSeat? o = some k ∧ voteSupports v.blocks B o = true := by
@@ -111,20 +112,25 @@ private theorem sl_support_mem (p : Params) (v : GridCO.State p.n) (s : Slot)
   · intro h
     exact ⟨(vote_pool_mem_seats _ k).mpr (by obtain ⟨o, ho, hk, _⟩ := h; exact ⟨o, ho, hk⟩), h⟩
 
-private theorem sl_score (p : Params) (v : GridCO.State p.n) (s : Slot) (B : Block) :
-    SA.prefixSupport p.toParams v s B = (sl_support p v s B).card := by
-  change GridCO.goldfishScore v.blocks (GridCO.cleanSupport p.toParams.engine v s)
-    (GridCO.cleanSupport p.toParams.engine v s) B = _
+private theorem sl_score (p : Params) (v : GridCO.State p.n .root) (s : Slot) (B : Block)
+    (hscore : SA.Root.prefixSupport p.toParams v s B =
+      GridCO.goldfishScore v.blocks (GridCO.cleanSupport p.toParams.engine v s)
+        (GridCO.cleanSupport p.toParams.engine v s) B) :
+    SA.Root.prefixSupport p.toParams v s B = (sl_support p v s B).card := by
+  rw [hscore]
   rw [vote_pool_score_card]
   simp only [sl_clean_pool p v s, Bool.false_or]
   rfl
 
-private theorem sl_result_majority (p : Params) (v : GridCO.State p.n) (s : Slot)
-    (a B : Block) (h : SA.confirmationFrom p.toParams a v s = some B) :
+private theorem sl_result_majority (p : Params) (v : GridCO.State p.n .root) (s : Slot)
+    (a B : Block) (h : SA.Root.confirmationFrom p.toParams a v s = some B)
+    (hscore : ∀ C, SA.Root.prefixSupport p.toParams v s C =
+      GridCO.goldfishScore v.blocks (GridCO.cleanSupport p.toParams.engine v s)
+        (GridCO.cleanSupport p.toParams.engine v s) C) :
     (GridCO.seats p.n (GridCO.lateVotes p.toParams.engine v s)).toFinset.card <
       2 * (sl_support p v s B).card := by
   have hex : ∃ C, GridCO.voterCount (GridCO.lateVotes p.toParams.engine v s) <
-      2 * SA.prefixSupport p.toParams v s C ∧ some C = some B := by
+      2 * SA.Root.prefixSupport p.toParams v s C ∧ some C = some B := by
     change (if _ then some _ else none) = some B at h
     split at h
     · exact ⟨_, ‹_›, h⟩
@@ -132,7 +138,7 @@ private theorem sl_result_majority (p : Params) (v : GridCO.State p.n) (s : Slot
   obtain ⟨C, hc, he⟩ := hex
   have := Option.some.inj he
   subst C
-  rwa [sl_score, vote_pool_voterCount_card] at hc
+  rwa [sl_score p v s B (hscore B), vote_pool_voterCount_card] at hc
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
@@ -158,7 +164,7 @@ private theorem sl_votes_mono (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     exact List.Subset.trans h (process_votes_subset nd.st (toWire p o))
 
 private theorem sl_gate_stamp (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (i : Nat) (x : V) (s : Slot) (o : GridCO.Wire p.n)
+    (i : Nat) (x : V) (s : Slot) (o : GridCO.Wire p.n .root)
     (hm : o ∈ (V2.D.Run.stateBefore E rho i x).st.base.votes) :
     GridCO.stampVote (actView (clockPre p (V2.D.Run.stateBefore E rho i x).st
       (SA.gateTime p.toParams s))) o =
@@ -182,7 +188,7 @@ private theorem sl_gate_stamp (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 private theorem sl_gate_late (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hS : V2.D.ScheduleWellFormed E rho) {i : Nat} {x : V} {s : Slot}
     (hi : rho.events[i]? = some (.tick x (SA.gateTime p.toParams s)))
-    (o : GridCO.Wire p.n) (hm : o ∈ (V2.D.Run.stateBefore E rho i x).st.base.votes)
+    (o : GridCO.Wire p.n .root) (hm : o ∈ (V2.D.Run.stateBefore E rho i x).st.base.votes)
     (hl : GridCO.headLabel? o = some s) :
     o ∈ GridCO.lateVotes p.toParams.engine
       (actView (clockPre p (V2.D.Run.stateBefore E rho i x).st (SA.gateTime p.toParams s))) s := by
@@ -235,7 +241,7 @@ private theorem sl_relay (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
       (SA.gateTime p.toParams s))
     {ix iy : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (hiy : rho.events[iy]? = some (.tick y (SA.gateTime p.toParams s)))
-    (o : GridCO.Wire p.n)
+    (o : GridCO.Wire p.n .root)
     (ho : o ∈ GridCO.cleanSupport p.toParams.engine
       (actView (clockPre p (V2.D.Run.stateBefore E rho ix x).st (SA.gateTime p.toParams s))) s)
     (k : Fin p.n) (hk : GridCO.headSeat? o = some k) :
@@ -245,7 +251,7 @@ private theorem sl_relay (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   dsimp only
   have hc := sl_clean_mem p _ s o ho
   obtain ⟨B, rfl⟩ := sl_vote_shape o s k hc.2.1 hk
-  have hmem : (⟨.seat s k, .head B⟩ : GridCO.Wire p.n) ∈
+  have hmem : (⟨.seat s k, .head B⟩ : GridCO.Wire p.n .root) ∈
       (V2.D.Run.stateBefore E rho ix x).st.base.votes := by
     have hm := hc.1
     change _ ∈ (clockPre p _ _).base.votes at hm
@@ -293,7 +299,7 @@ private theorem sl_relay (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 private theorem sl_gate_input (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (x : V) (s : Slot) (B : Block) (h : gateResult p c E rho x s = some (some B)) :
     ∃ i, rho.events[i]? = some (.tick x (SA.gateTime p.toParams s)) ∧
-      SA.confirmationFrom p.toParams
+      SA.Root.confirmationFrom p.toParams
         (eraseFG (clockPre p (V2.D.Run.stateBefore E rho i x).st (SA.gateTime p.toParams s)).fg.F)
         (actView (clockPre p (V2.D.Run.stateBefore E rho i x).st
           (SA.gateTime p.toParams s))) s = some B := by
@@ -304,7 +310,8 @@ private theorem sl_gate_input (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     simp only [hi, Option.map_some, Option.some.injEq] at h
     exact ⟨i, V2.D.Run.tickIdx?_spec hi, h⟩
 
-/-- P3 F1b.2, blueprint 02 §2.2 and 21 IF.6: two honest raw gate results
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+P3 F1b.2, blueprint 02 §2.2 and 21 IF.6: two honest raw gate results
 at one synchronized label are compatible. Class (ii), T7.8 receipt instance
 and Gen A2/A3 count assembly. DC: Protocol/ForkChoice/Goldfish/Confirmation.lean:405
 `eligible_compatible`. INTENTIONAL: use the optional F-anchored active-view
@@ -317,7 +324,8 @@ theorem fgsa_sameLabel (p : Params) {In V : Type} [DecidableEq V]
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
     (s : Slot) (hSync : Gen.V2.Duty.LabelSyncOn E rho
       (fun o => ¬ isRowObject o) (SA.voteTime p.toParams s)
-      (SA.gateTime p.toParams s)) :
+      (SA.gateTime p.toParams s))
+    (hroots : NamedRootCollisionFree p c E rho) :
     ∀ x y B C, x ∈ rho.honest → y ∈ rho.honest →
       gateResult p c E rho x s = some (some B) →
       gateResult p c E rho y s = some (some C) → Block.Compatible B C := by
@@ -328,7 +336,7 @@ theorem fgsa_sameLabel (p : Params) {In V : Type} [DecidableEq V]
   let vy := actView (clockPre p (V2.D.Run.stateBefore E rho iy y).st (SA.gateTime p.toParams s))
   let Lx := (GridCO.seats p.n (GridCO.lateVotes p.toParams.engine vx s)).toFinset
   let Ly := (GridCO.seats p.n (GridCO.lateVotes p.toParams.engine vy s)).toFinset
-  have own (v : GridCO.State p.n) (D : Block) : sl_support p v s D ⊆
+  have own (v : GridCO.State p.n .root) (D : Block) : sl_support p v s D ⊆
       (GridCO.seats p.n (GridCO.lateVotes p.toParams.engine v s)).toFinset := by
     intro k hk
     obtain ⟨o, ho, hko, _⟩ := (sl_support_mem p v s D k).mp hk
@@ -349,8 +357,19 @@ theorem fgsa_sameLabel (p : Params) {In V : Type} [DecidableEq V]
     Finset.union_subset (own vx B) (cross hy hx hix C)
   have hLy : sl_support p vx s B ∪ sl_support p vy s C ⊆ Ly :=
     Finset.union_subset (cross hx hy hiy B) (own vy C)
+  have score (i : Nat) (z : V) (D : Block) :
+      let pre := clockPre p (rho.stateBefore E i z).st (SA.gateTime p.toParams s)
+      let v := actView pre
+      SA.Root.prefixSupport p.toParams v s D =
+        GridCO.goldfishScore v.blocks (GridCO.cleanSupport p.toParams.engine v s)
+          (GridCO.cleanSupport p.toParams.engine v s) D := by
+    intro pre v
+    exact actView_score p pre (cstoreInv_clockPre p _ (cstoreInv_stateBefore E rho i z) _)
+      (by rw [clockPre_headDomain]; exact base_headDomain_none p (reachable_stateBefore E rho i z))
+      _ _ D
   obtain ⟨k, hk⟩ := Gen.Pure.two_majorities_intersect hLx hLy
-    (sl_result_majority p _ s _ B hB) (sl_result_majority p _ s _ C hC)
+    (sl_result_majority p _ s _ B hB (score ix x))
+    (sl_result_majority p _ s _ C hC (score iy y))
   obtain ⟨hkB, hkC⟩ := Finset.mem_inter.mp hk
   obtain ⟨u, hu, hku, hBu⟩ := (sl_support_mem p vx s B k).mp hkB
   obtain ⟨v, hv, hkv, hCv⟩ := (sl_support_mem p vy s C k).mp hkC
@@ -366,12 +385,19 @@ theorem fgsa_sameLabel (p : Params) {In V : Type} [DecidableEq V]
   have he : v = u := hu'.2.2.2 v hvx
     (sl_same_seat v u s k hv'.2.1 hu'.2.1 hkv hku)
   subst v
-  rw [voteSupports_def] at hBu hCv
-  cases ht : GridCO.headTarget? u with
-  | none => simp only [ht, Bool.false_eq_true] at hBu
-  | some K =>
-    simp only [ht, Bool.and_eq_true, decide_eq_true_eq] at hBu hCv
-    exact Gen.Pure.block_compatible_of_common hBu.2 hCv.2
+  obtain ⟨K, hK, hmK, _, hBK⟩ := (vote_support_body _ _ _).mp hBu
+  obtain ⟨L, hL, hmL, _, hCL⟩ := (vote_support_body _ _ _).mp hCv
+  have hxK : K ∈ (rho.stateBefore E ix x).st.base.blocks := by
+    have hm := (List.mem_filter.mp hmK).1
+    change K ∈ (clockPre p _ _).base.blocks at hm
+    rwa [(clockPre_fields p _ _).2.1] at hm
+  have hyL : L ∈ (rho.stateBefore E iy y).st.base.blocks := by
+    have hm := (List.mem_filter.mp hmL).1
+    change L ∈ (clockPre p _ _).base.blocks at hm
+    rwa [(clockPre_fields p _ _).2.1] at hm
+  have hKL := stored_block_eq_of_root_eq E rho hroots ix iy x y hxK hyL
+    (Option.some.inj ((resolvedTarget_root _ u hK).symm.trans (resolvedTarget_root _ u hL)))
+  exact Gen.Pure.block_compatible_of_common hBK (hKL.symm ▸ hCL)
 
 end AvailableChain.FGSA.Run
 end

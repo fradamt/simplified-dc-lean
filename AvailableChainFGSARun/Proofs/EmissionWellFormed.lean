@@ -12,10 +12,11 @@ open AvailableChain.SimplexFG
 open AvailableChain.V2.D.Engine
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- The application codec recovers the input of each emitted proposal. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The application codec recovers the input of each emitted proposal. -/
 theorem decode_honest (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) :
     HonestProposalDecodes p c E rho := by
-  intro i v s hi _ _ _ b raw sup rows hm
+  intro i v s hi _ _ _ N hm
   rw [(V2.D.Run.step_tick_eq E rho hi).2] at hm
   have ha := (fgsa_emits_proposal E rho _ v _ s _).mp hm
   obtain ⟨H, raw', sup', rows', he, -, happ⟩ := rowsOk_withApp _ _ _ ha.2.2.2
@@ -53,11 +54,7 @@ private theorem emission_rows_process (st : State p.n) (o : Obj p)
     (h : EmissionRowsValid st) (hw : (fgsa p c).wellFormed o = true) :
     EmissionRowsValid (FGSA.process p st (toWire p o)) := by
   change FGSA.wellFormed p (toWire p o) = true at hw
-  change EmissionRowsValid (match (toWire p o).decode with
-    | some (.vote s i b) => admitHead p st s i b
-    | some (.row _ body) => admitRow p st ⟨(toWire p o).auth, body⟩
-    | some (.block s b raw sup rows) => admitBlock p st s b raw sup rows
-    | none => st)
+  unfold FGSA.process
   cases hd : (toWire p o).decode with
   | none => exact h
   | some m =>
@@ -67,69 +64,47 @@ private theorem emission_rows_process (st : State p.n) (o : Obj p)
       have he := decode_eq_row.mp hd
       rw [he] at hw ⊢
       exact emission_rows_admit _ _ h hw
-    | block s b raw sup rows =>
-      have he := decode_eq_block.mp hd
-      have hr : ∀ a ∈ rows, a.valid = true := by
-        change (match (toWire p o).decode with
-          | some (.vote _ _ _) => true
-          | some (.row _ body) => body.valid
-          | some (.block s b raw sup rows) =>
-            b != .genesis && s == b.slot && decide (b.parent.slot < b.slot) &&
-              raw.all (fun v => match v.decode? with
-                | some (r, _, _) => r + 1 == b.slot | none => false) &&
-              sup.all (fun v => decide (v ∈ raw)) &&
-              rows.all RowWire.valid && contentOk p b raw sup rows
-          | none => false) = true at hw
+    | block s N =>
+      have hr : ∀ a ∈ N.rows, a.valid = true := by
+        unfold FGSA.wellFormed at hw
         rw [hd] at hw
         intro a ha
         exact List.all_eq_true.mp
           (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp hw).1).2 a ha
-      change EmissionRowsValid (match parentFG st b with
-        | none => st
-        | some P => if blockAccepted p st s b raw sup P rows then
-          rows.foldl (admitRow p)
-            (if (Window.on_block p p.K_W st.fg (fgBlock P b rows)).F = st.fg.F then
-              { st with
-                base := (GridCO.admitProposal p.toParams.engine st.base
-                  (baseProposal s b raw sup) b (raw.map baseHead)),
-                fg := Window.on_block p p.K_W st.fg (fgBlock P b rows),
-                proposals := st.proposals ++ [⟨.proposer s, .proposal b raw sup rows⟩] }
-            else reconcile { st with
-                base := (GridCO.admitProposal p.toParams.engine st.base
-                  (baseProposal s b raw sup) b (raw.map baseHead)),
-                fg := Window.on_block p p.K_W st.fg (fgBlock P b rows),
-                proposals := st.proposals ++ [⟨.proposer s, .proposal b raw sup rows⟩] })
-          else st)
-      cases hp : parentFG st b with
-      | none => exact h
-      | some P =>
-        dsimp only
-        split
-        · apply emission_rows_fold _ _ _ hr
-          have hs : EmissionRowsValid
-              { st with
-                base := (GridCO.admitProposal p.toParams.engine st.base
-                  (baseProposal s b raw sup) b (raw.map baseHead)),
-                fg := Window.on_block p p.K_W st.fg (fgBlock P b rows),
-                proposals := st.proposals ++ [⟨.proposer s, .proposal b raw sup rows⟩] } := by
-            refine ⟨h.1, ?_⟩
-            intro w hw s' b' raw' sup' rows' hd'
-            rcases List.mem_append.mp hw with hm | hm
-            · exact h.2 w hm s' b' raw' sup' rows' hd'
-            · have hew := List.mem_singleton.mp hm
-              subst w
-              change some (Input.block s b raw sup rows) =
-                some (Input.block s' b' raw' sup' rows') at hd'
-              cases hd'
-              exact hr
+      change EmissionRowsValid (admitBlock p st s N)
+      unfold admitBlock
+      split
+      · exact h
+      · cases hp : parentFG st N.erase with
+        | none => exact h
+        | some P =>
+          dsimp only
           split
-          · exact hs
-          · constructor
-            · rw [(reconcile_frame _).2.2.1]; exact hs.1
-            · rw [(reconcile_frame _).2.1]; exact hs.2
-        · exact h
+          · apply emission_rows_fold _ _ _ hr
+            have hs : EmissionRowsValid
+                { st with
+                  base := GridCO.admitProposal p.toParams.engine st.base
+                    (baseProposal s N.erase N.raw N.support) N.erase (N.raw.map baseHead)
+                  fg := Window.on_block p p.K_W st.fg (fgBlock P N.erase N.rows)
+                  proposals := st.proposals ++ [⟨.proposer s, .proposal N⟩] } := by
+              refine ⟨h.1, ?_⟩
+              intro w hw s' M hd'
+              rcases List.mem_append.mp hw with hm | hm
+              · exact h.2 w hm s' M hd'
+              · have hew := List.mem_singleton.mp hm
+                subst w
+                change some (Input.block s N) = some (Input.block s' M) at hd'
+                cases hd'
+                exact hr
+            split
+            · exact hs
+            · constructor
+              · rw [(reconcile_frame _).2.2.1]; exact hs.1
+              · rw [(reconcile_frame _).2.1]; exact hs.2
+          · exact h
 
-/-- Delivery wire checks keep all pool and stored-proposal rows valid.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Delivery wire checks keep all pool and stored-proposal rows valid.
 Restarts empty both lists. No schedule or restart premise is needed. -/
 theorem fgsa_emissionRowsValid (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hd : V2.D.DeliveryWellFormed E rho) (i : Nat) (v : V) :
@@ -179,9 +154,9 @@ private theorem emission_proposal_rows (st : State p.n) (H : Block)
   intro a ha
   rw [proposalRows_eq_proposalRowsFor] at ha
   rcases proposalRowsFor_origin p st (st.slot p) H a ha with
-    hm | ⟨o, ho, s, b, raw, sup, rows, hd, hm⟩
+    hm | ⟨o, ho, s, N, hd, hm⟩
   · exact hv.1 a hm
-  · exact hv.2 o ho s b raw sup rows hd a hm
+  · exact hv.2 o ho s N hd a hm
 
 private theorem emission_proposal_votes (st : State p.n) (s : Slot) :
     (∀ a ∈ (proposerVotes st s).filterMap liftHead?,
@@ -207,7 +182,8 @@ private theorem emission_proposal_votes (st : State p.n) (s : Slot) :
     obtain ⟨w, hw, he⟩ := List.mem_filterMap.mp ha
     exact List.mem_filterMap.mpr ⟨w, (List.mem_filter.mp hw).1, he⟩
 
-/-- The parent chosen at a proposal tick is stored and has a smaller slot. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The parent chosen at a proposal tick is stored and has a smaller slot. -/
 theorem fgsa_propose_parent_lt (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {v : V} {s : Slot}
     (hi : rho.events[i]? = some (.tick v (SA.proposalTime p.toParams s))) (hs0 : 0 < s) :
@@ -216,7 +192,8 @@ theorem fgsa_propose_parent_lt (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   exact (fgsa_stored_block_slots E rho hs hi hs0).2.1 _
     (getHead_stored p _ (storeBundle_postClock E rho i v _).cstore _ _)
 
-/-- ROOT-DIGEST W2. Emission checks the exact digest and the BODY encoding. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2. Emission checks the exact digest and the BODY encoding. -/
 private theorem emission_proposal_wf (st : State p.n) (s : Slot) (a : Nat)
     (hv : EmissionRowsValid st)
     (hp : (getHead p st (proposerVotes st s) (proposerSupport st s)).slot < s)
@@ -227,11 +204,15 @@ private theorem emission_proposal_wf (st : State p.n) (s : Slot) (a : Nat)
   let rows := proposalRows p st H
   let raw := (proposerVotes st s).filterMap liftHead?
   let sup := (proposerSupport st s).filterMap liftHead?
-  have he : m = .proposal (proposalBlock p H s a raw sup rows) raw sup rows := by
-    unfold propose at hm
-    rw [ite_eq_right (Nat.ne_of_gt hs0)] at hm
-    exact (Option.some.inj hm).symm
-  rw [he]
+  unfold propose at hm
+  rw [ite_eq_right (Nat.ne_of_gt hs0)] at hm
+  simp only [Option.map_map] at hm
+  obtain ⟨P, hP, rfl⟩ := Option.map_eq_some_iff.mp hm
+  have heP : P.erase = H := (namedByErase?_sound st H P hP).2
+  change FGSA.wellFormed p ⟨.proposer s, .proposal (namedProposal p P s a raw sup rows)⟩ = true
+  simp only [FGSA.wellFormed, Wire.decode]
+  rw [namedProposal_erase, heP]
+  simp only [namedProposal, NamedProposal.raw, NamedProposal.support, NamedProposal.rows]
   change (true && (s == s) && decide (H.slot < s) &&
     raw.all (fun v => match v.decode? with
       | some (r, _, _) => r + 1 == s | none => false) &&
@@ -255,27 +236,34 @@ private theorem emission_proposal_wf (st : State p.n) (s : Slot) (a : Nat)
   simp only [beq_self_eq_true, Bool.true_and, Bool.and_true, decide_eq_true_eq]
   exact hp
 
-/-- [R6/R7] A proposal carries only rows valid for its exact held parent. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+[R6/R7] A proposal carries only rows valid for its exact held parent. -/
 theorem propose_rowsValid (st : State p.n) (hInv : CStoreInv p st) (s : Slot) (app : Nat)
-    (hs : st.slot p = s) (b : Block) (raw sup : List (HeadWire p.n))
-    (rows : List (RowWire p.n))
-    (hm : (propose p st s).map (withApp p app) = some (.proposal b raw sup rows)) :
-    ∃ P, fgBlockOf st b.parent = some P ∧ rowsValidForParent p P b.slot rows = true := by
+    (hs : st.slot p = s) (N : NamedProposal p.n)
+    (hm : (propose p st s).map (withApp p app) = some (.proposal N)) :
+    ∃ P, fgBlockOf st N.erase.parent = some P ∧
+      rowsValidForParent p P N.erase.slot N.rows = true := by
   unfold propose at hm
   split at hm
   · simp at hm
-  · dsimp only [Option.map, withApp, proposalBlock] at hm
-    simp only [Option.some.injEq, Msg.proposal.injEq] at hm
-    obtain ⟨rfl, rfl, rfl, rfl⟩ := hm
+  · simp only [Option.map_map] at hm
+    obtain ⟨M, hM, he⟩ := Option.map_eq_some_iff.mp hm
+    have heN := Msg.proposal.inj he
+    change namedProposal p M s app _ _ _ = N at heN
+    subst N
     let H := getHead p st (proposerVotes st s) (proposerSupport st s)
+    have heM : M.erase = H := (namedByErase?_sound st H M hM).2
+    rw [namedProposal_erase]
     obtain ⟨P, hP, he⟩ := (hInv.baseTree H).mp (getHead_stored p st hInv _ _)
     have hlookup := (fgBlockOf_spec p st hInv H P).mpr ⟨hP, he⟩
-    refine ⟨P, hlookup, ?_⟩
-    change rowsValidForParent p P s (proposalRows p st H) = true
-    rw [proposalRows_eq_proposalRowsFor, ← hs]
-    exact proposalRowsFor_valid p st (st.slot p) H P hlookup
+    refine ⟨P, ?_, ?_⟩
+    · simpa only [proposalBlock, Block.parent, heM] using hlookup
+    · change rowsValidForParent p P s (proposalRows p st H) = true
+      rw [proposalRows_eq_proposalRowsFor, ← hs]
+      exact proposalRowsFor_valid p st (st.slot p) H P hlookup
 
-/-- Every honest awake emission passes the wire check. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Every honest awake emission passes the wire check. -/
 theorem honest_emit_wellFormed (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hd : V2.D.DeliveryWellFormed E rho) (hs : V2.D.ScheduleWellFormed E rho) :
     HonestEmissionWellFormed p c E rho := by
@@ -305,7 +293,8 @@ theorem honest_emit_wellFormed (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     | headAction s =>
       change RunLabel.base (.head s) = l at hl
       subst l
-      have he : .head (headVote p (FGSA.clock p (V2.D.Run.stateBefore E rho i v).st t) s) = m :=
+      have he : .head (headVote p (FGSA.clock p (V2.D.Run.stateBefore E rho i v).st t) s).root =
+          m :=
         Option.some.inj ha
       subst m
       rfl

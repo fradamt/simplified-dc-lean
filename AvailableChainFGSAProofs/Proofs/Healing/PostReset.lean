@@ -21,7 +21,8 @@ open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- Blueprint 21 H.12:2646–2666, H.22 T-contract; plan J9 A;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.12:2646–2666, H.22 T-contract; plan J9 A;
 B1/B13/B17/B31. DC: SAME seven fields from their Healing producers.
 The reset adapter uses each public H0 only through toH0Reset.
 The unused _h0r input stays for signature uniformity. -/
@@ -33,16 +34,17 @@ theorem healing_healTContract_reset [Fintype V] {G ΔF : Time}
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     (rowCoverage : ∀ x, x ∈ rho.honest → ∀ r nd,
       postClock E rho x (p.actionTime r) = some nd → ∀ C,
@@ -63,7 +65,8 @@ theorem healing_healTContract_reset [Fintype V] {G ΔF : Time}
       frontier := frontier_service E rho hrec mono xing writes rowCoverage
       geom := healing_tGeom p c E rho hrec.base.valid.toScheduleWellFormed }
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.14:2847–2861; plan J9 B; B1/B13/B17/B18/B32.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.14:2847–2861; plan J9 B; B1/B13/B17/B18/B32.
 DC: SAME kept-view conclusion. Consume H0 only through toH0Reset.
 J10 must replace the named all-cut carrier when its producer is available. -/
 theorem healing_rKeep_of_reset (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
@@ -73,7 +76,8 @@ theorem healing_rKeep_of_reset (xing : RXing p c E rho) (origin : RQCOrigin p c 
   intro h0
   exact postReset_rKeep_body (hroots := hroots) p c E rho xing origin h0.toH0Reset inv
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.17/H.18:2946–3095; plan J9 B; B1/B13/B17/B31.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.17/H.18:2946–3095; plan J9 B; B1/B13/B17/B31.
 DC: SAME both provenance clauses. The seven named inputs have J4's types.
 Consume H0 only through toH0Reset; no first-proposal field is read. -/
 theorem healing_rFProv_of_reset (hv : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho)
@@ -101,7 +105,8 @@ theorem healing_rFProv_of_reset (hv : V2.D.ExecutionValid E rho) (hnr : V2.D.NoR
   exact postReset_rFProv_reset (hroots := hroots) p c E rho hv hnr origin heldRows cap hhead xing
     h0.toH0Reset
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.13–H.18:2668–3095; plan J9 B; B1/B13/B17/B18/B31/B32.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.13–H.18:2668–3095; plan J9 B; B1/B13/B17/B18/B31/B32.
 DC: SAME six fields. Crossing and capacity are named channels;
 phase and descent use their producers, keep and provenance use the H0 adapters.
 The unused _h0r input stays for signature uniformity. -/
@@ -139,7 +144,8 @@ theorem healing_healRContract_reset (hv : V2.D.ExecutionValid E rho)
       fprov := healing_rFProv_of_reset (hroots := hroots) p c E rho hv hnr origin heldRows
         finalityCap hhead xing w }
 
-/-- Blueprint 21 H.22 H1/H2:3250–3263; plan J9 C; B13/B17.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.22 H1/H2:3250–3263; plan J9 C; B13/B17.
 DC: SAME T-stream fields, with explicit row delay. Each field is a named
 hypothesis of its full frozen type, including THigh's global round range. -/
 theorem healing_healT_of {w : HealingWitness} {ΔF : Time}
@@ -147,7 +153,8 @@ theorem healing_healT_of {w : HealingWitness} {ΔF : Time}
     (rows : TRows p c E rho ΔF) : HealT p c E rho w ΔF :=
   { h1 := tHigh, h2 := tCarrier, rows := rows }
 
-/-- Blueprint 21 H.22 H2.A–H6:3289–3344; plan J9 C; B13/B17/B31.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.22 H2.A–H6:3289–3344; plan J9 C; B13/B17/B31.
 DC: SAME six AC fields. Each field is a separate named hypothesis;
 the finite-horizon guards remain in H2A and H5RawTransfer. -/
 theorem healing_healAC_of {w : HealingWitness}
@@ -157,7 +164,8 @@ theorem healing_healAC_of {w : HealingWitness}
     HealAC p c E rho w :=
   { h2A := h2A, h2' := h2Prime, h3 := h3, h4 := h4, h5 := h5, h6 := h6 }
 
-/-- Blueprint 21 H.18:3073–3095, H.22; plan J9 D; B1/B13/B17.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.18:3073–3095, H.22; plan J9 D; B1/B13/B17.
 DC: SAME HealingInput fields. H.18 must supply sourcePrefix. Only this
 constructor uses PostResetStart and its full-H0 adapter. -/
 theorem healing_healingInput_of {w : HealingWitness} {ΔF : Time}

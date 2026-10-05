@@ -9,7 +9,8 @@ public section
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
 
-/-- ROOT-DIGEST W2b. Erasure preserves identity and order on all FG blocks, hence on run blocks.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Erasure preserves identity and order on all FG blocks, hence on run blocks.
 This uses the existing derived-root carrier lemmas. -/
 theorem fgsa_carrier_geometry {n : Nat} (X Y : FGBlock (Fin n)) :
     (eraseFG X = eraseFG Y → X = Y) ∧
@@ -21,7 +22,8 @@ theorem fgsa_carrier_geometry {n : Nat} (X Y : FGBlock (Fin n)) :
   intro h
   exact eraseFG_preceq_iff.mp h
 
-/-- DC counterpart: none (row decoding helper).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+DC counterpart: none (row decoding helper).
 A decoded row has the FG seat authentication of its signer. -/
 theorem row_auth_of_toRow {n : Nat} (a : RowWire n) (u : Row (Fin n))
     (hau : a.toRow? = some u) : a.auth = .seat .fg u.signer := by
@@ -37,24 +39,26 @@ theorem row_auth_of_toRow {n : Nat} (a : RowWire n) (u : Row (Fin n))
             Option.some.inj hau
           exact by rw [← he]
 
-/-- DC counterpart: none (shared stored-wire delivery step).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+DC counterpart: none (shared stored-wire delivery step).
 A stored non-genesis block at any node has a proposal delivered before the read. -/
 theorem stored_block_wire_delivery (p : Params) {In V : Type} [DecidableEq V]
     (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (e : Nat) (x : V) (W : FGBlock (Fin p.n))
     (hW : W ∈ (storeAt p c E rho e x).fg.TF) (hne : W ≠ .genesis) :
-    ∃ slot raw sup wires, W.rows = wires.filterMap RowWire.toRow? ∧
+    ∃ slot N, N.erase = eraseFG W ∧ W.rows = N.rows.filterMap RowWire.toRow? ∧
       ∃ j o t, j < e ∧ rho.events[j]? = some (.deliver x o t) ∧
-        o = ofWire p ⟨.proposer slot, .proposal (eraseFG W) raw sup wires⟩ := by
+        o = ofWire p ⟨.proposer slot, .proposal N⟩ := by
   have hs := storeBundle_stateBefore E rho e x
-  obtain ⟨slot, raw, sup, wires, hw, hr⟩ :=
+  obtain ⟨slot, N, hw, heN, hr⟩ :=
     stored_wire_of_block p _ hs.cstore hs.«meta» hW hne
   obtain ⟨j, o, t, hje, hd, ho, _, _⟩ := stored_proposal_delivered E rho e x _ hw
-  refine ⟨slot, raw, sup, wires, hr, j, o, t, hje, hd, ?_⟩
+  refine ⟨slot, N, heN, hr, j, o, t, hje, hd, ?_⟩
   apply toWire_injective
   rw [toWire_ofWire, ho]
 
-/-- ROOT-DIGEST W2b. DC counterpart: none (stored-chain delivery refinement).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. DC counterpart: none (stored-chain delivery refinement).
 Every stored-chain row at any node has an authenticated wire from a delivered proposal.
 T7.5 supplies the stored wire and its delivery; unforgeability supplies the
 honest holder's emission. No schedule or execution-validity premise is needed. -/
@@ -78,9 +82,9 @@ theorem stored_chain_row_origin_delivery (p : Params) {In V : Type} [DecidableEq
       change u ∈ rows.toFinset ∪ chainRows P at hu
       rcases (Finset.mem_union.mp hu).symm with hu | hu
       · exact ih (hs.cstore.fg.closed _ held) u hu
-      · obtain ⟨slot, raw, sup, wires, hr, j, o, t, hje, hd, he⟩ :=
+      · obtain ⟨slot, N, _, hr, j, o, t, hje, hd, he⟩ :=
           stored_block_wire_delivery p c E rho e x _ held (by intro h; cases h)
-        change rows = wires.filterMap RowWire.toRow? at hr
+        change rows = N.rows.filterMap RowWire.toRow? at hr
         have hur : u ∈ rows := List.mem_toFinset.mp hu
         rw [hr] at hur
         obtain ⟨a, ha, hau⟩ := List.mem_filterMap.mp hur
@@ -114,7 +118,8 @@ theorem stored_chain_row_origin_delivery (p : Params) {In V : Type} [DecidableEq
           rw [Option.some.inj hh]
           exact hzh
 
-/-- Every held-chain row has an authenticated wire from a delivered proposal.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Every held-chain row has an authenticated wire from a delivered proposal.
 T7.5 supplies the stored wire and its delivery; unforgeability supplies the
 honest holder's emission. No schedule or execution-validity premise is needed.
 The honest-node component of hW is retained by HeldAt and is not used.
@@ -130,7 +135,8 @@ theorem held_chain_row_origin_delivery (p : Params) {In V : Type} [DecidableEq V
           ∃ j, HonestRowAt p c E rho j z r a ∧ p.actionTime r ≤ t :=
   stored_chain_row_origin_delivery p c E rho hU e x W hW.2
 
-/-- The scheduled origin keeps the delivery index and the earlier honest row.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The scheduled origin keeps the delivery index and the earlier honest row.
 The schedule is used only to turn emission time order into event index order. -/
 theorem held_chain_row_origin_before (p : Params) {In V : Type} [DecidableEq V]
     (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -149,7 +155,8 @@ theorem held_chain_row_origin_before (p : Params) {In V : Type} [DecidableEq V]
   obtain ⟨j, hj, ht⟩ := he z hz hzh
   exact ⟨⟨j, (V2.D.Engine.tick_index_lt_delivery E rho hs hj.2.1 hk ht).trans hke, hj⟩, ht⟩
 
-/-- The original schedule-free origin is a projection of the delivery producer. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The original schedule-free origin is a projection of the delivery producer. -/
 theorem held_chain_row_origin (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hU : V2.D.UnforgeableSignatures E rho)

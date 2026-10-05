@@ -11,35 +11,38 @@ open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- Blueprint 21:1142–1171; plan S20, H-PHASE/P2. DC: SAME decoded block identity. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1142–1171; plan S20, H-PHASE/P2. DC: SAME decoded block identity. -/
 private theorem phase_block_decode {o : Obj p} {b : Block} (h : blockOf? p o = some b) :
-    ∃ s raw sup rows, (toWire p o).decode = some (.block s b raw sup rows) := by
+    ∃ s N, (toWire p o).decode = some (.block s N) ∧ N.erase = b := by
   dsimp only [blockOf?] at h
   cases hd : (toWire p o).decode with
   | none => simp only [hd, reduceCtorEq] at h
   | some msg =>
     cases msg <;> simp only [hd, reduceCtorEq, Option.some.injEq] at h
     subst b
-    exact ⟨_, _, _, _, rfl⟩
+    exact ⟨_, _, rfl, rfl⟩
 
-/-- ROOT-DIGEST W2b. Blueprint 21:1142–1171; plan S20, H-PHASE/P2.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21:1142–1171; plan S20, H-PHASE/P2.
 DC: INTENTIONAL a processed FG wire identifies the same cumulative block. -/
 private theorem phase_processed_mem (hnr : V2.D.NoRestart rho) {k j : Nat} {x : V} {o : Obj p}
     {B : FGBlock (Fin p.n)} (hb : blockOf? p o = some (eraseFG B))
     (hp : (fgsa p c).processed (V2.D.Run.stateBefore E rho j x) o = true)
     (hjk : j ≤ k) (hB : B ∈ (storeAt p c E rho k x).fg.TF) :
     B ∈ (storeAt p c E rho j x).fg.TF := by
-  obtain ⟨s, raw, sup, rows, hd⟩ := phase_block_decode p hb
+  obtain ⟨s, N, hd, heN⟩ := phase_block_decode p hb
   change processedS p (storeAt p c E rho j x) o = true at hp
   dsimp only [processedS] at hp
   rw [hd] at hp
   obtain ⟨Y, hY, he⟩ := of_decide_eq_true hp
   have heq : Y = B := (cstoreInv_stateBefore E rho k x).rootInj Y
     ((fgsa_store_cumulative p c E rho hnr hjk x).1 hY) B hB
-    (he.trans (eraseFG_root B))
+    (by rw [← named_erase_root, heN] at he; exact he.trans (eraseFG_root B))
   exact heq ▸ hY
 
-/-- ROOT-DIGEST W2b. Blueprint 21:1142–1171; plan S20, H-PHASE/P2.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21:1142–1171; plan S20, H-PHASE/P2.
 DC: INTENTIONAL new cumulative membership supplies the exact acceptance event. -/
 private theorem phase_new_accept (hnr : V2.D.NoRestart rho)
     {i : Nat} {ev : V2.Event V (Obj p)} {x : V} {W : FGBlock (Fin p.n)}
@@ -71,7 +74,8 @@ private theorem phase_new_accept (hnr : V2.D.NoRestart rho)
     exact ⟨o, hb, htime ▸ ha⟩
 
 omit [DecidableEq V] in
-/-- Blueprint 21:1142–1171; plan S20, H-PHASE/P2.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1142–1171; plan S20, H-PHASE/P2.
 DC: SAME an inclusive time cut contains every strict earlier receipt. -/
 theorem healing_phase_idx_le_time {d t : Time} (hdt : d ≤ t) :
     V2.D.Run.idxBefore rho d ≤ timeIdx rho t := by
@@ -81,7 +85,8 @@ theorem healing_phase_idx_le_time {d t : Time} (hdt : d ≤ t) :
   exact List.countP_mono_left (fun e _ he =>
     decide_eq_true ((of_decide_eq_true he).le.trans hdt))
 
-/-- ROOT-DIGEST W2b. Blueprint 21:1142–1171; plan S20, H-PHASE/P2.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21:1142–1171; plan S20, H-PHASE/P2.
 DC: INTENTIONAL block relay uses Δ; the frontier-rise alternative ends the task.
 Assembly supplies RXing. The accepted W certificate bounds the receiver's F. -/
 theorem healing_phase_block_receipt (crossing : RXing p c E rho)
@@ -110,8 +115,8 @@ theorem healing_phase_block_receipt (crossing : RXing p c E rho)
     · exact Or.inr hrise
     left
     obtain ⟨o, hb, ha⟩ := phase_new_accept p c E rho hnr hi hbefore hafter
-    obtain ⟨s, raw, sup, rows, hd⟩ := phase_block_decode p hb
-    have ho : o = ofWire p ⟨.proposer s, .proposal (eraseFG W) raw sup rows⟩ := by
+    obtain ⟨s, N, hd, heN⟩ := phase_block_decode p hb
+    have ho : o = ofWire p ⟨.proposer s, .proposal N⟩ := by
       apply toWire_injective
       rw [toWire_ofWire]
       exact decode_eq_block.mp hd
@@ -133,19 +138,20 @@ theorem healing_phase_block_receipt (crossing : RXing p c E rho)
     have hD := Gen.V2.Duty.deliveryWithinOn_of_partialSynchronyBy E rho hsync
       (fun o => ¬ isRowObject o) p.Δ delay
     have hT : Gen.V2.Duty.Trigger E rho
-        (ofWire p ⟨.proposer s, .proposal (eraseFG W) raw sup rows⟩) ev.time :=
+        (ofWire p ⟨.proposer s, .proposal N⟩) ev.time :=
       Or.inr ⟨x, hx, i, ho ▸ ha⟩
     have hdline : max ev.time E.t_GST + p.Δ = ev.time + p.Δ :=
       congrArg (· + p.Δ) (max_eq_left hgst)
     obtain ⟨Y, hY, he⟩ := fgsa_proposal_receipt (hRoots := hroots) E rho hdelta hvalid hnr
-      (fun t => max t E.t_GST + p.Δ) rho.horizon s (eraseFG W) raw sup rows ev.time y
+      (fun t => max t E.t_GST + p.Δ) rho.horizon s N ev.time y
       hD hT hy (hdline ▸ hhor) (hdline ▸ (lt_add_of_pos_right _ p.deltaPos))
-      (hdline ▸ hcompat)
-    have heq : Y = W := eraseFG_injective he
+      (by simpa only [heN, hdline] using hcompat)
+    have heq : Y = W := eraseFG_injective (he.trans heN)
     rw [hdline, ← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs, heq] at hY
     exact hY
 
-/-- Blueprint 21:1155–1163; plan S20, H-PHASE/P2.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1155–1163; plan S20, H-PHASE/P2.
 DC: INTENTIONAL strict receipt stamps enter the frozen HEAD arm at equality. -/
 private theorem phase_frozen_mem (hs : V2.D.ScheduleWellFormed E rho)
     (hnr : V2.D.NoRestart rho) {y : V} {W : FGBlock (Fin p.n)} {d : Time}
@@ -214,7 +220,8 @@ private theorem phase_frozen_mem (hs : V2.D.ScheduleWellFormed E rho)
       rw [he]
       exact hstamp.trans_le hdf
 
-/-- ROOT-DIGEST W2b. Blueprint 21:1142–1171, 1270–1274; plan S20, H-PHASE/P2.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21:1142–1171, 1270–1274; plan S20, H-PHASE/P2.
 DC: INTENTIONAL strict Δ relay and the live-store/frozen-HEAD split.
 This is the second frozen RPhase clause. Standalone row spread is separate at ΔF. -/
 theorem healing_evidence_spread (crossing : RXing p c E rho)
@@ -270,7 +277,8 @@ theorem healing_evidence_spread (crossing : RXing p c E rho)
         linarith
     · exact Or.inl ⟨_, hij, healing_phase_idx_le_time p c rho hdt, hrise⟩
 
-/-- Blueprint 21:1125–1132; plan S20, H-PHASE/P2, using H-BASE/HB4.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1125–1132; plan S20, H-PHASE/P2, using H-BASE/HB4.
 DC: INTENTIONAL standalone phase rows use the independent ΔF deadline.
 All selected rows reach every honest node, including rows sent before GST. -/
 theorem healing_phase_rows_spread (ΔF : Time)
@@ -286,7 +294,8 @@ theorem healing_phase_rows_spread (ΔF : Time)
 
 
 omit [DecidableEq V] in
-/-- Blueprint 21:1142–1171; plan S20, H-PHASE r2/P3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1142–1171; plan S20, H-PHASE r2/P3.
 DC: SAME a later strict cut contains every earlier strict receipt. -/
 theorem healing_phase_idxBefore_mono {d d' : Time} (hdd : d ≤ d') :
     V2.D.Run.idxBefore rho d ≤ V2.D.Run.idxBefore rho d' := by
@@ -297,7 +306,8 @@ theorem healing_phase_idxBefore_mono {d d' : Time} (hdd : d ≤ d') :
     decide_eq_true ((of_decide_eq_true he).trans_le hdd))
 
 omit [DecidableEq V] in
-/-- Blueprint 21:1155–1163; plan S20, H-PHASE r2/P3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1155–1163; plan S20, H-PHASE r2/P3.
 DC: SAME an event at or before t lies before the inclusive cut at t. -/
 theorem healing_phase_lt_timeIdx (hs : V2.D.ScheduleWellFormed E rho)
     {k : Nat} {e : V2.Event V (Obj p)} (hk : rho.events[k]? = some e) {t : Time}
@@ -310,7 +320,8 @@ theorem healing_phase_lt_timeIdx (hs : V2.D.ScheduleWellFormed E rho)
   exact List.countP_mono_left (fun e _ he =>
     decide_eq_true (Int.lt_add_one_iff.mp (of_decide_eq_true he)))
 
-/-- Blueprint 21:1193–1209; plan S20, H-PHASE r2/P3. DC: SAME cumulative cache bound. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1193–1209; plan S20, H-PHASE r2/P3. DC: SAME cumulative cache bound. -/
 private theorem phase_hmax_mono (hnr : V2.D.NoRestart rho) {i j : Nat} (hij : i ≤ j) (x : V) :
     (storeAt p c E rho i x).fg.h_max ≤ (storeAt p c E rho j x).fg.h_max := by
   have hi : KitFG.FGStoreInvariant (heightView p) (finalityView p)
@@ -320,13 +331,15 @@ private theorem phase_hmax_mono (hnr : V2.D.NoRestart rho) {i j : Nat} (hij : i 
   rw [hi.hmax, hj.hmax]
   exact sup_le_sup_right (Finset.sup_mono (fgsa_store_cumulative p c E rho hnr hij x).1) 1
 
-/-- Blueprint 21:1193–1209; plan S20, H-PHASE r2/P3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1193–1209; plan S20, H-PHASE r2/P3.
 DC: SAME the global frontier does not fall in a restart-free run. -/
 theorem healing_frontier_mono (hnr : V2.D.NoRestart rho) {i j : Nat} (hij : i ≤ j) :
     frontierAtIdx p c E rho i ≤ frontierAtIdx p c E rho j :=
   Finset.sup_mono_fun (fun x _ => phase_hmax_mono p c E rho hnr hij x)
 
-/-- ROOT-DIGEST W2b. Blueprint 21:1142–1171; plan S20, H-PHASE r2/P3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21:1142–1171; plan S20, H-PHASE r2/P3.
 DC: INTENTIONAL a held carrier is relayed by max(t, GST) + Δ.
 The carrier can be accepted before GST. Assembly supplies RXing.
 The frontier cap at the deadline gives the receiver's F compatibility. -/
@@ -361,8 +374,8 @@ theorem healing_phase_held_receipt (crossing : RXing p c E rho)
       lt_of_le_of_lt (Nat.lt_succ_iff.mp hl)
         ((Gen.V2.Duty.index_lt_idxBefore_iff hs hi _).mpr (Int.lt_add_one_iff.mpr le_rfl))
     exact Int.lt_add_one_iff.mp ((Gen.V2.Duty.index_lt_idxBefore_iff hs hd _).mp hil)
-  obtain ⟨s, raw, sup, rows, hdec⟩ := phase_block_decode p hb
-  have ho : o = ofWire p ⟨.proposer s, .proposal (eraseFG W) raw sup rows⟩ := by
+  obtain ⟨s, N, hdec, heN⟩ := phase_block_decode p hb
+  have ho : o = ofWire p ⟨.proposer s, .proposal N⟩ := by
     apply toWire_injective
     rw [toWire_ofWire]
     exact decode_eq_block.mp hdec
@@ -389,14 +402,14 @@ theorem healing_phase_held_receipt (crossing : RXing p c E rho)
   have hD := Gen.V2.Duty.deliveryWithinOn_of_partialSynchronyBy E rho hsync
     (fun o => ¬ isRowObject o) p.Δ delay
   have hT : Gen.V2.Duty.Trigger E rho
-      (ofWire p ⟨.proposer s, .proposal (eraseFG W) raw sup rows⟩) t :=
+      (ofWire p ⟨.proposer s, .proposal N⟩) t :=
     Or.inr ⟨x, hx, l, ho ▸ ha⟩
   have hlt : t < max t E.t_GST + p.Δ :=
     lt_add_of_le_of_pos (le_max_left _ _) p.deltaPos
   obtain ⟨Y, hY, he⟩ := fgsa_proposal_receipt (hRoots := hroots) E rho hdelta hvalid hnr
-    (fun t => max t E.t_GST + p.Δ) rho.horizon s (eraseFG W) raw sup rows t y
-    hD hT hy (hdl.trans hhor) hlt hcompat
-  have heq : Y = W := eraseFG_injective he
+    (fun t => max t E.t_GST + p.Δ) rho.horizon s N t y
+    hD hT hy (hdl.trans hhor) hlt (by simpa only [heN] using hcompat)
+  have heq : Y = W := eraseFG_injective (he.trans heN)
   rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs, heq] at hY
   exact (fgsa_store_cumulative p c E rho hnr hj' y).1 hY
 

@@ -15,7 +15,8 @@ open AvailableChain.SimplexFG
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- Blueprint 21:1695–1720; S5 F2, saved-seed rise tail.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1695–1720; S5 F2, saved-seed rise tail.
 DC: SAME use capped HG.2a_F with the actual saved entry and first opening.
 No phase after the saved gate or horizon beyond the frozen rise guard is assumed. -/
 theorem healing_frontierTail_rise_of_seed [Fintype V] (E : Generic.Env V)
@@ -78,7 +79,8 @@ theorem healing_frontierTail_rise_of_seed [Fintype V] (E : Generic.Env V)
   · exact frontierSearch_rise_of_receipt p c E rho hs hrec.base.noRestart hstart
       hy hh hheld hD
 
-/-- Blueprint 21:1695–1720; S5 F2, HG.4 rise.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1695–1720; S5 F2, HG.4 rise.
 DC: SAME use capped HG.2a_F with the actual saved entry and first opening.
 No phase after the saved gate or horizon beyond the frozen rise guard is assumed. -/
 theorem healing_frontierTail_rise [Fintype V] (E : Generic.Env V)
@@ -103,7 +105,8 @@ theorem healing_frontierTail_rise [Fintype V] (E : Generic.Env V)
   exact healing_frontierTail_rise_of_seed E rho hrec hδ hbound crossing frontier
     rowsReceipt progressCoverage hfold faultQ honestQuorum hf.le hserved hhor
 
-/-- Blueprint 21:1695–1720; S5 F2, full HG.4.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1695–1720; S5 F2, full HG.4.
 DC: SAME combine the capped rise and run-1 exact-height row under their separate guards. -/
 theorem healing_frontierTail [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
@@ -112,16 +115,17 @@ theorem healing_frontierTail [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     (rowCoverage : ∀ x, x ∈ rho.honest → ∀ r nd,
       postClock E rho x (p.actionTime r) = some nd → ∀ C,

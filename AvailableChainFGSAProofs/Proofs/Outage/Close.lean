@@ -75,7 +75,8 @@ variable (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
 
 include hstore hframe hsrc htsrc hnamed hordered hnonempty htransfer hbelow hleaseOrigin
   hsavedKeep hsOrigin hmono hcleanGate in
-/-- ROOT-DIGEST W2b. Blueprint 03 §§6–9; O-INDUCT plan §9.1–2. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 03 §§6–9; O-INDUCT plan §9.1–2. Class (iii).
 DC: INTENTIONAL; split on the canonical pending gate before calling its
 boundary producer. INLINE Foundations inputs: activeViewAt, frameAt,
 SrcFrameAbove, tSrc, emittedName. INLINE Clean inputs: cleanHistoryAt,
@@ -88,8 +89,8 @@ theorem outage_protected_read (h : OutagePrem p c fast E rho pt ΔF)
     (∀ y t, y ∈ rho.honest → pt.b₀ ≤ t → t < pt.b₁ →
       Block.Preceq B (S_at p c E rho (timeIdx rho t) y)) ∧
     (∀ y t o, y ∈ rho.honest → pt.b₀ ≤ t → t < pt.b₁ → V2.D.Run.emits E rho y o t →
-      (∀ H, o.payload = .head H → Block.Preceq B H) ∧
-      (∀ X raw sup rows, o.payload = .proposal X raw sup rows → Block.Preceq B X.parent)) ∧
+      (∀ H, HeadTargetAtEmission p c E rho y o t H → Block.Preceq B H) ∧
+      (∀ N, o.payload = .proposal N → Block.Preceq B N.parent.erase)) ∧
     (∀ t y, 0 ≤ t → t < pt.b₁ → y ∈ rho.honest →
       Block.Compatible B (F_at p c E rho (timeIdx rho t) y)) ∧
     (∀ t y, SA.gateTime p.toParams (((pt.b₀ - 6 * p.Δ) / (4 * p.Δ)).toNat + 1) ≤ t →
@@ -159,7 +160,8 @@ theorem outage_protected_read (h : OutagePrem p c fast E rho pt ΔF)
       exact (not_lt_of_ge (hbd.trans hdt) htb).elim
 
 omit [Fintype V] in
-/-- O-INDUCT plan §9.1 public-read conversion. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+O-INDUCT plan §9.1 public-read conversion. Class (iii).
 DC: INTENTIONAL; finalizedOut uses the same inclusive prefix as S. -/
 theorem outage_finalized_read (hs : V2.D.ScheduleWellFormed E rho) (y : V) (t : Time) :
     V2.D.outputAt E rho finalizedOut y t = F_at p c E rho (timeIdx rho t) y := by
@@ -169,7 +171,8 @@ theorem outage_finalized_read (hs : V2.D.ScheduleWellFormed E rho) (y : V) (t : 
 
 include hstore hframe hsrc htsrc hnamed hordered hnonempty htransfer hbelow hleaseOrigin
   hsavedKeep hsOrigin hmono hcleanGate in
-/-- ROOT-DIGEST W2b. Blueprint 03 §9; O-INDUCT plan §9.2. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 03 §9; O-INDUCT plan §9.2. Class (iii).
 DC: INTENTIONAL; the exact expanded OutageCompat body. All cross-lane
 facts stay inline and have the producers listed on outage_protected_read. -/
 theorem outage_compat_body (h : OutagePrem p c fast E rho pt ΔF)
@@ -181,8 +184,8 @@ theorem outage_compat_body (h : OutagePrem p c fast E rho pt ΔF)
     (∀ x B, x ∈ rho.honest →
       Block.Preceq B (V2.D.outputAt E rho (fgsaInterface p c).stable x pt.T) →
       (∀ y t o, y ∈ rho.honest → pt.b₀ ≤ t → t < pt.b₁ → V2.D.Run.emits E rho y o t →
-        (∀ H, o.payload = .head H → Block.Preceq B H) ∧
-        (∀ X raw sup rows, o.payload = .proposal X raw sup rows → Block.Preceq B X.parent)) ∧
+        (∀ H, HeadTargetAtEmission p c E rho y o t H → Block.Preceq B H) ∧
+        (∀ N, o.payload = .proposal N → Block.Preceq B N.parent.erase)) ∧
       (∀ t y, 0 ≤ t → t < pt.b₁ → y ∈ rho.honest →
         Block.Compatible B (V2.D.outputAt E rho finalizedOut y t)))) ∧
     (∀ x B, x ∈ rho.honest →
@@ -230,7 +233,7 @@ theorem outage_compat_body (h : OutagePrem p c fast E rho pt ΔF)
         refine ⟨?_, ?_⟩
         · intro y t o hy hbt htb hem
           exact ⟨fun H _ => block_genesis_preceq H,
-            fun X raw sup rows _ => block_genesis_preceq X.parent⟩
+            fun N _ => block_genesis_preceq N.parent.erase⟩
         · intro t y h0 htb hy
           exact block_compatible_of_common (block_genesis_preceq _) (block_preceq_refl _)
       · have hp := outage_protected_read (hstrat := hstrat) (hstore := hstore)
@@ -269,7 +272,8 @@ theorem outage_compat_body (h : OutagePrem p c fast E rho pt ΔF)
 
 include hstore hframe hsrc htsrc hnamed hordered hnonempty htransfer hbelow hleaseOrigin
   hsOrigin hmono hcleanGate in
-/-- ROOT-DIGEST W2b. Blueprint 03 §9.1; O-INDUCT plan §9.3. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 03 §9.1; O-INDUCT plan §9.3. Class (iii).
 DC: INTENTIONAL; the exact expanded FastP1 body returns the P1 pair. -/
 theorem fast_p1_body (h : OutagePrem p c true E rho pt ΔF)
     (hstrat : RStrat p c E rho) :
@@ -280,8 +284,8 @@ theorem fast_p1_body (h : OutagePrem p c true E rho pt ΔF)
     (∀ x B, x ∈ rho.honest →
       Block.Preceq B (V2.D.outputAt E rho (fgsaInterface p c).stable x pt.T) →
       (∀ y t o, y ∈ rho.honest → pt.b₀ ≤ t → t < pt.b₁ → V2.D.Run.emits E rho y o t →
-        (∀ H, o.payload = .head H → Block.Preceq B H) ∧
-        (∀ X raw sup rows, o.payload = .proposal X raw sup rows → Block.Preceq B X.parent)) ∧
+        (∀ H, HeadTargetAtEmission p c E rho y o t H → Block.Preceq B H) ∧
+        (∀ N, o.payload = .proposal N → Block.Preceq B N.parent.erase)) ∧
       (∀ t y, 0 ≤ t → t < pt.b₁ → y ∈ rho.honest →
         Block.Compatible B (V2.D.outputAt E rho finalizedOut y t))) := by
   exact (outage_compat_body (hstrat := hstrat) (fast := true) (hstore := hstore)
@@ -301,7 +305,8 @@ theorem fast_p1_body (h : OutagePrem p c true E rho pt ΔF)
 
 include hstore hframe hsrc htsrc hnamed hordered hnonempty htransfer hbelow hleaseOrigin
   hsOrigin hmono hcleanGate in
-/-- ROOT-DIGEST W2b. Blueprint 03 §9.2; O-INDUCT plan §9.4. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 03 §9.2; O-INDUCT plan §9.4. Class (iii).
 DC: INTENTIONAL; the exact expanded SlowP1 body retains the lease field. -/
 theorem slow_p1_body
     (hsavedKeepSlow : ∀ i y, i ≤ timeIdx rho pt.b₀ → y ∈ rho.honest →
@@ -317,8 +322,8 @@ theorem slow_p1_body
     (∀ x B, x ∈ rho.honest →
       Block.Preceq B (V2.D.outputAt E rho (fgsaInterface p c).stable x pt.T) →
       (∀ y t o, y ∈ rho.honest → pt.b₀ ≤ t → t < pt.b₁ → V2.D.Run.emits E rho y o t →
-        (∀ H, o.payload = .head H → Block.Preceq B H) ∧
-        (∀ X raw sup rows, o.payload = .proposal X raw sup rows → Block.Preceq B X.parent)) ∧
+        (∀ H, HeadTargetAtEmission p c E rho y o t H → Block.Preceq B H) ∧
+        (∀ N, o.payload = .proposal N → Block.Preceq B N.parent.erase)) ∧
       (∀ t y, 0 ≤ t → t < pt.b₁ → y ∈ rho.honest →
         Block.Compatible B (V2.D.outputAt E rho finalizedOut y t)))) ∧
     (∀ x B, x ∈ rho.honest →

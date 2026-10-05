@@ -11,13 +11,14 @@ open AvailableChain.SimplexFG
 
 variable {p : Params} {In : Type} {c : AppCodec In}
 
-/-- An object that does not decode as a block has no dependencies. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+An object that does not decode as a block has no dependencies. -/
 theorem depsS_of_not_block (st : State p.n) (o : Obj p)
-    (hNotBlock : ∀ s b raw sup rows,
-      (toWire p o).decode ≠ some (.block s b raw sup rows)) :
+    (hNotBlock : ∀ s N,
+      (toWire p o).decode ≠ some (.block s N)) :
     depsS p st o = true := by
   change (match (toWire p o).decode with
-    | some (.block _ b _ _ _) => (parentFG st b).isSome
+    | some (.block _ N) => namedParentHeld st N && (parentFG st N.erase).isSome
     | _ => true) = true
   cases hd : (toWire p o).decode with
   | none => rfl
@@ -25,22 +26,24 @@ theorem depsS_of_not_block (st : State p.n) (o : Obj p)
     cases m with
     | vote s i b => rfl
     | row i body => rfl
-    | block s b raw sup rows => exact False.elim (hNotBlock s b raw sup rows hd)
+    | block s N => exact False.elim (hNotBlock s N hd)
 
-/-- A non-proposal payload has no dependencies, for any authentication. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+A non-proposal payload has no dependencies, for any authentication. -/
 theorem depsS_of_not_proposal (st : State p.n) (o : Obj p)
-    (hNotProposal : ∀ b raw sup rows, o.payload ≠ .proposal b raw sup rows) :
+    (hNotProposal : ∀ N, o.payload ≠ .proposal N) :
     depsS p st o = true := by
   apply depsS_of_not_block st o
-  intro s b raw sup rows hd
+  intro s N hd
   have hp := congrArg Signed.payload (decode_eq_block.mp hd)
-  exact hNotProposal b raw sup rows hp
+  exact hNotProposal N hp
 
 variable {V : Type} [DecidableEq V]
     {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     {dl : Time → Time} {t : Time} {w : V} {o : Obj p}
 
-/-- The delivery wire check supplies well-formedness of each handled child. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The delivery wire check supplies well-formedness of each handled child. -/
 theorem fgsa_hWF_of_delivery
     (hWire : ∀ (i : Nat) (v : V) (o' : Obj p) (t' : Time),
       rho.events[i]? = some (.deliver v o' t') →
@@ -51,10 +54,11 @@ theorem fgsa_hWF_of_delivery
   obtain ⟨o', he, hh⟩ := hh
   exact handles_wellFormed p c _ o' o hh (hWire i w o' t' he)
 
-/-- Readiness before the deadline for an object that does not decode as a block. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Readiness before the deadline for an object that does not decode as a block. -/
 theorem fgsa_hReady_of_not_block
-    (hNotBlock : ∀ s b raw sup rows,
-      (toWire p o).decode ≠ some (.block s b raw sup rows))
+    (hNotBlock : ∀ s N,
+      (toWire p o).decode ≠ some (.block s N))
     (hWF : ∀ i t', i < V2.D.Run.idxBefore rho (dl t) → V2.D.Run.handlesAt E rho i w o t' →
       (fgsa p c).wellFormed o = true) :
     ∀ i t', i < V2.D.Run.idxBefore rho (dl t) → V2.D.Run.handlesAt E rho i w o t' →
@@ -63,27 +67,31 @@ theorem fgsa_hReady_of_not_block
   intro i t' hi hh
   exact ⟨hWF i t' hi hh, depsS_of_not_block _ o hNotBlock⟩
 
-/-- Proposal readiness reduces to its FG parent being stored at each handled event. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Proposal readiness reduces to its FG parent being stored at each handled event. -/
 theorem fgsa_hReady_of_parentStored
-    {s : Slot} {b : Block} {raw sup : List (HeadWire p.n)} {rows : List (RowWire p.n)}
-    (hBlock : (toWire p o).decode = some (.block s b raw sup rows))
+    {s : Slot} {N : NamedProposal p.n}
+    (hBlock : (toWire p o).decode = some (.block s N))
     (hWF : ∀ i t', i < V2.D.Run.idxBefore rho (dl t) → V2.D.Run.handlesAt E rho i w o t' →
       (fgsa p c).wellFormed o = true)
     (hParent : ∀ i t', i < V2.D.Run.idxBefore rho (dl t) →
       V2.D.Run.handlesAt E rho i w o t' →
-      (parentFG (V2.D.Run.stateBefore E rho i w).st b).isSome = true) :
+      namedParentHeld (V2.D.Run.stateBefore E rho i w).st N = true ∧
+        (parentFG (V2.D.Run.stateBefore E rho i w).st N.erase).isSome = true) :
     ∀ i t', i < V2.D.Run.idxBefore rho (dl t) → V2.D.Run.handlesAt E rho i w o t' →
       (fgsa p c).wellFormed o = true ∧
       (fgsa p c).depsPresent (V2.D.Run.stateBefore E rho i w) o = true := by
   intro i t' hi hh
   refine ⟨hWF i t' hi hh, ?_⟩
   change (match (toWire p o).decode with
-    | some (.block _ b' _ _ _) => (parentFG (V2.D.Run.stateBefore E rho i w).st b').isSome
+    | some (.block _ M) => namedParentHeld (V2.D.Run.stateBefore E rho i w).st M &&
+        (parentFG (V2.D.Run.stateBefore E rho i w).st M.erase).isSome
     | _ => true) = true
   rw [hBlock]
-  exact hParent i t' hi hh
+  exact Bool.and_eq_true_iff.mpr (hParent i t' hi hh)
 
-/-- [T7.12 input; lead decision (c)+(iii)] `accepted_by_deadline` for an FG-SA proposal,
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+[T7.12 input; lead decision (c)+(iii)] `accepted_by_deadline` for an FG-SA proposal,
 with `hReady` discharged from `hWF` and the named parent hypothesis `hParent`
 (the K8 dependency-ordering fact). The frozen Gen boundary is used unchanged. -/
 theorem fgsa_accepted_by_deadline_of_parentStored
@@ -92,13 +100,14 @@ theorem fgsa_accepted_by_deadline_of_parentStored
     {Timely : (fgsa p c).State → (fgsa p c).Object → Prop}
     {Inv : (fgsa p c).State → Prop}
     (dl : Time → Time) (cut : Time) (o : Obj p) (t : Time) (w : V)
-    {s : Slot} {b : Block} {raw sup : List (HeadWire p.n)} {rows : List (RowWire p.n)}
-    (hBlock : (toWire p o).decode = some (.block s b raw sup rows))
+    {s : Slot} {N : NamedProposal p.n}
+    (hBlock : (toWire p o).decode = some (.block s N))
     (hWF : ∀ i t', i < V2.D.Run.idxBefore rho (dl t) → V2.D.Run.handlesAt E rho i w o t' →
       (fgsa p c).wellFormed o = true)
     (hParent : ∀ i t', i < V2.D.Run.idxBefore rho (dl t) →
       V2.D.Run.handlesAt E rho i w o t' →
-      (parentFG (V2.D.Run.stateBefore E rho i w).st b).isSome = true)
+      namedParentHeld (V2.D.Run.stateBefore E rho i w).st N = true ∧
+        (parentFG (V2.D.Run.stateBefore E rho i w).st N.erase).isSome = true)
     (hD : Gen.V2.Duty.DeliveryWithin E rho dl cut)
     (hT : Gen.V2.Duty.Trigger E rho o t)
     (hw : w ∈ rho.honest) (hcut : dl t ≤ cut) (hlt : t < dl t)

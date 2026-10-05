@@ -40,7 +40,8 @@ theorem srcFrame_genesis_compatible (B : FGBlock (Fin p.n)) (c₀ : Nat) :
       FGBlock.Preceq .genesis B ∨ FGBlock.Preceq B .genesis :=
   fun _ => Or.inl (KitFG.genesis_preceq B)
 
-/-- The store selector is the channel's deepest member of X_r ∩ D(Σ.T). -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The store selector is the channel's deepest member of X_r ∩ D(Σ.T). -/
 theorem fgSource_eq_jointSource (st : State p.n) :
     FGSA.fgSource p st = jointSource p st := by
   rw [jointSource_def, domainR_def, frameR_def, treeT_def]
@@ -53,46 +54,50 @@ theorem fgSource_eq_jointSource (st : State p.n) :
     Finset.mem_filter, List.mem_toFinset]
   cases leaseOf st (eraseFG B) <;> rfl
 
-/-- ROOT-DIGEST W2b. For a positive slot, propose uses the joint proposer head as parent. -/
+/-- [ROOT-DIGEST-2 W2; DC NamedBlocks] The proposal maps the exact named parent lookup.
+The equation includes the missing-parent case on arbitrary stores. -/
 theorem propose_head (st : State p.n) (s : Slot) (hs : s ≠ 0) :
-    FGSA.propose p st s = some (.proposal
-      (proposalBlock p (proposerHead p st s) s 0
+    FGSA.propose p st s = (namedByErase? st (proposerHead p st s)).map (fun P =>
+      .proposal (namedProposal p P s 0
         ((proposerVotes st s).filterMap liftHead?) ((proposerSupport st s).filterMap liftHead?)
-        (proposalRows p st (proposerHead p st s)))
-      ((proposerVotes st s).filterMap liftHead?) ((proposerSupport st s).filterMap liftHead?)
-      (proposalRows p st (proposerHead p st s))) := by
+        (proposalRows p st (proposerHead p st s)))) := by
   rw [proposerHead_def]
   change (if s = 0 then none else _) = _
   exact ite_eq_right hs
 
-/-- The frame reads only the FG store. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The frame reads only the FG store. -/
 theorem frameR_congr_fg (st st' : State p.n) (h : st.fg = st'.fg) :
     frameR p st = frameR p st' := by
   rw [frameR_def, frameR_def]
   exact congrArg (KitFG.storeControlsView (heightView p)) h
 
-/-- D(X) reads the FG store and X, with no vote-pool input. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+D(X) reads the FG store and X, with no vote-pool input. -/
 theorem domainR_congr_fg (st st' : State p.n) (X : Finset (FGBlock (Fin p.n)))
     (h : st.fg = st'.fg) : domainR p st X = domainR p st' X := by
   rw [domainR_def, domainR_def, frameR_congr_fg p st st' h]
 
-/-- The channel domain equals the fixed-store frame through the height bridge. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The channel domain equals the fixed-store frame through the height bridge. -/
 theorem domainR_eq_storeFrame (st : State p.n) (X : Finset (FGBlock (Fin p.n))) :
     domainR p st X = storeFrame p.E p.cfg st.fg X := by
   rw [domainR_def, frameR_def, controls_eq,
     ← KitFG.filteredFrom_of_bridge p.E p.cfg (heightView p) (heightView_bridge p)]
   rfl
 
-/-- HEAD eligibility uses the live lo relaxation, then score and current slot. -/
-theorem eligible_lo_live (st : State p.n) (raw sup : List (GridCO.Wire p.n)) (B : Block) :
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+HEAD eligibility uses the live lo relaxation, then score and current slot. -/
+theorem eligible_lo_live (st : State p.n) (raw sup : List (GridCO.Wire p.n .root)) (B : Block) :
     FGSA.eligible p st raw sup B =
       (decide (∃ P ∈ st.fg.TF, eraseFG P = B.parent ∧ hOf p.E p.cfg P < (frameR p st).lo) ||
        decide (GridCO.voterCount raw < 2 * GridCO.goldfishScore st.base.blocks raw sup B) ||
        B.slot == st.slot p) := fgsa_eligible_eq p st raw sup B
 
-/-- All five joint selections and the finality triple ignore the own record Λ. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+All five joint selections and the finality triple ignore the own record Λ. -/
 theorem jointSelections_record_irrel (st : State p.n) (Λ Λ' : RecordOnce)
-    (s : Slot) (raw sup : List (GridCO.Wire p.n)) (B : Block) :
+    (s : Slot) (raw sup : List (GridCO.Wire p.n .root)) (B : Block) :
     let nd : Node p := ⟨st, Λ⟩
     let nd' : Node p := ⟨st, Λ'⟩
     (FGSA.liveRoot p nd.st, FGSA.eligible p nd.st raw sup B, jointSource p nd.st,
@@ -103,7 +108,8 @@ theorem jointSelections_record_irrel (st : State p.n) (Λ Λ' : RecordOnce)
 variable {In V : Type} (c : AppCodec In) [DecidableEq V]
     (rho : V2.D.Run V (fgsa p c))
 
-/-- The pre-tick and post-clock reads have the same FG frame.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The pre-tick and post-clock reads have the same FG frame.
 The gate can still change the AC candidates. -/
 theorem frame_postClock (E : Generic.Env V) (x : V) (t : Time) (nd nd' : Node p)
     (hpre : preTick E rho x t = some nd) (hpost : postClock E rho x t = some nd') :
@@ -114,7 +120,8 @@ theorem frame_postClock (E : Generic.Env V) (x : V) (t : Time) (nd nd' : Node p)
   exact frameR_congr_fg p _ _ (FGSA.clock_fg p nd.st t)
 
 omit [DecidableEq V] in
-/-- A holder alone is insufficient: the authentication must be an FG seat. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+A holder alone is insufficient: the authentication must be an FG seat. -/
 theorem rowSigner_iff_holder (a : RowWire p.n) (x : V) : RowSigner p c rho a x ↔
     (∃ i, a.auth = .seat .fg i) ∧ V2.D.Run.holder rho (ofRow p a).auth = some x := by
   rw [RowSigner_def]
@@ -130,7 +137,8 @@ theorem rowSigner_iff_holder (a : RowWire p.n) (x : V) : RowSigner p c rho a x �
     rw [ha] at hx
     exact Option.some.inj hx
 
-/-- Every honest row has fixed FG authentication. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Every honest row has fixed FG authentication. -/
 theorem honestRow_auth (E : Generic.Env V) (h : V2.D.ExecutionValid E rho)
     {j : Nat} {y : V} {r : Nat} {a : RowWire p.n}
     (he : HonestRowAt p c E rho j y r a) : ∃ i, a.auth = .seat .fg i := by
@@ -153,7 +161,8 @@ theorem honestRow_auth (E : Generic.Env V) (h : V2.D.ExecutionValid E rho)
     | head s => cases hv
     | fg => exact ⟨i, rfl⟩
 
-/-- ROOT-DIGEST W2b. An honest signed row is released before its direct or carried handler call.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. An honest signed row is released before its direct or carried handler call.
 The time inequality can be non-strict; tick-before-delivery makes the index strict. -/
 theorem emit_lt_handles (E : Generic.Env V) (h : V2.D.ExecutionValid E rho)
     {j k : Nat} {y x : V} {r : Nat} {a : RowWire p.n}
@@ -181,7 +190,8 @@ theorem emit_lt_handles (E : Generic.Env V) (h : V2.D.ExecutionValid E rho)
   have htime := (V2.Event.tick.inj (Option.some.inj (hj.symm.trans hj'))).2
   exact V2.D.Engine.tick_index_lt_delivery E rho h.toScheduleWellFormed hj hk (htime ▸ hle)
 
-/-- ROOT-DIGEST W2b. P3 §8.7 F2.2; bp02 §§3.1–3.5. Class B channel assembly.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. P3 §8.7 F2.2; bp02 §§3.1–3.5. Class B channel assembly.
 DC counterparts: ChainState/FGRootWitness.lean:327,493 and
 Execution/WeakGenesisGSTZeroActionSources.lean:106. The all-entry FJ bundle
 and G1 differ intentionally (TS/spec/fgsa-protocol.tex:2557–2571;
@@ -241,7 +251,8 @@ theorem cpPrefix_of_srcFrame (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   · rw [hcontrols, heightView_eq_simplex p]
     exact hlo
 
-/-- ROOT-DIGEST W2b. P3 §8.7 F2.2; bp02 §3.4 and P3 App. A.3 CPCompat. Class B.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. P3 §8.7 F2.2; bp02 §3.4 and P3 App. A.3 CPCompat. Class B.
 DC counterpart: ChainState/FGRootWitness.lean:548 concludes root
 compatibility only. Retention and EVERY contest witness are intentional FJ
 extensions (TS/spec/fgsa-protocol.tex:2557–2571; TS/log.md:1475). G1 is explicit. -/
@@ -297,7 +308,8 @@ theorem cpCompat_of_srcFrame (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
         hjust B hJ hcross
 
 
-/-- ROOT-DIGEST W2b. The compatibility proof consumes names only for scoped entries. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. The compatibility proof consumes names only for scoped entries. -/
 theorem cpCompat_of_scopedFrame (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hstore : RStore p c E rho) (hframe : RFrameExact p c E rho)
     (hstrat : RStrat p c E rho) : ∀ i x (B : FGBlock (Fin p.n)), x ∈ rho.honest →
@@ -366,7 +378,8 @@ theorem cpCompat_of_scopedFrame (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)
       p.E (KitFG.simplexHeightView p.E p.cfg) hcert (finalityView p) st.fg hinv
         hjust B hJ hcross
 
-/-- ROOT-DIGEST W2b. Plan item 4. DC: INTENTIONAL exact retained entry, then prefix coverage.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Plan item 4. DC: INTENTIONAL exact retained entry, then prefix coverage.
 This is the pure window_finality_of_cover adapter; genesis is excluded. -/
 theorem pendingFold_consume_W (p : Params) (y : Nat) (U X : FGBlock (Fin p.n))
     (h : PendingFold_W p y U X) :
@@ -382,7 +395,8 @@ theorem pendingFold_consume_W (p : Params) (y : Nat) (U X : FGBlock (Fin p.n))
       simpa only [hj, hX] using
         Window.window_finality_of_cover p p.K_W p.kWLarge P s root body rows e he Q hQ hc
 
-/-- ROOT-DIGEST W2b. DC: INTENTIONAL separate prior coverage, extended by W monotonicity. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. DC: INTENTIONAL separate prior coverage, extended by W monotonicity. -/
 theorem covered_parent_W (p : Params) (y : Nat) (U X : FGBlock (Fin p.n))
     (h : Window.CoveredW p X.parent y U) : Window.CoveredW p X y U := by
   have path : FGBlock.Preceq X.parent X := by
@@ -392,7 +406,8 @@ theorem covered_parent_W (p : Params) (y : Nat) (U X : FGBlock (Fin p.n))
   exact ⟨h.1.trans (Window.window_hF_mono p p.K_W p.kWLarge _ _ path),
     KitFG.preceq_trans h.2 (Window.window_F_mono p p.K_W p.kWLarge _ _ path)⟩
 
-/-- Plan item 3 optional corollary. DC: INTENTIONAL prior coverage or a ready key.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan item 3 optional corollary. DC: INTENTIONAL prior coverage or a ready key.
 The complex batch producer remains a contract supplied as hbatch. -/
 theorem finalityBatch_covered_W (p : Params) (ΔF : Time)
     (hbatch : FinalityBatchCoverage_W p ΔF) {In V : Type} [DecidableEq V] [Fintype V]
@@ -404,7 +419,8 @@ theorem finalityBatch_covered_W (p : Params) (ΔF : Time)
   · have hc := pendingFold_consume_W p y U X ⟨child, ready⟩
     exact ⟨hc.2, hc.1⟩
 
-/-- Plan item 5. DC: INTENTIONAL strict β+Δ acceptance with the same receipt.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan item 5. DC: INTENTIONAL strict β+Δ acceptance with the same receipt.
 AcceptBefore_W is the stage-5 contract, not a proved acceptance LAW. -/
 theorem finalizePending_of_acceptBefore_W (p : Params) (ΔF : Time)
     (haccept : AcceptBefore_W p) : FinalizePending_W p ΔF := by

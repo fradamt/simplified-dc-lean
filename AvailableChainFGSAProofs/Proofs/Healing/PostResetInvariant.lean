@@ -15,7 +15,8 @@ open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- Blueprint 21 H.18:2868–2876, H.22:3044–3055; plan "Induction design";
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.18:2868–2876, H.22:3044–3055; plan "Induction design";
 B1/B17. Full H0 without the derived source_prefix field. -/
 structure PostResetStart (w : HealingWitness) : Prop extends H0Reset p c E rho w where
   proposal_lower : w.sStar + 2 ≤ w.u
@@ -24,7 +25,8 @@ structure PostResetStart (w : HealingWitness) : Prop extends H0Reset p c E rho w
     HonestProposal E rho (fgsaInterface p c) v Q → w.u ≤ v
   after_gst : E.t_GST ≤ tstar p w
 
-/-- Blueprint 21 H.18:2868–2876; plan "Induction design"; B1/B17.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.18:2868–2876; plan "Induction design"; B1/B17.
 Assemble frozen H0 after H.18 supplies the source prefix. -/
 theorem PostResetStart.toH0 {w : HealingWitness}
     (start : PostResetStart p c E rho w) (hsp : Block.Preceq w.CStar w.QStar) :
@@ -36,7 +38,8 @@ theorem PostResetStart.toH0 {w : HealingWitness}
     after_gst := start.after_gst
     source_prefix := hsp }
 
-/-- Blueprint 21 H.12:2652–2666 ("at q_(s*) … it keeps C* at that first transfer"); plan J1 and
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.12:2652–2666 ("at q_(s*) … it keeps C* at that first transfer"); plan J1 and
 "Induction design"; B1/B15/B17/B18. Stated at EACH honest node's OWN release tick j at q_(s*),
 with that duty's own view X (as in RKeep), not at a pre-time cut with the full TF: the consumer
 is the base case of PostResetProtectedKept at such a tick, and Kept / D_at depend on the state
@@ -63,7 +66,8 @@ def ResetTransferCore (w : HealingWitness) : Prop :=
     ((∀ A, FGBlock.Preceq A C → A ∈ X) →
       C ∈ D_at p c E rho j x X ∧ Kept p c E rho j x X C)
 
-/-- Blueprint 21 H.14:2633–2651; plan "Induction design"; B1/B17/B18.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.14:2633–2651; plan "Induction design"; B1/B17/B18.
 C* and its prefixes have label s*. Other bodies are actual post-reset
 honest raw results at gates that passed. Membership uses the historical
 gate event, not an honest node's current F, J, H, h_max or lo.
@@ -73,7 +77,8 @@ def ProtectedBody (w : HealingWitness) (B : FGBlock (Fin p.n)) (s : Slot) : Prop
   (w.sStar ≤ s ∧ ∃ k y, y ∈ rho.honest ∧ IsGateTick p c rho k y s ∧
     gatePassedAt p c E rho k ∧ gateResultAt p c E rho k = some (some (eraseFG B)))
 
-/-- Blueprint 21 H.14:2633–2651; plan carrier protected_kept; B1/B17/B18.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.14:2633–2651; plan carrier protected_kept; B1/B17/B18.
 Prefix restriction of frozen RKeep geometry, without its public H0 premise.
 Each tick j is before i. X is that duty's own covered view. The final
 kept-path clause is restricted to ProtectedBody; its path and compatibility
@@ -105,20 +110,23 @@ def PostResetProtectedKept (w : HealingWitness) (i : Nat) : Prop :=
     (∀ K s', SourceBefore p c E rho j K s' → high p w K →
       Block.Compatible (eraseFG B) (eraseFG K)) → Kept p c E rho j x X B)
 
-/-- Blueprint 21 H.13:2487–2627; plan carrier high_compatible; B15/B17.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.13:2487–2627; plan carrier high_compatible; B15/B17.
 Every pair of high sources whose rows precede i is compatible. No source
 label lower bound is added: frozen THigh also covers old action rounds. -/
 def PostResetHighCompatible (w : HealingWitness) (i : Nat) : Prop :=
   ∀ K K' s s', SourceBefore p c E rho i K s → SourceBefore p c E rho i K' s' →
     high p w K → high p w K' → Block.Compatible (eraseFG K) (eraseFG K')
 
-/-- Blueprint 21 H.13–H.14:2487–2651; plan carrier reset_compatible;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.13–H.14:2487–2651; plan carrier reset_compatible;
 B1/B15/B17. Every high source whose row precedes i is compatible with C*. -/
 def PostResetResetCompatible (w : HealingWitness) (i : Nat) : Prop :=
   ∀ K s, SourceBefore p c E rho i K s → high p w K →
     Block.Compatible w.CStar (eraseFG K)
 
-/-- Blueprint 21 H.15 (Lemma U):2885–2923; plan J4 and carrier lease_safe;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.15 (Lemma U):2885–2923; plan J4 and carrier lease_safe;
 B1/B13/B17/B18.
 Every successful write or renewal strictly above C* has the H5 HEAD,
 parent and output clauses in this prefix. Later raw results extend its
@@ -131,8 +139,8 @@ def PostResetLeaseSafe (w : HealingWitness) (i : Nat) : Prop :=
   Block.Preceq w.CStar B → B ≠ w.CStar →
   let pre := FGSA.clockPre p (storeAt p c E rho k y) (SA.gateTime p.toParams s)
   B ∈ (FGSA.actView pre).blocks → B ≠ .genesis → Block.Preceq B C →
-  g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.toParams.engine p.n
-    (FGSA.actView pre) s B →
+  g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.toParams.engine p.n .root (FGSA.actView
+      pre) s B →
   (∀ l, l < i → ∀ x j D, x ∈ rho.honest → s + 1 ≤ j →
     IsGateTick p c rho l x j → gateResultAt p c E rho l = some (some D) →
     Block.Preceq B D ∨ Block.Preceq B (F_at p c E rho l x)) ∧
@@ -145,7 +153,8 @@ def PostResetLeaseSafe (w : HealingWitness) (i : Nat) : Prop :=
     HealSuffix p c rho (SA.gateTime p.toParams s + 4 * p.Δ) j →
     Block.Preceq B (S_at p c E rho j x))
 
-/-- Blueprint 21 H.17/H.18:2946–3060; plan J4 and carrier fprov;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.17/H.18:2946–3060; plan J4 and carrier fprov;
 B1/B13/B17/B18. Both frozen RFProv clauses at states before
 events j < i, without the public H0 premise. The reset lower cut and each
 source gate deadline remain unchanged. -/
@@ -162,7 +171,8 @@ def PostResetFProv (w : HealingWitness) (i : Nat) : Prop :=
       SA.gateTime p.toParams s ≤ t ∧
       Block.Preceq (J_at p c E rho j x) (eraseFG K))
 
-/-- Blueprint 21 H.16:2924–2945, H5:3318–3325; plan J5 and carrier
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.16:2924–2945, H5:3318–3325; plan J5 and carrier
 raw_transfer; B1/B13/B17/B18. DC: SAME raw-result transfer clauses.
 All four frozen H5RawTransfer clauses. The source gate is an event before i;
 each reader is also in the prefix, with complete inclusive time cuts for
@@ -183,7 +193,8 @@ def PostResetRawTransfer (w : HealingWitness) (i : Nat) : Prop :=
     HealSuffix p c rho (SA.gateTime p.toParams j + 4 * p.Δ) a →
     Block.Preceq C (S_at p c E rho a x))
 
-/-- Blueprint 21 H.17:2764–2867, H.22:3109–3114; plan J6 and carrier
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.17:2764–2867, H.22:3109–3114; plan J6 and carrier
 service; B1/B17. PROVISIONAL (J6 may refine).
 Prefix restriction of H3/ExactService. HEAD service waits for the complete
 vote-time cut. Gate service waits for the post-gate cut, including all ticks
@@ -202,7 +213,8 @@ def PostResetService (w : HealingWitness) (i : Nat) : Prop :=
     (fgsaInterface p c).stable (afterTicks E rho (SA.gateTime p.toParams v) x) = Q ∧
     (∀ r, v = r * p.R → actionSource p c E rho x r = some (some Q)))
 
-/-- Blueprint 21 H.12–H.18; plan "Induction design", J2–J6; B1/B15/B17/B18.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.12–H.18; plan "Induction design", J2–J6; B1/B15/B17/B18.
 The seven named predicates at the global event-prefix cut i. H0Reset is
 an input to future producers; neither H0 nor PostResetStart is a parameter. -/
 structure PostResetInv (w : HealingWitness) (i : Nat) : Prop where
@@ -284,8 +296,8 @@ theorem PostResetLeaseSafe_def (w : HealingWitness) (i : Nat) :
     Block.Preceq w.CStar B → B ≠ w.CStar →
     let pre := FGSA.clockPre p (storeAt p c E rho k y) (SA.gateTime p.toParams s)
     B ∈ (FGSA.actView pre).blocks → B ≠ .genesis → Block.Preceq B C →
-    g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.toParams.engine p.n
-      (FGSA.actView pre) s B →
+    g ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.toParams.engine p.n .root (FGSA.actView
+        pre) s B →
     (∀ l, l < i → ∀ x j D, x ∈ rho.honest → s + 1 ≤ j →
       IsGateTick p c rho l x j → gateResultAt p c E rho l = some (some D) →
       Block.Preceq B D ∨ Block.Preceq B (F_at p c E rho l x)) ∧
@@ -346,7 +358,8 @@ theorem PostResetService_def (w : HealingWitness) (i : Nat) :
       (fgsaInterface p c).stable (afterTicks E rho (SA.gateTime p.toParams v) x) = Q ∧
       (∀ r, v = r * p.R → actionSource p c E rho x r = some (some Q)))) := by rfl
 
-/-- Blueprint 21 H.16:2930–2938, H.12:2664–2665; plan J5A C0;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.16:2930–2938, H.12:2664–2665; plan J5A C0;
 B1/B13/B17/B18. DC: INTENTIONAL; DC has no leases; this is the SA port.
 The global induction carries this predicate jointly with PostResetInv.
 The successor instance is proved before raw_transfer at the new cut. -/

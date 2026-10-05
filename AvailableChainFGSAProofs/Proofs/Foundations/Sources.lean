@@ -30,7 +30,8 @@ private theorem source_tick_read (x : V) (r : Nat) (C : FGBlock (Fin p.n))
     rw [postClock_def, preTick_def, hi]
     rfl
 
-/-- The action's candidates have a passed gate origin (F1.3 supplies lease origins). -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The action's candidates have a passed gate origin (F1.3 supplies lease origins). -/
 theorem sourceDiscipline_tSrc (hs : V2.D.ScheduleWellFormed E rho) : TSrc p c E rho := by
   intro x r C hx hc
   change Option.map (Option.map eraseFG) (actionSourceFG p c E rho x r) = _ at hc
@@ -115,7 +116,8 @@ private theorem source_row_action {j : Nat} {x : V} {r : Nat} {a : RowWire p.n}
       cases heq
   · exact (List.not_mem_nil hem).elim
 
-/-- Earlier row emissions bound their source gate labels. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Earlier row emissions bound their source gate labels. -/
 theorem sourceDiscipline_labelBound (hs : V2.D.ScheduleWellFormed E rho) :
     LabelBound p c E rho := by
   intro i x y r a t hx hi ha
@@ -150,7 +152,8 @@ theorem sourceDiscipline_labelBound (hs : V2.D.ScheduleWellFormed E rho) :
       have : (r * p.R : Nat) + 1 < (s : Int) := by nlinarith
       omega
 
-/-- Every actual send has a nonempty height pair; a refused action has no row.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Every actual send has a nonempty height pair; a refused action has no row.
 DC: INTENTIONAL optional send-once emission; SAME source height pair. -/
 theorem sourceDiscipline_emittedNonempty {j : Nat} {x : V} {r : Nat} {a : RowWire p.n}
     (ha : HonestRowAt p c E rho j x r a) :
@@ -162,7 +165,8 @@ theorem sourceDiscipline_emittedNonempty {j : Nat} {x : V} {r : Nat} {a : RowWir
   rw [← hbody, hroweq]
   exact ⟨(h, root), rfl⟩
 
-/-- A nonempty emitted name comes from the actual FG action source. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+A nonempty emitted name comes from the actual FG action source. -/
 theorem sourceDiscipline_emittedName (hs : V2.D.ScheduleWellFormed E rho)
     {j : Nat} {x : V} {r : Nat}
     {a : RowWire p.n} {e : Height × BlockId}
@@ -210,7 +214,8 @@ theorem sourceDiscipline_emittedName (hs : V2.D.ScheduleWellFormed E rho)
     exact ⟨C, G, hread, heq, KitFG.entry_preceq p.E p.cfg C, hG,
       hbelow _ hCX, hfast _ hCX⟩
 
-/-- The window projection of `sourceDiscipline_emittedName`: only the height of the
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The window projection of `sourceDiscipline_emittedName`: only the height of the
 source (`e.1 = (heightView p C).h`) and the gate facts. Healing consumers take this
 form as an INLINE premise (H-DESCENT D2), so they read no `SimplexFG.derive` field
 (lead ruling 2026-10-03). -/
@@ -236,16 +241,16 @@ private theorem source_stored_row (hv : V2.D.ExecutionValid E rho)
     ∃ r, ∃ wire : RowWire p.n,
       HonestRowBefore p c E rho i (e a.signer) r wire ∧
       wire.toRow? = some a ∧ wire.payload.height_pair = a.height_pair ∧
-      ∃ s raw sup rows,
-        (⟨.proposer s, .proposal (eraseFG B) raw sup rows⟩ : Wire p.n) ∈
-          (storeAt p c E rho i x).proposals ∧ wire ∈ rows := by
+      ∃ s N, N.erase = eraseFG B ∧
+        (⟨.proposer s, .proposal N⟩ : Wire p.n) ∈
+          (storeAt p c E rho i x).proposals ∧ wire ∈ N.rows := by
   have hg : B ≠ .genesis := by intro h; subst B; cases ha
-  obtain ⟨s, raw, sup, rows, hw, hrows⟩ :=
+  obtain ⟨s, N, hw, heN, hrows⟩ :=
     stored_wire_of_block p _ (hS i x hx).1 (metaInv_stateBefore E rho i x) hB hg
   rw [hrows] at ha
   obtain ⟨wire, hwire, hdecode⟩ := List.mem_filterMap.mp ha
   obtain ⟨k, o, t, hki, hk, ho, hop, _⟩ := stored_proposal_delivered E rho i x _ hw
-  have hopayload : o.payload = .proposal (eraseFG B) raw sup rows := by
+  have hopayload : o.payload = .proposal N := by
     have := congrArg Signed.payload ho
     exact this
   have hcarry : (fgsa p c).carries o (ofRow p wire) := by
@@ -271,7 +276,7 @@ private theorem source_stored_row (hv : V2.D.ExecutionValid E rho)
       obtain ⟨_, _, r, hrt, _⟩ := (fgsa_emitsAt_row E rho j _ t' hj seat body).mp hem
       exact ⟨r, ⟨.seat .fg seat, body⟩,
         ⟨j, Nat.lt_trans hjk hki, hh, hrt ▸ hj, hem⟩, rfl, rfl,
-        s, raw, sup, rows, hw, hwire⟩
+        s, N, heN, hw, hwire⟩
 
 private theorem source_quorum_honest [Fintype V]
     (e : Fin p.n ≃ V) (hq : Gen.Pure.FaultQ p.n (Gen.V2.Duty.faulty rho).card)
@@ -295,7 +300,8 @@ private theorem source_quorum_honest [Fintype V]
   apply hf
   exact Finset.mem_map.mpr ⟨e k, by simpa [Gen.V2.Duty.faulty_def] using hn, e.symm_apply_apply k⟩
 
-/-- Every selected progress or target QC has an earlier honest source.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Every selected progress or target QC has an earlier honest source.
 Finalization uses the target QC of its prior justification. -/
 theorem sourceDiscipline_qcOrigin [Fintype V] {Pt : Type} {pt : Pt}
     (hb : SourceDisciplinePrem p c E rho pt)
@@ -316,9 +322,9 @@ theorem sourceDiscipline_qcOrigin [Fintype V] {Pt : Type} {pt : Pt}
         (rows k).2.height_pair ≠ .empty) :
       ∃ k ∈ Q, ∃ y r, ∃ wire : RowWire p.n,
         HonestRowBefore p c E rho i y r wire ∧ wire.toRow? = some (rows k).2 ∧
-        (∃ s raw sup ws,
-          (⟨.proposer s, .proposal (eraseFG (rows k).1) raw sup ws⟩ : Wire p.n) ∈
-            (storeAt p c E rho i x).proposals ∧ wire ∈ ws) ∧
+        (∃ s N, N.erase = eraseFG (rows k).1 ∧
+          (⟨.proposer s, .proposal N⟩ : Wire p.n) ∈
+            (storeAt p c E rho i x).proposals ∧ wire ∈ N.rows) ∧
         ∃ C G, actionSourceFG p c E rho y r = some (some C) ∧
           namedEntry (rows k).2.height_pair =
             some (hOf p.E p.cfg C, (derive p.E p.cfg C).T_h.root) ∧
@@ -407,7 +413,8 @@ private theorem source_named_quorum [Fintype V] {Pt : Type} {pt : Pt}
     source_stored_row p c E rho hb.set.valid e he hS hx hcstore ha hhon'
   exact ⟨e a.signer, r, wire, hbefore, hheight ▸ hp⟩
 
-/-- ROOT-DIGEST W2b. Each non-genesis certified entry has an earlier honest name. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Each non-genesis certified entry has an earlier honest name. -/
 theorem sourceDiscipline_strat [Fintype V] {Pt : Type} {pt : Pt}
     (hb : SourceDisciplinePrem p c E rho pt)
     (hS : RStore p c E rho) : RStrat p c E rho := by
@@ -484,7 +491,8 @@ theorem sourceDiscipline_strat [Fintype V] {Pt : Type} {pt : Pt}
     rw [hXh]
     exact hname
 
-/-- The G1 genesis premise and exact earlier names give the source frame.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The G1 genesis premise and exact earlier names give the source frame.
 The frozen hclosed ancestor-closure premise is unused: exact certified names suffice. -/
 theorem sourceDiscipline_srcFrameAbove [Fintype V] {Pt : Type} {pt : Pt}
     (hb : SourceDisciplinePrem p c E rho pt)

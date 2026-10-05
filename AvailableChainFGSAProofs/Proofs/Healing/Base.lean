@@ -14,7 +14,8 @@ open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- Blueprint 21:449–490; plan S22, H-BASE/HB1.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:449–490; plan S22, H-BASE/HB1.
 DC: SAME strict finalized crossing; INTENTIONAL accepted W certificate height.
 The existing `fgsa_apiFinalLockClaim_body` supplies `crossing` from
 `fgsa_finalLock`. Pass this foundation fact across the lane boundary. -/
@@ -24,7 +25,8 @@ theorem healing_rXing [Fintype V] {G ΔF : Time}
     RXing p c E rho :=
   crossing ⟨h.base, h.fault⟩
 
-/-- ROOT-DIGEST W2b. Blueprint 21:449–477, 2637–2666; plan S22, H-BASE/HB2.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21:449–477, 2637–2666; plan S22, H-BASE/HB2.
 DC: SAME causal cap; INTENTIONAL exact FG wire membership in the held chain.
 `fgsa_rCap` supplies `cap` after its foundation premises are discharged.
 Its height premise is transported to `heightView` at the lane boundary. -/
@@ -66,19 +68,19 @@ theorem healing_rCap
     | node P s root body rows ih =>
       change u ∈ rows.toFinset ∪ chainRows P at hu
       rcases Finset.mem_union.mp hu with hu | hu
-      · obtain ⟨slot, raw, sup, wires, hw, hr⟩ :=
+      · obtain ⟨slot, N, hw, heN, hr⟩ :=
           stored_wire_of_block p st hs.cstore hs.«meta» hmem (by intro h; cases h)
-        change rows = wires.filterMap RowWire.toRow? at hr
+        change rows = N.rows.filterMap RowWire.toRow? at hr
         have hur : u ∈ rows := List.mem_toFinset.mp hu
         rw [hr] at hur
         obtain ⟨b, hbw, hbu⟩ := List.mem_filterMap.mp hur
         have he : b = a := (encode b u hbu).trans ha.symm
         subst b
         apply List.mem_flatten.mpr
-        refine ⟨wires, List.mem_filterMap.mpr ⟨_, hw, ?_⟩, hbw⟩
+        refine ⟨N.rows, List.mem_filterMap.mpr ⟨_, hw, ?_⟩, hbw⟩
         have hrefl : Block.preceq (eraseFG (.node P s root body rows))
             (eraseFG (.node P s root body rows)) = true := Gen.Pure.block_preceq_refl _
-        simp only [Wire.decode, hrefl, ↓reduceIte]
+        simp only [Wire.decode, heN, hrefl, ↓reduceIte]
       · have hpar := ih hu (hs.cstore.fg.closed _ hmem)
         obtain ⟨wires, hw, haw⟩ := List.mem_flatten.mp hpar
         obtain ⟨b, hb, hdec⟩ := List.mem_filterMap.mp hw
@@ -90,20 +92,21 @@ theorem healing_rCap
           cases msg with
           | vote s k B => rw [hbd] at hdec; cases hdec
           | row k payload => rw [hbd] at hdec; cases hdec
-          | block slot B raw sup ws =>
+          | block slot N =>
             simp only [hbd] at hdec ⊢
             split at hdec
             · rename_i hpre
               have hparent : FGBlock.Preceq P (.node P s root body rows) := by
                 change (decide (P = .node P s root body rows) || FGBlock.preceq P P) = true
                 rw [KitFG.preceq_refl P, Bool.or_true]
-              have hle : B.preceq (eraseFG (.node P s root body rows)) = true :=
+              have hle : N.erase.preceq (eraseFG (.node P s root body rows)) = true :=
                 Gen.Pure.block_preceq_trans hpre (eraseFG_preceq hparent)
               rw [hle, ite_eq_left (rfl : true = true)]
               exact hdec
             · cases hdec
 
-/-- Blueprint 21:548–590, 1125–1132; plan S20, H-BASE/HB4 and H-PHASE.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:548–590, 1125–1132; plan S20, H-BASE/HB4 and H-PHASE.
 DC: SAME strict receipt and cumulative retention; INTENTIONAL independent ΔF.
 Every row sent by the phase cut is held before cut + ΔF, including old rows
 and sleeping receivers. `fgsa_tRowsReceipt` supplies the foundation fact. -/
@@ -135,7 +138,8 @@ theorem healing_phase_receipt (ΔF : Time)
     exact List.mem_flatten.mpr ⟨rows,
       List.mem_filterMap.mpr ⟨w, hc.2.2.2.2.1.subset hw, hd⟩, ha⟩
 
-/-- Blueprint 21:526–546, 2637–2653; plan S27/S30, H-BASE/HB5.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:526–546, 2637–2653; plan S27/S30, H-BASE/HB5.
 DC: SAME earlier-action order; INTENTIONAL FG action offset of 6Δ.
 H-FRAME and H-DESCENT use this bound at proposal and HEAD reads.
 It requires no reset, positive-slot, awake-reader, or finality premise. -/

@@ -31,9 +31,9 @@ private theorem ordered_of_confirmation
       let v := actView pre
       let a := eraseFG pre.fg.F
       GridCO.voterCount (GridCO.lateVotes p.toParams.engine v s) <
-        2 * SA.prefixSupport p.toParams v s a ∧
+        2 * SA.Root.prefixSupport p.toParams v s a ∧
       GridCO.voterCount (GridCO.lateVotes p.toParams.engine v s) <
-        2 * SA.prefixSupport p.toParams v s B ∧
+        2 * SA.Root.prefixSupport p.toParams v s B ∧
       (∀ X, Block.Preceq a X → Block.Preceq X B → X ≠ a → X ∈ v.blocks)) :
     ∀ s r B C, (s, B) ∈ cleanResults p c E rho (i + 1) →
       (r, C) ∈ cleanResults p c E rho (i + 1) → s < r → Block.Preceq B C := by
@@ -78,7 +78,8 @@ private theorem ordered_of_confirmation
 
 
 
-/-- P3 F2.5a:4900–4945; bp02 §5.4. Class B, label-seat count instance.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+P3 F2.5a:4900–4945; bp02 §5.4. Class B, label-seat count instance.
 DC: Goldfish/Confirmation.lean:494; same honest participation count.
 The label-seat bijection converts the Clean participation bound to Batch.
 DC b241081: INTENTIONAL: FG-SA rows have their own delivery bound (user 2026-10-01);
@@ -134,14 +135,15 @@ private theorem stamp_find_kept {α : Type} [BEq α] [LawfulBEq α]
   | some row => rfl
 
 omit [Fintype V] in
-/-- P3 F2.5a:4921–4945; bp02 §5.4 (original early stamps). Class B.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+P3 F2.5a:4921–4945; bp02 §5.4 (original early stamps). Class B.
 DC: Schedule/AdoptionTransport.lean:157; receipt retention analogue.
 INTENTIONAL: clockPre and actView retain the original FG-SA stamps
 (spec/fgsa-protocol.tex:2506–2513), including stamps of inactive blocks. -/
 theorem clean_gate_stamps (hf : FGFoundation p c E rho) (hn : V2.D.NoRestart rho)
     {j i : Nat} {x : V} {s : Slot} (hx : x ∈ rho.honest)
     (hji : j ≤ i) (hi : i ≤ rho.events.length)
-    (o : GridCO.Wire p.n) (B : Block)
+    (o : GridCO.Wire p.n .root) (B : Block)
     (ho : o ∈ (storeAt p c E rho j x).base.votes)
     (hB : B ∈ (storeAt p c E rho j x).base.blocks) :
     let v := actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))
@@ -186,7 +188,8 @@ theorem clean_gate_stamps (hf : FGFoundation p c E rho) (hn : V2.D.NoRestart rho
       contradiction
     | some row => rfl
 
-/-- P3 F2.5a; bp02 §5.4, label zero. Class B, run nonemptiness.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+P3 F2.5a; bp02 §5.4, label zero. Class B, run nonemptiness.
 DC: Goldfish/Confirmation.lean:494,567; genesis majority analogue.
 INTENTIONAL: the F-anchored optional raw result is exactly genesis
 (spec/fgsa-protocol.tex:2506–2513). No successor history is used.
@@ -240,32 +243,32 @@ theorem clean_gate_zero (b₀ : Time) (h : CleanCut₂ p c E rho b₀ ΔF)
   have hreceipts : ∀ k ∈ H, ∃ t,
       rho.seatOf (.base (.head 0)) k ∈ rho.honest ∧
       V2.D.Run.emits E rho (rho.seatOf (.base (.head 0)) k)
-        (ofHead p ⟨.seat (.head 0) k, .genesis⟩) t ∧
-      baseVote (⟨.seat (.head 0) k, .genesis⟩ : HeadWire p.n) ∈
+        (ofHead p ⟨.seat (.head 0) k, genesisRoot⟩) t ∧
+      baseVote (⟨.seat (.head 0) k, genesisRoot⟩ : HeadWire p.n) ∈
         (storeAt p c E rho i x).base.votes ∧
       GridCO.stampVote
         (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams 0)))
-        (baseVote (⟨.seat (.head 0) k, .genesis⟩ : HeadWire p.n)) <
+        (baseVote (⟨.seat (.head 0) k, genesisRoot⟩ : HeadWire p.n)) <
           GridCO.earlyTime p.toParams.engine 0 := by
     intro k hk
     obtain ⟨hkh, hka⟩ := (hH k).mp hk
     have h1 : (1 : Time) * p.Δ ≤ rho.horizon := by linarith [h.cut.2]
     obtain ⟨l, hl, _⟩ := fgsa_tick_total E rho hsch h.base.delta _ hkh 1 h1
     have hem : V2.D.Run.emits E rho (rho.seatOf (.base (.head 0)) k)
-        (ofHead p ⟨.seat (.head 0) k, .genesis⟩) p.Δ := by
+        (ofHead p ⟨.seat (.head 0) k, genesisRoot⟩) p.Δ := by
       have hl' : rho.events[l]? = some (.tick (rho.seatOf (.base (.head 0)) k) p.Δ) := by
         simpa only [Nat.cast_one, one_mul] using hl
       refine ⟨l, hl', ?_⟩
       rw [(V2.D.Run.step_tick_eq E rho hl').2]
-      apply (fgsa_emits_head E rho _ _ _ 0 k .genesis).mpr
+      apply (fgsa_emits_head E rho _ _ _ 0 k genesisRoot).mpr
       refine ⟨?_, ?_, rfl, ?_⟩
       · change E.awake _ (4 * p.Δ * (0 : Int) + p.Δ) = true at hka
         simpa only [mul_zero, zero_add] using hka
       · change 4 * p.Δ * (0 : Int) + p.Δ = p.Δ
         ring
-      · exact (headVote_zero p _).symm
+      · exact congrArg Block.root (headVote_zero p _).symm
     have hr := fgsa_honest_head_receipt E rho h.base.delta h.base.valid h.base.noRestart
-      h.base.cstar (fun t => t + p.Δ) b₀ 0 k .genesis p.Δ _ x
+      h.base.cstar (fun t => t + p.Δ) b₀ 0 k genesisRoot p.Δ _ x
       (by
         simpa only [h.base.delta] using
           Gen.V2.Duty.deliveryWithinOn_of_healthyPrefixBy E rho b₀ h.healthy
@@ -287,7 +290,7 @@ theorem clean_gate_zero (b₀ : Time) (h : CleanCut₂ p c E rho b₀ ΔF)
     rw [htrans.2.1]
     change _ < 4 * p.Δ * (0 : Int) + 2 * p.Δ
     have hrstamp : GridCO.stampVote (storeAt p c E rho j x).base
-        (baseVote (⟨.seat (.head 0) k, .genesis⟩ : HeadWire p.n)) < 2 * p.Δ := hr.2
+        (baseVote (⟨.seat (.head 0) k, genesisRoot⟩ : HeadWire p.n)) < 2 * p.Δ := hr.2
     simpa only [mul_zero, zero_add] using hrstamp
   have hraw := (fgsa_gate_zero_of_receipts E rho h.base.valid h.base.cstar i x H hbatch
     (fun k hk ha => (hH k).mpr ⟨hk, ha⟩) hF hreceipts hgen).2
@@ -376,7 +379,7 @@ private theorem gate_path_coverage (hE : V2.D.ExecutionValid E rho)
       handles_wellFormed p c _ parent o hh (hE.wire l y parent t he), ?_⟩
     intro r a B hv
     have hh : blockOf? p o = none := by
-      change (match (toWire p o).decode with | some (.block _ b _ _ _) => some b | _ => none) = _
+      change (match (toWire p o).decode with | some (.block _ N) => some N.erase | _ => none) = _
       rw [hv]
     rw [hh] at hb
     contradiction
@@ -396,31 +399,31 @@ private theorem gate_path_coverage (hE : V2.D.ExecutionValid E rho)
       refine ⟨block_preceq_refl K, le_rfl, ?_⟩
       intro b hb hne
       obtain ⟨l, hl, t, o, ho, ha, _, ht'⟩ := gate_source_path p c E rho hsch hk hK b hb hne
-      have hdecode : ∃ r raw sup rows, (toWire p o).decode = some (.block r b raw sup rows) := by
+      have hdecode : ∃ r N, N.erase = b ∧ (toWire p o).decode = some (.block r N) := by
         change (match (toWire p o).decode with
-          | some (.block _ b _ _ _) => some b | _ => none) = _ at ho
+          | some (.block _ N) => some N.erase | _ => none) = _ at ho
         cases he : (toWire p o).decode with
         | none => rw [he] at ho; contradiction
         | some m =>
           cases m <;> simp only [he, reduceCtorEq, Option.some.injEq] at ho
-          subst b
-          exact ⟨_, _, _, _, rfl⟩
-      obtain ⟨r, raw, sup, rows, hdec⟩ := hdecode
-      refine ⟨o, t, r, raw, sup, rows, ⟨l, hl, ha, b, ho, hb⟩, hdec, ?_⟩
+          exact ⟨_, _, ho, rfl⟩
+      obtain ⟨r, N, heN, hdec⟩ := hdecode
+      refine ⟨o, t, r, N, heN, ⟨l, hl, ha, b, ho, hb⟩, hdec, ?_⟩
       change t < 4 * p.Δ * (s : Int) + p.Δ at ht'
       change t + p.Δ ≤ 4 * p.Δ * (s : Int) + 2 * p.Δ
       linarith
-    · intro o t r b raw sup rows hr hdec
+    · intro o t r N hr hdec
       obtain ⟨l, hl, ha, b', hb', hBK⟩ := hr
-      have hb : blockOf? p o = some b := by
-        change (match (toWire p o).decode with | some (.block _ b _ _ _) => some b | _ => none) = _
+      have hb : blockOf? p o = some N.erase := by
+        change (match (toWire p o).decode with | some (.block _ N) => some N.erase | _ => none) = _
         rw [hdec]
       have heq := Option.some.inj (hb'.symm.trans hb)
       subst b'
       exact ⟨K, SA.earlyTime p.toParams s, ⟨rfl, rfl⟩, hBK⟩
 
 omit [Fintype V] in
-/-- P3 F2.5a:4921–4945; bp02 §5.4. Class B, old-history head prefixes.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+P3 F2.5a:4921–4945; bp02 §5.4. Class B, old-history head prefixes.
 DC: SafetyRegimes.lean:69–75; successive selection/HEAD order analogue.
 INTENTIONAL: retrospective event reads and every intervening F are explicit
 (spec/fgsa-protocol.tex:2506–2513). Only old Continues is used. -/
@@ -518,15 +521,15 @@ private theorem gate_active_heads (b₀ : Time) (h : CleanCut₂ p c E rho b₀ 
       ∃ K t,
         rho.seatOf (.base (.head (s + 1))) q ∈ rho.honest ∧
         V2.D.Run.emits E rho (rho.seatOf (.base (.head (s + 1))) q)
-          (ofHead p ⟨.seat (.head (s + 1)) q, K⟩) t ∧
-        baseVote (⟨.seat (.head (s + 1)) q, K⟩ : HeadWire p.n) ∈
+          (ofHead p ⟨.seat (.head (s + 1)) q, K.root⟩) t ∧
+        baseVote (⟨.seat (.head (s + 1)) q, K.root⟩ : HeadWire p.n) ∈
           (storeAt p c E rho i x).base.votes ∧
         K ∈ (actView (clockPre p (storeAt p c E rho i x)
           (SA.gateTime p.toParams (s + 1)))).blocks ∧
         K.slot ≤ s + 1 ∧
         GridCO.stampVote (actView (clockPre p (storeAt p c E rho i x)
           (SA.gateTime p.toParams (s + 1))))
-          (baseVote (⟨.seat (.head (s + 1)) q, K⟩ : HeadWire p.n)) <
+          (baseVote (⟨.seat (.head (s + 1)) q, K.root⟩ : HeadWire p.n)) <
             GridCO.earlyTime p.toParams.engine (s + 1) ∧
         GridCO.stampBlock (actView (clockPre p (storeAt p c E rho i x)
           (SA.gateTime p.toParams (s + 1)))) K < GridCO.earlyTime p.toParams.engine (s + 1) ∧
@@ -587,11 +590,12 @@ private theorem gate_active_heads (b₀ : Time) (h : CleanCut₂ p c E rho b₀ 
     rw [← hKeq] at hm
     change K ∈ (clock p (storeAt p c E rho k y) _).base.blocks at hm
     rwa [(clock_cumulative p _ _).2.1] at hm
-  have hem : V2.D.Run.emits E rho y (ofHead p ⟨.seat (.head (s + 1)) q, K⟩)
+  have hem : V2.D.Run.emits E rho y (ofHead p ⟨.seat (.head (s + 1)) q, K.root⟩)
       (SA.voteTime p.toParams (s + 1)) := by
     refine ⟨k, hk, ?_⟩
     rw [(V2.D.Run.step_tick_eq E rho hk).2]
-    exact (fgsa_emits_head E rho _ y _ (s + 1) q K).mpr ⟨hawake, rfl, rfl, hKeq⟩
+    exact (fgsa_emits_head E rho _ y _ (s + 1) q K.root).mpr ⟨hawake, rfl, rfl, congrArg
+        Block.root hKeq⟩
   have hprefix := clean_gate_head_prefixes p c E rho hsch h.base.noRestart h.base.delta hf
     ht hk hh hs
   obtain ⟨required, paths, hcov, hp⟩ := gate_path_coverage p c E rho h.base.valid
@@ -620,7 +624,7 @@ private theorem gate_active_heads (b₀ : Time) (h : CleanCut₂ p c E rho b₀ 
     have he := slotOf_offset p (s + 1) (2 * p.Δ) (by omega) (by omega)
     exact ((Internal.slotOf_mono (p := p) hn).trans_eq he).trans (Nat.le_succ _)
   have hr := fgsa_honest_head_receipt E rho h.base.delta h.base.valid h.base.noRestart
-    h.base.cstar (fun t => t + p.Δ) b₀ (s + 1) q K (SA.voteTime p.toParams (s + 1)) y x
+    h.base.cstar (fun t => t + p.Δ) b₀ (s + 1) q K.root (SA.voteTime p.toParams (s + 1)) y x
     (by
       simpa only [h.base.delta] using
         Gen.V2.Duty.deliveryWithinOn_of_healthyPrefixBy E rho b₀ h.healthy
@@ -655,7 +659,8 @@ private theorem gate_active_heads (b₀ : Time) (h : CleanCut₂ p c E rho b₀ 
   · rw [clockPre_fg]
     exact hprefix.2 i le_rfl
 
-/-- P3 F2.5a; bp02 §5.4. Class B, same-label history extension.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+P3 F2.5a; bp02 §5.4. Class B, same-label history extension.
 DC: Goldfish/Confirmation.lean:405, eligible_compatible; same compatibility.
 INTENTIONAL: actual optional F-anchored reads (spec/fgsa-protocol.tex:2496–2513).
 This covers old/new and new/new pairs without a successor Continues premise.
@@ -674,7 +679,8 @@ theorem clean_gate_same (b₀ : Time) (h : CleanCut₂ p c E rho b₀ ΔF)
     change 4 * p.Δ * (s : Int) + p.Δ + p.Δ ≤ 4 * p.Δ * (s : Int) + 6 * p.Δ
     have hp := p.deltaPos
     linarith
-  exact fgsa_sameLabel p c E rho h.base.valid h.base.noRestart h.base.delta s
+  exact fgsa_sameLabel (hroots := h.base.idealization) p c E rho h.base.valid h.base.noRestart
+      h.base.delta s
     (Gen.V2.Duty.LabelSyncOn.of_cleanCutBy E rho (fun o => ¬ isRowObject o) b₀ _ _ h.healthy
     (fgsaDelay_nonrow E.Δ _) hvd hd h.cut.2)
     x y B C (hsch.honest_only _ (List.mem_of_getElem? hx))
@@ -693,9 +699,9 @@ private theorem gate_batch_of_history (b₀ : Time) (h : CleanCut₂ p c E rho b
     let v := actView pre
     let a := eraseFG pre.fg.F
     GridCO.voterCount (GridCO.lateVotes p.toParams.engine v (s + 1)) <
-      2 * SA.prefixSupport p.toParams v (s + 1) a ∧
+      2 * SA.Root.prefixSupport p.toParams v (s + 1) a ∧
     GridCO.voterCount (GridCO.lateVotes p.toParams.engine v (s + 1)) <
-      2 * SA.prefixSupport p.toParams v (s + 1) B ∧
+      2 * SA.Root.prefixSupport p.toParams v (s + 1) B ∧
     (∀ X, Block.Preceq a X → Block.Preceq X B → X ≠ a → X ∈ v.blocks) := by
   obtain ⟨H, hH, hb⟩ := clean_gate_batch p c E rho b₀ h hi ht
   apply fgsa_gate_batch_premises E rho h.base.valid h.base.cstar i x (s + 1) B H hb
@@ -704,7 +710,8 @@ private theorem gate_batch_of_history (b₀ : Time) (h : CleanCut₂ p c E rho b
   exact gate_active_heads p c E rho b₀ h hf hi ht hh hs B hB k
     ((hH k).mp hk).1 ((hH k).mp hk).2
 
-/-- ROOT-DIGEST W2b. P3 F2.5a; bp02 §5.4. Class B, new-gate nonemptiness.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. P3 F2.5a; bp02 §5.4. Class B, new-gate nonemptiness.
 DC: NamedConfirmationWalk.lean:38 and Goldfish/Confirmation.lean:494,567.
 INTENTIONAL: the optional F-anchored raw result must pass the anchor test
 (spec/fgsa-protocol.tex:2506–2513). Label zero returns genesis exactly.
@@ -731,7 +738,8 @@ theorem clean_gate_nonempty (b₀ : Time) :
     intro hn
     exact (Nat.succ_ne_zero s hn).elim
 
-/-- P3 F2.5a; bp02 §§5.4–5.5. Class B, add-only history extension.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+P3 F2.5a; bp02 §§5.4–5.5. Class B, add-only history extension.
 DC: SafetyRegimes.lean:56–75 and NamedConfirmationWalk.lean:38.
 INTENTIONAL: three event-prefix fields for actual F-anchored optional reads
 (spec/fgsa-protocol.tex:2496–2525; lead Q2). The result adds no Continues field.
@@ -767,7 +775,8 @@ theorem clean_gate_history_osn (b₀ : Time) :
       exact clean_gate_nonempty p c E rho b₀ h hq hf hsrc i x s hi ht hh hall
 
 
-/-- P3 §§8.2–8.7 F2.5b; bp02 §§5.4–5.6. Class B, frozen history step.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+P3 §§8.2–8.7 F2.5b; bp02 §§5.4–5.6. Class B, frozen history step.
 DC: GSTZeroPreparedWalk.lean:546, SafetyRegimes.lean:53–80, and
 JointHistoryGapsIdx.lean:26,141. INTENTIONAL divergence: FG-SA has an
 F-anchored optional raw result, leases, and gate-before-action in one tick.

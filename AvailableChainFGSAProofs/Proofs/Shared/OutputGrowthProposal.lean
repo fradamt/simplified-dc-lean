@@ -1,6 +1,7 @@
 module
 public import AvailableChainFGSARun.Proofs.Schedule
 public import AvailableChainFGSARun.Proofs.Emission
+public import AvailableChainFGSA.Proofs.NamedReachable
 public import AvailableChainFGSAClaims.Statements.Counts
 
 public section
@@ -9,7 +10,8 @@ namespace AvailableChain.FGSA.Run
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- ROOT-DIGEST W2b. Plan A2: a scheduled awake positive-slot proposer emits an actual
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Plan A2: a scheduled awake positive-slot proposer emits an actual
 proposal. The block includes the application value and keeps slot s. -/
 theorem fgsa_proposal_emission_exists_of_awake_slot (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) (hs : V2.D.ScheduleWellFormed E rho)
@@ -34,21 +36,24 @@ theorem fgsa_proposal_emission_exists_of_awake_slot (E : Generic.Env V)
   let sup := proposerSupport st s
   let H := getHead p st raw sup
   let rows := proposalRows p st H
-  let B := proposalBlock p H s (c.app (rho.input v t))
+  obtain ⟨P, hP, _, _⟩ := propose_parent_lookup p
+    (Reachable.tick t (reachable_stateBefore E rho i v)) s
+  let N := namedProposal p P s (c.app (rho.input v t))
     (raw.filterMap liftHead?) (sup.filterMap liftHead?) rows
-  let m := Msg.proposal B (raw.filterMap liftHead?) (sup.filterMap liftHead?) rows
+  let m := Msg.proposal N
   let o : Obj p := ⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, m⟩
   have hm : o ∈ (V2.D.tick E rho (V2.D.Run.stateBefore E rho i v) v t).2 := by
     apply (fgsa_emits_proposal E rho _ v t s m).mpr
     refine ⟨ha, rfl, rfl, ?_⟩
     delta propose
-    simp only [Nat.ne_of_gt hh.1, ↓reduceIte, Option.map_some]
+    simp only [Nat.ne_of_gt hh.1, ↓reduceIte, hP, Option.map_some]
     rfl
-  refine ⟨o, B, ⟨i, hi, ?_⟩, rfl, rfl⟩
+  refine ⟨o, N.erase, ⟨i, hi, ?_⟩, rfl, rfl⟩
   rw [(V2.D.Run.step_tick_eq E rho hi).2]
   exact hm
 
-/-- Plan A2: adapt the raw emission to HonestProposal and retain its slot. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan A2: adapt the raw emission to HonestProposal and retain its slot. -/
 theorem fgsa_honestProposal_exists_of_awake_slot (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) (hs : V2.D.ScheduleWellFormed E rho)
     (hΔ : E.Δ = p.Δ) {s : Slot}

@@ -1,4 +1,6 @@
 module
+public import AvailableChainGeneric.Proofs.AC.RootBatch
+public import AvailableChainGeneric.Proofs.AC.RootSupport
 public import AvailableChainFGSAProofs.Proofs.Healing.Descent
 public import AvailableChainFGSAProofs.Proofs.Healing.DescentLossFirst
 public import AvailableChainFGSAProofs.Proofs.Healing.DescentLossLease
@@ -22,7 +24,8 @@ open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- Plan fgsa-s5-m5-d2d4 B `cause` (finality coverage first); blueprint
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan fgsa-s5-m5-d2d4 B `cause` (finality coverage first); blueprint
 21:2689–2716. DC: SAME HEAD walk from the live root above Z. A block below the
 root Z or below F of the store at a HEAD tick is an ancestor of that HEAD. -/
 theorem healing_head_covers_root {k : Nat} {x : V} {t : Time}
@@ -53,7 +56,8 @@ theorem healing_head_covers_root {k : Nat} {x : V} {t : Time}
   exact Gen.Pure.block_preceq_trans (eraseFG_preceq hBZ)
     (Gen.Pure.block_preceq_trans hZ (liveRoot_preceq_headInTree p _ _ _ _))
 
-/-- Plan fgsa-s5-m5-d2d4 B `cause` (l ≥ sB + 2); blueprint 21:2777–2798.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan fgsa-s5-m5-d2d4 B `cause` (l ≥ sB + 2); blueprint 21:2777–2798.
 DC: SAME schedule arithmetic. At a HEAD tick of label at least sB + 2 the row
 of a source of label sB is an earlier event: d_sB < v_(sB+2). -/
 theorem healing_loss_late_source (hs : V2.D.ScheduleWellFormed E rho)
@@ -68,7 +72,8 @@ theorem healing_loss_late_source (hs : V2.D.ScheduleWellFormed E rho)
   change 4 * p.Δ * ((r * p.R : Nat) : Int) + 6 * p.Δ < 4 * p.Δ * (l : Int) + p.Δ
   nlinarith [p.deltaPos]
 
-/-- Plan fgsa-s5-m5-d2d4 B `cause` (old/same/later origin; first transfer
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan fgsa-s5-m5-d2d4 B `cause` (old/same/later origin; first transfer
 handled separately, blocker B2); blueprint 21:2730–2741.
 DC: INTENTIONAL global event-index measure. At a loss of the high source B at
 a HEAD tick of label l > sB, no earlier source C, as high as B, conflicts with
@@ -127,7 +132,8 @@ theorem healing_loss_single_cause [Fintype V] {G ΔF : Time}
       emittedName hC hB hgt hn
     exact noLoss k₀ (hord k _ hk (hvote s' hCl)) B sB hL
 
-/-- ROOT-DIGEST W2b. Plan fgsa-s5-m5-d2d4 B `cause`; blueprint 21:2689–2741, 2767–2813
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Plan fgsa-s5-m5-d2d4 B `cause`; blueprint 21:2689–2741, 2767–2813
 (fj.descent.v3). DC: INTENTIONAL global event-index measure. At a loss read
 with no earlier loss, the restricted descent of B in a view X of the store
 gives the incompatible high pair of earlier sources. The F and Z keep cases
@@ -184,7 +190,8 @@ private theorem cause_compat_of_erase {A B : FGBlock (Fin p.n)}
   · exact Or.inl (eraseFG_preceq_iff.mp h)
   · exact Or.inr (eraseFG_preceq_iff.mp h)
 
-/-- Plan fgsa-s5-m5-d2d4 B `cause` (the H.2 coverage input); blueprint
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan fgsa-s5-m5-d2d4 B `cause` (the H.2 coverage input); blueprint
 21:709–715. DC: INTENTIONAL global event-index measure. Before the first
 loss, every honest HEAD at a label above sB whose vote time is before the time
 of event k covers the high source B: its tick is an earlier event. -/
@@ -212,7 +219,8 @@ theorem healing_noLoss_heads (hs : V2.D.ScheduleWellFormed E rho)
     rw [Lost_def]
     exact ⟨hB, z, w, hz, hw, hjz, hn⟩)
 
-/-- ROOT-DIGEST W2b. Plan fgsa-s5-m5-d2d4 B `cause` (finality coverage first); blueprint
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Plan fgsa-s5-m5-d2d4 B `cause` (finality coverage first); blueprint
 21:2689–2716 (IF.3(c)), 526–546 (W3). DC: INTENTIONAL global event-index
 measure. At a loss read with no earlier loss, F of the reader is below the
 lost high source B. If F conflicts with B or is above B: either the height of
@@ -279,7 +287,8 @@ theorem healing_loss_F_below [Fintype V] {G ΔF : Time}
     · exact (healing_loss_single_cause p c E rho hrec emittedNonempty emittedName noLoss hB hl
         hk hK hc hhK).elim
 
-/-- ROOT-DIGEST W2b. Plan fgsa-s5-m5-d2d4 B `cause` (B ∈ X and the restricted B18 cover);
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Plan fgsa-s5-m5-d2d4 B `cause` (B ∈ X and the restricted B18 cover);
 blueprint 21:673–689 (relay of each supporter head), 2689–2716.
 DC: INTENTIONAL per-block relay, not TDel. A source of label s ≤ u, above the
 finality of an honest node x that ticks at v_(u+1), is in the store of x before
@@ -320,7 +329,10 @@ theorem healing_source_receipt [Fintype V] {G ΔF : Time}
     healing_support_honest_seat rho hrec.base.cstar hrec.fault _ _ _ hτ
   obtain ⟨K', hK', hKm', hKst', -, -, -⟩ := healing_support_clean_target E rho o ho
   have hKK' : Block.Preceq (eraseFG K) K' := by
-    rw [Gen.AC.voteSupports_def, hK'] at hsup
+    change Gen.AC.Root.voteSupports
+      (GridCO.resolutionTree (actView (clockPre p (storeAt p c E rho ix y)
+        (SA.gateTime p.toParams (r * p.R))))) (eraseFG K) o = true at hsup
+    rw [Gen.AC.Root.voteSupports_def, resolvedHead_target _ o hK'] at hsup
     exact (Bool.and_eq_true_iff.mp hsup).2
   have hvh : SA.voteTime p.toParams (u + 1) ≤ rho.horizon :=
     (hS.in_horizon _ (List.mem_of_getElem? hk)).2
@@ -351,7 +363,8 @@ theorem healing_source_receipt [Fintype V] {G ΔF : Time}
   rw [Gen.V2.Duty.stateBefore_idxBefore E rho _ hS]
   exact (eraseFG_injective hAe) ▸ hA
 
-/-- Plan fgsa-s5-m5-d2d4 B `cause` (moving-frame keep: path, leases and scores
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan fgsa-s5-m5-d2d4 B `cause` (moving-frame keep: path, leases and scores
 together); blueprint 21:673–715, 2689–2728. DC: INTENTIONAL moving frame.
 At a loss read of label i + 1 with no earlier loss, let X be the store of the
 reader before z_i. If B is in the domain of X, the HEAD covers B: by H.1 at
@@ -370,16 +383,17 @@ theorem healing_loss_domain [Fintype V] {G ΔF : Time}
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     {k : Nat} (noLoss : ∀ k' < k, ∀ B sB, ¬ Lost p c E rho B sB k')
     {B : FGBlock (Fin p.n)} {sB : Slot} {x : V} {i : Slot}
@@ -438,7 +452,8 @@ theorem healing_loss_domain [Fintype V] {G ΔF : Time}
       (eraseFG_preceq hFB)
     exact healing_next_transfer_domain p c E rho hrec hgsti hcover hx hk hXv hXc hD hlease
 
-/-- Plan fgsa-s5-m5-d2d4 B `cause`; blueprint 21:2677–2741, 2767–2813
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan fgsa-s5-m5-d2d4 B `cause`; blueprint 21:2677–2741, 2767–2813
 (fj.descent.v3). DC: INTENTIONAL global event-index measure. The `cause`
 input of `healing_high_source_first_failure` at c₀ = μ + 1: at a loss with no
 earlier loss, two earlier incompatible high sources exist. The view is the
@@ -460,16 +475,17 @@ theorem healing_loss_cause [Fintype V] {G ΔF : Time}
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     (xing : RXing p c E rho) (origin : RQCOrigin p c E rho) :
     ∀ k K s, (∀ k' < k, ∀ B sB, ¬ Lost p c E rho B sB k') → Lost p c E rho K s k →
@@ -522,7 +538,8 @@ theorem healing_loss_cause [Fintype V] {G ΔF : Time}
     exact_mod_cast hlt
   exact healing_source_receipt p c E rho hrec emittedNonempty emittedName hK hsl hgsti hx hk hFK
 
-/-- Plan fgsa-s5-m5-d2d4 B; blueprint 21:2677–2741 (fj.descent.v3).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan fgsa-s5-m5-d2d4 B; blueprint 21:2677–2741 (fj.descent.v3).
 DC: INTENTIONAL global event-index measure. `healing_high_source_first_failure`
 at c₀ = μ + 1 with the concrete `Lost`, `same` (IF.6), the corrected `support`
 and `cause`: no high source is lost, and all high sources with rows before any
@@ -541,16 +558,17 @@ theorem healing_high_source_compat [Fintype V] {G ΔF : Time}
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     (xing : RXing p c E rho) (origin : RQCOrigin p c E rho) :
     (∀ k K s, ¬ Lost p c E rho K s k) ∧
@@ -562,7 +580,8 @@ theorem healing_high_source_compat [Fintype V] {G ΔF : Time}
     (healing_loss_support p c E rho hrec emittedNonempty emittedName)
     (healing_loss_cause p c E rho hrec mono emittedNonempty emittedName writes xing origin)
 
-/-- Plan fgsa-s5-m5-d2d4 B (the H0Reset.mu_le specialization); blueprint
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan fgsa-s5-m5-d2d4 B (the H0Reset.mu_le specialization); blueprint
 21:3002–3004 (high), 1579–1582 (μ ≤ M). DC: SAME high threshold M + 1.
 Sources of height at least M + 1 are pairwise compatible: μ ≤ M. -/
 theorem healing_high_source_compat_reset [Fintype V] {G ΔF : Time}
@@ -579,16 +598,17 @@ theorem healing_high_source_compat_reset [Fintype V] {G ΔF : Time}
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
     {w : HealingWitness} (h0 : H0Reset p c E rho w) :

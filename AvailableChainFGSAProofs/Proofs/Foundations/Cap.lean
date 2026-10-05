@@ -45,7 +45,8 @@ private theorem cap_weight [Fintype V]
   rw [hw, hq]
   exact hc.trans_lt hQ.lt
 
-/-- The delivery index is retained to compare a row with a later tick,
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The delivery index is retained to compare a row with a later tick,
 including ticks of a different node at the same wall-clock time. -/
 private def CapOrigin (i : Nat) (x : V) (u : Row (Fin p.n)) : Prop :=
   ∃ (z : V) (r : Nat) (a : RowWire p.n),
@@ -73,7 +74,8 @@ private theorem cap_origin_of_held
       rw [har]; rfl⟩
   exact ⟨z, r, a, (he z hsign hz).1, hsign, ha, k, o, t, hki, hk, (he z hsign hz).2⟩
 
-/-- R-CAP row witnesses with the active height view.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+R-CAP row witnesses with the active height view.
 The height laws supply the same quorum and row-origin proof as `fgsa_rCap`.
 The existing old-height wrapper below contains the height transport. -/
 theorem fgsa_rCap_heightView [Fintype V]
@@ -103,7 +105,8 @@ theorem fgsa_rCap_heightView [Fintype V]
       exact hmatch.1
     exact ⟨z, r, a, u, T, timeout, hb, hs, hd, huW, by rw [hp, hk]⟩
 
-/-- R-CAP, P3 App. A.4: an instance of G17 on the held-block domain.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+R-CAP, P3 App. A.4: an instance of G17 on the held-block domain.
 The authentic height row was released at an index strictly below the read. -/
 theorem fgsa_rCap [Fintype V]
     (hL : V2.D.Linked (fgsaFamilies p c).linked rho) (hv : V2.D.ExecutionValid E rho)
@@ -118,7 +121,8 @@ theorem fgsa_rCap [Fintype V]
   apply fgsa_rCap_heightView p c E rho hL hv hQ y' i' x W hW
   simpa only [heightView_eq_simplex, KitFG.simplexHeightView_def, KitFG.heightOf_def] using hheight
 
-/-- ROOT-DIGEST W2b. R-CAP with exactly the run premises of `fgsa_rCap`.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. R-CAP with exactly the run premises of `fgsa_rCap`.
 The decoded honest row is the same signed wire in the held block's chain. -/
 theorem fgsa_rCap_channel [Fintype V]
     (hL : V2.D.Linked (fgsaFamilies p c).linked rho) (hv : V2.D.ExecutionValid E rho)
@@ -154,19 +158,19 @@ theorem fgsa_rCap_channel [Fintype V]
     | node P s root body rows ih =>
       change u ∈ rows.toFinset ∪ chainRows P at hu
       rcases Finset.mem_union.mp hu with hu | hu
-      · obtain ⟨slot, raw, sup, wires, hw, hr⟩ :=
+      · obtain ⟨slot, N, hw, heN, hr⟩ :=
           stored_wire_of_block p st hs.cstore hs.«meta» hmem (by intro h; cases h)
-        change rows = wires.filterMap RowWire.toRow? at hr
+        change rows = N.rows.filterMap RowWire.toRow? at hr
         have hur : u ∈ rows := List.mem_toFinset.mp hu
         rw [hr] at hur
         obtain ⟨b, hbw, hbu⟩ := List.mem_filterMap.mp hur
         have he : b = a := (encode b u hbu).trans ha.symm
         subst b
         apply List.mem_flatten.mpr
-        refine ⟨wires, List.mem_filterMap.mpr ⟨_, hw, ?_⟩, hbw⟩
+        refine ⟨N.rows, List.mem_filterMap.mpr ⟨_, hw, ?_⟩, hbw⟩
         have hrefl : Block.preceq (eraseFG (.node P s root body rows))
             (eraseFG (.node P s root body rows)) = true := Gen.Pure.block_preceq_refl _
-        simp only [Wire.decode, hrefl, ↓reduceIte]
+        simp only [Wire.decode, heN, hrefl, ↓reduceIte]
       · have hpar := ih hu (hs.cstore.fg.closed _ hmem)
         obtain ⟨wires, hw, haw⟩ := List.mem_flatten.mp hpar
         obtain ⟨b, hb, hdec⟩ := List.mem_filterMap.mp hw
@@ -178,20 +182,21 @@ theorem fgsa_rCap_channel [Fintype V]
           cases msg with
           | vote s k B => rw [hbd] at hdec; cases hdec
           | row k payload => rw [hbd] at hdec; cases hdec
-          | block slot B raw sup ws =>
+          | block slot N =>
             simp only [hbd] at hdec ⊢
             split at hdec
             · rename_i hpre
               have hparent : FGBlock.Preceq P (.node P s root body rows) := by
                 change (decide (P = .node P s root body rows) || FGBlock.preceq P P) = true
                 rw [KitFG.preceq_refl P, Bool.or_true]
-              have hle : B.preceq (eraseFG (.node P s root body rows)) = true :=
+              have hle : N.erase.preceq (eraseFG (.node P s root body rows)) = true :=
                 Gen.Pure.block_preceq_trans hpre (eraseFG_preceq hparent)
               rw [hle, ite_eq_left (rfl : true = true)]
               exact hdec
             · cases hdec
 
-/-- A positive certificate on a held chain contains an authentic honest
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+A positive certificate on a held chain contains an authentic honest
 finality row. This also applies when the finalized checkpoint is genesis:
 the certificate at height 1 in KitFG/Tests/CertHeight.lean needs a finality
 quorum, and strict FaultQ prevents all its signers from being faulty.
@@ -242,7 +247,8 @@ private theorem cap_tick_lt (hv : V2.D.ExecutionValid E rho)
     (le_of_not_gt hn)
   omega
 
-/-- Time consequence of R-CAP. The cut excludes every honest row of height
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Time consequence of R-CAP. The cut excludes every honest row of height
 at least `y' + 1`. The held block supplies a row at or after the cut. -/
 theorem fgsa_rCap_time [Fintype V]
     (hL : V2.D.Linked (fgsaFamilies p c).linked rho) (hv : V2.D.ExecutionValid E rho)
@@ -261,7 +267,8 @@ theorem fgsa_rCap_time [Fintype V]
   obtain ⟨j, _, hj⟩ := hb
   exact le_of_not_gt (fun hlt => (Nat.lt_irrefl _) (hcut j z r a u _ T timeout hj hd hh hlt))
 
-/-- Before the time cut, the same held domain has height below `y' + 2`.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Before the time cut, the same held domain has height below `y' + 2`.
 `i' ≤ idxBefore t` includes every read whose whole prefix is before `t`. -/
 theorem fgsa_rCap_before [Fintype V]
     (hL : V2.D.Linked (fgsaFamilies p c).linked rho) (hv : V2.D.ExecutionValid E rho)
@@ -282,7 +289,8 @@ theorem fgsa_rCap_before [Fintype V]
   obtain ⟨j, _, hj⟩ := hb
   exact (Nat.lt_irrefl _) (hcut j z r a u _ T b hj hd hh (hrs.trans_lt hst))
 
-/-- An honest finality row retains its held HEAD, height, target, and QC. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+An honest finality row retains its held HEAD, height, target, and QC. -/
 theorem cap_finality_head {j r : Nat} {z : V} {a : RowWire p.n}
     {u : Row (Fin p.n)} (ha : HonestRowAt p c E rho j z r a)
     (hs : RowSigner p c rho a z) (hd : a.toRow? = some u)
@@ -331,7 +339,8 @@ theorem cap_finality_head {j r : Nat} {z : V} {a : RowWire p.n}
       rw [FGSA.clock_fg] at hmem
       exact ⟨H, ⟨hz, hmem⟩, hh, hr, hqc⟩
 
-/-- S1 G17 #19, with the lead's positive-height correction. The held read
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+S1 G17 #19, with the lead's positive-height correction. The held read
 has a prefix before `a_(q+1)`. The absence premise concerns all honest
 height-y emissions strictly before `a_q`, including rows no longer held.
 The result uses certificate height, including a certificate for genesis. -/

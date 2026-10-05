@@ -31,7 +31,8 @@ variable [Fintype V] {G ΔF : Time}
 
 include hrec cap source rowCovered h0r
 
-/-- Blueprint 21 H.14–H.17:2958–3012; plan S5 CONE C1.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.14–H.17:2958–3012; plan S5 CONE C1.
 DC: SAME selected source below each honest HEAD at the named cut.
 The ports have producers sourceDiscipline_tSrc, fgsa_rCap_channel,
 rowPermission_covered, and the Recovery₂ and H0Reset inputs. -/
@@ -52,7 +53,8 @@ theorem postReset_source_heads_at_cut (i : Nat)
   exact block_preceq_trans hDC
     ((hraw j hj x (a * p.R) C hx hlower hgate hC).2.1 y s H hy hgap hcut hH)
 
-/-- Blueprint 21 H.14–H.17:2958–3012; plan S5 CONE C2.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.14–H.17:2958–3012; plan S5 CONE C2.
 DC: SAME live lease targets below the preceding honest HEAD batch.
 The last-write port has producer fgsa_leaseOrigins_lastWrite. -/
 theorem postReset_liveLease_heads_at_cut (i : Nat)
@@ -63,16 +65,17 @@ theorem postReset_liveLease_heads_at_cut (i : Nat)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     {s : Slot} (hs : w.sStar + 2 ≤ s)
     (hcut : timeIdx rho (SA.voteTime p.toParams s) ≤ i) :

@@ -1,5 +1,6 @@
 module
 public import AvailableChainFGSARun.Proofs.Receipts
+public import AvailableChainFGSARun.Proofs.HeadIdentity
 public import AvailableChainFGSAClaims.Statements.Reads
 public import AvailableChainGeneric.Statements.V2.Duty.Counts
 
@@ -8,23 +9,23 @@ public section
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
 
-private def releaseSeats {n : Nat} (q : GridCO.Params) (v : GridCO.State n)
+private def releaseSeats {n : Nat} (q : GridCO.Params) (v : GridCO.State n .root)
     (s : Slot) (B : Block) : Finset (Fin n) :=
   ((GridCO.seats n ((GridCO.votesAt v s).filter (fun o =>
     GridCO.resolvedBefore v o (GridCO.releaseTime q s)))).filter (fun k =>
       !GridCO.equivocates (GridCO.votesAt v s) k &&
       (GridCO.seatVotes ((GridCO.votesAt v s).filter (fun o =>
         GridCO.resolvedBefore v o (GridCO.releaseTime q s))) k).any (fun o =>
-          (GridCO.headTarget? o).any (fun C => !Block.compatible C B)))).toFinset
+          (GridCO.resolvedHead? v o).any (fun C => !Block.compatible C B)))).toFinset
 
-private theorem release_card {n : Nat} (q : GridCO.Params) (v : GridCO.State n)
+private theorem release_card {n : Nat} (q : GridCO.Params) (v : GridCO.State n .root)
     (s : Slot) (B : Block) : GridCO.releaseCount q v s B = (releaseSeats q v s B).card := by
-  have hp : (fun o : GridCO.Wire n => match GridCO.headTarget? o with
+  have hp : (fun o : GridCO.Wire n .root => match GridCO.resolvedHead? v o with
       | some C => !Block.compatible C B
-      | none => false) = (fun o => (GridCO.headTarget? o).any
+      | none => false) = (fun o => (GridCO.resolvedHead? v o).any
         (fun C => !Block.compatible C B)) := by
     funext o
-    cases GridCO.headTarget? o <;> rfl
+    cases GridCO.resolvedHead? v o <;> rfl
   unfold GridCO.releaseCount releaseSeats
   dsimp only
   refine Eq.trans ?_ (List.toFinset_card_of_nodup
@@ -36,13 +37,13 @@ private theorem release_card {n : Nat} (q : GridCO.Params) (v : GridCO.State n)
   apply congrArg (fun f => (GridCO.seatVotes _ k).any f)
   exact hp
 
-private theorem release_mem {n : Nat} (q : GridCO.Params) (v : GridCO.State n)
+private theorem release_mem {n : Nat} (q : GridCO.Params) (v : GridCO.State n .root)
     (s : Slot) (B : Block) (k : Fin n) : k ∈ releaseSeats q v s B ↔
       GridCO.equivocates (GridCO.votesAt v s) k = false ∧
       ∃ o ∈ GridCO.votesAt v s,
         GridCO.resolvedBefore v o (GridCO.releaseTime q s) = true ∧
         GridCO.headSeat? o = some k ∧
-        (GridCO.headTarget? o).any (fun C => !Block.compatible C B) = true := by
+        (GridCO.resolvedHead? v o).any (fun C => !Block.compatible C B) = true := by
   dsimp only [releaseSeats]
   simp only [List.mem_toFinset, List.mem_filter, Bool.and_eq_true,
     Bool.not_eq_true', List.any_eq_true, GridCO.seatVotes, beq_iff_eq]
@@ -54,30 +55,20 @@ private theorem release_mem {n : Nat} (q : GridCO.Params) (v : GridCO.State n)
     exact List.mem_dedup.mpr (List.mem_filterMap.mpr
       ⟨o, List.mem_filter.mpr ⟨ho, hr⟩, hk⟩)
 
-private theorem resolved_active_base {n : Nat} (st : State n) (o : GridCO.Wire n)
+private theorem resolved_active_base {n : Nat} (st : State n) (o : GridCO.Wire n .root)
     (t : Time) (h : GridCO.resolvedBefore (actView st) o t = true) :
-    GridCO.resolvedBefore st.base o t = true := by
-  unfold GridCO.resolvedBefore at h ⊢
-  cases ht : GridCO.headTarget? o with
-  | none => simp only [ht, Bool.false_eq_true] at h
-  | some C =>
-    simp only [ht, Bool.and_eq_true, GridCO.blockKnown, decide_eq_true_eq] at h ⊢
-    exact ⟨⟨⟨((actView_blocks st C).mp h.1.1.1).1, h.1.1.2⟩, h.1.2⟩, h.2⟩
+    GridCO.resolvedBefore st.base o t = true := active_resolvedBefore_base st o t h
 
-/-- P3 F1b.3: restricting the block domain to actView can only decrease release.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+P3 F1b.3: restricting the block domain to actView can only decrease release.
 Class (iii), store instance. DC counterpart: none; INTENTIONAL, SA adds the
 lease lifecycle (spec/fgsa-protocol.tex:2514–2515; blueprint 01 §5). -/
 theorem fgsa_releaseCount_antitone (p : Params) (st : State p.n) (s : Slot) (B : Block) :
     GridCO.releaseCount p.toParams.engine (actView st) s B ≤
-      GridCO.releaseCount p.toParams.engine st.base s B := by
-  rw [release_card, release_card]
-  apply Finset.card_le_card
-  intro k hk
-  obtain ⟨he, o, ho, hr, hs, hc⟩ := (release_mem _ _ _ _ _).mp hk
-  exact (release_mem _ _ _ _ _).mpr
-    ⟨he, o, ho, resolved_active_base st o _ hr, hs, hc⟩
+      GridCO.releaseCount p.toParams.engine st.base s B := active_releaseCount_le p st s B
 
-/-- P3 F1b.3, bp.release.v1(a,c), blueprint 01 §5 item 6: both store laws.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+P3 F1b.3, bp.release.v1(a,c), blueprint 01 §5 item 6: both store laws.
 Class (iii), store instance. DC counterpart: none; INTENTIONAL, SA adds the
 lease lifecycle (spec/fgsa-protocol.tex:2514–2515). -/
 theorem fgsa_release_store (p : Params) (st : State p.n) :
@@ -88,7 +79,8 @@ theorem fgsa_release_store (p : Params) (st : State p.n) :
   intro s B
   exact ⟨fgsa_releaseCount_antitone p st s B, actView_releaseCount_zero st _ s⟩
 
-/-- P3 F1b.3, bp.release.v1(b): only faulty HEAD holders count against B.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+P3 F1b.3, bp.release.v1(b): only faulty HEAD holders count against B.
 Class (ii), FG-SA instance of v2 signature authenticity and CStar, with
 finite-set injection. DC counterpart: none; INTENTIONAL, SA adds release
 (spec/fgsa-protocol.tex:2514–2515; blueprint 02 §2, 21 H.1).
@@ -97,9 +89,10 @@ theorem fgsa_release_bound (p : Params) {In V : Type} [DecidableEq V] [Fintype V
     (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho)
     (hC : V2.D.CStar (fgsaFamilies p c).fresh rho) (hDelta : E.Δ = p.Δ)
+    (hroots : NamedRootCollisionFree p c E rho)
     (i : Nat) (x : V) (s : Slot) (B : Block)
     (hheads : ∀ y ∈ rho.honest, ∀ o t, V2.D.Run.emits E rho y o t →
-      ∀ k C, o.auth = .seat (.base (.head s)) k → o.payload = .head C →
+      ∀ k C, o.auth = .seat (.base (.head s)) k → HeadTargetAtEmission p c E rho y o t C →
         Block.Compatible C B) :
     GridCO.releaseCount p.toParams.engine (actView (storeAt p c E rho i x)) s B ≤
       (Gen.V2.Duty.faulty rho).card := by
@@ -116,7 +109,17 @@ theorem fgsa_release_bound (p : Params) {In V : Type} [DecidableEq V] [Fintype V
       simpa only [beq_iff_eq] using (List.mem_filter.mp ho).2
     have hstored : o ∈ (storeAt p c E rho i x).base.votes :=
       (List.mem_filter.mp ho).1
-    have hrbase := resolved_active_base (storeAt p c E rho i x) o _ hr
+    obtain ⟨D, hresolve, hConflict⟩ : ∃ D,
+        GridCO.resolvedHead? (actView (storeAt p c E rho i x)) o = some D ∧
+        (!Block.compatible D B) = true := by
+      cases hR : GridCO.resolvedHead? (actView (storeAt p c E rho i x)) o with
+      | none => simp only [hR, Option.any_none, Bool.false_eq_true] at hconf
+      | some D => exact ⟨D, rfl, by simpa only [hR, Option.any_some] using hconf⟩
+    have hstamp : GridCO.stampVote (storeAt p c E rho i x).base o <
+        SA.releaseTime p.toParams s := by
+      unfold GridCO.resolvedBefore at hr
+      rw [hresolve] at hr
+      exact of_decide_eq_true (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp hr).1).2
     obtain ⟨auth, payload⟩ := o
     cases auth with
     | none => cases payload <;> change (none : Option Slot) = some s at hl <;> contradiction
@@ -130,11 +133,7 @@ theorem fgsa_release_bound (p : Params) {In V : Type} [DecidableEq V] [Fintype V
         have hrs : r = s := Option.some.inj hl
         have hjk : j = k := Option.some.inj hseat
         subst r; subst j
-        have hv : GridCO.stampVote (storeAt p c E rho i x).base
-            ⟨.seat s k, .head C⟩ < SA.releaseTime p.toParams s := by
-          change (_ && _ && _ && _) = true at hrbase
-          exact of_decide_eq_true (Bool.and_eq_true_iff.mp
-            (Bool.and_eq_true_iff.mp hrbase).1).2
+        have hv := hstamp
         have hpub : V2.PublicTime E (SA.releaseTime p.toParams s) := by
           refine ⟨4 * s + 5, ?_⟩
           rw [hDelta]
@@ -158,9 +157,17 @@ theorem fgsa_release_bound (p : Params) {In V : Type} [DecidableEq V] [Fintype V
             exact hE.unforgeable x _ t ⟨j, hd⟩ _ hhonest hholder
           · exact hE.carried x parent t ⟨j, hd⟩ _ hc _ hhonest hholder
         obtain ⟨u, _, hem⟩ := hem
-        have hcompat := hheads _ hhonest _ u hem k C rfl rfl
-        change (!Block.compatible C B) = true at hconf
-        rw [show Block.compatible C B = true from hcompat] at hconf
+        obtain ⟨H, hH⟩ := headTargetAtEmission_exists E rho hem rfl
+        have hcompat := hheads _ hhonest _ u hem k H rfl hH
+        have hCH : C = H.root := by
+          obtain ⟨_, _, _, _, _, ho, _⟩ := hH
+          exact Msg.head.inj (congrArg (fun o : Obj p => o.payload) ho)
+        have hTarget : GridCO.headTarget? (⟨.seat s k, .head C⟩ : GridCO.Wire p.n .root) =
+            some H.root := congrArg some hCH
+        have hDH := headTargetAtEmission_receiver_eq E rho hroots hH i x
+          (actView (storeAt p c E rho i x)) ⟨.seat s k, .head C⟩
+          (fun _ h => (List.mem_filter.mp h).1) hTarget hresolve
+        rw [hDH, show Block.compatible H B = true from hcompat] at hConflict
         contradiction
   · intro k _ j _ he
     exact (hC (.base (.head s)) trivial).injective he

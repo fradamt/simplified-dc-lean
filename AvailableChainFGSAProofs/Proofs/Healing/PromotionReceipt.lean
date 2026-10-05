@@ -12,7 +12,8 @@ open AvailableChain.SimplexFG
 
 variable {p : Params} {In V : Type} [DecidableEq V] [Fintype V] {c : AppCodec In}
 
-/-- ROOT-DIGEST W2b. Blueprint 21:1410–1419; r3 A4.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21:1410–1419; r3 A4.
 DC: SAME first receipt uses the already-held parent and the strict deadline read.
 RXing is applied to the parent, with its own proposer-floor bound.
 At top J, the walk extends the fixed J, including genesis at m = 1. -/
@@ -31,7 +32,7 @@ theorem healing_promotion_first_receipt (E : Generic.Env V)
   let x := V2.D.proposerOf rho (fgsaInterface p c) s
   have hx : x ∈ rho.honest := hnew.1.2
   have hs := hrec.base.valid.toScheduleWellFormed
-  obtain ⟨ip, raw, sup, rows, hip, hem, hst, _, hbody, _⟩ :=
+  obtain ⟨ip, N, heN, hip, hem, hst, _, hbody, _⟩ :=
     healing_promotion_proposal_read p c E rho hs hnew
   let st := ((fgsa p c).clock (V2.D.Run.stateBefore E rho ip x) t).st
   have hfg : st.fg = (storeAt p c E rho ip x).fg := clock_fg p _ _
@@ -121,19 +122,20 @@ theorem healing_promotion_first_receipt (E : Generic.Env V)
   have hD := Gen.V2.Duty.deliveryWithinOn_of_partialSynchronyBy E rho hrec.sync
     (fun o => ¬ isRowObject o) p.Δ delay
   have hT : Gen.V2.Duty.Trigger E rho
-      (ofWire p ⟨.proposer s, .proposal (eraseFG X) raw sup rows⟩) t :=
+      (ofWire p ⟨.proposer s, .proposal N⟩) t :=
     Or.inl ⟨x, hx, ip, hip, hem⟩
   have hdline : max t E.t_GST + p.Δ = d := by rw [max_eq_left (hgst.trans hafter)]
   obtain ⟨Y, hY, he⟩ := fgsa_proposal_receipt (hRoots := hrec.base.idealization) E rho
     hrec.base.delta hrec.base.valid
-    hrec.base.noRestart (fun t => max t E.t_GST + p.Δ) rho.horizon s (eraseFG X)
-    raw sup rows t x hD hT hx (hdline ▸ hp.2.1)
-    (hdline ▸ lt_add_of_pos_right t p.deltaPos) (hdline ▸ hcompat)
-  have heq : Y = X := eraseFG_injective he
+    hrec.base.noRestart (fun t => max t E.t_GST + p.Δ) rho.horizon s N t x hD hT hx (hdline ▸
+        hp.2.1)
+    (hdline ▸ lt_add_of_pos_right t p.deltaPos) (by simpa only [heN, hdline] using hcompat)
+  have heq : Y = X := eraseFG_injective (he.trans heN)
   rw [hdline, heq] at hY
   exact ⟨x, hx, hY⟩
 
-/-- ROOT-DIGEST W2b. Blueprint 21:1592–1638; S5 H1, route step 7.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21:1592–1638; S5 H1, route step 7.
 DC: SAME the strict frontier cap makes the emitted proposal compatible at receipt.
 The saved height-m block is below the parent. No phase after its gate is required. -/
 theorem healing_promotion_first_receipt_of_frontierCap (E : Generic.Env V)
@@ -154,7 +156,7 @@ theorem healing_promotion_first_receipt_of_frontierCap (E : Generic.Env V)
   let x := V2.D.proposerOf rho (fgsaInterface p c) s
   have hx : x ∈ rho.honest := hnew.1.2
   have hs := hrec.base.valid.toScheduleWellFormed
-  obtain ⟨ip, raw, sup, rows, hip, hem, hst, _, _, _⟩ :=
+  obtain ⟨ip, N, heN, hip, hem, hst, _, _, _⟩ :=
     healing_promotion_proposal_read p c E rho hs hnew
   let st := ((fgsa p c).clock (V2.D.Run.stateBefore E rho ip x) t).st
   obtain ⟨Y, he, _, _, st', hst', hlookup⟩ := healing_promotion_carrier E rho hrec hnew
@@ -192,20 +194,20 @@ theorem healing_promotion_first_receipt_of_frontierCap (E : Generic.Env V)
   have hD := Gen.V2.Duty.deliveryWithinOn_of_partialSynchronyBy E rho hrec.sync
     (fun o => ¬ isRowObject o) p.Δ delay
   have hT : Gen.V2.Duty.Trigger E rho
-      (ofWire p ⟨.proposer s, .proposal (eraseFG X) raw sup rows⟩) t :=
+      (ofWire p ⟨.proposer s, .proposal N⟩) t :=
     Or.inl ⟨x, hx, ip, hip, hem⟩
   have hdline : max t E.t_GST + p.Δ = d := by rw [max_eq_left hgst]
   obtain ⟨Y, hY, he⟩ := fgsa_proposal_receipt (hRoots := hrec.base.idealization) E rho
     hrec.base.delta hrec.base.valid
-    hrec.base.noRestart (fun t => max t E.t_GST + p.Δ) rho.horizon s (eraseFG X)
-    raw sup rows t x hD hT hx (hdline ▸ hhor)
-    (hdline ▸ lt_add_of_pos_right t p.deltaPos) (hdline ▸ hcompat)
-  have heq : Y = X := eraseFG_injective he
+    hrec.base.noRestart (fun t => max t E.t_GST + p.Δ) rho.horizon s N t x hD hT hx (hdline ▸ hhor)
+    (hdline ▸ lt_add_of_pos_right t p.deltaPos) (by simpa only [heN, hdline] using hcompat)
+  have heq : Y = X := eraseFG_injective (he.trans heN)
   rw [hdline, heq] at hY
   exact ⟨x, hx, hY⟩
 
 omit [Fintype V] in
-/-- Blueprint 21:1592–1638; S5 H2, route step 8.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1592–1638; S5 H2, route step 8.
 DC: SAME a strict block receipt persists to a later strict cut by cumulative store. -/
 theorem healing_promotion_block_held_mono (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) (hs : V2.D.ScheduleWellFormed E rho)

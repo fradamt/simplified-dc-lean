@@ -13,7 +13,8 @@ open AvailableChain.SimplexFG Gen.Pure
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- H.17 abstract retained cone at labels at least sStar + 2. The later producer
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+H.17 abstract retained cone at labels at least sStar + 2. The later producer
 is HG.3–HG.5 / G-H17. For each actual honest proposal with its HEAD deadline
 inside the horizon, it supplies exactly the per-reader `RetainedConeInput`
 premise of `fgsa_retainedReads_H17`, with one pivot D for that proposal.
@@ -23,8 +24,8 @@ def PostResetRetainedCone (w : HealingWitness) : Prop :=
   ∀ {ip : Nat} {x : V}, x ∈ rho.honest →
     rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
     rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x →
-  ∀ (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n)),
-    (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+  ∀ (N : NamedProposal p.n),
+    (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       rho.emitsAt E ip →
     ∃ D : FGBlock (Fin p.n), ∀ y ∈ rho.honest, ∀ ih,
       rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
@@ -32,14 +33,15 @@ def PostResetRetainedCone (w : HealingWitness) : Prop :=
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D
 
-/-- Blueprint 21 H.17:2946–3040; plan RE-BIND D1; DC: SAME cone at one label. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.17:2946–3040; plan RE-BIND D1; DC: SAME cone at one label. -/
 def PostResetConeAt (w : HealingWitness) (s : Slot) : Prop :=
   w.sStar + 2 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
   ∀ {ip : Nat} {x : V}, x ∈ rho.honest →
     rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
     rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x →
-  ∀ (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n)),
-    (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+  ∀ (N : NamedProposal p.n),
+    (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       rho.emitsAt E ip →
     ∃ D : FGBlock (Fin p.n), ∀ y ∈ rho.honest, ∀ ih,
       rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
@@ -47,15 +49,16 @@ def PostResetConeAt (w : HealingWitness) (s : Slot) : Prop :=
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D
 
-/-- Blueprint 21 H.17:2946–3040; plan RE-BIND D1; DC: SAME cone at one label. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.17:2946–3040; plan RE-BIND D1; DC: SAME cone at one label. -/
 theorem PostResetConeAt_def (w : HealingWitness) (s : Slot) :
     PostResetConeAt p c E rho w s = (
   w.sStar + 2 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
   ∀ {ip : Nat} {x : V}, x ∈ rho.honest →
     rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
     rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x →
-  ∀ (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n)),
-    (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+  ∀ (N : NamedProposal p.n),
+    (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       rho.emitsAt E ip →
     ∃ D : FGBlock (Fin p.n), ∀ y ∈ rho.honest, ∀ ih,
       rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
@@ -63,11 +66,13 @@ theorem PostResetConeAt_def (w : HealingWitness) (s : Slot) :
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D) := by rfl
 
-/-- Blueprint 21 H.17:2946–3040; plan RE-BIND D1; DC: SAME cone at one label. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.17:2946–3040; plan RE-BIND D1; DC: SAME cone at one label. -/
 theorem postResetRetainedCone_iff_at (w : HealingWitness) :
     PostResetRetainedCone p c E rho w ↔ ∀ s, PostResetConeAt p c E rho w s := by rfl
 
-/-- Application theorem for this module's abstract input; consumers can apply it
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Application theorem for this module's abstract input; consumers can apply it
 without access to private module data. -/
 theorem postResetRetainedCone_iff (w : HealingWitness) :
     PostResetRetainedCone p c E rho w ↔
@@ -75,8 +80,8 @@ theorem postResetRetainedCone_iff (w : HealingWitness) :
     ∀ {ip : Nat} {x : V}, x ∈ rho.honest →
       rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
       rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x →
-    ∀ (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n)),
-      (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+    ∀ (N : NamedProposal p.n),
+      (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
         rho.emitsAt E ip →
       ∃ D : FGBlock (Fin p.n), ∀ y ∈ rho.honest, ∀ ih,
         rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
@@ -84,11 +89,13 @@ theorem postResetRetainedCone_iff (w : HealingWitness) :
           (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
           (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D) := Iff.rfl
 
-/-- Risk 6: the reset label is at most v - 2 at every H3 proposal. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Risk 6: the reset label is at most v - 2 at every H3 proposal. -/
 theorem postReset_source_label_le_sub_two (w : HealingWitness) {v : Slot}
     (hv : w.sStar + 2 ≤ v) : w.sStar ≤ v - 2 := Nat.le_sub_of_add_le hv
 
-/-- Risk 6: q_(sStar) is the release time. It precedes the next H3
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Risk 6: q_(sStar) is the release time. It precedes the next H3
 proposal's synchronization window, including v = sStar + 2. This is a
 clock bound, not a claim that reset transfer has been proved. -/
 theorem postReset_release_before_proposal (w : HealingWitness) {v : Slot}
@@ -99,7 +106,8 @@ theorem postReset_release_before_proposal (w : HealingWitness) {v : Slot}
   nlinarith [p.deltaPos]
 
 omit [DecidableEq V] in
-/-- Risk 4: a HEAD deadline inside the horizon also contains its proposal. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Risk 4: a HEAD deadline inside the horizon also contains its proposal. -/
 theorem postReset_proposal_horizon {v : Slot}
     (hHeadHorizon : SA.voteTime p.toParams v ≤ rho.horizon) :
     SA.proposalTime p.toParams v ≤ rho.horizon := by
@@ -109,7 +117,8 @@ theorem postReset_proposal_horizon {v : Slot}
   linarith
 
 omit [DecidableEq V] in
-/-- Risk 4: the gate horizon implies the distinct HEAD horizon. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Risk 4: the gate horizon implies the distinct HEAD horizon. -/
 theorem postReset_head_horizon {v : Slot}
     (hGateHorizon : SA.gateTime p.toParams v ≤ rho.horizon) :
     SA.voteTime p.toParams v ≤ rho.horizon := by
@@ -118,7 +127,8 @@ theorem postReset_head_horizon {v : Slot}
   change 4 * p.Δ * (v : Int) + p.Δ ≤ rho.horizon
   linarith
 
-/-- H0Reset.synchronous gives the H.17 window without H.18 proposal data. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+H0Reset.synchronous gives the H.17 window without H.18 proposal data. -/
 theorem postReset_synchronous_window (w : HealingWitness)
     (hreset : H0Reset p c E rho w) {v : Slot} (hv : w.sStar + 2 ≤ v) :
     E.t_GST ≤ SA.proposalTime p.toParams v - p.Δ := by
@@ -128,7 +138,8 @@ theorem postReset_synchronous_window (w : HealingWitness)
     linarith [p.deltaPos]
   exact hreset.synchronous.trans (hvote.trans hrelease)
 
-/-- A cone is empty only when every relevant HEAD deadline is outside the
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+A cone is empty only when every relevant HEAD deadline is outside the
 horizon. This lemma makes no reset or service claim for such a short run. -/
 theorem postResetRetainedCone_of_horizon_lt (w : HealingWitness)
     (hshort : rho.horizon < SA.voteTime p.toParams (w.sStar + 2)) :
@@ -141,7 +152,8 @@ theorem postResetRetainedCone_of_horizon_lt (w : HealingWitness)
       4 * p.Δ * (s : Int) + p.Δ := by nlinarith [p.deltaPos]
   exact (not_lt_of_ge (hmono.trans hHeadHorizon) hshort).elim
 
-/-- ROOT-DIGEST W2b. Apply the abstract cone to the existing H.17 supplier. The output keeps
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Apply the abstract cone to the existing H.17 supplier. The output keeps
 each reader's actual state and the common proposal pivot.
 Blueprint 21 H.17:2946–3040; plan RE-BIND D2; DC: SAME per-label cone. -/
 theorem healing_postReset_retainedReads_at
@@ -153,20 +165,21 @@ theorem healing_postReset_retainedReads_at
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
     (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
-    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       rho.emitsAt E ip)
     (hroots : NamedRootCollisionFree p c E rho) :
     ∃ D : FGBlock (Fin p.n), ∀ y ∈ rho.honest, ∀ ih,
       rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
       ∃ Kc, RetainedReadPremises p
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
-        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D b Kc := by
-  obtain ⟨D, hinput⟩ := hcone hs hHeadHorizon hx hip hseat b raw sup rows hem
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D N.erase Kc := by
+  obtain ⟨D, hinput⟩ := hcone hs hHeadHorizon hx hip hseat N hem
   exact ⟨D, fgsa_retainedReads_H17 (hroots := hroots) E rho hE hN hDelta s hSync hx hip hseat
-    b raw sup rows hem D hinput⟩
+    N hem D hinput⟩
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.17:2946–3040; plan RE-BIND D2/D3; DC: SAME cone at its label. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.17:2946–3040; plan RE-BIND D2/D3; DC: SAME cone at its label. -/
 theorem healing_postReset_retainedReads
     (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
     (w : HealingWitness) (hcone : PostResetRetainedCone p c E rho w)
@@ -177,18 +190,18 @@ theorem healing_postReset_retainedReads
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
     (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
-    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       rho.emitsAt E ip)
     (hroots : NamedRootCollisionFree p c E rho) :
     ∃ D : FGBlock (Fin p.n), ∀ y ∈ rho.honest, ∀ ih,
       rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
       ∃ Kc, RetainedReadPremises p
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
-        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D b Kc := by
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D N.erase Kc := by
   exact healing_postReset_retainedReads_at (hroots := hroots) p c E rho hE hN hDelta w s
     ((postResetRetainedCone_iff_at p c E rho w).mp hcone s) hs hHeadHorizon hSync
-    hx hip hseat b raw sup rows hem
+    hx hip hseat N hem
 
 end AvailableChain.FGSA.Run
 end

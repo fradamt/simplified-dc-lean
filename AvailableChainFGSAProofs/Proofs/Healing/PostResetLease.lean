@@ -24,7 +24,8 @@ open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- Blueprint 21 H.15:2887–2892, H.16:2931–2938; plan J4 item 0b;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.15:2887–2892, H.16:2931–2938; plan J4 item 0b;
 B13/B17/B18. DC: SAME last-write key guards. The named producer of
 `writes` is fgsa_leaseOrigins_lastWrite. Unfold its actual gateWriteKeys
 membership to obtain every lease_safe write guard. The two `pre` terms
@@ -34,16 +35,17 @@ theorem postReset_leaseSafe_antecedent_of_lastWrite
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     {w : HealingWitness} {i : Nat} {x : V} {row : Block × Nat × Time}
     (hrow : row ∈ (storeAt p c E rho i x).base.obligations) (hx : x ∈ rho.honest)
@@ -53,10 +55,10 @@ theorem postReset_leaseSafe_antecedent_of_lastWrite
       Block.Preceq w.CStar row.1 ∧ row.1 ≠ w.CStar ∧
       let pre := clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s)
       row.1 ∈ (actView pre).blocks ∧ row.1 ≠ .genesis ∧ Block.Preceq row.1 C ∧
-      row.2.1 ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.toParams.engine p.n
-        (actView pre) s row.1 := by
+      row.2.1 ∈ @GridCO.admissionLevels GridCO.slowLeasePolicy p.toParams.engine p.n .root
+          (actView pre) s row.1 := by
   obtain ⟨j, hj, s, C, ht, hp, hc, _hBC, hkey, _hd, _hq, _hlast⟩ := writes i x row hrow
-  rw [@GridCO.gateWriteKeys_def GridCO.slowLeasePolicy p.toParams.engine p.n] at hkey
+  rw [@GridCO.gateWriteKeys_def GridCO.slowLeasePolicy .root p.toParams.engine p.n] at hkey
   obtain ⟨B, hB, hg⟩ := List.mem_flatMap.mp hkey
   obtain ⟨g, hg, he⟩ := List.mem_map.mp hg
   obtain ⟨heB, heg⟩ := Prod.mk.inj he
@@ -92,7 +94,8 @@ variable (hv : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho)
 
 include hv hnr origin heldRows cap hhead xing h0r
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.17:2982–2987, H.18:3073–3095; plan J4 B;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.17:2982–2987, H.18:3073–3095; plan J4 B;
 B1/B13/B17/B18. DC: SAME two provenance arms. Clause 1 uses J1's
 reset-only low arm. Clause 2 uses the selected J carrier's target QC
 and its actual delivery clock, without any future invariant field. -/
@@ -155,7 +158,8 @@ theorem postReset_fProv_all (i : Nat)
     rw [← hT]
     exact eraseFG_preceq ((fgCertificateLaws p).height.entry_preceq K)
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.17/H.18:2946–3095; plan J4 C; B1/B13/B17/B18.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.17/H.18:2946–3095; plan J4 C; B1/B13/B17/B18.
 DC: SAME RFProv body. Apply B at i + 1 to remove only its prefix guard.
 J9 supplies the frozen public H0 adapter; this theorem uses H0Reset. -/
 theorem postReset_rFProv_reset

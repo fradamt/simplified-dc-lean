@@ -20,16 +20,18 @@ open Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- Plan O-ARM §6.5. Class (iii). DC: INTENTIONAL; one lease write leaves a
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan O-ARM §6.5. Class (iii). DC: INTENTIONAL; one lease write leaves a
 row of its key with at least the written deadline. -/
-theorem arming_write_row {n : Nat} (st : GridCO.State n) (b : Block) (g : Nat) (lim : Time) :
+theorem arming_write_row {n : Nat} (st : GridCO.State n .root) (b : Block) (g : Nat) (lim : Time) :
     ∃ d, (b, g, d) ∈ (GridCO.writeObligation st b g lim).obligations ∧ lim ≤ d :=
   ⟨max ((GridCO.deadlineOf st b g).getD lim) lim,
     List.mem_append_right _ (List.mem_singleton_self _), le_max_right _ _⟩
 
-/-- Plan O-ARM §6.5. Class (iii). DC: INTENTIONAL; a later lease write with the
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan O-ARM §6.5. Class (iii). DC: INTENTIONAL; a later lease write with the
 same deadline keeps a row of each key with at least that deadline. -/
-theorem arming_write_keep {n : Nat} (st : GridCO.State n) (b : Block) (g : Nat)
+theorem arming_write_keep {n : Nat} (st : GridCO.State n .root) (b : Block) (g : Nat)
     (lim : Time) (b' : Block) (g' : Nat) (d : Time) (hm : (b, g, d) ∈ st.obligations)
     (hd : lim ≤ d) :
     ∃ d', (b, g, d') ∈ (GridCO.writeObligation st b' g' lim).obligations ∧ lim ≤ d' := by
@@ -44,10 +46,11 @@ theorem arming_write_keep {n : Nat} (st : GridCO.State n) (b : Block) (g : Nat)
       obtain ⟨h1, h2⟩ := Bool.and_eq_true_iff.mp h
       exact absurd ⟨(beq_iff_eq.mp h1).symm, (beq_iff_eq.mp h2).symm⟩ hk
 
-/-- Plan O-ARM §6.5. Class (iii). DC: INTENTIONAL; a sequence of lease writes
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan O-ARM §6.5. Class (iii). DC: INTENTIONAL; a sequence of lease writes
 with one deadline keeps a row of each key with at least that deadline. -/
 theorem arming_writeKeys_keep {n : Nat} (keys : List (Block × Nat)) (lim : Time) :
-    ∀ (st : GridCO.State n) b g d, (b, g, d) ∈ st.obligations → lim ≤ d →
+    ∀ (st : GridCO.State n .root) b g d, (b, g, d) ∈ st.obligations → lim ≤ d →
       ∃ d', (b, g, d') ∈ (GridCO.writeKeys st keys lim).obligations ∧ lim ≤ d' := by
   induction keys with
   | nil => exact fun st b g d hm hd => ⟨d, hm, hd⟩
@@ -58,10 +61,11 @@ theorem arming_writeKeys_keep {n : Nat} (keys : List (Block × Nat)) (lim : Time
       ← @GridCO.writeKeys_def GridCO.slowLeasePolicy]
     exact ih _ b g d' hm' hd'
 
-/-- Plan O-ARM §6.5. Class (iii). DC: INTENTIONAL; every written key has a row
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan O-ARM §6.5. Class (iii). DC: INTENTIONAL; every written key has a row
 with at least the written deadline. -/
 theorem arming_writeKeys_row {n : Nat} (lim : Time) (b : Block) (g : Nat) :
-    ∀ (keys : List (Block × Nat)) (st : GridCO.State n), (b, g) ∈ keys →
+    ∀ (keys : List (Block × Nat)) (st : GridCO.State n .root), (b, g) ∈ keys →
       ∃ d, (b, g, d) ∈ (GridCO.writeKeys st keys lim).obligations ∧ lim ≤ d := by
   intro keys
   induction keys with
@@ -76,9 +80,10 @@ theorem arming_writeKeys_row {n : Nat} (lim : Time) (b : Block) (g : Nat) :
       exact arming_writeKeys_keep ks lim _ b g d hm hd
     · exact ih _ hk
 
-/-- Plan O-ARM §6.5. Class (iii). DC: INTENTIONAL; lease writes keep S. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan O-ARM §6.5. Class (iii). DC: INTENTIONAL; lease writes keep S. -/
 theorem arming_writeKeys_stable {n : Nat} (lim : Time) :
-    ∀ (keys : List (Block × Nat)) (st : GridCO.State n),
+    ∀ (keys : List (Block × Nat)) (st : GridCO.State n .root),
       (GridCO.writeKeys st keys lim).stableRecord = st.stableRecord := by
   intro keys
   induction keys with
@@ -89,7 +94,8 @@ theorem arming_writeKeys_stable {n : Nat} (lim : Time) :
       ← @GridCO.writeKeys_def GridCO.slowLeasePolicy, ih]
     rfl
 
-/-- Plan O-ARM §6.5. Class (iii). DC: INTENTIONAL; the clock at a gate time is
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan O-ARM §6.5. Class (iii). DC: INTENTIONAL; the clock at a gate time is
 the gate step of the pre-gate clock. -/
 theorem arming_clock_gate (p : Params) (st : State p.n) (s : Slot) :
     clock p st (SA.gateTime p.toParams s) =
@@ -106,16 +112,17 @@ theorem arming_clock_gate (p : Params) (st : State p.n) (s : Slot) :
     rw [hd]; have := p.deltaPos; positivity
   simp only [hn, decide_true, BEq.rfl, Bool.and_self, ite_true]
 
-/-- Plan O-ARM §6.5. Class (iii). DC: INTENTIONAL; the release level is
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan O-ARM §6.5. Class (iii). DC: INTENTIONAL; the release level is
 admitted by the fast test or by the slow test. -/
-theorem arming_admission (p : Params) {n : Nat} (v : GridCO.State n) (r : Slot) (B : Block)
-    (h : SA.releaseThreshold p.toParams ≤ SA.prefixSupport p.toParams v r B ∨
+theorem arming_admission (p : Params) {n : Nat} (v : GridCO.State n .root) (r : Slot) (B : Block)
+    (h : SA.releaseThreshold p.toParams ≤ SA.Root.prefixSupport p.toParams v r B ∨
       GridCO.slowEligible p.toParams.engine v r B = true) :
     SA.releaseThreshold p.toParams ∈
-      @GridCO.admissionLevels GridCO.slowLeasePolicy p.toParams.engine n v r B := by
+      @GridCO.admissionLevels GridCO.slowLeasePolicy p.toParams.engine n .root v r B := by
   have hpolicy : @GridCO.LeasePolicy.slowArming GridCO.slowLeasePolicy = true := rfl
   simp only [GridCO.admissionLevels, hpolicy, ite_true]
-  have hb : (decide (SA.releaseThreshold p.toParams ≤ SA.prefixSupport p.toParams v r B) ||
+  have hb : (decide (SA.releaseThreshold p.toParams ≤ SA.Root.prefixSupport p.toParams v r B) ||
       GridCO.slowEligible p.toParams.engine v r B) = true := by
     rcases h with h | h
     · simp only [h, decide_true, Bool.true_or]
@@ -124,24 +131,25 @@ theorem arming_admission (p : Params) {n : Nat} (v : GridCO.State n) (r : Slot) 
   · exact List.mem_singleton_self _
   · next h => exact absurd hb h
 
-/-- Plan O-ARM §6.5. Class (iii). DC: INTENTIONAL; an unsaved gate whose raw
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan O-ARM §6.5. Class (iii). DC: INTENTIONAL; an unsaved gate whose raw
 result passes the lease guard keeps F and the blocks, advances S to a block
 above B, and writes a release-level lease for every admitted non-genesis
 prefix of the result, with deadline at least d + L. -/
 theorem arming_gate_write (p : Params) (P : State p.n) (j : Slot) {Cj B : Block}
     (hsv : GridCO.savedGenuine P.base j = none)
-    (hraw : SA.confirmationFrom p.toParams (eraseFG P.fg.F) (actView P) j = some Cj)
+    (hraw : SA.Root.confirmationFrom p.toParams (eraseFG P.fg.F) (actView P) j = some Cj)
     (hguard : ∀ row ∈ (actView P).obligations, Block.Compatible row.1 Cj)
     (hFC : Block.Preceq (eraseFG P.fg.F) Cj)
     (hB : B ∈ (actView P).blocks) (hne : B ≠ .genesis) (hBC : Block.Preceq B Cj)
-    (hlev : SA.releaseThreshold p.toParams ≤ SA.prefixSupport p.toParams (actView P) j B ∨
+    (hlev : SA.releaseThreshold p.toParams ≤ SA.Root.prefixSupport p.toParams (actView P) j B ∨
       GridCO.slowEligible p.toParams.engine (actView P) j B = true) :
     (gateStep p P j).fg = P.fg ∧ (gateStep p P j).base.blocks = P.base.blocks ∧
     Block.Preceq B (gateStep p P j).base.stableRecord ∧
     ∃ d, (B, SA.releaseThreshold p.toParams, d) ∈ (gateStep p P j).base.obligations ∧
       SA.gateTime p.toParams j + L p ≤ d := by
   have hgs : gateStep p P j = normalizeS
-      { onView (fun v => SA.gateFrom p.toParams (eraseFG P.fg.F) v j) P with
+      { onView (fun v => SA.Root.gateFrom p.toParams (eraseFG P.fg.F) v j) P with
         fastWrite := P.fastWrite ++ [(j, fastSet p (eraseFG P.fg.F) (actView P) j)] } := by
     change normalizeS (if _ then _ else _) = _
     rw [hsv]
@@ -153,7 +161,7 @@ theorem arming_gate_write (p : Params) (P : State p.n) (j : Slot) {Cj B : Block}
     change Block.compatible row.1 Cj = true at h
     simp only [h, Bool.not_true, Bool.false_eq_true, not_false_eq_true]
   have hw := gateFrom_eq_writeKeys_fgsa p.toParams (eraseFG P.fg.F) (actView P) j Cj hraw hany
-  have hS : (SA.gateFrom p.toParams (eraseFG P.fg.F) (actView P) j).stableRecord =
+  have hS : (SA.Root.gateFrom p.toParams (eraseFG P.fg.F) (actView P) j).stableRecord =
       GridCO.advance (actView P).stableRecord Cj := by
     rw [hw, arming_writeKeys_stable]
   have hadv : ∀ X, Block.Preceq X Cj →
@@ -167,15 +175,15 @@ theorem arming_gate_write (p : Params) (P : State p.n) (j : Slot) {Cj B : Block}
   rw [hgs, normalizeS_fields]
   refine ⟨rfl, rfl, ?_, ?_⟩
   · change Block.Preceq B (if Block.preceq (eraseFG P.fg.F)
-      (SA.gateFrom p.toParams (eraseFG P.fg.F) (actView P) j).stableRecord then
-      (SA.gateFrom p.toParams (eraseFG P.fg.F) (actView P) j).stableRecord
+      (SA.Root.gateFrom p.toParams (eraseFG P.fg.F) (actView P) j).stableRecord then
+      (SA.Root.gateFrom p.toParams (eraseFG P.fg.F) (actView P) j).stableRecord
       else eraseFG P.fg.F)
     rw [hS]
     split
     · exact hadv B hBC
     · next h => exact absurd (hadv _ hFC) h
   · change ∃ d, (B, SA.releaseThreshold p.toParams, d) ∈
-      (SA.gateFrom p.toParams (eraseFG P.fg.F) (actView P) j).obligations ∧ _
+      (SA.Root.gateFrom p.toParams (eraseFG P.fg.F) (actView P) j).obligations ∧ _
     rw [hw]
     apply arming_writeKeys_row
     rw [@GridCO.gateWriteKeys_def GridCO.slowLeasePolicy]
@@ -183,7 +191,8 @@ theorem arming_gate_write (p : Params) (P : State p.n) (j : Slot) {Cj B : Block}
       Bool.and_eq_true_iff.mpr ⟨bne_iff_ne.mpr hne, hBC⟩⟩,
       List.mem_map.mpr ⟨_, arming_admission p _ j B hlev, rfl⟩⟩
 
-/-- Plan O-ARM §6.5. Class (iii). DC: INTENTIONAL; with unique lease targets
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan O-ARM §6.5. Class (iii). DC: INTENTIONAL; with unique lease targets
 the lease read of a stored target is its row deadline. -/
 theorem arming_leaseOf (p : Params) (st : State p.n) (h : CStoreInv p st) {B : Block}
     {g : Nat} {d : Time} (hm : (B, g, d) ∈ st.base.obligations) :
@@ -199,18 +208,20 @@ theorem arming_leaseOf (p : Params) (st : State p.n) (h : CStoreInv p st) {B : B
     subst heq
     rfl
 
-/-- Plan O-ARM §6.5. Class (iii). DC: INTENTIONAL; the raw result at an actual
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan O-ARM §6.5. Class (iii). DC: INTENTIONAL; the raw result at an actual
 gate tick is the confirmation of its pre-gate clock. -/
 theorem arming_gateResult_tick {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     (hs : V2.D.ScheduleWellFormed E rho) {k : Nat} {y : V} {j : Slot}
     (hk : IsGateTick p c rho k y j) :
-    gateResult p c E rho y j = some (SA.confirmationFrom p.toParams
+    gateResult p c E rho y j = some (SA.Root.confirmationFrom p.toParams
       (eraseFG (FGSA.clockPre p (storeAt p c E rho k y) (SA.gateTime p.toParams j)).fg.F)
       (FGSA.actView (FGSA.clockPre p (storeAt p c E rho k y) (SA.gateTime p.toParams j))) j) := by
   rw [gateResult_def, gateIn_def, preTick_def, fgsa_tickIdx_of_event p c E rho hs hk]
   rfl
 
-/-- ROOT-DIGEST W2b. Plan O-ARM §6.5. Class (iii). DC: INTENTIONAL; every named entry of an honest
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Plan O-ARM §6.5. Class (iii). DC: INTENTIONAL; every named entry of an honest
 row before the post-tick read is on a chain with B. An action before d(l + 1)
 reads a gate of label at most `l`, below `D`; an action at d(l + 1) reads the
 pending gate, whose result covers `D` (field 9). -/
@@ -267,7 +278,8 @@ theorem arming_rows_compat {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
   · exact Or.inl (arming_lift (hBh ▸ h))
   · exact Or.inr (arming_lift (hBh ▸ h))
 
-/-- ROOT-DIGEST W2b. Plan O-ARM §5 `pending_gate_lease_or_F`, §6.5. Class (iii). DC: INTENTIONAL;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Plan O-ARM §5 `pending_gate_lease_or_F`, §6.5. Class (iii). DC: INTENTIONAL;
 the certificate form at its label `l`. The read index is I⁺, after all ticks
 at d(l + 1) and before the deliveries at d(l + 1). -/
 theorem arming_gate_core {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
@@ -315,7 +327,7 @@ theorem arming_gate_core {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
       eraseFG (storeAt p c E rho i y).fg.F
     rw [clockPre_fg]
   have hlev : SA.releaseThreshold p.toParams ≤
-      SA.prefixSupport p.toParams (actView P) (l + 1) B ∨
+      SA.Root.prefixSupport p.toParams (actView P) (l + 1) B ∨
       GridCO.slowEligible p.toParams.engine (actView P) (l + 1) B = true := by
     cases fast with
     | true => exact Or.inl (h9f rfl)
@@ -380,7 +392,8 @@ theorem arming_gate_core {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
       rw [fullTree_eq, ← domainR_eq_storeFrame]
       exact hD
 
-/-- ROOT-DIGEST W2b. Blueprint 03 §§7–8; plan O-ARM §5 `pending_gate_lease_or_F`. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 03 §§7–8; plan O-ARM §5 `pending_gate_lease_or_F`. Class (iii).
 DC: INTENTIONAL; at the read I⁺ after all ticks at the pending gate d(j),
 j = l + 1, and before the deliveries at d(j), every honest S covers B, and B
 is below F or has a lease to at least d(j) + L with B in the full domain or

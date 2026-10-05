@@ -11,7 +11,8 @@ open AvailableChain.SimplexFG
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- Blueprint 03:354–416; spec 2548–2551; plan I-EXACT, X1 (acceptance step).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 03:354–416; spec 2548–2551; plan I-EXACT, X1 (acceptance step).
 Class (iii). DC: INTENTIONAL; a non-genesis block in the strict read has an
 earlier acceptance. The block stamp supplies the acceptance event. -/
 theorem inclusion_acceptance_of_stored
@@ -44,21 +45,22 @@ theorem inclusion_acceptance_of_stored
           | row => cases ho
           | proposal => exact ho
 
-/-- ROOT-DIGEST W2b. Blueprint 03:354–416; spec 2548–2551; plan I-EXACT, X1 (receipt step).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 03:354–416; spec 2548–2551; plan I-EXACT, X1 (receipt step).
 Class (iii). DC: INTENTIONAL; non-row traffic uses Delta independently of
 the row delay. This is the receipt consumer; Clean compatibility must be
 produced before it can discharge X1. No awake-receiver premise is used. -/
 theorem inclusion_receipt_of_compatible [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (ΔF : Time)
     (hset : CleanSet p c E rho ΔF)
-    (s : Slot) (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hne : b ≠ .genesis)
+    (s : Slot) (N : NamedProposal p.n)
+    (hne : N.erase ≠ .genesis)
     (htrigger : Gen.V2.Duty.Trigger E rho
-      (ofWire p ⟨.proposer s, .proposal b raw sup rows⟩) (SA.proposalTime p.toParams s))
+      (ofWire p ⟨.proposer s, .proposal N⟩) (SA.proposalTime p.toParams s))
     (hhor : SA.voteTime p.toParams s ≤ rho.horizon)
-    (hcompat : ∀ x ∈ rho.honest, Block.Compatible b
+    (hcompat : ∀ x ∈ rho.honest, Block.Compatible N.erase
       (eraseFG (V2.D.Run.stateBeforeTime E rho (SA.voteTime p.toParams s) x).st.fg.F)) :
-    ∀ x ∈ rho.honest, ∃ o i t, (fgsaInterface p c).block o.payload = some b ∧
+    ∀ x ∈ rho.honest, ∃ o i t, (fgsaInterface p c).block o.payload = some N.erase ∧
       t < SA.voteTime p.toParams s ∧ V2.D.Run.acceptsAt E rho i x o t := by
   intro x hx
   have hD := Gen.V2.Duty.deliveryWithinOn_of_healthyPrefixBy E rho rho.horizon
@@ -69,18 +71,19 @@ theorem inclusion_receipt_of_compatible [Fintype V]
   obtain ⟨Y, hY, heY⟩ := fgsa_proposal_receipt E rho hset.pre.base.idealization
     hset.pre.base.delta
     hset.pre.base.valid hset.pre.base.noRestart (fun t => t + E.Δ) rho.horizon
-    s b raw sup rows (SA.proposalTime p.toParams s) x hD htrigger hx
+    s N (SA.proposalTime p.toParams s) x hD htrigger hx
     (hdeadline ▸ hhor) (lt_add_of_pos_right _ E.Δ_pos)
     (hdeadline.symm ▸ hcompat x hx)
   rw [hdeadline] at hY
   have hm := ((cstoreInv_stateBefore E rho (V2.D.Run.idxBefore rho
-    (SA.voteTime p.toParams s)) x).baseTree b).mpr
+    (SA.voteTime p.toParams s)) x).baseTree N.erase).mpr
   rw [Gen.V2.Duty.stateBefore_idxBefore E rho _ hset.pre.base.valid.toScheduleWellFormed]
     at hm
   exact inclusion_acceptance_of_stored E rho hset.pre.base.valid.toScheduleWellFormed
-    b (SA.voteTime p.toParams s) x hne (hm ⟨Y, hY, heY⟩)
+    N.erase (SA.voteTime p.toParams s) x hne (hm ⟨Y, hY, heY⟩)
 
-/-- Blueprint 03:354–416; spec 2548–2551; plan I-EXACT, X1 (honest input).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 03:354–416; spec 2548–2551; plan I-EXACT, X1 (honest input).
 Class (iii). DC: INTENTIONAL; the supplied honest proposal produces the
 trigger and non-genesis facts. Compatibility is the remaining Clean
 producer obligation, kept explicit in this receipt helper. -/
@@ -113,9 +116,8 @@ theorem inclusion_proposal_receipt [Fintype V]
   cases payload with
   | head b => cases hb
   | row body => cases hb
-  | proposal b raw sup rows =>
-    have hbp : b = pt.P := Option.some.inj hb
-    subst b
+  | proposal N =>
+    have hbp : N.erase = pt.P := Option.some.inj hb
     cases auth with
     | none => cases hw
     | seat l j =>
@@ -132,17 +134,19 @@ theorem inclusion_proposal_receipt [Fintype V]
         have hs : s = pt.s := Int.natCast_inj.mp
           (mul_left_cancel₀ (ne_of_gt (mul_pos (by decide) p.deltaPos)) htime)
         subst s
-        have hne : pt.P ≠ .genesis := by
+        have hne : N.erase ≠ .genesis := by
           intro hg
-          have hz : (fgsa p c).wellFormed
-              (⟨.seat (.prop pt.s) ⟨0, Nat.one_pos⟩,
-                .proposal .genesis raw sup rows⟩ : Obj p) = false := rfl
-          rw [hg] at hw
-          exact Bool.noConfusion (hw.symm.trans hz)
-        apply inclusion_receipt_of_compatible E rho ΔF hset pt.s pt.P raw sup rows hne
-          (Or.inl ⟨_, hx, ip, hip, hem⟩) hhor hcompat
+          have hn := (named_erase_eq_genesis N).mp hg
+          subst N
+          change false = true at hw
+          cases hw
+        have hresult := inclusion_receipt_of_compatible E rho ΔF hset pt.s N hne
+          (Or.inl ⟨_, hx, ip, hip, hem⟩) hhor
+          (by simpa only [hbp] using hcompat)
+        simpa only [hbp] using hresult
 
-/-- Blueprint 03:354–416; spec 2548–2551; plan I-EXACT, X2 (read step).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 03:354–416; spec 2548–2551; plan I-EXACT, X2 (read step).
 Class (iii). DC: INTENTIONAL; the strict-before clocked read equals the
 scheduled deterministic HEAD even for an asleep reader. The HEAD value
 must first be produced by the retained-walk proof. -/
@@ -162,7 +166,8 @@ theorem inclusion_head_read
     rw [fgsa_preTick_eq_timeRead E rho hs hnr (V2.D.Run.tickIdx?_spec hi)] at hh
     exact hh
 
-/-- Blueprint 03:354–416; spec 2548–2551; plan I-EXACT, X3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 03:354–416; spec 2548–2551; plan I-EXACT, X3.
 Class (iii). DC: INTENTIONAL; sleep suppresses every emitted object while
 the deterministic clock and read remain defined. No Clean or tick premise
 is needed. -/

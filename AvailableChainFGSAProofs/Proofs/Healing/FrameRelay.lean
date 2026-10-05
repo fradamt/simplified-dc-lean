@@ -13,7 +13,8 @@ variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
 omit [DecidableEq V] in
-/-- Blueprint 21:749–783, 1148–1252; plan S30, H-FRAME/F2.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:749–783, 1148–1252; plan S30, H-FRAME/F2.
 DC: SAME order of strict event cuts. -/
 private theorem frame_idx_mono {a b : Time} (hab : a ≤ b) :
     V2.D.Run.idxBefore rho a ≤ V2.D.Run.idxBefore rho b := by
@@ -22,7 +23,8 @@ private theorem frame_idx_mono {a b : Time} (hab : a ≤ b) :
   exact List.countP_mono_left (fun e _ he =>
     decide_eq_true ((of_decide_eq_true he).trans_le hab))
 
-/-- ROOT-DIGEST W2b. Blueprint 21:749–783, 1148–1252; plan S30, H-FRAME/F2.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21:749–783, 1148–1252; plan S30, H-FRAME/F2.
 DC: INTENTIONAL strict relay of an arbitrary held FG carrier, including old carriers.
 The receiver ancestry is explicit at the deadline. Assembly supplies RMono.
 Standalone rows use ΔF; this block object uses Δ. -/
@@ -81,21 +83,21 @@ theorem healing_held_block_receipt (mono : RMono p c E rho)
   | none => simp only [hdec, reduceCtorEq] at ho
   | some msg =>
     cases msg <;> simp only [hdec, reduceCtorEq, Option.some.injEq] at ho
-    rename_i slot b raw sup rows
-    subst b
-    have he : o = ofWire p ⟨.proposer slot, .proposal (eraseFG W) raw sup rows⟩ := by
+    rename_i slot N
+    have he : o = ofWire p ⟨.proposer slot, .proposal N⟩ := by
       apply toWire_injective
       rw [toWire_ofWire]
       exact decode_eq_block.mp hdec
     obtain ⟨Y, hY, hYW⟩ := fgsa_proposal_receipt (hRoots := hroots) E rho hdelta hvalid hnr dl
       rho.horizon
-      slot (eraseFG W) raw sup rows u y hD (Or.inr ⟨x, hx, k, he ▸ ha⟩) hy
-      (hd.trans hhor) hu hcompat
-    have hYeq : Y = W := eraseFG_injective hYW
+      slot N u y hD (Or.inr ⟨x, hx, k, he ▸ ha⟩) hy
+      (hd.trans hhor) hu (by simpa only [ho] using hcompat)
+    have hYeq : Y = W := eraseFG_injective (hYW.trans ho)
     rw [hYeq, ← Gen.V2.Duty.stateBefore_idxBefore E rho _ hs] at hY
     exact (fgsa_store_cumulative p c E rho hnr hidx y).1 hY
 
-/-- ROOT-DIGEST W2b. Blueprint 21:749–783, 1148–1252; plan S30, H-FRAME/F2.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21:749–783, 1148–1252; plan S30, H-FRAME/F2.
 DC: INTENTIONAL receiver frames are required at the strict receipt cut.
 RXing uses the accepted finality certificate and a witness held at that same cut.
 Settlement only at the source HEAD does not supply the destination frames. -/
@@ -146,7 +148,8 @@ theorem healing_witness_relay (mono : RMono p c E rho) (crossing : RXing p c E r
   obtain ⟨A, hA, he⟩ := eraseFG_ancestor_mem hinv.fg.closed hreceipt (eraseFG_preceq hBW)
   exact (eraseFG_injective he) ▸ hA
 
-/-- ROOT-DIGEST W2b. Blueprint 21:749–783, 1148–1252; plan S30, H-FRAME/F2; owner B25/B26.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21:749–783, 1148–1252; plan S30, H-FRAME/F2; owner B25/B26.
 DC: INTENTIONAL the phase must include the strict receipt deadline.
 The receiver frames come from healing_settled_frame. The lower-cut bridge is
 kept in one place; it uses B25's strict PhaseInterval cut (idxBefore u). -/

@@ -1,4 +1,6 @@
 module
+public import AvailableChainGeneric.Proofs.AC.RootBatch
+public import AvailableChainGeneric.Proofs.AC.RootSupport
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportHeads
 public import AvailableChainFGSAProofs.Proofs.Shared.RetainedConsumers
 
@@ -12,7 +14,7 @@ own label-r HEAD block has height m and witnesses F, Z and the floor. -/
 
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG Gen.Pure RetainedWalk
-open Gen.AC
+open Gen.AC.Root
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
@@ -25,7 +27,8 @@ private theorem fprop_idxBefore_le_timeIdx (rho : V2.D.Run V (fgsa p c)) {t v : 
   exact List.countP_mono_left (fun e _ he =>
     decide_eq_true ((of_decide_eq_true he).le.trans htv))
 
-/-- ROOT-DIGEST W2b. Blueprint 21:709–715 (H.2 S2), 1240–1243 (proposer pools), HG.1:1557–1561; plan
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21:709–715 (H.2 S2), 1240–1243 (proposer pools), HG.1:1557–1561; plan
 §3.1
 step 5 (restates `healing_proposal_batch_seat`). DC: INTENTIONAL under the cap, an honest
 label-r HEAD that covers the pivot and B is, at the proposer's slot-(r+1) read, a
@@ -45,7 +48,7 @@ theorem frontier_proposal_batch_seat [Fintype V] (E : Generic.Env V)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams (r + 1))))
     (hv : SA.proposalTime p.toParams (r + 1) ≤ v)
     (k : Fin p.n) (hk : rho.seatOf (.base (.head r)) k ∈ rho.honest) :
-    Gen.AC.poolSupports (FGSA.clock p (storeAt p c E rho ip x)
+    Gen.AC.Root.poolSupports (FGSA.clock p (storeAt p c E rho ip x)
         (SA.proposalTime p.toParams (r + 1))).base.blocks
       (FGSA.proposerSupport (FGSA.clock p (storeAt p c E rho ip x)
         (SA.proposalTime p.toParams (r + 1))) (r + 1)) k B = true ∧
@@ -122,9 +125,9 @@ theorem frontier_proposal_batch_seat [Fintype V] (E : Generic.Env V)
   have hcut : dl (SA.voteTime p.toParams r) ≤ cut := by
     refine hdle.trans (le_trans ?_ hdcut)
     rw [hDelta]
-  obtain ⟨hom, _⟩ := fgsa_honest_head_receipt E rho hDelta hE hN hrec.base.cstar dl cut r k K
+  obtain ⟨hom, _⟩ := fgsa_honest_head_receipt E rho hDelta hE hN hrec.base.cstar dl cut r k K.root
     (SA.voteTime p.toParams r) z x hD hk hem hx hcut (hlt _) hwindow
-  let o := baseVote (⟨.seat (.head r) k, K⟩ : HeadWire p.n)
+  let o := baseVote (⟨.seat (.head r) k, K.root⟩ : HeadWire p.n)
   have hidx : V2.D.Run.idxBefore rho (dl (SA.voteTime p.toParams r)) ≤ ip :=
     healing_support_idxBefore_le p c E rho hS hip (hdle.trans hvp)
   have hom' : o ∈ (storeAt p c E rho (V2.D.Run.idxBefore rho
@@ -150,7 +153,10 @@ theorem frontier_proposal_batch_seat [Fintype V] (E : Generic.Env V)
       (eraseFG_preceq hFK0)
   have hol : GridCO.headLabel? o = some r := rfl
   have hok : GridCO.headSeat? o = some k := rfl
-  have hoK : GridCO.headTarget? o = some K := rfl
+  have hoK : GridCO.headTarget? o = some K.root := rfl
+  have hresolve := actView_resolve_target p st hinv
+    (base_headDomain_none p (Reachable.tick _ (reachable_stateBefore E rho ip x)))
+    o ((actView_blocks st K).mpr ⟨hKb, hFK⟩) hoK
   have hvotes : o ∈ FGSA.proposerVotes st (r + 1) := by
     change o ∈ GridCO.votesAt st.base (r + 1 - 1)
     exact List.mem_filter.mpr ⟨hod, by
@@ -158,20 +164,21 @@ theorem frontier_proposal_batch_seat [Fintype V] (E : Generic.Env V)
   have hsupp : o ∈ FGSA.proposerSupport st (r + 1) := by
     apply List.mem_filter.mpr
     refine ⟨hvotes, ?_⟩
-    rw [hoK]
-    simp only [Bool.and_eq_true, decide_eq_true_eq, GridCO.blockKnown, Nat.add_sub_cancel]
-    exact ⟨(actView_blocks st K).mpr ⟨hKb, hFK⟩, hKslot⟩
-  have hvs : Gen.AC.voteSupports st.base.blocks B o = true := by
-    rw [Gen.AC.voteSupports_def, hoK]
-    simp only [Bool.and_eq_true, decide_eq_true_eq, hol, Option.getD_some]
-    exact ⟨⟨hKb, hKslot⟩, hBK⟩
-  refine ⟨(Gen.AC.vote_pool_support_witness _ _ k B).mpr ⟨o, hsupp, hok, hvs⟩, ?_⟩
+    change (match GridCO.resolvedHead? (actView st) o with
+      | some C => decide (C.slot ≤ r + 1 - 1) | none => false) = true
+    rw [hresolve]
+    exact decide_eq_true (by simpa only [Nat.add_sub_cancel] using hKslot)
+  have hvs : Gen.AC.Root.voteSupports st.base.blocks B o = true := by
+    exact (Gen.AC.Root.vote_support_body _ _ _).mpr
+      ⟨K, resolvedTarget_of_mem _ (baseBlocks_rootInj p _ hinv) o hKb hoK,
+        hKb, by simpa only [hol, Option.getD_some] using hKslot, hBK⟩
+  refine ⟨(Gen.AC.Root.vote_pool_support_witness _ _ k B).mpr ⟨o, hsupp, hok, hvs⟩, ?_⟩
   -- Every stored label-r vote of the honest seat is its emitted HEAD.
   have hall : ∀ w ∈ GridCO.votesAt (storeAt p c E rho ip x).base r,
       GridCO.headSeat? w = some k → w = o := by
     intro w hw hwk
     obtain ⟨hwm, hwl⟩ := List.mem_filter.mp hw
-    exact fgsa_honest_head_eq_of_stored E rho hE ip x r k K _ hk hem w hwm
+    exact fgsa_honest_head_eq_of_stored E rho hE ip x r k K.root _ hk hem w hwm
       (by simpa only [beq_iff_eq] using hwl) hwk
   have hvat : FGSA.proposerVotes st (r + 1) = GridCO.votesAt (storeAt p c E rho ip x).base r := by
     change GridCO.votesAt st.base (r + 1 - 1) = _
@@ -185,7 +192,8 @@ theorem frontier_proposal_batch_seat [Fintype V] (E : Generic.Env V)
     obtain ⟨a, ha, b, hb, hne, hka, hkb⟩ := (cap_pair _ k).mp he
     exact absurd ((hall a ha hka).trans (hall b hb hkb).symm) hne
 
-/-- ROOT-DIGEST W2b. Blueprint 21 HG.1:1557–1565, H.6:928–944, H.2 S2:709–715; plan §2.2
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 HG.1:1557–1565, H.6:928–944, H.2 S2:709–715; plan §2.2
 (RetainedPriorSupport)
 and §3.1 step 5. DC: INTENTIONAL a target L that every honest label-r HEAD covers has
 retained prior support at the honest proposer read of slot r+1 under the cap: the
@@ -283,7 +291,7 @@ theorem frontier_prior_support [Fintype V] (E : Generic.Env V)
       exact hn ((hHmem k).mpr hh)
     · intro k _ j _ he
       exact hbij.1 he
-  obtain ⟨_, _, hpath, hconflict, _⟩ := Gen.AC.batch_counts src.base.blocks
+  obtain ⟨_, _, hpath, hconflict, _⟩ := Gen.AC.Root.batch_counts src.base.blocks
     (proposerVotes src (r + 1)) (proposerVotes src (r + 1)) (proposerSupport src (r + 1))
     Hon Hon.card (Gen.V2.Duty.faulty rho).card L (fun _ h => h)
     (fun _ ho => (List.mem_filter.mp ho).1) rfl (fun k hk => (hseat k hk).2)
@@ -306,7 +314,8 @@ theorem frontier_prior_support [Fintype V] (E : Generic.Env V)
         (proposerVotes src (r + 1)) (proposerSupport src (r + 1)) L
     omega
 
-/-- Blueprint 21 HG.1:1557–1565, H.17:2958–3005; plan §2.2 (target_scores) and §3.1 step 5.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 HG.1:1557–1565, H.17:2958–3005; plan §2.2 (target_scores) and §3.1 step 5.
 DC: INTENTIONAL a target L that every honest label-r HEAD covers has, at an honest HEAD
 read of label r+1 under the cap, a strict majority in the ACTUAL HEAD pool, and every
 conflicting block has at most half of the raw voters (the non-strict target rival bound). -/
@@ -374,13 +383,13 @@ theorem frontier_target_scores [Fintype V] (E : Generic.Env V)
       exact hbij.1 he
   have hsub : FGSA.headSupport p dst (r + 1) ⊆ FGSA.headVotes p dst (r + 1) :=
     fgsa_headSupport_subset_headVotes E rho hE ih y r
-  obtain ⟨_, _, hpath, _, hrest⟩ := Gen.AC.batch_counts dst.base.blocks
+  obtain ⟨_, _, hpath, _, hrest⟩ := Gen.AC.Root.batch_counts dst.base.blocks
     (FGSA.headVotes p dst (r + 1)) (FGSA.headVotes p dst (r + 1))
     (FGSA.headSupport p dst (r + 1)) Hon Hon.card (Gen.V2.Duty.faulty rho).card L
     (fun _ h => h) hsub rfl (fun k hk => (hseat k hk).2) (fun k hk => (hseat k hk).1) hother hb
   refine ⟨(hpath L (Gen.Pure.block_preceq_refl L)).2, ?_⟩
   intro B hB
-  exact hrest B (fun k hk => Gen.AC.vote_pool_support_conflict dst.base.blocks
+  exact hrest B (fun k hk => Gen.AC.Root.vote_pool_support_conflict dst.base.blocks
     (FGSA.headVotes p dst (r + 1)) (FGSA.headSupport p dst (r + 1)) k hsub
     (hseat k hk).2 (hseat k hk).1 hB)
 

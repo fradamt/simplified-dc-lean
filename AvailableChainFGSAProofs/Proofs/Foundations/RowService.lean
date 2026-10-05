@@ -14,7 +14,8 @@ open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- ROOT-DIGEST W2b. BP01:109–114: a height row in an actual held carrier sets its matching bit,
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. BP01:109–114: a height row in an actual held carrier sets its matching bit,
 which persists forward while the key stays fixed. DC: ChainState/
 MatchingProgress.lean:147 gives the converse witness.
 INTENTIONAL: this FG-SA adapter uses the forward KitFG
@@ -69,13 +70,14 @@ private theorem rowService_receipt_on (E : Generic.Env V) (rho : V2.D.Run V (fgs
   have hprocessed := Gen.V2.Duty.accepted_by_deadline_on E rho isRowObject dl cut
     o t w hD (by trivial) hT hw hcut hlt hS
     ((fgsaHooks p c).excludes_stable E rho hS) (processed_stable E rho hS)
-    (fgsa_hReady_of_not_block (by intro s B raw sup rows h; cases h)
+    (fgsa_hReady_of_not_block (by intro s N h; cases h)
       (fgsa_hWF_of_delivery hExecution.wire))
     (fgsaAcceptance p c) C (fun k => cstoreInv_stateBefore E rho k w) hAdm j hj
     (hNoRestart.restartFree w j _) rfl
   exact of_decide_eq_true hprocessed
 
-/-- Strict receipt for every emitted row, including pre-GST rows and sleepers.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Strict receipt for every emitted row, including pre-GST rows and sleepers.
 DC: SAME max deadline and horizon; INTENTIONAL FG adapter with bound ΔF. -/
 theorem fgsa_rowService_receipt (ΔF : Time) (hΔ : E.Δ = p.Δ)
     (hv : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho)
@@ -109,7 +111,8 @@ private theorem rowService_carrier_read {s : Slot} {Q : Block} {rows : List (Row
         (SA.proposalTime p.toParams s)).st
       proposalStateAt p c E rho s = some st ∧ st.slot p = s ∧
         rows = proposalRows p st Q.parent := by
-  obtain ⟨hp, o, raw, sup, ⟨j, hj, hem⟩, hpay⟩ := hc
+  obtain ⟨hp, o, N, ⟨j, hj, hem⟩, hpay, heN, hrows⟩ := hc
+  subst Q rows
   have hs0 : 0 < s := hp.1.1
   change rho.events[j]? = some (.tick _ (SA.proposalTime p.toParams s)) at hj
   rw [(V2.D.Run.step_tick_eq E rho hj).2] at hem
@@ -135,7 +138,7 @@ private theorem rowService_carrier_read {s : Slot} {Q : Block} {rows : List (Row
     cases d with
     | headAction v => cases hm
     | fgAction r =>
-      change (attest p _ _ _).1.map Msg.row = some (.proposal Q raw sup rows) at hm
+      change (attest p _ _ _).1.map Msg.row = some (.proposal N) at hm
       obtain ⟨body, _, he⟩ := Option.map_eq_some_iff.mp hm
       cases he
     | propAction s' =>
@@ -165,20 +168,17 @@ private theorem rowService_carrier_read {s : Slot} {Q : Block} {rows : List (Row
           (fun nd : Node p => nd.st) = some st
         rw [htick]
         rfl
-      · change (propose p st s).map (withApp p _) = some (.proposal Q raw sup rows) at hm
+      · change (propose p st s).map (withApp p _) = some (.proposal N) at hm
         rw [propose_head p st s (Nat.ne_of_gt hs0)] at hm
-        have he : Msg.proposal
-            (proposalBlock p (proposerHead p st s) s (c.app (rho.input _ _)) ((proposerVotes st
-              s).filterMap liftHead?) ((proposerSupport st s).filterMap liftHead?) (proposalRows p
-              st (proposerHead p st s)))
-            ((proposerVotes st s).filterMap liftHead?)
-            ((proposerSupport st s).filterMap liftHead?)
-            (proposalRows p st (proposerHead p st s)) = .proposal Q raw sup rows :=
-          Option.some.inj hm
-        cases he
-        rfl
+        simp only [Option.map_map] at hm
+        obtain ⟨P, hP, he⟩ := Option.map_eq_some_iff.mp hm
+        cases Msg.proposal.inj he
+        have hparent := (namedByErase?_sound st (proposerHead p st s) P hP).2
+        change proposalRows p st (proposerHead p st s) = proposalRows p st P.erase
+        rw [hparent]
 
-/-- R6W and a row height at least the parent height imply current-height matching.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+R6W and a row height at least the parent height imply current-height matching.
 The stale arm contradicts the height bound. -/
 theorem validForParent_currentHeightMatch {s : Slot} {Q : Block} {a : RowWire p.n}
     (st : State p.n) (H : FGBlock (Fin p.n))
@@ -220,7 +220,8 @@ theorem validForParent_currentHeightMatch {s : Slot} {Q : Block} {a : RowWire p.
               exact hbounds.1.2
             exact (Nat.not_lt_of_ge hh (hname.1 ▸ hlt)).elim
 
-/-- Exact signed-row selection from the pool or stored blocks, with R6.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Exact signed-row selection from the pool or stored blocks, with R6.
 DC: INTENTIONAL FG-SA transport adapter; no quorum or row-count premise. -/
 theorem fgsa_tRowsSelect (hv : V2.D.ExecutionValid E rho) : TRowsSelect p c E rho := by
   intro s Q rows j y r a hc _ha hvalid hheld
@@ -243,7 +244,8 @@ theorem fgsa_tRowsSelect (hv : V2.D.ExecutionValid E rho) : TRowsSelect p c E rh
     apply (mem_proposalRowsFor_iff p _ _ _ _).mpr
     exact ⟨H, hH, hh, hslot.symm ▸ hvalid, hon⟩
 
-/-- Receipt transport to a later proposal uses no second delivery delay.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Receipt transport to a later proposal uses no second delivery delay.
 DC: SAME no-restart storage transport; INTENTIONAL exact FG wire selector. -/
 theorem fgsa_rowsReceipt_carriage (hv : V2.D.ExecutionValid E rho)
     (hnr : V2.D.NoRestart rho) {s : Slot} {Q : Block} {rows : List (RowWire p.n)}
@@ -281,7 +283,8 @@ theorem fgsa_rowsReceipt_carriage (hv : V2.D.ExecutionValid E rho)
     exact List.mem_flatten.mpr ⟨xs,
       List.mem_filterMap.mpr ⟨w, hcumul.2.2.2.2.1.subset hw, hdec⟩, ha⟩
 
-/-- T-ROWS receipt under the bound row family, including pre-GST sends.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+T-ROWS receipt under the bound row family, including pre-GST sends.
 DC: SAME strict max deadline and finite horizon; INTENTIONAL row family. -/
 theorem fgsa_tRowsReceipt (ΔF : Time) (hΔ : E.Δ = p.Δ)
     (hv : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho)
@@ -290,7 +293,8 @@ theorem fgsa_tRowsReceipt (ΔF : Time) (hΔ : E.Δ = p.Δ)
   intro j y r a ha hhor x hx
   exact fgsa_rowService_receipt p c E rho ΔF hΔ hv hnr hsync hΔF ha hhor x hx
 
-/-- Post-GST receipt and carriage at one row delay.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Post-GST receipt and carriage at one row delay.
 DC: SAME strict receipt; INTENTIONAL R6 selector and independent row delay. -/
 theorem fgsa_tRowsSync (ΔF : Time) (hΔ : E.Δ = p.Δ)
     (hv : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho)
@@ -306,7 +310,8 @@ theorem fgsa_tRowsSync (ΔF : Time) (hΔ : E.Δ = p.Δ)
   exact fgsa_rowsReceipt_carriage p c E rho hv hnr hc ha hvalid
     (receipt hhor _ hc.1.1.2) htime
 
-/-- The three T-ROWS clauses share one bound row family.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The three T-ROWS clauses share one bound row family.
 DC: INTENTIONAL FG transport adapter; SAME receipt and storage premises. -/
 theorem fgsa_tRows (ΔF : Time) (hΔ : E.Δ = p.Δ)
     (hv : V2.D.ExecutionValid E rho) (hnr : V2.D.NoRestart rho)
@@ -321,9 +326,9 @@ private theorem rowService_chain_occurrence (st : State p.n) (hmeta : MetaInv p 
     ∃ W, FGBlock.Preceq W H ∧ b ∈ W.rows := by
   obtain ⟨rows, hrs, ha⟩ := List.mem_flatten.mp ha
   obtain ⟨o, ho, hrows⟩ := List.mem_filterMap.mp hrs
-  obtain ⟨s, B, raw, sup, wires, rfl, _hok, _hdec, W, _hW, hWe, hWr⟩ :=
+  obtain ⟨s, N, rfl, _hok, _hparent, _hdec, W, _hW, hWe, hWr⟩ :=
     hmeta.wireTree o ho
-  change (if Block.preceq B (eraseFG H) then some wires else none) = some rows at hrows
+  change (if Block.preceq N.erase (eraseFG H) then some N.rows else none) = some rows at hrows
   split at hrows
   next hpath =>
     have he := Option.some.inj hrows
@@ -334,7 +339,8 @@ private theorem rowService_chain_occurrence (st : State p.n) (hmeta : MetaInv p 
       exact List.mem_filterMap.mpr ⟨a, ha, hd⟩
   next hpath => cases hrows
 
-/-- The R6 invariant is available at the exact carrier read.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The R6 invariant is available at the exact carrier read.
 DC: INTENTIONAL immutable-parent validity of every stored proposal. -/
 theorem fgsa_rowsValidStored_atProposal (hv : V2.D.ExecutionValid E rho)
     {s : Slot} {Q : Block} {rows : List (RowWire p.n)} {st : State p.n}
@@ -345,7 +351,8 @@ theorem fgsa_rowsValidStored_atProposal (hv : V2.D.ExecutionValid E rho)
   subst st
   exact rowsValidStored_reachable p (reachable_postClock E rho i _ _)
 
-/-- The complete valid witnesses imply the raw batch witnesses. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The complete valid witnesses imply the raw batch witnesses. -/
 theorem BatchPrem.batch_of_valid {p : Params} {V : Type} [DecidableEq V] [Fintype V] {In : Type}
     {c : AppCodec In} {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     {ΔF : Time} {k : RowKind} {q y : Nat} {U X : FGBlock (Fin p.n)}
@@ -357,7 +364,8 @@ theorem BatchPrem.batch_of_valid {p : Params} {V : Type} [DecidableEq V] [Fintyp
         eventTime rho j = some t ∧ t = p.actionTime r := by
   rcases h.valid with ⟨S, hs, hq, hv⟩; exact ⟨S, hs, hq, by grind⟩
 
-/-- ROOT-DIGEST W2b. SO-COV chooses the same complete witness for validity, match, and receipt.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. SO-COV chooses the same complete witness for validity, match, and receipt.
 DC: SAME height coverage; INTENTIONAL cutoff q and pre-GST row transport. -/
 theorem fgsa_batchCoverage (ΔF : Time) (kind : RowKind) : BatchCoverage p ΔF kind := by
   intro V _ _ In c E rho q y U X hb hheight

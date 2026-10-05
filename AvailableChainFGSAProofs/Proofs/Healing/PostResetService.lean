@@ -16,7 +16,8 @@ open AvailableChain.SimplexFG Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- Blueprint 21 H.17:3031–3040; plan J6-3 O2; B1/B17/B18.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.17:3031–3040; plan J6-3 O2; B1/B17/B18.
 DC: SAME opening geometry field from the separate predicate at its cut.
 This projection uses no service premise. -/
 theorem healing_postReset_gate_opening_domain
@@ -31,7 +32,8 @@ theorem healing_postReset_gate_opening_domain
   rw [PostResetOpeningDomain_def] at hopening
   exact hopening k hk x v Q hx ht hp hv
 
-/-- Blueprint 21 H.17:3031–3040; plan J6-3 O2; B1/B17/B18.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.17:3031–3040; plan J6-3 O2; B1/B17/B18.
 DC: SAME opening-domain membership puts the current F below Q.
 This result is restricted to opening labels. -/
 theorem healing_postReset_opening_finality
@@ -50,7 +52,8 @@ theorem healing_postReset_opening_finality
   rw [hfg] at hF
   simpa only [he] using eraseFG_preceq hF
 
-/-- Blueprint 21 H.17:3024–3040; plan J6-3 O2; B1/B17/B18.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.17:3024–3040; plan J6-3 O2; B1/B17/B18.
 DC: SAME exact HEAD and opening F bound give the receipt target floor.
 gate_finality below supplies the target floor at arbitrary labels.
 Blueprint 21 H.17:2946–3040; plan RE-BIND D2; DC: SAME per-label cone. -/
@@ -66,8 +69,8 @@ theorem healing_postReset_opening_target_floor_at [Fintype V]
     (r : Nat) (hr : v = r * p.R) :
     ∀ q : Fin p.n, rho.seatOf (.base (.head v)) q ∈ rho.honest →
       E.awake (rho.seatOf (.base (.head v)) q) (SA.voteTime p.toParams v) = true →
-      ∀ K, V2.D.Run.emits E rho (rho.seatOf (.base (.head v)) q)
-        (ofHead p ⟨.seat (.head v) q, K⟩) (SA.voteTime p.toParams v) →
+      ∀ K, HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head v)) q)
+        (ofHead p ⟨.seat (.head v) q, K.root⟩) (SA.voteTime p.toParams v) K →
         Block.Preceq (eraseFG (clockPre p (storeAt p c E rho k x)
           (SA.gateTime p.toParams v)).fg.F) K := by
   have hGateHorizon := (hrec.base.valid.toScheduleWellFormed.in_horizon _
@@ -80,7 +83,8 @@ theorem healing_postReset_opening_target_floor_at [Fintype V]
     v Q hhead q hy K (SA.voteTime p.toParams v) he
   simpa only [heq, clockPre_fg] using hFQ
 
-/-- Blueprint 21 H.17:3024–3030; plan J6-3 O2; B1/B17/B18.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.17:3024–3030; plan J6-3 O2; B1/B17/B18.
 DC: SAME old-output split and stored strict-slot order. Standing mono has
 producer fgsa_rMono. The current F bound is a derived gate fact. -/
 theorem healing_postReset_gate_old_output
@@ -121,21 +125,23 @@ variable (mono : RMono p c E rho)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
 
 include hrec hreset cap rowCovered mono writes
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.17:3021–3040; plan J6-3 O2; B1/B13/B17/B18.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.17:3021–3040; plan J6-3 O2; B1/B13/B17/B18.
 DC: SAME exact gate geometry at the named event-prefix cut.
 Standing mono/cap have producers fgsa_rMono/fgsa_rCap_channel. INLINE
 rowCovered/writes have producers rowPermission_covered/fgsa_leaseOrigins_lastWrite.
@@ -192,7 +198,7 @@ theorem healing_postReset_gate_geometry_at (i : Nat) {v : Slot}
     have he := fgsa_clockPre_gateView p (storeAt p c E rho k x) v
     have hr' := hr
     rw [clockPre_fg] at hr'
-    exact (congrArg (fun st => SA.confirmationFrom p.toParams
+    exact (congrArg (fun st => SA.Root.confirmationFrom p.toParams
       (eraseFG (storeAt p c E rho k x).fg.F) st v) he).symm.trans hr'
   exact { toGateReceiptGeometry := hreceipt
           guard := hguardAll Q hrawQ
@@ -201,7 +207,8 @@ theorem healing_postReset_gate_geometry_at (i : Nat) {v : Slot}
           opening_domain := healing_postReset_gate_opening_domain E rho w i hopening
             hk hx ht hp hv }
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.17:2946–3048; plan J6-3 O2/S1; B1/B13/B17/B18.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.17:2946–3048; plan J6-3 O2/S1; B1/B13/B17/B18.
 DC: SAME complete HEAD and gate conjunction at cut i. The opening input is
 separate and follows raw_transfer in the joint order. No service input,
 carrier successor, full H0, or complete-run premise is used.
@@ -262,7 +269,8 @@ theorem healing_postReset_service_step_at (i : Nat)
 
 end CompleteService
 
-/-- Blueprint 21 H.17:2946–3048; plan J6-2 S2; B1/B17.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.17:2946–3048; plan J6-2 S2; B1/B17.
 DC: SAME projection of exact service from the named carrier at its cut.
 The proposal, HEAD, and post-gate cuts are explicit. The gate witness
 keeps its event and passed guard when its prefix bound is removed. -/
@@ -285,7 +293,8 @@ theorem healing_postReset_exactService_at_cut
     hgate hg (hGateCut hg) x hx
   exact ⟨hraw, ⟨j, ht, hpass⟩, hfast, hstable, hsource⟩
 
-/-- Blueprint 21 H.17:2946–3048; plan J6-2 S2; B1/B17.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.17:2946–3048; plan J6-2 S2; B1/B17.
 DC: SAME a carrier cut at or after the run's length gives the H3 shape.
 The cut may exceed the run's length. Each time cut is bounded by the length
 of the event list; the two horizon guards remain in ExactService. -/
@@ -303,7 +312,8 @@ theorem healing_postReset_exactService
   exact healing_postReset_exactService_at_cut E rho w i hservice hp hv
     hProposalCut (fun _ => hHeadCut) (fun _ => hGateCut)
 
-/-- Blueprint 21 H.17:2946–3040; plan RE-BIND D2/D3; DC: SAME cone at its label. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.17:2946–3040; plan RE-BIND D2/D3; DC: SAME cone at its label. -/
 theorem healing_postReset_opening_target_floor [Fintype V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
@@ -316,8 +326,8 @@ theorem healing_postReset_opening_target_floor [Fintype V]
     (r : Nat) (hr : v = r * p.R) :
     ∀ q : Fin p.n, rho.seatOf (.base (.head v)) q ∈ rho.honest →
       E.awake (rho.seatOf (.base (.head v)) q) (SA.voteTime p.toParams v) = true →
-      ∀ K, V2.D.Run.emits E rho (rho.seatOf (.base (.head v)) q)
-        (ofHead p ⟨.seat (.head v) q, K⟩) (SA.voteTime p.toParams v) →
+      ∀ K, HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head v)) q)
+        (ofHead p ⟨.seat (.head v) q, K.root⟩) (SA.voteTime p.toParams v) K →
         Block.Preceq (eraseFG (clockPre p (storeAt p c E rho k x)
           (SA.gateTime p.toParams v)).fg.F) K := by
   exact healing_postReset_opening_target_floor_at E rho hrec w hreset
@@ -346,21 +356,23 @@ variable [Fintype V]
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
 
 include hrec hreset hcone cap rowCovered mono writes
 
-/-- Blueprint 21 H.17:2946–3040; plan RE-BIND D2/D3; DC: SAME cone at its label. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.17:2946–3040; plan RE-BIND D2/D3; DC: SAME cone at its label. -/
 theorem healing_postReset_gate_geometry (i : Nat)
     (hfp : PostResetFProv p c E rho w i)
     (hraw : PostResetRawTransfer p c E rho w i)
@@ -373,7 +385,8 @@ theorem healing_postReset_gate_geometry (i : Nat)
   exact healing_postReset_gate_geometry_at E rho hrec w hreset cap rowCovered mono writes i
     ((postResetRetainedCone_iff_at p c E rho w).mp hcone v) hfp hraw hopening hk hx ht hp hv hcut
 
-/-- Blueprint 21 H.17:2946–3040; plan RE-BIND D2/D3; DC: SAME cone at its label. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.17:2946–3040; plan RE-BIND D2/D3; DC: SAME cone at its label. -/
 theorem healing_postReset_service_step (i : Nat)
     (hfp : PostResetFProv p c E rho w i)
     (hraw : PostResetRawTransfer p c E rho w i)

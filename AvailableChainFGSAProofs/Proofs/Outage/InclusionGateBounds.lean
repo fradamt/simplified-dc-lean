@@ -41,33 +41,38 @@ private theorem igate_process_saved (st : State p.n) (hinv : CStoreInv p st)
       dsimp only at hm
       rcases admitRow_eq p st ⟨w.auth, body⟩ with he | he <;>
         rw [he] at hm <;> exact hb r C hm
-    | block s B raw sup rows =>
+    | block s N =>
       dsimp only at hm
-      cases hp : parentFG st B with
-      | none =>
-        rw [admitBlock_refused p st s B raw sup rows (Or.inl hp)] at hm
+      cases hn : namedParentHeld st N with
+      | false =>
+        rw [admitBlock_refused p st s N (Or.inl hn)] at hm
         exact hb r C hm
-      | some D =>
-        cases ha : blockAccepted p st s B raw sup D rows with
-        | false =>
-          rw [admitBlock_refused p st s B raw sup rows (Or.inr ⟨D, hp, ha⟩)] at hm
+      | true =>
+        cases hp : parentFG st N.erase with
+        | none =>
+          rw [admitBlock_refused p st s N (Or.inr (Or.inl hp))] at hm
           exact hb r C hm
-        | true =>
-          obtain ⟨pool, he, _⟩ := admitBlock_accepted_eq p st s B raw sup D rows hp ha
-          obtain ⟨_, _, _, _, hgen, _, _⟩ :=
-            base_admitProposal_accepts p st hinv.toInv0 s B raw sup D rows hp ha
-          rw [he] at hm
-          dsimp only at hm
-          split at hm
-          · rw [hgen] at hm
+        | some D =>
+          cases ha : blockAccepted p st s N D with
+          | false =>
+            rw [admitBlock_refused p st s N (Or.inr (Or.inr ⟨D, hp, ha⟩))] at hm
             exact hb r C hm
-          · rw [reconcile_genuine, List.mem_map] at hm
-            obtain ⟨row, hrow, hroweq⟩ := hm
-            have hval := (Prod.mk.inj hroweq).2
-            have hsome := (Option.filter_eq_some_iff.mp hval).1
-            have hkey := (Prod.mk.inj hroweq).1
-            rw [hgen] at hrow
-            exact hb r C (by simpa only [← hkey, ← hsome] using hrow)
+          | true =>
+            obtain ⟨pool, he, _⟩ := admitBlock_accepted_eq p st s N D hn hp ha
+            obtain ⟨_, _, _, _, hgen, _, _⟩ :=
+              base_admitProposal_accepts p st hinv.toInv0 s N D hp ha
+            rw [he] at hm
+            dsimp only at hm
+            split at hm
+            · rw [hgen] at hm
+              exact hb r C hm
+            · rw [reconcile_genuine, List.mem_map] at hm
+              obtain ⟨row, hrow, hroweq⟩ := hm
+              have hval := (Prod.mk.inj hroweq).2
+              have hsome := (Option.filter_eq_some_iff.mp hval).1
+              have hkey := (Prod.mk.inj hroweq).1
+              rw [hgen] at hrow
+              exact hb r C (by simpa only [← hkey, ← hsome] using hrow)
 
 private theorem igate_below_at_cut
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) (d : Time) (P : Block)
@@ -117,7 +122,7 @@ private theorem igate_raw_at_tick
     fgsa_tickIdx_of_event p c E rho hs ht]
   dsimp only [Option.map_some]
   have hv := fgsa_clockPre_gateView p (storeAt p c E rho j x) r
-  have he := congrArg (fun v => SA.confirmationFrom p.toParams
+  have he := congrArg (fun v => SA.Root.confirmationFrom p.toParams
     (eraseFG (storeAt p c E rho j x).fg.F) v r) hv
   rw [clockPre_fg]
   exact congrArg some he
@@ -258,14 +263,11 @@ private theorem igate_state_at_cut
         exact hsaved r C hC
 
 private theorem igate_slot_pos (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (hE : V2.D.ExecutionValid E rho) (pt : PtSP)
-    (hprop : HonestProposal E rho (fgsaInterface p c) pt.s pt.P) : 0 < pt.s := by
-  obtain ⟨hx, ip, raw, sup, rows, hip, hem⟩ := inclusion_proposal_emission E rho hE pt.s pt.P hprop
-  rw [(V2.D.Run.step_tick_eq E rho hip).2] at hem
-  have hm := (fgsa_emits_proposal E rho _ _ _ _ _).mp hem
-  exact (fgsa_walkRun_proposal_parent p _ pt.s _ pt.P raw sup rows hm.2.2.2).1
+    (_hE : V2.D.ExecutionValid E rho) (pt : PtSP)
+    (hprop : HonestProposal E rho (fgsaInterface p c) pt.s pt.P) : 0 < pt.s := hprop.1.1
 
-/-- ROOT-DIGEST W2b. Blueprint 03:418–458; spec 683–694; plan I-GATE, G3. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 03:418–458; spec 683–694; plan I-GATE, G3. Class (iii).
 DC: INTENTIONAL; all origins are bounded at the strict cut idxBefore d.
 Other nodes' gate ticks at d do not enter this cut. The local gate input
 has the same store. ClockPre keeps F, J, S and bodies, and deletes leases. -/

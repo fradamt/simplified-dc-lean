@@ -25,25 +25,30 @@ private theorem processed_mono {st st' : State p.n}
       simpa only [decide_eq_true_eq] using (fun h => hv h)
     | row i body =>
       simpa only [decide_eq_true_eq] using (fun h => hr h)
-    | block s b raw sup rows =>
+    | block s N =>
       simp only [decide_eq_true_eq]
       rintro ⟨Y, hY, he⟩
       exact ⟨Y, hT hY, he⟩
 
 private theorem deps_mono {st st' : State p.n} (hT : st.fg.TF ⊆ st'.fg.TF)
+    (hn : st.namedBodies ⊆ st'.namedBodies)
     (o : Obj p) : depsS p st o = true → depsS p st' o = true := by
-  obtain ⟨auth, payload⟩ := o
-  rcases auth with ⟨((_ | _) | _), _⟩ | _ <;> cases payload <;>
-    dsimp only [depsS, toWire, toAuth, Wire.decode]
-  all_goals first
-    | exact id
-    | simp only [Option.isSome_iff_exists]
-      rintro ⟨P, hP⟩
-      exact ⟨P, (parentFG_spec st' _ P).2
-        ⟨hT ((parentFG_spec st _ P).1 hP).1,
-          ((parentFG_spec st _ P).1 hP).2⟩⟩
+  unfold depsS
+  cases hd : (toWire p o).decode with
+  | none => exact id
+  | some m =>
+    cases m with
+    | vote s i r => exact id
+    | row i body => exact id
+    | block s N =>
+      simp only [Bool.and_eq_true, namedParentHeld, decide_eq_true_eq,
+        Option.isSome_iff_exists]
+      rintro ⟨hN, P, hP⟩
+      exact ⟨hn hN, P, (parentFG_spec st' _ P).2
+        ⟨hT ((parentFG_spec st _ P).1 hP).1, ((parentFG_spec st _ P).1 hP).2⟩⟩
 
-/-- All FG-SA hooks satisfy the engine laws. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+All FG-SA hooks satisfy the engine laws. -/
 theorem fgsaHooks (p : Params) (c : AppCodec In) : V2.D.HooksSound (fgsa p c) where
   excludes_inert := excludes_inert c
   excludes_stable E rho hS v o i j hij hrf hx := by
@@ -68,9 +73,10 @@ theorem fgsaHooks (p : Params) (c : AppCodec In) : V2.D.HooksSound (fgsa p c) wh
       (P := fgsa p c) _ _ (fun _ _ h => h) E rho hij v hrf hx
     · intro nd t h
       change depsS p (FGSA.clock p nd.st t) o = true
-      exact deps_mono (by rw [clock_fg]) o h
+      exact deps_mono (by rw [clock_fg]) (by rw [clock_namedBodies]) o h
     · intro nd w h
-      exact deps_mono (process_cumulative p nd.st (toWire p w)).1 o h
+      exact deps_mono (process_cumulative p nd.st (toWire p w)).1
+        (process_namedBodies_subset nd.st (toWire p w)) o h
   handles_carries nd o o' h := by
     rcases h with h | h
     · exact Or.inl h
@@ -81,10 +87,10 @@ theorem fgsaHooks (p : Params) (c : AppCodec In) : V2.D.HooksSound (fgsa p c) wh
         cases m with
         | vote s i b => exact h.elim
         | row i body => exact h.elim
-        | block s b raw sup rows =>
+        | block s N =>
           have he := decode_eq_block.mp hd
           have hp := congrArg Signed.payload he
-          change o.payload = .proposal b raw sup rows at hp
+          change o.payload = .proposal N at hp
           exact Or.inr (by
             change carriesS p o o'
             unfold carriesS
@@ -94,7 +100,8 @@ theorem fgsaHooks (p : Params) (c : AppCodec In) : V2.D.HooksSound (fgsa p c) wh
   recordOwn_deps _ _ _ := rfl
   recordOwn_excludes _ _ _ h := h
 
-/-- A handled child of a well-formed envelope is well formed. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+A handled child of a well-formed envelope is well formed. -/
 theorem handles_wellFormed (p : Params) (c : AppCodec In) :
     ∀ st o' o, (fgsa p c).handles st o' o →
       (fgsa p c).wellFormed o' = true → (fgsa p c).wellFormed o = true := by
@@ -111,7 +118,7 @@ theorem handles_wellFormed (p : Params) (c : AppCodec In) :
       cases m with
       | vote s i b => exact hh.elim
       | row i body => exact hh.elim
-      | block s b raw sup rows =>
+      | block s N =>
         obtain ⟨_, hm⟩ := hh
         dsimp only [FGSA.wellFormed] at hw
         rw [hd] at hw

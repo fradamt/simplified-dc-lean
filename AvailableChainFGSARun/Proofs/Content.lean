@@ -8,19 +8,13 @@ namespace AvailableChain.FGSA.Run
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- ROOT-DIGEST W2. Scoped bodies and checked content give the two equalities. -/
+/-- [ROOT-DIGEST-2 W2; DC NamedRootCollisionFree] Exact named delivery gives full agreement. -/
 theorem contentAgree_run (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hr : NamedRootCollisionFree p c E rho) (v w : V) (i j : Nat) :
     ContentAgree (V2.D.Run.stateBefore E rho i v).st (V2.D.Run.stateBefore E rho j w).st := by
-  intro s b raw sup rows ho s' b' raw' sup' rows' ho' he
-  have check := (metaInv_stateBefore E rho i v).wireTree _ ho
-  have check' := (metaInv_stateBefore E rho j w).wireTree _ ho'
-  obtain ⟨_, _, _, _, _, eq, hc, _⟩ := check
-  obtain ⟨_, _, _, _, _, eq', hc', _⟩ := check'
-  cases eq
-  cases eq'
-  exact stored_content_eq E rho hr
-    (rootBlockInRun_stored_proposal E rho i v ho)
-    (rootBlockInRun_stored_proposal E rho j w ho') hc hc' he
+  intro s N hN s' N' hN' he
+  cases namedProposal_eq E rho hr (namedScope_stored_proposal E rho i v hN)
+    (namedScope_stored_proposal E rho j w hN') he
+  exact ⟨rfl, rfl, rfl, rfl, rfl⟩
 
 end AvailableChain.FGSA.Run

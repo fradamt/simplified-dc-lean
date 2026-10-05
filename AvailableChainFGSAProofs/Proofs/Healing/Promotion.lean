@@ -34,17 +34,16 @@ private theorem promotion_stored_parent_slot (E : Generic.Env V)
   obtain ⟨w, hw, hb, j, o, t, _, hd, ho, _⟩ :=
     fgsa_stored_block_origin E rho i x (eraseFG W) hm (by
       intro he; exact hne (eraseFG_eq_genesis.mp he))
-  obtain ⟨s, Q, raw, sup, rows, rfl, _, _, _⟩ :=
+  obtain ⟨s, N, rfl, _, _, _⟩ :=
     (metaInv_stateBefore E rho i x).wireTree w hw
-  have hQ : Q = eraseFG W := Option.some.inj hb
-  subst Q
+  have hQ : N.erase = eraseFG W := Option.some.inj hb
   have hf := hv.wire j x o t hd
   change FGSA.wellFormed p (toWire p o) = true at hf
   rw [ho] at hf
-  have hlt : (eraseFG W).parent.slot < (eraseFG W).slot := of_decide_eq_true
+  have hlt : N.erase.parent.slot < N.erase.slot := of_decide_eq_true
     (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp
       (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp hf).1).1).1).1).2
-  rwa [eraseFG_parent, eraseFG_slot, eraseFG_slot] at hlt
+  rwa [hQ, eraseFG_parent, eraseFG_slot, eraseFG_slot] at hlt
 
 omit [Fintype V] in
 private theorem promotion_stored_ancestor_slot (E : Generic.Env V)
@@ -62,7 +61,8 @@ private theorem promotion_stored_ancestor_slot (E : Generic.Env V)
         exact (ih hP hUP).trans
           (promotion_stored_parent_slot E rho hv i x _ hK (by intro h; cases h)).le
 
-/-- ROOT-DIGEST W2b. Blueprint 21:1356–1384; plan §3.2 step 1.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21:1356–1384; plan §3.2 step 1.
 DC: INTENTIONAL choose the starting action's SO-COV witnesses once.
 The sources can differ. Their actual entries agree by root injectivity.
 The source path, source slot and original send round remain in the result. -/
@@ -104,7 +104,8 @@ theorem healing_promotion_fixed_rows (E : Generic.Env V)
     cases heq
     exact ⟨timeout, rfl⟩
 
-/-- Blueprint 21:1356–1384; plan §3.2 steps 1 and 5.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1356–1384; plan §3.2 steps 1 and 5.
 DC: SAME the common entry's slot is at most the starting action label.
 The equality is supplied by the fixed starting rows. -/
 theorem healing_promotion_entry_slot (E : Generic.Env V)
@@ -125,7 +126,8 @@ theorem healing_promotion_entry_slot (E : Generic.Env V)
     rw [clock_fg] at hs
     exact (promotion_stored_ancestor_slot E rho hrec.base.valid i x hs hUK).trans hslot
 
-/-- Blueprint 21:1356–1384; plan §3.2 step 1.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1356–1384; plan §3.2 step 1.
 DC: SAME the fixed batch keeps the common entry and its action-slot bound.
 No starting row or source is replaced. -/
 theorem healing_promotion_bounded_rows (E : Generic.Env V)
@@ -146,7 +148,8 @@ theorem healing_promotion_bounded_rows (E : Generic.Env V)
   exact ⟨U, hU, healing_promotion_entry_slot E rho hrec hx hK he, hrows⟩
 
 omit [Fintype V] in
-/-- Blueprint 21:1385–1396; plan §3.2 step 4.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1385–1396; plan §3.2 step 4.
 DC: SAME an actual starting source is a fast PhaseBody at its own opening.
 No later source or row is selected. -/
 theorem healing_promotion_source_body (E : Generic.Env V)
@@ -170,7 +173,8 @@ theorem healing_promotion_source_body (E : Generic.Env V)
     rfl
 
 omit [Fintype V] in
-/-- Blueprint 21:1385–1396; plan §3.2 step 4.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1385–1396; plan §3.2 step 4.
 DC: SAME TPerm transfers each fixed source to the new proposal's parent.
 The phase premise includes the proposal read; service after phase termination
 is not required. -/
@@ -192,7 +196,8 @@ theorem healing_promotion_source_parent (E : Generic.Env V)
   exact ht.2.1 s Q hs le_rfl hQ
 
 omit [Fintype V] in
-/-- Blueprint 21:1410–1424; plan §3.2 step 6.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1410–1424; plan §3.2 step 6.
 DC: SAME service is conditional on the old phase through the new gate.
 This adapter uses the persistent RepairAfter premise of the frozen boundary. -/
 theorem healing_promotion_continuing_service (E : Generic.Env V)

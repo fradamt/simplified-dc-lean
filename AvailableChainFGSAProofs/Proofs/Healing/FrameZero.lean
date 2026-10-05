@@ -8,7 +8,8 @@ open AvailableChain.SimplexFG
 
 variable (p : Params)
 
-/-- ROOT-DIGEST W2b. Blueprint 21:749–783, 1148–1252; plan S30, H-FRAME/F1.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21:749–783, 1148–1252; plan S30, H-FRAME/F1.
 DC: SAME accepted non-genesis blocks have positive slots. -/
 private theorem frame_zero_process (st : State p.n) (hi : CStoreInv p st)
     (o : Wire p.n) (hz : ∀ B ∈ st.base.blocks, B.slot = 0 → B = .genesis) :
@@ -22,36 +23,42 @@ private theorem frame_zero_process (st : State p.n) (hi : CStoreInv p st)
     | row i body =>
       dsimp only
       rcases admitRow_eq p st ⟨o.auth, body⟩ with he | he <;> rw [he] <;> exact hz
-    | block s b raw sup rows =>
+    | block s N =>
       dsimp only
-      cases hp : parentFG st b with
-      | none => rw [admitBlock_refused p st s b raw sup rows (Or.inl hp)]; exact hz
-      | some P =>
-        cases ha : blockAccepted p st s b raw sup P rows with
-        | false =>
-          rw [admitBlock_refused p st s b raw sup rows (Or.inr ⟨P, hp, ha⟩)]
-          exact hz
-        | true =>
-          have hbase := (base_admitProposal_accepts p st hi.toInv0 s b raw sup P rows hp ha).1
-          have hpos := (blockAccepted_slot_pos ha).1
-          obtain ⟨pool, he, _⟩ := admitBlock_accepted_eq p st s b raw sup P rows hp ha
-          rw [he]
-          dsimp only
-          have hnext : ∀ B ∈ st.base.blocks ++ [b], B.slot = 0 → B = .genesis := by
-            intro B hB hzero
-            rcases List.mem_append.mp hB with hB | hB
-            · exact hz B hB hzero
-            · have hBb := List.mem_singleton.mp hB
-              subst B
-              exact (Nat.ne_of_gt hpos hzero).elim
-          split
-          · rw [hbase]; exact hnext
-          · rw [reconcile_eq]
+      cases hn : namedParentHeld st N with
+      | false =>
+        rw [admitBlock_refused p st s N (Or.inl hn)]
+        exact hz
+      | true =>
+        cases hp : parentFG st N.erase with
+        | none => rw [admitBlock_refused p st s N (Or.inr (Or.inl hp))]; exact hz
+        | some P =>
+          cases ha : blockAccepted p st s N P with
+          | false =>
+            rw [admitBlock_refused p st s N (Or.inr (Or.inr ⟨P, hp, ha⟩))]
+            exact hz
+          | true =>
+            have hbase := (base_admitProposal_accepts p st hi.toInv0 s N P hp ha).1
+            have hpos := (blockAccepted_slot_pos ha).1
+            obtain ⟨pool, he, _⟩ := admitBlock_accepted_eq p st s N P hn hp ha
+            rw [he]
             dsimp only
-            rw [hbase]
-            exact hnext
+            have hnext : ∀ B ∈ st.base.blocks ++ [N.erase], B.slot = 0 → B = .genesis := by
+              intro B hB hzero
+              rcases List.mem_append.mp hB with hB | hB
+              · exact hz B hB hzero
+              · have hBb := List.mem_singleton.mp hB
+                subst B
+                exact (Nat.ne_of_gt hpos hzero).elim
+            split
+            · rw [hbase]; exact hnext
+            · rw [reconcile_eq]
+              dsimp only
+              rw [hbase]
+              exact hnext
 
-/-- Blueprint 21:749–783, 1148–1252; plan S30, H-FRAME/F1.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:749–783, 1148–1252; plan S30, H-FRAME/F1.
 DC: SAME local steps cannot store a non-genesis block at slot zero. -/
 private theorem frame_zero_reachable (st : State p.n) (hr : Reachable p st) :
     ∀ B ∈ st.base.blocks, B.slot = 0 → B = .genesis := by
@@ -64,7 +71,8 @@ private theorem frame_zero_reachable (st : State p.n) (hr : Reachable p st) :
 variable {In V : Type} [DecidableEq V] (c : AppCodec In)
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- Blueprint 21:749–783, 1148–1252; plan S30, H-FRAME/F1.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:749–783, 1148–1252; plan S30, H-FRAME/F1.
 DC: INTENTIONAL the zero-label HEAD is the actual scheduled genesis read.
 Positive labels use the full-domain witness theorem; frontier one is included.
 The witness floor is not asserted for an arbitrary reachable zero-label store. -/

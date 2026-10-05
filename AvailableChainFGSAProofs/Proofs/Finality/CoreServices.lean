@@ -1,4 +1,7 @@
 module
+public import AvailableChainFGSARun.Proofs.RootResolution
+public import AvailableChainGeneric.Proofs.AC.RootBatch
+public import AvailableChainGeneric.Proofs.AC.RootSupport
 public import AvailableChainFGSA.Proofs.Head.Walk
 public import AvailableChainFGSAClaims.Statements.ComposeStmt
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads
@@ -11,7 +14,8 @@ open AvailableChain.SimplexFG Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- Blueprint 01:137–140,166–182; 22 I5:538–581. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 01:137–140,166–182; 22 I5:538–581. Class (iii).
 DC b241081: INTENTIONAL: the FG-SA live root selects a live lease in the
 FJ filtered tree, or the active root Z. The reachable lease bound supplies output. -/
 theorem fgsa_tStart (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) :
@@ -57,7 +61,8 @@ private theorem core_full_mem (st : State p.n) (B : FGBlock (Fin p.n)) :
       ∃ W ∈ st.fg.TF, FGBlock.Preceq B W ∧ (controls p st).lo ≤ (heightView p W).h :=
   KitFG.mem_filteredFromView (heightView p) (controls p st) st.fg.TF B
 
-/-- ROOT-DIGEST W2b. Blueprint 01:158–164,184–199; 22 I8:637. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 01:158–164,184–199; 22 I8:637. Class (iii).
 DC b241081: Protocol/ForkChoice/Goldfish/Adoption.lean:415 and
 Protocol/ForkChoice/Goldfish/Walk.lean:184,197,433.
 INTENTIONAL: the FJ tree and live root supply the path; Batch supplies the
@@ -69,15 +74,18 @@ theorem fgsa_tWalk (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) :
   have hi : CStoreInv p st := cstoreInv_stateBefore E rho i x
   have hQT := ((core_full_mem st Q).mp hQ).1
   have hinj := viewRootInj_TF p st hi
-  have hbatch : ∀ a ∈ seats, Gen.AC.poolSupports st.base.blocks support a (eraseFG Q) = true := by
+  have hbatch : ∀ a ∈ seats, Gen.AC.Root.poolSupports st.base.blocks support a (eraseFG Q) =
+      true := by
     intro a ha
-    obtain ⟨_, o, ho, hor, hseat, H, ht, hH, hs, hQH⟩ := hseats a ha
-    apply (Gen.AC.vote_pool_support_witness _ _ _ _).mpr
+    obtain ⟨_, o, ho, hor, hseat, H, ht, hs, hQH⟩ := hseats a ha
+    apply (Gen.AC.Root.vote_pool_support_witness _ _ _ _).mpr
     refine ⟨o, ho, hseat, ?_⟩
-    rw [Gen.AC.voteSupports_def, ht]
-    simp only [hH, hlabel o hor, Option.getD_some, hs, decide_true, Bool.true_and]
-    exact hQH
-  obtain ⟨_, _, hpath, hconflict, hunsupported⟩ := Gen.AC.batch_counts
+    have hH := resolvedHead_mem st.base o ht
+    exact (Gen.AC.Root.vote_support_body _ _ _).mpr
+      ⟨H, resolvedTarget_of_mem _ (baseBlocks_rootInj p st hi) o hH
+        (resolvedHead_root _ o ht), hH, by simpa only [hlabel o hor, Option.getD_some] using hs,
+            hQH⟩
+  obtain ⟨_, _, hpath, hconflict, hunsupported⟩ := Gen.AC.Root.batch_counts
     st.base.blocks raw raw support seats seats.card m (eraseFG Q)
     (fun _ ho => ho) hsub rfl hclean hbatch hother hb
   have hkeep : ∀ C, Block.Prec (liveRoot p st) C → Block.Preceq C (eraseFG Q) →
@@ -124,17 +132,16 @@ theorem fgsa_tWalk (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) :
     · obtain ⟨B, hB, hBe⟩ := of_decide_eq_true (List.mem_filter.mp hm).2
       exact terminal B hB hBe
   · intro B hac hBH hnone
-    have hrest : ∀ a ∈ seats, Gen.AC.poolSupports st.base.blocks support a B = false := by
+    have hrest : ∀ a ∈ seats, Gen.AC.Root.poolSupports st.base.blocks support a B = false := by
       intro a ha
       apply Bool.eq_false_iff.mpr
       intro h
-      obtain ⟨o, ho, hs, hv⟩ := (Gen.AC.vote_pool_support_witness _ _ _ _).mp h
-      rw [Gen.AC.voteSupports_def] at hv
-      cases ht : GridCO.headTarget? o with
-      | none => simp only [ht, Bool.false_eq_true] at hv
-      | some H =>
-          have hBH := (Bool.and_eq_true_iff.mp (ht ▸ hv)).2
-          exact hnone a ha o ho hs H ht hBH
+      obtain ⟨o, ho, hs, hv⟩ := (Gen.AC.Root.vote_pool_support_witness _ _ _ _).mp h
+      obtain ⟨H, ht, hH, _, hBH⟩ := (Gen.AC.Root.vote_support_body _ _ _).mp hv
+      have hres := base_resolve_target p st hi
+        (base_headDomain_none p (reachable_stateBefore E rho i x)) o hH
+        (resolvedTarget_root _ o ht)
+      exact hnone a ha o ho hs H hres hBH
     have hscore := hunsupported B hrest
     have hel : eligible p st raw support B = true := by
       cases B with
@@ -186,7 +193,8 @@ theorem fgsa_tWalk (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c)) :
       decide_eq_true_eq, beq_iff_eq] at hel
     exact hel.elim Or.inr Or.inl
 
-/-- Blueprint 01:150–157; 22:1233–1234.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 01:150–157; 22:1233–1234.
 DC: Protocol/Handlers/GoldfishVotePool.lean:320, scheduled honest HEAD. -/
 private theorem core_head_form (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) (y : V) (s : Slot) (a : HeadWire p.n)
@@ -217,7 +225,8 @@ private theorem core_head_form (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     exact ⟨k, rfl⟩
   all_goals cases hw
 
-/-- Blueprint 01:150–157; 22:1233–1234.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 01:150–157; 22:1233–1234.
 DC: Generic/Conditions.lean:110,134, delivery within the label window. -/
 private theorem core_vote_window (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hS : V2.D.ScheduleWellFormed E rho) (hN : V2.D.NoRestart rho)
@@ -248,7 +257,8 @@ private theorem core_vote_window (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c
     (by have hΔ : (0 : Int) < p.Δ := p.deltaPos; omega)] at hm
   exact hm.trans (Nat.le_succ s)
 
-/-- Blueprint 01:150–157; 22:1233–1234.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 01:150–157; 22:1233–1234.
 DC: Protocol/Handlers/GoldfishVotePool.lean:320.
 INTENTIONAL: non-row receipts persist to the FG-SA post-clock read. -/
 private theorem core_full_vote
@@ -299,13 +309,16 @@ private theorem core_full_vote
         GridCO.votesAt ((fgsa p c).clock (V2.D.Run.stateBefore E rho i x) t).st.base s :=
       List.mem_filter.mpr ⟨hm, by exact beq_self_eq_true _⟩
     refine ⟨hv, ?_⟩
-    intro hknown hslot
+    intro H hknown hslot
     apply List.mem_filter.mpr
     refine ⟨hv, ?_⟩
-    change (decide (a.payload ∈ _) && decide (a.payload.slot ≤ s)) = true
-    simp only [hknown, hslot, decide_true, Bool.true_and]
+    change (match GridCO.resolvedHead? _ _ with
+      | some K => decide (K.slot ≤ s) | none => false) = true
+    rw [hknown]
+    exact decide_eq_true hslot
 
-/-- Blueprint 01:150–157; 22:1233–1234 (S14). Class (ii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 01:150–157; 22:1233–1234 (S14). Class (ii).
 DC: Generic/Conditions.lean:110,134 and
 Protocol/Handlers/GoldfishVotePool.lean:320.
 INTENTIONAL: FG-SA uses non-row delivery and the post-clock active view. -/
@@ -326,15 +339,16 @@ theorem fgsa_tVote (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     rw [(V2.D.Run.step_tick_eq E rho hj).2] at hem
     have hhead := (fgsa_emits_head E rho _ y _ s k a.payload).mp hem
     refine ⟨(fgsa p c).clock (V2.D.Run.stateBefore E rho j y)
-      (SA.voteTime p.toParams s), ?_, ?_⟩
+      (SA.voteTime p.toParams s),
+      headVote p (FGSA.clock p (rho.stateBefore E j y).st (SA.voteTime p.toParams s)) s,
+      ?_, ?_, hhead.2.2.2.symm⟩
     · rw [postClock_def, preTick_def,
         fgsa_tickIdx_of_event p c E rho hb.valid.toScheduleWellFormed hj]
       rfl
-    · change a.payload ∈ (FGSA.clock p (V2.D.Run.stateBefore E rho j y).st _).base.blocks
-      rw [hhead.2.2.2]
-      exact headVote_stored p _ (storeBundle_postClock E rho j y _).cstore s
+    · exact headVote_stored p _ (storeBundle_postClock E rho j y _).cstore s
 
-/-- Blueprint 01:126–199; 22:1228–1254. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 01:126–199; 22:1228–1254. Class (iii).
 DC: INTENTIONAL: assembly of the three FG-SA composition services. -/
 theorem fgsa_coreServices
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))

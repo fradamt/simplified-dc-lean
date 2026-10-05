@@ -17,7 +17,8 @@ open Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- Plan O-ARM §6.5. Class (iii). DC: INTENTIONAL; at its own tick a node has
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan O-ARM §6.5. Class (iii). DC: INTENTIONAL; at its own tick a node has
 the store of the strict read at the tick time. -/
 theorem arming_tick_store {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
     (hs : V2.D.ScheduleWellFormed E rho) (hN : V2.D.NoRestart rho) {i : Nat} {y : V}
@@ -28,7 +29,8 @@ theorem arming_tick_store {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
   rw [fgsa_preTick_eq_timeRead E rho hs hN hi, Gen.V2.Duty.stateBefore_idxBefore E rho t hs]
 
 omit [DecidableEq V] in
-/-- Plan O-ARM §6.3. Class (iii). DC: INTENTIONAL; `inclusion_head_seats` with
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan O-ARM §6.3. Class (iii). DC: INTENTIONAL; `inclusion_head_seats` with
 the exact count: the honest awake HEAD seats of a label are in bijection with
 the honest awake nodes at its vote time. -/
 theorem arming_head_seats {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
@@ -60,9 +62,10 @@ theorem arming_head_seats {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
   exact ⟨H, hH, (Finset.card_image_of_injective H hbij.1).symm.trans
     (congrArg Finset.card himage)⟩
 
-/-- Plan O-ARM §6.4. Class (iii). DC: INTENTIONAL; a saved result compatible
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan O-ARM §6.4. Class (iii). DC: INTENTIONAL; a saved result compatible
 with the new F survives the reconcile filter of the saved results. -/
-theorem arming_saved_map {n : Nat} {v w : GridCO.State n} {F C : Block} {u : Slot}
+theorem arming_saved_map {n : Nat} {v w : GridCO.State n .root} {F C : Block} {u : Slot}
     (hg : w.genuine = v.genuine.map (fun row =>
       (row.1, row.2.filter (fun b => Block.compatible b F))))
     (hv : GridCO.savedGenuine v u = some (some C)) (hc : Block.compatible C F = true) :
@@ -85,7 +88,8 @@ theorem arming_saved_map {n : Nat} {v w : GridCO.State n} {F C : Block} {u : Slo
     cases hv
     simp only [Option.map_some, Option.filter_some, hc, ite_true]
 
-/-- Plan O-ARM §6.4. Class (iii). DC: INTENTIONAL; between the cut and the
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan O-ARM §6.4. Class (iii). DC: INTENTIONAL; between the cut and the
 pending gate a saved Clean result below `D` stays saved: off-gate ticks keep
 the saved list, and a delivery keeps it or filters it by an F below `D`. -/
 theorem arming_saved_interval {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
@@ -126,7 +130,8 @@ theorem arming_saved_interval {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}
         rw [heq] at hFk
         exact block_compatible_of_common hCuD hFk
 
-/-- Plan O-ARM §4 field 9 (slow clause), §6.4. Class (iii). DC: INTENTIONAL;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Plan O-ARM §4 field 9 (slow clause), §6.4. Class (iii). DC: INTENTIONAL;
 the slow window of the pending gate: every label strictly between the origin
 and the pending label has a saved Clean result that covers B. -/
 theorem arming_slow_saved {E : Generic.Env V} {rho : V2.D.Run V (fgsa p c)}

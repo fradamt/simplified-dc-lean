@@ -9,7 +9,8 @@ open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} [DecidableEq V] [Fintype V]
     (c : AppCodec In) (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- ROOT-DIGEST W2b. Paper 22:1286–1305, plan §4: the terminal carrier gives every AcceptPrem_W
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Paper 22:1286–1305, plan §4: the terminal carrier gives every AcceptPrem_W
 field at
 any final action q. This is receipt_acceptPrem_W with the kernel record replaced by its
 used fields, so the Tail kernel can use q = r+1.
@@ -117,8 +118,9 @@ omit [Fintype V] in
 private theorem ktail_receipt_carrier (s : Slot) (B : Block) (rows : List (RowWire p.n)) :
     HonestCarrier p c E rho s B rows =
       (HonestProposal E rho (fgsaInterface p c) s B ∧
-        ∃ o raw sup, V2.D.Run.emits E rho (V2.D.proposerOf rho (fgsaInterface p c) s) o
-          (V2.D.proposalTime (fgsaInterface p c) s) ∧ o.payload = .proposal B raw sup rows) :=
+        ∃ o N, V2.D.Run.emits E rho (V2.D.proposerOf rho (fgsaInterface p c) s) o
+          (V2.D.proposalTime (fgsaInterface p c) s) ∧ o.payload = .proposal N ∧ N.erase = B ∧
+              N.rows = rows) :=
   rfl
 
 private theorem ktail_receipt_parent (X : FGBlock (Fin p.n)) : FGBlock.Preceq X.parent X := by
@@ -138,7 +140,8 @@ private theorem ktail_receipt_strictMono : StrictMono p.actionTime := by
   push_cast
   convert add_lt_add_right (mul_lt_mul_of_pos_left hab' hpos) (6 * p.Δ) using 1 <;> ring
 
-/-- ROOT-DIGEST W2b. Paper 22:1297–1302, plan §4 (cached-J helper). A cached J of an honest receiver
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Paper 22:1297–1302, plan §4 (cached-J helper). A cached J of an honest receiver
 is on
 the terminal carrier path, or the carrier strictly improves h_j. The only input on the
 carrier is its high justification height; there is no fresh-row or anchor-height input.
@@ -223,7 +226,8 @@ theorem ktail_jPath (hroots : NamedRootCollisionFree p c E rho) (G ΔF : Time) (
     (KitFG.preceq_trans hpath (ktail_receipt_parent p X)))
 
 omit [Fintype V] in
-/-- Paper 22:1993–1996, plan §4. A high finalized target of the carrier gives a high
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Paper 22:1993–1996, plan §4. A high finalized target of the carrier gives a high
 carrier justification: K ⪯ F(X) ⪯ J(X), and J(X) has height h_j(X).
 DC: SAME certificate order; INTENTIONAL W heights. -/
 theorem ktail_hj_floor (w : HealingWitness) (ΔF : Time)
@@ -248,7 +252,8 @@ theorem ktail_hj_floor (w : HealingWitness) (ΔF : Time)
     rw [(fgJustificationLaws p).J_height X hz] at hh
     exact hK.trans hh
 
-/-- ROOT-DIGEST W2b. Paper 22:1286–1305, 1993–2005; plan §4 (two-height receipt adapter). The
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Paper 22:1286–1305, 1993–2005; plan §4 (two-height receipt adapter). The
 terminal
 carrier X at slot q·R + κ, with a proved high finalized target K and the source floor
 e+1 ≤ ht(X), gives every AcceptPrem_W field at the final action q. The finality key of K

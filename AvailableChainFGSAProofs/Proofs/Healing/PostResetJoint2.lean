@@ -13,7 +13,8 @@ open AvailableChain.SimplexFG
 variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- The run-level PostResetRetainedCone body (PostResetRead.lean:21) with the cut guard
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The run-level PostResetRetainedCone body (PostResetRead.lean:21) with the cut guard
 `timeIdx rho (voteTime s) ≤ i`. -/
 def PostResetRetainedConeP (w : HealingWitness) (i : Nat) : Prop :=
   ∀ s, w.sStar + 2 ≤ s → SA.voteTime p.toParams s ≤ rho.horizon →
@@ -21,8 +22,8 @@ def PostResetRetainedConeP (w : HealingWitness) (i : Nat) : Prop :=
   ∀ {ip : Nat} {x : V}, x ∈ rho.honest →
     rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
     rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x →
-  ∀ (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n)),
-    (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+  ∀ (N : NamedProposal p.n),
+    (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       rho.emitsAt E ip →
     ∃ D : FGBlock (Fin p.n), ∀ y ∈ rho.honest, ∀ ih,
       rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
@@ -30,7 +31,8 @@ def PostResetRetainedConeP (w : HealingWitness) (i : Nat) : Prop :=
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D
 
-/-- Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
 The retained-cone step uses the prior joint fields and the new raw-transfer field. -/
 def PostResetConeStep (w : HealingWitness) (i : Nat) : Prop :=
   PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatible p c E rho w i ∧
@@ -41,7 +43,8 @@ def PostResetConeStep (w : HealingWitness) (i : Nat) : Prop :=
   PostResetRawTransfer p c E rho w (i + 1) →
   PostResetRetainedConeP p c E rho w (i + 1)
 
-/-- Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
 The opening-domain step uses the prior joint fields and the new retained cone. -/
 def PostResetOpeningDomainStep₂ (w : HealingWitness) (i : Nat) : Prop :=
   PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatible p c E rho w i ∧
@@ -53,7 +56,8 @@ def PostResetOpeningDomainStep₂ (w : HealingWitness) (i : Nat) : Prop :=
   PostResetRetainedConeP p c E rho w (i + 1) →
   PostResetOpeningDomain p c E rho w (i + 1)
 
-/-- Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
 The service step uses the prior joint fields, the new retained cone and opening domain. -/
 def PostResetServiceStep₂ (w : HealingWitness) (i : Nat) : Prop :=
   PostResetInv p c E rho w i ∧ PostResetResetLeaseCompatible p c E rho w i ∧
@@ -66,7 +70,8 @@ def PostResetServiceStep₂ (w : HealingWitness) (i : Nat) : Prop :=
   PostResetOpeningDomain p c E rho w (i + 1) →
   PostResetService p c E rho w (i + 1)
 
-/-- Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
 Equation export for BUILD §7.2 B3a. -/
 theorem PostResetRetainedConeP_def (w : HealingWitness) (i : Nat) :
     PostResetRetainedConeP p c E rho w i = (
@@ -75,8 +80,8 @@ theorem PostResetRetainedConeP_def (w : HealingWitness) (i : Nat) :
   ∀ {ip : Nat} {x : V}, x ∈ rho.honest →
     rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)) →
     rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x →
-  ∀ (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n)),
-    (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+  ∀ (N : NamedProposal p.n),
+    (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       rho.emitsAt E ip →
     ∃ D : FGBlock (Fin p.n), ∀ y ∈ rho.honest, ∀ ih,
       rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
@@ -84,7 +89,8 @@ theorem PostResetRetainedConeP_def (w : HealingWitness) (i : Nat) :
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D) := by rfl
 
-/-- Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
 Equation export for BUILD §7.2 B3a. -/
 theorem PostResetConeStep_def (w : HealingWitness) (i : Nat) :
     PostResetConeStep p c E rho w i = (
@@ -96,7 +102,8 @@ theorem PostResetConeStep_def (w : HealingWitness) (i : Nat) :
   PostResetRawTransfer p c E rho w (i + 1) →
   PostResetRetainedConeP p c E rho w (i + 1)) := by rfl
 
-/-- Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
 Equation export for BUILD §7.2 B3a. -/
 theorem PostResetOpeningDomainStep₂_def (w : HealingWitness) (i : Nat) :
     PostResetOpeningDomainStep₂ p c E rho w i = (
@@ -109,7 +116,8 @@ theorem PostResetOpeningDomainStep₂_def (w : HealingWitness) (i : Nat) :
   PostResetRetainedConeP p c E rho w (i + 1) →
   PostResetOpeningDomain p c E rho w (i + 1)) := by rfl
 
-/-- Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
 Equation export for BUILD §7.2 B3a. -/
 theorem PostResetServiceStep₂_def (w : HealingWitness) (i : Nat) :
     PostResetServiceStep₂ p c E rho w i = (
@@ -123,7 +131,8 @@ theorem PostResetServiceStep₂_def (w : HealingWitness) (i : Nat) :
   PostResetOpeningDomain p c E rho w (i + 1) →
   PostResetService p c E rho w (i + 1)) := by rfl
 
-/-- Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
 A larger cut supplies the cone at every smaller cut. -/
 theorem PostResetRetainedConeP_mono (w : HealingWitness) {i j : Nat}
     (hij : i ≤ j) (hcone : PostResetRetainedConeP p c E rho w j) :
@@ -132,7 +141,8 @@ theorem PostResetRetainedConeP_mono (w : HealingWitness) {i j : Nat}
   intro s hs hh hcut
   exact hcone s hs hh (hcut.trans hij)
 
-/-- Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
 Use the cut at the proposal's HEAD deadline to obtain the run-level cone. -/
 theorem postReset_retainedCone_of_cut (w : HealingWitness)
     (hcone : ∀ i, PostResetRetainedConeP p c E rho w i) :
@@ -144,7 +154,8 @@ theorem postReset_retainedCone_of_cut (w : HealingWitness)
   intro ip x hx
   exact hcut s hs hh le_rfl hx
 
-/-- Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
 An actual proposal tick makes its inclusive HEAD cut positive. -/
 theorem postReset_cone_zero (w : HealingWitness) :
     PostResetRetainedConeP p c E rho w 0 := by
@@ -160,7 +171,8 @@ theorem postReset_cone_zero (w : HealingWitness) :
       exact decide_eq_true htv⟩)
   exact False.elim (Nat.not_lt_of_ge hcut hpos)
 
-/-- Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
 Extend the existing empty-cut triple with its vacuous cone. -/
 theorem postReset_joint₂_zero (w : HealingWitness) :
     PostResetInv p c E rho w 0 ∧ PostResetResetLeaseCompatible p c E rho w 0 ∧
@@ -168,7 +180,8 @@ theorem postReset_joint₂_zero (w : HealingWitness) :
   obtain ⟨hinv, hrl, hod⟩ := postReset_joint_zero p c E rho w
   exact ⟨hinv, hrl, hod, postReset_cone_zero p c E rho w⟩
 
-/-- Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
 The old opening-domain step drops the two added cone hypotheses. -/
 theorem postReset_openingDomainStep₂_of_old (w : HealingWitness) (i : Nat)
     (hstep : PostResetOpeningDomainStep p c E rho w i) :
@@ -178,7 +191,8 @@ theorem postReset_openingDomainStep₂_of_old (w : HealingWitness) (i : Nat)
   intro hprior hrl hlease hfprov hraw _hcone
   exact hstep ⟨hprior.1, hprior.2.1, hprior.2.2.1⟩ hrl hlease hfprov hraw
 
-/-- Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
 The old service step drops the two added cone hypotheses. -/
 theorem postReset_serviceStep₂_of_old (w : HealingWitness) (i : Nat)
     (hstep : PostResetServiceStep p c E rho w i) :
@@ -203,16 +217,17 @@ variable [Fintype V] {G ΔF : Time}
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
     (cap : RCap p c E rho) (source : TSrc p c E rho)
@@ -246,7 +261,8 @@ variable
 include hrec mono emittedNonempty emittedName writes xing origin cap source
     heldRows finalityCap hhead h0r stepRL stepLease stepRaw stepCone stepOD stepService
 
-/-- ROOT-DIGEST W2b. Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
 Order: reset lease, lease safety, F provenance, raw transfer, cone,
 opening domain, service. Each open step has a named full type. All other fields use producers.
 Foundations producers: fgsa_rMono, sourceDiscipline_emittedNonempty,
@@ -294,21 +310,24 @@ theorem postReset_joint₂_all :
     · exact postReset_reset_compatible_all p c E rho hrec mono emittedNonempty emittedName
         writes xing origin h0r (i + 1)
 
-/-- Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
 Projection with the same named steps and producer inputs. -/
 theorem postReset_inv_all₂ : ∀ i, PostResetInv p c E rho w i :=
   fun i => (postReset_joint₂_all p c E rho hrec mono emittedNonempty emittedName writes
     xing origin cap source heldRows finalityCap hhead h0r
     stepRL stepLease stepRaw stepCone stepOD stepService i).1
 
-/-- Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
 Projection with the same named steps and producer inputs. -/
 theorem postReset_cone_all : ∀ i, PostResetRetainedConeP p c E rho w i :=
   fun i => (postReset_joint₂_all p c E rho hrec mono emittedNonempty emittedName writes
     xing origin cap source heldRows finalityCap hhead h0r
     stepRL stepLease stepRaw stepCone stepOD stepService i).2.2.2
 
-/-- Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Centaur FGSA-S5-CONE retained-cone route; plan "Induction design"; ruling R3.
 Projection with the same named steps and producer inputs. -/
 theorem postReset_retainedCone_run : PostResetRetainedCone p c E rho w :=
   postReset_retainedCone_of_cut p c E rho w

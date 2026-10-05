@@ -1,4 +1,6 @@
 module
+public import AvailableChainGeneric.Proofs.AC.RootBatch
+public import AvailableChainGeneric.Proofs.AC.RootSupport
 public import AvailableChainFGSAProofs.Proofs.Healing.RepairGate
 
 public section
@@ -16,7 +18,8 @@ open AvailableChain.SimplexFG Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.2 S1, 02 §5.4:531–541; plan H-GATE §3C (support count).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.2 S1, 02 §5.4:531–541; plan H-GATE §3C (support count).
 DC: INTENTIONAL if every honest HEAD of label w covers B and the gate F is at or below B,
 the honest HEAD seats are clean early supporters of B at an honest gate of w. Their number
 reaches the release threshold under the Recovery₂ fault bound. No exact HEAD is needed. -/
@@ -27,7 +30,7 @@ theorem opening_gate_support [Fintype V] (E : Generic.Env V)
     (hcov : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z w = some K → Block.Preceq B K)
     {j : Nat} {y : V} (ht : IsGateTick p c rho j y w)
     (hFB : Block.Preceq (eraseFG (storeAt p c E rho j y).fg.F) B) :
-    SA.releaseThreshold p.toParams ≤ SA.prefixSupport p.toParams
+    SA.releaseThreshold p.toParams ≤ SA.Root.prefixSupport p.toParams
       (actView (clockPre p (storeAt p c E rho j y) (SA.gateTime p.toParams w))) w B := by
   classical
   have hE := hrec.base.valid
@@ -46,8 +49,8 @@ theorem opening_gate_support [Fintype V] (E : Generic.Env V)
   have hSync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _
     hrec.sync (fgsaDelay_nonrow E.Δ _) hgst hvd hhor
   have hcovK (q : Fin p.n) (hq : rho.seatOf (.base (.head w)) q ∈ rho.honest) (K : Block)
-      (t : Time) (he : V2.D.Run.emits E rho (rho.seatOf (.base (.head w)) q)
-        (ofHead p ⟨.seat (.head w) q, K⟩) t) : Block.Preceq B K :=
+      (t : Time) (he : HeadTargetAtEmission p c E rho (rho.seatOf (.base (.head w)) q)
+        (ofHead p ⟨.seat (.head w) q, K.root⟩) t K) : Block.Preceq B K :=
     hcov _ hq K (healing_support_emitted_head (c := c) E rho hS w q K t he)
   have hgeom : GateReceiptGeometry E rho
       (clockPre p (storeAt p c E rho j y) (SA.gateTime p.toParams w)) w B := by
@@ -80,21 +83,30 @@ theorem opening_gate_support [Fintype V] (E : Generic.Env V)
     exact ⟨hHcard ▸ h⟩
   let vw := actView (clockPre p (storeAt p c E rho j y) (SA.gateTime p.toParams w))
   have hsupp (k : Fin p.n) (hk : k ∈ H) :
-      Gen.AC.poolSupports vw.blocks (GridCO.cleanSupport p.toParams.engine vw w) k B = true := by
+      Gen.AC.Root.poolSupports vw.blocks (GridCO.cleanSupport p.toParams.engine vw w) k B = true
+          := by
     have hq := (hHmem k).mp hk
     obtain ⟨K, t, hh, he, hv, hK, hslot, hvs, hbs, _, hBK⟩ :=
       fgsa_gateReceipt (hroots := hrec.base.idealization)
         E rho hE hN hDelta hC w hSync ht B hgeom k hq
         (hrec.awake _ hq _ hgst hhorv)
     exact fgsa_active_support_of_receipt E rho hE j y w k K B t hh he hv hK hslot hvs hbs hBK
-  have hc := Gen.AC.batch_counts vw.blocks (GridCO.lateVotes p.toParams.engine vw w)
+  have hc := Gen.AC.Root.batch_counts vw.blocks (GridCO.lateVotes p.toParams.engine vw w)
     (GridCO.cleanSupport p.toParams.engine vw w) (GridCO.cleanSupport p.toParams.engine vw w)
     H H.card (Gen.V2.Duty.faulty rho).card B
     (fun _ ho => fgsa_early_subset_late p vw w (List.mem_filter.mp ho).1)
     (fun _ ho => ho) rfl (fun k _ => fgsa_cleanSupport_no_equivocation p vw w k)
     hsupp (fgsa_late_rest_bound E rho hC hE j y w H (fun k hk _ => (hHmem k).mpr hk)) hbatch
-  have hcount : H.card ≤ SA.prefixSupport p.toParams vw w B :=
-    (hc.2.2.1 B (block_preceq_refl B)).1
+  have hcount : H.card ≤ SA.Root.prefixSupport p.toParams vw w B := by
+    have heq : SA.Root.prefixSupport p.toParams vw w B =
+        GridCO.goldfishScore vw.blocks (GridCO.cleanSupport p.toParams.engine vw w)
+          (GridCO.cleanSupport p.toParams.engine vw w) B :=
+      actView_score p (clockPre p (storeAt p c E rho j y) (SA.gateTime p.toParams w))
+        (cstoreInv_clockPre p _ (cstoreInv_stateBefore E rho j y) _)
+        (by rw [clockPre_headDomain];
+            exact base_headDomain_none p (reachable_stateBefore E rho j y)) _ _ B
+    rw [heq]
+    exact (hc.2.2.1 B (block_preceq_refl B)).1
   have hn : Fintype.card V = p.n :=
     (V2.D.CStar.seats_eq (ℓ := .base (.head w)) hC trivial).symm
   have hcard : (Gen.V2.Duty.faulty rho).card + rho.honest.card = p.n := by
@@ -111,7 +123,8 @@ theorem opening_gate_support [Fintype V] (E : Generic.Env V)
     omega
   exact hτ.trans hcount
 
-/-- Blueprint 01 §6.6, §7; plan H-GATE §3C (lease origins before q).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 01 §6.6, §7; plan H-GATE §3C (lease origins before q).
 DC: SAME the raw result of an honest gate of label w is a stored block of slot at most
 w + 1 at that gate. -/
 theorem opening_result_slot (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -121,7 +134,7 @@ theorem opening_result_slot (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   have hgr : gateResult p c E rho y w = some (some B) :=
     (gateResultAt_eq_gateResult p c E rho hs ht).symm.trans hres
   have hin := (healing_support_gate_reads p c E rho hs ht).1
-  have hconf : SA.confirmationFrom p.toParams
+  have hconf : SA.Root.confirmationFrom p.toParams
       (eraseFG (clockPre p (storeAt p c E rho j y) (SA.gateTime p.toParams w)).fg.F)
       (actView (clockPre p (storeAt p c E rho j y) (SA.gateTime p.toParams w))) w =
         some B := by
@@ -145,7 +158,8 @@ theorem opening_result_slot (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
       (fgsa_gate_slot (c := c) _ w)
   exact hb.trans (hsl.trans_eq he)
 
-/-- Spec 892–906 (fast-write set); plan H-GATE §3B (q = rR).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Spec 892–906 (fast-write set); plan H-GATE §3B (q = rR).
 DC: SAME a member of the fast set saved at an honest gate tick is a non-genesis active
 prefix of the passed raw result, with release-threshold support in the gate view. -/
 theorem opening_fastWrite_spec (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -153,17 +167,17 @@ theorem opening_fastWrite_spec (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (ht : IsGateTick p c rho j y w) {B : Block}
     (hB : B ∈ (fastWriteAt ((fgsa p c).clock (V2.D.Run.stateBefore E rho j y)
       (SA.gateTime p.toParams w)).st w).getD []) :
-    ∃ h, SA.confirmationFrom p.toParams (eraseFG (storeAt p c E rho j y).fg.F)
+    ∃ h, SA.Root.confirmationFrom p.toParams (eraseFG (storeAt p c E rho j y).fg.F)
         (actView (clockPre p (storeAt p c E rho j y) (SA.gateTime p.toParams w))) w = some h ∧
       (actView (clockPre p (storeAt p c E rho j y) (SA.gateTime p.toParams w))).obligations.any
         (fun row => !Block.compatible row.1 h) = false ∧
       B ∈ (actView (clockPre p (storeAt p c E rho j y) (SA.gateTime p.toParams w))).blocks ∧
       B ≠ .genesis ∧ Block.Preceq B h ∧
-      SA.releaseThreshold p.toParams ≤ SA.prefixSupport p.toParams
+      SA.releaseThreshold p.toParams ≤ SA.Root.prefixSupport p.toParams
         (actView (clockPre p (storeAt p c E rho j y) (SA.gateTime p.toParams w))) w B := by
   rw [healing_support_fastWrite p c E rho hs ht] at hB
   unfold fastSet at hB
-  cases hconf : SA.confirmationFrom p.toParams (eraseFG (storeAt p c E rho j y).fg.F)
+  cases hconf : SA.Root.confirmationFrom p.toParams (eraseFG (storeAt p c E rho j y).fg.F)
       (actView (clockPre p (storeAt p c E rho j y) (SA.gateTime p.toParams w))) w with
   | none => rw [hconf] at hB; exact absurd hB List.not_mem_nil
   | some h =>
@@ -177,24 +191,26 @@ theorem opening_fastWrite_spec (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
       obtain ⟨⟨hne, hBh⟩, hτ⟩ := hb
       exact ⟨h, rfl, Bool.eq_false_iff.mpr hg, hmem, hne, hBh, hτ⟩
 
-/-- Spec 899–921 (admission levels); plan H-GATE §3C.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Spec 899–921 (admission levels); plan H-GATE §3C.
 DC: SAME release-threshold support in the gate view admits the single SA lease level. -/
 theorem opening_gate_level (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (i : Nat) (x : V) (s : Slot) (B : Block)
     (hsupport : SA.releaseThreshold p.toParams ≤
-      SA.prefixSupport p.toParams ((fgsaAC E rho).gateView i x s) s B) :
+      SA.Root.prefixSupport p.toParams ((fgsaAC E rho).gateView i x s) s B) :
     SA.releaseThreshold p.toParams ∈ (fgsaAC E rho).gateLevels i x s B := by
   change SA.releaseThreshold p.toParams ∈
-    @GridCO.admissionLevels GridCO.slowLeasePolicy p.toParams.engine p.n
-      ((fgsaAC E rho).gateView i x s) s B
+    @GridCO.admissionLevels GridCO.slowLeasePolicy p.toParams.engine p.n .root ((fgsaAC E
+        rho).gateView i x s) s B
   change SA.releaseThreshold p.toParams ∈
     (if decide (SA.releaseThreshold p.toParams ≤
-        SA.prefixSupport p.toParams ((fgsaAC E rho).gateView i x s) s B) ||
+        SA.Root.prefixSupport p.toParams ((fgsaAC E rho).gateView i x s) s B) ||
       GridCO.slowEligible p.toParams.engine ((fgsaAC E rho).gateView i x s) s B
       then [SA.releaseThreshold p.toParams] else [])
   simp only [hsupport, decide_true, Bool.true_or, ite_true, List.mem_singleton]
 
-/-- Spec 892–921; blueprint 21 H.22 H3; plan H-GATE §3B (q = rR adapter).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Spec 892–921; blueprint 21 H.22 H3; plan H-GATE §3B (q = rR adapter).
 DC: INTENTIONAL the reverse of `exactService_fastWrite_of_gateService`: a member of the fast
 set saved at an honest gate tick has GateService at that tick. The fast set is nonempty
 only after a passed guard; its members carry the lease level. -/
@@ -209,15 +225,15 @@ theorem opening_gateService_of_fastWrite (E : Generic.Env V) (rho : V2.D.Run V (
       early := (storeAt p c E rho i x).base.early } = (fgsaAC E rho).gateView i x s :=
     fgsa_clockPre_gateView p (storeAt p c E rho i x) s
   have hraw : (fgsaAC E rho).raw i s x = some h := by
-    have he := congrArg (fun u => SA.confirmationFrom p.toParams
+    have he := congrArg (fun u => SA.Root.confirmationFrom p.toParams
       (eraseFG (storeAt p c E rho i x).fg.F) u s) hv
-    have he' : (fgsaAC E rho).raw i s x = SA.confirmationFrom p.toParams
+    have he' : (fgsaAC E rho).raw i s x = SA.Root.confirmationFrom p.toParams
         (eraseFG (storeAt p c E rho i x).fg.F)
         (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))) s := he.symm
     exact he'.trans hconf
   have hsupport : SA.releaseThreshold p.toParams ≤
-      SA.prefixSupport p.toParams ((fgsaAC E rho).gateView i x s) s B := by
-    have he := congrArg (fun u => SA.prefixSupport p.toParams u s B) hv
+      SA.Root.prefixSupport p.toParams ((fgsaAC E rho).gateView i x s) s B := by
+    have he := congrArg (fun u => SA.Root.prefixSupport p.toParams u s B) hv
     exact he ▸ hτ
   have hmemw : B ∈ ((fgsaAC E rho).gateView i x s).blocks :=
     (congrArg GridCO.State.blocks hv) ▸ hmem
@@ -233,7 +249,8 @@ theorem opening_gateService_of_fastWrite (E : Generic.Env V) (rho : V2.D.Run V (
   | true => rfl
   | false => exact absurd (by rw [hcb]; rfl) hno
 
-/-- Blueprint 21:628–650 (H.4 fast body); plan H-GATE §3C (fast lease write).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:628–650 (H.4 fast body); plan H-GATE §3C (fast lease write).
 DC: SAME the fast arm of `healing_support_phaseBody_of_write`. A fast write key needs no
 synchronous window. -/
 theorem opening_phaseBody_of_fast_key (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -241,16 +258,16 @@ theorem opening_phaseBody_of_fast_key (E : Generic.Env V) (rho : V2.D.Run V (fgs
     {j : Nat} {x : V} {w : Slot} {C B : Block} {g : Nat} (hx : x ∈ rho.honest)
     (ht : IsGateTick p c rho j x w) (hpass : gatePassedAt p c E rho j)
     (hres : gateResultAt p c E rho j = some (some C))
-    (hkey : (B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+    (hkey : (B, g) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
       (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams w))) w C)
-    (hfast : SA.releaseThreshold p.toParams ≤ SA.prefixSupport p.toParams
+    (hfast : SA.releaseThreshold p.toParams ≤ SA.Root.prefixSupport p.toParams
       (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams w))) w B) :
     PhaseBody p c E rho w B := by
   obtain ⟨hmem, hne, hBC, _, _⟩ := healing_support_key_cases p hkey
   obtain ⟨hin, hpost⟩ := healing_support_gate_reads p c E rho hs ht
   have hgr : gateResult p c E rho x w = some (some C) :=
     (gateResultAt_eq_gateResult p c E rho hs ht).symm.trans hres
-  have hconf : SA.confirmationFrom p.toParams
+  have hconf : SA.Root.confirmationFrom p.toParams
       (eraseFG (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams w)).fg.F)
       (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams w))) w =
         some C := by
@@ -283,7 +300,8 @@ theorem opening_phaseBody_of_fast_key (E : Generic.Env V) (rho : V2.D.Run V (fgs
   simp only [Bool.and_eq_true, bne_iff_ne, ne_eq, decide_eq_true_eq]
   exact ⟨⟨hne, hBC⟩, hfast⟩
 
-/-- Blueprint 21 H.2 S1 (permanence at later HEADs); plan H-GATE §3B (q < rR), gap 3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.2 S1 (permanence at later HEADs); plan H-GATE §3B (q < rR), gap 3.
 DC: INTENTIONAL the exact service of Q at its gate is a fast PhaseBody, so TPerm S1 makes
 Q a prefix of every honest HEAD of each label s > q whose vote time is in the phase. This
 includes s = q + 1, whose HEAD v_(q+1) is before d_q: the phase reaches d_q. -/
@@ -294,16 +312,17 @@ theorem opening_heads_cover [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
@@ -324,7 +343,8 @@ theorem opening_heads_cover [Fintype V] (E : Generic.Env V)
   intro z hz K hK
   exact htr.1 z s K hz hqs hvs hK
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.1 (release), H.2 S1, H.22 H3; plan H-GATE §3C (the
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.1 (release), H.2 S1, H.22 H3; plan H-GATE §3C (the
 intervening-gate
 induction, gaps 1 and 3). DC: INTENTIONAL every live lease at an honest gate of a label
 s > q in the phase is compatible with the ACTUAL raw result C of that gate. The last write
@@ -342,16 +362,17 @@ theorem opening_gate_guard [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
@@ -394,10 +415,10 @@ theorem opening_gate_guard [Fintype V] (E : Generic.Env V)
   have hv : { actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)) with
       early := (storeAt p c E rho i x).base.early } = (fgsaAC E rho).gateView i x s :=
     fgsa_clockPre_gateView p (storeAt p c E rho i x) s
-  have hrawEq : (fgsaAC E rho).raw i s x = SA.confirmationFrom p.toParams
+  have hrawEq : (fgsaAC E rho).raw i s x = SA.Root.confirmationFrom p.toParams
       (eraseFG (storeAt p c E rho i x).fg.F)
       (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))) s := by
-    have he := congrArg (fun u => SA.confirmationFrom p.toParams
+    have he := congrArg (fun u => SA.Root.confirmationFrom p.toParams
       (eraseFG (storeAt p c E rho i x).fg.F) u s) hv
     exact he.symm
   intro C hC
@@ -580,7 +601,8 @@ theorem opening_gate_guard [Fintype V] (E : Generic.Env V)
           (Or.inl (hcoverC lease.1 hcb (block_preceq_trans hFQ hQl)))
     · exact hbelowQ hlQ
 
-/-- Blueprint 21 H.2 S1, H.22:3207–3216 (G1), spec 899–921; plan H-GATE §3C.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.2 S1, H.22:3207–3216 (G1), spec 899–921; plan H-GATE §3C.
 DC: INTENTIONAL fresh gate service at an honest gate of a label s > q in the phase, for a
 stored non-genesis block B above the gate F that every honest HEAD of label s covers. The
 raw result covers B (`healing_support_gate_cover`), B has release-threshold support
@@ -593,16 +615,17 @@ theorem opening_gateService_of_cover [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)
@@ -630,16 +653,16 @@ theorem opening_gateService_of_cover [Fintype V] (E : Generic.Env V)
     (by rw [clockPre_fg]; exact hFB)
   rw [clockPre_fg] at hC
   have hraw : (fgsaAC E rho).raw i s x = some C := by
-    have he := congrArg (fun u => SA.confirmationFrom p.toParams
+    have he := congrArg (fun u => SA.Root.confirmationFrom p.toParams
       (eraseFG (storeAt p c E rho i x).fg.F) u s) hv
-    have he' : (fgsaAC E rho).raw i s x = SA.confirmationFrom p.toParams
+    have he' : (fgsaAC E rho).raw i s x = SA.Root.confirmationFrom p.toParams
         (eraseFG (storeAt p c E rho i x).fg.F)
         (actView (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s))) s := he.symm
     exact he'.trans hC
   have hτ := opening_gate_support E rho hrec hgsts hsh hcov ht hFB
   have hsupport : SA.releaseThreshold p.toParams ≤
-      SA.prefixSupport p.toParams ((fgsaAC E rho).gateView i x s) s B := by
-    have he := congrArg (fun u => SA.prefixSupport p.toParams u s B) hv
+      SA.Root.prefixSupport p.toParams ((fgsaAC E rho).gateView i x s) s B := by
+    have he := congrArg (fun u => SA.Root.prefixSupport p.toParams u s B) hv
     exact he ▸ hτ
   have hb0 : B ∈ (clockPre p (storeAt p c E rho i x) (SA.gateTime p.toParams s)).base.blocks := by
     rw [(clockPre_fields p _ _).2.1]

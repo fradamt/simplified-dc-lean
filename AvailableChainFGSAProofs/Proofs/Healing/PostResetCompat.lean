@@ -30,23 +30,25 @@ variable [Fintype V] {G ΔF : Time}
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
     {w : HealingWitness} (h0r : H0Reset p c E rho w)
 
 include hrec mono emittedNonempty emittedName writes xing origin h0r
 
-/-- Blueprint 21 H.13:2668–2674; plan J2 A; B1/B13/B15/B17.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.13:2668–2674; plan J2 A; B1/B13/B15/B17.
 DC: SAME high-source compatibility. The reset bound μ ≤ M makes the
 existing H.13 theorem apply at every event-prefix cut. -/
 theorem postReset_high_compatible_all (i : Nat) :
@@ -55,7 +57,8 @@ theorem postReset_high_compatible_all (i : Nat) :
   exact healing_high_source_compat_reset p c E rho hrec mono emittedNonempty emittedName
     writes xing origin h0r i
 
-/-- Blueprint 21 H.13:2668–2674; plan J2 A, carrier high_compatible;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.13:2668–2674; plan J2 A, carrier high_compatible;
 B1/B13/B15/B17. DC: SAME compatibility. The all-cut result supplies the
 successor field; no other field of the prior record is needed. -/
 theorem postReset_high_compatible_succ {i : Nat} (_hinv : PostResetInv p c E rho w i) :
@@ -63,7 +66,8 @@ theorem postReset_high_compatible_succ {i : Nat} (_hinv : PostResetInv p c E rho
   postReset_high_compatible_all p c E rho hrec mono emittedNonempty emittedName
     writes xing origin h0r (i + 1)
 
-/-- Blueprint 21 H.13:2668–2674, H.14:2815–2830; plan J2 B;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.13:2668–2674, H.14:2815–2830; plan J2 B;
 B1/B13/B15/B17. DC: SAME reset source at height M + 1. Use a larger
 cut that contains both rows, even when the reset row is not before i. -/
 theorem postReset_reset_compatible_all (i : Nat) :
@@ -83,7 +87,8 @@ theorem postReset_reset_compatible_all (i : Nat) :
   rw [PostResetHighCompatible_def] at hcompat
   simpa only [he] using hcompat C K w.sStar s hC hK' hhC hhK
 
-/-- Blueprint 21 H.13:2668–2674, H.14:2815–2830; plan J2 B, carrier
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.13:2668–2674, H.14:2815–2830; plan J2 B, carrier
 reset_compatible; B1/B13/B15/B17. DC: SAME reset compatibility.
 The all-cut result supplies this separate successor field. -/
 theorem postReset_reset_compatible_succ {i : Nat} (_hinv : PostResetInv p c E rho w i) :
@@ -93,7 +98,8 @@ theorem postReset_reset_compatible_succ {i : Nat} (_hinv : PostResetInv p c E rh
 
 end Compatibility
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.13:2785–2813, H.14:2815–2830; plan J2 C;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.13:2785–2813, H.14:2815–2830; plan J2 C;
 B1/B13/B15/B17/B18. DC: INTENTIONAL FJ single-source and pair causes.
 J3/H.14 uses this restricted descent in the duty's own covered view.
 The carrier excludes both causes for a high source or a high copy of C*. -/

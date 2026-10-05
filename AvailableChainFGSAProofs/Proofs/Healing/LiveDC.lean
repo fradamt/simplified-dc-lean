@@ -9,7 +9,8 @@ public section
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG Gen.Pure
 
-/-- LIVE-DC; DC Generic/Properties.lean:99–112. SAME later honest proposal;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+LIVE-DC; DC Generic/Properties.lean:99–112. SAME later honest proposal;
 INTENTIONAL compose local FF5 and FF6 at the raw gap G. No aligned-gap premise. -/
 theorem healing_liveDCFromWindows (p : Params) : LiveDCFromWindowsStatement p := by
   rw [LiveDCFromWindowsStatement_def]
@@ -31,7 +32,7 @@ theorem healing_liveDCFromWindows (p : Params) : LiveDCFromWindowsStatement p :=
   obtain ⟨X, hp, _⟩ := fgsa_honestProposal_exists_of_awake_slot E rho hs
     hrec.base.delta hslot (hrec.awake _ hslot.2 _ (hgst.trans hst) hsh) hsh
   obtain ⟨U, hstrict, hU⟩ := hfinal
-  obtain ⟨j, raw, sup, rows, hj, _, _, _, hX, _⟩ :=
+  obtain ⟨j, N, _, hj, _, _, _, hX, _⟩ :=
     healing_promotion_proposal_read p c E rho hs hp
   let y := V2.D.proposerOf rho (fgsaInterface p c) s
   let st := FGSA.clock p (V2.D.Run.stateBefore E rho j y).st

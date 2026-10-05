@@ -89,16 +89,17 @@ variable [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     (rowCoverage : ∀ x, x ∈ rho.honest → ∀ r nd,
       postClock E rho x (p.actionTime r) = some nd → ∀ C,
@@ -125,7 +126,7 @@ private theorem attempt_proposal_heights
     (if contested then m else m - 1) ≤ (heightView p Qfg).h ∧
       (heightView p Qfg).h ≤ m := by
   have hS := hrec.base.valid.toScheduleWellFormed
-  obtain ⟨j, raw, sup, rows, hj, _hem, hst, _hslot, _hb, _hrows⟩ :=
+  obtain ⟨j, N, _, hj, _hem, hst, _hslot, _hb, _hrows⟩ :=
     healing_promotion_proposal_read p c E rho hS hQ
   let x := V2.D.proposerOf rho (fgsaInterface p c) q
   let st := ((fgsa p c).clock (V2.D.Run.stateBefore E rho j x)
@@ -261,7 +262,8 @@ private theorem attempt_repair_opening
   intro v hv
   exact ((hrepair G u v _ root contested hrec.gap hrec.gapPos hgst hv).1 β hβ hmin).1
 
-/-- H.10 firstRow / contest, with the standing ports and exact INLINE bodies.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+H.10 firstRow / contest, with the standing ports and exact INLINE bodies.
 The SO producer is rowPermission_covered. Both AttemptValid start arms are covered. -/
 theorem healing_attempt_firstRow_contest
     {k : AttemptKey} {ev : V2.Event V (Obj p)}
@@ -330,7 +332,8 @@ variable
 
 include hδ hbound rowsReceipt progressCoverage hfold faultQ honestQuorum
 
-/-- H.10 firstRow / gap or topJ, with standing ports and the exact INLINE facts.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+H.10 firstRow / gap or topJ, with standing ports and the exact INLINE facts.
 The low-entry branch uses renewed promotion within its existing gate horizon. -/
 theorem healing_attempt_firstRow_other
     {k : AttemptKey} {ev : V2.Event V (Obj p)}
@@ -493,7 +496,8 @@ private theorem attempt_terminal_contradiction
     simp only [Height] at hh hle
     omega
 
-/-- H.10 raise / contest, with the standing ports and exact INLINE bodies.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+H.10 raise / contest, with the standing ports and exact INLINE bodies.
 Terminal promotion uses the first high opening within the frozen budget. -/
 theorem healing_attempt_raise_contest
     {k : AttemptKey} {ev : V2.Event V (Obj p)}
@@ -526,7 +530,8 @@ theorem healing_attempt_raise_contest
     hbound rowsReceipt progressCoverage hfold faultQ honestQuorum hstart hstop hp
     le_rfl hgst huq hqr he hc (by rw [hbudget]; linarith only [har])
 
-/-- H.10 raise / gap or topJ, with the standing ports and exact INLINE bodies.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+H.10 raise / gap or topJ, with the standing ports and exact INLINE bodies.
 The low pivot uses existing gate service. Terminal promotion then uses a high opening. -/
 theorem healing_attempt_raise_other
     {k : AttemptKey} {ev : V2.Event V (Obj p)}

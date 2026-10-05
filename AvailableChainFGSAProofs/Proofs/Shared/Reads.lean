@@ -21,13 +21,15 @@ private theorem cut_downward (t : Time) :
 
 variable [DecidableEq V]
 
-/-- The post-gate cut is an event-prefix state. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The post-gate cut is an event-prefix state. -/
 theorem afterTicks_eq_stateBefore (hs : V2.D.ScheduleWellFormed E rho) (t : Time) :
     afterTicks E rho t = V2.D.Run.stateBefore E rho (afterTicksIdx rho t) := by
   exact congrArg (fun events => events.foldl (V2.D.World.step E rho) V2.D.World.init)
     (V2.D.Engine.filter_eq_take hs (cutPred t) (cut_downward t))
 
-/-- Later ticks at the cut belong to other nodes. No restart premise is needed. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Later ticks at the cut belong to other nodes. No restart premise is needed. -/
 theorem afterTicks_node (hs : V2.D.ScheduleWellFormed E rho)
     {i : Nat} {v : V} {t : Time}
     (hi : rho.events[i]? = some (.tick v t)) :
@@ -76,7 +78,8 @@ theorem afterTicks_node (hs : V2.D.ScheduleWellFormed E rho)
       omega
     _ = _ := (V2.D.Run.step_tick_eq E rho hi).1
 
-/-- Without restarts, the tick input is the strict-before-time read. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Without restarts, the tick input is the strict-before-time read. -/
 theorem afterTicks_eq_tick_preTick (hs : V2.D.ScheduleWellFormed E rho)
     (hnr : V2.D.NoRestart rho) {i : Nat} {v : V} {t : Time}
     (hi : rho.events[i]? = some (.tick v t)) :
@@ -85,7 +88,8 @@ theorem afterTicks_eq_tick_preTick (hs : V2.D.ScheduleWellFormed E rho)
   rw [afterTicks_node E rho hs hi, V2.D.Engine.stateBefore_tick_eq_stateBeforeTime hs hnr hi]
 
 omit [DecidableEq V] in
-/-- The strict-before index is before the cut, and the inclusive index is after it. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The strict-before index is before the cut, and the inclusive index is after it. -/
 theorem preIdx_le_afterTicksIdx (hs : V2.D.ScheduleWellFormed E rho) (t : Time) :
     (rho.events.filter (fun e => decide (e.time < t))).length ≤ afterTicksIdx rho t ∧
     afterTicksIdx rho t ≤ (rho.events.filter (fun e => decide (e.time ≤ t))).length := by
@@ -105,7 +109,8 @@ theorem preIdx_le_afterTicksIdx (hs : V2.D.ScheduleWellFormed E rho) (t : Time) 
     · exact decide_eq_true (le_of_eq h)
 
 omit [DecidableEq V] in
-/-- The post-gate index increases with time. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The post-gate index increases with time. -/
 theorem afterTicksIdx_mono (rho : V2.D.Run V P) {t u : Time} (htu : t ≤ u) :
     afterTicksIdx rho t ≤ afterTicksIdx rho u := by
   change (rho.events.filter (cutPred t)).length ≤ (rho.events.filter (cutPred u)).length
@@ -126,7 +131,8 @@ open AvailableChain.SimplexFG
 variable (p : Params) {In : Type} (c : AppCodec In)
     {V : Type} [DecidableEq V] (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- A scheduled tick event has the same index as the tick reader.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+A scheduled tick event has the same index as the tick reader.
 DC: SAME event-index uniqueness; shared by the HEAD and exact-service proofs. -/
 theorem fgsa_tickIdx_of_event (hs : V2.D.ScheduleWellFormed E rho)
     {i : Nat} {x : V} {t : Time} (hi : rho.events[i]? = some (.tick x t)) :
@@ -140,7 +146,8 @@ theorem fgsa_tickIdx_of_event (hs : V2.D.ScheduleWellFormed E rho)
   have hji := fgsa_tick_unique E rho hs (V2.D.Run.tickIdx?_spec hj) hi
   exact hji ▸ hj
 
-/-- The time read equals the new-label value saved by the scheduled gate.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The time read equals the new-label value saved by the scheduled gate.
 T7.6 uses `gateStep_fresh` on `actView (clockPre ...)`; `clockPre_fg` fixes F. -/
 theorem gateResult_eq_saved (hs : V2.D.ScheduleWellFormed E rho)
     {i : Nat} {x : V} {s : Slot} (hi : IsGateTick p c rho i x s) :
@@ -163,7 +170,8 @@ private theorem fgsa_read_gate_label (s : Slot) :
   have hn : (4 * p.Δ : Int) ≠ 0 := by omega
   rw [ht, Int.mul_ediv_cancel_left _ hn, Int.toNat_natCast]
 
-/-- The clock test holds exactly at gate times. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The clock test holds exactly at gate times. -/
 theorem isGateTime_iff (p : Params) (t : Time) :
     isGateTime p t = true ↔ ∃ s : Slot, SA.gateTime p.toParams s = t := by
   constructor
@@ -180,7 +188,8 @@ theorem isGateTime_iff (p : Params) (t : Time) :
     simp only [isGateTime_def, fgsa_read_gate_label, hn, decide_true,
       beq_self_eq_true, Bool.and_self]
 
-/-- Index and time forms of the raw gate result agree. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Index and time forms of the raw gate result agree. -/
 theorem gateResultAt_eq_gateResult (hs : V2.D.ScheduleWellFormed E rho)
     {j : Nat} {x : V} {s : Slot} (hj : IsGateTick p c rho j x s) :
     gateResultAt p c E rho j = gateResult p c E rho x s := by
@@ -189,7 +198,7 @@ theorem gateResultAt_eq_gateResult (hs : V2.D.ScheduleWellFormed E rho)
   -- Reduce the index match without exporting its equation lemmas.
   change (match rho.events[j]? with
     | some (.tick y t) => if isGateTime p t then
-        some (SA.confirmationFrom p.toParams
+        some (SA.Root.confirmationFrom p.toParams
           (eraseFG (FGSA.clockPre p (V2.D.Run.stateBefore E rho j y).st t).fg.F)
           (FGSA.actView (FGSA.clockPre p (V2.D.Run.stateBefore E rho j y).st t))
           ((t - 6 * p.Δ) / (4 * p.Δ)).toNat)
@@ -200,7 +209,8 @@ theorem gateResultAt_eq_gateResult (hs : V2.D.ScheduleWellFormed E rho)
   rw [hg, ite_eq_left rfl, fgsa_read_gate_label, gateResult_def, gateIn_def, preTick_def, ht]
   rfl
 
-/-- The next-vote time read is the HEAD computation at that tick's index. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The next-vote time read is the HEAD computation at that tick's index. -/
 theorem vHead_eq_headAtIdx (hs : V2.D.ScheduleWellFormed E rho)
     {k : Nat} {y : V} {s : Slot}
     (hk : rho.events[k]? = some (.tick y (SA.voteTime p.toParams (s + 1)))) :
@@ -214,7 +224,8 @@ theorem vHead_eq_headAtIdx (hs : V2.D.ScheduleWellFormed E rho)
   rw [hk]
   rfl
 
-/-- The action source uses the fast-write row of round `r`, with no fallback. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The action source uses the fast-write row of round `r`, with no fallback. -/
 theorem actionSourceFG_eq_round (hs : V2.D.ScheduleWellFormed E rho)
     {i : Nat} {x : V} {r : Nat}
     (hi : rho.events[i]? = some (.tick x (p.actionTime r))) :
@@ -235,7 +246,8 @@ theorem actionSourceFG_eq_round (hs : V2.D.ScheduleWellFormed E rho)
       | none => false))) = _
   rw [(fgsa_action_slot_round (c := c) (V2.D.Run.stateBefore E rho i x) r).2]
 
-/-- An index witness implies finalization in the strict-before state. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+An index witness implies finalization in the strict-before state. -/
 theorem acceptsFinalBefore_of_idx (hnr : V2.D.NoRestart rho)
     (hs : V2.D.ScheduleWellFormed E rho) {x : V} {X : FGBlock (Fin p.n)} {d : Time}
     (h : ∃ i ≤ rho.events.length,
@@ -244,7 +256,8 @@ theorem acceptsFinalBefore_of_idx (hnr : V2.D.NoRestart rho)
     AcceptsFinalBefore p c E rho x X d :=
   (Gen.V2.Duty.holdsBefore_iff_exists_idx hnr hs (fgsa_monoAlong_preceq_F p c X)).mpr h
 
-/-- Blueprint 22:1382–1384; FirstFinality plan §8. DC: SAME prefix coverage.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 22:1382–1384; FirstFinality plan §8. DC: SAME prefix coverage.
 Without restarts, acceptance before a deadline holds before any later deadline. -/
 theorem acceptsFinalBefore_mono_deadline (hnr : V2.D.NoRestart rho)
     (hs : V2.D.ScheduleWellFormed E rho) {x : V} {X : FGBlock (Fin p.n)}
@@ -259,7 +272,8 @@ theorem acceptsFinalBefore_mono_deadline (hnr : V2.D.NoRestart rho)
   obtain ⟨e, he, ht⟩ := hbefore k hk
   exact ⟨e, he, ht.trans_le hdd⟩
 
-/-- The stable read at the post-gate cut is the post-clock stable read. -/
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+The stable read at the post-gate cut is the post-clock stable read. -/
 theorem stable_afterTicks (hs : V2.D.ScheduleWellFormed E rho) (hnr : V2.D.NoRestart rho)
     {i : Nat} {v : V} {t : Time} (hi : rho.events[i]? = some (.tick v t)) :
     (fgsaInterface p c).stable (afterTicks E rho t v) =

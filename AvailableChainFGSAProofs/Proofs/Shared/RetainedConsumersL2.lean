@@ -9,7 +9,8 @@ open AvailableChain.SimplexFG Gen.Pure RetainedWalk
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- Blueprint 21 L2-W:2080–2095,2119–2126; L2:2149–2162. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 L2-W:2080–2095,2119–2126; L2:2149–2162. Class (iii).
 DC: INTENTIONAL; the new J-rooted frame and inherited lease support are separate.
 There is no premise that the preceding HEAD batch covers J. -/
 structure RetainedL2Input (p : Params) (src dst : State p.n) (s : Slot)
@@ -25,7 +26,8 @@ structure RetainedL2Input (p : Params) (src dst : State p.n) (s : Slot)
     ∀ W ∈ src.fg.TF, (controls p src).lo ≤ (heightView p W).h →
       Block.Preceq (ay p dst) (eraseFG W)
 
-/-- Blueprint 21 L2:2159–2162. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 L2:2159–2162. Class (iii).
 DC: INTENTIONAL; both roots equal J, so the prefix to the deeper of J and ay is empty. -/
 private theorem consumer_l2_cone (p : Params) (src dst : State p.n) (s : Slot)
     (J : FGBlock (Fin p.n)) (h : RetainedL2Input p src dst s J) :
@@ -45,7 +47,8 @@ private theorem consumer_l2_cone (p : Params) (src dst : State p.n) (s : Slot)
     have hn := (Bool.and_eq_true_iff.mp hlt).1
     simp only [heq, decide_true, Bool.not_true, Bool.false_eq_true] at hn
 
-/-- ROOT-DIGEST W2b. Blueprint 21 L2:2128–2167; L2-W:2119–2126. Class (iii).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 L2:2128–2167; L2-W:2119–2126. Class (iii).
 DC: INTENTIONAL; inherited service and root-evidence time are both retained.
 rd is the original inherited deadline; an unresolved repair does not reset it.
 stop is the next effective event. The preceding HEAD need not cover J.
@@ -59,8 +62,8 @@ theorem fgsa_retainedReads_L2
     {ip : Nat} {x : V} (hx : x ∈ rho.honest)
     (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
     (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
-    (b : Block) (raw sup : List (HeadWire p.n)) (rows : List (RowWire p.n))
-    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal b raw sup rows⟩ : Obj p) ∈
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
       rho.emitsAt E ip)
     (J : FGBlock (Fin p.n))
     (rd w stop : Time)
@@ -79,9 +82,9 @@ theorem fgsa_retainedReads_L2
       rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
       ∃ Kc, RetainedReadPremises p
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
-        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s J b Kc := by
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s J N.erase Kc := by
   apply fgsa_retainedReads_H17 (hroots := hroots)
-    E rho hE hN hDelta s hSync hx hip hseat b raw sup rows hem J
+    E rho hE hN hDelta s hSync hx hip hseat N hem J
   intro y hy ih hih
   exact consumer_l2_cone p _ _ s J
     (hinput y hy ih hih ⟨hinherited, hevidence, hstop⟩)

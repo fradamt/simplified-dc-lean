@@ -1,4 +1,6 @@
 module
+public import AvailableChainGeneric.Proofs.AC.RootBatch
+public import AvailableChainGeneric.Proofs.AC.RootSupport
 public import AvailableChainFGSAProofs.Proofs.Shared.GateReceipt
 public import AvailableChainFGSAProofs.Proofs.Shared.Count
 public import AvailableChainFGSAProofs.Proofs.Shared.Reads
@@ -29,11 +31,12 @@ private theorem iexact_find_kept {α : Type} [BEq α] [LawfulBEq α]
     exact (hn trivial).elim
   | some row => rfl
 
-/-- Blueprint 03:293–312; spec 1283–1294; plan I-EXACT, G1 step 4.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 03:293–312; spec 1283–1294; plan I-EXACT, G1 step 4.
 Class (iii). DC: INTENTIONAL; a kept first-receipt row keeps its vote stamp
 in every later stamp list, whatever the later store clock is. -/
-theorem inclusion_stampVote_of_prefix {n : Nat} {st st' : GridCO.State n}
-    (h : st.voteStamp <+: st'.voteStamp) {o : GridCO.Wire n}
+theorem inclusion_stampVote_of_prefix {n : Nat} {st st' : GridCO.State n .root}
+    (h : st.voteStamp <+: st'.voteStamp) {o : GridCO.Wire n .root}
     (hm : o ∈ st.voteStamp.map Prod.fst) :
     GridCO.stampVote st' o = GridCO.stampVote st o := by
   unfold GridCO.stampVote
@@ -46,10 +49,11 @@ theorem inclusion_stampVote_of_prefix {n : Nat} {st st' : GridCO.State n}
     contradiction
   | some row => rfl
 
-/-- Blueprint 03:293–312; spec 1283–1294; plan I-EXACT, G1 step 4.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 03:293–312; spec 1283–1294; plan I-EXACT, G1 step 4.
 Class (iii). DC: INTENTIONAL; a kept first-receipt row keeps its block stamp
 in every later stamp list, whatever the later store clock is. -/
-theorem inclusion_stampBlock_of_prefix {n : Nat} {st st' : GridCO.State n}
+theorem inclusion_stampBlock_of_prefix {n : Nat} {st st' : GridCO.State n .root}
     (h : st.blockStamp <+: st'.blockStamp) {K : Block}
     (hm : K ∈ st.blockStamp.map Prod.fst) :
     GridCO.stampBlock st' K = GridCO.stampBlock st K := by
@@ -63,12 +67,13 @@ theorem inclusion_stampBlock_of_prefix {n : Nat} {st st' : GridCO.State n}
     contradiction
   | some row => rfl
 
-/-- Blueprint 03:293–312; spec 1283–1294; plan I-EXACT, G1 step 4.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 03:293–312; spec 1283–1294; plan I-EXACT, G1 step 4.
 Class (iii). DC: INTENTIONAL; without restarts a received vote and block stay
 stored with their original stamps at every later index. -/
 theorem inclusion_stamps_kept (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hN : V2.D.NoRestart rho) {j i : Nat} (hji : j ≤ i) (x : V)
-    (o : GridCO.Wire p.n) (K : Block)
+    (o : GridCO.Wire p.n .root) (K : Block)
     (ho : o ∈ (storeAt p c E rho j x).base.votes)
     (hK : K ∈ (storeAt p c E rho j x).base.blocks) :
     o ∈ (storeAt p c E rho i x).base.votes ∧ K ∈ (storeAt p c E rho i x).base.blocks ∧
@@ -101,7 +106,8 @@ private theorem iexact_idx_mono (rho : V2.D.Run V (fgsa p c)) :
   exact List.countP_mono_left (fun e _ he => decide_eq_true
     (lt_of_lt_of_le (of_decide_eq_true he) hab))
 
-/-- ROOT-DIGEST W2b. Blueprint 03:293–312, 21 H.22:3100–3120; spec 1240–1243, 1283–1294;
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 03:293–312, 21 H.22:3100–3120; spec 1240–1243, 1283–1294;
 plan I-EXACT, G1 step 4. Class (iii). DC: INTENTIONAL; the gate-receipt
 argument of fgsa_gateReceipt, read at the early tick e_r of any honest
 reader instead of at the gate d_r. The emitted HEAD is the scheduled read.
@@ -121,11 +127,11 @@ theorem inclusion_head_receipt_early
       (rho.seatOf (.base (.head r)) q)) (SA.voteTime p.toParams r)).st r = K)
     (hF : Block.Preceq (eraseFG (storeAt p c E rho j x).fg.F) K)
     (hroots : NamedRootCollisionFree p c E rho) :
-    V2.D.Run.emits E rho (rho.seatOf (.base (.head r)) q) (ofHead p ⟨.seat (.head r) q, K⟩)
+    V2.D.Run.emits E rho (rho.seatOf (.base (.head r)) q) (ofHead p ⟨.seat (.head r) q, K.root⟩)
       (SA.voteTime p.toParams r) ∧
-    baseVote (⟨.seat (.head r) q, K⟩ : HeadWire p.n) ∈ (storeAt p c E rho j x).base.votes ∧
+    baseVote (⟨.seat (.head r) q, K.root⟩ : HeadWire p.n) ∈ (storeAt p c E rho j x).base.votes ∧
     GridCO.stampVote (storeAt p c E rho j x).base
-      (baseVote (⟨.seat (.head r) q, K⟩ : HeadWire p.n)) < SA.earlyTime p.toParams r ∧
+      (baseVote (⟨.seat (.head r) q, K.root⟩ : HeadWire p.n)) < SA.earlyTime p.toParams r ∧
     K ∈ (storeAt p c E rho j x).base.blocks ∧
     GridCO.stampBlock (storeAt p c E rho j x).base K < SA.earlyTime p.toParams r ∧
     K.slot ≤ r := by
@@ -144,11 +150,12 @@ theorem inclusion_head_receipt_early
     rw [hK] at hm
     change K ∈ (clock p (storeAt p c E rho k y) _).base.blocks at hm
     rwa [(clock_cumulative p _ _).2.1] at hm
-  have hem : V2.D.Run.emits E rho y (ofHead p ⟨.seat (.head r) q, K⟩)
+  have hem : V2.D.Run.emits E rho y (ofHead p ⟨.seat (.head r) q, K.root⟩)
       (SA.voteTime p.toParams r) := by
     refine ⟨k, hk, ?_⟩
     rw [(V2.D.Run.step_tick_eq E rho hk).2]
-    exact (fgsa_emits_head E rho _ y _ r q K).mpr ⟨hawake, rfl, rfl, hK.symm⟩
+    exact (fgsa_emits_head E rho _ y _ r q K.root).mpr ⟨hawake, rfl, rfl, congrArg Block.root
+        hK.symm⟩
   have hdeadline : ∀ t, t ≤ SA.voteTime p.toParams r → dl t ≤ SA.earlyTime p.toParams r := by
     intro t ht
     have hb := hbound t
@@ -192,7 +199,7 @@ theorem inclusion_head_receipt_early
     rw [fgsa_clock_now p c (V2.D.Run.stateBefore E rho j x)] at hb
     exact ((Internal.slotOf_mono (p := p) (hn.trans hb)).trans_eq
       (slotOf_offset p r (2 * p.Δ) (by omega) (by omega))).trans (Nat.le_succ _)
-  have hr := fgsa_honest_head_receipt E rho hDelta hE hN hC dl cut r q K
+  have hr := fgsa_honest_head_receipt E rho hDelta hE hN hC dl cut r q K.root
     (SA.voteTime p.toParams r) y x hD hy hem hx (hdl.trans hcut) (hlt _) hwindow
   have hid : V2.D.Run.idxBefore rho (dl (SA.voteTime p.toParams r)) ≤ j := by
     by_contra hn
@@ -201,7 +208,7 @@ theorem inclusion_head_receipt_early
   have hvoteMem := hr.1
   rw [← Gen.V2.Duty.stateBefore_idxBefore E rho _ hsch] at hvoteMem
   have hkeep := inclusion_stamps_kept E rho hN hid x
-    (baseVote (⟨.seat (.head r) q, K⟩ : HeadWire p.n)) .genesis hvoteMem
+    (baseVote (⟨.seat (.head r) q, K.root⟩ : HeadWire p.n)) .genesis hvoteMem
     (((cstoreInv_stateBefore E rho _ x).baseTree _).mpr
       ⟨.genesis, (cstoreInv_stateBefore E rho _ x).fg.gen, rfl⟩)
   have hslot : K.slot ≤ r := by
@@ -221,18 +228,20 @@ theorem inclusion_head_receipt_early
     change 0 < 4 * p.Δ * (r : Int) + 2 * p.Δ
     positivity
 
-/-- Blueprint 03:293–312; spec 1240–1243; plan I-EXACT, G1 step 4.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 03:293–312; spec 1240–1243; plan I-EXACT, G1 step 4.
 Class (iii). DC: INTENTIONAL; one stored vote per seat excludes a cap. -/
-theorem inclusion_no_equivocation {n : Nat} (L : List (GridCO.Wire n)) (k : Fin n)
-    (a : GridCO.Wire n) (h : ∀ o ∈ L, GridCO.headSeat? o = some k → o = a) :
+theorem inclusion_no_equivocation {n : Nat} (L : List (GridCO.Wire n .root)) (k : Fin n)
+    (a : GridCO.Wire n .root) (h : ∀ o ∈ L, GridCO.headSeat? o = some k → o = a) :
     GridCO.equivocates L k = false := by
   cases he : GridCO.equivocates L k with
   | false => rfl
   | true =>
-    obtain ⟨u, hu, w, hw, hn, hku, hkw⟩ := (Gen.AC.cap_pair L k).mp he
+    obtain ⟨u, hu, w, hw, hn, hku, hkw⟩ := (Gen.AC.Root.cap_pair L k).mp he
     exact (hn ((h u hu hku).trans (h w hw hkw).symm)).elim
 
-/-- Blueprint 02:531–541, 03:293–312; spec 1240–1243; plan I-EXACT, G1 step 4.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 02:531–541, 03:293–312; spec 1240–1243; plan I-EXACT, G1 step 4.
 Class (iii). DC: INTENTIONAL; exactService_participation_of_card without the
 fast threshold. The fresh HEAD seat map is a bijection. -/
 theorem inclusion_head_seats [Fintype V]
@@ -268,7 +277,8 @@ theorem inclusion_head_seats [Fintype V]
     (Finset.card_image_of_injective H hbij.1).symm.trans (congrArg Finset.card himage)
   exact ⟨H, hH, hc ▸ hbatch⟩
 
-/-- Blueprint 02:531–541; spec 1240–1243, 1283–1294; plan I-EXACT, G1 step 4.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 02:531–541; spec 1240–1243, 1283–1294; plan I-EXACT, G1 step 4.
 Class (iii). DC: Goldfish/Confirmation:494,508; fgsa_late_rest_bound for any
 pool whose seats have stored label-r witnesses. Honest stored seats were awake. -/
 theorem inclusion_rest_bound [Fintype V]
@@ -277,7 +287,7 @@ theorem inclusion_rest_bound [Fintype V]
     (r : Slot) (H : Finset (Fin p.n))
     (hH : ∀ k, rho.seatOf (.base (.head r)) k ∈ rho.honest →
       E.awake (rho.seatOf (.base (.head r)) k) (SA.voteTime p.toParams r) = true → k ∈ H)
-    (L : List (GridCO.Wire p.n))
+    (L : List (GridCO.Wire p.n .root))
     (hL : ∀ o ∈ L, ∀ k, GridCO.headSeat? o = some k →
       ∃ i x, ∃ o' ∈ (storeAt p c E rho i x).base.votes,
         GridCO.headLabel? o' = some r ∧ GridCO.headSeat? o' = some k) :
@@ -289,13 +299,14 @@ theorem inclusion_rest_bound [Fintype V]
     refine Finset.mem_sdiff.mpr ⟨Finset.mem_univ _, ?_⟩
     intro hh
     apply hn (hH k hh ?_)
-    obtain ⟨o, ho, hs⟩ := (Gen.AC.vote_pool_mem_seats _ k).mp hl
+    obtain ⟨o, ho, hs⟩ := (Gen.AC.Root.vote_pool_mem_seats _ k).mp hl
     obtain ⟨i, x, o', ho', hl', hs'⟩ := hL o ho k hs
     exact fgsa_stored_honest_head_awake E rho hE i x r k o' ho' hl' hs' hh
   · intro k _ j _ he
     exact (hC (.base (.head r)) trivial).injective he
 
-/-- ROOT-DIGEST W2b. Paper 22:1228–1234,1251–1253,1719–1722: the full action pool at label qR+1 is a
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Paper 22:1228–1234,1251–1253,1719–1722: the full action pool at label qR+1 is a
 walk
 batch for every Q below all honest label HEADs and above the reader's F; the action head
 is the walk on these pools.
@@ -317,8 +328,8 @@ theorem fgsa_action_walk_batch [Fintype V] (E : Generic.Env V) (rho : V2.D.Run V
     (hFQ : Block.Preceq (eraseFG nd.st.fg.F) Q) :
     let s := q * p.R + 1
     let raw := GridCO.votesAt nd.st.base s
-    let support := raw.filter (fun o => match GridCO.headTarget? o with
-      | some H => GridCO.blockKnown (FGSA.actView nd.st) H && decide (H.slot ≤ s)
+    let support := raw.filter (fun o => match GridCO.resolvedHead? (FGSA.actView nd.st) o with
+      | some H => decide (H.slot ≤ s)
       | none => false)
     let seats : Finset (Fin p.n) := by
       classical
@@ -362,8 +373,8 @@ theorem fgsa_action_walk_batch [Fintype V] (E : Generic.Env V) (rho : V2.D.Run V
     rw [← hclock]
     exact clock_fg p _ _
   have hrec : ∀ a ∈ seats, ∃ K, V2.D.Run.emits E rho (rho.seatOf (.base (.head s)) a)
-        (ofHead p ⟨.seat (.head s) a, K⟩) (SA.voteTime p.toParams s) ∧
-      baseVote (⟨.seat (.head s) a, K⟩ : HeadWire p.n) ∈ raw ∧
+        (ofHead p ⟨.seat (.head s) a, K.root⟩) (SA.voteTime p.toParams s) ∧
+      baseVote (⟨.seat (.head s) a, K.root⟩ : HeadWire p.n) ∈ raw ∧
       K ∈ nd.st.base.blocks ∧ K ∈ (FGSA.actView nd.st).blocks ∧ K.slot ≤ s ∧
       Block.Preceq Q K := by
     intro a ha
@@ -405,19 +416,29 @@ theorem fgsa_action_walk_batch [Fintype V] (E : Generic.Env V) (rho : V2.D.Run V
     exact beq_iff_eq.mp (List.mem_filter.mp ho).2
   · intro a ha
     obtain ⟨K, _, hraw, hKn, hKact, hslot, hQK⟩ := hrec a ha
-    refine ⟨(hseat a).mp ha, _, List.mem_filter.mpr ⟨hraw, ?_⟩, hraw, rfl, K, rfl, hKn,
-      hslot, hQK⟩
-    change (GridCO.blockKnown (FGSA.actView nd.st) K && decide (K.slot ≤ s)) = true
-    simp only [GridCO.blockKnown, hKact, hslot, decide_true, Bool.and_self]
+    have hInv : CStoreInv p nd.st := by
+      rw [← hclock]
+      exact cstoreInv_clock p _ (cstoreInv_stateBefore E rho j x) _
+    have hdomain : nd.st.base.headDomain = none := by
+      rw [← hclock]
+      exact base_headDomain_none p (Reachable.tick _ (reachable_stateBefore E rho j x))
+    have hres := actView_resolve_target p nd.st hInv hdomain
+      (baseVote ⟨.seat (.head s) a, K.root⟩) hKact rfl
+    refine ⟨(hseat a).mp ha, _, List.mem_filter.mpr ⟨hraw, ?_⟩, hraw, rfl, K,
+      base_resolve_target p nd.st hInv hdomain _ hKn rfl, hslot, hQK⟩
+    change (match GridCO.resolvedHead? (actView nd.st) _ with
+      | some H => decide (H.slot ≤ s) | none => false) = true
+    rw [hres]
+    exact decide_eq_true hslot
   · exact inclusion_rest_bound E rho hb.cstar hb.valid s seats
       (fun k hh _ => (hseat k).mpr hh) raw
       (fun o ho k hk => ⟨j, x, o, hvotes ▸ (List.mem_filter.mp ho).1,
         beq_iff_eq.mp (List.mem_filter.mp ho).2, hk⟩)
   · intro a ha
     obtain ⟨K, hem, _, _, _, _, _⟩ := hrec a ha
-    refine inclusion_no_equivocation raw a (baseVote ⟨.seat (.head s) a, K⟩) ?_
+    refine inclusion_no_equivocation raw a (baseVote ⟨.seat (.head s) a, K.root⟩) ?_
     intro o ho hk
-    exact fgsa_honest_head_eq_of_stored E rho hb.valid j x s a K _ ((hseat a).mp ha) hem o
+    exact fgsa_honest_head_eq_of_stored E rho hb.valid j x s a K.root _ ((hseat a).mp ha) hem o
       (hvotes ▸ (List.mem_filter.mp ho).1) (beq_iff_eq.mp (List.mem_filter.mp ho).2) hk
   · dsimp only [FGSA.fgHead]
     rw [hslot]

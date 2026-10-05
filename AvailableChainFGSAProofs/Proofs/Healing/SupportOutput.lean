@@ -38,7 +38,8 @@ private theorem output_time_le (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     exact hv
   exact Int.lt_add_one_iff.mp ((Gen.V2.Duty.index_lt_idxBefore_iff hs hb (v + 1)).mp hlt)
 
-/-- ROOT-DIGEST W2b. Blueprint 21:748–783 (H.3), 1148–1252 (F1 + F2 + F4); plan H-SUPPORT §4 steps
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21:748–783 (H.3), 1148–1252 (F1 + F2 + F4); plan H-SUPPORT §4 steps
 7–8.
 DC: INTENTIONAL every honest frame inside the phase, after an honest label-i HEAD witness
 W ⪰ B reaches it, has Z and F below W and lo ≤ h(W). The F-root case uses RXing; the
@@ -124,7 +125,8 @@ theorem healing_support_frame_at (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c
     rw [hZy]
     exact hFW
 
-/-- Blueprint 21:729–739 (H.2 S3 gate cases); plan H-SUPPORT §4 step 8, G7.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:729–739 (H.2 S3 gate cases); plan H-SUPPORT §4 step 8, G7.
 DC: INTENTIONAL one honest gate at a label whose honest HEADs cover B, with finality at
 or below B. The raw result h covers B. A passed guard advances to a block above h or
 keeps an output above h. A vetoed guard keeps the output: either it already covers B,
@@ -150,10 +152,10 @@ theorem healing_output_gate_step [Fintype V] (E : Generic.Env V)
   have hv : { v with early := st.base.early } = (fgsaAC E rho).gateView a y w :=
     fgsa_clockPre_gateView p st w
   have hraw : (fgsaAC E rho).raw a w y = some h := by
-    have he := congrArg (fun u => SA.confirmationFrom p.toParams (eraseFG st.fg.F) u w) hv
+    have he := congrArg (fun u => SA.Root.confirmationFrom p.toParams (eraseFG st.fg.F) u w) hv
     rw [clockPre_fg] at hh
     have he' : (fgsaAC E rho).raw a w y =
-        SA.confirmationFrom p.toParams (eraseFG st.fg.F) v w := he.symm
+        SA.Root.confirmationFrom p.toParams (eraseFG st.fg.F) v w := he.symm
     exact he'.trans hh
   have hf : (fgsaAC E rho).saved a y w = none := fgsa_gate_fresh E rho hS ht
   rw [S_at_def]
@@ -203,7 +205,8 @@ theorem healing_output_gate_step [Fintype V] (E : Generic.Env V)
         hnc
     · exact Gen.Pure.block_preceq_trans hBK hKS
 
-/-- ROOT-DIGEST W2b. Blueprint 21:721–739 (H.2 S3), 1012–1045 (frame); plan H-SUPPORT §4 step 8, G7,
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21:721–739 (H.2 S3), 1012–1045 (frame); plan H-SUPPORT §4 step 8, G7,
 G8;
 ruling B31. DC: INTENTIONAL the guarded S3 output clause from a HEAD clause and the
 lease invariant at the gates d_(s+1). From the cut after d_(s+1) to the end of the
@@ -375,7 +378,8 @@ theorem healing_output_cover [Fintype V] (E : Generic.Env V)
       exact hIH
     · exact absurd hr (hN b y t)
 
-/-- Blueprint 21:620–739 (H.1 + H.2 S3, fast arm); plan H-SUPPORT §4 steps 1–8; ruling
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:620–739 (H.1 + H.2 S3, fast arm); plan H-SUPPORT §4 steps 1–8; ruling
 B31. DC: INTENTIONAL the guarded S3 output clause for a fast PhaseBody arm. -/
 theorem healing_fast_output [Fintype V] (E : Generic.Env V)
     (rho : V2.D.Run V (fgsa p c)) {G ΔF : Time} (hrec : Recovery₂ p c E rho G ΔF)
@@ -384,16 +388,17 @@ theorem healing_fast_output [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     (hgst : E.t_GST ≤ u) (hphase : PhaseInterval p c E rho u v m J contested)

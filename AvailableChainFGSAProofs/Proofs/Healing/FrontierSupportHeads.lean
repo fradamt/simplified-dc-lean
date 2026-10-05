@@ -1,4 +1,6 @@
 module
+public import AvailableChainGeneric.Proofs.AC.RootBatch
+public import AvailableChainGeneric.Proofs.AC.RootSupport
 public import AvailableChainFGSAProofs.Proofs.Healing.FrontierSupportFrame
 public import AvailableChainFGSAProofs.Proofs.Healing.SupportHeads
 
@@ -13,7 +15,7 @@ premise stays explicit at each step. -/
 
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
-open Gen.AC
+open Gen.AC.Root
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
@@ -30,7 +32,8 @@ private theorem fheads_idxBefore_le_timeIdx (rho : V2.D.Run V (fgsa p c)) {t v :
   exact List.countP_mono_left (fun e _ he =>
     decide_eq_true ((of_decide_eq_true he).le.trans htv))
 
-/-- ROOT-DIGEST W2b. Blueprint 21 HG.1:1529–1534, H.2 S1:709–715; plan §3.1 step 4 (restates
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 HG.1:1529–1534, H.2 S1:709–715; plan §3.1 step 4 (restates
 `healing_support_honest_batch_seat`). DC: INTENTIONAL under the cap, an honest label-i
 HEAD that covers the pivot and B is, at the receiver's v_(i+1) read, a clean resolved
 frozen vote that supports B. The HEAD block itself is the relayed witness. -/
@@ -48,7 +51,7 @@ theorem frontier_head_batch_seat [Fintype V] (E : Generic.Env V)
     (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (i + 1))))
     (hv : SA.voteTime p.toParams (i + 1) ≤ v)
     (k : Fin p.n) (hk : rho.seatOf (.base (.head i)) k ∈ rho.honest) :
-    Gen.AC.poolSupports (FGSA.clock p (storeAt p c E rho iy y)
+    Gen.AC.Root.poolSupports (FGSA.clock p (storeAt p c E rho iy y)
         (SA.voteTime p.toParams (i + 1))).base.blocks
       (FGSA.headSupport p (FGSA.clock p (storeAt p c E rho iy y)
         (SA.voteTime p.toParams (i + 1))) (i + 1)) k B = true ∧
@@ -133,9 +136,9 @@ theorem frontier_head_batch_seat [Fintype V] (E : Generic.Env V)
   have hcutd : dl (SA.voteTime p.toParams i) ≤ cut := by
     refine hdle.trans (le_trans ?_ hdcut)
     rw [hDelta]
-  obtain ⟨hom, hos⟩ := fgsa_honest_head_receipt E rho hDelta hE hN hrec.base.cstar dl cut i k K
+  obtain ⟨hom, hos⟩ := fgsa_honest_head_receipt E rho hDelta hE hN hrec.base.cstar dl cut i k K.root
     (SA.voteTime p.toParams i) z y hD hk hem hy hcutd (hlt _) hwindow
-  let o := baseVote (⟨.seat (.head i) k, K⟩ : HeadWire p.n)
+  let o := baseVote (⟨.seat (.head i) k, K.root⟩ : HeadWire p.n)
   have hidx : V2.D.Run.idxBefore rho (dl (SA.voteTime p.toParams i)) ≤ iy :=
     healing_support_idxBefore_le p c E rho hS hiy (hdle.trans hvi)
   have hom' : o ∈ (storeAt p c E rho (V2.D.Run.idxBefore rho
@@ -167,7 +170,10 @@ theorem frontier_head_batch_seat [Fintype V] (E : Generic.Env V)
       (eraseFG_preceq hFK0)
   have hol : GridCO.headLabel? o = some i := rfl
   have hok : GridCO.headSeat? o = some k := rfl
-  have hoK : GridCO.headTarget? o = some K := rfl
+  have hoK : GridCO.headTarget? o = some K.root := rfl
+  have hresolve := actView_resolve_target p dst hinv
+    (base_headDomain_none p (Reachable.tick _ (reachable_stateBefore E rho iy y)))
+    o ((actView_blocks dst K).mpr ⟨hKb, hFK⟩) hoK
   -- The vote is in the frozen support arm and supports B.
   have hsupp : o ∈ FGSA.headSupport p dst (i + 1) := by
     change o ∈ List.eraseDups (_ ++ _)
@@ -177,21 +183,21 @@ theorem frontier_head_batch_seat [Fintype V] (E : Generic.Env V)
     refine ⟨List.mem_filter.mpr ⟨hod, ?_⟩, ?_⟩
     · simpa only [Nat.add_sub_cancel, hol] using beq_self_eq_true (some i)
     · unfold GridCO.resolvedBefore
-      rw [hoK]
-      simp only [Bool.and_eq_true, decide_eq_true_eq, GridCO.blockKnown, Nat.add_sub_cancel,
+      rw [hresolve]
+      simp only [Bool.and_eq_true, decide_eq_true_eq, Nat.add_sub_cancel,
         hol, Option.getD_some]
-      exact ⟨⟨⟨(actView_blocks dst K).mpr ⟨hKb, hFK⟩, hKslot⟩, hstampv⟩, hKst⟩
-  have hvs : Gen.AC.voteSupports dst.base.blocks B o = true := by
-    rw [Gen.AC.voteSupports_def, hoK]
-    simp only [Bool.and_eq_true, decide_eq_true_eq, hol, Option.getD_some]
-    exact ⟨⟨hKb, hKslot⟩, hBK⟩
-  refine ⟨(Gen.AC.vote_pool_support_witness _ _ k B).mpr ⟨o, hsupp, hok, hvs⟩, ?_⟩
+      exact ⟨⟨hKslot, hstampv⟩, hKst⟩
+  have hvs : Gen.AC.Root.voteSupports dst.base.blocks B o = true := by
+    exact (Gen.AC.Root.vote_support_body _ _ _).mpr
+      ⟨K, resolvedTarget_of_mem _ (baseBlocks_rootInj p dst hinv) o hKb hoK,
+        hKb, by simpa only [hol, Option.getD_some] using hKslot, hBK⟩
+  refine ⟨(Gen.AC.Root.vote_pool_support_witness _ _ k B).mpr ⟨o, hsupp, hok, hvs⟩, ?_⟩
   -- Every stored label-i vote of the honest seat is its emitted HEAD.
   have hall : ∀ w ∈ GridCO.votesAt (storeAt p c E rho iy y).base i,
       GridCO.headSeat? w = some k → w = o := by
     intro w hw hwk
     obtain ⟨hwm, hwl⟩ := List.mem_filter.mp hw
-    exact fgsa_honest_head_eq_of_stored E rho hE iy y i k K _ hk hem w hwm
+    exact fgsa_honest_head_eq_of_stored E rho hE iy y i k K.root _ hk hem w hwm
       (by simpa only [beq_iff_eq] using hwl) hwk
   have hnoeq : GridCO.equivocates (GridCO.votesAt (storeAt p c E rho iy y).base i) k = false := by
     cases he : GridCO.equivocates (GridCO.votesAt (storeAt p c E rho iy y).base i) k with
@@ -214,7 +220,8 @@ theorem frontier_head_batch_seat [Fintype V] (E : Generic.Env V)
         contradiction
     exact hne ((hone a ha hka).trans (hone b hb hkb).symm)
 
-/-- ROOT-DIGEST W2b. Blueprint 21 HG.1:1536–1546, H.2 S1:709–715, H.3:748–783; plan §3.1 steps 3–4
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 HG.1:1536–1546, H.2 S1:709–715, H.3:748–783; plan §3.1 steps 3–4
 (restates
 `healing_next_transfer_core`). DC: INTENTIONAL one capped H.2 HEAD step. If every honest
 label-i HEAD covers the pivot and B, every honest HEAD at label i+1 under the cap covers B.
@@ -392,7 +399,8 @@ theorem frontier_next_transfer_core [Fintype V] (E : Generic.Env V)
   rw [headVote_eq, ite_eq_right (Nat.succ_ne_zero i)]
   exact hcov
 
-/-- ROOT-DIGEST W2b. Blueprint 21 HG.1:1546–1556, H.1:673–699, H.3:748–783; plan §3.1 steps 3–4
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 HG.1:1546–1556, H.1:673–699, H.3:748–783; plan §3.1 steps 3–4
 (restates
 `healing_first_transfer_core`). DC: INTENTIONAL the capped first transfer at v_(s+1). One
 honest clean supporter of B at the gate d_s has a label-s HEAD above the pivot. That HEAD
@@ -412,14 +420,14 @@ theorem frontier_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa
       Block.Preceq (eraseFG Qfg) K)
     {ix : Nat} {x : V} (hx : x ∈ rho.honest)
     (hix : rho.events[ix]? = some (.tick x (SA.gateTime p.toParams s)))
-    {B : Block} {k : Fin p.n} {o : GridCO.Wire p.n}
+    {B : Block} {k : Fin p.n} {o : GridCO.Wire p.n .root}
     (hkh : rho.seatOf (.base (.head s)) k ∈ rho.honest)
     (ho : o ∈ GridCO.cleanSupport p.toParams.engine
       (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s)
     (hko : GridCO.headSeat? o = some k)
-    (hsup : Gen.AC.voteSupports
-      (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))).blocks
-      B o = true)
+    (hsup : Gen.AC.Root.voteSupports
+      (GridCO.resolutionTree (actView (clockPre p (storeAt p c E rho ix x)
+        (SA.gateTime p.toParams s)))) B o = true)
     (hmaj : GridCO.voterCount (GridCO.lateVotes p.toParams.engine
         (actView (clockPre p (storeAt p c E rho ix x) (SA.gateTime p.toParams s))) s) <
       2 * GridCO.goldfishScore
@@ -448,13 +456,14 @@ theorem frontier_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa
   have hSync := Gen.V2.Duty.LabelSyncOn.of_recoveryBy E rho (fun o => ¬ isRowObject o) _ _
     hsync (fgsaDelay_nonrow E.Δ _) hgsts hvd (hgate.trans hvh)
   -- The honest supporter and its HEAD block, the capped witness.
-  obtain ⟨K, hK, _, _, _, hom, hol⟩ := healing_support_clean_target E rho o ho
+  obtain ⟨K, hK, hKm, _, _, hom, hol⟩ := healing_support_clean_target E rho o ho
   have hBK : Block.Preceq B K := by
-    rw [Gen.AC.voteSupports_def, hK] at hsup
+    rw [Gen.AC.Root.voteSupports_def, resolvedHead_target _ o hK] at hsup
     exact (Bool.and_eq_true_iff.mp hsup).2
   obtain ⟨jz, hjz, hKz⟩ := healing_support_honest_head E rho hE hom hol hko hkh
-  rw [hK] at hKz
-  have hKeq := Option.some.inj hKz
+  have hKeq := stored_eq_headVote E rho hroots ix x hKm jz
+    (rho.seatOf (.base (.head s)) k) (SA.voteTime p.toParams s) s
+    (Option.some.inj ((resolvedHead_root _ o hK).symm.trans hKz))
   have hhlz : headAtLabel p c E rho (rho.seatOf (.base (.head s)) k) s =
       some (headVote p (FGSA.clock p (V2.D.Run.stateBefore E rho jz
         (rho.seatOf (.base (.head s)) k)).st (SA.voteTime p.toParams s)) s) := by
@@ -559,27 +568,30 @@ theorem frontier_first_transfer_core (E : Generic.Env V) (rho : V2.D.Run V (fgsa
       · contradiction
   -- Majority and rival dominance at the receiver (forward and reverse relay).
   have hforward : ∀ o ∈ GridCO.cleanSupport p.toParams.engine src s, ∀ seat,
-      GridCO.headSeat? o = some seat → Gen.AC.voteSupports src.blocks B o = true →
-      (o ∈ FGSA.headSupport p dst (s + 1) ∧ Gen.AC.voteSupports dst.base.blocks B o = true) ∨
+      GridCO.headSeat? o = some seat → Gen.AC.Root.voteSupports src.blocks B o = true →
+      (o ∈ FGSA.headSupport p dst (s + 1) ∧ Gen.AC.Root.voteSupports dst.base.blocks B o = true) ∨
         GridCO.equivocates (FGSA.headVotes p dst (s + 1)) seat = true := by
     intro o' ho' seat hs' hsup'
     obtain ⟨K', hK', hKm', hKst', _, _, _⟩ := healing_support_clean_target E rho o' ho'
     have hBK' : Block.Preceq B K' := by
-      rw [Gen.AC.voteSupports_def, hK'] at hsup'
+      have hlookup : Gen.AC.Root.resolvedTarget? src.blocks o' = some K' :=
+        actView_target_of_resolvedHead p _
+          (cstoreInv_clockPre p _ (cstoreInv_stateBefore E rho ix x) _) o' hK'
+      rw [Gen.AC.Root.voteSupports_def, hlookup] at hsup'
       exact (Bool.and_eq_true_iff.mp hsup').2
     obtain ⟨Kfg', hKe', hpath'⟩ := healing_support_target_path (hroots := hroots)
       E rho hE hN hDelta s hSync
       hx hy hiy K' hKm' hKst' (Gen.Pure.block_preceq_trans hFB hBK')
     exact fgsa_cleanSupport_forward_relay E rho hE hN hDelta s hSync hx hy hix hiy o' ho'
       seat hs' Kfg' (hKe' ▸ hK') B (hKe' ▸ hBK') hpath' hFB
-  have hc := Gen.AC.transfer src.blocks dst.base.blocks
+  have hc := Gen.AC.Root.transfer src.blocks dst.base.blocks
     (GridCO.cleanSupport p.toParams.engine src s) (GridCO.lateVotes p.toParams.engine src s)
     (FGSA.headVotes p dst (s + 1)) (FGSA.headSupport p dst (s + 1)) B
     (fun _ ho' => fgsa_early_subset_late p src s (List.mem_filter.mp ho').1)
     (fgsa_cleanSupport_seat_clean_late p src s) hforward
     (fgsa_headVotes_backward_relay E rho hE hN hDelta s hSync hx hy hix hiy)
     (fgsa_headSupport_subset_headVotes E rho hE iy y s) hmaj
-  rw [Gen.AC.TransferBounds_def] at hc
+  rw [Gen.AC.Root.TransferBounds_def] at hc
   exact fgsa_headVote_covers_of_transfer p dst s B hanchor hpath hc.2.2.2.2.2.1 hc.2.2.2.2.2.2
 
 end AvailableChain.FGSA.Run

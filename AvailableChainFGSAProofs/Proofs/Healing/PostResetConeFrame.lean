@@ -14,14 +14,16 @@ open AvailableChain.SimplexFG Gen.Pure
 variable (p : Params) {In V : Type} (c : AppCodec In) [DecidableEq V]
     (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
 
-/-- Blueprint 21 H.14–H.17:2958–3012; plan S5 CONE C3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.14–H.17:2958–3012; plan S5 CONE C3.
 DC: SAME maximum live H across the proposer and every honest HEAD read. -/
 def maxLiveH (s : Slot) (ip : Nat) (x : V) : Nat :=
   (insert (ip, x) (((Finset.range rho.events.length).product rho.honest).filter
     (fun q => rho.events[q.1]? = some (.tick q.2 (SA.voteTime p.toParams s))))).sup
       (fun q => (storeAt p c E rho q.1 q.2).fg.h_max)
 
-/-- Blueprint 21 H.14–H.17:2958–3012; plan S5 CONE C3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.14–H.17:2958–3012; plan S5 CONE C3.
 DC: SAME maximum equation for the actual read indices. -/
 theorem maxLiveH_def (s : Slot) (ip : Nat) (x : V) :
     maxLiveH p c E rho s ip x =
@@ -86,7 +88,8 @@ variable (mono : RMono p c E rho) (xing : RXing p c E rho)
 include hrec cap source rowCovered h0r mono xing origin
 
 omit rowCovered origin in
-/-- Blueprint 21 H.14–H.17:2958–3012; plan S5 CONE C3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.14–H.17:2958–3012; plan S5 CONE C3.
 DC: SAME reset copy in each later honest read, from healing_resetTransferCore. -/
 theorem postReset_cone_reset_held {s : Slot} (hs : w.sStar + 2 ≤ s)
     {j : Nat} {x : V} {t : Time} (hx : x ∈ rho.honest)
@@ -114,7 +117,8 @@ theorem postReset_cone_reset_held {s : Slot} (hs : w.sStar + 2 ≤ s)
   exact ⟨C, (fgsa_store_cumulative p c E rho hrec.base.noRestart hjqj x).1 hC, he⟩
 
 omit mono in
-/-- ROOT-DIGEST W2b. Blueprint 21 H.14–H.17:2958–3012; plan S5 CONE C3/C4.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.14–H.17:2958–3012; plan S5 CONE C3/C4.
 DC: SAME each active root below the preceding honest HEADs.
 postReset_keep_roots supplies the reset or high-source alternative. -/
 theorem postReset_root_heads_at_cut (i : Nat)
@@ -160,16 +164,17 @@ variable [Fintype V] {G ΔF : Time}
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     (xing : RXing p c E rho) (origin : RQCOrigin p c E rho)
     {w : HealingWitness} (h0r : H0Reset p c E rho w)
@@ -217,7 +222,8 @@ private theorem cone_source_held (source : TSrc p c E rho)
   exact (fgsa_store_cumulative p c E rho hrec.base.noRestart
     (healing_support_idxBefore_le p c E rho hS ht (hu ▸ hdeadline)) x).1 hheld
 
-/-- ROOT-DIGEST W2b. Blueprint 21 H.14–H.17:2958–3012; plan S5 CONE C3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21 H.14–H.17:2958–3012; plan S5 CONE C3.
 DC: SAME common pivot chosen after the maximum over all actual reads.
 The high and reset compatibility facts have the base J2 producers.
 The ports have producers fgsa_rMono, sourceDiscipline_emittedNonempty,

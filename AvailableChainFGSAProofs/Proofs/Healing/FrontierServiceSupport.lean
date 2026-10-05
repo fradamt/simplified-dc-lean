@@ -17,7 +17,8 @@ private theorem frontier_service_lift {A B : FGBlock (Fin p.n)}
     (h : Block.Preceq (eraseFG A) (eraseFG B)) : FGBlock.Preceq A B :=
   eraseFG_preceq_iff.mp h
 
-/-- Blueprint 21:1529–1539; plan §3.1 step 3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1529–1539; plan §3.1 step 3.
 DC: INTENTIONAL every later honest proposal at s ≥ q+2 has a parent above the seed Q.
 Only the proposal time must be within the horizon. -/
 theorem frontier_proposals_cover [Fintype V] (E : Generic.Env V)
@@ -27,16 +28,17 @@ theorem frontier_proposals_cover [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q : Slot} {Q : Block} {Qfg : FGBlock (Fin p.n)}
@@ -74,7 +76,8 @@ theorem frontier_proposals_cover [Fintype V] (E : Generic.Env V)
     hexact hu hphase hqv hvh hcap
   have hcover : ∀ z ∈ rho.honest, ∀ K, headAtLabel p c E rho z r = some K →
       Block.Preceq (eraseFG Qfg) K := hErase ▸ hheads r hqr hvr
-  obtain ⟨ip, x, raw, sup, rows, hx, hip, _, hem⟩ := repair_proposal_emission E rho hp
+  obtain ⟨ip, x, N, heN, hx, hip, _, hem⟩ := repair_proposal_emission E rho hp
+  subst B
   let st := clock p (storeAt p c E rho ip x) (SA.proposalTime p.toParams (r + 1))
   have hinv : CStoreInv p st := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ip x) _
   have hfg : st.fg = (storeAt p c E rho ip x).fg := clock_fg p _ _
@@ -151,11 +154,12 @@ theorem frontier_proposals_cover [Fintype V] (E : Generic.Env V)
       hprior.rivals
   rw [(V2.D.Run.step_tick_eq E rho hip).2] at hem
   have hpr := (fgsa_emits_proposal E rho _ x _ (r + 1) _).mp hem
-  have hparent := (fgsa_walkRun_proposal_parent p st (r + 1) _ B raw sup rows hpr.2.2.2).2.2
+  have hparent := (fgsa_walkRun_proposal_parent p st (r + 1) _ N hpr.2.2.2).2.2
   rw [hparent]
   exact hhead
 
-/-- Blueprint 21:1539–1551; plan §3.1 step 3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1539–1551; plan §3.1 step 3.
 DC: INTENTIONAL the seed output persists under the cap, through every later event.
 The induction includes gates with no honest proposal and reconciliation events. -/
 theorem frontier_output_cover [Fintype V] (E : Generic.Env V)
@@ -165,16 +169,17 @@ theorem frontier_output_cover [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     {u v : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q : Slot} {Q : Block} {Qfg : FGBlock (Fin p.n)}

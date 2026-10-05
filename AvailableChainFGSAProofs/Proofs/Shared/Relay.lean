@@ -1,13 +1,16 @@
 module
+public import AvailableChainGeneric.Proofs.AC.RootBatch
+public import AvailableChainGeneric.Proofs.AC.RootSupport
 public import AvailableChainFGSARun.Proofs.Receipts
+public import AvailableChainFGSARun.Proofs.RootResolution
 
 public section
 
 namespace AvailableChain.FGSA.Run
 open AvailableChain.SimplexFG
-open Gen.AC
+open Gen.AC.Root
 
-private theorem relay_vote_shape {n : Nat} (o : GridCO.Wire n) (s : Slot) (k : Fin n)
+private theorem relay_vote_shape {n : Nat} (o : GridCO.Wire n .root) (s : Slot) (k : Fin n)
     (hl : GridCO.headLabel? o = some s) (hk : GridCO.headSeat? o = some k) :
     ∃ B, o = ⟨.seat s k, .head B⟩ := by
   obtain ⟨auth, payload⟩ := o
@@ -18,8 +21,8 @@ private theorem relay_vote_shape {n : Nat} (o : GridCO.Wire n) (s : Slot) (k : F
   subst r; subst j
   exact ⟨B, rfl⟩
 
-private theorem relay_clean_mem (p : Params) (v : GridCO.State p.n) (s : Slot)
-    (o : GridCO.Wire p.n) (ho : o ∈ GridCO.cleanSupport p.toParams.engine v s) :
+private theorem relay_clean_mem (p : Params) (v : GridCO.State p.n .root) (s : Slot)
+    (o : GridCO.Wire p.n .root) (ho : o ∈ GridCO.cleanSupport p.toParams.engine v s) :
     o ∈ v.votes ∧ GridCO.headLabel? o = some s ∧
       GridCO.stampVote v o < SA.earlyTime p.toParams s ∧
       ∀ u ∈ GridCO.lateVotes p.toParams.engine v s,
@@ -30,7 +33,7 @@ private theorem relay_clean_mem (p : Params) (v : GridCO.State p.n) (s : Slot)
   obtain ⟨hm, hl⟩ := List.mem_filter.mp hv
   have hstamp : GridCO.stampVote v o < SA.earlyTime p.toParams s := by
     unfold GridCO.resolvedBefore at hr
-    cases ht : GridCO.headTarget? o with
+    cases ht : GridCO.resolvedHead? v o with
     | none => simp only [ht, Bool.false_eq_true] at hr
     | some B =>
       rw [ht] at hr
@@ -43,12 +46,13 @@ private theorem relay_clean_mem (p : Params) (v : GridCO.State p.n) (s : Slot)
   have hn := List.any_eq_false.mp hc' u hu
   simpa only [hs, Bool.true_and, bne_iff_ne, not_not] using hn
 
-/-- P3 §4.4.3 C5/C6; bp02 §4.2, G24 item 3. Class (iii), pool instance.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+P3 §4.4.3 C5/C6; bp02 §4.2, G24 item 3. Class (iii), pool instance.
 DC b241081: Goldfish/Confirmation.lean:95 Numerator (`filtered`). SAME:
 the early pool excludes each seat with a second vote in the late pool;
 the proof uses the late filter, not reverse equivocation monotonicity. -/
-theorem fgsa_cleanSupport_seat_clean_late (p : Params) (v : GridCO.State p.n)
-    (s : Slot) (o : GridCO.Wire p.n)
+theorem fgsa_cleanSupport_seat_clean_late (p : Params) (v : GridCO.State p.n .root)
+    (s : Slot) (o : GridCO.Wire p.n .root)
     (ho : o ∈ GridCO.cleanSupport p.toParams.engine v s)
     (k : Fin p.n) (hk : GridCO.headSeat? o = some k) :
     GridCO.equivocates (GridCO.lateVotes p.toParams.engine v s) k = false := by
@@ -57,7 +61,7 @@ theorem fgsa_cleanSupport_seat_clean_late (p : Params) (v : GridCO.State p.n)
   apply Bool.eq_false_iff.mpr
   intro he
   obtain ⟨u, hu, w, hw, hn, hku, hkw⟩ := (cap_pair _ k).mp he
-  have same (a : GridCO.Wire p.n) (ha : a ∈ GridCO.lateVotes p.toParams.engine v s)
+  have same (a : GridCO.Wire p.n .root) (ha : a ∈ GridCO.lateVotes p.toParams.engine v s)
       (hka : GridCO.headSeat? a = some k) :
       GridCO.sameSeat a ⟨.seat s k, .head B⟩ = true := by
     have hl : GridCO.headLabel? a = some s := by
@@ -93,7 +97,7 @@ private theorem relay_votes_mono (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c
     exact List.Subset.trans h (process_votes_subset nd.st (toWire p o))
 
 private theorem relay_read_stamp (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (i : Nat) (x : V) (readTime : Time) (o : GridCO.Wire p.n)
+    (i : Nat) (x : V) (readTime : Time) (o : GridCO.Wire p.n .root)
     (hm : o ∈ (V2.D.Run.stateBefore E rho i x).st.base.votes) :
     GridCO.stampVote (actView (clockPre p (V2.D.Run.stateBefore E rho i x).st
       readTime)) o =
@@ -117,7 +121,7 @@ private theorem relay_read_stamp (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c
 private theorem relay_gate_late (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hS : V2.D.ScheduleWellFormed E rho) {i : Nat} {x : V} {s : Slot}
     (hi : rho.events[i]? = some (.tick x (SA.gateTime p.toParams s)))
-    (o : GridCO.Wire p.n) (hm : o ∈ (V2.D.Run.stateBefore E rho i x).st.base.votes)
+    (o : GridCO.Wire p.n .root) (hm : o ∈ (V2.D.Run.stateBefore E rho i x).st.base.votes)
     (hl : GridCO.headLabel? o = some s) :
     o ∈ GridCO.lateVotes p.toParams.engine
       (actView (clockPre p (V2.D.Run.stateBefore E rho i x).st (SA.gateTime p.toParams s))) s := by
@@ -170,7 +174,7 @@ private theorem relay_proposals_process (st : State p.n) (o : Obj p)
   change ∀ w ∈ (match (toWire p o).decode with
     | some (.vote s i b) => admitHead p st s i b
     | some (.row _ body) => admitRow p st ⟨(toWire p o).auth, body⟩
-    | some (.block s b raw sup rows) => admitBlock p st s b raw sup rows
+    | some (.block s N) => admitBlock p st s N
     | none => st).proposals, _
   cases hd : (toWire p o).decode with
   | none => exact h
@@ -180,30 +184,35 @@ private theorem relay_proposals_process (st : State p.n) (o : Obj p)
     | row i body =>
       dsimp only
       rcases admitRow_eq p st ⟨(toWire p o).auth, body⟩ with he | he <;> rw [he] <;> exact h
-    | block s b raw sup rows =>
+    | block s N =>
       dsimp only
-      cases hp : parentFG st b with
-      | none => rw [admitBlock_refused p st s b raw sup rows (Or.inl hp)]; exact h
-      | some P =>
-        cases ha : blockAccepted p st s b raw sup P rows with
-        | false =>
-          rw [admitBlock_refused p st s b raw sup rows (Or.inr ⟨P, hp, ha⟩)]
-          exact h
-        | true =>
-          obtain ⟨pool, he, -⟩ := admitBlock_accepted_eq p st s b raw sup P rows hp ha
-          rw [he]
-          have hs : ∀ w ∈ st.proposals ++ [⟨.proposer s, .proposal b raw sup rows⟩],
-              FGSA.wellFormed p w = true := by
-            intro w hm
-            rcases List.mem_append.mp hm with hm | hm
-            · exact h w hm
-            · rw [List.mem_singleton.mp hm, ← decode_eq_block.mp hd]
-              exact hw
-          dsimp only
-          split
-          · exact hs
-          · rw [(reconcile_frame _).2.1]
-            exact hs
+      cases hn : namedParentHeld st N with
+      | false =>
+        rw [admitBlock_refused p st s N (Or.inl hn)]
+        exact h
+      | true =>
+        cases hp : parentFG st N.erase with
+        | none => rw [admitBlock_refused p st s N (Or.inr (Or.inl hp))]; exact h
+        | some P =>
+          cases ha : blockAccepted p st s N P with
+          | false =>
+            rw [admitBlock_refused p st s N (Or.inr (Or.inr ⟨P, hp, ha⟩))]
+            exact h
+          | true =>
+            obtain ⟨pool, he, -⟩ := admitBlock_accepted_eq p st s N P hn hp ha
+            rw [he]
+            have hs : ∀ w ∈ st.proposals ++ [⟨.proposer s, .proposal N⟩],
+                FGSA.wellFormed p w = true := by
+              intro w hm
+              rcases List.mem_append.mp hm with hm | hm
+              · exact h w hm
+              · rw [List.mem_singleton.mp hm, ← decode_eq_block.mp hd]
+                exact hw
+            dsimp only
+            split
+            · exact hs
+            · rw [(reconcile_frame _).2.1]
+              exact hs
 
 private theorem relay_proposals_wf (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hE : V2.D.ExecutionValid E rho) (i : Nat) (x : V) :
@@ -238,8 +247,9 @@ private theorem relay_support_subset (st : State p.n) (s : Slot)
     obtain ⟨hv, hr⟩ := List.mem_filter.mp ho
     apply List.mem_filter.mpr
     refine ⟨hv, ?_⟩
-    change (match GridCO.headTarget? o with | none => false | some _ => _) = true at hr
-    cases ht : GridCO.headTarget? o with
+    change (match GridCO.resolvedHead? (actView st) o with | none => false | some _ => _) = true
+        at hr
+    cases ht : GridCO.resolvedHead? (actView st) o with
     | none => simp only [ht, Bool.false_eq_true] at hr
     | some B =>
       rw [ht] at hr
@@ -258,31 +268,23 @@ private theorem relay_support_subset (st : State p.n) (s : Slot)
       cases m with
       | vote r k B => rw [hdw] at hd; cases hd
       | row k body => rw [hdw] at hd; cases hd
-      | block r B raw sup rows =>
+      | block r N =>
         rw [hdw] at hd
         dsimp only at hd
         split at hd
         · cases hd
           have hwf := h w hw
-          change (match w.decode with
-            | some (.vote _ _ _) => true
-            | some (.row _ body) => body.valid
-            | some (.block r B raw sup rows) =>
-              B != .genesis && r == B.slot && decide (B.parent.slot < B.slot) &&
-                raw.all (fun v => match v.decode? with
-                  | some (r, _, _) => r + 1 == B.slot | none => false) &&
-                sup.all (fun v => decide (v ∈ raw)) &&
-                rows.all RowWire.valid && contentOk p B raw sup rows
-            | none => false) = true at hwf
+          unfold FGSA.wellFormed at hwf
           rw [hdw] at hwf
           have hsub := (Bool.and_eq_true_iff.mp
             (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp hwf).1).1).2
           apply List.mem_flatMap.mpr
-          refine ⟨(raw, sup), hrow, ?_⟩
+          refine ⟨(N.raw, N.support), hrow, ?_⟩
           exact List.mem_map.mpr ⟨a, of_decide_eq_true (List.all_eq_true.mp hsub a ha), he⟩
         · cases hd
 
-/-- P3 §4.4.3 C5/C6; bp02 §4.2, G24 support inclusion. Class (ii), run instance.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+P3 §4.4.3 C5/C6; bp02 §4.2, G24 support inclusion. Class (ii), run instance.
 DC: Handlers/GoldfishVotePool.lean:355–405. Same carried support subset;
 INTENTIONAL: use admitted wire metadata and the actual post-clock HEAD store
 (Model/Frame.lean:67–85), including inactive admitted proposals. -/
@@ -297,15 +299,15 @@ theorem fgsa_headSupport_subset_headVotes (E : Generic.Env V) (rho : V2.D.Run V 
   exact relay_proposals_wf E rho hE i x
 
 private def RelayCarried (st : State p.n) (s : Slot) : Prop :=
-  ∀ w ∈ st.proposals, ∀ r b raw sup rows,
-    w.decode = some (.block r b raw sup rows) → b.slot = s + 1 →
-    ∀ o ∈ raw.map baseVote, ∀ seat,
+  ∀ w ∈ st.proposals, ∀ r N,
+    w.decode = some (.block r N) → N.erase.slot = s + 1 →
+    ∀ o ∈ N.raw.map baseVote, ∀ seat,
       GridCO.headLabel? o = some s → GridCO.headSeat? o = some seat →
       o ∈ GridCO.votesAt st.base s ∨
         GridCO.equivocates (GridCO.votesAt st.base s) seat = true
 
-private theorem relay_settled_mono {v v' : GridCO.State p.n} (s : Slot)
-    (h : v.votes ⊆ v'.votes) (o : GridCO.Wire p.n) (seat : Fin p.n)
+private theorem relay_settled_mono {v v' : GridCO.State p.n .root} (s : Slot)
+    (h : v.votes ⊆ v'.votes) (o : GridCO.Wire p.n .root) (seat : Fin p.n)
     (hr : o ∈ GridCO.votesAt v s ∨ GridCO.equivocates (GridCO.votesAt v s) seat = true) :
     o ∈ GridCO.votesAt v' s ∨ GridCO.equivocates (GridCO.votesAt v' s) seat = true := by
   have hs : GridCO.votesAt v s ⊆ GridCO.votesAt v' s := by
@@ -313,29 +315,29 @@ private theorem relay_settled_mono {v v' : GridCO.State p.n} (s : Slot)
     obtain ⟨ha, hl⟩ := List.mem_filter.mp ha
     exact List.mem_filter.mpr ⟨h ha, hl⟩
   exact hr.elim (fun hm => Or.inl (hs hm))
-    (fun he => Or.inr (Gen.AC.vote_pool_equivocates_mono _ _ seat hs he))
+    (fun he => Or.inr (Gen.AC.Root.vote_pool_equivocates_mono _ _ seat hs he))
 
 private theorem relay_carried_mono {st st' : State p.n} (s : Slot)
     (hp : st'.proposals = st.proposals) (hv : st.base.votes ⊆ st'.base.votes)
     (h : RelayCarried st s) : RelayCarried st' s := by
-  intro w hw r b raw sup rows hd hb o ho seat hl hk
+  intro w hw r N hd hb o ho seat hl hk
   rw [hp] at hw
-  exact relay_settled_mono s hv o seat (h w hw r b raw sup rows hd hb o ho seat hl hk)
+  exact relay_settled_mono s hv o seat (h w hw r N hd hb o ho seat hl hk)
 
-private theorem relay_fold_heads (raw : List (GridCO.HeadWire p.n))
-    (st : GridCO.State p.n) (s : Slot) (seat : Fin p.n) (B : Block)
+private theorem relay_fold_heads (raw : List (GridCO.HeadWire p.n .root))
+    (st : GridCO.State p.n .root) (s : Slot) (seat : Fin p.n) (B : BlockId)
     (hlo : (st.now / (4 * p.toParams.engine.Δ)).toNat - 1 ≤ s)
     (hhi : s ≤ (st.now / (4 * p.toParams.engine.Δ)).toNat)
-    (hraw : (⟨.seat s seat, .head B⟩ : GridCO.Wire p.n) ∈ raw.map GridCO.fromHead) :
+    (hraw : (⟨.seat s seat, .head B⟩ : GridCO.Wire p.n .root) ∈ raw.map GridCO.fromHead) :
     let post := raw.foldl
       (fun acc row => GridCO.admitVote p.toParams.engine acc (GridCO.fromHead row)) st
-    (⟨.seat s seat, .head B⟩ : GridCO.Wire p.n) ∈ post.votes ∨
+    (⟨.seat s seat, .head B⟩ : GridCO.Wire p.n .root) ∈ post.votes ∨
       GridCO.equivocates (GridCO.votesAt post s) seat = true := by
   induction raw generalizing st with
   | nil => exact (List.not_mem_nil hraw).elim
   | cons row raw ih =>
     dsimp only
-    have hf (v : GridCO.State p.n) : v.votes ⊆
+    have hf (v : GridCO.State p.n .root) : v.votes ⊆
         (raw.foldl (fun acc row => GridCO.admitVote p.toParams.engine acc
           (GridCO.fromHead row)) v).votes := by
       clear ih hraw
@@ -344,14 +346,14 @@ private theorem relay_fold_heads (raw : List (GridCO.HeadWire p.n))
       | cons a raw ih =>
           exact List.Subset.trans (Internal.grid_admitVote_votes_subset _ _) (ih _)
     rcases List.mem_cons.mp hraw with he | hm
-    · have hh : (⟨.seat s seat, .head B⟩ : GridCO.Wire p.n) ∈
+    · have hh : (⟨.seat s seat, .head B⟩ : GridCO.Wire p.n .root) ∈
           (GridCO.admitVote p.toParams.engine st ⟨.seat s seat, .head B⟩).votes ∨
           GridCO.equivocates (GridCO.votesAt
             (GridCO.admitVote p.toParams.engine st ⟨.seat s seat, .head B⟩) s) seat = true := by
         by_cases hc : GridCO.equivocates (GridCO.votesAt st s) seat = true
         · right; simp only [GridCO.admitVote, hc, Bool.or_true, ite_true]
         · left
-          by_cases hm : (⟨.seat s seat, .head B⟩ : GridCO.Wire p.n) ∈ st.votes
+          by_cases hm : (⟨.seat s seat, .head B⟩ : GridCO.Wire p.n .root) ∈ st.votes
           · simp [GridCO.admitVote, hm]
           · simp [GridCO.admitVote, not_lt.mpr hlo, not_lt.mpr hhi, hm, hc]
       rw [he] at hh
@@ -369,7 +371,7 @@ private theorem relay_carried_process (st : State p.n) (hInv : CStoreInv p st)
   change RelayCarried (match parent.decode with
     | some (.vote r i b) => admitHead p st r i b
     | some (.row _ body) => admitRow p st ⟨parent.auth, body⟩
-    | some (.block r b raw sup rows) => admitBlock p st r b raw sup rows
+    | some (.block r N) => admitBlock p st r N
     | none => st) s
   cases hd : parent.decode with
   | none => exact h
@@ -382,73 +384,79 @@ private theorem relay_carried_process (st : State p.n) (hInv : CStoreInv p st)
       rcases admitRow_eq p st ⟨parent.auth, body⟩ with he | he <;> rw [he]
       · exact h
       · exact h
-    | block r b raw sup rows =>
+    | block r N =>
       dsimp only
-      cases hp : parentFG st b with
-      | none => rw [admitBlock_refused p st r b raw sup rows (Or.inl hp)]; exact h
-      | some P =>
-        cases ha : blockAccepted p st r b raw sup P rows with
-        | false =>
-          rw [admitBlock_refused p st r b raw sup rows (Or.inr ⟨P, hp, ha⟩)]
-          exact h
-        | true =>
-          have hprops : (admitBlock p st r b raw sup rows).proposals =
-              st.proposals ++ [⟨.proposer r, .proposal b raw sup rows⟩] := by
-            obtain ⟨pool, he, -⟩ := admitBlock_accepted_eq p st r b raw sup P rows hp ha
-            rw [he]
-            exact (accepted_st2 p st hInv r b raw sup P rows hp ha).1
-          have hvotes : (admitBlock p st r b raw sup rows).base.votes =
-              ((raw.map baseHead).foldl
-                (fun acc row => GridCO.admitVote p.toParams.engine acc (GridCO.fromHead row))
+      cases hn : namedParentHeld st N with
+      | false =>
+        rw [admitBlock_refused p st r N (Or.inl hn)]
+        exact h
+      | true =>
+        cases hp : parentFG st N.erase with
+        | none => rw [admitBlock_refused p st r N (Or.inr (Or.inl hp))]; exact h
+        | some P =>
+          cases ha : blockAccepted p st r N P with
+          | false =>
+            rw [admitBlock_refused p st r N (Or.inr (Or.inr ⟨P, hp, ha⟩))]
+            exact h
+          | true =>
+            have hprops : (admitBlock p st r N).proposals =
+                st.proposals ++ [⟨.proposer r, .proposal N⟩] := by
+              obtain ⟨pool, he, -⟩ := admitBlock_accepted_eq p st r N P hn hp ha
+              rw [he]
+              exact (accepted_st2 p st hInv r N P hp ha).1
+            have hvotes : (admitBlock p st r N).base.votes =
+                ((N.raw.map baseHead).foldl
+                  (fun acc row => GridCO.admitVote p.toParams.engine acc (GridCO.fromHead row))
+                  { st.base with
+                    blocks := st.base.blocks ++ [N.erase]
+                    blockStamp := st.base.blockStamp ++ [(N.erase, st.base.now)],
+                    proposals := st.base.proposals ++ [baseProposal r N.erase N.raw N.support]
+                        }).votes := by
+              obtain ⟨pool, he, -⟩ := admitBlock_accepted_eq p st r N P hn hp ha
+              rw [he]
+              dsimp only
+              have hb := congrArg GridCO.State.votes
+                (admitProposal_base_view p st hInv.toInv0 r N P hp ha).1
+              split
+              · exact hb
+              · exact (reconcile_frame _).2.2.2.2.2.1.trans hb
+            intro w hw r' M hd' hb o ho seat hl hk
+            rw [hprops] at hw
+            rcases List.mem_append.mp hw with hw | hw
+            · have hv' : st.base.votes ⊆ (admitBlock p st r N).base.votes := by
+                change st.base.votes ⊆ (match parent.decode with
+                  | some (.vote r i root) => admitHead p st r i root
+                  | some (.row _ body) => admitRow p st ⟨parent.auth, body⟩
+                  | some (.block r N) => admitBlock p st r N
+                  | none => st).base.votes at hv
+                rw [hd] at hv
+                exact hv
+              exact relay_settled_mono s hv' o seat
+                (h w hw r' M hd' hb o ho seat hl hk)
+            · have he := List.mem_singleton.mp hw
+              subst w
+              change some (Input.block r N) =
+                some (Input.block r' M) at hd'
+              cases hd'
+              have hwindow : st.slot p = s + 1 :=
+                le_antisymm hslot (hb ▸ (blockAccepted_facts ha).2.1)
+              obtain ⟨B, rfl⟩ := relay_vote_shape o s seat hl hk
+              have hh := relay_fold_heads
+                (N.raw.map baseHead)
                 { st.base with
-                  blocks := st.base.blocks ++ [b]
-                  blockStamp := st.base.blockStamp ++ [(b, st.base.now)],
-                  proposals := st.base.proposals ++ [baseProposal r b raw sup] }).votes := by
-            obtain ⟨pool, he, -⟩ := admitBlock_accepted_eq p st r b raw sup P rows hp ha
-            rw [he]
-            dsimp only
-            have hb := congrArg GridCO.State.votes
-              (admitProposal_base_view p st hInv.toInv0 r b raw sup P rows hp ha).1
-            split
-            · exact hb
-            · exact (reconcile_frame _).2.2.2.2.2.1.trans hb
-          intro w hw r' b' raw' sup' rows' hd' hb o ho seat hl hk
-          rw [hprops] at hw
-          rcases List.mem_append.mp hw with hw | hw
-          · have hv' : st.base.votes ⊆ (admitBlock p st r b raw sup rows).base.votes := by
-              change st.base.votes ⊆ (match parent.decode with
-                | some (.vote r i b) => admitHead p st r i b
-                | some (.row _ body) => admitRow p st ⟨parent.auth, body⟩
-                | some (.block r b raw sup rows) => admitBlock p st r b raw sup rows
-                | none => st).base.votes at hv
-              rw [hd] at hv
-              exact hv
-            exact relay_settled_mono s hv' o seat
-              (h w hw r' b' raw' sup' rows' hd' hb o ho seat hl hk)
-          · have he := List.mem_singleton.mp hw
-            subst w
-            change some (Input.block r b raw sup rows) =
-              some (Input.block r' b' raw' sup' rows') at hd'
-            cases hd'
-            have hwindow : st.slot p = s + 1 :=
-              le_antisymm hslot (hb ▸ (blockAccepted_facts ha).2.1)
-            obtain ⟨B, rfl⟩ := relay_vote_shape o s seat hl hk
-            have hh := relay_fold_heads
-              (raw.map baseHead)
-              { st.base with
-                blocks := st.base.blocks ++ [b]
-                blockStamp := st.base.blockStamp ++ [(b, st.base.now)],
-                proposals := st.base.proposals ++ [baseProposal r b raw sup] }
-              s seat B (by change st.slot p - 1 ≤ s; rw [hwindow, Nat.add_sub_cancel])
-              (by change s ≤ st.slot p; rw [hwindow]; exact Nat.le_succ s)
-              (by rw [List.map_map]; change _ ∈ raw.map baseVote; exact ho)
-            change _ ∈ (GridCO.votesAt _ s) ∨ _
-            unfold GridCO.votesAt at hh ⊢
-            rw [hvotes]
-            exact hh.elim
-              (fun hm => Or.inl (List.mem_filter.mpr
-                ⟨hm, by change (some s == some s) = true; exact beq_self_eq_true _⟩))
-              Or.inr
+                  blocks := st.base.blocks ++ [N.erase]
+                  blockStamp := st.base.blockStamp ++ [(N.erase, st.base.now)],
+                  proposals := st.base.proposals ++ [baseProposal r N.erase N.raw N.support] }
+                s seat B (by change st.slot p - 1 ≤ s; rw [hwindow, Nat.add_sub_cancel])
+                (by change s ≤ st.slot p; rw [hwindow]; exact Nat.le_succ s)
+                (by rw [List.map_map]; change _ ∈ N.raw.map baseVote; exact ho)
+              change _ ∈ (GridCO.votesAt _ s) ∨ _
+              unfold GridCO.votesAt at hh ⊢
+              rw [hvotes]
+              exact hh.elim
+                (fun hm => Or.inl (List.mem_filter.mpr
+                  ⟨hm, by change (some s == some s) = true; exact beq_self_eq_true _⟩))
+                Or.inr
 
 private theorem relay_carried_run (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hS : V2.D.ScheduleWellFormed E rho) (hN : V2.D.NoRestart rho)
@@ -487,7 +495,8 @@ private theorem relay_carried_run (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
         (toWire p o) ih
   · exact fun _ h => (List.not_mem_nil h).elim
 
-/-- P3 §4.4.3 C6; bp02 §4.2 backward receipt. Class (ii), FG-SA run instance.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+P3 §4.4.3 C6; bp02 §4.2 backward receipt. Class (ii), FG-SA run instance.
 DC: Handlers/GoldfishVotePool.lean:755,791 (carried settlement).
 Same vote-or-cap conclusion. The actual post-clock HEAD merge reads cumulative
 FG-SA proposal metadata; the admission guard supplies the inner vote window. -/
@@ -522,17 +531,18 @@ theorem fgsa_headVotes_provenance (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
       cases m with
       | vote r i B => rw [hdw] at hd; cases hd
       | row i body => rw [hdw] at hd; cases hd
-      | block r B raw sup rows =>
+      | block r N =>
         rw [hdw] at hd
         dsimp only at hd
         split at hd
         · rename_i hb
           cases hd
           exact relay_carried_run E rho hE.toScheduleWellFormed hN k y s htick
-            w hw' r B raw sup rows hdw hb o hm seat hl' hk
+            w hw' r N hdw (by simpa using hb) o hm seat hl' hk
         · cases hd
 
-/-- P3 §4.4.3 C6; bp02 §4.2 backward receipt. Class (ii), run provenance.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+P3 §4.4.3 C6; bp02 §4.2 backward receipt. Class (ii), run provenance.
 DC: Handlers/GoldfishVotePool.lean:755,791, strict stored witness stamps.
 The actual q_s tick bounds each retained witness stamp; T7.8 recovers its
 own earlier acceptance, including witnesses that capped a carried vote. -/
@@ -540,8 +550,8 @@ theorem fgsa_vote_accepted_before_head_read (E : Generic.Env V) (rho : V2.D.Run 
     (hS : V2.D.ScheduleWellFormed E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
     (k : Nat) (y : V) (s : Slot)
     (htick : rho.events[k]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
-    (seat : Fin p.n) (B : Block)
-    (hm : (⟨.seat s seat, .head B⟩ : GridCO.Wire p.n) ∈
+    (seat : Fin p.n) (B : BlockId)
+    (hm : (⟨.seat s seat, .head B⟩ : GridCO.Wire p.n .root) ∈
       (V2.D.Run.stateBefore E rho k y).st.base.votes) :
     ∃ j < k, ∃ t, V2.D.Run.acceptsAt E rho j y (ofHead p ⟨.seat (.head s) seat, B⟩) t ∧
       t < SA.voteTime p.toParams (s + 1) := by
@@ -572,7 +582,8 @@ private theorem relay_head_witness (E : Generic.Env V) (rho : V2.D.Run V (fgsa p
     {ix iy : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (hix : rho.events[ix]? = some (.tick x (SA.gateTime p.toParams s)))
     (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
-    (o : GridCO.Wire p.n) (ho : o ∈ GridCO.votesAt (V2.D.Run.stateBefore E rho iy y).st.base s)
+    (o : GridCO.Wire p.n .root) (ho : o ∈ GridCO.votesAt (V2.D.Run.stateBefore E rho iy
+        y).st.base s)
     (seat : Fin p.n) (hk : GridCO.headSeat? o = some seat) :
     let late := GridCO.lateVotes p.toParams.engine
       (actView (clockPre p (V2.D.Run.stateBefore E rho ix x).st (SA.gateTime p.toParams s))) s
@@ -610,7 +621,8 @@ private theorem relay_head_witness (E : Generic.Env V) (rho : V2.D.Run V (fgsa p
       relay_gate_late E rho hE.toScheduleWellFormed hix u (hkeep hu) hlu, v,
       relay_gate_late E rho hE.toScheduleWellFormed hix v (hkeep hv) hlv, hne, hku, hkv⟩)
 
-/-- P3 §4.4.3 C6; bp02 §4.2 backward receipt, Gen.AC.transfer item 5.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+P3 §4.4.3 C6; bp02 §4.2 backward receipt, Gen.AC.Root.transfer item 5.
 Class (ii), FG-SA run receipt instance. DC: Handlers/GoldfishVotePool.lean:755,791;
 Schedule/AdoptionTransport.lean:346. Same vote-or-cap transport into the source
 late pool. U is the full post-clock HEAD raw merge at the actual q_s tick;
@@ -657,7 +669,7 @@ private theorem relay_stamp_prefix (E : Generic.Env V) (rho : V2.D.Run V (fgsa p
     exact h.trans (process_cumulative p nd.st (toWire p o)).2.2.2.1
 
 private theorem relay_stamp_of_prefix (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (i : Nat) (x : V) (v : GridCO.State p.n) (o : GridCO.Wire p.n)
+    (i : Nat) (x : V) (v : GridCO.State p.n .root) (o : GridCO.Wire p.n .root)
     (hm : o ∈ (V2.D.Run.stateBefore E rho i x).st.base.votes)
     (hp : (V2.D.Run.stateBefore E rho i x).st.base.voteStamp <+: v.voteStamp) :
     GridCO.stampVote v o = GridCO.stampVote (V2.D.Run.stateBefore E rho i x).st.base o := by
@@ -676,7 +688,7 @@ private theorem relay_stamp_of_prefix (E : Generic.Env V) (rho : V2.D.Run V (fgs
     contradiction
   | some row => rfl
 
-private theorem relay_frozen_raw (st : State p.n) (s : Slot) (o : GridCO.Wire p.n)
+private theorem relay_frozen_raw (st : State p.n) (s : Slot) (o : GridCO.Wire p.n .root)
     (hm : o ∈ st.base.votes) (hl : GridCO.headLabel? o = some s)
     (ht : GridCO.stampVote st.base o < SA.freezeTime p.toParams s) :
     o ∈ headVotes p st (s + 1) := by
@@ -688,7 +700,8 @@ private theorem relay_frozen_raw (st : State p.n) (s : Slot) (o : GridCO.Wire p.
   · simpa only [Nat.add_sub_cancel, hl] using beq_self_eq_true (some s)
   · simpa only [Nat.add_sub_cancel] using decide_eq_true ht
 
-/-- P3 §4.4.3 C5; bp02 §4.2 forward receipt. Class (ii), run receipt instance.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+P3 §4.4.3 C5; bp02 §4.2 forward receipt. Class (ii), run receipt instance.
 DC: Schedule/AdoptionTransport.lean:309, settled-before-freeze raw arm.
 The source gate's early stamp gives dl(t) < z_s. NoRestart keeps the vote
 and its stamp, or both cap witnesses, through the actual post-clock q_s read.
@@ -703,7 +716,7 @@ theorem fgsa_cleanSupport_vote_forward (E : Generic.Env V) (rho : V2.D.Run V (fg
     {ix iy : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (_hix : rho.events[ix]? = some (.tick x (SA.gateTime p.toParams s)))
     (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
-    (o : GridCO.Wire p.n)
+    (o : GridCO.Wire p.n .root)
     (ho : o ∈ GridCO.cleanSupport p.toParams.engine
       (actView (clockPre p (V2.D.Run.stateBefore E rho ix x).st (SA.gateTime p.toParams s))) s)
     (seat : Fin p.n) (hk : GridCO.headSeat? o = some seat) :
@@ -714,7 +727,7 @@ theorem fgsa_cleanSupport_vote_forward (E : Generic.Env V) (rho : V2.D.Run V (fg
   intro dst
   have hc := relay_clean_mem p _ s o ho
   obtain ⟨K, rfl⟩ := relay_vote_shape o s seat hc.2.1 hk
-  have hmem : (⟨.seat s seat, .head K⟩ : GridCO.Wire p.n) ∈
+  have hmem : (⟨.seat s seat, .head K⟩ : GridCO.Wire p.n .root) ∈
       (V2.D.Run.stateBefore E rho ix x).st.base.votes := by
     have hm := hc.1
     change _ ∈ (clockPre p _ _).base.votes at hm
@@ -782,7 +795,7 @@ theorem fgsa_cleanSupport_vote_forward (E : Generic.Env V) (rho : V2.D.Run V (fg
       ← Gen.V2.Duty.stateBefore_idxBefore E rho _ hE.toScheduleWellFormed]
     exact ⟨relay_votes_mono E rho hN y (relay_idx_mono rho hdq),
       relay_stamp_prefix E rho hN y (relay_idx_mono rho hdq)⟩
-  have hs (v : GridCO.Wire p.n)
+  have hs (v : GridCO.Wire p.n .root)
       (hm : v ∈ (V2.D.Run.stateBeforeTime E rho (dl t) y).st.base.votes)
       (ht : GridCO.stampVote (V2.D.Run.stateBeforeTime E rho (dl t) y).st.base v < dl t) :
       GridCO.stampVote dst.base v < SA.freezeTime p.toParams s := by
@@ -796,15 +809,18 @@ theorem fgsa_cleanSupport_vote_forward (E : Generic.Env V) (rho : V2.D.Run V (fg
       relay_frozen_raw dst s u (hkeep.1 hu) hlu (hs u hu htu), v,
       relay_frozen_raw dst s v (hkeep.1 hv) hlv (hs v hv htv), hn, hku, hkv⟩)
 
-/-- P3 §4.4.3 C5; bp02 §4.2 forward support incidence. Class (ii), run instance.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+P3 §4.4.3 C5; bp02 §4.2 forward support incidence. Class (ii), run instance.
 DC: Handlers/GoldfishVotePool.lean:810, ancestor membership; generic support
 uses the cumulative block tree. INTENTIONAL: path receipt form (b) is explicit
 at the post-clock q_s read. It supplies membership without an active-view claim. -/
 theorem fgsa_voteSupports_of_path (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
-    (s : Slot) (ix iy : Nat) (x y : V) (o : GridCO.Wire p.n)
+    (s : Slot) (ix iy : Nat) (x y : V) (o : GridCO.Wire p.n .root)
     (ho : o ∈ GridCO.cleanSupport p.toParams.engine
       (actView (clockPre p (V2.D.Run.stateBefore E rho ix x).st (SA.gateTime p.toParams s))) s)
-    (K : FGBlock (Fin p.n)) (hK : GridCO.headTarget? o = some (eraseFG K))
+    (K : FGBlock (Fin p.n)) (hK : GridCO.resolvedHead?
+      (actView (clockPre p (V2.D.Run.stateBefore E rho ix x).st
+        (SA.gateTime p.toParams s))) o = some (eraseFG K))
     (B : Block) (hBK : Block.Preceq B (eraseFG K))
     (hpath : ∀ A, FGBlock.Preceq A K →
       A ∈ (((fgsa p c).clock (V2.D.Run.stateBefore E rho iy y)
@@ -813,7 +829,7 @@ theorem fgsa_voteSupports_of_path (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
         (SA.voteTime p.toParams (s + 1))).st).base (eraseFG A) < SA.freezeTime p.toParams s) :
     let dst := ((fgsa p c).clock (V2.D.Run.stateBefore E rho iy y)
       (SA.voteTime p.toParams (s + 1))).st
-    Gen.AC.voteSupports dst.base.blocks B o = true := by
+    Gen.AC.Root.voteSupports dst.base.blocks B o = true := by
   intro dst
   have hmem := (hpath K (KitFG.preceq_refl K)).1
   have hInv : CStoreInv p dst :=
@@ -823,13 +839,20 @@ theorem fgsa_voteSupports_of_path (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
   change GridCO.resolvedBefore _ o _ = true at hr
   unfold GridCO.resolvedBefore at hr
   rw [hK] at hr
-  have hslot := (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp
-    (Bool.and_eq_true_iff.mp hr).1).1).2
-  rw [Gen.AC.voteSupports_def, hK]
+  have hslot := (Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp hr).1).1
+  have hTarget := resolvedHead_root _ o hK
+  have hlookup := Block.findByRoot?_of_unique hstored (baseBlocks_rootInj p dst hInv)
+  rw [Gen.AC.Root.voteSupports_def, Gen.AC.Root.resolvedTarget?, hTarget]
+  change (match Block.findByRoot? dst.base.blocks (eraseFG K).root with
+    | none => false
+    | some C => decide (C ∈ dst.base.blocks) &&
+      decide (C.slot ≤ (GridCO.headLabel? o).getD 0) && Block.preceq B C) = true
+  rw [hlookup]
   exact Bool.and_eq_true_iff.mpr ⟨Bool.and_eq_true_iff.mpr
     ⟨decide_eq_true hstored, hslot⟩, hBK⟩
 
-/-- P3 §4.4.3 C5; bp02 §4.2, K9 then K8 forward support transport.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+P3 §4.4.3 C5; bp02 §4.2, K9 then K8 forward support transport.
 Class (ii), FG-SA run instance. DC: Schedule/AdoptionTransport.lean:346,
 `gfVote_delivery_settled_at_confStore`, vote-or-cap settlement counterpart.
 INTENTIONAL: the current actView needs an explicit target frame bound.
@@ -846,11 +869,13 @@ theorem fgsa_cleanSupport_forward_relay (E : Generic.Env V) (rho : V2.D.Run V (f
     {ix iy : Nat} {x y : V} (hx : x ∈ rho.honest) (hy : y ∈ rho.honest)
     (hix : rho.events[ix]? = some (.tick x (SA.gateTime p.toParams s)))
     (hiy : rho.events[iy]? = some (.tick y (SA.voteTime p.toParams (s + 1))))
-    (o : GridCO.Wire p.n)
+    (o : GridCO.Wire p.n .root)
     (ho : o ∈ GridCO.cleanSupport p.toParams.engine
       (actView (clockPre p (V2.D.Run.stateBefore E rho ix x).st (SA.gateTime p.toParams s))) s)
     (seat : Fin p.n) (hk : GridCO.headSeat? o = some seat)
-    (K : FGBlock (Fin p.n)) (hK : GridCO.headTarget? o = some (eraseFG K))
+    (K : FGBlock (Fin p.n)) (hK : GridCO.resolvedHead?
+      (actView (clockPre p (V2.D.Run.stateBefore E rho ix x).st
+        (SA.gateTime p.toParams s))) o = some (eraseFG K))
     (B : Block) (hBK : Block.Preceq B (eraseFG K))
     (hpath : ∀ A, FGBlock.Preceq A K →
       A ∈ (((fgsa p c).clock (V2.D.Run.stateBefore E rho iy y)
@@ -862,21 +887,40 @@ theorem fgsa_cleanSupport_forward_relay (E : Generic.Env V) (rho : V2.D.Run V (f
         (SA.voteTime p.toParams (s + 1))).st).fg.F) B) :
     let dst := ((fgsa p c).clock (V2.D.Run.stateBefore E rho iy y)
       (SA.voteTime p.toParams (s + 1))).st
-    (o ∈ FGSA.headSupport p dst (s + 1) ∧ Gen.AC.voteSupports dst.base.blocks B o = true) ∨
+    (o ∈ FGSA.headSupport p dst (s + 1) ∧ Gen.AC.Root.voteSupports dst.base.blocks B o = true) ∨
       GridCO.equivocates (FGSA.headVotes p dst (s + 1)) seat = true := by
   intro dst
   rcases fgsa_cleanSupport_vote_forward E rho hE hN hDelta s hSync hx hy hix hiy
     o ho seat hk with ⟨hm, ht⟩ | he
-  · have hs : Gen.AC.voteSupports dst.base.blocks B o = true :=
+  · have hs : Gen.AC.Root.voteSupports dst.base.blocks B o = true :=
       fgsa_voteSupports_of_path E rho s ix iy x y o ho K hK B hBK hpath
     have hparts := hs
-    rw [Gen.AC.voteSupports_def, hK] at hparts
+    have hInv : CStoreInv p dst :=
+      cstoreInv_clock p _ (cstoreInv_stateBefore E rho iy y) _
+    have hstored := (hInv.baseTree (eraseFG K)).mpr
+      ⟨K, (hpath K (KitFG.preceq_refl K)).1, rfl⟩
+    have hTarget := resolvedHead_root _ o hK
+    have hlookup := Block.findByRoot?_of_unique hstored (baseBlocks_rootInj p dst hInv)
+    rw [Gen.AC.Root.voteSupports_def, Gen.AC.Root.resolvedTarget?, hTarget] at hparts
+    change (match Block.findByRoot? dst.base.blocks (eraseFG K).root with
+      | none => false
+      | some C => decide (C ∈ dst.base.blocks) &&
+        decide (C.slot ≤ (GridCO.headLabel? o).getD 0) && Block.preceq B C) = true at hparts
+    rw [hlookup] at hparts
     obtain ⟨hknown, hslot⟩ := Bool.and_eq_true_iff.mp (Bool.and_eq_true_iff.mp hparts).1
     have hactive : eraseFG K ∈ (actView dst).blocks := by
       apply (actView_blocks dst _).mpr
       exact ⟨of_decide_eq_true hknown,
         Gen.Pure.block_compatible_of_common (Gen.Pure.block_preceq_refl _)
           (Gen.Pure.block_preceq_trans hframe hBK)⟩
+    have hres : GridCO.resolvedHead? (actView dst) o = some (eraseFG K) := by
+      obtain ⟨r, he⟩ := relay_vote_shape o s seat (relay_clean_mem p _ s o ho).2.1 hk
+      rw [he] at hTarget ⊢
+      have hr : r = (eraseFG K).root := Option.some.inj hTarget
+      rw [hr]
+      exact actView_resolve_of_mem p dst hInv
+        (base_headDomain_none p (Reachable.tick _ (reachable_stateBefore E rho iy y)))
+        hactive s seat
     refine Or.inl ⟨?_, hs⟩
     change o ∈ List.eraseDups (_ ++ _)
     rw [List.mem_eraseDups, List.mem_append]
@@ -886,10 +930,9 @@ theorem fgsa_cleanSupport_forward_relay (E : Generic.Env V) (rho : V2.D.Run V (f
     · simpa only [Nat.add_sub_cancel, (relay_clean_mem p _ s o ho).2.1]
         using beq_self_eq_true (some s)
     · unfold GridCO.resolvedBefore
-      rw [hK]
+      rw [hres]
       apply Bool.and_eq_true_iff.mpr
-      refine ⟨Bool.and_eq_true_iff.mpr ⟨Bool.and_eq_true_iff.mpr ⟨?_, hslot⟩, ?_⟩, ?_⟩
-      · exact decide_eq_true hactive
+      refine ⟨Bool.and_eq_true_iff.mpr ⟨hslot, ?_⟩, ?_⟩
       · change decide (GridCO.stampVote dst.base o < SA.freezeTime p.toParams (s + 1 - 1)) = true
         simpa only [Nat.add_sub_cancel] using decide_eq_true ht
       · change decide (GridCO.stampBlock dst.base (eraseFG K) <

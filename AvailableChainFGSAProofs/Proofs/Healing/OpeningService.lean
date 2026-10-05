@@ -15,7 +15,8 @@ open AvailableChain.SimplexFG Gen.Pure
 
 variable {p : Params} {In V : Type} [DecidableEq V] {c : AppCodec In}
 
-/-- Read bridge. DC: SAME the post-clock read at a tick is the clock of the state before
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Read bridge. DC: SAME the post-clock read at a tick is the clock of the state before
 the tick. -/
 theorem opening_postClock_of_tick (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
     (hs : V2.D.ScheduleWellFormed E rho) {i : Nat} {x : V} {t : Time}
@@ -24,7 +25,8 @@ theorem opening_postClock_of_tick (E : Generic.Env V) (rho : V2.D.Run V (fgsa p 
   rw [postClock_def, preTick_def, fgsa_tickIdx_of_event p c E rho hs ht]
   rfl
 
-/-- Frame bridge. DC: SAME the clock does not change the FG store, so the post-clock
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Frame bridge. DC: SAME the clock does not change the FG store, so the post-clock
 full domain and controls are those of the state before the tick. -/
 theorem opening_domain_clock (nd : Node p) (t : Time) :
     domainR p ((fgsa p c).clock nd t).st (treeT p ((fgsa p c).clock nd t).st) =
@@ -42,7 +44,8 @@ theorem opening_domain_clock (nd : Node p) (t : Time) :
       KitFG.storeControlsView (heightView p) nd.st.fg
     rw [hfg]
 
-/-- ROOT-DIGEST W2b. Blueprint 21:749–783, 918–1012 (H.7 floor); plan H-GATE §3A, gap 2.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+ROOT-DIGEST W2b. Blueprint 21:749–783, 918–1012 (H.7 floor); plan H-GATE §3A, gap 2.
 DC: INTENTIONAL the proposal band at the actual proposal read. The proposer reads inside
 the phase, so its floor is the phase floor (m in a contest, else m − 1). The parent of Qfg
 is the floor witness of `healing_proposer_floor`; height monotonicity lifts the floor to
@@ -104,7 +107,8 @@ theorem opening_proposal_band (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   rw [hR, hZ] at hZB
   exact KitFG.preceq_trans hZB hBQ
 
-/-- Blueprint 21:1003–1045 (H.7 settled frame), 1148–1252; plan H-GATE §3D.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21:1003–1045 (H.7 settled frame), 1148–1252; plan H-GATE §3D.
 DC: INTENTIONAL retention in the actual full domain. At an honest read inside the phase,
 a stored D above Qfg is above F and the root, and is its own band witness. In an F-root
 phase, RXing with the settled-frame certificate K puts F below D; in a top-J phase, F is
@@ -151,7 +155,8 @@ theorem opening_domain_of_band (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   exact (KitFG.mem_filteredFromView _ _ _ _).mpr
     ⟨hD, hFZ.1, hFZ.2, D, hD, KitFG.preceq_refl _, hloD⟩
 
-/-- Blueprint 21 H.22:3109–3114 (exact service), 00:516–527 (store); plan H-GATE §3B, §3D.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.22:3109–3114 (exact service), 00:516–527 (store); plan H-GATE §3B, §3D.
 DC: SAME the exact gate service of Q at q stores Q at every honest gate tick of q, and the
 store is cumulative, so every later honest read holds Qfg. -/
 theorem opening_exact_stored (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
@@ -174,7 +179,8 @@ theorem opening_exact_stored (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
   subst he
   exact ⟨hb, hB, hne⟩
 
-/-- Blueprint 21 H.9:1100–1144 (the opening read), H.22:3207–3216; plan H-GATE §2.3, §3 A–D,
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.9:1100–1144 (the opening read), H.22:3207–3216; plan H-GATE §2.3, §3 A–D,
 gaps 1–3. DC: INTENTIONAL fresh service for Q itself and retention of Qfg at an honest
 opening tick, read on the state before the tick. At q = rR the exact fast write is the
 opening's own fresh write (`opening_gateService_of_fastWrite`). At q < rR, TPerm S1 from
@@ -188,16 +194,17 @@ theorem later_opening_service [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q r : Nat} {Q : Block} {Qfg : FGBlock (Fin p.n)}
@@ -267,7 +274,8 @@ theorem later_opening_service [Fintype V] (E : Generic.Env V)
     subst hji
     exact opening_gateService_of_fastWrite E rho hS htg hQnd
 
-/-- Blueprint 21 H.9:1100–1144, H.22:3207–3216; plan H-GATE §2.3 (exact conclusion).
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.9:1100–1144, H.22:3207–3216; plan H-GATE §2.3 (exact conclusion).
 DC: INTENTIONAL the H-GATE supplier with D = Qfg, on the actual post-clock full domain of
 the opening read. The clock does not change the FG store (`opening_domain_clock`).
 GateService at rR and domain retention are conclusions, never premises. RQCOrigin is not
@@ -279,16 +287,17 @@ theorem later_opening_gateService_domain [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q r : Nat} {Q : Block} {Qfg : FGBlock (Fin p.n)}
@@ -323,7 +332,8 @@ theorem later_opening_gateService_domain [Fintype V] (E : Generic.Env V)
     rw [hclock.2]
     exact hlo
 
-/-- Blueprint 21 H.2 S1, H.9:1100–1144; plan H-GATE §2.3 (opening transfer), §3B, gap 3.
+/-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
+Blueprint 21 H.2 S1, H.9:1100–1144; plan H-GATE §2.3 (opening transfer), §3B, gap 3.
 DC: INTENTIONAL for q < rR, every honest HEAD of the opening label rR covers Q (TPerm S1
 from the exact fast write; the HEAD v_(q+1) before d_q is included), and every honest
 opening tick has fresh gate service for Q itself and saves Q in its fresh fast set. -/
@@ -334,16 +344,17 @@ theorem opening_transfer [Fintype V] (E : Generic.Env V)
       row ∈ (storeAt p c E rho i x).base.obligations →
       ∃ j < i, ∃ s B, IsGateTick p c rho j x s ∧ gatePassedAt p c E rho j ∧
         gateResultAt p c E rho j = some (some B) ∧ Block.Preceq row.1 B ∧
-        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+        (row.1, row.2.1) ∈ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root p.toParams.engine p.n
           (actView (clockPre p (storeAt p c E rho j x) (SA.gateTime p.toParams s))) s B ∧
         row.2.2 = SA.gateTime p.toParams s + SA.lifetime p.toParams ∧
         row.2.2 = SA.releaseTime p.toParams (s + p.k) ∧
         ∀ k w C, j < k → k < i → IsGateTick p c rho k x w →
           let pre := clockPre p (storeAt p c E rho k x) (SA.gateTime p.toParams w)
           GridCO.savedGenuine pre.base w = none →
-          SA.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
+          SA.Root.confirmationFrom p.toParams (eraseFG pre.fg.F) (actView pre) w = some C →
           (actView pre).obligations.any (fun r => !Block.compatible r.1 C) = false →
-          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy p.toParams.engine p.n
+          (row.1, row.2.1) ∉ @GridCO.gateWriteKeys GridCO.slowLeasePolicy .root
+              p.toParams.engine p.n
             (actView pre) w C)
     {u : Time} {m : Nat} {J : Option (FGBlock (Fin p.n))} {contested : Bool}
     {q r : Nat} {Q : Block} {Qfg : FGBlock (Fin p.n)}
