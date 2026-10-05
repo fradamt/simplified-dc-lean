@@ -229,7 +229,9 @@ if [ "$tier" = merge ]; then
   # Merge tier (NEG=0): no step writes the real tree, so the tail joins the
   # parallel group. The longest step goes first. Full tier: the controls write
   # the real tree (check-fgsa NegBuildC23, then lake build), and fgsa-claims
-  # copies the built roots, so the tail stays sequential there.
+  # copies the built roots, so the tail stays sequential there. Claims controls
+  # exceeded 7 GiB on the Mac. No new memory evidence supports overlap or more
+  # than the measured two audit workers (U158/U160/U172).
   run_group fgsa-claims fgsa-manifest check-build check-fgsa check-fgsa-run \
     catalog-lock v2-manifest gen-manifest
 else

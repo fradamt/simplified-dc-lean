@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
 # P3 F0.0b: Claims, Proofs and Inhabit guard. The compiled auditors below
 # adapt the CURRENT T7.1 auditors, including their generated-owner rules.
-# No baseline is written. Fixtures and audit logs stay under .lake.
+# No baseline is written. Temporary fixtures under .lake are removed on exit.
 # SOURCE_ONLY=1 runs source findings and facade/F4 coverage, without controls or Lean.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 exec python3 - "$@" <<'PY'
 from pathlib import Path
-from concurrent.futures import ThreadPoolExecutor
 import importlib.util
 import os
 import re
@@ -72,11 +71,6 @@ ORDER = ('Recurrence', 'Bounds', 'BoundsW', 'Reads', 'Counts', 'Regimes', 'Windo
          'ChannelProps', 'FinalityApi', 'Healed', 'HealedBest', 'WeakContinuation', 'WeakContinuationLive', 'Packages.Finality', 'Packages.FinalityGST',
          'LiveDC', 'ComposeStmt', 'Fold',
          'Phases', 'PhasesInternal', 'Packages.Healing')
-if not SOURCE_ONLY:
-    work = Path(tempfile.mkdtemp(prefix='fgsa-claims-check.', dir=ROOT / '.lake'))
-    print(f'FGSA claims audit logs: {work}', flush=True)
-serial = 0
-
 def audit_workers():
     values = []
     # Two is the measured default: control RSS exceeded 7 GiB on the Mac.
@@ -92,69 +86,12 @@ workers = audit_workers()
 # The generated Lean code and the control pool use the same bound.
 os.environ['AUDIT_WORKERS'] = str(workers)
 
-def reserve_log(label):
-    global serial
-    serial += 1
-    return work / f'{serial:02d}-{label}.log'
-
-def execute(path, args, *, env=None, cwd=None):
-    # Timing is opt-in; it does not enter the check's output.
-    if os.environ.get('AUDIT_TIMING', '0') == '1':
-        time_args = ['-l'] if sys.platform == 'darwin' else ['-v']
-        args = ['/usr/bin/time', *time_args, '-o', str(path.with_suffix('.time')), *args]
-    with path.open('w') as out:
-        proc = subprocess.run(args, stdout=out, stderr=subprocess.STDOUT,
-                              env=env, cwd=cwd)
-    path.with_suffix('.rc').write_text(str(proc.returncode) + '\n')
-    return proc.returncode
-
-def result(label, path, code, expect):
-    output = path.read_text()
-    print(f'{label}: rc {code} ({path.name})', flush=True)
-    if expect is None:
-        if code:
-            print(output)
-            raise SystemExit(code)
-    elif code == 0 or code < 0 or code >= 128 or expect not in output:
-        print(output)
-        raise SystemExit(f'STOP: negative control {label} did not fail with {expect!r}')
-    else:
-        print(f'rejected, as expected: {label}', flush=True)
-    return output
-
-def run(label, args, *, expect=None, env=None, cwd=None):
-    path = reserve_log(label)
-    return result(label, path, execute(path, args, env=env, cwd=cwd), expect)
-
-def run_pool(controls):
-    # Reserve names before submission. Workers write only their own logs.
-    jobs = [(label, reserve_log(label), args, options)
-            for label, args, options in sorted(controls, key=lambda c: c[0])]
-    with ThreadPoolExecutor(max_workers=workers) as pool:
-        futures = [pool.submit(execute, path, args,
-                               env=options.get('env'), cwd=options.get('cwd'))
-                   for _, path, args, options in jobs]
-        outputs = {}
-        failure = None
-        for (label, path, _, options), future in zip(jobs, futures):
-            try:
-                outputs[label] = result(label, path, future.result(), options.get('expect'))
-            except SystemExit as exc:
-                if failure is None:
-                    failure = exc
-        if failure is not None:
-            raise failure
-    return outputs
-
-# Exercise the same result path as a compiled control. A missed rejection
-# must make the driver fail, even when another concurrent control passes.
-if os.environ.get('AUDIT_POOL_SELFTEST', '0') == '1':
-    run_pool([
-        ('deliberately-failing-control', [sys.executable, '-c', 'print("CONTROL")'],
-         {'expect': 'CONTROL'}),
-        ('passing-control', [sys.executable, '-c', 'print("PASS")'], {}),
-    ])
-    raise SystemExit('STOP: pool accepted a deliberately failing control')
+if not SOURCE_ONLY:
+    from audit_pool import AuditPool
+    pool = AuditPool(ROOT / '.lake', workers, temp_prefix='fgsa-claims-check.')
+    work = pool.work
+    print(f'FGSA claims temporary audit logs: {work}', flush=True)
+    run, run_pool = pool.run, pool.run_pool
 
 # Source policy: use check (e), then the tighter P3/T7 direct-import set.
 ctx = L.load_context(ROOT)

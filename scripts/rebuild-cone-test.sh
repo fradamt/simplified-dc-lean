@@ -56,10 +56,40 @@ if [ "${1:-}" = --controls ]; then
     done
     vanish=$(mktemp -d "$src/.lake/fgsa-run-neg.XXXXXX")
     printf 'vanishing\n' > "$vanish/probe"
-    # Remove a planted gate directory while the source copy is in progress.
-    (sleep 0.01; rm -rf "$vanish") & vanisher=$!
+    # Enough output to fill the pipe: rsync cannot finish before the reader
+    # sees a copied-file marker and removes the temporary gate directory.
+    python3 - "$src" <<'PYFILES'
+from pathlib import Path
+import sys
+root = Path(sys.argv[1])
+for i in range(2000):
+    (root / (f'copy-{i:04d}-' + 'x' * 180)).write_text('copy control\n')
+PYFILES
+    fifo=$TMP/$mode-copy-events
+    mkfifo "$fifo"
+    (
+      seen=0
+      while IFS= read -r -t 10 event; do
+        case "$event" in copy:*) seen=1; break ;; esac
+      done
+      [ "$seen" = 1 ] && [ -d "$vanish" ] || exit 1
+      rm -rf "$vanish"
+      printf 'deleted during source copy\n' > "$TMP/$mode-deleted"
+      cat >/dev/null
+    ) < "$fifo" & vanisher=$!
+    rsync() {
+      local last
+      for last in "$@"; do :; done
+      if [ "$last" = "$dst/" ]; then
+        command rsync -v --out-format='copy:%n' "$@" > "$fifo"
+      else
+        command rsync "$@"
+      fi
+    }
     copy_repo "$src" "$dst" "$mode"
+    unset -f rsync
     wait "$vanisher"
+    [ -s "$TMP/$mode-deleted" ]
     [ ! -e "$vanish" ]
     cmp "$src/Probe.lean" "$dst/Probe.lean"
     cmp "$src/.lake/build/probe.olean" "$dst/.lake/build/probe.olean"

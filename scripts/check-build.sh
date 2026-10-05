@@ -7,8 +7,8 @@
 #   (f) shake-report.sh (REPORT only; never fails the run unless it cannot run)
 #   (g) chain-depth.py (REPORT only) (h) check-transparency.py
 #   (i) check-gly-rules.sh       (includes compiled CheckGenFirst.lean)
-#   (j) self-tests of the checkers: check-layers-selftest.sh and
-#       shake-report-selftest.sh (no Lean; fixtures in temporary directories)
+#   (j) source, shell, pool, policy and compiled proof-equation self-tests.
+#       Each B2a addition reports its elapsed time.
 # B1 import review: retain public exports and explicit tactic/test environments.
 # The count 224 is historical; use the current report for the live inventory.
 # (d) and (e) run when their script exists; else "SKIPPED: not yet present".
@@ -46,7 +46,22 @@ echo "=== (g) chain-depth"
 if python3 scripts/chain-depth.py; then RESULTS+=("(g) chain-depth: REPORT"); else RESULTS+=("(g) chain-depth: FAIL (could not run)"); FAILED=1; fi
 run h check-transparency python3 scripts/check-transparency.py
 run i check-gly-rules gate_with_slot bash -c 'source scripts/gate-common.sh; targets=$(lake env lean --run scripts/CheckGenFirst.lean --libraries) && gate_build $targets && bash scripts/check-gly-rules.sh'
-run j checker-self-tests bash -c 'bash scripts/check-layers-selftest.sh && bash scripts/shake-report-selftest.sh && bash scripts/precheck-selftest.sh'
+timed_selftest() {
+  local start=$SECONDS rc
+  "$@"; rc=$?
+  echo "self-test time: $* wall=$((SECONDS-start))s rc=$rc"
+  return "$rc"
+}
+checker_selftests() {
+  bash scripts/check-layers-selftest.sh &&
+  bash scripts/shake-report-selftest.sh &&
+  bash scripts/precheck-selftest.sh &&
+  python3 scripts/policy-controls.py &&
+  python3 scripts/audit-pool-selftest.py &&
+  timed_selftest python3 scripts/gate-shell-controls.py &&
+  timed_selftest gate_with_slot python3 scripts/check-proof-eqns-controls.py
+}
+run j checker-self-tests checker_selftests
 echo "=== summary"
 printf '%s\n' "${RESULTS[@]}"
 [ $FAILED -eq 0 ] && echo "check-build: PASS" || echo "check-build: FAIL"

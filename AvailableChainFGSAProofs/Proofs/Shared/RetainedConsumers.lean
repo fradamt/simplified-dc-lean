@@ -9,6 +9,10 @@ namespace AvailableChain.FGSA.Run
 
 open AvailableChain.SimplexFG Gen.Pure RetainedWalk
 
+private theorem consumer_parent_preceq (b : Block) : Block.Preceq b.parent b := by
+  cases b <;> first | exact block_preceq_refl _ |
+    exact Bool.or_eq_true_iff.mpr (Or.inr (block_preceq_refl _))
+
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 Blueprint 21 H.6:932–944; H.6-S:1012–1029. Class (iii).
 DC: INTENTIONAL; prior support is measured in the actual FG-SA proposer pool.
@@ -582,9 +586,7 @@ private theorem consumer_cone_fields (p : Params) (src dst : State p.n)
         (headVotes p dst s) (headSupport p dst s) Kc
         (Bool.or_eq_true_iff.mpr (Or.inl hyK)) ?_ hscore.majority ?_
       · intro C hAC hCK
-        have hbpar : Block.Preceq b.parent b := by
-          cases b <;> first | exact block_preceq_refl _ |
-            exact Bool.or_eq_true_iff.mpr (Or.inr (block_preceq_refl _))
+        have hbpar := consumer_parent_preceq b
         exact fgsa_retained_path_mem p src dst ht.baseTree ht.fg.closed
           (F_preceq_liveRoot p dst ht) s b C hadm hslot (Bool.and_eq_true_iff.mp hAC).2
           (block_preceq_trans hCK (block_preceq_trans hKA hbpar)) hw
@@ -600,6 +602,67 @@ private theorem consumer_cone_fields (p : Params) (src dst : State p.n)
     have hs := consumer_no_band p src D h.source_floor X C (block_preceq_trans hDK hKX) hp
     have ht := consumer_no_band p dst D h.target_floor X C (block_preceq_trans hDK hKX) hp
     exact ⟨fun hh => (hs hh).elim, fun hh => (ht hh).elim⟩
+
+private theorem consumer_retainedReads_at
+    (E : Generic.Env V) (rho : V2.D.Run V (fgsa p c))
+    (hE : V2.D.ExecutionValid E rho) (hN : V2.D.NoRestart rho) (hDelta : E.Δ = p.Δ)
+    (s : Slot)
+    (hSync : Gen.V2.Duty.LabelSyncOn E rho (fun o => ¬ isRowObject o)
+      (SA.proposalTime p.toParams s - p.Δ) (SA.voteTime p.toParams s))
+    {ip : Nat} {x : V} (hx : x ∈ rho.honest)
+    (hip : rho.events[ip]? = some (.tick x (SA.proposalTime p.toParams s)))
+    (hseat : rho.seatOf (.prop s) ⟨0, Nat.one_pos⟩ = x)
+    (N : NamedProposal p.n)
+    (hem : (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) ∈
+      rho.emitsAt E ip)
+    (D : FGBlock (Fin p.n))
+    (hinput : ∀ y ∈ rho.honest, ∀ ih,
+      rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s)) →
+      RetainedConeInput p
+        (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D)
+    (hroots : NamedRootCollisionFree p c E rho)
+    (y : V) (hy : y ∈ rho.honest) (ih : Nat)
+    (hih : rho.events[ih]? = some (.tick y (SA.voteTime p.toParams s))) :
+      ∃ Kc, RetainedReadPremises p
+        (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
+        (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D N.erase Kc := by
+  let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s)
+  let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)
+  have hi := hinput y hy ih hih
+  have hr : Reachable p src := Reachable.tick _ (reachable_stateBefore E rho ip x)
+  have hs := (storeBundle_of_reachable p src hr).cstore
+  have ht : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ih y) _
+  have hm := hem
+  rw [(V2.D.Run.step_tick_eq E rho hip).2] at hm
+  have hp := (fgsa_emits_proposal E rho _ x _ s _).mp hm
+  have hparent := fgsa_walkRun_proposal_parent p src s _ N hp.2.2.2
+  have hslot := (fgsa_scoreRun_proposal_pools p src s _ N hp.2.2.2).1
+  have hstarts := consumer_cone_starts p src dst hs s D N.erase hparent.2.2.symm hi
+  have hay := hstarts.2.2.1
+  obtain ⟨dl, cut, hD, _, hlt, hb, _, hc, _⟩ := hSync
+  have hd : dl (SA.proposalTime p.toParams s) ≤ SA.voteTime p.toParams s := by
+    have hbound := hb (SA.proposalTime p.toParams s)
+    rw [max_eq_left (by linarith [p.deltaPos]), hDelta] at hbound
+    exact hbound.trans (by unfold SA.proposalTime SA.voteTime; ring_nf; rfl)
+  have hF : Block.Preceq (eraseFG (storeAt p c E rho ih y).fg.F) N.erase := by
+    have hbpar := consumer_parent_preceq N.erase
+    have hh := block_preceq_trans (F_preceq_liveRoot p dst ht) (block_preceq_trans hay hbpar)
+    change Block.Preceq (eraseFG (rho.stateBefore E ih y).st.fg.F) N.erase
+    simpa only [dst, clock_fg] using hh
+  have hadm := fgsa_gateReceipt_block_to_tick (hroots := hroots) E rho hE hN hDelta dl cut hD
+    (SA.proposalTime p.toParams s)
+    (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) N.erase rfl
+    (Or.inl ⟨x, hx, ip, hip, hem⟩) (hlt _) (hd.trans hc) hy hih hd hF
+  have hadm' : N.erase ∈ (rho.stateBefore E ih y).st.base.blocks := hadm
+  apply consumer_cone_fields p src dst hs ht s D N.erase hparent.2.2.symm hslot
+    (by simpa only [dst, clock_base_blocks] using hadm') _
+    hi
+  intro P hP hsP
+  apply fgsa_walkRun_current_block_eq E rho hE s hparent.1 hx hip hseat N hem
+  · have hb := (ht.baseTree _).mpr ⟨P, hP, rfl⟩
+    simpa only [dst, clock_base_blocks] using hb
+  · exact (eraseFG_slot P).trans hsP
 
 /-- [ROOT-DIGEST-2 W2; DC named and HEAD interfaces]
 ROOT-DIGEST W2b. Blueprint 21 H.17:2958–3012. Class (iii).
@@ -635,44 +698,8 @@ theorem fgsa_retainedReads_H17
         (clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s))
         (clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)) s D N.erase Kc := by
   intro y hy ih hih
-  let src := clock p (rho.stateBefore E ip x).st (SA.proposalTime p.toParams s)
-  let dst := clock p (rho.stateBefore E ih y).st (SA.voteTime p.toParams s)
-  have hi := hinput y hy ih hih
-  have hr : Reachable p src := Reachable.tick _ (reachable_stateBefore E rho ip x)
-  have hs := (storeBundle_of_reachable p src hr).cstore
-  have ht : CStoreInv p dst := cstoreInv_clock p _ (cstoreInv_stateBefore E rho ih y) _
-  have hm := hem
-  rw [(V2.D.Run.step_tick_eq E rho hip).2] at hm
-  have hp := (fgsa_emits_proposal E rho _ x _ s _).mp hm
-  have hparent := fgsa_walkRun_proposal_parent p src s _ N hp.2.2.2
-  have hslot := (fgsa_scoreRun_proposal_pools p src s _ N hp.2.2.2).1
-  have hstarts := consumer_cone_starts p src dst hs s D N.erase hparent.2.2.symm hi
-  have hay := hstarts.2.2.1
-  obtain ⟨dl, cut, hD, _, hlt, hb, _, hc, _⟩ := hSync
-  have hd : dl (SA.proposalTime p.toParams s) ≤ SA.voteTime p.toParams s := by
-    have hbound := hb (SA.proposalTime p.toParams s)
-    rw [max_eq_left (by linarith [p.deltaPos]), hDelta] at hbound
-    exact hbound.trans (by unfold SA.proposalTime SA.voteTime; ring_nf; rfl)
-  have hF : Block.Preceq (eraseFG (storeAt p c E rho ih y).fg.F) N.erase := by
-    have hbpar : Block.Preceq N.erase.parent N.erase := by
-      cases N.erase <;> first | exact block_preceq_refl _ |
-        exact Bool.or_eq_true_iff.mpr (Or.inr (block_preceq_refl _))
-    have hh := block_preceq_trans (F_preceq_liveRoot p dst ht) (block_preceq_trans hay hbpar)
-    change Block.Preceq (eraseFG (rho.stateBefore E ih y).st.fg.F) N.erase
-    simpa only [dst, clock_fg] using hh
-  have hadm := fgsa_gateReceipt_block_to_tick (hroots := hroots) E rho hE hN hDelta dl cut hD
-    (SA.proposalTime p.toParams s)
-    (⟨.seat (.prop s) ⟨0, Nat.one_pos⟩, .proposal N⟩ : Obj p) N.erase rfl
-    (Or.inl ⟨x, hx, ip, hip, hem⟩) (hlt _) (hd.trans hc) hy hih hd hF
-  have hadm' : N.erase ∈ (rho.stateBefore E ih y).st.base.blocks := hadm
-  apply consumer_cone_fields p src dst hs ht s D N.erase hparent.2.2.symm hslot
-    (by simpa only [dst, clock_base_blocks] using hadm') _
-    hi
-  intro P hP hsP
-  apply fgsa_walkRun_current_block_eq E rho hE s hparent.1 hx hip hseat N hem
-  · have hb := (ht.baseTree _).mpr ⟨P, hP, rfl⟩
-    simpa only [dst, clock_base_blocks] using hb
-  · exact (eraseFG_slot P).trans hsP
+  exact consumer_retainedReads_at E rho hE hN hDelta s hSync hx hip hseat N hem D
+    hinput hroots y hy ih hih
 
 end AvailableChain.FGSA.Run
 end
